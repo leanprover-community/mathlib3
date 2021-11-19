@@ -58,7 +58,6 @@ open_locale filter ennreal measure_theory nnreal topological_space
 
 local attribute [instance] emetric.second_countable_of_sigma_compact
 
-
 variables {α : Type*} [metric_space α] {m0 : measurable_space α}
 {μ : measure α} (v : vitali_family μ)
 include v
@@ -70,7 +69,6 @@ Do *not* use this definition: it is only a temporary device to show that this ra
 everywhere to the Radon-Nikodym derivative. -/
 noncomputable def lim_ratio (ρ : measure α) (x : α) : ℝ≥0∞ :=
 lim (v.filter_at x) (λ a, ρ a / μ a)
-
 
 /-- For almost every point `x`, sufficiently small sets in a Vitali family around `x` have positive
 measure. (This is a nontrivial result, following from the covering property of Vitali families). -/
@@ -88,8 +86,8 @@ begin
     rcases hx ε εpos with ⟨a, a_sets, ax, μa⟩,
     exact ⟨a, ⟨a_sets, μa⟩, ax⟩ },
   refine le_antisymm _ bot_le,
-  calc μ s ≤ ∑' (x : h.t), μ (h.u x) : h.measure_le_tsum
-  ... = ∑' (x : h.t), 0 : by { congr, ext1 x, exact h.u_mem_f x.2 }
+  calc μ s ≤ ∑' (x : h.index), μ (h.covering x) : h.measure_le_tsum
+  ... = ∑' (x : h.index), 0 : by { congr, ext1 x, exact h.covering_mem x.2 }
   ... = 0 : by simp only [tsum_zero, add_zero]
 end
 
@@ -122,12 +120,12 @@ begin
     apply frequently.mono this,
     rintros a ⟨ρa, av, aU⟩,
     exact ⟨ρa, aU⟩ },
-  haveI : encodable h.t := h.t_countable.to_encodable,
-  calc ρ s ≤ ∑' (x : h.t), ρ (h.u x) : h.measure_le_tsum_of_absolutely_continuous hρ
-  ... ≤ ∑' (x : h.t), ν (h.u x) : ennreal.tsum_le_tsum (λ x, (h.u_mem_f x.2).1)
-  ... = ν (⋃ (x : h.t), h.u x) :
-    by rw [measure_Union h.u_disjoint_subtype (λ i, h.measurable_set_u i.2)]
-  ... ≤ ν U : measure_mono (Union_subset (λ i, (h.u_mem_f i.2).2))
+  haveI : encodable h.index := h.index_countable.to_encodable,
+  calc ρ s ≤ ∑' (x : h.index), ρ (h.covering x) : h.measure_le_tsum_of_absolutely_continuous hρ
+  ... ≤ ∑' (x : h.index), ν (h.covering x) : ennreal.tsum_le_tsum (λ x, (h.covering_mem x.2).1)
+  ... = ν (⋃ (x : h.index), h.covering x) :
+    by rw [measure_Union h.covering_disjoint_subtype (λ i, h.measurable_set_u i.2)]
+  ... ≤ ν U : measure_mono (Union_subset (λ i, (h.covering_mem i.2).2))
   ... ≤ ν s + ε : νU
 end
 
@@ -215,9 +213,8 @@ begin
     ((measure.absolutely_continuous.refl μ).smul d) s' (λ x hx, hd x hx.1)
 end
 
-/-- If `ρ` is absolutely continuous with respect to `μ`, then for almost every `x`, the
-ratio `ρ a / μ a` converges to a finite limit as `a` shrinks to `x` along a
-Vitali family for `μ`. -/
+/-- If `ρ` is absolutely continuous with respect to `μ`, then for almost every `x`,
+the ratio `ρ a / μ a` converges as `a` shrinks to `x` along a Vitali family for `μ`. -/
 theorem ae_tendsto_div :
   ∀ᵐ x ∂μ, ∃ c, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 c) :=
 begin
@@ -314,7 +311,7 @@ begin
     { refine or.inr (mem_Union.2 ⟨spanning_sets_index (ρ + μ) x, _⟩),
       exact subset_to_measurable _ _ ⟨⟨h, hx⟩, mem_spanning_sets_index _ _⟩ },
     { exact or.inl (subset_to_measurable μ sᶜ h) } },
-  -- it remains to check the nontrivial part that these sets have zero measure intersection
+  -- it remains to check the nontrivial part that these sets have zero measure intersection.
   -- it suffices to do it for fixed `m` and `n`, as one is taking countable unions.
   suffices H : ∀ (m n : ℕ), μ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) = 0,
   { have A : (to_measurable μ sᶜ ∪ (⋃ n, to_measurable (ρ + μ) (u n))) ∩
@@ -429,6 +426,9 @@ begin
   rwa h'x at hx,
 end
 
+/-- If, for all `x` in a set `s`, one has frequently `ρ a / μ a < p`, then `ρ s ≤ p * μ s`, as
+proved in `measure_le_of_frequently_le`. Since `ρ a / μ a` tends almost everywhere to
+`v.lim_ratio_meas hρ x`, the same property holds for sets `s` on which `v.lim_ratio_meas hρ < p`. -/
 lemma measure_le_mul_of_subset_lim_ratio_meas_lt
   {p : ℝ≥0} {s : set α} (h : s ⊆ {x | v.lim_ratio_meas hρ x < p}) :
   ρ s ≤ p * μ s :=
@@ -450,6 +450,9 @@ begin
   simp only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff]
 end
 
+/-- If, for all `x` in a set `s`, one has frequently `q < ρ a / μ a`, then `q * μ s ≤ ρ s`, as
+proved in `measure_le_of_frequently_le`. Since `ρ a / μ a` tends almost everywhere to
+`v.lim_ratio_meas hρ x`, the same property holds for sets `s` on which `q < v.lim_ratio_meas hρ`. -/
 lemma mul_measure_le_of_subset_lt_lim_ratio_meas
   {q : ℝ≥0} {s : set α} (h : s ⊆ {x | (q : ℝ≥0∞) < v.lim_ratio_meas hρ x}) :
   (q : ℝ≥0∞) * μ s ≤ ρ s :=
@@ -474,6 +477,7 @@ begin
   exact ennreal.mul_le_of_le_div ha.le
 end
 
+/-- The points with `v.lim_ratio_meas hρ x = ∞` have measure `0` for `μ`. -/
 lemma measure_lim_ratio_meas_top : μ {x | v.lim_ratio_meas hρ x = ∞} = 0 :=
 begin
   refine null_of_locally_null _ (λ x hx, _),
@@ -499,6 +503,7 @@ begin
   exact eventually_at_top.2 ⟨1, A⟩,
 end
 
+/-- The points with `v.lim_ratio_meas hρ x = 0` have measure `0` for `ρ`. -/
 lemma measure_lim_ratio_meas_zero : ρ {x | v.lim_ratio_meas hρ x = 0} = 0 :=
 begin
   refine null_of_locally_null _ (λ x hx, _),
@@ -523,9 +528,17 @@ begin
   exact A
 end
 
+/-- As an intermediate step to show that `μ.with_density (v.lim_ratio_meas hρ) = ρ`, we show here
+that `μ.with_density (v.lim_ratio_meas hρ) ≤ t^2 ρ` for any `t > 1`. -/
 lemma with_density_le_mul {s : set α} (hs : measurable_set s) {t : ℝ≥0} (ht : 1 < t) :
   μ.with_density (v.lim_ratio_meas hρ) s ≤ t^2 * ρ s :=
 begin
+  /- We cut `s` into the sets where `v.lim_ratio_meas hρ = 0`, where `v.lim_ratio_meas hρ = ∞`, and
+  where `v.lim_ratio_meas hρ ∈ [t^n, t^(n+1))` for `n : ℤ`. The first and second have measure `0`.
+  For the latter, since `v.lim_ratio_meas hρ` fluctuates by at most `t` on this slice, we can use
+  `measure_le_mul_of_subset_lim_ratio_meas_lt` and `mul_measure_le_of_subset_lt_lim_ratio_meas` to
+  show that the two measures are comparable up to `t` (in fact `t^2` for technical reasons of
+  strict inequalities). -/
   have t_ne_zero' : t ≠ 0 := (zero_lt_one.trans ht).ne',
   have t_ne_zero : (t : ℝ≥0∞) ≠ 0, by simpa only [ennreal.coe_eq_zero, ne.def] using t_ne_zero',
   let ν := μ.with_density (v.lim_ratio_meas hρ),
@@ -573,17 +586,24 @@ begin
         exact nnreal.inv_lt_one ht,
       end },
   calc ν s = ν (s ∩ f⁻¹' {0}) + ν (s ∩ f⁻¹' {∞}) + ∑' (n : ℤ), ν (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :
-    measure_eq_measure_preimage_add_measure_tsum_Ico_pow ν f_meas hs ht
+    measure_eq_measure_preimage_add_measure_tsum_Ico_zpow ν f_meas hs ht
   ... ≤ ((t : ℝ≥0∞)^2 • ρ) (s ∩ f⁻¹' {0}) + ((t : ℝ≥0∞)^2 • ρ) (s ∩ f⁻¹' {∞})
           + ∑' (n : ℤ), ((t : ℝ≥0∞)^2 • ρ) (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :
             add_le_add (add_le_add A B) (ennreal.tsum_le_tsum C)
   ... = ((t : ℝ≥0∞)^2 • ρ) s :
-    (measure_eq_measure_preimage_add_measure_tsum_Ico_pow ((t : ℝ≥0∞)^2 • ρ) f_meas hs ht).symm
+    (measure_eq_measure_preimage_add_measure_tsum_Ico_zpow ((t : ℝ≥0∞)^2 • ρ) f_meas hs ht).symm
 end
 
+/-- As an intermediate step to show that `μ.with_density (v.lim_ratio_meas hρ) = ρ`, we show here
+that `ρ ≤ t μ.with_density (v.lim_ratio_meas hρ)` for any `t > 1`. -/
 lemma le_mul_with_density {s : set α} (hs : measurable_set s) {t : ℝ≥0} (ht : 1 < t) :
   ρ s ≤ t * μ.with_density (v.lim_ratio_meas hρ) s :=
 begin
+  /- We cut `s` into the sets where `v.lim_ratio_meas hρ = 0`, where `v.lim_ratio_meas hρ = ∞`, and
+  where `v.lim_ratio_meas hρ ∈ [t^n, t^(n+1))` for `n : ℤ`. The first and second have measure `0`.
+  For the latter, since `v.lim_ratio_meas hρ` fluctuates by at most `t` on this slice, we can use
+  `measure_le_mul_of_subset_lim_ratio_meas_lt` and `mul_measure_le_of_subset_lt_lim_ratio_meas` to
+  show that the two measures are comparable up to `t`. -/
   have t_ne_zero' : t ≠ 0 := (zero_lt_one.trans ht).ne',
   have t_ne_zero : (t : ℝ≥0∞) ≠ 0, by simpa only [ennreal.coe_eq_zero, ne.def] using t_ne_zero',
   let ν := μ.with_density (v.lim_ratio_meas hρ),
@@ -619,12 +639,12 @@ begin
       end
     ... = t * ∫⁻ x in s ∩ f⁻¹' I, f x ∂μ : lintegral_const_mul _ f_meas },
   calc ρ s = ρ (s ∩ f⁻¹' {0}) + ρ (s ∩ f⁻¹' {∞}) + ∑' (n : ℤ), ρ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :
-    measure_eq_measure_preimage_add_measure_tsum_Ico_pow ρ f_meas hs ht
+    measure_eq_measure_preimage_add_measure_tsum_Ico_zpow ρ f_meas hs ht
   ... ≤ (t • ν) (s ∩ f⁻¹' {0}) + (t • ν) (s ∩ f⁻¹' {∞})
           + ∑' (n : ℤ), (t • ν) (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :
             add_le_add (add_le_add A B) (ennreal.tsum_le_tsum C)
   ... = (t • ν) s :
-    (measure_eq_measure_preimage_add_measure_tsum_Ico_pow (t • ν) f_meas hs ht).symm
+    (measure_eq_measure_preimage_add_measure_tsum_Ico_zpow (t • ν) f_meas hs ht).symm
 end
 
 theorem with_density_lim_ratio_meas_eq : μ.with_density (v.lim_ratio_meas hρ) = ρ :=
@@ -653,6 +673,14 @@ begin
     exact v.le_mul_with_density hρ hs ht }
 end
 
+/-- Weak version of the main theorem on differentiation of measures: given a Vitali family `v`
+for a locally finite measure `μ`, and another locally finite measure `ρ`, then for `μ`-almost
+every `x` the ratio `ρ a / μ a` converges, when `a` shrinks to `x` along the Vitali family,
+towards the Radon-Nikodym derivative of `ρ` with respect to `μ`.
+
+This version assumes that `ρ` is absolutely continuous with respect to `μ`. The general version
+without this superfluous assumption is `vitali_family.ae_tendsto_rn_deriv`.
+-/
 theorem ae_tendsto_rn_deriv_of_absolutely_continuous :
   ∀ᵐ x ∂μ, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 (ρ.rn_deriv μ x)) :=
 begin
@@ -674,8 +702,8 @@ theorem ae_tendsto_rn_deriv :
   ∀ᵐ x ∂μ, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 (ρ.rn_deriv μ x)) :=
 begin
   let t := μ.with_density (ρ.rn_deriv μ),
-  have eq_add : ρ = singular_part ρ μ + t := have_lebesgue_decomposition_add _ _,
-  have A : ∀ᵐ x ∂μ, tendsto (λ a, singular_part ρ μ a / μ a) (v.filter_at x) (𝓝 0) :=
+  have eq_add : ρ = ρ.singular_part μ + t := have_lebesgue_decomposition_add _ _,
+  have A : ∀ᵐ x ∂μ, tendsto (λ a, ρ.singular_part μ a / μ a) (v.filter_at x) (𝓝 0) :=
     v.ae_eventually_measure_zero_of_singular (mutually_singular_singular_part ρ μ),
   have B : ∀ᵐ x ∂μ, t.rn_deriv μ x = ρ.rn_deriv μ x :=
     rn_deriv_with_density μ (measurable_rn_deriv ρ μ),

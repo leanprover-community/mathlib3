@@ -68,7 +68,7 @@ structure vitali_family {m : measurable_space α} (μ : measure α) :=
 (nontrivial : ∀ (x : α) (ε > (0 : ℝ)), ∃ y ∈ sets_at x, y ⊆ closed_ball x ε)
 (covering : ∀ (s : set α) (f : Π (x : α), set (set α)), (∀ x ∈ s, f x ⊆ sets_at x) →
   (∀ (x ∈ s) (ε > (0 : ℝ)), ∃ a ∈ f x, a ⊆ closed_ball x ε) →
-  ∃ (t : set α) (u : α → set α), t ⊆ s ∧ t.pairwise (disjoint on u) ∧ (∀ x ∈ t, u x ∈ f x)
+  ∃ (t : set α) (u : α → set α), t ⊆ s ∧ t.pairwise_disjoint u ∧ (∀ x ∈ t, u x ∈ f x)
   ∧ μ (s \ ⋃ x ∈ t, u x) = 0)
 
 namespace vitali_family
@@ -102,7 +102,7 @@ variables {v : vitali_family μ} {f : α → set (set α)} {s : set α} (h : v.f
 include h
 
 theorem exists_disjoint_covering_ae :
-  ∃ (t : set α) (u : α → set α), t ⊆ s ∧ t.pairwise (disjoint on u) ∧
+  ∃ (t : set α) (u : α → set α), t ⊆ s ∧ t.pairwise_disjoint u ∧
     (∀ x ∈ t, u x ∈ v.sets_at x ∩ f x) ∧ μ (s \ ⋃ x ∈ t, u x) = 0 :=
 v.covering s (λ x, v.sets_at x ∩ f x) (λ x hx, inter_subset_left _ _) h
 
@@ -119,7 +119,7 @@ h.exists_disjoint_covering_ae.some_spec.some
 lemma index_subset : h.index ⊆ s :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.1
 
-lemma covering_disjoint : h.index.pairwise (disjoint on h.covering) :=
+lemma covering_disjoint : h.index.pairwise_disjoint h.covering :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.2.1
 
 lemma covering_disjoint_subtype : pairwise (disjoint on (λ x : h.index, h.covering x)) :=
@@ -135,8 +135,8 @@ lemma measure_diff_bUnion : μ (s \ ⋃ x ∈ h.index, h.covering x) = 0 :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.2.2.2
 
 lemma index_countable [second_countable_topology α] : countable h.index :=
-countable_of_nonempty_interior_of_disjoint h.covering
-  (λ x hx, v.nonempty_interior _ _ (h.covering_mem_family hx)) h.covering_disjoint
+h.covering_disjoint.countable_of_nonempty_interior
+  (λ x hx, v.nonempty_interior _ _ (h.covering_mem_family hx))
 
 protected lemma measurable_set_u {x : α} (hx : x ∈ h.index) : measurable_set (h.covering x) :=
 v.measurable_set' x _ (h.covering_mem_family hx)

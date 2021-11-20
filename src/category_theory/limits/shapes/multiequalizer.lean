@@ -249,6 +249,29 @@ def of_ι (I : multicospan_index C) (P : C) (ι : Π a, P ⟶ I.left a)
 lemma condition (b) :
   K.ι (I.fst_to b) ≫ I.fst b = K.ι (I.snd_to b) ≫ I.snd b := by simp
 
+/-- This definition provides a convenient way to show that a multifork is a limit. -/
+@[simps]
+def is_limit.mk
+  (lift : Π (E : multifork I), E.X ⟶ K.X)
+  (fac : ∀ (E : multifork I) (i : I.L), lift E ≫ K.ι i = E.ι i)
+  (uniq : ∀ (E : multifork I) (m : E.X ⟶ K.X),
+    (∀ i : I.L, m ≫ K.ι i = E.ι i) → m = lift E) : is_limit K :=
+{ lift := lift,
+  fac' := begin
+    rintros E (a|b),
+    { apply fac },
+    { rw [← E.w (walking_multicospan.hom.fst b), ← K.w (walking_multicospan.hom.fst b),
+        ← category.assoc],
+      congr' 1,
+      apply fac }
+  end,
+  uniq' := begin
+    rintros E m hm,
+    apply uniq,
+    intros i,
+    apply hm,
+  end }
+
 end multifork
 
 namespace multicofork
@@ -293,6 +316,29 @@ def of_π (I : multispan_index C) (P : C) (π : Π b, I.right b ⟶ P)
 @[reassoc]
 lemma condition (a) :
   I.fst a ≫ K.π (I.fst_from a) = I.snd a ≫ K.π (I.snd_from a) := by simp
+
+/-- This definition provides a convenient way to show that a multicofork is a colimit. -/
+@[simps]
+def is_colimit.mk
+  (desc : Π (E : multicofork I), K.X ⟶ E.X)
+  (fac : ∀ (E : multicofork I) (i : I.R), K.π i ≫ desc E = E.π i)
+  (uniq : ∀ (E : multicofork I) (m : K.X ⟶ E.X),
+    (∀ i : I.R, K.π i ≫ m = E.π i) → m = desc E) : is_colimit K :=
+{ desc := desc,
+  fac' := begin
+    rintros S (a|b),
+    { rw [← K.w (walking_multispan.hom.fst a), ← S.w (walking_multispan.hom.fst a),
+        category.assoc],
+      congr' 1,
+      apply fac },
+    { apply fac },
+  end,
+  uniq' := begin
+    intros S m hm,
+    apply uniq,
+    intros i,
+    apply hm
+  end }
 
 end multicofork
 

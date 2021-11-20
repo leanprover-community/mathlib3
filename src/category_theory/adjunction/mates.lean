@@ -318,6 +318,7 @@ instance : inhabited (lax_functor_to_Cat Cat) :=
    map_id := λ _, 𝟙 _,
    map_comp := λ _ _ _ _ _, 𝟙 _ }⟩
 
+#set_option profiler true
 
 def transfer_lax_functor (L : lax_functor_to_Cat C)
   (Rmap : ∀ {X Y : C} (f : X ⟶ Y), L.obj Y ⟶ L.obj X)
@@ -331,42 +332,30 @@ def transfer_lax_functor (L : lax_functor_to_Cat C)
     (adjunction.comp _ _ (adj g.unop) (adj f.unop)) (adj (f ≫ g).unop) (L.map_comp g.unop f.unop),
   id_comp := λ X Y f, by {
     rw transfer_nat_trans_self_eq₂ _ (congr_arg quiver.hom.unop (id_comp f)),
-    ext, induction x using opposite.rec,
-    induction X using opposite.rec, induction Y using opposite.rec,
-    apply quiver.hom.unop_inj, dsimp, set f' := f.unop,
-    erw [transfer_nat_trans_self_app, L.comp_id],
-    rw [adjunction.comp, eq_to_hom_trans_assoc, nat_trans.comp_app, eq_to_hom_app], erw id_comp,
-    dsimp, rw id_comp,
-    let : (L.to_prefunctor.map f').obj ((Rmap f').obj ((Rmap (𝟙 X)).obj x)) =
-      (Rmap f' ⋙ L.map f').obj ((Rmap (𝟙 X)).obj x) := rfl, erw this,
-    --rw functor.map_comp, dsimp, erw ← nat_trans.naturality_assoc (adj f').unit,
-    --rw ← congr_arg (L.map_id X).app ((Rmap f').comp_obj (L.to_prefunctor.map f') ((Rmap (𝟙 X)).obj x)),
-    change _ ≫ (Rmap f').map ((L.map_id X).app ((Rmap f' ⋙ L.map f').obj ((Rmap (𝟙 X)).obj x)) ≫ _) ≫ _ = _,
-
-    have : (L.map_id X).app ((L.to_prefunctor.map f').obj ((Rmap f').obj ((Rmap (𝟙 X)).obj x)))
-      = (L.map_id X).app ((Rmap f' ⋙ L.map f').obj ((Rmap (𝟙 X)).obj x)) := rfl,
-      erw (Rmap f').comp_obj, rw this,
-    --erw ← (Rmap f').comp_obj (L.to_prefunctor.map f') ((Rmap (𝟙 X)).obj x),
-    --dsimp [-functor.comp_obj],-- rw id_comp,
-    --have := (Rmap f').comp_obj (L.to_prefunctor.map f') ((Rmap (𝟙 X)).obj x),
-    --rw ← this,
-    --have := (L.map_id X).naturality_assoc ((adj f').counit.app ((Rmap (𝟙 X)).obj x)) ((adj (𝟙 X)).counit.app x),
-    --rw ← this,
-    rw ← nat_trans.naturality_assoc,
-
-    --iterate 2 {erw transfer_nat_trans_self_app},
-    --erw L.comp_id, rw [adjunction.comp, adjunction.id],
-    --simp [transfer_nat_trans_self_app],
-    --, adjunction.comp, adjunction.id
-    --rw unop_id,
-    simp,
-     dsimp,
-
-    rw ← functor.map_comp,
-
-  rw comp_id, },
-  comp_id := ,
-  assoc := }
+    ext, apply quiver.hom.unop_inj, dsimp, iterate 2 {rw transfer_nat_trans_self_app},
+    refine eq.trans _ ((adj f.unop).right_triangle_components_assoc _),
+    rw [L.comp_id, adjunction.id, adjunction.comp, assoc, ←functor.map_comp_assoc],
+    congr' 3, {simp, erw [←nat_trans.naturality_assoc, id_comp], refl}, simpa },
+  comp_id := λ X Y f, by {
+    rw transfer_nat_trans_self_eq₂ _ (congr_arg quiver.hom.unop (comp_id f)),
+    ext, apply quiver.hom.unop_inj, dsimp, iterate 2 {rw transfer_nat_trans_self_app},
+    rw [L.id_comp, adjunction.id, adjunction.comp, assoc], simp,
+    erw [(adj f.unop).right_triangle_components_assoc], symmetry, apply id_comp },
+  assoc := λ X Y Z W f g h, by {
+    rw transfer_nat_trans_self_eq₂ _ (congr_arg quiver.hom.unop (assoc f g h)),
+    ext, apply quiver.hom.unop_inj, dsimp, set f := f.unop, set g := g.unop, set h := h.unop,
+    rw ← assoc ((Rmap h).map _), iterate 4 {rw transfer_nat_trans_self_app},
+    iterate 2 { erw (adj ((h ≫ g) ≫ f)).unit.naturality_assoc,
+      rw [functor.comp_map, ←functor.map_comp] }, congr' 3,
+    { iterate 2 {erw nat_trans.naturality_assoc},
+      iterate 4 {rw adjunction.comp}, dsimp, iterate 4 {rw id_comp},
+      iterate 2 {rw ← functor.map_comp_assoc}, rw (L.map (h ≫ g)).map_comp_assoc,
+      erw (adj (h ≫ g)).counit.naturality, rw (adj (h ≫ g)).left_triangle_components_assoc,
+      rw functor.id_map, rw (L.map f).map_comp,
+      iterate 2 {rw ← assoc ((L.map_comp (h ≫ g) f).app _)},
+      have := nat_trans.congr_app (L.assoc h g f) _,
+      rw [nat_trans.comp_app, whisker_right_app] at this, rw this,
+      simp, erw nat_trans.naturality_assoc, refl }, simpa } }
 
 
 namespace lax_functor

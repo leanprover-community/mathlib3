@@ -64,11 +64,15 @@ begin
     obtain ⟨γ, rfl⟩ := quotient.exact hxy,
     rw set.mem_Union,
     exact ⟨γ⁻¹, γ • x, hy, inv_smul_smul γ x⟩ },
-  {
-    intros hx,
--- ALEX HOMEWORK
-    sorry,
-  },
+  { intros hx,
+    rw set.mem_Union at hx,
+    obtain ⟨γ, hγ⟩ := hx,
+    rw [set.mem_preimage, set.mem_image_iff_bex],
+    refine ⟨γ⁻¹ • x, _, by simp only [quotient.eq]; use γ⁻¹⟩,
+    obtain ⟨u, hu₁, hu₂⟩ := hγ,
+    rw ← hu₂,
+    convert hu₁,
+    simp only [inv_smul_smul], },
 end
 
 def homeomorph.smul' {α : Type*} [topological_space α] {G : Type*} [group G]

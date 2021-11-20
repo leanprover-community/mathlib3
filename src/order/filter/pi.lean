@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Alex Kontorovich
 -/
-import order.filter.basic
+import order.filter.bases
 
 /-!
 # (Co)product of a family of filters
@@ -141,8 +141,16 @@ protected def Coprod (f : Π i, filter (α i)) : filter (Π i, α i) :=
 ⨆ i : ι, comap (eval i) (f i)
 
 lemma mem_Coprod_iff {s : set (Π i, α i)} :
-  (s ∈ (filter.Coprod f)) ↔ (∀ i : ι, (∃ t₁ ∈ f i, eval i ⁻¹' t₁ ⊆ s)) :=
+  (s ∈ filter.Coprod f) ↔ (∀ i : ι, (∃ t₁ ∈ f i, eval i ⁻¹' t₁ ⊆ s)) :=
 by simp [filter.Coprod]
+
+lemma compl_mem_Coprod_iff {s : set (Π i, α i)} :
+  sᶜ ∈ filter.Coprod f ↔ ∃ t : Π i, set (α i), (∀ i, (t i)ᶜ ∈ f i) ∧ s ⊆ set.pi univ (λ i, t i) :=
+begin
+  rw [(surjective_pi_map (λ i, @compl_surjective (set (α i)) _)).exists],
+  simp_rw [mem_Coprod_iff, classical.skolem, exists_prop, @subset_compl_comm _ _ s,
+    ← preimage_compl, ← subset_Inter_iff, ← univ_pi_eq_Inter, compl_compl]
+end
 
 lemma Coprod_ne_bot_iff' :
   ne_bot (filter.Coprod f) ↔ (∀ i, nonempty (α i)) ∧ ∃ d, ne_bot (f d) :=

@@ -3,7 +3,6 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import control.monad.basic
 import data.nat.basic
 
 /-!
@@ -236,6 +235,12 @@ end
 @[simp] lemma length_injective [subsingleton α] : injective (length : list α → ℕ) :=
 length_injective_iff.mpr $ by apply_instance
 
+lemma length_eq_two {l : list α} : l.length = 2 ↔ ∃ a b, l = [a, b] :=
+⟨match l with [a, b], _ := ⟨a, b, rfl⟩ end, λ ⟨a, b, e⟩, e.symm ▸ rfl⟩
+
+lemma length_eq_three {l : list α} : l.length = 3 ↔ ∃ a b c, l = [a, b, c] :=
+⟨match l with [a, b, c], _ := ⟨a, b, c, rfl⟩ end, λ ⟨a, b, c, e⟩, e.symm ▸ rfl⟩
+
 /-! ### set-theoretic notation of lists -/
 
 lemma empty_eq : (∅ : list α) = [] := by refl
@@ -373,8 +378,8 @@ begin
   case nil { rw nil_append, split,
     { rintro rfl, left, exact ⟨_, rfl, rfl⟩ },
     { rintro (⟨a', rfl, rfl⟩ | ⟨a', H, rfl⟩), {refl}, {rw [← append_assoc, ← H], refl} } },
-  case cons : a as ih {
-    cases c,
+  case cons : a as ih
+  { cases c,
     { simp only [cons_append, nil_append, false_and, exists_false, false_or, exists_eq_left'],
       exact eq_comm },
     { simp only [cons_append, @eq_comm _ a, ih, and_assoc, and_or_distrib_left,
@@ -2376,7 +2381,7 @@ begin
   by simp [←h (pure b)],
   induction l; intro,
   { simp },
-  { simp only [mfoldl, foldl, ←l_ih] with monad_norm }
+  { simp only [mfoldl, foldl, ←l_ih] with functor_norm }
 end
 
 @[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},
@@ -3543,11 +3548,11 @@ theorem sublist.erasep {l₁ l₂ : list α} (s : l₁ <+ l₂) : l₁.erasep p 
 begin
   induction s,
   case list.sublist.slnil { refl },
-  case list.sublist.cons : l₁ l₂ a s IH {
-    by_cases h : p a; simp [h],
+  case list.sublist.cons : l₁ l₂ a s IH
+  { by_cases h : p a; simp [h],
     exacts [IH.trans (erasep_sublist _), IH.cons _ _ _] },
-  case list.sublist.cons2 : l₁ l₂ a s IH {
-    by_cases h : p a; simp [h],
+  case list.sublist.cons2 : l₁ l₂ a s IH
+  { by_cases h : p a; simp [h],
     exacts [s, IH.cons2 _ _ _] }
 end
 

@@ -75,15 +75,7 @@ instance boundaries_additive : (boundaries_functor V c i).additive := {}
 variables [has_equalizers V] [has_cokernels V]
 
 instance homology_additive : (homology_functor V c i).additive :=
-{ map_zero' := λ C D, begin
-    dsimp [homology_functor],
-    ext,
-    simp only [limits.cokernel.π_desc, limits.comp_zero, homology.π_map],
-    convert zero_comp,
-    ext,
-    simp,
-  end,
-  map_add' := λ C D f g, begin
+{ map_add' := λ C D f g, begin
     dsimp [homology_functor],
     ext,
     simp only [homology.π_map, preadditive.comp_add, ←preadditive.add_comp],

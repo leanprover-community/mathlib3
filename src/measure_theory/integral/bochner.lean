@@ -627,10 +627,7 @@ local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _ _
 local notation `sIntegral` := @simple_func.integral_clm α E _ _ _ _ _ μ _
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
-calc ∥Integral∥ ≤ (1 : ℝ≥0) * ∥sIntegral∥ :
-  op_norm_extend_le _ _ _ $ λs, by {rw [nnreal.coe_one, one_mul], refl}
-  ... = ∥sIntegral∥ : one_mul _
-  ... ≤ 1 : norm_Integral_le_one
+norm_set_to_L1_le (dominated_fin_meas_additive_weighted_smul μ) zero_le_one
 
 lemma norm_integral_le (f : α →₁[μ] E) : ∥integral f∥ ≤ ∥f∥ :=
 calc ∥integral f∥ = ∥Integral f∥ : rfl
@@ -767,11 +764,11 @@ set_to_fun_congr_ae (dominated_fin_meas_additive_weighted_smul μ) h
 
 @[simp] lemma L1.integral_of_fun_eq_integral {f : α → E} (hf : integrable f μ) :
   ∫ a, (hf.to_L1 f) a ∂μ = ∫ a, f a ∂μ :=
-integral_congr_ae $ by simp [integrable.coe_fn_to_L1]
+set_to_fun_to_L1 (dominated_fin_meas_additive_weighted_smul μ) hf
 
 @[continuity]
 lemma continuous_integral : continuous (λ (f : α →₁[μ] E), ∫ a, f a ∂μ) :=
-by { simp only [← L1.integral_eq_integral], exact L1.continuous_integral }
+continuous_set_to_fun (dominated_fin_meas_additive_weighted_smul μ)
 
 lemma norm_integral_le_lintegral_norm (f : α → E) :
   ∥∫ a, f a ∂μ∥ ≤ ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
@@ -839,29 +836,8 @@ theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a ∂μ) at_top (𝓝 $ ∫ a, f a ∂μ) :=
-begin
-  /- `f` is a.e.-measurable, since it is the a.e.-pointwise limit of a.e.-measurable functions. -/
-  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae F_measurable h_lim,
-  /- To show `(∫ a, F n a) --> (∫ f)`, suffices to show `∥∫ a, F n a - ∫ f∥ --> 0` -/
-  rw tendsto_iff_norm_tendsto_zero,
-  /- But `0 ≤ ∥∫ a, F n a - ∫ f∥ = ∥∫ a, (F n a - f a) ∥ ≤ ∫ a, ∥F n a - f a∥, and thus we apply the
-    sandwich theorem and prove that `∫ a, ∥F n a - f a∥ --> 0` -/
-  have lintegral_norm_tendsto_zero :
-    tendsto (λn, ennreal.to_real $ ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
-  (tendsto_to_real zero_ne_top).comp
-    (tendsto_lintegral_norm_of_dominated_convergence
-      F_measurable bound_integrable.has_finite_integral h_bound h_lim),
-  -- Use the sandwich theorem
-  refine squeeze_zero (λ n, norm_nonneg _) _ lintegral_norm_tendsto_zero,
-  -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
-  { assume n,
-    have h₁ : integrable (F n) μ := bound_integrable.mono' (F_measurable n) (h_bound _),
-    have h₂ : integrable f μ :=
-    ⟨f_measurable, has_finite_integral_of_dominated_convergence
-      bound_integrable.has_finite_integral h_bound h_lim⟩,
-    rw ← integral_sub h₁ h₂,
-    exact norm_integral_le_lintegral_norm _ }
-end
+tendsto_set_to_fun_of_dominated_convergence (dominated_fin_meas_additive_weighted_smul μ) bound
+  F_measurable bound_integrable h_bound h_lim
 
 /-- Lebesgue dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
@@ -872,24 +848,8 @@ lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   (bound_integrable : integrable bound μ)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) l (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a ∂μ) l (𝓝 $ ∫ a, f a ∂μ) :=
-begin
-  rw tendsto_iff_seq_tendsto,
-  intros x xl,
-  have hxl, { rw tendsto_at_top' at xl, exact xl },
-  have h := inter_mem hF_meas h_bound,
-  replace h := hxl _ h,
-  rcases h with ⟨k, h⟩,
-  rw ← tendsto_add_at_top_iff_nat k,
-  refine tendsto_integral_of_dominated_convergence bound _ bound_integrable _ _,
-  { intro, refine (h _ _).1, apply self_le_add_left },
-  { intro, refine (h _ _).2, apply self_le_add_left },
-  { filter_upwards [h_lim],
-    assume a h_lim,
-    apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
-    { assumption },
-    rw tendsto_add_at_top_iff_nat,
-    assumption }
-end
+tendsto_set_to_fun_filter_of_dominated_convergence (dominated_fin_meas_additive_weighted_smul μ)
+  bound hF_meas h_bound bound_integrable h_lim
 
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
@@ -898,14 +858,15 @@ lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α →
   (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, F x a) x₀) :
   continuous_at (λ x, ∫ a, F x a ∂μ) x₀ :=
-tendsto_integral_filter_of_dominated_convergence bound ‹_› ‹_› ‹_› ‹_›
+continuous_at_set_to_fun_of_dominated (dominated_fin_meas_additive_weighted_smul μ) hF_meas h_bound
+  bound_integrable h_cont
 
 lemma continuous_of_dominated {F : X → α → E} {bound : α → ℝ}
   (hF_meas : ∀ x, ae_measurable (F x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous (λ x, F x a)) :
   continuous (λ x, ∫ a, F x a ∂μ) :=
-continuous_iff_continuous_at.mpr (λ x₀, continuous_at_of_dominated (eventually_of_forall hF_meas)
-  (eventually_of_forall h_bound) ‹_› $ h_cont.mono $ λ _, continuous.continuous_at)
+continuous_set_to_fun_of_dominated (dominated_fin_meas_additive_weighted_smul μ) hF_meas h_bound
+  bound_integrable h_cont
 
 /-- The Bochner integral of a real-valued function `f : α → ℝ` is the difference between the
   integral of the positive part of `f` and the integral of the negative part of `f`.  -/

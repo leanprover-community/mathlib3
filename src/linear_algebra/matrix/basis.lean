@@ -61,6 +61,11 @@ lemma to_matrix_eq_to_matrix_constr [fintype ι] [decidable_eq ι] (v : ι → M
   e.to_matrix v = linear_map.to_matrix e e (e.constr ℕ v) :=
 by { ext, rw [basis.to_matrix_apply, linear_map.to_matrix_apply, basis.constr_basis] }
 
+-- TODO (maybe) Adjust the definition of `basis.to_matrix` to eliminate the transpose.
+lemma coe_pi_basis_fun.to_matrix_eq_transpose [fintype ι] :
+  ((pi.basis_fun R ι).to_matrix : matrix ι ι R → matrix ι ι R) = matrix.transpose :=
+by { ext M i j, refl, }
+
 @[simp] lemma to_matrix_self [decidable_eq ι] : e.to_matrix e = 1 :=
 begin
   rw basis.to_matrix,

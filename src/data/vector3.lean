@@ -112,8 +112,8 @@ by refine funext (λj, j.cases' _ _); intros; refl
 
 @[simp] theorem insert_fs {α} (a : α) {n} (b : α) (v : vector3 α n) (i : fin2 (succ n)) :
   insert a (b :: v) (fs i) = b :: insert a v i :=
-funext $ λj, by {
-  refine j.cases' _ (λj, _); simp [insert, insert_perm],
+funext $ λj, by
+{ refine j.cases' _ (λj, _); simp [insert, insert_perm],
   refine fin2.cases' _ _ (insert_perm i j); simp [insert_perm] }
 
 theorem append_insert {α} (a : α) {k} (t : vector3 α k) {n} (v : vector3 α n) (i : fin2 (succ n))

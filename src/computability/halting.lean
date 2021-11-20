@@ -243,10 +243,10 @@ theorem to_part {n f} (pf : @partrec' n f) : partrec f :=
 begin
   induction pf,
   case nat.partrec'.prim : n f hf { exact hf.to_prim.to_comp },
-  case nat.partrec'.comp : m n f g _ _ hf hg {
-    exact (vector_m_of_fn (λ i, hg i)).bind (hf.comp snd) },
-  case nat.partrec'.rfind : n f _ hf {
-    have := ((primrec.eq.comp primrec.id (primrec.const 0)).to_comp.comp
+  case nat.partrec'.comp : m n f g _ _ hf hg
+  { exact (vector_m_of_fn (λ i, hg i)).bind (hf.comp snd) },
+  case nat.partrec'.rfind : n f _ hf
+  { have := ((primrec.eq.comp primrec.id (primrec.const 0)).to_comp.comp
       (hf.comp (vector_cons.comp snd fst))).to₂.partrec₂,
     exact this.rfind },
 end

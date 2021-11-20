@@ -82,7 +82,7 @@ units.is_unit ⟨r•1 - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁�
 /-- Given a commutative ring `R` and an `R`-algebra `A`, and units `r : units R`
 and `a : units A`, then `unit_mul_unit r a` constructs a `units A` with value `r•a`. -/
 
-lemma is_unit_smul_smul_sub_smul_iff {r : units R} {s : R} {a : A} :
+lemma is_unit.smul_smul_sub_smul_iff {r : units R} {s : R} {a : A} :
   is_unit (r • s • 1 - r • a) ↔ is_unit (s • 1 - a) :=
 begin
   split,
@@ -96,16 +96,16 @@ begin
     exact (r • h'.unit).is_unit, },
 end
 
-lemma is_unit_smul_smul_sub_iff_is_unit_smul_sub_smul {r : units R} {s : R} {a : A} :
+lemma is_unit.smul_smul_sub_iff_is_unit_smul_sub_smul {r : units R} {s : R} {a : A} :
   is_unit (r • s • 1 - a) ↔ is_unit (s • 1 - r⁻¹ • a) :=
 by { have h_eq : r•s•1 - r•(r⁻¹•a) = r•s•1 - a, by simp,
-     rw [←h_eq,is_unit_smul_smul_sub_smul_iff], }
+     rw [←h_eq,is_unit.smul_smul_sub_smul_iff], }
 
-lemma is_unit_smul_sub_iff_is_unit_sub_smul {r : units R} {a : A} :
+lemma is_unit.smul_sub_iff_is_unit_sub_smul {r : units R} {a : A} :
   is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
 begin
   have with_smul_one : is_unit (r•(1 : R)•1 - a) ↔ is_unit ((1 : R)•1 - r⁻¹•a),
-    by exact is_unit_smul_smul_sub_iff_is_unit_smul_sub_smul,
+    by exact is_unit.smul_smul_sub_iff_is_unit_smul_sub_smul,
   simp at with_smul_one,
   exact with_smul_one,
 end
@@ -127,7 +127,7 @@ begin
   change is_unit ((r•s)•1 - r•a) ↔ is_unit (s•1 - a),
   have h_eq : (r•s)•(1 : A) = r•s•1, by simp,
   rw h_eq,
-  exact is_unit_smul_smul_sub_smul_iff,
+  exact is_unit.smul_smul_sub_smul_iff,
 end
 
 theorem left_add_coset_spectrum (a : A) (r : R) :
@@ -178,6 +178,6 @@ theorem unit_mem_spectrum_mul_iff_swap_mul {a b : A} {r : units R} :
 begin
   apply not_iff_not.mpr,
   change is_unit (r•1 - a*b) ↔ is_unit (r•1 - b*a),
-  repeat {rw [is_unit_smul_sub_iff_is_unit_sub_smul]},
+  repeat {rw [is_unit.smul_sub_iff_is_unit_sub_smul]},
   rw [←smul_mul_assoc, ←mul_smul_comm r⁻¹ b a, is_unit_one_sub_mul_iff_swap],
 end

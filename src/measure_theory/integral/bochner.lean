@@ -735,6 +735,15 @@ lemma integral_add' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f + g) a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
 integral_add hf hg
 
+lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, integrable (f i) μ) :
+  ∫ a, ∑ i in s, f i a ∂μ = ∑ i in s, ∫ a, f i a ∂μ :=
+begin
+  induction s using finset.induction_on with i s hi ihs,
+  { simp only [integral_zero, finset.sum_empty] },
+  { rw [finset.forall_mem_insert] at hf,
+    simp only [finset.sum_insert hi, ← ihs hf.2, integral_add hf.1 (integrable_finset_sum s hf.2)] }
+end
+
 lemma integral_neg (f : α → E) : ∫ a, -f a ∂μ = - ∫ a, f a ∂μ :=
 set_to_fun_neg (dominated_fin_meas_additive_weighted_smul μ) f
 
@@ -1120,16 +1129,6 @@ lemma norm_integral_le_of_norm_le {f : α → E} {g : α → ℝ} (hg : integrab
 calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, ∥f x∥ ∂μ : norm_integral_le_integral_norm f
                ... ≤ ∫ x, g x ∂μ   :
   integral_mono_of_nonneg (eventually_of_forall $ λ x, norm_nonneg _) hg h
-
-lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i, integrable (f i) μ) :
-  ∫ a, ∑ i in s, f i a ∂μ = ∑ i in s, ∫ a, f i a ∂μ :=
-begin
-  refine finset.induction_on s _ _,
-  { simp only [integral_zero, finset.sum_empty] },
-  { assume i s his ih,
-    simp only [his, finset.sum_insert, not_false_iff],
-    rw [integral_add (hf _) (integrable_finset_sum s hf), ih] }
-end
 
 lemma simple_func.integral_eq_integral (f : α →ₛ E) (hfi : integrable f μ) :
   f.integral μ = ∫ x, f x ∂μ :=

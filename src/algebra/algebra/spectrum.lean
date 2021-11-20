@@ -77,6 +77,10 @@ lemma mem_resolvent_of_left_right_inverse {r : R} {a b c : A}
   r ∈ resolvent R a :=
 units.is_unit ⟨r•1 - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁⟩
 
+lemma mem_resolvent_iff {r : R} {a : A} :
+  r ∈ resolvent R a ↔ is_unit (r•1 - a) :=
+by { tidy }
+
 -- products of scalar units and algebra units
 
 /-- Given a commutative ring `R` and an `R`-algebra `A`, and units `r : units R`
@@ -113,7 +117,7 @@ lemma add_mem_spectrum {a : A} {r s : R} :
   r ∈ σ a ↔ r + s ∈ σ (s • 1 + a) :=
 begin
   apply not_iff_not.mpr,
-  change is_unit (r•1 - a) ↔ is_unit ((r+s)•1 - (s•1 + a)),
+  simp only [mem_resolvent_iff],
   have h_eq : (r+s)•1 - (s•1 + a) = r•1 - a,
     by { rw add_smul, noncomm_ring },
   simp [h_eq],
@@ -123,7 +127,7 @@ lemma mul_mem_spectrum_mul {a : A} {s : R} {r : units R} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
-  change is_unit ((r•s)•1 - r•a) ↔ is_unit (s•1 - a),
+  simp only [mem_resolvent_iff],
   have h_eq : (r•s)•(1 : A) = r•s•1, by simp,
   rw h_eq,
   exact is_unit.smul_smul_sub_smul_iff,
@@ -155,7 +159,9 @@ theorem unit_mem_spectrum_mul_iff_swap_mul {a b : A} {r : units R} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
 begin
   apply not_iff_not.mpr,
-  change is_unit (r•1 - a*b) ↔ is_unit (r•1 - b*a),
+  simp only [mem_resolvent_iff],
+  have coe_smul_eq : ↑r•1 = r•(1 : A), from rfl,
+  rw coe_smul_eq,
   simp only [is_unit.smul_sub_iff_is_unit_sub_smul],
   have right_inv_of_swap : ∀ {x y z : A} (h : (1 - x*y)*z = 1),
     (1 - y*x)*(1 + y*z*x) = 1, from λ x y z h,

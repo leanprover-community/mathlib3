@@ -1078,7 +1078,7 @@ lemma erase_idem {a : α} {s : finset α} : erase (erase s a) a = erase s a :=
 by simp
 
 lemma erase_right_comm {a b : α} {s : finset α} : erase (erase s a) b = erase (erase s b) a :=
-by {ext x, simp only [mem_erase, ←and_assoc], rw and_comm (x ≠ a),}
+by { ext x, simp only [mem_erase, ←and_assoc], rw and_comm (x ≠ a) }
 
 theorem subset_insert_iff {a : α} {s t : finset α} : s ⊆ insert a t ↔ erase s a ⊆ t :=
 by simp only [subset_iff, or_iff_not_imp_left, mem_erase, mem_insert, and_imp];
@@ -1512,7 +1512,7 @@ theorem filter_insert (a : α) (s : finset α) :
 by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
 
 theorem filter_erase (a : α) (s : finset α) : filter p (erase s a) = erase (filter p s) a :=
-by { ext x, simp only [and_assoc, mem_filter, iff_self, mem_erase]}
+by { ext x, simp only [and_assoc, mem_filter, iff_self, mem_erase] }
 
 theorem filter_or [decidable_pred (λ a, p a ∨ q a)] (s : finset α) :
   s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=

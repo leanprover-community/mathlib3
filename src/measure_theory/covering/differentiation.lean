@@ -218,33 +218,23 @@ the ratio `ρ a / μ a` converges as `a` shrinks to `x` along a Vitali family fo
 theorem ae_tendsto_div :
   ∀ᵐ x ∂μ, ∃ c, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 c) :=
 begin
-  -- To reduce to countably many properties, we will use a countable dense set `w` made of finite
-  -- numbers. We use the rationals as this is the simplest such set, although any other would do.
-  let w : set ℝ≥0∞ := {x | ∃ a : ℚ, x = ennreal.of_real a},
-  have w_count : countable w,
-  { have : w = range (λ (a : ℚ), ennreal.of_real a),
-      by { ext x, simp only [eq_comm, mem_range, mem_set_of_eq] },
-    rw this,
-    exact countable_range _ },
-  have w_dense : dense w,
-  { refine dense_iff_forall_lt_exists_mem.2 (λ c d hcd, _),
-    rcases ennreal.lt_iff_exists_rat_btwn.1 hcd with ⟨q, hq⟩,
-    exact ⟨ennreal.of_real q, ⟨q, rfl⟩, hq.2⟩ },
+  -- To reduce to countably many properties, we use a countable dense set `w` of finite numbers.
+  obtain ⟨w, w_count, w_dense, hw⟩ : ∃ w : set ℝ≥0∞, countable w ∧ dense w ∧
+    (∀ x, is_bot x → x ∉ w) ∧ (∀ x, is_top x → x ∉ w) := exists_countable_dense_no_bot_top ℝ≥0∞,
+  have I : ∀ x ∈ w, x ≠ ∞,
+  { rintros x h rfl, exact hw.2 ∞ (by simp) h },
   have A : ∀ (c ∈ w) (d ∈ w), (c < d) → ∀ᵐ x ∂μ,
     ¬((∃ᶠ a in v.filter_at x, ρ a / μ a < c) ∧ (∃ᶠ a in v.filter_at x, d < ρ a / μ a)),
   { assume c hc d hd hcd,
-    rcases hc with ⟨c, rfl⟩,
-    rcases hd with ⟨d, rfl⟩,
+    lift c to ℝ≥0 using I c hc,
+    lift d to ℝ≥0 using I d hd,
     apply v.null_of_frequently_le_of_frequently_ge hρ (ennreal.coe_lt_coe.1 hcd),
     { simp only [and_imp, exists_prop, not_frequently, not_and, not_lt, not_le, not_eventually,
         mem_set_of_eq, mem_compl_eq, not_forall],
       assume x h1x h2x,
       apply h1x.mono (λ a ha, _),
-      refine (ennreal.div_le_iff_le_mul _ (or.inr _)).1 ha.le,
-      { simp only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff] },
-      { suffices : 0 < ennreal.of_real c, by simpa only [rat.cast_pos, real.to_nnreal_eq_zero,
-          ennreal.of_real_pos, not_le, ennreal.coe_eq_zero, ne.def],
-        exact bot_le.trans_lt ha } },
+      refine (ennreal.div_le_iff_le_mul _ (or.inr (bot_le.trans_lt ha).ne')).1 ha.le,
+      simp only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff] },
     { simp only [and_imp, exists_prop, not_frequently, not_and, not_lt, not_le, not_eventually,
         mem_set_of_eq, mem_compl_eq, not_forall],
       assume x h1x h2x,

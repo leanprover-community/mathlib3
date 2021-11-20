@@ -304,7 +304,7 @@ begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
 end
 
-lemma finite.is_closed {α} [topological_space α] [t1_space α] {s : set α} (hs : set.finite s) :
+lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
   is_closed s :=
 begin
   rw ← bUnion_of_singleton s,
@@ -319,6 +319,23 @@ begin
   contrapose! hy,
   rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
   exact ⟨i, hi, λ h, hsub h rfl⟩
+end
+
+/-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
+lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+  dense (s \ {x}) :=
+hs.inter_of_open_right (dense_compl_singleton x) is_open_compl_singleton
+
+/-- Removing a subsingleton from a dense set in a space without isolated points, one still
+obtains a dense set. -/
+lemma dense.diff_subsingleton [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : dense s) {t : set α} (ht : set.subsingleton t) :
+  dense (s \ t) :=
+begin
+  apply ht.induction_on,
+  { simpa using hs },
+  { assume x,
+    exact hs.diff_singleton _ }
 end
 
 /-- If a function to a `t1_space` tends to some limit `b` at some point `a`, then necessarily

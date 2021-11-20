@@ -31,4 +31,7 @@ by simp [take]
 def corec_state {σ α} (cmd : state σ α) (s : σ) : stream α :=
 stream.corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
 
+@[simp] lemma head_drop {α} (a : stream α) (n : ℕ) : (a.drop n).head = a.nth n :=
+by simp only [stream.drop, stream.head, zero_add]
+
 end stream

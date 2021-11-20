@@ -33,7 +33,7 @@ any minimal element is `{m}` for an idempotent `m : M`. -/
 We first show that every element of `N` is of the form `m' + m`.-/
     have scaling_eq_self : (* m) '' N = N,
     { apply N_minimal,
-      { refine ⟨(N_closed.is_compact.image (continuous_mul_left m)).is_closed,
+      { refine ⟨(continuous_mul_left m).is_closed_map _ N_closed,
           ⟨_, ⟨m, hm, rfl⟩⟩, _⟩,
         rintros _ _ ⟨m'', hm'', rfl⟩ ⟨m', hm', rfl⟩,
         exact ⟨m'' * m * m', N_mul _ _ (N_mul _ _ hm'' hm) hm', mul_assoc _ _ _⟩, },

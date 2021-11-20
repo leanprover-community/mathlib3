@@ -5,7 +5,7 @@ Authors: David Wärn
 -/
 import topology.stone_cech
 import topology.algebra.semigroup
-import data.stream
+import data.stream.basic
 
 /-!
 # Hindman's theorem on finite sums
@@ -73,7 +73,7 @@ namespace hindman
 /-- `FS a` is the set of finite sums in `a`, i.e. `m ∈ FS a` if `m` is the sum of a nonempty
 subsequence of `a`. We give a direct inductive definition instead of talking about subsequences. -/
 inductive FS {M} [add_semigroup M] : stream M → set M
-| singleton (a : stream M) : FS a a.head
+| head (a : stream M) : FS a a.head
 | tail (a : stream M) (m : M) (h : FS a.tail m) : FS a m
 | cons (a : stream M) (m : M) (h : FS a.tail m) : FS a (a.head + m)
 
@@ -81,7 +81,7 @@ inductive FS {M} [add_semigroup M] : stream M → set M
 subsequence of `a`. We give a direct inductive definition instead of talking about subsequences. -/
 @[to_additive FS]
 inductive FP {M} [semigroup M] : stream M → set M
-| singleton (a : stream M) : FP a a.head
+| head (a : stream M) : FP a a.head
 | tail (a : stream M) (m : M) (h : FP a.tail m) : FP a m
 | cons (a : stream M) (m : M) (h : FP a.tail m) : FP a (a.head * m)
 
@@ -89,7 +89,7 @@ inductive FP {M} [semigroup M] : stream M → set M
 from a subsequence of `M` starting sufficiently late. -/
 @[to_additive]
 lemma FP.mul {M} [semigroup M] {a : stream M} {m : M} (hm : m ∈ FP a) :
-  ∃ n, ∀ m' ∈ FP (stream.tail^[n] a), m * m' ∈ FP a :=
+  ∃ n, ∀ m' ∈ FP (a.drop n), m * m' ∈ FP a :=
 begin
   induction hm with a a m hm ih a m hm ih,
   { exact ⟨1, λ m hm, FP.cons a m hm⟩, },
@@ -101,17 +101,16 @@ end
 lemma exists_idempotent_ultrafilter_le_FP {M} [semigroup M] (a : stream M) :
   ∃ U : ultrafilter M, U * U = U ∧ ∀ᶠ m in U, m ∈ FP a :=
 begin
-  let S : set (ultrafilter M) := ⋂ n, { U | ∀ᶠ m in U, m ∈ FP (stream.tail^[n] a) },
+  let S : set (ultrafilter M) := ⋂ n, { U | ∀ᶠ m in U, m ∈ FP (a.drop n) },
   obtain ⟨U, hU, U_idem⟩ := exists_idempotent_in_compact_subsemigroup _ S _ _ _,
   { refine ⟨U, U_idem, _⟩, convert set.mem_Inter.mp hU 0, },
   { exact ultrafilter.continuous_mul_left },
   { apply is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed,
     { intros n U hU,
       apply eventually.mono hU,
-      intros m hm,
-      apply FP.tail,
-      simpa only [function.iterate_succ_apply'] using hm, },
-    { intro n, exact ⟨pure _, mem_pure.mpr $ FP.singleton _⟩, },
+      rw [add_comm, ←stream.drop_drop, ←stream.tail_eq_drop],
+      exact FP.tail _ },
+    { intro n, exact ⟨pure _, mem_pure.mpr $ FP.head _⟩, },
     { exact (ultrafilter_is_closed_basic _).is_compact, },
     { intro n, apply ultrafilter_is_closed_basic, }, },
   { exact is_closed.is_compact (is_closed_Inter $ λ i, ultrafilter_is_closed_basic _) },
@@ -125,7 +124,7 @@ begin
     apply eventually.mono (hV (n' + n)),
     intros m' hm',
     apply hn,
-    simpa only [function.iterate_add_apply] using hm', }
+    simpa only [stream.drop_drop] using hm', }
 end
 
 @[to_additive exists_FS_of_large]
@@ -178,5 +177,50 @@ let ⟨U, hU⟩ := exists_idempotent_of_compact_t2_of_continuous_mul_left
   (@ultrafilter.continuous_mul_left M _) in
 let ⟨c, c_s, hc⟩ := (ultrafilter.finite_sUnion_mem_iff sfin).mp (mem_of_superset univ_mem scov) in
 ⟨c, c_s, exists_FP_of_large U hU c hc⟩
+
+@[to_additive FS_iter_tail_sub_FS]
+lemma FP_drop_sub_FP {M} [semigroup M] (a : stream M) (n : ℕ) :
+  FP (a.drop n) ⊆ FP a :=
+begin
+  induction n with n ih, { refl },
+  rw [nat.succ_eq_one_add, ←stream.drop_drop],
+  exact trans (FP.tail _) ih,
+end
+
+@[to_additive]
+lemma FP.singleton {M} [semigroup M] (a : stream M) (i : ℕ) : a.nth i ∈ FP a :=
+by { induction i with i ih generalizing a, { apply FP.head }, { apply FP.tail, apply ih } }
+
+@[to_additive]
+lemma FP.mul_two {M} [semigroup M] (a : stream M) (i j : ℕ) (ij : i < j) :
+  a.nth i * a.nth j ∈ FP a :=
+begin
+  refine FP_drop_sub_FP _ i _,
+  rw ←stream.head_drop,
+  apply FP.cons,
+  rcases le_iff_exists_add.mp (nat.succ_le_of_lt ij) with ⟨d, hd⟩,
+  have := FP.singleton (a.drop i).tail d,
+  rw [stream.tail_eq_drop, stream.nth_drop, stream.nth_drop] at this,
+  convert this,
+  rw [hd, add_comm, nat.succ_add, nat.add_succ],
+end
+
+@[to_additive]
+lemma FP.list {M} [comm_monoid M] (a : stream M) (s : finset ℕ) (hs : s.nonempty) :
+  s.prod (λ i, a.nth i) ∈ FP a :=
+begin
+  refine FP_drop_sub_FP _ (s.min' hs) _,
+  induction s using finset.strong_induction with s ih,
+  rw [←finset.mul_prod_erase _ _ (s.min'_mem hs), ←stream.head_drop],
+  cases (s.erase (s.min' hs)).eq_empty_or_nonempty with h h,
+  { rw [h, finset.prod_empty, mul_one], exact FP.head _ },
+  { apply FP.cons, rw [stream.tail_eq_drop, stream.drop_drop, add_comm],
+    refine set.mem_of_subset_of_mem _ (ih _ (finset.erase_ssubset $ s.min'_mem hs) h),
+    have : s.min' hs + 1 ≤ (s.erase (s.min' hs)).min' h :=
+      nat.succ_le_of_lt (finset.min'_lt_of_mem_erase_min' _ _ $ finset.min'_mem _ _),
+    cases le_iff_exists_add.mp this with d hd,
+    rw [hd, add_comm, ←stream.drop_drop],
+    apply FP_drop_sub_FP }
+end
 
 end hindman

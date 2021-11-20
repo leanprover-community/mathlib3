@@ -187,29 +187,6 @@ theorem is_connected.image [topological_space β] {s : set α} (H : is_connected
   (f : α → β) (hf : continuous_on f s) : is_connected (f '' s) :=
 ⟨nonempty_image_iff.mpr H.nonempty, H.is_preconnected.image f hf⟩
 
-lemma is_preconnected.preimage [topological_space β] {s : set β} (hs : is_preconnected s)
-  {f : α → β}   (hinj : function.injective f) (hf : is_open_map f) (hsf : s ⊆ set.range f) :
-  is_preconnected (f ⁻¹' s) :=
-λ u v hu hv hsuv hsu hsv,
-begin
-  specialize hs (f '' u) (f '' v) (hf u hu) (hf v hv) _ _ _,
-  { have := set.image_subset f hsuv,
-    rwa [set.image_preimage_eq_of_subset hsf, set.image_union] at this },
-  { obtain ⟨x, hx1, hx2⟩ := hsu,
-    exact ⟨f x, hx1, x, hx2, rfl⟩ },
-  { obtain ⟨y, hy1, hy2⟩ := hsv,
-    exact ⟨f y, hy1, y, hy2, rfl⟩ },
-  { obtain ⟨b, hbs, hbu, hbv⟩ := hs,
-    obtain ⟨a, rfl⟩ := hsf hbs,
-    rw hinj.mem_set_image at hbu hbv,
-    exact ⟨a, hbs, hbu, hbv⟩ }
-end
-
-lemma is_connected.preimage [topological_space β] {s : set β} (hs : is_connected s) {f : α → β}
-  (hinj : function.injective f) (hf : is_open_map f) (hsf : s ⊆ set.range f) :
-  is_connected (f ⁻¹' s) :=
-⟨hs.nonempty.preimage' hsf, hs.is_preconnected.preimage hinj hf hsf⟩
-
 theorem is_preconnected_closed_iff {s : set α} :
   is_preconnected s ↔ ∀ t t', is_closed t → is_closed t' → s ⊆ t ∪ t' →
     (s ∩ t).nonempty → (s ∩ t').nonempty → (s ∩ (t ∩ t')).nonempty :=
@@ -236,6 +213,56 @@ begin
   rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
   contradiction
 end⟩
+
+/- TODO: The following lemmas about connection of preimages hold more generally for strict maps
+(the quotient and subspace topologies of the image agree) whose fibers are preconnected. -/
+
+lemma is_preconnected.preimage_of_open_map [topological_space β] {s : set β}
+  (hs : is_preconnected s) {f : α → β}   (hinj : function.injective f) (hf : is_open_map f)
+  (hsf : s ⊆ set.range f) :
+  is_preconnected (f ⁻¹' s) :=
+λ u v hu hv hsuv hsu hsv,
+begin
+  obtain ⟨b, hbs, hbu, hbv⟩ := hs (f '' u) (f '' v) (hf u hu) (hf v hv) _ _ _,
+  obtain ⟨a, rfl⟩ := hsf hbs,
+  rw hinj.mem_set_image at hbu hbv,
+  exact ⟨a, hbs, hbu, hbv⟩,
+  { have := set.image_subset f hsuv,
+    rwa [set.image_preimage_eq_of_subset hsf, set.image_union] at this },
+  { obtain ⟨x, hx1, hx2⟩ := hsu,
+    exact ⟨f x, hx1, x, hx2, rfl⟩ },
+  { obtain ⟨y, hy1, hy2⟩ := hsv,
+    exact ⟨f y, hy1, y, hy2, rfl⟩ }
+end
+
+lemma is_preconnected.preimage_of_closed_map [topological_space β] {s : set β}
+  (hs : is_preconnected s) {f : α → β}   (hinj : function.injective f) (hf : is_closed_map f)
+  (hsf : s ⊆ set.range f) :
+  is_preconnected (f ⁻¹' s) :=
+is_preconnected_closed_iff.2 $ λ u v hu hv hsuv hsu hsv,
+begin
+  obtain ⟨b, hbs, hbu, hbv⟩ :=
+    is_preconnected_closed_iff.1 hs (f '' u) (f '' v) (hf u hu) (hf v hv) _ _ _,
+  obtain ⟨a, rfl⟩ := hsf hbs,
+  rw hinj.mem_set_image at hbu hbv,
+  exact ⟨a, hbs, hbu, hbv⟩,
+  { have := set.image_subset f hsuv,
+    rwa [set.image_preimage_eq_of_subset hsf, set.image_union] at this },
+  { obtain ⟨x, hx1, hx2⟩ := hsu,
+    exact ⟨f x, hx1, x, hx2, rfl⟩ },
+  { obtain ⟨y, hy1, hy2⟩ := hsv,
+    exact ⟨f y, hy1, y, hy2, rfl⟩ }
+end
+
+lemma is_connected.preimage_of_open_map [topological_space β] {s : set β} (hs : is_connected s)
+  {f : α → β} (hinj : function.injective f) (hf : is_open_map f) (hsf : s ⊆ set.range f) :
+  is_connected (f ⁻¹' s) :=
+⟨hs.nonempty.preimage' hsf, hs.is_preconnected.preimage_of_open_map hinj hf hsf⟩
+
+lemma is_connected.preimage_of_closed_map [topological_space β] {s : set β} (hs : is_connected s)
+  {f : α → β} (hinj : function.injective f) (hf : is_closed_map f) (hsf : s ⊆ set.range f) :
+  is_connected (f ⁻¹' s) :=
+⟨hs.nonempty.preimage' hsf, hs.is_preconnected.preimage_of_closed_map hinj hf hsf⟩
 
 lemma is_preconnected.subset_or_subset (hu : is_open u) (hv : is_open v) (huv : disjoint u v)
   (hsuv : s ⊆ u ∪ v) (hs : is_preconnected s) :

@@ -85,8 +85,6 @@ iff.rfl
 
 -- products of scalar units and algebra units
 
-/-- Given a commutative ring `R` and an `R`-algebra `A`, and units `r : units R`
-and `a : units A`, then `unit_mul_unit r a` constructs a `units A` with value `r•a`. -/
 
 lemma is_unit.smul_smul_sub_smul_iff {r : units R} {s : R} {a : A} :
   is_unit (r • s • 1 - r • a) ↔ is_unit (s • 1 - a) :=

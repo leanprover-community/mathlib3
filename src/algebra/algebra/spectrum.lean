@@ -151,27 +151,6 @@ begin
     exact mem_left_coset ↑r (mul_mem_spectrum_mul.mp hx), },
 end
 
--- general (noncommutative) ring results about units and the identity
-lemma right_inv_of_right_inv_swap {a b c : A} (h : (1 - a * b) * c = 1) :
-  (1 - b * a) * (1 + b * c * a) = 1 :=
-calc (1 - b*a)*(1 + b*c*a) = 1 - b*a + b*((1 - a*b)*c)*a : by noncomm_ring
-...                        = 1                           : by simp [h]
-
-lemma left_inv_of_left_inv_swap {a b c : A} (h : c * (1 - a * b) = 1) :
-  (1 + b * c * a) * (1 - b * a) = 1 :=
-calc (1 + b*c*a)*(1 - b*a) = 1 - b*a + b*(c*(1 - a*b))*a : by noncomm_ring
-...                        = 1                           : by simp [h]
-
-lemma is_unit_one_sub_mul_of_swap {a b : A} (h : is_unit (1 - a * b)) :
-  is_unit (1 - b * a) :=
-by { let h₁ := right_inv_of_right_inv_swap h.unit.val_inv,
-     let h₂ := left_inv_of_left_inv_swap h.unit.inv_val,
-     exact ⟨⟨1-b*a,1+b*h.unit.inv*a,h₁,h₂⟩,rfl⟩, }
-
-lemma is_unit_one_sub_mul_iff_swap {a b : A} :
-  is_unit (1 - a * b) ↔ is_unit (1 - b * a) :=
-by { split, repeat {apply is_unit_one_sub_mul_of_swap}, }
-
 -- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : units R`
 theorem unit_mem_spectrum_mul_iff_swap_mul {a b : A} {r : units R} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
@@ -179,5 +158,21 @@ begin
   apply not_iff_not.mpr,
   change is_unit (r•1 - a*b) ↔ is_unit (r•1 - b*a),
   repeat {rw [is_unit.smul_sub_iff_is_unit_sub_smul]},
+  have right_inv_of_swap : ∀ {x y z : A} (h : (1 - x*y)*z = 1),
+    (1 - y*x)*(1 + y*z*x) = 1, from λ x y z h,
+      calc (1 - y*x)*(1 + y*z*x) = 1 - y*x + y*((1 - x*y)*z)*x : by noncomm_ring
+      ...                        = 1                           : by simp [h],
+  have left_inv_of_swap : ∀ {x y z : A} (h : z*(1 - x*y) = 1),
+    (1 + y*z*x)*(1 - y*x) = 1, from λ x y z h,
+      calc (1 + y*z*x)*(1 - y*x) = 1 - y*x + y*(z*(1 - x*y))*x : by noncomm_ring
+      ...                        = 1                           : by simp [h],
+  have is_unit_one_sub_mul_of_swap : ∀ {x y : A} (h : is_unit (1 - x*y)),
+    is_unit (1 - y*x), from λ x y h, by
+      { let h₁ := right_inv_of_swap h.unit.val_inv,
+        let h₂ := left_inv_of_swap h.unit.inv_val,
+        exact ⟨⟨1-y*x,1+y*h.unit.inv*x,h₁,h₂⟩,rfl⟩, },
+  have is_unit_one_sub_mul_iff_swap : ∀ {x y : A},
+    is_unit (1 - x*y) ↔ is_unit (1 - y*x), by
+      { intros, split, repeat {apply is_unit_one_sub_mul_of_swap}, },
   rw [←smul_mul_assoc, ←mul_smul_comm r⁻¹ b a, is_unit_one_sub_mul_iff_swap],
 end

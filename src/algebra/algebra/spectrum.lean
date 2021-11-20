@@ -75,12 +75,6 @@ units.is_unit ⟨r•1 - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁�
 
 /-- Given a commutative ring `R` and an `R`-algebra `A`, and units `r : units R`
 and `a : units A`, then `unit_mul_unit r a` constructs a `units A` with value `r•a`. -/
-definition unit_mul_unit (r : units R) (a : units A) :
-  units A :=
-⟨r•↑a,
- r⁻¹•↑a⁻¹,
- by {simp [smul_mul_smul]},
- by {simp [smul_mul_smul]}⟩
 
 lemma is_unit_smul_smul_sub_smul_iff {r : units R} {s : R} {a : A} :
   is_unit (r • s • 1 - r • a) ↔ is_unit (s • 1 - a) :=
@@ -90,10 +84,10 @@ begin
     have inv_smul_eq : r⁻¹•(r•s•1 - r•a) = s•1 - a,
       by simp [smul_sub, smul_smul],
     rw ←inv_smul_eq,
-    exact (unit_mul_unit r⁻¹ h'.unit).is_unit, },
+    exact (r⁻¹ • h'.unit).is_unit, },
   { intro h',
     rw ←smul_sub,
-    exact (unit_mul_unit r h'.unit).is_unit, },
+    exact (r • h'.unit).is_unit, },
 end
 
 lemma is_unit_smul_smul_sub_iff_is_unit_smul_sub_smul {r : units R} {s : R} {a : A} :

@@ -35,6 +35,8 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 
 universes u v
 
+namespace spectrum
+
 section defs
 
 variables (R : Type u) {A : Type v}
@@ -181,3 +183,5 @@ begin
       { intros, split, repeat {apply is_unit_one_sub_mul_of_swap}, },
   rw [←smul_mul_assoc, ←mul_smul_comm r⁻¹ b a, is_unit_one_sub_mul_iff_swap],
 end
+
+end spectrum

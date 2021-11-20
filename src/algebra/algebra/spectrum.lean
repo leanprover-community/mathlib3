@@ -26,7 +26,7 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 
 ## Notations
 
-* `σ a` : `spectrum` of `a : A`
+* `σ a` : `spectrum R a` of `a : A`
 
 ## TODO
 
@@ -35,9 +35,10 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 
 universes u v
 
-variables {R : Type u} {A : Type v}
-variables [comm_ring R] [ring A] [algebra R A]
+section defs
 
+variables (R : Type u) {A : Type v}
+variables [comm_ring R] [ring A] [algebra R A]
 
 -- definition and basic properties
 
@@ -54,21 +55,26 @@ algebra `A`.
 
 The spectrum is simply the complement of the resolvent.  -/
 definition spectrum (a : A) : set R :=
-(resolvent a)ᶜ
+(resolvent R a)ᶜ
 
-local notation `σ` := spectrum
+end defs
+
+variables {R : Type u} {A : Type v}
+variables [comm_ring R] [ring A] [algebra R A]
+
+local notation `σ` := spectrum R
 
 lemma mem_spectrum_iff_not_unit {r : R} {a : A} :
-  r ∈ (σ a : set R) ↔ ¬ is_unit (r • 1 - a) :=
+  r ∈ σ a ↔ ¬ is_unit (r • 1 - a) :=
 by { tidy }
 
 lemma not_mem_spectrum_iff_unit {r : R} {a : A} :
-  r ∉ (σ a : set R) ↔ is_unit (r • 1 - a) :=
+  r ∉ σ a ↔ is_unit (r • 1 - a) :=
 by { apply not_iff_not.mp, simp [set.not_not_mem, mem_spectrum_iff_not_unit] }
 
 lemma mem_resolvent_of_left_right_inverse {r : R} {a b c : A}
   (h₁ : (r • 1 - a) * b = 1) (h₂ : c * (r • 1 - a) = 1) :
-  r ∈ (resolvent a : set R) :=
+  r ∈ resolvent R a :=
 units.is_unit ⟨r•1 - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁⟩
 
 -- products of scalar units and algebra units
@@ -105,7 +111,7 @@ begin
 end
 
 lemma add_mem_spectrum {a : A} {r s : R} :
-  r ∈ (σ a : set R) ↔ r + s ∈ (σ (s • 1 + a) : set R) :=
+  r ∈ σ a ↔ r + s ∈ σ (s • 1 + a) :=
 begin
   apply not_iff_not.mpr,
   change is_unit (r•1 - a) ↔ is_unit ((r+s)•1 - (s•1 + a)),
@@ -115,7 +121,7 @@ begin
 end
 
 lemma mul_mem_spectrum_mul {a : A} {s : R} {r : units R} :
-  r • s ∈ (σ (r • a) : set R) ↔ s ∈ (σ a : set R) :=
+  r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
   change is_unit ((r•s)•1 - r•a) ↔ is_unit (s•1 - a),
@@ -125,14 +131,14 @@ begin
 end
 
 theorem left_add_coset_spectrum (a : A) (r : R) :
-  left_add_coset r (σ a) = (σ (r • 1 + a)) :=
+  left_add_coset r (σ a) = σ (r • 1 + a) :=
 by { ext, rw [mem_left_add_coset_iff, neg_add_eq_sub, add_mem_spectrum],
      nth_rewrite 1 ←sub_add_cancel x r, }
 
 -- this one isn't quite as simple because `R` is not a `group` (but it is an `add_group`)
 -- therefore we don't have access to `mem_left_add_coset_iff`
 theorem unit_left_coset_spectrum (a : A) (r : units R) :
-  left_coset ↑r (σ a : set R) = σ (r • a) :=
+  left_coset ↑r (σ a) = σ (r • a) :=
 begin
   ext,
   split,
@@ -168,7 +174,7 @@ by { split, repeat {apply is_unit_one_sub_mul_of_swap}, }
 
 -- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : units R`
 theorem unit_mem_spectrum_mul_iff_swap_mul {a b : A} {r : units R} :
-  ↑r ∈ (σ (a * b) : set R) ↔ ↑r ∈ (σ (b * a) : set R) :=
+  ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
 begin
   apply not_iff_not.mpr,
   change is_unit (r•1 - a*b) ↔ is_unit (r•1 - b*a),

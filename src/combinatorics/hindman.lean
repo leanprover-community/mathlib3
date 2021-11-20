@@ -206,7 +206,7 @@ begin
 end
 
 @[to_additive]
-lemma FP.list {M} [comm_monoid M] (a : stream M) (s : finset ℕ) (hs : s.nonempty) :
+lemma FP.finset_prod {M} [comm_monoid M] (a : stream M) (s : finset ℕ) (hs : s.nonempty) :
   s.prod (λ i, a.nth i) ∈ FP a :=
 begin
   refine FP_drop_sub_FP _ (s.min' hs) _,

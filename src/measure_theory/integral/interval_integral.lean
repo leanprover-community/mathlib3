@@ -241,6 +241,15 @@ lemma measure_theory.integrable_on.interval_integrable {f : α → E} {a b : α}
 ⟨measure_theory.integrable_on.mono_set hf (Ioc_subset_Icc_self.trans Icc_subset_interval),
  measure_theory.integrable_on.mono_set hf (Ioc_subset_Icc_self.trans Icc_subset_interval')⟩
 
+lemma interval_integrable_const_iff {a b : α} {μ : measure α} {c : E} :
+  interval_integrable (λ _, c) μ a b ↔ c = 0 ∨ μ (Ι a b) < ∞ :=
+by simp only [interval_integrable_iff, integrable_on_const]
+
+@[simp] lemma interval_integrable_const [topological_space α] [compact_Icc_space α]
+  {μ : measure α} [is_locally_finite_measure μ] {a b : α} {c : E} :
+  interval_integrable (λ _, c) μ a b :=
+interval_integrable_const_iff.2 $ or.inr measure_Ioc_lt_top
+
 namespace interval_integrable
 
 section
@@ -551,6 +560,11 @@ by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _
   [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
   (r : 𝕜) (f : α → E) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]
+
+@[simp] lemma integral_smul_const {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
+  [is_scalar_tower ℝ 𝕜 E] [measurable_space 𝕜] [borel_space 𝕜] (f : α → 𝕜) (c : E) :
+  ∫ x in a..b, f x • c ∂μ = (∫ x in a..b, f x ∂μ) • c :=
+by simp only [interval_integral_eq_integral_oc, integral_smul_const, smul_assoc]
 
 @[simp] lemma integral_const_mul {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
   (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, r * f x ∂μ = r * ∫ x in a..b, f x ∂μ :=
@@ -912,7 +926,7 @@ begin
   simp only [interval_integrable_iff, interval_integral_eq_integral_oc,
     ← ae_restrict_iff' measurable_set_interval_oc] at *,
   exact (has_sum_integral_of_dominated_convergence bound hF_meas h_bound bound_summable
-    bound_integrable h_lim).smul
+    bound_integrable h_lim).const_smul
 end
 
 open topological_space

@@ -11,7 +11,7 @@ import dynamics.minimal
 /-!
 # Measures invariant under group actions
 
-Measure `μ : measure α` is said to be *invariant* under action of a group `G` if scalar
+A measure `μ : measure α` is said to be *invariant* under an action of a group `G` if scalar
 multiplication by `c : G` is a measure preserving map for all `c`. In this file we define a
 typeclass for measures invariant under action of an (additive or multiplicative) group and prove
 some basic properties of such measures.
@@ -24,14 +24,14 @@ namespace measure_theory
 
 variables {G M α : Type*} [measurable_space α]
 
-/-- Measure `μ : measure α` is invariant under an additive action of `M` on `α` if for any
+/-- A measure `μ : measure α` is invariant under an additive action of `M` on `α` if for any
 measurable set `s : set α` and `c : M`, the measure of its preimage under `λ x, c +ᵥ x` is equal to
 the measure of `s`. -/
 class vadd_invariant_measure (M α : Type*) [has_vadd M α] [measurable_space α]
   (μ : measure α) : Prop :=
 (measure_preimage_vadd [] : ∀ (c : M) ⦃s : set α⦄, measurable_set s → μ ((λ x, c +ᵥ x) ⁻¹' s) = μ s)
 
-/-- Measure `μ : measure α` is invariant under a multiplicative action of `M` on `α` if for any
+/-- A measure `μ : measure α` is invariant under a multiplicative action of `M` on `α` if for any
 measurable set `s : set α` and `c : M`, the measure of its preimage under `λ x, c • x` is equal to
 the measure of `s`. -/
 @[to_additive] class smul_invariant_measure (M α : Type*) [has_scalar M α] [measurable_space α]

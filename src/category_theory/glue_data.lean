@@ -161,6 +161,24 @@ def π : D.sigma_opens ⟶ D.glued := multicoequalizer.sigma_π D.diagram
 
 instance π_epi : epi D.π := by { unfold π, apply_instance }
 
+lemma t'_inv (i j k : D.ι) : D.t' i j k ≫ (pullback_symmetry _ _).hom ≫
+  D.t' j i k ≫ (pullback_symmetry _ _).hom = 𝟙 _ :=
+begin
+  rw ← cancel_mono (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _),
+  simp [t_fac, t_fac_assoc]
+end
+
+@[reassoc]
+lemma t'_comp_eq_pullback_symmetry (i j k : D.ι) :
+  D.t' j k i ≫ D.t' k i j = (pullback_symmetry _ _).hom ≫
+  D.t' j i k ≫ (pullback_symmetry _ _).hom :=
+begin
+  transitivity inv (D.t' i j k),
+  { exact is_iso.eq_inv_of_hom_inv_id (D.cocycle _ _ _) },
+  { rw ← cancel_mono (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _),
+    simp [t_fac, t_fac_assoc] }
+end
+
 variables (F : C ⥤ C') [H : ∀ i j k, preserves_limit (cospan (D.f i j) (D.f i k)) F]
 
 include H

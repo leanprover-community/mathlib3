@@ -291,6 +291,7 @@ instance forget_preserves_colimits : preserves_colimits (PresheafedSpace.forget 
       { intro j, dsimp, simp, }
     end } }
 
+@[simps]
 def pointwise_diagram (F : J ⥤ PresheafedSpace C)
   (U : opens (limits.colimit F).carrier) : Jᵒᵖ ⥤ C :=
 { obj := λ j, (F.obj (unop j)).presheaf.obj (op ((opens.map (colimit.ι F (unop j)).base).obj U)),
@@ -340,6 +341,36 @@ begin
     erw ← (F.obj (unop Y)).presheaf.map_comp,
     congr }
 end
+
+@[simp]
+lemma colimit_presheaf_obj_iso_pointwise_limit_inv_ι_app (F : J ⥤ PresheafedSpace C)
+  (U : opens (limits.colimit F).carrier) (j : J) :
+  (colimit_presheaf_obj_iso_pointwise_limit F U).inv ≫ (colimit.ι F j).c.app (op U) =
+    limit.π _ (op j) :=
+begin
+  delta colimit_presheaf_obj_iso_pointwise_limit,
+  rw [iso.trans_inv, iso.trans_inv, iso.app_inv, sheaf_iso_of_iso_inv, pushforward_to_of_iso_app,
+    congr_app (iso.symm_inv _)],
+  simp_rw category.assoc,
+  rw ← functor.map_comp_assoc,
+  rw nat_trans.naturality,
+  erw ← comp_c_app_assoc,
+  rw congr_app (colimit.iso_colimit_cocone_ι_hom _ _),
+  simp_rw category.assoc,
+  erw limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc,
+  erw lim_map_π_assoc,
+  convert category.comp_id _,
+  erw ← (F.obj j).presheaf.map_id,
+  iterate 2 { erw ← (F.obj j).presheaf.map_comp },
+  congr
+end
+
+@[simp]
+lemma colimit_presheaf_obj_iso_pointwise_limit_hom_π (F : J ⥤ PresheafedSpace C)
+  (U : opens (limits.colimit F).carrier) (j : J) :
+    (colimit_presheaf_obj_iso_pointwise_limit F U).hom ≫ limit.π _ (op j) =
+      (colimit.ι F j).c.app (op U) :=
+by rw [← iso.eq_inv_comp, colimit_presheaf_obj_iso_pointwise_limit_inv_ι_app]
 
 end PresheafedSpace
 

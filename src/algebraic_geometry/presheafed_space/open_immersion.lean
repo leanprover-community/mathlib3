@@ -186,6 +186,17 @@ by rw [inv_app, category.assoc, is_iso.inv_hom_id, category.comp_id]
     op U ⟶ op (H.open_functor.obj ((opens.map f.base).obj U))) :=
 by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
 
+/-- A variant of `app_inv_app` that gives an `eq_to_hom` instead of `hom_of_le`. -/
+@[reassoc] lemma app_inv_app' (U : opens Y) (hU : (U : set Y) ⊆ set.range f.base) :
+  f.c.app (op U) ≫ H.inv_app ((opens.map f.base).obj U) =
+  Y.presheaf.map (eq_to_hom (by
+    { apply has_le.le.antisymm,
+      { exact set.image_preimage_subset f.base U.1 },
+      { change U ⊆ _,
+        refine has_le.le.trans_eq _ (@set.image_preimage_eq_inter_range _ _ f.base U.1).symm,
+        exact set.subset_inter_iff.mpr ⟨λ _ h, h, hU⟩ } })).op :=
+by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
+
 end
 
 section

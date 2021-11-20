@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
+import topology.sheaves.sheaf_condition.sites
+import category_theory.sites.limits
 import category_theory.limits.functor_category
 
 /-!
@@ -26,5 +28,8 @@ by { dsimp [presheaf], apply_instance, }
 
 instance [has_colimits C] (X : Top) : has_colimits (presheaf C X) :=
 by { dsimp [presheaf], apply_instance, }
+
+instance [has_limits C] (X : Top) : has_limits (sheaf C X) :=
+by { apply adjunction.as_limits_of_equivalence, }
 
 end Top

@@ -135,6 +135,20 @@ begin
   exact is_unit.smul_smul_sub_smul_iff,
 end
 
+open_locale pointwise
+
+theorem spectrum_smul_eq_smul_spectrum (a : A) (r : units R) :
+  σ (r • a) = r • σ a :=
+begin
+  ext,
+  have x_eq : x = r•r⁻¹•x, by simp,
+  nth_rewrite 0 x_eq,
+  rw smul_mem_spectrum_smul,
+  split,
+    { exact λ h, ⟨r⁻¹•x,⟨h,by simp⟩⟩},
+    { rintros ⟨_,_,x'_eq⟩, simpa [←x'_eq],}
+end
+
 theorem left_add_coset_spectrum (a : A) (r : R) :
   left_add_coset r (σ a) = σ (r • 1 + a) :=
 by { ext, rw [mem_left_add_coset_iff, neg_add_eq_sub, add_mem_spectrum],

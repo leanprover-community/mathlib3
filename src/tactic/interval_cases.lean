@@ -3,10 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.fin.interval
-import data.int.interval
-import data.pnat.interval
 import tactic.fin_cases
+import data.fin.interval -- These imports aren't required to compile this file,
+import data.int.interval -- but they are needed at the use site for the tactic to work
+import data.pnat.interval -- (on values of type fin/int/pnat)
 
 /-!
 # Case bash on variables in finite intervals

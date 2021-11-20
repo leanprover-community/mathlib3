@@ -136,8 +136,8 @@ lemma induction {C : tensor_algebra R M → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from M
-  let s : subalgebra R (tensor_algebra R M) := {
-    carrier := C,
+  let s : subalgebra R (tensor_algebra R M) :=
+  { carrier := C,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },

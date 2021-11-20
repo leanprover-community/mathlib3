@@ -3,9 +3,8 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
-import category_theory.concrete_category.unbundled_hom
+import category_theory.concrete_category.bundled_hom
 import topology.continuous_function.basic
-import topology.opens
 
 /-!
 # Category instance for topological spaces

@@ -230,8 +230,8 @@ instance outer_measure.order_bot : order_bot (outer_measure α) :=
 section supremum
 
 instance : has_Sup (outer_measure α) :=
-⟨λms, {
-  measure_of := λs, ⨆ m ∈ ms, (m : outer_measure α) s,
+⟨λms,
+{ measure_of := λs, ⨆ m ∈ ms, (m : outer_measure α) s,
   empty      := nonpos_iff_eq_zero.1 $ bsupr_le $ λ m h, le_of_eq m.empty,
   mono       := assume s₁ s₂ hs, bsupr_le_bsupr $ assume m hm, m.mono hs,
   Union_nat  := assume f, bsupr_le $ assume m hm,

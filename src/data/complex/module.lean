@@ -3,7 +3,7 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
-import algebra.order.module
+import algebra.order.smul
 import data.complex.basic
 import data.fin.vec_notation
 import field_theory.tower

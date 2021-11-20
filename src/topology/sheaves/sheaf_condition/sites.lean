@@ -465,8 +465,8 @@ The equivalence of categories between sheaves on the site `opens X` and sheaves 
 def Sheaf_spaces_equivelence_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
 begin
   refine equivalence.mk (Sheaf_sites_to_sheaf_spaces C X) (Sheaf_spaces_to_sheaf_sites C X) _ _,
-  all_goals {
-    refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
+  all_goals
+  { refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
     ext U, dsimp,
     erw [nat_trans.comp_app, nat_trans.comp_app, eq_to_hom_refl G.1 rfl, eq_to_hom_refl F.1 rfl,
       nat_trans.id_app G.1, category.comp_id, nat_trans.id_app F.1, category.id_comp], },

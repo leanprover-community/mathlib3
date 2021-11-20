@@ -427,8 +427,8 @@ namespace ring_equiv
 
 variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 
-@[simp] theorem trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
-@[simp] theorem symm_trans (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
+@[simp] theorem self_trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
+@[simp] theorem symm_trans_self (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
 /-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
 protected lemma is_domain

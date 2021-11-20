@@ -302,6 +302,30 @@ def of_ι (I : multicospan_index C) (P : C) (ι : Π a, P ⟶ I.left a)
 lemma condition (b) :
   K.ι (I.fst_to b) ≫ I.fst b = K.ι (I.snd_to b) ≫ I.snd b := by simp
 
+/-- This definition provides a convenient way to show that a multifork is a limit. -/
+@[simps]
+def is_limit.mk
+  (lift : Π (E : multifork I), E.X ⟶ K.X)
+  (fac : ∀ (E : multifork I) (i : I.L), lift E ≫ K.ι i = E.ι i)
+  (uniq : ∀ (E : multifork I) (m : E.X ⟶ K.X),
+    (∀ i : I.L, m ≫ K.ι i = E.ι i) → m = lift E) : is_limit K :=
+{ lift := lift,
+  fac' := begin
+    rintros E (a|b),
+    { apply fac },
+    { rw [← E.w (walking_multicospan.hom.fst b), ← K.w (walking_multicospan.hom.fst b),
+        ← category.assoc],
+      congr' 1,
+      apply fac }
+  end,
+  uniq' := begin
+    rintros E m hm,
+    apply uniq,
+    intros i,
+    apply hm,
+  end }
+
+
 variables [has_product I.left] [has_product I.right]
 
 @[simp, reassoc]
@@ -324,8 +348,6 @@ def to_pi_fork (K : multifork I) : fork I.fst_pi_map I.snd_pi_map :=
       any_goals { symmetry, dsimp, rw category.id_comp, apply category.comp_id },
       all_goals { change 𝟙 _ ≫ _ ≫ _ = pi.lift _ ≫ _, simp }
     end } }
-
-section end
 
 @[simp] lemma to_pi_fork_π_app_zero :
   K.to_pi_fork.π.app walking_parallel_pair.zero = pi.lift K.ι := rfl
@@ -436,6 +458,29 @@ def of_π (I : multispan_index C) (P : C) (π : Π b, I.right b ⟶ P)
 lemma condition (a) :
   I.fst a ≫ K.π (I.fst_from a) = I.snd a ≫ K.π (I.snd_from a) := by simp
 
+/-- This definition provides a convenient way to show that a multicofork is a colimit. -/
+@[simps]
+def is_colimit.mk
+  (desc : Π (E : multicofork I), K.X ⟶ E.X)
+  (fac : ∀ (E : multicofork I) (i : I.R), K.π i ≫ desc E = E.π i)
+  (uniq : ∀ (E : multicofork I) (m : K.X ⟶ E.X),
+    (∀ i : I.R, K.π i ≫ m = E.π i) → m = desc E) : is_colimit K :=
+{ desc := desc,
+  fac' := begin
+    rintros S (a|b),
+    { rw [← K.w (walking_multispan.hom.fst a), ← S.w (walking_multispan.hom.fst a),
+        category.assoc],
+      congr' 1,
+      apply fac },
+    { apply fac },
+  end,
+  uniq' := begin
+    intros S m hm,
+    apply uniq,
+    intros i,
+    apply hm
+  end }
+
 variables [has_coproduct I.left] [has_coproduct I.right]
 
 @[simp, reassoc]
@@ -458,8 +503,6 @@ def to_sigma_cofork (K : multicofork I) : cofork I.fst_sigma_map I.snd_sigma_map
       any_goals { dsimp, rw category.comp_id, apply category.id_comp },
       all_goals { change _ ≫ sigma.desc _ = (_ ≫ _) ≫ 𝟙 _, simp }
     end } }
-
-section end
 
 @[simp] lemma to_sigma_cofork_ι_app_zero :
   K.to_sigma_cofork.ι.app walking_parallel_pair.zero = I.fst_sigma_map ≫ sigma.desc K.π := rfl
@@ -608,8 +651,18 @@ variables [has_product I.left] [has_product I.right] [has_equalizer I.fst_pi_map
 
 /-- The multiequalizer is isomorphic to the equalizer of `∏ I.left ⇉ ∏ I.right`. -/
 def iso_equalizer : multiequalizer I ≅ equalizer I.fst_pi_map I.snd_pi_map :=
-limit.iso_limit_cone ⟨_, is_limit_of_preserves_cone_terminal
-  I.multifork_equiv_pi_fork.inverse _ (limit.is_limit _)⟩
+limit.iso_limit_cone ⟨_, is_limit.of_preserves_cone_terminal
+  I.multifork_equiv_pi_fork.inverse (limit.is_limit _)⟩
+
+/-- The canonical injection `multiequalizer I ⟶ ∏ I.left`. -/
+def ι_pi : multiequalizer I ⟶ ∏ I.left :=
+  (iso_equalizer I).hom ≫ equalizer.ι I.fst_pi_map I.snd_pi_map
+
+@[simp, reassoc]
+lemma ι_pi_π (a) : ι_pi I ≫ pi.π I.left a = ι I a :=
+by { rw [ι_pi, category.assoc, ← iso.eq_inv_comp, iso_equalizer], simpa }
+
+instance : mono (ι_pi I) := @@mono_comp _ _ _ _ equalizer.ι_mono
 
 /-- The canonical injection `multiequalizer I ⟶ ∏ I.left`. -/
 def ι_pi : multiequalizer I ⟶ ∏ I.left :=
@@ -679,8 +732,8 @@ variables [has_coequalizer I.fst_sigma_map I.snd_sigma_map]
 
 /-- The multicoequalizer is isomorphic to the coequalizer of `∐ I.left ⇉ ∐ I.right`. -/
 def iso_coequalizer : multicoequalizer I ≅ coequalizer I.fst_sigma_map I.snd_sigma_map :=
-colimit.iso_colimit_cocone ⟨_, is_colimit_of_preserves_cocone_initial
-  I.multicofork_equiv_sigma_cofork.inverse _ (colimit.is_colimit _)⟩
+colimit.iso_colimit_cocone ⟨_, is_colimit.of_preserves_cocone_initial
+  I.multicofork_equiv_sigma_cofork.inverse (colimit.is_colimit _)⟩
 
 /-- The canonical projection `∐ I.right ⟶ multicoequalizer I`. -/
 def sigma_π : ∐ I.right ⟶ multicoequalizer I :=

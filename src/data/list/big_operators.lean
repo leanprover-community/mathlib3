@@ -215,6 +215,18 @@ begin
   exact one_le_mul (hl₁ hd (mem_cons_self hd tl)) (ih (λ x h, hl₁ x (mem_cons_of_mem hd h))),
 end
 
+@[to_additive sum_pos]
+lemma one_lt_prod_of_one_lt [ordered_comm_monoid α] :
+  ∀ (l : list α) (hl : ∀ x ∈ l, (1 : α) < x) (hl₂ : l ≠ []), 1 < l.prod
+| [] _ h := (h rfl).elim
+| [b] h _ := by simpa using h
+| (a :: b :: l) hl₁ hl₂ :=
+begin
+  simp only [forall_eq_or_imp, list.mem_cons_iff _ a] at hl₁,
+  rw list.prod_cons,
+  apply one_lt_mul_of_lt_of_le' hl₁.1,
+  apply le_of_lt ((b :: l).one_lt_prod_of_one_lt hl₁.2 (l.cons_ne_nil b)),
+end
 @[to_additive]
 lemma single_le_prod [ordered_comm_monoid α] {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) :
   ∀ x ∈ l, x ≤ l.prod :=

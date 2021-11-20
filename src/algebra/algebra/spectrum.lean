@@ -106,8 +106,7 @@ lemma is_unit.smul_sub_iff_is_unit_sub_smul {r : units R} {a : A} :
 begin
   have with_smul_one : is_unit (r•(1 : R)•1 - a) ↔ is_unit ((1 : R)•1 - r⁻¹•a),
     by exact is_unit.smul_smul_sub_iff_is_unit_smul_sub_smul,
-  simp at with_smul_one,
-  exact with_smul_one,
+  simpa using with_smul_one,
 end
 
 lemma add_mem_spectrum {a : A} {r s : R} :
@@ -157,7 +156,7 @@ theorem unit_mem_spectrum_mul_iff_swap_mul {a b : A} {r : units R} :
 begin
   apply not_iff_not.mpr,
   change is_unit (r•1 - a*b) ↔ is_unit (r•1 - b*a),
-  repeat {rw [is_unit.smul_sub_iff_is_unit_sub_smul]},
+  simp only [is_unit.smul_sub_iff_is_unit_sub_smul],
   have right_inv_of_swap : ∀ {x y z : A} (h : (1 - x*y)*z = 1),
     (1 - y*x)*(1 + y*z*x) = 1, from λ x y z h,
       calc (1 - y*x)*(1 + y*z*x) = 1 - y*x + y*((1 - x*y)*z)*x : by noncomm_ring

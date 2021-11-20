@@ -68,7 +68,7 @@ local notation `σ` := spectrum R
 
 lemma mem_spectrum_iff_not_unit {r : R} {a : A} :
   r ∈ σ a ↔ ¬ is_unit (r • 1 - a) :=
-by { tidy }
+iff.rfl
 
 lemma not_mem_spectrum_iff_unit {r : R} {a : A} :
   r ∉ σ a ↔ is_unit (r • 1 - a) :=
@@ -81,7 +81,7 @@ units.is_unit ⟨r•1 - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁�
 
 lemma mem_resolvent_iff {r : R} {a : A} :
   r ∈ resolvent R a ↔ is_unit (r•1 - a) :=
-by { tidy }
+iff.rfl
 
 -- products of scalar units and algebra units
 
@@ -121,7 +121,7 @@ begin
   apply not_iff_not.mpr,
   simp only [mem_resolvent_iff],
   have h_eq : (r+s)•1 - (s•1 + a) = r•1 - a,
-    by { rw add_smul, noncomm_ring },
+    { rw add_smul, noncomm_ring },
   simp [h_eq],
 end
 

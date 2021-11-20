@@ -5,12 +5,11 @@ Authors: Anne Baanen
 -/
 import algebra.associated
 import algebra.regular.basic
-import data.matrix.notation
-import linear_algebra.matrix.polynomial
 import linear_algebra.matrix.mv_polynomial
+import linear_algebra.matrix.polynomial
+import ring_theory.polynomial.basic
 import tactic.linarith
 import tactic.ring_exp
-import ring_theory.polynomial.basic
 
 /-!
 # Cramer's rule and adjugate matrices

@@ -3,10 +3,8 @@ Copyright (c) 2021 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import linear_algebra.matrix
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.special_linear_group
-import linear_algebra.determinant
 
 /-!
 # The General Linear group $GL(n, R)$

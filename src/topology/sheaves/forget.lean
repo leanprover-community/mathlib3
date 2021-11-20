@@ -3,9 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.sheaves.sheaf
 import category_theory.limits.preserves.shapes.products
-import category_theory.limits.types
+import topology.sheaves.sheaf
 
 /-!
 # Checking the sheaf condition on the underlying presheaf of types.

@@ -5,7 +5,6 @@ Authors: Scott Morrison, Adam Topaz
 -/
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra.basic
-import linear_algebra
 
 /-!
 # Free Algebras
@@ -414,7 +413,7 @@ end
 
 /-- The star ring formed by reversing the elements of products -/
 instance : star_ring (free_algebra R X) :=
-{ star := opposite.unop ∘ lift R (opposite.op ∘ ι R),
+{ star := mul_opposite.unop ∘ lift R (mul_opposite.op ∘ ι R),
   star_involutive := λ x, by
   { unfold has_star.star,
     simp only [function.comp_apply],
@@ -431,7 +430,7 @@ lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (al
 by simp [star, has_star.star]
 
 /-- `star` as an `alg_equiv` -/
-def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵒᵖ :=
+def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵐᵒᵖ :=
 { commutes' := λ r, by simp [star_algebra_map],
   ..star_ring_equiv }
 

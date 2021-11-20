@@ -245,30 +245,6 @@ begin
   ... ≤ (∥a∥ / r) * ∥x∥ : mul_le_mul_of_nonneg_left hx I
 end
 
-/-- Given a neighborhood `s` of the origin in a normed space `E` obtain a constant which bounds
-the dual norms of all elements of the polar `polar 𝕜 s`. -/
-def bound_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : ℝ :=
-classical.some (bounded_of_nhds_zero 𝕜 s_nhd)
-
-lemma bound_of_nhds_zero_spec (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E))
-  {x' : dual 𝕜 E} (hx' : x' ∈ polar 𝕜 s) :
-  ∥ x' ∥ ≤ bound_of_nhds_zero 𝕜 s_nhd :=
-classical.some_spec (bounded_of_nhds_zero 𝕜 s_nhd) x' hx'
-
-lemma bound_of_nhds_zero_nonneg (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  0 ≤ bound_of_nhds_zero 𝕜 s_nhd :=
-by { have := bound_of_nhds_zero_spec 𝕜 s_nhd (zero_mem 𝕜 s), rwa norm_zero at this, }
-
-lemma ptwise_bound_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E))
-  {x' : dual 𝕜 E} (hx' : x' ∈ polar 𝕜 s) (z : E) :
-  ∥ x' z ∥ ≤ (bound_of_nhds_zero 𝕜 s_nhd) * ∥ z ∥ :=
-(continuous_linear_map.le_op_norm x' z).trans (mul_le_mul (bound_of_nhds_zero_spec 𝕜 s_nhd hx')
-    (le_refl ∥z∥) (norm_nonneg z) (bound_of_nhds_zero_nonneg 𝕜 s_nhd))
-
 end polar
 
 end polar_sets

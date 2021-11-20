@@ -6,6 +6,7 @@ Authors: Bhavik Mehta, Yaël Dillies
 import analysis.convex.cone
 import analysis.convex.topology
 import analysis.seminorm
+import tactic.by_contra
 
 /-!
 # Separation Hahn-Banach theorem
@@ -35,22 +36,7 @@ section
 open filter
 open_locale topological_space
 
-lemma continuous_at_of_exists_open [normed_ring 𝕜] [normed_group E] [module 𝕜 E] (f : E →ₗ[𝕜] 𝕜)
-  (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0 : E) ∈ U ∧ is_open U ∧ ∀ y ∈ U, ∥f y∥ < ε) :
-  continuous_at f 0 :=
-begin
-  intros U hU,
-  rw metric.nhds_basis_ball.1 at hU,
-  rcases hU with ⟨ε, hε₁, hε₂⟩,
-  simp only [filter.mem_map],
-  obtain ⟨V, hV₁, hV₂, hV₃⟩ := hf ε hε₁,
-  rw mem_nhds_iff,
-  refine ⟨V, λ y hy, hε₂ _, hV₂, hV₁⟩,
-  rw [metric.mem_ball, f.map_zero, dist_zero_right],
-  exact hV₃ _ hy,
-end
-
-lemma continuous_at_of_exists_open' [normed_ring 𝕜] [normed_group E] [module 𝕜 E]
+lemma continuous_at_of_exists_open [normed_ring 𝕜] [normed_group E] [module 𝕜 E]
   (f : E →ₗ[𝕜] 𝕜) {x : E}
   (hf : ∀ ε, 0 < ε → ∃ (U : set E), x ∈ U ∧ is_open U ∧ ∀ y ∈ U, ∥f y - f x∥ < ε) :
   continuous_at f x :=
@@ -66,13 +52,22 @@ begin
   exact hV₃ _ hy,
 end
 
+lemma continuous_at_zero_of_exists_open [normed_ring 𝕜] [normed_group E] [module 𝕜 E]
+  (f : E →ₗ[𝕜] 𝕜) (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0 : E) ∈ U ∧ is_open U ∧ ∀ y ∈ U, ∥f y∥ < ε) :
+  continuous_at f 0 :=
+begin
+  refine continuous_at_of_exists_open _ (λ ε hε, _),
+  obtain ⟨U, hU₀, hU, hUε⟩ := hf ε hε,
+  refine ⟨U, hU₀, hU, λ y hy, _⟩,
+  simpa only [f.map_zero, sub_zero] using hUε y hy,
+end
+
 lemma linear_map.exists_ne_zero {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
   {M₁ : Type*} [add_comm_monoid M₁] {M₂ : Type*} [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
   {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : f ≠ 0) :
   ∃ x, f x ≠ 0 :=
 begin
-  by_contra,
-  push_neg at h,
+  by_contra' h,
   exact hf (linear_map.ext h),
 end
 
@@ -82,8 +77,7 @@ lemma continuous_linear_map.exists_ne_zero {R₁ R₂ : Type*} [semiring R₁]
   {f : M₁ →SL[σ₁₂] M₂} (hf : f ≠ 0) :
   ∃ x, f x ≠ 0 :=
 begin
-  by_contra,
-  push_neg at h,
+  by_contra' h,
   exact hf (continuous_linear_map.ext h),
 end
 
@@ -133,31 +127,28 @@ theorem exists_disjoint_add_ball {A B : set E} (hA : is_compact A) (hB : is_clos
   (disj : disjoint A B) :
   ∃ ε : ℝ, 0 < ε ∧ disjoint (A + metric.ball 0 ε) (B + metric.ball 0 ε) :=
 begin
-  suffices h : ∃ (n : ℕ), disjoint (A + metric.ball 0 (n+1)⁻¹) (B + metric.ball 0 (n+1)⁻¹),
+  obtain ⟨u, -, u_pos, u_lim⟩ := exists_seq_strict_anti_tendsto (0 : ℝ),
+  suffices h : ∃ (n : ℕ), disjoint (A + metric.ball 0 (u n)) (B + metric.ball 0 (u n)),
   { obtain ⟨n, hn⟩ := h,
-    refine ⟨(n+1)⁻¹, nat.inv_pos_of_nat, hn⟩ },
-  by_contra h,
-  push_neg at h,
+    exact ⟨u n, u_pos n, hn⟩ },
+  by_contra' h,
   simp only [not_disjoint_iff, set.mem_add, metric.mem_ball, dist_zero_right,
-    ←exists_and_distrib_left, ←exists_and_distrib_right, and_assoc] at h,
+    ← exists_and_distrib_left, ← exists_and_distrib_right, and_assoc] at h,
   choose z f f' g g' h₁ h₂ h₃ h₄ h₅ h₆ using h,
   obtain ⟨w, hw, φ, hφ₁, hφ₂ : tendsto (f ∘ _) _ _⟩ := hA.tendsto_subseq h₁,
-  suffices : tendsto (g ∘ φ) at_top (𝓝 w),
-  { exact disj ⟨hw, mem_of_is_closed_sequential hB (λ n, h₄ (φ n)) this⟩ },
-  have hfg : tendsto (f - g) at_top (𝓝 0),
-  { suffices : ∀ n, ∥(f - g) n∥ ≤ 2 * (n+1)⁻¹,
-    { apply squeeze_zero_norm this,
-      rw ←mul_zero (2:ℝ),
-      apply tendsto.const_mul (2:ℝ),
-      simp_rw inv_eq_one_div,
-      exact tendsto_one_div_add_at_top_nhds_0_nat },
-    intro n,
-    have : f n - g n = g' n - f' n,
-    { rw [sub_eq_iff_eq_add', ←add_sub_assoc, h₆, ←h₃, add_sub_cancel] },
-    rw [pi.sub_apply, this, two_mul],
-    exact (norm_sub_le _ _).trans (add_le_add (h₅ n).le (h₂ n).le) },
-  simpa only [sub_sub_cancel, sub_zero, comp_app, pi.sub_apply]
-    using hφ₂.sub (hfg.comp hφ₁.tendsto_at_top),
+  refine disj ⟨hw, mem_of_is_closed_sequential hB (λ n, h₄ (φ n)) _⟩,
+  suffices hfg : tendsto (f - g) at_top (𝓝 0),
+  { simpa only [sub_sub_cancel, sub_zero, comp_app, pi.sub_apply]
+      using hφ₂.sub (hfg.comp hφ₁.tendsto_at_top) },
+  suffices : ∀ n, ∥(f - g) n∥ ≤ 2 * u n,
+  { apply squeeze_zero_norm this,
+    rw ←mul_zero (2 : ℝ),
+    exact u_lim.const_mul (2:ℝ) },
+  intro n,
+  have : f n - g n = g' n - f' n,
+  { rw [sub_eq_iff_eq_add', ←add_sub_assoc, h₆, ←h₃, add_sub_cancel] },
+  rw [pi.sub_apply, this, two_mul],
+  exact (norm_sub_le _ _).trans (add_le_add (h₅ n).le (h₂ n).le),
 end
 
 variables [normed_space ℝ E]
@@ -175,7 +166,7 @@ begin
   { simp_rw [linear_pmap.mk_span_singleton_apply, one_smul] },
   obtain ⟨φ, hφ₁, hφ₂⟩ := exists_extension_of_le_sublinear f (gauge C) _ _ _,
   { refine ⟨⟨φ, (φ.to_add_monoid_hom.uniform_continuous_of_continuous_at_zero _).continuous⟩, _, _⟩,
-    { refine continuous_at_of_exists_open _ (λ ε hε, ⟨(ε • C) ∩ (-ε • C), ⟨_, _⟩, _, _⟩),
+    { refine continuous_at_zero_of_exists_open _ (λ ε hε, ⟨(ε • C) ∩ (-ε • C), ⟨_, _⟩, _, _⟩),
       { exact mem_smul_set.mpr ⟨0, zero_mem, smul_zero _⟩ },
       { exact mem_smul_set.mpr ⟨0, zero_mem, smul_zero _⟩ },
       { exact (is_open_map_smul₀ hε.ne' _ hC₂).inter

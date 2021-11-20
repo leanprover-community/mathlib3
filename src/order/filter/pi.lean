@@ -1,18 +1,22 @@
 /-
 Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury G. Kudryashov
+Authors: Yury G. Kudryashov, Alex Kontorovich
 -/
 import order.filter.basic
 
 /-!
-# Product of a family of filters
+# (Co)product of a family of filters
 
-In this file we define `filter.pi (f : Π i, filter (α i))` to be the maximal filter on `Π i, α i`
-such that `∀ i, filter.tendsto (function.eval i) (filter.pi f) (f i)`. It is defined as
-`Π i, filter.comap (function.eval i) (f i)`. This combinator appears, e.g., in topology (see
-`nhds_pi`) and in measure theory (see `measure_theory.measure.ae_pi_le_pi`), so we define it for a
-general family of filters and prove some basic facts about it in this file.
+In this file we define two filters on `Π i, α i` and prove some basic properties of these filters.
+
+* `filter.pi (f : Π i, filter (α i))` to be the maximal filter on `Π i, α i` such that
+  `∀ i, filter.tendsto (function.eval i) (filter.pi f) (f i)`. It is defined as
+  `Π i, filter.comap (function.eval i) (f i)`. This is a generalization of `filter.prod` to indexed
+  products.
+
+* `filter.Coprod (f : Π i, filter (α i))`: a generalization of `filter.coprod`; it is the supremum
+  of `comap (eval i) (f i)`.
 -/
 
 open set function
@@ -20,7 +24,9 @@ open_locale classical filter
 
 namespace filter
 
-variables {ι : Type*} {α : ι → Type*} {f : Π i, filter (α i)} {s : Π i, set (α i)}
+variables {ι : Type*} {α : ι → Type*} {f f₁ f₂ : Π i, filter (α i)} {s : Π i, set (α i)}
+
+section pi
 
 /-- The product of an indexed family of filters. -/
 def pi (f : Π i, filter (α i)) : filter (Π i, α i) := ⨅ i, comap (eval i) (f i)
@@ -34,6 +40,9 @@ lemma tendsto_pi {β : Type*} {m : β → Π i, α i} {l : filter β} :
 by simp only [pi, tendsto_infi, tendsto_comap_iff]
 
 lemma le_pi {g : filter (Π i, α i)} : g ≤ pi f ↔ ∀ i, tendsto (eval i) g (f i) := tendsto_pi
+
+@[mono] lemma pi_mono (h : ∀ i, f₁ i ≤ f₂ i) : pi f₁ ≤ pi f₂ :=
+infi_le_infi $ λ i, comap_mono $ h i
 
 lemma mem_pi_of_mem (i : ι) {s : set (α i)} (hs : s ∈ f i) :
   eval i ⁻¹' s ∈ pi f :=
@@ -120,5 +129,55 @@ by simpa using @pi_inf_principal_univ_pi_eq_bot ι α f (λ _, univ)
 @[simp] lemma pi_ne_bot : ne_bot (pi f) ↔ ∀ i, ne_bot (f i) := by simp [ne_bot_iff]
 
 instance [∀ i, ne_bot (f i)] : ne_bot (pi f) := pi_ne_bot.2 ‹_›
+
+end pi
+
+/-! ### `n`-ary coproducts of filters -/
+
+section Coprod
+
+/-- Coproduct of filters. -/
+protected def Coprod (f : Π i, filter (α i)) : filter (Π i, α i) :=
+⨆ i : ι, comap (eval i) (f i)
+
+lemma mem_Coprod_iff {s : set (Π i, α i)} :
+  (s ∈ (filter.Coprod f)) ↔ (∀ i : ι, (∃ t₁ ∈ f i, eval i ⁻¹' t₁ ⊆ s)) :=
+by simp [filter.Coprod]
+
+lemma Coprod_ne_bot_iff' :
+  ne_bot (filter.Coprod f) ↔ (∀ i, nonempty (α i)) ∧ ∃ d, ne_bot (f d) :=
+by simp only [filter.Coprod, supr_ne_bot, ← exists_and_distrib_left, ← comap_eval_ne_bot_iff']
+
+@[simp] lemma Coprod_ne_bot_iff [∀ i, nonempty (α i)] :
+  ne_bot (filter.Coprod f) ↔ ∃ d, ne_bot (f d) :=
+by simp [Coprod_ne_bot_iff', *]
+
+lemma ne_bot.Coprod [∀ i, nonempty (α i)] {i : ι} (h : ne_bot (f i)) :
+  ne_bot (filter.Coprod f) :=
+Coprod_ne_bot_iff.2 ⟨i, h⟩
+
+@[instance] lemma Coprod_ne_bot [∀ i, nonempty (α i)] [nonempty ι] (f : Π i, filter (α i))
+  [H : ∀ i, ne_bot (f i)] : ne_bot (filter.Coprod f) :=
+(H (classical.arbitrary ι)).Coprod
+
+@[mono] lemma Coprod_mono (hf : ∀ i, f₁ i ≤ f₂ i) : filter.Coprod f₁ ≤ filter.Coprod f₂ :=
+supr_le_supr $ λ i, comap_mono (hf i)
+
+variables {β : ι → Type*} {m : Π i, α i → β i}
+
+lemma map_pi_map_Coprod_le :
+  map (λ (k : Π i, α i), λ i, m i (k i)) (filter.Coprod f) ≤ filter.Coprod (λ i, map (m i) (f i)) :=
+begin
+  simp only [le_def, mem_map, mem_Coprod_iff],
+  intros s h i,
+  obtain ⟨t, H, hH⟩ := h i,
+  exact ⟨{x : α i | m i x ∈ t}, H, λ x hx, hH hx⟩
+end
+
+lemma tendsto.pi_map_Coprod {g : Π i, filter (β i)} (h : ∀ i, tendsto (m i) (f i) (g i)) :
+  tendsto (λ (k : Π i, α i), λ i, m i (k i)) (filter.Coprod f) (filter.Coprod g) :=
+map_pi_map_Coprod_le.trans (Coprod_mono h)
+
+end Coprod
 
 end filter

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.subbox_induction
-import analysis.box_integral.partition.additive
+import analysis.box_integral.partition.split
 
 /-!
 # Filters used in box-based integrals

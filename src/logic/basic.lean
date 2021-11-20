@@ -946,6 +946,12 @@ theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq' {a' : α} : ∃ a, a' = a := ⟨_, rfl⟩
 
+@[simp] theorem exists_unique_eq {a' : α} : ∃! a, a = a' :=
+by simp only [eq_comm, exists_unique, and_self, forall_eq', exists_eq']
+
+@[simp] theorem exists_unique_eq' {a' : α} : ∃! a, a' = a :=
+by simp only [exists_unique, and_self, forall_eq', exists_eq']
+
 @[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩
 

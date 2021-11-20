@@ -634,6 +634,10 @@ variables [linear_order α] [order_closed_topology α]
 lemma measurable_set_interval {a b : α} : measurable_set (interval a b) :=
 measurable_set_Icc
 
+@[measurability]
+lemma measurable_set_interval_oc {a b : α} : measurable_set (interval_oc a b) :=
+measurable_set_Ioc
+
 variables [second_countable_topology α]
 
 @[measurability]

@@ -129,6 +129,10 @@ end galois_connection
 
 /-! ### Union and intersection over an indexed family of sets -/
 
+instance : order_top (set α) :=
+{ top := univ,
+  le_top := by simp }
+
 @[congr] theorem Union_congr_Prop {p q : Prop} {f₁ : p → set α} {f₂ : q → set α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Union f₁ = Union f₂ :=
 supr_congr_Prop pq f
@@ -1012,23 +1016,6 @@ lemma image_sInter_subset (S : set (set α)) (f : α → β) :
   f '' (⋂₀ S) ⊆ ⋂ s ∈ S, f '' s :=
 by { rw sInter_eq_bInter, apply image_bInter_subset }
 
-lemma pairwise_on_Union {r : α → α → Prop} {f : ι → set α} (h : directed (⊆) f) :
-  (⋃ n, f n).pairwise_on r ↔ (∀ n, (f n).pairwise_on r) :=
-begin
-  split,
-  { assume H n,
-    exact pairwise_on.mono (subset_Union _ _) H },
-  { assume H i hi j hj hij,
-    rcases mem_Union.1 hi with ⟨m, hm⟩,
-    rcases mem_Union.1 hj with ⟨n, hn⟩,
-    rcases h m n with ⟨p, mp, np⟩,
-    exact H p i (mp hm) j (np hn) hij }
-end
-
-lemma pairwise_on_sUnion {r : α → α → Prop} {s : set (set α)} (h : directed_on (⊆) s) :
-  (⋃₀ s).pairwise_on r ↔ (∀ a ∈ s, set.pairwise_on a r) :=
-by { rw [sUnion_eq_Union, pairwise_on_Union (h.directed_coe), set_coe.forall], refl }
-
 /-! ### `inj_on` -/
 
 lemma inj_on.image_Inter_eq [nonempty ι] {s : ι → set α} {f : α → β} (h : inj_on f (⋃ i, s i)) :
@@ -1518,9 +1505,13 @@ theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : s
   (h : ∀ b ∈ s, ∀ c ∈ t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintro a ⟨⟨b, hb, eq⟩, c, hc, rfl⟩; exact h b hb c hc eq
 
-theorem pairwise_on_disjoint_fiber (f : α → β) (s : set β) :
-  pairwise_on s (disjoint on (λ y, f ⁻¹' {y})) :=
-λ y₁ _ y₂ _ hy x ⟨hx₁, hx₂⟩, hy (eq.trans (eq.symm hx₁) hx₂)
+lemma disjoint_image_of_injective {f : α → β} (hf : injective f) {s t : set α}
+  (hd : disjoint s t) : disjoint (f '' s) (f '' t) :=
+disjoint_image_image $ λ x hx y hy, hf.ne $ λ H, set.disjoint_iff.1 hd ⟨hx, H.symm ▸ hy⟩
+
+lemma disjoint_preimage {s t : set β} (hd : disjoint s t) (f : α → β) :
+  disjoint (f ⁻¹' s) (f ⁻¹' t) :=
+λ x hx, hd hx
 
 lemma preimage_eq_empty {f : α → β} {s : set β} (h : disjoint s (range f)) :
   f ⁻¹' s = ∅ :=
@@ -1558,15 +1549,6 @@ begin
   apply subset_union_right
 end
 
-lemma bUnion_diff_bUnion_eq {s₁ s₂ : set α} (H : pairwise_on (s₁ ∪ s₂) (disjoint on t)) :
-  (⋃ x ∈ s₁, t x) \ (⋃ x ∈ s₂, t x) = (⋃ x ∈ s₁ \ s₂, t x) :=
-begin
-  refine (bUnion_diff_bUnion_subset t s₁ s₂).antisymm (bUnion_subset $ λ x hx y hy, _),
-  refine (mem_diff _).2 ⟨mem_bUnion hx.1 hy, _⟩,
-  rw mem_bUnion_iff, rintro ⟨x₂, hx₂, hy₂⟩,
-  exact H x (or.inl hx.1) x₂ (or.inr hx₂) (ne_of_mem_of_not_mem hx₂ hx.2).symm ⟨hy, hy₂⟩
-end
-
 /-- If `t` is an indexed family of sets, then there is a natural map from `Σ i, t i` to `⋃ i, t i`
 sending `⟨i, x⟩` to `x`. -/
 def sigma_to_Union (x : Σ i, t i) : (⋃ i, t i) := ⟨x.2, mem_Union.2 ⟨x.1, x.2.2⟩⟩
@@ -1591,11 +1573,5 @@ lemma sigma_to_Union_bijective (h : ∀ i j, i ≠ j → disjoint (t i) (t j)) :
 noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀ i j, i ≠ j → disjoint (t i) (t j)) : (⋃ i, t i) ≃ (Σ i, t i) :=
 (equiv.of_bijective _ $ sigma_to_Union_bijective t h).symm
-
-/-- Equivalence between a disjoint bounded union and a dependent sum. -/
-noncomputable def bUnion_eq_sigma_of_disjoint {s : set α} {t : α → set β}
-  (h : pairwise_on s (disjoint on t)) : (⋃ i ∈ s, t i) ≃ (Σ i : s, t i.val) :=
-equiv.trans (equiv.set_congr (bUnion_eq_Union _ _)) $ Union_eq_sigma_of_disjoint $
-  λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h _ hi _ hj $ λ eq, ne $ subtype.eq eq
 
 end set

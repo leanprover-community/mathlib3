@@ -190,13 +190,13 @@ begin
     simp },
   { dsimp [ε, e],
     cases hp : p 0 ; cases hq : q 0,
-    all_goals {
-      repeat {rw cond_tt},
+    all_goals
+    { repeat {rw cond_tt},
       repeat {rw cond_ff},
       simp only [linear_map.fst_apply, linear_map.snd_apply, linear_map.comp_apply, IH],
       try { congr' 1, rw Q.succ_n_eq, finish },
-      try {
-        erw (ε _).map_zero,
+      try
+      { erw (ε _).map_zero,
         have : p ≠ q, { intro h, rw p.succ_n_eq q at h, finish },
         simp [this] } } }
 end
@@ -210,8 +210,8 @@ begin
     ext ; change _ = (0 : V n) ; simp only ; apply ih ; intro p ;
     [ let q : Q (n+1) := λ i, if h : i = 0 then tt else p (i.pred h),
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
-    all_goals {
-      specialize h q,
+    all_goals
+    { specialize h q,
       rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|>
         rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
       rwa show p = π q, by { ext, simp [q, fin.succ_ne_zero, π] } } }
@@ -373,7 +373,7 @@ begin
     rw set.range_restrict at hdW,
     convert hdW,
     rw [← (dual_pair_e_ε _).coe_basis, cardinal.mk_image_eq (dual_pair_e_ε _).basis.injective,
-        cardinal.fintype_card] },
+        cardinal.mk_fintype] },
   rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,

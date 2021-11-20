@@ -147,7 +147,7 @@ lemma of_digits_eq_sum_map_with_index_aux (b : ℕ) (l : list ℕ) :
 begin
   suffices : (list.range l.length).zip_with (((λ (i a : ℕ), a * b ^ i) ∘ succ)) l =
       (list.range l.length).zip_with (λ i a, b * (a * b ^ i)) l,
-    { simp [this] },
+  { simp [this] },
   congr,
   ext,
   simp [pow_succ],

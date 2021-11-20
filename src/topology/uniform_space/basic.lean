@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.lift
-import topology.separation
+import topology.subset_properties
 /-!
 # Uniform spaces
 
@@ -948,8 +948,8 @@ instance : partial_order (uniform_space α) :=
   le_trans    := assume a b c h₁ h₂, le_trans h₁ h₂ }
 
 instance : has_Inf (uniform_space α) :=
-⟨assume s, uniform_space.of_core {
-  uniformity := (⨅u∈s, @uniformity α u),
+⟨assume s, uniform_space.of_core
+{ uniformity := (⨅u∈s, @uniformity α u),
   refl       := le_infi $ assume u, le_infi $ assume hu, u.refl,
   symm       := le_infi $ assume u, le_infi $ assume hu,
     le_trans (map_mono $ infi_le_of_le _ $ infi_le _ hu) u.symm,

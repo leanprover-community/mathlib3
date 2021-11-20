@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 import group_theory.congruence
-import group_theory.submonoid
+import group_theory.submonoid.membership
 import algebra.group.units
-import algebra.punit_instances
 
 /-!
 # Localizations of commutative monoids
@@ -740,12 +739,12 @@ end
   function.surjective (f.lift hg) ↔ ∀ v : P, ∃ x : M × S, v * g x.2 = g x.1 :=
 begin
   split,
-    { intros H v,
-      obtain ⟨z, hz⟩ := H v,
-      obtain ⟨x, hx⟩ := f.surj z,
-      use x,
-      rw [←hz, f.eq_mk'_iff_mul_eq.2 hx, lift_mk', mul_assoc, mul_comm _ (g ↑x.2)],
-      erw [is_unit.mul_lift_right_inv (g.mrestrict S) hg, mul_one] },
+  { intros H v,
+    obtain ⟨z, hz⟩ := H v,
+    obtain ⟨x, hx⟩ := f.surj z,
+    use x,
+    rw [←hz, f.eq_mk'_iff_mul_eq.2 hx, lift_mk', mul_assoc, mul_comm _ (g ↑x.2)],
+    erw [is_unit.mul_lift_right_inv (g.mrestrict S) hg, mul_one] },
   { intros H v,
     obtain ⟨x, hx⟩ := H v,
     use f.mk' x.1 x.2,
@@ -756,12 +755,12 @@ end
   function.injective (f.lift hg) ↔ ∀ x y, f.to_map x = f.to_map y ↔ g x = g y :=
 begin
   split,
-    { intros H x y,
-      split,
-        { exact f.eq_of_eq hg },
-      { intro h,
-        rw [←f.lift_eq hg, ←f.lift_eq hg] at h,
-        exact H h }},
+  { intros H x y,
+    split,
+    { exact f.eq_of_eq hg },
+    { intro h,
+      rw [←f.lift_eq hg, ←f.lift_eq hg] at h,
+      exact H h } },
   { intros H z w h,
     obtain ⟨x, hx⟩ := f.surj z,
     obtain ⟨y, hy⟩ := f.surj w,

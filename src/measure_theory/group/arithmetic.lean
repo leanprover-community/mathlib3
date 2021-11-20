@@ -44,7 +44,7 @@ measurable function, arithmetic operator
 
 universes u v
 
-open_locale big_operators
+open_locale big_operators pointwise
 open measure_theory
 
 /-!
@@ -338,6 +338,9 @@ measurable_inv.comp_ae_measurable hf
 
 attribute [measurability] measurable.neg ae_measurable.neg
 
+@[to_additive] lemma measurable_set.inv {s : set G} (hs : measurable_set s) : measurable_set s⁻¹ :=
+measurable_inv hs
+
 @[simp, to_additive] lemma measurable_inv_iff {G : Type*} [group G] [measurable_space G]
   [has_measurable_inv G] {f : α → G} : measurable (λ x, (f x)⁻¹) ↔ measurable f :=
 ⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
@@ -423,13 +426,13 @@ export has_measurable_vadd (measurable_const_vadd measurable_vadd_const)
   has_measurable_vadd₂ (measurable_vadd)
 
 @[to_additive]
-instance has_measurable_smul_of_mul (M : Type*) [monoid M] [measurable_space M]
+instance has_measurable_smul_of_mul (M : Type*) [has_mul M] [measurable_space M]
   [has_measurable_mul M] :
   has_measurable_smul M M :=
 ⟨measurable_id.const_mul, measurable_id.mul_const⟩
 
 @[to_additive]
-instance has_measurable_smul₂_of_mul (M : Type*) [monoid M] [measurable_space M]
+instance has_measurable_smul₂_of_mul (M : Type*) [has_mul M] [measurable_space M]
   [has_measurable_mul₂ M] :
   has_measurable_smul₂ M M :=
 ⟨measurable_mul⟩
@@ -538,6 +541,39 @@ lemma ae_measurable_const_smul_iff₀ {c : G₀} (hc : c ≠ 0) :
 (is_unit.mk0 c hc).ae_measurable_const_smul_iff
 
 end mul_action
+
+/-!
+### Opposite monoid
+-/
+
+section opposite
+open mul_opposite
+
+instance {α : Type*} [h : measurable_space α] : measurable_space αᵐᵒᵖ := measurable_space.map op h
+
+lemma measurable_op {α : Type*} [measurable_space α] : measurable (op : α → αᵐᵒᵖ) := λ s, id
+
+lemma measurable_unop {α : Type*} [measurable_space α] : measurable (unop : αᵐᵒᵖ → α) := λ s, id
+
+instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul M] :
+  has_measurable_mul Mᵐᵒᵖ :=
+⟨λ c, measurable_op.comp (measurable_unop.mul_const _),
+  λ c, measurable_op.comp (measurable_unop.const_mul _)⟩
+
+instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul₂ M] :
+  has_measurable_mul₂ Mᵐᵒᵖ :=
+⟨measurable_op.comp ((measurable_unop.comp measurable_snd).mul
+  (measurable_unop.comp measurable_fst))⟩
+
+instance has_measurable_smul_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
+  [has_measurable_mul M] : has_measurable_smul Mᵐᵒᵖ M :=
+⟨λ c, measurable_mul_const (unop c), λ x, measurable_unop.const_mul x⟩
+
+instance has_measurable_smul₂_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
+  [has_measurable_mul₂ M] : has_measurable_smul₂ Mᵐᵒᵖ M :=
+⟨measurable_snd.mul (measurable_unop.comp measurable_fst)⟩
+
+end opposite
 
 /-!
 ### Big operators: `∏` and `∑`

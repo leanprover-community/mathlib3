@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.ring.basic
-import algebra.group_with_zero
 
 /-!
 # Fields and division rings
@@ -64,14 +63,6 @@ instance division_ring.to_group_with_zero :
   group_with_zero K :=
 { .. ‹division_ring K›,
   .. (infer_instance : semiring K) }
-
-lemma inverse_eq_has_inv : (ring.inverse : K → K) = has_inv.inv :=
-begin
-  ext x,
-  by_cases hx : x = 0,
-  { simp [hx] },
-  { exact ring.inverse_unit (units.mk0 x hx) }
-end
 
 attribute [field_simps] inv_eq_one_div
 

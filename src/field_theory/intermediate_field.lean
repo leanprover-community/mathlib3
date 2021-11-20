@@ -202,8 +202,27 @@ begin
   { simp [pow_succ, ih] }
 end
 
-instance algebra : algebra K S :=
-S.to_subalgebra.algebra
+/-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
+
+instance module' {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L] :
+  module R S :=
+S.to_subalgebra.module'
+instance module : module K S := S.to_subalgebra.module
+
+instance is_scalar_tower {R} [semiring R] [has_scalar R K] [module R L]
+  [is_scalar_tower R K L] :
+  is_scalar_tower R K S :=
+S.to_subalgebra.is_scalar_tower
+
+@[simp] lemma coe_smul {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L]
+  (r : R) (x : S) :
+  ↑(r • x) = (r • x : L) := rfl
+
+instance algebra' {K'} [comm_semiring K'] [has_scalar K' K] [algebra K' L]
+  [is_scalar_tower K' K L] :
+  algebra K' S :=
+S.to_subalgebra.algebra'
+instance algebra : algebra K S := S.to_subalgebra.algebra
 
 instance to_algebra {R : Type*} [semiring R] [algebra L R] : algebra S R :=
 S.to_subalgebra.to_algebra
@@ -285,30 +304,21 @@ instance has_lift2 {F : intermediate_field K L} :
 @[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
   x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
 
-instance lift2_alg {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
-{ to_fun := (algebra_map F E).comp (algebra_map K F),
-  map_zero' := ((algebra_map F E).comp (algebra_map K F)).map_zero,
-  map_one' := ((algebra_map F E).comp (algebra_map K F)).map_one,
-  map_add' := ((algebra_map F E).comp (algebra_map K F)).map_add,
-  map_mul' := ((algebra_map F E).comp (algebra_map K F)).map_mul,
-  smul := λ a b, (((algebra_map F E).comp (algebra_map K F)) a) * b,
-  smul_def' := λ _ _, rfl,
-  commutes' := λ a b, mul_comm (((algebra_map F E).comp (algebra_map K F)) a) b }
+/-- This was formerly an instance called `lift2_alg`, but an instance above already provides it. -/
+example {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
+by apply_instance
+
+lemma lift2_algebra_map {F : intermediate_field K L} {E : intermediate_field F L} :
+  algebra_map K E = (algebra_map F E).comp (algebra_map K F) := rfl
 
 instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
   is_scalar_tower K F E :=
-⟨λ a b c, by { simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc], refl }⟩
+E.is_scalar_tower
 
 /-- `lift2` is isomorphic to the original `intermediate_field`. -/
 def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
   (↑E : intermediate_field K L) ≃ₐ[K] E :=
-{ to_fun := λ x, x,
-  inv_fun := λ x, x,
-  left_inv := λ x, rfl,
-  right_inv := λ x, rfl,
-  map_add' := λ x y, rfl,
-  map_mul' := λ x y, rfl,
-  commutes' := λ x, rfl }
+alg_equiv.refl
 
 end tower
 

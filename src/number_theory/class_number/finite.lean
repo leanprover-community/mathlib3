@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
+import analysis.special_functions.pow
+import ring_theory.class_group
+import ring_theory.norm
 import linear_algebra.free_module.pid
 import linear_algebra.matrix.absolute_value
 import number_theory.class_number.admissible_absolute_value
-import number_theory.function_field
-import number_theory.number_field
-import ring_theory.class_group
-import ring_theory.norm
 
 /-!
 # Class numbers of global fields

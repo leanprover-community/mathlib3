@@ -3,7 +3,6 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Aaron Anderson, Yakov Pechersky
 -/
-import data.finset.sort
 import data.fintype.basic
 import group_theory.perm.basic
 
@@ -383,8 +382,8 @@ begin
   subst H,
   simp only [swap_self, support_refl, insert_singleton_self_eq] at h,
   have : x ∈ ∅,
-    { rw h,
-      exact mem_singleton.mpr rfl },
+  { rw h,
+    exact mem_singleton.mpr rfl },
   simpa
 end
 

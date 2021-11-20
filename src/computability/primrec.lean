@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.equiv.list
+import data.list.join
 import logic.function.iterate
 
 /-!
@@ -1198,12 +1199,12 @@ begin
   induction pf,
   case nat.primrec'.zero { exact const 0 },
   case nat.primrec'.succ { exact primrec.succ.comp vector_head },
-  case nat.primrec'.nth : n i {
-    exact vector_nth.comp primrec.id (const i) },
-  case nat.primrec'.comp : m n f g _ _ hf hg {
-    exact hf.comp (vector_of_fn (λ i, hg i)) },
-  case nat.primrec'.prec : n f g _ _ hf hg {
-    exact nat_elim' vector_head (hf.comp vector_tail) (hg.comp $
+  case nat.primrec'.nth : n i
+  { exact vector_nth.comp primrec.id (const i) },
+  case nat.primrec'.comp : m n f g _ _ hf hg
+  { exact hf.comp (vector_of_fn (λ i, hg i)) },
+  case nat.primrec'.prec : n f g _ _ hf hg
+  { exact nat_elim' vector_head (hf.comp vector_tail) (hg.comp $
       vector_cons.comp (fst.comp snd) $
       vector_cons.comp (snd.comp snd) $
       (@vector_tail _ _ (n+1)).comp fst).to₂ },
@@ -1348,12 +1349,12 @@ suffices ∀ f, nat.primrec f → @primrec' 1 (λ v, f v.head), from
   case nat.primrec.succ { exact succ },
   case nat.primrec.left { exact unpair₁ head },
   case nat.primrec.right { exact unpair₂ head },
-  case nat.primrec.pair : f g _ _ hf hg {
-    exact mkpair.comp₂ _ hf hg },
-  case nat.primrec.comp : f g _ _ hf hg {
-    exact hf.comp₁ _ hg },
-  case nat.primrec.prec : f g _ _ hf hg {
-    simpa using prec' (unpair₂ head)
+  case nat.primrec.pair : f g _ _ hf hg
+  { exact mkpair.comp₂ _ hf hg },
+  case nat.primrec.comp : f g _ _ hf hg
+  { exact hf.comp₁ _ hg },
+  case nat.primrec.prec : f g _ _ hf hg
+  { simpa using prec' (unpair₂ head)
       (hf.comp₁ _ (unpair₁ head))
       (hg.comp₁ _ $ mkpair.comp₂ _ (unpair₁ $ tail $ tail head)
         (mkpair.comp₂ _ head (tail head))) },

@@ -547,8 +547,8 @@ by simp only [interval_integral_eq_integral_interval_oc, integral_add hf.def hg.
 lemma integral_finset_sum {ι} {s : finset ι} {f : ι → α → E}
   (h : ∀ i ∈ s, interval_integrable (f i) μ a b) :
   ∫ x in a..b, ∑ i in s, f i x ∂μ = ∑ i in s, ∫ x in a..b, f i x ∂μ :=
-by simp only [interval_integral_eq_integral_interval_oc, integral_finset_sum s (λ i hi, (h i hi).def),
-  finset.smul_sum]
+by simp only [interval_integral_eq_integral_interval_oc,
+  integral_finset_sum s (λ i hi, (h i hi).def), finset.smul_sum]
 
 @[simp] lemma integral_neg : ∫ x in a..b, -f x ∂μ = -∫ x in a..b, f x ∂μ :=
 by { simp only [interval_integral, integral_neg], abel }
@@ -915,7 +915,7 @@ begin
 end
 
 /-- Lebesgue dominated convergence theorem for series. -/
-lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι] [preorder ι]
+lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
   {F : ι → α → E} (bound : ι → α → ℝ)
   (hF_meas : ∀ n, ae_measurable (F n) (μ.restrict (Ι a b)))
   (h_bound : ∀ n, ∀ᵐ t ∂μ, t ∈ Ι a b → ∥F n t∥ ≤ bound n t)

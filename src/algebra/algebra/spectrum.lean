@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 import algebra.algebra.basic
-import tactic
+import tactic.noncomm_ring
 /-!
 # Spectrum of an element in an algebra
 This file develops the basic theory of the spectrum of an element of an algebra.

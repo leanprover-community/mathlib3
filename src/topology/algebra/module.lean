@@ -959,9 +959,9 @@ by { simp only [← coe_inj, linear_map.prod_ext_iff], refl }
   (hr : f.comp (inr _ _ _) = g.comp (inr _ _ _)) : f = g :=
 prod_ext_iff.2 ⟨hl, hr⟩
 
-variables [has_continuous_add M₂] [has_continuous_add N₂]
+variables [has_continuous_add M₂] [has_continuous_add M₃] [has_continuous_add N₂]
 
-instance : module S₃ (M →SL[σ₁₂] M₂) :=
+instance : module S₃ (M →SL[σ₁₃] M₃) :=
 { smul_zero := λ _, ext $ λ _, smul_zero _,
   zero_smul := λ _, ext $ λ _, zero_smul _ _,
   one_smul  := λ _, ext $ λ _, by exact one_smul _ _,
@@ -979,7 +979,7 @@ variables (S) [has_continuous_add N₃]
 
 /-- The coercion from `M →L[R] M₂` to `M →ₗ[R] M₂`, as a linear map. -/
 @[simps]
-def coe_lm : (M →L[R] M₂) →ₗ[S] (M →ₗ[R] M₂) :=
+def coe_lm : (M →SL[σ₁₃] M₃) →ₗ[S₃] (M →ₛₗ[σ₁₃] M₃) :=
 { to_fun := coe,
   map_add' := λ f g, coe_add f g,
   map_smul' := λ c f, coe_smul c f }

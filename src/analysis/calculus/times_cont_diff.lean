@@ -1564,7 +1564,7 @@ lemma continuous_linear_equiv.times_cont_diff {n : with_top ℕ} (f : E ≃L[�
   times_cont_diff 𝕜 n f :=
 (f : E →L[𝕜] F).times_cont_diff
 
-lemma linear_isometry_map.times_cont_diff {n : with_top ℕ} (f : E →ₗᵢ[𝕜] F) :
+lemma linear_isometry.times_cont_diff {n : with_top ℕ} (f : E →ₗᵢ[𝕜] F) :
   times_cont_diff 𝕜 n f :=
 f.to_continuous_linear_map.times_cont_diff
 
@@ -1625,6 +1625,24 @@ The second projection within a domain at a point in a product is `C^∞`.
 lemma times_cont_diff_within_at_snd {s : set (E × F)} {p : E × F} {n : with_top ℕ} :
   times_cont_diff_within_at 𝕜 n (prod.snd : E × F → F) s p :=
 times_cont_diff_snd.times_cont_diff_within_at
+
+/--
+The natural equivalence `(E × F) × G ≃ E × (F × G)` is smooth.
+
+Warning: if you think you need this lemma, it is likely that you can simplify your proof by
+reformulating the lemma that you're applying next using the tips in
+Note [continuity lemma statement]
+-/
+lemma times_cont_diff_prod_assoc : times_cont_diff 𝕜 ⊤ $ equiv.prod_assoc E F G :=
+(linear_isometry_equiv.prod_assoc 𝕜 E F G).times_cont_diff
+
+/--
+The natural equivalence `E × (F × G) ≃ (E × F) × G` is smooth.
+
+Warning: see remarks attached to `times_cont_diff_prod_assoc`
+-/
+lemma times_cont_diff_prod_assoc_symm : times_cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).symm :=
+(linear_isometry_equiv.prod_assoc 𝕜 E F G).symm.times_cont_diff
 
 /--
 The identity is `C^∞`.
@@ -1708,16 +1726,9 @@ domains. -/
 lemma continuous_linear_equiv.comp_times_cont_diff_within_at_iff
   {n : with_top ℕ} (e : F ≃L[𝕜] G) :
   times_cont_diff_within_at 𝕜 n (e ∘ f) s x ↔ times_cont_diff_within_at 𝕜 n f s x :=
-begin
-  split,
-  { assume H,
-    have : f = e.symm ∘ (e ∘ f),
-      by { ext y, simp only [function.comp_app], rw e.symm_apply_apply (f y) },
-    rw this,
-    exact H.continuous_linear_map_comp _ },
-  { assume H,
-    exact H.continuous_linear_map_comp _ }
-end
+⟨λ H, by simpa only [(∘), e.symm.coe_coe, e.symm_apply_apply]
+  using H.continuous_linear_map_comp (e.symm : G →L[𝕜] F),
+  λ H, H.continuous_linear_map_comp (e : F →L[𝕜] G)⟩
 
 /-- Composition by continuous linear equivs on the left respects higher differentiability on
 domains. -/
@@ -1790,31 +1801,24 @@ lemma continuous_linear_equiv.times_cont_diff_within_at_comp_iff {n : with_top �
 begin
   split,
   { assume H,
-    have A : f = (f ∘ e) ∘ e.symm,
-      by { ext y, simp only [function.comp_app], rw e.apply_symm_apply y },
-    have B : e.symm ⁻¹' (e ⁻¹' s) = s,
-      by { rw [← preimage_comp, e.self_comp_symm], refl },
-    rw [A, ← B],
-    exact H.comp_continuous_linear_map _},
+    simpa [← preimage_comp, (∘)] using H.comp_continuous_linear_map (e.symm : E →L[𝕜] G) },
   { assume H,
-    have : x = e (e.symm x), by simp,
-    rw this at H,
+    rw [← e.apply_symm_apply x, ← e.coe_coe] at H,
     exact H.comp_continuous_linear_map _ },
 end
-
 
 /-- Composition by continuous linear equivs on the right respects higher differentiability on
 domains. -/
 lemma continuous_linear_equiv.times_cont_diff_on_comp_iff {n : with_top ℕ} (e : G ≃L[𝕜] E) :
   times_cont_diff_on 𝕜 n (f ∘ e) (e ⁻¹' s) ↔ times_cont_diff_on 𝕜 n f s :=
 begin
-  refine ⟨λ H, _, λ H, H.comp_continuous_linear_map _⟩,
+  refine ⟨λ H, _, λ H, H.comp_continuous_linear_map (e : G →L[𝕜] E)⟩,
   have A : f = (f ∘ e) ∘ e.symm,
     by { ext y, simp only [function.comp_app], rw e.apply_symm_apply y },
   have B : e.symm ⁻¹' (e ⁻¹' s) = s,
     by { rw [← preimage_comp, e.self_comp_symm], refl },
   rw [A, ← B],
-  exact H.comp_continuous_linear_map _
+  exact H.comp_continuous_linear_map (e.symm : E →L[𝕜] G)
 end
 
 /-- If two functions `f` and `g` admit Taylor series `p` and `q` in a set `s`, then the cartesian
@@ -2498,7 +2502,7 @@ variables (𝕜) {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'
 
 lemma times_cont_diff_at_inv {x : 𝕜'} (hx : x ≠ 0) {n} :
   times_cont_diff_at 𝕜 n has_inv.inv x :=
-by simpa only [inverse_eq_has_inv] using times_cont_diff_at_ring_inverse 𝕜 (units.mk0 x hx)
+by simpa only [ring.inverse_eq_inv'] using times_cont_diff_at_ring_inverse 𝕜 (units.mk0 x hx)
 
 lemma times_cont_diff_on_inv {n} : times_cont_diff_on 𝕜 n (has_inv.inv : 𝕜' → 𝕜') {0}ᶜ :=
 λ x hx, (times_cont_diff_at_inv 𝕜 hx).times_cont_diff_within_at

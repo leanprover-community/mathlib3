@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.category.Group.basic
-import category_theory.concrete_category
 import category_theory.limits.shapes.kernels
 import category_theory.linear
 import linear_algebra.basic
@@ -70,8 +69,7 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 
 namespace Module
 
-instance : has_coe_to_sort (Module.{v} R) :=
-{ S := Type v, coe := Module.carrier }
+instance : has_coe_to_sort (Module.{v} R) (Type v) := ⟨Module.carrier⟩
 
 instance Module_category : category (Module.{v} R) :=
 { hom   := λ M N, M →ₗ[R] N,

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import tactic.norm_num
-import data.int.range
 
 /-!
 # `ring`
@@ -141,7 +140,7 @@ meta def horner_expr.is_zero : horner_expr → bool
 | _ := ff
 
 meta instance : has_coe horner_expr expr := ⟨horner_expr.e⟩
-meta instance : has_coe_to_fun horner_expr := ⟨_, λ e, ((e : expr) : expr → expr)⟩
+meta instance : has_coe_to_fun horner_expr (λ _, expr → expr) := ⟨λ e, ⇑(e : expr)⟩
 
 /-- Construct a `xadd` node, generating the cached expr using the input cache. -/
 meta def horner_expr.xadd' (c : cache) (a : horner_expr)
@@ -584,10 +583,10 @@ return (e', pr)
 end ring
 
 namespace interactive
-open interactive interactive.types lean.parser
+
 open tactic.ring
 
-local postfix `?`:9001 := optional
+setup_tactic_parser
 
 /-- Tactic for solving equations in the language of *commutative* (semi)rings.
   This version of `ring` fails if the target is not an equality

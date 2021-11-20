@@ -255,16 +255,16 @@ begin
   split,
   { haveI : Π i, inhabited (α i) := λ i, ⟨x i⟩,
     simp only [nhds_within, nhds_pi, inf_principal_eq_bot, mem_infi', mem_comap],
-    rintro ⟨I, hIf, V, hV, hVs⟩, choose! t htx htV using hV,
+    rintro ⟨I, hIf, V, hV, -, hVs, -⟩, choose! t htx htV using hV,
     contrapose! hVs,
     change ∀ i, ∃ᶠ y in 𝓝 (x i), y ∈ s i at hVs,
-    have : ∀ i ∈ I, (s i ∩ t i).nonempty, from λ i hi, ((hVs i).and_eventually (htx i hi)).exists,
-    choose! y hys hyt,
+    have : ∀ i, (s i ∩ t i).nonempty, from λ i, ((hVs i).and_eventually (htx i)).exists,
+    choose y hys hyt,
     choose z hzs using λ i, (hVs i).exists,
     suffices : I.piecewise y z ∈ (⋂ i ∈ I, V i) ∩ (pi univ s),
     { intro H, simpa [← H] },
-    refine ⟨mem_bInter $ λ i hi, htV i hi _, λ i hi', _⟩,
-    { simp only [mem_preimage, piecewise_eq_of_mem _ _ _ hi, hyt i hi] },
+    refine ⟨mem_bInter $ λ i hi, htV i _, λ i hi', _⟩,
+    { simp only [mem_preimage, piecewise_eq_of_mem _ _ _ hi, hyt i] },
     { by_cases hi : i ∈ I; simp * } },
   { rintro ⟨i, eq⟩,
     rw [← @map_eq_bot_iff _ _ _ (λ x : Π i, α i, x i)],
@@ -875,12 +875,13 @@ lemma continuous_on.prod {f : α → β} {g : α → γ} {s : set α}
   (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, (f x, g x)) s :=
 λx hx, continuous_within_at.prod (hf x hx) (hg x hx)
 
+lemma inducing.continuous_within_at_iff {f : α → β} {g : β → γ} (hg : inducing g) {s : set α}
+  {x : α} : continuous_within_at f s x ↔ continuous_within_at (g ∘ f) s x :=
+by simp_rw [continuous_within_at, inducing.tendsto_nhds_iff hg]
+
 lemma inducing.continuous_on_iff {f : α → β} {g : β → γ} (hg : inducing g) {s : set α} :
   continuous_on f s ↔ continuous_on (g ∘ f) s :=
-begin
-  simp only [continuous_on_iff_continuous_restrict, restrict_eq],
-  conv_rhs { rw [function.comp.assoc, ← (inducing.continuous_iff hg)] },
-end
+by simp_rw [continuous_on, hg.continuous_within_at_iff]
 
 lemma embedding.continuous_on_iff {f : α → β} {g : β → γ} (hg : embedding g) {s : set α} :
   continuous_on f s ↔ continuous_on (g ∘ f) s :=
@@ -1059,6 +1060,14 @@ lemma continuous_within_at_fst {s : set (α × β)} {p : α × β} :
   continuous_within_at prod.fst s p :=
 continuous_fst.continuous_within_at
 
+lemma continuous_on.fst {f : α → β × γ} {s : set α} (hf : continuous_on f s) :
+  continuous_on (λ x, (f x).1) s :=
+continuous_fst.comp_continuous_on hf
+
+lemma continuous_within_at.fst {f : α → β × γ} {s : set α} {a : α}
+  (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).fst) s a :=
+continuous_at_fst.comp_continuous_within_at h
+
 lemma continuous_on_snd {s : set (α × β)} : continuous_on prod.snd s :=
 continuous_snd.continuous_on
 
@@ -1066,9 +1075,9 @@ lemma continuous_within_at_snd {s : set (α × β)} {p : α × β} :
   continuous_within_at prod.snd s p :=
 continuous_snd.continuous_within_at
 
-lemma continuous_within_at.fst {f : α → β × γ} {s : set α} {a : α}
-  (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).fst) s a :=
-continuous_at_fst.comp_continuous_within_at h
+lemma continuous_on.snd {f : α → β × γ} {s : set α} (hf : continuous_on f s) :
+  continuous_on (λ x, (f x).2) s :=
+continuous_snd.comp_continuous_on hf
 
 lemma continuous_within_at.snd {f : α → β × γ} {s : set α} {a : α}
   (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).snd) s a :=

@@ -3,9 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
+import algebra.order.with_zero
 import data.polynomial.monic
-import data.polynomial.ring_division
-import tactic.linarith
 /-!
 # Lemmas for the interaction between polynomials and `∑` and `∏`.
 
@@ -123,11 +122,9 @@ where this condition is automatically satisfied.
 lemma leading_coeff_multiset_prod' (h : (t.map leading_coeff).prod ≠ 0) :
   t.prod.leading_coeff = (t.map leading_coeff).prod :=
 begin
-  revert h,
-  refine multiset.induction_on t _ (λ a t ih ht, _), { simp },
-  rw [map_cons, prod_cons] at ht,
-  simp only [map_cons, prod_cons],
-  rw polynomial.leading_coeff_mul'; { rwa ih, apply right_ne_zero_of_mul ht }
+  induction t using multiset.induction_on with a t ih, { simp },
+  simp only [map_cons, multiset.prod_cons] at h ⊢,
+  rw polynomial.leading_coeff_mul'; { rwa ih, apply right_ne_zero_of_mul h }
 end
 
 /--
@@ -153,8 +150,8 @@ lemma nat_degree_multiset_prod' (h : (t.map (λ f, leading_coeff f)).prod ≠ 0)
 begin
   revert h,
   refine multiset.induction_on t _ (λ a t ih ht, _), { simp },
-  rw [map_cons, prod_cons] at ht ⊢,
-  rw [sum_cons, polynomial.nat_degree_mul', ih],
+  rw [map_cons, multiset.prod_cons] at ht ⊢,
+  rw [multiset.sum_cons, polynomial.nat_degree_mul', ih],
   { apply right_ne_zero_of_mul ht },
   { rwa polynomial.leading_coeff_multiset_prod', apply right_ne_zero_of_mul ht },
 end
@@ -210,7 +207,7 @@ lemma coeff_zero_multiset_prod :
   t.prod.coeff 0 = (t.map (λ f, coeff f 0)).prod :=
 begin
   refine multiset.induction_on t _ (λ a t ht, _), { simp },
-  rw [prod_cons, map_cons, prod_cons, polynomial.mul_coeff_zero, ht]
+  rw [multiset.prod_cons, map_cons, multiset.prod_cons, polynomial.mul_coeff_zero, ht]
 end
 
 lemma coeff_zero_prod :
@@ -294,7 +291,7 @@ lemma degree_multiset_prod [nontrivial R] :
   t.prod.degree = (t.map (λ f, degree f)).sum :=
 begin
   refine multiset.induction_on t _ (λ a t ht, _), { simp },
-  { rw [prod_cons, degree_mul, ht, map_cons, sum_cons] }
+  { rw [multiset.prod_cons, degree_mul, ht, map_cons, multiset.sum_cons] }
 end
 
 /--

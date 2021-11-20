@@ -13,7 +13,7 @@ where one replaces the data parts with provably equal definitions
 that have better definitional properties.
 -/
 
-universe variable u
+universe u
 
 variables {α : Type u}
 

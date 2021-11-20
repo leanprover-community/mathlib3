@@ -12,7 +12,7 @@ import topology.compacts
 # Contents
 
 In this file we work with *contents*. A content `λ` is a function from a certain class of subsets
-(such as the the compact subsets) to `ℝ≥0` that is
+(such as the compact subsets) to `ℝ≥0` that is
 * additive: If `K₁` and `K₂` are disjoint sets in the domain of `λ`,
   then `λ(K₁ ∪ K₂) = λ(K₁) + λ(K₂)`;
 * subadditive: If `K₁` and `K₂` are in the domain of `λ`, then `λ(K₁ ∪ K₂) ≤ λ(K₁) + λ(K₂)`;
@@ -48,7 +48,7 @@ We prove that, on a locally compact space, the measure `μ.measure` is regular.
 * <https://en.wikipedia.org/wiki/Content_(measure_theory)>
 -/
 
-universe variables u v w
+universes u v w
 noncomputable theory
 
 open set topological_space
@@ -76,7 +76,7 @@ instance : inhabited (content G) :=
 /-- Although the `to_fun` field of a content takes values in `ℝ≥0`, we register a coercion to
 functions taking values in `ℝ≥0∞` as most constructions below rely on taking suprs and infs, which
 is more convenient in a complete lattice, and aim at constructing a measure. -/
-instance : has_coe_to_fun (content G) := ⟨_, λ μ s, (μ.to_fun s : ℝ≥0∞)⟩
+instance : has_coe_to_fun (content G) (λ _, compacts G → ℝ≥0∞) := ⟨λ μ s, μ.to_fun s⟩
 
 namespace content
 
@@ -144,7 +144,7 @@ begin
   have := ennreal.sub_lt_self hU h.ne_bot h'ε,
   conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
-  rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U
+  rw [← tsub_le_iff_right], exact le_of_lt h2U
 end
 
 /-- The inner content of a supremum of opens is at most the sum of the individual inner

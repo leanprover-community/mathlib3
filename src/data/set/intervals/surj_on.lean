@@ -16,7 +16,7 @@ permutations of interval endpoints.
 
 variables {α : Type*} {β : Type*} [linear_order α] [partial_order β] {f : α → β}
 
-open set function
+open set function order_dual (to_dual)
 
 lemma surj_on_Ioo_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a b : α) :
@@ -51,10 +51,7 @@ end
 lemma surj_on_Ioc_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a b : α) :
   surj_on f (Ioc a b) (Ioc (f a) (f b)) :=
-begin
-  convert @surj_on_Ico_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj b a;
-  simp
-end
+by simpa using surj_on_Ico_of_monotone_surjective h_mono.dual h_surj (to_dual b) (to_dual a)
 
 -- to see that the hypothesis `a ≤ b` is necessary, consider a constant function
 lemma surj_on_Icc_of_monotone_surjective

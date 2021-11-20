@@ -46,7 +46,7 @@ open set
 variables (𝕜 : Type*) {E : Type*}
 
 section has_scalar
-variables [ordered_semiring 𝕜] [add_comm_group E] [has_scalar 𝕜 E]
+variables [ordered_semiring 𝕜] [add_comm_monoid E] [has_scalar 𝕜 E]
 
 /-- A set `B` is an extreme subset of `A` if `B ⊆ A` and all points of `B` only belong to open
 segments whose ends are in `B`. -/

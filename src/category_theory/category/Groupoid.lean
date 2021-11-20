@@ -26,6 +26,7 @@ universes v u
 namespace category_theory
 
 /-- Category of groupoids -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def Groupoid := bundled groupoid.{v u}
 
 namespace Groupoid

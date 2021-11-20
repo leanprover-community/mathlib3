@@ -40,22 +40,19 @@ begin
 end
 
 @[simp]
-lemma pushout_cocone_inl : (pushout_cocone f g).inl = (by {
-  letI := f.to_algebra, letI := g.to_algebra,
-  exactI algebra.tensor_product.include_left.to_ring_hom
-}) := rfl
+lemma pushout_cocone_inl : (pushout_cocone f g).inl = (by
+{ letI := f.to_algebra, letI := g.to_algebra,
+  exactI algebra.tensor_product.include_left.to_ring_hom }) := rfl
 
 @[simp]
-lemma pushout_cocone_inr : (pushout_cocone f g).inr = (by {
-  letI := f.to_algebra, letI := g.to_algebra,
-  exactI algebra.tensor_product.include_right.to_ring_hom
-}) := rfl
+lemma pushout_cocone_inr : (pushout_cocone f g).inr = (by
+{ letI := f.to_algebra, letI := g.to_algebra,
+  exactI algebra.tensor_product.include_right.to_ring_hom }) := rfl
 
 @[simp]
-lemma pushout_cocone_X : (pushout_cocone f g).X = (by {
-  letI := f.to_algebra, letI := g.to_algebra,
-  exactI CommRing.of (A ⊗[R] B)
-}) := rfl
+lemma pushout_cocone_X : (pushout_cocone f g).X = (by
+{ letI := f.to_algebra, letI := g.to_algebra,
+  exactI CommRing.of (A ⊗[R] B) }) := rfl
 
 /-- Verify that the `pushout_cocone` is indeed the colimit. -/
 def pushout_cocone_is_colimit : limits.is_colimit (pushout_cocone f g) :=
@@ -64,15 +61,13 @@ begin
   letI := ring_hom.to_algebra f,
   letI := ring_hom.to_algebra g,
   letI := ring_hom.to_algebra (f ≫ s.inl),
-  let f' : A →ₐ[R] s.X := { commutes' := λ r, by {
-        change s.inl.to_fun (f r) = (f ≫ s.inl) r, refl
-      }, ..s.inl },
-  let g' : B →ₐ[R] s.X := { commutes' := λ r, by {
-        change (g ≫ s.inr) r = (f ≫ s.inl) r,
+  let f' : A →ₐ[R] s.X := { commutes' := λ r, by
+      { change s.inl.to_fun (f r) = (f ≫ s.inl) r, refl }, ..s.inl },
+  let g' : B →ₐ[R] s.X := { commutes' := λ r, by
+      { change (g ≫ s.inr) r = (f ≫ s.inl) r,
         congr' 1,
         exact (s.ι.naturality limits.walking_span.hom.snd).trans
-          (s.ι.naturality limits.walking_span.hom.fst).symm
-      }, ..s.inr },
+          (s.ι.naturality limits.walking_span.hom.fst).symm }, ..s.inr },
   /- The factor map is a ⊗ b ↦ f(a) * g(b). -/
   use alg_hom.to_ring_hom (algebra.tensor_product.product_map f' g'),
   simp only [pushout_cocone_inl, pushout_cocone_inr],
@@ -80,13 +75,13 @@ begin
   split, { ext x, exact algebra.tensor_product.product_map_right_apply _ _ x, },
   intros h eq1 eq2,
   let h' : (A ⊗[R] B) →ₐ[R] s.X :=
-    { commutes' := λ r, by {
-      change h ((f r) ⊗ₜ[R] 1) = s.inl (f r),
+    { commutes' := λ r, by
+    { change h ((f r) ⊗ₜ[R] 1) = s.inl (f r),
       rw ← eq1, simp }, ..h },
   suffices : h' = algebra.tensor_product.product_map f' g',
-    { ext x,
-      change h' x = algebra.tensor_product.product_map f' g' x,
-      rw this },
+  { ext x,
+    change h' x = algebra.tensor_product.product_map f' g' x,
+    rw this },
   apply algebra.tensor_product.ext,
   intros a b,
   simp [← eq1, ← eq2, ← h.map_mul],

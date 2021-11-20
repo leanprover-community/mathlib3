@@ -240,18 +240,14 @@ variables {M : Type*} {G : Type*}
 @[to_additive]
 instance [has_mul M] : has_mul (germ l M) := ⟨map₂ (*)⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul M] (f g : α → M) : ↑(f * g) = (f * g : germ l M) := rfl
-
-attribute [norm_cast] coe_mul coe_add
 
 @[to_additive]
 instance [has_one M] : has_one (germ l M) := ⟨↑(1:M)⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_one [has_one M] : ↑(1 : α → M) = (1 : germ l M) := rfl
-
-attribute [norm_cast] coe_one coe_zero
 
 @[to_additive]
 instance [semigroup M] : semigroup (germ l M) :=
@@ -305,10 +301,8 @@ instance [comm_monoid M] : comm_monoid (germ l M) :=
 @[to_additive]
 instance [has_inv G] : has_inv (germ l G) := ⟨map has_inv.inv⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inv [has_inv G] (f : α → G) : ↑f⁻¹ = (f⁻¹ : germ l G) := rfl
-
-attribute [norm_cast] coe_inv coe_neg
 
 @[to_additive]
 instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩
@@ -454,21 +448,17 @@ instance [has_bot β] : has_bot (germ l β) := ⟨↑(⊥:β)⟩
 
 @[simp, norm_cast] lemma const_bot [has_bot β] : (↑(⊥:β) : germ l β) = ⊥ := rfl
 
-instance [order_bot β] : order_bot (germ l β) :=
+instance [has_le β] [order_bot β] : order_bot (germ l β) :=
 { bot := ⊥,
-  le := (≤),
-  bot_le := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, bot_le,
-  .. germ.partial_order }
+  bot_le := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, bot_le }
 
 instance [has_top β] : has_top (germ l β) := ⟨↑(⊤:β)⟩
 
 @[simp, norm_cast] lemma const_top [has_top β] : (↑(⊤:β) : germ l β) = ⊤ := rfl
 
-instance [order_top β] : order_top (germ l β) :=
+instance [has_le β] [order_top β] : order_top (germ l β) :=
 { top := ⊤,
-  le := (≤),
-  le_top := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, le_top,
-  .. germ.partial_order }
+  le_top := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, le_top }
 
 instance [has_sup β] : has_sup (germ l β) := ⟨map₂ (⊔)⟩
 

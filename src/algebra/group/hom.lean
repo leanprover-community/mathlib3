@@ -147,17 +147,17 @@ lemma monoid_with_zero_hom.coe_eq_to_zero_hom
   (f : zero_hom M N) = f.to_zero_hom := rfl
 
 @[to_additive]
-instance {mM : has_one M} {mN : has_one N} : has_coe_to_fun (one_hom M N) :=
-⟨_, one_hom.to_fun⟩
+instance {mM : has_one M} {mN : has_one N} : has_coe_to_fun (one_hom M N) (λ _, M → N) :=
+⟨one_hom.to_fun⟩
 @[to_additive]
-instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) :=
-⟨_, mul_hom.to_fun⟩
+instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) (λ _, M → N) :=
+⟨mul_hom.to_fun⟩
 @[to_additive]
-instance {mM : mul_one_class M} {mN : mul_one_class N} : has_coe_to_fun (M →* N) :=
-⟨_, monoid_hom.to_fun⟩
+instance {mM : mul_one_class M} {mN : mul_one_class N} : has_coe_to_fun (M →* N) (λ _, M → N) :=
+⟨monoid_hom.to_fun⟩
 instance {mM : mul_zero_one_class M} {mN : mul_zero_one_class N} :
-  has_coe_to_fun (monoid_with_zero_hom M N) :=
-⟨_, monoid_with_zero_hom.to_fun⟩
+  has_coe_to_fun (monoid_with_zero_hom M N) (λ _, M → N) :=
+⟨monoid_with_zero_hom.to_fun⟩
 
 -- these must come after the coe_to_fun definitions
 initialize_simps_projections zero_hom (to_fun → apply)
@@ -268,8 +268,6 @@ monoid_hom.coe_inj (funext h)
 lemma monoid_with_zero_hom.ext [mul_zero_one_class M] [mul_zero_one_class N]
   ⦃f g : monoid_with_zero_hom M N⦄ (h : ∀ x, f x = g x) : f = g :=
 monoid_with_zero_hom.coe_inj (funext h)
-
-attribute [ext] zero_hom.ext add_hom.ext add_monoid_hom.ext
 
 @[to_additive]
 lemma one_hom.ext_iff [has_one M] [has_one N] {f g : one_hom M N} : f = g ↔ ∀ x, f x = g x :=
@@ -549,6 +547,24 @@ monoid_with_zero_hom.ext $ λ x, rfl
   (f : monoid_with_zero_hom M N) : (monoid_with_zero_hom.id N).comp f = f :=
 monoid_with_zero_hom.ext $ λ x, rfl
 
+@[simp, to_additive add_monoid_hom.map_nsmul]
+theorem monoid_hom.map_pow [monoid M] [monoid N] (f : M →* N) (a : M) :
+  ∀(n : ℕ), f (a ^ n) = (f a) ^ n
+| 0     := by rw [pow_zero, pow_zero, f.map_one]
+| (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
+
+@[to_additive]
+theorem monoid_hom.map_zpow' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
+  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a : M) :
+  ∀ n : ℤ, f (a ^ n) = (f a) ^ n
+| (n : ℕ) := by rw [zpow_coe_nat, f.map_pow, zpow_coe_nat]
+| -[1+n]  := by rw [zpow_neg_succ_of_nat, hf, f.map_pow, ← zpow_neg_succ_of_nat]
+
+@[to_additive]
+theorem monoid_hom.map_div' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
+  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a b : M) : f (a / b) = f a / f b :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, f.map_mul, hf]
+
 section End
 
 namespace monoid
@@ -569,7 +585,7 @@ instance : monoid (monoid.End M) :=
 
 instance : inhabited (monoid.End M) := ⟨1⟩
 
-instance : has_coe_to_fun (monoid.End M) := ⟨_, monoid_hom.to_fun⟩
+instance : has_coe_to_fun (monoid.End M) (λ _, M → M) := ⟨monoid_hom.to_fun⟩
 
 end End
 
@@ -596,7 +612,7 @@ instance : monoid (add_monoid.End A) :=
 
 instance : inhabited (add_monoid.End A) := ⟨1⟩
 
-instance : has_coe_to_fun (add_monoid.End A) := ⟨_, add_monoid_hom.to_fun⟩
+instance : has_coe_to_fun (add_monoid.End A) (λ _, A → A) := ⟨add_monoid_hom.to_fun⟩
 
 end End
 
@@ -696,6 +712,11 @@ left_inv_eq_right_inv (f.map_mul_eq_one $ inv_mul_self x) $
 theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
 eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
 
+/-- Group homomorphisms preserve integer power. -/
+@[simp, to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
+theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) : f (g ^ n) = (f g) ^ n :=
+f.map_zpow' f.map_inv g n
+
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive]
 theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
@@ -704,7 +725,7 @@ theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
 theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) : f (g / h) = (f g) / (f h) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, f.map_mul_inv g h]
+f.map_div' f.map_inv g h
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial.
 For the iff statement on the triviality of the kernel, see `monoid_hom.injective_iff'`.  -/

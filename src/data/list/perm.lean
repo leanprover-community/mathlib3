@@ -3,8 +3,9 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import data.list.bag_inter
 import data.list.erase_dup
+import data.list.lattice
+import data.list.permutation
 import data.list.zip
 import logic.relation
 
@@ -21,8 +22,9 @@ The notation `~` is used for permutation equivalence.
 
 open_locale nat
 
+universes uu vv
+
 namespace list
-universe variables uu vv
 variables {α : Type uu} {β : Type vv}
 
 /-- `perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
@@ -259,16 +261,16 @@ lemma perm_comp_forall₂ {l u v} (hlu : perm l u) (huv : forall₂ r u v) : (fo
 begin
   induction hlu generalizing v,
   case perm.nil { cases huv, exact ⟨[], forall₂.nil, perm.nil⟩ },
-  case perm.cons : a l u hlu ih {
-    cases huv with _ b _ v hab huv',
+  case perm.cons : a l u hlu ih
+  { cases huv with _ b _ v hab huv',
     rcases ih huv' with ⟨l₂, h₁₂, h₂₃⟩,
     exact ⟨b::l₂, forall₂.cons hab h₁₂, h₂₃.cons _⟩ },
-  case perm.swap : a₁ a₂ l₁ l₂ h₂₃ {
-    cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
+  case perm.swap : a₁ a₂ l₁ l₂ h₂₃
+  { cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
     cases hr_₂₃ with _ b₂ _ l₂ h₂ h₁₂,
     exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩ },
-  case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂ {
-    rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
+  case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂
+  { rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
     rcases ih₁ hab₂ with ⟨lb₁, hab₁, h₁₂⟩,
     exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩ }
 end
@@ -374,7 +376,7 @@ by rw [countp_eq_length_filter, countp_eq_length_filter];
 
 theorem subperm.countp_le (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} : l₁ <+~ l₂ → countp p l₁ ≤ countp p l₂
-| ⟨l, p', s⟩ := p'.countp_eq p ▸ countp_le_of_sublist p s
+| ⟨l, p', s⟩ := p'.countp_eq p ▸ s.countp_le p
 
 theorem perm.count_eq [decidable_eq α] {l₁ l₂ : list α}
   (p : l₁ ~ l₂) (a) : count a l₁ = count a l₂ :=
@@ -521,13 +523,13 @@ begin
   rcases s with ⟨l, p, s⟩,
   induction s generalizing l₁,
   case list.sublist.slnil { cases h₂ },
-  case list.sublist.cons : r₁ r₂ b s' ih {
-    simp at h₂,
+  case list.sublist.cons : r₁ r₂ b s' ih
+  { simp at h₂,
     cases h₂ with e m,
     { subst b, exact ⟨a::r₁, p.cons a, s'.cons2 _ _ _⟩ },
     { rcases ih m d₁ h₁ p with ⟨t, p', s'⟩, exact ⟨t, p', s'.cons _ _ _⟩ } },
-  case list.sublist.cons2 : r₁ r₂ b s' ih {
-    have bm : b ∈ l₁ := (p.subset $ mem_cons_self _ _),
+  case list.sublist.cons2 : r₁ r₂ b s' ih
+  { have bm : b ∈ l₁ := (p.subset $ mem_cons_self _ _),
     have am : a ∈ r₂ := h₂.resolve_left (λ e, h₁ $ e.symm ▸ bm),
     rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,
@@ -704,7 +706,7 @@ end⟩
 lemma subperm.cons_right {α : Type*} {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
 h.trans (sublist_cons x l').subperm
 
-/-- The list version of `multiset.add_sub_of_le`. -/
+/-- The list version of `add_tsub_cancel_of_le` for multisets. -/
 lemma subperm_append_diff_self_of_count_le {l₁ l₂ : list α}
   (h : ∀ x ∈ l₁, count x l₁ ≤ count x l₂) : l₁ ++ l₂.diff l₁ ~ l₂ :=
 begin
@@ -1022,9 +1024,9 @@ begin
   by_cases h'' : n ≤ xs.length,
   { let n' := xs.length - n,
     have h₀ : n = xs.length - n',
-    { dsimp [n'], rwa nat.sub_sub_self, } ,
+    { dsimp [n'], rwa tsub_tsub_cancel_of_le, } ,
     have h₁ : n' ≤ xs.length,
-    { apply nat.sub_le_self },
+    { apply tsub_le_self },
     have h₂ : xs.drop n = (xs.reverse.take n').reverse,
     { rw [reverse_take _ h₁, h₀, reverse_reverse], },
     rw [h₂],
@@ -1034,7 +1036,7 @@ begin
     apply (reverse_perm _).trans; assumption, },
   { have : drop n xs = [],
     { apply eq_nil_of_length_eq_zero,
-      rw [length_drop, nat.sub_eq_zero_iff_le],
+      rw [length_drop, tsub_eq_zero_iff_le],
       apply le_of_not_ge h'' },
     simp [this, list.inter], }
 end

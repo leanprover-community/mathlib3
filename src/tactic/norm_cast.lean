@@ -182,8 +182,8 @@ do
   ty ← infer_type e,
   new_up ← cache.up.add e tt,
   new_down ← simp_lemmas.add cache.down e,
-  return {
-    up     := new_up,
+  return
+  { up     := new_up,
     down   := new_down,
     squash := cache.squash, }
 
@@ -192,8 +192,8 @@ meta def add_squash (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cach
 do
   new_squash ← simp_lemmas.add cache.squash e,
   new_down ← simp_lemmas.add cache.down e,
-  return {
-    up     := cache.up,
+  return
+  { up     := cache.up,
     down   := new_down,
     squash := new_squash, }
 
@@ -321,7 +321,7 @@ end
 ```
 -/
 meta def push_cast (hs : parse tactic.simp_arg_list) (l : parse location) : tactic unit :=
-tactic.interactive.simp none none tt hs [`push_cast] l
+tactic.interactive.simp none none tt hs [`push_cast] l {discharger := tactic.assumption}
 
 
 end tactic.interactive
@@ -493,8 +493,8 @@ meta def derive (e : expr) : tactic (expr × expr) :=
 do
   cache ← norm_cast_attr.get_cache,
   e ← instantiate_mvars e,
-  let cfg : simp_config := {
-    zeta := ff,
+  let cfg : simp_config :=
+  { zeta := ff,
     beta := ff,
     eta  := ff,
     proj := ff,
@@ -533,7 +533,8 @@ A small variant of `push_cast` suited for non-interactive use.
 -/
 meta def derive_push_cast (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
 do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
-   (e, prf, _) ← simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff},
+   (e, prf, _) ← simplify (s.erase [`int.coe_nat_succ]) [] e
+                  {fail_if_unchanged := ff} `eq tactic.assumption,
    return (e, prf)
 
 end norm_cast
@@ -573,8 +574,8 @@ decorate_error "apply_mod_cast failed:" $ do
 normalizes `h` and tries to use that to close the goal. -/
 meta def assumption_mod_cast : tactic unit :=
 decorate_error "assumption_mod_cast failed:" $ do
-  let cfg : simp_config := {
-    fail_if_unchanged := ff,
+  let cfg : simp_config :=
+  { fail_if_unchanged := ff,
     canonize_instances := ff,
     canonize_proofs := ff,
     proj := ff },
@@ -620,8 +621,8 @@ Normalize the goal and the given expression, then close the goal with exact.
 -/
 meta def exact_mod_cast (e : parse texpr) : tactic unit :=
 do
-  e ← i_to_expr e <|> do {
-    ty ← target,
+  e ← i_to_expr e <|> do
+  { ty ← target,
     e ← i_to_expr_strict ``(%%e : %%ty),
     pty ← pp ty, ptgt ← pp e,
     fail ("exact_mod_cast failed, expression type not directly " ++

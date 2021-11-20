@@ -3,11 +3,11 @@ Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
-import algebraic_geometry.sheafed_space
-import algebraic_geometry.stalks
-import algebra.category.CommRing.limits
-import algebra.category.CommRing.colimits
 import algebra.category.CommRing.filtered_colimits
+import algebraic_geometry.sheafed_space
+import topology.sheaves.stalks
+import algebra.category.CommRing.colimits
+import algebra.category.CommRing.limits
 
 /-!
 # Ringed spaces
@@ -68,7 +68,7 @@ begin
   choose V iVU m h_unit using λ x : U, X.is_unit_res_of_is_unit_germ U f x (h x),
   have hcover : U ≤ supr V,
   { intros x hxU,
-    rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
+    rw [opens.mem_coe, opens.mem_supr],
     exact ⟨⟨x, hxU⟩, m ⟨x, hxU⟩⟩ },
   -- Let `g x` denote the inverse of `f` in `U x`.
   choose g hg using λ x : U, is_unit.exists_right_inv (h_unit x),

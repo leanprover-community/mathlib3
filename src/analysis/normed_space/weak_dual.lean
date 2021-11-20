@@ -235,14 +235,6 @@ begin
   exact ball_mem_nhds (f i) ε_pos,
 end
 
-lemma pi_ball_bounds_fun_cpt [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_compact (set.pi (univ : set E)
-    (λ z, (closed_ball (0 : 𝕜) ((polar.bound_of_nhds_zero 𝕜 s_nhd) * ∥ z ∥)))) :=
-begin
-  apply is_compact_univ_pi,
-  exact λ z, proper_space.is_compact_closed_ball 0 _,
-end
-
 /-- The function `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` is an embedding. -/
 lemma embedding_weak_dual_to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
@@ -255,22 +247,6 @@ lemma embedding_weak_dual_to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   end, }
 
 namespace embedding_weak_dual_to_Pi
-
-/-- The image of the polar `polar s` of a neighborhood `s` of the origin under
-`weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` is contained in a product of closed balls. -/
-lemma image_polar_nhd_subset {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  (weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s)) ⊆
-    (set.pi (univ : set E) (λ z, (closed_ball (0 : 𝕜) ((polar.bound_of_nhds_zero 𝕜 s_nhd) * ∥ z ∥)))) :=
-begin
-  intros f hf,
-  simp only [mem_image, exists_exists_and_eq_and] at hf,
-  rcases hf with ⟨x', hx', f_eq⟩,
-  simp only [mem_closed_ball, dist_zero_right, mem_univ_pi],
-  intros z,
-  have key := polar.ptwise_bound_of_nhds_zero 𝕜 s_nhd hx' z,
-  have eq : x' z = f z := congr_fun f_eq z,
-  rwa eq at key,
-end
 
 /-- Elements of the closure of the range of the embedding
 `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` are linear. Here it is stated as the elements
@@ -448,8 +424,24 @@ a neighborhood `s` of the origin is compact if the field `𝕜` is a proper topo
 lemma image_polar_nhd_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_compact ((weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s))) :=
 begin
-  apply compact_of_is_closed_subset _ _ (embedding_weak_dual_to_Pi.image_polar_nhd_subset s_nhd),
-  exact pi_ball_bounds_fun_cpt s_nhd,
+  cases polar.bounded_of_nhds_zero 𝕜 s_nhd with c hc,
+  have ss : (weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s)) ⊆
+    (set.pi (univ : set E) (λ z, (closed_ball (0 : 𝕜) (c * ∥ z ∥)))),
+  { intros f hf,
+    simp only [mem_image, exists_exists_and_eq_and] at hf,
+    rcases hf with ⟨x', hx', f_eq⟩,
+    simp only [mem_closed_ball, dist_zero_right, mem_univ_pi],
+    intros z,
+    have bd : ∥ x' z ∥ ≤ c * ∥ z ∥,
+    { apply (continuous_linear_map.le_op_norm x' z).trans
+        (mul_le_mul (hc x' hx') (le_refl ∥z∥) (norm_nonneg z) _),
+      have c_nn := hc 0 (polar.zero_mem 𝕜 s),
+      rwa norm_zero at c_nn, },
+    have eq : x' z = f z := congr_fun f_eq z,
+    rwa eq at bd, },
+  apply compact_of_is_closed_subset _ _ ss,
+  { apply is_compact_univ_pi,
+    exact λ z, proper_space.is_compact_closed_ball 0 _, },
   exact embedding_weak_dual_to_Pi.image_polar_nhd_closed s_nhd,
 end
 

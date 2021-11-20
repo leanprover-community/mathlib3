@@ -47,7 +47,7 @@ variables [comm_ring R] [ring A] [algebra R A]
 /-- Given a commutative ring `R` and an `R`-algebra `A`, the *resolvent* of `a : A`
 is the `set R` consisting of those `r : R` for which `r•1 - a` is a unit of the
 algebra `A`.  -/
-definition resolvent (a : A) : set R :=
+def resolvent (a : A) : set R :=
 { r : R | is_unit (r • 1 - a) }
 
 
@@ -56,7 +56,7 @@ is the `set R` consisting of those `r : R` for which `r•1 - a` is not a unit o
 algebra `A`.
 
 The spectrum is simply the complement of the resolvent.  -/
-definition spectrum (a : A) : set R :=
+def spectrum (a : A) : set R :=
 (resolvent R a)ᶜ
 
 end defs
@@ -66,13 +66,13 @@ variables [comm_ring R] [ring A] [algebra R A]
 
 local notation `σ` := spectrum R
 
-lemma mem_spectrum_iff_not_unit {r : R} {a : A} :
+lemma mem_spectrum_iff {r : R} {a : A} :
   r ∈ σ a ↔ ¬ is_unit (r • 1 - a) :=
 iff.rfl
 
-lemma not_mem_spectrum_iff_unit {r : R} {a : A} :
+lemma not_mem_spectrum_iff {r : R} {a : A} :
   r ∉ σ a ↔ is_unit (r • 1 - a) :=
-by { apply not_iff_not.mp, simp [set.not_not_mem, mem_spectrum_iff_not_unit] }
+by { apply not_iff_not.mp, simp [set.not_not_mem, mem_spectrum_iff] }
 
 lemma mem_resolvent_of_left_right_inverse {r : R} {a b c : A}
   (h₁ : (r • 1 - a) * b = 1) (h₂ : c * (r • 1 - a) = 1) :
@@ -125,7 +125,7 @@ begin
   simp [h_eq],
 end
 
-lemma mul_mem_spectrum_mul {a : A} {s : R} {r : units R} :
+lemma smul_mem_spectrum_smul {a : A} {s : R} {r : units R} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
@@ -149,11 +149,11 @@ begin
   split,
   { rintro ⟨y,y_mem,hy⟩,
     rw ←hy,
-    exact mul_mem_spectrum_mul.mpr y_mem, },
+    exact smul_mem_spectrum_smul.mpr y_mem, },
   { intro hx,
     have self_inv : x = r•r⁻¹•x, by simp,
     rw self_inv at *,
-    exact mem_left_coset ↑r (mul_mem_spectrum_mul.mp hx), },
+    exact mem_left_coset ↑r (smul_mem_spectrum_smul.mp hx), },
 end
 
 -- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : units R`

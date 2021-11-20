@@ -886,35 +886,41 @@ def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₛₗ[σ₁₂]
   continuous_to_fun := e.to_linear_map.continuous_of_bound C_to h_to,
   continuous_inv_fun := e.symm.to_linear_map.continuous_of_bound C_inv h_inv }
 
+omit σ₂₁
+
 namespace continuous_linear_map
-variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
-
-variables {𝕜}
-
 variables {E' F' : Type*} [semi_normed_group E'] [semi_normed_group F']
-  [semi_normed_space 𝕜 E'] [semi_normed_space 𝕜 F']
+
+variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nondiscrete_normed_field 𝕜₁'] [nondiscrete_normed_field 𝕜₂']
+  [semi_normed_space 𝕜₁' E'] [semi_normed_space 𝕜₂' F'] [semi_normed_space 𝕜 Fₗ]
+  {σ₁' : 𝕜₁' →+* 𝕜} {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃}
+  [ring_hom_comp_triple σ₁' σ₁₃ σ₁₃'] [ring_hom_comp_triple σ₂' σ₂₃ σ₂₃']
+  [ring_hom_isometric σ₁'] [ring_hom_isometric σ₂'] [ring_hom_isometric σ₁₃']
+  [ring_hom_isometric σ₂₃']
 
 /--
-Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`.
--/
-def bilinear_comp (f : E →SL[σ₁₃] F →SL[σ₂₃] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) :
-  E' →L[𝕜] F' →L[𝕜] G :=
+Compose a bilinear map `E →SL[σ₁₃] F →SL[σ₂₃] G` with two linear maps
+`E' →SL[σ₁'] E` and `F' →SL[σ₂'] F`.  -/
+def bilinear_comp (f : E →SL[σ₁₃] F →SL[σ₂₃] G) (gE : E' →SL[σ₁'] E) (gF : F' →SL[σ₂'] F) :
+  E' →SL[σ₁₃'] F' →SL[σ₂₃'] G :=
 ((f.comp gE).flip.comp gF).flip
 
-@[simp] lemma bilinear_comp_apply (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F)
-  (x : E') (y : F') :
-  f.bilinear_comp gE gF x y = f (gE x) (gF y) :=
+include σ₁₃' σ₂₃'
+@[simp] lemma bilinear_comp_apply (f : E →SL[σ₁₃] F →SL[σ₂₃] G) (gE : E' →SL[σ₁'] E)
+  (gF : F' →SL[σ₂'] F) (x : E') (y : F') : f.bilinear_comp gE gF x y = f (gE x) (gF y) :=
 rfl
+
+omit σ₁₃' σ₂₃'
 
 /-- Derivative of a continuous bilinear map `f : E →L[𝕜] F →L[𝕜] G` interpreted as a map `E × F → G`
 at point `p : E × F` evaluated at `q : E × F`, as a continuous bilinear map. -/
-def deriv₂ (f : E →L[𝕜] F →L[𝕜] G) : (E × F) →L[𝕜] (E × F) →L[𝕜] G :=
+def deriv₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : (E × Fₗ) →L[𝕜] (E × Fₗ) →L[𝕜] Gₗ :=
 f.bilinear_comp (fst _ _ _) (snd _ _ _) + f.flip.bilinear_comp (snd _ _ _) (fst _ _ _)
 
-@[simp] lemma coe_deriv₂ (f : E →L[𝕜] F →L[𝕜] G) (p : E × F) :
-  ⇑(f.deriv₂ p) = λ q : E × F, f p.1 q.2 + f q.1 p.2 := rfl
+@[simp] lemma coe_deriv₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (p : E × Fₗ) :
+  ⇑(f.deriv₂ p) = λ q : E × Fₗ, f p.1 q.2 + f q.1 p.2 := rfl
 
-lemma map_add₂ (f : E →L[𝕜] F →L[𝕜] G) (x x' : E) (y y' : F) :
+lemma map_add₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
   f (x + x') (y + y') = f x y + f.deriv₂ (x, y) (x', y') + f x' y' :=
 by simp only [map_add, add_apply, coe_deriv₂, add_assoc]
 
@@ -924,7 +930,7 @@ end semi_normed
 
 section normed
 
-variables [normed_group E] [normed_group F] [normed_group G]
+variables [normed_group E] [normed_group F] [normed_group G] [normed_group Fₗ]
 
 open metric continuous_linear_map
 
@@ -988,11 +994,13 @@ end
 
 end normed_field
 
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
-[normed_space 𝕜 G] (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
-include 𝕜
+variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
+  [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G] [normed_space 𝕜 Fₗ] (c : 𝕜)
+  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
+  [ring_hom_isometric σ₁₂]
+  (f g : E →SL[σ₁₂] F) (h : F →SL[σ₂₃] G) (x y z : E)
 
-lemma linear_map.bound_of_shell (f : E →ₗ[𝕜] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
+lemma linear_map.bound_of_shell (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
   (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) (x : E) :
   ∥f x∥ ≤ C * ∥x∥ :=
 begin
@@ -1027,11 +1035,11 @@ instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨n
 
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
-instance to_normed_group : normed_group (E →L[𝕜] F) :=
+instance to_normed_group : normed_group (E →SL[σ₁₂] F) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
-  [smul_comm_class 𝕜 𝕜' F] : normed_space 𝕜' (E →L[𝕜] F) :=
+  [smul_comm_class 𝕜₂ 𝕜' F] : normed_space 𝕜' (E →SL[σ₁₂] F) :=
 ⟨op_norm_smul_le⟩
 
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
@@ -1048,7 +1056,7 @@ instance to_normed_algebra [nontrivial E] : normed_algebra 𝕜 (E →L[𝕜] E)
 
 variable {f}
 
-lemma homothety_norm [nontrivial E] (f : E →L[𝕜] F) {a : ℝ} (hf : ∀x, ∥f x∥ = a * ∥x∥) :
+lemma homothety_norm [nontrivial E] (f : E →SL[σ₁₂] F) {a : ℝ} (hf : ∀x, ∥f x∥ = a * ∥x∥) :
   ∥f∥ = a :=
 begin
   obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
@@ -1069,7 +1077,7 @@ theorem uniform_embedding_of_bound {K : ℝ≥0} (hf : ∀ x, ∥x∥ ≤ K * �
 
 /-- If a continuous linear map is a uniform embedding, then it is expands the distances
 by a positive factor.-/
-theorem antilipschitz_of_uniform_embedding (hf : uniform_embedding f) :
+theorem antilipschitz_of_uniform_embedding (f : E →L[𝕜] Fₗ) (hf : uniform_embedding f) :
   ∃ K, antilipschitz_with K f :=
 begin
   obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ {x y : E}, dist (f x) (f y) < ε → dist x y < 1,
@@ -1109,7 +1117,7 @@ open filter
 /-- If the target space is complete, the space of continuous linear maps with its norm is also
 complete. This works also if the source space is seminormed. -/
 instance {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [complete_space F] :
-  complete_space (E →L[𝕜] F) :=
+  complete_space (E →SL[σ₁₂] F) :=
 begin
   -- We show that every Cauchy sequence converges.
   refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
@@ -1130,7 +1138,7 @@ begin
   -- into a function which we call `G`.
   choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
   -- Next, we show that this `G` is linear,
-  let Glin : E →ₗ[𝕜] F :=
+  let Glin : E →ₛₗ[σ₁₂] F :=
   { to_fun := G,
     map_add' := λ v w, begin
       have A := hG (v + w),
@@ -1140,8 +1148,8 @@ begin
     end,
     map_smul' := λ c v, begin
       have A := hG (c • v),
-      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
-      simp only [map_smul] at A B,
+      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ (σ₁₂ c) _) (hG v),
+      simp only [map_smulₛₗ] at A B,
       exact tendsto_nhds_unique A B
     end },
   -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.

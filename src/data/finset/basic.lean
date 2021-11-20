@@ -1074,7 +1074,7 @@ calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
-lemma erase_erase_self {a : α} {s : finset α} : erase (erase s a) a = erase s a :=
+lemma erase_idem {a : α} {s : finset α} : erase (erase s a) a = erase s a :=
 by simp
 
 lemma erase_right_comm {a b : α} {s : finset α} : erase (erase s a) b = erase (erase s b) a :=

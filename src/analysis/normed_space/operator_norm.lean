@@ -1188,14 +1188,14 @@ end completeness
 
 section uniformly_extend
 
-variables [complete_space F] (e : E →L[𝕜] G) (h_dense : dense_range e)
+variables [complete_space F] (e : E →L[𝕜] Fₗ) (h_dense : dense_range e)
 
 section
 variables (h_e : uniform_inducing e)
 
-/-- Extension of a continuous linear map `f : E →L[𝕜] F`, with `E` a normed space and `F` a
-complete normed space, along a uniform and dense embedding `e : E →L[𝕜] G`.  -/
-def extend : G →L[𝕜] F :=
+/-- Extension of a continuous linear map `f : E →SL[σ₁₂] F`, with `E` a normed space and `F` a
+complete normed space, along a uniform and dense embedding `e : E →L[𝕜] Fₗ`.  -/
+def extend : Fₗ →SL[σ₁₂] F :=
 /- extension of `f` is continuous -/
 have cont : _ := (uniform_continuous_uniformly_extend h_e h_dense f.uniform_continuous).continuous,
 /- extension of `f` agrees with `f` on the domain of the embedding `e` -/
@@ -1213,15 +1213,15 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
     refine (λ b, h_dense.induction_on b _ _),
     { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
         ((continuous_const.smul continuous_id).comp cont) },
-    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _ },
+    { assume x, rw ← map_smul, simp only [eq], exact map_smulₛₗ _ _ _ },
   end,
   cont := cont }
 
-lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
+lemma extend_unique (g : Fₗ →SL[σ₁₂] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
 continuous_linear_map.coe_fn_injective $
   uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
 
-@[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=
+@[simp] lemma extend_zero : extend (0 : E →SL[σ₁₂] F) e h_dense h_e = 0 :=
 extend_unique _ _ _ _ _ (zero_comp _)
 
 end
@@ -1267,7 +1267,7 @@ end continuous_linear_map
 
 namespace linear_isometry
 
-@[simp] lemma norm_to_continuous_linear_map [nontrivial E] (f : E →ₗᵢ[𝕜] F) :
+@[simp] lemma norm_to_continuous_linear_map [nontrivial E] (f : E →ₛₗᵢ[σ₁₂] F) :
   ∥f.to_continuous_linear_map∥ = 1 :=
 f.to_continuous_linear_map.homothety_norm $ by simp
 
@@ -1275,12 +1275,20 @@ end linear_isometry
 
 namespace continuous_linear_map
 
+variables {𝕜₂' : Type*} [nondiscrete_normed_field 𝕜₂'] {F' : Type*} [normed_group F']
+  [normed_space 𝕜₂' F'] {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂'' : 𝕜₂ →+* 𝕜₂'}
+  {σ₂₃' : 𝕜₂' →+* 𝕜₃}
+  [ring_hom_inv_pair σ₂' σ₂''] [ring_hom_inv_pair σ₂'' σ₂']
+  [ring_hom_comp_triple σ₂' σ₂₃ σ₂₃'] [ring_hom_comp_triple σ₂'' σ₂₃' σ₂₃]
+  [ring_hom_isometric σ₂₃]
+  [ring_hom_isometric σ₂'] [ring_hom_isometric σ₂''] [ring_hom_isometric σ₂₃']
+
+include σ₂'' σ₂₃'
 /-- Precomposition with a linear isometry preserves the operator norm. -/
-lemma op_norm_comp_linear_isometry_equiv {G : Type*} [semi_normed_group G] [semi_normed_space 𝕜 G]
-  (f : F →L[𝕜] G) (g : E ≃ₗᵢ[𝕜] F) :
+lemma op_norm_comp_linear_isometry_equiv (f : F →SL[σ₂₃] G) (g : F' ≃ₛₗᵢ[σ₂'] F) :
   ∥f.comp g.to_linear_isometry.to_continuous_linear_map∥ = ∥f∥ :=
 begin
-  casesI subsingleton_or_nontrivial E,
+  casesI subsingleton_or_nontrivial F',
   { haveI := g.symm.to_linear_equiv.to_equiv.subsingleton,
     simp },
   refine le_antisymm _ _,
@@ -1293,10 +1301,11 @@ begin
     haveI := g.symm.surjective.nontrivial,
     simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
 end
+omit σ₂'' σ₂₃'
 
 /-- The norm of the tensor product of a scalar linear map and of an element of a normed space
 is the product of the norms. -/
-@[simp] lemma norm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : F) :
+@[simp] lemma norm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : Fₗ) :
   ∥smul_right c f∥ = ∥c∥ * ∥f∥ :=
 begin
   refine le_antisymm _ _,
@@ -1319,29 +1328,40 @@ end
 
 /-- The non-negative norm of the tensor product of a scalar linear map and of an element of a normed
 space is the product of the non-negative norms. -/
-@[simp] lemma nnnorm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : F) :
+@[simp] lemma nnnorm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : Fₗ) :
   ∥smul_right c f∥₊ = ∥c∥₊ * ∥f∥₊ :=
 nnreal.eq $ c.norm_smul_right_apply f
 
-variables (𝕜 E F)
+variables (𝕜 E Fₗ)
 
 /-- `continuous_linear_map.smul_right` as a continuous trilinear map:
 `smul_rightL (c : E →L[𝕜] 𝕜) (f : F) (x : E) = c x • f`. -/
-def smul_rightL : (E →L[𝕜] 𝕜) →L[𝕜] F →L[𝕜] E →L[𝕜] F :=
+def smul_rightL : (E →L[𝕜] 𝕜) →L[𝕜] Fₗ →L[𝕜] E →L[𝕜] Fₗ :=
 linear_map.mk_continuous₂
   { to_fun := smul_rightₗ,
-    map_add' := λ c₁ c₂, by { ext x, simp [add_smul] },
-    map_smul' := λ m c, by { ext x, simp [smul_smul] } }
-  1 $ λ c x, by simp
+    map_add' := λ c₁ c₂, by
+    { apply linear_map.ext,
+      intro x,
+      apply continuous_linear_map.ext,
+      intro y,
+      simp only [add_smul, coe_smul_rightₗ, add_apply, smul_right_apply, linear_map.add_apply] },
+    map_smul' := λ m c, by
+    { apply linear_map.ext,
+      intro x,
+      apply continuous_linear_map.ext,
+      intro y,
+      simp only [smul_smul, coe_smul_rightₗ, algebra.id.smul_eq_mul, coe_smul', smul_right_apply,
+                 linear_map.smul_apply, ring_hom.id_apply, pi.smul_apply]} }
+  1 $ λ c x, by simp only [coe_smul_rightₗ, one_mul, norm_smul_right_apply, linear_map.coe_mk]
 
-variables {𝕜 E F}
+variables {𝕜 E Fₗ}
 
-@[simp] lemma norm_smul_rightL_apply (c : E →L[𝕜] 𝕜) (f : F) :
-  ∥smul_rightL 𝕜 E F c f∥ = ∥c∥ * ∥f∥ :=
+@[simp] lemma norm_smul_rightL_apply (c : E →L[𝕜] 𝕜) (f : Fₗ) :
+  ∥smul_rightL 𝕜 E Fₗ c f∥ = ∥c∥ * ∥f∥ :=
 norm_smul_right_apply c f
 
-@[simp] lemma norm_smul_rightL (c : E →L[𝕜] 𝕜) [nontrivial F] :
-  ∥smul_rightL 𝕜 E F c∥ = ∥c∥ :=
+@[simp] lemma norm_smul_rightL (c : E →L[𝕜] 𝕜) [nontrivial Fₗ] :
+  ∥smul_rightL 𝕜 E Fₗ c∥ = ∥c∥ :=
 continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
 
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
@@ -1363,9 +1383,11 @@ end submodule
 
 namespace continuous_linear_equiv
 
-variables (e : E ≃L[𝕜] F)
+variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₁]
+variables (e : E ≃SL[σ₁₂] F)
 
-protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
+protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →SL[σ₂₁] E)) e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
 /-- A continuous linear equiv is a uniform embedding. -/
@@ -1373,30 +1395,30 @@ lemma uniform_embedding : uniform_embedding e :=
 e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
 
 lemma one_le_norm_mul_norm_symm [nontrivial E] :
-  1 ≤ ∥(e : E →L[𝕜] F)∥ * ∥(e.symm : F →L[𝕜] E)∥ :=
+  1 ≤ ∥(e : E →SL[σ₁₂] F)∥ * ∥(e.symm : F →SL[σ₂₁] E)∥ :=
 begin
   rw [mul_comm],
-  convert (e.symm : F →L[𝕜] E).op_norm_comp_le (e : E →L[𝕜] F),
+  convert (e.symm : F →SL[σ₂₁] E).op_norm_comp_le (e : E →SL[σ₁₂] F),
   rw [e.coe_symm_comp_coe, continuous_linear_map.norm_id]
 end
 
-lemma norm_pos [nontrivial E] : 0 < ∥(e : E →L[𝕜] F)∥ :=
+lemma norm_pos [nontrivial E] : 0 < ∥(e : E →SL[σ₁₂] F)∥ :=
 pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
-lemma norm_symm_pos [nontrivial E] : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+lemma norm_symm_pos [nontrivial E] : 0 < ∥(e.symm : F →SL[σ₂₁] E)∥ :=
 pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
-lemma nnnorm_symm_pos [nontrivial E] : 0 < nnnorm (e.symm : F →L[𝕜] E) :=
+lemma nnnorm_symm_pos [nontrivial E] : 0 < nnnorm (e.symm : F →SL[σ₂₁] E) :=
 e.norm_symm_pos
 
-lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →SL[σ₂₁] E)∥ :=
 begin
   rcases subsingleton_or_nontrivial E with _i|_i; resetI,
   { left, apply_instance },
   { right, exact e.norm_symm_pos }
 end
 
-lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →L[𝕜] E)) :=
+lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →SL[σ₂₁] E)) :=
 subsingleton_or_norm_symm_pos e
 
 variable (𝕜)
@@ -1439,11 +1461,17 @@ linear_equiv.coord_self 𝕜 E x h
 
 end continuous_linear_equiv
 
-lemma linear_equiv.uniform_embedding (e : E ≃ₗ[𝕜] F) (h₁ : continuous e)
+variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₁]
+
+include σ₂₁
+lemma linear_equiv.uniform_embedding (e : E ≃ₛₗ[σ₁₂] F) (h₁ : continuous e)
   (h₂ : continuous e.symm) : uniform_embedding e :=
 continuous_linear_equiv.uniform_embedding
 { continuous_to_fun := h₁,
   continuous_inv_fun := h₂,
   .. e }
+
+omit σ₂₁
 
 end normed

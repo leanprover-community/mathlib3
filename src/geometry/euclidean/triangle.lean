@@ -256,7 +256,7 @@ begin
     exact add_lt_add_left (lt_of_le_of_lt (angle_le_pi _ _)
                                           (lt_add_of_pos_right π real.pi_pos)) _ },
   have hn0 : 0 ≤ n,
-  { rw [hn, mul_nonneg_iff_right_nonneg_of_pos real.pi_pos] at h0,
+  { rw [hn, mul_nonneg_iff_left_nonneg_of_pos real.pi_pos] at h0,
     norm_cast at h0,
     exact h0 },
   have hn3 : n < 3,

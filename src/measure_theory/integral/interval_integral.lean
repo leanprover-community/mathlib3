@@ -210,14 +210,14 @@ def interval_integrable (f : α → E) (μ : measure α) (a b : α) :=
 integrable_on f (Ioc a b) μ ∧ integrable_on f (Ioc b a) μ
 
 /-- A function is interval integrable with respect to a given measure `μ` on `interval a b` if and
-  only if it is integrable on `Ioc (min a b) (max a b)` with respect to `μ`. This is an equivalent
+  only if it is integrable on `interval_oc a b` with respect to `μ`. This is an equivalent
   defintion of `interval_integrable`. -/
 lemma interval_integrable_iff {f : α → E} {a b : α} {μ : measure α} :
   interval_integrable f μ a b ↔ integrable_on f (Ι a b) μ :=
 by cases le_total a b; simp [h, interval_integrable, interval_oc]
 
 /-- If a function is interval integrable with respect to a given measure `μ` on `interval a b` then
-  it is integrable on `Ioc (min a b) (max a b)` with respect to `μ`. -/
+  it is integrable on `interval_oc a b` with respect to `μ`. -/
 lemma interval_integrable.def {f : α → E} {a b : α} {μ : measure α}
   (h : interval_integrable f μ a b) :
   integrable_on f (Ι a b) μ :=
@@ -474,7 +474,7 @@ by simp only [interval_integral, neg_sub]
 lemma integral_of_ge (h : b ≤ a) : ∫ x in a..b, f x ∂μ = -∫ x in Ioc b a, f x ∂μ :=
 by simp only [integral_symm b, integral_of_le h]
 
-lemma interval_integral_eq_integral_oc (f : α → E) (a b : α) (μ : measure α) :
+lemma interval_integral_eq_integral_interval_oc (f : α → E) (a b : α) (μ : measure α) :
   ∫ x in a..b, f x ∂μ = (if a ≤ b then 1 else -1 : ℝ) • ∫ x in Ι a b, f x ∂μ :=
 begin
   split_ifs with h,
@@ -484,7 +484,7 @@ end
 
 lemma integral_cases (f : α → E) (a b) :
   ∫ x in a..b, f x ∂μ ∈ ({∫ x in Ι a b, f x ∂μ, -∫ x in Ι a b, f x ∂μ} : set E) :=
-by { rw interval_integral_eq_integral_oc, split_ifs; simp }
+by { rw interval_integral_eq_integral_interval_oc, split_ifs; simp }
 
 lemma integral_undef (h : ¬ interval_integrable f μ a b) :
   ∫ x in a..b, f x ∂μ = 0 :=
@@ -496,7 +496,8 @@ by cases le_total a b with hab hab;
 lemma integral_non_ae_measurable
   (hf : ¬ ae_measurable f (μ.restrict (Ι a b))) :
   ∫ x in a..b, f x ∂μ = 0 :=
-by rw [interval_integral_eq_integral_oc, integral_non_ae_measurable hf, smul_zero]
+by rw [interval_integral_eq_integral_interval_oc, integral_non_ae_measurable hf, smul_zero]
+
 
 lemma integral_non_ae_measurable_of_le (h : a ≤ b)
   (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :

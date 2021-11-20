@@ -898,7 +898,7 @@ begin
 end
 
 /-- Lebesgue dominated convergence theorem for series. -/
-lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι] [preorder ι]
+lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
   {F : ι → α → E} (bound : ι → α → ℝ)
   (hF_meas : ∀ n, ae_measurable (F n) (μ.restrict (Ι a b)))
   (h_bound : ∀ n, ∀ᵐ t ∂μ, t ∈ Ι a b → ∥F n t∥ ≤ bound n t)

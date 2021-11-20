@@ -164,13 +164,12 @@ theorem mul_dvd_mul_iff_right [comm_cancel_monoid_with_zero α] {a b c : α} (hc
   a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 
-theorem ne_zero_of_dvd_ne_zero [comm_cancel_monoid_with_zero α] {p q : α} (h₁ : q ≠ 0) (h₂ : p ∣ q) :
-  p ≠ 0 :=
+theorem ne_zero_of_dvd_ne_zero [comm_cancel_monoid_with_zero α] {p q : α} (h₁ : q ≠ 0)
+  (h₂ : p ∣ q) : p ≠ 0 :=
 begin
   by_contra hcontra,
   obtain ⟨u, hu⟩ := h₂,
   apply h₁,
-  rw [ne.def, not_not] at hcontra,
   simp only [hcontra, hu, zero_mul],
 end
 

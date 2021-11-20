@@ -218,11 +218,9 @@ the ratio `ρ a / μ a` converges as `a` shrinks to `x` along a Vitali family fo
 theorem ae_tendsto_div :
   ∀ᵐ x ∂μ, ∃ c, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 c) :=
 begin
-  -- To reduce to countably many properties, we use a countable dense set `w` of finite numbers.
-  obtain ⟨w, w_count, w_dense, hw⟩ : ∃ w : set ℝ≥0∞, countable w ∧ dense w ∧
-    (∀ x, is_bot x → x ∉ w) ∧ (∀ x, is_top x → x ∉ w) := exists_countable_dense_no_bot_top ℝ≥0∞,
-  have I : ∀ x ∈ w, x ≠ ∞,
-  { rintros x h rfl, exact hw.2 ∞ (by simp) h },
+  obtain ⟨w, w_count, w_dense, w_zero, w_top⟩ : ∃ w : set ℝ≥0∞, countable w ∧ dense w ∧
+    0 ∉ w ∧ ∞ ∉ w := ennreal.exists_countable_dense_no_zero_top,
+  have I : ∀ x ∈ w, x ≠ ∞ := λ x xs hx, w_top (hx ▸ xs),
   have A : ∀ (c ∈ w) (d ∈ w), (c < d) → ∀ᵐ x ∂μ,
     ¬((∃ᶠ a in v.filter_at x, ρ a / μ a < c) ∧ (∃ᶠ a in v.filter_at x, d < ρ a / μ a)),
   { assume c hc d hd hcd,

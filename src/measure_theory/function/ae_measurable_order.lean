@@ -110,10 +110,9 @@ theorem ennreal.ae_measurable_of_exist_almost_disjoint_supersets
     {x | f x < p} ⊆ u ∧ {x | (q : ℝ≥0∞) < f x} ⊆ v ∧ μ (u ∩ v) = 0) :
   ae_measurable f μ :=
 begin
-  obtain ⟨s, s_count, s_dense, hs⟩ : ∃ s : set ℝ≥0∞, countable s ∧ dense s ∧
-    (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) := exists_countable_dense_no_bot_top ℝ≥0∞,
-  have I : ∀ x ∈ s, x ≠ ∞,
-  { rintros x h rfl, exact hs.2 ∞ (by simp) h },
+  obtain ⟨s, s_count, s_dense, s_zero, s_top⟩ : ∃ s : set ℝ≥0∞, countable s ∧ dense s ∧
+    0 ∉ s ∧ ∞ ∉ s := ennreal.exists_countable_dense_no_zero_top,
+  have I : ∀ x ∈ s, x ≠ ∞ := λ x xs hx, s_top (hx ▸ xs),
   apply measure_theory.ae_measurable_of_exist_almost_disjoint_supersets μ s s_count s_dense _,
   rintros p hp q hq hpq,
   lift p to ℝ≥0 using I p hp,

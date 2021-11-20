@@ -25,13 +25,13 @@ theory for `semi_normed_space` and we specialize to `normed_space` at the end.
 noncomputable theory
 open_locale classical nnreal topological_space
 
-variables {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {E : Type*} {F : Type*} {F' : Type*} {G : Type*}
-  {G' : Type*}
+variables {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {E : Type*} {F : Type*} {Fₗ : Type*} {G : Type*}
+  {Gₗ : Type*}
 
 section semi_normed
 
-variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group F'] [semi_normed_group G]
-  [semi_normed_group G']
+variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group Fₗ] [semi_normed_group G]
+  [semi_normed_group Gₗ]
 
 open metric continuous_linear_map
 
@@ -125,13 +125,12 @@ rfl
 end normed_field
 
 variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
-  [semi_normed_space 𝕜 E] [semi_normed_space 𝕜₂ F] [semi_normed_space 𝕜 F']
-  [semi_normed_space 𝕜₃ G] [semi_normed_space 𝕜 G']
-  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
+  [semi_normed_space 𝕜 E] [semi_normed_space 𝕜₂ F] [semi_normed_space 𝕜 Fₗ]
+  [semi_normed_space 𝕜₃ G] [semi_normed_space 𝕜 Gₗ]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₁₃ : 𝕜 →+* 𝕜₃} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
   [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃] [ring_hom_isometric σ₁₃]
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
   (c : 𝕜) (f g : E →SL[σ₁₂] F) (h : F →SL[σ₂₃] G) (x y z : E)
---include 𝕜
 
 lemma linear_map.bound_of_shell_semi_normed (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
   (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) {x : E} (hx : ∥x∥ ≠ 0) :
@@ -393,7 +392,7 @@ theorem op_norm_le_bound₂ (f : E →SL[σ₁₃] F →SL[σ₂₃] G) {C : ℝ
 f.op_norm_le_bound h0 $ λ x,
   (f x).op_norm_le_bound (mul_nonneg h0 (norm_nonneg _)) $ hC x
 
-@[simp] lemma op_norm_prod (f : E →L[𝕜] F') (g : E →L[𝕜] G') : ∥f.prod g∥ = ∥(f, g)∥ :=
+@[simp] lemma op_norm_prod (f : E →L[𝕜] Fₗ) (g : E →L[𝕜] Gₗ) : ∥f.prod g∥ = ∥(f, g)∥ :=
 le_antisymm
   (op_norm_le_bound _ (norm_nonneg _) $ λ x,
     by simpa only [prod_apply, prod.semi_norm_def, max_mul_of_nonneg, norm_nonneg]
@@ -403,10 +402,10 @@ le_antisymm
     (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_right _ _).trans ((f.prod g).le_op_norm x))
 
 /-- `continuous_linear_map.prod` as a `linear_isometry_equiv`. -/
-def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R F'] [module R G']
-  [has_continuous_smul R F'] [has_continuous_smul R G']
-  [smul_comm_class 𝕜 R F'] [smul_comm_class 𝕜 R G'] :
-  (E →L[𝕜] F') × (E →L[𝕜] G') ≃ₗᵢ[R] (E →L[𝕜] F' × G') :=
+def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R Fₗ] [module R Gₗ]
+  [has_continuous_smul R Fₗ] [has_continuous_smul R Gₗ]
+  [smul_comm_class 𝕜 R Fₗ] [smul_comm_class 𝕜 R Gₗ] :
+  (E →L[𝕜] Fₗ) × (E →L[𝕜] Gₗ) ≃ₗᵢ[R] (E →L[𝕜] Fₗ × Gₗ) :=
 ⟨prodₗ R, λ ⟨f, g⟩, op_norm_prod f g⟩
 
 /-- A continuous linear map is automatically uniformly continuous. -/
@@ -519,38 +518,42 @@ For a version bundled as `linear_isometry_equiv`, see
 `continuous_linear_map.flipL`. -/
 def flip (f : E →SL[σ₁₃] F →SL[σ₂₃] G) : F →SL[σ₂₃] E →SL[σ₁₃] G :=
 linear_map.mk_continuous₂
-  (linear_map.mk₂ 𝕜 (λ y x, f x y) (λ x y z, (f z).map_add x y) (λ c y x, (f x).map_smul c y)
-    (λ z x y, by rw [f.map_add, add_apply]) (λ c y x, by rw [map_smul, smul_apply]))
-  ∥f∥ (λ y x, (f.le_op_norm₂ x y).trans_eq $ by rw mul_right_comm)
+  (linear_map.mk₂'ₛₗ σ₂₃ σ₁₃ (λ y x, f x y)
+    (λ x y z, (f z).map_add x y)
+    (λ c y x, (f x).map_smulₛₗ c y)
+    (λ z x y, by rw [f.map_add, add_apply])
+    (λ c y x, by rw [map_smulₛₗ, smul_apply]))
+  ∥f∥
+  (λ y x, (f.le_op_norm₂ x y).trans_eq $ by rw mul_right_comm)
 
-private lemma le_norm_flip (f : E →L[𝕜] F →L[𝕜] G) : ∥f∥ ≤ ∥flip f∥ :=
+private lemma le_norm_flip (f : E →SL[σ₁₃] F →SL[σ₂₃] G) : ∥f∥ ≤ ∥flip f∥ :=
 f.op_norm_le_bound₂ (norm_nonneg _) $ λ x y,
   by { rw mul_right_comm, exact (flip f).le_op_norm₂ y x }
 
-@[simp] lemma flip_apply (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) : f.flip y x = f x y := rfl
+@[simp] lemma flip_apply (f : E →SL[σ₁₃] F →SL[σ₂₃] G) (x : E) (y : F) : f.flip y x = f x y := rfl
 
-@[simp] lemma flip_flip (f : E →L[𝕜] F →L[𝕜] G) :
+@[simp] lemma flip_flip (f : E →SL[σ₁₃] F →SL[σ₂₃] G) :
   f.flip.flip = f :=
 by { ext, refl }
 
-@[simp] lemma op_norm_flip (f : E →L[𝕜] F →L[𝕜] G) :
+@[simp] lemma op_norm_flip (f : E →SL[σ₁₃] F →SL[σ₂₃] G) :
   ∥f.flip∥ = ∥f∥ :=
 le_antisymm (by simpa only [flip_flip] using le_norm_flip f.flip) (le_norm_flip f)
 
-@[simp] lemma flip_add (f g : E →L[𝕜] F →L[𝕜] G) :
+@[simp] lemma flip_add (f g : E →SL[σ₁₃] F →SL[σ₂₃] G) :
   (f + g).flip = f.flip + g.flip :=
 rfl
 
-@[simp] lemma flip_smul (c : 𝕜) (f : E →L[𝕜] F →L[𝕜] G) :
+@[simp] lemma flip_smul (c : 𝕜₃) (f : E →SL[σ₁₃] F →SL[σ₂₃] G) :
   (c • f).flip = c • f.flip :=
 rfl
 
-variables (𝕜 E F G)
+variables (E F G σ₁₃ σ₂₃)
 
 /-- Flip the order of arguments of a continuous bilinear map.
 This is a version bundled as a `linear_isometry_equiv`.
 For an unbundled version see `continuous_linear_map.flip`. -/
-def flipₗᵢ : (E →L[𝕜] F →L[𝕜] G) ≃ₗᵢ[𝕜] (F →L[𝕜] E →L[𝕜] G) :=
+def flipₗᵢ' : (E →SL[σ₁₃] F →SL[σ₂₃] G) ≃ₗᵢ[𝕜₃] (F →SL[σ₂₃] E →SL[σ₁₃] G) :=
 { to_fun := flip,
   inv_fun := flip,
   map_add' := flip_add,
@@ -559,34 +562,67 @@ def flipₗᵢ : (E →L[𝕜] F →L[𝕜] G) ≃ₗᵢ[𝕜] (F →L[𝕜] E �
   right_inv := flip_flip,
   norm_map' := op_norm_flip }
 
-variables {𝕜 E F G}
+variables {E F G σ₁₃ σ₂₃}
 
-@[simp] lemma flipₗᵢ_symm : (flipₗᵢ 𝕜 E F G).symm = flipₗᵢ 𝕜 F E G := rfl
+@[simp] lemma flipₗᵢ'_symm : (flipₗᵢ' E F G σ₁₃ σ₂₃).symm = flipₗᵢ' F E G σ₂₃ σ₁₃ := rfl
 
-@[simp] lemma coe_flipₗᵢ : ⇑(flipₗᵢ 𝕜 E F G) = flip := rfl
+@[simp] lemma coe_flipₗᵢ' : ⇑(flipₗᵢ' E F G σ₁₃ σ₂₃) = flip := rfl
 
-variables (𝕜 F)
+variables (𝕜 E Fₗ Gₗ)
 
-/-- The continuous linear map obtained by applying a continuous linear map at a given vector.
+/-- Flip the order of arguments of a continuous bilinear map.
+This is a version bundled as a `linear_isometry_equiv`.
+For an unbundled version see `continuous_linear_map.flip`. -/
+def flipₗᵢ : (E →L[𝕜] Fₗ →L[𝕜] Gₗ) ≃ₗᵢ[𝕜] (Fₗ →L[𝕜] E →L[𝕜] Gₗ) :=
+{ to_fun := flip,
+  inv_fun := flip,
+  map_add' := flip_add,
+  map_smul' := flip_smul,
+  left_inv := flip_flip,
+  right_inv := flip_flip,
+  norm_map' := op_norm_flip }
+
+variables {𝕜 E Fₗ Gₗ}
+
+@[simp] lemma flipₗᵢ_symm : (flipₗᵢ 𝕜 E Fₗ Gₗ).symm = flipₗᵢ 𝕜 Fₗ E Gₗ := rfl
+
+@[simp] lemma coe_flipₗᵢ : ⇑(flipₗᵢ 𝕜 E Fₗ Gₗ) = flip := rfl
+
+variables (F σ₁₂)
+
+/-- The continuous semilinear map obtained by applying a continuous semilinear map at a given
+vector.
 
 This is the continuous version of `linear_map.applyₗ`. -/
-def apply : E →L[𝕜] (E →L[𝕜] F) →L[𝕜] F := flip (id 𝕜 (E →L[𝕜] F))
+def apply' : E →SL[σ₁₂] (E →SL[σ₁₂] F) →L[𝕜₂] F := flip (id 𝕜₂ (E →SL[σ₁₂] F))
 
-variables {𝕜 F}
+variables {F σ₁₂}
 
-@[simp] lemma apply_apply (v : E) (f : E →L[𝕜] F) : apply 𝕜 F v f = f v := rfl
+@[simp] lemma apply_apply' (v : E) (f : E →SL[σ₁₂] F) : apply' F σ₁₂ v f = f v := rfl
 
-variables (𝕜 E F G)
+variables (𝕜 Fₗ)
+
+/-- The continuous semilinear map obtained by applying a continuous semilinear map at a given
+vector.
+
+This is the continuous version of `linear_map.applyₗ`. -/
+def apply : E →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] Fₗ := flip (id 𝕜 (E →L[𝕜] Fₗ))
+
+variables {𝕜 Fₗ}
+
+@[simp] lemma apply_apply (v : E) (f : E →L[𝕜] Fₗ) : apply 𝕜 Fₗ v f = f v := rfl
+
+variables (𝕜 E Fₗ Gₗ)
 
 /-- Composition of continuous linear maps as a continuous bilinear map. -/
-def compL : (F →L[𝕜] G) →L[𝕜] (E →L[𝕜] F) →L[𝕜] (E →L[𝕜] G) :=
+def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E →L[𝕜] Gₗ) :=
 linear_map.mk_continuous₂
   (linear_map.mk₂ _ comp add_comp smul_comp comp_add (λ c f g, comp_smul _ _ _))
   1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
 
-variables {𝕜 E F G}
+variables {𝕜 E Fₗ Gₗ}
 
-@[simp] lemma compL_apply (f : F →L[𝕜] G) (g : E →L[𝕜] F) : compL 𝕜 E F G f g = f.comp g := rfl
+@[simp] lemma compL_apply (f : Fₗ →L[𝕜] Gₗ) (g : E →L[𝕜] Fₗ) : compL 𝕜 E Fₗ Gₗ f g = f.comp g := rfl
 
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
@@ -680,44 +716,44 @@ section restrict_scalars
 
 variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
 variables [semi_normed_space 𝕜' E] [is_scalar_tower 𝕜' 𝕜 E]
-variables [semi_normed_space 𝕜' F] [is_scalar_tower 𝕜' 𝕜 F]
+variables [semi_normed_space 𝕜' Fₗ] [is_scalar_tower 𝕜' 𝕜 Fₗ]
 
-@[simp] lemma norm_restrict_scalars (f : E →L[𝕜] F) : ∥f.restrict_scalars 𝕜'∥ = ∥f∥ :=
+@[simp] lemma norm_restrict_scalars (f : E →L[𝕜] Fₗ) : ∥f.restrict_scalars 𝕜'∥ = ∥f∥ :=
 le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
   (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
 
-variables (𝕜 E F 𝕜') (𝕜'' : Type*) [ring 𝕜''] [topological_space 𝕜''] [module 𝕜'' F]
-  [has_continuous_smul 𝕜'' F] [smul_comm_class 𝕜 𝕜'' F] [smul_comm_class 𝕜' 𝕜'' F]
+variables (𝕜 E Fₗ 𝕜') (𝕜'' : Type*) [ring 𝕜''] [topological_space 𝕜''] [module 𝕜'' Fₗ]
+  [has_continuous_smul 𝕜'' Fₗ] [smul_comm_class 𝕜 𝕜'' Fₗ] [smul_comm_class 𝕜' 𝕜'' Fₗ]
 
 /-- `continuous_linear_map.restrict_scalars` as a `linear_isometry`. -/
-def restrict_scalars_isometry : (E →L[𝕜] F) →ₗᵢ[𝕜''] (E →L[𝕜'] F) :=
-⟨restrict_scalarsₗ 𝕜 E F 𝕜' 𝕜'', norm_restrict_scalars⟩
+def restrict_scalars_isometry : (E →L[𝕜] Fₗ) →ₗᵢ[𝕜''] (E →L[𝕜'] Fₗ) :=
+⟨restrict_scalarsₗ 𝕜 E Fₗ 𝕜' 𝕜'', norm_restrict_scalars⟩
 
-variables {𝕜 E F 𝕜' 𝕜''}
+variables {𝕜 E Fₗ 𝕜' 𝕜''}
 
 @[simp] lemma coe_restrict_scalars_isometry :
-  ⇑(restrict_scalars_isometry 𝕜 E F 𝕜' 𝕜'') = restrict_scalars 𝕜' :=
+  ⇑(restrict_scalars_isometry 𝕜 E Fₗ 𝕜' 𝕜'') = restrict_scalars 𝕜' :=
 rfl
 
 @[simp] lemma restrict_scalars_isometry_to_linear_map :
-  (restrict_scalars_isometry 𝕜 E F 𝕜' 𝕜'').to_linear_map = restrict_scalarsₗ 𝕜 E F 𝕜' 𝕜'' :=
+  (restrict_scalars_isometry 𝕜 E Fₗ 𝕜' 𝕜'').to_linear_map = restrict_scalarsₗ 𝕜 E Fₗ 𝕜' 𝕜'' :=
 rfl
 
-variables (𝕜 E F 𝕜' 𝕜'')
+variables (𝕜 E Fₗ 𝕜' 𝕜'')
 
 /-- `continuous_linear_map.restrict_scalars` as a `continuous_linear_map`. -/
-def restrict_scalarsL : (E →L[𝕜] F) →L[𝕜''] (E →L[𝕜'] F) :=
-(restrict_scalars_isometry 𝕜 E F 𝕜' 𝕜'').to_continuous_linear_map
+def restrict_scalarsL : (E →L[𝕜] Fₗ) →L[𝕜''] (E →L[𝕜'] Fₗ) :=
+(restrict_scalars_isometry 𝕜 E Fₗ 𝕜' 𝕜'').to_continuous_linear_map
 
-variables {𝕜 E F 𝕜' 𝕜''}
+variables {𝕜 E Fₗ 𝕜' 𝕜''}
 
 @[simp] lemma coe_restrict_scalarsL :
-  (restrict_scalarsL 𝕜 E F 𝕜' 𝕜'' : (E →L[𝕜] F) →ₗ[𝕜''] (E →L[𝕜'] F)) =
-    restrict_scalarsₗ 𝕜 E F 𝕜' 𝕜'' :=
+  (restrict_scalarsL 𝕜 E Fₗ 𝕜' 𝕜'' : (E →L[𝕜] Fₗ) →ₗ[𝕜''] (E →L[𝕜'] Fₗ)) =
+    restrict_scalarsₗ 𝕜 E Fₗ 𝕜' 𝕜'' :=
 rfl
 
 @[simp] lemma coe_restrict_scalarsL' :
-  ⇑(restrict_scalarsL 𝕜 E F 𝕜' 𝕜'') = restrict_scalars 𝕜' :=
+  ⇑(restrict_scalarsL 𝕜 E Fₗ 𝕜' 𝕜'') = restrict_scalars 𝕜' :=
 rfl
 
 end restrict_scalars
@@ -738,8 +774,6 @@ section has_sum
 
 variables {ι R M M₂ : Type*} [semiring R] [add_comm_monoid M] [module R M]
   [add_comm_monoid M₂] [module R M₂] [topological_space M] [topological_space M₂]
-
-omit 𝕜
 
 /-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
 protected lemma continuous_linear_map.has_sum {f : ι → M} (φ : M →L[R] M₂) {x : M}
@@ -788,18 +822,22 @@ end has_sum
 
 namespace continuous_linear_equiv
 
-variables (e : E ≃L[𝕜] F)
+variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+variables (e : E ≃SL[σ₁₂] F)
 
-protected lemma lipschitz : lipschitz_with (∥(e : E →L[𝕜] F)∥₊) e :=
-(e : E →L[𝕜] F).lipschitz
+include σ₂₁
+protected lemma lipschitz : lipschitz_with (∥(e : E →SL[σ₁₂] F)∥₊) e :=
+(e : E →SL[σ₁₂] F).lipschitz
 
 theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) :
   asymptotics.is_O (λ x', e (f x')) f l :=
-(e : E →L[𝕜] F).is_O_comp f l
+(e : E →SL[σ₁₂] F).is_O_comp f l
 
 theorem is_O_sub (l : filter E) (x : E) :
   asymptotics.is_O (λ x', e (x' - x)) (λ x', x' - x) l :=
-(e : E →L[𝕜] F).is_O_sub l x
+(e : E →SL[σ₁₂] F).is_O_sub l x
+
+variables [ring_hom_isometric σ₂₁]
 
 theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) :
   asymptotics.is_O f (λ x', e (f x')) l :=
@@ -809,7 +847,7 @@ theorem is_O_sub_rev (l : filter E) (x : E) :
   asymptotics.is_O (λ x', x' - x) (λ x', e (x' - x)) l :=
 e.is_O_comp_rev _ _
 
-lemma homothety_inverse (a : ℝ) (ha : 0 < a) (f : E ≃ₗ[𝕜] F) :
+lemma homothety_inverse (a : ℝ) (ha : 0 < a) (f : E ≃ₛₗ[σ₁₂] F) :
   (∀ (x : E), ∥f x∥ = a * ∥x∥) → (∀ (y : F), ∥f.symm y∥ = a⁻¹ * ∥y∥) :=
 begin
   intros hf y,
@@ -820,11 +858,14 @@ begin
 end
 
 /-- A linear equivalence which is a homothety is a continuous linear equivalence. -/
-def of_homothety (f : E ≃ₗ[𝕜] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ∥f x∥ = a * ∥x∥) : E ≃L[𝕜] F :=
+def of_homothety (f : E ≃ₛₗ[σ₁₂] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ∥f x∥ = a * ∥x∥) :
+  E ≃SL[σ₁₂] F :=
 { to_linear_equiv := f,
   continuous_to_fun := f.to_linear_map.continuous_of_bound a (λ x, le_of_eq (hf x)),
   continuous_inv_fun := f.symm.to_linear_map.continuous_of_bound a⁻¹
     (λ x, le_of_eq (homothety_inverse a ha f hf x)) }
+
+omit σ₂₁
 
 variable (𝕜)
 
@@ -834,10 +875,13 @@ continuous_linear_map.to_span_singleton_homothety _ _ _
 
 end continuous_linear_equiv
 
+variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+include σ₂₁
+
 /-- Construct a continuous linear equivalence from a linear equivalence together with
 bounds in both directions. -/
-def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₗ[𝕜] F) (C_to C_inv : ℝ)
-  (h_to : ∀ x, ∥e x∥ ≤ C_to * ∥x∥) (h_inv : ∀ x : F, ∥e.symm x∥ ≤ C_inv * ∥x∥) : E ≃L[𝕜] F :=
+def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₛₗ[σ₁₂] F) (C_to C_inv : ℝ)
+  (h_to : ∀ x, ∥e x∥ ≤ C_to * ∥x∥) (h_inv : ∀ x : F, ∥e.symm x∥ ≤ C_inv * ∥x∥) : E ≃SL[σ₁₂] F :=
 { to_linear_equiv := e,
   continuous_to_fun := e.to_linear_map.continuous_of_bound C_to h_to,
   continuous_inv_fun := e.symm.to_linear_map.continuous_of_bound C_inv h_inv }
@@ -853,7 +897,7 @@ variables {E' F' : Type*} [semi_normed_group E'] [semi_normed_group F']
 /--
 Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`.
 -/
-def bilinear_comp (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) :
+def bilinear_comp (f : E →SL[σ₁₃] F →SL[σ₂₃] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) :
   E' →L[𝕜] F' →L[𝕜] G :=
 ((f.comp gE).flip.comp gF).flip
 

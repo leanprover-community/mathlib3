@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import algebra.geom_sum
 import linear_algebra.smodeq
 import ring_theory.ideal.quotient
 import ring_theory.jacobson_ideal

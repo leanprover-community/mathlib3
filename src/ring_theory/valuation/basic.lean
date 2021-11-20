@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
-import algebra.group_power
 import algebra.order.with_zero
 import algebra.punit_instances
 import ring_theory.ideal.operations

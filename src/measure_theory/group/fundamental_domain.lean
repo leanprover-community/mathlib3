@@ -10,7 +10,7 @@ import measure_theory.group.pointwise
 # Fundamental domain of a group action
 
 A set `s` is said to be a *fundamental domain* of an action of a group `G` on a measurable space `α`
-with respect to measure `μ` if
+with respect to a measure `μ` if
 
 * `s` is a measurable set;
 
@@ -94,7 +94,7 @@ calc μ t = ∑' g : G, μ (t ∩ g • s) : h.measure_eq_tsum' t
      ... = ∑' g : G, μ (g • t ∩ s) :
   tsum_congr $ λ g, by rw [← measure_smul_set g μ, smul_set_inter, smul_inv_smul]
 
-/-- If `s` and `t` are to fundamental domains of the same action, then their measures are equal. -/
+/-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
 @[to_additive] protected lemma measure_congr (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=
 calc μ s = ∑' g : G, μ (s ∩ g • t) : ht.measure_eq_tsum' s

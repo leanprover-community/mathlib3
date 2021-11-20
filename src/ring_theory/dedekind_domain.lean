@@ -978,255 +978,7 @@ begin
 end
 
 end is_dedekind_domain
-/-
-section quotient_multiplicity
-noncomputable theory
-open_locale classical
-variables {T : Type u_1} [integral_domain T] [is_dedekind_domain T] {I : ideal T}
-variables {S : Type u_2}  [integral_domain S] [is_dedekind_domain S] {J : ideal S}
-open ideal unique_factorization_monoid
 
-/-- The predicate that the sequence of powers `(p')^m` for `n ≤ m` is constant,
-    where `p'` is the image of `p` in `R/I` -/
-def shifted_seq_pow_constant {R : Type u_3} [comm_ring R] (I : ideal R) (p : ideal R) : ℕ → Prop :=
-  λ n, ∀ m : ℕ, n ≤ m → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m
-
-/--The sequence of powers `(p')^m` is eventually constant, where `p'` is the image of `p` in `R/I`-/
-lemma pow_map_eq_of_exponent_ge (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) (n : ℕ)
-  (hn : multiplicity p I ≤ n) :
-  (map I^.quotient.mk p)^n =
-    (map I^.quotient.mk p)^((multiplicity p I).get (enat.dom_of_le_coe hn)) :=
-begin
-  rw [← map_pow, ← map_pow],
-  have H : map I^.quotient.mk (p^n) = map I^.quotient.mk (p^n ⊔ I),
-  { rw [map_sup, map_mk_eq_bot_of_le (le_refl I), sup_bot_eq] },
-  rw irreducible_pow_sup_of_le hI hp n hn at H,
-  exact H,
-end
-
--- Can go to `ideal/operations.lean`, probably somewhere after `comap_map_of_surjective`.
-lemma ideal.map_strict_mono_of_surjective {R S : Type*} [ring R] [ring S]
-  (f : R →+* S) (hf : function.surjective f) {I J : ideal R}
-  (hI : f.ker ≤ I) (hJ : f.ker ≤ J) (h : I < J) :
-  map f I < map f J :=
-lt_of_le_of_ne (map_mono h.le) (λ hIJ, h.ne $ calc
-  I = I ⊔ comap f ⊥ : by rw [← f.ker_eq_comap_bot, sup_eq_left.mpr hI]
-    ... = comap f (map f I) : (comap_map_of_surjective f hf I).symm
-    ... = comap f (map f J) : by rw hIJ
-    ... = J ⊔ comap f ⊥ : comap_map_of_surjective f hf J
-    ... = J : by rw [← f.ker_eq_comap_bot, sup_eq_left.mpr hJ] )
-
-lemma pow_map_mk_lt' (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) {k n : ℕ}
-  (hlt : n < k) (hle : ↑k ≤ multiplicity p I) :
-  (map I^.quotient.mk p)^k < (map I^.quotient.mk p)^n :=
-begin
-  rw [← ideal.map_pow, ← ideal.map_pow],
-  refine ideal.map_strict_mono_of_surjective _ quotient.mk_surjective _ _ _;
-    try { rw mk_ker, apply le_of_dvd, apply multiplicity.pow_dvd_of_le_multiplicity },
-  { assumption }, { exact ((enat.coe_lt_coe.mpr hlt).trans_le hle).le },
-  rw ← ideal.dvd_not_unit_iff_lt,
-  split,
-  { exact pow_ne_zero n hp.ne_zero },
-  { refine ⟨ p^(k - n), not_is_unit_of_not_is_unit_dvd hp.not_unit
-      (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hlt))), _⟩,
-    rw [← pow_add, nat.add_sub_of_le hlt.le] }
-end
-
-lemma pow_map_mk_lt (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) {k n : ℕ}
-  (hlt : n < k) (hn : ↑n < multiplicity p I) :
-  (map I^.quotient.mk p)^k < (map I^.quotient.mk p)^n :=
-begin
-  cases le_total ↑k (multiplicity p I) with hk hk,
-  { exact pow_map_mk_lt' hI hp hlt hk },
-  { rw pow_map_eq_of_exponent_ge hI hp _ hk,
-    refine pow_map_mk_lt' hI hp (enat.coe_lt_coe.mp _) (le_of_eq _);
-      rwa enat.coe_get },
-end
-
--- For somewhere near the start of `unique_factorization_domain.lean`
-lemma multiplicity.finite_prime_left {R : Type*} [comm_cancel_monoid_with_zero R]
-  [wf_dvd_monoid R] {a b : R} (ha : prime a) (hb : b ≠ 0) :
-  multiplicity.finite a b :=
-begin
-  revert hb,
-  refine wf_dvd_monoid.induction_on_irreducible b _ _ _,
-  { contradiction },
-  { intros u hu hu',
-    rw [multiplicity.finite_iff_dom, multiplicity.is_unit_right ha.not_unit hu],
-    exact enat.dom_coe 0 },
-  { intros b p hb hp ih hpb,
-    refine multiplicity.finite_mul ha
-      (multiplicity.finite_iff_dom.mpr (enat.dom_of_le_coe (show multiplicity a p ≤ ↑1, from _)))
-      (ih hb),
-    norm_cast,
-    exact (((multiplicity.squarefree_iff_multiplicity_le_one p).mp hp.squarefree a)
-      .resolve_right ha.not_unit) }
-end
-
-lemma pow_map_mk_constant_iff_multiplicity_le (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p)
-  {n : ℕ} : (∀ m, n ≤ m → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m) ↔
-    multiplicity p I ≤ n :=
-begin
-  split,
-  { contrapose!, intro H,
-    have := multiplicity.finite_prime_left (irreducible_iff_prime.mp hp) hI,
-    have H' : n < (multiplicity p I).get this,
-    { simpa only [← enat.coe_lt_coe, enat.coe_get] using H },
-    exact ⟨(multiplicity p I).get this, H'.le, (pow_map_mk_lt hI hp H' H).ne'⟩ },
-  { intros hn m hm,
-    rw [pow_map_eq_of_exponent_ge hI hp n hn, pow_map_eq_of_exponent_ge hI hp m],
-    exact hn.trans (enat.coe_le_coe.mpr hm) }
-end
-
-lemma seq_pow_eventually_constant' (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) :
-  shifted_seq_pow_constant I p ((normalized_factors I).count p) :=
-begin
-  refine (pow_map_mk_constant_iff_multiplicity_le hI hp).2 _,
-  rw [multiplicity_eq_count_normalized_factors hp hI, normalize_eq],
-end
-
-/--The quotient multiplicity of `p` is the least natural number `n` such that the sequence of
- powers `(p')^m` for `m ≥ n` is constant, where `p'` is the image of `p` in `R/I` -/
-def quotient_multiplicity (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) : ℕ :=
-nat.find ⟨(normalized_factors I).count p, seq_pow_eventually_constant' hI hp⟩
-
-/--The quotient multiplicity of a prime factor `p` of `I ≠ 0` is equal to the multiplicity of `p`
-  in the factorisation of `I` -/
-lemma quotient_multiplicity_eq_count (hI : I ≠ 0) (p : ideal T) (hp : irreducible p) :
-  multiplicity p I = quotient_multiplicity hI hp :=
-begin
-  apply le_antisymm,
-  { rw [quotient_multiplicity, ← pow_map_mk_constant_iff_multiplicity_le hI hp],
-    exact nat.find_spec (exists.intro ((normalized_factors I).count p)
-      (seq_pow_eventually_constant' hI hp)) },
-  { rw [quotient_multiplicity, multiplicity_eq_count_normalized_factors hp hI, normalize_eq,
-    enat.coe_le_coe],
-    exact nat.find_min' (exists.intro ((normalized_factors I).count p)
-    (seq_pow_eventually_constant' hI hp)) (seq_pow_eventually_constant' hI hp) }
-end
-
-lemma quotient.mk_injective_iff {R : Type*} [comm_ring R] {I : ideal R} :
-  function.injective I^.quotient.mk ↔ I = ⊥ :=
-by rw [ring_hom.injective_iff_ker_eq_bot, mk_ker]
-
-lemma comap_ne_bot_of_not_injective {R S : Type*} [comm_ring R] [comm_ring S]
-  {f : R →+* S} (hf : ¬ function.injective f) (I : ideal S) :
-  comap f I ≠ ⊥ :=
-ne_bot_of_le_ne_bot (mt f.injective_iff_ker_eq_bot.mpr hf) (ker_le_comap f)
-
-lemma comap_map_map_mem_normalized_factors_of_mem_normalized_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
-  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :
-  (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) ∈ normalized_factors J :=
-begin
-  suffices H₃ : (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) ∈ normalized_factors
-    (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))),
-  { refine multiset.mem_of_le ((dvd_iff_normalized_factors_le_normalized_factors
-      (comap_ne_bot_of_not_injective (mt quotient.mk_injective_iff.mp hJ) _)
-       hJ).1 _) H₃,
-    rw dvd_iff_le,
-    have : (J^.quotient.mk).ker ≤ (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) :=
-      ker_le_comap J^.quotient.mk,
-    rw mk_ker at this,
-    exact this },
-  rw normalized_factors_irreducible,
-  exact multiset.mem_singleton.mpr ((associated_iff_eq.1 (normalize_associated
-    (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))))).symm),
-  apply prime.irreducible,
-  apply (prime_iff_is_prime
-    (comap_ne_bot_of_not_injective (mt quotient.mk_injective_iff.mp hJ) _)).2,
-  convert comap_is_prime J^.quotient.mk _,
-  convert map_is_prime_of_equiv f,
-  convert map_is_prime_of_surjective quotient.mk_surjective _,
-  exact (is_prime_of_prime (prime_of_normalized_factor p hp)),
-  rw mk_ker,
-  exact (dvd_iff_le.1 (dvd_of_mem_normalized_factors hp)),
-end
-
-@[simps]
-def ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient):
-  {p : ideal T | p ∈ normalized_factors I} ≃ {p : ideal S | p ∈ normalized_factors J} :=
-{
-  to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
-    begin
-      obtain ⟨p, hp⟩ := X,
-      exact comap_map_map_mem_normalized_factors_of_mem_normalized_factors hI hJ f hp,
-    end⟩,
-  inv_fun := λ X, ⟨comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
-    begin
-      obtain ⟨p, hp⟩ := X,
-      exact comap_map_map_mem_normalized_factors_of_mem_normalized_factors hJ hI f.symm hp,
-    end⟩,
-  left_inv := λ X,
-    begin
-      obtain ⟨p, hp⟩:= X,
-      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
-        quotient.mk_surjective, map_of_equiv _ f, comap_map_of_surjective _ quotient.mk_surjective,
-        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left
-        (le_of_dvd (dvd_of_mem_normalized_factors hp))],
-    end,
-  right_inv := λ X,
-    begin
-      obtain ⟨p, hp⟩:= X,
-      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
-        quotient.mk_surjective],
-      nth_rewrite 0 ← ring_equiv.symm_symm f,
-      rw [map_of_equiv _ f.symm, comap_map_of_surjective _ quotient.mk_surjective,
-        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left
-        (le_of_dvd (dvd_of_mem_normalized_factors hp))],
-    end
-}
-
-lemma shifted_seq_pow_constant_iff_ideal_correspondence_shifted_eq_pow_constant (hI : I ≠ ⊥)
-  (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I)
-  (n : ℕ) : shifted_seq_pow_constant I p n
-  ↔ shifted_seq_pow_constant J ↑(ideal_correspondence hI hJ f ⟨p, hp⟩) n :=
-begin
-  split,
-  { rw [shifted_seq_pow_constant, shifted_seq_pow_constant],
-    intros hn m hm,
-    specialize hn m hm,
-    apply_fun map (f : I.quotient →+* J.quotient) at hn,
-    rw [ideal_correspondence_apply_coe, map_comap_of_surjective J^.quotient.mk quotient.mk_surjective,
-        subtype.coe_mk, ← map_pow, hn, map_pow] },
-  { rw [shifted_seq_pow_constant, shifted_seq_pow_constant],
-    intros hn m hm,
-    specialize hn m hm,
-    rw [ideal_correspondence_apply_coe,
-        map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow, ← map_pow _ _ m]
-      at hn,
-    apply_fun map ↑f.symm at hn,
-    rw [map_of_equiv _ f, map_of_equiv _ f] at hn,
-    exact hn }
-end
-
-lemma irreducible_ideal_correspondence (hI : I ≠ 0) (hJ : J ≠ 0) (f : I.quotient ≃+* J.quotient)
-  {p : ideal T} (hp : p ∈ normalized_factors I) :
-  irreducible (ideal_correspondence hI hJ f ⟨p, hp⟩ : ideal S) :=
-begin
-  obtain ⟨q, hq⟩ := ideal_correspondence hI hJ f ⟨p, hp⟩,
-  rw subtype.coe_mk,
-  exact irreducible_of_normalized_factor q hq,
-end
-
-
-theorem multiplicity_eq_of_quot_equiv (hI : I ≠ 0) (hJ : J ≠ 0) (f : I.quotient ≃+* J.quotient)
-  {p : ideal T} (hp : p ∈ normalized_factors I):
-  quotient_multiplicity hI (irreducible_of_normalized_factor p hp) =
-  quotient_multiplicity hJ (irreducible_ideal_correspondence hI hJ f hp) :=
-begin
-  apply le_antisymm,
-  { rw [quotient_multiplicity, quotient_multiplicity],
-    apply nat.find_min',
-    rw shifted_seq_pow_constant_iff_ideal_correspondence_shifted_eq_pow_constant hI hJ f hp,
-    refine nat.find_spec _ },
-  { rw [quotient_multiplicity, quotient_multiplicity],
-    apply nat.find_min',
-    rw ← shifted_seq_pow_constant_iff_ideal_correspondence_shifted_eq_pow_constant hI hJ f hp,
-    refine nat.find_spec _ },
-end
-
-end quotient_multiplicity
--/
 
 namespace temporary
 
@@ -1247,14 +999,43 @@ open ideal unique_factorization_monoid
 def ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient):
   {p : ideal T | p ∣ I} ≃ {p : ideal S | p ∣ J} :=
 {
-  to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)), sorry⟩,
-  inv_fun := λ X, ⟨comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)), sorry⟩,
-  left_inv := λ X, sorry,
-  right_inv := λ X, sorry
+  to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
+    begin
+      rw [set.mem_set_of_eq, dvd_iff_le],
+      have : (J^.quotient.mk).ker ≤ comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
+      { exact ker_le_comap J^.quotient.mk },
+      rw mk_ker at this,
+      exact this,
+    end ⟩,
+  inv_fun := λ X, ⟨comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
+    begin
+      rw [set.mem_set_of_eq, dvd_iff_le],
+      have : (I^.quotient.mk).ker ≤ comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
+      { exact ker_le_comap I^.quotient.mk },
+      rw mk_ker at this,
+      exact this,
+    end⟩,
+  left_inv := λ X,
+  begin
+    obtain ⟨p, hp⟩:= X,
+      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
+        quotient.mk_surjective, map_of_equiv _ f, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left],
+      exact dvd_iff_le.1 hp,
+  end,
+  right_inv := λ X,
+    begin
+      obtain ⟨p, hp⟩:= X,
+      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
+        quotient.mk_surjective],
+      nth_rewrite 0 ← ring_equiv.symm_symm f,
+      rw [map_of_equiv _ f.symm, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left],
+      exact dvd_iff_le.1 hp,
+    end
 }
 
-lemma ideal_correspondence_symm (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
-  {p : ideal S} (hp : p ∣ J) :
+lemma ideal_correspondence_symm (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient) :
   (ideal_correspondence hI hJ f).symm = ideal_correspondence hJ hI f.symm := rfl
 
 lemma ideal_correspondence_mono (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
@@ -1276,13 +1057,32 @@ end
 lemma ideal_correspondence_mono' (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
   {p q : ideal T} (hp : p ∣ I) (hq : q ∣ I) :
   p ≤ q ↔ ↑(ideal_correspondence hI hJ f ⟨p, hp⟩) ≤ ( ideal_correspondence hI hJ f ⟨q, hq⟩ : ideal S) :=
-sorry
+begin
+  split,
+  { exact (λ h, ideal_correspondence_mono hI hJ f hp hq h) },
+  { intro h,
+    suffices : (ideal_correspondence hI hJ f).symm (ideal_correspondence hI hJ f ⟨p, hp⟩)
+      ≤ (ideal_correspondence hI hJ f).symm (ideal_correspondence hI hJ f ⟨q, hq⟩),
+    { rw [equiv.symm_apply_apply, equiv.symm_apply_apply, subtype.mk_le_mk] at this,
+      exact this },
+    exact ideal_correspondence_mono hJ hI f.symm _ _ h  }
+end
 
 --this is quite easy and should be proven in more generality in `unique_factorisation_domain.lean`
 lemma temp {p : ideal T} (hp : p ∣ I) : ∃ (b ∈ normalized_factors I), (b : ideal T) ∣ p :=
 begin
   sorry
 end
+/-
+lemma ne_zero_of_dvd_ne_zero  {M : Type*} [comm_cancel_monoid_with_zero M] {p q : associates M}
+  (h₁ : q ≠ 0) (h₂ : p ∣ q) : p ≠ 0 :=
+begin
+  by_contradiction hcontra,
+  obtain ⟨u, hu⟩ := h₂,
+  apply h₁,
+  rw [ne.def, not_not] at hcontra,
+  simp only [hcontra, hu, zero_mul],
+end-/
 
 lemma ideal_correspondence_is_prime_of_is_prime (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
   (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :
@@ -1328,6 +1128,7 @@ begin
     exact hq.dvd.trans (pow_dvd_pow p hi) },
 end
 
+/-
 -- Can go to `algebra/associated.lean`, line 437.
 lemma associates.bot_eq_one {M : Type*} [monoid_with_zero M] :
   (⊥ : associates M) = 1 := rfl
@@ -1335,7 +1136,7 @@ lemma associates.bot_eq_one {M : Type*} [monoid_with_zero M] :
 -- To `algebra/associated.lean:690`.
 lemma associates.le_one_iff {M : Type*} [comm_cancel_monoid_with_zero M]
   {p : associates M} : p ≤ 1 ↔ p = 1 :=
-by rw [← associates.bot_eq_one, le_bot_iff]
+by rw [← associates.bot_eq_one, le_bot_iff]-/
 
 lemma pow_prime₁' {M : Type*} [comm_cancel_monoid_with_zero M] {q : associates M} (n : ℕ) (c : ℕ → associates M)
   (h₁ : strict_mono c)
@@ -1346,17 +1147,16 @@ begin
   exact h₁.monotone i.zero_le
 end
 
-lemma pow_prime₁ {q : ideal T} (n : ℕ) (c : ℕ → ideal T)
-  (h₁ : strict_anti c) (h₂ : ∀ {r : ideal T}, r ∣ q ↔ ∃ i ≤ n, r = c i) :
-  c 0 = ⊤ :=
-begin
-  obtain ⟨i, hi, hr⟩ := h₂.mp (one_dvd _),
-  rw [eq_top_iff, ← ideal.one_eq_top, hr],
-  exact h₁.antitone i.zero_le
-end
-
 lemma not_unit_of_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
-  (hp : dvd_not_unit p q): ¬ is_unit q := sorry
+  (hp : dvd_not_unit p q): ¬ is_unit q :=
+begin
+  obtain ⟨h, x, hx⟩ := hp,
+  by_contra hcontra,
+  apply hx.left,
+  rw is_unit_iff_dvd_one at hcontra,
+  rw is_unit_iff_dvd_one,
+  exact dvd_trans (show x ∣ q, from by {use p, rw mul_comm, exact hx.right}) hcontra,
+end
 
 lemma not_prime_of_not_unit_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
   (hp : ¬is_unit p)(h : dvd_not_unit p q) : ¬ irreducible q :=
@@ -1365,22 +1165,39 @@ begin
   obtain ⟨hp', x, hx, hx'⟩ := h,
   exact hp (or.resolve_right ((irreducible_iff.1 hcontra).right p x hx') hx),
 end
+
+lemma is_unit_of_mul_eq_atom {M : Type*} [comm_cancel_monoid_with_zero M]
+  {p b : associates M} (h : p = p * b) (h' : is_atom p) (hp : p ≠ 0): is_unit b :=
+begin
+  rw [associates.is_unit_iff_eq_one, ← associates.bot_eq_one],
+  apply or.resolve_right (eq_bot_or_eq_of_le_atom h' (exists.intro p (by {rw mul_comm, exact h}))),
+  by_contra hcontra,
+  rw hcontra at h,
+  suffices : dvd_not_unit p p,
+  { apply ne_of_lt (associates.dvd_not_unit_iff_lt.1 this) rfl },
+  rw dvd_not_unit,
+  exact ⟨hp, exists.intro p ⟨by {rw associates.is_unit_iff_eq_one, exact h'.left}, h⟩ ⟩,
+end
+
 lemma associates.is_atom_iff {M : Type*} [comm_cancel_monoid_with_zero M]
-  {p : associates M} : is_atom p ↔ irreducible p :=
+  {p : associates M} (h₁ : p ≠ 0): is_atom p ↔ irreducible p :=
 ⟨λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one] using hp.1,
         λ a b h, (eq_bot_or_eq_of_le_atom hp ⟨_, h⟩).cases_on
           (λ ha, or.inl (a.is_unit_iff_eq_one.mpr ha))
-          (λ ha, or.inr sorry)⟩,
+          (λ ha, or.inr (by {rw ha at h, exact is_unit_of_mul_eq_atom h hp h₁} ))⟩,
  λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one, associates.bot_eq_one] using hp.1,
         λ b ⟨⟨a, hab⟩, hb⟩, (hp.is_unit_or_is_unit hab).cases_on
           (λ hb, show b = ⊥, by rwa [associates.is_unit_iff_eq_one, ← associates.bot_eq_one] at hb)
-          (λ ha, absurd (show p ∣ b, from ⟨(ha.unit⁻¹ : units _), by simp [hab]; sorry⟩) hb)⟩⟩
+          (λ ha, absurd (show p ∣ b, from ⟨(ha.unit⁻¹ : units _), by simp [hab]; rw mul_assoc;
+            rw is_unit.mul_coe_inv ha; rw mul_one⟩) hb)⟩⟩
 
 lemma pow_prime₂' {M : Type*} [comm_cancel_monoid_with_zero M] {p q : associates M} (n : ℕ) (hn : 1 ≤ n)
   (c : ℕ → associates M) (h₁ : strict_mono c)
-  (h₂ : ∀ {r}, r ∣ q ↔ ∃ i ≤ n, r = (c i)) : irreducible (c 1) :=
+  (h₂ : ∀ {r}, r ∣ q ↔ ∃ i ≤ n, r = (c i)) (hq : q ≠ 0) : irreducible (c 1)  :=
 begin
-  refine associates.is_atom_iff.mp _,
+  refine (associates.is_atom_iff _).mp _,
+  apply ne_zero_of_dvd_ne_zero hq (h₂.2 (exists.intro 1 (exists.intro hn rfl) )),
+
   split,
   { exact ne_bot_of_gt (h₁ zero_lt_one) },
 
@@ -1390,23 +1207,6 @@ begin
   have H : i < 1 := h₁.lt_iff_lt.mp hb,
   rw [nat.lt_one_iff.mp H, associates.bot_eq_one, ← associates.is_unit_iff_eq_one],
   exact pow_prime₁' n c h₁ @h₂
-end
-
-lemma pow_prime₂ {q : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)
-  (h₁ : strict_anti c) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i ≤ n, r = c i) :
-  (c 1).is_prime :=
-begin
-  apply is_maximal.is_prime,
-  rw [is_maximal_def, is_coatom],
-  split,
-  { exact ne_top_of_lt (h₁ zero_lt_one) },
-
-  intros b hb,
-  have h : b ∣ q := (dvd_iff_le.2 hb.le).trans ((h₂ (c 1)).2 ⟨1, hn, rfl⟩),
-  obtain ⟨i, hi, rfl⟩ := (h₂ b).1 h,
-  have H : i < 1 := h₁.lt_iff_lt.mp hb,
-  rw nat.lt_one_iff.mp H,
-  exact pow_prime₁ n c h₁ h₂
 end
 
 lemma is_unit_of_associated_is_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
@@ -1427,8 +1227,20 @@ begin
 end
 
 lemma dvd_not_unit_of_dvd_not_unit_associated {M : Type*} [comm_cancel_monoid_with_zero M]
+[nontrivial M]
   {p q r : M} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
-  sorry
+begin
+  obtain ⟨hp, x, hx⟩:= h,
+  obtain ⟨u, rfl⟩ := associated.symm h',
+  split,
+  exact hp,
+  use x * ↑(u⁻¹),
+  split,
+  { suffices : dvd_not_unit ↑u⁻¹ (x * ↑u⁻¹),
+    { exact not_unit_of_dvd_not_unit this },
+    exact ⟨(units.is_unit u⁻¹).ne_zero, by { use x, exact ⟨hx.left, mul_comm x ↑u⁻¹⟩, } ⟩ },
+  { rw [← mul_assoc, ← hx.right, mul_assoc, units.mul_inv, mul_one] },
+end
 
 lemma pow_prime₃' {M : Type*} [comm_cancel_monoid_with_zero M] {p q r : associates M} (n : ℕ) (hn : 1 ≤ n)
   (c : ℕ → associates M)  (h₁ : strict_mono c)
@@ -1442,83 +1254,147 @@ begin
     apply prime.not_unit hp,
     rw p_eq,
     exact pow_prime₁' n c h₁ @h₂ },
-  by_cases h : 1 = i,             --this part is very messy
+  by_cases h : 1 = i,
   { rw ← h at p_eq,
     exact p_eq },
   { exfalso,
     have : ¬ prime p,
     { by_contra hcontra,
       replace hcontra := prime.irreducible hcontra,
-      -- this part is quite messy. A clean-ish way of doing it would be to show that
-      -- `i ≥ 1 → ¬ unit (c i)` using induction
-      sorry,
-    },
+      have hj : ∃ (j : ℕ), i = j + 1 ∧ 0 < j,
+      { use i - 1,
+        exact ⟨(nat.sub_add_cancel this).symm, nat.sub_pos_of_lt (lt_of_le_of_ne this h)⟩ },
+      obtain ⟨j, hj, hj'⟩ := hj,
+      refine (not_prime_of_not_unit_dvd_not_unit
+      (not_unit_of_dvd_not_unit (associates.dvd_not_unit_iff_lt.2 (h₁ hj') )) _) hcontra,
+      rw [associates.dvd_not_unit_iff_lt, p_eq, hj],
+      exact h₁ (lt_add_one j) },
     exact this hp },
 end
 
-lemma pow_prime₃ {p q r : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)
-  (h₁ : strict_anti c) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i ≤ n, r = c i)
-  (hp : p.is_prime) (hr : r ∣ q) (hr' : r ≠ ⊤) :
-  p ∈ normalized_factors r → p = c 1 :=
-begin
-  intro hp',
-  obtain ⟨i, hi, p_eq⟩ := (h₂ p).1 (dvd_trans (dvd_of_mem_normalized_factors hp') hr),
-  have : 1 ≤ i,
-  { rw [nat.succ_le_iff, pos_iff_ne_zero],
-    rintro rfl,
-    refine hp.ne_top (p_eq.trans (pow_prime₁ n c h₁ h₂)) },
-  rcases this.eq_or_lt with (rfl | h),
-  exact p_eq,
-  have temp := dvd_not_unit_iff_lt.mpr (h₁ h),
-  sorry, --prove not_prime_of_prime_dvd_not_unit
-end
-
 lemma pow_prime₄' {M : Type*} [comm_cancel_monoid_with_zero M]
-  {p q r : associates M} (n : ℕ) (c : ℕ → associates M)
+  {q : associates M} (n : ℕ) (c : ℕ → associates M)
   (h₁ : strict_mono c) (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i ≤ n, r = c i)
-  (m : finset (associates M)) (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
+  (m : finset (associates M)) (hm : ∀ r, r ∈ m → r ≤ q ∧ ¬ is_unit r) : m.card ≤ n :=
 begin
-  have sorry_1: ∀ (r : associates M), r ≤ q ↔ r ∈ (finset.range (n+1)).image c,
-  { simpa only [finset.mem_image, exists_prop, finset.mem_range, nat.lt_succ_iff, eq_comm]
-      using h₂ },
-  have sorry_2 : m ⊆ (finset.range (n+1)).image c :=
-     λ x hx, (sorry_1 x).mp (hm x hx),
-  rw ← finset.card_range (n + 1),
+  have sorry_1' :  ∀ (r : associates M), r ≤ q ∧ ¬ is_unit r → r ∈ (finset.Ico 1 (n+1)).image c,
+  { intros r hr,
+    obtain ⟨i, hi, hi'⟩:= (h₂ r).1 hr.left,
+    rw finset.mem_image,
+    use i,
+    split,
+    { refine finset.Ico.mem.mpr _,
+      have : i ≠ 0,
+      { by_contra hcontra,
+        rw [ne.def, not_not] at hcontra,
+        rw hcontra at hi',
+        apply hr.right,
+        rw hi',
+        exact (pow_prime₁' n c h₁ h₂) },
+      exact ⟨nat.one_le_of_lt (zero_lt_iff.2 this), nat.lt_of_le_of_lt hi (lt_add_one n)⟩ },
+    { exact hi'.symm } },
+  have sorry_2 : m ⊆ (finset.Ico 1 (n+1)).image c :=
+     λ x hx, (sorry_1' x (hm x hx)),
+  rw [← nat.add_sub_cancel n 1, ← finset.Ico.card 1 (n+1)],
   exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
 end
 
-lemma pow_prime₄ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i ≤ n, r = c i)
-  (m : finset (ideal T)) (hm : ∀ r, r ∈ m → r ∣ q) : m.card ≤ n + 1 :=
-begin
-  have sorry_1: ∀ (r : ideal T), r ∣ q ↔ r ∈ (finset.range (n+1)).image c,
-  { simpa only [finset.mem_image, exists_prop, finset.mem_range, nat.lt_succ_iff, eq_comm]
-      using h₂ },
-  have sorry_2 : m ⊆ (finset.range (n+1)).image c :=
-     λ x hx, (sorry_1 x).mp (hm x hx),
-  rw ← finset.card_range (n + 1),
-  exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
-end
+lemma pow_inj_of_not_unit {M : Type*} [comm_cancel_monoid_with_zero M]
+  [unique_factorization_monoid M]{q : associates M}
+  (hq : ¬ is_unit q) {n m : ℕ} (H: q^m = q^n) : m = n :=
+sorry
 
-lemma pow_prime₅' {M : Type*} [comm_cancel_monoid_with_zero M] {q r : M} (n : ℕ) (c : ℕ → M)
-  (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j))
-  (h₂ : ∀ {r : M}, r ∣ q ↔ ∃ i ≤ n, associated r (c i)) (hr : r ∣ q) :
-  ∃ (i ≤ n), associated ((c 1)^n) r :=
+lemma pow_prime₅' {M : Type*} [comm_cancel_monoid_with_zero M] [unique_factorization_monoid M]
+  [nontrivial (associates M)]{q r : associates M} (n : ℕ) (hn : 1 ≤ n)
+  (c : ℕ → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c i) (hr : r ∣ q) (hr' : ¬ is_unit r) (hq : q ≠ 0):
+  ∃ (i ≤ n), r = ((c 1)^i) :=
 begin
-  sorry,
-end
-
-lemma pow_prime₅ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ i ≤ n)
-  (hr : r ∣ q) (hr' : r ≠ ⊤) : ∃ (i : ℕ), r = p^i ∧ i ≤ n :=
-begin
-  have : ∃ (i : ℕ), normalized_factors r = multiset.repeat q i,
-    sorry,
+  have : ∃ (i : ℕ), normalized_factors r = multiset.repeat (c 1) i,
+  { use (normalized_factors r).card,
+    apply multiset.eq_repeat_of_mem,
+    intros b hb,
+    refine pow_prime₃' n hn c h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr hr'
+      (dvd_of_mem_normalized_factors hb)  },
   obtain ⟨i, hi⟩ := this,
-  have : i ≤ n, --this should use something like `pow_prime₄`
-    sorry,
-  sorry,
+  use i,
+  suffices P : r = (c 1)^i,
+  { split,
+  { let m := finset.image (λ m, (c 1)^m) (finset.Ico 1 (i + 1)),
+    have : (finset.image (λ m, (c 1)^m) (finset.Ico 1 (i + 1))).card = i,
+    { conv_rhs {rw [← nat.add_sub_cancel i 1, ← finset.Ico.card 1 (i+1)] },
+      rw finset.card_image_eq_iff_inj_on,
+      rw set.inj_on_iff_injective,
+      intros m l h,
+      rw [set.restrict_apply, set.restrict_apply] at h,
+      obtain ⟨m', hm'⟩ := m,
+      obtain ⟨l', hl'⟩ := l,
+      rw subtype.mk_eq_mk,
+      rw subtype.coe_mk at h,
+      rw subtype.coe_mk at h,
+      sorry },  -- should be something like `apply pow_inj_of_not_unit`
+      rw ← this,
+      suffices H : ∀ r ∈ (finset.image (λ m, (c 1)^m) (finset.Ico 1 (i + 1))),
+        r ≤ q ∧ ¬ is_unit r,
+      apply pow_prime₄' n c h₁ (λ r', h₂) (finset.image (λ m, (c 1)^m) (finset.Ico 1 (i + 1))) H,
+      intro r,
+      rw finset.mem_image,
+      intro H',
+      obtain ⟨a, ha, rfl⟩:= H',
+      split,
+      { refine dvd_trans _ hr,
+        use (c 1)^(i - a),
+        rw pow_mul_pow_sub (c 1),
+        exact P,
+        apply nat.le_of_lt_succ,
+        rw nat.succ_eq_add_one,
+        exact (finset.Ico.mem.1 ha).right },
+      apply not_is_unit_of_not_is_unit_dvd (not_unit_of_dvd_not_unit
+        ((associates.dvd_not_unit_iff_lt.2 (h₁ zero_lt_one)))) (dvd_pow (dvd_refl (c 1))
+        (ne_of_lt (nat.lt_of_lt_of_le nat.zero_lt_one (finset.Ico.mem.1 ha).left)).symm) },
+   exact P,
+  },
+  have := unique_factorization_monoid.normalized_factors_prod (ne_zero_of_dvd_ne_zero hq hr),
+  rw associated at this,
+  obtain ⟨u, hu⟩ := this,
+  rw [units_eq_one u, units.coe_one, mul_one, hi, multiset.prod_repeat] at hu,
+  exact hu.symm,
+end
 
+
+lemma pow_prime₆' {M : Type*} [comm_cancel_monoid_with_zero M] [unique_factorization_monoid M]
+  [nontrivial (associates M)]{q r : associates M} (n : ℕ) (hn : 1 ≤ n)
+  (c : ℕ → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c i)
+  (hq : q ≠ 0) : q = (c 1)^n :=
+begin
+  obtain ⟨i, hi, hi'⟩ := pow_prime₅' n hn c h₁ (λ r, h₂) (dvd_refl q) sorry hq,
+  suffices : i = n,
+  { rw hi',
+    rw this },
+  by_contra hcontra,
+  rw ← ne.def at hcontra,
+  have htemp₁ : ∀ (r : associates M), r ≤ q → r ∈ (finset.range (i + 1)).image (λ m, (c 1)^m),
+    intros r hr,
+    have : ∃ (i : ℕ), normalized_factors r = multiset.repeat (c 1) i,
+    { use (normalized_factors r).card,
+      apply multiset.eq_repeat_of_mem,
+      intros b hb,
+      refine pow_prime₃' n hn c h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr hr'
+      (dvd_of_mem_normalized_factors hb)  },
+
+  /-
+  have H : (c 1)^i < (c 1)^n,
+    rw ← associates.dvd_not_unit_iff_lt,
+    split,
+    exact ne_zero_of_dvd_ne_zero hq sorry,
+    use (c 1)^(n-i),
+    split,
+    exact not_is_unit_of_not_is_unit_dvd (not_unit_of_dvd_not_unit
+        ((associates.dvd_not_unit_iff_lt.2 (h₁ zero_lt_one)))) (dvd_pow (dvd_refl (c 1))
+        (ne_of_lt (nat.sub_pos_of_lt (lt_of_le_of_ne hi hcontra))).symm),
+    exact (pow_mul_pow_sub (c 1) hi).symm,
+  apply (ne_of_lt H),-/
 end
 
 lemma pow_prime {q : ideal T} (n : ℕ) :
@@ -1560,8 +1436,29 @@ def prime_factors_equiv (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* 
     ideal_correspondence_is_prime_of_is_prime hI hJ f X.2⟩,
   inv_fun := λ X, ⟨↑(ideal_correspondence hJ hI f.symm ⟨X.1, dvd_of_mem_normalized_factors X.2⟩),
     ideal_correspondence_is_prime_of_is_prime hJ hI f.symm X.2⟩,
-  left_inv := sorry,   --uses `ideal_correspondence_symm`
-  right_inv := sorry   --same
+  left_inv := λ X,
+  begin
+    obtain ⟨p, hp⟩ := X,
+    have : comap (I^.quotient.mk) (map ↑(f.symm) (map (J^.quotient.mk) (comap (J^.quotient.mk)
+      (map ↑f (map (I^.quotient.mk) p))))) = p,
+      rw [map_comap_of_surjective _
+        quotient.mk_surjective, map_of_equiv _ f, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left],
+      exact dvd_iff_le.1 (dvd_of_mem_normalized_factors hp),
+    simp only [subtype.mk_eq_mk, subtype.coe_mk, ideal_correspondence_apply_coe, this],
+  end,
+  right_inv := λ X,
+  begin
+    obtain ⟨p, hp⟩ := X,
+    have : comap (J^.quotient.mk) (map ↑f (map (I^.quotient.mk) (comap (I^.quotient.mk)
+      (map ↑(f.symm) (map (J^.quotient.mk) p))))) = p,
+    { rw map_comap_of_surjective _ quotient.mk_surjective,
+      nth_rewrite 0 ← ring_equiv.symm_symm f,
+      rw [map_of_equiv _ f.symm, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left],
+      exact dvd_iff_le.1 (dvd_of_mem_normalized_factors hp) },
+    simp only [subtype.mk_eq_mk, subtype.coe_mk, ideal_correspondence_apply_coe, this],
+  end
 }
 
 end factorisations_same_shape

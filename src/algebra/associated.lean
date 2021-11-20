@@ -435,6 +435,9 @@ theorem one_eq_mk_one [monoid α] : (1 : associates α) = associates.mk 1 := rfl
 
 instance [monoid α] : has_bot (associates α) := ⟨1⟩
 
+lemma associates.bot_eq_one [monoid_with_zero α] :
+  (⊥ : associates α) = 1 := rfl
+
 lemma exists_rep [monoid α] (a : associates α) : ∃ a0 : α, associates.mk a0 = a :=
 quot.exists_rep a
 
@@ -682,6 +685,10 @@ instance : partial_order (associates α) :=
 { le_antisymm := λ a' b', quotient.induction_on₂ a' b' (λ a b hab hba,
   quot.sound $ associated_of_dvd_dvd (dvd_of_mk_le_mk hab) (dvd_of_mk_le_mk hba))
   .. associates.preorder }
+
+lemma associates.le_one_iff [comm_cancel_monoid_with_zero α]
+  {p : associates α} : p ≤ 1 ↔ p = 1 :=
+by rw [← associates.bot_eq_one, le_bot_iff]
 
 instance : order_bot (associates α) :=
 { bot := 1,

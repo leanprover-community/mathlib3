@@ -148,8 +148,8 @@ E.g. `prod.group` returns 1, and `pi.has_one` returns 2.
 meta def first_multiplicative_arg (nm : name) : tactic ℕ := do
   d ← get_decl nm,
   let (es, _) := d.type.pi_binders,
-  l ← es.mmap_with_index $ λ n bi, do {
-    let tgt := bi.type.pi_codomain,
+  l ← es.mmap_with_index $ λ n bi, do
+  { let tgt := bi.type.pi_codomain,
     let n_bi := bi.type.pi_binders.fst.length,
     tt ← has_attribute' `to_additive tgt.get_app_fn.const_name | return none,
     let n2 := tgt.get_app_args.head.get_app_fn.match_var.map $ λ m, n + n_bi - m,

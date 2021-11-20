@@ -8,6 +8,7 @@ import linear_algebra.dual
 import linear_algebra.matrix.basis
 import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.tensor_product
 
 /-!
@@ -462,7 +463,8 @@ end
 
 end comp
 
-variables {M₂' : Type*} [add_comm_monoid M₂'] [module R₂ M₂']
+variables {M₂' M₂'' : Type*}
+variables [add_comm_monoid M₂'] [add_comm_monoid M₂''] [module R₂ M₂'] [module R₂ M₂'']
 
 section congr
 
@@ -484,15 +486,22 @@ def congr (e : M₂ ≃ₗ[R₂] M₂') : bilin_form R₂ M₂ ≃ₗ[R₂] bili
   (congr e).symm = congr e.symm :=
 by { ext B x y, simp only [congr_apply, linear_equiv.symm_symm], refl }
 
-lemma congr_comp {M₂'' : Type*} [add_comm_monoid M₂''] [module R₂ M₂'']
-  (e : M₂ ≃ₗ[R₂] M₂') (B : bilin_form R₂ M₂) (l r : M₂'' →ₗ[R₂] M₂') :
+@[simp] lemma congr_refl : congr (linear_equiv.refl R₂ M₂) = linear_equiv.refl R₂ _ :=
+linear_equiv.ext $ λ B, ext $ λ x y, rfl
+
+lemma congr_trans (e : M₂ ≃ₗ[R₂] M₂') (f : M₂' ≃ₗ[R₂] M₂'') :
+  (congr e).trans (congr f) = congr (e.trans f) := rfl
+
+lemma congr_congr (e : M₂' ≃ₗ[R₂] M₂'') (f : M₂ ≃ₗ[R₂] M₂') (B : bilin_form R₂ M₂) :
+  congr e (congr f B) = congr (f.trans e) B := rfl
+
+lemma congr_comp (e : M₂ ≃ₗ[R₂] M₂') (B : bilin_form R₂ M₂) (l r : M₂'' →ₗ[R₂] M₂') :
   (congr e B).comp l r = B.comp
     (linear_map.comp (e.symm : M₂' →ₗ[R₂] M₂) l)
     (linear_map.comp (e.symm : M₂' →ₗ[R₂] M₂) r) :=
 rfl
 
-lemma comp_congr {M₂'' : Type*} [add_comm_monoid M₂''] [module R₂ M₂'']
-  (e : M₂' ≃ₗ[R₂] M₂'') (B : bilin_form R₂ M₂) (l r : M₂' →ₗ[R₂] M₂) :
+lemma comp_congr (e : M₂' ≃ₗ[R₂] M₂'') (B : bilin_form R₂ M₂) (l r : M₂' →ₗ[R₂] M₂) :
   congr e (B.comp l r) = B.comp
     (l.comp (e.symm : M₂'' →ₗ[R₂] M₂'))
     (r.comp (e.symm : M₂'' →ₗ[R₂] M₂')) :=
@@ -1379,8 +1388,23 @@ lemma not_nondegenerate_zero [nontrivial M] : ¬(0 : bilin_form R M).nondegenera
 let ⟨m, hm⟩ := exists_ne (0 : M) in λ h, hm (h m $ λ n, rfl)
 end
 
+variables {M₂' : Type*}
+variables [add_comm_monoid M₂'] [module R₂ M₂']
+
 lemma nondegenerate.ne_zero [nontrivial M] {B : bilin_form R M} (h : B.nondegenerate) : B ≠ 0 :=
 λ h0, not_nondegenerate_zero R M $ h0 ▸ h
+
+lemma nondegenerate.congr {B : bilin_form R₂ M₂} (e : M₂ ≃ₗ[R₂] M₂') (h : B.nondegenerate) :
+  (congr e B).nondegenerate :=
+λ m hm, (e.symm).map_eq_zero_iff.1 $ h (e.symm m) $
+  λ n, (congr_arg _ (e.symm_apply_apply n).symm).trans (hm (e n))
+
+@[simp] lemma nondegenerate_congr_iff {B : bilin_form R₂ M₂} (e : M₂ ≃ₗ[R₂] M₂') :
+  (congr e B).nondegenerate ↔ B.nondegenerate :=
+⟨λ h, begin
+  convert h.congr e.symm,
+  rw [congr_congr, e.self_trans_symm, congr_refl, linear_equiv.refl_apply],
+end, nondegenerate.congr e⟩
 
 /-- A bilinear form is nondegenerate if and only if it has a trivial kernel. -/
 theorem nondegenerate_iff_ker_eq_bot {B : bilin_form R₂ M₂} :
@@ -1666,24 +1690,64 @@ open matrix
 variables {A : Type*} [comm_ring A] [is_domain A] [module A M₃] (B₃ : bilin_form A M₃)
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
-theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.nondegenerate) :
-  (to_bilin' M).nondegenerate :=
-λ x hx, h.eq_zero_of_ortho (λ y,
-  by simpa only [to_bilin'_apply, dot_product, mul_vec, finset.mul_sum, mul_assoc] using hx y)
+lemma _root_.matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin {M : matrix ι ι R₃}
+  (b : basis ι R₃ M₃) : M.to_bilin'.nondegenerate ↔ (matrix.to_bilin b M).nondegenerate :=
+(nondegenerate_congr_iff b.equiv_fun.symm).symm
 
-theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
-  (to_bilin' M).nondegenerate :=
-(matrix.nondegenerate_of_det_ne_zero h).to_bilin'
+-- Lemmas transferring nondegeneracy between a matrix and its associated bilinear form
+
+theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.nondegenerate) :
+  M.to_bilin'.nondegenerate :=
+λ x hx, h.eq_zero_of_ortho $ λ y, by simpa only [to_bilin'_apply'] using hx y
+
+@[simp] lemma _root_.matrix.nondegenerate_to_bilin'_iff {M : matrix ι ι R₃} :
+  M.to_bilin'.nondegenerate ↔ M.nondegenerate :=
+⟨λ h v hv, h v $ λ w, (M.to_bilin'_apply' _ _).trans $ hv w, matrix.nondegenerate.to_bilin'⟩
+
+theorem _root_.matrix.nondegenerate.to_bilin {M : matrix ι ι R₃} (h : M.nondegenerate)
+  (b : basis ι R₃ M₃) : (to_bilin b M).nondegenerate :=
+(matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin b).mp h.to_bilin'
+
+@[simp] lemma _root_.matrix.nondegenerate_to_bilin_iff {M : matrix ι ι R₃} (b : basis ι R₃ M₃) :
+  (to_bilin b M).nondegenerate ↔ M.nondegenerate :=
+by rw [←matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin,
+       matrix.nondegenerate_to_bilin'_iff]
+
+-- Lemmas transferring nondegeneracy between a bilinear form and its associated matrix
+
+@[simp] theorem nondegenerate_to_matrix'_iff {B : bilin_form R₃ (ι → R₃)} :
+  B.to_matrix'.nondegenerate ↔ B.nondegenerate :=
+matrix.nondegenerate_to_bilin'_iff.symm.trans $ (matrix.to_bilin'_to_matrix' B).symm ▸ iff.rfl
+
+theorem nondegenerate.to_matrix' {B : bilin_form R₃ (ι → R₃)} (h : B.nondegenerate) :
+  B.to_matrix'.nondegenerate :=
+nondegenerate_to_matrix'_iff.mpr h
+
+@[simp] theorem nondegenerate_to_matrix_iff {B : bilin_form R₃ M₃} (b : basis ι R₃ M₃) :
+  (to_matrix b B).nondegenerate ↔ B.nondegenerate :=
+(matrix.nondegenerate_to_bilin_iff b).symm.trans $ (matrix.to_bilin_to_matrix b B).symm ▸ iff.rfl
+
+theorem nondegenerate.to_matrix {B : bilin_form R₃ M₃} (h : B.nondegenerate)
+  (b : basis ι R₃ M₃) : (to_matrix b B).nondegenerate :=
+(nondegenerate_to_matrix_iff b).mpr h
+
+-- Some shorthands for combining the above with `matrix.nondegenerate_of_det_ne_zero`
+
+lemma nondegenerate_to_bilin'_iff_det_ne_zero {M : matrix ι ι A} :
+  M.to_bilin'.nondegenerate ↔ M.det ≠ 0 :=
+by rw [matrix.nondegenerate_to_bilin'_iff, matrix.nondegenerate_iff_det_ne_zero]
+
+theorem nondegenerate_to_bilin'_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
+  M.to_bilin'.nondegenerate :=
+nondegenerate_to_bilin'_iff_det_ne_zero.mpr h
+
+lemma nondegenerate_iff_det_ne_zero {B : bilin_form A M₃}
+  (b : basis ι A M₃) : B.nondegenerate ↔ (to_matrix b B).det ≠ 0 :=
+by rw [←matrix.nondegenerate_iff_det_ne_zero, nondegenerate_to_matrix_iff]
 
 theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B₃).det ≠ 0) :
   B₃.nondegenerate :=
-begin
-  intros x hx,
-  refine b.equiv_fun.map_eq_zero_iff.mp (nondegenerate_of_det_ne_zero' _ h _ (λ w, _)),
-  convert hx (b.equiv_fun.symm w),
-  rw [bilin_form.to_matrix, linear_equiv.trans_apply, to_bilin'_to_matrix', congr_apply,
-      linear_equiv.symm_apply_apply]
-end
+(nondegenerate_iff_det_ne_zero b).mpr h
 
 end det
 

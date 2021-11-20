@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Eric Wieser
 -/
 
-import data.mv_polynomial
-import algebra.algebra.operations
-import data.fintype.card
 import algebra.direct_sum.internal
+import algebra.graded_monoid
+import data.fintype.card
+import data.mv_polynomial.variables
 
 /-!
 # Homogeneous polynomials

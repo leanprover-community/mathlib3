@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import topology.locally_constant.algebra
 import topology.continuous_function.basic
+import topology.continuous_function.algebra
 
 /-!
 # The algebra morphism from locally constant functions to continuous functions.

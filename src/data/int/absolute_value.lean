@@ -3,10 +3,10 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import algebra.order.absolute_value
-import algebra.algebra.basic
-import data.int.cast
+import algebra.module.basic
 import group_theory.group_action.units
+import data.int.cast
+import algebra.order.absolute_value
 
 /-!
 # Absolute values and the integers

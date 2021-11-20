@@ -76,8 +76,8 @@ do
   (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
 
   /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
-  simp_result ← lean.parser.of_tactic $ λ _, do {
-    /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
+  simp_result ← lean.parser.of_tactic $ λ _, do
+  { /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
        hypotheses added to the `ts : tactic_state` which we are using. -/
     e ← to_expr e,
 

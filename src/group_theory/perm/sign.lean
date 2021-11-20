@@ -3,13 +3,11 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.fintype.basic
-import data.finset.sort
-import data.nat.parity
 import group_theory.perm.support
+import data.fintype.basic
 import group_theory.order_of_element
 import tactic.norm_swap
-import group_theory.quotient_group
+import data.finset.sort
 
 /-!
 # Sign of a permutation
@@ -93,8 +91,8 @@ lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [fintype m] [fintype n]
   set.maps_to σ (set.range sum.inl) (set.range sum.inl) ↔
   set.maps_to σ (set.range sum.inr) (set.range sum.inr) :=
 begin
-  split; id {
-    intros h,
+  split; id
+  { intros h,
     classical,
     rw ←perm_inv_maps_to_iff_maps_to at h,
     intro x,

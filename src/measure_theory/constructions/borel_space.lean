@@ -6,11 +6,12 @@ Authors: Johannes Hölzl, Yury Kudryashov
 import measure_theory.function.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
-import topology.G_delta
 import measure_theory.group.arithmetic
-import topology.semicontinuous
-import topology.instances.ereal
+import topology.algebra.ordered.liminf_limsup
 import topology.continuous_function.basic
+import topology.instances.ereal
+import topology.G_delta
+import topology.semicontinuous
 
 /-!
 # Borel (measurable) space
@@ -80,8 +81,8 @@ le_antisymm
       { exact @measurable_set.univ α (generate_from s) },
       case generate_open.inter : s₁ s₂ _ _ hs₁ hs₂
       { exact @measurable_set.inter α (generate_from s) _ _ hs₁ hs₂ },
-      case generate_open.sUnion : f hf ih {
-        rcases is_open_sUnion_countable f (by rwa hs) with ⟨v, hv, vf, vu⟩,
+      case generate_open.sUnion : f hf ih
+      { rcases is_open_sUnion_countable f (by rwa hs) with ⟨v, hv, vf, vu⟩,
         rw ← vu,
         exact @measurable_set.sUnion α (generate_from s) _ hv
           (λ x xv, ih _ (vf xv)) }

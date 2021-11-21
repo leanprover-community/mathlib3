@@ -488,7 +488,7 @@ begin
         not_false_iff] } },
   have B : tendsto (λ (q : ℝ≥0), (q : ℝ≥0∞)⁻¹ * ρ s) at_top (𝓝 (∞⁻¹ * ρ s)),
   { apply ennreal.tendsto.mul_const _ (or.inr ρs),
-    apply ennreal.tendsto_inv_iff.2 (ennreal.tendsto_coe_nhds_top.2 tendsto_id) },
+    exact ennreal.tendsto_inv_iff.2 (ennreal.tendsto_coe_nhds_top.2 tendsto_id) },
   simp only [zero_mul, ennreal.inv_top] at B,
   apply ge_of_tendsto B,
   exact eventually_at_top.2 ⟨1, A⟩,

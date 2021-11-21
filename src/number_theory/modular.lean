@@ -87,8 +87,8 @@ end
 
 /-- Every pair `![c, d]` of coprime integers is the "bottom_row" of some element `g=[[*,*],[c,d]]`
 of `SL(2,ℤ)`. -/
-lemma bottom_row_surj :
-  set.surj_on (λ g : SL(2, ℤ), ↑ₘg 1) set.univ {cd | is_coprime (cd 0) (cd 1)} :=
+lemma bottom_row_surj {R : Type*} [comm_ring R] :
+  set.surj_on (λ g : SL(2, R), ↑ₘg 1) set.univ {cd | is_coprime (cd 0) (cd 1)} :=
 begin
   rintros cd ⟨b₀, a, gcd_eqn⟩,
   let A := ![![a, -b₀], cd],

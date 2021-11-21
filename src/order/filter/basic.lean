@@ -2731,10 +2731,10 @@ lemma mem_Coprod_iff {s : set (Π d, κ d)} {f : Π d, filter (κ d)} :
   (s ∈ (filter.Coprod f)) ↔ (∀ d : δ, (∃ t₁ ∈ f d, (λ k : (Π d, κ d), k d) ⁻¹' t₁ ⊆ s)) :=
 by simp [filter.Coprod]
 
-lemma compl_mem_Coprod_iff {s : set (Π d, κ d)} :
+lemma compl_mem_Coprod_iff {s : set (Π d, κ d)} {f : Π d, filter (κ d)} :
   sᶜ ∈ filter.Coprod f ↔ ∃ t : Π d, set (κ d), (∀ d, (t d)ᶜ ∈ f d) ∧ s ⊆ set.pi univ t :=
 begin
-  rw [(surjective_pi_map (λ d, @compl_surjective (set (α d)) _)).exists],
+  rw [(surjective_pi_map (λ d, @compl_surjective (set (κ d)) _)).exists],
   simp_rw [mem_Coprod_iff, classical.skolem, exists_prop, @subset_compl_comm _ _ s,
     ← preimage_compl, ← subset_Inter_iff, ← univ_pi_eq_Inter, compl_compl]
 end

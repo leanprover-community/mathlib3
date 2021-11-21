@@ -2591,7 +2591,7 @@ variables (R M)
 namespace general_linear_group
 variables {R M}
 
--- instance : has_coe_to_fun (general_linear_group R M) (λ _, M → M) := by show_term {apply_instance }
+instance : has_coe_to_fun (general_linear_group R M) (λ _, M → M) := by apply_instance
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=
@@ -2625,7 +2625,7 @@ def general_linear_equiv : general_linear_group R M ≃* (M ≃ₗ[R] M) :=
 by {ext, refl}
 
 @[simp] lemma coe_fn_general_linear_equiv (f : general_linear_group R M) :
-  ⇑(general_linear_equiv R M f) = (f : M → M) :=
+  ⇑(general_linear_equiv R M f) = ((f : M →ₗ[R] M) : M → M) :=
 rfl
 
 end general_linear_group

@@ -109,6 +109,25 @@ subset_set_smul_iff₀ ha
 
 end group_with_zero
 
+open_locale pointwise
+
+@[to_additive]
+lemma mem_closure_inv {G : Type*} [group G] (S : set G) (x : G) :
+  x ∈ submonoid.closure S⁻¹ ↔ x⁻¹ ∈ submonoid.closure S :=
+begin
+  suffices : ∀ (S : set G) (x : G), x ∈ submonoid.closure S⁻¹ → x⁻¹ ∈ submonoid.closure S,
+  { refine ⟨this S x, _⟩,
+    have := this S⁻¹ x⁻¹,
+    rwa [inv_inv, set.inv_inv] at this },
+  intros S x hx,
+  refine submonoid.closure_induction hx (λ x hx, _) _ (λ x y hx hy, _),
+  { exact submonoid.subset_closure (set.mem_inv.mp hx), },
+  { rw one_inv,
+    exact submonoid.one_mem _ },
+  { rw mul_inv_rev x y,
+    exact submonoid.mul_mem _ hy hx },
+end
+
 end submonoid
 
 namespace add_submonoid
@@ -193,5 +212,7 @@ lemma le_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) {S T : add_submonoid A} :
 subset_set_smul_iff₀ ha
 
 end group_with_zero
+
+open_locale pointwise
 
 end add_submonoid

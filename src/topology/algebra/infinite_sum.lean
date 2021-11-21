@@ -7,6 +7,7 @@ import algebra.big_operators.intervals
 import algebra.big_operators.nat_antidiagonal
 import data.equiv.encodable.lattice
 import topology.algebra.mul_action
+import topology.algebra.ordered.monotone_convergence
 import topology.instances.real
 
 /-!
@@ -535,6 +536,17 @@ lemma tsum_even_add_odd {f : ℕ → α} (he : summable (λ k, f (2 * k)))
 
 end tsum
 
+section prod
+
+variables [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topological_space γ]
+
+lemma has_sum.prod_mk {f : β → α} {g : β → γ} {a : α} {b : γ}
+  (hf : has_sum f a) (hg : has_sum g b) :
+  has_sum (λ x, (⟨f x, g x⟩ : α × γ)) ⟨a, b⟩ :=
+by simp [has_sum, ← prod_mk_sum, filter.tendsto.prod_mk_nhds hf hg]
+
+end prod
+
 section pi
 variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ x, topological_space (π x)]
 
@@ -747,23 +759,41 @@ end tsum
 
 end topological_ring
 
-section has_continuous_smul
+section const_smul
 variables {R : Type*}
 [monoid R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
 [distrib_mul_action R α] [has_continuous_smul R α]
 {f : β → α}
 
-lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
+lemma has_sum.const_smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
 hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const.smul continuous_id)
 
-lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
-hf.has_sum.smul.summable
+lemma summable.const_smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
+hf.has_sum.const_smul.summable
 
-lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
-hf.has_sum.smul.tsum_eq
+lemma tsum_const_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
+hf.has_sum.const_smul.tsum_eq
 
-end has_continuous_smul
+end const_smul
+
+section smul_const
+variables {R : Type*}
+[semiring R] [topological_space R]
+[topological_space α] [add_comm_monoid α]
+[module R α] [has_continuous_smul R α]
+{f : β → R}
+
+lemma has_sum.smul_const {a : α} {r : R} (hf : has_sum f r) : has_sum (λ z, f z • a) (r • a) :=
+hf.map ((smul_add_hom R α).flip a) (continuous_id.smul continuous_const)
+
+lemma summable.smul_const {a : α} (hf : summable f) : summable (λ z, f z • a) :=
+hf.has_sum.smul_const.summable
+
+lemma tsum_smul_const [t2_space α] {a : α} (hf : summable f) : ∑' z, f z • a = (∑' z, f z) • a :=
+hf.has_sum.smul_const.tsum_eq
+
+end smul_const
 
 section division_ring
 
@@ -1129,7 +1159,7 @@ begin
   rw [filter.mem_map],
   rcases hf.vanishing he with ⟨s, hs⟩,
   refine s.eventually_cofinite_nmem.mono (λ x hx, _),
-  by simpa using hs {x} (singleton_disjoint.2 hx)
+  by simpa using hs {x} (disjoint_singleton_left.2 hx)
 end
 
 lemma summable.tendsto_at_top_zero {f : ℕ → G} (hf : summable f) : tendsto f at_top (𝓝 0) :=
@@ -1204,7 +1234,7 @@ begin
   refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
   have hsum := hN n hn,
   -- We simplify the known inequality
-  rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, add_sub_cancel_left] at hsum,
+  rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, add_tsub_cancel_left] at hsum,
   norm_cast at hsum,
   replace hsum := lt_of_le_of_lt (le_max_left _ _) hsum,
   rw edist_comm,

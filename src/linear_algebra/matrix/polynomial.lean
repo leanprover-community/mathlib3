@@ -3,10 +3,11 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import linear_algebra.matrix.determinant
+import algebra.polynomial.big_operators
+import data.polynomial.degree.lemmas
 import data.polynomial.eval
 import data.polynomial.monic
-import algebra.polynomial.big_operators
+import linear_algebra.matrix.determinant
 
 /-!
 # Matrices of polynomials and polynomials of matrices
@@ -42,8 +43,8 @@ begin
                multiset.mem_map, exists_imp_distrib, finset.mem_univ_val],
   intro g,
   calc  nat_degree (sign g • ∏ (i : n), (X • A.map C + B.map C) (g i) i)
-      ≤ nat_degree (∏ (i : n), (X • A.map C + B.map C) (g i) i) : by {
-      cases int.units_eq_one_or (sign g) with sg sg,
+      ≤ nat_degree (∏ (i : n), (X • A.map C + B.map C) (g i) i) : by
+    { cases int.units_eq_one_or (sign g) with sg sg,
         { rw [sg, one_smul] },
         { rw [sg, units.neg_smul, one_smul, nat_degree_neg] } }
   ... ≤ ∑ (i : n), nat_degree (((X : polynomial α) • A.map C + B.map C) (g i) i) :
@@ -78,7 +79,7 @@ begin
   rw [det_apply, det_apply, finset_sum_coeff],
   refine finset.sum_congr rfl _,
   simp only [algebra.id.smul_eq_mul, finset.mem_univ, ring_hom.map_matrix_apply, forall_true_left,
-             map_apply, dmatrix.add_apply, pi.smul_apply],
+             map_apply, pi.smul_apply],
   intros g,
   convert coeff_smul (sign g) _ _,
   rw ←mul_one (fintype.card n),

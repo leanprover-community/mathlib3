@@ -11,7 +11,7 @@ import category_theory.limits.shapes.terminal
 # The category of "structured arrows"
 
 For `T : C ⥤ D`, a `T`-structured arrow with source `S : D`
-is just a morphism `S ⟶ T.obj Y`, for some `Y : D`.
+is just a morphism `S ⟶ T.obj Y`, for some `Y : C`.
 
 These form a category with morphisms `g : Y ⟶ Y'` making the obvious diagram commute.
 

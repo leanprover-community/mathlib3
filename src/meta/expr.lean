@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
 import data.string.defs
-import meta.rb_map
 import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
@@ -464,8 +463,8 @@ meta def match_app {elab} : expr elab → option (expr elab × expr elab)
 | _ := none
 
 /-- Match an application of `coe_fn`. -/
-meta def match_app_coe_fn : expr → option (expr × expr × expr × expr)
-| (app `(@coe_fn %%α %%inst %%fexpr) x) := some (α, inst, fexpr, x)
+meta def match_app_coe_fn : expr → option (expr × expr × expr × expr × expr)
+| (app `(@coe_fn %%α %%β %%inst %%fexpr) x) := some (α, β, inst, fexpr, x)
 | _ := none
 
 /-- Match an abstraction. -/
@@ -898,21 +897,6 @@ protected meta def apply_replacement_fun (f : name → name) (test : expr → bo
       some $ (f.mk_app $ g.get_app_args.map apply_replacement_fun) (apply_replacement_fun x) else
       none
   | _ := none
-  end
-
-open native
-/--
-  `univ_params_grouped e` computes for each `level` `u` of `e` the parameters that occur in `u`,
-  and returns the corresponding set of lists of parameters.
-  In pseudo-mathematical form, this returns `{ { p : parameter | p ∈ u } | (u : level) ∈ e }`
-  We use `list name` instead of `name_set`, since `name_set` does not have an order.
--/
-meta def univ_params_grouped (e : expr) : rb_set (list name) :=
-e.fold mk_rb_set $ λ e n l,
-  match e with
-  | e@(sort u) := l.insert u.params.to_list
-  | e@(const nm us) := l.union $ rb_set.of_list $ us.map $ λ u : level, u.params.to_list
-  | _ := l
   end
 
 end expr

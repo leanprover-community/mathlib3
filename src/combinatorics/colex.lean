@@ -3,7 +3,6 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov
 -/
-import data.finset
 import data.fintype.basic
 import algebra.geom_sum
 
@@ -109,8 +108,8 @@ begin
   rintro ⟨k, z, ka, _⟩,
   refine ⟨f k, λ x hx, _, _, k, ‹k ∈ B›, rfl⟩,
   { split,
-    any_goals {
-      rintro ⟨x', hx', rfl⟩,
+    any_goals
+    { rintro ⟨x', hx', rfl⟩,
       refine ⟨x', _, rfl⟩,
       rwa ← z _ <|> rwa z _,
       rwa strict_mono.lt_iff_lt h₁ at hx } },
@@ -351,8 +350,11 @@ def to_colex_rel_hom [linear_order α] :
 
 instance [linear_order α] : order_bot (finset.colex α) :=
 { bot := (∅ : finset α).to_colex,
-  bot_le := λ x, empty_to_colex_le,
-  ..(by apply_instance : partial_order (finset.colex α)) }
+  bot_le := λ x, empty_to_colex_le }
+
+instance [linear_order α] [fintype α] : order_top (finset.colex α) :=
+{ top := finset.univ.to_colex,
+  le_top := λ x, colex_le_of_subset (subset_univ _) }
 
 instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
 { ..finset.colex.order_bot,
@@ -363,8 +365,7 @@ instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
   ..(by apply_instance : semilattice_sup (finset.colex α)) }
 
 instance [linear_order α] [fintype α] : bounded_lattice (finset.colex α) :=
-{ top := finset.univ.to_colex,
-  le_top := λ x, colex_le_of_subset (subset_univ _),
+{ ..(by apply_instance : order_top (finset.colex α)),
   ..(by apply_instance : semilattice_sup (finset.colex α)),
   ..(by apply_instance : semilattice_inf_bot (finset.colex α)) }
 

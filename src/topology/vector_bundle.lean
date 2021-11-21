@@ -73,7 +73,7 @@ structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivi
 
 open topological_vector_bundle
 
-instance : has_coe_to_fun (trivialization R F E) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (trivialization R F E) (λ _, total_space E → B × F) := ⟨λ e, e.to_fun⟩
 
 instance : has_coe (trivialization R F E) (topological_fiber_bundle.trivialization F (proj E)) :=
 ⟨topological_vector_bundle.trivialization.to_fiber_bundle_trivialization⟩

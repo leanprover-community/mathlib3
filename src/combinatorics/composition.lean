@@ -302,7 +302,7 @@ end
 def inv_embedding (j : fin n) : fin (c.blocks_fun (c.index j)) :=
 ⟨j - c.size_up_to (c.index j),
 begin
-  rw [sub_lt_iff_right, add_comm, ← size_up_to_succ'],
+  rw [tsub_lt_iff_right, add_comm, ← size_up_to_succ'],
   { exact lt_size_up_to_index_succ _ _ },
   { exact size_up_to_index_le _ _ }
 end⟩
@@ -314,7 +314,7 @@ lemma embedding_comp_inv (j : fin n) :
   c.embedding (c.index j) (c.inv_embedding j) = j :=
 begin
   rw fin.ext_iff,
-  apply add_sub_cancel_of_le (c.size_up_to_index_le j),
+  apply add_tsub_cancel_of_le (c.size_up_to_index_le j),
 end
 
 lemma mem_range_embedding_iff {j : fin n} {i : fin c.length} :
@@ -331,11 +331,11 @@ begin
   { assume h,
     apply set.mem_range.2,
     refine ⟨⟨j - c.size_up_to i, _⟩, _⟩,
-    { rw [sub_lt_iff_left, ← size_up_to_succ'],
+    { rw [tsub_lt_iff_left, ← size_up_to_succ'],
       { exact h.2 },
       { exact h.1 } },
     { rw fin.ext_iff,
-      exact add_sub_cancel_of_le h.1 } }
+      exact add_tsub_cancel_of_le h.1 } }
 end
 
 /-- The embeddings of different blocks of a composition are disjoint. -/
@@ -387,7 +387,7 @@ end
 
 lemma inv_embedding_comp (i : fin c.length) (j : fin (c.blocks_fun i)) :
   (c.inv_embedding (c.embedding i j) : ℕ) = j :=
-by simp_rw [coe_inv_embedding, index_embedding, coe_embedding, nat.add_sub_cancel_left]
+by simp_rw [coe_inv_embedding, index_embedding, coe_embedding, add_tsub_cancel_left]
 
 /-- Equivalence between the disjoint union of the blocks (each of them seen as
 `fin (c.blocks_fun i)`) with `fin n`. -/
@@ -599,7 +599,7 @@ begin
   induction ns with n ns IH; intros l h; simp at h ⊢,
   have := le_trans (nat.le_add_right _ _) h,
   rw IH, {simp [this]},
-  rwa [length_drop, le_sub_iff_left this]
+  rwa [length_drop, le_tsub_iff_left this]
 end
 
 /-- When one splits a list along a composition `c`, the lengths of the sublists thus created are
@@ -645,7 +645,7 @@ begin
   induction ns with n ns IH; intros l h; simp at h ⊢,
   { exact (length_eq_zero.1 h.symm).symm },
   rw IH, {simp},
-  rwa [length_drop, ← h, nat.add_sub_cancel_left]
+  rwa [length_drop, ← h, add_tsub_cancel_left]
 end
 
 /-- If one splits a list along a composition, and then joins the sublists, one gets back the
@@ -749,13 +749,13 @@ finset.card_pos.mpr c.boundaries_nonempty
 def length : ℕ := finset.card c.boundaries - 1
 
 lemma card_boundaries_eq_succ_length : c.boundaries.card = c.length + 1 :=
-(nat.sub_eq_iff_eq_add c.card_boundaries_pos).mp rfl
+(tsub_eq_iff_eq_add_of_le (nat.succ_le_of_lt c.card_boundaries_pos)).mp rfl
 
 lemma length_lt_card_boundaries : c.length < c.boundaries.card :=
 by { rw c.card_boundaries_eq_succ_length, exact lt_add_one _ }
 
 lemma lt_length (i : fin c.length) : (i : ℕ) + 1 < c.boundaries.card :=
-lt_sub_iff_right.mp i.2
+lt_tsub_iff_right.mp i.2
 
 lemma lt_length' (i : fin c.length) : (i : ℕ) < c.boundaries.card :=
 lt_of_le_of_lt (nat.le_succ i) (c.lt_length i)
@@ -783,7 +783,7 @@ lemma blocks_fun_pos (i : fin c.length) : 0 < c.blocks_fun i :=
 begin
   have : (⟨i, c.lt_length' i⟩ : fin c.boundaries.card) < ⟨i + 1, c.lt_length i⟩ :=
     nat.lt_succ_self _,
-  exact lt_sub_iff_left.mpr ((c.boundaries.order_emb_of_fin rfl).strict_mono this)
+  exact lt_tsub_iff_left.mpr ((c.boundaries.order_emb_of_fin rfl).strict_mono this)
 end
 
 /-- List of the sizes of the blocks in a `composition_as_set`. -/
@@ -803,7 +803,7 @@ begin
   have B : i < c.boundaries.card := lt_of_lt_of_le A (by simp [blocks, length, nat.sub_le]),
   rw [sum_take_succ _ _ A, IH B],
   simp only [blocks, blocks_fun, nth_le_of_fn'],
-  apply add_sub_cancel_of_le,
+  apply add_tsub_cancel_of_le,
   simp
 end
 

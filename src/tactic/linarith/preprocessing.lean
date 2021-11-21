@@ -7,6 +7,7 @@ Authors: Robert Y. Lewis
 import tactic.linarith.datatypes
 import tactic.zify
 import tactic.cancel_denoms
+import order.lexicographic
 
 /-!
 # Linarith preprocessing
@@ -223,7 +224,7 @@ meta def cancel_denoms : preprocessor :=
 and adds them to the set `m`.
 A pair `(a, tt)` is added to `m` when `a^2` appears in `e`, and `(a, ff)` is added to `m`
 when `a*a` appears in `e`.  -/
-meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr × bool))
+meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (lex expr bool))
 | s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert (a, tt))
 | s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else
   e.mfoldl find_squares s

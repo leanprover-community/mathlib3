@@ -50,7 +50,7 @@ This file defines the predicate `separated`, and common separation axioms
 * `t2_iff_nhds`: A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter.
 * `t2_iff_is_closed_diagonal`: A space is T₂ iff the `diagonal` of `α` (that is, the set of all
   points of the form `(a, a) : α × α`) is closed under the product topology.
-* `finset_disjoing_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
+* `finset_disjoint_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
 * Most topological constructions preserve Hausdorffness;
   these results are part of the typeclass inference system (e.g. `embedding.t2_space`)
 * `set.eq_on.closure`: If two functions are equal on some set `s`, they are equal on its closure.
@@ -321,6 +321,21 @@ begin
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
 
+/-- If a function to a `t1_space` tends to some limit `b` at some point `a`, then necessarily
+`b = f a`. -/
+lemma eq_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
+  (h : tendsto f (𝓝 a) (𝓝 b)) : f a = b :=
+by_contra $ assume (hfa : f a ≠ b),
+have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
+have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id' $ pure_le_nhds a),
+fact₂ fact₁ (eq.refl $ f a)
+
+/-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that
+`f` admits *some* limit at `a`. -/
+lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
+  (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
+show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
+
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
 lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[{x}ᶜ] x)]
@@ -528,8 +543,7 @@ lemma finset_disjoint_finset_opens_of_t2 [t2_space α] :
   ∀ (s t : finset α), disjoint s t → separated (s : set α) t :=
 begin
   refine induction_on_union _ (λ a b hi d, (hi d.symm).symm) (λ a d, empty_right a) (λ a b ab, _) _,
-  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation
-      (by { rw [ne.def, ← finset.mem_singleton], exact (disjoint_singleton.mp ab.symm) }),
+  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation (finset.disjoint_singleton.1 ab),
     refine ⟨U, V, oU, oV, _, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
     exact singleton_subset_set_iff.mpr ‹_› },
   { intros a b c ac bc d,
@@ -539,7 +553,7 @@ end
 
 lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (h : x ∉ s) :
   separated ({x} : set α) s :=
-by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (singleton_disjoint.mpr h)
+by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (finset.disjoint_singleton_left.mpr h)
 
 end separated
 
@@ -567,7 +581,7 @@ lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α}
 ⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
 
 /-- A T₂.₅ space, also known as a Urysohn space, is a topological space
-  where for every pair `x ≠ y`, there are two open sets, with the intersection of clousures
+  where for every pair `x ≠ y`, there are two open sets, with the intersection of closures
   empty, one containing `x` and the other `y` . -/
 class t2_5_space (α : Type u) [topological_space α]: Prop :=
 (t2_5 : ∀ x y  (h : x ≠ y), ∃ (U V: set α), is_open U ∧  is_open V ∧

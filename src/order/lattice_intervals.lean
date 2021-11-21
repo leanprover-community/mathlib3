@@ -21,6 +21,7 @@ In the following, `*` can represent either `c`, `o`, or `i`.
   * `set.Ii*.semillatice_inf`
   * `set.I*c.order_top`
   * `set.I*c.semillatice_inf`
+  * `set.I**.lattice`
   * `set.Iic.bounded_order`, within a `bounded_order`
   * `set.Ici.bounded_order`, within a `bounded_order`
 
@@ -83,8 +84,8 @@ instance [semilattice_sup α] : semilattice_sup (Iic a) :=
 subtype.semilattice_sup (λ x y hx hy, sup_le hx hy)
 
 instance [lattice α] : lattice (Iic a) :=
-{ .. (Iic.semilattice_inf),
-  .. (Iic.semilattice_sup) }
+{ .. Iic.semilattice_inf,
+  .. Iic.semilattice_sup }
 
 instance [preorder α] : order_top (Iic a) :=
 { top := ⟨a, le_refl a⟩,
@@ -102,8 +103,8 @@ instance [partial_order α] [no_bot_order α] {a : α} : no_bot_order (Iic a) :=
 ⟨λ x, let ⟨y, hy⟩ := no_bot x.1 in ⟨⟨y, le_trans hy.le x.2⟩, hy⟩ ⟩
 
 instance [preorder α] [bounded_order α] : bounded_order (Iic a) :=
-{ .. (Iic.order_top),
-  .. (Iic.order_bot) }
+{ .. Iic.order_top,
+  .. Iic.order_bot }
 
 end Iic
 
@@ -118,8 +119,8 @@ instance [semilattice_sup α] : semilattice_sup (Ici a) :=
 subtype.semilattice_sup (λ x y hx hy, le_trans hx le_sup_left)
 
 instance [lattice α] : lattice (Ici a) :=
-{ .. (Ici.semilattice_inf),
-  .. (Ici.semilattice_sup) }
+{ .. Ici.semilattice_inf,
+  .. Ici.semilattice_sup }
 
 instance [preorder α] : order_bot (Ici a) :=
 { bot := ⟨a, le_refl a⟩,
@@ -137,8 +138,8 @@ instance [partial_order α] [no_top_order α] {a : α} : no_top_order (Ici a) :=
 ⟨λ x, let ⟨y, hy⟩ := no_top x.1 in ⟨⟨y, le_trans x.2 hy.le⟩, hy⟩ ⟩
 
 instance [preorder α] [bounded_order α] : bounded_order (Ici a) :=
-{ .. (Ici.order_top),
-  .. (Ici.order_bot) }
+{ .. Ici.order_top,
+  .. Ici.order_bot }
 
 end Ici
 
@@ -151,8 +152,8 @@ instance [semilattice_sup α] {a b : α} : semilattice_sup (Icc a b) :=
 subtype.semilattice_sup (λ x y hx hy, ⟨le_trans hx.1 le_sup_left, sup_le hx.2 hy.2⟩)
 
 instance [lattice α] {a b : α} : lattice (Icc a b) :=
-{ .. (Icc.semilattice_inf),
-  .. (Icc.semilattice_sup) }
+{ .. Icc.semilattice_inf,
+  .. Icc.semilattice_sup }
 
 /-- `Icc a b` has a bottom element whenever `a ≤ b`. -/
 def order_bot [preorder α] {a b : α} (h : a ≤ b) : order_bot (Icc a b) :=
@@ -167,8 +168,8 @@ def order_top [preorder α] {a b : α} (h : a ≤ b) : order_top (Icc a b) :=
 /-- `Icc a b` is a `bounded_order` whenever `a ≤ b`. -/
 def bounded_order [preorder α] {a b : α} (h : a ≤ b) :
   bounded_order (Icc a b) :=
-{ .. (Icc.order_top h),
-  .. (Icc.order_bot h) }
+{ .. Icc.order_top h,
+  .. Icc.order_bot h }
 
 end Icc
 

@@ -212,7 +212,7 @@ and we derive the corresponding `lcm` facts from `gcd`.
 
 /-- Normalized GCD monoid: a `comm_cancel_monoid_with_zero` with normalization and `gcd`
 (greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
-`lcm` form a bounded order on the associated elements where `gcd` is the infimum, `lcm` is the
+`lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
 supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the
 corresponding `lcm` facts from `gcd`.
 -/

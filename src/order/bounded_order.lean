@@ -10,7 +10,7 @@ import order.order_dual
 import tactic.pi_instances
 
 /-!
-# ⊤ and ⊥, bounded orders and variants
+# ⊤ and ⊥, bounded lattices and variants
 
 This file defines top and bottom elements (greatest and least elements) of a type, the bounded
 variants of different kinds of lattices, sets up the typeclass hierarchy between them and provides
@@ -20,11 +20,11 @@ instances for `Prop` and `fun`.
 
 * `has_<top/bot> α`: Typeclasses to declare the `⊤`/`⊥` notation.
 * `order_<top/bot> α`: Order with a top/bottom element.
-* `bounded_order α`: Ordering with a top and bottom element.
+* `bounded_order α`: Order with a top and bottom element.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
 * `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
   combinations). Typical examples include `ℕ`.
-* `is_compl x y`: In a bounded order, predicate for "`x` is a complement of `y`". Note that in a
+* `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
   non distributive lattice, an element can have several complements.
 * `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
 
@@ -124,10 +124,9 @@ theorem order_top.ext_top {α} {hA : partial_order α} (A : order_top α)
   (by haveI := A; exact ⊤ : α) = ⊤ :=
 top_unique $ by rw ← H; apply le_top
 
-theorem order_top.ext {α} [partial_order α] {A B : order_top α}
-  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+theorem order_top.ext {α} [partial_order α] {A B : order_top α} : A = B :=
 begin
-  have tt := order_top.ext_top A B H,
+  have tt := order_top.ext_top A B (λ _ _, iff.rfl),
   casesI A with _ ha, casesI B with _ hb,
   congr,
   exact le_antisymm (hb _) (ha _)
@@ -192,16 +191,15 @@ lemma strict_mono.minimal_preimage_bot [linear_order α] [partial_order β] [ord
   a ≤ x :=
 H.minimal_of_minimal_image (λ p, by { rw h_bot, exact bot_le }) x
 
-theorem order_bot.ext_bot {α} [partial_order α] (A B : order_bot α)
-  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :
+theorem order_bot.ext_bot {α} {hA : partial_order α} (A : order_bot α)
+  {hB : partial_order α} (B : order_bot α)
+  (H : ∀ x y : α, (by haveI := hA; exact x ≤ y) ↔ x ≤ y) :
   (by haveI := A; exact ⊥ : α) = ⊥ :=
 bot_unique $ by rw ← H; apply bot_le
 
-theorem order_bot.ext {α} [partial_order α] {A B : order_bot α}
-  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
+theorem order_bot.ext {α} [partial_order α] {A B : order_bot α} : A = B :=
 begin
-  have := partial_order.ext H,
-  have tt := order_bot.ext_bot A B H,
+  have tt := order_bot.ext_bot A B (λ _ _, iff.rfl),
   casesI A with a ha, casesI B with b hb,
   congr,
   exact le_antisymm (ha _) (hb _)
@@ -259,12 +257,24 @@ end semilattice_inf_bot
 
 /-! ### Bounded lattice -/
 
--- TODO: rename `bounded_order` since it no longer requires `lattice`
 /-- A bounded order describes an order `(≤)` with a top and bottom element,
   denoted `⊤` and `⊥` respectively. This allows for the interpretation
   of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
 @[ancestor order_top order_bot]
 class bounded_order (α : Type u) [has_le α] extends order_top α, order_bot α.
+
+theorem bounded_order.ext {α} [partial_order α] {A B : bounded_order α} : A = B :=
+begin
+  have ht : @bounded_order.to_order_top α _ A = @bounded_order.to_order_top α _ B := order_top.ext,
+  have hb : @bounded_order.to_order_bot α _ A = @bounded_order.to_order_bot α _ B := order_bot.ext,
+  casesI A,
+  casesI B,
+  injection ht with h,
+  injection hb with h',
+  convert rfl,
+  { exact h.symm },
+  { exact h'.symm }
+end
 
 lemma inf_eq_bot_iff_le_compl {α : Type u} [distrib_lattice α] [bounded_order α] {a b c : α}
   (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
@@ -587,7 +597,7 @@ instance order_top [has_le α] [order_top α] : order_top (with_bot α) :=
 { top := some ⊤,
   le_top := λ o a ha, by cases ha; exact ⟨_, rfl, le_top⟩ }
 
-instance bounded_order [preorder α] [bounded_order α] : bounded_order (with_bot α) :=
+instance bounded_order [has_le α] [order_top α] : bounded_order (with_bot α) :=
 { ..with_bot.order_top, ..with_bot.order_bot }
 
 lemma well_founded_lt [partial_order α] (h : well_founded ((<) : α → α → Prop)) :
@@ -832,7 +842,7 @@ instance order_bot [has_le α] [order_bot α] : order_bot (with_top α) :=
 { bot := some ⊥,
   bot_le := λ o a ha, by cases ha; exact ⟨_, rfl, bot_le⟩ }
 
-instance bounded_order [preorder α] [bounded_order α] : bounded_order (with_top α) :=
+instance bounded_order [has_le α] [order_bot α] : bounded_order (with_top α) :=
 { ..with_top.order_top, ..with_top.order_bot }
 
 lemma well_founded_lt {α : Type*} [partial_order α] (h : well_founded ((<) : α → α → Prop)) :
@@ -1164,7 +1174,7 @@ eq_top_of_bot_is_compl h.to_order_dual
 
 end
 
-/-- A complemented bounded order is one where every element has a (not necessarily unique)
+/-- A complemented bounded lattice is one where every element has a (not necessarily unique)
 complement. -/
 class is_complemented (α) [lattice α] [bounded_order α] : Prop :=
 (exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)

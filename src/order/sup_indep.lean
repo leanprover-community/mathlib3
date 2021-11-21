@@ -16,9 +16,6 @@ In distributive lattices, this is equivalent to being pairwise disjoint.
 
 ## TODO
 
-Some results still require distributivity of lattices, in particular, the ones that rely on
-the `sup` of the underlying finset and `pairwise_disjoint`.
-
 `complete_lattice.independent` and `complete_lattice.set_independent` should live in this file.
 -/
 

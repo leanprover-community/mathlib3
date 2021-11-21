@@ -49,7 +49,7 @@ universe u
 namespace simple_graph
 
 /-- A subgraph of a `simple_graph` is a subset of vertices along with a restriction of the adjacency
-relation that is symmetric and is supported by the vertex subset.  They also form a bounded order.
+relation that is symmetric and is supported by the vertex subset.  They also form a bounded lattice.
 
 Thinking of `V → V → Prop` as `set (V × V)`, a set of darts (i.e., half-edges), then
 `subgraph.adj_sub` is that the darts of a subgraph are a subset of the darts of `G`. -/

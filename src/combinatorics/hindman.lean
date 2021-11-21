@@ -42,7 +42,9 @@ Ramsey theory, ultrafilter
 
 open filter
 
-@[to_additive]
+/-- Multiplication of ultrafilters given by `∀ᶠ m in U*V, p m ↔ ∀ᶠ m in U, ∀ᶠ m' in V, p (m*m')`. -/
+@[to_additive "Addition of ultrafilters given by
+`∀ᶠ m in U+V, p m ↔ ∀ᶠ m in U, ∀ᶠ m' in V, p (m+m')`." ]
 def ultrafilter.has_mul {M} [has_mul M] : has_mul (ultrafilter M) :=
 { mul := λ U V, (*) <$> U <*> V }
 
@@ -54,7 +56,9 @@ defines an ultrafilter. -/
 lemma ultrafilter.eventually_mul {M} [has_mul M] (U V : ultrafilter M) (p : M → Prop) :
   (∀ᶠ m in ↑(U * V), p m) ↔ ∀ᶠ m in U, ∀ᶠ m' in V, p (m * m') := iff.rfl
 
-@[to_additive]
+/-- Semigroup structure on `ultrafilter M` induced by a semigroup structure on `M`. -/
+@[to_additive "Additive semigroup structure on `ultrafilter M` induced by an additive semigroup
+structure on `M`."]
 def ultrafilter.semigroup {M} [semigroup M] : semigroup (ultrafilter M) :=
 { mul_assoc := λ U V W, ultrafilter.coe_inj.mp $ filter.ext' $ λ p,
     by simp only [ultrafilter.eventually_mul, mul_assoc]
@@ -179,7 +183,7 @@ let ⟨c, c_s, hc⟩ := (ultrafilter.finite_sUnion_mem_iff sfin).mp (mem_of_supe
 ⟨c, c_s, exists_FP_of_large U hU c hc⟩
 
 @[to_additive FS_iter_tail_sub_FS]
-lemma FP_drop_sub_FP {M} [semigroup M] (a : stream M) (n : ℕ) :
+lemma FP_drop_subset_FP {M} [semigroup M] (a : stream M) (n : ℕ) :
   FP (a.drop n) ⊆ FP a :=
 begin
   induction n with n ih, { refl },
@@ -195,7 +199,7 @@ by { induction i with i ih generalizing a, { apply FP.head }, { apply FP.tail, a
 lemma FP.mul_two {M} [semigroup M] (a : stream M) (i j : ℕ) (ij : i < j) :
   a.nth i * a.nth j ∈ FP a :=
 begin
-  refine FP_drop_sub_FP _ i _,
+  refine FP_drop_subset_FP _ i _,
   rw ←stream.head_drop,
   apply FP.cons,
   rcases le_iff_exists_add.mp (nat.succ_le_of_lt ij) with ⟨d, hd⟩,
@@ -209,7 +213,7 @@ end
 lemma FP.finset_prod {M} [comm_monoid M] (a : stream M) (s : finset ℕ) (hs : s.nonempty) :
   s.prod (λ i, a.nth i) ∈ FP a :=
 begin
-  refine FP_drop_sub_FP _ (s.min' hs) _,
+  refine FP_drop_subset_FP _ (s.min' hs) _,
   induction s using finset.strong_induction with s ih,
   rw [←finset.mul_prod_erase _ _ (s.min'_mem hs), ←stream.head_drop],
   cases (s.erase (s.min' hs)).eq_empty_or_nonempty with h h,
@@ -220,7 +224,7 @@ begin
       nat.succ_le_of_lt (finset.min'_lt_of_mem_erase_min' _ _ $ finset.min'_mem _ _),
     cases le_iff_exists_add.mp this with d hd,
     rw [hd, add_comm, ←stream.drop_drop],
-    apply FP_drop_sub_FP }
+    apply FP_drop_subset_FP }
 end
 
 end hindman

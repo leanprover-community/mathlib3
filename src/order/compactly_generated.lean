@@ -3,11 +3,11 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import data.finset.order
+import tactic.tfae
 import order.atoms
 import order.order_iso_nat
 import order.zorn
-import tactic.tfae
+import data.finset.order
 
 /-!
 # Compactness properties for complete lattices

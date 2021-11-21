@@ -344,8 +344,8 @@ namespace module
 @[simps]
 def comp_hom.to_linear_map {R S : Type*} [semiring R] [semiring S] (g : R →+* S) :
   (by haveI := comp_hom S g; exact (R →ₗ[R] S)) :=
-by exact {
-  to_fun := (g : R → S),
+by exact
+{ to_fun := (g : R → S),
   map_add' := g.map_add,
   map_smul' := g.map_mul }
 
@@ -570,12 +570,12 @@ instance : add_comm_group (M →ₛₗ[σ₁₂] N₂) :=
   sub := has_sub.sub,
   sub_eq_add_neg := λ f g, linear_map.ext $ λ m, sub_eq_add_neg _ _,
   add_left_neg := λ f, linear_map.ext $ λ m, add_left_neg _,
-  nsmul := λ n f, {
-    to_fun := λ x, n • (f x),
+  nsmul := λ n f,
+  { to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  zsmul := λ n f, {
-    to_fun := λ x, n • (f x),
+  zsmul := λ n f,
+  { to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
   zsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,
@@ -730,3 +730,47 @@ instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
 end endomorphisms
 
 end linear_map
+
+/-! ### Actions as module endomorphisms -/
+
+namespace distrib_mul_action
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a linear map.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
+@[simps]
+def to_linear_map (s : S) : M →ₗ[R] M :=
+{ to_fun := has_scalar.smul s,
+  map_add' := smul_add s,
+  map_smul' := λ a b, smul_comm _ _ _ }
+
+/-- Each element of the monoid defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_End`. -/
+@[simps]
+def to_module_End : S →* module.End R M :=
+{ to_fun := to_linear_map R M,
+  map_one' := linear_map.ext $ one_smul _,
+  map_mul' := λ a b, linear_map.ext $ mul_smul _ _ }
+
+end distrib_mul_action
+
+namespace module
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+variables [semiring S] [module S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_module_End`. -/
+@[simps]
+def to_module_End : S →+* module.End R M :=
+{ to_fun := distrib_mul_action.to_linear_map R M,
+  map_zero' := linear_map.ext $ zero_smul _,
+  map_add' := λ f g, linear_map.ext $ add_smul _ _,
+  ..distrib_mul_action.to_module_End R M }
+
+end module

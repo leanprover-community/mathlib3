@@ -3,6 +3,8 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis
 -/
+import data.bool
+import meta.rb_map
 import tactic.lint.basic
 
 /-!
@@ -250,8 +252,6 @@ has been used. -/
   auto_decls := ff,
   no_errors_found := "All declarations correctly marked as def/lemma.",
   errors_found := "INCORRECT DEF/LEMMA:" }
-
-attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
 /-!
 ## Linter that checks whether declarations are well-typed

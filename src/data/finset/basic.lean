@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
+import data.int.basic
 import data.multiset.finset_ops
 import tactic.apply
 import tactic.monotonicity
@@ -1073,6 +1074,12 @@ calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
+lemma erase_idem {a : α} {s : finset α} : erase (erase s a) a = erase s a :=
+by simp
+
+lemma erase_right_comm {a b : α} {s : finset α} : erase (erase s a) b = erase (erase s b) a :=
+by { ext x, simp only [mem_erase, ←and_assoc], rw and_comm (x ≠ a) }
+
 theorem subset_insert_iff {a : α} {s t : finset α} : s ⊆ insert a t ↔ erase s a ⊆ t :=
 by simp only [subset_iff, or_iff_not_imp_left, mem_erase, mem_insert, and_imp];
 exact forall_congr (λ x, forall_swap)
@@ -1504,6 +1511,9 @@ theorem filter_insert (a : α) (s : finset α) :
   filter p (insert a s) = if p a then insert a (filter p s) else filter p s :=
 by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
 
+theorem filter_erase (a : α) (s : finset α) : filter p (erase s a) = erase (filter p s) a :=
+by { ext x, simp only [and_assoc, mem_filter, iff_self, mem_erase] }
+
 theorem filter_or [decidable_pred (λ a, p a ∨ q a)] (s : finset α) :
   s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=
 ext $ λ _, by simp only [mem_filter, mem_union, and_or_distrib_left]
@@ -1822,6 +1832,12 @@ end
 @[simp] lemma to_finset_reverse {l : list α} :
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
+
+@[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
+by {ext, simp}
+
+@[simp] lemma to_finset_inter (l l' : list α) : (l ∩ l').to_finset = l.to_finset ∩ l'.to_finset :=
+by {ext, simp}
 
 end list
 
@@ -2426,6 +2442,31 @@ iff.intro
     ⟨a, s.erase a, s.not_mem_erase a, insert_erase has,
       by simp only [eq, card_erase_of_mem has, pred_succ]⟩)
   (assume ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat)
+
+lemma card_eq_two [decidable_eq α] {s : finset α} : s.card = 2 ↔ ∃ x y, x ≠ y ∧ s = {x, y} :=
+begin
+  split,
+  { rw card_eq_succ,
+    simp_rw [card_eq_one],
+    rintro ⟨a, _, hab, rfl, b, rfl⟩,
+    exact ⟨a, b, not_mem_singleton.1 hab, rfl⟩ },
+  { rintro ⟨x, y, hxy, rfl⟩,
+    simp only [hxy, card_insert_of_not_mem, not_false_iff, mem_singleton, card_singleton] }
+end
+
+lemma card_eq_three [decidable_eq α] {s : finset α} :
+  s.card = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y ≠ z ∧ s = {x, y, z} :=
+begin
+  split,
+  { rw card_eq_succ,
+    simp_rw [card_eq_two],
+    rintro ⟨a, _, abc, rfl, b, c, bc, rfl⟩,
+    rw [mem_insert, mem_singleton, not_or_distrib] at abc,
+    exact ⟨a, b, c, abc.1, abc.2, bc, rfl⟩ },
+  { rintro ⟨x, y, z, xy, xz, yz, rfl⟩,
+    simp only [xy, xz, yz, mem_insert, card_insert_of_not_mem, not_false_iff, mem_singleton,
+      or_self, card_singleton] }
+end
 
 theorem card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
   card (s.filter p) ≤ card s :=

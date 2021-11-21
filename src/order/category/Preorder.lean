@@ -3,9 +3,9 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import order.preorder_hom
-import category_theory.concrete_category
+import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
+import order.preorder_hom
 
 /-! # Category of preorders -/
 

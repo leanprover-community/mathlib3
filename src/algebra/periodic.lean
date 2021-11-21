@@ -276,6 +276,16 @@ lemma periodic_with_period_zero [add_zero_class α]
   periodic f 0 :=
 λ x, by rw add_zero
 
+lemma periodic.map_vadd_zmultiples [add_comm_group α] (hf : periodic f c)
+  (a : add_subgroup.zmultiples c) (x : α) :
+  f (a +ᵥ x) = f x :=
+by { rcases a with ⟨_, m, rfl⟩, simp [add_subgroup.vadd_def, add_comm _ x, hf.zsmul m x] }
+
+lemma periodic.map_vadd_multiples [add_comm_monoid α] (hf : periodic f c)
+  (a : add_submonoid.multiples c) (x : α) :
+  f (a +ᵥ x) = f x :=
+by { rcases a with ⟨_, m, rfl⟩, simp [add_submonoid.vadd_def, add_comm _ x, hf.nsmul m x] }
+
 /-! ### Antiperiodicity -/
 
 /-- A function `f` is said to be `antiperiodic` with antiperiod `c` if for all `x`,

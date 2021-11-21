@@ -6,6 +6,7 @@ Authors: Benjamin Davidson
 import algebra.module.basic
 import algebra.order.archimedean
 import data.int.parity
+import group_theory.subgroup.basic
 
 /-!
 # Periodicity

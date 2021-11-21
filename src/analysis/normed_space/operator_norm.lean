@@ -892,7 +892,7 @@ namespace continuous_linear_map
 variables {E' F' : Type*} [semi_normed_group E'] [semi_normed_group F']
 
 variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nondiscrete_normed_field 𝕜₁'] [nondiscrete_normed_field 𝕜₂']
-  [semi_normed_space 𝕜₁' E'] [semi_normed_space 𝕜₂' F'] [semi_normed_space 𝕜 Fₗ]
+  [semi_normed_space 𝕜₁' E'] [semi_normed_space 𝕜₂' F']
   {σ₁' : 𝕜₁' →+* 𝕜} {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃}
   [ring_hom_comp_triple σ₁' σ₁₃ σ₁₃'] [ring_hom_comp_triple σ₂' σ₂₃ σ₂₃']
   [ring_hom_isometric σ₁'] [ring_hom_isometric σ₂'] [ring_hom_isometric σ₁₃']
@@ -1384,7 +1384,7 @@ end submodule
 namespace continuous_linear_equiv
 
 variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₁]
+  [ring_hom_isometric σ₂₁]
 variables (e : E ≃SL[σ₁₂] F)
 
 protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →SL[σ₂₁] E)) e :=

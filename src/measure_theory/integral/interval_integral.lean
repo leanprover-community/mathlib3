@@ -538,7 +538,13 @@ norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
 
 @[simp] lemma integral_add (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   ∫ x in a..b, f x + g x ∂μ = ∫ x in a..b, f x ∂μ + ∫ x in a..b, g x ∂μ :=
-by { simp only [interval_integral, integral_add hf.1 hg.1, integral_add hf.2 hg.2], abel }
+by simp only [interval_integral_eq_integral_interval_oc, integral_add hf.def hg.def, smul_add]
+
+lemma integral_finset_sum {ι} {s : finset ι} {f : ι → α → E}
+  (h : ∀ i ∈ s, interval_integrable (f i) μ a b) :
+  ∫ x in a..b, ∑ i in s, f i x ∂μ = ∑ i in s, ∫ x in a..b, f i x ∂μ :=
+by simp only [interval_integral_eq_integral_interval_oc,
+  integral_finset_sum s (λ i hi, (h i hi).def), finset.smul_sum]
 
 @[simp] lemma integral_neg : ∫ x in a..b, -f x ∂μ = -∫ x in a..b, f x ∂μ :=
 by { simp only [interval_integral, integral_neg], abel }
@@ -876,13 +882,39 @@ begin
   all_goals { apply measurable_set_Iic },
 end
 
-end order_closed_topology
+/-- Lebesgue dominated convergence theorem for filters with a countable basis -/
+lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
+  [l.is_countably_generated] {F : ι → α → E} (bound : α → ℝ)
+  (hF_meas : ∀ᶠ n in l, ae_measurable (F n) (μ.restrict (Ι a b)))
+  (h_bound : ∀ᶠ n in l, ∀ᵐ x ∂μ, x ∈ Ι a b → ∥F n x∥ ≤ bound x)
+  (bound_integrable : interval_integrable bound μ a b)
+  (h_lim : ∀ᵐ x ∂μ, x ∈ Ι a b → tendsto (λ n, F n x) l (𝓝 (f x))) :
+  tendsto (λn, ∫ x in a..b, F n x ∂μ) l (𝓝 $ ∫ x in a..b, f x ∂μ) :=
+begin
+  simp only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
+    ← ae_restrict_iff' measurable_set_interval_oc] at *,
+  exact tendsto_const_nhds.smul
+    (tendsto_integral_filter_of_dominated_convergence bound hF_meas h_bound bound_integrable h_lim)
+end
 
-section continuity_wrt_parameter
+/-- Lebesgue dominated convergence theorem for series. -/
+lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
+  {F : ι → α → E} (bound : ι → α → ℝ)
+  (hF_meas : ∀ n, ae_measurable (F n) (μ.restrict (Ι a b)))
+  (h_bound : ∀ n, ∀ᵐ t ∂μ, t ∈ Ι a b → ∥F n t∥ ≤ bound n t)
+  (bound_summable : ∀ᵐ t ∂μ, t ∈ Ι a b → summable (λ n, bound n t))
+  (bound_integrable : interval_integrable (λ t, ∑' n, bound n t) μ a b)
+  (h_lim : ∀ᵐ t ∂μ, t ∈ Ι a b → has_sum (λ n, F n t) (f t)) :
+  has_sum (λn, ∫ t in a..b, F n t ∂μ) (∫ t in a..b, f t ∂μ) :=
+begin
+  simp only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
+    ← ae_restrict_iff' measurable_set_interval_oc] at *,
+  exact (has_sum_integral_of_dominated_convergence bound hF_meas h_bound bound_summable
+    bound_integrable h_lim).const_smul
+end
+
 open topological_space
-
 variables {X : Type*} [topological_space X] [first_countable_topology X]
-variables {μ : measure α}
 
 /-- Continuity of interval integral with respect to a parameter, at a point within a set.
   Given `F : X → α → E`, assume `F x` is ae-measurable on `[a, b]` for `x` in a
@@ -893,21 +925,11 @@ variables {μ : measure α}
 lemma continuous_within_at_of_dominated_interval
   {F : X → α → E} {x₀ : X} {bound : α → ℝ} {a b : α} {s : set X}
   (hF_meas : ∀ᶠ x in 𝓝[s] x₀, ae_measurable (F x) (μ.restrict $ Ι a b))
-  (h_bound : ∀ᶠ x in 𝓝[s] x₀, ∀ᵐ t ∂(μ.restrict $ Ι a b), ∥F x t∥ ≤ bound t)
+  (h_bound : ∀ᶠ x in 𝓝[s] x₀, ∀ᵐ t ∂μ, t ∈ Ι a b → ∥F x t∥ ≤ bound t)
   (bound_integrable : interval_integrable bound μ a b)
-  (h_cont : ∀ᵐ t ∂(μ.restrict $ Ι a b), continuous_within_at (λ x, F x t) s x₀) :
+  (h_cont : ∀ᵐ t ∂μ, t ∈ Ι a b → continuous_within_at (λ x, F x t) s x₀) :
   continuous_within_at (λ x, ∫ t in a..b, F x t ∂μ) s x₀ :=
-begin
-  cases bound_integrable,
-  cases le_or_lt a b with hab hab;
-  [{ rw interval_oc_of_le hab at *,
-     simp_rw interval_integral.integral_of_le hab },
-   { rw interval_oc_of_lt hab at *,
-     simp_rw interval_integral.integral_of_ge hab.le,
-     refine tendsto.neg _ }];
-  apply tendsto_integral_filter_of_dominated_convergence bound hF_meas h_bound,
-  exacts [bound_integrable_left, h_cont, bound_integrable_right, h_cont]
-end
+tendsto_integral_filter_of_dominated_convergence bound hF_meas h_bound bound_integrable h_cont
 
 /-- Continuity of interval integral with respect to a parameter at a point.
   Given `F : X → α → E`, assume `F x` is ae-measurable on `[a, b]` for `x` in a
@@ -918,16 +940,11 @@ end
 lemma continuous_at_of_dominated_interval
   {F : X → α → E} {x₀ : X} {bound : α → ℝ} {a b : α}
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict $ Ι a b))
-  (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ t ∂(μ.restrict $ Ι a b), ∥F x t∥ ≤ bound t)
+  (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ t ∂μ, t ∈ Ι a b → ∥F x t∥ ≤ bound t)
   (bound_integrable : interval_integrable bound μ a b)
-  (h_cont : ∀ᵐ t ∂(μ.restrict $ Ι a b), continuous_at (λ x, F x t) x₀) :
+  (h_cont : ∀ᵐ t ∂μ, t ∈ Ι a b → continuous_at (λ x, F x t) x₀) :
   continuous_at (λ x, ∫ t in a..b, F x t ∂μ) x₀ :=
-begin
-  rw ←  continuous_within_at_univ,
-  apply continuous_within_at_of_dominated_interval ; try { rw nhds_within_univ},
-  exacts [hF_meas, h_bound, bound_integrable,
-          h_cont.mono (λ a, (continuous_within_at_univ (λ x, F x a) x₀).mpr)]
-end
+tendsto_integral_filter_of_dominated_convergence bound hF_meas h_bound bound_integrable h_cont
 
 /-- Continuity of interval integral with respect to a parameter.
   Given `F : X → α → E`, assume each `F x` is ae-measurable on `[a, b]`,
@@ -936,15 +953,15 @@ end
   then the same holds for `(λ x, ∫ t in a..b, F x t ∂μ) s x₀`. -/
 lemma continuous_of_dominated_interval {F : X → α → E} {bound : α → ℝ} {a b : α}
   (hF_meas : ∀ x, ae_measurable (F x) $ μ.restrict $ Ι a b)
-  (h_bound : ∀ x, ∀ᵐ t ∂(μ.restrict $ Ι a b), ∥F x t∥ ≤ bound t)
+  (h_bound : ∀ x, ∀ᵐ t ∂μ, t ∈ Ι a b → ∥F x t∥ ≤ bound t)
   (bound_integrable : interval_integrable bound μ a b)
-  (h_cont : ∀ᵐ t ∂(μ.restrict $ Ι a b), continuous (λ x, F x t)) :
+  (h_cont : ∀ᵐ t ∂μ, t ∈ Ι a b → continuous (λ x, F x t)) :
   continuous (λ x, ∫ t in a..b, F x t ∂μ) :=
 continuous_iff_continuous_at.mpr (λ x₀, continuous_at_of_dominated_interval
   (eventually_of_forall hF_meas) (eventually_of_forall h_bound) bound_integrable $ h_cont.mono $
-  λ _, continuous.continuous_at)
+  λ x himp hx, (himp hx).continuous_at)
 
-end continuity_wrt_parameter
+end order_closed_topology
 
 section continuous_primitive
 open topological_space
@@ -996,13 +1013,12 @@ begin
     { refine eventually_of_forall (λ (x : α), eventually_of_forall (λ (t : α), _)),
       dsimp [indicator],
       split_ifs ; simp },
-    { have : ∀ᵐ t ∂μ.restrict (Ι b₁ b₂), t < b₀ ∨ b₀ < t,
-      { apply ae_restrict_of_ae,
-        apply eventually.mono (compl_mem_ae_iff.mpr hb₀),
+    { have : ∀ᵐ t ∂μ, t < b₀ ∨ b₀ < t,
+      { apply eventually.mono (compl_mem_ae_iff.mpr hb₀),
         intros x hx,
         exact ne.lt_or_lt hx },
       apply this.mono,
-      rintros x₀ (hx₀ | hx₀),
+      rintros x₀ (hx₀ | hx₀) -,
       { have : ∀ᶠ x in 𝓝[Icc b₁ b₂] b₀, {t : α | t ≤ x}.indicator f x₀ = f x₀,
         { apply mem_nhds_within_of_mem_nhds,
           apply eventually.mono (Ioi_mem_nhds hx₀),

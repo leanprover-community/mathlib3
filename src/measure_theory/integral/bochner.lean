@@ -732,6 +732,15 @@ lemma integral_add' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f + g) a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
 integral_add hf hg
 
+lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, integrable (f i) μ) :
+  ∫ a, ∑ i in s, f i a ∂μ = ∑ i in s, ∫ a, f i a ∂μ :=
+begin
+  induction s using finset.induction_on with i s hi ihs,
+  { simp only [integral_zero, finset.sum_empty] },
+  { rw [finset.forall_mem_insert] at hf,
+    simp only [finset.sum_insert hi, ← ihs hf.2, integral_add hf.1 (integrable_finset_sum s hf.2)] }
+end
+
 lemma integral_neg (f : α → E) : ∫ a, -f a ∂μ = - ∫ a, f a ∂μ :=
 set_to_fun_neg (dominated_fin_meas_additive_weighted_smul μ) f
 
@@ -850,6 +859,36 @@ lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   tendsto (λn, ∫ a, F n a ∂μ) l (𝓝 $ ∫ a, f a ∂μ) :=
 tendsto_set_to_fun_filter_of_dominated_convergence (dominated_fin_meas_additive_weighted_smul μ)
   bound hF_meas h_bound bound_integrable h_lim
+
+/-- Lebesgue dominated convergence theorem for series. -/
+lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
+  {F : ι → α → E} {f : α → E} (bound : ι → α → ℝ)
+  (hF_meas : ∀ n, ae_measurable (F n) μ)
+  (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound n a)
+  (bound_summable : ∀ᵐ a ∂μ, summable (λ n, bound n a))
+  (bound_integrable : integrable (λ a, ∑' n, bound n a) μ)
+  (h_lim : ∀ᵐ a ∂μ, has_sum (λ n, F n a) (f a)) :
+  has_sum (λn, ∫ a, F n a ∂μ) (∫ a, f a ∂μ) :=
+begin
+  have hb_nonneg : ∀ᵐ a ∂μ, ∀ n, 0 ≤ bound n a :=
+    eventually_countable_forall.2 (λ n, (h_bound n).mono $ λ a, (norm_nonneg _).trans),
+  have hb_le_tsum : ∀ n, bound n ≤ᵐ[μ] (λ a, ∑' n, bound n a),
+  { intro n,
+    filter_upwards [hb_nonneg, bound_summable], intros a ha0 ha_sum,
+    exact le_tsum ha_sum _ (λ i _, ha0 i) },
+  have hF_integrable : ∀ n, integrable (F n) μ,
+  { refine λ n, bound_integrable.mono' (hF_meas n) _,
+    exact eventually_le.trans (h_bound n) (hb_le_tsum n) },
+  simp only [has_sum, ← integral_finset_sum _ (λ n _, hF_integrable n)],
+  refine tendsto_integral_filter_of_dominated_convergence (λ a, ∑' n, bound n a) _ _
+    bound_integrable h_lim,
+  { exact eventually_of_forall (λ s, s.ae_measurable_sum $ λ n hn, hF_meas n) },
+  { refine eventually_of_forall (λ s, _),
+    filter_upwards [eventually_countable_forall.2 h_bound, hb_nonneg, bound_summable],
+    intros a hFa ha0 has,
+    calc ∥∑ n in s, F n a∥ ≤ ∑ n in s, bound n a : norm_sum_le_of_le _ (λ n hn, hFa n)
+                       ... ≤ ∑' n, bound n a     : sum_le_tsum _ (λ n hn, ha0 n) has },
+end
 
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
@@ -1081,16 +1120,6 @@ lemma norm_integral_le_of_norm_le {f : α → E} {g : α → ℝ} (hg : integrab
 calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, ∥f x∥ ∂μ : norm_integral_le_integral_norm f
                ... ≤ ∫ x, g x ∂μ   :
   integral_mono_of_nonneg (eventually_of_forall $ λ x, norm_nonneg _) hg h
-
-lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i, integrable (f i) μ) :
-  ∫ a, ∑ i in s, f i a ∂μ = ∑ i in s, ∫ a, f i a ∂μ :=
-begin
-  refine finset.induction_on s _ _,
-  { simp only [integral_zero, finset.sum_empty] },
-  { assume i s his ih,
-    simp only [his, finset.sum_insert, not_false_iff],
-    rw [integral_add (hf _) (integrable_finset_sum s hf), ih] }
-end
 
 lemma simple_func.integral_eq_integral (f : α →ₛ E) (hfi : integrable f μ) :
   f.integral μ = ∫ x, f x ∂μ :=

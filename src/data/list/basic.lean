@@ -3055,7 +3055,7 @@ section remove_all
 @[simp] theorem remove_all_leq_length [decidable_eq α] (l r : list α) : (l.remove_all r).length ≤ l.length := 
 by apply filter_leq_length
 
-@[simp] theorem remove_all_intersect_less_length [decidable_eq α] {a : α} (l r : list α) :
+@[simp] theorem remove_all_common_mem_less_length [decidable_eq α] {a : α} (l r : list α) :
   a ∈ l → a ∈ r → (l.remove_all r).length < l.length := 
 begin
   intros a_in_l a_in_r,

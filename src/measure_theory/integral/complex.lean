@@ -159,54 +159,6 @@ by simpa [mul_smul, smul_comm _ I, interval_integral.integral_smul, I_ne_zero]
     (λ z hz, continuous_within_at_id.smul (hc z hz))
     (λ z hz, differentiable_within_at_id.smul (hd z hz))
 
-open_locale complex_order
-
-lemma abs_eq_and_im_eq_iff {y R : ℝ} {z : ℂ} :
-  abs z = R ∧ z.im = y ↔
-    |y| ≤ R ∧ (z = -real.sqrt (R ^ 2 - y ^ 2) + y * I ∨ z = real.sqrt (R ^ 2 - y ^ 2) + y * I) :=
-begin
-  split,
-  { rintro ⟨rfl, rfl⟩, use abs_im_le_abs z,
-    have : z.re = -|z.re| ∨ z.re = |z.re|,
-      from ((abs_eq $ _root_.abs_nonneg z.re).1 rfl).symm,
-    simpa [complex.ext_iff, real.sqrt_sq_eq_abs] },
-  { refine and_imp.2 (λ hy, _),
-    have hR : 0 ≤ R := (_root_.abs_nonneg y).trans hy,
-    have hyR : 0 ≤ R ^ 2 - y ^ 2,
-      from sub_nonneg.2 (sq_le_sq $ (_root_.abs_of_nonneg hR).symm ▸ hy),
-    rintro (rfl|rfl); simp only [← of_real_neg, abs, ← mk_eq_add_mul_I, norm_sq_mk, ← sq,
-      neg_pow_bit0, real.sq_sqrt, real.sqrt_sq, sub_add_cancel, eq_self_iff_true, true_and, *] }
-end
-
-lemma mem_Ioo_of_abs_lt {z : ℂ} {R : ℝ} (h : abs z < R) :
-  z ∈ (Ioo (- real.sqrt (R ^ 2 - z.im ^ 2) + z.im * I)
-    (real.sqrt (R ^ 2 - z.im ^ 2) + z.im * I) : set ℂ) :=
-begin
-  simp only [mem_Ioo, lt_def, ← of_real_neg, ← mk_eq_add_mul_I, eq_self_iff_true, and_true,
-    ← abs_lt],
-  apply real.lt_sqrt_of_sq_lt,
-  rwa [lt_sub_iff_add_lt, _root_.sq_abs, sq, sq, ← real.sqrt_lt_sqrt_iff, real.sqrt_sq],
-  exacts [(abs_nonneg z).trans h.le, norm_sq_nonneg z]
-end
-
-lemma exists_mul_exp_mul_I_le_iff {z : ℂ} {R : ℝ} (hlt : abs z < R) :
-  ∃ θ₀ ∈ Ioc (-π) π, ↑R * exp (↑θ₀ * I) < z ∧ ∀ θ ∈ Ioc (-π) π, ↑R * exp (↑θ * I) ≤ z → θ = θ₀ :=
-begin
-  generalize hw : (-real.sqrt (R ^ 2 - z.im ^ 2) + z.im * I : ℂ) = w,
-  generalize hθ₀ : arg w = θ₀,
-  refine ⟨θ₀, hθ₀ ▸ arg_mem_Ioc w, _, λ θ hθπ hθz, _⟩,
-  { suffices : abs w = R,
-    { convert (mem_Ioo_of_abs_lt hlt).1,
-      rw [hw, ← abs_mul_exp_arg_mul_I w, hθ₀, this] },
-    exact (abs_eq_and_im_eq_iff.2 ⟨z.abs_im_le_abs.trans hlt.le, or.inl hw.symm⟩).1 },
-  { have hR : 0 < R, from (abs_nonneg z).trans_lt hlt,
-    have habs : abs (R * exp (θ * I)) = R, by simp [_root_.abs_of_nonneg hR.le],
-    have : ↑R * exp (θ * I) = w := hw ▸ (abs_eq_and_im_eq_iff.1 ⟨habs, hθz.2⟩).2.resolve_right
-      (hθz.trans_lt (mem_Ioo_of_abs_lt hlt).2).ne,
-    apply_fun arg at this,
-    rwa [arg_real_mul _ hR, exp_mul_I, arg_cos_add_sin_mul_I hθπ, hθ₀] at this }
-end
-
 lemma integral_circle_zpow_sub_of_abs_lt {R : ℝ} {w : ℂ} (hw : abs w < R) {n : ℤ} (hn : n ≠ -1) :
   ∫ θ : ℝ in 0..2 * π, ↑R * exp (θ * I) * I * (R * exp (θ * I) - w) ^ n = 0 :=
 begin

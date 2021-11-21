@@ -95,7 +95,7 @@ begin
         ⟨a,
          r•↑(h.unit)⁻¹,
          by rw [mul_smul_comm, ←smul_mul_assoc, is_unit.mul_coe_inv],
-         by {rw [smul_mul_assoc,←mul_smul_comm, is_unit.coe_inv_mul],}⟩,
+         by rw [smul_mul_assoc,←mul_smul_comm, is_unit.coe_inv_mul],⟩,
       exact ⟨a',rfl⟩, },
 end
 

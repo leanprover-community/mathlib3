@@ -575,6 +575,10 @@ integral_smul r f
   (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, f x * r ∂μ = ∫ x in a..b, f x ∂μ * r :=
 by simpa only [mul_comm r] using integral_const_mul r f
 
+@[simp] lemma integral_div {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, f x / r ∂μ = ∫ x in a..b, f x ∂μ / r :=
+by simpa only [div_eq_mul_inv] using integral_mul_const r⁻¹ f
+
 lemma integral_const' (c : E) :
   ∫ x in a..b, c ∂μ = ((μ $ Ioc a b).to_real - (μ $ Ioc b a).to_real) • c :=
 by simp only [interval_integral, set_integral_const, sub_smul]

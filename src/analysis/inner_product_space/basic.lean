@@ -1756,13 +1756,7 @@ end
 
 /-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
 lemma mem_orthogonal_singleton_of_inner_left (u : E) {v : E} (hv : ⟪v, u⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
-begin
-  intros w hw,
-  rw submodule.mem_span_singleton at hw,
-  obtain ⟨c, rfl⟩ := hw,
-  rw ← inner_eq_zero_sym at hv,
-  simp [inner_smul_left, hv],
-end
+mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
 
 variables (K)
 

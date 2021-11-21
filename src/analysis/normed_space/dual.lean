@@ -106,7 +106,7 @@ def inclusion_in_double_dual_li : E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
     apply le_antisymm,
     { exact double_dual_bound 𝕜 E x },
     rw continuous_linear_map.norm_def,
-    apply le_cInf continuous_linear_map.bounds_nonempty,
+    refine le_cInf continuous_linear_map.bounds_nonempty _,
     rintros c ⟨hc1, hc2⟩,
     exact norm_le_dual_bound 𝕜 x hc1 hc2
   end,

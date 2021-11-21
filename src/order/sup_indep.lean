@@ -31,13 +31,18 @@ to such a definition?
 variables {α β ι ι' : Type*}
 
 namespace finset
+
+lemma subset_erase [decidable_eq α] {s t : finset α} {a : α} : s ⊆ t.erase a ↔ s ⊆ t ∧ a ∉ s :=
+⟨λ h, ⟨h.trans (erase_subset _ _), λ ha, not_mem_erase _ _ (h ha)⟩,
+  λ h b hb, mem_erase.2 ⟨ne_of_mem_of_not_mem hb h.2, h.1 hb⟩⟩
+
 variables [distrib_lattice_bot α]
 
 /-- Supremum independence of finite sets. -/
 def sup_indep (s : finset ι) (f : ι → α) : Prop :=
 ∀ ⦃t⦄, t ⊆ s → ∀ ⦃i⦄, i ∈ s → i ∉ t → disjoint (f i) (t.sup f)
 
-variables {s t : finset ι} {f : ι → α}
+variables {s t : finset ι} {f : ι → α} {i : ι}
 
 lemma sup_indep.subset (ht : t.sup_indep f) (h : s ⊆ t) : s.sup_indep f :=
 λ u hu i hi, ht (hu.trans h) (h hi)
@@ -55,6 +60,14 @@ end
 
 lemma sup_indep.pairwise_disjoint (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=
 λ a ha b hb hab, sup_singleton.subst $ hs (singleton_subset_iff.2 hb) ha $ not_mem_singleton.2 hab
+
+lemma sup_indep.le_sup_iff (hs : s.sup_indep f) (hts : t ⊆ s) (hi : i ∈ s) (hf : ∀ i, f i ≠ ⊥) :
+  f i ≤ t.sup f ↔ i ∈ t :=
+begin
+  refine ⟨λ h, _, le_sup⟩,
+  by_contra hit,
+  exact hf i (disjoint_self.1 $ (hs hts hi hit).mono_right h),
+end
 
 -- Once `finset.sup_indep` will have been generalized to non distributive lattices, can we state
 -- this lemma for nondistributive atomic lattices? This setting makes the `←` implication much
@@ -87,13 +100,13 @@ begin
   exact mem_image_of_mem _ (mem_erase.2 ⟨ne_of_apply_ne g (ne_of_mem_of_not_mem hjt hit), hj⟩),
 end
 
-lemma sup_indep.map {s : finset ι'} {g : ι' ↪ ι} : (s.map g).sup_indep f ↔ s.sup_indep (f ∘ g) :=
+lemma sup_indep_map {s : finset ι'} {g : ι' ↪ ι} : (s.map g).sup_indep f ↔ s.sup_indep (f ∘ g) :=
 begin
-  classical,
   refine ⟨λ hs t ht i hi hit, _, λ hs, _⟩,
   { rw ←sup_map,
     exact hs (map_subset_map.2 ht) ((mem_map' _).2 hi) (by rwa mem_map') },
-  { rw map_eq_image,
+  { classical,
+    rw map_eq_image,
     exact hs.image }
 end
 
@@ -106,6 +119,26 @@ begin
   rw mem_image at hi',
   obtain ⟨j, hj, hji⟩ := hi',
   rwa subtype.ext hji at hj,
+end
+
+lemma sup_indep_subtype {p : ι → Prop} {s : finset (subtype p)} :
+  s.sup_indep (f ∘ subtype.val) ↔ (s.map $ function.embedding.subtype p).sup_indep f :=
+begin
+  classical,
+  split,
+  { rintro hs t ht i hi hit,
+    rw mem_map at hi,
+    obtain ⟨i, hi, rfl⟩ := hi,
+    suffices h : t.sup f ≤ ((s.erase i).map $ function.embedding.subtype p).sup f,
+    { rw sup_map at h,
+      exact (hs (erase_subset _ _) hi $ not_mem_erase _ _).mono_right h },
+    refine sup_mono _,
+    rw map_erase,
+    exact subset_erase.2 ⟨ht, hit⟩ },
+  { rintro hs t ht i hi hit,
+    suffices h : disjoint (f i) ((t.map $ function.embedding.subtype p).sup f),
+    { rwa sup_map at h },
+    exact hs (map_subset_map.2 ht) (mem_map_of_mem _ hi) (λ h, hit ((mem_map' _).1 h)) }
 end
 
 /-- Bind operation for `sup_indep`. -/
@@ -131,6 +164,45 @@ lemma sup_indep.bUnion [decidable_eq ι] {s : finset ι'} {g : ι' → finset ι
   (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
   (s.bUnion g).sup_indep f :=
 by { rw ←sup_eq_bUnion, exact hs.sup hg }
+
+/-- Bind operation for `sup_indep`. -/
+lemma sup_indep.sigma {β : ι → Type*} {s : finset ι} {g : Π i, finset (β i)} {f : sigma β → α}
+  (hs : s.sup_indep $ λ i, (g i).sup $ λ b, f ⟨i, b⟩)
+  (hg : ∀ i ∈ s, (g i).sup_indep $ λ b, f ⟨i, b⟩) :
+  (s.sigma g).sup_indep f :=
+begin
+  rintro t ht ⟨i, b⟩ hi hit,
+  rw disjoint_sup_right,
+  rintro ⟨j, c⟩ hj,
+  have hbc := (ne_of_mem_of_not_mem hj hit).symm,
+  replace hj := ht hj,
+  rw mem_sigma at hi hj,
+  obtain rfl | hij := eq_or_ne i j,
+  { exact (hg _ hj.1).pairwise_disjoint _ hi.2 _ hj.2 (sigma_mk_injective.ne_iff.1 hbc) },
+  { refine (hs.pairwise_disjoint _ hi.1 _ hj.1 hij).mono _ _,
+    { convert le_sup hi.2 },
+    { convert le_sup hj.2 } }
+end
+
+lemma sup_indep.product {s : finset ι} {t : finset ι'} {f : ι × ι' → α}
+  (hs : s.sup_indep $ λ i, t.sup $ λ i', f (i, i'))
+  (ht : t.sup_indep $ λ i', s.sup $ λ i, f (i, i')) :
+  (s.product t).sup_indep f :=
+begin
+  rintro u hu ⟨i, i'⟩ hi hiu,
+  rw disjoint_sup_right,
+  rintro ⟨j, j'⟩ hj,
+  have hij := (ne_of_mem_of_not_mem hj hiu).symm,
+  replace hj := hu hj,
+  rw mem_product at hi hj,
+  obtain rfl | hij := eq_or_ne i j,
+  { refine (ht.pairwise_disjoint _ hi.2 _ hj.2 $ (prod.mk.inj_left _).ne_iff.1 hij).mono _ _,
+    { convert le_sup hi.1 },
+    { convert le_sup hj.1 } },
+  { refine (hs.pairwise_disjoint _ hi.1 _ hj.1 hij).mono _ _,
+    { convert le_sup hi.2 },
+    { convert le_sup hj.2 } }
+end
 
 end finset
 

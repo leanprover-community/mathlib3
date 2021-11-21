@@ -1198,7 +1198,7 @@ begin
     exact λ hf, ⟨λ a ha, f a, hf, rfl⟩ }
 end
 
-lemma coe_pi_finset (s : finset α) (t : Π a, finset (δ a)) :
+lemma coe_pi_finset (t : Π a, finset (δ a)) :
   (fintype.pi_finset t : set (Π a, δ a)) = (set.univ : set α).pi (λ a, t a) :=
 set.ext $ λ x, by { rw set.mem_univ_pi, exact fintype.mem_pi_finset }
 

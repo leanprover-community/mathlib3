@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
+import measure_theory.integral.interval_integral
 
 /-!
 # Divergence theorem for Bochner integral

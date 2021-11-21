@@ -85,7 +85,8 @@ iff.rfl
 
 -- products of scalar units and algebra units
 
-lemma is_unit.smul_iff {r : units R} {a : A} :
+lemma is_unit.smul_iff {G : Type u} [group G] [mul_action G A]
+  [smul_comm_class G A A] [is_scalar_tower G A A] {r : G} {a : A} :
   is_unit (r • a) ↔ is_unit a :=
 begin
   split, swap,

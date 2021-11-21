@@ -664,16 +664,6 @@ by { rw [ι_pi, category.assoc, ← iso.eq_inv_comp, iso_equalizer], simpa }
 
 instance : mono (ι_pi I) := @@mono_comp _ _ _ _ equalizer.ι_mono
 
-/-- The canonical injection `multiequalizer I ⟶ ∏ I.left`. -/
-def ι_pi : multiequalizer I ⟶ ∏ I.left :=
-  (iso_equalizer I).hom ≫ equalizer.ι I.fst_pi_map I.snd_pi_map
-
-@[simp, reassoc]
-lemma ι_pi_π (a) : ι_pi I ≫ pi.π I.left a = ι I a :=
-by { rw [ι_pi, category.assoc, ← iso.eq_inv_comp, iso_equalizer], simpa }
-
-instance : mono (ι_pi I) := @@mono_comp _ _ _ _ equalizer.ι_mono
-
 end multiequalizer
 
 namespace multicoequalizer

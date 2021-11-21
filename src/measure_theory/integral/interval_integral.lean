@@ -338,17 +338,8 @@ lemma mul_continuous_on {α : Type*} [conditionally_complete_linear_order α] [m
   (hf : interval_integrable f μ a b) (hg : continuous_on g (interval a b)) :
   interval_integrable (λ x, f x * g x) μ a b :=
 begin
-  rcases le_total a b with hab|hab,
-  { rw interval_integrable_iff_integrable_Ioc_of_le hab at hf ⊢,
-    apply hf.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval,
-    rw interval_of_le hab,
-    exact Ioc_subset_Icc_self },
-  { apply interval_integrable.symm,
-    rw interval_integrable_iff_integrable_Ioc_of_le hab,
-    have := (interval_integrable_iff_integrable_Ioc_of_le hab).1 hf.symm,
-    apply this.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval,
-    rw interval_of_ge hab,
-    exact Ioc_subset_Icc_self },
+  rw interval_integrable_iff at hf ⊢,
+  exact hf.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval Ioc_subset_Icc_self
 end
 
 lemma continuous_on_mul {α : Type*} [conditionally_complete_linear_order α] [measurable_space α]

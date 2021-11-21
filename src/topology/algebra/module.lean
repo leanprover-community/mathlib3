@@ -979,10 +979,21 @@ variables (S) [has_continuous_add N₃]
 
 /-- The coercion from `M →L[R] M₂` to `M →ₗ[R] M₂`, as a linear map. -/
 @[simps]
-def coe_lm : (M →SL[σ₁₃] M₃) →ₗ[S₃] (M →ₛₗ[σ₁₃] M₃) :=
+def coe_lm : (M →L[R] N₃) →ₗ[S] (M →ₗ[R] N₃) :=
 { to_fun := coe,
   map_add' := λ f g, coe_add f g,
   map_smul' := λ c f, coe_smul c f }
+
+variables {S} (σ₁₃)
+
+/-- The coercion from `M →L[R] M₂` to `M →ₗ[R] M₂`, as a linear map. -/
+@[simps]
+def coe_lmₛₗ : (M →SL[σ₁₃] M₃) →ₗ[S₃] (M →ₛₗ[σ₁₃] M₃) :=
+{ to_fun := coe,
+  map_add' := λ f g, coe_add f g,
+  map_smul' := λ c f, coe_smul c f }
+
+variables {σ₁₃}
 
 end smul
 

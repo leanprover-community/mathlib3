@@ -109,6 +109,17 @@ end
 /-- Any family is compressed along two identical elements. -/
 lemma is_compressed_self (u : α) (s : finset α) : is_compressed u u s := compression_self u s
 
+/-- UV-compression is injective on the elements it moves. See `uv.compress`. -/
+lemma _root_.sup_sdiff_inj_on (u v : α) : {x | disjoint u x ∧ v ≤ x}.inj_on (λ x, (x ⊔ u) \ v) :=
+begin
+  rintro a ha b hb hab,
+  have h : (a ⊔ u) \ v \ u ⊔ v = (b ⊔ u) \ v \ u ⊔ v,
+  { dsimp at hab,
+    rw hab },
+  rwa [sdiff_sdiff_comm, ha.1.symm.sup_sdiff_cancel_right, sdiff_sdiff_comm,
+    hb.1.symm.sup_sdiff_cancel_right, sdiff_sup_cancel ha.2, sdiff_sup_cancel hb.2] at h,
+end
+
 lemma compress_disjoint (u v : α) :
   disjoint (s.filter (λ a, compress u v a ∈ s)) ((s.image $ compress u v).filter (λ a, a ∉ s)) :=
 disjoint_left.2 $ λ a ha₁ ha₂, (mem_filter.1 ha₂).2 (mem_filter.1 ha₁).1
@@ -165,10 +176,7 @@ begin
   split_ifs at ha hab with has,
   { rw compress at hb hab,
     split_ifs at hb hab with hbs,
-    { have h : (a ⊔ u) \ v \ u ⊔ v = (b ⊔ u) \ v \ u ⊔ v,
-      { rw hab },
-      rwa [sdiff_sdiff_comm, has.1.symm.sup_sdiff_cancel_right, sdiff_sdiff_comm,
-        hbs.1.symm.sup_sdiff_cancel_right, sdiff_sup_cancel has.2, sdiff_sup_cancel hbs.2] at h },
+    { exact sup_sdiff_inj_on u v has hbs hab },
     { exact (hb.2 hb.1).elim } },
   { exact (ha.2 ha.1).elim }
 end

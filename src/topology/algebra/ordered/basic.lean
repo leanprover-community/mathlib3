@@ -2448,7 +2448,6 @@ begin
   exact ⟨z, us ⟨hab ⟨hz.1, hz.2.trans hy.2⟩, hz.2.ne⟩⟩,
 end
 
-
 /-- Let `s` be a dense set in a nontrivial dense linear order `α`. If `s` is a
 separable space (e.g., if `α` has a second countable topology), then there exists a countable
 dense subset `t ⊆ s` such that `t` does not contain bottom/top elements of `α`. -/
@@ -2457,11 +2456,10 @@ lemma dense.exists_countable_dense_subset_no_bot_top [nontrivial α]
   ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∉ t) ∧ (∀ x, is_top x → x ∉ t) :=
 begin
   rcases hs.exists_countable_dense_subset with ⟨t, hts, htc, htd⟩,
-  refine ⟨t \ {x | is_bot x} \ {x | is_top x}, _, _, _, _, _⟩,
-  { exact ((diff_subset _ _).trans (diff_subset _ _)).trans hts },
-  { apply htc.mono ((diff_subset _ _).trans (diff_subset _ _)) },
-  { exact (htd.diff_subsingleton (subsingleton_is_bot α))
-      .diff_subsingleton ((subsingleton_is_top α)) },
+  refine ⟨t \ ({x | is_bot x} ∪ {x | is_top x}), _, _, _, _, _⟩,
+  { exact (diff_subset _ _).trans hts },
+  { exact htc.mono (diff_subset _ _) },
+  { exact htd.diff_finite ((subsingleton_is_bot α).finite.union (subsingleton_is_top α).finite) },
   { assume x hx, simp [hx] },
   { assume x hx, simp [hx] }
 end

@@ -326,16 +326,26 @@ lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [n
   dense (s \ {x}) :=
 hs.inter_of_open_right (dense_compl_singleton x) is_open_compl_singleton
 
-/-- Removing a subsingleton from a dense set in a space without isolated points, one still
+/-- Removing a finset from a dense set in a space without isolated points, one still
 obtains a dense set. -/
-lemma dense.diff_subsingleton [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
-  {s : set α} (hs : dense s) {t : set α} (ht : set.subsingleton t) :
+lemma dense.diff_finset [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : dense s) (t : finset α) :
   dense (s \ t) :=
 begin
-  apply ht.induction_on,
+  induction t using finset.induction_on with x s hxs ih hd,
   { simpa using hs },
-  { assume x,
-    exact hs.diff_singleton _ }
+  { rw [finset.coe_insert, ← union_singleton, ← diff_diff],
+    exact ih.diff_singleton _, }
+end
+
+/-- Removing a finite set from a dense set in a space without isolated points, one still
+obtains a dense set. -/
+lemma dense.diff_finite [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : dense s) {t : set α} (ht : finite t) :
+  dense (s \ t) :=
+begin
+  convert hs.diff_finset ht.to_finset,
+  exact (finite.coe_to_finset _).symm,
 end
 
 /-- If a function to a `t1_space` tends to some limit `b` at some point `a`, then necessarily

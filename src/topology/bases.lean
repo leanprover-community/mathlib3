@@ -130,6 +130,10 @@ protected lemma is_topological_basis.is_open {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
 by { rw hb.eq_generate_from, exact generate_open.basic s hs }
 
+protected lemma is_topological_basis.mem_nhds {a : α} {s : set α} {b : set (set α)}
+  (hb : is_topological_basis b) (hs : s ∈ b) (ha : a ∈ s) : s ∈ 𝓝 a :=
+(hb.is_open hs).mem_nhds ha
+
 lemma is_topological_basis.exists_subset_of_mem_open {b : set (set α)}
   (hb : is_topological_basis b) {a:α} {u : set α} (au : a ∈ u)
   (ou : is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=

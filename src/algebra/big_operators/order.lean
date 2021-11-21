@@ -249,10 +249,9 @@ times how many they are. -/
 lemma sum_card_inter_le (h : ∀ a ∈ s, (B.filter $ (∈) a).card ≤ n) :
   ∑ t in B, (s ∩ t).card ≤ s.card * n :=
 begin
+  refine le_trans _ (s.sum_le_of_forall_le _ _ h),
   simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
-  rw [sum_comm, ←card_eq_sum_ones],
-  apply sum_le_of_forall_le,
-  simpa only [sum_boole, nat.cast_id],
+  exact sum_comm.le,
 end
 
 /-- If every element belongs to at least `n` finsets, then the sum of their sizes is at least `n`
@@ -260,10 +259,9 @@ times how many they are. -/
 lemma le_sum_card_inter (h : ∀ a ∈ s, n ≤ (B.filter $ (∈) a).card) :
   s.card * n ≤ ∑ t in B, (s ∩ t).card :=
 begin
+  apply (s.le_sum_of_forall_le _ _ h).trans,
   simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
-  rw [sum_comm, ←card_eq_sum_ones],
-  apply le_sum_of_forall_le,
-  simpa only [sum_boole, nat.cast_id],
+  exact sum_comm.le,
 end
 
 /-- If every element belongs to exactly `n` finsets, then the sum of their sizes is `n` times how

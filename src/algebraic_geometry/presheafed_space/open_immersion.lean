@@ -5,10 +5,9 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.presheafed_space.has_colimits
 import category_theory.limits.shapes.binary_products
-import algebraic_geometry.stalks
-import algebraic_geometry.sheafed_space
 import topology.sheaves.functors
 import category_theory.limits.preserves.shapes.pullbacks
+import algebraic_geometry.locally_ringed_space
 
 /-!
 # Open immersions of presheafed spaces
@@ -50,8 +49,8 @@ We also proves that the pullback of two presheaved spaces exists, and is also an
 -/
 
 open topological_space category_theory opposite
-open category_theory.limits algebraic_geometry
-namespace algebraic_geometry.PresheafedSpace
+open category_theory.limits
+namespace algebraic_geometry
 
 universes v u
 
@@ -61,13 +60,29 @@ variables {C : Type u} [category.{v} C]
 An open immersion of PresheafedSpaces is an open embedding `f : X ⟶ U ⊆ Y` of the underlying
 spaces, such that the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.
 -/
-class is_open_immersion {X Y : PresheafedSpace C} (f : X ⟶ Y) : Prop :=
+class PresheafedSpace.is_open_immersion {X Y : PresheafedSpace C} (f : X ⟶ Y) : Prop :=
 (base_open : open_embedding f.base)
 (c_iso : ∀ U : opens X, is_iso (f.c.app (op (base_open.is_open_map.functor.obj U))))
 
-attribute [instance] is_open_immersion.c_iso
+/--
+A morphism of SheafedSpaces is an open immersion if it is an open immersion as a morphism
+of PresheafedSpaces
+-/
+abbreviation SheafedSpace.is_open_immersion [has_products C] {X Y : SheafedSpace C} (f : X ⟶ Y) :
+  Prop := PresheafedSpace.is_open_immersion f
 
-namespace is_open_immersion
+/--
+A morphism of LocallyRingedSpace is an open immersion if it is an open immersion as a morphism
+of SheafedSpaces
+-/
+abbreviation LocallyRingedSpace.is_open_immersion {X Y : LocallyRingedSpace} (f : X ⟶ Y) :
+  Prop := SheafedSpace.is_open_immersion f.1
+
+namespace PresheafedSpace.is_open_immersion
+
+open PresheafedSpace
+
+attribute [instance] is_open_immersion.c_iso
 
 section
 
@@ -197,12 +212,6 @@ by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
         exact set.subset_inter_iff.mpr ⟨λ _ h, h, hU⟩ } })).op :=
 by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
 
-end
-
-section
-
-variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : is_open_immersion f)
-
 /-- An isomorphism is an open immersion. -/
 instance of_iso {X Y : PresheafedSpace C} (H : X ≅ Y) : is_open_immersion H.hom :=
 { base_open := (Top.homeo_of_iso ((forget C).map_iso H)).open_embedding,
@@ -270,8 +279,6 @@ end
 section pullback
 noncomputable theory
 
-open is_open_immersion
-
 variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)
 
 include hf
@@ -307,26 +314,27 @@ def pullback_cone_of_left_fst :
       congr
     end } }
 
+lemma pullback_cone_of_left_condition :
+  pullback_cone_of_left_fst f g ≫ f = Y.of_restrict _ ≫ g :=
+begin
+  ext U,
+  { induction U using opposite.rec,
+    dsimp only [comp_c_app, nat_trans.comp_app, unop_op,
+      whisker_right_app, pullback_cone_of_left_fst],
+    simp only [quiver.hom.unop_op, Top.presheaf.pushforward_obj_map, app_inv_app_assoc,
+      eq_to_hom_app, eq_to_hom_unop, category.assoc, nat_trans.naturality_assoc, functor.op_map],
+    erw [← Y.presheaf.map_comp, ← Y.presheaf.map_comp],
+    congr },
+  { simpa using pullback.condition }
+end
+
 /--
 We construct the pullback along an open immersion via restricting along the pullback of the
 maps of underlying spaces (which is also an open embedding).
 -/
 def pullback_cone_of_left : pullback_cone f g :=
-begin
-  fapply pullback_cone.mk,
-  { exact Y.restrict (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base) },
-  exact pullback_cone_of_left_fst f g,
-  { exact Y.of_restrict _ },
-  { ext U,
-    { induction U using opposite.rec,
-      dsimp only [comp_c_app, nat_trans.comp_app, unop_op,
-        whisker_right_app, pullback_cone_of_left_fst],
-      simp only [quiver.hom.unop_op, Top.presheaf.pushforward_obj_map, app_inv_app_assoc,
-        eq_to_hom_app, eq_to_hom_unop, category.assoc, nat_trans.naturality_assoc, functor.op_map],
-      erw [← Y.presheaf.map_comp, ← Y.presheaf.map_comp],
-      congr },
-    { simpa using pullback.condition } }
-end
+pullback_cone.mk (pullback_cone_of_left_fst f g) (Y.of_restrict _)
+  (pullback_cone_of_left_condition f g)
 
 variable (s : pullback_cone f g)
 
@@ -355,8 +363,6 @@ def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
       congr
     end } }
 
-section end
-
 lemma pullback_cone_of_left_lift_fst :
   pullback_cone_of_left_lift f g s ≫
     (pullback_cone_of_left f g).fst = s.fst :=
@@ -376,8 +382,6 @@ begin
   { change pullback.lift _ _ _ ≫ pullback.fst = _,
     simp }
 end
-
-section end
 
 lemma pullback_cone_of_left_lift_snd :
   pullback_cone_of_left_lift f g s ≫
@@ -506,14 +510,9 @@ end pullback
 
 open category_theory.limits.walking_cospan
 
-section SheafedSpace
-
-variables [has_products C]
-
 section to_SheafedSpace
 
-variables {X : PresheafedSpace C} (Y : SheafedSpace C)
-
+variables [has_products C] {X : PresheafedSpace C} (Y : SheafedSpace C)
 variables (f : X ⟶ Y.to_PresheafedSpace) [H : is_open_immersion f]
 
 include H
@@ -528,73 +527,125 @@ def to_SheafedSpace : SheafedSpace C :=
   end,
 to_PresheafedSpace := X }
 
-@[simp] lemma to_SheafedSpace_forget_eq : (to_SheafedSpace Y f).to_PresheafedSpace = X := rfl
+@[simp] lemma to_SheafedSpace_to_PresheafedSpace : (to_SheafedSpace Y f).to_PresheafedSpace = X :=
+rfl
 
 /--
 If `X ⟶ Y` is an open immersion of PresheafedSpaces, and `Y` is a SheafedSpace, we can
 upgrade it into a morphism of SheafedSpaces.
 -/
-def to_SheafedSpace_hom : to_SheafedSpace Y f ⟶ Y := ⟨f.base, f.c⟩
+def to_SheafedSpace_hom : to_SheafedSpace Y f ⟶ Y := f
+
+@[simp] lemma to_SheafedSpace_hom_base : (to_SheafedSpace_hom Y f).base = f.base := rfl
+
+@[simp] lemma to_SheafedSpace_hom_c : (to_SheafedSpace_hom Y f).c = f.c := rfl
 
 instance to_SheafedSpace_hom_forget_is_open_immersion :
-  is_open_immersion (to_SheafedSpace_hom Y f) := ⟨H.base_open, H.c_iso⟩
-
-@[simp] lemma to_SheafedSpace_hom_base_eq : (to_SheafedSpace_hom Y f).base = f.base := rfl
-
-@[simp] lemma to_SheafedSpace_hom_c_eq : (to_SheafedSpace_hom Y f).c = f.c := rfl
+  SheafedSpace.is_open_immersion (to_SheafedSpace_hom Y f) := H
 
 omit H
 
-@[simp] lemma to_SheafedSpace_hom_eq {X Y : SheafedSpace C} (f : X ⟶ Y) [is_open_immersion f] :
-  to_SheafedSpace Y f = X := by unfreezingI { cases X, refl }
+@[simp] lemma SheafedSpace_to_SheafedSpace {X Y : SheafedSpace C} (f : X ⟶ Y)
+  [is_open_immersion f] : to_SheafedSpace Y f = X := by unfreezingI { cases X, refl }
 
 end to_SheafedSpace
 
+section to_LocallyRingedSpace
+
+variables {X : PresheafedSpace CommRing.{u}} (Y : LocallyRingedSpace.{u})
+variables (f : X ⟶ Y.to_PresheafedSpace) [H : is_open_immersion f]
+
+include H
+
+/-- If `X ⟶ Y` is an open immersion, and `Y` is a LocallyRingedSpace, then so is `X`. -/
+def to_LocallyRingedSpace : LocallyRingedSpace :=
+{ to_SheafedSpace := to_SheafedSpace Y.to_SheafedSpace f,
+  local_ring := λ x, begin
+    haveI : local_ring (Y.to_SheafedSpace.to_PresheafedSpace.stalk (f.base x)) := Y.local_ring _,
+    exact (as_iso (stalk_map f x)).CommRing_iso_to_ring_equiv.local_ring
+  end }
+
+@[simp] lemma to_LocallyRingedSpace_to_SheafedSpace :
+  (to_LocallyRingedSpace Y f).to_SheafedSpace = (to_SheafedSpace Y.1 f) := rfl
+
+/--
+If `X ⟶ Y` is an open immersion of PresheafedSpaces, and `Y` is a LocallyRingedSpace, we can
+upgrade it into a morphism of LocallyRingedSpace.
+-/
+def to_LocallyRingedSpace_hom : to_LocallyRingedSpace Y f ⟶ Y := ⟨f, λ x, infer_instance⟩
+
+@[simp] lemma to_LocallyRingedSpace_hom_val :
+  (to_LocallyRingedSpace_hom Y f).val = f := rfl
+
+instance to_LocallyRingedSpace_hom_hom_forget_is_open_immersion :
+  LocallyRingedSpace.is_open_immersion (to_LocallyRingedSpace_hom Y f) := H
+
+omit H
+
+@[simp] lemma LocallyRingedSpace_to_LocallyRingedSpace {X Y : LocallyRingedSpace} (f : X ⟶ Y)
+  [LocallyRingedSpace.is_open_immersion f] :
+  @to_LocallyRingedSpace X.to_PresheafedSpace Y (@@coe (@@coe_to_lift (@@coe_base coe_subtype)) f)
+    (show is_open_immersion f.val, by apply_instance) = X :=
+by unfreezingI { cases X, delta to_LocallyRingedSpace, simp }
+
+end to_LocallyRingedSpace
+
+end PresheafedSpace.is_open_immersion
+
+namespace SheafedSpace.is_open_immersion
+
+variables [has_products C]
+
 section pullback
 
-variables {X Y Z : SheafedSpace C} (f : X ⟶ Z) (g : Y ⟶ Z) [H : is_open_immersion f]
+variables {X Y Z : SheafedSpace C} (f : X ⟶ Z) (g : Y ⟶ Z)
+variable [H : SheafedSpace.is_open_immersion f]
 
 include H
 
 local notation `forget` := SheafedSpace.forget_to_PresheafedSpace
-local notation `forget_map` := SheafedSpace.forget_to_PresheafedSpace.map
 open category_theory.limits.walking_cospan
 
+instance : mono f := faithful_reflects_mono forget
+  (show @mono (PresheafedSpace C) _ _ _ f, by apply_instance)
+
 instance forget_map_is_open_immersion :
-  is_open_immersion (forget_map f) := ⟨H.base_open, H.c_iso⟩
+  PresheafedSpace.is_open_immersion (forget .map f) := ⟨H.base_open, H.c_iso⟩
 
 instance has_limit_cospan_forget_of_left : has_limit (cospan f g ⋙ forget) :=
 begin
   apply has_limit_of_iso (diagram_iso_cospan _).symm,
-  change has_limit (cospan (forget_map f) (forget_map g)),
+  change has_limit (cospan (forget .map f) (forget .map g)),
   apply_instance
 end
 
 instance has_limit_cospan_forget_of_left' : has_limit (cospan ((cospan f g ⋙ forget).map hom.inl)
   ((cospan f g ⋙ forget).map hom.inr)) :=
-show has_limit (cospan (forget_map f) (forget_map g)), from infer_instance
+show has_limit (cospan (forget .map f) (forget .map g)), from infer_instance
 
 instance has_limit_cospan_forget_of_right : has_limit (cospan g f ⋙ forget) :=
 begin
   apply has_limit_of_iso (diagram_iso_cospan _).symm,
-  change has_limit (cospan (forget_map g) (forget_map f)),
+  change has_limit (cospan (forget .map g) (forget .map f)),
   apply_instance
 end
 
 instance has_limit_cospan_forget_of_right' : has_limit (cospan ((cospan g f ⋙ forget).map hom.inl)
   ((cospan g f ⋙ forget).map hom.inr)) :=
-show has_limit (cospan (forget_map g) (forget_map f)), from infer_instance
+show has_limit (cospan (forget .map g) (forget .map f)), from infer_instance
 
 
 instance forget_creates_pullback_of_left : creates_limit (cospan f g) forget :=
 creates_limit_of_fully_faithful_of_iso
-  (to_SheafedSpace Y (@pullback.snd (PresheafedSpace C) _ _ _ _ f g _))
+  (PresheafedSpace.is_open_immersion.to_SheafedSpace Y
+    (@pullback.snd (PresheafedSpace C) _ _ _ _ f g _))
   (eq_to_iso (show pullback _ _ = pullback _ _, by congr)
     ≪≫ has_limit.iso_of_nat_iso (diagram_iso_cospan _).symm)
 
 instance forget_creates_pullback_of_right : creates_limit (cospan g f) forget :=
 creates_limit_of_fully_faithful_of_iso
-  (to_SheafedSpace Y (@pullback.fst (PresheafedSpace C) _ _ _ _ g f _))
+  (PresheafedSpace.is_open_immersion.to_SheafedSpace Y
+    (@pullback.fst (PresheafedSpace C) _ _ _ _ g f _))
   (eq_to_iso (show pullback _ _ = pullback _ _, by congr)
     ≪≫ has_limit.iso_of_nat_iso (diagram_iso_cospan _).symm)
 
@@ -619,7 +670,7 @@ instance SheafedSpace_has_pullback_of_right : has_pullback g f :=
 
 /-- Open immersions are stable under base-change. -/
 instance SheafedSpace_pullback_snd_of_left :
-  is_open_immersion (pullback.snd : pullback f g ⟶ _) :=
+  SheafedSpace.is_open_immersion (pullback.snd : pullback f g ⟶ _) :=
 begin
   delta pullback.snd,
   have : _ = limit.π (cospan f g) right := preserves_limits_iso_hom_π
@@ -635,7 +686,7 @@ begin
 end
 
 instance SheafedSpace_pullback_fst_of_right :
-  is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
+  SheafedSpace.is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
 begin
   delta pullback.fst,
   have : _ = limit.π (cospan g f) left := preserves_limits_iso_hom_π
@@ -649,8 +700,8 @@ begin
   apply_instance
 end
 
-instance SheafedSpace_pullback_one_is_open_immersion [is_open_immersion g] :
-  is_open_immersion (limit.π (cospan f g) one : pullback f g ⟶ Z) :=
+instance SheafedSpace_pullback_one_is_open_immersion [SheafedSpace.is_open_immersion g] :
+  SheafedSpace.is_open_immersion (limit.π (cospan f g) one : pullback f g ⟶ Z) :=
 begin
   rw [←limit.w (cospan f g) hom.inl, cospan_map_inl],
   apply_instance
@@ -658,8 +709,134 @@ end
 
 end pullback
 
-end SheafedSpace
+end SheafedSpace.is_open_immersion
 
-end is_open_immersion
+namespace LocallyRingedSpace.is_open_immersion
 
-end algebraic_geometry.PresheafedSpace
+section pullback
+
+instance is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) [is_local_ring_hom f]
+  [is_local_ring_hom g] : is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
+
+variables {X Y Z : LocallyRingedSpace.{u}} (f : X ⟶ Z) (g : Y ⟶ Z)
+variable [H : LocallyRingedSpace.is_open_immersion f]
+
+@[priority 100]
+instance of_is_iso [is_iso g] :
+  LocallyRingedSpace.is_open_immersion g :=
+@@PresheafedSpace.is_open_immersion.of_is_iso _ g.1 ⟨⟨(inv g).1,
+  by { erw ← LocallyRingedSpace.comp_val, rw is_iso.hom_inv_id,
+    erw ← LocallyRingedSpace.comp_val, rw is_iso.inv_hom_id, split; simpa }⟩⟩
+
+include H
+
+instance comp (g : Z ⟶ Y) [LocallyRingedSpace.is_open_immersion g] :
+  LocallyRingedSpace.is_open_immersion (f ≫ g) := PresheafedSpace.is_open_immersion.comp f.1 g.1
+
+instance mono : mono f :=
+faithful_reflects_mono (LocallyRingedSpace.forget_to_SheafedSpace)
+  (show mono f.1, by apply_instance)
+
+instance : SheafedSpace.is_open_immersion (LocallyRingedSpace.forget_to_SheafedSpace.map f) := H
+
+/-- An explicit pullback cone over `cospan f g` if `f` is an open immersion. -/
+def pullback_cone_of_left : pullback_cone f g :=
+begin
+  refine pullback_cone.mk _
+    (Y.of_restrict (Top.snd_open_embedding_of_left_open_embedding H.base_open g.1.base)) _,
+  { use PresheafedSpace.is_open_immersion.pullback_cone_of_left_fst f.1 g.1,
+    intro x,
+    have := PresheafedSpace.stalk_map.congr_hom _ _
+      (PresheafedSpace.is_open_immersion.pullback_cone_of_left_condition f.1 g.1) x,
+    rw [PresheafedSpace.stalk_map.comp, PresheafedSpace.stalk_map.comp] at this,
+    rw ← is_iso.eq_inv_comp at this,
+    rw this,
+    apply_instance },
+  { exact subtype.eq (PresheafedSpace.is_open_immersion.pullback_cone_of_left_condition _ _) },
+end
+
+instance : LocallyRingedSpace.is_open_immersion (pullback_cone_of_left f g).snd :=
+show PresheafedSpace.is_open_immersion (Y.to_PresheafedSpace.of_restrict _), by apply_instance
+
+/-- The constructed `pullback_cone_of_left` is indeed limiting. -/
+def pullback_cone_of_left_is_limit : is_limit (pullback_cone_of_left f g) :=
+pullback_cone.is_limit_aux' _ $ λ s,
+begin
+  use PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift f.1 g.1
+    (pullback_cone.mk s.fst.1 s.snd.1 (congr_arg subtype.val s.condition)),
+  { intro x,
+    have := PresheafedSpace.stalk_map.congr_hom _ _
+      (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_snd f.1 g.1
+        (pullback_cone.mk s.fst.1 s.snd.1 (congr_arg subtype.val s.condition))) x,
+    change _ = _ ≫ PresheafedSpace.stalk_map s.snd.1 x at this,
+    rw [PresheafedSpace.stalk_map.comp, ← is_iso.eq_inv_comp] at this,
+    rw this,
+    apply_instance },
+  split,
+  exact subtype.eq (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_fst f.1 g.1 _),
+  split,
+  exact subtype.eq (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_snd f.1 g.1 _),
+  intros m h₁ h₂,
+  rw ← cancel_mono (pullback_cone_of_left f g).snd,
+  exact (h₂.trans (subtype.eq
+    (PresheafedSpace.is_open_immersion.pullback_cone_of_left_lift_snd f.1 g.1
+      (pullback_cone.mk s.fst.1 s.snd.1 (congr_arg subtype.val s.condition))).symm))
+end
+
+instance has_pullback_of_left :
+  has_pullback f g :=
+⟨⟨⟨_, pullback_cone_of_left_is_limit f g⟩⟩⟩
+
+instance has_pullback_of_right :
+  has_pullback g f := has_pullback_symmetry f g
+
+/-- Open immersions are stable under base-change. -/
+instance pullback_snd_of_left :
+  LocallyRingedSpace.is_open_immersion (pullback.snd : pullback f g ⟶ _) :=
+begin
+  delta pullback.snd,
+  rw ← limit.iso_limit_cone_hom_π ⟨_, pullback_cone_of_left_is_limit f g⟩ walking_cospan.right,
+  apply_instance
+end
+
+/-- Open immersions are stable under base-change. -/
+instance pullback_fst_of_right :
+ LocallyRingedSpace.is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
+begin
+  rw ← pullback_symmetry_hom_comp_snd,
+  apply_instance
+end
+
+instance pullback_one_is_open_immersion [LocallyRingedSpace.is_open_immersion g] :
+  LocallyRingedSpace.is_open_immersion (limit.π (cospan f g) walking_cospan.one) :=
+begin
+  rw [←limit.w (cospan f g) walking_cospan.hom.inl, cospan_map_inl],
+  apply_instance
+end
+
+instance forget_preserves_pullback_of_left :
+  preserves_limit (cospan f g) LocallyRingedSpace.forget_to_SheafedSpace :=
+preserves_limit_of_preserves_limit_cone (pullback_cone_of_left_is_limit f g)
+begin
+  apply (is_limit_map_cone_pullback_cone_equiv _ _).symm.to_fun,
+  apply is_limit_of_is_limit_pullback_cone_map SheafedSpace.forget_to_PresheafedSpace,
+  exact PresheafedSpace.is_open_immersion.pullback_cone_of_left_is_limit f.1 g.1
+end
+
+instance forget_reflects_pullback_of_left :
+  reflects_limit (cospan f g) LocallyRingedSpace.forget_to_SheafedSpace :=
+reflects_limit_of_reflects_isomorphisms _ _
+
+instance forget_preserves_pullback_of_right :
+  preserves_limit (cospan g f) LocallyRingedSpace.forget_to_SheafedSpace :=
+preserves_pullback_symmetry _ _ _
+
+instance forget_reflects_pullback_of_right :
+  reflects_limit (cospan g f) LocallyRingedSpace.forget_to_SheafedSpace :=
+reflects_limit_of_reflects_isomorphisms _ _
+
+end pullback
+
+end LocallyRingedSpace.is_open_immersion
+
+end algebraic_geometry

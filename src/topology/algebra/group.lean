@@ -82,7 +82,8 @@ protected def homeomorph.mul_right (a : G) :
 lemma homeomorph.coe_mul_right (a : G) : ⇑(homeomorph.mul_right a) = λ g, g * a := rfl
 
 @[to_additive]
-lemma homeomorph.mul_right_symm (a : G) : (homeomorph.mul_right a).symm = homeomorph.mul_right a⁻¹ :=
+lemma homeomorph.mul_right_symm (a : G) :
+  (homeomorph.mul_right a).symm = homeomorph.mul_right a⁻¹ :=
 by { ext, refl }
 
 @[to_additive]

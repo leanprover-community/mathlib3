@@ -76,13 +76,12 @@ end upper_half_plane_action
 section bottom_row
 
 /-- The two numbers `c`, `d` in the "bottom_row" of `g=[[*,*],[c,d]]` in `SL(2, ℤ)` are coprime. -/
-lemma bottom_row_coprime (g : SL(2, ℤ)) : is_coprime (↑ₘg 1 0) (↑ₘg 1 1) :=
+lemma bottom_row_coprime {R : Type*} [comm_ring R] (g : SL(2, R)) :
+  is_coprime ((↑g : matrix (fin 2) (fin 2) R) 1 0) ((↑g : matrix (fin 2) (fin 2) R) 1 1) :=
 begin
-  use [- g 0 1, g 0 0],
-  have := det_fin_two g,
-  have := g.det_coe,
-  simp only [coe_fn_eq_coe] at *,
-  linarith
+  use [- (↑g : matrix (fin 2) (fin 2) R) 0 1, (↑g : matrix (fin 2) (fin 2) R) 0 0],
+  rw [add_comm, ←neg_mul_eq_neg_mul, ←sub_eq_add_neg, ←det_fin_two],
+  exact g.det_coe,
 end
 
 /-- Every pair `![c, d]` of coprime integers is the "bottom_row" of some element `g=[[*,*],[c,d]]`

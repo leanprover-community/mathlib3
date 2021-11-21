@@ -1109,7 +1109,7 @@ calc ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ
     = (∫ a in s, (condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a • x) ∂μ) :
   set_integral_congr_ae (hm s hs) ((condexp_ind_smul_ae_eq_smul hm ht hμt x).mono (λ x hx hxs, hx))
 ... = (∫ a in s, condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a ∂μ) • x :
-  by rw integral_smul_const _ x
+  integral_smul_const _ x
 ... = (∫ a in s, indicator_const_Lp 2 ht hμt (1 : ℝ) a ∂μ) • x :
   by rw @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ _ _ _ _ _ _ hm
     (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs

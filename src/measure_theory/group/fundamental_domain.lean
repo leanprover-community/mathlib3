@@ -11,7 +11,7 @@ import measure_theory.integral.set_integral
 # Fundamental domain of a group action
 
 A set `s` is said to be a *fundamental domain* of an action of a group `G` on a measurable space `α`
-with respect to measure `μ` if
+with respect to a measure `μ` if
 
 * `s` is a measurable set;
 
@@ -135,7 +135,7 @@ calc ∫⁻ x in s, f x ∂μ = ∑' g : G, ∫⁻ x in s ∩ g • t, f x ∂μ
 ... = ∫⁻ x in t, f x ∂μ :
   (hs.set_lintegral_eq_tsum _ _).symm
 
-/-- If `s` and `t` are to fundamental domains of the same action, then their measures are equal. -/
+/-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
 @[to_additive] protected lemma measure_congr (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=
 by simpa only [set_lintegral_one] using hs.set_lintegral_congr ht (λ _, 1) (λ _ _, rfl)

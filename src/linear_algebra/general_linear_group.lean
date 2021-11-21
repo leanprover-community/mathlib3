@@ -96,8 +96,8 @@ units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
 
 -- For some reason this doesn't trigger as a simp lemma.  Decidability issue apparently?
 -- TODO fix this and delete the special case stated for `n` rather than `fin m` below.
-@[simp] lemma coe_to_linear (M : general_linear_group n R) :
-  (to_linear M : n →ₗ[R] n) = matrix.mul_vec_lin M :=
+lemma coe_to_linear (M : general_linear_group n R) :
+  (to_linear M : (n → R) →ₗ[R] (n → R)) = matrix.mul_vec_lin M :=
 rfl
 
 @[simp] lemma coe_to_linear' {m : ℕ} (M : general_linear_group (fin m) R) :

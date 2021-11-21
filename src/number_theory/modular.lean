@@ -51,8 +51,8 @@ namespace modular_group
 
 section upper_half_plane_action
 
-/-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action
-defined by `upper_half_plane.mul_action`. -/
+/-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
+the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
 instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
 mul_action.comp_hom ℍ (map (algebra_map R ℝ))
 
@@ -88,7 +88,8 @@ end
 /-- Every pair `![c, d]` of coprime integers is the "bottom_row" of some element `g=[[*,*],[c,d]]`
 of `SL(2,ℤ)`. -/
 lemma bottom_row_surj {R : Type*} [comm_ring R] :
-  set.surj_on (λ g : SL(2, R), ↑ₘg 1) set.univ {cd | is_coprime (cd 0) (cd 1)} :=
+  set.surj_on (λ g : SL(2, R), @coe _ (matrix (fin 2) (fin 2) R) _ g 1) set.univ
+    {cd | is_coprime (cd 0) (cd 1)} :=
 begin
   rintros cd ⟨b₀, a, gcd_eqn⟩,
   let A := ![![a, -b₀], cd],

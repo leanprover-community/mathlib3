@@ -272,6 +272,10 @@ lemma induction_on' {C : quotient s → Prop} (x : quotient s)
   (H : ∀ z : α, C z) : C x :=
 quotient.induction_on' x H
 
+@[simp, to_additive]
+lemma quotient_lift_on_coe {β} (f : α → β) (h) (x : α) :
+  quotient.lift_on' (x : quotient s) f h = f x := rfl
+
 @[to_additive]
 lemma forall_coe {C : quotient s → Prop} :
   (∀ x : quotient s, C x) ↔ ∀ x : α, C x :=

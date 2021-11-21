@@ -559,7 +559,7 @@ measure.pi_closed_ball _ _ hr
 ### Measure preserving equivalences
 
 In this section we prove that some measurable equivalences (e.g., between `fin 1 → α` and `α` or
-between `fin 2 → α` and `α × α`) preserve measure or volume. These lemmas can be used two prove that
+between `fin 2 → α` and `α × α`) preserve measure or volume. These lemmas can be used to prove that
 measures of corresponding sets (images or preimages) have equal measures and functions `f ∘ e` and
 `f` have equal integrals, see lemmas in the `measure_theory.measure_preserving` prefix.
 -/

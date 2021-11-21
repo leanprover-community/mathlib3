@@ -276,7 +276,7 @@ For a version expressed with subtypes, see `fintype.prod_subtype_mul_prod_subtyp
 For a version expressed with subtypes, see `fintype.sum_subtype_add_sum_subtype`. "]
 lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
   (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
-(@is_compl_compl _ s _).prod_mul_prod f
+is_compl.prod_mul_prod is_compl_compl f
 
 @[to_additive]
 lemma prod_compl_mul_prod [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :

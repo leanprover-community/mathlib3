@@ -174,7 +174,7 @@ begin
     (colimit.ι diagram _ ≫ colim.map _ ≫ (colimit.iso_colimit_cocone _).hom) _ =
     (colimit.ι diagram _ ≫ colim.map _ ≫ (colimit.iso_colimit_cocone _).hom) _ :=
     (congr_arg (colim.map (diagram_iso_parallel_pair diagram).hom
-    ≫ (colimit.iso_colimit_cocone (types.coequalizer_limit _ _)).hom) this : _),
+    ≫ (colimit.iso_colimit_cocone (types.coequalizer_colimit _ _)).hom) this : _),
   simp only [eq_to_hom_refl, types_comp_apply, colimit.ι_map_assoc,
     diagram_iso_parallel_pair_hom_app, colimit.iso_colimit_cocone_ι_hom, types_id_apply] at this,
   exact quot.eq.1 this,

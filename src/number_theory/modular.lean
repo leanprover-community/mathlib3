@@ -51,7 +51,8 @@ namespace modular_group
 
 section upper_half_plane_action
 
-/-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
+/-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action
+defined by `upper_half_plane.mul_action`. -/
 instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
 mul_action.comp_hom ℍ (map (algebra_map R ℝ))
 
@@ -222,7 +223,7 @@ begin
     { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
       simp only [f₁, ← hg, add_zero, fin.succ_zero_eq_one, fin.sum_univ_succ, fin.sum_univ_zero,
         function.comp_app, int.cast_mul, int.cast_sub,
-        linear_map.general_linear_group.general_linear_equiv_to_fun,
+        linear_map.general_linear_group.coe_fn_general_linear_equiv,
         matrix.coe_plane_conformal_matrix, matrix.cons_val_one, matrix.cons_val_zero,
         matrix.det_fin_two, matrix.dot_product, matrix.general_linear_group.coe_fn_eq_coe,
         matrix.general_linear_group.coe_to_linear, matrix.head_cons, matrix.map_apply,

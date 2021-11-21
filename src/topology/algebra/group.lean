@@ -82,6 +82,10 @@ protected def homeomorph.mul_right (a : G) :
 lemma homeomorph.coe_mul_right (a : G) : ⇑(homeomorph.mul_right a) = λ g, g * a := rfl
 
 @[to_additive]
+lemma homeomorph.mul_right_symm (a : G) : (homeomorph.mul_right a).symm = homeomorph.mul_right a⁻¹ :=
+by { ext, refl }
+
+@[to_additive]
 lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
 

@@ -98,7 +98,7 @@ begin
       exact ⟨a',rfl⟩, },
 end
 
-lemma is_unit.smul_sub_iff_is_unit_sub_smul {r : units R} {a : A} :
+lemma is_unit.smul_sub_iff_sub_inv_smul {r : units R} {a : A} :
   is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
 begin
   have a_eq : a = r•r⁻¹•a, by simp,
@@ -168,7 +168,7 @@ begin
   simp only [mem_resolvent_iff],
   have coe_smul_eq : ↑r•1 = r•(1 : A), from rfl,
   rw coe_smul_eq,
-  simp only [is_unit.smul_sub_iff_is_unit_sub_smul],
+  simp only [is_unit.smul_sub_iff_sub_inv_smul],
   have right_inv_of_swap : ∀ {x y z : A} (h : (1 - x*y)*z = 1),
     (1 - y*x)*(1 + y*z*x) = 1, from λ x y z h,
       calc (1 - y*x)*(1 + y*z*x) = 1 - y*x + y*((1 - x*y)*z)*x : by noncomm_ring

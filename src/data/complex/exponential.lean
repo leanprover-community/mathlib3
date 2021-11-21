@@ -1521,7 +1521,7 @@ by simp [add_comm, abs, norm_sq, sq, *, sin_of_real_re, cos_of_real_re, mul_re] 
 @[simp] lemma abs_exp_of_real (x : ℝ) : abs (exp x) = real.exp x :=
 by rw [← of_real_exp]; exact abs_of_nonneg (le_of_lt (real.exp_pos _))
 
-@[simp] lemma abs_exp_mul_I (x : ℝ) : abs (exp (x * I)) = 1 :=
+@[simp] lemma abs_exp_of_real_mul_I (x : ℝ) : abs (exp (x * I)) = 1 :=
 by rw [exp_mul_I, abs_cos_add_sin_mul_I]
 
 lemma abs_exp (z : ℂ) : abs (exp z) = real.exp (z.re) :=

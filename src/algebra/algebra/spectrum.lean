@@ -85,32 +85,25 @@ iff.rfl
 
 -- products of scalar units and algebra units
 
-
-lemma is_unit.smul_smul_sub_smul_iff {r : units R} {s : R} {a : A} :
-  is_unit (r • s • 1 - r • a) ↔ is_unit (s • 1 - a) :=
+lemma is_unit.smul_iff {r : units R} {a : A} :
+  is_unit (r • a) ↔ is_unit a :=
 begin
-  split,
-  { intro h',
-    have inv_smul_eq : r⁻¹•(r•s•1 - r•a) = s•1 - a,
-      by simp [smul_sub, smul_smul],
-    rw ←inv_smul_eq,
-    exact (r⁻¹ • h'.unit).is_unit, },
-  { intro h',
-    rw ←smul_sub,
-    exact (r • h'.unit).is_unit, },
+  split, swap,
+    { exact λ h, (r•h.unit).is_unit, },
+    { intro h, let a' : units A :=
+        ⟨a,
+         r•↑(h.unit)⁻¹,
+         by rw [mul_smul_comm, ←smul_mul_assoc, is_unit.mul_coe_inv],
+         by {rw [smul_mul_assoc,←mul_smul_comm, is_unit.coe_inv_mul],}⟩,
+      exact ⟨a',rfl⟩, },
 end
-
-lemma is_unit.smul_smul_sub_iff_is_unit_smul_sub_smul {r : units R} {s : R} {a : A} :
-  is_unit (r • s • 1 - a) ↔ is_unit (s • 1 - r⁻¹ • a) :=
-by { have h_eq : r•s•1 - r•(r⁻¹•a) = r•s•1 - a, by simp,
-     rw [←h_eq,is_unit.smul_smul_sub_smul_iff], }
 
 lemma is_unit.smul_sub_iff_is_unit_sub_smul {r : units R} {a : A} :
   is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
 begin
-  have with_smul_one : is_unit (r•(1 : R)•1 - a) ↔ is_unit ((1 : R)•1 - r⁻¹•a),
-    by exact is_unit.smul_smul_sub_iff_is_unit_smul_sub_smul,
-  simpa using with_smul_one,
+  have a_eq : a = r•r⁻¹•a, by simp,
+  nth_rewrite 0 a_eq,
+  rw [←smul_sub,is_unit.smul_iff],
 end
 
 lemma add_mem_spectrum {a : A} {r s : R} :
@@ -129,8 +122,7 @@ begin
   apply not_iff_not.mpr,
   simp only [mem_resolvent_iff],
   have h_eq : (r•s)•(1 : A) = r•s•1, by simp,
-  rw h_eq,
-  exact is_unit.smul_smul_sub_smul_iff,
+  rw [h_eq,←smul_sub,is_unit.smul_iff],
 end
 
 open_locale pointwise

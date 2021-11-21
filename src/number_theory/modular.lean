@@ -226,7 +226,7 @@ begin
         linear_map.general_linear_group.coe_fn_general_linear_equiv,
         matrix.coe_plane_conformal_matrix, matrix.cons_val_one, matrix.cons_val_zero,
         matrix.det_fin_two, matrix.dot_product, matrix.general_linear_group.coe_fn_eq_coe,
-        matrix.general_linear_group.coe_to_linear, matrix.head_cons, matrix.map_apply,
+        matrix.general_linear_group.coe_to_linear', matrix.head_cons, matrix.map_apply,
         matrix.mul_vec, matrix.mul_vec_lin_apply, matrix.special_linear_group.coe_fn_eq_coe,
         modular_group.lc_row0_extend_apply, neg_mul_eq_neg_mul_symm, neg_sub, subtype.coe_mk],
       ring } },

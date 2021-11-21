@@ -350,7 +350,7 @@ lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=
 end inv_fun
 
 section surj_inv
-variables {α : Sort u} {β : Sort v} {f : α → β}
+variables {α : Sort u} {β : Sort v} {γ : Sort w} {f : α → β}
 
 /-- The inverse of a surjective function. (Unlike `inv_fun`, this does not require
   `α` to be inhabited.) -/
@@ -382,12 +382,12 @@ lemma surjective_to_subsingleton [na : nonempty α] [subsingleton β] (f : α �
 λ y, let ⟨a⟩ := na in ⟨a, subsingleton.elim _ _⟩
 
 /-- Composition by an surjective function on the left is itself surjective. -/
-lemma surjective.comp_left {γ : Sort*} {g : β → γ} (hg : function.surjective g) :
+lemma surjective.comp_left {g : β → γ} (hg : function.surjective g) :
   function.surjective ((∘) g : (α → β) → (α → γ)) :=
 λ f, ⟨surj_inv hg ∘ f, funext $ λ x, right_inverse_surj_inv _ _⟩
 
 /-- Composition by an bijective function on the left is itself bijective. -/
-lemma bijective.comp_left {γ : Sort*} {g : β → γ} (hg : function.bijective g) :
+lemma bijective.comp_left {g : β → γ} (hg : function.bijective g) :
   function.bijective ((∘) g : (α → β) → (α → γ)) :=
 ⟨hg.injective.comp_left, hg.surjective.comp_left⟩
 

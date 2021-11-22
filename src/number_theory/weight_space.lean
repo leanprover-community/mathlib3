@@ -479,6 +479,8 @@ example (a b c : ℤ) (h1 : a < c) (h2 : b ≤ d) : a + b < c + d := add_lt_add_
 
 example (m : ℕ) : 1/((p : ℝ)^m) = ((p^m) : ℝ)⁻¹ := one_div (↑p ^ m)
 
+example (a : ℝ) (m n : ℤ) : a^(0 : ℤ) = 1 := gpow_zero a
+
 theorem clopen_basis_clopen : topological_space.is_topological_basis (clopen_basis p) ∧
   ∀ x ∈ (clopen_basis p), is_clopen x :=
 begin
@@ -486,14 +488,15 @@ begin
   { refine topological_space.is_topological_basis_of_open_of_nhds _ _,
     { rintros u hu, rcases hu with ⟨n, a, hu⟩,
       have := proj_lim_preimage_clopen p 1 n,
-      rw one_mul at this, rw hu, convert (this a).1, simp, },
+      rw one_mul at this, rw hu, convert (this a).1, simp only [zmod.cast_id', id.def], },
     rintros a u mema hu, rw metric.is_open_iff at hu,
     obtain ⟨ε, hε, h⟩ := hu a mema,
     obtain ⟨m, fm⟩ := find_this_out p (ε/2) (half_pos hε),
     set b := ((to_zmod_pow m.succ a) : ℤ_[p]) with hb,
     refine ⟨metric.ball b (p^(-(m : ℤ))), _, _, _⟩,
     dsimp [to_zmod_pow, to_zmod_hom] at hb,
-    { have arith : -(m : ℤ) = 1 - (m.succ : ℤ), simp, linarith,
+    { have arith : -(m : ℤ) = 1 - (m.succ : ℤ),
+      { simp only [int.coe_nat_succ], rw sub_add_eq_sub_sub_swap, rw sub_self, rw zero_sub, },
       rw [arith],
       rw ←preimage_to_zmod_pow_eq_ball p (m.succ) (to_zmod_pow m.succ a),
       convert mem_clopen_basis p m.succ ((to_zmod_pow m.succ) a), },
@@ -502,21 +505,39 @@ begin
       have := appr_spec m.succ a, rw ←norm_le_pow_iff_mem_span_pow _ m.succ at this,
       refine gt_of_gt_of_ge _ this,
       repeat{rw fpow_neg, rw ←one_div,},
-      apply one_div_lt_one_div_of_lt, norm_num, convert pow_pos _ m, simp, sorry, sorry, },
-    { rintros c hc, apply h, simp at hc, simp,
+      apply one_div_lt_one_div_of_lt, norm_num, convert pow_pos _ m,
+      { norm_num, apply lt_of_le_of_ne,
+        { apply nat.zero_le, },
+        { symmetry, apply nat.prime.ne_zero, apply fact.out, }, },
+      { rw fpow_lt_iff_lt _,
+        { norm_num, },
+        { norm_cast, apply nat.prime.one_lt, apply fact.out, }, }, },
+    { rintros c hc, apply h, simp only [metric.mem_ball, fpow_neg, gpow_coe_nat] at hc,
+      simp only [metric.mem_ball],
       suffices f1 : dist c a < 2 / (p^m),
-      { refine lt_trans f1 _, simp [fm], refine (lt_div_iff' _).mp _, exact zero_lt_two,
+      { refine lt_trans f1 _, simp only, refine (lt_div_iff' _).mp _, exact zero_lt_two,
         rw ←one_div, exact fm, },
       have := dist_triangle c b a, rw dist_comm b a at this, refine gt_of_gt_of_ge _ this,
       have ha : dist a b ≤ (↑p ^ m)⁻¹,
       { rw hb, rw has_coe_t_eq_coe p a m.succ,
-        have : (↑p ^ m)⁻¹ = (p : ℝ)^(-m : ℤ), sorry,
-        rw this, refine le_trans (dist_appr_spec p a m.succ) _, sorry, },
+        have : (↑p ^ m)⁻¹ = (p : ℝ)^(-m : ℤ),
+        { have f : (p : ℝ) ≠ 0,
+          { norm_cast, apply nat.prime.ne_zero, apply fact.out, },
+          rw ←one_div _, rw div_eq_iff _,
+          { rw ←gpow_coe_nat (p : ℝ) m, rw ←fpow_add,
+            { rw neg_add_self, rw gpow_zero _, },
+            apply f, },
+          { apply pow_ne_zero _, apply f, apply_instance, }, },
+        rw this, refine le_trans (dist_appr_spec p a m.succ) _,
+        { rw fpow_le_iff_le _,
+          { apply neg_le_neg, norm_num, },
+          { norm_cast, apply nat.prime.one_lt, apply fact.out, }, }, },
       convert add_lt_add_of_lt_of_le hc ha,
       rw [←one_div, div_add_div_same, one_add_one_eq_two], }, },
   { rintros x hx,
-    rw clopen_basis at hx, simp at hx, rcases hx with ⟨n, a, hx⟩, rw hx,
-    have := proj_lim_preimage_clopen p 1 n, rw one_mul at this, convert this a, simp, },
+    rw clopen_basis at hx, simp only [set.mem_set_of_eq] at hx, rcases hx with ⟨n, a, hx⟩, rw hx,
+    have := proj_lim_preimage_clopen p 1 n, rw one_mul at this, convert this a,
+    simp only [zmod.cast_id', id.def], },
 end
 
 --lemma char_fn_basis_of_loc_const : is_basis A (@char_fn ℤ_[p] _ _ _ _ A _ _ _) := sorry
@@ -542,8 +563,7 @@ begin
 end
 --instance {α : Type*} [topological_space α] : semimodule A (locally_constant α A) := sorry
 
-example (x : ℕ) : ((x : ℤ_[p]) : ℚ_[p]) = (x : ℚ_[p]) :=
-coe_coe x
+example (x y : ℤ) : x + y - x = y := add_sub_cancel' x y
 
 example (m : ℕ) : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m) :=
 begin
@@ -561,7 +581,9 @@ begin
     refine metric.totally_bounded_of_finite_discretization _,
     rintros ε hε,
     obtain ⟨m, fm⟩ := find_this_out p (ε/2) (half_pos hε),
-    have fm' : (2 : ℝ)/(p^m) < ε, sorry,
+    have fm' : (2 : ℝ)/(p^m) < ε,
+    { rw ←mul_one (2 : ℝ), rw mul_div_assoc, rw mul_comm, rw ←lt_div_iff _, assumption,
+      norm_num, },
     refine ⟨zmod (p^m.succ), _, to_zmod_pow m.succ, λ x y h, _ ⟩,
     { have : fact (0 < (p^(m.succ))), { exact fact.pow.pos, },
       apply zmod.fintype _, assumption, },
@@ -572,7 +594,12 @@ begin
     refine gt_of_gt_of_ge _ (dist_triangle x (appr y m.succ) y),
     have f : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m), {  rw ←add_div, refl, },
     rw f, rw dist_comm _ ↑y,
-    have f' : ↑p ^ (1 - (m.succ : ℤ)) = (1 : ℝ) / (p^m), sorry, rw f' at h,
+    have f' : ↑p ^ (1 - (m.succ : ℤ)) = (1 : ℝ) / (p^m),
+    { symmetry, rw div_eq_iff _, rw ←gpow_coe_nat, rw ←fpow_add _,
+      norm_num, rw sub_add, rw add_sub_cancel', rw sub_self, rw gpow_zero,
+      any_goals { apply pow_ne_zero, },
+      all_goals { norm_cast, apply nat.prime.ne_zero, apply fact.out, }, },
+    rw f' at h,
     rw add_comm (dist _ _) _,
     have f'' : ↑p ^ -(m.succ : ℤ) < (1 : ℝ) / (p^m),
     { rw div_eq_inv_mul, rw mul_one, rw fpow_neg, rw inv_lt_inv,

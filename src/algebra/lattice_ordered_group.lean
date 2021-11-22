@@ -197,7 +197,8 @@ lemma m_le_neg (a : α) : a⁻¹ ≤ a⁻ := le_sup_left
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the negative
 component `a⁻` of `a` is equal to the positive component `(-a)⁺` of `-a`.
-"-/]
+"-/
+@[to_additive]
 lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := by { unfold has_neg_part.neg, unfold has_pos_part.pos}
 
 /--

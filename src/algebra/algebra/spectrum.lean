@@ -173,7 +173,7 @@ begin
   rw [←smul_mul_assoc, ←mul_smul_comm r⁻¹ b a, is_unit_one_sub_mul_iff_swap],
 end
 
-theorem units_spectrum_mul_iff_swap_mul {a b : A} {r : units R} :
+theorem units_spectrum_mul_iff_swap_mul {a b : A} :
   (coe : units R → R) ⁻¹' σ (a * b) = coe ⁻¹'  σ (b * a) :=
 by { ext, exact unit_mem_spectrum_mul_iff_swap_mul, }
 

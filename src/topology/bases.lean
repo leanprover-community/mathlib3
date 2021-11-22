@@ -390,7 +390,8 @@ in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _
 /-- Let `s` be a dense set in a topological space `α` with partial order structure. If `s` is a
 separable space (e.g., if `α` has a second countable topology), then there exists a countable
 dense subset `t ⊆ s` such that `t` contains bottom/top element of `α` when they exist and belong
-to `s`. -/
+to `s`. For a dense subset containing neither bot nor top elements, see
+`dense.exists_countable_dense_subset_no_bot_top`. -/
 lemma dense.exists_countable_dense_subset_bot_top {α : Type*} [topological_space α]
   [partial_order α] {s : set α} [separable_space s] (hs : dense s) :
   ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∈ s → x ∈ t) ∧
@@ -411,7 +412,8 @@ instance separable_space_univ {α : Type*} [topological_space α] [separable_spa
 
 /-- If `α` is a separable topological space with a partial order, then there exists a countable
 dense set `s : set α` that contains those of both bottom and top elements of `α` that actually
-exist. -/
+exist. For a dense set containing neither bot nor top elements, see
+`exists_countable_dense_no_bot_top`. -/
 lemma exists_countable_dense_bot_top (α : Type*) [topological_space α] [separable_space α]
   [partial_order α] :
   ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∈ s) ∧ (∀ x, is_top x → x ∈ s) :=

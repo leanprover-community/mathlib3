@@ -42,6 +42,11 @@ structure measure_preserving (f : α → β) (μa : measure α . volume_tac)
 (measurable : measurable f)
 (map_eq : map f μa = μb)
 
+protected lemma _root_.measurable.measure_preserving {f : α → β}
+  (h : measurable f) (μa : measure α) :
+  measure_preserving f μa (map f μa) :=
+⟨h, rfl⟩
+
 namespace measure_preserving
 
 protected lemma id (μ : measure α) : measure_preserving id μ μ :=
@@ -51,6 +56,19 @@ lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure
   measure_preserving e.symm μb μa :=
 ⟨e.symm.measurable,
   by rw [← h.map_eq, map_map e.symm.measurable e.measurable, e.symm_comp_self, map_id]⟩
+
+lemma restrict_preimage {f : α → β} (hf : measure_preserving f μa μb) {s : set β}
+  (hs : measurable_set s) : measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
+⟨hf.measurable, by rw [← hf.map_eq, restrict_map hf.measurable hs]⟩
+
+lemma restrict_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
+  (h₂ : measurable_embedding f) (s : set β) :
+  measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
+⟨hf.measurable, by rw [← hf.map_eq, h₂.restrict_map]⟩
+
+lemma restrict_image_emb {f : α → β} (hf : measure_preserving f μa μb) (h₂ : measurable_embedding f)
+  (s : set α) : measure_preserving f (μa.restrict s) (μb.restrict (f '' s)) :=
+by simpa only [preimage_image_eq _ h₂.injective] using hf.restrict_preimage_emb h₂ (f '' s)
 
 protected lemma quasi_measure_preserving {f : α → β} (hf : measure_preserving f μa μb) :
   quasi_measure_preserving f μa μb :=

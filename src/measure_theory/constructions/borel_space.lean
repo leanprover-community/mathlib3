@@ -6,11 +6,12 @@ Authors: Johannes Hölzl, Yury Kudryashov
 import measure_theory.function.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
-import topology.G_delta
 import measure_theory.group.arithmetic
-import topology.semicontinuous
-import topology.instances.ereal
+import topology.algebra.ordered.liminf_limsup
 import topology.continuous_function.basic
+import topology.instances.ereal
+import topology.G_delta
+import topology.semicontinuous
 
 /-!
 # Borel (measurable) space

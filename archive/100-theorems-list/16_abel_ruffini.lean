@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 import field_theory.abel_ruffini
 import analysis.calculus.local_extr
+import ring_theory.eisenstein_criterion
 /-!
 Construction of an algebraic number that is not solvable by radicals.
 

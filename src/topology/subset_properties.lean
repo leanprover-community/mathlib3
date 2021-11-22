@@ -880,33 +880,14 @@ instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π
 lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
   filter.Coprod (λ d, filter.cocompact (κ d)) = filter.cocompact (Π d, κ d) :=
 begin
-  ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap, filter.mem_cocompact],
+  ext S, rcases compl_surjective S with ⟨S, rfl⟩,
+  simp_rw [compl_mem_Coprod_iff, filter.mem_cocompact, compl_subset_compl],
   split,
-  { intros h,
-    rw filter.mem_Coprod_iff at h,
-    choose t ht1 ht2 using h,
-    choose t1 ht11 ht12 using λ d, filter.mem_cocompact.mp (ht1 d),
-    refine ⟨set.pi set.univ t1, _, _⟩,
-    { convert is_compact_pi_infinite ht11,
-      ext,
-      simp },
-    { refine subset.trans _ (set.Union_subset ht2),
-      intros x,
-      simp only [mem_Union, mem_univ_pi, exists_imp_distrib, mem_compl_eq, not_forall],
-      intros d h,
-      exact ⟨d, ht12 d h⟩ } },
-  { rintros ⟨t, h1, h2⟩,
-    rw filter.mem_Coprod_iff,
-    intros d,
-    refine ⟨((λ (k : Π (d : δ), κ d), k d) '' t)ᶜ, _, _⟩,
-    { rw filter.mem_cocompact,
-      refine ⟨(λ (k : Π (d : δ), κ d), k d) '' t, _, set.subset.refl _⟩,
-      exact is_compact.image h1 (continuous_pi_iff.mp (continuous_id) d) },
-    refine subset.trans _ h2,
-    intros x hx,
-    simp only [not_exists, mem_image, mem_preimage, mem_compl_eq] at hx,
-    simpa using mt (hx x) },
+  { rintro ⟨t, H, hSt⟩, choose K hKc htK using H,
+    exact ⟨set.pi univ K, is_compact_univ_pi hKc, hSt.trans $ pi_mono $ λ i _, htK i⟩ },
+  { rintro ⟨K, hKc, hSK⟩,
+    exact ⟨λ i, function.eval i '' K, λ i, ⟨_, hKc.image (continuous_apply i), subset.rfl⟩,
+      hSK.trans $ subset_pi_eval_image _ _⟩ }
 end
 
 end tychonoff

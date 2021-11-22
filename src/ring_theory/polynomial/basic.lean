@@ -7,8 +7,8 @@ Authors: Kenny Lau
 import algebra.char_p.basic
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
-import ring_theory.principal_ideal_domain
 import ring_theory.polynomial.content
+import ring_theory.unique_factorization_domain
 
 /-!
 # Ring-theoretic supplement of data.polynomial.

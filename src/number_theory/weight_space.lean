@@ -176,14 +176,43 @@ end-/
   ∃ inj' : (units B) → (units A), ∀ (x : (units B)), inj' x = inj (x : B) -/
 
 --[fact (function.injective inj)]
-variables (R : Type*) [normed_comm_ring R] [complete_space R] (inj : ℤ_[p] → R)
-
-variables (m : ℕ) (χ : mul_hom (units (zmod (d*(p^m)))) R) (w : weight_space R p d)
+variables (R : Type*) [normed_comm_ring R] [complete_space R] (inj : ℤ_[p] → R) (m : ℕ)
+  (χ : mul_hom (units (zmod (d*(p^m)))) R) (w : weight_space R p d)
 --variables (d : ℕ) (hd : gcd d p = 1) (χ : dirichlet_char_space A p d) (w : weight_space A p)
 --need χ to be primitive
 
+--lemma units_coprime : units (zmod (d*(p^m))) = ((units (zmod d)) × (units (zmod (p^m)))) :=
+
+example {α β : Type*} [has_mul α] [has_mul β] [has_add α] [has_add β] (h : α ≃+* β) : α ≃* β :=
+  by refine ring_equiv.to_mul_equiv h
+
+example {α β γ : Type*} [mul_one_class β] [mul_one_class γ] [mul_one_class α]
+  [monoid α] [monoid β] [monoid γ] (h : β →* γ) :
+ mul_hom (α × β) (α × γ) := monoid_hom.to_mul_hom (monoid_hom.prod_map (monoid_hom.id _) h)
+
+/- example {α β : Type*} [monoid α] [monoid β] : units (α × β) ≃ units α × units β :=
+{
+  to_fun :=
+  inv_fun :=
+  right_inv := sorry
+  left_inv := sorry
+}-/
+
 /-- Extending the primitive dirichlet character χ with conductor (d* p^m) -/
-def pri_dir_char_extend : mul_hom ((units (zmod d)) × (units ℤ_[p])) R := sorry
+noncomputable def pri_dir_char_extend [fact (0 < m)] (h : gcd d p = 1)
+  (χ : mul_hom (units (zmod (d*(p^m)))) R) : mul_hom ((units (zmod d)) × (units ℤ_[p])) R :=
+begin
+  have : nat.coprime d (p^m),
+  { rw nat.coprime_pow_right_iff, rw nat.coprime_iff_gcd_eq_one,
+    { exact h, },
+    { apply fact.out, }, },
+  refine mul_hom.comp χ
+    (mul_hom.comp (mul_equiv.symm (units.map_equiv
+      (zmod.chinese_remainder this).to_mul_equiv)).to_mul_hom _),
+  { refine mul_hom.comp (mul_equiv.symm (mul_equiv.prod_units)).to_mul_hom
+      (monoid_hom.to_mul_hom (monoid_hom.prod_map (monoid_hom.id _) (units.map _))),
+    refine (padic_int.to_zmod_pow _).to_monoid_hom, },
+end
 --should this be def or lemma? ; units A instead of A ; use monoid_hom instead of mul_hom
 -- so use def not lemma, because def gives Type, lemma gives Prop
 
@@ -1723,8 +1752,8 @@ end
 --function on clopen subsets of Z/dZ* x Z_p* or work in Z_p and restrict
 --(i,a + p^nZ_p) (i,d) = 1
 
-lemma cont_paLf : continuous (λ (a : (units (zmod d) × units ℤ_[p])),
-  ((pri_dir_char_extend p d R) a) * (inj (teichmuller_character p (a.snd)))^(p - 2)
+lemma cont_paLf [fact (0 < m)] (h : gcd d p = 1) : continuous (λ (a : (units (zmod d) × units ℤ_[p])),
+  ((pri_dir_char_extend p d R m h χ) a) * (inj (teichmuller_character p (a.snd)))^(p - 2)
   * (w.to_fun a : R)) :=
 sorry
 
@@ -1734,7 +1763,7 @@ def f : R := sorry
 --h wont go in the system if you put it in [], is this independent of c? is it accurate to say that ω⁻¹ = ω^(p - 2)? I think so
 /-- The `p_adic_L_function` defined in terms of the p-adic integral and the
   Bernoulli measure `E_c`. -/
-noncomputable def p_adic_L_function (h : function.injective inj) (hc : gcd c p = 1) (hc' : gcd c d = 1) :=
+noncomputable def p_adic_L_function (hd : gcd d p = 1) [fact (0 < m)] (h : function.injective inj) (hc : gcd c p = 1) (hc' : gcd c d = 1) :=
  (f R) * (integral (units (zmod d) × units ℤ_[p]) R (bernoulli_measure_of_measure p d R hc hc')
-⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R) a) *
-  (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj w ⟩)
+⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R m hd χ) a) *
+  (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj m χ w hd ⟩)

@@ -192,6 +192,8 @@ lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → α → E} {F' 
   (h_diff : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, has_fderiv_at (λ x, F x a) (F' x a) x) :
   has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' x₀ a ∂μ) x₀ :=
 begin
+  letI : normed_space ℝ H := normed_space.restrict_scalars ℝ 𝕜 H,
+  haveI : is_scalar_tower ℝ 𝕜 H := restrict_scalars.is_scalar_tower ℝ 𝕜 H,
   have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos,
   have diff_x₀ : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (F' x₀ a) x₀ :=
     h_diff.mono (λ a ha, ha x₀ x₀_in),

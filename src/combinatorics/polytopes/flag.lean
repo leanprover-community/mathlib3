@@ -59,7 +59,7 @@ namespace polytope.flag
 instance (α : Type u) [has_le α] : has_mem α (flag α) :=
 ⟨λ a Φ, a ∈ Φ.val⟩
 
-variables {α : Type u} 
+variables {α : Type u}
 
 instance [has_le α] (Φ : flag α) : has_le Φ :=
 ⟨λ a b, a.val ≤ b.val⟩
@@ -360,7 +360,7 @@ theorem set.Ioo_is_empty_of_covers {α : Type u} [preorder α] {x y : α} : x �
 λ ⟨_, hr⟩, set.eq_empty_iff_forall_not_mem.mpr hr
 
 namespace flag
-variables {α : Type u} [partial_order α] [graded α]
+variables {α : Type u} [partial_order α]
 
 /-- An element covers another iff they do so in the flag. -/
 @[simp]
@@ -379,7 +379,7 @@ begin
     { exact or.inr (le_of_lt $ lt_trans hxw hxz) }
 end
 
-instance (Φ : flag α) : graded Φ :=
+instance [graded α] (Φ : flag α) : graded Φ :=
 { grade := λ a, grade a.val,
   grade_bot := graded.grade_bot,
   strict_mono := λ x y (h : x.val < y.val), graded.strict_mono h,

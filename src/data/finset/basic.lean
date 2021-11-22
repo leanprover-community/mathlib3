@@ -1823,7 +1823,7 @@ end
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
-lemma to_finset_repeat_of_pos {a : α} {n : ℕ} (hn : n ≠ 0):
+lemma to_finset_repeat_of_ne_zero {a : α} {n : ℕ} (hn : n ≠ 0):
   (list.repeat a n).to_finset = {a} :=
 by { ext x, simp [hn, list.mem_repeat] }
 

@@ -1000,7 +1000,7 @@ begin
 end
 
 /-- If `a`,`b` are positive the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
-lemma prime_divisors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+lemma factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
 by { ext p, simp only [finset.mem_union, list.mem_to_finset, factors_mul_of_pos ha hb p] }
 

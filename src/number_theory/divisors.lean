@@ -402,7 +402,7 @@ end
 
 /-- The factors of `n` are the prime divisors -/
 lemma prime_divisors_eq_to_filter_divisors_prime (n : ℕ) :
-n.factors.to_finset = (divisors n).filter prime :=
+  n.factors.to_finset = (divisors n).filter prime :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn,
   { simp },

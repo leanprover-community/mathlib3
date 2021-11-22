@@ -20,6 +20,9 @@ where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is eq
 integrals of `f` over the faces of `[a, b]`, taken with appropriat signs. Moreover, the same is true
 if the function is not differentiable but continuous at countably many points of `[a, b]`.
 
+Once we prove the general theorem, we deduce corollaries for functions `ℝ → E` and pairs of
+functions `(ℝ × ℝ) → E`.
+
 ## Notations
 
 We use the following local notation to make the statement more readable. Note that the documentation
@@ -35,7 +38,6 @@ website shows the actual terms, not those abbreviated using local notations.
 
 ## TODO
 
-* Deduce corollaries about integrals in `ℝ × ℝ` and interval integral.
 * Add a version that assumes existence and integrability of partial derivatives.
 
 ## Tags
@@ -127,8 +129,9 @@ begin
       exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance } }
 end
 
-/-- A version of `integral_divergence_of_has_fderiv_within_at_off_countable'` that uses a family of
-functions `f : fin (n + 1) → ℝⁿ⁺¹ → E` instead of a vector-valued function `f : ℝⁿ⁺¹ → Eⁿ⁺¹`. -/
+/-- **Divergence theorem** for a family of functions `f : fin (n + 1) → ℝⁿ⁺¹ → E`. See also
+`measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable'` for a version formulated
+in terms of a vector-valued function `f : ℝⁿ⁺¹ → Eⁿ⁺¹`. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable' (hle : a ≤ b)
   (f : fin (n + 1) → ℝⁿ⁺¹ → E) (f' : fin (n + 1) → ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] E)
   (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : ∀ (x ∈ s) i, continuous_within_at (f i) (Icc a b) x)
@@ -142,6 +145,8 @@ lemma integral_divergence_of_has_fderiv_within_at_off_countable' (hle : a ≤ b)
 
 end
 
+/-- An auxiliary lemma that is used to specialize the general divergence theorem to spaces that do
+not have the form `fin n → ℝ`. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv
   {F : Type*} [normed_group F] [normed_space ℝ F] [partial_order F] [measure_space F]
   [borel_space F] (eL : F ≃L[ℝ] ℝⁿ⁺¹) (he_ord : ∀ x y, eL x ≤ eL y ↔ x ≤ y)
@@ -195,6 +200,16 @@ local notation `ℝ²` := fin 2 → ℝ
 local notation `E¹` := fin 1 → E
 local notation `E²` := fin 2 → E
 
+/-- **Fundamental theorem of calculus, part 2**. This version assumes that `f` is differentiable off
+a countable set `s`, and is continuous at the points of `s`.
+
+See also
+
+* `interval_integral.integral_eq_sub_of_has_deriv_right_of_le` for a version that only assumes right
+differentiability of `f`;
+
+* `measure_theory.integral_eq_of_has_deriv_within_at_off_countable` for a version that works both
+  for `a ≤ b` and `b ≤ a` at the expense of using unordered intervals instead of `set.Icc`. -/
 theorem integral_eq_of_has_deriv_within_at_off_countable_of_le (f f' : ℝ → E)
   {a b : ℝ} (hle : a ≤ b) {s : set ℝ} (hs : countable s)
   (Hc : ∀ x ∈ s, continuous_within_at f (Icc a b) x)
@@ -229,6 +244,12 @@ begin
     end
 end
 
+/-- **Fundamental theorem of calculus, part 2**. This version assumes that `f` is differentiable off
+a countable set `s`, and is continuous at the points of `s`.
+
+See also `measure_theory.interval_integral.integral_eq_sub_of_has_deriv_right` for a version that
+only assumes right differentiability of `f`.
+-/
 theorem integral_eq_of_has_deriv_within_at_off_countable (f f' : ℝ → E) {a b : ℝ} {s : set ℝ}
   (hs : countable s) (Hc : ∀ x ∈ s, continuous_within_at f [a, b] x)
   (Hd : ∀ x ∈ [a, b] \ s, has_deriv_within_at f (f' x) [a, b] x)
@@ -243,6 +264,12 @@ begin
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi.symm }
 end
 
+/-- **Divergence theorem** for functions on the plane. It is formulated in terms of two functions
+`f g : ℝ × ℝ → E` and an integral over `Icc a b`, where `a b : ℝ × ℝ`, `a ≤ b`.
+
+See also `measure_theory.integral2_divergence_prod_of_has_fderiv_within_at_off_countable` for a
+version that does not assume `a ≤ b` and uses iterated interval integral instead of the integral
+over `Icc a b`. -/
 lemma integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le (f g : ℝ × ℝ → E)
   (f' g' : ℝ × ℝ → ℝ × ℝ →L[ℝ] E) (a b : ℝ × ℝ) (hle : a ≤ b) (s : set (ℝ × ℝ)) (hs : countable s)
   (Hcf : ∀ x ∈ s, continuous_within_at f (Icc a b) x)
@@ -287,6 +314,11 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
     abel
   end
 
+/-- **Divergence theorem** for functions on the plane. It is formulated in terms of two functions
+`f g : ℝ × ℝ → E` and iterated interval integral.
+
+See also `measure_theory.integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le`
+for a version that uses an integral over `Icc a b`, where `a b : ℝ × ℝ`, `a ≤ b`. -/
 lemma integral2_divergence_prod_of_has_fderiv_within_at_off_countable (f g : ℝ × ℝ → E)
   (f' g' : ℝ × ℝ → ℝ × ℝ →L[ℝ] E) (a₁ a₂ b₁ b₂ : ℝ) (s : set (ℝ × ℝ)) (hs : countable s)
   (Hcf : ∀ x ∈ s, continuous_within_at f ([a₁, b₁].prod [a₂, b₂]) x)

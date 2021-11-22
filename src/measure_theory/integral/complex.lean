@@ -1,8 +1,16 @@
+/-
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
 import analysis.analytic.basic
 
 /-!
+# Cauchy integral formula
+
+In this file we prove Cauchy theorem and Cauchy integral formula.
 -/
 
 open topological_space set measure_theory interval_integral metric filter function
@@ -17,6 +25,14 @@ variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E
 
 namespace complex
 
+/-- Suppose that a function `f : ℂ → E` be is real differentiable on a rectangle with vertices
+`z w : ℂ` and $\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then
+the integral of `f` over the boundary of the rectangle is equal to the integral of
+$2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$
+over the rectangle.
+
+Moreover, the same is true if `f` is only differentiable at points outside of a countable set `s`
+and is continuous at the points of this set. -/
 lemma integral_boundary_rect_of_has_fderiv_within_at_real_off_countable (f : ℂ → E)
   (f' : ℂ → ℂ →L[ℝ] E) (z w : ℂ) (s : set ℂ) (hs : countable s)
   (Hc : ∀ x ∈ s, continuous_within_at f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]) x)
@@ -54,6 +70,11 @@ begin
   simpa only [hF'] using Hi.neg
 end
 
+/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
+rectangle equals zero.
+
+Moreover, the same is true if `f` is only differentiable at points outside of a countable set `s`
+and is continuous at the points of this set. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on_off_countable (f : ℂ → E)
   (z w : ℂ) (s : set ℂ) (hs : countable s)
   (Hc : ∀ x ∈ s, continuous_within_at f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]) x)
@@ -67,6 +88,12 @@ by refine (integral_boundary_rect_of_has_fderiv_within_at_real_off_countable f
   (λ x hx, (Hd x hx).has_fderiv_within_at.restrict_scalars ℝ) _).trans _;
     simp [← continuous_linear_map.map_smul]
 
+/-- Let `f` be a function complex differentiable on the annulus `r ≤ |z| ≤ R`. Then the integrals
+$\int_{|z|=r} f(z)\,d(\arg z)$ and $\int_{|z|=R} f(z)\,d(\arg z)$ are equal to each other. Moreover,
+the same is true if at the points of some countable set, the function `f` is only continuous.
+
+Up to a rescaling, these integrals are equal to $\int_{|z|=r}\frac{f(z)dz}{z}$ and
+$\int_{|z|=R}\frac{f(z)dz}{z}$. -/
 lemma integral_circle_darg_eq_of_differentiable_on_annulus_off_countable
   {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : countable s)
   (hc : ∀ z ∈ s, continuous_within_at f (closed_ball 0 R \ ball 0 r) z)
@@ -92,8 +119,10 @@ begin
       _ hs hc hd
 end
 
-
--- These integrals are `∫ f z dz/iz`
+/-- **Cauchy integral formula** for the value at the center of a disc. If `f` is differentiable on a
+punctured closed disc of radius `R` and has a limit `y` at the center of the disc, then the integral
+$\int_{|z|=R} f(z)\,d(\arg z)=-i\int_{|z|=R}\frac{f(z)\,dz}{z}$ is equal to $2πy`. Moreover, the
+same is true if at the points of some countable set, `f` is only continuous, not differentiable. -/
 lemma integral_circle_darg_of_differentiable_on_off_countable_of_tendsto
   {R : ℝ} (h0 : 0 < R) {f : ℂ → E} {y : E} {s : set ℂ} (hs : countable s)
   (hc : ∀ z ∈ s, continuous_within_at f (closed_ball 0 R \ {0}) z)
@@ -135,6 +164,10 @@ begin
   { simp [interval_integrable, measure_lt_top] }
 end
 
+/-- **Cauchy integral formula** for the value at the center of a disc. If `f` is differentiable on a
+closed disc of radius `R`, then the integral
+$\int_{|z|=R} f(z)\,d(\arg z)=-i\int_{|z|=R}\frac{f(z)\,dz}{z}$ is equal to $2πy`. Moreover, the
+same is true if at the points of some countable set, `f` is only continuous, not differentiable. -/
 lemma integral_circle_darg_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
   {s : set ℂ} (hs : countable s) (hc : ∀ x ∈ s, continuous_within_at f (closed_ball 0 R) x)
   (hd : ∀ z ∈ closed_ball (0 : ℂ) R \ s, differentiable_within_at ℂ f (closed_ball 0 R) z) :
@@ -150,6 +183,9 @@ begin
   exacts [hc _ h, (hd _ ⟨mem_closed_ball_self h0.le, h⟩).continuous_within_at]
 end
 
+/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
+disc equals zero. Moreover, the same is true if at the points of some countable set, `f` is only
+continuous. -/
 lemma integral_circle_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
   {s : set ℂ} (hs : countable s) (hc : ∀ x ∈ s, continuous_within_at f (closed_ball 0 R) x)
   (hd : ∀ z ∈ closed_ball (0 : ℂ) R \ s, differentiable_within_at ℂ f (closed_ball 0 R) z) :
@@ -159,6 +195,7 @@ by simpa [mul_smul, smul_comm _ I, interval_integral.integral_smul, I_ne_zero]
     (λ z hz, continuous_within_at_id.smul (hc z hz))
     (λ z hz, differentiable_within_at_id.smul (hd z hz))
 
+/-- If `|w|<R` and `n ≠ -1`, then $\int_{|z|=R} (z-w)^n\,dz=0`. -/
 lemma integral_circle_zpow_sub_of_abs_lt {R : ℝ} {w : ℂ} (hw : abs w < R) {n : ℤ} (hn : n ≠ -1) :
   ∫ θ : ℝ in 0..2 * π, ↑R * exp (θ * I) * I * (R * exp (θ * I) - w) ^ n = 0 :=
 begin
@@ -346,7 +383,6 @@ begin
     using integral_circle_div_sub_of_differentiable_on₀ hw hd
 end
 
-
 protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0} {z : ℂ} {f : ℂ → E}
   (hd : differentiable_on ℂ f (closed_ball z R)) (hR : 0 < R) :
   has_fpower_series_on_ball f
@@ -355,7 +391,8 @@ protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0}
   r_pos := ennreal.coe_pos.2 hR,
   has_sum := λ w hw,
     begin
-      rw [mem_emetric_ball_zero_iff, ennreal.coe_lt_coe, ← nnreal.coe_lt_coe, coe_nnnorm, norm_eq_abs] at hw,
+      rw [mem_emetric_ball_zero_iff, ennreal.coe_lt_coe, ← nnreal.coe_lt_coe, coe_nnnorm,
+        norm_eq_abs] at hw,
       replace hd : differentiable_on ℂ (λ ζ, f (z + ζ)) (closed_ball 0 R),
       { refine hd.comp (differentiable_on_id.const_add _) _,
         rw [preimage_add_closed_ball, sub_self] },
@@ -384,8 +421,6 @@ end
 protected lemma differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :
   analytic_at ℂ f z :=
 hf.differentiable_on.analytic_at univ_mem
-
-
 
 end complex
 

@@ -465,7 +465,7 @@ theorem one_eq_mk_one [monoid α] : (1 : associates α) = associates.mk 1 := rfl
 
 instance [monoid α] : has_bot (associates α) := ⟨1⟩
 
-lemma associates.bot_eq_one [monoid_with_zero α] :
+lemma bot_eq_one [monoid_with_zero α] :
   (⊥ : associates α) = 1 := rfl
 
 lemma exists_rep [monoid α] (a : associates α) : ∃ a0 : α, associates.mk a0 = a :=
@@ -726,19 +726,9 @@ instance : partial_order (associates α) :=
   quot.sound $ associated_of_dvd_dvd (dvd_of_mk_le_mk hab) (dvd_of_mk_le_mk hba))
   .. associates.preorder }
 
-lemma associates.le_one_iff [comm_cancel_monoid_with_zero α]
+lemma le_one_iff [comm_cancel_monoid_with_zero α]
   {p : associates α} : p ≤ 1 ↔ p = 1 :=
 by rw [← associates.bot_eq_one, le_bot_iff]
-
-instance : order_bot (associates α) :=
-{ bot := 1,
-  bot_le := assume a, one_le,
-  .. associates.partial_order }
-
-instance : order_top (associates α) :=
-{ top := 0,
-  le_top := assume a, ⟨0, (mul_zero a).symm⟩,
-  .. associates.partial_order }
 
 instance : no_zero_divisors (associates α) :=
 ⟨λ x y,

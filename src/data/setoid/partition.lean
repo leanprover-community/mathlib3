@@ -53,23 +53,19 @@ def classes (r : setoid α) : set (set α) :=
 
 lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, rfl⟩
 
-/-- Given a function `f`, builds a function that consumes a `y` and returns the set of every `x`
-    whose image is `y`. -/
-def class_fn {β : Type*} (f : α → β) : β → set α := λ y, {x | f x = y}
-
-lemma ker_classes_subset_of_class_fn_codomain {β : Type*} (f : α → β) :
-  (setoid.ker f).classes ⊆ set.range (class_fn f) :=
+lemma ker_classes_subset_of_singleton_preimage {β : Type*} (f : α → β) :
+  (setoid.ker f).classes ⊆ set.range (λ y, {x | f x = y}) :=
 begin
   rintro s ⟨x, rfl⟩,
   simp only [set.mem_range],
-  exact ⟨f x, rfl⟩
+  exact ⟨f x, rfl⟩,
 end
 
 lemma classes_fintype {α β : Type*} [fintype β] (f : α → β) :
   nonempty (fintype (setoid.ker f).classes) :=
 begin
   classical,
-  exact ⟨set.fintype_subset _ (setoid.ker_classes_subset_of_class_fn_codomain f)⟩,
+  exact ⟨set.fintype_subset _ (setoid.ker_classes_subset_of_singleton_preimage f)⟩,
 end
 
 lemma classes_fintype_card {α β : Type*} [fintype β]
@@ -77,8 +73,8 @@ lemma classes_fintype_card {α β : Type*} [fintype β]
   fintype.card (setoid.ker f).classes ≤ fintype.card β :=
 begin
   classical,
-  transitivity fintype.card (set.range (setoid.class_fn f)),
-  apply set.card_le_of_subset (setoid.ker_classes_subset_of_class_fn_codomain f),
+  transitivity fintype.card (set.range (λ y, {x | f x = y})),
+  apply set.card_le_of_subset (setoid.ker_classes_subset_of_singleton_preimage f),
   apply fintype.card_range_le,
 end
 

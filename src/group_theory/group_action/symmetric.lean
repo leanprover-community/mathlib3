@@ -7,6 +7,7 @@ import algebra.opposites
 import group_theory.group_action.defs
 import group_theory.group_action.prod
 import algebra.direct_sum.basic
+import data.finsupp.basic
 
 /-!
 # Symmetric group actions
@@ -58,7 +59,7 @@ variables {R : Type*} [ring R]
   [Π (i : ι), distrib_mul_action R (β i)] [Π (i : ι), distrib_mul_action Rᵒᵖ (β i)]
   [Π (i : ι), is_symmetric_smul R (β i)]
 
---TODO why doesn't this exist yet?
+--TODO why isn't this found
 instance : has_scalar R (direct_sum ι β) := dfinsupp.has_scalar
 instance direct_sum.has_rscalar : has_scalar Rᵒᵖ (direct_sum ι β) := dfinsupp.has_scalar
 
@@ -72,6 +73,7 @@ instance dfinsupp.is_symmetric_smul :
 
 end direct_sum
 
+
 instance (R M) [has_scalar R M] [has_scalar Rᵒᵖ M] [is_symmetric_smul R M] :
   is_symmetric_smul R Mᵒᵖ := ⟨λ r m, unop_injective (op_smul_eq_smul r m.unop : _)⟩
 
@@ -83,17 +85,16 @@ instance is_scalar_tower.is_symmetric_smul {R α} [monoid R] [mul_action R α] [
   [is_scalar_tower Rᵒᵖ R α] : is_symmetric_smul R α :=
 ⟨λ r a, by rw [←one_smul R a, ←smul_assoc, one_smul, op_smul_eq_mul, one_mul]⟩
 
---This causes loops :(
-/-instance is_symmetric_smul.is_scalar_tower {R α} [comm_monoid R] [mul_action R α] [has_scalar Rᵒᵖ α]
-  [is_symmetric_smul R α] : is_scalar_tower Rᵒᵖ R α :=
-⟨λ r' r a, by { rw [←unop_smul_eq_smul r' (r • a), smul_smul],
-                change (_ * _) • _ = _, rw [mul_comm] } ⟩-/
-
 instance mul_action.of_is_symmetric_smul {R α} [comm_monoid R] [mul_action R α] [has_scalar Rᵒᵖ α]
   [is_symmetric_smul R α] : mul_action Rᵒᵖ α :=
 ⟨λ a, by rw [←op_one, op_smul_eq_smul (1 : R) a, one_smul],
  λ r s a, by rw [mul_comm, ←op_unop (s * r), op_smul_eq_smul, unop_mul, mul_smul,
                  unop_smul_eq_smul, unop_smul_eq_smul]⟩
+
+noncomputable instance {R M ι} [monoid R] [add_monoid M] [distrib_mul_action R M]
+  [distrib_mul_action Rᵒᵖ M] [is_symmetric_smul R M] :
+  is_symmetric_smul R (ι →₀ M) :=
+⟨λ r a, by { ext i, simp only [finsupp.coe_smul, pi.smul_apply, op_smul_eq_smul] }⟩
 
 -- TODO there might be a more general version of this
 instance smul_comm_class.of_is_symmetric_smul {R α} [has_scalar R α] [has_scalar Rᵒᵖ α]
@@ -103,3 +104,12 @@ instance smul_comm_class.of_is_symmetric_smul {R α} [has_scalar R α] [has_scal
 instance smul_comm_class.of_is_symmetric_smul' {R α} [has_scalar R α] [has_scalar Rᵒᵖ α]
   [is_symmetric_smul R α] [smul_comm_class R R α] : smul_comm_class R Rᵒᵖ α :=
 ⟨λ r' r a, by rw [←unop_smul_eq_smul r (r' • a), ←unop_smul_eq_smul r a, smul_comm]⟩
+
+/-- These are definitions (not instances) in order to easily make (local) instances of symmetric
+actions where the right action is derived from the left action. -/
+
+def op_scalar_of_scalar (R α) [has_scalar R α] : has_scalar Rᵒᵖ α := ⟨λ r' a, unop r' • a⟩
+
+def is_symmetric_op_scalar_of_scalar (R α) [has_scalar R α] :
+  @is_symmetric_smul R α _ (op_scalar_of_scalar R α) :=
+{ op_smul_eq_smul := λ r a, rfl }

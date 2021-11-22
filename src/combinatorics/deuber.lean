@@ -12,38 +12,32 @@ def order_emb_mem {m β} [linear_order β] {s : finset β} (h : m ≤ s.card) (a
   order_emb_of_card_le h a ∈ s :=
 by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of_fin_mem]
 
-def partial_inv_spec {α β} {f : α → β} {b : β} {a : α} (h : a ∈ partial_inv f b) : f a = b :=
-by { unfold partial_inv at h, split_ifs at h with h1; cases h, exact classical.some_spec h1 }
-
 def preorder_hom.succ {m n : ℕ} (f : fin m →ₘ fin n) : fin (m+1) →ₘ fin (n+1) :=
-{ to_fun := @fin.last_cases m (λ i, fin (n+1)) (fin.last n) (λ i, (f i).cast_succ),
+{ to_fun := fin.snoc (λ i, (f i).cast_succ) (fin.last _),
   monotone' := begin
     refine fin.last_cases _ _,
     { intros j ij, cases fin.eq_last_of_not_lt (not_lt_of_le ij), refl },
     intros i, refine fin.last_cases _ _,
-    { intro junk, rw [fin.last_cases_last], apply fin.le_last },
+    { intro junk, rw [fin.snoc_last], apply fin.le_last },
     intros j ij,
-    rw [fin.last_cases_cast_succ, fin.last_cases_cast_succ, order_embedding.le_iff_le],
+    rw [fin.snoc_cast_succ, fin.snoc_cast_succ, order_embedding.le_iff_le],
     apply f.mono, exact ij,
   end }
 
 @[simp] lemma preorder_hom.succ_apply_last {m n : ℕ} (f : fin m →ₘ fin n) :
   f.succ (fin.last m) = fin.last n :=
-by { unfold preorder_hom.succ, simp only [preorder_hom.coe_fun_mk, fin.last_cases_last] }
+by { unfold preorder_hom.succ, simp only [preorder_hom.coe_fun_mk, fin.snoc_last] }
 
 @[simp] lemma preorder_hom.succ_apply_cast_succ {m n : ℕ} (f : fin m →ₘ fin n) (i : fin m) :
   f.succ (i.cast_succ) = (f i).cast_succ :=
-by { unfold preorder_hom.succ, simp only [preorder_hom.coe_fun_mk, fin.last_cases_cast_succ] }
+by { unfold preorder_hom.succ, simp only [preorder_hom.coe_fun_mk, fin.snoc_cast_succ] }
 
-def option.disjoint {α β} (a : option α) (b : option β) : Prop := a = none ∨ b = none
-
-lemma option.disjoint.orelse_comm {α} {a b : option α} (h : a.disjoint b) :
-  (a <|> b) = (b <|> a) :=
-by rcases h with rfl | rfl; simp only [orelse_none, none_orelse]
-
-lemma option.mem_orelse {α} {a b : option α} {x : α} (h : x ∈ (a <|> b)) : x ∈ a ∨ x ∈ b :=
+lemma option.mem_orelse_iff {α} (a b : option α) (x : α) :
+  x ∈ a.orelse b ↔ x ∈ a ∨ (a = none ∧ x ∈ b) :=
 begin
-  cases a, { right, simpa only [mem_def, none_orelse] using h }, { left, simpa only using h}
+  cases a,
+  { simp only [true_and, false_or, not_mem_none, eq_self_iff_true, none_orelse'] },
+  { simp only [some_orelse', or_false, false_and] }
 end
 
 section bla
@@ -88,7 +82,7 @@ variables (m n k : ℕ) (p q r : P R)
 @[ext] structure inc : Type :=
 (emb : fin m →ₘ fin n)
 (mat : fin n → option (R × fin m))
-(le_emb : ∀ {j r i}, (r, i) ∈ mat j → j ≤ emb i)
+(le_emb : ∀ {j r i}, (r, i) ∈ mat j → j ≤ emb i) -- want to join this with mat_mem i think
 
 variables {R m n}
 
@@ -183,7 +177,7 @@ by ext v; simp only [coloring.restrict, inc.comp_map]
 { emb := mon.to_preorder_hom,
   mat := λ i, (partial_inv mon i).map (prod.mk 1),
   le_emb := λ i r j h, by { simp only [mem_def, map_eq_some', prod.mk.inj_iff,
-    exists_eq_right_right] at h, rw ←partial_inv_spec h.1, refl } }
+    exists_eq_right_right] at h, rw ←(partial_inv_of_injective mon.injective _ _).mp h.1, refl } }
 
 lemma small_order_embedding {mon : fin m ↪o fin n} : mon.inc.small p :=
 { mat_emb := λ i, by simp only [partial_inv_left mon.injective, order_embedding.to_preorder_hom_coe,
@@ -195,20 +189,20 @@ lemma small_order_embedding {mon : fin m ↪o fin n} : mon.inc.small p :=
   mon.inc.map_vec v (mon i) = v i :=
 by rw [inc.map_vec, order_embedding.inc_mat, partial_inv_left mon.injective, map_some',
   option.elim, mul_one]
-
+#check fin.snoc
 @[simps] def inc.extend (f : inc R m n) (v : fin n → option q.set) : inc R (m+1) (n+1) :=
 { emb := f.emb.succ,
-  mat := @fin.last_cases n (λ _, option (R × fin (m+1))) (some (1, fin.last m))
-    (λ j, (f.mat j).map (λ x, (x.fst, x.snd.cast_succ)) <|> (v j).map (λ r, (↑r, fin.last m))),
+  mat := fin.snoc (λ j, option.orelse ((f.mat j).map (λ x, (x.fst, x.snd.cast_succ)))
+    ((v j).map (λ r, (↑r, fin.last m)))) (some (1, fin.last m)),
   le_emb := begin
       refine fin.last_cases _ _,
-      { intros r i h, simp only [mem_def, prod.mk.inj_iff, fin.last_cases_last] at h, rw ←h.2,
+      { intros r i h, simp only [mem_def, prod.mk.inj_iff, fin.snoc_last] at h, rw ←h.2,
         simp only [preorder_hom.succ_apply_last] },
       intros j r, refine fin.last_cases _ _,
       { intro, rw [preorder_hom.succ_apply_last], apply fin.le_last },
       intros i h,
-      simp only [mem_def, fin.last_cases_cast_succ] at h,
-      cases option.mem_orelse h with h1 h1,
+      simp only [fin.snoc_cast_succ, option.mem_orelse_iff] at h,
+      rcases h with h1 | ⟨_, h1⟩,
       { rw [mem_def, map_eq_some'] at h1, rcases h1 with ⟨⟨_, k⟩, ha, hb⟩,
         simp only [preorder_hom.succ_apply_cast_succ, order_embedding.le_iff_le],
         simp only [prod.mk.inj_iff, order_embedding.eq_iff_eq] at hb, rcases hb with ⟨rfl, rfl⟩,
@@ -221,21 +215,21 @@ lemma small.extend {f : inc R m n} {v : fin n → option q.set} (hf : f.small q)
   (f.extend v).small q :=
 { mat_emb := begin
       refine fin.last_cases _ _,
-      { simp only [inc.extend_mat, inc.extend_emb, fin.last_cases_last,
+      { simp only [inc.extend_mat, inc.extend_emb, fin.snoc_last,
         preorder_hom.succ_apply_last] },
       intro i,
-      simp only [inc.extend_mat, inc.extend_emb, fin.last_cases_cast_succ,
+      simp only [inc.extend_mat, inc.extend_emb, fin.snoc_cast_succ,
         preorder_hom.succ_apply_cast_succ],
-      simp only [hf.mat_emb, map_some', some_orelse],
+      simp only [hf.mat_emb, map_some', some_orelse'],
     end,
   mat_mem := begin
       refine fin.last_cases _ _,
       { intros r i h,
-        simp only [mem_def, fin.last_cases_last, inc.extend_mat, prod.mk.inj_iff] at h,
+        simp only [mem_def, fin.snoc_last, inc.extend_mat, prod.mk.inj_iff] at h,
         rw ←h.1, apply P.one_mem },
       intros j r i h,
-      simp only [mem_def, fin.last_cases_cast_succ, inc.extend_mat] at h,
-      cases option.mem_orelse h with h1 h1,
+      simp only [mem_def, fin.snoc_cast_succ, inc.extend_mat, option.mem_orelse_iff] at h,
+      rcases h with h1 | ⟨_, h1⟩,
       { simp only [mem_def, prod.mk.inj_iff, map_eq_some', prod.exists] at h1,
         rcases h1 with ⟨a, b, ha, rfl, _⟩, exact hf.mat_mem ha },
       { simp only [mem_def, map_eq_some', mem_def, prod.mk.inj_iff, map_eq_some'] at h1,
@@ -245,16 +239,16 @@ lemma small.extend {f : inc R m n} {v : fin n → option q.set} (hf : f.small q)
 lemma extend_map_vec_1 {f : inc R m n} {v : fin n → option q.set} {j x} {w : fin (m+1) → R}
   (hx : v j = some x) (hf : f.mat j = none) :
   (f.extend v).map_vec w j.cast_succ = w (fin.last m) * x :=
-by simp only [hf, inc.extend_mat, fin.last_cases_cast_succ, hx, map_some', none_orelse, map_none',
+by simp only [hf, inc.extend_mat, fin.snoc_cast_succ, hx, map_some', none_orelse', map_none',
   inc.map_vec, option.elim]
 
 lemma extend_map_vec_2 {f : inc R m n} {v : fin n → option q.set} {j} {w : fin (m+1) → R}
-  (hx : v j = none) :
+  (h : v j = none) :
   (f.extend v).map_vec w j.cast_succ = f.map_vec (w ∘ fin.cast_succ) j :=
 begin
-  simp only [hx, inc.extend_mat, fin.last_cases_cast_succ, map_none', orelse_none, inc.map_vec,
-    comp_app], set o := f.mat j, clear_value o, cases o,
-  { simp only [map_none', option.elim] }, { simp only [option.elim, map_some'] }
+  simp only [h, inc.extend_mat, fin.snoc_cast_succ, map_none', orelse_none', inc.map_vec, comp_app],
+  set o := f.mat j, clear_value o, cases o,
+  { simp only [map_none', option.elim], }, { simp only [option.elim, map_some'] }
 end
 
 end bla
@@ -322,7 +316,7 @@ def large_enough : Prop := ∀ co : coloring R n κ, ∃ (f : inc R m n) (k : fi
 lemma step (h1 : large_enough m n p q κ) (h2 : extended_HJ_works (p * q).set κ (fin n) (fin I)) :
   large_enough (m+1) (I+1) p (p * q) κ := λ co,
 begin
-  specialize h2 (λ v, co $ fin.last_cases 1 (λ i, coe (v i))),
+  specialize h2 (λ v, co $ fin.snoc (λ i, coe (v i)) 1),
   obtain ⟨l, klast, lk⟩ := h2,
   let fo : fin I → option (fin n) := λ j, (l.idx_fun j).elim (λ _, none) some,
   have fo_surj : ∀ i, ∃ j, fo j = some i,
@@ -345,18 +339,18 @@ begin
   have map_vec_inr : ∀ {v : fin (m+1) → R} {j : fin I} {i} (h : l.idx_fun j = sum.inr i),
     mI.map_vec v j.cast_succ = (nI.comp mn).map_vec (v ∘ fin.cast_succ) j,
   { intros v j i h, apply extend_map_vec_2, simp_rw [fa, h, sum.elim_inr] },
-  refine ⟨mI, @fin.last_cases _ (λ _, κ) klast ksucc, mI_small, fin.last_cases _ _⟩,
-  { intros v hv, simp only [coloring.restrict, fin.last_cases_last],
+  refine ⟨mI, fin.snoc ksucc klast, mI_small, fin.last_cases _ _⟩,
+  { intros v hv, simp only [coloring.restrict, fin.snoc_last],
     let w := mn.map_vec (v ∘ fin.cast_succ),
     have hw : w ∈ small_vec _ (p * q) := small_map mn_small (λ _, hv.1 _),
     specialize lk (subtype.coind w hw ∘ (mm' fo fo_surj).symm),
     convert lk,
     rw funext_iff,
     refine fin.last_cases _ _,
-    { rw [fin.last_cases_last], simpa only [inc.extend_emb, preorder_hom.succ_apply_last]
+    { rw [fin.snoc_last], simpa only [inc.extend_emb, preorder_hom.succ_apply_last]
         using (inc.map_row mI_small hv).2.1 },
     intro j,
-    rw [fin.last_cases_cast_succ, hyperline.apply, hmI],
+    rw [fin.snoc_cast_succ, hyperline.apply, hmI],
     set o := l.idx_fun j with ho, clear_value o, rcases o with r | i,
     { rw [map_vec_inl ho.symm, sum.elim_inl, hv.2.1, one_mul, id.def] },
     { simp only [map_vec_inr ho.symm, sum.elim_inr, inc.comp_map, nI],
@@ -364,7 +358,7 @@ begin
   { intros i v hv,
     have vtail_row : v ∘ fin.cast_succ ∈ row p i,
     { refine ⟨λ _, hv.1 _, hv.2.1, _⟩, intros j hj, exact hv.2.2 j.cast_succ hj },
-    simp only [fin.last_cases_cast_succ, coloring.restrict],
+    simp only [fin.snoc_last, coloring.restrict],
     have : mI.map_vec v = (fin.cast_succ.inc.comp (nI.comp mn)).map_vec (v ∘ fin.cast_succ),
     { rw funext_iff, refine fin.last_cases _ _,
       { rw not.imp_symm ((inc.map_row mI_small hv).2.2 (fin.last I)) (not_le_of_lt _),
@@ -382,10 +376,8 @@ begin
         { rw map_vec_inr ho.symm, simp only [emb_inc_map, inc.comp_map] } } },
     rw this,
     specialize hksucc i (v ∘ fin.cast_succ) vtail_row,
-    simpa only [coloring.restrict, inc.comp_map] using hksucc }
+    simpa only [coloring.restrict, inc.comp_map, fin.snoc_cast_succ] using hksucc }
 end
-
-example : true := trivial
 
 theorem deuber [fintype κ] [decidable_eq κ] :
   ∃ n q, ∀ co : coloring R n κ, ∃ (f : inc R m n) (k : κ), f.small q ∧ (co.restrict f).mono p k :=

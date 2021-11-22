@@ -739,28 +739,28 @@ end span
 
 section opposite
 
-open finsupp opposite
+open finsupp mul_opposite
 
 variables [semiring k]
 
 /-- The opposite of an `monoid_algebra R I` equivalent as a ring to
-the `monoid_algebra Rᵒᵖ Iᵒᵖ` over the opposite ring, taking elements to their opposite. -/
+the `monoid_algebra Rᵐᵒᵖ Iᵐᵒᵖ` over the opposite ring, taking elements to their opposite. -/
 @[simps {simp_rhs := tt}] protected noncomputable def op_ring_equiv [monoid G] :
-  (monoid_algebra k G)ᵒᵖ ≃+* monoid_algebra kᵒᵖ Gᵒᵖ :=
+  (monoid_algebra k G)ᵐᵒᵖ ≃+* monoid_algebra kᵐᵒᵖ Gᵐᵒᵖ :=
 { map_mul' := begin
     dsimp only [add_equiv.to_fun_eq_coe, ←add_equiv.coe_to_add_monoid_hom],
     rw add_monoid_hom.map_mul_iff,
     ext i₁ r₁ i₂ r₂ : 6,
     simp
   end,
-  ..op_add_equiv.symm.trans $ (finsupp.map_range.add_equiv (op_add_equiv : k ≃+ kᵒᵖ)).trans $
-    finsupp.dom_congr equiv_to_opposite }
+  ..op_add_equiv.symm.trans $ (finsupp.map_range.add_equiv (op_add_equiv : k ≃+ kᵐᵒᵖ)).trans $
+    finsupp.dom_congr op_equiv }
 
 @[simp] lemma op_ring_equiv_single [monoid G] (r : k) (x : G) :
   monoid_algebra.op_ring_equiv (op (single x r)) = single (op x) (op r) :=
 by simp
 
-@[simp] lemma op_ring_equiv_symm_single [monoid G] (r : kᵒᵖ) (x : Gᵒᵖ) :
+@[simp] lemma op_ring_equiv_symm_single [monoid G] (r : kᵐᵒᵖ) (x : Gᵐᵒᵖ) :
   monoid_algebra.op_ring_equiv.symm (single x r) = op (single x.unop r.unop) :=
 by simp
 
@@ -1242,14 +1242,14 @@ ring_hom_ext (ring_hom.congr_fun h₁) (monoid_hom.congr_fun h_of)
 
 section opposite
 
-open finsupp opposite
+open finsupp mul_opposite
 
 variables [semiring k]
 
 /-- The opposite of an `add_monoid_algebra R I` is ring equivalent to
-the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
+the `add_monoid_algebra Rᵐᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
 @[simps {simp_rhs := tt}] protected noncomputable def op_ring_equiv [add_comm_monoid G] :
-  (add_monoid_algebra k G)ᵒᵖ ≃+* add_monoid_algebra kᵒᵖ G :=
+  (add_monoid_algebra k G)ᵐᵒᵖ ≃+* add_monoid_algebra kᵐᵒᵖ G :=
 { map_mul' := begin
     dsimp only [add_equiv.to_fun_eq_coe, ←add_equiv.coe_to_add_monoid_hom],
     rw add_monoid_hom.map_mul_iff,
@@ -1257,14 +1257,14 @@ the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to th
     dsimp,
     simp only [map_range_single, single_mul_single, ←op_mul, add_comm]
   end,
-  ..opposite.op_add_equiv.symm.trans
-    (finsupp.map_range.add_equiv (opposite.op_add_equiv : k ≃+ kᵒᵖ))}
+  ..mul_opposite.op_add_equiv.symm.trans
+    (finsupp.map_range.add_equiv (mul_opposite.op_add_equiv : k ≃+ kᵐᵒᵖ))}
 
 @[simp] lemma op_ring_equiv_single [add_comm_monoid G] (r : k) (x : G) :
   add_monoid_algebra.op_ring_equiv (op (single x r)) = single x (op r) :=
 by simp
 
-@[simp] lemma op_ring_equiv_symm_single [add_comm_monoid G] (r : kᵒᵖ) (x : Gᵒᵖ) :
+@[simp] lemma op_ring_equiv_symm_single [add_comm_monoid G] (r : kᵐᵒᵖ) (x : Gᵐᵒᵖ) :
   add_monoid_algebra.op_ring_equiv.symm (single x r) = op (single x r.unop) :=
 by simp
 

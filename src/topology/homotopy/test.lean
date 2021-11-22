@@ -1,4 +1,15 @@
+/-
+Copyright (c) 2021 Shing Tak Lam. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Shing Tak Lam
+-/
 import topology.homotopy.basic
+
+/-!
+# Homotopy groups of a topological space
+
+In this file, we define the homotopy groups of a topological space.
+-/
 
 universes u v
 
@@ -7,10 +18,12 @@ variables (ι : Type u)
 noncomputable theory
 
 open_locale unit_interval classical
-/-
-(ι → I) → X : surface?
--/
 
+/--
+Function used to extend maps from `ι → I` to `ι → R`.
+
+TODO: Generalise to arbitrary products of subtypes
+-/
 def baz : C(ι → ℝ, ι → I) :=
 { to_fun := λ x i, continuous_map.id.Icc_extend (@zero_le_one ℝ _) (x i) }
 
@@ -27,6 +40,11 @@ end
 lemma baz_apply_apply (x : ι → ℝ) (i : ι) :
   baz ι x i = continuous_map.id.Icc_extend (@zero_le_one ℝ _) (x i) := rfl
 
+/--
+Higher dimensional "paths"
+
+TODO: Name?
+-/
 structure foo {X : Type v} [topological_space X] (x : X) extends C(ι → I, X) :=
 (boundary : ∀ p : ι → I, (∃ i, p i = 0 ∨ p i = 1) → to_fun p = x)
 
@@ -70,10 +88,16 @@ lemma continuous (f : foo ι x₀) : continuous ⇑f := f.to_continuous_map.cont
 lemma apply_of_exists_eq_zero_or_eq_one {f : foo ι x₀} (p : ι → I) (hx : ∃ i, p i = 0 ∨ p i = 1) :
   f p = x₀ := f.boundary _ hx
 
+/--
+The constant "path"
+-/
 def refl : foo ι x₀ :=
 { to_fun := λ i, x₀,
   boundary := λ p hp, rfl }
 
+/--
+Reversing `f` along the index `i`
+-/
 def symm (f : foo ι x₀) (i : ι) : foo ι x₀ :=
 { to_fun := λ t, f (λ j, if i = j then σ (t j) else t j),
   continuous_to_fun := begin
@@ -91,6 +115,9 @@ def symm (f : foo ι x₀) (i : ι) : foo ι x₀ :=
     rcases hj with (hj | hj); rw hj; finish
   end }
 
+/--
+Composing `f` and `g` along the index `i`.
+-/
 def trans (f g : foo ι x₀) (i : ι) : foo ι x₀ :=
 { to_fun := λ t,
   if (t i : ℝ) ≤ 1/2 then
@@ -171,11 +198,17 @@ def trans (f g : foo ι x₀) (i : ι) : foo ι x₀ :=
         { exact subtype.mem _ } } }
   end } .
 
+/--
+Homotopy between `f` and `g`
+-/
 abbreviation homotopy (f g : foo ι x₀) :=
 continuous_map.homotopy_rel f.to_continuous_map g.to_continuous_map {p | ∃ i, p i = 0 ∨ p i = 1}
 
 namespace homotopy
 
+/--
+Evaluating `F` at an intermediate point `t` gives us a "path"
+-/
 def eval {f g : foo ι x₀} (F : homotopy f g) (t : I) : foo ι x₀ :=
 { to_fun := F.to_homotopy.curry t,
   boundary := begin
@@ -194,15 +227,27 @@ by { ext t, simp [eval] }
 lemma eval_one {f g : foo ι x₀} (F : homotopy f g) : F.eval 1 = g :=
 by { ext t, simp [eval] }
 
+/--
+Constant homotopy
+-/
 def refl (f : foo ι x₀) : homotopy f f :=
 continuous_map.homotopy_rel.refl f.to_continuous_map _
 
+/--
+Reversing a homotopy
+-/
 def symm {f g : foo ι x₀} (F : homotopy f g) : homotopy g f :=
 continuous_map.homotopy_rel.symm F
 
+/--
+Composing homotopies
+-/
 def trans {f g h : foo ι x₀} (F : homotopy f g) (G : homotopy g h) : homotopy f h :=
 continuous_map.homotopy_rel.trans F G
 
+/--
+Horizontal composition, that is, composing homotopic paths gives us a homotopy
+-/
 def hcomp {f₀ f₁ g₀ g₁ : foo ι x₀} (F : homotopy f₀ g₀) (G : homotopy f₁ g₁) (i : ι) :
   homotopy (f₀.trans f₁ i) (g₀.trans g₁ i) :=
 { to_fun := λ x,

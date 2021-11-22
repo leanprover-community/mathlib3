@@ -990,7 +990,7 @@ namespace nat
 /-- The only prime divisor of positive prime power `p^k` is `p` itself -/
 lemma prime_pow_prime_divisor {p k : ℕ} (hk : 0 < k) (hp: prime p) :
   (p^k).factors.to_finset = {p} :=
-by rw [hp.factors_pow, list.to_finset_repeat_of_pos hk.ne']
+by rw [hp.factors_pow, list.to_finset_repeat_of_ne_zero hk.ne']
 
 lemma factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) (p : ℕ) :
   p ∈ (a * b).factors ↔ p ∈ a.factors ∨ p ∈ b.factors :=

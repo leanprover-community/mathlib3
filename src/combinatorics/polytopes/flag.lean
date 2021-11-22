@@ -59,13 +59,16 @@ namespace polytope.flag
 instance (α : Type u) [has_le α] : has_mem α (flag α) :=
 ⟨λ a Φ, a ∈ Φ.val⟩
 
-variables {α : Type u}
+variables {α : Type u} 
 
 instance [has_le α] (Φ : flag α) : has_le Φ :=
 ⟨λ a b, a.val ≤ b.val⟩
 
 instance [has_le α] [has_lt α] (Φ : flag α) : has_lt Φ :=
 ⟨λ a b, a.val < b.val⟩
+
+instance [has_le α] : inhabited (flag α) :=
+⟨⟨_, zorn.max_chain_spec⟩⟩
 
 /-- Any two elements of a flag are comparable. -/
 protected theorem le_total [preorder α] : ∀ (Φ : flag α) (x y : Φ), x ≤ y ∨ y ≤ x :=
@@ -306,6 +309,18 @@ begin
   change _ ≠ _ at h1,
   rw ←bot_lt_iff_ne_bot at h1,
   exact not_le_of_lt (graded.strict_mono h1) (le_of_eq h)
+end
+
+/-- An element has the top grade iff it is the top element. -/
+@[simp]
+theorem eq_grade_top_iff_eq_top [partial_order α] [graded α] [order_top α] (x : α) :
+  grade x = grade_top α ↔ x = ⊤ :=
+begin
+  refine ⟨λ h, _, λ h, by cases h; refl⟩,
+  by_contra h1,
+  change _ ≠ _ at h1,
+  rw ←lt_top_iff_ne_top at h1,
+  exact not_le_of_lt (graded.strict_mono h1) (ge_of_eq h)
 end
 
 /-- A grade function into `fin` for `α` with a top element. -/

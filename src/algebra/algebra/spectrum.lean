@@ -145,22 +145,6 @@ theorem left_add_coset_spectrum (a : A) (r : R) :
 by { ext, rw [mem_left_add_coset_iff, neg_add_eq_sub, add_mem_spectrum],
      nth_rewrite 1 ←sub_add_cancel x r, }
 
--- this one isn't quite as simple because `R` is not a `group` (but it is an `add_group`)
--- therefore we don't have access to `mem_left_add_coset_iff`
-theorem unit_left_coset_spectrum (a : A) (r : units R) :
-  left_coset ↑r (σ a) = σ (r • a) :=
-begin
-  ext,
-  split,
-  { rintro ⟨y,y_mem,hy⟩,
-    rw ←hy,
-    exact smul_mem_spectrum_smul.mpr y_mem, },
-  { intro hx,
-    have self_inv : x = r•r⁻¹•x, by simp,
-    rw self_inv at *,
-    exact mem_left_coset ↑r (smul_mem_spectrum_smul.mp hx), },
-end
-
 -- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : units R`
 theorem unit_mem_spectrum_mul_iff_swap_mul {a b : A} {r : units R} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=

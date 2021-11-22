@@ -412,7 +412,7 @@ def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ) )
 structure is_modular_form_of_lvl_and_weight (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ) : Prop :=
   (hol      : is_holomorphic_on (hol_extn f))
   (transf   :  f ∈ modular_submodule k Γ )
-  (infinity : f ∈ is_bound_at_infinity )
+  (infinity : ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_bound_at_infinity )
 
 lemma mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
   (h :is_holomorphic_on (hol_extn f) )
@@ -454,7 +454,7 @@ lemma zero_mod_form :  (is_modular_form_of_lvl_and_weight Γ   (k : ℤ) ) (zero
 structure is_cusp_form_of_lvl_and_weight (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ) : Prop :=
   (hol      : is_holomorphic_on (hol_extn f))
   (transf   : f ∈ modular_submodule k Γ)
-  (infinity : f ∈ is_zero_at_infinity )
+  (infinity : ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_zero_at_infinity )
 
 lemma is_cuspform_mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
   (h : is_holomorphic_on (hol_extn f) )

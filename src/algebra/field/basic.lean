@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.ring.basic
-import algebra.group_with_zero
 
 /-!
 # Fields and division rings

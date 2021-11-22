@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
+import data.zmod.basic
 import number_theory.padics.padic_integers
 
 /-!

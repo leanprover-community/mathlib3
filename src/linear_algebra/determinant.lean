@@ -3,14 +3,11 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
-import linear_algebra.free_module.pid
-import linear_algebra.matrix.basis
-import linear_algebra.matrix.diagonal
-import linear_algebra.matrix.to_linear_equiv
-import linear_algebra.matrix.reindex
 import linear_algebra.multilinear.basis
-import linear_algebra.dual
+import linear_algebra.matrix.reindex
 import ring_theory.algebra_tower
+import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.basis
 
 /-!
 # Determinant of families of vectors
@@ -46,7 +43,7 @@ open submodule
 
 universes u v w
 
-open linear_map matrix
+open linear_map matrix set function
 
 variables {R : Type*} [comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
@@ -400,3 +397,25 @@ by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.r
 lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
   (b.map f).det v = b.det (f.symm ∘ v) :=
 by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }
+
+@[simp] lemma pi.basis_fun_det : (pi.basis_fun R ι).det = matrix.det_row_alternating :=
+begin
+  ext M,
+  rw [basis.det_apply, basis.coe_pi_basis_fun.to_matrix_eq_transpose, det_transpose],
+end
+
+/-- If we fix a background basis `e`, then for any other basis `v`, we can characterise the
+coordinates provided by `v` in terms of determinants relative to `e`. -/
+lemma basis.det_smul_mk_coord_eq_det_update {v : ι → M}
+  (hli : linear_independent R v) (hsp : span R (range v) = ⊤) (i : ι) :
+  (e.det v) • (basis.mk hli hsp).coord i = e.det.to_multilinear_map.to_linear_map v i :=
+begin
+  apply (basis.mk hli hsp).ext,
+  intros k,
+  rcases eq_or_ne k i with rfl | hik;
+  simp only [algebra.id.smul_eq_mul, basis.coe_mk, linear_map.smul_apply, linear_map.coe_mk,
+    multilinear_map.to_linear_map_apply],
+  { rw [basis.mk_coord_apply_eq, mul_one, update_eq_self], congr, },
+  { rw [basis.mk_coord_apply_ne hik, mul_zero, eq_comm],
+    exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
+end

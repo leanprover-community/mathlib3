@@ -3,9 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
+import algebra.order.with_zero
 import data.polynomial.monic
-import data.polynomial.ring_division
-import tactic.linarith
 /-!
 # Lemmas for the interaction between polynomials and `∑` and `∏`.
 

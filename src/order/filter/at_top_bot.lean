@@ -1242,6 +1242,17 @@ lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.
   (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
 tendsto_iff_seq_tendsto.2
 
+/-- If `f` is a nontrivial countably generated basis, then there exists a sequence that converges
+to `f`. -/
+lemma exists_seq_tendsto (f : filter α) [is_countably_generated f] [ne_bot f] :
+  ∃ x : ℕ → α, tendsto x at_top f :=
+begin
+  obtain ⟨B, h, h_mono, -⟩ := f.exists_antitone_basis,
+  have := λ n, nonempty_of_mem (h.mem_of_mem trivial : B n ∈ f), choose x hx,
+  exact ⟨x, h.tendsto_right_iff.2 $
+    λ n hn, eventually_at_top.2 ⟨n, λ m hm, h_mono trivial trivial hm (hx m)⟩⟩
+end
+
 lemma subseq_tendsto_of_ne_bot {f : filter α} [is_countably_generated f]
   {u : ℕ → α}
   (hx : ne_bot (f ⊓ map u at_top)) :

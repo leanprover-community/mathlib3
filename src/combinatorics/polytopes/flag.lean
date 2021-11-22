@@ -44,9 +44,9 @@ notation x ` ⋖ `:50 y:50 := polytope.covers y x
 @[protect_proj]
 class polytope.graded (α : Type u) [preorder α] extends order_bot α : Type u :=
 (grade : α → ℕ)
-(grade_bot' : grade ⊥ = 0)
-(strict_mono' : strict_mono grade)
-(hcovers' : ∀ {x y}, x ⋖ y → grade y = grade x + 1)
+(grade_bot : grade ⊥ = 0)
+(strict_mono : strict_mono grade)
+(hcovers : ∀ {x y}, x ⋖ y → grade y = grade x + 1)
 
 abbreviation polytope.grade {α : Type u} [preorder α] [polytope.graded α] : α → ℕ :=
 polytope.graded.grade
@@ -295,52 +295,42 @@ grade (⊤ : α)
 section
 variables (α : Type u) [preorder α] [graded α]
 
-@[simp]
-theorem grade_bot : grade (⊥ : α) = 0 :=
-graded.grade_bot'
-
-protected theorem strict_mono : strict_mono (grade : α → ℕ) :=
-graded.strict_mono'
-
 end
 
 /-- `grade` is injective for linearly ordered `α`. -/
 theorem grade.inj (α : Type u) [linear_order α] [graded α] : function.injective (grade : α → ℕ) :=
-(graded.strict_mono α).injective
+graded.strict_mono.injective
 
 variables {α : Type u}
-
-theorem hcovers [preorder α] [graded α] {x y : α} : x ⋖ y → grade y = grade x + 1 :=
-graded.hcovers'
 
 /-- An element has grade 0 iff it is the bottom element. -/
 @[simp]
 theorem eq_zero_iff_eq_bot [partial_order α] [graded α] (x : α) : grade x = 0 ↔ x = ⊥ :=
 begin
-  refine ⟨λ h, _, λ h, by cases h; exact grade_bot _⟩,
+  refine ⟨λ h, _, λ h, by cases h; exact graded.grade_bot⟩,
   rw ←@graded.grade_bot α at h,
   by_contra h1,
   change _ ≠ _ at h1,
   rw ←bot_lt_iff_ne_bot at h1,
-  exact not_le_of_lt (graded.strict_mono α h1) (le_of_eq h)
+  exact not_le_of_lt (graded.strict_mono h1) (le_of_eq h)
 end
 
 /-- A grade function into `fin` for `α` with a top element. -/
 def grade_fin [partial_order α] [order_top α] [graded α] (x : α) : fin (grade_top α + 1) :=
-⟨grade x, by rw nat.lt_add_one_iff; exact (graded.strict_mono α).monotone le_top⟩
+⟨grade x, by rw nat.lt_add_one_iff; exact graded.strict_mono.monotone le_top⟩
 
 @[simp]
 theorem grade_fin.val_eq [partial_order α] [order_top α] [graded α] (x : α) :
   (grade_fin x).val = grade x :=
 rfl
 
-theorem grade_fin.strict_mono (α : Type u) [partial_order α] [order_top α] [graded α] :
+theorem grade_fin.strict_mono {α : Type u} [partial_order α] [order_top α] [graded α] :
   strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
-graded.strict_mono α
+graded.strict_mono
 
 theorem grade_fin.inj (α : Type u) [linear_order α] [order_top α] [graded α] :
   function.injective (grade_fin : α → fin (grade_top α + 1)) :=
-(grade_fin.strict_mono α).injective
+grade_fin.strict_mono.injective
 
 /-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
 def oem_fin (α : Type u) [linear_order α] [order_top α] [graded α] : α ↪o fin (grade_top α + 1) :=
@@ -350,10 +340,10 @@ def oem_fin (α : Type u) [linear_order α] [order_top α] [graded α] : α ↪o
     refine λ x y, ⟨λ h : grade_fin _ ≤ grade_fin _, _, λ h, (_ : grade_fin _ ≤ grade_fin _)⟩,
       { by_cases hxy : x = y, { exact le_of_eq hxy },
         apply le_of_lt,
-        apply (grade_fin.strict_mono α).monotone.reflect_lt,
+        apply grade_fin.strict_mono.monotone.reflect_lt,
         cases le_iff_eq_or_lt.mp h with h h, { have := grade_fin.inj α h, contradiction },
         assumption },
-      { exact (grade_fin.strict_mono α).monotone h },
+      { exact grade_fin.strict_mono.monotone h },
   end }
 
 end graded

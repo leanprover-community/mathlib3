@@ -135,6 +135,26 @@ begin
   exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end
 
+lemma to_weak_dual_image_eq (p : dual 𝕜 E → Prop) :
+  (to_weak_dual '' {x' : dual 𝕜 E | p x' }) =
+    {x' : weak_dual 𝕜 E | p x'.to_normed_dual } :=
+begin
+  ext x',
+  split,
+  { rintros ⟨x'', ⟨h₁, h₂⟩⟩, rw ← h₂, exact h₁, },
+  { intros h, use x', exact ⟨h, rfl⟩, },
+end
+
+lemma to_weak_dual_image_closed_unit_ball :
+  (to_weak_dual '' metric.closed_ball (0 : dual 𝕜 E) 1) =
+    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} :=
+begin
+  have eq : metric.closed_ball (0 : dual 𝕜 E) 1 = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1},
+  { ext1 x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
+  rw eq,
+  exact to_weak_dual_image_eq _,
+end
+
 end normed_space.dual
 
 end weak_star_topology_for_duals_of_normed_spaces
@@ -148,15 +168,6 @@ namespace polar
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-lemma to_weak_dual_image_norm_eval_le_one (z : E) :
-  (dual.to_weak_dual '' {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1}) = {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ 1} :=
-begin
-  ext x',
-  split,
-  { rintros ⟨x'', ⟨h₁, h₂⟩⟩, rw ← h₂, exact h₁, },
-  { intros h, use x', exact ⟨h, rfl⟩, },
-end
-
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
 is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
 lemma is_weak_dual_closed (s : set E) : is_closed (dual.to_weak_dual '' polar 𝕜 s) :=
@@ -165,11 +176,11 @@ begin
   { rw [s_emp, of_empty, image_univ, range_iff_surjective.mpr dual.to_weak_dual.surjective],
     exact is_closed_univ, },
   rw [eq_Inter, inj_on.image_bInter_eq],
-  { simp_rw to_weak_dual_image_norm_eval_le_one,
+  { simp_rw dual.to_weak_dual_image_eq,
     apply is_closed_bInter,
     intros z hz,
-    have eq : {x' : weak_dual 𝕜 E | ∥x' z∥ ≤ 1} = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1),
-    by refl,
+    have eq : {x' : weak_dual 𝕜 E | ∥weak_dual.to_normed_dual x' z∥ ≤ 1}
+      = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1) := by refl,
     rw eq,
     refine is_closed.preimage _ (is_closed_Iic),
     apply continuous.comp continuous_norm (weak_dual.eval_continuous _ _ z), },

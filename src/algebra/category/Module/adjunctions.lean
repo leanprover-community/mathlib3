@@ -19,7 +19,7 @@ noncomputable theory
 
 open category_theory
 
-namespace Module
+namespace SymmetricBiModule
 
 universe u
 
@@ -30,16 +30,21 @@ variables (R : Type u)
 section
 variables [ring R]
 
+local attribute [instance] op_scalar_of_scalar
+local attribute [instance] is_symmetric_op_scalar_of_scalar
+
 /--
-The free functor `Type u ⥤ Module R` sending a type `X` to the
+The free functor `Type u ⥤ SymmetricBiModule R` sending a type `X` to the
 free `R`-module with generators `x : X`, implemented as the type `X →₀ R`.
 -/
 @[simps]
-def free : Type u ⥤ Module R :=
-{ obj := λ X, Module.of R (X →₀ R),
+def free : Type u ⥤ SymmetricBiModule R :=
+{ obj := λ X, SymmetricBiModule.of R (X →₀ R),
   map := λ X Y f, finsupp.lmap_domain _ _ f,
   map_id' := by { intros, exact finsupp.lmap_domain_id _ _ },
   map_comp' := by { intros, exact finsupp.lmap_domain_comp _ _ _ _, } }
+
+#exit
 
 /--
 The free-forgetful adjunction for R-modules.

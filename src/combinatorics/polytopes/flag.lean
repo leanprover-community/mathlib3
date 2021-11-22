@@ -3,7 +3,7 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
-import tactic.wlog order.zorn category_theory.conj
+import tactic.wlog order.zorn category_theory.conj data.fin.basic
 
 /-!
 # Flags of polytopes
@@ -30,6 +30,26 @@ private def Poset (α : Type u) [has_le α] : category (partial_order α) :=
 /-- The type of automorphisms of a poset. -/
 def polytope.automorphism (α : Type u) [p : partial_order α] :=
 @Aut (partial_order α) (Poset α) p
+
+/-- One element covers another when there's no other element strictly in between. -/
+def polytope.covers {α : Type u} [preorder α] (y x : α) : Prop :=
+x < y ∧ ∀ z, ¬ (z ∈ set.Ioo x y)
+
+notation x ` ⋗ `:50 y:50 := polytope.covers x y
+notation x ` ⋖ `:50 y:50 := polytope.covers y x
+
+/-- A graded order is an order homomorphism into ℕ such that:
+    * `⊥` has grade 0
+    * the homomorphism respects covering. -/
+@[protect_proj]
+class polytope.graded (α : Type u) [preorder α] extends order_bot α : Type u :=
+(grade : α → ℕ)
+(grade_bot' : grade ⊥ = 0)
+(strict_mono' : strict_mono grade)
+(hcovers' : ∀ {x y}, x ⋖ y → grade y = grade x + 1)
+
+abbreviation polytope.grade {α : Type u} [preorder α] [polytope.graded α] : α → ℕ :=
+polytope.graded.grade
 
 open polytope
 
@@ -240,3 +260,99 @@ instance : mul_action (automorphism α) (flag α) :=
   end }
 
 end polytope.automorphism
+
+/-- Covering is irreflexive. -/
+instance covers.is_irrefl {α : Type u} [preorder α] : is_irrefl α covers :=
+⟨ λ _ ha, ne_of_lt ha.left (refl _) ⟩
+
+/-- A natural covers another iff it's a successor. -/
+lemma nat.cover_iff_succ (m n : ℕ) : m ⋖ n ↔ n = m + 1 :=
+begin
+  split, {
+    rintro ⟨hmnl, hmnr⟩,
+    cases le_or_gt n (m + 1) with hnm hnm,
+    exact antisymm hnm (nat.succ_le_of_lt hmnl),
+    exact (hmnr _ ⟨lt_add_one m, hnm⟩).elim,
+  },
+  intro hnm,
+  split, {
+    rw hnm,
+    exact lt_add_one m,
+  },
+  rintros r ⟨hrl, hrr⟩,
+  have : m + 1 < n := lt_of_le_of_lt (nat.succ_le_of_lt hrl) hrr,
+  rw hnm at this,
+  exact nat.lt_asymm this this,
+end
+
+namespace graded
+
+/-- An abbreviation for the grade of `⊤`. -/
+abbreviation grade_top (α : Type u) [preorder α] [order_top α] [graded α] : ℕ :=
+grade (⊤ : α)
+
+section
+variables (α : Type u) [preorder α] [graded α]
+
+@[simp]
+theorem grade_bot : grade (⊥ : α) = 0 :=
+graded.grade_bot'
+
+protected theorem strict_mono : strict_mono (grade : α → ℕ) :=
+graded.strict_mono'
+
+end
+
+/-- `grade` is injective for linearly ordered `α`. -/
+theorem grade.inj (α : Type u) [linear_order α] [graded α] : function.injective (grade : α → ℕ) :=
+(graded.strict_mono α).injective
+
+variables {α : Type u}
+
+theorem hcovers [preorder α] [graded α] {x y : α} : x ⋖ y → grade y = grade x + 1 :=
+graded.hcovers'
+
+/-- An element has grade 0 iff it is the bottom element. -/
+@[simp]
+theorem eq_zero_iff_eq_bot [partial_order α] [graded α] (x : α) : grade x = 0 ↔ x = ⊥ :=
+begin
+  refine ⟨λ h, _, λ h, by cases h; exact grade_bot _⟩,
+  rw ←@graded.grade_bot α at h,
+  by_contra h1,
+  change _ ≠ _ at h1,
+  rw ←bot_lt_iff_ne_bot at h1,
+  exact not_le_of_lt (graded.strict_mono α h1) (le_of_eq h)
+end
+
+/-- A grade function into `fin` for `α` with a top element. -/
+def grade_fin [partial_order α] [order_top α] [graded α] (x : α) : fin (grade_top α + 1) :=
+⟨grade x, by rw nat.lt_add_one_iff; exact (graded.strict_mono α).monotone le_top⟩
+
+@[simp]
+theorem grade_fin.val_eq [partial_order α] [order_top α] [graded α] (x : α) :
+  (grade_fin x).val = grade x :=
+rfl
+
+theorem grade_fin.strict_mono (α : Type u) [partial_order α] [order_top α] [graded α] :
+  strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
+graded.strict_mono α
+
+theorem grade_fin.inj (α : Type u) [linear_order α] [order_top α] [graded α] :
+  function.injective (grade_fin : α → fin (grade_top α + 1)) :=
+(grade_fin.strict_mono α).injective
+
+/-- `grade_fin` is an order embedding into `fin` for linearly ordered `α`. -/
+def oem_fin (α : Type u) [linear_order α] [order_top α] [graded α] : α ↪o fin (grade_top α + 1) :=
+{ to_fun := grade_fin,
+  inj' := grade_fin.inj α,
+  map_rel_iff' := begin
+    refine λ x y, ⟨λ h : grade_fin _ ≤ grade_fin _, _, λ h, (_ : grade_fin _ ≤ grade_fin _)⟩,
+      { by_cases hxy : x = y, { exact le_of_eq hxy },
+        apply le_of_lt,
+        apply (grade_fin.strict_mono α).monotone.reflect_lt,
+        cases le_iff_eq_or_lt.mp h with h h, { have := grade_fin.inj α h, contradiction },
+        assumption },
+      { exact (grade_fin.strict_mono α).monotone h },
+  end }
+
+end graded

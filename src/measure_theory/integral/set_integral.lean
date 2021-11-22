@@ -784,10 +784,10 @@ begin
   all_goals { assumption }
 end
 
-lemma integral_apply {H : Type*} [normed_group H] [normed_space ℝ H]
-  [second_countable_topology $ H →L[ℝ] E] {φ : α → H →L[ℝ] E} (φ_int : integrable φ μ) (v : H) :
+lemma integral_apply {H : Type*} [normed_group H] [normed_space 𝕜 H]
+  [second_countable_topology $ H →L[𝕜] E] {φ : α → H →L[𝕜] E} (φ_int : integrable φ μ) (v : H) :
   (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
-((continuous_linear_map.apply ℝ E v).integral_comp_comm φ_int).symm
+((continuous_linear_map.apply 𝕜 E v).integral_comp_comm φ_int).symm
 
 lemma integral_comp_comm' (L : E →L[𝕜] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=

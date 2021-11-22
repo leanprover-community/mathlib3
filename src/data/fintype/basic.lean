@@ -789,6 +789,8 @@ instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) :
 instance {α : Type*} [fintype α] : fintype (option α) :=
 ⟨univ.insert_none, λ a, by simp⟩
 
+lemma univ_option (α : Type*) [fintype α] : (univ : finset (option α)) = insert_none univ := rfl
+
 @[simp] theorem fintype.card_option {α : Type*} [fintype α] :
   fintype.card (option α) = fintype.card α + 1 :=
 (finset.card_cons _).trans $ congr_arg2 _ (card_map _) rfl

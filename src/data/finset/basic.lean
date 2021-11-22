@@ -594,6 +594,10 @@ by simp only [subset_iff, mem_insert, forall_eq, or_imp_distrib, forall_and_dist
 theorem subset_insert (a : α) (s : finset α) : s ⊆ insert a s :=
 λ b, mem_insert_of_mem
 
+lemma insert_subset : insert a s ⊆ t a ↔ s ⊆ t ∧ a ∈ t :=
+⟨λ h, ⟨(subset_insert _ _).trans h, h $ mem_insert_self _ _⟩,
+  λ h b hb, (mem_insert_iff.1 hb).elim (λ hab, hab.subst h.2) h.1⟩
+
 theorem insert_subset_insert (a : α) {s t : finset α} (h : s ⊆ t) : insert a s ⊆ insert a t :=
 insert_subset.2 ⟨mem_insert_self _ _, subset.trans h (subset_insert _ _)⟩
 
@@ -1062,6 +1066,10 @@ theorem erase_subset_erase (a : α) {s t : finset α} (h : s ⊆ t) : erase s a 
 val_le_iff.1 $ erase_le_erase _ $ val_le_iff.2 h
 
 theorem erase_subset (a : α) (s : finset α) : erase s a ⊆ s := erase_subset _ _
+
+lemma subset_erase : s ⊆ t.erase a ↔ s ⊆ t ∧ a ∉ s :=
+⟨λ h, ⟨h.trans (erase_subset _ _), λ ha, not_mem_erase _ _ (h ha)⟩,
+  λ h b hb, mem_erase.2 ⟨ne_of_mem_of_not_mem hb h.2, h.1 hb⟩⟩
 
 @[simp, norm_cast] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (s \ {a} : set α) :=
 set.ext $ λ _, mem_erase.trans $ by rw [and_comm, set.mem_diff, set.mem_singleton_iff]; refl

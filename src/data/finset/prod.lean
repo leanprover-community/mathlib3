@@ -64,6 +64,7 @@ lemma product_eq_bUnion_right [decidable_eq α] [decidable_eq β] (s : finset α
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
 
+/-- See also `finset.sup_product_left`. -/
 @[simp] lemma product_bUnion [decidable_eq γ] (s : finset α) (t : finset β) (f : α × β → finset γ) :
   (s.product t).bUnion f = s.bUnion (λ a, t.bUnion (λ b, f (a, b))) :=
 by { classical, simp_rw [product_eq_bUnion, bUnion_bUnion, image_bUnion] }

@@ -3009,7 +3009,7 @@ by convert filter_eq_nil.2 (λ _ _, id)
       take_while_append_drop l]
     else by rw [take_while, drop_while, if_neg pa, if_neg pa, nil_append]
 
-@[simp] theorem filter_leq_length (l : list α) : (filter p l).length ≤ l.length :=
+@[simp] theorem length_filter_le (l : list α) : (filter p l).length ≤ l.length :=
 begin
   induction l;
   rw list.filter;
@@ -3024,7 +3024,8 @@ begin
   }
 end
 
-@[simp] theorem mem_filter_less_length {a : α} (l : list α) : a ∈ l → ¬p a → (filter p l).length < l.length :=
+@[simp] theorem length_filter_lt_of_mem {a : α} (l : list α) : 
+  a ∈ l → ¬p a → (filter p l).length < l.length :=
 begin
   induction l;
   simp,
@@ -3052,14 +3053,14 @@ end filter
 /-! ### remove_all -/
 
 section remove_all
-@[simp] theorem remove_all_leq_length [decidable_eq α] (l r : list α) : (l.remove_all r).length ≤ l.length := 
-by apply filter_leq_length
+@[simp] theorem length_remove_all_le [decidable_eq α] (l r : list α) : (l.remove_all r).length ≤ l.length := 
+by apply length_filter_le
 
-@[simp] theorem remove_all_common_mem_less_length [decidable_eq α] {a : α} (l r : list α) :
+@[simp] theorem length_remove_all_lt_of_mem_of_mem [decidable_eq α] {a : α} (l r : list α) :
   a ∈ l → a ∈ r → (l.remove_all r).length < l.length := 
 begin
   intros a_in_l a_in_r,
-  apply mem_filter_less_length _ _ a_in_l,
+  apply length_filter_lt_of_mem _ _ a_in_l,
   simp,
   apply a_in_r,
 end

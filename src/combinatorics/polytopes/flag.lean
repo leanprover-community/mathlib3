@@ -340,3 +340,34 @@ def oem_fin (α : Type u) [linear_order α] [order_top α] [graded α] : α ↪o
   end }
 
 end graded
+
+theorem set.Ioo_is_empty_of_covers {α : Type u} [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
+λ ⟨_, hr⟩, set.eq_empty_iff_forall_not_mem.mpr hr
+
+namespace flag
+variables {α : Type u} [partial_order α] [graded α]
+
+/-- An element covers another iff they do so in the flag. -/
+@[simp]
+theorem cover_iff_flag_cover {Φ : flag α} (x y : Φ) : x ⋖ y ↔ x.val ⋖ y.val :=
+begin
+  refine ⟨λ h, ⟨h.left, λ z hzi, _⟩, λ ⟨hxy, hz⟩, ⟨hxy, λ _, hz _⟩⟩,
+  cases h with hxy h,
+  refine h ⟨z, _⟩ hzi,
+  cases hzi with hxz hzy,
+  refine Φ.mem_flag_iff_comp.mpr (λ w, _),
+  have hwi := h w,
+  simp only [set.mem_Ioo, not_and, not_lt] at hwi,
+  rcases lt_trichotomy x w with hxw | hxw | hxw,
+    { exact or.inl (le_of_lt $ lt_of_lt_of_le hzy (hwi hxw)) },
+    { induction hxw, exact or.inr (le_of_lt hxz) },
+    { exact or.inr (le_of_lt $ lt_trans hxw hxz) }
+end
+
+instance (Φ : flag α) : graded Φ :=
+{ grade := λ a, grade a.val,
+  grade_bot := graded.grade_bot,
+  strict_mono := λ x y (h : x.val < y.val), graded.strict_mono h,
+  hcovers := λ _ _ hcov, graded.hcovers $ (cover_iff_flag_cover _ _).mp hcov }
+
+end flag

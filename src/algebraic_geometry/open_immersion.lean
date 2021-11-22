@@ -7,7 +7,7 @@ import algebraic_geometry.presheafed_space.has_colimits
 import category_theory.limits.shapes.binary_products
 import topology.sheaves.functors
 import category_theory.limits.preserves.shapes.pullbacks
-import algebraic_geometry.locally_ringed_space
+import algebraic_geometry.Scheme
 
 /-!
 # Open immersions of presheafed spaces
@@ -836,6 +836,14 @@ instance forget_reflects_pullback_of_right :
 reflects_limit_of_reflects_isomorphisms _ _
 
 end pullback
+
+def Scheme (X : LocallyRingedSpace)
+  (c : Π (x : X), costructured_arrow Spec.to_LocallyRingedSpace X)
+  (hc : ∀ (x : X), x ∈ set.range (c x).hom.1.base)
+  [H : ∀ (x : X), LocallyRingedSpace.is_open_immersion (c x).hom] : Scheme :=
+{ local_affine := λ x, ⟨⟨⟨_, (H x).base_open.open_range⟩, hc x⟩,unop (c x).left,⟨by {
+have := (H x).iso_restrict,  dsimp at this, }⟩⟩,
+  ..X }
 
 end LocallyRingedSpace.is_open_immersion
 

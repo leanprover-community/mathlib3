@@ -92,22 +92,18 @@ local notation `D'` := D.to_glue_data
 lemma π_surjective : function.surjective D' .π :=
 (Top.epi_iff_surjective D' .π).mp infer_instance
 
-/-- The open immersion `D.U i ⟶ D.glued` for each `i`. -/
-def imm (i : D.ι) : D.U i ⟶ D' .glued :=
-multicoequalizer.π D' .diagram i
-
-lemma is_open_iff (U : set D' .glued) : is_open U ↔ ∀ i, is_open (D.imm i ⁻¹' U) :=
+lemma is_open_iff (U : set D' .glued) : is_open U ↔ ∀ i, is_open (D' .imm i ⁻¹' U) :=
 begin
-  delta imm,
+  delta category_theory.glue_data.imm,
   simp_rw ← multicoequalizer.ι_sigma_π D' .diagram,
   rw ← (homeo_of_iso (multicoequalizer.iso_coequalizer D' .diagram).symm).is_open_preimage,
   rw [coequalizer_is_open_iff, colimit_is_open_iff],
   refl
 end
 
-lemma imm_jointly_surjective (x : D' .glued) : ∃ i (y : D.U i), D.imm i y = x :=
+lemma imm_jointly_surjective (x : D' .glued) : ∃ i (y : D.U i), D' .imm i y = x :=
 begin
-  delta imm,
+  delta category_theory.glue_data.imm,
   simp_rw ← multicoequalizer.ι_sigma_π D' .diagram,
   rcases D.π_surjective x with ⟨x', rfl⟩,
   rw ← (show (sigma_iso_sigma _).inv _ = x',
@@ -116,13 +112,8 @@ begin
   exact ⟨i, y, by { simpa [← multicoequalizer.ι_sigma_π, -multicoequalizer.ι_sigma_π] }⟩
 end
 
-@[simp, elementwise]
-lemma glue_condition (i j : D.ι) :
-  D.t i j ≫ D.f j i ≫ D.imm j = D.f i j ≫ D.imm i :=
-(multicoequalizer.condition D' .diagram ⟨i, j⟩).symm
-
 /--
- An equivalence relation on `Σ i, D.U i` that holds iff `D.imm i x = D.imm j y`.
+ An equivalence relation on `Σ i, D.U i` that holds iff `D' .imm i x = D' .imm j y`.
  See `Top.gluing_data.imm_eq_iff_rel`.
  -/
 def rel (a b : Σ i, ((D.U i : Top) : Type*)) : Prop :=
@@ -186,7 +177,7 @@ lemma inv_image.equivalence {α : Sort u} {β : Sort v} (r : β → β → Prop)
 ⟨λ _, h.1 _, λ _ _ x, h.2.1 x, inv_image.trans r f h.2.2⟩
 
 lemma imm_eq_iff_rel (i j : D.ι) (x : D.U i) (y : D.U j) :
-  D.imm i x = D.imm j y ↔ D.rel ⟨i, x⟩ ⟨j, y⟩ :=
+  D' .imm i x = D' .imm j y ↔ D.rel ⟨i, x⟩ ⟨j, y⟩ :=
 begin
   split,
   { delta imm,
@@ -215,7 +206,7 @@ begin
     refl, dsimp only at *, subst e₁, subst e₂, simp }
 end
 
-lemma imm_injective (i : D.ι) : function.injective (D.imm i) :=
+lemma imm_injective (i : D.ι) : function.injective (D' .imm i) :=
 begin
   intros x y h,
   rcases (D.imm_eq_iff_rel _ _ _ _).mp h with (⟨⟨⟩⟩| ⟨_,e₁,e₂⟩),
@@ -224,13 +215,13 @@ begin
   cases e₁, cases e₂, simp
 end
 
-instance imm_mono (i : D.ι) : mono (D.imm i) :=
+instance imm_mono (i : D.ι) : mono (D' .imm i) :=
 (Top.mono_iff_injective _).mpr (D.imm_injective _)
 
 local attribute [elementwise] is_iso.hom_inv_id is_iso.inv_hom_id
 
 lemma image_inter (i j : D.ι) :
-  set.range (D.imm i) ∩ set.range (D.imm j) = set.range (D.f i j ≫ D.imm _) :=
+  set.range (D' .imm i) ∩ set.range (D' .imm j) = set.range (D.f i j ≫ D' .imm _) :=
 begin
   ext x,
   split,
@@ -246,18 +237,18 @@ begin
 end
 
 lemma preimage_range (i j : D.ι) :
-  D.imm j ⁻¹' (set.range (D.imm i)) = set.range (D.f j i) :=
+  D' .imm j ⁻¹' (set.range (D' .imm i)) = set.range (D.f j i) :=
 by rw [ ←set.preimage_image_eq (set.range (D.f j i)) (D.imm_injective j), ←set.image_univ,
         ←set.image_univ, ←set.image_comp, ←coe_comp, set.image_univ,set.image_univ,
         ←image_inter, set.preimage_range_inter]
 
 lemma preimage_image_eq_image (i j : D.ι) (U : set (D' .U i)) :
-D.imm j ⁻¹' (D.imm i '' U) = D.f _ _ '' ((D.t j i ≫ D.f _ _) ⁻¹' U) :=
+D' .imm j ⁻¹' (D' .imm i '' U) = D.f _ _ '' ((D.t j i ≫ D.f _ _) ⁻¹' U) :=
 begin
-  have : D.f _ _ ⁻¹' (D.imm j ⁻¹' (D.imm i '' U)) = (D.t j i ≫ D.f _ _) ⁻¹' U,
+  have : D.f _ _ ⁻¹' (D' .imm j ⁻¹' (D' .imm i '' U)) = (D.t j i ≫ D.f _ _) ⁻¹' U,
   { ext x,
     conv_rhs { rw ← set.preimage_image_eq U (D.imm_injective _) },
-    generalize : D.imm i '' U = U',
+    generalize : D' .imm i '' U = U',
     simp },
   rw [←this, set.image_preimage_eq_inter_range],
   symmetry,
@@ -267,7 +258,7 @@ begin
 end
 
 lemma preimage_image_eq_image' (i j : D.ι) (U : set (D' .U i)) :
-D.imm j ⁻¹' (D.imm i '' U) = (D.t i j ≫ D.f _ _) '' ((D.f _ _) ⁻¹' U) :=
+D' .imm j ⁻¹' (D' .imm i '' U) = (D.t i j ≫ D.f _ _) '' ((D.f _ _) ⁻¹' U) :=
 begin
   convert D.preimage_image_eq_image i j U using 1,
   rw [coe_comp, coe_comp, ← set.image_image],
@@ -280,7 +271,7 @@ begin
   apply (forget Top).map_is_iso
 end
 
-lemma open_image_open (i : D.ι) (U : opens (D' .U i)) : is_open (D.imm i '' U) :=
+lemma open_image_open (i : D.ι) (U : opens (D' .U i)) : is_open (D' .imm i '' U) :=
 begin
   rw is_open_iff,
   intro j,
@@ -290,9 +281,9 @@ begin
   exact U.property
 end
 
-lemma imm_open_embedding (i : D.ι) : open_embedding (D.imm i) :=
+lemma imm_open_embedding (i : D.ι) : open_embedding (D' .imm i) :=
 open_embedding_of_continuous_injective_open
-  (D.imm i).continuous_to_fun (D.imm_injective i) (λ U h, D.open_image_open i ⟨U, h⟩)
+  (D' .imm i).continuous_to_fun (D.imm_injective i) (λ U h, D.open_image_open i ⟨U, h⟩)
 
 end glue_data
 

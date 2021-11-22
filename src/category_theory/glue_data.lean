@@ -128,11 +128,29 @@ begin
   simpa using this,
 end
 
+lemma t'_inv (i j k : D.ι) : D.t' i j k ≫ (pullback_symmetry _ _).hom ≫
+  D.t' j i k ≫ (pullback_symmetry _ _).hom = 𝟙 _ :=
+begin
+  rw ← cancel_mono (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _),
+  simp [t_fac, t_fac_assoc]
+end
+
 instance t_is_iso (i j : D.ι) : is_iso (D.t i j) :=
 ⟨⟨D.t j i, D.t_inv _ _, D.t_inv _ _⟩⟩
 
 instance t'_is_iso (i j k : D.ι) : is_iso (D.t' i j k) :=
 ⟨⟨D.t' j k i ≫ D.t' k i j, D.cocycle _ _ _, (by simpa using D.cocycle _ _ _)⟩⟩
+
+@[reassoc]
+lemma t'_comp_eq_pullback_symmetry (i j k : D.ι) :
+  D.t' j k i ≫ D.t' k i j = (pullback_symmetry _ _).hom ≫
+  D.t' j i k ≫ (pullback_symmetry _ _).hom :=
+begin
+  transitivity inv (D.t' i j k),
+  { exact is_iso.eq_inv_of_hom_inv_id (D.cocycle _ _ _) },
+  { rw ← cancel_mono (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _),
+    simp [t_fac, t_fac_assoc] }
+end
 
 /-- (Implementation) The disjoint union of `U i`. -/
 def sigma_opens [has_coproduct D.U] : C := ∐ D.U
@@ -145,6 +163,8 @@ def diagram : multispan_index C :=
   fst := λ ⟨i, j⟩, D.f i j,
   snd := λ ⟨i, j⟩, D.t i j ≫ D.f j i }
 
+section
+
 variable [has_multicoequalizer D.diagram]
 
 /-- The glued topological space given a family of gluing data. -/
@@ -154,6 +174,11 @@ def glued : C := multicoequalizer D.diagram
 def imm (i : D.ι) : D.U i ⟶ D.glued :=
 multicoequalizer.π D.diagram i
 
+@[simp, elementwise]
+lemma glue_condition (i j : D.ι) :
+  D.t i j ≫ D.f j i ≫ D.imm j = D.f i j ≫ D.imm i :=
+(category.assoc _ _ _).symm.trans (multicoequalizer.condition D.diagram ⟨i, j⟩).symm
+
 variables [has_colimits C]
 
 /-- (Implementation) The projection `∐ D.U ⟶ D.glued` given by the colimit. -/
@@ -161,22 +186,6 @@ def π : D.sigma_opens ⟶ D.glued := multicoequalizer.sigma_π D.diagram
 
 instance π_epi : epi D.π := by { unfold π, apply_instance }
 
-lemma t'_inv (i j k : D.ι) : D.t' i j k ≫ (pullback_symmetry _ _).hom ≫
-  D.t' j i k ≫ (pullback_symmetry _ _).hom = 𝟙 _ :=
-begin
-  rw ← cancel_mono (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _),
-  simp [t_fac, t_fac_assoc]
-end
-
-@[reassoc]
-lemma t'_comp_eq_pullback_symmetry (i j k : D.ι) :
-  D.t' j k i ≫ D.t' k i j = (pullback_symmetry _ _).hom ≫
-  D.t' j i k ≫ (pullback_symmetry _ _).hom :=
-begin
-  transitivity inv (D.t' i j k),
-  { exact is_iso.eq_inv_of_hom_inv_id (D.cocycle _ _ _) },
-  { rw ← cancel_mono (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _),
-    simp [t_fac, t_fac_assoc] }
 end
 
 variables (F : C ⥤ C') [H : ∀ i j k, preserves_limit (cospan (D.f i j) (D.f i k)) F]

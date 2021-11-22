@@ -48,6 +48,7 @@ class polytope.graded (α : Type u) [preorder α] extends order_bot α : Type u 
 (strict_mono : strict_mono grade)
 (hcovers : ∀ {x y}, x ⋖ y → grade y = grade x + 1)
 
+/-- An abbreviation for the grade function of a graded order. -/
 abbreviation polytope.grade {α : Type u} [preorder α] [polytope.graded α] : α → ℕ :=
 polytope.graded.grade
 
@@ -155,7 +156,6 @@ lemma hom_map_eq (γ : automorphism α) (a b : α) : γ.hom a = γ.hom b ↔ a =
 γ.to_rel_iso.eq_iff_eq
 
 /-- Automorphisms preserve `≠`. -/
-@[simp]
 lemma hom_map_ne (γ : automorphism α) (a b : α) : γ.hom a ≠ γ.hom b ↔ a ≠ b :=
 by simp only [ne.def, hom_map_eq]
 
@@ -175,7 +175,6 @@ lemma inv_map_eq (γ : automorphism α) (a b : α) : γ.inv a = γ.inv b ↔ a =
 γ.to_rel_iso.symm.eq_iff_eq
 
 /-- Inverse automorphisms preserve `≠`. -/
-@[simp]
 lemma inv_map_ne (γ : automorphism α) (a b : α) : γ.inv a ≠ γ.inv b ↔ a ≠ b :=
 by simp only [ne.def, inv_map_eq]
 
@@ -251,7 +250,7 @@ rfl
 
 /-- The group action of the automorphism group of a poset on its flags. -/
 instance : mul_action (automorphism α) (flag α) :=
-{ one_smul := by rintro ⟨b, _⟩; apply subtype.eq; exact set.image_id b,
+{ one_smul := λ ⟨b, _⟩, subtype.eq (set.image_id b),
   mul_smul := begin
     rintros γ γ' ⟨b, _⟩,
     apply subtype.eq,

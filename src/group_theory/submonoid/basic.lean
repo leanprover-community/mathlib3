@@ -325,7 +325,7 @@ lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
 lemma closure_induction' (s : set M) {p : Π x, x ∈ closure s → Prop}
   (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
   (H1 : p 1 (one_mem _))
-  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem _ hx hy))
+  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem hx hy))
   {x} (hx : x ∈ closure s) :
   p x hx :=
 begin

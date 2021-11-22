@@ -132,7 +132,7 @@ theorem band_elim_right : ∀ {a b : bool}, a && b → b := dec_trivial
 
 @[simp] theorem bnot_true : bnot tt = ff := rfl
 
-@[simp] theorem bnot_ne (b : bool) : b ≠ !b :=
+@[simp] theorem ne_bnot (a b : bool) : a ≠ !b ↔ a = b:=
 by cases b; simp
 
 @[simp] theorem bnot_iff_not : ∀ {b : bool}, !b ↔ ¬b := dec_trivial

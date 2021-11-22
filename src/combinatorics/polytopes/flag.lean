@@ -94,6 +94,7 @@ noncomputable instance [partial_order α] (Φ : flag α) : linear_order Φ :=
   decidable_le := classical.dec_rel (≤),
   ..subtype.partial_order _ }
 
+/-- An element belongs to a flag iff it's comparable with everything in it. -/
 lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} : a ∈ Φ ↔ ∀ b : Φ, a ≤ ↑b ∨ ↑b ≤ a :=
 begin
   refine ⟨λ ha _, Φ.le_total ⟨a, ha⟩ _, λ hh, _⟩,

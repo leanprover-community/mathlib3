@@ -5,10 +5,12 @@ open category_theory
 universe u
 
 /-- A flag is a maximal chain. -/
-@[reducible] def flag (α : Type u) [has_le α] : Type u :=
+@[reducible] def polytope.flag (α : Type u) [has_le α] : Type u :=
 {c : set α // @zorn.is_max_chain α (≤) c}
 
-namespace flag
+open polytope
+
+namespace polytope.flag
 
 instance (α : Type u) [has_le α] : has_mem α (flag α) :=
 ⟨λ a Φ, a ∈ Φ.val⟩
@@ -83,7 +85,7 @@ subtype.order_top Φ.top_in_flag
 instance [preorder α] [bounded_order α] (Φ : flag α) : bounded_order Φ :=
 { ..Φ.order_top, ..Φ.order_bot }
 
-end flag
+end polytope.flag
 
 /-- The category of posets of type α. -/
 @[instance]
@@ -93,14 +95,16 @@ private def Poset (α : Type u) [has_le α] : category (partial_order α) :=
   comp := λ a b c hab hbc, rel_hom.comp hbc hab }
 
 /-- The type of automorphisms of a poset. -/
-def automorphism (α : Type u) [p : partial_order α] :=
-@category_theory.Aut (partial_order α) (Poset α) p
+def polytope.automorphism (α : Type u) [p : partial_order α] :=
+@Aut (partial_order α) (Poset α) p
 
-namespace automorphism
+namespace polytope.automorphism
+
+open polytope
 
 /-- The automorphism group of a poset. -/
 instance (α : Type u) [p : partial_order α] : group (automorphism α) :=
-@category_theory.Aut.group (partial_order α) (Poset α) p
+@Aut.group (partial_order α) (Poset α) p
 
 variables {α : Type u} [partial_order α]
 
@@ -234,4 +238,4 @@ instance : mul_action (automorphism α) (flag α) :=
     refl
   end }
 
-end automorphism
+end polytope.automorphism

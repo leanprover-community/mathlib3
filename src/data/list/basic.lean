@@ -3044,7 +3044,7 @@ begin
     },
   },
   {
-    have leq : (list.filter p l_tl).length ≤ l_tl.length := by apply filter_leq_length,
+    have leq : (list.filter p l_tl).length ≤ l_tl.length := by apply length_filter_le,
     exact nat.lt_succ_iff.mpr leq,
   },
 end

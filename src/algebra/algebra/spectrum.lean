@@ -47,7 +47,7 @@ variables [comm_ring R] [ring A] [algebra R A]
 is the `set R` consisting of those `r : R` for which `r•1 - a` is a unit of the
 algebra `A`.  -/
 def resolvent (a : A) : set R :=
-{ r : R | is_unit (r • 1 - a) }
+{ r : R | is_unit (algebra_map R A r - a) }
 
 
 /-- Given a commutative ring `R` and an `R`-algebra `A`, the *spectrum* of `a : A`
@@ -91,39 +91,40 @@ namespace spectrum
 
 
 local notation `σ` := spectrum R
+local notation `↑ₐ` := algebra_map R A
 
 lemma mem_iff {r : R} {a : A} :
-  r ∈ σ a ↔ ¬ is_unit (r • 1 - a) :=
+  r ∈ σ a ↔ ¬ is_unit (↑ₐr - a) :=
 iff.rfl
 
 lemma not_mem_iff {r : R} {a : A} :
-  r ∉ σ a ↔ is_unit (r • 1 - a) :=
+  r ∉ σ a ↔ is_unit (↑ₐr - a) :=
 by { apply not_iff_not.mp, simp [set.not_not_mem, mem_iff] }
 
 lemma mem_resolvent_of_left_right_inverse {r : R} {a b c : A}
-  (h₁ : (r • 1 - a) * b = 1) (h₂ : c * (r • 1 - a) = 1) :
+  (h₁ : (↑ₐr - a) * b = 1) (h₂ : c * (↑ₐr - a) = 1) :
   r ∈ resolvent R a :=
-units.is_unit ⟨r•1 - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁⟩
+units.is_unit ⟨↑ₐr - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁⟩
 
 lemma mem_resolvent_iff {r : R} {a : A} :
-  r ∈ resolvent R a ↔ is_unit (r•1 - a) :=
+  r ∈ resolvent R a ↔ is_unit (↑ₐr - a) :=
 iff.rfl
 
 lemma add_mem_iff {a : A} {r s : R} :
-  r ∈ σ a ↔ r + s ∈ σ (s • 1 + a) :=
+  r ∈ σ a ↔ r + s ∈ σ (↑ₐs + a) :=
 begin
   apply not_iff_not.mpr,
   simp only [mem_resolvent_iff],
-  have h_eq : (r+s)•1 - (s•1 + a) = r•1 - a,
-    { rw add_smul, noncomm_ring },
-  simp [h_eq],
+  have h_eq : ↑ₐ(r+s) - (↑ₐs + a) = ↑ₐr - a,
+    { simp, noncomm_ring },
+  rw h_eq,
 end
 
 lemma smul_mem_smul_iff {a : A} {s : R} {r : units R} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_iff],
+  simp only [mem_resolvent_iff, algebra.algebra_map_eq_smul_one],
   have h_eq : (r•s)•(1 : A) = r•s•1, by simp,
   rw [h_eq,←smul_sub,is_unit.smul_iff],
 end
@@ -143,7 +144,7 @@ begin
 end
 
 theorem left_add_coset_eq (a : A) (r : R) :
-  left_add_coset r (σ a) = σ (r • 1 + a) :=
+  left_add_coset r (σ a) = σ (↑ₐr + a) :=
 by { ext, rw [mem_left_add_coset_iff, neg_add_eq_sub, add_mem_iff],
      nth_rewrite 1 ←sub_add_cancel x r, }
 
@@ -152,7 +153,7 @@ theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : units R} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_iff],
+  simp only [mem_resolvent_iff, algebra.algebra_map_eq_smul_one],
   have coe_smul_eq : ↑r•1 = r•(1 : A), from rfl,
   rw coe_smul_eq,
   simp only [is_unit.smul_sub_iff_sub_inv_smul],

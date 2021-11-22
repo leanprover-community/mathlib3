@@ -438,6 +438,11 @@ begin
     rw ← h_uniq hne.some hne.some_spec, apply hne.some_spec, },
 end
 
+theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : finset α)) : x = y :=
+begin
+  exact (eq_singleton_iff_nonempty_unique_mem.1 (by refl)).2 x h,
+end
+
 lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = {a}) ↔ ∃! a, a ∈ s :=
 by simp only [eq_singleton_iff_unique_mem, exists_unique]
 

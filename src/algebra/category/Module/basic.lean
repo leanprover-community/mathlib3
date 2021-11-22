@@ -346,3 +346,9 @@ def linear_equiv.to_SymmetricBiModule_iso
   inv := (e.symm : X₂ →ₗ[R] X₁),
   hom_inv_id' := begin ext, exact e.left_inv x, end,
   inv_hom_id' := begin ext, exact e.right_inv x, end, }
+
+/-- Forgetting to the underlying type and then building the bundled object returns the original
+module. -/
+@[simps]
+def of_self_iso (M : SymmetricBiModule R) : SymmetricBiModule.of R M ≅ M :=
+{ hom := 𝟙 M, inv := 𝟙 M }

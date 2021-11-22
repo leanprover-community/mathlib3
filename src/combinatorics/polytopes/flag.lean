@@ -385,4 +385,55 @@ instance [graded α] (Φ : flag α) : graded Φ :=
   strict_mono := λ x y (h : x.val < y.val), graded.strict_mono h,
   hcovers := λ _ _ hcov, graded.hcovers $ (cover_iff_flag_cover _ _).mp hcov }
 
+/-- A point subdivides an interval into three. -/
+private lemma ioo_tricho {a b c : ℕ} (hc : c ∈ set.Ioo a b) (d: ℕ) : c = d ∨ c ∈ set.Ioo a d ∨ c ∈ set.Ioo d b :=
+begin
+  cases eq_or_ne c d with hcd hcd,
+    { exact or.inl hcd },
+  cases ne.lt_or_lt hcd with ha hb,
+    { exact or.inr (or.inl ⟨and.left hc, ha⟩) },
+    { exact or.inr (or.inr ⟨hb, and.right hc⟩) }
+end
+
+/-- A set of nats without gaps is an interval. The sizes of the gaps and intervals we consider are
+    bounded by `n`, so that we may induct on it. -/
+private lemma all_ioo_of_ex_ioo {P : ℕ → Prop} (n : ℕ)
+  (hP : ∀ a b, b ≤ a + n → P a → P b → nonempty (set.Ioo a b) → ∃ c ∈ set.Ioo a b, P c) (a b : ℕ) :
+  b ≤ a + n → P a → P b → ∀ c ∈ set.Ioo a b, P c :=
+begin
+  revert a b,
+  induction n with n hP',
+    { exact λ _ _ hba _ _ _ hci, ((not_lt_of_ge hba) (lt_trans hci.left hci.right)).elim },
+  intros a b hba ha hb _ hci,
+  rcases hP a b hba ha hb (nonempty.intro ⟨_, hci⟩) with ⟨d, ⟨hdil, hdir⟩, hd⟩,
+  cases ioo_tricho hci d with hcd hdb, { rwa ←hcd at hd },
+  have hxy : ∃ x y, P x ∧ P y ∧ c ∈ set.Ioo x y ∧ y ≤ x + n := begin
+    cases hdb with hcad hcdb,
+      { refine ⟨a, d, ha, hd, hcad, _⟩,
+        have := lt_of_lt_of_le hdir hba,
+        rw nat.add_succ at this,
+        exact nat.le_of_lt_succ this },
+      { refine ⟨d, b, hd, hb, hcdb, _⟩,
+        have := nat.add_le_add hdil rfl.le,
+        rw nat.succ_add a n at this,
+        exact le_trans hba this }
+  end,
+  rcases hxy with ⟨x, y, hx, hy, hxy, hyx⟩,
+  refine hP' (λ _ _ hba, _) x y hyx hx hy c hxy,
+  exact hP _ _ (hba.trans (nat.le_succ _)),
+end
+
+/-- A set of nats without gaps is an interval. -/
+lemma all_icc_of_ex_ioo {P : ℕ → Prop}
+  (hP : ∀ a b, P a → P b → (nonempty (set.Ioo a b)) → ∃ c ∈ set.Ioo a b, P c) (a b : ℕ) :
+  P a → P b → ∀ c ∈ set.Icc a b, P c :=
+begin
+  rintros ha hb c ⟨hac, hcb⟩,
+  cases eq_or_lt_of_le hac with hac hac,
+    { rwa ←hac },
+  cases eq_or_lt_of_le hcb with hcb hcb,
+    { rwa  hcb },
+  exact all_ioo_of_ex_ioo b (λ c d _, hP c d) _ _ le_add_self ha hb _ ⟨hac, hcb⟩
+end
+
 end flag

@@ -8,6 +8,17 @@ universe u
 @[reducible] def polytope.flag (α : Type u) [has_le α] : Type u :=
 {c : set α // @zorn.is_max_chain α (≤) c}
 
+/-- The category of posets of type α. -/
+@[instance]
+private def Poset (α : Type u) [has_le α] : category (partial_order α) :=
+{ hom  := λ a b, a.le →r b.le,
+  id   := λ a, rel_hom.id a.le,
+  comp := λ a b c hab hbc, rel_hom.comp hbc hab }
+
+/-- The type of automorphisms of a poset. -/
+def polytope.automorphism (α : Type u) [p : partial_order α] :=
+@Aut (partial_order α) (Poset α) p
+
 open polytope
 
 namespace polytope.flag
@@ -87,20 +98,7 @@ instance [preorder α] [bounded_order α] (Φ : flag α) : bounded_order Φ :=
 
 end polytope.flag
 
-/-- The category of posets of type α. -/
-@[instance]
-private def Poset (α : Type u) [has_le α] : category (partial_order α) :=
-{ hom  := λ a b, a.le →r b.le,
-  id   := λ a, rel_hom.id a.le,
-  comp := λ a b c hab hbc, rel_hom.comp hbc hab }
-
-/-- The type of automorphisms of a poset. -/
-def polytope.automorphism (α : Type u) [p : partial_order α] :=
-@Aut (partial_order α) (Poset α) p
-
 namespace polytope.automorphism
-
-open polytope
 
 /-- The automorphism group of a poset. -/
 instance (α : Type u) [p : partial_order α] : group (automorphism α) :=

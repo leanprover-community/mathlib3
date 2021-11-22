@@ -1,4 +1,16 @@
+/-
+Copyright (c) 2021 Grayson Burton. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Grayson Burton, Violeta Hernández Palacios.
+-/
 import tactic.wlog order.zorn category_theory.conj
+
+/-!
+# Flags of polytopes
+
+In this file we define flags, which are maximal chains of a partial order. We prove that
+automorphisms of posets induce a group action on flags.
+-/
 
 open category_theory
 
@@ -8,7 +20,7 @@ universe u
 @[reducible] def polytope.flag (α : Type u) [has_le α] : Type u :=
 {c : set α // @zorn.is_max_chain α (≤) c}
 
-/-- The category of posets of type α. -/
+/-- The category of posets of type `α`. -/
 @[instance]
 private def Poset (α : Type u) [has_le α] : category (partial_order α) :=
 { hom  := λ a b, a.le →r b.le,
@@ -62,16 +74,7 @@ noncomputable instance [partial_order α] (Φ : flag α) : linear_order Φ :=
   decidable_le := classical.dec_rel (≤),
   ..subtype.partial_order _ }
 
-/-- An element is in a flag iff it is comparable to everything in it. -/
-lemma mem_flag_iff_comp [preorder α] (Φ : flag α) (a : α) : a ∈ Φ ↔ ∀ b : Φ, a ≤ ↑b ∨ ↑b ≤ a :=
-begin
-  refine ⟨λ ha _, Φ.le_total ⟨a, ha⟩ _, λ hh, _⟩,
-  by_contra,
-  refine Φ.prop.right ⟨set.insert a Φ, _, set.ssubset_insert h⟩,
-  exact zorn.chain_insert Φ.prop.left (λ _ hbΦ _, hh ⟨_, hbΦ⟩)
-end
-
-lemma mem_flag_iff_comp' [preorder α] (Φ : flag α) {a : α} : a ∈ Φ ↔ ∀ b : Φ, a ≤ ↑b ∨ ↑b ≤ a :=
+lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} : a ∈ Φ ↔ ∀ b : Φ, a ≤ ↑b ∨ ↑b ≤ a :=
 begin
   refine ⟨λ ha _, Φ.le_total ⟨a, ha⟩ _, λ hh, _⟩,
   by_contra,
@@ -81,14 +84,14 @@ end
 
 /-- `⊥` belongs to every flag. -/
 theorem bot_in_flag [preorder α] [order_bot α] (Φ : flag α) : (⊥ : α) ∈ Φ :=
-Φ.mem_flag_iff_comp'.mpr $ λ _, or.inl bot_le
+Φ.mem_flag_iff_comp.mpr $ λ _, or.inl bot_le
 
 instance [preorder α] [order_bot α] (Φ : flag α) : order_bot Φ :=
 subtype.order_bot Φ.bot_in_flag
 
 /-- `⊤` belongs to every flag. -/
 theorem top_in_flag [preorder α] [order_top α] (Φ : flag α) : (⊤ : α) ∈ Φ :=
-Φ.mem_flag_iff_comp'.mpr $ λ _, or.inr le_top
+Φ.mem_flag_iff_comp.mpr $ λ _, or.inr le_top
 
 instance [preorder α] [order_top α] (Φ : flag α) : order_top Φ :=
 subtype.order_top Φ.top_in_flag

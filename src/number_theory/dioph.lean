@@ -186,7 +186,7 @@ instance : comm_ring (poly α) := by refine_struct
   sub   := (has_sub.sub),
   npow  := @npow_rec _ ⟨(1 : poly α)⟩ ⟨(*)⟩,
   nsmul := @nsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩,
-  gsmul := @gsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨neg⟩ };
+  zsmul := @zsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨neg⟩ };
 intros; try { refl }; refine ext (λ _, _);
 simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 
@@ -327,8 +327,8 @@ begin
       ⟨⟨t ∘ inl, by rwa [
         show (v ⊗ t) ∘ (inl ⊗ inr ∘ inl) = v ⊗ t ∘ inl,
         from funext $ λs, by cases s with a b; refl] at hl⟩,
-      ⟨t ∘ inr, by {
-        refine list_all.imp (λq hq, _) hr, dsimp [(∘)] at hq,
+      ⟨t ∘ inr, by
+      { refine list_all.imp (λq hq, _) hr, dsimp [(∘)] at hq,
         rwa [show (λ (x : α ⊕ γ), (v ⊗ t) ((inl ⊗ λ (x : γ), inr (inr x)) x)) = v ⊗ t ∘ inr,
              from funext $ λs, by cases s with a b; refl] at hq }⟩⟩⟩⟩
 end

@@ -171,10 +171,25 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
   h.mono_measure (measure.le_add_left (le_refl _))⟩,
   λ h, h.1.add_measure h.2⟩
 
+lemma _root_.measurable_embedding.integrable_on_map_iff [measurable_space β] {e : α → β}
+  (he : measurable_embedding e) {f : β → E} {μ : measure α} {s : set β} :
+  integrable_on f s (measure.map e μ) ↔ integrable_on (f ∘ e) (e ⁻¹' s) μ :=
+by simp only [integrable_on, he.restrict_map, he.integrable_map_iff]
+
 lemma integrable_on_map_equiv [measurable_space β] (e : α ≃ᵐ β) {f : β → E} {μ : measure α}
   {s : set β} :
   integrable_on f s (measure.map e μ) ↔ integrable_on (f ∘ e) (e ⁻¹' s) μ :=
 by simp only [integrable_on, e.restrict_map, integrable_map_equiv e]
+
+lemma measure_preserving.integrable_on_comp_preimage [measurable_space β] {e : α → β} {ν}
+  (h₁ : measure_preserving e μ ν) (h₂ : measurable_embedding e) {f : β → E} {s : set β} :
+  integrable_on (f ∘ e) (e ⁻¹' s) μ ↔ integrable_on f s ν :=
+(h₁.restrict_preimage_emb h₂ s).integrable_comp_emb h₂
+
+lemma measure_preserving.integrable_on_image [measurable_space β] {e : α → β} {ν}
+  (h₁ : measure_preserving e μ ν) (h₂ : measurable_embedding e) {f : β → E} {s : set α} :
+  integrable_on f (e '' s) ν ↔  integrable_on (f ∘ e) s μ :=
+((h₁.restrict_image_emb h₂ s).integrable_comp_emb h₂).symm
 
 lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=

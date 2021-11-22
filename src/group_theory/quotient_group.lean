@@ -6,7 +6,6 @@ Authors: Kevin Buzzard, Patrick Massot
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
 import group_theory.coset
-import data.setoid.basic
 
 /-!
 # Quotients of groups by normal subgroups
@@ -141,8 +140,8 @@ lemma coe_inv (a : G) : ((a⁻¹ : G) : Q) = a⁻¹ := rfl
 @[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n :=
 (mk' N).map_pow a n
 
-@[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
-(mk' N).map_gpow a n
+@[simp] lemma coe_zpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
+(mk' N).map_zpow a n
 
 /-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
 group homomorphism `G/N →* H`. -/

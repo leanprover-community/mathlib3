@@ -88,6 +88,10 @@ begin
   simpa only [to_list_of_fn] using list.of_fn_nth_le _
 end
 
+/-- The natural equivalence between length-`n` vectors and functions from `fin n`. -/
+def _root_.equiv.vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
+⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
+
 theorem nth_tail (x : vector α n) (i) :
   x.tail.nth i = x.nth ⟨i.1 + 1, lt_tsub_iff_right.mp i.2⟩ :=
 by { rcases x with ⟨_|_, h⟩; refl, }
@@ -191,8 +195,8 @@ lemma last_def {v : vector α (n + 1)} : v.last = v.nth (fin.last n) := rfl
 lemma reverse_nth_zero {v : vector α (n + 1)} : v.reverse.head = v.last :=
 begin
   have : 0 = v.to_list.length - 1 - n,
-    { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
-                 list.length_reverse] },
+  { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
+               list.length_reverse] },
   rw [←nth_zero, last_def, nth_eq_nth_le, nth_eq_nth_le],
   simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, this],
   rw list.nth_le_reverse,

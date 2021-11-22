@@ -130,12 +130,12 @@ instance at_bot.is_countably_generated [preorder α] [encodable α] :
   (at_bot : filter $ α).is_countably_generated :=
 is_countably_generated_seq _
 
-lemma order_top.at_top_eq (α) [order_top α] : (at_top : filter α) = pure ⊤ :=
+lemma order_top.at_top_eq (α) [partial_order α] [order_top α] : (at_top : filter α) = pure ⊤ :=
 le_antisymm (le_pure_iff.2 $ (eventually_ge_at_top ⊤).mono $ λ b, top_unique)
   (le_infi $ λ b, le_principal_iff.2 le_top)
 
-lemma order_bot.at_bot_eq (α) [order_bot α] : (at_bot : filter α) = pure ⊥ :=
-@order_top.at_top_eq (order_dual α) _
+lemma order_bot.at_bot_eq (α) [partial_order α] [order_bot α] : (at_bot : filter α) = pure ⊥ :=
+@order_top.at_top_eq (order_dual α) _ _
 
 @[nontriviality]
 lemma subsingleton.at_top_eq (α) [subsingleton α] [preorder α] : (at_top : filter α) = ⊤ :=
@@ -150,13 +150,13 @@ end
 lemma subsingleton.at_bot_eq (α) [subsingleton α] [preorder α] : (at_bot : filter α) = ⊤ :=
 @subsingleton.at_top_eq (order_dual α) _ _
 
-lemma tendsto_at_top_pure [order_top α] (f : α → β) :
+lemma tendsto_at_top_pure [partial_order α] [order_top α] (f : α → β) :
   tendsto f at_top (pure $ f ⊤) :=
 (order_top.at_top_eq α).symm ▸ tendsto_pure_pure _ _
 
-lemma tendsto_at_bot_pure [order_bot α] (f : α → β) :
+lemma tendsto_at_bot_pure [partial_order α] [order_bot α] (f : α → β) :
   tendsto f at_bot (pure $ f ⊥) :=
-@tendsto_at_top_pure (order_dual α) _ _ _
+@tendsto_at_top_pure (order_dual α) _ _ _ _
 
 lemma eventually.exists_forall_of_at_top [semilattice_sup α] [nonempty α] {p : α → Prop}
   (h : ∀ᶠ x in at_top, p x) : ∃ a, ∀ b ≥ a, p b :=
@@ -1241,6 +1241,17 @@ end
 lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.is_countably_generated] :
   (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
 tendsto_iff_seq_tendsto.2
+
+/-- If `f` is a nontrivial countably generated basis, then there exists a sequence that converges
+to `f`. -/
+lemma exists_seq_tendsto (f : filter α) [is_countably_generated f] [ne_bot f] :
+  ∃ x : ℕ → α, tendsto x at_top f :=
+begin
+  obtain ⟨B, h, h_mono, -⟩ := f.exists_antitone_basis,
+  have := λ n, nonempty_of_mem (h.mem_of_mem trivial : B n ∈ f), choose x hx,
+  exact ⟨x, h.tendsto_right_iff.2 $
+    λ n hn, eventually_at_top.2 ⟨n, λ m hm, h_mono trivial trivial hm (hx m)⟩⟩
+end
 
 lemma subseq_tendsto_of_ne_bot {f : filter α} [is_countably_generated f]
   {u : ℕ → α}

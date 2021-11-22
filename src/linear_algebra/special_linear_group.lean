@@ -3,7 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.adjugate
 import linear_algebra.matrix.to_lin
 
 /-!
@@ -85,7 +85,7 @@ subtype.ext_iff.trans matrix.ext_iff.symm
 (special_linear_group.ext_iff A B).mpr
 
 instance has_inv : has_inv (special_linear_group n R) :=
-⟨λ A, ⟨adjugate A, det_adjugate_eq_one A.2⟩⟩
+⟨λ A, ⟨adjugate A, by rw [det_adjugate, A.prop, one_pow]⟩⟩
 
 instance has_mul : has_mul (special_linear_group n R) :=
 ⟨λ A B, ⟨A.1 ⬝ B.1, by erw [det_mul, A.2, B.2, one_mul]⟩⟩

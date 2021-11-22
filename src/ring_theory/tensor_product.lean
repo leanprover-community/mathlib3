@@ -301,17 +301,17 @@ lemma mul_assoc' (mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] 
       mul (a₁ ⊗ₜ[R] b₁) (mul (a₂ ⊗ₜ[R] b₂) (a₃ ⊗ₜ[R] b₃))) :
   ∀ (x y z : A ⊗[R] B), mul (mul x y) z = mul x (mul y z) :=
 begin
-    intros,
-    apply tensor_product.induction_on x,
-    { simp only [linear_map.map_zero, linear_map.zero_apply], },
-    apply tensor_product.induction_on y,
-    { simp only [linear_map.map_zero, forall_const, linear_map.zero_apply], },
-    apply tensor_product.induction_on z,
-    { simp only [linear_map.map_zero, forall_const], },
-    { intros, simp only [h], },
-    { intros, simp only [linear_map.map_add, *], },
-    { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
-    { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
+  intros,
+  apply tensor_product.induction_on x,
+  { simp only [linear_map.map_zero, linear_map.zero_apply], },
+  apply tensor_product.induction_on y,
+  { simp only [linear_map.map_zero, forall_const, linear_map.zero_apply], },
+  apply tensor_product.induction_on z,
+  { simp only [linear_map.map_zero, forall_const], },
+  { intros, simp only [h], },
+  { intros, simp only [linear_map.map_add, *], },
+  { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
+  { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
 end
 
 lemma mul_assoc (x y z : A ⊗[R] B) : mul (mul x y) z = mul x (mul y z) :=

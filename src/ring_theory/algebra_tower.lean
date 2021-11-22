@@ -3,12 +3,11 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.restrict_scalars
-import algebra.algebra.tower
 import algebra.invertible
-import linear_algebra.basis
 import ring_theory.adjoin.fg
-import ring_theory.polynomial.tower
+import linear_algebra.basis
+import algebra.algebra.tower
+import algebra.algebra.restrict_scalars
 
 /-!
 # Towers of algebras
@@ -67,14 +66,14 @@ end is_scalar_tower
 namespace algebra
 
 theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
-  [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] (s : set S) :
+  [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] (s : set S) :
   adjoin R (algebra_map S (restrict_scalars R S A) '' s) = (adjoin R s).map
   ((algebra.of_id S (restrict_scalars R S A)).restrict_scalars R) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
 theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
-  [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
+  [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] [algebra R A]
   [is_scalar_tower R S A] (s : set S) :
   adjoin R (algebra_map S A '' s) =
     subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
@@ -84,8 +83,8 @@ le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin h
 lemma adjoin_restrict_scalars (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
   [algebra C D] [algebra C E] [algebra D E] [is_scalar_tower C D E] (S : set E) :
 (algebra.adjoin D S).restrict_scalars C =
-  ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)).under
-    (algebra.adjoin ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S) :=
+  (algebra.adjoin
+    ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S).restrict_scalars C :=
 begin
   suffices : set.range (algebra_map D E) =
     set.range (algebra_map ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) E),
@@ -104,22 +103,22 @@ lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semirin
   (hS : algebra.adjoin C S = ⊤) (hT : algebra.adjoin C T = ⊤) :
 (algebra.adjoin E (algebra_map D F '' S)).restrict_scalars C =
   (algebra.adjoin D (algebra_map E F '' T)).restrict_scalars C :=
-by rw [adjoin_restrict_scalars, adjoin_restrict_scalars, ←hS, ←hT, ←algebra.adjoin_image,
+by rw [adjoin_restrict_scalars C E, adjoin_restrict_scalars C D, ←hS, ←hT, ←algebra.adjoin_image,
   ←algebra.adjoin_image, ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom,
-  is_scalar_tower.coe_to_alg_hom, is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under,
-  ←adjoin_union_eq_under, set.union_comm]
+  is_scalar_tower.coe_to_alg_hom, is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_adjoin_adjoin,
+  ←adjoin_union_eq_adjoin_adjoin, set.union_comm]
 
 end algebra
 
 section
 open_locale classical
-lemma algebra.fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
+lemma algebra.fg_trans' {R S A : Type*} [comm_semiring R] [comm_semiring S] [comm_semiring A]
   [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
   (hRS : (⊤ : subalgebra R S).fg) (hSA : (⊤ : subalgebra S A).fg) :
   (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
-by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_under,
-  algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.range_under_adjoin, ht,
+by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_adjoin_adjoin,
+  algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.adjoin_range_to_alg_hom, ht,
   subalgebra.restrict_scalars_top]⟩
 end
 
@@ -143,14 +142,14 @@ b.coe_map_coeffs _ _
 
 end algebra_map_coeffs
 
-section ring
+section semiring
 
 open finsupp
 open_locale big_operators classical
 universes v₁ w₁
 
 variables {R S A}
-variables [comm_ring R] [ring S] [add_comm_group A]
+variables [comm_semiring R] [semiring S] [add_comm_monoid A]
 variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
 
 theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
@@ -162,7 +161,7 @@ begin
   { have h1 : ∑ i in (s.image prod.fst).product (s.image prod.snd), g i • b i.1 • c i.2 = 0,
     { rw ← hsg, exact (finset.sum_subset finset.subset_product $ λ p _ hp,
         show g p • b p.1 • c p.2 = 0, by rw [hg p hp, zero_smul]).symm },
-    rw [finset.sum_product, finset.sum_comm] at h1,
+    rw finset.sum_product_right at h1,
     simp_rw [← smul_assoc, ← finset.sum_smul] at h1,
     exact hb _ _ (hc _ _ h1 k (finset.mem_image_of_mem _ hik)) i (finset.mem_image_of_mem _ hik) },
   exact hg _ hik
@@ -202,7 +201,14 @@ begin
   { simp [hi] },
 end
 
-lemma basis.algebra_map_injective {ι : Type v₁} [no_zero_divisors R] [nontrivial S]
+end semiring
+
+section ring
+
+variables {R S}
+variables [comm_ring R] [ring S] [algebra R S]
+
+lemma basis.algebra_map_injective {ι : Type*} [no_zero_divisors R] [nontrivial S]
   (b : basis ι R S) :
   function.injective (algebra_map R S) :=
 have no_zero_smul_divisors R S := b.no_zero_smul_divisors,
@@ -213,7 +219,10 @@ end ring
 section artin_tate
 
 variables (C : Type*)
-variables [comm_ring A] [comm_ring B] [comm_ring C]
+
+section semiring
+
+variables [comm_semiring A] [comm_semiring B] [semiring C]
 variables [algebra A B] [algebra B C] [algebra A C] [is_scalar_tower A B C]
 
 open finset submodule
@@ -257,6 +266,13 @@ begin
     (subset_span $ mem_insert_self _ _) (λ p q hp hq, hyy $ submodule.mul_mem_mul hp hq)
 end
 
+end semiring
+
+section ring
+
+variables [comm_ring A] [comm_ring B] [comm_ring C]
+variables [algebra A B] [algebra B C] [algebra A C] [is_scalar_tower A B C]
+
 /-- Artin--Tate lemma: if A ⊆ B ⊆ C is a chain of subrings of commutative rings, and
 A is noetherian, and C is algebra-finite over A, and C is module-finite over B,
 then B is algebra-finite over A.
@@ -271,6 +287,8 @@ algebra.fg_trans' (B₀.fg_top.2 hAB₀) $ subalgebra.fg_of_submodule_fg $
 have is_noetherian_ring B₀, from is_noetherian_ring_of_fg hAB₀,
 have is_noetherian B₀ C, by exactI is_noetherian_of_fg_of_noetherian' hB₀C,
 by exactI fg_of_injective (is_scalar_tower.to_alg_hom B₀ B C).to_linear_map hBCi
+
+end ring
 
 end artin_tate
 

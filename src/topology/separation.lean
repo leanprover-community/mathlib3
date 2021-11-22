@@ -50,7 +50,7 @@ This file defines the predicate `separated`, and common separation axioms
 * `t2_iff_nhds`: A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter.
 * `t2_iff_is_closed_diagonal`: A space is T₂ iff the `diagonal` of `α` (that is, the set of all
   points of the form `(a, a) : α × α`) is closed under the product topology.
-* `finset_disjoing_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
+* `finset_disjoint_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
 * Most topological constructions preserve Hausdorffness;
   these results are part of the typeclass inference system (e.g. `embedding.t2_space`)
 * `set.eq_on.closure`: If two functions are equal on some set `s`, they are equal on its closure.
@@ -304,7 +304,7 @@ begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
 end
 
-lemma finite.is_closed {α} [topological_space α] [t1_space α] {s : set α} (hs : set.finite s) :
+lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
   is_closed s :=
 begin
   rw ← bUnion_of_singleton s,
@@ -320,6 +320,48 @@ begin
   rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
+
+/-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
+lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+  dense (s \ {x}) :=
+hs.inter_of_open_right (dense_compl_singleton x) is_open_compl_singleton
+
+/-- Removing a finset from a dense set in a space without isolated points, one still
+obtains a dense set. -/
+lemma dense.diff_finset [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : dense s) (t : finset α) :
+  dense (s \ t) :=
+begin
+  induction t using finset.induction_on with x s hxs ih hd,
+  { simpa using hs },
+  { rw [finset.coe_insert, ← union_singleton, ← diff_diff],
+    exact ih.diff_singleton _, }
+end
+
+/-- Removing a finite set from a dense set in a space without isolated points, one still
+obtains a dense set. -/
+lemma dense.diff_finite [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : dense s) {t : set α} (ht : finite t) :
+  dense (s \ t) :=
+begin
+  convert hs.diff_finset ht.to_finset,
+  exact (finite.coe_to_finset _).symm,
+end
+
+/-- If a function to a `t1_space` tends to some limit `b` at some point `a`, then necessarily
+`b = f a`. -/
+lemma eq_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
+  (h : tendsto f (𝓝 a) (𝓝 b)) : f a = b :=
+by_contra $ assume (hfa : f a ≠ b),
+have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
+have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id' $ pure_le_nhds a),
+fact₂ fact₁ (eq.refl $ f a)
+
+/-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that
+`f` admits *some* limit at `a`. -/
+lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
+  (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
+show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
@@ -566,7 +608,7 @@ lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α}
 ⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
 
 /-- A T₂.₅ space, also known as a Urysohn space, is a topological space
-  where for every pair `x ≠ y`, there are two open sets, with the intersection of clousures
+  where for every pair `x ≠ y`, there are two open sets, with the intersection of closures
   empty, one containing `x` and the other `y` . -/
 class t2_5_space (α : Type u) [topological_space α]: Prop :=
 (t2_5 : ∀ x y  (h : x ≠ y), ∃ (U V: set α), is_open U ∧  is_open V ∧

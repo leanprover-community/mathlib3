@@ -32,6 +32,8 @@ def support [has_zero A] (f : α → A) : set α := {x | f x ≠ 0}
 /-- `mul_support` of a function is the set of points `x` such that `f x ≠ 1`. -/
 @[to_additive] def mul_support (f : α → M) : set α := {x | f x ≠ 1}
 
+@[to_additive] lemma mul_support_eq_preimage (f : α → M) : mul_support f = f ⁻¹' {1}ᶜ := rfl
+
 @[to_additive] lemma nmem_mul_support {f : α → M} {x : α} :
   x ∉ mul_support f ↔ f x = 1 :=
 not_not

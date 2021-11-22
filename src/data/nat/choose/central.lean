@@ -8,6 +8,8 @@ import data.nat.choose.basic
 import data.nat.choose.sum
 import data.nat.multiplicity
 import number_theory.padics.padic_norm
+import tactic.norm_num
+import tactic.linarith
 
 /-!
 # Central binomial coefficients

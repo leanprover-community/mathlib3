@@ -3,11 +3,12 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import order.conditionally_complete_lattice
-import data.real.cau_seq_completion
+import algebra.module.basic
 import algebra.bounds
 import algebra.order.archimedean
 import algebra.star.basic
+import data.real.cau_seq_completion
+import order.conditionally_complete_lattice
 
 /-!
 # Real numbers from Cauchy sequences
@@ -71,7 +72,7 @@ begin
                   sub   := λ a b, a + (-b),
                   npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
                   nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
-                  gsmul := @gsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
+                  zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
   simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];

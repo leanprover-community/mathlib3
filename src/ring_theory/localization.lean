@@ -585,6 +585,17 @@ lemma ring_equiv_of_ring_equiv_mk' {j : R ≃+* P} (H : M.map j.to_monoid_hom = 
     mk' Q (j x) ⟨j y, show j y ∈ T, from H ▸ set.mem_image_of_mem j y.2⟩ :=
 map_mk' _ _ _
 
+lemma iso_comp {S T : CommRing}
+  [l : algebra R S] [h : is_localization M S] (f : S ≅ T) :
+  @is_localization _ _ M T _ (f.hom.comp l.to_ring_hom).to_algebra :=
+{ map_units := let hm := h.1 in
+    λ t, is_unit.map f.hom.to_monoid_hom (hm t),
+  surj := let hs := h.2 in λ t, let ⟨⟨r,s⟩,he⟩ := hs (f.inv t) in ⟨ ⟨r,s⟩,
+  by { convert congr_arg f.hom he, rw [ring_hom.map_mul,
+       ←category_theory.comp_apply, category_theory.iso.inv_hom_id], refl } ⟩,
+  eq_iff_exists := let he := h.3 in λ t t', by { rw ← he, split,
+    apply f.CommRing_iso_to_ring_equiv.injective, exact congr_arg f.hom } }
+
 end map
 
 section alg_equiv
@@ -755,8 +766,8 @@ lemma smul_mk {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
   (c : S) (a b) : localization.smul c (mk a b : localization M) = mk (c • a) b :=
 by { unfold has_scalar.smul localization.smul, apply lift_on_mk }
 
-private meta def tac := `[{
-  intros,
+private meta def tac := `[
+{ intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
   refine mk_eq_mk_iff.mpr (r_of_eq _),
   simp only [submonoid.coe_mul, prod.fst_mul, prod.snd_mul],
@@ -773,12 +784,12 @@ instance : comm_ring (localization M) :=
     (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
   nsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
-  gsmul := localization.smul,
-  gsmul_zero' := λ x, localization.induction_on x
-    (λ x, by simp only [smul_mk, zero_gsmul, mk_zero]),
-  gsmul_succ' := λ n x, localization.induction_on x
+  zsmul := localization.smul,
+  zsmul_zero' := λ x, localization.induction_on x
+    (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
+  zsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
-  gsmul_neg' := λ n x, localization.induction_on x
+  zsmul_neg' := λ n x, localization.induction_on x
     (λ x, by { rw [smul_mk, smul_mk, neg_mk, ← neg_smul], refl }),
   add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
   zero_add       := λ y, localization.induction_on y (by tac),
@@ -2030,8 +2041,8 @@ noncomputable instance : field (fraction_ring A) :=
   sub := has_sub.sub,
   one := 1,
   zero := 0,
-  nsmul := nsmul,
-  gsmul := gsmul,
+  nsmul := add_monoid.nsmul,
+  zsmul := sub_neg_monoid.zsmul,
   npow := localization.npow _,
   .. localization.comm_ring,
   .. is_fraction_ring.to_field A }

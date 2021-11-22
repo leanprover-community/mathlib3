@@ -1,7 +1,7 @@
 import tactic.ring
 import tactic.pi_instances
 import analysis.complex.basic
-import ring_theory.coprime
+import ring_theory.coprime.basic
 import ring_theory.int.basic
 import data.complex.basic
 import analysis.p_series

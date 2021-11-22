@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan, Anne Baanen
 -/
 
-import algebra.field
+import algebra.field.basic
 import data.rat.basic
 import ring_theory.algebraic
 import ring_theory.dedekind_domain

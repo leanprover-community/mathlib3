@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.apply_fun
+import algebra.field.opposite
 import algebra.field_power
 import data.equiv.ring_aut
 import group_theory.group_action.units
+import group_theory.group_action.opposite
 import algebra.ring.comp_typeclasses
 
 /-!

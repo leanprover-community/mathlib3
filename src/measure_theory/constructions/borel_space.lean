@@ -1140,6 +1140,11 @@ instance nat.borel_space : borel_space ℕ := ⟨borel_eq_top_of_discrete.symm�
 instance int.borel_space : borel_space ℤ := ⟨borel_eq_top_of_discrete.symm⟩
 instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_encodable.symm⟩
 
+@[priority 900]
+instance is_R_or_C.measurable_space {𝕜 : Type*} [is_R_or_C 𝕜] : measurable_space 𝕜 := borel 𝕜
+@[priority 900]
+instance is_R_or_C.borel_space {𝕜 : Type*} [is_R_or_C 𝕜] : borel_space 𝕜 := ⟨rfl⟩
+
 instance real.measurable_space : measurable_space ℝ := borel ℝ
 instance real.borel_space : borel_space ℝ := ⟨rfl⟩
 

@@ -681,18 +681,16 @@ end
 end normed_space_over_complete_field
 
 section is_R_or_C
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] {f : α → 𝕜}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
 
-lemma integrable.of_real [borel_space 𝕜] {f : α → ℝ} (hf : integrable f μ) :
+lemma integrable.of_real {f : α → ℝ} (hf : integrable f μ) :
   integrable (λ x, (f x : 𝕜)) μ :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_real }
 
-lemma integrable.re_im_iff [borel_space 𝕜] :
+lemma integrable.re_im_iff :
   integrable (λ x, is_R_or_C.re (f x)) μ ∧ integrable (λ x, is_R_or_C.im (f x)) μ ↔
   integrable f μ :=
 by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_re_im_iff }
-
-variable [opens_measurable_space 𝕜]
 
 lemma integrable.re (hf : integrable f μ) : integrable (λ x, is_R_or_C.re (f x)) μ :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.re, }
@@ -703,8 +701,7 @@ by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
 end is_R_or_C
 
 section inner_product
-variables {𝕜 E : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
-  [inner_product_space 𝕜 E]
+variables {𝕜 E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
   [measurable_space E] [opens_measurable_space E] [second_countable_topology E]
   {f : α → E}
 

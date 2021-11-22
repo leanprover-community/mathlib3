@@ -54,7 +54,7 @@ noncomputable def hom_dual_tensor
   (M →ₗ[R] N) →ₗ[R] (module.dual R M) ⊗[R] N :=
 ∑ i, (tensor_product.mk R _ N (b.dual_basis i)) ∘ₗ linear_map.applyₗ (b i)
 
-noncomputable lemma hom_dual_tensor_apply
+lemma hom_dual_tensor_apply
   {ι : Type*} [fintype ι] [decidable_eq ι] (b : basis ι R M) (f : M →ₗ[R] N) :
   hom_dual_tensor R M N b f = ∑ i, b.dual_basis i ⊗ₜ f (b i) :=
 linear_map.sum_apply _ _ _
@@ -95,10 +95,19 @@ begin
 end
 
 /-- `hom_dual_tensor` is right inverse to `dual_tensor_hom` -/
-lemma dual_tensor_hom_hom_dual_tensor
-  {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) (f : M →ₗ[R] N):
-  (dual_tensor_hom R M N) ∘ (hom_dual_tensor R M N b) = id :=
+lemma dual_tensor_hom_hom_dual_tensor {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M):
+  (dual_tensor_hom R M N) ∘ₗ (hom_dual_tensor R M N b) = id :=
 by { ext f, simp }
+
+/-- `hom_dual_tensor` is left inverse to `dual_tensor_hom` -/
+lemma hom_dual_tensor_dual_tensor_hom {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M):
+  (hom_dual_tensor R M N b) ∘ₗ (dual_tensor_hom R M N) = id :=
+begin
+  apply curry_injective,
+  apply basis.ext b.dual_basis,
+  intro i, ext n,
+  --simp [hom_dual_tensor_apply],
+end
 
 end
 

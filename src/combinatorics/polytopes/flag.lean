@@ -280,9 +280,8 @@ begin
     exact lt_add_one m,
   },
   rintros r ⟨hrl, hrr⟩,
-  have : m + 1 < n := lt_of_le_of_lt (nat.succ_le_of_lt hrl) hrr,
-  rw hnm at this,
-  exact nat.lt_asymm this this,
+  rw hnm at hrr,
+  exact nat.lt_irrefl _ (lt_of_le_of_lt (nat.succ_le_of_lt hrl) hrr),
 end
 
 namespace graded
@@ -290,11 +289,6 @@ namespace graded
 /-- An abbreviation for the grade of `⊤`. -/
 abbreviation grade_top (α : Type u) [preorder α] [order_top α] [graded α] : ℕ :=
 grade (⊤ : α)
-
-section
-variables (α : Type u) [preorder α] [graded α]
-
-end
 
 /-- `grade` is injective for linearly ordered `α`. -/
 theorem grade.inj (α : Type u) [linear_order α] [graded α] : function.injective (grade : α → ℕ) :=

@@ -135,6 +135,9 @@ theorem band_elim_right : ∀ {a b : bool}, a && b → b := dec_trivial
 @[simp] theorem ne_bnot (a b : bool) : a ≠ !b ↔ a = b:=
 by cases b; simp
 
+@[simp] theorem bnot_ne (a b : bool) : !a ≠ b ↔ a = b:=
+by cases b; simp
+
 @[simp] theorem bnot_iff_not : ∀ {b : bool}, !b ↔ ¬b := dec_trivial
 
 theorem eq_tt_of_bnot_eq_ff : ∀ {a : bool}, bnot a = ff → a = tt := dec_trivial

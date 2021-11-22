@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.category.Group.basic
-import category_theory.concrete_category
 import category_theory.limits.shapes.kernels
 import category_theory.linear
 import linear_algebra.basic

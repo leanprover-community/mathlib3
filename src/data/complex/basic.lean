@@ -236,6 +236,9 @@ by simp [norm_sq]
 
 @[simp] lemma norm_sq_mk (x y : ℝ) : norm_sq ⟨x, y⟩ = x * x + y * y := rfl
 
+lemma norm_sq_add_mul_I (x y : ℝ) : norm_sq (x + y * I) = x ^ 2 + y ^ 2 :=
+by rw [← mk_eq_add_mul_I, norm_sq_mk, sq, sq]
+
 lemma norm_sq_eq_conj_mul_self {z : ℂ} : (norm_sq z : ℂ) = conj z * z :=
 by { ext; simp [norm_sq, mul_comm], }
 
@@ -422,6 +425,15 @@ calc complex.abs n = complex.abs (n:ℝ) : by rw [of_real_nat_cast]
 
 lemma mul_self_abs (z : ℂ) : abs z * abs z = norm_sq z :=
 real.mul_self_sqrt (norm_sq_nonneg _)
+
+lemma sq_abs (z : ℂ) : abs z ^ 2 = norm_sq z :=
+real.sq_sqrt (norm_sq_nonneg _)
+
+@[simp] lemma sq_abs_sub_sq_re (z : ℂ) : abs z ^ 2 - z.re ^ 2 = z.im ^ 2 :=
+by rw [sq_abs, norm_sq_apply, ← sq, ← sq, add_sub_cancel']
+
+@[simp] lemma sq_abs_sub_sq_im (z : ℂ) : abs z ^ 2 - z.im ^ 2 = z.re ^ 2 :=
+by rw [← sq_abs_sub_sq_re, sub_sub_cancel]
 
 @[simp] lemma abs_zero : abs 0 = 0 := by simp [abs]
 @[simp] lemma abs_one : abs 1 = 1 := by simp [abs]

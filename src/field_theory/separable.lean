@@ -5,10 +5,9 @@ Authors: Kenny Lau
 -/
 
 import algebra.polynomial.big_operators
+import algebra.squarefree
 import field_theory.minpoly
 import field_theory.splitting_field
-import field_theory.tower
-import algebra.squarefree
 
 /-!
 
@@ -383,8 +382,8 @@ else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 theorem exists_separable_of_irreducible {f : polynomial F} (hf : irreducible f) (hf0 : f ≠ 0) :
   ∃ (n : ℕ) (g : polynomial F), g.separable ∧ expand F (p ^ n) g = f :=
 begin
-  unfreezingI {
-    induction hn : f.nat_degree using nat.strong_induction_on with N ih generalizing f },
+  unfreezingI
+  { induction hn : f.nat_degree using nat.strong_induction_on with N ih generalizing f },
   rcases separable_or p hf with h | ⟨h1, g, hg, hgf⟩,
   { refine ⟨0, f, h, _⟩, rw [pow_zero, expand_one] },
   { cases N with N,

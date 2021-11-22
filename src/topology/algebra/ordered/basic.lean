@@ -2435,6 +2435,44 @@ begin
     exact ⟨x, ⟨H hx, xs⟩⟩ }
 end
 
+instance (x : α) [nontrivial α] : ne_bot (𝓝[{x}ᶜ] x) :=
+begin
+  apply forall_mem_nonempty_iff_ne_bot.1 (λ s hs, _),
+  obtain ⟨u, u_open, xu, us⟩ : ∃ (u : set α), is_open u ∧ x ∈ u ∧ u ∩ {x}ᶜ ⊆ s :=
+    mem_nhds_within.1 hs,
+  obtain ⟨a, b, a_lt_b, hab⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ u := u_open.exists_Ioo_subset ⟨x, xu⟩,
+  obtain ⟨y, hy⟩ : ∃ y, a < y ∧ y < b := exists_between a_lt_b,
+  rcases ne_or_eq x y with xy|rfl,
+  { exact ⟨y, us ⟨hab hy, xy.symm⟩⟩ },
+  obtain ⟨z, hz⟩ : ∃ z, a < z ∧ z < x := exists_between hy.1,
+  exact ⟨z, us ⟨hab ⟨hz.1, hz.2.trans hy.2⟩, hz.2.ne⟩⟩,
+end
+
+/-- Let `s` be a dense set in a nontrivial dense linear order `α`. If `s` is a
+separable space (e.g., if `α` has a second countable topology), then there exists a countable
+dense subset `t ⊆ s` such that `t` does not contain bottom/top elements of `α`. -/
+lemma dense.exists_countable_dense_subset_no_bot_top [nontrivial α]
+  {s : set α} [separable_space s] (hs : dense s) :
+  ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∉ t) ∧ (∀ x, is_top x → x ∉ t) :=
+begin
+  rcases hs.exists_countable_dense_subset with ⟨t, hts, htc, htd⟩,
+  refine ⟨t \ ({x | is_bot x} ∪ {x | is_top x}), _, _, _, _, _⟩,
+  { exact (diff_subset _ _).trans hts },
+  { exact htc.mono (diff_subset _ _) },
+  { exact htd.diff_finite ((subsingleton_is_bot α).finite.union (subsingleton_is_top α).finite) },
+  { assume x hx, simp [hx] },
+  { assume x hx, simp [hx] }
+end
+
+variable (α)
+/-- If `α` is a nontrivial separable dense linear order, then there exists a
+countable dense set `s : set α` that contains neither top nor bottom elements of `α`.
+For a dense set containing both bot and top elements, see
+`exists_countable_dense_bot_top`. -/
+lemma exists_countable_dense_no_bot_top [separable_space α] [nontrivial α] :
+  ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) :=
+by simpa using dense_univ.exists_countable_dense_subset_no_bot_top
+
 end densely_ordered
 
 section complete_linear_order

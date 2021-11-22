@@ -124,19 +124,6 @@ instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
 by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*),
   npow := monoid.npow }; tactic.pi_instance_derive_field
 
-section instance_lemmas
-open function
-
-variables {α β γ : Type*}
-
-@[simp, to_additive] lemma const_one [has_one β] : const α (1 : β) = 1 := rfl
-
-@[simp, to_additive] lemma comp_one [has_one β] {f : β → γ} : f ∘ 1 = const α (f 1) := rfl
-
-@[simp, to_additive] lemma one_comp [has_one γ] {f : α → β} : (1 : β → γ) ∘ f = 1 := rfl
-
-end instance_lemmas
-
 end pi
 
 section monoid_hom

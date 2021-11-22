@@ -479,6 +479,56 @@ def pullback_comp {X Y Z : C} (S : J.cover X) (f : Z ⟶ Y) (g : Y ⟶ X) :
   S.pullback (f ≫ g) ≅ (S.pullback g).pullback f :=
 eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
 
+/-- Combine a family of covers over a cover. -/
+def bind {X : C} (S : J.cover X) (T : Π (I : S.arrow), J.cover I.Y) : J.cover X :=
+⟨sieve.bind S (λ Y f hf, T ⟨Y, f, hf⟩), J.bind_covering S.condition (λ _ _ _, (T _).condition)⟩
+
+/-- The canonical moprhism from `S.bind T` to `T`. -/
+def bind_to_base {X : C} (S : J.cover X) (T : Π (I : S.arrow), J.cover I.Y) : S.bind T ⟶ S :=
+hom_of_le $ by { rintro Y f ⟨Z,e1,e2,h1,h2,h3⟩, rw ← h3, apply sieve.downward_closed, exact h1 }
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the object `B`. -/
+noncomputable def arrow.middle {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : C :=
+I.hf.some
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the hom `A ⟶ B`. -/
+noncomputable def arrow.to_middle_hom {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : I.Y ⟶ I.middle :=
+I.hf.some_spec.some
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the hom `B ⟶ X`. -/
+noncomputable def arrow.from_middle_hom {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : I.middle ⟶ X :=
+I.hf.some_spec.some_spec.some
+
+lemma arrow.from_middle_condition {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : S I.from_middle_hom :=
+I.hf.some_spec.some_spec.some_spec.some
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the hom `B ⟶ X`, as an arrow. -/
+noncomputable
+def arrow.from_middle {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : S.arrow := ⟨_, I.from_middle_hom, I.from_middle_condition⟩
+
+lemma arrow.to_middle_condition {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : (T I.from_middle) I.to_middle_hom :=
+I.hf.some_spec.some_spec.some_spec.some_spec.1
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the hom `A ⟶ B`, as an arrow. -/
+noncomputable
+def arrow.to_middle {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : (T I.from_middle).arrow := ⟨_, I.to_middle_hom, I.to_middle_condition⟩
+
+lemma arrow.middle_spec {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : I.to_middle_hom ≫ I.from_middle_hom = I.f :=
+I.hf.some_spec.some_spec.some_spec.some_spec.2
+
 -- This is used extensively in `plus.lean`, etc.
 -- We place this definition here as it will be used in `sheaf.lean` as well.
 /-- To every `S : J.cover X` and presheaf `P`, associate a `multicospan_index`. -/

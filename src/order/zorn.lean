@@ -187,15 +187,15 @@ private lemma chain_closure_succ_total_aux (hc₁ : c₁ ∈ chain_closure) (hc�
   c₁ ⊆ c₂ ∨ succ_chain c₂ ⊆ c₁ :=
 begin
   induction hc₁,
-  case succ : c₃ hc₃ ih {
-    cases ih with ih ih,
+  case succ : c₃ hc₃ ih
+  { cases ih with ih ih,
     { have h := h hc₃ ih,
       cases h with h h,
       { exact or.inr (h ▸ subset.refl _) },
       { exact or.inl h } },
     { exact or.inr (subset.trans ih succ_increasing) } },
-  case union : s hs ih {
-    refine (or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
+  case union : s hs ih
+  { refine (or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
     apply (ih a ha).resolve_right,
     apply mt (λ h, _) hn,
     exact subset.trans h (subset_sUnion_of_mem ha) }
@@ -206,8 +206,8 @@ private lemma chain_closure_succ_total (hc₁ : c₁ ∈ chain_closure) (hc₂ :
   c₂ = c₁ ∨ succ_chain c₁ ⊆ c₂ :=
 begin
   induction hc₂ generalizing c₁ hc₁ h,
-  case succ : c₂ hc₂ ih {
-    have h₁ : c₁ ⊆ c₂ ∨ @succ_chain α r c₂ ⊆ c₁ :=
+  case succ : c₂ hc₂ ih
+  { have h₁ : c₁ ⊆ c₂ ∨ @succ_chain α r c₂ ⊆ c₁ :=
       (chain_closure_succ_total_aux hc₁ hc₂ $ λ c₁, ih),
     cases h₁ with h₁ h₁,
     { have h₂ := ih hc₁ h₁,
@@ -215,8 +215,8 @@ begin
       { exact (or.inr $ h₂ ▸ subset.refl _) },
       { exact (or.inr $ subset.trans h₂ succ_increasing) } },
     { exact (or.inl $ subset.antisymm h₁ h) } },
-  case union : s hs ih {
-    apply or.imp_left (λ h', subset.antisymm h' h),
+  case union : s hs ih
+  { apply or.imp_left (λ h', subset.antisymm h' h),
     apply classical.by_contradiction,
     simp [not_or_distrib, sUnion_subset_iff, not_forall],
     intros c₃ hc₃ h₁ h₂,
@@ -239,11 +239,11 @@ lemma chain_closure_succ_fixpoint (hc₁ : c₁ ∈ chain_closure) (hc₂ : c₂
   c₁ ⊆ c₂ :=
 begin
   induction hc₁,
-  case succ : c₁ hc₁ h {
-    exact or.elim (chain_closure_succ_total hc₁ hc₂ h)
+  case succ : c₁ hc₁ h
+  { exact or.elim (chain_closure_succ_total hc₁ hc₂ h)
       (λ h, h ▸ h_eq.symm ▸ subset.refl c₂) id },
-  case union : s hs ih {
-    exact (sUnion_subset $ λ c₁ hc₁, ih c₁ hc₁) }
+  case union : s hs ih
+  { exact (sUnion_subset $ λ c₁ hc₁, ih c₁ hc₁) }
 end
 
 lemma chain_closure_succ_fixpoint_iff (hc : c ∈ chain_closure) :
@@ -261,10 +261,10 @@ lemma chain_chain_closure (hc : c ∈ chain_closure) :
   chain c :=
 begin
   induction hc,
-  case succ : c hc h {
-    exact chain_succ h },
-  case union : s hs h {
-    have h : ∀ c ∈ s, zorn.chain c := h,
+  case succ : c hc h
+  { exact chain_succ h },
+  case union : s hs h
+  { have h : ∀ c ∈ s, zorn.chain c := h,
     exact λ c₁ ⟨t₁, ht₁, (hc₁ : c₁ ∈ t₁)⟩ c₂ ⟨t₂, ht₂, (hc₂ : c₂ ∈ t₂)⟩ hneq,
       have t₁ ⊆ t₂ ∨ t₂ ⊆ t₁, from chain_closure_total (hs _ ht₁) (hs _ ht₂),
       or.elim this

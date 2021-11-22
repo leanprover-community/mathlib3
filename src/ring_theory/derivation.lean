@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import algebra.lie.of_associative
 import ring_theory.adjoin.basic
-import ring_theory.algebra_tower
+import algebra.lie.of_associative
 
 /-!
 # Derivations
@@ -140,8 +139,8 @@ instance Rscalar : has_scalar R (derivation R A M) :=
 lemma Rsmul_apply (r : R) (D : derivation R A M) : (r • D) a = r • D a := rfl
 
 instance has_scalar : has_scalar A (derivation R A M) :=
-⟨λ a D, { leibniz' := λ b c, by {
-            dsimp, simp only [smul_add, leibniz, smul_comm a, add_comm] },
+⟨λ a D, { leibniz' := λ b c, by
+          { dsimp, simp only [smul_add, leibniz, smul_comm a, add_comm] },
           ..(a • D : A →ₗ[R] M) }⟩
 
 @[simp] lemma coe_smul (a : A) (D : derivation R A M) : ⇑(a • D) = a • D := rfl

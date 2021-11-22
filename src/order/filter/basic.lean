@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
 -/
+import control.traversable.instances
 import data.set.finite
 import order.copy
-import order.zorn
 import tactic.monotonicity
 
 /-!
@@ -1079,12 +1079,8 @@ lemma frequently_iff_forall_eventually_exists_and {p : α → Prop} {f : filter 
 lemma frequently_iff {f : filter α} {P : α → Prop} :
   (∃ᶠ x in f, P x) ↔ ∀ {U}, U ∈ f → ∃ x ∈ U, P x :=
 begin
-  rw frequently_iff_forall_eventually_exists_and,
-  split ; intro h,
-  { intros U U_in,
-    simpa [exists_prop, and_comm] using h U_in },
-  { intros H H',
-    simpa [and_comm] using h H' },
+  simp only [frequently_iff_forall_eventually_exists_and, exists_prop, and_comm (P _)],
+  refl
 end
 
 @[simp] lemma not_eventually {p : α → Prop} {f : filter α} :
@@ -2734,6 +2730,14 @@ protected def Coprod (f : Π d, filter (κ d)) : filter (Π d, κ d) :=
 lemma mem_Coprod_iff {s : set (Π d, κ d)} {f : Π d, filter (κ d)} :
   (s ∈ (filter.Coprod f)) ↔ (∀ d : δ, (∃ t₁ ∈ f d, (λ k : (Π d, κ d), k d) ⁻¹' t₁ ⊆ s)) :=
 by simp [filter.Coprod]
+
+lemma compl_mem_Coprod_iff {s : set (Π d, κ d)} {f : Π d, filter (κ d)} :
+  sᶜ ∈ filter.Coprod f ↔ ∃ t : Π d, set (κ d), (∀ d, (t d)ᶜ ∈ f d) ∧ s ⊆ set.pi univ t :=
+begin
+  rw [(surjective_pi_map (λ d, @compl_surjective (set (κ d)) _)).exists],
+  simp_rw [mem_Coprod_iff, classical.skolem, exists_prop, @subset_compl_comm _ _ s,
+    ← preimage_compl, ← subset_Inter_iff, ← univ_pi_eq_Inter, compl_compl]
+end
 
 lemma Coprod_ne_bot_iff' {f : Π d, filter (κ d)} :
   ne_bot (filter.Coprod f) ↔ (∀ d, nonempty (κ d)) ∧ ∃ d, ne_bot (f d) :=

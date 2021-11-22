@@ -628,6 +628,9 @@ is_compl_compl.symm.compl_eq
 theorem compl_bijective : function.bijective (compl : α → α) :=
 compl_involutive.bijective
 
+theorem compl_surjective : function.surjective (compl : α → α) :=
+compl_involutive.surjective
+
 theorem compl_injective : function.injective (compl : α → α) :=
 compl_involutive.injective
 

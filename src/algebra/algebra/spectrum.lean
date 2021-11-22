@@ -12,17 +12,17 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 
 ## Main definitions
 
-* `resolvent a`: has type `set R` is the resolvent set of an element `a : A` where
+* `resolvent a : set R`: the resolvent set of an element `a : A` where
   `A` is an  `R`-algebra.
-* `spectrum a`: has type `set R` is the spectrum of an element `a : A` where
+* `spectrum a : set R`: the spectrum of an element `a : A` where
   `A` is an  `R`-algebra.
 
 ## Main statements
 
-* `unit_left_coset_spectrum`: units in the scalar ring commute (multplication) with the spectrum.
-* `left_add_coset_spectrum`: elements of the scalar ring commute (addition) with the spectrum.
-* `unit_mem_spectrum_mul_iff_swap_mul`: the units (of `R`) in `σ (a*b)` coincide
-  with those in `σ (b*a)`.
+* `smul_eq_smul`: units in the scalar ring commute (multiplication) with the spectrum.
+* `left_add_coset_eq`: elements of the scalar ring commute (addition) with the spectrum.
+* `units_mem_mul_iff_mem_swap_mul` and `preimage_units_mul_eq_swap_mul`: the units
+  (of `R`) in `σ (a*b)` coincide with those in `σ (b*a)`.
 
 ## Notations
 

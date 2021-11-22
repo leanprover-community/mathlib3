@@ -2193,6 +2193,15 @@ rfl
 end sum
 
 section
+
+variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]
+
+lemma single_one_smul (a b : α) (f : α → M) : (single a (1:R) b) • (f a) = single a (f b) b :=
+by { by_cases a = b; simp [h] }
+
+end
+
+section
 variables [group G] [mul_action G α] [add_comm_monoid M]
 
 /--

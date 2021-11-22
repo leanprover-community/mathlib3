@@ -105,7 +105,7 @@ lemma hom_dual_tensor_dual_tensor_hom {ι : Type} [fintype ι] [decidable_eq ι]
 begin
   apply curry_injective,
   apply basis.ext b.dual_basis,
-  intro i, ext n,
+  intro i, ext n, sorry
   --simp [hom_dual_tensor_apply],
 end
 
@@ -156,3 +156,13 @@ begin
 end
 
 end contraction
+
+/-
+section
+
+variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]
+
+lemma single_one_smul (a b : α) (f : α → M) : (single a (1:R) b) • (f a) = single a (f b) b :=
+by { by_cases a = b; simp [h] }
+
+end -/

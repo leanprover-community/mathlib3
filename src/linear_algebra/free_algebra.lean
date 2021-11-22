@@ -13,7 +13,7 @@ This file provides a `free_monoid X` basis on the `free_algebra R X`, and uses i
 dimension of the algebra is the cardinality of `list X`
 -/
 
-universe variables u v
+universes u v
 
 namespace free_algebra
 

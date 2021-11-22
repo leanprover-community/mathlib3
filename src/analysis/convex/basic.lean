@@ -3,8 +3,8 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 -/
-import algebra.module.ordered
-import linear_algebra.affine_space.affine_map
+import algebra.order.module
+import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Convex sets and functions in vector spaces
@@ -491,6 +491,11 @@ begin
         ht (mem_prod.1 hx).2 (mem_prod.1 hy).2 ha hb hab⟩
 end
 
+lemma convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
+  [Π i, has_scalar 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, convex 𝕜 (t i)) :
+  convex 𝕜 (s.pi t) :=
+λ x y hx hy a b ha hb hab i hi, ht i (hx i hi) (hy i hi) ha hb hab
+
 lemma directed.convex_Union {ι : Sort*} {s : ι → set E} (hdir : directed (⊆) s)
   (hc : ∀ ⦃i : ι⦄, convex 𝕜 (s i)) :
   convex 𝕜 (⋃ i, s i) :=
@@ -529,8 +534,8 @@ begin
   exact h hx hy ha hb hab
 end
 
-lemma convex_iff_pairwise_on_pos :
-  convex 𝕜 s ↔ s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
+lemma convex_iff_pairwise_pos :
+  convex 𝕜 s ↔ s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
 begin
   refine ⟨λ h x hx y hy _ a b ha hb hab, h hx hy ha.le hb.le hab, _⟩,
   intros h x y hx hy a b ha hb hab,
@@ -848,6 +853,14 @@ begin
   apply h.segment_subset hx hy,
   rw segment_eq_image',
   exact mem_image_of_mem _ ht,
+end
+
+/-- Affine subspaces are convex. -/
+lemma affine_subspace.convex (Q : affine_subspace 𝕜 E) : convex 𝕜 (Q : set E) :=
+begin
+  intros x y hx hy a b ha hb hab,
+  rw [eq_sub_of_add_eq hab, ← affine_map.line_map_apply_module],
+  exact affine_map.line_map_mem b hx hy,
 end
 
 /--

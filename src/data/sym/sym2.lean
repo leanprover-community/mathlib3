@@ -80,6 +80,22 @@ def sym2 (α : Type u) := quotient (sym2.rel.setoid α)
 
 namespace sym2
 
+@[elab_as_eliminator]
+protected lemma ind {f : sym2 α → Prop} (h : ∀ x y, f ⟦(x, y)⟧) : ∀ i, f i :=
+quotient.ind $ prod.rec $ by exact h
+
+@[elab_as_eliminator]
+protected lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
+i.ind hf
+
+protected lemma «exists» {α : Sort*} {f : sym2 α → Prop} :
+  (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
+(surjective_quotient_mk _).exists.trans prod.exists
+
+protected lemma «forall» {α : Sort*} {f : sym2 α → Prop} :
+  (∀ (x : sym2 α), f x) ↔ ∀ x y, f ⟦(x, y)⟧ :=
+(surjective_quotient_mk _).forall.trans prod.forall
+
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }
 
@@ -104,7 +120,7 @@ def lift {β : Type*} : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f 
 { to_fun := λ f, quotient.lift (uncurry ↑f) $ by { rintro _ _ ⟨⟩, exacts [rfl, f.prop _ _] },
   inv_fun := λ F, ⟨curry (F ∘ quotient.mk), λ a₁ a₂, congr_arg F eq_swap⟩,
   left_inv := λ f, subtype.ext rfl,
-  right_inv := λ F, funext $ quotient.ind $ prod.rec $ by exact λ _ _, rfl }
+  right_inv := λ F, funext $ sym2.ind $ by exact λ x y, rfl }
 
 @[simp]
 lemma lift_mk {β : Type*} (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁}) (a₁ a₂ : α) :
@@ -285,7 +301,7 @@ lemma from_rel_prop {sym : symmetric r} {a b : α} :
 
 lemma from_rel_irreflexive {sym : symmetric r} :
   irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
-{ mp  := λ h, quotient.ind $ prod.rec $ by { rintros a b hr (rfl : a = b), exact h _ hr },
+{ mp  := λ h, sym2.ind $ by { rintros a b hr (rfl : a = b), exact h _ hr },
   mpr := λ h x hr, h (from_rel_prop.mpr hr) rfl }
 
 lemma mem_from_rel_irrefl_other_ne {sym : symmetric r} (irrefl : irreflexive r)

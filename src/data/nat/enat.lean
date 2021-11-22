@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.pfun
-import tactic.norm_num
 import data.equiv.mul_add
+import tactic.norm_num
+import data.part
 
 /-!
 # Natural numbers with infinity
@@ -220,20 +220,22 @@ end
 protected lemma zero_lt_one : (0 : enat) < 1 :=
 by { norm_cast, norm_num }
 
+instance order_bot : order_bot enat :=
+{ bot := (⊥),
+  bot_le := λ _, ⟨λ _, trivial, λ _, nat.zero_le _⟩ }
+
 instance semilattice_sup_bot : semilattice_sup_bot enat :=
 { sup := (⊔),
-  bot := (⊥),
-  bot_le := λ _, ⟨λ _, trivial, λ _, nat.zero_le _⟩,
   le_sup_left := λ _ _, ⟨and.left, λ _, le_sup_left⟩,
   le_sup_right := λ _ _, ⟨and.right, λ _, le_sup_right⟩,
   sup_le := λ x y z ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩, ⟨λ hz, ⟨hx₁ hz, hy₁ hz⟩,
     λ _, sup_le (hx₂ _) (hy₂ _)⟩,
+  ..enat.order_bot,
   ..enat.partial_order }
 
 instance order_top : order_top enat :=
 { top := (⊤),
-  le_top := λ x, ⟨λ h, false.elim h, λ hy, false.elim hy⟩,
-  ..enat.semilattice_sup_bot }
+  le_top := λ x, ⟨λ h, false.elim h, λ hy, false.elim hy⟩ }
 
 lemma dom_of_lt {x y : enat} : x < y → x.dom :=
 enat.cases_on x not_top_lt $ λ _ _, dom_coe _
@@ -306,7 +308,7 @@ instance : canonically_ordered_add_monoid enat :=
       (iff_of_false (not_le_of_gt (coe_lt_top _))
         (not_exists.2 (λ x, ne_of_lt (by rw [top_add]; exact coe_lt_top _))))
       (λ a, ⟨λ h, ⟨(b - a : ℕ),
-          by rw [← nat.cast_add, coe_inj, add_comm, nat.sub_add_cancel (coe_le_coe.1 h)]⟩,
+          by rw [← nat.cast_add, coe_inj, add_comm, tsub_add_cancel_of_le (coe_le_coe.1 h)]⟩,
         (λ ⟨c, hc⟩, enat.cases_on c
           (λ hc, hc.symm ▸ show (a : enat) ≤ a + ⊤, by rw [add_top]; exact le_top)
           (λ c (hc : (b : enat) = a + c),

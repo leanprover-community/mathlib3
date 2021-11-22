@@ -5,8 +5,10 @@ Authors: Yury Kudryashov
 -/
 
 import algebra.ring.prod
-import group_theory.submonoid
+import algebra.module.basic
+import group_theory.submonoid.membership
 import group_theory.submonoid.center
+import data.set.finite
 import data.equiv.ring
 
 /-!
@@ -54,6 +56,12 @@ protected def copy (S : subsemiring R) (s : set R) (hs : s = ↑S) : subsemiring
 { carrier := s,
   ..S.to_add_submonoid.copy s hs,
   ..S.to_submonoid.copy s hs }
+
+@[simp] lemma coe_copy (S : subsemiring R) (s : set R) (hs : s = ↑S) :
+  (S.copy s hs : set R) = s := rfl
+
+lemma copy_eq (S : subsemiring R) (s : set R) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
 
 lemma to_submonoid_injective : function.injective (to_submonoid : subsemiring R → submonoid R)
 | r s h := ext (set_like.ext_iff.mp h : _)
@@ -394,6 +402,10 @@ lemma center_to_submonoid (R) [semiring R] : (center R).to_submonoid = submonoid
 
 lemma mem_center_iff {R} [semiring R] {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
 iff.rfl
+
+instance decidable_mem_center {R} [semiring R] [decidable_eq R] [fintype R] :
+  decidable_pred (∈ center R) :=
+λ _, decidable_of_iff' _ mem_center_iff
 
 @[simp] lemma center_eq_top (R) [comm_semiring R] : center R = ⊤ :=
 set_like.coe_injective (set.center_eq_univ R)

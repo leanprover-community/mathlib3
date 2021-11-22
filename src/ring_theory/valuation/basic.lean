@@ -5,9 +5,8 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.with_zero
-import algebra.group_power
-import ring_theory.ideal.operations
 import algebra.punit_instances
+import ring_theory.ideal.operations
 
 /-!
 
@@ -85,8 +84,8 @@ section monoid
 variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_monoid_with_zero Γ'₀]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (valuation R Γ₀) :=
-{ F := λ _, R → Γ₀, coe := λ v, v.to_monoid_with_zero_hom.to_fun }
+instance : has_coe_to_fun (valuation R Γ₀) (λ _, R → Γ₀) :=
+{ coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 /-- A valuation is coerced to a monoid morphism R → Γ₀. -/
 instance : has_coe (valuation R Γ₀) (monoid_with_zero_hom R Γ₀) :=
@@ -447,8 +446,8 @@ variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_co
 variables (R) (Γ₀) [ring R]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (add_valuation R Γ₀) :=
-{ F := λ _, R → Γ₀, coe := λ v, v.to_monoid_with_zero_hom.to_fun }
+instance : has_coe_to_fun (add_valuation R Γ₀) (λ _, R → Γ₀) :=
+{ coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 variables {R} {Γ₀} (v : add_valuation R Γ₀) {x y z : R}
 
@@ -529,8 +528,8 @@ v.comap_comp f g
 -/
 def map (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f) (v : add_valuation R Γ₀) :
   add_valuation R Γ'₀ :=
-v.map {
-  to_fun := f,
+v.map
+{ to_fun := f,
   map_mul' := f.map_add,
   map_one' := f.map_zero,
   map_zero' := ht } (λ x y h, hf h)
@@ -593,8 +592,8 @@ valuation.is_equiv.of_eq h
 lemma map {v' : add_valuation R Γ₀} (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f ht hf).is_equiv (v'.map f ht hf) :=
-h.map {
-  to_fun := f,
+h.map
+{ to_fun := f,
   map_mul' := f.map_add,
   map_one' := f.map_zero,
   map_zero' := ht } (λ x y h, hf h) inf

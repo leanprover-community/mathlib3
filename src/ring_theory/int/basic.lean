@@ -139,6 +139,17 @@ begin
   { simp [of_nat_nat_abs_of_nonpos (le_of_not_ge h), normalize_of_neg (lt_of_not_ge h)] }
 end
 
+lemma nonneg_of_normalize_eq_self {z : ℤ} (hz : normalize z = z) : 0 ≤ z :=
+calc 0 ≤ (z.nat_abs : ℤ) : coe_zero_le _
+... = normalize z : coe_nat_abs_eq_normalize _
+... = z : hz
+
+lemma nonneg_iff_normalize_eq_self (z : ℤ) : normalize z = z ↔ 0 ≤ z :=
+⟨nonneg_of_normalize_eq_self, normalize_of_nonneg⟩
+
+lemma eq_of_associated_of_nonneg {a b : ℤ} (h : associated a b) (ha : 0 ≤ a) (hb : 0 ≤ b) : a = b :=
+dvd_antisymm_of_normalize_eq (normalize_of_nonneg ha) (normalize_of_nonneg hb) h.dvd h.symm.dvd
+
 end normalization_monoid
 
 section gcd_monoid
@@ -149,8 +160,8 @@ instance : gcd_monoid ℤ :=
   gcd_dvd_left   := assume a b, int.gcd_dvd_left _ _,
   gcd_dvd_right  := assume a b, int.gcd_dvd_right _ _,
   dvd_gcd        := assume a b c, dvd_gcd,
-  gcd_mul_lcm    := λ a b, by {
-    rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+  gcd_mul_lcm    := λ a b, by
+  { rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
     exact normalize_associated (a * b) },
   lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
   lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _}
@@ -380,11 +391,11 @@ end
 
 namespace int
 
-lemma gmultiples_nat_abs (a : ℤ) :
-  add_subgroup.gmultiples (a.nat_abs : ℤ) = add_subgroup.gmultiples a :=
+lemma zmultiples_nat_abs (a : ℤ) :
+  add_subgroup.zmultiples (a.nat_abs : ℤ) = add_subgroup.zmultiples a :=
 le_antisymm
-  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
-  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
 
 lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
 by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }

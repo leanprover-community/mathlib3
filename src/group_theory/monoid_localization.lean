@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 import group_theory.congruence
-import group_theory.submonoid
+import group_theory.submonoid.membership
 import algebra.group.units
-import algebra.punit_instances
 
 /-!
 # Localizations of commutative monoids
@@ -351,11 +350,9 @@ namespace localization_map
 @[to_additive "Short for `to_add_monoid_hom`; used to apply a localization map as a function."]
 abbreviation to_map (f : localization_map S N) := f.to_monoid_hom
 
-@[to_additive, ext] lemma ext {f g : localization_map S N} (h : ∀ x, f.to_map x = g.to_map x) :
+@[ext, to_additive] lemma ext {f g : localization_map S N} (h : ∀ x, f.to_map x = g.to_map x) :
   f = g :=
 by { rcases f with ⟨⟨⟩⟩, rcases g with ⟨⟨⟩⟩, simp only, exact funext h, }
-
-attribute [ext] add_submonoid.localization_map.ext
 
 @[to_additive] lemma ext_iff {f g : localization_map S N} :
   f = g ↔ ∀ x, f.to_map x = g.to_map x :=
@@ -742,12 +739,12 @@ end
   function.surjective (f.lift hg) ↔ ∀ v : P, ∃ x : M × S, v * g x.2 = g x.1 :=
 begin
   split,
-    { intros H v,
-      obtain ⟨z, hz⟩ := H v,
-      obtain ⟨x, hx⟩ := f.surj z,
-      use x,
-      rw [←hz, f.eq_mk'_iff_mul_eq.2 hx, lift_mk', mul_assoc, mul_comm _ (g ↑x.2)],
-      erw [is_unit.mul_lift_right_inv (g.mrestrict S) hg, mul_one] },
+  { intros H v,
+    obtain ⟨z, hz⟩ := H v,
+    obtain ⟨x, hx⟩ := f.surj z,
+    use x,
+    rw [←hz, f.eq_mk'_iff_mul_eq.2 hx, lift_mk', mul_assoc, mul_comm _ (g ↑x.2)],
+    erw [is_unit.mul_lift_right_inv (g.mrestrict S) hg, mul_one] },
   { intros H v,
     obtain ⟨x, hx⟩ := H v,
     use f.mk' x.1 x.2,
@@ -758,12 +755,12 @@ end
   function.injective (f.lift hg) ↔ ∀ x y, f.to_map x = f.to_map y ↔ g x = g y :=
 begin
   split,
-    { intros H x y,
-      split,
-        { exact f.eq_of_eq hg },
-      { intro h,
-        rw [←f.lift_eq hg, ←f.lift_eq hg] at h,
-        exact H h }},
+  { intros H x y,
+    split,
+    { exact f.eq_of_eq hg },
+    { intro h,
+      rw [←f.lift_eq hg, ←f.lift_eq hg] at h,
+      exact H h } },
   { intros H z w h,
     obtain ⟨x, hx⟩ := f.surj z,
     obtain ⟨y, hy⟩ := f.surj w,
@@ -1013,7 +1010,7 @@ lemma mul_equiv_of_localizations_right_inv (k : localization_map S P) :
   f.of_mul_equiv_of_localizations (f.mul_equiv_of_localizations k) = k :=
 to_map_injective $ f.lift_comp k.map_units
 
-@[to_additive add_equiv_of_localizations_right_inv_apply, simp]
+@[simp, to_additive add_equiv_of_localizations_right_inv_apply]
 lemma mul_equiv_of_localizations_right_inv_apply
   {k : localization_map S P} {x} :
   (f.of_mul_equiv_of_localizations (f.mul_equiv_of_localizations k)).to_map x = k.to_map x :=

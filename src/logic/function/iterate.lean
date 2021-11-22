@@ -139,6 +139,15 @@ by rw [← iterate_succ, nat.succ_pred_eq_of_pos hn]
 theorem comp_iterate_pred_of_pos {n : ℕ} (hn : 0 < n) : f ∘ (f^[n.pred]) = (f^[n]) :=
 by rw [← iterate_succ', nat.succ_pred_eq_of_pos hn]
 
+/-- A recursor for the iterate of a function. -/
+def iterate.rec (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) (n : ℕ) :
+  p (f^[n] a) :=
+nat.rec ha (λ m, by { rw iterate_succ', exact h _ }) n
+
+lemma iterate.rec_zero (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) :
+  iterate.rec p h ha 0 = ha :=
+rfl
+
 variable {f}
 
 theorem left_inverse.iterate {g : α → α} (hg : left_inverse g f) (n : ℕ) :

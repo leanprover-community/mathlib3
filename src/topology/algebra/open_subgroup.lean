@@ -3,9 +3,30 @@ Copyright (c) 2019 Johan Commelin All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import order.filter.lift
 import topology.opens
 import topology.algebra.ring
+/-!
+# Open subgroups of a topological groups
+
+This files builds the lattice `open_subgroup G` of open subgroups in a topological group `G`,
+and its additive version `open_add_subgroup`.  This lattice has a top element, the subgroup of all
+elements, but no bottom element in general. The trivial subgroup which is the natural candidate
+bottom has no reason to be open (this happens only in discrete groups).
+
+Note that this notion is especially relevant in a non-archimedean context, for instance for
+`p`-adic groups.
+
+## Main declarations
+
+* `open_subgroup.is_closed`: An open subgroup is automatically closed.
+* `subgroup.is_open_mono`: A subgroup containing an open subgroup is open.
+                           There are also versions for additive groups, submodules and ideals.
+* `open_subgroup.comap`: Open subgroups can be pulled back by a continuous group morphism.
+
+## TODO
+* Prove that the identity component of a locally path connected group is an open subgroup.
+  Up to now this file is really geared towards non-archimedean algebra, not Lie groups.
+-/
 
 open topological_space
 open_locale topological_space
@@ -48,13 +69,10 @@ instance has_coe_subgroup : has_coe_t (open_subgroup G) (subgroup G) := ⟨to_su
 @[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
 
-@[simp, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
-@[simp, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
-@[simp, to_additive]
+@[simp, norm_cast, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
-
-attribute [norm_cast] mem_coe mem_coe_opens mem_coe_subgroup open_add_subgroup.mem_coe
-  open_add_subgroup.mem_coe_opens open_add_subgroup.mem_coe_add_subgroup
 
 @[to_additive] lemma coe_injective : injective (coe : open_subgroup G → set G) :=
 by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }
@@ -121,23 +139,25 @@ instance : partial_order (open_subgroup G) :=
   .. partial_order.lift (coe : open_subgroup G → set G) coe_injective }
 
 @[to_additive]
+instance : order_top (open_subgroup G) :=
+{ top := ⊤,
+  le_top := λ U, set.subset_univ _ }
+
+@[to_additive]
 instance : semilattice_inf_top (open_subgroup G) :=
 { inf := λ U V, { is_open' := is_open.inter U.is_open V.is_open, .. (U : subgroup G) ⊓ V },
   inf_le_left := λ U V, set.inter_subset_left _ _,
   inf_le_right := λ U V, set.inter_subset_right _ _,
   le_inf := λ U V W hV hW, set.subset_inter hV hW,
-  top := ⊤,
-  le_top := λ U, set.subset_univ _,
+  ..open_subgroup.order_top,
   ..open_subgroup.partial_order }
 
-@[simp, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
+@[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
 
-@[simp, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
+@[simp, norm_cast, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
 
-@[simp, to_additive] lemma coe_subgroup_le : (U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
-
-attribute [norm_cast] coe_inf coe_subset coe_subgroup_le open_add_subgroup.coe_inf
-  open_add_subgroup.coe_subset open_add_subgroup.coe_add_subgroup_le
+@[simp, norm_cast, to_additive] lemma coe_subgroup_le :
+(U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
 
 variables {N : Type*} [group N] [topological_space N]
 
@@ -211,6 +231,10 @@ instance : semilattice_sup_top (open_subgroup G) :=
   le_sup_right := λ U V, coe_subgroup_le.1 le_sup_right,
   sup_le := λ U V W hU hV, coe_subgroup_le.1 (sup_le hU hV),
   ..open_subgroup.semilattice_inf_top }
+
+@[to_additive]
+instance : lattice (open_subgroup G) :=
+{ ..open_subgroup.semilattice_sup_top, ..open_subgroup.semilattice_inf_top }
 
 end open_subgroup
 

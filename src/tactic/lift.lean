@@ -34,8 +34,8 @@ meta def can_lift_attr : user_attribute (list name) :=
 { name := "_can_lift",
   descr := "internal attribute used by the lift tactic",
   parser := failed,
-  cache_cfg := {
-    mk_cache := λ _,
+  cache_cfg :=
+  { mk_cache := λ _,
       do { ls ← attribute.get_instances `instance,
           ls.mfilter $ λ l,
           do { (_,t) ← mk_const l >>= infer_type >>= open_pis,
@@ -147,9 +147,8 @@ do
   if h_prf_nm : prf_nm.is_some ∧ n.nth 2 ≠ prf_nm then
     get_local (option.get h_prf_nm.1) >>= clear else skip
 
-open lean.parser interactive interactive.types
+setup_tactic_parser
 
-local postfix `?`:9001 := optional
 /-- Parses an optional token "using" followed by a trailing `pexpr`. -/
 meta def using_texpr := (tk "using" *> texpr)?
 

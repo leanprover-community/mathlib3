@@ -114,6 +114,12 @@ protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
   inv_mem' := hs.symm ▸ S.inv_mem',
   ..S.to_subring.copy s hs }
 
+@[simp] lemma coe_copy (S : subfield K) (s : set K) (hs : s = ↑S) :
+  (S.copy s hs : set K) = s := rfl
+
+lemma copy_eq (S : subfield K) (s : set K) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl
 
@@ -186,11 +192,11 @@ s.to_add_subgroup.sum_mem h
 
 lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
-lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+lemma zsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
+  n • x ∈ s := s.to_add_subgroup.zsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
-by simp only [← gsmul_one, gsmul_mem, one_mem]
+by simp only [← zsmul_one, zsmul_mem, one_mem]
 
 instance : ring s := s.to_subring.to_ring
 instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩

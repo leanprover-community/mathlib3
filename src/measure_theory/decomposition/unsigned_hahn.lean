@@ -57,7 +57,7 @@ begin
     d s = d (s \ t) + d (s ∩ t),
   { assume s t hs ht,
     simp only [d],
-    rw [measure_eq_inter_diff hs ht, measure_eq_inter_diff hs ht,
+    rw [← measure_inter_add_diff s ht, ← measure_inter_add_diff s ht,
       ennreal.to_nnreal_add (hμ _) (hμ _), ennreal.to_nnreal_add (hν _) (hν _),
       nnreal.coe_add, nnreal.coe_add],
     simp only [sub_eq_add_neg, neg_add],

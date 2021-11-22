@@ -1042,7 +1042,7 @@ begin
   { simp [(coprime_zero_left _).mp hab] },
   rcases b.eq_zero_or_pos with rfl | hb,
   { simp [(coprime_zero_right _).mp hab] },
-  rw [factors_mul_of_pos ha hb p, list.mem_union]
+  rw [mem_factors_mul_of_pos ha hb p, list.mem_union],
 end
 
 /-- If `x` is a prime factor of `a` then `x` is also a prime factor of `a * b` for any `b > 0` -/

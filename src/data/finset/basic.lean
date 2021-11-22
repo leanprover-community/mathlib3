@@ -99,7 +99,7 @@ called `top` with `⊤ = univ`.
 * `finset.inter`: see "The lattice structure on subsets of finsets"
 * `finset.erase`: For any `a : α`, `erase s a` returns `s` with the element `a` removed.
 * `finset.sdiff`: Defines the set difference `s \ t` for finsets `s` and `t`.
-* `finset.prod`: Given finsets of `α` and `β`, defines finsets of `α × β`.
+* `finset.product`: Given finsets of `α` and `β`, defines finsets of `α × β`.
   For arbitrary dependent products, see `data.finset.pi`.
 * `finset.sigma`: Given finsets of `α` and `β`, defines finsets of the dependent sum type `Σ α, β`
 * `finset.bUnion`: Finite unions of finsets; given an indexing function `f : α → finset β` and a
@@ -1078,6 +1078,12 @@ calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
+lemma erase_idem {a : α} {s : finset α} : erase (erase s a) a = erase s a :=
+by simp
+
+lemma erase_right_comm {a b : α} {s : finset α} : erase (erase s a) b = erase (erase s b) a :=
+by { ext x, simp only [mem_erase, ←and_assoc], rw and_comm (x ≠ a) }
+
 theorem subset_insert_iff {a : α} {s t : finset α} : s ⊆ insert a t ↔ erase s a ⊆ t :=
 by simp only [subset_iff, or_iff_not_imp_left, mem_erase, mem_insert, and_imp];
 exact forall_congr (λ x, forall_swap)
@@ -1514,6 +1520,9 @@ by rw [inter_comm, filter_inter, inter_comm]
 theorem filter_insert (a : α) (s : finset α) :
   filter p (insert a s) = if p a then insert a (filter p s) else filter p s :=
 by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
+
+theorem filter_erase (a : α) (s : finset α) : filter p (erase s a) = erase (filter p s) a :=
+by { ext x, simp only [and_assoc, mem_filter, iff_self, mem_erase] }
 
 theorem filter_or [decidable_pred (λ a, p a ∨ q a)] (s : finset α) :
   s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=

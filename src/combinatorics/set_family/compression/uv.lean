@@ -53,6 +53,18 @@ open finset
 
 variable {α : Type*}
 
+/-- UV-compression is injective on the elements it moves. See `uv.compress`. -/
+lemma sup_sdiff_inj_on [generalized_boolean_algebra α] (u v : α) :
+  {x | disjoint u x ∧ v ≤ x}.inj_on (λ x, (x ⊔ u) \ v) :=
+begin
+  rintro a ha b hb hab,
+  have h : (a ⊔ u) \ v \ u ⊔ v = (b ⊔ u) \ v \ u ⊔ v,
+  { dsimp at hab,
+    rw hab },
+  rwa [sdiff_sdiff_comm, ha.1.symm.sup_sdiff_cancel_right, sdiff_sdiff_comm,
+    hb.1.symm.sup_sdiff_cancel_right, sdiff_sup_cancel ha.2, sdiff_sup_cancel hb.2] at h,
+end
+
 -- The namespace is here to distinguish from other compressions.
 namespace uv
 
@@ -108,17 +120,6 @@ end
 
 /-- Any family is compressed along two identical elements. -/
 lemma is_compressed_self (u : α) (s : finset α) : is_compressed u u s := compression_self u s
-
-/-- UV-compression is injective on the elements it moves. See `uv.compress`. -/
-lemma _root_.sup_sdiff_inj_on (u v : α) : {x | disjoint u x ∧ v ≤ x}.inj_on (λ x, (x ⊔ u) \ v) :=
-begin
-  rintro a ha b hb hab,
-  have h : (a ⊔ u) \ v \ u ⊔ v = (b ⊔ u) \ v \ u ⊔ v,
-  { dsimp at hab,
-    rw hab },
-  rwa [sdiff_sdiff_comm, ha.1.symm.sup_sdiff_cancel_right, sdiff_sdiff_comm,
-    hb.1.symm.sup_sdiff_cancel_right, sdiff_sup_cancel ha.2, sdiff_sup_cancel hb.2] at h,
-end
 
 lemma compress_disjoint (u v : α) :
   disjoint (s.filter (λ a, compress u v a ∈ s)) ((s.image $ compress u v).filter (λ a, a ∉ s)) :=

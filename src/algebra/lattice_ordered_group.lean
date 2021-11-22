@@ -113,7 +113,6 @@ calc a⊓b * (a ⊔ b) = a ⊓ b * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
 
 namespace lattice_ordered_comm_group
 
--- Bourbaki A.VI.12 Definition 4
 /--
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
 the element `a ⊔ 1` is said to be the *positive component* of `a`, denoted `a⁺`.

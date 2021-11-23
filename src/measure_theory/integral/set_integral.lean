@@ -315,6 +315,16 @@ lemma _root_.closed_embedding.set_integral_map [topological_space α] [borel_spa
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
 hg.measurable_embedding.set_integral_map _ _
 
+lemma measure_preserving.set_integral_preimage_emb {β} {_ : measurable_space β} {f : α → β} {ν}
+  (h₁ : measure_preserving f μ ν) (h₂ : measurable_embedding f) (g : β → E) (s : set β) :
+  ∫ x in f ⁻¹' s, g (f x) ∂μ = ∫ y in s, g y ∂ν :=
+(h₁.restrict_preimage_emb h₂ s).integral_comp h₂ _
+
+lemma measure_preserving.set_integral_image_emb {β} {_ : measurable_space β} {f : α → β} {ν}
+  (h₁ : measure_preserving f μ ν) (h₂ : measurable_embedding f) (g : β → E) (s : set α) :
+  ∫ y in f '' s, g y ∂ν = ∫ x in s, g (f x) ∂μ :=
+eq.symm $ (h₁.restrict_image_emb h₂ s).integral_comp h₂ _
+
 lemma set_integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) (s : set β) :
   ∫ y in s, f y ∂(measure.map e μ) = ∫ x in e ⁻¹' s, f (e x) ∂μ :=
 e.measurable_embedding.set_integral_map f s

@@ -19,6 +19,19 @@ def compact_convergence_topology : topological_space C(α, β) :=
 topological_space.generate_from
   {m | ∃ (K : set α) (hK : is_compact K) (V ∈ 𝓤 β) (f : C(α, β)), m = uniform_gen K V f }
 
+lemma uniform_gen_mono (f g : C(α, β)) (h : g ∈ uniform_gen K V f ) (hV : V ∈ 𝓤 β)  :
+  uniform_gen K V g ⊆ uniform_gen K V f :=
+begin
+ simp_rw [uniform_gen] at *,
+ simp at *,
+ intros a ha x hx,
+ have H := h x hx,
+ have H2 := ha x hx,
+ --is this even true??
+ sorry,
+end
+
+
 lemma mem_uniform_gen_self (hV : V ∈ 𝓤 β) : f ∈ uniform_gen K V f := λ x hx, refl_mem_uniformity hV
 
 /-- This should be sufficient to show we actually have a neighbourhood basis. -/
@@ -124,13 +137,23 @@ lemma compact_open_eq_uniform :
  rw ← ha at HV,
  have:= mem_uniform_gen_self x _ f hV,
  simp [HV, this],
-sorry,
+ apply topological_space.generate_open.basic _ _,
+ simp,
+ use x,
+ simp [hx],
+ use V,
+ simp [hV],
 rw le_generate_from_iff_subset_is_open,
 simp,
 intros a x hx V hV f hf,
 apply is_open_iff_forall_mem_open.2,
 intros s hs,
 have:= Inter_compact_open_gen_subset_uniform_gen _ _ s hx hV,
+obtain ⟨ι, hι, C, hC, U, hU, Hs1, Hs2⟩ := this,
+use ⋂ (i : ι), continuous_map.compact_open.gen (C i) (U i),
+rw hf,
+simp [Hs1, Hs2],
+
 sorry,
  end
 

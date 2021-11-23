@@ -654,7 +654,7 @@ subtype.rec_on x $ λ x hx, begin
 end
 
 @[to_additive]
-lemma adjoin_adjoin_coe_preimage {k : set G} : closure ((coe : closure k → G) ⁻¹' k) = ⊤ :=
+lemma closure_closure_coe_preimage {k : set G} : closure ((coe : closure k → G) ⁻¹' k) = ⊤ :=
 begin
   refine eq_top_iff.2 (λ x hx, closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) (λ g hg, _) x),
   { intros g hg,

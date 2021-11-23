@@ -874,7 +874,7 @@ subtype.rec_on x $ λ x hx, begin
     ⟨smul_mem _ _ hx', H2 r _ hx⟩)
 end
 
-lemma adjoin_adjoin_coe_preimage : span R ((coe : span R s → M) ⁻¹' s) = ⊤ :=
+lemma span_span_coe_preimage : span R ((coe : span R s → M) ⁻¹' s) = ⊤ :=
 begin
   refine eq_top_iff.2 (λ x hx, span_induction' (λ x hx, _) _ _ (λ r x hx, _) x),
   { exact subset_span hx },

@@ -3,14 +3,11 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
-import linear_algebra.free_module.pid
-import linear_algebra.matrix.basis
-import linear_algebra.matrix.diagonal
-import linear_algebra.matrix.to_linear_equiv
-import linear_algebra.matrix.reindex
 import linear_algebra.multilinear.basis
-import linear_algebra.dual
+import linear_algebra.matrix.reindex
 import ring_theory.algebra_tower
+import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.basis
 
 /-!
 # Determinant of families of vectors
@@ -400,6 +397,12 @@ by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.r
 lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
   (b.map f).det v = b.det (f.symm ∘ v) :=
 by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }
+
+@[simp] lemma pi.basis_fun_det : (pi.basis_fun R ι).det = matrix.det_row_alternating :=
+begin
+  ext M,
+  rw [basis.det_apply, basis.coe_pi_basis_fun.to_matrix_eq_transpose, det_transpose],
+end
 
 /-- If we fix a background basis `e`, then for any other basis `v`, we can characterise the
 coordinates provided by `v` in terms of determinants relative to `e`. -/

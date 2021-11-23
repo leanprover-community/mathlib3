@@ -43,6 +43,7 @@ ERR_AUT = 7 # malformed authors list
 ERR_OME = 8 # imported tactic.omega
 ERR_TAC = 9 # imported tactic
 WRN_IND = 10 # indentation
+WRN_BRC = 11 # curly braces
 
 exceptions = []
 
@@ -77,6 +78,8 @@ with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
             exceptions += [(ERR_TAC, path)]
         if errno == "WRN_IND":
             exceptions += [(WRN_IND, path)]
+        if errno == "WRN_BRC":
+            exceptions += [(WRN_BRC, path)]
 
 new_exceptions = False
 
@@ -210,6 +213,24 @@ def indent_check(lines, path):
         indent_lvl -= 2 * line.count('}') # there can be multiple closing braces on one line
     return errors
 
+def braces_check(lines, path):
+    """Check that curly braces are placed correctly.
+
+    This linter warns whenever a `{` (resp. `}`) appears at the end (resp. start) of a line.
+    """
+    errors = []
+    for line_nr, line in enumerate(lines, 1):
+        lstr = line.strip()
+        if len(lstr) == 0:
+            continue
+        if lstr[-1] == '{':
+            if "goal" in lstr:
+                continue
+            errors += [(WRN_BRC, line_nr, path)]
+        if lstr[0] == '}':
+            errors += [(WRN_BRC, line_nr, path)]
+    return errors
+
 def import_only_check(lines, path):
     import_only_file = True
     errors = []
@@ -328,6 +349,8 @@ def format_errors(errors):
             output_message(path, line_nr, "ERR_TAC", "Files in mathlib cannot import the whole tactic folder")
         if errno == WRN_IND:
             output_message(path, line_nr, "WRN_IND", "Probable indentation mistake in proof")
+        if errno == WRN_BRC:
+            output_message(path, line_nr, "WRN_BRC", "Probable misformatting of curly braces")
 
 def lint(path):
     with path.open(encoding="utf-8") as f:
@@ -349,6 +372,8 @@ def lint(path):
         errs = import_omega_check(lines, path)
         format_errors(errs)
         errs = indent_check(lines, path)
+        format_errors(errs)
+        errs = braces_check(lines, path)
         format_errors(errs)
 
 for filename in sys.argv[1:]:

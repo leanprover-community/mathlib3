@@ -816,6 +816,11 @@ exists_congr (λ a, exists₃_congr (h a))
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩
 
+/-- We intentionally restrict the type of `α` in this lemma so that this is a safer to use in simp
+than `forall_swap`. -/
+lemma imp_forall_iff {α : Type*} {p : Prop} {q : α → Prop} : (p → ∀ x, q x) ↔ (∀ x, p → q x) :=
+forall_swap
+
 theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
 
@@ -940,6 +945,12 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq' {a' : α} : ∃ a, a' = a := ⟨_, rfl⟩
+
+@[simp] theorem exists_unique_eq {a' : α} : ∃! a, a = a' :=
+by simp only [eq_comm, exists_unique, and_self, forall_eq', exists_eq']
+
+@[simp] theorem exists_unique_eq' {a' : α} : ∃! a, a' = a :=
+by simp only [exists_unique, and_self, forall_eq', exists_eq']
 
 @[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩

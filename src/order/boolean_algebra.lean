@@ -365,7 +365,7 @@ lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
               ... ≤ (x ⊔ z) ⊔ x : sup_le_sup_right h x
               ... ≤ z ⊔ x       : by rw [sup_assoc, sup_comm, sup_assoc, sup_idem])⟩
 
-lemma sdiff_eq_bot_iff : y \ x = ⊥ ↔ y ≤ x :=
+@[simp] lemma sdiff_eq_bot_iff : y \ x = ⊥ ↔ y ≤ x :=
 by rw [←le_bot_iff, sdiff_le_iff, sup_bot_eq]
 
 lemma sdiff_le_comm : x \ y ≤ z ↔ x \ z ≤ y :=
@@ -627,6 +627,9 @@ is_compl_compl.symm.compl_eq
 
 theorem compl_bijective : function.bijective (compl : α → α) :=
 compl_involutive.bijective
+
+theorem compl_surjective : function.surjective (compl : α → α) :=
+compl_involutive.surjective
 
 theorem compl_injective : function.injective (compl : α → α) :=
 compl_involutive.injective

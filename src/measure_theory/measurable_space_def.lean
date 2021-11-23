@@ -3,12 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import algebra.indicator_function
+import order.symm_diff
+import order.disjointed
+import order.conditionally_complete_lattice
 import data.equiv.encodable.lattice
 import data.set.countable
-import order.disjointed
-import order.filter.basic
-import order.symm_diff
 
 /-!
 # Measurable spaces and measurable functions
@@ -42,7 +41,7 @@ measurable space, σ-algebra, measurable function
 -/
 
 open set encodable function equiv
-open_locale classical filter
+open_locale classical
 
 
 variables {α β γ δ δ' : Type*} {ι : Sort*} {s t u : set α}

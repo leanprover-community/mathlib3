@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.regular.smul
-import data.matrix.notation
-import linear_algebra.matrix.polynomial
 import linear_algebra.matrix.adjugate
+import linear_algebra.matrix.polynomial
 
 /-!
 # Nonsingular inverses

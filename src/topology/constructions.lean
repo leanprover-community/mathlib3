@@ -884,6 +884,19 @@ by simp only [is_open_supr_iff, is_open_coinduced]
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
 by simp only [← is_open_compl_iff, is_open_sigma_iff, preimage_compl]
 
+lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
+begin
+  rw is_open_sigma_iff,
+  intros a,
+  by_cases h : a ∈ s,
+  { convert is_open_univ,
+    ext x,
+    simp only [h, set.mem_preimage, set.mem_univ] },
+  { convert is_open_empty,
+    ext x,
+    simp only [h, set.mem_empty_eq, set.mem_preimage] }
+end
+
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin
   intros s hs,

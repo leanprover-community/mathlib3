@@ -812,6 +812,14 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   exact (is_compact_range continuous_inl).union (is_compact_range continuous_inr)
 end⟩
 
+instance {α : Type*} [fintype α] (X : α → Type*) [Π a, topological_space (X a)]
+  [∀ a, compact_space (X a)] : compact_space (Σ a, X a) :=
+begin
+  refine ⟨_⟩,
+  rw sigma.univ,
+  exact compact_Union (λ i, is_compact_range continuous_sigma_mk),
+end
+
 /-- The coproduct of the cocompact filters on two topological spaces is the cocompact filter on
 their product. -/
 lemma filter.coprod_cocompact :
@@ -1248,6 +1256,10 @@ end
 
 @[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=
 ⟨is_open_discrete _, is_closed_discrete _⟩
+
+lemma clopen_range_sigma_mk {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)] {i : ι} :
+  is_clopen (set.range (@sigma.mk ι σ i)) :=
+⟨open_embedding_sigma_mk.open_range, closed_embedding_sigma_mk.closed_range⟩
 
 end clopen
 

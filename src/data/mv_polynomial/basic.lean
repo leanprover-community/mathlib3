@@ -510,22 +510,18 @@ lemma coeff_mul_X' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
   coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
 begin
   refine (coeff_mul_monomial' _ _ _ _).trans _,
-  have : ∀ n : ℕ, 1 ≤ n ↔ n ≠ 0,
-  { intro n,
-    cases n,
-    { simp },
-    { simp only [nat.succ_ne_zero, iff_true, ne.def, not_false_iff],
-      apply nat.succ_le_succ (n.zero_le) }, },
-  simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, this, mul_one],
+  simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
+    mul_one],
   congr,
 end
 
 lemma coeff_X_mul' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
   coeff m (X s * p) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
 begin
-  -- note that if we allow `R` to be non-commutative we will have to duplicate the proof above.
-  rw mul_comm,
-  exact coeff_mul_X' _ _ _
+  refine (coeff_monomial_mul' _ _ _ _).trans _,
+  simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
+    one_mul],
+  congr,
 end
 
 lemma eq_zero_iff {p : mv_polynomial σ R} :

@@ -254,6 +254,13 @@ begin
   exact sum_comm.le,
 end
 
+/-- If every element belongs to at most `n` finsets, then the sum of their sizes is at most `n`
+times how many they are. -/
+lemma sum_card_le [fintype α] (h : ∀ a, (B.filter $ (∈) a).card ≤ n) :
+  ∑ s in B, s.card ≤ fintype.card α * n :=
+calc ∑ s in B, s.card = ∑ s in B, (univ ∩ s).card : by simp_rw univ_inter
+                  ... ≤ fintype.card α * n        : sum_card_inter_le (λ a _, h a)
+
 /-- If every element belongs to at least `n` finsets, then the sum of their sizes is at least `n`
 times how many they are. -/
 lemma le_sum_card_inter (h : ∀ a ∈ s, n ≤ (B.filter $ (∈) a).card) :
@@ -264,11 +271,24 @@ begin
   exact sum_comm.le,
 end
 
+/-- If every element belongs to at least `n` finsets, then the sum of their sizes is at least `n`
+times how many they are. -/
+lemma le_sum_card [fintype α] (h : ∀ a, n ≤ (B.filter $ (∈) a).card) :
+  fintype.card α * n ≤ ∑ s in B, s.card :=
+calc fintype.card α * n ≤ ∑ s in B, (univ ∩ s).card : le_sum_card_inter (λ a _, h a)
+                    ... = ∑ s in B, s.card          : by simp_rw univ_inter
+
 /-- If every element belongs to exactly `n` finsets, then the sum of their sizes is `n` times how
 many they are. -/
 lemma sum_card_inter (h : ∀ a ∈ s, (B.filter $ (∈) a).card = n) :
   ∑ t in B, (s ∩ t).card = s.card * n :=
 (sum_card_inter_le $ λ a ha, (h a ha).le).antisymm (le_sum_card_inter $ λ a ha, (h a ha).ge)
+
+/-- If every element belongs to exactly `n` finsets, then the sum of their sizes is `n` times how
+many they are. -/
+lemma sum_card [fintype α] (h : ∀ a, (B.filter $ (∈) a).card = n) :
+  ∑ s in B, s.card = fintype.card α * n :=
+by simp_rw [fintype.card, ←sum_card_inter (λ a _, h a), univ_inter]
 
 end double_counting
 

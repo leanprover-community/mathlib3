@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.basic
-import linear_algebra.tensor_product
-import algebra.iterate_hom
+import linear_algebra.tensor_product.left_action
 
 /-!
 # Facts about algebras involving bilinear maps and tensor products
@@ -24,7 +23,8 @@ open module
 
 section
 
-variables (R A : Type*) [comm_semiring R] [semiring A] [algebra R A]
+variables (R A : Type*) [comm_semiring R] [semiring A]
+  [algebra R A] [algebra Rᵒᵖ A] [is_symmetric_smul R A]
 
 /-- The multiplication in an algebra is a bilinear map.
 
@@ -127,7 +127,8 @@ end
 
 section
 
-variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
+variables {R A : Type*} [comm_semiring R] [ring A]
+  [algebra R A] [algebra Rᵒᵖ A] [is_symmetric_smul R A]
 
 lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (lmul_left R x) :=

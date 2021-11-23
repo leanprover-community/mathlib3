@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
 import category_theory.monoidal.rigid
-import linear_algebra.tensor_product_basis
+import linear_algebra.tensor_product.basis
 import linear_algebra.coevaluation
 import algebra.category.Module.monoidal
 

@@ -41,7 +41,7 @@ variables {R : Type u} [comm_semiring R]
 
 section ring
 
-variables {A : Type v} [semiring A] [algebra R A]
+variables {A : Type v} [semiring A] [algebra R A] [algebra Rᵒᵖ A] [is_symmetric_smul R A]
 variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
 /-- `1 : submodule R A` is the submodule R of A. -/
@@ -84,7 +84,7 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
   (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y))
   (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
-(@mul_le _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
+(@mul_le _ _ _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
 
 variables R
 theorem span_mul_span : span R S * span R T = span R (S * T) :=
@@ -150,7 +150,8 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, let ⟨m, hm, n, hn, hmn⟩ := mem_sup.1
 lemma mul_subset_mul : (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
 by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
 
-lemma map_mul {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
+lemma map_mul {A'} [semiring A'] [algebra R A'] [algebra Rᵒᵖ A'] [is_symmetric_smul R A']
+  (f : A →ₐ[R] A') :
   map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
 calc map f.to_linear_map (M * N)
     = ⨆ (i : M), (N.map (lmul R A i)).map f.to_linear_map : map_supr _ _
@@ -252,7 +253,7 @@ end ring
 
 section comm_ring
 
-variables {A : Type v} [comm_semiring A] [algebra R A]
+variables {A : Type v} [comm_semiring A] [algebra R A] [algebra Rᵒᵖ A] [is_symmetric_smul R A]
 variables {M N : submodule R A} {m n : A}
 
 theorem mul_mem_mul_rev (hm : m ∈ M) (hn : n ∈ N) : n * m ∈ M * N :=
@@ -373,7 +374,8 @@ begin
   exact hn m hm,
 end
 
-@[simp] lemma map_div {B : Type*} [comm_ring B] [algebra R B]
+@[simp] lemma map_div {B : Type*} [comm_ring B]
+  [algebra R B] [algebra Rᵒᵖ B] [is_symmetric_smul R B]
   (I J : submodule R A) (h : A ≃ₐ[R] B) :
   (I / J).map h.to_linear_map = I.map h.to_linear_map / J.map h.to_linear_map :=
 begin

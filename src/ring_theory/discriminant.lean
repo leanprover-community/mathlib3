@@ -112,8 +112,8 @@ reindex (equiv.refl ι) e.symm (embeddings_matrix A C b)
 variable {A}
 
 lemma embeddings_matrix_reindex_eq_vandermonde (pb : power_basis A B)
-  (e : fin pb.dim ≃ (B →ₐ[A] C)) : embeddings_matrix_reindex A C pb.basis e =
-  (vandermonde (λ i, e i pb.gen))ᵀ :=
+  (e : fin pb.dim ≃ (B →ₐ[A] C)) :
+  embeddings_matrix_reindex A C pb.basis e = (vandermonde (λ i, e i pb.gen))ᵀ :=
 by { ext i j, simp [embeddings_matrix_reindex, embeddings_matrix] }
 
 end matrix

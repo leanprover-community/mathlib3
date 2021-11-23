@@ -12,7 +12,7 @@ import linear_algebra.vandermonde
 /-!
 # Discriminant.
 Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we define the
-  discriminant of `b` as the determinant of the matrix whose `(i j)`-th element is the trace of
+*discriminant* of `b` as the determinant of the matrix whose `(i j)`-th element is the trace of
 `b i * b j`.
 
 ## Main definition

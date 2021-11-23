@@ -37,7 +37,7 @@ variables {M : Type*} {ι : Type*} {R : Type*} [decidable_eq M] [decidable_eq ι
 section
 variables (R) [comm_semiring R]
 
-/-- The submodule corresponding to each grade given by the degree function f. -/
+/-- The submodule corresponding to each grade given by the degree function `f`. -/
 abbreviation grade_by (f : M → ι) (i : ι) : submodule R (add_monoid_algebra R M) :=
 { carrier := {a | ∀ m, m ∈ a.support → f m = i },
   zero_mem' := set.empty_subset _,

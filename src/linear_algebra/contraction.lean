@@ -73,7 +73,7 @@ by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
 
 /-- As a matrix, `dual_tensor_hom` evaluated on a basis element of `M* ⊗ N` is a matrix with a
 single one and zeros elsewhere -/
-theorem dual_tensor_hom_basis
+theorem to_matrix_dual_tensor_hom
   {m : Type*} {n : Type*} [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
   (bM : basis m R M) (bN : basis n R N) (j : m) (i : n) :
     to_matrix bM bN (dual_tensor_hom R M N (bM.coord j ⊗ₜ bN i)) = std_basis_matrix i j 1 :=
@@ -110,7 +110,7 @@ begin
   simp,
 end
 
-noncomputable
+@[simps] noncomputable
 def dual_tensor_hom_equiv_of_basis :
   (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
 linear_equiv.of_linear (dual_tensor_hom R M N) (hom_dual_tensor R M N b)

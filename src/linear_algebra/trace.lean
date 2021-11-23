@@ -127,7 +127,7 @@ begin
   simp only [dual_tensor_hom_equiv_apply, basis.coord_apply, linear_equiv.coe_coe,
     basis.repr_self, function.comp_app, contract_left_apply, basis.tensor_product_apply,
     basis.coe_dual_basis, coe_comp],
-  rw [trace_eq_matrix_trace R b, dual_tensor_hom_basis],
+  rw [trace_eq_matrix_trace R b, to_matrix_dual_tensor_hom],
   by_cases hij : i = j,
   { rw [hij, matrix.std_basis_matrix.trace_same], simp },
   rw matrix.std_basis_matrix.trace_zero j i (1:R) hij,

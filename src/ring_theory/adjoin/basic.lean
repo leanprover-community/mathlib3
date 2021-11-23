@@ -77,9 +77,11 @@ subtype.rec_on x $ λ x hx, begin
     exists.elim hy $ λ hy' hy, ⟨subalgebra.mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
 end
 
-lemma adjoin_mem_of_subtype {s : set A} (x : adjoin R s) :
-  x ∈ adjoin R {a : adjoin R s | (a : A) ∈ s} :=
+lemma adjoin_adjoin_coe_preimage {s : set A} :
+  adjoin R ((coe : adjoin R s → A) ⁻¹' s) = ⊤ :=
 begin
+  rw eq_top_iff,
+  intro x,
   refine adjoin_induction' (λ a ha, _) (λ r, _) (λ _ _, _) (λ _ _, _) x,
   { exact subset_adjoin ha },
   { exact subalgebra.algebra_map_mem _ r },

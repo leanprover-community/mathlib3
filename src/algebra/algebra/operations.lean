@@ -41,7 +41,7 @@ variables {R : Type u} [comm_semiring R]
 
 section ring
 
-variables {A : Type v} [semiring A] [algebra R A] [algebra Rᵒᵖ A] [is_symmetric_smul R A]
+variables {A : Type v} [semiring A] [algebra R A]
 variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
 /-- `1 : submodule R A` is the submodule R of A. -/
@@ -84,7 +84,7 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
   (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y))
   (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
-(@mul_le _ _ _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
+(@mul_le _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
 
 variables R
 theorem span_mul_span : span R S * span R T = span R (S * T) :=
@@ -253,7 +253,7 @@ end ring
 
 section comm_ring
 
-variables {A : Type v} [comm_semiring A] [algebra R A] [algebra Rᵒᵖ A] [is_symmetric_smul R A]
+variables {A : Type v} [comm_semiring A] [algebra R A]
 variables {M N : submodule R A} {m n : A}
 
 theorem mul_mem_mul_rev (hm : m ∈ M) (hn : n ∈ N) : n * m ∈ M * N :=

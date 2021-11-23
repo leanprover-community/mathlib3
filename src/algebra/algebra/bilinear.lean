@@ -24,7 +24,7 @@ open module
 section
 
 variables (R A : Type*) [comm_semiring R] [semiring A]
-  [algebra R A] [algebra Rᵒᵖ A] [is_symmetric_smul R A]
+  [algebra R A]
 
 /-- The multiplication in an algebra is a bilinear map.
 
@@ -64,12 +64,13 @@ lemma commute_lmul_left_right (a b : A) :
 by { ext c, exact (mul_assoc a c b).symm, }
 
 /-- The multiplication map on an algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
-def lmul' : A ⊗[R] A →ₗ[R] A :=
+def lmul' [algebra Rᵒᵖ A] [is_symmetric_smul R A] : A ⊗[R] A →ₗ[R] A :=
 tensor_product.lift (lmul R A).to_linear_map
 
 variables {R A}
 
-@[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
+@[simp] lemma lmul'_apply [algebra Rᵒᵖ A] [is_symmetric_smul R A] {x y : A} :
+  lmul' R (x ⊗ₜ y) = x * y :=
 by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]
 
 @[simp] lemma lmul_left_apply (p q : A) : lmul_left R p q = p * q := rfl

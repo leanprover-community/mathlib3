@@ -126,11 +126,14 @@ instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Ty
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget)) } }
 
+/-- The projection from the product as a bundled continous map. -/
+abbreviation pi_π {ι : Type u} (α : ι → Top.{u}) (i : ι) : Top.of (Π i, α i) ⟶ α i :=
+⟨λ f, f i, continuous_apply i⟩
 
 /-- The explicit fan of a family of topological spaces given by the pi type. -/
 @[simps X π_app]
 def pi_fan {ι : Type u} (α : ι → Top.{u}) : fan α :=
-fan.mk (Top.of (Π i, α i)) (λ i, ⟨λ f, f i, continuous_apply i⟩)
+fan.mk (Top.of (Π i, α i)) (pi_π α)
 
 /-- The constructed fan is indeed a limit -/
 def pi_fan_is_limit {ι : Type u} (α : ι → Top.{u}) : is_limit (pi_fan α) :=
@@ -146,8 +149,8 @@ def pi_iso_pi {ι : Type u} (α : ι → Top.{u}) : ∏ α ≅ Top.of (Π i, α 
 
 @[simp, reassoc]
 lemma pi_iso_pi_inv_π {ι : Type u} (α : ι → Top) (i : ι) :
-  (pi_iso_pi α).inv ≫ pi.π α i = ⟨λ f, f i, continuous_apply i⟩ :=
-by simpa [pi_iso_pi]
+  (pi_iso_pi α).inv ≫ pi.π α i = pi_π α i :=
+by simp [pi_iso_pi]
 
 @[simp]
 lemma pi_iso_pi_inv_π_apply {ι : Type u} (α : ι → Top.{u}) (i : ι) (x : Π i, α i) :
@@ -163,10 +166,14 @@ begin
   exact concrete_category.congr_hom this x
 end
 
+/-- The inclusion to the coproduct as a bundled continous map. -/
+abbreviation sigma_ι {ι : Type u} (α : ι → Top.{u}) (i : ι) : α i ⟶ Top.of (Σ i, α i) :=
+⟨sigma.mk i⟩
+
 /-- The explicit cofan of a family of topological spaces given by the sigma type. -/
 @[simps X ι_app]
 def sigma_cofan {ι : Type u} (α : ι → Top.{u}) : cofan α :=
-cofan.mk (Top.of (Σ i, α i)) (λ b, ⟨sigma.mk b⟩)
+cofan.mk (Top.of (Σ i, α i)) (sigma_ι α)
 
 /-- The constructed cofan is indeed a colimit -/
 def sigma_cofan_is_colimit {ι : Type u} (α : ι → Top.{u}) : is_colimit (sigma_cofan α) :=
@@ -182,7 +189,7 @@ def sigma_iso_sigma {ι : Type u} (α : ι → Top.{u}) : ∐ α ≅ Top.of (Σ 
 
 @[simp, reassoc]
 lemma sigma_iso_sigma_hom_ι {ι : Type u} (α : ι → Top) (i : ι) :
-  sigma.ι α i ≫ (sigma_iso_sigma α).hom = ⟨sigma.mk i⟩ :=
+  sigma.ι α i ≫ (sigma_iso_sigma α).hom = sigma_ι α i :=
 by simp [sigma_iso_sigma]
 
 @[simp]

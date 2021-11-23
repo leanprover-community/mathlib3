@@ -218,7 +218,7 @@ end⟩
 (the quotient and subspace topologies of the image agree) whose fibers are preconnected. -/
 
 lemma is_preconnected.preimage_of_open_map [topological_space β] {s : set β}
-  (hs : is_preconnected s) {f : α → β}   (hinj : function.injective f) (hf : is_open_map f)
+  (hs : is_preconnected s) {f : α → β} (hinj : function.injective f) (hf : is_open_map f)
   (hsf : s ⊆ set.range f) :
   is_preconnected (f ⁻¹' s) :=
 λ u v hu hv hsuv hsu hsv,
@@ -236,7 +236,7 @@ begin
 end
 
 lemma is_preconnected.preimage_of_closed_map [topological_space β] {s : set β}
-  (hs : is_preconnected s) {f : α → β}   (hinj : function.injective f) (hf : is_closed_map f)
+  (hs : is_preconnected s) {f : α → β} (hinj : function.injective f) (hf : is_closed_map f)
   (hsf : s ⊆ set.range f) :
   is_preconnected (f ⁻¹' s) :=
 is_preconnected_closed_iff.2 $ λ u v hu hv hsuv hsu hsv,

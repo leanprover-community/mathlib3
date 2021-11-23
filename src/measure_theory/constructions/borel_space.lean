@@ -1145,6 +1145,9 @@ instance is_R_or_C.measurable_space {𝕜 : Type*} [is_R_or_C 𝕜] : measurable
 @[priority 900]
 instance is_R_or_C.borel_space {𝕜 : Type*} [is_R_or_C 𝕜] : borel_space 𝕜 := ⟨rfl⟩
 
+/- Instances on `real` and `complex` are special cases of `is_R_or_C` but without these instances,
+Lean fails to prove `borel_space (ι → ℝ)`, so we leave them here. -/
+
 instance real.measurable_space : measurable_space ℝ := borel ℝ
 instance real.borel_space : borel_space ℝ := ⟨rfl⟩
 

@@ -49,12 +49,9 @@ lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
 /-- The support of a `pmf` is the set where it is nonzero. -/
 def support (p : pmf α) : set α := function.support p
 
-@[simp]
-lemma mem_support_iff (p : pmf α) (a : α) :
-  a ∈ p.support ↔ p a ≠ 0 := iff.rfl
+@[simp] lemma mem_support_iff (p : pmf α) (a : α) : a ∈ p.support ↔ p a ≠ 0 := iff.rfl
 
-lemma apply_eq_zero_iff (p : pmf α) (a : α) :
-  p a = 0 ↔ a ∉ p.support :=
+lemma apply_eq_zero_iff (p : pmf α) (a : α) : p a = 0 ↔ a ∉ p.support :=
 by rw [mem_support_iff, not_not]
 
 lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
@@ -69,16 +66,11 @@ def pure (a : α) : pmf α := ⟨λ a', if a' = a then 1 else 0, has_sum_ite_eq 
 
 variables (a a' : α)
 
-@[simp]
-lemma pure_apply : pure a a' = (if a' = a then 1 else 0) :=
-rfl
+@[simp] lemma pure_apply : pure a a' = (if a' = a then 1 else 0) := rfl
 
-@[simp]
-lemma support_pure : (pure a).support = {a} :=
-set.ext (λ a', by simp [mem_support_iff])
+@[simp] lemma support_pure : (pure a).support = {a} := set.ext (λ a', by simp [mem_support_iff])
 
-lemma mem_support_pure_iff: a' ∈ (pure a).support ↔ a' = a :=
-by simp
+lemma mem_support_pure_iff: a' ∈ (pure a).support ↔ a' = a := by simp
 
 instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
 
@@ -107,12 +99,9 @@ def bind (p : pmf α) (f : α → pmf β) : pmf β :=
 
 variables (p : pmf α) (f : α → pmf β)
 
-@[simp]
-lemma bind_apply (b : β) : p.bind f b = ∑'a, p a * f a b :=
-rfl
+@[simp] lemma bind_apply (b : β) : p.bind f b = ∑'a, p a * f a b := rfl
 
-@[simp]
-lemma support_bind : (p.bind f).support = {b | ∃ a ∈ p.support, b ∈ (f a).support} :=
+@[simp] lemma support_bind : (p.bind f).support = {b | ∃ a ∈ p.support, b ∈ (f a).support} :=
 set.ext (λ b, by simp [mem_support_iff, tsum_eq_zero_iff (bind.summable p f b), not_or_distrib])
 
 lemma mem_support_bind_iff (b : β) : b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=

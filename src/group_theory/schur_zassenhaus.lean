@@ -9,7 +9,7 @@ import group_theory.group_action.basic
 import group_theory.sylow
 
 /-!
-# Complements
+# The Schur-Zassenhaus Theorem
 
 In this file we prove the Schur-Zassenhaus theorem.
 

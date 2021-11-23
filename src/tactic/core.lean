@@ -1118,7 +1118,7 @@ and fail otherwise.
 meta def sorry_if_contains_sorry : tactic unit :=
 do
   g ← target,
-  guard g.contains_sorry <|> fail "goal does not contain `sorrry`",
+  guard g.contains_sorry <|> fail "goal does not contain `sorry`",
   tactic.admit
 
 /-- Fail if the target contains a metavariable. -/

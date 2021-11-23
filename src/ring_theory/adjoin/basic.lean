@@ -78,7 +78,7 @@ subtype.rec_on x $ λ x hx, begin
     exists.elim hy $ λ hy' hy, ⟨subalgebra.mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
 end
 
-lemma adjoin_idem (s: set A) {x : adjoin R s} :
+lemma adjoin_idem (s : set A) {x : adjoin R s} :
   x ∈ adjoin R {a : adjoin R s | (a : A) ∈ s} ↔ (x : A) ∈ adjoin R s :=
 begin
   refine ⟨λ _, x.2, λ _, adjoin_induction' (λ a ha, _) (λ r, _) (λ x y hx hy, _)

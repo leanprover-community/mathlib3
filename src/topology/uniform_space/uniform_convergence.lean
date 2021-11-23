@@ -106,7 +106,7 @@ lemma tendsto_uniformly_on.mono {s' : set α}
   (h : tendsto_uniformly_on F f p s) (h' : s' ⊆ s) : tendsto_uniformly_on F f p s' :=
 λ u hu, (h u hu).mono (λ n hn x hx, hn x (h' hx))
 
-lemma tendsto_uniformly.tendsto_uniformly_on
+protected lemma tendsto_uniformly.tendsto_uniformly_on
   (h : tendsto_uniformly F f p) : tendsto_uniformly_on F f p s :=
 (tendsto_uniformly_on_univ.2 h).mono (subset_univ s)
 
@@ -177,11 +177,11 @@ to a filter `p` if, for any entourage of the diagonal `u`, for any `x`, one has 
 def tendsto_locally_uniformly (F : ι → α → β) (f : α → β) (p : filter ι) :=
   ∀ u ∈ 𝓤 β, ∀ (x : α), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, (f y, F n y) ∈ u
 
-lemma tendsto_uniformly_on.tendsto_locally_uniformly_on
+protected lemma tendsto_uniformly_on.tendsto_locally_uniformly_on
   (h : tendsto_uniformly_on F f p s) : tendsto_locally_uniformly_on F f p s :=
 λ u hu x hx, ⟨s, self_mem_nhds_within, h u hu⟩
 
-lemma tendsto_uniformly.tendsto_locally_uniformly
+protected lemma tendsto_uniformly.tendsto_locally_uniformly
   (h : tendsto_uniformly F f p) : tendsto_locally_uniformly F f p :=
 λ u hu x, ⟨univ, univ_mem, by simpa using h u hu⟩
 
@@ -196,6 +196,10 @@ end
 lemma tendsto_locally_uniformly_on_univ :
   tendsto_locally_uniformly_on F f p univ ↔ tendsto_locally_uniformly F f p :=
 by simp [tendsto_locally_uniformly_on, tendsto_locally_uniformly, nhds_within_univ]
+
+protected lemma tendsto_locally_uniformly.tendsto_locally_uniformly_on
+  (h : tendsto_locally_uniformly F f p) : tendsto_locally_uniformly_on F f p s :=
+(tendsto_locally_uniformly_on_univ.mpr h).mono (subset_univ _)
 
 lemma tendsto_locally_uniformly_on.comp [topological_space γ] {t : set γ}
   (h : tendsto_locally_uniformly_on F f p s)
@@ -308,22 +312,19 @@ end
 
 /-- A uniform limit on a set of functions which are continuous on this set is itself continuous
 on this set. -/
-lemma tendsto_uniformly_on.continuous_on (h : tendsto_uniformly_on F f p s)
-  (hc : ∀ n, continuous_on (F n) s) [ne_bot p] : continuous_on f s :=
+protected lemma tendsto_uniformly_on.continuous_on (h : tendsto_uniformly_on F f p s)
+  (hc : ∀ᶠ n in p, continuous_on (F n) s) [ne_bot p] : continuous_on f s :=
 h.tendsto_locally_uniformly_on.continuous_on hc
 
 /-- A locally uniform limit of continuous functions is continuous. -/
-lemma tendsto_locally_uniformly.continuous (h : tendsto_locally_uniformly F f p)
-  (hc : ∀ n, continuous (F n)) [ne_bot p] : continuous f :=
-begin
-  apply continuous_of_locally_uniform_approx_of_continuous (λ x u hu, _) hc,
-  rcases h u hu x with ⟨t, ht, H⟩,
-  exact ⟨t, ht, H.exists⟩
-end
+protected lemma tendsto_locally_uniformly.continuous (h : tendsto_locally_uniformly F f p)
+  (hc : ∀ᶠ n in p, continuous (F n)) [ne_bot p] : continuous f :=
+continuous_iff_continuous_on_univ.mpr $ h.tendsto_locally_uniformly_on.continuous_on $
+  hc.mono $ λ n hn, hn.continuous_on
 
 /-- A uniform limit of continuous functions is continuous. -/
-lemma tendsto_uniformly.continuous (h : tendsto_uniformly F f p)
-  (hc : ∀ n, continuous (F n)) [ne_bot p] : continuous f :=
+protected lemma tendsto_uniformly.continuous (h : tendsto_uniformly F f p)
+  (hc : ∀ᶠ n in p, continuous (F n)) [ne_bot p] : continuous f :=
 h.tendsto_locally_uniformly.continuous hc
 
 /-!

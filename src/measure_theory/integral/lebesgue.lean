@@ -7,6 +7,7 @@ import measure_theory.measure.mutually_singular
 import measure_theory.constructions.borel_space
 import algebra.indicator_function
 import algebra.support
+import dynamics.ergodic.measure_preserving
 
 /-!
 # Lebesgue integral for `ℝ≥0∞`-valued functions
@@ -1917,6 +1918,34 @@ measurability of the function being integrated.) -/
 lemma lintegral_map_equiv [measurable_space β] (f : β → ℝ≥0∞) (g : α ≃ᵐ β) :
   ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 g.measurable_embedding.lintegral_map f 
+
+lemma measure_preserving.lintegral_comp {mb : measurable_space β} {ν : measure β} {g : α → β}
+  (hg : measure_preserving g μ ν) {f : β → ℝ≥0∞} (hf : measurable f) :
+  ∫⁻ a, f (g a) ∂μ = ∫⁻ b, f b ∂ν :=
+by rw [← hg.map_eq, lintegral_map hf hg.measurable]
+
+lemma measure_preserving.lintegral_comp_emb {mb : measurable_space β} {ν : measure β} {g : α → β}
+  (hg : measure_preserving g μ ν) (hge : measurable_embedding g) (f : β → ℝ≥0∞) :
+  ∫⁻ a, f (g a) ∂μ = ∫⁻ b, f b ∂ν :=
+by rw [← hg.map_eq, hge.lintegral_map]
+
+lemma measure_preserving.set_lintegral_comp_preimage {mb : measurable_space β} {ν : measure β}
+  {g : α → β} (hg : measure_preserving g μ ν) {s : set β} (hs : measurable_set s)
+  {f : β → ℝ≥0∞} (hf : measurable f) :
+  ∫⁻ a in g ⁻¹' s, f (g a) ∂μ = ∫⁻ b in s, f b ∂ν :=
+by rw [← hg.map_eq, set_lintegral_map hs hf hg.measurable]
+
+lemma measure_preserving.set_lintegral_comp_preimage_emb {mb : measurable_space β} {ν : measure β}
+  {g : α → β} (hg : measure_preserving g μ ν) (hge : measurable_embedding g) (f : β → ℝ≥0∞)
+  (s : set β) :
+  ∫⁻ a in g ⁻¹' s, f (g a) ∂μ = ∫⁻ b in s, f b ∂ν :=
+by rw [← hg.map_eq, hge.restrict_map, hge.lintegral_map]
+
+lemma measure_preserving.set_lintegral_comp_emb {mb : measurable_space β} {ν : measure β}
+  {g : α → β} (hg : measure_preserving g μ ν) (hge : measurable_embedding g) (f : β → ℝ≥0∞)
+  (s : set α) :
+  ∫⁻ a in s, f (g a) ∂μ = ∫⁻ b in g '' s, f b ∂ν :=
+by rw [← hg.set_lintegral_comp_preimage_emb hge, preimage_image_eq _ hge.injective]
 
 section dirac_and_count
 variable [measurable_space α]

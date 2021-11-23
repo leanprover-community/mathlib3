@@ -129,7 +129,7 @@ variables [finite_dimensional R M]
 
 /-- `dual_tensor_hom` is an equivalence -/
 noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
-  dual_tensor_hom_equiv_of_basis (fin_basis R M)
+dual_tensor_hom_equiv_of_basis (fin_basis R M)
 
 lemma coe_dual_tensor_hom_equiv :
   (dual_tensor_hom_equiv R M N : (module.dual R M) ⊗[R] N → M →ₗ[R] N) = dual_tensor_hom R M N :=

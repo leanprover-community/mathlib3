@@ -9,12 +9,13 @@ import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.bicones
 import category_theory.limits.comma
 import category_theory.limits.preserves.finite
+import category_theory.limits.shapes.finite_limits
 
 /-!
 # Representably flat functors
 
 We define representably flat functors as functors such that the catetory of structured arrows
-over `X` is cofiltered for each `X`. This concept is also knows as flat functors as in [Elephant]
+over `X` is cofiltered for each `X`. This concept is also known as flat functors as in [Elephant]
 Remark C2.3.7, and this name is suggested by Mike Shulman in
 https://golem.ph.utexas.edu/category/2011/06/flat_functors_and_morphisms_of.html to avoid
 confusion with other notions of flatness.

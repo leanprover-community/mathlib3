@@ -6,8 +6,7 @@ Authors: Bhavik Mehta
 import category_theory.limits.functor_category
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.yoneda
-import category_theory.limits.kan_extension
-import category_theory.limits.types
+import category_theory.limits.presheaf
 
 /-!
 # Preservation of (co)limits in the functor category

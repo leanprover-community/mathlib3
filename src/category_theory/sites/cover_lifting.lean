@@ -53,7 +53,7 @@ open category_theory.limits
 namespace category_theory
 section cover_lifting
 variables {C : Type*} [category C] {D : Type*} [category D] {E : Type*} [category E]
-variables {J : grothendieck_topology C} {K : grothendieck_topology D}
+variables (J : grothendieck_topology C) (K : grothendieck_topology D)
 variables {L : grothendieck_topology E}
 
 /--
@@ -61,15 +61,18 @@ A functor `G : (C, J) ⥤ (D, K)` between sites is called to have the cover-lift
 if for all covering sieves `R` in `D`, `R.pullback G` is a covering sieve in `C`.
 -/
 @[nolint has_inhabited_instance]
-structure cover_lifting (J : grothendieck_topology C) (K : grothendieck_topology D) (G : C ⥤ D) :=
+structure cover_lifting (G : C ⥤ D) : Prop :=
 (cover_lift : ∀ {U : C} {S : sieve (G.obj U)} (hS : S ∈ K (G.obj U)), S.functor_pullback G ∈ J U)
 
 /-- The identity functor on a site is cover-lifting. -/
-def id_cover_lifting : cover_lifting J J (𝟭 _) := ⟨λ _ _ h, by simpa using h⟩
+lemma id_cover_lifting : cover_lifting J J (𝟭 _) := ⟨λ _ _ h, by simpa using h⟩
+
+variables {J K}
 
 /-- The composition of two cover-lifting functors are cover-lifting -/
-def comp_cover_lifting {G} (hu : cover_lifting J K G) {v} (hv : cover_lifting K L v) :
-  cover_lifting J L (G ⋙ v) := ⟨λ _ S h, hu.cover_lift (hv.cover_lift h)⟩
+lemma comp_cover_lifting {F : C ⥤ D} (hu : cover_lifting J K F) {G : D ⥤ E}
+  (hv : cover_lifting K L G) : cover_lifting J L (F ⋙ G) :=
+⟨λ _ S h, hu.cover_lift (hv.cover_lift h)⟩
 
 end cover_lifting
 

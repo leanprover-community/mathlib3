@@ -98,7 +98,7 @@ def induced_topology :
   end }
 
 /-- `G` is cover-lifting wrt the induced topology. -/
-def induced_topology_cover_lifting :
+lemma induced_topology_cover_lifting :
   cover_lifting Hld.induced_topology K G := ⟨λ _ S hS, Hld ⟨S, hS⟩⟩
 
 /-- `G` is cover-preserving wrt the induced topology. -/

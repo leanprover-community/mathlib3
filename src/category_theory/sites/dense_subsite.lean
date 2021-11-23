@@ -419,7 +419,7 @@ end
 /-- A fully faithful cover-dense functor preserves compatible families. -/
 lemma compatible_preserving [faithful G] : compatible_preserving K G :=
 begin
-  split,
+  constructor,
   intros ℱ Z T x hx Y₁ Y₂ X f₁ f₂ g₁ g₂ hg₁ hg₂ eq,
   apply H.ext,
   intros W i,
@@ -462,12 +462,11 @@ include Hd Hp Hl
 Given a functor between small sites that is cover-dense, cover-preserving, and cover-lifting,
 it induces an equivalence of category of sheaves valued in a complete category.
 -/
-noncomputable
+@[simps functor inverse] noncomputable
 def Sheaf_equiv_of_cover_preserving_cover_lifting : Sheaf J A ≌ Sheaf K A :=
 begin
   symmetry,
   let α := sites.pullback_copullback_adjunction A Hp Hl Hd.compatible_preserving,
-  haveI : is_iso α.unit := infer_instance,
   haveI : ∀ (X : Sheaf J A), is_iso (α.counit.app X),
   { intro ℱ,
     apply_with (reflects_isomorphisms.reflects (Sheaf_to_presheaf J A)) { instances := ff },

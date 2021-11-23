@@ -408,6 +408,14 @@ begin
   simp [mul_support_mul]
 end
 
+/-- If the multiplicative supports of `f` and `g` are finite, then the product of `f i / g i`
+equals the product of `f i` divided by the product over `g i`. -/
+@[to_additive] lemma finprod_div_distrib {M' : Type*} [comm_group M'] {f g : α → M'}
+  (hf : (mul_support f).finite) (hg : (mul_support g).finite) :
+  ∏ᶠ i, f i / g i = (∏ᶠ i, f i) / ∏ᶠ i, g i :=
+by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv g).symm.rec hg),
+              finprod_inv_distrib]
+
 /-- A more general version of `finprod_mem_mul_distrib` that requires `s ∩ mul_support f` and
 `s ∩ mul_support g` instead of `s` to be finite. -/
 @[to_additive] lemma finprod_mem_mul_distrib' (hf : (s ∩ mul_support f).finite)
@@ -460,6 +468,20 @@ product of `f i` over `i ∈ s` equals the product of `(g ∘ f) i` over `s`. -/
 @[to_additive] lemma monoid_hom.map_finprod_mem (f : α → M) (g : M →* N) (hs : s.finite) :
   g (∏ᶠ j ∈ s, f j) = ∏ᶠ i ∈ s, g (f i) :=
 g.map_finprod_mem' (hs.inter_of_left _)
+
+@[to_additive] lemma mul_equiv.map_finprod_mem (g : M ≃* N) (f : α → M) {s : set α}
+  (hs : s.finite) : g (∏ᶠ i ∈ s, f i) = ∏ᶠ i ∈ s, g (f i) :=
+g.to_monoid_hom.map_finprod_mem f hs
+
+@[to_additive] lemma finprod_mem_inv_distrib {G : Type*} [comm_group G] (f : α → G)
+  (hs : s.finite) : ∏ᶠ x ∈ s, (f x)⁻¹ = (∏ᶠ x ∈ s, f x)⁻¹ :=
+((mul_equiv.inv G).map_finprod_mem f hs).symm
+
+/-- Given a finite set `s`, the product of `f i / g i` over `i ∈ s` equals the product of `f i`
+over `i ∈ s` divided by the product of `g i` over `i ∈ s`. -/
+@[to_additive] lemma finprod_mem_div_distrib {M' : Type*} [comm_group M'] (f g : α → M')
+  (hs : s.finite) : ∏ᶠ i ∈ s, f i / g i = (∏ᶠ i ∈ s, f i) / ∏ᶠ i ∈ s, g i :=
+by simp only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_mem_inv_distrib g hs]
 
 /-!
 ### `∏ᶠ x ∈ s, f x` and set operations

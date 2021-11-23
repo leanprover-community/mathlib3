@@ -653,7 +653,7 @@ subtype.rec_on x $ λ x hx, begin
     (λ x hx, exists.elim hx $ λ hx' hx, ⟨inv_mem _ hx', Hinv _ hx⟩),
 end
 
-@[to_additive]
+@[simp, to_additive]
 lemma closure_closure_coe_preimage {k : set G} : closure ((coe : closure k → G) ⁻¹' k) = ⊤ :=
 begin
   refine eq_top_iff.2 (λ x hx, closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) (λ g hg, _) x),

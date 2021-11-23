@@ -1140,6 +1140,14 @@ instance nat.borel_space : borel_space ℕ := ⟨borel_eq_top_of_discrete.symm�
 instance int.borel_space : borel_space ℤ := ⟨borel_eq_top_of_discrete.symm⟩
 instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_encodable.symm⟩
 
+@[priority 900]
+instance is_R_or_C.measurable_space {𝕜 : Type*} [is_R_or_C 𝕜] : measurable_space 𝕜 := borel 𝕜
+@[priority 900]
+instance is_R_or_C.borel_space {𝕜 : Type*} [is_R_or_C 𝕜] : borel_space 𝕜 := ⟨rfl⟩
+
+/- Instances on `real` and `complex` are special cases of `is_R_or_C` but without these instances,
+Lean fails to prove `borel_space (ι → ℝ)`, so we leave them here. -/
+
 instance real.measurable_space : measurable_space ℝ := borel ℝ
 instance real.borel_space : borel_space ℝ := ⟨rfl⟩
 
@@ -1350,7 +1358,7 @@ lemma borel_eq_generate_from_Iio_rat :
   borel ℝ = generate_from (⋃ a : ℚ, {Iio a}) :=
 begin
   let g : measurable_space ℝ := generate_from (⋃ a : ℚ, {Iio a}),
-  apply le_antisymm _ (measurable_space.generate_from_le (λ t, _)),
+  refine le_antisymm _ _,
   { rw borel_eq_generate_from_Ioo_rat,
     refine generate_from_le (λ t, _),
     simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
@@ -1364,7 +1372,8 @@ begin
       refine λ _, ⟨λ h, _, λ ⟨i, hai, hix⟩, (rat.cast_lt.2 hai).trans_le hix⟩,
       rcases exists_rat_btwn h with ⟨c, ac, cx⟩,
       exact ⟨c, rat.cast_lt.1 ac, cx.le⟩ } },
-  { simp only [mem_Union, mem_singleton_iff], rintro ⟨r, rfl⟩, exact measurable_set_Iio }
+  { refine measurable_space.generate_from_le (λ _, _),
+    simp only [mem_Union, mem_singleton_iff], rintro ⟨r, rfl⟩, exact measurable_set_Iio }
 end
 
 end real

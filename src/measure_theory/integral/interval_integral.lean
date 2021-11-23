@@ -241,6 +241,15 @@ lemma measure_theory.integrable_on.interval_integrable {f : α → E} {a b : α}
 ⟨measure_theory.integrable_on.mono_set hf (Ioc_subset_Icc_self.trans Icc_subset_interval),
  measure_theory.integrable_on.mono_set hf (Ioc_subset_Icc_self.trans Icc_subset_interval')⟩
 
+lemma interval_integrable_const_iff {a b : α} {μ : measure α} {c : E} :
+  interval_integrable (λ _, c) μ a b ↔ c = 0 ∨ μ (Ι a b) < ∞ :=
+by simp only [interval_integrable_iff, integrable_on_const]
+
+@[simp] lemma interval_integrable_const [topological_space α] [compact_Icc_space α]
+  {μ : measure α} [is_locally_finite_measure μ] {a b : α} {c : E} :
+  interval_integrable (λ _, c) μ a b :=
+interval_integrable_const_iff.2 $ or.inr measure_Ioc_lt_top
+
 namespace interval_integrable
 
 section
@@ -512,6 +521,10 @@ begin
   exact le_trans (norm_integral_le_integral_norm _) (le_abs_self _)
 end
 
+lemma norm_integral_le_integral_norm (h : a ≤ b) :
+  ∥∫ x in a..b, f x ∂μ∥ ≤ ∫ x in a..b, ∥f x∥ ∂μ :=
+norm_integral_le_integral_norm_Ioc.trans_eq $ by rw [interval_oc_of_le h, integral_of_le h]
+
 lemma norm_integral_le_of_norm_le_const_ae {a b C : ℝ} {f : ℝ → E}
   (h : ∀ᵐ x, x ∈ Ι a b → ∥f x∥ ≤ C) :
   ∥∫ x in a..b, f x∥ ≤ C * |b - a| :=
@@ -529,7 +542,13 @@ norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
 
 @[simp] lemma integral_add (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   ∫ x in a..b, f x + g x ∂μ = ∫ x in a..b, f x ∂μ + ∫ x in a..b, g x ∂μ :=
-by { simp only [interval_integral, integral_add hf.1 hg.1, integral_add hf.2 hg.2], abel }
+by simp only [interval_integral_eq_integral_interval_oc, integral_add hf.def hg.def, smul_add]
+
+lemma integral_finset_sum {ι} {s : finset ι} {f : ι → α → E}
+  (h : ∀ i ∈ s, interval_integrable (f i) μ a b) :
+  ∫ x in a..b, ∑ i in s, f i x ∂μ = ∑ i in s, ∫ x in a..b, f i x ∂μ :=
+by simp only [interval_integral_eq_integral_interval_oc,
+  integral_finset_sum s (λ i hi, (h i hi).def), finset.smul_sum]
 
 @[simp] lemma integral_neg : ∫ x in a..b, -f x ∂μ = -∫ x in a..b, f x ∂μ :=
 by { simp only [interval_integral, integral_neg], abel }
@@ -1161,14 +1180,9 @@ lemma integral_nonneg [topological_space α] [opens_measurable_space α] [order_
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 integral_nonneg_of_ae_restrict hab $ (ae_restrict_iff' measurable_set_Icc).mpr $ ae_of_all μ hf
 
-lemma norm_integral_le_integral_norm :
-  ∥∫ x in a..b, f x ∂μ∥ ≤ ∫ x in a..b, ∥f x∥ ∂μ :=
-norm_integral_le_abs_integral_norm.trans_eq $
-  abs_of_nonneg $ integral_nonneg_of_forall hab $ λ x, norm_nonneg _
-
 lemma abs_integral_le_integral_abs :
   |∫ x in a..b, f x ∂μ| ≤ ∫ x in a..b, |f x| ∂μ :=
-norm_integral_le_integral_norm hab
+by simpa only [← real.norm_eq_abs] using norm_integral_le_integral_norm hab
 
 section mono
 

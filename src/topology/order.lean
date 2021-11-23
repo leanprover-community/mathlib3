@@ -189,13 +189,19 @@ complete lattice.  (Note that later `topological_space α` will equipped with th
 def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
+instance : has_le (topological_space α) :=
+{ le          := λ t s, s.is_open ≤ t.is_open }
+
+protected lemma topological_space.le_def {α} {t s : topological_space α} :
+  t ≤ s ↔ s.is_open ≤ t.is_open := iff.rfl
+
 /-- The ordering on topologies on the type `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (topological_space α) :=
-{ le          := λ t s, s.is_open ≤ t.is_open,
-  le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₂ h₁,
+{ le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₂ h₁,
   le_refl     := assume t, le_refl t.is_open,
-  le_trans    := assume a b c h₁ h₂, le_trans h₂ h₁ }
+  le_trans    := assume a b c h₁ h₂, topological_space.le_def.mpr (le_trans h₂ h₁),
+  ..topological_space.has_le }
 
 lemma le_generate_from_iff_subset_is_open {g : set (set α)} {t : topological_space α} :
   t ≤ topological_space.generate_from g ↔ g ⊆ {s | t.is_open s} :=

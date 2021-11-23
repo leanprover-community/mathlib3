@@ -271,6 +271,8 @@ begin
   apply_instance
 end
 
+end
+
 end PresheafedSpace.is_open_immersion
 
 end algebraic_geometry

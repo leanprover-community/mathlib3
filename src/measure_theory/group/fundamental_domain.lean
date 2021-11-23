@@ -95,7 +95,7 @@ calc μ t = ∑' g : G, μ (t ∩ g • s) : h.measure_eq_tsum' t
   tsum_congr $ λ g, by rw [← measure_smul_set g μ, smul_set_inter, smul_inv_smul]
 
 /-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
-@[to_additive] protected lemma measure_congr (hs : is_fundamental_domain G s μ)
+@[to_additive] protected lemma measure_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=
 calc μ s = ∑' g : G, μ (s ∩ g • t) : ht.measure_eq_tsum' s
      ... = ∑' g : G, μ (g • t ∩ s) : by simp only [inter_comm]

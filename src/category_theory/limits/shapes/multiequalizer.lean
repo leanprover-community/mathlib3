@@ -182,7 +182,7 @@ lemma snd_pi_map_π (b) : I.snd_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ 
 by simp [snd_pi_map]
 
 /--
-Taking the multiequalizer over the multicospan index is equivlant to taking the equalizer over
+Taking the multiequalizer over the multicospan index is equivalent to taking the equalizer over
 the two morphsims `∏ I.left ⇉ ∏ I.right`. This is the diagram of the latter.
 -/
 @[simps] protected noncomputable
@@ -241,7 +241,7 @@ lemma ι_snd_sigma_map (b) : sigma.ι I.left b ≫ I.snd_sigma_map = I.snd b ≫
 by simp [snd_sigma_map]
 
 /--
-Taking the multicoequalizer over the multispan index is equivlant to taking the coequalizer over
+Taking the multicoequalizer over the multispan index is equivalent to taking the coequalizer over
 the two morphsims `∐ I.left ⇉ ∐ I.right`. This is the diagram of the latter.
 -/
 protected noncomputable

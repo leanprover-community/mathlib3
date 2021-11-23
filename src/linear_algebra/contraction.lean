@@ -128,28 +128,7 @@ variables [field R] [add_comm_group M] [add_comm_group N] [module R M] [module R
 variables [finite_dimensional R M]
 
 /-- `dual_tensor_hom` is an equivalence -/
-noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
+@[simp] noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
 dual_tensor_hom_equiv_of_basis (fin_basis R M)
-
-lemma coe_dual_tensor_hom_equiv :
-  (dual_tensor_hom_equiv R M N : (module.dual R M) ⊗[R] N → M →ₗ[R] N) = dual_tensor_hom R M N :=
-rfl
-
-@[simp] lemma coe_dual_tensor_hom_equiv_to_linear :
-  (dual_tensor_hom_equiv R M N : (module.dual R M) ⊗[R] N →ₗ[R] M →ₗ[R] N)
-  = dual_tensor_hom R M N := rfl
-
-@[simp] lemma dual_tensor_hom_equiv_apply (f : (module.dual R M) ⊗[R] N):
-  (dual_tensor_hom_equiv R M N) f = (dual_tensor_hom R M N) f := rfl
-
-/-- `hom_dual_tensor` is equal to the inverse of `dual_tensor_hom`, no matter the basis used-/
-lemma dual_tensor_hom_equiv_symm
-  {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) :
-  ⇑(dual_tensor_hom_equiv R M N).symm = hom_dual_tensor R M N b :=
-begin
-  ext x,
-  simp [dual_tensor_hom_equiv, dual_tensor_hom_equiv_of_basis,
-       dual_tensor_hom_equiv_of_basis_eq _ b],
-end
 
 end contraction

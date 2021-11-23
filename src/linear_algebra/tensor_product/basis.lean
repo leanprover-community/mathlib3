@@ -18,7 +18,7 @@ open set linear_map submodule
 
 section comm_ring
 variables {R : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
-variables [comm_semiring R] [add_comm_group M] [module R M] [module Rᵒᵖ M] [is_symmetric_smul R M]
+variables [comm_ring R] [add_comm_group M] [module R M] [module Rᵒᵖ M] [is_symmetric_smul R M]
   [add_comm_group N] [module R N] [module Rᵒᵖ N] [is_symmetric_smul R N]
 
 /-- If b : ι → M and c : κ → N are bases then so is λ i, b i.1 ⊗ₜ c i.2 : ι × κ → M ⊗ N. -/

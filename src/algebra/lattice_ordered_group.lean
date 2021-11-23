@@ -137,6 +137,9 @@ priority 100
 ] -- see Note [lower instance priority]
 instance has_one_lattice_has_pos_part : has_pos_part (α)  := ⟨λa, a ⊔ 1⟩
 
+@[to_additive pos_part_def]
+lemma m_pos_part_def (a : α) : a⁺ = a ⊔ 1 := by unfold has_pos_part.pos
+
 /--
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
 the element `(-a) ⊔ 1` is said to be the *negative component* of `a`, denoted `a⁻`.
@@ -148,6 +151,9 @@ the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted 
 priority 100
 ] -- see Note [lower instance priority]
 instance has_one_lattice_has_neg_part : has_neg_part (α)  := ⟨λa, a⁻¹ ⊔ 1⟩
+
+@[to_additive neg_part_def]
+lemma m_neg_part_def (a : α) : a⁻ = a⁻¹ ⊔ 1 := by unfold has_neg_part.neg
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
@@ -199,7 +205,7 @@ Let `α` be a lattice ordered commutative group and let `a` be an element in `α
 component `a⁻` of `a` is equal to the positive component `(-a)⁺` of `-a`.
 "-/
 @[to_additive]
-lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := by { unfold has_neg_part.neg, unfold has_pos_part.pos}
+lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := by rw [ m_neg_part_def, m_pos_part_def]
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the positive
@@ -231,10 +237,7 @@ $$a⁻ = -(a ⊓ 0).$$
 -/
 @[to_additive]
 lemma neg_eq_inv_inf_one [covariant_class α α (*) (≤)] (a : α) : a⁻ = (a ⊓ 1)⁻¹ :=
-begin
-  unfold has_neg_part.neg,
-  rw [← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv],
-end
+by rw [m_neg_part_def, ← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv]
 
 -- Bourbaki A.VI.12  Prop 9 a)
 /--
@@ -247,9 +250,7 @@ lemma pos_inv_neg [covariant_class α α (*) (≤)] (a : α) : a = a⁺ / a⁻ :
 begin
   rw div_eq_mul_inv,
   apply eq_mul_inv_of_mul_eq,
-  unfold has_neg_part.neg,
-  rw [mul_sup_eq_mul_sup_mul, mul_one, mul_right_inv, sup_comm],
-  unfold has_pos_part.pos,
+  rw [m_neg_part_def, mul_sup_eq_mul_sup_mul, mul_one, mul_right_inv, sup_comm, m_pos_part_def],
 end
 
 -- Hack to work around rewrite not working if lhs is a variable
@@ -470,7 +471,7 @@ equal to its positive component `a⁺`.
 @[to_additive pos_pos_id]
 lemma m_pos_pos_id (a : α) (h : 1 ≤ a): a⁺ = a :=
 begin
-  unfold has_pos_part.pos,
+  rw m_pos_part_def,
   apply sup_of_le_left h,
 end
 

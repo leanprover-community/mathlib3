@@ -107,7 +107,7 @@ def embeddings_matrix (b : ι → B) : matrix ι (B →ₐ[A] C) C := (λ i (σ 
   In this case, in presnce of `h : fintype.card ι = finrank A B`, one can take
   `e := equiv_of_card_eq ((alg_hom.card A B C).trans h.symm)`. -/
 def embeddings_matrix_reindex (b : ι → B) (e : ι ≃ (B →ₐ[A] C)) :=
-  reindex (equiv.refl ι) e.symm (embeddings_matrix A C b)
+reindex (equiv.refl ι) e.symm (embeddings_matrix A C b)
 
 variable {A}
 

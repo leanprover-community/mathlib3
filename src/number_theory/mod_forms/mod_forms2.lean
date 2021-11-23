@@ -49,7 +49,7 @@ end
 
 lemma aux1 (a b c d e: ℂ) (k : ℤ) : (a * b^k * (c * d^k) )⁻¹*e = (a * c * (b * d)^k)⁻¹*e :=
 begin
-have : a * b^k * (c * d^k) = a * c * (b * d)^k , by  {simp_rw mul_fpow b d k, ring,},
+have : a * b^k * (c * d^k) = a * c * (b * d)^k , by  {simp_rw mul_zpow₀ b d k, ring,},
 rw this,
 end
 
@@ -90,12 +90,12 @@ begin
   simp_rw aux1,
 end
 
-lemma slash_k_add (k : ℤ) (A : GL2P) (f g : ℍ → ℂ ) : (f +g )  ∣ₖ[k] A = (f ∣ₖ[k] A) +(g ∣ₖ[k] A) :=
+lemma slash_k_add (k : ℤ) (A : GL2P) (f g : ℍ → ℂ ) : (f +g )  ∣ₖ[k] A = (f ∣ₖ[k] A) + (g ∣ₖ[k] A) :=
 begin
   simp_rw slash_k,
-  simp,
+  simp only [pi.add_apply, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
   ext1,
-  simp,
+  simp only [pi.add_apply],
   ring,
 end
 
@@ -103,16 +103,20 @@ lemma slash_k_mul_one (k : ℤ) (f : ℍ → ℂ ) : (f ∣ₖ[k] 1) = f :=
 begin
  simp_rw slash_k,
  ext1,
- simp,
+ simp only [coe_fn_coe_base', nat.one_ne_zero, mul_one, of_real_zero, fin.one_eq_zero_iff, zero_mul,
+ matrix.one_apply_ne, units.coe_one, one_smul, matrix.one_apply_eq, ne.def, inv_one, zero_add,
+ not_false_iff, of_real_one, one_zpow₀, subgroup.coe_one, subtype.val_eq_coe,
+matrix.general_linear_group.coe_fn_eq_coe, coe_coe, monoid_hom.map_one],
 end
 
 lemma smul_slash_k (k : ℤ) (A : GL2P) (f : ℍ → ℂ ) (c  : ℂ) : (c • f) ∣ₖ[k] A = c • (f ∣ₖ[k] A) :=
 begin
-ext1, simp_rw slash_k,
-simp,ring,
+  ext1,
+  simp_rw slash_k,
+  simp only [algebra.id.smul_eq_mul, matrix.general_linear_group.coe_det_apply, pi.smul_apply,
+  subtype.val_eq_coe, coe_coe],
+  ring,
 end
-
-
 
 /--The  space of functions that are modular-/
 def modular_submodule (k : ℤ)  (Γ : subgroup SL2Z): submodule (ℂ) (ℍ  → ℂ) := {
@@ -121,8 +125,12 @@ def modular_submodule (k : ℤ)  (Γ : subgroup SL2Z): submodule (ℂ) (ℍ  →
   add_mem' := by {intros f g hf hg, simp at *, intro γ,  have hff:= hf γ,have hgg:= hg γ,
     rw ← coe_coe at *, rw ← coe_coe at *, rw slash_k_add k γ f g, rw [hff, hgg], },
  smul_mem' := by {intros c f hf, simp at *, intro γ, have hff:= hf γ,
-    have: (c • f)  ∣ₖ[k] γ = c • (f  ∣ₖ[k] γ ), by {apply smul_slash_k}, rw ←  coe_coe at *,rw ←  coe_coe at *,
-    rw hff at this, apply this,}}
+    have: (c • f)  ∣ₖ[k] γ = c • (f  ∣ₖ[k] γ ),
+    by {apply smul_slash_k},
+    rw ←  coe_coe at *,
+    rw ←  coe_coe at *,
+    rw hff at this,
+    apply this,}}
 
 lemma modular_mem (k : ℤ) (Γ : subgroup SL2Z) (f : ℍ → ℂ) :
   f ∈ (modular_submodule k Γ) ↔  ∀ (γ : Γ),  (f ∣ₖ[k] (γ : GL2P)) = f := iff.rfl
@@ -132,17 +140,19 @@ begin
 have:=A.2, rw this, simp, rw ← coe_coe, rw ← coe_coe, simp,
 end
 
-lemma det_coe_g (Γ : subgroup SL2Z) (γ : Γ): (((γ : SL2Z ) : GL2P) : GL (fin 2) ℝ).1.det= (γ.1.1.det: ℝ):=
+lemma det_coe_g (Γ : subgroup SL2Z) (γ : Γ): (((γ : SL2Z ) : GL2P) :
+  GL (fin 2) ℝ).1.det= (γ.1.1.det: ℝ):=
 begin
-simp,
-have h:= γ.1.property,
-simp only [ subtype.val_eq_coe] at h,
-have h2:= det_coe_sl γ.1, simp only [ subtype.val_eq_coe] at h2,
-rw ← coe_coe, rw ←  coe_coe, rw ←  coe_coe, rw ←  coe_coe,
-cases γ, cases γ_val, dsimp at *, simp at *,
+  simp,
+  have h:= γ.1.property,
+  simp only [ subtype.val_eq_coe] at h,
+  have h2:= det_coe_sl γ.1, simp only [ subtype.val_eq_coe] at h2,
+  rw ← coe_coe, rw ←  coe_coe, rw ←  coe_coe, rw ←  coe_coe,
+  cases γ, cases γ_val, dsimp at *, simp at *,
 end
 
-lemma coe_aux (Γ : subgroup SL2Z) (γ : Γ) :  ∀ i j, ((γ : matrix.GL_pos (fin 2) ℝ) i j : ℂ) = ((γ i j : ℤ) : ℝ) :=
+lemma coe_aux (Γ : subgroup SL2Z) (γ : Γ) :
+ ∀ i j, ((γ : matrix.GL_pos (fin 2) ℝ) i j : ℂ) = ((γ i j : ℤ) : ℝ) :=
 begin
 intros i j,
 have :=SL2Z.mat_vals  γ.1 i j, simp at *,
@@ -178,7 +188,7 @@ begin
     simp only [matrix.special_linear_group.coe_fn_eq_coe, coe_fn_coe_base, of_real_int_cast,
       matrix.general_linear_group.coe_fn_eq_coe, coe_coe] at ents,
     simp_rw ents at *,
-    have pown := fpow_ne_zero k h5,
+    have pown := zpow_ne_zero k h5,
     have h55:= inv_mul_cancel pown,
     have aux : ∀ (a b c d : ℂ), a*(b*c)⁻¹*d= a*b⁻¹*c⁻¹*d, by { field_simp, },
     simp_rw aux,
@@ -205,7 +215,7 @@ begin
     simp only [matrix.special_linear_group.coe_fn_eq_coe, coe_fn_coe_base, of_real_int_cast,
      matrix.general_linear_group.coe_fn_eq_coe, coe_coe] at ents,
     simp_rw ents at *,
-    have pown := fpow_ne_zero k h5,
+    have pown := zpow_ne_zero k h5,
     have h55:= inv_mul_cancel pown,
     rw mul_comm,
     have aux3 : ∀ (a b c d : ℂ), (a*b)⁻¹*(c*d)= a⁻¹*(b⁻¹*c)*d, by {field_simp,},
@@ -232,15 +242,18 @@ have h5:= upper_half_plane.denom_ne_zero (γ : GL2P) z,
     simp_rw upper_half_plane.denom at h5,
     simp only [coe_fn_coe_base, ne.def, matrix.general_linear_group.coe_fn_eq_coe, coe_coe] at h5,
     have ents := coe_aux Γ γ ,
-    simp only [matrix.special_linear_group.coe_fn_eq_coe, coe_fn_coe_base, of_real_int_cast,
-     matrix.general_linear_group.coe_fn_eq_coe, coe_coe] at ents,
+    simp only [coe_fn_coe_base', matrix.special_linear_group.coe_fn_eq_coe, of_real_int_cast,
+  matrix.general_linear_group.coe_fn_eq_coe, coe_coe] at ents,
+    simp only [coe_fn_coe_base', matrix.special_linear_group.coe_fn_eq_coe,
+     matrix.general_linear_group.coe_fn_eq_coe] at *,
     simp_rw ents at *,
-    have pown := fpow_add h5 k_1 k_2,
+    have pown := zpow_add₀ h5 k_1 k_2,
     rw pown,
     ring,
 end
 open_locale direct_sum
 
+/-
 instance gmod  (Γ : subgroup SL2Z) : direct_sum.gcomm_monoid (λ k, modular_submodule k Γ) :=
 begin
 have one_mem : (1 : ℍ → ℂ) ∈ modular_submodule 0 Γ, by {simp only [modular_mem',
@@ -253,7 +266,7 @@ end
 
 instance semiring_of_mod_forms (Γ : subgroup SL2Z): comm_semiring (⨁  k, modular_submodule k Γ)
   := infer_instance
-
+-/
 
 
 /--The definition of the zero modular form, whose values at all points is zero-/
@@ -417,7 +430,7 @@ structure is_modular_form_of_lvl_and_weight (Γ : subgroup SL2Z) (k : ℤ) (f : 
 lemma mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
   (h :is_holomorphic_on (hol_extn f) )
   (h2: f ∈ modular_submodule k Γ )
-  (h3 : f ∈ is_bound_at_infinity ) :
+  (h3 : ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_bound_at_infinity ) :
   is_modular_form_of_lvl_and_weight Γ k f :={
   hol := h,
   transf := h2,
@@ -427,12 +440,13 @@ lemma mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
 lemma mod_mem (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ) : is_modular_form_of_lvl_and_weight Γ k f ↔
   is_holomorphic_on (hol_extn f) ∧
   f ∈ modular_submodule k Γ  ∧
-  f ∈ is_bound_at_infinity :=
+  (∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_bound_at_infinity) :=
 begin
   split,
   intro hf,
-  simp [hf.hol, hf.transf, hf.infinity],
-  intro h,
+  simp only [hf.hol, hf.transf, true_and, subtype.forall, upper_half_plane.coe_im, coe_coe],
+  apply hf.infinity,
+  intros h,
   apply mk Γ k f h.1 h.2.1 h.2.2,
 end
 
@@ -442,11 +456,14 @@ lemma zero_mod_form :  (is_modular_form_of_lvl_and_weight Γ   (k : ℤ) ) (zero
 { hol :=  by {rw hol_extn, exact zero_hol ℍ', },
   transf := (modular_submodule k Γ).zero_mem',
   infinity := by {simp only [bound_mem, ge_iff_le],
+  intro A,
   use (1: ℝ ),
   use (0: ℝ ),
   intros x  h1,
   rw zero_form,
-  simp,}
+  simp only [coe_coe],
+  rw slash_k,
+  simp only [zero_le_one, zero_mul, pi.zero_apply, complex.abs_zero],}
 }
 
 /-- A function `f : ℍ → ℂ` is a cusp form of level one and weight `k ∈ ℤ` if it is holomorphic,
@@ -459,7 +476,7 @@ structure is_cusp_form_of_lvl_and_weight (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ
 lemma is_cuspform_mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
   (h : is_holomorphic_on (hol_extn f) )
   (h2 : f ∈ modular_submodule k Γ)
-  (h3 : f ∈ is_zero_at_infinity ) :
+  (h3 :  ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_zero_at_infinity ) :
   is_cusp_form_of_lvl_and_weight Γ k f :={
   hol := h,
   transf := h2,
@@ -469,11 +486,12 @@ lemma is_cuspform_mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
 lemma cusp_mem (Γ : subgroup SL2Z) (k : ℤ) (f: ℍ → ℂ): is_cusp_form_of_lvl_and_weight Γ k f ↔
   is_holomorphic_on (hol_extn f) ∧
   f ∈ modular_submodule k Γ ∧
-  f ∈ is_zero_at_infinity :=
+  ( ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_zero_at_infinity) :=
 begin
   split,
   intro hf,
-  simp [hf.hol, hf.transf, hf.infinity],
+  simp only [hf.hol, hf.transf, true_and, subtype.forall, upper_half_plane.coe_im, coe_coe],
+  apply hf.infinity,
   intro h,
   apply is_cuspform_mk Γ k f h.1 h.2.1 h.2.2,
 end
@@ -484,17 +502,22 @@ lemma zero_cusp_form :  (is_cusp_form_of_lvl_and_weight Γ k)  (zero_form ) :=
 { hol := by {rw hol_extn, exact zero_hol ℍ', },
   transf := (modular_submodule k Γ).zero_mem',
   infinity := by {simp only [zero_at_inf_mem, gt_iff_lt, ge_iff_le],
-    intros ε he,
+    intros A ε he,
     use (-1: ℝ ),
     intros x  h1,
     rw zero_form,
-    simp [complex.abs_zero],
+    simp only [slash_k, complex.abs_zero, zero_mul, pi.zero_apply],
     linarith}
 }
 
 lemma is_modular_form_of_lvl_and_weight_of_is_cusp_form_of_lvl_and_weight  (f : ℍ → ℂ)
-(h : is_cusp_form_of_lvl_and_weight Γ k f) : is_modular_form_of_lvl_and_weight Γ k f :=
-⟨h.1, h.2, is_zero_at_inf_is_bound' f h.3⟩
+  (h : is_cusp_form_of_lvl_and_weight Γ k f) : is_modular_form_of_lvl_and_weight Γ k f :={
+   hol := h.1,
+   transf := h.2,
+   infinity := by {intro A, have h3:=  h.3 A, apply  is_zero_at_inf_is_bound' _ h3, }
+
+  }
+
 
 /-- This is the space of modular forms of level `Γ` and weight `k`-/
 def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL2Z) (k : ℤ): submodule ℂ (ℍ → ℂ):={
@@ -509,7 +532,10 @@ def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL2Z) (k : ℤ): submo
     apply hb.hol,
     split,
     apply (modular_submodule  k Γ).add_mem' ha.transf hb.transf,
-    apply bounded_at_infty_submodule.add_mem' ha.infinity hb.infinity, },
+    intro A,
+    have:= bounded_at_infty_submodule.add_mem' (ha.infinity A) (hb.infinity A),
+    rw slash_k_add,
+    apply this, },
   smul_mem' := by {intros c f hf,  simp at *,
     simp only [mod_mem, complex.abs_mul, ge_iff_le, subtype.forall, smul_sim, upper_half_plane.coe_im],
     split,
@@ -519,7 +545,10 @@ def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL2Z) (k : ℤ): submo
     split,
     apply (modular_submodule  k Γ).smul_mem',
     apply hf.transf,
-    apply bounded_at_infty_submodule.smul_mem' c hf.infinity,},
+    intro A,
+    have := bounded_at_infty_submodule.smul_mem' c (hf.infinity A),
+    rw smul_slash_k,
+    apply this, },
 
 }
 
@@ -539,7 +568,10 @@ def space_of_cusp_forms_of_level_and_weight (Γ : subgroup SL2Z) (k : ℤ): subm
     apply hb.hol,
     split,
     apply (modular_submodule  k Γ).add_mem' ha.transf hb.transf,
-    apply zero_at_infty_submodule.add_mem' ha.infinity hb.infinity, },
+    intro A,
+    have := zero_at_infty_submodule.add_mem' (ha.infinity A) (hb.infinity A),
+    rw slash_k_add,
+    apply this, },
   smul_mem' := by {intros c f hf,  simp at *,
     simp only [cusp_mem, complex.abs_mul, ge_iff_le, subtype.forall, smul_sim, upper_half_plane.coe_im],
     split,
@@ -549,7 +581,10 @@ def space_of_cusp_forms_of_level_and_weight (Γ : subgroup SL2Z) (k : ℤ): subm
     split,
     apply (modular_submodule  k Γ).smul_mem',
     apply hf.transf,
-    apply zero_at_infty_submodule.smul_mem' c hf.infinity,},
+    intro A,
+    have := zero_at_infty_submodule.smul_mem' c (hf.infinity A),
+    rw smul_slash_k,
+    apply this,},
 
 }
 

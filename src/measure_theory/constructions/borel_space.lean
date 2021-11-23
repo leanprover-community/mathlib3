@@ -1649,7 +1649,7 @@ lemma measurable_of_tendsto_nnreal' {ι} {f : ι → α → ℝ≥0} {g : α →
   measurable g :=
 begin
   rcases u.exists_seq_tendsto with ⟨x, hx⟩,
-  rw [tendsto_pi] at lim, rw [← measurable_coe_nnreal_ennreal_iff],
+  rw [tendsto_pi_nhds] at lim, rw [← measurable_coe_nnreal_ennreal_iff],
   have : ∀ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞)) = (g y : ℝ≥0∞) :=
     λ y, ((ennreal.continuous_coe.tendsto (g y)).comp $ (lim y).comp hx).liminf_eq,
   simp only [← this],
@@ -1674,7 +1674,7 @@ begin
   have : measurable (λ x, inf_nndist (g x) s),
   { suffices : tendsto (λ i x, inf_nndist (f i x) s) u (𝓝 (λ x, inf_nndist (g x) s)),
       from measurable_of_tendsto_nnreal' u (λ i, (hf i).inf_nndist) this,
-    rw [tendsto_pi] at lim ⊢, intro x,
+    rw [tendsto_pi_nhds] at lim ⊢, intro x,
     exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
   have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
   { ext x, simp [h1s, ← h1s.mem_iff_inf_dist_zero h2s, ← nnreal.coe_eq_zero] },
@@ -1698,7 +1698,7 @@ begin
   refine ⟨ae_seq_lim, _, (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f 0 x⟩ : nonempty β).some)
     (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm⟩,
   refine measurable_of_tendsto_metric (@ae_seq.measurable α β _ _ _ f μ hf p) _,
-  refine tendsto_pi.mpr (λ x, _),
+  refine tendsto_pi_nhds.mpr (λ x, _),
   simp_rw [ae_seq, ae_seq_lim],
   split_ifs with hx,
   { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
@@ -1741,7 +1741,8 @@ begin
   { refine le_antisymm (le_of_eq (measure_mono_null _ hμ_compl)) (zero_le _),
     exact set.compl_subset_compl.mpr (λ x hx, hf_lim_conv x hx), },
   have h_f_lim_meas : measurable f_lim,
-    from measurable_of_tendsto_metric (ae_seq.measurable hf p) (tendsto_pi.mpr (λ x, hf_lim x)),
+    from measurable_of_tendsto_metric (ae_seq.measurable hf p)
+      (tendsto_pi_nhds.mpr (λ x, hf_lim x)),
   exact ⟨f_lim, h_f_lim_meas, h_ae_tendsto_f_lim⟩,
 end
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.lattice
+import logic.relation
 
 /-!
 # Relations holding pairwise
@@ -34,7 +35,7 @@ lemma pairwise.mono (hr : pairwise r) (h : ∀ ⦃i j⦄, r i j → p i j) : pai
 lemma pairwise_on_bool (hr : symmetric r) {a b : α} : pairwise (r on (λ c, cond c a b)) ↔ r a b :=
 by simpa [pairwise, function.on_fun] using @hr a b
 
-lemma pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
+lemma pairwise_disjoint_on_bool [semilattice_inf α] [order_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
 pairwise_on_bool disjoint.symm
 
@@ -46,7 +47,7 @@ lemma symmetric.pairwise_on [linear_order ι] (hr : symmetric r) (f : ι → α)
   { exact hr (h _ _ hmn') }
 end⟩
 
-lemma pairwise_disjoint_on [semilattice_inf_bot α] [linear_order ι] (f : ι → α) :
+lemma pairwise_disjoint_on [semilattice_inf α] [order_bot α] [linear_order ι] (f : ι → α) :
   pairwise (disjoint on f) ↔ ∀ m n, m < n → disjoint (f m) (f n) :=
 symmetric.pairwise_on disjoint.symm f
 
@@ -199,7 +200,7 @@ alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise
 
 namespace set
 section semilattice_inf_bot
-variables [semilattice_inf_bot α] {s t : set ι} {f g : ι → α}
+variables [semilattice_inf α] [order_bot α] {s t : set ι} {f g : ι → α}
 
 /-- A set is `pairwise_disjoint` under `f`, if the images of any distinct two elements under `f`
 are disjoint. -/
@@ -280,6 +281,27 @@ lemma pairwise_disjoint.elim' (hs : s.pairwise_disjoint f) {i j : ι} (hi : i �
 hs.elim hi hj $ λ hij, h hij.eq_bot
 
 end semilattice_inf_bot
+
+section complete_lattice
+variables [complete_lattice α]
+
+/-- Bind operation for `set.pairwise_disjoint`. If you want to only consider finsets of indices, you
+can use `set.pairwise_disjoint.bUnion_finset`. -/
+lemma pairwise_disjoint.bUnion {s : set ι'} {g : ι' → set ι} {f : ι → α}
+  (hs : s.pairwise_disjoint (λ i' : ι', ⨆ i ∈ g i', f i))
+  (hg : ∀ i ∈ s, (g i).pairwise_disjoint f) :
+  (⋃ i ∈ s, g i).pairwise_disjoint f :=
+begin
+  rintro a ha b hb hab,
+  simp_rw set.mem_Union at ha hb,
+  obtain ⟨c, hc, ha⟩ := ha,
+  obtain ⟨d, hd, hb⟩ := hb,
+  obtain hcd | hcd := eq_or_ne (g c) (g d),
+  { exact hg d hd a (hcd ▸ ha) b hb hab },
+  { exact (hs _ hc _ hd (ne_of_apply_ne _ hcd)).mono (le_bsupr a ha) (le_bsupr b hb) }
+end
+
+end complete_lattice
 
 /-! ### Pairwise disjoint set of sets -/
 

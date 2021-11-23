@@ -3,8 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.preserves.limits
 import category_theory.limits.shapes.terminal
+import category_theory.limits.preserves.basic
 
 /-!
 # Preserving terminal object
@@ -41,12 +41,12 @@ def is_limit_map_cone_empty_cone_equiv :
   (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by tidy)))
 
 /-- The property of preserving terminal objects expressed in terms of `is_terminal`. -/
-def is_terminal_obj_of_is_terminal [preserves_limit (functor.empty C) G]
+def is_terminal.is_terminal_obj [preserves_limit (functor.empty C) G]
   (l : is_terminal X) : is_terminal (G.obj X) :=
 is_limit_map_cone_empty_cone_equiv G X (preserves_limit.preserves l)
 
 /-- The property of reflecting terminal objects expressed in terms of `is_terminal`. -/
-def is_terminal_of_is_terminal_obj [reflects_limit (functor.empty C) G]
+def is_terminal.is_terminal_of_obj [reflects_limit (functor.empty C) G]
   (l : is_terminal (G.obj X)) : is_terminal X :=
 reflects_limit.reflects ((is_limit_map_cone_empty_cone_equiv G X).symm l)
 
@@ -57,7 +57,7 @@ object is terminal.
 -/
 def is_limit_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty C) G] :
   is_terminal (G.obj (⊤_ C)) :=
-is_terminal_obj_of_is_terminal G (⊤_ C) terminal_is_terminal
+terminal_is_terminal.is_terminal_obj G (⊤_ C)
 
 /--
 If `C` has a terminal object and `G` preserves terminal objects, then `D` has a terminal object
@@ -131,12 +131,12 @@ def is_colimit_map_cocone_empty_cocone_equiv :
   (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by tidy)))
 
 /-- The property of preserving initial objects expressed in terms of `is_initial`. -/
-def is_initial_obj_of_is_initial [preserves_colimit (functor.empty C) G]
+def is_initial.is_initial_obj [preserves_colimit (functor.empty C) G]
   (l : is_initial X) : is_initial (G.obj X) :=
 is_colimit_map_cocone_empty_cocone_equiv G X (preserves_colimit.preserves l)
 
 /-- The property of reflecting initial objects expressed in terms of `is_initial`. -/
-def is_initial_of_is_initial_obj [reflects_colimit (functor.empty C) G]
+def is_initial.is_initial_of_obj [reflects_colimit (functor.empty C) G]
   (l : is_initial (G.obj X)) : is_initial X :=
 reflects_colimit.reflects ((is_colimit_map_cocone_empty_cocone_equiv G X).symm l)
 
@@ -147,7 +147,7 @@ object is initial.
 -/
 def is_colimit_of_has_initial_of_preserves_colimit [preserves_colimit (functor.empty C) G] :
   is_initial (G.obj (⊥_ C)) :=
-is_initial_obj_of_is_initial G (⊥_ C) initial_is_initial
+initial_is_initial.is_initial_obj G (⊥_ C)
 
 /--
 If `C` has a initial object and `G` preserves initial objects, then `D` has a initial object

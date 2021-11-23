@@ -3,13 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.group_power.basic
-import algebra.invertible
-import algebra.opposites
-import data.list.basic
 import data.int.cast
-import data.equiv.basic
-import data.equiv.mul_add
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -921,14 +915,14 @@ lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(
 
 end units
 
-namespace opposite
+namespace mul_opposite
 
 /-- Moving to the opposite monoid commutes with taking powers. -/
 @[simp] lemma op_pow [monoid M] (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n := rfl
-@[simp] lemma unop_pow [monoid M] (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n := rfl
+@[simp] lemma unop_pow [monoid M] (x : Mᵐᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n := rfl
 
 /-- Moving to the opposite group or group_with_zero commutes with taking powers. -/
 @[simp] lemma op_zpow [div_inv_monoid M] (x : M) (z : ℤ) : op (x ^ z) = (op x) ^ z := rfl
-@[simp] lemma unop_zpow [div_inv_monoid M] (x : Mᵒᵖ) (z : ℤ) : unop (x ^ z) = (unop x) ^ z := rfl
+@[simp] lemma unop_zpow [div_inv_monoid M] (x : Mᵐᵒᵖ) (z : ℤ) : unop (x ^ z) = (unop x) ^ z := rfl
 
-end opposite
+end mul_opposite

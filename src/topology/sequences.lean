@@ -235,8 +235,7 @@ open uniform_space prod
 variables [uniform_space β] {s : set β}
 
 lemma lebesgue_number_lemma_seq {ι : Type*} [is_countably_generated (𝓤 β)] {c : ι → set β}
-  (hs : is_seq_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i)
-  :
+  (hs : is_seq_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ V ∈ 𝓤 β, symmetric_rel V ∧ ∀ x ∈ s, ∃ i, ball x V ⊆ c i :=
 begin
   classical,

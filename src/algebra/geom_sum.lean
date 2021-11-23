@@ -37,7 +37,7 @@ are recorded.
 universe u
 variable {α : Type u}
 
-open finset opposite
+open finset mul_opposite
 
 open_locale big_operators
 
@@ -102,8 +102,8 @@ begin
      by { dsimp [f],
           rw [← tsub_add_eq_tsub_tsub, nat.add_comm, tsub_self, pow_zero, mul_one] },
     have f_succ : ∀ i, i ∈ range n → f (n + 1) i = y * f n i :=
-      λ i hi, by {
-        dsimp [f],
+      λ i hi, by
+      { dsimp [f],
         have : commute y ((x + y) ^ i) :=
          (h.symm.add_right (commute.refl y)).pow_right i,
         rw [← mul_assoc, this.eq, mul_assoc, ← pow_succ y (n - 1 - i)],
@@ -152,7 +152,7 @@ end
 lemma commute.mul_neg_geom_sum₂ [ring α] {x y : α} (h : commute x y) (n : ℕ) :
   (y - x) * (geom_sum₂ x y n) = y ^ n - x ^ n :=
 begin
-  rw ← op_inj_iff,
+  apply op_injective,
   simp only [op_mul, op_sub, op_geom_sum₂, op_pow],
   exact (commute.op h.symm).geom_sum₂_mul n
 end
@@ -175,10 +175,7 @@ end
 
 lemma mul_geom_sum [ring α] (x : α) (n : ℕ) :
   (x - 1) * (geom_sum x n) = x ^ n - 1 :=
-begin
-  rw ← op_inj_iff,
-  simpa using geom_sum_mul (op x) n,
-end
+op_injective $ by simpa using geom_sum_mul (op x) n
 
 theorem geom_sum_mul_neg [ring α] (x : α) (n : ℕ) :
   (geom_sum x n) * (1 - x) = 1 - x ^ n :=
@@ -190,10 +187,7 @@ end
 
 lemma mul_neg_geom_sum [ring α] (x : α) (n : ℕ) :
   (1 - x) * (geom_sum x n) = 1 - x ^ n :=
-begin
-  rw ← op_inj_iff,
-  simpa using geom_sum_mul_neg (op x) n,
-end
+op_injective $ by simpa using geom_sum_mul_neg (op x) n
 
 protected theorem commute.geom_sum₂ [division_ring α] {x y : α} (h' : commute x y) (h : x ≠ y)
   (n : ℕ) : (geom_sum₂ x y n) = (x ^ n - y ^ n) / (x - y) :=
@@ -216,12 +210,12 @@ begin
   rw [sum_Ico_eq_sub _ hmn, ← geom_sum₂_def],
   have : ∑ k in range m, x ^ k * y ^ (n - 1 - k)
     = ∑ k in range m, x ^ k * (y ^ (n - m) * y ^ (m - 1 - k)),
-    { refine sum_congr rfl (λ j j_in, _),
-      rw ← pow_add,
-      congr,
-      rw [mem_range, nat.lt_iff_add_one_le, add_comm] at j_in,
-      have h' : n - m + (m - (1 + j)) = n - (1 + j) := tsub_add_tsub_cancel hmn j_in,
-      rw [← tsub_add_eq_tsub_tsub m, h', ← tsub_add_eq_tsub_tsub] },
+  { refine sum_congr rfl (λ j j_in, _),
+    rw ← pow_add,
+    congr,
+    rw [mem_range, nat.lt_iff_add_one_le, add_comm] at j_in,
+    have h' : n - m + (m - (1 + j)) = n - (1 + j) := tsub_add_tsub_cancel hmn j_in,
+    rw [← tsub_add_eq_tsub_tsub m, h', ← tsub_add_eq_tsub_tsub] },
   rw this,
   simp_rw pow_mul_comm y (n-m) _,
   simp_rw ← mul_assoc,
@@ -256,7 +250,7 @@ protected theorem commute.geom_sum₂_Ico_mul [ring α] {x y : α} (h : commute 
   (hmn : m ≤ n) :
   (∑ i in finset.Ico m n, x ^ i * y ^ (n - 1 - i)) * (x - y) = x ^ n -  y ^ (n - m) * x ^ m :=
 begin
-  rw ← op_inj_iff,
+  apply op_injective,
   simp only [op_sub, op_mul, op_pow, op_sum],
   have : ∑ k in Ico m n, op y ^ (n - 1 - k) * op x ^ k
     = ∑ k in Ico m n, op x ^ k * op y ^ (n - 1 - k),

@@ -3,11 +3,9 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.algebra.basic
-import algebra.algebra.operations
-import algebra.direct_sum.basic
 import group_theory.subgroup.basic
 import algebra.graded_monoid
+import algebra.direct_sum.basic
 
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`
@@ -206,8 +204,8 @@ begin
 end
 
 /-- The `semiring` structure derived from `gsemiring A`. -/
-instance semiring : semiring (⨁ i, A i) := {
-  one := 1,
+instance semiring : semiring (⨁ i, A i) :=
+{ one := 1,
   mul := (*),
   zero := 0,
   add := (+),
@@ -241,8 +239,8 @@ begin
 end
 
 /-- The `comm_semiring` structure derived from `gcomm_semiring A`. -/
-instance comm_semiring : comm_semiring (⨁ i, A i) := {
-  one := 1,
+instance comm_semiring : comm_semiring (⨁ i, A i) :=
+{ one := 1,
   mul := (*),
   zero := 0,
   add := (+),
@@ -255,8 +253,8 @@ section ring
 variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gsemiring A]
 
 /-- The `ring` derived from `gsemiring A`. -/
-instance ring : ring (⨁ i, A i) := {
-  one := 1,
+instance ring : ring (⨁ i, A i) :=
+{ one := 1,
   mul := (*),
   zero := 0,
   add := (+),
@@ -271,8 +269,8 @@ section comm_ring
 variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_semiring A]
 
 /-- The `comm_ring` derived from `gcomm_semiring A`. -/
-instance comm_ring : comm_ring (⨁ i, A i) := {
-  one := 1,
+instance comm_ring : comm_ring (⨁ i, A i) :=
+{ one := 1,
   mul := (*),
   zero := 0,
   add := (+),

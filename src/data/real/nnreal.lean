@@ -52,7 +52,7 @@ open_locale classical big_operators
 /-- Nonnegative real numbers. -/
 @[derive [
   ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
-  semilattice_inf_bot, densely_ordered,
+  semilattice_inf, densely_ordered, order_bot,
   canonically_linear_ordered_add_monoid, linear_ordered_comm_group_with_zero, archimedean,
   linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
   has_sub, has_ordered_sub, has_div, inhabited]]
@@ -271,8 +271,8 @@ example : partial_order ℝ≥0 := by apply_instance
 noncomputable example : canonically_linear_ordered_add_monoid ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_add_comm_monoid ℝ≥0 := by apply_instance
 noncomputable example : distrib_lattice ℝ≥0 := by apply_instance
-noncomputable example : semilattice_inf_bot ℝ≥0 := by apply_instance
-noncomputable example : semilattice_sup_bot ℝ≥0 := by apply_instance
+noncomputable example : semilattice_inf ℝ≥0 := by apply_instance
+noncomputable example : semilattice_sup ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_semiring ℝ≥0 := by apply_instance
 example : ordered_comm_semiring ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_comm_monoid  ℝ≥0 := by apply_instance
@@ -303,6 +303,16 @@ eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
   real.Inf_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
 
 example : archimedean ℝ≥0 := by apply_instance
+
+-- TODO: why are these three instances necessary? why aren't they inferred?
+instance covariant_add : covariant_class ℝ≥0 ℝ≥0 (+) (≤) :=
+ordered_add_comm_monoid.to_covariant_class_left ℝ≥0
+
+instance contravariant_add : contravariant_class ℝ≥0 ℝ≥0 (+) (<) :=
+ordered_cancel_add_comm_monoid.to_contravariant_class_left ℝ≥0
+
+instance covariant_mul : covariant_class ℝ≥0 ℝ≥0 (*) (≤) :=
+ordered_comm_monoid.to_covariant_class_left ℝ≥0
 
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,

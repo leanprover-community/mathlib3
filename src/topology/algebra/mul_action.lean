@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import topology.algebra.monoid
-import algebra.module.prod
-import topology.homeomorph
+import group_theory.group_action.prod
 import group_theory.group_action.basic
+import topology.homeomorph
 
 /-!
 # Continuous monoid action

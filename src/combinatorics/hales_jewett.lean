@@ -141,18 +141,17 @@ def prod {α ι ι'} (l : line α ι) (l' : line α ι') : line α (ι ⊕ ι') 
 { idx_fun := sum.elim l.idx_fun l'.idx_fun,
   proper  := ⟨sum.inl l.proper.some, l.proper.some_spec⟩ }
 
-lemma apply {α ι} (l : line α ι) (x : α) : l x = λ i, (l.idx_fun i).get_or_else x := rfl
+lemma apply_def {α ι} (l : line α ι) (x : α) : l x = λ i, (l.idx_fun i).get_or_else x := rfl
 
 lemma apply_none {α ι} (l : line α ι) (x : α) (i : ι) (h : l.idx_fun i = none) : l x i = x :=
-by simp only [option.get_or_else_none, h, l.apply]
+by simp only [option.get_or_else_none, h, l.apply_def]
 
-lemma apply_of_ne_none {α ι} (l : line α ι) (x : α) (i : ι) (h : l.idx_fun i ≠ none) :
-  some (l x i) = l.idx_fun i :=
-by rw [l.apply, option.get_or_else_of_ne_none h]
+lemma apply_some {α ι} (l : line α ι) {x a : α} {i : ι} (h : l.idx_fun i = some a) : l x i = a :=
+by simp_rw [l.apply_def, option.mem_def.mp h, option.get_or_else_some]
 
 @[simp] lemma map_apply {α α' ι} (f : α → α') (l : line α ι) (x : α) :
   l.map f (f x) = f ∘ l x :=
-by simp only [line.apply, line.map, option.get_or_else_map]
+by simp only [line.apply_def, line.map, option.get_or_else_map]
 
 @[simp] lemma vertical_apply {α ι ι'} (v : ι → α) (l : line α ι') (x : α) :
   l.vertical v x = sum.elim v (l x) :=
@@ -168,7 +167,7 @@ by { funext i, cases i; refl }
 
 @[simp] lemma diagonal_apply {α ι} [nonempty ι] (x : α) :
   line.diagonal α ι x = λ i, x :=
-by simp_rw [line.apply, line.diagonal, option.get_or_else_none]
+by simp_rw [line.apply_def, line.diagonal, option.get_or_else_none]
 
 /-- The Hales-Jewett theorem. This version has a restriction on universe levels which is necessary
 for the proof. See `exists_mono_in_high_dimension` for a fully universe-polymorphic version. -/
@@ -303,7 +302,7 @@ begin
     intros i hi,
     rw [hs, finset.sep_def, finset.compl_filter, finset.mem_filter] at hi,
     obtain ⟨y, hy⟩ := option.ne_none_iff_exists.mp hi.right,
-    simp_rw [line.apply, ←hy, option.map_some', option.get_or_else_some], },
+    rw [l.apply_some hy.symm, ←hy, option.map_some', option.get_or_else_some] }
 end
 
 structure hyperline (η α ι : Type*) :=
@@ -315,8 +314,16 @@ namespace hyperline
 instance (η α ι) : has_coe_to_fun (hyperline η α ι) (λ _, (η → α) → ι → α) :=
 ⟨λ l x i, (l.idx_fun i).elim id x⟩
 
-lemma apply {η α ι} (l : hyperline η α ι) (x : η → α) (i : ι) :
+lemma apply_def {η α ι} (l : hyperline η α ι) (x : η → α) (i : ι) :
   l x i = (l.idx_fun i).elim id x := rfl
+
+lemma apply_inl {η α ι} {l : hyperline η α ι} {x : η → α} {i : ι} {y : α}
+  (h : l.idx_fun i = sum.inl y) : l x i = y :=
+by rw [l.apply_def, h, sum.elim_inl, id.def]
+
+lemma apply_inr {η α ι} {l : hyperline η α ι} {x : η → α} {i : ι} {j : η}
+  (h : l.idx_fun i = sum.inr j) : l x i = x j :=
+by rw [l.apply_def, h, sum.elim_inr]
 
 def is_mono {η α ι κ} (C : (ι → α) → κ) (l : hyperline η α ι) : Prop :=
 ∃ c, ∀ x, C (l x) = c
@@ -345,7 +352,7 @@ begin
   convert lC,
   funext,
   cases i with i e,
-  rw [line.apply, hyperline.apply],
+  rw [line.apply_def, hyperline.apply_def],
   simp only [function.uncurry_apply_pair],
   set o := l.idx_fun i,
   clear_value o,

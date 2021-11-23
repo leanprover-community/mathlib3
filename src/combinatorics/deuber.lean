@@ -1,10 +1,46 @@
 import combinatorics.hales_jewett
 import data.fintype.sort
 import combinatorics.pigeonhole
+import order.lexicographic
 
 noncomputable theory
 open option function combinatorics
 open_locale classical
+
+@[simps] def lex.fst {α β} [preorder α] [preorder β] : lex α β →ₘ α :=
+{ to_fun := prod.fst,
+  monotone' := λ i j h, by { cases h, { apply le_of_lt, assumption }, { refl } } }
+
+section
+
+variables {α β : Type*} {m : ℕ} [fintype α] [linear_order β] (h : fintype.card α = m) (f : α → β)
+include h
+
+/-- Sorting a function. Informally, given an indexed collection of ordered values, we order the
+indices to match the values. -/
+lemma monotone_replacement_exists : ∃ (e : fin m ≃ α), monotone (f ∘ e) :=
+begin
+  have e0 : α ≃ fin m := fintype.equiv_fin_of_card_eq h,
+  let f' : α → lex β (fin m) := λ a, (f a, e0 a),
+  letI : linear_order α := linear_order.lift f' _,
+  swap, { intros a b ab, apply e0.injective, convert congr_arg prod.snd ab },
+  have eo : fin m ≃o α := mono_equiv_of_fin _ h,
+  refine ⟨eo.to_equiv, monotone.comp _ eo.monotone⟩,
+  change monotone (lex.fst ∘ f'),
+  exact monotone.comp lex.fst.monotone (λ a b h, h),
+end
+
+/-- Given `fintype.card α = m` and `f : α → β`, this is an equivalence `fin m ≃ α` which makes `f`
+monotone. -/
+def monotone_replacement_equiv : fin m ≃ α := (monotone_replacement_exists h f).some
+/-- Given `fintype.card α = m` and `f : α → β`, this is a monotone replacement `fin m → β`. -/
+def monotone_replacement_preorder_hom : fin m →ₘ β :=
+⟨_, (monotone_replacement_exists h f).some_spec⟩
+
+@[simp] lemma monotone_replacement_preorder_hom_apply (i : fin m) :
+  monotone_replacement_preorder_hom h f i = f (monotone_replacement_equiv h f i) := rfl
+
+end
 
 def order_emb_of_card_le {m β} [linear_order β] {s : finset β} (h : m ≤ s.card) : fin m ↪o β :=
 (fin.cast_le h).trans (s.order_emb_of_fin rfl)
@@ -49,8 +85,6 @@ variables (R : Type) [comm_monoid_with_zero R]
 (finite : set.finite)
 (zero_mem : (0 : R) ∈ set)
 (C_mem : C ∈ set)
-
-instance : preorder (P R) := preorder.lift P.set
 
 instance : comm_monoid (P R) :=
 { mul := λ p q,
@@ -119,19 +153,19 @@ lemma small_map {f : inc R m n} {v : fin m → R} (hf : f.small q) (hv : v ∈ s
   f.map_vec v ∈ small_vec n (p * q) :=
 begin
   intro j,
-  set o := f.mat j with ho, clear_value o, rcases o with _ | ⟨r, i⟩,
-  { rw inc.map_vec_none ho.symm, apply P.zero_mem },
-  { rw inc.map_vec_some ho.symm, exact set.mem_image2_of_mem (hv _) (hf.mat_mem ho.symm) },
+  rcases ho : f.mat j with _ | ⟨r, i⟩,
+  { rw inc.map_vec_none ho, apply P.zero_mem },
+  { rw inc.map_vec_some ho, exact set.mem_image2_of_mem (hv _) (hf.mat_mem ho) },
 end
 
 lemma inc.map_row {i : fin m} {f : inc R m n} {v : fin m → R} (hf : f.small q) (hv : v ∈ row p i) :
   f.map_vec v ∈ row (p * q) (f.emb i) :=
 ⟨small_map hf hv.1, by rw [inc.map_vec, hf.mat_emb i, option.elim, hv.2.1, mul_C],
 λ j ne, begin
-  set o := f.mat j with ho, clear_value o, rcases o with _ | ⟨r, i⟩,
-  { exfalso, rw inc.map_vec_none ho.symm at ne, exact ne rfl },
-  { rw inc.map_vec_some ho.symm at ne,
-    exact le_trans (f.le_emb ho.symm) (f.emb.monotone $ hv.2.2 _ $ left_ne_zero_of_mul ne) }
+  rcases ho : f.mat j with _ | ⟨r, i⟩,
+  { exfalso, rw inc.map_vec_none ho at ne, exact ne rfl },
+  { rw inc.map_vec_some ho at ne,
+    exact le_trans (f.le_emb ho) (f.emb.monotone $ hv.2.2 _ $ left_ne_zero_of_mul ne) }
 end⟩
 
 @[simps] def inc.comp (g : inc R n k) (f : inc R m n) : inc R m k :=
@@ -160,14 +194,14 @@ lemma inc.small.comp {g : inc R n k} {f : inc R m n} (hg : g.small q) (hf : f.sm
   (g.comp f).map_vec v = g.map_vec (f.map_vec v) :=
 begin
   ext c,
-  set o := g.mat c with h1, clear_value o, rcases o with _ | ⟨r, b⟩,
-  { rw [inc.map_vec_none _, inc.map_vec_none h1.symm], rw [inc.comp_mat, ←h1, none_bind] },
-  rw inc.map_vec_some h1.symm,
-  set o := f.mat b with h2, clear_value o, rcases o with _ | ⟨r', a⟩,
-  { rw [inc.map_vec_none _, inc.map_vec_none h2.symm, zero_mul], rw [inc.comp_mat, ←h1,
-      option.some_bind, ←h2, option.map, option.none_bind'] },
-  { rw [inc.map_vec_some h2.symm, mul_assoc], apply inc.map_vec_some,
-    rw [inc.comp_mat, ←h1, option.some_bind, ←h2, option.map_some'] }
+  rcases h1 : g.mat c with _ | ⟨r, b⟩,
+  { rw [inc.map_vec_none _, inc.map_vec_none h1], rw [inc.comp_mat, h1, none_bind] },
+  rw inc.map_vec_some h1,
+  rcases h2 : f.mat b with _ | ⟨r', a⟩,
+  { rw [inc.map_vec_none _, inc.map_vec_none h2, zero_mul], rw [inc.comp_mat, h1,
+      option.some_bind, h2, option.map, option.none_bind'] },
+  { rw [inc.map_vec_some h2, mul_assoc], apply inc.map_vec_some,
+    rw [inc.comp_mat, h1, option.some_bind, h2, option.map_some'] }
 end
 
 variables (m p)
@@ -273,11 +307,11 @@ lemma extend_map_vec_2 {f : inc R m n} {v : fin n → option q.set} {j} {w : fin
   (h : v j = none) :
   (f.extend v).map_vec w j.cast_succ = f.map_vec (w ∘ fin.cast_succ) j :=
 begin
-  set o := f.mat j with ho, clear_value o, rcases o with _ | ⟨r, i⟩,
-  { rw [inc.map_vec_none ho.symm, inc.map_vec_none], rw [inc.extend_mat, fin.snoc_cast_succ, ←ho,
+  rcases ho : f.mat j with _ | ⟨r, i⟩,
+  { rw [inc.map_vec_none ho, inc.map_vec_none], rw [inc.extend_mat, fin.snoc_cast_succ, ho,
       map_none', none_orelse', h, map_none'] },
-  { rw inc.map_vec_some ho.symm, apply inc.map_vec_some,
-    rw [inc.extend_mat, fin.snoc_cast_succ, ←ho, map_some', some_orelse'] }
+  { rw inc.map_vec_some ho, apply inc.map_vec_some,
+    rw [inc.extend_mat, fin.snoc_cast_succ, ho, map_some', some_orelse'] }
 end
 
 section bla
@@ -285,48 +319,40 @@ section bla
 variables {f : fin n → option (fin m)} (hf : ∀ i, ∃ j, f j = some i)
 include hf
 
-def m' : Type := fin m
-
-def g (i : m' hf) : fin n :=
+def g (i : fin m) : fin n :=
 finset.max' (finset.univ.filter $ λ j, f j = some i)
 ((hf i).imp $ λ j hj, finset.mem_filter.mpr ⟨finset.mem_univ _, hj⟩)
 
 variable (f)
-lemma fg_eq_some (i : m' hf) : f (g hf i) = some i :=
+lemma fg_eq_some (i : fin m) : f (g hf i) = some i :=
 begin
   have : g hf i ∈ finset.univ.filter (λ j, f j = some i) := finset.max'_mem _ _,
   simpa only [true_and, finset.mem_univ, finset.mem_filter] using this,
 end
 variable {f}
 
-lemma inj : injective (g hf) := λ i j ij, some_injective _ (by rw [←fg_eq_some, ←fg_eq_some, ij])
-
-instance : fintype (m' hf) := fin.fintype m
-instance : linear_order (m' hf) := linear_order.lift (g hf) (inj hf)
-
-def g_mono : m' hf →ₘ fin n := { to_fun := g hf, monotone' := λ i j, id }
-def mm' : fin m ≃o (m' hf) := mono_equiv_of_fin (m' hf) (fintype.card_fin m)
-
 @[simps] def inc_of_this : inc R m n :=
-{ emb := (g_mono hf).comp (order_embedding.to_preorder_hom (mm' hf).to_rel_embedding),
-  mat := λ j, (f j).elim none $ λ i : m' hf, some (1, (mm' hf).symm i),
-  le_emb := λ j r i hx, finset.le_max' _ _ begin
-      simp only [order_embedding.to_preorder_hom_coe, true_and, rel_iso.to_rel_embedding_eq_coe,
-        rel_iso.coe_coe_fn, finset.mem_univ, finset.mem_filter],
-      set o := f j, clear_value o, cases o, { cases hx },
+{ emb := monotone_replacement_preorder_hom (fintype.card_fin _) (g hf),
+  mat := λ j, (f j).elim none $ λ i,
+    some (1, (monotone_replacement_equiv (fintype.card_fin _) (g hf)).symm i),
+  le_emb := λ j r i hx, begin
+      rw [monotone_replacement_preorder_hom_apply, g],
+      apply finset.le_max',
+      simp only [true_and, finset.mem_univ, finset.mem_filter],
+      cases f j, { cases hx },
       simp only [mem_def, option.elim, prod.mk.inj_iff] at hx,
-      simp only [←hx, order_iso.apply_symm_apply],
+      rw [←hx.2, equiv.apply_symm_apply],
     end }
 
 lemma small_inc_of_this : (inc_of_this hf).small (1 : P R) :=
-{ mat_emb := λ i, by simp only [g_mono, fg_eq_some f hf, order_embedding.to_preorder_hom_coe,
-    rel_iso.to_rel_embedding_eq_coe, rel_iso.coe_coe_fn, option.elim, order_iso.symm_apply_apply,
-    preorder_hom.coe_fun_mk, preorder_hom.comp_coe, one_C, inc_of_this_emb, inc_of_this_mat],
-  mat_mem := λ j r i h, by { simp only [mem_def, inc_of_this_mat] at h,
-    set o := f j, clear_value o, cases o, { cases h }, { cases h, apply P.C_mem } } }
+{ mat_emb := λ i, by simp only [fg_eq_some f hf, monotone_replacement_preorder_hom_apply,
+    option.elim, equiv.symm_apply_apply, one_C, inc_of_this_emb, inc_of_this_mat],
+  mat_mem := λ j r i h, by { simp only [mem_def, inc_of_this_mat] at h, rcases f j,
+    { rintro ⟨⟩ }, { rintro ⟨⟩, apply P.C_mem } } }
 
 lemma inc_of_this_map_vec {i j} {w : fin m → R} (h : f j = some i) :
-  (inc_of_this hf).map_vec w j = w ((mm' hf).symm i) :=
+  (inc_of_this hf).map_vec w j =
+    w ((monotone_replacement_equiv (fintype.card_fin _) (g hf)).symm i) :=
 by simp only [h, inc.map_vec, mul_one, option.elim, inc_of_this_mat]
 
 lemma inc_of_this_map_vec' {j} {w : fin m → R} (h : f j = none) :
@@ -347,7 +373,7 @@ begin
   obtain ⟨l, klast, lk⟩ := h2,
   let fo : fin I → option (fin n) := λ j, (l.idx_fun j).elim (λ _, none) some,
   have fo_surj : ∀ i, ∃ j, fo j = some i,
-  { intro i, refine Exists.imp _ (l.proper i), intros j hj, simp_rw [fo, hj, sum.elim_inr] },
+  { intro i, refine (l.proper i).imp _, intros j hj, simp_rw [fo, hj, sum.elim_inr] },
   let nI : inc R n I := (scaling I p).comp (inc_of_this fo_surj),
   have nI_small : nI.small p,
   { rw ←one_mul p, exact (small_scaling _ _).comp (small_inc_of_this _) },
@@ -371,7 +397,8 @@ begin
   { intros v hv, simp only [coloring.restrict, fin.snoc_last],
     let w := mn.map_vec (v ∘ fin.cast_succ),
     have hw : w ∈ small_vec _ (p * q) := small_map mn_small (λ _, hv.1 _),
-    specialize lk (subtype.coind w hw ∘ (mm' fo_surj).symm),
+    specialize lk
+      (subtype.coind w hw ∘ (monotone_replacement_equiv (fintype.card_fin _) (g fo_surj)).symm),
     convert lk,
     rw funext_iff,
     refine fin.last_cases _ _,
@@ -379,10 +406,10 @@ begin
         using (inc.map_row mI_small hv).2.1 },
     intro j,
     rw [fin.snoc_cast_succ, hmI],
-    set o := l.idx_fun j with ho, clear_value o, rcases o with r | i,
-    { rw [map_vec_inl ho.symm, hv.2.1, hyperline.apply_inl ho.symm] },
-    { simp only [map_vec_inr ho.symm, hyperline.apply_inr ho.symm, inc.comp_map, scaling_map_vec],
-      rw mul_comm, congr' 1, apply inc_of_this_map_vec, rw [←ho, sum.elim_inr] } },
+    rcases ho : l.idx_fun j with r | i,
+    { rw [map_vec_inl ho, hv.2.1, hyperline.apply_inl ho] },
+    { simp only [map_vec_inr ho, hyperline.apply_inr ho, inc.comp_map, scaling_map_vec],
+      rw mul_comm, congr' 1, apply inc_of_this_map_vec, rw [ho, sum.elim_inr] } },
   { intros i v hv,
     have vtail_row : v ∘ fin.cast_succ ∈ row p i,
     { refine ⟨λ _, hv.1 _, hv.2.1, _⟩, intros j hj, exact hv.2.2 j.cast_succ hj },
@@ -395,32 +422,32 @@ begin
             (nI_small.comp mn_small)) vtail_row,
         exact (not.imp_symm (this.2.2 $ fin.last I) (not_le_of_lt $ fin.cast_succ_lt_last _)).symm,
         rw [inc.extend_emb, preorder_hom.succ_apply_cast_succ], apply fin.cast_succ_lt_last },
-      { intro j, set o := l.idx_fun j with ho, clear_value o, rcases o with r | i,
-        { rw [map_vec_inl ho.symm,
+      { intro j, rcases ho : l.idx_fun j with r | i,
+        { rw [map_vec_inl ho,
             not.imp_symm (hv.2.2 _) (not_le_of_lt $ fin.cast_succ_lt_last _), zero_mul],
           simp only [inc.comp_map, emb_inc_map],
           rw [scaling_map_vec, inc_of_this_map_vec', zero_mul],
-          rw [←ho, sum.elim_inl] },
-        { rw map_vec_inr ho.symm, simp only [emb_inc_map, inc.comp_map] } } },
+          rw [ho, sum.elim_inl] },
+        { rw map_vec_inr ho, simp only [emb_inc_map, inc.comp_map] } } },
     rw this,
     specialize hksucc i (v ∘ fin.cast_succ) vtail_row,
     simpa only [coloring.restrict, inc.comp_map, fin.snoc_cast_succ] using hksucc }
 end
 
-theorem deuber [fintype κ] : ∃ n (l : ℕ), ∀ co : coloring R n κ,
-  ∃ (f : inc R m n), f.small (p^l) ∧ ∃ k, (co.restrict f).mono p k :=
+theorem deuber [fintype κ] : ∃ n, ∀ co : coloring R n κ,
+  ∃ (f : inc R m n), f.small (p^(fintype.card κ * m + 1)) ∧ ∃ k, (co.restrict f).mono p k :=
 begin
-  have : ∀ r, ∃ n (l : ℕ), large_enough r n p (p^l) κ,
+  have : ∀ r, ∃ n, large_enough r n p (p^r) κ,
   { intro r, induction r with r ih,
-    { exact ⟨0, 0, λ co, ⟨(order_iso.refl _).to_order_embedding.inc, fin_zero_elim,
+    { exact ⟨0, λ co, ⟨(order_iso.refl _).to_order_embedding.inc, fin_zero_elim,
         small_order_embedding, fin_zero_elim⟩⟩ },
-    obtain ⟨n, l, h⟩ := ih,
-    haveI : fintype (p^(l+1)).set := (P.finite _).fintype,
-    obtain ⟨I, hI⟩ := extended_HJ_fin (p^(l+1)).set κ (fin n),
-    exact ⟨I+1, l+1, step r n p _ κ I h hI⟩ },
+    obtain ⟨n, h⟩ := ih,
+    haveI : fintype (p^(r+1)).set := (P.finite _).fintype,
+    obtain ⟨I, hI⟩ := extended_HJ_fin (p^(r+1)).set κ (fin n),
+    exact ⟨I+1, step r n p _ κ I h hI⟩ },
   specialize this (fintype.card κ * m + 1),
-  obtain ⟨n, l, hn⟩ := this,
-  refine ⟨n, l, _⟩,
+  obtain ⟨n, hn⟩ := this,
+  refine ⟨n, _⟩,
   intro co,
   specialize hn co,
   obtain ⟨f, ks, f_small, fks⟩ := hn,

@@ -472,13 +472,13 @@ begin
       nat_trans.id_app G.1, category.comp_id, nat_trans.id_app F.1, category.id_comp], },
 end
 
-/-- The two forgetful functor is isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
+/-- The two forgetful functors are isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
 def Sheaf_spaces_equiv_sheaf_sites_functor_forget :
   (Sheaf_spaces_equiv_sheaf_sites C X).functor ⋙ sheaf.forget C X ≅ Sheaf_to_presheaf _ _ :=
 nat_iso.of_components (λ F, (iso.refl F.1))
   (λ F G f, by { erw [category.comp_id, category.id_comp], refl })
 
-/-- The two forgetful functor is isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
+/-- The two forgetful functors are isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
 def Sheaf_spaces_equiv_sheaf_sites_inverse_forget :
   (Sheaf_spaces_equiv_sheaf_sites C X).inverse ⋙ Sheaf_to_presheaf _ _ ≅ sheaf.forget C X :=
 nat_iso.of_components (λ F, (iso.refl F.1))

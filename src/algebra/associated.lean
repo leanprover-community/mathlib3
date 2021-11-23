@@ -603,6 +603,10 @@ instance : order_top (associates α) :=
 { top := 0,
   le_top := assume a, ⟨0, (mul_zero a).symm⟩ }
 
+instance : bounded_order (associates α) :=
+{ .. associates.order_top,
+  .. associates.order_bot }
+
 instance [nontrivial α] : nontrivial (associates α) :=
 ⟨⟨0, 1,
 assume h,

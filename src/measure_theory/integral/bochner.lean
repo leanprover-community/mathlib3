@@ -732,6 +732,15 @@ lemma integral_add' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f + g) a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
 integral_add hf hg
 
+lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, integrable (f i) μ) :
+  ∫ a, ∑ i in s, f i a ∂μ = ∑ i in s, ∫ a, f i a ∂μ :=
+begin
+  induction s using finset.induction_on with i s hi ihs,
+  { simp only [integral_zero, finset.sum_empty] },
+  { rw [finset.forall_mem_insert] at hf,
+    simp only [finset.sum_insert hi, ← ihs hf.2, integral_add hf.1 (integrable_finset_sum s hf.2)] }
+end
+
 lemma integral_neg (f : α → E) : ∫ a, -f a ∂μ = - ∫ a, f a ∂μ :=
 set_to_fun_neg (dominated_fin_meas_additive_weighted_smul μ) f
 
@@ -1082,16 +1091,6 @@ calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, ∥f x∥ ∂μ : norm_integral_le_integr
                ... ≤ ∫ x, g x ∂μ   :
   integral_mono_of_nonneg (eventually_of_forall $ λ x, norm_nonneg _) hg h
 
-lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i, integrable (f i) μ) :
-  ∫ a, ∑ i in s, f i a ∂μ = ∑ i in s, ∫ a, f i a ∂μ :=
-begin
-  refine finset.induction_on s _ _,
-  { simp only [integral_zero, finset.sum_empty] },
-  { assume i s his ih,
-    simp only [his, finset.sum_insert, not_false_iff],
-    rw [integral_add (hf _) (integrable_finset_sum s hf), ih] }
-end
-
 lemma simple_func.integral_eq_integral (f : α →ₛ E) (hfi : integrable f μ) :
   f.integral μ = ∫ x, f x ∂μ :=
 begin
@@ -1267,6 +1266,11 @@ lemma integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β �
   ∫ y, f y ∂(measure.map e μ) = ∫ x, f (e x) ∂μ :=
 e.measurable_embedding.integral_map f
 
+lemma measure_preserving.integral_comp {β} {_ : measurable_space β} {f : α → β} {ν}
+  (h₁ : measure_preserving f μ ν) (h₂ : measurable_embedding f) (g : β → E) :
+  ∫ x, g (f x) ∂μ = ∫ y, g y ∂ν :=
+h₁.map_eq ▸ (h₂.integral_map g).symm
+
 @[simp] lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
@@ -1387,7 +1391,7 @@ lemma integral_trim_simple_func (hm : m ≤ m0) (f : @simple_func β m F) (hf_in
 begin
   have hf : @measurable _ _ m _ f, from @simple_func.measurable β F m _ f,
   have hf_int_m := hf_int.trim hm hf,
-  rw [integral_simple_func_larger_space le_rfl f hf_int_m,
+  rw [integral_simple_func_larger_space (le_refl m) f hf_int_m,
     integral_simple_func_larger_space hm f hf_int],
   congr,
   ext1 x,

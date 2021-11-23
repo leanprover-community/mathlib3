@@ -353,8 +353,8 @@ instance lattice : lattice (fractional_ideal S P) :=
   sup_le := λ I J K hIK hJK, show (I ⊔ J : submodule R P) ≤ K, from sup_le hIK hJK,
   ..set_like.partial_order }
 
-instance : semilattice_sup_bot (fractional_ideal S P) :=
-{ ..fractional_ideal.order_bot, ..fractional_ideal.lattice }
+instance : semilattice_sup (fractional_ideal S P) :=
+{ ..fractional_ideal.lattice }
 
 end lattice
 

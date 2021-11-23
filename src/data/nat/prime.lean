@@ -112,6 +112,8 @@ theorem not_prime_one : ¬ prime 1 := by simp [prime]
 
 theorem prime_two : prime 2 := dec_trivial
 
+instance fact_prime_two : fact (nat.prime 2) := ⟨nat.prime_two⟩
+
 end
 
 theorem prime.pred_pos {p : ℕ} (pp : prime p) : 0 < pred p :=

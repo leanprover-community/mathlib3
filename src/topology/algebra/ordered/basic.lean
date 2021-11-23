@@ -313,23 +313,6 @@ lemma eventually_ge_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv
   (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, u ≤ f a :=
 eventually.mono (tendsto_nhds.1 h (> u) is_open_Ioi hv) (λ v, le_of_lt)
 
-lemma exists_ge_Iic_mem_nhds (a : α) : ∃ b ≥ a, Iic b ∈ 𝓝 a :=
-begin
-  rcases is_top_or_no_top a with (ha|⟨b, hb⟩),
-  exacts [⟨a, le_rfl, univ_mem' ha⟩, ⟨b, hb.le, Iic_mem_nhds hb⟩]
-end
-
-lemma exists_le_Ici_mem_nhds (a : α) : ∃ b ≤ a, Ici b ∈ 𝓝 a :=
-@exists_ge_Iic_mem_nhds (order_dual α) _ _ _ _
-
-lemma filter.tendsto.exists_ge_eventually_le {l : filter γ} {f : γ → α} (h : tendsto f l (𝓝 a)) :
-  ∃ b ≥ a, ∀ᶠ x in l, f x ≤ b :=
-(exists_ge_Iic_mem_nhds a).imp $ λ b hb, ⟨hb.fst, h hb.snd⟩
-
-lemma filter.tendsto.exists_le_eventually_ge {l : filter γ} {f : γ → α} (h : tendsto f l (𝓝 a)) :
-  ∃ b ≤ a, ∀ᶠ x in l, b ≤ f x :=
-(exists_le_Ici_mem_nhds a).imp $ λ b hb, ⟨hb.fst, h hb.snd⟩
-
 variables [topological_space γ]
 /-!
 ### Neighborhoods to the left and to the right on an `order_closed_topology`

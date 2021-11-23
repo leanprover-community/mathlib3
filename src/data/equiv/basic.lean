@@ -1860,6 +1860,15 @@ of equivalences of the matching fibers.
 -/
 def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
 (equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁)
+
+@[simp] lemma coe_Pi_congr_symm :
+  ((h₁.Pi_congr h₂).symm : (Π b, Z b) → (Π a, W a)) = λ f a, (h₂ a).symm (f (h₁ a)) :=
+rfl
+
+lemma Pi_congr_symm_apply (f : Π b, Z b) :
+  (h₁.Pi_congr h₂).symm f = λ a, (h₂ a).symm (f (h₁ a)) :=
+rfl
+
 end
 
 section
@@ -1873,6 +1882,15 @@ of equivalences of the matching fibres.
 -/
 def Pi_congr' : (Π a, W a) ≃ (Π b, Z b) :=
 (Pi_congr h₁.symm (λ b, (h₂ b).symm)).symm
+
+@[simp] lemma coe_Pi_congr' :
+  (h₁.Pi_congr' h₂ : (Π a, W a) → (Π b, Z b)) = λ f b, h₂ b $ f $ h₁.symm b :=
+rfl
+
+lemma Pi_congr'_apply (f : Π a, W a) :
+  h₁.Pi_congr' h₂ f = λ b, h₂ b $ f $ h₁.symm b :=
+rfl
+
 end
 
 end equiv

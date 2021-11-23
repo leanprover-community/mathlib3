@@ -6,6 +6,7 @@ Authors: Jakob von Raumer
 import linear_algebra.contraction
 import linear_algebra.finite_dimensional
 import linear_algebra.dual
+import linear_algebra.tensor_product.basis
 
 /-!
 # The coevaluation map on finite dimensional vector spaces

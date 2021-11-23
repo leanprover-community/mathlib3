@@ -306,9 +306,9 @@ rfl
   [algebra R A] (S : subalgebra R A) : S.to_subring.subtype = (S.val : S →+* A) :=
 rfl
 
-
 /-- As submodules, subalgebras are idempotent. -/
-@[simp] theorem mul_self : S.to_submodule * S.to_submodule = S.to_submodule :=
+@[simp] theorem mul_self [algebra Rᵒᵖ A] [is_symmetric_smul R A] :
+  S.to_submodule * S.to_submodule = S.to_submodule :=
 begin
   apply le_antisymm,
   { rw submodule.mul_le,

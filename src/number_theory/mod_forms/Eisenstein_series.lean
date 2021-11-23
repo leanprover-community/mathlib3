@@ -72,7 +72,7 @@ def Eisenstein_deriv_weight (k: ℤ) : ℍ' → ℂ:=
  λ z, ∑' (x : ℤ × ℤ), (Eise_deriv k z x)
 
 
-
+/-
 lemma summable2 (k : ℤ) (h: 3 ≤ k) : summable (Eisen k):=
 begin
   sorry,
@@ -81,7 +81,7 @@ end
 
 def Eisenstein_series_of_weight_' (k: ℤ) : C(ℍ, ℂ):=
  ∑' (x : ℤ × ℤ), Eisen k x
-
+-/
 
 lemma ridic (a b c d : ℤ): a*d-b*c=1 → a*d-c*b=1:=
 begin
@@ -104,33 +104,41 @@ def Ind_perm (A : SL2Z ): ℤ × ℤ →  ℤ × ℤ:=
 
 
 def Ind_equiv (A : SL2Z): ℤ × ℤ ≃ ℤ × ℤ:={
-to_fun:=Ind_perm A,
-inv_fun:=Ind_perm A⁻¹,
-left_inv:=λ z, by {rw Ind_perm, rw Ind_perm,
-have ha:= SL2Z_inv_a A, simp only [vale] at ha,
-have hb:= SL2Z_inv_b A, simp only [vale] at hb,
-have hc:= SL2Z_inv_c A, simp only [vale] at hc,
-have hd:= SL2Z_inv_d A, simp only [vale] at hd,
-have hdet:=det_onne A, simp only [vale] at hdet,
-simp only, ring_nf, simp only [ha, hb, hc, hd], ring_nf, rw mul_comm at hdet, simp only [hdet],
-have ht: A.val 1 1 * A.val 1 0 - A.val 1 0 * A.val 1 1=0, by {ring, }, simp only [ht],
-have ht2: -(A.val 0 1 * A.val 0 0) + A.val 0 0 * A.val 0 1=0, by {ring,}, simp only [ht2],
-have ht3: -(A.val 0 1 * A.val 1 0) + A.val 0 0 * A.val 1 1 =1, by {rw add_comm,  rw mul_comm at hdet, simp,
-simp at *, ring_nf, rw ridic, exact hdet, }, simp only [ht3], ring_nf, simp only [prod.mk.eta, add_zero, zero_mul, zero_add], },
-right_inv:= λ z, by { rw Ind_perm, rw Ind_perm,
-have ha:= SL2Z_inv_a A, simp only [vale] at ha,
-have hb:= SL2Z_inv_b A, simp only [vale] at hb,
-have hc:= SL2Z_inv_c A, simp only [vale] at hc,
-have hd:= SL2Z_inv_d A, simp only [vale] at hd,
-have hdet:=det_onne A, simp only [vale] at hdet,
-simp only, ring_nf, simp only [ha, hb, hc, hd], ring_nf,
-have hz1:= ridic2 (A.val 0 0) (A.val 1 0) (A.val 0 1) (A.val 1 1) z.fst hdet, simp only [hz1],
-have hz2:= ridic2 (A.val 0 0) (A.val 1 0) (A.val 0 1) (A.val 1 1) z.snd hdet, simp only [hz2], simp only [prod.mk.eta],} ,
+  to_fun:=Ind_perm A,
+  inv_fun:=Ind_perm A⁻¹,
+  left_inv:=λ z, by {rw Ind_perm, rw Ind_perm,
+  have ha:= SL2Z_inv_a A, simp only [vale] at ha,
+  have hb:= SL2Z_inv_b A, simp only [vale] at hb,
+  have hc:= SL2Z_inv_c A, simp only [vale] at hc,
+  have hd:= SL2Z_inv_d A, simp only [vale] at hd,
+  have hdet:=det_onne A, simp only [vale] at hdet,
+  simp only, ring_nf, simp only [ha, hb, hc, hd], ring_nf, rw mul_comm at hdet, simp only [hdet],
+  have ht: A.val 1 1 * A.val 1 0 - A.val 1 0 * A.val 1 1=0, by {ring, }, simp only [ht],
+  have ht2: -(A.val 0 1 * A.val 0 0) + A.val 0 0 * A.val 0 1=0, by {ring,}, simp only [ht2],
+  have ht3: -(A.val 0 1 * A.val 1 0) + A.val 0 0 * A.val 1 1 =1, by {rw add_comm,
+  rw mul_comm at hdet, simp,
+  simp at *,
+  ring_nf,
+  rw ridic,
+  exact hdet, },
+  simp only [ht3],
+  ring_nf, simp only [prod.mk.eta, add_zero, zero_mul, zero_add], },
+  right_inv:= λ z, by { rw Ind_perm, rw Ind_perm,
+  have ha:= SL2Z_inv_a A, simp only [vale] at ha,
+  have hb:= SL2Z_inv_b A, simp only [vale] at hb,
+  have hc:= SL2Z_inv_c A, simp only [vale] at hc,
+  have hd:= SL2Z_inv_d A, simp only [vale] at hd,
+  have hdet:=det_onne A, simp only [vale] at hdet,
+  simp only, ring_nf, simp only [ha, hb, hc, hd], ring_nf,
+  have hz1:= ridic2 (A.val 0 0) (A.val 1 0) (A.val 0 1) (A.val 1 1) z.fst hdet, simp only [hz1],
+  have hz2:= ridic2 (A.val 0 0) (A.val 1 0) (A.val 0 1) (A.val 1 1) z.snd hdet,
+  simp only [hz2], simp only [prod.mk.eta],} ,
 }
 
 
 
-@[simp]lemma ind_simp (A: SL2Z) (z : ℤ × ℤ): Ind_equiv A z=(z.1* (A.1 0 0) +z.2* (A.1 1 0), z.1*(A.1 0 1)+z.2* (A.1 1 1)):=
+@[simp]lemma ind_simp (A: SL2Z) (z : ℤ × ℤ):
+  Ind_equiv A z = (z.1* (A.1 0 0) +z.2* (A.1 1 0), z.1*(A.1 0 1)+z.2* (A.1 1 1)) :=
 begin
 refl,
 end
@@ -152,31 +160,44 @@ begin
 end
 
 
-lemma calc_lem (k: ℤ) (a b c d i1 i2: ℂ) (z : ℍ) (h: c*z+d ≠ 0) : ((i1* ((a*z+b)/(c*z+d))+i2)^k)⁻¹=(c*z+d)^k* (  ((i1 * a + i2 * c) * z + (i1 * b + i2 * d))^k   )⁻¹:=
+lemma calc_lem (k: ℤ) (a b c d i1 i2: ℂ) (z : ℍ) (h: c*z+d ≠ 0) :
+((i1* ((a*z+b)/(c*z+d))+i2)^k)⁻¹=(c*z+d)^k* (  ((i1 * a + i2 * c) * z + (i1 * b + i2 * d))^k   )⁻¹:=
 begin
 have h1: i1*((a*z+b)/(c*z+d))+i2=(i1*(a*z+b)/(c*z+d)+i2), by {ring  }, rw h1,
 have h2:  (i1*(a*z+b)/(c*z+d)+i2)=((i1*(a*z+b))/(c*z+d)+i2), by {ring}, rw h2,
 have h3:=div_add' (i1*(a*z+b)) i2 (c*z+d) h, rw h3, simp [inv_pow], rw div_eq_inv_mul,
-have h4: (((c * ↑z + d) ^ k)⁻¹ * (i1 * (a * ↑z + b) + i2 * (c * ↑z + d)) ^ k)⁻¹ =(c * ↑z + d) ^ k * ((i1 * (a * ↑z + b) + i2 * (c * ↑z + d)) ^ k)⁻¹, by {rw ← div_eq_inv_mul, rw inv_div, rw div_eq_inv_mul, ring,},
-rw h4, have h5: (c*z+d)^k ≠ 0, by {apply fpow_ne_zero _ h,  }, have:=mul_left_cancel'  h5 ,apply wa _ _ _ h5, ring_nf, tauto, tauto,
+have h4 :
+  (((c * ↑z + d) ^ k)⁻¹ * (i1 * (a * ↑z + b) + i2 * (c * ↑z + d)) ^ k)⁻¹ =
+  (c * ↑z + d) ^ k * ((i1 * (a * ↑z + b) + i2 * (c * ↑z + d)) ^ k)⁻¹,
+  by {rw ← div_eq_inv_mul, rw inv_div, rw div_eq_inv_mul, ring,},
+rw h4, have h5: (c*z+d)^k ≠ 0, by {apply zpow_ne_zero _ h,  },
+have:= mul_left_cancel₀  h5 ,apply wa _ _ _ h5, ring_nf, tauto, tauto,
 end
 
 
 
 
 
-lemma coe_chain (A: SL2Z) (i j : fin (2)): (A.1 i j : ℂ)= ((A.1 : (matrix (fin 2) (fin 2) ℝ) ) i j : ℂ):=
+lemma coe_chain (A: SL2Z) (i j : fin (2)):
+  (A.1 i j : ℂ)= ((A.1 : (matrix (fin 2) (fin 2) ℝ) ) i j : ℂ):=
 begin
-
-simp, rw ← coe_coe, fin_cases i; fin_cases j, simp only [coe_coe],
- work_on_goal 0 { cases A, dsimp at *, tactic.ext1 [] {new_goals := tactic.new_goals.all},
-  work_on_goal 0 { dsimp at *, simp only [int_cast_re] at *, refl }, dsimp at *, simp only [int_cast_im] at *},
+  simp,
+  rw ← coe_coe,
+  fin_cases i;
+  fin_cases j,
+  simp only [coe_coe],
   work_on_goal 0 { cases A, dsimp at *, tactic.ext1 [] {new_goals := tactic.new_goals.all},
-  work_on_goal 0 { dsimp at *, simp only [int_cast_re] at *, refl }, dsimp at *, simp only [int_cast_im] at *},
+  work_on_goal 0 { dsimp at *, simp only [int_cast_re] at *, refl }, dsimp at *,
+  simp only [int_cast_im] at *},
   work_on_goal 0 { cases A, dsimp at *, tactic.ext1 [] {new_goals := tactic.new_goals.all},
-  work_on_goal 0 { dsimp at *, simp only [int_cast_re] at *, refl }, dsimp at *, simp only [int_cast_im] at *},
+  work_on_goal 0 { dsimp at *, simp only [int_cast_re] at *, refl }, dsimp at *,
+  simp only [int_cast_im] at *},
+  work_on_goal 0 { cases A, dsimp at *, tactic.ext1 [] {new_goals := tactic.new_goals.all},
+  work_on_goal 0 { dsimp at *, simp only [int_cast_re] at *, refl }, dsimp at *,
+  simp only [int_cast_im] at *},
   cases A, dsimp at *, tactic.ext1 [] {new_goals := tactic.new_goals.all},
-  work_on_goal 0 { dsimp at *,simp only [int_cast_re] at *, refl }, dsimp at *, simp only [int_cast_im] at *,
+  work_on_goal 0 { dsimp at *,simp only [int_cast_re] at *, refl }, dsimp at *,
+  simp only [int_cast_im] at *,
 end
 
 
@@ -484,23 +505,41 @@ end
 
 
 
-lemma summable_disjoint_union_of_nonneg {i : α →  set β} {f : (⋃ x, i x) → ℝ} (h: ∀ a b, a ≠ b →  disjoint (i a) (i b)) (hf : ∀ x, 0 ≤ f x) :
-  summable f ↔ (∀ x, summable (λ (y : i x), f ⟨y, unionmem i x y⟩ )) ∧ summable (λ x, ∑' (y : i x), f ⟨y , unionmem i x y⟩) :=
+lemma summable_disjoint_union_of_nonneg {i : α →  set β} {f : (⋃ x, i x) → ℝ}
+  (h: ∀ a b, a ≠ b →  disjoint (i a) (i b)) (hf : ∀ x, 0 ≤ f x) :
+  summable f ↔ (∀ x, summable (λ (y : i x), f ⟨y, unionmem i x y⟩ )) ∧
+  summable (λ x, ∑' (y : i x), f ⟨y , unionmem i x y⟩) :=
  begin
-let h0:=(set.Union_eq_sigma_of_disjoint h).symm,
-have h01: summable f ↔ summable ( f ∘ h0 ), by {have:= equiv.summable_iff h0 , rw this, },
-have h22: ∀ y : (Σ (s: α ), i s), 0 ≤ (f ∘ h0) y:= by {simp_rw h0,
- rw set.Union_eq_sigma_of_disjoint, simp only [equiv.symm_symm, function.comp_app, sigma.forall, equiv.of_bijective_apply], simp_rw set.sigma_to_Union, simp_rw hf, simp only [forall_2_true_iff],},
-have h1:=summable_sigma_of_nonneg h22 ,
-rw h01, rw h1,
-have H1: ∀ (x : α), summable (λ (y : (λ (s : α), ↥(i s)) x), f (h0 ⟨x, y⟩)) ↔ summable (λ (y : ↥(i x)), f ⟨y,  unionmem i x y⟩),
- by {
-  intro x, dsimp, simp_rw h0, rw set.Union_eq_sigma_of_disjoint, simp only [equiv.symm_symm, equiv.of_bijective_apply], simp_rw set.sigma_to_Union, },
-simp_rw H1, simp only [ and.congr_right_iff], intro hfin,
-have H2: ∀  (x : α), ∑' (y : (λ (s : α), ↥(i s)) x), (f ∘ ⇑h0) ⟨x, y⟩=∑' (y : ↥(i x)), f ⟨↑y, unionmem i x y⟩, by {
-  intro x, simp only [function.comp_app], simp_rw h0,  rw set.Union_eq_sigma_of_disjoint, simp only [equiv.symm_symm, equiv.of_bijective_apply], simp_rw set.sigma_to_Union,},
-
-simp_rw H2,
+  let h0:=(set.Union_eq_sigma_of_disjoint h).symm,
+  have h01: summable f ↔ summable ( f ∘ h0 ),
+    by {have:= equiv.summable_iff h0 , rw this, },
+  have h22 : ∀ y : (Σ (s: α ), i s), 0 ≤ (f ∘ h0) y:= by {simp_rw h0,
+  rw set.Union_eq_sigma_of_disjoint,
+  simp only [equiv.symm_symm, function.comp_app, sigma.forall, equiv.of_bijective_apply],
+  simp_rw set.sigma_to_Union,
+  simp_rw hf,
+  simp only [forall_2_true_iff],},
+  have h1:=summable_sigma_of_nonneg h22 ,
+  rw h01, rw h1,
+  have H1: ∀ (x : α), summable (λ (y : (λ (s : α), ↥(i s)) x), f (h0 ⟨x, y⟩)) ↔
+  summable (λ (y : ↥(i x)), f ⟨y,  unionmem i x y⟩),
+  by { intro x,
+     dsimp,
+    simp_rw h0,
+    rw set.Union_eq_sigma_of_disjoint,
+    simp only [equiv.symm_symm, equiv.of_bijective_apply], simp_rw set.sigma_to_Union, },
+  simp_rw H1,
+  simp only [ and.congr_right_iff],
+  intro hfin,
+  have H2: ∀  (x : α), ∑' (y : (λ (s : α), ↥(i s)) x),
+  (f ∘ ⇑h0) ⟨x, y⟩=∑' (y : ↥(i x)), f ⟨↑y, unionmem i x y⟩,
+   by { intro x,
+   simp only [function.comp_app],
+   simp_rw h0,
+   rw set.Union_eq_sigma_of_disjoint,
+   simp only [equiv.symm_symm, equiv.of_bijective_apply],
+   simp_rw set.sigma_to_Union,},
+  simp_rw H2,
  end
 
 

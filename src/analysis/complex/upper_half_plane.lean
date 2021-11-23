@@ -85,9 +85,17 @@ begin
   have hz:=z.property,
   simp at DET,
   have H1 : g.1 1 0 = 0 ∨ z.im = 0, by simpa using congr_arg complex.im H,
+  simp [coe_fn_coe_base'] at H1,
   cases H1,
-  { simp [H1, complex.of_real_zero] at H, have:= det_of_22 g, simp at *, rw H1 at H, simp at *, rw this at DET,
-    simp [H, H1] at DET, exact DET,  },
+  {simp [H1, complex.of_real_zero] at H,
+  have:= det_of_22 g,
+  simp [coe_fn_coe_base'] at *,
+  simp at *,
+  rw H1 at H,
+  simp at *,
+  rw this at DET,
+  simp [H, H1] at DET,
+  exact DET,},
   change z.im > 0 at hz,
   linarith,
 end
@@ -121,6 +129,7 @@ def smul_aux (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℍ :=
     simp at *,
     have:= mul_pos h2 h1,
     convert this,
+    simp [coe_fn_coe_base'],
     ring, }⟩
 
 lemma denom_cocycle (x y : GL_pos (fin 2) ℝ) (z : ℍ) :
@@ -128,7 +137,7 @@ lemma denom_cocycle (x y : GL_pos (fin 2) ℝ) (z : ℍ) :
 begin
   change _ = (_ * (_ / _) + _) * _,
   field_simp [denom_ne_zero, -denom, -num],
-  simp [matrix.mul, dot_product, fin.sum_univ_succ],
+  simp [coe_fn_coe_base', matrix.mul, dot_product, fin.sum_univ_succ],
   ring
 end
 
@@ -139,14 +148,15 @@ begin
   change _ / _ = (_ * (_ / _) + _)  * _,
   rw denom_cocycle,
   field_simp [denom_ne_zero, -denom, -num],
-  simp [matrix.mul, dot_product, fin.sum_univ_succ],
+  simp [coe_fn_coe_base',matrix.mul, dot_product, fin.sum_univ_succ],
   ring
 end
 
 /-- The action of ` GL_pos 2 ℝ` on the upper half-plane by fractional linear transformations. -/
 instance : mul_action  (GL_pos (fin 2) ℝ) ℍ :=
 { smul := smul_aux,
-  one_smul := λ z, by { ext1, change _ / _ = _, simp },
+  one_smul := λ z, by { ext1, change _ / _ = _,
+   simp [coe_fn_coe_base']  },
   mul_smul := mul_smul' }
 
 @[simp] lemma coe_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
@@ -163,12 +173,12 @@ begin
   ext1,
   change _ / _ = _ / _,
   field_simp [denom_ne_zero, -denom, -num],
-  simp [GL_pos_coe_neg],
+  simp [GL_pos_coe_neg, coe_fn_coe_base'],
   ring_nf,
   simp_rw ← coe_coe,
   simp only [GL_pos_coe_neg, GL_pos_neg_elt],
-  simp only [neg_mul_eq_neg_mul_symm, general_linear_group.coe_fn_eq_coe,
-    mul_neg_eq_neg_mul_symm, coe_fn_coe_base, coe_coe, complex.of_real_neg],
+  simp only [coe_fn_coe_base', neg_mul_eq_neg_mul_symm, general_linear_group.coe_fn_eq_coe,
+   mul_neg_eq_neg_mul_symm, coe_coe,  complex.of_real_neg],
   ring,
   end
 

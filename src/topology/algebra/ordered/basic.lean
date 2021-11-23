@@ -281,6 +281,30 @@ is_open_Iio.interior_eq
 @[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
 is_open_Ioo.interior_eq
 
+lemma Iio_mem_nhds {a b : α} (h : a < b) : Iio b ∈ 𝓝 a :=
+is_open.mem_nhds is_open_Iio h
+
+lemma Ioi_mem_nhds {a b : α} (h : a < b) : Ioi a ∈ 𝓝 b :=
+is_open.mem_nhds is_open_Ioi h
+
+lemma Iic_mem_nhds {a b : α} (h : a < b) : Iic b ∈ 𝓝 a :=
+mem_of_superset (Iio_mem_nhds h) Iio_subset_Iic_self
+
+lemma Ici_mem_nhds {a b : α} (h : a < b) : Ici a ∈ 𝓝 b :=
+mem_of_superset (Ioi_mem_nhds h) Ioi_subset_Ici_self
+
+lemma Ioo_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioo a b ∈ 𝓝 x :=
+is_open.mem_nhds is_open_Ioo ⟨ha, hb⟩
+
+lemma Ioc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioc a b ∈ 𝓝 x :=
+mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ico a b ∈ 𝓝 x :=
+mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
+mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
+
 lemma eventually_le_of_tendsto_lt {l : filter γ} {f : γ → α} {u v : α} (hv : v < u)
   (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, f a ≤ u :=
 eventually.mono (tendsto_nhds.1 h (< u) is_open_Iio hv) (λ v, le_of_lt)
@@ -288,6 +312,15 @@ eventually.mono (tendsto_nhds.1 h (< u) is_open_Iio hv) (λ v, le_of_lt)
 lemma eventually_ge_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv : u < v)
   (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, u ≤ f a :=
 eventually.mono (tendsto_nhds.1 h (> u) is_open_Ioi hv) (λ v, le_of_lt)
+
+lemma exists_ge_Iic_mem_nhds (a : α) : ∃ b ≥ a, Iic b ∈ 𝓝 a :=
+begin
+  rcases is_top_or_no_top a with (ha|⟨b, hb⟩),
+  exacts [⟨a, le_rfl, univ_mem' ha⟩, ⟨b, hb.le, Iic_mem_nhds hb⟩]
+end
+
+lemma exists_le_Ici_mem_nhds (a : α) : ∃ b ≤ a, Ici b ∈ 𝓝 a :=
+@exists_ge_Iic_mem_nhds (order_dual α) _ _ _ _
 
 variables [topological_space γ]
 /-!
@@ -1027,30 +1060,6 @@ lemma filter.eventually.exists_Ioo_subset [no_top_order α] [no_bot_order α] {a
   (hp : ∀ᶠ x in 𝓝 a, p x) :
   ∃ l u, a ∈ Ioo l u ∧ Ioo l u ⊆ {x | p x} :=
 mem_nhds_iff_exists_Ioo_subset.1 hp
-
-lemma Iio_mem_nhds {a b : α} (h : a < b) : Iio b ∈ 𝓝 a :=
-is_open.mem_nhds is_open_Iio h
-
-lemma Ioi_mem_nhds {a b : α} (h : a < b) : Ioi a ∈ 𝓝 b :=
-is_open.mem_nhds is_open_Ioi h
-
-lemma Iic_mem_nhds {a b : α} (h : a < b) : Iic b ∈ 𝓝 a :=
-mem_of_superset (Iio_mem_nhds h) Iio_subset_Iic_self
-
-lemma Ici_mem_nhds {a b : α} (h : a < b) : Ici a ∈ 𝓝 b :=
-mem_of_superset (Ioi_mem_nhds h) Ioi_subset_Ici_self
-
-lemma Ioo_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioo a b ∈ 𝓝 x :=
-is_open.mem_nhds is_open_Ioo ⟨ha, hb⟩
-
-lemma Ioc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioc a b ∈ 𝓝 x :=
-mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ioc_self
-
-lemma Ico_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ico a b ∈ 𝓝 x :=
-mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
-
-lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
-mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
 
 section pi
 
@@ -2134,7 +2143,7 @@ end
 
 /-- A compact set is bounded above -/
 lemma is_compact.bdd_above {α : Type u} [topological_space α] [linear_order α]
-  [order_topology α] : Π [nonempty α] {s : set α}, is_compact s → bdd_above s :=
+  [order_closed_topology α] : Π [nonempty α] {s : set α}, is_compact s → bdd_above s :=
 @is_compact.bdd_below (order_dual α) _ _ _
 
 end order_topology

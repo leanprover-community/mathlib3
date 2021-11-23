@@ -169,44 +169,15 @@ variables [topological_space α]
 
 /-- The pairing of a finite (Borel) measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure.
-This is `finite_measure.test_against'`. -/
-abbreviation test_against_nn (μ : finite_measure α) (f : α →ᵇ ℝ≥0) : ℝ≥0 :=
+This is `finite_measure.test_against_nn`. -/
+def test_against_nn (μ : finite_measure α) (f : α →ᵇ ℝ≥0) : ℝ≥0 :=
 (∫⁻ x, f x ∂(μ : measure α)).to_nnreal
 
--- I believe the formulation is generally useful, except maybe the exact form
--- of the assumption `f_bdd`.
--- Where to place?
-lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal {α : Type*}
-  [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
-  {f : α → ℝ≥0∞} (f_bdd : ∃ c : ℝ≥0, ∀ x, f x ≤ c) : ∫⁻ x, f x ∂μ < ∞ :=
-begin
-  cases f_bdd with c hc,
-  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ hc),
-  rw lintegral_const,
-  exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
-end
-
-#check bounded_continuous_function
-
--- Only useful here or more generally?
--- Where to place?
 lemma _root_.bounded_continuous_function.nnreal.to_ennreal_comp_measurable {α : Type*}
   [topological_space α] [measurable_space α] [opens_measurable_space α] (f : α →ᵇ ℝ≥0) :
   measurable (λ x, (f x : ℝ≥0∞)) :=
 measurable_coe_nnreal_ennreal.comp f.continuous.measurable
 
--- This does not seem unreasonable to me, although it may be a bit specific.
--- Where to place?
-lemma bounded_continuous_function.nnreal.upper_bound' {α : Type*} [topological_space α]
-  (f : α →ᵇ ℝ≥0) (x : α) : f x ≤ nndist f 0 :=
-begin
-  have key' : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
-  { exact @bounded_continuous_function.dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
-  simp only [bounded_continuous_function.coe_zero, pi.zero_apply] at key',
-  rwa nnreal.nndist_zero_eq_val' (f x) at key',
-end
-
--- This is the formulation I prefer in the present context, naturally uses the more general ones.
 lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
 begin
@@ -261,7 +232,9 @@ end
 lemma test_against_nn_lipschitz_estimate (μ : finite_measure α) (f g : α →ᵇ ℝ≥0) :
   μ.test_against_nn f ≤ μ.test_against_nn g + (nndist f g) * μ.mass :=
 begin
-  simp [←test_against_nn_const μ (nndist f g), ←test_against_nn_add, ←ennreal.coe_le_coe],
+  simp only [←μ.test_against_nn_const (nndist f g), ←test_against_nn_add, ←ennreal.coe_le_coe,
+             bounded_continuous_function.coe_add, const_apply, ennreal.coe_add, pi.add_apply,
+             coe_nnreal_ennreal_nndist, test_against_nn_coe_eq],
   apply lintegral_mono,
   have le_dist : ∀ x, dist (f x) (g x) ≤ nndist f g :=
   bounded_continuous_function.dist_coe_le_dist,
@@ -271,8 +244,7 @@ begin
     rw add_le_add_iff_left,
     exact dist_le_coe.mp (le_dist x), },
   have le : (f(x) : ℝ≥0∞) ≤ (g(x) : ℝ≥0∞) + (nndist f g),
-  { rw ←ennreal.coe_add,
-    exact ennreal.coe_mono le', },
+  by { rw ←ennreal.coe_add, exact ennreal.coe_mono le', },
   rwa [coe_nnreal_ennreal_nndist] at le,
 end
 
@@ -360,8 +332,8 @@ variables [topological_space α]
 
 /-- The pairing of a (Borel) probability measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure. This
-is `probability_measure.test_against'`. -/
-abbreviation test_against_nn
+is `probability_measure.test_against_nn`. -/
+def test_against_nn
   (μ : probability_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
 (lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
 

@@ -102,15 +102,13 @@ instance is_t2_of_properly_discontinuous_of_t2 [t2_space T] [locally_compact_spa
   intros x y hxy,
   obtain ⟨x₀, hx₀⟩ : ∃ x₀, f x₀ = x := quotient.exists_rep x,
   obtain ⟨y₀, hy₀⟩ : ∃ y₀, f y₀ = y := quotient.exists_rep y,
-
   have hγx₀y₀ : ∀ γ : Γ, γ • x₀ ≠ y₀,
-  { --- rewrite this as a calc proof
-    intros γ,
+  { intros γ,
     contrapose! hxy,
-    have := congr_arg f hxy,
-    rw ← hy₀,
-    convert this,
-    rw ← hx₀,
+    calc x = f(x₀) : hx₀.symm
+       ... = f(γ • x₀) : _
+       ... = f(y₀) : congr_arg f hxy
+       ... = y : hy₀,
     apply quotient.sound,
     exact ⟨γ⁻¹, inv_smul_smul γ x₀⟩, },
   have hx₀y₀ : x₀ ≠ y₀ := by simpa using (hγx₀y₀ 1),
@@ -121,7 +119,6 @@ instance is_t2_of_properly_discontinuous_of_t2 [t2_space T] [locally_compact_spa
   have bad_Γ_finite : bad_Γ_set.finite := finite_disjoint_inter_image K₀_is_cpt L₀_is_cpt,
   choose uγ vγ is_open_uγ is_open_vγ γx₀_in_uγ y₀_in_vγ uγ_vγ_disjoint using
     λ γ, t2_separation (hγx₀y₀ γ),
-
   let U₀₀ := ⋂ γ ∈ bad_Γ_set, ((•) γ) ⁻¹' (uγ γ),
   have all_open : ∀ γ, γ ∈ bad_Γ_set → is_open (((•) γ) ⁻¹' (uγ γ)) :=
     λ γ hγ, is_open.preimage (continuous_mul₂ γ) (is_open_uγ γ),
@@ -160,8 +157,7 @@ instance is_t2_of_properly_discontinuous_of_t2 [t2_space T] [locally_compact_spa
     obtain ⟨γ₁, hγ₁⟩ := quotient.exact (f_x₁_z.trans f_y₁_z.symm),
     have hγ₁' : y₁ = γ₁⁻¹ • x₁ := by simp [← hγ₁],
     by_cases hγ₁_bad : γ₁⁻¹ ∈ bad_Γ_set,
-    {
-      have y₁_in_vγ₁ : y₁ ∈ vγ γ₁⁻¹,
+    { have y₁_in_vγ₁ : y₁ ∈ vγ γ₁⁻¹,
       { have := set.Inter_subset _ γ₁⁻¹ (y₁_in_V₀.1),
         have := set.Inter_subset _ hγ₁_bad this,
         exact this, },
@@ -172,8 +168,7 @@ instance is_t2_of_properly_discontinuous_of_t2 [t2_space T] [locally_compact_spa
         exact this, },
       have : y₁ ∈ uγ γ₁⁻¹ ∩ vγ γ₁⁻¹ := ⟨y₁_in_uγ₁, y₁_in_vγ₁⟩,
       rw (uγ_vγ_disjoint γ₁⁻¹) at this,
-      exact this,
-    },
+      exact this, },
     { have y₁_in_L₀ : y₁ ∈ L₀ := interior_subset y₁_in_V₀.2,
       have x₁_in_K₀ : x₁ ∈ K₀ := interior_subset x₁_in_U₀.2,
       have y₁_in_γ₁K₀ : y₁ ∈ (λ x, γ₁⁻¹ • x) '' K₀,

@@ -212,8 +212,7 @@ begin
 end
 
 /-- A finite family is affinely independent if and only if any affine
-combinations (with sum of weights 1) that evaluate to the same point
-are equal. -/
+combinations (with sum of weights 1) that evaluate to the same point are equal. -/
 lemma affine_independent_iff_eq_of_fintype_affine_combination_eq [fintype ι] (p : ι → P) :
   affine_independent k p ↔ ∀ (w1 w2 : ι → k), ∑ i, w1 i = 1 → ∑ i, w2 i = 1 →
     finset.univ.affine_combination p w1 = finset.univ.affine_combination p w2 → w1 = w2 :=

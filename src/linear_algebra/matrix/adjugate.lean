@@ -5,12 +5,11 @@ Authors: Anne Baanen
 -/
 import algebra.associated
 import algebra.regular.basic
-import data.matrix.notation
-import linear_algebra.matrix.polynomial
 import linear_algebra.matrix.mv_polynomial
+import linear_algebra.matrix.polynomial
+import ring_theory.polynomial.basic
 import tactic.linarith
 import tactic.ring_exp
-import ring_theory.polynomial.basic
 
 /-!
 # Cramer's rule and adjugate matrices
@@ -90,6 +89,9 @@ def cramer (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
 is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
 lemma cramer_apply (i : n) : cramer A b i = (A.update_column i b).det := rfl
+
+lemma cramer_transpose_apply (i : n) : cramer Aᵀ b i = (A.update_row i b).det :=
+by rw [cramer_apply, update_column_transpose, det_transpose]
 
 lemma cramer_transpose_row_self (i : n) :
   Aᵀ.cramer (A i) = pi.single i A.det :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import topology.uniform_space.separation
+import topology.uniform_space.uniform_convergence
 /-!
 # Compact separated uniform spaces
 
@@ -226,3 +227,26 @@ is uniformly continuous. -/
 lemma is_compact.uniform_continuous_on_of_continuous [separated_space α] {s : set α} {f : α → β}
   (hs : is_compact s) (hf : continuous_on f s) : uniform_continuous_on f s :=
 hs.uniform_continuous_on_of_continuous' (is_separated_of_separated_space s) hf
+
+/-- A family of functions `α → β → γ` tends uniformly to its value at `x` if `α` is locally compact,
+`β` is compact and separated and `f` is continuous on `U × (univ : set β)` for some separated
+neighborhood `U` of `x`. -/
+lemma continuous_on.tendsto_uniformly [locally_compact_space α] [compact_space β]
+  [separated_space β] [uniform_space γ] {f : α → β → γ} {x : α} {U : set α}
+  (hxU : U ∈ 𝓝 x) (hU : is_separated U) (h : continuous_on ↿f (U.prod univ)) :
+  tendsto_uniformly f (f x) (𝓝 x) :=
+begin
+  rcases locally_compact_space.local_compact_nhds _ _ hxU with ⟨K, hxK, hKU, hK⟩,
+  have : uniform_continuous_on ↿f (K.prod univ),
+  { refine is_compact.uniform_continuous_on_of_continuous' (hK.prod compact_univ) _
+      (h.mono $ prod_mono hKU subset.rfl),
+    exact (hU.mono hKU).prod (is_separated_of_separated_space _) },
+  exact this.tendsto_uniformly hxK
+end
+
+/-- A continuous family of functions `α → β → γ` tends uniformly to its value at `x` if `α` is
+locally compact and `β` is compact and separated. -/
+lemma continuous.tendsto_uniformly [separated_space α] [locally_compact_space α]
+  [compact_space β] [separated_space β] [uniform_space γ]
+  (f : α → β → γ) (h : continuous ↿f) (x : α) : tendsto_uniformly f (f x) (𝓝 x) :=
+h.continuous_on.tendsto_uniformly univ_mem $ is_separated_of_separated_space _

@@ -18,7 +18,7 @@ proofs about these definitions, those are contained in other files in `data/list
 
 namespace list
 
-open function nat native (rb_map mk_rb_map rb_map.of_list)
+open function nat
 universes u v w x
 variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
@@ -455,8 +455,8 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
     by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
   have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (nat.lt_add_of_pos_left (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
-using_well_founded {
-  dec_tac := tactic.assumption,
+using_well_founded
+{ dec_tac := tactic.assumption,
   rel_tac := λ _ _, `[exact ⟨(≺), @inv_image.wf _ _ _ meas (prod.lex_wf lt_wf lt_wf)⟩] }
 
 /-- An auxiliary function for defining `permutations`. `permutations_aux ts is` is the set of all

@@ -259,10 +259,10 @@ theorem cmp_compares : ∀ (a b : onote) [NF a] [NF b], (cmp a b).compares a b
     case ordering.gt { exact oadd_lt_oadd_1 h₂ IHe },
     change e₁ = e₂ at IHe, subst IHe,
     unfold _root_.cmp, cases nh : cmp_using (<) (n₁:ℕ) n₂,
-    case ordering.lt {
-      rw cmp_using_eq_lt at nh, exact oadd_lt_oadd_2 h₁ nh },
-    case ordering.gt {
-      rw cmp_using_eq_gt at nh, exact oadd_lt_oadd_2 h₂ nh },
+    case ordering.lt
+    { rw cmp_using_eq_lt at nh, exact oadd_lt_oadd_2 h₁ nh },
+    case ordering.gt
+    { rw cmp_using_eq_gt at nh, exact oadd_lt_oadd_2 h₂ nh },
     rw cmp_using_eq_eq at nh,
     have := subtype.eq (eq_of_incomp nh), subst n₂,
     have IHa := @cmp_compares _ _ h₁.snd h₂.snd,
@@ -315,8 +315,8 @@ instance decidable_NF : decidable_pred NF
   have := decidable_NF e,
   have := decidable_NF a, resetI,
   apply decidable_of_iff (NF e ∧ NF a ∧ top_below e a),
-  abstract {
-    rw ← and_congr_right (λ h, @NF_below_iff_top_below _ h _),
+  abstract
+  { rw ← and_congr_right (λ h, @NF_below_iff_top_below _ h _),
     exact ⟨λ ⟨h₁, h₂⟩, NF.oadd h₁ n h₂, λ h, ⟨h.fst, h.snd'⟩⟩ },
 end
 
@@ -734,7 +734,7 @@ begin
       simpa using (add_lt_add_iff_left (repr a0)).2 e0 },
     { refine lt_of_lt_of_le Rl (power_le_power_right omega_pos $
         mul_le_mul_left _ $ succ_le_succ.2 $ nat_cast_le.2 $ le_of_lt k.lt_succ_self) } },
-  refine calc
+  calc
         ω0 ^ k.succ * α' + R'
       = ω0 ^ succ k * α' + (ω0 ^ k * α' * m + R) : by rw [nat_cast_succ, RR, ← mul_assoc]
   ... = (ω0 ^ k * α' + R) * α' + (ω0 ^ k * α' + R) * m : _

@@ -73,15 +73,15 @@ quotient.induction_on' x ih
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
 def of : R →+* adjoin_root f := (mk f).comp C
 
-instance [comm_ring S] [algebra S R] : algebra S (adjoin_root f) :=
+instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
 
-instance [comm_ring S] [comm_ring K] [has_scalar S K] [algebra S R] [algebra K R]
+instance [comm_semiring S] [comm_semiring K] [has_scalar S K] [algebra S R] [algebra K R]
   [is_scalar_tower S K R] :
   is_scalar_tower S K (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
 
-instance [comm_ring S] [comm_ring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :
+instance [comm_semiring S] [comm_semiring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :
   smul_comm_class S K (adjoin_root f) :=
 submodule.quotient.smul_comm_class _ _
 
@@ -89,7 +89,7 @@ submodule.quotient.smul_comm_class _ _
 
 variables (S)
 
-lemma algebra_map_eq' [comm_ring S] [algebra S R] :
+lemma algebra_map_eq' [comm_semiring S] [algebra S R] :
   algebra_map S (adjoin_root f) = (of f).comp (algebra_map S R) := rfl
 
 variables {S}

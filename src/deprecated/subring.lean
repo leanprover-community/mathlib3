@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import deprecated.subgroup
 import deprecated.group
-import ring_theory.subring
+import ring_theory.subring.basic
 
 universes u v
 
@@ -31,20 +31,17 @@ namespace ring_hom
 lemma is_subring_preimage {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) {s : set S} (hs : is_subring s) : is_subring (f ⁻¹' s) :=
 { ..is_add_group_hom.preimage f.to_is_add_group_hom hs.to_is_add_subgroup,
-  ..is_submonoid.preimage f.to_is_monoid_hom hs.to_is_submonoid,
-}
+  ..is_submonoid.preimage f.to_is_monoid_hom hs.to_is_submonoid, }
 
 lemma is_subring_image {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) {s : set R} (hs : is_subring s) : is_subring (f '' s) :=
 { ..is_add_group_hom.image_add_subgroup f.to_is_add_group_hom hs.to_is_add_subgroup,
-  ..is_submonoid.image f.to_is_monoid_hom hs.to_is_submonoid,
-}
+  ..is_submonoid.image f.to_is_monoid_hom hs.to_is_submonoid, }
 
 lemma is_subring_set_range {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) : is_subring (set.range f) :=
 { ..is_add_group_hom.range_add_subgroup f.to_is_add_group_hom,
-  ..range.is_submonoid f.to_is_monoid_hom,
-}
+  ..range.is_submonoid f.to_is_monoid_hom, }
 
 end ring_hom
 
@@ -53,8 +50,7 @@ variables {cR : Type u} [comm_ring cR]
 lemma is_subring.inter {S₁ S₂ : set R} (hS₁ : is_subring S₁) (hS₂ : is_subring S₂) :
   is_subring (S₁ ∩ S₂) :=
 { ..is_add_subgroup.inter hS₁.to_is_add_subgroup hS₂.to_is_add_subgroup,
-  ..is_submonoid.inter hS₁.to_is_submonoid hS₂.to_is_submonoid
-}
+  ..is_submonoid.inter hS₁.to_is_submonoid hS₂.to_is_submonoid }
 
 lemma is_subring.Inter {ι : Sort*} {S : ι → set R} (h : ∀ y : ι, is_subring (S y)) :
   is_subring (set.Inter S) :=

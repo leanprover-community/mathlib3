@@ -146,7 +146,7 @@ theorem fintype.linear_independent_iff' [fintype ι] :
     (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
 by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
 
-lemma fintype.linear_dependent_iff [fintype ι] :
+lemma fintype.not_linear_independent_iff [fintype ι] :
   ¬linear_independent R v ↔ ∃ g : ι → R, (∑ i, g i • v i) = 0 ∧ (∃ i, g i ≠ 0) :=
 by simpa using (not_iff_not.2 fintype.linear_independent_iff)
 

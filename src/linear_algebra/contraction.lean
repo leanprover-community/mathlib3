@@ -99,15 +99,21 @@ lemma dual_tensor_hom_hom_dual_tensor {ι : Type} [fintype ι] [decidable_eq ι]
   (dual_tensor_hom R M N) ∘ₗ (hom_dual_tensor R M N b) = id :=
 by { ext f, simp }
 
+
 /-- `hom_dual_tensor` is left inverse to `dual_tensor_hom` -/
 lemma hom_dual_tensor_dual_tensor_hom {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M):
   (hom_dual_tensor R M N b) ∘ₗ (dual_tensor_hom R M N) = id :=
 begin
   apply curry_injective,
   apply basis.ext b.dual_basis,
-  intro i, ext n, sorry
-  --simp [hom_dual_tensor_apply],
+  intro i, ext n,
+  simp [hom_dual_tensor_apply],
+  simp [finsupp.single_one_smul],
+  generalize : (b.coord i ⊗ₜ[R] n) = t,
+  sorry,
+  --simp [finsupp.sum_fintype, finsupp.sum_single (finsupp.single _ t)],
 end
+
 
 end
 
@@ -156,13 +162,3 @@ begin
 end
 
 end contraction
-
-/-
-section
-
-variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]
-
-lemma single_one_smul (a b : α) (f : α → M) : (single a (1:R) b) • (f a) = single a (f b) b :=
-by { by_cases a = b; simp [h] }
-
-end -/

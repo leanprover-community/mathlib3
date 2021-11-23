@@ -1177,6 +1177,10 @@ lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
   f.sum single = f :=
 add_monoid_hom.congr_fun lift_add_hom_single_add_hom f
 
+@[simp] lemma fintype_sum_single [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+  ∑ (j : α), (single i m) j = m :=
+by simp [single]
+
 @[simp] lemma lift_add_hom_apply_single [add_comm_monoid M] [add_comm_monoid N]
   (f : α → M →+ N) (a : α) (b : M) :
   lift_add_hom f (single a b) = f a b :=
@@ -2196,7 +2200,7 @@ section
 
 variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]
 
-lemma single_one_smul (a b : α) (f : α → M) : (single a (1:R) b) • (f a) = single a (f b) b :=
+@[simp] lemma single_one_smul (a b : α) (f : α → M) : (single a (1:R) b) • (f a) = single a (f b) b :=
 by { by_cases a = b; simp [h] }
 
 end

@@ -33,9 +33,8 @@ variable (m: ℤ)
 instance coe_matrix : has_coe (integral_matrices_with_determinant n m) (matrix n n ℤ) :=
 ⟨λ A, A.val⟩
 
-instance coe_fun : has_coe_to_fun (integral_matrices_with_determinant n m) :=
-{ F   := λ _, n → n → ℤ,
-  coe := λ A, A.val }
+instance coe_fun : has_coe_to_fun (integral_matrices_with_determinant n m) (λ _, n → n → ℤ) :=
+{ coe := λ A, A.val }
 
 def to_lin' (A : integral_matrices_with_determinant n m) := matrix.to_lin' A
 

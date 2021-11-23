@@ -81,11 +81,7 @@ end
 lemma adjoin_idem (s: set A) {x : adjoin R s} :
   x ∈ adjoin R {a : adjoin R s | (a : A) ∈ s} ↔ (x : A) ∈ adjoin R s :=
 begin
-  refine ⟨λ hx, adjoin_induction hx (λ x h, x.2)
-                  (subalgebra.algebra_map_mem _)
-                  (λ x y, subalgebra.add_mem _)
-                  (λ x y, subalgebra.mul_mem _),
-          λ hx, adjoin_induction' (λ a ha, _) (λ r, _) (λ x y hx hy, _) (λ x y hx hy, _) x⟩,
+  refine ⟨λ _, x.2, λ _, adjoin_induction' (λ a ha, _) (λ r, _) (λ x y hx hy, _) (λ x y hx hy, _) x⟩,
   { exact subset_adjoin ha },
   { exact subalgebra.algebra_map_mem _ r },
   { exact subalgebra.add_mem _ hx hy },

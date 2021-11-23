@@ -322,6 +322,14 @@ end
 lemma exists_le_Ici_mem_nhds (a : α) : ∃ b ≤ a, Ici b ∈ 𝓝 a :=
 @exists_ge_Iic_mem_nhds (order_dual α) _ _ _ _
 
+lemma filter.tendsto.exists_ge_eventually_le {l : filter γ} {f : γ → α} (h : tendsto f l (𝓝 a)) :
+  ∃ b ≥ a, ∀ᶠ x in l, f x ≤ b :=
+(exists_ge_Iic_mem_nhds a).imp $ λ b hb, ⟨hb.fst, h hb.snd⟩
+
+lemma filter.tendsto.exists_le_eventually_ge {l : filter γ} {f : γ → α} (h : tendsto f l (𝓝 a)) :
+  ∃ b ≤ a, ∀ᶠ x in l, b ≤ f x :=
+(exists_le_Ici_mem_nhds a).imp $ λ b hb, ⟨hb.fst, h hb.snd⟩
+
 variables [topological_space γ]
 /-!
 ### Neighborhoods to the left and to the right on an `order_closed_topology`

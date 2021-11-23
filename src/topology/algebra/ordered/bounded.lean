@@ -18,14 +18,6 @@ open set filter
 variables {α ι : Type*} [linear_order α] [topological_space α] [order_closed_topology α]
   {f : ι → α} {l : filter ι} {a : α}
 
-lemma filter.tendsto.exists_ge_eventually_le (h : tendsto f l (𝓝 a)) :
-  ∃ b ≥ a, ∀ᶠ x in l, f x ≤ b :=
-(exists_ge_Iic_mem_nhds a).imp $ λ b hb, ⟨hb.fst, h hb.snd⟩
-
-lemma filter.tendsto.exists_le_eventually_ge (h : tendsto f l (𝓝 a)) :
-  ∃ b ≤ a, ∀ᶠ x in l, b ≤ f x :=
-(exists_le_Ici_mem_nhds a).imp $ λ b hb, ⟨hb.fst, h hb.snd⟩
-
 lemma bdd_above_range_of_tendsto_cofinite (h : tendsto f cofinite (𝓝 a)) :
   bdd_above (range f) :=
 begin

@@ -632,6 +632,13 @@ lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factor
 ⟨λ h, prod_factors hn ▸ list.dvd_prod h,
  λ h, mem_list_primes_of_dvd_prod hp (@prime_of_mem_factors n) ((prod_factors hn).symm ▸ h)⟩
 
+lemma dvd_of_mem_factors {n p : ℕ} (h : p ∈ n.factors) : p ∣ n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { exact dvd_zero p },
+  { rwa ←mem_factors_iff_dvd hn (prime_of_mem_factors h) }
+end
+
 lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
 ⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
  λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
@@ -973,5 +980,46 @@ end tactic
 namespace nat
 
 theorem prime_three : prime 3 := by norm_num
+
+end nat
+
+
+namespace nat
+
+/-- The only prime divisor of positive prime power `p^k` is `p` itself -/
+lemma prime_pow_prime_divisor {p k : ℕ} (hk : 0 < k) (hp: prime p) :
+  (p^k).factors.to_finset = {p} :=
+by rw [hp.factors_pow, list.to_finset_repeat_of_ne_zero hk.ne']
+
+lemma mem_factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) (p : ℕ) :
+  p ∈ (a * b).factors ↔ p ∈ a.factors ∨ p ∈ b.factors :=
+begin
+  rw [mem_factors (mul_pos ha hb), mem_factors ha, mem_factors hb, ←and_or_distrib_left],
+  simpa only [and.congr_right_iff] using prime.dvd_mul
+end
+
+/-- If `a`,`b` are positive the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
+lemma factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
+by { ext p, simp only [finset.mem_union, list.mem_to_finset, mem_factors_mul_of_pos ha hb p] }
+
+/-- The sets of factors of coprime `a` and `b` are disjoint -/
+lemma coprime_factors_disjoint {a b : ℕ} (hab: a.coprime b) : list.disjoint a.factors b.factors :=
+begin
+  intros q hqa hqb,
+  apply not_prime_one,
+  rw ←(eq_one_of_dvd_coprimes hab (dvd_of_mem_factors hqa) (dvd_of_mem_factors hqb)),
+  exact prime_of_mem_factors hqa
+end
+
+lemma factors_mul_of_coprime {a b : ℕ} (hab : coprime a b) (p:ℕ):
+  p ∈ (a * b).factors ↔ p ∈ a.factors ∪ b.factors :=
+begin
+  rcases a.eq_zero_or_pos with rfl | ha,
+  { simp [(coprime_zero_left _).mp hab] },
+  rcases b.eq_zero_or_pos with rfl | hb,
+  { simp [(coprime_zero_right _).mp hab] },
+  rw [mem_factors_mul_of_pos ha hb p, list.mem_union]
+end
 
 end nat

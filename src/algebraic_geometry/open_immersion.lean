@@ -81,11 +81,13 @@ namespace PresheafedSpace.is_open_immersion
 
 open PresheafedSpace
 
+local notation `is_open_immersion` := PresheafedSpace.is_open_immersion
+
 attribute [instance] is_open_immersion.c_iso
 
 section
 
-variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : PresheafedSpace.is_open_immersion f)
+variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : is_open_immersion f)
 
 /-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
 abbreviation open_functor := H.base_open.is_open_map.functor

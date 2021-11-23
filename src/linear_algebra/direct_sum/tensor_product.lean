@@ -22,7 +22,7 @@ open_locale direct_sum
 open linear_map
 local attribute [ext] tensor_product.ext
 
-variables (R : Type*) [comm_ring R]
+variables (R : Type*) [comm_semiring R]
 variables (ι₁ : Type*) (ι₂ : Type*)
 variables [decidable_eq ι₁] [decidable_eq ι₂]
 variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)

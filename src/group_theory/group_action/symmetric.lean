@@ -53,7 +53,7 @@ section direct_sum
 open_locale direct_sum
 open dfinsupp opposite is_symmetric_smul
 
-variables {R : Type*} [ring R]
+variables {R : Type*} [semiring R]
   {ι : Type*} [decidable_eq ι] {β : ι → Type*}
   [Π (i : ι), add_comm_monoid (β i)]
   [Π (i : ι), distrib_mul_action R (β i)] [Π (i : ι), distrib_mul_action Rᵒᵖ (β i)]

@@ -5,6 +5,7 @@ Authors: Devon Tuma
 -/
 import analysis.normed_space.ordered
 import analysis.asymptotics.asymptotics
+import topology.algebra.ordered.liminf_limsup
 import data.polynomial.eval
 
 /-!
@@ -195,7 +196,7 @@ variable (f)
 lemma superpolynomial_decay_iff_abs_is_bounded_under (hk : tendsto k l at_top) :
   superpolynomial_decay l k f ↔ ∀ (z : ℕ), is_bounded_under (≤) l (λ (a : α), |(k a) ^ z * f a|) :=
 begin
-  refine ⟨λ h z, (h z).abs.is_bounded_under_le,
+  refine ⟨λ h z, tendsto.is_bounded_under_le (tendsto.abs (h z)),
     λ h, (superpolynomial_decay_iff_abs_tendsto_zero l k f).2 (λ z, _)⟩,
   obtain ⟨m, hm⟩ := h (z + 1),
   have h1 : tendsto (λ (a : α), (0 : β)) l (𝓝 0) := tendsto_const_nhds,

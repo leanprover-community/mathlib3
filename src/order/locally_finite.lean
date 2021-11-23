@@ -560,23 +560,23 @@ instance : locally_finite_order (with_top α) :=
 
 variables (a b : α)
 
-@[simp] lemma Icc_coe_top :
+lemma Icc_coe_top :
   Icc (a : with_top α) ⊤ = cons ⊤ ((Ici a).map embedding.coe_with_top)
     (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx) := rfl
 
-@[simp] lemma Icc_coe_coe : Icc (a : with_top α) b = (Icc a b).map embedding.coe_with_top := rfl
+lemma Icc_coe_coe : Icc (a : with_top α) b = (Icc a b).map embedding.coe_with_top := rfl
 
-@[simp] lemma Ico_coe_top : Ico (a : with_top α) ⊤ = (Ici a).map embedding.coe_with_top := rfl
-@[simp] lemma Ico_coe_coe : Ico (a : with_top α) b = (Ico a b).map embedding.coe_with_top := rfl
+lemma Ico_coe_top : Ico (a : with_top α) ⊤ = (Ici a).map embedding.coe_with_top := rfl
+lemma Ico_coe_coe : Ico (a : with_top α) b = (Ico a b).map embedding.coe_with_top := rfl
 
-@[simp] lemma Ioc_coe_top :
+lemma Ioc_coe_top :
   Ioc (a : with_top α) ⊤ = cons ⊤ ((Ioi a).map embedding.coe_with_top)
     (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx) := rfl
 
-@[simp] lemma Ioc_coe_coe : Ioc (a : with_top α) b = (Ioc a b).map embedding.coe_with_top := rfl
+lemma Ioc_coe_coe : Ioc (a : with_top α) b = (Ioc a b).map embedding.coe_with_top := rfl
 
-@[simp] lemma Ioo_coe_top : Ioo (a : with_top α) ⊤ = (Ioi a).map embedding.coe_with_top := rfl
-@[simp] lemma Ioo_coe_coe : Ioo (a : with_top α) b = (Ioo a b).map embedding.coe_with_top := rfl
+lemma Ioo_coe_top : Ioo (a : with_top α) ⊤ = (Ioi a).map embedding.coe_with_top := rfl
+lemma Ioo_coe_coe : Ioo (a : with_top α) b = (Ioo a b).map embedding.coe_with_top := rfl
 
 end with_top
 
@@ -584,87 +584,27 @@ namespace with_bot
 variables (α) [partial_order α] [order_bot α] [locally_finite_order α]
 
 instance : locally_finite_order (with_bot α) :=
-{ finset_Icc := λ a b, match b, a with
-    |       ⊥,       ⊥ := {⊥}
-    |       ⊥, (a : α) := ∅
-    | (b : α),       ⊥ := cons (⊥ : with_bot α) ((Iic b).map embedding.coe_with_bot)
-                              (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx)
-    | (b : α), (a : α) := (Icc a b).map embedding.coe_with_bot
-    end,
-  finset_Ico := λ a b, match b, a with
-    |       ⊥,       _ := ∅
-    | (b : α),       ⊥ := cons (⊥ : with_bot α) ((Iio b).map embedding.coe_with_bot)
-                              (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx)
-    | (b : α), (a : α) := (Ico a b).map embedding.coe_with_bot
-    end,
-  finset_Ioc := λ a b, match b, a with
-    |       ⊥,       _ := ∅
-    | (b : α),       ⊥ := (Iic b).map embedding.coe_with_bot
-    | (b : α), (a : α) := (Ioc a b).map embedding.coe_with_bot
-    end,
-  finset_Ioo := λ a b, match b, a with
-    |       ⊥,       _ := ∅
-    | (b : α),      ⊥ := (Iio b).map embedding.coe_with_bot
-    | (b : α), (a : α) := (Ioo a b).map embedding.coe_with_bot
-    end,
-  finset_mem_Icc := λ a b x, match b, a, x with
-    |       ⊥,       ⊥,       x := mem_singleton.trans (le_antisymm_iff.trans $ and_comm _ _)
-    |       ⊥, (a : α),       x := iff_of_false (not_mem_empty _)
-                                     (λ h, (h.1.trans h.2).not_lt $ bot_lt_coe _)
-    | (b : α),       ⊥,       ⊥ := by simp [with_bot.locally_finite_order._match_1]
-    | (b : α),       ⊥, (x : α) := by simp [with_bot.locally_finite_order._match_1, coe_eq_coe]
-    | (b : α), (a : α),       ⊥ := by simp [with_bot.locally_finite_order._match_1]
-    | (b : α), (a : α), (x : α) := by simp [with_bot.locally_finite_order._match_1, coe_eq_coe]
-  end,
-  finset_mem_Ico := λ a b x, match b, a, x with
-    |       ⊥,       b,       x := iff_of_false (not_mem_empty _)
-                                     (λ h, not_lt_bot $ h.1.trans_lt h.2)
-    | (b : α),       ⊥,       ⊥ := by simp [with_bot.locally_finite_order._match_3, bot_lt_coe]
-    | (b : α),       ⊥, (x : α) := by simp [with_bot.locally_finite_order._match_3, coe_eq_coe,
-                                        coe_lt_coe]
-    | (b : α), (a : α),       ⊥ := by simp [with_bot.locally_finite_order._match_3]
-    | (b : α), (a : α), (x : α) := by simp [with_bot.locally_finite_order._match_3, coe_eq_coe,
-                                        coe_lt_coe]
-  end,
-  finset_mem_Ioc := λ a b x, match b, a, x with
-    |       ⊥,       b,       x := iff_of_false (not_mem_empty _)
-                                     (λ h, not_lt_bot $ h.1.trans_le h.2)
-    | (b : α),       ⊥,       ⊥ := by simp [with_bot.locally_finite_order._match_5]
-    | (b : α),       ⊥, (x : α) := by simp [with_bot.locally_finite_order._match_5, coe_eq_coe,
-                                        bot_lt_coe]
-    | (b : α), (a : α),       ⊥ := by simp [with_bot.locally_finite_order._match_5]
-    | (b : α), (a : α), (x : α) := by simp [with_bot.locally_finite_order._match_5, coe_eq_coe,
-                                        coe_lt_coe]
-  end,
-  finset_mem_Ioo := λ a b x, match b, a, x with
-    |       ⊥,       b,       x := iff_of_false (not_mem_empty _) (λ h, not_lt_bot $ h.1.trans h.2)
-    | (b : α),       ⊥,       ⊥ := by simp [with_bot.locally_finite_order._match_6, bot_lt_coe]
-    | (b : α),       ⊥, (x : α) := by simp [with_bot.locally_finite_order._match_6, coe_eq_coe,
-                                        coe_lt_coe, bot_lt_coe]
-    | (b : α), (a : α),       ⊥ := by simp [with_bot.locally_finite_order._match_6]
-    | (b : α), (a : α), (x : α) := by simp [with_bot.locally_finite_order._match_6, coe_eq_coe,
-                                        coe_lt_coe]
-  end }
+@order_dual.locally_finite_order (with_top (order_dual α)) _ _
 
 variables (a b : α)
 
-@[simp] lemma Icc_bot_coe :
+lemma Icc_bot_coe :
   Icc (⊥ : with_bot α) b = cons (⊥ : with_bot α) ((Iic b).map embedding.coe_with_bot)
     (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx) := rfl
 
-@[simp] lemma Icc_coe_coe : Icc (a : with_bot α) b = (Icc a b).map embedding.coe_with_bot := rfl
+lemma Icc_coe_coe : Icc (a : with_bot α) b = (Icc a b).map embedding.coe_with_bot := rfl
 
-@[simp] lemma Ico_bot_coe :
+lemma Ico_bot_coe :
   Ico (⊥ : with_bot α) b = cons (⊥ : with_bot α) ((Iio b).map embedding.coe_with_bot)
     (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx) := rfl
 
-@[simp] lemma Ico_coe_coe : Ico (a : with_bot α) b = (Ico a b).map embedding.coe_with_bot := rfl
+lemma Ico_coe_coe : Ico (a : with_bot α) b = (Ico a b).map embedding.coe_with_bot := rfl
 
-@[simp] lemma Ioc_bot_coe : Ioc (⊥ : with_bot α) b = (Iic b).map embedding.coe_with_bot := rfl
-@[simp] lemma Ioc_coe_coe : Ioc (a : with_bot α) b = (Ioc a b).map embedding.coe_with_bot := rfl
+lemma Ioc_bot_coe : Ioc (⊥ : with_bot α) b = (Iic b).map embedding.coe_with_bot := rfl
+lemma Ioc_coe_coe : Ioc (a : with_bot α) b = (Ioc a b).map embedding.coe_with_bot := rfl
 
-@[simp] lemma Ioo_bot_coe : Ioo (⊥ : with_bot α) b = (Iio b).map embedding.coe_with_bot := rfl
-@[simp] lemma Ioo_coe_coe : Ioo (a : with_bot α) b = (Ioo a b).map embedding.coe_with_bot := rfl
+lemma Ioo_bot_coe : Ioo (⊥ : with_bot α) b = (Iio b).map embedding.coe_with_bot := rfl
+lemma Ioo_coe_coe : Ioo (a : with_bot α) b = (Ioo a b).map embedding.coe_with_bot := rfl
 
 end with_bot
 

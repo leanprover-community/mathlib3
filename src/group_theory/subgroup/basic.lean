@@ -654,10 +654,9 @@ subtype.rec_on x $ λ x hx, begin
 end
 
 @[to_additive]
-lemma closure_mem_of_subtype {k : set G} (x : closure k) :
-  x ∈ closure {g : closure k | (g : G) ∈ k} :=
+lemma adjoin_adjoin_coe_preimage {k : set G} : closure ((coe : closure k → G) ⁻¹' k) = ⊤ :=
 begin
-  refine closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) (λ g hg, _) x,
+  refine eq_top_iff.2 (λ x hx, closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) (λ g hg, _) x),
   { intros g hg,
     exact subset_closure hg },
   { exact subgroup.one_mem _ },

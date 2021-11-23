@@ -232,6 +232,8 @@ begin
   simpa only [matrix.vec_mul_vec_mul, ← matrix.mul_eq_mul, hA, matrix.vec_mul_one] using hweq',
 end
 
+/-- Given a family of points `p : ι' → P` and an affine basis `b`, if the matrix whose rows are the
+coordinates of `p` with respect `b` has a left inverse, then `p` spans the the entire space. -/
 lemma affine_span_eq_top_of_to_matrix_left_inv [decidable_eq ι] [nontrivial k]
   (p : ι' → P) {A : matrix ι ι' k} (hA : A ⬝ b.to_matrix p = 1) : affine_span k (range p) = ⊤ :=
 begin

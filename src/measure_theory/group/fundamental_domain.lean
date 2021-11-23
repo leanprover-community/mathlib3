@@ -14,7 +14,7 @@ with respect to a measure `μ` if
 
 * `s` is a measurable set;
 
-* the union of the sets `g • s` over all `g : G` covers the whole space but a set of measure zero;
+* the sets `g • s` over all `g : G` cover almost all points of the whole space;
 
 * the sets `g • s`, are pairwise a.e. disjoint, i.e., `μ (g₁ • s ∩ g₂ • s) = 0` whenever `g₁ ≠ g₂`;
   we require this for `g₂ = 1` in the definition, then deduce it for any two `g₁ ≠ g₂`.

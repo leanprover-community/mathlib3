@@ -480,7 +480,7 @@ add_monoid_algebra.support_mul_single p _ (by simp) _
   (X s * p).support = p.support.map (add_left_embedding (single s 1)) :=
 add_monoid_algebra.support_single_mul p _ (by simp) _
 
-lemma coeff_mul_monomial' [decidable_eq σ] (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
+lemma coeff_mul_monomial' (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
   coeff m (p * monomial s r) = if s ≤ m then coeff (m - s) p * r else 0 :=
 begin
   obtain rfl | hr := eq_or_ne r 0,
@@ -498,7 +498,7 @@ begin
     exact le_add_left le_rfl, }
 end
 
-lemma coeff_monomial_mul' [decidable_eq σ] (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
+lemma coeff_monomial_mul' (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
   coeff m (monomial s r * p) = if s ≤ m then r * coeff (m - s) p else 0 :=
 begin
   -- note that if we allow `R` to be non-commutative we will have to duplicate the proof above.

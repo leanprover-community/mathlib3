@@ -138,7 +138,7 @@ priority 100
 instance has_one_lattice_has_pos_part : has_pos_part (α)  := ⟨λa, a ⊔ 1⟩
 
 @[to_additive pos_part_def]
-lemma m_pos_part_def (a : α) : a⁺ = a ⊔ 1 := by unfold has_pos_part.pos
+lemma m_pos_part_def (a : α) : a⁺ = a ⊔ 1 := rfl
 
 /--
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
@@ -153,7 +153,7 @@ priority 100
 instance has_one_lattice_has_neg_part : has_neg_part (α)  := ⟨λa, a⁻¹ ⊔ 1⟩
 
 @[to_additive neg_part_def]
-lemma m_neg_part_def (a : α) : a⁻ = a⁻¹ ⊔ 1 := by unfold has_neg_part.neg
+lemma m_neg_part_def (a : α) : a⁻ = a⁻¹ ⊔ 1 := rfl
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value

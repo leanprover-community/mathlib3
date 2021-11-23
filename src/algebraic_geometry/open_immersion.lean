@@ -716,15 +716,30 @@ end
 
 end pullback
 
-lemma of_stalk_iso [has_colimits C] {X Y : SheafedSpace C} (f : X ⟶ Y)
+variables [has_limits C] [has_colimits C] [concrete_category.{v} C]
+variables [reflects_isomorphisms (forget C)] [preserves_limits (forget C)]
+variables [preserves_filtered_colimits (forget C)]
+
+/--
+Suppose `C` is a concrete category, whose forgetful functor reflects isomorphisms,
+preserves limits and filtered colimits. Then an (topological) open embedding is an open immersion
+iff every stalk map is an iso.
+-/
+lemma of_stalk_iso {X Y : SheafedSpace C} (f : X ⟶ Y)
   (hf : open_embedding f.base) [H : ∀ x : X, is_iso (PresheafedSpace.stalk_map f x)] :
   SheafedSpace.is_open_immersion f :=
 { base_open := hf,
   c_iso := λ U, begin
-    tactic.unfreeze_local_instances,
-    delta PresheafedSpace.stalk_map Top.presheaf.stalk_pushforward colimit.pre at H,
-    erw colimit.map_desc at H,
-    dsimp at H,
+    apply_with (Top.presheaf.app_is_iso_of_stalk_functor_map_iso
+      (show Y.sheaf ⟶ (Top.sheaf.pushforward f.base).obj X.sheaf, from f.c)) { instances := ff },
+    rintros ⟨_, y, hy, rfl⟩,
+    specialize H y,
+    delta PresheafedSpace.stalk_map at H,
+    haveI H' := Top.presheaf.stalk_pushforward.stalk_pushforward_iso_of_open_embedding
+      C hf X.presheaf y,
+    have := @@is_iso.comp_is_iso _ H (@@is_iso.inv_is_iso _ H'),
+    rw [category.assoc, is_iso.hom_inv_id, category.comp_id] at this,
+    exact this
   end }
 
 end SheafedSpace.is_open_immersion

@@ -443,6 +443,20 @@ lemma app_bijective_of_stalk_functor_map_bijective {F G : sheaf C X} (f : F ⟶ 
 ⟨app_injective_of_stalk_functor_map_injective f U (λ x, (h x).1),
   app_surjective_of_stalk_functor_map_bijective f U h⟩
 
+lemma app_is_iso_of_stalk_functor_map_iso {F G : sheaf C X} (f : F ⟶ G) (U : opens X)
+  [∀ x : U, is_iso ((stalk_functor C x.val).map f)] : is_iso (f.app (op U)) :=
+begin
+  -- Since the forgetful functor of `C` reflects isomorphisms, it suffices to see that the
+  -- underlying map between types is an isomorphism, i.e. bijective.
+  suffices : is_iso ((forget C).map (f.app (op U))),
+  { exactI is_iso_of_reflects_iso (f.app (op U)) (forget C) },
+  rw is_iso_iff_bijective,
+  apply app_bijective_of_stalk_functor_map_bijective,
+  intro x,
+  apply (is_iso_iff_bijective _).mp,
+  exact functor.map_is_iso (forget C) ((stalk_functor C x.1).map f)
+end
+
 /--
 Let `F` and `G` be sheaves valued in a concrete category, whose forgetful functor reflects
 isomorphisms, preserves limits and filtered colimits. Then if the stalk maps of a morphism
@@ -460,15 +474,7 @@ begin
   suffices : ∀ U : (opens X)ᵒᵖ, is_iso (f.app U),
   { exact @nat_iso.is_iso_of_is_iso_app _ _ _ _ F.1 G.1 f this, },
   intro U, induction U using opposite.rec,
-  -- Since the forgetful functor of `C` reflects isomorphisms, it suffices to see that the
-  -- underlying map between types is an isomorphism, i.e. bijective.
-  suffices : is_iso ((forget C).map (f.app (op U))),
-  { exactI is_iso_of_reflects_iso (f.app (op U)) (forget C) },
-  rw is_iso_iff_bijective,
-  apply app_bijective_of_stalk_functor_map_bijective,
-  intro x,
-  apply (is_iso_iff_bijective _).mp,
-  exact functor.map_is_iso (forget C) ((stalk_functor C x.1).map f),
+  apply app_is_iso_of_stalk_functor_map_iso
 end
 
 /--

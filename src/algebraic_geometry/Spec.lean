@@ -232,4 +232,55 @@ iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec
 
 end Spec_Γ
 
+section Spec_localization
+
+lemma Spec_map_localization_is_iso (R : CommRing) (M : submonoid R)
+  (x : prime_spectrum (localization M)) :
+  is_iso (PresheafedSpace.stalk_map (Spec.to_PresheafedSpace.map
+    (CommRing.of_hom (algebra_map R (localization M))).op) x) :=
+begin
+  erw ← local_ring_hom_comp_stalk_iso,
+  apply_with is_iso.comp_is_iso { instances := ff },
+  apply_instance,
+  apply_with is_iso.comp_is_iso { instances := ff },
+  swap,
+  apply_instance,
+  delta localization.local_ring_hom CommRing.of_hom,
+  rw quiver.hom.unop_op,
+  let : localization M →+*
+    localization.at_prime (prime_spectrum.comap (algebra_map ↥R (localization M)) x).as_ideal,
+  refine @is_localization.map R _ M (localization M) _ _ R _ _
+    (prime_spectrum.comap (algebra_map ↥R (localization M)) x).as_ideal.prime_compl
+    _ _ _ _ (ring_hom.id R) _,
+  intros p hx hx',
+  exact (x.2.1 : ¬ _) (x.as_ideal.eq_top_of_is_unit_mem hx' (is_localization.map_units _ ⟨_, hx⟩)),
+  let : localization.at_prime x.as_ideal →+* _ :=
+    @is_localization.lift _ _ x.as_ideal.prime_compl _ _ _ _ _ _ this _, admit,
+  -- use this,
+  -- { split,
+  --   { apply @@is_localization.ring_hom_ext _ _ _ _ _ localization.is_localization,
+  --     erw ring_hom.comp_assoc,
+  --     erw is_localization.map_comp,
+  --     erw ← ring_hom.comp_assoc,
+  --     rw is_localization.lift_comp,
+  --     erw is_localization.lift_comp,
+  --     rw ring_hom.comp_id,
+  --     erw ring_hom.id_comp,
+  --     refl },
+  --   { apply @@is_localization.ring_hom_ext _ _ _ _ _ localization.is_localization,
+  --     apply @@is_localization.ring_hom_ext _ _ _ _ _ localization.is_localization,
+  --     change ring_hom.comp (ring_hom.comp (ring_hom.comp _ _) _) _ = _,
+  --     rw ring_hom.comp_assoc _ this,
+  --     dsimp only [unop_op, CommRing.coe_of],
+  --     rw is_localization.lift_comp,
+  --     rw ring_hom.comp_assoc,
+  --     rw is_localization.map_comp,
+  --     rw ring_hom.comp_id,
+  --     rw is_localization.map_comp,
+  --     erw ring_hom.id_comp } },
+  intros y,
+end
+
+end Spec_localization
+
 end algebraic_geometry

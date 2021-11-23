@@ -315,6 +315,16 @@ lemma _root_.closed_embedding.set_integral_map [topological_space α] [borel_spa
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
 hg.measurable_embedding.set_integral_map _ _
 
+lemma measure_preserving.set_integral_preimage_emb {β} {_ : measurable_space β} {f : α → β} {ν}
+  (h₁ : measure_preserving f μ ν) (h₂ : measurable_embedding f) (g : β → E) (s : set β) :
+  ∫ x in f ⁻¹' s, g (f x) ∂μ = ∫ y in s, g y ∂ν :=
+(h₁.restrict_preimage_emb h₂ s).integral_comp h₂ _
+
+lemma measure_preserving.set_integral_image_emb {β} {_ : measurable_space β} {f : α → β} {ν}
+  (h₁ : measure_preserving f μ ν) (h₂ : measurable_embedding f) (g : β → E) (s : set α) :
+  ∫ y in f '' s, g y ∂ν = ∫ x in s, g (f x) ∂μ :=
+eq.symm $ (h₁.restrict_image_emb h₂ s).integral_comp h₂ _
+
 lemma set_integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) (s : set β) :
   ∫ y in s, f y ∂(measure.map e μ) = ∫ x in e ⁻¹' s, f (e x) ∂μ :=
 e.measurable_embedding.set_integral_map f s
@@ -784,10 +794,10 @@ begin
   all_goals { assumption }
 end
 
-lemma integral_apply {H : Type*} [normed_group H] [normed_space ℝ H]
-  [second_countable_topology $ H →L[ℝ] E] {φ : α → H →L[ℝ] E} (φ_int : integrable φ μ) (v : H) :
+lemma integral_apply {H : Type*} [normed_group H] [normed_space 𝕜 H]
+  [second_countable_topology $ H →L[𝕜] E] {φ : α → H →L[𝕜] E} (φ_int : integrable φ μ) (v : H) :
   (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
-((continuous_linear_map.apply ℝ E v).integral_comp_comm φ_int).symm
+((continuous_linear_map.apply 𝕜 E v).integral_comp_comm φ_int).symm
 
 lemma integral_comp_comm' (L : E →L[𝕜] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
@@ -869,11 +879,12 @@ lemma integral_pair {f : α → E} {g : α → F} (hf : integrable f μ) (hg : i
   ∫ x, (f x, g x) ∂μ = (∫ x, f x ∂μ, ∫ x, g x ∂μ) :=
 have _ := hf.prod_mk hg, prod.ext (fst_integral this) (snd_integral this)
 
-lemma integral_smul_const (f : α → ℝ) (c : E) :
+lemma integral_smul_const {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
+  [measurable_space 𝕜] [borel_space 𝕜] (f : α → 𝕜) (c : E) :
   ∫ x, f x • c ∂μ = (∫ x, f x ∂μ) • c :=
 begin
   by_cases hf : integrable f μ,
-  { exact ((continuous_linear_map.id ℝ ℝ).smul_right c).integral_comp_comm hf },
+  { exact ((1 : 𝕜 →L[𝕜] 𝕜).smul_right c).integral_comp_comm hf },
   { by_cases hc : c = 0,
     { simp only [hc, integral_zero, smul_zero] },
     rw [integral_undef hf, integral_undef, zero_smul],

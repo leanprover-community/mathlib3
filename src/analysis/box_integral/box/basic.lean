@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.instances.real
+import topology.metric_space.basic
 
 /-!
 # Rectangular boxes in `ℝⁿ`
@@ -32,7 +32,7 @@ We define the following operations on boxes:
 * coercion to `set (ι → ℝ)` and `has_mem (ι → ℝ) (box_integral.box ι)` as described above;
 * `partial_order` and `semilattice_sup` instances such that `I ≤ J` is equivalent to
   `(I : set (ι → ℝ)) ⊆ J`;
-* `lattice` and `semilattice_inf_bot` instances on `with_bot (box_integral.box ι)`;
+* `lattice` instances on `with_bot (box_integral.box ι)`;
 * `box_integral.box.Icc`: the closed box `set.Icc I.lower I.upper`; defined as a bundled monotone
   map from `box ι` to `set (ι → ℝ)`;
 * `box_integral.box.face I i : box (fin n)`: a hyperface of `I : box_integral.box (fin (n + 1))`;
@@ -268,9 +268,6 @@ instance : lattice (with_bot (box ι)) :=
       exact subset_inter h₁ h₂
     end,
   .. with_bot.semilattice_sup, .. box.with_bot.has_inf }
-
-instance : semilattice_inf_bot (with_bot (box ι)) :=
-{ .. box.with_bot.lattice, .. with_bot.semilattice_sup }
 
 @[simp, norm_cast] lemma disjoint_with_bot_coe {I J : with_bot (box ι)} :
   disjoint (I : set (ι → ℝ)) J ↔ disjoint I J :=

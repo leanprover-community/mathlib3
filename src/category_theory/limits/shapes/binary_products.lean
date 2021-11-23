@@ -400,6 +400,14 @@ instance is_iso_prod {W X Y Z : C} [has_binary_product W X] [has_binary_product 
   (f : W ⟶ Y) (g : X ⟶ Z) [is_iso f] [is_iso g] : is_iso (prod.map f g) :=
 is_iso.of_iso (prod.map_iso (as_iso f) (as_iso g))
 
+instance prod.map_mono {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [mono f]
+  [mono g] [has_binary_product W X] [has_binary_product Y Z] : mono (prod.map f g) :=
+⟨λ A i₁ i₂ h, begin
+  ext,
+  { rw ← cancel_mono f, simpa using congr_arg (λ f, f ≫ prod.fst) h },
+  { rw ← cancel_mono g, simpa using congr_arg (λ f, f ≫ prod.snd) h }
+end⟩
+
 @[simp, reassoc]
 lemma prod.diag_map {X Y : C} (f : X ⟶ Y) [has_binary_product X X] [has_binary_product Y Y] :
   diag X ≫ prod.map f f = f ≫ diag Y :=
@@ -506,6 +514,15 @@ def coprod.map_iso {W X Y Z : C} [has_binary_coproduct W X] [has_binary_coproduc
 instance is_iso_coprod {W X Y Z : C} [has_binary_coproduct W X] [has_binary_coproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) [is_iso f] [is_iso g] : is_iso (coprod.map f g) :=
 is_iso.of_iso (coprod.map_iso (as_iso f) (as_iso g))
+
+instance coprod.map_epi {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [epi f]
+  [epi g] [has_binary_coproduct W X] [has_binary_coproduct Y Z] : epi (coprod.map f g) :=
+⟨λ A i₁ i₂ h, begin
+  ext,
+  { rw ← cancel_epi f, simpa using congr_arg (λ f, coprod.inl ≫ f) h },
+  { rw ← cancel_epi g, simpa using congr_arg (λ f, coprod.inr ≫ f) h }
+end⟩
+
 
 -- The simp linter says simp can prove the reassoc version of this lemma.
 @[reassoc, simp]

@@ -224,11 +224,18 @@ variable {C}
 lemma trivial_covering : S ∈ trivial C X ↔ S = ⊤ := set.mem_singleton_iff
 
 /-- See https://stacks.math.columbia.edu/tag/00Z6 -/
+instance : has_le (grothendieck_topology C) :=
+{ le := λ J₁ J₂, (J₁ : Π (X : C), set (sieve X)) ≤ (J₂ : Π (X : C), set (sieve X)) }
+
+lemma le_def {J₁ J₂ : grothendieck_topology C} :
+  J₁ ≤ J₂ ↔ (J₁ : Π (X : C), set (sieve X)) ≤ J₂ := iff.rfl
+
+/-- See https://stacks.math.columbia.edu/tag/00Z6 -/
 instance : partial_order (grothendieck_topology C) :=
-{ le := λ J₁ J₂, (J₁ : Π (X : C), set (sieve X)) ≤ (J₂ : Π (X : C), set (sieve X)),
-  le_refl := λ J₁, le_refl _,
-  le_trans := λ J₁ J₂ J₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
-  le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext (le_antisymm h₁₂ h₂₁) }
+{ le_refl := λ J₁, le_def.mpr (le_refl _),
+  le_trans := λ J₁ J₂ J₃ h₁₂ h₂₃, le_def.mpr (le_trans h₁₂ h₂₃),
+  le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext (le_antisymm h₁₂ h₂₁),
+  ..grothendieck_topology.has_le }
 
 /-- See https://stacks.math.columbia.edu/tag/00Z7 -/
 instance : has_Inf (grothendieck_topology C) :=
@@ -383,14 +390,17 @@ lemma condition (S : J.cover X) : (S : sieve X) ∈ J X := S.2
 lemma ext (S T : J.cover X) (h : ∀ ⦃Y⦄ (f : Y ⟶ X), S f ↔ T f) : S = T :=
 subtype.ext $ sieve.ext h
 
-instance : semilattice_inf_top (J.cover X) :=
+instance : order_top (J.cover X) :=
+{ top := ⟨⊤, J.top_mem _⟩,
+  le_top := λ S Y f h, by tauto,
+  ..(infer_instance : preorder _) }
+
+instance : semilattice_inf (J.cover X) :=
 { inf := λ S T, ⟨S ⊓ T, J.intersection_covering S.condition T.condition⟩,
   le_antisymm := λ S T h1 h2, ext _ _ $ λ Y f, ⟨h1 _, h2 _⟩,
   inf_le_left := λ S T Y f hf, hf.1,
   inf_le_right := λ S T Y f hf, hf.2,
   le_inf := λ S T W h1 h2 Y f h, ⟨h1 _ h, h2 _ h⟩,
-  top := ⟨⊤, J.top_mem _⟩,
-  le_top := λ S Y f h, by tauto,
   ..(infer_instance : preorder _) }
 
 instance : inhabited (J.cover X) := ⟨⊤⟩
@@ -478,6 +488,56 @@ eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
 def pullback_comp {X Y Z : C} (S : J.cover X) (f : Z ⟶ Y) (g : Y ⟶ X) :
   S.pullback (f ≫ g) ≅ (S.pullback g).pullback f :=
 eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
+
+/-- Combine a family of covers over a cover. -/
+def bind {X : C} (S : J.cover X) (T : Π (I : S.arrow), J.cover I.Y) : J.cover X :=
+⟨sieve.bind S (λ Y f hf, T ⟨Y, f, hf⟩), J.bind_covering S.condition (λ _ _ _, (T _).condition)⟩
+
+/-- The canonical moprhism from `S.bind T` to `T`. -/
+def bind_to_base {X : C} (S : J.cover X) (T : Π (I : S.arrow), J.cover I.Y) : S.bind T ⟶ S :=
+hom_of_le $ by { rintro Y f ⟨Z,e1,e2,h1,h2,h3⟩, rw ← h3, apply sieve.downward_closed, exact h1 }
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the object `B`. -/
+noncomputable def arrow.middle {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : C :=
+I.hf.some
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the hom `A ⟶ B`. -/
+noncomputable def arrow.to_middle_hom {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : I.Y ⟶ I.middle :=
+I.hf.some_spec.some
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the hom `B ⟶ X`. -/
+noncomputable def arrow.from_middle_hom {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : I.middle ⟶ X :=
+I.hf.some_spec.some_spec.some
+
+lemma arrow.from_middle_condition {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : S I.from_middle_hom :=
+I.hf.some_spec.some_spec.some_spec.some
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the hom `B ⟶ X`, as an arrow. -/
+noncomputable
+def arrow.from_middle {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : S.arrow := ⟨_, I.from_middle_hom, I.from_middle_condition⟩
+
+lemma arrow.to_middle_condition {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : (T I.from_middle) I.to_middle_hom :=
+I.hf.some_spec.some_spec.some_spec.some_spec.1
+
+/-- An arrow in bind has the form `A ⟶ B ⟶ X` where `A ⟶ B` is an arrow in `T I` for some `I`.
+ and `B ⟶ X` is an arrow of `S`. This is the hom `A ⟶ B`, as an arrow. -/
+noncomputable
+def arrow.to_middle {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : (T I.from_middle).arrow := ⟨_, I.to_middle_hom, I.to_middle_condition⟩
+
+lemma arrow.middle_spec {X : C} {S : J.cover X} {T : Π (I : S.arrow), J.cover I.Y}
+  (I : (S.bind T).arrow) : I.to_middle_hom ≫ I.from_middle_hom = I.f :=
+I.hf.some_spec.some_spec.some_spec.some_spec.2
 
 -- This is used extensively in `plus.lean`, etc.
 -- We place this definition here as it will be used in `sheaf.lean` as well.

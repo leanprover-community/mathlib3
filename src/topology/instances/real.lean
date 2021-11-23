@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
-import ring_theory.subring
+import ring_theory.subring.basic
 import group_theory.archimedean
 import algebra.periodic
 

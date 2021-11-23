@@ -7,7 +7,7 @@ import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
 import algebra.order.monoid_lemmas
-import order.bounded_lattice
+import order.bounded_order
 import order.min_max
 import order.rel_iso
 
@@ -255,8 +255,8 @@ If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm
 def ordered_add_comm_monoid [ordered_add_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_add_comm_monoid (with_zero α) :=
 begin
-  suffices, refine {
-    add_le_add_left := this,
+  suffices, refine
+  { add_le_add_left := this,
     ..with_zero.partial_order,
     ..with_zero.add_comm_monoid, .. },
   { intros a b h c ca h₂,
@@ -413,8 +413,8 @@ instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_c
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_bot α) :=
 begin
-  suffices, refine {
-    add_le_add_left := this,
+  suffices, refine
+  { add_le_add_left := this,
     ..with_bot.partial_order,
     ..with_bot.add_comm_monoid, ..},
   { intros a b h c ca h₂,
@@ -629,8 +629,8 @@ section canonically_linear_ordered_monoid
 variables [canonically_linear_ordered_monoid α]
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
-{ ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
+instance canonically_linear_ordered_monoid.semilattice_sup : semilattice_sup α :=
+{ ..lattice_of_linear_order }
 
 instance with_top.canonically_linear_ordered_add_monoid
   (α : Type*) [canonically_linear_ordered_add_monoid α] :

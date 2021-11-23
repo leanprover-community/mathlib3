@@ -156,8 +156,8 @@ See note [reducible non-instances]. -/
 def module.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [module R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,
-  add_left_neg := λ a, show (-1 : R) • a + a = 0, by {
-    nth_rewrite 1 ← one_smul _ a,
+  add_left_neg := λ a, show (-1 : R) • a + a = 0, by
+  { nth_rewrite 1 ← one_smul _ a,
     rw [← add_smul, add_left_neg, zero_smul] },
   ..(infer_instance : add_comm_monoid M), }
 
@@ -251,7 +251,7 @@ instance semiring.to_module [semiring R] : module R R :=
 
 /-- Like `semiring.to_module`, but multiplies on the right. -/
 @[priority 910] -- see Note [lower instance priority]
-instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
+instance semiring.to_opposite_module [semiring R] : module Rᵐᵒᵖ R :=
 { smul_add := λ r x y, add_mul _ _ _,
   add_smul := λ r x y, mul_add _ _ _,
   ..monoid_with_zero.to_opposite_mul_action_with_zero R}

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.real.nnreal
-import data.set.intervals
 
 /-!
 # Extended non-negative reals
@@ -87,6 +86,13 @@ localized "notation `∞` := (⊤ : ennreal)" in ennreal
 noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
 { .. ennreal.canonically_ordered_comm_semiring,
   .. ennreal.complete_linear_order }
+
+-- TODO: why are the two covariant instances necessary? why aren't they inferred?
+instance covariant_class_mul : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
+canonically_ordered_comm_semiring.to_covariant_mul_le
+
+instance covariant_class_add : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
+ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
 
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}

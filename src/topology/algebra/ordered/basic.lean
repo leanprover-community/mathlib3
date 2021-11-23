@@ -709,7 +709,7 @@ instance tendsto_Icc_class_nhds_pi {ι : Type*} {α : ι → Type*}
   tendsto_Ixx_class Icc (𝓝 f) (𝓝 f) :=
 begin
   constructor,
-  conv in ((𝓝 f).lift' powerset) { rw [nhds_pi] },
+  conv in ((𝓝 f).lift' powerset) { rw [nhds_pi, filter.pi] },
   simp only [lift'_infi_powerset, comap_lift'_eq2 monotone_powerset, tendsto_infi, tendsto_lift',
     mem_powerset_iff, subset_def, mem_preimage],
   intros i s hs,
@@ -813,7 +813,7 @@ lemma nhds_bot_order [topological_space α] [partial_order α] [order_bot α] [o
   𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
 
-lemma nhds_top_basis [topological_space α] [semilattice_sup_top α] [is_total α has_le.le]
+lemma nhds_top_basis [topological_space α] [semilattice_sup α] [order_top α] [is_total α has_le.le]
   [order_topology α] [nontrivial α] :
   (𝓝 ⊤).has_basis (λ a : α, a < ⊤) (λ a : α, Ioi a) :=
 ⟨ begin
@@ -827,22 +827,22 @@ lemma nhds_top_basis [topological_space α] [semilattice_sup_top α] [is_total �
       exact ⟨a, lt_top_iff_ne_top.mpr ha⟩ }
   end ⟩
 
-lemma nhds_bot_basis [topological_space α] [semilattice_inf_bot α] [is_total α has_le.le]
+lemma nhds_bot_basis [topological_space α] [semilattice_inf α] [order_bot α] [is_total α has_le.le]
   [order_topology α] [nontrivial α] :
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) (λ a : α, Iio a) :=
-@nhds_top_basis (order_dual α) _ _ _ _ _
+@nhds_top_basis (order_dual α) _ _ _ _ _ _
 
-lemma nhds_top_basis_Ici [topological_space α] [semilattice_sup_top α] [is_total α has_le.le]
-  [order_topology α] [nontrivial α] [densely_ordered α] :
+lemma nhds_top_basis_Ici [topological_space α] [semilattice_sup α] [order_top α]
+  [is_total α has_le.le] [order_topology α] [nontrivial α] [densely_ordered α] :
   (𝓝 ⊤).has_basis (λ a : α, a < ⊤) Ici :=
 nhds_top_basis.to_has_basis
   (λ a ha, let ⟨b, hab, hb⟩ := exists_between ha in ⟨b, hb, Ici_subset_Ioi.mpr hab⟩)
   (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩)
 
-lemma nhds_bot_basis_Iic [topological_space α] [semilattice_inf_bot α] [is_total α has_le.le]
-  [order_topology α] [nontrivial α] [densely_ordered α] :
+lemma nhds_bot_basis_Iic [topological_space α] [semilattice_inf α] [order_bot α]
+  [is_total α has_le.le] [order_topology α] [nontrivial α] [densely_ordered α] :
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) Iic :=
-@nhds_top_basis_Ici (order_dual α) _ _ _ _ _ _
+@nhds_top_basis_Ici (order_dual α) _ _ _ _ _ _ _
 
 lemma tendsto_nhds_top_mono [topological_space β] [partial_order β] [order_top β] [order_topology β]
   {l : filter α} {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
@@ -2443,6 +2443,44 @@ begin
     obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), a < x ∧ x < b := h a b hab,
     exact ⟨x, ⟨H hx, xs⟩⟩ }
 end
+
+instance (x : α) [nontrivial α] : ne_bot (𝓝[{x}ᶜ] x) :=
+begin
+  apply forall_mem_nonempty_iff_ne_bot.1 (λ s hs, _),
+  obtain ⟨u, u_open, xu, us⟩ : ∃ (u : set α), is_open u ∧ x ∈ u ∧ u ∩ {x}ᶜ ⊆ s :=
+    mem_nhds_within.1 hs,
+  obtain ⟨a, b, a_lt_b, hab⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ u := u_open.exists_Ioo_subset ⟨x, xu⟩,
+  obtain ⟨y, hy⟩ : ∃ y, a < y ∧ y < b := exists_between a_lt_b,
+  rcases ne_or_eq x y with xy|rfl,
+  { exact ⟨y, us ⟨hab hy, xy.symm⟩⟩ },
+  obtain ⟨z, hz⟩ : ∃ z, a < z ∧ z < x := exists_between hy.1,
+  exact ⟨z, us ⟨hab ⟨hz.1, hz.2.trans hy.2⟩, hz.2.ne⟩⟩,
+end
+
+/-- Let `s` be a dense set in a nontrivial dense linear order `α`. If `s` is a
+separable space (e.g., if `α` has a second countable topology), then there exists a countable
+dense subset `t ⊆ s` such that `t` does not contain bottom/top elements of `α`. -/
+lemma dense.exists_countable_dense_subset_no_bot_top [nontrivial α]
+  {s : set α} [separable_space s] (hs : dense s) :
+  ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∉ t) ∧ (∀ x, is_top x → x ∉ t) :=
+begin
+  rcases hs.exists_countable_dense_subset with ⟨t, hts, htc, htd⟩,
+  refine ⟨t \ ({x | is_bot x} ∪ {x | is_top x}), _, _, _, _, _⟩,
+  { exact (diff_subset _ _).trans hts },
+  { exact htc.mono (diff_subset _ _) },
+  { exact htd.diff_finite ((subsingleton_is_bot α).finite.union (subsingleton_is_top α).finite) },
+  { assume x hx, simp [hx] },
+  { assume x hx, simp [hx] }
+end
+
+variable (α)
+/-- If `α` is a nontrivial separable dense linear order, then there exists a
+countable dense set `s : set α` that contains neither top nor bottom elements of `α`.
+For a dense set containing both bot and top elements, see
+`exists_countable_dense_bot_top`. -/
+lemma exists_countable_dense_no_bot_top [separable_space α] [nontrivial α] :
+  ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) :=
+by simpa using dense_univ.exists_countable_dense_subset_no_bot_top
 
 end densely_ordered
 

@@ -198,8 +198,4 @@ instance [inhabited α] : order_top (semiquot α) :=
 { top := univ,
   le_top := λ s, set.subset_univ _ }
 
-instance [inhabited α] : semilattice_sup_top (semiquot α) :=
-{ ..semiquot.order_top,
-  ..semiquot.semilattice_sup }
-
 end semiquot

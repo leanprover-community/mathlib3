@@ -1392,7 +1392,7 @@ lemma integral_trim_simple_func (hm : m ≤ m0) (f : @simple_func β m F) (hf_in
 begin
   have hf : @measurable _ _ m _ f, from @simple_func.measurable β F m _ f,
   have hf_int_m := hf_int.trim hm hf,
-  rw [integral_simple_func_larger_space le_rfl f hf_int_m,
+  rw [integral_simple_func_larger_space (le_refl m) f hf_int_m,
     integral_simple_func_larger_space hm f hf_int],
   congr,
   ext1 x,

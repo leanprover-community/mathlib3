@@ -77,7 +77,8 @@ subtype.rec_on x $ λ x hx, begin
     exists.elim hy $ λ hy' hy, ⟨subalgebra.mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
 end
 
-@[simp] lemma adjoin_adjoin_coe_preimage {s : set A} : adjoin R ((coe : adjoin R s → A) ⁻¹' s) = ⊤ :=
+@[simp] lemma adjoin_adjoin_coe_preimage {s : set A} :
+  adjoin R ((coe : adjoin R s → A) ⁻¹' s) = ⊤ :=
 begin
   refine eq_top_iff.2 (λ x, adjoin_induction' (λ a ha, _) (λ r, _) (λ _ _, _) (λ _ _, _) x),
   { exact subset_adjoin ha },

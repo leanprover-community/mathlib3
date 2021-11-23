@@ -177,18 +177,22 @@ hφ.ae_eventually_mem.mono (λ x hx, tendsto_const_nhds.congr' $
   hx.mono $ λ n hn, (indicator_of_mem hn _).symm)
 
 lemma ae_cover.ae_measurable {β : Type*} [has_zero β] [metric_space β] [measurable_space β]
-  [borel_space β] [l.is_countably_generated] [l.ne_bot] {f : α → β} {φ : ι → set α}
+  [l.is_countably_generated] [l.ne_bot] {f : α → β} {φ : ι → set α}
   (hφ : ae_cover μ l φ) (hfm : ∀ i, ae_measurable f (μ.restrict $ φ i)) :
   ae_measurable f μ :=
 begin
   obtain ⟨u, hu⟩ := l.exists_seq_tendsto,
+  -- let f : ℕ → α → β :=
+  -- λ n, (φ n).indicator f,
   have : ∀ i, ae_measurable ((φ i).indicator f) μ,
   { intros i,
     rw ae_measurable_indicator_iff (hφ.measurable i),
     exact hfm i },
-  refine ae_measurable_of_tendsto_metric_ae (λ n, this $ u n) _,
-  filter_upwards [hφ.ae_tendsto_indicator f],
-  exact λ a ha, ha.comp hu
+  choose g h1g h2g using this,
+  refine ⟨λ x, g (u $ Inf { n | x ∈ φ (u n)}) x, _, _⟩,
+  -- refine ae_measurable_of_tendsto_metric_ae (λ n, this $ u n) _,
+  -- filter_upwards [hφ.ae_tendsto_indicator f],
+  -- exact λ a ha, ha.comp hu
 end
 
 end ae_cover

@@ -34,7 +34,7 @@ Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we 
 
 ## Implementation details
 Our definition works for any `A`-algebra `B`, but note that if `B` is not free as an `A`-module,
-  then `trace A B = 0` by definition, so `discriminant A b = 0` for any `b`.
+then `trace A B = 0` by definition, so `discriminant A b = 0` for any `b`.
 -/
 
 universes u v w z

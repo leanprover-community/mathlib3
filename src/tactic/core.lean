@@ -43,9 +43,9 @@ meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
   return (e₁, p₁)) <|> t₂ e
 
 end tactic
+open tactic
 
 namespace expr
-open tactic
 
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
@@ -106,6 +106,23 @@ meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
   pure $ e.instantiate_var new
 
 end expr
+
+namespace name
+
+/-- Auxiliary function for `name.contains_sorry`. -/
+meta def contains_sorry_aux (pre : name) : name → tactic bool | nm := do
+  env ← get_env,
+  decl ← get_decl nm,
+  ff ← return decl.value.contains_sorry | return tt,
+  (decl.value.list_names_with_prefix pre).mfold ff $
+    λ n b, if b then return tt else n.contains_sorry_aux
+
+/-- `nm.contains_sorry` checks whether `sorry` occurs in the value of the declaration `nm` or
+  in any declarations `nm._proof_i`.
+  See also `expr.contains_sorry`. -/
+meta def contains_sorry (nm : name) : tactic bool := nm.contains_sorry_aux nm
+
+end name
 
 namespace interaction_monad
 open result

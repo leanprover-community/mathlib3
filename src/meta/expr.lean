@@ -1032,21 +1032,6 @@ meta def is_eta_expansion (val : expr) : tactic (option expr) := do
 
 end expr
 
-/-- `nm.contains_sorry` checks whether `sorry` occurs in the value of the declaration `nm` or
-  in any declarations `nm._proof_i`. -/
-meta def name.contains_sorry_aux (pre : name) : name → tactic bool | nm := do
-  env ← get_env,
-  decl ← get_decl nm,
-  let e := decl.value,
-  ff ← return e.contains_sorry | return tt,
-  (e.list_names_with_prefix pre).mfold ff $
-    λ n b, if b then return tt else n.contains_sorry_aux
-
-/-- `nm.contains_sorry` checks whether `sorry` occurs in the value of the declaration `nm` or
-  in any declarations `nm._proof_i`.
-  See also `expr.contains_sorry`. -/
-meta def name.contains_sorry (nm : name) : tactic bool := nm.contains_sorry_aux nm
-
 /-! ### Declarations about `declaration` -/
 
 namespace declaration

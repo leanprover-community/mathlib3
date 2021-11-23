@@ -130,7 +130,7 @@ instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Ty
 /-- The explicit fan of a family of topological spaces given by the pi type. -/
 @[simps X π_app]
 def pi_fan {ι : Type u} (α : ι → Top.{u}) : fan α :=
-@fan.mk _ _ _ α (Top.of (Π i, α i)) (λ i, ⟨λ f, f i, continuous_apply i⟩)
+fan.mk (Top.of (Π i, α i)) (λ i, ⟨λ f, f i, continuous_apply i⟩)
 
 /-- The constructed fan is indeed a limit -/
 def pi_fan_is_limit {ι : Type u} (α : ι → Top.{u}) : is_limit (pi_fan α) :=
@@ -166,7 +166,7 @@ end
 /-- The explicit cofan of a family of topological spaces given by the sigma type. -/
 @[simps X ι_app]
 def sigma_cofan {ι : Type u} (α : ι → Top.{u}) : cofan α :=
-@cofan.mk _ _ _ α (Top.of (Σ i, α i)) (λ b, ⟨sigma.mk b⟩)
+cofan.mk (Top.of (Σ i, α i)) (λ b, ⟨sigma.mk b⟩)
 
 /-- The constructed cofan is indeed a colimit -/
 def sigma_cofan_is_colimit {ι : Type u} (α : ι → Top.{u}) : is_colimit (sigma_cofan α) :=
@@ -215,7 +215,6 @@ abbreviation prod_fst {X Y : Top.{u}} : Top.of (X × Y) ⟶ X := ⟨prod.fst⟩
 
 /-- The second projection from the product. -/
 abbreviation prod_snd {X Y : Top.{u}} : Top.of (X × Y) ⟶ Y := ⟨prod.snd⟩
-
 
 /-- The explicit binary cofan of `X, Y` given by `X × Y`. -/
 def prod_binary_fan (X Y : Top.{u}) : binary_fan X Y :=

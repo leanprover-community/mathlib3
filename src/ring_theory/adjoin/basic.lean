@@ -66,7 +66,7 @@ adjoin_le (show s ≤ S, from Hs) h
 
 /-- The difference with `algebra.adjoin_induction` is that this acts on the subtype. -/
 lemma adjoin_induction' {p : adjoin R s → Prop} (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_adjoin h⟩)
-  (Halg : ∀ (r : R), p ((algebra_map R _) r)) (Hadd : ∀ x y, p x → p y → p (x + y))
+  (Halg : ∀ r, p (algebra_map R _ r)) (Hadd : ∀ x y, p x → p y → p (x + y))
   (Hmul : ∀ x y, p x → p y → p (x * y)) (x : adjoin R s) : p x :=
 subtype.rec_on x $ λ x hx, begin
   refine exists.elim _ (λ (hx : x ∈ adjoin R s) (hc : p ⟨x, hx⟩), hc),

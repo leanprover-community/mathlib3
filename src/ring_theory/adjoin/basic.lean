@@ -71,7 +71,7 @@ lemma adjoin_induction' {p : adjoin R s → Prop} (Hs : ∀ x (h : x ∈ s), p �
   p x :=
 subtype.rec_on x $ λ x hx, begin
   refine exists.elim _ (λ (hx : x ∈ adjoin R s) (hc : p ⟨x, hx⟩), hc),
-  refine adjoin_induction hx (λ x hx, ⟨subset_adjoin hx, Hs x hx⟩)
+  exact adjoin_induction hx (λ x hx, ⟨subset_adjoin hx, Hs x hx⟩)
     (λ r, ⟨subalgebra.algebra_map_mem _ r, Halg r⟩)
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
     ⟨subalgebra.add_mem _ hx' hy', Hadd _ _ hx hy⟩) (λ x y hx hy, exists.elim hx $ λ hx' hx,

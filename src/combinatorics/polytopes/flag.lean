@@ -410,6 +410,21 @@ def oem_fin {α : Type u} [linear_order α] [order_top α] [graded α] : α ↪o
   inj' := grade_fin.inj,
   map_rel_iff' := le_iff_grade_le }
 
+/-- In linear orders, `hcovers` is an equivalence. -/
+lemma hcovers_iff_grade_eq_succ_grade [linear_order α] [graded α] (a b : α) :
+  a ⋖ b ↔ grade b = grade a + 1 :=
+begin
+  refine ⟨graded.hcovers, λ hba, _⟩,
+  have := nat.lt_of_succ_le (le_of_eq hba.symm),
+  rw ←graded.lt_iff_grade_lt at this,
+  refine ⟨this, _⟩,
+  rintros z ⟨hzl, hzr⟩,
+  rw ←nat.cover_iff_succ at hba,
+  rw graded.lt_iff_grade_lt at hzl,
+  rw graded.lt_iff_grade_lt at hzr,
+  exact hba.right _ ⟨hzl, hzr⟩,
+end
+
 end graded
 
 theorem set.Ioo_is_empty_of_covers {α : Type u} [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
@@ -451,26 +466,6 @@ instance [graded α] (Φ : flag α) : graded Φ :=
   grade_bot := graded.grade_bot,
   strict_mono := λ _ _ h, graded.strict_mono h,
   hcovers := λ _ _ hcov, graded.hcovers $ (cover_iff_flag_cover _ _).mp hcov }
-
-/-- In linear orders, `hcovers` is an equivalence. -/
-lemma hcovers_iff_grade_eq_succ_grade [linear_order α] [graded α] (a b : α) : a ⋖ b ↔ grade b = grade a + 1 :=
-sorry
-/-
-begin
-  refine ⟨graded.hcovers, λ hba, _⟩,
-  split, {
-    have : grade a < grade b := by suggest,
-    apply graded.strict_mono,
-    rw [flag.lt_iff_grade_lt, hba],
-    exact lt_add_one _,
-  },
-  rintros z ⟨hzl, hzr⟩,
-  rw ←nat.cover_iff_succ at hba,
-  rw flag.lt_iff_grade_lt at hzl,
-  rw flag.lt_iff_grade_lt at hzr,
-  exact hba.right _ ⟨hzl, hzr⟩,
-end
--/
 
 /-- Two elements in a flag cover each other iff their grades do. -/
 theorem flag.cover_iff_nat_cover [graded α] {Φ : flag α} (a b : Φ) :

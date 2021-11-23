@@ -110,7 +110,7 @@ begin
   simp,
 end
 
-noncomputable
+@[simps] noncomputable
 def dual_tensor_hom_equiv_of_basis :
   (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
 linear_equiv.of_linear (dual_tensor_hom R M N) (hom_dual_tensor R M N b)

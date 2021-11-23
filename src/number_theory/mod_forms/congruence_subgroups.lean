@@ -1,4 +1,5 @@
 import linear_algebra.special_linear_group
+import data.zmod.basic
 import .mod_group
 
 local notation `SL2Z` := matrix.special_linear_group (fin 2) ℤ
@@ -9,16 +10,19 @@ def mat_mod_map (N : ℕ) : matrix (fin 2) (fin 2) ℤ →+* matrix (fin 2) (fin
 ring_hom.map_matrix (red_map N)
 
 
-def SL_mod_map' (N : ℕ) : matrix.special_linear_group (fin 2) ℤ → matrix.special_linear_group (fin 2) (zmod N):=
+def SL_mod_map' (N : ℕ) : matrix.special_linear_group (fin 2) ℤ →
+  matrix.special_linear_group (fin 2) (zmod N):=
 λ M, ⟨mat_mod_map (N : ℕ) M.1 , by {rw mat_mod_map, rw ring_hom.map_matrix, rw red_map, simp,
     have:= matrix.special_linear_group.det_coe M, rw modular_group.det_of_22 at *,
     simp at *, norm_cast, rw this, simp,} ⟩
 
-def SL_mod_map (N : ℕ) : matrix.special_linear_group (fin 2) ℤ →* matrix.special_linear_group (fin 2) (zmod N):={
+def SL_mod_map (N : ℕ) : matrix.special_linear_group (fin 2) ℤ →*
+  matrix.special_linear_group (fin 2) (zmod N):={
  to_fun :=  SL_mod_map' (N : ℕ),
  map_one' := by {rw SL_mod_map', simp, refl,},
  map_mul' := by {intros A B, rw SL_mod_map',
- have := (mat_mod_map N).map_mul' A B,  simp_rw mat_mod_map at *, simp_rw red_map at *, simp at *,simp_rw [this], refl,} ,
+ have := (mat_mod_map N).map_mul' A B,  simp_rw mat_mod_map at *,
+ simp_rw red_map at *, simp at *,simp_rw [this], refl,} ,
 }
 
 @[simp]
@@ -112,12 +116,14 @@ def Gamma0_map' (N : ℕ) : (Gamma0_N N) → (zmod N) :=
 
 def Gamma_0_map (N : ℕ): (Gamma0_N N) →* (zmod N)   :={
  to_fun :=  λ g, (g 1 1 : zmod N),
- map_one' := by {simp only [integral_matrices_with_determinant.mat_m_vals,
-  matrix.special_linear_group.coe_one, int.cast_one, matrix.one_apply_eq,
-  coe_fn_coe_base, subgroup.coe_one, subtype.val_eq_coe], },
+ map_one' := by {
+  simp only [coe_fn_coe_base', integral_matrices_with_determinant.mat_m_vals,
+  matrix.special_linear_group.coe_one, int.cast_one,
+  matrix.one_apply_eq, subgroup.coe_one, subtype.val_eq_coe], },
  map_mul' := by {intros A B,
    have := (modular_group.mat_mul_expl A B).2.2.2,
     dsimp at *,
+    simp [coe_fn_coe_base'] at *,
     rw this,
     have ha:= A.property,
     simp at *,
@@ -144,9 +150,10 @@ begin
   have adet:= Gamma0_det N A,
   rw modular_group.det_of_22 at adet,
   simp only [int.cast_mul, int.cast_sub, subtype.val_eq_coe] at adet,
+  simp [coe_fn_coe_base'] at *,
   rw [hA, ha] at adet,
   simp at adet,
-  exact adet,
+  simp [adet, hA],
   intro ha,
   simp only [Gamma1_N_mem'],
   simp_rw Gamma_0_map,
@@ -177,7 +184,8 @@ begin
   have hxx:= classical.some_spec ha,
   simp_rw x at hx,
   rw ← hxx,
-  simp only [integral_matrices_with_determinant.mat_m_vals, coe_fn_coe_base, subtype.val_eq_coe] at *,
+  simp only [coe_fn_coe_base', integral_matrices_with_determinant.mat_m_vals, coe_fn_coe_base,
+  subtype.val_eq_coe] at *,
   simp only [hx, eq_self_iff_true, and_self],
   intro ha,
   simp only [integral_matrices_with_determinant.mat_m_vals, subtype.val_eq_coe] at *,
@@ -246,7 +254,8 @@ ext, split, intro x,
 simp only [conf_cong_mem] at x,
 let y := classical.some_spec x, rw ← y,
 let yy:= classical.some x,
-have hh:= h yy yy.property g⁻¹, simp only [integral_matrices_with_determinant.mat_m_vals, matrix.special_linear_group.coe_mul,
+have hh:= h yy yy.property g⁻¹,
+  simp only [integral_matrices_with_determinant.mat_m_vals, matrix.special_linear_group.coe_mul,
   inv_inv, subtype.val_eq_coe, matrix.special_linear_group.coe_inv] at hh, exact hh,
 intro y,
 have hh:= h x y g,

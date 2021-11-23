@@ -191,7 +191,7 @@ variables {G : Type u} [group G] [fintype G] {N : subgroup G} [normal N]
 -- We assume that `G` is a minimal counterexample to the `Schur-Zassenhaus` theorem.
 include h1 h2 h3
 
-/- We will arrive at a contradiction via the following steps:
+/-! We will arrive at a contradiction via the following steps:
  * step 0: `N` (the normal Hall subgroup) is nontrivial.
  * step 1: If `K` is a subgroup of `G` with `K ⊔ N = ⊤`, then `K = ⊤`.
  * step 2: `N` is a minimal normal subgroup, phrased in terms of subgroups of `G`.

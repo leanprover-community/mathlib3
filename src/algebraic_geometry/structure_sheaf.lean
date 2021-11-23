@@ -8,7 +8,7 @@ import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
 import ring_theory.localization
-import ring_theory.subring
+import ring_theory.subring.basic
 
 /-!
 # The structure sheaf on `prime_spectrum R`.
@@ -889,8 +889,7 @@ def comap (f : R →+* S) (U : opens (prime_spectrum.Top R))
       pi.add_apply, ring_hom.map_add], refl },
   map_mul' := λ s t, subtype.ext $ funext $ λ p, by
     { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun, (sections_subring R (op U)).coe_mul,
-      pi.mul_apply, ring_hom.map_mul], refl }
-}
+      pi.mul_apply, ring_hom.map_mul], refl } }
 
 @[simp]
 lemma comap_apply (f : R →+* S) (U : opens (prime_spectrum.Top R))

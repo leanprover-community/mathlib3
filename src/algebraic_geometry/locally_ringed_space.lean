@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import algebraic_geometry.ringed_space
+import algebraic_geometry.stalks
 import data.equiv.transfer_instance
 
 /-!

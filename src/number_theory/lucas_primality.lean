@@ -3,11 +3,11 @@ Copyright (c) 2020 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
-import data.zmod.basic
 import data.fintype.basic
-import field_theory.finite.basic
 import group_theory.order_of_element
 import tactic.zify
+import data.nat.totient
+import data.zmod.basic
 
 /-!
 # The Lucas test for primes.

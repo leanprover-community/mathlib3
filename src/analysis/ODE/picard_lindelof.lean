@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.special_functions.integrals
+import topology.metric_space.contracting
 
 /-!
 # Picard-Lindelöf (Cauchy-Lipschitz) Theorem

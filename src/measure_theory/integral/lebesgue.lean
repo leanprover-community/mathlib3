@@ -428,16 +428,13 @@ instance [semilattice_sup β] : semilattice_sup (α →ₛ β) :=
   sup_le := assume f g h hfh hgh a, sup_le (hfh a) (hgh a),
   .. simple_func.partial_order }
 
-instance [semilattice_sup_bot β] : semilattice_sup_bot (α →ₛ β) :=
-{ .. simple_func.semilattice_sup,.. simple_func.order_bot }
-
 instance [lattice β] : lattice (α →ₛ β) :=
 { .. simple_func.semilattice_sup,.. simple_func.semilattice_inf }
 
-instance [bounded_lattice β] : bounded_lattice (α →ₛ β) :=
-{ .. simple_func.lattice, .. simple_func.order_bot, .. simple_func.order_top }
+instance [has_le β] [bounded_order β] : bounded_order (α →ₛ β) :=
+{ .. simple_func.order_bot, .. simple_func.order_top }
 
-lemma finset_sup_apply [semilattice_sup_bot β] {f : γ → α →ₛ β} (s : finset γ) (a : α) :
+lemma finset_sup_apply [semilattice_sup β] [order_bot β] {f : γ → α →ₛ β} (s : finset γ) (a : α) :
   s.sup f a = s.sup (λc, f c a) :=
 begin
   refine finset.induction_on s rfl _,
@@ -516,7 +513,7 @@ end restrict
 section approx
 
 section
-variables [semilattice_sup_bot β] [has_zero β]
+variables [semilattice_sup β] [order_bot β] [has_zero β]
 
 /-- Fix a sequence `i : ℕ → β`. Given a function `α → β`, its `n`-th approximation
 by simple functions is defined so that in case `β = ℝ≥0∞` it sends each `a` to the supremum
@@ -1917,7 +1914,7 @@ end
 measurability of the function being integrated.) -/
 lemma lintegral_map_equiv [measurable_space β] (f : β → ℝ≥0∞) (g : α ≃ᵐ β) :
   ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
-g.measurable_embedding.lintegral_map f 
+g.measurable_embedding.lintegral_map f
 
 lemma measure_preserving.lintegral_comp {mb : measurable_space β} {ν : measure β} {g : α → β}
   (hg : measure_preserving g μ ν) {f : β → ℝ≥0∞} (hf : measurable f) :
@@ -2336,7 +2333,7 @@ lemma lintegral_le_of_forall_fin_meas_le [measurable_space α] {μ : measure α}
   (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : ae_measurable f μ)
   (hf : ∀ s, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
   ∫⁻ x, f x ∂μ ≤ C :=
-@lintegral_le_of_forall_fin_meas_le' _ _ _ _ le_rfl (by rwa trim_eq_self) C _ hf_meas hf
+@lintegral_le_of_forall_fin_meas_le' _ _ _ _ _ (by rwa trim_eq_self) C _ hf_meas hf
 
 /-- A sigma-finite measure is absolutely continuous with respect to some finite measure. -/
 lemma exists_absolutely_continuous_is_finite_measure

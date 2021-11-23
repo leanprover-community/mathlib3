@@ -156,7 +156,7 @@ lemma to_plus_mk {X : C} {P : Cᵒᵖ ⥤ D} (S : J.cover X) (x : P.obj (op X)) 
   (J.to_plus P).app _ x = mk (meq.mk S x) :=
 begin
   dsimp [mk],
-  let e : S ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
+  let e : S ⟶ ⊤ := hom_of_le (order_top.le_top _),
   rw ← colimit.w _ e.op,
   delta cover.to_multiequalizer,
   simp only [comp_apply],
@@ -177,7 +177,7 @@ begin
   simp only [← comp_apply, colimit.ι_pre, ι_colim_map_assoc],
   simp only [comp_apply],
   dsimp only [functor.op],
-  let e : (J.pullback I.f).obj (unop (op S)) ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
+  let e : (J.pullback I.f).obj (unop (op S)) ⟶ ⊤ := hom_of_le (order_top.le_top _),
   rw ← colimit.w _ e.op,
   simp only [comp_apply],
   congr' 1,

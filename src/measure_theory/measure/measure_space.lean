@@ -2905,7 +2905,7 @@ def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
 
 section measure_Ixx
 
-variables [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
+variables [preorder α] [topological_space α] [compact_Icc_space α]
   {m : measurable_space α} {μ : measure α} [is_locally_finite_measure μ] {a b : α}
 
 lemma measure_Icc_lt_top : μ (Icc a b) < ∞ := is_compact_Icc.measure_lt_top

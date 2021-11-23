@@ -549,7 +549,6 @@ begin
   { exact category.id_comp _ }
 end
 
-
 /--
 `has_pullback f g` represents a particular choice of limiting cone
 for the pair of morphisms `f : X ⟶ Z` and `g : Y ⟶ Z`.

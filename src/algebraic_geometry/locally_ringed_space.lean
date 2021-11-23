@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import algebraic_geometry.ringed_space
+import algebraic_geometry.stalks
 import data.equiv.transfer_instance
 
 /-!
@@ -13,9 +14,6 @@ import data.equiv.transfer_instance
 We define (bundled) locally ringed spaces (as `SheafedSpace CommRing` along with the fact that the
 stalks are local rings), and morphisms between these (morphisms in `SheafedSpace` with
 `is_local_ring_hom` on the stalk maps).
-
-## Future work
-* Define the restriction along an open embedding
 -/
 
 universes v u

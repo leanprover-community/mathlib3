@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import data.fin.basic
-import data.fintype.sort
 import order.category.LinearOrder
 
 /-! # Nonempty finite linear orders

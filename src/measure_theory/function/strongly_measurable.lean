@@ -167,7 +167,7 @@ hf.fin_strongly_measurable_of_set_sigma_finite measurable_set.univ (by simp)
 protected lemma measurable [measurable_space α] [metric_space β] [measurable_space β]
   [borel_space β] (hf : strongly_measurable f) :
   measurable f :=
-measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi.mpr hf.tendsto_approx)
+measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi_nhds.mpr hf.tendsto_approx)
 
 section arithmetic
 variables [measurable_space α] [topological_space β]
@@ -270,7 +270,7 @@ end
 protected lemma measurable [metric_space β] [measurable_space β] [borel_space β]
   (hf : fin_strongly_measurable f μ) :
   measurable f :=
-measurable_of_tendsto_metric (λ n, (hf.some n).measurable) (tendsto_pi.mpr hf.some_spec.2)
+measurable_of_tendsto_metric (λ n, (hf.some n).measurable) (tendsto_pi_nhds.mpr hf.some_spec.2)
 
 protected lemma add {β} [topological_space β] [add_monoid β] [has_continuous_add β] {f g : α → β}
   (hf : fin_strongly_measurable f μ) (hg : fin_strongly_measurable g μ) :

@@ -362,8 +362,8 @@ meta def search (prove : context → prop → state_t ℕ option proof) :
         | some q := (context.with_add (Γ.erase A) C (p.app q) B prove).1 n
         | none := match A' with
           | prop.imp A₁ A₂ :=
-            (do {
-              let Γ : context := Γ.erase A,
+            (do
+            { let Γ : context := Γ.erase A,
               a ← fresh_name,
               p₁ ← Γ.with_add A₁ (proof.hyp a) A₂ $ λ Γ_A₁ A₂,
                 Γ_A₁.with_add (prop.imp A₂ C) (proof.imp_imp_simp a p) A₂ prove,

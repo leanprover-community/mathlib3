@@ -79,7 +79,7 @@ begin
 end
 
 lemma trace_matrix_of_matrix_mul_vec [fintype ι] (b : ι → B) (P : matrix ι ι A) :
- trace_matrix A ((P.map (algebra_map A B)).mul_vec b) = P ⬝ (trace_matrix A b) ⬝ Pᵀ :=
+  trace_matrix A ((P.map (algebra_map A B)).mul_vec b) = P ⬝ (trace_matrix A b) ⬝ Pᵀ :=
 begin
   refine add_equiv.injective transpose_add_equiv _,
   rw [transpose_add_equiv_apply, transpose_add_equiv_apply, ← vec_mul_transpose,

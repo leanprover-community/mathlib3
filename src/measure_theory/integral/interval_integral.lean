@@ -543,6 +543,23 @@ by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _
   (r : 𝕜) (f : α → E) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]
 
+@[simp] lemma integral_smul_const {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
+  [is_scalar_tower ℝ 𝕜 E] [measurable_space 𝕜] [borel_space 𝕜] (f : α → 𝕜) (c : E) :
+  ∫ x in a..b, f x • c ∂μ = (∫ x in a..b, f x ∂μ) • c :=
+by simp only [interval_integral_eq_integral_interval_oc, integral_smul_const, smul_assoc]
+
+@[simp] lemma integral_const_mul {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, r * f x ∂μ = r * ∫ x in a..b, f x ∂μ :=
+integral_smul r f
+
+@[simp] lemma integral_mul_const {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, f x * r ∂μ = ∫ x in a..b, f x ∂μ * r :=
+by simpa only [mul_comm r] using integral_const_mul r f
+
+@[simp] lemma integral_div {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, f x / r ∂μ = ∫ x in a..b, f x ∂μ / r :=
+by simpa only [div_eq_mul_inv] using integral_mul_const r⁻¹ f
+
 lemma integral_const' (c : E) :
   ∫ x in a..b, c ∂μ = ((μ $ Ioc a b).to_real - (μ $ Ioc b a).to_real) • c :=
 by simp only [interval_integral, set_integral_const, sub_smul]

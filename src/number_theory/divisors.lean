@@ -400,4 +400,14 @@ begin
   exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 ⟨ha, h⟩))
 end
 
+/-- The factors of `n` are the prime divisors -/
+lemma prime_divisors_eq_to_filter_divisors_prime (n : ℕ) :
+  n.factors.to_finset = (divisors n).filter prime :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  { ext q,
+    simpa [hn, hn.ne', mem_factors] using and_comm (prime q) (q ∣ n) }
+end
+
 end nat

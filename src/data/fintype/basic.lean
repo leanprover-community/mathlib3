@@ -1198,6 +1198,10 @@ begin
     exact λ hf, ⟨λ a ha, f a, hf, rfl⟩ }
 end
 
+@[simp] lemma coe_pi_finset (t : Π a, finset (δ a)) :
+  (pi_finset t : set (Π a, δ a)) = set.pi set.univ (λ a, t a) :=
+by { ext, simp }
+
 lemma pi_finset_subset (t₁ t₂ : Π a, finset (δ a)) (h : ∀ a, t₁ a ⊆ t₂ a) :
   pi_finset t₁ ⊆ pi_finset t₂ :=
 λ g hg, mem_pi_finset.2 $ λ a, h a $ mem_pi_finset.1 hg a

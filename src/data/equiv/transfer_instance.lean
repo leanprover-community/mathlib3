@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import algebra.algebra.basic
-import algebra.field
+import algebra.field.basic
 import algebra.group.type_tags
 import ring_theory.ideal.local_ring
 import data.equiv.basic

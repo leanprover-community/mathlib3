@@ -127,7 +127,7 @@ def discriminant (A : Type u) {B : Type v} [comm_ring A] [comm_ring B] [algebra 
   (b : ι → B) := by { classical, exact (trace_matrix A b).det }
 
 lemma discriminant_def [decidable_eq ι] [fintype ι] (b : ι → B) :
-  discriminant A b = (trace_matrix A b).det := by convert rfl
+  discriminant A b = (trace_matrix A b).det := by congr
 
 namespace discriminant
 

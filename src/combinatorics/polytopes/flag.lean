@@ -404,6 +404,12 @@ theorem grade_fin.inj {α : Type u} [linear_order α] [order_top α] [graded α]
   function.injective (grade_fin : α → fin (grade_top α + 1)) :=
 grade_fin.strict_mono.injective
 
+/-- `grade` is an order embedding into ℕ for linearly ordered `α`. -/
+def oem_nat {α : Type u} [linear_order α] [graded α] : α ↪o ℕ :=
+{ to_fun := grade,
+  inj' := grade.inj α,
+  map_rel_iff' := le_iff_grade_le }
+
 /-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
 def oem_fin {α : Type u} [linear_order α] [order_top α] [graded α] : α ↪o fin (grade_top α + 1) :=
 { to_fun := grade_fin,

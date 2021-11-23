@@ -99,7 +99,7 @@ called `top` with `⊤ = univ`.
 * `finset.inter`: see "The lattice structure on subsets of finsets"
 * `finset.erase`: For any `a : α`, `erase s a` returns `s` with the element `a` removed.
 * `finset.sdiff`: Defines the set difference `s \ t` for finsets `s` and `t`.
-* `finset.prod`: Given finsets of `α` and `β`, defines finsets of `α × β`.
+* `finset.product`: Given finsets of `α` and `β`, defines finsets of `α × β`.
   For arbitrary dependent products, see `data.finset.pi`.
 * `finset.sigma`: Given finsets of `α` and `β`, defines finsets of the dependent sum type `Σ α, β`
 * `finset.bUnion`: Finite unions of finsets; given an indexing function `f : α → finset β` and a
@@ -397,6 +397,9 @@ instance : has_singleton α (finset α) := ⟨λ a, ⟨{a}, nodup_singleton a⟩
 @[simp] theorem singleton_val (a : α) : ({a} : finset α).1 = {a} := rfl
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : finset α) ↔ b = a := mem_singleton
+
+theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : finset α)) : x = y :=
+mem_singleton.1 h
 
 theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := not_congr mem_singleton
 
@@ -1832,6 +1835,10 @@ end
 @[simp] lemma to_finset_reverse {l : list α} :
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
+
+lemma to_finset_repeat_of_ne_zero {a : α} {n : ℕ} (hn : n ≠ 0):
+  (list.repeat a n).to_finset = {a} :=
+by { ext x, simp [hn, list.mem_repeat] }
 
 @[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
 by {ext, simp}

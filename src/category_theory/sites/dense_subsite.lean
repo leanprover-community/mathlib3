@@ -428,7 +428,7 @@ begin
   rw ← G.image_preimage (i ≫ f₂),
   apply hx,
   apply G.map_injective,
-  simp[eq]
+  simp [eq]
 end
 
 noncomputable
@@ -473,10 +473,11 @@ begin
     apply_with (reflects_isomorphisms.reflects (Sheaf_to_presheaf J A)) { instances := ff },
     exact is_iso.of_iso ((@as_iso _ _ _ _ _ (Ran.reflective A G.op)).app ℱ.val) },
   haveI : is_iso α.counit := nat_iso.is_iso_of_is_iso_app _,
-  exact { unit_iso := as_iso α.unit,
-    counit_iso := as_iso α.counit,
+  exact
+  { functor := sites.pullback A Hd.compatible_preserving Hp,
     inverse := sites.copullback A Hl,
-    functor := sites.pullback A Hd.compatible_preserving Hp,
+    unit_iso := as_iso α.unit,
+    counit_iso := as_iso α.counit,
     functor_unit_iso_comp' := λ ℱ, by convert α.left_triangle_components }
 end
 

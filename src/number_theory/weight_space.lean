@@ -721,7 +721,7 @@ end-/
 /-- A sequence has the `is_eventually_constant` predicate if all the elements of the sequence
   are eventually the same. -/
 def is_eventually_constant {α : Type*} (a : ℕ → α) : Prop :=
- { n | ∀ m, n < m → a (nat.succ m) = a m }.nonempty
+ { n | ∀ m, n ≤ m → a (nat.succ m) = a m }.nonempty
 
 /-- An eventually constant sequence is a sequence which has the `is_eventually_constant`
   predicate. -/
@@ -741,8 +741,23 @@ Inf { n | ∀ m, n ≤ m → a n = a m }
 noncomputable def sequence_limit {α : Type*} (a : @eventually_constant_seq α) :=
 a.to_seq (sequence_limit_index' a)
 
+example (m n : ℕ) (h : m ≤ n.succ) : m ≤ n ∨ m = n.succ := nat.of_le_succ h
+
 lemma sequence_limit_eq {α : Type*} (a : @eventually_constant_seq α) (m : ℕ)
-  (hm : sequence_limit_index' a ≤ m) : sequence_limit a = a.to_seq m := sorry
+  (hm : sequence_limit_index' a ≤ m) : sequence_limit a = a.to_seq m :=
+begin
+  rw sequence_limit,
+  induction m with d hd,
+  { rw nat.le_zero_iff at hm,rw hm, },
+  { have := nat.of_le_succ hm,
+    cases this,
+    { have le_d := hd this, rw le_d,
+      have mem := nat.Inf_mem a.is_eventually_const, --simp at mem,
+      simp only [set.mem_set_of_eq] at mem,
+      refine (mem d _).symm,
+      exact this, },
+    { rw this, }, },
+end
 
 /-- Given `a ∈ zmod (d * p^n)`, and `n < m`, the set of all `b ∈ zmod (d * p^m)` such that
   `b = a mod (d * p^n)`. -/
@@ -754,72 +769,6 @@ lemma mem_equi_class (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) (b : zmod (d *
   b ∈ equi_class p d n m h a ↔ (b : zmod (d * p^n)) = a :=
 ⟨λ hb, begin rw equi_class at hb, simp at hb, exact hb, end,
   λ hb, begin rw equi_class, simp, exact hb, end⟩
-
-instance (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) : fintype (equi_class p d n m h a) := sorry
-
-/-
-/-- For m > n, E_c(χ_(b,a,n)) = ∑_{j, b_j = a mod p^n} E_c(χ_(b,b_j,m)) -/
-lemma sum_char_fn_dependent_Ec (m : ℕ) (a : zmod (p^m)) (b : zmod d) (hc : gcd c p = 1) :
-  E_c p d hc m a = ∑ x in set.to_finset (equi_class p d m m.succ (lt_add_one m) a), E_c p d hc m.succ x :=
-sorry
-
-lemma loc_const_const (f : locally_constant (zmod d × ℤ_[p]) R) (a : zmod d × ℤ_[p]) : ∃ N : ℕ, ∀ m ≥ N,
-  ∀ y ∈ {b : zmod d × ℤ_[p] | (to_zmod_pow m) a.2 = (to_zmod_pow m) b.2}, f y = f a :=
-sorry -/
-
-lemma remove_extras (x : zmod d × ℤ_[p]) (n : ℕ) :
-  is_clopen {b : zmod d × ℤ_[p] | (to_zmod_pow n) x.snd = (to_zmod_pow n) b.snd ∧ x.fst = b.fst} :=
-sorry
-
-/-- TBD -/
-noncomputable def F : ℕ → discrete_quotient (zmod d × ℤ_[p]) := λ n,
-  ⟨λ a b, to_zmod_pow n a.2 = to_zmod_pow n b.2 ∧ a.1  = b.1,
-    ⟨ by tauto, by tauto, λ a b c hab hbc, begin simp at *, split, rw [hab.1, hbc.1], rw [hab.2, hbc.2], end⟩,
-    λ x, begin apply remove_extras p d x n,
---      convert_to is_clopen ((({x.1} : set (zmod d)) × (set.preimage (to_zmod_pow n) {to_zmod_pow n x.2})) : set ((zmod d) × ℤ_[p])),
---      { ext1 y, simp, split; try { intro h, rw set.mem_singleton_iff at *, rw h, }, },
---      { convert proj_lim_preimage_clopen p 1 n (to_zmod_pow n x), rw one_mul, simp, },
-end⟩
-
-/-lemma loc_const_const' (f : locally_constant (zmod d × ℤ_[p]) R) : ∃ N : ℕ, ∀ m ≥ N,
-  ∀ y ∈ {b : zmod d × ℤ_[p] | (to_zmod_pow m) a.2 = (to_zmod_pow m) b.2}, f y = f a :=
-sorry-/
-
-lemma factor_F (f : locally_constant (zmod d × ℤ_[p]) R) :
-  ∃ N : ℕ, F p d N ≤ f.discrete_quotient := sorry
-
-example {α : Type*} [h : fintype α] : fintype (@set.univ α) := by refine set_fintype set.univ
-
-lemma mul_prime_pow_pos (m : ℕ) : 0 < d * p^m :=
-begin
-  rw fact_iff at *,
-  refine mul_pos _ _,
-  { assumption, },
-  { apply pow_pos (nat.prime.pos _), assumption, },
-end
-
-/-- A variant of `zmod` which has type `finset _`. -/
-def zmod' (n : ℕ) (h : 0 < n) : finset (zmod n) :=
-  @finset.univ _ (@zmod.fintype n (fact_iff.2 h))
-
---def zmod' (n : ℕ) (h : fact (0 < n)) : finset (zmod n) :=
---  @set.to_finset _ (@set.univ (zmod n)) (@set_fintype _ (@zmod.fintype n h) set.univ _)
-
-lemma succ_eq_bUnion_equi_class : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.succ) =
-  (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion
-    (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) :=
-sorry
-
-lemma equi_class_eq (f : locally_constant (zmod d × ℤ_[p]) R) (x : zmod (d * p^m))
-  (y : zmod (d * p^m.succ))
-  (hy : y ∈ ((λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x)) :
-  f y = f x := sorry
-
-lemma fract_eq_self {a : ℚ} (h : 0 ≤ a) (ha : a < 1) : fract a = a :=
-begin
-   rw fract_eq_iff,
-   refine ⟨h, ha, ⟨0, _⟩⟩, simp,
-end
 
 lemma equi_class_some (n : ℕ) (x : zmod (d * p^n)) (y : equi_class p d n n.succ (lt_add_one n) x) :
   ∃ k : ℕ, k < p ∧ (y : zmod (d * p^n.succ)).val = x.val + k * d * p^n :=
@@ -840,60 +789,6 @@ begin
   { rw fact_iff at *,
     apply mul_pos, rw fact_iff at *, assumption,
     apply pow_pos, apply nat.prime.pos, assumption, },
-end
-
-/-lemma coe_addd (m : ℕ) (b c : zmod (d * p^m.succ)) : (b + c : zmod (d * p^m)) = (b : zmod (d * p^m)) + (c : zmod (d * p^m)) :=
-begin
-  simp only [eq_self_iff_true],
-end -/
--- (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m))
-lemma maybe_generalize (m : ℕ) : (coe : zmod (p^(m.succ)) → zmod (p^m)) ∘ (coe : zmod (p^m) → zmod (p^(m.succ))) = id :=
-begin
- ext x,
-  simp only [id.def, function.comp_app],
-  have : p^m ∣ (p^(m+1)),
-  { apply pow_dvd_pow, simp, },
-  rw ← @zmod.nat_cast_val (p^m) _ _ (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m)) x,
-  conv_rhs {
-    rw ← zmod.cast_id (p^m) x,
-    rw ← @zmod.nat_cast_val (p^m) _ _ (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m)) x, },
-  exact zmod.cast_nat_cast this x.val,
-end
-
-lemma val_coe_eq_val (n m : ℕ) (b : zmod n) [h1 : fact (0 < n)] [h2 : fact (n < m)] :
-  (b.val : zmod m).val = b.val :=
-begin
-  have : b.val = (b : zmod m).val,
-  { have h1 := zmod.val_lt b,
-    have h2 : b.val < m, { transitivity n, assumption, apply fact.out, },
-    have := zmod.val_cast_of_lt h2, rw ←this, apply congr_arg, simp, },
-  conv_rhs { rw this, },
-  apply congr_arg, rw @zmod.nat_cast_val _ _ _ _ _, assumption,
-end
-
-example (a b c d : ℕ) (h : a ≤ b) : a < b.succ :=
-begin
-  exact nat.lt_succ_iff.mpr h,
-end
-
-instance imp [fact (0 < d)] : ∀ n : ℕ, fact (0 < d * p^n) :=
-begin
-  rintros n, rw fact_iff at *, apply mul_pos,
-  { assumption, },
-  { apply ((pow_pos (nat.prime.pos _)) n), assumption, },
-end
-
-lemma sum_lt (m : ℕ) (a : zmod (d * p^m)) (x : fin p) : a.val + ↑x * (d * p ^ m) < d * p ^ m.succ :=
-begin
-  have h1 := zmod.val_lt a,
-  have h2 : ↑x * (d * p ^ m) ≤ (d * p ^ m) * (p - 1),
-  { rw mul_comm, apply nat.mul_le_mul_left, rw [←nat.lt_succ_iff, nat.succ_eq_add_one, nat.sub_add_cancel], apply x.2,
-    { apply le_of_lt (fact_iff.1 (nat.prime.one_lt' p)), }, },
-  have := add_lt_add_of_lt_of_le h1 h2,
-  convert this,
-  ring_nf, rw nat.sub_add_cancel,
-  { rw ←pow_succ, },
-  { apply le_of_lt, apply fact_iff.1 (nat.prime.one_lt' p), },
 end
 
 /-- Giving an equivalence between `equi_class` and `fin p`. -/
@@ -956,6 +851,150 @@ end⟩,
     { rw ←pow_succ, },
     { apply le_of_lt, apply fact_iff.1 (nat.prime.one_lt' p), },
   end }
+
+instance imp [fact (0 < d)] : ∀ n : ℕ, fact (0 < d * p^n) :=
+begin
+  rintros n, rw fact_iff at *, apply mul_pos,
+  { assumption, },
+  { apply ((pow_pos (nat.prime.pos _)) n), assumption, },
+end
+
+--example {α β : Type*} (h : α ≃ β) [fintype α] {s : set α} : fintype s := by library_search
+
+noncomputable instance (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) :
+  fintype (equi_class p d n m h a) :=
+begin
+  suffices : fintype (zmod (d * p^m)),
+  { refine set.finite.fintype _,
+    refine set.finite.subset _ _,
+    { exact set.univ, },
+    { rw set.univ_finite_iff_nonempty_fintype,
+      exact nonempty.intro this, },
+    { simp only [set.subset_univ], }, },
+  refine zmod.fintype (d * p^m),
+end
+
+/-
+/-- For m > n, E_c(χ_(b,a,n)) = ∑_{j, b_j = a mod p^n} E_c(χ_(b,b_j,m)) -/
+lemma sum_char_fn_dependent_Ec (m : ℕ) (a : zmod (p^m)) (b : zmod d) (hc : gcd c p = 1) :
+  E_c p d hc m a = ∑ x in set.to_finset (equi_class p d m m.succ (lt_add_one m) a), E_c p d hc m.succ x :=
+sorry
+
+lemma loc_const_const (f : locally_constant (zmod d × ℤ_[p]) R) (a : zmod d × ℤ_[p]) : ∃ N : ℕ, ∀ m ≥ N,
+  ∀ y ∈ {b : zmod d × ℤ_[p] | (to_zmod_pow m) a.2 = (to_zmod_pow m) b.2}, f y = f a :=
+sorry -/
+
+lemma remove_extras (x : zmod d × ℤ_[p]) (n : ℕ) :
+  is_clopen {b : zmod d × ℤ_[p] | (to_zmod_pow n) x.snd = (to_zmod_pow n) b.snd ∧ x.fst = b.fst} :=
+begin
+  set f : zmod d × ℤ_[p] → zmod d × zmod (p^n) := prod.map id (to_zmod_pow n) with hf,
+  convert_to is_clopen (set.preimage f {f x}),
+  { ext y, rw set.mem_preimage, rw set.mem_singleton_iff, rw hf, simp, rw and_comm, rw eq_comm,
+    rw @eq_comm _ ((to_zmod_pow n) x.snd) _, },
+  have : continuous f,
+  { refine continuous.prod_map (continuous_id) (continuous_to_zmod_pow p n), },
+  split,
+  { refine continuous_def.mp this {f x} _,
+    exact is_open_discrete {f x}, },
+  { refine continuous_iff_is_closed.mp this {f x} _, simp, },
+end
+
+/-- TBD -/
+noncomputable def F : ℕ → discrete_quotient (zmod d × ℤ_[p]) := λ n,
+  ⟨λ a b, to_zmod_pow n a.2 = to_zmod_pow n b.2 ∧ a.1  = b.1,
+    ⟨ by tauto, by tauto, λ a b c hab hbc, begin simp at *, split, rw [hab.1, hbc.1], rw [hab.2, hbc.2], end⟩,
+    λ x, begin apply remove_extras p d x n,
+--      convert_to is_clopen ((({x.1} : set (zmod d)) × (set.preimage (to_zmod_pow n) {to_zmod_pow n x.2})) : set ((zmod d) × ℤ_[p])),
+--      { ext1 y, simp, split; try { intro h, rw set.mem_singleton_iff at *, rw h, }, },
+--      { convert proj_lim_preimage_clopen p 1 n (to_zmod_pow n x), rw one_mul, simp, },
+end⟩
+
+/-lemma loc_const_const' (f : locally_constant (zmod d × ℤ_[p]) R) : ∃ N : ℕ, ∀ m ≥ N,
+  ∀ y ∈ {b : zmod d × ℤ_[p] | (to_zmod_pow m) a.2 = (to_zmod_pow m) b.2}, f y = f a :=
+sorry-/
+
+lemma factor_F (f : locally_constant (zmod d × ℤ_[p]) R) :
+  ∃ N : ℕ, F p d N ≤ f.discrete_quotient := sorry
+
+example {α : Type*} [h : fintype α] : fintype (@set.univ α) := by refine set_fintype set.univ
+
+lemma mul_prime_pow_pos (m : ℕ) : 0 < d * p^m :=
+begin
+  rw fact_iff at *,
+  refine mul_pos _ _,
+  { assumption, },
+  { apply pow_pos (nat.prime.pos _), assumption, },
+end
+
+/-- A variant of `zmod` which has type `finset _`. -/
+def zmod' (n : ℕ) (h : 0 < n) : finset (zmod n) :=
+  @finset.univ _ (@zmod.fintype n (fact_iff.2 h))
+
+--def zmod' (n : ℕ) (h : fact (0 < n)) : finset (zmod n) :=
+--  @set.to_finset _ (@set.univ (zmod n)) (@set_fintype _ (@zmod.fintype n h) set.univ _)
+
+lemma succ_eq_bUnion_equi_class : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.succ) =
+  (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion
+    (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) :=
+sorry
+
+lemma equi_class_eq (f : locally_constant (zmod d × ℤ_[p]) R) (x : zmod (d * p^m))
+  (y : zmod (d * p^m.succ))
+  (hy : y ∈ ((λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x)) :
+  f y = f x := sorry
+
+lemma fract_eq_self {a : ℚ} (h : 0 ≤ a) (ha : a < 1) : fract a = a :=
+begin
+   rw fract_eq_iff,
+   refine ⟨h, ha, ⟨0, _⟩⟩, simp,
+end
+
+/-lemma coe_addd (m : ℕ) (b c : zmod (d * p^m.succ)) : (b + c : zmod (d * p^m)) = (b : zmod (d * p^m)) + (c : zmod (d * p^m)) :=
+begin
+  simp only [eq_self_iff_true],
+end -/
+-- (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m))
+lemma maybe_generalize (m : ℕ) : (coe : zmod (p^(m.succ)) → zmod (p^m)) ∘ (coe : zmod (p^m) → zmod (p^(m.succ))) = id :=
+begin
+ ext x,
+  simp only [id.def, function.comp_app],
+  have : p^m ∣ (p^(m+1)),
+  { apply pow_dvd_pow, simp, },
+  rw ← @zmod.nat_cast_val (p^m) _ _ (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m)) x,
+  conv_rhs {
+    rw ← zmod.cast_id (p^m) x,
+    rw ← @zmod.nat_cast_val (p^m) _ _ (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m)) x, },
+  exact zmod.cast_nat_cast this x.val,
+end
+
+lemma val_coe_eq_val (n m : ℕ) (b : zmod n) [h1 : fact (0 < n)] [h2 : fact (n < m)] :
+  (b.val : zmod m).val = b.val :=
+begin
+  have : b.val = (b : zmod m).val,
+  { have h1 := zmod.val_lt b,
+    have h2 : b.val < m, { transitivity n, assumption, apply fact.out, },
+    have := zmod.val_cast_of_lt h2, rw ←this, apply congr_arg, simp, },
+  conv_rhs { rw this, },
+  apply congr_arg, rw @zmod.nat_cast_val _ _ _ _ _, assumption,
+end
+
+example (a b c d : ℕ) (h : a ≤ b) : a < b.succ :=
+begin
+  exact nat.lt_succ_iff.mpr h,
+end
+
+lemma sum_lt (m : ℕ) (a : zmod (d * p^m)) (x : fin p) : a.val + ↑x * (d * p ^ m) < d * p ^ m.succ :=
+begin
+  have h1 := zmod.val_lt a,
+  have h2 : ↑x * (d * p ^ m) ≤ (d * p ^ m) * (p - 1),
+  { rw mul_comm, apply nat.mul_le_mul_left, rw [←nat.lt_succ_iff, nat.succ_eq_add_one, nat.sub_add_cancel], apply x.2,
+    { apply le_of_lt (fact_iff.1 (nat.prime.one_lt' p)), }, },
+  have := add_lt_add_of_lt_of_le h1 h2,
+  convert this,
+  ring_nf, rw nat.sub_add_cancel,
+  { rw ←pow_succ, },
+  { apply le_of_lt, apply fact_iff.1 (nat.prime.one_lt' p), },
+end
 
 lemma sum_equiv {α β γ : Type*} {s : finset α} {s' : finset β} {φ : s ≃ s'} {f : α → γ}
   [add_comm_monoid γ] : ∑ x : s, f x = ∑ y : s', f(φ.inv_fun y) :=

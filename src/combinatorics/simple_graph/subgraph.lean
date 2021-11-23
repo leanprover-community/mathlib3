@@ -25,7 +25,7 @@ sub-relation of the adjacency relation of the simple graph.
 * `subgraph.is_spanning` for whether a subgraph is a spanning subgraph and
   `subgraph.is_induced` for whether a subgraph is an induced subgraph.
 
-* A `bounded_lattice (subgraph G)` instance, under the `subgraph` relation.
+* A `bounded_order (subgraph G)` instance, under the `subgraph` relation.
 
 * `simple_graph.to_subgraph`: If a `simple_graph` is a subgraph of another, then you can turn it
   into a member of the larger graph's `simple_graph.subgraph` type.
@@ -215,12 +215,10 @@ instance subgraph_inhabited : inhabited (subgraph G) := ⟨bot⟩
 /-- The relation that one subgraph is a subgraph of another. -/
 def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
-instance : bounded_lattice (subgraph G) :=
+instance : lattice (subgraph G) :=
 { le := is_subgraph,
   sup := union,
   inf := inter,
-  top := top,
-  bot := bot,
   le_refl := λ x, ⟨rfl.subset, λ _ _ h, h⟩,
   le_trans := λ x y z hxy hyz, ⟨hxy.1.trans hyz.1, λ _ _ h, hyz.2 (hxy.2 h)⟩,
   le_antisymm := begin
@@ -230,8 +228,6 @@ instance : bounded_lattice (subgraph G) :=
     ext v w,
     exact iff.intro (λ h, hxy.2 h) (λ h, hyx.2 h),
   end,
-  le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
-  bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩,
   sup_le := λ x y z hxy hyz,
             ⟨set.union_subset hxy.1 hyz.1,
               (λ v w h, h.cases_on (λ h, hxy.2 h) (λ h, hyz.2 h))⟩,
@@ -240,6 +236,12 @@ instance : bounded_lattice (subgraph G) :=
   le_inf := λ x y z hxy hyz, ⟨set.subset_inter hxy.1 hyz.1, (λ v w h, ⟨hxy.2 h, hyz.2 h⟩)⟩,
   inf_le_left := λ x y, ⟨set.inter_subset_left x.verts y.verts, (λ v w h, h.1)⟩,
   inf_le_right := λ x y, ⟨set.inter_subset_right x.verts y.verts, (λ v w h, h.2)⟩ }
+
+instance : bounded_order (subgraph G) :=
+{ top := top,
+  bot := bot,
+  le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
+  bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
 
 /-- Turn a subgraph of a `simple_graph` into a member of its subgraph type. -/
 @[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) :

@@ -760,7 +760,7 @@ lemma integrable_of_forall_fin_meas_le [sigma_finite μ]
   (C : ℝ≥0∞) (hC : C < ∞) {f : α → E} (hf_meas : ae_measurable f μ)
   (hf : ∀ s : set α, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
   integrable f μ :=
-@integrable_of_forall_fin_meas_le' _ _ _ _ _ _ _ _ le_rfl (by rwa trim_eq_self) C hC _ hf_meas hf
+@integrable_of_forall_fin_meas_le' _ _ _ _ _ _ _ _ _ (by rwa trim_eq_self) C hC _ hf_meas hf
 
 end sigma_finite
 
@@ -964,19 +964,18 @@ begin
   refl,
 end
 
-variables {E : Type*} [normed_group E] [measurable_space E] [borel_space E] [normed_space ℝ E]
-          {H : Type*} [normed_group H] [normed_space ℝ H]
+variables {E : Type*} [normed_group E] [measurable_space E] [borel_space E]
+          {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+          {H : Type*} [normed_group H] [normed_space 𝕜 H]
 
-lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[ℝ] E}
+lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[𝕜] E}
   (φ_int : integrable φ μ) (v : H) : integrable (λ a, φ a v) μ :=
 (φ_int.norm.mul_const ∥v∥).mono' (φ_int.ae_measurable.apply_continuous_linear_map v)
   (eventually_of_forall $ λ a, (φ a).le_op_norm v)
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜]
-  {G : Type*} [normed_group G] [normed_space 𝕜 G] [measurable_space G] [borel_space G]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [opens_measurable_space F]
+variables [measurable_space H] [opens_measurable_space H]
 
-lemma continuous_linear_map.integrable_comp {φ : α → F} (L : F →L[𝕜] G)
+lemma continuous_linear_map.integrable_comp {φ : α → H} (L : H →L[𝕜] E)
   (φ_int : integrable φ μ) : integrable (λ (a : α), L (φ a)) μ :=
 ((integrable.norm φ_int).const_mul ∥L∥).mono' (L.measurable.comp_ae_measurable φ_int.ae_measurable)
   (eventually_of_forall $ λ a, L.le_op_norm (φ a))

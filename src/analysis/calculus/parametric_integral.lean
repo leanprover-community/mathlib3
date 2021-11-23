@@ -56,19 +56,19 @@ noncomputable theory
 open topological_space measure_theory filter metric
 open_locale topological_space filter
 
-variables {α : Type*} [measurable_space α] {μ : measure α}
+variables {α : Type*} [measurable_space α] {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜]
           {E : Type*} [normed_group E] [normed_space ℝ E]
+          [normed_space 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
           [complete_space E] [second_countable_topology E]
           [measurable_space E] [borel_space E]
-          {H : Type*} [normed_group H] [normed_space ℝ H]
-          [second_countable_topology $ H →L[ℝ] E]
+          {H : Type*} [normed_group H] [normed_space 𝕜 H] [second_countable_topology $ H →L[𝕜] E]
 
 /-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming `F x₀` is
 integrable, `∥F x a - F x₀ a∥ ≤ bound a * ∥x - x₀∥` for `x` in a ball around `x₀` for ae `a` with
 integrable Lipschitz bound `bound` (with a ball radius independent of `a`), and `F x` is
 ae-measurable for `x` in the same ball. See `has_fderiv_at_integral_of_dominated_loc_of_lip` for a
 slightly less general but usually more useful version. -/
-lemma has_fderiv_at_integral_of_dominated_loc_of_lip' {F : H → α → E} {F' : α → (H →L[ℝ] E)}
+lemma has_fderiv_at_integral_of_dominated_loc_of_lip' {F : H → α → E} {F' : α → (H →L[𝕜] E)}
   {x₀ : H} {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
   (hF_meas : ∀ x ∈ ball x₀ ε, ae_measurable (F x) μ)
@@ -79,6 +79,7 @@ lemma has_fderiv_at_integral_of_dominated_loc_of_lip' {F : H → α → E} {F' :
   (h_diff : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (F' a) x₀) :
   integrable F' μ ∧ has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' a ∂μ) x₀ :=
 begin
+  letI : measurable_space 𝕜 := borel 𝕜, haveI : opens_measurable_space 𝕜 := ⟨le_rfl⟩,
   have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos,
   have nneg : ∀ x, 0 ≤ ∥x - x₀∥⁻¹ := λ x, inv_nonneg.mpr (norm_nonneg _) ,
   set b : α → ℝ := λ a, |bound a|,
@@ -156,7 +157,7 @@ end
 `F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on a ball around `x₀` for ae `a`
 (with a ball radius independent of `a`) with integrable Lipschitz bound, and `F x` is ae-measurable
 for `x` in a possibly smaller neighborhood of `x₀`. -/
-lemma has_fderiv_at_integral_of_dominated_loc_of_lip {F : H → α → E} {F' : α → (H →L[ℝ] E)} {x₀ : H}
+lemma has_fderiv_at_integral_of_dominated_loc_of_lip {F : H → α → E} {F' : α → (H →L[𝕜] E)} {x₀ : H}
   {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)
@@ -180,7 +181,7 @@ end
 `F x₀` is integrable, `x ↦ F x a` is differentiable on a ball around `x₀` for ae `a` with
 derivative norm uniformly bounded by an integrable function (the ball radius is independent of `a`),
 and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
-lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → α → E} {F' : H → α → (H →L[ℝ] E)}
+lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → α → E} {F' : H → α → (H →L[𝕜] E)}
   {x₀ : H} {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)
@@ -191,6 +192,8 @@ lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → α → E} {F' 
   (h_diff : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, has_fderiv_at (λ x, F x a) (F' x a) x) :
   has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' x₀ a ∂μ) x₀ :=
 begin
+  letI : normed_space ℝ H := normed_space.restrict_scalars ℝ 𝕜 H,
+  haveI : is_scalar_tower ℝ 𝕜 H := restrict_scalars.is_scalar_tower ℝ 𝕜 H,
   have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos,
   have diff_x₀ : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (F' x₀ a) x₀ :=
     h_diff.mono (λ a ha, ha x₀ x₀_in),
@@ -204,8 +207,6 @@ begin
   exact (has_fderiv_at_integral_of_dominated_loc_of_lip ε_pos hF_meas hF_int
                                                hF'_meas this bound_integrable diff_x₀).2
 end
-
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 
 /-- Derivative under integral of `x ↦ ∫ F x a` at a given point `x₀ : 𝕜`, `𝕜 = ℝ` or `𝕜 = ℂ`,
 assuming `F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on a ball around `x₀` for ae `a`
@@ -222,10 +223,9 @@ lemma has_deriv_at_integral_of_dominated_loc_of_lip {F : 𝕜 → α → E} {F' 
   (integrable F' μ) ∧ has_deriv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' a ∂μ) x₀ :=
 begin
   letI : measurable_space 𝕜 := borel 𝕜, haveI : opens_measurable_space 𝕜 := ⟨le_rfl⟩,
-  set L : E →L[𝕜] (𝕜 →L[ℝ] E) := (continuous_linear_map.restrict_scalarsL _ _ _ _ _).comp
-      (continuous_linear_map.smul_rightL 𝕜 𝕜 E 1),
+  set L : E →L[𝕜] (𝕜 →L[𝕜] E) := (continuous_linear_map.smul_rightL 𝕜 𝕜 E 1),
   replace h_diff : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (L (F' a)) x₀ :=
-    h_diff.mono (λ x hx, hx.has_fderiv_at.restrict_scalars ℝ),
+    h_diff.mono (λ x hx, hx.has_fderiv_at),
   have hm : ae_measurable (L ∘ F') μ := L.continuous.measurable.comp_ae_measurable hF'_meas,
   cases has_fderiv_at_integral_of_dominated_loc_of_lip ε_pos hF_meas hF_int hm h_lipsch
     bound_integrable h_diff with hF'_int key,

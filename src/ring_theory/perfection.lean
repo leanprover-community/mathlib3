@@ -11,7 +11,7 @@ import algebra.ring.pi
 import analysis.special_functions.pow
 import field_theory.perfect_closure
 import ring_theory.localization
-import ring_theory.subring
+import ring_theory.subring.basic
 import ring_theory.valuation.integers
 
 /-!

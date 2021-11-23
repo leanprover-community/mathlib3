@@ -33,7 +33,7 @@ def polytope.automorphism (α : Type u) [p : partial_order α] :=
 
 /-- One element covers another when there's no other element strictly in between. -/
 def polytope.covers {α : Type u} [preorder α] (y x : α) : Prop :=
-x < y ∧ ∀ z, ¬ (z ∈ set.Ioo x y)
+x < y ∧ ∀ z, ¬ z ∈ set.Ioo x y
 
 notation x ` ⋗ `:50 y:50 := polytope.covers x y
 notation x ` ⋖ `:50 y:50 := polytope.covers y x
@@ -51,6 +51,32 @@ class polytope.graded (α : Type u) [preorder α] extends order_bot α : Type u 
 /-- An abbreviation for the grade function of a graded order. -/
 abbreviation polytope.grade {α : Type u} [preorder α] [polytope.graded α] : α → ℕ :=
 polytope.graded.grade
+
+/-- If a natural covers another, it must be a successor. -/
+lemma nat.succ_of_cover (m n : ℕ) : m ⋖ n → n = m + 1 := begin
+  rintro ⟨hmnl, hmnr⟩,
+  cases le_or_gt n (m + 1) with hnm hnm,
+  exact antisymm hnm (nat.succ_le_of_lt hmnl),
+  exact (hmnr _ ⟨lt_add_one m, hnm⟩).elim,
+end
+
+instance : polytope.graded ℕ :=
+⟨id, rfl, strict_mono_id, nat.succ_of_cover⟩
+
+/-- Two `fin`s cover each other iff their values do. -/
+lemma fin.cover_iff_cover {n : ℕ} (a b : fin n) : a ⋖ b ↔ a.val ⋖ b.val :=
+  ⟨ λ ⟨hl, hr⟩, ⟨hl, λ c hc, (hr ⟨c, lt_trans hc.right b.property⟩) hc⟩,
+  λ ⟨hl, hr⟩, ⟨hl, λ c hc, hr c hc⟩ ⟩
+
+instance (n : ℕ) : polytope.graded (fin (n + 1)) :=
+{ grade := λ n, n,
+  grade_bot := refl _,
+  strict_mono := strict_mono_id,
+  hcovers := begin
+    intros x y,
+    rw fin.cover_iff_cover,
+    exact nat.succ_of_cover _ _,
+  end }
 
 open polytope
 
@@ -297,11 +323,11 @@ grade (⊤ : α)
 theorem grade.inj (α : Type u) [linear_order α] [graded α] : function.injective (grade : α → ℕ) :=
 graded.strict_mono.injective
 
-variables {α : Type u}
+variables {α : Type u} [partial_order α] [graded α]
 
 /-- An element has grade 0 iff it is the bottom element. -/
 @[simp]
-theorem eq_zero_iff_eq_bot [partial_order α] [graded α] (x : α) : grade x = 0 ↔ x = ⊥ :=
+theorem eq_zero_iff_eq_bot (x : α) : grade x = 0 ↔ x = ⊥ :=
 begin
   refine ⟨λ h, _, λ h, by cases h; exact graded.grade_bot⟩,
   rw ←@graded.grade_bot α at h,
@@ -313,7 +339,7 @@ end
 
 /-- An element has the top grade iff it is the top element. -/
 @[simp]
-theorem eq_grade_top_iff_eq_top [partial_order α] [graded α] [order_top α] (x : α) :
+theorem eq_grade_top_iff_eq_top [order_top α] (x : α) :
   grade x = grade_top α ↔ x = ⊤ :=
 begin
   refine ⟨λ h, _, λ h, by cases h; refl⟩,
@@ -323,36 +349,66 @@ begin
   exact not_le_of_lt (graded.strict_mono h1) (ge_of_eq h)
 end
 
+def order_embed [graded α] : @rel_hom α ℕ (<) (<) :=
+⟨_, graded.strict_mono⟩
+
+/-- In a linear order, two elements compare as their grades. -/
+@[simp]
+lemma lt_iff_grade_lt [linear_order α] [graded α] (x y : α) : x < y ↔ grade x < grade y :=
+begin
+  split, { apply graded.strict_mono },
+  contrapose,
+  intro hxy,
+  apply not_lt_of_ge,
+  apply graded.strict_mono.monotone,
+  exact le_of_not_gt hxy,
+end
+
+@[simp]
+lemma le_iff_grade_le [linear_order α] [graded α] (x y : α) : grade x ≤ grade y ↔ x ≤ y :=
+begin
+  split, {
+    contrapose,
+    exact λ hxy, not_le_of_gt (graded.strict_mono (lt_of_not_ge hxy)),
+  },
+  intro hxy,
+  apply graded.strict_mono.monotone,
+  exact hxy,
+end
+
+@[simp]
+lemma eq_iff_grade_eq [linear_order α] [graded α] (x y : α) : grade x = grade y ↔ x = y :=
+begin
+  split, { apply grade.inj },
+  exact λ hxy, congr_arg grade hxy,
+end
+
+@[simp]
+lemma ne_iff_grade_ne [linear_order α] [graded α] (x y : α) : grade x ≠ grade y ↔ x ≠ y :=
+not_congr (eq_iff_grade_eq x y)
+
 /-- A grade function into `fin` for `α` with a top element. -/
-def grade_fin [partial_order α] [order_top α] [graded α] (x : α) : fin (grade_top α + 1) :=
+def grade_fin [order_top α] (x : α) : fin (grade_top α + 1) :=
 ⟨grade x, by rw nat.lt_add_one_iff; exact graded.strict_mono.monotone le_top⟩
 
 @[simp]
-theorem grade_fin.val_eq [partial_order α] [order_top α] [graded α] (x : α) :
+theorem grade_fin.val_eq [order_top α] (x : α) :
   (grade_fin x).val = grade x :=
 rfl
 
-theorem grade_fin.strict_mono {α : Type u} [partial_order α] [order_top α] [graded α] :
+theorem grade_fin.strict_mono [order_top α] :
   strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
 graded.strict_mono
 
-theorem grade_fin.inj (α : Type u) [linear_order α] [order_top α] [graded α] :
+theorem grade_fin.inj {α : Type u} [linear_order α] [order_top α] [graded α] :
   function.injective (grade_fin : α → fin (grade_top α + 1)) :=
 grade_fin.strict_mono.injective
 
 /-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
-def oem_fin (α : Type u) [linear_order α] [order_top α] [graded α] : α ↪o fin (grade_top α + 1) :=
+def oem_fin {α : Type u} [linear_order α] [order_top α] [graded α] : α ↪o fin (grade_top α + 1) :=
 { to_fun := grade_fin,
-  inj' := grade_fin.inj α,
-  map_rel_iff' := begin
-    refine λ x y, ⟨λ h : grade_fin _ ≤ grade_fin _, _, λ h, (_ : grade_fin _ ≤ grade_fin _)⟩,
-      { by_cases hxy : x = y, { exact le_of_eq hxy },
-        apply le_of_lt,
-        apply grade_fin.strict_mono.monotone.reflect_lt,
-        cases le_iff_eq_or_lt.mp h with h h, { have := grade_fin.inj α h, contradiction },
-        assumption },
-      { exact grade_fin.strict_mono.monotone h },
-  end }
+  inj' := grade_fin.inj,
+  map_rel_iff' := le_iff_grade_le }
 
 end graded
 
@@ -360,6 +416,17 @@ theorem set.Ioo_is_empty_of_covers {α : Type u} [preorder α] {x y : α} : x �
 λ ⟨_, hr⟩, set.eq_empty_iff_forall_not_mem.mpr hr
 
 namespace flag
+
+/-- A point subdivides an interval into three. -/
+private lemma ioo_tricho {a b c : ℕ} (hc : c ∈ set.Ioo a b) (d: ℕ) : c = d ∨ c ∈ set.Ioo a d ∨ c ∈ set.Ioo d b :=
+begin
+  cases eq_or_ne c d with hcd hcd,
+    { exact or.inl hcd },
+  cases ne.lt_or_lt hcd with ha hb,
+    { exact or.inr (or.inl ⟨and.left hc, ha⟩) },
+    { exact or.inr (or.inr ⟨hb, and.right hc⟩) }
+end
+
 variables {α : Type u} [partial_order α]
 
 /-- An element covers another iff they do so in the flag. -/
@@ -382,18 +449,43 @@ end
 instance [graded α] (Φ : flag α) : graded Φ :=
 { grade := λ a, grade a.val,
   grade_bot := graded.grade_bot,
-  strict_mono := λ x y (h : x.val < y.val), graded.strict_mono h,
+  strict_mono := λ _ _ h, graded.strict_mono h,
   hcovers := λ _ _ hcov, graded.hcovers $ (cover_iff_flag_cover _ _).mp hcov }
 
-/-- A point subdivides an interval into three. -/
-private lemma ioo_tricho {a b c : ℕ} (hc : c ∈ set.Ioo a b) (d: ℕ) : c = d ∨ c ∈ set.Ioo a d ∨ c ∈ set.Ioo d b :=
+/-- In linear orders, `hcovers` is an equivalence. -/
+lemma hcovers_iff_grade_eq_succ_grade [linear_order α] [graded α] (a b : α) : a ⋖ b ↔ grade b = grade a + 1 :=
+sorry
+/-
 begin
-  cases eq_or_ne c d with hcd hcd,
-    { exact or.inl hcd },
-  cases ne.lt_or_lt hcd with ha hb,
-    { exact or.inr (or.inl ⟨and.left hc, ha⟩) },
-    { exact or.inr (or.inr ⟨hb, and.right hc⟩) }
+  refine ⟨graded.hcovers, λ hba, _⟩,
+  split, {
+    have : grade a < grade b := by suggest,
+    apply graded.strict_mono,
+    rw [flag.lt_iff_grade_lt, hba],
+    exact lt_add_one _,
+  },
+  rintros z ⟨hzl, hzr⟩,
+  rw ←nat.cover_iff_succ at hba,
+  rw flag.lt_iff_grade_lt at hzl,
+  rw flag.lt_iff_grade_lt at hzr,
+  exact hba.right _ ⟨hzl, hzr⟩,
 end
+-/
+
+/-- Two elements in a flag cover each other iff their grades do. -/
+theorem flag.cover_iff_nat_cover [graded α] {Φ : flag α} (a b : Φ) :
+  a ⋖ b ↔ grade a ⋖ grade b := sorry
+/-
+begin
+  split, {
+    intro h,
+    rw nat.cover_iff_succ,
+    exact graded.hcovers h,
+  },
+  intro hab,
+  rwa [flag.hcovers, ←nat.cover_iff_succ],
+end
+-/
 
 /-- A set of nats without gaps is an interval. The sizes of the gaps and intervals we consider are
     bounded by `n`, so that we may induct on it. -/
@@ -434,6 +526,40 @@ begin
   cases eq_or_lt_of_le hcb with hcb hcb,
     { rwa  hcb },
   exact all_ioo_of_ex_ioo b (λ c d _, hP c d) _ _ le_add_self ha hb _ ⟨hac, hcb⟩
+end
+
+/-- A number is a grade of some element in a flag. -/
+private def is_grade [graded α] (Φ : flag α) (n : ℕ) : Prop :=
+∃ a : Φ, grade a = n
+
+/-- The set of grades in a flag has no gaps. -/
+lemma grade_ioo [graded α] (Φ : flag α) (m n : ℕ) :
+  is_grade Φ m → is_grade Φ n → nonempty (set.Ioo m n) → ∃ r ∈ set.Ioo m n, is_grade Φ r :=
+begin
+  rintros ⟨a, ham⟩ ⟨b, hbn⟩ ⟨r, hr⟩,
+
+  have hnab : ¬a ⋖ b := begin
+    have : ¬m ⋖ n := λ hmn, (hmn.right r) hr,
+    rwa [←ham, ←hbn, ←flag.cover_iff_nat_cover] at this,
+  end,
+
+  have hab : a < b := begin
+    rw [graded.lt_iff_grade_lt, ham, hbn],
+    exact lt_trans hr.left hr.right,
+  end,
+
+/-
+  rcases between_of_ncover hnab hab with ⟨c, hac, hcb⟩,
+  use grade c,
+  split,
+    { split,
+      { rw ←ham,
+        exact has_grade.strict_mono hac, },
+      rw ←hbn,
+      exact has_grade.strict_mono hcb, },
+  exact ⟨c, rfl⟩,
+  -/
+  sorry
 end
 
 end flag

@@ -127,7 +127,7 @@ def discriminant (A : Type u) {B : Type v} [comm_ring A] [comm_ring B] [algebra 
   (b : ι → B) := by { classical, exact (trace_matrix A b).det }
 
 lemma discriminant_def [decidable_eq ι] [fintype ι] (b : ι → B) :
-  discriminant A b = (trace_matrix A b).det := by congr
+  discriminant A b = (trace_matrix A b).det := by convert rfl
 
 namespace discriminant
 
@@ -139,7 +139,7 @@ lemma zero_of_not_linear_independent [is_domain A] {b : ι → B} (hli : ¬linea
   discriminant A b = 0 :=
 begin
   classical,
-  obtain ⟨g, hg, i, hi⟩ := fintype.linear_dependent_iff.1 hli,
+  obtain ⟨g, hg, i, hi⟩ := fintype.not_linear_independent_iff.1 hli,
   have : (trace_matrix A b).mul_vec g = 0,
   { ext i,
     have : ∀ j, (trace A B) (b i * b j) * g j = (trace A B) (((g j) • (b j)) * b i),
@@ -194,7 +194,7 @@ lemma _root_.algebra.trace_matrix_eq_embeddings_matrix_reindex_mul_trans
   (e : ι ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
 by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
-  mul_transpose_eq_reindex_mul_reindex_transpose, ← equiv.coe_refl, equiv.refl_symm]
+  mul_transpose_eq_minor_mul_minor_transpose, ← equiv.coe_refl, equiv.refl_symm]
 
 lemma eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι]
   (e : ι ≃ (L →ₐ[K] E)) : algebra_map K E (discriminant K b) =

@@ -865,7 +865,7 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
 
 /-- The difference with `submodule.span_induction` is that this acts on the subtype. -/
 lemma span_induction' {p : span R s → Prop} (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_span h⟩) (H0 : p 0)
-  (H1 : ∀ x y, p x → p y → p (x + y)) (H2 : ∀ (a:R) x, p x → p (a • x)) (x : span R s) : p x :=
+  (H1 : ∀ x y, p x → p y → p (x + y)) (H2 : ∀ (a : R) x, p x → p (a • x)) (x : span R s) : p x :=
 subtype.rec_on x $ λ x hx, begin
   refine exists.elim _ (λ (hx : x ∈ span R s) (hc : p ⟨x, hx⟩), hc),
   refine span_induction hx (λ m hm, ⟨subset_span hm, Hs m hm⟩) ⟨zero_mem _, H0⟩

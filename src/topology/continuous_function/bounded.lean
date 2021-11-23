@@ -967,4 +967,13 @@ module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
 
+lemma nnreal.upper_bound {α : Type*} [topological_space α]
+  (f : α →ᵇ ℝ≥0) (x : α) : f x ≤ nndist f 0 :=
+begin
+  have key : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
+  { exact @dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
+  simp only [coe_zero, pi.zero_apply] at key,
+  rwa nnreal.nndist_zero_eq_val' (f x) at key,
+end
+
 end bounded_continuous_function

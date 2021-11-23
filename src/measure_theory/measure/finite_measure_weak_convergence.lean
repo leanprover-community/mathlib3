@@ -186,6 +186,8 @@ begin
   exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
 end
 
+#check bounded_continuous_function
+
 -- Only useful here or more generally?
 -- Where to place?
 lemma _root_.bounded_continuous_function.nnreal.to_ennreal_comp_measurable {α : Type*}
@@ -195,7 +197,7 @@ measurable_coe_nnreal_ennreal.comp f.continuous.measurable
 
 -- This does not seem unreasonable to me, although it may be a bit specific.
 -- Where to place?
-lemma bounded_continuous_function.nnreal.upper_bound {α : Type*} [topological_space α]
+lemma bounded_continuous_function.nnreal.upper_bound' {α : Type*} [topological_space α]
   (f : α →ᵇ ℝ≥0) (x : α) : f x ≤ nndist f 0 :=
 begin
   have key' : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,

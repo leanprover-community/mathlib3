@@ -503,12 +503,11 @@ lemma integrable.add [borel_space β] [second_countable_topology β]
 ⟨hf.ae_measurable.add hg.ae_measurable, hf.add' hg⟩
 
 lemma integrable_finset_sum {ι} [borel_space β] [second_countable_topology β] (s : finset ι)
-  {f : ι → α → β} (hf : ∀ i, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
+  {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
 begin
-  refine finset.induction_on s _ _,
-  { simp only [finset.sum_empty, integrable_zero] },
-  { assume i s his ih, simp only [his, finset.sum_insert, not_false_iff],
-    exact (hf _).add ih }
+  simp only [← finset.sum_apply],
+  exact finset.sum_induction f (λ g, integrable g μ) (λ _ _, integrable.add)
+    (integrable_zero _ _ _) hf,
 end
 
 lemma integrable.neg [borel_space β] {f : α → β} (hf : integrable f μ) : integrable (-f) μ :=

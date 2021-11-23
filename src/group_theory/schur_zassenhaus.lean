@@ -180,6 +180,12 @@ universe u
 
 namespace schur_zassenhaus_induction
 
+/-! ## Proof of the Schur-Zassenhaus theorem
+
+In this section, we prove the Schur-Zassenhaus theorem.
+The proof is by contradiction. We assume that `G` is a minimal counterexample to the theorem.
+-/
+
 variables {G : Type u} [group G] [fintype G] {N : subgroup G} [normal N]
   (h1 : nat.coprime (fintype.card N) N.index)
   (h2 : ∀ (G' : Type u) [group G'] [fintype G'], by exactI
@@ -188,7 +194,6 @@ variables {G : Type u} [group G] [fintype G] {N : subgroup G} [normal N]
     ∃ H' : subgroup G', is_complement' N' H')
   (h3 : ∀ H : subgroup G, ¬ is_complement' N H)
 
--- We assume that `G` is a minimal counterexample to the `Schur-Zassenhaus` theorem.
 include h1 h2 h3
 
 /-! We will arrive at a contradiction via the following steps:

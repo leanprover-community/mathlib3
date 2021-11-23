@@ -1442,7 +1442,7 @@ lemma conj_transpose_reindex [has_star α] (eₘ : m ≃ l) (eₙ : n ≃ o) (M 
   (reindex eₘ eₙ M)ᴴ = (reindex eₙ eₘ Mᴴ) :=
 rfl
 
-lemma mul_transpose_eq_reindex_mul_reindex_transpose [fintype n] [fintype m] [semiring α]
+lemma mul_transpose_eq_minor_mul_minor_transpose [fintype n] [fintype m] [semiring α]
   (e : n ≃ m) (M : matrix n m α) :
   M ⬝ Mᵀ = (M.minor id e) ⬝ (M.minor id e)ᵀ  :=
 by rw [transpose_minor, ←minor_mul_equiv, minor_id_id]

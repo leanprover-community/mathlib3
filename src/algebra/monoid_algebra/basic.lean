@@ -390,6 +390,19 @@ lemma single_one_mul_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x
   (single 1 r * f) x = r * f x :=
 f.single_mul_apply_aux $ λ a, by rw [one_mul]
 
+lemma support_single_mul [left_cancel_semigroup G]
+  (f : monoid_algebra k G) (r : k) (hr : ∀ y, r * y = 0 ↔ y = 0) (x : G) :
+  (single x r * f).support = f.support.map (mul_left_embedding x) :=
+begin
+  ext y, simp only [mem_support_iff, mem_map, exists_prop, mul_left_embedding_apply],
+  by_cases H : ∃ a, x * a = y,
+  { rcases H with ⟨a, rfl⟩,
+    rw [single_mul_apply_aux f (λ _, mul_right_inj x)],
+    simp [hr] },
+  { push_neg at H,
+    simp [mul_apply, H] }
+end
+
 lemma lift_nc_smul [mul_one_class G] {R : Type*} [semiring R] (f : k →+* R) (g : G →* R) (c : k)
   (φ : monoid_algebra k G) :
   lift_nc (f : k →+ R) g (c • φ) = f c * lift_nc (f : k →+ R) g φ :=
@@ -1085,6 +1098,11 @@ lemma support_mul_single [add_right_cancel_semigroup G]
   (f : add_monoid_algebra k G) (r : k) (hr : ∀ y, y * r = 0 ↔ y = 0) (x : G) :
   (f * single x r : add_monoid_algebra k G).support = f.support.map (add_right_embedding x) :=
 @monoid_algebra.support_mul_single k (multiplicative G) _ _ _ _ hr _
+
+lemma support_single_mul [add_left_cancel_semigroup G]
+  (f : add_monoid_algebra k G) (r : k) (hr : ∀ y, r * y = 0 ↔ y = 0) (x : G) :
+  (single x r * f : add_monoid_algebra k G).support = f.support.map (add_left_embedding x) :=
+@monoid_algebra.support_single_mul k (multiplicative G) _ _ _ _ hr _
 
 lemma lift_nc_smul {R : Type*} [add_zero_class G] [semiring R] (f : k →+* R)
   (g : multiplicative G →* R) (c : k) (φ : monoid_algebra k G) :

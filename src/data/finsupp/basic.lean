@@ -1181,6 +1181,10 @@ add_monoid_hom.congr_fun lift_add_hom_single_add_hom f
   ∑ (j : α), (single i m) j = m :=
 by simp [single]
 
+@[simp] lemma fintype_sum_single' [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+  ∑ (j : α), (single j m) i = m :=
+by simp [single]
+
 @[simp] lemma lift_add_hom_apply_single [add_comm_monoid M] [add_comm_monoid N]
   (f : α → M →+ N) (a : α) (b : M) :
   lift_add_hom f (single a b) = f a b :=

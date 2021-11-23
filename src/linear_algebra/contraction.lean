@@ -107,11 +107,11 @@ begin
   apply curry_injective,
   apply basis.ext b.dual_basis,
   intro i, ext n,
-  simp [hom_dual_tensor_apply],
-  simp [finsupp.single_one_smul],
-  generalize : (b.coord i ⊗ₜ[R] n) = t,
+  suffices H : ∑ (x : ι), (finsupp.single x (1:R)) i • b.coord x ⊗ₜ[R] n = b.coord i ⊗ₜ[R] n,
+  { simp [hom_dual_tensor_apply, -finsupp.single_one_smul, H] },
+  simp,
+  --rw finsupp.fintype_sum_single,
   sorry,
-  --simp [finsupp.sum_fintype, finsupp.sum_single (finsupp.single _ t)],
 end
 
 

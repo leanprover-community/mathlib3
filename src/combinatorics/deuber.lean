@@ -1,83 +1,84 @@
 import combinatorics.hales_jewett
-import data.fintype.sort
 import combinatorics.pigeonhole
-import order.lexicographic
+import combinatorics.to_mathlib
+/-
+# Partition regularity of (m,p,c)-sets
+
+One basic result in additive Ramsey theory is strengthened van der Waerden: for any `p c : ℕ`,
+whenever the positive naturals `ℕ⁺` are finitely coloured, there exists `n, d : ℕ⁺` such that
+`c * d`, `n`, `n + d`, ... `n + p*d` all have the same colour (we'll call a collection of this form
+an 'AP with common difference'). In 1973, Deuber introduced the notion of '`(m,p,c)`-set' (which
+reduces to "AP with common difference" in the case `m=2`) and proved the corresponding theorem
+for `(m,p,c)`-sets. More precisely, for any `m, p, c` there exists `n, q, d` such that whenever the
+naturals are finitely colored, every `n, q, d`-set contains a monochromatic `m, p, c`-set. (Rado's
+theorem implies that the notion of `(m,p,c)`-set is in some sense as general as possible for this to
+be true.)
+
+This file contains a formalisation of this result. The basic structure of the proof is standard:
+we fix a finite number of colors and show that for any `r` there exists `n, q, d` such that any
+`(n, q, d)`-set contains an `(r, p, c)`-set where every row is monochromatic. This is sufficient,
+since taking `r` large enough guarantees that at least some colour is shared by at least `m` rows.
+The proof then proceeds by induction on `r`, using the extended Hales-Jewett theorem in the
+inductive step.
+
+But many of the details are non-standard.
+
+- We work with an arbitrary `[comm_monoid_with_zero R]` instead of the integers.
+
+- In place of `{-p, ..., p}`, we work with a general finite subset `p : set R`.
+
+- We allow arbitrary `c : R` and bundle the pair `(p, c)` in a structure `P R`. Henceforth we just
+write `p` for this pair.
+
+- Instead of working with `(m, p)`-sets embedded in `R`, we work with the subset of `fin m → R`
+which parametrises such a set. The former perspective is dealt with in
+`combinatorics/concrete_deuber`.
+
+The proof relies on several different methods of finding an `(m, p)`-set inside an
+`(n, q)`-set. We abstract these methods in a structure `inc R m n`. An element `f : inc R m n`
+in particular determines a function `f.map_vec : (fin m → R) → (fin n → R)`, and with an additional
+assumption (`f.small q`) this function takes the 'abstract' `(m, p)`-set inside the abstract
+`(n, p * q)`-set.
+
+Much of the work of the proof is thus delegated to defining various 'inclusions' `f : inc R m n`.
+Specifically:
+
+- An injective monotone function `g : fin m ↪o fin m` determines
+`order_embedding.inc g : inc R m n`. This corresponds to deleting some rows from an `(m,p)`-set;
+it's used to go from 'each row is monochromatic' to 'all rows have the same colour'.
+
+- We can compose inclusions using `inc.comp : inc R n k → inc R m n → inc R m k`. This is used in
+several parts of the proof: it corresponds to the idea that from `s ⊆ t ⊆ u` we may deduce `s ⊆ u`.
+
+- `inc.scaling` scales `fin m → R` up by some factor `c : R`. This is used in the inductive step,
+to make sure that some numbers are multiples of `c`.
+
+- `inc.extend` gets us from `inc R m n` to `inc R (m+1) (n+1)`. This is used in the inductive step,
+to make one more row monochromatic.
+
+- `inc_of_surj` gives us `inc R m n` from a 'partial surjection' `fin n → option (fin m)`.
+Essentially, this simultaneously deletes some elements of `fin n` and merges some others. It is a
+bit messy since we also need to reorder `fin m`...
+
+One has to be a bit careful when stating the main results to avoid making them vacuous. For example,
+the `(m, p, c)`-set determined by the zero `m`-tuple `(0, …, 0)` is just `{0}`, which is always
+monochromatic. So really the interesting result is that one can find non-zero `m`-tuples which
+determine monochromatic sets. One avoids this trap when saying that the monochromatic
+`(m, p, c)`-set can be found in an arbitrary `(n, q, d)`-set, since the latter set can be chosen not
+to contain `0`.
+
+In our formulation another trap is the `c = 0` case. Every `(n, q, 0)`-set contains `0`, and there
+is a trivial inclusion `inc m n` which sends every `v : fin m → R` to `0`. We get around this by
+making the main theorem `deuber` return a power `p^l` of `p` isntead of an arbitrary `q`; as long
+as `p.C ≠ 0` we then have `(p^l).C ≠ 0` in cases of interest.
+
+-/
 
 noncomputable theory
 open option function combinatorics
 open_locale classical
 
-@[simps] def lex.fst {α β} [preorder α] [preorder β] : lex α β →ₘ α :=
-{ to_fun := prod.fst,
-  monotone' := λ i j h, by { cases h, { apply le_of_lt, assumption }, { refl } } }
-
-section
-
-variables {α β : Type*} {m : ℕ} [fintype α] [linear_order β] (h : fintype.card α = m) (f : α → β)
-include h
-
-/-- Sorting a function. Informally, given an indexed collection of ordered values, we order the
-indices to match the values. -/
-lemma monotone_replacement_exists : ∃ (e : fin m ≃ α), monotone (f ∘ e) :=
-begin
-  have e0 : α ≃ fin m := fintype.equiv_fin_of_card_eq h,
-  let f' : α → lex β (fin m) := λ a, (f a, e0 a),
-  letI : linear_order α := linear_order.lift f' _,
-  swap, { intros a b ab, apply e0.injective, convert congr_arg prod.snd ab },
-  have eo : fin m ≃o α := mono_equiv_of_fin _ h,
-  refine ⟨eo.to_equiv, monotone.comp _ eo.monotone⟩,
-  change monotone (lex.fst ∘ f'),
-  exact monotone.comp lex.fst.monotone (λ a b h, h),
-end
-
-/-- Given `fintype.card α = m` and `f : α → β`, this is an equivalence `fin m ≃ α` which makes `f`
-monotone. -/
-def monotone_replacement_equiv : fin m ≃ α := (monotone_replacement_exists h f).some
-/-- Given `fintype.card α = m` and `f : α → β`, this is a monotone replacement `fin m → β`. -/
-def monotone_replacement_preorder_hom : fin m →ₘ β :=
-⟨_, (monotone_replacement_exists h f).some_spec⟩
-
-@[simp] lemma monotone_replacement_preorder_hom_apply (i : fin m) :
-  monotone_replacement_preorder_hom h f i = f (monotone_replacement_equiv h f i) := rfl
-
-end
-
-def order_emb_of_card_le {m β} [linear_order β] {s : finset β} (h : m ≤ s.card) : fin m ↪o β :=
-(fin.cast_le h).trans (s.order_emb_of_fin rfl)
-
-lemma order_emb_mem {m β} [linear_order β] {s : finset β} (h : m ≤ s.card) (a) :
-  order_emb_of_card_le h a ∈ s :=
-by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of_fin_mem]
-
-def preorder_hom.succ {m n : ℕ} (f : fin m →ₘ fin n) : fin (m+1) →ₘ fin (n+1) :=
-{ to_fun := fin.snoc (λ i, (f i).cast_succ) (fin.last _),
-  monotone' := begin
-    refine fin.last_cases _ _,
-    { intros j ij, cases fin.eq_last_of_not_lt (not_lt_of_le ij), refl },
-    intros i, refine fin.last_cases _ _,
-    { intro junk, rw [fin.snoc_last], apply fin.le_last },
-    intros j ij,
-    rw [fin.snoc_cast_succ, fin.snoc_cast_succ, order_embedding.le_iff_le],
-    apply f.mono, exact ij,
-  end }
-
-@[simp] lemma preorder_hom.succ_apply_last {m n : ℕ} (f : fin m →ₘ fin n) :
-  f.succ (fin.last m) = fin.last n :=
-by { unfold preorder_hom.succ, simp only [preorder_hom.coe_fun_mk, fin.snoc_last] }
-
-@[simp] lemma preorder_hom.succ_apply_cast_succ {m n : ℕ} (f : fin m →ₘ fin n) (i : fin m) :
-  f.succ (i.cast_succ) = (f i).cast_succ :=
-by { unfold preorder_hom.succ, simp only [preorder_hom.coe_fun_mk, fin.snoc_cast_succ] }
-
-lemma option.mem_orelse_iff {α} (a b : option α) (x : α) :
-  x ∈ a.orelse b ↔ x ∈ a ∨ (a = none ∧ x ∈ b) :=
-begin
-  cases a,
-  { simp only [true_and, false_or, not_mem_none, eq_self_iff_true, none_orelse'] },
-  { simp only [some_orelse', or_false, false_and] }
-end
-
-variables (R : Type) [comm_monoid_with_zero R]
+variables (R : Type*) [comm_monoid_with_zero R]
 
 @[ext] structure P :=
 (set : set R)
@@ -120,7 +121,7 @@ variables (m n k : ℕ) (p q r : P R)
 @[simp] lemma mul_C : (p * q).C = p.C * q.C := rfl
 @[simp] lemma one_C : (1 : P R).C = 1 := rfl
 
-@[ext] structure inc : Type :=
+@[ext] structure inc :=
 (emb : fin m →ₘ fin n)
 (mat : fin n → option (R × fin m))
 (le_emb : ∀ {j r i}, (r, i) ∈ mat j → j ≤ emb i) -- want to join this with mat_mem i think
@@ -217,9 +218,9 @@ lemma small_scaling : (scaling m p).small p :=
 
 lemma scaling_map_vec (v : fin m → R) (i : fin m) : (scaling m p).map_vec v i = v i * p.C := rfl
 
-variables (n) (κ : Type) (R)
+variables (n) (κ : Type*) (R)
 
-def coloring : Type := (fin m → R) → κ
+def coloring : Type* := (fin m → R) → κ
 
 variables {R m n κ} (co : coloring R n κ)
 
@@ -314,7 +315,7 @@ begin
     rw [inc.extend_mat, fin.snoc_cast_succ, ho, map_some', some_orelse'] }
 end
 
-section bla
+section inc_of_surj
 
 variables {f : fin n → option (fin m)} (hf : ∀ i, ∃ j, f j = some i)
 include hf
@@ -331,7 +332,7 @@ begin
 end
 variable {f}
 
-@[simps] def inc_of_this : inc R m n :=
+@[simps] def inc_of_surj : inc R m n :=
 { emb := monotone_replacement_preorder_hom (fintype.card_fin _) (g hf),
   mat := λ j, (f j).elim none $ λ i,
     some (1, (monotone_replacement_equiv (fintype.card_fin _) (g hf)).symm i),
@@ -344,22 +345,22 @@ variable {f}
       rw [←hx.2, equiv.apply_symm_apply],
     end }
 
-lemma small_inc_of_this : (inc_of_this hf).small (1 : P R) :=
+lemma small_inc_of_surj : (inc_of_surj hf).small (1 : P R) :=
 { mat_emb := λ i, by simp only [fg_eq_some f hf, monotone_replacement_preorder_hom_apply,
-    option.elim, equiv.symm_apply_apply, one_C, inc_of_this_emb, inc_of_this_mat],
-  mat_mem := λ j r i h, by { simp only [mem_def, inc_of_this_mat] at h, rcases f j,
+    option.elim, equiv.symm_apply_apply, one_C, inc_of_surj_emb, inc_of_surj_mat],
+  mat_mem := λ j r i h, by { simp only [mem_def, inc_of_surj_mat] at h, rcases f j,
     { rintro ⟨⟩ }, { rintro ⟨⟩, apply P.C_mem } } }
 
-lemma inc_of_this_map_vec {i j} {w : fin m → R} (h : f j = some i) :
-  (inc_of_this hf).map_vec w j =
+lemma inc_of_surj_map_vec {i j} {w : fin m → R} (h : f j = some i) :
+  (inc_of_surj hf).map_vec w j =
     w ((monotone_replacement_equiv (fintype.card_fin _) (g hf)).symm i) :=
-by simp only [h, inc.map_vec, mul_one, option.elim, inc_of_this_mat]
+by simp only [h, inc.map_vec, mul_one, option.elim, inc_of_surj_mat]
 
-lemma inc_of_this_map_vec' {j} {w : fin m → R} (h : f j = none) :
-  (inc_of_this hf).map_vec w j = 0 :=
-by simp only [h, inc.map_vec, option.elim, inc_of_this_mat]
+lemma inc_of_surj_map_vec' {j} {w : fin m → R} (h : f j = none) :
+  (inc_of_surj hf).map_vec w j = 0 :=
+by simp only [h, inc.map_vec, option.elim, inc_of_surj_mat]
 
-end bla
+end inc_of_surj
 
 variables {R} (m n p q) (I : ℕ) (κ)
 
@@ -374,9 +375,9 @@ begin
   let fo : fin I → option (fin n) := λ j, (l.idx_fun j).elim (λ _, none) some,
   have fo_surj : ∀ i, ∃ j, fo j = some i,
   { intro i, refine (l.proper i).imp _, intros j hj, simp_rw [fo, hj, sum.elim_inr] },
-  let nI : inc R n I := (scaling I p).comp (inc_of_this fo_surj),
+  let nI : inc R n I := (scaling I p).comp (inc_of_surj fo_surj),
   have nI_small : nI.small p,
-  { rw ←one_mul p, exact (small_scaling _ _).comp (small_inc_of_this _) },
+  { rw ←one_mul p, exact (small_scaling _ _).comp (small_inc_of_surj _) },
   specialize h1 (co.restrict (fin.cast_succ.inc.comp nI)),
   obtain ⟨mn, ksucc, mn_small, hksucc⟩ := h1,
   let fa : fin I → option (p * q).set := λ j, (l.idx_fun j).elim some (λ _, none),
@@ -388,7 +389,7 @@ begin
   { intros v j r h,
     have : fa j = some r, simp_rw [fa, h, sum.elim_inl],
     rw [hmI, extend_map_vec_1 this],
-    simp only [inc.comp_mat, inc_of_this_mat, fo, h, option.elim, sum.elim_inl, none_bind,
+    simp only [inc.comp_mat, inc_of_surj_mat, fo, h, option.elim, sum.elim_inl, none_bind,
       scaling_mat, some_bind, map_none'], },
   have map_vec_inr : ∀ {v : fin (m+1) → R} {j : fin I} {i} (h : l.idx_fun j = sum.inr i),
     mI.map_vec v j.cast_succ = (nI.comp mn).map_vec (v ∘ fin.cast_succ) j,
@@ -409,7 +410,7 @@ begin
     rcases ho : l.idx_fun j with r | i,
     { rw [map_vec_inl ho, hv.2.1, hyperline.apply_inl ho] },
     { simp only [map_vec_inr ho, hyperline.apply_inr ho, inc.comp_map, scaling_map_vec],
-      rw mul_comm, congr' 1, apply inc_of_this_map_vec, rw [ho, sum.elim_inr] } },
+      rw mul_comm, congr' 1, apply inc_of_surj_map_vec, rw [ho, sum.elim_inr] } },
   { intros i v hv,
     have vtail_row : v ∘ fin.cast_succ ∈ row p i,
     { refine ⟨λ _, hv.1 _, hv.2.1, _⟩, intros j hj, exact hv.2.2 j.cast_succ hj },
@@ -426,7 +427,7 @@ begin
         { rw [map_vec_inl ho,
             not.imp_symm (hv.2.2 _) (not_le_of_lt $ fin.cast_succ_lt_last _), zero_mul],
           simp only [inc.comp_map, emb_inc_map],
-          rw [scaling_map_vec, inc_of_this_map_vec', zero_mul],
+          rw [scaling_map_vec, inc_of_surj_map_vec', zero_mul],
           rw [ho, sum.elim_inl] },
         { rw map_vec_inr ho, simp only [emb_inc_map, inc.comp_map] } } },
     rw this,
@@ -463,12 +464,3 @@ begin
     simp only [true_and, finset.mem_univ, finset.mem_filter] at this,
     exact this.symm }
 end
-
-/-
-What `inc`s do we use?
-- `scaling`
-- `comp`
-- `inc_of_this`
-- `order_embedding.inc`
-- `extend`
--/

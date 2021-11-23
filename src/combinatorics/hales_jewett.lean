@@ -330,11 +330,11 @@ def is_mono {η α ι κ} (C : (ι → α) → κ) (l : hyperline η α ι) : Pr
 
 end hyperline
 
-def extended_HJ_works (α κ η ι : Type) : Prop :=
+def extended_HJ_works (α κ η ι) : Prop :=
   ∀ C : (ι → α) → κ, ∃ l : hyperline η α ι, l.is_mono C
 
-theorem extended_HJ (α : Type) [fintype α] (κ : Type) [fintype κ] (η : Type) [fintype η] :
-  ∃ (ι : Type) [fintype ι], extended_HJ_works α κ η ι :=
+theorem extended_HJ (α) [fintype α] (κ) [fintype κ] (η : Type u) [fintype η] :
+  ∃ (ι : Type u) [fintype ι], extended_HJ_works α κ η ι :=
 begin
   obtain ⟨ι, ιfin, hι⟩ := line.exists_mono_in_high_dimension (η → α) κ,
   resetI,
@@ -361,7 +361,7 @@ begin
   { simp only [option.get_or_else_some, option.elim, sum.elim_inl, id.def], }
 end
 
-theorem extended_HJ_fin (α : Type) [fintype α] (κ : Type) [fintype κ] (η : Type) [fintype η] :
+theorem extended_HJ_fin (α) [fintype α] (κ) [fintype κ] (η) [fintype η] :
   ∃ n : ℕ, extended_HJ_works α κ η (fin n) :=
 begin
   obtain ⟨ι, ιfin, hι⟩ := extended_HJ α κ η,

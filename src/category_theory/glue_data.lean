@@ -84,7 +84,7 @@ by { rw [←category.assoc, ←D.t_fac], simp }
   D.t i j ≫ D.t j i = 𝟙 _ :=
 begin
   have eq : (pullback_symmetry (D.f i i) (D.f i j)).hom = pullback.snd ≫ inv pullback.fst,
-  simp,
+  { simp },
   have := D.cocycle i j i,
   rw [D.t'_iij, D.t'_jii, D.t'_iji, fst_eq_snd_of_mono_eq, eq] at this,
   simp only [category.assoc, is_iso.inv_hom_id_assoc] at this,

@@ -1745,6 +1745,19 @@ submodule.inner_right_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 lemma inner_left_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪v, u⟫ = 0 :=
 submodule.inner_left_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_right (u : E) {v : E} (hv : ⟪u, v⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+begin
+  intros w hw,
+  rw submodule.mem_span_singleton at hw,
+  obtain ⟨c, rfl⟩ := hw,
+  simp [inner_smul_left, hv],
+end
+
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_left (u : E) {v : E} (hv : ⟪v, u⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
+
 variables (K)
 
 /-- `K` and `Kᗮ` have trivial intersection. -/

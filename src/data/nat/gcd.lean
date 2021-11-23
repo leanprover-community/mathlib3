@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import data.nat.pow
+import algebra.group_power.order
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -451,6 +451,16 @@ begin
     transitivity c.gcd (a * b),
     rw [h, gcd_mul_right_right d c],
     apply gcd_mul_dvd_mul_gcd }
+end
+
+/-- If `k:ℕ` divides coprime `a` and `b` then `k = 1` -/
+lemma eq_one_of_dvd_coprimes {a b k : ℕ} (h_ab_coprime : coprime a b)
+  (hka : k ∣ a) (hkb : k ∣ b) : k = 1  :=
+begin
+  rw coprime_iff_gcd_eq_one at h_ab_coprime,
+  have h1 := dvd_gcd hka hkb,
+  rw h_ab_coprime at h1,
+  exact nat.dvd_one.mp h1,
 end
 
 end nat

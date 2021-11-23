@@ -3,11 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.iterate_hom
-import data.equiv.ring_aut
 import algebra.module.basic
 import linear_algebra.basic
 import tactic.abel
+import data.equiv.ring_aut
 
 /-!
 # Algebras over commutative semirings
@@ -382,20 +381,20 @@ end field
 
 end no_zero_smul_divisors
 
-namespace opposite
+namespace mul_opposite
 
 variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 
-instance : algebra R Aᵒᵖ :=
+instance : algebra R Aᵐᵒᵖ :=
 { to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
   smul_def' := λ c x, unop_injective $
     by { dsimp, simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop] },
-  commutes' := λ r, opposite.rec $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
-  ..opposite.has_scalar A R }
+  commutes' := λ r, mul_opposite.rec $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
+  .. mul_opposite.has_scalar A R }
 
-@[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵒᵖ c = op (algebra_map R A c) := rfl
+@[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵐᵒᵖ c = op (algebra_map R A c) := rfl
 
-end opposite
+end mul_opposite
 
 namespace module
 variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M]

@@ -96,13 +96,13 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
     apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _).symm,
     apply pullback_cone.flip_is_limit,
     apply (is_limit_map_cone_pullback_cone_equiv _ _).to_fun,
-    apply_with preserves_limit.preserves { instances := ff },
-    { dsimp, apply_instance },
-    apply pullback_cone.flip_is_limit,
-    apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
-    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).inv_fun,
-    exact hc,
-    exact (c.π.naturality hom.inr).symm.trans (c.π.naturality hom.inl : _)
+    { apply_with preserves_limit.preserves { instances := ff },
+      { dsimp, apply_instance },
+      apply pullback_cone.flip_is_limit,
+      apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
+      apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).inv_fun,
+      exact hc },
+    { exact (c.π.naturality hom.inr).symm.trans (c.π.naturality hom.inl : _) }
   end }
 
 

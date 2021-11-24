@@ -232,8 +232,7 @@ iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec
 
 end Spec_Γ
 
-section Spec_localization
-
+/-- The stalk map of `Spec M⁻¹R ⟶ Spec R` is an iso for each `p : Spec M⁻¹R`. -/
 lemma Spec_map_localization_is_iso (R : CommRing) (M : submonoid R)
   (x : prime_spectrum (localization M)) :
   is_iso (PresheafedSpace.stalk_map (Spec.to_PresheafedSpace.map
@@ -243,54 +242,9 @@ begin
   apply_with is_iso.comp_is_iso { instances := ff },
   apply_instance,
   apply_with is_iso.comp_is_iso { instances := ff },
-  swap,
-  apply_instance,
-  delta localization.local_ring_hom CommRing.of_hom,
-  rw quiver.hom.unop_op,
-  let : localization M →+*
-    localization.at_prime (prime_spectrum.comap (algebra_map ↥R (localization M)) x).as_ideal,
-  refine @is_localization.map R _ M (localization M) _ _ R _ _
-    (prime_spectrum.comap (algebra_map ↥R (localization M)) x).as_ideal.prime_compl
-    _ _ _ _ (ring_hom.id R) _,
-  intros p hx hx',
-  exact (x.2.1 : ¬ _) (x.as_ideal.eq_top_of_is_unit_mem hx' (is_localization.map_units _ ⟨_, hx⟩)),
-  let : localization.at_prime x.as_ideal →+* _ :=
-    @is_localization.lift _ _ x.as_ideal.prime_compl _ _ _ _ _ _ this _,
-  use this,
-  { split,
-    { apply @@is_localization.ring_hom_ext _ _ _ _ _ localization.is_localization,
-      erw ring_hom.comp_assoc,
-      erw is_localization.map_comp,
-      erw ← ring_hom.comp_assoc,
-      rw is_localization.lift_comp,
-      erw is_localization.lift_comp,
-      rw ring_hom.comp_id,
-      erw ring_hom.id_comp,
-      refl },
-    { apply @@is_localization.ring_hom_ext _ _ _ _ _ localization.is_localization,
-      apply @@is_localization.ring_hom_ext _ _ _ _ _ localization.is_localization,
-      change ring_hom.comp (ring_hom.comp (ring_hom.comp _ _) _) _ = _,
-      rw ring_hom.comp_assoc _ this,
-      dsimp only [unop_op, CommRing.coe_of],
-      rw is_localization.lift_comp,
-      rw ring_hom.comp_assoc,
-      rw is_localization.map_comp,
-      rw ring_hom.comp_id,
-      rw is_localization.map_comp,
-      erw ring_hom.id_comp } },
-  { intros y,
-    rcases is_localization.surj M y.1 with ⟨⟨z, s⟩, e⟩,
-    fapply is_unit_of_mul_is_unit_left,
-    exact this (algebra_map R (localization M) s),
-    rw ← ring_hom.map_mul, erw e, rw ← ring_hom.comp_apply, rw is_localization.map_comp,
-    refine @@is_localization.map_units _ _ _ _ localization.is_localization ⟨z, _⟩,
-    change algebra_map R (localization M) z ∈ x.as_ideal.prime_compl,
-    rw ← e,
-    refine submonoid.mul_mem _ y.2 _,
-    intro h,
-    exact (x.2.1 : ¬ _) (x.as_ideal.eq_top_of_is_unit_mem h (is_localization.map_units _ _)) },
+  exact (show is_iso (is_localization.localization_localization_at_prime_iso_localization
+    M x.as_ideal).to_ring_equiv.to_CommRing_iso.hom, by apply_instance),
+  apply_instance
 end
-
-end Spec_localization
 
 end algebraic_geometry

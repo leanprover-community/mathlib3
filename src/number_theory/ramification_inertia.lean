@@ -6,6 +6,7 @@ Authors: Anne Baanen
 
 import field_theory.separable
 import linear_algebra.free_module.finite.basic
+import linear_algebra.free_module.pid
 import ring_theory.dedekind_domain
 
 /-!
@@ -280,8 +281,6 @@ end
 
 .
 
-#print module.finite
-
 open_locale matrix
 
 -- TODO: generalize?
@@ -363,8 +362,6 @@ begin
     exact is_fraction_ring.injective S L },
 end
 
-#print submodule.quot_equiv_of_eq
-
 lemma ideal.pow_succ_lt [is_dedekind_domain S]
   (P : ideal S) (hP0 : P ≠ ⊥) [hP : P.is_prime] (e : ℕ) : P^(e+1) < P^e :=
 ideal.dvd_not_unit_iff_lt.mp
@@ -374,17 +371,6 @@ lemma exists_mem_pow_not_mem_pow_succ [is_dedekind_domain S]
   (P : ideal S) (hP0 : P ≠ ⊥) [P.is_prime] (e : ℕ) : ∃ x ∈ P^e, x ∉ P^(e+1) :=
 set_like.exists_of_lt (P.pow_succ_lt hP0 e)
 
-/-- Let `p q : submodule R M` and `p ≤ q`, then this is `q / p` as `R`-module. -/
-@[derive add_comm_monoid]
-def submodule.quotient_of_le {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (p q : submodule R M) (h : p ≤ q) :=
-submodule.quotient (submodule.of_le h).range
-
-/-- Let `h : i ≤ j`, then `ideal.pow_quot P` is the quotient `P^i / P^j`. -/
-@[derive add_comm_monoid]
-def ideal.pow_quot (P : ideal S) {i j : ℕ} (h : i ≤ j) :=
-submodule.quotient_of_le (P^j) (P^i) (ideal.pow_le_pow h)
-
 lemma submodule.sub_mem_iff_left {R M : Type*} [ring R] [add_comm_group M] [module R M]
   (N : submodule R M) {x y : M} (hy : y ∈ N) : (x - y) ∈ N ↔ x ∈ N :=
 by rw [sub_eq_add_neg, N.add_mem_iff_left (N.neg_mem hy)]
@@ -393,151 +379,190 @@ lemma submodule.sub_mem_iff_right {R M : Type*} [ring R] [add_comm_group M] [mod
   (N : submodule R M) {x y : M} (hx : x ∈ N) : (x - y) ∈ N ↔ y ∈ N :=
 by rw [sub_eq_add_neg, N.add_mem_iff_right hx, N.neg_mem_iff]
 
-/-- Turn a scalar action of `S` on `M` into an action on `M / N`. -/
+section
+
+open function
+
+/-- (Non-uniquely) push forward the action of `R` on `M` along a surjective map `f : R → S`. -/
 @[reducible]
-def submodule.quotient.mk_module {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (N : submodule R M) {S : Type*} [ring S]
-  (smul : S → M → M) (sound : ∀ c x (hx : x ∈ N), smul c x ∈ N)
-  (add_smul : ∀ a b x, smul (a + b) x - (smul a x + smul b x) ∈ N)
-  (smul_add : ∀ c x y, smul c (x + y) - (smul c x + smul c y) ∈ N)
-  (one_smul : ∀ x, smul 1 x - x ∈ N)
-  (mul_smul : ∀ a b x, smul (a * b) x - smul a (smul b x) ∈ N) :
-  module S N.quotient :=
-have smul_zero : ∀ c, smul c 0 ∈ N,
-begin
-  intros c,
-  convert N.neg_mem (smul_add c 0 0) using 1,
-  rw add_zero,
-  abel
-end,
-have smul_neg : ∀ c x, smul c (-x) - (- smul c x) ∈ N,
-begin
-  intros c x,
-  rw ← N.add_mem_iff_right (smul_add c x (-x)),
-  rw add_right_neg,
-  convert smul_zero c using 1,
-  abel
-end,
-have smul_sub : ∀ c x y, smul c (x - y) - (smul c x - smul c y) ∈ N,
-begin
-  intros c x y,
-  rw [sub_eq_add_neg x, sub_eq_add_neg (smul _ _)],
-  rw ← N.sub_mem_iff_left (smul_add c x (-y)),
-  convert smul_neg c y using 1,
-  abel
-end,
-module.of_core $
-{ smul := λ c x, quotient.lift_on' x (λ x, submodule.quotient.mk (smul c x)) $
-  λ x y (hxy : x - y ∈ N), (submodule.quotient.eq N).mpr
-    ((N.sub_mem_iff_right (sound c _ hxy)).mp (smul_sub c x y)),
-  add_smul := by { rintros a b ⟨x⟩, exact N^.quotient.eq^.mpr (add_smul _ _ _) },
-  smul_add := by { rintros c ⟨x⟩ ⟨y⟩, exact N^.quotient.eq^.mpr (smul_add _ _ _) },
-  one_smul := by { rintros ⟨x⟩, exact N^.quotient.eq^.mpr (one_smul _) },
-  mul_smul := by { rintros a b ⟨x⟩, exact N^.quotient.eq^.mpr (mul_smul _ _ _) } }
+noncomputable def function.surjective.has_scalar_left {R S M : Type*} [has_scalar R M]
+  {f : R → S} (hf : function.surjective f) : has_scalar S M :=
+⟨λ c x, function.surj_inv hf c • x⟩
 
-@[simp] lemma submodule.quotient.mk_module_smul
-  {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (N : submodule R M) {S : Type*} [ring S]
-  (smul : S → M → M) (h₁ h₂ h₃ h₄ h₅)
-  (c : S) (x : M) :
-  @@has_scalar.smul (show has_scalar S N.quotient,
-      by { letI := submodule.quotient.mk_module N smul h₁ h₂ h₃ h₄ h₅, apply_instance })
-      c (submodule.quotient.mk x) =
-    submodule.quotient.mk (smul c x) :=
-rfl
-
-/-- Turn a scalar action of `S` on `M` into an action of `S / I` on `M / N`. -/
+/-- push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`. -/
 @[reducible]
-def submodule.quotient.mk_module_quotient {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (N : submodule R M) {S : Type*} [comm_ring S] (I : ideal S)
-  (smul : S → M → M)
-  (sound_left : ∀ c x (hc : c ∈ I), smul c x ∈ N)
-  (sound_right : ∀ c x (hx : x ∈ N), smul c x ∈ N)
-  (add_smul : ∀ a b x, smul (a + b) x - (smul a x + smul b x) ∈ N)
-  (smul_add : ∀ c x y, smul c (x + y) - (smul c x + smul c y) ∈ N)
-  (one_smul : ∀ x, smul 1 x - x ∈ N)
-  (mul_smul : ∀ a b x, smul (a * b) x - smul a (smul b x) ∈ N) :
-  module I.quotient N.quotient :=
-have zero_smul : ∀ x, smul 0 x ∈ N,
-begin
-  intros x,
-  convert N.neg_mem (add_smul 0 0 x) using 1,
-  rw add_zero,
-  abel
-end,
-have neg_smul : ∀ c x, smul (-c) x - (- smul c x) ∈ N,
-begin
-  intros c x,
-  rw ← N.add_mem_iff_right (add_smul c (-c) x),
-  rw add_right_neg,
-  convert zero_smul x using 1,
-  abel
-end,
-have sub_smul : ∀ a b x, smul (a - b) x - (smul a x - smul b x) ∈ N,
-begin
-  intros a b x,
-  rw [sub_eq_add_neg a, sub_eq_add_neg (smul _ _)],
-  rw ← N.sub_mem_iff_left (add_smul a (-b) x),
-  convert neg_smul b x using 1,
-  abel
-end,
-have smul_zero : ∀ c, smul c 0 ∈ N,
-begin
-  intros c,
-  convert N.neg_mem (smul_add c 0 0) using 1,
-  rw add_zero,
-  abel
-end,
-have smul_neg : ∀ c x, smul c (-x) - (- smul c x) ∈ N,
-begin
-  intros c x,
-  rw ← N.add_mem_iff_right (smul_add c x (-x)),
-  rw add_right_neg,
-  convert smul_zero c using 1,
-  abel
-end,
-have smul_sub : ∀ c x y, smul c (x - y) - (smul c x - smul c y) ∈ N,
-begin
-  intros c x y,
-  rw [sub_eq_add_neg x, sub_eq_add_neg (smul _ _)],
-  rw ← N.sub_mem_iff_left (smul_add c x (-y)),
-  convert smul_neg c y using 1,
-  abel
-end,
-module.of_core $
-{ smul := λ c x, quotient.lift_on₂' c x (λ c x, submodule.quotient.mk (smul c x))
-    (λ a x b y (hab : a - b ∈ I) (hxy : x - y ∈ N), (submodule.quotient.eq N).mpr $ begin
-      have habx := (N.sub_mem_iff_right (sound_left _ x hab)).mp (sub_smul a b x),
-      have hbxy := (N.sub_mem_iff_right (sound_right b _ hxy)).mp (smul_sub b x y),
-      convert N.add_mem habx hbxy using 1,
-      abel
-    end),
-  add_smul := by { rintros ⟨a⟩ ⟨b⟩ ⟨x⟩, exact N^.quotient.eq^.mpr (add_smul _ _ _) },
-  smul_add := by { rintros ⟨c⟩ ⟨x⟩ ⟨y⟩, exact N^.quotient.eq^.mpr (smul_add _ _ _) },
-  one_smul := by { rintros ⟨x⟩, exact N^.quotient.eq^.mpr (one_smul _) },
-  mul_smul := by { rintros ⟨a⟩ ⟨b⟩ ⟨x⟩, exact N^.quotient.eq^.mpr (mul_smul _ _ _) } }
+def function.surjective.mul_action_left {R S M : Type*} [monoid R] [add_monoid M]
+  [mul_action R M] [monoid S] [has_scalar S M]
+  {f : R →* S} (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  mul_action S M :=
+{ smul := (•),
+  one_smul := λ b, by rw [← f.map_one, hsmul, one_smul],
+  mul_smul := hf.forall₂.mpr (λ a b x, by simp only [← f.map_mul, hsmul, mul_smul]) }
 
-@[simp] lemma submodule.quotient.mk_module_quotient_smul
-  {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (N : submodule R M) {S : Type*} [comm_ring S] (I : ideal S)
-  (smul : S → M → M) (h₁ h₂ h₃ h₄ h₅ h₆)
-  (c : S) (x : M) :
-  @@has_scalar.smul (show has_scalar I.quotient N.quotient,
-  by { letI := submodule.quotient.mk_module_quotient N I smul h₁ h₂ h₃ h₄ h₅ h₆, apply_instance })
-  (ideal.quotient.mk I c) (submodule.quotient.mk x) =
-  submodule.quotient.mk (smul c x) :=
-rfl
+/-- push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`. -/
+@[reducible]
+def function.surjective.distrib_mul_action_left {R S M : Type*} [monoid R] [add_monoid M]
+  [distrib_mul_action R M] [monoid S] [has_scalar S M]
+  {f : R →* S} (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  distrib_mul_action S M :=
+{ smul := (•),
+  smul_zero := hf.forall.mpr (λ c, by rw [hsmul, smul_zero]),
+  smul_add := hf.forall.mpr (λ c x y, by simp only [hsmul, smul_add]),
+  .. hf.mul_action_left hsmul}
 
-variables (e : ℕ) [hfp : fact (p ≤ comap f (P^e))]
+/-- push forward the action of `R` on `M` along a compatible surjective map `f : R →+* S`. -/
+@[reducible]
+def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoid M]
+  [module R M] [semiring S] [has_scalar S M]
+  {f : R →+* S} (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  module S M :=
+{ smul := (•),
+  zero_smul := λ x, by rw [← f.map_zero, hsmul, zero_smul],
+  add_smul := hf.forall₂.mpr (λ a b x, by simp only [← f.map_add, hsmul, add_smul]),
+  .. function.surjective.distrib_mul_action_left (show surjective (f : R →* S), from hf) hsmul }
+
+/-- Let `M` be an `R`-module, then a surjective map `f : R →+* S` induces an
+`S`-module structure on `M`, if the kernel of `f` are zero-smul-divisors.
+
+See also `function.surjective.module_left` if you want more control over the definition of `(•)`,
+and `function.surjective.module_left'_of_ring` if `R` and `S` have inverses.
+-/
+@[reducible]
+noncomputable def function.surjective.module_left' {R S M : Type*}
+  [comm_semiring R] [add_comm_monoid M] [module R M] [semiring S]
+  {f : R →+* S} (hf : function.surjective f)
+  (hsmul : ∀ {a b}, f a = f b → ∀ (x : M), a • x = b • x) :
+  module S M :=
+let scalar : has_scalar S M := hf.has_scalar_left in
+{ smul := @@has_scalar.smul scalar,
+  .. @@function.surjective.module_left _ _ _ _ scalar hf
+    (λ c (x : M), hsmul (surj_inv_eq _ _) x) }
+
+lemma function.surjective.module_left'_smul {R S M : Type*}
+  [comm_semiring R] [add_comm_monoid M] [module R M] [semiring S]
+  {f : R →+* S} (hf : function.surjective f)
+  (hsmul : ∀ {a b}, f a = f b → ∀ (x : M), a • x = b • x) (c : R) (x : M) :
+  by { letI := hf.module_left' @hsmul, exact f c • x } = c • x :=
+hsmul (surj_inv_eq hf _) _
+
+/-- Let `M` be an `R`-module, then a surjective map `f : R →+* S` induces an
+`S`-module structure on `M`, if the kernel of `f` are zero-smul-divisors.
+
+See also `function.surjective.module_left` if you want more control over the definition of `(•)`,
+and `function.surjective.module_left'` if `R` and `S` don't have inverses.
+-/
+@[reducible]
+noncomputable def function.surjective.module_left'_of_ring {R S M : Type*} [comm_ring R]
+  [add_comm_group M] [module R M] [ring S]
+  {f : R →+* S} (hf : function.surjective f) (hsmul : f.ker ≤ (linear_map.lsmul R M).ker) :
+  module S M :=
+hf.module_left' $ λ a b hab, begin
+  suffices : linear_map.lsmul R M a = linear_map.lsmul R M b,
+  { intros, simp only [← linear_map.lsmul_apply, this] },
+  rw [← sub_eq_zero, ← linear_map.map_sub, ← linear_map.mem_ker],
+  rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker] at hab,
+  exact hsmul hab
+end
+
+lemma function.surjective.module_left'_of_ring_smul {R S M : Type*} [comm_ring R]
+  [add_comm_group M] [module R M] [ring S]
+  {f : R →+* S} (hf : function.surjective f) (hsmul : f.ker ≤ (linear_map.lsmul R M).ker)
+  (c : R) (x : M) :
+  by { letI := hf.module_left'_of_ring hsmul, exact f c • x } = c • x :=
+hf.module_left'_smul _ _ _
+
+end
+
+variables [hfp : fact (p ≤ comap f P)]
 include hfp
 
-instance (P : ideal S) {i : ℕ} (h : i ≤ e) : module p.quotient (ideal.pow_quot P h) :=
-submodule.quotient.mk_module_quotient _ _ (λ c x, f c • x) (begin
-  rintros c ⟨x, hx⟩ hc,
-  refine ⟨⟨f c * x, (P ^ e).mul_mem_right _ (@fact.out _ hfp _ _)⟩, _⟩,
-end) _ _ _ _ _
+/-- If `P` lies over `p`, then `R / p` has a canonical map to `S / P`. -/
+instance ideal.quotient.algebra_quotient_of_fact_le_comap :
+  algebra p.quotient P.quotient :=
+quotient.algebra_quotient_of_le_comap (fact.out (p ≤ comap f P))
+
+@[simp] lemma ideal.quotient.algebra_map_quotient_of_fact_le_comap (x : R) :
+  algebra_map p.quotient P.quotient (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
+rfl
+
+@[simp] lemma quotient.mk_smul_mk_quotient_map_quotient (x : R) (y : S) :
+  ideal.quotient.mk p x • ideal.quotient.mk P y = ideal.quotient.mk _ (f x * y) :=
+rfl
 
 omit hfp
+
+@[simp] lemma map_quotient_mk_self {R : Type*} [comm_ring R] (I : ideal R) :
+  map (ideal.quotient.mk I) I = ⊥ :=
+sorry
+
+variables (e : ℕ) [hfPe : fact (p ≤ comap f (P^e))]
+include hfPe
+
+/-- The inclusion `(P^(i + 1) / P^e) ⊂ (P^i / P^e)`. -/
+@[simps]
+def pow_quot_succ_inclusion (i : ℕ) :
+  ideal.map (P^e)^.quotient.mk (P ^ (i + 1)) →ₗ[p.quotient] ideal.map (P^e)^.quotient.mk (P ^ i) :=
+{ to_fun := λ x, ⟨x, ideal.map_mono (ideal.pow_le_pow i.le_succ) x.2⟩,
+  map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl }
+
+lemma pow_quot_succ_inclusion_injective (i : ℕ) :
+  function.injective (pow_quot_succ_inclusion f p P e i) :=
+begin
+  rw [← linear_map.ker_eq_bot, linear_map.ker_eq_bot'],
+  rintro ⟨x, hx⟩ hx0,
+  rw subtype.ext_iff at hx0 ⊢,
+  rwa pow_quot_succ_inclusion_apply_coe at hx0
+end
+
+.
+
+instance [fact (e ≠ 0)] : fact (p ≤ comap f P) :=
+⟨(fact.out $ p ≤ comap f (P^e)).trans (comap_mono (ideal.pow_le_self _ (fact.out _)))⟩
+
+def quotient_range_pow_quot_succ_inclusion [fact (e ≠ 0)] (i : ℕ) :
+  (pow_quot_succ_inclusion f p P e i).range.quotient ≃ₗ[p.quotient] submodule.quotient P :=
+sorry -- TODO: 3rd iso thm
+
+/-- Since the inclusion `(P^(i + 1) / P^e) ⊂ (P^i / P^e)` has a kernel isomorphic to `P / S`,
+`[P^i / P^e : R / p] = [P^(i+1) / P^e : R / p] + [P / S : R / p]` -/
+lemma dim_pow_quot_aux [p.is_maximal] {i : ℕ} [fact (e ≠ 0)] (hi : i < e) :
+  module.rank p.quotient (ideal.map (P^e)^.quotient.mk (P ^ i)) =
+  module.rank p.quotient P.quotient + module.rank p.quotient (ideal.map (P^e)^.quotient.mk (P ^ (i + 1))) :=
+begin
+  rw [dim_eq_of_injective _ (pow_quot_succ_inclusion_injective f p P e i),
+      (quotient_range_pow_quot_succ_inclusion f p P e i).symm.dim_eq,
+      dim_quotient_add_dim (linear_map.range _)],
+end
+
+lemma dim_pow_quot [p.is_maximal] (i : ℕ) [fact (e ≠ 0)] (hi : i ≤ e) :
+  module.rank p.quotient (ideal.map (P^e)^.quotient.mk (P ^ i)) =
+  (e - i) • module.rank p.quotient P.quotient :=
+begin
+  refine @nat.decreasing_induction' _ i e (λ j lt_e le_j ih, _) hi _,
+  { rw [dim_pow_quot_aux f p P _ lt_e, ih, ← succ_nsmul, nat.sub_succ, ← nat.succ_eq_add_one,
+      nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt lt_e)] },
+  { rw [nat.sub_self, zero_nsmul, map_quotient_mk_self],
+    exact dim_bot p.quotient (P^e).quotient }
+end
+
+omit hfPe
+
+/-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
+then the dimension `[S/(P^e) : R/p]` is equal to `e * [S/P : R/p]`. -/
+lemma dim_prime_pow [p.is_maximal] (hP0 : P ≠ ⊥)
+  {e : ℕ} (he : e ≠ 0) (hp : p ≤ comap f (P ^ e)) :
+  @module.rank p.quotient (P^e).quotient _ _ (@algebra.to_module _ _ _ _ $
+    quotient.algebra_quotient_of_le_comap hp) =
+  e • @module.rank p.quotient P.quotient _ _ (@algebra.to_module _ _ _ _ $
+    quotient.algebra_quotient_of_le_comap $ hp.trans $ comap_mono $ P.pow_le_self he) :=
+begin
+  letI : fact (e ≠ 0) := ⟨he⟩,
+  letI : fact _ := ⟨hp⟩,
+  have := dim_pow_quot f p P e 0 (nat.zero_le e),
+  rw [pow_zero, nat.sub_zero, ideal.one_eq_top, ideal.map_top] at this,
+  exact (dim_top p.quotient _).symm.trans this
+end
 
 /-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
 then the dimension `[S/(P^e) : R/p]` is equal to `e * [S/P : R/p]`. -/
@@ -549,22 +574,7 @@ lemma finrank_prime_pow [is_dedekind_domain S]
   e * @finrank p.quotient P.quotient _ _ (@algebra.to_module _ _ _ _ $
     quotient.algebra_quotient_of_le_comap $ hp.trans $ comap_mono $ P.pow_le_self he) :=
 begin
-  induction e with e ih,
-  { contradiction },
-  cases e,
-  { rw one_mul,
-    apply linear_equiv.finrank_eq',
-    refine { map_smul' := _, .. submodule.quot_equiv_of_eq _ _ (pow_one P), },
-    rintros ⟨x⟩ ⟨y⟩,
-    change ideal.quot_equiv_of_eq (pow_one P)
-        (ideal.quotient_map _ _ hp (ideal.quotient.mk p x) * ideal.quotient.mk _ y) =
-      ideal.quotient_map _ _ _
-        (ideal.quotient.mk p x) * ideal.quot_equiv_of_eq (pow_one P) (ideal.quotient.mk _ y),
-    simp only [ring_equiv.map_mul, ideal.quotient_map_mk, quot_equiv_of_eq_mk],
-    simpa only [pow_one] using hp },
-  specialize ih (e.succ_ne_zero) (hp.trans $ comap_mono $ ideal.pow_le_pow e.succ.le_succ),
-  rw nat.succ_mul,
-  obtain ⟨x, hxe, hxe1⟩ := exists_mem_pow_not_mem_pow_succ P hP0 e.succ,
+  
 end
 
 /-- The **fundamental identity** of ramification index `e` and inertia degree `f`:

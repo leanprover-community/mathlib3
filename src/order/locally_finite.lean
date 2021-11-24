@@ -498,25 +498,25 @@ instance : locally_finite_order (with_top α) :=
 { finset_Icc := λ a b, match a, b with
     |       ⊤,       ⊤ := {⊤}
     |       ⊤, (b : α) := ∅
-    | (a : α),       ⊤ := cons (⊤ : with_top α) ((Ici a).map embedding.coe_with_top)
+    | (a : α),       ⊤ := cons (⊤ : with_top α) ((Ici a).map embedding.coe_option)
                                (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
-    | (a : α), (b : α) := (Icc a b).map embedding.coe_with_top
+    | (a : α), (b : α) := (Icc a b).map embedding.coe_option
     end,
   finset_Ico := λ a b, match a, b with
     |      ⊤,      _ := ∅
-    | (a : α),      ⊤ := (Ici a).map embedding.coe_with_top
-    | (a : α), (b : α) := (Ico a b).map embedding.coe_with_top
+    | (a : α),      ⊤ := (Ici a).map embedding.coe_option
+    | (a : α), (b : α) := (Ico a b).map embedding.coe_option
     end,
   finset_Ioc := λ a b, match a, b with
     |      ⊤,      _ := ∅
-    | (a : α),      ⊤ := cons (⊤ : with_top α) ((Ioi a).map embedding.coe_with_top)
+    | (a : α),      ⊤ := cons (⊤ : with_top α) ((Ioi a).map embedding.coe_option)
                               (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
-    | (a : α), (b : α) := (Ioc a b).map embedding.coe_with_top
+    | (a : α), (b : α) := (Ioc a b).map embedding.coe_option
     end,
   finset_Ioo := λ a b, match a, b with
     |      ⊤,      _ := ∅
-    | (a : α),      ⊤ := (Ioi a).map embedding.coe_with_top
-    | (a : α), (b : α) := (Ioo a b).map embedding.coe_with_top
+    | (a : α),      ⊤ := (Ioi a).map embedding.coe_option
+    | (a : α), (b : α) := (Ioo a b).map embedding.coe_option
     end,
   finset_mem_Icc := λ a b x, match a, b, x with
     |       ⊤,       ⊤,       x := mem_singleton.trans (le_antisymm_iff.trans $ and_comm _ _)
@@ -561,13 +561,13 @@ instance : locally_finite_order (with_top α) :=
 variables (a b : α)
 
 lemma Icc_coe_top : Icc (a : with_top α) ⊤ = insert_none (Ici a) := rfl
-lemma Icc_coe_coe : Icc (a : with_top α) b = (Icc a b).map embedding.coe_with_top := rfl
-lemma Ico_coe_top : Ico (a : with_top α) ⊤ = (Ici a).map embedding.coe_with_top := rfl
-lemma Ico_coe_coe : Ico (a : with_top α) b = (Ico a b).map embedding.coe_with_top := rfl
+lemma Icc_coe_coe : Icc (a : with_top α) b = (Icc a b).map embedding.coe_option := rfl
+lemma Ico_coe_top : Ico (a : with_top α) ⊤ = (Ici a).map embedding.coe_option := rfl
+lemma Ico_coe_coe : Ico (a : with_top α) b = (Ico a b).map embedding.coe_option := rfl
 lemma Ioc_coe_top : Ioc (a : with_top α) ⊤ = insert_none (Ioi a) := rfl
-lemma Ioc_coe_coe : Ioc (a : with_top α) b = (Ioc a b).map embedding.coe_with_top := rfl
-lemma Ioo_coe_top : Ioo (a : with_top α) ⊤ = (Ioi a).map embedding.coe_with_top := rfl
-lemma Ioo_coe_coe : Ioo (a : with_top α) b = (Ioo a b).map embedding.coe_with_top := rfl
+lemma Ioc_coe_coe : Ioc (a : with_top α) b = (Ioc a b).map embedding.coe_option := rfl
+lemma Ioo_coe_top : Ioo (a : with_top α) ⊤ = (Ioi a).map embedding.coe_option := rfl
+lemma Ioo_coe_coe : Ioo (a : with_top α) b = (Ioo a b).map embedding.coe_option := rfl
 
 end with_top
 
@@ -580,13 +580,13 @@ instance : locally_finite_order (with_bot α) :=
 variables (a b : α)
 
 lemma Icc_bot_coe : Icc (⊥ : with_bot α) b = insert_none (Iic b) := rfl
-lemma Icc_coe_coe : Icc (a : with_bot α) b = (Icc a b).map embedding.coe_with_bot := rfl
+lemma Icc_coe_coe : Icc (a : with_bot α) b = (Icc a b).map embedding.coe_option := rfl
 lemma Ico_bot_coe : Ico (⊥ : with_bot α) b = insert_none (Iio b) := rfl
-lemma Ico_coe_coe : Ico (a : with_bot α) b = (Ico a b).map embedding.coe_with_bot := rfl
-lemma Ioc_bot_coe : Ioc (⊥ : with_bot α) b = (Iic b).map embedding.coe_with_bot := rfl
-lemma Ioc_coe_coe : Ioc (a : with_bot α) b = (Ioc a b).map embedding.coe_with_bot := rfl
-lemma Ioo_bot_coe : Ioo (⊥ : with_bot α) b = (Iio b).map embedding.coe_with_bot := rfl
-lemma Ioo_coe_coe : Ioo (a : with_bot α) b = (Ioo a b).map embedding.coe_with_bot := rfl
+lemma Ico_coe_coe : Ico (a : with_bot α) b = (Ico a b).map embedding.coe_option := rfl
+lemma Ioc_bot_coe : Ioc (⊥ : with_bot α) b = (Iic b).map embedding.coe_option := rfl
+lemma Ioc_coe_coe : Ioc (a : with_bot α) b = (Ioc a b).map embedding.coe_option := rfl
+lemma Ioo_bot_coe : Ioo (⊥ : with_bot α) b = (Iio b).map embedding.coe_option := rfl
+lemma Ioo_coe_coe : Ioo (a : with_bot α) b = (Ioo a b).map embedding.coe_option := rfl
 
 end with_bot
 

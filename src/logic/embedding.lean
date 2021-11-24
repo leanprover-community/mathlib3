@@ -148,13 +148,13 @@ theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidabl
   [∀ a', decidable (f a' = b)] : set_value f a b a = b :=
 by simp [set_value]
 
-/-- Embedding into `option α`. -/
+/-- Embedding into `option α` using `some`. -/
 @[simps { fully_applied := ff }] protected def some {α} : α ↪ option α :=
 ⟨some, option.some_injective α⟩
 
-/-- Embedding into `with_bot α`. -/
-@[simps]
-def coe_with_bot {α} : α ↪ with_bot α := { to_fun := coe, ..embedding.some}
+/-- Embedding into `option α` using `coe`. Usually the correct synctatical form for `simp`. -/
+@[simps { fully_applied := ff }]
+def coe_option {α} : α ↪ option α := ⟨coe, option.some_injective α⟩
 
 /-- Embedding into `with_top α`. -/
 @[simps]

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.ring.basic
-import algebra.opposites
+import algebra.group.opposite
 
 /-!
 # Ring structures on the multiplicative opposite

@@ -289,7 +289,7 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
   begin
     refine integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv e _ _
       ![f, g] ![f', g'] s hs a b hle (λ x hx, _) (λ x hx, _) _ _ Hi,
-    { exact λ x y, (order_iso.fin_two_arrow_iso _).symm.le_iff_le },
+    { exact λ x y, (order_iso.fin_two_arrow_iso ℝ).symm.le_iff_le },
     { exact (volume_preserving_fin_two_arrow ℝ).symm },
     { exact fin.forall_fin_two.2 ⟨Hcf x hx, Hcg x hx⟩ },
     { exact fin.forall_fin_two.2 ⟨Hdf x hx, Hdg x hx⟩ },

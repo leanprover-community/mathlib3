@@ -239,7 +239,8 @@ begin
   simp only [cauchy_power_series, continuous_multilinear_map.norm_mk_pi_field],
   refine (interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le).trans_eq _,
   conv_rhs { rw [mul_comm, ← interval_integral.integral_const_mul] },
-  simp only [norm_smul, abs_of_real, mul_one, abs_mul, abs_exp_mul_I, abs_inv, abs_pow, norm_eq_abs]
+  simp only [norm_smul, abs_of_real, mul_one, abs_mul, abs_exp_of_real_mul_I, abs_inv,
+    abs_pow, norm_eq_abs]
 end
 
 lemma le_radius_cauchy_power_series (f : ℝ → E) (R : ℝ≥0) :

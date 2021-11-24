@@ -977,10 +977,9 @@ class normed_lattice_add_comm_group' (α : Type*)
   extends normed_lattice_add_comm_group α :=
 (norm_smul: ∀ a : α, 2*∥a∥ ≤ ∥2•a∥)
 
-instance : normed_lattice_add_comm_group' ℝ := {
-  norm_smul := by finish,
-  ..real.normed_lattice_add_comm_group,
-}
+instance : normed_lattice_add_comm_group' ℝ :=
+{ norm_smul := by finish,
+  ..real.normed_lattice_add_comm_group, }
 
 variables [topological_space α] [normed_lattice_add_comm_group' β]
 
@@ -1010,9 +1009,9 @@ end
 /--
 Continuous normed lattice group valued functions form a meet-semilattice
 -/
-instance : semilattice_inf (α →ᵇ β) := {
-  inf := λf g, {
-    to_fun := λ t, f(t)⊓g(t),
+instance : semilattice_inf (α →ᵇ β) :=
+{ inf := λf g,
+  { to_fun := λ t, f(t)⊓g(t),
     continuous_to_fun := begin
       continuity,
     end,
@@ -1026,19 +1025,17 @@ instance : semilattice_inf (α →ᵇ β) := {
       apply le_trans (inf_sub_inf_le _ _ _ _) _,
       rw [← normed_group.dist_eq, ← normed_group.dist_eq],
       apply add_le_add (hf _ _) (hg _ _),
-    end
-  },
+    end },
   inf_le_left :=  λ f g, continuous_map.le_def.mpr (begin intro, apply inf_le_left, end),
   inf_le_right := λ f g, continuous_map.le_def.mpr (begin intro, apply inf_le_right, end),
   le_inf := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ a, begin
     apply le_inf (continuous_map.le_def.mp w₁ a) (continuous_map.le_def.mp w₂ a),
   end),
-  ..bounded_continuous_function.partial_order
-}
+  ..bounded_continuous_function.partial_order }
 
-instance : semilattice_sup (α →ᵇ β) := {
-  sup := λf g, {
-    to_fun := λ t, f(t)⊔g(t),
+instance : semilattice_sup (α →ᵇ β) :=
+{ sup := λf g,
+  { to_fun := λ t, f(t)⊔g(t),
     continuous_to_fun := begin
       continuity,
     end,
@@ -1052,16 +1049,14 @@ instance : semilattice_sup (α →ᵇ β) := {
       apply le_trans (sup_sub_sup_le _ _ _ _) _,
       rw [← normed_group.dist_eq, ← normed_group.dist_eq],
       apply add_le_add (hf _ _) (hg _ _),
-    end
-  },
+    end },
   le_sup_left := λ f g, continuous_map.le_def.mpr (begin intro, apply le_sup_left, end),
   --inf_le_left :=
   le_sup_right := λ f g, continuous_map.le_def.mpr (begin intro, apply le_sup_right, end),
   sup_le := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ a, begin
     apply sup_le (continuous_map.le_def.mp w₁ a) (continuous_map.le_def.mp w₂ a),
   end),
-  ..bounded_continuous_function.partial_order
-}
+  ..bounded_continuous_function.partial_order }
 
 instance  : lattice (α →ᵇ β) :=
 { .. bounded_continuous_function.semilattice_sup, .. bounded_continuous_function.semilattice_inf }
@@ -1077,8 +1072,8 @@ end
 
 variable [nonempty α]
 
-instance : normed_lattice_add_comm_group (α →ᵇ β) := {
-  add_le_add_left := begin
+instance : normed_lattice_add_comm_group (α →ᵇ β) :=
+{ add_le_add_left := begin
     intros f g h₁ h t,
     simp,
     apply h₁,
@@ -1097,8 +1092,7 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) := {
     intro t,
     apply le_trans (i1 t) (norm_coe_le_norm g t),
   end,
-  ..bounded_continuous_function.lattice,
-}
+  ..bounded_continuous_function.lattice, }
 
 end normed_lattice_ordered_group
 

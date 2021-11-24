@@ -104,11 +104,11 @@ def approx : nat → stream α → list α
 def take {α} (s : stream α) (n : ℕ) : list α :=
 (list.range n).map s
 
--- auxiliary def for cycle corecursive def
+/-- An auxiliary definition for `stream.cycle` corecursive def -/
 protected def cycle_f : α × list α × α × list α → α
 | (v, _, _, _) := v
 
--- auxiliary def for cycle corecursive def
+/-- An auxiliary definition for `stream.cycle` corecursive def -/
 protected def cycle_g : α × list α × α × list α → α × list α × α × list α
 | (v₁, [],              v₀, l₀) := (v₀, l₀, v₀, l₀)
 | (v₁, list.cons v₂ l₂, v₀, l₀) := (v₂, l₂, v₀, l₀)

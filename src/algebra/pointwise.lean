@@ -431,7 +431,7 @@ hs.preimage $ inv_injective.inj_on _
 @[to_additive] lemma inv_singleton {β : Type*} [group β] (x : β) : ({x} : set β)⁻¹ = {x⁻¹} :=
 by { ext1 y, rw [mem_inv, mem_singleton_iff, mem_singleton_iff, inv_eq_iff_inv_eq, eq_comm], }
 
-@[to_additive] lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
+@[to_additive] protected lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
 by simp_rw [←image_inv, ←image2_mul, image_image2, image2_image_left, image2_image_right,
               mul_inv_rev, image2_swap _ s t]
 

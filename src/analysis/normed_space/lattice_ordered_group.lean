@@ -62,10 +62,6 @@ Let `α` be a normed group with a partial order. Then the order dual is also a n
 @[priority 100] -- see Note [lower instance priority]
 instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 
-/--
-Let `α` be a normed lattice ordered group and let `a` and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
-implies `∥a∥ ≤ ∥b∥`.
--/
 lemma dual_solid {α : Type*} [normed_lattice_add_comm_group α] (a b : α) (h: b⊓-b ≤ a⊓-a) :
   ∥a∥ ≤ ∥b∥ :=
 begin
@@ -100,10 +96,6 @@ solid := begin
   finish,
 end, }
 
-/--
-Let `α` be a normed lattice ordered group, let `a` be an element of `α` and let `|a|` be the
-absolute value of `a`. Then `∥|a|∥ = ∥a∥`.
--/
 lemma norm_abs_eq_norm {α : Type*} [normed_lattice_add_comm_group α] (a : α) : ∥|a|∥ = ∥a∥ :=
 begin
   rw le_antisymm_iff,

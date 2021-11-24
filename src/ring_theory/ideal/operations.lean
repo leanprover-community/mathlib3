@@ -759,13 +759,6 @@ variables [semiring R] [semiring S]
 variables (f : R →+* S)
 variables {I J : ideal R} {K L : ideal S}
 
-/-- Interpret a `ring_hom` `f` as an `f`-semilinear map. -/
-@[simps]
-def _root_.ring_hom.to_semilinear_map : R →ₛₗ[f] S :=
-{ to_fun := f,
-  map_smul' := f.map_mul,
-  .. f}
-
 /-- `I.map f` is the span of the image of the ideal `I` under `f`, which may be bigger than
   the image itself. -/
 def map (I : ideal R) : ideal S :=

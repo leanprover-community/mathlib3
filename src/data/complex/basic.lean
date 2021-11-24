@@ -288,6 +288,9 @@ def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, o
 
 @[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
 
+theorem of_real_injective : function.injective (of_real : ℝ → ℂ) :=
+λ z w hzw, complex.of_real_inj.mp hzw
+
 @[simp] lemma I_sq : I ^ 2 = -1 := by rw [sq, I_mul_I]
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl

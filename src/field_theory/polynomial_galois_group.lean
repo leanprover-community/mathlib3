@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
+import group_theory.perm.cycle_type
 import analysis.complex.polynomial
 import field_theory.galois
-import group_theory.perm.cycle_type
-import ring_theory.eisenstein_criterion
 
 /-!
 # Galois Groups of Polynomials
@@ -50,10 +49,13 @@ namespace polynomial
 variables {F : Type*} [field F] (p q : polynomial F) (E : Type*) [field E] [algebra F E]
 
 /-- The Galois group of a polynomial. -/
-@[derive [has_coe_to_fun, group, fintype]]
+@[derive [group, fintype]]
 def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
 namespace gal
+
+instance : has_coe_to_fun p.gal (λ _, p.splitting_field → p.splitting_field) :=
+alg_equiv.has_coe_to_fun
 
 @[ext] lemma ext {σ τ : p.gal} (h : ∀ x ∈ p.root_set p.splitting_field, σ x = τ x) : σ = τ :=
 begin
@@ -96,6 +98,14 @@ instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :
 instance [h : fact (p.splits (algebra_map F E))] : is_scalar_tower F p.splitting_field E :=
 is_scalar_tower.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h.1).commutes x).symm)
+
+-- The `algebra p.splitting_field E` instance above behaves badly when
+-- `E := p.splitting_field`, since it may result in a unification problem
+-- `is_splitting_field.lift.to_ring_hom.to_algebra =?= algebra.id`,
+-- which takes an extremely long time to resolve, causing timeouts.
+-- Since we don't really care about this definition, marking it as irreducible
+-- causes that unification to error out early.
+attribute [irreducible] gal.algebra
 
 /-- Restrict from a superfield automorphism into a member of `gal p`. -/
 def restrict [fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=

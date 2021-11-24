@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.lift
-import topology.separation
+import topology.subset_properties
 /-!
 # Uniform spaces
 
@@ -293,6 +293,10 @@ lemma refl_mem_uniformity {x : α} {s : set (α × α)} (h : s ∈ 𝓤 α) :
   (x, x) ∈ s :=
 refl_le_uniformity h rfl
 
+lemma mem_uniformity_of_eq {x y : α} {s : set (α × α)} (h : s ∈ 𝓤 α) (hx : x = y) :
+  (x, y) ∈ s :=
+hx ▸ refl_mem_uniformity h
+
 lemma symm_le_uniformity : map (@prod.swap α α) (𝓤 _) ≤ (𝓤 _) :=
 (@uniform_space.to_core α _).symm
 
@@ -393,6 +397,7 @@ calc (𝓤 α).lift' (λd, d ○ (d ○ d)) =
       (assume s, monotone_comp_rel monotone_id monotone_const)
   ... ≤ (𝓤 α) : comp_le_uniformity
 
+/-- See also `comp_open_symm_mem_uniformity_sets`. -/
 lemma comp_symm_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
   ∃ t ∈ 𝓤 α, symmetric_rel t ∧ t ○ t ⊆ s :=
 begin
@@ -524,18 +529,19 @@ by rw mem_comap ; from iff.intro
 lemma nhds_eq_comap_uniformity {x : α} : 𝓝 x = (𝓤 α).comap (prod.mk x) :=
 by { ext s, rw [mem_nhds_uniformity_iff_right], exact nhds_eq_comap_uniformity_aux }
 
+/-- See also `is_open_iff_open_ball_subset`. -/
 lemma is_open_iff_ball_subset {s : set α} : is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
 begin
   simp_rw [is_open_iff_mem_nhds, nhds_eq_comap_uniformity],
   exact iff.rfl,
 end
 
-lemma nhds_basis_uniformity' {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s)
+lemma nhds_basis_uniformity' {p : ι → Prop} {s : ι → set (α × α)} (h : (𝓤 α).has_basis p s)
   {x : α} :
   (𝓝 x).has_basis p (λ i, ball x (s i)) :=
 by { rw [nhds_eq_comap_uniformity], exact h.comap (prod.mk x) }
 
-lemma nhds_basis_uniformity {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s) {x : α} :
+lemma nhds_basis_uniformity {p : ι → Prop} {s : ι → set (α × α)} (h : (𝓤 α).has_basis p s) {x : α} :
   (𝓝 x).has_basis p (λ i, {y | (y, x) ∈ s i}) :=
 begin
   replace h := h.comap prod.swap,
@@ -575,21 +581,11 @@ open uniform_space
 
 lemma uniform_space.mem_closure_iff_symm_ball {s : set α} {x} :
   x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → symmetric_rel V → (s ∩ ball x V).nonempty :=
-begin
-  simp [mem_closure_iff_nhds_basis (has_basis_nhds x)],
-  tauto,
-end
+by simp [mem_closure_iff_nhds_basis (has_basis_nhds x), set.nonempty]
 
 lemma uniform_space.mem_closure_iff_ball {s : set α} {x} :
   x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → (ball x V ∩ s).nonempty :=
-begin
-  simp_rw [mem_closure_iff_nhds, uniform_space.mem_nhds_iff],
-  split,
-  { intros h V V_in,
-    exact h (ball x V) ⟨V, V_in, subset.refl _⟩ },
-  { rintros h t ⟨V, V_in, Vt⟩,
-    exact nonempty.mono (inter_subset_inter_left s Vt) (h V_in) },
-end
+by simp [mem_closure_iff_nhds_basis' (nhds_basis_uniformity' (𝓤 α).basis_sets)]
 
 lemma uniform_space.has_basis_nhds_prod (x y : α) :
   has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, (ball x s).prod (ball y s) :=
@@ -804,6 +800,18 @@ lemma mem_uniformity_is_closed {s : set (α×α)} (h : s ∈ 𝓤 α) :
 let ⟨t, ⟨ht_mem, htc⟩, hts⟩ := uniformity_has_basis_closed.mem_iff.1 h in
 ⟨t, ht_mem, htc, hts⟩
 
+lemma is_open_iff_open_ball_subset {s : set α} :
+  is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 α, is_open V ∧ ball x V ⊆ s :=
+begin
+  rw is_open_iff_ball_subset,
+  split; intros h x hx,
+  { obtain ⟨V, hV, hV'⟩ := h x hx,
+    exact ⟨interior V, interior_mem_uniformity hV, is_open_interior,
+      (ball_mono interior_subset x).trans hV'⟩, },
+  { obtain ⟨V, hV, -, hV'⟩ := h x hx,
+    exact ⟨V, hV, hV'⟩, },
+end
+
 /-- The uniform neighborhoods of all points of a dense set cover the whole space. -/
 lemma dense.bUnion_uniformity_ball {s : set α} {U : set (α × α)} (hs : dense s) (hU : U ∈ 𝓤 α) :
   (⋃ x ∈ s, ball x U) = univ :=
@@ -844,10 +852,32 @@ begin
     symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
 end
 
-lemma uniform_space.has_seq_basis (h : is_countably_generated $ 𝓤 α) :
-  ∃ V : ℕ → set (α × α), has_antimono_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
-let ⟨U, hsym, hbasis⟩ := h.exists_antimono_subbasis uniform_space.has_basis_symmetric
+lemma comp_open_symm_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
+  ∃ t ∈ 𝓤 α, is_open t ∧ symmetric_rel t ∧ t ○ t ⊆ s :=
+begin
+  obtain ⟨t, ht₁, ht₂⟩ := comp_mem_uniformity_sets hs,
+  obtain ⟨u, ⟨hu₁, hu₂, hu₃⟩, hu₄ : u ⊆ t⟩ := uniformity_has_basis_open_symmetric.mem_iff.mp ht₁,
+  exact ⟨u, hu₁, hu₂, hu₃, (comp_rel_mono hu₄ hu₄).trans ht₂⟩,
+end
+
+section
+
+variable (α)
+
+lemma uniform_space.has_seq_basis [is_countably_generated $ 𝓤 α] :
+  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
+let ⟨U, hsym, hbasis⟩ :=  uniform_space.has_basis_symmetric.exists_antitone_subbasis
 in ⟨U, hbasis, λ n, (hsym n).2⟩
+
+end
+
+lemma filter.has_basis.bInter_bUnion_ball {p : ι → Prop} {U : ι → set (α × α)}
+  (h : has_basis (𝓤 α) p U) (s : set α) :
+  (⋂ i (hi : p i), ⋃ x ∈ s, ball x (U i)) = closure s :=
+begin
+  ext x,
+  simp [mem_closure_iff_nhds_basis (nhds_basis_uniformity h), ball]
+end
 
 /-! ### Uniform continuity -/
 
@@ -918,8 +948,8 @@ instance : partial_order (uniform_space α) :=
   le_trans    := assume a b c h₁ h₂, le_trans h₁ h₂ }
 
 instance : has_Inf (uniform_space α) :=
-⟨assume s, uniform_space.of_core {
-  uniformity := (⨅u∈s, @uniformity α u),
+⟨assume s, uniform_space.of_core
+{ uniformity := (⨅u∈s, @uniformity α u),
   refl       := le_infi $ assume u, le_infi $ assume hu, u.refl,
   symm       := le_infi $ assume u, le_infi $ assume hu,
     le_trans (map_mono $ infi_le_of_le _ $ infi_le _ hu) u.symm,
@@ -1070,15 +1100,14 @@ top_unique $ assume s hs, s.eq_empty_or_nonempty.elim
 lemma to_topological_space_infi {ι : Sort*} {u : ι → uniform_space α} :
   (infi u).to_topological_space = ⨅i, (u i).to_topological_space :=
 begin
-  by_cases h : nonempty ι,
-  { resetI,
-    refine (eq_of_nhds_eq_nhds $ assume a, _),
+  casesI is_empty_or_nonempty ι,
+  { rw [infi_of_empty, infi_of_empty, to_topological_space_top] },
+  { refine (eq_of_nhds_eq_nhds $ assume a, _),
     rw [nhds_infi, nhds_eq_uniformity],
     change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
     rw [infi_uniformity, lift'_infi],
     { simp only [nhds_eq_uniformity], refl },
     { exact assume a b, rfl } },
-  { rw [infi_of_empty h, infi_of_empty h, to_topological_space_top] }
 end
 
 lemma to_topological_space_Inf {s : set (uniform_space α)} :
@@ -1390,6 +1419,32 @@ lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α}
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=
 by rw sUnion_eq_Union at hc₂;
    simpa using lebesgue_number_lemma hs (by simpa) hc₂
+
+/-- A useful consequence of the Lebesgue number lemma: given any compact set `K` contained in an
+open set `U`, we can find an (open) entourage `V` such that the ball of size `V` about any point of
+`K` is contained in `U`. -/
+lemma lebesgue_number_of_compact_open [uniform_space α]
+  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
+  ∃ V ∈ 𝓤 α, is_open V ∧ ∀ x ∈ K, uniform_space.ball x V ⊆ U :=
+begin
+  let W : K → set (α × α) := λ k, classical.some $ is_open_iff_open_ball_subset.mp hU k.1 $ hKU k.2,
+  have hW : ∀ k, W k ∈ 𝓤 α ∧ is_open (W k) ∧ uniform_space.ball k.1 (W k) ⊆ U,
+  { intros k,
+    obtain ⟨h₁, h₂, h₃⟩ := classical.some_spec (is_open_iff_open_ball_subset.mp hU k.1 (hKU k.2)),
+    exact ⟨h₁, h₂, h₃⟩, },
+  let c : K → set α := λ k, uniform_space.ball k.1 (W k),
+  have hc₁ : ∀ k, is_open (c k), { exact λ k, uniform_space.is_open_ball k.1 (hW k).2.1, },
+  have hc₂ : K ⊆ ⋃ i, c i,
+  { intros k hk,
+    simp only [mem_Union, set_coe.exists],
+    exact ⟨k, hk, uniform_space.mem_ball_self k (hW ⟨k, hk⟩).1⟩, },
+  have hc₃ : ∀ k, c k ⊆ U, { exact λ k, (hW k).2.2, },
+  obtain ⟨V, hV, hV'⟩ := lebesgue_number_lemma hK hc₁ hc₂,
+  refine ⟨interior V, interior_mem_uniformity hV, is_open_interior, _⟩,
+  intros k hk,
+  obtain ⟨k', hk'⟩ := hV' k hk,
+  exact ((ball_mono interior_subset k).trans hk').trans (hc₃ k'),
+end
 
 /-!
 ### Expressing continuity properties in uniform spaces

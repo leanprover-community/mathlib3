@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
-import algebra.iterate_hom
 import data.int.modeq
-import data.nat.choose
+import algebra.iterate_hom
+import data.nat.choose.sum
 import group_theory.order_of_element
+import data.nat.choose.dvd
 /-!
 # Characteristic of semirings
 -/
@@ -117,10 +118,10 @@ theorem add_pow_char_of_commute [semiring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x + y)^p = x^p + y^p :=
 begin
-  rw [commute.add_pow h, finset.sum_range_succ_comm, nat.sub_self, pow_zero, nat.choose_self],
+  rw [commute.add_pow h, finset.sum_range_succ_comm, tsub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one], congr' 1,
   convert finset.sum_eq_single 0 _ _,
-  { simp only [mul_one, one_mul, nat.choose_zero_right, nat.sub_zero, nat.cast_one, pow_zero] },
+  { simp only [mul_one, one_mul, nat.choose_zero_right, tsub_zero, nat.cast_one, pow_zero] },
   { intros b h1 h2,
     suffices : (p.choose b : R) = 0, { rw this, simp },
     rw char_p.cast_eq_zero_iff R p,
@@ -193,7 +194,24 @@ begin
   rw fact_iff at *, linarith,
 end
 
-lemma ring_hom.char_p_iff_char_p {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
+lemma char_p.neg_one_pow_char [comm_ring R] (p : ℕ) [char_p R p] [fact p.prime] :
+  (-1 : R) ^ p = -1 :=
+begin
+  rw eq_neg_iff_add_eq_zero,
+  nth_rewrite 1 ← one_pow p,
+  rw [← add_pow_char, add_left_neg, zero_pow (fact.out (nat.prime p)).pos],
+end
+
+lemma char_p.neg_one_pow_char_pow [comm_ring R] (p n : ℕ) [char_p R p] [fact p.prime] :
+  (-1 : R) ^ p ^ n = -1 :=
+begin
+  rw eq_neg_iff_add_eq_zero,
+  nth_rewrite 1 ← one_pow (p ^ n),
+  rw [← add_pow_char_pow, add_left_neg, zero_pow (pow_pos (fact.out (nat.prime p)).pos _)],
+end
+
+lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [nontrivial L]
+  (f : K →+* L) (p : ℕ) :
   char_p K p ↔ char_p L p :=
 begin
   split;
@@ -213,7 +231,7 @@ def frobenius : R →+* R :=
 { to_fun := λ x, x^p,
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
-  map_zero' := zero_pow (lt_trans zero_lt_one (fact.out (nat.prime p)).one_lt),
+  map_zero' := zero_pow (fact.out (nat.prime p)).pos,
   map_add' := add_pow_char R }
 
 variable {R}

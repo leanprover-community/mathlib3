@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import algebra.monoid_algebra
+import algebra.monoid_algebra.basic
 
 /-!
 # Theory of univariate polynomials
@@ -167,6 +167,11 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
 
+/-- Ring isomorphism between `(polynomial R)ᵐᵒᵖ` and `polynomial Rᵐᵒᵖ`. -/
+@[simps]
+def op_ring_equiv : (polynomial R)ᵐᵒᵖ ≃+* polynomial Rᵐᵒᵖ :=
+((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
+
 variable {R}
 
 lemma sum_to_finsupp {ι : Type*} (s : finset ι) (f : ι → add_monoid_algebra R ℕ) :
@@ -229,6 +234,18 @@ by simp [to_finsupp_iso, monomial, monomial_fun]
 
 @[simp] lemma to_finsupp_iso_symm_single : (to_finsupp_iso R).symm (single n a) = monomial n a :=
 by simp [to_finsupp_iso, monomial, monomial_fun]
+
+lemma monomial_injective (n : ℕ) :
+  function.injective (monomial n : R → polynomial R) :=
+begin
+  convert (to_finsupp_iso R).symm.injective.comp (single_injective n),
+  ext,
+  simp
+end
+
+@[simp] lemma monomial_eq_zero_iff (t : R) (n : ℕ) :
+  monomial n t = 0 ↔ t = 0 :=
+linear_map.map_eq_zero_iff _ (polynomial.monomial_injective n)
 
 lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
 begin
@@ -574,6 +591,54 @@ by simp [coeff_erase]
   coeff (p.erase n) i = coeff p i :=
 by simp [coeff_erase, h]
 
+section update
+
+/-- Replace the coefficient of a `p : polynomial p` at a given degree `n : ℕ`
+by a given value `a : R`. If `a = 0`, this is equal to `p.erase n`
+If `p.nat_degree < n` and `a ≠ 0`, this increases the degree to `n`.  -/
+def update (p : polynomial R) (n : ℕ) (a : R) :
+  polynomial R :=
+polynomial.of_finsupp (p.to_finsupp.update n a)
+
+lemma coeff_update (p : polynomial R) (n : ℕ) (a : R) :
+  (p.update n a).coeff = function.update p.coeff n a :=
+begin
+  ext,
+  cases p,
+  simp only [coeff, update, function.update_apply, coe_update],
+  congr
+end
+
+lemma coeff_update_apply (p : polynomial R) (n : ℕ) (a : R) (i : ℕ) :
+  (p.update n a).coeff i = if (i = n) then a else p.coeff i :=
+by rw [coeff_update, function.update_apply]
+
+@[simp] lemma coeff_update_same (p : polynomial R) (n : ℕ) (a : R) :
+  (p.update n a).coeff n = a :=
+by rw [p.coeff_update_apply, if_pos rfl]
+
+lemma coeff_update_ne (p : polynomial R) {n : ℕ} (a : R) {i : ℕ} (h : i ≠ n) :
+  (p.update n a).coeff i = p.coeff i :=
+by rw [p.coeff_update_apply, if_neg h]
+
+@[simp] lemma update_zero_eq_erase (p : polynomial R) (n : ℕ) :
+  p.update n 0 = p.erase n :=
+by { ext, rw [coeff_update_apply, coeff_erase] }
+
+lemma support_update (p : polynomial R) (n : ℕ) (a : R) [decidable (a = 0)] :
+  support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
+by { cases p, simp only [support, update, support_update], congr }
+
+lemma support_update_zero (p : polynomial R) (n : ℕ) :
+  support (p.update n 0) = p.support.erase n :=
+by rw [update_zero_eq_erase, support_erase]
+
+lemma support_update_ne_zero (p : polynomial R) (n : ℕ) {a : R} (ha : a ≠ 0) :
+  support (p.update n a) = insert n p.support :=
+by classical; rw [support_update, if_neg ha]
+
+end update
+
 end semiring
 
 section comm_semiring
@@ -590,10 +655,10 @@ variables [ring R]
 instance : ring (polynomial R) :=
 { neg := has_neg.neg,
   add_left_neg := by { rintros ⟨⟩, simp [neg_to_finsupp, add_to_finsupp, ← zero_to_finsupp] },
-  gsmul := (•),
-  gsmul_zero' := by { rintro ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
-  gsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul, add_comm] },
-  gsmul_neg' := by { rintros n ⟨⟩,
+  zsmul := (•),
+  zsmul_zero' := by { rintro ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
+  zsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul, add_comm] },
+  zsmul_neg' := by { rintros n ⟨⟩,
     simp only [smul_to_finsupp, neg_to_finsupp], simp [add_smul, add_mul] },
   .. polynomial.semiring }
 

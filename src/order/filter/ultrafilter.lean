@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov
 -/
 import order.filter.cofinite
+import order.zorn
 
 /-!
 # Ultrafilters
@@ -133,6 +134,14 @@ def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   le_of_le := λ g hg hgu, by { resetI,
     simp only [← u.unique (map_le_iff_le_comap.2 hgu), comap_map inj, le_rfl] } }
 
+@[simp] lemma mem_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+  (large : set.range m ∈ u) {s : set α} :
+  s ∈ u.comap inj large ↔ m '' s ∈ u :=
+mem_comap_iff inj large
+
+@[simp] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+  (large : set.range m ∈ u) : (u.comap inj large : filter α) = filter.comap m u := rfl
+
 /-- The principal ultrafilter associated to a point `x`. -/
 instance : has_pure ultrafilter :=
 ⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simp⟩
@@ -140,6 +149,7 @@ instance : has_pure ultrafilter :=
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
 
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
+instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/

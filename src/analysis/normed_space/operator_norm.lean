@@ -6,7 +6,6 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 import algebra.algebra.tower
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
-import data.equiv.transfer_instance
 
 /-!
 # Operator norm on the space of continuous linear maps
@@ -16,12 +15,17 @@ its basic properties. In particular, show that this space is itself a normed spa
 
 Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
 theory for `semi_normed_space` and we specialize to `normed_space` at the end.
+
+## TODO
+
+* Only the `normed_field` section applies to semilinear maps; the rest still only applies to
+  plain linear maps.
 -/
 
 noncomputable theory
 open_locale classical nnreal topological_space
 
-variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
+variables {𝕜 𝕜₂ : Type*} {E : Type*} {F : Type*} {G : Type*}
 
 section semi_normed
 
@@ -36,7 +40,8 @@ However, the other direction always holds.
 In this section, we just assume that `𝕜` is a normed field.
 In the remainder of the file, it will be non-discrete. -/
 
-variables [normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
+variables [normed_field 𝕜] [normed_field 𝕜₂] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜₂ F]
+variables [semi_normed_space 𝕜 G] {σ : 𝕜 →+* 𝕜₂} (f : E →ₛₗ[σ] F)
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (real.to_nnreal C) f :=
@@ -66,7 +71,7 @@ lemma linear_map.continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x
 /-- Construct a continuous linear map from a linear map and a bound on this linear map.
 The fact that the norm of the continuous linear map is then controlled is given in
 `linear_map.mk_continuous_norm_le`. -/
-def linear_map.mk_continuous (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
+def linear_map.mk_continuous (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : E →SL[σ] F :=
 ⟨f, linear_map.continuous_of_bound f C h⟩
 
 /-- Reinterpret a linear map `𝕜 →ₗ[𝕜] E` as a continuous linear map. This construction
@@ -79,24 +84,30 @@ by { conv_lhs { rw ← mul_one x }, rw [← smul_eq_mul, f.map_smul, norm_smul, 
 /-- Construct a continuous linear map from a linear map and the existence of a bound on this linear
 map. If you have an explicit bound, use `linear_map.mk_continuous` instead, as a norm estimate will
 follow automatically in `linear_map.mk_continuous_norm_le`. -/
-def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
+def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →SL[σ] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
-lemma continuous_of_linear_of_bound {f : E → F} (h_add : ∀ x y, f (x + y) = f x + f y)
+lemma continuous_of_linear_of_boundₛₗ {f : E → F} (h_add : ∀ x y, f (x + y) = f x + f y)
+  (h_smul : ∀ (c : 𝕜) x, f (c • x) = (σ c) • f x) {C : ℝ} (h_bound : ∀ x, ∥f x∥ ≤ C*∥x∥) :
+  continuous f :=
+let φ : E →ₛₗ[σ] F := { to_fun := f, map_add' := h_add, map_smul' := h_smul } in
+φ.continuous_of_bound C h_bound
+
+lemma continuous_of_linear_of_bound {f : E → G} (h_add : ∀ x y, f (x + y) = f x + f y)
   (h_smul : ∀ (c : 𝕜) x, f (c • x) = c • f x) {C : ℝ} (h_bound : ∀ x, ∥f x∥ ≤ C*∥x∥) :
   continuous f :=
-let φ : E →ₗ[𝕜] F := { to_fun := f, map_add' := h_add, map_smul' := h_smul } in
+let φ : E →ₗ[𝕜] G := { to_fun := f, map_add' := h_add, map_smul' := h_smul } in
 φ.continuous_of_bound C h_bound
 
 @[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  ((f.mk_continuous C h) : E →ₗ[𝕜] F) = f := rfl
+  ((f.mk_continuous C h) : E →ₛₗ[σ] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous C h x = f x := rfl
 
 @[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe
   (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  ((f.mk_continuous_of_exists_bound h) : E →ₗ[𝕜] F) = f := rfl
+  ((f.mk_continuous_of_exists_bound h) : E →ₛₗ[σ] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous_of_exists_bound h x = f x := rfl
@@ -184,6 +195,22 @@ by {rw mul_comm, exact norm_smul _ _}
 def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
 of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
 
+lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x :=
+by simp [to_span_singleton, of_homothety, linear_map.to_span_singleton]
+
+lemma to_span_singleton_add (x y : E) :
+  to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
+by { ext1, simp [to_span_singleton_apply], }
+
+lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [semi_normed_space 𝕜' E]
+  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
+
+lemma to_span_singleton_smul (c : 𝕜) (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+to_span_singleton_smul' 𝕜 𝕜 c x
+
 end
 
 section op_norm
@@ -258,7 +285,7 @@ lemma op_norm_le_of_ball {f : E →L[𝕜] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 <
 begin
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
-  rwa ball_0_eq
+  rwa ball_zero_eq
 end
 
 lemma op_norm_le_of_nhds_zero {f : E →L[𝕜] F} {C : ℝ} (hC : 0 ≤ C)
@@ -272,11 +299,11 @@ begin
   by_cases h0 : c = 0,
   { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
     { simp [h0] },
-    { rwa ball_0_eq at hx } },
-  { rw [← inv_inv' c, normed_field.norm_inv,
+    { rwa ball_zero_eq at hx } },
+  { rw [← inv_inv₀ c, normed_field.norm_inv,
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
     refine op_norm_le_of_shell ε_pos hC hc _,
-    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv'] }
+    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv₀] }
 end
 
 lemma op_norm_eq_of_bounds {φ : E →L[𝕜] F} {M : ℝ} (M_nonneg : 0 ≤ M)
@@ -384,7 +411,9 @@ begin
   simp [subsingleton.elim x 0]
 end
 
-/-- A continuous linear map is an isometry if and only if it preserves the norm. -/
+/-- A continuous linear map is an isometry if and only if it preserves the norm.
+(Note: Do you really want to use this lemma?  Try using the bundled structure `linear_isometry`
+instead.) -/
 lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
 f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 
@@ -621,6 +650,19 @@ variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
   λ c x, by simpa only [one_mul] using (norm_smul c x).le
+
+@[simp] lemma lsmul_apply (c : 𝕜') (x : E) : lsmul 𝕜 𝕜' c x = c • x := rfl
+
+variables {𝕜'}
+
+lemma norm_to_span_singleton (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
+begin
+  refine op_norm_eq_of_bounds (norm_nonneg _) (λ x, _) (λ N hN_nonneg h, _),
+  { rw [to_span_singleton_apply, norm_smul, mul_comm], },
+  { specialize h 1,
+    rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
+    exact (mul_le_mul_right (by simp)).mp h, },
+end
 
 end smul_linear
 
@@ -1111,8 +1153,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
         ((continuous_const.smul continuous_id).comp cont) },
     { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _ },
   end,
-  cont := cont
-}
+  cont := cont }
 
 lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
 continuous_linear_map.coe_fn_injective $
@@ -1187,7 +1228,7 @@ begin
       g.symm.to_linear_isometry.to_continuous_linear_map,
     { ext,
       simp },
-    haveI := g.symm.to_linear_equiv.to_equiv.nontrivial,
+    haveI := g.symm.surjective.nontrivial,
     simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
 end
 

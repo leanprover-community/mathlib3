@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.limits.shapes.regular_mono
 import category_theory.limits.shapes.kernels
+import category_theory.limits.preserves.basic
 
 /-!
 # Definitions and basic properties of normal monomorphisms and epimorphisms.

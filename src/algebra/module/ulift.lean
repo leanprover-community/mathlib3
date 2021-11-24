@@ -3,8 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import linear_algebra.basic
 import algebra.ring.ulift
+import data.equiv.module
 
 /-!
 # `ulift` instances for module and multiplicative actions
@@ -23,15 +23,11 @@ variable {R : Type u}
 variable {M : Type v}
 variable {N : Type w}
 
-instance has_scalar [has_scalar R M] :
+instance has_scalar_left [has_scalar R M] :
   has_scalar (ulift R) M :=
 ⟨λ s x, s.down • x⟩
 
 @[simp] lemma smul_down [has_scalar R M] (s : ulift R) (x : M) : (s • x) = s.down • x := rfl
-
-instance has_scalar' [has_scalar R M] :
-  has_scalar R (ulift M) :=
-⟨λ s x, ⟨s • x.down⟩⟩
 
 @[simp]
 lemma smul_down' [has_scalar R M] (s : R) (x : ulift M) :
@@ -72,6 +68,18 @@ instance distrib_mul_action' [monoid R] [add_monoid M] [distrib_mul_action R M] 
   distrib_mul_action R (ulift M) :=
 { smul_zero := λ c, by { ext, simp [smul_zero], },
   smul_add := λ c f g, by { ext, simp [smul_add], },
+  ..ulift.mul_action' }
+
+instance mul_distrib_mul_action [monoid R] [monoid M] [mul_distrib_mul_action R M] :
+  mul_distrib_mul_action (ulift R) M :=
+{ smul_one := λ c, by { cases c, simp [smul_one], },
+  smul_mul := λ c f g, by { cases c, simp [smul_mul'], },
+  ..ulift.mul_action }
+
+instance mul_distrib_mul_action' [monoid R] [monoid M] [mul_distrib_mul_action R M] :
+  mul_distrib_mul_action R (ulift M) :=
+{ smul_one := λ c, by { ext, simp [smul_one], },
+  smul_mul := λ c f g, by { ext, simp [smul_mul'], },
   ..ulift.mul_action' }
 
 instance module [semiring R] [add_comm_monoid M] [module R M] :

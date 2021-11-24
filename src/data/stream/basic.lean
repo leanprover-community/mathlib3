@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Simon Hudon
 -/
 import tactic.ext
-import data.stream
+import data.stream.init
 import data.list.basic
 import data.list.range
 
@@ -30,5 +30,8 @@ by simp [take]
 /-- Use a state monad to generate a stream through corecursion -/
 def corec_state {σ α} (cmd : state σ α) (s : σ) : stream α :=
 stream.corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
+
+@[simp] lemma head_drop {α} (a : stream α) (n : ℕ) : (a.drop n).head = a.nth n :=
+by simp only [stream.drop, stream.head, zero_add]
 
 end stream

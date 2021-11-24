@@ -242,7 +242,7 @@ begin
   { rw [max_eq_left], refl, exact bot_le },
   change (coe : α → with_bot α) with some,
   rw [max_comm],
-  simp [max]
+  simp [max_def]
 end
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=
@@ -275,7 +275,7 @@ section fold
 
 variables {M : Type*} [canonically_linear_ordered_add_monoid M]
 
-/-! Note: since there is no typeclass for both `linear_order` and `has_top`, nor a typeclass dual
+/-! Note: since there is no typeclass typeclass dual
 to `canonically_linear_ordered_add_monoid α` we cannot express these lemmas generally for
 `minimum`; instead we are limited to doing so on `order_dual α`. -/
 

@@ -138,8 +138,8 @@ end
 protected lemma lt_def {p q : ℚ} : p < q ↔ p.num * q.denom < q.num * p.denom :=
 begin
   rw [lt_iff_le_and_ne, rat.le_def'],
-  suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by {
-    split; intro h,
+  suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by
+  { split; intro h,
     { exact lt_iff_le_and_ne.elim_right ⟨h.left, (this.elim_left h.right)⟩ },
     { have tmp := lt_iff_le_and_ne.elim_left h, exact ⟨tmp.left, this.elim_right tmp.right⟩ }},
   exact (not_iff_not.elim_right eq_iff_mul_eq_mul)
@@ -206,7 +206,7 @@ begin
     simp only [this, (lt_of_le_of_lt q_nonpos zero_lt_one)] }
 end
 
-theorem abs_def (q : ℚ) : abs q = q.num.nat_abs /. q.denom :=
+theorem abs_def (q : ℚ) : |q| = q.num.nat_abs /. q.denom :=
 begin
   cases le_total q 0 with hq hq,
   { rw [abs_of_nonpos hq],

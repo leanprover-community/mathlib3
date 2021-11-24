@@ -4,12 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.equiv_rw
-import control.equiv_functor.instances -- these make equiv_rw more powerful!
 
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
 -- set_option trace.equiv_rw_type true
-
-import tactic.equiv_rw
 
 -- This fails if we use `occurs` rather than `kdepends_on` in `equiv_rw_type`.
 instance : equiv_functor set :=
@@ -253,8 +250,6 @@ begin
   exact x * y = e (e.symm x * e.symm y)
 end :=
 rfl
-
-attribute [ext] semigroup
 
 lemma semigroup.id_map (α : Type) : semigroup.map (equiv.refl α) = id :=
 by { ext, refl, }

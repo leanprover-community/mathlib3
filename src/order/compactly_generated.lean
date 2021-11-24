@@ -3,11 +3,11 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import data.finset.order
+import tactic.tfae
 import order.atoms
 import order.order_iso_nat
 import order.zorn
-import tactic.tfae
+import data.finset.order
 
 /-!
 # Compactness properties for complete lattices
@@ -181,7 +181,7 @@ end
 lemma is_sup_closed_compact.well_founded (h : is_sup_closed_compact α) :
   well_founded ((>) : α → α → Prop) :=
 begin
-  rw rel_embedding.well_founded_iff_no_descending_seq, rintros ⟨a⟩,
+  refine rel_embedding.well_founded_iff_no_descending_seq.mpr ⟨λ a, _⟩,
   suffices : Sup (set.range a) ∈ set.range a,
   { obtain ⟨n, hn⟩ := set.mem_range.mp this,
     have h' : Sup (set.range a) < a (n+1), { change _ > _, simp [← hn, a.map_rel_iff], },
@@ -373,7 +373,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
 end⟩
 
 lemma coatomic_of_top_compact (h : is_compact_element (⊤ : α)) : is_coatomic α :=
-(@order_iso.Iic_top α _).is_coatomic_iff.mp (Iic_coatomic_of_compact_element h)
+(@order_iso.Iic_top α _ _).is_coatomic_iff.mp (Iic_coatomic_of_compact_element h)
 
 end complete_lattice
 

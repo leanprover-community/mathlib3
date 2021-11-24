@@ -202,6 +202,15 @@ lemma commute_inv_of {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] 
 calc m * ⅟m = 1       : mul_inv_of_self m
         ... = ⅟ m * m : (inv_of_mul_self m).symm
 
+section monoid_with_zero
+variable [monoid_with_zero α]
+
+/-- A variant of `ring.inverse_unit`. -/
+@[simp] lemma ring.inverse_invertible (x : α) [invertible x] : ring.inverse x = ⅟x :=
+ring.inverse_unit (unit_of_invertible _)
+
+end monoid_with_zero
+
 section group_with_zero
 
 variable [group_with_zero α]

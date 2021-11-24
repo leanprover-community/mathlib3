@@ -5,8 +5,9 @@ Authors: Yury Kudryashov
 -/
 import topology.metric_space.metric_separated
 import measure_theory.constructions.borel_space
-import analysis.special_functions.pow
 import measure_theory.measure.lebesgue
+import analysis.special_functions.pow
+import topology.metric_space.holder
 import data.equiv.list
 
 /-!
@@ -25,9 +26,9 @@ The value of `μH[d]`, `d > 0`, on a set `s` (measurable or not) is given by
 ```
 
 For every set `s` for any `d < d'` we have either `μH[d] s = ∞` or `μH[d'] s = 0`, see
-`measure_theory.measure.hausdorff_measure_zero_or_top`. The Hausdorff dimension `dimH s : ℝ≥0∞` of a
-set `s` is the supremum of `d : ℝ≥0` such that `μH[d] s = ∞`. Then `μH[d] s = ∞` for `d < dimH s`
-and `μH[d] s = 0` for `dimH s < d`.
+`measure_theory.measure.hausdorff_measure_zero_or_top`. In
+`topology.metric_space.hausdorff_dimension` we use this fact to define the Hausdorff dimension
+`dimH` of a set in an (extended) metric space.
 
 We also define two generalizations of the Hausdorff measure. In one generalization (see
 `measure_theory.measure.mk_metric`) we take any function `m (diam s)` instead of `(diam s) ^ d`. In
@@ -43,6 +44,47 @@ is additive on metric separated pairs of sets: `μ (s ∪ t) = μ s + μ t` prov
 metric outer measure, then prove that outer measures constructed using `mk_metric'` are metric outer
 measures.
 
+## Main definitions
+
+* `measure_theory.outer_measure.is_metric`: an outer measure `μ` is called *metric* if
+  `μ (s ∪ t) = μ s + μ t` for any two metric separated sets `s` and `t`. A metric outer measure in a
+  Borel extended metric space is guaranteed to satisfy the Caratheodory condition, see
+  `measure_theory.outer_measure.is_metric.borel_le_caratheodory`.
+* `measure_theory.outer_measure.mk_metric'` and its particular case
+  `measure_theory.outer_measure.mk_metric`: a construction of an outer measure that is guaranteed to
+  be metric. Both constructions are generalizations of the Hausdorff measure. The same measures
+  interpreted as Borel measures are called `measure_theory.measure.mk_metric'` and
+  `measure_theory.measure.mk_metric`.
+* `measure_theory.measure.hausdorff_measure` a.k.a. `μH[d]`: the `d`-dimensional Hausdorff measure.
+  There are many definitions of the Hausdorff measure that differ from each other by a
+  multiplicative constant. We put
+  `μH[d] s = ⨆ r > 0, ⨅ (t : ℕ → set X) (hts : s ⊆ ⋃ n, t n) (ht : ∀ n, emetric.diam (t n) ≤ r),
+    ∑' n, ⨆ (ht : ¬set.subsingleton (t n)), (emetric.diam (t n)) ^ d`,
+  see `measure_theory.measure.hausdorff_measure_apply'`. In the most interesting case `0 < d` one
+  can omit the `⨆ (ht : ¬set.subsingleton (t n))` part.
+
+## Main statements
+
+### Basic properties
+
+* `measure_theory.outer_measure.is_metric.borel_le_caratheodory`: if `μ` is a metric outer measure
+  on an extended metric space `X` (that is, it is additive on pairs of metric separated sets), then
+  every Borel set is Caratheodory measurable (hence, `μ` defines an actual
+  `measure_theory.measure`). See also `measure_theory.measure.mk_metric`.
+* `measure_theory.measure.hausdorff_measure_mono`: `μH[d] s` is an antitone function
+  of `d`.
+* `measure_theory.measure.hausdorff_measure_zero_or_top`: if `d₁ < d₂`, then for any `s`, either
+  `μH[d₂] s = 0` or `μH[d₁] s = ∞`. Together with the previous lemma, this means that `μH[d] s` is
+  equal to infinity on some ray `(-∞, D)` and is equal to zero on `(D, +∞)`, where `D` is a possibly
+  infinite number called the *Hausdorff dimension* of `s`; `μH[D] s` can be zero, infinity, or
+  anything in between.
+* `measure_theory.measure.no_atoms_hausdorff`: Hausdorff measure has no atoms.
+
+### Hausdorff measure in `ℝⁿ`
+
+* `measure_theory.hausdorff_measure_pi_real`: for a nonempty `ι`, `μH[card ι]` on `ι → ℝ` equals
+  Lebesgue measure.
+
 ## Notations
 
 We use the following notation localized in `measure_theory`.
@@ -56,18 +98,27 @@ sources only allow coverings by balls and use `r ^ d` instead of `(diam s) ^ d`.
 construction lead to different Hausdorff measures, they lead to the same notion of the Hausdorff
 dimension.
 
+Some sources define the `0`-dimensional Hausdorff measure to be the counting measure. We define it
+to be zero on subsingletons because this way we can have a
+`measure.has_no_atoms (measure.hausdorff_measure d)` instance.
+
+## TODO
+
+* prove that `1`-dimensional Hausdorff measure on `ℝ` equals `volume`;
+* prove a similar statement for `ℝ × ℝ`.
+
 ## References
 
 * [Herbert Federer, Geometric Measure Theory, Chapter 2.10][Federer1996]
 
 ## Tags
 
-Hausdorff measure, Hausdorff dimension, dimension, measure, metric measure
+Hausdorff measure, measure, metric measure
 -/
 
 open_locale nnreal ennreal topological_space big_operators
 
-open emetric set function filter encodable
+open emetric set function filter encodable finite_dimensional topological_space
 
 noncomputable theory
 
@@ -176,10 +227,10 @@ begin
   have : inf_edist y t < (↑(2 * j + r))⁻¹, from not_le.1 (λ hle, hy.2 ⟨hy.1, hle⟩),
   rcases exists_edist_lt_of_inf_edist_lt this with ⟨z, hzt, hyz⟩,
   have hxz : (↑(2 * i + 1 + r))⁻¹ ≤ edist x z, from le_inf_edist.1 hx.2 _ hzt,
-  apply ennreal.le_of_add_le_add_right (hyz.trans_le le_top),
+  apply ennreal.le_of_add_le_add_right hyz.ne_top,
   refine le_trans _ (edist_triangle _ _ _),
   refine (add_le_add le_rfl hyz.le).trans (eq.trans_le _ hxz),
-  rw [ennreal.sub_add_cancel_of_le A.le]
+  rw [tsub_add_cancel_of_le A.le]
 end
 
 lemma le_caratheodory [measurable_space X] [borel_space X] (hm : is_metric μ) :
@@ -260,6 +311,8 @@ begin
     (tendsto_at_top_supr $ λ k l hkl, mk_metric'.mono_pre_nat m hkl s)
 end
 
+/-- `measure_theory.outer_measure.mk_metric'.pre m r` is a trimmed measure provided that
+`m (closure s) = m s` for any set `s`. -/
 lemma trim_pre [measurable_space X] [opens_measurable_space X]
   (m : set X → ℝ≥0∞) (hcl : ∀ s, m (closure s) = m s) (r : ℝ≥0∞) :
   (pre m r).trim = pre m r :=
@@ -410,9 +463,9 @@ lemma outer_measure.coe_mk_metric [measurable_space X] [borel_space X] (m : ℝ�
   ⇑(outer_measure.mk_metric m : outer_measure X) = measure.mk_metric m :=
 by rw [← measure.mk_metric_to_outer_measure, coe_to_outer_measure]
 
-variables [measurable_space X] [borel_space X]
-
 namespace measure
+
+variables [measurable_space X] [borel_space X]
 
 /-- If `c ∉ {0, ∞}` and `m₁ d ≤ c * m₂ d` for `0 < d < ε` for some `ε > 0`
 (we use `≤ᶠ[𝓝[Ioi 0]]` to state this), then `mk_metric m₁ hm₁ ≤ c • mk_metric m₂ hm₂`. -/
@@ -610,80 +663,12 @@ end measure
 open_locale measure_theory
 open measure
 
-/-- Hausdorff dimension of a set in an (e)metric space. -/
-def dimH (s : set X) : ℝ≥0∞ := ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d
-
-lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
-by simp [dimH, h.measure_eq]
-
-alias dimH_subsingleton ← set.subsingleton.dimH_eq
-
-@[simp] lemma dimH_empty : dimH (∅ : set X) = 0 := subsingleton_empty.dimH_eq
-
-@[simp] lemma dimH_singleton (x : X) : dimH ({x} : set X) = 0 := subsingleton_singleton.dimH_eq
-
-lemma hausdorff_measure_of_lt_dimH {s : set X} {d : ℝ≥0}
-  (h : ↑d < dimH s) : μH[d] s = ∞ :=
-begin
-  simp only [dimH, lt_supr_iff] at h,
-  rcases h with ⟨d', hsd', hdd'⟩,
-  rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at hdd',
-  refine (hausdorff_measure_zero_or_top hdd' s).resolve_left (λ h, _),
-  exact (ennreal.zero_ne_top $ h.symm.trans hsd').elim
-end
-
-lemma le_dimH_of_hausdorff_measure_eq_top {s : set X} {d : ℝ≥0} (h : μH[d] s = ∞) :
-  ↑d ≤ dimH s :=
-le_bsupr d h
-
-lemma hausdorff_measure_of_dimH_lt {s : set X} {d : ℝ≥0}
-  (h : dimH s < d) : μH[d] s = 0 :=
-begin
-  rcases ennreal.lt_iff_exists_nnreal_btwn.1 h with ⟨d', hsd', hd'd⟩,
-  rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at hd'd,
-  exact (hausdorff_measure_zero_or_top hd'd s).resolve_right
-    (λ h, hsd'.not_le (le_bsupr d' h))
-end
-
-lemma measure_zero_of_dimH_lt {μ : measure X} {d : ℝ≥0}
-  (h : μ ≪ μH[d]) {s : set X} (hd : dimH s < d) :
-  μ s = 0 :=
-h $ hausdorff_measure_of_dimH_lt hd
-
-@[mono] lemma dimH_mono {s t : set X} (h : s ⊆ t) : dimH s ≤ dimH t :=
-bsupr_le $ λ d hd, le_dimH_of_hausdorff_measure_eq_top $
-  top_unique $ hd ▸ measure_mono h
-
-@[simp] lemma dimH_Union [encodable ι] (s : ι → set X) :
-  dimH (⋃ i, s i) = ⨆ i, dimH (s i) :=
-begin
-  refine le_antisymm (bsupr_le $ λ d hd, _) (supr_le $ λ i, dimH_mono $ subset_Union _ _),
-  contrapose! hd,
-  have : ∀ i, μH[d] (s i) = 0,
-    from λ i, hausdorff_measure_of_dimH_lt ((le_supr (λ i, dimH (s i)) i).trans_lt hd),
-  rw measure_Union_null this,
-  exact ennreal.zero_ne_top
-end
-
-@[simp] lemma dimH_bUnion {s : set ι} (hs : countable s) (t : ι → set X) :
-  dimH (⋃ i ∈ s, t i) = ⨆ i ∈ s, dimH (t i) :=
-begin
-  haveI := hs.to_encodable,
-  rw [← Union_subtype, dimH_Union, ← supr_subtype'']
-end
-
-@[simp] lemma dimH_sUnion {S : set (set X)} (hS : countable S) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
-by rw [sUnion_eq_bUnion, dimH_bUnion hS]
-
-@[simp] lemma dimH_union (s t : set X) : dimH (s ∪ t) = max (dimH s) (dimH t) :=
-by rw [union_eq_Union, dimH_Union, supr_bool_eq, cond, cond, ennreal.sup_eq_max]
-
 /-!
 ### Hausdorff measure and Lebesgue measure
 -/
 
 /-- In the space `ι → ℝ`, Hausdorff measure coincides exactly with Lebesgue measure. -/
-theorem hausdorff_measure_pi_real {ι : Type*} [fintype ι] [nonempty ι] :
+@[simp] theorem hausdorff_measure_pi_real {ι : Type*} [fintype ι] [nonempty ι] :
   (μH[fintype.card ι] : measure (ι → ℝ)) = volume :=
 begin
   classical,
@@ -702,13 +687,11 @@ begin
     { refine le_hausdorff_measure _ _ ∞ ennreal.coe_lt_top (λ s h₁ h₂, _),
       rw [ennreal.rpow_nat_cast],
       exact real.volume_pi_le_diam_pow s },
-    rw [← volume_pi_pi (λ i, Ioo (a i : ℝ) (b i)) (λ i, measurable_set_Ioo)],
+    rw [← volume_pi_pi (λ i, Ioo (a i : ℝ) (b i))],
     exact measure.le_iff'.1 Hle _ },
   /- For the other inequality `μH s ≤ volume s`, we use a covering of `s` by sets of small diameter
   `1/n`, namely cubes with left-most point of the form `a i + f i / n` with `f i` ranging between
   `0` and `⌈(b i - a i) * n⌉`. Their number is asymptotic to `n^d * Π (b i - a i)`. -/
-  have Hpos' : 0 < fintype.card ι := fintype.card_pos_iff.2 ‹nonempty ι›,
-  have Hpos : 0 < (fintype.card ι : ℝ), by simp only [Hpos', nat.cast_pos],
   have I : ∀ i, 0 ≤ (b i : ℝ) - a i := λ i, by simpa only [sub_nonneg, rat.cast_le] using (H i).le,
   let γ := λ (n : ℕ), (Π (i : ι), fin ⌈((b i : ℝ) - a i) * n⌉₊),
   let t : Π (n : ℕ), γ n → set (ι → ℝ) :=
@@ -729,7 +712,7 @@ begin
     simp only [mem_Union, mem_Ioo, mem_univ_pi, coe_coe],
     let f : γ n := λ i, ⟨⌊(x i - a i) * n⌋₊,
     begin
-      apply nat_floor_lt_nat_ceil_of_lt_of_pos,
+      apply nat.floor_lt_ceil_of_lt_of_pos,
       { refine (mul_lt_mul_right npos).2 _,
         simp only [(hx i).right, sub_lt_sub_iff_right] },
       { refine mul_pos _ npos,
@@ -740,13 +723,13 @@ begin
       ≤ (a i : ℝ) + ((x i - a i) * n) / n :
           begin
             refine add_le_add le_rfl ((div_le_div_right npos).2 _),
-            exact nat_floor_le (mul_nonneg (sub_nonneg.2 (hx i).1.le) npos.le),
+            exact nat.floor_le (mul_nonneg (sub_nonneg.2 (hx i).1.le) npos.le),
           end
       ... = x i : by field_simp [npos.ne'] },
     { calc x i
       = (a i : ℝ) + ((x i - a i) * n) / n : by field_simp [npos.ne']
       ... ≤ (a i : ℝ) + (⌊(x i - a i) * n⌋₊ + 1) / n :
-        add_le_add le_rfl ((div_le_div_right npos).2 (lt_nat_floor_add_one _).le) } },
+        add_le_add le_rfl ((div_le_div_right npos).2 (nat.lt_floor_add_one _).le) } },
   calc μH[fintype.card ι] (set.pi univ (λ (i : ι), Ioo (a i : ℝ) (b i)))
     ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), diam (t n i) ^ ↑(fintype.card ι)) :
       hausdorff_measure_le_liminf_sum _ (set.pi univ (λ i, Ioo (a i : ℝ) (b i)))
@@ -758,7 +741,7 @@ begin
       assume n hn,
       apply finset.sum_le_sum (λ i _, _),
       rw ennreal.rpow_nat_cast,
-      exact canonically_ordered_comm_semiring.pow_le_pow_of_le_left (hn i) _,
+      exact pow_le_pow_of_le_left' (hn i) _,
     end
   ... = liminf at_top (λ (n : ℕ), ∏ (i : ι), (⌈((b i : ℝ) - a i) * n⌉₊ : ℝ≥0∞) / n) :
   begin
@@ -781,3 +764,152 @@ begin
 end
 
 end measure_theory
+
+/-!
+### Hausdorff measure, Hausdorff dimension, and Hölder or Lipschitz continuous maps
+-/
+
+open_locale measure_theory
+open measure_theory measure_theory.measure
+
+variables [measurable_space X] [borel_space X] [measurable_space Y] [borel_space Y]
+
+namespace holder_on_with
+
+variables {C r : ℝ≥0} {f : X → Y} {s t : set X}
+
+/-- If `f : X → Y` is Hölder continuous on `s` with a positive exponent `r`, then
+`μH[d] (f '' s) ≤ C ^ d * μH[r * d] s`. -/
+lemma hausdorff_measure_image_le (h : holder_on_with C r f s) (hr : 0 < r) {d : ℝ} (hd : 0 ≤ d) :
+  μH[d] (f '' s) ≤ C ^ d * μH[r * d] s :=
+begin
+  -- We start with the trivial case `C = 0`
+  rcases (zero_le C).eq_or_lt with rfl|hC0,
+  { have : (f '' s).subsingleton, by simpa [diam_eq_zero_iff] using h.ediam_image_le,
+    rw this.measure_zero,
+    exact zero_le _ },
+  { have hCd0 : (C : ℝ≥0∞) ^ d ≠ 0, by simp [hC0.ne'],
+    have hCd : (C : ℝ≥0∞) ^ d ≠ ∞, by simp [hd],
+    simp only [hausdorff_measure_apply', ennreal.mul_supr, ennreal.mul_infi_of_ne hCd0 hCd,
+      ← ennreal.tsum_mul_left],
+    refine supr_le (λ R, supr_le $ λ hR, _),
+    have : tendsto (λ d : ℝ≥0∞, (C : ℝ≥0∞) * d ^ (r : ℝ)) (𝓝 0) (𝓝 0),
+      from ennreal.tendsto_const_mul_rpow_nhds_zero_of_pos ennreal.coe_ne_top hr,
+    rcases ennreal.nhds_zero_basis_Iic.eventually_iff.1 (this.eventually (gt_mem_nhds hR))
+      with ⟨δ, δ0, H⟩,
+    refine le_supr_of_le δ (le_supr_of_le δ0 $ le_binfi $ λ t hst, le_infi $ λ htδ, _),
+    refine binfi_le_of_le (λ n, f '' (t n ∩ s)) _ (infi_le_of_le (λ n, _) _),
+    { rw [← image_Union, ← Union_inter],
+      exact image_subset _ (subset_inter hst subset.rfl) },
+    { exact (h.ediam_image_inter_le (t n)).trans (H (htδ n)).le },
+    { refine ennreal.tsum_le_tsum (λ n, supr_le $ λ hft,
+        le_supr_of_le (λ ht, hft $ (ht.mono (inter_subset_left _ _)).image f) _),
+      rw [ennreal.rpow_mul, ← ennreal.mul_rpow_of_nonneg _ _ hd],
+      exact ennreal.rpow_le_rpow (h.ediam_image_inter_le _) hd } }
+end
+
+end holder_on_with
+
+namespace lipschitz_on_with
+
+variables {K : ℝ≥0} {f : X → Y} {s t : set X}
+
+/-- If `f : X → Y` is `K`-Lipschitz on `s`, then `μH[d] (f '' s) ≤ K ^ d * μH[d] s`. -/
+lemma hausdorff_measure_image_le (h : lipschitz_on_with K f s) {d : ℝ} (hd : 0 ≤ d) :
+  μH[d] (f '' s) ≤ K ^ d * μH[d] s :=
+by simpa only [nnreal.coe_one, one_mul]
+  using h.holder_on_with.hausdorff_measure_image_le zero_lt_one hd
+
+end lipschitz_on_with
+
+namespace lipschitz_with
+
+variables {K : ℝ≥0} {f : X → Y}
+
+/-- If `f` is a `K`-Lipschitz map, then it increases the Hausdorff `d`-measures of sets at most
+by the factor of `K ^ d`.-/
+lemma hausdorff_measure_image_le (h : lipschitz_with K f) {d : ℝ} (hd : 0 ≤ d) (s : set X) :
+  μH[d] (f '' s) ≤ K ^ d * μH[d] s :=
+(h.lipschitz_on_with s).hausdorff_measure_image_le hd
+
+end lipschitz_with
+
+/-!
+### Antilipschitz maps do not decrease Hausdorff measures and dimension
+-/
+
+namespace antilipschitz_with
+
+variables {f : X → Y} {K : ℝ≥0} {d : ℝ}
+
+lemma hausdorff_measure_preimage_le (hf : antilipschitz_with K f) (hd : 0 ≤ d) (s : set Y) :
+  μH[d] (f ⁻¹' s) ≤ K ^ d * μH[d] s :=
+begin
+  rcases eq_or_ne K 0 with rfl|h0,
+  { haveI : subsingleton X := hf.subsingleton,
+    have : (f ⁻¹' s).subsingleton, from subsingleton_univ.mono (subset_univ _),
+    rw this.measure_zero,
+    exact zero_le _ },
+  have hKd0 : (K : ℝ≥0∞) ^ d ≠ 0, by simp [h0],
+  have hKd : (K : ℝ≥0∞) ^ d ≠ ∞, by simp [hd],
+  simp only [hausdorff_measure_apply', ennreal.mul_supr, ennreal.mul_infi_of_ne hKd0 hKd,
+    ← ennreal.tsum_mul_left],
+  refine bsupr_le (λ ε ε0, _),
+  refine le_bsupr_of_le (ε / K) (by simp [ε0.ne']) _,
+  refine le_binfi (λ t hst, le_infi $ λ htε, _),
+  replace hst : f ⁻¹' s ⊆ _ := preimage_mono hst, rw preimage_Union at hst,
+  refine binfi_le_of_le _ hst (infi_le_of_le (λ n, _) _),
+  { exact (hf.ediam_preimage_le _).trans (ennreal.mul_le_of_le_div' $ htε n) },
+  { refine ennreal.tsum_le_tsum (λ n, supr_le $
+      λ H, le_supr_of_le (λ h, H $ h.preimage hf.injective) _),
+    rw [← ennreal.mul_rpow_of_nonneg _ _ hd],
+    exact ennreal.rpow_le_rpow (hf.ediam_preimage_le _) hd }
+end
+
+lemma le_hausdorff_measure_image (hf : antilipschitz_with K f) (hd : 0 ≤ d) (s : set X) :
+  μH[d] s ≤ K ^ d * μH[d] (f '' s) :=
+calc μH[d] s ≤ μH[d] (f ⁻¹' (f '' s)) : measure_mono (subset_preimage_image _ _)
+         ... ≤ K ^ d * μH[d] (f '' s) : hf.hausdorff_measure_preimage_le hd (f '' s)
+
+end antilipschitz_with
+
+/-!
+### Isometries preserve the Hausdorff measure and Hausdorff dimension
+-/
+
+namespace isometry
+
+variables {f : X → Y} {d : ℝ}
+
+lemma hausdorff_measure_image (hf : isometry f) (hd : 0 ≤ d ∨ surjective f) (s : set X) :
+  μH[d] (f '' s) = μH[d] s :=
+begin
+  simp only [hausdorff_measure, ← outer_measure.coe_mk_metric, ← outer_measure.comap_apply],
+  rw [outer_measure.isometry_comap_mk_metric _ hf (hd.imp_left _)],
+  exact λ hd x y hxy, ennreal.rpow_le_rpow hxy hd
+end
+
+lemma hausdorff_measure_preimage (hf : isometry f) (hd : 0 ≤ d ∨ surjective f) (s : set Y) :
+  μH[d] (f ⁻¹' s) = μH[d] (s ∩ range f) :=
+by rw [← hf.hausdorff_measure_image hd, image_preimage_eq_inter_range]
+
+lemma map_hausdorff_measure (hf : isometry f) (hd : 0 ≤ d ∨ surjective f) :
+  measure.map f μH[d] = (μH[d]).restrict (range f) :=
+begin
+  ext1 s hs,
+  rw [map_apply hf.continuous.measurable hs, restrict_apply hs, hf.hausdorff_measure_preimage hd]
+end
+
+end isometry
+
+namespace isometric
+
+@[simp] lemma hausdorff_measure_image (e : X ≃ᵢ Y) (d : ℝ) (s : set X) :
+  μH[d] (e '' s) = μH[d] s :=
+e.isometry.hausdorff_measure_image (or.inr e.surjective) s
+
+@[simp] lemma hausdorff_measure_preimage (e : X ≃ᵢ Y) (d : ℝ) (s : set Y) :
+  μH[d] (e ⁻¹' s) = μH[d] s :=
+by rw [← e.image_symm, e.symm.hausdorff_measure_image]
+
+end isometric

@@ -26,7 +26,7 @@ by refine_struct
   inv := λ _, star,
   div := λ _ _, star,
   npow := λ _ _, star,
-  gpow := λ _ _, star,
+  zpow := λ _ _, star,
   .. };
 intros; exact subsingleton.elim _ _
 
@@ -56,8 +56,7 @@ intros; trivial <|> simp only [eq_iff_true_of_subsingleton]
 
 instance : canonically_ordered_add_monoid punit :=
 by refine
-{ lt_of_add_lt_add_left := λ _ _ _, id,
-  le_iff_exists_add := λ _ _, iff_of_true _ ⟨star, subsingleton.elim _ _⟩,
+{ le_iff_exists_add := λ _ _, iff_of_true _ ⟨star, subsingleton.elim _ _⟩,
   .. punit.comm_ring, .. punit.complete_boolean_algebra, .. };
 intros; trivial
 

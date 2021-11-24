@@ -13,13 +13,13 @@ In this file we prove a few facts like “`-s` is bounded above iff `s` is bound
 (`bdd_above_neg`).
 -/
 
-open set
+open function set
 open_locale pointwise
 
 section inv_neg
 
 variables {G : Type*} [group G] [preorder G] [covariant_class G G (*) (≤)]
-  [covariant_class G G (function.swap (*)) (≤)] {s : set G} {a : G}
+  [covariant_class G G (swap (*)) (≤)] {s : set G} {a : G}
 
 @[simp, to_additive]
 lemma bdd_above_inv : bdd_above s⁻¹ ↔ bdd_below s := (order_iso.inv G).bdd_above_preimage
@@ -56,7 +56,7 @@ end inv_neg
 section mul_add
 
 variables {M : Type*} [has_mul M] [preorder M] [covariant_class M M (*) (≤)]
-  [covariant_class M M (function.swap (*)) (≤)]
+  [covariant_class M M (swap (*)) (≤)]
 
 @[to_additive] lemma mul_mem_upper_bounds_mul {s t : set M} {a b : M} (ha : a ∈ upper_bounds s)
   (hb : b ∈ upper_bounds t) :

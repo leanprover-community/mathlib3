@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.algebra.basic
-import ring_theory.ideal.basic
+import ring_theory.ideal.quotient
 
 /-!
 # Quotients of non-commutative rings
@@ -281,7 +281,7 @@ begin
 end
 
 @[irreducible] private def star' : ring_quot r → ring_quot r
-| ⟨a⟩ := ⟨quot.map (_root_.star : R → R) (rel.star r hr) a⟩
+| ⟨a⟩ := ⟨quot.map (star : R → R) (rel.star r hr) a⟩
 
 lemma star'_quot (hr : ∀ a b, r a b → r (star a) (star b)) {a} :
   (star' r hr ⟨quot.mk _ a⟩ : ring_quot r) = ⟨quot.mk _ (star a)⟩ :=

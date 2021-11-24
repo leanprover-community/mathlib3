@@ -6,8 +6,10 @@ Authors: Kevin Buzzard
 
 import ring_theory.principal_ideal_domain
 import order.conditionally_complete_lattice
+import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
+import linear_algebra.adic_completion
 
 /-!
 # Discrete valuation rings
@@ -48,13 +50,13 @@ open ideal local_ring
 
 /-- An integral domain is a *discrete valuation ring* (DVR) if it's a local PID which
   is not a field. -/
-class discrete_valuation_ring (R : Type u) [integral_domain R]
+class discrete_valuation_ring (R : Type u) [comm_ring R] [is_domain R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
 (not_a_field' : maximal_ideal R ≠ ⊥)
 
 namespace discrete_valuation_ring
 
-variables (R : Type u) [integral_domain R] [discrete_valuation_ring R]
+variables (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R]
 
 lemma not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
@@ -89,6 +91,10 @@ begin
     use a * b, exact hh.symm }
 end⟩
 
+lemma _root_.irreducible.maximal_ideal_eq {ϖ : R} (h : irreducible ϖ) :
+  maximal_ideal R = ideal.span {ϖ} :=
+(irreducible_iff_uniformizer _).mp h
+
 variable (R)
 
 /-- Uniformisers exist in a DVR -/
@@ -101,7 +107,7 @@ theorem exists_prime : ∃ ϖ : R, prime ϖ :=
 (exists_irreducible R).imp (λ _, principal_ideal_ring.irreducible_iff_prime.1)
 
 /-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
-theorem iff_pid_with_one_nonzero_prime (R : Type u) [integral_domain R] :
+theorem iff_pid_with_one_nonzero_prime (R : Type u) [comm_ring R] [is_domain R] :
   discrete_valuation_ring R ↔ is_principal_ideal_ring R ∧ ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P :=
 begin
   split,
@@ -145,12 +151,12 @@ namespace discrete_valuation_ring
 variable (R : Type*)
 
 /-- Alternative characterisation of discrete valuation rings. -/
-def has_unit_mul_pow_irreducible_factorization [integral_domain R] : Prop :=
+def has_unit_mul_pow_irreducible_factorization [comm_ring R] : Prop :=
 ∃ p : R, irreducible p ∧ ∀ {x : R}, x ≠ 0 → ∃ (n : ℕ), associated (p ^ n) x
 
 namespace has_unit_mul_pow_irreducible_factorization
 
-variables {R} [integral_domain R] (hR : has_unit_mul_pow_irreducible_factorization R)
+variables {R} [comm_ring R] (hR : has_unit_mul_pow_irreducible_factorization R)
 include hR
 
 lemma unique_irreducible ⦃p q : R⦄ (hp : irreducible p) (hq : irreducible q) :
@@ -174,6 +180,8 @@ begin
     { rw [add_comm, pow_succ] at H0,
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
+
+variables [is_domain R]
 
 /-- An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.
@@ -202,7 +210,7 @@ begin
     left,
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
     rw pow_succ,
-    apply dvd_mul_of_dvd_left (dvd_refl _) _ },
+    apply dvd_mul_of_dvd_left dvd_rfl _ },
   { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end
 
@@ -234,7 +242,7 @@ end
 end has_unit_mul_pow_irreducible_factorization
 
 lemma aux_pid_of_ufd_of_unique_irreducible
-  (R : Type u) [integral_domain R] [unique_factorization_monoid R]
+  (R : Type u) [comm_ring R] [is_domain R] [unique_factorization_monoid R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   is_principal_ideal_ring R :=
@@ -270,7 +278,8 @@ A unique factorization domain with at least one irreducible element
 in which all irreducible elements are associated
 is a discrete valuation ring.
 -/
-lemma of_ufd_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_monoid R]
+lemma of_ufd_of_unique_irreducible
+  {R : Type u} [comm_ring R] [is_domain R] [unique_factorization_monoid R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   discrete_valuation_ring R :=
@@ -289,7 +298,8 @@ begin
     apply span_singleton_eq_span_singleton.mpr,
     apply h₂ _ hp,
     erw [ne.def, span_singleton_eq_bot] at I0,
-    rwa [unique_factorization_monoid.irreducible_iff_prime, ← ideal.span_singleton_prime I0], },
+    rwa [unique_factorization_monoid.irreducible_iff_prime, ← ideal.span_singleton_prime I0],
+    apply_instance, },
 end
 
 /--
@@ -297,7 +307,7 @@ An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p`
 is a discrete valuation ring.
 -/
-lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domain R]
+lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [comm_ring R] [is_domain R]
   (hR : has_unit_mul_pow_irreducible_factorization R) :
   discrete_valuation_ring R :=
 begin
@@ -308,7 +318,7 @@ end
 
 section
 
-variables [integral_domain R] [discrete_valuation_ring R]
+variables [comm_ring R] [is_domain R] [discrete_valuation_ring R]
 
 variable {R}
 
@@ -390,7 +400,8 @@ end
 open multiplicity
 
 /-- The `enat`-valued additive valuation on a DVR -/
-noncomputable def add_val (R : Type u) [integral_domain R] [discrete_valuation_ring R] :
+noncomputable def add_val
+  (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
   add_valuation R enat :=
 add_valuation (classical.some_spec (exists_prime R))
 
@@ -413,7 +424,8 @@ add_val_def _ u hϖ n rfl
 (add_val R).map_one
 
 @[simp] lemma add_val_uniformizer {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
-add_val_def ϖ 1 hϖ 1 (by simp)
+by simpa only [one_mul, eq_self_iff_true, units.coe_one, pow_one, forall_true_left, nat.cast_one]
+  using add_val_def ϖ 1 hϖ 1
 
 @[simp] lemma add_val_mul {a b : R} :
   add_val R (a * b) = add_val R a + add_val R b :=
@@ -421,6 +433,10 @@ add_val_def ϖ 1 hϖ 1 (by simp)
 
 lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n • add_val R a :=
 (add_val R).map_pow _ _
+
+lemma _root_.irreducible.add_val_pow {ϖ : R} (h : irreducible ϖ) (n : ℕ) :
+  add_val R (ϖ ^ n) = n :=
+by rw [add_val_pow, add_val_uniformizer h, nsmul_one]
 
 lemma add_val_eq_top_iff {a : R} : add_val R a = ⊤ ↔ a = 0 :=
 begin
@@ -457,5 +473,16 @@ lemma add_val_add {a b : R} :
 (add_val R).map_add _ _
 
 end
+
+instance (R : Type*) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
+  is_Hausdorff (maximal_ideal R) R :=
+{ haus' := λ x hx,
+  begin
+    obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
+    simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.zero,
+      hϖ.maximal_ideal_eq, ideal.span_singleton_pow, ideal.mem_span_singleton,
+      ← add_val_le_iff_dvd, hϖ.add_val_pow] at hx,
+    rwa [← add_val_eq_top_iff, enat.eq_top_iff_forall_le],
+  end }
 
 end discrete_valuation_ring

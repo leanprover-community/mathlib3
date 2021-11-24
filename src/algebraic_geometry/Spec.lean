@@ -23,14 +23,19 @@ We define $Spec$ in three consecutive steps, each with more structure than the l
 Additionally, we provide `Spec.to_PresheafedSpace` as a composition of `Spec.to_SheafedSpace` with
 a forgetful functor.
 
-## Future work
+## In progress
 
-Adjunction between `Γ` and `Spec`
+Adjunction between `Γ` and `Spec`: Currently, the counit of the adjunction is proven to be a
+natural transformation in `Spec_Γ_naturality`, and realized as a natural isomorphism in
+`Spec_Γ_identity`.
+
+TODO: provide the unit, and prove the triangle identities.
+
 
 -/
 
 noncomputable theory
-universe variables u v
+universes u v
 
 namespace algebraic_geometry
 open opposite
@@ -76,7 +81,9 @@ The spectrum, as a contravariant functor from commutative rings to topological s
 The spectrum of a commutative ring, as a `SheafedSpace`.
 -/
 @[simps] def Spec.SheafedSpace_obj (R : CommRing) : SheafedSpace CommRing :=
-{ carrier := Spec.Top_obj R, ..structure_sheaf R }
+{ carrier := Spec.Top_obj R,
+  presheaf := (structure_sheaf R).1,
+  is_sheaf := (structure_sheaf R).2 }
 
 /--
 The induced map of a ring homomorphism on the ring spectra, as a morphism of sheafed spaces.
@@ -95,20 +102,14 @@ PresheafedSpace.ext _ _ (Spec.Top_map_id R) $ nat_trans.ext _ _ $ funext $ λ U,
 begin
   dsimp,
   erw [PresheafedSpace.id_c_app, comap_id], swap,
-    { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
-  rw [eq_to_hom_op, eq_to_hom_map, eq_to_hom_trans],
-  refl,
+  { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
+  simpa,
 end
 
 lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.SheafedSpace_map (f ≫ g) = Spec.SheafedSpace_map g ≫ Spec.SheafedSpace_map f :=
 PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ λ U,
-begin
-  dsimp,
-  erw [Top.presheaf.pushforward.comp_inv_app, ← category.assoc, category.comp_id,
-    (structure_sheaf T).presheaf.map_id, category.comp_id, comap_comp],
-  refl,
-end
+by { dsimp, rw category.comp_id, erw comap_comp f g, refl }
 
 /--
 Spec, as a contravariant functor from commutative rings to sheafed spaces.
@@ -211,5 +212,24 @@ Spec, as a contravariant functor from commutative rings to locally ringed spaces
   map_id' := λ R, by rw [unop_id, Spec.LocallyRingedSpace_map_id],
   map_comp' := λ R S T f g, by rw [unop_comp, Spec.LocallyRingedSpace_map_comp] }
 
+section Spec_Γ
+open algebraic_geometry.LocallyRingedSpace
+
+/-- The morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
+@[simps] def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
+structure_sheaf.to_open R ⊤
+
+instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R) :=
+by { cases R, apply structure_sheaf.is_iso_to_global }
+
+lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S) :
+  f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op :=
+by { ext, symmetry, apply localization.local_ring_hom_to_map }
+
+/-- The counit of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
+@[simps] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
+iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
+
+end Spec_Γ
 
 end algebraic_geometry

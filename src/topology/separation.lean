@@ -50,7 +50,7 @@ This file defines the predicate `separated`, and common separation axioms
 * `t2_iff_nhds`: A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter.
 * `t2_iff_is_closed_diagonal`: A space is T₂ iff the `diagonal` of `α` (that is, the set of all
   points of the form `(a, a) : α × α`) is closed under the product topology.
-* `finset_disjoing_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
+* `finset_disjoint_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
 * Most topological constructions preserve Hausdorffness;
   these results are part of the typeclass inference system (e.g. `embedding.t2_space`)
 * `set.eq_on.closure`: If two functions are equal on some set `s`, they are equal on its closure.
@@ -222,6 +222,34 @@ is_closed_singleton.is_open_compl
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
 is_open_compl_singleton
 
+lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
+  𝓝[{y}ᶜ] x = 𝓝 x :=
+is_open_ne.nhds_within_eq h
+
+lemma continuous_within_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
+  {f : α → β} {s : set α} {x y : α} {z : β} (hne : y ≠ x) :
+  continuous_within_at (function.update f x z) s y ↔ continuous_within_at f s y :=
+eventually_eq.congr_continuous_within_at
+  (mem_nhds_within_of_mem_nhds $ mem_of_superset (is_open_ne.mem_nhds hne) $
+    λ y' hy', function.update_noteq hy' _ _)
+  (function.update_noteq hne _ _)
+
+lemma continuous_on_update_iff [t1_space α] [decidable_eq α] [topological_space β]
+  {f : α → β} {s : set α} {x : α} {y : β} :
+  continuous_on (function.update f x y) s ↔
+    continuous_on f (s \ {x}) ∧ (x ∈ s → tendsto f (𝓝[s \ {x}] x) (𝓝 y)) :=
+begin
+  rw [continuous_on, ← and_forall_ne x, and_comm],
+  refine and_congr ⟨λ H z hz, _, λ H z hzx hzs, _⟩ (forall_congr $ λ hxs, _),
+  { specialize H z hz.2 hz.1,
+    rw continuous_within_at_update_of_ne hz.2 at H,
+    exact H.mono (diff_subset _ _) },
+  { rw continuous_within_at_update_of_ne hzx,
+    refine (H z ⟨hzs, hzx⟩).mono_of_mem (inter_mem_nhds_within _ _),
+    exact is_open_ne.mem_nhds hzx },
+  { exact continuous_within_at_update_same }
+end
+
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=
 ⟨λ ⟨x, hx⟩, is_closed_induced_iff.2 $ ⟨{x}, is_closed_singleton, set.ext $ λ y,
@@ -276,13 +304,93 @@ begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
 end
 
+lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
+  is_closed s :=
+begin
+  rw ← bUnion_of_singleton s,
+  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
+lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
+  (h : (𝓝 x).has_basis p s) : (⋂ i (h : p i), s i) = {x} :=
+begin
+  simp only [eq_singleton_iff_unique_mem, mem_Inter],
+  refine ⟨λ i hi, mem_of_mem_nhds $ h.mem_of_mem hi, λ y hy, _⟩,
+  contrapose! hy,
+  rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
+  exact ⟨i, hi, λ h, hsub h rfl⟩
+end
+
+/-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
+lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+  dense (s \ {x}) :=
+hs.inter_of_open_right (dense_compl_singleton x) is_open_compl_singleton
+
+/-- Removing a finset from a dense set in a space without isolated points, one still
+obtains a dense set. -/
+lemma dense.diff_finset [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : dense s) (t : finset α) :
+  dense (s \ t) :=
+begin
+  induction t using finset.induction_on with x s hxs ih hd,
+  { simpa using hs },
+  { rw [finset.coe_insert, ← union_singleton, ← diff_diff],
+    exact ih.diff_singleton _, }
+end
+
+/-- Removing a finite set from a dense set in a space without isolated points, one still
+obtains a dense set. -/
+lemma dense.diff_finite [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : dense s) {t : set α} (ht : finite t) :
+  dense (s \ t) :=
+begin
+  convert hs.diff_finset ht.to_finset,
+  exact (finite.coe_to_finset _).symm,
+end
+
+/-- If a function to a `t1_space` tends to some limit `b` at some point `a`, then necessarily
+`b = f a`. -/
+lemma eq_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
+  (h : tendsto f (𝓝 a) (𝓝 b)) : f a = b :=
+by_contra $ assume (hfa : f a ≠ b),
+have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
+have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id' $ pure_le_nhds a),
+fact₂ fact₁ (eq.refl $ f a)
+
+/-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that
+`f` admits *some* limit at `a`. -/
+lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
+  (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
+show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
+
+/-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
+infinite. -/
+lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : s ∈ 𝓝 x) : set.infinite s :=
+begin
+  unfreezingI { contrapose! hx },
+  rw set.not_infinite at hx,
+  have A : is_closed (s \ {x}) := finite.is_closed (hx.subset (diff_subset _ _)),
+  have B : (s \ {x})ᶜ ∈ 𝓝 x,
+  { apply is_open.mem_nhds,
+    { apply is_open_compl_iff.2 A },
+    { simp only [not_true, not_false_iff, mem_diff, and_false, mem_compl_eq, mem_singleton] } },
+  have C : {x} ∈ 𝓝 x,
+  { apply filter.mem_of_superset (filter.inter_mem hs B),
+    assume y hy,
+    simp only [mem_singleton_iff, mem_inter_eq, not_and, not_not, mem_diff, mem_compl_eq] at hy,
+    simp only [hy.right hy.left, mem_singleton] },
+  have D : {x}ᶜ ∈ 𝓝[{x}ᶜ] x := self_mem_nhds_within,
+  simpa [← empty_mem_iff_bot] using filter.inter_mem (mem_nhds_within_of_mem_nhds C) D
+end
+
 lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [fintype X] :
   discrete_topology X :=
 begin
   apply singletons_open_iff_discrete.mp,
   intros x,
-  rw [← is_closed_compl_iff, ← bUnion_of_singleton ({x} : set X)ᶜ],
-  exact is_closed_bUnion (finite.of_fintype _) (λ y _, is_closed_singleton)
+  rw [← is_closed_compl_iff],
+  exact finite.is_closed (finite.of_fintype _)
 end
 
 lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]
@@ -462,8 +570,7 @@ lemma finset_disjoint_finset_opens_of_t2 [t2_space α] :
   ∀ (s t : finset α), disjoint s t → separated (s : set α) t :=
 begin
   refine induction_on_union _ (λ a b hi d, (hi d.symm).symm) (λ a d, empty_right a) (λ a b ab, _) _,
-  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation
-      (by { rw [ne.def, ← finset.mem_singleton], exact (disjoint_singleton.mp ab.symm) }),
+  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation (finset.disjoint_singleton.1 ab),
     refine ⟨U, V, oU, oV, _, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
     exact singleton_subset_set_iff.mpr ‹_› },
   { intros a b c ac bc d,
@@ -473,7 +580,7 @@ end
 
 lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (h : x ∉ s) :
   separated ({x} : set α) s :=
-by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (singleton_disjoint.mpr h)
+by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (finset.disjoint_singleton_left.mpr h)
 
 end separated
 
@@ -501,7 +608,7 @@ lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α}
 ⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
 
 /-- A T₂.₅ space, also known as a Urysohn space, is a topological space
-  where for every pair `x ≠ y`, there are two open sets, with the intersection of clousures
+  where for every pair `x ≠ y`, there are two open sets, with the intersection of closures
   empty, one containing `x` and the other `y` . -/
 class t2_5_space (α : Type u) [topological_space α]: Prop :=
 (t2_5 : ∀ x y  (h : x ≠ y), ∃ (U V: set α), is_open U ∧  is_open V ∧
@@ -716,6 +823,10 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   have v ⊆ sᶜ, from
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
+
+@[simp] lemma filter.coclosed_compact_eq_cocompact [t2_space α] :
+  coclosed_compact α = cocompact α :=
+by simp [coclosed_compact, cocompact, infi_and', and_iff_right_of_imp is_compact.is_closed]
 
 /-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
 `⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact'` where we

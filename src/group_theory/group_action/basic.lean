@@ -172,6 +172,7 @@ def orbit_rel : setoid β :=
 
 local attribute [instance] orbit_rel
 
+variables {α} {β}
 /-- When you take a set `U` in `β`, push it down to the quotient, and pull back, you get the union
 of the orbit of `U` under `α`.
 -/
@@ -195,6 +196,7 @@ begin
     simp only [inv_smul_smul], },
 end
 
+variables (α) (β)
 local notation `Ω` := (quotient $ orbit_rel α β)
 
 /-- Decomposition of a type `X` as a disjoint union of its orbits under a group action.

@@ -116,7 +116,7 @@ begin
   intros U hU,
   rw is_open_coinduced,
   let f : T → quotient (mul_action.orbit_rel Γ T) := quotient.mk,
-  rw quotient_preimage_image_eq_union_mul U,
+  rw mul_action.quotient_preimage_image_eq_union_mul U,
   apply is_open_Union,
   intros γ,
   exact (homeomorph.smul γ).is_open_map U hU,

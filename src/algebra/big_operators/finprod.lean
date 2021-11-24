@@ -266,6 +266,9 @@ by rw [← mem_mul_support, finprod_eq_mul_indicator_apply, mul_indicator_mul_su
   ∏ᶠ a ∈ s, f a = ∏ᶠ a, mul_indicator s f a :=
 finprod_congr $ finprod_eq_mul_indicator_apply s f
 
+lemma finprod_eq_finprod_mem {f : α → M}  (hf : finite (mul_support f)) :
+  ∏ᶠ i, f i = (∏ᶠ i ∈ (mul_support f), f i)  := by simp
+
 @[to_additive] lemma finprod_eq_prod_of_mul_support_subset (f : α → M) {s : finset α}
   (h : mul_support f ⊆ s) :
   ∏ᶠ i, f i = ∏ i in s, f i :=
@@ -415,6 +418,19 @@ equals the product of `f i` divided by the product over `g i`. -/
   ∏ᶠ i, f i / g i = (∏ᶠ i, f i) / ∏ᶠ i, g i :=
 by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv g).symm.rec hg),
               finprod_inv_distrib]
+
+lemma finprod_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G) :
+  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
+begin
+  classical,
+  have h_supp : mul_support (λ i : α, (f i)⁻¹) = mul_support f ,
+  { simp only [mul_support, ne.def, inv_eq_one₀] },
+  rw finprod_def,
+  split_ifs with hf,
+  { rw [finprod_def, ← h_supp, dif_pos hf],
+    exact finset.prod_inv_distrib' },
+  { rw [finprod_def, ← h_supp, dif_neg hf, inv_one] }
+end
 
 /-- A more general version of `finprod_mem_mul_distrib` that requires `s ∩ mul_support f` and
 `s ∩ mul_support g` instead of `s` to be finite. -/
@@ -735,6 +751,20 @@ over `a ∈ ⋃₀ t` is the product over `s ∈ t` of the products of `f a` ove
   (ht₀ : t.finite) (ht₁ : ∀ x ∈ t, set.finite x):
   ∏ᶠ a ∈ ⋃₀ t, f a = ∏ᶠ s ∈ t, ∏ᶠ a ∈ s, f a :=
 by rw [set.sUnion_eq_bUnion, finprod_mem_bUnion h ht₀ ht₁]
+
+lemma finprod_mem_dvd' (a : α) (hf : finite (mul_support f)) :
+  f a * (∏ᶠ i ∈ (mul_support f) \ {a}, f i) = ∏ᶠ i, f i  :=
+begin
+  by_cases ha : a ∈ mul_support f,
+  { have h_inter : (∏ᶠ (i : α) (H : i ∈ {a}), f i) =
+      (∏ᶠ (i : α) (H : i ∈ mul_support f ∩ {a}), f i),
+    { rw inter_eq_right_iff_subset.mpr (singleton_subset_iff.mpr ha) },
+    rw [finprod_eq_finprod_mem hf, ← @finprod_mem_singleton α M _ f a, h_inter,
+      finprod_mem_inter_mul_diff _ hf] },
+  { have h_inter : f a = (∏ᶠ (i : α) (H : i ∈ mul_support f ∩ {a}), f i),
+    { rw [nmem_mul_support.mp ha, inter_singleton_eq_empty.mpr ha, finprod_mem_empty] },
+    rw [finprod_eq_finprod_mem hf, h_inter, finprod_mem_inter_mul_diff _ hf] }
+end
 
 /-- If `s : set α` and `t : set β` are finite sets, then the product over `s` commutes
 with the product over `t`. -/

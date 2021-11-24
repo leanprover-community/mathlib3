@@ -60,32 +60,93 @@ smul_invariant_measure.smul c
 
 end smul_invariant_measure
 
-variables {m : measurable_space α} [group G] [mul_action G α] [measurable_space G]
-  [has_measurable_smul G α] (c : G) (μ : measure α) [smul_invariant_measure G α μ]
+variables (G) {m : measurable_space α} [group G] [mul_action G α] [measurable_space G]
+  [has_measurable_smul G α] (c : G) (μ : measure α)
 
-@[simp, to_additive] lemma map_smul : map ((•) c) μ = μ :=
-ext $ λ s hs, (map_apply (measurable_const_smul c) hs).trans
-  (smul_invariant_measure.measure_preimage_smul _ _ hs)
+/-- Equivalent definitions of a measure invariant under a multiplicative action of a group.
+
+- 0: `smul_invariant_measure G α μ`;
+
+- 1: for every `c : G` and a measurable set `s`, the measure of the preimage of `s` under scalar
+     multiplication by `c` is equal to the measure of `s`;
+
+- 2: for every `c : G` and a measurable set `s`, the measure of the image `c • s` of `s` under
+     scalar multiplication by `c` is equal to the measure of `s`;
+
+- 3, 4: properties 2, 3 for any set, including non-measurable ones;
+
+- 5: for any `c : G`, scalar multiplication by `c` maps `μ` to `μ`;
+
+- 6: for any `c : G`, scalar multiplication by `c` is a measure preserving map. -/
+@[to_additive] lemma smul_invariant_measure_tfae :
+  tfae [smul_invariant_measure G α μ,
+    ∀ (c : G) s, measurable_set s → μ (((•) c) ⁻¹' s) = μ s,
+    ∀ (c : G) s, measurable_set s → μ (c • s) = μ s,
+    ∀ (c : G) s, μ (((•) c) ⁻¹' s) = μ s,
+    ∀ (c : G) s, μ (c • s) = μ s,
+    ∀ c : G, measure.map ((•) c) μ = μ,
+    ∀ c : G, measure_preserving ((•) c) μ μ] :=
+begin
+  tfae_have : 1 ↔ 2, from ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+  tfae_have : 2 → 6,
+    from λ H c, ext (λ s hs, by rw [map_apply (measurable_const_smul c) hs, H _ _ hs]),
+  tfae_have : 6 → 7, from λ H c, ⟨measurable_const_smul c, H c⟩,
+  tfae_have : 7 → 4, from λ H c, (H c).measure_preimage_emb (measurable_embedding_const_smul c),
+  tfae_have : 4 → 5, from λ H c s, by { rw [← preimage_smul_inv], apply H },
+  tfae_have : 5 → 3, from λ H c s hs, H c s,
+  tfae_have : 3 → 2, { intros H c s hs, rw preimage_smul, exact H c⁻¹ s hs },
+  tfae_finish
+end
+
+/-- Equivalent definitions of a measure invariant under an additive action of a group.
+
+- 0: `vadd_invariant_measure G α μ`;
+
+- 1: for every `c : G` and a measurable set `s`, the measure of the preimage of `s` under
+     vector addition `(+ᵥ) c` is equal to the measure of `s`;
+
+- 2: for every `c : G` and a measurable set `s`, the measure of the image `c +ᵥ s` of `s` under
+     vector addition `(+ᵥ) c` is equal to the measure of `s`;
+
+- 3, 4: properties 2, 3 for any set, including non-measurable ones;
+
+- 5: for any `c : G`, vector addition of `c` maps `μ` to `μ`;
+
+- 6: for any `c : G`, vector addition of `c` is a measure preserving map. -/
+add_decl_doc vadd_invariant_measure_tfae
+
+variables {G} [smul_invariant_measure G α μ]
 
 @[to_additive] lemma measure_preserving_smul : measure_preserving ((•) c) μ μ :=
-⟨measurable_const_smul c, map_smul c μ⟩
+((smul_invariant_measure_tfae G μ).out 0 6).mp ‹_› c
+
+@[simp, to_additive] lemma map_smul : map ((•) c) μ = μ :=
+(measure_preserving_smul c μ).map_eq
 
 @[simp, to_additive] lemma measure_preimage_smul (s : set α) : μ ((•) c ⁻¹' s) = μ s :=
-(measure_preserving_smul c μ).measure_preimage_emb (measurable_embedding_const_smul c) s
+((smul_invariant_measure_tfae G μ).out 0 3).mp ‹_› c s
 
 @[simp, to_additive] lemma measure_smul_set (s : set α) : μ (c • s) = μ s :=
-by rw [← preimage_smul_inv, measure_preimage_smul]
+((smul_invariant_measure_tfae G μ).out 0 4).mp ‹_› c s
 
 section is_minimal
 
 variables (G) {μ} [topological_space G] [topological_space α] [has_continuous_smul G α]
   [mul_action.is_minimal G α] {K U : set α}
 
+/-- If measure `μ` is invariant under a group action and is nonzero on a compact set `K`, then it is
+positive on any nonempty open set. In case of a regular measure, one can assume `μ ≠ 0` instead of
+`μ K ≠ 0`, see `measure_theory.measure_is_open_pos_of_smul_invariant_of_ne_zero`. -/
 @[to_additive] lemma measure_is_open_pos_of_smul_invariant_of_compact_ne_zero (hK : is_compact K)
   (hμK : μ K ≠ 0) (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
 let ⟨t, ht⟩ := hK.exists_finite_cover_smul G hU hne
 in pos_iff_ne_zero.2 $ λ hμU, hμK $ measure_mono_null ht $
   (measure_bUnion_null_iff t.countable_to_set).2 $ λ _ _, by rwa measure_smul_set
+
+/-- If measure `μ` is invariant under an additive group action and is nonzero on a compact set `K`,
+then it is positive on any nonempty open set. In case of a regular measure, one can assume `μ ≠ 0`
+instead of `μ K ≠ 0`, see `measure_theory.measure_is_open_pos_of_vadd_invariant_of_ne_zero`. -/
+add_decl_doc measure_is_open_pos_of_vadd_invariant_of_compact_ne_zero
 
 @[to_additive] lemma is_locally_finite_measure_of_smul_invariant (hU : is_open U) (hne : U.nonempty)
   (hμU : μ U ≠ ∞) : is_locally_finite_measure μ :=

@@ -185,7 +185,7 @@ lemma to_outer_measure_caratheodory (p : pmf α) :
 begin
   refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _) (le_sum_caratheodory _)),
   obtain ⟨y, hy⟩ := hx,
-  exact ((le_of_eq (dirac_caratheodory _).symm).trans
+  exact ((le_of_eq (dirac_caratheodory y).symm).trans
     (le_smul_caratheodory _ _)).trans (le_of_eq hy),
 end
 

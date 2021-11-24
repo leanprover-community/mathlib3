@@ -407,9 +407,7 @@ variable {μ}
 lemma tendsto_eval_ae_ae {i : ι} : tendsto (eval i) (measure.pi μ).ae (μ i).ae :=
 λ s hs, pi_eval_preimage_null μ hs
 
--- TODO: should we introduce `filter.pi` and prove some basic facts about it?
--- The same combinator appears here and in `nhds_pi`
-lemma ae_pi_le_infi_comap : (measure.pi μ).ae ≤ ⨅ i, filter.comap (eval i) (μ i).ae :=
+lemma ae_pi_le_pi : (measure.pi μ).ae ≤ filter.pi (λ i, (μ i).ae) :=
 le_infi $ λ i, tendsto_eval_ae_ae.le_comap
 
 lemma ae_eq_pi {β : ι → Type*} {f f' : Π i, α i → β i} (h : ∀ i, f i =ᵐ[μ i] f' i) :
@@ -554,6 +552,15 @@ lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (v
   [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
   volume (metric.closed_ball x r) = ∏ i, volume (metric.closed_ball (x i) r) :=
 measure.pi_closed_ball _ _ hr
+
+/-!
+### Measure preserving equivalences
+
+In this section we prove that some measurable equivalences (e.g., between `fin 1 → α` and `α` or
+between `fin 2 → α` and `α × α`) preserve measure or volume. These lemmas can be used to prove that
+measures of corresponding sets (images or preimages) have equal measures and functions `f ∘ e` and
+`f` have equal integrals, see lemmas in the `measure_theory.measure_preserving` prefix.
+-/
 
 section measure_preserving
 

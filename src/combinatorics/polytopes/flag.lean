@@ -323,6 +323,26 @@ namespace graded
 abbreviation grade_top (α : Type u) [preorder α] [order_top α] [graded α] : ℕ :=
 grade (⊤ : α)
 
+lemma dual_cover_iff_cover {α : Type u} [preorder α] [order_top α] [graded α] (a b : α) :
+  a ⋖ b ↔ @polytope.covers (order_dual α) _ a b :=
+by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
+
+instance (α : Type u) [preorder α] [order_top α] [graded α] : graded (order_dual α) :=
+{ grade := λ a : α, grade_top α - graded.grade a,
+  grade_bot := nat.sub_self _,
+  strict_mono := begin
+    refine λ (a b : α) hab, _,
+    simp,
+    have : graded.grade a > graded.grade b := graded.strict_mono hab,
+    sorry,
+  end,
+  hcovers := begin
+    refine λ (x y : α) hxy, _,
+    rw ←dual_cover_iff_cover at hxy,
+    rw (graded.hcovers hxy),
+    sorry,
+  end }
+
 /-- `grade` is injective for linearly ordered `α`. -/
 theorem grade.inj (α : Type u) [linear_order α] [graded α] : function.injective (grade : α → ℕ) :=
 graded.strict_mono.injective

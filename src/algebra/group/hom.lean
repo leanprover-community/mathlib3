@@ -81,7 +81,7 @@ structure zero_hom (M : Type*) (N : Type*) [has_zero M] [has_zero N] :=
 You should extend this typeclass when you extend `zero_hom`.
 -/
 class zero_hom_class (F : Type*) (M N : out_param $ Type*)
-  [has_zero M] [has_zero N] extends fun_like F M N :=
+  [has_zero M] [has_zero N] [fun_like F M N] :=
 (map_zero : ∀ (f : F), f 0 = 0)
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
@@ -106,7 +106,7 @@ structure add_hom (M : Type*) (N : Type*) [has_add M] [has_add N] :=
 You should declare an instance of this typeclass when you extend `add_hom`.
 -/
 class add_hom_class (F : Type*) (M N : out_param $ Type*)
-  [has_add M] [has_add N] extends fun_like F M N :=
+  [has_add M] [has_add N] [fun_like F M N] :=
 (map_add : ∀ (f : F) (x y : M), f (x + y) = f x + f y)
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
@@ -133,18 +133,6 @@ attribute [nolint doc_blame] add_monoid_hom.to_zero_hom
 
 infixr ` →+ `:25 := add_monoid_hom
 
-/-- `add_monoid_hom_class F M N` states that `F` is a type of `add_zero_class`-preserving
-homomorphisms.
-
-You should also extend this typeclass when you extend `add_monoid_hom`.
--/
-@[ancestor add_hom_class zero_hom_class]
-class add_monoid_hom_class (F : Type*) (M N : out_param $ Type*)
-  [add_zero_class M] [add_zero_class N]
-  extends add_hom_class F M N, zero_hom_class F M N
-
--- Instances and lemmas are defined below through `@[to_additive]`.
-
 end add_zero
 
 section one
@@ -168,17 +156,19 @@ You should extend this typeclass when you extend `one_hom`.
 -/
 @[to_additive]
 class one_hom_class (F : Type*) (M N : out_param $ Type*)
-  [has_one M] [has_one N]
-  extends fun_like F M N :=
+  [has_one M] [has_one N] [fun_like F M N] :=
 (map_one : ∀ (f : F), f 1 = 1)
 
 @[to_additive]
-instance one_hom.one_hom_class : one_hom_class (one_hom M N) M N :=
+instance one_hom.fun_like : fun_like (one_hom M N) M N :=
 { coe := one_hom.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_one := one_hom.map_one' }
+  coe_injective' := λ f g h, by cases f; cases g; congr' }
 
-@[simp, to_additive] lemma map_one [one_hom_class F M N] (f : F) : f 1 = 1 :=
+@[to_additive]
+instance one_hom.one_hom_class : one_hom_class (one_hom M N) M N :=
+{ map_one := one_hom.map_one' }
+
+@[simp, to_additive] lemma map_one [fun_like F M N] [one_hom_class F M N] (f : F) : f 1 = 1 :=
 one_hom_class.map_one f
 
 end one
@@ -204,16 +194,19 @@ You should declare an instance of this typeclass when you extend `mul_hom`.
 -/
 @[to_additive]
 class mul_hom_class (F : Type*) (M N : out_param $ Type*)
-  [has_mul M] [has_mul N] extends fun_like F M N :=
+  [has_mul M] [has_mul N] [fun_like F M N] :=
 (map_mul : ∀ (f : F) (x y : M), f (x * y) = f x * f y)
 
 @[to_additive]
-instance mul_hom.mul_hom_class : mul_hom_class (mul_hom M N) M N :=
+instance mul_hom.fun_like : fun_like (mul_hom M N) M N :=
 { coe := mul_hom.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_mul := mul_hom.map_mul' }
+  coe_injective' := λ f g h, by cases f; cases g; congr' }
 
-@[simp, to_additive] lemma map_mul [mul_hom_class F M N] (f : F) (x y : M) :
+@[to_additive]
+instance mul_hom.mul_hom_class : mul_hom_class (mul_hom M N) M N :=
+{  map_mul := mul_hom.map_mul' }
+
+@[simp, to_additive] lemma map_mul [fun_like F M N] [mul_hom_class F M N] (f : F) (x y : M) :
   f (x * y) = f x * f y :=
 mul_hom_class.map_mul f x y
 
@@ -240,44 +233,45 @@ attribute [nolint doc_blame] monoid_hom.to_one_hom
 
 infixr ` →* `:25 := monoid_hom
 
-/-- `monoid_hom_class F M N` states that `F` is a type of `monoid`-preserving homomorphisms.
-You should also extend this typeclass when you extend `monoid_hom`.
--/
-@[ancestor mul_hom_class one_hom_class, to_additive]
-class monoid_hom_class (F : Type*) (M N : out_param $ Type*)
-  [mul_one_class M] [mul_one_class N]
-  extends mul_hom_class F M N, one_hom_class F M N
-
 @[to_additive]
-instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
+instance monoid_hom.fun_like : fun_like (M →* N) M N :=
 { coe := monoid_hom.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_mul := monoid_hom.map_mul',
-  map_one := monoid_hom.map_one' }
+  coe_injective' := λ f g h, by cases f; cases g; congr' }
 
 @[to_additive]
-instance [monoid_hom_class F M N] : has_coe_t F (M →* N) :=
+instance monoid_hom.one_hom_class : one_hom_class (M →* N) M N :=
+{ map_one := monoid_hom.map_one' }
+
+@[to_additive]
+instance monoid_hom.mul_hom_class : mul_hom_class (M →* N) M N :=
+{ map_mul := monoid_hom.map_mul' }
+
+@[to_additive]
+instance [fun_like F M N] [mul_hom_class F M N] [one_hom_class F M N] : has_coe_t F (M →* N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
 
 @[to_additive]
-lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) :
+lemma map_mul_eq_one [fun_like F M N] [mul_hom_class F M N] [one_hom_class F M N]
+  (f : F) {a b : M} (h : a * b = 1) :
   f a * f b = 1 :=
 by rw [← map_mul, h, map_one]
 
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive]
-theorem map_inv [group G] [group H] [monoid_hom_class F G H]
+theorem map_inv [group G] [group H] [fun_like F G H] [mul_hom_class F G H] [one_hom_class F G H]
   (f : F) (g : G) : f g⁻¹ = (f g)⁻¹ :=
 eq_inv_of_mul_eq_one $ map_mul_eq_one f $ inv_mul_self g
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive]
-theorem map_mul_inv [group G] [group H] [monoid_hom_class F G H]
+theorem map_mul_inv [group G] [group H]
+  [fun_like F G H] [mul_hom_class F G H] [one_hom_class F G H]
   (f : F) (g h : G) : f (g * h⁻¹) = f g * (f h)⁻¹ :=
 by rw [map_mul, map_inv]
 
 /-- Group homomorphisms preserve division. -/
-@[simp, to_additive] lemma map_div [group G] [group H] [monoid_hom_class F G H]
+@[simp, to_additive] lemma map_div [group G] [group H]
+  [fun_like F G H] [mul_hom_class F G H] [one_hom_class F G H]
   (f : F) (x y : G) : f (x / y) = f x / f y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
@@ -304,22 +298,18 @@ structure monoid_with_zero_hom (M : Type*) (N : Type*) [mul_zero_one_class M] [m
 attribute [nolint doc_blame] monoid_with_zero_hom.to_monoid_hom
 attribute [nolint doc_blame] monoid_with_zero_hom.to_zero_hom
 
-/-- `monoid_with_zero_hom_class F M N` states that `F` is a type of
-`monoid_with_zero`-preserving homomorphisms.
-
-You should also extend this typeclass when you extend `monoid_with_zero_hom`.
--/
-class monoid_with_zero_hom_class (F : Type*) (M N : out_param $ Type*)
-  [mul_zero_one_class M] [mul_zero_one_class N]
-  extends monoid_hom_class F M N, zero_hom_class F M N
-
-instance monoid_with_zero_hom.monoid_with_zero_hom_class :
-  monoid_with_zero_hom_class (monoid_with_zero_hom M N) M N :=
+instance monoid_with_zero_hom.fun_like : fun_like (monoid_with_zero_hom M N) M N :=
 { coe := monoid_with_zero_hom.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_mul := monoid_with_zero_hom.map_mul',
-  map_one := monoid_with_zero_hom.map_one',
-  map_zero := monoid_with_zero_hom.map_zero' }
+  coe_injective' := λ f g h, by cases f; cases g; congr' }
+
+instance monoid_with_zero_hom.mul_hom_class : mul_hom_class (monoid_with_zero_hom M N) M N :=
+{ map_mul := monoid_with_zero_hom.map_mul' }
+
+instance monoid_with_zero_hom.one_hom_class : one_hom_class (monoid_with_zero_hom M N) M N :=
+{ map_one := monoid_with_zero_hom.map_one' }
+
+instance monoid_with_zero_hom.zero_hom_class : zero_hom_class (monoid_with_zero_hom M N) M N :=
+{ map_zero := monoid_with_zero_hom.map_zero' }
 
 end mul_zero_one
 
@@ -620,10 +610,22 @@ def monoid_hom.comp [mul_one_class M] [mul_one_class N] [mul_one_class P]
   (hnp : N →* P) (hmn : M →* N) : M →* P :=
 { to_fun := hnp ∘ hmn, map_one' := by simp, map_mul' := by simp, }
 
+#check monoid_with_zero_hom.fun_like
+
+section
+
+set_option pp.all true
+set_option trace.rewrite true
+set_option trace.class_instances true
+
 /-- Composition of `monoid_with_zero_hom`s as a `monoid_with_zero_hom`. -/
 def monoid_with_zero_hom.comp [mul_zero_one_class M] [mul_zero_one_class N] [mul_zero_one_class P]
   (hnp : monoid_with_zero_hom N P) (hmn : monoid_with_zero_hom M N) : monoid_with_zero_hom M P :=
-{ to_fun := hnp ∘ hmn, map_zero' := by simp, map_one' := by simp, map_mul' := by simp, }
+{ to_fun := hnp ∘ hmn, map_zero' := by simp, map_one' := by simp,
+  map_mul' := λ x y, by { rw function.comp_app,
+    rw map_mul } }
+
+end
 
 /-- Composition of `zero_hom`s as a `zero_hom`. -/
 add_decl_doc zero_hom.comp

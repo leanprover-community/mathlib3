@@ -942,6 +942,19 @@ quotient.induction_on a $ assume a, decidable.by_cases
 theorem prod_factors [nontrivial α] (s : factor_set α) : s.prod.factors = s :=
 factor_set.unique $ factors_prod _
 
+lemma factors_eq_none_iff_zero [nontrivial α] {a : associates α} :
+  a.factors = option.none ↔ a = 0 :=
+begin
+  split; intro h,
+    { rw [← factors_prod a, factor_set.prod_eq_zero_iff], exact h },
+    { rw h, exact factors_0 }
+end
+
+lemma factors_eq_some_iff_ne_zero  [nontrivial α] {a : associates α} :
+  (∃ (s : multiset {p : associates α // irreducible p}), a.factors = some s) ↔ a ≠ 0 :=
+by rw [← option.is_some_iff_exists, ← option.ne_none_iff_is_some, ne.def, ne.def,
+  factors_eq_none_iff_zero]
+
 theorem eq_of_factors_eq_factors {a b : associates α} (h : a.factors = b.factors) : a = b :=
 have a.factors.prod = b.factors.prod, by rw h,
 by rwa [factors_prod, factors_prod] at this
@@ -955,7 +968,28 @@ begin
   rwa [prod_factors, prod_factors] at this
 end
 
-include dec dec'
+include dec dec' dec_irr
+
+theorem eq_factors_of_eq_counts [nontrivial α] {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+  (h :  ∀ (p : associates α) (hp : irreducible p), p.count a.factors = p.count b.factors) :
+  a.factors = b.factors :=
+begin
+  obtain ⟨sa, h_sa⟩ := factors_eq_some_iff_ne_zero.mpr ha,
+  obtain ⟨sb, h_sb⟩ := factors_eq_some_iff_ne_zero.mpr hb,
+  rw [h_sa, h_sb] at h ⊢,
+  rw option.some_inj,
+  have h_count :  ∀ (p : associates α) (hp : irreducible p), sa.count ⟨p, hp⟩ = sb.count ⟨p, hp⟩,
+  { intros p hp, rw [← count_some, ← count_some, h p hp] },
+  apply multiset.to_finsupp.injective,
+  ext ⟨p, hp⟩,
+  rw [multiset.to_finsupp_apply, multiset.to_finsupp_apply, h_count p hp],
+end
+
+theorem eq_of_eq_counts [nontrivial α] {a b : associates α} (ha : a ≠ 0) (hb  : b ≠ 0)
+  (h :  ∀ (p : associates α), irreducible p → p.count a.factors = p.count b.factors) : a = b :=
+eq_of_factors_eq_factors (eq_factors_of_eq_counts ha hb h)
+
+omit dec_irr
 
 @[simp] theorem factors_mul [nontrivial α] (a b : associates α) :
   (a * b).factors = a.factors + b.factors :=
@@ -1134,6 +1168,18 @@ begin
   rw [← pow_one p],
   apply (prime_pow_dvd_iff_le h0 hp).2,
   simpa only
+end
+
+theorem count_ne_zero_iff_dvd [nontrivial α] {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) :
+  (associates.mk p).count (associates.mk a).factors ≠ 0 ↔ p ∣ a :=
+begin
+  rw ← associates.mk_le_mk_iff_dvd_iff,
+  split; intro h,
+  { exact associates.le_of_count_ne_zero (associates.mk_ne_zero.mpr ha0)
+    ((associates.irreducible_mk p).mpr hp) h, },
+  { rw [← pow_one (associates.mk p), associates.prime_pow_dvd_iff_le
+    (associates.mk_ne_zero.mpr ha0)  ((associates.irreducible_mk p).mpr hp)] at h,
+    exact ne_of_gt (lt_of_lt_of_le zero_lt_one h), }
 end
 
 theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)

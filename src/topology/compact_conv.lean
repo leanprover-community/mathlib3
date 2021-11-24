@@ -27,9 +27,13 @@ begin
  intros a ha x hx,
  have H := h x hx,
  have H2 := ha x hx,
- --is this even true??
+ obtain ⟨W, hW₁, hW₄, hW₂, hW₃⟩ := comp_open_symm_mem_uniformity_sets hV,
+ apply hW₃,
+ rw mem_comp_rel,
+  --is this even true??
  sorry,
 end
+
 
 
 lemma mem_uniform_gen_self (hV : V ∈ 𝓤 β) : f ∈ uniform_gen K V f := λ x hx, refl_mem_uniformity hV
@@ -153,7 +157,6 @@ obtain ⟨ι, hι, C, hC, U, hU, Hs1, Hs2⟩ := this,
 use ⋂ (i : ι), continuous_map.compact_open.gen (C i) (U i),
 rw hf,
 simp [Hs1, Hs2],
-
 sorry,
  end
 
@@ -161,7 +164,7 @@ sorry,
 instance : uniform_space C(α, β) :=
 { uniformity := ⨅ (K : set α) (hK : is_compact K) (V ∈ 𝓤 β),
                   𝓟 { p : C(α, β) × C(α, β) | ∀ (x : α), (p.1 x, p.2 x) ∈ V },
-  refl := sorry, -- trivial
-  symm := sorry, -- trivial
-  comp := sorry, -- trivial
+  refl := by {simp, intros s hs V hV f x, apply refl_mem_uniformity hV,}, -- trivial
+  symm := by {simp, intros s hs V hV,   sorry}, -- trivial
+  comp := by {simp, sorry}, -- trivial
   is_open_uniformity := sorry, /- Should be easily reduced to `compact_open_eq_uniform` -/ }

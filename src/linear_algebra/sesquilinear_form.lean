@@ -5,6 +5,7 @@ Authors: Andreas Swerdlow
 -/
 import algebra.module.linear_map
 import tactic.abel
+import linear_algebra.bilinear_map
 
 /-!
 # Sesquilinear form
@@ -32,6 +33,129 @@ Sesquilinear form,
 -/
 
 open_locale big_operators
+
+namespace linear_map
+
+section semiring
+
+-- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
+variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
+  {I : R →+* Rᵐᵒᵖ}
+  {B : M →ₗ[R] M →ₛₗ[I] R}
+
+/-- The proposition that two elements of a sesquilinear form space are orthogonal -/
+def is_ortho (B : M →ₗ[R] M →ₛₗ[I] R) (x y) : Prop := B x y = 0
+
+lemma ortho_zero (B : M →ₗ[R] M →ₛₗ[I] R) (x) :
+is_ortho B (0 : M) x :=
+begin
+  dunfold is_ortho,
+  rw [ map_zero B, zero_apply],
+end
+
+end semiring
+section is_domain
+
+variables {R : Type*} {M : Type*} [ring R] [is_domain R] [add_comm_group M] [module R M]
+  {I : R ≃+* Rᵐᵒᵖ} [no_zero_smul_divisors Rᵐᵒᵖ R]
+  {B : M →ₗ[R] M →ₛₗ[I.to_ring_hom] R}
+
+
+lemma ortho_smul_left {x y} {a : R} (ha : a ≠ 0) : (is_ortho B x y) ↔ (is_ortho B (a • x) y) :=
+begin
+  dunfold is_ortho,
+  split; intro H,
+  { rw [map_smul, smul_apply, H, smul_zero] },
+  { rw [map_smul, smul_apply, smul_eq_zero] at H,
+    cases H,
+    { trivial },
+    { exact H }}
+end
+
+lemma ortho_smul_right {x y} {a : R} {ha : a ≠ 0} : (is_ortho B x y) ↔ (is_ortho B x (a • y)) :=
+begin
+  dunfold is_ortho,
+  split; intro H,
+  { rw [map_smulₛₗ, H, smul_zero] },
+  {
+    rw [map_smulₛₗ, smul_eq_zero] at H,
+    cases H,
+    {
+      rw [ring_equiv.to_ring_hom_eq_coe, ring_equiv.coe_to_ring_hom] at H,
+      exfalso,
+      exact ha (I.map_eq_zero_iff.mp H),
+    },
+    { exact H }}
+end
+
+end is_domain
+
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
+  {I : R →+* Rᵐᵒᵖ}
+  {B : M →ₗ[R] M →ₛₗ[I] R}
+
+/-- The proposition that a sesquilinear form is reflexive -/
+def is_refl (B : M →ₗ[R] M →ₛₗ[I] R) : Prop :=
+  ∀ (x y), B x y = 0 → B y x = 0
+
+namespace is_refl
+
+variable (H : B.is_refl)
+
+lemma eq_zero : ∀ {x y}, B x y = 0 → B y x = 0 := λ x y, H x y
+
+lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
+
+end is_refl
+
+/-- The proposition that a sesquilinear form is symmetric -/
+def is_symm (B : M →ₗ[R] M →ₛₗ[I] R) : Prop :=
+  ∀ (x y), (I (B x y)).unop = B y x
+
+namespace is_symm
+
+variable (H : B.is_symm)
+include H
+
+protected lemma eq (x y) : (I (B x y)).unop = B y x := H x y
+
+lemma is_refl : B.is_refl := λ x y H1, by { rw [←H], simp [H1] }
+
+lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
+
+end is_symm
+
+/-- The proposition that a sesquilinear form is alternating -/
+def is_alt (B : M →ₗ[R] M →ₛₗ[I] R) : Prop := ∀ (x : M), B x x = 0
+
+namespace is_alt
+
+variable (H : B.is_alt)
+include H
+
+lemma self_eq_zero (x) : B x x = 0 := H x
+
+lemma neg (x y) : - B x y = B y x :=
+begin
+  have H1 : B (y + x) (y + x) = 0,
+  { exact self_eq_zero H (y + x) },
+  simp [map_add, self_eq_zero H] at H1,
+  rw [add_eq_zero_iff_neg_eq] at H1,
+  exact H1,
+end
+
+lemma is_refl : B.is_refl :=
+begin
+  intros x y h,
+  rw [← neg H, h, neg_zero],
+end
+
+lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
+
+end is_alt
+
+end linear_map
+
 
 universes u v w
 
@@ -203,7 +327,7 @@ end general_ring
 section comm_ring
 
 variables {R : Type*} [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {J : R ≃+* Rᵐᵒᵖ} (F : sesq_form R M J) (f : M → M)
+  {J : R ≃+* Rᵐᵒᵖ} (F : sesq_form R M J)
 
 instance to_module : module R (sesq_form R M J) :=
 { smul := λ c S,

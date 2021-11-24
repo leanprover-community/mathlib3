@@ -429,14 +429,16 @@ by { rw [inner_smul_right, algebra.smul_def], refl }
 
 /-- The inner product as a sesquilinear form. -/
 @[simps]
-def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
-{ sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
-  sesq_add_left := λ x y z, inner_add_right,
-  sesq_add_right := λ x y z, inner_add_left,
-  sesq_smul_left := λ r x y, inner_smul_right,
-  sesq_smul_right := λ r x y, inner_smul_left }
+def sesq_form_of_inner : E →ₗ[𝕜] E →ₛₗ[star_ring_aut.to_ring_hom] 𝕜 :=
+linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_aut.to_ring_hom)
+  (λ x y, ⟪y, x⟫)
+  (λ x y z, inner_add_right)
+  (λ r x y, inner_smul_right)
+  (λ x y z, inner_add_left)
+  (λ r x y, by {
+    rw [inner_smul_left, ring_equiv.to_ring_hom_eq_coe, ring_equiv.coe_to_ring_hom],
+    refl })
 
-/-- The real inner product as a bilinear form. -/
 @[simps]
 def bilin_form_of_real_inner : bilin_form ℝ F :=
 { bilin := inner,
@@ -447,13 +449,11 @@ def bilin_form_of_real_inner : bilin_form ℝ F :=
 
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
-  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ :=
-sesq_form.sum_right (sesq_form_of_inner) _ _ _
+  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ := (sesq_form_of_inner x).map_sum
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
-  ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
-sesq_form.sum_left (sesq_form_of_inner) _ _ _
+  ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ := (linear_map.flip sesq_form_of_inner x).map_sum
 
 /-- An inner product with a sum on the left, `finsupp` version. -/
 lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :

@@ -179,7 +179,7 @@ sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 
 open_locale big_operators
 
-lemma sum_pow_char {ι : Type*} [fintype ι] [comm_semiring R] {p : ℕ} [fact p.prime] [char_p R p]
+lemma sum_pow_char {ι : Type*} [comm_semiring R] {p : ℕ} [fact p.prime] [char_p R p]
   (s : finset ι) (f : ι → R) :
   (∑ i in s, f i) ^ p = ∑ i in s, f i ^ p :=
 begin

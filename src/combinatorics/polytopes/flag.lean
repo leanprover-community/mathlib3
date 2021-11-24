@@ -547,9 +547,10 @@ private lemma flag_grade_aux {Φ : flag α} (a b : Φ) (j ∈ set.Icc (grade a) 
   ∃ c : Φ, grade c = j :=
 (all_icc_of_ex_ioo (grade_ioo Φ)) (grade a) (grade b) ⟨a, rfl⟩ ⟨b, rfl⟩ j H
 
+variables [order_top α] (j : fin (graded.grade_top α + 1)) (Φ : flag α)
+
 /-- A flag has an element of grade `j` when `j ≤ grade ⊤`. -/
-theorem ex_of_grade_in_flag [order_top α] (Φ : flag α) (j : fin (graded.grade_top α + 1)) :
-  ∃ a : Φ, grade a = j :=
+theorem ex_of_grade_in_flag : ∃ a : Φ, grade a = j :=
 begin
   refine (flag_grade_aux ⊥ ⊤ j) ⟨_, nat.le_of_lt_succ j.property⟩,
   have : grade (⊥ : Φ) = 0 := graded.grade_bot,
@@ -558,10 +559,9 @@ begin
 end
 
 /-- A flag has a unique element of grade `j` when `j ≤ grade ⊤`. -/
-theorem ex_unique_of_grade_in_flag [order_top α] (Φ : flag α) (j : fin (graded.grade_top α + 1)) :
-  ∃! a : Φ, grade a = j :=
+theorem ex_unique_of_grade_in_flag : ∃! a : Φ, grade a = j :=
 begin
-  cases ex_of_grade_in_flag Φ j with a ha,
+  cases ex_of_grade_in_flag j Φ with a ha,
   use [a, ha],
   intros b hb,
   apply graded.grade.inj _,
@@ -569,7 +569,19 @@ begin
 end
 
 /-- The element of a certain grade in a flag. -/
-noncomputable def flag_idx [order_top α] (Φ : flag α) (j : fin (graded.grade_top α + 1)) : Φ :=
-classical.some (ex_of_grade_in_flag Φ j)
+noncomputable def flag_idx : Φ :=
+classical.some (ex_of_grade_in_flag j Φ)
+
+/-- The defining property of `flag_idx`. -/
+@[simp]
+theorem grade_flag_idx : grade (flag_idx j Φ) = j :=
+classical.some_spec (ex_of_grade_in_flag j Φ)
+
+/-- Two flags are j-adjacent if they share only their j-th element. -/
+def flag_adj (Ψ : flag α) : Prop :=
+∀ i, (flag_idx i Φ).val = (flag_idx i Ψ).val ↔ i ≠ j
+
+instance : is_irrefl (flag α) (flag_adj j) :=
+⟨λ _ h, (h j).mp rfl rfl⟩
 
 end flag

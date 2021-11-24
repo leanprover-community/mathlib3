@@ -501,11 +501,11 @@ begin
 end
 
 private lemma is_root_cyclotomic_iff' {n : ℕ} {K : Type*} [field K] {μ : K} (hn : (n : K) ≠ 0) :
-  is_primitive_root μ n ↔ is_root (cyclotomic n K) μ :=
+  is_root (cyclotomic n K) μ ↔ is_primitive_root μ n :=
 begin
   -- in this proof, `o` stands for `order_of μ`
   have hnpos : 0 < n := (show n ≠ 0, by { rintro rfl, contradiction }).bot_lt,
-  refine ⟨is_root_cyclotomic hnpos, λ hμ, _⟩,
+  refine ⟨λ hμ, _, is_root_cyclotomic hnpos⟩,
   have hμn : μ ^ n = 1,
   { rw is_root_of_unity_iff hnpos,
     exact ⟨n, n.mem_divisors_self hnpos.ne', hμ⟩ },
@@ -537,7 +537,7 @@ begin
 end
 
 lemma is_root_cyclotomic_iff {n : ℕ} {R : Type*} [comm_ring R] [is_domain R]
-  {μ : R} (hn : (n : R) ≠ 0) : is_primitive_root μ n ↔ is_root (cyclotomic n R) μ :=
+  {μ : R} (hn : (n : R) ≠ 0) : is_root (cyclotomic n R) μ ↔ is_primitive_root μ n  :=
 begin
   let f := algebra_map R (fraction_ring R),
   have hf : function.injective f := is_localization.injective _ le_rfl,

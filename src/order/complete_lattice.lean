@@ -516,6 +516,19 @@ lemma monotone.le_map_Sup [complete_lattice β] {s : set α} {f : α → β} (hf
   (⨆a∈s, f a) ≤ f (Sup s) :=
 by rw [Sup_eq_supr]; exact hf.le_map_supr2 _
 
+lemma order_iso.map_supr [complete_lattice β] (f : α ≃o β) (x : ι → α) :
+  f (⨆ i, x i) = ⨆ i, f (x i) :=
+begin
+  refine le_antisymm _ f.monotone.le_map_supr,
+  rw ←order_iso.le_symm_apply,
+  refine le_trans _ f.symm.monotone.le_map_supr,
+  simp_rw f.symm_apply_apply,
+end
+
+lemma order_iso.map_Sup [complete_lattice β] (f : α ≃o β) (s : set α) :
+  f (Sup s) = ⨆ a ∈ s, f a :=
+by simp only [Sup_eq_supr, order_iso.map_supr]
+
 lemma supr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨆ x, f (g x)) ≤ ⨆ y, f y :=
 supr_le_supr2 $ λ x, ⟨_, le_refl _⟩
@@ -604,6 +617,14 @@ lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone
 lemma monotone.map_Inf_le [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
   f (Inf s) ≤ ⨅ a∈s, f a :=
 by rw [Inf_eq_infi]; exact hf.map_infi2_le _
+
+lemma order_iso.map_infi [complete_lattice β] (f : α ≃o β) (x : ι → α) :
+  f (⨅ i, x i) = ⨅ i, f (x i) :=
+order_iso.map_supr f.dual _
+
+lemma order_iso.map_Inf [complete_lattice β] (f : α ≃o β) (s : set α) :
+  f (Inf s) = ⨅ a ∈ s, f a :=
+order_iso.map_Sup f.dual _
 
 lemma le_infi_comp {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨅ y, f y) ≤ ⨅ x, f (g x) :=

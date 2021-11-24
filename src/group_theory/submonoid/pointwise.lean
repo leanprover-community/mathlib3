@@ -63,6 +63,15 @@ set_like.coe_subset_coe.symm.trans set.inv_subset_inv
 @[simp, to_additive] lemma inv_le (S T : submonoid G) : S⁻¹ ≤ T ↔ S ≤ T⁻¹ :=
 set_like.coe_subset_coe.symm.trans set.inv_subset
 
+/-- `submonoid.has_inv` as an order isomorphism. -/
+@[to_additive /-" `add_submonoid.has_neg` as an order isomorphism "-/, simps]
+def inv_order_iso : submonoid G ≃o submonoid G :=
+{ to_fun := has_inv.inv,
+  inv_fun := has_inv.inv,
+  left_inv := inv_inv,
+  right_inv := inv_inv,
+  map_rel_iff' := inv_le_inv }
+
 @[to_additive] lemma closure_inv (s : set G) : closure s⁻¹ = (closure s)⁻¹ :=
 begin
   apply le_antisymm,
@@ -78,8 +87,7 @@ set_like.coe_injective set.inter_inv
 
 @[simp, to_additive]
 lemma inv_sup (S T : submonoid G) : (S ⊔ T)⁻¹ = S⁻¹ ⊔ T⁻¹ :=
-by rw [sup_comm, submonoid.sup_eq_closure, submonoid.sup_eq_closure, ←closure_inv, set.mul_inv_rev,
-       coe_inv, coe_inv]
+(inv_order_iso : submonoid G ≃o submonoid G).map_sup S T
 
 @[simp, to_additive]
 lemma inv_bot : (⊥ : submonoid G)⁻¹ = ⊥ :=
@@ -91,10 +99,11 @@ set_like.coe_injective $ set.inv_univ
 
 @[simp, to_additive]
 lemma inv_infi {ι : Sort*} (S : ι → submonoid G) : (⨅ i, S i)⁻¹ = ⨅ i, (S i)⁻¹ :=
-set_like.coe_injective $ begin
-  rw [coe_inv, coe_infi, coe_infi],
-  exact (set.Inter_inv $ λ i, (S i : set G)),
-end
+(inv_order_iso : submonoid G ≃o submonoid G).map_infi _
+
+@[simp, to_additive]
+lemma inv_supr {ι : Sort*} (S : ι → submonoid G) : (⨆ i, S i)⁻¹ = ⨆ i, (S i)⁻¹ :=
+(inv_order_iso : submonoid G ≃o submonoid G).map_supr _
 
 end submonoid
 

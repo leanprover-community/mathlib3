@@ -259,10 +259,10 @@ theorem cmp_compares : ∀ (a b : onote) [NF a] [NF b], (cmp a b).compares a b
     case ordering.gt { exact oadd_lt_oadd_1 h₂ IHe },
     change e₁ = e₂ at IHe, subst IHe,
     unfold _root_.cmp, cases nh : cmp_using (<) (n₁:ℕ) n₂,
-    case ordering.lt {
-      rw cmp_using_eq_lt at nh, exact oadd_lt_oadd_2 h₁ nh },
-    case ordering.gt {
-      rw cmp_using_eq_gt at nh, exact oadd_lt_oadd_2 h₂ nh },
+    case ordering.lt
+    { rw cmp_using_eq_lt at nh, exact oadd_lt_oadd_2 h₁ nh },
+    case ordering.gt
+    { rw cmp_using_eq_gt at nh, exact oadd_lt_oadd_2 h₂ nh },
     rw cmp_using_eq_eq at nh,
     have := subtype.eq (eq_of_incomp nh), subst n₂,
     have IHa := @cmp_compares _ _ h₁.snd h₂.snd,
@@ -315,8 +315,8 @@ instance decidable_NF : decidable_pred NF
   have := decidable_NF e,
   have := decidable_NF a, resetI,
   apply decidable_of_iff (NF e ∧ NF a ∧ top_below e a),
-  abstract {
-    rw ← and_congr_right (λ h, @NF_below_iff_top_below _ h _),
+  abstract
+  { rw ← and_congr_right (λ h, @NF_below_iff_top_below _ h _),
     exact ⟨λ ⟨h₁, h₂⟩, NF.oadd h₁ n h₂, λ h, ⟨h.fst, h.snd'⟩⟩ },
 end
 

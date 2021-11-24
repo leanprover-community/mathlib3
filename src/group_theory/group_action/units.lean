@@ -114,3 +114,8 @@ example [monoid M] [monoid N] [mul_action M N] [smul_comm_class M N N]
   [is_scalar_tower M N N] : mul_action (units M) (units N) := units.mul_action'
 
 end units
+
+lemma is_unit.smul [group G] [monoid M] [mul_action G M]
+  [smul_comm_class G M M] [is_scalar_tower G M M] {m : M} (g : G) (h : is_unit m) :
+  is_unit (g • m) :=
+let ⟨u, hu⟩ := h in hu ▸ ⟨g • u, units.coe_smul _ _⟩

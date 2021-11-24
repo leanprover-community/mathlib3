@@ -92,8 +92,8 @@ lemma card_aut_eq_finrank [finite_dimensional F E] [is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = finrank F E :=
 begin
   cases field.exists_primitive_element F E with α hα,
-  let iso : F⟮α⟯ ≃ₐ[F] E := {
-    to_fun := λ e, e.val,
+  let iso : F⟮α⟯ ≃ₐ[F] E :=
+  { to_fun := λ e, e.val,
     inv_fun := λ e, ⟨e, by { rw hα, exact intermediate_field.mem_top }⟩,
     left_inv := λ _, by { ext, refl },
     right_inv := λ _, rfl,

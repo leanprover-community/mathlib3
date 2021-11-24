@@ -86,13 +86,15 @@ instance : distrib nat            := by apply_instance
 instance : semiring nat           := by apply_instance
 instance : ordered_semiring nat   := by apply_instance
 
+instance nat.order_bot : order_bot ℕ :=
+{ bot := 0, bot_le := nat.zero_le }
+
 instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
                                λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
   eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
-  bot               := 0,
-  bot_le            := nat.zero_le,
   .. nat.nontrivial,
+  .. nat.order_bot,
   .. (infer_instance : ordered_add_comm_monoid ℕ),
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
@@ -101,11 +103,14 @@ instance : canonically_linear_ordered_add_monoid ℕ :=
 { .. (infer_instance : canonically_ordered_add_monoid ℕ),
   .. nat.linear_order }
 
-instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
-  semilattice_sup_bot s :=
+instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
+  order_bot s :=
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
-  bot_le := λ x, nat.find_min' _ x.2,
-  ..subtype.linear_order s,
+  bot_le := λ x, nat.find_min' _ x.2 }
+
+instance nat.subtype.semilattice_sup (s : set ℕ) :
+  semilattice_sup s :=
+{ ..subtype.linear_order s,
   ..lattice_of_linear_order }
 
 lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
@@ -1045,8 +1050,8 @@ end
 
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
-  conv_lhs {
-    rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
+  conv_lhs
+  { rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
         mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left, ← mul_assoc,
         add_mul_mod_self_right] }
 end
@@ -1226,9 +1231,25 @@ by simp [find_eq_iff]
 @[simp] lemma find_pos (h : ∃ n : ℕ, p n) : 0 < nat.find h ↔ ¬ p 0 :=
 by rw [pos_iff_ne_zero, ne, nat.find_eq_zero]
 
-theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+theorem find_mono (h : ∀ n, q n → p n) {hp : ∃ n, p n} {hq : ∃ n, q n} :
   nat.find hp ≤ nat.find hq :=
 nat.find_min' _ (h _ (nat.find_spec hq))
+
+lemma find_le {h : ∃ n, p n} (hn : p n) : nat.find h ≤ n :=
+(nat.find_le_iff _ _).2 ⟨n, le_rfl, hn⟩
+
+lemma find_add {hₘ : ∃ m, p (m + n)} {hₙ : ∃ n, p n} (hn : n ≤ nat.find hₙ) :
+  nat.find hₘ + n = nat.find hₙ :=
+begin
+  refine ((le_find_iff _ _).2 (λ m hm hpm, hm.not_le _)).antisymm _,
+  { have hnm : n ≤ m := hn.trans (find_le hpm),
+    refine add_le_of_le_tsub_right_of_le hnm (find_le _),
+    rwa tsub_add_cancel_of_le hnm },
+  { rw ←tsub_le_iff_right,
+    refine (le_find_iff _ _).2 (λ m hm hpm, hm.not_le _),
+    rw tsub_le_iff_right,
+    exact find_le hpm }
+end
 
 lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h0 : ¬ p 0) :
   nat.find h₁ = nat.find h₂ + 1 :=

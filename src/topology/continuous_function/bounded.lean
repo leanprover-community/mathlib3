@@ -232,7 +232,7 @@ begin
       refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
       rw dist_comm,
       exact lt_of_le_of_lt (fF_bdd x n) hn },
-    exact this.continuous (λN, (f N).continuous) },
+    exact this.continuous (eventually_of_forall $ λ N, (f N).continuous) },
   { /- Check that `F` is bounded -/
     rcases (f 0).bounded with ⟨C, hC⟩,
     refine ⟨C + (b 0 + b 0), λ x y, _⟩,

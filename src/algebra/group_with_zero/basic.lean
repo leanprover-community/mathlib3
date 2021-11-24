@@ -1167,8 +1167,8 @@ noncomputable def group_with_zero_of_is_unit_or_eq_zero [hM : monoid_with_zero M
   (h : ∀ (a : M), is_unit a ∨ a = 0) : group_with_zero M :=
 { inv := λ a, if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹,
   inv_zero := dif_pos rfl,
-  mul_inv_cancel := λ a h0, by {
-    change a * (if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹) = 1,
+  mul_inv_cancel := λ a h0, by
+  { change a * (if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹) = 1,
     rw [dif_neg h0, units.mul_inv_eq_iff_eq_mul, one_mul, is_unit.unit_spec] },
   exists_pair_ne := nontrivial.exists_pair_ne,
 .. hM }

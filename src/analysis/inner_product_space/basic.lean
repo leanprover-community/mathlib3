@@ -1616,11 +1616,11 @@ structure. -/
 def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
-  add_left := λ x y z, by {
-    change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
+  add_left := λ x y z, by
+  { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
     simp [inner_add_left] },
-  smul_left := λ x y r, by {
-    change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
+  smul_left := λ x y r, by
+  { change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
     simp [inner_smul_left] },
   ..has_inner.is_R_or_C_to_real 𝕜 E,
   ..normed_space.restrict_scalars ℝ 𝕜 E }
@@ -1744,6 +1744,19 @@ submodule.inner_right_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 /-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
 lemma inner_left_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪v, u⟫ = 0 :=
 submodule.inner_left_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
+
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_right (u : E) {v : E} (hv : ⟪u, v⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+begin
+  intros w hw,
+  rw submodule.mem_span_singleton at hw,
+  obtain ⟨c, rfl⟩ := hw,
+  simp [inner_smul_left, hv],
+end
+
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_left (u : E) {v : E} (hv : ⟪v, u⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
 
 variables (K)
 

@@ -26,7 +26,7 @@ boxes of `π` actually cover the whole `I`. We also define some operations on pr
 * `box_integral.partition.bUnion`: split each box of a partition into smaller boxes;
 * `box_integral.partition.restrict`: restrict a partition to a smaller box.
 
-We also define a `semilattice_inf_top` structure on `box_integral.partition I` for all
+We also define a `semilattice_inf` structure on `box_integral.partition I` for all
 `I : box_integral.box ι`.
 
 ## Tags
@@ -478,14 +478,12 @@ by simp only [inf_def, mem_bUnion, mem_restrict]
 @[simp] lemma Union_inf (π₁ π₂ : prepartition I) : (π₁ ⊓ π₂).Union = π₁.Union ∩ π₂.Union :=
 by simp only [inf_def, Union_bUnion, Union_restrict, ← Union_inter, ← Union_def]
 
-instance : semilattice_inf_top (prepartition I) :=
+instance : semilattice_inf (prepartition I) :=
 { inf_le_left := λ π₁ π₂, π₁.bUnion_le _,
   inf_le_right := λ π₁ π₂, (bUnion_le_iff _).2 (λ J hJ, le_rfl),
   le_inf := λ π π₁ π₂ h₁ h₂, π₁.le_bUnion_iff.2 ⟨h₁, λ J hJ, restrict_mono h₂⟩,
-  ..prepartition.partial_order, .. prepartition.order_top, .. prepartition.has_inf }
-
-instance : semilattice_inf_bot (prepartition I) :=
-{ .. prepartition.order_bot, .. prepartition.semilattice_inf_top }
+  .. prepartition.has_inf,
+  .. prepartition.partial_order }
 
 /-- The prepartition with boxes `{J ∈ π | p J}`. -/
 @[simps] def filter (π : prepartition I) (p : box ι → Prop) : prepartition I :=

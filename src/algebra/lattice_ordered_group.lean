@@ -113,12 +113,11 @@ calc a⊓b * (a ⊔ b) = a ⊓ b * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
 
 namespace lattice_ordered_comm_group
 
--- Bourbaki A.VI.12 Definition 4
 /--
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
 the element `a ⊔ 1` is said to be the *positive component* of `a`, denoted `a⁺`.
 -/
-@[to_additive pos /-"
+@[to_additive /-"
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
 "-/,
@@ -126,17 +125,23 @@ priority 100
 ] -- see Note [lower instance priority]
 instance has_one_lattice_has_pos_part : has_pos_part (α)  := ⟨λa, a ⊔ 1⟩
 
+@[to_additive pos_part_def]
+lemma m_pos_part_def (a : α) : a⁺ = a ⊔ 1 := rfl
+
 /--
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
 the element `(-a) ⊔ 1` is said to be the *negative component* of `a`, denoted `a⁻`.
 -/
-@[to_additive neg /-"
+@[to_additive /-"
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
 "-/,
 priority 100
 ] -- see Note [lower instance priority]
 instance has_one_lattice_has_neg_part : has_neg_part (α)  := ⟨λa, a⁻¹ ⊔ 1⟩
+
+@[to_additive neg_part_def]
+lemma m_neg_part_def (a : α) : a⁻ = a⁻¹ ⊔ 1 := rfl
 
 @[to_additive le_abs]
 lemma le_mabs (a : α) : a ≤ |a| := le_sup_left
@@ -163,7 +168,7 @@ lemma m_le_neg (a : α) : a⁻¹ ≤ a⁻ := le_sup_left
 -- Bourbaki A.VI.12
 --  a⁻ = (-a)⁺
 @[to_additive]
-lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := by { unfold has_neg_part.neg, unfold has_pos_part.pos}
+lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := by rw [ m_neg_part_def, m_pos_part_def]
 
 -- a⁺ = (-a)⁻
 @[to_additive]
@@ -185,10 +190,7 @@ end
 -- a⁻ = -(a ⊓ 0)
 @[to_additive]
 lemma neg_eq_inv_inf_one [covariant_class α α (*) (≤)] (a : α) : a⁻ = (a ⊓ 1)⁻¹ :=
-begin
-  unfold has_neg_part.neg,
-  rw [← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv],
-end
+by rw [m_neg_part_def, ← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv]
 
 -- Bourbaki A.VI.12  Prop 9 a)
 -- a = a⁺ - a⁻
@@ -197,9 +199,7 @@ lemma pos_inv_neg [covariant_class α α (*) (≤)] (a : α) : a = a⁺ / a⁻ :
 begin
   rw div_eq_mul_inv,
   apply eq_mul_inv_of_mul_eq,
-  unfold has_neg_part.neg,
-  rw [mul_sup_eq_mul_sup_mul, mul_one, mul_right_inv, sup_comm],
-  unfold has_pos_part.pos,
+  rw [m_neg_part_def, mul_sup_eq_mul_sup_mul, mul_one, mul_right_inv, sup_comm, m_pos_part_def],
 end
 
 -- Hack to work around rewrite not working if lhs is a variable
@@ -247,8 +247,7 @@ begin
     { rw ← inv_le_inv_iff at h,
       apply sup_le
       (le_trans h (lattice_ordered_comm_group.m_le_neg a))
-      (lattice_ordered_comm_group.m_neg_pos a), }
-  },
+      (lattice_ordered_comm_group.m_neg_pos a), } },
   { intro h,
     rw [← pos_div_neg' a, ← pos_div_neg' b ],
     apply div_le_div'' h.1 h.2, }
@@ -362,8 +361,8 @@ begin
     ((b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c))) * |a ⊓ c / (b ⊓ c)| : by rw sup_div_inf_eq_abs_div
   ... = (b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c)) * (((b ⊓ c) ⊔ (a ⊓ c)) / ((b ⊓ c) ⊓ (a ⊓ c))) :
     by rw sup_div_inf_eq_abs_div (b ⊓ c) (a ⊓ c)
-  ... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) : by {
-    rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
+  ... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) : by
+  { rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
     nth_rewrite 1 sup_comm,
     rw [sup_right_idem, sup_assoc, inf_assoc ],
     nth_rewrite 3 inf_comm,
@@ -380,7 +379,7 @@ end
 @[to_additive pos_pos_id]
 lemma m_pos_pos_id (a : α) (h : 1 ≤ a): a⁺ = a :=
 begin
-  unfold has_pos_part.pos,
+  rw m_pos_part_def,
   apply sup_of_le_left h,
 end
 

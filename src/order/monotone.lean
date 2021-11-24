@@ -70,11 +70,11 @@ def monotone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
 /-- A function `f` is antitone if `a ≤ b` implies `f b ≤ f a`. -/
 def antitone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f b ≤ f a
 
-/-- A function `f` is monotone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f b ≤ f a`. -/
+/-- A function `f` is monotone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f a ≤ f b`. -/
 def monotone_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f a ≤ f b
 
-/-- A function `f` is antitone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f a ≤ f b`. -/
+/-- A function `f` is antitone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f b ≤ f a`. -/
 def antitone_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f b ≤ f a
 

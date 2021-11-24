@@ -3,13 +3,12 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.preadditive.default
-import category_theory.preadditive.single_obj
-import category_theory.preadditive.additive_functor
-import category_theory.limits.shapes.biproducts
-import category_theory.Fintype
 import algebra.big_operators.basic
-import data.matrix.notation
+import algebra.big_operators.pi
+import category_theory.limits.shapes.biproducts
+import category_theory.preadditive
+import category_theory.preadditive.additive_functor
+import data.matrix.dmatrix
 
 /-!
 # Matrices over a category.

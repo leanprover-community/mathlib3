@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov
 -/
 import order.filter.cofinite
+import order.zorn
 
 /-!
 # Ultrafilters
@@ -148,6 +149,7 @@ instance : has_pure ultrafilter :=
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
 
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
+instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/

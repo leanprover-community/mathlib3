@@ -3,10 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import logic.nontrivial
-import algebra.group.inj_surj
 import algebra.group.commute
+import algebra.group.inj_surj
 import data.equiv.mul_add
+import logic.nontrivial
 
 /-!
 # Multiplicative opposite and algebraic operations on it

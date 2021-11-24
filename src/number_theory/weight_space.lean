@@ -901,7 +901,7 @@ end
 
 /-- TBD -/
 noncomputable def F : ℕ → discrete_quotient (zmod d × ℤ_[p]) := λ n,
-  ⟨λ a b, to_zmod_pow n a.2 = to_zmod_pow n b.2 ∧ a.1  = b.1,
+  ⟨λ a b, to_zmod_pow n a.2 = to_zmod_pow n b.2 ∧ a.1 = b.1,
     ⟨ by tauto, by tauto, λ a b c hab hbc, begin simp at *, split, rw [hab.1, hbc.1], rw [hab.2, hbc.2], end⟩,
     λ x, begin apply remove_extras p d x n,
 --      convert_to is_clopen ((({x.1} : set (zmod d)) × (set.preimage (to_zmod_pow n) {to_zmod_pow n x.2})) : set ((zmod d) × ℤ_[p])),
@@ -938,10 +938,74 @@ lemma succ_eq_bUnion_equi_class : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.su
     (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) :=
 sorry
 
+lemma F_rel (x y : zmod d × ℤ_[p]) (n : ℕ) : (F p d n).rel x y ↔
+  (to_zmod_pow n) x.snd = (to_zmod_pow n) y.snd ∧ x.fst = y.fst := by { rw F, }
+
+lemma le_F_of_ge (k n : ℕ) (h : k ≤ n) : (F p d n) ≤ (F p d k) :=
+begin
+  rintros x y hn, rw F_rel at *,
+  refine ⟨_, hn.2⟩, repeat { rw ←cast_to_zmod_pow _ _ h _, },
+  apply congr_arg, exact hn.1,
+end
+
+example {R S : Type*} [ring R] [ring S] {f : R →+* S} {x y : R} (h : f x = 0) :
+  x ∈ ring_hom.ker f := by refine (ring_hom.mem_ker f).mpr h
+
+example {a b c : ℤ} (h : a ∣ (b - c) ) : -(b - c) = c - b := neg_sub b c
+
+lemma mul_pow_lt_mul_pow_succ (m : ℕ) : d * p ^ m < d * p ^ m.succ :=
+begin
+  apply mul_lt_mul',
+  any_goals { simp, },
+  { apply nat.pow_lt_pow_succ, apply nat.prime.one_lt, apply fact.out, },
+  { apply fact.out, },
+end
+
+example (a b c : ℕ) (h1 : a < b) (h2 : b ≤ c) : a < c := gt_of_ge_of_gt h2 h1
+
+lemma val_le_val (n m : ℕ) [fact (0 < m)] (h : m ≤ n) (y : zmod n) : (y.val : zmod m).val ≤ y.val :=
+begin
+  by_cases y.val < m,
+  { have := zmod.val_cast_of_lt h, rw this, },
+  { push_neg at h,
+    apply le_of_lt, apply gt_of_ge_of_gt h _, apply zmod.val_lt (y.val : zmod m), },
+end
+
 lemma equi_class_eq (f : locally_constant (zmod d × ℤ_[p]) R) (x : zmod (d * p^m))
+  (h : classical.some (factor_F p d R f) ≤ m)
   (y : zmod (d * p^m.succ))
   (hy : y ∈ ((λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x)) :
-  f y = f x := sorry
+  f y = f x :=
+begin
+  -- note that y ≠ ↑x !
+  simp at hy, rw mem_equi_class at hy, rw ←locally_constant.factors,
+  repeat { rw function.comp_apply, }, apply congr_arg,
+  have h' := classical.some_spec (factor_F p d R f),
+  have h'' := le_F_of_ge p d _ _ h,
+  have h3 := le_trans h'' h',
+--  have h4 := h3 x y,
+  rw ←discrete_quotient.of_le_proj h3,
+  repeat { rw function.comp_apply, }, apply congr_arg,
+  suffices : ↑y ∈ ((F p d m).proj)⁻¹' {(F p d m).proj x},
+  { rw set.mem_preimage at this, rw set.mem_singleton_iff at this, exact this, },
+  rw discrete_quotient.fiber_eq, simp only [set.mem_set_of_eq],
+  rw F_rel, simp only [prod.fst_zmod_cast, prod.snd_zmod_cast],
+  rw ←hy,
+  have val_le_val : (y.val : zmod (d * p^m)).val ≤ y.val,
+  { apply val_le_val, apply le_of_lt, exact mul_pow_lt_mul_pow_succ p d m, },
+  have : (d * p^m) ∣ y.val - (y.val : zmod (d * p^m)).val,
+  { rw ←zmod.nat_coe_zmod_eq_zero_iff_dvd, rw nat.cast_sub val_le_val,
+    { simp only [zmod.cast_id', id.def, sub_self, zmod.nat_cast_val], }, },
+  split,
+  { rw ←sub_eq_zero, rw ←ring_hom.map_sub, rw ←ring_hom.mem_ker, rw ker_to_zmod_pow,
+    rw ideal.mem_span_singleton, repeat { rw ←zmod.nat_cast_val, }, rw ←dvd_neg, rw neg_sub,
+    rw ←nat.cast_pow, rw ←nat.cast_sub val_le_val,
+    { apply nat.coe_nat_dvd,
+      apply dvd_trans (dvd_mul_left _ _) this, }, },
+  { repeat { rw ←zmod.nat_cast_val, }, rw zmod.nat_coe_eq_nat_coe_iff,
+    rw nat.modeq_iff_dvd' val_le_val, apply dvd_trans (dvd_mul_right _ _) this, },
+end
+-- This lemma has a lot of mini lemmas that can be generalized.
 
 lemma fract_eq_self {a : ℚ} (h : 0 ≤ a) (ha : a < 1) : fract a = a :=
 begin
@@ -1100,14 +1164,6 @@ end
 --example (m n : ℕ) (h : m < n) : (m : zmod n).val = m := zmod.val_cast_of_lt h
 
 --example : ¬ (1 = 2 ∧ 3 < 4) := by push_neg
-
-lemma mul_pow_lt_mul_pow_succ (m : ℕ) : d * p ^ m < d * p ^ m.succ :=
-begin
-  apply mul_lt_mul',
-  any_goals { simp, },
-  { apply nat.pow_lt_pow_succ, apply nat.prime.one_lt, apply fact.out, },
-  { apply fact.out, },
-end
 
 lemma pow_lt_mul_pow (m : ℕ) : p ^ m < d * p ^ m.succ :=
 begin
@@ -1519,7 +1575,7 @@ noncomputable def g (hc : gcd c p = 1) (hc' : gcd c d = 1) [has_coe ℝ R] [has_
   rw succ_eq_bUnion_equi_class,
   rw @finset.sum_bUnion _ _ _ _ _ _ (zmod' (d*p^l) (mul_prime_pow_pos p d l)) t _,
   { haveI : fact (0 < l), sorry,
-    conv_lhs { apply_congr, skip, conv { apply_congr, skip, rw equi_class_eq p d R l f x x_1 H_1, },
+    conv_lhs { apply_congr, skip, conv { apply_congr, skip, rw equi_class_eq p d R l f x hl x_1 H_1, },
     rw [←finset.mul_sum], rw E_c_sum_equi_class p d R l x hc hc', }, },
   { rintros x hx y hy hxy, contrapose hxy, push_neg,
     obtain ⟨z, hz⟩ := inter_nonempty_of_not_disjoint' hxy,

@@ -5,7 +5,6 @@ cribed in the file LICENSE.
 Authors: Antoine Chambert-Loir
 -/
 
--- import group_theory.subgroup.basic
 import group_theory.subgroup.pointwise
 import group_theory.coset
 import group_theory.quotient_group
@@ -304,7 +303,7 @@ begin
     let S := subgroup.comap (quotient_group.mk' N) R,
     have S_top : S = ⊤,
     {
-      /- S contient N -/
+      -- S contient N 
       have lN : N ≤ S,
       { intros g hg,
         apply subgroup.mem_comap.2,
@@ -312,7 +311,7 @@ begin
         by simp only [hg, quotient_group.mk'_apply, quotient_group.eq_one_iff],
         rw this, exact R.one_mem', },
 
-      /- S contient H = j(H) -/
+      -- S contient H = j(H) 
       have lH : H ≤ S,
       { intros h hh,
         apply subgroup.mem_comap.2,
@@ -320,15 +319,13 @@ begin
         simp only [subgroup.coe_subtype, function.comp_app,
           monoid_hom.coe_comp, subgroup.coe_mk], },
 
-      /- donc S = ⊤ puisque hHN : N ⊔ H = ⊤ -/
+      -- donc S = ⊤ puisque hHN : N ⊔ H = ⊤ 
       apply eq_top_iff.2,
       rw ← hHN,
-      exact sup_le_iff.2 ⟨lN, lH⟩,
-    },
+      exact sup_le_iff.2 ⟨lN, lH⟩, },
 
-    /- Ceci fait, il reste à prouver que R = ⊤ -/
-    {
-      apply eq_top_iff.2,
+    -- Ceci fait, il reste à prouver que R = ⊤ 
+    { apply eq_top_iff.2,
       intros x _ ,
       let y := quotient.out' x,
       have hy : y ∈ S,
@@ -337,9 +334,9 @@ begin
       exact subgroup.mem_comap.1 hy,
     },
 
-  --Q is commutative as a surjective image of H
-  have hc : is_commutative Q (*)
-    := surj_to_comm (monoid_hom.to_mul_hom φ) hφ hH.is_comm,
+  -- Q is commutative as a surjective image of H
+  have hc : is_commutative Q (*) := 
+    surj_to_comm (monoid_hom.to_mul_hom φ) hφ hH.is_comm,
 
   -- Deduce that commutator G ≤ N
   exact (quotient_comm_contains_commutators_iff N).1 hc,

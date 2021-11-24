@@ -1011,9 +1011,9 @@ everywhere. We instead make them as lemmata and make them local instances as req
 -/
 library_note "fact non-instances"
 
-lemma fact_prime_two := fact.mk prime_two
+lemma fact_prime_two : fact (prime 2) := ⟨prime_two⟩
 
-lemma fact_prime_three := fact.mk prime_three
+lemma fact_prime_three : fact (prime 3) := ⟨prime_three⟩
 
 end nat
 

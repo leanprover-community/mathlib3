@@ -1869,6 +1869,16 @@ lemma Pi_congr_symm_apply (f : Π b, Z b) :
   (h₁.Pi_congr h₂).symm f = λ a, (h₂ a).symm (f (h₁ a)) :=
 rfl
 
+@[simp] lemma Pi_congr_apply_apply (f : Π a, W a) (a : α) :
+  h₁.Pi_congr h₂ f (h₁ a) = h₂ a (f a) :=
+begin
+  change cast _ ((h₂ (h₁.symm (h₁ a))) (f (h₁.symm (h₁ a)))) = (h₂ a) (f a),
+  generalize_proofs hZa,
+  revert hZa,
+  rw h₁.symm_apply_apply a,
+  simp,
+end
+
 end
 
 section
@@ -1890,6 +1900,18 @@ rfl
 lemma Pi_congr'_apply (f : Π a, W a) :
   h₁.Pi_congr' h₂ f = λ b, h₂ b $ f $ h₁.symm b :=
 rfl
+
+@[simp] lemma Pi_congr'_symm_apply_symm_apply (f : Π b, Z b) (b : β) :
+  (h₁.Pi_congr' h₂).symm f (h₁.symm b) = (h₂ b).symm (f b) :=
+begin
+  change cast _ ((h₂ (h₁ (h₁.symm b))).symm (f (h₁ (h₁.symm b)))) = (h₂ b).symm (f b),
+  generalize_proofs hWb,
+  revert hWb,
+  generalize hb : h₁ (h₁.symm b) = b',
+  rw h₁.apply_symm_apply b at hb,
+  subst hb,
+  simp,
+end
 
 end
 

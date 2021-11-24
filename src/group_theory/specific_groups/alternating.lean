@@ -5,6 +5,7 @@ Authors: Aaron Anderson, Antoine Chambert-Loir
 -/
 
 import group_theory.perm.fin
+import group_theory.subgroup.basic
 import group_theory.abelianization
 import tactic.interval_cases
 
@@ -40,11 +41,7 @@ is equal to its commutator subgroup if `α ≤ fintype.card α`
 alternating group permutation perfect commutator
 
 ## TODO
-* `three_cycle_is_commutator` and `three_cycle_mem_commutator` have ugly @-hacks
-* `alternating_group_is_perfect` uses ugly coercion lemmas which specialist will probably swiftly simplify
-* Should the hypothesis `α ≤ fintype.card α` be given as an instance ?
-
-## TODO
+* Should the hypothesis `α ≤ fintype.card α` be given as implicit ?
 * Show that `alternating_group α` is simple if and only if `fintype.card α ≠ 4`.
 
 -/
@@ -170,55 +167,6 @@ end
 
 end alternating_group
 
-section ugly_lemmas
-private lemma ugly_lemma (A : Type*) [group A] (B : subgroup A) (p : A → Prop) (hp : ∀(a : A), p a → a ∈ B) :
-  subgroup.comap B.subtype (subgroup.closure ({ a : A | p a }))
-    =  (subgroup.closure({ b : B | p ↑b})) :=
-begin
-  ext ⟨a, ha⟩,
-  simp,
-  split,
-  { intro hpa,
-    apply mem_closure.mpr,
-    intros K hpb,
-    have : set_of p ⊆ (subgroup.map B.subtype K),
-    { intros x hx, rw set.mem_set_of_eq at hx,
-      simp only [subgroup.coe_subtype, set.mem_image, subgroup.coe_map, set_like.mem_coe],
-      rw set_like.exists,
-      use x,
-      use hp x hx,
-      split,
-      apply hpb,
-      rw set.mem_set_of_eq, exact hx,
-      exact subtype.coe_mk x (hp x hx) },
-    obtain ⟨x, H, hH⟩ := mem_closure.mp hpa _ this,
-    rw [subgroup.coe_subtype, ← set_like.coe_mk a ha,  subgroup.coe_mk,
-      ← set_like.coe_mk a ha, set_like.coe_eq_coe ] at hH,
-    rw ← hH, exact H },
-  { intro h,
-    apply mem_closure.mpr,
-    intros K hpK,
-    have hpKB : { b : ↥B | p ↑b } ⊆ subgroup.comap B.subtype K,
-    { intros b hb,
-      rw set.mem_set_of_eq at hb,
-      exact hpK hb },
-    exact subgroup.mem_comap.mp (mem_closure.mp h (subgroup.comap B.subtype K) hpKB),
-  }
-end
-
-private lemma stupid_lemma {A : Type*} [group A] (B : subgroup A) :
-  subgroup.comap B.subtype (B : subgroup A) = ⊤ :=
-begin
-  apply top_le_iff.mp,
-  intros x hx,
-  refine subgroup.mem_comap.mpr _,
-  rw subgroup.coe_subtype,
-  exact set_like.coe_mem x,
-end
-
-end ugly_lemmas
-
-
 namespace equiv.perm
 open alternating_group
 
@@ -246,27 +194,14 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
 end
 
 /-- If n ≥ 5, then the alternating group on n letters is perfect -/
-/- Uses ugly_lemma and stupid_lemma !!! -/
 theorem alternating_group_is_perfect (h5 : 5 ≤ fintype.card α) : commutator (alternating_group α) = ⊤ :=
 begin
-  apply  top_le_iff.mp,
-
-  let z : closure {σ : perm α | is_three_cycle σ} = alternating_group α
-    := closure_three_cycles_eq_alternating ,
-   have t : ∀ (σ : perm α), σ.is_three_cycle → σ ∈ alternating_group α,
-  { intros σ hσ, exact is_three_cycle.mem_alternating_group  hσ },
-  let z' := ugly_lemma (perm α) (alternating_group α) is_three_cycle t,
-  rw z at z',
-  rw  stupid_lemma (alternating_group α) at z',
-  rw z',
-
-  let c3 := {b : ↥(alternating_group α) | (b : perm α).is_three_cycle},
-
-  apply (subgroup.closure_le (commutator (alternating_group α))).mpr,
-
-  intros b hb, -- rw mem_set_of_eq at hb,
-  rw set.mem_set_of_eq at hb,
-  exact three_cycle_mem_commutator h5 hb,
+  suffices : closure {b : alternating_group α | (b : perm α).is_three_cycle} = ⊤,
+  { rw [eq_top_iff, ← this, subgroup.closure_le],
+    intros b hb,
+    exact three_cycle_mem_commutator h5 hb, },
+  rw ← closure_three_cycles_eq_alternating,
+  apply subgroup.closure_closure_coe_preimage ,
 end
 
 /-- A key lemma to prove $A_5$ is simple. Shows that any normal subgroup of an alternating group on

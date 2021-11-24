@@ -634,6 +634,10 @@ variables [linear_order α] [order_closed_topology α]
 lemma measurable_set_interval {a b : α} : measurable_set (interval a b) :=
 measurable_set_Icc
 
+@[measurability]
+lemma measurable_set_interval_oc {a b : α} : measurable_set (interval_oc a b) :=
+measurable_set_Ioc
+
 variables [second_countable_topology α]
 
 @[measurability]
@@ -1139,6 +1143,14 @@ instance bool.borel_space : borel_space bool := ⟨borel_eq_top_of_discrete.symm
 instance nat.borel_space : borel_space ℕ := ⟨borel_eq_top_of_discrete.symm⟩
 instance int.borel_space : borel_space ℤ := ⟨borel_eq_top_of_discrete.symm⟩
 instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_encodable.symm⟩
+
+@[priority 900]
+instance is_R_or_C.measurable_space {𝕜 : Type*} [is_R_or_C 𝕜] : measurable_space 𝕜 := borel 𝕜
+@[priority 900]
+instance is_R_or_C.borel_space {𝕜 : Type*} [is_R_or_C 𝕜] : borel_space 𝕜 := ⟨rfl⟩
+
+/- Instances on `real` and `complex` are special cases of `is_R_or_C` but without these instances,
+Lean fails to prove `borel_space (ι → ℝ)`, so we leave them here. -/
 
 instance real.measurable_space : measurable_space ℝ := borel ℝ
 instance real.borel_space : borel_space ℝ := ⟨rfl⟩

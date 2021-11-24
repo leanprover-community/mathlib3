@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import linear_algebra.multilinear.basic
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product.left_action
 
 /-!
 # Constructions relating multilinear maps and tensor products.
@@ -19,9 +19,9 @@ open_locale tensor_product
 variables {R ι₁ ι₂ ι₃ ι₄ : Type*}
 variables [comm_semiring R]
 variables [decidable_eq ι₁] [decidable_eq ι₂][decidable_eq ι₃] [decidable_eq ι₄]
-variables {N₁ : Type*} [add_comm_monoid N₁] [module R N₁]
-variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂]
-variables {N : Type*} [add_comm_monoid N] [module R N]
+variables {N₁ : Type*} [add_comm_monoid N₁] [module R N₁] [module Rᵒᵖ N₁] [is_symmetric_smul R N₁]
+variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂] [module Rᵒᵖ N₂] [is_symmetric_smul R N₂]
+variables {N : Type*} [add_comm_monoid N] [module R N] [module Rᵒᵖ N] [is_symmetric_smul R N]
 
 /-- Given two multilinear maps `(ι₁ → N) → N₁` and `(ι₂ → N) → N₂`, this produces the map
 `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂` by taking the coproduct of the domain and the tensor product

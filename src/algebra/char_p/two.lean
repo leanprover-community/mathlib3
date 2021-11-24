@@ -43,14 +43,14 @@ by rw [←pow_two, ←pow_two, ←pow_two, add_sq]
 
 open_locale big_operators
 
-lemma sum_sq [fintype ι] [comm_semiring R] [char_p R 2] (s : finset ι) (f : ι → R) :
+lemma sum_sq [comm_semiring R] [char_p R 2] (s : finset ι) (f : ι → R) :
   (∑ i in s, f i) ^ 2 = ∑ i in s, f i ^ 2 :=
 begin
   letI := fact.mk nat.prime_two,
   exact sum_pow_char _ _ _
 end
 
-lemma sum_mul_self [fintype ι] [comm_semiring R] [char_p R 2] (s : finset ι) (f : ι → R) :
+lemma sum_mul_self [comm_semiring R] [char_p R 2] (s : finset ι) (f : ι → R) :
   (∑ i in s, f i) * (∑ i in s, f i) = ∑ i in s, f i * f i :=
 by simp_rw [←pow_two, sum_sq]
 

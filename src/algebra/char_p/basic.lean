@@ -177,6 +177,18 @@ theorem sub_pow_char_pow [comm_ring R] {p : ℕ} [fact p.prime]
   (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
 sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 
+open_locale big_operators
+
+lemma sum_pow_char {ι : Type*} [fintype ι] [comm_semiring R] {p : ℕ} [fact p.prime] [char_p R p]
+  (s : finset ι) (f : ι → R) :
+  (∑ i in s, f i) ^ p = ∑ i in s, f i ^ p :=
+begin
+  classical,
+  induction s using finset.induction with i s hs ih,
+  { rw [finset.sum_empty, finset.sum_empty, zero_pow' p (nat.prime.ne_zero $ fact.out _)], },
+  { rw [finset.sum_insert hs, finset.sum_insert hs, add_pow_char, ←ih] }
+end
+
 lemma eq_iff_modeq_int [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,

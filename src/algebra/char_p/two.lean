@@ -30,23 +30,28 @@ by rw [sub_eq_add_neg, neg_eq]
 lemma sub_eq_add' [ring R] [char_p R 2] : has_sub.sub = ((+) : R → R → R) :=
 funext $ λ x, funext $ λ y, sub_eq_add x y
 
+lemma add_sq [comm_semiring R] [char_p R 2] (x y : R) :
+  (x + y) ^ 2 = x ^ 2 + y ^ 2 :=
+begin
+  letI := fact.mk nat.prime_two,
+  exact add_pow_char _ _ _
+end
+
 lemma add_mul_self [comm_semiring R] [char_p R 2] (x y : R) :
   (x + y) * (x + y) = x * x + y * y :=
-by rw [add_mul_self_eq, two_eq_zero, zero_mul, zero_mul, add_zero]
-
-lemma add_sq [comm_semiring R] [char_p R 2] (x y : R) (n : ℕ) :
-  (x + y) ^ 2 = x ^ 2 + y ^ 2 :=
-by rw [pow_two, pow_two, pow_two, add_mul_self]
+by rw [←pow_two, ←pow_two, ←pow_two, add_sq]
 
 open_locale big_operators
 
+lemma sum_sq [fintype ι] [comm_semiring R] [char_p R 2] (s : finset ι) (f : ι → R) :
+  (∑ i in s, f i) ^ 2 = ∑ i in s, f i ^ 2 :=
+begin
+  letI := fact.mk nat.prime_two,
+  exact sum_pow_char _ _ _
+end
+
 lemma sum_mul_self [fintype ι] [comm_semiring R] [char_p R 2] (s : finset ι) (f : ι → R) :
   (∑ i in s, f i) * (∑ i in s, f i) = ∑ i in s, f i * f i :=
-begin
-  classical,
-  induction s using finset.induction with i s hs ih,
-  { simp, },
-  { rw [finset.sum_insert hs, finset.sum_insert hs, add_mul_self, ←ih] }
-end
+by simp_rw [←pow_two, sum_sq]
 
 end char_two

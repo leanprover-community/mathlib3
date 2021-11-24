@@ -1085,10 +1085,4 @@ variables [semi_normed_ring R₁] [semi_normed_ring R₂] [semi_normed_ring R₃
 instance ring_hom_isometric.ids : ring_hom_isometric (ring_hom.id R₁) :=
 ⟨λ x, rfl⟩
 
-instance ring_hom_isometric.comp {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}
-  [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃] [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] :
-  ring_hom_isometric σ₁₃ :=
-⟨λ x, by { have : σ₁₃ x = σ₂₃ (σ₁₂ x) := ring_hom_comp_triple.comp_apply.symm,
-           simp only [this, ring_hom_isometric.is_iso] }⟩
-
 end ring_hom_isometric

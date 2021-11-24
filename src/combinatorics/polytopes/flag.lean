@@ -52,6 +52,11 @@ class polytope.graded (α : Type u) [preorder α] extends order_bot α : Type u 
 abbreviation polytope.grade {α : Type u} [preorder α] [polytope.graded α] : α → ℕ :=
 polytope.graded.grade
 
+/-- Grade is a relation homomorphism. -/
+def polytope.graded.rel_hom (α : Type u) [preorder α] [bg : polytope.graded α] :
+  @rel_hom α ℕ (<) (<) :=
+⟨_, bg.strict_mono⟩
+
 /-- If a natural covers another, it must be a successor. -/
 lemma nat.succ_of_cover (m n : ℕ) : m ⋖ n → n = m + 1 := begin
   rintro ⟨hmnl, hmnr⟩,
@@ -352,85 +357,64 @@ end
 section
 variables [linear_order α] [graded α]
 
-/-- In a linear order, two elements compare as their grades. -/
-@[simp]
-lemma lt_iff_grade_lt (x y : α) : x < y ↔ grade x < grade y :=
+lemma grade_le_iff_le (x y : α) : grade x ≤ grade y ↔ x ≤ y :=
 begin
-  split, { apply graded.strict_mono },
-  contrapose,
-  intro hxy,
-  apply not_lt_of_ge,
-  apply graded.strict_mono.monotone,
-  exact le_of_not_gt hxy,
+  split,
+    { contrapose,
+      exact λ hxy, not_le_of_gt (graded.strict_mono (lt_of_not_ge hxy)), },
+  exact λ hxy, graded.strict_mono.monotone hxy,
 end
 
-@[simp]
-lemma le_iff_grade_le (x y : α) : grade x ≤ grade y ↔ x ≤ y :=
-begin
-  split, {
-    contrapose,
-    exact λ hxy, not_le_of_gt (graded.strict_mono (lt_of_not_ge hxy)),
-  },
-  intro hxy,
-  apply graded.strict_mono.monotone,
-  exact hxy,
-end
+/-- `grade` is an order embedding into ℕ for linearly ordered `α`. -/
+def oem_nat : α ↪o ℕ :=
+{ to_fun := _,
+  inj' := grade.inj α,
+  map_rel_iff' := grade_le_iff_le }
 
-@[simp]
-lemma eq_iff_grade_eq (x y : α) : grade x = grade y ↔ x = y :=
-begin
-  split, { apply grade.inj },
-  exact λ hxy, congr_arg grade hxy,
-end
+lemma grade_lt_iff_lt (x y : α) : grade x < grade y ↔  x < y :=
+order_embedding.lt_iff_lt oem_nat
 
-@[simp]
-lemma ne_iff_grade_ne (x y : α) : grade x ≠ grade y ↔ x ≠ y :=
-not_congr (eq_iff_grade_eq x y)
+lemma grade_eq_iff_eq (x y : α) : grade x = grade y ↔ x = y :=
+order_embedding.eq_iff_eq oem_nat
+
+lemma grade_ne_iff_ne (x y : α) : grade x ≠ grade y ↔ x ≠ y :=
+not_congr (grade_eq_iff_eq x y)
 
 /-- A grade function into `fin` for `α` with a top element. -/
 def grade_fin [order_top α] (x : α) : fin (grade_top α + 1) :=
 ⟨grade x, by rw nat.lt_add_one_iff; exact graded.strict_mono.monotone le_top⟩
 
 @[simp]
-theorem grade_fin.val_eq [order_top α] (x : α) :
-  (grade_fin x).val = grade x :=
+theorem grade_fin.val_eq [order_top α] (x : α) : (grade_fin x).val = grade x :=
 rfl
 
-theorem grade_fin.strict_mono [order_top α] :
-  strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
+theorem grade_fin.strict_mono [order_top α] : strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
 graded.strict_mono
 
-theorem grade_fin.inj [order_top α] :
-  function.injective (grade_fin : α → fin (grade_top α + 1)) :=
+theorem grade_fin.inj [order_top α] : function.injective (grade_fin : α → fin (grade_top α + 1)) :=
 grade_fin.strict_mono.injective
-
-/-- `grade` is an order embedding into ℕ for linearly ordered `α`. -/
-def oem_nat : α ↪o ℕ :=
-{ to_fun := grade,
-  inj' := grade.inj α,
-  map_rel_iff' := le_iff_grade_le }
 
 /-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
 def oem_fin [order_top α] : α ↪o fin (grade_top α + 1) :=
 { to_fun := grade_fin,
   inj' := grade_fin.inj,
-  map_rel_iff' := le_iff_grade_le }
+  map_rel_iff' := grade_le_iff_le }
 
 /-- In linear orders, `hcovers` is an equivalence. -/
 lemma hcovers_iff_grade_eq_succ_grade (a b : α) : a ⋖ b ↔ grade b = grade a + 1 :=
 begin
   refine ⟨graded.hcovers, λ hba, _⟩,
   have := nat.lt_of_succ_le (le_of_eq hba.symm),
-  rw ←graded.lt_iff_grade_lt at this,
+  rw graded.grade_lt_iff_lt at this,
   refine ⟨this, _⟩,
   rintros z ⟨hzl, hzr⟩,
   rw ←nat.cover_iff_succ at hba,
-  rw graded.lt_iff_grade_lt at hzl,
-  rw graded.lt_iff_grade_lt at hzr,
+  rw ←graded.grade_lt_iff_lt at hzl,
+  rw ←graded.grade_lt_iff_lt at hzr,
   exact hba.right _ ⟨hzl, hzr⟩,
 end
 
-/-- Two elements in a flag cover each other iff their grades do. -/
+/-- Two elements in a linear order cover each other iff their grades do. -/
 theorem cover_iff_nat_cover (a b : α) : a ⋖ b ↔ grade a ⋖ grade b :=
 begin
   split, { rw nat.cover_iff_succ, exact graded.hcovers },
@@ -529,6 +513,11 @@ instance (Φ : flag α) : graded Φ :=
 private abbreviation is_grade (Φ : flag α) (n : ℕ) : Prop :=
 ∃ a : Φ, grade a = n
 
+/-- If `x < y` but `y` does not cover `x`, then there's an element in between. -/
+private lemma between_of_ncover {x y : α} (hnxy : ¬x ⋖ y) (hxy : x < y) :
+  ∃ z, x < z ∧ z < y :=
+by by_contra hne; push_neg at hne; exact hnxy ⟨hxy, λ z ⟨hl, hr⟩, hne z hl hr⟩
+
 /-- The set of grades in a flag has no gaps. -/
 lemma grade_ioo (Φ : flag α) (m n : ℕ) :
   is_grade Φ m → is_grade Φ n → nonempty (set.Ioo m n) → ∃ r ∈ set.Ioo m n, is_grade Φ r :=
@@ -537,26 +526,23 @@ begin
 
   have hnab : ¬a ⋖ b := begin
     have : ¬m ⋖ n := λ hmn, (hmn.right r) hr,
-    rwa [←ham, ←hbn, ←flag.cover_iff_nat_cover] at this,
+    rwa [←ham, ←hbn, ←graded.cover_iff_nat_cover] at this,
   end,
 
   have hab : a < b := begin
-    rw [graded.lt_iff_grade_lt, ham, hbn],
+    rw [←graded.grade_lt_iff_lt, ham, hbn],
     exact lt_trans hr.left hr.right,
   end,
 
-/-
   rcases between_of_ncover hnab hab with ⟨c, hac, hcb⟩,
   use grade c,
   split,
     { split,
       { rw ←ham,
-        exact has_grade.strict_mono hac, },
+        exact graded.strict_mono hac, },
       rw ←hbn,
-      exact has_grade.strict_mono hcb, },
+      exact graded.strict_mono hcb, },
   exact ⟨c, rfl⟩,
-  -/
-  sorry
 end
 
 end flag

@@ -134,7 +134,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_map_prod_map [comm_monoid γ] {f : δ → β → γ} {s : list δ} :
+lemma prod_map_prod_map {δ : Type*} [comm_monoid γ] {f : δ → β → γ} {s : list δ} :
   ∀ {t : list β},
     (prod $ t.map $ λ (b : β), prod $ s.map (λ (d : δ), f d b)) =
     (prod $ s.map $ λ (d : δ), prod $ t.map (f d))

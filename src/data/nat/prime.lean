@@ -112,8 +112,6 @@ theorem not_prime_one : ¬ prime 1 := by simp [prime]
 
 theorem prime_two : prime 2 := dec_trivial
 
-instance fact_prime_two : fact (nat.prime 2) := ⟨nat.prime_two⟩
-
 end
 
 theorem prime.pred_pos {p : ℕ} (pp : prime p) : 0 < pred p :=
@@ -1005,6 +1003,17 @@ end tactic
 namespace nat
 
 theorem prime_three : prime 3 := by norm_num
+
+/--
+In most cases, we should not have global instances of `fact`; typeclass search only reads the head
+symbol and then tries any instances, which means that adding any such instance will cause slowdowns
+everywhere. We instead make them as lemmata and make them local instances as required.
+-/
+library_note "fact non-instances"
+
+lemma fact_prime_two := fact.mk prime_two
+
+lemma fact_prime_three := fact.mk prime_three
 
 end nat
 

@@ -32,18 +32,11 @@ so that that the restriction of `X` to `U` is isomorphic,
 as a locally ringed space, to `Spec.to_LocallyRingedSpace.obj (op R)`
 for some `R : CommRing`.
 -/
-structure Scheme extends X : LocallyRingedSpace :=
-(local_affine : ∀ x : X, ∃ (U : open_nhds x) (R : CommRing),
-  nonempty (X.restrict U.open_embedding ≅ Spec.to_LocallyRingedSpace.obj (op R)))
+structure Scheme extends LocallyRingedSpace :=
+(local_affine : ∀ x : to_LocallyRingedSpace, ∃ (U : open_nhds x) (R : CommRing),
+  nonempty (to_LocallyRingedSpace.restrict U.open_embedding ≅ Spec.to_LocallyRingedSpace.obj (op R)))
 
 namespace Scheme
-
-/--
-Every `Scheme` is a `LocallyRingedSpace`.
--/
--- (This parent projection is apparently not automatically generated because
--- we used the `extends X : LocallyRingedSpace` syntax.)
-def to_LocallyRingedSpace (S : Scheme) : LocallyRingedSpace := { ..S }
 
 /--
 Schemes are a full subcategory of locally ringed spaces.
@@ -88,7 +81,8 @@ The spectrum, as a contravariant functor from commutative rings to schemes.
 
 def cover (S : Scheme) (x : S.carrier) : costructured_arrow Spec S :=
 { left := op (S.local_affine x).some_spec.some,
-  hom := ((S.local_affine x).some_spec.some_spec.some.inv ≫ S.X.of_restrict _ : _) }
+  hom := ((S.local_affine x).some_spec.some_spec.some.inv ≫
+    S.to_LocallyRingedSpace.of_restrict _ : _) }
 
 lemma mem_cover (S : Scheme) (x : S.carrier) : x ∈ set.range (S.cover x).hom.1.base :=
 begin
@@ -101,7 +95,7 @@ begin
   apply_instance
 end
 
-@[simps]
+@[simps, derive [full, faithful]]
 def forget : Scheme ⥤ LocallyRingedSpace := induced_functor _
 
 /--

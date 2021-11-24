@@ -56,7 +56,11 @@ namespace is_fundamental_domain
 variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
   [normed_group E] {s t : set α} {μ : measure α}
 
-@[to_additive] lemma mk' (h_meas : measurable_set s) (h_exists : ∀ x : α, ∃! g : G, g • x ∈ s) :
+/-- If for each `x : α`, exactly one of `g • x`, `g : G`, belongs to a measurable set `s`, then `s`
+is a fundamental domain for the action of `G` on `α`. -/
+@[to_additive "/- If for each `x : α`, exactly one of `g +ᵥ x`, `g : G`, belongs to a measurable set
+`s`, then `s` is a fundamental domain for the additive action of `G` on `α`. -/"]
+lemma mk' (h_meas : measurable_set s) (h_exists : ∀ x : α, ∃! g : G, g • x ∈ s) :
   is_fundamental_domain G s μ :=
 { measurable_set := h_meas,
   ae_covers := eventually_of_forall $ λ x, (h_exists x).exists,

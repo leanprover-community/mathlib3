@@ -1,8 +1,16 @@
+/-
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import measure_theory.group.fundamental_domain
 import measure_theory.integral.interval_integral
 
 /-!
 # Integrals of periodic functions
+
+In this file we prove that `∫ x in b..b + a, f x = ∫ x in c..c + a, f x` for any (not necessarily
+measurable) function periodic function with period `a`.
 -/
 
 open set function measure_theory measure_theory.measure topological_space
@@ -33,7 +41,7 @@ begin
   simp only [interval_integral.integral_of_le, ha.le, le_add_iff_nonneg_right],
   haveI : vadd_invariant_measure (add_subgroup.zmultiples a) ℝ volume :=
     ⟨λ c s hs, real.volume_preimage_add_left _ _⟩,
-  exact (is_add_fundamental_domain_Ioc ha b).set_integral_congr
+  exact (is_add_fundamental_domain_Ioc ha b).set_integral_eq
     (is_add_fundamental_domain_Ioc ha c) hf.map_vadd_zmultiples
 end
   

@@ -370,7 +370,7 @@ def oem_nat : α ↪o ℕ :=
   inj' := grade.inj α,
   map_rel_iff' := grade_le_iff_le }
 
-lemma grade_lt_iff_lt (x y : α) : grade x < grade y ↔  x < y :=
+lemma grade_lt_iff_lt (x y : α) : grade x < grade y ↔ x < y :=
 order_embedding.lt_iff_lt oem_nat
 
 lemma grade_eq_iff_eq (x y : α) : grade x = grade y ↔ x = y :=
@@ -543,26 +543,33 @@ begin
 end
 
 /-- If a flag contains two elements, it contains elements with all grades in between. -/
-lemma flag_grade' {Φ : flag α} (x y : Φ) (r ∈ set.Icc (grade x) (grade y)):
-  ∃ z : Φ, grade z = r :=
-(all_icc_of_ex_ioo (grade_ioo Φ)) (grade x) (grade y) ⟨x, rfl⟩ ⟨y, rfl⟩ r H
+private lemma flag_grade_aux {Φ : flag α} (a b : Φ) (j ∈ set.Icc (grade a) (grade b)) :
+  ∃ c : Φ, grade c = j :=
+(all_icc_of_ex_ioo (grade_ioo Φ)) (grade a) (grade b) ⟨a, rfl⟩ ⟨b, rfl⟩ j H
 
-/-- A flag has a unique element of grade `n` when `n ≤ grade ⊤`. -/
-theorem flag_grade [order_top α] (Φ : flag α) (n : fin (graded.grade_top α + 1)) :
-  ∃! r : Φ, grade r = n :=
+/-- A flag has an element of grade `j` when `j ≤ grade ⊤`. -/
+theorem ex_of_grade_in_flag [order_top α] (Φ : flag α) (j : fin (graded.grade_top α + 1)) :
+  ∃ a : Φ, grade a = j :=
 begin
-  have he : ∃ (r : Φ), grade r = n := begin
-    refine (flag_grade' ⊥ ⊤ n) ⟨_, nat.le_of_lt_succ n.property⟩,
-    have : grade (⊥ : Φ) = 0 := graded.grade_bot,
-    rw this,
-    exact zero_le n,
-  end,
-
-  cases he with r hr,
-  use [r, hr],
-  intros s hs,
-  apply graded.grade.inj _,
-  rw [hr, hs],
+  refine (flag_grade_aux ⊥ ⊤ j) ⟨_, nat.le_of_lt_succ j.property⟩,
+  have : grade (⊥ : Φ) = 0 := graded.grade_bot,
+  rw this,
+  exact zero_le j,
 end
+
+/-- A flag has a unique element of grade `j` when `j ≤ grade ⊤`. -/
+theorem ex_unique_of_grade_in_flag [order_top α] (Φ : flag α) (j : fin (graded.grade_top α + 1)) :
+  ∃! a : Φ, grade a = j :=
+begin
+  cases ex_of_grade_in_flag Φ j with a ha,
+  use [a, ha],
+  intros b hb,
+  apply graded.grade.inj _,
+  rw [ha, hb],
+end
+
+/-- The element of a certain grade in a flag. -/
+noncomputable def flag_idx [order_top α] (Φ : flag α) (j : fin (graded.grade_top α + 1)) : Φ :=
+classical.some (ex_of_grade_in_flag Φ j)
 
 end flag

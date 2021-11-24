@@ -42,18 +42,18 @@ such that
 -/
 @[nolint has_inhabited_instance]
 structure glue_data :=
-  (ι : Type v)
-  (U : ι → C)
-  (V : ι × ι → C)
-  (f : Π i j, V (i, j) ⟶ U i)
-  (f_mono : ∀ i j, mono (f i j) . tactic.apply_instance)
-  (f_has_pullback : ∀ i j k, has_pullback (f i j) (f i k) . tactic.apply_instance)
-  (f_id : ∀ i, is_iso (f i i) . tactic.apply_instance)
-  (t : Π i j, V (i, j) ⟶ V (j, i))
-  (t_id : ∀ i, t i i = 𝟙 _)
-  (t' : Π i j k, pullback (f i j) (f i k) ⟶ pullback (f j k) (f j i))
-  (t_fac : ∀ i j k, t' i j k ≫ pullback.snd = pullback.fst ≫ t i j)
-  (cocycle : ∀ i j k , t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _)
+(ι : Type v)
+(U : ι → C)
+(V : ι × ι → C)
+(f : Π i j, V (i, j) ⟶ U i)
+(f_mono : ∀ i j, mono (f i j) . tactic.apply_instance)
+(f_has_pullback : ∀ i j k, has_pullback (f i j) (f i k) . tactic.apply_instance)
+(f_id : ∀ i, is_iso (f i i) . tactic.apply_instance)
+(t : Π i j, V (i, j) ⟶ V (j, i))
+(t_id : ∀ i, t i i = 𝟙 _)
+(t' : Π i j k, pullback (f i j) (f i k) ⟶ pullback (f j k) (f j i))
+(t_fac : ∀ i j k, t' i j k ≫ pullback.snd = pullback.fst ≫ t i j)
+(cocycle : ∀ i j k , t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _)
 
 attribute [simp] glue_data.t_id
 attribute [instance] glue_data.f_id glue_data.f_mono glue_data.f_has_pullback

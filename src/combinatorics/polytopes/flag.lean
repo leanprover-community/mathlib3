@@ -593,7 +593,8 @@ end
 
 variables (Ψ : flag α)
 
-/-- Two flags are j-adjacent if they share only their j-th element. -/
+/-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
+    adjacent to itself. -/
 def flag_adj : Prop :=
 ∀ i, (flag_idx i Φ).val = (flag_idx i Ψ).val ↔ i ≠ j
 

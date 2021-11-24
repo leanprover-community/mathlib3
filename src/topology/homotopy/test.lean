@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
 import topology.homotopy.basic
+import topology.homotopy.fundamental_groupoid
 
 /-!
 # Homotopy groups of a topological space
@@ -198,6 +199,26 @@ def trans (f g : foo ι x₀) (i : ι) : foo ι x₀ :=
         { exact subtype.mem _ } } }
   end } .
 
+def reparam (f : foo ι x₀) (g : C(I, I)) (hg₀ : g 0 = 0 ∨ g 0 = 1) (hg₁ : g 1 = 0 ∨ g 1 = 1)
+  (i : ι) : foo ι x₀ :=
+{ to_fun := λ p, f (λ j, if i = j then g (p j) else p j),
+  continuous_to_fun := begin
+    apply f.continuous.comp,
+    apply continuous_pi,
+    intro j,
+    split_ifs;
+      continuity
+  end,
+  boundary := λ p hp, begin
+    apply apply_of_exists_eq_zero_or_eq_one,
+    rcases hp with ⟨j, hj|hj⟩;
+    rcases hg₀ with (hg₀ | hg₀);
+    rcases hg₁ with (hg₁ | hg₁);
+    use j;
+    split_ifs;
+    simp [hg₀, hg₁, hj]
+  end }
+
 /--
 Homotopy between `f` and `g`
 -/
@@ -337,6 +358,47 @@ def hcomp {f₀ f₁ g₀ g₁ : foo ι x₀} (F : homotopy f₀ g₀) (G : homo
           ⟨hij ▸ le_of_not_le h, unit_interval.le_one _⟩ },
         { exact subtype.mem _ } } }
   end } .
+
+def reparam (f : foo ι x₀) (g : C(I, I)) (hg₀ : g 0 = 0) (hg₁ : g 1 = 1)
+  (i : ι) : f.homotopy (f.reparam g (or.inl hg₀) (or.inr hg₁) i) :=
+{ to_fun := λ x, f (λ j,
+    if i = j then
+      ⟨σ x.1 * x.2 j + x.1 * g (x.2 j),
+      show (σ x.1 : ℝ) • (x.2 j : ℝ) + (x.1 : ℝ) • (g (x.2 j) : ℝ) ∈ I,
+      from convex_Icc _ _ (subtype.mem _) (subtype.mem _) (by unit_interval) (by unit_interval)
+        (by simp)⟩
+    else
+      x.2 j),
+  continuous_to_fun := begin
+    apply f.continuous.comp,
+    apply continuous_pi,
+    intro j,
+    have : _root_.continuous (λ (x : ↥I × (ι → ↥I)), x.snd j),
+      { exact (continuous_apply j).comp continuous_snd },
+    split_ifs,
+    { continuity },
+    { exact this }
+  end,
+  to_fun_zero := begin
+    intro x,
+    simp,
+  end,
+  to_fun_one := begin
+    intro x,
+    simp,
+    refl,
+  end,
+  prop' := begin
+    intros t x hx,
+    simp_rw [continuous_map.coe_mk, coe_to_continuous_map],
+    rw [apply_of_exists_eq_zero_or_eq_one, apply_of_exists_eq_zero_or_eq_one _ hx,
+        apply_of_exists_eq_zero_or_eq_one _ hx],
+    { exact ⟨rfl, rfl⟩ },
+    rcases hx with ⟨j, hj|hj⟩;
+    use j,
+    { left, simp [hj, hg₀] },
+    { right, simp [hj, hg₁] },
+  end }
 
 end homotopy
 

@@ -762,6 +762,12 @@ lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
   is_root (∏ j in s, p j) x ↔ ∃ i ∈ s, is_root (p i) x :=
 by simp only [is_root, eval_prod, finset.prod_eq_zero_iff]
 
+lemma eval_dvd : p ∣ q → eval x p ∣ eval x q :=
+eval₂_dvd _ _
+
+lemma eval_eq_zero_of_dvd_of_eval_eq_zero : p ∣ q → eval x p = 0 → eval x q = 0 :=
+eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _
+
 end eval
 
 section map

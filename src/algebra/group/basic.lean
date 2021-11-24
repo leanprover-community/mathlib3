@@ -337,6 +337,15 @@ calc  a / 1 = a * 1⁻¹ : div_eq_mul_inv a 1
           ... = a * 1 : congr_arg _ one_inv
           ... = a     : mul_one a
 
+@[simp, to_additive neg_sub]
+lemma inv_div' (a b : G) : (a / b)⁻¹ = b / a :=
+inv_eq_of_mul_eq_one ( by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc, inv_mul_cancel_left,
+  mul_right_inv])
+
+@[simp, to_additive sub_add_cancel]
+lemma div_mul_cancel' (a b : G) : a / b * b = a :=
+by rw [div_eq_mul_inv, inv_mul_cancel_right a b]
+
 end group
 
 section add_group
@@ -346,9 +355,6 @@ variables {G : Type u} [add_group G] {a b c d : G}
 
 @[simp] lemma sub_self (a : G) : a - a = 0 :=
 by rw [sub_eq_add_neg, add_right_neg a]
-
-@[simp] lemma sub_add_cancel (a b : G) : a - b + b = a :=
-by rw [sub_eq_add_neg, neg_add_cancel_right a b]
 
 @[simp] lemma add_sub_cancel (a b : G) : a + b - b = a :=
 by rw [sub_eq_add_neg, add_neg_cancel_right a b]
@@ -365,10 +371,6 @@ mt eq_of_sub_eq_zero h
 
 @[simp] lemma sub_neg_eq_add (a b : G) : a - (-b) = a + b :=
 by rw [sub_eq_add_neg, neg_neg]
-
-@[simp] lemma neg_sub (a b : G) : -(a - b) = b - a :=
-neg_eq_of_add_eq_zero (by rw [sub_eq_add_neg, sub_eq_add_neg, add_assoc, neg_add_cancel_left,
-  add_right_neg])
 
 local attribute [simp] add_assoc
 

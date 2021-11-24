@@ -122,12 +122,12 @@ variables [monoid α] (s : submonoid α)
 @[to_additive mem_own_left_add_coset]
 lemma mem_own_left_coset (a : α) : a ∈ a *l s :=
 suffices a * 1 ∈ a *l s, by simpa,
-mem_left_coset a (one_mem s)
+mem_left_coset a (one_mem s : 1 ∈ s)
 
 @[to_additive mem_own_right_add_coset]
 lemma mem_own_right_coset (a : α) : a ∈ (s : set α) *r a :=
 suffices 1 * a ∈ (s : set α) *r a, by simpa,
-mem_right_coset a (one_mem s)
+mem_right_coset a (one_mem s : 1 ∈ s)
 
 @[to_additive mem_left_add_coset_left_add_coset]
 lemma mem_left_coset_left_coset {a : α} (ha : a *l s = s) : a ∈ s :=
@@ -163,11 +163,11 @@ variables [group α] (s : subgroup α)
 
 @[to_additive left_add_coset_mem_left_add_coset]
 lemma left_coset_mem_left_coset {a : α} (ha : a ∈ s) : a *l s = s :=
-set.ext $ by simp [mem_left_coset_iff, mul_mem_cancel_left s (s.inv_mem ha)]
+set.ext $ by simp [mem_left_coset_iff, mul_mem_cancel_left (s.inv_mem ha)]
 
 @[to_additive right_add_coset_mem_right_add_coset]
 lemma right_coset_mem_right_coset {a : α} (ha : a ∈ s) : (s : set α) *r a = s :=
-set.ext $ assume b, by simp [mem_right_coset_iff, mul_mem_cancel_right s (s.inv_mem ha)]
+set.ext $ assume b, by simp [mem_right_coset_iff, mul_mem_cancel_right (s.inv_mem ha)]
 
 @[to_additive eq_add_cosets_of_normal]
 theorem eq_cosets_of_normal (N : s.normal) (g : α) : g *l s = s *r g :=
@@ -307,7 +307,7 @@ variables (s)
   stated in terms of an arbitrary `h : s`, rathern that the specific `h = g⁻¹ * (mk g).out'`. -/
 @[to_additive quotient_add_group.mk_out'_eq_mul]
 lemma mk_out'_eq_mul (g : α) : ∃ h : s, (mk g : α ⧸ s).out' = g * h :=
-⟨⟨g⁻¹ * (mk g).out', eq'.mp (mk g).out_eq'.symm⟩, by rw [s.coe_mk, mul_inv_cancel_left]⟩
+⟨⟨g⁻¹ * (mk g).out', eq'.mp (mk g).out_eq'.symm⟩, by rw [set_like.coe_mk, mul_inv_cancel_left]⟩
 
 variables {s}
 
@@ -327,7 +327,7 @@ lemma preimage_image_coe (N : subgroup α) (s : set α) :
 begin
   ext x,
   simp only [quotient_group.eq, set_like.exists, exists_prop, set.mem_preimage, set.mem_Union,
-    set.mem_image, subgroup.coe_mk, ← eq_inv_mul_iff_mul_eq],
+    set.mem_image, set_like.coe_mk, ← eq_inv_mul_iff_mul_eq],
   exact ⟨λ ⟨y, hs, hN⟩, ⟨_, N.inv_mem hN, by simpa using hs⟩,
          λ ⟨z, hz, hxz⟩, ⟨x*z, hxz, by simpa using hz⟩⟩,
 end
@@ -392,7 +392,7 @@ def quotient_equiv_prod_of_le' (h_le : s ≤ t)
     rwa [mul_inv_rev, mul_assoc, inv_mul_cancel_left] }),
   left_inv := by
   { refine quotient.ind' (λ a, _),
-    simp_rw [quotient.map'_mk', id.def, t.coe_mk, mul_inv_cancel_left] },
+    simp_rw [quotient.map'_mk', id.def, set_like.coe_mk, mul_inv_cancel_left] },
   right_inv := by
   { refine prod.rec _,
     refine quotient.ind' (λ a, _),

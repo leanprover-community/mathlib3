@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import data.list.sigma
+import data.int.range
+import tactic.pretty_cases
 import testing.slim_check.sampleable
 import testing.slim_check.testable
-import tactic.pretty_cases
 
 /-!
 ## `slim_check`: generators for functions
@@ -120,8 +121,8 @@ variables [has_repr α] [has_repr β]
 instance pi.sampleable_ext : sampleable_ext (α → β) :=
 { proxy_repr := total_function α β,
   interp := total_function.apply,
-  sample := do {
-    xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
+  sample := do
+  { xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
     ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
     pure $ total_function.with_default (list.to_finmap' xs) x },
   shrink := total_function.shrink }
@@ -402,8 +403,8 @@ end
 instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // function.injective f } :=
 { proxy_repr := injective_function ℤ,
   interp := λ f, ⟨ apply f, f.injective ⟩,
-  sample := gen.sized $ λ sz, do {
-    let xs' := int.range (-(2*sz+2)) (2*sz + 2),
+  sample := gen.sized $ λ sz, do
+  { let xs' := int.range (-(2*sz+2)) (2*sz + 2),
     ys ← gen.permutation_of xs',
     have Hinj : injective (λ (r : ℕ), -(2*sz + 2 : ℤ) + ↑r),
       from λ x y h, int.coe_nat_inj (add_right_injective _ h),

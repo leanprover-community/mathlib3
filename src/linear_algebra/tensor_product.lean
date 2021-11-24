@@ -742,18 +742,18 @@ local attribute [ext] tensor_product.ext
 /-- `ltensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def ltensor_hom : (N →ₗ[R] P) →ₗ[R] (M ⊗[R] N →ₗ[R] M ⊗[R] P) :=
 { to_fun := ltensor M,
-  map_add' := λ f g, by {
-    ext x y, simp only [compr₂_apply, mk_apply, add_apply, ltensor_tmul, tmul_add] },
-  map_smul' := λ r f, by {
-    dsimp, ext x y, simp only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
+  map_add' := λ f g, by
+  { ext x y, simp only [compr₂_apply, mk_apply, add_apply, ltensor_tmul, tmul_add] },
+  map_smul' := λ r f, by
+  { dsimp, ext x y, simp only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
 
 /-- `rtensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
 { to_fun := λ f, f.rtensor M,
-  map_add' := λ f g, by {
-    ext x y, simp only [compr₂_apply, mk_apply, add_apply, rtensor_tmul, add_tmul] },
-  map_smul' := λ r f, by {
-    dsimp, ext x y, simp only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply,
+  map_add' := λ f g, by
+  { ext x y, simp only [compr₂_apply, mk_apply, add_apply, rtensor_tmul, add_tmul] },
+  map_smul' := λ r f, by
+  { dsimp, ext x y, simp only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply,
     rtensor_tmul] } }
 
 @[simp] lemma coe_ltensor_hom :
@@ -883,8 +883,8 @@ protected theorem add_left_neg (x : M ⊗[R] N) : -x + x = 0 :=
 tensor_product.induction_on x
   (by { rw [add_zero], apply (neg.aux R).map_zero, })
   (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
-  (λ x y hx hy, by {
-    unfold has_neg.neg sub_neg_monoid.neg,
+  (λ x y hx hy, by
+  { unfold has_neg.neg sub_neg_monoid.neg,
     rw add_monoid_hom.map_add,
     ac_change (-x + x) + (-y + y) = 0,
     rw [hx, hy, add_zero], })

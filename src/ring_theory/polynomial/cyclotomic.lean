@@ -11,6 +11,7 @@ import field_theory.separable
 import field_theory.splitting_field
 import number_theory.arithmetic_function
 import ring_theory.roots_of_unity
+import field_theory.ratfunc
 
 /-!
 # Cyclotomic polynomials.
@@ -411,14 +412,14 @@ open_locale arithmetic_function
 
 /-- `cyclotomic n R` can be expressed as a product in a fraction field of `polynomial R`
   using Möbius inversion. -/
-lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n)
-  (R : Type*) [comm_ring R] [nontrivial R]
-  {K : Type*} [field K] [algebra (polynomial R) K] [is_fraction_ring (polynomial R) K] :
-  algebra_map _ K (cyclotomic n R) =
-    ∏ i in n.divisors_antidiagonal, (algebra_map (polynomial R) K (X ^ i.snd - 1)) ^ μ i.fst :=
+lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (R : Type*) [comm_ring R] [is_domain R] :
+  algebra_map _ (ratfunc R) (cyclotomic n R) =
+    ∏ i in n.divisors_antidiagonal, (algebra_map (polynomial R) _ (X ^ i.snd - 1)) ^ μ i.fst :=
 begin
+  rcases n.eq_zero_or_pos with rfl | hpos,
+  { simp },
   have h : ∀ (n : ℕ), 0 < n →
-    ∏ i in nat.divisors n, algebra_map _ K (cyclotomic i R) = algebra_map _ _ (X ^ n - 1),
+    ∏ i in nat.divisors n, algebra_map _ (ratfunc R) (cyclotomic i R) = algebra_map _ _ (X ^ n - 1),
   { intros n hn,
     rw [← prod_cyclotomic_eq_X_pow_sub_one hn R, ring_hom.map_prod] },
   rw (prod_eq_iff_prod_pow_moebius_eq_of_nonzero (λ n hn, _) (λ n hn, _)).1 h n hpos;
@@ -650,7 +651,7 @@ begin
   { intro ha,
     exact hn (int.coe_nat_dvd.1 ((zmod.int_coe_zmod_eq_zero_iff_dvd n p).1 ha)) },
   rw [sq] at habs,
-  replace habs := squarefree_X_pow_sub_C (1 : (zmod p)) hnzero one_ne_zero
+  replace habs := (separable_X_pow_sub_C (1 : (zmod p)) hnzero one_ne_zero).squarefree
     (map (int.cast_ring_hom (zmod p)) (X - a)) habs,
   simp only [map_nat_cast, map_X, map_sub] at habs,
   replace habs := degree_eq_zero_of_is_unit habs,

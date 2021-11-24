@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 
+import algebra.indicator_function
+import data.equiv.fin
+import data.tprod
+import group_theory.coset
 import measure_theory.measurable_space_def
 import measure_theory.tactic
-import data.tprod
-import data.equiv.fin
+import order.filter.lift
 
 /-!
 # Measurable spaces and measurable functions
@@ -1312,7 +1315,7 @@ instance : has_top (subtype (measurable_set : set α → Prop)) :=
 instance : partial_order (subtype (measurable_set : set α → Prop)) :=
 partial_order.lift _ subtype.coe_injective
 
-instance : bounded_distrib_lattice (subtype (measurable_set : set α → Prop)) :=
+instance : distrib_lattice (subtype (measurable_set : set α → Prop)) :=
 { sup := (∪),
   le_sup_left := λ a b, show (a : set α) ≤ a ⊔ b, from le_sup_left,
   le_sup_right := λ a b, show (b : set α) ≤ a ⊔ b, from le_sup_right,
@@ -1321,12 +1324,14 @@ instance : bounded_distrib_lattice (subtype (measurable_set : set α → Prop)) 
   inf_le_left := λ a b, show (a ⊓ b : set α) ≤ a, from inf_le_left,
   inf_le_right := λ a b, show (a ⊓ b : set α) ≤ b, from inf_le_right,
   le_inf := λ a b c ha hb, show (a : set α) ≤ b ⊓ c, from le_inf ha hb,
-  top := ⊤,
-  le_top := λ a, show (a : set α) ≤ ⊤, from le_top,
-  bot := ⊥,
-  bot_le := λ a, show (⊥ : set α) ≤ a, from bot_le,
   le_sup_inf := λ x y z, show ((x ⊔ y) ⊓ (x ⊔ z) : set α) ≤ x ⊔ y ⊓ z, from le_sup_inf,
   .. measurable_set.subtype.partial_order }
+
+instance : bounded_order (subtype (measurable_set : set α → Prop)) :=
+{ top := ⊤,
+  le_top := λ a, show (a : set α) ≤ ⊤, from le_top,
+  bot := ⊥,
+  bot_le := λ a, show (⊥ : set α) ≤ a, from bot_le }
 
 instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
 { sdiff := (\),
@@ -1336,6 +1341,7 @@ instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
   inf_compl_le_bot := λ a, boolean_algebra.inf_compl_le_bot (a : set α),
   top_le_sup_compl := λ a, boolean_algebra.top_le_sup_compl (a : set α),
   sdiff_eq := λ a b, subtype.eq $ sdiff_eq,
-  .. measurable_set.subtype.bounded_distrib_lattice }
+  .. measurable_set.subtype.bounded_order,
+  .. measurable_set.subtype.distrib_lattice }
 
 end measurable_set

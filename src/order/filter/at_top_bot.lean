@@ -585,6 +585,10 @@ begin
   simpa only [pow_one] using pow_le_pow hx hn
 end
 
+lemma eventually_ne_of_tendsto_at_top [nontrivial α] (hf : tendsto f l at_top)
+  (c : α) :  ∀ᶠ x in l, f x ≠ c :=
+(tendsto_at_top.1 hf $ (c + 1)).mono (λ x hx, ne_of_gt (lt_of_lt_of_le (lt_add_one c) hx))
+
 end ordered_semiring
 
 lemma zero_pow_eventually_eq [monoid_with_zero α] :
@@ -594,6 +598,11 @@ eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 section ordered_ring
 
 variables [ordered_ring α] {l : filter β} {f g : β → α}
+
+lemma eventually_ne_of_tendsto_at_bot [nontrivial α] (hf : tendsto f l at_bot)
+  (c : α) : ∀ᶠ x in l, f x ≠ c :=
+(tendsto_at_bot.1 hf $ (c - 1)).mono
+  (λ x hx, ne_of_lt (lt_of_le_of_lt hx ((sub_lt_self_iff c).2 zero_lt_one)))
 
 lemma tendsto.at_top_mul_at_bot (hf : tendsto f l at_top) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x * g x) l at_bot :=

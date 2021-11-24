@@ -3,16 +3,17 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.prod
-import data.sum
-import data.subtype
-import data.sigma.basic
 import data.option.basic
-import logic.function.basic
-import logic.function.conjugate
+import data.sum
 import logic.unique
-import tactic.norm_cast
+import logic.function.basic
+import data.quot
 import tactic.simps
+import logic.function.conjugate
+import data.prod
+import tactic.norm_cast
+import data.sigma.basic
+import data.subtype
 
 /-!
 # Equivalence between types
@@ -1277,8 +1278,8 @@ by { ext, refl }
 
 @[simp] lemma subtype_equiv_symm {p : α → Prop} {q : β → Prop} (e : α ≃ β)
   (h : ∀ (a : α), p a ↔ q (e a)) :
-  (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by {
-    convert (h $ e.symm a).symm,
+  (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by
+  { convert (h $ e.symm a).symm,
     exact (e.apply_symm_apply a).symm }) :=
 rfl
 

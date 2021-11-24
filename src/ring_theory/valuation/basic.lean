@@ -191,6 +191,14 @@ variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation
   (v : valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.map_inv x
 
+@[simp] lemma map_zpow {K : Type*} [division_ring K] (v : valuation K Γ₀) {x : K} {n : ℤ} :
+  v (x^n) = (v x)^n :=
+begin
+  cases n,
+  { rw [int.of_nat_eq_coe, zpow_coe_nat, zpow_coe_nat, valuation.map_pow], },
+  { rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, valuation.map_inv, valuation.map_pow], },
+end
+
 lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
 

@@ -278,7 +278,7 @@ This lemma is the `nth` version of `scanl_cons`.
   (scanl f b v).nth i.succ = f ((scanl f b v).nth i.cast_succ) (v.nth i) :=
 begin
   cases n,
-  { exact fin_zero_elim i },
+  { exact i.elim },
   induction n with n hn generalizing b,
   { have i0 : i = 0 := by simp only [eq_iff_true_of_subsingleton],
     simpa only [scanl_singleton, i0, nth_zero] },

@@ -34,7 +34,7 @@ def fin_two_equiv : fin 2 ≃ bool :=
   begin
     refine fin.cases _ _, by norm_num,
     refine fin.cases _ _, by norm_num,
-    exact λi, fin_zero_elim i
+    exact fin_zero_elim
   end,
   begin
     rintro ⟨_|_⟩,

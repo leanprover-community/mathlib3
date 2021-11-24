@@ -95,7 +95,7 @@ def adjacent {n : ℕ} (p : Q n) : set (Q n) := λ q, ∃! i, p i ≠ q i
 
 /-- In `Q 0`, no two vertices are adjacent. -/
 lemma not_adjacent_zero (p q : Q 0) : ¬ p.adjacent q :=
-by rintros ⟨v, _⟩; apply fin_zero_elim v
+by rintros ⟨v, _⟩; exact v.elim
 
 /-- If `p` and `q` in `Q (n+1)` have different values at zero then they are adjacent
 iff their projections to `Q n` are equal. -/

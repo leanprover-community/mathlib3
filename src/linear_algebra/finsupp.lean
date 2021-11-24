@@ -549,7 +549,7 @@ end
 
 @[simp] lemma total_fin_zero (f : fin 0 → M) :
   finsupp.total (fin 0) M R f = 0 :=
-by { ext i, apply fin_zero_elim i }
+by { ext i, exact i.elim }
 
 variables (α) (M) (v)
 

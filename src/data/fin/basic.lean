@@ -96,6 +96,9 @@ localized "attribute [instance] fact.pow.pos" in fin_fact
 namespace fin
 variables {n m : ℕ} {a b : fin n}
 
+/-- Elimination principle for the empty set `fin 0`, non-dependent version. -/
+def elim {β : Sort*} (x : fin 0) : β := x.elim0
+
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨subtype.val⟩
 
 lemma pos_iff_nonempty {n : ℕ} : 0 < n ↔ nonempty (fin n) :=
@@ -541,7 +544,7 @@ by { rw [lt_iff_coe_lt_coe, coe_zero], exact nat.succ_pos i }
 lemma one_lt_succ_succ (a : fin n) : (1 : fin (n + 2)) < a.succ.succ :=
 begin
   cases n,
-  { exact fin_zero_elim a },
+  { exact a.elim },
   { rw [←succ_zero_eq_one, succ_lt_succ_iff], exact succ_pos a }
 end
 
@@ -717,7 +720,7 @@ end
 @[simp] lemma coe_succ_eq_succ : a.cast_succ + 1 = a.succ :=
 begin
   cases n,
-  { exact fin_zero_elim a },
+  { exact a.elim },
   { simp [a.is_lt, eq_iff_veq, add_def, nat.mod_eq_of_lt] }
 end
 

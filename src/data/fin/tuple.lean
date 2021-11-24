@@ -520,7 +520,7 @@ end
 /-- `find p` does not return `none` if and only if `p i` holds at some index `i`. -/
 lemma is_some_find_iff : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p],
   by exactI (find p).is_some ↔ ∃ i, p i
-| 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, fin_zero_elim i)
+| 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, i.elim)
 | (n+1) p _ := ⟨λ h, begin
   rw [option.is_some_iff_exists] at h,
   cases h with i hi,

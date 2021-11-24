@@ -403,8 +403,9 @@ def lift_order_top [preorder α] [order_top α] (gi : galois_insertion l u) : or
   le_top := by simp only [gi.choice_eq]; exact λ b, (gi.le_l_u b).trans (gi.gc.monotone_l le_top) }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois insertion -/
-def lift_bounded_lattice [bounded_lattice α] (gi : galois_insertion l u) : bounded_lattice β :=
-{ .. gi.lift_lattice, .. gi.lift_order_top, .. gi.gc.lift_order_bot }
+def lift_bounded_order [preorder α] [bounded_order α]
+  (gi : galois_insertion l u) : bounded_order β :=
+{ .. gi.lift_order_top, .. gi.gc.lift_order_bot }
 
 /-- Lift all suprema and infima along a Galois insertion -/
 def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : complete_lattice β :=
@@ -415,7 +416,8 @@ def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : co
     (gi.is_glb_of_u_image $ is_glb_Inf _) (is_glb_Inf _),
   Inf_le := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).1 },
   le_Inf := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).2 },
-  .. gi.lift_bounded_lattice }
+  .. gi.lift_bounded_order,
+  .. gi.lift_lattice }
 
 end lift
 
@@ -567,14 +569,15 @@ def lift_order_bot [preorder β] [order_bot β] (gi : galois_coinsertion l u) : 
   .. @order_dual.order_bot _ _ gi.dual.lift_order_top }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois coinsertion -/
-def lift_bounded_lattice [bounded_lattice β] (gi : galois_coinsertion l u) : bounded_lattice α :=
-{ .. gi.lift_lattice, .. gi.lift_order_bot, .. gi.gc.lift_order_top }
+def lift_bounded_order [preorder β] [bounded_order β]
+  (gi : galois_coinsertion l u) : bounded_order α :=
+{ .. gi.lift_order_bot, .. gi.gc.lift_order_top }
 
 /-- Lift all suprema and infima along a Galois coinsertion -/
 def lift_complete_lattice [complete_lattice β] (gi : galois_coinsertion l u) : complete_lattice α :=
 { Inf := λ s, u (Inf (l '' s)),
   Sup := λ s, gi.choice (Sup (l '' s)) _,
-  .. gi.lift_bounded_lattice, .. @order_dual.complete_lattice _ gi.dual.lift_complete_lattice }
+  .. @order_dual.complete_lattice _ gi.dual.lift_complete_lattice }
 
 end lift
 

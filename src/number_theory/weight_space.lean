@@ -913,9 +913,63 @@ end⟩
   ∀ y ∈ {b : zmod d × ℤ_[p] | (to_zmod_pow m) a.2 = (to_zmod_pow m) b.2}, f y = f a :=
 sorry-/
 
-lemma factor_F (f : locally_constant (zmod d × ℤ_[p]) R) :
-  ∃ N : ℕ, F p d N ≤ f.discrete_quotient := sorry
+def bound_set (U : set (zmod d × ℤ_[p])) (hU : is_open U) :=
+  {n : ℕ | ∃ (a : zmod (d * p^n)), (clopen_from p d n a).val ⊆ U }
 
+noncomputable def bound (U : set (zmod d × ℤ_[p])) (hU : is_open U) : ℕ := Inf (bound_set p d U hU)
+/-noncomputable def bound (U : set (zmod d × ℤ_[p])) (hU : is_open U) := ⨅ (n : ℕ),
+  ∃ (a : zmod (d * p^n)), (clopen_from p d n a).val ⊆ U -/
+
+lemma F_rel (x y : zmod d × ℤ_[p]) (n : ℕ) : (F p d n).rel x y ↔
+  (to_zmod_pow n) x.snd = (to_zmod_pow n) y.snd ∧ x.fst = y.fst := by { rw F, }
+
+example {X} {α : Type*} [topological_space X] (f : locally_constant X α) (x y : X)
+  (h : f.discrete_quotient.rel x y) : f y = f x := h
+
+noncomputable def coe_padic_to_zmod (n : ℕ) (x : zmod d × ℤ_[p]) (hd : gcd d p = 1) : zmod (d * p^n) :=
+  (zmod.chinese_remainder (nat.coprime.pow_right _ (nat.coprime_iff_gcd_eq_one.1 hd))).inv_fun (x.1, (to_zmod_pow n)x.2)
+-- should this be used
+
+lemma le_bound (U : set (zmod d × ℤ_[p])) (hU : is_open U) (x : zmod d × ℤ_[p]) (memU : x ∈ U)
+  (n : ℕ) (h : bound p d U hU ≤ n) (hd : gcd d p = 1) :
+  (clopen_from p d n (coe_padic_to_zmod p d n x hd)).val ⊆ U :=
+begin
+  transitivity (clopen_from p d (bound p d U hU) (coe_padic_to_zmod p d (bound p d U hU) x hd)).val,
+  { intros y hy,
+    sorry },
+  { sorry, },
+end
+
+lemma factor_F (hd : gcd d p = 1) (f : locally_constant (zmod d × ℤ_[p]) R) :
+  ∃ N : ℕ, F p d N ≤ f.discrete_quotient :=
+begin
+  have : ∀ x : R, is_open (f⁻¹' {x}), sorry,
+  have univ : f⁻¹' (set.univ : set R) = ⋃ (x : R), f⁻¹' {x}, sorry,
+  rw set.preimage_univ at univ,
+  have univ' := univ.symm,
+  rw ←set.univ_subset_iff at univ',
+  obtain ⟨t, ht⟩ := is_compact.elim_finite_subcover _ _ this univ',
+  { simp only at ht,
+    set n : ℕ := Sup ⨆ (x : R) (H : x ∈ t), {bound p d (f⁻¹' {x}) (this x)} with hn,
+    refine ⟨n, _⟩,
+    rintros x y hF, rw F_rel at hF,
+    change f y = f x,
+    obtain ⟨i, hi⟩ := set.mem_Union.1 (ht (set.mem_univ x)),
+    obtain ⟨hi, htx⟩ := set.mem_Union.1 hi,
+    simp only [set.mem_preimage, set.mem_singleton_iff] at htx,
+    rw htx,
+    have h1 : y ∈ (clopen_from p d n (coe_padic_to_zmod p d n x hd)).val, sorry,
+    rw ←set.mem_singleton_iff,
+    rw ←set.mem_preimage,
+    refine (le_bound p d (f⁻¹' {i}) (this i) x
+      (set.mem_preimage.2 (set.mem_singleton_iff.2 htx)) n _ hd) h1,
+    rw hn, apply le_cSup,
+    { sorry, },
+    { simp only [exists_prop, set.mem_Union, set.supr_eq_Union], refine ⟨i, hi, _⟩,
+      rw set.mem_singleton_iff, }, },
+  { exact compact_univ, },
+end
+#exit
 example {α : Type*} [h : fintype α] : fintype (@set.univ α) := by refine set_fintype set.univ
 
 lemma mul_prime_pow_pos (m : ℕ) : 0 < d * p^m :=
@@ -937,9 +991,6 @@ lemma succ_eq_bUnion_equi_class : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.su
   (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion
     (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) :=
 sorry
-
-lemma F_rel (x y : zmod d × ℤ_[p]) (n : ℕ) : (F p d n).rel x y ↔
-  (to_zmod_pow n) x.snd = (to_zmod_pow n) y.snd ∧ x.fst = y.fst := by { rw F, }
 
 lemma le_F_of_ge (k n : ℕ) (h : k ≤ n) : (F p d n) ≤ (F p d k) :=
 begin

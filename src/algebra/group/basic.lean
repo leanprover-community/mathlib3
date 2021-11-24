@@ -498,8 +498,8 @@ by simp [h.symm]
 lemma add_eq_of_eq_sub' (h : b = c - a) : a + b = c :=
 begin simp [h], rw [add_comm c, add_neg_cancel_left] end
 
-lemma sub_sub_self (a b : G) : a - (a - b) = b :=
-begin simp, rw [add_comm b, add_neg_cancel_left] end
+@[simp] lemma sub_sub_self (a b : G) : a - (a - b) = b :=
+by simpa using add_neg_cancel_left a b
 
 lemma add_sub_comm (a b c d : G) : a + b - (c + d) = (a - c) + (b - d) :=
 by simp
@@ -537,6 +537,9 @@ by rw [sub_eq_neg_add, neg_add_cancel_left]
 @[simp]
 lemma add_sub_cancel'_right (a b : G) : a + (b - a) = b :=
 by rw [← add_sub_assoc, add_sub_cancel']
+
+@[simp] lemma sub_add_cancel' (a b : G) : a - (a + b) = -b :=
+by rw [← neg_sub, add_sub_cancel']
 
 -- This lemma is in the `simp` set under the name `add_neg_cancel_comm_assoc`,
 -- defined  in `algebra/group/commute`

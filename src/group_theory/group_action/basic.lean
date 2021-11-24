@@ -170,6 +170,31 @@ def orbit_rel : setoid β :=
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
+local attribute [instance] orbit_rel
+
+/-- When you take a set `U` in `β`, push it down to the quotient, and pull back, you get the union
+of the orbit of `U` under `α`.
+-/
+@[to_additive] lemma quotient_preimage_image_eq_union_mul (U : set β) :
+  quotient.mk ⁻¹' (quotient.mk '' U) = ⋃ a : α, ((•) a) '' U :=
+begin
+  set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,
+  ext,
+  split,
+  { rintros ⟨y , hy, hxy⟩,
+    obtain ⟨a, rfl⟩ := quotient.exact hxy,
+    rw set.mem_Union,
+    exact ⟨a⁻¹, a • x, hy, inv_smul_smul a x⟩ },
+  { intros hx,
+    rw set.mem_Union at hx,
+    obtain ⟨a, u, hu₁, hu₂⟩ := hx,
+    rw [set.mem_preimage, set.mem_image_iff_bex],
+    refine ⟨a⁻¹ • x, _, by simp only [quotient.eq]; use a⁻¹⟩,
+    rw ← hu₂,
+    convert hu₁,
+    simp only [inv_smul_smul], },
+end
+
 local notation `Ω` := (quotient $ orbit_rel α β)
 
 /-- Decomposition of a type `X` as a disjoint union of its orbits under a group action.

@@ -48,7 +48,7 @@ structure glue_data :=
   (f : Π i j, V (i, j) ⟶ U i)
   (f_mono : ∀ i j, mono (f i j) . tactic.apply_instance)
   (f_has_pullback : ∀ i j k, has_pullback (f i j) (f i k) . tactic.apply_instance)
-  (f_id : ∀ i, is_iso (f i i))
+  (f_id : ∀ i, is_iso (f i i) . tactic.apply_instance)
   (t : Π i j, V (i, j) ⟶ V (j, i))
   (t_id : ∀ i, t i i = 𝟙 _)
   (t' : Π i j k, pullback (f i j) (f i k) ⟶ pullback (f j k) (f j i))

@@ -65,26 +65,13 @@ variables [comm_ring R] [ring A] [algebra R A]
 
 -- products of scalar units and algebra units
 
-lemma is_unit.smul_iff {G : Type u} [group G] [mul_action G A]
-  [smul_comm_class G A A] [is_scalar_tower G A A] {r : G} {a : A} :
-  is_unit (r • a) ↔ is_unit a :=
-begin
-  split, swap,
-    { exact λ h, (r•h.unit).is_unit, },
-    { intro h, let a' : units A :=
-        ⟨a,
-         r•↑(h.unit)⁻¹,
-         by rw [mul_smul_comm, ←smul_mul_assoc, is_unit.mul_coe_inv],
-         by rw [smul_mul_assoc,←mul_smul_comm, is_unit.coe_inv_mul],⟩,
-      exact ⟨a',rfl⟩, },
-end
 
 lemma is_unit.smul_sub_iff_sub_inv_smul {r : units R} {a : A} :
   is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
 begin
   have a_eq : a = r•r⁻¹•a, by simp,
   nth_rewrite 0 a_eq,
-  rw [←smul_sub,is_unit.smul_iff],
+  rw [←smul_sub,is_unit_smul_iff],
 end
 
 namespace spectrum
@@ -126,7 +113,7 @@ begin
   apply not_iff_not.mpr,
   simp only [mem_resolvent_iff, algebra.algebra_map_eq_smul_one],
   have h_eq : (r•s)•(1 : A) = r•s•1, by simp,
-  rw [h_eq,←smul_sub,is_unit.smul_iff],
+  rw [h_eq,←smul_sub,is_unit_smul_iff],
 end
 
 open_locale pointwise

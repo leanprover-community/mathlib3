@@ -88,6 +88,11 @@ lemma measure_preimage {f : α → β} (hf : measure_preserving f μa μb)
   μa (f ⁻¹' s) = μb s :=
 by rw [← hf.map_eq, map_apply hf.1 hs]
 
+lemma measure_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
+  (hfe : measurable_embedding f) (s : set β) :
+  μa (f ⁻¹' s) = μb s :=
+by rw [← hf.map_eq, hfe.map_apply]
+
 protected lemma iterate {f : α → α} (hf : measure_preserving f μa μa) :
   ∀ n, measure_preserving (f^[n]) μa μa
 | 0 := measure_preserving.id μa

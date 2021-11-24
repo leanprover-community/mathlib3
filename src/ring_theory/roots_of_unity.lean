@@ -12,6 +12,7 @@ import ring_theory.integral_domain
 import number_theory.divisors
 import field_theory.finite.basic
 import group_theory.specific_groups.cyclic
+import algebra.char_p.two
 
 /-!
 # Roots of unity and primitive roots of unity
@@ -533,23 +534,6 @@ begin
     exact hx }
 end
 
-lemma neg_one (p : ℕ) [char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
-mk_of_lt (-1 : R) dec_trivial (by simp only [one_pow, neg_sq]) $
-begin
-  intros l hl0 hl2,
-  obtain rfl : l = 1,
-  { unfreezingI { clear_dependent R p }, dec_trivial! },
-  simp only [pow_one, ne.def],
-  intro h,
-  suffices h2 : p ∣ 2,
-  { have := char_p.char_ne_one R p,
-    unfreezingI { clear_dependent R },
-    have aux := nat.le_of_dvd dec_trivial h2,
-    revert this hp h2, revert p, dec_trivial },
-  simp only [← char_p.cast_eq_zero_iff R p, nat.cast_bit0, nat.cast_one],
-  rw [bit0, ← h, neg_add_self] { occs := occurrences.pos [1] }
-end
-
 lemma eq_neg_one_of_two_right (h : is_primitive_root ζ 2) : ζ = -1 :=
 begin
   apply (eq_or_eq_neg_of_sq_eq_sq ζ 1 _).resolve_left,
@@ -563,6 +547,14 @@ section is_domain
 
 variables [comm_ring R]
 variables {ζ : units R} (h : is_primitive_root ζ k)
+
+lemma neg_one (p : ℕ) [nontrivial R] [h : char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
+begin
+  convert is_primitive_root.order_of (-1 : R),
+  rw ←ring_char.eq_iff at h,
+  unfreezingI { subst p }, -- you get _very_ weird behaviour without this `unfreezingI`! (no error)
+  simp [hp]
+end
 
 protected
 lemma mem_roots_of_unity {n : ℕ+} (h : is_primitive_root ζ n) : ζ ∈ roots_of_unity n R :=

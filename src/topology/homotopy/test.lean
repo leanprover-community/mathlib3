@@ -92,7 +92,7 @@ lemma apply_of_exists_eq_zero_or_eq_one {f : foo ι x₀} (p : ι → I) (hx : �
 /--
 The constant "path"
 -/
-def refl : foo ι x₀ :=
+def refl (x₀ : X) : foo ι x₀ :=
 { to_fun := λ i, x₀,
   boundary := λ p hp, rfl }
 
@@ -398,7 +398,7 @@ def reparam (f : foo ι x₀) (g : C(I, I)) (hg₀ : g 0 = 0) (hg₁ : g 1 = 1)
     use j,
     { left, simp [hj, hg₀] },
     { right, simp [hj, hg₁] },
-  end }
+  end } .
 
 end homotopy
 

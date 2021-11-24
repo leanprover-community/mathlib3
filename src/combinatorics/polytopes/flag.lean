@@ -577,11 +577,30 @@ classical.some (ex_of_grade_in_flag j Φ)
 theorem grade_flag_idx : grade (flag_idx j Φ) = j :=
 classical.some_spec (ex_of_grade_in_flag j Φ)
 
+/-- `flag_idx j Φ` is the unique element of grade `j` in the flag. -/
+theorem grade_eq_iff_flag_idx (a : Φ) : grade a = j ↔ a = flag_idx j Φ :=
+begin
+  have idx := grade_flag_idx j Φ,
+  split, {
+    intro ha,
+    rcases ex_unique_of_grade_in_flag j Φ with ⟨_, _, h⟩,
+    rw [(h _ ha), (h _ idx)],
+  },
+  intro h,
+  rw h,
+  exact idx,
+end
+
+variables (Ψ : flag α)
+
 /-- Two flags are j-adjacent if they share only their j-th element. -/
-def flag_adj (Ψ : flag α) : Prop :=
+def flag_adj : Prop :=
 ∀ i, (flag_idx i Φ).val = (flag_idx i Ψ).val ↔ i ≠ j
 
 instance : is_irrefl (flag α) (flag_adj j) :=
 ⟨λ _ h, (h j).mp rfl rfl⟩
+
+theorem flag_adj.symm : flag_adj j Φ Ψ → flag_adj j Ψ Φ :=
+by intros h i; rw ←(h i); exact eq_comm
 
 end flag

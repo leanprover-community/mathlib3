@@ -60,13 +60,12 @@ def spectrum (a : A) : set R :=
 
 end defs
 
-variables {R : Type u} {A : Type v}
-variables [comm_ring R] [ring A] [algebra R A]
 
 -- products of scalar units and algebra units
 
 
-lemma is_unit.smul_sub_iff_sub_inv_smul {r : units R} {a : A} :
+lemma is_unit.smul_sub_iff_sub_inv_smul {R : Type u} {A : Type v}
+  [comm_ring R] [ring A] [algebra R A] {r : units R} {a : A} :
   is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
 begin
   have a_eq : a = r•r⁻¹•a, by simp,
@@ -76,6 +75,10 @@ end
 
 namespace spectrum
 
+section scalar_ring
+
+variables {R : Type u} {A : Type v}
+variables [comm_ring R] [ring A] [algebra R A]
 
 local notation `σ` := spectrum R
 local notation `↑ₐ` := algebra_map R A
@@ -118,7 +121,7 @@ end
 
 open_locale pointwise
 
-theorem smul_eq_smul (a : A) (r : units R) :
+theorem unit_smul_eq_smul (a : A) (r : units R) :
   σ (r • a) = r • σ a :=
 begin
   ext,
@@ -166,5 +169,70 @@ end
 theorem preimage_units_mul_eq_swap_mul {a b : A} :
   (coe : units R → R) ⁻¹' σ (a * b) = coe ⁻¹'  σ (b * a) :=
 by { ext, exact unit_mem_mul_iff_mem_swap_mul, }
+
+end scalar_ring
+
+section scalar_field
+
+variables {𝕜 : Type u} {A : Type v}
+variables [field 𝕜] [ring A] [algebra 𝕜 A]
+
+local notation `σ` := spectrum 𝕜
+local notation `↑ₐ` := algebra_map 𝕜 A
+
+/-- Without the assumption `nontrivial A`, then `0 : A` would be invertible. -/
+@[simp] lemma zero_eq [nontrivial A] : σ (0 : A) = {0} :=
+begin
+  apply set.eq_of_subset_of_subset,
+  { change σ (0 : A) with (resolvent 𝕜 (0 : A))ᶜ,
+    rw set.compl_subset_comm,
+    intros k hk,
+    rw set.mem_compl_singleton_iff at hk,
+    have unit_k_one : is_unit (units.mk0 k hk • (1 : A)),
+      from is_unit.smul (units.mk0 k hk) is_unit_one,
+    rw mem_resolvent_iff,
+    simpa [algebra.algebra_map_eq_smul_one], },
+  { rw [set.singleton_subset_iff, mem_iff],
+    simp [algebra.algebra_map_eq_smul_one], },
+end
+
+@[simp] theorem scalar_eq [nontrivial A] (k : 𝕜) : σ (↑ₐk) = {k} :=
+begin
+  have coset_eq : left_add_coset k {0} = {k}, by
+    { ext, split,
+      { intro hx, simp [left_add_coset] at hx, exact hx, },
+      { intro hx, simp at hx, exact ⟨0,⟨set.mem_singleton 0, by simp [hx]⟩⟩, }, },
+  calc σ (↑ₐk) = σ (↑ₐk + 0)                  : by simp
+    ...        = left_add_coset k (σ (0 : A)) : by rw ←left_add_coset_eq
+    ...        = left_add_coset k {0}         : by rw zero_eq
+    ...        = {k}                          : coset_eq,
+end
+
+@[simp] lemma one_eq [nontrivial A] : σ (1 : A) = {1} :=
+calc σ (1 : A) = σ (↑ₐ1) : by simp [algebra.algebra_map_eq_smul_one]
+  ...          = {1}     : scalar_eq 1
+
+open_locale pointwise
+
+/-- the assumption (σ a).nonempty is necessary and cannot be removed without
+    further conditions on the algebra `A` and scalar field `𝕜`. -/
+theorem smul_eq_smul [nontrivial A] (k : 𝕜) (a : A) (ha : (σ a).nonempty) :
+  σ (k • a) = k • (σ a) :=
+begin
+  by_cases h : k = 0,
+  { simp [h,ha,zero_smul_set], refl },
+  { exact unit_smul_eq_smul a (units.mk0 k h) },
+end
+
+theorem nonzero_mul_eq_swap_mul (a b : A) : σ (a * b) \ {0} = σ (b * a) \ {0} :=
+begin
+  suffices h : ∀ (x y : A), σ (x*y) \ {0} ⊆ σ (y*x) \ {0},
+  { exact set.eq_of_subset_of_subset (h a b) (h b a) },
+  { rintros _ _ k ⟨k_mem,k_neq⟩,
+    change k with ↑(units.mk0 k k_neq) at k_mem,
+    exact ⟨unit_mem_mul_iff_mem_swap_mul.mp k_mem, k_neq⟩ },
+end
+
+end scalar_field
 
 end spectrum

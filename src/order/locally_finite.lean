@@ -493,13 +493,13 @@ namespace with_top
 variables (α) [partial_order α] [order_top α] [locally_finite_order α]
 
 local attribute [pattern] coe
+local attribute [simp] option.mem_iff
 
 instance : locally_finite_order (with_top α) :=
 { finset_Icc := λ a b, match a, b with
     |       ⊤,       ⊤ := {⊤}
     |       ⊤, (b : α) := ∅
-    | (a : α),       ⊤ := cons (⊤ : with_top α) ((Ici a).map embedding.coe_option)
-                               (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
+    | (a : α),       ⊤ := insert_none (Ici a)
     | (a : α), (b : α) := (Icc a b).map embedding.coe_option
     end,
   finset_Ico := λ a b, match a, b with
@@ -509,8 +509,7 @@ instance : locally_finite_order (with_top α) :=
     end,
   finset_Ioc := λ a b, match a, b with
     |      ⊤,      _ := ∅
-    | (a : α),      ⊤ := cons (⊤ : with_top α) ((Ioi a).map embedding.coe_option)
-                              (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
+    | (a : α),      ⊤ := insert_none (Ioi a)
     | (a : α), (b : α) := (Ioc a b).map embedding.coe_option
     end,
   finset_Ioo := λ a b, match a, b with

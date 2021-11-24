@@ -391,7 +391,7 @@ lemma uniform_embedding_coe [separated_space α] : uniform_embedding  (coe : α 
 { comap_uniformity := comap_coe_eq_uniformity α,
   inj := separated_pure_cauchy_injective }
 
-lemma injective_coe [separated_space α] : function.injective (coe : α → completion α) :=
+lemma coe_injective [separated_space α] : function.injective (coe : α → completion α) :=
 uniform_embedding.inj (uniform_embedding_coe _)
 
 variable {α}

@@ -131,7 +131,7 @@ section
 
 variable [has_multicoequalizer D.diagram]
 
-/-- The glued topological space given a family of gluing data. -/
+/-- The glued object given a family of gluing data. -/
 def glued : C := multicoequalizer D.diagram
 
 /-- The map `D.U i ⟶ D.glued` for each `i`. -/

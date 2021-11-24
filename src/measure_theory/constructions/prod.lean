@@ -268,7 +268,7 @@ begin
     apply measurable_measure_prod_mk_left,
     exact (s n).measurable_set_fiber x },
   have h2f' : tendsto f' at_top (𝓝 (λ (x : α), ∫ (y : β), f x y ∂ν)),
-  { rw [tendsto_pi], intro x,
+  { rw [tendsto_pi_nhds], intro x,
     by_cases hfx : integrable (f x) ν,
     { have : ∀ n, integrable (s' n x) ν,
       { intro n, apply (hfx.norm.add hfx.norm).mono' (s' n x).measurable.ae_measurable,

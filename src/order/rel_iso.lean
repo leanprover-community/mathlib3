@@ -798,15 +798,15 @@ begin
 end
 
 /-- Note that this goal could also be stated `(disjoint on f) a b` -/
-lemma disjoint.map_order_iso [semilattice_inf_bot α] [semilattice_inf_bot β] {a b : α}
-  (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
+lemma disjoint.map_order_iso [semilattice_inf α] [order_bot α] [semilattice_inf β] [order_bot β]
+  {a b : α} (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
 begin
   rw [disjoint, ←f.map_inf, ←f.map_bot],
   exact f.monotone ha,
 end
 
-@[simp] lemma disjoint_map_order_iso_iff [semilattice_inf_bot α] [semilattice_inf_bot β] {a b : α}
-  (f : α ≃o β) : disjoint (f a) (f b) ↔ disjoint a b :=
+@[simp] lemma disjoint_map_order_iso_iff [semilattice_inf α] [order_bot α] [semilattice_inf β]
+  [order_bot β] {a b : α} (f : α ≃o β) : disjoint (f a) (f b) ↔ disjoint a b :=
 ⟨λ h, f.symm_apply_apply a ▸ f.symm_apply_apply b ▸ h.map_order_iso f.symm, λ h, h.map_order_iso f⟩
 
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
@@ -819,9 +819,9 @@ lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
   f (x ⊔ y) = f x ⊔ f y :=
 f.dual.map_inf x y
 
-section bounded_lattice
+section bounded_order
 
-variables [bounded_lattice α] [bounded_lattice β] (f : α ≃o β)
+variables [lattice α] [lattice β] [bounded_order α] [bounded_order β] (f : α ≃o β)
 include f
 
 lemma order_iso.is_compl {x y : α} (h : is_compl x y) : is_compl (f x) (f y) :=
@@ -847,5 +847,5 @@ theorem order_iso.is_complemented_iff :
   is_complemented α ↔ is_complemented β :=
 ⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
 
-end bounded_lattice
+end bounded_order
 end lattice_isos

@@ -3,8 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebraic_geometry.presheafed_space
-import topology.sheaves.sheaf
+import algebraic_geometry.presheafed_space.has_colimits
+import topology.sheaves.functors
 
 /-!
 # Sheafed spaces
@@ -138,6 +138,16 @@ lemma Γ_obj_op (X : SheafedSpace C) : Γ.obj (op X) = X.presheaf.obj (op ⊤) :
 
 lemma Γ_map_op {X Y : SheafedSpace C} (f : X ⟶ Y) :
   Γ.map f.op = f.c.app (op ⊤) := rfl
+
+noncomputable
+instance [has_limits C] : creates_colimits (forget_to_PresheafedSpace : SheafedSpace C ⥤ _) :=
+⟨λ J hJ, by exactI ⟨λ K, creates_colimit_of_fully_faithful_of_iso
+  ⟨(PresheafedSpace.colimit_cocone (K ⋙ forget_to_PresheafedSpace)).X,
+    limit_is_sheaf _ (λ j, sheaf.pushforward_sheaf_of_sheaf _ (K.obj (unop j)).2)⟩
+  (colimit.iso_colimit_cocone ⟨_, PresheafedSpace.colimit_cocone_is_colimit _⟩).symm⟩⟩
+
+instance [has_limits C] : has_colimits (SheafedSpace C) :=
+has_colimits_of_has_colimits_creates_colimits forget_to_PresheafedSpace
 
 end SheafedSpace
 

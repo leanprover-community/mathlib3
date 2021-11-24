@@ -60,7 +60,7 @@ set_like.coe_injective set.inv_inv
 @[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv
 
-@[simp, to_additive] lemma inv_le (S T : submonoid G) : S⁻¹ ≤ T ↔ S ≤ T⁻¹ :=
+@[to_additive] lemma inv_le (S T : submonoid G) : S⁻¹ ≤ T ↔ S ≤ T⁻¹ :=
 set_like.coe_subset_coe.symm.trans set.inv_subset
 
 /-- `submonoid.has_inv` as an order isomorphism. -/

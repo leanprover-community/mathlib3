@@ -15,6 +15,7 @@ instance of `cone`, please refer to `category_theory/limits/cones.lean`.
 
 A cone is limiting iff it is terminal in the category of cones. As a corollary, an equivalence of
 categories of cones preserves limiting properties. We also provide the dual.
+
 -/
 
 namespace category_theory.limits

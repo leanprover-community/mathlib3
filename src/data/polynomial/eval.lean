@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.degree.definitions
+import algebra.geom_sum
 
 /-!
 # Theory of univariate polynomials
@@ -356,6 +357,9 @@ calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
 lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial R} (hp : p.coeff 0 = 0) :
   is_root p 0 :=
 by rwa coeff_zero_eq_eval_zero at hp
+
+lemma geom_sum_one (n : ℕ) : geom_sum (1 : R) n = n :=
+by simp [geom_sum_def]
 
 end eval
 
@@ -767,6 +771,10 @@ eval₂_dvd _ _
 
 lemma eval_eq_zero_of_dvd_of_eval_eq_zero : p ∣ q → eval x p = 0 → eval x q = 0 :=
 eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _
+
+@[simp]
+lemma eval_geom_sum {R} [comm_semiring R] {n : ℕ} {x : R} : eval x (geom_sum X n) = geom_sum x n :=
+by simp [geom_sum_def, eval_finset_sum]
 
 end eval
 

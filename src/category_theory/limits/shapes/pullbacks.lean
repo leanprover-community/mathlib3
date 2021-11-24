@@ -778,6 +778,37 @@ lemma map_lift_pullback_comparison (f : X ⟶ Z) (g : Y ⟶ Z)
       pullback.lift (G.map h) (G.map k) (by simp only [←G.map_comp, w]) :=
 by { ext; simp [← G.map_comp] }
 
+/--
+The comparison morphism for the pushout of `f,g`.
+This is an isomorphism iff `G` preserves the pushout of `f,g`; see
+`category_theory/limits/preserves/shapes/pullbacks.lean`
+-/
+def pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
+  pushout (G.map f) (G.map g) ⟶ G.obj (pushout f g) :=
+pushout.desc (G.map pushout.inl) (G.map pushout.inr)
+  (by simp only [←G.map_comp, pushout.condition])
+
+@[simp, reassoc]
+lemma inl_comp_pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
+  pushout.inl ≫ pushout_comparison G f g = G.map pushout.inl :=
+pushout.inl_desc _ _ _
+
+@[simp, reassoc]
+lemma inr_comp_pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
+  pushout.inr ≫ pushout_comparison G f g = G.map pushout.inr :=
+pushout.inr_desc _ _ _
+
+@[simp, reassoc]
+lemma pushout_comparison_map_desc (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)]
+  {W : C} {h : Y ⟶ W} {k : Z ⟶ W} (w : f ≫ h = g ≫ k) :
+    pushout_comparison G f g ≫ G.map (pushout.desc _ _ w) =
+      pushout.desc (G.map h) (G.map k) (by simp only [←G.map_comp, w]) :=
+by { ext; simp [← G.map_comp] }
+
 end
 
 section pullback_symmetry

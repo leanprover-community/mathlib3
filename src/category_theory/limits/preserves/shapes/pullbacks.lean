@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta
+Authors: Bhavik Mehta, Andrew Yang
 -/
 import category_theory.limits.shapes.pullbacks
 import category_theory.limits.preserves.basic
@@ -15,9 +15,10 @@ pullback cones.
 In particular, we show that `pullback_comparison G f g` is an isomorphism iff `G` preserves
 the pullback of `f` and `g`.
 
+The dual is also given.
+
 ## TODO
 
-* Dualise to pushouts
 * Generalise to wide pullbacks
 
 -/
@@ -33,6 +34,8 @@ variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
 namespace category_theory.limits
+
+section pullback
 
 variables {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} {h : W ⟶ X} {k : W ⟶ Y} (comm : h ≫ f = k ≫ g)
 
@@ -85,8 +88,6 @@ begin
   apply i,
 end
 
-open walking_cospan
-
 /-- If `F` preserves the pullback of `f, g`, it also preserves the pullback of `g, f`. -/
 def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z)
   (g : Y ⟶ Z) [preserves_limit (cospan f g) F] : preserves_limit (cospan g f) F :=
@@ -102,11 +103,12 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
       apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
       apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).inv_fun,
       exact hc },
-    { exact (c.π.naturality hom.inr).symm.trans (c.π.naturality hom.inl : _) }
+    { exact (c.π.naturality walking_cospan.hom.inr).symm.trans
+      (c.π.naturality walking_cospan.hom.inl : _) }
   end }
 
-
 variables [preserves_limit (cospan f g) G]
+
 /--
 If `G` preserves the pullback of `(f,g)`, then the pullback comparison map for `G` at `(f,g)` is
 an isomorphism.
@@ -140,5 +142,117 @@ by simp [iso.inv_comp_eq]
 @[simp] lemma preserves_pullback.iso_inv_snd :
   (preserves_pullback.iso G f g).inv ≫ G.map pullback.snd = pullback.snd :=
 by simp [iso.inv_comp_eq]
+
+end pullback
+
+section pushout
+
+variables {W X Y Z : C} {h : X ⟶ Z} {k : Y ⟶ Z} {f : W ⟶ X} {g : W ⟶ Y} (comm : f ≫ h = g ≫ k)
+
+/--
+The map of a pushout cocone is a colimit iff the cofork consisting of the mapped morphisms is a colimit.
+This essentially lets us commute `pushout_cocone.mk` with `functor.map_cocone`.
+-/
+def is_colimit_map_cocone_pushout_cocone_equiv :
+  is_colimit (G.map_cocone (pushout_cocone.mk h k comm)) ≃
+    is_colimit (pushout_cocone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
+      : pushout_cocone (G.map f) (G.map g)) :=
+(is_colimit.precompose_hom_equiv (diagram_iso_span _).symm _).symm.trans
+  (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by { rintro (_ | _ | _), tidy, })))
+
+/-- The property of preserving pushouts expressed in terms of binary cofans. -/
+def is_colimit_pushout_cocone_map_of_is_colimit [preserves_colimit (span f g) G]
+  (l : is_colimit (pushout_cocone.mk h k comm)) :
+  is_colimit (pushout_cocone.mk (G.map h) (G.map k) _) :=
+is_colimit_map_cocone_pushout_cocone_equiv G comm (preserves_colimit.preserves l)
+
+/-- The property of reflecting pushouts expressed in terms of binary cofans. -/
+def is_colimit_of_is_colimit_pushout_cocone_map [reflects_colimit (span f g) G]
+  (l : is_colimit (pushout_cocone.mk (G.map h) (G.map k) _)) :
+  is_colimit (pushout_cocone.mk h k comm) :=
+reflects_colimit.reflects ((is_colimit_map_cocone_pushout_cocone_equiv G comm).symm l)
+
+variables (f g) [has_pushout f g]
+
+/--
+If `G` preserves pushouts and `C` has them, then the pushout cocone constructed of the mapped
+morphisms of the pushout cocone is a colimit.
+-/
+def is_colimit_of_has_pushout_of_preserves_colimit
+  [preserves_colimit (span f g) G] :
+  is_colimit (pushout_cocone.mk (G.map pushout.inl) (G.map pushout.inr) _) :=
+is_colimit_pushout_cocone_map_of_is_colimit G _ (pushout_is_pushout f g)
+
+variables [has_pushout (G.map f) (G.map g)]
+
+/--
+If the pushout comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
+pushout of `(f,g)`.
+-/
+def preserves_pushout.of_iso_comparison [i : is_iso (pushout_comparison G f g)] :
+  preserves_colimit (span f g) G :=
+begin
+  apply preserves_colimit_of_preserves_colimit_cocone (pushout_is_pushout f g),
+  apply (is_colimit_map_cocone_pushout_cocone_equiv _ _).symm _,
+  apply is_colimit.of_point_iso (colimit.is_colimit (span (G.map f) (G.map g))),
+  apply i,
+end
+
+/-- If `F` preserves the pushout of `f, g`, it also preserves the pushout of `g, f`. -/
+def preserves_pushout_symmetry {D : Type*} [category D] (F : C ⥤ D) (f : X ⟶ Y)
+  (g : X ⟶ Z) [preserves_colimit (span f g) F] : preserves_colimit (span g f) F :=
+{ preserves := λ c hc,
+  begin
+    apply (is_colimit.precompose_hom_equiv (diagram_iso_span _).symm _).to_fun,
+    apply is_colimit.of_iso_colimit _ (pushout_cocone.iso_mk _).symm,
+    apply pushout_cocone.flip_is_colimit,
+    apply (is_colimit_map_cocone_pushout_cocone_equiv _ _).to_fun,
+    { apply_with preserves_colimit.preserves { instances := ff },
+      { dsimp, apply_instance },
+      apply pushout_cocone.flip_is_colimit,
+      apply is_colimit.of_iso_colimit _ (pushout_cocone.iso_mk _),
+      apply (is_colimit.precompose_hom_equiv (diagram_iso_span _) _).inv_fun,
+      exact hc },
+    { exact (c.ι.naturality walking_span.hom.snd).trans
+      (c.ι.naturality walking_span.hom.fst).symm }
+  end }
+
+variables [preserves_colimit (span f g) G]
+
+/--
+If `G` preserves the pushout of `(f,g)`, then the pushout comparison map for `G` at `(f,g)` is
+an isomorphism.
+-/
+def preserves_pushout.iso :
+  pushout (G.map f) (G.map g) ≅ G.obj (pushout f g) :=
+is_colimit.cocone_point_unique_up_to_iso
+  (colimit.is_colimit _)
+  (is_colimit_of_has_pushout_of_preserves_colimit G f g)
+
+@[simp]
+lemma preserves_pushout.iso_hom :
+  (preserves_pushout.iso G f g).hom = pushout_comparison G f g := rfl
+
+instance : is_iso (pushout_comparison G f g) :=
+begin
+  rw ← preserves_pushout.iso_hom,
+  apply_instance
+end
+
+lemma preserves_pushout.inl_iso_hom :
+  pushout.inl ≫ (preserves_pushout.iso G f g).hom = G.map pushout.inl := by simp
+
+lemma preserves_pushout.inr_iso_hom :
+  pushout.inr ≫ (preserves_pushout.iso G f g).hom = G.map pushout.inr := by simp
+
+@[simp] lemma preserves_pushout.inl_iso_inv :
+  G.map pushout.inl ≫ (preserves_pushout.iso G f g).inv = pushout.inl :=
+by simp [iso.comp_inv_eq]
+
+@[simp] lemma preserves_pushout.inr_iso_inv :
+  G.map pushout.inr ≫ (preserves_pushout.iso G f g).inv = pushout.inr :=
+by simp [iso.comp_inv_eq]
+
+end pushout
 
 end category_theory.limits

@@ -966,6 +966,16 @@ assume t ht,
 calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
 ... ≤ μ t : measure_mono $ inter_subset_left t s
 
+lemma restrict_congr_set {m0 : measurable_space α} ⦃s s' : set α⦄ ⦃μ : measure α⦄
+  (hs : s =ᵐ[μ] s') : μ.restrict s = μ.restrict s' :=
+le_antisymm (restrict_mono' hs.le $ le_refl μ) (restrict_mono' hs.symm.le $ le_refl μ)
+
+lemma restrict_eq_self_of_ae_mem {m0 : measurable_space α} ⦃s : set α⦄ ⦃μ : measure α⦄
+  (hs : ∀ᵐ x ∂μ, x ∈ s) :
+  μ.restrict s = μ :=
+calc μ.restrict s = μ.restrict univ : restrict_congr_set (eventually_eq_univ.mpr hs)
+... = μ : restrict_univ
+
 lemma restrict_congr_meas (hs : measurable_set s) :
   μ.restrict s = ν.restrict s ↔ ∀ t ⊆ s, measurable_set t → μ t = ν t :=
 ⟨λ H t hts ht,

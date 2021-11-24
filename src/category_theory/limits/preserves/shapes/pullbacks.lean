@@ -150,8 +150,8 @@ section pushout
 variables {W X Y Z : C} {h : X ⟶ Z} {k : Y ⟶ Z} {f : W ⟶ X} {g : W ⟶ Y} (comm : f ≫ h = g ≫ k)
 
 /--
-The map of a pushout cocone is a colimit iff the cofork consisting of the mapped morphisms is a colimit.
-This essentially lets us commute `pushout_cocone.mk` with `functor.map_cocone`.
+The map of a pushout cocone is a colimit iff the cofork consisting of the mapped morphisms is a
+colimit. This essentially lets us commute `pushout_cocone.mk` with `functor.map_cocone`.
 -/
 def is_colimit_map_cocone_pushout_cocone_equiv :
   is_colimit (G.map_cocone (pushout_cocone.mk h k comm)) ≃

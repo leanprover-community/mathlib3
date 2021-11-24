@@ -193,19 +193,7 @@ open_locale pointwise
 @[to_additive]
 lemma mem_closure_inv {G : Type*} [group G] (S : set G) (x : G) :
   x ∈ submonoid.closure S⁻¹ ↔ x⁻¹ ∈ submonoid.closure S :=
-begin
-  suffices : ∀ (S : set G) (x : G), x ∈ submonoid.closure S⁻¹ → x⁻¹ ∈ submonoid.closure S,
-  { refine ⟨this S x, _⟩,
-    have := this S⁻¹ x⁻¹,
-    rwa [inv_inv, set.inv_inv] at this },
-  intros S x hx,
-  refine submonoid.closure_induction hx (λ x hx, _) _ (λ x y hx hy, _),
-  { exact submonoid.subset_closure (set.mem_inv.mp hx), },
-  { rw one_inv,
-    exact submonoid.one_mem _ },
-  { rw mul_inv_rev x y,
-    exact submonoid.mul_mem _ hy hx },
-end
+by rw [closure_inv, mem_inv]
 
 end submonoid
 

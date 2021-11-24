@@ -286,7 +286,7 @@ lemma sum_cauchy_power_series_eq_integral {f : ℝ → E} {R : ℝ} {z : ℂ}
     ∫ θ : ℝ in 0..2*π, (↑R * exp (θ * I) / (R * exp (θ * I) - z)) • f θ :=
 (has_sum_cauchy_power_series_integral hf hR).tsum_eq
 
-lemma has_fpower_series_on_cauchy_integral {f : ℝ → E} {R : ℝ≥0} {z : ℂ}
+lemma has_fpower_series_on_cauchy_integral {f : ℝ → E} {R : ℝ≥0}
   (hf : interval_integrable f volume 0 (2 * π)) (hR : 0 < R) :
   has_fpower_series_on_ball
     (λ z, ∫ θ : ℝ in 0..2*π, (↑R * exp (θ * I) / (R * exp (θ * I) - z)) • f θ)
@@ -397,7 +397,8 @@ protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0}
       replace hd : differentiable_on ℂ (λ ζ, f (z + ζ)) (closed_ball 0 R),
       { refine hd.comp (differentiable_on_id.const_add _) _,
         rw [preimage_add_closed_ball, sub_self] },
-      have hfi : interval_integrable (λ θ : ℝ, (2 * π)⁻¹ • f (z + R * exp (θ * I))) volume 0 (2 * π),
+      have hfi : interval_integrable (λ θ : ℝ, (2 * π)⁻¹ • f (z + R * exp (θ * I)))
+        volume 0 (2 * π),
       { refine (continuous_const.smul $
           hd.continuous_on.comp_continuous _ $ λ θ, _).interval_integrable _ _,
         { exact continuous_const.mul (continuous_of_real.mul continuous_const).cexp },

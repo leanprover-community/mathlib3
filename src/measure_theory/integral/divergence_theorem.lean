@@ -139,7 +139,8 @@ lemma integral_divergence_of_has_fderiv_within_at_off_countable' (hle : a ≤ b)
   (Hi : integrable_on (λ x, ∑ i, f' i x (pi.single i 1)) (Icc a b)) :
   ∫ x in Icc a b, ∑ i, f' i x (e i) =
     ∑ i : fin (n + 1),
-      ((∫ x in face i, f i (front_face i x)) - ∫ x in face i, f i (back_face i x)) := integral_divergence_of_has_fderiv_within_at_off_countable a b hle (λ x i, f i x)
+      ((∫ x in face i, f i (front_face i x)) - ∫ x in face i, f i (back_face i x)) :=
+integral_divergence_of_has_fderiv_within_at_off_countable a b hle (λ x i, f i x)
   (λ x, continuous_linear_map.pi (λ i, f' i x)) s hs
   (λ x hx, continuous_within_at_pi.2 (Hc x hx)) (λ x hx, has_fderiv_within_at_pi.2 (Hd x hx)) Hi
 

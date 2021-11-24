@@ -582,7 +582,7 @@ begin
   simp_rw [integral_smul_measure, interval_integral, A.set_integral_map,
           ennreal.to_real_of_real (abs_nonneg c)],
   cases hc.lt_or_lt,
-  { simp [h, mul_div_cancel, hc, abs_of_neg, restrict_congr_set Ico_ae_eq_Ioc] },
+  { simp [h, mul_div_cancel, hc, abs_of_neg, measure.restrict_congr_set Ico_ae_eq_Ioc] },
   { simp [h, mul_div_cancel, hc, abs_of_pos] }
 end
 

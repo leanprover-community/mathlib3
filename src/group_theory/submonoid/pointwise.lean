@@ -39,7 +39,8 @@ variables [group G]
 
 open_locale pointwise
 
-@[to_additive]
+/-- The submonoid with every element inverted. -/
+@[to_additive /-" The additive submonoid with every element negated. "-/]
 protected def has_inv : has_inv (submonoid G):=
 { inv := λ S,
   { carrier := (S : set G)⁻¹,

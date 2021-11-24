@@ -21,7 +21,8 @@ with respect to a measure `μ` if
   we require this for `g₂ = 1` in the definition, then deduce it for any two `g₁ ≠ g₂`.
 
 In this file we prove that in case of a countable group `G` and a measure preserving action, any two
-fundamental domains have the same measure.
+fundamental domains have the same measure, and for a `G`-invariant function, its integrals over any
+two fundamental domains are equal to each other.
 
 We also generate additive versions of all theorems in this file using the `to_additive` attribute.
 -/
@@ -53,7 +54,7 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_scalar
 namespace is_fundamental_domain
 
 variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
-  [normed_group E] [normed_space ℝ E] {s t : set α} {μ : measure α}
+  [normed_group E] {s t : set α} {μ : measure α}
 
 @[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
   (⋃ g : G, g • s) =ᵐ[μ] univ :=
@@ -125,7 +126,7 @@ h.measure_eq_tsum_of_ac absolutely_continuous.rfl t
   μ t = ∑' g : G, μ (g • t ∩ s) :=
 by simpa only [set_lintegral_one] using h.set_lintegral_eq_tsum (λ _, 1) t
 
-@[to_additive] protected lemma set_lintegral_congr (hs : is_fundamental_domain G s μ)
+@[to_additive] protected lemma set_lintegral_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) (f : α → ℝ≥0∞) (hf : ∀ (g : G) x, f (g • x) = f x) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
 calc ∫⁻ x in s, f x ∂μ = ∑' g : G, ∫⁻ x in s ∩ g • t, f x ∂μ :
@@ -138,9 +139,9 @@ calc ∫⁻ x in s, f x ∂μ = ∑' g : G, ∫⁻ x in s ∩ g • t, f x ∂μ
 /-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
 @[to_additive] protected lemma measure_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=
-by simpa only [set_lintegral_one] using hs.set_lintegral_congr ht (λ _, 1) (λ _ _, rfl)
+by simpa only [set_lintegral_one] using hs.set_lintegral_eq ht (λ _, 1) (λ _ _, rfl)
 
-@[to_additive] protected lemma ae_measurable_on_congr {β : Type*} [measurable_space β]
+@[to_additive] protected lemma ae_measurable_on_iff {β : Type*} [measurable_space β]
   (hs : is_fundamental_domain G s μ) (ht : is_fundamental_domain G t μ) {f : α → β}
   (hf : ∀ (g : G) x, f (g • x) = f x) :
   ae_measurable f (μ.restrict s) ↔ ae_measurable f (μ.restrict t) :=
@@ -164,30 +165,30 @@ calc ae_measurable f (μ.restrict s)
   by simp only [← ae_measurable_sum_measure_iff, ← restrict_restrict (hs.measurable_set_smul _),
     hs.sum_restrict_of_ac restrict_le_self.absolutely_continuous]
 
-@[to_additive] protected lemma has_finite_integral_on_congr (hs : is_fundamental_domain G s μ)
+@[to_additive] protected lemma has_finite_integral_on_iff (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) {f : α → E} (hf : ∀ (g : G) x, f (g • x) = f x) :
   has_finite_integral f (μ.restrict s) ↔ has_finite_integral f (μ.restrict t) :=
 begin
   dunfold has_finite_integral,
-  rw hs.set_lintegral_congr ht,
+  rw hs.set_lintegral_eq ht,
   intros g x, rw hf
 end
 
 variables [measurable_space E]
 
-@[to_additive] protected lemma integrable_on_congr (hs : is_fundamental_domain G s μ)
+@[to_additive] protected lemma integrable_on_iff (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) {f : α → E} (hf : ∀ (g : G) x, f (g • x) = f x) :
   integrable_on f s μ ↔ integrable_on f t μ :=
-and_congr (hs.ae_measurable_on_congr ht hf) (hs.has_finite_integral_on_congr ht hf)
+and_congr (hs.ae_measurable_on_iff ht hf) (hs.has_finite_integral_on_iff ht hf)
 
-variables [borel_space E] [complete_space E] [second_countable_topology E]
+variables [normed_space ℝ E] [borel_space E] [complete_space E] [second_countable_topology E]
 
-@[to_additive] protected lemma set_integral_congr (hs : is_fundamental_domain G s μ)
+@[to_additive] protected lemma set_integral_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) {f : α → E} (hf : ∀ (g : G) x, f (g • x) = f x) :
   ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
 begin
   by_cases hfs : integrable_on f s μ,
-  { have hft : integrable_on f t μ, by rwa ht.integrable_on_congr hs hf,
+  { have hft : integrable_on f t μ, by rwa ht.integrable_on_iff hs hf,
     have hac : ∀ {u}, μ.restrict u ≪ μ := λ u, restrict_le_self.absolutely_continuous,
     calc ∫ x in s, f x ∂μ = ∫ x in ⋃ g : G, g • t, f x ∂(μ.restrict s) :
       by rw [restrict_congr_set (hac ht.Union_smul_ae_eq), restrict_univ]
@@ -210,7 +211,7 @@ begin
     ... = ∫ x in t, f x ∂μ :
       by rw [restrict_congr_set (hac hs.Union_smul_ae_eq), restrict_univ] },
   { rw [integral_undef hfs, integral_undef],
-    rwa [hs.integrable_on_congr ht hf] at hfs }
+    rwa [hs.integrable_on_iff ht hf] at hfs }
 end
 
 end is_fundamental_domain

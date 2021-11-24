@@ -177,8 +177,8 @@ hφ.ae_eventually_mem.mono (λ x hx, tendsto_const_nhds.congr' $
   hx.mono $ λ n hn, (indicator_of_mem hn _).symm)
 
 lemma ae_cover.ae_measurable {β : Type*} [measurable_space β] [l.is_countably_generated] [l.ne_bot]
-  {f : α → β} {φ : ι → set α} (hφ : ae_cover μ l φ) (hfm : ∀ i, ae_measurable f (μ.restrict $ φ i)) :
-  ae_measurable f μ :=
+  {f : α → β} {φ : ι → set α} (hφ : ae_cover μ l φ)
+  (hfm : ∀ i, ae_measurable f (μ.restrict $ φ i)) : ae_measurable f μ :=
 begin
   obtain ⟨u, hu⟩ := l.exists_seq_tendsto,
   have := ae_measurable_Union_iff.mpr (λ (n : ℕ), hfm (u n)),

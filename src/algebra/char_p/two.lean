@@ -5,12 +5,13 @@ Authors: Eric Wieser
 -/
 import algebra.char_p.basic
 
-variables {R ι : Type*}
-
 /-!
 # Lemmas about rings of characteristic two
 
+This file contains results about `char_p R 2`, in the `char_two` namespace.
 -/
+
+variables {R ι : Type*}
 
 namespace char_two
 
@@ -32,6 +33,10 @@ funext $ λ x, funext $ λ y, sub_eq_add x y
 lemma add_mul_self [comm_semiring R] [char_p R 2] (x y : R) :
   (x + y) * (x + y) = x * x + y * y :=
 by rw [add_mul_self_eq, two_eq_zero, zero_mul, zero_mul, add_zero]
+
+lemma add_sq [comm_semiring R] [char_p R 2] (x y : R) (n : ℕ) :
+  (x + y) ^ 2 = x ^ 2 + y ^ 2 :=
+by rw [pow_two, pow_two, pow_two, add_mul_self]
 
 open_locale big_operators
 

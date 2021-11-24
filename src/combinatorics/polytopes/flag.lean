@@ -9,7 +9,8 @@ import tactic.wlog order.zorn category_theory.conj data.fin.basic
 # Flags of polytopes
 
 In this file we define flags, which are maximal chains of a partial order. We prove that
-automorphisms of posets induce a group action on flags.
+automorphisms of posets induces a group action on flags. We also prove that flags contain elements
+of each possible grade.
 -/
 
 open category_theory
@@ -132,10 +133,9 @@ noncomputable instance [partial_order α] (Φ : flag α) : linear_order Φ :=
 /-- An element belongs to a flag iff it's comparable with everything in it. -/
 lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} : a ∈ Φ ↔ ∀ b : Φ, a ≤ ↑b ∨ ↑b ≤ a :=
 begin
-  refine ⟨λ ha _, Φ.le_total ⟨a, ha⟩ _, λ hh, _⟩,
+  refine ⟨λ ha _, Φ.le_total ⟨a, ha⟩ _, λ H, _⟩,
   by_contra,
-  refine Φ.prop.right ⟨set.insert a Φ, _, set.ssubset_insert h⟩,
-  exact zorn.chain_insert Φ.prop.left (λ _ hbΦ _, hh ⟨_, hbΦ⟩)
+  exact Φ.prop.right ⟨_, zorn.chain_insert Φ.prop.left (λ _ hΦ _, H ⟨_, hΦ⟩), set.ssubset_insert h⟩
 end
 
 /-- `⊥` belongs to every flag. -/
@@ -245,8 +245,7 @@ begin
   rcases Φ with ⟨Φf, hΦ, hΦ'⟩,
   rintros ⟨w, hwl, hwr⟩,
   rcases set.exists_of_ssubset hwr with ⟨a, ha, hna⟩,
-  apply hΦ',
-  use set.insert (γ.inv a) Φf,
+  refine hΦ' ⟨set.insert (γ.inv a) Φf, _⟩,
   split,
     { rintros x (hx : _ ∨ _) y (hy : _ ∨ _) hne,
       have hxyne : x ≠ γ.inv a ∨ y ≠ γ.inv a,
@@ -535,14 +534,35 @@ begin
   end,
 
   rcases between_of_ncover hnab hab with ⟨c, hac, hcb⟩,
-  use grade c,
+  refine ⟨grade c, ⟨_, ⟨c, rfl⟩⟩⟩,
   split,
-    { split,
-      { rw ←ham,
-        exact graded.strict_mono hac, },
-      rw ←hbn,
-      exact graded.strict_mono hcb, },
-  exact ⟨c, rfl⟩,
+    { rw ←ham,
+      exact graded.strict_mono hac },
+  rw ←hbn,
+  exact graded.strict_mono hcb
+end
+
+/-- If a flag contains two elements, it contains elements with all grades in between. -/
+lemma flag_grade' {Φ : flag α} (x y : Φ) (r ∈ set.Icc (grade x) (grade y)):
+  ∃ z : Φ, grade z = r :=
+(all_icc_of_ex_ioo (grade_ioo Φ)) (grade x) (grade y) ⟨x, rfl⟩ ⟨y, rfl⟩ r H
+
+/-- A flag has a unique element of grade `n` when `n ≤ grade ⊤`. -/
+theorem flag_grade [order_top α] (Φ : flag α) (n : fin (graded.grade_top α + 1)) :
+  ∃! r : Φ, grade r = n :=
+begin
+  have he : ∃ (r : Φ), grade r = n := begin
+    refine (flag_grade' ⊥ ⊤ n) ⟨_, nat.le_of_lt_succ n.property⟩,
+    have : grade (⊥ : Φ) = 0 := graded.grade_bot,
+    rw this,
+    exact zero_le n,
+  end,
+
+  cases he with r hr,
+  use [r, hr],
+  intros s hs,
+  apply graded.grade.inj _,
+  rw [hr, hs],
 end
 
 end flag

@@ -31,7 +31,8 @@ open_locale tensor_product big_operators
 universes u v
 
 variables (K : Type u) [field K]
-variables (V : Type v) [add_comm_group V] [module K V] [finite_dimensional K V]
+variables (V : Type v) [add_comm_group V] 
+variables [module K V] [module Kᵒᵖ V] [is_symmetric_smul K V] [finite_dimensional K V]
 
 /-- The coevaluation map is a linear map from a field `K` to a finite dimensional
   vector space `V`. -/
@@ -52,6 +53,8 @@ begin
 end
 
 open tensor_product
+
+variables [module Kᵒᵖ (module.dual K V)] [is_symmetric_smul K (module.dual K V)]
 
 /-- This lemma corresponds to one of the coherence laws for duals in rigid categories, see
   `category_theory.monoidal.rigid`. -/

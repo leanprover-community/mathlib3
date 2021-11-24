@@ -111,10 +111,10 @@ and if G is commutative, then H is commutative.
 Since I only use it with groups,
 I should probably use function.surjective.comm_semigroup
 --/
-lemma surj_to_comm {G H : Type*} [has_mul G] [has_mul H] (φ: mul_hom G H) :
-   function.surjective φ → is_commutative G (*) → is_commutative H (*) :=
+lemma surj_to_comm {G H : Type*} [has_mul G] [has_mul H] (φ: mul_hom G H)
+   (is_surj : function.surjective φ) (is_comm : is_commutative G (*)) :
+    is_commutative H (*) :=
 begin
-  intros is_surj is_comm,
   apply is_commutative.mk,
   intros a b,
     obtain ⟨a', ha'⟩ := is_surj a, obtain ⟨b', hb'⟩ := is_surj b,
@@ -358,11 +358,10 @@ variables (G: Type*) [group G] (X: Type*) [mul_action G X]
 then for any normal subgroup N that acts nontrivially,
 any x : X, the groups N and (stabilizer G x) generate G.
 -/
-lemma prim_to_full (is_prim: is_primitive G X) :
-  ∀ (x: X), ∀ (N:subgroup G), subgroup.normal N → mul_action.fixed_points N X ≠ ⊤ →
+lemma prim_to_full (is_prim: is_primitive G X)
+  (x: X) (N:subgroup G) (nN : subgroup.normal N) (hNX : mul_action.fixed_points N X ≠ ⊤) :
   N ⊔ (mul_action.stabilizer G x) = ⊤ :=
 begin
-  intros x N nN hNX,
   let Gx := mul_action.stabilizer G x, let NGx := N ⊔ Gx,
   have h_Gx_le_NGx : Gx ≤ NGx , by simp only [le_sup_right],
   have N_le_NGx : N ≤ NGx , by simp only [le_sup_left],
@@ -401,9 +400,8 @@ with an explicit N.normal hypothesis,
 so that the typeclass inference machine works.
 -/
 lemma normal_mul' (N:subgroup G) (nN:N.normal) (K: subgroup G)
-    (h : N ⊔ K = ⊤) : ∀(g:G), ∃(n:N) (k:K), g = n*k :=
+    (h : N ⊔ K = ⊤) (g:G) : ∃(n:N) (k:K), g = n*k :=
 begin
-    intro g,
     have hg : g ∈ ↑(N ⊔ K), { rw h, exact subgroup.mem_top g,},
     rw [subgroup.normal_mul, set.mem_mul] at hg,
     obtain ⟨x, y, hx, hy, hxy⟩ := hg,
@@ -413,11 +411,10 @@ end
 /-- If the action of G on X is primitive,
 then any normal subgroup N that acts nontrivially acts transitively.
 -/
-lemma prim_to_transitive (is_prim: is_primitive G X) :
-  ∀(N:subgroup G) (nN:N.normal), mul_action.fixed_points N X ≠ ⊤ →
+lemma prim_to_transitive (is_prim: is_primitive G X)
+  (N : subgroup G) (nN : N.normal) (hNX : mul_action.fixed_points N X ≠ ⊤) :
   mul_action.is_pretransitive N X :=
 begin
-    intros N nN hNX,
     apply mul_action.is_pretransitive.mk,
     intros x y,
 
@@ -446,14 +443,14 @@ structure has_iwasawa_structure :=
 /-- The Iwasawa criterion : If a primitive action of a group G on X
 has an Iwasawa structure, then any normal subgroup that acts nontrivially
 contains the group of commutators. -/
-theorem Iwasawa_mk (is_prim: is_primitive G X) (IwaS : has_iwasawa_structure G X) :
-  ∀ N:subgroup G, subgroup.normal N → mul_action.fixed_points N X ≠ ⊤ → commutator G ≤ N :=
+theorem Iwasawa_mk (is_prim: is_primitive G X) (IwaS : has_iwasawa_structure G X)
+  (N : subgroup G) (nN : N.normal) (hNX : mul_action.fixed_points N X ≠ ⊤) :
+  commutator G ≤ N :=
 /- Iwa_GX = (T : X → subgroup G)
   (is_comm: ∀ x:X, (T x).is_commutative)
   (is_conj: ∀ g: G, ∀ x : X, T (g • x) = mul_aut.conj g • (T x))
   (is_generator: supr T = ⊤) -/
 begin
-  intros N nN hNX,
   haveI := prim_to_transitive G X is_prim N nN hNX,
   obtain x := is_prim.is_nonempty.some,
   refine contains_commutators_of N nN (IwaS.T x) _ (IwaS.is_comm x),

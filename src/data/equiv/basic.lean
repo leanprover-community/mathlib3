@@ -1997,4 +1997,19 @@ lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable
   update f a v (g a') = update (f ∘ g) (g.symm a) v a' :=
 congr_fun (update_comp_equiv f g a v) a'
 
+lemma Pi_congr_left'_update [decidable_eq α] [decidable_eq β]
+  (P : α → Sort*) (e : α ≃ β) (f : Π a, P a) (b : β) (x : P (e.symm b)) :
+  e.Pi_congr_left' P (update f (e.symm b) x) = update (e.Pi_congr_left' P f) b x :=
+begin
+  ext b',
+  rcases eq_or_ne b' b with rfl | h,
+  { simp, },
+  { simp [h], },
+end
+
+lemma Pi_congr_left'_symm_update [decidable_eq α] [decidable_eq β]
+  (P : α → Sort*) (e : α ≃ β) (f : Π b, P (e.symm b)) (b : β) (x : P (e.symm b)) :
+  (e.Pi_congr_left' P).symm (update f b x) = update ((e.Pi_congr_left' P).symm f) (e.symm b) x :=
+by simp [(e.Pi_congr_left' P).symm_apply_eq, Pi_congr_left'_update]
+
 end function

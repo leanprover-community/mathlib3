@@ -171,7 +171,7 @@ by rw [nat_degree_one, nat_degree_mul hp0 hq0, eq_comm,
 degree_eq_zero_of_is_unit ⟨u, rfl⟩
 
 theorem prime_X_sub_C (r : R) : prime (X - C r) :=
-⟨X_sub_C_ne_zero r, not_is_unit_X_sub_C,
+⟨X_sub_C_ne_zero r, not_is_unit_X_sub_C r,
  λ _ _, by { simp_rw [dvd_iff_is_root, is_root.def, eval_mul, mul_eq_zero], exact id }⟩
 
 theorem prime_X : prime (X : polynomial R) :=

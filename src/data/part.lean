@@ -261,9 +261,6 @@ instance : order_bot (part α) :=
 { bot := none,
   bot_le := by { introv x, rintro ⟨⟨_⟩,_⟩, } }
 
-instance : preorder (part α) :=
-by apply_instance
-
 lemma le_total_of_le_of_le {x y : part α} (z : part α) (hx : x ≤ z) (hy : y ≤ z) :
   x ≤ y ∨ y ≤ x :=
 begin

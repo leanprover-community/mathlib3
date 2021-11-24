@@ -272,11 +272,17 @@ namespace measurable_space
 
 section complete_lattice
 
+instance : has_le (measurable_space α) :=
+{ le          := λ m₁ m₂, m₁.measurable_set' ≤ m₂.measurable_set' }
+
+lemma le_def {α} {a b : measurable_space α} :
+  a ≤ b ↔ a.measurable_set' ≤ b.measurable_set' := iff.rfl
+
 instance : partial_order (measurable_space α) :=
-{ le          := λ m₁ m₂, m₁.measurable_set' ≤ m₂.measurable_set',
-  le_refl     := assume a b, le_refl _,
-  le_trans    := assume a b c, le_trans,
-  le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩ }
+{ le_refl     := assume a b, le_refl _,
+  le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
+  le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩,
+  ..measurable_space.has_le }
 
 /-- The smallest σ-algebra containing a collection `s` of basic sets -/
 inductive generate_measurable (s : set (set α)) : set α → Prop

@@ -680,11 +680,11 @@ def dom_dom_congr_linear_equiv {ι₁ ι₂} [decidable_eq ι₁] [decidable_eq 
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] : M₂ ≃ₗ[R] multilinear_map R M₁ M₂ :=
 { to_fun    := multilinear_map.const_of_is_empty R,
-  map_add'  := λ x y, by { ext z, simp [multilinear_map.const_of_is_empty], },
-  map_smul' := λ t x, by { ext y, simp [multilinear_map.const_of_is_empty], },
+  map_add'  := λ x y, rfl,
+  map_smul' := λ t x, rfl,
   inv_fun   := λ f, f 0,
-  left_inv  := λ _, by simp,
-  right_inv := λ f, by { ext x, simp [multilinear_map.const_of_is_empty, subsingleton.elim x 0], } }
+  left_inv  := λ _, rfl,
+  right_inv := λ f, ext $ λ x, multilinear_map.congr_arg f $ subsingleton.elim _ _ }
 
 end module
 

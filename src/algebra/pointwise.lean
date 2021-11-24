@@ -755,13 +755,13 @@ by { simp only [finset.mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
 lemma mul_card_le [has_mul α] : (s * t).card ≤ s.card * t.card :=
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 
-@[simp, to_additive] lemma empty_mul [has_mul α] : ∅ * s = ∅ :=
+@[simp, to_additive] lemma empty_mul [has_mul α] (s : finset α) : ∅ * s = ∅ :=
 eq_empty_of_forall_not_mem (by simp [mem_mul])
 
-@[simp, to_additive] lemma mul_empty [has_mul α] : s * ∅ = ∅ :=
+@[simp, to_additive] lemma mul_empty [has_mul α] (s : finset α) : s * ∅ = ∅ :=
 eq_empty_of_forall_not_mem (by simp [mem_mul])
 
-@[simp, to_additive] lemma mul_nonempty_iff [has_mul α] :
+@[simp, to_additive] lemma mul_nonempty_iff [has_mul α] (s t : finset α):
     (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 by simp [finset.mul_def]
 
@@ -769,12 +769,12 @@ by simp [finset.mul_def]
   (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
 image_subset_image (product_subset_product hs ht)
 
-lemma mul_singleton_zero [mul_zero_class α] :
+lemma mul_singleton_zero [mul_zero_class α] (s : finset α) :
   s * {0} ⊆ {0} :=
 by simp [subset_iff, mem_mul]
 
-lemma singleton_zero_mul [mul_zero_class α] :
-  {(0:α)} * s ⊆ {0} :=
+lemma singleton_zero_mul [mul_zero_class α] (s : finset α):
+  {(0 : α)} * s ⊆ {0} :=
 by simp [subset_iff, mem_mul]
 
 open_locale classical

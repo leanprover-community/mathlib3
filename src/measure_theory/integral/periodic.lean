@@ -17,7 +17,7 @@ open set function measure_theory measure_theory.measure topological_space
 open_locale measure_theory
 
 lemma is_add_fundamental_domain_Ioc {a : ℝ} (ha : 0 < a) (b : ℝ) (μ : measure ℝ . volume_tac) :
-  is_add_fundamental_domain (add_subgroup.zmultiples a) (Ioc b (b + a)) :=
+  is_add_fundamental_domain (add_subgroup.zmultiples a) (Ioc b (b + a)) μ :=
 begin
   refine is_add_fundamental_domain.mk' measurable_set_Ioc (λ x, _),
   have : bijective (cod_restrict (λ n : ℤ, n • a) (add_subgroup.zmultiples a) _),

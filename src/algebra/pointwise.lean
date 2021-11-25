@@ -722,7 +722,7 @@ end
 
 namespace finset
 
-variables {α : Type*} [decidable_eq α]
+variables {α : Type*} [decidable_eq α] {s t : finset α}
 
 /-- The pointwise product of two finite sets `s` and `t`:
 `st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }`. -/
@@ -734,26 +734,48 @@ protected def has_mul [has_mul α] : has_mul (finset α) :=
 localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 
 @[to_additive]
-lemma mul_def [has_mul α] {s t : finset α} :
+lemma mul_def [has_mul α] :
   s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
 
 @[to_additive]
-lemma mem_mul [has_mul α] {s t : finset α} {x : α} :
+lemma mem_mul [has_mul α] {x : α} :
   x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
 by { simp only [finset.mul_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product] }
 
 @[simp, norm_cast, to_additive]
-lemma coe_mul [has_mul α] {s t : finset α} : (↑(s * t) : set α) = ↑s * ↑t :=
+lemma coe_mul [has_mul α] : (↑(s * t) : set α) = ↑s * ↑t :=
 by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
 
 @[to_additive]
-lemma mul_mem_mul [has_mul α] {s t : finset α} {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
+lemma mul_mem_mul [has_mul α] {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
   x * y ∈ s * t :=
 by { simp only [finset.mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
 
 @[to_additive]
-lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.card :=
+lemma mul_card_le [has_mul α] : (s * t).card ≤ s.card * t.card :=
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
+
+@[simp, to_additive] lemma empty_mul [has_mul α] (s : finset α) : ∅ * s = ∅ :=
+eq_empty_of_forall_not_mem (by simp [mem_mul])
+
+@[simp, to_additive] lemma mul_empty [has_mul α] (s : finset α) : s * ∅ = ∅ :=
+eq_empty_of_forall_not_mem (by simp [mem_mul])
+
+@[simp, to_additive] lemma mul_nonempty_iff [has_mul α] (s t : finset α):
+    (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+by simp [finset.mul_def]
+
+@[to_additive, mono] lemma mul_subset_mul [has_mul α] {s₁ s₂ t₁ t₂ : finset α}
+  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
+image_subset_image (product_subset_product hs ht)
+
+lemma mul_singleton_zero [mul_zero_class α] (s : finset α) :
+  s * {0} ⊆ {0} :=
+by simp [subset_iff, mem_mul]
+
+lemma singleton_zero_mul [mul_zero_class α] (s : finset α):
+  {(0 : α)} * s ⊆ {0} :=
+by simp [subset_iff, mem_mul]
 
 open_locale classical
 

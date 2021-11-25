@@ -17,6 +17,7 @@ open topological_space measure_theory filter metric
 open_locale topological_space filter interval
 
 variables {α 𝕜 : Type*} [measurable_space α] [linear_order α] [topological_space α]
+
           [order_topology α] [opens_measurable_space α] {μ : measure α}
           {E : Type*} [normed_group E] [normed_space ℝ E]
           [complete_space E] [second_countable_topology E]
@@ -25,12 +26,14 @@ variables {α 𝕜 : Type*} [measurable_space α] [linear_order α] [topological
           [second_countable_topology $ H →L[ℝ] E]
           [is_R_or_C 𝕜] [normed_space 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 
+
 namespace interval_integral
 
 /-- Differentiation under integral of `x ↦ ∫ t in a..b, F x t` at a given point `x₀`, assuming
 `F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on a ball around `x₀` for ae `a`
 (with a ball radius independent of `a`) with integrable Lipschitz bound, and `F x` is ae-measurable
 for `x` in a possibly smaller neighborhood of `x₀`. -/
+
 lemma has_fderiv_at_integral_of_dominated_loc_of_lip {F : H → α → E} {F' : α → (H →L[ℝ] E)} {x₀ : H}
   {bound : α → ℝ} {a b : α} {ε : ℝ} (ε_pos : 0 < ε)
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict (Ι a b)))
@@ -53,6 +56,7 @@ end
 `F x₀` is integrable, `x ↦ F x a` is differentiable on a ball around `x₀` for ae `a` with
 derivative norm uniformly bounded by an integrable function (the ball radius is independent of `a`),
 and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
+
 lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → α → E} {F' : H → α → (H →L[ℝ] E)}
   {x₀ : H} {bound : α → ℝ} {a b : α} {ε : ℝ} (ε_pos : 0 < ε)
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict (Ι a b)))
@@ -74,6 +78,7 @@ assuming `F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on a ball ar
 (with ball radius independent of `a`) with integrable Lipschitz bound, and `F x` is
 ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_deriv_at_integral_of_dominated_loc_of_lip {F : 𝕜 → α → E} {F' : α → E} {x₀ : 𝕜}
+
   {a b : α} {ε : ℝ} (ε_pos : 0 < ε)
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict (Ι a b)))
   (hF_int : interval_integrable (F x₀) μ a b)
@@ -91,6 +96,7 @@ begin
     bound_integrable h_diff,
   exact ⟨this.1, this.2.const_smul _⟩
 end
+
 
 /-- Derivative under integral of `x ↦ ∫ F x a` at a given point `x₀ : ℝ`, assuming
 `F x₀` is integrable, `x ↦ F x a` is differentiable on an interval around `x₀` for ae `a`

@@ -1279,10 +1279,6 @@ lemma eventually_eq_empty {s : set α} {l : filter α} :
   s =ᶠ[l] (∅ : set α) ↔ ∀ᶠ x in l, x ∉ s :=
 eventually_eq_set.trans $ by simp
 
-lemma eventually_eq_univ {s : set α} {l : filter α} :
-  s =ᶠ[l] univ ↔ ∀ᶠ x in l, x ∈ s :=
-eventually_eq_set.trans $ by simp
-
 lemma inter_eventually_eq_left {s t : set α} {l : filter α} :
   (s ∩ t : set α) =ᶠ[l] s ↔ ∀ᶠ x in l, x ∈ s → x ∈ t :=
 by simp only [eventually_eq_set, mem_inter_eq, and_iff_left_iff_imp]

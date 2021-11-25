@@ -64,9 +64,9 @@ lemma Ioo_eq_range' : Ioo a b = (list.range' (a + 1) (b - a - 1)).to_finset := r
 
 lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
-lemma Ico_zero_eq_range : Ico 0 a = range a := by rw [←bot_eq_zero, ←Iio_eq_Ico, Iio_eq_range]
+@[simp] lemma Ico_zero_eq_range : Ico 0 = range := by rw [←bot_eq_zero, ←Iio_eq_Ico, Iio_eq_range]
 
-lemma _root_.finset.range_eq_Ico : range = Ico 0 := by { funext, exact (Ico_zero_eq_range n).symm }
+lemma _root_.finset.range_eq_Ico : range = Ico 0 := Ico_zero_eq_range.symm
 
 @[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=
 by rw [Icc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
@@ -164,6 +164,13 @@ begin
     { rw mem_Ico,
       exact ⟨le_tsub_of_add_le_right ha, (tsub_lt_iff_left hx).2 $ succ_le_iff.1 $
         tsub_le_iff_right.1 hb⟩ } }
+end
+
+lemma Ico_succ_left_eq_erase_Ico : Ico a.succ b = erase (Ico a b) a :=
+begin
+  ext x,
+  rw [Ico_succ_left, mem_erase, mem_Ico, mem_Ioo, ←and_assoc, ne_comm, and_comm (a ≠ x),
+    lt_iff_le_and_ne],
 end
 
 lemma range_image_pred_top_sub (n : ℕ) : (finset.range n).image (λ j, n - 1 - j) = finset.range n :=

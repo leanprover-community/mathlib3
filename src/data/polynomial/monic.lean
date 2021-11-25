@@ -272,6 +272,18 @@ begin
   exact le_trans degree_C_le nat.with_bot.coe_nonneg,
 end
 
+lemma not_is_unit_X_pow_sub_one (R : Type*) [comm_ring R] [nontrivial R] (n : ℕ) :
+  ¬ is_unit (X ^ n - 1 : polynomial R) :=
+begin
+  intro h,
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simpa using h },
+  apply hn,
+  rwa [← @nat_degree_X_pow_sub_C _ _ _ n (1 : R),
+      eq_one_of_is_unit_of_monic (monic_X_pow_sub_C (1 : R) hn),
+      nat_degree_one]
+end
+
 lemma monic_sub_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
   monic (p - q) :=
 by { rw sub_eq_add_neg, apply monic_add_of_left hp, rwa degree_neg }

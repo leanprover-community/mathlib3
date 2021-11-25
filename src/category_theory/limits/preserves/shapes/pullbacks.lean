@@ -85,6 +85,27 @@ begin
   apply i,
 end
 
+open walking_cospan
+
+/-- If `F` preserves the pullback of `f, g`, it also preserves the pullback of `g, f`. -/
+def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [preserves_limit (cospan f g) F] : preserves_limit (cospan g f) F :=
+{ preserves := λ c hc,
+  begin
+    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).to_fun,
+    apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _).symm,
+    apply pullback_cone.flip_is_limit,
+    apply (is_limit_map_cone_pullback_cone_equiv _ _).to_fun,
+    apply_with preserves_limit.preserves { instances := ff },
+    { dsimp, apply_instance },
+    apply pullback_cone.flip_is_limit,
+    apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
+    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).inv_fun,
+    exact hc,
+    exact (c.π.naturality hom.inr).symm.trans (c.π.naturality hom.inl : _)
+  end }
+
+
 variables [preserves_limit (cospan f g) G]
 /--
 If `G` preserves the pullback of `(f,g)`, then the pullback comparison map for `G` at `(f,g)` is
@@ -105,5 +126,19 @@ begin
   rw ← preserves_pullback.iso_hom,
   apply_instance
 end
+
+lemma preserves_pullback.iso_hom_fst :
+  (preserves_pullback.iso G f g).hom ≫ pullback.fst = G.map pullback.fst := by simp
+
+lemma preserves_pullback.iso_hom_snd :
+  (preserves_pullback.iso G f g).hom ≫ pullback.snd = G.map pullback.snd := by simp
+
+@[simp] lemma preserves_pullback.iso_inv_fst :
+  (preserves_pullback.iso G f g).inv ≫ G.map pullback.fst = pullback.fst :=
+by simp [iso.inv_comp_eq]
+
+@[simp] lemma preserves_pullback.iso_inv_snd :
+  (preserves_pullback.iso G f g).inv ≫ G.map pullback.snd = pullback.snd :=
+by simp [iso.inv_comp_eq]
 
 end category_theory.limits

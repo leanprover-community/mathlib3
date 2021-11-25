@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import logic.unique
-import logic.relation
 import order.boolean_algebra
 
 /-!
@@ -765,12 +764,21 @@ ne_empty_iff_nonempty
 instance unique_singleton (a : α) : unique ↥({a} : set α) :=
 ⟨⟨⟨a, mem_singleton a⟩⟩, λ ⟨x, h⟩, subtype.eq h⟩
 
-lemma eq_singleton_iff_unique_mem {s : set α} {a : α} : s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
+lemma eq_singleton_iff_unique_mem : s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
 subset.antisymm_iff.trans $ and.comm.trans $ and_congr_left' singleton_subset_iff
 
-lemma eq_singleton_iff_nonempty_unique_mem {s : set α} {a : α} :
-  s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
+lemma eq_singleton_iff_nonempty_unique_mem : s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
 eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩, λ ⟨x, h⟩, H x h ▸ h⟩
+
+lemma exists_eq_singleton_iff_nonempty_unique_mem :
+  (∃ a : α, s = {a}) ↔ (s.nonempty ∧ ∀ a b ∈ s, a = b) :=
+begin
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨a, rfl⟩,
+    refine ⟨set.singleton_nonempty a, λ b c hb hc, hb.trans hc.symm⟩ },
+  { obtain ⟨a, ha⟩ := h.1,
+    refine ⟨a, set.eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, (h.2 b a hb ha)⟩⟩ },
+end
 
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
 @[simp] lemma default_coe_singleton (x : α) :
@@ -1723,7 +1731,11 @@ theorem image_subset_range (f : α → β) (s) : f '' s ⊆ range f :=
 by rw ← image_univ; exact image_subset _ (subset_univ _)
 
 theorem mem_range_of_mem_image (f : α → β) (s) {x : β} (h : x ∈ f '' s) : x ∈ range f :=
-mem_of_mem_of_subset h $ image_subset_range f s
+image_subset_range f s h
+
+lemma nonempty.preimage' {s : set β} (hs : s.nonempty) {f : α → β} (hf : s ⊆ set.range f) :
+  (f ⁻¹' s).nonempty :=
+let ⟨y, hy⟩ := hs, ⟨x, hx⟩ := hf hy in ⟨x, set.mem_preimage.2 $ hx.symm ▸ hy⟩
 
 theorem range_comp (g : α → β) (f : ι → α) : range (g ∘ f) = g '' range f :=
 subset.antisymm

@@ -3,9 +3,11 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
-import algebra.module.basic
-import data.set.finite
 import group_theory.submonoid.basic
+import algebra.big_operators.basic
+import group_theory.group_action.group
+import data.set.finite
+import algebra.smul_with_zero
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.
@@ -335,6 +337,18 @@ begin
   rw [mem_finset_prod, mem_finset_prod],
   rintro ⟨g, hg, rfl⟩,
   exact ⟨g, λ i hi, hf hi $ hg hi, rfl⟩
+end
+
+@[to_additive]
+lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : ι → M) :
+  ∏ (i : ι) in s, ({I i} : set M) = {∏ (i : ι) in s, I i} :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ _,
+  { simpa },
+  { intros _ _ H ih,
+    rw [finset.prod_insert H, finset.prod_insert H, ih],
+    simp }
 end
 
 /-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/

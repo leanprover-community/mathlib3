@@ -953,7 +953,7 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
-  This is imlemented as a mixin for `ring α`.
+  This is implemented as a mixin for `ring α`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
 @[protect_proj] class is_domain (α : Type u) [ring α]
   extends no_zero_divisors α, nontrivial α : Prop

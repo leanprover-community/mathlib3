@@ -503,6 +503,21 @@ def pullback_cone.of_cone
 { X := t.X,
   π := t.π ≫ (diagram_iso_cospan F).hom }
 
+def pullback_cone.iso_mk {F : walking_cospan ⥤ C} (t : cone F) :
+  (cones.postcompose (diagram_iso_cospan _).hom).obj t ≅
+    pullback_cone.mk (t.π.app walking_cospan.left) (t.π.app walking_cospan.right)
+    ((t.π.naturality inl).symm.trans (t.π.naturality inr : _)) :=
+begin
+  fapply cones.ext,
+  exact iso.refl _,
+  change ∀ j, _ ≫ _ = 𝟙 _ ≫ _,
+  simp_rw category.id_comp,
+  rintros (_|_|_),
+  { simp },
+  { exact category.comp_id _ },
+  { exact category.comp_id _ }
+end
+
 /-- Given `F : walking_span ⥤ C`, which is really the same as `span (F.map fst) (F.map snd)`,
     and a cocone on `F`, we get a pushout cocone on `F.map fst` and `F.map snd`. -/
 @[simps]
@@ -608,11 +623,11 @@ pushout_cocone.condition _
 /--
 Given such a diagram, then there is a natural morphism `W ×ₛ X ⟶ Y ×ₜ Z`.
 
-  W  ⟶  Y
-    ↘      ↘
-      S  ⟶  T
-    ↗      ↗
-  X  ⟶  Z
+    W  ⟶  Y
+      ↘      ↘
+        S  ⟶  T
+      ↗      ↗
+    X  ⟶  Z
 
 -/
 abbreviation pullback.map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
@@ -625,11 +640,11 @@ pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
 /--
 Given such a diagram, then there is a natural morphism `W ⨿ₛ X ⟶ Y ⨿ₜ Z`.
 
-      W  ⟶  Y
-    ↗      ↗
-  S  ⟶  T
-    ↘      ↘
-      X  ⟶  Z
+        W  ⟶  Y
+      ↗      ↗
+    S  ⟶  T
+      ↘      ↘
+        X  ⟶  Z
 
 -/
 abbreviation pushout.map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [has_pushout f₁ f₂]

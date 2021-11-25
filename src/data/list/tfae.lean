@@ -29,11 +29,11 @@ theorem tfae_cons_of_mem {a b} {l : list Prop} (h : b ∈ l) :
   tfae (a::l) ↔ (a ↔ b) ∧ tfae l :=
 ⟨λ H, ⟨H a (by simp) b (or.inr h), λ p hp q hq, H _ (or.inr hp) _ (or.inr hq)⟩,
 begin
-   rintro ⟨ab, H⟩ p (rfl | hp) q (rfl | hq),
-   { refl },
-   { exact ab.trans (H _ h _ hq) },
-   { exact (ab.trans (H _ h _ hp)).symm },
-   { exact H _ hp _ hq }
+  rintro ⟨ab, H⟩ p (rfl | hp) q (rfl | hq),
+  { refl },
+  { exact ab.trans (H _ h _ hq) },
+  { exact (ab.trans (H _ h _ hp)).symm },
+  { exact H _ hp _ hq }
 end⟩
 
 theorem tfae_cons_cons {a b} {l : list Prop} : tfae (a::b::l) ↔ (a ↔ b) ∧ tfae (b::l) :=

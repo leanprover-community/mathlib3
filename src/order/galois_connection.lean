@@ -158,7 +158,8 @@ lemma exists_eq_l (b : β) : (∃ a : α, b = l a) ↔ b = l (u b) :=
 end partial_order
 
 section order_top
-variables [order_top α] [order_top β] {l : α → β} {u : β → α} (gc : galois_connection l u)
+variables [partial_order α] [preorder β] [order_top α] [order_top β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
 include gc
 
 lemma u_top : u ⊤ = ⊤ := top_unique $ gc.le_u le_top
@@ -166,7 +167,8 @@ lemma u_top : u ⊤ = ⊤ := top_unique $ gc.le_u le_top
 end order_top
 
 section order_bot
-variables [order_bot α] [order_bot β] {l : α → β} {u : β → α} (gc : galois_connection l u)
+variables [preorder α] [partial_order β] [order_bot α] [order_bot β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
 include gc
 
 lemma l_bot : l ⊥ = ⊥ := gc.dual.u_top
@@ -294,12 +296,11 @@ def galois_connection.to_galois_insertion {α β : Type*} [preorder α] [preorde
   choice_eq := λ _ _, rfl }
 
 /-- Lift the bottom along a Galois connection -/
-def galois_connection.lift_order_bot {α β : Type*} [order_bot α] [partial_order β]
+def galois_connection.lift_order_bot {α β : Type*} [preorder α] [order_bot α] [partial_order β]
   {l : α → β} {u : β → α} (gc : galois_connection l u) :
   order_bot β :=
 { bot    := l ⊥,
-  bot_le := λ b, gc.l_le $ bot_le,
-  .. ‹partial_order β› }
+  bot_le := λ b, gc.l_le $ bot_le }
 
 namespace galois_insertion
 
@@ -397,14 +398,14 @@ def lift_lattice [lattice α] (gi : galois_insertion l u) : lattice β :=
 { .. gi.lift_semilattice_sup, .. gi.lift_semilattice_inf }
 
 /-- Lift the top along a Galois insertion -/
-def lift_order_top [order_top α] (gi : galois_insertion l u) : order_top β :=
+def lift_order_top [preorder α] [order_top α] (gi : galois_insertion l u) : order_top β :=
 { top    := gi.choice ⊤ $ le_top,
-  le_top := by simp only [gi.choice_eq]; exact λ b, (gi.le_l_u b).trans (gi.gc.monotone_l le_top),
-  .. ‹partial_order β› }
+  le_top := by simp only [gi.choice_eq]; exact λ b, (gi.le_l_u b).trans (gi.gc.monotone_l le_top) }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois insertion -/
-def lift_bounded_lattice [bounded_lattice α] (gi : galois_insertion l u) : bounded_lattice β :=
-{ .. gi.lift_lattice, .. gi.lift_order_top, .. gi.gc.lift_order_bot }
+def lift_bounded_order [preorder α] [bounded_order α]
+  (gi : galois_insertion l u) : bounded_order β :=
+{ .. gi.lift_order_top, .. gi.gc.lift_order_bot }
 
 /-- Lift all suprema and infima along a Galois insertion -/
 def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : complete_lattice β :=
@@ -415,7 +416,8 @@ def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : co
     (gi.is_glb_of_u_image $ is_glb_Inf _) (is_glb_Inf _),
   Inf_le := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).1 },
   le_Inf := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).2 },
-  .. gi.lift_bounded_lattice }
+  .. gi.lift_bounded_order,
+  .. gi.lift_lattice }
 
 end lift
 
@@ -476,12 +478,11 @@ def galois_connection.to_galois_coinsertion {α β : Type*} [preorder α] [preor
   choice_eq := λ _ _, rfl }
 
 /-- Lift the top along a Galois connection -/
-def galois_connection.lift_order_top {α β : Type*} [partial_order α] [order_top β]
+def galois_connection.lift_order_top {α β : Type*} [partial_order α] [preorder β] [order_top β]
   {l : α → β} {u : β → α} (gc : galois_connection l u) :
   order_top α :=
 { top    := u ⊤,
-  le_top := λ b, gc.le_u $ le_top,
-  .. ‹partial_order α› }
+  le_top := λ b, gc.le_u $ le_top }
 
 namespace galois_coinsertion
 
@@ -563,19 +564,20 @@ def lift_lattice [lattice β] (gi : galois_coinsertion l u) : lattice α :=
 { .. gi.lift_semilattice_sup, .. gi.lift_semilattice_inf }
 
 /-- Lift the bot along a Galois coinsertion -/
-def lift_order_bot [order_bot β] (gi : galois_coinsertion l u) : order_bot α :=
+def lift_order_bot [preorder β] [order_bot β] (gi : galois_coinsertion l u) : order_bot α :=
 { bot    := gi.choice ⊥ $ bot_le,
-  .. ‹partial_order α›, .. @order_dual.order_bot _ gi.dual.lift_order_top }
+  .. @order_dual.order_bot _ _ gi.dual.lift_order_top }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois coinsertion -/
-def lift_bounded_lattice [bounded_lattice β] (gi : galois_coinsertion l u) : bounded_lattice α :=
-{ .. gi.lift_lattice, .. gi.lift_order_bot, .. gi.gc.lift_order_top }
+def lift_bounded_order [preorder β] [bounded_order β]
+  (gi : galois_coinsertion l u) : bounded_order α :=
+{ .. gi.lift_order_bot, .. gi.gc.lift_order_top }
 
 /-- Lift all suprema and infima along a Galois coinsertion -/
 def lift_complete_lattice [complete_lattice β] (gi : galois_coinsertion l u) : complete_lattice α :=
 { Inf := λ s, u (Inf (l '' s)),
   Sup := λ s, gi.choice (Sup (l '' s)) _,
-  .. gi.lift_bounded_lattice, .. @order_dual.complete_lattice _ gi.dual.lift_complete_lattice }
+  .. @order_dual.complete_lattice _ gi.dual.lift_complete_lattice }
 
 end lift
 
@@ -583,7 +585,7 @@ end galois_coinsertion
 
 /-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then
 `λ o : with_bot α, o.get_or_else ⊥` and coercion form a Galois insertion. -/
-def with_bot.gi_get_or_else_bot [order_bot α] :
+def with_bot.gi_get_or_else_bot [preorder α] [order_bot α] :
   galois_insertion (λ o : with_bot α, o.get_or_else ⊥) coe :=
 { gc := λ a b, with_bot.get_or_else_bot_le_iff,
   le_l_u := λ a, le_rfl,

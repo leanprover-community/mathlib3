@@ -585,6 +585,17 @@ lemma ring_equiv_of_ring_equiv_mk' {j : R ≃+* P} (H : M.map j.to_monoid_hom = 
     mk' Q (j x) ⟨j y, show j y ∈ T, from H ▸ set.mem_image_of_mem j y.2⟩ :=
 map_mk' _ _ _
 
+lemma iso_comp {S T : CommRing}
+  [l : algebra R S] [h : is_localization M S] (f : S ≅ T) :
+  @is_localization _ _ M T _ (f.hom.comp l.to_ring_hom).to_algebra :=
+{ map_units := let hm := h.1 in
+    λ t, is_unit.map f.hom.to_monoid_hom (hm t),
+  surj := let hs := h.2 in λ t, let ⟨⟨r,s⟩,he⟩ := hs (f.inv t) in ⟨ ⟨r,s⟩,
+  by { convert congr_arg f.hom he, rw [ring_hom.map_mul,
+       ←category_theory.comp_apply, category_theory.iso.inv_hom_id], refl } ⟩,
+  eq_iff_exists := let he := h.3 in λ t t', by { rw ← he, split,
+    apply f.CommRing_iso_to_ring_equiv.injective, exact congr_arg f.hom } }
+
 end map
 
 section alg_equiv
@@ -755,8 +766,8 @@ lemma smul_mk {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
   (c : S) (a b) : localization.smul c (mk a b : localization M) = mk (c • a) b :=
 by { unfold has_scalar.smul localization.smul, apply lift_on_mk }
 
-private meta def tac := `[{
-  intros,
+private meta def tac := `[
+{ intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
   refine mk_eq_mk_iff.mpr (r_of_eq _),
   simp only [submonoid.coe_mul, prod.fst_mul, prod.snd_mul],
@@ -1141,6 +1152,132 @@ def at_one [is_localization.away (1 : R) S] : R ≃ₐ[R] S :=
 @at_unit R _ S _ _ (1 : R) is_unit_one _
 
 end at_units
+
+section localization_localization
+
+variable (M)
+
+variables (N : submonoid S) (T : Type*) [comm_ring T] [algebra S T]
+variables [algebra R T] [is_scalar_tower R S T]
+
+/--
+Given submodules `M ⊆ R` and `N ⊆ S = M⁻¹R`, with `f : R →+* S` the localization map, we have
+`N ⁻¹ S = T = (f⁻¹ (N • f(M))) ⁻¹ R`. I.e., the localization of a localization is a localization.
+-/
+lemma localization_localization_is_localization [is_localization N T] :
+  is_localization ((N ⊔ M.map (algebra_map R S)).comap (algebra_map R S).to_monoid_hom) T :=
+{ map_units := begin
+    rintros ⟨y, h⟩,
+    erw submonoid.mem_sup at h,
+    rcases h with ⟨y, hy, z, hz, eq⟩,
+    rw [is_scalar_tower.algebra_map_eq R S T, ring_hom.comp_apply],
+    erw ← eq,
+    simp only [set_like.coe_mk, is_unit.mul_iff, ring_hom.map_mul],
+    split,
+    exact is_localization.map_units T ⟨y, hy⟩,
+    refine is_unit.map (algebra_map S T).to_monoid_hom _,
+    rcases hz with ⟨z, hz, rfl⟩,
+    apply is_localization.map_units _ ⟨z, hz⟩,
+    apply_instance
+  end,
+  surj := λ x, begin
+    rcases is_localization.surj N x with ⟨⟨y, s⟩, eq₁⟩, -- x = y / s
+    rcases is_localization.surj M y with ⟨⟨z, t⟩, eq₂⟩, -- y = z / t
+    rcases is_localization.surj M s.1 with ⟨⟨z', t'⟩, eq₃⟩, -- s = z' / t'
+    dsimp only at eq₁ eq₂ eq₃,
+    use z * t', use z' * t, -- x = y / s = (z * t') / (z' * t)
+    { erw submonoid.mem_sup,
+      refine ⟨s.1, s.2, _, ⟨_, submonoid.mul_mem _ t.2 t'.2, rfl⟩, _⟩,
+      erw [mul_comm t.val, ring_hom.map_mul, ring_hom.map_mul, ← eq₃, mul_assoc],
+      refl },
+    { simp only [set_like.coe_mk, mul_assoc, function.comp_app, ← eq₂, ← eq₁, ring_hom.coe_comp,
+        ring_hom.map_mul, subtype.val_eq_coe, ← eq₃, is_scalar_tower.algebra_map_eq R S T],
+      congr' 2,
+      exact mul_comm _ _ },
+  end,
+  eq_iff_exists := λ x y, begin
+    rw [is_scalar_tower.algebra_map_apply R S T, is_scalar_tower.algebra_map_apply R S T],
+    rw is_localization.eq_iff_exists N T,
+    split,
+    { rintros ⟨z, eq₁⟩,
+      rcases is_localization.surj M z.1 with ⟨⟨z', s⟩, eq₂⟩,
+      replace eq₁ := congr_arg (λ x, x * algebra_map R S s) eq₁,
+      dsimp only [subtype.val_eq_coe] at eq₁ eq₂,
+      rw [mul_assoc, mul_assoc, eq₂, ← ring_hom.map_mul, ← ring_hom.map_mul,
+        is_localization.eq_iff_exists M S] at eq₁,
+      rcases eq₁ with ⟨c, eq₃⟩,
+      use z' * c,
+      { erw [submonoid.mem_sup, ring_hom.map_mul, ← eq₂],
+        refine ⟨z.1, z.2, _, ⟨_, submonoid.mul_mem _ s.2 c.2, rfl⟩, _⟩,
+        rw [monoid_hom.map_mul, mul_assoc],
+        refl },
+      { simpa [mul_assoc] using eq₃ } },
+    { rintro ⟨⟨c, hc⟩, eq₁⟩,
+      erw submonoid.mem_sup at hc,
+      rcases hc with ⟨z₁, hz₁, z₂, hz₂, eq₂⟩,
+      use ⟨z₁, hz₁⟩,
+      replace eq₁ := congr_arg (λ x, algebra_map R S x * ring.inverse z₂) eq₁,
+      dsimp only at eq₁,
+      rw [ring_hom.map_mul, ring_hom.map_mul] at eq₁,
+      erw ← eq₂ at eq₁,
+      have : is_unit (z₂ : S),
+      { rcases hz₂ with ⟨z, hz, rfl⟩,
+        exact is_localization.map_units S ⟨z, hz⟩ },
+      simpa [mul_assoc, ring.mul_inverse_cancel _ this] using eq₁ }
+  end }
+
+include M
+
+/--
+Given submodules `M ⊆ R` and `N ⊆ S = M⁻¹R`, with `f : R →+* S` the localization map, if
+`N` contains all the units of `S`, then `N ⁻¹ S = T = (f⁻¹ N) ⁻¹ R`. I.e., the localization of a
+localization is a localization.
+-/
+lemma localization_localization_is_localization_of_has_all_units
+  [is_localization N T] (H : ∀ (x : S), is_unit x → x ∈ N) :
+  is_localization (N.comap (algebra_map R S).to_monoid_hom) T :=
+begin
+  convert localization_localization_is_localization M N T,
+  symmetry,
+  rw sup_eq_left,
+  rintros _ ⟨x, hx, rfl⟩,
+  exact H _ (is_localization.map_units _ ⟨x, hx⟩),
+end
+
+/--
+Given a submodule `M ⊆ R` and a prime ideal `p` of `S = M⁻¹R`, with `f : R →+* S` the localization
+map, then `T = Sₚ` is the localization of `R` at `f⁻¹(p)`.
+-/
+lemma is_localization_is_localization_at_prime_is_localization (p : ideal S) [Hp : p.is_prime]
+  [is_localization.at_prime T p] :
+  is_localization.at_prime T (p.comap (algebra_map R S)) :=
+begin
+  apply localization_localization_is_localization_of_has_all_units M p.prime_compl T,
+  intros x hx hx',
+  exact (Hp.1 : ¬ _) (p.eq_top_of_is_unit_mem hx' hx),
+end
+
+instance (p : ideal (localization M)) [p.is_prime] : algebra R (localization.at_prime p) :=
+((algebra_map (localization M) _).comp (algebra_map R _)).to_algebra
+
+instance (p : ideal (localization M)) [p.is_prime] :
+  is_scalar_tower R (localization M) (localization.at_prime p) :=
+is_scalar_tower.of_algebra_map_eq' rfl
+
+instance localization_localization_at_prime_is_localization (p : ideal (localization M))
+  [p.is_prime] : is_localization.at_prime (localization.at_prime p) (p.comap (algebra_map R _)) :=
+is_localization_is_localization_at_prime_is_localization M _ _
+
+/--
+Given a submodule `M ⊆ R` and a prime ideal `p` of `M⁻¹R`, with `f : R →+* S` the localization
+map, then `(M⁻¹R)ₚ` is isomorphic (as an `R`-algebra) to the localization of `R` at `f⁻¹(p)`.
+-/
+noncomputable
+def localization_localization_at_prime_iso_localization (p : ideal (localization M)) [p.is_prime] :
+  localization.at_prime (p.comap (algebra_map R _)) ≃ₐ[R] localization.at_prime p :=
+is_localization.alg_equiv (p.comap (algebra_map R _)).prime_compl _ _
+
+end localization_localization
 
 variables (S)
 

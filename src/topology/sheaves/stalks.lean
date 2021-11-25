@@ -8,6 +8,7 @@ import topology.sheaves.presheaf
 import topology.sheaves.sheaf_condition.unique_gluing
 import category_theory.limits.types
 import category_theory.limits.preserves.filtered
+import category_theory.limits.final
 import tactic.elementwise
 
 /-!
@@ -183,6 +184,30 @@ begin
   refl,
 end
 
+lemma stalk_pushforward_iso_of_open_embedding {f : X ⟶ Y} (hf : open_embedding f)
+  (F : X.presheaf C) (x : X) : is_iso (F.stalk_pushforward _ f x) :=
+begin
+  haveI := functor.initial_of_adjunction (hf.is_open_map.adjunction_nhds x),
+  convert is_iso.of_iso ((functor.final.colimit_iso (hf.is_open_map.functor_nhds x).op
+    ((open_nhds.inclusion (f x)).op ⋙ f _* F) : _).symm ≪≫ colim.map_iso _),
+  swap,
+  { fapply nat_iso.of_components,
+    { intro U,
+      refine F.map_iso (eq_to_iso _),
+      dsimp only [functor.op],
+      exact congr_arg op (subtype.eq $ set.preimage_image_eq (unop U).1.1 hf.inj) },
+    { intros U V i, erw [← F.map_comp, ← F.map_comp], congr } },
+  { ext U,
+    rw ← iso.comp_inv_eq,
+    erw colimit.ι_map_assoc,
+    rw [colimit.ι_pre, category.assoc],
+    erw [colimit.ι_map_assoc, colimit.ι_pre, ← F.map_comp_assoc],
+    apply colimit.w ((open_nhds.inclusion (f x)).op ⋙ f _* F) _,
+    dsimp only [functor.op],
+    refine ((hom_of_le _).op : op (unop U) ⟶ _),
+    exact set.image_preimage_subset _ _ },
+end
+
 end stalk_pushforward
 section stalk_pullback
 
@@ -342,24 +367,24 @@ imply surjectivity of the components of a sheaf morphism. However it does imply 
 is an epi, but this fact is not yet formalized.
 -/
 lemma app_injective_of_stalk_functor_map_injective {F : sheaf C X} {G : presheaf C X}
-  (f : F.1 ⟶ G) (h : ∀ x : X, function.injective ((stalk_functor C x).map f))
-  (U : opens X) :
+  (f : F.1 ⟶ G) (U : opens X) (h : ∀ x : U, function.injective ((stalk_functor C x.val).map f)) :
   function.injective (f.app (op U)) :=
-λ s t hst, section_ext F _ _ _ $ λ x, h x.1 $ by
+λ s t hst, section_ext F _ _ _ $ λ x, h x $ by
   rw [stalk_functor_map_germ_apply, stalk_functor_map_germ_apply, hst]
 
 lemma app_injective_iff_stalk_functor_map_injective {F : sheaf C X}
   {G : presheaf C X} (f : F.1 ⟶ G) :
   (∀ x : X, function.injective ((stalk_functor C x).map f)) ↔
   (∀ U : opens X, function.injective (f.app (op U))) :=
-⟨app_injective_of_stalk_functor_map_injective f, stalk_functor_map_injective_of_app_injective f⟩
+⟨λ h U, app_injective_of_stalk_functor_map_injective f U (λ x, h x.1),
+  stalk_functor_map_injective_of_app_injective f⟩
 
 /-- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.
 We claim that it suffices to find preimages *locally*. That is, for each `x : U` we construct
 a neighborhood `V ≤ U` and a section `s : F.obj (op V))` such that `f.app (op V) s` and `t`
 agree on `V`. -/
 lemma app_surjective_of_injective_of_locally_surjective {F G : sheaf C X} (f : F ⟶ G)
-  (hinj : ∀ x : X, function.injective ((stalk_functor C x).map f)) (U : opens X)
+  (U : opens X) (hinj : ∀ x : U, function.injective ((stalk_functor C x.1).map f))
   (hsurj : ∀ (t) (x : U), ∃ (V : opens X) (m : x.1 ∈ V) (iVU : V ⟶ U) (s : F.1.obj (op V)),
     f.app (op V) s = G.1.map iVU.op t) :
   function.surjective (f.app (op U)) :=
@@ -385,17 +410,18 @@ begin
     apply section_ext,
     intro z,
     -- Here, we need to use injectivity of the stalk maps.
-    apply (hinj z),
+    apply (hinj ⟨z, (iVU x).le ((inf_le_left : V x ⊓ V y ≤ V x) z.2)⟩),
+    dsimp only,
     erw [stalk_functor_map_germ_apply, stalk_functor_map_germ_apply],
     simp_rw [← comp_apply, f.naturality, comp_apply, heq, ← comp_apply, ← G.1.map_comp],
     refl }
 end
 
 lemma app_surjective_of_stalk_functor_map_bijective {F G : sheaf C X} (f : F ⟶ G)
-  (h : ∀ x : X, function.bijective ((stalk_functor C x).map f)) (U : opens X) :
+  (U : opens X) (h : ∀ x : U, function.bijective ((stalk_functor C x.val).map f)) :
   function.surjective (f.app (op U)) :=
 begin
-  refine app_surjective_of_injective_of_locally_surjective f (λ x, (h x).1) U (λ t x, _),
+  refine app_surjective_of_injective_of_locally_surjective f U (λ x, (h x).1) (λ t x, _),
   -- Now we need to prove our initial claim: That we can find preimages of `t` locally.
   -- Since `f` is surjective on stalks, we can find a preimage `s₀` of the germ of `t` at `x`
   obtain ⟨s₀,hs₀⟩ := (h x).2 (G.1.germ x t),
@@ -412,10 +438,24 @@ begin
 end
 
 lemma app_bijective_of_stalk_functor_map_bijective {F G : sheaf C X} (f : F ⟶ G)
-  (h : ∀ x : X, function.bijective ((stalk_functor C x).map f)) (U : opens X) :
+   (U : opens X) (h : ∀ x : U, function.bijective ((stalk_functor C x.val).map f)) :
   function.bijective (f.app (op U)) :=
-⟨app_injective_of_stalk_functor_map_injective f (λ x, (h x).1) U,
-  app_surjective_of_stalk_functor_map_bijective f h U⟩
+⟨app_injective_of_stalk_functor_map_injective f U (λ x, (h x).1),
+  app_surjective_of_stalk_functor_map_bijective f U h⟩
+
+lemma app_is_iso_of_stalk_functor_map_iso {F G : sheaf C X} (f : F ⟶ G) (U : opens X)
+  [∀ x : U, is_iso ((stalk_functor C x.val).map f)] : is_iso (f.app (op U)) :=
+begin
+  -- Since the forgetful functor of `C` reflects isomorphisms, it suffices to see that the
+  -- underlying map between types is an isomorphism, i.e. bijective.
+  suffices : is_iso ((forget C).map (f.app (op U))),
+  { exactI is_iso_of_reflects_iso (f.app (op U)) (forget C) },
+  rw is_iso_iff_bijective,
+  apply app_bijective_of_stalk_functor_map_bijective,
+  intro x,
+  apply (is_iso_iff_bijective _).mp,
+  exact functor.map_is_iso (forget C) ((stalk_functor C x.1).map f)
+end
 
 /--
 Let `F` and `G` be sheaves valued in a concrete category, whose forgetful functor reflects
@@ -434,15 +474,7 @@ begin
   suffices : ∀ U : (opens X)ᵒᵖ, is_iso (f.app U),
   { exact @nat_iso.is_iso_of_is_iso_app _ _ _ _ F.1 G.1 f this, },
   intro U, induction U using opposite.rec,
-  -- Since the forgetful functor of `C` reflects isomorphisms, it suffices to see that the
-  -- underlying map between types is an isomorphism, i.e. bijective.
-  suffices : is_iso ((forget C).map (f.app (op U))),
-  { exactI is_iso_of_reflects_iso (f.app (op U)) (forget C) },
-  rw is_iso_iff_bijective,
-  apply app_bijective_of_stalk_functor_map_bijective,
-  intro x,
-  apply (is_iso_iff_bijective _).mp,
-  exact functor.map_is_iso (forget C) ((stalk_functor C x).map f),
+  apply app_is_iso_of_stalk_functor_map_iso
 end
 
 /--

@@ -3,9 +3,9 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Mario Carneiro, Reid Barton, Andrew Yang
 -/
-import topology.category.Top.opens
 import category_theory.limits.kan_extension
-import category_theory.adjunction.opposites
+import category_theory.adjunction
+import topology.category.Top.opens
 
 /-!
 # Presheaves on a topological space
@@ -313,5 +313,4 @@ adjunction.left_adjoint_uniq
   (presheaf_equiv_of_iso C H).to_adjunction
 
 end presheaf
-
 end Top

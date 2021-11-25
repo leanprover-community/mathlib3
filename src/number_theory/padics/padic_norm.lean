@@ -537,7 +537,7 @@ begin
   refine ⟨⟨(pow_dvd_pow p $ by linarith).trans pow_padic_val_nat_dvd, hn⟩, _⟩,
   rw [finset.mem_singleton],
   nth_rewrite 1 ←one_pow (k + 1),
-  exact (nat.pow_lt_pow_of_lt_left h.1.one_lt (nat.succ_pos k)).ne',
+  exact (nat.pow_lt_pow_of_lt_left h.1.one_lt $ nat.succ_pos k).ne',
 end
 
 end padic_val_nat

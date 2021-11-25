@@ -33,7 +33,7 @@ begin
   set s : set (set X × set X) := {UV ∈ B.prod B| closure UV.1 ⊆ UV.2},
   -- `s` is a countable set.
   haveI : encodable s := ((hBc.prod hBc).mono (inter_subset_left _ _)).to_encodable,
-  -- We don't have the space of bounded (possibly discontinuous) functions, so we equiv `s`
+  -- We don't have the space of bounded (possibly discontinuous) functions, so we equip `s`
   -- with the discrete topology and deal with `s →ᵇ ℝ` instead.
   letI : topological_space s := ⊥, haveI : discrete_topology s := ⟨rfl⟩,
   suffices : ∃ f : X → (s →ᵇ ℝ), embedding f,
@@ -42,7 +42,7 @@ begin
       (encodable.encode' s) (0 : ℕ →ᵇ ℝ)).embedding.comp hf⟩ },
   have hd : ∀ UV : s, disjoint (closure UV.1.1) (UV.1.2ᶜ) :=
     λ UV, disjoint_compl_right.mono_right (compl_subset_compl.2 UV.2.2),
-  -- Choose a sequence of `εₙ > `, `n : s`, that is bounded above by `1` and tends to zero
+  -- Choose a sequence of `εₙ > 0`, `n : s`, that is bounded above by `1` and tends to zero
   -- along the `cofinite` filter.
   obtain ⟨ε, ε01, hε⟩ : ∃ ε : s → ℝ, (∀ UV, ε UV ∈ Ioc (0 : ℝ) 1) ∧ tendsto ε cofinite (𝓝 0),
   { rcases pos_sum_of_encodable zero_lt_one s with ⟨ε, ε0, c, hεc, hc1⟩,

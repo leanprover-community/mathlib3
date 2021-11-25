@@ -47,9 +47,9 @@ instance : has_quotient R (ideal R) := submodule.has_quotient
 namespace quotient
 variables {I} {x y : R}
 
-instance (I : ideal R) : has_one (R /// I) := ⟨submodule.quotient.mk 1⟩
+instance has_one (I : ideal R) : has_one (R /// I) := ⟨submodule.quotient.mk 1⟩
 
-instance (I : ideal R) : has_mul (R /// I) :=
+instance has_mul (I : ideal R) : has_mul (R /// I) :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, submodule.quotient.mk (a * b)) $
  λ a₁ a₂ b₁ b₂ h₁ h₂, quot.sound $ begin
   have F := I.add_mem (I.mul_mem_left a₂ h₁) (I.mul_mem_right b₁ h₂),
@@ -59,7 +59,7 @@ instance (I : ideal R) : has_mul (R /// I) :=
   change _ ∈ _, convert F,
 end⟩
 
-instance (I : ideal R) : comm_ring (R /// I) :=
+instance comm_ring (I : ideal R) : comm_ring (R /// I) :=
 { mul := (*),
   one := 1,
   mul_assoc := λ a b c, quotient.induction_on₃' a b c $
@@ -89,7 +89,7 @@ lemma ring_hom_ext [non_assoc_semiring S] ⦃f g : R /// I →+* S⦄
   (h : f.comp (mk I) = g.comp (mk I)) : f = g :=
 ring_hom.ext $ λ x, quotient.induction_on' x $ (ring_hom.congr_fun h : _)
 
-instance : inhabited (R /// I) := ⟨mk I 37⟩
+instance inhabited : inhabited (R /// I) := ⟨mk I 37⟩
 
 protected theorem eq : mk I x = mk I y ↔ x - y ∈ I := submodule.quotient.eq I
 
@@ -122,7 +122,7 @@ begin
            ⟨a, ha, by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub]; exact I.neg_mem hi⟩⟩
 end
 
-instance (I : ideal R) [hI : I.is_prime] : is_domain (R /// I) :=
+instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R /// I) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
     quotient.induction_on₂' a b $ λ a b hab,
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim

@@ -59,6 +59,9 @@ lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 @[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
 ⟨congr_arg re, congr_arg _⟩
 
+theorem of_real_injective : function.injective (coe : ℝ → ℂ) :=
+λ z w, congr_arg re
+
 instance : can_lift ℂ ℝ :=
 { cond := λ z, z.im = 0,
   coe := coe,
@@ -287,9 +290,6 @@ ext_iff.2 $ by simp [two_mul]
 def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
 
 @[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
-
-theorem of_real_injective : function.injective (of_real : ℝ → ℂ) :=
-λ z w hzw, complex.of_real_inj.mp hzw
 
 @[simp] lemma I_sq : I ^ 2 = -1 := by rw [sq, I_mul_I]
 

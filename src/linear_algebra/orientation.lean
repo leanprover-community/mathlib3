@@ -239,11 +239,7 @@ variables {R}
 
 /-- Negating a ray twice produces the original ray. -/
 @[simp] protected lemma neg_neg [nontrivial R] (x : module.ray R M) : -(-x) = x :=
-begin
-  rw [←some_vector_ray x, ←ray_neg, ←ray_neg],
-  congr,
-  exact neg_neg _
-end
+quotient.ind (λ a, congr_arg quotient.mk $ ray_vector.neg_neg _) x
 
 end module.ray
 

@@ -457,7 +457,8 @@ theorem set.Ioo_is_empty_of_covers {α : Type u} [preorder α] {x y : α} : x �
 namespace flag
 
 /-- A point subdivides an interval into three. -/
-private lemma ioo_tricho {a b c : ℕ} (hc : c ∈ set.Ioo a b) (d: ℕ) : c = d ∨ c ∈ set.Ioo a d ∨ c ∈ set.Ioo d b :=
+private lemma ioo_tricho {a b c : ℕ} (hc : c ∈ set.Ioo a b) (d: ℕ) :
+  c = d ∨ c ∈ set.Ioo a d ∨ c ∈ set.Ioo d b :=
 begin
   cases eq_or_ne c d with hcd hcd,
     { exact or.inl hcd },

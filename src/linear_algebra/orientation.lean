@@ -135,14 +135,14 @@ protected def ray_of_ne_zero [nontrivial R] (v : M) (h : v ≠ 0) : module.ray R
 /-- The rays given by two nonzero vectors are equal if and only if those vectors
 satisfy `same_ray`. -/
 lemma ray_eq_iff [nontrivial R] {v₁ v₂ : M} (hv₁ : v₁ ≠ 0) (hv₂ : v₂ ≠ 0) :
-  ray_of_ne_zero R hv₁ = ray_of_ne_zero R hv₂ ↔ same_ray R v₁ v₂ :=
+  ray_of_ne_zero R _ hv₁ = ray_of_ne_zero R _ hv₂ ↔ same_ray R v₁ v₂ :=
 quotient.eq
 
 variables {R}
 
 /-- The ray given by a positive multiple of a nonzero vector. -/
 @[simp] lemma ray_pos_smul [nontrivial R] {v : M} (h : v ≠ 0) {r : R} (hr : 0 < r)
-  (hrv : r • v ≠ 0) : ray_of_ne_zero R hrv = ray_of_ne_zero R h :=
+  (hrv : r • v ≠ 0) : ray_of_ne_zero R _ hrv = ray_of_ne_zero R _ h :=
 begin
   rw ray_eq_iff,
   exact same_ray_pos_smul_left v hr
@@ -172,7 +172,7 @@ x.some_ray_vector.property
 
 /-- The ray of `some_vector`. -/
 @[simp] lemma some_vector_ray [nontrivial R] (x : module.ray R M) :
-  ray_of_ne_zero R x.some_vector_ne_zero = x :=
+  ray_of_ne_zero R _ x.some_vector_ne_zero = x :=
 begin
   convert some_ray_vector_ray x,
   rw ray_of_ne_zero,
@@ -230,7 +230,7 @@ instance [nontrivial R] : has_neg (module.ray R M) :=
 
 /-- The ray given by the negation of a nonzero vector. -/
 lemma ray_neg [nontrivial R] (v : M) (h : v ≠ 0) :
-  ray_of_ne_zero R (show -v ≠ 0, by rw neg_ne_zero; exact h) = -(ray_of_ne_zero R h) :=
+  ray_of_ne_zero R _ (show -v ≠ 0, by rw neg_ne_zero; exact h) = -(ray_of_ne_zero R _ h) :=
 rfl
 
 namespace module.ray
@@ -249,7 +249,7 @@ variables {R} {ι : Type*} [fintype ι] [decidable_eq ι]
 
 /-- The orientation given by a basis. -/
 protected def orientation [nontrivial R] (e : basis ι R M) : orientation R M ι :=
-ray_of_ne_zero R e.det_ne_zero
+ray_of_ne_zero R _ e.det_ne_zero
 
 end basis
 

@@ -6,6 +6,7 @@ Authors: Anatole Dedecker
 import analysis.specific_limits
 import analysis.analytic.basic
 import analysis.complex.basic
+import data.nat.choose.cast
 
 /-!
 # Exponential in a Banach algebra

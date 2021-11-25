@@ -3,9 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.encodable.basic
-import data.sigma
 import data.fintype.basic
+import data.equiv.encodable.basic
 import data.list.min_max
 
 /-!
@@ -215,7 +214,7 @@ have wf : ∀ m : s, list.maximum t = m → ↑m < x,
   from λ m hmax, by simpa [hmt] using list.maximum_mem hmax,
 begin
   cases hmax : list.maximum t with m,
-  { exact ⟨0, le_antisymm (@bot_le s _ _)
+  { exact ⟨0, le_antisymm bot_le
       (le_of_not_gt (λ h, list.not_mem_nil (⊥ : s) $
         by rw [← list.maximum_eq_none.1 hmax, hmt]; exact h))⟩ },
   cases of_nat_surjective_aux m.2 with a ha,

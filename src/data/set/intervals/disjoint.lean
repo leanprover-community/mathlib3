@@ -36,6 +36,12 @@ variables [preorder α] {a b c : α}
 @[simp] lemma Ico_disjoint_Ico_same {a b c : α} : disjoint (Ico a b) (Ico b c) :=
 λ x hx, not_le_of_lt hx.1.2 hx.2.1
 
+@[simp] lemma Ici_disjoint_Iic : disjoint (Ici a) (Iic b) ↔ ¬(a ≤ b) :=
+by rw [set.disjoint_iff_inter_eq_empty, Ici_inter_Iic, Icc_eq_empty_iff]
+
+@[simp] lemma Iic_disjoint_Ici : disjoint (Iic a) (Ici b) ↔ ¬(b ≤ a) :=
+disjoint.comm.trans Ici_disjoint_Iic
+
 end preorder
 
 section linear_order

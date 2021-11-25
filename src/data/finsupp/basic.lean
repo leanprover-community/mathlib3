@@ -1030,7 +1030,7 @@ instance [add_group G] : add_group (α →₀ G) :=
   zsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_zsmul] },
   zsmul_neg' := λ n v, by { ext i, simp only [nat.succ_eq_add_one, map_range_apply,
     zsmul_neg_succ_of_nat, int.coe_nat_succ, neg_inj,
-    add_zsmul, add_nsmul, one_zsmul, zsmul_coe_nat, one_nsmul] },
+    add_zsmul, add_nsmul, one_zsmul, coe_nat_zsmul, one_nsmul] },
   .. finsupp.add_monoid }
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
@@ -1917,8 +1917,8 @@ section multiset
 def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
 { to_fun := λ f, f.sum (λa n, n • {a}),
   inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,
-  left_inv := λ f, ext $ λ a, by {
-      simp only [sum, multiset.count_sum', multiset.count_singleton, mul_boole, coe_mk,
+  left_inv := λ f, ext $ λ a, by
+    { simp only [sum, multiset.count_sum', multiset.count_singleton, mul_boole, coe_mk,
         multiset.mem_to_finset, iff_self, not_not, mem_support_iff, ite_eq_left_iff, ne.def,
         multiset.count_eq_zero, multiset.count_nsmul, finset.sum_ite_eq, ite_not],
       exact eq.symm },
@@ -2450,12 +2450,12 @@ protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+
 { to_fun := equiv_map_domain e,
   inv_fun := equiv_map_domain e.symm,
   left_inv := λ v, begin
-    simp only [← equiv_map_domain_trans, equiv.trans_symm],
+    simp only [← equiv_map_domain_trans, equiv.self_trans_symm],
     exact equiv_map_domain_refl _
   end,
   right_inv := begin
     assume v,
-    simp only [← equiv_map_domain_trans, equiv.symm_trans],
+    simp only [← equiv_map_domain_trans, equiv.symm_trans_self],
     exact equiv_map_domain_refl _
   end,
   map_add' := λ a b, by simp only [equiv_map_domain_eq_map_domain]; exact map_domain_add }
@@ -2696,6 +2696,10 @@ Some of these lemmas are used to develop the partial derivative on `mv_polynomia
 section nat_sub
 section canonically_ordered_monoid
 
+instance [canonically_ordered_add_monoid M] : order_bot (α →₀ M) :=
+{ bot := 0,
+  bot_le := by simp [finsupp.le_def] }
+
 variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
 
 /-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
@@ -2708,14 +2712,13 @@ instance tsub : has_sub (α →₀ M) :=
 lemma tsub_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 instance : canonically_ordered_add_monoid (α →₀ M) :=
-{ bot := 0,
-  bot_le := λ f s, zero_le (f s),
-  le_iff_exists_add := begin
+{ le_iff_exists_add := begin
       intros f g,
       split,
       { intro H, use g - f, ext x, symmetry, exact add_tsub_cancel_of_le (H x) },
       { rintro ⟨g, rfl⟩ x, exact self_le_add_right (f x) (g x) }
     end,
+ ..finsupp.order_bot,
  ..(by apply_instance : ordered_add_comm_monoid (α →₀ M)) }
 
 instance : has_ordered_sub (α →₀ M) :=

@@ -218,7 +218,7 @@ end
 /-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
 lemma dist_le_range_sum_dist (f : ℕ → α) (n : ℕ) :
   dist (f 0) (f n) ≤ ∑ i in finset.range n, dist (f i) (f (i + 1)) :=
-nat.Ico_zero_eq_range n ▸ dist_le_Ico_sum_dist f (nat.zero_le n)
+nat.Ico_zero_eq_range ▸ dist_le_Ico_sum_dist f (nat.zero_le n)
 
 /-- A version of `dist_le_Ico_sum_dist` with each intermediate distance replaced
 with an upper estimate. -/
@@ -233,7 +233,7 @@ with an upper estimate. -/
 lemma dist_le_range_sum_of_dist_le {f : ℕ → α} (n : ℕ)
   {d : ℕ → ℝ} (hd : ∀ {k}, k < n → dist (f k) (f (k + 1)) ≤ d k) :
   dist (f 0) (f n) ≤ ∑ i in finset.range n, d i :=
-nat.Ico_zero_eq_range n ▸ dist_le_Ico_sum_of_dist_le (zero_le n) (λ _ _, hd)
+nat.Ico_zero_eq_range ▸ dist_le_Ico_sum_of_dist_le (zero_le n) (λ _ _, hd)
 
 theorem swap_dist : function.swap (@dist α _) = dist :=
 by funext x y; exact dist_comm _ _
@@ -1747,6 +1747,27 @@ lemma bounded_range_iff {f : β → α} : bounded (range f) ↔ ∃C, ∀x y, di
 exists_congr $ λ C, ⟨
   λ H x y, H _ _ ⟨x, rfl⟩ ⟨y, rfl⟩,
   by rintro H _ _ ⟨x, rfl⟩ ⟨y, rfl⟩; exact H x y⟩
+
+lemma bounded_range_of_tendsto_cofinite_uniformity {f : β → α}
+  (hf : tendsto (prod.map f f) (cofinite ×ᶠ cofinite) (𝓤 α)) :
+  bounded (range f) :=
+begin
+  rcases (has_basis_cofinite.prod_self.tendsto_iff uniformity_basis_dist).1 hf 1 zero_lt_one
+    with ⟨s, hsf, hs1⟩,
+  rw [← image_univ, ← union_compl_self s, image_union, bounded_union],
+  use [(hsf.image f).bounded, 1],
+  rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩,
+  exact le_of_lt (hs1 (x, y) ⟨hx, hy⟩)
+end
+
+lemma bounded_range_of_cauchy_map_cofinite {f : β → α} (hf : cauchy (map f cofinite)) :
+  bounded (range f) :=
+bounded_range_of_tendsto_cofinite_uniformity $ (cauchy_map_iff.1 hf).2
+
+lemma bounded_range_of_tendsto_cofinite {f : β → α} {a : α} (hf : tendsto f cofinite (𝓝 a)) :
+  bounded (range f) :=
+bounded_range_of_tendsto_cofinite_uniformity $
+  (hf.prod_map hf).mono_right $ nhds_prod_eq.symm.trans_le (nhds_le_uniformity a)
 
 /-- In a compact space, all sets are bounded -/
 lemma bounded_of_compact_space [compact_space α] : bounded s :=

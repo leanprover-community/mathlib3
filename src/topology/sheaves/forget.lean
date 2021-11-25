@@ -3,9 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.sheaves.sheaf
 import category_theory.limits.preserves.shapes.products
-import category_theory.limits.types
+import topology.sheaves.sheaf
 
 /-!
 # Checking the sheaf condition on the underlying presheaf of types.
@@ -73,7 +72,7 @@ begin
                preserves_product.iso_hom, map_lift_pi_comparison, functor.map_comp,
                category.assoc],
     dsimp, simp, },
- { ext, simp, dsimp, simp, },
+  { ext, simp, dsimp, simp, },
 end
 
 local attribute [reducible] res

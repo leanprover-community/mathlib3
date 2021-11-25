@@ -39,6 +39,10 @@ If `R` is a ring, then negation is automatically continuous, as it is multiplica
 class topological_ring [topological_space α] [semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
 
+@[priority 50]
+instance discrete_topology.topological_ring {α} [topological_space α] [semiring α]
+  [discrete_topology α] : topological_ring α := ⟨⟩
+
 section
 variables {α} [topological_space α] [semiring α] [topological_ring α]
 

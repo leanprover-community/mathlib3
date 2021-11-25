@@ -12,11 +12,17 @@ import data.set_like.basic
 This file defines notation for algebraic quotients, e.g. quotient groups `G /// H`,
 quotient modules `M /// N` and ideal quotients `R /// I`.
 
+The actual quotient structures are defined in the following files:
+ * quotient group: `src/group_theory/quotient_group.lean`
+ * quotient module: `src/linear_algebra/quotient.lean`
+ * quotient ring: `src/ring_theory/ideal/quotient.lean`
+
 ## Notations
 
 The following notation is introduced:
 
-* `G /// H` stands for the quotient of the type `G` by the `set_like` element H
+* `G /// H` stands for the quotient of the type `G` by the `set_like` element H.
+  To implement this notation for other quotients, you should provide a `has_quotient` instance.
 
 ## Tags
 
@@ -29,4 +35,4 @@ universes u v
 class has_quotient (A : Type u) (B : Type v) [set_like B A] :=
 (quotient : B → Type (max u v))
 
-notation G `///`:35 H:34 := has_quotient.quotient G H
+notation G ` /// `:35 H:34 := has_quotient.quotient G H

@@ -252,10 +252,11 @@ section Commutators_And_Derived_Group
 variables {G : Type*} [group G]
 
 theorem  quotient_comm_contains_commutators_iff (N : subgroup G) [nN : N.normal] :
-  is_commutative (quotient_group.quotient N) (*) ↔ commutator G ≤ N :=
+  commutative ((*) : (quotient_group.quotient N) → (quotient_group.quotient N) → (quotient_group.quotient N))
+   ↔ commutator G ≤ N :=
 begin
   split,
-  { rintro ⟨hcomm : ∀ (a b: quotient_group.quotient N), a * b = b * a ⟩,
+  { intro hcomm, -- rintro ⟨hcomm : ∀ (a b: quotient_group.quotient N), a * b = b * a ⟩,
     rw commutator, apply subgroup.normal_closure_subset_iff.1,
     intros x hx, rw set.mem_set_of_eq at hx, obtain ⟨p, q, hpq⟩ := hx,
     apply (quotient_group.eq_one_iff x).1,
@@ -263,7 +264,7 @@ begin
     specialize hcomm ↑p ↑q,
     rw mul_inv_eq_one,
     apply mul_inv_eq_iff_eq_mul.2, assumption, assumption, },
-  { intro hGN, refine is_commutative.mk _,
+  { intro hGN, -- refine is_commutative.mk _,
     intro x', apply quotient_group.induction_on x', intro x,
     intro y', apply quotient_group.induction_on y', intro y,
     have hxy: (x * y)⁻¹ * (y * x)  ∈ N,
@@ -280,7 +281,7 @@ If there exists a commutative subgroup H, such that H ⊔ N = ⊤,
 then N contains the derived subgroup.
 -/
 lemma contains_commutators_of (N : subgroup G) (nN : N.normal)
-    (H : subgroup G) (hHN : N ⊔ H = ⊤) (hH: subgroup.is_commutative H) :
+    (H : subgroup G) (hHN : N ⊔ H = ⊤) (hH: commutative ((*) : H → H → H)) :
     commutator G ≤ N :=
 begin
   let Q := quotient_group.quotient N,
@@ -332,8 +333,8 @@ begin
     },
 
   -- Q is commutative as a surjective image of H
-  have hc : is_commutative Q (*) :=
-    surjective.mul_commutative { (monoid_hom.to_mul_hom φ) hφ hH.is_comm,
+  have hc : commutative ((*) : Q → Q → Q) :=
+    function.surjective.mul_commutative (monoid_hom.to_mul_hom φ) hφ hH,
 
   -- Deduce that commutator G ≤ N
   exact (quotient_comm_contains_commutators_iff N).1 hc,
@@ -430,7 +431,7 @@ end
 /-- The structure underlying the Iwasawa criterion -/
 structure has_iwasawa_structure :=
   (T : X → subgroup G)
-  (is_comm: ∀ x:X, (T x).is_commutative)
+  (is_comm: ∀ x:X, commutative ((*) : (T x) → (T x) → (T x)))
   (is_conj: ∀ g: G, ∀ x : X, T (g • x) = mul_aut.conj g • (T x))
   (is_generator: supr T = ⊤)
 

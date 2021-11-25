@@ -24,6 +24,7 @@ is isometric, as expressed by the typeclass `[ring_hom_isometric σ]`.
 noncomputable theory
 open_locale classical nnreal topological_space
 
+-- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
 variables {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {E : Type*} {F : Type*} {Fₗ : Type*} {G : Type*}
   {Gₗ : Type*}
 
@@ -127,7 +128,6 @@ variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [no
   [semi_normed_space 𝕜 E] [semi_normed_space 𝕜₂ F] [semi_normed_space 𝕜 Fₗ]
   [semi_normed_space 𝕜₃ G] [semi_normed_space 𝕜 Gₗ]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
-  --[ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃] [ring_hom_isometric σ₁₃]
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
 section

@@ -194,7 +194,7 @@ begin
       end
     ... = 2 * ε * r : by ring
     ... ≤ 2 * ε * (2 * ∥c∥ * ∥y∥) : mul_le_mul_of_nonneg_left ley (mul_nonneg (by norm_num) hε.le)
-    ... = 4 * ∥c∥ * ε * ∥y∥ : by ring,
+    ... = 4 * ∥c∥ * ε * ∥y∥ : by ring
 end
 
 /-- Easy inclusion: a differentiability point with derivative in `K` belongs to `D f K`. -/

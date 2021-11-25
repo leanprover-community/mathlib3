@@ -912,6 +912,7 @@ end ring
 
 section smul_monoid
 
+-- The M's are used for semilinear maps, and the N's for plain linear maps
 variables {R R₂ R₃ S S₃ : Type*} [semiring R] [semiring R₂] [semiring R₃]
   [monoid S] [monoid S₃] [topological_space S] [topological_space S₃]
   {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
@@ -964,6 +965,7 @@ end smul_monoid
 
 section smul
 
+-- The M's are used for semilinear maps, and the N's for plain linear maps
 variables {R R₂ R₃ S S₃ : Type*} [semiring R] [semiring R₂] [semiring R₃]
   [semiring S] [semiring S₃] [topological_space S] [topological_space S₃]
   {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]

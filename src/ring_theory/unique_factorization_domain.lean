@@ -944,11 +944,7 @@ factor_set.unique $ factors_prod _
 
 lemma factors_eq_none_iff_zero [nontrivial α] {a : associates α} :
   a.factors = option.none ↔ a = 0 :=
-begin
-  split; intro h,
-    { rw [← factors_prod a, factor_set.prod_eq_zero_iff], exact h },
-    { rw h, exact factors_0 }
-end
+⟨λ h, by rwa [← factors_prod a, factor_set.prod_eq_zero_iff], λ h, h.symm ▸ factors_0⟩
 
 lemma factors_eq_some_iff_ne_zero  [nontrivial α] {a : associates α} :
   (∃ (s : multiset {p : associates α // irreducible p}), a.factors = some s) ↔ a ≠ 0 :=
@@ -1174,12 +1170,11 @@ theorem count_ne_zero_iff_dvd [nontrivial α] {a p : α} (ha0 : a ≠ 0) (hp : i
   (associates.mk p).count (associates.mk a).factors ≠ 0 ↔ p ∣ a :=
 begin
   rw ← associates.mk_le_mk_iff_dvd_iff,
-  split; intro h,
-  { exact associates.le_of_count_ne_zero (associates.mk_ne_zero.mpr ha0)
-    ((associates.irreducible_mk p).mpr hp) h, },
+  refine ⟨λ h, associates.le_of_count_ne_zero (associates.mk_ne_zero.mpr ha0)
+    ((associates.irreducible_mk p).mpr hp) h, λ h, _⟩,
   { rw [← pow_one (associates.mk p), associates.prime_pow_dvd_iff_le
     (associates.mk_ne_zero.mpr ha0)  ((associates.irreducible_mk p).mpr hp)] at h,
-    exact ne_of_gt (lt_of_lt_of_le zero_lt_one h), }
+    exact (zero_lt_one.trans_le h).ne' }
 end
 
 theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)

@@ -173,7 +173,9 @@ instance : linear_order bool :=
 
 @[simp] lemma le_tt {x : bool} : x ≤ tt := or.intro_right _ rfl
 
-@[simp] lemma ff_lt_tt : ff < tt := lt_of_le_of_ne ff_le ff_ne_tt
+lemma lt_iff : ∀ {x y : bool}, x < y ↔ x = ff ∧ y = tt := dec_trivial
+
+@[simp] lemma ff_lt_tt : ff < tt := lt_iff.2 ⟨rfl, rfl⟩
 
 lemma le_iff_imp : ∀ {x y : bool}, x ≤ y ↔ (x → y) := dec_trivial
 

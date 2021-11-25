@@ -6,7 +6,7 @@ Authors: Yury Kudryashov
 
 import analysis.special_functions.pow
 import analysis.special_functions.trigonometric.arctan
-import analysis.inner_product_space.calculus
+import analysis.inner_product_space.basic
 import measure_theory.constructions.borel_space
 
 /-!
@@ -79,7 +79,7 @@ end complex
 
 namespace is_R_or_C
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
 
 @[measurability] lemma measurable_re : measurable (re : 𝕜 → ℝ) := continuous_re.measurable
 
@@ -146,8 +146,8 @@ end complex_composition
 
 section is_R_or_C_composition
 
-variables {α 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] [measurable_space 𝕜]
-  [opens_measurable_space 𝕜] {f : α → 𝕜} {μ : measure_theory.measure α}
+variables {α 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α]
+  {f : α → 𝕜} {μ : measure_theory.measure α}
 
 @[measurability] lemma measurable.re (hf : measurable f) : measurable (λ x, is_R_or_C.re (f x)) :=
 is_R_or_C.measurable_re.comp hf
@@ -167,8 +167,8 @@ end is_R_or_C_composition
 
 section
 
-variables {α 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] [measurable_space 𝕜]
-  [borel_space 𝕜] {f : α → 𝕜} {μ : measure_theory.measure α}
+variables {α 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α]
+  {f : α → 𝕜} {μ : measure_theory.measure α}
 
 @[measurability] lemma is_R_or_C.measurable_of_real : measurable (coe : ℝ → 𝕜) :=
 is_R_or_C.continuous_of_real.measurable
@@ -232,14 +232,14 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 @[measurability]
 lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
-  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  [topological_space.second_countable_topology E]
   {f g : α → E} (hf : measurable f) (hg : measurable g) :
   measurable (λ t, ⟪f t, g t⟫) :=
 continuous.measurable2 continuous_inner hf hg
 
 @[measurability]
 lemma ae_measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
-  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  [topological_space.second_countable_topology E]
   {μ : measure_theory.measure α} {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ x, ⟪f x, g x⟫) μ :=
 begin

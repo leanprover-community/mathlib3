@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.polynomial.derivative
-import data.polynomial.algebra_map
-import data.mv_polynomial.pderiv
 import data.nat.choose.sum
-import linear_algebra.basis
 import ring_theory.polynomial.pochhammer
+import data.polynomial.algebra_map
+import linear_algebra.linear_independent
+import data.mv_polynomial.pderiv
 
 /-!
 # Bernstein polynomials
@@ -338,15 +338,15 @@ begin
       push_cast,
       ring, }, },
 
-  conv at h {
-    to_lhs,
+  conv at h
+  { to_lhs,
     rw [add_pow, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum, finset.sum_mul],
     -- Step inside the sum:
     apply_congr, skip,
     simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w], },
   -- On the right hand side, we'll just simplify.
-  conv at h {
-    to_rhs,
+  conv at h
+  { to_rhs,
     rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e] },
   simpa using h,
@@ -392,16 +392,16 @@ begin
         push_cast,
         ring, }, }, },
 
-  conv at h {
-    to_lhs,
+  conv at h
+  { to_lhs,
     rw [add_pow, (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,
       finset.sum_mul],
     -- Step inside the sum:
     apply_congr, skip,
     simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w] },
   -- On the right hand side, we'll just simplify.
-  conv at h {
-    to_rhs,
+  conv at h
+  { to_rhs,
     simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
       pderiv_tt_x, pderiv_tt_y],
     simp [e, smul_smul] },

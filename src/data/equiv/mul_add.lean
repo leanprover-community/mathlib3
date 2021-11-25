@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.group_with_zero
-import data.equiv.set
+import algebra.group_with_zero.basic
+import data.pi
 
 /-!
 # Multiplicative and additive equivs
@@ -440,6 +440,10 @@ def mul_left (u : units M) : equiv.perm M :=
 lemma mul_left_symm (u : units M) : u.mul_left.symm = u⁻¹.mul_left :=
 equiv.ext $ λ x, rfl
 
+@[to_additive]
+lemma mul_left_bijective (a : units M) : function.bijective ((*) a : M → M) :=
+(mul_left a).bijective
+
 /-- Right multiplication by a unit of a monoid is a permutation of the underlying type. -/
 @[to_additive "Right addition of an additive unit is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
@@ -452,6 +456,10 @@ def mul_right (u : units M) : equiv.perm M :=
 @[simp, to_additive]
 lemma mul_right_symm (u : units M) : u.mul_right.symm = u⁻¹.mul_right :=
 equiv.ext $ λ x, rfl
+
+@[to_additive]
+lemma mul_right_bijective (a : units M) : function.bijective ((* a) : M → M) :=
+(mul_right a).bijective
 
 end units
 
@@ -475,6 +483,10 @@ lemma mul_left_symm_apply (a : G) : ((equiv.mul_left a).symm : G → G) = (*) a�
 lemma mul_left_symm (a : G) : (equiv.mul_left a).symm = equiv.mul_left a⁻¹ :=
 ext $ λ x, rfl
 
+@[to_additive]
+lemma _root_.group.mul_left_bijective (a : G) : function.bijective ((*) a) :=
+(equiv.mul_left a).bijective
+
 /-- Right multiplication in a `group` is a permutation of the underlying type. -/
 @[to_additive "Right addition in an `add_group` is a permutation of the underlying type."]
 protected def mul_right (a : G) : perm G := (to_units a).mul_right
@@ -490,21 +502,29 @@ ext $ λ x, rfl
 @[simp, nolint simp_nf, to_additive]
 lemma mul_right_symm_apply (a : G) : ((equiv.mul_right a).symm : G → G) = λ x, x * a⁻¹ := rfl
 
+@[to_additive]
+lemma _root_.group.mul_right_bijective (a : G) : function.bijective (* a) :=
+(equiv.mul_right a).bijective
+
 variable (G)
 
 /-- Inversion on a `group` is a permutation of the underlying type. -/
 @[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
 protected def inv : perm G :=
-{ to_fun    := λa, a⁻¹,
-  inv_fun   := λa, a⁻¹,
-  left_inv  := assume a, inv_inv a,
-  right_inv := assume a, inv_inv a }
+function.involutive.to_equiv has_inv.inv inv_inv
+
+/-- Inversion on a `group_with_zero` is a permutation of the underlying type. -/
+@[simps apply {fully_applied := ff}]
+protected def inv₀ (G : Type*) [group_with_zero G] : perm G :=
+function.involutive.to_equiv has_inv.inv inv_inv₀
 
 variable {G}
 
 @[simp, to_additive]
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
+
+@[simp] lemma inv_symm₀ {G : Type*} [group_with_zero G] : (equiv.inv₀ G).symm = equiv.inv₀ G := rfl
 
 /-- A version of `equiv.mul_left a b⁻¹` that is defeq to `a / b`. -/
 @[to_additive /-" A version of `equiv.add_left a (-b)` that is defeq to `a - b`. "-/, simps]
@@ -540,26 +560,28 @@ variables [group_with_zero G]
 underlying type. -/
 @[simps {fully_applied := ff}]
 protected def mul_left₀ (a : G) (ha : a ≠ 0) : perm G :=
-{ to_fun := λ x, a * x,
-  inv_fun := λ x, a⁻¹ * x,
-  left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
-  right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
+(units.mk0 a ha).mul_left
+
+lemma _root_.mul_left_bijective₀ (a : G) (ha : a ≠ 0) :
+  function.bijective ((*) a : G → G) :=
+(equiv.mul_left₀ a ha).bijective
 
 /-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
 underlying type. -/
 @[simps {fully_applied := ff}]
 protected def mul_right₀ (a : G) (ha : a ≠ 0) : perm G :=
-{ to_fun := λ x, x * a,
-  inv_fun := λ x, x * a⁻¹,
-  left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
-  right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
+(units.mk0 a ha).mul_right
+
+lemma _root_.mul_right_bijective₀ (a : G) (ha : a ≠ 0) :
+  function.bijective ((* a) : G → G) :=
+(equiv.mul_right₀ a ha).bijective
 
 end group_with_zero
 
 end equiv
 
 /-- When the group is commutative, `equiv.inv` is a `mul_equiv`. There is a variant of this
-`mul_equiv.inv' G : G ≃* Gᵒᵖ` for the non-commutative case. -/
+`mul_equiv.inv' G : G ≃* Gᵐᵒᵖ` for the non-commutative case. -/
 @[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`."]
 def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
 { to_fun := has_inv.inv,

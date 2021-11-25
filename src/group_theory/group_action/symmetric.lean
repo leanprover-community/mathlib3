@@ -68,10 +68,13 @@ instance dfinsupp.is_symmetric_smul :
   { ext, simp only [coe_zero, coe_smul, smul_zero] },
   { ext, simp only [coe_smul, pi.smul_apply, op_smul_eq_smul] },
   { ext, simp only [smul_add, pi.add_apply, coe_smul,
-     pi.smul_apply, coe_add, ihx, ihy, op_smul_eq_smul] } } ⟩
+     pi.smul_apply, coe_add, ihx, ihy, op_smul_eq_smul] } }⟩
 
 end direct_sum
 
+instance units.is_symmetric_smul {R M} [monoid R] [has_scalar R M] [has_scalar Rᵐᵒᵖ M]
+  [is_symmetric_smul R M] : is_symmetric_smul (units R) M :=
+⟨λ ur m, by apply @op_smul_eq_smul R⟩
 
 instance (R M) [has_scalar R M] [has_scalar Rᵐᵒᵖ M] [is_symmetric_smul R M] :
   is_symmetric_smul R Mᵐᵒᵖ := ⟨λ r m, unop_injective (op_smul_eq_smul r m.unop : _)⟩

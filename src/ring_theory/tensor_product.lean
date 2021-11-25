@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product.left_action
 import algebra.algebra.tower
 
 /-!
@@ -61,9 +61,11 @@ open algebra (lsmul)
 namespace algebra_tensor_module
 
 section semiring
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [module R N]
+variables [comm_semiring R] [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
+variables [module A M] [module Aᵐᵒᵖ M] [is_symmetric_smul A M]
+variables [is_scalar_tower R A M] [is_scalar_tower Rᵐᵒᵖ A M]
+variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
@@ -78,7 +80,6 @@ bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N �
 
 lemma restrict_scalars_curry (f : (M ⊗[R] N) →ₗ[A] P) :
   restrict_scalars R (curry f) = curry (f.restrict_scalars R) :=
-rfl
 
 /-- Just as `tensor_product.ext` is marked `ext` instead of `tensor_product.ext'`, this is
 a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` below.

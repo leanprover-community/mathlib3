@@ -800,20 +800,16 @@ When `R` is a `ring` we get the required `tensor_product.compatible_smul` instan
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
 instance compatible_smul.int [module ℤ M] [module ℤᵐᵒᵖ M] [is_symmetric_smul ℤ M]
-  [module ℤ N] [module ℤᵐᵒᵖ N] [is_symmetric_smul ℤ N]:
-  compatible_smul R ℤ M N :=
+  [module ℤ N] : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)
   (λ r ih, by rw [op_add, add_smul, add_tmul, ih, op_one, one_smul, ←tmul_add, add_self_zsmul])
   (λ r ih, by rw [op_sub, sub_smul, sub_tmul, op_one, one_smul, ih, ←tmul_sub,
                   sub_zsmul, one_zsmul, sub_eq_add_neg])⟩
 
-
---TODO: decide how to deal with `has_scalar (units S)ᵒᵖ M`
-/-instance compatible_smul.unit {S} [monoid S] [distrib_mul_action Sᵒᵖ M] [distrib_mul_action S N]
-  [compatible_smul R S M N] :
-  compatible_smul R (units S) M N :=
-⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩-/
+instance compatible_smul.unit {S} [monoid S] [has_scalar Sᵐᵒᵖ M] [has_scalar S N]
+  [compatible_smul R S M N] : compatible_smul R (units S) M N :=
+⟨λ s m n, (compatible_smul.rsmul_tmul (s : S) m n : _)⟩
 
 end tensor_product
 

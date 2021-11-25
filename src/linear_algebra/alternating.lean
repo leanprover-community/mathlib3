@@ -282,6 +282,10 @@ instance : module S (alternating_map R M N ι) :=
 instance [no_zero_smul_divisors S N] : no_zero_smul_divisors S (alternating_map R M N ι) :=
 coe_injective.no_zero_smul_divisors _ rfl coe_fn_smul
 
+instance [module Sᵐᵒᵖ N] [is_symmetric_smul S N] [smul_comm_class R Sᵐᵒᵖ N] :
+  is_symmetric_smul S (alternating_map R M N ι) :=
+⟨λ s f, by { ext, change _ <• _ = _ • _, apply is_symmetric_smul.op_smul_eq_smul }⟩
+
 end module
 
 section
@@ -543,9 +547,9 @@ variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] 
 variables
   {R' : Type*} {Mᵢ N₁ N₂ : Type*}
   [comm_semiring R']
-  [add_comm_group N₁] [module R' N₁]
-  [add_comm_group N₂] [module R' N₂]
-  [add_comm_monoid Mᵢ] [module R' Mᵢ]
+  [add_comm_group N₁] [module R' N₁] [module R'ᵐᵒᵖ N₁] [is_symmetric_smul R' N₁]
+  [add_comm_group N₂] [module R' N₂] [module R'ᵐᵒᵖ N₂] [is_symmetric_smul R' N₂]
+  [add_comm_monoid Mᵢ] [module R' Mᵢ] [module R'ᵐᵒᵖ Mᵢ] [is_symmetric_smul R' Mᵢ]
 
 namespace equiv.perm
 
@@ -565,6 +569,8 @@ end equiv.perm
 namespace alternating_map
 open equiv
 
+variables [module ℤᵐᵒᵖ N₁] [is_symmetric_smul ℤ N₁]
+
 /-- summand used in `alternating_map.dom_coprod` -/
 def dom_coprod.summand
   (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb)
@@ -581,11 +587,13 @@ quotient.lift_on' σ
     replace h := inv_mul_eq_iff_eq_mul.mp h.symm,
     have : (σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign = σ₁.sign * (sl.sign * sr.sign) :=
       by simp,
-    rw [h, this, mul_smul, mul_smul, smul_left_cancel_iff,
-      ←tensor_product.tmul_smul, tensor_product.smul_tmul'],
+    rw [h, this, mul_smul, mul_smul, smul_left_cancel_iff],
     simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl,
               function.comp_app, perm.coe_mul],
-    rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
+    have := @tensor_product.tmul_smul R' _ (units ℤ) _ N₁ N₂ _ _
+      _ _ _ _ _ (units.is_symmetric_smul) _ _, --TODO: class inference fails here
+    rw [←this, tensor_product.smul_tmul'],
+    rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))]
   end)
 
 lemma dom_coprod.summand_mk'
@@ -690,7 +698,7 @@ multilinear_map.ext $ λ _, rfl
 
 /-- A more bundled version of `alternating_map.dom_coprod` that maps
 `((ι₁ → N) → N₁) ⊗ ((ι₂ → N) → N₂)` to `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂`. -/
-def dom_coprod' :
+def dom_coprod' [smul_comm_class R'ᵐᵒᵖ R' N₁] :
   (alternating_map R' Mᵢ N₁ ιa ⊗[R'] alternating_map R' Mᵢ N₂ ιb) →ₗ[R']
     alternating_map R' Mᵢ (N₁ ⊗[R'] N₂) (ιa ⊕ ιb) :=
 tensor_product.lift $ by
@@ -724,6 +732,7 @@ open equiv
 
 /-- A helper lemma for `multilinear_map.dom_coprod_alternization`. -/
 lemma multilinear_map.dom_coprod_alternization_coe
+  [module ℤᵐᵒᵖ N₁] [is_symmetric_smul ℤ N₁]
   (a : multilinear_map R' (λ _ : ιa, Mᵢ) N₁) (b : multilinear_map R' (λ _ : ιb, Mᵢ) N₂) :
   multilinear_map.dom_coprod ↑a.alternatization ↑b.alternatization =
     ∑ (σa : perm ιa) (σb : perm ιb), σa.sign • σb.sign •
@@ -740,6 +749,7 @@ open alternating_map
 as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`s.
 -/
 lemma multilinear_map.dom_coprod_alternization
+  [module ℤᵐᵒᵖ N₁]
   (a : multilinear_map R' (λ _ : ιa, Mᵢ) N₁) (b : multilinear_map R' (λ _ : ιb, Mᵢ) N₂) :
   (multilinear_map.dom_coprod a b).alternatization =
     a.alternatization.dom_coprod b.alternatization :=

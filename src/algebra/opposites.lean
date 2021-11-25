@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import group_theory.group_action.defs
 import algebra.group.commute
 import algebra.ring.basic
 import data.equiv.mul_add
@@ -405,6 +406,19 @@ rfl
 lemma units.coe_op_equiv_symm {R} [monoid R] (u : (units R)ᵐᵒᵖ) :
   (units.op_equiv.symm u : Rᵐᵒᵖ) = op (u.unop : R) :=
 rfl
+
+instance units.op_has_scalar {R α} [monoid R] [has_scalar Rᵐᵒᵖ α] : has_scalar (units R)ᵐᵒᵖ α :=
+{ smul := λ um a, op (um.unop : R) • a }
+
+instance units.op_mul_action {R α} [monoid R] [mul_action Rᵐᵒᵖ α] : mul_action (units R)ᵐᵒᵖ α :=
+{ smul := λ um a, op (um.unop : R) • a,
+  one_smul := (one_smul Rᵐᵒᵖ : _),
+  mul_smul := λ um un, mul_smul (op (um.unop : R)) (op (un.unop : R)) }
+
+instance units.op_distrib_mul_action {R M} [monoid R] [add_monoid M]
+  [distrib_mul_action Rᵐᵒᵖ M] : distrib_mul_action (units R)ᵐᵒᵖ M :=
+{ smul_add := λ ur m n, smul_add _ _ _,
+  smul_zero := λ ur, smul_zero _ }
 
 /-- A hom `α →* β` can equivalently be viewed as a hom `αᵐᵒᵖ →* βᵐᵒᵖ`. This is the action of the
 (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/

@@ -3,11 +3,10 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
-import data.nat.cast
-import data.int.basic
-import tactic.localized
 import tactic.apply_fun
+import data.nat.cast
 import order.rel_iso
+import tactic.localized
 
 /-!
 # The finite type with `n` elements
@@ -247,7 +246,7 @@ lemma last_val (n : ℕ) : (last n).val = n := rfl
 theorem le_last (i : fin (n+1)) : i ≤ last n :=
 le_of_lt_succ i.is_lt
 
-instance : bounded_lattice (fin (n + 1)) :=
+instance : bounded_order (fin (n + 1)) :=
 { top := last n,
   le_top := le_last,
   bot := 0,

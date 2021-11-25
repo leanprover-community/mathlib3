@@ -518,12 +518,8 @@ by rw [Sup_eq_supr]; exact hf.le_map_supr2 _
 
 lemma order_iso.map_supr [complete_lattice β] (f : α ≃o β) (x : ι → α) :
   f (⨆ i, x i) = ⨆ i, f (x i) :=
-begin
-  refine le_antisymm _ f.monotone.le_map_supr,
-  rw ←order_iso.le_symm_apply,
-  refine le_trans _ f.symm.monotone.le_map_supr,
-  simp_rw f.symm_apply_apply,
-end
+eq_of_forall_ge_iff $ f.surjective.forall.2 $ λ x,
+  by simp only [f.le_iff_le, supr_le_iff]
 
 lemma order_iso.map_Sup [complete_lattice β] (f : α ≃o β) (s : set α) :
   f (Sup s) = ⨆ a ∈ s, f a :=

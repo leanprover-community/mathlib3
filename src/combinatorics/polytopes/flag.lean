@@ -3,7 +3,7 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
-import tactic.wlog tactic order.zorn category_theory.conj data.fin.basic
+import tactic.wlog tactic.linarith order.zorn category_theory.conj data.fin.basic
 
 /-!
 # Flags of polytopes
@@ -323,6 +323,10 @@ namespace graded
 abbreviation grade_top (α : Type u) [preorder α] [order_top α] [graded α] : ℕ :=
 grade (⊤ : α)
 
+lemma grade_le_grade_top {α : Type u} [partial_order α] [order_top α] [graded α] (a : α) :
+  grade a ≤ grade_top α :=
+graded.strict_mono.monotone le_top
+
 lemma dual_cover_iff_cover {α : Type u} [preorder α] [order_top α] [graded α] (a b : α) :
   a ⋖ b ↔ @polytope.covers (order_dual α) _ a b :=
 by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
@@ -333,20 +337,16 @@ instance (α : Type u) [partial_order α] [order_top α] [graded α] : graded (o
   strict_mono := begin
     refine λ (a b : α) hab, _,
     have : grade a > grade b := graded.strict_mono hab,
-    have : grade a ≤ grade_top α := graded.strict_mono.monotone le_top,
-    have : grade b ≤ grade_top α := graded.strict_mono.monotone le_top,
+    have := grade_le_grade_top a,
+    have := grade_le_grade_top b,
     linarith,
   end,
   hcovers := begin
     refine λ (x y : α) hxy, _,
+    change grade x with graded.grade x,
     rw ←dual_cover_iff_cover at hxy,
-
-    -- this is dumb
-    have : graded.grade x = grade x := rfl,
-    rw ←this,
-
-    rw [graded.hcovers hxy, ←nat.sub_sub],
-    rw nat.sub_add_cancel (tsub_pos_of_lt (graded.strict_mono (lt_of_lt_of_le hxy.left le_top))),
+    rw [graded.hcovers hxy, ←nat.sub_sub,
+        nat.sub_add_cancel (tsub_pos_of_lt (graded.strict_mono (lt_of_lt_of_le hxy.left le_top)))]
   end }
 
 /-- `grade` is injective for linearly ordered `α`. -/
@@ -407,7 +407,7 @@ not_congr (grade_eq_iff_eq x y)
 
 /-- A grade function into `fin` for `α` with a top element. -/
 def grade_fin [order_top α] (x : α) : fin (grade_top α + 1) :=
-⟨grade x, by rw nat.lt_add_one_iff; exact graded.strict_mono.monotone le_top⟩
+⟨grade x, by rw nat.lt_add_one_iff; exact grade_le_grade_top _⟩
 
 @[simp]
 theorem grade_fin.val_eq [order_top α] (x : α) : (grade_fin x).val = grade x :=

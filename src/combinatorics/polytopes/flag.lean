@@ -361,10 +361,10 @@ theorem eq_zero_iff_eq_bot [partial_order α] [graded α] (x : α) : grade x = 0
 begin
   refine ⟨λ h, _, λ h, by cases h; exact graded.grade_bot⟩,
   rw ←@graded.grade_bot α at h,
-  by_contra h1,
-  change _ ≠ _ at h1,
-  rw ←bot_lt_iff_ne_bot at h1,
-  exact not_le_of_lt (graded.strict_mono h1) (le_of_eq h)
+  by_contra hx,
+  change _ ≠ _ at hx,
+  rw ←bot_lt_iff_ne_bot at hx,
+  exact not_le_of_lt (graded.strict_mono hx) (le_of_eq h)
 end
 
 /-- An element has the top grade iff it is the top element. -/
@@ -373,10 +373,10 @@ theorem eq_grade_top_iff_eq_top [partial_order α] [order_top α] [graded α] (x
   grade x = grade_top α ↔ x = ⊤ :=
 begin
   refine ⟨λ h, _, λ h, by cases h; refl⟩,
-  by_contra h1,
-  change _ ≠ _ at h1,
-  rw ←lt_top_iff_ne_top at h1,
-  exact not_le_of_lt (graded.strict_mono h1) (ge_of_eq h)
+  by_contra hx,
+  change _ ≠ _ at hx,
+  rw ←lt_top_iff_ne_top at hx,
+  exact not_le_of_lt (graded.strict_mono hx) (ge_of_eq h)
 end
 
 section
@@ -431,8 +431,8 @@ begin
   refine ⟨graded.hcovers, λ hba, _⟩,
   have := nat.lt_of_succ_le (le_of_eq hba.symm),
   rw graded.grade_lt_iff_lt at this,
-  refine ⟨this, _⟩,
-  rintros z ⟨hzl, hzr⟩,
+  refine ⟨this, λ z, _⟩,
+  rintros ⟨hzl, hzr⟩,
   rw ←nat.cover_iff_succ at hba,
   rw ←graded.grade_lt_iff_lt at hzl,
   rw ←graded.grade_lt_iff_lt at hzr,

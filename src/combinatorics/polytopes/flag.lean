@@ -600,13 +600,13 @@ classical.some (ex_of_grade_in_flag j Φ)
 
 /-- The defining property of `flag.idx`. -/
 @[simp]
-theorem grade_flag_idx : grade (idx j Φ) = j :=
+theorem grade_idx : grade (idx j Φ) = j :=
 classical.some_spec (ex_of_grade_in_flag j Φ)
 
 /-- `flag_idx j Φ` is the unique element of grade `j` in the flag. -/
 theorem grade_eq_iff_flag_idx (a : Φ) : grade a = j ↔ a = idx j Φ :=
 begin
-  have idx := grade_flag_idx j Φ,
+  have idx := grade_idx j Φ,
   split, {
     intro ha,
     rcases ex_unique_of_grade_in_flag j Φ with ⟨_, _, h⟩,
@@ -706,8 +706,11 @@ end
 instance (α : Type u) [partial_order α] [order_top α] [graded α] (h : graded.grade_top α ≥ 2) :
   nonempty (proper α) :=
 begin
-  use flag.idx 1 (default (flag α)),
-  sorry,
+  let a := (flag.idx ⟨1, nat.lt.step h⟩ (default (flag α))).val,
+  have ha : grade a = 1 := flag.grade_idx _ _,
+  use a,
+  rw [proper_iff_grade_iio, ha],
+  exact ⟨nat.one_pos, nat.lt_of_succ_le h⟩,
 end
 
 namespace graded

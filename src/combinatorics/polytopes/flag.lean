@@ -509,6 +509,14 @@ end
 
 variables {α : Type u} [partial_order α]
 
+theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
+begin
+  refine ⟨⟨_, zorn.max_chain_spec⟩, {x}, _, rfl⟩,
+  --have := zorn.chain_closure_empty,
+  --have := zorn.chain_closure.succ this,
+  admit
+end
+
 /-- An element covers another iff they do so in the flag. -/
 @[simp]
 theorem cover_iff_flag_cover {Φ : flag α} (x y : Φ) : x ⋖ y ↔ x.val ⋖ y.val :=

@@ -192,7 +192,7 @@ nat_iso.of_components
     ℱ.map_iso (eq_to_iso (by simp)))
   (λ U V i,
   begin
-      ext, simp[-eq_to_hom_map,-eq_to_iso_map],
+      ext, simp [-eq_to_hom_map,-eq_to_iso_map],
       erw colimit.pre_desc_assoc,
       erw colimit.ι_desc_assoc,
       erw colimit.ι_desc_assoc,

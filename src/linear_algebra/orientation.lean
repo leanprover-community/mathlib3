@@ -286,6 +286,14 @@ variables {R : Type*} [linear_ordered_comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {ι : Type*} [decidable_eq ι]
 
+/-- `same_ray` follows from membership of `mul_action.orbit` for the `units.pos_subgroup`. -/
+lemma same_ray_of_mem_orbit {v₁ v₂ : M} (h : v₁ ∈ mul_action.orbit (units.pos_subgroup R) v₂) :
+  same_ray R v₁ v₂ :=
+begin
+  rcases h with ⟨⟨r, hr⟩, (rfl : r • v₂ = v₁)⟩,
+  exact same_ray_pos_smul_left _ hr,
+end
+
 /-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
 is positive. -/
 @[simp] lemma same_ray_smul_right_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0) (r : R) :
@@ -381,15 +389,7 @@ begin
     change (⟨units.mk0 (r₁⁻¹ * r₂) (ne_of_lt hr').symm, hr'⟩ : units.pos_subgroup R) • v₂ = v₁
       at h',
     exact ⟨_, h'⟩ },
-  { intro h,
-    change v₁ ∈ mul_action.orbit (units.pos_subgroup R) v₂ at h,
-    rw mul_action.mem_orbit_iff at h,
-    rcases h with ⟨r, h⟩,
-    refine ⟨1, r, zero_lt_one, _, _⟩,
-    { rcases r with ⟨r, hr⟩,
-      exact_mod_cast (units.mem_pos_subgroup r).mp hr },
-    { rw [←h, one_smul],
-      refl } }
+  { exact same_ray_of_mem_orbit }
 end
 
 /-- `same_ray_setoid` equals `mul_action.orbit_rel` for the `units.pos_subgroup`. -/

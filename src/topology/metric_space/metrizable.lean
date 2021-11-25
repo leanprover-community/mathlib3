@@ -105,12 +105,15 @@ begin
 end
 
 /-- A normal topological space with second countable topology `X` is metrizable: there exists a
-metric space structure that generates the same topology. -/
-lemma metrizable_of_normal_space_second_countable_topology :
-  ∃ I : metric_space X, I.to_uniform_space.to_topological_space = ‹_› :=
-begin
-  unfreezingI { rcases exists_embedding_l_infty X with ⟨f, ⟨rfl⟩, hf⟩ },
-  exact ⟨metric_space.induced f hf _, rfl⟩
-end
+metric space structure that generates the same topology. This definition provides a `metric_space`
+instance such that the corresponding `topological_space X` instance is definitionally equal
+to the original one. -/
+@[reducible] noncomputable def to_metric_space : metric_space X :=
+@metric_space.replace_uniformity X
+  ((uniform_space.comap (exists_embedding_l_infty X).some infer_instance).replace_topology
+    (exists_embedding_l_infty X).some_spec.induced)
+  (metric_space.induced (exists_embedding_l_infty X).some
+    (exists_embedding_l_infty X).some_spec.inj infer_instance)
+  rfl
 
 end topological_space

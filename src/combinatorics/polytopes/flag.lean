@@ -327,7 +327,7 @@ lemma grade_le_grade_top {α : Type u} [partial_order α] [order_top α] [graded
   grade a ≤ grade_top α :=
 graded.strict_mono.monotone le_top
 
-lemma dual_cover_iff_cover {α : Type u} [preorder α] [order_top α] [graded α] (a b : α) :
+lemma dual_cover_iff_cover {α : Type u} [preorder α] (a b : α) :
   a ⋖ b ↔ @polytope.covers (order_dual α) _ a b :=
 by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
 
@@ -490,8 +490,7 @@ begin
         exact le_trans hba this }
   end,
   rcases hxy with ⟨x, y, hx, hy, hxy, hyx⟩,
-  refine hP' (λ _ _ hba, _) x y hyx hx hy c hxy,
-  exact hP _ _ (hba.trans (nat.le_succ _)),
+  exact hP' (λ _ _ hba, hP _ _ (hba.trans (nat.le_succ _))) x y hyx hx hy c hxy,
 end
 
 /-- A set of nats without gaps is an interval. -/
@@ -595,16 +594,16 @@ begin
 end
 
 /-- The element of a certain grade in a flag. -/
-noncomputable def flag_idx : Φ :=
+noncomputable def idx : Φ :=
 classical.some (ex_of_grade_in_flag j Φ)
 
-/-- The defining property of `flag_idx`. -/
+/-- The defining property of `flag.idx`. -/
 @[simp]
-theorem grade_flag_idx : grade (flag_idx j Φ) = j :=
+theorem grade_flag_idx : grade (idx j Φ) = j :=
 classical.some_spec (ex_of_grade_in_flag j Φ)
 
 /-- `flag_idx j Φ` is the unique element of grade `j` in the flag. -/
-theorem grade_eq_iff_flag_idx (a : Φ) : grade a = j ↔ a = flag_idx j Φ :=
+theorem grade_eq_iff_flag_idx (a : Φ) : grade a = j ↔ a = idx j Φ :=
 begin
   have idx := grade_flag_idx j Φ,
   split, {
@@ -621,13 +620,116 @@ variables (Ψ : flag α)
 
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
     adjacent to itself. -/
-def flag_adj : Prop :=
-∀ i, (flag_idx i Φ).val = (flag_idx i Ψ).val ↔ i ≠ j
+def j_adjacent : Prop :=
+∀ i, (idx i Φ).val = (idx i Ψ).val ↔ i ≠ j
 
-instance : is_irrefl (flag α) (flag_adj j) :=
+/-- Two flags are adjacent when they're j-adjacent for some j. Note that a flag is never adjacent to
+    itself. -/
+def adjacent : Prop :=
+∃ j, j_adjacent j Φ Ψ
+
+instance : is_irrefl (flag α) (j_adjacent j) :=
 ⟨λ _ h, (h j).mp rfl rfl⟩
 
-theorem flag_adj.symm : flag_adj j Φ Ψ → flag_adj j Ψ Φ :=
+instance : is_irrefl (flag α) adjacent :=
+⟨λ _ ⟨j, h⟩, (@irrefl _ (j_adjacent j) _ _) h⟩
+
+theorem j_adjacent.symm : j_adjacent j Φ Ψ → j_adjacent j Ψ Φ :=
 by intros h i; rw ←(h i); exact eq_comm
 
+theorem adjacent.symm : adjacent Φ Ψ → adjacent Ψ Φ :=
+λ ⟨j, h⟩, ⟨j, (j_adjacent.symm j _ _) h⟩
+
 end flag
+
+/-- Two elements of a type are connected by a relation when there exists a path of connected
+    elements. This is essentially an inductive version of an equivalence closure. -/
+ -- Todo(Vi): If someone else comes up with connected graphs sometime, we might want to rework this.
+inductive connected_aux {α : Type*} (r : α → α → Prop) : α → α → Prop
+| start (x : α) : connected_aux x x
+| next (x y z : α) : connected_aux x y → r y z → connected_aux x z
+
+/-- Elements are incident when they're comparable. -/
+abbreviation incident {α : Type u} [preorder α] (a b : α) : Prop :=
+a ≤ b ∨ b ≤ a
+
+/-- Proper elements are those that are neither `⊥` nor `⊤`. -/
+abbreviation is_proper {α : Type u} [preorder α] [order_bot α] [order_top α] (a : α) : Prop :=
+a ≠ ⊥ ∧ a ≠ ⊤
+
+/-- An element is proper iff it has a grade between the bottom and top element. -/
+lemma proper_iff_grade_iio {α : Type u} [partial_order α] [order_top α] [graded α] (a : α) :
+  is_proper a ↔ grade a ∈ set.Ioo 0 (graded.grade_top α) :=
+begin
+  split, {
+    intro ha,
+    cases eq_or_lt_of_le (zero_le (grade a)) with h hl, {
+      replace h := eq.symm h,
+      rw graded.eq_zero_iff_eq_bot at h,
+      exact (ha.left h).elim,
+    },
+    cases eq_or_lt_of_le (graded.grade_le_grade_top a) with h hr, {
+      rw graded.eq_grade_top_iff_eq_top at h,
+      exact (ha.right h).elim,
+    },
+    exact ⟨hl, hr⟩,
+  },
+  rintro ⟨hl, hr⟩,
+  split, {
+    intro ha,
+    rw ←graded.eq_zero_iff_eq_bot at ha,
+    exact (ne_of_lt hl) (eq.symm ha),
+  },
+  intro ha,
+  rw ←graded.eq_grade_top_iff_eq_top at ha,
+  exact (ne_of_lt hr) ha,
+end
+
+/-- A proper element is one that's neither minimal nor maximal. -/
+@[reducible]
+def proper (α : Type u) [preorder α] [order_bot α] [order_top α] : Type u :=
+{a : α // is_proper a}
+
+/-- A `graded` with top grade 1 or less has no proper elements. -/
+theorem proper_empty (α : Type u) [partial_order α] [order_top α] [graded α] :
+  graded.grade_top α ≤ 1 → is_empty (proper α) :=
+begin
+  intro h,
+  split,
+  rintro ⟨a, ha⟩,
+  rw proper_iff_grade_iio at ha,
+  refine (not_le_of_lt (lt_of_le_of_lt _ ha.right)) h,
+  exact ha.left,
+end
+
+instance (α : Type u) [partial_order α] [order_top α] [graded α] (h : graded.grade_top α ≥ 2) :
+  nonempty (proper α) :=
+begin
+  use flag.idx 1 (default (flag α)),
+  sorry,
+end
+
+namespace graded
+
+/-- A `graded` is connected when it's of grade 2, or any two proper elements are connected. -/
+def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
+grade_top α = 2 ∨ ∀ a b : proper α, connected_aux incident a b
+
+/-- A `graded` is flag-connected when any two flags are connected. -/
+def flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
+∀ Φ Ψ, connected_aux (@flag.adjacent α _ _ _) Φ Ψ
+
+theorem connected_of_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] :
+  flag_connected α → connected α :=
+begin
+  intro h,
+  by_cases hg : grade_top α = 2, {
+    exact or.inl hg,
+  },
+  right,
+  intros a b,
+  --induction h with d hd,
+  sorry,
+end
+
+end graded

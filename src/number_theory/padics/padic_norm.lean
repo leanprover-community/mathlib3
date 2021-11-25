@@ -515,7 +515,7 @@ begin
     rw [padic_val_nat_eq_factors_count, multiset.coe_count] }
 end
 
-lemma range_pow_padic_val_nat_subset_factors {n : ℕ} (p : ℕ) [fact p.prime] (hn : n ≠ 0) :
+lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) [fact p.prime] (hn : n ≠ 0) :
   (finset.range (padic_val_nat p n + 1)).image (pow p) ⊆ n.divisors :=
 begin
   intros t ht,
@@ -525,7 +525,7 @@ begin
   exact ⟨(pow_dvd_pow p $ by linarith).trans pow_padic_val_nat_dvd, hn⟩
 end
 
-lemma range_pow_padic_val_nat_subset_factors' {n : ℕ} (p : ℕ) [h : fact p.prime] :
+lemma range_pow_padic_val_nat_subset_divisors' {n : ℕ} (p : ℕ) [h : fact p.prime] :
   (finset.range (padic_val_nat p n)).image (λ t, p ^ (t + 1)) ⊆ (n.divisors \ {1}) :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,

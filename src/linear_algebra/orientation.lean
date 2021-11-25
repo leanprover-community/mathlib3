@@ -200,6 +200,9 @@ lemma same_ray.neg {v₁ v₂ : M} : same_ray R v₁ v₂ → same_ray R (-v₁)
 @[simp] lemma same_ray_neg_iff {v₁ v₂ : M} : same_ray R (-v₁) (-v₂) ↔ same_ray R v₁ v₂ :=
 ⟨λ h, by simpa only [neg_neg] using h.neg, same_ray.neg⟩
 
+lemma same_ray_neg_swap {v₁ v₂ : M} : same_ray R (-v₁) v₂ ↔ same_ray R v₁ (-v₂) :=
+⟨λ h, by simpa only [neg_neg] using h.neg, λ h, by simpa only [neg_neg] using h.neg⟩
+
 namespace ray_vector
 
 variables {R}

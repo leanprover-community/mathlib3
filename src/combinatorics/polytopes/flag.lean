@@ -581,7 +581,7 @@ begin
   refine (flag_grade_aux ⊥ ⊤ j) ⟨_, nat.le_of_lt_succ j.property⟩,
   have : grade (⊥ : Φ) = 0 := graded.grade_bot,
   rw this,
-  exact zero_le j,
+  exact zero_le j
 end
 
 /-- A flag has a unique element of grade `j` when `j ≤ grade ⊤`. -/
@@ -591,7 +591,7 @@ begin
   use [a, ha],
   intros b hb,
   apply graded.grade.inj _,
-  rw [ha, hb],
+  rw [ha, hb]
 end
 
 /-- The element of a certain grade in a flag. -/
@@ -614,7 +614,7 @@ begin
   },
   intro h,
   rw h,
-  exact idx,
+  exact idx
 end
 
 variables (Ψ : flag α)
@@ -683,7 +683,7 @@ begin
   },
   intro ha,
   rw ←graded.eq_grade_top_iff_eq_top at ha,
-  exact (ne_of_lt hr) ha,
+  exact (ne_of_lt hr) ha
 end
 
 /-- A proper element is one that's neither minimal nor maximal. -/
@@ -700,7 +700,7 @@ begin
   rintro ⟨a, ha⟩,
   rw proper_iff_grade_iio at ha,
   refine (not_le_of_lt (lt_of_le_of_lt _ ha.right)) h,
-  exact ha.left,
+  exact ha.left
 end
 
 instance (α : Type u) [partial_order α] [order_top α] [graded α] (h : graded.grade_top α ≥ 2) :
@@ -710,7 +710,7 @@ begin
   have ha : grade a = 1 := flag.grade_idx _ _,
   use a,
   rw [proper_iff_grade_iio, ha],
-  exact ⟨nat.one_pos, nat.lt_of_succ_le h⟩,
+  exact ⟨nat.one_pos, nat.lt_of_succ_le h⟩
 end
 
 namespace graded
@@ -718,6 +718,18 @@ namespace graded
 /-- A `graded` is connected when it's of grade 2, or any two proper elements are connected. -/
 def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
 grade_top α = 2 ∨ ∀ a b : proper α, connected_aux incident a b
+
+/-- Any `graded` of top grade less or equal to 2 is connected. -/
+theorem connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
+  grade_top α ≤ 2 → connected α :=
+begin
+  intro h,
+  cases eq_or_lt_of_le h with ha ha, { exact or.inl ha },
+  right,
+  intro a,
+  have := ((proper_empty α) (nat.le_of_lt_succ ha)).false,
+  exact (this a).elim,
+end
 
 /-- A `graded` is flag-connected when any two flags are connected. -/
 def flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=

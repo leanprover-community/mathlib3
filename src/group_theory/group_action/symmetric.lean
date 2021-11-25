@@ -7,7 +7,6 @@ import algebra.opposites
 import group_theory.group_action.defs
 import group_theory.group_action.prod
 import algebra.direct_sum.basic
-import data.finsupp.basic
 
 /-!
 # Symmetric group actions
@@ -90,11 +89,6 @@ instance mul_action.of_is_symmetric_smul {R α} [comm_monoid R] [mul_action R α
 ⟨λ a, by rw [←op_one, op_smul_eq_smul (1 : R) a, one_smul],
  λ r s a, by rw [mul_comm, ←op_unop (s * r), op_smul_eq_smul, unop_mul, mul_smul,
                  unop_smul_eq_smul, unop_smul_eq_smul]⟩
-
-noncomputable instance {R M ι} [monoid R] [add_monoid M] [distrib_mul_action R M]
-  [distrib_mul_action Rᵐᵒᵖ M] [is_symmetric_smul R M] :
-  is_symmetric_smul R (ι →₀ M) :=
-⟨λ r a, by { ext i, simp only [finsupp.coe_smul, pi.smul_apply, op_smul_eq_smul] }⟩
 
 -- TODO there might be a more general version of this
 instance smul_comm_class.of_is_symmetric_smul {R α} [has_scalar R α] [has_scalar Rᵐᵒᵖ α]

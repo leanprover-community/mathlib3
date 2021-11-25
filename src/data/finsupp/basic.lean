@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
 import data.finset.preimage
+import group_theory.group_action.symmetric
 import algebra.indicator_function
 import algebra.group_action_hom
 
@@ -2252,6 +2253,7 @@ lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :
 end
 
 section
+
 instance [monoid R] [add_monoid M] [distrib_mul_action R M] : has_scalar R (α →₀ M) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 
@@ -2264,6 +2266,11 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
 lemma smul_apply {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
+
+instance [monoid R] [add_monoid M] [distrib_mul_action R M]
+  [distrib_mul_action Rᵐᵒᵖ M] [is_symmetric_smul R M] :
+  is_symmetric_smul R (α →₀ M) :=
+⟨λ r a, by { ext i, simp [is_symmetric_smul.op_smul_eq_smul] }⟩
 
 lemma _root_.is_smul_regular.finsupp {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {k : R}
   (hk : is_smul_regular M k) : is_smul_regular (α →₀ M) k :=

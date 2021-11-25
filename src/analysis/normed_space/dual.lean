@@ -152,7 +152,7 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 lemma eq_Inter (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
   polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
-by { dunfold polar, ext, simp only [mem_bInter_iff, mem_set_of_eq], }
+by simp only [forall_false_left, mem_empty_eq, forall_const, set_of_true, polar]
 
 lemma of_empty (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] : polar 𝕜 (∅ : set E) = univ :=
@@ -163,11 +163,7 @@ small scalar multiple of `x'` is in `polar 𝕜 s`. -/
 lemma smul_mem {s : set E} {x' : dual 𝕜 E} {c : 𝕜}
   (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : (c⁻¹ • x') ∈ polar 𝕜 s :=
 begin
-  by_cases c_zero : c = 0,
-  { rw c_zero,
-    dunfold polar,
-    simp only [zero_le_one, continuous_linear_map.zero_apply, norm_zero,
-               mem_set_of_eq, implies_true_iff, inv_zero, zero_smul], },
+  by_cases c_zero : c = 0, { simp [c_zero] },
   have eq : ∀ z, ∥ c⁻¹ • (x' z) ∥ = ∥ c⁻¹ ∥ * ∥ x' z ∥ := λ z, norm_smul c⁻¹ _,
   have le : ∀ z, z ∈ s → ∥ c⁻¹ • (x' z) ∥ ≤ ∥ c⁻¹ ∥ * ∥ c ∥,
   { intros z hzs,
@@ -196,7 +192,7 @@ begin
     exact key, },
   { intros h z hz,
     simp only [mem_closed_ball, dist_zero_right] at hz,
-    apply (continuous_linear_map.unit_le_op_norm x' z hz).trans h, },
+    exact (continuous_linear_map.unit_le_op_norm x' z hz).trans h, },
 end
 
 /-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`

@@ -138,12 +138,7 @@ end
 lemma to_weak_dual_image_eq (p : dual 𝕜 E → Prop) :
   (to_weak_dual '' {x' : dual 𝕜 E | p x' }) =
     {x' : weak_dual 𝕜 E | p x'.to_normed_dual } :=
-begin
-  ext x',
-  split,
-  { rintros ⟨x'', ⟨h₁, h₂⟩⟩, rw ← h₂, exact h₁, },
-  { intros h, use x', exact ⟨h, rfl⟩, },
-end
+by { simp [to_weak_dual], refl }
 
 lemma to_weak_dual_image_closed_unit_ball :
   (to_weak_dual '' metric.closed_ball (0 : dual 𝕜 E) 1) =

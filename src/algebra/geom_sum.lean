@@ -55,10 +55,10 @@ theorem geom_sum_def [semiring α] (x : α) (n : ℕ) :
   geom_sum x 1 = 1 :=
 by { rw [geom_sum_def, sum_range_one, pow_zero] }
 
-lemma one_geom_sum [semiring α] (n : ℕ) : geom_sum (1 : α) n = n :=
+@[simp] lemma one_geom_sum [semiring α] (n : ℕ) : geom_sum (1 : α) n = n :=
 by simp [geom_sum_def]
 
-@[simp] lemma op_geom_sum [ring α] (x : α) (n : ℕ) :
+@[simp] lemma op_geom_sum [semiring α] (x : α) (n : ℕ) :
   op (geom_sum x n) = geom_sum (op x) n :=
 by simp [geom_sum_def]
 
@@ -77,7 +77,7 @@ theorem geom_sum₂_def [semiring α] (x y : α) (n : ℕ) :
 by { have : 1 - 1 - 0 = 0 := rfl,
      rw [geom_sum₂_def, sum_range_one, this, pow_zero, pow_zero, mul_one] }
 
-@[simp] lemma op_geom_sum₂ [ring α] (x y : α) (n : ℕ) :
+@[simp] lemma op_geom_sum₂ [semiring α] (x y : α) (n : ℕ) :
   op (geom_sum₂ x y n) = geom_sum₂ (op y) (op x) n :=
 begin
   simp only [geom_sum₂_def, op_sum, op_mul, op_pow],

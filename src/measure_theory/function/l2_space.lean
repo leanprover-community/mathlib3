@@ -135,9 +135,7 @@ end inner_product_space
 
 section indicator_const_Lp
 
-variables {s : set α}
-
-variables (𝕜)
+variables (𝕜) {s : set α}
 
 /-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs c` and `f` is
 equal to the integral of the inner product over `s`: `∫ x in s, ⟪c, f x⟫ ∂μ`. -/
@@ -184,7 +182,7 @@ variables {𝕜}
 a real or complex function `f` is equal to the integral of `f` over `s`. -/
 lemma inner_indicator_const_Lp_one (hs : measurable_set s) (hμs : μ s ≠ ∞) (f : Lp 𝕜 2 μ) :
   inner (indicator_const_Lp 2 hs hμs (1 : 𝕜)) f = ∫ x in s, f x ∂μ :=
-by { rw L2.inner_indicator_const_Lp_eq_inner_set_integral 𝕜 hs hμs (1 : 𝕜) f, simp, }
+by { rw L2.inner_indicator_const_Lp_eq_inner_set_integral hs hμs (1 : 𝕜) f, simp, }
 
 end indicator_const_Lp
 

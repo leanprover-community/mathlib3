@@ -601,5 +601,79 @@ end glue_data
 
 end LocallyRingedSpace
 
+namespace Scheme
+
+@[nolint has_inhabited_instance]
+structure glue_data extends glue_data Scheme :=
+  (f_open : ∀ i j, is_open_immersion (f i j))
+
+attribute [instance] glue_data.f_open
+
+namespace glue_data
+
+variables (D : glue_data)
+
+include D
+
+local notation `D'` := D.to_glue_data
+
+abbreviation to_LocallyRingedSpace_glue_data : LocallyRingedSpace.glue_data :=
+{ f_open := D.f_open,
+  to_glue_data := D' .map_glue_data forget }
+
+def diagram_iso : D' .diagram.multispan ⋙ forget ≅
+  D.to_LocallyRingedSpace_glue_data.to_glue_data.diagram.multispan :=
+D' .diagram_iso _
+
+
+def glued : Scheme :=
+begin
+  apply LocallyRingedSpace.is_open_immersion.Scheme D.to_LocallyRingedSpace_glue_data.glued,
+  intro x,
+  apply nonempty.some,
+  rcases D.to_LocallyRingedSpace_glue_data.imm_jointly_surjective x with ⟨i, y, rfl⟩,
+  rcases (D.U i).mem_cover y with ⟨z, z_eq⟩,
+  constructor,
+  fsplit,
+  { exact (costructured_arrow.map (D.to_LocallyRingedSpace_glue_data.imm i)).obj
+      ((costructured_arrow.post Spec forget _).obj ((D.U i).cover y)) },
+  split,
+  { conv_lhs { rw ← z_eq },
+    exact set.mem_range_self z },
+  dsimp,
+  apply_instance
+end
+
+def imm (i : D.ι) : D.U i ⟶ D.glued :=
+D.to_LocallyRingedSpace_glue_data.imm i
+
+instance imm_is_open_immersion (i : D.ι) :
+is_open_immersion (D.imm i) := by { delta imm, apply_instance }
+
+lemma imm_jointly_surjective (x : D.glued.carrier) :
+  ∃ (i : D.ι) (y : (D.U i).carrier), (D.imm i).1.base y = x :=
+D.to_LocallyRingedSpace_glue_data.imm_jointly_surjective x
+
+@[simp, reassoc]
+lemma glue_condition (i j : D.ι) :
+  D.t i j ≫ D.f j i ≫ D.imm j = D.f i j ≫ D.imm i :=
+D.to_LocallyRingedSpace_glue_data.glue_condition i j
+
+def V_pullback_cone (i j : D.ι) : pullback_cone (D.imm i) (D.imm j) :=
+pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simp)
+
+section end
+
+set_option trace.debug true
+
+def V_pullback_cone_is_limit (i j : D.ι) : is_limit (D.V_pullback_cone i j) :=
+begin
+
+end
+
+end glue_data
+
+end LocallyRingedSpace
+
 end algebraic_geometry
 #lint

@@ -174,7 +174,7 @@ lemma norm_sub_le_of_mem_A {c : 𝕜} (hc : 1 < ∥c∥)
 begin
   have : 0 ≤ 4 * ∥c∥ * ε :=
     mul_nonneg (mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) (norm_nonneg _)) hε.le,
-  apply op_norm_le_of_shell (half_pos hr) this hc,
+  refine op_norm_le_of_shell (half_pos hr) this hc _,
   assume y ley ylt,
   rw [div_div_eq_div_mul,
       div_le_iff' (mul_pos (by norm_num : (0 : ℝ) < 2) (zero_lt_one.trans hc))] at ley,
@@ -194,7 +194,7 @@ begin
       end
     ... = 2 * ε * r : by ring
     ... ≤ 2 * ε * (2 * ∥c∥ * ∥y∥) : mul_le_mul_of_nonneg_left ley (mul_nonneg (by norm_num) hε.le)
-    ... = 4 * ∥c∥ * ε * ∥y∥ : by ring
+    ... = 4 * ∥c∥ * ε * ∥y∥ : by ring,
 end
 
 /-- Easy inclusion: a differentiability point with derivative in `K` belongs to `D f K`. -/

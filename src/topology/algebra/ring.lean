@@ -46,6 +46,15 @@ instance discrete_topology.topological_ring {α} [topological_space α] [semirin
 section
 variables {α} [topological_space α] [semiring α] [topological_ring α]
 
+namespace subsemiring
+
+instance (S : subsemiring α) :
+  topological_ring S :=
+{ ..S.to_submonoid.has_continuous_mul,
+  ..S.to_add_submonoid.has_continuous_add }
+
+end subsemiring
+
 /-- The (topological-space) closure of a subsemiring of a topological semiring is
 itself a subsemiring. -/
 def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=

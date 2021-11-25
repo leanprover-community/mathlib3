@@ -589,6 +589,7 @@ def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
   map_mul' := mul_inv,
   ..equiv.inv G }
 
+/-- When the group with zero is commutative, `equiv.inv₀` is a `mul_equiv`. -/
 def mul_equiv.inv₀ (G : Type*) [comm_group_with_zero G] : G ≃* G :=
 { to_fun   := has_inv.inv,
   inv_fun  := has_inv.inv,

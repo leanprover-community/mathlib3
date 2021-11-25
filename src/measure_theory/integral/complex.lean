@@ -323,7 +323,7 @@ begin
     pow_succ, ← div_eq_mul_inv] at this,
   simpa only [mul_div_right_comm _ I, div_mul_right _ (h0 _), one_div, inv_pow₀] using this
 end
-    
+
 lemma integral_circle_div_sub_of_differentiable_on₀ {R : ℝ} {w : ℂ} (hw : abs w < R)
   {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball 0 R)) :
   ∫ (θ : ℝ) in 0..2 * π, ((R * exp (θ * I) * I) / (R * exp (θ * I) - w) : ℂ) • f (R * exp (θ * I)) =
@@ -384,6 +384,26 @@ begin
     using integral_circle_div_sub_of_differentiable_on₀ hw hd
 end
 
+example {R : ℝ} {z w : ℂ} (hw : w ∈ ball z R)
+  {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball z R)) :
+
+  f w  = (1/(2 • π • I)) • ∫ (θ : ℝ) in 0..2 * π,
+    ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w) : ℂ) • f (z + R * exp (θ * I)) :=
+
+begin
+have := integral_circle_div_sub_of_differentiable_on hw hd,
+simp only [this, one_div, nat.cast_bit0, real_smul, nsmul_eq_mul, nat.cast_one],
+simp_rw ← smul_assoc,
+simp,
+simp_rw ← mul_assoc,
+have hn : (2 * ↑π * I) ≠ 0, by {simp, simp [real.pi_ne_zero, complex.I_ne_zero],},
+have tt := inv_mul_cancel hn,
+simp_rw ← mul_assoc at tt,
+rw tt,
+simp,
+end
+
+
 protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0} {z : ℂ} {f : ℂ → E}
   (hd : differentiable_on ℂ f (closed_ball z R)) (hR : 0 < R) :
   has_fpower_series_on_ball f
@@ -424,4 +444,3 @@ protected lemma differentiable.analytic_at {f : ℂ → E} (hf : differentiable 
 hf.differentiable_on.analytic_at univ_mem
 
 end complex
-

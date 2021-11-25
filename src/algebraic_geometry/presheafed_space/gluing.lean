@@ -625,7 +625,6 @@ def diagram_iso : D' .diagram.multispan ⋙ forget ≅
   D.to_LocallyRingedSpace_glue_data.to_glue_data.diagram.multispan :=
 D' .diagram_iso _
 
-
 def glued : Scheme :=
 begin
   apply LocallyRingedSpace.is_open_immersion.Scheme D.to_LocallyRingedSpace_glue_data.glued,
@@ -662,18 +661,14 @@ D.to_LocallyRingedSpace_glue_data.glue_condition i j
 def V_pullback_cone (i j : D.ι) : pullback_cone (D.imm i) (D.imm j) :=
 pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simp)
 
-section end
-
-set_option trace.debug true
-
-def V_pullback_cone_is_limit (i j : D.ι) : is_limit (D.V_pullback_cone i j) :=
-begin
-
-end
+def V_pullback_cone_is_limit (i j : D.ι) :
+  is_limit (D.V_pullback_cone i j) :=
+is_limit_of_is_limit_pullback_cone_map forget _
+  (D.to_LocallyRingedSpace_glue_data.V_pullback_cone_is_limit i j)
 
 end glue_data
 
-end LocallyRingedSpace
+end Scheme
 
 end algebraic_geometry
-#lint
+-- #lint

@@ -355,9 +355,36 @@ end linear_ordered_comm_ring
 
 section linear_ordered_field
 
-variables {R : Type*} [linear_ordered_field R]
+variables (R : Type*) [linear_ordered_field R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {ι : Type*} [decidable_eq ι]
+
+/-- `same_ray` is equivalent to `mul_action.orbit_rel` for the `units.pos_subgroup`. -/
+lemma same_ray_iff_orbit_rel (v₁ v₂ : M) :
+  same_ray R v₁ v₂ ↔ (mul_action.orbit_rel (units.pos_subgroup R) M).rel v₁ v₂ :=
+begin
+  split,
+  { rintros ⟨r₁, r₂, hr₁, hr₂, h⟩,
+    change v₁ ∈ mul_action.orbit (units.pos_subgroup R) v₂,
+    rw mul_action.mem_orbit_iff,
+    have h' : (r₁⁻¹ * r₂) • v₂ = v₁,
+    { rw [mul_smul, ←h, ←mul_smul, inv_mul_cancel (ne_of_lt hr₁).symm, one_smul] },
+    have hr' : 0 < (r₁⁻¹ * r₂) := mul_pos (inv_pos.2 hr₁) hr₂,
+    change (⟨units.mk0 (r₁⁻¹ * r₂) (ne_of_lt hr').symm, hr'⟩ : units.pos_subgroup R) • v₂ = v₁
+      at h',
+    exact ⟨_, h'⟩ },
+  { intro h,
+    change v₁ ∈ mul_action.orbit (units.pos_subgroup R) v₂ at h,
+    rw mul_action.mem_orbit_iff at h,
+    rcases h with ⟨r, h⟩,
+    refine ⟨1, r, zero_lt_one, _, _⟩,
+    { rcases r with ⟨r, hr⟩,
+      exact_mod_cast (units.mem_pos_subgroup r).mp hr },
+    { rw [←h, one_smul],
+      refl } }
+end
+
+variables {R}
 
 namespace orientation
 

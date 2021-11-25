@@ -6,12 +6,29 @@ Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 import algebra.direct_sum.algebra
 import algebra.direct_sum.internal
 
-/-! # Typeclass for graded ring
-For definition of an `R`-algebra `A` being graded by `𝒜 : ι → submodule R A`, see doc string of
-`graded_algebra`.
+/-!
+# Internally-graded algebras
 
-- `graded_algebra.decompose : A → ⨁ i, 𝒜 i` and `graded_algebra.recompose : ⨁ i, 𝒜 i → A` are
-the algebra isomorphism between `A` and `⨁ i, 𝒜 i` if `A` is graded by `𝒜`.
+This file defines the typeclass `graded_algebra 𝒜`, for working with an algebra `A` that is
+internally graded by a collection of submodules `𝒜 : ι → submodule R A`.
+See the docstring of that typeclass for more information.
+
+## Main definitions
+
+* `graded_algebra 𝒜`: the typeclass, which is a combination of `set_like.graded_monoid`, and
+  a constructive version of `direct_sum.submodule_is_internal 𝒜`.
+* `graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i`, which breaks apart an element of the algebra into
+  its constituent pieces.
+
+## Implementation notes
+
+For now, we do not have internally-graded semirings and internally-graded rings; these can be
+represented with `𝒜 : ι → submodule ℕ A` and `𝒜 : ι → submodule ℤ A` respectively, since all
+`semiring`s are ℕ-algebras via `algebra_nat`, and all `ring`s are `ℤ`-algebras via `algebra_int`.
+
+## Tags
+
+graded algebra, graded ring, graded semiring, decomposition
 -/
 
 open_locale direct_sum big_operators

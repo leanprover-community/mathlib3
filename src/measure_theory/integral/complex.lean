@@ -323,7 +323,7 @@ begin
     pow_succ, ← div_eq_mul_inv] at this,
   simpa only [mul_div_right_comm _ I, div_mul_right _ (h0 _), one_div, inv_pow₀] using this
 end
-    
+
 lemma integral_circle_div_sub_of_differentiable_on₀ {R : ℝ} {w : ℂ} (hw : abs w < R)
   {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball 0 R)) :
   ∫ (θ : ℝ) in 0..2 * π, ((R * exp (θ * I) * I) / (R * exp (θ * I) - w) : ℂ) • f (R * exp (θ * I)) =
@@ -423,5 +423,5 @@ protected lemma differentiable.analytic_at {f : ℂ → E} (hf : differentiable 
   analytic_at ℂ f z :=
 hf.differentiable_on.analytic_at univ_mem
 
-end complex
 
+end complex

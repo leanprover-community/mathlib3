@@ -79,15 +79,9 @@ direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
 
 /-- The projection maps of graded algebra-/
 def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i : ι) : A →ₗ[R] A :=
-{ to_fun := λ a, ((graded_algebra.decompose 𝒜 a) i).1,
-  map_add' := λ a a', by simp only [alg_equiv.map_add, submodule.coe_add,
-    direct_sum.add_apply, subtype.val_eq_coe],
-  map_smul' := λ r a, begin
-    rw ring_hom.id_apply,
-    erw alg_hom.map_smul (graded_algebra.decompose 𝒜).to_alg_hom r,
-    simp only [dfinsupp.coe_smul, alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe,
-      submodule.coe_smul_of_tower, pi.smul_apply, subtype.val_eq_coe]
-  end }
+(𝒜 i).subtype.comp $
+  (dfinsupp.lapply i).comp $
+  (graded_algebra.decompose 𝒜).to_alg_hom.to_linear_map
 
 lemma graded_algebra.proj_apply (i : ι) (r : A) :
   graded_algebra.proj 𝒜 i r = (graded_algebra.decompose 𝒜 r : ⨁ i, 𝒜 i) i := rfl

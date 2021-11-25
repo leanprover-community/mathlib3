@@ -24,7 +24,7 @@ variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables [normed_space ℝ E]
 
 /-- Derivative of the inner product. -/
 def fderiv_inner_clm (p : E × E) : E × E →L[ℝ] 𝕜 := is_bounded_bilinear_map_inner.deriv p

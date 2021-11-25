@@ -66,7 +66,7 @@ Most of the results in this file are valid for a second countable, borel, real n
 However, some lemmas also use `𝕜 : is_R_or_C`:
 * `condexp_L2` is defined only for an `inner_product_space` for now, and we use `𝕜` for its field.
 * results about scalar multiplication are stated not only for `ℝ` but also for `𝕜` if we happen to
-  have `normed_space 𝕜 F` and `is_scalar_tower ℝ 𝕜 F'`.
+  have `normed_space 𝕜 F`.
 
 ## Tags
 
@@ -882,7 +882,7 @@ begin
 end
 
 /-- `condexp_L2` verifies the equality of integrals defining the conditional expectation. -/
-lemma integral_condexp_L2_eq [is_scalar_tower ℝ 𝕜 E'] (hm : m ≤ m0)
+lemma integral_condexp_L2_eq (hm : m ≤ m0)
   (f : Lp E' 2 μ) (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, condexp_L2 𝕜 hm f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
@@ -907,7 +907,6 @@ end
 variables {E'' 𝕜' : Type*} [is_R_or_C 𝕜']
   [measurable_space E''] [inner_product_space 𝕜' E''] [borel_space E'']
   [second_countable_topology E''] [complete_space E''] [normed_space ℝ E'']
-  [is_scalar_tower ℝ 𝕜 E'] [is_scalar_tower ℝ 𝕜' E'']
 
 variables (𝕜 𝕜')
 lemma condexp_L2_comp_continuous_linear_map (hm : m ≤ m0) (T : E' →L[ℝ] E'') (f : α →₂[μ] E') :
@@ -1132,8 +1131,7 @@ seen as an element of `α →₁[μ] G`.
 
 local attribute [instance] fact_one_le_two_ennreal
 
-variables {m m0 : measurable_space α} {μ : measure α} [is_scalar_tower ℝ 𝕜 E']
-  {s t : set α} [normed_space ℝ G]
+variables {m m0 : measurable_space α} {μ : measure α} {s t : set α} [normed_space ℝ G]
 
 section condexp_ind_L1_fin
 
@@ -1417,7 +1415,7 @@ section condexp_L1
 
 local attribute [instance] fact_one_le_one_ennreal
 
-variables {m m0 : measurable_space α} {μ : measure α} [is_scalar_tower ℝ 𝕜 F']
+variables {m m0 : measurable_space α} {μ : measure α}
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
 /-- Conditional expectation of a function as a linear map from `α →₁[μ] F'` to itself. -/
@@ -1666,7 +1664,7 @@ open_locale classical
 
 local attribute [instance] fact_one_le_one_ennreal
 
-variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [is_scalar_tower ℝ 𝕜 F']
+variables {𝕜} {m m0 : measurable_space α} {μ : measure α}
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
 /-- Conditional expectation of a function. Its value is 0 if the function is not integrable. -/

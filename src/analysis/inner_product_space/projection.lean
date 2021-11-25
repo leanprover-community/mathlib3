@@ -270,7 +270,6 @@ theorem exists_norm_eq_infi_of_complete_subspace
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.module ℝ 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let K' : submodule ℝ E := submodule.restrict_scalars ℝ K,
   exact exists_norm_eq_infi_of_complete_convex ⟨0, K'.zero_mem⟩ h K'.convex
 end
@@ -329,7 +328,6 @@ theorem norm_eq_infi_iff_inner_eq_zero {u : E} {v : E}
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.module ℝ 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let K' : submodule ℝ E := K.restrict_scalars ℝ,
   split,
   { assume H,

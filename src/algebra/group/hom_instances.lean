@@ -90,7 +90,13 @@ def flip {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P} (f :
   map_one' := ext $ λ x, (f x).map_one,
   map_mul' := λ y₁ y₂, ext $ λ x, (f x).map_mul y₁ y₂ }
 
-@[simp, to_additive] lemma flip_apply
+@[simp, to_additive] lemma coe_flip
+  {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
+  (f : M →* N →* P) (y : N) :
+  (f.flip y : M → P) = λ x, f x y :=
+rfl
+
+@[to_additive] lemma flip_apply
   {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
   (f : M →* N →* P) (x : M) (y : N) :
   f.flip y x = f x y :=

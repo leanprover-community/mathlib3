@@ -633,7 +633,6 @@ an instance. -/
   proper_space E :=
 begin
   letI : normed_space ℝ E := restrict_scalars.normed_space ℝ K E,
-  letI : is_scalar_tower ℝ K E := restrict_scalars.is_scalar_tower _ _ _,
   letI : finite_dimensional ℝ E := finite_dimensional.trans ℝ K E,
   apply_instance
 end

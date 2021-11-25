@@ -49,6 +49,10 @@ namespace lie_submodule
 
 variables {R L M} (N N' : lie_submodule R L M)
 
+instance : set_like (lie_submodule R L M) M :=
+{ coe := carrier,
+  coe_injective' := λ N O h, by cases N; cases O; congr' }
+
 /-- The zero module is a Lie submodule of any Lie module. -/
 instance : has_zero (lie_submodule R L M) :=
 ⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_zero, },
@@ -60,8 +64,6 @@ instance coe_submodule : has_coe (lie_submodule R L M) (submodule R M) := ⟨to_
 
 @[norm_cast]
 lemma coe_to_submodule : ((N : submodule R M) : set M) = N := rfl
-
-instance has_mem : has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set M)⟩
 
 @[simp] lemma mem_carrier {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
 iff.rfl
@@ -220,11 +222,7 @@ section lattice_structure
 open set
 
 lemma coe_injective : function.injective (coe : lie_submodule R L M → set M) :=
-set_like.coe_injective.comp coe_submodule_injective
-
-instance : partial_order (lie_submodule R L M) :=
-{ le := λ N N', ∀ ⦃x⦄, x ∈ N → x ∈ N', -- Overriding `le` like this gives a better defeq.
-  ..partial_order.lift (coe : lie_submodule R L M → set M) coe_injective }
+set_like.coe_injective
 
 lemma le_def : N ≤ N' ↔ (N : set M) ⊆ N' := iff.rfl
 
@@ -285,7 +283,9 @@ end
 We provide explicit values for the fields `bot`, `top`, `inf` to get more convenient definitions
 than we would otherwise obtain from `complete_lattice_of_Inf`.  -/
 instance : complete_lattice (lie_submodule R L M) :=
-{ bot          := ⊥,
+{ le           := (≤),
+  lt           := (<),
+  bot          := ⊥,
   bot_le       := λ N _ h, by { rw mem_bot at h, rw h, exact N.zero_mem', },
   top          := ⊤,
   le_top       := λ _ _ _, trivial,
@@ -293,6 +293,7 @@ instance : complete_lattice (lie_submodule R L M) :=
   le_inf       := λ N₁ N₂ N₃ h₁₂ h₁₃ m hm, ⟨h₁₂ hm, h₁₃ hm⟩,
   inf_le_left  := λ _ _ _, and.left,
   inf_le_right := λ _ _ _, and.right,
+  ..set_like.partial_order,
   ..complete_lattice_of_Inf _ Inf_glb }
 
 instance : add_comm_monoid (lie_submodule R L M) :=
@@ -387,7 +388,7 @@ variables {N N'} (h : N ≤ N')
 /-- Given two nested Lie submodules `N ⊆ N'`, the inclusion `N ↪ N'` is a morphism of Lie modules.-/
 def hom_of_le : N →ₗ⁅R,L⁆ N' :=
 { map_lie' := λ x m, rfl,
-  ..submodule.of_le h }
+  ..submodule.of_le (show N.to_submodule ≤ N'.to_submodule, from h) }
 
 @[simp] lemma coe_hom_of_le (m : N) : (hom_of_le h m : M) = m := rfl
 
@@ -749,7 +750,7 @@ end
 /-- Given two nested Lie ideals `I₁ ⊆ I₂`, the inclusion `I₁ ↪ I₂` is a morphism of Lie algebras. -/
 def hom_of_le {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) : I₁ →ₗ⁅R⁆ I₂ :=
 { map_lie' := λ x y, rfl,
-  ..submodule.of_le h, }
+  ..submodule.of_le (show I₁.to_submodule ≤ I₂.to_submodule, from h), }
 
 @[simp] lemma coe_hom_of_le {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) (x : I₁) :
   (hom_of_le h x : L) = x := rfl

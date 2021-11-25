@@ -129,7 +129,7 @@ class module.oriented [nontrivial R] :=
 variables {M}
 
 /-- The ray given by a nonzero vector. -/
-protected def ray_of_ne_zero [nontrivial R] {v : M} (h : v ≠ 0) : module.ray R M :=
+protected def ray_of_ne_zero [nontrivial R] (v : M) (h : v ≠ 0) : module.ray R M :=
 ⟦⟨v, h⟩⟧
 
 /-- The rays given by two nonzero vectors are equal if and only if those vectors

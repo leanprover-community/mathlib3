@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
+import group_theory.group_action.symmetric
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
@@ -636,6 +637,10 @@ variables {R' A : Type*} [monoid R'] [semiring A]
 
 instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
   ⟨λ m, c • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x c] ⟩⟩
+
+instance [distrib_mul_action R'ᵐᵒᵖ M₂] [smul_comm_class A R'ᵐᵒᵖ M₂] [is_symmetric_smul R' M₂] :
+  is_symmetric_smul R' (multilinear_map A M₁ M₂) :=
+⟨λ r f, by { ext, change _ <• _ = r • _, apply is_symmetric_smul.op_smul_eq_smul }⟩
 
 @[simp] lemma smul_apply (f : multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
   (c • f) m = c • f m := rfl

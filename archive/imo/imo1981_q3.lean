@@ -156,6 +156,7 @@ begin
          ... ≤ fib (K+1) : fib_mono h6 } },
   { have h7 : N < n,
     { have h8 : K + 2 ≤ k + 1, from succ_le_succ (not_lt.mp h2),
+      rw ← fib_add_two at HK,
       calc N < fib (K+2) : HK
          ... ≤ fib (k+1) : fib_mono h8
          ... = n         : hn.symm, },

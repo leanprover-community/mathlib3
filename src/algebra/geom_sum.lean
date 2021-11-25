@@ -55,6 +55,9 @@ theorem geom_sum_def [semiring α] (x : α) (n : ℕ) :
   geom_sum x 1 = 1 :=
 by { rw [geom_sum_def, sum_range_one, pow_zero] }
 
+lemma one_geom_sum [semiring α] (n : ℕ) : geom_sum (1 : α) n = n :=
+by simp [geom_sum_def]
+
 @[simp] lemma op_geom_sum [ring α] (x : α) (n : ℕ) :
   op (geom_sum x n) = geom_sum (op x) n :=
 by simp [geom_sum_def]

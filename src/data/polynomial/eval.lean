@@ -358,9 +358,6 @@ lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial R} (hp : p.coeff 0 = 0)
   is_root p 0 :=
 by rwa coeff_zero_eq_eval_zero at hp
 
-lemma geom_sum_one (n : ℕ) : geom_sum (1 : R) n = n :=
-by simp [geom_sum_def]
-
 end eval
 
 section comp

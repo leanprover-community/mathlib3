@@ -351,13 +351,13 @@ instance [Π i, has_top (α' i)] : has_top (Π i, α' i) := ⟨λ i, ⊤⟩
 
 lemma top_def [Π i, has_top (α' i)] : (⊤ : Π i, α' i) = λ i, ⊤ := rfl
 
-instance [Π i, has_le (α' i)] [Π i, order_top (α' i)] : order_top (Π i, α' i) :=
+instance [Π i, preorder (α' i)] [Π i, order_top (α' i)] : order_top (Π i, α' i) :=
 { le_top := λ _ _, le_top, ..pi.has_top }
 
-instance [Π i, has_le (α' i)] [Π i, order_bot (α' i)] : order_bot (Π i, α' i) :=
+instance [Π i, preorder (α' i)] [Π i, order_bot (α' i)] : order_bot (Π i, α' i) :=
 { bot_le := λ _ _, bot_le, ..pi.has_bot }
 
-instance [Π i, has_le (α' i)] [Π i, bounded_order (α' i)] :
+instance [Π i, preorder (α' i)] [Π i, bounded_order (α' i)] :
   bounded_order (Π i, α' i) :=
 { ..pi.order_top, ..pi.order_bot }
 

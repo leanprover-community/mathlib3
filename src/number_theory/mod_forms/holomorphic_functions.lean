@@ -1,7 +1,7 @@
 import analysis.complex.basic
 import analysis.calculus.deriv
 import tactic.pi_instances
-import ring_theory.subring
+import ring_theory.subring.basic
 import analysis.normed_space.basic
 import analysis.calculus.deriv
 import analysis.analytic.basic

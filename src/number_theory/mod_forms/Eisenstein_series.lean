@@ -1039,7 +1039,6 @@ begin
   induction k with n hd,
   apply complex_abs_pow',
   simp ,
-  apply complex_abs_pow',
 end
 
 lemma le_of_pow' (a b : ℝ) (k: ℕ)(h : 0 ≤ a) (h2: 0 ≤ b) (h3: a ≤ b): a^k ≤ b^k:=
@@ -1322,12 +1321,11 @@ begin
   rw Square_zero,
   simp only [add_zero, int.cast_zero, nat.cast_zero, zero_mul, finset.sum_singleton],
   have H0: (0: ℂ)^k=0, by {rw zero_pow_eq_zero, linarith,},
-  rw H0,
   simp only [complex.abs_zero, inv_zero],
   have H00: (0: ℝ)^((k: ℤ)-1)=0,
   by { rw zero_zpow, linarith,},
   rw H00,
-  simp only [inv_zero, mul_zero],},
+  simp [inv_zero, mul_zero], norm_cast at *, rw H0,},
   have:= finset.sum_le_sum BO,
   simp only [finset.sum_const, complex.abs_mul, nsmul_eq_mul] at this,
   rw Square_size n at this,
@@ -1358,6 +1356,7 @@ begin
   norm_cast at ne,
   rw ne at this,
   norm_cast,
+  simp at *,
   apply this,
   have hhh:= nat.pos_of_ne_zero n0,
   linarith,
@@ -1384,7 +1383,7 @@ begin
   have HI:=Squares_cover_all,
   let g:= λ (y : ℤ × ℤ), (real_Eise k z) y,
   have gpos: ∀ (y : ℤ × ℤ), 0 ≤ g y,
-  by {simp_rw g, intro y, rw real_Eise, simp,apply complex.abs_nonneg,},
+  by {simp_rw g, intro y, rw real_Eise, simp, simp [complex.abs_nonneg],},
   have index_lem:= sum_lemma g  gpos In HI,
   rw index_lem,
   let e:=λ (x: ℕ), ∑ (y : ℤ × ℤ) in (In x), g y,
@@ -1426,7 +1425,7 @@ begin
   have HI:=Squares_cover_all,
   let g:= λ (y : ℤ × ℤ), (real_Eise k z) y,
   have gpos: ∀ (y : ℤ × ℤ), 0 ≤ g y,
-  by {simp_rw g, intro y, rw real_Eise, simp,apply complex.abs_nonneg,},
+  by {simp_rw g, intro y, rw real_Eise, simp, simp  [complex.abs_nonneg],},
   have hgsumm: summable g,
   by {simp_rw g, apply real_eise_is_summable k z h, },
   have index_lem:= tsum_lemma g In HI hgsumm,
@@ -1579,7 +1578,7 @@ begin
     apply pow_two_pos_of_ne_zero, linarith,},
   have i2: ((z_val_val.re)^2 : ℝ )≤ (A^2 : ℝ),
     by {have : (complex.abs (z_val_val.re))^2 = z_val_val.re^2,
-    by {norm_cast, rw ← abs_pow, have he: even (2: ℤ), by {simp,},
+    by {norm_cast,
     simp,},
     norm_cast at this,
     rw ← this,
@@ -1755,9 +1754,12 @@ begin
   (λ  (x : ℤ × ℤ),  (((x.1 : ℂ) * (a : ℂ) + (x.2 : ℂ)) ^ k)⁻¹),
   simp at this,
   exact this, },
+  simp at *,
   have SC2:= le_trans ineq1 SC,
   have rb := rfunctbound' k h A B hb a n,
   apply le_trans SC2 rb,
+  apply_instance,
+  apply_instance,
   simp_rw M,
   have hk: 1 < ((k-1): ℤ), by { linarith, },
   have nze: ((8/((rfunct (lbpoint A B hb))^k)): ℝ)  ≠ 0,
@@ -1899,6 +1901,27 @@ begin
   rw zk,
   exact zhol',
 end
+
+lemma Eise'_has_diff_within_at (k : ℤ) (y: ℤ × ℤ) (hkn: k ≠ 0) :
+  differentiable_on ℂ (extend_by_zero (λ (z : ℍ'), Eise k z y)) ℍ':=
+begin
+have:= is_holomorphic_on_iff_differentiable_on ℍ' (λ (z : ℍ'), Eise k z y),
+simp,
+rw this,
+apply Eise'_has_deriv_within_at,
+apply hkn,
+end
+
+lemma Eis_diff_on_ball {R : ℝ} {z w : ℂ} (hw : w ∈ metric.ball z R) (k : ℤ) (y: ℤ × ℤ) (hkn: k ≠ 0)
+  (h : metric.closed_ball z R ⊆ ℍ' ):
+  differentiable_on ℂ (extend_by_zero (λ (z : ℍ'), Eise k z y)) (metric.closed_ball z R) :=
+begin
+apply differentiable_on.mono (Eise'_has_diff_within_at k y hkn),
+simp at *,
+apply h,
+end
+
+
 
 
 lemma Eisenstein_is_holomorphic (k : ℤ): is_holomorphic_on (Eisenstein_series_of_weight_ k):=

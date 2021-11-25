@@ -115,14 +115,18 @@ instance [has_le R] : has_le (tropical R) :=
 @[simp] lemma untrop_le_iff [has_le R] {x y : tropical R} :
   untrop x ≤ untrop y ↔ x ≤ y := iff.rfl
 
-instance [preorder R] : preorder (tropical R) :=
-{ le := λ x y, untrop x ≤ untrop y,
-  le_refl := λ _, le_refl _,
-  le_trans := λ _ _ _ h h', le_trans h h', }
+instance [has_lt R] : has_lt (tropical R) :=
+{ lt := λ x y, untrop x < untrop y }
 
 @[simp] lemma untrop_lt_iff [preorder R] {x y : tropical R} :
-  untrop x < untrop y ↔ x < y :=
-by rw [lt_iff_le_not_le, untrop_le_iff, untrop_le_iff, ←lt_iff_le_not_le]
+  untrop x < untrop y ↔ x < y := iff.rfl
+
+instance [preorder R] : preorder (tropical R) :=
+{ le_refl := λ _, le_refl _,
+  le_trans := λ _ _ _ h h', le_trans h h',
+  lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
+  ..tropical.has_le,
+  ..tropical.has_lt }
 
 /-- Reinterpret `x : R` as an element of `tropical R`, preserving the order. -/
 def trop_order_iso [preorder R] : R ≃o tropical R :=

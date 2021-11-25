@@ -189,13 +189,16 @@ section ordered_comm_ring
 
 local attribute [instance] ray_vector.same_ray_setoid
 
-variables (R : Type*) [ordered_comm_ring R]
+variables {R : Type*} [ordered_comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 
 /-- If two vectors are in the same ray, so are their negations. -/
-@[simp] lemma same_ray_neg_iff (v₁ v₂ : M) : same_ray R (-v₁) (-v₂) ↔ same_ray R v₁ v₂ :=
-⟨λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rwa [smul_neg, smul_neg, neg_inj] at h⟩,
- λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rwa [smul_neg, smul_neg, neg_inj]⟩⟩
+lemma same_ray.neg {v₁ v₂ : M} : same_ray R v₁ v₂ → same_ray R (-v₁) (-v₂) :=
+λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rwa [smul_neg, smul_neg, neg_inj]⟩
+
+/-- `same_ray.neg` as an `iff`. -/
+@[simp] lemma same_ray_neg_iff {v₁ v₂ : M} : same_ray R (-v₁) (-v₂) ↔ same_ray R v₁ v₂ :=
+⟨λ h, by simpa only [neg_neg] using h.neg, same_ray.neg⟩
 
 namespace ray_vector
 

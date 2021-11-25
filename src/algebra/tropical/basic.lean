@@ -215,7 +215,7 @@ end
 lemma min_top_left' [order_top R] (a : R) : min (⊤ : R) a = a := min_eq_right le_top
 lemma min_top_right' [order_top R] (a : R) : min a ⊤ = a := min_eq_left le_top
 
-instance [linear_order R] [order_top R] : add_comm_monoid (tropical R) :=
+instance [order_top R] : add_comm_monoid (tropical R) :=
 { zero_add := λ _, untrop_injective (min_top_left' _),
   add_zero := λ _, untrop_injective (min_top_right' _),
   ..tropical.has_zero,

@@ -242,4 +242,52 @@ instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure
 
 end measure
 
+-- TODO: Move bind and pure definitions down here after defining measures
+section to_fix
+
+variables {A B : Type*}
+
+lemma to_outer_measure_pure_apply (a : A) (s : set A) :
+  (pure a).to_outer_measure s = if a ∈ s then 1 else 0 :=
+begin
+  refine (to_outer_measure_apply' (pure a) s).trans _,
+  split_ifs with ha ha,
+  { refine ennreal.coe_eq_one.2 ((tsum_congr (λ b, _)).trans (tsum_ite_eq a 1)),
+    exact ite_eq_left_iff.2 (λ hb, symm (ite_eq_right_iff.2 (λ h, (hb $ h.symm ▸ ha).elim))) },
+  { refine ennreal.coe_eq_zero.2 ((tsum_congr (λ b, _)).trans (tsum_zero)),
+    exact ite_eq_right_iff.2 (λ hb, ite_eq_right_iff.2 (λ h, (ha $ h ▸ hb).elim)) }
+end
+
+lemma to_measure_pure_apply [measurable_space A] (a : A) (s : set A) (hs : measurable_set s) :
+  (pure a).to_measure s = if a ∈ s then 1 else 0 :=
+(to_measure_apply_eq_to_outer_measure_apply (pure a) s hs).trans (to_outer_measure_pure_apply a s)
+
+lemma to_outer_measure_bind_apply (pa : pmf A) (pb : A → pmf B) (s : set B) :
+  (pa.bind pb).to_outer_measure s = ∑' (a : A), pa a * (pb a).to_outer_measure s :=
+calc (pa.bind pb).to_outer_measure s
+      = ∑' (b : B), if b ∈ s then ↑(∑' (a : A), pa a * pb a b) else 0
+    : by simp [to_outer_measure_apply, set.indicator_apply]
+  ... = ∑' (b : B), ↑(∑' (a : A), pa a * (if b ∈ s then pb a b else 0))
+    : tsum_congr (λ b, by split_ifs; simp)
+  ... = ∑' (b : B) (a : A), ↑(pa a * (if b ∈ s then pb a b else 0))
+    : tsum_congr (λ b, ennreal.coe_tsum $ nnreal.summable_of_le (by split_ifs; simp) (bind.summable pa pb b))
+  ... = ∑' (b : B) (a : A), ↑(pa a) * ↑(if b ∈ s then pb a b else 0)
+    : by simp_rw [ennreal.coe_mul]
+  ... = ∑' (a : A) (b : B), ↑(pa a) * ↑(if b ∈ s then pb a b else 0)
+    : tsum_comm' ennreal.summable (λ _, ennreal.summable) (λ _, ennreal.summable)
+  ... = ∑' (a : A), ↑(pa a) * ∑' (b : B), ↑(if b ∈ s then pb a b else 0)
+    : tsum_congr (λ a, ennreal.tsum_mul_left)
+  ... = ∑' (a : A), ↑(pa a) * ∑' (b : B), if b ∈ s then ↑(pb a b) else (0 : ℝ≥0∞)
+    : tsum_congr (λ a, congr_arg (λ x, ↑(pa a) * x) $ tsum_congr (λ b, by split_ifs; refl))
+  ... = ∑' (a : A), ↑(pa a) * (pb a).to_outer_measure s
+    : tsum_congr (λ a, by rw [to_outer_measure_apply, set.indicator])
+
+lemma to_measure_bind_apply [measurable_space B] (pa : pmf A) (pb : A → pmf B) (s : set B) (hs : measurable_set s) :
+  (pa.bind pb).to_measure s = ∑' (a : A), pa a * (pb a).to_measure s :=
+(to_measure_apply_eq_to_outer_measure_apply (pa.bind pb) s hs).trans
+  ((to_outer_measure_bind_apply pa pb s).trans (tsum_congr (λ a, congr_arg (λ x, pa a * x)
+  (to_measure_apply_eq_to_outer_measure_apply (pb a) s hs).symm)))
+
+end to_fix
+
 end pmf

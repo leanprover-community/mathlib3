@@ -25,8 +25,8 @@ open tensor_product
 open_locale tensor_product
 
 variables (R : Type u) (M N : Type v)
-variables [comm_ring R] [add_comm_group M] [module R M] [module Rᵒᵖ M] [is_symmetric_smul R M]
-  [module Rᵒᵖ (module.dual R M)] [is_symmetric_smul R (module.dual R M)]
+variables [comm_ring R] [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
+  [module Rᵐᵒᵖ (module.dual R M)] [is_symmetric_smul R (module.dual R M)]
   [add_comm_group N] [module R N]
 
 /-- The natural left-handed pairing between a module and its dual. -/

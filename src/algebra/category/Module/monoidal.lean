@@ -55,7 +55,7 @@ by tidy
 /-- (implementation) the associator for symmetric R-modules -/
 def associator (M N K : SymmetricBiModule R) :
   tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
-linear_equiv.to_SymmetricBiModule_iso (by { apply tensor_product.assoc })
+linear_equiv.to_SymmetricBiModule_iso (by { apply tensor_product.assoc R M N K })
 
 section
 
@@ -70,12 +70,12 @@ private lemma associator_naturality_aux
   {X₁ X₂ X₃ : Type*}
   [add_comm_monoid X₁] [add_comm_monoid X₂] [add_comm_monoid X₃]
   [module R X₁] [module R X₂] [module R X₃]
-  [module Rᵒᵖ X₁] [module Rᵒᵖ X₂] [module Rᵒᵖ X₃]
+  [module Rᵐᵒᵖ X₁] [module Rᵐᵒᵖ X₂] [module Rᵐᵒᵖ X₃]
   [is_symmetric_smul R X₁] [is_symmetric_smul R X₂] [is_symmetric_smul R X₃]
   {Y₁ Y₂ Y₃ : Type*}
   [add_comm_monoid Y₁] [add_comm_monoid Y₂] [add_comm_monoid Y₃]
   [module R Y₁] [module R Y₂] [module R Y₃]
-  [module Rᵒᵖ Y₁] [module Rᵒᵖ Y₂] [module Rᵒᵖ Y₃]
+  [module Rᵐᵒᵖ Y₁] [module Rᵐᵒᵖ Y₂] [module Rᵐᵒᵖ Y₃]
   [is_symmetric_smul R Y₁] [is_symmetric_smul R Y₂] [is_symmetric_smul R Y₃]
   (f₁ : X₁ →ₗ[R] Y₁) (f₂ : X₂ →ₗ[R] Y₂) (f₃ : X₃ →ₗ[R] Y₃) :
   (↑(assoc R Y₁ Y₂ Y₃) ∘ₗ (map (map f₁ f₂) f₃)) = ((map f₁ (map f₂ f₃)) ∘ₗ ↑(assoc R X₁ X₂ X₃)) :=
@@ -91,7 +91,7 @@ private lemma pentagon_aux
   (W X Y Z : Type*)
   [add_comm_monoid W] [add_comm_monoid X] [add_comm_monoid Y] [add_comm_monoid Z]
   [module R W] [module R X] [module R Y] [module R Z]
-  [module Rᵒᵖ W] [module Rᵒᵖ X] [module Rᵒᵖ Y] [module Rᵒᵖ Z]
+  [module Rᵐᵒᵖ W] [module Rᵐᵒᵖ X] [module Rᵐᵒᵖ Y] [module Rᵐᵒᵖ Z]
   [is_symmetric_smul R W] [is_symmetric_smul R X] [is_symmetric_smul R Y] [is_symmetric_smul R Z] :
   ((map (1 : W →ₗ[R] W) (assoc R X Y Z).to_linear_map).comp (assoc R W (X ⊗[R] Y) Z).to_linear_map)
     .comp (map ↑(assoc R W X Y) (1 : Z →ₗ[R] Z)) =
@@ -150,7 +150,7 @@ lemma triangle (M N : SymmetricBiModule.{u} R) :
   (associator M (SymmetricBiModule.of R R) N).hom ≫ tensor_hom (𝟙 M) (left_unitor N).hom =
     tensor_hom (right_unitor M).hom (𝟙 N) :=
 begin
-  apply tensor_product.ext_threefold,
+  apply @tensor_product.ext_threefold R _,
   intros x y z,
   change R at y,
   dsimp [tensor_hom, associator],
@@ -238,7 +238,7 @@ end
   (α_ X Y Z).hom ≫ (braiding X _).hom ≫ (α_ Y Z X).hom =
   ((braiding X Y).hom ⊗ 𝟙 Z) ≫ (α_ Y X Z).hom ≫ (𝟙 Y ⊗ (braiding X Z).hom) :=
 begin
-  apply tensor_product.ext_threefold,
+  apply @tensor_product.ext_threefold R,
   intros x y z,
   refl,
 end
@@ -248,7 +248,7 @@ end
   (𝟙 X ⊗ (Y.braiding Z).hom) ≫ (α_ X Z Y).inv ≫ ((X.braiding Z).hom ⊗ 𝟙 Y) :=
 begin
   apply (cancel_epi (α_ X Y Z).hom).1,
-  apply tensor_product.ext_threefold,
+  apply @tensor_product.ext_threefold R,
   intros x y z,
   refl,
 end

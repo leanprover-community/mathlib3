@@ -28,10 +28,10 @@ variables [decidable_eq ι₁] [decidable_eq ι₂]
 variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
 variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
 variables [Π i₁, module R (M₁ i₁)] [Π i₂, module R (M₂ i₂)]
-variables [Π i₁, module Rᵒᵖ (M₁ i₁)] [Π i₂, module Rᵒᵖ (M₂ i₂)]
+variables [Π i₁, module Rᵐᵒᵖ (M₁ i₁)] [Π i₂, module Rᵐᵒᵖ (M₂ i₂)]
 variables [Π i₁, is_symmetric_smul R (M₁ i₁)]
 variables [Π i₂, is_symmetric_smul R (M₂ i₂)]
-variables [Π i₁, smul_comm_class Rᵒᵖ R (M₁ i₁)]
+variables [Π i₁, smul_comm_class Rᵐᵒᵖ R (M₁ i₁)]
 
 /-- The linear equivalence `(⨁ i₁, M₁ i₁) ⊗ (⨁ i₂, M₂ i₂) ≃ (⨁ i₁, ⨁ i₂, M₁ i₁ ⊗ M₂ i₂)`, i.e.
 "tensor product distributes over direct sum". -/

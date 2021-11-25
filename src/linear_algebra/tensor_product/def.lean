@@ -30,7 +30,7 @@ bilinear, tensor, tensor product
 
 variables {R R' M N : Type*} [semiring R]
 variables [add_comm_monoid M] [add_comm_monoid N]
-variables [module Rᵒᵖ M] [module R N]
+variables [module Rᵐᵒᵖ M] [module R N]
 
 include R
 
@@ -135,21 +135,21 @@ Note that `module R' (M ⊗[R] N)` is available even without this typeclass on `
 needed if `tensor_product.smul_tmul`, `tensor_product.smul_tmul'`, or `tensor_product.tmul_smul` is
 used.
 -/
-class compatible_smul [has_scalar R'ᵒᵖ M] [has_scalar R' N] :=
+class compatible_smul [has_scalar R'ᵐᵒᵖ M] [has_scalar R' N] :=
 (rsmul_tmul : ∀ (r : R') (m : M) (n : N), (m <• r) ⊗ₜ n = m ⊗ₜ[R] (r • n))
 
 variables {R R' M N}
 
 @[priority 100]
 instance compatible_smul.is_scalar_tower
-  [has_scalar R' R] [has_scalar R'ᵒᵖ R] [is_symmetric_smul R' R]
-  [has_scalar R'ᵒᵖ M] [is_scalar_tower R'ᵒᵖ Rᵒᵖ M]
+  [has_scalar R' R] [has_scalar R'ᵐᵒᵖ R] [is_symmetric_smul R' R]
+  [has_scalar R'ᵐᵒᵖ M] [is_scalar_tower R'ᵐᵒᵖ Rᵐᵒᵖ M]
   [has_scalar R' N] [is_scalar_tower R' R N] :
   compatible_smul R R' M N :=
 ⟨λ r m n, begin
-  conv_lhs {rw ← one_smul Rᵒᵖ m},
+  conv_lhs {rw ← one_smul Rᵐᵒᵖ m},
   conv_rhs {rw ← one_smul R n},
-  rw [←smul_assoc, ←smul_assoc, ←opposite.op_one, ←op_smul_eq_op_smul_op],
+  rw [←smul_assoc, ←smul_assoc, ←mul_opposite.op_one, ←op_smul_eq_op_smul_op],
   exact quotient.sound' (add_con_gen.rel.of _ _ (eqv.of_smul (r • (1 : R)) m n)),
 end⟩
 
@@ -157,13 +157,13 @@ instance compatible_smul.self : compatible_smul R R M N :=
 ⟨λ r m n, quotient.sound' (add_con_gen.rel.of _ _ (eqv.of_smul r m n))⟩
 
 /-- A right `smul` can be moved from one side of the product to the other. -/
-lemma rsmul_tmul [has_scalar R'ᵒᵖ M] [has_scalar R' N] [compatible_smul R R' M N]
+lemma rsmul_tmul [has_scalar R'ᵐᵒᵖ M] [has_scalar R' N] [compatible_smul R R' M N]
   (r : R') (m : M) (n : N) : (m <• r) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 compatible_smul.rsmul_tmul _ _ _
 
 /-- In the case of a symmetric action on `M`, we can move a `smul` vom the left to the
 right of the tensor product. -/
-lemma smul_tmul [has_scalar R' M] [has_scalar R'ᵒᵖ M] [is_symmetric_smul R' M]
+lemma smul_tmul [has_scalar R' M] [has_scalar R'ᵐᵒᵖ M] [is_symmetric_smul R' M]
   [has_scalar R' N] [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
   (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 by rw [←is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul]

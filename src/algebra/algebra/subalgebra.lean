@@ -307,7 +307,7 @@ rfl
 rfl
 
 /-- As submodules, subalgebras are idempotent. -/
-@[simp] theorem mul_self [algebra Rᵒᵖ A] [is_symmetric_smul R A] :
+@[simp] theorem mul_self [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A] :
   S.to_submodule * S.to_submodule = S.to_submodule :=
 begin
   apply le_antisymm,

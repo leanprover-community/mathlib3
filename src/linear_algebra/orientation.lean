@@ -347,7 +347,8 @@ namespace module.ray
 lemma ne_neg_self [no_zero_smul_divisors R M] (x : module.ray R M) : x ≠ -x :=
 begin
   intro h,
-  rw [←some_vector_ray x, ←ray_neg, ray_eq_iff] at h,
+  induction x using module.ray.ind,
+  rw [←ray_neg, ray_eq_iff] at h,
   rcases h with ⟨r₁, r₂, hr₁, hr₂, h⟩,
   rw [smul_neg, ←neg_smul, ←sub_eq_zero, ←sub_smul] at h,
   simpa [ne_of_gt (add_pos hr₁ hr₂)] using h

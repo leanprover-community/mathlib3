@@ -498,7 +498,7 @@ by simp [h.symm]
 lemma add_eq_of_eq_sub' (h : b = c - a) : a + b = c :=
 begin simp [h], rw [add_comm c, add_neg_cancel_left] end
 
-@[simp] lemma sub_sub_self (a b : G) : a - (a - b) = b :=
+lemma sub_sub_self (a b : G) : a - (a - b) = b :=
 by simpa using add_neg_cancel_left a b
 
 lemma add_sub_comm (a b c d : G) : a + b - (c + d) = (a - c) + (b - d) :=

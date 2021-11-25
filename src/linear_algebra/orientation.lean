@@ -393,7 +393,7 @@ begin
 end
 
 /-- `same_ray_setoid` equals `mul_action.orbit_rel` for the `units.pos_subgroup`. -/
-lemma same_ray_setoid_eq_orbit_rel (v₁ v₂ : M) :
+lemma same_ray_setoid_eq_orbit_rel :
   same_ray_setoid R M = mul_action.orbit_rel (units.pos_subgroup R) M :=
 setoid.ext' $ same_ray_iff_orbit_rel R
 

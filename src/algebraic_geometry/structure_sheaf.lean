@@ -8,7 +8,7 @@ import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
 import ring_theory.localization
-import ring_theory.subring
+import ring_theory.subring.basic
 
 /-!
 # The structure sheaf on `prime_spectrum R`.
@@ -856,7 +856,7 @@ begin
   rcases hs ⟨prime_spectrum.comap f p, hUV hpV⟩ with ⟨W, m, iWU, a, b, h_frac⟩,
   -- We claim that we can write our new section as the fraction `f a / f b` on the neighborhood
   -- `(comap f) ⁻¹ W ⊓ V` of `p`.
-  refine ⟨opens.comap (comap_continuous f) W ⊓ V, ⟨m, hpV⟩, opens.inf_le_right _ _, f a, f b, _⟩,
+  refine ⟨opens.comap (comap f) W ⊓ V, ⟨m, hpV⟩, opens.inf_le_right _ _, f a, f b, _⟩,
   rintro ⟨q, ⟨hqW, hqV⟩⟩,
   specialize h_frac ⟨prime_spectrum.comap f q, hqW⟩,
   refine ⟨h_frac.1, _⟩,
@@ -971,7 +971,7 @@ end
 
 @[elementwise, reassoc] lemma to_open_comp_comap (f : R →+* S)
   (U : opens (prime_spectrum.Top R)) :
-  to_open R U ≫ comap f U (opens.comap (comap_continuous f) U) (λ _, id) =
+  to_open R U ≫ comap f U (opens.comap (prime_spectrum.comap f) U) (λ _, id) =
   CommRing.of_hom f ≫ to_open S _ :=
 ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
 begin

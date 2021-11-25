@@ -62,8 +62,6 @@ end
 section inner_product_space
 open_locale complex_conjugate
 
-variables [measurable_space 𝕜] [borel_space 𝕜]
-
 include 𝕜
 
 instance : has_inner 𝕜 (α →₂[μ] E) := ⟨λ f g, ∫ a, ⟪f a, g a⟫ ∂μ⟩
@@ -137,7 +135,7 @@ end inner_product_space
 
 section indicator_const_Lp
 
-variables [measurable_space 𝕜] [borel_space 𝕜] {s : set α}
+variables {s : set α}
 
 variables (𝕜)
 
@@ -195,7 +193,7 @@ end L2
 section inner_continuous
 
 variables {α : Type*} [topological_space α] [measure_space α] [borel_space α] {𝕜 : Type*}
-  [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  [is_R_or_C 𝕜]
 variables (μ : measure α) [is_finite_measure μ]
 
 open_locale bounded_continuous_function complex_conjugate

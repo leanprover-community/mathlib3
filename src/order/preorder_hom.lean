@@ -6,7 +6,7 @@ Authors: Johan Commelin
 import order.galois_connection
 import order.complete_lattice
 import tactic.monotonicity
-import order.bounded_lattice
+import order.bounded_order
 import logic.function.iterate
 
 /-!

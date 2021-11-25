@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov
 -/
 import order.filter.at_top_bot
+import order.filter.pi
 
 /-!
 # The cofinite filter
@@ -40,8 +41,11 @@ def cofinite : filter α :=
 @[simp] lemma eventually_cofinite {p : α → Prop} :
   (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
 
+lemma has_basis_cofinite : has_basis cofinite (λ s : set α, s.finite) compl :=
+⟨λ s, ⟨λ h, ⟨sᶜ, h, (compl_compl s).subset⟩, λ ⟨t, htf, hts⟩, htf.subset $ compl_subset_comm.2 hts⟩⟩
+
 instance cofinite_ne_bot [infinite α] : ne_bot (@cofinite α) :=
-⟨mt empty_mem_iff_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }⟩
+has_basis_cofinite.ne_bot_iff.2 $ λ s hs, hs.infinite_compl.nonempty
 
 lemma frequently_cofinite_iff_infinite {p : α → Prop} :
   (∃ᶠ x in cofinite, p x) ↔ set.infinite {x | p x} :=

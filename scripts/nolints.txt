@@ -218,7 +218,7 @@ apply_nolint list.traverse doc_blame
 apply_nolint multiset.traverse doc_blame
 
 -- data/nat/basic.lean
-apply_nolint nat.subtype.semilattice_sup_bot fails_quickly
+apply_nolint nat.subtype.order_bot fails_quickly
 
 -- data/num/bitwise.lean
 apply_nolint snum.cadd doc_blame
@@ -982,11 +982,7 @@ apply_nolint transfer.compute_transfer doc_blame
 apply_nolint tactic.wlog doc_blame
 
 -- topology/category/Top/open_nhds.lean
-apply_nolint topological_space.open_nhds has_inhabited_instance
 apply_nolint topological_space.open_nhds.map doc_blame
-
--- topology/category/TopCommRing.lean
-apply_nolint TopCommRing has_inhabited_instance
 
 -- topology/uniform_space/completion.lean
 apply_nolint Cauchy.extend doc_blame

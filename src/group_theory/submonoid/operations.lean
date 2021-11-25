@@ -9,6 +9,7 @@ import group_theory.submonoid.basic
 import data.equiv.mul_add
 import algebra.group.prod
 import algebra.group.inj_surj
+import group_theory.group_action.defs
 
 /-!
 # Operations on `submonoid`s

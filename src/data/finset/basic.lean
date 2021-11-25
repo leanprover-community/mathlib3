@@ -398,6 +398,9 @@ instance : has_singleton α (finset α) := ⟨λ a, ⟨{a}, nodup_singleton a⟩
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : finset α) ↔ b = a := mem_singleton
 
+theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : finset α)) : x = y :=
+mem_singleton.1 h
+
 theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := not_congr mem_singleton
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
@@ -962,13 +965,7 @@ instance : lattice (finset α) :=
 instance {α : Type u} : order_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset }
 
-instance : semilattice_inf_bot (finset α) :=
-{ ..finset.order_bot, ..finset.lattice }
-
 @[simp] lemma bot_eq_empty {α : Type u} : (⊥ : finset α) = ∅ := rfl
-
-instance : semilattice_sup_bot (finset α) :=
-{ ..finset.semilattice_inf_bot, ..finset.lattice }
 
 instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
@@ -979,7 +976,6 @@ instance : distrib_lattice (finset α) :=
 @[simp] theorem union_left_idem (s t : finset α) : s ∪ (s ∪ t) = s ∪ t := sup_left_idem
 
 @[simp] theorem union_right_idem (s t : finset α) : s ∪ t ∪ t = s ∪ t := sup_right_idem
-
 @[simp] theorem inter_left_idem (s t : finset α) : s ∩ (s ∩ t) = s ∩ t := inf_left_idem
 
 @[simp] theorem inter_right_idem (s t : finset α) : s ∩ t ∩ t = s ∩ t := inf_right_idem
@@ -1124,7 +1120,7 @@ instance : generalized_boolean_algebra (finset α) :=
       false_iff, inf_eq_inter, not_mem_empty], tauto },
   ..finset.has_sdiff,
   ..finset.distrib_lattice,
-  ..finset.semilattice_inf_bot }
+  ..finset.order_bot }
 
 lemma not_mem_sdiff_of_mem_right {a : α} {s t : finset α} (h : a ∈ t) : a ∉ s \ t :=
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
@@ -1832,6 +1828,10 @@ end
 @[simp] lemma to_finset_reverse {l : list α} :
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
+
+lemma to_finset_repeat_of_ne_zero {a : α} {n : ℕ} (hn : n ≠ 0):
+  (list.repeat a n).to_finset = {a} :=
+by { ext x, simp [hn, list.mem_repeat] }
 
 @[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
 by {ext, simp}

@@ -30,7 +30,7 @@ lemma pairwise_disjoint.elim_finset [decidable_eq α] {s : set ι} {f : ι → f
   i = j :=
 hs.elim hi hj (finset.not_disjoint_iff.2 ⟨a, hai, haj⟩)
 
-lemma pairwise_disjoint.image_finset_of_le [decidable_eq ι] [semilattice_inf_bot α]
+lemma pairwise_disjoint.image_finset_of_le [decidable_eq ι] [semilattice_inf α] [order_bot α]
   {s : finset ι} {f : ι → α} (hs : (s : set ι).pairwise_disjoint f) {g : ι → ι}
   (hf : ∀ a, f (g a) ≤ f a) :
   (s.image g : set ι).pairwise_disjoint f :=
@@ -39,7 +39,7 @@ begin
   exact hs.image_of_le hf,
 end
 
-variables [distrib_lattice_bot α] -- TODO: This could be `lattice_bot` if it existed
+variables [lattice α] [order_bot α]
 
 /-- Bind operation for `set.pairwise_disjoint`. In a complete lattice, you can use
 `set.pairwise_disjoint.bUnion`. -/

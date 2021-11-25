@@ -927,17 +927,63 @@ example {X} {α : Type*} [topological_space X] (f : locally_constant X α) (x y 
   (h : f.discrete_quotient.rel x y) : f y = f x := h
 
 noncomputable def coe_padic_to_zmod (n : ℕ) (x : zmod d × ℤ_[p]) (hd : gcd d p = 1) : zmod (d * p^n) :=
+--  ((x.1, (to_zmod_pow n)x.2) : zmod (d * p ^ n))
   (zmod.chinese_remainder (nat.coprime.pow_right _ (nat.coprime_iff_gcd_eq_one.1 hd))).inv_fun (x.1, (to_zmod_pow n)x.2)
 -- should this be used
+
+example {α : Type*} (a b : α) (c : α × α) (h : c = (a,b)) : c.fst = a := by refine (congr_arg prod.fst h).trans rfl
+
+lemma mem_clopen_from (n : ℕ) (a : zmod (d * p^n)) (y : zmod d × ℤ_[p]) :
+  y ∈ (clopen_from p d n a).val ↔ y.fst = (a : zmod d) ∧
+    (a : zmod (p^n)) = (to_zmod_pow n) y.snd :=
+begin
+  dsimp [clopen_from],
+  simp only [set.mem_preimage, set.mem_image, set.mem_singleton_iff, set.singleton_prod],
+  split, all_goals { intro h, },
+  { cases h with x hx, split,
+    { rw ←(congr_arg prod.fst hx.2).trans rfl, },
+    { rw ←hx.1, apply congr_arg, rw ←(congr_arg prod.snd hx.2).trans rfl, }, },
+  { refine ⟨y.snd, h.2.symm, _⟩, rw ←h.1, simp only [prod.mk.eta], },
+end
+
+lemma mem_clopen_from' (n : ℕ) (x : zmod d × ℤ_[p]) (y : zmod d × ℤ_[p]) (hd : gcd d p = 1) :
+  y ∈ (clopen_from p d n (coe_padic_to_zmod p d n x hd)).val ↔ (F p d n).rel x y :=
+begin
+  rw mem_clopen_from, rw F_rel, rw coe_padic_to_zmod,
+  split, all_goals {intro h,},
+  { rw and_comm, rw eq_comm, convert h,
+    { sorry, },
+    { sorry, }, },
+  { sorry, },
+end
+
+lemma le_F_of_ge (k n : ℕ) (h : k ≤ n) : (F p d n) ≤ (F p d k) :=
+begin
+  rintros x y hn, rw F_rel at *,
+  refine ⟨_, hn.2⟩, repeat { rw ←cast_to_zmod_pow _ _ h _, },
+  apply congr_arg, exact hn.1,
+end
 
 lemma le_bound (U : set (zmod d × ℤ_[p])) (hU : is_open U) (x : zmod d × ℤ_[p]) (memU : x ∈ U)
   (n : ℕ) (h : bound p d U hU ≤ n) (hd : gcd d p = 1) :
   (clopen_from p d n (coe_padic_to_zmod p d n x hd)).val ⊆ U :=
 begin
   transitivity (clopen_from p d (bound p d U hU) (coe_padic_to_zmod p d (bound p d U hU) x hd)).val,
+  { intros y,
+    repeat { rw mem_clopen_from', },
+    suffices : (F p d n) ≤ (F p d (bound p d U hU)),
+    { apply this x y, },
+    { apply le_F_of_ge p d _ _ h, }, },
   { intros y hy,
-    sorry },
-  { sorry, },
+    rw mem_clopen_from at hy,
+    sorry, },
+end
+
+lemma exists_clopen_open {x : zmod d × ℤ_[p]} {U : set (zmod d × ℤ_[p])} (hU : is_open U)
+  (hx : x ∈ U) (hd : gcd d p = 1) :
+  ∃ (m : ℕ), (bound p d U hU) ≤ m ∧ (clopen_from p d m (coe_padic_to_zmod p d m x hd)).val ⊆ U :=
+begin
+  sorry,
 end
 
 lemma factor_F (hd : gcd d p = 1) (f : locally_constant (zmod d × ℤ_[p]) R) :
@@ -952,15 +998,18 @@ begin
   { simp only at ht,
     set n : ℕ := Sup ⨆ (x : R) (H : x ∈ t), {bound p d (f⁻¹' {x}) (this x)} with hn,
     refine ⟨n, _⟩,
-    rintros x y hF, rw F_rel at hF,
-    change f y = f x,
+    rintros x y hF,
     obtain ⟨i, hi⟩ := set.mem_Union.1 (ht (set.mem_univ x)),
     obtain ⟨hi, htx⟩ := set.mem_Union.1 hi,
+    obtain ⟨m, hm1, hm2⟩ := exists_clopen_open p d (this i) htx hd,
     simp only [set.mem_preimage, set.mem_singleton_iff] at htx,
+
+    rw F_rel at hF,
+    change f y = f x,
     rw htx,
     have h1 : y ∈ (clopen_from p d n (coe_padic_to_zmod p d n x hd)).val, sorry,
     rw ←set.mem_singleton_iff,
-    rw ←set.mem_preimage,
+    rw ←set.mem_preimage, -- need m ≤ n
     refine (le_bound p d (f⁻¹' {i}) (this i) x
       (set.mem_preimage.2 (set.mem_singleton_iff.2 htx)) n _ hd) h1,
     rw hn, apply le_cSup,
@@ -991,13 +1040,6 @@ lemma succ_eq_bUnion_equi_class : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.su
   (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion
     (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) :=
 sorry
-
-lemma le_F_of_ge (k n : ℕ) (h : k ≤ n) : (F p d n) ≤ (F p d k) :=
-begin
-  rintros x y hn, rw F_rel at *,
-  refine ⟨_, hn.2⟩, repeat { rw ←cast_to_zmod_pow _ _ h _, },
-  apply congr_arg, exact hn.1,
-end
 
 example {R S : Type*} [ring R] [ring S] {f : R →+* S} {x y : R} (h : f x = 0) :
   x ∈ ring_hom.ker f := by refine (ring_hom.mem_ker f).mpr h

@@ -3,7 +3,7 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
-import tactic.wlog order.zorn category_theory.conj data.fin.basic
+import tactic.wlog tactic order.zorn category_theory.conj data.fin.basic
 
 /-!
 # Flags of polytopes
@@ -327,20 +327,26 @@ lemma dual_cover_iff_cover {α : Type u} [preorder α] [order_top α] [graded α
   a ⋖ b ↔ @polytope.covers (order_dual α) _ a b :=
 by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
 
-instance (α : Type u) [preorder α] [order_top α] [graded α] : graded (order_dual α) :=
-{ grade := λ a : α, grade_top α - graded.grade a,
+instance (α : Type u) [partial_order α] [order_top α] [graded α] : graded (order_dual α) :=
+{ grade := λ a : α, grade_top α - grade a,
   grade_bot := nat.sub_self _,
   strict_mono := begin
     refine λ (a b : α) hab, _,
-    simp,
-    have : graded.grade a > graded.grade b := graded.strict_mono hab,
-    sorry,
+    have : grade a > grade b := graded.strict_mono hab,
+    have : grade a ≤ grade_top α := graded.strict_mono.monotone le_top,
+    have : grade b ≤ grade_top α := graded.strict_mono.monotone le_top,
+    linarith,
   end,
   hcovers := begin
     refine λ (x y : α) hxy, _,
     rw ←dual_cover_iff_cover at hxy,
-    rw (graded.hcovers hxy),
-    sorry,
+
+    -- this is dumb
+    have : graded.grade x = grade x := rfl,
+    rw ←this,
+
+    rw [graded.hcovers hxy, ←nat.sub_sub],
+    rw nat.sub_add_cancel (tsub_pos_of_lt (graded.strict_mono (lt_of_lt_of_le hxy.left le_top))),
   end }
 
 /-- `grade` is injective for linearly ordered `α`. -/

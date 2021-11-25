@@ -10,16 +10,15 @@ import analysis.normed_space.riesz_lemma
 /-!
 # Operator norm on the space of continuous linear maps
 
-Define the operator norm on the space of continuous linear maps between normed spaces, and prove
-its basic properties. In particular, show that this space is itself a normed space.
+Define the operator norm on the space of continuous (semi)linear maps between normed spaces, and
+prove its basic properties. In particular, show that this space is itself a normed space.
 
 Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
 theory for `semi_normed_space` and we specialize to `normed_space` at the end.
 
-## TODO
+Note that most of statements that apply to semilinear maps only hold when the ring homomorphism
+is isometric, as expressed by the typeclass `[ring_hom_isometric σ]`.
 
-* Only the `normed_field` section applies to semilinear maps; the rest still only applies to
-  plain linear maps.
 -/
 
 noncomputable theory
@@ -133,7 +132,7 @@ variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [no
 
 section
 
-variables [ring_hom_isometric σ₁₂]
+variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
   (c : 𝕜) (f g : E →SL[σ₁₂] F) (h : F →SL[σ₂₃] G) (x y z : E)
 
 lemma linear_map.bound_of_shell_semi_normed (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
@@ -265,7 +264,7 @@ lemma op_norm_neg (f : E →SL[σ₁₂] F) : ∥-f∥ = ∥f∥ := by simp only
 
 section
 
-variables [ring_hom_isometric σ₁₂]
+variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
   (c : 𝕜) (f g : E →SL[σ₁₂] F) (h : F →SL[σ₂₃] G) (x y z : E)
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
@@ -376,7 +375,7 @@ instance to_semi_normed_space {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_
 
 include σ₁₃
 /-- The operator norm is submultiplicative. -/
-lemma op_norm_comp_le [ring_hom_isometric σ₂₃] (f : E →SL[σ₁₂] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f∥ :=
+lemma op_norm_comp_le (f : E →SL[σ₁₂] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f∥ :=
 (cInf_le bounds_bdd_below
   ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
     by { rw mul_assoc, exact h.le_op_norm_of_le (f.le_op_norm x) } ⟩)
@@ -594,9 +593,9 @@ def flipₗᵢ' : (E →SL[σ₁₃] F →SL[σ₂₃] G) ≃ₗᵢ[𝕜₃] (F 
 
 variables {E F G σ₁₃ σ₂₃}
 
-@[simp] lemma flipₗᵢ'_symm : (flipₗᵢ' E F G σ₁₃ σ₂₃).symm = flipₗᵢ' F E G σ₂₃ σ₁₃ := rfl
+@[simp] lemma flipₗᵢ'_symm : (flipₗᵢ' E F G σ₂₃ σ₁₃).symm = flipₗᵢ' F E G σ₁₃ σ₂₃ := rfl
 
-@[simp] lemma coe_flipₗᵢ' : ⇑(flipₗᵢ' E F G σ₁₃ σ₂₃) = flip := rfl
+@[simp] lemma coe_flipₗᵢ' : ⇑(flipₗᵢ' E F G σ₂₃ σ₁₃) = flip := rfl
 
 variables (𝕜 E Fₗ Gₗ)
 
@@ -647,12 +646,12 @@ variables (σ₁₂ σ₂₃ E F G)
 /-- Composition of continuous semilinear maps as a continuous semibilinear map. -/
 def compSL : (F →SL[σ₂₃] G) →L[𝕜₃] (E →SL[σ₁₂] F) →SL[σ₂₃] (E →SL[σ₁₃] G) :=
 linear_map.mk_continuous₂
-  (linear_map.mk₂'ₛₗ (ring_hom.id 𝕜₃) σ₂₃ comp add_comp smul_comp comp_add (λ c f g, comp_smul _ _ _))
+  (linear_map.mk₂'ₛₗ (ring_hom.id 𝕜₃) σ₂₃ comp add_comp smul_comp comp_add
+    (λ c f g, by { ext, simp only [map_smulₛₗ, coe_smul', coe_comp',
+                                   function.comp_app, pi.smul_apply] }))
   1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
 
 variables {𝕜 E F G}
-
-#check compSL
 
 include σ₁₃
 
@@ -664,9 +663,7 @@ variables (𝕜 E Fₗ Gₗ)
 
 /-- Composition of continuous linear maps as a continuous bilinear map. -/
 def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E →L[𝕜] Gₗ) :=
-linear_map.mk_continuous₂
-  (linear_map.mk₂ _ comp add_comp smul_comp comp_add (λ c f g, comp_smul _ _ _))
-  1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
+  compSL E Fₗ Gₗ (ring_hom.id 𝕜) (ring_hom.id 𝕜)
 
 variables {𝕜 E Fₗ Gₗ}
 
@@ -682,7 +679,8 @@ def lmulₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
     λ x y, by simpa using norm_mul_le x y,
   norm_map' := λ x, le_antisymm
     (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
-    (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] }) }
+    (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'],
+          apply_instance }) }
 
 /-- Left multiplication in a normed algebra as a continuous bilinear map. -/
 def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
@@ -703,7 +701,8 @@ def lmul_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (lmul 𝕜 𝕜').fl
 @[simp] lemma op_norm_lmul_right_apply (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ = ∥x∥ :=
 le_antisymm
   (op_norm_le_bound _ (norm_nonneg x) (λ y, (norm_mul_le y x).trans_eq (mul_comm _ _)))
-  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] })
+  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'],
+        apply_instance })
 
 /-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
 continuous linear maps. -/
@@ -820,39 +819,43 @@ section has_sum
 -- Results in this section hold for continuous additive monoid homomorphisms or equivalences but we
 -- don't have bundled continuous additive homomorphisms.
 
-variables {ι R M M₂ : Type*} [semiring R] [add_comm_monoid M] [module R M]
-  [add_comm_monoid M₂] [module R M₂] [topological_space M] [topological_space M₂]
+variables {ι R R₂ M M₂ : Type*} [semiring R] [semiring R₂] [add_comm_monoid M] [module R M]
+  [add_comm_monoid M₂] [module R₂ M₂] [topological_space M] [topological_space M₂]
+  {σ : R →+* R₂} {σ' : R₂ →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
 
 /-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
-protected lemma continuous_linear_map.has_sum {f : ι → M} (φ : M →L[R] M₂) {x : M}
+protected lemma continuous_linear_map.has_sum {f : ι → M} (φ : M →SL[σ] M₂) {x : M}
   (hf : has_sum f x) :
   has_sum (λ (b:ι), φ (f b)) (φ x) :=
 by simpa only using hf.map φ.to_linear_map.to_add_monoid_hom φ.continuous
 
 alias continuous_linear_map.has_sum ← has_sum.mapL
 
-protected lemma continuous_linear_map.summable {f : ι → M} (φ : M →L[R] M₂) (hf : summable f) :
+protected lemma continuous_linear_map.summable {f : ι → M} (φ : M →SL[σ] M₂) (hf : summable f) :
   summable (λ b:ι, φ (f b)) :=
 (hf.has_sum.mapL φ).summable
 
 alias continuous_linear_map.summable ← summable.mapL
 
 protected lemma continuous_linear_map.map_tsum [t2_space M₂] {f : ι → M}
-  (φ : M →L[R] M₂) (hf : summable f) : φ (∑' z, f z) = ∑' z, φ (f z) :=
+  (φ : M →SL[σ] M₂) (hf : summable f) : φ (∑' z, f z) = ∑' z, φ (f z) :=
 (hf.has_sum.mapL φ).tsum_eq.symm
 
+include σ'
 /-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
-protected lemma continuous_linear_equiv.has_sum {f : ι → M} (e : M ≃L[R] M₂) {y : M₂} :
+protected lemma continuous_linear_equiv.has_sum {f : ι → M} (e : M ≃SL[σ] M₂) {y : M₂} :
   has_sum (λ (b:ι), e (f b)) y ↔ has_sum f (e.symm y) :=
-⟨λ h, by simpa only [e.symm.coe_coe, e.symm_apply_apply] using h.mapL (e.symm : M₂ →L[R] M),
-  λ h, by simpa only [e.coe_coe, e.apply_symm_apply] using (e : M →L[R] M₂).has_sum h⟩
+⟨λ h, by simpa only [e.symm.coe_coe, e.symm_apply_apply] using h.mapL (e.symm : M₂ →SL[σ'] M),
+  λ h, by simpa only [e.coe_coe, e.apply_symm_apply] using (e : M →SL[σ] M₂).has_sum h⟩
 
-protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃L[R] M₂) :
+
+protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃SL[σ] M₂) :
   summable (λ b:ι, e (f b)) ↔ summable f :=
-⟨λ hf, (e.has_sum.1 hf.has_sum).summable, (e : M →L[R] M₂).summable⟩
+⟨λ hf, (e.has_sum.1 hf.has_sum).summable, (e : M →SL[σ] M₂).summable⟩
+
 
 lemma continuous_linear_equiv.tsum_eq_iff [t2_space M] [t2_space M₂] {f : ι → M}
-  (e : M ≃L[R] M₂) {y : M₂} : ∑' z, e (f z) = y ↔ ∑' z, f z = e.symm y :=
+  (e : M ≃SL[σ] M₂) {y : M₂} : ∑' z, e (f z) = y ↔ ∑' z, f z = e.symm y :=
 begin
   by_cases hf : summable f,
   { exact ⟨λ h, (e.has_sum.mp ((e.summable.mpr hf).has_sum_iff.mpr h)).tsum_eq,
@@ -863,7 +866,7 @@ begin
 end
 
 protected lemma continuous_linear_equiv.map_tsum [t2_space M] [t2_space M₂] {f : ι → M}
-  (e : M ≃L[R] M₂) : e (∑' z, f z) = ∑' z, e (f z) :=
+  (e : M ≃SL[σ] M₂) : e (∑' z, f z) = ∑' z, e (f z) :=
 by { refine symm (e.tsum_eq_iff.mpr _), rw e.symm_apply_apply _ }
 
 end has_sum
@@ -871,6 +874,7 @@ end has_sum
 namespace continuous_linear_equiv
 
 variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  [ring_hom_isometric σ₁₂]
 variables (e : E ≃SL[σ₁₂] F)
 
 include σ₂₁
@@ -943,6 +947,7 @@ variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nondiscrete_normed_field 𝕜�
   [semi_normed_space 𝕜₁' E'] [semi_normed_space 𝕜₂' F']
   {σ₁' : 𝕜₁' →+* 𝕜} {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃}
   [ring_hom_comp_triple σ₁' σ₁₃ σ₁₃'] [ring_hom_comp_triple σ₂' σ₂₃ σ₂₃']
+  [ring_hom_isometric σ₂₃] [ring_hom_isometric σ₁₃]
   [ring_hom_isometric σ₁'] [ring_hom_isometric σ₂'] [ring_hom_isometric σ₁₃']
   [ring_hom_isometric σ₂₃']
 

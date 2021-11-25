@@ -1015,6 +1015,17 @@ end
 
 end bounded_order
 
+section linear_order
+
+variables [linear_order α]
+
+@[simp] lemma min_top_left [order_top α] (a : α) : min (⊤ : α) a = a := min_eq_right le_top
+@[simp] lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_top
+@[simp] lemma max_bot_left [order_bot α] (a : α) : max (⊥ : α) a = a := max_eq_right bot_le
+@[simp] lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
+
+end linear_order
+
 section distrib_lattice_bot
 variables [distrib_lattice α] [order_bot α] {a b c : α}
 

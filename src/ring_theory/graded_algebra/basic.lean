@@ -59,7 +59,7 @@ lemma graded_ring.is_internal [graded_algebra 𝒜] :
 
 variable [graded_algebra 𝒜]
 
-/-- If `A` is graded by `ι` with degree `i` component `𝒜 i`, then it is isomorphic as 
+/-- If `A` is graded by `ι` with degree `i` component `𝒜 i`, then it is isomorphic as
 an algebra to a direct sum of components. -/
 def graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
 { to_fun := direct_sum.submodule_coe_alg_hom 𝒜,
@@ -76,5 +76,36 @@ def graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
 @[simp] lemma graded_algebra.decompose_symm_of {i : ι} (x : 𝒜 i) :
   (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i x) = x :=
 direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
+
+/-- The projection maps of graded algebra-/
+def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i : ι) : A →+ A :=
+(𝒜 i).subtype.to_add_monoid_hom.comp $
+  (dfinsupp.eval_add_monoid_hom i).comp $
+  (graded_algebra.decompose 𝒜).to_alg_hom.to_ring_hom.to_add_monoid_hom
+
+lemma graded_algebra.proj_apply (i : ι) (r : A) :
+  graded_algebra.proj 𝒜 i r = (graded_algebra.decompose 𝒜 r : ⨁ i, 𝒜 i) i := rfl
+
+lemma graded_algebra.proj_mem (i : ι) (r : A) :
+  graded_algebra.proj 𝒜 i r ∈ 𝒜 i := (graded_algebra.decompose 𝒜 r i).2
+
+/-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
+def graded_algebra.support [Π (i : ι) (x : (λ (i : ι), ↥(𝒜 i)) i), decidable (x ≠ 0)]
+  (r : A) : finset ι :=
+(graded_algebra.decompose 𝒜 r).support
+
+lemma graded_ring.proj_recompose (a : ⨁ i, 𝒜 i) (i : ι) :
+  graded_algebra.proj 𝒜 i ((graded_algebra.decompose 𝒜).symm a) =
+  (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i (a i)) :=
+begin
+  unfold graded_algebra.proj,
+  simp only [alg_equiv.coe_alg_hom, submodule.subtype_apply, add_monoid_hom.coe_comp,
+    alg_equiv.to_alg_hom_eq_coe, ring_hom.to_add_monoid_hom_eq_coe,
+    graded_algebra.decompose_symm_of, alg_hom.coe_to_ring_hom,
+    alg_equiv.apply_symm_apply, function.comp_app, ring_hom.coe_add_monoid_hom,
+    linear_map.to_add_monoid_hom_coe,
+    alg_hom.to_ring_hom_eq_coe, set_like.coe_eq_coe],
+  refl,
+end
 
 end graded_algebra

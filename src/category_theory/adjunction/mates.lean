@@ -335,27 +335,32 @@ def transfer_lax_functor (L : lax_functor_to_Cat C)
     ext, apply quiver.hom.unop_inj, dsimp, iterate 2 {rw transfer_nat_trans_self_app},
     refine eq.trans _ ((adj f.unop).right_triangle_components_assoc _),
     rw [L.comp_id, adjunction.id, adjunction.comp, assoc, ←functor.map_comp_assoc],
-    congr' 3, {simp, erw [←nat_trans.naturality_assoc, id_comp], refl}, simpa },
+    congr' 3, {simp [←(L.map_id X.unop).naturality_assoc], erw id_comp, refl}, simpa },
   comp_id := λ X Y f, by {
     rw transfer_nat_trans_self_eq₂ _ (congr_arg quiver.hom.unop (comp_id f)),
     ext, apply quiver.hom.unop_inj, dsimp, iterate 2 {rw transfer_nat_trans_self_app},
     rw [L.id_comp, adjunction.id, adjunction.comp, assoc], simp,
-    erw [(adj f.unop).right_triangle_components_assoc], symmetry, apply id_comp },
+    erw (adj f.unop).right_triangle_components_assoc, symmetry, apply id_comp },
   assoc := λ X Y Z W f g h, by {
     rw transfer_nat_trans_self_eq₂ _ (congr_arg quiver.hom.unop (assoc f g h)),
     ext, apply quiver.hom.unop_inj, dsimp, set f := f.unop, set g := g.unop, set h := h.unop,
     rw ← assoc ((Rmap h).map _), iterate 4 {rw transfer_nat_trans_self_app},
-    iterate 2 { erw (adj ((h ≫ g) ≫ f)).unit.naturality_assoc,
-      rw [functor.comp_map, ←functor.map_comp] }, congr' 3,
+    iterate 2 { erw ← adjunction.unit_naturality_assoc, rw ← functor.map_comp }, congr' 3,
     { iterate 2 {erw nat_trans.naturality_assoc},
       iterate 4 {rw adjunction.comp}, dsimp, iterate 4 {rw id_comp},
-      iterate 2 {rw ← functor.map_comp_assoc}, rw (L.map (h ≫ g)).map_comp_assoc,
-      erw (adj (h ≫ g)).counit.naturality, rw (adj (h ≫ g)).left_triangle_components_assoc,
-      rw functor.id_map, rw (L.map f).map_comp,
+      iterate 2 {rw ← functor.map_comp_assoc},
+      rw [(L.map (h ≫ g)).map_comp_assoc, (adj (h ≫ g)).counit_naturality,
+          (adj (h ≫ g)).left_triangle_components_assoc, (L.map f).map_comp],
       iterate 2 {rw ← assoc ((L.map_comp (h ≫ g) f).app _)},
-      have := nat_trans.congr_app (L.assoc h g f) _,
-      rw [nat_trans.comp_app, whisker_right_app] at this, rw this,
-      simp, erw nat_trans.naturality_assoc, refl }, simpa } }
+      have := eq_whisker (nat_trans.congr_app (L.assoc h g f) _) _,
+      rw [nat_trans.comp_app, whisker_right_app] at this,
+      simp only [assoc] at ⊢ this, rw this, simp,
+      erw nat_trans.naturality_assoc, refl }, simpa } }
+
+structure pseudofunctor_to_Cat extends lax_functor_to_Cat C :=
+(is_iso_map_id : ∀ X, is_iso (map_id X))
+(is_iso_map_comp : ∀ {X Y Z} (f : X ⟶ Y) (g : Y ⟶ Z), is_iso (map_comp f g))
+
 
 
 namespace lax_functor

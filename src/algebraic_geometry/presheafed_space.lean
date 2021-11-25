@@ -202,7 +202,7 @@ def iso_of_components (H : X.1 ≅ Y.1) (α : H.hom _* X.2 ≅ Y.2) : X ≅ Y :=
     induction x using opposite.rec,
     simp only [comp_c_app, whisker_right_app, presheaf.to_pushforward_of_iso_app,
       nat_trans.comp_app, eq_to_hom_app, id_c_app, category.assoc],
-    erw [←α.hom.naturality],
+    erw [← α.hom.naturality],
     have := nat_trans.congr_app (α.inv_hom_id) (op x),
     cases x,
     rw nat_trans.comp_app at this,
@@ -233,7 +233,7 @@ def sheaf_iso_of_iso (H : X ≅ Y) : Y.2 ≅ H.hom.base _* X.2 :=
       nat_trans.id_app, H.hom.c.naturality],
     have := congr_app H.hom_inv_id ((opens.map H.hom.base).op.obj U),
     generalize_proofs h at this,
-    simpa using congr_arg (λ f, f ≫X.presheaf.map (eq_to_hom h.symm)) this
+    simpa using congr_arg (λ f, f ≫ X.presheaf.map (eq_to_hom h.symm)) this
   end }
 
 instance base_is_iso_of_iso (f : X ⟶ Y) [is_iso f] : is_iso f.base :=
@@ -313,7 +313,7 @@ def restrict_top_iso (X : PresheafedSpace C) :
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $
     by { erw comp_c, rw X.of_restrict_top_c, ext, simp },
   inv_hom_id' := ext _ _ rfl $
-    by { erw comp_c, rw X.of_restrict_top_c, ext, simp, erw comp_id, refl } }
+    by { erw comp_c, rw X.of_restrict_top_c, ext, simpa [-eq_to_hom_refl] } }
 
 /--
 The global sections, notated Gamma.

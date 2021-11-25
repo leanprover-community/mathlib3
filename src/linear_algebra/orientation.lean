@@ -207,6 +207,15 @@ lemma same_ray.neg {v₁ v₂ : M} : same_ray R v₁ v₂ → same_ray R (-v₁)
 lemma same_ray_neg_swap {v₁ v₂ : M} : same_ray R (-v₁) v₂ ↔ same_ray R v₁ (-v₂) :=
 ⟨λ h, by simpa only [neg_neg] using h.neg, λ h, by simpa only [neg_neg] using h.neg⟩
 
+/-- If a vector is in the same ray as its negation, that vector is zero. -/
+lemma eq_zero_of_same_ray_self_neg [no_zero_smul_divisors R M] {v₁ : M} (h : same_ray R v₁ (-v₁)) :
+  v₁ = 0 :=
+begin
+  rcases h with ⟨r₁, r₂, hr₁, hr₂, h⟩,
+  rw [smul_neg, ←neg_smul, ←sub_eq_zero, ←sub_smul, sub_neg_eq_add, smul_eq_zero] at h,
+  exact h.resolve_left (add_pos hr₁ hr₂).ne',
+end
+
 namespace ray_vector
 
 variables {R}
@@ -247,6 +256,15 @@ variables {R}
 /-- Negating a ray twice produces the original ray. -/
 @[simp] protected lemma neg_neg [nontrivial R] (x : module.ray R M) : -(-x) = x :=
 quotient.ind (λ a, congr_arg quotient.mk $ ray_vector.neg_neg _) x
+
+/-- A ray does not equal its own negation. -/
+lemma ne_neg_self [nontrivial R] [no_zero_smul_divisors R M] (x : module.ray R M) : x ≠ -x :=
+begin
+  intro h,
+  induction x using module.ray.ind,
+  rw [←ray_neg, ray_eq_iff] at h,
+  exact x_hv (eq_zero_of_same_ray_self_neg h)
+end
 
 end module.ray
 
@@ -340,21 +358,6 @@ begin
 end
 
 end basis
-
-namespace module.ray
-
-/-- A ray does not equal its own negation. -/
-lemma ne_neg_self [no_zero_smul_divisors R M] (x : module.ray R M) : x ≠ -x :=
-begin
-  intro h,
-  induction x using module.ray.ind,
-  rw [←ray_neg, ray_eq_iff] at h,
-  rcases h with ⟨r₁, r₂, hr₁, hr₂, h⟩,
-  rw [smul_neg, ←neg_smul, ←sub_eq_zero, ←sub_smul] at h,
-  simpa [ne_of_gt (add_pos hr₁ hr₂)] using h
-end
-
-end module.ray
 
 end linear_ordered_comm_ring
 

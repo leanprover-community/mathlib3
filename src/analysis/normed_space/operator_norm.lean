@@ -182,7 +182,8 @@ end
 
 namespace continuous_linear_map
 
-theorem bound [ring_hom_isometric σ₁₂] (f : E →SL[σ₁₂] F): ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
+theorem bound [ring_hom_isometric σ₁₂] (f : E →SL[σ₁₂] F) :
+  ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
 f.to_linear_map.bound_of_continuous f.2
 
 section

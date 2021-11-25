@@ -183,17 +183,12 @@ local notation `↑ₐ` := algebra_map 𝕜 A
 /-- Without the assumption `nontrivial A`, then `0 : A` would be invertible. -/
 @[simp] lemma zero_eq [nontrivial A] : σ (0 : A) = {0} :=
 begin
-  apply set.eq_of_subset_of_subset,
-  { change σ (0 : A) with (resolvent 𝕜 (0 : A))ᶜ,
-    rw set.compl_subset_comm,
-    intros k hk,
-    rw set.mem_compl_singleton_iff at hk,
-    have unit_k_one : is_unit (units.mk0 k hk • (1 : A)),
-      from is_unit.smul (units.mk0 k hk) is_unit_one,
-    rw mem_resolvent_iff,
-    simpa [algebra.algebra_map_eq_smul_one], },
-  { rw [set.singleton_subset_iff, mem_iff],
-    simp [algebra.algebra_map_eq_smul_one], },
+  refine set.subset.antisymm _ (by simp [algebra.algebra_map_eq_smul_one, mem_iff]),
+  rw [spectrum, set.compl_subset_comm],
+  intros k hk,
+  rw set.mem_compl_singleton_iff at hk,
+  have : is_unit (units.mk0 k hk • (1 : A)) := is_unit.smul (units.mk0 k hk) is_unit_one,
+  simpa [mem_resolvent_iff, algebra.algebra_map_eq_smul_one]
 end
 
 @[simp] theorem scalar_eq [nontrivial A] (k : 𝕜) : σ (↑ₐk) = {k} :=
@@ -219,14 +214,14 @@ open_locale pointwise
 theorem smul_eq_smul [nontrivial A] (k : 𝕜) (a : A) (ha : (σ a).nonempty) :
   σ (k • a) = k • (σ a) :=
 begin
-  by_cases h : k = 0,
-  { simp [h,ha,zero_smul_set], refl },
+  rcases eq_or_ne k 0 with rfl | h,
+  { simpa [ha, zero_smul_set] },
   { exact unit_smul_eq_smul a (units.mk0 k h) },
 end
 
 theorem nonzero_mul_eq_swap_mul (a b : A) : σ (a * b) \ {0} = σ (b * a) \ {0} :=
 begin
-  suffices h : ∀ (x y : A), σ (x*y) \ {0} ⊆ σ (y*x) \ {0},
+  suffices h : ∀ (x y : A), σ (x * y) \ {0} ⊆ σ (y * x) \ {0},
   { exact set.eq_of_subset_of_subset (h a b) (h b a) },
   { rintros _ _ k ⟨k_mem,k_neq⟩,
     change k with ↑(units.mk0 k k_neq) at k_mem,

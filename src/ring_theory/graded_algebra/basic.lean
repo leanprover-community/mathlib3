@@ -103,9 +103,6 @@ def graded_algebra.support [Π (i : ι) (x : (λ (i : ι), ↥(𝒜 i)) i), deci
 lemma graded_ring.proj_recompose (a : ⨁ i, 𝒜 i) (i : ι) :
   graded_algebra.proj 𝒜 i ((graded_algebra.decompose 𝒜).symm a) =
   (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i (a i)) :=
-begin
-  rw graded_algebra.proj_apply,
-  simp only [graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply]
-end
+by rw [graded_algebra.proj_apply, graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply]
 
 end graded_algebra

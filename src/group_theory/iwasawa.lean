@@ -252,8 +252,9 @@ section Commutators_And_Derived_Group
 variables {G : Type*} [group G]
 
 theorem  quotient_comm_contains_commutators_iff (N : subgroup G) [nN : N.normal] :
-  commutative ((*) : (quotient_group.quotient N) → (quotient_group.quotient N) → (quotient_group.quotient N))
-   ↔ commutator G ≤ N :=
+  commutative ((*) :
+    (quotient_group.quotient N) → (quotient_group.quotient N) → (quotient_group.quotient N))
+  ↔ commutator G ≤ N :=
 begin
   split,
   { intro hcomm, -- rintro ⟨hcomm : ∀ (a b: quotient_group.quotient N), a * b = b * a ⟩,

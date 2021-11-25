@@ -393,17 +393,17 @@ end order_dual
 
 /-! ### Order instances on the function space -/
 
-instance pi.has_le {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] : has_le (Π i, α i) :=
+def pi.has_le {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] : has_le (Π i, α i) :=
 { le       := λ x y, ∀ i, x i ≤ y i }
-
-lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] {x y : Π i, α i} :
-  x ≤ y ↔ ∀ i, x i ≤ y i :=
-iff.rfl
 
 instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] : preorder (Π i, α i) :=
 { le_refl  := λ a i, le_refl (a i),
   le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i),
   ..pi.has_le }
+
+lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
+  x ≤ y ↔ ∀ i, x i ≤ y i :=
+iff.rfl
 
 lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=

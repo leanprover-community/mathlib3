@@ -78,10 +78,16 @@ def graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
 direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
 
 /-- The projection maps of graded algebra-/
-def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i : ι) : A →+ A :=
-(𝒜 i).subtype.to_add_monoid_hom.comp $
-  (dfinsupp.eval_add_monoid_hom i).comp $
-  (graded_algebra.decompose 𝒜).to_alg_hom.to_ring_hom.to_add_monoid_hom
+def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i : ι) : A →ₗ[R] A :=
+{ to_fun := λ a, ((graded_algebra.decompose 𝒜 a) i).1,
+  map_add' := λ a a', by simp only [alg_equiv.map_add, submodule.coe_add,
+    direct_sum.add_apply, subtype.val_eq_coe],
+  map_smul' := λ r a, begin
+    rw ring_hom.id_apply,
+    erw alg_hom.map_smul (graded_algebra.decompose 𝒜).to_alg_hom r,
+    simp only [dfinsupp.coe_smul, alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe,
+      submodule.coe_smul_of_tower, pi.smul_apply, subtype.val_eq_coe]
+  end }
 
 lemma graded_algebra.proj_apply (i : ι) (r : A) :
   graded_algebra.proj 𝒜 i r = (graded_algebra.decompose 𝒜 r : ⨁ i, 𝒜 i) i := rfl
@@ -98,14 +104,8 @@ lemma graded_ring.proj_recompose (a : ⨁ i, 𝒜 i) (i : ι) :
   graded_algebra.proj 𝒜 i ((graded_algebra.decompose 𝒜).symm a) =
   (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i (a i)) :=
 begin
-  unfold graded_algebra.proj,
-  simp only [alg_equiv.coe_alg_hom, submodule.subtype_apply, add_monoid_hom.coe_comp,
-    alg_equiv.to_alg_hom_eq_coe, ring_hom.to_add_monoid_hom_eq_coe,
-    graded_algebra.decompose_symm_of, alg_hom.coe_to_ring_hom,
-    alg_equiv.apply_symm_apply, function.comp_app, ring_hom.coe_add_monoid_hom,
-    linear_map.to_add_monoid_hom_coe,
-    alg_hom.to_ring_hom_eq_coe, set_like.coe_eq_coe],
-  refl,
+  rw graded_algebra.proj_apply,
+  simp only [graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply]
 end
 
 end graded_algebra

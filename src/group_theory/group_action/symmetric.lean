@@ -25,11 +25,13 @@ instance of `Rᵒᵖ` and several instances for closure properties.
 
 group action
 -/
-open opposite
+--open opposite
 
 universe u
 
-class is_symmetric_smul (R M : Type*) [has_scalar R M] [has_scalar Rᵒᵖ M] :=
+#check rsmul
+
+class is_symmetric_smul (R M : Type*) [has_scalar R M] [has_scalar Rᵐᵒᵖ M] :=
 (op_smul_eq_smul : ∀ (r : R) (m : M), m <• r = r • m)
 
 open is_symmetric_smul (op_smul_eq_smul)

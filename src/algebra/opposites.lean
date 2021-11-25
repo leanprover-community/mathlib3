@@ -290,7 +290,8 @@ instance [ring α] [is_domain α] : is_domain αᵐᵒᵖ :=
 instance [group_with_zero α] : group_with_zero αᵐᵒᵖ :=
 { mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,
   inv_zero := unop_injective inv_zero,
-  .. mul_opposite.monoid_with_zero α, .. mul_opposite.div_inv_monoid α, .. mul_opposite.nontrivial α }
+  .. mul_opposite.monoid_with_zero α, .. mul_opposite.div_inv_monoid α,
+  .. mul_opposite.nontrivial α }
 
 variable {α}
 

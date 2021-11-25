@@ -150,7 +150,7 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, let ⟨m, hm, n, hn, hmn⟩ := mem_sup.1
 lemma mul_subset_mul : (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
 by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
 
-lemma map_mul {A'} [semiring A'] [algebra R A'] [algebra Rᵐᵒᵖ A'] [is_symmetric_smul R A']
+lemma map_mul {A'} [semiring A'] [algebra R A']
   (f : A →ₐ[R] A') :
   map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
 calc map f.to_linear_map (M * N)

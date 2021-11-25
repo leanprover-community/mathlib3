@@ -516,7 +516,7 @@ by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_equiv.map_smul, 
          b.repr_self_apply, smul_eq_mul, mul_boole],
      congr' 1; simp only [eq_comm] }
 
-variables [algebra Rᵒᵖ S] [is_symmetric_smul R S]
+--variables [algebra Rᵒᵖ S] [is_symmetric_smul R S]
 
 /-- `left_mul_matrix b x` is the matrix corresponding to the linear map `λ y, x * y`.
 
@@ -557,8 +557,6 @@ lemma left_mul_matrix_injective : function.injective (left_mul_matrix b) :=
              ... = x' : mul_one x'
 
 variable [fintype n]
-variables [algebra Rᵒᵖ T] [is_symmetric_smul R T]
-variables [algebra Sᵒᵖ T] [is_symmetric_smul S T]
 
 lemma smul_left_mul_matrix (x) (ik jk) :
   left_mul_matrix (b.smul c) x ik jk =

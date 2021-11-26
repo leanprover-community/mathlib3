@@ -756,7 +756,7 @@ over `a ∈ ⋃₀ t` is the product over `s ∈ t` of the products of `f a` ove
   ∏ᶠ a ∈ ⋃₀ t, f a = ∏ᶠ s ∈ t, ∏ᶠ a ∈ s, f a :=
 by rw [set.sUnion_eq_bUnion, finprod_mem_bUnion h ht₀ ht₁]
 
-lemma finprod_mul_sdiff_singleton (a : α) (hf : finite (mul_support f)) :
+@[to_additive] lemma finprod_mul_sdiff_singleton (a : α) (hf : finite (mul_support f)) :
   f a * (∏ᶠ i ∈ (mul_support f) \ {a}, f i) = ∏ᶠ i, f i  :=
 begin
   classical,

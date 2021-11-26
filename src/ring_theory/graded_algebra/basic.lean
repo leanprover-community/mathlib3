@@ -44,16 +44,6 @@ variables {ι R A : Type*}
 variables [decidable_eq ι] [add_comm_monoid ι] [comm_semiring R] [ring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
 
-/-- An internally-graded `R`-algebra `A` is one that can be decomposed into a collection
-of `submodule R A`s indexed by `ι` such that the canonical map `A → ⨁ i, 𝒜 i` is bijective and
-respects multiplication, i.e. the product of an element of degree `i` and an element of degree `j`
-is an element of degree `i + j`.
-
-Note that the fact that `A` is internally-graded, `graded_algebra 𝒜`, implies an externally-graded
-algebra structure `direct_sum.galgebra R (λ i, ↥(𝒜 i))`, which in turn makes available an
-`algebra R (⨁ i, 𝒜 i)` instance.
--/
-
 lemma direct_sum.coe_mul_apply_submodule [set_like.graded_monoid 𝒜]
   [Π (i : ι) (x : (λ (i : ι), ↥(𝒜 i)) i), decidable (x ≠ 0)] (r r' : ⨁ i, 𝒜 i) (i : ι) :
   ((r * r') i : A) =
@@ -63,6 +53,17 @@ begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, submodule.coe_sum],
   simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
+
+
+/-- An internally-graded `R`-algebra `A` is one that can be decomposed into a collection
+of `submodule R A`s indexed by `ι` such that the canonical map `A → ⨁ i, 𝒜 i` is bijective and
+respects multiplication, i.e. the product of an element of degree `i` and an element of degree `j`
+is an element of degree `i + j`.
+
+Note that the fact that `A` is internally-graded, `graded_algebra 𝒜`, implies an externally-graded
+algebra structure `direct_sum.galgebra R (λ i, ↥(𝒜 i))`, which in turn makes available an
+`algebra R (⨁ i, 𝒜 i)` instance.
+-/
 
 class graded_algebra extends set_like.graded_monoid 𝒜 :=
 (decompose' : A → ⨁ i, 𝒜 i)

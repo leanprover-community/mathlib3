@@ -1004,15 +1004,10 @@ namespace nat
 
 theorem prime_three : prime 3 := by norm_num
 
-/--
-In most cases, we should not have global instances of `fact`; typeclass search only reads the head
-symbol and then tries any instances, which means that adding any such instance will cause slowdowns
-everywhere. We instead make them as lemmata and make them local instances as required.
--/
-library_note "fact non-instances"
-
+/-- See note [fact non-instances].-/
 lemma fact_prime_two : fact (prime 2) := ⟨prime_two⟩
 
+/-- See note [fact non-instances].-/
 lemma fact_prime_three : fact (prime 3) := ⟨prime_three⟩
 
 end nat

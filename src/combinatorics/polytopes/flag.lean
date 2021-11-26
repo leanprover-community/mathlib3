@@ -788,6 +788,15 @@ end
 
 namespace graded
 
+/-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
+noncomputable def order_iso_fin {α : Type u} [partial_order α] [order_top α] [graded α]
+  (Φ : flag α) : Φ ≃o fin (grade_top α + 1) :=
+rel_iso.of_surjective oem_fin $ λ x, ⟨flag.idx x Φ, by simp [oem_fin]⟩
+
+noncomputable instance {α : Type u} [partial_order α] [order_top α] [graded α] (Φ : flag α) :
+  fintype Φ :=
+fintype.of_bijective (order_iso_fin Φ).inv_fun (order_iso_fin Φ).symm.bijective
+
 /-- A `graded` is connected when it's of grade 2, or any two proper elements are connected. -/
 protected def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
 grade_top α = 2 ∨ ∀ a b : proper α, connected a b

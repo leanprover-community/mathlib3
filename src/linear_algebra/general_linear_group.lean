@@ -94,14 +94,11 @@ element of the endomorphism general linear group on `n → R`. -/
 def to_linear : general_linear_group n R ≃* linear_map.general_linear_group R (n → R) :=
 units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
 
--- For some reason this doesn't trigger as a simp lemma.  Decidability issue apparently?
--- TODO fix this and delete the special case stated for `n` rather than `fin m` below.
-lemma coe_to_linear (M : general_linear_group n R) :
-  (to_linear M : (n → R) →ₗ[R] (n → R)) = matrix.mul_vec_lin M :=
-rfl
-
-@[simp] lemma coe_to_linear' {m : ℕ} (M : general_linear_group (fin m) R) :
-  (to_linear M : (fin m → R) →ₗ[R] (fin m → R)) = matrix.mul_vec_lin M :=
+-- Note that without the `@` and `‹_›`, lean infers `λ a b, _inst_1 a b` instead of `_inst_1` as the
+-- decidability argument, which prevents `simp` from obtaining the instance by unification.
+@[simp]
+lemma coe_to_linear (M : @general_linear_group n R ‹_› ‹_› ‹_›) :
+  (@to_linear n ‹_› ‹_› M : (n → R) →ₗ[R] (n → R)) = matrix.mul_vec_lin M :=
 rfl
 
 end coe_lemmas

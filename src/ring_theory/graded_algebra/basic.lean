@@ -19,9 +19,10 @@ See the docstring of that typeclass for more information.
   a constructive version of `direct_sum.submodule_is_internal 𝒜`.
 * `graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i`, which breaks apart an element of the algebra into
   its constituent pieces.
-* `graded_algebra.proj 𝒜 i r` is the degree `i : ι` component of `r : A`.
-- `graded_algebra.support 𝒜 r` is the `finset ι` containing the `i : ι` such that the degree `i`
-component of `r` is not zero.
+* `graded_algebra.proj 𝒜 i` is the linear map from `A` to its degree `i : ι` component, such that
+  `proj 𝒜 i x = decompose 𝒜 x i`.
+* `graded_algebra.support 𝒜 r` is the `finset ι` containing the `i : ι` such that the degree `i`
+  component of `r` is not zero.
 
 ## Implementation notes
 
@@ -89,9 +90,6 @@ def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i :
 @[simp] lemma graded_algebra.proj_apply (i : ι) (r : A) :
   graded_algebra.proj 𝒜 i r = (graded_algebra.decompose 𝒜 r : ⨁ i, 𝒜 i) i := rfl
 
-lemma graded_algebra.proj_mem (i : ι) (r : A) :
-  graded_algebra.proj 𝒜 i r ∈ 𝒜 i := (graded_algebra.decompose 𝒜 r i).2
-
 /-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
 def graded_algebra.support [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
   (r : A) : finset ι :=
@@ -112,34 +110,34 @@ begin
   simp only [ne.def, submodule.coe_eq_zero],
 end
 
-lemma graded_algebra.as_sum (r : A) :
-  r = ∑ i in graded_algebra.support 𝒜 r, graded_algebra.proj 𝒜 i r :=
+lemma graded_algebra.sum_support_decompose (r : A) :
+  ∑ i in graded_algebra.support 𝒜 r, (graded_algebra.decompose 𝒜 r i : A) = r :=
 begin
-  conv_lhs { rw [←@graded_algebra.right_inv ι R A _ _ _ _ _ 𝒜 _ r,
-    graded_algebra.decompose'_def,
-    ←direct_sum.sum_support_of _ (graded_algebra.decompose 𝒜 r), linear_map.map_sum] },
-  unfold graded_algebra.support,
-  apply finset.sum_congr rfl,
-  intros i hi,
-  rw [direct_sum.submodule_coe_of],
-  refl,
+  conv_rhs {
+    rw [←(graded_algebra.decompose 𝒜).symm_apply_apply r,
+        ←direct_sum.sum_support_of _ (graded_algebra.decompose 𝒜 r)] },
+  rw [alg_equiv.map_sum, graded_algebra.support],
+  simp_rw graded_algebra.decompose_symm_of,
 end
 
 lemma graded_algebra.mul_proj (r r' : A) (i : ι) :
-  graded_algebra.proj 𝒜 i (r * r') =
+  (graded_algebra.decompose 𝒜 (r * r') i : A) =
   ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i)
     ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
-    (graded_algebra.proj 𝒜 ij.1 r) * (graded_algebra.proj 𝒜 ij.2 r') :=
+    (graded_algebra.decompose 𝒜 r ij.1 : A) * (graded_algebra.decompose 𝒜 r' ij.2 : A) :=
 begin
   have set_eq : (graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r') =
   finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) _ ∪
   finset.filter (λ ij : ι × ι, ij.1 + ij.2 ≠ i) _ := (finset.filter_union_filter_neg_eq _ _).symm,
-  conv_lhs { rw [graded_algebra.as_sum 𝒜 r, graded_algebra.as_sum 𝒜 r', finset.sum_mul_sum,
-    linear_map.map_sum, set_eq] },
+  conv_lhs {
+    rw [←graded_algebra.sum_support_decompose 𝒜 r,
+    ←graded_algebra.sum_support_decompose 𝒜 r', finset.sum_mul_sum, alg_equiv.map_sum, set_eq] },
   rw finset.sum_union,
   suffices : ∑ (x : ι × ι) in finset.filter (λ (ij : ι × ι), ij.fst + ij.snd ≠ i)
     ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
-  (graded_algebra.proj 𝒜 i) (graded_algebra.proj 𝒜 x.fst r * graded_algebra.proj 𝒜 x.snd r') = 0,
+  (graded_algebra.decompose 𝒜
+    ((graded_algebra.decompose 𝒜 r x.fst : A) * (graded_algebra.decompose 𝒜 r' x.snd : A)) i) = 0,
+
   rw [this, add_zero], apply finset.sum_congr rfl,
   rintros ⟨j, k⟩ h, simp only [finset.mem_filter, finset.mem_product] at h ⊢,
   obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,

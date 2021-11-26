@@ -563,14 +563,6 @@ end
 
 variables {α : Type u} [partial_order α]
 
-theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
-begin
-  refine ⟨⟨_, zorn.max_chain_spec⟩, {x}, _, rfl⟩,
-  --have := zorn.chain_closure_empty,
-  --have := zorn.chain_closure.succ this,
-  admit
-end
-
 /-- An element covers another iff they do so in the flag. -/
 @[simp]
 theorem cover_iff_flag_cover {Φ : flag α} (x y : Φ) : x ⋖ y ↔ x.val ⋖ y.val :=
@@ -665,6 +657,11 @@ classical.some (ex_of_grade_in_flag j Φ)
 theorem grade_idx : grade (idx j Φ) = j :=
 classical.some_spec (ex_of_grade_in_flag j Φ)
 
+/-- The defining property of `flag.idx`. -/
+@[simp]
+theorem grade_fin_idx : graded.grade_fin (idx j Φ) = j :=
+subtype.ext $ grade_idx j Φ
+
 /-- `flag_idx j Φ` is the unique element of grade `j` in the flag. -/
 theorem grade_eq_iff_flag_idx (a : Φ) : grade a = j ↔ a = idx j Φ :=
 begin
@@ -677,6 +674,33 @@ begin
   intro h,
   rw h,
   exact idx
+end
+
+theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
+begin
+  let all_chains := {s : set α | x ∈ s ∧ zorn.chain (≤) s},
+  have : {x} ∈ all_chains := begin
+    refine ⟨rfl, _⟩,
+    rintros a (ha : _ = _) b (hb : _ = _) h,
+    induction ha, induction hb,
+    contradiction
+  end,
+  have hax : ⋂₀ all_chains = {x} := begin
+    ext y, refine ⟨λ h, _, λ h₀ s hs, _⟩,
+      { apply h, assumption },
+      { induction h₀, exact hs.left },
+  end,
+  have := zorn.zorn_subset_nonempty all_chains _ {x} this,
+  rcases this with ⟨Φ, hΦ₀, hΦ₁, hΦ₂⟩,
+  refine ⟨⟨Φ, hΦ₀.right, λ h, _⟩, hΦ₀.left⟩,
+  rcases h with ⟨c, hc, hcΦ₀, hcΦ₁⟩,
+  have := hΦ₂ c ⟨hcΦ₀ hΦ₀.left, hc⟩ hcΦ₀, induction this,
+  contradiction,
+  rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
+  refine ⟨⋃₀ cs, ⟨_, _⟩, λ _, set.subset_sUnion_of_mem⟩,
+    { exact ⟨s, hs, (hcs₀ hs).left⟩ },
+    { rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
+      admit },
 end
 
 variables (Ψ : flag α)

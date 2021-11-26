@@ -146,34 +146,8 @@ lemma graded_algebra.mul_decompose (r r' : A) (i : ι) :
 begin
   dsimp only [graded_algebra.proj_apply, graded_algebra.support],
   rw [alg_equiv.map_mul, direct_sum.mul_eq_sum_support_ghas_mul],
-  generalize : (graded_algebra.decompose 𝒜) r = a,
-  generalize : (graded_algebra.decompose 𝒜) r' = a',
   rw [dfinsupp.finset_sum_apply, submodule.coe_sum],
-
-  have set_eq : (dfinsupp.support a).product (dfinsupp.support a') =
-    finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) _ ∪
-    finset.filter (λ ij : ι × ι, ij.1 + ij.2 ≠ i) _ := (finset.filter_union_filter_neg_eq _ _).symm,
-  conv_lhs { rw [set_eq] },
-  rw [finset.sum_union],
-  suffices : ∀ a b c : A, b = 0 → a = c → a + b = c, apply this,
-
-  apply finset.sum_eq_zero, rintros ⟨j, k⟩ h,
-  simp only [ne.def, finset.mem_filter, finset.mem_product] at h ⊢,
-  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
-  simp only [submodule.coe_eq_zero],
-  rw direct_sum.of_eq_of_ne, exact h₃,
-
-  rw finset.sum_congr rfl,
-  rintros ⟨j, k⟩ h, simp only [finset.mem_filter, finset.mem_product] at h ⊢,
-  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
-  rw [←h₃, direct_sum.of_eq_same], refl,
-
-  intros x y z h1 h2, rw [h1, h2, add_zero],
-
-  rw [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem],
-  rintros ⟨j, k⟩ rid,
-  simp only [ne.def, finset.mem_filter, finset.mem_inter, finset.mem_product] at rid,
-  rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
+  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
 end graded_algebra

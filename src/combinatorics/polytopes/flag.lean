@@ -855,6 +855,15 @@ noncomputable instance {α : Type u} [partial_order α] [order_top α] [graded �
   fintype Φ :=
 fintype.of_bijective (order_iso_fin Φ).inv_fun (order_iso_fin Φ).symm.bijective
 
+theorem fincard_eq_gt {α : Type u} [partial_order α] [order_top α] [graded α] (Φ : flag α) :
+  fintype.card Φ = grade_top Φ :=
+begin
+  induction hfc : fintype.card Φ,
+    { cases hgt : grade_top Φ, { refl },
+       },
+
+end
+
 /-- A `graded` is connected when it's of grade 2, or any two proper elements are connected. -/
 protected def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
 grade_top α = 2 ∨ ∀ a b : proper α, connected a b
@@ -873,20 +882,20 @@ end
 protected def flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
-lemma connected_of_mem_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α]
-(Φ Ψ : flag α) (hg : grade_top α > 2) :
-  flag_connected Φ Ψ → ∀ {a b : proper α} (ha : a.val ∈ Φ) (hb : b.val ∈ Ψ), connected a b :=
+lemma connected_of_mem_flag_connected {α : Type u} [partial_order α] [order_top α] [graded α]
+  (Φ Ψ : flag α) (hg : grade_top α > 2) (h : flag_connected Φ Ψ) {a b : proper α} :
+  a.val ∈ Φ → b.val ∈ Ψ → connected a b :=
 begin
-  intro h,
-  induction h with Φ' Φ Ψ Ϝ hΦΨ hΨϜ hab, {
-    exact λ a b ha hb, (connected_aux.next a a) _ (connected_aux.refl)
-      (polytope.flag.le_total Φ' ⟨a, ha⟩ ⟨b, hb⟩),
-  },
-  intros a b ha hb,
+  intros ha hb,
+  induction h with Φ' Φ Ψ Ϝ hΦΨ hΨϜ hab generalizing a b,
+    { apply (connected_aux.next a a) _ connected_aux.refl,
+      exact polytope.flag.le_total Φ' ⟨a, ha⟩ ⟨b, hb⟩ },
   -- Make into separate lemma - this is the only part that depends on hg.
-  have hc : ∃ c : proper α, c.val ∈ Ψ.val ∩ Ϝ.val := sorry,
+  suffices hc : ∃ c : proper α, c.val ∈ Ψ.val ∩ Ϝ.val,
   rcases hc with ⟨c, ⟨hcl, hcr⟩⟩,
   exact connected_aux.append_right (hab ha hcl) (Ϝ.le_total ⟨c.val, hcr⟩ ⟨b, hb⟩),
+  contrapose! hg,
+
 end
 
 theorem connected_of_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] :

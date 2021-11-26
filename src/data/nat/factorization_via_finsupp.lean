@@ -59,9 +59,9 @@ by { unfold prime_factorization, rw factors_one, simp }
 lemma support_prime_factorization {n : ℕ} : n.prime_factorization.support = n.factors.to_finset :=
 by { unfold prime_factorization, simpa only [multiset.to_finsupp_support] using rfl }
 
-lemma factor_of_mem_factorization {n p : ℕ}  (hp : p ∈ n.prime_factorization.support) :
-  p ∈ n.factors :=
-by { unfold prime_factorization at hp, simpa using hp }
+lemma factor_iff_mem_factorization {n p : ℕ} :
+  (p ∈ n.prime_factorization.support) ↔ (p ∈ n.factors) :=
+by simp only [support_prime_factorization, list.mem_to_finset]
 
 /-- The only numbers with empty prime factorization are 0 and 1 -/
 lemma prime_factorization_eq_nil_iff (n : ℕ) : n.prime_factorization = 0 ↔ n = 0 ∨ n = 1 :=

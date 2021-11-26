@@ -94,9 +94,108 @@ def graded_algebra.support [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
   (r : A) : finset ι :=
 (graded_algebra.decompose 𝒜 r).support
 
-lemma graded_ring.proj_recompose (a : ⨁ i, 𝒜 i) (i : ι) :
+lemma graded_algebra.proj_recompose (a : ⨁ i, 𝒜 i) (i : ι) :
   graded_algebra.proj 𝒜 i ((graded_algebra.decompose 𝒜).symm a) =
   (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i (a i)) :=
 by rw [graded_algebra.proj_apply, graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply]
+
+variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
+
+lemma graded_ring.mem_support_iff
+  (r : A) (i : ι) :
+i ∈ graded_algebra.support 𝒜 r ↔ (graded_algebra.proj 𝒜 i r ≠ 0) :=
+⟨λ hi, begin
+  contrapose! hi,
+  unfold graded_algebra.support,
+  unfold graded_algebra.proj at hi,
+  rw [dfinsupp.mem_support_iff, not_not],
+  simp only [submodule.subtype_apply, dfinsupp.lapply_apply, alg_equiv.to_alg_hom_eq_coe,
+    function.comp_app, linear_map.coe_comp, alg_equiv.to_alg_hom_to_linear_map,
+    alg_equiv.to_linear_map_apply, submodule.coe_eq_zero] at hi,
+  exact hi,
+end, λ hi, begin
+  unfold graded_algebra.proj at hi,
+  unfold graded_algebra.support,
+  simp only [ne.def, dfinsupp.mem_support_to_fun],
+  intro rid,
+  simp only [submodule.subtype_apply, dfinsupp.lapply_apply, alg_equiv.to_alg_hom_eq_coe,
+    function.comp_app, linear_map.coe_comp, alg_equiv.to_alg_hom_to_linear_map,
+    alg_equiv.to_linear_map_apply, submodule.coe_eq_zero] at hi,
+  rw rid at hi,
+  simp only [eq_self_iff_true, not_true, ne.def, submodule.coe_zero] at hi,
+  exact hi,
+end⟩
+
+lemma graded_algebra.as_sum (r : A) :
+  r = ∑ i in graded_algebra.support 𝒜 r, graded_algebra.proj 𝒜 i r :=
+begin
+  conv_lhs { rw [←@graded_algebra.right_inv ι R A _ _ _ _ _ 𝒜 _ r,
+    graded_algebra.decompose'_def,
+    ←direct_sum.sum_support_of _ (graded_algebra.decompose 𝒜 r), linear_map.map_sum] },
+  unfold graded_algebra.support,
+  apply finset.sum_congr rfl,
+  intros i hi,
+  rw [direct_sum.submodule_coe_of],
+  refl,
+end
+
+lemma graded_ring.mul_proj (r r' : A) (i : ι) :
+  graded_algebra.proj 𝒜 i (r * r') =
+  ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i)
+    ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
+    (graded_algebra.proj 𝒜 ij.1 r) * (graded_algebra.proj 𝒜 ij.2 r') :=
+begin
+  have set_eq : (graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r') =
+  finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) _ ∪
+  finset.filter (λ ij : ι × ι, ij.1 + ij.2 ≠ i) _ := (finset.filter_union_filter_neg_eq _ _).symm,
+  conv_lhs { rw [graded_algebra.as_sum 𝒜 r, graded_algebra.as_sum 𝒜 r', finset.sum_mul_sum,
+    linear_map.map_sum, set_eq] },
+  rw finset.sum_union,
+  suffices : ∑ (x : ι × ι) in finset.filter (λ (ij : ι × ι), ij.fst + ij.snd ≠ i)
+    ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
+  (graded_algebra.proj 𝒜 i) ((graded_algebra.proj 𝒜 x.fst) r * (graded_algebra.proj 𝒜 x.snd) r') = 0,
+  rw [this, add_zero], apply finset.sum_congr rfl,
+  rintros ⟨j, k⟩ h, simp only [finset.mem_filter, finset.mem_product] at h ⊢,
+  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
+  rw ←h₃,
+  obtain ⟨a, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective r,
+  obtain ⟨b, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective r',
+  rw [graded_algebra.proj_recompose, graded_algebra.proj_recompose, ←alg_equiv.map_mul,
+    direct_sum.of_mul_of, graded_algebra.proj_recompose],
+  congr, rw [direct_sum.of_eq_same],
+
+  apply finset.sum_eq_zero, rintros ⟨j, k⟩ h,
+  simp only [ne.def, finset.mem_filter, finset.mem_product] at h ⊢,
+  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
+  obtain ⟨a, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective r,
+  obtain ⟨b, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective r',
+  rw [graded_algebra.proj_recompose, graded_algebra.proj_recompose, ←alg_equiv.map_mul,
+    direct_sum.of_mul_of, graded_algebra.proj_recompose, direct_sum.of_eq_of_ne],
+  simp only [ring_equiv.map_zero, add_monoid_hom.map_zero],
+  rw [alg_equiv.map_zero],
+  intro rid, exact h₃ rid,
+
+  rw [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem],
+  rintros ⟨j, k⟩ rid,
+  simp only [ne.def, finset.mem_filter, finset.mem_inter, finset.mem_product] at rid,
+  rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
+end
+
+lemma graded_algebra.proj_homogeneous_element {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
+  graded_algebra.proj 𝒜 i x = x :=
+begin
+  rw [graded_algebra.proj_apply, ←subtype.coe_mk x hx, subtype.coe_injective.eq_iff,
+    ←graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply, direct_sum.of_eq_same],
+end
+
+
+lemma graded_ring.proj_homogeneous_element_of_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) (hij : i ≠ j):
+  graded_algebra.proj 𝒜 j x = 0 :=
+begin
+  rw ←graded_algebra.proj_homogeneous_element 𝒜 hx,
+  obtain ⟨a, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective x,
+  rw [graded_algebra.proj_recompose, graded_algebra.proj_recompose, direct_sum.of_eq_of_ne,
+    add_monoid_hom.map_zero, alg_equiv.map_zero], exact hij,
+end
 
 end graded_algebra

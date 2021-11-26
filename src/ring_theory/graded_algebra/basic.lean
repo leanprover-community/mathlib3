@@ -101,7 +101,7 @@ by rw [graded_algebra.proj_apply, graded_algebra.decompose_symm_of, alg_equiv.ap
 
 variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
-lemma graded_ring.mem_support_iff
+lemma graded_algebra.mem_support_iff
   (r : A) (i : ι) :
 i ∈ graded_algebra.support 𝒜 r ↔ (graded_algebra.proj 𝒜 i r ≠ 0) :=
 ⟨λ hi, begin

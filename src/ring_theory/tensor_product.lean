@@ -61,9 +61,10 @@ open algebra (lsmul)
 namespace algebra_tensor_module
 
 section semiring
-variables [comm_semiring R] [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables [comm_semiring R] [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A]
+variables [smul_comm_class Rᵐᵒᵖ R A]
 variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ R M]
-variables [module A M] [module Aᵐᵒᵖ M] [is_symmetric_smul A M]
+variables [module A M] [module Aᵐᵒᵖ M] [smul_comm_class Aᵐᵒᵖ A M]
 variables [is_scalar_tower R A M] [is_scalar_tower Rᵐᵒᵖ A M]
 variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
@@ -230,6 +231,8 @@ by { ext, simp [base_change_eq_ltensor], }
 @[simp] lemma base_change_zero : base_change A (0 : M →ₗ[R] N) = 0 :=
 by { ext, simp [base_change_eq_ltensor], }
 
+variables [is_scalar_tower Rᵐᵒᵖ R A]
+
 @[simp] lemma base_change_smul : (r • f).base_change A = r • (f.base_change A) :=
 by { ext, simp [base_change_tmul],  }
 
@@ -238,7 +241,7 @@ variables (R A M N)
 @[simps] def base_change_hom : (M →ₗ[R] N) →ₗ[R] A ⊗[R] M →ₗ[A] A ⊗[R] N :=
 { to_fun := base_change A,
   map_add' := base_change_add,
-  map_smul' := base_change_smul }
+  map_smul' := λ r f, base_change_smul r f }
 
 end semiring
 
@@ -410,6 +413,7 @@ lemma algebra_map_apply (r : R) :
   (algebra_map R (A ⊗[R] B)) r = ((algebra_map R A) r) ⊗ₜ[R] 1 := rfl
 
 variables {C : Type v₃} [semiring C] [algebra R C]
+variables [is_scalar_tower Rᵐᵒᵖ R A]
 
 @[ext]
 theorem ext {g h : (A ⊗[R] B) →ₐ[R] C}
@@ -493,15 +497,18 @@ end comm_ring
 Verify that typeclass search finds the ring structure on `A ⊗[ℤ] B`
 when `A` and `B` are merely rings, by treating both as `ℤ`-algebras.
 -/
-example {A : Type v₁} [ring A] [module ℤᵐᵒᵖ A] [is_symmetric_smul ℤ A]
-  {B : Type v₂} [ring B] : ring (A ⊗[ℤ] B) :=
+example {A : Type v₁} [ring A] [algebra ℤᵐᵒᵖ A] [is_symmetric_smul ℤ A]
+  {B : Type v₂} [ring B] [algebra ℤᵐᵒᵖ B] [is_symmetric_smul ℤ B] :
+  ring (A ⊗[ℤ] B) :=
 by apply_instance
 
 /--
 Verify that typeclass search finds the comm_ring structure on `A ⊗[ℤ] B`
 when `A` and `B` are merely comm_rings, by treating both as `ℤ`-algebras.
 -/
-example {A : Type v₁} [comm_ring A] {B : Type v₂} [comm_ring B] : comm_ring (A ⊗[ℤ] B) :=
+example {A : Type v₁} [comm_ring A] [algebra ℤᵐᵒᵖ A] [is_symmetric_smul ℤ A]
+  {B : Type v₂} [comm_ring B] [algebra ℤᵐᵒᵖ B] [is_symmetric_smul ℤ B] :
+  comm_ring (A ⊗[ℤ] B) :=
 by apply_instance
 
 /-!
@@ -566,11 +573,16 @@ def alg_equiv_of_linear_equiv_tensor_product
 lemma alg_equiv_of_linear_equiv_tensor_product_apply (f w₁ w₂ x) :
   (alg_equiv_of_linear_equiv_tensor_product f w₁ w₂ : A ⊗[R] B ≃ₐ[R] C) x = f x := rfl
 
+variables [is_symmetric_smul R (A ⊗[R] B)] 
+example : algebra Rᵐᵒᵖ (A ⊗[R] B) := infer_instance --TODO
+example : semiring ((A ⊗[R] B) ⊗[R] C) := 
+@tensor_product.semiring R _ (A ⊗[R] B) _ _ _ _
 /--
 Build an algebra equivalence from a linear equivalence out of a triple tensor product,
 and evidence of multiplicativity on pure tensors.
 -/
 def alg_equiv_of_linear_equiv_triple_tensor_product
+  [algebra Rᵐᵒᵖ (A ⊗[R] B)] [is_symmetric_smul R (A ⊗[R] B)]
   (f : ((A ⊗[R] B) ⊗[R] C) ≃ₗ[R] D)
   (w₁ : ∀ (a₁ a₂ : A) (b₁ b₂ : B) (c₁ c₂ : C),
     f ((a₁ * a₂) ⊗ₜ (b₁ * b₂) ⊗ₜ (c₁ * c₂)) = f (a₁ ⊗ₜ b₁ ⊗ₜ c₁) * f (a₂ ⊗ₜ b₂ ⊗ₜ c₂))

@@ -10,6 +10,7 @@ import algebra.category.CommRing.colimits
 import category_theory.limits.shapes.strict_initial
 import ring_theory.subring.basic
 import ring_theory.ideal.local_ring
+import category_theory.limits.preserves.limits
 
 /-!
 # Constructions of (co)limits in CommRing
@@ -19,7 +20,7 @@ provide the explicit pushout cocone.
 
 -/
 
-universe u
+universes u u'
 
 open category_theory category_theory.limits
 open_locale tensor_product
@@ -162,6 +163,19 @@ begin
     (F.map walking_parallel_pair_hom.left) (F.map walking_parallel_pair_hom.right)⟩
     walking_parallel_pair.zero,
   change is_local_ring_hom ((lim.map _ ≫ _ ≫ (equalizer_fork _ _).ι) ≫ _),
+  apply_instance
+end
+
+open category_theory.limits.walking_parallel_pair opposite
+open category_theory.limits.walking_parallel_pair_hom
+
+instance equalizer_ι_is_local_ring_hom' (F : walking_parallel_pair.{u}ᵒᵖ ⥤ CommRing.{u}) :
+  is_local_ring_hom (limit.π F (opposite.op walking_parallel_pair.one)) :=
+begin
+  have : _ = limit.π F (walking_parallel_pair_op_equiv.functor.obj _) :=
+    (limit.iso_limit_cone_inv_π ⟨_, is_limit.whisker_equivalence (limit.is_limit F)
+      walking_parallel_pair_op_equiv⟩ walking_parallel_pair.zero : _),
+  erw ← this,
   apply_instance
 end
 

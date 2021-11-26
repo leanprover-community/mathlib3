@@ -92,6 +92,32 @@ lemma walking_parallel_pair_hom_id (X : walking_parallel_pair) :
   walking_parallel_pair_hom.id X = 𝟙 X :=
 rfl
 
+/--
+The functor `walking_parallel_pair ⥤ walking_parallel_pairᵒᵖ` sending left to left and right to
+right.
+-/
+def walking_parallel_pair_op : walking_parallel_pair.{u} ⥤ walking_parallel_pair.{u₂}ᵒᵖ :=
+{ obj := (λ x, opposite.op $ by { cases x, exacts [one, zero] }),
+  map := λ i j f, by { cases f; apply quiver.hom.op, exacts [left, right,
+    walking_parallel_pair_hom.id _] },
+  map_comp' := by { rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_); refl } }
+
+/--
+The equivalence `walking_parallel_pair ⥤ walking_parallel_pairᵒᵖ` sending left to left and right to
+right.
+-/
+def walking_parallel_pair_op_equiv : walking_parallel_pair.{u} ≌ walking_parallel_pair.{u₂}ᵒᵖ :=
+{ functor := walking_parallel_pair_op,
+  inverse := walking_parallel_pair_op.left_op,
+  unit_iso := nat_iso.of_components (λ j, eq_to_iso (by { cases j; refl }))
+    (by { rintros (_|_) (_|_) (_|_|_); refl }),
+  counit_iso := nat_iso.of_components (λ j, eq_to_iso
+    (by { induction j using opposite.rec, cases j; refl }))
+    (λ i j f, by { induction i using opposite.rec, induction j using opposite.rec,
+      let g := f.unop, have : f = g.op := rfl, clear_value g, subst this,
+      rcases i with (_|_); rcases j with (_|_); rcases g with (_|_|_); refl }) }
+
+
 variables {C : Type u} [category.{v} C]
 variables {X Y : C}
 

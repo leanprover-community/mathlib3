@@ -5,6 +5,7 @@ Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 import algebra.direct_sum.algebra
 import algebra.direct_sum.internal
+import algebra.direct_sum.ring
 
 /-!
 # Internally-graded algebras
@@ -120,44 +121,37 @@ begin
   simp_rw graded_algebra.decompose_symm_of,
 end
 
-lemma graded_algebra.mul_proj (r r' : A) (i : ι) :
+lemma graded_algebra.mul_decompose (r r' : A) (i : ι) :
   (graded_algebra.decompose 𝒜 (r * r') i : A) =
   ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i)
     ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
     (graded_algebra.decompose 𝒜 r ij.1 : A) * (graded_algebra.decompose 𝒜 r' ij.2 : A) :=
 begin
-  have set_eq : (graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r') =
-  finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) _ ∪
-  finset.filter (λ ij : ι × ι, ij.1 + ij.2 ≠ i) _ := (finset.filter_union_filter_neg_eq _ _).symm,
-  conv_lhs {
-    rw [←graded_algebra.sum_support_decompose 𝒜 r,
-    ←graded_algebra.sum_support_decompose 𝒜 r', finset.sum_mul_sum, alg_equiv.map_sum, set_eq] },
-  rw finset.sum_union,
-  suffices : ∑ (x : ι × ι) in finset.filter (λ (ij : ι × ι), ij.fst + ij.snd ≠ i)
-    ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
-  (graded_algebra.decompose 𝒜
-    ((graded_algebra.decompose 𝒜 r x.fst : A) * (graded_algebra.decompose 𝒜 r' x.snd : A)) i) = 0,
+  dsimp only [graded_algebra.proj_apply, graded_algebra.support],
+  rw [alg_equiv.map_mul, direct_sum.mul_eq_sum_support_ghas_mul],
+  generalize : (graded_algebra.decompose 𝒜) r = a,
+  generalize : (graded_algebra.decompose 𝒜) r' = a',
+  rw [dfinsupp.finset_sum_apply, submodule.coe_sum],
 
-  rw [this, add_zero], apply finset.sum_congr rfl,
-  rintros ⟨j, k⟩ h, simp only [finset.mem_filter, finset.mem_product] at h ⊢,
-  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
-  rw ←h₃,
-  obtain ⟨a, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective r,
-  obtain ⟨b, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective r',
-  rw [graded_algebra.proj_recompose, graded_algebra.proj_recompose, ←alg_equiv.map_mul,
-    direct_sum.of_mul_of, graded_algebra.proj_recompose],
-  congr, rw [direct_sum.of_eq_same],
+  have set_eq : (dfinsupp.support a).product (dfinsupp.support a') =
+    finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) _ ∪
+    finset.filter (λ ij : ι × ι, ij.1 + ij.2 ≠ i) _ := (finset.filter_union_filter_neg_eq _ _).symm,
+  conv_lhs { rw [set_eq] },
+  rw [finset.sum_union],
+  suffices : ∀ a b c : A, b = 0 → a = c → a + b = c, apply this,
 
   apply finset.sum_eq_zero, rintros ⟨j, k⟩ h,
   simp only [ne.def, finset.mem_filter, finset.mem_product] at h ⊢,
   obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
-  obtain ⟨a, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective r,
-  obtain ⟨b, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective r',
-  rw [graded_algebra.proj_recompose, graded_algebra.proj_recompose, ←alg_equiv.map_mul,
-    direct_sum.of_mul_of, graded_algebra.proj_recompose, direct_sum.of_eq_of_ne],
-  simp only [ring_equiv.map_zero, add_monoid_hom.map_zero],
-  rw [alg_equiv.map_zero],
-  intro rid, exact h₃ rid,
+  simp only [submodule.coe_eq_zero],
+  rw direct_sum.of_eq_of_ne, exact h₃,
+
+  rw finset.sum_congr rfl,
+  rintros ⟨j, k⟩ h, simp only [finset.mem_filter, finset.mem_product] at h ⊢,
+  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
+  rw [←h₃, direct_sum.of_eq_same], refl,
+
+  intros x y z h1 h2, rw [h1, h2, add_zero],
 
   rw [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem],
   rintros ⟨j, k⟩ rid,

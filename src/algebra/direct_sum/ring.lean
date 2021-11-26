@@ -6,6 +6,7 @@ Authors: Eric Wieser
 import group_theory.subgroup.basic
 import algebra.graded_monoid
 import algebra.direct_sum.basic
+import algebra.big_operators.pi
 
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`
@@ -226,7 +227,7 @@ end
 open_locale big_operators
 
 /-- A heavily unfolded version of the definition of multiplication -/
-lemma direct_sum.mul_eq_sum_support_ghas_mul
+lemma mul_eq_sum_support_ghas_mul
   [Π (i : ι) (x : A i), decidable (x ≠ 0)] (a a' : ⨁ i, A i) :
   a * a' =
     ∑ (ij : ι × ι) in (dfinsupp.support a).product (dfinsupp.support a'),

@@ -130,21 +130,6 @@ variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [no
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
-section
-
-variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
-  (c : 𝕜) (f g : E →SL[σ₁₂] F) (h : F →SL[σ₂₃] G) (x y z : E)
-
-lemma linear_map.bound_of_shell_semi_normed (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
-  (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) {x : E} (hx : ∥x∥ ≠ 0) :
-  ∥f x∥ ≤ C * ∥x∥ :=
-begin
-  rcases rescale_to_shell_semi_normed hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
-  have := hf (δ • x) leδx δxle,
-  simpa only [f.map_smulₛₗ, norm_smul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ),
-              ring_hom_isometric.is_iso] using hf (δ • x) leδx δxle
-end
-
 /-- If `∥x∥ = 0` and `f` is continuous then `∥f x∥ = 0`. -/
 lemma norm_image_of_norm_zero {f : E →ₛₗ[σ₁₂] F} (hf : continuous f) {x : E} (hx : ∥x∥ = 0) :
   ∥f x∥ = 0 :=
@@ -156,6 +141,20 @@ begin
   replace hδ := le_of_lt (hδ δ_pos),
   rw [linear_map.map_zero, sub_zero] at hδ,
   rwa [zero_add]
+end
+
+section
+
+variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
+
+lemma linear_map.bound_of_shell_semi_normed (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
+  (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) {x : E} (hx : ∥x∥ ≠ 0) :
+  ∥f x∥ ≤ C * ∥x∥ :=
+begin
+  rcases rescale_to_shell_semi_normed hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
+  have := hf (δ • x) leδx δxle,
+  simpa only [f.map_smulₛₗ, norm_smul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ),
+              ring_hom_isometric.is_iso] using hf (δ • x) leδx δxle
 end
 
 /-- A continuous linear map between seminormed spaces is bounded when the field is nondiscrete. The
@@ -266,7 +265,7 @@ lemma op_norm_neg (f : E →SL[σ₁₂] F) : ∥-f∥ = ∥f∥ := by simp only
 section
 
 variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
-  (c : 𝕜) (f g : E →SL[σ₁₂] F) (h : F →SL[σ₂₃] G) (x y z : E)
+  (f g : E →SL[σ₁₂] F) (h : F →SL[σ₂₃] G) (x : E)
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
 le_cInf bounds_nonempty (λ _ ⟨hx, _⟩, hx)
@@ -397,16 +396,17 @@ end
 
 section
 
-variables [ring_hom_isometric σ₂₃] [ring_hom_isometric σ₁₃]
-
-theorem le_op_norm₂ (f : E →SL[σ₁₃] F →SL[σ₂₃] G) (x : E) (y : F) : ∥f x y∥ ≤ ∥f∥ * ∥x∥ * ∥y∥ :=
-(f x).le_of_op_norm_le (f.le_op_norm x) y
+variables [ring_hom_isometric σ₂₃]
 
 theorem op_norm_le_bound₂ (f : E →SL[σ₁₃] F →SL[σ₂₃] G) {C : ℝ} (h0 : 0 ≤ C)
   (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
   ∥f∥ ≤ C :=
 f.op_norm_le_bound h0 $ λ x,
   (f x).op_norm_le_bound (mul_nonneg h0 (norm_nonneg _)) $ hC x
+
+theorem le_op_norm₂ [ring_hom_isometric σ₁₃] (f : E →SL[σ₁₃] F →SL[σ₂₃] G) (x : E) (y : F) :
+  ∥f x y∥ ≤ ∥f∥ * ∥x∥ * ∥y∥ :=
+(f x).le_of_op_norm_le (f.le_op_norm x) y
 
 end
 
@@ -426,8 +426,13 @@ def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R Fₗ] [modul
   (E →L[𝕜] Fₗ) × (E →L[𝕜] Gₗ) ≃ₗᵢ[R] (E →L[𝕜] Fₗ × Gₗ) :=
 ⟨prodₗ R, λ ⟨f, g⟩, op_norm_prod f g⟩
 
-variables [ring_hom_isometric σ₁₂]
-  (c : 𝕜) (f g : E →SL[σ₁₂] F) (h : F →SL[σ₂₃] G) (x y z : E)
+/-- A continuous linear map is an isometry if and only if it preserves the norm.
+(Note: Do you really want to use this lemma?  Try using the bundled structure `linear_isometry`
+instead.) -/
+lemma isometry_iff_norm (f : E →SL[σ₁₂] F) : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
+f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
+
+variables [ring_hom_isometric σ₁₂] (f : E →SL[σ₁₂] F)
 
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
@@ -440,12 +445,6 @@ begin
   intros x,
   simp [subsingleton.elim x 0]
 end
-
-/-- A continuous linear map is an isometry if and only if it preserves the norm.
-(Note: Do you really want to use this lemma?  Try using the bundled structure `linear_isometry`
-instead.) -/
-lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
-f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 
 end op_norm
 
@@ -874,6 +873,8 @@ end has_sum
 
 namespace continuous_linear_equiv
 
+section
+
 variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
   [ring_hom_isometric σ₁₂]
 variables (e : E ≃SL[σ₁₂] F)
@@ -890,16 +891,11 @@ theorem is_O_sub (l : filter E) (x : E) :
   asymptotics.is_O (λ x', e (x' - x)) (λ x', x' - x) l :=
 (e : E →SL[σ₁₂] F).is_O_sub l x
 
-variables [ring_hom_isometric σ₂₁]
+end
 
-theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) :
-  asymptotics.is_O f (λ x', e (f x')) l :=
-(e.symm.is_O_comp _ l).congr_left $ λ _, e.symm_apply_apply _
+variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 
-theorem is_O_sub_rev (l : filter E) (x : E) :
-  asymptotics.is_O (λ x', x' - x) (λ x', e (x' - x)) l :=
-e.is_O_comp_rev _ _
-
+include σ₂₁
 lemma homothety_inverse (a : ℝ) (ha : 0 < a) (f : E ≃ₛₗ[σ₁₂] F) :
   (∀ (x : E), ∥f x∥ = a * ∥x∥) → (∀ (y : F), ∥f.symm y∥ = a⁻¹ * ∥y∥) :=
 begin
@@ -917,6 +913,16 @@ def of_homothety (f : E ≃ₛₗ[σ₁₂] F) (a : ℝ) (ha : 0 < a) (hf : ∀x
   continuous_to_fun := f.to_linear_map.continuous_of_bound a (λ x, le_of_eq (hf x)),
   continuous_inv_fun := f.symm.to_linear_map.continuous_of_bound a⁻¹
     (λ x, le_of_eq (homothety_inverse a ha f hf x)) }
+
+variables [ring_hom_isometric σ₂₁] (e : E ≃SL[σ₁₂] F)
+
+theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) :
+  asymptotics.is_O f (λ x', e (f x')) l :=
+(e.symm.is_O_comp _ l).congr_left $ λ _, e.symm_apply_apply _
+
+theorem is_O_sub_rev (l : filter E) (x : E) :
+  asymptotics.is_O (λ x', x' - x) (λ x', e (x' - x)) l :=
+e.is_O_comp_rev _ _
 
 omit σ₂₁
 
@@ -948,9 +954,7 @@ variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nondiscrete_normed_field 𝕜�
   [semi_normed_space 𝕜₁' E'] [semi_normed_space 𝕜₂' F']
   {σ₁' : 𝕜₁' →+* 𝕜} {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃}
   [ring_hom_comp_triple σ₁' σ₁₃ σ₁₃'] [ring_hom_comp_triple σ₂' σ₂₃ σ₂₃']
-  [ring_hom_isometric σ₂₃] [ring_hom_isometric σ₁₃]
-  [ring_hom_isometric σ₁'] [ring_hom_isometric σ₂'] [ring_hom_isometric σ₁₃']
-  [ring_hom_isometric σ₂₃']
+  [ring_hom_isometric σ₂₃] [ring_hom_isometric σ₁₃'] [ring_hom_isometric σ₂₃']
 
 /--
 Compose a bilinear map `E →SL[σ₁₃] F →SL[σ₂₃] G` with two linear maps
@@ -965,6 +969,8 @@ include σ₁₃' σ₂₃'
 rfl
 
 omit σ₁₃' σ₂₃'
+
+variables [ring_hom_isometric σ₁₃] [ring_hom_isometric σ₁'] [ring_hom_isometric σ₂']
 
 /-- Derivative of a continuous bilinear map `f : E →L[𝕜] F →L[𝕜] G` interpreted as a map `E × F → G`
 at point `p : E × F` evaluated at `q : E × F`, as a continuous bilinear map. -/
@@ -1048,11 +1054,11 @@ end
 
 end normed_field
 
+section
 variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
   [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G] [normed_space 𝕜 Fₗ] (c : 𝕜)
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
-  [ring_hom_isometric σ₁₂]
-  (f g : E →SL[σ₁₂] F) (h : F →SL[σ₂₃] G) (x y z : E)
+  [ring_hom_isometric σ₁₂] (f g : E →SL[σ₁₂] F) (x y z : E)
 
 lemma linear_map.bound_of_shell (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
   (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) (x : E) :
@@ -1327,7 +1333,13 @@ f.to_continuous_linear_map.homothety_norm $ by simp
 
 end linear_isometry
 
+end
+
 namespace continuous_linear_map
+
+variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
+  [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G] [normed_space 𝕜 Fₗ] (c : 𝕜)
+  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
 
 variables {𝕜₂' : Type*} [nondiscrete_normed_field 𝕜₂'] {F' : Type*} [normed_group F']
   [normed_space 𝕜₂' F'] {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂'' : 𝕜₂ →+* 𝕜₂'}
@@ -1429,6 +1441,8 @@ by haveI := normed_algebra.nontrivial 𝕜 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').
 end continuous_linear_map
 
 namespace submodule
+variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
+  [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂}
 
 lemma norm_subtypeL (K : submodule 𝕜 E) [nontrivial K] : ∥K.subtypeL∥ = 1 :=
 K.subtypeₗᵢ.norm_to_continuous_linear_map
@@ -1436,19 +1450,24 @@ K.subtypeₗᵢ.norm_to_continuous_linear_map
 end submodule
 
 namespace continuous_linear_equiv
+variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
+  [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 
-variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  [ring_hom_isometric σ₂₁]
-variables (e : E ≃SL[σ₁₂] F)
+section
+variables [ring_hom_isometric σ₂₁]
 
-protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →SL[σ₂₁] E)) e :=
+protected lemma antilipschitz (e : E ≃SL[σ₁₂] F) :
+  antilipschitz_with (nnnorm (e.symm : F →SL[σ₂₁] E)) e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
+include σ₂₁
 /-- A continuous linear equiv is a uniform embedding. -/
-lemma uniform_embedding : uniform_embedding e :=
+lemma uniform_embedding [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) : uniform_embedding e :=
 e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
+omit σ₂₁
 
-lemma one_le_norm_mul_norm_symm [nontrivial E] :
+lemma one_le_norm_mul_norm_symm [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
   1 ≤ ∥(e : E →SL[σ₁₂] F)∥ * ∥(e.symm : F →SL[σ₂₁] E)∥ :=
 begin
   rw [mul_comm],
@@ -1456,23 +1475,30 @@ begin
   rw [e.coe_symm_comp_coe, continuous_linear_map.norm_id]
 end
 
-lemma norm_pos [nontrivial E] : 0 < ∥(e : E →SL[σ₁₂] F)∥ :=
+include σ₂₁
+lemma norm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
+  0 < ∥(e : E →SL[σ₁₂] F)∥ :=
 pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
+omit σ₂₁
 
-lemma norm_symm_pos [nontrivial E] : 0 < ∥(e.symm : F →SL[σ₂₁] E)∥ :=
+lemma norm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
+  0 < ∥(e.symm : F →SL[σ₂₁] E)∥ :=
 pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
-lemma nnnorm_symm_pos [nontrivial E] : 0 < nnnorm (e.symm : F →SL[σ₂₁] E) :=
+lemma nnnorm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
+  0 < nnnorm (e.symm : F →SL[σ₂₁] E) :=
 e.norm_symm_pos
 
-lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →SL[σ₂₁] E)∥ :=
+lemma subsingleton_or_norm_symm_pos [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) :
+  subsingleton E ∨ 0 < ∥(e.symm : F →SL[σ₂₁] E)∥ :=
 begin
   rcases subsingleton_or_nontrivial E with _i|_i; resetI,
   { left, apply_instance },
   { right, exact e.norm_symm_pos }
 end
 
-lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →SL[σ₂₁] E)) :=
+lemma subsingleton_or_nnnorm_symm_pos [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) :
+  subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →SL[σ₂₁] E)) :=
 subsingleton_or_norm_symm_pos e
 
 variable (𝕜)
@@ -1513,9 +1539,13 @@ end
   (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
 
+end
+
 end continuous_linear_equiv
 
-variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂]
+  [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
   [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₁]
 
 include σ₂₁

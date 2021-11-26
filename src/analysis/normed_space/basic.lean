@@ -1073,6 +1073,8 @@ section ring_hom_isometric
 
 variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
 
+/-- This class states that a ring homomorphism is isometric. This is a necessary assumption
+  for a continuous semilinear map to be bounded. -/
 class ring_hom_isometric [semiring R₁] [semiring R₂] [has_norm R₁] [has_norm R₂]
   (σ : R₁ →+* R₂) : Prop :=
 (is_iso : ∀ {x : R₁}, ∥σ x∥ = ∥x∥)

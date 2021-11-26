@@ -8,8 +8,11 @@ import category_theory.sites.whiskering
 
 /-!
 
-In this file, we prove that sheafification is compatible with functors which
+In this file, we prove that the plus functor is compatible with functors which
 preserve the correct limits and colimits.
+
+See `category_theory/sites/compatible_sheafification` for the compatibility
+of sheafification, which follows easily from the content in this file.
 
 -/
 
@@ -29,14 +32,13 @@ noncomputable theory
 
 variables [∀ (α β) (fst snd : β → α), has_limits_of_shape (walking_multicospan fst snd) D]
 variables [∀ (α β) (fst snd : β → α), has_limits_of_shape (walking_multicospan fst snd) E]
-variables [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
-variables [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ E]
-variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ F]
 variables [∀ (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D), preserves_limit (W.index P).multicospan F]
 
 variables (P : Cᵒᵖ ⥤ D)
 
-lemma diagram_comp_iso (X : C) : J.diagram P X ⋙ F ≅ J.diagram (P ⋙ F) X :=
+/-- The diagram used to define `P⁺`, composed with `F`, is isomorphic
+to the diagram used to define `P ⋙ F`. -/
+def diagram_comp_iso (X : C) : J.diagram P X ⋙ F ≅ J.diagram (P ⋙ F) X :=
 nat_iso.of_components
 (λ W, begin
   refine _ ≪≫ has_limit.iso_of_nat_iso (W.unop.multicospan_comp _ _).symm,
@@ -64,6 +66,11 @@ begin
   simp,
 end
 
+variables [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
+variables [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ E]
+variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ F]
+
+/-- The isomorphism between `P⁺ ⋙ F` and `(P ⋙ F)⁺`. -/
 def plus_comp_iso : J.plus_obj P ⋙ F ≅ J.plus_obj (P ⋙ F) :=
 nat_iso.of_components
 (λ X, begin
@@ -135,8 +142,9 @@ begin
   simpa,
 end
 
+/-- The isomorphism between `P⁺ ⋙ F` and `(P ⋙ F)⁺`, functorially in `F`. -/
 @[simps hom inv]
-def plus_functor_whisker_left (P : Cᵒᵖ ⥤ D)
+def plus_functor_whisker_left_iso (P : Cᵒᵖ ⥤ D)
   [∀ (F : D ⥤ E) (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ F]
   [∀ (F : D ⥤ E) (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D),
     preserves_limit (W.index P).multicospan F] :
@@ -175,8 +183,9 @@ begin
   simp only [← F.map_comp, multiequalizer.lift_ι],
 end
 
+/-- The isomorphism between `P⁺ ⋙ F` and `(P ⋙ F)⁺`, functorially in `P`. -/
 @[simps hom inv]
-def plus_functor_whisker_iso : J.plus_functor D ⋙ (whiskering_right _ _ _).obj F ≅
+def plus_functor_whisker_right_iso : J.plus_functor D ⋙ (whiskering_right _ _ _).obj F ≅
   (whiskering_right _ _ _).obj F ⋙ J.plus_functor E :=
 nat_iso.of_components (λ P, J.plus_comp_iso _ _)
 begin

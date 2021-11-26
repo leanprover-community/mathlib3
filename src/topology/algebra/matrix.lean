@@ -18,12 +18,23 @@ This file is a place to collect topological results about matrices.
 
 open matrix
 
-variables (k : Type*) [comm_ring k] [topological_space k] [topological_ring k]
+variables {ι k : Type*} [topological_space k]
 
-instance {ι : Type*} : topological_space (matrix ι ι k) := Pi.topological_space
+instance : topological_space (matrix ι ι k) := Pi.topological_space
 
-lemma continuous_det {n : ℕ} : continuous (det : matrix (fin n) (fin n) k → k) :=
+variables [fintype ι] [decidable_eq ι] [comm_ring k] [topological_ring k]
+
+lemma continuous_det : continuous (det : matrix ι ι k → k) :=
 begin
+  suffices : ∀ (n : ℕ), continuous (det : matrix (fin n) (fin n) k → k),
+  { have h : (det : matrix ι ι k → k) = det ∘ reindex (fintype.equiv_fin ι) (fintype.equiv_fin ι),
+    { ext, simp, },
+    rw h,
+    apply (this (fintype.card ι)).comp,
+    refine continuous_pi (λ i, continuous_pi (λ j, _)),
+    simp only [minor_apply, reindex_apply],
+    apply continuous_apply_apply, },
+  intros n,
   induction n with n ih,
   { rw coe_det_is_empty,
     exact continuous_const, },

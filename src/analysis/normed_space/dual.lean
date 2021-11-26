@@ -199,34 +199,6 @@ end
 
 variables (𝕜)
 
-/-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`
-there exists a bound for the norms of the values `x' z` of the elements `x' ∈ polar 𝕜 s` of the
-polar of `s`. -/
-lemma eval_bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (z : E) :
-  ∃ (r : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r :=
-begin
-  have s_absnt : absorbent 𝕜 s := absorbent_nhds_zero s_nhd,
-  rcases s_absnt z with ⟨c, ⟨c_pos, hc⟩⟩,
-  cases normed_field.exists_lt_norm 𝕜 c with a ha,
-  specialize hc a ha.le,
-  have a_norm_pos : 0 < ∥ a ∥ := lt_trans c_pos ha,
-  have a_ne_zero : a ≠ 0 := norm_pos_iff.mp a_norm_pos,
-  have w_in_s : a⁻¹ • z ∈ s,
-  { rcases hc with ⟨ w , ⟨hws, haw⟩⟩,
-    rwa [← haw, ← mul_smul, inv_mul_cancel a_ne_zero, one_smul], },
-  use ∥a∥,
-  intros x' hx',
-  specialize hx' _ w_in_s,
-  simp only [algebra.id.smul_eq_mul, normed_field.norm_mul,
-             continuous_linear_map.map_smul, normed_field.norm_inv] at hx',
-  have key := mul_le_mul (@rfl _ ∥ a ∥).ge hx' _ (norm_nonneg a),
-  rwa [mul_one, ← mul_assoc, mul_inv_cancel (ne_of_gt a_norm_pos), one_mul] at key,
-  apply mul_nonneg _ (norm_nonneg _),
-  simp only [inv_nonneg, norm_nonneg],
-end
-
 /-- Given a neighborhood `s` of the origin in a normed space `E`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
 lemma bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
@@ -243,6 +215,22 @@ begin
   calc ∥x' x∥ ≤ 1 : hx' x (r_ball x_mem)
   ... = (∥a∥ / r) * (r / ∥a∥) : by field_simp [r_pos.ne', (zero_lt_one.trans ha).ne']
   ... ≤ (∥a∥ / r) * ∥x∥ : mul_le_mul_of_nonneg_left hx I
+end
+
+/-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`
+there exists a bound for the norms of the values `x' z` of the elements `x' ∈ polar 𝕜 s` of the
+polar of `s`. -/
+lemma eval_bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (z : E) :
+  ∃ (r : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r :=
+begin
+  cases bounded_of_nhds_zero 𝕜 s_nhd with c hc,
+  have c_nn : 0 ≤ c := by { have := hc 0 (zero_mem 𝕜 s), rwa norm_zero at this, },
+  use c * ∥ z ∥,
+  intros x' hx',
+  apply (continuous_linear_map.le_op_norm x' z).trans,
+  exact mul_le_mul (hc x' hx') rfl.ge (norm_nonneg _) c_nn,
 end
 
 end polar

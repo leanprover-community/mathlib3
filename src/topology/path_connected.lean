@@ -376,7 +376,8 @@ end
 
 /-- Given a path in `X` and a path in `Y`, we can take their pointwise product to get a path in
 `X × Y`. -/
-protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) :  path (a₁, a₂) (b₁, b₂) :=
+protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) :
+  path (a₁, a₂) (b₁, b₂) :=
 { to_continuous_map := continuous_map.prod_mk γ₁.to_continuous_map γ₂.to_continuous_map,
   source' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.source, γ₂.source],
   target' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.target, γ₂.target] }

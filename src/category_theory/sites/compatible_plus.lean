@@ -114,7 +114,7 @@ begin
   simp,
 end
 
-lemma plus_comp_iso_whisker {F G : D ⥤ E} (η : F ⟶ G) (P : Cᵒᵖ ⥤ D)
+lemma plus_comp_iso_whisker_left {F G : D ⥤ E} (η : F ⟶ G) (P : Cᵒᵖ ⥤ D)
   [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ F]
   [∀ (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D), preserves_limit (W.index P).multicospan F]
   [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ G]
@@ -133,6 +133,57 @@ begin
   ext,
   dsimp,
   simpa,
+end
+
+@[simps hom inv]
+def plus_functor_whisker_left (P : Cᵒᵖ ⥤ D)
+  [∀ (F : D ⥤ E) (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ F]
+  [∀ (F : D ⥤ E) (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D),
+    preserves_limit (W.index P).multicospan F] :
+  (whiskering_left _ _ E).obj (J.plus_obj P) ≅
+  (whiskering_left _ _ _).obj P ⋙ J.plus_functor E :=
+nat_iso.of_components
+(λ X, plus_comp_iso _ _ _)
+begin
+  intros F G η,
+  dsimp only [whiskering_left, functor.comp_map, plus_functor],
+  symmetry,
+  apply plus_comp_iso_whisker_left,
+end
+
+lemma plus_comp_iso_whisker_right {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) :
+  (J.plus_comp_iso F P).hom ≫ J.plus_map (whisker_right η F) =
+  whisker_right (J.plus_map η) F ≫ (J.plus_comp_iso F Q).hom :=
+begin
+  ext X,
+  apply (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).hom_ext,
+  intros W,
+  dsimp,
+  simp only [ι_colim_map, whisker_right_app, ι_plus_comp_iso_hom_assoc,
+    grothendieck_topology.diagram_nat_trans_app],
+  simp only [← category.assoc, ← F.map_comp],
+  dsimp [colim_map, is_colimit.map],
+  simp only [colimit.ι_desc],
+  dsimp [cocones.precompose],
+  simp only [functor.map_comp, category.assoc, ι_plus_comp_iso_hom],
+  simp only [← category.assoc],
+  congr' 1,
+  ext,
+  dsimp,
+  simp only [diagram_comp_iso_hom_ι_assoc, multiequalizer.lift_ι,
+    diagram_comp_iso_hom_ι, category.assoc],
+  simp only [← F.map_comp, multiequalizer.lift_ι],
+end
+
+@[simps hom inv]
+def plus_functor_whisker_iso : J.plus_functor D ⋙ (whiskering_right _ _ _).obj F ≅
+  (whiskering_right _ _ _).obj F ⋙ J.plus_functor E :=
+nat_iso.of_components (λ P, J.plus_comp_iso _ _)
+begin
+  intros P Q η,
+  dsimp only [whiskering_right, functor.comp_map, plus_functor],
+  symmetry,
+  apply plus_comp_iso_whisker_right,
 end
 
 end category_theory.grothendieck_topology

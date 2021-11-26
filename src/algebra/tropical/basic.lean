@@ -215,13 +215,9 @@ begin
     simp }
 end
 
--- TODO: remove once gh-10486 is merged
-lemma min_top_left' [order_top R] (a : R) : min (⊤ : R) a = a := min_eq_right le_top
-lemma min_top_right' [order_top R] (a : R) : min a ⊤ = a := min_eq_left le_top
-
 instance [order_top R] : add_comm_monoid (tropical R) :=
-{ zero_add := λ _, untrop_injective (min_top_left' _),
-  add_zero := λ _, untrop_injective (min_top_right' _),
+{ zero_add := λ _, untrop_injective (by rw [untrop_add]; simp),
+  add_zero := λ _, untrop_injective (by rw [untrop_add]; simp),
   ..tropical.has_zero,
   ..tropical.add_comm_semigroup }
 

@@ -448,3 +448,90 @@ meta def linter.unused_haves_suffices : linter :=
 "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
 "proofs appear as if they are used. ",
   is_fast := ff }
+
+
+/--
+Return a list of unused have and suffices terms in an expression
+-/
+meta def find_unnecessary_dites_exprs : expr → tactic (list string)
+| (app (app (app (app (app (const `dite l) a) b) c) (lam n1 bi1 vt1 bd1)) (lam n2 bi2 vt2 bd2)) := -- TODO is there a nicer way of doing this with `()
+  do trace l,
+     trace a,
+     trace b,
+     trace c,
+     let t : list string := []
+          ++ if (has_zero_var bd1) then ["The proof of " ++ (to_string vt1) ++ " doesn't use the hypothesis" ++ to_string n1] else []
+          ++ if (has_zero_var bd2) then ["The proof of " ++ (to_string vt2) ++ " doesn't use the hypothesis" ++ to_string n2] else [],
+     l ← ((++) <$> find_unnecessary_dites_exprs bd1 <*> find_unnecessary_dites_exprs bd2),
+     return $ l ++ t
+| (app a b) := (++) <$> find_unnecessary_dites_exprs a <*> find_unnecessary_dites_exprs b
+| (lam var_name bi var_type body) := find_unnecessary_dites_exprs body
+| (pi var_name bi var_type body) := find_unnecessary_dites_exprs body
+| (elet var_name type assignment body) := (++) <$> find_unnecessary_dites_exprs assignment
+                                               <*> find_unnecessary_dites_exprs body
+-- | m@(macro md [l@(lam ppnm bi vt bd)]) := do -- term mode have statements are tagged with a macro
+--   -- if the macro annotation is `have then this lambda came from a term mode have statement
+--   (++) (if m.is_annotation.iget.fst = `have ∧ ¬bd.has_zero_var then
+--       ["unnecessary have " ++ ppnm.to_string ++ " : " ++ vt.to_string]
+--     else []) <$>
+--   find_unnecessary_dites_exprs l
+-- | m@(macro md [app l@(lam ppnm bi vt bd) arg]) := do
+--   -- term mode suffices statements are tagged with a macro
+--   -- if the macro annotation is `suffices then this lambda came from a term mode suffices statement
+--   (++) (if m.is_annotation.iget.fst = `suffices ∧ ¬bd.has_zero_var then
+--       ["unnecessary suffices " ++ ppnm.to_string ++ " : " ++ vt.to_string]
+--     else []) <$>
+--   ((++) <$> find_unnecessary_dites_exprs l <*> find_unnecessary_dites_exprs arg)
+| (macro md l) := list.join <$> l.mmap find_unnecessary_dites_exprs
+| _ := return []
+
+/--
+Return a list of unused have and suffices terms in a declaration
+-/
+meta def unnecessary_dites_of_decl : declaration → tactic (list string)
+| (declaration.defn _ _ _ bd _ _) := find_unnecessary_dites_exprs bd
+| (declaration.thm _ _ _ bd) := find_unnecessary_dites_exprs bd.get
+| _ := return []
+
+/--
+Checks whether a declaration contains term mode have statements that have no effect on the resulting
+term.
+-/
+meta def has_unnecessary_dites (d : declaration) : tactic (option string) := do
+  ns ← unnecessary_dites_of_decl d,
+  if ns.length = 0 then
+    return none
+  else
+    return (", ".intercalate (ns.map to_string))
+
+/-- A linter for checking that declarations don't have unused term mode have statements. We do not
+tag this as `@[linter]` so that it is not in the default linter set as it is slow and an uncommon
+problem. -/
+meta def linter.unnecessary_dites : linter :=
+{ test := has_unnecessary_dites,
+  auto_decls := ff,
+  no_errors_found := "No declarations have unused case splits statements.",
+  errors_found := "THE FOLLOWING DECLARATIONS HAVE UNNECESSARY CASES SPLITS. " ++
+-- "In the case of `have` this is a term of the form `have h := foo, bar` where `bar` does not " ++
+-- "refer to `foo`. Such statements have no effect on the generated proof, and can just be " ++
+-- "replaced by `bar`, in addition to being ineffectual, they may make unnecessary assumptions " ++
+-- "in proofs appear as if they are used. " ++
+-- "For `suffices` this is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo` where" ++
+-- " `proof_of_goal` does not refer to `foo`. " ++
+-- "Such statements have no effect on the generated proof, and can just be replaced by " ++
+-- "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
+"proofs appear as if they are used. ",
+  is_fast := ff }
+
+lemma silly {n : ℕ} : n + 1 = 1 + n :=
+begin
+  by_cases h : n = 0,
+  { simp [h], },
+  { simp [add_comm, h], }
+end
+open expr tactic environment
+
+run_cmd (do
+d ← get_decl `silly,
+trace $ has_unnecessary_dites d)
+#print silly

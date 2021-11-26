@@ -131,9 +131,8 @@ end
 lemma graded_algebra.sum_support_decompose (r : A) :
   ∑ i in graded_algebra.support 𝒜 r, (graded_algebra.decompose 𝒜 r i : A) = r :=
 begin
-  conv_rhs {
-    rw [←(graded_algebra.decompose 𝒜).symm_apply_apply r,
-        ←direct_sum.sum_support_of _ (graded_algebra.decompose 𝒜 r)] },
+  conv_rhs { rw [←(graded_algebra.decompose 𝒜).symm_apply_apply r,
+    ←direct_sum.sum_support_of _ (graded_algebra.decompose 𝒜 r)] },
   rw [alg_equiv.map_sum, graded_algebra.support],
   simp_rw graded_algebra.decompose_symm_of,
 end

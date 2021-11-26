@@ -82,20 +82,20 @@ section cancel_comm_monoid
 variables [cancel_comm_monoid α] {s t : set α} {a : α}
 
 @[to_additive]
-lemma mul_salem_spencer.add_left (hs : mul_salem_spencer s) : mul_salem_spencer ((+) a '' s) :=
+lemma mul_salem_spencer.mul_left (hs : mul_salem_spencer s) : mul_salem_spencer ((+) a '' s) :=
 begin
   rintro _ _ _ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩ h,
-  rw [add_add_add_comm, smul_add] at h,
-  rw hs hb hc hd (add_left_cancel h),
+  rw [mul_mul_mul_comm, smul_add] at h,
+  rw hs hb hc hd (mul_left_cancel h),
 end
 
 @[to_additive]
-lemma mul_salem_spencer.add_right (hs : mul_salem_spencer s) :
+lemma mul_salem_spencer.mul_right (hs : mul_salem_spencer s) :
   mul_salem_spencer ((λ x, x + a) '' s) :=
 begin
   rintro _ _ _ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩ h,
-  rw [add_add_add_comm, smul_add 2 _] at h,
-  rw hs hb hc hd (add_right_cancel h),
+  rw [mul_mul_mul_comm, smul_add 2 _] at h,
+  rw hs hb hc hd (mul_right_cancel h),
 end
 
 @[to_additive]

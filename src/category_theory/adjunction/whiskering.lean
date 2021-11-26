@@ -24,7 +24,7 @@ variables (C : Type*) {D E : Type*} [category C] [category D] [category E]
 --  `tidy` works for all the proofs in this definition, but it's fairly slow.
 /-- Given an adjunction `F ⊣ G`, this provides the natural adjunction
   `(whiskering_right C _ _).obj F ⊣ (whiskering_right C _ _).obj G`. -/
-@[simps]
+@[simps unit_app_app counit_app_app]
 protected def whisker_right (adj : F ⊣ G) :
   (whiskering_right C D E).obj F ⊣ (whiskering_right C E D).obj G :=
 mk_of_unit_counit
@@ -42,7 +42,7 @@ mk_of_unit_counit
 -- `tidy` gets stuck for `left_triangle'` and `right_triangle'`.
 /-- Given an adjunction `F ⊣ G`, this provides the natural adjunction
   `(whiskering_left _ _ C).obj G ⊣ (whiskering_left _ _ C).obj F`. -/
-@[simps]
+@[simps unit_app_app counit_app_app]
 protected def whisker_left (adj : F ⊣ G) :
   (whiskering_left E D C).obj G ⊣ (whiskering_left D E C).obj F :=
 mk_of_unit_counit

@@ -139,47 +139,9 @@ begin
   exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end
 
-
-
-
-
-
-lemma to_weak_dual_image_eq (p : dual 𝕜 E → Prop) :
-  (to_weak_dual '' {x' : dual 𝕜 E | p x' }) =
-    {x' : weak_dual 𝕜 E | p x'.to_normed_dual } :=
-begin
-  ext x',
-  split,
-  { rintros ⟨x'', ⟨h₁, h₂⟩⟩, rw ← h₂, exact h₁, },
-  { intros h, use x', exact ⟨h, rfl⟩, },
-end
-
-lemma to_weak_dual_image_norm_eval_le_one (z : E) :
-  (to_weak_dual '' {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1}) = {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ 1} :=
-to_weak_dual_image_eq _
-
-lemma to_weak_dual_image_closed_unit_ball :
-  (to_weak_dual '' metric.closed_ball (0 : dual 𝕜 E) 1) =
-    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} :=
-begin
-  have eq : metric.closed_ball (0 : dual 𝕜 E) 1 = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1},
-  { ext1 x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
-  rw eq,
-  exact to_weak_dual_image_eq _,
-end
-
 end normed_space.dual
 
 namespace weak_dual
-
-lemma to_normed_dual.preimage_eq (p : dual 𝕜 E → Prop) :
-  (to_normed_dual ⁻¹' {x' : dual 𝕜 E | p x' }) =
-    {x' : weak_dual 𝕜 E | p x'.to_normed_dual } := set.preimage_set_of_eq
-
-lemma to_normed_dual.preimage_norm_eval_le_one (z : E) :
-  (to_normed_dual ⁻¹' {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1}) = {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ 1} :=
-set.preimage_set_of_eq
---to_normed_dual.preimage_eq _
 
 lemma to_normed_dual.preimage_closed_unit_ball :
   (to_normed_dual ⁻¹' metric.closed_ball (0 : dual 𝕜 E) 1) =
@@ -215,7 +177,7 @@ begin
   rw [weak_dual.polar, eq_Inter, preimage_bInter],
   apply is_closed_bInter,
   intros z hz,
-  rw weak_dual.to_normed_dual.preimage_eq,
+  rw set.preimage_set_of_eq,
    have eq : {x' : weak_dual 𝕜 E | ∥weak_dual.to_normed_dual x' z∥ ≤ 1}
     = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1) := by refl,
   rw eq,

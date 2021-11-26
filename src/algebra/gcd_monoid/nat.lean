@@ -6,7 +6,7 @@ Authors: Eric Rodriguez
 import algebra.gcd_monoid.finset
 import number_theory.padics.padic_norm
 
-/-#
+/-!
 # Basic results about setwise gcds on ℕ
 
 This file proves some basic results about `finset.gcd` on `ℕ`.

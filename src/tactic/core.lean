@@ -109,7 +109,10 @@ end expr
 
 namespace name
 
-/-- Auxiliary function for `name.contains_sorry`. -/
+/--
+`pre.contains_sorry_aux nm` checks whether `sorry` occurs in the value of the declaration `nm`
+or (recusively) in any declarations occurring in the value of `nm` with namespace `pre`.
+Auxiliary function for `name.contains_sorry`. -/
 meta def contains_sorry_aux (pre : name) : name → tactic bool | nm := do
   env ← get_env,
   decl ← get_decl nm,
@@ -118,7 +121,7 @@ meta def contains_sorry_aux (pre : name) : name → tactic bool | nm := do
     λ n b, if b then return tt else n.contains_sorry_aux
 
 /-- `nm.contains_sorry` checks whether `sorry` occurs in the value of the declaration `nm` or
-  in any declarations `nm._proof_i`.
+  in any declarations `nm._proof_i` (or to be more precise: any declaration in namespace `nm`).
   See also `expr.contains_sorry`. -/
 meta def contains_sorry (nm : name) : tactic bool := nm.contains_sorry_aux nm
 

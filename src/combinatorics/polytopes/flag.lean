@@ -137,7 +137,7 @@ lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} :
   a ∈ Φ ↔ ∀ b : Φ, a ≠ ↑b → a < ↑b ∨ ↑b < a :=
 begin
   split,
-    { exact λ ha b hne, Φ.property.left a ha b.val b.property hne },
+    { exact λ ha ⟨b, hb⟩ hne, Φ.property.left a ha b hb hne },
   intro H,
   by_contra ha,
   exact Φ.prop.right
@@ -468,7 +468,7 @@ def oem_fin [order_top α] : α ↪o fin (grade_top α + 1) :=
   map_rel_iff' := grade_le_iff_le }
 
 /-- In linear orders, `hcovers` is an equivalence. -/
-lemma hcovers_iff_grade_eq_succ_grade (a b : α) : a ⋖ b ↔ grade b = grade a + 1 :=
+lemma covers_iff_grade_eq_succ_grade (a b : α) : a ⋖ b ↔ grade b = grade a + 1 :=
 begin
   refine ⟨graded.hcovers, λ hba, _⟩,
   have := nat.lt_of_succ_le (le_of_eq hba.symm),
@@ -487,7 +487,7 @@ begin
   split, { rw nat.cover_iff_succ, exact graded.hcovers },
   intro hab,
   rw nat.cover_iff_succ at hab,
-  rwa graded.hcovers_iff_grade_eq_succ_grade
+  rwa graded.covers_iff_grade_eq_succ_grade
 end
 
 end
@@ -839,7 +839,7 @@ abbreviation flag_connected {α : Type u} [partial_order α] [order_top α] [gra
 connected_aux (@flag.adjacent α _ _ _) Φ Ψ
 
 /-- A `graded` with top grade 1 or less has no proper elements. -/
-theorem proper_empty {α : Type u} [partial_order α] [order_top α] [graded α] :
+theorem proper.empty {α : Type u} [partial_order α] [order_top α] [graded α] :
   graded.grade_top α ≤ 1 → is_empty (proper α) :=
 begin
   intro h,
@@ -873,7 +873,7 @@ theorem connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α
 begin
   intro h,
   cases eq_or_lt_of_le h with ha ha, { exact or.inl ha },
-  have := (proper_empty (nat.le_of_lt_succ ha)).false,
+  have := (proper.empty (nat.le_of_lt_succ ha)).false,
   exact or.inr (λ a, (this a).elim)
 end
 
@@ -881,8 +881,8 @@ end
 protected def flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
-/-- Two adjacent flags have a proper element in common, as long as their grade exceeds 2, and a
-    bunch of extra conditions we'll take care of. -/
+/-- Two adjacent flags have a proper element in common, as long as their grade exceeds 2, and a few
+    other simple conditions hold. -/
 private lemma proper_flag_intersect_of_grade {α : Type u} [partial_order α] [order_top α] [graded α]
 {Φ Ψ : flag α} (hg : 2 < grade_top α) {j : fin (grade_top α + 1)} (hΦΨ : flag.j_adjacent j Φ Ψ)
 (k ∈ set.Ioo 0 (grade_top α)) (hjk : j.val ≠ k) :
@@ -929,7 +929,8 @@ begin
     (λ h, hj' (subtype.ext_val h))
 end
 
-/-- Flag connectedness implies connectedness. -/
+/-- Flag connectedness implies connectedness. Note that the converse is false: a counterexample
+    is given by the hexagrammic antiprism. -/
 theorem connected_of_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] :
   graded.flag_connected α → graded.connected α :=
 begin

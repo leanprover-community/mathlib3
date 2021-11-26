@@ -101,6 +101,23 @@ lemma graded_algebra.proj_recompose (a : ⨁ i, 𝒜 i) (i : ι) :
   (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i (a i)) :=
 by rw [graded_algebra.proj_apply, graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply]
 
+@[simp] lemma graded_algebra.decompose_coe {i : ι} (x : 𝒜 i) :
+  graded_algebra.decompose 𝒜 x = direct_sum.of _ i x :=
+by rw [←graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply]
+
+lemma graded_algebra.decompose_of_mem {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
+  graded_algebra.decompose 𝒜 x = direct_sum.of _ i (⟨x, hx⟩ : 𝒜 i) :=
+graded_algebra.decompose_coe _ ⟨x, hx⟩
+
+lemma graded_algebra.decompose_of_mem_same {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
+  (graded_algebra.decompose 𝒜 x i : A) = x :=
+by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_same, subtype.coe_mk]
+
+lemma graded_algebra.decompose_of_mem_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) (hij : i ≠ j):
+  (graded_algebra.decompose 𝒜 x j : A) = 0 :=
+by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij, submodule.coe_zero]
+
+
 variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
 lemma graded_algebra.mem_support_iff
@@ -158,21 +175,5 @@ begin
   simp only [ne.def, finset.mem_filter, finset.mem_inter, finset.mem_product] at rid,
   rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
 end
-
-@[simp] lemma graded_algebra.decompose_coe {i : ι} (x : 𝒜 i) :
-  graded_algebra.decompose 𝒜 x = direct_sum.of _ i x :=
-by rw [←graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply]
-
-lemma graded_algebra.decompose_of_mem {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
-  graded_algebra.decompose 𝒜 x = direct_sum.of _ i (⟨x, hx⟩ : 𝒜 i) :=
-graded_algebra.decompose_coe _ ⟨x, hx⟩
-
-lemma graded_algebra.decompose_of_mem_same {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
-  (graded_algebra.decompose 𝒜 x i : A) = x :=
-by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_same, subtype.coe_mk]
-
-lemma graded_algebra.decompose_of_mem_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) (hij : i ≠ j):
-  (graded_algebra.decompose 𝒜 x j : A) = 0 :=
-by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij, submodule.coe_zero]
 
 end graded_algebra

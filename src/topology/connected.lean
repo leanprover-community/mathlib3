@@ -353,28 +353,28 @@ begin
   exact hc.image _ (continuous_apply _).continuous_on
 end
 
-lemma sigma.is_connected_iff [Π a, topological_space (π a)] {s : set (Σ a, π a)} :
-  is_connected s ↔ ∃ a t, is_connected t ∧ s = sigma.mk a '' t :=
+lemma sigma.is_connected_iff [Π i, topological_space (π i)] {s : set (Σ i, π i)} :
+  is_connected s ↔ ∃ i t, is_connected t ∧ s = sigma.mk i '' t :=
 begin
   refine ⟨λ hs, _, _⟩,
-  { obtain ⟨⟨a, x⟩, hx⟩ := hs.nonempty,
-    have : s ⊆ set.range (sigma.mk a),
-    { have h : set.range (sigma.mk a) = sigma.fst ⁻¹' {a}, by { ext, simp },
+  { obtain ⟨⟨i, x⟩, hx⟩ := hs.nonempty,
+    have : s ⊆ set.range (sigma.mk i),
+    { have h : set.range (sigma.mk i) = sigma.fst ⁻¹' {i}, by { ext, simp },
       rw h,
       exact is_preconnected.subset_left_of_subset_union
-        (is_open_sigma_fst_preimage _) (is_open_sigma_fst_preimage {x | x ≠ a})
+        (is_open_sigma_fst_preimage _) (is_open_sigma_fst_preimage {x | x ≠ i})
         (set.disjoint_iff.2 $ λ x hx, hx.2 hx.1)
-        (λ y hy, by simp [classical.em]) ⟨⟨a, x⟩, hx, rfl⟩ hs.2 },
-    exact ⟨a, sigma.mk a ⁻¹' s,
+        (λ y hy, by simp [classical.em]) ⟨⟨i, x⟩, hx, rfl⟩ hs.2 },
+    exact ⟨i, sigma.mk i ⁻¹' s,
       hs.preimage_of_open_map sigma_mk_injective is_open_map_sigma_mk this,
       (set.image_preimage_eq_of_subset this).symm⟩ },
-  { rintro ⟨a, t, ht, rfl⟩,
+  { rintro ⟨i, t, ht, rfl⟩,
     exact ht.image _ continuous_sigma_mk.continuous_on }
 end
 
-lemma sigma.is_preconnected_iff [hι : nonempty ι] [Π a, topological_space (π a)]
-  {s : set (Σ a, π a)} :
-  is_preconnected s ↔ ∃ a t, is_preconnected t ∧ s = sigma.mk a '' t :=
+lemma sigma.is_preconnected_iff [hι : nonempty ι] [Π i, topological_space (π i)]
+  {s : set (Σ i, π i)} :
+  is_preconnected s ↔ ∃ i t, is_preconnected t ∧ s = sigma.mk i '' t :=
 begin
   refine ⟨λ hs, _, _⟩,
   { obtain rfl | h := s.eq_empty_or_nonempty,
@@ -929,9 +929,8 @@ have H2 : is_preconnected (prod.snd '' t), from h2.image prod.snd continuous_snd
   (H1.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)
   (H2.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)⟩
 
-instance {X Y : Type*} [topological_space X] [topological_space Y]
-  [totally_disconnected_space X] [totally_disconnected_space Y] :
-  totally_disconnected_space (X ⊕ Y) :=
+instance [topological_space β] [totally_disconnected_space α] [totally_disconnected_space β] :
+  totally_disconnected_space (α ⊕ β) :=
 begin
   refine ⟨λ s _ hs, _⟩,
   obtain (⟨t, ht, rfl⟩ | ⟨t, ht, rfl⟩) := sum.is_preconnected_iff.1 hs,
@@ -939,8 +938,8 @@ begin
   { exact ht.subsingleton.image _ }
 end
 
-instance [Π a, topological_space (π a)] [∀ a, totally_disconnected_space (π a)] :
-  totally_disconnected_space (Σ a, π a) :=
+instance [Π i, topological_space (π i)] [∀ i, totally_disconnected_space (π i)] :
+  totally_disconnected_space (Σ i, π i) :=
 begin
   refine ⟨λ s _ hs, _⟩,
   obtain rfl | h := s.eq_empty_or_nonempty,

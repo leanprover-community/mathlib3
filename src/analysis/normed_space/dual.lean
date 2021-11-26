@@ -141,7 +141,7 @@ namespace polar
 open metric set normed_space
 open_locale topological_space
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 @[simp] lemma zero_mem (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
@@ -152,22 +152,20 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 lemma eq_Inter (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
   polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
-by { dunfold polar, ext, simp only [mem_bInter_iff, mem_set_of_eq], }
+by { ext, simp only [polar, mem_bInter_iff, mem_set_of_eq], }
 
 lemma of_empty (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] : polar 𝕜 (∅ : set E) = univ :=
 by { simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true], }
+
+variables {𝕜}
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a
 small scalar multiple of `x'` is in `polar 𝕜 s`. -/
 lemma smul_mem {s : set E} {x' : dual 𝕜 E} {c : 𝕜}
   (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : (c⁻¹ • x') ∈ polar 𝕜 s :=
 begin
-  by_cases c_zero : c = 0,
-  { rw c_zero,
-    dunfold polar,
-    simp only [zero_le_one, continuous_linear_map.zero_apply, norm_zero,
-               mem_set_of_eq, implies_true_iff, inv_zero, zero_smul], },
+  by_cases c_zero : c = 0, { simp [c_zero] },
   have eq : ∀ z, ∥ c⁻¹ • (x' z) ∥ = ∥ c⁻¹ ∥ * ∥ x' z ∥ := λ z, norm_smul c⁻¹ _,
   have le : ∀ z, z ∈ s → ∥ c⁻¹ • (x' z) ∥ ≤ ∥ c⁻¹ ∥ * ∥ c ∥,
   { intros z hzs,
@@ -196,36 +194,10 @@ begin
     exact key, },
   { intros h z hz,
     simp only [mem_closed_ball, dist_zero_right] at hz,
-    apply (continuous_linear_map.unit_le_op_norm x' z hz).trans h, },
+    exact (continuous_linear_map.unit_le_op_norm x' z hz).trans h, },
 end
 
-/-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`
-there exists a bound for the norms of the values `x' z` of the elements `x' ∈ polar 𝕜 s` of the
-polar of `s`. -/
-lemma eval_bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (z : E) :
-  ∃ (r : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r :=
-begin
-  have s_absnt : absorbent 𝕜 s := absorbent_nhds_zero s_nhd,
-  rcases s_absnt z with ⟨c, ⟨c_pos, hc⟩⟩,
-  cases normed_field.exists_lt_norm 𝕜 c with a ha,
-  specialize hc a ha.le,
-  have a_norm_pos : 0 < ∥ a ∥ := lt_trans c_pos ha,
-  have a_ne_zero : a ≠ 0 := norm_pos_iff.mp a_norm_pos,
-  have w_in_s : a⁻¹ • z ∈ s,
-  { rcases hc with ⟨ w , ⟨hws, haw⟩⟩,
-    rwa [← haw, ← mul_smul, inv_mul_cancel a_ne_zero, one_smul], },
-  use ∥a∥,
-  intros x' hx',
-  specialize hx' _ w_in_s,
-  simp only [algebra.id.smul_eq_mul, normed_field.norm_mul,
-             continuous_linear_map.map_smul, normed_field.norm_inv] at hx',
-  have key := mul_le_mul (@rfl _ ∥ a ∥).ge hx' _ (norm_nonneg a),
-  rwa [mul_one, ← mul_assoc, mul_inv_cancel (ne_of_gt a_norm_pos), one_mul] at key,
-  apply mul_nonneg _ (norm_nonneg _),
-  simp only [inv_nonneg, norm_nonneg],
-end
+variables (𝕜)
 
 /-- Given a neighborhood `s` of the origin in a normed space `E`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
@@ -245,29 +217,21 @@ begin
   ... ≤ (∥a∥ / r) * ∥x∥ : mul_le_mul_of_nonneg_left hx I
 end
 
-/-- Given a neighborhood `s` of the origin in a normed space `E` obtain a constant which bounds
-the dual norms of all elements of the polar `polar 𝕜 s`. -/
-def bound_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : ℝ :=
-classical.some (bounded_of_nhds_zero 𝕜 s_nhd)
-
-lemma bound_of_nhds_zero_spec (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E))
-  {x' : dual 𝕜 E} (hx' : x' ∈ polar 𝕜 s) :
-  ∥ x' ∥ ≤ bound_of_nhds_zero 𝕜 s_nhd :=
-classical.some_spec (bounded_of_nhds_zero 𝕜 s_nhd) x' hx'
-
-lemma bound_of_nhds_zero_nonneg (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  0 ≤ bound_of_nhds_zero 𝕜 s_nhd :=
-by { have := bound_of_nhds_zero_spec 𝕜 s_nhd (zero_mem 𝕜 s), rwa norm_zero at this, }
-
-lemma ptwise_bound_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E))
-  {x' : dual 𝕜 E} (hx' : x' ∈ polar 𝕜 s) (z : E) :
-  ∥ x' z ∥ ≤ (bound_of_nhds_zero 𝕜 s_nhd) * ∥ z ∥ :=
-(continuous_linear_map.le_op_norm x' z).trans (mul_le_mul (bound_of_nhds_zero_spec 𝕜 s_nhd hx')
-    (le_refl ∥z∥) (norm_nonneg z) (bound_of_nhds_zero_nonneg 𝕜 s_nhd))
+/-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`
+there exists a bound for the norms of the values `x' z` of the elements `x' ∈ polar 𝕜 s` of the
+polar of `s`. -/
+lemma eval_bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (z : E) :
+  ∃ (r : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r :=
+begin
+  cases bounded_of_nhds_zero 𝕜 s_nhd with c hc,
+  have c_nn : 0 ≤ c := by { have := hc 0 (zero_mem 𝕜 s), rwa norm_zero at this, },
+  use c * ∥ z ∥,
+  intros x' hx',
+  apply (continuous_linear_map.le_op_norm x' z).trans,
+  exact mul_le_mul (hc x' hx') rfl.ge (norm_nonneg _) c_nn,
+end
 
 end polar
 

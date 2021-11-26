@@ -36,7 +36,6 @@ variables [∀ (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D), preserves_limit (W.i
 
 variables (P : Cᵒᵖ ⥤ D)
 
-@[simps]
 lemma diagram_comp_iso (X : C) : J.diagram P X ⋙ F ≅ J.diagram (P ⋙ F) X :=
 nat_iso.of_components
 (λ W, begin
@@ -55,6 +54,16 @@ end) begin
   simp only [← F.map_comp, multiequalizer.lift_ι],
 end
 
+@[simp, reassoc]
+lemma diagram_comp_iso_hom_ι (X : C) (W : (J.cover X)ᵒᵖ) (i : W.unop.arrow):
+  (J.diagram_comp_iso F P X).hom.app W ≫ multiequalizer.ι _ i =
+  F.map (multiequalizer.ι _ _) :=
+begin
+  delta diagram_comp_iso,
+  dsimp,
+  simp,
+end
+
 def plus_comp_iso : J.plus_obj P ⋙ F ≅ J.plus_obj (P ⋙ F) :=
 nat_iso.of_components
 (λ X, begin
@@ -65,33 +74,44 @@ end) begin
   intros X Y f,
   apply (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).hom_ext,
   intros W,
-  dsimp [colimit.pre, colim_map, is_colimit.map],
-  simp only [← functor.map_comp, ← category.assoc, colimit.ι_desc,
-    cocones.precompose_obj_ι],
-  dsimp [is_colimit.cocone_point_unique_up_to_iso],
-  erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).fac,
-  simp only [category.assoc, colimit.ι_desc],
-  dsimp [cocone.whisker_ι, whisker_left],
-  rw [F.map_comp, category.assoc],
-  slice_lhs 2 3 { erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P Y.unop))).fac },
-  dsimp [has_colimit.iso_of_nat_iso, is_colimit.map],
-  simp only [category.assoc, colimit.ι_desc, colimit.ι_desc_assoc],
-  dsimp [cocones.precompose],
-  simp only [cocone.whisker_ι, grothendieck_topology.diagram_pullback_app, colimit.cocone_ι,
-    whisker_left_app, colimit.ι_desc, colimit.ι_desc_assoc, nat_trans.comp_app, category.assoc],
+  dsimp,
+  simp only [functor.map_comp, category.assoc],
+  slice_rhs 1 2 {
+    erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).fac },
+  slice_lhs 1 3 {
+    simp only [← F.map_comp],
+    dsimp [colim_map, is_colimit.map, colimit.pre],
+    simp only [colimit.ι_desc_assoc, colimit.ι_desc],
+    dsimp [cocones.precompose],
+    rw [category.assoc, colimit.ι_desc],
+    dsimp [cocone.whisker],
+    rw F.map_comp },
+  simp only [category.assoc],
+  slice_lhs 2 3 {
+    erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P Y.unop))).fac },
+  dsimp,
+  simp only [has_colimit.iso_of_nat_iso_ι_hom_assoc,
+    grothendieck_topology.diagram_pullback_app, colimit.ι_pre,
+    has_colimit.iso_of_nat_iso_ι_hom, ι_colim_map_assoc],
   simp only [← category.assoc],
   congr' 1,
   ext,
   dsimp,
-  simp only [category.assoc, multiequalizer.lift_ι, diagram_comp_iso_hom_app],
-  dsimp [is_limit.cone_point_unique_up_to_iso, has_limit.iso_of_nat_iso,
-    cones.postcompose, is_limit.map],
-  delta multiequalizer.ι,
-  simp only [limit.lift_π],
+  simp only [category.assoc],
+  erw [multiequalizer.lift_ι, diagram_comp_iso_hom_ι, diagram_comp_iso_hom_ι,
+    ← F.map_comp, multiequalizer.lift_ι],
+end
+
+@[simp, reassoc]
+lemma ι_plus_comp_iso_hom (X) (W) : F.map (colimit.ι _ W) ≫ (J.plus_comp_iso F P).hom.app X =
+  (J.diagram_comp_iso F P X.unop).hom.app W ≫ colimit.ι _ W :=
+begin
+  delta diagram_comp_iso plus_comp_iso,
+  dsimp [is_colimit.cocone_point_unique_up_to_iso],
+  simp only [← category.assoc],
+  erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P (unop X)))).fac,
   dsimp,
-  simp only [category.comp_id, limit.lift_π],
-  dsimp [functor.map_cone],
-  simp only [← F.map_comp, multiequalizer.lift_ι],
+  simp,
 end
 
 lemma plus_comp_iso_whisker {F G : D ⥤ E} (η : F ⟶ G) (P : Cᵒᵖ ⥤ D)
@@ -100,6 +120,19 @@ lemma plus_comp_iso_whisker {F G : D ⥤ E} (η : F ⟶ G) (P : Cᵒᵖ ⥤ D)
   [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ G]
   [∀ (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D), preserves_limit (W.index P).multicospan G] :
   (J.plus_comp_iso F P).hom ≫ J.plus_map (whisker_left _ η) =
-  whisker_left _ η ≫ (J.plus_comp_iso G P).hom := sorry
+  whisker_left _ η ≫ (J.plus_comp_iso G P).hom :=
+begin
+  ext X,
+  apply (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).hom_ext,
+  intros W,
+  dsimp,
+  simp only [ι_plus_comp_iso_hom, ι_colim_map, whisker_left_app, ι_plus_comp_iso_hom_assoc,
+    nat_trans.naturality_assoc, grothendieck_topology.diagram_nat_trans_app],
+  simp only [← category.assoc],
+  congr' 1,
+  ext,
+  dsimp,
+  simpa,
+end
 
 end category_theory.grothendieck_topology

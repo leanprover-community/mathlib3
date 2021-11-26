@@ -3,7 +3,6 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.group.hom
 import data.multiset.basic
 
 /-!
@@ -15,6 +14,16 @@ such that `f (x₁ * ... * xₙ) = f (y₁ * ... * yₙ)` for all `x₁, ..., x�
 
 They are of interest in additive combinatorics.
 
+## Main declaration
+
+* `freiman_hom`: Freiman homomorphism.
+* `add_freiman_hom`: Additive Freiman homomorphism.
+
+## Notation
+
+* `α →*[n] β`: `n`-Freiman homomorphism
+* `α →+[n] β`: Additive`n`-Freiman homomorphism
+
 ## TODO
 
 `monoid_hom.to_freiman_hom` could be relaxed to `mul_hom.to_freiman_hom` by proving
@@ -25,11 +34,13 @@ open multiset
 
 variables {α β γ δ : Type*}
 
+/-- An additive `n`-Freiman homomorphism is a map which preserves sums of `n` elements. -/
 structure add_freiman_hom (α β : Type*) [add_comm_monoid α] [add_comm_monoid β] (n : ℕ) :=
 (to_fun : α → β)
 (map_sum' {s t : multiset α} (hs : s.card = n) (ht : t.card = n) (h : s.sum = t.sum) :
   (s.map to_fun).sum = (t.map to_fun).sum)
 
+/-- A `n`-Freiman homomorphism is a map which preserves products of `n` elements. -/
 @[to_additive add_freiman_hom]
 structure freiman_hom (α β : Type*) [comm_monoid α] [comm_monoid β] (n : ℕ) :=
 (to_fun : α → β)
@@ -53,8 +64,9 @@ f.map_prod' hs ht h
 
 initialize_simps_projections freiman_hom (to_fun → apply)
 
-/-- A `monoid_hom` is trivially a `freiman_hom`. -/
-@[to_additive add_monoid_hom.to_add_freiman_hom]
+/-- A `monoid_hom` is naturally a `freiman_hom`. -/
+@[to_additive add_monoid_hom.to_add_freiman_hom "An `add_monoid_hom` is naturally an
+`add_freiman_hom`"]
 def monoid_hom.to_freiman_hom (n : ℕ) (f : α →* β) : α →*[n] β :=
 { to_fun := f,
   map_prod' := λ s t hs ht hst, by rw [←f.map_multiset_prod, hst, f.map_multiset_prod] }
@@ -136,14 +148,16 @@ freiman_hom.ext $ λ x, rfl
 
 /-! ### Instances -/
 
+namespace freiman_hom
+
 /-- `1` is the Freiman homomorphism sending everything to `1`. -/
 @[to_additive "`0` is the Freiman homomorphism sending everything to `0`."]
 instance : has_one (α →*[n] β) :=
 ⟨{ to_fun := λ _, 1, .. (1 : α →* β).to_freiman_hom n }⟩
 
-@[simp, to_additive] lemma freiman_hom.one_apply (x : α) : (1 : α →*[n] β) x = 1 := rfl
+@[simp, to_additive] lemma one_apply (x : α) : (1 : α →*[n] β) x = 1 := rfl
 
-@[simp, to_additive] lemma freiman_hom.one_comp (f : α →*[n] β) : (1 : β →*[n] γ).comp f = 1 := rfl
+@[simp, to_additive] lemma one_comp (f : α →*[n] β) : (1 : β →*[n] γ).comp f = 1 := rfl
 
 @[to_additive] instance : inhabited (α →*[n] β) := ⟨1⟩
 
@@ -165,6 +179,13 @@ instance {G : Type*} [comm_group G] : has_inv (α →*[n] G) :=
 ⟨λ f, { to_fun := λ x, (f x)⁻¹, map_prod' := λ s t hs ht h,
   by rw [prod_map_inv', prod_map_inv', f.map_prod hs ht h] }⟩
 
+@[simp, to_additive] lemma inv_apply {G : Type*} [comm_group G] (f : α →*[n] G) (x : α) :
+  f⁻¹ x = (f x)⁻¹ := rfl
+
+@[simp, to_additive] lemma inv_comp {G : Type*} [comm_group G] (f : β →*[n] G) (g : α →*[n] β) :
+  f⁻¹.comp g = (f.comp g)⁻¹ :=
+freiman_hom.ext $ λ x, rfl
+
 /-- If `f` and `g` are Freiman homomorphisms to a commutative group, then `f / g` is the Freiman
 homomorphism sending `x` to `f x / g x`. -/
 @[to_additive "If `f` and `g` are additive Freiman homomorphisms to an additive commutative group,
@@ -175,6 +196,10 @@ instance {G : Type*} [comm_group G] : has_div (α →*[n] G) :=
 
 @[simp, to_additive] lemma div_apply {G} [comm_group G] (f g : α →*[n] G) (x : α) :
   (f / g) x = f x / g x := rfl
+
+@[simp, to_additive] lemma div_comp {G : Type*} [comm_group G] (f₁ f₂ : β →*[n] G) (g : α →*[n] β) :
+  (f₁ / f₂).comp g = f₁.comp g / f₂.comp g :=
+freiman_hom.ext $ λ x, rfl
 
 /-- `α →*[n] β` is a `comm_monoid`. -/
 @[to_additive "`α →+[n] β` is an `add_comm_monoid`."]
@@ -195,41 +220,52 @@ instance : comm_monoid (α →*[n] β) :=
 /-- If `β` is a commutative group, then `α →*[n] β` is a commutative group too. -/
 @[to_additive "If `β` is an additive commutative group, then `α →*[n] β` is an additive commutative
 group too."]
-instance {α β} [comm_monoid α] [comm_group β] : comm_group (α →*[n] β) :=
+instance {β} [comm_group β] : comm_group (α →*[n] β) :=
 { inv := has_inv.inv,
   div := has_div.div,
   div_eq_mul_inv := by { intros, ext, apply div_eq_mul_inv },
-  mul_left_inv := by intros; ext; apply mul_left_inv,
-  zpow := λ n f, { to_fun := λ x, (f x) ^ n,
-    map_prod' := λ x y, by simp [mul_zpow] },
-  zpow_zero' := λ f, by { ext x, simp },
-  zpow_succ' := λ n f, by { ext x, simp [zpow_of_nat, pow_succ] },
-  zpow_neg'  := λ n f, by { ext x, simp },
+  mul_left_inv := by { intros, ext, apply mul_left_inv },
+  zpow := λ n f, { to_fun := λ x, (f x) ^ n, map_prod' := λ s t hs ht h,
+      by rw [prod_map_zpow_right, prod_map_zpow_right, f.map_prod hs ht h] },
+  zpow_zero' := λ f, by { ext x, exact zpow_zero _ },
+  zpow_succ' := λ n f, by { ext x, simp_rw [zpow_of_nat, pow_succ, mul_apply, freiman_hom.coe_mk] },
+  zpow_neg'  := λ n f, by { ext x, simp_rw [zpow_neg_succ_of_nat, zpow_coe_nat], refl },
   ..freiman_hom.comm_monoid }
 
-instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
-{ zero_mul := λ x, add_monoid_hom.ext $ λ i, rfl,
-  mul_zero := λ x, add_monoid_hom.ext $ λ i, add_monoid_hom.map_zero _,
-  left_distrib := λ x y z, add_monoid_hom.ext $ λ i, add_monoid_hom.map_add _ _ _,
-  right_distrib := λ x y z, add_monoid_hom.ext $ λ i, rfl,
-  .. add_monoid.End.monoid M,
-  .. add_monoid_hom.add_comm_monoid }
-
-instance [add_comm_group M] : ring (add_monoid.End M) :=
-{ .. add_monoid.End.semiring,
-  .. add_monoid_hom.add_comm_group }
-
+end freiman_hom
 end comm_monoid
 
 section cancel_comm_monoid
-variables [comm_monoid α] [cancel_comm_monoid β] {n : ℕ}
+variables [comm_monoid α] [cancel_comm_monoid β] {m n : ℕ}
 
-/-- A `freiman_hom α β n` is also a `freiman_hom α β m` for any `m ≤ n`. -/
-@[to_additive add_monoid_hom.to_add_freiman_hom]
-def freiman_hom.to_freiman_hom {m n : ℕ} (h : m ≤ n) (f : α →*[m] β) : α →*[n] β :=
+@[to_additive]
+lemma freiman_hom.map_prod_of_le (f : α →*[n] β) {s t : multiset α} (hs : s.card = m)
+  (ht : t.card = m) (hst : s.prod = t.prod) (h : m ≤ n) :
+  (s.map f).prod = (t.map f).prod :=
+begin
+  suffices : ((s + repeat 1 (n - m)).map f).prod = ((t + repeat 1 (n - m)).map f).prod,
+  { simp_rw [map_add, prod_add] at this,
+    exact mul_right_cancel this },
+  refine f.map_prod _ _ _,
+  { rw [card_add, hs, card_repeat, add_tsub_cancel_of_le h] },
+  { rw [card_add, ht, card_repeat, add_tsub_cancel_of_le h] },
+  { rw [prod_add, prod_add, hst] }
+end
+
+/-- `α →*[m] β` is naturally included in  `α →*[n] β` for any `m ≤ n`. -/
+@[to_additive add_freiman_hom.to_add_freiman_hom "`α →+[m] β` is naturally included in  `α →+[n] β`
+for any `m ≤ n`"]
+def freiman_hom.to_freiman_hom (h : m ≤ n) (f : α →*[n] β) : α →*[m] β :=
 { to_fun := f,
-  map_prod' := λ s t hs ht hst, begin
+  map_prod' := λ s t hs ht hst, f.map_prod_of_le hs ht hst h }
 
-  end }
+@[simp, to_additive add_freiman_hom.to_add_freiman_hom_coe]
+lemma freiman_hom.to_freiman_hom_coe (h : m ≤ n) (f : α →*[n] β) :
+  (f.to_freiman_hom h : α → β) = f := rfl
+
+@[to_additive]
+lemma freiman_hom.to_freiman_hom_injective (h : m ≤ n) :
+  function.injective (freiman_hom.to_freiman_hom h : (α →*[n] β) → α →*[m] β) :=
+λ f g hfg, freiman_hom.ext $ by convert freiman_hom.ext_iff.1 hfg
 
 end cancel_comm_monoid

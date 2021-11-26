@@ -1016,6 +1016,12 @@ lemma prod_map_pow_right [comm_monoid γ] {m : multiset α} {f : α → γ} {n :
 multiset.induction_on m (by simp_rw [map_zero, prod_zero, one_pow])
   (λ a m ih, by simp_rw [map_cons, prod_cons, ih, mul_pow])
 
+@[to_additive sum_map_zsmul]
+lemma prod_map_zpow_right [comm_group γ] {m : multiset α} {f : α → γ} {n : ℤ} :
+  prod (m.map $ λ a, f a ^ n) = prod (m.map f) ^ n :=
+multiset.induction_on m (by simp_rw [map_zero, prod_zero, one_zpow])
+  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, mul_zpow])
+
 @[to_additive]
 lemma prod_map_prod_map [comm_monoid γ] (m : multiset α) (n : multiset β) {f : α → β → γ} :
   prod (m.map $ λa, prod $ n.map $ λb, f a b) = prod (n.map $ λb, prod $ m.map $ λa, f a b) :=

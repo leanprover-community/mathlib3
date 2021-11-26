@@ -467,7 +467,7 @@ end
 
 lemma eq_of_eq_count_factors {a b : ℕ} (ha: 0 < a) (hb: 0 < b)
   (h: ∀ p : ℕ, list.count p a.factors = list.count p b.factors) : a = b :=
-by { simpa [prod_factors ha, prod_factors hb] using list.perm.prod_eq (list.perm_iff_count.mpr h) }
+by simpa [prod_factors ha, prod_factors hb] using list.perm.prod_eq (list.perm_iff_count.mpr h)
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),

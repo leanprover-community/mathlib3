@@ -448,6 +448,7 @@ To construct an isomorphism between coforks,
 it suffices to give an isomorphism between the cocone points
 and check that it commutes with the `π` morphisms.
 -/
+@[simps]
 def cofork.ext {s t : cofork f g} (i : s.X ≅ t.X) (w : s.π ≫ i.hom = t.π) : s ≅ t :=
 { hom := cofork.mk_hom i.hom w,
   inv := cofork.mk_hom i.inv (by rw [iso.comp_inv_eq, w]) }

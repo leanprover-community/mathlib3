@@ -411,11 +411,7 @@ end
 /-- Pushforwards of finite-dimensional submodules have a smaller finrank. -/
 lemma finrank_map_le (f : V →ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
   finrank K (p.map f) ≤ finrank K p :=
-begin
-  rw [← cardinal.nat_cast_le.{max v v'}, ← cardinal.lift_nat_cast.{v' v},
-    ← cardinal.lift_nat_cast.{v v'}, finrank_eq_dim K p, finrank_eq_dim K (p.map f)],
-  exact lift_dim_map_le f p
-end
+by simpa [← finrank_eq_dim] using lift_dim_map_le f p
 
 variable {K}
 

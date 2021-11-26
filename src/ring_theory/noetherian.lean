@@ -3,12 +3,13 @@ Copyright (c) 2018 Mario Carneiro, Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
-import data.multiset.finset_ops
 import group_theory.finiteness
-import linear_algebra.linear_independent
-import order.compactly_generated
+import data.multiset.finset_ops
+import algebra.algebra.tower
 import order.order_iso_nat
 import ring_theory.ideal.operations
+import order.compactly_generated
+import linear_algebra.linear_independent
 
 /-!
 # Noetherian rings and modules
@@ -260,7 +261,7 @@ begin
   rw linear_map.ker_comp,
   apply fg_of_fg_map_of_fg_inf_ker f,
   { rwa [submodule.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
-  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono (@bot_le _ _ g.ker))] }
+  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono bot_le)] }
 end
 
 lemma fg_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]

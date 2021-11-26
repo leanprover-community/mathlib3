@@ -392,6 +392,11 @@ instance : algebra R Aᵐᵒᵖ :=
   commutes' := λ r, mul_opposite.rec $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
   .. mul_opposite.has_scalar A R }
 
+instance op_algebra_self : algebra Rᵐᵒᵖ R :=
+{ to_ring_hom := (algebra_map R R).from_opposite $ λ x y, algebra.commutes _ _,
+  smul_def' := λ r' r, by { rw [mul_comm], refl },
+  commutes' := λ r' r, by { rw [mul_comm] } }
+
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵐᵒᵖ c = op (algebra_map R A c) := rfl
 
 end mul_opposite

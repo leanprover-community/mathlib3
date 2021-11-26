@@ -62,7 +62,7 @@ namespace algebra_tensor_module
 
 section semiring
 variables [comm_semiring R] [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
-variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
+variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ R M]
 variables [module A M] [module Aᵐᵒᵖ M] [is_symmetric_smul A M]
 variables [is_scalar_tower R A M] [is_scalar_tower Rᵐᵒᵖ A M]
 variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
@@ -79,7 +79,7 @@ bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N �
   .. curry (f.restrict_scalars R) }
 
 lemma restrict_scalars_curry (f : (M ⊗[R] N) →ₗ[A] P) :
-  restrict_scalars R (curry f) = curry (f.restrict_scalars R) :=
+  restrict_scalars R (curry f) = curry (f.restrict_scalars R) := rfl
 
 /-- Just as `tensor_product.ext` is marked `ext` instead of `tensor_product.ext'`, this is
 a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` below.
@@ -97,9 +97,12 @@ curry_injective $ linear_map.ext₂ H
 end semiring
 
 section comm_semiring
-variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [module R N]
+variables [comm_semiring R] [comm_semiring A]
+variables [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ R M]
+variables [module A M] [module Aᵐᵒᵖ M] [is_symmetric_smul A M]
+variables [is_scalar_tower R A M] [is_scalar_tower Rᵐᵒᵖ A M]
+variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 /-- Heterobasic version of `tensor_product.lift`:
@@ -159,6 +162,13 @@ The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
 
 local attribute [ext] tensor_product.ext
 
+
+variables [module Rᵐᵒᵖ P] [is_symmetric_smul R P]
+variables [smul_comm_class Aᵐᵒᵖ Rᵐᵒᵖ M]
+variables [is_scalar_tower Rᵐᵒᵖ A P]
+variables [module Aᵐᵒᵖ P] [is_symmetric_smul A P]
+variables [is_scalar_tower Rᵐᵒᵖ R P]
+variables [smul_comm_class Aᵐᵒᵖ R M]
 /-- Heterobasic version of `tensor_product.assoc`:
 
 Linear equivalence between `(M ⊗[A] N) ⊗[R] P` and `M ⊗[A] (N ⊗[R] P)`. -/
@@ -187,8 +197,10 @@ open tensor_product
 section semiring
 
 variables {R A B M N : Type*} [comm_semiring R]
-variables [semiring A] [algebra R A] [semiring B] [algebra R B]
-variables [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
+variables [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
+variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
+variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
 variables (r : R) (f g : M →ₗ[R] N)
 
 variables (A)
@@ -219,7 +231,7 @@ by { ext, simp [base_change_eq_ltensor], }
 by { ext, simp [base_change_eq_ltensor], }
 
 @[simp] lemma base_change_smul : (r • f).base_change A = r • (f.base_change A) :=
-by { ext, simp [base_change_tmul], }
+by { ext, simp [base_change_tmul],  }
 
 variables (R A M N)
 /-- `base_change` as a linear map. -/
@@ -233,8 +245,10 @@ end semiring
 section ring
 
 variables {R A B M N : Type*} [comm_ring R]
-variables [ring A] [algebra R A] [ring B] [algebra R B]
-variables [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables [ring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables [ring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
+variables [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
+variables [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
 variables (f g : M →ₗ[R] N)
 
 @[simp] lemma base_change_sub :
@@ -254,8 +268,8 @@ namespace tensor_product
 section semiring
 
 variables {R : Type u} [comm_semiring R]
-variables {A : Type v₁} [semiring A] [algebra R A]
-variables {B : Type v₂} [semiring B] [algebra R B]
+variables {A : Type v₁} [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables {B : Type v₂} [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
 
 /-!
 ### The `R`-algebra structure on `A ⊗[R] B`
@@ -441,8 +455,8 @@ end semiring
 section ring
 
 variables {R : Type u} [comm_ring R]
-variables {A : Type v₁} [ring A] [algebra R A]
-variables {B : Type v₂} [ring B] [algebra R B]
+variables {A : Type v₁} [ring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables {B : Type v₂} [ring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
 
 instance : ring (A ⊗[R] B) :=
 { .. (by apply_instance : add_comm_group (A ⊗[R] B)),
@@ -453,8 +467,8 @@ end ring
 section comm_ring
 
 variables {R : Type u} [comm_ring R]
-variables {A : Type v₁} [comm_ring A] [algebra R A]
-variables {B : Type v₂} [comm_ring B] [algebra R B]
+variables {A : Type v₁} [comm_ring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables {B : Type v₂} [comm_ring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
 
 instance : comm_ring (A ⊗[R] B) :=
 { mul_comm := λ x y,
@@ -479,7 +493,8 @@ end comm_ring
 Verify that typeclass search finds the ring structure on `A ⊗[ℤ] B`
 when `A` and `B` are merely rings, by treating both as `ℤ`-algebras.
 -/
-example {A : Type v₁} [ring A] {B : Type v₂} [ring B] : ring (A ⊗[ℤ] B) :=
+example {A : Type v₁} [ring A] [module ℤᵐᵒᵖ A] [is_symmetric_smul ℤ A]
+  {B : Type v₂} [ring B] : ring (A ⊗[ℤ] B) :=
 by apply_instance
 
 /--
@@ -496,9 +511,9 @@ section monoidal
 
 section
 variables {R : Type u} [comm_semiring R]
-variables {A : Type v₁} [semiring A] [algebra R A]
-variables {B : Type v₂} [semiring B] [algebra R B]
-variables {C : Type v₃} [semiring C] [algebra R C]
+variables {A : Type v₁} [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables {B : Type v₂} [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
+variables {C : Type v₃} [semiring C] [algebra R C] [algebra Rᵐᵒᵖ C] [is_symmetric_smul R C]
 variables {D : Type v₄} [semiring D] [algebra R D]
 
 /--
@@ -598,9 +613,9 @@ rfl
 end
 
 variables {R : Type u} [comm_semiring R]
-variables {A : Type v₁} [semiring A] [algebra R A]
-variables {B : Type v₂} [semiring B] [algebra R B]
-variables {C : Type v₃} [semiring C] [algebra R C]
+variables {A : Type v₁} [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables {B : Type v₂} [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
+variables {C : Type v₃} [semiring C] [algebra R C] [algebra Rᵐᵒᵖ C] [is_symmetric_smul R C]
 variables {D : Type v₄} [semiring D] [algebra R D]
 
 section

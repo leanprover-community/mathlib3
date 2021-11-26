@@ -380,6 +380,12 @@ def monoid_hom.to_opposite {R S : Type*} [mul_one_class R] [mul_one_class S] (f 
   map_one' := congr_arg op f.map_one,
   map_mul' := λ x y, by simp [(hf x y).eq] }
 
+def monoid_hom.from_opposite {R S : Type*} [mul_one_class R] [mul_one_class S] (f : R →* S)
+  (hf : ∀ x y, commute (f x) (f y)) : Rᵐᵒᵖ →* S :=
+{ to_fun := f ∘ mul_opposite.unop,
+  map_one' := by simp only [unop_one, comp_app, monoid_hom.map_one],
+  map_mul' := λ x y, by simp only [unop_mul, monoid_hom.map_mul, comp_app]; rw (hf _ _).eq }
+
 /-- A ring homomorphism `f : R →+* S` such that `f x` commutes with `f y` for all `x, y` defines
 a ring homomorphism to `Sᵐᵒᵖ`. -/
 @[simps {fully_applied := ff}]
@@ -388,6 +394,13 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
 { to_fun := mul_opposite.op ∘ f,
   .. ((op_add_equiv : S ≃+ Sᵐᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵐᵒᵖ),
   .. f.to_monoid_hom.to_opposite hf }
+
+@[simps {fully_applied := ff}]
+def ring_hom.from_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
+  (hf : ∀ x y, commute (f x) (f y)) : Rᵐᵒᵖ →+* S := 
+{ to_fun := f ∘ mul_opposite.unop,
+  .. f.to_add_monoid_hom.comp (op_add_equiv : R ≃+ Rᵐᵒᵖ).symm.to_add_monoid_hom,
+  .. f.to_monoid_hom.from_opposite hf }
 
 /-- The units of the opposites are equivalent to the opposites of the units. -/
 def units.op_equiv {R} [monoid R] : units Rᵐᵒᵖ ≃* (units R)ᵐᵒᵖ :=

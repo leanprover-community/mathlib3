@@ -233,16 +233,15 @@ end
 
 end
 
-/-- If `C` has an terminal object such that every morphism *from* it is an isomorphism, then `C`
+/-- If `C` has an object such that every morphism *from* it is an isomorphism, then `C`
 has strict terminal objects. -/
-lemma has_strict_terminal_objects_of_terminal_is_strict [has_terminal C]
-  (h : ∀ A (f : ⊤_ C ⟶ A), is_iso f) :
+lemma has_strict_terminal_objects_of_terminal_is_strict (I : C) (h : ∀ A (f : I ⟶ A), is_iso f) :
   has_strict_terminal_objects C :=
-{ out := λ I A f hI,
+{ out := λ I' A f hI',
   begin
-    haveI := h A (hI.from _ ≫ f),
-    exact ⟨⟨inv (hI.from (⊤_ C) ≫ f) ≫ hI.from (⊤_ C),
-      hI.hom_ext _ _, by rw [assoc, is_iso.inv_hom_id]⟩⟩,
+    haveI := h A (hI'.from _ ≫ f),
+    exact ⟨⟨inv (hI'.from I ≫ f) ≫ hI'.from I,
+      hI'.hom_ext _ _, by rw [assoc, is_iso.inv_hom_id]⟩⟩,
   end }
 
 end strict_terminal

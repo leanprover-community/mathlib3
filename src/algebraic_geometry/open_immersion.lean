@@ -801,22 +801,6 @@ end
 
 section end
 
-variables {J : Type v} [small_category J]
-
-lemma limit_π_is_iso_of_is_terminal' (F : J ⥤ C) (i : J) (H : ∀ j ≠ i, is_terminal (F.obj j))
-  [subsingleton (i ⟶ i)] : is_iso (limit.π F i) :=
-begin
-  classical,
-  refine ⟨⟨limit.lift _ ⟨_,⟨_,_⟩⟩,_,_⟩⟩,
-  exact λ j, dite (j = i) (λ h, eq_to_hom (by { cases h, refl })) (λ h, (H _ h).from _),
-  intros j k f,
-  split_ifs,
-  { cases h, cases h_1, have : f = 𝟙 _ := subsingleton.elim _ _, subst this, simpa },
-  { cases h, dsimp, }
-
-
-end
-
 def pointwise_limit_π_inv (U : opens (F.obj i)) :
   (F.obj i).presheaf.obj (op ((opens.map
     (colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) i ≫

@@ -93,22 +93,28 @@ end)
 
 end pushout
 
-section terminal
-
 lemma punit_is_terminal : is_terminal (CommRing.of punit) :=
 begin
   apply_with is_terminal.of_unique { instances := ff },
   tidy
 end
 
-lemma CommRing_ : is_terminal (CommRing.of punit) :=
+instance CommRing_has_strict_terminal_objects : has_strict_terminal_objects CommRing :=
 begin
-  apply_with is_terminal.of_unique { instances := ff },
-  tidy
+  apply has_strict_terminal_objects_of_terminal_is_strict (CommRing.of punit),
+  intros X f,
+  refine ⟨⟨by tidy, by ext, _⟩⟩,
+  ext,
+  have e : (0 : X) = 1 := by { rw [← f.map_one, ← f.map_zero], congr },
+  replace e : 0 * x = 1 * x := congr_arg (λ a, a * x) e,
+  rw [one_mul, zero_mul, ← f.map_zero] at e,
+  exact e,
 end
 
-
-
-end terminal
+lemma Z_is_terminal : is_initial (CommRing.of ℤ) :=
+begin
+  apply_with is_initial.of_unique { instances := ff },
+  exact λ R, ⟨⟨int.cast_ring_hom R⟩, λ a, a.ext_int _⟩,
+end
 
 end CommRing

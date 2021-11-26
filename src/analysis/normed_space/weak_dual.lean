@@ -144,7 +144,7 @@ lemma to_normed_dual.preimage_closed_unit_ball :
     {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} :=
 begin
   have eq : metric.closed_ball (0 : dual 𝕜 E) 1 = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1},
-  { ext1 x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
+  { ext x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
   rw eq,
   exact set.preimage_set_of_eq,
 end
@@ -176,7 +176,7 @@ begin
   apply is_closed_bInter,
   intros z hz,
   rw set.preimage_set_of_eq,
-   have eq : {x' : weak_dual 𝕜 E | ∥weak_dual.to_normed_dual x' z∥ ≤ 1}
+  have eq : {x' : weak_dual 𝕜 E | ∥weak_dual.to_normed_dual x' z∥ ≤ 1}
     = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1) := by refl,
   rw eq,
   refine is_closed.preimage _ (is_closed_Iic),

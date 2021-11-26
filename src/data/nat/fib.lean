@@ -20,7 +20,7 @@ Definition of the Fibonacci sequence `F₀ = 0, F₁ = 1, Fₙ₊₂ = Fₙ + F�
 ## Main Statements
 
 - `fib_add_two` : shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.`.
-- `fib_gcd      : `fib n` is a strong divisibility sequence.
+- `fib_gcd`     : `fib n` is a strong divisibility sequence.
 
 ## Implementation Notes
 

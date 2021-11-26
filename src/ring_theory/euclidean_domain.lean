@@ -26,22 +26,22 @@ open euclidean_domain set ideal
 
 section gcd_monoid
 
-variables {R : Type*} [euclidean_domain R]
+variables {R : Type*} [euclidean_domain R] [gcd_monoid R]
 
 lemma left_div_gcd_ne_zero {p q : R} (hp : p ≠ 0) :
-  p / gcd p q ≠ 0 :=
+  p / gcd_monoid.gcd p q ≠ 0 :=
 begin
-  obtain ⟨r, hr⟩ := gcd_dvd_left p q,
-  obtain ⟨pq0, r0⟩ : gcd p q ≠ 0 ∧ r ≠ 0 := mul_ne_zero_iff.mp (hr ▸ hp),
+  obtain ⟨r, hr⟩ := gcd_monoid.gcd_dvd_left p q,
+  obtain ⟨pq0, r0⟩ : gcd_monoid.gcd p q ≠ 0 ∧ r ≠ 0 := mul_ne_zero_iff.mp (hr ▸ hp),
   rw [hr, mul_comm, mul_div_cancel _ pq0] { occs := occurrences.pos [1] },
   exact r0,
 end
 
 lemma right_div_gcd_ne_zero {p q : R} (hq : q ≠ 0) :
-  q / gcd p q ≠ 0 :=
+  q / gcd_monoid.gcd p q ≠ 0 :=
 begin
-  obtain ⟨r, hr⟩ := gcd_dvd_right p q,
-  obtain ⟨pq0, r0⟩ : gcd p q ≠ 0 ∧ r ≠ 0 := mul_ne_zero_iff.mp (hr ▸ hq),
+  obtain ⟨r, hr⟩ := gcd_monoid.gcd_dvd_right p q,
+  obtain ⟨pq0, r0⟩ : gcd_monoid.gcd p q ≠ 0 ∧ r ≠ 0 := mul_ne_zero_iff.mp (hr ▸ hq),
   rw [hr, mul_comm, mul_div_cancel _ pq0] { occs := occurrences.pos [1] },
   exact r0,
 end

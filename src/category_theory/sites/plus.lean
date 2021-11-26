@@ -50,6 +50,37 @@ def diagram_pullback {X Y : C} (f : X ⟶ Y) :
       λ I, multiequalizer.condition (S.unop.index P) I.base,
   naturality' := λ S T f, by { ext, dsimp, simpa } }
 
+@[simps]
+def diagram_nat_trans {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (X : C) :
+  J.diagram P X ⟶ J.diagram Q X :=
+{ app := λ W, multiequalizer.lift _ _
+    (λ i, multiequalizer.ι _ i ≫ η.app _) begin
+      intros i,
+      erw [category.assoc, category.assoc, ← η.naturality,
+        ← η.naturality, ← category.assoc, ← category.assoc, multiequalizer.condition],
+      refl,
+    end,
+  naturality' := λ _ _ _, by { dsimp, ext, simpa } }
+
+@[simp]
+lemma diagram_nat_trans_id (X : C) (P : Cᵒᵖ ⥤ D) :
+  J.diagram_nat_trans (𝟙 P) X = 𝟙 (J.diagram P X) :=
+begin
+  ext,
+  dsimp,
+  simp only [multiequalizer.lift_ι, category.id_comp],
+  erw category.comp_id
+end
+
+@[simp]
+lemma diagram_nat_trans_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) (X : C) :
+  J.diagram_nat_trans (η ≫ γ) X = J.diagram_nat_trans η X ≫ J.diagram_nat_trans γ X :=
+begin
+  ext,
+  dsimp,
+  simp,
+end
+
 variable [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
 
 /-- The plus construction, associating a presheaf to any presheaf.
@@ -99,15 +130,7 @@ def plus_obj : Cᵒᵖ ⥤ D :=
 /-- An auxiliary definition used in `plus` below. -/
 @[simps]
 def plus_map {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) : J.plus_obj P ⟶ J.plus_obj Q :=
-{ app := λ X, colim_map
-  { app := λ S, multiequalizer.lift _ _
-      (λ I, multiequalizer.ι (S.unop.index P) I ≫ η.app (op I.Y)) begin
-        intros I,
-        erw [category.assoc, category.assoc, ← η.naturality, ← η.naturality,
-          ← category.assoc, ← category.assoc, multiequalizer.condition],
-        refl,
-      end,
-    naturality' := λ S T e, by { dsimp, ext, simpa } },
+{ app := λ X, colim_map (J.diagram_nat_trans η X.unop),
   naturality' := begin
     intros X Y f,
     dsimp,
@@ -130,21 +153,18 @@ def plus_functor : (Cᵒᵖ ⥤ D) ⥤ Cᵒᵖ ⥤ D :=
   map := λ P Q η, J.plus_map η,
   map_id' := begin
     intros P,
+    ext : 2,
+    dsimp only [plus_map],
+    rw J.diagram_nat_trans_id,
     ext,
     dsimp,
-    simp only [ι_colim_map, category.comp_id],
-    convert category.id_comp _,
-    ext,
-    simp only [multiequalizer.lift_ι, category.id_comp],
-    exact category.comp_id _,
+    simp,
   end,
   map_comp' := begin
     intros P Q R η γ,
-    ext,
-    dsimp,
-    simp only [ι_colim_map, ι_colim_map_assoc],
-    rw ← category.assoc,
-    congr' 1,
+    ext : 2,
+    dsimp only [plus_map],
+    rw J.diagram_nat_trans_comp,
     ext,
     dsimp,
     simp,

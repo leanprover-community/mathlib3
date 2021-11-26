@@ -96,9 +96,12 @@ units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
 
 -- Note that without the `@` and `‹_›`, lean infers `λ a b, _inst_1 a b` instead of `_inst_1` as the
 -- decidability argument, which prevents `simp` from obtaining the instance by unification.
-@[simp]
-lemma coe_to_linear :
+@[simp] lemma coe_to_linear :
   (@to_linear n ‹_› ‹_› _ _ A : (n → R) →ₗ[R] (n → R)) = matrix.mul_vec_lin A :=
+rfl
+
+@[simp] lemma to_linear_apply (v : n → R) :
+  (@to_linear n ‹_› ‹_› _ _ A) v = matrix.mul_vec_lin A v :=
 rfl
 
 end coe_lemmas

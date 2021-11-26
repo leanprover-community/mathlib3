@@ -689,7 +689,7 @@ filter.ext $ λ x, by simp only [mem_sup, mem_join]
   (⨆ x, join (f x)) = join (⨆ x, f x) :=
 filter.ext $ λ x, by simp only [mem_supr, mem_join]
 
-instance : bounded_distrib_lattice (filter α) :=
+instance : distrib_lattice (filter α) :=
 { le_sup_inf :=
   begin
     intros x y z s,

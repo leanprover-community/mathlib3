@@ -1700,19 +1700,20 @@ alias bounded_closure_of_bounded ← metric.bounded.closure
 @[simp] lemma bounded_closure_iff : bounded (closure s) ↔ bounded s :=
 ⟨λ h, h.mono subset_closure, λ h, h.closure⟩
 
-/-- The union of two bounded sets is bounded iff each of the sets is bounded -/
-@[simp] lemma bounded_union :
-  bounded (s ∪ t) ↔ bounded s ∧ bounded t :=
-⟨λh, ⟨h.mono (by simp), h.mono (by simp)⟩,
+/-- The union of two bounded sets is bounded. -/
+lemma bounded.union (hs : bounded s) (ht : bounded t) : bounded (s ∪ t) :=
 begin
-  rintro ⟨hs, ht⟩,
   refine bounded_iff_mem_bounded.2 (λ x _, _),
   rw bounded_iff_subset_ball x at hs ht ⊢,
   rcases hs with ⟨Cs, hCs⟩, rcases ht with ⟨Ct, hCt⟩,
   exact ⟨max Cs Ct, union_subset
     (subset.trans hCs $ closed_ball_subset_closed_ball $ le_max_left _ _)
     (subset.trans hCt $ closed_ball_subset_closed_ball $ le_max_right _ _)⟩,
-end⟩
+end
+
+/-- The union of two sets is bounded iff each of the sets is bounded. -/
+@[simp] lemma bounded_union : bounded (s ∪ t) ↔ bounded s ∧ bounded t :=
+⟨λ h, ⟨h.mono (by simp), h.mono (by simp)⟩, λ h, h.1.union h.2⟩
 
 /-- A finite union of bounded sets is bounded -/
 lemma bounded_bUnion {I : set β} {s : β → set α} (H : finite I) :

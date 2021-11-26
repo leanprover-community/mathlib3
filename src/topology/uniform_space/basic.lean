@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.lift
-import topology.separation
+import topology.subset_properties
 /-!
 # Uniform spaces
 
@@ -271,6 +271,16 @@ lemma uniform_space.of_core_eq_to_core
   (u : uniform_space α) (t : topological_space α) (h : t = u.to_core.to_topological_space) :
   uniform_space.of_core_eq u.to_core t h = u :=
 uniform_space_eq rfl
+
+/-- Replace topology in a `uniform_space` instance with a propositionally (but possibly not
+definitionally) equal one. -/
+def uniform_space.replace_topology {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : uniform_space α :=
+uniform_space.of_core_eq u.to_core i $ h.trans u.to_core_to_topological_space.symm
+
+lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : u.replace_topology h = u :=
+u.of_core_eq_to_core _ _
 
 section uniform_space
 variables [uniform_space α]
@@ -948,8 +958,8 @@ instance : partial_order (uniform_space α) :=
   le_trans    := assume a b c h₁ h₂, le_trans h₁ h₂ }
 
 instance : has_Inf (uniform_space α) :=
-⟨assume s, uniform_space.of_core {
-  uniformity := (⨅u∈s, @uniformity α u),
+⟨assume s, uniform_space.of_core
+{ uniformity := (⨅u∈s, @uniformity α u),
   refl       := le_infi $ assume u, le_infi $ assume hu, u.refl,
   symm       := le_infi $ assume u, le_infi $ assume hu,
     le_trans (map_mono $ infi_le_of_le _ $ infi_le _ hu) u.symm,

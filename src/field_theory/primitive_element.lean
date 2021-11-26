@@ -7,6 +7,7 @@ Authors: Thomas Browning, Patrick Lutz
 import field_theory.adjoin
 import field_theory.is_alg_closed.basic
 import field_theory.separable
+import ring_theory.integral_domain
 
 /-!
 # Primitive Element Theorem
@@ -154,7 +155,7 @@ begin
     apply (div_eq_iff (sub_ne_zero.mpr a)).mpr,
     simp only [algebra.smul_def, ring_hom.map_add, ring_hom.map_mul, ring_hom.comp_apply],
     ring },
-  rw ← eq_X_sub_C_of_separable_of_root_eq h_ne_zero h_sep h_root h_splits h_roots,
+  rw ← eq_X_sub_C_of_separable_of_root_eq h_sep h_root h_splits h_roots,
   transitivity euclidean_domain.gcd (_ : polynomial E) (_ : polynomial E),
   { dsimp only [p],
     convert (gcd_map (algebra_map F⟮γ⟯ E)).symm },

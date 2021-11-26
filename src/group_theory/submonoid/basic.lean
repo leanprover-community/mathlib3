@@ -171,8 +171,8 @@ lemma mem_inf {p p' : submonoid M} {x : M} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x �
 
 @[to_additive]
 instance : has_Inf (submonoid M) :=
-⟨λ s, {
-  carrier := ⋂ t ∈ s, ↑t,
+⟨λ s,
+{ carrier := ⋂ t ∈ s, ↑t,
   one_mem' := set.mem_bInter $ λ i h, i.one_mem,
   mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
     i.mul_mem (by apply set.mem_bInter_iff.1 hx i h) (by apply set.mem_bInter_iff.1 hy i h) }⟩

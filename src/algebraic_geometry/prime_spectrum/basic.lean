@@ -410,10 +410,26 @@ end
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
 
+
+lemma preimage_comap_zero_locus_aux (f : R →+* S) (s : set R) :
+  (λ y, ⟨ideal.comap f y.as_ideal, infer_instance⟩ :
+    prime_spectrum S → prime_spectrum R) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=
+begin
+  ext x,
+  simp only [mem_zero_locus, set.image_subset_iff],
+  refl
+end
+
 /-- The function between prime spectra of commutative rings induced by a ring homomorphism.
 This function is continuous. -/
-def comap (f : R →+* S) : prime_spectrum S → prime_spectrum R :=
-λ y, ⟨ideal.comap f y.as_ideal, infer_instance⟩
+def comap (f : R →+* S) : C(prime_spectrum S, prime_spectrum R) :=
+{ to_fun := λ y, ⟨ideal.comap f y.as_ideal, infer_instance⟩,
+  continuous_to_fun :=
+    begin
+      simp only [continuous_iff_is_closed, is_closed_iff_zero_locus],
+      rintro _ ⟨s, rfl⟩,
+      exact ⟨_, preimage_comap_zero_locus_aux f s⟩
+    end }
 
 variables (f : R →+* S)
 
@@ -421,33 +437,20 @@ variables (f : R →+* S)
   (comap f y).as_ideal = ideal.comap f y.as_ideal :=
 rfl
 
-@[simp] lemma comap_id : comap (ring_hom.id R) = id :=
-funext $ λ _, subtype.ext $ ideal.ext $ λ _, iff.rfl
+@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id := by { ext, refl }
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
-  comap (g.comp f) = comap f ∘ comap g :=
-funext $ λ _, subtype.ext $ ideal.ext $ λ _, iff.rfl
+  comap (g.comp f) = (comap f).comp (comap g) :=
+rfl
 
 @[simp] lemma preimage_comap_zero_locus (s : set R) :
   (comap f) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=
-begin
-  ext x,
-  simp only [mem_zero_locus, set.mem_preimage, comap_as_ideal, set.image_subset_iff],
-  refl
-end
+preimage_comap_zero_locus_aux f s
 
 lemma comap_injective_of_surjective (f : R →+* S) (hf : function.surjective f) :
   function.injective (comap f) :=
 λ x y h, prime_spectrum.ext.2 (ideal.comap_injective_of_surjective f hf
   (congr_arg prime_spectrum.as_ideal h : (comap f x).as_ideal = (comap f y).as_ideal))
-
-lemma comap_continuous (f : R →+* S) : continuous (comap f) :=
-begin
-  rw continuous_iff_is_closed,
-  simp only [is_closed_iff_zero_locus],
-  rintro _ ⟨s, rfl⟩,
-  exact ⟨_, preimage_comap_zero_locus f s⟩
-end
 
 lemma comap_singleton_is_closed_of_surjective (f : R →+* S) (hf : function.surjective f)
   (x : prime_spectrum S) (hx : is_closed ({x} : set (prime_spectrum S))) :
@@ -602,7 +605,7 @@ def closed_point : prime_spectrum R :=
 variable {R}
 
 lemma local_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
-  {f : R →+* S} : is_local_ring_hom f ↔ (closed_point S).comap f = closed_point R :=
+  {f : R →+* S} : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
 by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
 
 end local_ring

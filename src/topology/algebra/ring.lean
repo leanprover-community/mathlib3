@@ -5,7 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.ring.prod
 import ring_theory.ideal.quotient
-import ring_theory.subring
+import ring_theory.subring.basic
 import topology.algebra.group
 
 /-!
@@ -39,8 +39,21 @@ If `R` is a ring, then negation is automatically continuous, as it is multiplica
 class topological_ring [topological_space α] [semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
 
+@[priority 50]
+instance discrete_topology.topological_ring {α} [topological_space α] [semiring α]
+  [discrete_topology α] : topological_ring α := ⟨⟩
+
 section
 variables {α} [topological_space α] [semiring α] [topological_ring α]
+
+namespace subsemiring
+
+instance (S : subsemiring α) :
+  topological_ring S :=
+{ ..S.to_submonoid.has_continuous_mul,
+  ..S.to_add_submonoid.has_continuous_add }
+
+end subsemiring
 
 /-- The (topological-space) closure of a subsemiring of a topological semiring is
 itself a subsemiring. -/
@@ -138,6 +151,14 @@ continuous_const.mul continuous_id
 /-- In a topological ring, the right-multiplication `add_monoid_hom` is continuous. -/
 lemma mul_right_continuous (x : α) : continuous (add_monoid_hom.mul_right x) :=
 continuous_id.mul continuous_const
+
+namespace subring
+
+instance (S : subring α) :
+  topological_ring S :=
+S.to_subsemiring.topological_ring
+
+end subring
 
 /-- The (topological-space) closure of a subring of a topological semiring is
 itself a subring. -/

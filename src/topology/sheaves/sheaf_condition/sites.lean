@@ -236,7 +236,7 @@ begin
   intros U R hR,
   refine ⟨_⟩,
   apply (is_limit.of_cone_equiv (cones.postcompose_equivalence
-    (covering_of_presieve.diagram_nat_iso F U R))).to_fun,
+    (covering_of_presieve.diagram_nat_iso F U R : _))).to_fun,
   apply (is_limit.equiv_iso_limit
     (covering_of_presieve.postcompose_diagram_fork_iso F U R hR)).inv_fun,
   exact (Fsh (covering_of_presieve U R)).some,
@@ -462,15 +462,27 @@ def Sheaf_spaces_to_sheaf_sites : sheaf C X ⥤ Sheaf (opens.grothendieck_topolo
 The equivalence of categories between sheaves on the site `opens X` and sheaves on the space `X`.
 -/
 @[simps]
-def Sheaf_spaces_equivelence_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
+def Sheaf_spaces_equiv_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
 begin
   refine equivalence.mk (Sheaf_sites_to_sheaf_spaces C X) (Sheaf_spaces_to_sheaf_sites C X) _ _,
-  all_goals {
-    refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
+  all_goals
+  { refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
     ext U, dsimp,
     erw [nat_trans.comp_app, nat_trans.comp_app, eq_to_hom_refl G.1 rfl, eq_to_hom_refl F.1 rfl,
       nat_trans.id_app G.1, category.comp_id, nat_trans.id_app F.1, category.id_comp], },
 end
+
+/-- The two forgetful functors are isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
+def Sheaf_spaces_equiv_sheaf_sites_functor_forget :
+  (Sheaf_spaces_equiv_sheaf_sites C X).functor ⋙ sheaf.forget C X ≅ Sheaf_to_presheaf _ _ :=
+nat_iso.of_components (λ F, (iso.refl F.1))
+  (λ F G f, by { erw [category.comp_id, category.id_comp], refl })
+
+/-- The two forgetful functors are isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
+def Sheaf_spaces_equiv_sheaf_sites_inverse_forget :
+  (Sheaf_spaces_equiv_sheaf_sites C X).inverse ⋙ Sheaf_to_presheaf _ _ ≅ sheaf.forget C X :=
+nat_iso.of_components (λ F, (iso.refl F.1))
+  (λ F G f, by { erw [category.comp_id, category.id_comp], refl })
 
 end Top.presheaf
 

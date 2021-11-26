@@ -172,8 +172,8 @@ Linear algebra:
     existence of an eigenvalue: 'module.End.exists_eigenvalue'
   Bilinear and quadratic forms:
     bilinear form: 'bilin_form'
-    alternating bilinear form: 'alt_bilin_form.is_alt'
-    symmetric bilinear form: 'sym_bilin_form.is_sym'
+    alternating bilinear form: 'bilin_form.is_alt'
+    symmetric bilinear form: 'bilin_form.is_symm'
     matrix representation: 'bilin_form.to_matrix'
     quadratic form: 'quadratic_form'
     polar form of a quadratic: 'quadratic_form.polar'
@@ -347,7 +347,7 @@ Combinatorics:
   Graph theory:
     simple graph: 'simple_graph'
     degree-sum formula: 'simple_graph.sum_degrees_eq_twice_card_edges'
-    matching: 'simple_graph.matching'
+    matching: 'simple_graph.subgraph.is_matching'
     adjacency matrix: 'simple_graph.adj_matrix'
   Pigeonhole principles:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'

@@ -43,6 +43,10 @@ namespace quotient
 
 variables {N I}
 
+instance add_comm_group : add_comm_group (M /// N) := submodule.quotient.add_comm_group _
+instance module : module R (M /// N) := submodule.quotient.module _
+instance inhabited : inhabited (M /// N) := ⟨0⟩
+
 /-- Map sending an element of `M` to the corresponding element of `M/N`, when `N` is a
 lie_submodule of the lie_module `N`. -/
 abbreviation mk : M → M /// N := submodule.quotient.mk

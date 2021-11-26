@@ -5,10 +5,12 @@ Authors: Andrew Yang
 -/
 import category_theory.limits.shapes.pullbacks
 import ring_theory.tensor_product
-import algebra.category.CommRing.basic
+import algebra.category.CommRing.limits
+import algebra.category.CommRing.colimits
+import category_theory.limits.shapes.strict_initial
 
 /-!
-# Explicit pushout cocone for CommRing
+# Constructions of (co)limit in CommRing
 
 In this file we prove that tensor product is indeed the fibered coproduct in `CommRing`, and
 provide the explicit pushout cocone.
@@ -17,12 +19,14 @@ provide the explicit pushout cocone.
 
 universe u
 
-open category_theory
+open category_theory category_theory.limits
 open_locale tensor_product
 
 variables {R A B : CommRing.{u}} (f : R ⟶ A) (g : R ⟶ B)
 
 namespace CommRing
+
+section pushout
 
 /-- The explicit cocone with tensor products as the fibered product in `CommRing`. -/
 def pushout_cocone : limits.pushout_cocone f g :=
@@ -86,5 +90,25 @@ begin
   intros a b,
   simp [← eq1, ← eq2, ← h.map_mul],
 end)
+
+end pushout
+
+section terminal
+
+lemma punit_is_terminal : is_terminal (CommRing.of punit) :=
+begin
+  apply_with is_terminal.of_unique { instances := ff },
+  tidy
+end
+
+lemma CommRing_ : is_terminal (CommRing.of punit) :=
+begin
+  apply_with is_terminal.of_unique { instances := ff },
+  tidy
+end
+
+
+
+end terminal
 
 end CommRing

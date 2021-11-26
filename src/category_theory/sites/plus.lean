@@ -84,7 +84,7 @@ end
 variable [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
 
 /-- The plus construction, associating a presheaf to any presheaf.
-See `plus` below for a functorial version.
+See `plus_functor` below for a functorial version.
 -/
 @[simps]
 def plus_obj : Cᵒᵖ ⥤ D :=

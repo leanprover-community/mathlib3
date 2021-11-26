@@ -53,6 +53,17 @@ Note that the fact that `A` is internally-graded, `graded_algebra 𝒜`, implies
 algebra structure `direct_sum.galgebra R (λ i, ↥(𝒜 i))`, which in turn makes available an
 `algebra R (⨁ i, 𝒜 i)` instance.
 -/
+
+lemma direct_sum.coe_mul_apply_submodule [set_like.graded_monoid 𝒜]
+  [Π (i : ι) (x : (λ (i : ι), ↥(𝒜 i)) i), decidable (x ≠ 0)] (r r' : ⨁ i, 𝒜 i) (i : ι) :
+  ((r * r') i : A) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, submodule.coe_sum],
+  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
+
 class graded_algebra extends set_like.graded_monoid 𝒜 :=
 (decompose' : A → ⨁ i, 𝒜 i)
 (left_inv : function.left_inverse decompose' (direct_sum.submodule_coe 𝒜))
@@ -135,16 +146,6 @@ begin
     ←direct_sum.sum_support_of _ (graded_algebra.decompose 𝒜 r)] },
   rw [alg_equiv.map_sum, graded_algebra.support],
   simp_rw graded_algebra.decompose_symm_of,
-end
-
-/-- An applied variant of `direct_sum.mul_eq_sum_support_ghas_mul` for collections of submodules -/
-lemma direct_sum.coe_mul_apply_submodule (r r' : ⨁ i, 𝒜 i) (i : ι) :
-  ((r * r') i : A) =
-    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
-      r ij.1 * r' ij.2 :=
-begin
-  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, submodule.coe_sum],
-  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
 lemma graded_algebra.mul_decompose (r r' : A) (i : ι) :

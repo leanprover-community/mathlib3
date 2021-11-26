@@ -18,8 +18,8 @@ open category_theory
 universe u
 
 /-- A flag is a maximal chain. -/
-@[reducible] def polytope.flag (α : Type u) [has_le α] : Type u :=
-{c : set α // @zorn.is_max_chain α (≤) c}
+@[reducible] def polytope.flag (α : Type u) [has_lt α] : Type u :=
+{c : set α // @zorn.is_max_chain α (<) c}
 
 /-- The category of posets of type `α`. -/
 @[instance]
@@ -88,18 +88,18 @@ open polytope
 
 namespace polytope.flag
 
-instance (α : Type u) [has_le α] : has_mem α (flag α) :=
+instance (α : Type u) [has_lt α] : has_mem α (flag α) :=
 ⟨λ a Φ, a ∈ Φ.val⟩
 
 variables {α : Type u}
 
-instance [has_le α] (Φ : flag α) : has_le Φ :=
+instance [has_le α] [has_lt α] (Φ : flag α) : has_le Φ :=
 ⟨λ a b, a.val ≤ b.val⟩
 
-instance [has_le α] [has_lt α] (Φ : flag α) : has_lt Φ :=
+instance [has_lt α] (Φ : flag α) : has_lt Φ :=
 ⟨λ a b, a.val < b.val⟩
 
-instance [has_le α] : inhabited (flag α) :=
+instance [has_lt α] : inhabited (flag α) :=
 ⟨⟨_, zorn.max_chain_spec⟩⟩
 
 /-- Any two elements of a flag are comparable. -/
@@ -110,18 +110,20 @@ begin
     { exact or.inl (le_of_eq heq) },
     { cases x with x hx, cases y with y hy,
       rw subtype.mk_eq_mk at heq,
-      exact hΦ x hx y hy heq }
+      cases hΦ x hx y hy heq with h h, { exact or.inl (le_of_lt h) },
+      exact or.inr (le_of_lt h) }
 end
 
-/-- `<` is trichotomous for partially ordered flags. -/
-instance [partial_order α] (Φ : flag α) : is_trichotomous Φ (<) :=
+/-- `<` is trichotomous for flags. -/
+instance [preorder α] (Φ : flag α) : is_trichotomous Φ (<) :=
 begin
   refine ⟨λ x y, _⟩,
   by_cases heq : x = y, { exact or.inr (or.inl heq) },
-  simp_rw lt_iff_le_and_ne,
-  cases Φ.le_total x y with hle hle,
-    { exact or.inl ⟨hle, heq⟩ },
-    { exact or.inr (or.inr ⟨hle, ne.symm heq⟩) },
+  cases x with x hx,
+  cases y with y hy,
+  cases (Φ.prop.left x hx y hy) (λ h, heq (subtype.ext h)) with hle hle,
+    { exact or.inl hle },
+    { exact or.inr (or.inr hle) },
 end
 
 @[priority 900] -- lower priority in case subtype.linear_order comes up with something computable
@@ -131,28 +133,34 @@ noncomputable instance [partial_order α] (Φ : flag α) : linear_order Φ :=
   ..subtype.partial_order _ }
 
 /-- An element belongs to a flag iff it's comparable with everything in it. -/
-lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} : a ∈ Φ ↔ ∀ b : Φ, a ≤ ↑b ∨ ↑b ≤ a :=
+lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} :
+  a ∈ Φ ↔ ∀ b : Φ, a ≠ ↑b → a < ↑b ∨ ↑b < a :=
 begin
-  refine ⟨λ ha _, Φ.le_total ⟨a, ha⟩ _, λ H, _⟩,
-  by_contra,
-  exact Φ.prop.right ⟨_, zorn.chain_insert Φ.prop.left (λ _ hΦ _, H ⟨_, hΦ⟩), set.ssubset_insert h⟩
+  split, {
+    exact λ ha b hne, Φ.property.left a ha b.val b.property hne
+  },
+  intro H,
+  by_contra ha,
+  exact Φ.prop.right ⟨_, zorn.chain_insert Φ.prop.left (λ b hb hne, H ⟨b, hb⟩ hne.symm), set.ssubset_insert ha⟩,
 end
 
-/-- `⊥` belongs to every flag. -/
-theorem bot_in_flag [preorder α] [order_bot α] (Φ : flag α) : (⊥ : α) ∈ Φ :=
-Φ.mem_flag_iff_comp.mpr $ λ _, or.inl bot_le
+variables [partial_order α] (Φ : flag α)
 
-instance [preorder α] [order_bot α] (Φ : flag α) : order_bot Φ :=
+/-- `⊥` belongs to every flag. -/
+theorem bot_in_flag [order_bot α] : (⊥ : α) ∈ Φ :=
+by rw mem_flag_iff_comp; exact λ b hb, or.inl (bot_lt_iff_ne_bot.mpr hb.symm)
+
+instance [order_bot α] : order_bot Φ :=
 subtype.order_bot Φ.bot_in_flag
 
 /-- `⊤` belongs to every flag. -/
-theorem top_in_flag [preorder α] [order_top α] (Φ : flag α) : (⊤ : α) ∈ Φ :=
-Φ.mem_flag_iff_comp.mpr $ λ _, or.inr le_top
+theorem top_in_flag [order_top α] : (⊤ : α) ∈ Φ :=
+by rw mem_flag_iff_comp; exact λ b hb, or.inr (lt_top_iff_ne_top.mpr hb.symm)
 
-instance [preorder α] [order_top α] (Φ : flag α) : order_top Φ :=
+instance [order_top α] : order_top Φ :=
 subtype.order_top Φ.top_in_flag
 
-instance [preorder α] [bounded_order α] (Φ : flag α) : bounded_order Φ :=
+instance [bounded_order α] : bounded_order Φ :=
 { ..Φ.order_top, ..Φ.order_bot }
 
 end polytope.flag
@@ -217,6 +225,52 @@ by simp only [ne.def, inv_map_eq]
 lemma inv_hom (γ : automorphism α) (a : α) : γ.inv (γ.hom a) = a :=
 γ.to_rel_iso.left_inv a
 
+/-- Automorphisms preserve `<`. -/
+@[simp]
+lemma hom_map_lt (γ : automorphism α) (a b : α) : γ.hom a < γ.hom b ↔ a < b :=
+begin
+  split, {
+    intro h,
+    cases eq_or_lt_of_le ((hom_map_le γ a b).mp (le_of_lt h)) with heq hlt, {
+      rw heq at h,
+      exact ((ne_of_lt h) (refl _)).elim,
+    },
+    exact hlt,
+  },
+  intro h,
+  cases eq_or_lt_of_le ((hom_map_le γ a b).mpr (le_of_lt h)) with heq hlt, {
+    rw ←γ.inv_map_eq at heq,
+    simp at heq, -- Todo(Vi): get rid of this.
+    rw heq at h,
+    exact ((ne_of_lt h) (refl _)).elim,
+  },
+  exact hlt,
+end
+
+/-- Inverse automorphisms preserve `<`. -/
+@[simp]
+lemma inv_map_lt (γ : automorphism α) (a b : α) : γ.inv a < γ.inv b ↔ a < b :=
+begin
+  split, {
+    intro h,
+    cases eq_or_lt_of_le ((inv_map_le γ a b).mp (le_of_lt h)) with heq hlt, {
+      rw heq at h,
+      exact ((ne_of_lt h) (refl _)).elim,
+    },
+    exact hlt,
+  },
+  intro h,
+  cases eq_or_lt_of_le ((inv_map_le γ a b).mpr (le_of_lt h)) with heq hlt, {
+    rw ←γ.inv_map_eq at heq,
+    simp at heq, -- Todo(Vi): get rid of this.
+    rw heq at h,
+    exact ((ne_of_lt h) (refl _)).elim,
+  },
+  exact hlt,
+end
+
+-- The last two proofs are really similar, maybe we can merge them?
+
 /-- Scalar multiplication of automorphisms by flags. -/
 @[reducible]
 def smul_def (γ : automorphism α) (Φ : flag α) : set α :=
@@ -228,18 +282,18 @@ theorem smul_def.eq (γ : automorphism α) (Φ : flag α) : γ.smul_def Φ = γ.
 rfl
 
 /-- Automorphisms map flags to chains. -/
-lemma smul_is_chain (γ : automorphism α) (Φ : flag α) : zorn.chain (≤) (γ.smul_def Φ) :=
+lemma smul_is_chain (γ : automorphism α) (Φ : flag α) : zorn.chain (<) (γ.smul_def Φ) :=
 begin
   rcases Φ with ⟨Φf, hΦ, hΦ'⟩,
   rintros a ⟨aw, ha, ha'⟩ b ⟨bw, hb, hb'⟩,
   induction ha', induction hb',
-  simp only [hom_map_le, hom_map_ne],
+  simp only [hom_map_lt, hom_map_ne],
   exact hΦ _ ha _ hb
 end
 
 /-- Automorphisms map flags to flags. -/
 theorem smul_is_max_chain (γ : automorphism α) (Φ : flag α) :
-  @zorn.is_max_chain _ (≤) (γ.smul_def Φ) :=
+  @zorn.is_max_chain _ (<) (γ.smul_def Φ) :=
 begin
   refine ⟨γ.smul_is_chain Φ, _⟩,
   rcases Φ with ⟨Φf, hΦ, hΦ'⟩,
@@ -262,7 +316,7 @@ begin
       cases h with hx' hy',
       replace hx' := hx'.symm,
       induction hx',
-      rw [←γ.hom_map_le y, ←γ.hom_map_le, γ.hom_inv],
+      rw [←γ.hom_map_lt y, ←γ.hom_map_lt, γ.hom_inv],
       replace hne : a ≠ γ.hom y := by rw ←γ.inv_map_ne; simpa,
       apply hwl _ ha _ _ hne,
       replace hy' := set.mem_image_of_mem γ.hom hy',
@@ -525,13 +579,13 @@ begin
   cases h with hxy h,
   refine h ⟨z, _⟩ hzi,
   cases hzi with hxz hzy,
-  refine Φ.mem_flag_iff_comp.mpr (λ w, _),
+  refine Φ.mem_flag_iff_comp.mpr (λ w hzw, _),
   have hwi := h w,
   simp only [set.mem_Ioo, not_and, not_lt] at hwi,
   rcases lt_trichotomy x w with hxw | hxw | hxw,
-    { exact or.inl (le_of_lt $ lt_of_lt_of_le hzy (hwi hxw)) },
-    { induction hxw, exact or.inr (le_of_lt hxz) },
-    { exact or.inr (le_of_lt $ lt_trans hxw hxz) }
+    { exact or.inl (lt_of_lt_of_le hzy (hwi hxw)) },
+    { induction hxw, exact or.inr hxz },
+    { exact or.inr (lt_trans hxw hxz) }
 end
 
 variable [graded α]
@@ -705,7 +759,6 @@ abbreviation connected {α : Type u} [preorder α] [order_bot α] [order_top α]
   Prop :=
 connected_aux incident a b
 
-
 abbreviation flag_connected {α : Type u} [partial_order α] [order_top α] [graded α] (Φ Ψ : flag α) :
   Prop :=
 connected_aux (@flag.adjacent α _ _ _) Φ Ψ
@@ -722,7 +775,8 @@ begin
   exact ha.left
 end
 
-instance (α : Type u) [partial_order α] [order_top α] [graded α] (h : graded.grade_top α ≥ 2) :
+lemma proper.nonempty (α : Type u) [partial_order α] [order_top α] [graded α]
+(h : 2 ≤ graded.grade_top α) :
   nonempty (proper α) :=
 begin
   let a := (flag.idx ⟨1, nat.lt.step h⟩ (default (flag α))).val,

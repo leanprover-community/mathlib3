@@ -465,10 +465,10 @@ begin
     { exact factors_one }, }
 end
 
-lemma eq_of_perm_factors {a b : ℕ} (ha: 0 < a) (hb: 0 < b) (h : a.factors ~ b.factors) : a = b :=
+lemma eq_of_perm_factors {a b : ℕ} (ha : 0 < a) (hb : 0 < b) (h : a.factors ~ b.factors) : a = b :=
 by simpa [prod_factors ha, prod_factors hb] using list.perm.prod_eq h
 
-lemma eq_of_count_factors_eq {a b : ℕ} (ha: 0 < a) (hb: 0 < b)
+lemma eq_of_count_factors_eq {a b : ℕ} (ha : 0 < a) (hb : 0 < b)
   (h : ∀ p : ℕ, list.count p a.factors = list.count p b.factors) : a = b :=
 eq_of_perm_factors ha hb (list.perm_iff_count.mpr h)
 

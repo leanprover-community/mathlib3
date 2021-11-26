@@ -18,13 +18,14 @@ one edge, and the edges of the subgraph represent the paired vertices.
 
 ## Main definitions
 
-* `simple_graph.subgraph.is_matching` defines when a subgraph `M` of a simple graph is a matching,
+* `simple_graph.subgraph.is_matching`:  `M.is_matching` means that `M` is a matching of its
+  underlying graph.
   denoted `M.is_matching`.
 
 * `simple_graph.subgraph.is_perfect_matching` defines when a subgraph `M` of a simple graph is a
   perfect matching, denoted `M.is_perfect_matching`.
 
-## Todo
+## TODO
 
 * https://github.com/leanprover-community/mathlib/pull/10210#pullrequestreview-806303684
 
@@ -58,15 +59,12 @@ def is_perfect_matching : Prop := M.is_matching ∧ M.is_spanning
 
 lemma is_matching.support_eq_verts {M : subgraph G} (h : M.is_matching) : M.support = M.verts :=
 begin
-  rw set.subset.antisymm_iff,
-  split,
-  { exact M.support_subset_verts, },
-  { intros v hv,
-    obtain ⟨w, hvw, -⟩ := h hv,
-    exact ⟨_, hvw⟩, },
+  refine M.support_subset_verts.antisymm (λ v hv, _),
+  obtain ⟨w, hvw, -⟩ := h hv,
+  exact ⟨_, hvw⟩,
 end
 
-lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ (v : V), ∃! (w : V), M.adj v w :=
+lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=
 begin
   refine ⟨_, λ hm, ⟨λ v hv, hm v, λ v, _⟩⟩,
   { rintro ⟨hm, hs⟩ v,

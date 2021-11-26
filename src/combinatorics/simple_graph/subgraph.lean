@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hunter Monroe, Kyle Miller, Alena Gusakov
 -/
 import combinatorics.simple_graph.basic
-import data.rel
 
 /-!
 # Subgraphs of a simple graph
@@ -116,11 +115,7 @@ def support (H : subgraph G) : set V := rel.dom H.adj
 
 lemma mem_support (H : subgraph G) {v : V} : v ∈ H.support ↔ ∃ w, H.adj v w := iff.rfl
 
-lemma support_subset_verts (H : subgraph G) : H.support ⊆ H.verts :=
-begin
-  rintros v ⟨w, h⟩,
-  exact H.edge_vert h,
-end
+lemma support_subset_verts (H : subgraph G) : H.support ⊆ H.verts := λ v ⟨w, h⟩, H.edge_vert h
 
 /-- `G'.neighbor_set v` is the set of vertices adjacent to `v` in `G'`. -/
 def neighbor_set (G' : subgraph G) (v : V) : set V := set_of (G'.adj v)

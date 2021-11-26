@@ -740,14 +740,14 @@ end flag
 /-- Two elements of a type are connected by a relation when there exists a path of connected
     elements. This is essentially an inductive version of an equivalence closure. -/
  -- Todo(Vi): If someone else comes up with connected graphs sometime, we might want to rework this.
-inductive connected_aux {α : Type*} (r : α → α → Prop) : α → α → Prop
+inductive connected_aux {α : Type u} (r : α → α → Prop) : α → α → Prop
 | start (x : α) : connected_aux x x
 | next (x y z : α) : connected_aux x y → r y z → connected_aux x z
 
 namespace connected_aux
 section
 
-variables {α : Type*} {r : α → α → Prop} {a b c : α}
+variables {α : Type u} {r : α → α → Prop} {a b c : α}
 
 /-- Connectivity is reflexive. -/
 @[refl]

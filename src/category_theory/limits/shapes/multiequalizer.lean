@@ -76,6 +76,13 @@ instance : small_category (walking_multicospan fst snd) :=
   comp_id' := by { rintro (_|_) (_|_) (_|_|_), tidy },
   assoc' := by { rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_), tidy } }
 
+@[simp]
+lemma id_def (a : walking_multicospan fst snd) : hom.id a = 𝟙 a := rfl
+
+@[simp]
+lemma id_comp {a b c : walking_multicospan fst snd} (f : a ⟶ b) (g : b ⟶ c) :
+  hom.comp f g = f ≫ g := rfl
+
 end walking_multicospan
 
 namespace walking_multispan
@@ -108,6 +115,13 @@ instance : small_category (walking_multispan fst snd) :=
   id_comp' := by { rintro (_|_) (_|_) (_|_|_), tidy },
   comp_id' := by { rintro (_|_) (_|_) (_|_|_), tidy },
   assoc' := by { rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_), tidy } }
+
+@[simp]
+lemma id_def (a : walking_multispan fst snd) : hom.id a = 𝟙 a := rfl
+
+@[simp]
+lemma id_comp {a b c : walking_multispan fst snd} (f : a ⟶ b) (g : b ⟶ c) :
+  hom.comp f g = f ≫ g := rfl
 
 end walking_multispan
 

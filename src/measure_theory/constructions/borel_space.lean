@@ -1362,7 +1362,7 @@ lemma borel_eq_generate_from_Iio_rat :
   borel ℝ = generate_from (⋃ a : ℚ, {Iio a}) :=
 begin
   let g : measurable_space ℝ := generate_from (⋃ a : ℚ, {Iio a}),
-  refine le_antisymm _ _,
+  apply le_antisymm _ (measurable_space.generate_from_le (λ t, _)),
   { rw borel_eq_generate_from_Ioo_rat,
     refine generate_from_le (λ t, _),
     simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
@@ -1376,8 +1376,7 @@ begin
       refine λ _, ⟨λ h, _, λ ⟨i, hai, hix⟩, (rat.cast_lt.2 hai).trans_le hix⟩,
       rcases exists_rat_btwn h with ⟨c, ac, cx⟩,
       exact ⟨c, rat.cast_lt.1 ac, cx.le⟩ } },
-  { refine measurable_space.generate_from_le (λ _, _),
-    simp only [mem_Union, mem_singleton_iff], rintro ⟨r, rfl⟩, exact measurable_set_Iio }
+  { simp only [mem_Union, mem_singleton_iff], rintro ⟨r, rfl⟩, exact measurable_set_Iio }
 end
 
 end real

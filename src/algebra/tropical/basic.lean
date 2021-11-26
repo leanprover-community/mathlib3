@@ -118,7 +118,7 @@ instance [has_le R] : has_le (tropical R) :=
 instance [has_lt R] : has_lt (tropical R) :=
 { lt := λ x y, untrop x < untrop y }
 
-@[simp] lemma untrop_lt_iff [preorder R] {x y : tropical R} :
+@[simp] lemma untrop_lt_iff [has_lt R] {x y : tropical R} :
   untrop x < untrop y ↔ x < y := iff.rfl
 
 instance [preorder R] : preorder (tropical R) :=
@@ -319,14 +319,14 @@ instance covariant_swap_add [linear_order R] :
   covariant_class (tropical R) (tropical R) (function.swap (+)) (≤) :=
 ⟨λ x y z h, by { convert add_le_add_left h x using 1; rw [add_comm] }⟩
 
-instance covariant_mul_lt [preorder R] [has_add R] [covariant_class R R (+) (<)] :
+instance covariant_mul_lt [has_lt R] [has_add R] [covariant_class R R (+) (<)] :
   covariant_class (tropical R) (tropical R) (*) (<) :=
-⟨λ x y z h, by { simp_rw [←untrop_lt_iff, untrop_mul] at h ⊢, exact add_lt_add_left h _ }⟩
+⟨λ x y z h, add_lt_add_left h _⟩
 
 instance covariant_swap_mul_lt [preorder R] [has_add R]
   [covariant_class R R (function.swap (+)) (<)] :
   covariant_class (tropical R) (tropical R) (function.swap (*)) (<) :=
-⟨λ x y z h, by { simp_rw [←untrop_lt_iff, untrop_mul] at h ⊢, exact add_lt_add_right h _ }⟩
+⟨λ x y z h, add_lt_add_right h _⟩
 
 instance covariant_add_lt [linear_order R] : covariant_class (tropical R) (tropical R) (+) (≤) :=
 ⟨λ x y z h, begin

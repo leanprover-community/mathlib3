@@ -19,6 +19,9 @@ See the docstring of that typeclass for more information.
   a constructive version of `direct_sum.submodule_is_internal 𝒜`.
 * `graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i`, which breaks apart an element of the algebra into
   its constituent pieces.
+* `graded_algebra.proj 𝒜 i r` is the degree `i : ι` component of `r : A`.
+- `graded_algebra.support 𝒜 r` is the `finset ι` containing the `i : ι` such that the degree `i`
+component of `r` is not zero.
 
 ## Implementation notes
 
@@ -53,7 +56,7 @@ class graded_algebra extends set_like.graded_monoid 𝒜 :=
 (left_inv : function.left_inverse decompose' (direct_sum.submodule_coe 𝒜))
 (right_inv : function.right_inverse decompose' (direct_sum.submodule_coe 𝒜))
 
-lemma graded_ring.is_internal [graded_algebra 𝒜] :
+lemma graded_algebra.is_internal [graded_algebra 𝒜] :
   direct_sum.submodule_is_internal 𝒜 :=
 ⟨graded_algebra.left_inv.injective, graded_algebra.right_inv.surjective⟩
 
@@ -104,27 +107,10 @@ variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 lemma graded_algebra.mem_support_iff
   (r : A) (i : ι) :
 i ∈ graded_algebra.support 𝒜 r ↔ (graded_algebra.proj 𝒜 i r ≠ 0) :=
-⟨λ hi, begin
-  contrapose! hi,
-  unfold graded_algebra.support,
-  unfold graded_algebra.proj at hi,
-  rw [dfinsupp.mem_support_iff, not_not],
-  simp only [submodule.subtype_apply, dfinsupp.lapply_apply, alg_equiv.to_alg_hom_eq_coe,
-    function.comp_app, linear_map.coe_comp, alg_equiv.to_alg_hom_to_linear_map,
-    alg_equiv.to_linear_map_apply, submodule.coe_eq_zero] at hi,
-  exact hi,
-end, λ hi, begin
-  unfold graded_algebra.proj at hi,
-  unfold graded_algebra.support,
-  simp only [ne.def, dfinsupp.mem_support_to_fun],
-  intro rid,
-  simp only [submodule.subtype_apply, dfinsupp.lapply_apply, alg_equiv.to_alg_hom_eq_coe,
-    function.comp_app, linear_map.coe_comp, alg_equiv.to_alg_hom_to_linear_map,
-    alg_equiv.to_linear_map_apply, submodule.coe_eq_zero] at hi,
-  rw rid at hi,
-  simp only [eq_self_iff_true, not_true, ne.def, submodule.coe_zero] at hi,
-  exact hi,
-end⟩
+begin
+  rw [graded_algebra.support, dfinsupp.mem_support_iff, graded_algebra.proj_apply],
+  simp only [ne.def, submodule.coe_eq_zero],
+end
 
 lemma graded_algebra.as_sum (r : A) :
   r = ∑ i in graded_algebra.support 𝒜 r, graded_algebra.proj 𝒜 i r :=
@@ -139,7 +125,7 @@ begin
   refl,
 end
 
-lemma graded_ring.mul_proj (r r' : A) (i : ι) :
+lemma graded_algebra.mul_proj (r r' : A) (i : ι) :
   graded_algebra.proj 𝒜 i (r * r') =
   ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i)
     ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
@@ -181,14 +167,20 @@ begin
   rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
 end
 
-lemma graded_algebra.decompose_of_mem_same {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
-  (graded_algebra.decompose 𝒜 x i : A) = x :=
-by rw [←subtype.coe_mk x hx, subtype.coe_injective.eq_iff, ←graded_algebra.decompose_symm_of,
-       alg_equiv.apply_symm_apply, direct_sum.of_eq_same]
+lemma graded_algebra.proj_homogeneous_element {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
+  graded_algebra.proj 𝒜 i x = x :=
+begin
+  rw [graded_algebra.proj_apply, ←subtype.coe_mk x hx, subtype.coe_injective.eq_iff,
+    ←graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply, direct_sum.of_eq_same],
+end
 
-lemma graded_algebra.decompose_of_mem_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) (hij : i ≠ j):
-  (graded_algebra.decompose 𝒜 x j : A) = 0 :=
-by rw [←subtype.coe_mk x hx, submodule.coe_eq_zero, ←graded_algebra.decompose_symm_of,
-       alg_equiv.apply_symm_apply, direct_sum.of_eq_of_ne _ _ _ _ hij]
+lemma graded_algebra.proj_homogeneous_element_of_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) (hij : i ≠ j):
+  graded_algebra.proj 𝒜 j x = 0 :=
+begin
+  rw ←graded_algebra.proj_homogeneous_element 𝒜 hx,
+  obtain ⟨a, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective x,
+  rw [graded_algebra.proj_recompose, graded_algebra.proj_recompose, direct_sum.of_eq_of_ne,
+    add_monoid_hom.map_zero, alg_equiv.map_zero], exact hij,
+end
 
 end graded_algebra

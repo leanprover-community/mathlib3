@@ -691,6 +691,15 @@ begin
     { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz },
 end
 
+/-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
+noncomputable def order_iso_fin {α : Type u} [partial_order α] [order_top α] [graded α]
+  (Φ : flag α) : Φ ≃o fin (graded.grade_top α + 1) :=
+rel_iso.of_surjective graded.oem_fin $ λ x, ⟨idx x Φ, by simp [graded.oem_fin]⟩
+
+noncomputable instance {α : Type u} [partial_order α] [order_top α] [graded α] (Φ : flag α) :
+  fintype Φ :=
+fintype.of_bijective (order_iso_fin Φ).inv_fun (order_iso_fin Φ).symm.bijective
+
 variables (Ψ : flag α)
 
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
@@ -844,16 +853,6 @@ end
 
 namespace graded
 
-/-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
-noncomputable def order_iso_fin {α : Type u} [partial_order α] [order_top α] [graded α]
-  (Φ : flag α) : Φ ≃o fin (grade_top α + 1) :=
-rel_iso.of_surjective oem_fin $ λ x, ⟨flag.idx x Φ, by simp [oem_fin]⟩
-
-noncomputable instance {α : Type u} [partial_order α] [order_top α] [graded α] (Φ : flag α) :
-  fintype Φ :=
-fintype.of_bijective (order_iso_fin Φ).inv_fun (order_iso_fin Φ).symm.bijective
-
-/-
 theorem fincard_eq_gt {α : Type u} [partial_order α] [order_top α] [graded α] (Φ : flag α) :
   fintype.card Φ = grade_top Φ :=
 begin

@@ -229,47 +229,25 @@ lemma inv_hom (γ : automorphism α) (a : α) : γ.inv (γ.hom a) = a :=
 @[simp]
 lemma hom_map_lt (γ : automorphism α) (a b : α) : γ.hom a < γ.hom b ↔ a < b :=
 begin
-  split, {
-    intro h,
-    cases eq_or_lt_of_le ((hom_map_le γ a b).mp (le_of_lt h)) with heq hlt, {
-      rw heq at h,
-      exact ((ne_of_lt h) (refl _)).elim,
-    },
-    exact hlt,
-  },
-  intro h,
-  cases eq_or_lt_of_le ((hom_map_le γ a b).mpr (le_of_lt h)) with heq hlt, {
-    rw ←γ.inv_map_eq at heq,
-    simp at heq, -- Todo(Vi): get rid of this.
-    rw heq at h,
-    exact ((ne_of_lt h) (refl _)).elim,
-  },
-  exact hlt,
+  refine ⟨λ h, _, λ h, _⟩,
+  all_goals { rw lt_iff_le_and_ne at h ⊢, cases h with h h', refine ⟨_, _⟩ },
+    { rwa γ.hom_map_le at h },
+    { rwa γ.hom_map_ne at h' },
+    { rwa ←γ.hom_map_le at h },
+    { rwa ←γ.hom_map_ne at h' },
 end
 
 /-- Inverse automorphisms preserve `<`. -/
 @[simp]
 lemma inv_map_lt (γ : automorphism α) (a b : α) : γ.inv a < γ.inv b ↔ a < b :=
 begin
-  split, {
-    intro h,
-    cases eq_or_lt_of_le ((inv_map_le γ a b).mp (le_of_lt h)) with heq hlt, {
-      rw heq at h,
-      exact ((ne_of_lt h) (refl _)).elim,
-    },
-    exact hlt,
-  },
-  intro h,
-  cases eq_or_lt_of_le ((inv_map_le γ a b).mpr (le_of_lt h)) with heq hlt, {
-    rw ←γ.inv_map_eq at heq,
-    simp at heq, -- Todo(Vi): get rid of this.
-    rw heq at h,
-    exact ((ne_of_lt h) (refl _)).elim,
-  },
-  exact hlt,
+  refine ⟨λ h, _, λ h, _⟩,
+  all_goals { rw lt_iff_le_and_ne at h ⊢, cases h with h h', refine ⟨_, _⟩ },
+    { rwa γ.inv_map_le at h },
+    { rwa γ.inv_map_ne at h' },
+    { rwa ←γ.inv_map_le at h },
+    { rwa ←γ.inv_map_ne at h' },
 end
-
--- The last two proofs are really similar, maybe we can merge them?
 
 /-- Scalar multiplication of automorphisms by flags. -/
 @[reducible]

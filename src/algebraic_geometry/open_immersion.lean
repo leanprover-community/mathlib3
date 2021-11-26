@@ -839,9 +839,6 @@ namespace LocallyRingedSpace.is_open_immersion
 
 section pullback
 
-instance is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) [is_local_ring_hom f]
-  [is_local_ring_hom g] : is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
-
 variables {X Y Z : LocallyRingedSpace.{u}} (f : X ⟶ Z) (g : Y ⟶ Z)
 variable [H : LocallyRingedSpace.is_open_immersion f]
 

@@ -33,7 +33,7 @@ A morphism of locally ringed spaces is a morphism of ringed spaces
 such that the morphisms induced on stalks are local ring homomorphisms. -/
 @[nolint has_inhabited_instance]
 structure LocallyRingedSpace extends SheafedSpace CommRing :=
-(local_ring : ∀ x, local_ring (presheaf.stalk x))
+(local_ring : ∀ x, local_ring (to_PresheafedSpace.stalk x))
 
 attribute [instance] LocallyRingedSpace.local_ring
 
@@ -76,7 +76,7 @@ The stalk of a locally ringed space, just as a `CommRing`.
 -- TODO perhaps we should make a bundled `LocalRing` and return one here?
 -- TODO define `sheaf.stalk` so we can write `X.𝒪.stalk` here?
 noncomputable
-def stalk (X : LocallyRingedSpace) (x : X) : CommRing := X.presheaf.stalk x
+abbreviation stalk (X : LocallyRingedSpace) (x : X) : CommRing := X.presheaf.stalk x
 
 /--
 A morphism of locally ringed spaces `f : X ⟶ Y` induces

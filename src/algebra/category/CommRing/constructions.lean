@@ -8,9 +8,11 @@ import ring_theory.tensor_product
 import algebra.category.CommRing.limits
 import algebra.category.CommRing.colimits
 import category_theory.limits.shapes.strict_initial
+import ring_theory.subring.basic
+import ring_theory.ideal.local_ring
 
 /-!
-# Constructions of (co)limit in CommRing
+# Constructions of (co)limits in CommRing
 
 In this file we prove that tensor product is indeed the fibered coproduct in `CommRing`, and
 provide the explicit pushout cocone.
@@ -22,11 +24,11 @@ universe u
 open category_theory category_theory.limits
 open_locale tensor_product
 
-variables {R A B : CommRing.{u}} (f : R ⟶ A) (g : R ⟶ B)
-
 namespace CommRing
 
 section pushout
+
+variables {R A B : CommRing.{u}} (f : R ⟶ A) (g : R ⟶ B)
 
 /-- The explicit cocone with tensor products as the fibered product in `CommRing`. -/
 def pushout_cocone : limits.pushout_cocone f g :=
@@ -93,6 +95,8 @@ end)
 
 end pushout
 
+section terminal
+
 lemma punit_is_terminal : is_terminal (CommRing.of punit) :=
 begin
   apply_with is_terminal.of_unique { instances := ff },
@@ -111,10 +115,56 @@ begin
   exact e,
 end
 
-lemma Z_is_terminal : is_initial (CommRing.of ℤ) :=
+lemma Z_is_initial : is_initial (CommRing.of ℤ) :=
 begin
   apply_with is_initial.of_unique { instances := ff },
   exact λ R, ⟨⟨int.cast_ring_hom R⟩, λ a, a.ext_int _⟩,
 end
+
+end terminal
+
+section equalizer
+
+variables {A B : CommRing.{u}} (f g : A ⟶ B)
+
+def equalizer_fork : fork f g :=
+fork.of_ι (CommRing.of_hom (ring_hom.eq_locus f g).subtype) (by { ext ⟨x, e⟩, simpa using e })
+
+def equalizer_fork_is_limit : is_limit (equalizer_fork f g) :=
+begin
+  fapply fork.is_limit.mk',
+  intro s,
+  use s.ι.cod_restrict' _ (λ x, (concrete_category.congr_hom s.condition x : _)),
+  split,
+  { ext, refl },
+  { intros m hm, ext x, exact concrete_category.congr_hom hm x }
+end
+
+instance : is_local_ring_hom (equalizer_fork f g).ι :=
+begin
+  constructor,
+  rintros ⟨a, (h₁ : _ = _)⟩ (⟨⟨x,y,h₃,h₄⟩,(rfl : x = _)⟩ : is_unit a),
+  have : y ∈ ring_hom.eq_locus f g,
+  { apply (f.is_unit_map ⟨⟨x,y,h₃,h₄⟩,rfl⟩ : is_unit (f x)).mul_left_inj.mp,
+    conv_rhs { rw h₁ },
+    rw [← f.map_mul, ← g.map_mul, h₄, f.map_one, g.map_one] },
+  rw is_unit_iff_exists_inv,
+  exact ⟨⟨y, this⟩, subtype.eq h₃⟩,
+end
+
+instance equalizer_ι_is_local_ring_hom (F : walking_parallel_pair.{u} ⥤ CommRing.{u}) :
+  is_local_ring_hom (limit.π F walking_parallel_pair.zero) :=
+begin
+  have := lim_map_π (diagram_iso_parallel_pair F).hom walking_parallel_pair.zero,
+  rw ← is_iso.comp_inv_eq at this,
+  rw ← this,
+  rw ← limit.iso_limit_cone_hom_π ⟨_, equalizer_fork_is_limit
+    (F.map walking_parallel_pair_hom.left) (F.map walking_parallel_pair_hom.right)⟩
+    walking_parallel_pair.zero,
+  change is_local_ring_hom ((lim.map _ ≫ _ ≫ (equalizer_fork _ _).ι) ≫ _),
+  apply_instance
+end
+
+end equalizer
 
 end CommRing

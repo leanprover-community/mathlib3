@@ -8,7 +8,7 @@ import category_theory.limits.shapes.binary_products
 import topology.sheaves.functors
 import category_theory.limits.preserves.shapes.pullbacks
 import algebraic_geometry.Scheme
-import algebra.category.CommRing.constructions
+import category_theory.limits.shapes.strict_initial
 
 /-!
 # Open immersions of presheafed spaces
@@ -725,6 +725,7 @@ end
 
 end pullback
 
+section of_stalk_iso
 variables [has_limits C] [has_colimits C] [concrete_category.{v} C]
 variables [reflects_isomorphisms (forget C)] [preserves_limits (forget C)]
 variables [preserves_filtered_colimits (forget C)]
@@ -751,9 +752,11 @@ lemma of_stalk_iso {X Y : SheafedSpace C} (f : X ⟶ Y)
     exact this
   end }
 
+end of_stalk_iso
+
 section prod
 
-variables {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) (i : ι)
+variables {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) [has_colimit F] [has_limits C] (i : ι)
 
 lemma sigma_ι_open_embedding : open_embedding (colimit.ι F i).base :=
 begin
@@ -800,7 +803,8 @@ end
 
 section end
 
-instance [has_strict_terminal_objects C] : SheafedSpace.is_open_immersion (colimit.ι F i) :=
+instance sigma_ι_is_open_immersion [has_strict_terminal_objects C] :
+  SheafedSpace.is_open_immersion (colimit.ι F i) :=
 { base_open := sigma_ι_open_embedding F i,
   c_iso := λ U, begin
     have e : colimit.ι F i = _ := (ι_preserves_colimits_iso_inv

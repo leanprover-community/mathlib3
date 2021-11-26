@@ -99,7 +99,7 @@ begin
   tidy
 end
 
-instance CommRing_has_strict_terminal_objects : has_strict_terminal_objects CommRing :=
+instance CommRing_has_strict_terminal_objects : has_strict_terminal_objects CommRing.{u} :=
 begin
   apply has_strict_terminal_objects_of_terminal_is_strict (CommRing.of punit),
   intros X f,

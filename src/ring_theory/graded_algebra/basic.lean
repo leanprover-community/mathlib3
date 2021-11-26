@@ -138,6 +138,16 @@ begin
   simp_rw graded_algebra.decompose_symm_of,
 end
 
+/-- An applied variant of `direct_sum.mul_eq_sum_support_ghas_mul` for collections of submodules -/
+lemma direct_sum.coe_mul_apply_submodule (r r' : ⨁ i, 𝒜 i) (i : ι) :
+  ((r * r') i : A) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, submodule.coe_sum],
+  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
+
 lemma graded_algebra.mul_decompose (r r' : A) (i : ι) :
   (graded_algebra.decompose 𝒜 (r * r') i : A) =
   ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i)

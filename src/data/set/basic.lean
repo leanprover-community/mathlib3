@@ -446,7 +446,7 @@ lemma not_subset_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
   ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
 by simp [subset_def]
 
-lemma set.univ_unique [unique α] : @set.univ α = {default α} :=
+lemma univ_unique [unique α] : @set.univ α = {default α} :=
 set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x $ default α
 
 /-! ### Diagonal -/

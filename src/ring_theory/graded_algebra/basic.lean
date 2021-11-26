@@ -188,7 +188,6 @@ begin
     ←graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply, direct_sum.of_eq_same],
 end
 
-
 lemma graded_ring.proj_homogeneous_element_of_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) (hij : i ≠ j):
   graded_algebra.proj 𝒜 j x = 0 :=
 begin

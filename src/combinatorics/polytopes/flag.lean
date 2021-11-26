@@ -666,6 +666,7 @@ begin
   exact idx
 end
 
+/-- Every element belongs to some flag. -/
 theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
 begin
   let all_chains := {s : set α | x ∈ s ∧ zorn.chain (<) s},
@@ -814,9 +815,12 @@ def proper (α : Type u) [preorder α] [bounded_order α] : Type u :=
 abbreviation incident {α : Type u} [preorder α] [bounded_order α] (a b : proper α) : Prop :=
 a.val ≤ b.val ∨ b.val ≤ a.val
 
+/-- Proper elements are connected when they're related by a sequence of pairwise incident proper
+    elements. -/
 abbreviation connected {α : Type u} [preorder α] [bounded_order α] (a b : proper α) : Prop :=
 connected_aux incident a b
 
+/-- Flags are connected when they're related by a sequence of pairwise adjacent flags. -/
 abbreviation flag_connected {α : Type u} [partial_order α] [order_top α] [graded α] (Φ Ψ : flag α) :
   Prop :=
 connected_aux (@flag.adjacent α _ _ _) Φ Ψ
@@ -884,7 +888,8 @@ end
 protected def flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
-/-- Two adjacent flags have a proper element in common, as long as their grade exceeds 2. -/
+/-- Two adjacent flags have a proper element in common, as long as their grade exceeds 2, and a
+    bunch of extra conditions we'll take care of. -/
 private lemma proper_flag_intersect_of_grade {α : Type u} [partial_order α] [order_top α] [graded α]
 {Φ Ψ : flag α} (hg : 2 < grade_top α) {j : fin (grade_top α + 1)} (hΦΨ : flag.j_adjacent j Φ Ψ)
 (k ∈ set.Ioo 0 (grade_top α)) (hjk : j.val ≠ k) :
@@ -926,12 +931,7 @@ begin
     exact connected_aux.append_right (hab ha hcl) (Ϝ.le_total ⟨c.val, hcr⟩ ⟨b, hb⟩)
   },
   cases hΨϜ with j hj,
-
-  let fin_one : fin (grade_top α + 1) := ⟨1,
-    lt_trans (nat.succ_lt_succ zero_lt_two) (nat.succ_lt_succ hg)⟩,
-  let fin_two : fin (grade_top α + 1) := ⟨2, nat.lt.step hg⟩,
-
-  by_cases hj' : j = fin_one, {
+  by_cases hj' : j = ⟨1, lt_trans (nat.succ_lt_succ zero_lt_two) (nat.succ_lt_succ hg)⟩, {
     apply proper_flag_intersect_of_grade hg hj 2, { exact ⟨zero_lt_two, hg⟩ },
     rw hj',
     exact nat.one_ne_bit0 1

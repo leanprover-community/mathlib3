@@ -127,7 +127,7 @@ The map of an empty cocone is a colimit iff the mapped object is initial.
 -/
 def is_colimit_map_cocone_empty_cocone_equiv :
   is_colimit (G.map_cocone (as_empty_cocone X)) ≃ is_initial (G.obj X) :=
-(is_colimit.precompose_hom_equiv (functor.empty_ext _ _) _).symm.trans
+(is_colimit.precompose_hom_equiv (functor.empty_ext.{v} _ _) _).symm.trans
   (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by tidy)))
 
 /-- The property of preserving initial objects expressed in terms of `is_initial`. -/

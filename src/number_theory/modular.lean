@@ -221,14 +221,8 @@ begin
     fin_cases i,
     { simp [mB, f₁, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ] },
     { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-      simp only [f₁, ← hg, add_zero, fin.succ_zero_eq_one, fin.sum_univ_succ, fin.sum_univ_zero,
-        function.comp_app, int.cast_mul, int.cast_sub,
-        linear_map.general_linear_group.coe_fn_general_linear_equiv,
-        matrix.coe_plane_conformal_matrix, matrix.cons_val_one, matrix.cons_val_zero,
-        matrix.det_fin_two, matrix.dot_product, matrix.general_linear_group.coe_fn_eq_coe,
-        matrix.general_linear_group.coe_to_linear, matrix.head_cons, matrix.map_apply,
-        matrix.mul_vec, matrix.mul_vec_lin_apply, matrix.special_linear_group.coe_fn_eq_coe,
-        modular_group.lc_row0_extend_apply, neg_mul_eq_neg_mul_symm, neg_sub, subtype.coe_mk],
+      simp [f₁, ← hg, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ, matrix.det_fin_two,
+        -special_linear_group.det_coe],
       ring } },
   { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }
 end

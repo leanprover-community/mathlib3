@@ -59,6 +59,9 @@ lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 @[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
 ⟨congr_arg re, congr_arg _⟩
 
+theorem of_real_injective : function.injective (coe : ℝ → ℂ) :=
+λ z w, congr_arg re
+
 instance : can_lift ℂ ℝ :=
 { cond := λ z, z.im = 0,
   coe := coe,

@@ -159,6 +159,19 @@ end
 
 end has_continuous_mul
 
+namespace submonoid
+
+@[to_additive] instance [topological_space α] [monoid α] [has_continuous_mul α] (S : submonoid α) :
+  has_continuous_mul S :=
+{ continuous_mul :=
+  begin
+    rw embedding_subtype_coe.to_inducing.continuous_iff,
+    exact (continuous_subtype_coe.comp continuous_fst).mul
+      (continuous_subtype_coe.comp continuous_snd)
+  end }
+
+end submonoid
+
 section has_continuous_mul
 
 variables [topological_space M] [monoid M] [has_continuous_mul M]

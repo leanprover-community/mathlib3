@@ -665,17 +665,12 @@ end
 
 theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
 begin
-  let all_chains := {s : set α | x ∈ s ∧ zorn.chain (≤) s},
+  let all_chains := {s : set α | x ∈ s ∧ zorn.chain (<) s},
   have : {x} ∈ all_chains := begin
     refine ⟨rfl, _⟩,
     rintros a (ha : _ = _) b (hb : _ = _) h,
     induction ha, induction hb,
     contradiction
-  end,
-  have hax : ⋂₀ all_chains = {x} := begin
-    ext y, refine ⟨λ h, _, λ h₀ s hs, _⟩,
-      { apply h, assumption },
-      { induction h₀, exact hs.left },
   end,
   have := zorn.zorn_subset_nonempty all_chains _ {x} this,
   rcases this with ⟨Φ, hΦ₀, hΦ₁, hΦ₂⟩,
@@ -684,10 +679,15 @@ begin
   have := hΦ₂ c ⟨hcΦ₀ hΦ₀.left, hc⟩ hcΦ₀, induction this,
   contradiction,
   rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
-  refine ⟨⋃₀ cs, ⟨_, _⟩, λ _, set.subset_sUnion_of_mem⟩,
-    { exact ⟨s, hs, (hcs₀ hs).left⟩ },
-    { rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
-      admit },
+  refine ⟨⋃₀ cs, ⟨⟨s, hs, (hcs₀ hs).left⟩, _⟩, λ _, set.subset_sUnion_of_mem⟩,
+  rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
+  by_cases hsseq : sy = sz,
+    { induction hsseq,
+      apply (hcs₀ hsy).right,
+      all_goals { assumption } },
+  cases hcs₁ _ hsy _ hsz hsseq with h h,
+    { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
+    { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz },
 end
 
 variables (Ψ : flag α)

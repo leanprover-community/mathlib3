@@ -366,7 +366,6 @@ lemma independent_of_dfinsupp_sum_add_hom_injective' (p : ι → add_subgroup N)
   (h : function.injective (sum_add_hom (λ i, (p i).subtype))) :
   independent p :=
 begin
-
   rw ←independent_map_order_iso_iff (add_subgroup.to_int_submodule : add_subgroup N ≃o _),
   exact independent_of_dfinsupp_lsum_injective _ h,
 end
@@ -414,7 +413,6 @@ Note that this is not generally true for `[semiring R]`; see
 lemma independent_iff_dfinsupp_lsum_injective (p : ι → submodule R N) :
   independent p ↔ function.injective (lsum ℕ (λ i, (p i).subtype)) :=
 ⟨independent.dfinsupp_lsum_injective, independent_of_dfinsupp_lsum_injective p⟩
-
 
 /-- A family of additive subgroups over an additive group are independent if and only if
 `dfinsupp.sum_add_hom` applied with `add_subgroup.subtype` is injective. -/

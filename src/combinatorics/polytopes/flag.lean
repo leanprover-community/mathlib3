@@ -724,6 +724,49 @@ inductive connected_aux {α : Type*} (r : α → α → Prop) : α → α → Pr
 | start (x : α) : connected_aux x x
 | next (x y z : α) : connected_aux x y → r y z → connected_aux x z
 
+section
+
+variables {α : Type*} {r : α → α → Prop} {a b c : α}
+
+/-- Connectivity is reflexive. -/
+@[refl]
+theorem connected_aux.refl : connected_aux r a a :=
+connected_aux.start a
+
+/-- Comparable proper elements are connected. -/
+theorem connected_aux.from_rel : r a b → connected_aux r a b :=
+(connected_aux.next a a b) (connected_aux.refl)
+
+/-- If `a` and `b` are related, and `b` and `c` are connected, then `a` and `c` are connected. -/
+lemma connected_aux.append (hab : r a b) (hbc : connected_aux r b c) :
+  connected_aux r a c :=
+begin
+  induction hbc with _ _ _ _ _ hcd h,
+    { exact connected_aux.from_rel hab },
+    { exact connected_aux.next _ _ _ (h hab) hcd }
+end
+
+/-- Connectedness with a symmetric relation is symmetric. -/
+@[symm]
+theorem connected_aux.symm [is_symm α r] (hab : connected_aux r a b) :
+  connected_aux r b a :=
+begin
+  induction hab with _ _ _ _ _ hbc hba,
+    { exact connected_aux.refl },
+    { exact connected_aux.append (is_symm.symm _ _ hbc) hba, }
+end
+
+/-- Connectedness is transitive. -/
+theorem connected.trans (hab : connected_aux r a b) (hbc : connected_aux r b c) :
+  connected_aux r a c :=
+begin
+  induction hab with a a d b had hdb h,
+    { exact hbc },
+    { exact h (connected_aux.append hdb hbc) }
+end
+
+end
+
 /-- Proper elements are those that are neither `⊥` nor `⊤`. -/
 abbreviation is_proper {α : Type u} [preorder α] [order_bot α] [order_top α] (a : α) : Prop :=
 a ≠ ⊥ ∧ a ≠ ⊤

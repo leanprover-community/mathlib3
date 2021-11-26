@@ -157,8 +157,8 @@ instance [has_top R] : has_top (tropical R) := ⟨0⟩
 
 @[simp] lemma le_zero [has_le R] [order_top R] (x : tropical R) : x ≤ 0 := le_top
 
-instance [has_le R] : order_top (tropical (with_top R)) :=
-{ le_top := λ a a' h, option.no_confusion h,
+instance [has_le R] [order_top R] : order_top (tropical R) :=
+{ le_top := λ _, le_top,
   ..tropical.has_top }
 
 variable [linear_order R]

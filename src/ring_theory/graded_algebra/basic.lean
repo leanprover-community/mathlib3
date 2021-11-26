@@ -83,7 +83,7 @@ def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i :
   (dfinsupp.lapply i).comp $
   (graded_algebra.decompose 𝒜).to_alg_hom.to_linear_map
 
-lemma graded_algebra.proj_apply (i : ι) (r : A) :
+@[simp] lemma graded_algebra.proj_apply (i : ι) (r : A) :
   graded_algebra.proj 𝒜 i r = (graded_algebra.decompose 𝒜 r : ⨁ i, 𝒜 i) i := rfl
 
 lemma graded_algebra.proj_mem (i : ι) (r : A) :

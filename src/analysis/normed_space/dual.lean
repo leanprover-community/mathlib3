@@ -44,6 +44,9 @@ instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
 
 instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
 
+instance [finite_dimensional 𝕜 E] : finite_dimensional 𝕜 (dual 𝕜 E) :=
+continuous_linear_map.finite_dimensional
+
 /-- The inclusion of a normed space in its double (topological) dual, considered
    as a bounded linear map. -/
 def inclusion_in_double_dual : E →L[𝕜] (dual 𝕜 (dual 𝕜 E)) :=

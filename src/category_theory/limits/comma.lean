@@ -3,11 +3,11 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.arrow
-import category_theory.over
+import category_theory.limits.creates
 import category_theory.limits.punit
 import category_theory.limits.preserves.basic
-import category_theory.limits.creates
+import category_theory.structured_arrow
+import category_theory.arrow
 
 /-!
 # Limits and colimits in comma categories

@@ -552,7 +552,7 @@ variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ 
 
 lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
   has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
-by simp only [has_sum, tendsto_pi, sum_apply]
+by simp only [has_sum, tendsto_pi_nhds, sum_apply]
 
 lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
 by simp only [summable, pi.has_sum, skolem]
@@ -759,23 +759,41 @@ end tsum
 
 end topological_ring
 
-section has_continuous_smul
+section const_smul
 variables {R : Type*}
 [monoid R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
 [distrib_mul_action R α] [has_continuous_smul R α]
 {f : β → α}
 
-lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
+lemma has_sum.const_smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
 hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const.smul continuous_id)
 
-lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
-hf.has_sum.smul.summable
+lemma summable.const_smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
+hf.has_sum.const_smul.summable
 
-lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
-hf.has_sum.smul.tsum_eq
+lemma tsum_const_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
+hf.has_sum.const_smul.tsum_eq
 
-end has_continuous_smul
+end const_smul
+
+section smul_const
+variables {R : Type*}
+[semiring R] [topological_space R]
+[topological_space α] [add_comm_monoid α]
+[module R α] [has_continuous_smul R α]
+{f : β → R}
+
+lemma has_sum.smul_const {a : α} {r : R} (hf : has_sum f r) : has_sum (λ z, f z • a) (r • a) :=
+hf.map ((smul_add_hom R α).flip a) (continuous_id.smul continuous_const)
+
+lemma summable.smul_const {a : α} (hf : summable f) : summable (λ z, f z • a) :=
+hf.has_sum.smul_const.summable
+
+lemma tsum_smul_const [t2_space α] {a : α} (hf : summable f) : ∑' z, f z • a = (∑' z, f z) • a :=
+hf.has_sum.smul_const.tsum_eq
+
+end smul_const
 
 section division_ring
 

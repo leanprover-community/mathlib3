@@ -156,7 +156,7 @@ namespace subring
 
 instance (S : subring α) :
   topological_ring S :=
-{ ..S.to_subsemiring.topological_ring }
+S.to_subsemiring.topological_ring
 
 end subring
 

@@ -5,7 +5,6 @@ Authors: Gabriel Ebner, Simon Hudon
 -/
 import tactic.ext
 import data.stream.init
-import data.list.basic
 import data.list.range
 
 /-!
@@ -19,10 +18,6 @@ instance {α} [inhabited α] : inhabited (stream α) :=
 
 namespace stream
 open nat
-
-/-- `take s n` returns a list of the `n` first elements of stream `s` -/
-def take {α} (s : stream α) (n : ℕ) : list α :=
-(list.range n).map s
 
 lemma length_take {α} (s : stream α) (n : ℕ) : (take s n).length = n :=
 by simp [take]

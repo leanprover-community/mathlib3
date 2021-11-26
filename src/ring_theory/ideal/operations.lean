@@ -1421,7 +1421,7 @@ variables [comm_semiring R₁] [comm_semiring R₂] [comm_ring A] [comm_ring B]
 variables [algebra R₁ A] [algebra R₂ A] [algebra R₁ B]
 
 /-- The `R₁`-algebra structure on `A/I` for an `R₁`-algebra `A` -/
-instance {I : ideal A} : algebra R₁ (A /// I) :=
+instance quotient.algebra {I : ideal A} : algebra R₁ (A /// I) :=
 { to_fun := λ x, ideal.quotient.mk I (algebra_map R₁ A x),
   smul := (•),
   smul_def' := λ r x, quotient.induction_on' x $ λ x,
@@ -1430,7 +1430,7 @@ instance {I : ideal A} : algebra R₁ (A /// I) :=
   .. ring_hom.comp (ideal.quotient.mk I) (algebra_map R₁ A) }
 
 -- Lean can struggle to find this instance later if we don't provide this shortcut
-instance [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
+instance quotient.is_scalar_tower [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
   is_scalar_tower R₁ R₂ (A /// I) :=
 by apply_instance
 

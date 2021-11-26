@@ -45,7 +45,7 @@ class has_quotient (A : out_param $ Type u) (B : Type v) :=
 
 `A` is a parameter, despite being unused in the definition below, so it appears in the notation.
 -/
-@[nolint has_inhabited_instance] -- Will be provided by e.g. `ideal.quotient.inhabited`
+@[reducible, nolint has_inhabited_instance] -- Will be provided by e.g. `ideal.quotient.inhabited`
 def has_quotient.quotient (A : out_param $ Type u) {B : Type v} [has_quotient A B] (b : B) :
   Type (max u v) :=
 has_quotient.quotient' b

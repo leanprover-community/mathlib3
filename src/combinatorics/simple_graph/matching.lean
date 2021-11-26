@@ -18,7 +18,7 @@ one edge, and the edges of the subgraph represent the paired vertices.
 
 ## Main definitions
 
-* `simple_graph.subgraph.is_matching`:  `M.is_matching` means that `M` is a matching of its
+* `simple_graph.subgraph.is_matching`: `M.is_matching` means that `M` is a matching of its
   underlying graph.
   denoted `M.is_matching`.
 
@@ -32,11 +32,7 @@ one edge, and the edges of the subgraph represent the paired vertices.
 * Lemma stating that the existence of a perfect matching on `G` implies that
   the cardinality of `V` is even (assuming it's finite)
 
-* Hall's Marriage Theorem (see combinatorics.hall)
-
 * Tutte's Theorem
-
-* https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532906131
 -/
 
 universe u
@@ -53,7 +49,8 @@ We say that the vertices in `M.support` are *matched* or *saturated*.
 def is_matching : Prop := ∀ ⦃v⦄, v ∈ M.verts → ∃! w, M.adj v w
 
 /--
-`M` is a perfect matching on `G` if it's a matching and every vertex `G` is matched.
+The subgraph `M` of `G` is a perfect matching on `G` if it's a matching and every vertex `G` is
+matched.
 -/
 def is_perfect_matching : Prop := M.is_matching ∧ M.is_spanning
 

@@ -700,6 +700,16 @@ noncomputable instance {α : Type u} [partial_order α] [order_top α] [graded �
   fintype Φ :=
 fintype.of_bijective (order_iso_fin Φ).inv_fun (order_iso_fin Φ).symm.bijective
 
+@[simp]
+theorem fincard_eq_gt {α : Type u} [partial_order α] [order_top α] [graded α] (Φ : flag α) :
+  fintype.card Φ = graded.grade_top Φ + 1 :=
+begin
+  cases hfc : fintype.card Φ, { rw fintype.card_eq_zero_iff at hfc, exact hfc.elim' ⊤ },
+  rw fintype.card_of_bijective (flag.order_iso_fin Φ).bijective at hfc,
+  rw [←hfc, fintype.card_fin],
+  refl
+end
+
 variables (Ψ : flag α)
 
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
@@ -852,16 +862,6 @@ begin
 end
 
 namespace graded
-
-theorem fincard_eq_gt {α : Type u} [partial_order α] [order_top α] [graded α] (Φ : flag α) :
-  fintype.card Φ = grade_top Φ :=
-begin
-  induction hfc : fintype.card Φ,
-    { cases hgt : grade_top Φ, { refl },
-       },
-
-end
--/
 
 /-- A `graded` is connected when it's of grade 2, or any two proper elements are connected. -/
 protected def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=

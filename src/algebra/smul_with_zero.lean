@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.group_power.basic
-import algebra.opposites
+import group_theory.group_action.opposite
 
 /-!
 # Introduce `smul_with_zero`

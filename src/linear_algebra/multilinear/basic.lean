@@ -110,6 +110,10 @@ coe_injective (funext H)
 theorem ext_iff {f g : multilinear_map R M₁ M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
+@[simp] lemma mk_coe (f : multilinear_map R M₁ M₂) (h₁ h₂) :
+  (⟨f, h₁, h₂⟩ : multilinear_map R M₁ M₂) = f :=
+by { ext, refl, }
+
 @[simp] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.map_add' m i x y
@@ -671,6 +675,16 @@ def dom_dom_congr_linear_equiv {ι₁ ι₂} [decidable_eq ι₁] [decidable_eq 
 { map_smul' := λ c f, by { ext, simp },
   .. (dom_dom_congr_equiv σ : multilinear_map A (λ i : ι₁, M₂) M₃ ≃+
         multilinear_map A (λ i : ι₂, M₂) M₃) }
+
+/-- The space of constant maps is equivalent to the space of maps that are multilinear with respect
+to an empty family. -/
+@[simps] def const_linear_equiv_of_is_empty [is_empty ι] : M₂ ≃ₗ[R] multilinear_map R M₁ M₂ :=
+{ to_fun    := multilinear_map.const_of_is_empty R,
+  map_add'  := λ x y, rfl,
+  map_smul' := λ t x, rfl,
+  inv_fun   := λ f, f 0,
+  left_inv  := λ _, rfl,
+  right_inv := λ f, ext $ λ x, multilinear_map.congr_arg f $ subsingleton.elim _ _ }
 
 end module
 

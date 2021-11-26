@@ -159,7 +159,8 @@ def wide_span (B : C) (objs : J → C) (arrows : Π (j : J), B ⟶ objs j) : wid
     cases f with _ j,
     { apply (𝟙 _) },
     { exact arrows j }
-  end }
+  end,
+  map_comp' := by { rintros (_|_) (_|_) (_|_) (_|_) (_|_); simpa } }
 
 /-- Every diagram is naturally isomorphic (actually, equal) to a `wide_span` -/
 def diagram_iso_wide_span (F : wide_pushout_shape J ⥤ C) :

@@ -159,14 +159,20 @@ begin
   rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
 end
 
+@[simp] lemma graded_algebra.decompose_coe {i : ι} (x : 𝒜 i) :
+  graded_algebra.decompose 𝒜 x = direct_sum.of _ i x :=
+by rw [←graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply]
+
+lemma graded_algebra.decompose_of_mem {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
+  graded_algebra.decompose 𝒜 x = direct_sum.of _ i (⟨x, hx⟩ : 𝒜 i) :=
+graded_algebra.decompose_coe _ ⟨x, hx⟩
+
 lemma graded_algebra.decompose_of_mem_same {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
   (graded_algebra.decompose 𝒜 x i : A) = x :=
-by rw [←subtype.coe_mk x hx, subtype.coe_injective.eq_iff, ←graded_algebra.decompose_symm_of,
-       alg_equiv.apply_symm_apply, direct_sum.of_eq_same]
+by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_same, subtype.coe_mk]
 
 lemma graded_algebra.decompose_of_mem_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) (hij : i ≠ j):
   (graded_algebra.decompose 𝒜 x j : A) = 0 :=
-by rw [←subtype.coe_mk x hx, submodule.coe_eq_zero, ←graded_algebra.decompose_symm_of,
-       alg_equiv.apply_symm_apply, direct_sum.of_eq_of_ne _ _ _ _ hij]
+by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij, submodule.coe_zero]
 
 end graded_algebra

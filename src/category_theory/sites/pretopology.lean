@@ -80,8 +80,8 @@ lemma le_def {K₁ K₂ : pretopology C} : K₁ ≤ K₂ ↔ (K₁ : Π (X : C),
 variable (C)
 
 instance : partial_order (pretopology C) :=
-{ le_refl := λ K, le_def.mpr (le_refl _),
-  le_trans := λ K₁ K₂ K₃ h₁₂ h₂₃, le_def.mpr (le_trans h₁₂ h₂₃),
+{ le_refl := λ K, le_refl _,
+  le_trans := λ K₁ K₂ K₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
   le_antisymm := λ K₁ K₂ h₁₂ h₂₁, pretopology.ext _ _ (le_antisymm h₁₂ h₂₁),
   ..pretopology.has_le }
 

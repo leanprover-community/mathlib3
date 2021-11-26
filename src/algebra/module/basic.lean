@@ -99,6 +99,68 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
   zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
   .. hf.distrib_mul_action f smul }
 
+/-- push forward the action of `R` on `M` along a compatible surjective map `f : R →+* S`. -/
+@[reducible]
+def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoid M]
+  [module R M] [semiring S] [has_scalar S M]
+  {f : R →+* S} (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  module S M :=
+{ smul := (•),
+  zero_smul := λ x, by rw [← f.map_zero, hsmul, zero_smul],
+  add_smul := hf.forall₂.mpr (λ a b x, by simp only [← f.map_add, hsmul, add_smul]),
+  .. function.surjective.distrib_mul_action_left (show surjective (f : R →* S), from hf) hsmul }
+
+/-- Let `M` be an `R`-module, then a surjective map `f : R →+* S` induces an
+`S`-module structure on `M`, if the kernel of `f` are zero-smul-divisors.
+
+See also `function.surjective.module_left` if you want more control over the definition of `(•)`,
+and `function.surjective.module_left'_of_ring` if `R` and `S` have inverses.
+-/
+@[reducible]
+noncomputable def function.surjective.module_left' {R S M : Type*}
+  [comm_semiring R] [add_comm_monoid M] [module R M] [semiring S]
+  {f : R →+* S} (hf : function.surjective f)
+  (hsmul : ∀ {a b}, f a = f b → ∀ (x : M), a • x = b • x) :
+  module S M :=
+let scalar : has_scalar S M := hf.has_scalar_left in
+{ smul := @@has_scalar.smul scalar,
+  .. @@function.surjective.module_left _ _ _ _ scalar hf
+    (λ c (x : M), hsmul (surj_inv_eq _ _) x) }
+
+lemma function.surjective.module_left'_smul {R S M : Type*}
+  [comm_semiring R] [add_comm_monoid M] [module R M] [semiring S]
+  {f : R →+* S} (hf : function.surjective f)
+  (hsmul : ∀ {a b}, f a = f b → ∀ (x : M), a • x = b • x) (c : R) (x : M) :
+  by { letI := hf.module_left' @hsmul, exact f c • x } = c • x :=
+hsmul (surj_inv_eq hf _) _
+
+/-- Let `M` be an `R`-module, then a surjective map `f : R →+* S` induces an
+`S`-module structure on `M`, if the kernel of `f` are zero-smul-divisors.
+
+See also `function.surjective.module_left` if you want more control over the definition of `(•)`,
+and `function.surjective.module_left'` if `R` and `S` don't have inverses.
+-/
+@[reducible]
+noncomputable def function.surjective.module_left'_of_ring {R S M : Type*} [comm_ring R]
+  [add_comm_group M] [module R M] [ring S]
+  {f : R →+* S} (hf : function.surjective f) (hsmul : f.ker ≤ (linear_map.lsmul R M).ker) :
+  module S M :=
+hf.module_left' $ λ a b hab, begin
+  suffices : linear_map.lsmul R M a = linear_map.lsmul R M b,
+  { intros, simp only [← linear_map.lsmul_apply, this] },
+  rw [← sub_eq_zero, ← linear_map.map_sub, ← linear_map.mem_ker],
+  rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker] at hab,
+  exact hsmul hab
+end
+
+lemma function.surjective.module_left'_of_ring_smul {R S M : Type*} [comm_ring R]
+  [add_comm_group M] [module R M] [ring S]
+  {f : R →+* S} (hf : function.surjective f) (hsmul : f.ker ≤ (linear_map.lsmul R M).ker)
+  (c : R) (x : M) :
+  by { letI := hf.module_left'_of_ring hsmul, exact f c • x } = c • x :=
+hf.module_left'_smul _ _ _
+
+
 variables {R} (M)
 
 /-- Compose a `module` with a `ring_hom`, with action `f s • m`.

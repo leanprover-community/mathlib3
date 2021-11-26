@@ -83,10 +83,10 @@ end) begin
   intros W,
   dsimp,
   simp only [functor.map_comp, category.assoc],
-  slice_rhs 1 2 {
-    erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).fac },
-  slice_lhs 1 3 {
-    simp only [← F.map_comp],
+  slice_rhs 1 2
+  { erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).fac },
+  slice_lhs 1 3
+  { simp only [← F.map_comp],
     dsimp [colim_map, is_colimit.map, colimit.pre],
     simp only [colimit.ι_desc_assoc, colimit.ι_desc],
     dsimp [cocones.precompose],
@@ -94,8 +94,8 @@ end) begin
     dsimp [cocone.whisker],
     rw F.map_comp },
   simp only [category.assoc],
-  slice_lhs 2 3 {
-    erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P Y.unop))).fac },
+  slice_lhs 2 3
+  { erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P Y.unop))).fac },
   dsimp,
   simp only [has_colimit.iso_of_nat_iso_ι_hom_assoc,
     grothendieck_topology.diagram_pullback_app, colimit.ι_pre,

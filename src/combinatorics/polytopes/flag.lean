@@ -360,6 +360,9 @@ end
 
 namespace graded
 
+instance (α : Type u) [preorder α] [ot : order_top α] [g : graded α] : bounded_order α :=
+{ ..ot, ..g }
+
 /-- An abbreviation for the grade of `⊤`. -/
 abbreviation grade_top (α : Type u) [preorder α] [order_top α] [graded α] : ℕ :=
 grade (⊤ : α)
@@ -771,7 +774,7 @@ end
 end connected_aux
 
 /-- Proper elements are those that are neither `⊥` nor `⊤`. -/
-abbreviation is_proper {α : Type u} [preorder α] [order_bot α] [order_top α] (a : α) : Prop :=
+def is_proper {α : Type u} [preorder α] [bounded_order α] (a : α) : Prop :=
 a ≠ ⊥ ∧ a ≠ ⊤
 
 /-- An element is proper iff it has a grade between the bottom and top element. -/
@@ -804,16 +807,14 @@ end
 
 /-- A proper element is one that's neither minimal nor maximal. -/
 @[reducible]
-def proper (α : Type u) [preorder α] [order_bot α] [order_top α] : Type u :=
+def proper (α : Type u) [preorder α] [bounded_order α] : Type u :=
 {a : α // is_proper a}
 
 /-- Elements are incident when they're comparable. -/
-abbreviation incident {α : Type u} [preorder α] [order_bot α] [order_top α] (a b : proper α) :
-  Prop :=
+abbreviation incident {α : Type u} [preorder α] [bounded_order α] (a b : proper α) : Prop :=
 a.val ≤ b.val ∨ b.val ≤ a.val
 
-abbreviation connected {α : Type u} [preorder α] [order_bot α] [order_top α] (a b : proper α) :
-  Prop :=
+abbreviation connected {α : Type u} [preorder α] [bounded_order α] (a b : proper α) : Prop :=
 connected_aux incident a b
 
 abbreviation flag_connected {α : Type u} [partial_order α] [order_top α] [graded α] (Φ Ψ : flag α) :
@@ -821,7 +822,7 @@ abbreviation flag_connected {α : Type u} [partial_order α] [order_top α] [gra
 connected_aux (@flag.adjacent α _ _ _) Φ Ψ
 
 /-- A `graded` with top grade 1 or less has no proper elements. -/
-theorem proper_empty (α : Type u) [partial_order α] [order_top α] [graded α] :
+theorem proper_empty {α : Type u} [partial_order α] [order_top α] [graded α] :
   graded.grade_top α ≤ 1 → is_empty (proper α) :=
 begin
   intro h,
@@ -864,7 +865,7 @@ theorem connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α
 begin
   intro h,
   cases eq_or_lt_of_le h with ha ha, { exact or.inl ha },
-  have := ((proper_empty α) (nat.le_of_lt_succ ha)).false,
+  have := (proper_empty (nat.le_of_lt_succ ha)).false,
   exact or.inr (λ a, (this a).elim)
 end
 

@@ -706,7 +706,7 @@ end
 lemma linear_ordered_ring.order_of_le_two : order_of x ≤ 2 :=
 begin
   cases ne_or_eq (|x|) 1 with h h,
-  { convert zero_le_two, exact order_of_abs_ne_one h },
+  { simp [order_of_abs_ne_one h] },
   rcases eq_or_eq_neg_of_abs_eq h with rfl | rfl,
   { simp },
   apply order_of_le_of_pow_eq_one; norm_num

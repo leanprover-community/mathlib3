@@ -153,7 +153,7 @@ begin
   rw finset.sum_union,
   suffices : ∑ (x : ι × ι) in finset.filter (λ (ij : ι × ι), ij.fst + ij.snd ≠ i)
     ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
-  (graded_algebra.proj 𝒜 i) ((graded_algebra.proj 𝒜 x.fst) r * (graded_algebra.proj 𝒜 x.snd) r') = 0,
+  (graded_algebra.proj 𝒜 i) (graded_algebra.proj 𝒜 x.fst r * graded_algebra.proj 𝒜 x.snd r') = 0,
   rw [this, add_zero], apply finset.sum_congr rfl,
   rintros ⟨j, k⟩ h, simp only [finset.mem_filter, finset.mem_product] at h ⊢,
   obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,

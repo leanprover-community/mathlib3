@@ -5,7 +5,8 @@ Authors: Kenny Lau
 -/
 
 import ring_theory.algebra_tower
-import linear_algebra.matrix
+import linear_algebra.matrix.finite_dimensional
+import linear_algebra.matrix.to_lin
 
 /-!
 # Tower of field extensions
@@ -43,13 +44,12 @@ variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem dim_mul_dim' :
-  (cardinal.lift.{v w} (module.rank F K) *
-      cardinal.lift.{w v} (module.rank K A) : cardinal.{max w v}) =
-  cardinal.lift.{w v} (module.rank F A) :=
-let ⟨b, hb⟩ := exists_is_basis F K, ⟨c, hc⟩ := exists_is_basis K A in
-by rw [← (module.rank F K).lift_id, ← hb.mk_eq_dim,
-    ← (module.rank K A).lift_id, ← hc.mk_eq_dim,
-    ← lift_umax.{w v}, ← (hb.smul hc).mk_eq_dim, mk_prod, lift_mul,
+  (cardinal.lift.{w} (module.rank F K) * cardinal.lift.{v} (module.rank K A)) =
+  cardinal.lift.{v} (module.rank F A) :=
+let b := basis.of_vector_space F K, c := basis.of_vector_space K A in
+by rw [← (module.rank F K).lift_id, ← b.mk_eq_dim,
+    ← (module.rank K A).lift_id, ← c.mk_eq_dim,
+    ← lift_umax.{w v}, ← (b.smul c).mk_eq_dim, mk_prod, lift_mul,
     lift_lift, lift_lift, lift_lift, lift_lift, lift_umax]
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
@@ -61,16 +61,16 @@ by convert dim_mul_dim' F K A; rw lift_id
 
 namespace finite_dimensional
 
+open is_noetherian
+
 theorem trans [finite_dimensional F K] [finite_dimensional K A] : finite_dimensional F A :=
-let ⟨b, hb⟩ := exists_is_basis_finset F K in
-let ⟨c, hc⟩ := exists_is_basis_finset K A in
-of_fintype_basis $ hb.smul hc
+let b := basis.of_vector_space F K, c := basis.of_vector_space K A in
+of_fintype_basis $ b.smul c
 
 lemma right [hf : finite_dimensional F A] : finite_dimensional K A :=
-let ⟨b, hb⟩ := iff_fg.1 hf in
-iff_fg.2 ⟨b, submodule.restrict_scalars_injective F _ _ $
+let ⟨⟨b, hb⟩⟩ := hf in ⟨⟨b, submodule.restrict_scalars_injective F _ _ $
 by { rw [submodule.restrict_scalars_top, eq_top_iff, ← hb, submodule.span_le],
-  exact submodule.subset_span }⟩
+  exact submodule.subset_span }⟩⟩
 
 /-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
@@ -79,10 +79,10 @@ theorem finrank_mul_finrank [finite_dimensional F K] :
 begin
   by_cases hA : finite_dimensional K A,
   { resetI,
-    rcases exists_is_basis_finset F K with ⟨b, hb⟩,
-    rcases exists_is_basis_finset K A with ⟨c, hc⟩,
-    rw [finrank_eq_card_basis hb, finrank_eq_card_basis hc,
-      finrank_eq_card_basis (hb.smul hc), fintype.card_prod] },
+    let b := basis.of_vector_space F K,
+    let c := basis.of_vector_space K A,
+    rw [finrank_eq_card_basis b, finrank_eq_card_basis c,
+      finrank_eq_card_basis (b.smul c), fintype.card_prod] },
   { rw [finrank_of_infinite_dimensional hA, mul_zero, finrank_of_infinite_dimensional],
     exact mt (@right F K A _ _ _ _ _ _ _) hA }
 end
@@ -91,18 +91,16 @@ instance linear_map (F : Type u) (V : Type v) (W : Type w)
   [field F] [add_comm_group V] [module F V] [add_comm_group W] [module F W]
   [finite_dimensional F V] [finite_dimensional F W] :
   finite_dimensional F (V →ₗ[F] W) :=
-let ⟨b, hb⟩ := exists_is_basis_finset F V in
-let ⟨c, hc⟩ := exists_is_basis_finset F W in
-(matrix.to_lin hb hc).finite_dimensional
+let b := basis.of_vector_space F V, c := basis.of_vector_space F W in
+(matrix.to_lin b c).finite_dimensional
 
 lemma finrank_linear_map (F : Type u) (V : Type v) (W : Type w)
   [field F] [add_comm_group V] [module F V] [add_comm_group W] [module F W]
   [finite_dimensional F V] [finite_dimensional F W] :
   finrank F (V →ₗ[F] W) = finrank F V * finrank F W :=
-let ⟨b, hb⟩ := exists_is_basis_finset F V in
-let ⟨c, hc⟩ := exists_is_basis_finset F W in
-by rw [linear_equiv.finrank_eq (linear_map.to_matrix hb hc), matrix.finrank_matrix,
-      finrank_eq_card_basis hb, finrank_eq_card_basis hc, mul_comm]
+  let b := basis.of_vector_space F V, c := basis.of_vector_space F W in
+by rw [linear_equiv.finrank_eq (linear_map.to_matrix b c), matrix.finrank_matrix,
+      finrank_eq_card_basis b, finrank_eq_card_basis c, mul_comm]
 
 -- TODO: generalize by removing [finite_dimensional F K]
 -- V = ⊕F,

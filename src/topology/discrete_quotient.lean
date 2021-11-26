@@ -26,10 +26,16 @@ quotients as setoids whose equivalence classes are clopen.
   endowed with a `fintype` instance.
 
 ## Order structure
-The type `discrete_quotient X` is endowed with an instance of a `semilattice_inf_top`.
+The type `discrete_quotient X` is endowed with an instance of a `semilattice_inf` with `order_top`.
 The partial ordering `A ≤ B` mathematically means that `B.proj` factors through `A.proj`.
 The top element `⊤` is the trivial quotient, meaning that every element of `X` is collapsed
 to a point. Given `h : A ≤ B`, the map `A → B` is `discrete_quotient.of_le h`.
+Whenever `X` is discrete, the type `discrete_quotient X` is also endowed with an instance of a
+`semilattice_inf` with `order_bot`, where the bot element `⊥` is `X` itself.
+
+Given `f : X → Y` and `h : continuous f`, we define a predicate `le_comap h A B` for
+`A : discrete_quotient X` and `B : discrete_quotient Y`, asserting that `f` descends to `A → B`.
+If `cond : le_comap h A B`, the function `A → B` is obtained by `discrete_quotient.map cond`.
 
 ## Theorems
 The two main results proved in this file are:
@@ -65,16 +71,16 @@ def of_clopen {A : set X} (h : is_clopen A) : discrete_quotient X :=
   clopen := begin
     intros x,
     by_cases hx : x ∈ A,
-    { apply is_clopen_union,
+    { apply is_clopen.union,
       { convert h,
         ext,
         exact ⟨λ i, i.2, λ i, ⟨hx,i⟩⟩ },
       { convert is_clopen_empty,
         tidy } },
-    { apply is_clopen_union,
+    { apply is_clopen.union,
       { convert is_clopen_empty,
         tidy },
-      { convert is_clopen_compl h,
+      { convert is_clopen.compl h,
         ext,
         exact ⟨λ i, i.2, λ i, ⟨hx, i⟩⟩ } },
   end }
@@ -86,8 +92,8 @@ lemma trans : ∀ x y z : X, S.rel x y → S.rel y z → S.rel x z := S.equiv.2.
 /-- The setoid whose quotient yields the discrete quotient. -/
 def setoid : setoid X := ⟨S.rel, S.equiv⟩
 
-instance : has_coe_to_sort (discrete_quotient X) :=
-⟨Type*, λ S, quotient S.setoid⟩
+instance : has_coe_to_sort (discrete_quotient X) Type* :=
+⟨λ S, quotient S.setoid⟩
 
 instance : topological_space S := ⊥
 
@@ -123,45 +129,157 @@ is_open.preimage S.proj_continuous trivial
 
 lemma fiber_clopen (A : set S) : is_clopen (S.proj ⁻¹' A) := ⟨fiber_open _ _, fiber_closed _ _⟩
 
+instance : partial_order (discrete_quotient X) :=
+{ le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
+  le_refl := λ a, by tauto,
+  le_trans := λ a b c h1 h2, by tauto,
+  le_antisymm := λ a b h1 h2, by { ext, tauto } }
+
+instance : order_top (discrete_quotient X) :=
+{ top := ⟨λ a b, true, ⟨by tauto, by tauto, by tauto⟩, λ _, is_clopen_univ⟩,
+  le_top := λ a, by tauto }
+
+instance : semilattice_inf (discrete_quotient X) :=
+{ inf := λ A B,
+  { rel := λ x y, A.rel x y ∧ B.rel x y,
+    equiv := ⟨λ a, ⟨A.refl _,B.refl _⟩, λ a b h, ⟨A.symm _ _ h.1, B.symm _ _ h.2⟩,
+      λ a b c h1 h2, ⟨A.trans _ _ _ h1.1 h2.1, B.trans _ _ _ h1.2 h2.2⟩⟩,
+    clopen := λ x, is_clopen.inter (A.clopen _) (B.clopen _) },
+  inf_le_left := λ a b, by tauto,
+  inf_le_right := λ a b, by tauto,
+  le_inf := λ a b c h1 h2, by tauto,
+  ..discrete_quotient.partial_order }
+
+instance : inhabited (discrete_quotient X) := ⟨⊤⟩
+
+section comap
+
+variables {Y : Type*} [topological_space Y] {f : Y → X} (cont : continuous f)
+
 /-- Comap a discrete quotient along a continuous map. -/
-def comap {Y : Type*} [topological_space Y] {f : Y → X} (cont : continuous f) :
-  discrete_quotient Y :=
+def comap : discrete_quotient Y :=
 { rel := λ a b, S.rel (f a) (f b),
   equiv := ⟨λ a, S.refl _, λ a b h, S.symm _ _ h, λ a b c h1 h2, S.trans _ _ _ h1 h2⟩,
   clopen := λ y, ⟨is_open.preimage cont (S.clopen _).1, is_closed.preimage cont (S.clopen _).2⟩ }
 
-instance : semilattice_inf_top (discrete_quotient X) :=
-{ top := ⟨λ a b, true, ⟨by tauto, by tauto, by tauto⟩, λ _, is_clopen_univ⟩,
-  inf := λ A B,
-  { rel := λ x y, A.rel x y ∧ B.rel x y,
-    equiv := ⟨λ a, ⟨A.refl _,B.refl _⟩, λ a b h, ⟨A.symm _ _ h.1, B.symm _ _ h.2⟩,
-      λ a b c h1 h2, ⟨A.trans _ _ _ h1.1 h2.1, B.trans _ _ _ h1.2 h2.2⟩⟩,
-    clopen := λ x, is_clopen_inter (A.clopen _) (B.clopen _) },
-  le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
-  le_refl := λ a, by tauto,
-  le_trans := λ a b c h1 h2, by tauto,
-  le_antisymm := λ a b h1 h2, by { ext, tauto },
-  inf_le_left := λ a b, by tauto,
-  inf_le_right := λ a b, by tauto,
-  le_inf := λ a b c h1 h2, by tauto,
-  le_top := λ a, by tauto }
+@[simp]
+lemma comap_id : S.comap (continuous_id : continuous (id : X → X)) = S := by { ext, refl }
 
-instance : inhabited (discrete_quotient X) := ⟨⊤⟩
+@[simp]
+lemma comap_comp {Z : Type*} [topological_space Z] {g : Z → Y} (cont' : continuous g) :
+  S.comap (continuous.comp cont cont') = (S.comap cont).comap cont' := by { ext, refl }
+
+lemma comap_mono {A B : discrete_quotient X} (h : A ≤ B) : A.comap cont ≤ B.comap cont :=
+by tauto
+
+end comap
+
+section of_le
 
 /-- The map induced by a refinement of a discrete quotient. -/
 def of_le {A B : discrete_quotient X} (h : A ≤ B) : A → B :=
 λ a, quotient.lift_on' a (λ x, B.proj x) (λ a b i, quotient.sound' (h _ _ i))
+
+@[simp]
+lemma of_le_refl {A : discrete_quotient X} : of_le (le_refl A) = id := by { ext ⟨⟩, refl }
+
+lemma of_le_refl_apply {A : discrete_quotient X} (a : A) : of_le (le_refl A) a = a := by simp
+
+@[simp]
+lemma of_le_comp {A B C : discrete_quotient X} (h1 : A ≤ B) (h2 : B ≤ C) :
+  of_le (le_trans h1 h2) = of_le h2 ∘ of_le h1 := by { ext ⟨⟩, refl }
+
+lemma of_le_comp_apply {A B C : discrete_quotient X} (h1 : A ≤ B) (h2 : B ≤ C) (a : A) :
+  of_le (le_trans h1 h2) a = of_le h2 (of_le h1 a) := by simp
 
 lemma of_le_continuous {A B : discrete_quotient X} (h : A ≤ B) :
   continuous (of_le h) := continuous_of_discrete_topology
 
 @[simp]
 lemma of_le_proj {A B : discrete_quotient X} (h : A ≤ B) :
-  of_le h ∘ A.proj = B.proj := by {ext, exact quotient.sound' (B.refl _)}
+  of_le h ∘ A.proj = B.proj := by { ext, exact quotient.sound' (B.refl _) }
 
 @[simp]
 lemma of_le_proj_apply {A B : discrete_quotient X} (h : A ≤ B) (x : X) :
-  of_le h (A.proj x) = B.proj x := by {change (of_le h ∘ A.proj) x = _, simp}
+  of_le h (A.proj x) = B.proj x := by { change (of_le h ∘ A.proj) x = _, simp }
+
+end of_le
+
+/--
+When X is discrete, there is a `order_bot` instance on `discrete_quotient X`
+-/
+instance [discrete_topology X] : order_bot (discrete_quotient X) :=
+{ bot :=
+  { rel := (=),
+    equiv := eq_equivalence,
+    clopen := λ x, is_clopen_discrete _ },
+  bot_le := by { rintro S a b (h : a = b), rw h, exact S.refl _ } }
+
+lemma proj_bot_injective [discrete_topology X] :
+  function.injective (⊥ : discrete_quotient X).proj := λ a b h, quotient.exact' h
+
+lemma proj_bot_bijective [discrete_topology X] :
+  function.bijective (⊥ : discrete_quotient X).proj := ⟨proj_bot_injective, proj_surjective _⟩
+
+section map
+
+variables {Y : Type*} [topological_space Y] {f : Y → X}
+  (cont : continuous f) (A : discrete_quotient Y) (B : discrete_quotient X)
+
+/--
+Given `cont : continuous f`, `le_comap cont A B` is defined as `A ≤ B.comap f`.
+Mathematically this means that `f` descends to a morphism `A → B`.
+-/
+def le_comap : Prop := A ≤ B.comap cont
+
+variables {cont A B}
+
+lemma le_comap_id (A : discrete_quotient X) : le_comap continuous_id A A := by tauto
+
+lemma le_comap_comp {Z : Type*} [topological_space Z] {g : Z → Y} {cont' : continuous g}
+  {C : discrete_quotient Z} : le_comap cont' C A → le_comap cont A B →
+  le_comap (continuous.comp cont cont') C B := by tauto
+
+lemma le_comap_trans {C : discrete_quotient X} :
+  le_comap cont A B → B ≤ C → le_comap cont A C := λ h1 h2, le_trans h1 $ comap_mono _ h2
+
+/-- Map a discrete quotient along a continuous map. -/
+def map (cond : le_comap cont A B) : A → B := quotient.map' f cond
+
+lemma map_continuous (cond : le_comap cont A B) : continuous (map cond) :=
+continuous_of_discrete_topology
+
+@[simp]
+lemma map_proj (cond : le_comap cont A B) : map cond ∘ A.proj = B.proj ∘ f := rfl
+
+@[simp]
+lemma map_proj_apply (cond : le_comap cont A B) (y : Y) : map cond (A.proj y) = B.proj (f y) := rfl
+
+@[simp]
+lemma map_id : map (le_comap_id A) = id := by { ext ⟨⟩, refl }
+
+@[simp]
+lemma map_comp {Z : Type*} [topological_space Z] {g : Z → Y} {cont' : continuous g}
+  {C : discrete_quotient Z} (h1 : le_comap cont' C A) (h2 : le_comap cont A B) :
+  map (le_comap_comp h1 h2) = map h2 ∘ map h1 := by { ext ⟨⟩, refl }
+
+@[simp]
+lemma of_le_map {C : discrete_quotient X} (cond : le_comap cont A B) (h : B ≤ C) :
+   map (le_comap_trans cond h) = of_le h ∘ map cond := by { ext ⟨⟩, refl }
+
+@[simp]
+lemma of_le_map_apply {C : discrete_quotient X} (cond : le_comap cont A B) (h : B ≤ C) (a : A) :
+  map (le_comap_trans cond h) a = of_le h (map cond a) := by { rcases a, refl }
+
+@[simp]
+lemma map_of_le {C : discrete_quotient Y} (cond : le_comap cont A B) (h : C ≤ A) :
+   map (le_trans h cond) = map cond ∘ of_le h := by { ext ⟨⟩, refl }
+
+@[simp]
+lemma map_of_le_apply {C : discrete_quotient Y} (cond : le_comap cont A B) (h : C ≤ A) (c : C) :
+  map (le_trans h cond) c = map cond (of_le h c) := by { rcases c, refl }
+
+end map
 
 lemma eq_of_proj_eq [t2_space X] [compact_space X] [disc : totally_disconnected_space X]
   {x y : X} : (∀ Q : discrete_quotient X, Q.proj x = Q.proj y) → x = y :=
@@ -189,7 +307,7 @@ lemma exists_of_compat [compact_space X] (Qs : Π (Q : discrete_quotient X), Q)
 begin
   obtain ⟨x,hx⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
     (λ (Q : discrete_quotient X), Q.proj ⁻¹' {Qs _}) (λ A B, _) (λ i, _)
-    (λ i, is_closed.compact (fiber_closed _ _)) (λ i, fiber_closed _ _),
+    (λ i,  (fiber_closed _ _).is_compact) (λ i, fiber_closed _ _),
   { refine ⟨x, λ Q, _⟩,
     specialize hx _ ⟨Q,rfl⟩,
     dsimp at hx,
@@ -214,7 +332,7 @@ end
 noncomputable instance [compact_space X] : fintype S :=
 begin
   have cond : is_compact (⊤ : set X) := compact_univ,
-  rw compact_iff_finite_subcover at cond,
+  rw is_compact_iff_finite_subcover at cond,
   have h := @cond S (λ s, S.proj ⁻¹' {s}) (λ s, fiber_open _ _)
     (λ x hx, ⟨S.proj ⁻¹' {S.proj x}, ⟨S.proj x, rfl⟩, rfl⟩),
   let T := classical.some h,
@@ -231,3 +349,30 @@ begin
 end
 
 end discrete_quotient
+
+namespace locally_constant
+
+variables {X} {α : Type*} (f : locally_constant X α)
+
+/-- Any locally constant function induces a discrete quotient. -/
+def discrete_quotient : discrete_quotient X :=
+{ rel := λ a b, f b = f a,
+  equiv := ⟨by tauto, by tauto, λ a b c h1 h2, by rw [h2, h1]⟩,
+  clopen := λ x, f.is_locally_constant.is_clopen_fiber _ }
+
+/-- The function from the discrete quotient associated to a locally constant function. -/
+def lift : f.discrete_quotient → α := λ a, quotient.lift_on' a f (λ a b h, h.symm)
+
+lemma lift_is_locally_constant : _root_.is_locally_constant f.lift := λ A, trivial
+
+/-- A locally constant version of `locally_constant.lift`. -/
+def locally_constant_lift : locally_constant f.discrete_quotient α :=
+⟨f.lift, f.lift_is_locally_constant⟩
+
+@[simp]
+lemma lift_eq_coe : f.lift = f.locally_constant_lift := rfl
+
+@[simp]
+lemma factors : f.locally_constant_lift ∘ f.discrete_quotient.proj = f := by { ext, refl }
+
+end locally_constant

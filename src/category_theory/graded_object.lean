@@ -3,10 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.shift
-import category_theory.concrete_category
-import category_theory.pi.basic
 import algebra.group.basic
+import category_theory.pi.basic
+import category_theory.shift
 
 /-!
 # The category of graded objects
@@ -55,7 +54,10 @@ variables {C : Type u} [category.{v} C]
 instance category_of_graded_objects (β : Type w) : category.{(max w v)} (graded_object β C) :=
 category_theory.pi (λ _, C)
 
-
+/-- The projection of a graded object to its `i`-th component. -/
+@[simps] def eval {β : Type w} (b : β) : graded_object β C ⥤ C :=
+{ obj := λ X, X b,
+  map := λ X Y f, f b, }
 
 section
 variable (C)
@@ -122,7 +124,7 @@ lemma zero_apply [has_zero_morphisms C] (β : Type w) (X Y : graded_object β C)
   (0 : X ⟶ Y) b = 0 := rfl
 
 section
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance has_zero_object [has_zero_object C] [has_zero_morphisms C] (β : Type w) :
   has_zero_object.{(max w v)} (graded_object β C) :=

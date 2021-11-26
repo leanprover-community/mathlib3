@@ -3,8 +3,10 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import category_theory.concrete_category.basic
 import tactic.fresh_names
-import category_theory.concrete_category
+import tactic.reassoc_axiom
+import tactic.slice
 
 /-!
 # Tools to reformulate category-theoretic lemmas in concrete categories
@@ -80,12 +82,12 @@ do
      (do CC ← mk_local' `I binder_info.inst_implicit CC_type, pure (CC, ff)),
    -- This is need to fill in universe levels fixed by `mk_instance`:
    CC_type ← instantiate_mvars CC_type,
-   x_type ← to_expr ``(@coe_sort %%C
+   x_type ← to_expr ``(@coe_sort %%C _
      (@category_theory.concrete_category.has_coe_to_sort %%C %%S %%CC) %%X),
    x ← mk_local_def `x x_type,
-   t' ← to_expr ``(@coe_fn (@quiver.hom %%C %%H %%X %%Y)
+   t' ← to_expr ``(@coe_fn (@quiver.hom %%C %%H %%X %%Y) _
      (@category_theory.concrete_category.has_coe_to_fun %%C %%S %%CC %%X %%Y) %%f %%x =
-       @coe_fn (@quiver.hom %%C %%H %%X %%Y)
+       @coe_fn (@quiver.hom %%C %%H %%X %%Y) _
          (@category_theory.concrete_category.has_coe_to_fun %%C %%S %%CC %%X %%Y) %%g %%x),
    let c' := h.mk_app vs,
    (_,pr) ← solve_aux t' (rewrite_target c'; reflexivity),
@@ -106,8 +108,8 @@ do
    -- Now the key step: replace morphism composition with function composition,
    -- and identity morphisms with nothing.
    let s := simp_lemmas.mk,
-   s ← s.add_simp ``coe_id,
-   s ← s.add_simp ``coe_comp,
+   s ← s.add_simp ``id_apply,
+   s ← s.add_simp ``comp_apply,
    (t'', pr', _) ← simplify s [] t' {fail_if_unchanged := ff},
    pr' ← mk_eq_mp pr' pr,
    -- Further, if we're in `Type`, get rid of the coercions entirely.

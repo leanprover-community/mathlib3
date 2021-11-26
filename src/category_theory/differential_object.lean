@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.shift
-import category_theory.concrete_category
 
 /-!
 # Differential objects in a category.
@@ -163,7 +162,7 @@ variables (C : Type u) [category.{v} C]
 
 variables [has_zero_object C] [has_zero_morphisms C] [has_shift C]
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance has_zero_object : has_zero_object (differential_object C) :=
 { zero :=

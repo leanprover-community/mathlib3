@@ -130,6 +130,27 @@ def diagram_iso_parallel_pair (F : walking_parallel_pair ⥤ C) :
   F ≅ parallel_pair (F.map left) (F.map right) :=
 nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
 
+/-- Construct a morphism between parallel pairs. -/
+def parallel_pair_hom {X' Y' : C} (f g : X ⟶ Y) (f' g' : X' ⟶ Y') (p : X ⟶ X') (q : Y ⟶ Y')
+  (wf : f ≫ q = p ≫ f') (wg : g ≫ q = p ≫ g') : parallel_pair f g ⟶ parallel_pair f' g' :=
+{ app := λ j, match j with
+  | zero := p
+  | one := q
+  end,
+  naturality' := begin
+    rintros (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) ⟨⟩; { unfold_aux, simp [wf, wg], },
+  end }
+
+@[simp] lemma parallel_pair_hom_app_zero
+  {X' Y' : C} (f g : X ⟶ Y) (f' g' : X' ⟶ Y') (p : X ⟶ X') (q : Y ⟶ Y')
+  (wf : f ≫ q = p ≫ f') (wg : g ≫ q = p ≫ g') :
+  (parallel_pair_hom f g f' g' p q wf wg).app zero = p := rfl
+
+@[simp] lemma parallel_pair_hom_app_one
+  {X' Y' : C} (f g : X ⟶ Y) (f' g' : X' ⟶ Y') (p : X ⟶ X') (q : Y ⟶ Y')
+  (wf : f ≫ q = p ≫ f') (wg : g ≫ q = p ≫ g') :
+  (parallel_pair_hom f g f' g' p q wf wg).app one = q := rfl
+
 /-- A fork on `f` and `g` is just a `cone (parallel_pair f g)`. -/
 abbreviation fork (f g : X ⟶ Y) := cone (parallel_pair f g)
 
@@ -427,6 +448,7 @@ To construct an isomorphism between coforks,
 it suffices to give an isomorphism between the cocone points
 and check that it commutes with the `π` morphisms.
 -/
+@[simps]
 def cofork.ext {s t : cofork f g} (i : s.X ≅ t.X) (w : s.π ≫ i.hom = t.π) : s ≅ t :=
 { hom := cofork.mk_hom i.hom w,
   inv := cofork.mk_hom i.inv (by rw [iso.comp_inv_eq, w]) }

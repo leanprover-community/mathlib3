@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
-import algebra.linear_ordered_comm_group_with_zero
-import algebra.group_power
-import ring_theory.ideal.operations
+import algebra.order.with_zero
 import algebra.punit_instances
+import ring_theory.ideal.operations
 
 /-!
 
@@ -58,8 +57,6 @@ open function ideal
 
 variables {R : Type*} -- This will be a ring, assumed commutative in some sections
 
-set_option old_structure_cmd true
-
 section
 variables (R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring R]
 
@@ -87,7 +84,8 @@ section monoid
 variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_monoid_with_zero Γ'₀]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
+instance : has_coe_to_fun (valuation R Γ₀) (λ _, R → Γ₀) :=
+{ coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 /-- A valuation is coerced to a monoid morphism R → Γ₀. -/
 instance : has_coe (valuation R Γ₀) (monoid_with_zero_hom R Γ₀) :=
@@ -134,7 +132,7 @@ v.map_sum_lt (ne_of_gt hg) hf
 v.to_monoid_with_zero_hom.to_monoid_hom.map_pow
 
 @[ext] lemma ext {v₁ v₂ : valuation R Γ₀} (h : ∀ r, v₁ r = v₂ r) : v₁ = v₂ :=
-by { cases v₁, cases v₂, congr, funext r, exact h r }
+by { rcases v₁ with ⟨⟨⟩⟩, rcases v₂ with ⟨⟨⟩⟩, congr, funext r, exact h r }
 
 lemma ext_iff {v₁ v₂ : valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = v₂ r :=
 ⟨λ h r, congr_arg _ h, ext⟩
@@ -191,7 +189,11 @@ variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation
 
 @[simp] lemma map_inv {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.map_inv' x
+v.to_monoid_with_zero_hom.map_inv x
+
+@[simp] lemma map_zpow {K : Type*} [division_ring K] (v : valuation K Γ₀) {x : K} {n : ℤ} :
+  v (x^n) = (v x)^n :=
+v.to_monoid_with_zero_hom.map_zpow x n
 
 lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
@@ -202,10 +204,16 @@ v.to_monoid_with_zero_hom.to_monoid_hom.map_neg x
 lemma map_sub_swap (x y : R) : v (x - y) = v (y - x) :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_sub_swap x y
 
-lemma map_sub_le_max (x y : R) : v (x - y) ≤ max (v x) (v y) :=
+lemma map_sub (x y : R) : v (x - y) ≤ max (v x) (v y) :=
 calc v (x - y) = v (x + -y)         : by rw [sub_eq_add_neg]
            ... ≤ max (v x) (v $ -y) : v.map_add _ _
            ... = max (v x) (v y)    : by rw map_neg
+
+lemma map_sub_le {x y g} (hx : v x ≤ g) (hy : v y ≤ g) : v (x - y) ≤ g :=
+begin
+  rw sub_eq_add_neg,
+  exact v.map_add_le hx (le_trans (le_of_eq (v.map_neg y)) hy)
+end
 
 lemma map_add_of_distinct_val (h : v x ≠ v y) : v (x + y) = max (v x) (v y) :=
 begin
@@ -217,7 +225,7 @@ begin
   { rw max_eq_left_of_lt vyx at h',
     apply lt_irrefl (v x),
     calc v x = v ((x+y) - y)         : by simp
-         ... ≤ max (v $ x + y) (v y) : map_sub_le_max _ _ _
+         ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
          ... < v x                   : max_lt h' vyx },
   { apply this h.symm,
     rwa [add_comm, max_comm] at h' }
@@ -229,6 +237,13 @@ begin
   rw max_eq_right (le_of_lt h) at this,
   simpa using this
 end
+
+/-- The subgroup of elements whose valuation is less than a certain unit.-/
+def lt_add_subgroup (v : valuation R Γ₀) (γ : units Γ₀) : add_subgroup R :=
+{ carrier   := {x | v x < γ},
+  zero_mem' := by { have h := units.ne_zero γ, contrapose! h, simpa using h },
+  add_mem'  := λ x y x_in y_in, lt_of_le_of_lt (v.map_add x y) (max_lt x_in y_in),
+  neg_mem'  := λ x x_in, by rwa [set.mem_set_of_eq, map_neg] }
 
 end group
 end basic -- end of section
@@ -254,7 +269,7 @@ by { subst h }
 lemma map {v' : valuation R Γ₀} (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f hf).is_equiv (v'.map f hf) :=
-let H : strict_mono f := strict_mono_of_monotone_of_injective hf inf in
+let H : strict_mono f := hf.strict_mono_of_injective inf in
 λ r s,
 calc f (v r) ≤ f (v s) ↔ v r ≤ v s   : by rw H.le_iff_le
                    ... ↔ v' r ≤ v' s : h r s
@@ -296,7 +311,7 @@ begin
   intros x y,
   by_cases hy : y = 0, { simp [hy, zero_iff], },
   rw show y = 1 * y, by rw one_mul,
-  rw [← (inv_mul_cancel_right' hy x)],
+  rw [← (inv_mul_cancel_right₀ hy x)],
   iterate 2 {rw [v.map_mul _ y, v'.map_mul _ y]},
   rw [v.map_one, v'.map_one],
   split; intro H,
@@ -425,15 +440,18 @@ def add_valuation := valuation R (multiplicative (order_dual Γ₀))
 end add_monoid
 
 namespace add_valuation
-variables {Γ₀   : Type*} [linear_ordered_add_comm_monoid_with_top Γ₀]
-variables {Γ'₀  : Type*} [linear_ordered_add_comm_monoid_with_top Γ'₀]
+variables {Γ₀ : Type*} {Γ'₀ : Type*}
 
 section basic
 
+section monoid
+
+variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_comm_monoid_with_top Γ'₀]
 variables (R) (Γ₀) [ring R]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (add_valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
+instance : has_coe_to_fun (add_valuation R Γ₀) (λ _, R → Γ₀) :=
+{ coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 variables {R} {Γ₀} (v : add_valuation R Γ₀) {x y z : R}
 
@@ -514,8 +532,8 @@ v.comap_comp f g
 -/
 def map (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f) (v : add_valuation R Γ₀) :
   add_valuation R Γ'₀ :=
-v.map {
-  to_fun := f,
+v.map
+{ to_fun := f,
   map_mul' := f.map_add,
   map_one' := f.map_zero,
   map_zero' := ht } (λ x y h, hf h)
@@ -525,9 +543,41 @@ v.map {
 def is_equiv (v₁ : add_valuation R Γ₀) (v₂ : add_valuation R Γ'₀) : Prop :=
 v₁.is_equiv v₂
 
+end monoid
+
+section group
+variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valuation R Γ₀) {x y z : R}
+
+@[simp] lemma map_inv {K : Type*} [division_ring K]
+  (v : add_valuation K Γ₀) {x : K} : v x⁻¹ = - (v x) :=
+v.map_inv
+
+lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = - (v x) :=
+v.map_units_inv x
+
+@[simp] lemma map_neg (x : R) : v (-x) = v x :=
+v.map_neg x
+
+lemma map_sub_swap (x y : R) : v (x - y) = v (y - x) :=
+v.map_sub_swap x y
+
+lemma map_sub (x y : R) : min (v x) (v y) ≤ v (x - y) :=
+v.map_sub x y
+
+lemma map_le_sub {x y g} (hx : g ≤ v x) (hy : g ≤ v y) : g ≤ v (x - y) := v.map_sub_le hx hy
+
+lemma map_add_of_distinct_val (h : v x ≠ v y) : v (x + y) = min (v x) (v y) :=
+v.map_add_of_distinct_val h
+
+lemma map_eq_of_lt_sub (h : v x < v (y - x)) : v y = v x :=
+v.map_eq_of_sub_lt h
+
+end group
+
 end basic
 
 namespace is_equiv
+variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_comm_monoid_with_top Γ'₀]
 variables [ring R]
 variables {Γ''₀ : Type*} [linear_ordered_add_comm_monoid_with_top Γ''₀]
 variables {v : add_valuation R Γ₀}
@@ -546,8 +596,8 @@ valuation.is_equiv.of_eq h
 lemma map {v' : add_valuation R Γ₀} (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f ht hf).is_equiv (v'.map f ht hf) :=
-h.map {
-  to_fun := f,
+h.map
+{ to_fun := f,
   map_mul' := f.map_add,
   map_one' := f.map_zero,
   map_zero' := ht } (λ x y h, hf h) inf
@@ -568,6 +618,7 @@ h.ne_zero
 end is_equiv
 
 section supp
+variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_comm_monoid_with_top Γ'₀]
 variables [comm_ring R]
 variables (v : add_valuation R Γ₀)
 
@@ -613,5 +664,7 @@ lemma supp_quot_supp : supp (v.on_quot (le_refl _)) = 0 :=
 v.supp_quot_supp
 
 end supp -- end of section
+
+attribute [irreducible] add_valuation
 
 end add_valuation

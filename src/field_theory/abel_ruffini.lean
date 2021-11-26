@@ -16,12 +16,12 @@ by radicals, then its minimal polynomial has solvable Galois group.
 
 ## Main definitions
 
-* `SBF F E` : the intermediate field of solvable-by-radicals elements
+* `solvable_by_rad F E` : the intermediate field of solvable-by-radicals elements
 
 ## Main results
 
-* `solvable_gal_of_solvable_by_rad` : the minimal polynomial of an element of `SBF F E` has
-solvable Galois group
+* the Abel-Ruffini Theorem `solvable_by_rad.is_solvable'` : An irreducible polynomial with a root
+that is solvable by radicals has a solvable Galois group.
 -/
 
 noncomputable theory
@@ -340,7 +340,7 @@ begin
     cases hx,
     exact ⟨is_integral β, hpq.2⟩,
   end),
-  have key : minpoly F γ = minpoly F (f ⟨γ, hγ⟩) := minpoly.unique'
+  have key : minpoly F γ = minpoly F (f ⟨γ, hγ⟩) := minpoly.eq_of_irreducible_of_monic
     (minpoly.irreducible (is_integral γ)) begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
@@ -370,6 +370,22 @@ begin
       (subset_adjoin F _ (set.mem_insert_of_mem α (set.mem_singleton β)))) },
   { exact λ α, induction1 (inv_mem _ (mem_adjoin_simple_self F α)) },
   { exact λ α n, induction3 },
+end
+
+/-- **Abel-Ruffini Theorem** (one direction): An irreducible polynomial with an
+`is_solvable_by_rad` root has solvable Galois group -/
+lemma is_solvable' {α : E} {q : polynomial F} (q_irred : irreducible q)
+  (q_aeval : aeval α q = 0) (hα : is_solvable_by_rad F α) :
+  _root_.is_solvable q.gal :=
+begin
+  haveI : _root_.is_solvable (q * C q.leading_coeff⁻¹).gal,
+  { rw [minpoly.eq_of_irreducible q_irred q_aeval,
+        ←show minpoly F (⟨α, hα⟩ : solvable_by_rad F E) = minpoly F α,
+        from minpoly.eq_of_algebra_map_eq (ring_hom.injective _) (is_integral ⟨α, hα⟩) rfl],
+    exact is_solvable ⟨α, hα⟩ },
+  refine solvable_of_surjective (gal.restrict_dvd_surjective ⟨C q.leading_coeff⁻¹, rfl⟩ _),
+  rw [mul_ne_zero_iff, ne, ne, C_eq_zero, inv_eq_zero],
+  exact ⟨q_irred.ne_zero, leading_coeff_ne_zero.mpr q_irred.ne_zero⟩,
 end
 
 end solvable_by_rad

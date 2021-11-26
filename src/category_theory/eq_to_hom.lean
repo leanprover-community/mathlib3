@@ -5,6 +5,25 @@ Authors: Reid Barton, Scott Morrison
 -/
 import category_theory.opposites
 
+/-!
+# Morphisms from equations between objects.
+
+When working categorically, sometimes one encounters an equation `h : X = Y` between objects.
+
+Your initial aversion to this is natural and appropriate:
+you're in for some trouble, and if there is another way to approach the problem that won't
+rely on this equality, it may be worth pursuing.
+
+You have two options:
+1. Use the equality `h` as one normally would in Lean (e.g. using `rw` and `subst`).
+   This may immediately cause difficulties, because in category theory everything is dependently
+   typed, and equations between objects quickly lead to nasty goals with `eq.rec`.
+2. Promote `h` to a morphism using `eq_to_hom h : X ⟶ Y`, or `eq_to_iso h : X ≅ Y`.
+
+This file introduces various `simp` lemmas which in favourable circumstances
+result in the various `eq_to_hom` morphisms to drop out at the appropriate moment!
+-/
+
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
@@ -52,7 +71,7 @@ lemma congr_arg_mpr_hom_right {X Y Z : C} (p : X ⟶ Y) (q : Z = Y) :
 by { cases q, simp, }
 
 /--
-An equality `X = Y` gives us a morphism `X ⟶ Y`.
+An equality `X = Y` gives us an isomorphism `X ≅ Y`.
 
 It is typically better to use this, rather than rewriting by the equality then using `iso.refl _`
 which usually leads to dependent type theory hell.
@@ -139,5 +158,9 @@ by subst h; refl
 lemma nat_trans.congr {F G : C ⥤ D} (α : F ⟶ G) {X Y : C} (h : X = Y) :
   α.app X = F.map (eq_to_hom h) ≫ α.app Y ≫ G.map (eq_to_hom h.symm) :=
 by { rw [α.naturality_assoc], simp }
+
+lemma eq_conj_eq_to_hom {X Y : C} (f : X ⟶ Y) :
+  f = eq_to_hom rfl ≫ f ≫ eq_to_hom rfl :=
+by simp only [category.id_comp, eq_to_hom_refl, category.comp_id]
 
 end category_theory

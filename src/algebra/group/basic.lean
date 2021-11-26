@@ -72,6 +72,11 @@ lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
 by { by_cases h : P; simp [h], }
 
 @[to_additive]
+lemma ite_one_mul {P : Prop} [decidable P] {a b : M} :
+  ite P 1 (a * b) = ite P 1 a * ite P 1 b :=
+by { by_cases h : P; simp [h], }
+
+@[to_additive]
 lemma eq_one_iff_eq_one_of_mul_eq_one {a b : M} (h : a * b = 1) : a = 1 ↔ b = 1 :=
 by split; { rintro rfl, simpa using h }
 
@@ -89,7 +94,6 @@ variables {G : Type u} [comm_semigroup G]
 @[no_rsimp, to_additive]
 lemma mul_left_comm : ∀ a b c : G, a * (b * c) = b * (a * c) :=
 left_comm has_mul.mul mul_comm mul_assoc
-attribute [no_rsimp] add_left_comm
 
 @[to_additive]
 lemma mul_right_comm : ∀ a b c : G, a * b * c = a * c * b :=
@@ -189,6 +193,10 @@ inv_inv
 
 @[simp, to_additive]
 lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
+
+@[simp, to_additive]
+lemma inv_surjective : function.surjective (has_inv.inv : G → G) :=
+inv_involutive.surjective
 
 @[to_additive]
 lemma inv_injective : function.injective (has_inv.inv : G → G) :=
@@ -321,16 +329,32 @@ by simpa only [div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
 lemma div_right_injective : function.injective (λ a, b / a) :=
 by simpa only [div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
 
+-- The unprimed version is used by `group_with_zero`.  This is the preferred choice.
+-- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60div_one'.60
+@[simp, to_additive sub_zero]
+lemma div_one' (a : G) : a / 1 = a :=
+calc  a / 1 = a * 1⁻¹ : div_eq_mul_inv a 1
+          ... = a * 1 : congr_arg _ one_inv
+          ... = a     : mul_one a
+
+@[simp, to_additive neg_sub]
+lemma inv_div' (a b : G) : (a / b)⁻¹ = b / a :=
+inv_eq_of_mul_eq_one ( by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc, inv_mul_cancel_left,
+  mul_right_inv])
+
+@[simp, to_additive sub_add_cancel]
+lemma div_mul_cancel' (a b : G) : a / b * b = a :=
+by rw [div_eq_mul_inv, inv_mul_cancel_right a b]
+
 end group
 
 section add_group
+-- TODO: Generalize the contents of this section with to_additive as per
+-- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
 variables {G : Type u} [add_group G] {a b c d : G}
 
 @[simp] lemma sub_self (a : G) : a - a = 0 :=
 by rw [sub_eq_add_neg, add_right_neg a]
-
-@[simp] lemma sub_add_cancel (a b : G) : a - b + b = a :=
-by rw [sub_eq_add_neg, neg_add_cancel_right a b]
 
 @[simp] lemma add_sub_cancel (a b : G) : a + b - b = a :=
 by rw [sub_eq_add_neg, add_neg_cancel_right a b]
@@ -342,18 +366,11 @@ lemma eq_of_sub_eq_zero (h : a - b = 0) : a = b :=
 calc a = a - b + b : (sub_add_cancel a b).symm
    ... = b         : by rw [h, zero_add]
 
-@[simp] lemma sub_zero (a : G) : a - 0 = a :=
-by rw [sub_eq_add_neg, neg_zero, add_zero]
-
 lemma sub_ne_zero_of_ne (h : a ≠ b) : a - b ≠ 0 :=
 mt eq_of_sub_eq_zero h
 
 @[simp] lemma sub_neg_eq_add (a b : G) : a - (-b) = a + b :=
 by rw [sub_eq_add_neg, neg_neg]
-
-@[simp] lemma neg_sub (a b : G) : -(a - b) = b - a :=
-neg_eq_of_add_eq_zero (by rw [sub_eq_add_neg, sub_eq_add_neg, add_assoc, neg_add_cancel_left,
-  add_right_neg])
 
 local attribute [simp] add_assoc
 
@@ -384,10 +401,10 @@ sub_right_injective.eq_iff
 @[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
 by { rw [sub_eq_add_neg, sub_eq_add_neg], exact add_left_inj _ }
 
-lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
+@[simp] lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
 by rw [← add_sub_assoc, sub_add_cancel]
 
-lemma sub_sub_sub_cancel_right (a b c : G) : (a - c) - (b - c) = a - b :=
+@[simp] lemma sub_sub_sub_cancel_right (a b c : G) : (a - c) - (b - c) = a - b :=
 by rw [← neg_sub c b, sub_neg_eq_add, sub_add_sub_cancel]
 
 theorem sub_sub_assoc_swap : a - (b - c) = a + c - b :=
@@ -436,9 +453,20 @@ variables {G : Type u} [comm_group G]
 lemma mul_inv (a b : G) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
 by rw [mul_inv_rev, mul_comm]
 
+@[to_additive]
+lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=
+by rw [h, div_eq_mul_inv, mul_comm, inv_mul_cancel_left]
+
+@[to_additive]
+lemma div_mul_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
+  mul_left_cancel_iff, mul_comm, mul_assoc]
+
 end comm_group
 
 section add_comm_group
+-- TODO: Generalize the contents of this section with to_additive as per
+-- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
@@ -464,9 +492,6 @@ by simp
 lemma eq_sub_of_add_eq' (h : c + a = b) : a = b - c :=
 by simp [h.symm]
 
-lemma sub_eq_of_eq_add' (h : a = b + c) : a - b = c :=
-begin simp [h], rw [add_left_comm], simp end
-
 lemma eq_add_of_sub_eq' (h : a - b = c) : a = b + c :=
 by simp [h.symm]
 
@@ -474,7 +499,7 @@ lemma add_eq_of_eq_sub' (h : b = c - a) : a + b = c :=
 begin simp [h], rw [add_comm c, add_neg_cancel_left] end
 
 lemma sub_sub_self (a b : G) : a - (a - b) = b :=
-begin simp, rw [add_comm b, add_neg_cancel_left] end
+by simpa using add_neg_cancel_left a b
 
 lemma add_sub_comm (a b c d : G) : a + b - (c + d) = (a - c) + (b - d) :=
 by simp
@@ -486,6 +511,8 @@ lemma neg_neg_sub_neg (a b : G) : - (-a - -b) = a - b :=
 by simp
 
 @[simp] lemma sub_sub_cancel (a b : G) : a - (a - b) = b := sub_sub_self a b
+
+@[simp] lemma sub_sub_cancel_left (a b : G) : a - b - a = -b := by simp
 
 lemma sub_eq_neg_add (a b : G) : a - b = -b + a :=
 by rw [sub_eq_add_neg, add_comm _ _]
@@ -510,6 +537,9 @@ by rw [sub_eq_neg_add, neg_add_cancel_left]
 @[simp]
 lemma add_sub_cancel'_right (a b : G) : a + (b - a) = b :=
 by rw [← add_sub_assoc, add_sub_cancel']
+
+@[simp] lemma sub_add_cancel' (a b : G) : a - (a + b) = -b :=
+by rw [← neg_sub, add_sub_cancel']
 
 -- This lemma is in the `simp` set under the name `add_neg_cancel_comm_assoc`,
 -- defined  in `algebra/group/commute`

@@ -8,6 +8,7 @@ import category_theory.limits.shapes.binary_products
 import topology.sheaves.functors
 import category_theory.limits.preserves.shapes.pullbacks
 import algebraic_geometry.Scheme
+import algebra.category.CommRing.constructions
 
 /-!
 # Open immersions of presheafed spaces
@@ -752,8 +753,6 @@ lemma of_stalk_iso {X Y : SheafedSpace C} (f : X ⟶ Y)
 
 section prod
 
-instance : preserves_colimits (SheafedSpace.forget C) := sorry
-
 variables {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) (i : ι)
 
 lemma sigma_ι_open_embedding : open_embedding (colimit.ι F i).base :=
@@ -801,118 +800,31 @@ end
 
 section end
 
-def pointwise_limit_π_inv (U : opens (F.obj i)) :
-  (F.obj i).presheaf.obj (op ((opens.map
-    (colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) i ≫
-    (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv).base).obj
-    ((sigma_ι_open_embedding F i).is_open_map.functor.obj U))) ⟶
-  limit (PresheafedSpace.pointwise_diagram
-    (F ⋙ SheafedSpace.forget_to_PresheafedSpace)
-    ((opens.map (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv.base).obj
-      ((sigma_ι_open_embedding F i).is_open_map.functor.obj U))) :=
-begin
-  refine limit.lift _ ⟨_, { app := _, naturality' := _ }⟩,
-  { intro j,
-    induction j using opposite.rec,
-    by_cases h : i = j,
-    { apply eq_to_hom, cases h, refl },
-    apply is_terminal.from,
-    change is_terminal ((F.obj j).presheaf.obj _),
-    erw image_preimage_is_empty F _ _ h U,
-    exact (F.obj j).sheaf.is_terminal_of_empty },
-  { intros j k f,
-    induction j using opposite.rec,
-    induction k using opposite.rec,
-    erw category.id_comp, dsimp only [opposite.rec],
-    split_ifs,
-    { cases h, cases h_1,
-      have : f = (𝟙 _).op := show f.unop.op = _, by congr,
-      subst this,
-      erw category_theory.functor.map_id,
-      rw category.comp_id },
-    { apply is_terminal.hom_ext,
-      cases h,
-      erw image_preimage_is_empty F _ _ h_1 U,
-      exact (F.obj j).sheaf.is_terminal_of_empty },
-      -- { cases h₁, cases h₂,
-    --   have : f = (𝟙 _).op := show f.unop.op = _, by congr,
-    --   cases this,
-    --   simp only [dif_pos, opposite.rec, eq_to_hom_refl, dif_ctx_congr,
-    --     eq_self_iff_true, opposite.unop_op, discrete.id_def],
-    --   apply (is_iso.inv_comp_eq _).mp,
-    --   simp only [category.comp_id, is_iso.inv_id],
-    --   convert (category_theory.functor.map_id _ _).symm,
-    --   apply_instance },
-    { dsimp,
-
-    }
-
-  }
-end
-
-instance {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) (i : ι) :
-  SheafedSpace.is_open_immersion (colimit.ι F i) :=
-{ base_open := begin sorry
-    -- rw ← (show _ = (colimit.ι F i).base, from ι_preserves_colimits_iso_inv (forget C) F i),
-    -- have : _ = _ ≫ colimit.ι (discrete.functor (F ⋙ forget C).obj) i :=
-    --   has_colimit.iso_of_nat_iso_ι_hom discrete.nat_iso_functor i,
-    -- rw ← iso.eq_comp_inv at this,
-    -- rw this,
-    -- have : colimit.ι _ _ ≫ _ = _ := Top.sigma_iso_sigma_hom_ι (F ⋙ forget C).obj i,
-    -- rw ← iso.eq_comp_inv at this,
-    -- rw this,
-    -- simp_rw [← category.assoc, coe_comp],
-    -- apply (Top.homeo_of_iso _).symm.open_embedding.comp,
-    -- apply (Top.homeo_of_iso _).symm.open_embedding.comp,
-    -- apply (Top.homeo_of_iso (Top.sigma_iso_sigma _)).symm.open_embedding.comp,
-    -- exact open_embedding_sigma_mk.comp (Top.homeo_of_iso
-    --   (as_iso (discrete.nat_iso_functor.hom.app i))).open_embedding
-  end,
+instance [has_strict_terminal_objects C] : SheafedSpace.is_open_immersion (colimit.ι F i) :=
+{ base_open := sigma_ι_open_embedding F i,
   c_iso := λ U, begin
-    erw ← (show _ = (colimit.ι F i), from ι_preserves_colimits_iso_inv
-      SheafedSpace.forget_to_PresheafedSpace F i),
+    have e : colimit.ι F i = _ := (ι_preserves_colimits_iso_inv
+      SheafedSpace.forget_to_PresheafedSpace F i).symm,
+    have H : open_embedding (colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) i ≫
+      (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv).base :=
+    e ▸ sigma_ι_open_embedding F i,
+    suffices : is_iso ((colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) i ≫
+      (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv).c.app
+        (op (H.is_open_map.functor.obj U))),
+    { convert this },
     rw PresheafedSpace.comp_c_app,
     rw ← PresheafedSpace.colimit_presheaf_obj_iso_pointwise_limit_hom_π,
     apply_with is_iso.comp_is_iso { instances := ff },
     { apply_instance },
     apply_with is_iso.comp_is_iso { instances := ff },
     { apply_instance },
-    refine ⟨⟨limit.lift _ ⟨_,_⟩,_,_⟩⟩,
-    refine { app := _, naturality' := _ },
-    { intro j,
-      induction j using opposite.rec,
-      by_cases h : i = j,
-      { apply eq_to_hom, cases h, refl },
-      apply is_terminal.from, sorry
-      -- change is_terminal ((F.obj j).presheaf.obj _),
-      -- convert (F.obj j).sheaf.is_terminal_of_empty,
-      -- ext,
-      -- apply iff_false_intro,
-      -- rintro ⟨y, hy, eq⟩,
-      -- replace eq := concrete_category.congr_arg
-      --   (preserves_colimit_iso (SheafedSpace.forget C) F ≪≫
-      --     has_colimit.iso_of_nat_iso discrete.nat_iso_functor ≪≫ Top.sigma_iso_sigma _).hom eq,
-      -- simp_rw [category_theory.iso.trans_hom, ← Top.comp_app, ← PresheafedSpace.comp_base] at eq,
-      -- rw ι_preserves_colimits_iso_inv at eq,
-      -- rw ι_preserves_colimits_iso_inv at eq,
-      -- change ((SheafedSpace.forget C).map (colimit.ι F i) ≫ _) y =
-      --   ((SheafedSpace.forget C).map (colimit.ι F j) ≫ _) x at eq,
-      -- rw ι_preserves_colimits_iso_hom_assoc at eq,
-      -- rw ι_preserves_colimits_iso_hom_assoc at eq,
-      -- rw has_colimit.iso_of_nat_iso_ι_hom_assoc at eq,
-      -- rw has_colimit.iso_of_nat_iso_ι_hom_assoc at eq,
-      -- erw Top.sigma_iso_sigma_hom_ι at eq,
-      -- erw Top.sigma_iso_sigma_hom_ι at eq,
-      -- exact h (congr_arg sigma.fst eq),
-
-       },
-    -- erw ι_preserves_colimits_iso_hom (SheafedSpace.forget C) F at eq,
-    -- generalize_proofs _ H,
-    -- let : (pointwise_diagram F (H.functor.obj U)).obj (op i) ⟶
-    --   limit (pointwise_diagram F (H.functor.obj U)) := limit.lift _ ⟨_,_⟩,
-    -- swap,
-    -- exact { app := λ j, by { dsimp [opens.map], }, naturality' := _ }
-
+    apply limit_π_is_iso_of_is_strict_terminal,
+    intros j hj,
+    induction j using opposite.rec,
+    dsimp,
+    convert (F.obj j).sheaf.is_terminal_of_empty,
+    convert image_preimage_is_empty F i j (λ h, hj (congr_arg op h.symm)) U,
+    exact (congr_arg PresheafedSpace.hom.base e).symm,
   end }
 
 end prod

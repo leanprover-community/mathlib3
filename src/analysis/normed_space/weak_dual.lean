@@ -139,6 +139,11 @@ begin
   exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end
 
+
+
+
+
+
 lemma to_weak_dual_image_eq (p : dual 𝕜 E → Prop) :
   (to_weak_dual '' {x' : dual 𝕜 E | p x' }) =
     {x' : weak_dual 𝕜 E | p x'.to_normed_dual } :=
@@ -165,6 +170,33 @@ end
 
 end normed_space.dual
 
+namespace weak_dual
+
+lemma to_normed_dual.preimage_eq (p : dual 𝕜 E → Prop) :
+  (to_normed_dual ⁻¹' {x' : dual 𝕜 E | p x' }) =
+    {x' : weak_dual 𝕜 E | p x'.to_normed_dual } := set.preimage_set_of_eq
+
+lemma to_normed_dual.preimage_norm_eval_le_one (z : E) :
+  (to_normed_dual ⁻¹' {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1}) = {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ 1} :=
+set.preimage_set_of_eq
+--to_normed_dual.preimage_eq _
+
+lemma to_normed_dual.preimage_closed_unit_ball :
+  (to_normed_dual ⁻¹' metric.closed_ball (0 : dual 𝕜 E) 1) =
+    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} :=
+begin
+  have eq : metric.closed_ball (0 : dual 𝕜 E) 1 = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1},
+  { ext1 x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
+  rw eq,
+  exact set.preimage_set_of_eq,
+end
+
+variables (𝕜)
+
+def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' (polar 𝕜 s)
+
+end weak_dual
+
 end weak_star_topology_for_duals_of_normed_spaces
 
 section polar_sets_in_weak_dual
@@ -178,22 +210,17 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
 is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
-lemma is_weak_dual_closed (s : set E) : is_closed (dual.to_weak_dual '' polar 𝕜 s) :=
+lemma is_weak_dual_closed (s : set E) : is_closed (weak_dual.polar 𝕜 s) :=
 begin
-  by_cases s_emp : s = ∅,
-  { rw [s_emp, of_empty, image_univ, range_iff_surjective.mpr dual.to_weak_dual.surjective],
-    exact is_closed_univ, },
-  rw [eq_Inter, inj_on.image_bInter_eq],
-  { simp_rw dual.to_weak_dual_image_eq,
-    apply is_closed_bInter,
-    intros z hz,
-    have eq : {x' : weak_dual 𝕜 E | ∥weak_dual.to_normed_dual x' z∥ ≤ 1}
-      = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1) := by refl,
-    rw eq,
-    refine is_closed.preimage _ (is_closed_Iic),
-    apply continuous.comp continuous_norm (weak_dual.eval_continuous _ _ z), },
-  { exact nonempty_def.mp (ne_empty_iff_nonempty.mp s_emp), },
-  { apply dual.to_weak_dual.injective.inj_on, },
+  rw [weak_dual.polar, eq_Inter, preimage_bInter],
+  apply is_closed_bInter,
+  intros z hz,
+  rw weak_dual.to_normed_dual.preimage_eq,
+   have eq : {x' : weak_dual 𝕜 E | ∥weak_dual.to_normed_dual x' z∥ ≤ 1}
+    = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1) := by refl,
+  rw eq,
+  refine is_closed.preimage _ (is_closed_Iic),
+  apply continuous.comp continuous_norm (weak_dual.eval_continuous _ _ z),
 end
 
 end polar
@@ -323,7 +350,7 @@ end
 a polar `polar s` of a neighborhood `s` of the origin are continuous (linear) functions. -/
 lemma continuous_of_mem_closure_polar_nhd
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (φ : (Π (_ : E), 𝕜))
-  (hφ : φ ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s)))) :
+  (hφ : φ ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s))) :
   @continuous E 𝕜 _ _ φ :=
 begin
   cases @polar.bounded_of_nhds_zero 𝕜 _ E _ _ s s_nhd with c hc,
@@ -344,7 +371,7 @@ begin
   have sin_closed : is_closed (Icc (-c * ∥z∥) (c * ∥z∥) : set ℝ) := is_closed_Icc,
   have preim_cl := is_closed.preimage θ_cont sin_closed,
   suffices :
-    (weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s))
+    (weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)
     ⊆ θ⁻¹' (Icc (-c * ∥z∥) (c * ∥z∥)),
   { exact ((is_closed.closure_subset_iff preim_cl).mpr this hφ).right, },
   intros ψ hψ,
@@ -356,23 +383,19 @@ begin
     rw right.neg_nonpos_iff,
     exact mul_nonneg c_nn (norm_nonneg _), },
   apply le_trans (continuous_linear_map.le_op_norm x' z) _,
-  rcases polar_x' with ⟨x'', ⟨polar_x'', hx''⟩⟩,
-  apply mul_le_mul _ rfl.ge (norm_nonneg z) c_nn,
-  have hc'' := hc x'' polar_x'',
-  rwa ← hx'',
+  apply mul_le_mul (hc x' polar_x') rfl.ge (norm_nonneg z) c_nn,
 end
 
 /-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of a polar `polar s` of a
 neighborhood `s` of the origin is a closed set. -/
 lemma image_polar_nhd_closed
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_closed ((weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s))) :=
+  is_closed ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)) :=
 begin
   apply is_closed_iff_cluster_pt.mpr,
   intros f hf,
   simp only [mem_image, mem_set_of_eq],
-  have f_in_closure : f ∈ closure ((weak_dual.to_Pi 𝕜 E) ''
-    (dual.to_weak_dual '' (polar 𝕜 s))),
+  have f_in_closure : f ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)),
   from mem_closure_iff_cluster_pt.mpr hf,
   have f_in_closure₀ : f ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
   { apply closure_mono (image_subset_range _ _),
@@ -397,35 +420,27 @@ begin
           f f_in_closure₀ _ at key, },
       end,
       cont := f_cont, } with hφ,
-  use [dual.to_weak_dual φ, φ],
+  use φ,
   refine ⟨_, rfl⟩,
-  {
-    dunfold polar,
-    simp only [mem_set_of_eq],
-    intros z hz,
-    apply embedding_weak_dual_to_Pi.norm_eval_le_of_mem_closure_norm_eval_le z 1 f,
-    have ss : dual.to_weak_dual '' polar 𝕜 s ⊆ {x' : weak_dual 𝕜 E | ∥x' z∥ ≤ 1},
-    { intros x' hx',
-      rcases hx' with ⟨x'', ⟨polar_x'', hx''⟩⟩,
-      rw ← dual.to_weak_dual_image_norm_eval_le_one,
-      use x'.to_normed_dual,
-      refine ⟨_, rfl⟩,
-      rw ← hx'',
-      exact polar_x'' z hz,
-      },
-    apply closure_mono (image_subset _ ss),
-    exact mem_closure_iff_cluster_pt.mpr hf,
-    },
-  { refl, },
+  dunfold weak_dual.polar,
+  dunfold polar,
+  intros z hz,
+  apply embedding_weak_dual_to_Pi.norm_eval_le_of_mem_closure_norm_eval_le z 1 f,
+  have ss : weak_dual.polar 𝕜 s ⊆ {x' : weak_dual 𝕜 E | ∥x' z∥ ≤ 1},
+  { intros x' hx',
+    simp only [weak_dual.polar, polar, mem_set_of_eq, preimage_set_of_eq] at hx',
+    exact hx' z hz, },
+  apply closure_mono (image_subset _ ss),
+  exact mem_closure_iff_cluster_pt.mpr hf,
 end
 
 /-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of the polar `polar s` of
 a neighborhood `s` of the origin is compact if the field `𝕜` is a proper topological space. -/
 lemma image_polar_nhd_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_compact ((weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s))) :=
+  is_compact ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)) :=
 begin
   cases polar.bounded_of_nhds_zero 𝕜 s_nhd with c hc,
-  have ss : (weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s)) ⊆
+  have ss : (weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s) ⊆
     (set.pi (univ : set E) (λ z, (closed_ball (0 : 𝕜) (c * ∥ z ∥)))),
   { intros f hf,
     simp only [mem_image, exists_exists_and_eq_and] at hf,
@@ -450,7 +465,7 @@ end embedding_weak_dual_to_Pi
 /-- The Banach-Alaoglu theorem: the polar `polar s` of a neighborhood `s` of the origin in a
 normed space `E` over `𝕜` is compact subset of `weak_dual 𝕜 E` (assuming `[is_R_or_C 𝕜]`). -/
 theorem polar_nhd_weak_star_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_compact ((dual.to_weak_dual) '' (polar 𝕜 s)) :=
+  is_compact (weak_dual.polar 𝕜 s) :=
 begin
   apply (embedding_weak_dual_to_Pi 𝕜 E).is_compact_iff_is_compact_image.mpr,
   exact embedding_weak_dual_to_Pi.image_polar_nhd_compact s_nhd,
@@ -461,7 +476,7 @@ theorem unit_ball_weak_star_compact
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] :
   is_compact {x' : weak_dual 𝕜 E | (∥ x'.to_normed_dual ∥ ≤ 1)} :=
 begin
-  rw [←dual.to_weak_dual_image_closed_unit_ball, ←polar.of_closed_unit_ball],
+  rw [←weak_dual.to_normed_dual.preimage_closed_unit_ball, ←polar.of_closed_unit_ball],
   exact polar_nhd_weak_star_compact (closed_ball_mem_nhds (0 : E) (@zero_lt_one ℝ _ _)),
 end
 

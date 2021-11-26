@@ -151,6 +151,8 @@ end
 
 variables (𝕜)
 
+/-- The polar set `polar 𝕜 s` of `s : set E` seen as a subset of the dual of `E` with the
+weak-star topology is `weak_dual.polar 𝕜 s`. -/
 def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' (polar 𝕜 s)
 
 end weak_dual

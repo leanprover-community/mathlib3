@@ -141,7 +141,7 @@ namespace polar
 open metric set normed_space
 open_locale topological_space
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 @[simp] lemma zero_mem (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
@@ -152,11 +152,13 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 lemma eq_Inter (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
   polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
-by simp only [forall_false_left, mem_empty_eq, forall_const, set_of_true, polar]
+by { ext, simp only [polar, mem_bInter_iff, mem_set_of_eq], }
 
 lemma of_empty (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] : polar 𝕜 (∅ : set E) = univ :=
 by { unfold polar, simp only [forall_false_left, mem_empty_eq, forall_const, set_of_true], }
+
+variables {𝕜}
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a
 small scalar multiple of `x'` is in `polar 𝕜 s`. -/
@@ -194,6 +196,8 @@ begin
     simp only [mem_closed_ball, dist_zero_right] at hz,
     exact (continuous_linear_map.unit_le_op_norm x' z hz).trans h, },
 end
+
+variables (𝕜)
 
 /-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`
 there exists a bound for the norms of the values `x' z` of the elements `x' ∈ polar 𝕜 s` of the

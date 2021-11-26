@@ -89,8 +89,7 @@ lemma coe_submodule_injective :
   function.injective (to_submodule : lie_submodule R L M → submodule R M) :=
 λ x y h, by { cases x, cases y, congr, injection h }
 
-@[ext] lemma ext (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' :=
-coe_submodule_injective $ set_like.ext h
+@[ext] lemma ext (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' := set_like.ext h
 
 @[simp] lemma coe_to_submodule_eq_iff : (N : submodule R M) = (N' : submodule R M) ↔ N = N' :=
 coe_submodule_injective.eq_iff
@@ -223,8 +222,6 @@ open set
 
 lemma coe_injective : function.injective (coe : lie_submodule R L M → set M) :=
 set_like.coe_injective
-
-lemma le_def : N ≤ N' ↔ (N : set M) ⊆ N' := iff.rfl
 
 @[simp, norm_cast] lemma coe_submodule_le_coe_submodule : (N : submodule R M) ≤ N' ↔ N ≤ N' :=
 iff.rfl
@@ -574,16 +571,16 @@ by { rw ← map_le_iff_le_comap, apply le_refl _, }
 
 @[mono] lemma map_mono : monotone (map f) :=
 λ I₁ I₂ h,
-by { rw lie_submodule.le_def at h, apply lie_submodule.lie_span_mono (set.image_subset ⇑f h), }
+by { rw set_like.le_def at h, apply lie_submodule.lie_span_mono (set.image_subset ⇑f h), }
 
 @[mono] lemma comap_mono : monotone (comap f) :=
-λ J₁ J₂ h, by { rw lie_submodule.le_def at h ⊢, exact set.preimage_mono h, }
+λ J₁ J₂ h, by { rw ← set_like.coe_subset_coe at h ⊢, exact set.preimage_mono h, }
 
 lemma map_of_image (h : f '' I = J) : I.map f = J :=
 begin
   apply le_antisymm,
   { erw [lie_submodule.lie_span_le, submodule.map_coe, h], },
-  { rw [lie_submodule.le_def, ← h], exact lie_submodule.subset_lie_span, },
+  { rw [← set_like.coe_subset_coe, ← h], exact lie_submodule.subset_lie_span, },
 end
 
 /-- Note that this is not a special case of `lie_submodule.subsingleton_of_bot`. Indeed, given
@@ -778,7 +775,7 @@ begin
   apply le_antisymm,
   { rw le_inf_iff, exact ⟨f.map_le_ideal_range _, map_comap_le⟩, },
   { rw f.is_ideal_morphism_def at h,
-    rw [lie_submodule.le_def, lie_submodule.inf_coe, ← coe_to_subalgebra, h],
+    rw [← set_like.coe_subset_coe, lie_submodule.inf_coe, ← coe_to_subalgebra, h],
     rintros y ⟨⟨x, h₁⟩, h₂⟩, rw ← h₁ at h₂ ⊢, exact mem_map h₂, },
 end
 

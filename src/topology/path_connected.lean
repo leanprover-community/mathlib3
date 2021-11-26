@@ -372,6 +372,14 @@ begin
     simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
 
+/-! #### Product of two paths -/
+
+def path.prod {α β : Type*} [topological_space α] [topological_space β]
+  {x₁ y₁ : α} {x₂ y₂ : β} (γ₁ : path x₁ y₁) (γ₂ : path x₂ y₂) :  path (x₁, x₂) (y₁, y₂) :=
+{ to_continuous_map := continuous_map.prod_mk γ₁.to_continuous_map γ₂.to_continuous_map,
+  source' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.source, γ₂.source],
+  target' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.target, γ₂.target] }
+
 /-! #### Truncating a path -/
 
 /-- `γ.truncate t₀ t₁` is the path which follows the path `γ` on the

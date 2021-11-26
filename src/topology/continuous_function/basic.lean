@@ -211,6 +211,24 @@ end inf'
 
 end lattice
 
+section prod
+
+variables {α₁ α₂ β₁ β₂ : Type*}
+
+def prod_mk {α β₁ β₂ : Type*} [topological_space α] [topological_space β₁]
+  [topological_space β₂] (f : C(α, β₁)) (g : C(α, β₂)) :
+  C(α, β₁ × β₂) :=
+{ to_fun := (λ x, (f x, g x)),
+  continuous_to_fun := continuous.prod_mk f.continuous g.continuous }
+
+def prod_map {α₁ α₂ β₁ β₂ : Type*} [topological_space α₁] [topological_space α₂]
+  [topological_space β₁] [topological_space β₂] (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
+  C(α₁ × β₁, α₂ × β₂) :=
+{ to_fun := prod.map f g,
+  continuous_to_fun := continuous.prod_map f.continuous g.continuous }
+
+end prod
+
 section restrict
 
 variables (s : set α)

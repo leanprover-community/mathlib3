@@ -6,7 +6,6 @@ Authors: Louis Carlin, Mario Carneiro
 
 import data.int.basic
 import algebra.field.basic
-import algebra.gcd_monoid.basic
 
 /-!
 # Euclidean domains

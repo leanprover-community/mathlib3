@@ -611,7 +611,7 @@ variables (F K : Type*) [comm_ring F] [ring K] [algebra F K]
 -- See: https://en.wikipedia.org/wiki/Separable_extension#Separability_of_transcendental_extensions
 -- Note that right now a Galois extension (class `is_galois`) is defined to be an extension which
 -- is separable and normal, so if the definition of separable changes here at some point
--- to allow non-algebraic extensions, then the definition of Galois must also be changed.
+-- to allow non-algebraic extensions, then the definition of `is_galois` must also be changed.
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
 the minimal polynomial of every `x : K` is separable.

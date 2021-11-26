@@ -724,22 +724,22 @@ inductive connected_aux {α : Type*} (r : α → α → Prop) : α → α → Pr
 | start (x : α) : connected_aux x x
 | next (x y z : α) : connected_aux x y → r y z → connected_aux x z
 
+namespace connected_aux
 section
 
 variables {α : Type*} {r : α → α → Prop} {a b c : α}
 
 /-- Connectivity is reflexive. -/
 @[refl]
-theorem connected_aux.refl : connected_aux r a a :=
+theorem refl : connected_aux r a a :=
 connected_aux.start a
 
 /-- Comparable proper elements are connected. -/
-theorem connected_aux.from_rel : r a b → connected_aux r a b :=
+theorem from_rel : r a b → connected_aux r a b :=
 (connected_aux.next a a b) (connected_aux.refl)
 
 /-- If `a` and `b` are related, and `b` and `c` are connected, then `a` and `c` are connected. -/
-lemma connected_aux.append (hab : r a b) (hbc : connected_aux r b c) :
-  connected_aux r a c :=
+lemma append_left (hab : r a b) (hbc : connected_aux r b c) : connected_aux r a c :=
 begin
   induction hbc with _ _ _ _ _ hcd h,
     { exact connected_aux.from_rel hab },
@@ -748,24 +748,27 @@ end
 
 /-- Connectedness with a symmetric relation is symmetric. -/
 @[symm]
-theorem connected_aux.symm [is_symm α r] (hab : connected_aux r a b) :
-  connected_aux r b a :=
+theorem symm [is_symm α r] (hab : connected_aux r a b) : connected_aux r b a :=
 begin
   induction hab with _ _ _ _ _ hbc hba,
     { exact connected_aux.refl },
-    { exact connected_aux.append (is_symm.symm _ _ hbc) hba, }
+    { exact connected_aux.append_left (is_symm.symm _ _ hbc) hba, }
 end
 
 /-- Connectedness is transitive. -/
-theorem connected.trans (hab : connected_aux r a b) (hbc : connected_aux r b c) :
-  connected_aux r a c :=
+theorem trans (hab : connected_aux r a b) (hbc : connected_aux r b c) : connected_aux r a c :=
 begin
   induction hab with a a d b had hdb h,
     { exact hbc },
-    { exact h (connected_aux.append hdb hbc) }
+    { exact h (connected_aux.append_left hdb hbc) }
 end
 
+/-- If `a` and `b` are connected, and `b` and `c` are related, then `a` and `c` are connected. -/
+lemma append_right (hab : connected_aux r a b) (hbc : r b c) : connected_aux r a c :=
+trans hab (from_rel hbc)
+
 end
+end connected_aux
 
 /-- Proper elements are those that are neither `⊥` nor `⊤`. -/
 abbreviation is_proper {α : Type u} [preorder α] [order_bot α] [order_top α] (a : α) : Prop :=
@@ -861,10 +864,8 @@ theorem connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α
 begin
   intro h,
   cases eq_or_lt_of_le h with ha ha, { exact or.inl ha },
-  right,
-  intro a,
   have := ((proper_empty α) (nat.le_of_lt_succ ha)).false,
-  exact (this a).elim
+  exact or.inr (λ a, (this a).elim)
 end
 
 /-- A `graded` is flag-connected when any two flags are connected. -/
@@ -872,19 +873,19 @@ protected def flag_connected (α : Type u) [partial_order α] [order_top α] [gr
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
 lemma connected_of_mem_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α]
-(Φ Ψ : flag α) :
+(Φ Ψ : flag α) (hg : grade_top α > 2) :
   flag_connected Φ Ψ → ∀ {a b : proper α} (ha : a.val ∈ Φ) (hb : b.val ∈ Ψ), connected a b :=
 begin
   intro h,
   induction h with Φ' Φ Ψ Ϝ hΦΨ hΨϜ hab, {
-    intros a b ha hb,
-    apply connected_aux.next a a, {
-      exact connected_aux.start a,
-    },
-    exact polytope.flag.le_total Φ' ⟨a, ha⟩ ⟨b, hb⟩,
+    exact λ a b ha hb, (connected_aux.next a a) _ (connected_aux.refl)
+      (polytope.flag.le_total Φ' ⟨a, ha⟩ ⟨b, hb⟩),
   },
   intros a b ha hb,
-  sorry,
+  -- Make into separate lemma - this is the only part that depends on hg.
+  have hc : ∃ c : proper α, c.val ∈ Ψ.val ∩ Ϝ.val := sorry,
+  rcases hc with ⟨c, ⟨hcl, hcr⟩⟩,
+  exact connected_aux.append_right (hab ha hcl) (Ϝ.le_total ⟨c.val, hcr⟩ ⟨b, hb⟩),
 end
 
 theorem connected_of_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] :

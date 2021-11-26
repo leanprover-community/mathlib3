@@ -181,20 +181,14 @@ begin
   rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
 end
 
-lemma graded_algebra.proj_homogeneous_element {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
-  graded_algebra.proj 𝒜 i x = x :=
-begin
-  rw [graded_algebra.proj_apply, ←subtype.coe_mk x hx, subtype.coe_injective.eq_iff,
-    ←graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply, direct_sum.of_eq_same],
-end
+lemma graded_algebra.decompose_of_mem_same {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
+  (graded_algebra.decompose 𝒜 x i : A) = x :=
+by rw [←subtype.coe_mk x hx, subtype.coe_injective.eq_iff, ←graded_algebra.decompose_symm_of,
+       alg_equiv.apply_symm_apply, direct_sum.of_eq_same]
 
-lemma graded_ring.proj_homogeneous_element_of_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) (hij : i ≠ j):
-  graded_algebra.proj 𝒜 j x = 0 :=
-begin
-  rw ←graded_algebra.proj_homogeneous_element 𝒜 hx,
-  obtain ⟨a, rfl⟩ := (graded_algebra.decompose 𝒜).symm.bijective.surjective x,
-  rw [graded_algebra.proj_recompose, graded_algebra.proj_recompose, direct_sum.of_eq_of_ne,
-    add_monoid_hom.map_zero, alg_equiv.map_zero], exact hij,
-end
+lemma graded_algebra.decompose_of_mem_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) (hij : i ≠ j):
+  (graded_algebra.decompose 𝒜 x j : A) = 0 :=
+by rw [←subtype.coe_mk x hx, submodule.coe_eq_zero, ←graded_algebra.decompose_symm_of,
+       alg_equiv.apply_symm_apply, direct_sum.of_eq_of_ne _ _ _ _ hij]
 
 end graded_algebra

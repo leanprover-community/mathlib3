@@ -241,10 +241,6 @@ begin
   exact (smul_add_hom R M c).map_finsum_of_injective (smul_right_injective M hc) _
 end
 
-@[to_additive] lemma finprod_inv_distrib {G : Type*} [comm_group G] (f : α → G) :
-  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
-((mul_equiv.inv G).map_finprod f).symm
-
 end sort
 
 section type
@@ -410,26 +406,27 @@ begin
   simp [mul_support_mul]
 end
 
+@[to_additive] lemma finprod_inv_distrib {G : Type*} [comm_group G] (f : α → G) :
+  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
+((mul_equiv.inv G).map_finprod f).symm
+
+lemma finprod_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G) :
+  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
+((mul_equiv.inv₀ G).map_finprod f).symm
+
 /-- If the multiplicative supports of `f` and `g` are finite, then the product of `f i / g i`
 equals the product of `f i` divided by the product over `g i`. -/
-@[to_additive] lemma finprod_div_distrib {M' : Type*} [comm_group M'] {f g : α → M'}
+@[to_additive] lemma finprod_div_distrib {G : Type*} [comm_group G] {f g : α → G}
   (hf : (mul_support f).finite) (hg : (mul_support g).finite) :
   ∏ᶠ i, f i / g i = (∏ᶠ i, f i) / ∏ᶠ i, g i :=
 by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv g).symm.rec hg),
               finprod_inv_distrib]
 
-lemma finprod_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G) :
-  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
-begin
-  classical,
-  have h_supp : mul_support (λ i : α, (f i)⁻¹) = mul_support f ,
-  { simp only [mul_support, ne.def, inv_eq_one₀] },
-  rw finprod_def,
-  split_ifs with hf,
-  { rw [finprod_def, ← h_supp, dif_pos hf],
-    exact finset.prod_inv_distrib' },
-  { rw [finprod_def, ← h_supp, dif_neg hf, inv_one] }
-end
+lemma finprod_div_distrib₀ {G : Type*} [comm_group_with_zero G] {f g : α → G}
+  (hf : (mul_support f).finite) (hg : (mul_support g).finite) :
+  ∏ᶠ i, f i / g i = (∏ᶠ i, f i) / ∏ᶠ i, g i :=
+by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv₀ g).symm.rec hg),
+              finprod_inv_distrib₀]
 
 /-- A more general version of `finprod_mem_mul_distrib` that requires `s ∩ mul_support f` and
 `s ∩ mul_support g` instead of `s` to be finite. -/
@@ -492,11 +489,19 @@ g.to_monoid_hom.map_finprod_mem f hs
   (hs : s.finite) : ∏ᶠ x ∈ s, (f x)⁻¹ = (∏ᶠ x ∈ s, f x)⁻¹ :=
 ((mul_equiv.inv G).map_finprod_mem f hs).symm
 
+lemma finprod_mem_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G)
+  (hs : s.finite) : ∏ᶠ x ∈ s, (f x)⁻¹ = (∏ᶠ x ∈ s, f x)⁻¹ :=
+((mul_equiv.inv₀ G).map_finprod_mem f hs).symm
+
 /-- Given a finite set `s`, the product of `f i / g i` over `i ∈ s` equals the product of `f i`
 over `i ∈ s` divided by the product of `g i` over `i ∈ s`. -/
-@[to_additive] lemma finprod_mem_div_distrib {M' : Type*} [comm_group M'] (f g : α → M')
+@[to_additive] lemma finprod_mem_div_distrib {G : Type*} [comm_group G] (f g : α → G)
   (hs : s.finite) : ∏ᶠ i ∈ s, f i / g i = (∏ᶠ i ∈ s, f i) / ∏ᶠ i ∈ s, g i :=
 by simp only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_mem_inv_distrib g hs]
+
+lemma finprod_mem_div_distrib₀ {G : Type*} [comm_group_with_zero G] (f g : α → G)
+  (hs : s.finite) : ∏ᶠ i ∈ s, f i / g i = (∏ᶠ i ∈ s, f i) / ∏ᶠ i ∈ s, g i :=
+by simp only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_mem_inv_distrib₀ g hs]
 
 /-!
 ### `∏ᶠ x ∈ s, f x` and set operations
@@ -751,18 +756,22 @@ over `a ∈ ⋃₀ t` is the product over `s ∈ t` of the products of `f a` ove
   ∏ᶠ a ∈ ⋃₀ t, f a = ∏ᶠ s ∈ t, ∏ᶠ a ∈ s, f a :=
 by rw [set.sUnion_eq_bUnion, finprod_mem_bUnion h ht₀ ht₁]
 
-lemma finprod_mem_dvd' (a : α) (hf : finite (mul_support f)) :
+lemma finprod_mul_sdiff_singleton (a : α) (hf : finite (mul_support f)) :
   f a * (∏ᶠ i ∈ (mul_support f) \ {a}, f i) = ∏ᶠ i, f i  :=
 begin
+  classical,
+  rw [finprod_eq_prod _ hf, finprod_mem_eq_finite_to_finset_prod _
+    (finite.subset hf (diff_subset (mul_support f) {a}))],
+  have : (finite.subset hf (diff_subset (mul_support f) {a})).to_finset = hf.to_finset \ {a},
+  { ext,
+    simp only [mem_singleton_iff, iff_self, finite.mem_to_finset, finset.mem_sdiff, mem_diff,
+    finset.mem_singleton],},
+  rw [this, finset.sdiff_singleton_eq_erase],
   by_cases ha : a ∈ mul_support f,
-  { have h_inter : (∏ᶠ (i : α) (H : i ∈ {a}), f i) =
-      (∏ᶠ (i : α) (H : i ∈ mul_support f ∩ {a}), f i),
-    { rw inter_eq_right_iff_subset.mpr (singleton_subset_iff.mpr ha) },
-    rw [finprod_eq_finprod_mem f, ← @finprod_mem_singleton α M _ f a, h_inter,
-      finprod_mem_inter_mul_diff _ hf] },
-  { have h_inter : f a = (∏ᶠ (i : α) (H : i ∈ mul_support f ∩ {a}), f i),
-    { rw [nmem_mul_support.mp ha, inter_singleton_eq_empty.mpr ha, finprod_mem_empty] },
-    rw [finprod_eq_finprod_mem f, h_inter, finprod_mem_inter_mul_diff _ hf] }
+  { apply finset.mul_prod_erase _ _ ((finite.mem_to_finset _ ).mpr ha), },
+  { rw [mem_mul_support, not_not] at ha,
+    rw [ha, one_mul],
+    apply finset.prod_erase _ ha, }
 end
 
 /-- If `s : set α` and `t : set β` are finite sets, then the product over `s` commutes

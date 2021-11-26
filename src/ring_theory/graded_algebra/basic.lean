@@ -90,7 +90,7 @@ lemma graded_algebra.proj_mem (i : ι) (r : A) :
   graded_algebra.proj 𝒜 i r ∈ 𝒜 i := (graded_algebra.decompose 𝒜 r i).2
 
 /-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
-def graded_algebra.support [Π (i : ι) (x : (λ (i : ι), ↥(𝒜 i)) i), decidable (x ≠ 0)]
+def graded_algebra.support [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
   (r : A) : finset ι :=
 (graded_algebra.decompose 𝒜 r).support
 

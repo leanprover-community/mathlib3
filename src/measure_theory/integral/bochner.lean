@@ -848,6 +848,16 @@ theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α
 tendsto_set_to_fun_of_dominated_convergence (dominated_fin_meas_additive_weighted_smul μ) bound
   F_measurable bound_integrable h_bound h_lim
 
+theorem uniform_tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α → E}
+  (F_measurable : ∀ n, ae_measurable (F n) μ)
+  (h_lim : tendsto_uniformly F f at_top) :
+  tendsto (λn, ∫ a, F n a ∂μ) at_top (𝓝 $ ∫ a, f a ∂μ) :=
+
+begin
+sorry,
+end
+
+
 /-- Lebesgue dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   [l.is_countably_generated]

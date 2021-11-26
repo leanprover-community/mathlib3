@@ -6,6 +6,7 @@ Authors: Yury Kudryashov
 import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
 import analysis.analytic.basic
+import analysis.calculus.parametric_interval_integral
 
 /-!
 # Cauchy integral formula
@@ -384,6 +385,106 @@ begin
     using integral_circle_div_sub_of_differentiable_on₀ hw hd
 end
 
+lemma holo_test {R : ℝ} {z w : ℂ} (hw : w ∈ ball z R)
+  {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball z R)) :
+
+  f w  = (1/(2 • π • I)) • ∫ (θ : ℝ) in 0..2 * π,
+    ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w) : ℂ) • f (z + R * exp (θ * I)) :=
+
+begin
+have := integral_circle_div_sub_of_differentiable_on hw hd,
+simp only [this, one_div, nat.cast_bit0, real_smul, nsmul_eq_mul, nat.cast_one],
+simp_rw ← smul_assoc,
+simp,
+simp_rw ← mul_assoc,
+have hn : (2 * ↑π * I) ≠ 0, by {simp, simp [real.pi_ne_zero, complex.I_ne_zero],},
+have tt := inv_mul_cancel hn,
+simp_rw ← mul_assoc at tt,
+rw tt,
+simp,
+end
+
+
+def int_diff0 (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ): (ℝ → E) :=
+λ θ, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w) : ℂ) • f (z + R * exp (θ * I))
+
+lemma int_diff0_cont (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ) (hf : continuous f) (hw : w ∈ ball z R):
+  continuous (int_diff0 R hR f z w) :=
+begin
+  rw int_diff0,
+  simp,
+  apply continuous.smul,
+  exact continuous_const,
+  apply continuous.smul,
+  apply continuous.div,
+  sorry,
+sorry,
+sorry,
+sorry,
+end
+
+
+
+def int_diff0' (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ): (ℝ → E) :=
+λ θ, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w)^2 : ℂ) • f (z + R * exp (θ * I))
+
+def int_diff (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z : ℂ)
+   : (ℂ → E) := λ w,  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR f z w θ)
+
+def int_diff' (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z : ℂ)
+   : (ℂ → E) := λ w,  ∫ (θ : ℝ) in 0..2 * π, (int_diff0' R hR f z w θ)
+
+lemma int_diff_has_fdrevi (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ)  (hf: continuous f) :
+  differentiable_on ℂ (int_diff R hR f z) (ball z R) :=
+begin
+rw int_diff,
+simp_rw int_diff0,
+rw differentiable_on,
+simp_rw differentiable_within_at,
+intros x hx,
+set F: ℂ → ℝ → ℂ  := λ w, (λ θ, (int_diff0 R hR f z w θ)),
+set F': ℂ → ℝ → ℂ := λ w, (λ θ, (int_diff0' R hR f z w θ)),
+have hF_meas : ∀ᶠ y in 𝓝 x, ae_measurable (F y) (volume.restrict (Ι 0 (2 * π))) ,
+by {simp_rw F,
+    have : ∀ (y : ℂ), ae_measurable (int_diff0 R hR f z y) (volume.restrict (Ι 0 (2 * π))),
+    by {intro y,
+    have := continuous.ae_measurable (int_diff0_cont R hR f z y hf _),
+    apply ae_measurable.restrict,
+    apply this, sorry,},
+    simp [this],
+    },
+have hF_int : interval_integrable (F x) volume 0  (2 * π),
+by {simp_rw F,
+  have := continuous.interval_integrable (int_diff0_cont R hR f z x hf hx) 0 (2*π),
+  apply this,
+  apply_instance,},
+have  hF'_meas : ae_measurable (F' x) (volume.restrict (Ι 0 (2 * π))) , by {sorry},
+set bound : ℝ → ℝ := λ r, ∥F' R r∥,
+have h_bound : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x R, ∥F' y t∥ ≤  bound t, by {sorry},
+have  bound_integrable : interval_integrable bound volume 0 (2 * π) , by {sorry},
+have h_diff : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x R, has_deriv_at (λ y, F y t) (F' y t) y,
+by {sorry},
+have := interval_integral.has_deriv_at_integral_of_dominated_loc_of_deriv_le hR hF_meas hF_int hF'_meas
+  h_bound bound_integrable h_diff,
+simp_rw F at this,
+simp_rw int_diff0 at this,
+simp_rw has_deriv_at at this,
+simp_rw has_deriv_at_filter at this,
+simp_rw has_fderiv_within_at,
+simp at *,
+have h3:= this.2,
+let der := (interval_integral (F' x) 0 (2 * π) volume),
+let DER := continuous_linear_map.smul_right (1 : ℂ →L[ℂ] ℂ) der,
+use DER,
+simp_rw [DER, der],
+have this2:= (has_fderiv_at_filter.mono h3),
+apply this2,
+rw nhds_within,
+simp [inf_le_left],
+end
+
+
+
 protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0} {z : ℂ} {f : ℂ → E}
   (hd : differentiable_on ℂ f (closed_ball z R)) (hR : 0 < R) :
   has_fpower_series_on_ball f
@@ -422,6 +523,38 @@ end
 protected lemma differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :
   analytic_at ℂ f z :=
 hf.differentiable_on.analytic_at univ_mem
+
+lemma unif_of_diff_is_diff (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
+  (hdiff : ∀ (n : ℕ), differentiable_on ℂ (F n) (closed_ball z R))
+  (hlim : tendsto_uniformly F f filter.at_top) :
+  differentiable_on ℂ f (ball z R) :=
+begin
+have F_measurable : ∀ n, ae_measurable (F n) volume, by {sorry,},
+have key := uniform_tendsto_integral_of_dominated_convergence F_measurable hlim,
+rw differentiable_on,
+intros x hx,
+rw differentiable_within_at,
+have h0:= int_diff R hR f z,
+--have h1:= holo_test hx (hdiff _),
+have hf: continuous f, by {sorry,},
+have HF:= int_diff_has_fdrevi R hR x f hf,
+rw differentiable_on at HF,
+have HF2:= HF x,
+simp [hx, hR] at HF2,
+rw differentiable_within_at at HF2,
+obtain ⟨D, hD⟩:= HF2,
+use D,
+rw int_diff at hD,
+simp_rw int_diff0 at hD,
+simp_rw has_fderiv_within_at_iff_tendsto at *,
+rw metric.tendsto_nhds at *,
+rw tendsto_uniformly_iff at hlim,
+simp_rw dist_eq_norm at hlim,
+intros ε hε,
+have hlim2:= hlim ε hε,
+simp at *,
+sorry,
+end
 
 
 end complex

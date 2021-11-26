@@ -187,6 +187,22 @@ def to_rel_iso (γ : automorphism α) : ((≤) : α → α → Prop) ≃r (≤) 
     rwa γ.hom_inv_id at this
   end }
 
+@[reducible]
+def symm (γ : automorphism α) : automorphism α :=
+γ.symm
+
+@[simp]
+theorem symm_invo : function.involutive (@symm α _) :=
+λ ⟨_, _, _, _⟩, rfl
+
+@[simp]
+theorem symm_hom (γ : automorphism α) : γ.symm.hom = γ.inv :=
+rfl
+
+@[simp]
+theorem symm_inv (γ : automorphism α) : γ.symm.inv = γ.hom :=
+rfl
+
 /-- Automorphisms preserve `≤`. -/
 @[simp]
 lemma hom_map_le (γ : automorphism α) (a b : α) : γ.hom a ≤ γ.hom b ↔ a ≤ b :=
@@ -240,14 +256,7 @@ end
 /-- Inverse automorphisms preserve `<`. -/
 @[simp]
 lemma inv_map_lt (γ : automorphism α) (a b : α) : γ.inv a < γ.inv b ↔ a < b :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  all_goals { rw lt_iff_le_and_ne at h ⊢, cases h with h h', refine ⟨_, _⟩ },
-    { rwa γ.inv_map_le at h },
-    { rwa γ.inv_map_ne at h' },
-    { rwa ←γ.inv_map_le at h },
-    { rwa ←γ.inv_map_ne at h' },
-end
+by rw ←γ.symm_hom; apply γ.symm.hom_map_lt
 
 /-- Scalar multiplication of automorphisms by flags. -/
 @[reducible]

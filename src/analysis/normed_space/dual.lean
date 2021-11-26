@@ -156,7 +156,7 @@ by { ext, simp only [polar, mem_bInter_iff, mem_set_of_eq], }
 
 lemma of_empty (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] : polar 𝕜 (∅ : set E) = univ :=
-by { unfold polar, simp only [forall_false_left, mem_empty_eq, forall_const, set_of_true], }
+by { simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true], }
 
 variables {𝕜}
 
@@ -215,22 +215,6 @@ begin
   calc ∥x' x∥ ≤ 1 : hx' x (r_ball x_mem)
   ... = (∥a∥ / r) * (r / ∥a∥) : by field_simp [r_pos.ne', (zero_lt_one.trans ha).ne']
   ... ≤ (∥a∥ / r) * ∥x∥ : mul_le_mul_of_nonneg_left hx I
-end
-
-/-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`
-there exists a bound for the norms of the values `x' z` of the elements `x' ∈ polar 𝕜 s` of the
-polar of `s`. -/
-lemma eval_bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (z : E) :
-  ∃ (r : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r :=
-begin
-  cases bounded_of_nhds_zero 𝕜 s_nhd with c hc,
-  have c_nn : 0 ≤ c := by { have := hc 0 (zero_mem 𝕜 s), rwa norm_zero at this, },
-  use c * ∥ z ∥,
-  intros x' hx',
-  apply (continuous_linear_map.le_op_norm x' z).trans,
-  exact mul_le_mul (hc x' hx') rfl.ge (norm_nonneg _) c_nn,
 end
 
 end polar

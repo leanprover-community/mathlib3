@@ -33,6 +33,8 @@ one edge, and the edges of the subgraph represent the paired vertices.
   the cardinality of `V` is even (assuming it's finite)
 
 * Tutte's Theorem
+
+* Hall's Marriage Theorem (see combinatorics.hall)
 -/
 
 universe u

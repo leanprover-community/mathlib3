@@ -136,12 +136,12 @@ noncomputable instance [partial_order α] (Φ : flag α) : linear_order Φ :=
 lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} :
   a ∈ Φ ↔ ∀ b : Φ, a ≠ ↑b → a < ↑b ∨ ↑b < a :=
 begin
-  split, {
-    exact λ ha b hne, Φ.property.left a ha b.val b.property hne
-  },
+  split,
+    { exact λ ha b hne, Φ.property.left a ha b.val b.property hne },
   intro H,
   by_contra ha,
-  exact Φ.prop.right ⟨_, zorn.chain_insert Φ.prop.left (λ b hb hne, H ⟨b, hb⟩ hne.symm), set.ssubset_insert ha⟩,
+  exact Φ.prop.right
+    ⟨_, zorn.chain_insert Φ.prop.left (λ b hb hne, H ⟨b, hb⟩ hne.symm), set.ssubset_insert ha⟩,
 end
 
 variables [partial_order α] (Φ : flag α)
@@ -342,17 +342,15 @@ instance covers.is_irrefl {α : Type u} [preorder α] : is_irrefl α covers :=
 /-- A natural covers another iff it's a successor. -/
 lemma nat.cover_iff_succ (m n : ℕ) : m ⋖ n ↔ n = m + 1 :=
 begin
-  split, {
-    rintro ⟨hmnl, hmnr⟩,
+  split,
+  { rintro ⟨hmnl, hmnr⟩,
     cases le_or_gt n (m + 1) with hnm hnm,
     exact antisymm hnm (nat.succ_le_of_lt hmnl),
-    exact (hmnr _ ⟨lt_add_one m, hnm⟩).elim,
-  },
+    exact (hmnr _ ⟨lt_add_one m, hnm⟩).elim },
   intro hnm,
-  split, {
-    rw hnm,
-    exact lt_add_one m,
-  },
+  split,
+  { rw hnm,
+    exact lt_add_one m },
   rintros r ⟨hrl, hrr⟩,
   rw hnm at hrr,
   exact nat.lt_irrefl _ (lt_of_le_of_lt (nat.succ_le_of_lt hrl) hrr),
@@ -656,11 +654,10 @@ subtype.ext $ grade_idx j Φ
 theorem grade_eq_iff_flag_idx (a : Φ) : grade a = j ↔ a = idx j Φ :=
 begin
   have idx := grade_idx j Φ,
-  split, {
-    intro ha,
+  split,
+  { intro ha,
     rcases ex_unique_of_grade_in_flag j Φ with ⟨_, _, h⟩,
-    rw [(h _ ha), (h _ idx)],
-  },
+    rw [(h _ ha), (h _ idx)] },
   intro h,
   rw h,
   exact idx
@@ -783,24 +780,21 @@ lemma proper_iff_grade_iio {α : Type u} [partial_order α] [order_top α] [grad
   is_proper a ↔ grade a ∈ set.Ioo 0 (graded.grade_top α) :=
 begin
   split, {
-    intro ha,
-    cases eq_or_lt_of_le (zero_le (grade a)) with h hl, {
-      replace h := eq.symm h,
-      rw graded.eq_zero_iff_eq_bot at h,
-      exact (ha.left h).elim,
-    },
-    cases eq_or_lt_of_le (graded.grade_le_grade_top a) with h hr, {
-      rw graded.eq_grade_top_iff_eq_top at h,
-      exact (ha.right h).elim,
-    },
+    rintro ⟨hal, har⟩,
+    cases eq_or_lt_of_le (zero_le (grade a)) with h hl,
+      { replace h := eq.symm h,
+        rw graded.eq_zero_iff_eq_bot at h,
+        exact (hal h).elim },
+    cases eq_or_lt_of_le (graded.grade_le_grade_top a) with h hr,
+      { rw graded.eq_grade_top_iff_eq_top at h,
+        exact (har h).elim },
     exact ⟨hl, hr⟩,
   },
   rintro ⟨hl, hr⟩,
-  split, {
-    intro ha,
-    rw ←graded.eq_zero_iff_eq_bot at ha,
-    exact (ne_of_lt hl) (eq.symm ha),
-  },
+  split,
+    { intro ha,
+      rw ←graded.eq_zero_iff_eq_bot at ha,
+      exact (ne_of_lt hl) (eq.symm ha) },
   intro ha,
   rw ←graded.eq_grade_top_iff_eq_top at ha,
   exact (ne_of_lt hr) ha
@@ -897,15 +891,12 @@ private lemma proper_flag_intersect_of_grade {α : Type u} [partial_order α] [o
 begin
   let k : fin (grade_top α + 1) := ⟨k, nat.lt.step H.right⟩,
   let idx := flag.idx k Φ,
-  use idx.val, {
-    rw proper_iff_grade_iio,
-    change grade idx.val with grade idx,
-    rw flag.grade_idx,
-    exact H,
-  },
-  split, {
-    exact idx.prop,
-  },
+  use idx.val,
+    { rw proper_iff_grade_iio,
+      change grade idx.val with grade idx,
+      rw flag.grade_idx,
+      exact H },
+  use idx.prop,
   have hidx : idx.val = (flag.idx k Ψ).val := begin
     rw hΦΨ,
     intro h,
@@ -926,16 +917,14 @@ begin
   induction h with Φ' Φ Ψ Ϝ hΦΨ hΨϜ hab generalizing a b,
     { apply (connected_aux.next a a) _ connected_aux.refl,
       exact polytope.flag.le_total Φ' ⟨a, ha⟩ ⟨b, hb⟩ },
-  suffices hc : ∃ c : proper α, c.val ∈ Ψ.val ∩ Ϝ.val, {
-    rcases hc with ⟨c, ⟨hcl, hcr⟩⟩,
-    exact connected_aux.append_right (hab ha hcl) (Ϝ.le_total ⟨c.val, hcr⟩ ⟨b, hb⟩)
-  },
+  suffices hc : ∃ c : proper α, c.val ∈ Ψ.val ∩ Ϝ.val,
+    { rcases hc with ⟨c, ⟨hcl, hcr⟩⟩,
+      exact connected_aux.append_right (hab ha hcl) (Ϝ.le_total ⟨c.val, hcr⟩ ⟨b, hb⟩) },
   cases hΨϜ with j hj,
-  by_cases hj' : j = ⟨1, lt_trans (nat.succ_lt_succ zero_lt_two) (nat.succ_lt_succ hg)⟩, {
-    apply proper_flag_intersect_of_grade hg hj 2, { exact ⟨zero_lt_two, hg⟩ },
-    rw hj',
-    exact nat.one_ne_bit0 1
-  },
+  by_cases hj' : j = ⟨1, lt_trans (nat.succ_lt_succ zero_lt_two) (nat.succ_lt_succ hg)⟩,
+    { apply proper_flag_intersect_of_grade hg hj 2, { exact ⟨zero_lt_two, hg⟩ },
+      rw hj',
+      exact nat.one_ne_bit0 1 },
   exact proper_flag_intersect_of_grade hg hj 1
     (⟨zero_lt_one, lt_trans one_lt_two hg⟩)
     (λ h, hj' (subtype.ext_val h))
@@ -946,9 +935,8 @@ theorem connected_of_flag_connected (α : Type u) [partial_order α] [order_top 
   graded.flag_connected α → graded.connected α :=
 begin
   intro h,
-  by_cases hg : grade_top α ≤ 2, {
-    exact connected_of_grade_le_two α hg,
-  },
+  by_cases hg : grade_top α ≤ 2,
+    { exact connected_of_grade_le_two α hg },
   right,
   intros a b,
   cases flag.ex_flag_mem a.val with Φ hΦ,

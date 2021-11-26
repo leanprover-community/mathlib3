@@ -634,6 +634,7 @@ def j_adjacent : Prop :=
 
 /-- Two flags are adjacent when they're j-adjacent for some j. Note that a flag is never adjacent to
     itself. -/
+-- Todo(Vi): It should be possible to restate this in a way that doesn't depend on `[graded α]`.
 def adjacent : Prop :=
 ∃ j, j_adjacent j Φ Ψ
 
@@ -657,10 +658,6 @@ end flag
 inductive connected_aux {α : Type*} (r : α → α → Prop) : α → α → Prop
 | start (x : α) : connected_aux x x
 | next (x y z : α) : connected_aux x y → r y z → connected_aux x z
-
-/-- Elements are incident when they're comparable. -/
-abbreviation incident {α : Type u} [preorder α] (a b : α) : Prop :=
-a ≤ b ∨ b ≤ a
 
 /-- Proper elements are those that are neither `⊥` nor `⊤`. -/
 abbreviation is_proper {α : Type u} [preorder α] [order_bot α] [order_top α] (a : α) : Prop :=
@@ -699,6 +696,20 @@ end
 def proper (α : Type u) [preorder α] [order_bot α] [order_top α] : Type u :=
 {a : α // is_proper a}
 
+/-- Elements are incident when they're comparable. -/
+abbreviation incident {α : Type u} [preorder α] [order_bot α] [order_top α] (a b : proper α) :
+  Prop :=
+a.val ≤ b.val ∨ b.val ≤ a.val
+
+abbreviation connected {α : Type u} [preorder α] [order_bot α] [order_top α] (a b : proper α) :
+  Prop :=
+connected_aux incident a b
+
+
+abbreviation flag_connected {α : Type u} [partial_order α] [order_top α] [graded α] (Φ Ψ : flag α) :
+  Prop :=
+connected_aux (@flag.adjacent α _ _ _) Φ Ψ
+
 /-- A `graded` with top grade 1 or less has no proper elements. -/
 theorem proper_empty (α : Type u) [partial_order α] [order_top α] [graded α] :
   graded.grade_top α ≤ 1 → is_empty (proper α) :=
@@ -724,35 +735,53 @@ end
 namespace graded
 
 /-- A `graded` is connected when it's of grade 2, or any two proper elements are connected. -/
-def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
-grade_top α = 2 ∨ ∀ a b : proper α, connected_aux incident a b
+protected def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
+grade_top α = 2 ∨ ∀ a b : proper α, connected a b
 
 /-- Any `graded` of top grade less or equal to 2 is connected. -/
 theorem connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
-  grade_top α ≤ 2 → connected α :=
+  grade_top α ≤ 2 → graded.connected α :=
 begin
   intro h,
   cases eq_or_lt_of_le h with ha ha, { exact or.inl ha },
   right,
   intro a,
   have := ((proper_empty α) (nat.le_of_lt_succ ha)).false,
-  exact (this a).elim,
+  exact (this a).elim
 end
 
 /-- A `graded` is flag-connected when any two flags are connected. -/
-def flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
-∀ Φ Ψ, connected_aux (@flag.adjacent α _ _ _) Φ Ψ
+protected def flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
+∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
-theorem connected_of_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] :
-  flag_connected α → connected α :=
+lemma connected_of_mem_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α]
+(Φ Ψ : flag α) :
+  flag_connected Φ Ψ → ∀ {a b : proper α} (ha : a.val ∈ Φ) (hb : b.val ∈ Ψ), connected a b :=
 begin
   intro h,
-  by_cases hg : grade_top α = 2, {
-    exact or.inl hg,
+  induction h with Φ' Φ Ψ Ϝ hΦΨ hΨϜ hab, {
+    intros a b ha hb,
+    apply connected_aux.next a a, {
+      exact connected_aux.start a,
+    },
+    exact polytope.flag.le_total Φ' ⟨a, ha⟩ ⟨b, hb⟩,
+  },
+  intros a b ha hb,
+  sorry,
+end
+
+theorem connected_of_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] :
+  graded.flag_connected α → graded.connected α :=
+begin
+  intro h,
+  by_cases hg : grade_top α ≤ 2, {
+    exact connected_of_grade_le_two α hg,
   },
   right,
   intros a b,
-  --induction h with d hd,
+  cases flag.ex_flag_mem a.val with Φ hΦ,
+  cases flag.ex_flag_mem b.val with Ψ hΨ,
+  have := h Φ Ψ,
   sorry,
 end
 

@@ -1,35 +1,53 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Junyan Xu
 -/
-import category_theory.category.Cat
+import category_theory.lax_functor
 import category_theory.elements
 
+
 /-!
-# The Grothendieck construction
+# The Grothendieck construction for lax functors
 
-Given a functor `F : C ⥤ Cat`, the objects of `grothendieck F`
-consist of dependent pairs `(b, f)`, where `b : C` and `f : F.obj c`,
-and a morphism `(b, f) ⟶ (b', f')` is a pair `β : b ⟶ b'` in `C`, and
-`φ : (F.map β).obj f ⟶ f'`
+Given a lax functor `F` from a 1-category `C` to the 2-category `Cat`,
+the objects of `grothendieck F` consist of dependent pairs `(b, f)`,
+where `b : C` and `f : F.obj c`, and a morphism `(b, f) ⟶ (b', f')` is a
+pair `β : b ⟶ b'` in `C`, and `φ : (F.map β).obj f ⟶ f'`. The forgetful
+functor `grothendieck F ⥤ C` is then a Grothendieck fibration, with base
+category `C`, total category `grothendieck F`, and fiber categories
+`F.obj b` for `b : C`.
 
-Categories such as `PresheafedSpace` are in fact examples of this construction,
-and it may be interesting to try to generalize some of the development there.
+Notice that `F` gives a functor `F.map β` between fiber categories
+`F.obj b` and `F.obj b'` for each morphism `β : b ⟶ b'` in `C`, which
+we call a component functor. We show that if the lax functor is a
+pseudofunctor, the base category and all fiber categories have colimits
+and the component functors all preserve colimits, then the total category
+also has colimits.
 
-## Implementation notes
+https://ncatlab.org/nlab/show/Grothendieck+construction#limits_and_colimits
 
-Really we should treat `Cat` as a 2-category, and allow `F` to be a 2-functor.
+In case all component functors have right adjoints, we can transfer the
+lax functor structure of `F` across the adjunctions to obtain a lax functor
+`G` from `Cᵒᵖ` to `Cat` with component functors opposites (`functor.op`) of
+the right adjoints. We show that `grothendieck G` is isomorphic to the
+opposite of `grothenieck F`, and we may show that `grothendieck F` has
+limits by showing that `grothendieck G` has colimits.
 
-There is also a closely related construction starting with `G : Cᵒᵖ ⥤ Cat`,
-where morphisms consists again of `β : b ⟶ b'` and `φ : f ⟶ (F.map (op β)).obj f'`.
+(what about left adjoints?)
+
+This will be used to construct the category `PrimedPreringedSpace` and
+to show that `PresheafedSpace`, `SheafedSpace` and `PrimedPreringedSpace` has
+(co)limits. Fibrations of categories such as `Top` over `Type`, or `PresheafedSpace` over
+`Top` are also examples of this construction, and it may be preferable to
+have the existence of (co)limits in `Top` refactored to use results here.
 
 ## References
 
-See also `category_theory.functor.elements` for the category of elements of functor `F : C ⥤ Type`.
-
 * https://stacks.math.columbia.edu/tag/02XV
 * https://ncatlab.org/nlab/show/Grothendieck+construction
+
+See also `category_theory.elements` for the category of elements of functor `F : C ⥤ Type`.
 
 -/
 
@@ -37,8 +55,7 @@ universe u
 
 namespace category_theory
 
-variables {C D : Type*} [category C] [category D]
-variables (F : C ⥤ Cat)
+variables {C : Type*} [category.{u} C] (F : lax_functor_to_Cat C)
 
 /--
 The Grothendieck construction (often written as `∫ F` in mathematics) for a functor `F : C ⥤ Cat`
@@ -84,7 +101,7 @@ The identity morphism in the Grothendieck category.
 @[simps]
 def id (X : grothendieck F) : hom X X :=
 { base := 𝟙 X.base,
-  fiber := eq_to_hom (by erw [category_theory.functor.map_id, functor.id_obj X.fiber]), }
+  fiber := (F.map_id X.base).app X.fiber }
 
 instance (X : grothendieck F) : inhabited (hom X X) := ⟨id X⟩
 
@@ -94,43 +111,19 @@ Composition of morphisms in the Grothendieck category.
 @[simps]
 def comp {X Y Z : grothendieck F} (f : hom X Y) (g : hom Y Z) : hom X Z :=
 { base := f.base ≫ g.base,
-  fiber :=
-  eq_to_hom (by erw [functor.map_comp, functor.comp_obj]) ≫
-    (F.map g.base).map f.fiber ≫ g.fiber, }
+  fiber := (F.map_comp f.base g.base).app X.fiber ≫ (F.map g.base).map f.fiber ≫ g.fiber }
 
 instance : category (grothendieck F) :=
 { hom := λ X Y, grothendieck.hom X Y,
   id := λ X, grothendieck.id X,
-  comp := λ X Y Z f g, grothendieck.comp f g,
-  comp_id' := λ X Y f,
-  begin
-    ext,
-    { dsimp,
-      -- We need to turn `F.map_id` (which is an equation between functors)
-      -- into a natural isomorphism.
-      rw ← nat_iso.naturality_2 (eq_to_iso (F.map_id Y.base)) f.fiber,
-      simp,
-      refl, },
-    { simp, },
-  end,
-  id_comp' := λ X Y f, by ext; simp,
-  assoc' := λ W X Y Z f g h,
-  begin
-    ext, swap,
-    { simp, },
-    { dsimp,
-      rw ← nat_iso.naturality_2 (eq_to_iso (F.map_comp _ _)) f.fiber,
-      simp,
-      refl, },
-  end, }
+  comp := λ X Y Z f g, grothendieck.comp f g }
+/- id_comp, comp_id, assoc can all be proven by { ext, { dsimp, simp }, simp } -/
 
 @[simp] lemma id_fiber' (X : grothendieck F) :
-  hom.fiber (𝟙 X) = eq_to_hom (by erw [category_theory.functor.map_id, functor.id_obj X.fiber]) :=
-id_fiber X
+  hom.fiber (𝟙 X) = (F.map_id X.base).app X.fiber := id_fiber X
 
 lemma congr {X Y : grothendieck F} {f g : X ⟶ Y} (h : f = g) :
-  f.fiber = eq_to_hom (by subst h) ≫ g.fiber :=
-by { subst h, dsimp, simp, }
+  f.fiber = eq_to_hom (by rw h) ≫ g.fiber := by { subst h, simp }
 
 section
 variables (F)
@@ -139,7 +132,7 @@ variables (F)
 @[simps]
 def forget : grothendieck F ⥤ C :=
 { obj := λ X, X.1,
-  map := λ X Y f, f.1, }
+  map := λ X Y f, f.1 }
 
 end
 
@@ -148,13 +141,13 @@ variables (G : C ⥤ Type w)
 
 /-- Auxiliary definition for `grothendieck_Type_to_Cat`, to speed up elaboration. -/
 @[simps]
-def grothendieck_Type_to_Cat_functor : grothendieck (G ⋙ Type_to_Cat) ⥤ G.elements :=
+def grothendieck_Type_to_Cat_functor : grothendieck (G ⋙ Type_to_Cat).to_lax ⥤ G.elements :=
 { obj := λ X, ⟨X.1, X.2⟩,
   map := λ X Y f, ⟨f.1, f.2.1.1⟩ }
 
 /-- Auxiliary definition for `grothendieck_Type_to_Cat`, to speed up elaboration. -/
 @[simps]
-def grothendieck_Type_to_Cat_inverse : G.elements ⥤ grothendieck (G ⋙ Type_to_Cat) :=
+def grothendieck_Type_to_Cat_inverse : G.elements ⥤ grothendieck (G ⋙ Type_to_Cat).to_lax :=
 { obj := λ X, ⟨X.1, X.2⟩,
   map := λ X Y f, ⟨f.1, ⟨⟨f.2⟩⟩⟩ }
 
@@ -164,7 +157,7 @@ The Grothendieck construction applied to a functor to `Type`
 is the same as the 'category of elements' construction.
 -/
 @[simps]
-def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :=
+def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat).to_lax ≌ G.elements :=
 { functor := grothendieck_Type_to_Cat_functor G,
   inverse := grothendieck_Type_to_Cat_inverse G,
   unit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })

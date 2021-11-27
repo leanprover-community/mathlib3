@@ -953,6 +953,11 @@ end
 protected def flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
+/-- Any `graded` of top grade less or equal to 2 is flag-connected. -/
+theorem flag_connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
+  grade_top α ≤ 2 → graded.flag_connected α :=
+sorry
+
 /-- Two adjacent flags have a proper element in common, as long as their grade exceeds 2, and a few
     other simple conditions hold. -/
 private lemma proper_flag_intersect_of_grade {α : Type u} [partial_order α] [order_top α] [graded α]
@@ -1021,12 +1026,10 @@ section
 variables {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y)
 
 /-- Asserts that a section of a graded poset is connected. -/
-@[reducible]
 def section_connected : Prop :=
 @graded.connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
 
 /-- Asserts that a section of a graded poset is flag connected. -/
-@[reducible]
 def section_flag_connected : Prop :=
 @graded.flag_connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
 
@@ -1045,8 +1048,29 @@ def strong_flag_connected : Prop :=
 ∀ {x y : α} (hxy : x ≤ y), section_flag_connected hxy
 
 /-- Strong flag connectedness implies strong connectedness. -/
-lemma strong_connected_of_strong_flag_connected : strong_flag_connected α → strong_connected α :=
+private lemma strong_connected_of_strong_flag_connected :
+  strong_flag_connected α → strong_connected α :=
 by intros hsc _ _ _; apply connected_of_flag_connected _ (hsc _)
+
+variable [order_top α]
+
+lemma strong_connected_iff_strong_flag_connected_aux {n : ℕ} :
+  grade_top α = n → strong_connected α → strong_flag_connected α :=
+begin
+  induction n with h hd, {
+    sorry,
+  },
+  sorry
+end
+
+/-- Strong connectedness is equivalent to strong flag connectedness. -/
+theorem strong_connected_iff_strong_flag_connected :
+  strong_flag_connected α ↔ strong_connected α :=
+begin
+  refine ⟨strong_connected_of_strong_flag_connected _, λ h, _⟩,
+  apply strong_connected_iff_strong_flag_connected_aux α (rfl),
+  assumption
+end
 
 end
 end graded

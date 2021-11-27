@@ -432,12 +432,8 @@ lemma uniformly_extend_spec [complete_space γ] (a : α) :
   tendsto f (comap e (𝓝 a)) (𝓝 (ψ a)) :=
 let de := (h_e.dense_inducing h_dense) in
 begin
-  by_cases ha : a ∈ range e,
-  { rcases ha with ⟨b, rfl⟩,
-    rw [uniformly_extend_of_ind _ _ h_f, ← de.nhds_eq_comap],
-    exact h_f.continuous.tendsto _ },
-  { simp only [dense_inducing.extend, dif_neg ha],
-    exact tendsto_nhds_lim (uniformly_extend_exists h_e h_dense h_f _) }
+  simp only [dense_inducing.extend],
+  exact tendsto_nhds_lim (uniformly_extend_exists h_e h_dense h_f _)
 end
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=

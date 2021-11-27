@@ -347,21 +347,16 @@ lemma same_cycle.nat' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x 
 begin
   classical,
   obtain ⟨k, rfl⟩ := id h,
-  by_cases hk : (k % order_of f) = 0,
-  { use 0,
-    rw ←int.dvd_iff_mod_eq_zero at hk,
-    obtain ⟨m, rfl⟩ := hk,
-    simp [pow_order_of_eq_one, order_of_pos, zpow_mul] },
-  { use ((k % order_of f).nat_abs),
-    rw [←zpow_coe_nat, int.nat_abs_of_nonneg, ←zpow_eq_mod_order_of],
-    { refine ⟨_, rfl⟩,
-      rw [←int.coe_nat_lt, int.nat_abs_of_nonneg],
-      { refine (int.mod_lt_of_pos _ _),
-        simpa using order_of_pos _ },
-      { refine int.mod_nonneg _ _,
-        simpa using ne_of_gt (order_of_pos _) } },
+  use ((k % order_of f).nat_abs),
+  rw [←zpow_coe_nat, int.nat_abs_of_nonneg, ←zpow_eq_mod_order_of],
+  { refine ⟨_, rfl⟩,
+    rw [←int.coe_nat_lt, int.nat_abs_of_nonneg],
+    { refine (int.mod_lt_of_pos _ _),
+      simpa using order_of_pos _ },
     { refine int.mod_nonneg _ _,
-      simpa using (order_of_pos _).ne' } }
+      simpa using ne_of_gt (order_of_pos _) } },
+  { refine int.mod_nonneg _ _,
+    simpa using (order_of_pos _).ne' }
 end
 
 lemma same_cycle.nat'' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x y) :

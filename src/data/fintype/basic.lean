@@ -1474,11 +1474,7 @@ begin
   suffices : f ∈ perms_of_list l ∨ ∃ (b ∈ l) (g ∈ perms_of_list l), swap a b * g = f,
   { simpa only [perms_of_list, exists_prop, list.mem_map, mem_append, list.mem_bind] },
   refine or_iff_not_imp_left.2 (λ hfl, ⟨f a, _, swap a (f a) * f, IH this, _⟩),
-  { by_cases hffa : f (f a) = a,
-    { exact mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa)) },
-    { apply this,
-      simp only [mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq],
-      split_ifs; cc } },
+  { exact mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa)), },
   { rw [←mul_assoc, mul_def (swap a (f a)) (swap a (f a)),
         swap_swap, ←perm.one_def, one_mul] }
 end

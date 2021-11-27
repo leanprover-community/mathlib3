@@ -65,14 +65,9 @@ by rw [Ico, Ico, map_add_range', add_tsub_add_eq_tsub_right, add_comm n k]
 
 theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
-  by_cases h₂ : n < m,
-  { rw [Ico, Ico],
-    rw tsub_tsub_tsub_cancel_right h₁,
-    rw [map_sub_range' _ _ _ h₁] },
-  { simp at h₂,
-    rw [eq_nil_of_le h₂],
-    rw [eq_nil_of_le (tsub_le_tsub_right h₂ _)],
-    refl }
+  rw [Ico, Ico],
+  rw tsub_tsub_tsub_cancel_right h₁,
+  rw [map_sub_range' _ _ _ h₁],
 end
 
 @[simp] theorem self_empty {n : ℕ} : Ico n n = [] :=

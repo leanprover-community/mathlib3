@@ -3,7 +3,11 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
-import tactic.wlog tactic.linarith order.zorn category_theory.conj data.fin.basic
+import tactic
+import order.lattice_intervals
+import order.zorn
+import category_theory.conj
+import data.fin.basic
 
 /-!
 # Flags of polytopes
@@ -402,12 +406,6 @@ variables {α : Type u}
 instance [preorder α] {x y : α} (h : x ≤ y) : order_bot (set.Icc x y) :=
 { bot := ⟨x, by obviously⟩,
   bot_le := by obviously }
-
-/-- A closed non-empty interval of a bounded order is a bounded order. -/
--- todo: this shouldn't be named
-instance foo [preorder α] {x y : α} (h : x ≤ y) : order_top (set.Icc x y) :=
-{ top := ⟨y, by obviously⟩,
-  le_top := by obviously }
 
 /-- A closed non-empty interval of a graded poset is a graded poset. -/
 -- todo: this shouldn't be named

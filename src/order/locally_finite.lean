@@ -529,31 +529,31 @@ instance : locally_finite_order (with_top α) :=
   finset_mem_Ico := λ a b x, match a, b, x with
     |       ⊤,       b,       x := iff_of_false (not_mem_empty _)
                                      (λ h, not_top_lt $ h.1.trans_lt h.2)
-    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_3]
-    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_3, coe_eq_coe,
+    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_2]
+    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_2, coe_eq_coe,
                                         coe_lt_top]
-    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_3]
-    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_3, coe_eq_coe,
+    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_2]
+    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_2, coe_eq_coe,
                                         coe_lt_coe]
     end,
   finset_mem_Ioc := λ a b x, match a, b, x with
     |       ⊤,       b,       x := iff_of_false (not_mem_empty _)
                                      (λ h, not_top_lt $ h.1.trans_le h.2)
-    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_4, coe_lt_top]
-    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_4, coe_eq_coe,
+    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_3, coe_lt_top]
+    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_3, coe_eq_coe,
                                         coe_lt_coe]
-    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_4]
-    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_4, coe_eq_coe,
+    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_3]
+    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_3, coe_eq_coe,
                                         coe_lt_coe]
     end,
   finset_mem_Ioo := λ a b x, match a, b, x with
     |       ⊤,       b,       x := iff_of_false (not_mem_empty _)
                                      (λ h, not_top_lt $ h.1.trans h.2)
-    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_6, coe_lt_top]
-    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_6, coe_eq_coe,
+    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_4, coe_lt_top]
+    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_4, coe_eq_coe,
                                         coe_lt_coe, coe_lt_top]
-    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_6]
-    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_6, coe_eq_coe,
+    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_4]
+    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_4, coe_eq_coe,
                                         coe_lt_coe]
     end }
 

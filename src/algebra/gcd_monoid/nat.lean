@@ -20,7 +20,8 @@ instance : is_idempotent ℕ gcd_monoid.gcd := ⟨nat.gcd_self⟩
 
 namespace finset
 
-theorem coprime_of_div_gcd (s : finset ℕ) (h : ¬∀ x ∈ s, x = 0) : s.gcd (/ s.gcd id) = 1 :=
+theorem coprime_of_div_gcd (s : finset ℕ) {x : ℕ} (hx : x ∈ s) (hnz : x ≠ 0) :
+  s.gcd (/ s.gcd id) = 1 :=
 begin
   rw nat.eq_one_iff_not_exists_prime_dvd,
   intros p hp hdvd,
@@ -31,7 +32,7 @@ begin
     specialize hdvd b hb,
     rwa nat.dvd_div_iff at hdvd,
     apply gcd_dvd hb },
-  have : s.gcd id ≠ 0 := (not_iff_not.mpr gcd_eq_zero_iff).mpr h,
+  have : s.gcd id ≠ 0 := (not_iff_not.mpr gcd_eq_zero_iff).mpr (λ h, hnz $ h x hx),
   apply @pow_succ_padic_val_nat_not_dvd p _ _ this.bot_lt,
   apply dvd_gcd,
   intros b hb,

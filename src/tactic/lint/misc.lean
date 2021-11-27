@@ -450,20 +450,23 @@ meta def linter.unused_haves_suffices : linter :=
   is_fast := ff }
 
 
+section
+
 /--
 Return a list of unused have and suffices terms in an expression
 -/
 meta def find_unnecessary_dites_exprs : expr → tactic (list string)
 | (app (app (app (app (app (const `dite l) a) b) c) (lam n1 bi1 vt1 bd1)) (lam n2 bi2 vt2 bd2)) := -- TODO is there a nicer way of doing this with `()
-  do trace l,
-     trace a,
-     trace b,
-     trace c,
+  do --trace l,
+     --trace a,
+     --trace b,
+     --trace c,
      let t : list string := []
-          ++ if (has_zero_var bd1) then ["The proof of " ++ (to_string vt1) ++ " doesn't use the hypothesis" ++ to_string n1] else []
-          ++ if (has_zero_var bd2) then ["The proof of " ++ (to_string vt2) ++ " doesn't use the hypothesis" ++ to_string n2] else [],
-     l ← ((++) <$> find_unnecessary_dites_exprs bd1 <*> find_unnecessary_dites_exprs bd2),
-     return $ l ++ t
+          ++ if ¬ bd1.has_zero_var then ["The proof assuming " ++ (to_string vt1) ++ " doesn't use the hypothesis " ++ to_string n1] else []
+          ++ if ¬ bd2.has_zero_var then ["The proof assuming " ++ (to_string vt2) ++ " doesn't use the hypothesis " ++ to_string n2] else [],
+     l₁ ← find_unnecessary_dites_exprs bd1,
+     l₂ ← find_unnecessary_dites_exprs bd2,
+     return $ l₁ ++ l₂ ++ t
 | (app a b) := (++) <$> find_unnecessary_dites_exprs a <*> find_unnecessary_dites_exprs b
 | (lam var_name bi var_type body) := find_unnecessary_dites_exprs body
 | (pi var_name bi var_type body) := find_unnecessary_dites_exprs body
@@ -489,7 +492,7 @@ meta def find_unnecessary_dites_exprs : expr → tactic (list string)
 Return a list of unused have and suffices terms in a declaration
 -/
 meta def unnecessary_dites_of_decl : declaration → tactic (list string)
-| (declaration.defn _ _ _ bd _ _) := find_unnecessary_dites_exprs bd
+| (declaration.defn _ _ _ bd _ _) := return []
 | (declaration.thm _ _ _ bd) := find_unnecessary_dites_exprs bd.get
 | _ := return []
 
@@ -523,15 +526,17 @@ meta def linter.unnecessary_dites : linter :=
 "proofs appear as if they are used. ",
   is_fast := ff }
 
-lemma silly {n : ℕ} : n + 1 = 1 + n :=
-begin
-  by_cases h : n = 0,
-  { simp [h], },
-  { simp [add_comm, h], }
-end
-open expr tactic environment
+-- lemma silly {n : ℕ} : n + 1 = n + 1 :=
+-- begin
+--   by_cases h : n = 0,
+--   { simp [h], },
+--   { refl, },
+-- end
+-- open expr tactic environment
 
-run_cmd (do
-d ← get_decl `silly,
-trace $ has_unnecessary_dites d)
-#print silly
+-- run_cmd (do
+-- d ← get_decl `silly,
+-- trace $ has_unnecessary_dites d)
+-- #print silly
+
+end

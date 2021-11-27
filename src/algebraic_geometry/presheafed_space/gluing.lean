@@ -611,7 +611,7 @@ by { rw ← D.imm_iso_LocallyRingedSpace_inv, apply_instance }
 lemma imm_jointly_surjective (x : D' .glued.carrier) :
   ∃ (i : D.ι) (y : (D.U i).carrier), (D.imm i).1.base y = x :=
 D' .imm_jointly_surjective ((forget ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙
-  SheafedSpace.forget_to_PresheafedSpace) ⋙ PresheafedSpace.forget _ ⋙ category_theory.forget Top)
+  SheafedSpace.forget _) ⋙ category_theory.forget Top)
 
 @[simp, reassoc]
 lemma glue_condition (i j : D.ι) :

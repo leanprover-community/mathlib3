@@ -399,14 +399,19 @@ graded.strict_mono.injective
 variables {α : Type u}
 
 /-- A closed non-empty interval of a bounded order is a bounded order. -/
-def Icc.bounded_order [preorder α] {x y : α} (h : x ≤ y) : bounded_order (set.Icc x y) :=
+instance [preorder α] {x y : α} (h : x ≤ y) : order_bot (set.Icc x y) :=
 { bot := ⟨x, by obviously⟩,
-  bot_le := by obviously,
-  top := ⟨y, by obviously⟩,
+  bot_le := by obviously }
+
+/-- A closed non-empty interval of a bounded order is a bounded order. -/
+-- todo: this shouldn't be named
+instance foo [preorder α] {x y : α} (h : x ≤ y) : order_top (set.Icc x y) :=
+{ top := ⟨y, by obviously⟩,
   le_top := by obviously }
 
 /-- A closed non-empty interval of a graded poset is a graded poset. -/
-def Icc.graded [partial_order α] [graded α] {x y : α} (h : x ≤ y) : graded (set.Icc x y) :=
+-- todo: this shouldn't be named
+instance bar [partial_order α] [graded α] {x y : α} (h : x ≤ y) : graded (set.Icc x y) :=
 { grade := λ a, grade a.val - grade x,
   strict_mono := λ a b h,
     nat.sub_mono_left_strict (graded.strict_mono.monotone a.prop.left) (graded.strict_mono h),
@@ -424,7 +429,7 @@ def Icc.graded [partial_order α] [graded α] {x y : α} (h : x ≤ y) : graded 
     exact h.left,
     exact h.right
   end,
-  ..Icc.bounded_order h }
+  ..Icc.order_bot h }
 
 /-- An element has grade 0 iff it is the bottom element. -/
 @[simp]
@@ -1018,9 +1023,9 @@ begin
   exact connected_of_mem_flag_connected (lt_of_not_ge hg) (h Φ Ψ) hΦ hΨ,
 end
 
-/-
-def strong_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
-  ∀ {x y : α} (hxy : x ≤ y), graded.connected set.Icc x y
-  --/
+/-- A section of a pre-polytope is connected. -/
+@[reducible]
+def section_connected {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y) : Prop :=
+@graded.connected (set.Icc x y) _ (graded.foo hxy) (graded.bar hxy)
 
 end graded

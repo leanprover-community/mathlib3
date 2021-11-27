@@ -777,9 +777,8 @@ calc
   a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
             ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
 
-lemma convex.sub (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
-  convex 𝕜 ((λ x : E × E, x.1 - x.2) '' (s.prod t)) :=
-(hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
+lemma convex.sub {s : set (E × E)} (hs : convex 𝕜 s) : convex 𝕜 ((λ x : E × E, x.1 - x.2) '' s) :=
+hs.is_linear_image is_linear_map.is_linear_map_sub
 
 lemma convex_segment (x y : E) : convex 𝕜 [x -[𝕜] y] :=
 begin

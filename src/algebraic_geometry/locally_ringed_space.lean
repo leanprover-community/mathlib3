@@ -90,6 +90,9 @@ PresheafedSpace.stalk_map f.1 x
 instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
   is_local_ring_hom (stalk_map f x) := f.2 x
 
+instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
+   is_local_ring_hom (PresheafedSpace.stalk_map f.1 x) := f.2 x
+
 /-- The identity morphism on a locally ringed space. -/
 @[simps]
 def id (X : LocallyRingedSpace) : hom X X :=

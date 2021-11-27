@@ -756,17 +756,14 @@ begin
 end
 
 /-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
-noncomputable def order_iso_fin {α : Type u} [partial_order α] [order_top α] [graded α]
-  (Φ : flag α) : Φ ≃o fin (graded.grade_top α + 1) :=
+noncomputable def order_iso_fin : Φ ≃o fin (graded.grade_top α + 1) :=
 rel_iso.of_surjective graded.oem_fin $ λ x, ⟨idx x Φ, by simp [graded.oem_fin]⟩
 
-noncomputable instance {α : Type u} [partial_order α] [order_top α] [graded α] (Φ : flag α) :
-  fintype Φ :=
+noncomputable instance : fintype Φ :=
 fintype.of_bijective (order_iso_fin Φ).inv_fun (order_iso_fin Φ).symm.bijective
 
 @[simp]
-theorem fincard_eq_gt {α : Type u} [partial_order α] [order_top α] [graded α] (Φ : flag α) :
-  fintype.card Φ = graded.grade_top Φ + 1 :=
+theorem fincard_eq_gt : fintype.card Φ = graded.grade_top Φ + 1 :=
 begin
   cases hfc : fintype.card Φ, { rw fintype.card_eq_zero_iff at hfc, exact hfc.elim' ⊤ },
   rw fintype.card_of_bijective (flag.order_iso_fin Φ).bijective at hfc,

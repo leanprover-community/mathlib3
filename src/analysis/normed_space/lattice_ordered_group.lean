@@ -158,3 +158,45 @@ Let `α` be a normed lattice ordered group. Then `α` is a topological lattice i
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_topological_lattice : topological_lattice α :=
 topological_lattice.mk
+
+lemma norm_abs_sub_abs (a b : α) :
+  ∥ |a| - |b| ∥ ≤ ∥a-b∥ :=
+solid (lattice_ordered_comm_group.abs_abs_sub_abs_le _ _)
+
+lemma two_inf_sub_two_inf_le (a b c d : α) :
+  ∥2•(a⊓b)-2•(c⊓d)∥ ≤ 2*∥a - c∥ + 2*∥b - d∥ :=
+calc ∥2•(a⊓b) - 2•(c⊓d)∥ = ∥(a + b - |b - a|) - (c + d - |d - c|)∥ :
+    by rw [lattice_ordered_comm_group.two_inf_eq_add_sub_abs_sub,
+      lattice_ordered_comm_group.two_inf_eq_add_sub_abs_sub]
+  ... = ∥(a + b - |b - a|) - c - d + |d - c|∥      : by abel
+  ... = ∥(a - c + (b - d))  + (|d - c| - |b - a|)∥ : by abel
+  ... ≤ ∥a - c + (b - d)∥ + ∥|d - c| - |b - a|∥    :
+    by apply norm_add_le (a - c + (b - d)) (|d - c| - |b - a|)
+  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥|d - c| - |b - a|∥   : by exact add_le_add_right (norm_add_le _ _) _
+  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥ d - c - (b - a) ∥   :
+    by exact add_le_add_left (norm_abs_sub_abs _ _) _
+  ... = (∥a - c∥ + ∥b - d∥) + ∥ a - c - (b - d) ∥ :
+    by { rw [sub_sub_assoc_swap, sub_sub_assoc_swap, add_comm (a-c), ← add_sub_assoc], simp, abel, }
+  ... ≤ (∥a - c∥ + ∥b - d∥) + (∥ a - c ∥ + ∥ b - d ∥) :
+    by apply add_le_add_left (norm_sub_le (a-c) (b-d) )
+  ... = 2*∥a - c∥ + 2*∥b - d∥ :
+    by { ring, }
+
+lemma two_sup_sub_two_sup_le (a b c d : α) :
+  ∥2•(a⊔b)-2•(c⊔d)∥ ≤ 2*∥a - c∥ + 2*∥b - d∥ :=
+calc ∥2•(a⊔b) - 2•(c⊔d)∥ = ∥(a + b + |b - a|) - (c + d + |d - c|)∥ :
+    by rw [lattice_ordered_comm_group.two_sup_eq_add_add_abs_sub,
+      lattice_ordered_comm_group.two_sup_eq_add_add_abs_sub]
+  ... = ∥(a + b + |b - a|) - c - d - |d - c|∥      : by abel
+  ... = ∥(a - c + (b - d))  + (|b - a| - |d - c|)∥ : by abel
+  ... ≤ ∥a - c + (b - d)∥ + ∥|b - a| - |d - c|∥    :
+    by apply norm_add_le (a - c + (b - d)) (|b - a| - |d - c|)
+  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥|b - a| - |d - c|∥   : by exact add_le_add_right (norm_add_le _ _) _
+  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥ b - a - (d - c) ∥   :
+    by exact add_le_add_left (norm_abs_sub_abs _ _) _
+  ... = (∥a - c∥ + ∥b - d∥) + ∥ b - d - (a - c) ∥ :
+    by { rw [sub_sub_assoc_swap, sub_sub_assoc_swap, add_comm (b-d), ← add_sub_assoc], simp, abel, }
+  ... ≤ (∥a - c∥ + ∥b - d∥) + (∥ b - d ∥ + ∥ a - c ∥) :
+    by apply add_le_add_left (norm_sub_le (b-d) (a-c)  )
+  ... = 2*∥a - c∥ + 2*∥b - d∥ :
+    by { ring, }

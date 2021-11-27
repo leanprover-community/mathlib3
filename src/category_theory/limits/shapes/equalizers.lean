@@ -793,10 +793,10 @@ end comparison
 variables (C)
 
 /-- `has_equalizers` represents a choice of equalizer for every pair of morphisms -/
-abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
+abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair.{v} C
 
 /-- `has_coequalizers` represents a choice of coequalizer for every pair of morphisms -/
-abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
+abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair.{v} C
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 lemma has_equalizers_of_has_limit_parallel_pair

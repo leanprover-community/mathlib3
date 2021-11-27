@@ -692,6 +692,12 @@ lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
+@[continuity]
+lemma continuous_apply_apply {κ : Type*} {ρ : κ → ι → Type*}
+  [∀ j i, topological_space (ρ j i)] (j : κ) (i : ι) :
+  continuous (λ p : (Π j, Π i, ρ j i), p j i) :=
+(continuous_apply i).comp (continuous_apply j)
+
 lemma continuous_at_apply [∀i, topological_space (π i)] (i : ι) (x : Π i, π i) :
   continuous_at (λ p : Π i, π i, p i) x :=
 (continuous_apply i).continuous_at

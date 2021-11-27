@@ -494,6 +494,7 @@ end
 end
 end graded
 
+/-- If an element covers another, they define an empty open interval. -/
 theorem set.Ioo_is_empty_of_covers {α : Type u} [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
 λ ⟨_, hr⟩, set.eq_empty_iff_forall_not_mem.mpr hr
 
@@ -523,6 +524,7 @@ end
 end chain
 
 namespace flag
+section
 
 /-- A point subdivides an interval into three. -/
 private lemma ioo_tricho {a b c : ℕ} (hc : c ∈ set.Ioo a b) (d: ℕ) :
@@ -773,60 +775,61 @@ by intros h i; rw ←(h i); exact eq_comm
 theorem adjacent.symm : adjacent Φ Ψ → adjacent Ψ Φ :=
 λ ⟨j, h⟩, ⟨j, (j_adjacent.symm j _ _) h⟩
 
+end
 end flag
 
 /-- Two elements of a type are connected by a relation when there exists a path of connected
     elements. This is essentially an inductive version of an equivalence closure. -/
  -- Todo(Vi): If someone else comes up with connected graphs sometime, we might want to rework this.
-inductive polytope.connected_aux {α : Type u} (r : α → α → Prop) : α → α → Prop
-| start (x : α) : polytope.connected_aux x x
-| next (x y z : α) : polytope.connected_aux x y → r y z → polytope.connected_aux x z
+inductive polytope.path {α : Type u} (r : α → α → Prop) : α → α → Prop
+| start (x : α) : polytope.path x x
+| next (x y z : α) : polytope.path x y → r y z → polytope.path x z
 
-namespace connected_aux
+namespace path
 section
 
 variables {α : Type u} {r : α → α → Prop} {a b c : α}
 
 /-- Connectivity is reflexive. -/
 @[refl]
-theorem refl : connected_aux r a a :=
-connected_aux.start a
+theorem refl : path r a a :=
+path.start a
 
 /-- Comparable proper elements are connected. -/
-theorem from_rel : r a b → connected_aux r a b :=
-(connected_aux.next a a b) (connected_aux.refl)
+theorem from_rel : r a b → path r a b :=
+(path.next a a b) (path.refl)
 
 /-- If `a` and `b` are related, and `b` and `c` are connected, then `a` and `c` are connected. -/
-lemma append_left (hab : r a b) (hbc : connected_aux r b c) : connected_aux r a c :=
+lemma append_left (hab : r a b) (hbc : path r b c) : path r a c :=
 begin
   induction hbc with _ _ _ _ _ hcd h,
-    { exact connected_aux.from_rel hab },
-    { exact connected_aux.next _ _ _ (h hab) hcd }
+    { exact path.from_rel hab },
+    { exact path.next _ _ _ (h hab) hcd }
 end
 
 /-- Connectedness with a symmetric relation is symmetric. -/
 @[symm]
-theorem symm [is_symm α r] (hab : connected_aux r a b) : connected_aux r b a :=
+theorem symm [is_symm α r] (hab : path r a b) : path r b a :=
 begin
   induction hab with _ _ _ _ _ hbc hba,
-    { exact connected_aux.refl },
-    { exact connected_aux.append_left (is_symm.symm _ _ hbc) hba, }
+    { exact path.refl },
+    { exact path.append_left (is_symm.symm _ _ hbc) hba, }
 end
 
 /-- Connectedness is transitive. -/
-theorem trans (hab : connected_aux r a b) (hbc : connected_aux r b c) : connected_aux r a c :=
+theorem trans (hab : path r a b) (hbc : path r b c) : path r a c :=
 begin
   induction hab with a a d b had hdb h,
     { exact hbc },
-    { exact h (connected_aux.append_left hdb hbc) }
+    { exact h (path.append_left hdb hbc) }
 end
 
 /-- If `a` and `b` are connected, and `b` and `c` are related, then `a` and `c` are connected. -/
-lemma append_right (hab : connected_aux r a b) (hbc : r b c) : connected_aux r a c :=
+lemma append_right (hab : path r a b) (hbc : r b c) : path r a c :=
 trans hab (from_rel hbc)
 
 end
-end connected_aux
+end path
 
 /-- Proper elements are those that are neither `⊥` nor `⊤`. -/
 def is_proper {α : Type u} [preorder α] [bounded_order α] (a : α) : Prop :=
@@ -871,12 +874,12 @@ a.val ≠ b.val → a.val < b.val ∨ b.val < a.val
     elements. -/
 abbreviation polytope.connected {α : Type u} [preorder α] [bounded_order α]
   (a b : polytope.proper α) : Prop :=
-connected_aux polytope.incident a b
+path polytope.incident a b
 
 /-- Flags are connected when they're related by a sequence of pairwise adjacent flags. -/
 abbreviation polytope.flag_connected {α : Type u} [partial_order α] [order_top α] [graded α]
   (Φ Ψ : flag α) : Prop :=
-connected_aux (@flag.adjacent α _ _ _) Φ Ψ
+path (@flag.adjacent α _ _ _) Φ Ψ
 
 /-- A `graded` with top grade 1 or less has no proper elements. -/
 theorem proper.empty {α : Type u} [partial_order α] [order_top α] [graded α] :
@@ -956,11 +959,11 @@ lemma connected_of_mem_flag_connected {α : Type u} [partial_order α] [order_to
 begin
   intros ha hb,
   induction h with Φ' Φ Ψ Ϝ hΦΨ hΨϜ hab generalizing a b,
-    { apply (connected_aux.next a a) _ connected_aux.refl,
+    { apply (path.next a a) _ path.refl,
       exact (Φ'.prop.left a.val ha b.val hb), },
   suffices hc : ∃ c : proper α, c.val ∈ Ψ.val ∩ Ϝ.val,
     { rcases hc with ⟨c, ⟨hcl, hcr⟩⟩,
-      exact connected_aux.append_right (hab ha hcl) (Ϝ.prop.left c.val hcr b hb) },
+      exact path.append_right (hab ha hcl) (Ϝ.prop.left c.val hcr b hb) },
   cases hΨϜ with j hj,
   by_cases hj' : j = ⟨1, lt_trans (nat.succ_lt_succ zero_lt_two) (nat.succ_lt_succ hg)⟩,
     { apply proper_flag_intersect_of_grade hg hj 2, { exact ⟨zero_lt_two, hg⟩ },

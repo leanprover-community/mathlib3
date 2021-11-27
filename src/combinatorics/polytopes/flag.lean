@@ -398,6 +398,34 @@ graded.strict_mono.injective
 
 variables {α : Type u}
 
+/-- A closed non-empty interval of a bounded order is a bounded order. -/
+def Icc.bounded_order [preorder α] {x y : α} (h : x ≤ y) : bounded_order (set.Icc x y) :=
+{ bot := ⟨x, by obviously⟩,
+  bot_le := by obviously,
+  top := ⟨y, by obviously⟩,
+  le_top := by obviously }
+
+/-- A closed non-empty interval of a graded poset is a graded poset. -/
+def Icc.graded [partial_order α] [graded α] {x y : α} (h : x ≤ y) : graded (set.Icc x y) :=
+{ grade := λ a, grade a.val - grade x,
+  strict_mono := λ a b h,
+    nat.sub_mono_left_strict (graded.strict_mono.monotone a.prop.left) (graded.strict_mono h),
+  grade_bot := tsub_eq_zero_iff_le.mpr (refl _),
+  hcovers := begin
+    rintros ⟨a, ha⟩ ⟨b, hb⟩ ⟨hab, hcov⟩,
+    suffices this : ∀ z, z ∉ set.Ioo a b,
+    have : grade b = grade a + 1 := graded.hcovers ⟨hab, this⟩,
+    change grade b - grade x = grade a - grade x + 1,
+    rw [this, nat.sub_add_comm],
+    exact graded.strict_mono.monotone ha.left,
+    intros z h,
+    simp at hcov,
+    apply hcov z (ha.left.trans (le_of_lt h.left)) ((le_of_lt h.right).trans hb.right),
+    exact h.left,
+    exact h.right
+  end,
+  ..Icc.bounded_order h }
+
 /-- An element has grade 0 iff it is the bottom element. -/
 @[simp]
 theorem eq_zero_iff_eq_bot [partial_order α] [graded α] (x : α) : grade x = 0 ↔ x = ⊥ :=
@@ -860,7 +888,7 @@ begin
   exact (ne_of_lt hr) ha
 end
 
-/-- A proper element is one that's neither minimal nor maximal. -/
+/-- The subtype of proper elements. -/
 @[reducible]
 def polytope.proper (α : Type u) [preorder α] [bounded_order α] : Type u :=
 {a : α // is_proper a}
@@ -893,14 +921,15 @@ begin
   exact ha.left
 end
 
+/-- A `graded` with top grade 2 or more has some proper element. -/
 lemma proper.nonempty (α : Type u) [partial_order α] [order_top α] [graded α]
   (h : 2 ≤ graded.grade_top α) :
   nonempty (polytope.proper α) :=
 begin
   let a := (flag.idx ⟨1, nat.lt.step h⟩ (default (flag α))).val,
-  have ha : grade a = 1 := flag.grade_idx _ _,
+  have : grade a = 1 := flag.grade_idx _ _,
   use a,
-  rw [proper_iff_grade_iio, ha],
+  rw [proper_iff_grade_iio, this],
   exact ⟨nat.one_pos, nat.lt_of_succ_le h⟩
 end
 
@@ -988,5 +1017,10 @@ begin
   cases flag.ex_flag_mem b.val with Ψ hΨ,
   exact connected_of_mem_flag_connected (lt_of_not_ge hg) (h Φ Ψ) hΦ hΨ,
 end
+
+/-
+def strong_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
+  ∀ {x y : α} (hxy : x ≤ y), graded.connected set.Icc x y
+  --/
 
 end graded

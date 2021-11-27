@@ -39,13 +39,13 @@ end
 This lemma is a reformulation of `exists_coeff_not_mem_C_inverse`. -/
 lemma comap_C_mem_image_of_Df {I : prime_spectrum (polynomial R)}
   (H : I ∈ (zero_locus {f} : set (prime_spectrum (polynomial R)))ᶜ ) :
-  comap (polynomial.C : R →+* polynomial R) I ∈ image_of_Df f :=
+  prime_spectrum.comap (polynomial.C : R →+* polynomial R) I ∈ image_of_Df f :=
 exists_coeff_not_mem_C_inverse (mem_compl_zero_locus_iff_not_mem.mp H)
 
 /-- The open set `image_of_Df f` coincides with the image of `basic_open f` under the
 morphism `C⁺ : Spec R[x] → Spec R`. -/
 lemma image_of_Df_eq_comap_C_compl_zero_locus :
-  image_of_Df f = comap C '' (zero_locus {f})ᶜ :=
+  image_of_Df f = prime_spectrum.comap (C : R →+* polynomial R) '' (zero_locus {f})ᶜ :=
 begin
   refine ext (λ x, ⟨λ hx, ⟨⟨map C x.val, (is_prime_map_C_of_is_prime x.property)⟩, ⟨_, _⟩⟩, _⟩),
   { rw [mem_compl_eq, mem_zero_locus, singleton_subset_iff],
@@ -64,7 +64,7 @@ Stacks Project "Lemma 00FB", first part.
 https://stacks.math.columbia.edu/tag/00FB
 -/
 theorem is_open_map_comap_C :
-  is_open_map (comap (C : R →+* polynomial R)) :=
+  is_open_map (prime_spectrum.comap (C : R →+* polynomial R)) :=
 begin
   rintros U ⟨s, z⟩,
   rw [← compl_compl U, ← z, ← Union_of_singleton_coe s, zero_locus_Union, compl_Inter, image_Union],

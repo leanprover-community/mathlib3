@@ -64,7 +64,6 @@ theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 by rw [Ico, Ico, map_add_range', add_tsub_add_eq_tsub_right, add_comm n k]
 
 theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
-begin
 by rw [Ico, Ico, tsub_tsub_tsub_cancel_right h₁, map_sub_range' _ _ _ h₁]
 
 @[simp] theorem self_empty {n : ℕ} : Ico n n = [] :=

@@ -693,15 +693,14 @@ end
 /-- Every element belongs to some flag. -/
 theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
 begin
-  have : zorn.chain (<) {x} := begin
+  have : @zorn.chain α (<) {x} := begin
     intros a ha b hb h,
     have ha : a = x := ha,
     have hb : b = x := hb,
     rw [ha, hb] at h,
     exact (h rfl).elim,
   end,
-  have := flag_of_chain {x} this,
-  cases this with Φ hΦ,
+  cases flag_of_chain {x} this with Φ hΦ,
   exact ⟨Φ, hΦ rfl⟩,
 end
 

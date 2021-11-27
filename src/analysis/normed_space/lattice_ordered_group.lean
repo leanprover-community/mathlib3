@@ -62,11 +62,13 @@ Let `α` be a normed group with a partial order. Then the order dual is also a n
 @[priority 100] -- see Note [lower instance priority]
 instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 
+variables {α : Type*} [normed_lattice_add_comm_group α]
+
 /--
 Let `α` be a normed lattice ordered group and let `a` and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
 implies `∥a∥ ≤ ∥b∥`.
 -/
-lemma dual_solid {α : Type*} [normed_lattice_add_comm_group α] (a b : α) (h: b⊓-b ≤ a⊓-a) :
+lemma dual_solid (a b : α) (h: b⊓-b ≤ a⊓-a) :
   ∥a∥ ≤ ∥b∥ :=
 begin
   apply solid,
@@ -84,13 +86,12 @@ Let `α` be a normed lattice ordered group, then the order dual is also a
 normed lattice ordered group.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance {α : Type*} [h: normed_lattice_add_comm_group α] :
-  normed_lattice_add_comm_group (order_dual α) :=
+instance : normed_lattice_add_comm_group (order_dual α) :=
 { add_le_add_left := begin
   intros a b h₁ c,
   rw ← order_dual.dual_le,
   rw ← order_dual.dual_le at h₁,
-  apply h.add_le_add_left,
+  apply add_le_add_left,
   exact h₁,
 end,
 solid := begin
@@ -104,7 +105,7 @@ end, }
 Let `α` be a normed lattice ordered group, let `a` be an element of `α` and let `|a|` be the
 absolute value of `a`. Then `∥|a|∥ = ∥a∥`.
 -/
-lemma norm_abs_eq_norm {α : Type*} [normed_lattice_add_comm_group α] (a : α) : ∥|a|∥ = ∥a∥ :=
+lemma norm_abs_eq_norm (a : α) : ∥|a|∥ = ∥a∥ :=
 begin
   rw le_antisymm_iff,
   split,
@@ -118,8 +119,7 @@ end
 Let `α` be a normed lattice ordered group. Then the infimum is jointly continuous.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance normed_lattice_add_comm_group_has_continuous_inf {α : Type*}
-  [normed_lattice_add_comm_group α] : has_continuous_inf α :=
+instance normed_lattice_add_comm_group_has_continuous_inf : has_continuous_inf α :=
 ⟨ continuous_iff_continuous_at.2 $ λ q, tendsto_iff_norm_tendsto_zero.2 $
 begin
   have : ∀ p : α × α, ∥p.1 ⊓ p.2 - q.1 ⊓ q.2∥ ≤ ∥p.1 - q.1∥ + ∥p.2 - q.2∥,
@@ -156,6 +156,5 @@ end
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance normed_lattice_add_comm_group_topological_lattice {α : Type*}
-  [normed_lattice_add_comm_group α] : topological_lattice α :=
+instance normed_lattice_add_comm_group_topological_lattice : topological_lattice α :=
 topological_lattice.mk

@@ -1016,9 +1016,37 @@ begin
   exact connected_of_mem_flag_connected (lt_of_not_ge hg) (h Φ Ψ) hΦ hΨ,
 end
 
-/-- A section of a pre-polytope is connected. -/
+section
+
+variables {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y)
+
+/-- Asserts that a section of a graded poset is connected. -/
 @[reducible]
-def section_connected {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y) : Prop :=
+def section_connected : Prop :=
 @graded.connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
 
+/-- Asserts that a section of a graded poset is flag connected. -/
+@[reducible]
+def section_flag_connected : Prop :=
+@graded.flag_connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
+
+end
+
+section
+
+variables (α : Type u) [partial_order α] [graded α] {x y : α} (hxy : x ≤ y)
+
+/-- A graded poset is strongly connected when all sections are connected. -/
+def strong_connected : Prop :=
+∀ {x y : α} (hxy : x ≤ y), section_connected hxy
+
+/-- A graded poset is strongly flag-connected when all sections are flag-connected. -/
+def strong_flag_connected : Prop :=
+∀ {x y : α} (hxy : x ≤ y), section_flag_connected hxy
+
+/-- Strong flag connectedness implies strong connectedness. -/
+lemma strong_connected_of_strong_flag_connected : strong_flag_connected α → strong_connected α :=
+by intros hsc _ _ _; apply connected_of_flag_connected _ (hsc _)
+
+end
 end graded

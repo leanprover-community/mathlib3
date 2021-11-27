@@ -612,6 +612,16 @@ namespace SheafedSpace.is_open_immersion
 
 variables [has_products C]
 
+@[priority 100]
+instance of_is_iso {X Y : SheafedSpace C} (f : X ⟶ Y) [is_iso f] :
+  SheafedSpace.is_open_immersion f :=
+@@PresheafedSpace.is_open_immersion.of_is_iso _ f
+(SheafedSpace.forget_to_PresheafedSpace.map_is_iso _)
+
+instance comp {X Y Z : SheafedSpace C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [SheafedSpace.is_open_immersion f] [SheafedSpace.is_open_immersion g] :
+  SheafedSpace.is_open_immersion (f ≫ g) := PresheafedSpace.is_open_immersion.comp f g
+
 section pullback
 
 variables {X Y Z : SheafedSpace C} (f : X ⟶ Z) (g : Y ⟶ Z)
@@ -981,6 +991,16 @@ preserves_pullback_symmetry _ _ _
 
 instance forget_reflects_pullback_of_right :
   reflects_limit (cospan g f) LocallyRingedSpace.forget_to_SheafedSpace :=
+reflects_limit_of_reflects_isomorphisms _ _
+
+instance forget_to_PresheafedSpace_reflects_pullback_of_left :
+  reflects_limit (cospan f g)
+    (LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace) :=
+reflects_limit_of_reflects_isomorphisms _ _
+
+instance forget_to_PresheafedSpace_reflects_pullback_of_right :
+  reflects_limit (cospan g f)
+    (LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace) :=
 reflects_limit_of_reflects_isomorphisms _ _
 
 lemma pullback_snd_is_iso_of_range_subset (H' : set.range g.1.base ⊆ set.range f.1.base) :

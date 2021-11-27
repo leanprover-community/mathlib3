@@ -213,6 +213,24 @@ lemma Γ_obj_op (X : LocallyRingedSpace) : Γ.obj (op X) = X.presheaf.obj (op �
 lemma Γ_map_op {X Y : LocallyRingedSpace} (f : X ⟶ Y) :
   Γ.map f.op = f.1.c.app (op ⊤) := rfl
 
+
+lemma preimage_basic_open {X Y : LocallyRingedSpace} (f : X ⟶ Y) {U : opens Y}
+  (s : Y.presheaf.obj (op U)) :
+  (opens.map f.1.base).obj (Y.to_RingedSpace.basic_open s) =
+    @RingedSpace.basic_open X.to_RingedSpace ((opens.map f.1.base).obj U) (f.1.c.app _ s) :=
+begin
+  ext,
+  split,
+  { rintros ⟨⟨y, hyU⟩, (hy : is_unit _), (rfl : y = _)⟩,
+    erw RingedSpace.mem_basic_open _ _ ⟨x, show x ∈ (opens.map f.1.base).obj U, from hyU⟩,
+    rw ← PresheafedSpace.stalk_map_germ_apply,
+    exact (PresheafedSpace.stalk_map f.1 _).is_unit_map hy },
+  { rintros ⟨y, (hy : is_unit _), rfl⟩,
+    erw RingedSpace.mem_basic_open _ _ ⟨f.1.base y.1, y.2⟩,
+    rw ← PresheafedSpace.stalk_map_germ_apply at hy,
+    exact (is_unit_map_iff (PresheafedSpace.stalk_map f.1 _) _).mp hy }
+end
+
 end LocallyRingedSpace
 
 end algebraic_geometry

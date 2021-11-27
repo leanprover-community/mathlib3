@@ -496,6 +496,31 @@ end graded
 theorem set.Ioo_is_empty_of_covers {α : Type u} [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
 λ ⟨_, hr⟩, set.eq_empty_iff_forall_not_mem.mpr hr
 
+namespace chain
+section
+
+variables {α : Type u} [has_lt α]
+
+/-- The empty set is vacuously a chain. -/
+lemma empty : @zorn.chain α (<) ∅ :=
+λ _ h, h.elim
+
+/-- Any singleton is a chain. -/
+lemma singleton (x : α) : @zorn.chain α (<) (set.insert x ∅) :=
+by refine zorn.chain_insert _ _ ; repeat { exact λ _ h, h.elim }
+
+/-- Any pair of incident elements is a chain. -/
+lemma pair {x y : α} (hxy : x < y ∨ y < x) :
+  @zorn.chain α (<) (set.insert x (set.insert y ∅)) :=
+begin
+  apply zorn.chain_insert (singleton _),
+  intros _ hb _,
+  rwa ←(list.mem_singleton.mp hb) at hxy,
+end
+
+end
+end chain
+
 namespace flag
 
 /-- A point subdivides an interval into three. -/
@@ -692,16 +717,13 @@ end
 
 /-- Every element belongs to some flag. -/
 theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
+by cases flag_of_chain _ (chain.singleton x) with Φ hΦ; exact ⟨Φ, hΦ (set.mem_insert x ∅)⟩
+
+/-- Every pair of incident elements belongs to some flag. -/
+theorem ex_flag_mem_both (x y : α) (hxy : x < y ∨ x > y) : ∃ Φ : flag α, x ∈ Φ ∧ y ∈ Φ :=
 begin
-  have : @zorn.chain α (<) {x} := begin
-    intros a ha b hb h,
-    have ha : a = x := ha,
-    have hb : b = x := hb,
-    rw [ha, hb] at h,
-    exact (h rfl).elim,
-  end,
-  cases flag_of_chain {x} this with Φ hΦ,
-  exact ⟨Φ, hΦ rfl⟩,
+  cases flag_of_chain _ (chain.pair hxy) with Φ hΦ,
+  exact ⟨Φ, hΦ (set.mem_insert _ _), hΦ (set.mem_insert_of_mem _ (set.mem_insert _ _))⟩
 end
 
 /-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
@@ -840,7 +862,7 @@ def polytope.proper (α : Type u) [preorder α] [bounded_order α] : Type u :=
 /-- Elements are incident when they're comparable. -/
 abbreviation polytope.incident {α : Type u} [preorder α] [bounded_order α]
   (a b : polytope.proper α) : Prop :=
-a.val ≤ b.val ∨ b.val ≤ a.val
+a.val ≠ b.val → a.val < b.val ∨ b.val < a.val
 
 /-- Proper elements are connected when they're related by a sequence of pairwise incident proper
     elements. -/
@@ -932,10 +954,10 @@ begin
   intros ha hb,
   induction h with Φ' Φ Ψ Ϝ hΦΨ hΨϜ hab generalizing a b,
     { apply (connected_aux.next a a) _ connected_aux.refl,
-      exact polytope.flag.le_total Φ' ⟨a, ha⟩ ⟨b, hb⟩ },
+      exact (Φ'.prop.left a.val ha b.val hb), },
   suffices hc : ∃ c : proper α, c.val ∈ Ψ.val ∩ Ϝ.val,
     { rcases hc with ⟨c, ⟨hcl, hcr⟩⟩,
-      exact connected_aux.append_right (hab ha hcl) (Ϝ.le_total ⟨c.val, hcr⟩ ⟨b, hb⟩) },
+      exact connected_aux.append_right (hab ha hcl) (Ϝ.prop.left c.val hcr b hb) },
   cases hΨϜ with j hj,
   by_cases hj' : j = ⟨1, lt_trans (nat.succ_lt_succ zero_lt_two) (nat.succ_lt_succ hg)⟩,
     { apply proper_flag_intersect_of_grade hg hj 2, { exact ⟨zero_lt_two, hg⟩ },

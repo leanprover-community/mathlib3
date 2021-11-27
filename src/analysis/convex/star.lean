@@ -10,7 +10,7 @@ import analysis.convex.basic
 
 This files defines star-convex sets (aka star domains, star-shaped set, radially convex set).
 
-A set is star-convex at `x` if every segment from `x` to a point in `s` is contained in the set.
+A set is star-convex at `x` if every segment from `x` to a point in the set is contained in the set.
 
 This is the prototypical example of a contractible set in homotopy theory (by scaling every point
 towards `x`), but has wider uses.

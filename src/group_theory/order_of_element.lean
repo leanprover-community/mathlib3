@@ -316,9 +316,6 @@ calc x ^ i = x ^ (i % order_of x + order_of x * (i / order_of x)) :
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
   x ^ n = x ^ m ↔ n = m :=
 begin
-  by_cases hx : x = 1,
-  { rw [←order_of_eq_one_iff, h] at hx,
-    contradiction },
   rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one] at h,
   push_neg at h,
   induction n with n IH generalizing m,

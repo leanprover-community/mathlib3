@@ -1375,6 +1375,9 @@ end
   (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
 
+lemma coord_ne_zero {x : E} (h : x ≠ 0) : coord 𝕜 x h ≠ 0 :=
+λ h', by simpa [h'] using coord_self 𝕜 x h
+
 end continuous_linear_equiv
 
 lemma linear_equiv.uniform_embedding (e : E ≃ₗ[𝕜] F) (h₁ : continuous e)

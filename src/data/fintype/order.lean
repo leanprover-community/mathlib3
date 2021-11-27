@@ -48,8 +48,11 @@ variables {α}
 local attribute [instance] fintype.to_order_bot
 local attribute [instance] fintype.to_order_top
 
-lemma fintype.fold_inf_univ [semilattice_inf α] : finset.univ.fold (⊓) (arbitrary α) id = ⊥ := rfl
-lemma fintype.fold_sup_univ [semilattice_sup α] : finset.univ.fold (⊔) (arbitrary α) id = ⊤ := rfl
+@[simp] lemma fintype.fold_inf_univ [semilattice_inf α] :
+  finset.univ.fold (⊓) (arbitrary α) (λ x, x) = ⊥ := rfl
+
+@[simp] lemma fintype.fold_sup_univ [semilattice_sup α] :
+  finset.univ.fold (⊔) (arbitrary α) (λ x, x) = ⊤ := rfl
 
 end inhabited
 

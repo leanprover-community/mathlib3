@@ -79,8 +79,8 @@ meta def main : io unit := do
 env ← get_env,
 mathlib_path ← get_mathlib_dir,
 decls ← lint_project_decls mathlib_path,
-linters ← get_linters mathlib_linters,
-let non_auto_decls := decls.filter (λ d, ¬ d.is_auto_or_internal env),
+let linters := [(`ji, linter.unnecessary_dites)],
+let non_auto_decls := decls.filter (λ d, d.to_name ≠ ``Gromov_Hausdorff.totally_bounded ∧ ¬ d.is_auto_or_internal env),
 results₀ ← lint_core decls non_auto_decls linters,
 nolint_file ← read_nolints_file,
 let results := (do

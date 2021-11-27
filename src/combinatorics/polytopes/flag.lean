@@ -402,33 +402,6 @@ graded.strict_mono.injective
 
 variables {α : Type u}
 
-/-- A closed non-empty interval of a bounded order is a bounded order. -/
-instance [preorder α] {x y : α} (h : x ≤ y) : order_bot (set.Icc x y) :=
-{ bot := ⟨x, by obviously⟩,
-  bot_le := by obviously }
-
-/-- A closed non-empty interval of a graded poset is a graded poset. -/
--- todo: this shouldn't be named
-instance bar [partial_order α] [graded α] {x y : α} (h : x ≤ y) : graded (set.Icc x y) :=
-{ grade := λ a, grade a.val - grade x,
-  strict_mono := λ a b h,
-    nat.sub_mono_left_strict (graded.strict_mono.monotone a.prop.left) (graded.strict_mono h),
-  grade_bot := tsub_eq_zero_iff_le.mpr (refl _),
-  hcovers := begin
-    rintros ⟨a, ha⟩ ⟨b, hb⟩ ⟨hab, hcov⟩,
-    suffices this : ∀ z, z ∉ set.Ioo a b,
-    have : grade b = grade a + 1 := graded.hcovers ⟨hab, this⟩,
-    change grade b - grade x = grade a - grade x + 1,
-    rw [this, nat.sub_add_comm],
-    exact graded.strict_mono.monotone ha.left,
-    intros z h,
-    simp at hcov,
-    apply hcov z (ha.left.trans (le_of_lt h.left)) ((le_of_lt h.right).trans hb.right),
-    exact h.left,
-    exact h.right
-  end,
-  ..Icc.order_bot h }
-
 /-- An element has grade 0 iff it is the bottom element. -/
 @[simp]
 theorem eq_zero_iff_eq_bot [partial_order α] [graded α] (x : α) : grade x = 0 ↔ x = ⊥ :=
@@ -524,6 +497,28 @@ end
 
 end
 end graded
+
+/-- A closed non-empty interval of a graded poset is a graded poset. -/
+def set.Icc.graded {α : Type u} [partial_order α] [graded α] {x y : α} (h : x ≤ y) :
+  graded (set.Icc x y) :=
+{ grade := λ a, grade a.val - grade x,
+  strict_mono := λ a b h,
+    nat.sub_mono_left_strict (graded.strict_mono.monotone a.prop.left) (graded.strict_mono h),
+  grade_bot := tsub_eq_zero_iff_le.mpr (refl _),
+  hcovers := begin
+    rintros ⟨a, ha⟩ ⟨b, hb⟩ ⟨hab, hcov⟩,
+    suffices this : ∀ z, z ∉ set.Ioo a b,
+    have : grade b = grade a + 1 := graded.hcovers ⟨hab, this⟩,
+    change grade b - grade x = grade a - grade x + 1,
+    rw [this, nat.sub_add_comm],
+    exact graded.strict_mono.monotone ha.left,
+    intros z h,
+    simp at hcov,
+    apply hcov z (ha.left.trans (le_of_lt h.left)) ((le_of_lt h.right).trans hb.right),
+    exact h.left,
+    exact h.right
+  end,
+  ..set.Icc.order_bot h }
 
 /-- If an element covers another, they define an empty open interval. -/
 theorem set.Ioo_is_empty_of_covers {α : Type u} [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
@@ -1024,6 +1019,6 @@ end
 /-- A section of a pre-polytope is connected. -/
 @[reducible]
 def section_connected {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y) : Prop :=
-@graded.connected (set.Icc x y) _ (graded.foo hxy) (graded.bar hxy)
+@graded.connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
 
 end graded

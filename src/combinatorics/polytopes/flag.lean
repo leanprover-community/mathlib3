@@ -663,24 +663,23 @@ begin
   exact idx
 end
 
-/-- Every element belongs to some flag. -/
-theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
+/-- Every chain is contained in a flag. -/
+theorem flag_of_chain (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ :=
 begin
-  let all_chains := {s : set α | x ∈ s ∧ zorn.chain (<) s},
-  have : {x} ∈ all_chains := begin
-    refine ⟨rfl, _⟩,
-    rintros a (ha : _ = _) b (hb : _ = _) h,
-    induction ha, induction hb,
-    contradiction
-  end,
-  have := zorn.zorn_subset_nonempty all_chains _ {x} this,
-  rcases this with ⟨Φ, hΦ₀, hΦ₁, hΦ₂⟩,
-  refine ⟨⟨Φ, hΦ₀.right, λ h, _⟩, hΦ₀.left⟩,
-  rcases h with ⟨c, hc, hcΦ₀, hcΦ₁⟩,
-  have := hΦ₂ c ⟨hcΦ₀ hΦ₀.left, hc⟩ hcΦ₀, induction this,
-  contradiction,
+  let all_chains := {s : set α | c ⊆ s ∧ zorn.chain (<) s},
+  have := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩, {
+    rcases this with ⟨Φ, hΦ₀, hΦ₁, hΦ₂⟩,
+    refine ⟨⟨Φ, hΦ₀.right, λ h, _⟩, hΦ₁⟩,
+    rcases h with ⟨d, hd, hdΦ₀, hdΦ₁⟩,
+    have := hΦ₂ d _ hdΦ₀,
+    induction this,
+      { exact hdΦ₁ hdΦ₀ },
+    change c ⊆ Φ with c ≤ Φ at hΦ₁,
+    exact ⟨le_trans hΦ₁ hdΦ₀, hd⟩,
+  },
   rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
-  refine ⟨⋃₀ cs, ⟨⟨s, hs, (hcs₀ hs).left⟩, _⟩, λ _, set.subset_sUnion_of_mem⟩,
+  refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
+    λ _, set.subset_sUnion_of_mem⟩,
   rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
   by_cases hsseq : sy = sz,
     { induction hsseq,
@@ -689,6 +688,21 @@ begin
   cases hcs₁ _ hsy _ hsz hsseq with h h,
     { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
     { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz },
+end
+
+/-- Every element belongs to some flag. -/
+theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
+begin
+  have : zorn.chain (<) {x} := begin
+    intros a ha b hb h,
+    have ha : a = x := ha,
+    have hb : b = x := hb,
+    rw [ha, hb] at h,
+    exact (h rfl).elim,
+  end,
+  have := flag_of_chain {x} this,
+  cases this with Φ hΦ,
+  exact ⟨Φ, hΦ rfl⟩,
 end
 
 /-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/

@@ -44,14 +44,38 @@ def cech_nerve : simplicial_object C :=
 { obj := λ n, wide_pullback f.right
     (λ i : ulift (fin (n.unop.len + 1)), f.left) (λ i, f.hom),
   map := λ m n g, wide_pullback.lift (wide_pullback.base _)
-    (λ i, wide_pullback.π (λ i, f.hom) $ ulift.up $ g.unop.to_preorder_hom i.down) (by tidy) }
+    (λ i, wide_pullback.π (λ i, f.hom) $ ulift.up $ g.unop.to_preorder_hom i.down) $ λ j, by simp,
+  map_id' := λ x, by { ext ⟨⟩, { dsimp, simpa }, { dsimp, simp } },
+  map_comp' := λ x y z f g, by { ext ⟨⟩, { dsimp, simpa }, { dsimp, simp } } }
+
+/-- The morphism between Čech nerves associated to a morphism of arrows. -/
+@[simps]
+def map_cech_nerve {f g : arrow C}
+  [∀ n : ℕ, has_wide_pullback f.right (λ i : ulift (fin (n+1)), f.left) (λ i, f.hom)]
+  [∀ n : ℕ, has_wide_pullback g.right (λ i : ulift (fin (n+1)), g.left) (λ i, g.hom)]
+  (F : f ⟶ g) : f.cech_nerve ⟶ g.cech_nerve :=
+{ app := λ n, wide_pullback.lift (wide_pullback.base _ ≫ F.right)
+    (λ i, wide_pullback.π _ i ≫ F.left) $ λ j, by simp,
+  naturality' := λ x y f, by { ext ⟨⟩, { dsimp, simp }, { dsimp, simp } } }
 
 /-- The augmented Čech nerve associated to an arrow. -/
 @[simps]
 def augmented_cech_nerve : simplicial_object.augmented C :=
 { left := f.cech_nerve,
   right := f.right,
-  hom := { app := λ i, wide_pullback.base _ } }
+  hom :=
+  { app := λ i, wide_pullback.base _,
+    naturality' := λ x y f, by { dsimp, simp } } }
+
+/-- The morphism between augmented Čech nerve associated to a morphism of arrows. -/
+@[simps]
+def map_augmented_cech_nerve {f g : arrow C}
+  [∀ n : ℕ, has_wide_pullback f.right (λ i : ulift (fin (n+1)), f.left) (λ i, f.hom)]
+  [∀ n : ℕ, has_wide_pullback g.right (λ i : ulift (fin (n+1)), g.left) (λ i, g.hom)]
+  (F : f ⟶ g) : f.augmented_cech_nerve ⟶ g.augmented_cech_nerve :=
+{ left := map_cech_nerve F,
+  right := F.right,
+  w' := by { ext, dsimp, simp } }
 
 end category_theory.arrow
 
@@ -65,28 +89,17 @@ variables [∀ (n : ℕ) (f : arrow C),
 @[simps]
 def cech_nerve : arrow C ⥤ simplicial_object C :=
 { obj := λ f, f.cech_nerve,
-  map := λ f g F,
-  { app := λ n, wide_pullback.lift (wide_pullback.base _ ≫ F.right)
-      (λ i, wide_pullback.π _ i ≫ F.left) (λ i, by simp [← category.assoc]) },
-  -- tidy needs a bit of help here...
-  map_id' := by { intros i, ext, tidy },
-  map_comp' := begin
-    intros f g h F G,
-    ext,
-    all_goals
-    { dsimp,
-      simp only [category.assoc, limits.wide_pullback.lift_base,
-        limits.wide_pullback.lift_π, limits.limit.lift_π_assoc],
-      simpa only [← category.assoc] },
-  end }
+  map := λ f g F, arrow.map_cech_nerve F,
+  map_id' := λ i, by { ext, { dsimp, simp }, { dsimp, simp } },
+  map_comp' := λ x y z f g, by { ext, { dsimp, simp }, { dsimp, simp } } }
 
 /-- The augmented Čech nerve construction, as a functor from `arrow C`. -/
 @[simps]
 def augmented_cech_nerve : arrow C ⥤ simplicial_object.augmented C :=
 { obj := λ f, f.augmented_cech_nerve,
-  map := λ f g F,
-  { left := cech_nerve.map F,
-    right := F.right } }
+  map := λ f g F, arrow.map_augmented_cech_nerve F,
+  map_id' := λ x, by { ext, { dsimp, simp }, { dsimp, simp }, { refl } },
+  map_comp' := λ x y z f g, by { ext, { dsimp, simp }, { dsimp, simp }, { refl } } }
 
 /-- A helper function used in defining the Čech adjunction. -/
 @[simps]
@@ -182,19 +195,40 @@ def cech_conerve : cosimplicial_object C :=
 { obj := λ n, wide_pushout f.left
     (λ i : ulift (fin (n.len + 1)), f.right) (λ i, f.hom),
   map := λ m n g, wide_pushout.desc (wide_pushout.head _)
-    (λ i, wide_pushout.ι (λ i, f.hom) $ ulift.up $ g.to_preorder_hom i.down)
-    begin
-      rintros ⟨⟨j⟩⟩,
-      dsimp,
-      rw [wide_pushout.arrow_ι (λ i, f.hom)],
-    end }
+    (λ i, wide_pushout.ι (λ i, f.hom) $ ulift.up $ g.to_preorder_hom i.down) $
+    λ i, by { dsimp, rw [wide_pushout.arrow_ι (λ i, f.hom)] },
+  map_id' := λ x, by { ext ⟨⟩, { dsimp, simpa }, { dsimp, simp } },
+  map_comp' := λ x y z f g, by { ext ⟨⟩, { dsimp, simpa }, { dsimp, simp } } }
+
+/-- The morphism between Čech conerves associated to a morphism of arrows. -/
+@[simps]
+def map_cech_conerve {f g : arrow C}
+  [∀ n : ℕ, has_wide_pushout f.left (λ i : ulift (fin (n+1)), f.right) (λ i, f.hom)]
+  [∀ n : ℕ, has_wide_pushout g.left (λ i : ulift (fin (n+1)), g.right) (λ i, g.hom)]
+  (F : f ⟶ g) : f.cech_conerve ⟶ g.cech_conerve :=
+{ app := λ n, wide_pushout.desc (F.left ≫ wide_pushout.head _)
+      (λ i, F.right ≫ wide_pushout.ι _ i) $
+      λ i, by { rw [←arrow.w_assoc F, wide_pushout.arrow_ι (λ i, g.hom)] },
+  naturality' := λ x y f, by { ext, { dsimp, simp }, { dsimp, simp } } }
 
 /-- The augmented Čech conerve associated to an arrow. -/
 @[simps]
 def augmented_cech_conerve : cosimplicial_object.augmented C :=
 { left := f.left,
   right := f.cech_conerve,
-  hom := { app := λ i, wide_pushout.head _ } }
+  hom :=
+  { app := λ i, wide_pushout.head _,
+    naturality' := λ x y f, by { dsimp, simp } } }
+
+/-- The morphism between augmented Čech conerves associated to a morphism of arrows. -/
+@[simps]
+def map_augmented_cech_conerve {f g : arrow C}
+  [∀ n : ℕ, has_wide_pushout f.left (λ i : ulift (fin (n+1)), f.right) (λ i, f.hom)]
+  [∀ n : ℕ, has_wide_pushout g.left (λ i : ulift (fin (n+1)), g.right) (λ i, g.hom)]
+  (F : f ⟶ g) : f.augmented_cech_conerve ⟶ g.augmented_cech_conerve :=
+{ left := F.left,
+  right := map_cech_conerve F,
+  w' := by { ext, dsimp, simp } }
 
 end category_theory.arrow
 
@@ -208,29 +242,17 @@ variables [∀ (n : ℕ) (f : arrow C),
 @[simps]
 def cech_conerve : arrow C ⥤ cosimplicial_object C :=
 { obj := λ f, f.cech_conerve,
-  map := λ f g F,
-  { app := λ n, wide_pushout.desc (F.left ≫ wide_pushout.head _)
-      (λ i, F.right ≫ wide_pushout.ι _ i)
-      (λ i, by { rw [←arrow.w_assoc F, wide_pushout.arrow_ι (λ i, g.hom)], }) },
-  -- tidy needs a bit of help here...
-  map_id' := by { intros i, ext, tidy },
-  map_comp' := begin
-    intros f g h F G,
-    ext,
-    all_goals
-    { dsimp,
-      simp only [category.assoc, limits.wide_pushout.head_desc_assoc,
-        limits.wide_pushout.ι_desc_assoc, limits.colimit.ι_desc],
-      simpa only [← category.assoc], },
-  end }
+  map := λ f g F, arrow.map_cech_conerve F,
+  map_id' := λ i, by { ext, { dsimp, simp }, { dsimp, simp } },
+  map_comp' := λ f g h F G, by { ext, { dsimp, simp }, { dsimp, simp } } }
 
 /-- The augmented Čech conerve construction, as a functor from `arrow C`. -/
 @[simps]
 def augmented_cech_conerve : arrow C ⥤ cosimplicial_object.augmented C :=
 { obj := λ f, f.augmented_cech_conerve,
-  map := λ f g F,
-  { left := F.left,
-    right := cech_conerve.map F, } }
+  map := λ f g F, arrow.map_augmented_cech_conerve F,
+  map_id' := λ f, by { ext, { refl }, { dsimp, simp }, { dsimp, simp } },
+  map_comp' := λ f g h F G, by { ext, { refl }, { dsimp, simp }, { dsimp, simp } } }
 
 /-- A helper function used in defining the Čech conerve adjunction. -/
 @[simps]

@@ -187,6 +187,7 @@ def to_rel_iso (γ : automorphism α) : ((≤) : α → α → Prop) ≃r (≤) 
     rwa γ.hom_inv_id at this
   end }
 
+/-- Inverse automorphism. -/
 @[reducible]
 def symm (γ : automorphism α) : automorphism α :=
 γ.symm
@@ -576,6 +577,44 @@ end
 
 variables {α : Type u} [partial_order α]
 
+/-- Every chain is contained in a flag. -/
+theorem flag_of_chain (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ :=
+begin
+  let all_chains := {s : set α | c ⊆ s ∧ zorn.chain (<) s},
+  have := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩, {
+    rcases this with ⟨Φ, hΦ₀, hΦ₁, hΦ₂⟩,
+    refine ⟨⟨Φ, hΦ₀.right, λ h, _⟩, hΦ₁⟩,
+    rcases h with ⟨d, hd, hdΦ₀, hdΦ₁⟩,
+    have := hΦ₂ d _ hdΦ₀,
+    induction this,
+      { exact hdΦ₁ hdΦ₀ },
+    change c ⊆ Φ with c ≤ Φ at hΦ₁,
+    exact ⟨le_trans hΦ₁ hdΦ₀, hd⟩,
+  },
+  rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
+  refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
+    λ _, set.subset_sUnion_of_mem⟩,
+  rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
+  by_cases hsseq : sy = sz,
+    { induction hsseq,
+      apply (hcs₀ hsy).right,
+      all_goals { assumption } },
+  cases hcs₁ _ hsy _ hsz hsseq with h h,
+    { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
+    { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz },
+end
+
+/-- Every element belongs to some flag. -/
+theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
+by cases flag_of_chain _ (chain.singleton x) with Φ hΦ; exact ⟨Φ, hΦ (set.mem_insert x ∅)⟩
+
+/-- Every pair of incident elements belongs to some flag. -/
+theorem ex_flag_both_mem (x y : α) (hxy : x < y ∨ y < x) : ∃ Φ : flag α, x ∈ Φ ∧ y ∈ Φ :=
+begin
+  cases flag_of_chain _ (chain.pair hxy) with Φ hΦ,
+  exact ⟨Φ, hΦ (set.mem_insert _ _), hΦ (set.mem_insert_of_mem _ (set.mem_insert _ _))⟩
+end
+
 /-- An element covers another iff they do so in the flag. -/
 @[simp]
 theorem cover_iff_flag_cover {Φ : flag α} (x y : Φ) : x ⋖ y ↔ x.val ⋖ y.val :=
@@ -688,44 +727,6 @@ begin
   exact idx
 end
 
-/-- Every chain is contained in a flag. -/
-theorem flag_of_chain (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ :=
-begin
-  let all_chains := {s : set α | c ⊆ s ∧ zorn.chain (<) s},
-  have := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩, {
-    rcases this with ⟨Φ, hΦ₀, hΦ₁, hΦ₂⟩,
-    refine ⟨⟨Φ, hΦ₀.right, λ h, _⟩, hΦ₁⟩,
-    rcases h with ⟨d, hd, hdΦ₀, hdΦ₁⟩,
-    have := hΦ₂ d _ hdΦ₀,
-    induction this,
-      { exact hdΦ₁ hdΦ₀ },
-    change c ⊆ Φ with c ≤ Φ at hΦ₁,
-    exact ⟨le_trans hΦ₁ hdΦ₀, hd⟩,
-  },
-  rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
-  refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
-    λ _, set.subset_sUnion_of_mem⟩,
-  rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
-  by_cases hsseq : sy = sz,
-    { induction hsseq,
-      apply (hcs₀ hsy).right,
-      all_goals { assumption } },
-  cases hcs₁ _ hsy _ hsz hsseq with h h,
-    { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
-    { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz },
-end
-
-/-- Every element belongs to some flag. -/
-theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
-by cases flag_of_chain _ (chain.singleton x) with Φ hΦ; exact ⟨Φ, hΦ (set.mem_insert x ∅)⟩
-
-/-- Every pair of incident elements belongs to some flag. -/
-theorem ex_flag_mem_both (x y : α) (hxy : x < y ∨ x > y) : ∃ Φ : flag α, x ∈ Φ ∧ y ∈ Φ :=
-begin
-  cases flag_of_chain _ (chain.pair hxy) with Φ hΦ,
-  exact ⟨Φ, hΦ (set.mem_insert _ _), hΦ (set.mem_insert_of_mem _ (set.mem_insert _ _))⟩
-end
-
 /-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
 noncomputable def order_iso_fin {α : Type u} [partial_order α] [order_top α] [graded α]
   (Φ : flag α) : Φ ≃o fin (graded.grade_top α + 1) :=
@@ -764,9 +765,11 @@ instance : is_irrefl (flag α) (j_adjacent j) :=
 instance : is_irrefl (flag α) adjacent :=
 ⟨λ _ ⟨j, h⟩, (@irrefl _ (j_adjacent j) _ _) h⟩
 
+/-- j-adjacency is symmetric. -/
 theorem j_adjacent.symm : j_adjacent j Φ Ψ → j_adjacent j Ψ Φ :=
 by intros h i; rw ←(h i); exact eq_comm
 
+/-- Adjacency is symmetric. -/
 theorem adjacent.symm : adjacent Φ Ψ → adjacent Ψ Φ :=
 λ ⟨j, h⟩, ⟨j, (j_adjacent.symm j _ _) h⟩
 

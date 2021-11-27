@@ -181,15 +181,15 @@ lemma glue_condition (i j : D.ι) :
   D.t i j ≫ D.f j i ≫ D.imm j = D.f i j ≫ D.imm i :=
 (category.assoc _ _ _).symm.trans (multicoequalizer.condition D.diagram ⟨i, j⟩).symm
 
+def V_pullback_cone (i j : D.ι) : pullback_cone (D.imm i) (D.imm j) :=
+pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simp)
+
 variables [has_coproducts C]
 
 /-- (Implementation) The projection `∐ D.U ⟶ D.glued` given by the colimit. -/
 def π : D.sigma_opens ⟶ D.glued := multicoequalizer.sigma_π D.diagram
 
 instance π_epi : epi D.π := by { unfold π, apply_instance }
-
-def V_pullback_cone (i j : D.ι) : pullback_cone (D.imm i) (D.imm j) :=
-pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simp)
 
 end
 

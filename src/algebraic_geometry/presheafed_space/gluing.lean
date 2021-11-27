@@ -412,10 +412,7 @@ is_open_immersion (D' .imm i) :=
 { base_open := D.imm_open_embedding i,
   c_iso := λ U, by { erw ← colimit_presheaf_obj_iso_pointwise_limit_hom_π, apply_instance } }
 
-def V_pullback_cone (i j : D.ι) : pullback_cone (D' .imm i) (D' .imm j) :=
-pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simp)
-
-def V_pullback_cone_is_limit (i j : D.ι) : is_limit (D.V_pullback_cone i j) :=
+def V_pullback_cone_is_limit (i j : D.ι) : is_limit (D' .V_pullback_cone i j) :=
 pullback_cone.is_limit_aux' _ $ λ s,
 begin
   fsplit,
@@ -437,7 +434,7 @@ begin
   split,
   { rw [← cancel_mono (D' .imm j), category.assoc],
     conv_rhs { rw ← s.condition },
-    rw [← (D.V_pullback_cone i j).condition],
+    rw [← (D' .V_pullback_cone i j).condition],
     erw is_open_immersion.lift_fac_assoc },
   { intros m e₁ e₂,
     rw ← cancel_mono (D.f i j),
@@ -491,6 +488,10 @@ lemma imm_jointly_surjective (x : D' .glued) :
   ∃ (i : D.ι) (y : D.U i), (D' .imm i).base y = x :=
 D' .imm_jointly_surjective (SheafedSpace.forget _ ⋙ category_theory.forget Top) x
 
+def V_pullback_cone_is_limit (i j : D.ι) : is_limit (D' .V_pullback_cone i j) :=
+D' .V_pullback_cone_is_limit_of_map forget_to_PresheafedSpace i j
+  (D.to_PresheafedSpace_glue_data.V_pullback_cone_is_limit _ _)
+
 end glue_data
 
 end SheafedSpace
@@ -536,9 +537,8 @@ D' .imm_jointly_surjective ((LocallyRingedSpace.forget_to_SheafedSpace ⋙
   SheafedSpace.forget _) ⋙ forget Top) x
 
 def V_pullback_cone_is_limit (i j : D.ι) : is_limit (D' .V_pullback_cone i j) :=
-D' .V_pullback_cone_is_limit_of_map
-  (LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace)
-  i j
+D' .V_pullback_cone_is_limit_of_map forget_to_SheafedSpace i j
+  (D.to_SheafedSpace_glue_data.V_pullback_cone_is_limit _ _)
 
 end glue_data
 
@@ -564,50 +564,67 @@ abbreviation to_LocallyRingedSpace_glue_data : LocallyRingedSpace.glue_data :=
 { f_open := D.f_open,
   to_glue_data := D' .map_glue_data forget }
 
-def diagram_iso : D' .diagram.multispan ⋙ forget ≅
-  D.to_LocallyRingedSpace_glue_data.to_glue_data.diagram.multispan :=
-D' .diagram_iso _
-
-def glued : Scheme :=
+def glued_Scheme : Scheme :=
 begin
-  apply LocallyRingedSpace.is_open_immersion.Scheme D.to_LocallyRingedSpace_glue_data.glued,
+  apply LocallyRingedSpace.is_open_immersion.Scheme
+    D.to_LocallyRingedSpace_glue_data.to_glue_data.glued,
   intro x,
   apply nonempty.some,
   rcases D.to_LocallyRingedSpace_glue_data.imm_jointly_surjective x with ⟨i, y, rfl⟩,
   rcases (D.U i).mem_cover y with ⟨z, z_eq⟩,
   constructor,
   fsplit,
-  { exact (costructured_arrow.map (D.to_LocallyRingedSpace_glue_data.imm i)).obj
+  { exact (costructured_arrow.map (D.to_LocallyRingedSpace_glue_data.to_glue_data.imm i)).obj
       ((costructured_arrow.post Spec forget _).obj ((D.U i).cover y)) },
   split,
   { conv_lhs { rw ← z_eq },
     exact set.mem_range_self z },
   dsimp,
+  change LocallyRingedSpace.is_open_immersion
+    (_ ≫ D.to_LocallyRingedSpace_glue_data.to_glue_data.imm i),
   apply_instance
 end
 
-def imm (i : D.ι) : D.U i ⟶ D.glued :=
-D.to_LocallyRingedSpace_glue_data.imm i
+instance : creates_colimit D.to_glue_data.diagram.multispan forget :=
+creates_colimit_of_fully_faithful_of_iso D.glued_Scheme
+  (has_colimit.iso_of_nat_iso (D' .diagram_iso forget).symm)
+
+instance : has_multicoequalizer D.to_glue_data.diagram :=
+has_colimit_of_created _ forget
+
+abbreviation glued := D' .glued
+abbreviation imm := D' .imm
+
+abbreviation iso_LocallyRingedSpace : D.glued.to_LocallyRingedSpace ≅
+  D.to_LocallyRingedSpace_glue_data.to_glue_data.glued :=
+D' .glued_iso forget
+
+lemma imm_iso_LocallyRingedSpace_inv (i : D.ι) :
+  D.to_LocallyRingedSpace_glue_data.to_glue_data.imm i ≫
+    D.iso_LocallyRingedSpace.inv = D' .imm i :=
+D' .imm_glued_iso_inv forget i
 
 instance imm_is_open_immersion (i : D.ι) :
-is_open_immersion (D.imm i) := by { delta imm, apply_instance }
+is_open_immersion (D' .imm i) :=
+by { rw ← D.imm_iso_LocallyRingedSpace_inv, apply_instance }
 
-lemma imm_jointly_surjective (x : D.glued.carrier) :
+lemma imm_jointly_surjective (x : D' .glued.carrier) :
   ∃ (i : D.ι) (y : (D.U i).carrier), (D.imm i).1.base y = x :=
-D.to_LocallyRingedSpace_glue_data.imm_jointly_surjective x
+D' .imm_jointly_surjective (forget ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙
+  SheafedSpace.forget _ ⋙ category_theory.forget Top)
 
 @[simp, reassoc]
 lemma glue_condition (i j : D.ι) :
   D.t i j ≫ D.f j i ≫ D.imm j = D.f i j ≫ D.imm i :=
-D.to_LocallyRingedSpace_glue_data.glue_condition i j
+D' .glue_condition i j
 
 def V_pullback_cone (i j : D.ι) : pullback_cone (D.imm i) (D.imm j) :=
 pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simp)
 
 def V_pullback_cone_is_limit (i j : D.ι) :
   is_limit (D.V_pullback_cone i j) :=
-is_limit_of_is_limit_pullback_cone_map forget _
-  (D.to_LocallyRingedSpace_glue_data.V_pullback_cone_is_limit i j)
+D' .V_pullback_cone_is_limit_of_map forget i j
+  (D.to_LocallyRingedSpace_glue_data.V_pullback_cone_is_limit _ _)
 
 end glue_data
 

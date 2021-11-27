@@ -276,8 +276,7 @@ def imm_glued_iso_inv (i : D.ι) :
   (D.map_glue_data F).imm i ≫ (D.glued_iso F).inv = F.map (D.imm i) :=
 by rw [iso.comp_inv_eq, imm_glued_iso_hom]
 
-def V_pullback_cone_is_limit_of_map [has_coproducts C] [has_coproducts C']
-  (i j : D.ι) [reflects_limit (cospan (D.imm i) (D.imm j)) F]
+def V_pullback_cone_is_limit_of_map (i j : D.ι) [reflects_limit (cospan (D.imm i) (D.imm j)) F]
   (hc : is_limit ((D.map_glue_data F).V_pullback_cone i j)) :
   is_limit (D.V_pullback_cone i j) :=
 begin

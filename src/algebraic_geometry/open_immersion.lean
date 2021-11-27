@@ -1239,19 +1239,34 @@ creates_limit_of_fully_faithful_of_iso
     (@pullback.fst LocallyRingedSpace _ _ _ _ g f _).1)
   (eq_to_iso (by simp) ≪≫ has_limit.iso_of_nat_iso (diagram_iso_cospan _).symm)
 
-instance SheafedSpace_forget_preserves_of_left :
+instance forget_preserves_of_left :
   preserves_limit (cospan f g) Scheme.forget :=
 category_theory.preserves_limit_of_creates_limit_and_has_limit _ _
 
-instance SheafedSpace_forget_preserves_of_right :
+instance forget_preserves_of_right :
   preserves_limit (cospan g f) Scheme.forget :=
 preserves_pullback_symmetry _ _ _
 
-instance SheafedSpace_has_pullback_of_left : has_pullback f g :=
+instance has_pullback_of_left : has_pullback f g :=
 has_limit_of_created (cospan f g) Scheme.forget
 
-instance SheafedSpace_has_pullback_of_right : has_pullback g f :=
+instance has_pullback_of_right : has_pullback g f :=
 has_limit_of_created (cospan g f) Scheme.forget
+
+instance forget_to_PresheafedSpace_preserves_of_left :
+  preserves_limit (cospan f g) (Scheme.forget ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙
+  SheafedSpace.forget_to_PresheafedSpace) :=
+begin
+  apply_with limits.comp_preserves_limit { instances := ff },
+  apply_instance,
+  apply preserves_limit_of_iso_diagram _ (diagram_iso_cospan _).symm,
+  dsimp,
+  apply_instance
+end
+
+instance forget_to_PresheafedSpace_preserves_of_right :
+  preserves_limit (cospan g f) (Scheme.forget ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙
+  SheafedSpace.forget_to_PresheafedSpace) := preserves_pullback_symmetry _ _ _
 
 end is_open_immersion
 

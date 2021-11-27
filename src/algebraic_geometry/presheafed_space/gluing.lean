@@ -610,8 +610,8 @@ by { rw ← D.imm_iso_LocallyRingedSpace_inv, apply_instance }
 
 lemma imm_jointly_surjective (x : D' .glued.carrier) :
   ∃ (i : D.ι) (y : (D.U i).carrier), (D.imm i).1.base y = x :=
-D' .imm_jointly_surjective (forget ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙
-  SheafedSpace.forget _ ⋙ category_theory.forget Top)
+D' .imm_jointly_surjective ((forget ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙
+  SheafedSpace.forget_to_PresheafedSpace) ⋙ PresheafedSpace.forget _ ⋙ category_theory.forget Top)
 
 @[simp, reassoc]
 lemma glue_condition (i j : D.ι) :
@@ -625,6 +625,7 @@ def V_pullback_cone_is_limit (i j : D.ι) :
   is_limit (D.V_pullback_cone i j) :=
 D' .V_pullback_cone_is_limit_of_map forget i j
   (D.to_LocallyRingedSpace_glue_data.V_pullback_cone_is_limit _ _)
+
 
 end glue_data
 

@@ -319,7 +319,7 @@ end
 instance : has_scalar (automorphism α) (flag α) :=
 ⟨λ γ Φ, ⟨γ.smul_def Φ, γ.smul_is_max_chain Φ⟩⟩
 
-@[reducible, simp]
+@[simp]
 theorem smul_def.eq' (γ : automorphism α) (Φ : flag α) : (γ • Φ).val = γ.hom '' Φ.val :=
 rfl
 

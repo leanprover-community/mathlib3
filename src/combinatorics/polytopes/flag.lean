@@ -1037,7 +1037,7 @@ end
 
 section
 
-variables (α : Type u) [partial_order α] [graded α] {x y : α} (hxy : x ≤ y)
+variables (α : Type u) [partial_order α] [graded α]
 
 /-- A graded poset is strongly connected when all sections are connected. -/
 def strong_connected : Prop :=

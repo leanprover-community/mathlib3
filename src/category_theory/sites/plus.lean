@@ -50,6 +50,8 @@ def diagram_pullback {X Y : C} (f : X ⟶ Y) :
       λ I, multiequalizer.condition (S.unop.index P) I.base,
   naturality' := λ S T f, by { ext, dsimp, simpa } }
 
+/-- A natural transformation `P ⟶ Q` induces a natural transformation
+between diagrams whose colimits define the values of `plus`. -/
 @[simps]
 def diagram_nat_trans {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (X : C) :
   J.diagram P X ⟶ J.diagram Q X :=

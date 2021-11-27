@@ -104,8 +104,10 @@ univ_nonempty_iff.2 ‹_›
 lemma univ_eq_empty_iff : (univ : finset α) = ∅ ↔ is_empty α :=
 by rw [← not_nonempty_iff, ← univ_nonempty_iff, not_nonempty_iff_eq_empty]
 
-lemma univ_eq_empty [is_empty α] : (univ : finset α) = ∅ :=
-univ_eq_empty_iff.2 ‹_›
+@[simp] lemma univ_eq_empty [is_empty α] : (univ : finset α) = ∅ := univ_eq_empty_iff.2 ‹_›
+
+@[simp] lemma univ_unique [unique α] : (univ : finset α) = {default α} :=
+finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.elim x $ default α
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
@@ -562,8 +564,8 @@ subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
-arbitrary `fintype` instances, use `fintype.univ_is_empty`. -/
--- no-lint since while `fintype.of_is_empty` can prove this, it isn't applicable for `dsimp`.
+arbitrary `fintype` instances, use `finset.univ_eq_empty`. -/
+-- no-lint since while `finset.univ_eq_empty` can prove this, it isn't applicable for `dsimp`.
 @[simp, nolint simp_nf] theorem univ_of_is_empty [is_empty α] : @univ α _ = ∅ := rfl
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
@@ -734,12 +736,6 @@ fintype.subtype {y} (by simp)
 since that relies on a subsingleton elimination for `unique`. -/
 instance fintype.subtype_eq' (y : α) : fintype {x // y = x} :=
 fintype.subtype {y} (by simp [eq_comm])
-
-@[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
-by rw [subsingleton.elim f (@unique.fintype α _)]; refl
-
-@[simp] lemma univ_is_empty {α : Type*} [is_empty α] [fintype α] : @finset.univ α _ = ∅ :=
-finset.ext is_empty_elim
 
 @[simp] lemma fintype.card_subtype_eq (y : α) [fintype {x // x = y}] :
   fintype.card {x // x = y} = 1 :=

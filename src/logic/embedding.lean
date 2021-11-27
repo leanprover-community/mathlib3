@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.equiv.basic
 import data.set.basic
 import data.sigma.basic
+import data.pprod
 
 /-!
 # Injective functions
@@ -190,6 +191,10 @@ def prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ×
 @[simp] lemma coe_prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) :
   ⇑(e₁.prod_map e₂) = prod.map e₁ e₂ :=
 rfl
+
+/-- If `e₁` and `e₂` are embeddings, then so is `λ ⟨a, b⟩, ⟨e₁ a, e₂ b⟩ : pprod α γ → pprod β δ`. -/
+def pprod_map {α β γ δ : Sort*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : pprod α γ ↪ pprod β δ :=
+⟨λ x, ⟨e₁ x.1, e₂ x.2⟩, e₁.injective.pprod_map e₂.injective⟩
 
 section sum
 open sum

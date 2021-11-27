@@ -6,6 +6,8 @@ Authors: Andrew Yang
 import tactic.elementwise
 import category_theory.limits.shapes.multiequalizer
 import category_theory.limits.constructions.epi_mono
+import category_theory.limits.preserves.limits
+import category_theory.limits.shapes.types
 
 /-!
 # Gluing Topological spaces
@@ -179,13 +181,33 @@ lemma glue_condition (i j : D.ι) :
   D.t i j ≫ D.f j i ≫ D.imm j = D.f i j ≫ D.imm i :=
 (category.assoc _ _ _).symm.trans (multicoequalizer.condition D.diagram ⟨i, j⟩).symm
 
-variables [has_colimits C]
+def V_pullback_cone (i j : D.ι) : pullback_cone (D.imm i) (D.imm j) :=
+pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simp)
+
+variables [has_coproducts C]
 
 /-- (Implementation) The projection `∐ D.U ⟶ D.glued` given by the colimit. -/
 def π : D.sigma_opens ⟶ D.glued := multicoequalizer.sigma_π D.diagram
 
 instance π_epi : epi D.π := by { unfold π, apply_instance }
 
+end
+
+lemma types_π_surjective (D : glue_data Type*) :
+  function.surjective D.π := (epi_iff_surjective _).mp infer_instance
+
+lemma types_imm_jointly_surjective (D : glue_data Type*) (x : D.glued) :
+  ∃ i (y : D.U i), D.imm i y = x :=
+begin
+  delta category_theory.glue_data.imm,
+  simp_rw ← multicoequalizer.ι_sigma_π D.diagram,
+  rcases D.types_π_surjective x with ⟨x', rfl⟩,
+  have := colimit.iso_colimit_cocone (types.coproduct_colimit_cocone _),
+  rw ← (show (colimit.iso_colimit_cocone (types.coproduct_colimit_cocone _)).inv _ = x',
+    from concrete_category.congr_hom
+      ((colimit.iso_colimit_cocone (types.coproduct_colimit_cocone _)).hom_inv_id) x'),
+  rcases (colimit.iso_colimit_cocone (types.coproduct_colimit_cocone _)).hom x' with ⟨i, y⟩,
+  exact ⟨i, y, by { simpa [← multicoequalizer.ι_sigma_π, -multicoequalizer.ι_sigma_π] }⟩
 end
 
 variables (F : C ⥤ C') [H : ∀ i j k, preserves_limit (cospan (D.f i j) (D.f i k)) F]
@@ -226,6 +248,66 @@ nat_iso.of_components
       try { erw functor.map_comp },
       refl },
   end)
+
+variables [has_multicoequalizer D.diagram] [preserves_colimit D.diagram.multispan F]
+
+lemma has_colimit_multispan_comp : has_colimit (D.diagram.multispan ⋙ F) :=
+⟨⟨⟨_,preserves_colimit.preserves (colimit.is_colimit _)⟩⟩⟩
+
+local attribute [instance] has_colimit_multispan_comp
+
+lemma has_colimit_map_glue_data_diagram : has_multicoequalizer (D.map_glue_data F).diagram :=
+has_colimit_of_iso (D.diagram_iso F).symm
+
+local attribute [instance] has_colimit_map_glue_data_diagram
+
+def glued_iso : F.obj D.glued ≅ (D.map_glue_data F).glued :=
+preserves_colimit_iso F D.diagram.multispan ≪≫
+  (limits.has_colimit.iso_of_nat_iso (D.diagram_iso F))
+
+@[simp, reassoc]
+def imm_glued_iso_hom (i : D.ι) :
+  F.map (D.imm i) ≫ (D.glued_iso F).hom = (D.map_glue_data F).imm i :=
+by { erw ι_preserves_colimits_iso_hom_assoc, rw has_colimit.iso_of_nat_iso_ι_hom,
+  erw category.id_comp, refl }
+
+@[simp, reassoc]
+def imm_glued_iso_inv (i : D.ι) :
+  (D.map_glue_data F).imm i ≫ (D.glued_iso F).inv = F.map (D.imm i) :=
+by rw [iso.comp_inv_eq, imm_glued_iso_hom]
+
+def V_pullback_cone_is_limit_of_map (i j : D.ι) [reflects_limit (cospan (D.imm i) (D.imm j)) F]
+  (hc : is_limit ((D.map_glue_data F).V_pullback_cone i j)) :
+  is_limit (D.V_pullback_cone i j) :=
+begin
+  apply is_limit_of_reflects F,
+  apply (is_limit_map_cone_pullback_cone_equiv _ _).symm _,
+  let e : cospan (F.map (D.imm i)) (F.map (D.imm j)) ≅
+    cospan ((D.map_glue_data F).imm i) ((D.map_glue_data F).imm j),
+  exact nat_iso.of_components
+    (λ x, by { cases x, exacts [D.glued_iso F, iso.refl _] })
+    (by rintros (_|_) (_|_) (_|_|_); simp),
+  apply is_limit.postcompose_hom_equiv e _ _,
+  apply hc.of_iso_limit,
+  refine cones.ext (iso.refl _) _,
+  { rintro (_|_|_),
+    change _ = _ ≫ (_ ≫ _) ≫ _,
+    all_goals { change _ = 𝟙 _ ≫ _ ≫ _, simpa } }
+end
+
+omit H
+
+def imm_jointly_surjective (F : C ⥤ Type*) [preserves_colimit D.diagram.multispan F]
+  [Π (i j k : D.ι), preserves_limit (cospan (D.f i j) (D.f i k)) F] (x : F.obj (D.glued)) :
+  ∃ i (y : F.obj (D.U i)), F.map (D.imm i) y = x :=
+begin
+  let e := D.glued_iso F,
+  obtain ⟨i, y, eq⟩ := (D.map_glue_data F).types_imm_jointly_surjective (e.hom x),
+  replace eq := congr_arg e.inv eq,
+  change ((D.map_glue_data F).imm i ≫ e.inv) y = (e.hom ≫ e.inv) x at eq,
+  rw [e.hom_inv_id, D.imm_glued_iso_inv] at eq,
+  exact ⟨i, y, eq⟩
+end
 
 end glue_data
 

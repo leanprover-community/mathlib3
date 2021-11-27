@@ -516,6 +516,9 @@ variables {C : Type u} [category.{v} C] [limits.has_products C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 
+lemma is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=
+is_terminal_of_bot_cover ((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F) ∅ (by tidy)
+
 /-- If a family `B` of open sets forms a basis of the topology on `X`, and if `F'`
     is a sheaf on `X`, then a homomorphism between a presheaf `F` on `X` and `F'`
     is equivalent to a homomorphism between their restrictions to the indexing type

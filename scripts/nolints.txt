@@ -360,7 +360,7 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/stream/init.lean
+-- data/stream/defs.lean
 apply_nolint stream doc_blame
 apply_nolint stream.all doc_blame
 apply_nolint stream.any doc_blame
@@ -379,7 +379,6 @@ apply_nolint stream.head doc_blame
 apply_nolint stream.inits doc_blame
 apply_nolint stream.inits_core doc_blame
 apply_nolint stream.interleave doc_blame
-apply_nolint stream.is_bisimulation doc_blame
 apply_nolint stream.iterate doc_blame
 apply_nolint stream.map doc_blame
 apply_nolint stream.mem doc_blame
@@ -391,6 +390,9 @@ apply_nolint stream.tail doc_blame
 apply_nolint stream.tails doc_blame
 apply_nolint stream.unfolds doc_blame
 apply_nolint stream.zip doc_blame
+
+-- data/stream/init.lean
+apply_nolint stream.is_bisimulation doc_blame
 
 -- data/vector3.lean
 apply_nolint vector3 has_inhabited_instance

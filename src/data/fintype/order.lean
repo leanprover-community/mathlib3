@@ -85,16 +85,13 @@ noncomputable def fintype.to_complete_linear_order [h : linear_order α] : compl
 { .. fintype.to_complete_lattice_of_lattice α,
   .. h }
 
-noncomputable instance fin.complete_linear_order {n : ℕ} : complete_linear_order (fin (n + 1)) :=
-fintype.to_complete_linear_order _
-
 end nonempty
 
 section decidable_Sup_Inf
-
-local attribute [instance] fintype.to_complete_lattice
-
 variables {ι α : Type*} [fintype ι] [fintype α] [lattice α] [bounded_order α]
+
+-- this line is crucially *after* the `variables` so that `bounded_order` gets filled in correctly
+local attribute [instance] fintype.to_complete_lattice
 
 /-- The `Sup` induced by `fintype.to_complete_lattice` unfolds to `finset.sup`. -/
 lemma fintype.Sup_eq (s : set α) [decidable_pred (∈ s)] : Sup s = s.to_finset.sup id :=
@@ -119,3 +116,25 @@ begin
 end
 
 end decidable_Sup_Inf
+
+/-! ### `fin` -/
+
+variables {ι : Type*} [fintype ι] {n : ℕ}
+
+noncomputable instance fin.complete_linear_order : complete_linear_order (fin (n + 1)) :=
+{ .. fintype.to_complete_lattice _,
+  .. fin.linear_order }
+
+/-- The `Sup` induced by `fintype.to_complete_lattice` unfolds to `finset.sup`. -/
+lemma fin.Sup_eq (s : set (fin (n + 1))) [decidable_pred (∈ s)] : Sup s = s.to_finset.sup id :=
+fintype.Sup_eq s
+
+/-- The `Inf` induced by `fintype.to_complete_lattice` unfolds to `finset.inf`. -/
+lemma fin.Inf_eq (s : set (fin (n + 1))) [decidable_pred (∈ s)] : Inf s = s.to_finset.inf id :=
+fintype.Inf_eq s
+
+/-- The `supr` induced by `fintype.to_complete_lattice` unfolds to `finset.sup`. -/
+lemma fin.supr_eq (f : ι → (fin (n + 1))) : supr f = finset.univ.sup f := fintype.supr_eq _
+
+/-- The `infi` induced by `fintype.to_complete_lattice` unfolds to `finset.sup`. -/
+lemma fin.infi_eq (f : ι → (fin (n + 1))) : infi f = finset.univ.inf f := fintype.infi_eq _

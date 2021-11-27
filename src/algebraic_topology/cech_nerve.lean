@@ -110,7 +110,7 @@ def equivalence_right_to_left (X : simplicial_object.augmented C) (F : arrow C)
   w' := begin
     have := G.w,
     apply_fun (λ e, e.app (opposite.op $ simplex_category.mk 0)) at this,
-    tidy,
+    simpa using this,
   end }
 
 /-- A helper function used in defining the Čech adjunction. -/
@@ -119,7 +119,10 @@ def equivalence_left_to_right (X : simplicial_object.augmented C) (F : arrow C)
   (G : augmented.to_arrow.obj X ⟶ F) : X ⟶ F.augmented_cech_nerve :=
 { left :=
   { app := λ x, limits.wide_pullback.lift (X.hom.app _ ≫ G.right)
-      (λ i, X.left.map (simplex_category.const x.unop i.down).op ≫ G.left) (by tidy),
+      (λ i, X.left.map (simplex_category.const x.unop i.down).op ≫ G.left)
+      (λ i, by { dsimp, erw [category.assoc, arrow.w,
+        augmented.to_arrow_obj_hom, nat_trans.naturality_assoc,
+        functor.const.obj_map, category.id_comp] } ),
     naturality' := begin
       intros x y f,
       ext,
@@ -132,7 +135,8 @@ def equivalence_left_to_right (X : simplicial_object.augmented C) (F : arrow C)
           wide_pullback.lift_base, category.assoc],
         erw category.id_comp }
     end },
-  right := G.right }
+  right := G.right,
+  w' := by { ext, dsimp, simp } }
 
 /-- A helper function used in defining the Čech adjunction. -/
 @[simps]
@@ -295,7 +299,8 @@ def equivalence_right_to_left (F : arrow C) (X : cosimplicial_object.augmented C
         simp only [functor.const.obj_map, ←nat_trans.naturality,
           wide_pushout.head_desc_assoc, wide_pushout.head_desc, category.assoc],
         erw category.id_comp }
-    end }, }
+    end },
+  w' := by { ext, dsimp, simp } }
 
 /-- A helper function used in defining the Čech conerve adjunction. -/
 @[simps]

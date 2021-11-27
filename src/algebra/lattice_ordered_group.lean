@@ -553,4 +553,31 @@ begin
     apply lattice_ordered_comm_group.inv_le_abs, }
 end
 
+-- |a - b| = |b - a|
+@[to_additive]
+lemma abs_inv_invariant (a b : α) : |a/b| = |b/a| :=
+begin
+  unfold has_abs.abs,
+  rw [inv_div' a b, ← inv_inv (a / b), inv_div', sup_comm],
+end
+
+-- | |a| - |b| | ≤ |a - b|
+@[to_additive]
+lemma abs_abs_div_abs_le [covariant_class α α (*) (≤)] (a b : α) : | |a| / |b| | ≤ |a / b| :=
+begin
+  unfold has_abs.abs,
+  rw sup_le_iff,
+  split,
+  { apply div_le_iff_le_mul.2,
+    convert mabs_triangle (a/b) b,
+    { rw div_mul_cancel', },
+    { rw div_mul_cancel', },
+    { exact covariant_swap_mul_le_of_covariant_mul_le α, } },
+  { rw [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_le_iff_le_mul, ← abs_eq_sup_inv (a / b),
+      abs_inv_invariant],
+    convert  mabs_triangle (b/a) a,
+    { rw div_mul_cancel', },
+    {rw div_mul_cancel', } },
+end
+
 end lattice_ordered_comm_group

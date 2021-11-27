@@ -754,9 +754,9 @@ end flag
 /-- Two elements of a type are connected by a relation when there exists a path of connected
     elements. This is essentially an inductive version of an equivalence closure. -/
  -- Todo(Vi): If someone else comes up with connected graphs sometime, we might want to rework this.
-inductive connected_aux {α : Type u} (r : α → α → Prop) : α → α → Prop
-| start (x : α) : connected_aux x x
-| next (x y z : α) : connected_aux x y → r y z → connected_aux x z
+inductive polytope.connected_aux {α : Type u} (r : α → α → Prop) : α → α → Prop
+| start (x : α) : polytope.connected_aux x x
+| next (x y z : α) : polytope.connected_aux x y → r y z → polytope.connected_aux x z
 
 namespace connected_aux
 section
@@ -835,26 +835,28 @@ end
 
 /-- A proper element is one that's neither minimal nor maximal. -/
 @[reducible]
-def proper (α : Type u) [preorder α] [bounded_order α] : Type u :=
+def polytope.proper (α : Type u) [preorder α] [bounded_order α] : Type u :=
 {a : α // is_proper a}
 
 /-- Elements are incident when they're comparable. -/
-abbreviation incident {α : Type u} [preorder α] [bounded_order α] (a b : proper α) : Prop :=
+abbreviation polytope.incident {α : Type u} [preorder α] [bounded_order α]
+  (a b : polytope.proper α) : Prop :=
 a.val ≤ b.val ∨ b.val ≤ a.val
 
 /-- Proper elements are connected when they're related by a sequence of pairwise incident proper
     elements. -/
-abbreviation connected {α : Type u} [preorder α] [bounded_order α] (a b : proper α) : Prop :=
-connected_aux incident a b
+abbreviation polytope.connected {α : Type u} [preorder α] [bounded_order α]
+  (a b : polytope.proper α) : Prop :=
+connected_aux polytope.incident a b
 
 /-- Flags are connected when they're related by a sequence of pairwise adjacent flags. -/
-abbreviation flag_connected {α : Type u} [partial_order α] [order_top α] [graded α] (Φ Ψ : flag α) :
-  Prop :=
+abbreviation polytope.flag_connected {α : Type u} [partial_order α] [order_top α] [graded α]
+  (Φ Ψ : flag α) : Prop :=
 connected_aux (@flag.adjacent α _ _ _) Φ Ψ
 
 /-- A `graded` with top grade 1 or less has no proper elements. -/
 theorem proper.empty {α : Type u} [partial_order α] [order_top α] [graded α] :
-  graded.grade_top α ≤ 1 → is_empty (proper α) :=
+  graded.grade_top α ≤ 1 → is_empty (polytope.proper α) :=
 begin
   intro h,
   split,
@@ -865,8 +867,8 @@ begin
 end
 
 lemma proper.nonempty (α : Type u) [partial_order α] [order_top α] [graded α]
-(h : 2 ≤ graded.grade_top α) :
-  nonempty (proper α) :=
+  (h : 2 ≤ graded.grade_top α) :
+  nonempty (polytope.proper α) :=
 begin
   let a := (flag.idx ⟨1, nat.lt.step h⟩ (default (flag α))).val,
   have ha : grade a = 1 := flag.grade_idx _ _,
@@ -874,6 +876,8 @@ begin
   rw [proper_iff_grade_iio, ha],
   exact ⟨nat.one_pos, nat.lt_of_succ_le h⟩
 end
+
+open polytope
 
 namespace graded
 

@@ -34,11 +34,14 @@ variables {J : grothendieck_topology C}
 variables {U : C} (R : presieve U)
 variables (F : A ⥤ B)
 
+namespace grothendieck_topology.cover
+
+variables (P : Cᵒᵖ ⥤ A) {X : C} (S : J.cover X)
+
 /-- The multicospan associated to a cover `S : J.cover X` and a presheaf of the form `P ⋙ F`
 is isomorphic to the composition of the multicospan associated to `S` and `P`,
 composed with `F`. -/
-def grothendieck_topology.cover.multicospan_comp (P : Cᵒᵖ ⥤ A) {X : C} (S : J.cover X) :
-  (S.index (P ⋙ F)).multicospan ≅ (S.index P).multicospan ⋙ F :=
+def multicospan_comp : (S.index (P ⋙ F)).multicospan ≅ (S.index P).multicospan ⋙ F :=
 nat_iso.of_components (λ t,
 match t with
 | walking_multicospan.left a := eq_to_iso rfl
@@ -49,37 +52,30 @@ end) begin
   any_goals { dsimp, erw [category.comp_id, category.id_comp], refl }
 end
 
-@[simp]
-lemma grothendieck_topology.cover.multicospan_comp_app_left (P : Cᵒᵖ ⥤ A) {X : C}
-  (S : J.cover X) (a) : (S.multicospan_comp F P).app (walking_multicospan.left a) =
-  eq_to_iso rfl := rfl
+@[simp] lemma multicospan_comp_app_left (a) :
+  (S.multicospan_comp F P).app (walking_multicospan.left a) = eq_to_iso rfl := rfl
 
-@[simp]
-lemma grothendieck_topology.cover.multicospan_comp_app_right (P : Cᵒᵖ ⥤ A) {X : C}
-  (S : J.cover X) (b) : (S.multicospan_comp F P).app (walking_multicospan.right b) =
-  eq_to_iso rfl := rfl
+@[simp] lemma multicospan_comp_app_right (b) :
+  (S.multicospan_comp F P).app (walking_multicospan.right b) = eq_to_iso rfl := rfl
 
-@[simp]
-lemma grothendieck_topology.cover.multicospan_comp_hom_app_left (P : Cᵒᵖ ⥤ A) {X : C}
-  (S : J.cover X) (a) : (S.multicospan_comp F P).hom.app (walking_multicospan.left a) =
-  eq_to_hom rfl := rfl
+@[simp] lemma multicospan_comp_hom_app_left (a) :
+  (S.multicospan_comp F P).hom.app (walking_multicospan.left a) = eq_to_hom rfl := rfl
 
-@[simp]
-lemma grothendieck_topology.cover.multicospan_comp_hom_app_right (P : Cᵒᵖ ⥤ A) {X : C}
-  (S : J.cover X) (b) : (S.multicospan_comp F P).hom.app (walking_multicospan.right b) =
-  eq_to_hom rfl := rfl
+@[simp] lemma multicospan_comp_hom_app_right (b) :
+  (S.multicospan_comp F P).hom.app (walking_multicospan.right b) = eq_to_hom rfl := rfl
 
 /-- Mapping the multifork associated to a cover `S : J.cover X` and a presheaf `P` with
 respect to a functor `F` is isomorphic (upto a natural isomorphism of the underlying functors)
 to the multifork associated to `S` and `P ⋙ F`. -/
-def grothendieck_topology.cover.map_multifork (P : Cᵒᵖ ⥤ A) {X : C} (S : J.cover X) :
-  F.map_cone (S.multifork P) ≅ (limits.cones.postcompose
+def map_multifork : F.map_cone (S.multifork P) ≅ (limits.cones.postcompose
     (S.multicospan_comp F P).hom).obj (S.multifork (P ⋙ F)) :=
 cones.ext (eq_to_iso rfl) begin
   rintros (a|b),
   { dsimp, simpa },
   { dsimp, simp, dsimp [multifork.of_ι], simpa }
 end
+
+end grothendieck_topology.cover
 
 variables [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan F]
 

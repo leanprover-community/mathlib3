@@ -989,6 +989,11 @@ instance forget_preserves_pullback_of_right :
   preserves_limit (cospan g f) LocallyRingedSpace.forget_to_SheafedSpace :=
 preserves_pullback_symmetry _ _ _
 
+instance forget_to_PresheafedSpace_preserves_pullback_of_right :
+  preserves_limit (cospan g f) (LocallyRingedSpace.forget_to_SheafedSpace ⋙
+    SheafedSpace.forget_to_PresheafedSpace) :=
+preserves_pullback_symmetry _ _ _
+
 instance forget_reflects_pullback_of_right :
   reflects_limit (cospan g f) LocallyRingedSpace.forget_to_SheafedSpace :=
 reflects_limit_of_reflects_isomorphisms _ _

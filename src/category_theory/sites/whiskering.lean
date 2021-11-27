@@ -119,7 +119,7 @@ functors between sheaf categories. -/
 def Sheaf_compose_map {F G : A ⥤ B}
   [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan F]
   [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan G]
-  (η : F ⟶ G) : Sheaf_compose J F ⟶  Sheaf_compose J G :=
+  (η : F ⟶ G) : Sheaf_compose J F ⟶ Sheaf_compose J G :=
 { app := λ X, whisker_left _ η,
   naturality' := λ X Y f, by { ext, apply η.naturality } }
 

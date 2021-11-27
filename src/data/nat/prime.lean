@@ -613,6 +613,20 @@ begin
   exact le_antisymm h (not_le.1 ((not_congr (pow_dvd_pow_iff_le_right (prime.one_lt pp))).1 h₁)),
 end
 
+lemma ne_one_iff_exists_prime_dvd : ∀ {n}, n ≠ 1 ↔ ∃ p : ℕ, p.prime ∧ p ∣ n
+| 0 := by simpa using (Exists.intro 2 nat.prime_two)
+| 1 := by simp [nat.not_prime_one]
+| (n+2) :=
+let a := n+2 in
+let ha : a ≠ 1 := nat.succ_succ_ne_one n in
+begin
+  simp only [true_iff, ne.def, not_false_iff, ha],
+  exact ⟨a.min_fac, nat.min_fac_prime ha, a.min_fac_dvd⟩,
+end
+
+lemma eq_one_iff_not_exists_prime_dvd {n : ℕ} : n = 1 ↔ ∀ p : ℕ, p.prime → ¬p ∣ n :=
+by simpa using not_iff_not.mpr ne_one_iff_exists_prime_dvd
+
 section
 open list
 

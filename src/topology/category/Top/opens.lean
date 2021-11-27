@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import topology.opens
 import category_theory.category.preorder
 import category_theory.eq_to_hom
-import topology.category.Top.basic
+import topology.category.Top.epi_mono
 
 /-!
 # The category of open sets in a topological space.
@@ -259,6 +259,14 @@ def is_open_map.adjunction {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
 adjunction.mk_of_unit_counit
 { unit := { app := λ U, hom_of_le $ λ x hxU, ⟨x, hxU, rfl⟩ },
   counit := { app := λ V, hom_of_le $ λ y ⟨x, hfxV, hxy⟩, hxy ▸ hfxV } }
+
+instance is_open_map.functor_full_of_mono {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f)
+  [H : mono f] : full hf.functor :=
+{ preimage := λ U V i, hom_of_le (λ x hx, by
+  { obtain ⟨y, hy, eq⟩ := i.le ⟨x, hx, rfl⟩, exact (Top.mono_iff_injective f).mp H eq ▸ hy }) }
+
+instance is_open_map.functor_faithful {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
+  faithful hf.functor := {}
 
 namespace topological_space.opens
 open topological_space

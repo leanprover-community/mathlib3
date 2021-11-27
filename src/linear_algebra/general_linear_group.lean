@@ -96,6 +96,8 @@ units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
 
 -- Note that without the `@` and `‹_›`, lean infers `λ a b, _inst_1 a b` instead of `_inst_1` as the
 -- decidability argument, which prevents `simp` from obtaining the instance by unification.
+-- These `λ a b, _inst a b` terms also appear in the type of `A`, but simp doesn't get confused by
+-- them so for now we do not care.
 @[simp] lemma coe_to_linear :
   (@to_linear n ‹_› ‹_› _ _ A : (n → R) →ₗ[R] (n → R)) = matrix.mul_vec_lin A :=
 rfl

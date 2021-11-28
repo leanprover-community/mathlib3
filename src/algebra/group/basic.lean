@@ -178,7 +178,7 @@ lemma mul_div_assoc' (a b c : G) : a * (b / c) = (a * b) / c :=
 end div_inv_monoid
 
 section group
-variables {G : Type u} [group G] {a b c : G}
+variables {G : Type u} [group G] {a b c d : G}
 
 @[simp, to_additive]
 lemma inv_mul_cancel_right (a b : G) : a * b⁻¹ * b = a :=
@@ -420,6 +420,9 @@ by rw [div_eq_mul_inv, eq_mul_inv_iff_mul_eq]
 @[to_additive] theorem div_eq_iff_eq_mul : a / b = c ↔ a = c * b :=
 by rw [div_eq_mul_inv, mul_inv_eq_iff_eq_mul]
 
+@[to_additive] theorem eq_iff_eq_of_div_eq_div (H : a / b = c / d) : a = b ↔ c = d :=
+by rw [← div_eq_one, H, div_eq_one]
+
 end group
 
 section add_group
@@ -428,9 +431,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-theorem eq_iff_eq_of_sub_eq_sub (H : a - b = c - d) : a = b ↔ c = d :=
-by rw [← sub_eq_zero, H, sub_eq_zero]
 
 theorem left_inverse_sub_add_left (c : G) : function.left_inverse (λ x, x - c) (λ x, x + c) :=
 assume x, add_sub_cancel x c

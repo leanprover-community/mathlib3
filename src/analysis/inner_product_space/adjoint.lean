@@ -77,8 +77,7 @@ def inner_left_right : (E →L[𝕜] F) →+ F →L⋆[𝕜] E →L[𝕜] 𝕜 :
   map_add' := λ A B, begin
     simp only [continuous_linear_map.comp_add],
     refl,
-  end
-}
+  end }
 
 lemma inner_left_right_apply {A : E →L[𝕜] F} {v : F} {w : E} :
   inner_left_right A v w = ⟪v, A w⟫ := rfl

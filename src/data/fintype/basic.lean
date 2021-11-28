@@ -119,6 +119,7 @@ instance [decidable_eq α] : boolean_algebra (finset α) :=
   top_le_sup_compl := λ s x hx, by simp,
   sdiff_eq := λ s t, by simp [ext_iff, compl],
   ..finset.order_top,
+  ..finset.order_bot,
   ..finset.generalized_boolean_algebra }
 
 lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
@@ -1197,6 +1198,10 @@ begin
   { simp only [pi_finset, mem_map, forall_prop_of_true, exists_prop, mem_univ, mem_pi],
     exact λ hf, ⟨λ a ha, f a, hf, rfl⟩ }
 end
+
+@[simp] lemma coe_pi_finset (t : Π a, finset (δ a)) :
+  (pi_finset t : set (Π a, δ a)) = set.pi set.univ (λ a, t a) :=
+by { ext, simp }
 
 lemma pi_finset_subset (t₁ t₂ : Π a, finset (δ a)) (h : ∀ a, t₁ a ⊆ t₂ a) :
   pi_finset t₁ ⊆ pi_finset t₂ :=

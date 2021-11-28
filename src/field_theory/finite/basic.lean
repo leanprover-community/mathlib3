@@ -304,11 +304,12 @@ open polynomial
 lemma expand_card (f : polynomial K) :
   expand K q f = f ^ q :=
 begin
-  cases char_p.exists K with p hp, letI := hp,
-  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, haveI : fact p.prime := ⟨hp⟩,
-  dsimp at hn, rw hn at *,
-  rw ← map_expand_pow_char,
-  rw [frobenius_pow hn, ring_hom.one_def, map_id],
+  cases char_p.exists K with p hp,
+  letI := hp,
+  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩,
+  haveI : fact p.prime := ⟨hp⟩,
+  dsimp at hn,
+  rw [hn, ← map_expand_pow_char, frobenius_pow hn, ring_hom.one_def, map_id]
 end
 
 end finite_field

@@ -37,7 +37,7 @@ are recorded.
 universe u
 variable {α : Type u}
 
-open finset opposite
+open finset mul_opposite
 
 open_locale big_operators
 
@@ -55,7 +55,10 @@ theorem geom_sum_def [semiring α] (x : α) (n : ℕ) :
   geom_sum x 1 = 1 :=
 by { rw [geom_sum_def, sum_range_one, pow_zero] }
 
-@[simp] lemma op_geom_sum [ring α] (x : α) (n : ℕ) :
+@[simp] lemma one_geom_sum [semiring α] (n : ℕ) : geom_sum (1 : α) n = n :=
+by simp [geom_sum_def]
+
+@[simp] lemma op_geom_sum [semiring α] (x : α) (n : ℕ) :
   op (geom_sum x n) = geom_sum (op x) n :=
 by simp [geom_sum_def]
 
@@ -74,7 +77,7 @@ theorem geom_sum₂_def [semiring α] (x y : α) (n : ℕ) :
 by { have : 1 - 1 - 0 = 0 := rfl,
      rw [geom_sum₂_def, sum_range_one, this, pow_zero, pow_zero, mul_one] }
 
-@[simp] lemma op_geom_sum₂ [ring α] (x y : α) (n : ℕ) :
+@[simp] lemma op_geom_sum₂ [semiring α] (x y : α) (n : ℕ) :
   op (geom_sum₂ x y n) = geom_sum₂ (op y) (op x) n :=
 begin
   simp only [geom_sum₂_def, op_sum, op_mul, op_pow],
@@ -152,7 +155,7 @@ end
 lemma commute.mul_neg_geom_sum₂ [ring α] {x y : α} (h : commute x y) (n : ℕ) :
   (y - x) * (geom_sum₂ x y n) = y ^ n - x ^ n :=
 begin
-  rw ← op_inj_iff,
+  apply op_injective,
   simp only [op_mul, op_sub, op_geom_sum₂, op_pow],
   exact (commute.op h.symm).geom_sum₂_mul n
 end
@@ -175,10 +178,7 @@ end
 
 lemma mul_geom_sum [ring α] (x : α) (n : ℕ) :
   (x - 1) * (geom_sum x n) = x ^ n - 1 :=
-begin
-  rw ← op_inj_iff,
-  simpa using geom_sum_mul (op x) n,
-end
+op_injective $ by simpa using geom_sum_mul (op x) n
 
 theorem geom_sum_mul_neg [ring α] (x : α) (n : ℕ) :
   (geom_sum x n) * (1 - x) = 1 - x ^ n :=
@@ -190,10 +190,7 @@ end
 
 lemma mul_neg_geom_sum [ring α] (x : α) (n : ℕ) :
   (1 - x) * (geom_sum x n) = 1 - x ^ n :=
-begin
-  rw ← op_inj_iff,
-  simpa using geom_sum_mul_neg (op x) n,
-end
+op_injective $ by simpa using geom_sum_mul_neg (op x) n
 
 protected theorem commute.geom_sum₂ [division_ring α] {x y : α} (h' : commute x y) (h : x ≠ y)
   (n : ℕ) : (geom_sum₂ x y n) = (x ^ n - y ^ n) / (x - y) :=
@@ -256,7 +253,7 @@ protected theorem commute.geom_sum₂_Ico_mul [ring α] {x y : α} (h : commute 
   (hmn : m ≤ n) :
   (∑ i in finset.Ico m n, x ^ i * y ^ (n - 1 - i)) * (x - y) = x ^ n -  y ^ (n - m) * x ^ m :=
 begin
-  rw ← op_inj_iff,
+  apply op_injective,
   simp only [op_sub, op_mul, op_pow, op_sum],
   have : ∑ k in Ico m n, op y ^ (n - 1 - k) * op x ^ k
     = ∑ k in Ico m n, op x ^ k * op y ^ (n - 1 - k),

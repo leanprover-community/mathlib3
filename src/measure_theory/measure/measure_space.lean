@@ -362,8 +362,8 @@ begin
   suffices : μ (limsup at_top t) = 0,
   { have A : s ≤ t := λ n, subset_to_measurable μ (s n),
     -- TODO default args fail
-    exact measure_mono_null (limsup_le_limsup (eventually_of_forall (pi.le_def.mp A))
-      is_cobounded_le_of_bot is_bounded_le_of_top) this },
+    exact measure_mono_null (limsup_le_limsup (eventually_of_forall A) is_cobounded_le_of_bot
+      is_bounded_le_of_top) this },
   -- Next we unfold `limsup` for sets and replace equality with an inequality
   simp only [limsup_eq_infi_supr_of_nat', set.infi_eq_Inter, set.supr_eq_Union,
     ← nonpos_iff_eq_zero],

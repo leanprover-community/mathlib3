@@ -757,7 +757,7 @@ lemma integrable_of_forall_fin_meas_le [sigma_finite μ]
   (C : ℝ≥0∞) (hC : C < ∞) {f : α → E} (hf_meas : ae_measurable f μ)
   (hf : ∀ s : set α, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
   integrable f μ :=
-@integrable_of_forall_fin_meas_le' _ _ _ _ _ _ _ _ _ (by rwa trim_eq_self) C hC _ hf_meas hf
+@integrable_of_forall_fin_meas_le' _ _ _ _ _ _ _ _ le_rfl (by rwa trim_eq_self) C hC _ hf_meas hf
 
 end sigma_finite
 

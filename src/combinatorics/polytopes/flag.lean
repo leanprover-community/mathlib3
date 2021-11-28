@@ -576,6 +576,17 @@ lemma flag_eq_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [g
 (Φ Ψ : flag α) :
   grade_top α ≤ 1 → Φ = Ψ :=
 begin
+  intro h,
+  rw flag.eq_iff_eq_idx,
+  intro j,
+  cases j with j hj,
+  have := nat.le_of_lt_succ hj,
+  have := le_trans this h,
+  cases eq_or_lt_of_le this, {
+    -- It's the top element
+    sorry
+  },
+  -- It's the bottom element
   sorry
 end
 

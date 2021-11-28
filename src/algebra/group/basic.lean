@@ -364,6 +364,11 @@ mt eq_of_div_eq_one' h
 @[simp, to_additive] lemma div_inv_eq_mul (a b : G) : a / (b⁻¹) = a * b :=
 by rw [div_eq_mul_inv, inv_inv]
 
+local attribute [simp] mul_assoc
+
+@[to_additive] lemma mul_div (a b c : G) : a * (b / c) = a * b / c :=
+by simp only [mul_assoc, div_eq_mul_inv]
+
 end group
 
 section add_group
@@ -372,9 +377,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-lemma add_sub (a b c : G) : a + (b - c) = a + b - c :=
-by simp
 
 lemma sub_add_eq_sub_sub_swap (a b c : G) : a - (b + c) = a - c - b :=
 by simp

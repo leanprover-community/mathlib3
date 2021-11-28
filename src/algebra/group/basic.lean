@@ -411,6 +411,9 @@ alias sub_eq_zero ↔ _ sub_eq_zero_of_eq
 @[to_additive] theorem div_ne_one : a / b ≠ 1 ↔ a ≠ b :=
 not_congr div_eq_one
 
+@[simp, to_additive] theorem div_eq_self : a / b = a ↔ b = 1 :=
+by rw [div_eq_mul_inv, mul_right_eq_self, inv_eq_one]
+
 end group
 
 section add_group
@@ -419,9 +422,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-@[simp] theorem sub_eq_self : a - b = a ↔ b = 0 :=
-by rw [sub_eq_add_neg, add_right_eq_self, neg_eq_zero]
 
 theorem eq_sub_iff_add_eq : a = b - c ↔ a + c = b :=
 by rw [sub_eq_add_neg, eq_add_neg_iff_add_eq]

@@ -3,8 +3,9 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 -/
-import analysis.convex.basic
-import topology.algebra.monoid
+import analysis.convex.function
+import topology.algebra.module
+import topology.algebra.ordered.basic
 
 /-!
 # Strictly strict_convex sets
@@ -22,11 +23,14 @@ This file defines strictly convex sets.
 
 -/
 
+open function set
+open_locale convex
+
 section ordered_semiring
-variables [ordered_semiring 𝕜]
+variables [ordered_semiring 𝕜] [topological_space E] [topological_space F]
 
 section add_comm_monoid
-variables [add_comm_monoid E] [topological_space E] [add_comm_monoid F] [topological_space F]
+variables [add_comm_monoid E] [add_comm_monoid F]
 
 section has_scalar
 variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (s : set E)
@@ -35,85 +39,58 @@ variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (s : set E)
 def strict_convex : Prop :=
 s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ interior s)
 
-variables {𝕜 s}
+variables {𝕜 s} {x y : E}
 
 lemma strict_convex_iff_open_segment_subset :
-  strict_convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → open_segment 𝕜 x y ⊆ interior s :=
+  strict_convex 𝕜 s ↔ s.pairwise (λ x y, open_segment 𝕜 x y ⊆ interior s) :=
 begin
   split,
-  { rintro h x y hx hy z ⟨a, b, ha, hb, hab, rfl⟩,
-    exact h hx hy ha hb hab },
-  { rintro h x y hx hy a b ha hb hab,
-    exact h hx hy ⟨a, b, ha, hb, hab, rfl⟩ }
+  { rintro h x hx y hy hxy z ⟨a, b, ha, hb, hab, rfl⟩,
+    exact h x hx y hy hxy ha hb hab },
+  { rintro h x hx y hy hxy a b ha hb hab,
+    exact h x hx y hy hxy ⟨a, b, ha, hb, hab, rfl⟩ }
 end
 
-lemma strict_convex.segment_subset (h : strict_convex 𝕜 s) {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
-  [x -[𝕜] y] ⊆ s :=
-convex_iff_segment_subset.1 h hx hy
+lemma strict_convex.open_segment_subset (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s)
+  (h : x ≠ y) :
+  open_segment 𝕜 x y ⊆ interior s :=
+strict_convex_iff_open_segment_subset.1 hs _ hx _ hy h
 
-lemma strict_convex.open_segment_subset (h : strict_convex 𝕜 s) {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
-  open_segment 𝕜 x y ⊆ s :=
-(open_segment_subset_segment 𝕜 x y).trans (h.segment_subset hx hy)
+lemma strict_convex_empty : strict_convex 𝕜 (∅ : set E) := pairwise_empty _
 
-/-- Alternative definition of set strict_convexity, in terms of pointwise set operations. -/
-lemma strict_convex_iff_pointwise_add_subset :
-  strict_convex 𝕜 s ↔ ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • s + b • s ⊆ s :=
-iff.intro
-  begin
-    rintro hA a b ha hb hab w ⟨au, bv, ⟨u, hu, rfl⟩, ⟨v, hv, rfl⟩, rfl⟩,
-    exact hA hu hv ha hb hab
-  end
-  (λ h x y hx hy a b ha hb hab,
-    (h ha hb hab) (set.add_mem_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
-
-lemma strict_convex_empty : strict_convex 𝕜 (∅ : set E) := by finish
-
-lemma strict_convex_univ : strict_convex 𝕜 (set.univ : set E) := λ _ _ _ _ _ _ _ _ _, trivial
-
-lemma strict_convex.inter {t : set E} (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) : strict_convex 𝕜 (s ∩ t) :=
-λ x y (hx : x ∈ s ∩ t) (hy : y ∈ s ∩ t) a b (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1),
-  ⟨hs hx.left hy.left ha hb hab, ht hx.right hy.right ha hb hab⟩
-
-lemma strict_convex_sInter {S : set (set E)} (h : ∀ s ∈ S, strict_convex 𝕜 s) : strict_convex 𝕜 (⋂₀ S) :=
-assume x y hx hy a b ha hb hab s hs,
-h s hs (hx s hs) (hy s hs) ha hb hab
-
-lemma strict_convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, strict_convex 𝕜 (s i)) :
-  strict_convex 𝕜 (⋂ i, s i) :=
-(sInter_range s) ▸ strict_convex_sInter $ forall_range_iff.2 h
-
-lemma strict_convex.prod {s : set E} {t : set F} (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
-  strict_convex 𝕜 (s.prod t) :=
+lemma strict_convex_univ : strict_convex 𝕜 (univ : set E) :=
 begin
-  intros x y hx hy a b ha hb hab,
-  apply mem_prod.2,
-  exact ⟨hs (mem_prod.1 hx).1 (mem_prod.1 hy).1 ha hb hab,
-        ht (mem_prod.1 hx).2 (mem_prod.1 hy).2 ha hb hab⟩
+  intros x hx y hy hxy a b ha hb hab,
+  rw interior_univ,
+  exact mem_univ _,
 end
 
-lemma strict_convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
-  [Π i, has_scalar 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, strict_convex 𝕜 (t i)) :
-  strict_convex 𝕜 (s.pi t) :=
-λ x y hx hy a b ha hb hab i hi, ht i (hx i hi) (hy i hi) ha hb hab
+lemma strict_convex.inter {t : set E} (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
+  strict_convex 𝕜 (s ∩ t) :=
+begin
+  intros x hx y hy hxy a b ha hb hab,
+  rw interior_inter,
+  exact ⟨hs x hx.1 y hy.1 hxy ha hb hab, ht x hx.2 y hy.2 hxy ha hb hab⟩,
+end
 
 lemma directed.strict_convex_Union {ι : Sort*} {s : ι → set E} (hdir : directed (⊆) s)
-  (hc : ∀ ⦃i : ι⦄, strict_convex 𝕜 (s i)) :
+  (hs : ∀ ⦃i : ι⦄, strict_convex 𝕜 (s i)) :
   strict_convex 𝕜 (⋃ i, s i) :=
 begin
-  rintro x y hx hy a b ha hb hab,
-  rw mem_Union at ⊢ hx hy,
+  rintro x hx y hy hxy a b ha hb hab,
+  rw mem_Union at hx hy,
   obtain ⟨i, hx⟩ := hx,
   obtain ⟨j, hy⟩ := hy,
   obtain ⟨k, hik, hjk⟩ := hdir i j,
-  exact ⟨k, hc (hik hx) (hjk hy) ha hb hab⟩,
+  exact interior_mono (subset_Union s k) (hs _ (hik hx) _ (hjk hy) hxy ha hb hab),
 end
 
-lemma directed_on.strict_convex_sUnion {c : set (set E)} (hdir : directed_on (⊆) c)
-  (hc : ∀ ⦃A : set E⦄, A ∈ c → strict_convex 𝕜 A) :
-  strict_convex 𝕜 (⋃₀c) :=
+lemma directed_on.strict_convex_sUnion {S : set (set E)} (hdir : directed_on (⊆) S)
+  (hS : ∀ s ∈ S, strict_convex 𝕜 s) :
+  strict_convex 𝕜 (⋃₀ S) :=
 begin
   rw sUnion_eq_Union,
-  exact (directed_on_iff_directed.1 hdir).strict_convex_Union (λ A, hc A.2),
+  exact (directed_on_iff_directed.1 hdir).strict_convex_Union (λ s, hS _ s.2),
 end
 
 end has_scalar
@@ -122,387 +99,233 @@ section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}
 
 lemma strict_convex.convex (hs : strict_convex 𝕜 s) : convex 𝕜 s :=
-convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab, interior_subset $ hs hx hy ha hb hab
+convex_iff_pairwise_pos.2 $ λ x hx y hy hxy a b ha hb hab,
+  interior_subset $ hs x hx y hy hxy ha hb hab
 
 lemma convex.strict_convex (h : is_open s) (hs : convex 𝕜 s) : strict_convex 𝕜 s :=
-λ x y hx hy a b ha hb hab, h.interior_eq.symm ▸ hs hx hy ha hb hab
+λ x hx y hy _ a b ha hb hab, h.interior_eq.symm ▸ hs hx hy ha.le hb.le hab
 
 lemma is_open.strict_convex_iff (h : is_open s) : strict_convex 𝕜 s ↔ convex 𝕜 s :=
 ⟨strict_convex.convex, convex.strict_convex h⟩
 
-lemma strict_convex_iff_forall_pos :
-  strict_convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
-  → a • x + b • y ∈ s :=
+lemma strict_convex_singleton (c : E) : strict_convex 𝕜 ({c} : set E) := pairwise_singleton _ _
+
+lemma set.subsingleton.strict_convex (hs : s.subsingleton) : strict_convex 𝕜 s := hs.pairwise _
+
+lemma strict_convex.linear_image (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕜] F) (hf : is_open_map f) :
+  strict_convex 𝕜 (s.image f) :=
 begin
-  refine ⟨λ h x y hx hy a b ha hb hab, h hx hy ha.le hb.le hab, _⟩,
-  intros h x y hx hy a b ha hb hab,
-  cases ha.eq_or_lt with ha ha,
-  { subst a, rw [zero_add] at hab, simp [hab, hy] },
-  cases hb.eq_or_lt with hb hb,
-  { subst b, rw [add_zero] at hab, simp [hab, hx] },
-  exact h hx hy ha hb hab
+  rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
+  exact hf.image_interior_subset _
+    ⟨a • x + b • y, hs _ hx _ hy (ne_of_apply_ne _ hxy) ha hb hab,
+    by rw [f.map_add, f.map_smul, f.map_smul]⟩,
 end
 
-lemma strict_convex_iff_pairwise_pos :
-  strict_convex 𝕜 s ↔ s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
-begin
-  refine ⟨λ h x hx y hy _ a b ha hb hab, h hx hy ha.le hb.le hab, _⟩,
-  intros h x y hx hy a b ha hb hab,
-  obtain rfl | ha' := ha.eq_or_lt,
-  { rw [zero_add] at hab, rwa [hab, zero_smul, one_smul, zero_add] },
-  obtain rfl | hb' := hb.eq_or_lt,
-  { rw [add_zero] at hab, rwa [hab, zero_smul, one_smul, add_zero] },
-  obtain rfl | hxy := eq_or_ne x y,
-  { rwa strict_convex.combo_self hab },
-  exact h _ hx _ hy hxy ha' hb' hab,
-end
-
-lemma strict_convex_iff_open_segment_subset :
-  strict_convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → open_segment 𝕜 x y ⊆ s :=
-begin
-  rw strict_convex_iff_segment_subset,
-  exact forall₂_congr (λ x y, forall₂_congr $ λ hx hy,
-    (open_segment_subset_iff_segment_subset hx hy).symm),
-end
-
-lemma strict_convex_singleton (c : E) : strict_convex 𝕜 ({c} : set E) :=
-begin
-  intros x y hx hy a b ha hb hab,
-  rw [set.eq_of_mem_singleton hx, set.eq_of_mem_singleton hy, ←add_smul, hab, one_smul],
-  exact mem_singleton c
-end
-
-lemma strict_convex.linear_image (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕜] F) : strict_convex 𝕜 (s.image f) :=
-begin
-  intros x y hx hy a b ha hb hab,
-  obtain ⟨x', hx', rfl⟩ := mem_image_iff_bex.1 hx,
-  obtain ⟨y', hy', rfl⟩ := mem_image_iff_bex.1 hy,
-  exact ⟨a • x' + b • y', hs hx' hy' ha hb hab, by rw [f.map_add, f.map_smul, f.map_smul]⟩,
-end
-
-lemma strict_convex.is_linear_image (hs : strict_convex 𝕜 s) {f : E → F} (hf : is_linear_map 𝕜 f) :
+lemma strict_convex.is_linear_image (hs : strict_convex 𝕜 s) {f : E → F} (h : is_linear_map 𝕜 f)
+  (hf : is_open_map f) :
   strict_convex 𝕜 (f '' s) :=
-hs.linear_image $ hf.mk' f
+hs.linear_image (h.mk' f) hf
 
-lemma strict_convex.linear_preimage {s : set F} (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕜] F) :
+lemma strict_convex.linear_preimage {s : set F} (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕜] F)
+  (hf : continuous f) (hfinj : injective f) :
   strict_convex 𝕜 (s.preimage f) :=
 begin
-  intros x y hx hy a b ha hb hab,
+  intros x hx y hy hxy a b ha hb hab,
+  refine preimage_interior_subset_interior_preimage hf _,
   rw [mem_preimage, f.map_add, f.map_smul, f.map_smul],
-  exact hs hx hy ha hb hab,
+  exact hs _ hx _ hy (hfinj.ne hxy) ha hb hab,
 end
 
-lemma strict_convex.is_linear_preimage {s : set F} (hs : strict_convex 𝕜 s) {f : E → F} (hf : is_linear_map 𝕜 f) :
-  strict_convex 𝕜 (preimage f s) :=
-hs.linear_preimage $ hf.mk' f
+section linear_ordered_cancel_add_comm_monoid
+variables [topological_space β] [linear_ordered_cancel_add_comm_monoid β] [order_topology β]
+  [module 𝕜 β] [ordered_smul 𝕜 β]
 
-lemma strict_convex.add {t : set E} (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) : strict_convex 𝕜 (s + t) :=
-by { rw ← add_image_prod, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
-
-lemma strict_convex.translate (hs : strict_convex 𝕜 s) (z : E) : strict_convex 𝕜 ((λ x, z + x) '' s) :=
+lemma strict_convex_Iic [no_top_order β] (r : β) : strict_convex 𝕜 (Iic r) :=
 begin
-  intros x y hx hy a b ha hb hab,
-  obtain ⟨x', hx', rfl⟩ := mem_image_iff_bex.1 hx,
-  obtain ⟨y', hy', rfl⟩ := mem_image_iff_bex.1 hy,
-  refine ⟨a • x' + b • y', hs hx' hy' ha hb hab, _⟩,
-  rw [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul],
+  rintro x (hx : x ≤ r) y (hy : y ≤ r) hxy a b ha hb hab,
+  refine (subset_interior_iff_subset_of_open is_open_Iio).2 Iio_subset_Iic_self _,
+  rw ←convex.combo_self hab r,
+  obtain rfl | hx := hx.eq_or_lt,
+  { exact add_lt_add_left (smul_lt_smul_of_pos (hy.lt_of_ne hxy.symm) hb) _ },
+  obtain rfl | hy := hy.eq_or_lt,
+  { exact add_lt_add_right (smul_lt_smul_of_pos hx ha) _ },
+  { exact add_lt_add (smul_lt_smul_of_pos hx ha) (smul_lt_smul_of_pos hy hb) }
 end
+
+lemma strict_convex_Ici [no_bot_order β] (r : β) : strict_convex 𝕜 (Ici r) :=
+@strict_convex_Iic 𝕜 (order_dual β) _ _ _ _ _ _ _ r
+
+lemma strict_convex_Icc [no_top_order β] [no_bot_order β] (r s : β) : strict_convex 𝕜 (Icc r s) :=
+(strict_convex_Ici r).inter $ strict_convex_Iic s
+
+lemma strict_convex_Iio (r : β) : strict_convex 𝕜 (Iio r) :=
+(convex_Iio r).strict_convex is_open_Iio
+
+lemma strict_convex_Ioi (r : β) : strict_convex 𝕜 (Ioi r) :=
+(convex_Ioi r).strict_convex is_open_Ioi
+
+lemma strict_convex_Ioo (r s : β) : strict_convex 𝕜 (Ioo r s) :=
+(strict_convex_Ioi r).inter $ strict_convex_Iio s
+
+lemma strict_convex_Ico [no_bot_order β] (r s : β) : strict_convex 𝕜 (Ico r s) :=
+(strict_convex_Ici r).inter $ strict_convex_Iio s
+
+lemma strict_convex_Ioc [no_top_order β] (r s : β) : strict_convex 𝕜 (Ioc r s) :=
+(strict_convex_Ioi r).inter $ strict_convex_Iic s
+
+lemma strict_convex_interval [no_top_order β] [no_bot_order β] (r s : β) :
+  strict_convex 𝕜 (interval r s) :=
+strict_convex_Icc _ _
+
+end linear_ordered_cancel_add_comm_monoid
+end module
+end add_comm_monoid
+
+section add_cancel_comm_monoid
+variables [add_cancel_comm_monoid E] [has_continuous_add E] [module 𝕜 E] {s : set E}
 
 /-- The translation of a strict_convex set is also strict_convex. -/
-lemma strict_convex.translate_preimage_right (hs : strict_convex 𝕜 s) (z : E) : strict_convex 𝕜 ((λ x, z + x) ⁻¹' s) :=
+lemma strict_convex.preimage_add_right (hs : strict_convex 𝕜 s) (z : E) :
+  strict_convex 𝕜 ((λ x, z + x) ⁻¹' s) :=
 begin
-  intros x y hx hy a b ha hb hab,
-  have h := hs hx hy ha hb hab,
+  intros x hx y hy hxy a b ha hb hab,
+  refine preimage_interior_subset_interior_preimage (continuous_add_left _) _,
+  have h := hs _ hx _ hy ((add_right_injective _).ne hxy) ha hb hab,
   rwa [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul] at h,
 end
 
 /-- The translation of a strict_convex set is also strict_convex. -/
-lemma strict_convex.translate_preimage_left (hs : strict_convex 𝕜 s) (z : E) : strict_convex 𝕜 ((λ x, x + z) ⁻¹' s) :=
-by simpa only [add_comm] using hs.translate_preimage_right z
+lemma strict_convex.preimage_add_left (hs : strict_convex 𝕜 s) (z : E) :
+  strict_convex 𝕜 ((λ x, x + z) ⁻¹' s) :=
+by simpa only [add_comm] using hs.preimage_add_right z
 
-section ordered_add_comm_monoid
-variables [ordered_add_comm_monoid β] [module 𝕜 β] [ordered_smul 𝕜 β]
-
-lemma strict_convex_Iic (r : β) : strict_convex 𝕜 (Iic r) :=
-λ x y hx hy a b ha hb hab,
-calc
-  a • x + b • y
-      ≤ a • r + b • r
-      : add_le_add (smul_le_smul_of_nonneg hx ha) (smul_le_smul_of_nonneg hy hb)
-  ... = r : strict_convex.combo_self hab _
-
-lemma strict_convex_Ici (r : β) : strict_convex 𝕜 (Ici r) :=
-@convex_Iic 𝕜 (order_dual β) _ _ _ _ r
-
-lemma strict_convex_Icc (r s : β) : strict_convex 𝕜 (Icc r s) :=
-Ici_inter_Iic.subst ((convex_Ici r).inter $ strict_convex_Iic s)
-
-lemma strict_convex_halfspace_le {f : E → β} (h : is_linear_map 𝕜 f) (r : β) :
-  strict_convex 𝕜 {w | f w ≤ r} :=
-(convex_Iic r).is_linear_preimage h
-
-lemma strict_convex_halfspace_ge {f : E → β} (h : is_linear_map 𝕜 f) (r : β) :
-  strict_convex 𝕜 {w | r ≤ f w} :=
-(convex_Ici r).is_linear_preimage h
-
-lemma strict_convex_hyperplane {f : E → β} (h : is_linear_map 𝕜 f) (r : β) :
-  strict_convex 𝕜 {w | f w = r} :=
-begin
-  simp_rw le_antisymm_iff,
-  exact (convex_halfspace_le h r).inter (convex_halfspace_ge h r),
-end
-
-end ordered_add_comm_monoid
-
-section ordered_cancel_add_comm_monoid
-variables [ordered_cancel_add_comm_monoid β] [module 𝕜 β] [ordered_smul 𝕜 β]
-
-lemma strict_convex_Iio (r : β) : strict_convex 𝕜 (Iio r) :=
-begin
-  intros x y hx hy a b ha hb hab,
-  obtain rfl | ha' := ha.eq_or_lt,
-  { rw zero_add at hab,
-    rwa [zero_smul, zero_add, hab, one_smul] },
-  rw mem_Iio at hx hy,
-  calc
-    a • x + b • y
-        < a • r + b • r
-        : add_lt_add_of_lt_of_le (smul_lt_smul_of_pos hx ha') (smul_le_smul_of_nonneg hy.le hb)
-    ... = r : strict_convex.combo_self hab _
-end
-
-lemma strict_convex_Ioi (r : β) : strict_convex 𝕜 (Ioi r) :=
-@convex_Iio 𝕜 (order_dual β) _ _ _ _ r
-
-lemma strict_convex_Ioo (r s : β) : strict_convex 𝕜 (Ioo r s) :=
-Ioi_inter_Iio.subst ((convex_Ioi r).inter $ strict_convex_Iio s)
-
-lemma strict_convex_Ico (r s : β) : strict_convex 𝕜 (Ico r s) :=
-Ici_inter_Iio.subst ((convex_Ici r).inter $ strict_convex_Iio s)
-
-lemma strict_convex_Ioc (r s : β) : strict_convex 𝕜 (Ioc r s) :=
-Ioi_inter_Iic.subst ((convex_Ioi r).inter $ strict_convex_Iic s)
-
-lemma strict_convex_halfspace_lt {f : E → β} (h : is_linear_map 𝕜 f) (r : β) :
-  strict_convex 𝕜 {w | f w < r} :=
-(convex_Iio r).is_linear_preimage h
-
-lemma strict_convex_halfspace_gt {f : E → β} (h : is_linear_map 𝕜 f) (r : β) :
-  strict_convex 𝕜 {w | r < f w} :=
-(convex_Ioi r).is_linear_preimage h
-
-end ordered_cancel_add_comm_monoid
-
-section linear_ordered_add_comm_monoid
-variables [linear_ordered_add_comm_monoid β] [module 𝕜 β] [ordered_smul 𝕜 β]
-
-lemma strict_convex_interval (r s : β) : strict_convex 𝕜 (interval r s) :=
-convex_Icc _ _
-
-end linear_ordered_add_comm_monoid
-end module
-end add_comm_monoid
-
-section linear_ordered_add_comm_monoid
-variables [linear_ordered_add_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E]
-  [ordered_smul 𝕜 E] {s : set E} {f : E → β}
-
-lemma monotone_on.strict_convex_le (hf : monotone_on f s) (hs : strict_convex 𝕜 s) (r : β) :
-  strict_convex 𝕜 {x ∈ s | f x ≤ r} :=
-λ x y hx hy a b ha hb hab, ⟨hs hx.1 hy.1 ha hb hab,
-  (hf (hs hx.1 hy.1 ha hb hab) (max_rec' s hx.1 hy.1) (convex.combo_le_max x y ha hb hab)).trans
-    (max_rec' _ hx.2 hy.2)⟩
-
-lemma monotone_on.strict_convex_lt (hf : monotone_on f s) (hs : strict_convex 𝕜 s) (r : β) :
-  strict_convex 𝕜 {x ∈ s | f x < r} :=
-λ x y hx hy a b ha hb hab, ⟨hs hx.1 hy.1 ha hb hab,
-  (hf (hs hx.1 hy.1 ha hb hab) (max_rec' s hx.1 hy.1) (convex.combo_le_max x y ha hb hab)).trans_lt
-    (max_rec' _ hx.2 hy.2)⟩
-
-lemma monotone_on.strict_convex_ge (hf : monotone_on f s) (hs : strict_convex 𝕜 s) (r : β) :
-  strict_convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.strict_convex_le 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
-
-lemma monotone_on.strict_convex_gt (hf : monotone_on f s) (hs : strict_convex 𝕜 s) (r : β) :
-  strict_convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.strict_convex_lt 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
-
-lemma antitone_on.strict_convex_le (hf : antitone_on f s) (hs : strict_convex 𝕜 s) (r : β) :
-  strict_convex 𝕜 {x ∈ s | f x ≤ r} :=
-@monotone_on.strict_convex_ge 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
-
-lemma antitone_on.strict_convex_lt (hf : antitone_on f s) (hs : strict_convex 𝕜 s) (r : β) :
-  strict_convex 𝕜 {x ∈ s | f x < r} :=
-@monotone_on.strict_convex_gt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
-
-lemma antitone_on.strict_convex_ge (hf : antitone_on f s) (hs : strict_convex 𝕜 s) (r : β) :
-  strict_convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.strict_convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
-
-lemma antitone_on.strict_convex_gt (hf : antitone_on f s) (hs : strict_convex 𝕜 s) (r : β) :
-  strict_convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.strict_convex_lt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
-
-lemma monotone.strict_convex_le (hf : monotone f) (r : β) :
-  strict_convex 𝕜 {x | f x ≤ r} :=
-set.sep_univ.subst ((hf.monotone_on univ).strict_convex_le strict_convex_univ r)
-
-lemma monotone.strict_convex_lt (hf : monotone f) (r : β) :
-  strict_convex 𝕜 {x | f x ≤ r} :=
-set.sep_univ.subst ((hf.monotone_on univ).strict_convex_le strict_convex_univ r)
-
-lemma monotone.strict_convex_ge (hf : monotone f ) (r : β) :
-  strict_convex 𝕜 {x | r ≤ f x} :=
-set.sep_univ.subst ((hf.monotone_on univ).strict_convex_ge strict_convex_univ r)
-
-lemma monotone.strict_convex_gt (hf : monotone f) (r : β) :
-  strict_convex 𝕜 {x | f x ≤ r} :=
-set.sep_univ.subst ((hf.monotone_on univ).strict_convex_le strict_convex_univ r)
-
-lemma antitone.strict_convex_le (hf : antitone f) (r : β) :
-  strict_convex 𝕜 {x | f x ≤ r} :=
-set.sep_univ.subst ((hf.antitone_on univ).strict_convex_le strict_convex_univ r)
-
-lemma antitone.strict_convex_lt (hf : antitone f) (r : β) :
-  strict_convex 𝕜 {x | f x < r} :=
-set.sep_univ.subst ((hf.antitone_on univ).strict_convex_lt strict_convex_univ r)
-
-lemma antitone.strict_convex_ge (hf : antitone f) (r : β) :
-  strict_convex 𝕜 {x | r ≤ f x} :=
-set.sep_univ.subst ((hf.antitone_on univ).strict_convex_ge strict_convex_univ r)
-
-lemma antitone.strict_convex_gt (hf : antitone f) (r : β) :
-  strict_convex 𝕜 {x | r < f x} :=
-set.sep_univ.subst ((hf.antitone_on univ).strict_convex_gt strict_convex_univ r)
-
-end linear_ordered_add_comm_monoid
+end add_cancel_comm_monoid
 
 section add_comm_group
 variables [add_comm_group E] [module 𝕜 E] {s t : set E}
 
-lemma strict_convex.combo_eq_vadd {a b : 𝕜} {x y : E} (h : a + b = 1) :
-  a • x + b • y = b • (y - x) + x :=
-calc
-  a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
-            ... = b • (y - x) + x                   : by rw [smul_sub, strict_convex.combo_self h]
-
-lemma strict_convex.sub (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
-  strict_convex 𝕜 ((λ x : E × E, x.1 - x.2) '' (s.prod t)) :=
-(hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
-
-lemma strict_convex_segment (x y : E) : strict_convex 𝕜 [x -[𝕜] y] :=
+lemma strict_convex.add_left [has_continuous_add E] (hs : strict_convex 𝕜 s) (z : E) :
+  strict_convex 𝕜 ((λ x, z + x) '' s) :=
 begin
-  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ a b ha hb hab,
-  refine ⟨a * ap + b * aq, a * bp + b * bq,
-    add_nonneg (mul_nonneg ha hap) (mul_nonneg hb haq),
-    add_nonneg (mul_nonneg ha hbp) (mul_nonneg hb hbq), _, _⟩,
-  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
-  { simp_rw [add_smul, mul_smul, smul_add],
-    exact add_add_add_comm _ _ _ _ }
+  rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
+  refine (is_open_map_add_left _).image_interior_subset _ _,
+  refine ⟨a • x + b • y, hs _ hx _ hy (ne_of_apply_ne _ hxy) ha hb hab, _⟩,
+  rw [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul],
 end
 
-lemma strict_convex_open_segment (a b : E) : strict_convex 𝕜 (open_segment 𝕜 a b) :=
+lemma strict_convex.add_right [has_continuous_add E] (hs : strict_convex 𝕜 s) (z : E) :
+  strict_convex 𝕜 ((λ x, x + z) '' s) :=
+by simpa only [add_comm] using hs.add_left z
+
+lemma strict_convex.add [has_continuous_add E] {t : set E} (hs : strict_convex 𝕜 s)
+  (ht : strict_convex 𝕜 t) :
+  strict_convex 𝕜 (s + t) :=
 begin
-  rw strict_convex_iff_open_segment_subset,
-  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ z ⟨a, b, ha, hb, hab, rfl⟩,
-  refine ⟨a * ap + b * aq, a * bp + b * bq,
-    add_pos (mul_pos ha hap) (mul_pos hb haq),
-    add_pos (mul_pos ha hbp) (mul_pos hb hbq), _, _⟩,
-  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
-  { simp_rw [add_smul, mul_smul, smul_add],
-    exact add_add_add_comm _ _ _ _ }
+  rintro _ ⟨v, w, hv, hw, rfl⟩ _ ⟨x, y, hx, hy, rfl⟩ h a b ha hb hab,
+  rw [smul_add, smul_add, add_add_add_comm],
+  obtain rfl | hvx := eq_or_ne v x,
+  { rw convex.combo_self hab,
+    suffices : v + (a • w + b • y) ∈ interior ({v} + t),
+    { exact interior_mono (add_subset_add (singleton_subset_iff.2 hv) (subset.refl _)) this },
+    rw singleton_add,
+    exact (is_open_map_add_left _).image_interior_subset _
+      (mem_image_of_mem _ $ ht _ hw _ hy (ne_of_apply_ne _ h) ha hb hab) },
+  obtain rfl | hvx := eq_or_ne w y,
+  { rw convex.combo_self hab,
+    suffices : a • v + b • x + w ∈ interior (s + {w}),
+    { exact interior_mono (add_subset_add (subset.refl _) (singleton_subset_iff.2 hw)) this },
+    rw add_singleton,
+    exact (is_open_map_add_right _).image_interior_subset _
+      (mem_image_of_mem _ $ hs _ hv _ hx hvx ha hb hab) },
+  sorry
+end
+
+lemma strict_convex.sub {s : set (E × E)} (hs : strict_convex 𝕜 s) :
+  strict_convex 𝕜 ((λ x : E × E, x.1 - x.2) '' s) :=
+hs.is_linear_image is_linear_map.is_linear_map_sub begin
+  sorry
 end
 
 end add_comm_group
 end ordered_semiring
 
 section ordered_comm_semiring
-variables [ordered_comm_semiring 𝕜]
+variables [ordered_comm_semiring 𝕜] [topological_space E]
 
-section add_comm_monoid
-variables [add_comm_monoid E] [add_comm_monoid F] [module 𝕜 E] [module 𝕜 F] {s : set E}
+section add_comm_group
+variables [add_comm_group E] [module 𝕜 E] [no_zero_smul_divisors 𝕜 E] {s : set E}
 
-lemma strict_convex.smul (hs : strict_convex 𝕜 s) (c : 𝕜) : strict_convex 𝕜 (c • s) :=
-hs.linear_image (linear_map.lsmul _ _ c)
-
-lemma strict_convex.smul_preimage (hs : strict_convex 𝕜 s) (c : 𝕜) : strict_convex 𝕜 ((λ z, c • z) ⁻¹' s) :=
-hs.linear_preimage (linear_map.lsmul _ _ c)
-
-lemma strict_convex.affinity (hs : strict_convex 𝕜 s) (z : E) (c : 𝕜) : strict_convex 𝕜 ((λ x, z + c • x) '' s) :=
+lemma strict_convex.preimage_smul (hs : strict_convex 𝕜 s) (c : 𝕜) :
+  strict_convex 𝕜 ((λ z, c • z) ⁻¹' s) :=
 begin
-  have h := (hs.smul c).translate z,
-  rwa [←image_smul, image_image] at h,
+  classical,
+  obtain rfl | hc := eq_or_ne c 0,
+  { simp_rw [zero_smul, preimage_const],
+    split_ifs,
+    { exact strict_convex_univ },
+    { exact strict_convex_empty } },
+  refine hs.linear_preimage (linear_map.lsmul _ _ c) _ (smul_right_injective E hc),
+  sorry
 end
 
-end add_comm_monoid
+end add_comm_group
 end ordered_comm_semiring
 
 section ordered_ring
-variables [ordered_ring 𝕜]
+variables [ordered_ring 𝕜] [topological_space E] [topological_space F]
 
 section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x y : E}
 
-lemma strict_convex.add_smul_mem (hs : strict_convex 𝕜 s) {x y : E} (hx : x ∈ s) (hy : x + y ∈ s)
-  {t : 𝕜} (ht : t ∈ Icc (0 : 𝕜) 1) : x + t • y ∈ s :=
+lemma strict_convex.add_smul_mem (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hxy : x + y ∈ s)
+  (hy : y ≠ 0) {t : 𝕜} (ht₀ : 0 < t) (ht₁ : t < 1) :
+  x + t • y ∈ interior s :=
 begin
   have h : x + t • y = (1 - t) • x + t • (x + y),
   { rw [smul_add, ←add_assoc, ←add_smul, sub_add_cancel, one_smul] },
   rw h,
-  exact hs hx hy (sub_nonneg_of_le ht.2) ht.1 (sub_add_cancel _ _),
+  refine hs _ hx _ hxy (λ h, hy $ add_left_cancel _) (sub_pos_of_lt ht₁) ht₀ (sub_add_cancel _ _),
+  exact x,
+  rw [←h, add_zero],
 end
 
-lemma strict_convex.smul_mem_of_zero_mem (hs : strict_convex 𝕜 s) {x : E} (zero_mem : (0 : E) ∈ s) (hx : x ∈ s)
-  {t : 𝕜} (ht : t ∈ Icc (0 : 𝕜) 1) : t • x ∈ s :=
-by simpa using hs.add_smul_mem zero_mem (by simpa using hx) ht
+lemma strict_convex.smul_mem_of_zero_mem (hs : strict_convex 𝕜 s) (zero_mem : (0 : E) ∈ s)
+  (hx : x ∈ s) (hx₀ : x ≠ 0) {t : 𝕜} (ht₀ : 0 < t) (ht₁ : t < 1) :
+  t • x ∈ interior s :=
+by simpa using hs.add_smul_mem zero_mem (by simpa using hx) hx₀ ht₀ ht₁
 
-lemma strict_convex.add_smul_sub_mem (h : strict_convex 𝕜 s) {x y : E} (hx : x ∈ s) (hy : y ∈ s)
-  {t : 𝕜} (ht : t ∈ Icc (0 : 𝕜) 1) : x + t • (y - x) ∈ s :=
+lemma strict_convex.add_smul_sub_mem (h : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y)
+  {t : 𝕜} (ht₀ : 0 < t) (ht₁ : t < 1) : x + t • (y - x) ∈ interior s :=
 begin
-  apply h.segment_subset hx hy,
-  rw segment_eq_image',
-  exact mem_image_of_mem _ ht,
-end
-
-/-- Affine subspaces are strict_convex. -/
-lemma affine_subspace.strict_convex (Q : affine_subspace 𝕜 E) : strict_convex 𝕜 (Q : set E) :=
-begin
-  intros x y hx hy a b ha hb hab,
-  rw [eq_sub_of_add_eq hab, ← affine_map.line_map_apply_module],
-  exact affine_map.line_map_mem b hx hy,
-end
-
-/--
-Applying an affine map to an affine combination of two points yields
-an affine combination of the images.
--/
-lemma strict_convex.combo_affine_apply {a b : 𝕜} {x y : E} {f : E →ᵃ[𝕜] F} (h : a + b = 1) :
-  f (a • x + b • y) = a • f x + b • f y :=
-begin
-  simp only [convex.combo_eq_vadd h, ← vsub_eq_sub],
-  exact f.apply_line_map _ _ _,
+  apply h.open_segment_subset hx hy hxy,
+  rw open_segment_eq_image',
+  exact mem_image_of_mem _ ⟨ht₀, ht₁⟩,
 end
 
 /-- The preimage of a strict_convex set under an affine map is strict_convex. -/
-lemma strict_convex.affine_preimage (f : E →ᵃ[𝕜] F) {s : set F} (hs : strict_convex 𝕜 s) :
+lemma strict_convex.affine_preimage {s : set F} (hs : strict_convex 𝕜 s) {f : E →ᵃ[𝕜] F}
+  (hf : continuous f) (hfinj : injective f) :
   strict_convex 𝕜 (f ⁻¹' s) :=
 begin
-  intros x y xs ys a b ha hb hab,
-  rw [mem_preimage, strict_convex.combo_affine_apply hab],
-  exact hs xs ys ha hb hab,
+  intros x hx y hy hxy a b ha hb hab,
+  refine preimage_interior_subset_interior_preimage hf _,
+  rw [mem_preimage, convex.combo_affine_apply hab],
+  exact hs _ hx _ hy (hfinj.ne hxy) ha hb hab,
 end
 
 /-- The image of a strict_convex set under an affine map is strict_convex. -/
-lemma strict_convex.affine_image (f : E →ᵃ[𝕜] F) {s : set E} (hs : strict_convex 𝕜 s) :
+lemma strict_convex.affine_image (hs : strict_convex 𝕜 s) {f : E →ᵃ[𝕜] F} (hf : is_open_map f) :
   strict_convex 𝕜 (f '' s) :=
 begin
-  rintro x y ⟨x', ⟨hx', hx'f⟩⟩ ⟨y', ⟨hy', hy'f⟩⟩ a b ha hb hab,
-  refine ⟨a • x' + b • y', ⟨hs hx' hy' ha hb hab, _⟩⟩,
-  rw [convex.combo_affine_apply hab, hx'f, hy'f]
+  rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
+  exact hf.image_interior_subset _ ⟨a • x + b • y, ⟨hs _ hx _ hy (ne_of_apply_ne _ hxy) ha hb hab,
+    convex.combo_affine_apply hab⟩⟩,
 end
 
 lemma strict_convex.neg (hs : strict_convex 𝕜 s) : strict_convex 𝕜 ((λ z, -z) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_neg
+hs.is_linear_image is_linear_map.is_linear_map_neg begin
+  sorry
+end
 
 lemma strict_convex.neg_preimage (hs : strict_convex 𝕜 s) : strict_convex 𝕜 ((λ z, -z) ⁻¹' s) :=
 hs.is_linear_preimage is_linear_map.is_linear_map_neg
@@ -511,56 +334,43 @@ end add_comm_group
 end ordered_ring
 
 section linear_ordered_field
-variables [linear_ordered_field 𝕜]
+variables [linear_ordered_field 𝕜] [topological_space E]
 
 section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x : E}
+
+lemma strict_convex.smul [topological_space 𝕜] [has_continuous_smul 𝕜 E] (hs : strict_convex 𝕜 s)
+  (c : 𝕜) :
+  strict_convex 𝕜 (c • s) :=
+begin
+  obtain rfl | hc := eq_or_ne c 0,
+  { exact (subsingleton_zero_smul_set _).strict_convex },
+  { exact hs.linear_image (linear_map.lsmul _ _ c) (is_open_map_smul₀ hc) }
+end
+
+lemma strict_convex.affinity [has_continuous_add E] (hs : strict_convex 𝕜 s) (z : E) (c : 𝕜) :
+  strict_convex 𝕜 ((λ x, z + c • x) '' s) :=
+begin
+  have h := (hs.smul c).add_right z,
+  rwa [←image_smul, image_image] at h,
+end
 
 /-- Alternative definition of set strict_convexity, using division. -/
 lemma strict_convex_iff_div :
-  strict_convex 𝕜 s ↔ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄,
-    0 ≤ a → 0 ≤ b → 0 < a + b → (a/(a+b)) • x + (b/(a+b)) • y ∈ s :=
-⟨λ h x y hx hy a b ha hb hab, begin
-  apply h hx hy,
-  { have ha', from mul_le_mul_of_nonneg_left ha (inv_pos.2 hab).le,
-    rwa [mul_zero, ←div_eq_inv_mul] at ha' },
-  { have hb', from mul_le_mul_of_nonneg_left hb (inv_pos.2 hab).le,
-    rwa [mul_zero, ←div_eq_inv_mul] at hb' },
-  { rw ←add_div,
-    exact div_self hab.ne' }
-end, λ h x y hx hy a b ha hb hab,
-begin
-  have h', from h hx hy ha hb,
-  rw [hab, div_one, div_one] at h',
-  exact h' zero_lt_one
-end⟩
+  strict_convex 𝕜 s ↔ s.pairwise
+    (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → (a / (a + b)) • x + (b / (a + b)) • y ∈ interior s) :=
+⟨λ h x hx y hy hxy a b ha hb, begin
+  apply h _ hx _ hy hxy (div_pos ha $ add_pos ha hb) (div_pos hb $ add_pos ha hb),
+  rw ←add_div,
+  exact div_self (add_pos ha hb).ne',
+end, λ h x hx y hy hxy a b ha hb hab, by convert h _ hx _ hy hxy ha hb; rw [hab, div_one] ⟩
 
-lemma strict_convex.mem_smul_of_zero_mem (h : strict_convex 𝕜 s) {x : E} (zero_mem : (0 : E) ∈ s)
-  (hx : x ∈ s) {t : 𝕜} (ht : 1 ≤ t) :
-  x ∈ t • s :=
+lemma strict_convex.mem_smul_of_zero_mem (hs : strict_convex 𝕜 s) (zero_mem : (0 : E) ∈ s)
+  (hx : x ∈ s) (hx₀ : x ≠ 0) {t : 𝕜} (ht : 1 < t) :
+  x ∈ t • interior s :=
 begin
-  rw mem_smul_set_iff_inv_smul_mem₀ (zero_lt_one.trans_le ht).ne',
-  exact h.smul_mem_of_zero_mem zero_mem hx ⟨inv_nonneg.2 (zero_le_one.trans ht), inv_le_one ht⟩,
-end
-
-lemma strict_convex.add_smul (h_conv : strict_convex 𝕜 s) {p q : 𝕜} (hp : 0 ≤ p) (hq : 0 ≤ q) :
-  (p + q) • s = p • s + q • s :=
-begin
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { simp_rw [smul_set_empty, add_empty] },
-  obtain rfl | hp' := hp.eq_or_lt,
-  { rw [zero_add, zero_smul_set hs, zero_add] },
-  obtain rfl | hq' := hq.eq_or_lt,
-  { rw [add_zero, zero_smul_set hs, add_zero] },
-  ext,
-  split,
-  { rintro ⟨v, hv, rfl⟩,
-    exact ⟨p • v, q • v, smul_mem_smul_set hv, smul_mem_smul_set hv, (add_smul _ _ _).symm⟩ },
-  { rintro ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
-    have hpq := add_pos hp' hq',
-    exact mem_smul_set.2 ⟨_, h_conv h₁₂ h₂₂ (div_pos hp' hpq).le (div_pos hq' hpq).le
-      (by rw [←div_self hpq.ne', add_div] : p / (p + q) + q / (p + q) = 1),
-      by simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne']⟩ }
+  rw mem_smul_set_iff_inv_smul_mem₀ (zero_lt_one.trans ht).ne',
+  exact hs.smul_mem_of_zero_mem zero_mem hx hx₀ (inv_pos.2 $ zero_lt_one.trans ht)  (inv_lt_one ht),
 end
 
 end add_comm_group
@@ -572,12 +382,29 @@ Relates `convex` and `ord_connected`.
 -/
 
 section
+variables [topological_space E]
+
+@[simp] lemma strict_convex_iff_convex [linear_ordered_field 𝕜] [topological_space 𝕜]
+  [order_topology 𝕜] {s : set 𝕜} :
+  strict_convex 𝕜 s ↔ convex 𝕜 s :=
+begin
+  refine ⟨strict_convex.convex, λ hs, strict_convex_iff_open_segment_subset.2 (λ x hx y hy hxy, _)⟩,
+  obtain h | h := hxy.lt_or_lt,
+  { refine (open_segment_subset_Ioo h).trans _,
+    rw ←interior_Icc,
+    exact interior_mono (Icc_subset_segment.trans $ hs.segment_subset hx hy) },
+  { rw open_segment_symm,
+    refine (open_segment_subset_Ioo h).trans _,
+    rw ←interior_Icc,
+    exact interior_mono (Icc_subset_segment.trans $ hs.segment_subset hy hx) }
+end
 
 lemma set.ord_connected.strict_convex_of_chain [ordered_semiring 𝕜] [ordered_add_comm_monoid E]
-  [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) (h : zorn.chain (≤) s) :
+  [topological_space E] [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected)
+  (h : zorn.chain (≤) s) :
   strict_convex 𝕜 s :=
 begin
-  intros x y hx hy a b ha hb hab,
+  intros x hx y hy hxy a b ha hb hab,
   obtain hxy | hyx := h.total_of_refl hx hy,
   { refine hs.out hx hy (mem_Icc.2 ⟨_, _⟩),
     calc
@@ -602,7 +429,7 @@ lemma set.ord_connected.strict_convex [ordered_semiring 𝕜] [linear_ordered_ad
   strict_convex 𝕜 s :=
 hs.strict_convex_of_chain (zorn.chain_of_trichotomous s)
 
-lemma strict_convex_iff_ord_connected [linear_ordered_field 𝕜] {s : set 𝕜} :
+lemma strict_convex_iff_ord_connected [linear_ordered_field 𝕜] [topological_space 𝕜] {s : set 𝕜} :
   strict_convex 𝕜 s ↔ s.ord_connected :=
 begin
   simp_rw [convex_iff_segment_subset, segment_eq_interval, ord_connected_iff_interval_subset],
@@ -612,49 +439,3 @@ end
 alias strict_convex_iff_ord_connected ↔ strict_convex.ord_connected _
 
 end
-
-/-! #### Convexity of submodules/subspaces -/
-
-section submodule
-open submodule
-
-lemma submodule.strict_convex [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] (K : submodule 𝕜 E) :
-  strict_convex 𝕜 (↑K : set E) :=
-by { repeat {intro}, refine add_mem _ (smul_mem _ _ _) (smul_mem _ _ _); assumption }
-
-lemma subspace.strict_convex [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] (K : subspace 𝕜 E) :
-  strict_convex 𝕜 (↑K : set E) :=
-K.strict_convex
-
-end submodule
-
-/-! ### Simplex -/
-
-section simplex
-
-variables (𝕜) (ι : Type*) [ordered_semiring 𝕜] [fintype ι]
-
-/-- The standard simplex in the space of functions `ι → 𝕜` is the set of vectors with non-negative
-coordinates with total sum `1`. This is the free object in the category of strict_convex spaces. -/
-def std_simplex : set (ι → 𝕜) :=
-{f | (∀ x, 0 ≤ f x) ∧ ∑ x, f x = 1}
-
-lemma std_simplex_eq_inter :
-  std_simplex 𝕜 ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
-by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
-
-lemma strict_convex_std_simplex : strict_convex 𝕜 (std_simplex 𝕜 ι) :=
-begin
-  refine λ f g hf hg a b ha hb hab, ⟨λ x, _, _⟩,
-  { apply_rules [add_nonneg, mul_nonneg, hf.1, hg.1] },
-  { erw [finset.sum_add_distrib, ← finset.smul_sum, ← finset.smul_sum, hf.2, hg.2,
-      smul_eq_mul, smul_eq_mul, mul_one, mul_one],
-    exact hab }
-end
-
-variable {ι}
-
-lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:𝕜) 0) ∈ std_simplex 𝕜 ι :=
-⟨λ j, by simp only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)]⟩
-
-end simplex

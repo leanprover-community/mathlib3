@@ -423,6 +423,10 @@ by rw [div_eq_mul_inv, mul_inv_eq_iff_eq_mul]
 @[to_additive] theorem eq_iff_eq_of_div_eq_div (H : a / b = c / d) : a = b ↔ c = d :=
 by rw [← div_eq_one, H, div_eq_one]
 
+@[to_additive]
+theorem left_inverse_div_mul_left (c : G) : function.left_inverse (λ x, x / c) (λ x, x * c) :=
+assume x, mul_div_cancel'' x c
+
 end group
 
 section add_group
@@ -431,9 +435,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-theorem left_inverse_sub_add_left (c : G) : function.left_inverse (λ x, x - c) (λ x, x + c) :=
-assume x, add_sub_cancel x c
 
 theorem left_inverse_add_left_sub (c : G) : function.left_inverse (λ x, x + c) (λ x, x - c) :=
 assume x, sub_add_cancel x c

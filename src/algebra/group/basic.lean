@@ -427,6 +427,10 @@ by rw [← div_eq_one, H, div_eq_one]
 theorem left_inverse_div_mul_left (c : G) : function.left_inverse (λ x, x / c) (λ x, x * c) :=
 assume x, mul_div_cancel'' x c
 
+@[to_additive]
+theorem left_inverse_mul_left_div (c : G) : function.left_inverse (λ x, x * c) (λ x, x / c) :=
+assume x, div_mul_cancel' x c
+
 end group
 
 section add_group
@@ -435,9 +439,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-theorem left_inverse_add_left_sub (c : G) : function.left_inverse (λ x, x + c) (λ x, x - c) :=
-assume x, sub_add_cancel x c
 
 theorem left_inverse_add_right_neg_add (c : G) :
   function.left_inverse (λ x, c + x) (λ x, - c + x) :=

@@ -381,6 +381,9 @@ by simp [← h]
 @[to_additive sub_eq_of_eq_add] lemma div_eq_of_eq_mul'' (h : a = c * b) : a / b = c :=
 by simp [h]
 
+@[to_additive] lemma eq_mul_of_div_eq (h : a / c = b) : a = b * c :=
+by simp [← h]
+
 end group
 
 section add_group
@@ -389,9 +392,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-lemma eq_add_of_sub_eq (h : a - c = b) : a = b + c :=
-by simp [← h]
 
 lemma add_eq_of_eq_sub (h : a = c - b) : a + b = c :=
 by simp [h]

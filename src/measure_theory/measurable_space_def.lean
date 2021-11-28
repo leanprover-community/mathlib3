@@ -272,6 +272,10 @@ namespace measurable_space
 
 section complete_lattice
 
+/-- The ordering on measurable spaces on the type `α`.
+  `m₁ ≤ m₂` if for each `s : set α` that is measurable in `m₁`, it is also measurable in `m₂`.
+This is solely a definition because setting this as an instance makes the elaborator more brittle.
+  -/
 protected def has_le : has_le (measurable_space α) :=
 { le          := λ m₁ m₂, m₁.measurable_set' ≤ m₂.measurable_set' }
 

@@ -189,6 +189,10 @@ complete lattice.  (Note that later `topological_space α` will equipped with th
 def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
+/-- The ordering on topologies on the type `α`.
+  `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`).
+This is solely a definition because setting this as an instance makes the elaborator more brittle.
+  -/
 protected def topological_space.has_le : has_le (topological_space α) :=
 { le          := λ t s, s.is_open ≤ t.is_open }
 

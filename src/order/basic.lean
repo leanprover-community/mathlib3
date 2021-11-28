@@ -393,6 +393,10 @@ end order_dual
 
 /-! ### Order instances on the function space -/
 
+/-- The ordering on indexed-types, where each type has an ordering.
+  `f ≤ g` if for each `i : ι`, `f i ≤ g i`.
+This is solely a definition because setting this as an instance makes the elaborator more brittle.
+  -/
 def pi.has_le {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] : has_le (Π i, α i) :=
 { le       := λ x y, ∀ i, x i ≤ y i }
 

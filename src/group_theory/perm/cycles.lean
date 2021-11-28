@@ -346,7 +346,7 @@ lemma same_cycle.nat' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x 
   ∃ (i : ℕ) (h : i < order_of f), (f ^ i) x = y :=
 begin
   classical,
-  obtain ⟨k, rfl⟩ := id h,
+  obtain ⟨k, rfl⟩ := h,
   use ((k % order_of f).nat_abs),
   rw [←zpow_coe_nat, int.nat_abs_of_nonneg, ←zpow_eq_mod_order_of],
   { refine ⟨_, rfl⟩,

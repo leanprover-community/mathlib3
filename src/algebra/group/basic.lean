@@ -436,6 +436,11 @@ theorem left_inverse_mul_right_inv_mul (c : G) :
   function.left_inverse (λ x, c * x) (λ x, c⁻¹ * x) :=
 assume x, mul_inv_cancel_left c x
 
+@[to_additive]
+theorem left_inverse_inv_mul_mul_right (c : G) :
+  function.left_inverse (λ x, c⁻¹ * x) (λ x, c * x) :=
+assume x, inv_mul_cancel_left c x
+
 end group
 
 section add_group
@@ -444,10 +449,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-theorem left_inverse_neg_add_add_right (c : G) :
-  function.left_inverse (λ x, - c + x) (λ x, c + x) :=
-assume x, neg_add_cancel_left c x
 
 end add_group
 

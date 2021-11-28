@@ -88,8 +88,8 @@ lemma weighted_vsub_of_point_eq_of_sum_eq_zero (w : ι → k) (p : ι → P) (h 
 begin
   apply eq_of_sub_eq_zero,
   rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←sum_sub_distrib],
-  conv_lhs {
-    congr,
+  conv_lhs
+  { congr,
     skip,
     funext,
     rw [←smul_sub, vsub_sub_vsub_cancel_left] },
@@ -105,8 +105,8 @@ begin
   erw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←@vsub_eq_zero_iff_eq V,
        vadd_vsub_assoc, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, add_comm, add_sub_assoc,
        ←sum_sub_distrib],
-  conv_lhs {
-    congr,
+  conv_lhs
+  { congr,
     skip,
     congr,
     skip,

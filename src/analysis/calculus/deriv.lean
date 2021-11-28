@@ -15,7 +15,7 @@ normed field and `F` is a normed space over this field. The derivative of
 such a function `f` at a point `x` is given by an element `f' : F`.
 
 The theory is developed analogously to the [Fréchet
-derivatives](./fderiv.lean). We first introduce predicates defined in terms
+derivatives](./fderiv.html). We first introduce predicates defined in terms
 of the corresponding predicates for Fréchet derivatives:
 
  - `has_deriv_at_filter f f' x L` states that the function `f` has the
@@ -210,8 +210,15 @@ lemma deriv_within_zero_of_not_differentiable_within_at
   (h : ¬ differentiable_within_at 𝕜 f s x) : deriv_within f s x = 0 :=
 by { unfold deriv_within, rw fderiv_within_zero_of_not_differentiable_within_at, simp, assumption }
 
+lemma differentiable_within_at_of_deriv_within_ne_zero (h : deriv_within f s x ≠ 0) :
+  differentiable_within_at 𝕜 f s x :=
+not_imp_comm.1 deriv_within_zero_of_not_differentiable_within_at h
+
 lemma deriv_zero_of_not_differentiable_at (h : ¬ differentiable_at 𝕜 f x) : deriv f x = 0 :=
 by { unfold deriv, rw fderiv_zero_of_not_differentiable_at, simp, assumption }
+
+lemma differentiable_at_of_deriv_ne_zero (h : deriv f x ≠ 0) : differentiable_at 𝕜 f x :=
+not_imp_comm.1 deriv_zero_of_not_differentiable_at h
 
 theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at 𝕜 s x)
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=
@@ -725,9 +732,12 @@ lemma deriv_pi (h : ∀ i, differentiable_at 𝕜 (λ x, φ x i) x) :
 
 end pi
 
-section mul_vector
+section smul
+
 /-! ### Derivative of the multiplication of a scalar function and a vector function -/
-variables {c : 𝕜 → 𝕜} {c' : 𝕜}
+
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : 𝕜 → 𝕜'} {c' : 𝕜'}
 
 theorem has_deriv_within_at.smul
   (hc : has_deriv_within_at c c' s x) (hf : has_deriv_within_at f f' s x) :
@@ -781,31 +791,42 @@ lemma deriv_smul_const (hc : differentiable_at 𝕜 c x) (f : F) :
   deriv (λ y, c y • f) x = (deriv c x) • f :=
 (hc.has_deriv_at.smul_const f).deriv
 
-theorem has_deriv_within_at.const_smul
-  (c : 𝕜) (hf : has_deriv_within_at f f' s x) :
-  has_deriv_within_at (λ y, c • f y) (c • f') s x :=
-begin
-  convert (has_deriv_within_at_const x s c).smul hf,
-  rw [zero_smul, add_zero]
-end
+end smul
 
-theorem has_deriv_at.const_smul (c : 𝕜) (hf : has_deriv_at f f' x) :
+section const_smul
+
+variables {R : Type*} [semiring R] [module R F] [topological_space R] [smul_comm_class 𝕜 R F]
+  [has_continuous_smul R F]
+
+theorem has_strict_deriv_at.const_smul
+  (c : R) (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ y, c • f y) (c • f') x :=
+by simpa using (hf.const_smul c).has_strict_deriv_at
+
+theorem has_deriv_at_filter.const_smul
+  (c : R) (hf : has_deriv_at_filter f f' x L) :
+  has_deriv_at_filter (λ y, c • f y) (c • f') x L :=
+by simpa using (hf.const_smul c).has_deriv_at_filter
+
+theorem has_deriv_within_at.const_smul
+  (c : R) (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ y, c • f y) (c • f') s x :=
+hf.const_smul c
+
+theorem has_deriv_at.const_smul (c : R) (hf : has_deriv_at f f' x) :
   has_deriv_at (λ y, c • f y) (c • f') x :=
-begin
-  rw [← has_deriv_within_at_univ] at *,
-  exact hf.const_smul c
-end
+hf.const_smul c
 
 lemma deriv_within_const_smul (hxs : unique_diff_within_at 𝕜 s x)
-  (c : 𝕜) (hf : differentiable_within_at 𝕜 f s x) :
+  (c : R) (hf : differentiable_within_at 𝕜 f s x) :
   deriv_within (λ y, c • f y) s x = c • deriv_within f s x :=
 (hf.has_deriv_within_at.const_smul c).deriv_within hxs
 
-lemma deriv_const_smul (c : 𝕜) (hf : differentiable_at 𝕜 f x) :
+lemma deriv_const_smul (c : R) (hf : differentiable_at 𝕜 f x) :
   deriv (λ y, c • f y) x = c • deriv f x :=
 (hf.has_deriv_at.const_smul c).deriv
 
-end mul_vector
+end const_smul
 
 section neg
 /-! ### Derivative of the negative of a function -/
@@ -1291,6 +1312,9 @@ begin
   rw [← has_deriv_within_at_univ] at *,
   exact hc.mul_const d
 end
+
+theorem has_deriv_at_mul_const (c : 𝕜) : has_deriv_at (λ x, x * c) c x :=
+by simpa only [one_mul] using (has_deriv_at_id' x).mul_const c
 
 theorem has_strict_deriv_at.mul_const (hc : has_strict_deriv_at c c' x) (d : 𝔸) :
   has_strict_deriv_at (λ y, c y * d) (c' * d) x :=

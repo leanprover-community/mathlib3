@@ -44,6 +44,9 @@ instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
 
 instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
 
+instance [finite_dimensional 𝕜 E] : finite_dimensional 𝕜 (dual 𝕜 E) :=
+continuous_linear_map.finite_dimensional
+
 /-- The inclusion of a normed space in its double (topological) dual, considered
    as a bounded linear map. -/
 def inclusion_in_double_dual : E →L[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
@@ -103,7 +106,7 @@ def inclusion_in_double_dual_li : E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
     apply le_antisymm,
     { exact double_dual_bound 𝕜 E x },
     rw continuous_linear_map.norm_def,
-    apply le_cInf continuous_linear_map.bounds_nonempty,
+    refine le_cInf continuous_linear_map.bounds_nonempty _,
     rintros c ⟨hc1, hc2⟩,
     exact norm_le_dual_bound 𝕜 x hc1 hc2
   end,

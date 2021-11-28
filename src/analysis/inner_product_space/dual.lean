@@ -92,8 +92,7 @@ begin
       apply coe_injective,
       exact h' },
     exact ⟨0, by simp [hℓ]⟩ },
-  { have Ycomplete := is_complete_ker ℓ,
-    rw [← submodule.orthogonal_eq_bot_iff Ycomplete, ←hY] at htriv,
+  { rw [← submodule.orthogonal_eq_bot_iff] at htriv,
     change Yᗮ ≠ ⊥ at htriv,
     rw [submodule.ne_bot_iff] at htriv,
     obtain ⟨z : E, hz : z ∈ Yᗮ, z_ne_0 : z ≠ 0⟩ := htriv,
@@ -130,9 +129,12 @@ variables {E}
 
 @[simp] lemma to_dual_apply {x y : E} : to_dual 𝕜 E x y = ⟪x, y⟫ := rfl
 
-@[simp] lemma to_dual_symm_inner {ℓ : normed_space.dual 𝕜 E} {x : E} :
-  ⟪(to_dual 𝕜 E).symm ℓ, x⟫ = ℓ x :=
-by simp only [←to_dual_apply, linear_isometry_equiv.apply_symm_apply]
+@[simp] lemma to_dual_symm_apply {x : E} {y : normed_space.dual 𝕜 E} :
+  ⟪(to_dual 𝕜 E).symm y, x⟫ = y x :=
+begin
+  rw ← to_dual_apply,
+  simp only [linear_isometry_equiv.apply_symm_apply],
+end
 
 variable (𝕜)
 include 𝕜
@@ -154,6 +156,5 @@ begin
 end
 omit 𝕜
 variable {𝕜}
-
 
 end inner_product_space

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
 import measure_theory.integral.interval_integral
+import analysis.special_functions.trigonometric.arctan_deriv
 
 /-!
 # Integration of specific interval integrals
@@ -110,20 +111,6 @@ end
 @[simp]
 lemma interval_integrable_inv_one_add_sq : interval_integrable (λ x : ℝ, (1 + x^2)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div_one_add_sq
-
-/-! ### Integral of a function scaled by a constant -/
-
-@[simp]
-lemma integral_const_mul : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
-integral_smul c f
-
-@[simp]
-lemma integral_mul_const : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
-by simp only [mul_comm, integral_const_mul]
-
-@[simp]
-lemma integral_div : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
-integral_mul_const c⁻¹
 
 /-! ### Integrals of the form `c * ∫ x in a..b, f (c * x + d)` -/
 

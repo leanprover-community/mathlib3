@@ -198,12 +198,12 @@ instance : star_ring ℂ :=
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
 
-@[simp] lemma conj_of_real (r : ℝ) : conj (r : ℂ) = r := ext_iff.2 $ by simp [conj]
+lemma conj_of_real (r : ℝ) : conj (r : ℂ) = r := ext_iff.2 $ by simp [conj]
 
 @[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
 
-@[simp] lemma conj_bit0 (z : ℂ) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simp [bit0]
-@[simp] lemma conj_bit1 (z : ℂ) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simp [bit0]
+lemma conj_bit0 (z : ℂ) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simp [bit0]
+lemma conj_bit1 (z : ℂ) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simp [bit0]
 
 @[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
@@ -233,6 +233,11 @@ lemma norm_sq_apply (z : ℂ) : norm_sq z = z.re * z.re + z.im * z.im := rfl
 
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]
+
+@[simp] lemma norm_sq_mk (x y : ℝ) : norm_sq ⟨x, y⟩ = x * x + y * y := rfl
+
+lemma norm_sq_add_mul_I (x y : ℝ) : norm_sq (x + y * I) = x ^ 2 + y ^ 2 :=
+by rw [← mk_eq_add_mul_I, norm_sq_mk, sq, sq]
 
 lemma norm_sq_eq_conj_mul_self {z : ℂ} : (norm_sq z : ℂ) = conj z * z :=
 by { ext; simp [norm_sq, mul_comm], }
@@ -421,6 +426,15 @@ calc complex.abs n = complex.abs (n:ℝ) : by rw [of_real_nat_cast]
 lemma mul_self_abs (z : ℂ) : abs z * abs z = norm_sq z :=
 real.mul_self_sqrt (norm_sq_nonneg _)
 
+lemma sq_abs (z : ℂ) : abs z ^ 2 = norm_sq z :=
+real.sq_sqrt (norm_sq_nonneg _)
+
+@[simp] lemma sq_abs_sub_sq_re (z : ℂ) : abs z ^ 2 - z.re ^ 2 = z.im ^ 2 :=
+by rw [sq_abs, norm_sq_apply, ← sq, ← sq, add_sub_cancel']
+
+@[simp] lemma sq_abs_sub_sq_im (z : ℂ) : abs z ^ 2 - z.im ^ 2 = z.re ^ 2 :=
+by rw [← sq_abs_sub_sq_re, sub_sub_cancel]
+
 @[simp] lemma abs_zero : abs 0 = 0 := by simp [abs]
 @[simp] lemma abs_one : abs 1 = 1 := by simp [abs]
 @[simp] lemma abs_I : abs I = 1 := by simp [abs]
@@ -443,6 +457,12 @@ by simp [abs]
 
 @[simp] lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
+
+@[simp] lemma abs_pow (z : ℂ) (n : ℕ) : abs (z ^ n) = abs z ^ n :=
+monoid_hom.map_pow ⟨abs, abs_one, abs_mul⟩ z n
+
+@[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
+monoid_with_zero_hom.map_zpow ⟨abs, abs_zero, abs_one, abs_mul⟩ z n
 
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),

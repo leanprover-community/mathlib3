@@ -1167,25 +1167,6 @@ begin
     exact hq.dvd.trans (pow_dvd_pow p hi) },
 end
 
-/-
--- Can go to `algebra/associated.lean`, line 437.
-lemma associates.bot_eq_one {M : Type*} [monoid_with_zero M] :
-  (⊥ : associates M) = 1 := rfl
-
--- To `algebra/associated.lean:690`.
-lemma associates.le_one_iff {M : Type*} [comm_cancel_monoid_with_zero M]
-  {p : associates M} : p ≤ 1 ↔ p = 1 :=
-by rw [← associates.bot_eq_one, le_bot_iff]-/
-
-lemma pow_prime₁' {M : Type*} [comm_cancel_monoid_with_zero M] {q : associates M} (n : ℕ)
-  (c : ℕ → associates M) (h₁ : strict_mono c) (h₂ : ∀ {r : associates M},
-  r ≤ q ↔ ∃ i ≤ n, r = c i) : is_unit (c 0) :=
-begin
-  obtain ⟨i, hi, hr⟩ := h₂.mp associates.one_le,
-  rw [associates.is_unit_iff_eq_one, ← associates.le_one_iff, hr],
-  exact h₁.monotone i.zero_le
-end
-
 lemma not_unit_of_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
   (hp : dvd_not_unit p q) : ¬ is_unit q :=
 begin
@@ -1195,6 +1176,29 @@ begin
   rw is_unit_iff_dvd_one at hcontra,
   rw is_unit_iff_dvd_one,
   exact dvd_trans (show x ∣ q, from by {use p, rw mul_comm, exact hx.right}) hcontra,
+end
+
+lemma pow_primeₐ' {M : Type*} [comm_cancel_monoid_with_zero M] [unique_factorization_monoid M]
+  [nontrivial (associates M)] {q : associates M} (n i : ℕ) (hn : 1 ≤ n) (hi : 1 ≤ i ∧ i ≤ n)
+  (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ {r}, r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩)
+  (hq : q ≠ 0) : ¬ is_unit (c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le hi.right)⟩) :=
+begin
+  refine not_unit_of_dvd_not_unit (associates.dvd_not_unit_iff_lt.2
+    (h₁ (show (⟨0, finset.mem_range.2 (nat.zero_lt_succ n)⟩ : finset.range (n + 1)) <
+    ⟨i, finset.mem_range.2 (nat.lt_succ_of_le hi.right )⟩, from _))),
+  rw [← subtype.coe_lt_coe, subtype.coe_mk, subtype.coe_mk],
+  exact nat.lt_of_lt_of_le zero_lt_one hi.left,
+end
+
+lemma pow_prime₁' {M : Type*} [comm_cancel_monoid_with_zero M] {q : associates M} (n : ℕ)
+  (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c) (h₂ : ∀ {r : associates M},
+  r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩) :
+  is_unit (c ⟨0, finset.mem_range.2 (nat.zero_lt_succ n) ⟩) :=
+begin
+  obtain ⟨i, hi, hr⟩ := h₂.mp associates.one_le,
+  rw [associates.is_unit_iff_eq_one, ← associates.le_one_iff, hr],
+  exact h₁.monotone i.zero_le
 end
 
 lemma not_prime_of_not_unit_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
@@ -1226,21 +1230,25 @@ lemma associates.is_atom_iff {M : Type*} [comm_cancel_monoid_with_zero M]
             rw is_unit.mul_coe_inv ha; rw mul_one⟩) hb)⟩⟩
 
 lemma pow_prime₂' {M : Type*} [comm_cancel_monoid_with_zero M] {q : associates M} (n : ℕ)
-  (hn : 1 ≤ n) (c : ℕ → associates M) (h₁ : strict_mono c)
-  (h₂ : ∀ {r}, r ∣ q ↔ ∃ i ≤ n, r = (c i)) (hq : q ≠ 0) : irreducible (c 1) :=
+  (hn : 1 ≤ n) (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ {r}, r ∣ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩) (hq : q ≠ 0) :
+  irreducible (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩) :=
 begin
   refine (associates.is_atom_iff _).mp _,
   apply ne_zero_of_dvd_ne_zero hq (h₂.2 (exists.intro 1 (exists.intro hn rfl) )),
 
   split,
-  { exact ne_bot_of_gt (h₁ zero_lt_one) },
+  { refine ne_bot_of_gt (h₁ (show (⟨0, finset.mem_range.2 (nat.zero_lt_succ n)⟩ : finset.range
+    (n + 1)) < ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn) ⟩, from _ )),
+    rw [← subtype.coe_lt_coe, subtype.coe_mk, subtype.coe_mk],
+    exact zero_lt_one },
 
   intros b hb,
   have h : b ∣ q := (hb.le).trans (h₂.2 ⟨1, hn, rfl⟩),
   obtain ⟨i, hi, rfl⟩ := h₂.1 h,
   have H : i < 1 := h₁.lt_iff_lt.mp hb,
-  rw [nat.lt_one_iff.mp H, associates.bot_eq_one, ← associates.is_unit_iff_eq_one],
-  exact pow_prime₁' n c h₁ @h₂
+  simp_rw [nat.lt_one_iff.mp H, associates.bot_eq_one, ← associates.is_unit_iff_eq_one],
+  exact pow_prime₁' n c h₁ @h₂,
 end
 
 lemma is_unit_of_associated_is_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
@@ -1276,9 +1284,10 @@ begin
 end
 
 lemma pow_prime₃' {M : Type*} [comm_cancel_monoid_with_zero M] {p q r : associates M} (n : ℕ)
-  (hn : 1 ≤ n) (c : ℕ → associates M) (h₁ : strict_mono c)
-  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c i) (hp : prime p) (hr : r ∣ q)
-  (hr' : ¬ is_unit r) (hp' : p ∣ r) : p = c 1 :=
+  (hn : 1 ≤ n) (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩)
+  (hp : prime p) (hr : r ∣ q) (hr' : ¬ is_unit r) (hp' : p ∣ r) :
+  p = c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩ :=
 begin
   obtain ⟨i, hi, p_eq⟩ := h₂.1 (dvd_trans hp' hr),
   have : 1 ≤ i,
@@ -1288,33 +1297,50 @@ begin
     rw p_eq,
     exact pow_prime₁' n c h₁ @h₂ },
   by_cases h : 1 = i,
-  { rw ← h at p_eq,
+  { simp_rw [← h] at p_eq,
     exact p_eq },
   { exfalso,
     have : ¬ prime p,
     { by_contra hcontra,
-      replace hcontra := prime.irreducible hcontra,
-      have hj : ∃ (j : ℕ), i = j + 1 ∧ 0 < j,
-      { use i - 1,
-        exact ⟨(nat.sub_add_cancel this).symm, nat.sub_pos_of_lt (lt_of_le_of_ne this h)⟩ },
-      obtain ⟨j, hj, hj'⟩ := hj,
+      have hsub_i : i - 1 ∈ finset.range (n + 1),
+      { exact finset.mem_range.2 (nat.lt_trans (nat.sub_lt_of_pos_le 1 i (zero_lt_one) this)
+          (nat.lt_succ_of_le hi)) },
       refine (not_prime_of_not_unit_dvd_not_unit
-      (not_unit_of_dvd_not_unit (associates.dvd_not_unit_iff_lt.2 (h₁ hj') )) _) hcontra,
-      rw [associates.dvd_not_unit_iff_lt, p_eq, hj],
-      exact h₁ (lt_add_one j) },
+        (not_unit_of_dvd_not_unit (associates.dvd_not_unit_iff_lt.2
+        (h₁ (show (⟨0, finset.mem_range.2 (nat.zero_lt_succ n)⟩ : finset.range (n + 1)) <
+          ⟨i - 1, hsub_i⟩, from _)) )) _) (prime.irreducible hcontra),
+      rw [← subtype.coe_lt_coe, subtype.coe_mk, subtype.coe_mk],
+      exact nat.sub_pos_of_lt (nat.lt_of_le_and_ne this h),
+
+      simp_rw [associates.dvd_not_unit_iff_lt, p_eq],
+      refine h₁ (show (⟨i - 1, hsub_i⟩ : finset.range (n + 1)) < ⟨i, finset.mem_range.2
+        (nat.lt_succ_of_le hi)⟩,
+        from _),
+      rw [← subtype.coe_lt_coe, subtype.coe_mk, subtype.coe_mk],
+      exact (nat.sub_lt_of_pos_le 1 i (zero_lt_one) this) },
+
     exact this hp },
 end
 
 lemma pow_prime₄' {M : Type*} [comm_cancel_monoid_with_zero M]
-  {q : associates M} (n : ℕ) (c : ℕ → associates M)
-  (h₁ : strict_mono c) (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i ≤ n, r = c i)
+  {q : associates M} (n : ℕ) (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩)
   (m : finset (associates M)) (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
 begin
-  have sorry_1: ∀ (r : associates M), r ≤ q ↔ r ∈ (finset.range (n+1)).image c,
-  { simpa only [finset.mem_image, exists_prop, finset.mem_range, nat.lt_succ_iff, eq_comm]
-      using h₂ },
-  have sorry_2 : m ⊆ (finset.range (n+1)).image c :=
-     λ x hx, (sorry_1 x).mp (hm x hx),
+  let d : ℕ → associates M := λ s, if temp : s < (n + 1)
+    then c ⟨s, finset.mem_range.2 temp ⟩ else q,
+  have d_def_finset : ∀ {s}, s < n + 1 → d s = c ⟨s, finset.mem_range.2 ᾰ⟩,
+  { intros s hs,
+      simp only [hs, d, dif_pos] },
+  have sorry_1: ∀ (r : associates M), r ≤ q → r ∈ (finset.range (n+1)).image d,
+  { intros r hr,
+    rw finset.mem_image,
+    obtain ⟨s, hs, hs'⟩ := (h₂ r).1 hr,
+    use s,
+    use finset.mem_range.2 (nat.lt_succ_of_le hs),
+    rw [d_def_finset (nat.lt_succ_of_le hs), hs'] },
+  have sorry_2 : m ⊆ (finset.range (n+1)).image d :=
+     λ x hx, (sorry_1 x) (hm x hx),
   rw ← finset.card_range (n + 1),
   exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
 end
@@ -1368,48 +1394,45 @@ end
 
 lemma pow_prime₅' {M : Type*} [comm_cancel_monoid_with_zero M] [unique_factorization_monoid M]
   [nontrivial (associates M)] {q r : associates M} (n : ℕ) (hn : 1 ≤ n)
-  (c : ℕ → associates M) (h₁ : strict_mono c) (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c i)
-  (hr : r ∣ q) (hr' : ¬ is_unit r) (hq : q ≠ 0): ∃ (i ≤ n), r = ((c 1)^i) :=
+  (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ {r}, r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩)
+  (hr : r ∣ q) (hr' : ¬ is_unit r) (hq : q ≠ 0): ∃ (i ≤ n), r = ((c ⟨1, finset.mem_range.2
+    (nat.lt_succ_of_le hn)⟩)^i) :=
 begin
-  have : ∃ (i : ℕ), normalized_factors r = multiset.repeat (c 1) i,
+  have : ∃ (i : ℕ), normalized_factors r = multiset.repeat (c ⟨1, finset.mem_range.2
+    (nat.lt_succ_of_le hn)⟩) i,
   { use (normalized_factors r).card,
     apply multiset.eq_repeat_of_mem,
     intros b hb,
     refine pow_prime₃' n hn c h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr hr'
       (dvd_of_mem_normalized_factors hb)  },
   obtain ⟨i, hi⟩ := this,
-
-  -- I wanted to use the following
-  -- obtain ⟨i, hi⟩ := associated_prime_pow_of_unique_normalized_factor (sorry)
-  --   (λ m hm, pow_prime₃' n hn c h₁ (λ r', h₂) (prime_of_normalized_factor m hm) hr hr'
-  --   (dvd_of_mem_normalized_factors hm)),
-  -- but I got a weird error message that I haven't been able to fix yet
-
   use i,
-  suffices P : r = (c 1)^i,
+  suffices P : r = (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩ )^i,
   { split,
-  { have : (finset.image (λ m, (c 1)^m) (finset.range (i + 1))).card = i + 1,
+  { have : (finset.image (λ m, (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩)^m)
+    (finset.range (i + 1))).card = i + 1,
     { conv_rhs {rw [← finset.card_range (i+1)] },
       rw finset.card_image_eq_iff_inj_on,
       apply set.inj_on_of_injective,
       apply pow_inj_of_not_unit,
-      sorry,
-      sorry },   -- Goal `¬ is_unit (c 1)` has already been proven (a lot elsewhere)
-                 -- it might be worth making it into a separate lemma (maybe for `c i, i ≥ 1`)
-      suffices H : ∀ r ∈ (finset.image (λ m, (c 1)^m) (finset.range (i + 1))), r ≤ q,
+      exact pow_primeₐ' n 1 hn ⟨le_refl 1, hn⟩ c h₁ (λ r, h₂) hq,
+      exact irreducible.ne_zero (pow_prime₂' n hn c h₁ (λ r, h₂) hq) },
+      suffices H : ∀ r ∈ (finset.image (λ m, (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩)^m)
+        (finset.range (i + 1))), r ≤ q,
       { apply nat.le_of_succ_le_succ,
         rw nat.succ_eq_add_one,
         rw ← this,
-        apply pow_prime₄' n c h₁ (λ r', h₂) (finset.image (λ m, (c 1)^m)
-          (finset.range (i + 1))) H   },
+        apply pow_prime₄' n c h₁ (λ r', h₂) (finset.image (λ m, (c ⟨1, finset.mem_range.2
+          (nat.lt_succ_of_le hn)⟩)^m) (finset.range (i + 1))) H   },
 
       intro r,
       rw finset.mem_image,
       intro hr,
       obtain ⟨a, ha, rfl⟩:= hr,
       { refine dvd_trans _ hr,
-        use (c 1)^(i - a),
-        rw pow_mul_pow_sub (c 1),
+        use (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩)^(i - a),
+        rw pow_mul_pow_sub (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩),
         exact P,
         apply nat.le_of_lt_succ,
         rw nat.succ_eq_add_one,
@@ -1423,48 +1446,71 @@ begin
   exact hu.symm,
 end
 
-
 lemma pow_prime₆' {M : Type*} [comm_cancel_monoid_with_zero M] [unique_factorization_monoid M]
   [nontrivial (associates M)]{q : associates M} (n : ℕ) (hn : 1 ≤ n)
-  (c : ℕ → associates M) (h₁ : strict_mono c)
-  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c i)
-  (hq : q ≠ 0) : q = (c 1)^n :=
+  (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩)
+  (hq : q ≠ 0) : q = (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩)^n :=
 begin
-  obtain ⟨i, hi, hi'⟩ := pow_prime₅' n hn c h₁ (λ r, h₂) (dvd_refl q) sorry hq,
+  obtain ⟨i, hi, hi'⟩ := pow_prime₅' n hn c h₁ (λ r, h₂) (dvd_refl q) _ hq,
   suffices : n ≤ i,
   { rw le_antisymm hi this at hi',
     exact hi' },
 
   apply nat.le_of_succ_le_succ,
-  refine le_trans (show n + 1 ≤ ((finset.range (i + 1)).image (λ m, (c 1)^m)).card, from _) _,
+  rw [nat.succ_eq_add_one, ← finset.card_range (n+1)],
+  refine le_trans (show (finset.range (n+1)).card ≤ ((finset.range (i + 1)).image
+    (λ m, (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩)^m)).card, from _) _,
 
-  rw ← finset.card_range (n+1),
-  rw ← finset.card_image_eq_iff_inj_on.2
-    (set.inj_on_of_injective (strict_mono.injective h₁) (finset.range (n + 1)) ),
-  apply finset.card_le_of_subset,
-  intros r hr,
-  obtain ⟨j, hj, rfl⟩ := finset.mem_image.1 hr,
-    have := (h₂.2 (exists.intro j (exists.intro (nat.le_of_lt_succ (finset.mem_range.1 hj))
-      (eq.refl (c j))))),
-    rw hi' at this,
-    obtain ⟨u, hu, hu'⟩:= (dvd_prime_pow (show prime (c 1), from _) i).1 this,
-    rw associated_iff_eq at hu',
-    rw finset.mem_image,
-    use u,
-    exact ⟨finset.mem_range.2 (nat.lt_of_le_of_lt hu (nat.lt_add_one_iff.2 (le_refl i))), hu'.symm⟩,
-    rw ← irreducible_iff_prime,
-    exact pow_prime₂' n hn c h₁(λ r, h₂) hq,
+  { let d : ℕ → associates M := λ s, if temp : s < (n + 1) then c ⟨s, finset.mem_range.2 temp⟩
+      else q,
+    have d_def_finset : ∀ {s}, (s < n + 1) → d s = c ⟨s, finset.mem_range.2 ᾰ⟩,
+    { intros s hs,
+      simp only [hs, d, dif_pos] },
+    have sorry_1 : ((finset.range (n + 1)).image d).card = (finset.range (n + 1)).card,
+    { rw finset.card_image_eq_iff_inj_on,
+      rw set.inj_on_iff_injective,
+      intros a b h,
+      obtain ⟨a', ha'⟩:= a,
+      obtain ⟨b', hb'⟩:= b,
+      rw [set.restrict_apply, set.restrict_apply, subtype.coe_mk, subtype.coe_mk,
+        d_def_finset (finset.mem_range.1 ha'), d_def_finset (finset.mem_range.1 hb')] at h,
+      exact (strict_mono.injective h₁ h) },
+    rw sorry_1.symm,
+    apply finset.card_le_of_subset,
+    intros r hr,
+    obtain ⟨j, hj, rfl⟩ := finset.mem_image.1 hr,
+      have := (h₂.2 (exists.intro j (exists.intro (nat.le_of_lt_succ (finset.mem_range.1 hj))
+        (eq.refl (c ⟨j, hj⟩))))),
+      rw hi' at this,
+      obtain ⟨u, hu, hu'⟩:= (dvd_prime_pow
+        (show prime (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩ ), from _) i).1 this,
+      rw associated_iff_eq at hu',
+      rw finset.mem_image,
+      use u,
+      exact ⟨finset.mem_range.2 (nat.lt_of_le_of_lt hu (nat.lt_add_one_iff.2 (le_refl i))),
+        by { rw d_def_finset (finset.mem_range.1 hj), exact hu'.symm} ⟩,
+      rw ← irreducible_iff_prime,
+      exact pow_prime₂' n hn c h₁(λ r, h₂) hq, },
 
   conv_rhs { rw [nat.succ_eq_add_one, ← finset.card_range (i + 1)] },
   exact finset.card_image_le,
+
+  apply not_is_unit_of_not_is_unit_dvd (pow_primeₐ' n n hn ⟨hn, le_refl n⟩ c h₁ (λ r, h₂) hq),
+  apply h₂.2,
+  use n,
+  use le_refl n,
 end
 
 lemma pow_prime' {M : Type*} [comm_cancel_monoid_with_zero M] [unique_factorization_monoid M]
-  [nontrivial (associates M)]{p : associates M} (n : ℕ) (hn : 1 ≤ n)
-  (hp : prime p) : ∃ c : ℕ → associates M, strict_mono c ∧ ∀ {r : associates M},
-  r ≤ p^n ↔ ∃ i ≤ n, r = c i :=
+  [nontrivial (associates M)] {p : associates M} (n : ℕ) (hn : 1 ≤ n)
+  (hp : prime p) : ∃ c : finset.range (n + 1) → associates M,
+  c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩ = p ∧ strict_mono c ∧ ∀ {r : associates M},
+  r ≤ p^n ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩ :=
 begin
-  use λ i, p^i,
+  use λ i, p^(i : ℕ),
+  split,
+  { rw [subtype.coe_mk, pow_one p] },
   split,
   { /- this is almost the same proof as `pow_inj_of_not_unit` from above, but with less generality
         so we can use the ordering of `associates M`. I'm not sure whether this deserves to be
@@ -1473,7 +1519,7 @@ begin
     rw ← associates.dvd_not_unit_iff_lt,
     split,
     exact pow_ne_zero n (prime.ne_zero hp),
-    use p^(m - n),
+    use p^(m - n : ℕ),
     split,
     exact not_is_unit_of_not_is_unit_dvd (prime.not_unit hp)
       (dvd_pow (dvd_refl _) (ne_of_lt (nat.sub_pos_of_lt h)).symm),
@@ -1487,7 +1533,7 @@ begin
     { intro hy,
       obtain ⟨i, hy', hy''⟩ := hy,
       use p^(n - i : ℕ),
-      rw [hy'', pow_mul_pow_sub],
+      rw [hy'', subtype.coe_mk, pow_mul_pow_sub],
       exact hy' } }
 end
 
@@ -1512,17 +1558,76 @@ begin
       .resolve_right ha.not_unit) }
 end
 
+lemma prime_of_monotone_of_prime  {M N : Type*} [comm_cancel_monoid_with_zero M]
+  [unique_factorization_monoid M] [nontrivial (associates M)] [comm_cancel_monoid_with_zero N]
+  [unique_factorization_monoid N] [nontrivial (associates N)] {m p : associates M}
+  {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  (d : { l : associates M | l ≤ m} ≃ {l : associates N | l ≤ n}) (hd : ∀ {l l'},
+  (d l : associates N) < ↑(d l') ↔ (l : associates M) < ↑ l' ) (hd' : strict_mono d) :
+  prime ((d ⟨p, dvd_of_mem_normalized_factors hp⟩ ) : associates N) := sorry
 
--- this could be a version of `preserves_multiplicity` in the more abstract setting, which
--- should be true (I think) modulo some extra assumption on l such as l being an equiv.
--- I'm not sure whether it's useful to have this lemma in such a general form.
 lemma multiplicity_le_of_monotone {M N : Type*} [comm_cancel_monoid_with_zero M]
   [unique_factorization_monoid M] [nontrivial (associates M)] [comm_cancel_monoid_with_zero N]
   [unique_factorization_monoid N] [nontrivial (associates N)] {m p : associates M}
-  {n : associates N} (hm : m ≠ 0) (hp : p ∈ normalized_factors m)
-  (d : { l : associates M | l ≤ m} → {l : associates N | l ≤ n}) (hd : monotone d) :
+  {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  (d : { l : associates M | l ≤ m} ≃ {l : associates N | l ≤ n}) (hd : ∀ {l l'},
+  (d l : associates N) < ↑(d l') ↔ (l : associates M) < ↑ l' ) (hd' : strict_mono d) :
   multiplicity p m ≤ multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
-sorry
+begin
+  have : ∀ (s ≥ 1), p^s ≤ m → (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s ≤ n,
+    intros s hs hs',
+    suffices : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s = ↑(d ⟨p^s, hs'⟩),
+    { rw this,
+      apply subtype.prop (d ⟨p^s, hs'⟩) },
+    obtain ⟨c₁, hc₁, hc₁', hc₁''⟩ := pow_prime' s hs (prime_of_normalized_factor p hp),
+
+    set c₂ : finset.range (s + 1) → associates N := λ t, d ⟨c₁ t, sorry⟩,
+    have c₂.def : ∀ (t), c₂ t = d ⟨c₁ t, sorry⟩ := λ t, rfl,
+    simp_rw [← hc₁],
+    rw ← c₂.def ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hs)⟩,
+    refine (pow_prime₆' s hs c₂ _ _ _).symm,
+    { intros t u h,
+      simp only [c₂],
+      rw [hd, subtype.coe_mk, subtype.coe_mk, strict_mono.lt_iff_lt hc₁'],
+      exact h },
+    { intro r,
+      split,
+      { intro hr,
+        have : r ≤ n,
+          apply le_trans hr
+            (show ↑(d ⟨c₁ ⟨1, _⟩ ^ s, _⟩) ≤ n, from subtype.prop (d ⟨c₁ ⟨1, _⟩ ^ s, _⟩)),
+        have temp_r : d.symm ⟨r, this⟩ ≤ ⟨p^s, hs'⟩,
+          rw ← strict_mono.le_iff_le,
+
+
+        obtain ⟨i, hi, hi'⟩ := hc₁''.1 temp_r,
+        use i,
+        use hi,
+        rw [c₂.def, ← hi'],
+        simp only [equiv.apply_symm_apply, subtype.coe_eta, subtype.coe_mk] },
+      { intro H,
+        obtain ⟨i, hi, hr⟩ := H,
+        rw [hr, c₂.def],
+        sorry  } },
+    apply ne_zero_of_dvd_ne_zero hn,
+    show ↑(d ⟨c₁ ⟨1, _⟩ ^ s, _⟩) ≤ n, from subtype.prop (d ⟨c₁ ⟨1, _⟩ ^ s, _⟩),
+
+    have abc:= multiplicity.finite_prime_left (prime_of_normalized_factor p hp) hm,
+    have temp : ↑((multiplicity p m).get abc) ≤
+      (multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n),
+    { rw ← multiplicity.pow_dvd_iff_le_multiplicity,
+      apply this,
+      rw [← enat.get_one (enat.dom_some 1), ge_iff_le, enat.get_le_get],
+      exact enat.pos_iff_one_le.1 (multiplicity.dvd_iff_multiplicity_pos.2
+        (dvd_of_mem_normalized_factors hp)),
+      apply multiplicity.pow_multiplicity_dvd },
+    rw ← enat.get_le_get,
+    apply (enat.coe_le_iff ((multiplicity p m).get abc)
+      (multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n)).1 temp,
+    rw ← multiplicity.finite_iff_dom,
+    apply multiplicity.finite_prime_left (prime_of_monotone_of_prime hm hn hp d (λ l l', hd) hd')
+      hn,
+end
 
 lemma preserves_multiplicity (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
   {p : ideal T} (hp : p ∈ normalized_factors I) : multiplicity p I =

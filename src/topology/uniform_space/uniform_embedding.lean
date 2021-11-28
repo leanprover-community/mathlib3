@@ -416,16 +416,6 @@ begin
     end⟩
 end
 
-variables [separated_space γ]
-
-lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
-dense_inducing.extend_eq_at _ h_f.continuous.continuous_at
-
-lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
-  (hc : continuous g) :
-  ψ = g :=
-dense_inducing.extend_unique _ hg hc
-
 include h_f
 
 lemma uniformly_extend_spec [complete_space γ] (a : α) :
@@ -473,4 +463,17 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,
   hs_comp $ show (ψ x₁, ψ x₂) ∈ comp_rel s (comp_rel s s),
     from ⟨a, ha₂, ⟨b, this, hb₂⟩⟩
+
+omit h_f
+
+variables [separated_space γ]
+
+lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
+dense_inducing.extend_eq_at _ h_f.continuous.continuous_at
+
+lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
+  (hc : continuous g) :
+  ψ = g :=
+dense_inducing.extend_unique _ hg hc
+
 end uniform_extension

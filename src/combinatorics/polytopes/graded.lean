@@ -577,4 +577,19 @@ abbreviation section_connected {α : Type u} [partial_order α] [graded α] {x y
 abbreviation strong_connected (α : Type u) [partial_order α] [graded α] : Prop :=
 ∀ {x y : α} (hxy : x ≤ y), section_connected hxy
 
+/-- Strong connectedness implies connectedness. -/
+theorem connected_of_strong_connected (α : Type u) [partial_order α] [order_top α] [graded α] :
+  strong_connected α → graded.connected α :=
+begin
+  intro h,
+  have hs := h (bot_le : ⊥ ≤ ⊤),
+  cases hs with hs hs, {
+    left,
+    rw ←hs,
+    change grade_top α with graded.grade ⊤,
+    sorry,
+  },
+  sorry
+end
+
 end graded

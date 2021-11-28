@@ -674,6 +674,15 @@ graded.flag_connected (set.Icc x y)
 def strong_flag_connected (α : Type u) [preorder α] : Prop :=
 ∀ {x y : α}, section_flag_connected x y
 
+/-- Strong flag-connectedness implies flag-connectedness. -/
+theorem flag_connected_of_strong_flag_connected (α : Type u) [partial_order α] [order_top α]
+[graded α] :
+  strong_flag_connected α → graded.flag_connected α :=
+begin
+  intros h Φ Ψ,
+  sorry
+end
+
 /-- Strong flag connectedness implies strong connectedness. -/
 private lemma strong_connected_of_strong_flag_connected (α : Type u) [partial_order α] [graded α] :
   strong_flag_connected α → strong_connected α :=

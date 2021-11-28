@@ -549,9 +549,6 @@ end
 end
 end chain
 
-namespace flag
-section
-
 /-- A point subdivides an interval into three. -/
 private lemma ioo_tricho {a b c : ℕ} (hc : c ∈ set.Ioo a b) (d: ℕ) :
   c = d ∨ c ∈ set.Ioo a d ∨ c ∈ set.Ioo d b :=
@@ -591,8 +588,8 @@ begin
 end
 
 /-- A set of nats without gaps is an interval. -/
-lemma all_icc_of_ex_ioo {P : ℕ → Prop}
-  (hP : ∀ a b, P a → P b → (nonempty (set.Ioo a b)) → ∃ c ∈ set.Ioo a b, P c) (a b : ℕ) :
+lemma nat.all_icc_of_ex_ioo {P : ℕ → Prop}
+(hP : ∀ a b, P a → P b → (nonempty (set.Ioo a b)) → ∃ c ∈ set.Ioo a b, P c) (a b : ℕ) :
   P a → P b → ∀ c ∈ set.Icc a b, P c :=
 begin
   rintros ha hb c ⟨hac, hcb⟩,
@@ -603,10 +600,13 @@ begin
   exact all_ioo_of_ex_ioo b (λ c d _, hP c d) _ _ le_add_self ha hb _ ⟨hac, hcb⟩
 end
 
-variables {α : Type u} [partial_order α]
+namespace flag
+section
+
+variables {α : Type u}
 
 /-- Every chain is contained in a flag. -/
-theorem flag_of_chain (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ :=
+theorem flag_of_chain [preorder α] (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ :=
 begin
   let all_chains := {s : set α | c ⊆ s ∧ zorn.chain (<) s},
   have := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩, {
@@ -633,11 +633,12 @@ begin
 end
 
 /-- Every element belongs to some flag. -/
-theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
+theorem ex_flag_mem [preorder α] (x : α) : ∃ Φ : flag α, x ∈ Φ :=
 by cases flag_of_chain _ (chain.singleton x) with Φ hΦ; exact ⟨Φ, hΦ (set.mem_insert x ∅)⟩
 
 /-- Every pair of incident elements belongs to some flag. -/
-theorem ex_flag_both_mem (x y : α) (hxy : x < y ∨ y < x) : ∃ Φ : flag α, x ∈ Φ ∧ y ∈ Φ :=
+theorem ex_flag_both_mem [preorder α] (x y : α) (hxy : x < y ∨ y < x) :
+  ∃ Φ : flag α, x ∈ Φ ∧ y ∈ Φ :=
 begin
   cases flag_of_chain _ (chain.pair hxy) with Φ hΦ,
   exact ⟨Φ, hΦ (set.mem_insert _ _), hΦ (set.mem_insert_of_mem _ (set.mem_insert _ _))⟩
@@ -645,7 +646,7 @@ end
 
 /-- An element covers another iff they do so in the flag. -/
 @[simp]
-theorem cover_iff_flag_cover {Φ : flag α} (x y : Φ) : x ⋖ y ↔ x.val ⋖ y.val :=
+theorem cover_iff_flag_cover [partial_order α] {Φ : flag α} (x y : Φ) : x ⋖ y ↔ x.val ⋖ y.val :=
 begin
   refine ⟨λ h, ⟨h.left, λ z hzi, _⟩, λ ⟨hxy, hz⟩, ⟨hxy, λ _, hz _⟩⟩,
   cases h with hxy h,
@@ -660,7 +661,7 @@ begin
     { exact or.inr (lt_trans hxw hxz) }
 end
 
-variable [graded α]
+variables [partial_order α] [graded α]
 
 instance (Φ : flag α) : graded Φ :=
 { grade := λ a, grade a.val,
@@ -705,7 +706,7 @@ end
 /-- If a flag contains two elements, it contains elements with all grades in between. -/
 private lemma flag_grade_aux {Φ : flag α} (a b : Φ) (j ∈ set.Icc (grade a) (grade b)) :
   ∃ c : Φ, grade c = j :=
-(all_icc_of_ex_ioo (grade_ioo Φ)) (grade a) (grade b) ⟨a, rfl⟩ ⟨b, rfl⟩ j H
+(nat.all_icc_of_ex_ioo (grade_ioo Φ)) (grade a) (grade b) ⟨a, rfl⟩ ⟨b, rfl⟩ j H
 
 variables [order_top α] (j : fin (graded.grade_top α + 1)) (Φ : flag α)
 
@@ -751,8 +752,7 @@ begin
     rcases ex_unique_of_grade_in_flag j Φ with ⟨_, _, h⟩,
     rw [(h _ ha), (h _ idx)] },
   intro h,
-  rw h,
-  exact idx
+  rwa h,
 end
 
 /-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
@@ -770,33 +770,70 @@ begin
   rw [←hfc, fintype.card_fin],
   refl
 end
+end
 
-variables (Ψ : flag α)
+section
+
+variables {α : Type u}
+
+/-- Two flags are adjacent when there's exactly one element in one but not in the other. This isn't
+    quite the usual definition, and we've made it more general than necessary for reasons of
+    convenience, but we prove it to be equivalent to the usual one in the case of graded posets
+    (see `adjacent_iff_ex_j_adjacent`). -/
+def adjacent [preorder α] (Φ Ψ : flag α) : Prop := ∃ a, Φ.val \ Ψ.val = {a}
+
+instance [preorder α] : is_irrefl (flag α) adjacent :=
+begin
+  split,
+  intros Φ hΦ,
+  cases hΦ with a ha₁,
+  have ha₂ : a ∈ {a} := set.mem_def.mpr rfl,
+  rw ←ha₁ at ha₂,
+  exact ha₂.right ha₂.left,
+end
+
+variables [partial_order α] [order_top α] [graded α]
 
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
     adjacent to itself. -/
-def j_adjacent : Prop :=
+def j_adjacent (j : fin (graded.grade_top α + 1)) (Φ Ψ : flag α) : Prop :=
 ∀ i, (idx i Φ).val = (idx i Ψ).val ↔ i ≠ j
 
-/-- Two flags are adjacent when they're j-adjacent for some j. Note that a flag is never adjacent to
-    itself. -/
--- Todo(Vi): It should be possible to restate this in a way that doesn't depend on `[graded α]`.
-def adjacent : Prop :=
-∃ j, j_adjacent j Φ Ψ
-
-instance : is_irrefl (flag α) (j_adjacent j) :=
+instance (j : fin (graded.grade_top α + 1)) : is_irrefl (flag α) (j_adjacent j) :=
 ⟨λ _ h, (h j).mp rfl rfl⟩
 
-instance : is_irrefl (flag α) adjacent :=
-⟨λ _ ⟨j, h⟩, (@irrefl _ (j_adjacent j) _ _) h⟩
-
 /-- j-adjacency is symmetric. -/
-theorem j_adjacent.symm : j_adjacent j Φ Ψ → j_adjacent j Ψ Φ :=
+theorem j_adjacent.symm {j : fin (graded.grade_top α + 1)} {Φ Ψ : flag α} :
+  j_adjacent j Φ Ψ → j_adjacent j Ψ Φ :=
 by intros h i; rw ←(h i); exact eq_comm
 
-/-- Adjacency is symmetric. -/
-theorem adjacent.symm : adjacent Φ Ψ → adjacent Ψ Φ :=
-λ ⟨j, h⟩, ⟨j, (j_adjacent.symm j _ _) h⟩
+theorem adjacent_iff_ex_j_adjacent {Φ Ψ : flag α} : adjacent Φ Ψ ↔ ∃ j, j_adjacent j Φ Ψ :=
+begin
+  split, {
+    intros hΦΨ,
+    cases hΦΨ with a ha,
+    have : a ∈ Φ.val := sorry,
+    let a' : Φ := ⟨a, this⟩,
+    use grade a,
+    intro j,
+    split, {
+      intros hj hja,
+      symmetry' at hja,
+      rw subtype.ext_iff_val at hja,
+      have : grade a' = j := sorry,
+      rw grade_eq_iff_flag_idx at this,
+      rw ←this at hj,
+      sorry,
+    },
+    sorry,
+  },
+  intro h,
+  sorry,
+end
+
+/-- Adjacency is symmetric in a graded poset. -/
+theorem adjacent.symm {Φ Ψ : flag α} : adjacent Φ Ψ → adjacent Ψ Φ :=
+by repeat { rw adjacent_iff_ex_j_adjacent }; exact λ ⟨j, hj⟩, ⟨j, hj.symm⟩
 
 end
 end flag
@@ -854,25 +891,50 @@ trans hab (from_rel hbc)
 end
 end path
 
-/-- Proper elements are those that are neither `⊥` nor `⊤`. -/
-def is_proper {α : Type u} [preorder α] [bounded_order α] (a : α) : Prop :=
-a ≠ ⊥ ∧ a ≠ ⊤
+/-- Proper elements are those that are maximal nor minimal. -/
+def is_proper {α : Type u} [preorder α] (b : α) : Prop :=
+∃ a c, a < b ∧ b < c
+
+/-- The bottom element is improper. -/
+lemma bot_improper {α : Type u} [preorder α] [order_bot α] : ¬ is_proper (⊥ : α) :=
+λ ⟨_, _, ⟨h, _⟩⟩, not_le_of_gt h bot_le
+
+/-- The top element is improper. -/
+lemma top_improper {α : Type u} [preorder α] [order_top α] : ¬ is_proper (⊤ : α) :=
+λ ⟨_, _, ⟨_, h⟩⟩, not_le_of_gt h le_top
+
+/-- The improper elements are exactly the bottom and top ones. -/
+theorem proper_iff_ne_bot_top {α : Type u} [partial_order α] [bounded_order α] (a : α) :
+  is_proper a ↔ a ≠ ⊥ ∧ a ≠ ⊤ :=
+begin
+  split,
+  { intro ha,
+    split,
+    { intro h,
+      rw h at ha,
+      exact bot_improper ha },
+    intro h,
+    rw h at ha,
+    exact top_improper ha },
+  exact λ ⟨hal, har⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.mpr hal, lt_top_iff_ne_top.mpr har⟩,
+end
 
 /-- An element is proper iff it has a grade between the bottom and top element. -/
 lemma proper_iff_grade_iio {α : Type u} [partial_order α] [order_top α] [graded α] (a : α) :
   is_proper a ↔ grade a ∈ set.Ioo 0 (graded.grade_top α) :=
 begin
-  split, {
-    rintro ⟨hal, har⟩,
-    cases eq_or_lt_of_le (zero_le (grade a)) with h hl,
-      { replace h := eq.symm h,
-        rw graded.eq_zero_iff_eq_bot at h,
-        exact (hal h).elim },
-    cases eq_or_lt_of_le (graded.grade_le_grade_top a) with h hr,
-      { rw graded.eq_grade_top_iff_eq_top at h,
-        exact (har h).elim },
-    exact ⟨hl, hr⟩,
-  },
+  rw proper_iff_ne_bot_top,
+  split,
+    { intro ha,
+      cases ha with hal har,
+      cases eq_or_lt_of_le (zero_le (grade a)) with h hl,
+        { replace h := eq.symm h,
+          rw graded.eq_zero_iff_eq_bot at h,
+          exact (hal h).elim },
+      cases eq_or_lt_of_le (graded.grade_le_grade_top a) with h hr,
+        { rw graded.eq_grade_top_iff_eq_top at h,
+          exact (har h).elim },
+      exact ⟨hl, hr⟩ },
   rintro ⟨hl, hr⟩,
   split,
     { intro ha,
@@ -885,24 +947,24 @@ end
 
 /-- The subtype of proper elements. -/
 @[reducible]
-def polytope.proper (α : Type u) [preorder α] [bounded_order α] : Type u :=
+def polytope.proper (α : Type u) [preorder α] : Type u :=
 {a : α // is_proper a}
 
 /-- Elements are incident when they're comparable. -/
-abbreviation polytope.incident {α : Type u} [preorder α] [bounded_order α]
+abbreviation polytope.incident {α : Type u} [preorder α]
   (a b : polytope.proper α) : Prop :=
 a.val ≠ b.val → a.val < b.val ∨ b.val < a.val
 
 /-- Proper elements are connected when they're related by a sequence of pairwise incident proper
     elements. -/
-abbreviation polytope.connected {α : Type u} [preorder α] [bounded_order α]
+abbreviation polytope.connected {α : Type u} [preorder α]
   (a b : polytope.proper α) : Prop :=
 path polytope.incident a b
 
 /-- Flags are connected when they're related by a sequence of pairwise adjacent flags. -/
-abbreviation polytope.flag_connected {α : Type u} [partial_order α] [order_top α] [graded α]
+abbreviation polytope.flag_connected {α : Type u} [preorder α]
   (Φ Ψ : flag α) : Prop :=
-path (@flag.adjacent α _ _ _) Φ Ψ
+path flag.adjacent Φ Ψ
 
 /-- A `graded` with top grade 1 or less has no proper elements. -/
 theorem proper.empty {α : Type u} [partial_order α] [order_top α] [graded α] :
@@ -932,9 +994,14 @@ open polytope
 
 namespace graded
 
+/-- A `graded` is connected' when any two proper elements are connected. Note that this definition
+    requires nothing more than a preorder. -/
+protected def connected' (α : Type u) [preorder α] : Prop :=
+∀ a b : proper α, connected a b
+
 /-- A `graded` is connected when it's of grade 2, or any two proper elements are connected. -/
 protected def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
-grade_top α = 2 ∨ ∀ a b : proper α, connected a b
+grade_top α = 2 ∨ graded.connected' α
 
 /-- Any `graded` of top grade less or equal to 2 is connected. -/
 theorem connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
@@ -947,7 +1014,7 @@ begin
 end
 
 /-- A `graded` is flag-connected when any two flags are connected. -/
-protected def flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] : Prop :=
+protected def flag_connected (α : Type u) [preorder α] : Prop :=
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
 /-- Any `graded` of top grade less or equal to 2 is flag-connected. -/
@@ -993,6 +1060,7 @@ begin
   suffices hc : ∃ c : proper α, c.val ∈ Ψ.val ∩ Ϝ.val,
     { rcases hc with ⟨c, ⟨hcl, hcr⟩⟩,
       exact path.append_right (hab ha hcl) (Ϝ.prop.left c.val hcr b hb) },
+  rw flag.adjacent_iff_ex_j_adjacent at hΨϜ,
   cases hΨϜ with j hj,
   by_cases hj' : j = ⟨1, lt_trans (nat.succ_lt_succ zero_lt_two) (nat.succ_lt_succ hg)⟩,
     { apply proper_flag_intersect_of_grade hg hj 2, { exact ⟨zero_lt_two, hg⟩ },
@@ -1020,43 +1088,64 @@ end
 
 section
 
-variables {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y)
+variable {α : Type u}
+
+/-- Asserts that a section of a graded poset is connected'. -/
+def section_connected' [preorder α] (x y : α) : Prop :=
+graded.connected' (set.Icc x y)
 
 /-- Asserts that a section of a graded poset is connected. -/
-def section_connected : Prop :=
+def section_connected [partial_order α] [graded α] {x y : α} (hxy : x ≤ y) : Prop :=
 @graded.connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
 
 /-- Asserts that a section of a graded poset is flag connected. -/
-def section_flag_connected : Prop :=
-@graded.flag_connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
+def section_flag_connected [preorder α] (x y : α) : Prop :=
+graded.flag_connected (set.Icc x y)
 
 end
-
 section
 
-variables (α : Type u) [partial_order α] [graded α]
+variables (α : Type u)
 
 /-- A graded poset is strongly connected when all sections are connected. -/
-def strong_connected : Prop :=
+def strong_connected [partial_order α] [graded α] : Prop :=
 ∀ {x y : α} (hxy : x ≤ y), section_connected hxy
 
 /-- A graded poset is strongly flag-connected when all sections are flag-connected. -/
-def strong_flag_connected : Prop :=
-∀ {x y : α} (hxy : x ≤ y), section_flag_connected hxy
+def strong_flag_connected [preorder α] : Prop :=
+∀ {x y : α}, section_flag_connected x y
 
 /-- Strong flag connectedness implies strong connectedness. -/
-private lemma strong_connected_of_strong_flag_connected :
+private lemma strong_connected_of_strong_flag_connected [partial_order α] [graded α] :
   strong_flag_connected α → strong_connected α :=
-by intros hsc _ _ _; apply connected_of_flag_connected _ (hsc _)
+by intros hsc _ _ _; apply connected_of_flag_connected; exact hsc
 
-variable [order_top α]
+variables [partial_order α] [order_bot α] [order_top α]
 
+lemma super_duper_flag_lemma {Φ Ψ : flag α} (x : proper α) (hΦ : x.val ∈ Φ.val)
+(hΨ : x.val ∈ Ψ.val) (h1 : section_flag_connected ⊥ x.val )
+(h2 : section_flag_connected x.val ⊤ ) : flag_connected Φ Ψ :=
+sorry
+
+variable [graded α]
+
+/-- Strong connectedness is equivalent to strong flag connectedness, up to a given top grade. -/
 lemma strong_connected_iff_strong_flag_connected_aux {n : ℕ} :
-  grade_top α = n → strong_connected α → strong_flag_connected α :=
+  grade_top α ≤ n → strong_connected α → strong_flag_connected α :=
 begin
-  induction n with h hd, {
-    sorry,
+  /-
+  induction n with n hn, {
+    intros hg _ x y hxy,
+    apply flag_connected_of_grade_le_two,
+    have : @grade_top _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) = grade y - grade x := by refl,
+    rw this,
+    have : grade y ≤ 2 := begin
+      have := le_trans (grade_le_grade_top y) hg,
+      linarith,
+    end,
+    exact le_trans (nat.sub_le_sub_right this (grade x)) (nat.sub_le 2 (grade x)),
   },
+  -/
   sorry
 end
 
@@ -1065,7 +1154,7 @@ theorem strong_connected_iff_strong_flag_connected :
   strong_flag_connected α ↔ strong_connected α :=
 begin
   refine ⟨strong_connected_of_strong_flag_connected _, λ h, _⟩,
-  apply strong_connected_iff_strong_flag_connected_aux α (rfl),
+  apply strong_connected_iff_strong_flag_connected_aux α (le_of_eq rfl),
   assumption
 end
 

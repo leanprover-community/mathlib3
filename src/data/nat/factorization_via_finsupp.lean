@@ -189,11 +189,16 @@ end
 ---------------------------------------------------------------------------------------------------
 
 /-- For `n > 0`, the product of `p_i ^ k_i` over the prime factorization of `n` equals `n` -/
-lemma prime_factorization_prod_eq_self {n : ℕ} (hn : 0 < n) :
+lemma prime_factorization_prod_pow {n : ℕ} (hn : 0 < n) :
   n = n.prime_factorization.prod pow :=
 by { refine (multiplicative_factorization hn _ _), simp }
 
 ---------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
+
+/-- If the prime_factorization of `n` contains just one prime `p` then `n` is a power of `p` -/
+lemma prime_pow_of_prime_factorization_single {n p k : ℕ} (hn : 0 < n)
+  (h : n.prime_factorization = single p k) : n = p ^ k :=
+by { rw [prime_factorization_prod_pow hn, h], simp }
+
 
 end nat

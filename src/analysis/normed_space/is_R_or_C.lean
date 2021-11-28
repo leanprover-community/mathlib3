@@ -3,8 +3,8 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import analysis.normed_space.operator_norm
 import data.complex.is_R_or_C
+import analysis.normed_space.operator_norm
 
 /-!
 # Normed spaces over R or C

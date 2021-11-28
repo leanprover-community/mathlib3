@@ -369,6 +369,9 @@ local attribute [simp] mul_assoc
 @[to_additive] lemma mul_div (a b c : G) : a * (b / c) = a * b / c :=
 by simp only [mul_assoc, div_eq_mul_inv]
 
+@[to_additive] lemma div_mul_eq_div_div_swap (a b c : G) : a / (b * c) = a / c / b :=
+by simp only [mul_assoc, mul_inv_rev , div_eq_mul_inv]
+
 end group
 
 section add_group
@@ -377,9 +380,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-lemma sub_add_eq_sub_sub_swap (a b c : G) : a - (b + c) = a - c - b :=
-by simp
 
 @[simp] lemma add_sub_add_right_eq_sub (a b c : G) : (a + c) - (b + c) = a - b :=
 by rw [sub_add_eq_sub_sub_swap]; simp

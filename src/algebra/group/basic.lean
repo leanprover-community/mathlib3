@@ -417,6 +417,9 @@ by rw [div_eq_mul_inv, mul_right_eq_self, inv_eq_one]
 @[to_additive eq_sub_iff_add_eq] theorem eq_div_iff_mul_eq' : a = b / c ↔ a * c = b :=
 by rw [div_eq_mul_inv, eq_mul_inv_iff_mul_eq]
 
+@[to_additive] theorem div_eq_iff_eq_mul : a / b = c ↔ a = c * b :=
+by rw [div_eq_mul_inv, mul_inv_eq_iff_eq_mul]
+
 end group
 
 section add_group
@@ -425,9 +428,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-theorem sub_eq_iff_eq_add : a - b = c ↔ a = c + b :=
-by rw [sub_eq_add_neg, add_neg_eq_iff_eq_add]
 
 theorem eq_iff_eq_of_sub_eq_sub (H : a - b = c - d) : a = b ↔ c = d :=
 by rw [← sub_eq_zero, H, sub_eq_zero]

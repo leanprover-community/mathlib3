@@ -23,6 +23,7 @@ A homotopy equivalence between topological spaces `X` and `Y` are a pair of func
 `to_fun : C(X, Y)` and `inv_fun : C(Y, X)` such that `to_fun.comp inv_fun` and `inv_fun.comp to_fun`
 are both homotopic to `id`.
 -/
+@[ext]
 structure homotopy_equiv (X : Type u) (Y : Type v) [topological_space X] [topological_space Y] :=
 (to_fun : C(X, Y))
 (inv_fun : C(Y, X))
@@ -34,6 +35,11 @@ variables [topological_space X] [topological_space Y] [topological_space Z]
 
 namespace homotopy_equiv
 
+instance : has_coe_to_fun (homotopy_equiv X Y) (λ _, X → Y) := ⟨λ h, h.to_fun⟩
+
+@[simp]
+lemma coe_to_fun (h : homotopy_equiv X Y) : (h.to_fun : X → Y) = h := rfl
+
 /--
 Any topological space is homotopy equivalent to itself.
 -/
@@ -43,6 +49,11 @@ def refl (X : Type u) [topological_space X] : homotopy_equiv X X :=
   left_inv := continuous_map.homotopic.refl _,
   right_inv := continuous_map.homotopic.refl _ }
 
+instance : inhabited (homotopy_equiv unit unit) := ⟨refl unit⟩
+
+@[simp]
+lemma coe_fn_refl (X : Type u) [topological_space X] : ⇑(refl X) = id := rfl
+
 /--
 If `X` is homotopy equivalent to `Y`, then `Y` is homotopy equivalent to `X`.
 -/
@@ -51,6 +62,9 @@ def symm (h : homotopy_equiv X Y) : homotopy_equiv Y X :=
   inv_fun := h.to_fun,
   left_inv := h.right_inv,
   right_inv := h.left_inv }
+
+@[simp]
+lemma coe_inv_fun (h : homotopy_equiv X Y) : (⇑h.inv_fun : Y → X) = ⇑h.symm := rfl
 
 /--
 If `X` is homotopy equivalent to `Y`, and `Y` is homotopy equivalent to `Z`, then `X` is homotopy
@@ -75,6 +89,13 @@ def trans (h₁ : homotopy_equiv X Y) (h₂ : homotopy_equiv Y Z) : homotopy_equ
     refine continuous_map.homotopic.trans ((continuous_map.homotopic.refl _).hcomp h₁.right_inv) _,
     rw continuous_map.id_comp,
   end }
+
+@[simp]
+lemma coe_trans (h₁ : homotopy_equiv X Y) (h₂ : homotopy_equiv Y Z) :
+  ⇑(h₁.trans h₂) = h₂ ∘ h₁ := rfl
+
+lemma symm_trans (h₁ : homotopy_equiv X Y) (h₂ : homotopy_equiv Y Z) :
+  (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := by ext; refl
 
 end homotopy_equiv
 

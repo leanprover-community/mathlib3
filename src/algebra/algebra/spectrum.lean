@@ -12,7 +12,7 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 
 ## Main definitions
 
-* `resolvent a : set R`: the resolvent set of an element `a : A` where
+* `resolvent_set a : set R`: the resolvent set of an element `a : A` where
   `A` is an  `R`-algebra.
 * `spectrum a : set R`: the spectrum of an element `a : A` where
   `A` is an  `R`-algebra.
@@ -43,10 +43,10 @@ variables [comm_ring R] [ring A] [algebra R A]
 
 -- definition and basic properties
 
-/-- Given a commutative ring `R` and an `R`-algebra `A`, the *resolvent* of `a : A`
+/-- Given a commutative ring `R` and an `R`-algebra `A`, the *resolvent set* of `a : A`
 is the `set R` consisting of those `r : R` for which `r•1 - a` is a unit of the
 algebra `A`.  -/
-def resolvent (a : A) : set R :=
+def resolvent_set (a : A) : set R :=
 { r : R | is_unit (algebra_map R A r - a) }
 
 
@@ -54,9 +54,9 @@ def resolvent (a : A) : set R :=
 is the `set R` consisting of those `r : R` for which `r•1 - a` is not a unit of the
 algebra `A`.
 
-The spectrum is simply the complement of the resolvent.  -/
+The spectrum is simply the complement of the resolvent set.  -/
 def spectrum (a : A) : set R :=
-(resolvent R a)ᶜ
+(resolvent_set R a)ᶜ
 
 end defs
 
@@ -91,20 +91,20 @@ lemma not_mem_iff {r : R} {a : A} :
   r ∉ σ a ↔ is_unit (↑ₐr - a) :=
 by { apply not_iff_not.mp, simp [set.not_not_mem, mem_iff] }
 
-lemma mem_resolvent_of_left_right_inverse {r : R} {a b c : A}
+lemma mem_resolvent_set_of_left_right_inverse {r : R} {a b c : A}
   (h₁ : (↑ₐr - a) * b = 1) (h₂ : c * (↑ₐr - a) = 1) :
-  r ∈ resolvent R a :=
+  r ∈ resolvent_set R a :=
 units.is_unit ⟨↑ₐr - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁⟩
 
-lemma mem_resolvent_iff {r : R} {a : A} :
-  r ∈ resolvent R a ↔ is_unit (↑ₐr - a) :=
+lemma mem_resolvent_set_iff {r : R} {a : A} :
+  r ∈ resolvent_set R a ↔ is_unit (↑ₐr - a) :=
 iff.rfl
 
 lemma add_mem_iff {a : A} {r s : R} :
   r ∈ σ a ↔ r + s ∈ σ (↑ₐs + a) :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_iff],
+  simp only [mem_resolvent_set_iff],
   have h_eq : ↑ₐ(r+s) - (↑ₐs + a) = ↑ₐr - a,
     { simp, noncomm_ring },
   rw h_eq,
@@ -114,7 +114,7 @@ lemma smul_mem_smul_iff {a : A} {s : R} {r : units R} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_iff, algebra.algebra_map_eq_smul_one],
+  simp only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one],
   have h_eq : (r•s)•(1 : A) = r•s•1, by simp,
   rw [h_eq,←smul_sub,is_unit_smul_iff],
 end
@@ -143,7 +143,7 @@ theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : units R} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_iff, algebra.algebra_map_eq_smul_one],
+  simp only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one],
   have coe_smul_eq : ↑r•1 = r•(1 : A), from rfl,
   rw coe_smul_eq,
   simp only [is_unit.smul_sub_iff_sub_inv_smul],
@@ -188,7 +188,7 @@ begin
   intros k hk,
   rw set.mem_compl_singleton_iff at hk,
   have : is_unit (units.mk0 k hk • (1 : A)) := is_unit.smul (units.mk0 k hk) is_unit_one,
-  simpa [mem_resolvent_iff, algebra.algebra_map_eq_smul_one]
+  simpa [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one]
 end
 
 @[simp] theorem scalar_eq [nontrivial A] (k : 𝕜) : σ (↑ₐk) = {k} :=

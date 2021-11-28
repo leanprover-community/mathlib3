@@ -159,6 +159,26 @@ end
 
 end nat
 
+/-- A closed non-empty interval of a graded poset is a graded poset. -/
+def set.Icc.graded {α : Type u} [partial_order α] [graded α] {x y : α} (h : x ≤ y) :
+  graded (set.Icc x y) :=
+{ grade := λ a, grade a.val - grade x,
+  strict_mono := λ a b h,
+    nat.sub_mono_left_strict (graded.strict_mono.monotone a.prop.left) (graded.strict_mono h),
+  grade_bot := tsub_eq_zero_iff_le.mpr (refl _),
+  hcovers := begin
+    rintros ⟨a, ha⟩ ⟨b, hb⟩ ⟨hab, hcov⟩,
+    suffices this : ∀ z, z ∉ set.Ioo a b,
+      { have : grade b = grade a + 1 := graded.hcovers ⟨hab, this⟩,
+      change grade b - grade x = grade a - grade x + 1,
+      rw [this, nat.sub_add_comm],
+      exact graded.strict_mono.monotone ha.left },
+    rintros _ ⟨hl, hr⟩,
+    simp at hcov, -- Todo(Vi): Remove this `simp`.
+    exact hcov _ (ha.left.trans (le_of_lt hl)) ((le_of_lt hr).trans hb.right) hl hr,
+  end,
+  ..set.Icc.order_bot h }
+
 namespace graded
 
 instance (α : Type u) [preorder α] [ot : order_top α] [g : graded α] : bounded_order α :=
@@ -197,25 +217,6 @@ instance (α : Type u) [partial_order α] [order_top α] [graded α] : graded (o
   end }
 
 variables {α : Type u} [partial_order α] [graded α]
-
-/-- A closed non-empty interval of a graded poset is a graded poset. -/
-def set.Icc.graded {x y : α} (h : x ≤ y) : graded (set.Icc x y) :=
-{ grade := λ a, grade a.val - grade x,
-  strict_mono := λ a b h,
-    nat.sub_mono_left_strict (graded.strict_mono.monotone a.prop.left) (graded.strict_mono h),
-  grade_bot := tsub_eq_zero_iff_le.mpr (refl _),
-  hcovers := begin
-    rintros ⟨a, ha⟩ ⟨b, hb⟩ ⟨hab, hcov⟩,
-    suffices this : ∀ z, z ∉ set.Ioo a b,
-      { have : grade b = grade a + 1 := graded.hcovers ⟨hab, this⟩,
-      change grade b - grade x = grade a - grade x + 1,
-      rw [this, nat.sub_add_comm],
-      exact graded.strict_mono.monotone ha.left },
-    rintros _ ⟨hl, hr⟩,
-    simp at hcov, -- Todo(Vi): Remove this `simp`.
-    exact hcov _ (ha.left.trans (le_of_lt hl)) ((le_of_lt hr).trans hb.right) hl hr,
-  end,
-  ..set.Icc.order_bot h }
 
 /-- An element has grade 0 iff it is the bottom element. -/
 @[simp]
@@ -324,7 +325,7 @@ def oem_fin [order_top α] : α ↪o fin (grade_top α + 1) :=
   map_rel_iff' := grade_le_iff_le }
 
 /-- The set of grades in a linear order has no gaps. -/
-lemma grade_ioo_lin (m n : ℕ) :
+private lemma grade_ioo_lin (m n : ℕ) :
   is_grade α m → is_grade α n → nonempty (set.Ioo m n) → ∃ r ∈ set.Ioo m n, is_grade α r :=
 begin
   rintros ⟨a, ham⟩ ⟨b, hbn⟩ ⟨r, hr⟩,
@@ -349,17 +350,17 @@ begin
   exact graded.strict_mono hcb
 end
 
-/-- A linear order has an element of grade `j` when `j ≤ grade ⊤`. -/
+/-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. -/
  -- Todo(Vi): Generalize! You don't need a linear order here!
-theorem ex_of_grade_in_lin [order_top α] (j : fin (graded.grade_top α + 1)) : is_grade α j :=
+theorem ex_of_grade_lin [order_top α] (j : fin (graded.grade_top α + 1)) : is_grade α j :=
 (nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, graded.grade_bot⟩ ⟨⊤, rfl⟩ _
   ⟨zero_le _, nat.le_of_lt_succ j.prop⟩
 
 /-- A linear order has a unique element of grade `j` when `j ≤ grade ⊤`. -/
-theorem ex_unique_of_grade_in_lin [order_top α] (j : fin (graded.grade_top α + 1)) :
+theorem ex_unique_of_grade [order_top α] (j : fin (graded.grade_top α + 1)) :
   ∃! a : α, grade a = j :=
 begin
-  cases ex_of_grade_in_lin j with a ha,
+  cases ex_of_grade_lin j with a ha,
   use [a, ha],
   intros b hb,
   apply graded.grade.inj _,
@@ -564,15 +565,16 @@ begin
 end
 
 /-- Asserts that a section of a graded poset is connected'. -/
-def section_connected' {α : Type u} [preorder α] (x y : α) : Prop :=
+abbreviation section_connected' {α : Type u} [preorder α] (x y : α) : Prop :=
 graded.connected' (set.Icc x y)
 
 /-- Asserts that a section of a graded poset is connected. -/
-def section_connected {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y) : Prop :=
+abbreviation section_connected {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y) :
+  Prop :=
 @graded.connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
 
 /-- A graded poset is strongly connected when all sections are connected. -/
-def strong_connected {α : Type u} [partial_order α] [graded α] : Prop :=
+abbreviation strong_connected (α : Type u) [partial_order α] [graded α] : Prop :=
 ∀ {x y : α} (hxy : x ≤ y), section_connected hxy
 
 end graded

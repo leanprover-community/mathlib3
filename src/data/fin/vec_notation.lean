@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 import data.fin.tuple
 import data.list.range
-import algebra.module.pi
+import group_theory.group_action.pi
 
 /-!
 # Matrix and vector notation

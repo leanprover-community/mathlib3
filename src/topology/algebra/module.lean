@@ -126,6 +126,26 @@ end
 
 end
 
+namespace submodule
+
+variables {α β : Type*} [topological_space β]
+
+instance [topological_space α] [semiring α] [add_comm_monoid β] [module α β]
+  [has_continuous_smul α β] (S : submodule α β) :
+  has_continuous_smul α S :=
+{ continuous_smul :=
+  begin
+    rw embedding_subtype_coe.to_inducing.continuous_iff,
+    exact continuous_fst.smul
+      (continuous_subtype_coe.comp continuous_snd)
+  end }
+
+instance [ring α] [add_comm_group β] [module α β] [topological_add_group β] (S : submodule α β) :
+  topological_add_group S :=
+S.to_add_subgroup.topological_add_group
+
+end submodule
+
 section closure
 variables {R : Type u} {M : Type v}
 [semiring R] [topological_space R]

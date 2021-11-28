@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-
 import algebra.group.pi
+import algebra.ring.opposite
 import data.equiv.mul_add
 import data.finset.fold
 import data.fintype.basic

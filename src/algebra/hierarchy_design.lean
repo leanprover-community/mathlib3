@@ -68,7 +68,7 @@ when applicable:
   instance pi.Z [∀ i, Z $ f i] : Z (Π i : I, f i) := ...
   ```
 * Instances transferred to `mul_opposite M`, like `mul_opposite.monoid`.
-  See `algebra.opposites` for more examples.
+  See `algebra.group.opposite` for more examples.
   ```
   instance mul_opposite.Z [Z M] : Z (mul_opposite M) := ...
   ```

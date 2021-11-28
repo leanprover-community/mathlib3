@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Sean Leather
 -/
 import algebra.free_monoid
-import algebra.opposites
+import algebra.group.opposite
 import control.traversable.instances
 import control.traversable.lemmas
 import category_theory.endomorphism

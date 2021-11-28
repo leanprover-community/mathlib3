@@ -15,6 +15,8 @@ A set is star-convex at `x` if every segment from `x` to a point in the set is c
 This is the prototypical example of a contractible set in homotopy theory (by scaling every point
 towards `x`), but has wider uses.
 
+Note that this has nothing to do with star rings, `has_star` and co.
+
 ## Main declarations
 
 * `star_convex 𝕜 x s`: `s` is star-convex at `x` with scalars `𝕜`.
@@ -306,28 +308,28 @@ variables [ordered_ring 𝕜]
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {x y : E} {s : set E}
 
-lemma star_convex.add_smul_mem (hs : star_convex 𝕜 x s) {y : E} (hx : x ∈ s) (hy : x + y ∈ s)
-  {t : 𝕜} (ht : t ∈ Icc (0 : 𝕜) 1) :
+lemma star_convex.add_smul_mem (hs : star_convex 𝕜 x s) (hy : x + y ∈ s) {t : 𝕜} (ht₀ : 0 ≤ t)
+  (ht₁ : t ≤ 1) :
   x + t • y ∈ s :=
 begin
   have h : x + t • y = (1 - t) • x + t • (x + y),
   { rw [smul_add, ←add_assoc, ←add_smul, sub_add_cancel, one_smul] },
   rw h,
-  exact hs hy (sub_nonneg_of_le ht.2) ht.1 (sub_add_cancel _ _),
+  exact hs hy (sub_nonneg_of_le ht₁) ht₀ (sub_add_cancel _ _),
 end
 
-lemma star_convex.smul_mem (hs : star_convex 𝕜 0 s) (zero_mem : (0 : E) ∈ s) (hx : x ∈ s) {t : 𝕜}
-  (ht : t ∈ Icc (0 : 𝕜) 1) :
+lemma star_convex.smul_mem (hs : star_convex 𝕜 0 s) (hx : x ∈ s) {t : 𝕜} (ht₀ : 0 ≤ t)
+  (ht₁ : t ≤ 1) :
   t • x ∈ s :=
-by simpa using hs.add_smul_mem zero_mem (by simpa using hx) ht
+by simpa using hs.add_smul_mem (by simpa using hx) ht₀ ht₁
 
-lemma star_convex.add_smul_sub_mem (hs : star_convex 𝕜 x s) (hx : x ∈ s) (hy : y ∈ s) {t : 𝕜}
-  (ht : t ∈ Icc (0 : 𝕜) 1) :
+lemma star_convex.add_smul_sub_mem (hs : star_convex 𝕜 x s) (hy : y ∈ s) {t : 𝕜} (ht₀ : 0 ≤ t)
+  (ht₁ : t ≤ 1) :
   x + t • (y - x) ∈ s :=
 begin
   apply hs.segment_subset hy,
   rw segment_eq_image',
-  exact mem_image_of_mem _ ht,
+  exact mem_image_of_mem _ ⟨ht₀, ht₁⟩,
 end
 
 /-- The preimage of a star-convex set under an affine map is star-convex. -/
@@ -382,12 +384,11 @@ begin
   exact h' zero_lt_one
 end⟩
 
-lemma star_convex.mem_smul (hs : star_convex 𝕜 0 s) (zero_mem : (0 : E) ∈ s) (hx : x ∈ s) {t : 𝕜}
-  (ht : 1 ≤ t) :
+lemma star_convex.mem_smul (hs : star_convex 𝕜 0 s) (hx : x ∈ s) {t : 𝕜} (ht : 1 ≤ t) :
   x ∈ t • s :=
 begin
   rw mem_smul_set_iff_inv_smul_mem₀ (zero_lt_one.trans_le ht).ne',
-  exact hs.smul_mem zero_mem hx ⟨inv_nonneg.2 (zero_le_one.trans ht), inv_le_one ht⟩,
+  exact hs.smul_mem hx (inv_nonneg.2 $ zero_le_one.trans ht) (inv_le_one ht),
 end
 
 end add_comm_group

@@ -358,15 +358,15 @@ by rw [div_eq_mul_inv, mul_inv_cancel_right a b]
 calc a = a / b * b : (div_mul_cancel' a b).symm
    ... = b         : by rw [h, one_mul]
 
+@[to_additive] lemma div_ne_one_of_ne (h : a ≠ b) : a / b ≠ 1 :=
+mt eq_of_div_eq_one' h
+
 end group
 
 section add_group
 -- TODO: Generalize the contents of this section with to_additive as per
 -- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
 variables {G : Type u} [add_group G] {a b c d : G}
-
-lemma sub_ne_zero_of_ne (h : a ≠ b) : a - b ≠ 0 :=
-mt eq_of_sub_eq_zero h
 
 @[simp] lemma sub_neg_eq_add (a b : G) : a - (-b) = a + b :=
 by rw [sub_eq_add_neg, neg_neg]

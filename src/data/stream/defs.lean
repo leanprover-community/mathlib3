@@ -101,11 +101,11 @@ def take : ℕ → stream α → list α
 | 0     s := []
 | (n+1) s := list.cons (head s) (take n (tail s))
 
--- auxiliary def for cycle corecursive def
+/-- An auxiliary definition for `stream.cycle` corecursive def -/
 protected def cycle_f : α × list α × α × list α → α
 | (v, _, _, _) := v
 
--- auxiliary def for cycle corecursive def
+/-- An auxiliary definition for `stream.cycle` corecursive def -/
 protected def cycle_g : α × list α × α × list α → α × list α × α × list α
 | (v₁, [],              v₀, l₀) := (v₀, l₀, v₀, l₀)
 | (v₁, list.cons v₂ l₂, v₀, l₀) := (v₂, l₂, v₀, l₀)

@@ -82,6 +82,10 @@ corec f g a
 
 def corec' (f : α → β × α) : α → stream β := corec (prod.fst ∘ f) (prod.snd ∘ f)
 
+/-- Use a state monad to generate a stream through corecursion -/
+def corec_state {σ α} (cmd : state σ α) (s : σ) : stream α :=
+corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
+
 -- corec is also known as unfold
 def unfolds (g : α → β) (f : α → α) (a : α) : stream β :=
 corec g f a
@@ -117,11 +121,11 @@ def take : ℕ → stream α → list α
 | 0     s := []
 | (n+1) s := list.cons (head s) (take n (tail s))
 
-/-- Auxiliary definition for cycle corecursive def -/
+/-- An auxiliary definition for `stream.cycle` corecursive def -/
 protected def cycle_f : α × list α × α × list α → α
 | (v, _, _, _) := v
 
-/-- Auxiliary definition for cycle corecursive def -/
+/-- An auxiliary definition for `stream.cycle` corecursive def -/
 protected def cycle_g : α × list α × α × list α → α × list α × α × list α
 | (v₁, [],              v₀, l₀) := (v₀, l₀, v₀, l₀)
 | (v₁, list.cons v₂ l₂, v₀, l₀) := (v₂, l₂, v₀, l₀)

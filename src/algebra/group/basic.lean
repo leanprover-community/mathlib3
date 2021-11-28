@@ -393,6 +393,9 @@ div_right_injective.eq_iff
 @[simp, to_additive] lemma div_left_inj : b / a = c / a ↔ b = c :=
 by { rw [div_eq_mul_inv, div_eq_mul_inv], exact mul_left_inj _ }
 
+@[to_additive sub_add_sub_cancel] lemma div_mul_div_cancel' (a b c : G) : (a / b) * (b / c) = a / c
+:= by rw [← mul_div_assoc, div_mul_cancel']
+
 end group
 
 section add_group
@@ -401,9 +404,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-@[simp] lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
-by rw [← add_sub_assoc, sub_add_cancel]
 
 @[simp] lemma sub_sub_sub_cancel_right (a b c : G) : (a - c) - (b - c) = a - b :=
 by rw [← neg_sub c b, sub_neg_eq_add, sub_add_sub_cancel]

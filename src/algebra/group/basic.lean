@@ -348,58 +348,75 @@ inv_eq_of_mul_eq_one ( by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc, inv_mul
 lemma div_mul_cancel' (a b : G) : a / b * b = a :=
 by rw [div_eq_mul_inv, inv_mul_cancel_right a b]
 
-@[simp, to_additive sub_self] lemma div_self' (a : G) : a / a = 1 :=
+@[simp, to_additive sub_self]
+lemma div_self' (a : G) : a / a = 1 :=
 by rw [div_eq_mul_inv, mul_right_inv a]
 
-@[simp, to_additive add_sub_cancel] lemma mul_div_cancel'' (a b : G) : a * b / b = a :=
+@[simp, to_additive add_sub_cancel]
+lemma mul_div_cancel'' (a b : G) : a * b / b = a :=
 by rw [div_eq_mul_inv, mul_inv_cancel_right a b]
 
-@[to_additive eq_of_sub_eq_zero] lemma eq_of_div_eq_one' (h : a / b = 1) : a = b :=
+@[to_additive eq_of_sub_eq_zero]
+lemma eq_of_div_eq_one' (h : a / b = 1) : a = b :=
 calc a = a / b * b : (div_mul_cancel' a b).symm
    ... = b         : by rw [h, one_mul]
 
-@[to_additive] lemma div_ne_one_of_ne (h : a ≠ b) : a / b ≠ 1 :=
+@[to_additive]
+lemma div_ne_one_of_ne (h : a ≠ b) : a / b ≠ 1 :=
 mt eq_of_div_eq_one' h
 
-@[simp, to_additive] lemma div_inv_eq_mul (a b : G) : a / (b⁻¹) = a * b :=
+@[simp, to_additive]
+lemma div_inv_eq_mul (a b : G) : a / (b⁻¹) = a * b :=
 by rw [div_eq_mul_inv, inv_inv]
 
 local attribute [simp] mul_assoc
 
-@[to_additive] lemma mul_div (a b c : G) : a * (b / c) = a * b / c :=
+@[to_additive]
+lemma mul_div (a b c : G) : a * (b / c) = a * b / c :=
 by simp only [mul_assoc, div_eq_mul_inv]
 
-@[to_additive] lemma div_mul_eq_div_div_swap (a b c : G) : a / (b * c) = a / c / b :=
+@[to_additive]
+lemma div_mul_eq_div_div_swap (a b c : G) : a / (b * c) = a / c / b :=
 by simp only [mul_assoc, mul_inv_rev , div_eq_mul_inv]
 
-@[simp, to_additive] lemma mul_div_mul_right_eq_div (a b c : G) : (a * c) / (b * c) = a / b :=
+@[simp, to_additive]
+lemma mul_div_mul_right_eq_div (a b c : G) : (a * c) / (b * c) = a / b :=
 by rw [div_mul_eq_div_div_swap]; simp only [mul_left_inj, eq_self_iff_true, mul_div_cancel'']
 
-@[to_additive eq_sub_of_add_eq] lemma eq_div_of_mul_eq' (h : a * c = b) : a = b / c :=
+@[to_additive eq_sub_of_add_eq]
+lemma eq_div_of_mul_eq' (h : a * c = b) : a = b / c :=
 by simp [← h]
 
-@[to_additive sub_eq_of_eq_add] lemma div_eq_of_eq_mul'' (h : a = c * b) : a / b = c :=
+@[to_additive sub_eq_of_eq_add]
+lemma div_eq_of_eq_mul'' (h : a = c * b) : a / b = c :=
 by simp [h]
 
-@[to_additive] lemma eq_mul_of_div_eq (h : a / c = b) : a = b * c :=
+@[to_additive]
+lemma eq_mul_of_div_eq (h : a / c = b) : a = b * c :=
 by simp [← h]
 
-@[to_additive] lemma mul_eq_of_eq_div (h : a = c / b) : a * b = c :=
+@[to_additive]
+lemma mul_eq_of_eq_div (h : a = c / b) : a * b = c :=
 by simp [h]
 
-@[simp, to_additive] lemma div_right_inj : a / b = a / c ↔ b = c :=
+@[simp, to_additive]
+lemma div_right_inj : a / b = a / c ↔ b = c :=
 div_right_injective.eq_iff
 
-@[simp, to_additive] lemma div_left_inj : b / a = c / a ↔ b = c :=
+@[simp, to_additive]
+lemma div_left_inj : b / a = c / a ↔ b = c :=
 by { rw [div_eq_mul_inv, div_eq_mul_inv], exact mul_left_inj _ }
 
-@[to_additive sub_add_sub_cancel] lemma div_mul_div_cancel' (a b c : G) : (a / b) * (b / c) = a / c
-:= by rw [← mul_div_assoc, div_mul_cancel']
+@[to_additive sub_add_sub_cancel]
+lemma div_mul_div_cancel' (a b c : G) : (a / b) * (b / c) = a / c :=
+by rw [← mul_div_assoc, div_mul_cancel']
 
-@[to_additive sub_sub_sub_cancel_right] lemma div_div_div_cancel_right' (a b c : G) :
-(a / c) / (b / c) = a / b := by rw [← inv_div' c b, div_inv_eq_mul, div_mul_div_cancel']
+@[to_additive sub_sub_sub_cancel_right]
+lemma div_div_div_cancel_right' (a b c : G) : (a / c) / (b / c) = a / b :=
+by rw [← inv_div' c b, div_inv_eq_mul, div_mul_div_cancel']
 
-@[to_additive] theorem div_div_assoc_swap : a / (b / c) = a * c / b :=
+@[to_additive]
+theorem div_div_assoc_swap : a / (b / c) = a * c / b :=
 by simp only [mul_assoc, mul_inv_rev, inv_inv, div_eq_mul_inv]
 
 @[to_additive] theorem div_eq_one : a / b = 1 ↔ a = b :=
@@ -408,19 +425,24 @@ by simp only [mul_assoc, mul_inv_rev, inv_inv, div_eq_mul_inv]
 alias div_eq_one ↔ _ div_eq_one_of_eq
 alias sub_eq_zero ↔ _ sub_eq_zero_of_eq
 
-@[to_additive] theorem div_ne_one : a / b ≠ 1 ↔ a ≠ b :=
+@[to_additive]
+theorem div_ne_one : a / b ≠ 1 ↔ a ≠ b :=
 not_congr div_eq_one
 
-@[simp, to_additive] theorem div_eq_self : a / b = a ↔ b = 1 :=
+@[simp, to_additive]
+theorem div_eq_self : a / b = a ↔ b = 1 :=
 by rw [div_eq_mul_inv, mul_right_eq_self, inv_eq_one]
 
-@[to_additive eq_sub_iff_add_eq] theorem eq_div_iff_mul_eq' : a = b / c ↔ a * c = b :=
+@[to_additive eq_sub_iff_add_eq]
+theorem eq_div_iff_mul_eq' : a = b / c ↔ a * c = b :=
 by rw [div_eq_mul_inv, eq_mul_inv_iff_mul_eq]
 
-@[to_additive] theorem div_eq_iff_eq_mul : a / b = c ↔ a = c * b :=
+@[to_additive]
+theorem div_eq_iff_eq_mul : a / b = c ↔ a = c * b :=
 by rw [div_eq_mul_inv, mul_inv_eq_iff_eq_mul]
 
-@[to_additive] theorem eq_iff_eq_of_div_eq_div (H : a / b = c / d) : a = b ↔ c = d :=
+@[to_additive]
+theorem eq_iff_eq_of_div_eq_div (H : a / b = c / d) : a = b ↔ c = d :=
 by rw [← div_eq_one, H, div_eq_one]
 
 @[to_additive]

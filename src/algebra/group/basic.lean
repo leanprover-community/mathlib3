@@ -396,6 +396,9 @@ by { rw [div_eq_mul_inv, div_eq_mul_inv], exact mul_left_inj _ }
 @[to_additive sub_add_sub_cancel] lemma div_mul_div_cancel' (a b c : G) : (a / b) * (b / c) = a / c
 := by rw [← mul_div_assoc, div_mul_cancel']
 
+@[to_additive sub_sub_sub_cancel_right] lemma div_div_div_cancel_right' (a b c : G) :
+(a / c) / (b / c) = a / b := by rw [← inv_div' c b, div_inv_eq_mul, div_mul_div_cancel']
+
 end group
 
 section add_group
@@ -404,9 +407,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-@[simp] lemma sub_sub_sub_cancel_right (a b c : G) : (a - c) - (b - c) = a - b :=
-by rw [← neg_sub c b, sub_neg_eq_add, sub_add_sub_cancel]
 
 theorem sub_sub_assoc_swap : a - (b - c) = a + c - b :=
 by simp

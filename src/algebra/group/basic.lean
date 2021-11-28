@@ -164,11 +164,13 @@ lemma mul_one_div (x y : G) :
   x * (1 / y) = x / y :=
 by rw [div_eq_mul_inv, one_mul, div_eq_mul_inv]
 
-lemma mul_div_assoc {a b c : G} : a * b / c = a * (b / c) :=
+@[to_additive]
+lemma mul_div_assoc (a b c : G) : a * b / c = a * (b / c) :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
 
+@[to_additive]
 lemma mul_div_assoc' (a b c : G) : a * (b / c) = (a * b) / c :=
-mul_div_assoc.symm
+(mul_div_assoc _ _ _).symm
 
 @[simp, to_additive] lemma one_div (a : G) : 1 / a = a⁻¹ :=
 (inv_eq_one_div a).symm
@@ -358,9 +360,6 @@ section add_group
 -- TODO: Generalize the contents of this section with to_additive as per
 -- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
 variables {G : Type u} [add_group G] {a b c d : G}
-
-lemma add_sub_assoc (a b c : G) : a + b - c = a + (b - c) :=
-by rw [sub_eq_add_neg, add_assoc, ←sub_eq_add_neg]
 
 lemma eq_of_sub_eq_zero (h : a - b = 0) : a = b :=
 calc a = a - b + b : (sub_add_cancel a b).symm

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Heather Macbeth
 -/
 import analysis.convex.cone
+import analysis.normed_space.is_R_or_C
 import analysis.normed_space.extend
 
 /-!
@@ -22,32 +23,6 @@ of `𝕜`).
 -/
 
 universes u v
-
-/--
-The norm of `x` as an element of `𝕜` (a normed algebra over `ℝ`). This is needed in particular to
-state equalities of the form `g x = norm' 𝕜 x` when `g` is a linear function.
-
-For the concrete cases of `ℝ` and `ℂ`, this is just `∥x∥` and `↑∥x∥`, respectively.
--/
-noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
-  {E : Type*} [semi_normed_group E] (x : E) : 𝕜 :=
-algebra_map ℝ 𝕜 ∥x∥
-
-lemma norm'_def (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
-  {E : Type*} [semi_normed_group E] (x : E) :
-  norm' 𝕜 x = (algebra_map ℝ 𝕜 ∥x∥) := rfl
-
-lemma norm_norm'
-  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
-  (A : Type*) [semi_normed_group A]
-  (x : A) : ∥norm' 𝕜 x∥ = ∥x∥ :=
-by rw [norm'_def, norm_algebra_map_eq, norm_norm]
-
-@[simp] lemma norm'_eq_zero_iff
-  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
-  (A : Type*) [normed_group A] (x : A) :
-  norm' 𝕜 x = 0 ↔ x = 0 :=
-by simp [norm', ← norm_eq_zero, norm_algebra_map_eq]
 
 namespace real
 variables {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E]
@@ -127,33 +102,33 @@ variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 open continuous_linear_equiv submodule
 open_locale classical
 
-lemma coord_norm' (x : E) (h : x ≠ 0) : ∥norm' 𝕜 x • coord 𝕜 x h∥ = 1 :=
-by rw [norm_smul, norm_norm', coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
+lemma coord_norm' {x : E} (h : x ≠ 0) : ∥(∥x∥ : 𝕜) • coord 𝕜 x h∥ = 1 :=
+by rw [norm_smul, is_R_or_C.norm_coe_norm, coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
     element of the dual space, of norm `1`, whose value on `x` is `∥x∥`. -/
-theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
+theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
   let p : submodule 𝕜 E := 𝕜 ∙ x,
-  let f := norm' 𝕜 x • coord 𝕜 x h,
+  let f := (∥x∥ : 𝕜) • coord 𝕜 x h,
   obtain ⟨g, hg⟩ := exists_extension_norm_eq p f,
   refine ⟨g, _, _⟩,
   { rw [hg.2, coord_norm'] },
   { calc g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw coe_mk
-    ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
-    ... = norm' 𝕜 x : by simp }
+    ... = ((∥x∥ : 𝕜) • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
+    ... = ∥x∥ : by simp }
 end
 
 /-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, and choosing
     the dual element arbitrarily when `x = 0`. -/
 theorem exists_dual_vector' [nontrivial E] (x : E) :
-  ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
+  ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
   by_cases hx : x = 0,
   { obtain ⟨y, hy⟩ := exists_ne (0 : E),
-    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = norm' 𝕜 y := exists_dual_vector 𝕜 y hy,
+    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = ∥y∥ := exists_dual_vector 𝕜 y hy,
     refine ⟨g, hg.left, _⟩,
-    rw [norm'_def, hx, norm_zero, ring_hom.map_zero, continuous_linear_map.map_zero] },
+    simp [hx] },
   { exact exists_dual_vector 𝕜 x hx }
 end
 
@@ -161,7 +136,7 @@ end
     the dual element has norm at most `1` (this can not be improved for the trivial
     vector space). -/
 theorem exists_dual_vector'' (x : E) :
-  ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g x = norm' 𝕜 x :=
+  ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g x = ∥x∥ :=
 begin
   by_cases hx : x = 0,
   { refine ⟨0, by simp, _⟩,

@@ -101,17 +101,6 @@ begin
     exact (ne.symm h2).le_iff_lt,},
 end
 
--- TODO spin off new PR and move these lemmas to data.finset.interval
-lemma Ioo_eq_Ico_erase (a b : ℕ) : Ioo a b = (Ico a b).erase a :=
-begin
-  sorry,
-end
-
-lemma Ico_succ_left_eq_erase_Ico (a b : ℕ) : Ico a.succ b = erase (Ico a b) a :=
-begin
-  rw Ico_succ_left,
-  rw Ioo_eq_Ico_erase,
-end
 
 
 lemma filter_mod_eq_range_card (a b n : ℕ) :

@@ -103,11 +103,7 @@ open continuous_linear_equiv submodule
 open_locale classical
 
 lemma coord_norm' {x : E} (h : x ≠ 0) : ∥(∥x∥ : 𝕜) • coord 𝕜 x h∥ = 1 :=
-begin
-  have : (∥x∥ : 𝕜) = (↑∥coord 𝕜 x h∥)⁻¹ := by field_simp [coord_norm],
-  rw this,
-  exact norm_smul_inv_norm (coord_ne_zero 𝕜 h)
-end
+by rw [norm_smul, is_R_or_C.norm_coe_norm, coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
     element of the dual space, of norm `1`, whose value on `x` is `∥x∥`. -/

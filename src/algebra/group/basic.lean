@@ -387,6 +387,9 @@ by simp [← h]
 @[to_additive] lemma mul_eq_of_eq_div (h : a = c / b) : a * b = c :=
 by simp [h]
 
+@[simp, to_additive] lemma div_right_inj : a / b = a / c ↔ b = c :=
+div_right_injective.eq_iff
+
 end group
 
 section add_group
@@ -395,9 +398,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-@[simp] lemma sub_right_inj : a - b = a - c ↔ b = c :=
-sub_right_injective.eq_iff
 
 @[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
 by { rw [sub_eq_add_neg, sub_eq_add_neg], exact add_left_inj _ }

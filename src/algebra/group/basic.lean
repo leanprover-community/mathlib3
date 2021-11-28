@@ -408,6 +408,9 @@ by simp only [mul_assoc, mul_inv_rev, inv_inv, div_eq_mul_inv]
 alias div_eq_one ↔ _ div_eq_one_of_eq
 alias sub_eq_zero ↔ _ sub_eq_zero_of_eq
 
+@[to_additive] theorem div_ne_one : a / b ≠ 1 ↔ a ≠ b :=
+not_congr div_eq_one
+
 end group
 
 section add_group
@@ -416,9 +419,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-theorem sub_ne_zero : a - b ≠ 0 ↔ a ≠ b :=
-not_congr sub_eq_zero
 
 @[simp] theorem sub_eq_self : a - b = a ↔ b = 0 :=
 by rw [sub_eq_add_neg, add_right_eq_self, neg_eq_zero]

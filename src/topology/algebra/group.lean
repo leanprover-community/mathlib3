@@ -783,7 +783,6 @@ partial_order.lift group_topology.to_topological_space $ ext
 
 local notation `cont` := @continuous _ _
 
-set_option pp.implicit true
 private def def_Inf (S : set (group_topology γ)) : group_topology γ :=
 let Inf_S' := Inf (to_topological_space '' S) in
 { to_topological_space := Inf_S',

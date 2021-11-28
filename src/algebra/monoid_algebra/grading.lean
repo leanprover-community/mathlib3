@@ -16,10 +16,10 @@ In this file, we show that an `add_monoid_algebra` has an internal direct sum st
 
 * `add_monoid_algebra.grade_by R f i`: the `i`th grade of an `add_monoid_algebra R M` given by the
   degree function `f`.
-* `add_monoid_algebra.grade R i`: the `i`th grade of an `add_monoid_algebra R ι` when the degree
+* `add_monoid_algebra.grade R i`: the `i`th grade of an `add_monoid_algebra R M` when the degree
   function is the identity.
-* `add_monoid_algebra.equiv_grade_by`: the equivalence between an `add_monoid_algebra` and the direct
-  sum of its grades.
+* `add_monoid_algebra.equiv_grade_by`: the equivalence between an `add_monoid_algebra` and the
+  direct sum of its grades.
 * `add_monoid_algebra.equiv_grade`: the equivalence between an `add_monoid_algebra` and the direct
   sum of its grades when the degree function is the identity.
 * `add_monoid_algebra.grade_by.is_internal`: propositionally, the statement that
@@ -32,7 +32,7 @@ In this file, we show that an `add_monoid_algebra` has an internal direct sum st
 noncomputable theory
 
 namespace add_monoid_algebra
-variables {M : Type*} {ι : Type*} {R : Type*} [decidable_eq M] [decidable_eq ι]
+variables {M : Type*} {ι : Type*} {R : Type*} [decidable_eq M]
 
 section
 variables (R) [comm_semiring R]
@@ -41,26 +41,27 @@ variables (R) [comm_semiring R]
 abbreviation grade_by (f : M → ι) (i : ι) : submodule R (add_monoid_algebra R M) :=
 { carrier := {a | ∀ m, m ∈ a.support → f m = i },
   zero_mem' := set.empty_subset _,
-  add_mem' := λ a b ha hb m h, or.rec_on (finset.mem_union.mp (finsupp.support_add h)) (ha m) (hb m),
+  add_mem' := λ a b ha hb m h,
+    or.rec_on (finset.mem_union.mp (finsupp.support_add h)) (ha m) (hb m),
   smul_mem' := λ a m h, set.subset.trans finsupp.support_smul h }
 
 /-- The submodule corresponding to each grade. -/
-abbreviation grade (i : ι) : submodule R (add_monoid_algebra R ι) := grade_by R id i
+abbreviation grade (m : M) : submodule R (add_monoid_algebra R M) := grade_by R id m
 
-lemma grade_by_id : grade_by R (id : ι → ι) = grade R := by refl
+lemma grade_by_id : grade_by R (id : M → M) = grade R := by refl
 
 lemma mem_grade_by_iff (f : M → ι) (i : ι) (a : add_monoid_algebra R M) :
   a ∈ grade_by R f i ↔ (a.support : set M) ⊆ f ⁻¹' {i} := by refl
 
-lemma mem_grade_iff (i : ι) (a : add_monoid_algebra R ι) : a ∈ grade R i ↔ a.support ⊆ {i} :=
+lemma mem_grade_iff (m : M) (a : add_monoid_algebra R M) : a ∈ grade R m ↔ a.support ⊆ {m} :=
 begin
   rw [← finset.coe_subset, finset.coe_singleton],
   refl
 end
 
-lemma mem_grade_iff' (i : ι) (a : add_monoid_algebra R ι) :
-  a ∈ grade R i ↔
-    a ∈ ((finsupp.lsingle i).range : submodule R (add_monoid_algebra R ι)) :=
+lemma mem_grade_iff' (m : M) (a : add_monoid_algebra R M) :
+  a ∈ grade R m ↔
+    a ∈ ((finsupp.lsingle m).range : submodule R (add_monoid_algebra R M)) :=
 begin
   rw [mem_grade_iff, finsupp.support_subset_singleton'],
   apply exists_congr,
@@ -68,8 +69,20 @@ begin
   split; exact eq.symm
 end
 
-lemma grade_eq_lsingle_range (i : ι) : grade R i = (finsupp.lsingle i).range :=
-submodule.ext (mem_grade_iff' R i)
+lemma grade_eq_lsingle_range (m : M) : grade R m = (finsupp.lsingle m).range :=
+submodule.ext (mem_grade_iff' R m)
+
+lemma single_mem_grade_by {R} [comm_semiring R] (f : M → ι) (i : ι) (m : M)
+  (h : f m = i) (r : R) :
+    finsupp.single m r ∈ grade_by R f i :=
+begin
+  intros x hx,
+  rw finset.mem_singleton.mp (finsupp.support_single_subset hx),
+  exact h
+end
+
+lemma single_mem_grade {R} [comm_semiring R] (i : M) (r : R) : finsupp.single i r ∈ grade R i :=
+single_mem_grade_by _ _ _ rfl _
 
 end
 
@@ -94,22 +107,11 @@ instance grade_by.graded_monoid [add_monoid M] [add_monoid ι] [comm_semiring R]
     apply add_monoid_hom.map_add
   end }
 
-instance grade.graded_monoid [add_monoid ι] [comm_semiring R] :
-  set_like.graded_monoid (grade R : ι → submodule R (add_monoid_algebra R ι)) :=
-by apply grade_by.graded_monoid (add_monoid_hom.id ι)
+instance grade.graded_monoid [add_monoid M] [comm_semiring R] :
+  set_like.graded_monoid (grade R : M → submodule R (add_monoid_algebra R M)) :=
+by apply grade_by.graded_monoid (add_monoid_hom.id _)
 
-variables {R} [add_monoid M] [add_monoid ι] [comm_semiring R] (f : M →+ ι)
-
-lemma single_mem_grade_by (i : ι) (m : M) (h : f m = i) (r : R) :
-  finsupp.single m r ∈ grade_by R f i :=
-begin
-  intros x hx,
-  rw finset.mem_singleton.mp (finsupp.support_single_subset hx),
-  exact h
-end
-
-lemma single_mem_grade (i : ι) (r : R) : finsupp.single i r ∈ grade R i :=
-single_mem_grade_by _ _ _ (add_monoid_hom.id_apply _ _) _
+variables {R} [add_monoid M] [decidable_eq ι] [add_monoid ι] [comm_semiring R] (f : M →+ ι)
 
 /-- The canonical grade decomposition. -/
 def to_grades_by : add_monoid_algebra R M →ₐ[R] ⨁ i : ι, grade_by R f i :=
@@ -130,12 +132,13 @@ add_monoid_algebra.lift R M _
   end }
 
 /-- The canonical grade decomposition. -/
-def to_grades : add_monoid_algebra R ι →ₐ[R] ⨁ i : ι, grade R i :=
-to_grades_by (add_monoid_hom.id ι)
+def to_grades : add_monoid_algebra R M →ₐ[R] ⨁ i : M, grade R i :=
+to_grades_by (add_monoid_hom.id M)
 
 lemma to_grades_by_single' (i : ι) (m : M) (h : f m = i) (r : R) :
   to_grades_by f (finsupp.single m r) =
-    direct_sum.of (λ i : ι, grade_by R f i) i ⟨finsupp.single m r, single_mem_grade_by _ _ _ h _⟩ :=
+    direct_sum.of (λ i : ι, grade_by R f i) i
+      ⟨finsupp.single m r, single_mem_grade_by _ _ _ h _⟩ :=
 begin
   refine (lift_single _ _ _).trans _,
   refine (direct_sum.of_smul _ _ _ _).symm.trans _,
@@ -172,10 +175,12 @@ begin
   { intros m b y hmy hb ih hmby,
     have : disjoint (finsupp.single m b).support y.support,
     { simpa only [finsupp.support_single_ne_zero hb, finset.disjoint_singleton_left] },
-    rw [mem_grade_by_iff, finsupp.support_add_eq this, finset.coe_union, set.union_subset_iff] at hmby,
+    rw [mem_grade_by_iff, finsupp.support_add_eq this, finset.coe_union,
+      set.union_subset_iff] at hmby,
     cases hmby with h1 h2,
     have : f m = i,
-    { rwa [finsupp.support_single_ne_zero hb, finset.coe_singleton, set.singleton_subset_iff] at h1 },
+    { rwa [finsupp.support_single_ne_zero hb, finset.coe_singleton,
+        set.singleton_subset_iff] at h1 },
     simp only [alg_hom.map_add, submodule.coe_mk, to_grades_by_single' f i m this],
     let ih' := ih h2,
     dsimp at ih',
@@ -217,7 +222,8 @@ begin
 end
 
 @[simp]
-lemma of_grades_comp_to_grades : of_grades.comp to_grades = alg_hom.id R (add_monoid_algebra R ι) :=
+lemma of_grades_comp_to_grades :
+  of_grades.comp to_grades = alg_hom.id R (add_monoid_algebra R ι) :=
 by apply of_grades_by_comp_to_grades_by
 
 @[simp]

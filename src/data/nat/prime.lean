@@ -465,6 +465,13 @@ begin
     { exact factors_one }, }
 end
 
+lemma eq_of_perm_factors {a b : ℕ} (ha : 0 < a) (hb : 0 < b) (h : a.factors ~ b.factors) : a = b :=
+by simpa [prod_factors ha, prod_factors hb] using list.perm.prod_eq h
+
+lemma eq_of_count_factors_eq {a b : ℕ} (ha : 0 < a) (hb : 0 < b)
+  (h : ∀ p : ℕ, list.count p a.factors = list.count p b.factors) : a = b :=
+eq_of_perm_factors ha hb (list.perm_iff_count.mpr h)
+
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
  λ nd, coprime_of_dvd $ λ m m2 mp, ((prime_dvd_prime_iff_eq m2 pp).1 mp).symm ▸ nd⟩

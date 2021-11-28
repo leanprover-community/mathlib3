@@ -79,7 +79,7 @@ begin
   { intros hk s hne hdir hsup,
     obtain ⟨t, ht⟩ := hk s hsup,
     -- certainly every element of t is below something in s, since ↑t ⊆ s.
-    have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, by refl⟩,
+    have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, le_rfl⟩,
     obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
     exact ⟨x, ⟨hxs, le_trans ht.right hsupx⟩⟩, },
   { intros hk s hsup,

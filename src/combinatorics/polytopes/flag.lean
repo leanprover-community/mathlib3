@@ -15,6 +15,8 @@ import data.fin.basic
 In this file we define flags, which are maximal chains of a partial order. We prove that
 automorphisms of posets induces a group action on flags. We also prove that flags contain elements
 of each possible grade.
+
+Todo(Vi): We have done so much since I wrote this three or so days ago! We need to update this.
 -/
 
 open category_theory
@@ -62,16 +64,25 @@ def polytope.graded.rel_hom (α : Type u) [preorder α] [bg : polytope.graded α
   @rel_hom α ℕ (<) (<) :=
 ⟨_, bg.strict_mono⟩
 
-/-- If a natural covers another, it must be a successor. -/
-lemma nat.succ_of_cover (m n : ℕ) : m ⋖ n → n = m + 1 := begin
-  rintro ⟨hmnl, hmnr⟩,
-  cases le_or_gt n (m + 1) with hnm hnm,
-  exact antisymm hnm (nat.succ_le_of_lt hmnl),
-  exact (hmnr _ ⟨lt_add_one m, hnm⟩).elim,
+/-- A natural covers another iff it's a successor. -/
+lemma nat.cover_iff_succ (m n : ℕ) : m ⋖ n ↔ n = m + 1 :=
+begin
+  split,
+  { rintro ⟨hmnl, hmnr⟩,
+    cases le_or_gt n (m + 1) with hnm hnm,
+    exact antisymm hnm (nat.succ_le_of_lt hmnl),
+    exact (hmnr _ ⟨lt_add_one m, hnm⟩).elim },
+  intro hnm,
+  split,
+  { rw hnm,
+    exact lt_add_one m },
+  rintros r ⟨hrl, hrr⟩,
+  rw hnm at hrr,
+  exact nat.lt_irrefl _ (lt_of_le_of_lt (nat.succ_le_of_lt hrl) hrr),
 end
 
 instance : polytope.graded ℕ :=
-⟨id, rfl, strict_mono_id, nat.succ_of_cover⟩
+⟨id, rfl, strict_mono_id, λ _ _, (nat.cover_iff_succ _ _).mp⟩
 
 /-- Two `fin`s cover each other iff their values do. -/
 lemma fin.cover_iff_cover {n : ℕ} (a b : fin n) : a ⋖ b ↔ a.val ⋖ b.val :=
@@ -85,8 +96,12 @@ instance (n : ℕ) : polytope.graded (fin (n + 1)) :=
   hcovers := begin
     intros x y,
     rw fin.cover_iff_cover,
-    exact nat.succ_of_cover _ _,
+    exact (nat.cover_iff_succ _ _).mp,
   end }
+
+/-- Covering is irreflexive. -/
+instance covers.is_irrefl {α : Type u} [preorder α] : is_irrefl α polytope.covers :=
+⟨ λ _ ha, ne_of_lt ha.left (refl _) ⟩
 
 open polytope
 
@@ -152,14 +167,14 @@ variables [partial_order α] (Φ : flag α)
 
 /-- `⊥` belongs to every flag. -/
 theorem bot_in_flag [order_bot α] : (⊥ : α) ∈ Φ :=
-by rw mem_flag_iff_comp; exact λ b hb, or.inl (bot_lt_iff_ne_bot.mpr hb.symm)
+by rw mem_flag_iff_comp; exact λ _ h, or.inl (bot_lt_iff_ne_bot.mpr h.symm)
 
 instance [order_bot α] : order_bot Φ :=
 subtype.order_bot Φ.bot_in_flag
 
 /-- `⊤` belongs to every flag. -/
 theorem top_in_flag [order_top α] : (⊤ : α) ∈ Φ :=
-by rw mem_flag_iff_comp; exact λ b hb, or.inr (lt_top_iff_ne_top.mpr hb.symm)
+by rw mem_flag_iff_comp; exact λ _ h, or.inr (lt_top_iff_ne_top.mpr h.symm)
 
 instance [order_top α] : order_top Φ :=
 subtype.order_top Φ.top_in_flag
@@ -340,27 +355,6 @@ instance : mul_action (automorphism α) (flag α) :=
 
 end polytope.automorphism
 
-/-- Covering is irreflexive. -/
-instance covers.is_irrefl {α : Type u} [preorder α] : is_irrefl α covers :=
-⟨ λ _ ha, ne_of_lt ha.left (refl _) ⟩
-
-/-- A natural covers another iff it's a successor. -/
-lemma nat.cover_iff_succ (m n : ℕ) : m ⋖ n ↔ n = m + 1 :=
-begin
-  split,
-  { rintro ⟨hmnl, hmnr⟩,
-    cases le_or_gt n (m + 1) with hnm hnm,
-    exact antisymm hnm (nat.succ_le_of_lt hmnl),
-    exact (hmnr _ ⟨lt_add_one m, hnm⟩).elim },
-  intro hnm,
-  split,
-  { rw hnm,
-    exact lt_add_one m },
-  rintros r ⟨hrl, hrr⟩,
-  rw hnm at hrr,
-  exact nat.lt_irrefl _ (lt_of_le_of_lt (nat.succ_le_of_lt hrl) hrr),
-end
-
 namespace graded
 
 instance (α : Type u) [preorder α] [ot : order_top α] [g : graded α] : bounded_order α :=
@@ -452,25 +446,28 @@ order_embedding.eq_iff_eq oem_nat
 lemma grade_ne_iff_ne (x y : α) : grade x ≠ grade y ↔ x ≠ y :=
 not_congr (grade_eq_iff_eq x y)
 
+end
+
+section
+
+variables [partial_order α] [graded α] [order_top α]
+
 /-- A grade function into `fin` for `α` with a top element. -/
-def grade_fin [order_top α] (x : α) : fin (grade_top α + 1) :=
+def grade_fin (x : α) : fin (grade_top α + 1) :=
 ⟨grade x, by rw nat.lt_add_one_iff; exact grade_le_grade_top _⟩
 
 @[simp]
-theorem grade_fin.val_eq [order_top α] (x : α) : (grade_fin x).val = grade x :=
+theorem grade_fin.val_eq (x : α) : (grade_fin x).val = grade x :=
 rfl
 
-theorem grade_fin.strict_mono [order_top α] : strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
+theorem grade_fin.strict_mono : strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
 graded.strict_mono
 
-theorem grade_fin.inj [order_top α] : function.injective (grade_fin : α → fin (grade_top α + 1)) :=
-grade_fin.strict_mono.injective
+end
 
-/-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
-def oem_fin [order_top α] : α ↪o fin (grade_top α + 1) :=
-{ to_fun := grade_fin,
-  inj' := grade_fin.inj,
-  map_rel_iff' := grade_le_iff_le }
+section
+
+variables [linear_order α] [graded α]
 
 /-- In linear orders, `hcovers` is an equivalence. -/
 lemma covers_iff_grade_eq_succ_grade (a b : α) : a ⋖ b ↔ grade b = grade a + 1 :=
@@ -494,6 +491,17 @@ begin
   rw nat.cover_iff_succ at hab,
   rwa graded.covers_iff_grade_eq_succ_grade
 end
+
+variable [order_top α]
+
+theorem grade_fin.inj  : function.injective (grade_fin : α → fin (grade_top α + 1)) :=
+grade_fin.strict_mono.injective
+
+/-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
+def oem_fin : α ↪o fin (grade_top α + 1) :=
+{ to_fun := grade_fin,
+  inj' := grade_fin.inj,
+  map_rel_iff' := grade_le_iff_le }
 
 end
 end graded
@@ -605,8 +613,11 @@ section
 
 variables {α : Type u}
 
+section
+variable [preorder α]
+
 /-- Every chain is contained in a flag. -/
-theorem flag_of_chain [preorder α] (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ :=
+theorem flag_of_chain (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ :=
 begin
   let all_chains := {s : set α | c ⊆ s ∧ zorn.chain (<) s},
   have := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩, {
@@ -633,20 +644,25 @@ begin
 end
 
 /-- Every element belongs to some flag. -/
-theorem ex_flag_mem [preorder α] (x : α) : ∃ Φ : flag α, x ∈ Φ :=
+theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
 by cases flag_of_chain _ (chain.singleton x) with Φ hΦ; exact ⟨Φ, hΦ (set.mem_insert x ∅)⟩
 
 /-- Every pair of incident elements belongs to some flag. -/
-theorem ex_flag_both_mem [preorder α] (x y : α) (hxy : x < y ∨ y < x) :
+theorem ex_flag_both_mem (x y : α) (hxy : x < y ∨ y < x) :
   ∃ Φ : flag α, x ∈ Φ ∧ y ∈ Φ :=
 begin
   cases flag_of_chain _ (chain.pair hxy) with Φ hΦ,
   exact ⟨Φ, hΦ (set.mem_insert _ _), hΦ (set.mem_insert_of_mem _ (set.mem_insert _ _))⟩
 end
 
+end
+
+section
+variable [partial_order α]
+
 /-- An element covers another iff they do so in the flag. -/
 @[simp]
-theorem cover_iff_flag_cover [partial_order α] {Φ : flag α} (x y : Φ) : x ⋖ y ↔ x.val ⋖ y.val :=
+theorem cover_iff_flag_cover {Φ : flag α} (x y : Φ) : x ⋖ y ↔ x.val ⋖ y.val :=
 begin
   refine ⟨λ h, ⟨h.left, λ z hzi, _⟩, λ ⟨hxy, hz⟩, ⟨hxy, λ _, hz _⟩⟩,
   cases h with hxy h,
@@ -661,6 +677,13 @@ begin
     { exact or.inr (lt_trans hxw hxz) }
 end
 
+end
+
+/-- A number is the grade of some element. -/
+abbreviation is_grade (α : Type u) [preorder α] [graded α] (n : ℕ) : Prop :=
+∃ a : α, grade a = n
+
+section
 variables [partial_order α] [graded α]
 
 instance (Φ : flag α) : graded Φ :=
@@ -669,18 +692,19 @@ instance (Φ : flag α) : graded Φ :=
   strict_mono := λ _ _ h, graded.strict_mono h,
   hcovers := λ _ _ hcov, graded.hcovers $ (cover_iff_flag_cover _ _).mp hcov }
 
-/-- A number is a grade of some element in a flag. -/
-private abbreviation is_grade (Φ : flag α) (n : ℕ) : Prop :=
-∃ a : Φ, grade a = n
-
 /-- If `x < y` but `y` does not cover `x`, then there's an element in between. -/
 private lemma between_of_ncover {x y : α} (hnxy : ¬x ⋖ y) (hxy : x < y) :
   ∃ z, x < z ∧ z < y :=
 by by_contra hne; push_neg at hne; exact hnxy ⟨hxy, λ z ⟨hl, hr⟩, hne z hl hr⟩
 
-/-- The set of grades in a flag has no gaps. -/
-lemma grade_ioo (Φ : flag α) (m n : ℕ) :
-  is_grade Φ m → is_grade Φ n → nonempty (set.Ioo m n) → ∃ r ∈ set.Ioo m n, is_grade Φ r :=
+end
+
+section
+variables [linear_order α] [graded α]
+
+/-- The set of grades in a linear order has no gaps. -/
+lemma grade_ioo (m n : ℕ) :
+  is_grade α m → is_grade α n → nonempty (set.Ioo m n) → ∃ r ∈ set.Ioo m n, is_grade α r :=
 begin
   rintros ⟨a, ham⟩ ⟨b, hbn⟩ ⟨r, hr⟩,
 
@@ -703,101 +727,100 @@ begin
   exact graded.strict_mono hcb
 end
 
-/-- If a flag contains two elements, it contains elements with all grades in between. -/
-private lemma flag_grade_aux {Φ : flag α} (a b : Φ) (j ∈ set.Icc (grade a) (grade b)) :
-  ∃ c : Φ, grade c = j :=
-(nat.all_icc_of_ex_ioo (grade_ioo Φ)) (grade a) (grade b) ⟨a, rfl⟩ ⟨b, rfl⟩ j H
+/-- If a linear order contains two elements, it contains elements with all grades in between. -/
+private lemma lin_grade_aux (a b : α) (j ∈ set.Icc (grade a) (grade b)) : is_grade α j :=
+(nat.all_icc_of_ex_ioo grade_ioo) (grade a) (grade b) ⟨a, rfl⟩ ⟨b, rfl⟩ j H
 
-variables [order_top α] (j : fin (graded.grade_top α + 1)) (Φ : flag α)
+variables [order_top α] (j : fin (graded.grade_top α + 1))
 
-/-- A flag has an element of grade `j` when `j ≤ grade ⊤`. -/
-theorem ex_of_grade_in_flag : ∃ a : Φ, grade a = j :=
+/-- A linear order has an element of grade `j` when `j ≤ grade ⊤`. -/
+ -- Todo(Vi): Generalize! You don't need a linear order here!
+theorem ex_of_grade_in_lin : is_grade α j :=
 begin
-  refine (flag_grade_aux ⊥ ⊤ j) ⟨_, nat.le_of_lt_succ j.property⟩,
-  have : grade (⊥ : Φ) = 0 := graded.grade_bot,
+  refine (lin_grade_aux ⊥ ⊤ j) ⟨_, nat.le_of_lt_succ j.property⟩,
+  have : grade ⊥ = 0 := graded.grade_bot,
   rw this,
   exact zero_le j
 end
 
-/-- A flag has a unique element of grade `j` when `j ≤ grade ⊤`. -/
-theorem ex_unique_of_grade_in_flag : ∃! a : Φ, grade a = j :=
+/-- A linear order has a unique element of grade `j` when `j ≤ grade ⊤`. -/
+theorem ex_unique_of_grade_in_lin : ∃! a : α, grade a = j :=
 begin
-  cases ex_of_grade_in_flag j Φ with a ha,
+  cases ex_of_grade_in_lin j with a ha,
   use [a, ha],
   intros b hb,
   apply graded.grade.inj _,
   rw [ha, hb]
 end
 
-/-- The element of a certain grade in a flag. -/
-noncomputable def idx : Φ :=
-classical.some (ex_of_grade_in_flag j Φ)
+/-- The element of a certain grade in a linear order. -/
+noncomputable def idx : α :=
+classical.some (ex_of_grade_in_lin j)
+
+-- Why does this not work???
+/-
+def idx' (α : Type u) [linear_order α] [graded α] [order_top α] : α :=
+@idx α _ _ _ j
+-/
 
 /-- The defining property of `flag.idx`. -/
 @[simp]
-theorem grade_idx : grade (idx j Φ) = j :=
-classical.some_spec (ex_of_grade_in_flag j Φ)
+theorem grade_idx : grade (idx j) = j :=
+classical.some_spec (ex_of_grade_in_lin j)
 
 /-- The defining property of `flag.idx`. -/
 @[simp]
-theorem grade_fin_idx : graded.grade_fin (idx j Φ) = j :=
-subtype.ext $ grade_idx j Φ
+theorem grade_fin_idx : graded.grade_fin (idx j) = j :=
+subtype.ext $ grade_idx j
 
-/-- `flag_idx j Φ` is the unique element of grade `j` in the flag. -/
-theorem grade_eq_iff_flag_idx (a : Φ) : grade a = j ↔ a = idx j Φ :=
+/-- `idx j` is the unique element of grade `j` in the linear order. -/
+theorem grade_eq_iff_idx (a : α) : grade a = j ↔ a = idx j :=
 begin
-  have idx := grade_idx j Φ,
+  have idx := grade_idx j,
   split,
   { intro ha,
-    rcases ex_unique_of_grade_in_flag j Φ with ⟨_, _, h⟩,
+    rcases ex_unique_of_grade_in_lin j with ⟨_, _, h⟩,
     rw [(h _ ha), (h _ idx)] },
   intro h,
   rwa h,
 end
 
 /-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
-noncomputable def order_iso_fin : Φ ≃o fin (graded.grade_top α + 1) :=
-rel_iso.of_surjective graded.oem_fin $ λ x, ⟨idx x Φ, by simp [graded.oem_fin]⟩
+noncomputable def order_iso_fin : α ≃o fin (graded.grade_top α + 1) :=
+rel_iso.of_surjective graded.oem_fin $ λ x, ⟨idx x, by simp [graded.oem_fin]⟩
 
-noncomputable instance : fintype Φ :=
-fintype.of_bijective (order_iso_fin Φ).inv_fun (order_iso_fin Φ).symm.bijective
+noncomputable instance : fintype α :=
+fintype.of_bijective (order_iso_fin).inv_fun order_iso_fin.symm.bijective
 
 @[simp]
-theorem fincard_eq_gt : fintype.card Φ = graded.grade_top Φ + 1 :=
+theorem fincard_eq_gt : fintype.card α = graded.grade_top α + 1 :=
 begin
-  cases hfc : fintype.card Φ, { rw fintype.card_eq_zero_iff at hfc, exact hfc.elim' ⊤ },
-  rw fintype.card_of_bijective (flag.order_iso_fin Φ).bijective at hfc,
+  cases hfc : fintype.card α, { rw fintype.card_eq_zero_iff at hfc, exact hfc.elim' ⊤ },
+  rw fintype.card_of_bijective flag.order_iso_fin.bijective at hfc,
   rw [←hfc, fintype.card_fin],
   refl
 end
+
 end
 
 section
-
-variables {α : Type u}
 
 /-- Two flags are adjacent when there's exactly one element in one but not in the other. This isn't
     quite the usual definition, and we've made it more general than necessary for reasons of
     convenience, but we prove it to be equivalent to the usual one in the case of graded posets
     (see `adjacent_iff_ex_j_adjacent`). -/
-def adjacent [preorder α] (Φ Ψ : flag α) : Prop := ∃ a, Φ.val \ Ψ.val = {a}
+def adjacent [preorder α] (Φ Ψ : flag α) : Prop :=
+∃! a, a ∈ Φ.val \ Ψ.val
 
 instance [preorder α] : is_irrefl (flag α) adjacent :=
-begin
-  split,
-  intros Φ hΦ,
-  cases hΦ with a ha₁,
-  have ha₂ : a ∈ {a} := set.mem_def.mpr rfl,
-  rw ←ha₁ at ha₂,
-  exact ha₂.right ha₂.left,
-end
+⟨λ _ ⟨_, ⟨hl, hr⟩, _⟩, hr hl⟩
 
 variables [partial_order α] [order_top α] [graded α]
 
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
     adjacent to itself. -/
 def j_adjacent (j : fin (graded.grade_top α + 1)) (Φ Ψ : flag α) : Prop :=
-∀ i, (idx i Φ).val = (idx i Ψ).val ↔ i ≠ j
+∀ i, (@idx Φ _ _ _ i).val = (@idx Ψ _ _ _ i).val ↔ i ≠ j
 
 instance (j : fin (graded.grade_top α + 1)) : is_irrefl (flag α) (j_adjacent j) :=
 ⟨λ _ h, (h j).mp rfl rfl⟩
@@ -814,7 +837,8 @@ begin
     cases hΦΨ with a ha,
     have : a ∈ Φ.val := sorry,
     let a' : Φ := ⟨a, this⟩,
-    use grade a,
+    let j := graded.grade_fin a',
+    use graded.grade_fin a',
     intro j,
     split, {
       intros hj hja,
@@ -1123,8 +1147,9 @@ by intros hsc _ _ _; apply connected_of_flag_connected; exact hsc
 variables [partial_order α] [order_bot α] [order_top α]
 
 lemma super_duper_flag_lemma {Φ Ψ : flag α} (x : proper α) (hΦ : x.val ∈ Φ.val)
-(hΨ : x.val ∈ Ψ.val) (h1 : section_flag_connected ⊥ x.val )
-(h2 : section_flag_connected x.val ⊤ ) : flag_connected Φ Ψ :=
+(hΨ : x.val ∈ Ψ.val) (h1 : section_flag_connected ⊥ x.val)
+(h2 : section_flag_connected x.val ⊤) :
+  flag_connected Φ Ψ :=
 sorry
 
 variable [graded α]

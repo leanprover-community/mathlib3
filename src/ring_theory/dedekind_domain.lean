@@ -1030,11 +1030,6 @@ namespace temporary
 
 section factorisations_same_shape
 
-/-
-  Here are the changes I suggest.
-  Once were are finished proving these, we would no longer need the whole `quotient_multiplicity`
-  part above, which would greatly simplify the PR
--/
 noncomputable theory
 open_locale classical
 variables {T : Type u_1} [comm_ring T] [is_domain T] [is_dedekind_domain T] {I : ideal T}
@@ -1597,9 +1592,7 @@ begin
           apply le_trans hr
             (show ↑(d ⟨c₁ ⟨1, _⟩ ^ s, _⟩) ≤ n, from subtype.prop (d ⟨c₁ ⟨1, _⟩ ^ s, _⟩)),
         have temp_r : d.symm ⟨r, this⟩ ≤ ⟨p^s, hs'⟩,
-          rw ← strict_mono.le_iff_le,
-
-
+          sorry,
         obtain ⟨i, hi, hi'⟩ := hc₁''.1 temp_r,
         use i,
         use hi,

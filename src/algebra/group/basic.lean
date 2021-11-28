@@ -443,15 +443,6 @@ assume x, inv_mul_cancel_left c x
 
 end group
 
-section add_group
--- TODO: Generalize the contents of this section with to_additive as per
--- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
-variables {G : Type u} [add_group G] {a b c d : G}
-
-local attribute [simp] add_assoc
-
-end add_group
-
 section comm_group
 variables {G : Type u} [comm_group G]
 

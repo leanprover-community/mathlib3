@@ -384,15 +384,21 @@ begin
     { exact or.inr (lt_trans hxw hxz) }
 end
 
-variable [graded α]
-
-instance (Φ : flag α) : graded Φ :=
+instance [graded α] (Φ : flag α) : graded Φ :=
 { grade := λ a, grade a.val,
   grade_bot := graded.grade_bot,
   strict_mono := λ _ _ h, graded.strict_mono h,
   hcovers := λ _ _ hcov, graded.hcovers $ (cover_iff_flag_cover _ _).mp hcov }
 
-variables [order_top α] (j : fin (graded.grade_top α + 1))
+end partial_order
+end flag
+
+namespace graded
+
+section partial_order
+
+variables {α : Type u} [partial_order α] [order_top α] [graded α]
+(j : fin (graded.grade_top α + 1))
 
 /-- A graded partial order has an element of grade `j` when `j ≤ grade ⊤`. -/
 theorem ex_of_grade : is_grade α j :=
@@ -428,9 +434,9 @@ section linear_order
 variables {α : Type u} [linear_order α] [graded α] [order_top α] (j : fin (graded.grade_top α + 1))
 
 /-- `idx j` is the unique element of grade `j` in the linear order. -/
-theorem grade_eq_iff_idx (a : α) : grade a = j ↔ a = idx j :=
+theorem grade_eq_iff_idx (a : α) : grade a = j ↔ a = graded.idx j :=
 begin
-  have idx := grade_idx j,
+  have idx := graded.grade_idx j,
   split,
   { intro ha,
     rcases graded.ex_unique_of_grade j with ⟨_, _, h⟩,
@@ -441,7 +447,7 @@ end
 
 /-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
 noncomputable def order_iso_fin : α ≃o fin (graded.grade_top α + 1) :=
-rel_iso.of_surjective graded.oem_fin $ λ x, ⟨idx x, by simp [graded.oem_fin]⟩
+rel_iso.of_surjective graded.oem_fin $ λ x, ⟨graded.idx x, by simp [graded.oem_fin]⟩
 
 noncomputable instance : fintype α :=
 fintype.of_bijective (order_iso_fin).inv_fun order_iso_fin.symm.bijective
@@ -450,13 +456,16 @@ fintype.of_bijective (order_iso_fin).inv_fun order_iso_fin.symm.bijective
 theorem fincard_eq_gt : fintype.card α = graded.grade_top α + 1 :=
 begin
   cases hfc : fintype.card α, { rw fintype.card_eq_zero_iff at hfc, exact hfc.elim' ⊤ },
-  rw fintype.card_of_bijective flag.order_iso_fin.bijective at hfc,
+  rw fintype.card_of_bijective order_iso_fin.bijective at hfc,
   --rw [←hfc, fintype.card_fin],
   --refl
   repeat { sorry }
 end
 
 end linear_order
+end graded
+
+namespace flag
 
 section
 
@@ -474,10 +483,39 @@ instance [preorder α] : is_irrefl (flag α) adjacent :=
 
 variables [partial_order α] [order_top α] [graded α]
 
+/-- If the grades of two flags are equal, all elements of one are in the other. -/
+private lemma eq_of_eq_idx {Φ Ψ : flag α} :
+  (∀ j, (graded.idx' Φ j).val = (graded.idx' Ψ j).val) → ∀ a, a ∈ Φ → a ∈ Ψ :=
+begin
+  intros h a ha,
+  let a' : Φ := ⟨a, ha⟩,
+  let ga := graded.grade_fin a',
+  change a with a'.val,
+  have heq := h ga,
+  have hga : (graded.idx' Φ ga) = a' := begin
+    symmetry,
+    apply (graded.grade_eq_iff_idx ga a').mp,
+    refl,
+  end,
+  rw hga at heq,
+  rw heq,
+  exact (graded.idx' Ψ ga).prop,
+end
+
+/-- Two flags are equal iff their elements of all grades are equal. -/
+lemma eq_iff_eq_idx (Φ Ψ : flag α) : Φ = Ψ ↔ ∀ j, (graded.idx' Φ j).val = (graded.idx' Ψ j).val :=
+begin
+  refine ⟨λ h _, _, λ h, subtype.ext_val (set.ext (λ a, ⟨_, _⟩))⟩,
+  rw h,
+  apply eq_of_eq_idx h,
+  apply eq_of_eq_idx,
+  exact λ j, (h j).symm,
+end
+
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
     adjacent to itself. -/
 def j_adjacent (j : fin (graded.grade_top α + 1)) (Φ Ψ : flag α) : Prop :=
-∀ i, (idx' Φ i).val = (idx' Ψ i).val ↔ i ≠ j
+∀ i, (graded.idx' Φ i).val = (graded.idx' Ψ i).val ↔ i ≠ j
 
 instance (j : fin (graded.grade_top α + 1)) : is_irrefl (flag α) (j_adjacent j) :=
 ⟨λ _ h, (h j).mp rfl rfl⟩
@@ -503,7 +541,7 @@ begin
       symmetry' at hja,
       rw subtype.ext_iff_val at hja,
       have : grade a' = j := sorry,
-      rw grade_eq_iff_idx at this,
+      rw graded.grade_eq_iff_idx at this,
       --rw ←this at hj,
       sorry,
     },
@@ -521,8 +559,7 @@ end
 end flag
 
 /-- Flags are connected when they're related by a sequence of pairwise adjacent flags. -/
-abbreviation polytope.flag_connected {α : Type u} [preorder α]
-  (Φ Ψ : flag α) : Prop :=
+abbreviation polytope.flag_connected {α : Type u} [preorder α] (Φ Ψ : flag α) : Prop :=
 path flag.adjacent Φ Ψ
 
 open polytope
@@ -534,10 +571,25 @@ section
 protected def flag_connected (α : Type u) [preorder α] : Prop :=
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
-/-- Any `graded` of top grade less or equal to 2 is flag-connected. -/
+/-- Any graded poset of top grade less or equal to 1 has a single flag. -/
+lemma flag_eq_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α]
+(Φ Ψ : flag α) :
+  grade_top α ≤ 1 → Φ = Ψ :=
+begin
+  sorry
+end
+
+/-- Any graded poset of top grade less or equal to 2 is flag-connected. -/
 theorem flag_connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
   grade_top α ≤ 2 → graded.flag_connected α :=
-sorry
+begin
+  intro h,
+  cases eq_or_lt_of_le h with h h, {
+    sorry,
+  },
+  intros Φ Ψ,
+  sorry
+end
 
 /-- Two adjacent flags have a proper element in common, as long as their grade exceeds 2, and a few
     other simple conditions hold. -/
@@ -547,21 +599,21 @@ private lemma proper_flag_intersect_of_grade {α : Type u} [partial_order α] [o
   ∃ c : proper α, c.val ∈ Φ.val ∩ Ψ.val :=
 begin
   let k : fin (grade_top α + 1) := ⟨k, nat.lt.step H.right⟩,
-  let idx := flag.idx' Φ k,
+  let idx := idx' Φ k,
   use idx.val,
     { rw proper_iff_grade_iio,
       change grade idx.val with grade idx,
-      rw flag.grade_idx,
+      rw grade_idx,
       exact H },
   use idx.prop,
-  have hidx : idx.val = (flag.idx' Ψ k).val := begin
+  have hidx : idx.val = (idx' Ψ k).val := begin
     rw hΦΨ,
     intro h,
     rw ←h at hjk,
     exact hjk (refl _),
   end,
   rw hidx,
-  exact subtype.mem (flag.idx' Ψ k),
+  exact subtype.mem (idx' Ψ k),
 end
 
 /-- If two flags are connected, then any two elements in these flags are connected, as long as the

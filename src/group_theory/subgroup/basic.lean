@@ -2179,7 +2179,7 @@ namespace is_simple_group
 
 @[to_additive]
 instance {C : Type*} [comm_group C] [is_simple_group C] :
-  is_simple_lattice (subgroup C) :=
+  is_simple_order (subgroup C) :=
 ⟨λ H, H.normal_of_comm.eq_bot_or_eq_top⟩
 
 open _root_.subgroup

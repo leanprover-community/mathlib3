@@ -36,9 +36,22 @@ variables [complete_space E] [complete_space F] [complete_space G]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
+instance ring_hom_isometric.conj : ring_hom_isometric ((star_ring_aut : 𝕜 ≃+* 𝕜) : 𝕜 →+* 𝕜) :=
+⟨λ x, is_R_or_C.norm_conj⟩
+
+namespace continuous_linear_map
+
+--def to_bilin_form : (E →L[𝕜] F) ≃ₗᵢ[𝕜] E →L⋆[𝕜] F →L[𝕜] 𝕜 :=
+--{ to_fun := λ A,
+--  norm_map' := sorry,
+--
+--}
+
+end continuous_linear_map
+
 namespace inner_product_space
 
-def innerₛₗ : E →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+def innerL : E →L⋆[𝕜] E →L[𝕜] 𝕜 :=
 linear_map.mk_continuous
 { to_fun := λ v, inner_right v,
   map_add' := λ v w, by { ext z, simp only [inner_add_left, inner_right_apply,

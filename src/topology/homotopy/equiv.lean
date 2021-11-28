@@ -18,6 +18,11 @@ to `id`.
 
 universes u v w
 
+/--
+A homotopy equivalence between topological spaces `X` and `Y` are a pair of functions
+`to_fun : C(X, Y)` and `inv_fun : C(Y, X)` such that `to_fun.comp inv_fun` and `inv_fun.comp to_fun`
+are both homotopic to `id`.
+-/
 structure homotopy_equiv (X : Type u) (Y : Type v) [topological_space X] [topological_space Y] :=
 (to_fun : C(X, Y))
 (inv_fun : C(Y, X))
@@ -29,18 +34,28 @@ variables [topological_space X] [topological_space Y] [topological_space Z]
 
 namespace homotopy_equiv
 
+/--
+Any topological space is homotopy equivalent to itself.
+-/
 def refl (X : Type u) [topological_space X] : homotopy_equiv X X :=
 { to_fun := continuous_map.id,
   inv_fun := continuous_map.id,
   left_inv := continuous_map.homotopic.refl _,
   right_inv := continuous_map.homotopic.refl _ }
 
+/--
+If `X` is homotopy equivalent to `Y`, then `Y` is homotopy equivalent to `X`.
+-/
 def symm (h : homotopy_equiv X Y) : homotopy_equiv Y X :=
 { to_fun := h.inv_fun,
   inv_fun := h.to_fun,
   left_inv := h.right_inv,
   right_inv := h.left_inv }
 
+/--
+If `X` is homotopy equivalent to `Y`, and `Y` is homotopy equivalent to `Z`, then `X` is homotopy
+equivalent to `Z`.
+-/
 def trans (h₁ : homotopy_equiv X Y) (h₂ : homotopy_equiv Y Z) : homotopy_equiv X Z :=
 { to_fun := h₂.to_fun.comp h₁.to_fun,
   inv_fun := h₁.inv_fun.comp h₂.inv_fun,
@@ -65,6 +80,9 @@ end homotopy_equiv
 
 namespace homeomorph
 
+/--
+Any homeomorphism is a homotopy equivalence.
+-/
 def to_homotopy_equiv (h : X ≃ₜ Y) : homotopy_equiv X Y :=
 { to_fun := ⟨h⟩,
   inv_fun := ⟨h.symm⟩,

@@ -585,6 +585,10 @@ begin
   simpa only [pow_one] using pow_le_pow hx hn
 end
 
+lemma eventually_ne_of_tendsto_at_top [nontrivial α] (hf : tendsto f l at_top)
+  (c : α) :  ∀ᶠ x in l, f x ≠ c :=
+(tendsto_at_top.1 hf $ (c + 1)).mono (λ x hx, ne_of_gt (lt_of_lt_of_le (lt_add_one c) hx))
+
 end ordered_semiring
 
 lemma zero_pow_eventually_eq [monoid_with_zero α] :
@@ -594,6 +598,11 @@ eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 section ordered_ring
 
 variables [ordered_ring α] {l : filter β} {f g : β → α}
+
+lemma eventually_ne_of_tendsto_at_bot [nontrivial α] (hf : tendsto f l at_bot)
+  (c : α) : ∀ᶠ x in l, f x ≠ c :=
+(tendsto_at_bot.1 hf $ (c - 1)).mono
+  (λ x hx, ne_of_lt (lt_of_le_of_lt hx ((sub_lt_self_iff c).2 zero_lt_one)))
 
 lemma tendsto.at_top_mul_at_bot (hf : tendsto f l at_top) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x * g x) l at_bot :=
@@ -1241,6 +1250,17 @@ end
 lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.is_countably_generated] :
   (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
 tendsto_iff_seq_tendsto.2
+
+/-- If `f` is a nontrivial countably generated basis, then there exists a sequence that converges
+to `f`. -/
+lemma exists_seq_tendsto (f : filter α) [is_countably_generated f] [ne_bot f] :
+  ∃ x : ℕ → α, tendsto x at_top f :=
+begin
+  obtain ⟨B, h, h_mono, -⟩ := f.exists_antitone_basis,
+  have := λ n, nonempty_of_mem (h.mem_of_mem trivial : B n ∈ f), choose x hx,
+  exact ⟨x, h.tendsto_right_iff.2 $
+    λ n hn, eventually_at_top.2 ⟨n, λ m hm, h_mono trivial trivial hm (hx m)⟩⟩
+end
 
 lemma subseq_tendsto_of_ne_bot {f : filter α} [is_countably_generated f]
   {u : ℕ → α}

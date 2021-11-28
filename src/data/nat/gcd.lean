@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import data.nat.pow
+import algebra.group_power.order
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -394,12 +394,12 @@ def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :
   { d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1 * d.2 } :=
 begin
 cases h0 : (gcd k m),
-case nat.zero {
-  have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
+case nat.zero
+{ have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
   have : m = 0 := eq_zero_of_gcd_eq_zero_right h0, subst this,
   exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
-case nat.succ : tmp {
-  have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
+case nat.succ : tmp
+{ have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
   have hd : gcd k m * (k / gcd k m) = k := (nat.mul_div_cancel' (gcd_dvd_left k m)),
   refine ⟨⟨⟨gcd k m,  gcd_dvd_right k m⟩, ⟨k / gcd k m, _⟩⟩, hd.symm⟩,
   apply dvd_of_mul_dvd_mul_left hpos,
@@ -451,6 +451,16 @@ begin
     transitivity c.gcd (a * b),
     rw [h, gcd_mul_right_right d c],
     apply gcd_mul_dvd_mul_gcd }
+end
+
+/-- If `k:ℕ` divides coprime `a` and `b` then `k = 1` -/
+lemma eq_one_of_dvd_coprimes {a b k : ℕ} (h_ab_coprime : coprime a b)
+  (hka : k ∣ a) (hkb : k ∣ b) : k = 1  :=
+begin
+  rw coprime_iff_gcd_eq_one at h_ab_coprime,
+  have h1 := dvd_gcd hka hkb,
+  rw h_ab_coprime at h1,
+  exact nat.dvd_one.mp h1,
 end
 
 end nat

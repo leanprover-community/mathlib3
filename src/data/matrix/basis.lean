@@ -156,7 +156,7 @@ end
   std_basis_matrix i j c ⬝ std_basis_matrix k l d = 0 :=
 begin
   ext a b,
-  simp only [mul_apply, dmatrix.zero_apply, boole_mul, std_basis_matrix],
+  simp only [mul_apply, boole_mul, std_basis_matrix],
   by_cases h₁ : i = a;
   simp [h₁, h, h.symm],
 end

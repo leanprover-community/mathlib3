@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.degree.definitions
+import algebra.geom_sum
 
 /-!
 # Theory of univariate polynomials
@@ -344,6 +345,8 @@ def is_root (p : polynomial R) (a : R) : Prop := p.eval a = 0
 instance [decidable_eq R] : decidable (is_root p a) := by unfold is_root; apply_instance
 
 @[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
+
+lemma is_root.eq_zero (h : is_root p x) : eval x p = 0 := h
 
 lemma coeff_zero_eq_eval_zero (p : polynomial R) :
   coeff p 0 = p.eval 0 :=
@@ -755,6 +758,21 @@ begin
     rw [h0, ← hpj, finset.prod_insert hj, eval_mul] },
 end
 
+lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
+  (s : finset ι) (p : ι → polynomial R) (x : R) :
+  is_root (∏ j in s, p j) x ↔ ∃ i ∈ s, is_root (p i) x :=
+by simp only [is_root, eval_prod, finset.prod_eq_zero_iff]
+
+lemma eval_dvd : p ∣ q → eval x p ∣ eval x q :=
+eval₂_dvd _ _
+
+lemma eval_eq_zero_of_dvd_of_eval_eq_zero : p ∣ q → eval x p = 0 → eval x q = 0 :=
+eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _
+
+@[simp]
+lemma eval_geom_sum {R} [comm_semiring R] {n : ℕ} {x : R} : eval x (geom_sum X n) = geom_sum x n :=
+by simp [geom_sum_def, eval_finset_sum]
+
 end eval
 
 section map
@@ -778,6 +796,18 @@ begin
   rw hx,
   exact ring_hom.map_zero f,
 end
+
+lemma is_root.map {f : R →+* S} {x : R} {p : polynomial R} (h : is_root p x) :
+  is_root (p.map f) (f x) :=
+by rw [is_root, eval_map, eval₂_hom, h.eq_zero, f.map_zero]
+
+lemma is_root.of_map {R} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
+  (h : is_root (p.map f) (f x)) (hf : function.injective f) : is_root p x :=
+by rwa [is_root, ←f.injective_iff'.mp hf, ←eval₂_hom, ←eval_map]
+
+lemma is_root_map_iff {R : Type*} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
+  (hf : function.injective f) : is_root (p.map f) (f x) ↔ is_root p x :=
+⟨λ h, h.of_map hf, λ h, h.map⟩
 
 end map
 

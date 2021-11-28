@@ -405,6 +405,9 @@ by simp only [mul_assoc, mul_inv_rev, inv_inv, div_eq_mul_inv]
 @[to_additive] theorem div_eq_one : a / b = 1 ↔ a = b :=
 ⟨eq_of_div_eq_one', λ h, by rw [h, div_self']⟩
 
+alias div_eq_one ↔ _ div_eq_one_of_eq
+alias sub_eq_zero ↔ _ sub_eq_zero_of_eq
+
 end group
 
 section add_group
@@ -413,8 +416,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-alias sub_eq_zero ↔ _ sub_eq_zero_of_eq
 
 theorem sub_ne_zero : a - b ≠ 0 ↔ a ≠ b :=
 not_congr sub_eq_zero

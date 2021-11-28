@@ -402,6 +402,9 @@ by { rw [div_eq_mul_inv, div_eq_mul_inv], exact mul_left_inj _ }
 @[to_additive] theorem div_div_assoc_swap : a / (b / c) = a * c / b :=
 by simp only [mul_assoc, mul_inv_rev, inv_inv, div_eq_mul_inv]
 
+@[to_additive] theorem div_eq_one : a / b = 1 ↔ a = b :=
+⟨eq_of_div_eq_one', λ h, by rw [h, div_self']⟩
+
 end group
 
 section add_group
@@ -410,9 +413,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-theorem sub_eq_zero : a - b = 0 ↔ a = b :=
-⟨eq_of_sub_eq_zero, λ h, by rw [h, sub_self]⟩
 
 alias sub_eq_zero ↔ _ sub_eq_zero_of_eq
 

@@ -390,6 +390,9 @@ by simp [h]
 @[simp, to_additive] lemma div_right_inj : a / b = a / c ↔ b = c :=
 div_right_injective.eq_iff
 
+@[simp, to_additive] lemma div_left_inj : b / a = c / a ↔ b = c :=
+by { rw [div_eq_mul_inv, div_eq_mul_inv], exact mul_left_inj _ }
+
 end group
 
 section add_group
@@ -398,9 +401,6 @@ section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 local attribute [simp] add_assoc
-
-@[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
-by { rw [sub_eq_add_neg, sub_eq_add_neg], exact add_left_inj _ }
 
 @[simp] lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
 by rw [← add_sub_assoc, sub_add_cancel]

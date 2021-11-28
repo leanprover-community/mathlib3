@@ -44,7 +44,7 @@ lemma baz_apply_apply (x : ι → ℝ) (i : ι) :
 /--
 Higher dimensional "paths"
 
-TODO: Name?
+TODO: Name? -- CHAIN
 -/
 structure foo {X : Type v} [topological_space X] (x : X) extends C(ι → I, X) :=
 (boundary : ∀ p : ι → I, (∃ i, p i = 0 ∨ p i = 1) → to_fun p = x)

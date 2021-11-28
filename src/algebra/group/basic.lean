@@ -346,15 +346,14 @@ inv_eq_of_mul_eq_one ( by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc, inv_mul
 lemma div_mul_cancel' (a b : G) : a / b * b = a :=
 by rw [div_eq_mul_inv, inv_mul_cancel_right a b]
 
+@[simp, to_additive sub_self] lemma div_self' (a : G) : a / a = 1 :=
+by rw [div_eq_mul_inv, mul_right_inv a]
 end group
 
 section add_group
 -- TODO: Generalize the contents of this section with to_additive as per
 -- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
 variables {G : Type u} [add_group G] {a b c d : G}
-
-@[simp] lemma sub_self (a : G) : a - a = 0 :=
-by rw [sub_eq_add_neg, add_right_neg a]
 
 @[simp] lemma add_sub_cancel (a b : G) : a + b - b = a :=
 by rw [sub_eq_add_neg, add_neg_cancel_right a b]

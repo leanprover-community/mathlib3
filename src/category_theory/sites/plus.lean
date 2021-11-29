@@ -77,11 +77,7 @@ end
 @[simp]
 lemma diagram_nat_trans_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) (X : C) :
   J.diagram_nat_trans (η ≫ γ) X = J.diagram_nat_trans η X ≫ J.diagram_nat_trans γ X :=
-begin
-  ext,
-  dsimp,
-  simp,
-end
+by { ext, dsimp, simp }
 
 variable [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
 

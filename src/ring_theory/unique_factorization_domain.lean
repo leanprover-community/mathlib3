@@ -942,11 +942,18 @@ quotient.induction_on a $ assume a, decidable.by_cases
 theorem prod_factors [nontrivial α] (s : factor_set α) : s.prod.factors = s :=
 factor_set.unique $ factors_prod _
 
-lemma factors_eq_none_iff_zero [nontrivial α] {a : associates α} :
-  a.factors = option.none ↔ a = 0 :=
-⟨λ h, by rwa [← factors_prod a, factor_set.prod_eq_zero_iff], λ h, h.symm ▸ factors_0⟩
+@[nontriviality] lemma factors_subsingleton [subsingleton α] {a : associates α} :
+  a.factors = option.none :=
+by { convert factors_0; apply_instance }
 
-lemma factors_eq_some_iff_ne_zero  [nontrivial α] {a : associates α} :
+lemma factors_eq_none_iff_zero {a : associates α} :
+  a.factors = option.none ↔ a = 0 :=
+begin
+  nontriviality α,
+  exact ⟨λ h, by rwa [← factors_prod a, factor_set.prod_eq_zero_iff], λ h, h.symm ▸ factors_0⟩
+end
+
+lemma factors_eq_some_iff_ne_zero {a : associates α} :
   (∃ (s : multiset {p : associates α // irreducible p}), a.factors = some s) ↔ a ≠ 0 :=
 by rw [← option.is_some_iff_exists, ← option.ne_none_iff_is_some, ne.def, ne.def,
   factors_eq_none_iff_zero]
@@ -966,7 +973,7 @@ end
 
 include dec dec' dec_irr
 
-theorem eq_factors_of_eq_counts [nontrivial α] {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem eq_factors_of_eq_counts {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
   (h :  ∀ (p : associates α) (hp : irreducible p), p.count a.factors = p.count b.factors) :
   a.factors = b.factors :=
 begin
@@ -978,10 +985,10 @@ begin
   { intros p hp, rw [← count_some, ← count_some, h p hp] },
   apply multiset.to_finsupp.injective,
   ext ⟨p, hp⟩,
-  rw [multiset.to_finsupp_apply, multiset.to_finsupp_apply, h_count p hp],
+  rw [multiset.to_finsupp_apply, multiset.to_finsupp_apply, h_count p hp]
 end
 
-theorem eq_of_eq_counts [nontrivial α] {a b : associates α} (ha : a ≠ 0) (hb  : b ≠ 0)
+theorem eq_of_eq_counts {a b : associates α} (ha : a ≠ 0) (hb  : b ≠ 0)
   (h :  ∀ (p : associates α), irreducible p → p.count a.factors = p.count b.factors) : a = b :=
 eq_of_factors_eq_factors (eq_factors_of_eq_counts ha hb h)
 
@@ -1166,9 +1173,10 @@ begin
   simpa only
 end
 
-theorem count_ne_zero_iff_dvd [nontrivial α] {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) :
+theorem count_ne_zero_iff_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) :
   (associates.mk p).count (associates.mk a).factors ≠ 0 ↔ p ∣ a :=
 begin
+  nontriviality α,
   rw ← associates.mk_le_mk_iff_dvd_iff,
   refine ⟨λ h, associates.le_of_count_ne_zero (associates.mk_ne_zero.mpr ha0)
     ((associates.irreducible_mk p).mpr hp) h, λ h, _⟩,

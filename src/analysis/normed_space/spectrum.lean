@@ -6,7 +6,7 @@ Authors: Jireh Loreaux
 import algebra.algebra.spectrum
 import analysis.calculus.deriv
 /-!
-# The spectrum of elements in complete normed algebra
+# The spectrum of elements in a complete normed algebra
 
 This file contains the basic theory for the resolvent and spectrum of a Banach algebra.
 

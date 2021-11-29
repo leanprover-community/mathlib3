@@ -355,9 +355,7 @@ begin
   rcases lt_trichotomy (x.some_vector e) 0 with h|h|h,
   { right,
     exact (same_ray_neg_smul_left_iff e.det_ne_zero (_ : R)).2 h },
-  { have hz := x.some_vector.eq_smul_basis_det e,
-    rw h at hz,
-    simpa using hz },
+  { simpa [h] using x.some_vector.eq_smul_basis_det e },
   { left,
     exact (same_ray_smul_left_iff e.det_ne_zero (_ : R)).2 h }
 end

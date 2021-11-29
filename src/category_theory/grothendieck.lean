@@ -5,7 +5,7 @@ Authors: Scott Morrison, Junyan Xu
 -/
 import category_theory.lax_functor
 import category_theory.elements
-
+import category_theory.over
 
 /-!
 # The Grothendieck construction for lax functors
@@ -14,16 +14,16 @@ Given a lax functor `F` from a 1-category `C` to the 2-category `Cat`,
 the objects of `grothendieck F` consist of dependent pairs `(b, f)`,
 where `b : C` and `f : F.obj c`, and a morphism `(b, f) ⟶ (b', f')` is a
 pair `β : b ⟶ b'` in `C`, and `φ : (F.map β).obj f ⟶ f'`. The forgetful
-functor `grothendieck F ⥤ C` is then a Grothendieck fibration, with base
-category `C`, total category `grothendieck F`, and fiber categories
-`F.obj b` for `b : C`.
+functor `grothendieck F ⥤ C` can be seen as a fibration of categories,
+with base category `C`, total category `grothendieck F`, and fiber categories
+`F.obj b`, `b : C`. When `F` is a pseudofunctor, this is a Grothendieck
+fibration.
 
-Notice that `F` gives a functor `F.map β` between fiber categories
-`F.obj b` and `F.obj b'` for each morphism `β : b ⟶ b'` in `C`, which
-we call a component functor. We show that if the lax functor is a
-pseudofunctor, the base category and all fiber categories have colimits
-and the component functors all preserve colimits, then the total category
-also has colimits.
+Notice that `F` gives a functor `F.map β` between fiber categories `F.obj b`
+and `F.obj b'` for each morphism `β : b ⟶ b'` in `C`, which we call a component
+functor. We show that if `F` is a pseudofunctor, the base category and all fiber
+categories have colimits and the component functors all preserve colimits, then
+the total category also has colimits.
 
 https://ncatlab.org/nlab/show/Grothendieck+construction#limits_and_colimits
 
@@ -38,8 +38,8 @@ limits by showing that `grothendieck G` has colimits.
 
 This will be used to construct the category `PrimedPreringedSpace` and
 to show that `PresheafedSpace`, `SheafedSpace` and `PrimedPreringedSpace` has
-(co)limits. Fibrations of categories such as `Top` over `Type`, or `PresheafedSpace` over
-`Top` are also examples of this construction, and it may be preferable to
+(co)limits. Fibrations of categories such as `Top` over `Type`, or `PresheafedSpace`
+over `Top` are also examples of this construction, and it may be preferable to
 have the existence of (co)limits in `Top` refactored to use results here.
 
 ## References
@@ -133,6 +133,47 @@ variables (F)
 def forget : grothendieck F ⥤ C :=
 { obj := λ X, X.1,
   map := λ X Y f, f.1 }
+
+namespace eq_to_hom
+
+variables {D : Type*} [category D]
+
+lemma family_congr {ι : Type*} {o₁ o₂ : ι → C} (m : ∀ i, o₁ i ⟶ o₂ i) {i j : ι} (h : i = j) :
+  m i = eq_to_hom (by rw h) ≫ m j ≫ eq_to_hom (by rw h) :=
+by { subst h, apply eq_conj_eq_to_hom }
+
+lemma hom_fun_congr {ι : Type*} {c₁ c₂ : ι → C} {d₁ d₂ : ι → D}
+  {f : ∀ i, (c₁ i ⟶ c₂ i) → (d₁ i ⟶ d₂ i)} {i j : ι} {m : c₁ i ⟶ c₂ i} (h : i = j) :
+  f i m = eq_to_hom (by rw h) ≫
+    f j (eq_to_hom (by rw h) ≫ m ≫ eq_to_hom (by rw h)) ≫ eq_to_hom (by rw h) :=
+by { subst h, rw ← eq_conj_eq_to_hom m, apply eq_conj_eq_to_hom }
+
+end eq_to_hom
+
+def fiber_push (X : C) : costructured_arrow (forget F) X ⥤ (F.obj X).1 :=
+{ obj := λ f, (F.map f.hom).obj f.left.fiber,
+  map := λ f₁ f₂ g, (eq_to_hom (by {rw ← costructured_arrow.w g, refl}) ≫
+    F.map_comp g.left.base f₂.hom).app f₁.left.fiber ≫ (F.map f₂.hom).map g.left.fiber,
+  map_id' := λ f, by {rw [nat_trans.comp_app, category.assoc], erw F.id_comp_components, simp},
+  map_comp' := λ f₁ f₂ f₃ g₁ g₂, by {
+    rw [category.assoc, nat_trans.naturality_assoc, ←category.assoc], /- RHS -/
+    erw comp_fiber, rw [functor.map_comp, ←category.assoc], /- LHS -/
+    congr' 1,
+    { rw [nat_trans.comp_app, category.assoc], erw F.assoc_components,
+      erw eq_to_hom.family_congr (F.map_comp g₁.left.base) (costructured_arrow.w g₂),
+      simpa },
+    simp } }
+
+variable (G : pseudofunctor_to_Cat C)
+
+/-def push_under (X : grothendieck G.to_lax_functor_to_Cat) : under X.base ⥤ under X :=
+{ obj := λ f, ⟨punit.star, ⟨f.right, (G.map f.hom).obj X.fiber⟩, ⟨f.hom, 𝟙 _⟩⟩,
+  map := λ f₁ f₂ g, ⟨𝟙 _,
+    ⟨g.right, (inv (G.map_comp f₁.hom g.right) ≫ eq_to_hom (by rw under.w g)).app X.fiber⟩,
+    by { erw category.id_comp, ext1, {erw comp_fiber, dsimp, simpa}, exact (under.w g).symm }⟩,
+  map_id' := λ f, by {ext1, ext1, {dsimp, simpa}, refl},
+  map_comp' := by { intros, congr, dsimp, simp, rw G.1.assoc_components_assoc,  },
+}-/
 
 end
 

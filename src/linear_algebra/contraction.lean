@@ -98,16 +98,23 @@ lemma dual_tensor_hom_hom_dual_tensor :
   (dual_tensor_hom R M N) ∘ₗ (hom_dual_tensor R M N b) = id :=
 by { ext f, simp }
 
-/-- `hom_dual_tensor` is left inverse to `dual_tensor_hom` -/
-lemma hom_dual_tensor_dual_tensor_hom :
-  (hom_dual_tensor R M N b) ∘ₗ (dual_tensor_hom R M N) = id :=
+local attribute [ext] tensor_product.ext
+
+lemma basis.sum_dual_apply_smul_coord (f : module.dual R M) (b : basis ι R M) :
+  ∑ x, f (b x) • b.coord x = f :=
 begin
-  apply curry_injective,
-  apply basis.ext b.dual_basis,
-  intro i, ext n,
-  suffices H : ∑ (x : ι), (finsupp.single x (1:R)) i • b.coord x ⊗ₜ[R] n = b.coord i ⊗ₜ[R] n,
-  { simp [hom_dual_tensor_apply, -finsupp.single_one_smul, H] },
-  simp,
+  ext m,
+  simp_rw [linear_map.sum_apply, linear_map.smul_apply, smul_eq_mul, mul_comm (f _), ←smul_eq_mul,
+    ←f.map_smul, ←f.map_sum, basis.coord_apply, basis.sum_repr],
+end
+
+lemma hom_dual_tensor_dual_tensor_hom :
+  hom_dual_tensor R M N b ∘ₗ dual_tensor_hom R M N = linear_map.id :=
+begin
+  ext f m,
+  show hom_dual_tensor R M N b (dual_tensor_hom R M N (f ⊗ₜ[R] m)) = f ⊗ₜ[R] m,
+  simp_rw [hom_dual_tensor_apply, dual_tensor_hom_apply f _ m, ←smul_tmul, ←sum_tmul,
+    basis.coe_dual_basis, basis.sum_dual_apply_smul_coord],
 end
 
 @[simps] noncomputable

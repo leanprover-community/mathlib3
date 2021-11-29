@@ -5,7 +5,6 @@ Authors: Stuart Presnell
 -/
 import data.nat.prime
 import data.nat.mul_ind
--- import tactic.omega
 
 /-!
 # Prime factorizations

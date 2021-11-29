@@ -30,8 +30,10 @@ variables (F : D ⥤ E)
 
 noncomputable theory
 
-variables [∀ (α β) (fst snd : β → α), has_limits_of_shape (walking_multicospan fst snd) D]
-variables [∀ (α β) (fst snd : β → α), has_limits_of_shape (walking_multicospan fst snd) E]
+variables [∀ (α β : Type (max v u)) (fst snd : β → α),
+  has_limits_of_shape (walking_multicospan fst snd) D]
+variables [∀ (α β : Type (max v u)) (fst snd : β → α),
+  has_limits_of_shape (walking_multicospan fst snd) E]
 variables [∀ (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D), preserves_limit (W.index P).multicospan F]
 
 variables (P : Cᵒᵖ ⥤ D)

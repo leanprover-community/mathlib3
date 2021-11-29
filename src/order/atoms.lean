@@ -475,15 +475,6 @@ protected noncomputable def complete_lattice : complete_lattice α :=
   .. is_simple_order.lattice,
   .. (infer_instance : bounded_order α) }
 
-example : @is_simple_order α
-    (@preorder.to_has_le α
-       (@partial_order.to_preorder α (@semilattice_inf.to_partial_order α (@lattice.to_semilattice_inf α _inst_1))))
-    = @is_simple_order α
-    (@preorder.to_has_le α
-       (@partial_order.to_preorder α
-          (@complete_semilattice_Inf.to_partial_order α (@complete_lattice.to_complete_semilattice_Inf α _inst))))
-    (@complete_lattice.to_bounded_order α (is_simple_order.complete_lattice)) := rfl
-
 local attribute [instance] is_simple_order.complete_lattice
 
 /-- A simple `bounded_order` is also a `complete_boolean_algebra`. -/

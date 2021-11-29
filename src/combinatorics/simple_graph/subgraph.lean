@@ -25,7 +25,7 @@ sub-relation of the adjacency relation of the simple graph.
 * `subgraph.is_spanning` for whether a subgraph is a spanning subgraph and
   `subgraph.is_induced` for whether a subgraph is an induced subgraph.
 
-* A `bounded_order (subgraph G)` instance, under the `subgraph` relation.
+* Instances for `lattice (subgraph G)` and `bounded_order (subgraph G)`.
 
 * `simple_graph.to_subgraph`: If a `simple_graph` is a subgraph of another, then you can turn it
   into a member of the larger graph's `simple_graph.subgraph` type.

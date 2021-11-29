@@ -1019,15 +1019,15 @@ section linear_order
 
 variables [linear_order α]
 
-@[simp] lemma min_top_left [order_top α] (a : α) : min (⊤ : α) a = a := min_eq_right le_top
-@[simp] lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_top
-@[simp] lemma max_bot_left [order_bot α] (a : α) : max (⊥ : α) a = a := max_eq_right bot_le
-@[simp] lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
+lemma min_top_left [order_top α] (a : α) : min (⊤ : α) a = a := min_eq_right le_top
+lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_top
+lemma max_bot_left [order_bot α] (a : α) : max (⊥ : α) a = a := max_eq_right bot_le
+lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
 
-@[simp] lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := min_eq_left bot_le
-@[simp] lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := min_eq_right bot_le
-@[simp] lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := max_eq_left le_top
-@[simp] lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := max_eq_right le_top
+lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := min_eq_left bot_le
+lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := min_eq_right bot_le
+lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := max_eq_left le_top
+lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := max_eq_right le_top
 
 @[simp] lemma min_eq_bot [order_bot α] {a b : α} : min a b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
 by { symmetry, cases le_total a b; simpa [*, min_eq_left, min_eq_right] using eq_bot_mono h }

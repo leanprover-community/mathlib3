@@ -52,32 +52,8 @@ local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
 
-lemma mem_resolvent_set_of_nearby {a : A} {k k' : 𝕜} (hk : k ∈ ρ a)
-  (hkk' : ∥k' - k∥ < ∥(↑hk.unit⁻¹ : A)∥⁻¹) :
-  k' ∈ ρ a :=
-begin
-  refine (units.unit_of_nearby hk.unit (↑ₐk' - a) _).is_unit,
-  calc ∥(↑ₐk' - a) - (↑ₐk - a)∥
-       = ∥↑ₐ(k' - k)∥         : by rw [ring_hom.map_sub, sub_sub_sub_cancel_right]
-  ...  = ∥k' - k∥ * ∥(1 : A)∥ : by rw [algebra.algebra_map_eq_smul_one,norm_smul]
-  ...  = ∥k' - k∥             : by simp [normed_algebra.norm_one 𝕜 A]
-  ...  < ∥↑hk.unit⁻¹∥⁻¹       : hkk',
-end
-
 lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
-begin
-  haveI := normed_algebra.nontrivial 𝕜 A,
-  apply metric.is_open_iff.mpr,
-  intros k hk,
-  refine ⟨∥↑hk.unit⁻¹∥⁻¹, inv_pos.mpr (units.norm_pos (hk.unit⁻¹)), _⟩,
-  intros k' hk',
-  rw [metric.mem_ball, dist_eq_norm] at hk',
-  exact mem_resolvent_set_of_nearby hk hk',
-end
-
-/-- The `resolvent_set` as a term of `opens 𝕜` -/
-def open_resolvent_set (a : A) : topological_space.opens 𝕜 :=
-⟨ρ a, is_open_resolvent_set a⟩
+units.is_open.preimage ((algebra_map_isometry 𝕜 A).continuous.sub continuous_const)
 
 lemma is_closed (a : A) : is_closed (σ a) :=
 is_open.is_closed_compl (is_open_resolvent_set a)

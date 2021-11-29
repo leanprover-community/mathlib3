@@ -866,7 +866,7 @@ begin
   exact le_trans hx.le (ennreal.of_real_le_of_real hle),
 end
 
-lemma cthickening_eq_Inter_thickening {δ : ℝ} {E : set α} (δ_nn : 0 ≤ δ):
+lemma cthickening_eq_Inter_thickening {δ : ℝ} {E : set α} (δ_nn : 0 ≤ δ) :
   cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), thickening ε E :=
 begin
   apply le_antisymm,
@@ -883,8 +883,12 @@ begin
     have sum_nn : 0 ≤ δ + η := by linarith,
     apply (ennreal.of_real_le_of_real_iff sum_nn).mp,
     have key := (hx (δ + η) (by linarith)).le,
-    rwa ← ennreal.of_real_to_real inf_edist_lt_top.ne at key,},
+    rwa ← ennreal.of_real_to_real inf_edist_lt_top.ne at key, },
 end
+
+lemma closure_eq_Inter_thickening {E : set α} :
+  closure E = ⋂ (δ : ℝ) (h : 0 < δ), thickening δ E :=
+by { rw ← cthickening_zero, exact cthickening_eq_Inter_thickening rfl.ge, }
 
 end cthickening --section
 

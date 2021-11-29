@@ -102,34 +102,45 @@ begin
     exact (ne.symm h2).le_iff_lt,},
 end
 
-lemma filter_Ico_card_eq_of_periodic {M : Type} [preorder M] [locally_finite_order M] [add_monoid M] (n a b : M) (p : M -> Prop) [decidable_pred p] (pp : function.periodic p a):
-  (filter (p) (Ico n (n+a))).card = (filter (p) (Ico (n+b) (n+a+b))).card :=
+-- TODO Generalize from ℕ to any (ordered add monoid?)
+lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ -> Prop) [decidable_pred p] (pp : function.periodic p a):
+  (filter p (Ico n (n+a))).card = (filter p (Ico 0 a)).card :=
 begin
-  sorry
+  by_cases a = 0,
+  { simp [h], },
+  induction n,
+  { simp, },
+  { rw <-n_ih,
+    clear n_ih,
+    simp only [succ_add],
+    -- Cast to multisets?
+    rw Ico_succ_right_eq_insert_Ico,
+    rw Ico_succ_left_eq_erase_Ico,
+    rw filter_insert,
+    rw filter_erase,
+    split_ifs,
+    { rw card_insert_eq_ite,
+      rw card_erase_eq_ite,
+      rw pp at h_1,
+      split_ifs,
+      simp [*] at *,
+      rw add_one,
+      rw succ_pred_eq_of_pos,
+      rw card_pos,
 
-  -- by_cases a = 0,
-  -- { simp [h], },
-  -- { induction n,
-  --   -- TODO Ico_zero should be simp lemma?
-  --   { simp [Ico_zero_eq_range, totient], },
-  --   {
-  --     rw <-n_ih,
-  --     clear n_ih,
-  --     rw succ_add,
-  --     -- Cast to multisets?
-  --     rw Ico_succ_right_eq_insert_Ico,
-  --     rw Ico_succ_left_eq_erase_Ico,
-  --     rw filter_insert,
-  --     by_cases a.coprime n_n,
-  --     { have h_add_a : a.coprime (n_n + a), sorry,
-  --       rw if_pos,
-  --       { rw finset.card_insert_of_not_mem,
-  --         rw finset.filter_erase, },
-  --       { }, },
-  --     -- rw Ico_succ_left,
-  --     apply Ioo_insert_left,
-  --     sorry,
-  --   }}
+      rw finset.nonempty,
+      use n_n,
+      assumption,
+
+      simp [mem_filter] at *,
+      have a_pos : 0 < a, exact pos_iff_ne_zero.mpr h,
+      exact h_3 a_pos h_1 },
+    { rw card_erase_eq_ite,
+      split_ifs,
+      simp [*] at *, },
+    rw succ_eq_add_one,
+    simp,
+    exact one_le_iff_ne_zero.mpr h, },
 end
 
 
@@ -137,12 +148,10 @@ lemma filter_mod_eq_range_card (a b n : ℕ) :
   (filter (a.coprime) (Ico n (n+a))).card = totient a :=
 begin
   rw totient,
-  -- rw range_eq_Ico,
   symmetry,
-  have h := filter_Ico_card_eq_of_periodic 0 a n,
+  have h := filter_Ico_card_eq_of_periodic n a,
   simp at h,
   rw h,
-  rw add_comm,
   intro x,
   -- simp, -- fails, TODO, make simp solve this here
   sorry,

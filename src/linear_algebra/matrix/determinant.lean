@@ -86,9 +86,11 @@ end
 @[simp] lemma det_one : det (1 : matrix n n R) = 1 :=
 by rw [← diagonal_one]; simp [-diagonal_one]
 
-@[simp]
 lemma det_is_empty [is_empty n] {A : matrix n n R} : det A = 1 :=
 by simp [det_apply]
+
+@[simp] lemma coe_det_is_empty [is_empty n] : (det : matrix n n R → R) = function.const _ 1 :=
+by { ext, exact det_is_empty, }
 
 lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : det A = 1 :=
 begin

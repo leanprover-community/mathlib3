@@ -22,12 +22,7 @@ lemma eq_of_eq_count_factors {a b : ℕ} (ha: 0 < a) (hb: 0 < b)
   (h: ∀ (p : ℕ), count p a.factors = count p b.factors) : a = b :=
 by { simpa [prod_factors ha, prod_factors hb] using perm.prod_eq (perm_iff_count.mpr h) }
 ---------------------------------------------------------------------------------------------------
-
-
----------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
-
--- TODO: PR this!
+-- This is in pending PR #10536:
 lemma count_factors_mul_of_pos {p a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
 by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]

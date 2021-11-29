@@ -850,28 +850,6 @@ lemma cthickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆
   cthickening δ E₁ ⊆ cthickening δ E₂ :=
 λ _ hx, le_trans (inf_edist_le_inf_edist_of_subset h) hx
 
-lemma cthickening_eq_Inter_thickening {δ : ℝ} {E : set α} (δ_nn : 0 ≤ δ):
-  cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), thickening ε E :=
-begin
-  unfold thickening cthickening,
-  apply le_antisymm,
-  { intros x hx,
-    simp only [mem_Inter, mem_set_of_eq] at *,
-    exact λ _ hδε, lt_of_le_of_lt hx
-        ((ennreal.of_real_lt_of_real_iff (lt_of_le_of_lt δ_nn hδε)).mpr hδε), },
-  { intros x hx,
-    simp only [mem_Inter, mem_set_of_eq] at *,
-    have inf_edist_lt_top : inf_edist x E < ∞ := lt_of_lt_of_le (hx (δ + 1) (by linarith)) le_top,
-    rw ← ennreal.of_real_to_real inf_edist_lt_top.ne,
-    apply ennreal.of_real_le_of_real,
-    apply le_of_forall_pos_le_add,
-    intros η η_pos,
-    have sum_nn : 0 ≤ δ + η := by linarith,
-    apply (ennreal.of_real_le_of_real_iff sum_nn).mp,
-    have key := (hx (δ + η) (by linarith)).le,
-    rwa ← ennreal.of_real_to_real inf_edist_lt_top.ne at key,},
-end
-
 lemma cthickening_subset_thickening {δ₁ : ℝ≥0} {δ₂ : ℝ} (hlt : (δ₁ : ℝ) < δ₂) (E : set α) :
   cthickening δ₁ E ⊆ thickening δ₂ E :=
 λ _ hx, lt_of_le_of_lt hx ((ennreal.of_real_lt_of_real_iff (lt_of_le_of_lt δ₁.prop hlt)).mpr hlt)
@@ -886,6 +864,26 @@ begin
   intros x hx,
   rw [thickening, mem_set_of_eq] at hx,
   exact le_trans hx.le (ennreal.of_real_le_of_real hle),
+end
+
+lemma cthickening_eq_Inter_thickening {δ : ℝ} {E : set α} (δ_nn : 0 ≤ δ):
+  cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), thickening ε E :=
+begin
+  apply le_antisymm,
+  { apply subset_bInter,
+    exact λ _ h, cthickening_subset_thickening' (lt_of_le_of_lt δ_nn h) h E, },
+  { unfold thickening cthickening,
+    intros x hx,
+    simp only [mem_Inter, mem_set_of_eq] at *,
+    have inf_edist_lt_top : inf_edist x E < ∞ := lt_of_lt_of_le (hx (δ + 1) (by linarith)) le_top,
+    rw ← ennreal.of_real_to_real inf_edist_lt_top.ne,
+    apply ennreal.of_real_le_of_real,
+    apply le_of_forall_pos_le_add,
+    intros η η_pos,
+    have sum_nn : 0 ≤ δ + η := by linarith,
+    apply (ennreal.of_real_le_of_real_iff sum_nn).mp,
+    have key := (hx (δ + η) (by linarith)).le,
+    rwa ← ennreal.of_real_to_real inf_edist_lt_top.ne at key,},
 end
 
 end cthickening --section

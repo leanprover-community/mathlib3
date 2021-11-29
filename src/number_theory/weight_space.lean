@@ -1240,7 +1240,14 @@ def zmod' (n : ℕ) (h : 0 < n) : finset (zmod n) :=
 lemma succ_eq_bUnion_equi_class : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.succ) =
   (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion
     (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) :=
-sorry
+begin
+  ext y, simp only [exists_prop, finset.mem_bUnion, set.mem_to_finset], split,
+  any_goals { intro h, },
+  { refine ⟨(y : zmod (d * p^m)), _, _⟩,
+    { rw finset.mem_def, exact finset.mem_univ y, },
+    { rw mem_equi_class, }, },
+  { rw finset.mem_def, exact finset.mem_univ y, },
+end
 
 example {R S : Type*} [ring R] [ring S] {f : R →+* S} {x y : R} (h : f x = 0) :
   x ∈ ring_hom.ker f := by refine (ring_hom.mem_ker f).mpr h
@@ -1807,6 +1814,12 @@ begin
     apply imp p d m, },
 end
 
+/-example (n : ℕ) [char_zero R] {s : finset (zmod n)} {f : (zmod n) → ℚ} :
+  (((∑ a in s, (f a)) : ℚ) : R) = ∑ a in s, ((f a) : R) :=
+begin
+
+end-/
+
 lemma E_c_sum_equi_class [has_coe ℝ R] [has_coe ℚ R] [fact (0 < m)] (x : zmod (d * p^m)) (hc : gcd c p = 1) (hc' : gcd c d = 1) :
 ∑ (y : zmod (d * p ^ m.succ)) in (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x,
   ((E_c p d hc m.succ y) : R) = (E_c p d hc m x) :=
@@ -1862,13 +1875,17 @@ noncomputable def g (hc : gcd c p = 1) (hc' : gcd c d = 1) [has_coe ℝ R] [has_
     --by
        --letI : fintype (zmod (d * p^n)) := @zmod.fintype _ ⟨hpos⟩; exact
     ∑ a in (zmod' (d * p^n) (mul_prime_pow_pos p d n)), f(a) • ((E_c p d hc n a) : R),
-  is_eventually_const := ⟨classical.some (factor_F p d R hd' f),
+  is_eventually_const := ⟨classical.some (factor_F p d R hd' f) + 1,
   begin
-  simp, rintros l hl, -- why is the simp needed?
+  simp, rintros l hl', -- why is the simp needed?
+  have hl : classical.some (factor_F p d R hd' f) ≤ l,
+  { apply le_trans (nat.le_succ _) hl', },
   set t := λ a : zmod (d * p ^ l), set.to_finset ((equi_class p d l l.succ (lt_add_one l)) a) with ht,
   rw succ_eq_bUnion_equi_class,
   rw @finset.sum_bUnion _ _ _ _ _ _ (zmod' (d*p^l) (mul_prime_pow_pos p d l)) t _,
-  { haveI : fact (0 < l), sorry,
+  { haveI : fact (0 < l),
+    { apply fact_iff.2,
+      apply lt_of_lt_of_le (nat.zero_lt_succ _) hl', },
     conv_lhs { apply_congr, skip, conv { apply_congr, skip, rw equi_class_eq p d R l f x hd' hl x_1 H_1, },
     rw [←finset.mul_sum], rw E_c_sum_equi_class p d R l x hc hc', }, },
   { rintros x hx y hy hxy, contrapose hxy, push_neg,
@@ -1879,7 +1896,19 @@ noncomputable def g (hc : gcd c p = 1) (hc' : gcd c d = 1) [has_coe ℝ R] [has_
 
 lemma g_def [has_coe ℝ R] [has_coe ℚ R] (hc : gcd c p = 1) (hc' : gcd c d = 1) (hd : 0 < d)
   (f : locally_constant (zmod d × ℤ_[p]) R) (n : ℕ) (hd' : gcd d p = 1) :
-  (g p d R hc hc' hd f hd').to_seq n = ∑ a in (finset.range (d * p^n)),f(a) • ((E_c p d hc n a) : R) := sorry
+  (g p d R hc hc' hd f hd').to_seq n =
+    ∑ a in (finset.range (d * p^n)),f(a) • ((E_c p d hc n a) : R) :=
+begin
+  rw g, simp only,
+  apply finset.sum_bij,
+  swap 5, { rintros, exact a.val, },
+  any_goals { rintros, simp, },
+  { apply zmod.val_lt, },
+  { rintros a b ha hb h, simp only at h, apply zmod.val_injective _ h, },
+  { refine ⟨(b : zmod (d * p^n)), _, _⟩,
+    { apply finset.mem_univ, },
+    { apply (zmod.val_cast_of_lt (finset.mem_range.1 H)).symm, }, },
+end
 
 /-
 def clopen_basis' :=

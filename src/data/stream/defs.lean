@@ -96,13 +96,10 @@ def append_stream : list α → stream α → stream α
 
 infix `++ₛ`:65 := append_stream
 
-def approx : nat → stream α → list α
+/-- `take n s` returns a list of the `n` first elements of stream `s` -/
+def take : ℕ → stream α → list α
 | 0     s := []
-| (n+1) s := list.cons (head s) (approx n (tail s))
-
-/-- `take s n` returns a list of the `n` first elements of stream `s` -/
-def take {α} (s : stream α) (n : ℕ) : list α :=
-(list.range n).map s
+| (n+1) s := list.cons (head s) (take n (tail s))
 
 /-- An auxiliary definition for `stream.cycle` corecursive def -/
 protected def cycle_f : α × list α × α × list α → α
@@ -124,7 +121,6 @@ def inits_core (l : list α) (s : stream α) : stream (list α) :=
 corec_on (l, s)
   (λ ⟨a, b⟩, a)
   (λ p, match p with (l', s') := (l' ++ [head s'], tail s') end)
-
 
 def inits (s : stream α) : stream (list α) :=
 inits_core [head s] (tail s)

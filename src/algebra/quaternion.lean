@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import tactic.ring_exp
 import algebra.algebra.basic
-import algebra.opposites
+import algebra.ring.opposite
 import data.equiv.ring
 
 /-!

@@ -56,22 +56,27 @@ begin
   exact a_le_b,
 end
 
+example (a b c : Prop) : (a ∧ c) ∨ (b ∧ c) ↔ (a ∨ b) ∧ c :=
+begin
+  exact or_and_distrib_right.symm,
+  rw and_or_distrib_right.symm,
+end
+
 lemma split_range {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ -> Prop) [decidable_pred p] :
   (range n).filter p = (range k).filter p ∪ (Ico k n).filter p :=
 begin
-  rw <- filter_union,
-  ext,
-  simp only [mem_union, mem_filter, mem_range, and.congr_left_iff, mem_Ico],
-  intro _,
+  ext x,
+  -- rw <- filter_union,
+  simp only [mem_union, mem_filter, mem_range, \<-or_and_distrib_right, and.congr_left_iff, mem_Ico],
   split,
-  { intros a_le_n,
-    cases lt_or_le a k,
-    { left, exact h, },
-    { right, exact ⟨h, a_le_n⟩, }, },
+  { rintros ⟨x_le_n, px⟩,
+    cases lt_or_le x k,
+    { left, exact ⟨h, px⟩, },
+    { right, exact ⟨⟨h, x_le_n⟩, px⟩, }, },
   { intros hyp,
     cases hyp,
-    { exact gt_of_ge_of_gt k_le_n hyp, },
-    { exact hyp.2, }, },
+    { exact ⟨lt_of_lt_of_le hyp.left k_le_n, hyp.right⟩ },
+    { exact ⟨hyp.left.right, hyp.right⟩, }, },
 end
 
 lemma coprime_of_lt_prime {n k : ℕ} (n_pos : 0 < n) (hlt : n < k) (is_prime : prime k) :

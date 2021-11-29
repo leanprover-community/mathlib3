@@ -12,7 +12,7 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 
 ## Main definitions
 
-* `spectral_radius`: supremum of `abs k` for all `k ∈ spectrum 𝕜 a`
+* `spectral_radius : ℝ≥0∞`: supremum of `∥k∥₊` for all `k ∈ spectrum 𝕜 a`
 
 ## Main statements
 
@@ -20,8 +20,8 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `is_closed`: the spectrum is closed.
 * `subset_closed_ball_norm`: the spectrum is a subset of closed disk of radius equal to the norm.
 * `is_compact`: the spectrum is compact.
-* `spectral_radius_le_norm`: the spectral radius is bounded above by the norm.
-* `resolvent_has_deriv_at`: the resolvent function is differentiable on the resolvent set.
+* `spectral_radius_le_nnnorm`: the spectral radius is bounded above by the norm.
+* `has_deriv_at_resolvent`: the resolvent function is differentiable on the resolvent set.
 
 
 ## TODO

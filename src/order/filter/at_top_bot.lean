@@ -1225,7 +1225,7 @@ lemma has_antitone_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter 
 (at_top_basis.tendsto_iff hl.to_has_basis).2 $ assume i hi,
   ⟨i, trivial, λ j hij, hl.antitone hij (h _)⟩
 
-/-- If `f` is a nontrivial countably generated basis, then there exists a sequence that converges
+/-- If `f` is a nontrivial countably generated filter, then there exists a sequence that converges
 to `f`. -/
 lemma exists_seq_tendsto (f : filter α) [is_countably_generated f] [ne_bot f] :
   ∃ x : ℕ → α, tendsto x at_top f :=

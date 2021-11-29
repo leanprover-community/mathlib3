@@ -95,15 +95,12 @@ end
 
 lemma Ico_eq_insert_Ico_succ (a b : ℕ) (h : a < b) : Ico a b = insert a (Ico a.succ b) :=
 begin
-  rw Ico_succ_left,
-  rw ext_iff,
-  intro a_1,
-  simp only [mem_Ico, mem_Ioo, mem_insert],
+  rw Ico_succ_left_eq_erase_Ico,
+  ext a_1,
+  simp only [mem_erase, mem_insert],
   by_cases h2 : a_1 = a,
   { simp [h2, h], },
-  { simp [h2],
-    intro h3,
-    exact (ne.symm h2).le_iff_lt,},
+  { simp [h2], },
 end
 
 -- TODO Generalize from ℕ to any (ordered add monoid?)

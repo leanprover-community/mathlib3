@@ -298,8 +298,8 @@ to obtain this computably.
 -/
 @[reducible, to_additive "Push forward the action of `R` on `M` along a compatible
 surjective map `f : R →+ S`."]
-def function.surjective.mul_action_left {R S M : Type*} [monoid R] [add_monoid M]
-  [mul_action R M] [monoid S] [has_scalar S M]
+def function.surjective.mul_action_left {R S M : Type*} [monoid R] [mul_action R M]
+  [monoid S] [has_scalar S M]
   (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
   mul_action S M :=
 { smul := (•),

@@ -586,6 +586,27 @@ theorem coprime_pow_primes {p q : ℕ} (n m : ℕ) (pp : prime p) (pq : prime q)
 theorem coprime_or_dvd_of_prime {p} (pp : prime p) (i : ℕ) : coprime p i ∨ p ∣ i :=
 by rw [pp.dvd_iff_not_coprime]; apply em
 
+lemma coprime_of_lt_prime {n k : ℕ} (n_pos : 0 < n) (hlt : n < k) (is_prime : prime k) :
+  coprime k n :=
+begin
+  have h := coprime_or_dvd_of_prime is_prime n,
+  cases h,
+  { exact h, },
+  { have hle := le_of_dvd n_pos h,
+    by_contra,
+    exact lt_le_antisymm hlt hle, },
+end
+
+lemma eq_or_coprime_of_le_prime {n k : ℕ} (n_pos : 0 < n) (hle : n ≤ k) (is_prime : prime k) :
+  k = n ∨ coprime k n :=
+begin
+  by_cases k = n,
+  { exact or.inl h, },
+  { right,
+    apply coprime_of_lt_prime n_pos _ is_prime,
+    exact (ne.symm h).le_iff_lt.mp hle, },
+end
+
 theorem dvd_prime_pow {p : ℕ} (pp : prime p) {m i : ℕ} : i ∣ (p^m) ↔ ∃ k ≤ m, i = p^k :=
 begin
   induction m with m IH generalizing i, {simp [pow_succ, le_zero_iff] at *},

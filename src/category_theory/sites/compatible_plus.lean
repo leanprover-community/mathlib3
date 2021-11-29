@@ -197,4 +197,36 @@ begin
   apply plus_comp_iso_whisker_right,
 end
 
+@[simp]
+lemma whisker_right_to_plus_comp_plus_comp_iso_hom :
+  whisker_right (J.to_plus _) _ ≫ (J.plus_comp_iso F P).hom = J.to_plus _ :=
+begin
+  ext,
+  dsimp,
+  simp only [ι_plus_comp_iso_hom, functor.map_comp, category.assoc],
+  simp only [← category.assoc],
+  congr' 1,
+  ext,
+  delta cover.to_multiequalizer,
+  simp only [diagram_comp_iso_hom_ι, category.assoc, ← F.map_comp],
+  erw [multiequalizer.lift_ι, multiequalizer.lift_ι],
+  refl,
+end
+
+@[simp]
+lemma to_plus_comp_plus_comp_iso_inv : J.to_plus _ ≫ (J.plus_comp_iso F P).inv =
+  whisker_right (J.to_plus _) _ :=
+begin
+  rw iso.comp_inv_eq,
+  simp,
+end
+
+lemma plus_comp_iso_inv_eq_plus_lift (hP : presheaf.is_sheaf J ((J.plus_obj P) ⋙ F)) :
+  (J.plus_comp_iso F P).inv = J.plus_lift (whisker_right (J.to_plus _) _) hP :=
+begin
+  apply J.plus_lift_unique,
+  rw iso.comp_inv_eq,
+  simp,
+end
+
 end category_theory.grothendieck_topology

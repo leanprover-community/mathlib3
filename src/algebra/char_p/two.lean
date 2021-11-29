@@ -110,7 +110,7 @@ lemma sum_sq (s : finset ι) (f : ι → R) :
   (∑ i in s, f i) ^ 2 = ∑ i in s, f i ^ 2 :=
 sum_pow_char _ _ _
 
-lemma sum_mul_self [comm_semiring R] [char_p R 2] (s : finset ι) (f : ι → R) :
+lemma sum_mul_self (s : finset ι) (f : ι → R) :
   (∑ i in s, f i) * (∑ i in s, f i) = ∑ i in s, f i * f i :=
 by simp_rw [←pow_two, sum_sq]
 

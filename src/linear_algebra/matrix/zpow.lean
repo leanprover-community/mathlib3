@@ -193,8 +193,6 @@ theorem semiconj_by.zpow_right {A X Y : M} (hx : is_unit X.det) (hy : is_unit Y.
   ∀ m : ℤ, semiconj_by A (X^m) (Y^m)
 | (n : ℕ) := by simp [h.pow_right n]
 | -[1+n]  := begin
-  by_cases ha : A = 0,
-  { simp only [ha, semiconj_by.zero_left] },
   have hx' : is_unit (X ^ n.succ).det,
   { rw det_pow,
     exact hx.pow n.succ },

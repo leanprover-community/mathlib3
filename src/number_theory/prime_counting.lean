@@ -80,14 +80,16 @@ begin
     { exact hyp.2, }, },
 end
 
-lemma eq_or_coprime_of_lt_prime {n k : ℕ} (h0 : 0 < n) (hlt : n ≤ k) (is_prime : prime k) :
+lemma eq_or_coprime_of_lt_prime {n k : ℕ} (n_pos : 0 < n) (hlt : n ≤ k) (is_prime : prime k) :
   k = n ∨ coprime k n :=
 begin
-  sorry,
+  have h := coprime_or_dvd_of_prime is_prime n,
+  cases h,
+  { exact or.inr h, },
+  { have bar := le_of_dvd n_pos h,
+    left,
+    exact le_antisymm bar hlt},
 end
-
-
-example (a b : ℕ) (h : a ≠ b) : a ≤ b ↔ a < b := ne.le_iff_lt h
 
 lemma Ico_eq_insert_Ico_succ (a b : ℕ) (h : a < b) : Ico a b = insert a (Ico a.succ b) :=
 begin

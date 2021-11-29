@@ -1,5 +1,6 @@
 import data.nat.prime
 import data.nat.mul_ind
+import tactic.omega
 
 open nat
 open finset
@@ -20,6 +21,19 @@ by { rw [perm_iff_count.mp (perm_factors_mul_of_coprime hab) p, count_append] }
 lemma eq_of_eq_count_factors {a b : ℕ} (ha: 0 < a) (hb: 0 < b)
   (h: ∀ (p : ℕ), count p a.factors = count p b.factors) : a = b :=
 by { simpa [prod_factors ha, prod_factors hb] using perm.prod_eq (perm_iff_count.mpr h) }
+---------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
+-- TODO: PR this!
+-- TODO: Any other lemmas that hold for `pos` not just `coprime`?
+lemma count_factors_mul_of_pos {p a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
+by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
+
+---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
 
@@ -85,8 +99,10 @@ lemma prime_factorization_prime {p : ℕ} (hp : prime p) : p.prime_factorization
 by { simp only [←prime_factorization_prime_pos_pow hp one_pos, pow_one] }
 
 ---------------------------------------------------------------------------------------------------
--- Prime factorisations involving `coprime a b`
+-- Prime factorisations involving `coprime a b` and/or positive `a` and `b`
 ---------------------------------------------------------------------------------------------------
+
+-- TODO: Refactor some of these?
 
 /-- The prime factorizations of coprime `a` and `b` are disjoint -/
 lemma prime_factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :
@@ -102,6 +118,14 @@ lemma prime_factorization_mul_add_of_coprime {a b : ℕ} (hab : coprime a b) :
 begin
   ext q,
   simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_coprime hab],
+end
+
+/-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma prime_factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
+  (a * b).prime_factorization = a.prime_factorization + b.prime_factorization :=
+begin
+  ext q,
+  simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_pos ha hb],
 end
 
 /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
@@ -199,6 +223,137 @@ by { refine (multiplicative_factorization hn _ _), simp }
 lemma prime_pow_of_prime_factorization_single {n p k : ℕ} (hn : 0 < n)
   (h : n.prime_factorization = single p k) : n = p ^ k :=
 by { rw [prime_factorization_prod_pow hn, h], simp }
+
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
+-- If `n` is a product of prime powers then the support of n.prime_factorization is those primes
+
+example (n : ℕ) (s : finset ℕ) (f : ℕ → ℕ) (hs : ∀p ∈ s, prime p) (hn : n = s.prod f) :
+  n.prime_factorization.support = s
+:=
+begin
+
+  sorry,
+end
+
+
+
+---------------------------------------------------------------------------------------------------
+
+-- TODO: Move this up when it's finished
+
+-- Any valid finsupp is the prime factorization of some positive natural number
+
+lemma prime_factorization_of_prime_finsupp (f : ℕ →₀ ℕ) (hf : ∀ p ∈ f.support, prime p) :
+  ∃ n : ℕ, f = n.prime_factorization :=
+begin
+  set n := f.prod pow with h_n_def,
+  use n,
+  rw finsupp.ext_iff',
+  split,
+  {
+
+    sorry},
+  {
+    intros x hx,
+    sorry},
+
+
+  -- ext x,
+  -- unfold finsupp.prod at h_n_def,
+  -- by_cases hx : x ∈ f.support,
+  -- { sorry },
+  -- {
+  --   sorry },
+
+  -- have := @prime_factorization_prod_pow (f.prod pow) _,
+
+end
+
+
+example (n d : ℕ)
+-- (h1 : 0 = n - d)
+(h2 : d < n)
+(h3 : 0 < n)
+: 0 < n - d :=
+begin
+  exact tsub_pos_of_lt h2,
+end
+
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
+-- Divisibility
+
+-- `d` divides `n` iff for every prime `p`, the power of `p` in `d` is `≤` the power in `n`
+lemma dvd_iff_prime_factorization_leq {d n : ℕ} (hd : 0 < d) (hn : 0 < n) :
+  d ∣ n ↔ d.prime_factorization ≤ n.prime_factorization :=
+begin
+  rw dvd_iff_exists_eq_mul_left,
+  rw finsupp.le_def,
+  split,
+  {
+    rintros ⟨c, hcn⟩ p,
+    simp only [prime_factorization_count],
+    rw hcn,
+    have hc : 0 < c,
+      { rw zero_lt_iff, intros H, rw H at hcn, simp at hcn, apply absurd hcn hn.ne' },
+    exact le_factors_count_mul_right hc,
+
+  },
+  {
+    intros h,
+    by_cases hnd : n = d, { use 1, simpa },
+    have := mt finsupp.ext (mt (prime_factorization_eq_iff hn hd).mp hnd),
+    push_neg at this,
+    cases this with p hp,
+    set c_pf := n.prime_factorization - d.prime_factorization with c_pf_def,
+
+    have := prime_factorization_of_prime_finsupp c_pf _,
+    rcases this with ⟨c, hc⟩,
+    use c,
+    have hc_pos : 0 < c, {
+      rw zero_lt_iff,
+      intros H,
+      rw H at hc,
+      rw prime_factorization_zero at hc,
+      rw hc at c_pf_def,
+      rw finsupp.ext_iff at c_pf_def,
+      specialize c_pf_def p,
+      simp at c_pf_def,
+      -- have := h p,
+      have : (d.prime_factorization) p < (n.prime_factorization) p,
+        { exact (ne.symm hp).le_iff_lt.mp (h p) },
+      have := (tsub_pos_of_lt this).ne,
+      contradiction,
+    },
+
+    have hcd : 0 < c * d := mul_pos hc_pos hd,
+
+    {
+      rw ←prime_factorization_eq_iff hn hcd,
+      rw prime_factorization_mul_add_of_pos hc_pos hd,
+      rw [←hc, c_pf_def],
+      ext p,
+      simp,
+      specialize h p,
+      linarith,
+    },
+    {
+      intros p hp,
+      suffices : p ∈ n.prime_factorization.support,
+        { rw factor_iff_mem_factorization at this,
+          exact prime_of_mem_factors this },
+      rw mem_support_iff at hp ⊢,
+      rw c_pf_def at hp,
+      simp at hp,
+      exact ne_zero_of_lt hp,
+    },
+  }
+end
+
+
 
 
 end nat

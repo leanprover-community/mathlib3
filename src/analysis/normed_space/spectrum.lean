@@ -62,16 +62,10 @@ lemma mem_resolvent_of_norm_lt {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
   k ∈ ρ a :=
 begin
   rw [resolvent_set,set.mem_set_of_eq,algebra.algebra_map_eq_smul_one],
-  have k_pos := lt_of_le_of_lt (norm_nonneg a) h,
-  let ku := units.mk0 k (ne_zero_of_norm_pos k_pos),
-  have lt_one :=
-    calc  ∥ku⁻¹ • a∥ = ∥↑ku⁻¹ • a∥   : rfl
-      ...            = ∥(↑ku)⁻¹ • a∥ : by rw units.coe_inv' ku
-      ...            = ∥k⁻¹∥ * ∥a∥   : norm_smul k⁻¹ a
-      ...            = ∥k∥⁻¹ * ∥a∥   : by rw normed_field.norm_inv
-      ...            < 1            : (inv_mul_lt_iff k_pos).mpr (by simp [h]),
-  have : is_unit (1 - ku⁻¹ • a), from (units.one_sub (ku⁻¹ • a) lt_one).is_unit,
-  rwa ←is_unit.smul_sub_iff_sub_inv_smul at this,
+  have hk : k ≠ 0 := ne_zero_of_norm_pos (by linarith [norm_nonneg a]),
+  let ku := units.map (↑ₐ).to_monoid_hom (units.mk0 k hk),
+  have hku : ∥-a∥ < ∥(↑ku⁻¹:A)∥⁻¹ := by simpa [ku, algebra_map_isometry] using h,
+  simpa [ku, sub_eq_add_neg, algebra.algebra_map_eq_smul_one] using (ku.add (-a) hku).is_unit,
 end
 
 lemma norm_le_norm_of_mem {a : A} {k : 𝕜} (hk : k ∈ σ a) :

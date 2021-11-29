@@ -100,14 +100,6 @@ by { ext f, simp }
 
 local attribute [ext] tensor_product.ext
 
-lemma basis.sum_dual_apply_smul_coord (f : module.dual R M) (b : basis ι R M) :
-  ∑ x, f (b x) • b.coord x = f :=
-begin
-  ext m,
-  simp_rw [linear_map.sum_apply, linear_map.smul_apply, smul_eq_mul, mul_comm (f _), ←smul_eq_mul,
-    ←f.map_smul, ←f.map_sum, basis.coord_apply, basis.sum_repr],
-end
-
 lemma hom_dual_tensor_dual_tensor_hom :
   hom_dual_tensor R M N b ∘ₗ dual_tensor_hom R M N = linear_map.id :=
 begin
@@ -125,6 +117,11 @@ linear_equiv.of_linear (dual_tensor_hom R M N) (hom_dual_tensor R M N b)
 
 lemma dual_tensor_hom_equiv_of_basis_eq : dual_tensor_hom_equiv_of_basis b =
   (dual_tensor_hom_equiv_of_basis c : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N) :=
+by {ext x m, simp [dual_tensor_hom_equiv_of_basis] }
+
+@[simp] lemma dual_tensor_hom_equiv_of_basis_coe :
+  ↑(dual_tensor_hom_equiv_of_basis b : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N) =
+  dual_tensor_hom R M N :=
 by {ext x m, simp [dual_tensor_hom_equiv_of_basis] }
 
 end

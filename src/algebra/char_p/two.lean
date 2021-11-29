@@ -44,9 +44,9 @@ variables [ring R] [char_p R 2]
 lemma neg_eq (x : R) : -x = x :=
 by rw [neg_eq_iff_add_eq_zero, ←two_smul R x, two_eq_zero, zero_smul]
 
-lemma one_eq_neg_iff {R} [ring R] [nontrivial R] : ring_char R = 2 ↔ (-1 : R) = 1 :=
+lemma one_eq_neg_iff [nontrivial R] : (-1 : R) = 1 ↔ ring_char R = 2 :=
 begin
-  refine ⟨λ h, @@neg_eq _ (ring_char.of_eq h) 1, λ h, _⟩,
+  refine ⟨λ h, _, λ h, @@neg_eq _ (ring_char.of_eq h) 1⟩,
   rw [eq_comm, ←sub_eq_zero, sub_neg_eq_add, show (1 + 1 : R) = (1 + 1 : ℕ), by norm_cast] at h,
   have := nat.le_of_dvd zero_lt_two (ring_char.dvd h),
   interval_cases (ring_char R) with hrc,
@@ -54,15 +54,12 @@ begin
     haveI := char_p.char_p_to_char_zero R,
     apply false.elim (@two_ne_zero' R _ _ _ _),
     exact_mod_cast h },
-  { have := @char_p.ring_char_ne_one R _ _, contradiction },
+  { have := @char_p.ring_char_ne_one R _ _,
+    contradiction },
   { assumption }
 end
 
-lemma nat.fact_prime_two : fact (nat.prime 2) := ⟨nat.prime_two⟩
-
-local attribute [instance] nat.fact_prime_two
-
-@[simp] lemma order_of_neg_one {R} [ring R] [nontrivial R] :
+@[simp] lemma order_of_neg_one [nontrivial R] :
   order_of (-1 : R) = if ring_char R = 2 then 1 else 2 :=
 begin
   split_ifs,

@@ -599,9 +599,7 @@ lemma eq_or_coprime_of_le_prime {n p} (n_pos : 0 < n) (hle : n ≤ p) (pp : prim
 begin
   by_cases p = n,
   { exact or.inl h, },
-  { right,
-    apply coprime_of_lt_prime n_pos _ pp,
-    exact (ne.symm h).le_iff_lt.mp hle, },
+  { right, exact coprime_of_lt_prime n_pos ((ne.symm h).le_iff_lt.mp hle) pp },
 end
 
 theorem dvd_prime_pow {p : ℕ} (pp : prime p) {m i : ℕ} : i ∣ (p^m) ↔ ∃ k ≤ m, i = p^k :=

@@ -319,7 +319,7 @@ lemma commute.minimal_period_of_comp_eq_mul_of_coprime {g : α → α} (h : func
   minimal_period (f ∘ g) x = (minimal_period f x) * (minimal_period g x) :=
 begin
   apply dvd_antisymm (h.minimal_period_of_comp_dvd_mul_of_coprime),
-  apply coprime.mul_dvd_of_dvd_of_dvd hco,
+  apply hco.mul_dvd_of_dvd_of_dvd,
   { apply hco.dvd_of_dvd_mul_left,
     apply is_periodic_pt.minimal_period_dvd,
     apply is_periodic_pt.left_of_comp h,

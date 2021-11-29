@@ -88,7 +88,7 @@ def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) :
   begin
     cases f with _ j,
     { apply (𝟙 _) },
-    { exact arrows j },
+    { exact arrows j }
   end,
   map_comp' := λ _ _ _ f g,
   begin

@@ -89,7 +89,10 @@ def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) :
     cases f with _ j,
     { apply (𝟙 _) },
     { exact arrows j }
-  end }
+  end,
+  map_id' := λ X, rfl,
+  map_comp' := λ X Y Z f g,
+    by cases f; cases g; { dsimp *, simp *, refl } }
 
 /-- Every diagram is naturally isomorphic (actually, equal) to a `wide_cospan` -/
 def diagram_iso_wide_cospan (F : wide_pullback_shape J ⥤ C) :

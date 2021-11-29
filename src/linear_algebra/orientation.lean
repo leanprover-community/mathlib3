@@ -132,6 +132,7 @@ variables {M}
 protected def ray_of_ne_zero [nontrivial R] (v : M) (h : v ≠ 0) : module.ray R M :=
 ⟦⟨v, h⟩⟧
 
+/-- An induction principle for `module.ray`, used as `induction x using module.ray.ind`. -/
 lemma module.ray.ind [nontrivial R] {C : module.ray R M → Prop}
   (h : Π v (hv : v ≠ 0), C (ray_of_ne_zero R v hv)) (x : module.ray R M) : C x :=
 quotient.ind (subtype.rec $ by exact h) x

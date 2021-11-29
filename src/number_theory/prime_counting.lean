@@ -96,11 +96,11 @@ end
 lemma Ico_eq_insert_Ico_succ (a b : ℕ) (h : a < b) : Ico a b = insert a (Ico a.succ b) :=
 begin
   rw Ico_succ_left_eq_erase_Ico,
-  ext a_1,
+  ext x,
   simp only [mem_erase, mem_insert],
-  by_cases h2 : a_1 = a,
-  { simp [h2, h], },
-  { simp [h2], },
+  by_cases he : x = a,
+  { simp [he, h], },
+  { simp [he], },
 end
 
 -- TODO Generalize from ℕ

@@ -619,7 +619,6 @@ end
 @[simp] lemma num_div_denom (x : ratfunc K) :
   algebra_map _ _ (num x) / algebra_map _ _ (denom x) = x :=
 x.induction_on (λ p q hq, begin
-  by_cases hp : p = 0, { simp [hp] },
   have q_div_ne_zero := right_div_gcd_ne_zero hq,
   rw [num_div p hq, denom_div p hq, ring_hom.map_mul, ring_hom.map_mul,
     mul_div_mul_left, div_eq_div_iff, ← ring_hom.map_mul, ← ring_hom.map_mul, mul_comm _ q,

@@ -451,8 +451,6 @@ end
 
 lemma degree_gcd_le_left {p : polynomial R} (hp : p ≠ 0) (q) : (gcd p q).degree ≤ p.degree :=
 begin
-  by_cases hq : q = 0,
-  { simp [hq] },
   have := nat_degree_le_iff_degree_le.mp
     (nat_degree_le_of_dvd (gcd_dvd_left p q) hp),
   rwa degree_eq_nat_degree hp

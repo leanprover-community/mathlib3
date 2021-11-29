@@ -177,18 +177,6 @@ theorem sub_pow_char_pow [comm_ring R] {p : ℕ} [fact p.prime]
   (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
 sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 
-open_locale big_operators
-
-lemma sum_pow_char {ι : Type*} [comm_semiring R] {p : ℕ} [fact p.prime] [char_p R p]
-  (s : finset ι) (f : ι → R) :
-  (∑ i in s, f i) ^ p = ∑ i in s, f i ^ p :=
-begin
-  classical,
-  induction s using finset.induction with i s hs ih,
-  { rw [finset.sum_empty, finset.sum_empty, zero_pow' p (nat.prime.ne_zero $ fact.out _)], },
-  { rw [finset.sum_insert hs, finset.sum_insert hs, add_pow_char, ←ih] }
-end
-
 lemma eq_iff_modeq_int [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
@@ -236,7 +224,7 @@ section frobenius
 section comm_semiring
 
 variables [comm_semiring R] {S : Type v} [comm_semiring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p] [char_p S p] (x y : R)
 
 /-- The frobenius map that sends x to x^p -/
 def frobenius : R →+* R :=
@@ -291,6 +279,13 @@ theorem frobenius_add : frobenius R p (x + y) = frobenius R p x + frobenius R p 
 (frobenius R p).map_add x y
 
 theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := (frobenius R p).map_nat_cast n
+
+open_locale big_operators
+
+lemma sum_pow_char {ι : Type*} [comm_semiring R] {p : ℕ} [fact p.prime] [char_p R p]
+  (s : finset ι) (f : ι → R) :
+  (∑ i in s, f i) ^ p = ∑ i in s, f i ^ p :=
+(frobenius R p).map_sum _ _
 
 end comm_semiring
 

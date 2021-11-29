@@ -13,6 +13,8 @@ This file contains results about `char_p R 2`, in the `char_two` namespace.
 
 variables {R ι : Type*}
 
+local attribute [fact] nat.fact_prime_two
+
 namespace char_two
 
 lemma two_eq_zero [semiring R] [char_p R 2] : (2 : R) = 0 :=
@@ -32,10 +34,7 @@ funext $ λ x, funext $ λ y, sub_eq_add x y
 
 lemma add_sq [comm_semiring R] [char_p R 2] (x y : R) :
   (x + y) ^ 2 = x ^ 2 + y ^ 2 :=
-begin
-  letI := fact.mk nat.prime_two,
-  exact add_pow_char _ _ _
-end
+add_pow_char _ _ _
 
 lemma add_mul_self [comm_semiring R] [char_p R 2] (x y : R) :
   (x + y) * (x + y) = x * x + y * y :=
@@ -45,10 +44,7 @@ open_locale big_operators
 
 lemma sum_sq [comm_semiring R] [char_p R 2] (s : finset ι) (f : ι → R) :
   (∑ i in s, f i) ^ 2 = ∑ i in s, f i ^ 2 :=
-begin
-  letI := fact.mk nat.prime_two,
-  exact sum_pow_char _ _ _
-end
+sum_pow_char _ _ _
 
 lemma sum_mul_self [comm_semiring R] [char_p R 2] (s : finset ι) (f : ι → R) :
   (∑ i in s, f i) * (∑ i in s, f i) = ∑ i in s, f i * f i :=

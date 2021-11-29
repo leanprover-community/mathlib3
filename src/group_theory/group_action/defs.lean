@@ -277,8 +277,19 @@ to obtain this computably.
 -/
 @[reducible]
 noncomputable def function.surjective.has_scalar_left {R S M : Type*} [has_scalar R M]
-  {f : R → S} (hf : function.surjective f) : has_scalar S M :=
+  (f : R → S) (hf : function.surjective f) : has_scalar S M :=
 ⟨λ c x, function.surj_inv hf c • x⟩
+
+/-- `has_scalar.comp` is a right inverse to `function.surjective.has_scalar_left`. -/
+@[simp] lemma function.surjective.has_scalar_left_comp_hom {R S M : Type*} {hsc : has_scalar S M}
+  (f : R → S) (hf : function.surjective f) :
+  @@function.surjective.has_scalar_left (has_scalar.comp M f) f hf = hsc :=
+by unfreezingI
+  { cases hsc,
+    refine congr_arg has_scalar.mk _,
+    ext c x,
+    change hsc (f (function.surj_inv hf _)) x = hsc c x,
+    rw function.surj_inv_eq hf }
 
 /-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
 

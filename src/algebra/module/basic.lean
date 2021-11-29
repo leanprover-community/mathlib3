@@ -122,7 +122,7 @@ noncomputable def function.surjective.module_left' {R S M : Type*}
   (f : R →+* S) (hf : function.surjective f)
   (hsmul : ∀ {a b}, f a = f b → ∀ (x : M), a • x = b • x) :
   module S M :=
-let scalar : has_scalar S M := hf.has_scalar_left in
+let scalar : has_scalar S M := hf.has_scalar_left f in
 { smul := @@has_scalar.smul scalar,
   .. @@function.surjective.module_left _ _ _ _ scalar f hf
     (λ c (x : M), hsmul (surj_inv_eq _ _) x) }

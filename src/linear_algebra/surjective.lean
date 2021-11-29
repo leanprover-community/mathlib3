@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.bilinear_map
+import ring_theory.ideal.operations
 
 /-!
 # Pushing module structure around surjections
@@ -30,9 +31,9 @@ and `function.surjective.module_left'` if `R` and `S` don't have additive invers
 @[reducible]
 noncomputable def function.surjective.module_left'_of_ring {R S M : Type*} [comm_ring R]
   [add_comm_group M] [module R M] [ring S]
-  {f : R →+* S} (hf : function.surjective f) (hsmul : f.ker ≤ (linear_map.lsmul R M).ker) :
+  (f : R →+* S) (hf : function.surjective f) (hsmul : f.ker ≤ (linear_map.lsmul R M).ker) :
   module S M :=
-hf.module_left' $ λ a b hab, begin
+hf.module_left' f $ λ a b hab, begin
   suffices : linear_map.lsmul R M a = linear_map.lsmul R M b,
   { intros, simp only [← linear_map.lsmul_apply, this] },
   rw [← sub_eq_zero, ← linear_map.map_sub, ← linear_map.mem_ker],
@@ -42,7 +43,7 @@ end
 
 lemma function.surjective.module_left'_of_ring_smul {R S M : Type*} [comm_ring R]
   [add_comm_group M] [module R M] [ring S]
-  {f : R →+* S} (hf : function.surjective f) (hsmul : f.ker ≤ (linear_map.lsmul R M).ker)
+  (f : R →+* S) (hf : function.surjective f) (hsmul : f.ker ≤ (linear_map.lsmul R M).ker)
   (c : R) (x : M) :
-  by { letI := hf.module_left'_of_ring hsmul, exact f c • x } = c • x :=
-hf.module_left'_smul _ _ _
+  by { letI := hf.module_left'_of_ring f hsmul, exact f c • x } = c • x :=
+hf.module_left'_smul f _ _ _

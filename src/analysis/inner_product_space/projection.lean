@@ -3,8 +3,9 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
-import analysis.inner_product_space.basic
 import analysis.convex.basic
+import analysis.inner_product_space.basic
+import analysis.normed_space.is_R_or_C
 
 /-!
 # The orthogonal projection
@@ -612,6 +613,11 @@ variables (K)
 /-- Reflection is involutive. -/
 lemma reflection_involutive : function.involutive (reflection K) := reflection_reflection K
 
+/-- Reflection is involutive. -/
+@[simp] lemma reflection_trans_reflection :
+  (reflection K).trans (reflection K) = linear_isometry_equiv.refl 𝕜 E :=
+linear_isometry_equiv.ext $ reflection_involutive K
+
 variables {K}
 
 /-- A point is its own reflection if and only if it is in the subspace. -/
@@ -771,6 +777,24 @@ lemma reflection_orthogonal_complement_singleton_eq_neg [complete_space E] (v : 
   reflection (𝕜 ∙ v)ᗮ v = -v :=
 reflection_mem_subspace_orthogonal_precomplement_eq_neg (submodule.mem_span_singleton_self v)
 
+lemma reflection_sub [complete_space F] {v w : F} (h : ∥v∥ = ∥w∥) :
+  reflection (ℝ ∙ (v - w))ᗮ v = w :=
+begin
+  set R : F ≃ₗᵢ[ℝ] F := reflection (ℝ ∙ (v - w))ᗮ,
+  suffices : R v + R v = w + w,
+  { apply smul_right_injective F (by norm_num : (2:ℝ) ≠ 0),
+    simpa [two_smul] using this },
+  have h₁ : R (v - w) = -(v - w) := reflection_orthogonal_complement_singleton_eq_neg (v - w),
+  have h₂ : R (v + w) = v + w,
+  { apply reflection_mem_subspace_eq_self,
+    apply mem_orthogonal_singleton_of_inner_left,
+    rw real_inner_add_sub_eq_zero_iff,
+    exact h },
+  convert congr_arg2 (+) h₂ h₁ using 1,
+  { simp },
+  { abel }
+end
+
 variables (K)
 
 /-- In a complete space `E`, a vector splits as the sum of its orthogonal projections onto a
@@ -838,7 +862,7 @@ by { rw ← add_right_inj (finrank 𝕜 K₁),
 
 /-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
 that of `E`. -/
-lemma submodule.finrank_add_finrank_orthogonal [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} :
+lemma submodule.finrank_add_finrank_orthogonal [finite_dimensional 𝕜 E] (K : submodule 𝕜 E) :
   finrank 𝕜 K + finrank 𝕜 Kᗮ = finrank 𝕜 E :=
 begin
   convert submodule.finrank_add_inf_finrank_orthogonal (le_top : K ≤ ⊤) using 1,
@@ -861,6 +885,107 @@ lemma finrank_orthogonal_span_singleton {n : ℕ} [_i : fact (finrank 𝕜 E = n
   {v : E} (hv : v ≠ 0) :
   finrank 𝕜 (𝕜 ∙ v)ᗮ = n :=
 submodule.finrank_add_finrank_orthogonal' $ by simp [finrank_span_singleton hv, _i.elim, add_comm]
+
+/-- An element `φ` of the orthogonal group of `F` can be factored as a product of reflections, and
+specifically at most as many reflections as the dimension of the complement of the fixed subspace
+of `φ`. -/
+lemma linear_isometry_equiv.reflections_generate_dim_aux [finite_dimensional ℝ F] {n : ℕ}
+  (φ : F ≃ₗᵢ[ℝ] F)
+  (hn : finrank ℝ (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).kerᗮ ≤ n) :
+  ∃ l : list F, l.length ≤ n ∧ φ = (l.map (λ v, reflection (ℝ ∙ v)ᗮ)).prod :=
+begin
+  -- We prove this by strong induction on `n`, the dimension of the orthogonal complement of the
+  -- fixed subspace of the endomorphism `φ`
+  induction n with n IH generalizing φ,
+  { -- Base case: `n = 0`, the fixed subspace is the whole space, so `φ = id`
+    refine ⟨[], rfl.le, _⟩,
+    have : (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker = ⊤,
+    { rwa [nat.le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
+    symmetry,
+    ext x,
+    simpa [sub_eq_zero] using congr_arg (λ f : F →ₗ[ℝ] F, f x) (linear_map.ker_eq_top.mp this) },
+  { -- Inductive step.  Let `W` be the fixed subspace of `φ`.  We suppose its complement to have
+    -- dimension at most n + 1.
+    let W := (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker,
+    have hW : ∀ w ∈ W, φ w = w := λ w hw, (sub_eq_zero.mp hw).symm,
+    by_cases hn' : finrank ℝ Wᗮ ≤ n,
+    { obtain ⟨V, hV₁, hV₂⟩ := IH φ hn',
+      exact ⟨V, hV₁.trans n.le_succ, hV₂⟩ },
+    -- Take a nonzero element `v` of the orthogonal complement of `W`.
+    haveI : nontrivial Wᗮ := nontrivial_of_finrank_pos (by linarith [zero_le n] : 0 < finrank ℝ Wᗮ),
+    obtain ⟨v, hv⟩ := exists_ne (0 : Wᗮ),
+    have hφv : φ v ∈ Wᗮ,
+    { intros w hw,
+      rw [← hW w hw, linear_isometry_equiv.inner_map_map],
+      exact v.prop w hw },
+    have hv' : (v:F) ∉ W,
+    { intros h,
+      exact hv ((submodule.mem_left_iff_eq_zero_of_disjoint W.orthogonal_disjoint).mp h) },
+    -- Let `ρ` be the reflection in `v - φ v`; this is designed to swap `v` and `φ v`
+    let x : F := v - φ v,
+    let ρ := reflection (ℝ ∙ x)ᗮ,
+    -- Notation: Let `V` be the fixed subspace of `φ.trans ρ`
+    let V := (continuous_linear_map.id ℝ F - (φ.trans ρ).to_continuous_linear_equiv).ker,
+    have hV : ∀ w, ρ (φ w) = w → w ∈ V,
+    { intros w hw,
+      change w - ρ (φ w) = 0,
+      rw [sub_eq_zero, hw] },
+    -- Everything fixed by `φ` is fixed by `φ.trans ρ`
+    have H₂V : W ≤ V,
+    { intros w hw,
+      apply hV,
+      rw hW w hw,
+      refine reflection_mem_subspace_eq_self _,
+      apply mem_orthogonal_singleton_of_inner_left,
+      exact submodule.sub_mem _ v.prop hφv _ hw },
+    -- `v` is also fixed by `φ.trans ρ`
+    have H₁V : (v : F) ∈ V,
+    { apply hV,
+      have : ρ v = φ v := reflection_sub (by simp),
+      simp [← this, ρ] },
+    -- By dimension-counting, the complement of the fixed subspace of `φ.trans ρ` has dimension at
+    -- most `n`
+    have : finrank ℝ Vᗮ ≤ n,
+    { change finrank ℝ Wᗮ ≤ n + 1 at hn,
+      have : finrank ℝ W + 1 ≤ finrank ℝ V :=
+        submodule.finrank_lt_finrank_of_lt (set_like.lt_iff_le_and_exists.2 ⟨H₂V, v, H₁V, hv'⟩),
+      have : finrank ℝ V + finrank ℝ Vᗮ = finrank ℝ F := V.finrank_add_finrank_orthogonal,
+      have : finrank ℝ W + finrank ℝ Wᗮ = finrank ℝ F := W.finrank_add_finrank_orthogonal,
+      linarith },
+    -- So apply the inductive hypothesis to `φ.trans ρ`
+    obtain ⟨l, hl, hφl⟩ := IH (φ.trans ρ) this,
+    -- Prepend `ρ` to the factorization into reflections obtained for `φ.trans ρ`; this gives a
+    -- factorization into reflections for `φ`.
+    refine ⟨x :: l, _, _⟩,
+    { simp [hl, nat.succ_le_succ] },
+    have := congr_arg (λ ψ, linear_isometry_equiv.trans ψ ρ) hφl,
+    convert this using 1,
+    { simp [← linear_isometry_equiv.trans_assoc φ ρ ρ] },
+    { change _ = _ * _,
+      simp } }
+end
+
+/-- The orthogonal group of `F` is generated by reflections; specifically each element `φ` of the
+orthogonal group is a product of at most as many reflections as the dimension of `F`.
+
+Special case of the **Cartan–Dieudonné theorem**. -/
+lemma linear_isometry_equiv.reflections_generate_dim [finite_dimensional ℝ F] (φ : F ≃ₗᵢ[ℝ] F) :
+  ∃ l : list F, l.length ≤ finrank ℝ F ∧ φ = (l.map (λ v, reflection (ℝ ∙ v)ᗮ)).prod :=
+let ⟨l, hl₁, hl₂⟩ := φ.reflections_generate_dim_aux le_rfl in
+⟨l, hl₁.trans (submodule.finrank_le _), hl₂⟩
+
+/-- The orthogonal group of `F` is generated by reflections. -/
+lemma linear_isometry_equiv.reflections_generate [finite_dimensional ℝ F] :
+  subgroup.closure (set.range (λ v : F, reflection (ℝ ∙ v)ᗮ)) = ⊤ :=
+begin
+  rw subgroup.eq_top_iff',
+  intros φ,
+  rcases φ.reflections_generate_dim with ⟨l, _, rfl⟩,
+  apply (subgroup.closure _).list_prod_mem,
+  intros x hx,
+  rcases list.mem_map.mp hx with ⟨a, _, hax⟩,
+  exact subgroup.subset_closure ⟨a, hax⟩,
+end
 
 end orthogonal
 

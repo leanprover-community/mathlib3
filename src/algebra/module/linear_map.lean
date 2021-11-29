@@ -57,7 +57,7 @@ open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
-variables {k : Type*} {S : Type*} {T : Type*}
+variables {k : Type*} {S : Type*} {S₃ : Type*} {T : Type*}
 variables {M : Type*} {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
 variables {N₁ : Type*} {N₂ : Type*} {N₃ : Type*} {ι : Type*}
 
@@ -257,6 +257,13 @@ theorem ext_ring_iff {σ : R →+* R} {f g : R →ₛₗ[σ] M} : f = g ↔ f 1 
 ⟨λ h, h ▸ rfl, ext_ring⟩
 
 end
+
+/-- Interpret a `ring_hom` `f` as an `f`-semilinear map. -/
+@[simps]
+def _root_.ring_hom.to_semilinear_map (f : R →+* S) : R →ₛₗ[f] S :=
+{ to_fun := f,
+  map_smul' := f.map_mul,
+  .. f}
 
 section
 
@@ -585,56 +592,62 @@ instance : add_comm_group (M →ₛₗ[σ₁₂] N₂) :=
 
 end arithmetic
 
--- TODO: generalize this section to semilinear maps where possible
 section actions
 
-variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
-variables [module R M] [module R M₂] [module R M₃]
+variables [semiring R] [semiring R₂] [semiring R₃]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R₂ M₂] [module R₃ M₃]
+variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
 section has_scalar
-variables [monoid S] [distrib_mul_action S M₂] [smul_comm_class R S M₂]
-variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R T M₂]
+variables [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂]
+variables [monoid S₃] [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃]
+variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R₂ T M₂]
 
-instance : has_scalar S (M →ₗ[R] M₂) :=
+instance : has_scalar S (M →ₛₗ[σ₁₂] M₂) :=
 ⟨λ a f, { to_fun := a • f,
           map_add' := λ x y, by simp only [pi.smul_apply, f.map_add, smul_add],
-          map_smul' := λ c x, by simp [pi.smul_apply, f.map_smul, smul_comm c] }⟩
+          map_smul' := λ c x, by simp [pi.smul_apply, smul_comm (σ₁₂ c)] }⟩
 
-@[simp] lemma smul_apply (a : S) (f : M →ₗ[R] M₂) (x : M) : (a • f) x = a • f x := rfl
+@[simp] lemma smul_apply (a : S) (f : M →ₛₗ[σ₁₂] M₂) (x : M) : (a • f) x = a • f x := rfl
 
-lemma coe_smul (a : S) (f : M →ₗ[R] M₂) : ⇑(a • f) = a • f := rfl
+lemma coe_smul (a : S) (f : M →ₛₗ[σ₁₂] M₂) : ⇑(a • f) = a • f := rfl
 
-instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₗ[R] M₂) :=
+instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
 -- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
 -- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
-instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₗ[R] M₂) :=
+instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
 { smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
 
-instance : distrib_mul_action S (M →ₗ[R] M₂) :=
+instance : distrib_mul_action S (M →ₛₗ[σ₁₂] M₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,
   mul_smul := λ c c' f, ext $ λ _, mul_smul _ _ _,
   smul_add := λ c f g, ext $ λ x, smul_add _ _ _,
   smul_zero := λ c, ext $ λ x, smul_zero _ }
 
-theorem smul_comp (a : S) (g : M₃ →ₗ[R] M₂) (f : M →ₗ[R] M₃) : (a • g).comp f = a • (g.comp f) :=
-rfl
+include σ₁₃
+theorem smul_comp (a : S₃) (g : M₂ →ₛₗ[σ₂₃] M₃) (f : M →ₛₗ[σ₁₂] M₂) :
+  (a • g).comp f = a • (g.comp f) := rfl
+omit σ₁₃
 
-theorem comp_smul [distrib_mul_action S M₃] [smul_comm_class R S M₃] [compatible_smul M₃ M₂ S R]
+-- TODO: generalize this to semilinear maps
+theorem comp_smul [module R M₂] [module R M₃] [smul_comm_class R S M₂] [distrib_mul_action S M₃]
+  [smul_comm_class R S M₃] [compatible_smul M₃ M₂ S R]
   (g : M₃ →ₗ[R] M₂) (a : S) (f : M →ₗ[R] M₃) : g.comp (a • f) = a • (g.comp f) :=
 ext $ λ x, g.map_smul_of_tower _ _
 
 end has_scalar
 
 section module
-variables [semiring S] [module S M₂] [smul_comm_class R S M₂]
+variables [semiring S] [module S M₂] [smul_comm_class R₂ S M₂]
 
-instance : module S (M →ₗ[R] M₂) :=
+instance : module S (M →ₛₗ[σ₁₂] M₂) :=
 { add_smul := λ a b f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
-instance [no_zero_smul_divisors S M₂] : no_zero_smul_divisors S (M →ₗ[R] M₂) :=
+instance [no_zero_smul_divisors S M₂] : no_zero_smul_divisors S (M →ₛₗ[σ₁₂] M₂) :=
 coe_injective.no_zero_smul_divisors _ rfl coe_smul
 
 end module

@@ -24,54 +24,54 @@ Linear algebra:
     dual vector space: 'module.dual'
     dual basis: 'basis.dual_basis'
     transpose of a linear map: 'module.dual.transpose'
-    orthogonality: ''
+    orthogonality: 'https://en.wikipedia.org/wiki/Dual_space#Quotient_spaces_and_annihilators'
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
     rank of a linear map: 'rank'
-    rank of a set of vectors: ''
-    rank of a system of linear equations: ''
+    rank of a set of vectors: 'https://encyclopediaofmath.org/wiki/Rank'
+    rank of a system of linear equations: 'https://www.math.tamu.edu/~fnarc/psfiles/rank2005.pdf'
     isomorphism with bidual: 'module.eval_equiv'
   Multilinearity:
     multilinear map: 'multilinear_map'
     determinant of vectors: 'basis.det'
     determinant of endomorphisms: 'linear_map.det'
-    special linear group: ''
-    orientation of a $\R$-valued vector space: ''
+    special linear group: 'https://en.wikipedia.org/wiki/Special_linear_group'
+    orientation of a $\R$-vector space: 'https://en.wikipedia.org/wiki/Orientation_(vector_space)'
   Matrices:
     commutative-ring-valued matrices: 'matrix'
     field-valued matrices: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
     change of basis: 'basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix'
-    rank of a matrix: ''
+    rank of a matrix: 'https://en.wikipedia.org/wiki/Rank_(linear_algebra)'
     determinant: 'matrix.det'
     invertibility: 'matrix.has_inv'
-    elementary row operations: ''
-    elementary column operations: ''
-    Gaussian elimination: ''
-    row-reduced matrices: ''
+    elementary row operations: 'https://en.wikipedia.org/wiki/Elementary_matrix#Operations'
+    elementary column operations: 'https://en.wikipedia.org/wiki/Elementary_matrix#Operations'
+    Gaussian elimination: 'https://en.wikipedia.org/wiki/Gaussian_elimination'
+    row-reduced matrices: 'https://en.wikipedia.org/wiki/Row_echelon_form#Reduced_row_echelon_form'
   Endomorphism polynomials:
-    annihilating polynomials: ''
+    annihilating polynomials: 'https://en.wikipedia.org/wiki/Minimal_polynomial_(linear_algebra)#Formal_definition'
     minimal polynomial: 'minpoly'
     characteristic polynomial: 'matrix.charpoly'
     Cayley-Hamilton theorem: 'matrix.aeval_self_charpoly'
   Structure theory of endomorphisms:
     eigenvalue: 'module.End.has_eigenvalue'
     eigenvector: 'module.End.has_eigenvector'
-    diagonalization: ''
-    triangularization: ''
-    invariant subspaces of an endomorphism: ''
+    diagonalization: 'https://en.wikipedia.org/wiki/Diagonalizable_matrix'
+    triangularization: 'https://en.wikipedia.org/wiki/Triangular_matrix#Triangularisability'
+    invariant subspaces of an endomorphism: 'https://en.wikipedia.org/wiki/Invariant_subspace'
     generalized eigenspaces: 'module.End.generalized_eigenspace'
-    kernels lemma: ''
-    Dunford decomposition: ''
-    Jordan normal form: ''
+    kernels lemma: 'https://fr.wikipedia.org/wiki/Lemme_des_noyaux'
+    Jordan-Chevalley-Dunford decomposition: 'https://en.wikipedia.org/wiki/Jordan%E2%80%93Chevalley_decomposition'
+    Jordan normal form: 'https://en.wikipedia.org/wiki/Jordan_normal_form'
   Linear representations:
-    irreducible representation: ''
-    Schur's lemma: ''
+    irreducible representation: 'https://en.wikipedia.org/wiki/Irreducible_representation'
+    Schur's lemma: 'https://en.wikipedia.org/wiki/Schur%27s_lemma'
     examples: ''
   Exponential:
     endomorphism exponential: ''
-    matrix exponential: ''
+    matrix exponential: 'https://en.wikipedia.org/wiki/Matrix_exponential'
 
 # 2.
 Group Theory:
@@ -228,7 +228,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     diagonalization of a self-adjoint endomorphism: 'is_self_adjoint.diagonalization_basis_apply_self_apply'
     diagonalization of normal endomorphisms:
     simultaneous diagonalization of two real quadratic forms, with one positive-definite:
-    decomposition of an orthogonal transformation as a product of reflections:
+    decomposition of an orthogonal transformation as a product of reflections: 'linear_isometry_equiv.reflections_generate'
     polar decompositions in $\mathrm{GL}(n, \R)$:
     polar decompositions in $\mathrm{GL}(n, \C)$:
   Low dimensions:

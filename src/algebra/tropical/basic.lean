@@ -109,6 +109,7 @@ def trop_rec {F : Π (X : tropical R), Sort v} (h : Π X, F (trop X)) : Π X, F 
 
 section order
 
+-- TODO: generalize this to a `has_le` and use below in `le_zero` and `order_top`
 instance [preorder R] : preorder (tropical R) :=
 { le := λ x y, untrop x ≤ untrop y,
   le_refl := λ _, le_refl _,
@@ -146,7 +147,6 @@ instance [has_top R] : has_top (tropical R) := ⟨0⟩
 
 instance [partial_order R] : order_top (tropical (with_top R)) :=
 { le_top := λ a a' h, option.no_confusion h,
-  ..tropical.partial_order,
   ..tropical.has_top }
 
 variable [linear_order R]

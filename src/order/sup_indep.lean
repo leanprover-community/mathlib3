@@ -16,18 +16,13 @@ In distributive lattices, this is equivalent to being pairwise disjoint.
 
 ## TODO
 
-As we don't have `lattice_bot`, we're forced to pick between `bounded_lattice` (which assumes `top`
-unnecessarily) and `distrib_lattice_bot` (which assumes distributivity unnecessarily). For now we
-pick `distrib_lattice_bot` for it to apply to `finset α`, although this use is redundant with
-`set.pairwise_disjoint`.
-
 `complete_lattice.independent` and `complete_lattice.set_independent` should live in this file.
 -/
 
 variables {α β ι ι' : Type*}
 
 namespace finset
-variables [distrib_lattice_bot α] [decidable_eq ι] [decidable_eq ι']
+variables [lattice α] [order_bot α] [decidable_eq ι] [decidable_eq ι']
 
 /-- Supremum independence of finite sets. -/
 def sup_indep (s : finset ι) (f : ι → α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint (f a) ((s.erase a).sup f)
@@ -47,8 +42,8 @@ lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (f ∘ subtype.
   by { rw [←finset.sup_image, image_erase subtype.val_injective, attach_image_val], exact hs i.2 }
 
 /-- Bind operation for `sup_indep`. -/
-lemma sup_indep.sup {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
-  (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
+lemma sup_indep.sup {α} [distrib_lattice α] [order_bot α] {s : finset ι'} {g : ι' → finset ι}
+  {f : ι → α} (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
   (s.sup g).sup_indep f :=
 begin
   rintro i hi,
@@ -64,8 +59,8 @@ begin
 end
 
 /-- Bind operation for `sup_indep`. -/
-lemma sup_indep.bUnion {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
-  (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
+lemma sup_indep.bUnion {α} [distrib_lattice α] [order_bot α] {s : finset ι'} {g : ι' → finset ι}
+  {f : ι → α} (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
   (s.bUnion g).sup_indep f :=
 by { rw ←sup_eq_bUnion, exact hs.sup hg }
 
@@ -75,7 +70,8 @@ lemma sup_indep.pairwise_disjoint  (hs : s.sup_indep f) : (s : set ι).pairwise_
 -- Once `finset.sup_indep` will have been generalized to non distributive lattices, can we state
 -- this lemma for nondistributive atomic lattices? This setting makes the `←` implication much
 -- harder.
-lemma sup_indep_iff_pairwise_disjoint : s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
+lemma sup_indep_iff_pairwise_disjoint {α} [distrib_lattice α] [order_bot α] {f : ι → α} :
+  s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
 begin
   refine ⟨λ hs a ha b hb hab, (hs ha).mono_right $ le_sup $ mem_erase.2 ⟨hab.symm, hb⟩,
     λ hs a ha, _⟩,

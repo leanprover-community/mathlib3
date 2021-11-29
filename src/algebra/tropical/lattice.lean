@@ -1,7 +1,28 @@
+/-
+Copyright (c) 2021 Yakov Pechersky. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yakov Pechersky
+-/
 import algebra.tropical.basic
 import order.conditionally_complete_lattice
 
-open_locale big_operators
+/-!
+
+# Order on tropical algebraic structure
+
+This file defines the orders induced on tropical algebraic structures by the underlying type.
+
+## Main declarations
+
+* `conditionally_complete_lattice (tropical R)`
+* `conditionally_complete_linear_order (tropical R)`
+
+## Implementation notes
+
+The order induced is the definitionally equal underlying order, which makes the proofs and
+constructions quicker to implement.
+
+-/
 
 variables {R S : Type*}
 

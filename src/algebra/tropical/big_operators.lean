@@ -1,6 +1,35 @@
+/-
+Copyright (c) 2021 Yakov Pechersky. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yakov Pechersky
+-/
 import algebra.tropical.lattice
 import algebra.big_operators.basic
 import data.list.min_max
+
+/-!
+
+# Tropicalization of finitary operations
+
+This file provides the "big-op" or notation-based finitary operations on tropicalized types.
+This allows easy conversion between sums to Infs and prods to sums. Results here are important
+for expressing that evaluation of tropical polynomials are the minimum over a finite piecewise
+collection of linear functions.
+
+## Main declarations
+
+* `untrop_sum`
+
+## Implementation notes
+
+No concrete (semi)ring is used here, only ones with inferrable order/lattice structure, to support
+real, rat, ereal, and others (erat is not yet defined).
+
+Minima over `list α` are defined as producing a value in `with_top α` so proofs about lists do not
+directly transfer to minima over multisets or finsets.
+
+-/
+
 
 open_locale big_operators
 

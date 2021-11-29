@@ -302,6 +302,7 @@ variables [partial_order α] [bounded_order α] [is_simple_order α]
 instance {α} [has_le α] [bounded_order α] [is_simple_order α] : is_simple_order (order_dual α) :=
 is_simple_order_iff_is_simple_order_order_dual.1 (by apply_instance)
 
+/-- A simple `bounded_order` induces a preorder. This is not an instance to prevent loops. -/
 protected def is_simple_order.preorder {α} [has_le α] [bounded_order α] [is_simple_order α] :
   preorder α :=
 { le := (≤),
@@ -314,7 +315,9 @@ protected def is_simple_order.preorder {α} [has_le α] [bounded_order α] [is_s
       { simp } }
   end }
 
-def is_simple_order.linear_order [decidable_eq α] : linear_order α :=
+/-- A simple partial ordered `bounded_order` induces a linear order.
+This is not an instance to prevent loops. -/
+protected def is_simple_order.linear_order [decidable_eq α] : linear_order α :=
 { le_total := λ a b, by rcases eq_bot_or_eq_top a with rfl|rfl; simp,
   decidable_le := λ a b, if ha : a = ⊥ then is_true (ha.le.trans bot_le) else
     if hb : b = ⊤ then is_true (le_top.trans hb.ge) else
@@ -336,47 +339,15 @@ section bounded_order
 
 variables [lattice α] [bounded_order α] [is_simple_order α]
 
-/-- A simple `bounded_order` is a lattice. -/
-@[priority 100] -- see Note [lower instance priority]
-protected def is_simple_order.lattice {α} [decidable_eq α] [h : partial_order α] [bounded_order α]
+/-- A simple partial ordered `bounded_order` induces a lattice.
+This is not an instance to prevent loops -/
+protected def lattice {α} [decidable_eq α] [partial_order α] [bounded_order α]
   [is_simple_order α] : lattice α :=
-{ sup := λ a b, if a = ⊥ then b else a,
-  inf := λ a b, if a = ⊤ then b else a,
-  le_sup_left := λ a b, begin
-    rcases eq_bot_or_eq_top a with rfl|rfl;
-    rcases eq_bot_or_eq_top b with rfl|rfl;
-    { simp { contextual := tt } },
-  end,
-  le_sup_right := λ a b, begin
-    rcases eq_bot_or_eq_top a with rfl|rfl;
-    rcases eq_bot_or_eq_top b with rfl|rfl;
-    { simp { contextual := tt } },
-  end,
-  sup_le := λ a b c, begin
-    rcases eq_bot_or_eq_top a with rfl|rfl;
-    rcases eq_bot_or_eq_top b with rfl|rfl;
-    { simp { contextual := tt } },
-  end,
-  inf_le_left := λ a b, begin
-    rcases eq_bot_or_eq_top a with rfl|rfl;
-    rcases eq_bot_or_eq_top b with rfl|rfl;
-    { simp { contextual := tt } },
-  end,
-  inf_le_right := λ a b, begin
-    rcases eq_bot_or_eq_top a with rfl|rfl;
-    rcases eq_bot_or_eq_top b with rfl|rfl;
-    { simp { contextual := tt } },
-  end,
-  le_inf := λ a b c, begin
-    rcases eq_bot_or_eq_top a with rfl|rfl;
-    rcases eq_bot_or_eq_top b with rfl|rfl;
-    { simp { contextual := tt } },
-  end,
-  .. h }
+@lattice_of_linear_order α (is_simple_order.linear_order)
 
-/-- A simple `bounded_order` is a distributive lattice. -/
-@[priority 100] -- see Note [lower instance priority]
-protected def is_simple_order.distrib_lattice : distrib_lattice α :=
+/-- A lattice that is a `bounded_order` is a distributive lattice.
+This is not an instance to prevent loops -/
+protected def distrib_lattice : distrib_lattice α :=
 { le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
   .. (infer_instance : lattice α) }
 

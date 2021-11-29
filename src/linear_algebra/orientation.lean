@@ -367,7 +367,7 @@ variables {ι : Type*} [decidable_eq ι]
 
 /-- `same_ray` is equivalent to `mul_action.orbit_rel` for the `units.pos_subgroup`. -/
 lemma same_ray_iff_orbit_rel (v₁ v₂ : M) :
-  same_ray R v₁ v₂ ↔ (mul_action.orbit_rel (units.pos_subgroup R) M).rel v₁ v₂ :=
+  same_ray R v₁ v₂ ↔ v₁ ∈ mul_action.orbit (units.pos_subgroup R) v₂ :=
 begin
   split,
   { rintros ⟨r₁, r₂, hr₁, hr₂, h⟩,

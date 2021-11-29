@@ -449,7 +449,7 @@ protected def boolean_algebra {α} [decidable_eq α] [partial_order α] [bounded
 
 end decidable_eq
 
-variables [lattice α] [bounded_order α] [is_simple_order α]
+variables [partial_order α] [bounded_order α] [is_simple_order α]
 open_locale classical
 
 /-- A simple `bounded_order` is also complete. -/
@@ -472,10 +472,8 @@ protected noncomputable def complete_lattice : complete_lattice α :=
     { rw if_neg,
       intro con,
       exact top_ne_bot (eq_bot_iff.2 (h ⊥ con)) } },
-  .. is_simple_order.lattice,
+  .. (infer_instance : lattice α),
   .. (infer_instance : bounded_order α) }
-
-local attribute [instance] is_simple_order.complete_lattice
 
 /-- A simple `bounded_order` is also a `complete_boolean_algebra`. -/
 protected noncomputable def complete_boolean_algebra : complete_boolean_algebra α :=

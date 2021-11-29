@@ -9,7 +9,8 @@ import data.nat.mul_ind
 /-!
 # Prime factorizations
 
- `n.prime_factorization` is the finitely supported function mapping a prime factor of `n` to its multiplicity in `n`.  For example, since 2000 = 2^4 * 5^3,
+ `n.prime_factorization` is the finitely supported function mapping a prime factor of `n`
+ to its multiplicity in `n`.  For example, since 2000 = 2^4 * 5^3,
   * `prime_factorization 2000 2` is 4
   * `prime_factorization 2000 5` is 3
   * `prime_factorization 2000 k` is 0 for all other `k : ℕ`.

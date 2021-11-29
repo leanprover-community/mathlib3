@@ -79,7 +79,7 @@ namespace has_limits
 Construction of a limit cone in `Module R`.
 (Internal use only; use the limits API.)
 -/
-def limit_cone (F : J ⥤ Module R) : cone F :=
+def limit_cone (F : J ⥤ Module.{v} R) : cone F :=
 { X := Module.of R (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := limit_π_linear_map F,

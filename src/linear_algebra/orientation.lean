@@ -175,13 +175,7 @@ x.some_ray_vector.property
 /-- The ray of `some_vector`. -/
 @[simp] lemma some_vector_ray [nontrivial R] (x : module.ray R M) :
   ray_of_ne_zero R _ x.some_vector_ne_zero = x :=
-begin
-  convert some_ray_vector_ray x,
-  rw ray_of_ne_zero,
-  congr,
-  rw subtype.ext_iff,
-  refl
-end
+(congr_arg _ (subtype.coe_eta _ _) : _).trans x.out_eq
 
 end module.ray
 

@@ -9,8 +9,8 @@ import data.nat.mul_ind
 /-!
 # Prime factorizations
 
- `n.prime_factorization` is the finitely supported function mapping a prime factor of `n`
- to its multiplicity in `n`.  For example, since 2000 = 2^4 * 5^3,
+ `n.prime_factorization` is the finitely supported function `ℕ →₀ ℕ`
+ mapping each prime factor of `n` to its multiplicity in `n`.  For example, since 2000 = 2^4 * 5^3,
   * `prime_factorization 2000 2` is 4
   * `prime_factorization 2000 5` is 3
   * `prime_factorization 2000 k` is 0 for all other `k : ℕ`.
@@ -22,6 +22,8 @@ open_locale big_operators
 
 namespace nat
 
+/-- `n.prime_factorization` is the finitely supported function `ℕ →₀ ℕ`
+ mapping each prime factor of `n` to its multiplicity in `n`. -/
 noncomputable def prime_factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
 lemma prime_factorization_count {n p : ℕ} : n.prime_factorization p = list.count p n.factors :=

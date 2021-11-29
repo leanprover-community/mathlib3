@@ -100,46 +100,16 @@ section resolvent_deriv
 variables {𝕜 : Type*} {A : Type*}
 variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
-local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
 
-
-open asymptotics normed_ring ring
-
-theorem resolvent_has_deriv_at {a : A} {k : 𝕜} (hk : k ∈ ρ a) :
-  has_deriv_at (resolvent a) (-(resolvent a k)*(resolvent a k)) k :=
+theorem has_deriv_at_resolvent {a : A} {k : 𝕜} (hk : k ∈ ρ a) :
+  has_deriv_at (resolvent a) (-(resolvent a k) * (resolvent a k)) k :=
 begin
-  rw [has_deriv_at_iff_is_o_nhds_zero, resolvent_eq hk, is_o_iff],
-  let ku := hk.unit,
-  rcases is_O.exists_pos (inverse_add_norm_diff_second_order ku) with ⟨C,C_pos,hC⟩,
-  rw is_O_with_iff at hC,
-  intros c hc,
-  simp only [filter.eventually_iff,metric.mem_nhds_iff] at hC ⊢,
-  rcases hC with ⟨ε,ε_pos,hε⟩,
-  use min (c*C⁻¹) ε,
-  have hcC : c*C⁻¹ > 0, by nlinarith [inv_pos.mpr C_pos],
-  split,
-  { exact lt_min hcC ε_pos },
-  { intros k' hk',
-    simp only [lt_min_iff, mem_ball_zero_iff] at hk',
-    have k'_mem : ↑ₐk' ∈ metric.ball (0 : A) ε, by simp [hk'.right],
-    specialize hε k'_mem,
-    rw set.mem_set_of_eq at hε,
-    have res_add : resolvent a (k + k') = inverse (↑ₐk - a + ↑ₐk'),
-      by { apply congr_arg inverse, rw ring_hom.map_add, noncomm_ring, },
-    have k'_smul : k' • (-(↑ku⁻¹) * (↑ku⁻¹)) = -↑ku⁻¹ * ↑ₐk' * ↑ku⁻¹, by
-      by { rw [←algebra.mul_smul_comm k', algebra.smul_def'], norm_cast, noncomm_ring },
-    calc
-      ∥resolvent a (k + k') - ↑ku⁻¹ - k' • (-(↑ku⁻¹) * (↑ku⁻¹))∥
-          = ∥inverse (↑ₐk - a + ↑ₐk') - ↑ku⁻¹  + ↑ku⁻¹ * ↑ₐk' * ↑ku⁻¹∥ : by {rw [res_add,k'_smul], noncomm_ring}
-      ... = ∥inverse (↑ku + ↑ₐk') - ↑ku⁻¹  + ↑ku⁻¹ * ↑ₐk' * ↑ku⁻¹∥ : rfl
-      ... ≤ C * ∥∥↑ₐk'∥^2∥ : hε
-      ... = C * ∥k'∥ * ∥k'∥ : by rw [real.norm_of_nonneg (pow_two_nonneg _),pow_two,mul_assoc,normed_algebra.norm_algebra_map_eq]
-      ... ≤ C * ∥k'∥ * (c * C⁻¹) : mul_le_mul_of_nonneg_left (le_of_lt hk'.left) (by nlinarith [C_pos, norm_nonneg k'])
-      ... = (C * C⁻¹) * c * ∥k'∥ : by ring
-      ... = c * ∥k'∥ : by simp [mul_inv_cancel (ne_of_gt C_pos)],
-    },
+  have H₁ : has_fderiv_at ring.inverse _ (↑ₐk - a) := has_fderiv_at_ring_inverse hk.unit,
+  have H₂ : has_deriv_at (λ k, ↑ₐk - a) 1 k,
+  { simpa using (algebra.linear_map 𝕜 A).has_deriv_at.sub_const a },
+  simpa [resolvent, hk.unit_spec, ← ring.inverse_unit hk.unit] using H₁.comp_has_deriv_at k H₂,
 end
 
 end resolvent_deriv

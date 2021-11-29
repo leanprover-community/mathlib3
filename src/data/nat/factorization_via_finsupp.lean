@@ -28,7 +28,6 @@ by { simpa [prod_factors ha, prod_factors hb] using perm.prod_eq (perm_iff_count
 ---------------------------------------------------------------------------------------------------
 
 -- TODO: PR this!
--- TODO: Any other lemmas that hold for `pos` not just `coprime`?
 lemma count_factors_mul_of_pos {p a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
 by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
@@ -94,15 +93,13 @@ begin
   { rw [prime_factorization_count, prime.factors_pow hp k, count_repeat p k] }
 end
 
-/-- The only prime factor of prime `p` is `p` itself with multiplicity 1 -/
+/-- The only prime factor of prime `p` is `p` itself, with multiplicity 1 -/
 lemma prime_factorization_prime {p : ℕ} (hp : prime p) : p.prime_factorization = single p 1 :=
 by { simp only [←prime_factorization_prime_pos_pow hp one_pos, pow_one] }
 
 ---------------------------------------------------------------------------------------------------
 -- Prime factorisations involving `coprime a b` and/or positive `a` and `b`
 ---------------------------------------------------------------------------------------------------
-
--- TODO: Refactor some of these?
 
 /-- The prime factorizations of coprime `a` and `b` are disjoint -/
 lemma prime_factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :
@@ -117,15 +114,17 @@ lemma prime_factorization_mul_add_of_coprime {a b : ℕ} (hab : coprime a b) :
   (a * b).prime_factorization = a.prime_factorization + b.prime_factorization :=
 begin
   ext q,
-  simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_coprime hab],
+  simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count,
+    count_factors_mul_of_coprime hab],
 end
 
 /-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma prime_factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
+lemma prime_factorization_mul_add_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (a * b).prime_factorization = a.prime_factorization + b.prime_factorization :=
 begin
   ext q,
-  simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_pos ha hb],
+  simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count,
+    count_factors_mul_of_pos ha hb],
 end
 
 /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/

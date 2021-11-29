@@ -589,12 +589,9 @@ by rw [pp.dvd_iff_not_coprime]; apply em
 lemma coprime_of_lt_prime {n p} (n_pos : 0 < n) (hlt : n < p) (pp : prime p) :
   coprime p n :=
 begin
-  have h := coprime_or_dvd_of_prime pp n,
-  cases h,
-  { exact h, },
-  { have hle := le_of_dvd n_pos h,
-    by_contra,
-    exact lt_le_antisymm hlt hle, },
+   cases coprime_or_dvd_of_prime pp n,
+   { exact h },
+   { exfalso, exact lt_le_antisymm hlt (le_of_dvd n_pos h) },
 end
 
 lemma eq_or_coprime_of_le_prime {n p} (n_pos : 0 < n) (hle : n ≤ p) (pp : prime p) :

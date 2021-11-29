@@ -103,7 +103,8 @@ begin
 end
 
 -- TODO Generalize from ℕ to any (ordered add monoid?)
-lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ -> Prop) [decidable_pred p] (pp : function.periodic p a):
+lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ -> Prop) [decidable_pred p]
+ (pp : function.periodic p a) :
   (filter p (Ico n (n+a))).card = (filter p (Ico 0 a)).card :=
 begin
   by_cases a = 0,
@@ -143,8 +144,18 @@ begin
     exact one_le_iff_ne_zero.mpr h, },
 end
 
+@[simp]
+lemma coprime_add_iff_coprime (a b : ℕ) : coprime a (a + b) ↔ coprime a b :=
+begin
+  rw coprime,
+  rw coprime,
+  rw [gcd_rec],
+  simp,
+  rw <-gcd_rec,
+end
 
-lemma filter_mod_eq_range_card (a b n : ℕ) :
+
+lemma filter_mod_eq_range_card (a n : ℕ) :
   (filter (a.coprime) (Ico n (n+a))).card = totient a :=
 begin
   rw totient,
@@ -153,22 +164,63 @@ begin
   simp at h,
   rw h,
   intro x,
-  -- simp, -- fails, TODO, make simp solve this here
-  sorry,
+  rw add_comm,
+  exact coprime_add_iff_coprime a x,
+end
 
+lemma filter_coprime_bound (a n : ℕ) (a_pos : 0 < a) :
+  (filter (a.coprime) (Ico a n)).card ≤ totient a * (n / a) :=
+begin
+  conv
+  begin
+    to_lhs,
+    rw <-nat.mod_add_div n a,
+  end,
+  induction n / a,
+  { simp [le_of_lt (mod_lt n a_pos)], },
+  { simp only [mul_succ],
+    rw <-add_assoc,
+    suffices : (filter a.coprime (Ico a (n % a + a * n_1 + a))).card
+        ≤ (filter a.coprime (Ico a (n % a + a * n_1))).card + a.totient,
+    { exact le_add_of_le_add_right this ih, },
+    calc (filter a.coprime (Ico a (n % a + a * n_1 + a))).card
+        ≤ (filter a.coprime (Ico a (n % a + a * n_1)
+                              ∪ Ico (n % a + a * n_1) (n % a + a * n_1 + a))).card :
+          begin
+            apply card_le_of_subset,
+            apply monotone_filter_left,
+            -- let b := n % a + a * n_1,
+            -- rw <-b,
+            simp only [finset.le_eq_subset],
+            rw subset_iff,
+            intro x,
+            simp [mem_Ico],
+            intros h1 h2,
+            by_cases x < n % a + a * n_1,
+            { left,
+              exact ⟨h1, h⟩, },
+            { right,
+              exact ⟨le_of_not_lt h, h2⟩, },
+          end
+    ... ≤ (filter a.coprime (Ico a (n % a + a * n_1))).card + a.totient :
+          begin
+            rw filter_union,
+            rw <-filter_mod_eq_range_card a (n % a + a * n_1),
+            apply card_union_le,
+          end },
 end
 
 -- TODO remove h0 h1 k_le_n assumption
-/-- A simple linear bound on the size of the `prime_counting'` function -/
+/-- A linear upper bound on the size of the `prime_counting'` function -/
 lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) (k_le_n : k ≤ n) :
-  π' n ≤ π' k + 1 + nat.totient k * (n - k) / k :=
+  π' n ≤ π' k + 1 + nat.totient k * (n / k) :=
 calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
             begin
               rw [prime_counting', split_range k_le_n],
               apply card_union_le,
             end
      ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'
-     ... ≤ π' k + ((Ico k n).filter (λ i, i = k ∨ coprime i k)).card :
+     ... ≤ π' k + ((Ico k n).filter (λ i, i = k ∨ coprime k i)).card :
             begin
               apply add_le_add_left,
               apply card_le_of_subset,
@@ -178,17 +230,25 @@ calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card
               -- have k_lt_p : k < p, linarith,
               split,
               { exact ⟨succ_k_le_p, p_lt_n⟩, },
-              { apply eq_or_coprime_of_lt_prime h0 _ p_prime,
-                exact succ_k_le_p,
-              },
+              { rw coprime_comm,
+                apply eq_or_coprime_of_lt_prime h0 _ p_prime,
+                exact succ_k_le_p, },
             end
-     ... ≤ π' k + nat.totient k * (n - k) / k :
+     ... ≤ π' k + ({k} ∪ filter (λ (a : ℕ), k.coprime a) (Ico k n)).card :
             begin
               apply add_le_add_left,
               rw [filter_or, filter_eq'],
               simp,
               rw if_pos k_lt_n,
-              sorry,
             end
+      ... ≤ π' k + (1 + nat.totient k * (n / k)) :
+            begin
+              apply add_le_add_left,
+              apply trans (card_union_le {k} (filter (λ (a : ℕ), k.coprime a) (Ico k n))),
+              simp only [add_le_add_iff_left, card_singleton],
+              exact filter_coprime_bound k n h0,
+            end
+    ... = π' k + 1 + nat.totient k * (n / k) : by rw [add_assoc]
+
 
 end nat

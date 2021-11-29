@@ -408,6 +408,14 @@ protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
+/-- `pprod α β` is equivalent to `α × β` -/
+@[simps apply symm_apply]
+def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β :=
+{ to_fun := λ x, (x.1, x.2),
+  inv_fun := λ x, ⟨x.1, x.2⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨x, y⟩, rfl }
+
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
 { to_fun := h.mp,

@@ -102,7 +102,6 @@ begin
     exact (ne.symm h2).le_iff_lt,},
 end
 
---TODO make locally finite order extend preorder?
 lemma filter_Ico_card_eq_of_periodic {M : Type} [preorder M] [locally_finite_order M] [add_monoid M] (n a b : M) (p : M -> Prop) [decidable_pred p] (pp : function.periodic p a):
   (filter (p) (Ico n (n+a))).card = (filter (p) (Ico (n+b) (n+a+b))).card :=
 begin

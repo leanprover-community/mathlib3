@@ -748,6 +748,11 @@ begin
   exact perm_factors_mul_of_pos ha hb,
 end
 
+/-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma count_factors_mul_of_pos {p a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
+by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
+
 /-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=

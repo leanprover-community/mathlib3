@@ -338,7 +338,8 @@ variables [lattice α] [bounded_order α] [is_simple_order α]
 
 /-- A simple `bounded_order` is a lattice. -/
 @[priority 100] -- see Note [lower instance priority]
-instance {α} [decidable_eq α] [partial_order α] [bounded_order α] [is_simple_order α] : lattice α :=
+protected def is_simple_order.lattice {α} [decidable_eq α] [h : partial_order α] [bounded_order α]
+  [is_simple_order α] : lattice α :=
 { sup := λ a b, if a = ⊥ then b else a,
   inf := λ a b, if a = ⊤ then b else a,
   le_sup_left := λ a b, begin
@@ -371,11 +372,11 @@ instance {α} [decidable_eq α] [partial_order α] [bounded_order α] [is_simple
     rcases eq_bot_or_eq_top b with rfl|rfl;
     { simp { contextual := tt } },
   end,
-  .. (infer_instance : partial_order α) }
+  .. h }
 
 /-- A simple `bounded_order` is a distributive lattice. -/
 @[priority 100] -- see Note [lower instance priority]
-instance : distrib_lattice α :=
+protected def is_simple_order.distrib_lattice : distrib_lattice α :=
 { le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
   .. (infer_instance : lattice α) }
 
@@ -419,7 +420,7 @@ instance {α} [decidable_eq α] [has_le α] [bounded_order α] [is_simple_order 
 fintype.of_equiv bool equiv_bool.symm
 
 /-- A simple `bounded_order` is also a `boolean_algebra`. -/
-protected def boolean_algebra {α} [decidable_eq α] [partial_order α] [bounded_order α]
+protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order α]
   [is_simple_order α] : boolean_algebra α :=
 { compl := λ x, if x = ⊥ then ⊤ else ⊥,
   sdiff := λ x y, if x = ⊤ ∧ y = ⊥ then ⊤ else ⊥,
@@ -449,7 +450,7 @@ protected def boolean_algebra {α} [decidable_eq α] [partial_order α] [bounded
 
 end decidable_eq
 
-variables [partial_order α] [bounded_order α] [is_simple_order α]
+variables [lattice α] [bounded_order α] [is_simple_order α]
 open_locale classical
 
 /-- A simple `bounded_order` is also complete. -/

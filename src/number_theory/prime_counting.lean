@@ -23,6 +23,8 @@ the number of primes less than or equal to its input.
 namespace nat
 open finset
 
+-- TODO: Unify the following definitions with those provided in PR #9457
+
 /--
 A variant of the traditional prime counting function which gives the number of primes
 *strictly* less than the input. More convenient for avoiding off-by-one errors.
@@ -35,17 +37,9 @@ def prime_counting (n : ℕ) : ℕ := ((range (n + 1)).filter (prime)).card
 localized "notation `π` := nat.prime_counting" in nat
 localized "notation `π'` := nat.prime_counting'" in nat
 
-
--- lemma filter_mod_eq_range_card (a b n : ℕ) :
---   (filter (λ (i : ℕ), i % a = b) (range n)).card = (n - b) / a :=
--- begin
---   sorry,
--- end
-
 lemma monotone_prime_counting : monotone prime_counting :=
 begin
   intros a b a_le_b,
-  unfold prime_counting,
   apply card_le_of_subset,
   apply monotone_filter_left,
   simp only [le_eq_subset, range_subset, add_le_add_iff_right],
@@ -62,8 +56,8 @@ begin
   exact a_le_b,
 end
 
-lemma split_range {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ -> Prop) [decidable_pred p]
-  : (range n).filter p = (range k).filter p ∪ (Ico k n).filter p :=
+lemma split_range {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ -> Prop) [decidable_pred p] :
+  (range n).filter p = (range k).filter p ∪ (Ico k n).filter p :=
 begin
   rw <- filter_union,
   ext,
@@ -80,15 +74,25 @@ begin
     { exact hyp.2, }, },
 end
 
-lemma eq_or_coprime_of_lt_prime {n k : ℕ} (n_pos : 0 < n) (hlt : n ≤ k) (is_prime : prime k) :
-  k = n ∨ coprime k n :=
+lemma coprime_of_lt_prime {n k : ℕ} (n_pos : 0 < n) (hlt : n < k) (is_prime : prime k) :
+  coprime k n :=
 begin
   have h := coprime_or_dvd_of_prime is_prime n,
   cases h,
-  { exact or.inr h, },
-  { have bar := le_of_dvd n_pos h,
-    left,
-    exact le_antisymm bar hlt},
+  { exact h, },
+  { have hle := le_of_dvd n_pos h,
+    by_contra,
+    exact lt_le_antisymm hlt hle, },
+end
+
+lemma eq_or_coprime_of_le_prime {n k : ℕ} (n_pos : 0 < n) (hle : n ≤ k) (is_prime : prime k) :
+  k = n ∨ coprime k n :=
+begin
+  by_cases k = n,
+  { exact or.inl h, },
+  { right,
+    apply coprime_of_lt_prime n_pos _ is_prime,
+    exact (ne.symm h).le_iff_lt.mp hle, },
 end
 
 lemma Ico_eq_insert_Ico_succ (a b : ℕ) (h : a < b) : Ico a b = insert a (Ico a.succ b) :=
@@ -233,7 +237,7 @@ calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card
               split,
               { exact ⟨succ_k_le_p, p_lt_n⟩, },
               { rw coprime_comm,
-                apply eq_or_coprime_of_lt_prime h0 _ p_prime,
+                apply eq_or_coprime_of_le_prime h0 _ p_prime,
                 exact succ_k_le_p, },
             end
      ... ≤ π' k + ({k} ∪ filter (λ (a : ℕ), k.coprime a) (Ico k n)).card :

@@ -103,35 +103,35 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
 @[reducible]
 def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoid M]
   [module R M] [semiring S] [has_scalar S M]
-  {f : R →+* S} (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  (f : R →+* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
   module S M :=
 { smul := (•),
   zero_smul := λ x, by rw [← f.map_zero, hsmul, zero_smul],
   add_smul := hf.forall₂.mpr (λ a b x, by simp only [← f.map_add, hsmul, add_smul]),
-  .. function.surjective.distrib_mul_action_left (show surjective (f : R →* S), from hf) hsmul }
+  .. hf.distrib_mul_action_left f.to_monoid_hom hsmul }
 
 /-- Let `M` be an `R`-module, then a surjective map `f : R →+* S` induces an
 `S`-module structure on `M`, if the kernel of `f` are zero-smul-divisors.
 
 See also `function.surjective.module_left` if you want more control over the definition of `(•)`,
-and `function.surjective.module_left'_of_ring` if `R` and `S` have inverses.
+and `function.surjective.module_left'_of_ring` if `R` and `S` have additive inverses.
 -/
 @[reducible]
 noncomputable def function.surjective.module_left' {R S M : Type*}
   [comm_semiring R] [add_comm_monoid M] [module R M] [semiring S]
-  {f : R →+* S} (hf : function.surjective f)
+  (f : R →+* S) (hf : function.surjective f)
   (hsmul : ∀ {a b}, f a = f b → ∀ (x : M), a • x = b • x) :
   module S M :=
 let scalar : has_scalar S M := hf.has_scalar_left in
 { smul := @@has_scalar.smul scalar,
-  .. @@function.surjective.module_left _ _ _ _ scalar hf
+  .. @@function.surjective.module_left _ _ _ _ scalar f hf
     (λ c (x : M), hsmul (surj_inv_eq _ _) x) }
 
 lemma function.surjective.module_left'_smul {R S M : Type*}
   [comm_semiring R] [add_comm_monoid M] [module R M] [semiring S]
-  {f : R →+* S} (hf : function.surjective f)
+  (f : R →+* S) (hf : function.surjective f)
   (hsmul : ∀ {a b}, f a = f b → ∀ (x : M), a • x = b • x) (c : R) (x : M) :
-  by { letI := hf.module_left' @hsmul, exact f c • x } = c • x :=
+  by { letI := hf.module_left' f @hsmul, exact f c • x } = c • x :=
 hsmul (surj_inv_eq hf _) _
 
 variables {R} (M)

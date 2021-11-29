@@ -56,7 +56,7 @@ lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
 units.is_open.preimage ((algebra_map_isometry 𝕜 A).continuous.sub continuous_const)
 
 lemma is_closed (a : A) : is_closed (σ a) :=
-is_open.is_closed_compl (is_open_resolvent_set a)
+(is_open_resolvent_set a).is_closed_compl
 
 lemma mem_resolvent_of_norm_lt {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
   k ∈ ρ a :=

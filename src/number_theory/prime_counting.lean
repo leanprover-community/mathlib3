@@ -147,13 +147,7 @@ end
 
 @[simp]
 lemma coprime_add_iff_coprime (a b : ℕ) : coprime a (a + b) ↔ coprime a b :=
-begin
-  rw coprime,
-  rw coprime,
-  rw [gcd_rec],
-  simp,
-  rw <-gcd_rec,
-end
+  by rw [coprime, coprime, gcd_rec, add_mod_left, ←gcd_rec]
 
 
 lemma filter_mod_eq_range_card (a n : ℕ) :

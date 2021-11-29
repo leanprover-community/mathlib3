@@ -161,10 +161,7 @@ quotient.out x
 /-- The ray of `some_ray_vector`. -/
 @[simp] lemma some_ray_vector_ray [nontrivial R] (x : module.ray R M) :
   (⟦x.some_ray_vector⟧ : module.ray R M) = x :=
-begin
-  rw some_ray_vector,
-  exact quotient.out_eq _
-end
+quotient.out_eq _
 
 /-- An arbitrary nonzero vector giving a ray. -/
 def some_vector [nontrivial R] (x : module.ray R M) : M :=

@@ -318,6 +318,9 @@ begin
   exact d.has_union (d.has_compl h₁) h₂ (λ x ⟨h₁, h₂⟩, h₁ (h h₂)),
 end
 
+/-- The ordering on `dynkin_system α`.
+This is solely a definition because setting this as an instance makes the elaborator more brittle.
+  -/
 protected def has_le : has_le (dynkin_system α) :=
 { le          := λ m₁ m₂, m₁.has ≤ m₂.has }
 

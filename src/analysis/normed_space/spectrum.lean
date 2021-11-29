@@ -32,14 +32,14 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 
 -/
 
-/-- The *spectral radius* is the supremum of the norm of elements in the spectrum.
-    The spectrum is compact, and so when it is nonempty, this supremum can be
-    achieved. Note that it is possible for `spectrum 𝕜 a = ∅`.  In this case,
-    `spectral_radius a = 0` by the definition of `Sup` on `ℝ`.-/
-noncomputable def spectral_radius (𝕜 : Type*) {A : Type*} [normed_field 𝕜] [ring A]
-  [algebra 𝕜 A] (a : A) : ℝ :=
-Sup (norm '' (spectrum 𝕜 a))
+open_locale ennreal
 
+/-- The *spectral radius* is the supremum of the `nnnorm` (`∥⬝∥₊`) of elements in the spectrum,
+    coerced into an element of `ℝ≥0∞` so that it lives in a `complete_lattice`. Note that it
+    is possible for `spectrum 𝕜 a = ∅`. In this case, `spectral_radius a = 0`-/
+noncomputable def spectral_radius (𝕜 : Type*) {A : Type*} [normed_field 𝕜] [ring A]
+  [algebra 𝕜 A] (a : A) : ℝ≥0∞ :=
+⨆ k ∈ spectrum 𝕜 a, ∥k∥₊
 
 namespace spectrum
 
@@ -107,25 +107,20 @@ lemma subset_closed_ball_norm (a : A) :
 λ k hk, by simp [norm_le_norm_of_mem hk]
 
 lemma is_bounded (a : A) : metric.bounded (σ a) :=
-(metric.bounded_iff_subset_ball 0).mpr ⟨∥a∥,subset_closed_ball_norm a⟩
+(metric.bounded_iff_subset_ball 0).mpr ⟨∥a∥, subset_closed_ball_norm a⟩
 
 theorem is_compact [proper_space 𝕜] (a : A) : is_compact (σ a) :=
 metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
 
--- this lemma is actually true without the assumption `(σ a).nonempty`,
--- but it would require a `by_cases` split, and it's only for the slightly
--- silly reason that `Sup (∅ : set ℝ)` is defeq `0`.
-theorem spectral_radius_le_norm (a : A) (ha : (σ a).nonempty) :
-  spectral_radius 𝕜 a ≤ ∥a∥ :=
+theorem spectral_radius_le_nnnorm (a : A) :
+  spectral_radius 𝕜 a ≤ ∥a∥₊ :=
 begin
-  have ha' : (norm '' (σ a)).nonempty, from
-    ⟨∥ha.some∥,⟨ha.some,set.nonempty.some_mem ha,rfl⟩⟩,
-  have norm_up_bd : ∥a∥ ∈ upper_bounds (norm '' (σ a)), by
-    { apply mem_upper_bounds.mpr,
-      rintros k ⟨k,⟨k_mem,k_eq⟩⟩,
-      subst k_eq,
-      exact norm_le_norm_of_mem k_mem },
-  exact (real.is_lub_Sup (norm '' (σ a)) ha' ⟨∥a∥,norm_up_bd⟩).right norm_up_bd,
+  suffices h : ∀ (k : 𝕜) (hk : k ∈ σ a), (∥k∥₊ : ℝ≥0∞) ≤ ∥a∥₊,
+  { exact bsupr_le h, },
+  { by_cases ha : (σ a).nonempty,
+    { intros _ hk, exact_mod_cast norm_le_norm_of_mem hk },
+    { rw set.not_nonempty_iff_eq_empty at ha,
+      simp [ha, set.ball_empty_iff] } }
 end
 
 end spectrum_compact

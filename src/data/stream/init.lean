@@ -387,33 +387,36 @@ theorem mem_append_stream_left : ∀ {a : α} {l : list α} (s : stream α), a �
     (λ (aeqb : a = b), exists.intro 0 aeqb)
     (λ (ainl : a ∈ l), mem_cons_of_mem b (mem_append_stream_left s ainl))
 
-theorem approx_zero (s : stream α) : approx 0 s = [] := rfl
+@[simp] theorem take_zero (s : stream α) : take 0 s = [] := rfl
 
-theorem approx_succ (n : nat) (s : stream α) :
-  approx (succ n) s = head s :: approx n (tail s) := rfl
+@[simp] theorem take_succ (n : nat) (s : stream α) :
+  take (succ n) s = head s :: take n (tail s) := rfl
 
-theorem nth_approx : ∀ (n : nat) (s : stream α), list.nth (approx (succ n) s) n = some (nth n s)
+@[simp] theorem length_take (n : ℕ) (s : stream α) : (take n s).length = n :=
+by induction n generalizing s; simp *
+
+theorem nth_take_succ : ∀ (n : nat) (s : stream α), list.nth (take (succ n) s) n = some (nth n s)
 | 0     s := rfl
-| (n+1) s := begin rw [approx_succ, add_one, list.nth, nth_approx], refl end
+| (n+1) s := begin rw [take_succ, add_one, list.nth, nth_take_succ], refl end
 
-theorem append_approx_drop :
-  ∀ (n : nat) (s : stream α), append_stream (approx n s) (drop n s) = s :=
+theorem append_take_drop :
+  ∀ (n : nat) (s : stream α), append_stream (take n s) (drop n s) = s :=
 begin
   intro n,
   induction n with n' ih,
   { intro s, refl },
-  { intro s, rw [approx_succ, drop_succ, cons_append_stream, ih (tail s), stream.eta] }
+  { intro s, rw [take_succ, drop_succ, cons_append_stream, ih (tail s), stream.eta] }
 end
 
 -- Take theorem reduces a proof of equality of infinite streams to an
 -- induction over all their finite approximations.
-theorem take_theorem (s₁ s₂ : stream α) : (∀ (n : nat), approx n s₁ = approx n s₂) → s₁ = s₂ :=
+theorem take_theorem (s₁ s₂ : stream α) : (∀ (n : nat), take n s₁ = take n s₂) → s₁ = s₂ :=
 begin
   intro h, apply stream.ext, intro n,
   induction n with n ih,
-  { have aux := h 1, simp [approx] at aux, exact aux },
+  { have aux := h 1, simp [take] at aux, exact aux },
   { have h₁ : some (nth (succ n) s₁) = some (nth (succ n) s₂),
-    { rw [← nth_approx, ← nth_approx, h (succ (succ n))] },
+    { rw [← nth_take_succ, ← nth_take_succ, h (succ (succ n))] },
     injection h₁ }
 end
 
@@ -473,11 +476,11 @@ begin
   { intros l s, rw [nth_succ, inits_core_eq, tail_cons, ih, inits_core_eq (a::l) s], refl }
 end
 
-theorem nth_inits : ∀ (n : nat) (s : stream α), nth n (inits s) = approx (succ n) s  :=
+theorem nth_inits : ∀ (n : nat) (s : stream α), nth n (inits s) = take (succ n) s  :=
 begin
   intro n, induction n with n' ih,
   { intros, refl },
-  { intros, rw [nth_succ, approx_succ, ← ih, tail_inits, inits_tail, cons_nth_inits_core] }
+  { intros, rw [nth_succ, take_succ, ← ih, tail_inits, inits_tail, cons_nth_inits_core] }
 end
 
 theorem inits_eq (s : stream α) : inits s = [head s] :: map (list.cons (head s)) (inits (tail s)) :=
@@ -491,8 +494,8 @@ end
 theorem zip_inits_tails (s : stream α) : zip append_stream (inits s) (tails s) = const s :=
 begin
   apply stream.ext, intro n,
-  rw [nth_zip, nth_inits, nth_tails, nth_const, approx_succ,
-      cons_append_stream, append_approx_drop, stream.eta]
+  rw [nth_zip, nth_inits, nth_tails, nth_const, take_succ,
+      cons_append_stream, append_take_drop, stream.eta]
 end
 
 theorem identity (s : stream α) : pure id ⊛ s = s := rfl

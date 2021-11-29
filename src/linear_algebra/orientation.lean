@@ -365,13 +365,12 @@ variables (R : Type*) [linear_ordered_field R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {ι : Type*} [decidable_eq ι]
 
-/-- `same_ray` is equivalent to `mul_action.orbit_rel` for the `units.pos_subgroup`. -/
-lemma same_ray_iff_orbit_rel (v₁ v₂ : M) :
+/-- `same_ray` is equivalent to membership of `mul_action.orbit` for the `units.pos_subgroup`. -/
+lemma same_ray_iff_mem_orbit (v₁ v₂ : M) :
   same_ray R v₁ v₂ ↔ v₁ ∈ mul_action.orbit (units.pos_subgroup R) v₂ :=
 begin
   split,
   { rintros ⟨r₁, r₂, hr₁, hr₂, h⟩,
-    change v₁ ∈ mul_action.orbit (units.pos_subgroup R) v₂,
     rw mul_action.mem_orbit_iff,
     have h' : (r₁⁻¹ * r₂) • v₂ = v₁,
     { rw [mul_smul, ←h, ←mul_smul, inv_mul_cancel (ne_of_lt hr₁).symm, one_smul] },
@@ -385,7 +384,7 @@ end
 /-- `same_ray_setoid` equals `mul_action.orbit_rel` for the `units.pos_subgroup`. -/
 lemma same_ray_setoid_eq_orbit_rel :
   same_ray_setoid R M = mul_action.orbit_rel (units.pos_subgroup R) M :=
-setoid.ext' $ same_ray_iff_orbit_rel R
+setoid.ext' $ same_ray_iff_mem_orbit R
 
 variables {R}
 

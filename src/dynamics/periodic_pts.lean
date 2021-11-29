@@ -111,7 +111,7 @@ begin
   exact hf.is_fixed_pt.iterate m
 end
 
-lemma commute.left_of_comp {g : α → α} (hco : commute f g) (hfg : is_periodic_pt (f ∘ g) n x)
+lemma left_of_comp {g : α → α} (hco : commute f g) (hfg : is_periodic_pt (f ∘ g) n x)
   (hg : is_periodic_pt g n x) : is_periodic_pt f n x :=
 begin
   rw is_periodic_pt at *,
@@ -310,32 +310,28 @@ begin
   exact nat.dvd_lcm_left _ _ <|> exact dvd_lcm_right _ _
 end
 
-lemma commute.minimal_period_of_comp_dvd_mul_of_coprime {g : α → α} (h : function.commute f g)
-  (hco : coprime (minimal_period f x) (minimal_period g x)) :
+lemma commute.minimal_period_of_comp_dvd_mul_of_coprime {g : α → α} (h : function.commute f g) :
   minimal_period (f ∘ g) x ∣ (minimal_period f x) * (minimal_period g x) :=
-begin
-  rw ←hco.lcm_eq_mul,
-  exact h.minimal_period_of_comp_dvd_lcm
-end
+dvd_trans h.minimal_period_of_comp_dvd_lcm (lcm_dvd_mul _ _)
 
 lemma commute.minimal_period_of_comp_eq_mul_of_coprime {g : α → α} (h : function.commute f g)
   (hco : coprime (minimal_period f x) (minimal_period g x)) :
   minimal_period (f ∘ g) x = (minimal_period f x) * (minimal_period g x) :=
 begin
-  apply dvd_antisymm (h.minimal_period_of_comp_dvd_mul_of_coprime hco),
+  apply dvd_antisymm (h.minimal_period_of_comp_dvd_mul_of_coprime),
   apply coprime.mul_dvd_of_dvd_of_dvd hco,
-  { apply coprime.dvd_of_dvd_mul_left hco,
+  { apply hco.dvd_of_dvd_mul_left,
     apply is_periodic_pt.minimal_period_dvd,
-    apply is_periodic_pt.commute.left_of_comp h,
+    apply is_periodic_pt.left_of_comp h,
     { apply is_periodic_pt.const_mul,
       exact is_periodic_pt_minimal_period _ _ },
     { apply is_periodic_pt.mul_const,
       exact is_periodic_pt_minimal_period _ _ } },
   { rw h.comp_eq,
     rw coprime_comm at hco,
-    apply coprime.dvd_of_dvd_mul_right hco,
+    apply hco.dvd_of_dvd_mul_right,
     apply is_periodic_pt.minimal_period_dvd,
-    apply is_periodic_pt.commute.left_of_comp h.symm,
+    apply is_periodic_pt.left_of_comp h.symm,
     { apply is_periodic_pt.mul_const,
       exact is_periodic_pt_minimal_period _ _ },
     { apply is_periodic_pt.const_mul,

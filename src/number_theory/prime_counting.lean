@@ -145,6 +145,9 @@ begin
     exact one_le_iff_ne_zero.mpr h, },
 end
 
+-- TODO fill out the various permutations of this lemma, as well as the version with
+-- `coprime a (a + b * c)`.
+-- Also, make a corresponding lemma for is_coprime in ring_theory/coprime/basic.lean
 @[simp]
 lemma coprime_add_iff_coprime (a b : ℕ) : coprime a (a + b) ↔ coprime a b :=
   by rw [coprime, coprime, gcd_rec, add_mod_left, ←gcd_rec]

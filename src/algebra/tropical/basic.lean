@@ -216,8 +216,8 @@ begin
 end
 
 instance [order_top R] : add_comm_monoid (tropical R) :=
-{ zero_add := λ _, untrop_injective (by rw [untrop_add]; simp),
-  add_zero := λ _, untrop_injective (by rw [untrop_add]; simp),
+{ zero_add := λ _, untrop_injective (min_top_left _),
+  add_zero := λ _, untrop_injective (min_top_right _),
   ..tropical.has_zero,
   ..tropical.add_comm_semigroup }
 

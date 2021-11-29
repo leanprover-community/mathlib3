@@ -465,6 +465,13 @@ begin
     { exact factors_one }, }
 end
 
+lemma eq_of_perm_factors {a b : ℕ} (ha : 0 < a) (hb : 0 < b) (h : a.factors ~ b.factors) : a = b :=
+by simpa [prod_factors ha, prod_factors hb] using list.perm.prod_eq h
+
+lemma eq_of_count_factors_eq {a b : ℕ} (ha : 0 < a) (hb : 0 < b)
+  (h : ∀ p : ℕ, list.count p a.factors = list.count p b.factors) : a = b :=
+eq_of_perm_factors ha hb (list.perm_iff_count.mpr h)
+
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
  λ nd, coprime_of_dvd $ λ m m2 mp, ((prime_dvd_prime_iff_eq m2 pp).1 mp).symm ▸ nd⟩
@@ -740,6 +747,11 @@ begin
   { simp [(coprime_zero_right _).mp hab] },
   exact perm_factors_mul_of_pos ha hb,
 end
+
+/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
+  list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
+by rw [perm_iff_count.mp (perm_factors_mul_of_coprime hab) p, count_append]
 
 end
 
@@ -1018,6 +1030,12 @@ namespace nat
 
 theorem prime_three : prime 3 := by norm_num
 
+/-- See note [fact non-instances].-/
+lemma fact_prime_two : fact (prime 2) := ⟨prime_two⟩
+
+/-- See note [fact non-instances].-/
+lemma fact_prime_three : fact (prime 3) := ⟨prime_three⟩
+
 end nat
 
 
@@ -1089,7 +1107,7 @@ for any `b` coprime to `a`. -/
 lemma factors_count_eq_of_coprime_left {p a b : ℕ} (hab : coprime a b) (hpa : p ∈ a.factors) :
   list.count p (a * b).factors = list.count p a.factors :=
 begin
-  rw [perm.count_eq (perm_factors_mul_of_coprime hab) p, count_append],
+  rw count_factors_mul_of_coprime hab,
   simpa only [count_eq_zero_of_not_mem (coprime_factors_disjoint hab hpa)],
 end
 

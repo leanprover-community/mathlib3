@@ -208,13 +208,12 @@ begin
           end },
 end
 
--- TODO remove h0 h1 k_le_n assumption
 /-- A linear upper bound on the size of the `prime_counting'` function -/
-lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) (k_le_n : k ≤ n) :
+lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) :
   π' n ≤ π' k + 1 + nat.totient k * (n / k) :=
 calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
             begin
-              rw [prime_counting', split_range k_le_n],
+              rw [prime_counting', split_range (le_of_lt k_lt_n)],
               apply card_union_le,
             end
      ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'

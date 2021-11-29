@@ -782,7 +782,6 @@ lemma thickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ 
 lemma mem_thickening_iff_exists_edist_lt {δ : ℝ} (E : set α) (x : α) :
   x ∈ thickening δ E ↔ (∃ z ∈ E, edist x z < ennreal.of_real δ) :=
 begin
-  unfold thickening,
   simp only [exists_prop, mem_set_of_eq],
   split,
   { intros h,

@@ -53,6 +53,7 @@ abbreviation compose_and_sheafify (G : E ⥤ D) : Sheaf J E ⥤ Sheaf J D :=
 Sheaf_to_presheaf J E ⋙ (whiskering_right _ _ _).obj G ⋙ presheaf_to_Sheaf J D
 
 /-- An auxiliary definition to be used in defining `category_theory.Sheaf.adjunction` below. -/
+@[simps]
 def compose_equiv (adj : G ⊣ F) (X : Sheaf J E) (Y : Sheaf J D) :
 ((compose_and_sheafify J G).obj X ⟶ Y) ≃ (X ⟶ (Sheaf_compose J F).obj Y) :=
 let A := adj.whisker_right Cᵒᵖ in
@@ -72,7 +73,7 @@ let A := adj.whisker_right Cᵒᵖ in
 
 /-- An adjunction `adj : G ⊣ F` with `F : D ⥤ E` and `G : E ⥤ D` induces an adjunction
 between `Sheaf J D` and `Sheaf J E`, in contexts where one can sheafify `D`-valued presheaves,
-and `F`preserves the correct limits. -/
+and `F` preserves the correct limits. -/
 def adjunction (adj : G ⊣ F) : compose_and_sheafify J G ⊣ Sheaf_compose J F :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := compose_equiv J adj,
@@ -97,6 +98,38 @@ adjunction.mk_of_hom_equiv
     simp only [category.id_comp, category.comp_id, category.assoc, functor.map_comp],
   end }
 
+@[simp]
+lemma adjunction_hom_equiv_apply (adj : G ⊣ F) (X : Sheaf J D) (Y : Sheaf J E)
+  (η : (compose_and_sheafify J G).obj Y ⟶ X) : (adjunction J adj).hom_equiv _ _ η =
+  (adj.whisker_right _).hom_equiv _ _ (J.to_sheafify _ ≫ η) := rfl
+
+@[simp]
+lemma adjunction_hom_equiv_symm_apply (adj : G ⊣ F) (X : Sheaf J D) (Y : Sheaf J E)
+  (η : Y ⟶ (Sheaf_compose J F).obj X) : ((adjunction J adj).hom_equiv _ _).symm η =
+  J.sheafify_lift (((adj.whisker_right _).hom_equiv _ _).symm η) X.2 := rfl
+
+@[simp]
+lemma adjunction_unit_app (adj : G ⊣ F) (X : Sheaf J E) :
+  (Sheaf_to_presheaf _ _).map ((adjunction J adj).unit.app X) =
+  (adj.whisker_right _).unit.app _ ≫ whisker_right (J.to_sheafify _) F :=
+begin
+  dsimp [adjunction],
+  erw category.comp_id,
+  refl,
+end
+
+@[simp]
+lemma adjunction_counit_app (adj : G ⊣ F) (Y : Sheaf J D) :
+  (Sheaf_to_presheaf _ _).map ((adjunction J adj).counit.app Y) =
+  J.sheafify_lift ((functor.associator _ _ _).hom ≫
+  (adj.whisker_right _).counit.app _) Y.2 :=
+begin
+  dsimp [adjunction],
+  simp only [whiskering_right_obj_map, adjunction.hom_equiv_counit],
+  erw [whisker_right_id],
+  refl,
+end
+
 instance [is_right_adjoint F] : is_right_adjoint (Sheaf_compose J F) :=
 ⟨_, adjunction J (adjunction.of_right_adjoint F)⟩
 
@@ -112,6 +145,46 @@ is the forgetful functor to sheaves of types. -/
 def adjunction_to_types {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D) :
   compose_and_sheafify_from_types J G ⊣ Sheaf_forget J :=
 adjunction.comp _ _ ((Sheaf_equiv_SheafOfTypes J).symm.to_adjunction) (adjunction J adj)
+
+@[simp]
+lemma adjunction_to_types_hom_equiv_apply {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
+  (X : Sheaf J D) (Y : SheafOfTypes J) (η : (compose_and_sheafify_from_types J G).obj Y ⟶ X) :
+  (adjunction_to_types J adj).hom_equiv _ _ η =
+  (adj.whisker_right _).hom_equiv _ _ (J.to_sheafify _ ≫ η) := rfl
+
+@[simp]
+lemma adjunction_to_types_hom_equiv_symm_apply' {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
+  (X : Sheaf J D) (Y : SheafOfTypes J) (η : Y ⟶ (Sheaf_forget J).obj X) :
+  ((adjunction_to_types J adj).hom_equiv _ _).symm η =
+  J.sheafify_lift (((adj.whisker_right _).hom_equiv _ _).symm η) X.2 := rfl
+
+@[simp]
+lemma adjunction_to_types_unit_app {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
+  (Y : SheafOfTypes J) :
+  (SheafOfTypes_to_presheaf J).map ((adjunction_to_types J adj).unit.app Y) =
+  (adj.whisker_right _).unit.app ((SheafOfTypes_to_presheaf J).obj Y) ≫
+  whisker_right (J.to_sheafify _) (forget D) :=
+begin
+  dsimp [adjunction_to_types, adjunction.comp],
+  rw category.comp_id,
+  change (SheafOfTypes_to_presheaf _).map _ = _,
+  erw [functor.map_comp, adjunction_unit_app],
+  refl,
+end
+
+@[simp]
+lemma adjunction_to_types_counit_app {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
+  (X : Sheaf J D) :
+  (Sheaf_to_presheaf _ _).map ((adjunction_to_types J adj).counit.app X) =
+  J.sheafify_lift ((functor.associator _ _ _).hom ≫ (adj.whisker_right _).counit.app _) X.2 :=
+begin
+  dsimp only [adjunction_to_types, adjunction.comp],
+  erw [functor.map_comp, functor.map_comp, adjunction_counit_app, ← category.assoc],
+  convert category.id_comp _,
+  dsimp only [functor.associator],
+  erw [functor.map_id, category.id_comp, functor.map_id],
+  refl,
+end
 
 instance [is_right_adjoint (forget D)] : is_right_adjoint (Sheaf_forget J) :=
 ⟨_, adjunction_to_types J (adjunction.of_right_adjoint (forget D))⟩

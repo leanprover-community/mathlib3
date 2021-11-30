@@ -225,8 +225,7 @@ end
 
 lemma is_cycle.swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cycle f) {x : α}
   (hx : f x ≠ x) (hffx : f (f x) ≠ x) : is_cycle (swap x (f x) * f) :=
-⟨f x, by { simp only [swap_apply_def, mul_apply],
-        simp [f.injective.eq_iff] at *; cc },
+⟨f x, by { simp [swap_apply_def, mul_apply, if_neg hffx, f.injective.eq_iff, if_neg hx, hx], },
   λ y hy,
   let ⟨i, hi⟩ := hf.exists_zpow_eq hx (ne_and_ne_of_swap_mul_apply_ne_self hy).1 in
   have hi : (f ^ (i - 1)) (f x) = y, from

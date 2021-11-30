@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.char_p.basic
-import tactic.interval_cases
 
 /-!
 # Lemmas about rings of characteristic two
@@ -59,29 +58,21 @@ end char_two
 section ring_char
 variables [ring R]
 
-lemma one_eq_neg_iff [nontrivial R]: (-1 : R) = 1 ↔ ring_char R = 2 :=
+lemma neg_one_eq_one_iff [nontrivial R]: (-1 : R) = 1 ↔ ring_char R = 2 :=
 begin
   refine ⟨λ h, _, λ h, @@neg_eq _ (ring_char.of_eq h) 1⟩,
-  rw [eq_comm, ←sub_eq_zero, sub_neg_eq_add, show (1 + 1 : R) = (1 + 1 : ℕ), by norm_cast] at h,
-  have := nat.le_of_dvd zero_lt_two (ring_char.dvd h),
-  interval_cases (ring_char R) with hrc,
-  { haveI := ring_char.eq_iff.mp hrc,
-    haveI := char_p.char_p_to_char_zero R,
-    apply false.elim (@two_ne_zero' R _ _ _ _),
-    exact_mod_cast h },
-  { have := @char_p.ring_char_ne_one R _ _,
-    contradiction },
-  { assumption }
+  rw [eq_comm, ←sub_eq_zero, sub_neg_eq_add, ← nat.cast_one, ← nat.cast_add] at h,
+  exact ((nat.dvd_prime nat.prime_two).mp (ring_char.dvd h)).resolve_left char_p.ring_char_ne_one
 end
 
 @[simp] lemma order_of_neg_one [nontrivial R] :
   order_of (-1 : R) = if ring_char R = 2 then 1 else 2 :=
 begin
   split_ifs,
-  { simpa [one_eq_neg_iff] using h },
+  { rw [neg_one_eq_one_iff.2 h, order_of_one] },
   apply order_of_eq_prime,
   { simp },
-  simpa [one_eq_neg_iff] using h
+  simpa [neg_one_eq_one_iff] using h
 end
 
 end ring_char

@@ -7,15 +7,23 @@ import data.sigma.basic
 import order.rel_classes
 
 /-!
-# Lexicographical order on a sigma type
+# Lexicographic order on a sigma type
 
-This defines the lexicographical order of two arbitrary relations on a sigma type.
+This defines the lexicographical order of two arbitrary relations on a sigma type and proves some
+lemmas about `psigma.lex`, which is defined in core Lean.
 
 Given a relation in the index type and a relation on each summand, the lexicographical order on the
 sigma type relates `a` and `b` if their summands are related or they are in the same summand and
 related by the summand's relation.
 
-For the lexicographical order per say, see `data.sigma.order`.
+## See also
+
+For the lexicographic order per say, see `data.sigma.order`.
+
+The lexicographic order on lists can be found in `data.list.lex`.
+
+The lexicographic order on a product type (which can be thought of as the special case of
+`sigma.lex` where all summands are the same) and on `psigma` live in `order.lexicographic`.
 -/
 
 namespace sigma

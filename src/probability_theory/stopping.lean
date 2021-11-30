@@ -25,6 +25,10 @@ at a specific time and is the first step in formalizing stochastic processes.
   `f i`-measurable
 * `measure_theory.stopping_time.measurable_space`: the σ-algebra associated with a stopping time
 
+## Tags
+
+filtration, stopping time, stochastic process
+
 -/
 
 noncomputable theory
@@ -146,7 +150,9 @@ lemma is_stopping_time_const {f : filtration α ι m} (i : ι) :
 
 end
 
-lemma is_stopping_time.max [linear_order ι] {f : filtration α ι m} {τ π : α → ι}
+namespace is_stopping_time
+
+lemma max [linear_order ι] {f : filtration α ι m} {τ π : α → ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ x, max (τ x) (π x)) :=
 begin
@@ -155,7 +161,7 @@ begin
   exact @measurable_set.inter _ (f i) _ _ (hτ i) (hπ i),
 end
 
-lemma is_stopping_time.min [linear_order ι] {f : filtration α ι m} {τ π : α → ι}
+lemma min [linear_order ι] {f : filtration α ι m} {τ π : α → ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ x, min (τ x) (π x)) :=
 begin
@@ -164,7 +170,7 @@ begin
   exact @measurable_set.union _ (f i) _ _ (hτ i) (hπ i),
 end
 
-lemma is_stopping_time.add_const
+lemma add_const
   [add_group ι] [preorder ι] [covariant_class ι ι (function.swap (+)) (≤)]
   [covariant_class ι ι (+) (≤)]
   {f : filtration α ι m} {τ : α → ι} (hτ : is_stopping_time f τ) {i : ι} (hi : 0 ≤ i) :
@@ -175,12 +181,10 @@ begin
   exact f.mono (sub_le_self j hi) _ (hτ (j - i)),
 end
 
-section
-
 variables [preorder ι] {f : filtration α ι m}
 
 /-- The associated σ-algebra with a stopping time. -/
-def is_stopping_time.measurable_space
+def measurable_space
   {τ : α → ι} (hτ : is_stopping_time f τ) : measurable_space α :=
 { measurable_set' := λ s, ∀ i : ι, measurable_set[f i] (s ∩ {x | τ x ≤ i}),
     measurable_set_empty :=
@@ -202,11 +206,24 @@ def is_stopping_time.measurable_space
         exact @measurable_set.Union _ _ (f i) _ _ (hs i),
       end }
 
-lemma is_stopping_time.measurable_set {τ : α → ι} (hτ : is_stopping_time f τ)
+lemma measurable_set {τ : α → ι} (hτ : is_stopping_time f τ)
   (s : set α) : measurable_set[hτ.measurable_space] s ↔
     ∀ i : ι, measurable_set[f i] (s ∩ {x | τ x ≤ i}) := iff.rfl
 
-lemma is_stopping_time.measurable_space_le [encodable ι]
+lemma measurable_space_mono
+  {τ π : α → ι} (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) (hle : τ ≤ π) :
+  hτ.measurable_space ≤ hπ.measurable_space :=
+begin
+  intros s hs i,
+  rw (_ : s ∩ {x | π x ≤ i} = s ∩ {x | τ x ≤ i} ∩ {x | π x ≤ i}),
+  { exact @measurable_set.inter _ (f i) _ _ (hs i) (hπ i) },
+  { ext,
+    simp only [set.mem_inter_eq, iff_self_and, and.congr_left_iff, set.mem_set_of_eq],
+    intros hle' _,
+    exact le_trans (hle _) hle' },
+end
+
+lemma measurable_space_le [encodable ι]
   {τ : α → ι} (hτ : is_stopping_time f τ) :
   hτ.measurable_space ≤ m :=
 begin
@@ -222,7 +239,7 @@ end
 
 section nat
 
-lemma is_stopping_time.measurable_set_eq_const {f : filtration α ℕ m}
+lemma measurable_set_eq_const {f : filtration α ℕ m}
   {τ : α → ℕ} (hτ : is_stopping_time f τ) (i : ℕ) :
   measurable_set[hτ.measurable_space] {x | τ x = i} :=
 begin
@@ -243,7 +260,7 @@ begin
       rwa not_le at h } }
 end
 
-lemma is_stopping_time.measurable {f : filtration α ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) :
+lemma measurable {f : filtration α ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) :
   @measurable _ _ hτ.measurable_space ⊤ τ :=
 begin
   refine @measurable_to_encodable ℕ α ⊤ hτ.measurable_space _ τ _,
@@ -254,6 +271,6 @@ end
 
 end nat
 
-end
+end is_stopping_time
 
 end measure_theory

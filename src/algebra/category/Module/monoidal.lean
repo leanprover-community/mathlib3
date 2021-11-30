@@ -238,7 +238,7 @@ end
   (α_ X Y Z).hom ≫ (braiding X _).hom ≫ (α_ Y Z X).hom =
   ((braiding X Y).hom ⊗ 𝟙 Z) ≫ (α_ Y X Z).hom ≫ (𝟙 Y ⊗ (braiding X Z).hom) :=
 begin
-  apply @tensor_product.ext_threefold R,
+  apply @tensor_product.ext_threefold R _,
   intros x y z,
   refl,
 end
@@ -248,7 +248,7 @@ end
   (𝟙 X ⊗ (Y.braiding Z).hom) ≫ (α_ X Z Y).inv ≫ ((X.braiding Z).hom ⊗ 𝟙 Y) :=
 begin
   apply (cancel_epi (α_ X Y Z).hom).1,
-  apply @tensor_product.ext_threefold R,
+  apply @tensor_product.ext_threefold R _,
   intros x y z,
   refl,
 end

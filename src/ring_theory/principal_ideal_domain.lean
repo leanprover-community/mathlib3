@@ -342,7 +342,7 @@ begin
       (of_irreducible_mul h).resolve_left nu) }
 end
 
-theorem exists_associated_pow_of_mul_eq_pow' {a b c : R} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem exists_associated_pow_of_mul_eq_pow' {a b c : R}
   (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ k) : ∃ d, associated (d ^ k) a :=
 exists_associated_pow_of_mul_eq_pow ((gcd_is_unit_iff _ _).mpr hab) h
 

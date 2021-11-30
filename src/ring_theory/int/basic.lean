@@ -400,22 +400,22 @@ le_antisymm
 lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
 by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }
 
-theorem eq_pow_of_mul_eq_pow_bit1_left {a b c : ℤ} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem eq_pow_of_mul_eq_pow_bit1_left {a b c : ℤ}
   (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) : ∃ d, a = d ^ (bit1 k) :=
 begin
-  obtain ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow' ha hb hab h,
+  obtain ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow' hab h,
   replace hd := hd.symm,
   rw [associated_iff_nat_abs, nat_abs_eq_nat_abs_iff, ←neg_pow_bit1] at hd,
   obtain rfl|rfl := hd; exact ⟨_, rfl⟩,
 end
 
-theorem eq_pow_of_mul_eq_pow_bit1_right {a b c : ℤ} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem eq_pow_of_mul_eq_pow_bit1_right {a b c : ℤ}
   (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) : ∃ d, b = d ^ (bit1 k) :=
-eq_pow_of_mul_eq_pow_bit1_left hb ha hab.symm (by rwa mul_comm at h)
+eq_pow_of_mul_eq_pow_bit1_left hab.symm (by rwa mul_comm at h)
 
 theorem eq_pow_of_mul_eq_pow_bit1 {a b c : ℤ} (ha : a ≠ 0) (hb : b ≠ 0)
   (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) :
   (∃ d, a = d ^ (bit1 k)) ∧ (∃ e, b = e ^ (bit1 k)) :=
-⟨eq_pow_of_mul_eq_pow_bit1_left ha hb hab h, eq_pow_of_mul_eq_pow_bit1_right ha hb hab h⟩
+⟨eq_pow_of_mul_eq_pow_bit1_left hab h, eq_pow_of_mul_eq_pow_bit1_right hab h⟩
 
 end int

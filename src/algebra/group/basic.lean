@@ -498,14 +498,23 @@ by simp
 lemma div_mul_eq_mul_div' (a b c : G) : a / b * c = a * c / b :=
 by simp
 
-@[to_additive] lemma div_div (a b c : G) : a / b / c = a / (b * c) :=
+@[to_additive]
+lemma div_div (a b c : G) : a / b / c = a / (b * c) :=
 by simp
 
-@[to_additive] lemma div_mul (a b c : G) : a / b * c = a / (b / c) :=
+@[to_additive]
+lemma div_mul (a b c : G) : a / b * c = a / (b / c) :=
 by simp
 
-@[simp, to_additive] lemma mul_div_mul_left_eq_div (a b c : G) : (c * a) / (c * b) = a / b :=
+@[simp, to_additive]
+lemma mul_div_mul_left_eq_div (a b c : G) : (c * a) / (c * b) = a / b :=
 by simp
+
+
+
+@[to_additive eq_sub_of_add_eq']
+lemma eq_div_of_mul_eq'' (h : c * a = b) : a = b / c :=
+by simp [h.symm]
 
 end comm_group
 
@@ -515,9 +524,6 @@ section add_comm_group
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
-
-lemma eq_sub_of_add_eq' (h : c + a = b) : a = b - c :=
-by simp [h.symm]
 
 lemma eq_add_of_sub_eq' (h : a - b = c) : a = b + c :=
 by simp [h.symm]

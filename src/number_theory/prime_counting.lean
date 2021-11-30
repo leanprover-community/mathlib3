@@ -57,7 +57,8 @@ begin
   exact a_le_b,
 end
 
-lemma split_Ico {S : Type} [linear_order S] [locally_finite_order S] [decidable_eq S]  {a b c : S} (a_le_b : a ≤ b) (b_le_c : b ≤ c) (p : S → Prop) [decidable_pred p] :
+lemma split_Ico {S : Type} [linear_order S] [locally_finite_order S] [decidable_eq S] {a b c : S}
+  (a_le_b : a ≤ b) (b_le_c : b ≤ c) (p : S → Prop) [decidable_pred p] :
   (Ico a c).filter p = (Ico a b).filter p ∪ (Ico b c).filter p :=
 begin
   ext x,
@@ -112,7 +113,9 @@ begin
 end
 
 -- TODO Generalize from ℕ
--- Note that this does not hold for locally finitely ordered add monoids in general, as we could have a (horizontally) periodic function on ℤ² which is different over different y-coordinates. It should hold over ℤ though.
+-- Note that this does not hold for locally finitely ordered add monoids in general,
+-- as we could have a (horizontally) periodic function on ℤ² which is different over different
+-- y-coordinates. It should hold over ℤ though.
 lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
  (pp : function.periodic p a) :
   (filter p (Ico n (n+a))).card = (filter p (Ico 0 a)).card :=

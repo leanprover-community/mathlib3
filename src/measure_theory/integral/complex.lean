@@ -483,95 +483,6 @@ rw nhds_within,
 simp [inf_le_left],
 end
 
-/-
-lemma int_diff_of_uniform  (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
-  (hlim : tendsto_uniformly F f filter.at_top) :
-  tendsto_uniformly_on (λ (n : ℕ), int_diff R hR (F n) z) (int_diff R hR f z) filter.at_top (ball z R):=
-begin
-rw tendsto_uniformly_iff at *,
-rw tendsto_uniformly_on_iff at *,
-simp at *,
-intros ε hε,
-simp_rw int_diff,
-simp_rw int_diff0,
-simp,
-have hlim2:= hlim ε hε,
-obtain ⟨a, ha⟩ := hlim2,
-use a,
-intros b hb x hx,
-simp_rw dist_eq_norm at *,
-have h1: ∀ (x_1 : ℝ) (x : ℂ), z + ↑R * exp (↑x_1 * I) - x =  ↑R * exp (↑x_1 * I) - (x -z),
-by {intros y x , ring},
-simp_rw h1,
-have := integral_circle_div_sub_of_abs_lt hx,
-simp,
-simp_rw ← integral_const_mul,
-sorry,
-end
-
-lemma int_diff_of_uniform0  (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z x : ℂ) (R : ℝ)  (hR: 0 < R)
-  (hlim : tendsto_uniformly F f filter.at_top) :
-  tendsto_uniformly (λ (n : ℕ), int_diff0 R hR (F n) z x) (int_diff0 R hR f z x) filter.at_top :=
-begin
-simp_rw tendsto_uniformly_iff at *,
-simp at *,
-intros ε hε,
-simp_rw int_diff0,
-simp,
-have hlim2:= hlim ε hε,
-obtain ⟨a, ha⟩ := hlim2,
-use a,
-intros b hb x,
-simp_rw dist_eq_norm at *,
-have h1: ∀ (x_1 : ℝ) (x : ℂ), z + ↑R * exp (↑x_1 * I) - x =  ↑R * exp (↑x_1 * I) - (x -z),
-by {intros y x , ring},
-simp_rw h1,
-sorry,
-have := integral_circle_div_sub_of_abs_lt hx,
-simp,
-simp_rw ← integral_const_mul,
-sorry,
-end
-
-
-theorem uniform_tendsto_integral_of_dominated_convergence_special {F : ℕ → ℝ → E} {f : ℝ → E}
-  (F_integrable : ∀ n, interval_integrable (F n) volume 0 (2*π) )
-  (h_lim : tendsto_uniformly F f at_top) :
-  tendsto (λn,  ∫ (θ : ℝ) in 0..2 * π, F n θ) at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, f θ) :=
-begin
-sorry,
-end
-
-theorem uniform_tendsto_integral_of_dominated_convergence_special'
-  (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z x : ℂ) (R : ℝ)  (hR: 0 < R)
-  (hlim : tendsto_uniformly F f filter.at_top) :
-  tendsto (λn,  ∫ (θ : ℝ) in 0..2 * π, F n θ) at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, f θ) :=
-begin
-sorry,
-end
-
-
-
-lemma int_diff_of_uniform'  (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z x : ℂ) (R : ℝ)  (hR: 0 < R)
-  (F_integrable : ∀ n, interval_integrable  (int_diff0 R hR (F n) z x) volume 0 (2*π))
-  (hlim : tendsto_uniformly F f filter.at_top) :
-  tendsto (λ (n : ℕ), int_diff R hR (F n) z x)  filter.at_top (𝓝 $ int_diff R hR f z x):=
-begin
-
-
-  /-
-  have := uniform_tendsto_integral_of_dominated_convergence F_integrable hlim,
-  rw metric.tendsto_nhds at *,
-  simp at *,
-  intros ε hε,
-  have ht:= this ε hε,
-  obtain ⟨a, ha⟩:= ht,
-  use a,
-  intros b hb,
-  -/
-sorry,
-end
--/
 
 lemma UNIF_CONV_INT (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)  (F_cts : ∀ n, continuous (F n))
    (hlim : tendsto_uniformly F f filter.at_top) (z : ℂ) (w : ball z R) :
@@ -595,7 +506,8 @@ have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), tendsto (λ n, ((in
   simp_rw int_diff0,
   intros y ε hε,
   set r : ℂ :=  ((2 * (↑π * I))⁻¹ * (↑R * exp (↑y * I) * I / (z + ↑R * exp (↑y * I) - ↑w))),
-  have hr: 0 < ∥ r ∥, by {sorry},
+  have hr: 0 < ∥ r ∥, by {simp, rw div_eq_inv_mul,
+    apply mul_pos, sorry, sorry,},
   have hr':  ∥ r ∥ ≠ 0, by {sorry},
   let e:= (∥ r ∥)⁻¹ * (ε/2),
   have he: 0 < e, by {sorry,},
@@ -609,7 +521,7 @@ have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), tendsto (λ n, ((in
   have hg: ∥(2 * (↑π * I))⁻¹ * (↑R * exp (↑y * I) * I / (z + ↑R * exp (↑y * I) - ↑w) *
     (f (z + ↑R * exp (↑y * I)) - F b (z + ↑R * exp (↑y * I))))∥ =
     ∥(2 * (↑π * I))⁻¹ * (↑R * exp (↑y * I) * I / (z + ↑R * exp (↑y * I) - ↑w)) ∥ *
-    ∥ (f (z + ↑R * exp (↑y * I)) - F b (z + ↑R * exp (↑y * I)))∥, by {sorry,},
+    ∥ (f (z + ↑R * exp (↑y * I)) - F b (z + ↑R * exp (↑y * I)))∥, by {simp, ring,},
     rw hg,
     simp_rw ← r,
     have haa:= ha b hb,
@@ -623,7 +535,9 @@ have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), tendsto (λ n, ((in
     simp_rw [mul_inv_cancel hr'],
     simp,
     rw  mul_lt_iff_lt_one_left,
-  sorry,},
+    rw inv_eq_one_div,
+    linarith,
+    apply hε,},
 have := tendsto_integral_of_dominated_convergence bound F_measurable bound_integrable h_bound h_lim',
 have pi: 0 ≤ 2*π , by {sorry},
 simp_rw  integral_of_le pi,
@@ -681,7 +595,7 @@ have F_measurable : ∀ n, integrable (F n) volume, by {sorry,},
 
 rw differentiable_on,
 intros x hx,
-have key := int_diff_of_uniform' F f z x R hR hlim,
+--have key := int_diff_of_uniform' F f z x R hR hlim,
 rw differentiable_within_at,
 have h0:= int_diff R hR f z,
 --have h1:= holo_test hx (hdiff _),

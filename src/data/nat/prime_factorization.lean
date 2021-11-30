@@ -53,20 +53,40 @@ by simp only [support_prime_factorization, list.mem_to_finset]
 lemma prime_factorization_eq_nil_iff (n : ℕ) : n.prime_factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [prime_factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
-/-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
-@[simp] lemma prime_factorization_prime_pow {p k : ℕ} (hp : prime p) :
-  prime_factorization (p^k) = single p k :=
+/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
+lemma factors_count_pow {n k p: ℕ} : count p (n ^ k).factors = k * count p n.factors :=
 begin
-  rcases k.eq_zero_or_pos with rfl | hk, { simp },
-  rw eq_single_iff,
-  split,
-  { simp only [support_prime_factorization, prime_pow_prime_divisor hk hp, finset.subset.refl] },
-  { rw [prime_factorization_count, prime.factors_pow hp k, count_repeat p k] }
+  induction k with k IH, { simp },
+  rcases n.eq_zero_or_pos with rfl | hn, { simp },
+  rw [pow_succ n k, perm_iff_count.mp (perm_factors_mul_of_pos hn (pow_pos hn k)) p],
+  rw [list.count_append, IH, add_comm],
+  rw [mul_comm, ←mul_succ (count p n.factors) k, mul_comm],
+end
+
+/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
+lemma prime_factorization_pow {n k : ℕ} :
+  prime_factorization (n^k) = k • n.prime_factorization :=
+begin
+  ext p,
+  simp only [algebra.id.smul_eq_mul, finsupp.coe_smul, pi.smul_apply],
+  simp only [prime_factorization_count, factors_count_pow],
 end
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity 1 -/
 @[simp] lemma prime_factorization_prime {p : ℕ} (hp : prime p) :
   p.prime_factorization = single p 1 :=
-by simp only [←prime_factorization_prime_pow hp, pow_one]
+begin
+  ext q,
+  rw [prime_factorization_count, factors_prime hp],
+  by_cases hqp : q = p,
+  { rw hqp, simp },
+  { rw finsupp.single_eq_of_ne (ne.symm hqp),
+    exact count_eq_zero_of_not_mem ((not_iff_not_of_iff list.mem_singleton).mpr hqp) },
+end
+
+/-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
+@[simp] lemma prime_factorization_prime_pow {p k : ℕ} (hp : prime p) :
+  prime_factorization (p^k) = single p k :=
+by simp [prime_factorization_pow, prime_factorization_prime hp]
 
 end nat

@@ -107,12 +107,12 @@ local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
 
 theorem has_deriv_at_resolvent {a : A} {k : 𝕜} (hk : k ∈ ρ a) :
-  has_deriv_at (resolvent a) (-(resolvent a k) * (resolvent a k)) k :=
+  has_deriv_at (resolvent a) (-(resolvent a k) ^ 2) k :=
 begin
   have H₁ : has_fderiv_at ring.inverse _ (↑ₐk - a) := has_fderiv_at_ring_inverse hk.unit,
   have H₂ : has_deriv_at (λ k, ↑ₐk - a) 1 k,
   { simpa using (algebra.linear_map 𝕜 A).has_deriv_at.sub_const a },
-  simpa [resolvent, hk.unit_spec, ← ring.inverse_unit hk.unit] using H₁.comp_has_deriv_at k H₂,
+  simpa [resolvent, sq, hk.unit_spec, ← ring.inverse_unit hk.unit] using H₁.comp_has_deriv_at k H₂,
 end
 
 end resolvent_deriv

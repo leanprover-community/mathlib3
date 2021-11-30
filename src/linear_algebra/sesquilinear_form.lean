@@ -79,14 +79,11 @@ begin
   dunfold is_ortho,
   split; intro H,
   { rw [map_smulₛₗ, H, smul_zero] },
-  {
-    rw [map_smulₛₗ, smul_eq_zero] at H,
+  { rw [map_smulₛₗ, smul_eq_zero] at H,
     cases H,
-    {
-      rw [ring_equiv.to_ring_hom_eq_coe, ring_equiv.coe_to_ring_hom] at H,
+    { rw [ring_equiv.to_ring_hom_eq_coe, ring_equiv.coe_to_ring_hom] at H,
       exfalso,
-      exact ha (I.map_eq_zero_iff.mp H),
-    },
+      exact ha (I.map_eq_zero_iff.mp H) },
     { exact H }}
 end
 

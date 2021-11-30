@@ -348,7 +348,7 @@ begin
   exact ⟨⟨g, hg⟩⟩
 end
 
-attribute [to_additive is_add_cyclic_of_card_pow_eq_one_le] is_cyclic_of_card_pow_eq_one_le
+attribute [to_additive is_cyclic_of_card_pow_eq_one_le] is_add_cyclic_of_card_pow_eq_one_le
 
 end totient
 

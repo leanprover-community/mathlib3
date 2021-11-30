@@ -95,6 +95,10 @@ noncomputable def coord (i : ι) : P →ᵃ[k] k :=
   map_vadd' := λ q v, by rw [vadd_vsub_assoc, linear_map.map_add, vadd_eq_add, linear_map.neg_apply,
     sub_add_eq_sub_sub_swap, add_comm, sub_eq_add_neg], }
 
+@[simp] lemma coe_linear (i : ι) :
+  ((b.coord i).linear : V → k) = -(b.basis_of i).sum_coords :=
+rfl
+
 @[simp] lemma coord_apply_eq (i : ι) :
   b.coord i (b.points i) = 1 :=
 by simp only [coord, basis.coe_sum_coords, linear_equiv.map_zero, linear_equiv.coe_coe,
@@ -184,8 +188,18 @@ begin
   simp [b.coord_apply_combination_of_mem hi hw],
 end
 
-/-- The vector of barycentric coordinates of a given point with respect to an affine basis. -/
-noncomputable def coords (q : P) (i : ι) := b.coord i q
+/-- Barycentric coordinates as an affine map. -/
+noncomputable def coords : P →ᵃ[k] ι → k :=
+{ to_fun    := λ q i, b.coord i q,
+  linear    :=
+  { to_fun    := λ v i, -(b.basis_of i).sum_coords v,
+    map_add'  := λ v w, by { ext i, simp only [linear_map.map_add, pi.add_apply, neg_add], },
+    map_smul' := λ t v, by { ext i, simpa only [linear_map.map_smul, pi.smul_apply, smul_neg] } },
+  map_vadd' := λ p v, by
+    { ext i,
+      simp only [add_left_inj, vadd_eq_add, pi.vadd_apply', pi.smul_apply, pi.neg_apply,
+        linear_map.coe_mk, linear_map.neg_apply, linear_map.map_add, smul_neg,
+        affine_map.map_vadd, affine_basis.coe_linear], }, }
 
 @[simp] lemma coords_apply (q : P) (i : ι) :
   b.coords q i = b.coord i q :=

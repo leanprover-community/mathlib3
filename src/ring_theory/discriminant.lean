@@ -11,14 +11,17 @@ import linear_algebra.vandermonde
 
 /-!
 # Discriminant.
+
 Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we define the
 *discriminant* of `b` as the determinant of the matrix whose `(i j)`-th element is the trace of
 `b i * b j`.
 
 ## Main definition
+
 * `discr A b` : the discriminant of `b : ι → B`.
 
 ## Main results
+
 * `discr_zero_of_not_linear_independent` : if `b` is not linear independent, then
   `discr A b = 0`.
 * `discr_of_matrix_vec_mul` and `discr_of_matrix_mul_vec` : formulas relating `discr A ι b` with

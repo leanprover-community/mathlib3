@@ -401,6 +401,14 @@ lemma inter_inv [has_inv α] : (s ∩ t)⁻¹ = s⁻¹ ∩ t⁻¹ := preimage_in
 lemma union_inv [has_inv α] : (s ∪ t)⁻¹ = s⁻¹ ∪ t⁻¹ := preimage_union
 
 @[simp, to_additive]
+lemma Inter_inv {ι : Sort*} [has_inv α] (s : ι → set α) : (⋂ i, s i)⁻¹ = ⋂ i, (s i)⁻¹ :=
+preimage_Inter
+
+@[simp, to_additive]
+lemma Union_inv {ι : Sort*} [has_inv α] (s : ι → set α) : (⋃ i, s i)⁻¹ = ⋃ i, (s i)⁻¹ :=
+preimage_Union
+
+@[simp, to_additive]
 lemma compl_inv [has_inv α] : (sᶜ)⁻¹ = (s⁻¹)ᶜ := preimage_compl
 
 @[simp, to_additive]
@@ -422,6 +430,10 @@ hs.preimage $ inv_injective.inj_on _
 
 @[to_additive] lemma inv_singleton {β : Type*} [group β] (x : β) : ({x} : set β)⁻¹ = {x⁻¹} :=
 by { ext1 y, rw [mem_inv, mem_singleton_iff, mem_singleton_iff, inv_eq_iff_inv_eq, eq_comm], }
+
+@[to_additive] protected lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
+by simp_rw [←image_inv, ←image2_mul, image_image2, image2_image_left, image2_image_right,
+              mul_inv_rev, image2_swap _ s t]
 
 /-! ### Properties about scalar multiplication -/
 

@@ -54,16 +54,6 @@ lemma prime_factorization_eq_nil_iff (n : ℕ) : n.prime_factorization = 0 ↔ n
 by simp [prime_factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
-lemma factors_count_pow {n k p: ℕ} : count p (n ^ k).factors = k * count p n.factors :=
-begin
-  induction k with k IH, { simp },
-  rcases n.eq_zero_or_pos with rfl | hn, { simp },
-  rw [pow_succ n k, perm_iff_count.mp (perm_factors_mul_of_pos hn (pow_pos hn k)) p],
-  rw [list.count_append, IH, add_comm],
-  rw [mul_comm, ←mul_succ (count p n.factors) k, mul_comm],
-end
-
-/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 lemma prime_factorization_pow {n k : ℕ} :
   prime_factorization (n^k) = k • n.prime_factorization :=
 begin

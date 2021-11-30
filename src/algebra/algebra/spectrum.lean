@@ -21,10 +21,13 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 
 ## Main statements
 
-* `smul_eq_smul`: units in the scalar ring commute (multiplication) with the spectrum.
-* `left_add_coset_eq`: elements of the scalar ring commute (addition) with the spectrum.
-* `units_mem_mul_iff_mem_swap_mul` and `preimage_units_mul_eq_swap_mul`: the units
-  (of `R`) in `σ (a*b)` coincide with those in `σ (b*a)`.
+* `spectrum.unit_smul_eq_smul` and `spectrum.smul_eq_smul`: units in the scalar ring commute
+  (multiplication) with the spectrum, and over a field even `0` commutes with the spectrum.
+* `spectrum.left_add_coset_eq`: elements of the scalar ring commute (addition) with the spectrum.
+* `spectrum.unit_mem_mul_iff_mem_swap_mul` and `spectrum.preimage_units_mul_eq_swap_mul`: the
+  units (of `R`) in `σ (a*b)` coincide with those in `σ (b*a)`.
+* `spectrum.scalar_eq`: in a nontrivial algebra over a field, the spectrum of a scalar is
+  a singleton.begin
 
 ## Notations
 
@@ -223,7 +226,7 @@ calc σ (1 : A) = σ (↑ₐ1) : by simp [algebra.algebra_map_eq_smul_one]
 
 open_locale pointwise
 
-/-- the assumption (σ a).nonempty is necessary and cannot be removed without
+/-- the assumption `(σ a).nonempty` is necessary and cannot be removed without
     further conditions on the algebra `A` and scalar field `𝕜`. -/
 theorem smul_eq_smul [nontrivial A] (k : 𝕜) (a : A) (ha : (σ a).nonempty) :
   σ (k • a) = k • (σ a) :=

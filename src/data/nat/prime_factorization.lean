@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stuart Presnell
 -/
 import data.nat.prime
--- import data.nat.totient
+import data.nat.totient
 import data.nat.mul_ind
 import tactic.field_simp
 
@@ -104,13 +104,13 @@ begin
   simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_coprime hab],
 end
 
-/-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma prime_factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
-  (a * b).prime_factorization = a.prime_factorization + b.prime_factorization :=
-begin
-  ext q,
-  simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_pos ha hb],
-end
+-- /-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+-- lemma prime_factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
+--   (a * b).prime_factorization = a.prime_factorization + b.prime_factorization :=
+-- begin
+--   ext q,
+--   simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_pos ha hb],
+-- end
 
 /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
 lemma prime_factorization_union_of_coprime {a b : ℕ} (hab : coprime a b) :
@@ -171,7 +171,7 @@ begin
 
   -- Case for positive prime power p^k
   { intros p k hp hk hpk,
-    rw prime_factorization_prime_pow hp hk,
+    rw prime_factorization_prime_pow hp,
     rw finsupp.prod_single_index _,
     simpa using hf },
 
@@ -220,13 +220,13 @@ begin
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
 
 -- Otherwise n is the product over its prime factorization
-  nth_rewrite_rhs 0 (prime_factorization_prod_eq hn0),
+  nth_rewrite_rhs 0 (prime_factorization_prod_pow hn0),
 
 -- So if we rebase the product over prime factors ...
-  simp only [←(@prod_pf_to_prod_pd n (λ x, (1 - (↑x:ℚ)⁻¹)))],
+  simp only [←(rebase_prod_prime_factorization (λ x, (1 - (↑x:ℚ)⁻¹)))],
 
 -- ... we get a simpler formula for the RHS
-  push_cast,
+  -- push_cast,
   rw ←prod_mul_distrib,
 
 -- Now, since φ is multiplicative (and primes are coprime) we can rewrite φ n

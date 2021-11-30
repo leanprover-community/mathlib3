@@ -176,7 +176,7 @@ theorem rpow_arith_mean_le_arith_mean2_rpow (w₁ w₂ z₁ z₂ : ℝ≥0∞) (
   (hp : 1 ≤ p) :
   (w₁ * z₁ + w₂ * z₂) ^ p ≤ w₁ * z₁ ^ p + w₂ * z₂ ^ p :=
 begin
-  have h := rpow_arith_mean_le_arith_mean_rpow univ ![w₁, w₂] ![z₁, z₂]_ hp,
+  have h := rpow_arith_mean_le_arith_mean_rpow univ ![w₁, w₂] ![z₁, z₂] _ hp,
   { simpa [fin.sum_univ_succ] using h, },
   { simp [hw', fin.sum_univ_succ], },
 end

@@ -188,12 +188,12 @@ begin
 end
 
 @[nolint unused_arguments]
-lemma _root_.algebra.trace_matrix_eq_embeddings_matrix_mul_trans :
+lemma trace_matrix_eq_embeddings_matrix_mul_trans :
   (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix K E b) ⬝ (embeddings_matrix K E b)ᵀ :=
 by { ext i j, simp [trace_eq_sum_embeddings, embeddings_matrix, mul_apply] }
 
-lemma _root_.algebra.trace_matrix_eq_embeddings_matrix_reindex_mul_trans
+lemma trace_matrix_eq_embeddings_matrix_reindex_mul_trans
   (e : ι ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
 by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,

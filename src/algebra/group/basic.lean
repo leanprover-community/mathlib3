@@ -482,6 +482,13 @@ lemma div_mul_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
   mul_left_cancel_iff, mul_comm, mul_assoc]
 
+variables {a b c d : G}
+
+local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
+
+@[to_additive] lemma div_mul_eq_div_div (a b c : G) : a / (b * c) = a / b / c :=
+by simp
+
 end comm_group
 
 section add_comm_group
@@ -490,9 +497,6 @@ section add_comm_group
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
-
-lemma sub_add_eq_sub_sub (a b c : G) : a - (b + c) = a - b - c :=
-by simp
 
 lemma neg_add_eq_sub (a b : G) : -a + b = b - a :=
 by simp

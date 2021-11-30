@@ -74,7 +74,7 @@ submodule.ext (mem_grade_iff' R m)
 
 lemma single_mem_grade_by {R} [comm_semiring R] (f : M → ι) (i : ι) (m : M)
   (h : f m = i) (r : R) :
-    finsupp.single m r ∈ grade_by R f i :=
+  finsupp.single m r ∈ grade_by R f i :=
 begin
   intros x hx,
   rw finset.mem_singleton.mp (finsupp.support_single_subset hx),

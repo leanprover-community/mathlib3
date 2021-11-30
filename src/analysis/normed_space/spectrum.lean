@@ -18,7 +18,8 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 
 * `spectrum.is_open_resolvent_set`: the resolvent set is open.
 * `spectrum.is_closed`: the spectrum is closed.
-* `spectrum.subset_closed_ball_norm`: the spectrum is a subset of closed disk of radius equal to the norm.
+* `spectrum.subset_closed_ball_norm`: the spectrum is a subset of closed disk of radius
+  equal to the norm.
 * `spectrum.is_compact`: the spectrum is compact.
 * `spectrum.spectral_radius_le_nnnorm`: the spectral radius is bounded above by the norm.
 * `spectrum.has_deriv_at_resolvent`: the resolvent function is differentiable on the resolvent set.

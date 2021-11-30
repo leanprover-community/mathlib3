@@ -451,27 +451,43 @@ meta def linter.unused_haves_suffices : linter :=
 
 
 section
-
+-- run_cmd (do
+--   let t :expr := expr.var 1,
+--   trace (instantiate_locals [(`n, `(2)), (`n, `(4))]`(%%t = 1)),
+--   l← is_prop (instantiate_locals [(`n, `(1))]`(%%t = 1)),
+--   trace l
+-- )
 /--
 Return a list of unused have and suffices terms in an expression
 -/
-meta def find_unnecessary_dites_exprs : expr → tactic (list string)
-| (app (app (app (app (app (const `dite l) a) b) c) (lam n1 bi1 vt1 bd1)) (lam n2 bi2 vt2 bd2)) := -- TODO is there a nicer way of doing this with `()
-  do --trace l,
+meta def find_unnecessary_dites_exprs : list (name × expr) → expr → tactic (list string)
+| l (app (app (app (app (app (const `dite r) a) b) c) (lam n1 bi1 vt1 bd1)) (lam n2 bi2 vt2 bd2)) := -- TODO is there a nicer way of doing this with `()
+  do -- trace l,
+   ll1 ← (((n1, vt1) :: l).mfoldr (λ nm acc, do f ← mk_local' nm.fst binder_info.default (instantiate_vars nm.snd acc), return (f :: acc))) [],
+   ll2 ← (((n2, vt2) :: l).mfoldr (λ nm acc, do f ← mk_local' nm.fst binder_info.default (instantiate_vars nm.snd acc), return (f :: acc))) [],
+  --  trace bd1,
+  --  trace $ ll.map local_type,
+  --   trace (bd1.instantiate_vars ll),
+    -- trace (bd2.instantiate_vars ll2),
+    -- TODO these will probaly always be the same no need for both
+    t1 ← (infer_type $ bd1.instantiate_vars ll1),
+    b1 ← is_prop t1,
+    t2 ← (infer_type $ bd2.instantiate_vars ll2),
+    b2 ← is_prop t2,
      --trace a,
      --trace b,
      --trace c,
      let t : list string := []
-          ++ if ¬ bd1.has_zero_var then ["The proof assuming " ++ (to_string vt1) ++ " doesn't use the hypothesis " ++ to_string n1] else []
-          ++ if ¬ bd2.has_zero_var then ["The proof assuming " ++ (to_string vt2) ++ " doesn't use the hypothesis " ++ to_string n2] else [],
-     l₁ ← find_unnecessary_dites_exprs bd1,
-     l₂ ← find_unnecessary_dites_exprs bd2,
+          ++ if (¬ bd1.has_zero_var) && b1 then ["The proof assuming " ++ (to_string vt1) ++ " doesn't use the hypothesis " ++ to_string n1] else []
+          ++ if (¬ bd2.has_zero_var) && b2 then ["The proof assuming " ++ (to_string vt2) ++ " doesn't use the hypothesis " ++ to_string n2] else [],
+     l₁ ← find_unnecessary_dites_exprs ((n1, vt1) :: l) bd1,
+     l₂ ← find_unnecessary_dites_exprs ((n2, vt2) :: l) bd2,
      return $ l₁ ++ l₂ ++ t
-| (app a b) := (++) <$> find_unnecessary_dites_exprs a <*> find_unnecessary_dites_exprs b
-| (lam var_name bi var_type body) := find_unnecessary_dites_exprs body
-| (pi var_name bi var_type body) := find_unnecessary_dites_exprs body
-| (elet var_name type assignment body) := (++) <$> find_unnecessary_dites_exprs assignment
-                                               <*> find_unnecessary_dites_exprs body
+| l (app a b) := (++) <$> find_unnecessary_dites_exprs l a <*> find_unnecessary_dites_exprs l b
+| l (lam var_name bi var_type body) := find_unnecessary_dites_exprs ((var_name, var_type) :: l) body
+| l (pi var_name bi var_type body) := find_unnecessary_dites_exprs ((var_name, var_type) :: l) body
+| l (elet var_name type assignment body) := (++) <$> find_unnecessary_dites_exprs l assignment
+                                               <*> find_unnecessary_dites_exprs ((var_name, type) :: l) body
 -- | m@(macro md [l@(lam ppnm bi vt bd)]) := do -- term mode have statements are tagged with a macro
 --   -- if the macro annotation is `have then this lambda came from a term mode have statement
 --   (++) (if m.is_annotation.iget.fst = `have ∧ ¬bd.has_zero_var then
@@ -485,15 +501,15 @@ meta def find_unnecessary_dites_exprs : expr → tactic (list string)
 --       ["unnecessary suffices " ++ ppnm.to_string ++ " : " ++ vt.to_string]
 --     else []) <$>
 --   ((++) <$> find_unnecessary_dites_exprs l <*> find_unnecessary_dites_exprs arg)
-| (macro md l) := list.join <$> l.mmap find_unnecessary_dites_exprs
-| _ := return []
+| l (macro md li) := list.join <$> (li.mmap $ find_unnecessary_dites_exprs l)
+| _ _ := return []
 
 /--
 Return a list of unused have and suffices terms in a declaration
 -/
 meta def unnecessary_dites_of_decl : declaration → tactic (list string)
 | (declaration.defn _ _ _ bd _ _) := return []
-| (declaration.thm _ _ _ bd) := find_unnecessary_dites_exprs bd.get
+| (declaration.thm _ _ _ bd) := find_unnecessary_dites_exprs [] bd.get
 | _ := return []
 
 /--
@@ -526,16 +542,35 @@ meta def linter.unnecessary_dites : linter :=
 "proofs appear as if they are used. ",
   is_fast := ff }
 
--- lemma silly {n : ℕ} : n + 1 = n + 1 :=
--- begin
---   by_cases h : n = 0,
---   { simp [h], },
---   { refl, },
--- end
--- open expr tactic environment
+lemma silly2 {n : ℕ} : n + 1 = n + 1 :=
+begin
+  refl
+end
+-- #print silly2
+lemma silly {n : ℕ} : n + 1 = n + 1 :=
+begin
+  by_cases h : n = 0,
+  {
+    by_cases h2 : n = 1,
+    { simp [h],},
+    simp [h],
+     },
+  { refl, },
+end
+-- #print silly
+lemma not_silly :
+  (λ m, if h : m = 1 then 0 else 1) 1 = 0 :=
+begin
+  simp,
+end
+open expr tactic environment
 
+-- set_option pp.all true
 -- run_cmd (do
 -- d ← get_decl `silly,
+-- trace $ has_unnecessary_dites d)
+-- run_cmd (do
+-- d ← get_decl `not_silly,
 -- trace $ has_unnecessary_dites d)
 -- #print silly
 

@@ -753,6 +753,16 @@ lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
 by rw [perm_iff_count.mp (perm_factors_mul_of_coprime hab) p, count_append]
 
+/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
+lemma factors_count_pow {n k p: ℕ} : count p (n ^ k).factors = k * count p n.factors :=
+begin
+  induction k with k IH, { simp },
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp [zero_pow (succ_pos k), count_nil, factors_zero, mul_zero] },
+  rw [pow_succ n k, perm_iff_count.mp (perm_factors_mul_of_pos hn (pow_pos hn k)) p],
+  rw [list.count_append, IH, add_comm, mul_comm, ←mul_succ (count p n.factors) k, mul_comm],
+end
+
 end
 
 lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m n k l : ℕ}

@@ -366,7 +366,6 @@ apply_nolint stream.all doc_blame
 apply_nolint stream.any doc_blame
 apply_nolint stream.append_stream doc_blame
 apply_nolint stream.apply doc_blame
-apply_nolint stream.approx doc_blame
 apply_nolint stream.cons doc_blame
 apply_nolint stream.const doc_blame
 apply_nolint stream.corec doc_blame

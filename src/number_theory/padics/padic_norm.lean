@@ -8,6 +8,7 @@ import algebra.field_power
 import ring_theory.int.basic
 import tactic.basic
 import tactic.ring_exp
+import number_theory.divisors
 
 /-!
 # p-adic norm
@@ -512,6 +513,31 @@ begin
     rw [finset.mem_filter, finset.mem_range] at hp,
     haveI Hp : fact p.prime := ⟨hp.2⟩,
     rw [padic_val_nat_eq_factors_count, multiset.coe_count] }
+end
+
+lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) [fact p.prime] (hn : n ≠ 0) :
+  (finset.range (padic_val_nat p n + 1)).image (pow p) ⊆ n.divisors :=
+begin
+  intros t ht,
+  simp only [exists_prop, finset.mem_image, finset.mem_range] at ht,
+  obtain ⟨k, hk, rfl⟩ := ht,
+  rw nat.mem_divisors,
+  exact ⟨(pow_dvd_pow p $ by linarith).trans pow_padic_val_nat_dvd, hn⟩
+end
+
+lemma range_pow_padic_val_nat_subset_divisors' {n : ℕ} (p : ℕ) [h : fact p.prime] :
+  (finset.range (padic_val_nat p n)).image (λ t, p ^ (t + 1)) ⊆ (n.divisors \ {1}) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  intros t ht,
+  simp only [exists_prop, finset.mem_image, finset.mem_range] at ht,
+  obtain ⟨k, hk, rfl⟩ := ht,
+  rw [finset.mem_sdiff, nat.mem_divisors],
+  refine ⟨⟨(pow_dvd_pow p $ by linarith).trans pow_padic_val_nat_dvd, hn⟩, _⟩,
+  rw [finset.mem_singleton],
+  nth_rewrite 1 ←one_pow (k + 1),
+  exact (nat.pow_lt_pow_of_lt_left h.1.one_lt $ nat.succ_pos k).ne',
 end
 
 end padic_val_nat

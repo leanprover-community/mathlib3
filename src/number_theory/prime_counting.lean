@@ -11,6 +11,7 @@ import tactic.linarith
 import data.nat.totient
 import data.multiset.locally_finite
 import algebra.periodic
+import data.finset.basic
 
 
 /-!
@@ -72,7 +73,7 @@ begin
     { exact ⟨le_trans a_le_b h.left, h.right⟩, }, },
 end
 
-lemma split_range {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ -> Prop) [decidable_pred p] :
+lemma split_range {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ → Prop) [decidable_pred p] :
   (range n).filter p = (range k).filter p ∪ (Ico k n).filter p :=
 begin
   rw [range_eq_Ico],
@@ -112,7 +113,7 @@ end
 
 -- TODO Generalize from ℕ
 -- Note that this does not hold for locally finitely ordered add monoids in general, as we could have a (horizontally) periodic function on ℤ² which is different over different y-coordinates. It should hold over ℤ though.
-lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ -> Prop) [decidable_pred p]
+lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
  (pp : function.periodic p a) :
   (filter p (Ico n (n+a))).card = (filter p (Ico 0 a)).card :=
 begin

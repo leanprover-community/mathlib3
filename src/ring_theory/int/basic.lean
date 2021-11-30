@@ -413,7 +413,7 @@ theorem eq_pow_of_mul_eq_pow_bit1_right {a b c : ℤ}
   (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) : ∃ d, b = d ^ (bit1 k) :=
 eq_pow_of_mul_eq_pow_bit1_left hab.symm (by rwa mul_comm at h)
 
-theorem eq_pow_of_mul_eq_pow_bit1 {a b c : ℤ} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem eq_pow_of_mul_eq_pow_bit1 {a b c : ℤ}
   (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) :
   (∃ d, a = d ^ (bit1 k)) ∧ (∃ e, b = e ^ (bit1 k)) :=
 ⟨eq_pow_of_mul_eq_pow_bit1_left hab h, eq_pow_of_mul_eq_pow_bit1_right hab h⟩

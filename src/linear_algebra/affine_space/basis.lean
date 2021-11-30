@@ -192,9 +192,9 @@ end
 noncomputable def coords : P →ᵃ[k] ι → k :=
 { to_fun    := λ q i, b.coord i q,
   linear    :=
-    { to_fun    := λ v i, -(b.basis_of i).sum_coords v,
-      map_add'  := λ v w, by { ext i, simp only [linear_map.map_add, pi.add_apply, neg_add], },
-      map_smul' := λ t v, by { ext i, simpa only [linear_map.map_smul, pi.smul_apply, smul_neg] } },
+  { to_fun    := λ v i, -(b.basis_of i).sum_coords v,
+    map_add'  := λ v w, by { ext i, simp only [linear_map.map_add, pi.add_apply, neg_add], },
+    map_smul' := λ t v, by { ext i, simpa only [linear_map.map_smul, pi.smul_apply, smul_neg] } },
   map_vadd' := λ p v, by
     { ext i,
       simp only [add_left_inj, vadd_eq_add, pi.vadd_apply', pi.smul_apply, pi.neg_apply,

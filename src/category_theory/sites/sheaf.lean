@@ -109,9 +109,44 @@ def Sheaf : Type* :=
 {P : Cᵒᵖ ⥤ A // presheaf.is_sheaf J P}
 
 /-- The inclusion functor from sheaves to presheaves. -/
-@[simps {rhs_md := semireducible}, derive [full, faithful]]
+@[derive [full, faithful]]
 def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 full_subcategory_inclusion (presheaf.is_sheaf J)
+
+namespace Sheaf
+
+variables {J A}
+variables (X : Sheaf J A) {U V W : Sheaf J A}
+variables (f f₁ f₂ : U ⟶ V) (g : V ⟶ W)
+
+/-- The presheaf associated to a sheaf.-/
+def presheaf : Cᵒᵖ ⥤ A := X.1
+
+@[simp] lemma presheaf_def : X.1 = X.presheaf := rfl
+
+@[simp] lemma Sheaf_to_presheaf_obj : (Sheaf_to_presheaf _ _).obj X = X.presheaf := rfl
+
+lemma condition : presheaf.is_sheaf J X.presheaf := X.2
+
+/-- The morphism of presheaves associated to a morphism of sheaves. -/
+def _root_.quiver.hom.presheaf_hom : U.presheaf ⟶ V.presheaf := f
+
+@[simp] lemma _root_.quiver.hom.presheaf_hom_def : (f : U.presheaf ⟶ V.presheaf) =
+  f.presheaf_hom := rfl
+
+@[simp] lemma Sheaf_to_presheaf_map : (Sheaf_to_presheaf _ _).map f = f.presheaf_hom := rfl
+
+/-- Make a morphism of sheaves from a morphism of underlying presheaves. -/
+def mk_hom (f : U.presheaf ⟶ V.presheaf) : U ⟶ V := f
+
+@[simp] lemma presheaf_hom_mk_hom (f : U.presheaf ⟶ V.presheaf) :
+  (mk_hom f).presheaf_hom = f := rfl
+
+@[simp] lemma mk_hom_presheaf_hom : mk_hom f.presheaf_hom = f := rfl
+
+@[ext] lemma hom_ext (h : f₁.presheaf_hom = f₂.presheaf_hom) : f₁ = f₂ := h
+
+end Sheaf
 
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
 @[simps] abbreviation sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
@@ -145,10 +180,10 @@ The category of sheaves taking values in Type is the same as the category of set
 @[simps]
 def Sheaf_equiv_SheafOfTypes : Sheaf J (Type w) ≌ SheafOfTypes J :=
 { functor :=
-  { obj := λ S, ⟨S.1, (is_sheaf_iff_is_sheaf_of_type _ _).1 S.2⟩,
+  { obj := λ S, ⟨S.presheaf, (is_sheaf_iff_is_sheaf_of_type _ _).1 S.condition⟩,
     map := λ S₁ S₂ f, f },
   inverse :=
-  { obj := λ S, ⟨S.1, (is_sheaf_iff_is_sheaf_of_type _ _).2 S.2⟩,
+  { obj := λ S, ⟨S.presheaf, (is_sheaf_iff_is_sheaf_of_type _ _).2 S.condition⟩,
     map := λ S₁ S₂ f, f },
   unit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy),
   counit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy) }

@@ -483,7 +483,7 @@ rw nhds_within,
 simp [inf_le_left],
 end
 
-
+/-
 lemma int_diff_of_uniform  (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
   (hlim : tendsto_uniformly F f filter.at_top) :
   tendsto_uniformly_on (λ (n : ℕ), int_diff R hR (F n) z) (int_diff R hR f z) filter.at_top (ball z R):=
@@ -526,6 +526,7 @@ simp_rw dist_eq_norm at *,
 have h1: ∀ (x_1 : ℝ) (x : ℂ), z + ↑R * exp (↑x_1 * I) - x =  ↑R * exp (↑x_1 * I) - (x -z),
 by {intros y x , ring},
 simp_rw h1,
+sorry,
 have := integral_circle_div_sub_of_abs_lt hx,
 simp,
 simp_rw ← integral_const_mul,
@@ -570,7 +571,7 @@ begin
   -/
 sorry,
 end
-
+-/
 
 lemma UNIF_CONV_INT (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)  (F_cts : ∀ n, continuous (F n))
    (hlim : tendsto_uniformly F f filter.at_top) (z : ℂ) (w : ball z R) :
@@ -621,7 +622,7 @@ have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), tendsto (λ n, ((in
     simp_rw ← mul_assoc,
     simp_rw [mul_inv_cancel hr'],
     simp,
-
+    rw  mul_lt_iff_lt_one_left,
   sorry,},
 have := tendsto_integral_of_dominated_convergence bound F_measurable bound_integrable h_bound h_lim',
 have pi: 0 ≤ 2*π , by {sorry},

@@ -506,6 +506,7 @@ begin
 end
 
 /-- If `P` is a sheaf, then `P` is isomorphic to `J.sheafify P`. -/
+@[simps hom]
 def iso_sheafify {P : Cᵒᵖ ⥤ D} (hP : presheaf.is_sheaf J P) :
   P ≅ J.sheafify P :=
 by letI := is_iso_to_sheafify J hP; exactI as_iso (J.to_sheafify P)
@@ -542,6 +543,16 @@ begin
   exact h,
 end
 
+@[simp]
+lemma iso_sheafify_inv {P : Cᵒᵖ ⥤ D} (hP : presheaf.is_sheaf J P) :
+  (J.iso_sheafify hP).inv = J.sheafify_lift (𝟙 _) hP :=
+begin
+  apply J.sheafify_lift_unique,
+  rw [iso.comp_inv_eq, category.id_comp],
+  refl,
+end
+
+@[simp]
 lemma sheafification_map_sheafify_lift {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R)
   (hR : presheaf.is_sheaf J R) :
   (J.sheafification D).map η ≫ J.sheafify_lift γ hR = J.sheafify_lift (η ≫ γ) hR :=
@@ -569,56 +580,45 @@ grothendieck_topology.plus.is_sheaf_plus_plus _ _
 variables (D)
 
 /-- The sheafification functor, as a functor taking values in `Sheaf`. -/
-@[simps obj map]
+@[simps]
 def presheaf_to_Sheaf : (Cᵒᵖ ⥤ D) ⥤ Sheaf J D :=
 { obj := λ P, ⟨J.sheafify P, J.sheafify_is_sheaf P⟩,
-  map := λ P Q η, (J.sheafification D).map η,
-  map_id' := (J.sheafification D).map_id,
-  map_comp' := λ P Q R, (J.sheafification D).map_comp }
+  map := λ P Q η, ⟨(J.sheafification D).map η⟩,
+  map_id' := λ P, Sheaf.hom.ext _ _ $ (J.sheafification D).map_id _,
+  map_comp' := λ P Q R f g, Sheaf.hom.ext _ _ $ (J.sheafification D).map_comp _ _ }
 
 /-- The sheafification functor is left adjoint to the forgetful functor. -/
 def sheafification_adjunction : presheaf_to_Sheaf J D ⊣ Sheaf_to_presheaf J D :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ P Q,
-  { to_fun := λ e, J.to_sheafify P ≫ e,
-    inv_fun := λ e, J.sheafify_lift e Q.condition,
-    left_inv := λ e, (J.sheafify_lift_unique _ _ _ rfl).symm,
+  { to_fun := λ e, J.to_sheafify P ≫ e.presheaf_hom,
+    inv_fun := λ e, ⟨J.sheafify_lift e Q.condition⟩,
+    left_inv := λ e, Sheaf.hom.ext _ _ $ (J.sheafify_lift_unique _ _ _ rfl).symm,
     right_inv := λ e, J.to_sheafify_sheafify_lift _ _ },
   hom_equiv_naturality_left_symm' := begin
-    intros P Q R η γ, dsimp, symmetry,
+    intros P Q R η γ,
+    ext1, dsimp, symmetry,
     apply J.sheafification_map_sheafify_lift,
   end,
-  hom_equiv_naturality_right' := λ P Q R η γ, by { dsimp, rw category.assoc, refl } }
+  hom_equiv_naturality_right' := λ P Q R η γ, by { dsimp, rw category.assoc } }
 
 variables {J D}
 /-- A sheaf `P` is isomorphic to its own sheafification. -/
+@[simps]
 def sheafification_iso (P : Sheaf J D) :
   P ≅ (presheaf_to_Sheaf J D).obj ((Sheaf_to_presheaf J D).obj P) :=
-{ hom := (J.iso_sheafify P.condition).hom,
-  inv := (J.iso_sheafify P.condition).inv,
-  hom_inv_id' := (J.iso_sheafify P.condition).hom_inv_id,
-  inv_hom_id' := (J.iso_sheafify P.condition).inv_hom_id }
+{ hom := ⟨(J.iso_sheafify P.condition).hom⟩,
+  inv := ⟨(J.iso_sheafify P.condition).inv⟩,
+  hom_inv_id' := Sheaf.hom.ext _ _ $ (J.iso_sheafify P.condition).hom_inv_id,
+  inv_hom_id' := Sheaf.hom.ext _ _ $ (J.iso_sheafify P.condition).inv_hom_id }
 
-@[simp]
-lemma sheafification_iso_hom (P : Sheaf J D) :
-  (sheafification_iso P).hom = J.to_sheafify ((Sheaf_to_presheaf _ _).obj P) := rfl
-
-@[simp]
 lemma sheafification_iso_inv (P : Sheaf J D) :
-  (sheafification_iso P).inv = J.sheafify_lift (𝟙 _) P.condition :=
-begin
-  apply J.sheafify_lift_unique,
-  erw [iso.comp_inv_eq, category.id_comp],
-  refl,
-end
+  (sheafification_iso P).inv.presheaf_hom = J.sheafify_lift (𝟙 _) P.condition :=
+by { dsimp, simp }
 
 instance is_iso_sheafification_adjunction_counit (P : Sheaf J D) :
   is_iso ((sheafification_adjunction J D).counit.app P) :=
-begin
-  dsimp [sheafification_adjunction],
-  erw ← sheafification_iso_inv,
-  apply_instance
-end
+is_iso_of_fully_faithful (Sheaf_to_presheaf J D) _
 
 instance sheafification_reflective : is_iso (sheafification_adjunction J D).counit :=
 nat_iso.is_iso_of_is_iso_app _

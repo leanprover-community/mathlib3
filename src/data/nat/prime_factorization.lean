@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stuart Presnell
 -/
 import data.nat.prime
-import data.nat.totient
 import data.nat.mul_ind
-import tactic.field_simp
 
 /-!
 # Prime factorizations
@@ -208,46 +206,6 @@ lemma prime_pow_of_prime_factorization_single {n p k : ℕ} (hn : 0 < n)
 by { rw [prime_factorization_prod_pow hn, h], simp }
 
 ---------------------------------------------------------------------------------------------------
-
-
-theorem totient_Euler_product_formula (n:ℕ) :
-  ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹:ℚ)
-  :=
-begin
--- If n = 0 then the identity holds trivially
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-
--- Otherwise n is the product over its prime factorization
-  nth_rewrite_rhs 0 (prime_factorization_prod_pow hn0),
-
--- Since φ is multiplicative (and primes are coprime) we can rewrite φ n
-  rw (multiplicative_factorization hn0 (λ a b, totient_mul) totient_one),
-
--- So if we rebase the product over prime factors ...
-  simp only [←(rebase_prod_prime_factorization (λ x, (1 - (↑x:ℚ)⁻¹)))],
-
--- ... we can gather the RHS into a single product
-  unfold finsupp.prod,
-  push_cast,
-  rw ←prod_mul_distrib,
-
--- So now it suffices to prove that the multiplicands are equal
-  apply prod_congr rfl,
-  intros p hp,
-  set k := n.prime_factorization p,
-
-  have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
-  have hp_pos : 0 < p := prime.pos hpp,
-  have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp_pos.ne',
-
-  have hk : 0 < k, { rwa [finsupp.mem_support_iff, ←zero_lt_iff] at hp },
-  rw totient_prime_pow hpp hk,
-
-  -- Finally, we need to prove: ↑(p ^ (k - 1) * (p - 1)) = ↑p ^ k * (1 - (↑p)⁻¹)
-  field_simp,
-  push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
-end
-
 
 
 end nat

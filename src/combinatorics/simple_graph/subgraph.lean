@@ -9,7 +9,7 @@ import combinatorics.simple_graph.basic
 # Subgraphs of a simple graph
 
 A subgraph of a simple graph consists of subsets of the graph's vertices and edges such that the
-endpoints of each edge are present in the vertex subset.  The edge subset is formalized as a
+endpoints of each edge are present in the vertex subset. The edge subset is formalized as a
 sub-relation of the adjacency relation of the simple graph.
 
 ## Main definitions
@@ -25,7 +25,7 @@ sub-relation of the adjacency relation of the simple graph.
 * `subgraph.is_spanning` for whether a subgraph is a spanning subgraph and
   `subgraph.is_induced` for whether a subgraph is an induced subgraph.
 
-* A `bounded_order (subgraph G)` instance, under the `subgraph` relation.
+* Instances for `lattice (subgraph G)` and `bounded_order (subgraph G)`.
 
 * `simple_graph.to_subgraph`: If a `simple_graph` is a subgraph of another, then you can turn it
   into a member of the larger graph's `simple_graph.subgraph` type.
@@ -82,6 +82,9 @@ G'.adj_sub h
 /-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
 
+lemma is_spanning_iff {G' : subgraph G} : G'.is_spanning ↔ G'.verts = set.univ :=
+set.eq_univ_iff_forall.symm
+
 /-- Coercion from `subgraph G` to `simple_graph V`.  If `G'` is a spanning
 subgraph, then `G'.spanning_coe` yields an isomorphic graph.
 In general, this adds in all vertices from `V` as isolated vertices. -/
@@ -106,6 +109,13 @@ In general, this adds in all vertices from `V` as isolated vertices. -/
 they are adjacent in `G`. -/
 def is_induced (G' : subgraph G) : Prop :=
 ∀ {v w : V}, v ∈ G'.verts → w ∈ G'.verts → G.adj v w → G'.adj v w
+
+/-- `H.support` is the set of vertices that form edges in the subgraph `H`. -/
+def support (H : subgraph G) : set V := rel.dom H.adj
+
+lemma mem_support (H : subgraph G) {v : V} : v ∈ H.support ↔ ∃ w, H.adj v w := iff.rfl
+
+lemma support_subset_verts (H : subgraph G) : H.support ⊆ H.verts := λ v ⟨w, h⟩, H.edge_vert h
 
 /-- `G'.neighbor_set v` is the set of vertices adjacent to `v` in `G'`. -/
 def neighbor_set (G' : subgraph G) (v : V) : set V := set_of (G'.adj v)
@@ -251,6 +261,9 @@ instance : bounded_order (subgraph G) :=
   adj_sub := h,
   edge_vert := λ v w h, set.mem_univ v,
   symm := H.symm }
+
+lemma support_mono {H H' : subgraph G} (h : H ≤ H') : H.support ⊆ H'.support :=
+rel.dom_mono h.2
 
 lemma _root_.simple_graph.to_subgraph.is_spanning (H : simple_graph V) (h : H ≤ G) :
   (H.to_subgraph h).is_spanning := set.mem_univ

@@ -1438,6 +1438,9 @@ begin
   norm_cast
 end
 
+lemma to_real_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_real < b.to_real :=
+(to_real_lt_to_real (h.trans (lt_top_iff_ne_top.2 hb)).ne hb).2 h
+
 lemma to_nnreal_mono (hb : b ≠ ∞) (h : a ≤ b) : a.to_nnreal ≤ b.to_nnreal :=
 by simpa [←ennreal.coe_le_coe, hb, (h.trans_lt hb.lt_top).ne]
 

@@ -1253,6 +1253,29 @@ has_limit_of_created (cospan f g) Scheme.forget
 instance has_pullback_of_right : has_pullback g f :=
 has_limit_of_created (cospan g f) Scheme.forget
 
+instance pullback_snd_of_left : is_open_immersion (pullback.snd : pullback f g ⟶ _) :=
+begin
+  have := preserves_pullback.iso_hom_snd Scheme.forget f g,
+  dsimp only [Scheme.forget, induced_functor_map] at this,
+  rw ← this,
+  change LocallyRingedSpace.is_open_immersion _,
+  apply_instance
+end
+
+instance pullback_fst_of_right : is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
+begin
+  rw ← pullback_symmetry_hom_comp_snd,
+  apply_instance
+end
+
+instance pullback_one [is_open_immersion g] :
+  is_open_immersion (limit.π (cospan f g) walking_cospan.one) :=
+begin
+  rw ← limit.w (cospan f g) walking_cospan.hom.inl,
+  change is_open_immersion (_ ≫ f),
+  apply_instance
+end
+
 instance forget_to_Top_preserves_of_left :
   preserves_limit (cospan f g) (Scheme.forget ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙
   SheafedSpace.forget _) :=

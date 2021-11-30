@@ -120,7 +120,7 @@ end
 def sigma_opens [has_coproduct D.U] : C := ∐ D.U
 
 /-- (Implementation) The diagram to take colimit of. -/
-def diagram : multispan_index C :=
+@[simps] def diagram : multispan_index C :=
 { L := D.ι × D.ι, R := D.ι,
   fst_from := _root_.prod.fst, snd_from := _root_.prod.snd,
   left := D.V, right := D.U,

@@ -18,22 +18,22 @@ Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we 
 
 ## Main definition
 
-* `discr A b` : the discriminant of `b : ι → B`.
+* `algebra.discr A b` : the discriminant of `b : ι → B`.
 
 ## Main results
 
-* `discr_zero_of_not_linear_independent` : if `b` is not linear independent, then
-  `discr A b = 0`.
-* `discr_of_matrix_vec_mul` and `discr_of_matrix_mul_vec` : formulas relating `discr A ι b` with
-  `discr A ((P.map (algebra_map A B)).vec_mul b)` and
-  `discr A ((P.map (algebra_map A B)).mul_vec b)`.
-* `discr_not_zero_of_linear_independent` : over a field, if b` is linear independent, then
-  `discr K b ≠ 0`.
-* `discr_eq_det_embeddings_matrix_reindex_pow_two` if `L/K` is a fields extension and `b : ι → L`,
-  then `discr K b` is the square of the determinant of the matrix whose `(i, j)` coefficient is
-  `σⱼ (b i)`, where `σⱼ : L →ₐ[K] E` is the embedding in an algebraically closed field `E`
-  corresponding to `j : ι` via a bijection `e : ι ≃ (L →ₐ[K] E)`.
-* `discr_of_power_basis_eq_prod` : the discriminant of a power basis.
+* `algebra.discr_zero_of_not_linear_independent` : if `b` is not linear independent, then
+  `algebra.discr A b = 0`.
+* `algebra.discr_of_matrix_vec_mul` and `discr_of_matrix_mul_vec` : formulas relating
+  `algebra.discr A ι b` with `algebra.discr A ((P.map (algebra_map A B)).vec_mul b)` and
+  `algebra.discr A ((P.map (algebra_map A B)).mul_vec b)`.
+* `algebra.discr_not_zero_of_linear_independent` : over a field, if b` is linear independent, then
+  `algebra.discr K b ≠ 0`.
+* `algebra.discr_eq_det_embeddings_matrix_reindex_pow_two` if `L/K` is a fields extension and
+  `b : ι → L`, then `discr K b` is the square of the determinant of the matrix whose `(i, j)`
+  coefficient is `σⱼ (b i)`, where `σⱼ : L →ₐ[K] E` is the embedding in an algebraically closed
+  field `E` corresponding to `j : ι` via a bijection `e : ι ≃ (L →ₐ[K] E)`.
+* `algebra.discr_of_power_basis_eq_prod` : the discriminant of a power basis.
 
 ## Implementation details
 

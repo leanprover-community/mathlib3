@@ -120,12 +120,21 @@ end
 def sigma_opens [has_coproduct D.U] : C := ∐ D.U
 
 /-- (Implementation) The diagram to take colimit of. -/
-@[simps] def diagram : multispan_index C :=
+def diagram : multispan_index C :=
 { L := D.ι × D.ι, R := D.ι,
   fst_from := _root_.prod.fst, snd_from := _root_.prod.snd,
   left := D.V, right := D.U,
   fst := λ ⟨i, j⟩, D.f i j,
   snd := λ ⟨i, j⟩, D.t i j ≫ D.f j i }
+
+@[simp] lemma diagram_L : D.diagram.L = (D.ι × D.ι) := rfl
+@[simp] lemma diagram_R : D.diagram.R = D.ι := rfl
+@[simp] lemma diagram_fst_from (i j : D.ι) : D.diagram.fst_from ⟨i, j⟩ = i := rfl
+@[simp] lemma diagram_snd_from (i j : D.ι) : D.diagram.snd_from ⟨i, j⟩ = j := rfl
+@[simp] lemma diagram_fst (i j : D.ι) : D.diagram.fst ⟨i, j⟩ = D.f i j := rfl
+@[simp] lemma diagram_snd (i j : D.ι) : D.diagram.snd ⟨i, j⟩ = D.t i j ≫ D.f j i := rfl
+@[simp] lemma diagram_left : D.diagram.left = D.V := rfl
+@[simp] lemma diagram_right : D.diagram.right = D.U := rfl
 
 section
 
@@ -187,7 +196,7 @@ nat_iso.of_components
     | walking_multispan.right b := iso.refl _
     end)
   (begin
-    rintros (⟨_,_⟩|b) _ (_|_|_),
+    rintros (⟨_,_⟩|_) _ (_|_|_),
     all_goals
     { try { erw category.comp_id },
       try { erw category.id_comp },
@@ -195,6 +204,24 @@ nat_iso.of_components
       try { erw functor.map_comp },
       refl },
   end)
+
+@[simp] lemma diagram_iso_app_left (i : D.ι × D.ι) :
+  (D.diagram_iso F).app (walking_multispan.left i) = iso.refl _ := rfl
+
+@[simp] lemma diagram_iso_app_right (i : D.ι) :
+  (D.diagram_iso F).app (walking_multispan.right i) = iso.refl _ := rfl
+
+@[simp] lemma diagram_iso_hom_app_left (i : D.ι × D.ι) :
+  (D.diagram_iso F).hom.app (walking_multispan.left i) = 𝟙 _ := rfl
+
+@[simp] lemma diagram_iso_hom_app_right (i : D.ι) :
+  (D.diagram_iso F).hom.app (walking_multispan.right i) = 𝟙 _ := rfl
+
+@[simp] lemma diagram_iso_inv_app_left (i : D.ι × D.ι) :
+  (D.diagram_iso F).inv.app (walking_multispan.left i) = 𝟙 _ := rfl
+
+@[simp] lemma diagram_iso_inv_app_right (i : D.ι) :
+  (D.diagram_iso F).inv.app (walking_multispan.right i) = 𝟙 _ := rfl
 
 end glue_data
 

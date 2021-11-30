@@ -272,8 +272,7 @@ protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (
 
 /-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
 
-If an explicit right-inverse `g` to `f` is known, use `mul_action.comp_hom g` instead
-to obtain this computably.
+See also `function.surjective.distrib_mul_action_left` and `function.surjective.module_left`.
 -/
 @[reducible, to_additive "Push forward the action of `R` on `M` along a compatible
 surjective map `f : R →+ S`."]
@@ -435,7 +434,10 @@ protected def function.surjective.distrib_mul_action [add_monoid B] [has_scalar 
   smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
   .. hf.mul_action f smul }
 
-/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`. -/
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
+
+See also `function.surjective.mul_action_left` and `function.surjective.module_left`.
+-/
 @[reducible]
 def function.surjective.distrib_mul_action_left {R S M : Type*} [monoid R] [add_monoid M]
   [distrib_mul_action R M] [monoid S] [has_scalar S M]

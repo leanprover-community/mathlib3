@@ -99,7 +99,10 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
   zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
   .. hf.distrib_mul_action f smul }
 
-/-- push forward the action of `R` on `M` along a compatible surjective map `f : R →+* S`. -/
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →+* S`.
+
+See also `function.surjective.mul_action_left` and `function.surjective.distrib_mul_action_left`.
+-/
 @[reducible]
 def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoid M]
   [module R M] [semiring S] [has_scalar S M]

@@ -111,9 +111,7 @@ lemma prime_factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) 
 begin
   ext q,
   simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count],
-  -- library_search,
-  -- simp only [count_factors_mul_of_pos ha hb],
-  sorry,
+  simp only [count_factors_mul_of_pos ha hb],
 end
 
 /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
@@ -253,5 +251,3 @@ end
 
 
 end nat
-
-#lint

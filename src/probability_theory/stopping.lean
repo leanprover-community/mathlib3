@@ -88,7 +88,7 @@ def natural (u : ι → α → β) (hum : ∀ i, measurable (u i)) : filtration 
 
 lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) :
   adapted (natural u hum) u :=
-λ i, measurable_le (le_bsupr_of_le i (le_refl i) (le_refl _)) (λ s hs, ⟨s, hs, rfl⟩)
+λ i, measurable.le (le_bsupr_of_le i (le_refl i) (le_refl _)) (λ s hs, ⟨s, hs, rfl⟩)
 
 end filtration
 

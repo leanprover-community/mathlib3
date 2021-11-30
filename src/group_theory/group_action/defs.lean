@@ -270,16 +270,6 @@ protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
   mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
 
-/-- (Non-uniquely) push forward the action of `R` on `M` along a surjective map `f : R → S`.
-
-If an explicit right-inverse `g` to `f` is known, use `has_scalar.comp g` instead
-to obtain this computably.
--/
-@[reducible]
-noncomputable def function.surjective.has_scalar_left {R S M : Type*} [has_scalar R M]
-  (f : R → S) (hf : function.surjective f) : has_scalar S M :=
-⟨λ c x, function.surj_inv hf c • x⟩
-
 /-- `has_scalar.comp` is a right inverse to `function.surjective.has_scalar_left`. -/
 @[simp] lemma function.surjective.has_scalar_left_comp_hom {R S M : Type*} {hsc : has_scalar S M}
   (f : R → S) (hf : function.surjective f) :

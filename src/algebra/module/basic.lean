@@ -110,30 +110,6 @@ def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoi
   add_smul := hf.forall₂.mpr (λ a b x, by simp only [← f.map_add, hsmul, add_smul]),
   .. hf.distrib_mul_action_left f.to_monoid_hom hsmul }
 
-/-- Let `M` be an `R`-module, then a surjective map `f : R →+* S` induces an
-`S`-module structure on `M`, if the kernel of `f` are zero-smul-divisors.
-
-See also `function.surjective.module_left` if you want more control over the definition of `(•)`,
-and `function.surjective.module_left'_of_ring` if `R` and `S` have additive inverses.
--/
-@[reducible]
-noncomputable def function.surjective.module_left' {R S M : Type*}
-  [comm_semiring R] [add_comm_monoid M] [module R M] [semiring S]
-  (f : R →+* S) (hf : function.surjective f)
-  (hsmul : ∀ {a b}, f a = f b → ∀ (x : M), a • x = b • x) :
-  module S M :=
-let scalar : has_scalar S M := hf.has_scalar_left f in
-{ smul := @@has_scalar.smul scalar,
-  .. @@function.surjective.module_left _ _ _ _ scalar f hf
-    (λ c (x : M), hsmul (surj_inv_eq _ _) x) }
-
-lemma function.surjective.module_left'_smul {R S M : Type*}
-  [comm_semiring R] [add_comm_monoid M] [module R M] [semiring S]
-  (f : R →+* S) (hf : function.surjective f)
-  (hsmul : ∀ {a b}, f a = f b → ∀ (x : M), a • x = b • x) (c : R) (x : M) :
-  by { letI := hf.module_left' f @hsmul, exact f c • x } = c • x :=
-hsmul (surj_inv_eq hf _) _
-
 variables {R} (M)
 
 /-- Compose a `module` with a `ring_hom`, with action `f s • m`.

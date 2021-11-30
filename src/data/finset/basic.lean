@@ -1955,20 +1955,6 @@ lemma range_add_one' (n : ℕ) :
   range (n + 1) = insert 0 ((range n).map ⟨λi, i + 1, assume i j, nat.succ.inj⟩) :=
 by ext (⟨⟩ | ⟨n⟩); simp [nat.succ_eq_add_one, nat.zero_lt_succ n]
 
-lemma range_add_eq_union (m n : ℕ) :
-  range (m + n) = range m ∪ (range n).map (add_left_embedding m) :=
-begin
-  ext,
-  simp_rw [mem_union, mem_map, exists_prop, add_left_embedding_apply, mem_range],
-  refine ⟨λ h, _, _⟩,
-  { obtain ha | ha := le_or_lt m a,
-    { exact or.inr ⟨a - m, (tsub_lt_iff_left ha).2 h, add_tsub_cancel_of_le ha⟩ },
-    { exact or.inl ha } },
-  { rintro (ha | ⟨a, ha, rfl⟩),
-    { exact ha.trans_le (le_self_add) },
-    { exact add_lt_add_left ha _ } }
-end
-
 /-! ### image -/
 section image
 variables [decidable_eq β]

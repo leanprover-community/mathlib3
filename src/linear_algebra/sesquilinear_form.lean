@@ -38,7 +38,7 @@ namespace linear_map
 section comm_ring
 
 -- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
-variables {R : Type*} {M : Type*} [comm_semiring R] [star_ring R] [add_comm_monoid M] [module R M]
+variables {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
   {I : R →+* R}
 
 /-- The proposition that two elements of a sesquilinear form space are orthogonal -/
@@ -57,7 +57,7 @@ lemma is_ortho_zero_right (B : M →ₗ[R] M →ₛₗ[I] R) (x) : is_ortho B x 
 end comm_ring
 section is_domain
 
-variables {R : Type*} {M : Type*} [comm_ring R] [star_ring R] [is_domain R] [add_comm_group M]
+variables {R : Type*} {M : Type*} [comm_ring R] [is_domain R] [add_comm_group M]
   [module R M]
   {I : R ≃+* R}
   {B : M →ₗ[R] M →ₛₗ[I.to_ring_hom] R}
@@ -89,7 +89,7 @@ end
 
 end is_domain
 
-variables {R : Type*} {M : Type*} [comm_ring R] [star_ring R] [add_comm_group M] [module R M]
+variables {R : Type*} {M : Type*} [comm_ring R] [add_comm_group M] [module R M]
   {I : R →+* R}
   {B : M →ₗ[R] M →ₛₗ[I] R}
 

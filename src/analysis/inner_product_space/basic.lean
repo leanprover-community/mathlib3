@@ -437,6 +437,7 @@ linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_aut.to_ring_hom)
   (λ x y z, inner_add_left)
   (λ r x y, inner_smul_left)
 
+/-- The real inner product as a bilinear form. -/
 @[simps]
 def bilin_form_of_real_inner : bilin_form ℝ F :=
 { bilin := inner,

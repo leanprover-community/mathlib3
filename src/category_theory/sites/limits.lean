@@ -25,7 +25,8 @@ we show that the cocone obtained by sheafifying the cocone point is a colimit co
 This allows us to show that `Sheaf J D` has colimits (of a certain shape) as soon as `D` does.
 
 -/
-namespace category_theory.Sheaf
+namespace category_theory
+namespace Sheaf
 
 open category_theory
 open category_theory.limits
@@ -72,9 +73,9 @@ def multifork_evaluation_cone (F : K ⥤ Sheaf J D)
       rw [category.id_comp],
       apply presheaf.is_sheaf.hom_ext (F.obj j).2 W,
       intros ii,
-      erw [presheaf.is_sheaf.amalgamate_map],
-      rw [category.assoc, ← (F.map f).naturality, ← category.assoc],
-      erw [presheaf.is_sheaf.amalgamate_map],
+      rw [presheaf.is_sheaf.amalgamate_map, category.assoc,
+        ← (F.map f).presheaf_hom.naturality, ← category.assoc,
+        presheaf.is_sheaf.amalgamate_map],
       dsimp [multifork.of_ι],
       rw [category.assoc, ← E.w f],
       simp,
@@ -139,12 +140,20 @@ end
 
 instance (F : K ⥤ Sheaf J D) : creates_limit F (Sheaf_to_presheaf J D) :=
 creates_limit_of_reflects_iso $ λ E hE,
-{ lifted_cone := ⟨⟨E.X, is_sheaf_of_is_limit _ _ hE⟩, ⟨E.π.app, E.π.naturality⟩⟩,
+{ lifted_cone := ⟨⟨E.X, is_sheaf_of_is_limit _ _ hE⟩,
+    ⟨λ k, ⟨E.π.app k⟩, λ X Y f, Sheaf.hom.ext _ _ $ E.π.naturality f⟩⟩,
   valid_lift := cones.ext (eq_to_iso rfl) $ λ j, by { dsimp, simp },
   makes_limit :=
-  { lift := λ S, hE.lift ((Sheaf_to_presheaf J D).map_cone S),
-    fac' := λ S j, hE.fac ((Sheaf_to_presheaf J D).map_cone S) j,
-    uniq' := λ S m hm, hE.uniq ((Sheaf_to_presheaf J D).map_cone S) m hm } }
+  { lift := λ S, ⟨hE.lift ((Sheaf_to_presheaf J D).map_cone S)⟩,
+    fac' := λ S j, Sheaf.hom.ext _ _ $ hE.fac ((Sheaf_to_presheaf J D).map_cone S) j,
+    uniq' := λ S m hm, begin
+      ext1,
+      apply hE.uniq ((Sheaf_to_presheaf J D).map_cone S),
+      intros j,
+      specialize hm j,
+      apply_fun (λ e, e.presheaf_hom) at hm,
+      exact hm
+    end } }
 
 instance : creates_limits_of_shape K (Sheaf_to_presheaf J D) := {}
 
@@ -181,8 +190,15 @@ In `is_colimit_sheafify_cocone`, we show that this is a colimit cocone when `E` 
 def sheafify_cocone {F : K ⥤ Sheaf J D} (E : cocone (F ⋙ Sheaf_to_presheaf J D)) : cocone F :=
 { X := ⟨J.sheafify E.X, grothendieck_topology.plus.is_sheaf_plus_plus _ _⟩,
   ι :=
-  { app := λ k, by apply E.ι.app k ≫ J.to_sheafify E.X, -- annoying...
-    naturality' := λ i j f, by erw [category.comp_id, ← category.assoc, E.w f] } }
+  { app := λ k, ⟨E.ι.app k ≫ J.to_sheafify E.X⟩,
+    naturality' := begin
+      intros i j f,
+      ext1,
+      dsimp,
+      simp only [grothendieck_topology.to_sheafify_naturality,
+        grothendieck_topology.to_sheafify_naturality_assoc, category.comp_id, category.assoc],
+      erw [← J.sheafify_map_comp, E.w f],
+    end} }
 
 /-- If `E` is a colimit cocone of presheaves, over a diagram factoring through sheaves,
 then `sheafify_cocone E` is a colimit cocone. -/
@@ -190,19 +206,23 @@ then `sheafify_cocone E` is a colimit cocone. -/
 def is_colimit_sheafify_cocone {F : K ⥤ Sheaf J D} (E : cocone (F ⋙ Sheaf_to_presheaf J D))
   (hE : is_colimit E) :
   is_colimit (sheafify_cocone E) :=
-{ desc := λ S, J.sheafify_lift (hE.desc ((Sheaf_to_presheaf J D).map_cocone S)) S.X.2,
+{ desc := λ S, ⟨J.sheafify_lift (hE.desc ((Sheaf_to_presheaf J D).map_cocone S)) S.X.condition⟩,
   fac' := begin
     intros S j,
+    ext1,
     dsimp [sheafify_cocone],
-    erw [category.assoc, J.to_sheafify_sheafify_lift, hE.fac],
-    refl,
+    simp,
   end,
   uniq' := begin
     intros S m hm,
+    ext1,
     apply J.sheafify_lift_unique,
     apply hE.uniq ((Sheaf_to_presheaf J D).map_cocone S),
     intros j,
-    erw [← category.assoc, hm j],
+    specialize hm j,
+    apply_fun (λ e, e.presheaf_hom) at hm,
+    dsimp at hm,
+    rw [← category.assoc, hm],
     refl,
   end }
 
@@ -214,4 +234,5 @@ instance [has_colimits D] : has_colimits (Sheaf J D) := ⟨infer_instance⟩
 
 end colimits
 
-end category_theory.Sheaf
+end Sheaf
+end category_theory

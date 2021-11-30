@@ -16,6 +16,8 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
   `A` is an  `R`-algebra.
 * `spectrum a : set R`: the spectrum of an element `a : A` where
   `A` is an  `R`-algebra.
+* `resolvent : R → A`: the resolvent function is `λ r, ring.inverse (↑ₐr - a)`, and hence
+  when `r ∈ resolvent R A`, it is actually the inverse of the unit `(↑ₐr - a)`.
 
 ## Main statements
 
@@ -58,6 +60,14 @@ The spectrum is simply the complement of the resolvent set.  -/
 def spectrum (a : A) : set R :=
 (resolvent_set R a)ᶜ
 
+variable {R}
+/-- Given an `a : A` where `A` is an `R`-algebra, the *resolvent* is
+    a map `R → A` which sends `r : R` to `(algebra_map R A r - a)⁻¹` when
+    `r ∈ resolvent R A` and `0` when `r ∈ spectrum R A`. -/
+noncomputable def resolvent (a : A) (r : R) : A :=
+ring.inverse (algebra_map R A r - a)
+
+
 end defs
 
 
@@ -99,6 +109,10 @@ units.is_unit ⟨↑ₐr - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁
 lemma mem_resolvent_set_iff {r : R} {a : A} :
   r ∈ resolvent_set R a ↔ is_unit (↑ₐr - a) :=
 iff.rfl
+
+lemma resolvent_eq {a : A} {r : R} (h : r ∈ resolvent_set R a) :
+  resolvent a r = ↑h.unit⁻¹ :=
+ring.inverse_unit h.unit
 
 lemma add_mem_iff {a : A} {r s : R} :
   r ∈ σ a ↔ r + s ∈ σ (↑ₐs + a) :=

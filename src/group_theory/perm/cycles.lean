@@ -346,22 +346,14 @@ lemma same_cycle.nat' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x 
   ∃ (i : ℕ) (h : i < order_of f), (f ^ i) x = y :=
 begin
   classical,
-  obtain ⟨k, rfl⟩ := id h,
-  by_cases hk : (k % order_of f) = 0,
-  { use 0,
-    rw ←int.dvd_iff_mod_eq_zero at hk,
-    obtain ⟨m, rfl⟩ := hk,
-    simp [pow_order_of_eq_one, order_of_pos, zpow_mul] },
-  { use ((k % order_of f).nat_abs),
-    rw [←zpow_coe_nat, int.nat_abs_of_nonneg, ←zpow_eq_mod_order_of],
-    { refine ⟨_, rfl⟩,
-      rw [←int.coe_nat_lt, int.nat_abs_of_nonneg],
-      { refine (int.mod_lt_of_pos _ _),
-        simpa using order_of_pos _ },
-      { refine int.mod_nonneg _ _,
-        simpa using ne_of_gt (order_of_pos _) } },
-    { refine int.mod_nonneg _ _,
-      simpa using (order_of_pos _).ne' } }
+  obtain ⟨k, rfl⟩ := h,
+  use ((k % order_of f).nat_abs),
+  have h₀ := int.coe_nat_pos.mpr (order_of_pos f),
+  have h₁ := int.mod_nonneg k h₀.ne',
+  rw [←zpow_coe_nat, int.nat_abs_of_nonneg h₁, ←zpow_eq_mod_order_of],
+  refine ⟨_, rfl⟩,
+  rw [←int.coe_nat_lt, int.nat_abs_of_nonneg h₁],
+  exact int.mod_lt_of_pos _ h₀,
 end
 
 lemma same_cycle.nat'' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x y) :

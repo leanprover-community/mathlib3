@@ -102,53 +102,21 @@ variable (J)
 
 /-- Composing a sheaf with a functor preserving the appropriate limits yields a functor
 between sheaf categories. -/
+@[simps]
 def Sheaf_compose : Sheaf J A ⥤ Sheaf J B :=
-{ obj := λ G, ⟨G.1 ⋙ F, presheaf.is_sheaf.comp _ G.2⟩,
-  map := λ G H η, whisker_right η _,
-  map_id' := λ G, whisker_right_id _,
-  map_comp' := λ G H W f g, whisker_right_comp _ _ _ }
-
-@[simp]
-lemma Sheaf_compose_obj_to_presheaf (G : Sheaf J A) :
-  (Sheaf_to_presheaf J B).obj ((Sheaf_compose J F).obj G) =
-  (Sheaf_to_presheaf J A).obj G ⋙ F := rfl
-
-@[simp]
-lemma Sheaf_compose_map_to_presheaf {G H : Sheaf J A} (η : G ⟶ H) :
-  (Sheaf_to_presheaf J B).map ((Sheaf_compose J F).map η) =
-  whisker_right ((Sheaf_to_presheaf J A).map η) F := rfl
-
-@[simp]
-lemma Sheaf_compose_map_app {G H : Sheaf J A} (η : G ⟶ H) (X) :
-  ((Sheaf_compose J F).map η).app X = F.map (((Sheaf_to_presheaf J A).map η).app X) := rfl
+{ obj := λ G, ⟨G.to_presheaf ⋙ F, presheaf.is_sheaf.comp _ G.condition⟩,
+  map := λ G H η, ⟨whisker_right η.presheaf_hom _⟩,
+  map_id' := λ G, Sheaf.hom.ext _ _ $ whisker_right_id _,
+  map_comp' := λ G H W f g, Sheaf.hom.ext _ _ $ whisker_right_comp _ _ _ }
 
 /-- A natural transformation induces a natural transformation between the associated
 functors between sheaf categories. -/
+@[simps]
 def Sheaf_compose_map {F G : A ⥤ B}
   [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan F]
   [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan G]
   (η : F ⟶ G) : Sheaf_compose J F ⟶ Sheaf_compose J G :=
-{ app := λ X, whisker_left _ η,
-  naturality' := λ X Y f, by { ext, apply η.naturality } }
-
-@[simp]
-lemma Sheaf_compose_map_app_app {F G : A ⥤ B}
-  [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan F]
-  [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan G]
-  (η : F ⟶ G) (X) (Y) : ((Sheaf_compose_map J η).app X).app Y =
-  η.app (((Sheaf_to_presheaf J A).obj X).obj Y) := rfl
-
-@[simp]
-lemma Sheaf_compose_map_id {F : A ⥤ B}
-  [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan F] :
-  Sheaf_compose_map J (𝟙 F) = 𝟙 (Sheaf_compose J F) := rfl
-
-@[simp]
-lemma Sheaf_compose_map_comp {F G H : A ⥤ B}
-  [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan F]
-  [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan G]
-  [∀ (X : C) (S : J.cover X) (P : Cᵒᵖ ⥤ A), preserves_limit (S.index P).multicospan H]
-  (η : F ⟶ G) (γ : G ⟶ H) :
-  Sheaf_compose_map J (η ≫ γ) = Sheaf_compose_map J η ≫ Sheaf_compose_map J γ := rfl
+{ app := λ X, ⟨whisker_left _ η⟩,
+  naturality' := λ X Y f, by { ext, dsimp, simp } }
 
 end category_theory

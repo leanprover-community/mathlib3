@@ -990,50 +990,46 @@ variables {C : Type u₁} [category.{v₁} C]
 variables (J : grothendieck_topology C)
 
 /-- The category of sheaves on a grothendieck topology. -/
-@[derive category]
-def SheafOfTypes (J : grothendieck_topology C) : Type (max u₁ v₁ (w+1)) :=
-{P : Cᵒᵖ ⥤ Type w // presieve.is_sheaf J P}
-
-/-- The inclusion functor from sheaves to presheaves. -/
-@[derive [full, faithful]]
-def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type w) :=
-full_subcategory_inclusion (presieve.is_sheaf J)
+structure SheafOfTypes (J : grothendieck_topology C) :=
+(to_presheaf : Cᵒᵖ ⥤ Type w)
+(condition' : presieve.is_sheaf J to_presheaf)
 
 namespace SheafOfTypes
 
 variables {J}
-variables (X : SheafOfTypes.{w} J) {U V W : SheafOfTypes.{w} J}
-variables (f f₁ f₂ : U ⟶ V) (g : V ⟶ W)
 
-/-- The presheaf associated to a sheaf.-/
-def presheaf : Cᵒᵖ ⥤ Type w := X.1
+lemma condition (X : SheafOfTypes J) : presieve.is_sheaf J X.to_presheaf := X.condition'
 
-@[simp] lemma presheaf_def : X.1 = X.presheaf := rfl
+@[ext]
+structure hom (X Y : SheafOfTypes J) :=
+mk :: (presheaf_hom : X.to_presheaf ⟶ Y.to_presheaf)
 
-@[simp] lemma SheafOfTypes_to_presheaf_obj : (SheafOfTypes_to_presheaf _).obj X = X.presheaf := rfl
+instance : category (SheafOfTypes J) :=
+{ hom := hom,
+  id := λ X, ⟨𝟙 _⟩,
+  comp := λ X Y Z f g, ⟨f.presheaf_hom ≫ g.presheaf_hom⟩,
+  id_comp' := λ X Y f, hom.ext _ _ $ id_comp _,
+  comp_id' := λ X Y f, hom.ext _ _ $ comp_id _,
+  assoc' := λ X Y Z W f g h, hom.ext _ _ $ assoc _ _ _ }
 
-lemma condition : presieve.is_sheaf J X.presheaf := X.2
+@[simp] lemma hom_mk_id (X : SheafOfTypes J) : hom.mk (𝟙 X.to_presheaf) = 𝟙 X := rfl
+@[simp] lemma hom_mk_comp {X Y Z : SheafOfTypes J} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  hom.mk (f.presheaf_hom ≫ g.presheaf_hom) = f ≫ g := rfl
 
-/-- The morphism of presheaves associated to a morphism of sheaves. -/
-def _root_.quiver.hom.presheaf_hom' : U.presheaf ⟶ V.presheaf := f
-
-@[simp] lemma _root_.quiver.hom.presheaf_hom'_def : (f : U.presheaf ⟶ V.presheaf) =
-  f.presheaf_hom' := rfl
-
-@[simp] lemma SheafOfTypes_to_presheaf_map : (SheafOfTypes_to_presheaf _).map f =
-  f.presheaf_hom' := rfl
-
-/-- Make a morphism of sheaves from a morphism of underlying presheaves. -/
-def mk_hom (f : U.presheaf ⟶ V.presheaf) : U ⟶ V := f
-
-@[simp] lemma presheaf_hom'_mk_hom (f : U.presheaf ⟶ V.presheaf) :
-  (mk_hom f).presheaf_hom' = f := rfl
-
-@[simp] lemma mk_hom_presheaf_hom' : mk_hom f.presheaf_hom' = f := rfl
-
-@[ext] lemma hom_ext (h : f₁.presheaf_hom' = f₂.presheaf_hom') : f₁ = f₂ := h
+@[simp] lemma presheaf_hom_id (X : SheafOfTypes J) : (𝟙 X : hom X X).presheaf_hom = 𝟙 _ := rfl
+@[simp] lemma presheaf_hom_comp {X Y Z : SheafOfTypes J} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).presheaf_hom = f.presheaf_hom ≫ g.presheaf_hom := rfl
 
 end SheafOfTypes
+
+/-- The inclusion functor from sheaves to presheaves. -/
+@[simps]
+def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type w) :=
+{ obj := λ F, F.to_presheaf,
+  map := λ X Y η, η.presheaf_hom }
+
+instance : full (SheafOfTypes_to_presheaf J) := { preimage := λ X Y f, ⟨f⟩ }
+instance : faithful (SheafOfTypes_to_presheaf J) := ⟨⟩
 
 /--
 The category of sheaves on the bottom (trivial) grothendieck topology is equivalent to the category
@@ -1043,12 +1039,10 @@ of presheaves.
 def SheafOfTypes_bot_equiv : SheafOfTypes (⊥ : grothendieck_topology C) ≌ (Cᵒᵖ ⥤ Type w) :=
 { functor := SheafOfTypes_to_presheaf _,
   inverse :=
-  { obj := λ P, ⟨P, presieve.is_sheaf_bot⟩,
-    map := λ P₁ P₂ f, (SheafOfTypes_to_presheaf _).preimage f },
-  unit_iso :=
-  { hom := { app := λ _, 𝟙 _ },
-    inv := { app := λ _, 𝟙 _ } },
-  counit_iso := iso.refl _ }
+  { obj := λ F, ⟨F, presieve.is_sheaf_bot⟩,
+    map := λ F G η, ⟨η⟩ },
+  unit_iso := nat_iso.of_components (λ F, ⟨⟨𝟙 _⟩, ⟨𝟙 _⟩, by tidy, by tidy⟩) $ by tidy,
+  counit_iso := nat_iso.of_components (λ F, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) $ by tidy }
 
 instance : inhabited (SheafOfTypes (⊥ : grothendieck_topology C)) :=
 ⟨SheafOfTypes_bot_equiv.inverse.obj ((functor.const _).obj punit)⟩

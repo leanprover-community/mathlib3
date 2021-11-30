@@ -54,7 +54,7 @@ lemma prime_factorization_eq_nil_iff (n : ℕ) : n.prime_factorization = 0 ↔ n
 by simp [prime_factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
 /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
-@[simp] lemma prime_factorization_prime_pos_pow {p k : ℕ} (hp : prime p) :
+@[simp] lemma prime_factorization_prime_pow {p k : ℕ} (hp : prime p) :
   prime_factorization (p^k) = single p k :=
 begin
   rcases k.eq_zero_or_pos with rfl | hk, { simp },
@@ -67,6 +67,6 @@ end
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity 1 -/
 @[simp] lemma prime_factorization_prime {p : ℕ} (hp : prime p) :
   p.prime_factorization = single p 1 :=
-by simp only [←prime_factorization_prime_pos_pow hp, pow_one]
+by simp only [←prime_factorization_prime_pow hp, pow_one]
 
 end nat

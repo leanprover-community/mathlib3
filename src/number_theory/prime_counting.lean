@@ -12,6 +12,7 @@ import data.nat.totient
 import data.multiset.locally_finite
 import algebra.periodic
 import data.finset.basic
+import data.finset.locally_finite
 
 
 /-!
@@ -57,29 +58,27 @@ begin
   exact a_le_b,
 end
 
-lemma split_Ico {S : Type} [linear_order S] [locally_finite_order S] {a b c : S}
-  (a_le_b : a ≤ b) (b_le_c : b ≤ c) (p : S → Prop) [decidable_pred p] :
-  (Ico a c).filter p = (Ico a b).filter p ∪ (Ico b c).filter p :=
-begin
-  ext x,
-  simp only [mem_union, mem_filter, mem_Ico, ←or_and_distrib_right, and.congr_left_iff],
-  intro px,
-  split,
-  { intro h,
-    simp only [h, true_and, and_true],
-    exact lt_or_le x b, },
-  { intros h,
-    cases h,
-    { exact ⟨h.left, lt_of_lt_of_le h.right b_le_c⟩ },
-    { exact ⟨le_trans a_le_b h.left, h.right⟩, }, },
-end
-
-lemma split_range {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ → Prop) [decidable_pred p] :
-  (range n).filter p = (range k).filter p ∪ (Ico k n).filter p :=
+lemma range_union_Ico_eq_range {n k : ℕ} (k_le_n : k ≤ n) :
+   range k ∪ Ico k n = range n :=
 begin
   rw [range_eq_Ico],
-  exact split_Ico (zero_le k) k_le_n p
+  exact Ico_union_Ico_eq_Ico (zero_le k) k_le_n,
 end
+
+-- lemma split_Ico_filter {S : Type} [linear_order S] [locally_finite_order S] {a b c : S}
+--   (a_le_b : a ≤ b) (b_le_c : b ≤ c) (p : S → Prop) [decidable_pred p] :
+--   (Ico a c).filter p = (Ico a b).filter p ∪ (Ico b c).filter p :=
+-- begin
+--   rw split_Ico a_le_b b_le_c,
+--   exact filter_union p (Ico a b) (Ico b c),
+-- end
+
+-- lemma split_range_filter {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ → Prop) [decidable_pred p] :
+--   (range n).filter p = (range k).filter p ∪ (Ico k n).filter p :=
+-- begin
+--   rw [range_eq_Ico],
+--   exact split_Ico_filter (zero_le k) k_le_n p
+-- end
 
 lemma coprime_of_lt_prime {n k : ℕ} (n_pos : 0 < n) (hlt : n < k) (is_prime : prime k) :
   coprime k n :=
@@ -225,7 +224,7 @@ lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) :
   π' n ≤ π' k + 1 + nat.totient k * (n / k) :=
 calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
             begin
-              rw [prime_counting', split_range (le_of_lt k_lt_n)],
+              rw [prime_counting', ←range_union_Ico_eq_range (le_of_lt k_lt_n), filter_union],
               apply card_union_le,
             end
      ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'

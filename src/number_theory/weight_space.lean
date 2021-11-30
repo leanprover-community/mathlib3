@@ -2045,6 +2045,7 @@ example {α β : Type*} {f g : α → β} : f = g ↔ ∀ (x :α), f x = g x := 
 
 example {α β : Type*} {a c : α} {b d : β} : (a, b) = (c, d) ↔ a = c ∧ b = d := prod.ext_iff
 
+--this is where char_zero is needed, ie, 1 ≠ 0
 --generalize!
 lemma char_fn_one (x : zmod d × ℤ_[p]) (U : clopen_sets (zmod d × ℤ_[p])) :
   x ∈ U.val ↔ char_fn _ U x = (1 : R) :=
@@ -2133,7 +2134,11 @@ end-/
 lemma clopen_char_fn (U : clopen_basis' p d) : char_fn (zmod d × ℤ_[p]) U =
   @char_fn (zmod d × ℤ_[p]) _ _ _ _ R _ _ _ (⟨_,
     is_clopen_prod (is_clopen_singleton (coe (classical.some (classical.some_spec U.prop)) : zmod d))
-      (proj_lim_preimage_clopen p d (classical.some U.prop) (classical.some (classical.some_spec U.prop))) ⟩) := sorry
+      (proj_lim_preimage_clopen p d (classical.some U.prop) (classical.some (classical.some_spec U.prop))) ⟩) :=
+begin
+  rw (function.injective.eq_iff (char_fn_inj p d R)),
+  exact classical.some_spec (classical.some_spec U.prop),
+end
 
 --lemma trial : locally_constant (zmod d × ℤ_[p]) R = submodule.span R (s p d R) := sorry
 

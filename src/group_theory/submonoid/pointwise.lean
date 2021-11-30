@@ -13,7 +13,7 @@ This file provides:
 * `submonoid.has_inv`
 * `add_submonoid.has_neg`
 
-and the the actions
+and the actions
 
 * `submonoid.pointwise_mul_action`
 * `add_submonoid.pointwise_mul_action`

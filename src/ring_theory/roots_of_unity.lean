@@ -552,7 +552,7 @@ lemma neg_one (p : ℕ) [nontrivial R] [h : char_p R p] (hp : p ≠ 2) : is_prim
 begin
   convert is_primitive_root.order_of (-1 : R),
   rw ←ring_char.eq_iff at h,
-  unfreezingI { subst p }, -- you get _very_ weird behaviour without this `unfreezingI`! (no error)
+  unfreezingI { subst h }, -- you get _very_ weird behaviour without this `unfreezingI`! (no error)
   simp [hp]
 end
 

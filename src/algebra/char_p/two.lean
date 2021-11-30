@@ -39,12 +39,27 @@ by rw [bit1, bit0_eq_zero, zero_add]
 end semiring
 
 section ring
+section char_two
 variables [ring R] [char_p R 2]
 
 lemma neg_eq (x : R) : -x = x :=
 by rw [neg_eq_iff_add_eq_zero, ←two_smul R x, two_eq_zero, zero_smul]
 
-lemma one_eq_neg_iff [nontrivial R] : (-1 : R) = 1 ↔ ring_char R = 2 :=
+lemma neg_eq' : has_neg.neg = (id : R → R) :=
+funext neg_eq
+
+lemma sub_eq_add (x y : R) : x - y = x + y :=
+by rw [sub_eq_add_neg, neg_eq]
+
+lemma sub_eq_add' : has_sub.sub = ((+) : R → R → R) :=
+funext $ λ x, funext $ λ y, sub_eq_add x y
+
+end char_two
+
+section ring_char
+variables [ring R]
+
+lemma one_eq_neg_iff [nontrivial R]: (-1 : R) = 1 ↔ ring_char R = 2 :=
 begin
   refine ⟨λ h, _, λ h, @@neg_eq _ (ring_char.of_eq h) 1⟩,
   rw [eq_comm, ←sub_eq_zero, sub_neg_eq_add, show (1 + 1 : R) = (1 + 1 : ℕ), by norm_cast] at h,
@@ -69,15 +84,7 @@ begin
   simpa [one_eq_neg_iff] using h
 end
 
-lemma neg_eq' : has_neg.neg = (id : R → R) :=
-funext neg_eq
-
-lemma sub_eq_add (x y : R) : x - y = x + y :=
-by rw [sub_eq_add_neg, neg_eq]
-
-lemma sub_eq_add' : has_sub.sub = ((+) : R → R → R) :=
-funext $ λ x, funext $ λ y, sub_eq_add x y
-
+end ring_char
 end ring
 
 section comm_semiring

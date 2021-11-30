@@ -58,8 +58,8 @@ lemma op_smul_eq_op_smul_op {R : Type*} [has_scalar R α] [has_scalar Rᵐᵒᵖ
   (r : R) (a : α) : op (r • a) = op r • op a :=
 (op_smul_eq_smul r (op a)).symm
 
-lemma unop_smul_eq_op_smul_op {R : Type*} [has_scalar R α] [has_scalar Rᵐᵒᵖ α] [is_symmetric_smul R α]
-  (r : Rᵐᵒᵖ) (a : αᵐᵒᵖ) : unop (r • a) = unop r • unop a :=
+lemma unop_smul_eq_unop_smul_unop {R : Type*} [has_scalar R α] [has_scalar Rᵐᵒᵖ α]
+  [is_symmetric_smul R α] (r : Rᵐᵒᵖ) (a : αᵐᵒᵖ) : unop (r • a) = unop r • unop a :=
 (unop_smul_eq_smul r (unop a)).symm
 
 end mul_opposite

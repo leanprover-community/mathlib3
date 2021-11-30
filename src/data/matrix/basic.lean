@@ -117,8 +117,8 @@ instance [has_scalar R α] [has_scalar S α] [smul_comm_class R S α] :
   smul_comm_class R S (matrix m n α) := pi.smul_comm_class
 instance [has_scalar R S] [has_scalar R α] [has_scalar S α] [is_scalar_tower R S α] :
   is_scalar_tower R S (matrix m n α) := pi.is_scalar_tower
-instance [has_scalar R α] [has_scalar Rᵐᵒᵖ α] [is_symmetric_smul R S α] :
-  is_symmetric_smul R S (matrix m n α) := pi.is_symmetric_smul
+instance [has_scalar R α] [has_scalar Rᵐᵒᵖ α] [is_symmetric_smul R α] :
+  is_symmetric_smul R (matrix m n α) := pi.is_symmetric_smul
 instance [monoid R] [mul_action R α] :
   mul_action R (matrix m n α) := pi.mul_action _
 instance [monoid R] [add_monoid α] [distrib_mul_action R α] :

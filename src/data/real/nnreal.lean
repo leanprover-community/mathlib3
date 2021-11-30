@@ -488,12 +488,11 @@ section pow
 
 lemma pow_antitone_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
   a ^ n ≤ a ^ m :=
-begin
-  rcases le_iff_exists_add.mp mn with ⟨k, rfl⟩,
-  rw [← mul_one (a ^ m), pow_add],
-  refine mul_le_mul rfl.le (pow_le_one _ (zero_le a) a1) _ _;
-  exact pow_nonneg (zero_le _) _,
-end
+pow_le_pow_of_le_one (zero_le a) a1 mn
+
+lemma exists_pow_lt_of_lt_one {a b : ℝ≥0} (ha : 0 < a) (hb : b < 1) : ∃ n : ℕ, b ^ n < a :=
+by simpa only [← coe_pow, nnreal.coe_lt_coe]
+  using exists_pow_lt_of_lt_one (nnreal.coe_pos.2 ha) (nnreal.coe_lt_coe.2 hb)
 
 lemma exists_mem_Ico_zpow
   {x : ℝ≥0} {y : ℝ≥0} (hx : x ≠ 0) (hy : 1 < y) :

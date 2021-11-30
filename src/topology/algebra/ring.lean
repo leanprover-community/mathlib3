@@ -46,6 +46,15 @@ instance discrete_topology.topological_ring {α} [topological_space α] [semirin
 section
 variables {α} [topological_space α] [semiring α] [topological_ring α]
 
+namespace subsemiring
+
+instance (S : subsemiring α) :
+  topological_ring S :=
+{ ..S.to_submonoid.has_continuous_mul,
+  ..S.to_add_submonoid.has_continuous_add }
+
+end subsemiring
+
 /-- The (topological-space) closure of a subsemiring of a topological semiring is
 itself a subsemiring. -/
 def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=
@@ -142,6 +151,14 @@ continuous_const.mul continuous_id
 /-- In a topological ring, the right-multiplication `add_monoid_hom` is continuous. -/
 lemma mul_right_continuous (x : α) : continuous (add_monoid_hom.mul_right x) :=
 continuous_id.mul continuous_const
+
+namespace subring
+
+instance (S : subring α) :
+  topological_ring S :=
+S.to_subsemiring.topological_ring
+
+end subring
 
 /-- The (topological-space) closure of a subring of a topological semiring is
 itself a subring. -/

@@ -1337,7 +1337,7 @@ begin
   { refl }
 end
 
-lemma find_greatest_mono_left [decidable_pred P] [decidable_pred Q] (hPQ : P ≤ Q) :
+lemma find_greatest_mono_left [decidable_pred Q] (hPQ : P ≤ Q) :
   nat.find_greatest P ≤ nat.find_greatest Q :=
 begin
   intro n,
@@ -1349,8 +1349,7 @@ begin
     exact hn.trans (nat.find_greatest_mono_right _ $ le_succ _) }
 end
 
-lemma find_greatest_mono {a b : ℕ} [decidable_pred P] [decidable_pred Q] (hPQ : P ≤ Q)
-  (hab : a ≤ b) :
+lemma find_greatest_mono {a b : ℕ} [decidable_pred Q] (hPQ : P ≤ Q) (hab : a ≤ b) :
   nat.find_greatest P a ≤ nat.find_greatest Q b :=
 (nat.find_greatest_mono_right _ hab).trans $ find_greatest_mono_left hPQ _
 

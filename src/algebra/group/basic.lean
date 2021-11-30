@@ -560,6 +560,10 @@ by simp [div_eq_inv_mul', mul_comm]
 lemma eq_div_iff_mul_eq'' : a = b / c ↔ c * a = b :=
 by rw [eq_div_iff_mul_eq', mul_comm]
 
+@[to_additive]
+lemma div_eq_iff_eq_mul' : a / b = c ↔ a = b * c :=
+by rw [div_eq_iff_eq_mul, mul_comm]
+
 end comm_group
 
 section add_comm_group
@@ -568,9 +572,6 @@ section add_comm_group
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
-
-lemma sub_eq_iff_eq_add' : a - b = c ↔ a = b + c :=
-by rw [sub_eq_iff_eq_add, add_comm]
 
 @[simp]
 lemma add_sub_cancel' (a b : G) : a + b - a = b :=

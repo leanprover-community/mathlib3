@@ -429,15 +429,13 @@ by { rw [inner_smul_right, algebra.smul_def], refl }
 
 /-- The inner product as a sesquilinear form. -/
 @[simps]
-def sesq_form_of_inner : E →ₗ[𝕜] E →ₛₗ[star_ring_aut.to_ring_hom] 𝕜 :=
+def sesq_form_of_inner : E →ₗ[𝕜] E →ₗ⋆[𝕜] 𝕜 :=
 linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_aut.to_ring_hom)
   (λ x y, ⟪y, x⟫)
   (λ x y z, inner_add_right)
   (λ r x y, inner_smul_right)
   (λ x y z, inner_add_left)
-  (λ r x y, by {
-    rw [inner_smul_left, ring_equiv.to_ring_hom_eq_coe, ring_equiv.coe_to_ring_hom],
-    refl })
+  (λ r x y, inner_smul_left)
 
 @[simps]
 def bilin_form_of_real_inner : bilin_form ℝ F :=

@@ -626,6 +626,59 @@ def V_pullback_cone_is_limit (i j : D.ι) :
 D' .V_pullback_cone_is_limit_of_map forget i j
   (D.to_LocallyRingedSpace_glue_data.V_pullback_cone_is_limit _ _)
 
+def iso_carrier :
+  D.glued.carrier ≅ D.to_LocallyRingedSpace_glue_data.to_SheafedSpace_glue_data
+    .to_PresheafedSpace_glue_data.to_Top_glue_data.to_glue_data.glued :=
+begin
+  refine (PresheafedSpace.forget _).map_iso _ ≪≫
+    glue_data.glued_iso _ (PresheafedSpace.forget _),
+  refine SheafedSpace.forget_to_PresheafedSpace.map_iso _ ≪≫
+  SheafedSpace.glue_data.iso_PresheafedSpace _,
+  refine LocallyRingedSpace.forget_to_SheafedSpace.map_iso _ ≪≫
+  LocallyRingedSpace.glue_data.iso_SheafedSpace _,
+  exact Scheme.glue_data.iso_LocallyRingedSpace _
+end
+
+lemma imm_iso_carrier_inv (i : D.ι) :
+  D.to_LocallyRingedSpace_glue_data.to_SheafedSpace_glue_data
+    .to_PresheafedSpace_glue_data.to_Top_glue_data.to_glue_data.imm i ≫ D.iso_carrier.inv =
+    (D.imm i).1.base :=
+begin
+  delta iso_carrier,
+  simp only [functor.map_iso_inv, iso.trans_inv, iso.trans_assoc,
+    glue_data.imm_glued_iso_inv_assoc, functor.map_iso_trans, category.assoc],
+  iterate 3 { erw ← comp_base },
+  simp_rw ← category.assoc,
+  rw D.to_LocallyRingedSpace_glue_data.to_SheafedSpace_glue_data.imm_iso_PresheafedSpace_inv i,
+  erw D.to_LocallyRingedSpace_glue_data.imm_iso_SheafedSpace_inv i,
+  change (_ ≫ D.iso_LocallyRingedSpace.inv).1.base = _,
+  rw D.imm_iso_LocallyRingedSpace_inv i
+end
+/--
+An equivalence relation on `Σ i, D.U i` that holds iff `D' .imm i x = D' .imm j y`.
+See `Scheme.gluing_data.imm_eq_iff`.
+ -/
+def rel (a b : Σ i, ((D.U i).carrier : Type*)) : Prop :=
+  a = b ∨ ∃ (x : (D.V (a.1, b.1)).carrier),
+    (D.f _ _).1.base x = a.2 ∧ (D.t _ _ ≫ D.f _ _).1.base x = b.2
+
+lemma imm_eq_iff (i j : D.ι) (x : (D.U i).carrier) (y : (D.U j).carrier) :
+  (D' .imm i).1.base x = (D' .imm j).1.base y ↔ D.rel ⟨i, x⟩ ⟨j, y⟩ :=
+begin
+  refine iff.trans _ (D.to_LocallyRingedSpace_glue_data.to_SheafedSpace_glue_data
+      .to_PresheafedSpace_glue_data.to_Top_glue_data.imm_eq_iff_rel i j x y),
+  rw ← ((Top.mono_iff_injective D.iso_carrier.inv).mp infer_instance).eq_iff,
+    simp_rw [← comp_apply, D.imm_iso_carrier_inv]
+end
+
+lemma is_open_iff (U : set D.glued.carrier) : is_open U ↔ ∀ i, is_open ((D.imm i).1.base ⁻¹' U) :=
+begin
+  rw ← (Top.homeo_of_iso D.iso_carrier.symm).is_open_preimage,
+  rw Top.glue_data.is_open_iff,
+  apply forall_congr,
+  intro i,
+  erw [← set.preimage_comp, ← coe_comp, imm_iso_carrier_inv]
+end
 
 end glue_data
 

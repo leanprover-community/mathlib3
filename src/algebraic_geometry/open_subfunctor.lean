@@ -725,26 +725,65 @@ begin
   simpa using pullback.condition
 end
 
+@[simp, reassoc]
+lemma imm_to_glued_cover (x : X.carrier) : (glued_cover c).imm x ≫ to_glued_cover c = (c x).hom :=
+multicoequalizer.π_desc _ _ _ _ _
+
+lemma to_glued_cover_injective : function.injective (to_glued_cover c).1.base :=
+begin
+  intros x y h,
+  rcases (glued_cover c).imm_jointly_surjective x with ⟨i, x, rfl⟩,
+  rcases (glued_cover c).imm_jointly_surjective y with ⟨j, y, rfl⟩,
+  simp_rw [← comp_apply, ← SheafedSpace.comp_base, ← LocallyRingedSpace.comp_val] at h,
+  erw [imm_to_glued_cover, imm_to_glued_cover] at h,
+  let e := (Top.pullback_cone_is_limit _ _).cone_point_unique_up_to_iso
+    (is_limit_of_has_pullback_of_preserves_limit (Scheme.forget ⋙
+      LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _)
+      (c i).hom (c j).hom),
+  rw (glued_cover c).imm_eq_iff,
+  right,
+  use e.hom ⟨⟨x,y⟩, h⟩,
+  simp_rw ← comp_apply,
+  split,
+  { erw is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.left,
+    refl },
+  { erw pullback_symmetry_hom_comp_fst,
+    erw is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right,
+    refl }
+end
+
 include hc
 
-lemma to_glued_cover_bijective : is_iso (to_glued_cover c).1.base :=
+lemma to_glued_cover_open_map : is_open_map (to_glued_cover c).1.base :=
 begin
-  let e : (glued_cover c).glued.carrier ≅
-    (glued_cover c).to_LocallyRingedSpace_glue_data.to_SheafedSpace_glue_data
-      .to_PresheafedSpace_glue_data.to_Top_glue_data.to_glue_data.glued,
-  { refine (PresheafedSpace.forget _).map_iso _ ≪≫
-      glue_data.glued_iso _ (PresheafedSpace.forget _),
-    refine SheafedSpace.forget_to_PresheafedSpace.map_iso _ ≪≫
-    SheafedSpace.glue_data.iso_PresheafedSpace _,
-    refine LocallyRingedSpace.forget_to_SheafedSpace.map_iso _ ≪≫
-    LocallyRingedSpace.glue_data.iso_SheafedSpace _,
-    exact Scheme.glue_data.iso_LocallyRingedSpace _ },
-  rw ← e.hom_inv_id_assoc (to_glued_cover c).1.base,
-  apply_with is_iso.comp_is_iso { instances := ff },
---   simp only [functor.map_iso_inv, iso.trans_inv, functor.map_iso_trans, category.assoc,
---     PresheafedSpace.forget_map,
---  subtype.val_eq_coe],
+  intros U hU,
+  rw is_open_iff_forall_mem_open,
+  intros x hx,
+  rw (glued_cover c).is_open_iff at hU,
+  use (to_glued_cover c).val.base '' U ∩ set.range (c x).hom.1.base,
+  use set.inter_subset_left _ _,
+  split,
+  { rw ← set.image_preimage_eq_inter_range,
+    apply (show is_open_immersion (c x).hom, by apply_instance).base_open.is_open_map,
+    convert hU x using 1,
+    rw ← imm_to_glued_cover, erw coe_comp, rw set.preimage_comp,
+    congr' 1,
+    refine set.preimage_image_eq _ (to_glued_cover_injective c) },
+  { exact ⟨hx, hc x⟩ }
 end
+
+lemma to_glued_cover_open_embedding : open_embedding (to_glued_cover c).1.base :=
+open_embedding_of_continuous_injective_open (by continuity) (to_glued_cover_injective c)
+  (to_glued_cover_open_map c hc)
+
+instance to_glued_cover_stalk_iso (x : (glued_cover c).glued.carrier) :
+  is_iso (PresheafedSpace.stalk_map (to_glued_cover c).val x) :=
+begin
+
+end
+
+instance to_glued_cover_open_immersion : is_open_immersion (to_glued_cover c) :=
+SheafedSpace.is_open_immersion.of_stalk_iso _ (to_glued_cover_open_embedding c hc)
 
 def iso_glued_cover := @@as_iso _ (to_glued_cover c) (is_iso_glued_cover c hc)
 

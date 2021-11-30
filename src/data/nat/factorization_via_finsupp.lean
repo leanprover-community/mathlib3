@@ -93,6 +93,22 @@ lemma prime_factorization_prime {p : ℕ} (hp : prime p) : p.prime_factorization
 by { simp only [←prime_factorization_prime_pos_pow hp one_pos, pow_one] }
 
 ---------------------------------------------------------------------------------------------------
+
+-- TODO: Add to next PR:
+lemma disagree_factor_of_ne {d n : ℕ} (hn : 0 < n) (hd : 0 < d) (hnd: n ≠ d) :
+  ∃ (p : ℕ), (n.prime_factorization) p ≠ (d.prime_factorization) p :=
+not_forall.mp (mt finsupp.ext (mt (prime_factorization_eq_iff hn hd).mp hnd))
+
+-- TODO: Does `finsupp` not have `<`?
+-- -- Change these back to {α : Type u_1} {M : Type u_5} when PRing in `data.finsupp.basic`
+-- lemma finsupp.eq_zero_or_pos {α : Type*} {M : Type*} [has_zero M] [has_lt M] {f : α →₀ M} :
+--   f = 0 ∨ 0 < f :=
+-- begin
+
+--   sorry,
+-- end
+
+---------------------------------------------------------------------------------------------------
 -- Prime factorisations involving `coprime a b` and/or positive `a` and `b`
 ---------------------------------------------------------------------------------------------------
 
@@ -221,133 +237,141 @@ by { rw [prime_factorization_prod_pow hn, h], simp }
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
--- If `n` is a product of prime powers then the support of n.prime_factorization is those primes
+-- We have a map prime_factorization : ℕ ↦ { f : ℕ →₀ ℕ // f.support ⊆ primes }
+-- For positive n this map is injective
+-- We also have a map { f : ℕ →₀ ℕ // f.support = primes } ↦ ℕ
+-- i.e. for any finsupp f we have (f.prod pow) : ℕ
+-- Now we want to prove that these two maps are inverses
+-- We already have one direction: for n > 0, n = n.prime_factorization.prod pow
+-- Now we need to prove the converse: for f : ℕ →₀ ℕ with f.support ⊆ primes,
+--   (f.prod pow).prime_factorization = f
 
-example (n : ℕ) (s : finset ℕ) (f : ℕ → ℕ) (hs : ∀p ∈ s, prime p) (hn : n = s.prod f) :
-  n.prime_factorization.support = s
-:=
+lemma prime_factorization_inverse_prod_pow {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
+  (f.prod pow).prime_factorization = f :=
 begin
-
-  sorry,
-end
-
-
-
----------------------------------------------------------------------------------------------------
-
--- TODO: Move this up when it's finished
-
--- Any valid finsupp is the prime factorization of some positive natural number
-
-lemma prime_factorization_of_prime_finsupp (f : ℕ →₀ ℕ) (hf : ∀ p ∈ f.support, prime p) :
-  ∃ n : ℕ, f = n.prime_factorization :=
-begin
-  set n := f.prod pow with h_n_def,
-  use n,
+  by_cases hf0 : f = 0, { rw hf0, simp, rw prime_factorization_one },
   rw finsupp.ext_iff',
   split,
   {
-
+    rw support_prime_factorization,
+    ext q,
+    rw [list.mem_to_finset, finsupp.mem_support_iff],
     sorry},
   {
-    intros x hx,
+    intros p hp,
+    -- rw finsupp.mem_support_iff at hp,
+    -- unfold finsupp.prod at hp,
+    have := @prime_factorization_prod_pow (f.prod pow),
     sorry},
-
-
-  -- ext x,
-  -- unfold finsupp.prod at h_n_def,
-  -- by_cases hx : x ∈ f.support,
-  -- { sorry },
-  -- {
-  --   sorry },
-
-  -- have := @prime_factorization_prod_pow (f.prod pow) _,
-
 end
 
-
-example (n d : ℕ)
--- (h1 : 0 = n - d)
-(h2 : d < n)
-(h3 : 0 < n)
-: 0 < n - d :=
-begin
-  exact tsub_pos_of_lt h2,
-end
+/-- Any `f : ℕ →₀ ℕ` with support on the primes is the prime factorization of some `n : ℕ` -/
+lemma prime_factorization_of_prime_finsupp (f : ℕ →₀ ℕ) (hf : ∀ p ∈ f.support, prime p) :
+  ∃ n : ℕ, f = n.prime_factorization :=
+by { use f.prod pow, rw prime_factorization_inverse_prod_pow hf }
+-- TODO: Tighten this to make `n` positive, to remove the ambiguity when `f=0`.
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
 -- Divisibility
 
--- `d` divides `n` iff for every prime `p`, the power of `p` in `d` is `≤` the power in `n`
-lemma dvd_iff_prime_factorization_leq {d n : ℕ} (hd : 0 < d) (hn : 0 < n) :
-  d ∣ n ↔ d.prime_factorization ≤ n.prime_factorization :=
+-- If `d` divides `n` then for every prime `p`, the power of `p` in `d` is `≤` the power in `n`
+lemma prime_factorization_leq_of_dvd {d n : ℕ} (hd : 0 < d) (hn : 0 < n) :
+  d ∣ n → d.prime_factorization ≤ n.prime_factorization :=
 begin
   rw dvd_iff_exists_eq_mul_left,
   rw finsupp.le_def,
-  split,
-  {
-    rintros ⟨c, hcn⟩ p,
-    simp only [prime_factorization_count],
-    rw hcn,
+  { rintros ⟨c, hcn⟩ p,
     have hc : 0 < c,
       { rw zero_lt_iff, intros H, rw H at hcn, simp at hcn, apply absurd hcn hn.ne' },
-    exact le_factors_count_mul_right hc,
+    simp only [prime_factorization_count, hcn, le_factors_count_mul_right hc] }
+end
 
-  },
+
+-- If for every prime `p`, the power of `p` in `d` is `≤` the power in `n`, then `d` divides `n`
+lemma dvd_of_prime_factorization_leq {d n : ℕ} (hd : 0 < d) (hn : 0 < n) :
+  d.prime_factorization ≤ n.prime_factorization → d ∣ n :=
+begin
+  rw dvd_iff_exists_eq_mul_left,
+  -- rw finsupp.le_def,
+
+  intros h,
+  by_cases hnd : n = d, { use 1, simpa },
+  have hnd' : d.prime_factorization < n.prime_factorization,
+    {
+      refine lt_of_le_of_ne h _,
+      apply mt (prime_factorization_eq_iff hd hn).mp,
+      exact ne_comm.mp hnd,
+    },
+
+  set c_pf := n.prime_factorization - d.prime_factorization with c_pf_def,
+
+  have c_pf_neq_zero : 0 < c_pf := tsub_pos_of_lt hnd',
+
+
+
+  have h1 : ∀ (p : ℕ), p ∈ c_pf.support → prime p,
   {
-    intros h,
-    by_cases hnd : n = d, { use 1, simpa },
-    have := mt finsupp.ext (mt (prime_factorization_eq_iff hn hd).mp hnd),
-    push_neg at this,
-    cases this with p hp,
-    set c_pf := n.prime_factorization - d.prime_factorization with c_pf_def,
+    intros p hp,
+    suffices : p ∈ n.prime_factorization.support,
+      { rw factor_iff_mem_factorization at this,
+        exact prime_of_mem_factors this },
+    rw mem_support_iff at hp ⊢,
+    rw c_pf_def at hp,
+    simp at hp,
+    exact ne_zero_of_lt hp,
+  },
 
-    have := prime_factorization_of_prime_finsupp c_pf _,
-    rcases this with ⟨c, hc⟩,
-    use c,
-    have hc_pos : 0 < c, {
-      rw zero_lt_iff,
-      intros H,
-      rw H at hc,
-      rw prime_factorization_zero at hc,
-      rw hc at c_pf_def,
-      rw finsupp.ext_iff at c_pf_def,
-      specialize c_pf_def p,
-      simp at c_pf_def,
-      -- have := h p,
-      have : (d.prime_factorization) p < (n.prime_factorization) p,
-        { exact (ne.symm hp).le_iff_lt.mp (h p) },
-      have := (tsub_pos_of_lt this).ne,
-      contradiction,
-    },
+  rcases (prime_factorization_of_prime_finsupp c_pf h1) with ⟨c, hc⟩,
+  use c,
 
-    have hcd : 0 < c * d := mul_pos hc_pos hd,
+  have hc_pos : 0 < c, {
+    rw zero_lt_iff,
+    intros H,
+    rw [H,prime_factorization_zero] at hc,
+    rw hc at c_pf_neq_zero,
+    finish,
 
-    {
-      rw ←prime_factorization_eq_iff hn hcd,
-      rw prime_factorization_mul_add_of_pos hc_pos hd,
-      rw [←hc, c_pf_def],
-      ext p,
-      simp,
-      specialize h p,
-      linarith,
-    },
-    {
-      intros p hp,
-      suffices : p ∈ n.prime_factorization.support,
-        { rw factor_iff_mem_factorization at this,
-          exact prime_of_mem_factors this },
-      rw mem_support_iff at hp ⊢,
-      rw c_pf_def at hp,
-      simp at hp,
-      exact ne_zero_of_lt hp,
-    },
-  }
+
+    -- rw hc at c_pf_def,
+    -- rw finsupp.ext_iff at c_pf_def,
+    -- cases (disagree_factor_of_ne hn hd hnd) with p hp,
+    -- specialize c_pf_def p,
+    -- simp at c_pf_def,
+    -- have : (d.prime_factorization) p < (n.prime_factorization) p,
+    --   { exact (ne.symm hp).le_iff_lt.mp (h p) },
+    -- have := (tsub_pos_of_lt this).ne,
+    -- contradiction,
+  },
+
+  have hcd : 0 < c * d := mul_pos hc_pos hd,
+
+
+  rw ←prime_factorization_eq_iff hn hcd,
+  rw prime_factorization_mul_add_of_pos hc_pos hd,
+  rw [←hc, c_pf_def],
+
+
+
+  ext p,
+  rw add_comm,
+  apply (nat.add_sub_of_le (h p)).symm,
 end
 
 
 
+
+example
+(d n: ℕ)
+(hd: 0 < d)
+(hn: 0 < n)
+(hdn: d ≤ n)
+: n = (n - d) + d
+:=
+begin
+  rw add_comm,
+  exact (nat.add_sub_of_le hdn).symm,
+end
 
 end nat

@@ -197,12 +197,10 @@ nat_iso.of_components
     end)
   (begin
     rintros (⟨_,_⟩|_) _ (_|_|_),
-    all_goals
-    { try { erw category.comp_id },
-      try { erw category.id_comp },
-      try { erw functor.map_id },
-      try { erw functor.map_comp },
-      refl },
+    { erw [category.comp_id, category.id_comp, functor.map_id], refl },
+    { erw [category.comp_id, category.id_comp], refl },
+    { erw [category.comp_id, category.id_comp, functor.map_comp], refl },
+    { erw [category.comp_id, category.id_comp, functor.map_id], refl },
   end)
 
 @[simp] lemma diagram_iso_app_left (i : D.ι × D.ι) :

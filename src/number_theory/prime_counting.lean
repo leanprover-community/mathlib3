@@ -56,7 +56,7 @@ begin
   exact a_le_b,
 end
 
-lemma split_Ico {a b c : ℕ} (a_le_b : a ≤ b) (b_le_c : b ≤ c) (p : ℕ -> Prop) [decidable_pred p] :
+lemma split_Ico {S : Type} [linear_order S] [locally_finite_order S] [decidable_eq S]  {a b c : S} (a_le_b : a ≤ b) (b_le_c : b ≤ c) (p : S → Prop) [decidable_pred p] :
   (Ico a c).filter p = (Ico a b).filter p ∪ (Ico b c).filter p :=
 begin
   ext x,

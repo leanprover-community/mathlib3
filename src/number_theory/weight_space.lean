@@ -176,7 +176,7 @@ end-/
   ∃ inj' : (units B) → (units A), ∀ (x : (units B)), inj' x = inj (x : B) -/
 
 --[fact (function.injective inj)]
-variables (R : Type*) [normed_comm_ring R] [complete_space R] (inj : ℤ_[p] → R) (m : ℕ)
+variables (R : Type*) [normed_comm_ring R] [complete_space R] [char_zero R] (inj : ℤ_[p] → R) (m : ℕ)
   (χ : mul_hom (units (zmod (d*(p^m)))) R) (w : weight_space R p d)
 --variables (d : ℕ) (hd : gcd d p = 1) (χ : dirichlet_char_space A p d) (w : weight_space A p)
 --need χ to be primitive
@@ -1948,7 +1948,7 @@ variable [has_coe ℚ R]
 -- can hd be removed?
 lemma bernoulli_measure_nonempty [has_coe ℝ R] (hc : gcd c p = 1) (hc' : gcd c d = 1)
   [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) :
-  nonempty (@bernoulli_measure p _ d R _ _ _ _ hc _) :=
+  nonempty (@bernoulli_measure p _ d R _ _ _ _ _ hc _) :=
 begin
   refine mem_nonempty _,
   have hd' : 0 < d, sorry,
@@ -2041,10 +2041,66 @@ end
 abbreviation s : set (locally_constant (zmod d × ℤ_[p]) R) := set.image (char_fn (zmod d × ℤ_[p]))
   (⨆ n : ℕ, set.range (clopen_from p d n))
 
-/-- An equivalence between the clopen basis and the characteristic functions corresponding to it. -/
-def clopen_char_fn_equiv : clopen_basis' p d ≃ s p d R := sorry
+example {α β : Type*} {f g : α → β} : f = g ↔ ∀ (x :α), f x = g x := function.funext_iff
 
-instance general_version (n m : ℕ) (h : n < m) (a : zmod (p^n)) : fintype (equi_class p d n m h a) := sorry
+example {α β : Type*} {a c : α} {b d : β} : (a, b) = (c, d) ↔ a = c ∧ b = d := prod.ext_iff
+
+--generalize!
+lemma char_fn_one (x : zmod d × ℤ_[p]) (U : clopen_sets (zmod d × ℤ_[p])) :
+  x ∈ U.val ↔ char_fn _ U x = (1 : R) :=
+begin
+  rw char_fn, simp only [locally_constant.coe_mk, subtype.val_eq_coe, ite_eq_left_iff],
+  split, any_goals { intro h, },
+  { contrapose, push_neg, intros, apply h, },
+  { by_contra h',
+    apply nat.cast_add_one_ne_zero 0,
+    symmetry,
+    convert h h', any_goals { apply_instance, }, rw nat.cast_zero, rw zero_add, },
+end
+
+--generalize!
+lemma char_fn_inj : function.injective (@char_fn (zmod d × ℤ_[p]) _ _ _ _ R _ _ _) :=
+begin
+  rintros U V h, ext, repeat { rw ←subtype.val_eq_coe, rw char_fn_one p d R, },
+  rw locally_constant.ext_iff at h, rw h x,
+end
+
+lemma mem_s (U : clopen_basis' p d) : (char_fn (zmod d × ℤ_[p]) U.val) ∈ s p d R :=
+begin
+  rw set.mem_image, refine ⟨U.val, _, rfl⟩,
+  simp only [set.mem_Union, set.mem_range, set.supr_eq_Union],
+  obtain ⟨n, a, hU⟩ := U.prop,
+  refine ⟨n, a, hU.symm⟩,
+end
+
+/-- An equivalence between the clopen basis and the characteristic functions corresponding to it. -/
+noncomputable def clopen_char_fn_equiv : clopen_basis' p d ≃ s p d R :=
+{
+  to_fun := λ U, ⟨(char_fn (zmod d × ℤ_[p]) U.val), mem_s p d R U⟩,
+  inv_fun := λ f, begin have := (set.mem_image _ _ _).1 f.prop, refine ⟨classical.some this, _⟩,
+    obtain ⟨h1, h2⟩ := classical.some_spec this,
+    simp only [set.mem_Union, set.mem_range, set.supr_eq_Union] at h1,
+    obtain ⟨n, a, hU⟩ := h1,
+    refine ⟨n, a, _⟩,
+    convert hU.symm, simp only [set.mem_Union, set.mem_range, set.supr_eq_Union], end,
+  left_inv := begin refine function.left_inverse_iff_comp.mpr _, rw function.funext_iff,
+    intro U, rw id, rw subtype.ext_iff_val,
+    obtain ⟨h1, h2⟩ := classical.some_spec (mem_s p d R U),
+--    rw set.mem_image at h1, cases h1 with z hz, cases hz with h1 h2,
+    simp only [set.mem_Union, set.mem_range, function.comp_app, set.supr_eq_Union, subtype.coe_mk,
+      subtype.val_eq_coe] at h1,
+    simp only [set.mem_Union, set.mem_range, set.supr_eq_Union, subtype.coe_mk],
+    convert (function.injective.eq_iff (char_fn_inj p d R)).1 h2,
+    { funext, simp only [set.mem_Union, set.mem_range, iff_self, set.supr_eq_Union], },
+  end,
+  right_inv := begin refine function.right_inverse_iff_comp.mpr _, ext, simp, congr,
+    convert (classical.some_spec x.prop).2,
+    simp only [set.mem_Union, set.mem_range, set.supr_eq_Union], end,
+}
+
+--DO NOT DELETE!
+/-instance general_version (n m : ℕ) (h : n < m) (a : zmod (p^n)) :
+  fintype (equi_class p d n m h a) := sorry-/
 
 /-
 --construct a map from `ℤ/dℤ × ℤ_p → clopen_basis' p d` ?

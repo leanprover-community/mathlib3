@@ -158,12 +158,11 @@ by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
 @[simp] lemma comp_base {X Y Z : PresheafedSpace C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).base = f.base ≫ g.base := rfl
 
-/--
-The `reassoc` attribute was added despite the LHS not being a composition of two homs, since
-1. This allows us to rewrite in the opposite direction easier.
-2. Sometimes rewriting `comp_c_app` wouldn't work because of dependent type issues, but
-  `erw comp_c_app_assoc` sometimes solves this problem.
--/
+-- The `reassoc` attribute was added despite the LHS not being a composition of two homs,
+-- for the reasons explained in the docstring.
+/-- Sometimes rewriting with `comp_c_app` doesn't work because of dependent type issues.
+In that case, `erw comp_c_app_assoc` might make progress.
+The lemma `comp_c_app_assoc` is also better suited for rewrites in the opposite direction. -/
 @[reassoc, simp] lemma comp_c_app {X Y Z : PresheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) := rfl
 

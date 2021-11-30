@@ -198,8 +198,8 @@ begin
   clear n,
   assume n IH hyp,
   rcases n with _|_|n,
-  { simp [fib_succ_succ, continuants_aux] }, -- case n = 0
-  { simp [fib_succ_succ, continuants_aux] }, -- case n = 1
+  { simp [fib_add_two, continuants_aux] }, -- case n = 0
+  { simp [fib_add_two, continuants_aux] }, -- case n = 1
   { let g := of v,  -- case 2 ≤ n
     have : ¬(n + 2 ≤ 1), by linarith,
     have not_terminated_at_n : ¬g.terminated_at n, from or.resolve_left hyp this,
@@ -209,7 +209,7 @@ begin
     set ppconts := g.continuants_aux n with ppconts_eq,
     -- use the recurrence of continuants_aux
     suffices : (fib n : K) + fib (n + 1) ≤ gp.a * ppconts.b + gp.b * pconts.b, by
-      simpa [fib_succ_succ, add_comm,
+      simpa [fib_add_two, add_comm,
         (continuants_aux_recurrence s_ppred_nth_eq ppconts_eq pconts_eq)],
     -- make use of the fact that gp.a = 1
     suffices : (fib n : K) + fib (n + 1) ≤ ppconts.b + gp.b * pconts.b, by

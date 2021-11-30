@@ -447,10 +447,11 @@ end
 lemma weak_trichotomous (x y) {p : Prop} (is_lt : ∀ h : lt x y, p)
   (is_eqv : ∀ h : ¬ lt x y ∧ ¬ lt y x, p) (is_gt : ∀ h : lt y x, p) : p :=
 begin
-  by_cases lt x y; by_cases lt y x,
-  any_goals { apply is_lt; assumption },
-  any_goals { apply is_gt; assumption },
-  any_goals { apply is_eqv, constructor; assumption }
+  by_cases lt x y,
+  { apply is_lt, assumption },
+  by_cases lt y x,
+  { apply is_gt, assumption },
+  { apply is_eqv, constructor; assumption }
 end
 
 section find_ins_of_not_eqv

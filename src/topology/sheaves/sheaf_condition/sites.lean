@@ -236,7 +236,7 @@ begin
   intros U R hR,
   refine ⟨_⟩,
   apply (is_limit.of_cone_equiv (cones.postcompose_equivalence
-    (covering_of_presieve.diagram_nat_iso F U R))).to_fun,
+    (covering_of_presieve.diagram_nat_iso F U R : _))).to_fun,
   apply (is_limit.equiv_iso_limit
     (covering_of_presieve.postcompose_diagram_fork_iso F U R hR)).inv_fun,
   exact (Fsh (covering_of_presieve U R)).some,
@@ -317,7 +317,7 @@ pi.lift (λ f, pi.π _ (index_of_hom U f) ≫ F.map (eq_to_hom (index_of_hom_spe
 Even though `first_obj_to_pi_opens` and `pi_opens_to_first_obj` are not inverse to each other,
 applying them both after a fork map `s.ι` does nothing. The intuition here is that a compatible
 family `s : Π i : ι, F.obj (op (U i))` does not care about duplicate open sets:
-If `U i = U j` the the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
+If `U i = U j` the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
 hence `s i = s j` (module an `eq_to_hom` arrow).
 -/
 lemma fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq

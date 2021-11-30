@@ -12,10 +12,12 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 
 ## Main definitions
 
-* `resolvent a : set R`: the resolvent set of an element `a : A` where
+* `resolvent_set a : set R`: the resolvent set of an element `a : A` where
   `A` is an  `R`-algebra.
 * `spectrum a : set R`: the spectrum of an element `a : A` where
   `A` is an  `R`-algebra.
+* `resolvent : R → A`: the resolvent function is `λ r, ring.inverse (↑ₐr - a)`, and hence
+  when `r ∈ resolvent R A`, it is actually the inverse of the unit `(↑ₐr - a)`.
 
 ## Main statements
 
@@ -43,10 +45,10 @@ variables [comm_ring R] [ring A] [algebra R A]
 
 -- definition and basic properties
 
-/-- Given a commutative ring `R` and an `R`-algebra `A`, the *resolvent* of `a : A`
+/-- Given a commutative ring `R` and an `R`-algebra `A`, the *resolvent set* of `a : A`
 is the `set R` consisting of those `r : R` for which `r•1 - a` is a unit of the
 algebra `A`.  -/
-def resolvent (a : A) : set R :=
+def resolvent_set (a : A) : set R :=
 { r : R | is_unit (algebra_map R A r - a) }
 
 
@@ -54,9 +56,16 @@ def resolvent (a : A) : set R :=
 is the `set R` consisting of those `r : R` for which `r•1 - a` is not a unit of the
 algebra `A`.
 
-The spectrum is simply the complement of the resolvent.  -/
+The spectrum is simply the complement of the resolvent set.  -/
 def spectrum (a : A) : set R :=
-(resolvent R a)ᶜ
+(resolvent_set R a)ᶜ
+
+variable {R}
+/-- Given an `a : A` where `A` is an `R`-algebra, the *resolvent* is
+    a map `R → A` which sends `r : R` to `(algebra_map R A r - a)⁻¹` when
+    `r ∈ resolvent R A` and `0` when `r ∈ spectrum R A`. -/
+noncomputable def resolvent (a : A) (r : R) : A :=
+ring.inverse (algebra_map R A r - a)
 
 end defs
 
@@ -65,26 +74,13 @@ variables [comm_ring R] [ring A] [algebra R A]
 
 -- products of scalar units and algebra units
 
-lemma is_unit.smul_iff {G : Type u} [group G] [mul_action G A]
-  [smul_comm_class G A A] [is_scalar_tower G A A] {r : G} {a : A} :
-  is_unit (r • a) ↔ is_unit a :=
-begin
-  split, swap,
-    { exact λ h, (r•h.unit).is_unit, },
-    { intro h, let a' : units A :=
-        ⟨a,
-         r•↑(h.unit)⁻¹,
-         by rw [mul_smul_comm, ←smul_mul_assoc, is_unit.mul_coe_inv],
-         by rw [smul_mul_assoc,←mul_smul_comm, is_unit.coe_inv_mul],⟩,
-      exact ⟨a',rfl⟩, },
-end
 
 lemma is_unit.smul_sub_iff_sub_inv_smul {r : units R} {a : A} :
   is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
 begin
   have a_eq : a = r•r⁻¹•a, by simp,
   nth_rewrite 0 a_eq,
-  rw [←smul_sub,is_unit.smul_iff],
+  rw [←smul_sub,is_unit_smul_iff],
 end
 
 namespace spectrum
@@ -101,20 +97,24 @@ lemma not_mem_iff {r : R} {a : A} :
   r ∉ σ a ↔ is_unit (↑ₐr - a) :=
 by { apply not_iff_not.mp, simp [set.not_not_mem, mem_iff] }
 
-lemma mem_resolvent_of_left_right_inverse {r : R} {a b c : A}
+lemma mem_resolvent_set_of_left_right_inverse {r : R} {a b c : A}
   (h₁ : (↑ₐr - a) * b = 1) (h₂ : c * (↑ₐr - a) = 1) :
-  r ∈ resolvent R a :=
+  r ∈ resolvent_set R a :=
 units.is_unit ⟨↑ₐr - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁⟩
 
-lemma mem_resolvent_iff {r : R} {a : A} :
-  r ∈ resolvent R a ↔ is_unit (↑ₐr - a) :=
+lemma mem_resolvent_set_iff {r : R} {a : A} :
+  r ∈ resolvent_set R a ↔ is_unit (↑ₐr - a) :=
 iff.rfl
+
+lemma resolvent_eq {a : A} {r : R} (h : r ∈ resolvent_set R a) :
+  resolvent a r = ↑h.unit⁻¹ :=
+ring.inverse_unit h.unit
 
 lemma add_mem_iff {a : A} {r s : R} :
   r ∈ σ a ↔ r + s ∈ σ (↑ₐs + a) :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_iff],
+  simp only [mem_resolvent_set_iff],
   have h_eq : ↑ₐ(r+s) - (↑ₐs + a) = ↑ₐr - a,
     { simp, noncomm_ring },
   rw h_eq,
@@ -124,9 +124,9 @@ lemma smul_mem_smul_iff {a : A} {s : R} {r : units R} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_iff, algebra.algebra_map_eq_smul_one],
+  simp only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one],
   have h_eq : (r•s)•(1 : A) = r•s•1, by simp,
-  rw [h_eq,←smul_sub,is_unit.smul_iff],
+  rw [h_eq,←smul_sub,is_unit_smul_iff],
 end
 
 open_locale pointwise
@@ -153,7 +153,7 @@ theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : units R} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_iff, algebra.algebra_map_eq_smul_one],
+  simp only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one],
   have coe_smul_eq : ↑r•1 = r•(1 : A), from rfl,
   rw coe_smul_eq,
   simp only [is_unit.smul_sub_iff_sub_inv_smul],

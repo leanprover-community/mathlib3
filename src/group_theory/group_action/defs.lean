@@ -270,17 +270,6 @@ protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
   mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
 
-/-- `has_scalar.comp` is a right inverse to `function.surjective.has_scalar_left`. -/
-@[simp] lemma function.surjective.has_scalar_left_comp_hom {R S M : Type*} {hsc : has_scalar S M}
-  (f : R → S) (hf : function.surjective f) :
-  @@function.surjective.has_scalar_left (has_scalar.comp M f) f hf = hsc :=
-by unfreezingI
-  { cases hsc,
-    refine congr_arg has_scalar.mk _,
-    ext c x,
-    change hsc (f (function.surj_inv hf _)) x = hsc c x,
-    rw function.surj_inv_eq hf }
-
 /-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
 
 If an explicit right-inverse `g` to `f` is known, use `mul_action.comp_hom g` instead

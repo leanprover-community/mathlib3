@@ -80,7 +80,7 @@ else by rw [cpow_def, if_neg (one_ne_zero : (1 : ℂ) ≠ 0), if_neg hx, mul_one
 by rw cpow_def; split_ifs; simp [one_ne_zero, *] at *
 
 lemma cpow_add {x : ℂ} (y z : ℂ) (hx : x ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
-by simp [cpow_def]; split_ifs; simp [*, exp_add, mul_add] at *
+by simp [cpow_def]; simp [*, exp_add, mul_add] at *
 
 lemma cpow_mul {x y : ℂ} (z : ℂ) (h₁ : -π < (log x * y).im) (h₂ : (log x * y).im ≤ π) :
   x ^ (y * z) = (x ^ y) ^ z :=

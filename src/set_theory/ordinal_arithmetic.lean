@@ -1556,7 +1556,7 @@ le_antisymm
 
 theorem mul_lt_omega_power {a b c : ordinal}
   (c0 : 0 < c) (ha : a < omega ^ c) (hb : b < omega) : a * b < omega ^ c :=
-if b0 : b = 0 then by simp only [b0, mul_zero, power_pos _ omega_pos] else begin
+begin
   rcases zero_or_succ_or_limit c with rfl|⟨c,rfl⟩|l,
   { exact (lt_irrefl _).elim c0 },
   { rw power_succ at ha,

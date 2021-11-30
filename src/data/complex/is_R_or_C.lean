@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 import data.real.sqrt
 import field_theory.tower
 import analysis.normed_space.finite_dimension
+import analysis.normed_space.star
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
@@ -784,5 +785,9 @@ linear_isometry.norm_to_continuous_linear_map of_real_li
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
 
 end linear_maps
+
+instance {K : Type*} [is_R_or_C K] : cstar_ring K :=
+{ norm_star_mul_self := λ x,
+  by { simp only [←star_ring_aut_apply, norm_eq_abs, abs_mul, abs_conj] } }
 
 end is_R_or_C

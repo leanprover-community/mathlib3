@@ -34,14 +34,15 @@ lemma prime_factorization_eq_iff {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   a.prime_factorization = b.prime_factorization ↔ a = b :=
 ⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←prime_factorization_count, h]), λ h, by rw h⟩
 
-lemma prime_factorization_zero : prime_factorization 0 = 0  :=
+@[simp] lemma prime_factorization_zero : prime_factorization 0 = 0  :=
 by simp [prime_factorization]
 
-lemma prime_factorization_one : prime_factorization 1 = 0 :=
+@[simp] lemma prime_factorization_one : prime_factorization 1 = 0 :=
 by simp [prime_factorization]
 
 /-- The support of `n.prime_factorization` is exactly `n.factors.to_finset` -/
-lemma support_prime_factorization {n : ℕ} : n.prime_factorization.support = n.factors.to_finset :=
+@[simp] lemma support_prime_factorization {n : ℕ} :
+  n.prime_factorization.support = n.factors.to_finset :=
 by { unfold prime_factorization, simpa only [multiset.to_finsupp_support] using rfl }
 
 lemma factor_iff_mem_factorization {n p : ℕ} :
@@ -56,7 +57,7 @@ begin
 end
 
 /-- For prime `p` and `k > 0`, the only prime factor of `p^k` is `p` with multiplicity `k` -/
-lemma prime_factorization_prime_pos_pow {p k : ℕ} (hp : prime p) (hk : 0 < k) :
+@[simp] lemma prime_factorization_prime_pos_pow {p k : ℕ} (hp : prime p) (hk : 0 < k) :
   prime_factorization (p^k) = single p k :=
 begin
   rw eq_single_iff,
@@ -66,7 +67,8 @@ begin
 end
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity 1 -/
-lemma prime_factorization_prime {p : ℕ} (hp : prime p) : p.prime_factorization = single p 1 :=
+@[simp] lemma prime_factorization_prime {p : ℕ} (hp : prime p) :
+  p.prime_factorization = single p 1 :=
 by { simp only [←prime_factorization_prime_pos_pow hp one_pos, pow_one] }
 
 end nat

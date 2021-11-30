@@ -38,7 +38,6 @@ by rw [bit1, bit0_eq_zero, zero_add]
 end semiring
 
 section ring
-section char_two
 variables [ring R] [char_p R 2]
 
 lemma neg_eq (x : R) : -x = x :=
@@ -52,8 +51,6 @@ by rw [sub_eq_add_neg, neg_eq]
 
 lemma sub_eq_add' : has_sub.sub = ((+) : R → R → R) :=
 funext $ λ x, funext $ λ y, sub_eq_add x y
-
-end char_two
 
 end ring
 

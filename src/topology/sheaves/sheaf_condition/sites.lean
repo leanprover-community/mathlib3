@@ -317,7 +317,7 @@ pi.lift (λ f, pi.π _ (index_of_hom U f) ≫ F.map (eq_to_hom (index_of_hom_spe
 Even though `first_obj_to_pi_opens` and `pi_opens_to_first_obj` are not inverse to each other,
 applying them both after a fork map `s.ι` does nothing. The intuition here is that a compatible
 family `s : Π i : ι, F.obj (op (U i))` does not care about duplicate open sets:
-If `U i = U j` the the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
+If `U i = U j` the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
 hence `s i = s j` (module an `eq_to_hom` arrow).
 -/
 lemma fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq

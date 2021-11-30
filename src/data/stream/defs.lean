@@ -21,7 +21,7 @@ open nat
 namespace stream
 variables {α : Type u} {β : Type v} {δ : Type w}
 
-/-- Prepend an element to a sream. -/
+/-- Prepend an element to a stream. -/
 def cons (a : α) (s : stream α) : stream α :=
 λ i,
   match i with

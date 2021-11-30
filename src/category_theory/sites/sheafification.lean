@@ -581,7 +581,7 @@ def sheafification_adjunction : presheaf_to_Sheaf J D ⊣ Sheaf_to_presheaf J D 
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ P Q,
   { to_fun := λ e, J.to_sheafify P ≫ e,
-    inv_fun := λ e, J.sheafify_lift e Q.2,
+    inv_fun := λ e, J.sheafify_lift e Q.condition,
     left_inv := λ e, (J.sheafify_lift_unique _ _ _ rfl).symm,
     right_inv := λ e, J.to_sheafify_sheafify_lift _ _ },
   hom_equiv_naturality_left_symm' := begin
@@ -594,10 +594,10 @@ variables {J D}
 /-- A sheaf `P` is isomorphic to its own sheafification. -/
 def sheafification_iso (P : Sheaf J D) :
   P ≅ (presheaf_to_Sheaf J D).obj ((Sheaf_to_presheaf J D).obj P) :=
-{ hom := (J.iso_sheafify P.2).hom,
-  inv := (J.iso_sheafify P.2).inv,
-  hom_inv_id' := (J.iso_sheafify P.2).hom_inv_id,
-  inv_hom_id' := (J.iso_sheafify P.2).inv_hom_id }
+{ hom := (J.iso_sheafify P.condition).hom,
+  inv := (J.iso_sheafify P.condition).inv,
+  hom_inv_id' := (J.iso_sheafify P.condition).hom_inv_id,
+  inv_hom_id' := (J.iso_sheafify P.condition).inv_hom_id }
 
 @[simp]
 lemma sheafification_iso_hom (P : Sheaf J D) :
@@ -605,7 +605,7 @@ lemma sheafification_iso_hom (P : Sheaf J D) :
 
 @[simp]
 lemma sheafification_iso_inv (P : Sheaf J D) :
-  (sheafification_iso P).inv = J.sheafify_lift (𝟙 _) P.2 :=
+  (sheafification_iso P).inv = J.sheafify_lift (𝟙 _) P.condition :=
 begin
   apply J.sheafify_lift_unique,
   erw [iso.comp_inv_eq, category.id_comp],

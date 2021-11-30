@@ -36,9 +36,9 @@ such that
 6. `f i i` is an isomorphism.
 7. `t i i` is the identity.
 8. The pullback for `f i j` and `f i k` exists.
-8. `V i j ×[U i] V i k ⟶ V i j ⟶ V j i` factors through `V j k ×[U j] V j i ⟶ V j i` via some
+9. `V i j ×[U i] V i k ⟶ V i j ⟶ V j i` factors through `V j k ×[U j] V j i ⟶ V j i` via some
     `t' : V i j ×[U i] V i k ⟶ V j k ×[U j] V j i`.
-9. `t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _`.
+10. `t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _`.
 -/
 @[nolint has_inhabited_instance]
 structure glue_data :=
@@ -160,7 +160,7 @@ instance (i j k : D.ι) : has_pullback (F.map (D.f i j)) (F.map (D.f i k)) :=
 ⟨⟨⟨_, is_limit_of_has_pullback_of_preserves_limit F (D.f i j) (D.f i k)⟩⟩⟩
 
 /-- A functor that preserves the pullbacks of `f i j` and `f i k` can map a family of glue data. -/
-def map_glue_data :
+@[simps] def map_glue_data :
   glue_data C' :=
 { ι := D.ι,
   U := λ i, F.obj (D.U i),

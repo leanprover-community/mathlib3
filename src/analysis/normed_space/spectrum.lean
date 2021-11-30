@@ -35,8 +35,10 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 open_locale ennreal
 
 /-- The *spectral radius* is the supremum of the `nnnorm` (`∥⬝∥₊`) of elements in the spectrum,
-    coerced into an element of `ℝ≥0∞` so that it lives in a `complete_lattice`. Note that it
-    is possible for `spectrum 𝕜 a = ∅`. In this case, `spectral_radius a = 0`-/
+    coerced into an element of `ℝ≥0∞`. Note that it is possible for `spectrum 𝕜 a = ∅`. In this
+    case, `spectral_radius a = 0`.  It is also possible that `spectrum 𝕜 a` be unbounded (though
+    not for Banach algebras, see `spectrum.is_bounded`, below).  In this case,
+    `spectral_radius a = ∞`. -/
 noncomputable def spectral_radius (𝕜 : Type*) {A : Type*} [normed_field 𝕜] [ring A]
   [algebra 𝕜 A] (a : A) : ℝ≥0∞ :=
 ⨆ k ∈ spectrum 𝕜 a, ∥k∥₊
@@ -61,7 +63,7 @@ lemma is_closed (a : A) : is_closed (σ a) :=
 lemma mem_resolvent_of_norm_lt {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
   k ∈ ρ a :=
 begin
-  rw [resolvent_set,set.mem_set_of_eq,algebra.algebra_map_eq_smul_one],
+  rw [resolvent_set, set.mem_set_of_eq, algebra.algebra_map_eq_smul_one],
   have hk : k ≠ 0 := ne_zero_of_norm_pos (by linarith [norm_nonneg a]),
   let ku := units.map (↑ₐ).to_monoid_hom (units.mk0 k hk),
   have hku : ∥-a∥ < ∥(↑ku⁻¹:A)∥⁻¹ := by simpa [ku, algebra_map_isometry] using h,
@@ -70,7 +72,7 @@ end
 
 lemma norm_le_norm_of_mem {a : A} {k : 𝕜} (hk : k ∈ σ a) :
   ∥k∥ ≤ ∥a∥ :=
-le_of_not_lt (not_imp_not.mpr mem_resolvent_of_norm_lt hk)
+le_of_not_lt $ mt mem_resolvent_of_norm_lt hk
 
 lemma subset_closed_ball_norm (a : A) :
   σ a ⊆ metric.closed_ball (0 : 𝕜) (∥a∥) :=
@@ -85,10 +87,11 @@ metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
 theorem spectral_radius_le_nnnorm (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
 begin
-  suffices h : ∀ (k : 𝕜) (hk : k ∈ σ a), (∥k∥₊ : ℝ≥0∞) ≤ ∥a∥₊,
+  suffices h : ∀ k ∈ σ a, (∥k∥₊ : ℝ≥0∞) ≤ ∥a∥₊,
   { exact bsupr_le h, },
   { by_cases ha : (σ a).nonempty,
-    { intros _ hk, exact_mod_cast norm_le_norm_of_mem hk },
+    { intros _ hk,
+      exact_mod_cast norm_le_norm_of_mem hk },
     { rw set.not_nonempty_iff_eq_empty at ha,
       simp [ha, set.ball_empty_iff] } }
 end

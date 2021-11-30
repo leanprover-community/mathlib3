@@ -405,6 +405,7 @@ simp,
 end
 
 
+
 def int_diff0 (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ): (ℝ → E) :=
 λ θ, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w) : ℂ) • f (z + R * exp (θ * I))
 
@@ -484,6 +485,25 @@ simp [inf_le_left],
 end
 
 
+
+lemma int_diff0_int (R : ℝ) (hR: 0 < R) (F : ℂ → ℂ) (F_cts :  continuous (F ))
+  (z : ℂ) (w : ball z R): integrable (int_diff0 R hR (F) z w) (volume.restrict (Ioc 0  (2*π))) :=
+
+begin
+apply integrable_on.integrable,
+rw ←  interval_integrable_iff_integrable_Ioc_of_le,
+apply continuous_on.interval_integrable,
+have hw:= w.property,
+simp at hw,
+have := int_diff0_cont R hR F z w F_cts,
+simp at this,
+have hc:= this hw,
+apply continuous.continuous_on,
+apply hc,
+simp,
+linarith [real.pi_pos],
+end
+
 lemma UNIF_CONV_INT (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)  (F_cts : ∀ n, continuous (F n))
    (hlim : tendsto_uniformly F f filter.at_top) (z : ℂ) (w : ball z R) :
 tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR (F n) z w) θ)
@@ -491,24 +511,43 @@ tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR (F n) z w) θ)
 
 begin
 have f_cont: continuous f, by {sorry,},
-set bound: ℝ → ℝ := λ x, 2,
-have F_measurable : ∀ n, ae_measurable (int_diff0 R hR (F n) z w) (volume.restrict (Ioc 0  (2*π))) ,
- by {sorry,},
-have bound_integrable : integrable bound (volume.restrict (Ioc 0  (2*π))), by {sorry,},
-have h_bound : ∀ n, ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), ∥(int_diff0 R hR (F n) z w) a∥ ≤ bound a,
-by {sorry,},
-have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
+
+have F_measurable : ∀ n, ae_measurable (int_diff0 R hR (F n) z w) (volume.restrict (Ioc 0  (2*π))),
+ by {intro n,
+     have:= int_diff0_int R hR (F n) (F_cts n) z w,
+     apply this.ae_measurable, },
+
+
+have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
   at_top (𝓝 (((int_diff0 R hR f z w)) a)),
-  by {rw metric.tendsto_uniformly_iff at hlim, simp_rw metric.tendsto_nhds, simp_rw  dist_comm,
-  rw eventually_iff_exists_mem,
-   use ⊤,
-  simp at *,
+
+ by {rw metric.tendsto_uniformly_iff at hlim, simp_rw metric.tendsto_nhds, simp_rw  dist_comm,
   simp_rw int_diff0,
+  simp at *,
   intros y ε hε,
   set r : ℂ :=  ((2 * (↑π * I))⁻¹ * (↑R * exp (↑y * I) * I / (z + ↑R * exp (↑y * I) - ↑w))),
   have hr: 0 < ∥ r ∥, by {simp, rw div_eq_inv_mul,
-    apply mul_pos, sorry, sorry,},
-  have hr':  ∥ r ∥ ≠ 0, by {sorry},
+    apply mul_pos, rw inv_eq_one_div, rw one_div_pos,
+    apply mul_pos, linarith, simp, apply real.pi_ne_zero,
+    apply mul_pos,
+    rw inv_pos,
+    rw abs_pos,
+    have hw:=w.property,
+    simp at hw,
+    by_contradiction hc,
+    simp_rw dist_eq_norm at hw,
+    have hc' : (w : ℂ)-z = R * exp (↑y * I), by {sorry,},
+     simp_rw hc' at hw,
+     simp at hw,
+     rw abs_lt at hw,
+     simp at hw,
+     apply hw,
+     simp,
+     by_contradiction hrr,
+     rw hrr at hR,
+     simp at hR,
+     apply hR,},
+  have hr':  ∥ r ∥ ≠ 0, by {linarith,},
   let e:= (∥ r ∥)⁻¹ * (ε/2),
   have he: 0 < e, by {sorry,},
   have h_lim2:= hlim e he,
@@ -538,6 +577,34 @@ have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), tendsto (λ n, ((in
     rw inv_eq_one_div,
     linarith,
     apply hε,},
+
+have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
+  at_top (𝓝 (((int_diff0 R hR f z w)) a)),
+  by {simp [h_lim''],},
+rw metric.tendsto_uniformly_iff at hlim,
+simp at hlim,
+have hlimb:= hlim 1 (zero_lt_one),
+obtain ⟨ a, ha⟩ :=hlimb,
+set bound: ℝ → ℝ :=λ θ, (∑ (i : finset.range (a+1) ),complex.abs ((int_diff0 R hR (F i) z w) θ))  +
+complex.abs ((int_diff0 R hR (λ x, 1) z w) θ)  + complex.abs ((int_diff0 R hR f z w) θ),
+
+have h_bound : ∀ n, ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), ∥(int_diff0 R hR (F n) z w) a∥ ≤ bound a,
+by {
+  intro n,
+  rw  ae_restrict_iff' at *,
+  rw eventually_iff_exists_mem,
+  use ⊤,
+  simp,
+  intros y hyl hyu,
+  by_cases (n ≤ a),
+  simp_rw bound,
+  sorry,
+  simp at h,
+  sorry,
+  all_goals {simp only [measurable_set_Ioc]},},
+
+
+have bound_integrable : integrable bound (volume.restrict (Ioc 0  (2*π))), by {sorry,},
 have := tendsto_integral_of_dominated_convergence bound F_measurable bound_integrable h_bound h_lim',
 have pi: 0 ≤ 2*π , by {sorry},
 simp_rw  integral_of_le pi,
@@ -592,9 +659,10 @@ lemma unif_of_diff_is_diff (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ)
   differentiable_on ℂ f (ball z R) :=
 begin
 have F_measurable : ∀ n, integrable (F n) volume, by {sorry,},
-
+have F_cts : ∀ n, continuous (F n) , by {sorry,},
 rw differentiable_on,
 intros x hx,
+have key:= UNIF_CONV_INT R hR F f F_cts hlim z ⟨x, hx⟩,
 --have key := int_diff_of_uniform' F f z x R hR hlim,
 rw differentiable_within_at,
 have h0:= int_diff R hR f z,
@@ -610,7 +678,7 @@ use D,
 simp_rw has_fderiv_within_at_iff_tendsto at *,
 rw metric.tendsto_nhds at *,
 rw tendsto_uniformly_iff at hlim,
-simp_rw dist_eq_norm at hlim,
+simp_rw dist_eq_norm at *,
 intros ε hε,
 have hlim2:= hlim ε hε,
 simp at *,
@@ -618,6 +686,8 @@ obtain ⟨a, ha⟩ := hlim2,
 have HH: ∀ (y : ℂ), f y - f x - (D y - D x) =
 (f y - F a y) - ((f x)- (F a x)) + ((F a y)- (F a x))  - (D y - D x), by {sorry,},
 simp_rw HH,
+rw int_diff at hD,
+simp at hD,
 sorry,
 end
 

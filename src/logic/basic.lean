@@ -772,7 +772,7 @@ by { subst h₁, subst h₂ }
 lemma eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
 lemma eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
 
-lemma congr_arg2 {α β γ : Type*} (f : α → β → γ) {x x' : α} {y y' : β}
+lemma congr_arg2 {α β γ : Sort*} (f : α → β → γ) {x x' : α} {y y' : β}
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
 

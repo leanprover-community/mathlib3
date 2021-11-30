@@ -166,12 +166,8 @@ end
 /-- If there is a primitive `n`-th root of unity in `K`, then `X ^ n - 1`splits. -/
 lemma X_pow_sub_one_splits {ζ : K} {n : ℕ} (h : is_primitive_root ζ n) :
   splits (ring_hom.id K) (X ^ n - C (1 : K)) :=
-begin
-  by_cases hzero : n = 0,
-  { simp only [hzero, ring_hom.map_one, splits_zero, pow_zero, sub_self] },
-  rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
-    nat_degree_X_pow_sub_C],
-end
+by rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
+    nat_degree_X_pow_sub_C]
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
 `∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1`. -/
@@ -224,10 +220,6 @@ begin
   { use 1,
     simp only [hzero, cyclotomic'_zero, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
     coe_map_ring_hom, map_one, and_self] },
-  by_cases hone : k = 1,
-  { use X - 1,
-    simp only [hone, cyclotomic'_one K, set.mem_univ, pnat.one_coe, subsemiring.coe_top,
-    eq_self_iff_true, map_X, coe_map_ring_hom, map_one, and_self, map_sub], },
   let B : polynomial K := ∏ i in nat.proper_divisors k, cyclotomic' i K,
   have Bmo : B.monic,
   { apply monic_prod_of_monic,

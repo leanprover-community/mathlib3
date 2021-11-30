@@ -129,14 +129,12 @@ def discriminant (A : Type u) {B : Type v} [comm_ring A] [comm_ring B] [algebra 
 lemma discriminant_def [decidable_eq ι] [fintype ι] (b : ι → B) :
   discriminant A b = (trace_matrix A b).det := by convert rfl
 
-namespace discriminant
-
 variable [fintype ι]
 
 section basic
 
-lemma zero_of_not_linear_independent [is_domain A] {b : ι → B} (hli : ¬linear_independent A b) :
-  discriminant A b = 0 :=
+lemma discr_zero_of_not_linear_independent [is_domain A] {b : ι → B}
+  (hli : ¬linear_independent A b) : discriminant A b = 0 :=
 begin
   classical,
   obtain ⟨g, hg, i, hi⟩ := fintype.not_linear_independent_iff.1 hli,
@@ -153,13 +151,13 @@ end
 
 variable {A}
 
-lemma of_matrix_vec_mul [decidable_eq ι] (b : ι → B) (P : matrix ι ι A) :
+lemma discr_of_matrix_vec_mul [decidable_eq ι] (b : ι → B) (P : matrix ι ι A) :
   discriminant A ((P.map (algebra_map A B)).vec_mul b) = P.det ^ 2 * discriminant A b :=
 by rw [discriminant_def, trace_matrix_of_matrix_vec_mul, det_mul, det_mul, det_transpose, mul_comm,
     ← mul_assoc, discriminant_def, pow_two]
 
 
-lemma of_matrix_mul_vec [decidable_eq ι] (b : ι → B) (P : matrix ι ι A) :
+lemma discr_of_matrix_mul_vec [decidable_eq ι] (b : ι → B) (P : matrix ι ι A) :
   discriminant A ((P.map (algebra_map A B)).mul_vec b) = P.det ^ 2 * discriminant A b :=
 by rw [discriminant_def, trace_matrix_of_matrix_mul_vec, det_mul, det_mul, det_transpose,
   mul_comm, ← mul_assoc, discriminant_def, pow_two]
@@ -173,7 +171,7 @@ variables [algebra K L] [algebra K E] [algebra L E]
 variables [module.finite K L] [is_separable K L] [is_alg_closed E]
 variables (b : ι → L) (pb : power_basis K L)
 
-lemma not_zero_of_linear_independent [nonempty ι]
+lemma discr_not_zero_of_linear_independent [nonempty ι]
   (hcard : fintype.card ι = finrank K L) (hli : linear_independent K b) : discriminant K b ≠ 0 :=
 begin
   classical,
@@ -196,25 +194,23 @@ lemma _root_.algebra.trace_matrix_eq_embeddings_matrix_reindex_mul_trans
 by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
   mul_transpose_eq_minor_mul_minor_transpose, ← equiv.coe_refl, equiv.refl_symm]
 
-lemma eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι]
+lemma discr_eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι]
   (e : ι ≃ (L →ₐ[K] E)) : algebra_map K E (discriminant K b) =
   (embeddings_matrix_reindex K E b e).det ^ 2 :=
 by rw [discriminant_def, ring_hom.map_det, ring_hom.map_matrix_apply,
     trace_matrix_eq_embeddings_matrix_reindex_mul_trans, det_mul, det_transpose, pow_two]
 
-lemma of_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_of_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discriminant K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j), (e j pb.gen- (e i pb.gen)) ^ 2 :=
 begin
-  rw [eq_det_embeddings_matrix_reindex_pow_two K E pb.basis e,
+  rw [discr_eq_det_embeddings_matrix_reindex_pow_two K E pb.basis e,
     embeddings_matrix_reindex_eq_vandermonde, det_transpose, det_vandermonde, ← prod_pow],
   congr, ext i,
   rw [← prod_pow]
 end
 
 end field
-
-end discriminant
 
 end discriminant
 

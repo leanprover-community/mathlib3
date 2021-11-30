@@ -58,14 +58,14 @@ end char_two
 section ring_char
 variables [ring R]
 
-lemma neg_one_eq_one_iff [nontrivial R]: (-1 : R) = 1 ↔ ring_char R = 2 :=
+lemma _root_.neg_one_eq_one_iff [nontrivial R]: (-1 : R) = 1 ↔ ring_char R = 2 :=
 begin
   refine ⟨λ h, _, λ h, @@neg_eq _ (ring_char.of_eq h) 1⟩,
   rw [eq_comm, ←sub_eq_zero, sub_neg_eq_add, ← nat.cast_one, ← nat.cast_add] at h,
   exact ((nat.dvd_prime nat.prime_two).mp (ring_char.dvd h)).resolve_left char_p.ring_char_ne_one
 end
 
-@[simp] lemma order_of_neg_one [nontrivial R] :
+@[simp] lemma _root_.order_of_neg_one [nontrivial R] :
   order_of (-1 : R) = if ring_char R = 2 then 1 else 2 :=
 begin
   split_ifs,

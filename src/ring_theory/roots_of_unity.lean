@@ -551,9 +551,8 @@ variables {ζ : units R} (h : is_primitive_root ζ k)
 lemma neg_one (p : ℕ) [nontrivial R] [h : char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
 begin
   convert is_primitive_root.order_of (-1 : R),
-  rw ←ring_char.eq_iff at h,
-  unfreezingI { subst h }, -- you get _very_ weird behaviour without this `unfreezingI`! (no error)
-  simp [hp]
+  rw [order_of_neg_one, if_neg],
+  rwa ring_char.eq_iff.mpr h
 end
 
 protected

@@ -86,11 +86,6 @@ def natural (u : ι → α → β) (hum : ∀ i, measurable (u i)) : filtration 
   mono := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
   le := λ i, bsupr_le (λ j hj s hs, let ⟨t, ht, ht'⟩ := hs in ht' ▸ hum j ht) }
 
--- move -- does this exist?
-lemma measurable_le {m m0 : measurable_space α} (hm : m ≤ m0) {f : α → β}
-  (hf : measurable[m] f) : measurable[m0] f :=
-λ s hs, hm _ (hf hs)
-
 lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) :
   adapted (natural u hum) u :=
 λ i, measurable_le (le_bsupr_of_le i (le_refl i) (le_refl _)) (λ s hs, ⟨s, hs, rfl⟩)

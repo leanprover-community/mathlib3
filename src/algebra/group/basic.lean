@@ -552,6 +552,10 @@ lemma div_div_cancel_left (a b : G) : a / b / a = b⁻¹ := by simp
 theorem inv_mul' (a b : G) : (a * b)⁻¹ = a⁻¹ / b :=
 by rw [div_eq_mul_inv, mul_inv a b]
 
+@[simp, to_additive]
+lemma inv_div_inv (a b : G) : a⁻¹ / b⁻¹ = b / a :=
+by simp [div_eq_inv_mul', mul_comm]
+
 end comm_group
 
 section add_comm_group
@@ -560,10 +564,6 @@ section add_comm_group
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
-
-@[simp]
-lemma neg_sub_neg (a b : G) : -a - -b = b - a :=
-by simp [sub_eq_neg_add, add_comm]
 
 lemma eq_sub_iff_add_eq' : a = b - c ↔ c + a = b :=
 by rw [eq_sub_iff_add_eq, add_comm]

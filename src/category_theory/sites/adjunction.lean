@@ -88,10 +88,6 @@ adjunction.mk_of_hom_equiv
     dsimp,
     symmetry,
     apply J.sheafify_lift_unique,
-    dsimp [compose_equiv, adjunction.whisker_right],
-    erw [sheafification_map_sheafify_lift, to_sheafify_sheafify_lift],
-    ext : 2,
-    dsimp,
     simp,
   end,
   hom_equiv_naturality_right' := begin

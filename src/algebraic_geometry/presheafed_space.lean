@@ -243,11 +243,11 @@ instance c_is_iso_of_iso (f : X ⟶ Y) [is_iso f] : is_iso f.c :=
 is_iso.of_iso (sheaf_iso_of_iso (as_iso f))
 
 /-- This could be used in conjunction with `category_theory.nat_iso.is_iso_of_is_iso_app`. -/
- lemma is_iso_of_components (f : X ⟶ Y) [is_iso f.base] [is_iso f.c] : is_iso f :=
- begin
-   convert is_iso.of_iso (iso_of_components (as_iso f.base) (as_iso f.c).symm),
-   ext, { simpa }, { simp },
- end
+lemma is_iso_of_components (f : X ⟶ Y) [is_iso f.base] [is_iso f.c] : is_iso f :=
+begin
+  convert is_iso.of_iso (iso_of_components (as_iso f.base) (as_iso f.c).symm),
+  ext, { simpa }, { simp },
+end
 
 end iso
 

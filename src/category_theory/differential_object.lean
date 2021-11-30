@@ -128,13 +128,14 @@ A functor `F : C ⥤ D` which commutes with shift functors on `C` and `D` and pr
 can be lifted to a functor `differential_object C ⥤ differential_object D`.
 -/
 @[simps]
-def map_differential_object (F : C ⥤ D) (η : (shift C).functor.comp F ⟶ F.comp (shift D).functor)
+def map_differential_object (F : C ⥤ D)
+  (η : (shift_functor C 1).comp F ⟶ F.comp (shift_functor D 1))
   (hF : ∀ c c', F.map (0 : c ⟶ c') = 0) :
   differential_object C ⥤ differential_object D :=
 { obj := λ X, { X := F.obj X.X,
     d := F.map X.d ≫ η.app X.X,
     d_squared' := begin
-      dsimp, rw [functor.map_comp, ← functor.comp_map F (shift D).functor],
+      rw [functor.map_comp, ← functor.comp_map F (shift_functor D 1)],
       slice_lhs 2 3 { rw [← η.naturality X.d] },
       rw [functor.comp_map],
       slice_lhs 1 2 { rw [← F.map_comp, X.d_squared, hF] },
@@ -143,7 +144,7 @@ def map_differential_object (F : C ⥤ D) (η : (shift C).functor.comp F ⟶ F.c
   map := λ X Y f, { f := F.map f.f,
     comm' := begin
       dsimp,
-      slice_lhs 2 3 { rw [← functor.comp_map F (shift D).functor, ← η.naturality f.f] },
+      slice_lhs 2 3 { rw [← functor.comp_map F (shift_functor D 1), ← η.naturality f.f] },
       slice_lhs 1 2 { rw [functor.comp_map, ← F.map_comp, f.comm, F.map_comp] },
       rw [category.assoc]
     end },
@@ -195,10 +196,10 @@ variables [has_zero_morphisms C] [has_shift C]
 
 /-- The shift functor on `differential_object C`. -/
 @[simps]
-def shift_functor : differential_object C ⥤ differential_object C :=
+def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
 { obj := λ X,
-  { X := X.X⟦1⟧,
-    d := X.d⟦1⟧',
+  { X := X.X⟦n⟧,
+    d := X.d⟦n⟧',
     d_squared' := begin
       dsimp,
       rw [←functor.map_comp, X.d_squared, is_equivalence_preserves_zero_morphisms],

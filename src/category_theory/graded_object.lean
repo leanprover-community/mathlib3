@@ -82,6 +82,10 @@ begin
   simp,
 end
 
+@[simp] lemma eq_to_hom_apply {β : Type w} {X Y : Π b : β, C} (h : X = Y) (b : β) :
+  (eq_to_hom h : X ⟶ Y) b = eq_to_hom (by subst h) :=
+by { subst h, refl }
+
 /--
 The equivalence between β-graded objects and γ-graded objects,
 given an equivalence between β and γ.
@@ -99,19 +103,28 @@ end
 
 instance has_shift {β : Type*} [add_comm_group β] (s : β) :
   has_shift (graded_object_with_shift s C) :=
-{ shift := comap_equiv C
-  { to_fun := λ b, b-s,
-    inv_fun := λ b, b+s,
-    left_inv := λ x, (by simp),
-    right_inv := λ x, (by simp), } }
+{ shift := λ n, comap _ $ λ b, b + n • s,
+  shift_zero := comap_eq _ (by { ext, simp }) ≪≫ comap_id _ _,
+  shift_add := λ m n, comap_eq _ (by { ext, simp [add_zsmul, add_comm, add_assoc] }) ≪≫
+    comap_comp _ _ _,
+  whisker_left_shift_zero := λ n, by { ext X b, dsimp,
+    simp only [eq_to_hom_app, category.comp_id, category.id_comp, eq_to_hom_apply, eq_to_hom_trans],
+    refl },
+  whisker_right_shift_zero := λ n, by { ext X b, dsimp,
+    simp only [eq_to_hom_app, category.comp_id, category.id_comp, eq_to_hom_apply, eq_to_hom_trans],
+    refl },
+  whisker_right_shift_add := λ i j k, by { ext X b, dsimp,
+    simp only [eq_to_hom_app, category.comp_id, category.id_comp, eq_to_hom_apply, eq_to_hom_trans],
+    refl } }
 
-@[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β] (s : β) (X : β → C) (t : β) :
-  (shift (graded_object_with_shift s C)).functor.obj X t = X (t + s) :=
+@[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β]
+  (s : β) (X : β → C) (t : β) (n : ℤ) :
+  (shift_functor (graded_object_with_shift s C) n).obj X t = X (t + n • s) :=
 rfl
 
 @[simp] lemma shift_functor_map_apply {β : Type*} [add_comm_group β] (s : β)
-  {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) :
-  (shift (graded_object_with_shift s C)).functor.map f t = f (t + s) :=
+  {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) (n : ℤ) :
+  (shift_functor (graded_object_with_shift s C) n).map f t = f (t + n • s) :=
 rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :

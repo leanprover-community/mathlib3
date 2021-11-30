@@ -413,7 +413,7 @@ by rw ← fintype.card_prod;
   fintype.card s ∣ fintype.card α :=
 by classical; simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_left ℕ]
 
-/-@[to_additive] -/ lemma card_quotient_dvd_card [fintype α] (s : subgroup α)
+@[to_additive] lemma card_quotient_dvd_card [fintype α] (s : subgroup α)
   [decidable_pred (λ a, a ∈ s)] [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
 by simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_right ℕ]
 

@@ -104,25 +104,25 @@ begin
   simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_coprime hab],
 end
 
--- /-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
--- lemma prime_factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
---   (a * b).prime_factorization = a.prime_factorization + b.prime_factorization :=
+-- -- /-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+-- -- lemma prime_factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
+-- --   (a * b).prime_factorization = a.prime_factorization + b.prime_factorization :=
+-- -- begin
+-- --   ext q,
+-- --   simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_pos ha hb],
+-- -- end
+
+-- /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
+-- lemma prime_factorization_union_of_coprime {a b : ℕ} (hab : coprime a b) :
+--   (a * b).prime_factorization.support = a.prime_factorization.support ∪ b.prime_factorization.support
+--   :=
 -- begin
---   ext q,
---   simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count, count_factors_mul_of_pos ha hb],
+--   rw prime_factorization_mul_add_of_coprime hab,
+--   exact support_add_eq (prime_factorization_disjoint_of_coprime hab),
 -- end
 
-/-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
-lemma prime_factorization_union_of_coprime {a b : ℕ} (hab : coprime a b) :
-  (a * b).prime_factorization.support = a.prime_factorization.support ∪ b.prime_factorization.support
-  :=
-begin
-  rw prime_factorization_mul_add_of_coprime hab,
-  exact support_add_eq (prime_factorization_disjoint_of_coprime hab),
-end
-
----------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------------------------------
 
 /-- If a product over `n.prime_factorization` doesn't use the multiplicities of the prime factors
 then it's equal to the corresponding product over `n.factors.to_finset` -/
@@ -130,13 +130,13 @@ lemma rebase_prod_prime_factorization {n : ℕ} {β : Type*} [comm_monoid β] (f
   n.prime_factorization.prod (λ p k, f p) = ∏ p in n.factors.to_finset, (f p) :=
 by { apply prod_congr support_prime_factorization, simp }
 
----------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------------------------------
 
 /-- For disjoint `f1` and `f2`, and function `g` with `∀ a, g a 0 = 1`,
 the product of `g x (f1 x + f2 x))` over `f1.support` equals the product of `g` over `f1.support` -/
 lemma disjoint_prod_add_aux {f1 f2 : ℕ →₀ ℕ} (hd : disjoint f1.support f2.support)
-  {β : Type*} [comm_monoid β] {g : ℕ → ℕ → β} (hg_zero : ∀ (a : ℕ), g a 0 = 1) :
+  {β : Type*} [comm_monoid β] {g : ℕ → ℕ → β} : --(hg_zero : ∀ (a : ℕ), g a 0 = 1) :
 (∏ (x : ℕ) in f1.support, g x (f1 x + f2 x)) = f1.prod g
 :=
 begin
@@ -147,18 +147,18 @@ begin
 end
 
 lemma disjoint_prod_add {f1 f2 : ℕ →₀ ℕ} (hd : disjoint f1.support f2.support)
-  {β : Type*} [comm_monoid β] {g : ℕ → ℕ → β} (hg_zero : ∀ (a : ℕ), g a 0 = 1) :
+  {β : Type*} [comm_monoid β] {g : ℕ → ℕ → β} : -- (hg_zero : ∀ (a : ℕ), g a 0 = 1) :
   f1.prod g * f2.prod g = (f1 + f2).prod g
 :=
 begin
-  rw [←disjoint_prod_add_aux hd hg_zero, ←disjoint_prod_add_aux (disjoint.comm.mp hd) hg_zero],
+  rw [←disjoint_prod_add_aux hd, ←disjoint_prod_add_aux (disjoint.comm.mp hd)],
   simp only [add_comm, finsupp.prod, support_add_eq hd, prod_union hd, add_apply],
 end
 
----------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------------------------------
 
-/-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`, we can evaluate `f n` by evaluating `f` at `p ^ k` over the prime factorization of `n` -/
+-- /-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`, we can evaluate `f n` by evaluating `f` at `p ^ k` over the prime factorization of `n` -/
 lemma multiplicative_factorization {n : ℕ} {β : Type*} [comm_monoid β] {f : ℕ → β}
   (hn : 0 < n)
   (h_mult : ∀ x y : ℕ, coprime x y → f(x * y) = f x * f y)
@@ -188,7 +188,7 @@ begin
     rw hb (pos_of_mul_pos_left hab_pos (a.zero_le)),
     rw prime_factorization_mul_add_of_coprime hab,
     apply disjoint_prod_add (prime_factorization_disjoint_of_coprime hab),
-    simpa using hf,
+    -- simpa using hf,
   },
 
   exact hn,
@@ -196,18 +196,17 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-/-- For `n > 0`, the product of `p_i ^ k_i` over the prime factorization of `n` equals `n` -/
+-- /-- For `n > 0`, the product of `p_i ^ k_i` over the prime factorization of `n` equals `n` -/
 lemma prime_factorization_prod_pow {n : ℕ} (hn : 0 < n) :
   n = n.prime_factorization.prod pow :=
 by { refine (multiplicative_factorization hn _ _), simp }
 
 ---------------------------------------------------------------------------------------------------
 
-/-- If the prime_factorization of `n` contains just one prime `p` then `n` is a power of `p` -/
-lemma prime_pow_of_prime_factorization_single {n p k : ℕ} (hn : 0 < n)
-  (h : n.prime_factorization = single p k) : n = p ^ k :=
-by { rw [prime_factorization_prod_pow hn, h], simp }
-
+-- /-- If the prime_factorization of `n` contains just one prime `p` then `n` is a power of `p` -/
+-- lemma prime_pow_of_prime_factorization_single {n p k : ℕ} (hn : 0 < n)
+--   (h : n.prime_factorization = single p k) : n = p ^ k :=
+-- by { rw [prime_factorization_prod_pow hn, h], simp }
 
 ---------------------------------------------------------------------------------------------------
 
@@ -222,29 +221,29 @@ begin
 -- Otherwise n is the product over its prime factorization
   nth_rewrite_rhs 0 (prime_factorization_prod_pow hn0),
 
+-- Since φ is multiplicative (and primes are coprime) we can rewrite φ n
+  rw (multiplicative_factorization hn0 (λ a b, totient_mul) totient_one),
+
 -- So if we rebase the product over prime factors ...
   simp only [←(rebase_prod_prime_factorization (λ x, (1 - (↑x:ℚ)⁻¹)))],
 
--- ... we get a simpler formula for the RHS
-  -- push_cast,
+-- ... we can gather the RHS into a single product
+  unfold finsupp.prod,
+  push_cast,
   rw ←prod_mul_distrib,
 
--- Now, since φ is multiplicative (and primes are coprime) we can rewrite φ n
-  rw (multiplicative_factorization hn0 (λ a b, totient_mul) totient_one),
-
--- So now it suffices to prove that the multiplicands are equal for each term
-  push_cast,
+-- So now it suffices to prove that the multiplicands are equal
   apply prod_congr rfl,
+  intros p hp,
+  set k := n.prime_factorization p,
 
-  rintros ⟨p, k⟩ hx,
-  simp,       -- can comment this out, leaving it for now for readability
-
-  have hp : prime p := prime_of_mem_factorization hx,
-  have hk : 0 < k := pos_of_prime_factorization_count hx,
-  have hp_pos : 0 < p := prime.pos hp,
+  have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
+  have hp_pos : 0 < p := prime.pos hpp,
   have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp_pos.ne',
 
-  rw (totient_prime_pow hp hk),
+  have hk : 0 < k, { rwa [finsupp.mem_support_iff, ←zero_lt_iff] at hp },
+  rw totient_prime_pow hpp hk,
+
   -- Finally, we need to prove: ↑(p ^ (k - 1) * (p - 1)) = ↑p ^ k * (1 - (↑p)⁻¹)
   field_simp,
   push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
@@ -253,3 +252,5 @@ end
 
 
 end nat
+
+#lint

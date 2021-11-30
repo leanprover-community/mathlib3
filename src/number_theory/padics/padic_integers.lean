@@ -401,8 +401,10 @@ lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
   begin
     have hk : k ≠ 0, from λ h', @zero_ne_one ℚ_[p] _ _ (by simpa [h'] using h),
     unfold padic_int.inv,
-    change (⟨k * (1/k), _⟩ : ℤ_[p]) = 1,
-    simp [hk], refl,
+    rw [norm_eq_padic_norm] at h,
+    rw dif_pos h,
+    apply subtype.ext_iff_val.2,
+    simp [mul_inv_cancel hk],
   end
 
 lemma inv_mul {z : ℤ_[p]} (hz : ∥z∥ = 1) : z.inv * z = 1 :=

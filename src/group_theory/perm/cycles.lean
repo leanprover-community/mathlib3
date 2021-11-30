@@ -185,9 +185,7 @@ lemma is_cycle_swap_mul_aux₂ {α : Type*} [decidable_eq α] :
   ∃ i : ℤ, ((swap x (f x) * f) ^ i) (f x) = b
 | (n : ℕ) := λ b x f, is_cycle_swap_mul_aux₁ n
 | -[1+ n] := λ b x f hb h,
-  if hfbx : f⁻¹ x = b then
-    ⟨-1, by rwa [zpow_neg, zpow_one, mul_inv_rev, mul_apply, swap_inv, swap_apply_right]⟩
-  else if hfbx' : f x = b then ⟨0, hfbx'⟩
+  if hfbx' : f x = b then ⟨0, hfbx'⟩
   else
   have f b ≠ b ∧ b ≠ x := ne_and_ne_of_swap_mul_apply_ne_self hb,
   have hb : (swap x (f⁻¹ x) * f⁻¹) (f⁻¹ b) ≠ f⁻¹ b,
@@ -228,7 +226,7 @@ end
 lemma is_cycle.swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cycle f) {x : α}
   (hx : f x ≠ x) (hffx : f (f x) ≠ x) : is_cycle (swap x (f x) * f) :=
 ⟨f x, by { simp only [swap_apply_def, mul_apply],
-        split_ifs; simp [f.injective.eq_iff] at *; cc },
+        simp [f.injective.eq_iff] at *; cc },
   λ y hy,
   let ⟨i, hi⟩ := hf.exists_zpow_eq hx (ne_and_ne_of_swap_mul_apply_ne_self hy).1 in
   have hi : (f ^ (i - 1)) (f x) = y, from

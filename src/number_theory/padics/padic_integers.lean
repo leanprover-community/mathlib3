@@ -400,10 +400,9 @@ lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
 | ⟨k, _⟩ h :=
   begin
     have hk : k ≠ 0, from λ h', @zero_ne_one ℚ_[p] _ _ (by simpa [h'] using h),
-    unfold padic_int.inv, split_ifs,
-    { change (⟨k * (1/k), _⟩ : ℤ_[p]) = 1,
-      simp [hk], refl },
-    { apply subtype.ext_iff_val.2, simp [mul_inv_cancel hk] }
+    unfold padic_int.inv,
+    change (⟨k * (1/k), _⟩ : ℤ_[p]) = 1,
+    simp [hk], refl,
   end
 
 lemma inv_mul {z : ℤ_[p]} (hz : ∥z∥ = 1) : z.inv * z = 1 :=

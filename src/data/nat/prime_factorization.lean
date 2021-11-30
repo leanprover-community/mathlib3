@@ -27,24 +27,18 @@ namespace nat
 noncomputable def prime_factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
 lemma prime_factorization_count {n p : ℕ} : n.prime_factorization p = list.count p n.factors :=
-by { unfold prime_factorization, simp }
+by simp [prime_factorization]
 
 /-- Every positive natural number has a unique prime factorization -/
 lemma prime_factorization_eq_iff {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   a.prime_factorization = b.prime_factorization ↔ a = b :=
-begin
-  split,
-  { intros h,
-    refine eq_of_count_factors_eq ha hb (λ p, _),
-    simp only [←prime_factorization_count, h] },
-  { intros h, rw h },
-end
+⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←prime_factorization_count, h]), λ h, by rw h⟩
 
 lemma prime_factorization_zero : prime_factorization 0 = 0  :=
-by { unfold prime_factorization, rw factors_zero, simp }
+by simp [prime_factorization]
 
 lemma prime_factorization_one : prime_factorization 1 = 0 :=
-by { unfold prime_factorization, rw factors_one, simp }
+by simp [prime_factorization]
 
 /-- The support of `n.prime_factorization` is exactly `n.factors.to_finset` -/
 lemma support_prime_factorization {n : ℕ} : n.prime_factorization.support = n.factors.to_finset :=

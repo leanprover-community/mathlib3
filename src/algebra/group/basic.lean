@@ -526,6 +526,10 @@ begin simp [h], rw [mul_comm c, mul_inv_cancel_left] end
 lemma div_div_self' (a b : G) : a / (a / b) = b :=
 by simpa using mul_inv_cancel_left a b
 
+@[to_additive add_sub_comm]
+lemma mul_div_comm' (a b c d : G) : a * b / (c * d) = (a / c) * (b / d) :=
+by simp
+
 end comm_group
 
 section add_comm_group
@@ -534,9 +538,6 @@ section add_comm_group
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
-
-lemma add_sub_comm (a b c d : G) : a + b - (c + d) = (a - c) + (b - d) :=
-by simp
 
 lemma sub_eq_sub_add_sub (a b c : G) : a - b = c - b + (a - c) :=
 begin simp, rw [add_left_comm c], simp end

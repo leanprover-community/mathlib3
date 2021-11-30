@@ -40,7 +40,7 @@ namespace homotopy_equiv
 instance : has_coe_to_fun (homotopy_equiv X Y) (λ _, X → Y) := ⟨λ h, h.to_fun⟩
 
 @[simp]
-lemma coe_to_fun (h : homotopy_equiv X Y) : (h.to_fun : X → Y) = h := rfl
+lemma to_fun_eq_coe (h : homotopy_equiv X Y) : (h.to_fun : X → Y) = h := rfl
 
 @[continuity]
 lemma continuous (h : homotopy_equiv X Y) : continuous h := h.to_fun.continuous
@@ -57,7 +57,7 @@ def refl (X : Type u) [topological_space X] : homotopy_equiv X X :=
 instance : inhabited (homotopy_equiv unit unit) := ⟨refl unit⟩
 
 @[simp]
-lemma coe_fn_refl (X : Type u) [topological_space X] : ⇑(refl X) = id := rfl
+lemma coe_refl (X : Type u) [topological_space X] : ⇑(refl X) = id := rfl
 
 /--
 If `X` is homotopy equivalent to `Y`, then `Y` is homotopy equivalent to `X`.

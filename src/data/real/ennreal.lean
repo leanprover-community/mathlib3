@@ -1441,30 +1441,6 @@ end
 lemma to_real_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_real < b.to_real :=
 (to_real_lt_to_real (h.trans (lt_top_iff_ne_top.2 hb)).ne hb).2 h
 
-lemma to_nnreal_mono (hb : b ≠ ∞) (h : a ≤ b) : a.to_nnreal ≤ b.to_nnreal :=
-by simpa [←ennreal.coe_le_coe, hb, (h.trans_lt hb.lt_top).ne]
-
-@[simp] lemma to_nnreal_le_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
-  a.to_nnreal ≤ b.to_nnreal ↔ a ≤ b :=
-begin
-  refine ⟨_, to_nnreal_mono hb⟩,
-  { intro h,
-    have key := ennreal.coe_le_coe.mpr h,
-    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
-end
-
-lemma to_nnreal_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_nnreal < b.to_nnreal :=
-by simpa [←ennreal.coe_lt_coe, hb, (h.trans hb.lt_top).ne]
-
-@[simp] lemma to_nnreal_lt_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
-  a.to_nnreal < b.to_nnreal ↔ a < b :=
-begin
-  refine ⟨_, to_nnreal_strict_mono hb⟩,
-  { intro h,
-    have key := ennreal.coe_lt_coe.mpr h,
-    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
-end
-
 lemma to_real_max (hr : a ≠ ∞) (hp : b ≠ ∞) :
   ennreal.to_real (max a b) = max (ennreal.to_real a) (ennreal.to_real b) :=
 (le_total a b).elim
@@ -1689,6 +1665,34 @@ of_real_add hr hr
 (of_real_add (by simp [hr]) zero_le_one).trans (by simp [real.to_nnreal_one, bit1, hr])
 
 end real
+
+section nnreal
+
+lemma to_nnreal_mono (hb : b ≠ ∞) (h : a ≤ b) : a.to_nnreal ≤ b.to_nnreal :=
+by simpa [←ennreal.coe_le_coe, hb, (h.trans_lt hb.lt_top).ne]
+
+@[simp] lemma to_nnreal_le_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
+  a.to_nnreal ≤ b.to_nnreal ↔ a ≤ b :=
+begin
+  refine ⟨_, to_nnreal_mono hb⟩,
+  { intro h,
+    have key := ennreal.coe_le_coe.mpr h,
+    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
+end
+
+lemma to_nnreal_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_nnreal < b.to_nnreal :=
+by simpa [←ennreal.coe_lt_coe, hb, (h.trans hb.lt_top).ne]
+
+@[simp] lemma to_nnreal_lt_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
+  a.to_nnreal < b.to_nnreal ↔ a < b :=
+begin
+  refine ⟨_, to_nnreal_strict_mono hb⟩,
+  { intro h,
+    have key := ennreal.coe_lt_coe.mpr h,
+    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
+end
+
+end nnreal
 
 section infi
 variables {ι : Sort*} {f g : ι → ℝ≥0∞}

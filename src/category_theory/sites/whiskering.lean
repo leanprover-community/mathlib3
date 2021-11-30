@@ -64,6 +64,14 @@ end
 @[simp] lemma multicospan_comp_hom_app_right (b) :
   (S.multicospan_comp F P).hom.app (walking_multicospan.right b) = eq_to_hom rfl := rfl
 
+@[simp] lemma multicospan_comp_hom_inv_left (P : Cᵒᵖ ⥤ A) {X : C}
+  (S : J.cover X) (a) : (S.multicospan_comp F P).inv.app (walking_multicospan.left a) =
+  eq_to_hom rfl := rfl
+
+@[simp] lemma multicospan_comp_hom_inv_right (P : Cᵒᵖ ⥤ A) {X : C}
+  (S : J.cover X) (b) : (S.multicospan_comp F P).inv.app (walking_multicospan.right b) =
+  eq_to_hom rfl := rfl
+
 /-- Mapping the multifork associated to a cover `S : J.cover X` and a presheaf `P` with
 respect to a functor `F` is isomorphic (upto a natural isomorphism of the underlying functors)
 to the multifork associated to `S` and `P ⋙ F`. -/

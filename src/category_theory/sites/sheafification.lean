@@ -467,23 +467,43 @@ variables
 
 /-- The sheafification of a presheaf `P`.
 *NOTE:* Additional hypotheses are needed to obtain a proof that this is a sheaf! -/
-@[simps]
 def sheafify (P : Cᵒᵖ ⥤ D) : Cᵒᵖ ⥤ D := J.plus_obj (J.plus_obj P)
 
 /-- The canonical map from `P` to its sheafification. -/
-@[simps]
 def to_sheafify (P : Cᵒᵖ ⥤ D) : P ⟶ J.sheafify P :=
 J.to_plus P ≫ J.plus_map (J.to_plus P)
+
+def sheafify_map {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) : J.sheafify P ⟶ J.sheafify Q :=
+J.plus_map $ J.plus_map η
+
+@[simp] lemma sheafify_map_id (P : Cᵒᵖ ⥤ D) : J.sheafify_map (𝟙 P) = 𝟙 _ :=
+by { dsimp only [sheafify_map, sheafify], simp_rw J.plus_map_id }
+
+@[simp, reassoc] lemma sheafify_map_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) :
+  J.sheafify_map (η ≫ γ) = J.sheafify_map η ≫ J.sheafify_map γ :=
+by { dsimp only [sheafify_map, sheafify], simp_rw J.plus_map_comp }
+
+@[simp, reassoc]
+lemma to_sheafify_naturality {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) :
+  η ≫ J.to_sheafify Q = J.to_sheafify P ≫ J.sheafify_map η :=
+begin
+  dsimp only [sheafify_map, to_sheafify],
+  simp_rw [← category.assoc, J.to_plus_naturality, category.assoc,
+    ← J.plus_map_comp, J.to_plus_naturality]
+end
 
 variable (D)
 
 /-- The sheafification of a presheaf `P`, as a functor.
 *NOTE:* Additional hypotheses are needed to obtain a proof that this is a sheaf! -/
-@[simps map]
 def sheafification : (Cᵒᵖ ⥤ D) ⥤ Cᵒᵖ ⥤ D := (J.plus_functor D ⋙ J.plus_functor D)
 
 @[simp]
 lemma sheafification_obj (P : Cᵒᵖ ⥤ D) : (J.sheafification D).obj P = J.sheafify P := rfl
+
+@[simp]
+lemma sheafification_map {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) :
+  (J.sheafification D).map η = J.sheafify_map η := rfl
 
 /-- The canonical map from `P` to its sheafification, as a natural transformation.
 *Note:* We only show this is a sheaf under additional hypotheses on `D`. -/
@@ -516,6 +536,7 @@ by letI := is_iso_to_sheafify J hP; exactI as_iso (J.to_sheafify P)
 def sheafify_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
   J.sheafify P ⟶ Q := J.plus_lift (J.plus_lift η hQ) hQ
 
+@[simp, reassoc]
 lemma to_sheafify_sheafify_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
   J.to_sheafify P ≫ sheafify_lift J η hQ = η :=
 begin
@@ -552,14 +573,13 @@ begin
   refl,
 end
 
-@[simp]
-lemma sheafification_map_sheafify_lift {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R)
+@[simp, reassoc]
+lemma sheafify_map_sheafify_lift {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R)
   (hR : presheaf.is_sheaf J R) :
-  (J.sheafification D).map η ≫ J.sheafify_lift γ hR = J.sheafify_lift (η ≫ γ) hR :=
+  J.sheafify_map η ≫ J.sheafify_lift γ hR = J.sheafify_lift (η ≫ γ) hR :=
 begin
   apply J.sheafify_lift_unique,
-  erw [← category.assoc, ← (J.to_sheafification D).naturality, functor.id_map,
-    category.assoc, to_sheafify_sheafify_lift],
+  erw [← category.assoc, ← J.to_sheafify_naturality, category.assoc, to_sheafify_sheafify_lift],
 end
 
 end grothendieck_topology
@@ -588,6 +608,7 @@ def presheaf_to_Sheaf : (Cᵒᵖ ⥤ D) ⥤ Sheaf J D :=
   map_comp' := λ P Q R f g, Sheaf.hom.ext _ _ $ (J.sheafification D).map_comp _ _ }
 
 /-- The sheafification functor is left adjoint to the forgetful functor. -/
+@[simps hom_equiv_apply hom_equiv_symm_apply_presheaf_hom unit_app counit_app_presheaf_hom]
 def sheafification_adjunction : presheaf_to_Sheaf J D ⊣ Sheaf_to_presheaf J D :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ P Q,
@@ -598,7 +619,7 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' := begin
     intros P Q R η γ,
     ext1, dsimp, symmetry,
-    apply J.sheafification_map_sheafify_lift,
+    apply J.sheafify_map_sheafify_lift,
   end,
   hom_equiv_naturality_right' := λ P Q R η γ, by { dsimp, rw category.assoc } }
 
@@ -611,10 +632,6 @@ def sheafification_iso (P : Sheaf J D) :
   inv := ⟨(J.iso_sheafify P.condition).inv⟩,
   hom_inv_id' := Sheaf.hom.ext _ _ $ (J.iso_sheafify P.condition).hom_inv_id,
   inv_hom_id' := Sheaf.hom.ext _ _ $ (J.iso_sheafify P.condition).inv_hom_id }
-
-lemma sheafification_iso_inv (P : Sheaf J D) :
-  (sheafification_iso P).inv.presheaf_hom = J.sheafify_lift (𝟙 _) P.condition :=
-by { dsimp, simp }
 
 instance is_iso_sheafification_adjunction_counit (P : Sheaf J D) :
   is_iso ((sheafification_adjunction J D).counit.app P) :=

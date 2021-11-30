@@ -57,16 +57,20 @@ Sheaf_to_presheaf J E ⋙ (whiskering_right _ _ _).obj G ⋙ presheaf_to_Sheaf J
 def compose_equiv (adj : G ⊣ F) (X : Sheaf J E) (Y : Sheaf J D) :
 ((compose_and_sheafify J G).obj X ⟶ Y) ≃ (X ⟶ (Sheaf_compose J F).obj Y) :=
 let A := adj.whisker_right Cᵒᵖ in
-{ to_fun := λ η, A.hom_equiv _ _ (J.to_sheafify _  ≫ η),
-  inv_fun := λ γ, J.sheafify_lift ((A.hom_equiv _ _).symm ((Sheaf_to_presheaf _ _).map γ)) Y.2,
+{ to_fun := λ η, ⟨A.hom_equiv _ _ (J.to_sheafify _  ≫ η.presheaf_hom)⟩,
+  inv_fun := λ γ, ⟨J.sheafify_lift ((A.hom_equiv _ _).symm
+    ((Sheaf_to_presheaf _ _).map γ)) Y.condition⟩,
   left_inv := begin
     intros η,
+    ext1,
+    dsimp,
     symmetry,
     apply J.sheafify_lift_unique,
-    erw equiv.symm_apply_apply,
+    rw equiv.symm_apply_apply,
   end,
   right_inv := begin
     intros γ,
+    ext1,
     dsimp,
     rw [J.to_sheafify_sheafify_lift, equiv.apply_symm_apply],
   end }
@@ -74,61 +78,28 @@ let A := adj.whisker_right Cᵒᵖ in
 /-- An adjunction `adj : G ⊣ F` with `F : D ⥤ E` and `G : E ⥤ D` induces an adjunction
 between `Sheaf J D` and `Sheaf J E`, in contexts where one can sheafify `D`-valued presheaves,
 and `F` preserves the correct limits. -/
+@[simps hom_equiv_apply_presheaf_hom hom_equiv_symm_apply_presheaf_hom unit_app counit_app]
 def adjunction (adj : G ⊣ F) : compose_and_sheafify J G ⊣ Sheaf_compose J F :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := compose_equiv J adj,
   hom_equiv_naturality_left_symm' := begin
     intros X' X Y f g,
+    ext1,
+    dsimp,
     symmetry,
     apply J.sheafify_lift_unique,
     dsimp [compose_equiv, adjunction.whisker_right],
     erw [sheafification_map_sheafify_lift, to_sheafify_sheafify_lift],
     ext : 2,
     dsimp,
-    erw nat_trans.comp_app,
     simp,
   end,
   hom_equiv_naturality_right' := begin
     intros X Y Y' f g,
-    dsimp [compose_equiv, adjunction.whisker_right],
-    ext : 2,
-    erw [nat_trans.comp_app, nat_trans.comp_app, nat_trans.comp_app, nat_trans.comp_app],
+    ext : 3,
     dsimp,
-    erw [nat_trans.comp_app f g],
-    simp only [category.id_comp, category.comp_id, category.assoc, functor.map_comp],
+    simp,
   end }
-
-@[simp]
-lemma adjunction_hom_equiv_apply (adj : G ⊣ F) (X : Sheaf J D) (Y : Sheaf J E)
-  (η : (compose_and_sheafify J G).obj Y ⟶ X) : (adjunction J adj).hom_equiv _ _ η =
-  (adj.whisker_right _).hom_equiv _ _ (J.to_sheafify _ ≫ η) := rfl
-
-@[simp]
-lemma adjunction_hom_equiv_symm_apply (adj : G ⊣ F) (X : Sheaf J D) (Y : Sheaf J E)
-  (η : Y ⟶ (Sheaf_compose J F).obj X) : ((adjunction J adj).hom_equiv _ _).symm η =
-  J.sheafify_lift (((adj.whisker_right _).hom_equiv _ _).symm η) X.2 := rfl
-
-@[simp]
-lemma adjunction_unit_app (adj : G ⊣ F) (X : Sheaf J E) :
-  (Sheaf_to_presheaf _ _).map ((adjunction J adj).unit.app X) =
-  (adj.whisker_right _).unit.app _ ≫ whisker_right (J.to_sheafify _) F :=
-begin
-  dsimp [adjunction],
-  erw category.comp_id,
-  refl,
-end
-
-@[simp]
-lemma adjunction_counit_app (adj : G ⊣ F) (Y : Sheaf J D) :
-  (Sheaf_to_presheaf _ _).map ((adjunction J adj).counit.app Y) =
-  J.sheafify_lift ((functor.associator _ _ _).hom ≫
-  (adj.whisker_right _).counit.app _) Y.2 :=
-begin
-  dsimp [adjunction],
-  simp only [whiskering_right_obj_map, adjunction.hom_equiv_counit],
-  erw [whisker_right_id],
-  refl,
-end
 
 instance [is_right_adjoint F] : is_right_adjoint (Sheaf_compose J F) :=
 ⟨_, adjunction J (adjunction.of_right_adjoint F)⟩
@@ -149,14 +120,14 @@ adjunction.comp _ _ ((Sheaf_equiv_SheafOfTypes J).symm.to_adjunction) (adjunctio
 @[simp]
 lemma adjunction_to_types_hom_equiv_apply {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
   (X : Sheaf J D) (Y : SheafOfTypes J) (η : (compose_and_sheafify_from_types J G).obj Y ⟶ X) :
-  (adjunction_to_types J adj).hom_equiv _ _ η =
-  (adj.whisker_right _).hom_equiv _ _ (J.to_sheafify _ ≫ η) := rfl
+  ((adjunction_to_types J adj).hom_equiv _ _ η).presheaf_hom =
+  (adj.whisker_right _).hom_equiv _ _ (J.to_sheafify _ ≫ η.presheaf_hom) := rfl
 
 @[simp]
-lemma adjunction_to_types_hom_equiv_symm_apply' {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
+lemma adjunction_to_types_hom_equiv_symm_apply {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
   (X : Sheaf J D) (Y : SheafOfTypes J) (η : Y ⟶ (Sheaf_forget J).obj X) :
-  ((adjunction_to_types J adj).hom_equiv _ _).symm η =
-  J.sheafify_lift (((adj.whisker_right _).hom_equiv _ _).symm η) X.2 := rfl
+  (((adjunction_to_types J adj).hom_equiv _ _).symm η).presheaf_hom =
+  (J.sheafify_lift (((adj.whisker_right _).hom_equiv _ _).symm η.presheaf_hom) X.condition) := rfl
 
 @[simp]
 lemma adjunction_to_types_unit_app {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
@@ -165,25 +136,28 @@ lemma adjunction_to_types_unit_app {G : Type (max v u) ⥤ D} (adj : G ⊣ forge
   (adj.whisker_right _).unit.app ((SheafOfTypes_to_presheaf J).obj Y) ≫
   whisker_right (J.to_sheafify _) (forget D) :=
 begin
-  dsimp [adjunction_to_types, adjunction.comp],
-  rw category.comp_id,
-  change (SheafOfTypes_to_presheaf _).map _ = _,
-  erw [functor.map_comp, adjunction_unit_app],
-  refl,
+  ext : 2,
+  dsimp [adjunction_to_types, adjunction.comp, equivalence.to_adjunction,
+    nat_iso.of_components, adjunction.whisker_right],
+  simp,
 end
 
 @[simp]
 lemma adjunction_to_types_counit_app {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
   (X : Sheaf J D) :
-  (Sheaf_to_presheaf _ _).map ((adjunction_to_types J adj).counit.app X) =
-  J.sheafify_lift ((functor.associator _ _ _).hom ≫ (adj.whisker_right _).counit.app _) X.2 :=
+  ((adjunction_to_types J adj).counit.app X).presheaf_hom =
+  J.sheafify_lift ((functor.associator _ _ _).hom ≫
+    (adj.whisker_right _).counit.app _) X.condition :=
 begin
-  dsimp only [adjunction_to_types, adjunction.comp],
-  erw [functor.map_comp, functor.map_comp, adjunction_counit_app, ← category.assoc],
-  convert category.id_comp _,
-  dsimp only [functor.associator],
-  erw [functor.map_id, category.id_comp, functor.map_id],
-  refl,
+  apply J.sheafify_lift_unique,
+  dsimp [adjunction_to_types, adjunction.comp],
+  simp only [category.id_comp, whiskering_right_obj_map, adjunction.hom_equiv_counit,
+    whisker_right_id', grothendieck_topology.sheafify_map_sheafify_lift,
+    grothendieck_topology.to_sheafify_sheafify_lift],
+  ext,
+  dsimp [Sheaf_equiv_SheafOfTypes, equivalence.to_adjunction, equivalence.symm,
+    adjunction.mk_of_unit_counit, nat_iso.of_components],
+  simp,
 end
 
 instance [is_right_adjoint (forget D)] : is_right_adjoint (Sheaf_forget J) :=

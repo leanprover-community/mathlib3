@@ -104,7 +104,7 @@ variable (A)
   `σ (b i)`. It is mostly useful for fields when `fintype.card ι = finrank A B` and `C` is
   algebraically closed. -/
 @[simp] def embeddings_matrix (b : ι → B) : matrix ι (B →ₐ[A] C) C
-| i σ := σ (b i))
+| i σ := σ (b i)
 
 /-- `embeddings_matrix_reindex A C b e : matrix ι ι C` is the matrix whose `(i, j)` coefficient
   is `σⱼ (b i)`, where `σⱼ : B →ₐ[A] C` is the embedding corresponding to `j : ι` given by a

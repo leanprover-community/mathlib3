@@ -83,13 +83,13 @@ This is actually stronger than merely preserving compatible families because of 
 structure compatible_preserving (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 (compatible :
   ∀ (ℱ : SheafOfTypes.{w} K) {Z} {T : presieve Z}
-    {x : family_of_elements (G.op ⋙ ℱ.val) T} (h : x.compatible)
+    {x : family_of_elements (G.op ⋙ ℱ.to_presheaf) T} (h : x.compatible)
     {Y₁ Y₂} {X} (f₁ : X ⟶ G.obj Y₁) (f₂ : X ⟶ G.obj Y₂) {g₁ : Y₁ ⟶ Z} {g₂ : Y₂ ⟶ Z}
     (hg₁ : T g₁) (hg₂ : T g₂) (eq : f₁ ≫ G.map g₁ = f₂ ≫ G.map g₂),
-      ℱ.val.map f₁.op (x g₁ hg₁) = ℱ.val.map f₂.op (x g₂ hg₂))
+      ℱ.to_presheaf.map f₁.op (x g₁ hg₁) = ℱ.to_presheaf.map f₂.op (x g₂ hg₂))
 
 variables {J K} {G : C ⥤ D} (hG : compatible_preserving.{w} K G) (ℱ : SheafOfTypes.{w} K) {Z : C}
-variables {T : presieve Z} {x : family_of_elements (G.op ⋙ ℱ.val) T} (h : x.compatible)
+variables {T : presieve Z} {x : family_of_elements (G.op ⋙ ℱ.to_presheaf) T} (h : x.compatible)
 
 include h hG
 
@@ -101,8 +101,8 @@ begin
   unfold family_of_elements.functor_pushforward,
   rcases get_functor_pushforward_structure H₁ with ⟨X₁, f₁, h₁, hf₁, rfl⟩,
   rcases get_functor_pushforward_structure H₂ with ⟨X₂, f₂, h₂, hf₂, rfl⟩,
-  suffices : ℱ.val.map (g₁ ≫ h₁).op (x f₁ hf₁) = ℱ.val.map (g₂ ≫ h₂).op (x f₂ hf₂),
-    simpa using this,
+  suffices : ℱ.to_presheaf.map (g₁ ≫ h₁).op (x f₁ hf₁) =
+    ℱ.to_presheaf.map (g₂ ≫ h₂).op (x f₂ hf₂), by simpa using this,
   apply hG.compatible ℱ h _ _ hf₁ hf₂,
   simpa using eq
 end
@@ -126,10 +126,10 @@ This result is basically https://stacks.math.columbia.edu/tag/00WW.
 -/
 theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_preserving.{v₃} K G)
   (hG₂ : cover_preserving J K G) (ℱ : Sheaf K A) :
-  presheaf.is_sheaf J (G.op ⋙ ℱ.val) :=
+  presheaf.is_sheaf J (G.op ⋙ ℱ.to_presheaf) :=
 begin
   intros X U S hS x hx,
-  change family_of_elements (G.op ⋙ ℱ.val ⋙ coyoneda.obj (op X)) _ at x,
+  change family_of_elements (G.op ⋙ ℱ.to_presheaf ⋙ coyoneda.obj (op X)) _ at x,
   let H := ℱ.2 X _ (hG₂.cover_preserve hS),
   let hx' := hx.functor_pushforward hG₁ (sheaf_over ℱ X),
   split, swap,
@@ -151,7 +151,7 @@ end
 /-- The pullback of a sheaf along a cover-preserving and compatible-preserving functor. -/
 def pullback_sheaf {G : C ⥤ D} (hG₁ : compatible_preserving K G)
   (hG₂ : cover_preserving J K G) (ℱ : Sheaf K A) : Sheaf J A :=
-⟨G.op ⋙ ℱ.val, pullback_is_sheaf_of_cover_preserving hG₁ hG₂ ℱ⟩
+⟨G.op ⋙ ℱ.to_presheaf, pullback_is_sheaf_of_cover_preserving hG₁ hG₂ ℱ⟩
 
 variable (A)
 
@@ -162,8 +162,8 @@ if `G` is cover-preserving and compatible-preserving.
 @[simps] def sites.pullback {G : C ⥤ D} (hG₁ : compatible_preserving K G)
   (hG₂ : cover_preserving J K G) : Sheaf K A ⥤ Sheaf J A :=
 { obj := λ ℱ, pullback_sheaf hG₁ hG₂ ℱ,
-  map := λ _ _ f, (((whiskering_left _ _ _).obj G.op)).map f,
-  map_id' := λ ℱ, (((whiskering_left _ _ _).obj G.op)).map_id ℱ.val,
-  map_comp' := λ _ _ _ f g, (((whiskering_left _ _ _).obj G.op)).map_comp f g }
+  map := λ _ _ f, ⟨(((whiskering_left _ _ _).obj G.op)).map f.presheaf_hom⟩,
+  map_id' := λ ℱ, by { ext1, apply (((whiskering_left _ _ _).obj G.op)).map_id ℱ.to_presheaf },
+  map_comp' := λ _ _ _ f g, by { ext1, apply (((whiskering_left _ _ _).obj G.op)).map_comp } }
 
 end category_theory

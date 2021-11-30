@@ -103,26 +103,27 @@ variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 namespace Ran_is_sheaf_of_cover_lifting
 variables {G : C ⥤ D} (hu : cover_lifting J K G) (ℱ : Sheaf J A)
 variables {X : A} {U : D} (S : sieve U) (hS : S ∈ K U)
-variables (x : S.arrows.family_of_elements ((Ran G.op).obj ℱ.val ⋙ coyoneda.obj (op X)))
+variables (x : S.arrows.family_of_elements ((Ran G.op).obj ℱ.to_presheaf ⋙ coyoneda.obj (op X)))
 variables (hx : x.compatible)
 
 /-- The family of morphisms `X ⟶ 𝒢(G(Y')) ⟶ ℱ(Y')` defined on `{ Y' ⊆ Y : G(Y') ⊆ U ∈ S}`. -/
 def pulledback_family (Y : structured_arrow (op U) G.op) :=
 (((x.pullback Y.hom.unop).functor_pullback G).comp_presheaf_map
-  (show _ ⟶ _, from whisker_right ((Ran.adjunction A G.op).counit.app ℱ.val)
+  (show _ ⟶ _, from whisker_right ((Ran.adjunction A G.op).counit.app ℱ.to_presheaf)
     (coyoneda.obj (op X))))
 
 @[simp] lemma pulledback_family_apply (Y : structured_arrow (op U) G.op) {W} {f : W ⟶ _} (Hf) :
-  pulledback_family ℱ S x Y f Hf =
-    x (G.map f ≫ Y.hom.unop) Hf ≫ ((Ran.adjunction A G.op).counit.app ℱ.val).app (op W) := rfl
+  pulledback_family ℱ S x Y f Hf = x (G.map f ≫ Y.hom.unop) Hf ≫
+  ((Ran.adjunction A G.op).counit.app ℱ.to_presheaf).app (op W) := rfl
 
 variables {x} {S}
 include hu hS hx
 
 /-- Given a `G(Y) ⊆ U`, we can find a unique section `X ⟶ ℱ(Y)` that agrees with `x`. -/
-def get_section (Y : structured_arrow (op U) G.op) : X ⟶ ℱ.val.obj Y.right :=
+def get_section (Y : structured_arrow (op U) G.op) : X ⟶ ℱ.to_presheaf.obj Y.right :=
 begin
-  let hom_sh := whisker_right ((Ran.adjunction A G.op).counit.app ℱ.val) (coyoneda.obj (op X)),
+  let hom_sh := whisker_right ((Ran.adjunction A G.op).counit.app ℱ.to_presheaf)
+    (coyoneda.obj (op X)),
   have S' := (K.pullback_stable Y.hom.unop hS),
   have hs' := ((hx.pullback Y.3.unop).functor_pullback G).comp_presheaf_map hom_sh,
   exact (ℱ.2 X _ (hu.cover_lift S')).amalgamate _ hs'
@@ -142,7 +143,7 @@ begin
 end
 
 @[simp] lemma get_section_commute {Y Z : structured_arrow (op U) G.op} (f : Y ⟶ Z) :
-  get_section hu ℱ hS hx Y ≫ ℱ.val.map f.right = get_section hu ℱ hS hx Z :=
+  get_section hu ℱ hS hx Y ≫ ℱ.to_presheaf.map f.right = get_section hu ℱ hS hx Z :=
 begin
   apply get_section_is_unique,
   intros V' fV' hV',
@@ -158,14 +159,14 @@ begin
 end
 
 /-- The limit cone in order to glue the sections obtained via `get_section`. -/
-def glued_limit_cone : limits.cone (Ran.diagram G.op ℱ.val (op U)) :=
+def glued_limit_cone : limits.cone (Ran.diagram G.op ℱ.to_presheaf (op U)) :=
 { X := X, π := { app := λ Y, get_section hu ℱ hS hx Y, naturality' := λ Y Z f, by tidy } }
 
 @[simp] lemma glued_limit_cone_π_app (W) : (glued_limit_cone hu ℱ hS hx).π.app W =
   get_section hu ℱ hS hx W := rfl
 
 /-- The section obtained by passing `glued_limit_cone` into `category_theory.limits.limit.lift`. -/
-def glued_section : X ⟶ ((Ran G.op).obj ℱ.val).obj (op U) :=
+def glued_section : X ⟶ ((Ran G.op).obj ℱ.to_presheaf).obj (op U) :=
 limit.lift _ (glued_limit_cone hu ℱ hS hx)
 
 /--
@@ -174,9 +175,10 @@ coincides with `x` on `G(V')` for all `G(V') ⊆ V ∈ S`, then `X ⟶ 𝒢(V) �
 section obtained in `get_sections`. That said, this is littered with some more categorical jargon
 in order to be applied in the following lemmas easier.
 -/
-lemma helper {V} (f : V ⟶ U) (y : X ⟶ ((Ran G.op).obj ℱ.val).obj (op V)) (W)
-  (H : ∀ {V'} {fV : G.obj V' ⟶ V} (hV), y ≫ ((Ran G.op).obj ℱ.val).map fV.op = x (fV ≫ f) hV) :
-  y ≫ limit.π (Ran.diagram G.op ℱ.val (op V)) W =
+lemma helper {V} (f : V ⟶ U) (y : X ⟶ ((Ran G.op).obj ℱ.to_presheaf).obj (op V)) (W)
+  (H : ∀ {V'} {fV : G.obj V' ⟶ V} (hV), y ≫
+    ((Ran G.op).obj ℱ.to_presheaf).map fV.op = x (fV ≫ f) hV) :
+  y ≫ limit.π (Ran.diagram G.op ℱ.to_presheaf (op V)) W =
     (glued_limit_cone hu ℱ hS hx).π.app ((structured_arrow.map f.op).obj W) :=
 begin
   dsimp only [glued_limit_cone_π_app],
@@ -184,7 +186,7 @@ begin
   intros V' fV' hV',
   dsimp only [Ran.adjunction, Ran.equiv, pulledback_family_apply],
   erw [adjunction.adjunction_of_equiv_right_counit_app],
-  have : y ≫ ((Ran G.op).obj ℱ.val).map (G.map fV' ≫ W.hom.unop).op =
+  have : y ≫ ((Ran G.op).obj ℱ.to_presheaf).map (G.map fV' ≫ W.hom.unop).op =
     x (G.map fV' ≫ W.hom.unop ≫ f) (by simpa only using hV'),
   { convert H (show S ((G.map fV' ≫ W.hom.unop) ≫ f),
       by simpa only [category.assoc] using hV') using 2,
@@ -194,7 +196,7 @@ begin
     Ran_obj_map, nat_trans.id_app],
   erw [category.id_comp, limit.pre_π],
   congr,
-  convert limit.w (Ran.diagram G.op ℱ.val (op V)) (structured_arrow.hom_mk' W fV'.op),
+  convert limit.w (Ran.diagram G.op ℱ.to_presheaf (op V)) (structured_arrow.hom_mk' W fV'.op),
   rw structured_arrow.map_mk,
   erw category.comp_id,
   simp only [quiver.hom.unop_op, functor.op_map, quiver.hom.op_unop]
@@ -236,7 +238,7 @@ This result is basically https://stacks.math.columbia.edu/tag/00XK,
 but without the condition that `C` or `D` has pullbacks.
 -/
 theorem Ran_is_sheaf_of_cover_lifting {G : C ⥤ D} (hG : cover_lifting J K G) (ℱ : Sheaf J A) :
-  presheaf.is_sheaf K ((Ran G.op).obj ℱ.val) :=
+  presheaf.is_sheaf K ((Ran G.op).obj ℱ.to_presheaf) :=
 begin
   intros X U S hS x hx,
   split, swap,
@@ -251,10 +253,10 @@ variable (A)
 /-- A cover-lifting functor induces a morphism of sites in the same direction as the functor. -/
 def sites.copullback {G : C ⥤ D} (hG : cover_lifting J K G) :
   Sheaf J A ⥤ Sheaf K A :=
-{ obj := λ ℱ, ⟨(Ran G.op).obj ℱ.val, Ran_is_sheaf_of_cover_lifting hG ℱ⟩,
-  map := λ _ _ f, (Ran G.op).map f,
-  map_id' := λ ℱ, (Ran G.op).map_id ℱ.val,
-  map_comp' := λ _ _ _ f g, (Ran G.op).map_comp f g }
+{ obj := λ ℱ, ⟨(Ran G.op).obj ℱ.to_presheaf, Ran_is_sheaf_of_cover_lifting hG ℱ⟩,
+  map := λ _ _ f, ⟨(Ran G.op).map f.presheaf_hom⟩,
+  map_id' := λ ℱ, by { ext1, apply (Ran G.op).map_id ℱ.to_presheaf },
+  map_comp' := λ _ _ _ f g, by { ext1, apply (Ran G.op).map_comp } }
 
 /--
 Given a functor between sites that is cover-preserving, cover-lifting, and compatible-preserving,
@@ -264,12 +266,16 @@ the pullback and copullback along `G` are adjoint to each other
 def sites.pullback_copullback_adjunction {G : C ⥤ D} (Hp : cover_preserving J K G)
   (Hl : cover_lifting J K G) (Hc : compatible_preserving K G) :
   sites.pullback A Hc Hp ⊣ sites.copullback A Hl :=
-{ hom_equiv := λ X Y, (Ran.adjunction A G.op).hom_equiv X.val Y.val,
-  unit := { app := λ X, (Ran.adjunction A G.op).unit.app X.val,
-    naturality' := λ _ _ f, (Ran.adjunction A G.op).unit.naturality f },
-  counit := { app := λ X, (Ran.adjunction A G.op).counit.app X.val,
-    naturality' := λ _ _ f, (Ran.adjunction A G.op).counit.naturality f },
-  hom_equiv_unit' := λ X Y f, (Ran.adjunction A G.op).hom_equiv_unit,
-  hom_equiv_counit' := λ X Y f, (Ran.adjunction A G.op).hom_equiv_counit }
+{ hom_equiv := λ X Y,
+  { to_fun := λ f, ⟨(Ran.adjunction A G.op).hom_equiv _ _ f.presheaf_hom⟩,
+    inv_fun := λ g, ⟨((Ran.adjunction A G.op).hom_equiv _ _).symm g.presheaf_hom⟩,
+    left_inv := λ _, by { ext1, apply ((Ran.adjunction A G.op).hom_equiv _ _).left_inv },
+    right_inv := λ _, by { ext1, apply ((Ran.adjunction A G.op).hom_equiv _ _).right_inv } },
+  unit := { app := λ X, ⟨(Ran.adjunction A G.op).unit.app X.to_presheaf⟩,
+    naturality' := λ _ _ f, by { ext1, apply (Ran.adjunction A G.op).unit.naturality } },
+  counit := { app := λ X, ⟨(Ran.adjunction A G.op).counit.app X.to_presheaf⟩,
+    naturality' := λ _ _ f, by { ext1, apply (Ran.adjunction A G.op).counit.naturality } },
+  hom_equiv_unit' := λ X Y f, by { ext1, apply (Ran.adjunction A G.op).hom_equiv_unit },
+  hom_equiv_counit' := λ X Y f, by { ext1, apply (Ran.adjunction A G.op).hom_equiv_counit } }
 
 end category_theory

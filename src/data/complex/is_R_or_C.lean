@@ -788,6 +788,6 @@ end linear_maps
 
 instance {K : Type*} [is_R_or_C K] : cstar_ring K :=
 { norm_star_mul_self := λ x,
-  by { simp only [←star_ring_aut_apply, norm_eq_abs, abs_mul, abs_conj] } }
+  by simp only [←star_ring_aut_apply, norm_eq_abs, abs_mul, abs_conj] }
 
 end is_R_or_C

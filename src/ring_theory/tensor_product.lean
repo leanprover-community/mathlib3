@@ -361,6 +361,7 @@ instance : semiring (A ⊗[R] B) :=
   right_distrib := by simp,
   .. (by apply_instance : add_comm_monoid (A ⊗[R] B)) }.
 
+
 lemma one_def : (1 : A ⊗[R] B) = (1 : A) ⊗ₜ (1 : B) := rfl
 
 @[simp]
@@ -411,6 +412,36 @@ instance : algebra R (A ⊗[R] B) :=
 @[simp]
 lemma algebra_map_apply (r : R) :
   (algebra_map R (A ⊗[R] B)) r = ((algebra_map R A) r) ⊗ₜ[R] 1 := rfl
+
+def tensor_algebra_op_map : Rᵐᵒᵖ →+* (A ⊗[R] B) :=
+tensor_algebra_map.from_opposite $ λ x y, by { 
+  simp only [tensor_algebra_map, commute, semiconj_by, ring_hom.coe_mk],
+  rw [tmul_mul_tmul, tmul_mul_tmul, algebra.commutes] }
+
+@[simp]
+lemma algebra_map_op_apply (r : Rᵐᵒᵖ) : (algebra_map Rᵐᵒᵖ A) r = (algebra_map R A) r.unop :=
+by { rw [algebra_map_eq_smul_one, algebra_map_eq_smul_one],
+     conv_lhs { rw [←r.op_unop, is_symmetric_smul.op_smul_eq_smul] },  }
+
+instance op_algebra : algebra Rᵐᵒᵖ (A ⊗[R] B) :=
+{ commutes' := λ r x,
+  begin
+    apply tensor_product.induction_on x,
+    { simp, },
+    { intros a b, simp [tensor_algebra_op_map, tensor_algebra_map, algebra.commutes], },
+    { intros y y' h h', simp at h h', simp [mul_add, add_mul, h, h'], }
+  end,
+  smul_def' := λ r x,
+  begin
+    apply tensor_product.induction_on x,
+    { simp [smul_zero],  },
+    { intros a b,
+      rw [tensor_algebra_op_map, smul_tmul', algebra.smul_def r a],
+      simp [tensor_algebra_map, algebra_map_op_apply], },
+    { intros y y' h h', simp at h h', simp [mul_add, add_mul, h, h'], },
+  end,
+  .. tensor_algebra_op_map,
+  .. (by apply_instance : module Rᵐᵒᵖ (A ⊗[R] B)) }.
 
 variables {C : Type v₃} [semiring C] [algebra R C]
 variables [is_scalar_tower Rᵐᵒᵖ R A]
@@ -573,16 +604,11 @@ def alg_equiv_of_linear_equiv_tensor_product
 lemma alg_equiv_of_linear_equiv_tensor_product_apply (f w₁ w₂ x) :
   (alg_equiv_of_linear_equiv_tensor_product f w₁ w₂ : A ⊗[R] B ≃ₐ[R] C) x = f x := rfl
 
-variables [is_symmetric_smul R (A ⊗[R] B)] 
-example : algebra Rᵐᵒᵖ (A ⊗[R] B) := infer_instance --TODO
-example : semiring ((A ⊗[R] B) ⊗[R] C) := 
-@tensor_product.semiring R _ (A ⊗[R] B) _ _ _ _
 /--
 Build an algebra equivalence from a linear equivalence out of a triple tensor product,
 and evidence of multiplicativity on pure tensors.
 -/
 def alg_equiv_of_linear_equiv_triple_tensor_product
-  [algebra Rᵐᵒᵖ (A ⊗[R] B)] [is_symmetric_smul R (A ⊗[R] B)]
   (f : ((A ⊗[R] B) ⊗[R] C) ≃ₗ[R] D)
   (w₁ : ∀ (a₁ a₂ : A) (b₁ b₂ : B) (c₁ c₂ : C),
     f ((a₁ * a₂) ⊗ₜ (b₁ * b₂) ⊗ₜ (c₁ * c₂)) = f (a₁ ⊗ₜ b₁ ⊗ₜ c₁) * f (a₂ ⊗ₜ b₂ ⊗ₜ c₂))
@@ -605,14 +631,16 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
           { simp [w₁], },
           { intros x₁ x₂ h₁ h₂,
             simp at h₁ h₂,
-            simp [mul_add, add_tmul, h₁, h₂], }, },
+            rw [add_tmul, mul_add, f.map_add, f.map_add, mul_add,
+                tmul_mul_tmul, tmul_mul_tmul, h₁, h₂], }, },
         { intros x₁ x₂ h₁ h₂,
-          simp at h₁ h₂,
-          simp [add_mul, add_tmul, h₁, h₂], }, },
+          rw [tmul_mul_tmul] at h₁ h₂,
+          rw [add_tmul, add_mul, f.map_add, f.map_add, add_mul,
+              tmul_mul_tmul, tmul_mul_tmul, h₁, h₂], }, },
       { intros x₁ x₂ h₁ h₂,
-        simp [mul_add, add_mul, h₁, h₂], }, },
+        rw [mul_add, f.map_add, h₁, h₂, f.map_add, mul_add], }, },
     { intros x₁ x₂ h₁ h₂,
-      simp [mul_add, add_mul, h₁, h₂], }
+      rw [add_mul, f.map_add, h₁, h₂, f.map_add, add_mul], }
   end,
   commutes' := λ r, by simp [w₂],
   .. f }
@@ -628,7 +656,7 @@ variables {R : Type u} [comm_semiring R]
 variables {A : Type v₁} [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
 variables {B : Type v₂} [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
 variables {C : Type v₃} [semiring C] [algebra R C] [algebra Rᵐᵒᵖ C] [is_symmetric_smul R C]
-variables {D : Type v₄} [semiring D] [algebra R D]
+variables {D : Type v₄} [semiring D] [algebra R D] [algebra Rᵐᵒᵖ D] [is_symmetric_smul R D]
 
 section
 variables (R A)
@@ -722,6 +750,8 @@ alg_hom_of_linear_map_tensor_product
   map f g (a ⊗ₜ c) = f a ⊗ₜ g c :=
 rfl
 
+variables [is_scalar_tower Rᵐᵒᵖ R A] [is_scalar_tower Rᵐᵒᵖ R B]
+
 @[simp] lemma map_comp_include_left (f : A →ₐ[R] B) (g : C →ₐ[R] D) :
   (map f g).comp include_left = include_left.comp f := alg_hom.ext $ by simp
 
@@ -752,7 +782,9 @@ end monoidal
 section
 
 variables {R A B S : Type*} [comm_semiring R] [semiring A] [semiring B] [comm_semiring S]
-variables [algebra R A] [algebra R B] [algebra R S]
+variables [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
+variables [algebra R S] [algebra Rᵐᵒᵖ S] [is_symmetric_smul R S]
 variables (f : A →ₐ[R] S) (g : B →ₐ[R] S)
 
 variables (R)
@@ -768,6 +800,8 @@ variables {R}
 lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = algebra.lmul' R := rfl
 
 @[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := lmul'_apply
+
+variables [is_scalar_tower Rᵐᵒᵖ R S]
 
 @[simp]
 lemma lmul'_comp_include_left : (lmul' R : _ →ₐ[R] S).comp include_left = alg_hom.id R S :=
@@ -785,6 +819,8 @@ def product_map : A ⊗[R] B →ₐ[R] S := (lmul' R).comp (tensor_product.map f
 
 @[simp] lemma product_map_apply_tmul (a : A) (b : B) : product_map f g (a ⊗ₜ b) = f a * g b :=
 by { unfold product_map lmul', simp }
+
+variables [is_scalar_tower Rᵐᵒᵖ R A] [is_scalar_tower Rᵐᵒᵖ R B]
 
 lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a := by simp
 

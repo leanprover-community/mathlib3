@@ -484,6 +484,31 @@ rw nhds_within,
 simp [inf_le_left],
 end
 
+lemma int_diff0_sub  (R : ℝ) (hR: 0 < R)  (f g : ℂ → ℂ) (z w : ℂ) : ∀ θ : ℝ,
+   complex.abs (((int_diff0 R hR f z w ) θ)-((int_diff0 R hR g z w) θ)) =
+   complex.abs (int_diff0 R hR (f -g) z w θ) :=
+begin
+  intro θ,
+simp_rw int_diff0,
+simp only [one_div, nat.cast_bit0, real_smul, nsmul_eq_mul, nat.cast_one, pi.sub_apply],
+simp,
+simp_rw ← mul_assoc,
+ring_nf,
+simp_rw [abs_mul],
+simp,
+end
+
+lemma int_diff0_sub_bound  (R : ℝ) (hR: 0 < R)  (f : ℂ → ℂ) (z w : ℂ) (r : ℝ)
+    (h:  ∀ (x : ℂ), (complex.abs (f x) ≤ abs r)) : ∀ θ : ℝ,
+    complex.abs (int_diff0 R hR f z w θ) ≤ complex.abs (int_diff0 R hR (λ x, r) z w θ) :=
+begin
+intro θ,
+simp_rw int_diff0,
+simp,
+simp_rw ← mul_assoc,
+sorry,
+end
+
 
 
 lemma int_diff0_int (R : ℝ) (hR: 0 < R) (F : ℂ → ℂ) (F_cts :  continuous (F ))
@@ -502,6 +527,13 @@ apply continuous.continuous_on,
 apply hc,
 simp,
 linarith [real.pi_pos],
+end
+
+lemma abs_aux (x : ℂ) (r : ℝ) (h : ∃ (b : ℂ), complex.abs (x-b)+ complex.abs(b) ≤  r) :
+  complex.abs(x) ≤  r :=
+begin
+obtain ⟨b, hb⟩ := h,
+sorry,
 end
 
 lemma UNIF_CONV_INT (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)  (F_cts : ∀ n, continuous (F n))
@@ -600,6 +632,20 @@ by {
   simp_rw bound,
   sorry,
   simp at h,
+  apply abs_aux ((int_diff0 R hR (F n) z w) y) (bound y),
+  use int_diff0 R hR f z ↑w y,
+  rw int_diff0_sub,
+  simp_rw bound,
+  simp,
+  have := int_diff0_sub_bound R hR ((F n) - f) z w 1,
+  have haan:= ha n h.le,
+  simp at this,
+  simp_rw dist_eq_norm at *,
+  simp at haan,
+  have haf:  ∀ (x : ℂ), abs (F n x - f x) ≤  1, by {intro x, sorry,},
+  have h5:= this haf,
+  have h6:= h5 y,
+
   sorry,
   all_goals {simp only [measurable_set_Ioc]},},
 

@@ -56,20 +56,27 @@ begin
   exact a_le_b,
 end
 
+lemma split_Ico {a b c : ℕ} (a_le_b : a ≤ b) (b_le_c : b ≤ c) (p : ℕ -> Prop) [decidable_pred p] :
+  (Ico a c).filter p = (Ico a b).filter p ∪ (Ico b c).filter p :=
+begin
+  ext x,
+  simp only [mem_union, mem_filter, mem_Ico, ←or_and_distrib_right, and.congr_left_iff],
+  intro px,
+  split,
+  { intro h,
+    simp only [h, true_and, and_true],
+    exact lt_or_le x b, },
+  { intros h,
+    cases h,
+    { exact ⟨h.left, lt_of_lt_of_le h.right b_le_c⟩ },
+    { exact ⟨le_trans a_le_b h.left, h.right⟩, }, },
+end
+
 lemma split_range {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ -> Prop) [decidable_pred p] :
   (range n).filter p = (range k).filter p ∪ (Ico k n).filter p :=
 begin
-  ext x,
-  simp only [mem_union, mem_filter, mem_range, ←or_and_distrib_right, and.congr_left_iff, mem_Ico],
-  intro px,
-  split,
-  { intro x_le_n,
-    simp [x_le_n],
-    exact lt_or_le x k, },
-  { intros hyp,
-    cases hyp,
-    { exact lt_of_lt_of_le hyp k_le_n },
-    { exact hyp.right, }, },
+  rw [range_eq_Ico],
+  exact split_Ico (zero_le k) k_le_n p
 end
 
 lemma coprime_of_lt_prime {n k : ℕ} (n_pos : 0 < n) (hlt : n < k) (is_prime : prime k) :

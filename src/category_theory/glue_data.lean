@@ -27,11 +27,11 @@ variables (C : Type u₁) [category.{v} C] {C' : Type u₂} [category.{v} C']
 
 /--
 A family of gluing data consists of
-1. An index type `ι`
-2. An object `U i` for each `i : ι`.
-3. An object `V i j` for each `i j : ι`.
-4. A monomorphism `f i j : V i j ⟶ U i` for each `i j : ι`.
-5. A transition map `t i j : V i j ⟶ V j i` for each `i j : ι`.
+1. An index type `J`
+2. An object `U i` for each `i : J`.
+3. An object `V i j` for each `i j : J`.
+4. A monomorphism `f i j : V i j ⟶ U i` for each `i j : J`.
+5. A transition map `t i j : V i j ⟶ V j i` for each `i j : J`.
 such that
 6. `f i i` is an isomorphism.
 7. `t i i` is the identity.
@@ -42,9 +42,9 @@ such that
 -/
 @[nolint has_inhabited_instance]
 structure glue_data :=
-(ι : Type v)
-(U : ι → C)
-(V : ι × ι → C)
+(J : Type v)
+(U : J → C)
+(V : J × J → C)
 (f : Π i j, V (i, j) ⟶ U i)
 (f_mono : ∀ i j, mono (f i j) . tactic.apply_instance)
 (f_has_pullback : ∀ i j k, has_pullback (f i j) (f i k) . tactic.apply_instance)
@@ -63,7 +63,7 @@ namespace glue_data
 
 variables {C} (D : glue_data C)
 
-@[simp] lemma t'_iij (i j : D.ι) : D.t' i i j = (pullback_symmetry _ _).hom :=
+@[simp] lemma t'_iij (i j : D.J) : D.t' i i j = (pullback_symmetry _ _).hom :=
 begin
   have eq₁ := D.t_fac i i j,
   have eq₂ := (is_iso.eq_comp_inv (D.f i i)).mpr (@pullback.condition _ _ _ _ _ _ (D.f i j) _),
@@ -74,13 +74,13 @@ begin
     ((mono.right_cancellation _ _ eq₃).trans (pullback_symmetry_hom_comp_fst _ _).symm)
 end
 
-lemma t'_jii (i j : D.ι) : D.t' j i i = pullback.fst ≫ D.t j i ≫ inv pullback.snd :=
+lemma t'_jii (i j : D.J) : D.t' j i i = pullback.fst ≫ D.t j i ≫ inv pullback.snd :=
 by { rw [←category.assoc, ←D.t_fac], simp }
 
-lemma t'_iji (i j : D.ι) : D.t' i j i = pullback.fst ≫ D.t i j ≫ inv pullback.snd :=
+lemma t'_iji (i j : D.J) : D.t' i j i = pullback.fst ≫ D.t i j ≫ inv pullback.snd :=
 by { rw [←category.assoc, ←D.t_fac], simp }
 
-@[simp, reassoc, elementwise] lemma t_inv (i j : D.ι) :
+@[simp, reassoc, elementwise] lemma t_inv (i j : D.J) :
   D.t i j ≫ D.t j i = 𝟙 _ :=
 begin
   have eq : (pullback_symmetry (D.f i i) (D.f i j)).hom = pullback.snd ≫ inv pullback.fst,
@@ -92,21 +92,21 @@ begin
   simpa using this,
 end
 
-lemma t'_inv (i j k : D.ι) : D.t' i j k ≫ (pullback_symmetry _ _).hom ≫
+lemma t'_inv (i j k : D.J) : D.t' i j k ≫ (pullback_symmetry _ _).hom ≫
   D.t' j i k ≫ (pullback_symmetry _ _).hom = 𝟙 _ :=
 begin
   rw ← cancel_mono (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _),
   simp [t_fac, t_fac_assoc]
 end
 
-instance t_is_iso (i j : D.ι) : is_iso (D.t i j) :=
+instance t_is_iso (i j : D.J) : is_iso (D.t i j) :=
 ⟨⟨D.t j i, D.t_inv _ _, D.t_inv _ _⟩⟩
 
-instance t'_is_iso (i j k : D.ι) : is_iso (D.t' i j k) :=
+instance t'_is_iso (i j k : D.J) : is_iso (D.t' i j k) :=
 ⟨⟨D.t' j k i ≫ D.t' k i j, D.cocycle _ _ _, (by simpa using D.cocycle _ _ _)⟩⟩
 
 @[reassoc]
-lemma t'_comp_eq_pullback_symmetry (i j k : D.ι) :
+lemma t'_comp_eq_pullback_symmetry (i j k : D.J) :
   D.t' j k i ≫ D.t' k i j = (pullback_symmetry _ _).hom ≫
   D.t' j i k ≫ (pullback_symmetry _ _).hom :=
 begin
@@ -121,18 +121,18 @@ def sigma_opens [has_coproduct D.U] : C := ∐ D.U
 
 /-- (Implementation) The diagram to take colimit of. -/
 def diagram : multispan_index C :=
-{ L := D.ι × D.ι, R := D.ι,
+{ L := D.J × D.J, R := D.J,
   fst_from := _root_.prod.fst, snd_from := _root_.prod.snd,
   left := D.V, right := D.U,
   fst := λ ⟨i, j⟩, D.f i j,
   snd := λ ⟨i, j⟩, D.t i j ≫ D.f j i }
 
-@[simp] lemma diagram_L : D.diagram.L = (D.ι × D.ι) := rfl
-@[simp] lemma diagram_R : D.diagram.R = D.ι := rfl
-@[simp] lemma diagram_fst_from (i j : D.ι) : D.diagram.fst_from ⟨i, j⟩ = i := rfl
-@[simp] lemma diagram_snd_from (i j : D.ι) : D.diagram.snd_from ⟨i, j⟩ = j := rfl
-@[simp] lemma diagram_fst (i j : D.ι) : D.diagram.fst ⟨i, j⟩ = D.f i j := rfl
-@[simp] lemma diagram_snd (i j : D.ι) : D.diagram.snd ⟨i, j⟩ = D.t i j ≫ D.f j i := rfl
+@[simp] lemma diagram_L : D.diagram.L = (D.J × D.J) := rfl
+@[simp] lemma diagram_R : D.diagram.R = D.J := rfl
+@[simp] lemma diagram_fst_from (i j : D.J) : D.diagram.fst_from ⟨i, j⟩ = i := rfl
+@[simp] lemma diagram_snd_from (i j : D.J) : D.diagram.snd_from ⟨i, j⟩ = j := rfl
+@[simp] lemma diagram_fst (i j : D.J) : D.diagram.fst ⟨i, j⟩ = D.f i j := rfl
+@[simp] lemma diagram_snd (i j : D.J) : D.diagram.snd ⟨i, j⟩ = D.t i j ≫ D.f j i := rfl
 @[simp] lemma diagram_left : D.diagram.left = D.V := rfl
 @[simp] lemma diagram_right : D.diagram.right = D.U := rfl
 
@@ -144,12 +144,12 @@ variable [has_multicoequalizer D.diagram]
 def glued : C := multicoequalizer D.diagram
 
 /-- The map `D.U i ⟶ D.glued` for each `i`. -/
-def imm (i : D.ι) : D.U i ⟶ D.glued :=
+def ι (i : D.J) : D.U i ⟶ D.glued :=
 multicoequalizer.π D.diagram i
 
 @[simp, elementwise]
-lemma glue_condition (i j : D.ι) :
-  D.t i j ≫ D.f j i ≫ D.imm j = D.f i j ≫ D.imm i :=
+lemma glue_condition (i j : D.J) :
+  D.t i j ≫ D.f j i ≫ D.ι j = D.f i j ≫ D.ι i :=
 (category.assoc _ _ _).symm.trans (multicoequalizer.condition D.diagram ⟨i, j⟩).symm
 
 variables [has_colimits C]
@@ -165,13 +165,13 @@ variables (F : C ⥤ C') [H : ∀ i j k, preserves_limit (cospan (D.f i j) (D.f 
 
 include H
 
-instance (i j k : D.ι) : has_pullback (F.map (D.f i j)) (F.map (D.f i k)) :=
+instance (i j k : D.J) : has_pullback (F.map (D.f i j)) (F.map (D.f i k)) :=
 ⟨⟨⟨_, is_limit_of_has_pullback_of_preserves_limit F (D.f i j) (D.f i k)⟩⟩⟩
 
 /-- A functor that preserves the pullbacks of `f i j` and `f i k` can map a family of glue data. -/
 @[simps] def map_glue_data :
   glue_data C' :=
-{ ι := D.ι,
+{ J := D.J,
   U := λ i, F.obj (D.U i),
   V := λ i, F.obj (D.V i),
   f := λ i j, F.map (D.f i j),
@@ -203,22 +203,22 @@ nat_iso.of_components
     { erw [category.comp_id, category.id_comp, functor.map_id], refl },
   end)
 
-@[simp] lemma diagram_iso_app_left (i : D.ι × D.ι) :
+@[simp] lemma diagram_iso_app_left (i : D.J × D.J) :
   (D.diagram_iso F).app (walking_multispan.left i) = iso.refl _ := rfl
 
-@[simp] lemma diagram_iso_app_right (i : D.ι) :
+@[simp] lemma diagram_iso_app_right (i : D.J) :
   (D.diagram_iso F).app (walking_multispan.right i) = iso.refl _ := rfl
 
-@[simp] lemma diagram_iso_hom_app_left (i : D.ι × D.ι) :
+@[simp] lemma diagram_iso_hom_app_left (i : D.J × D.J) :
   (D.diagram_iso F).hom.app (walking_multispan.left i) = 𝟙 _ := rfl
 
-@[simp] lemma diagram_iso_hom_app_right (i : D.ι) :
+@[simp] lemma diagram_iso_hom_app_right (i : D.J) :
   (D.diagram_iso F).hom.app (walking_multispan.right i) = 𝟙 _ := rfl
 
-@[simp] lemma diagram_iso_inv_app_left (i : D.ι × D.ι) :
+@[simp] lemma diagram_iso_inv_app_left (i : D.J × D.J) :
   (D.diagram_iso F).inv.app (walking_multispan.left i) = 𝟙 _ := rfl
 
-@[simp] lemma diagram_iso_inv_app_right (i : D.ι) :
+@[simp] lemma diagram_iso_inv_app_right (i : D.J) :
   (D.diagram_iso F).inv.app (walking_multispan.right i) = 𝟙 _ := rfl
 
 end glue_data

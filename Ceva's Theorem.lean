@@ -60,14 +60,20 @@ lemma triangle_perm_barycentric_coord (S S₁ : triangle ℝ V) (σ : perm (fin 
   (h : S₁.points = S.points ∘ σ) (i : fin 3) :
   barycentric_coord S.independent hspan (σ i) O = barycentric_coord S₁.independent hS₁span i O :=
 begin
-  simp only [barycentric_coord, affine_map.coe_mk, ← subtype.coe_mk i _,
-    ← basis_of_aff_ind_span_eq_top_apply S.independent hspan i _,
-    ← basis_of_aff_ind_span_eq_top_apply S₁.independent hS₁span i _],
+  simp only [barycentric_coord, affine_map.coe_mk, ← subtype.coe_mk i _],
   apply congr_arg (λ (b : ℝ), 1 - b),
   simp_rw [h],
-  dsimp,
+  apply congr_fun,
+
+
   sorry -- finish the proof
 end
+
+lemma name_later
+  ()
+
+-- roadmap to prove the above lemma
+--
 
 lemma lemma2
   (A B C D O : V)
@@ -269,7 +275,7 @@ begin
   set w₂ : fin 3 → ℝ := λ i, barycentric_coord S₂.independent hS₂span i O with hw₂,
   set w₃ : fin 3 → ℝ := λ i, barycentric_coord S₃.independent hS₃span i O with hw₃,
 
-  -- apply lemmas with appropriate permutations and shifts
+  -- apply lemmas above with appropriate permutations and shifts
 
   have hADB := lemma2 A B C D O S₁ w₁ σ₁ hS₁ h₂ h₅ hS₁span hw₁,
   rw add_eq_zero_iff_eq_neg at hADB,
@@ -336,10 +342,11 @@ begin
   { simp only [hw₃, hw, barycentric_coord],
     simp_rw h₁,
     sorry },
-  have : w₃ 1 = w 0,
-  { simp only [hw₃, hw, barycentric_coord],
-    simp_rw h₁,
-    sorry },
+  sorry,
+  -- have : w₃ 1 = w 0,
+  -- { simp only [hw₃, hw, barycentric_coord],
+    -- simp_rw h₁,
+    -- sorry },
 
   /- have h := congr_arg2 (λ a b, a * b) (congr_arg2 (λ a b, a * b) hadb hbec) hcfa,
   dsimp at h,

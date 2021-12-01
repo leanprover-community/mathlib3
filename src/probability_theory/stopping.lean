@@ -44,18 +44,21 @@ structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_spa
 
 variables {α β ι : Type*} {m : measurable_space α} [measurable_space β]
 
-instance [preorder ι] :
-  has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
-⟨λ f, f.seq⟩
-
-instance [preorder ι] : inhabited (filtration ι m) :=
-⟨⟨λ i, m, monotone_const, λ i, le_rfl⟩⟩
-
 open topological_space
 
-section
+section preorder
 
 variables [preorder ι]
+
+instance : has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
+⟨λ f, f.seq⟩
+
+/-- The constant filtration which is equal to `m` for all `i ∈ ι`. -/
+def const_filtration (m : measurable_space α) : filtration ι m :=
+⟨λ _, m, monotone_const, λ _, le_rfl⟩
+
+instance : inhabited (filtration ι m) :=
+⟨const_filtration m⟩
 
 lemma measurable_set_of_filtration {f : filtration ι m} {s : set α} {i : ι}
   (hs : measurable_set[f i] s) : measurable_set[m] s :=
@@ -64,7 +67,7 @@ f.le i s hs
 /-- A measure is σ-finite with respect to filtration if it is σ-finite with respect
 to all the sub-σ-algebra of the filtration. -/
 class sigma_finite_filtration (μ : measure α) (f : filtration ι m) : Prop :=
-(sigma_finite : ∀ ⦃i : ι⦄, sigma_finite (μ.trim (f.le i)))
+(sigma_finite : ∀ i : ι, sigma_finite (μ.trim (f.le i)))
 
 instance sigma_finite_of_sigma_finite_filtration (μ : measure α) (f : filtration ι m)
   [hf : sigma_finite_filtration μ f] (i : ι) :
@@ -74,7 +77,30 @@ by apply hf.sigma_finite -- can't exact here
 /-- A sequence of functions `u` is adapted to a filtration `f` if for all `i`,
 `u i` is `f i`-measurable. -/
 def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
-∀ ⦃i : ι⦄, measurable[f i] (u i)
+∀ i : ι, measurable[f i] (u i)
+
+namespace adapted
+
+lemma add [has_add β] [has_measurable_add₂ β] {u v : ι → α → β} {f : filtration ι m}
+  (hu : adapted f u) (hv : adapted f v) : adapted f (u + v):=
+λ i, @measurable.add _ _ _ _ (f i) _ _ _ (hu i) (hv i)
+
+lemma neg [has_neg β] [has_measurable_neg β] {u : ι → α → β} {f : filtration ι m}
+  (hu : adapted f u) : adapted f (-u) :=
+λ i, @measurable.neg _ α _ _ _ (f i) _ (hu i)
+
+lemma smul [has_scalar ℝ β] [has_measurable_smul ℝ β] {u : ι → α → β} {f : filtration ι m}
+  (c : ℝ) (hu : adapted f u) : adapted f (c • u) :=
+λ i, @measurable.const_smul ℝ β α _ _ _ (f i) _ _ (hu i) c
+
+end adapted
+
+variable (β)
+
+lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
+λ i, @measurable_zero β α _ (f i) _
+
+variable {β}
 
 namespace filtration
 
@@ -139,7 +165,7 @@ lemma is_stopping_time_const {f : filtration ι m} (i : ι) :
   is_stopping_time f (λ x, i) :=
 λ j, by simp
 
-end
+end preorder
 
 namespace is_stopping_time
 

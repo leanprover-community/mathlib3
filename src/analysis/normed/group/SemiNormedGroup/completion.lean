@@ -34,7 +34,7 @@ noncomputable theory
 
 universe u
 
-open uniform_space opposite category_theory normed_group_hom
+open uniform_space mul_opposite category_theory normed_group_hom
 
 namespace SemiNormedGroup
 

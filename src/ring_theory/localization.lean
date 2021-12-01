@@ -1934,21 +1934,17 @@ theorem is_integral_localization (H : algebra.is_integral R S) :
     : Rₘ →+* _).is_integral :=
 begin
   intro x,
-  by_cases triv : (1 : R) = 0,
-  { have : (1 : Rₘ) = 0 := by convert congr_arg (algebra_map R Rₘ) triv; simp,
-    exact ⟨0, ⟨trans leading_coeff_zero this.symm, eval₂_zero _ _⟩⟩ },
-  { haveI : nontrivial R := nontrivial_of_ne 1 0 triv,
-    obtain ⟨⟨s, ⟨u, hu⟩⟩, hx⟩ := surj (algebra.algebra_map_submonoid S M) x,
-    obtain ⟨v, hv⟩ := hu,
-    obtain ⟨v', hv'⟩ := is_unit_iff_exists_inv'.1 (map_units Rₘ ⟨v, hv.1⟩),
-    refine @is_integral_of_is_integral_mul_unit Rₘ _ _ _
-      (localization_algebra M S) x (algebra_map S Sₘ u) v' _ _,
-    { replace hv' := congr_arg (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) hv',
-      rw [ring_hom.map_mul, ring_hom.map_one, ← ring_hom.comp_apply _ (algebra_map R Rₘ)] at hv',
-      erw is_localization.map_comp at hv',
-      exact hv.2 ▸ hv' },
-    { obtain ⟨p, hp⟩ := H s,
-      exact hx.symm ▸ is_integral_localization_at_leading_coeff p hp.2 (hp.1.symm ▸ M.one_mem) } }
+  obtain ⟨⟨s, ⟨u, hu⟩⟩, hx⟩ := surj (algebra.algebra_map_submonoid S M) x,
+  obtain ⟨v, hv⟩ := hu,
+  obtain ⟨v', hv'⟩ := is_unit_iff_exists_inv'.1 (map_units Rₘ ⟨v, hv.1⟩),
+  refine @is_integral_of_is_integral_mul_unit Rₘ _ _ _
+    (localization_algebra M S) x (algebra_map S Sₘ u) v' _ _,
+  { replace hv' := congr_arg (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) hv',
+    rw [ring_hom.map_mul, ring_hom.map_one, ← ring_hom.comp_apply _ (algebra_map R Rₘ)] at hv',
+    erw is_localization.map_comp at hv',
+    exact hv.2 ▸ hv' },
+  { obtain ⟨p, hp⟩ := H s,
+    exact hx.symm ▸ is_integral_localization_at_leading_coeff p hp.2 (hp.1.symm ▸ M.one_mem) }
 end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]

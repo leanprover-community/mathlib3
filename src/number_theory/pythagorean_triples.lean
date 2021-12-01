@@ -3,7 +3,7 @@ Copyright (c) 2020 Paul van Wamelen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul van Wamelen
 -/
-import algebra.field
+import algebra.field.basic
 import ring_theory.int.basic
 import algebra.group_with_zero.power
 import tactic.ring
@@ -70,14 +70,10 @@ by rwa [pythagorean_triple_comm]
 /-- A triple is still a triple if you multiply `x`, `y` and `z`
 by a constant `k`. -/
 lemma mul (k : ℤ) : pythagorean_triple (k * x) (k * y) (k * z) :=
-begin
-  by_cases hk : k = 0,
-  { simp only [pythagorean_triple, hk, zero_mul, zero_add], },
-  { calc (k * x) * (k * x) + (k * y) * (k * y)
-        = k ^ 2 * (x * x + y * y) : by ring
-    ... = k ^ 2 * (z * z)         : by rw h.eq
-    ... = (k * z) * (k * z)       : by ring }
-end
+calc (k * x) * (k * x) + (k * y) * (k * y)
+      = k ^ 2 * (x * x + y * y) : by ring
+  ... = k ^ 2 * (z * z)         : by rw h.eq
+  ... = (k * z) * (k * z)       : by ring
 
 omit h
 

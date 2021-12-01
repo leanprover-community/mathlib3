@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
-import algebra.gcd_monoid.basic
-import ring_theory.integral_domain
 import ring_theory.noetherian
+import algebra.gcd_monoid.basic
+import ring_theory.multiplicity
 
 /-!
 
@@ -987,7 +987,7 @@ include dec dec'
 noncomputable instance : has_sup (associates α) := ⟨λa b, (a.factors ⊔ b.factors).prod⟩
 noncomputable instance : has_inf (associates α) := ⟨λa b, (a.factors ⊓ b.factors).prod⟩
 
-noncomputable instance [nontrivial α] : bounded_lattice (associates α) :=
+noncomputable instance [nontrivial α] : lattice (associates α) :=
 { sup          := (⊔),
   inf          := (⊓),
   sup_le       :=
@@ -1002,9 +1002,7 @@ noncomputable instance [nontrivial α] : bounded_lattice (associates α) :=
     le_trans (prod_mono inf_le_left) (le_of_eq (factors_prod a)),
   inf_le_right := assume a b,
     le_trans (prod_mono inf_le_right) (le_of_eq (factors_prod b)),
-  .. associates.partial_order,
-  .. associates.order_top,
-  .. associates.order_bot }
+  .. associates.partial_order }
 
 lemma sup_mul_inf [nontrivial α] (a b : associates α) : (a ⊔ b) * (a ⊓ b) = a * b :=
 show (a.factors ⊔ b.factors).prod * (a.factors ⊓ b.factors).prod = a * b,

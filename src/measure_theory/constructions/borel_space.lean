@@ -6,11 +6,12 @@ Authors: Johannes Hölzl, Yury Kudryashov
 import measure_theory.function.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
-import topology.G_delta
 import measure_theory.group.arithmetic
-import topology.semicontinuous
-import topology.instances.ereal
+import topology.algebra.ordered.liminf_limsup
 import topology.continuous_function.basic
+import topology.instances.ereal
+import topology.G_delta
+import topology.semicontinuous
 
 /-!
 # Borel (measurable) space
@@ -633,6 +634,10 @@ variables [linear_order α] [order_closed_topology α]
 lemma measurable_set_interval {a b : α} : measurable_set (interval a b) :=
 measurable_set_Icc
 
+@[measurability]
+lemma measurable_set_interval_oc {a b : α} : measurable_set (interval_oc a b) :=
+measurable_set_Ioc
+
 variables [second_countable_topology α]
 
 @[measurability]
@@ -1139,6 +1144,14 @@ instance nat.borel_space : borel_space ℕ := ⟨borel_eq_top_of_discrete.symm�
 instance int.borel_space : borel_space ℤ := ⟨borel_eq_top_of_discrete.symm⟩
 instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_encodable.symm⟩
 
+@[priority 900]
+instance is_R_or_C.measurable_space {𝕜 : Type*} [is_R_or_C 𝕜] : measurable_space 𝕜 := borel 𝕜
+@[priority 900]
+instance is_R_or_C.borel_space {𝕜 : Type*} [is_R_or_C 𝕜] : borel_space 𝕜 := ⟨rfl⟩
+
+/- Instances on `real` and `complex` are special cases of `is_R_or_C` but without these instances,
+Lean fails to prove `borel_space (ι → ℝ)`, so we leave them here. -/
+
 instance real.measurable_space : measurable_space ℝ := borel ℝ
 instance real.borel_space : borel_space ℝ := ⟨rfl⟩
 
@@ -1349,7 +1362,7 @@ lemma borel_eq_generate_from_Iio_rat :
   borel ℝ = generate_from (⋃ a : ℚ, {Iio a}) :=
 begin
   let g : measurable_space ℝ := generate_from (⋃ a : ℚ, {Iio a}),
-  apply le_antisymm _ (measurable_space.generate_from_le (λ t, _)),
+  refine le_antisymm _ _,
   { rw borel_eq_generate_from_Ioo_rat,
     refine generate_from_le (λ t, _),
     simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
@@ -1363,7 +1376,8 @@ begin
       refine λ _, ⟨λ h, _, λ ⟨i, hai, hix⟩, (rat.cast_lt.2 hai).trans_le hix⟩,
       rcases exists_rat_btwn h with ⟨c, ac, cx⟩,
       exact ⟨c, rat.cast_lt.1 ac, cx.le⟩ } },
-  { simp only [mem_Union, mem_singleton_iff], rintro ⟨r, rfl⟩, exact measurable_set_Iio }
+  { refine measurable_space.generate_from_le (λ _, _),
+    simp only [mem_Union, mem_singleton_iff], rintro ⟨r, rfl⟩, exact measurable_set_Iio }
 end
 
 end real
@@ -1648,7 +1662,7 @@ lemma measurable_of_tendsto_nnreal' {ι} {f : ι → α → ℝ≥0} {g : α →
   measurable g :=
 begin
   rcases u.exists_seq_tendsto with ⟨x, hx⟩,
-  rw [tendsto_pi] at lim, rw [← measurable_coe_nnreal_ennreal_iff],
+  rw [tendsto_pi_nhds] at lim, rw [← measurable_coe_nnreal_ennreal_iff],
   have : ∀ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞)) = (g y : ℝ≥0∞) :=
     λ y, ((ennreal.continuous_coe.tendsto (g y)).comp $ (lim y).comp hx).liminf_eq,
   simp only [← this],
@@ -1673,7 +1687,7 @@ begin
   have : measurable (λ x, inf_nndist (g x) s),
   { suffices : tendsto (λ i x, inf_nndist (f i x) s) u (𝓝 (λ x, inf_nndist (g x) s)),
       from measurable_of_tendsto_nnreal' u (λ i, (hf i).inf_nndist) this,
-    rw [tendsto_pi] at lim ⊢, intro x,
+    rw [tendsto_pi_nhds] at lim ⊢, intro x,
     exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
   have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
   { ext x, simp [h1s, ← h1s.mem_iff_inf_dist_zero h2s, ← nnreal.coe_eq_zero] },
@@ -1697,7 +1711,7 @@ begin
   refine ⟨ae_seq_lim, _, (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f 0 x⟩ : nonempty β).some)
     (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm⟩,
   refine measurable_of_tendsto_metric (@ae_seq.measurable α β _ _ _ f μ hf p) _,
-  refine tendsto_pi.mpr (λ x, _),
+  refine tendsto_pi_nhds.mpr (λ x, _),
   simp_rw [ae_seq, ae_seq_lim],
   split_ifs with hx,
   { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
@@ -1740,7 +1754,8 @@ begin
   { refine le_antisymm (le_of_eq (measure_mono_null _ hμ_compl)) (zero_le _),
     exact set.compl_subset_compl.mpr (λ x hx, hf_lim_conv x hx), },
   have h_f_lim_meas : measurable f_lim,
-    from measurable_of_tendsto_metric (ae_seq.measurable hf p) (tendsto_pi.mpr (λ x, hf_lim x)),
+    from measurable_of_tendsto_metric (ae_seq.measurable hf p)
+      (tendsto_pi_nhds.mpr (λ x, hf_lim x)),
   exact ⟨f_lim, h_f_lim_meas, h_ae_tendsto_f_lim⟩,
 end
 

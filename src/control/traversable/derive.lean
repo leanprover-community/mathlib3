@@ -6,7 +6,6 @@ Authors: Simon Hudon
 Automation to construct `traversable` instances
 -/
 import control.traversable.lemmas
-import data.list.basic
 
 namespace tactic.interactive
 

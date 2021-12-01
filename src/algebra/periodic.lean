@@ -3,7 +3,8 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import algebra.module.opposites
+import algebra.field.opposite
+import algebra.module.basic
 import algebra.order.archimedean
 import data.int.parity
 
@@ -101,7 +102,7 @@ h.const_inv_smul₀ a
 lemma periodic.mul_const [division_ring α]
   (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a)) (c * a⁻¹) :=
-h.const_smul₀ $ opposite.op a
+h.const_smul₀ $ mul_opposite.op a
 
 lemma periodic.mul_const' [division_ring α]
   (h : periodic f c) (a : α) :
@@ -111,7 +112,7 @@ by simpa only [div_eq_mul_inv] using h.mul_const a
 lemma periodic.mul_const_inv [division_ring α]
   (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a⁻¹)) (c * a) :=
-h.const_inv_smul₀ $ opposite.op a
+h.const_inv_smul₀ $ mul_opposite.op a
 
 lemma periodic.div_const [division_ring α]
   (h : periodic f c) (a : α) :
@@ -397,7 +398,7 @@ h.const_inv_smul₀ ha
 lemma antiperiodic.mul_const [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x * a)) (c * a⁻¹) :=
-h.const_smul₀ $ (opposite.op_ne_zero_iff a).mpr ha
+h.const_smul₀ $ (mul_opposite.op_ne_zero_iff a).mpr ha
 
 lemma antiperiodic.mul_const' [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
@@ -407,7 +408,7 @@ by simpa only [div_eq_mul_inv] using h.mul_const ha
 lemma antiperiodic.mul_const_inv [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x * a⁻¹)) (c * a) :=
-h.const_inv_smul₀ $ (opposite.op_ne_zero_iff a).mpr ha
+h.const_inv_smul₀ $ (mul_opposite.op_ne_zero_iff a).mpr ha
 
 lemma antiperiodic.div_inv [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :

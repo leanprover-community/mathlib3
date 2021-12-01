@@ -50,10 +50,39 @@ def diagram_pullback {X Y : C} (f : X ⟶ Y) :
       λ I, multiequalizer.condition (S.unop.index P) I.base,
   naturality' := λ S T f, by { ext, dsimp, simpa } }
 
+/-- A natural transformation `P ⟶ Q` induces a natural transformation
+between diagrams whose colimits define the values of `plus`. -/
+@[simps]
+def diagram_nat_trans {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (X : C) :
+  J.diagram P X ⟶ J.diagram Q X :=
+{ app := λ W, multiequalizer.lift _ _
+    (λ i, multiequalizer.ι _ i ≫ η.app _) begin
+      intros i,
+      erw [category.assoc, category.assoc, ← η.naturality,
+        ← η.naturality, ← category.assoc, ← category.assoc, multiequalizer.condition],
+      refl,
+    end,
+  naturality' := λ _ _ _, by { dsimp, ext, simpa } }
+
+@[simp]
+lemma diagram_nat_trans_id (X : C) (P : Cᵒᵖ ⥤ D) :
+  J.diagram_nat_trans (𝟙 P) X = 𝟙 (J.diagram P X) :=
+begin
+  ext,
+  dsimp,
+  simp only [multiequalizer.lift_ι, category.id_comp],
+  erw category.comp_id
+end
+
+@[simp]
+lemma diagram_nat_trans_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) (X : C) :
+  J.diagram_nat_trans (η ≫ γ) X = J.diagram_nat_trans η X ≫ J.diagram_nat_trans γ X :=
+by { ext, dsimp, simp }
+
 variable [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
 
 /-- The plus construction, associating a presheaf to any presheaf.
-See `plus` below for a functorial version.
+See `plus_functor` below for a functorial version.
 -/
 @[simps]
 def plus_obj : Cᵒᵖ ⥤ D :=
@@ -99,15 +128,7 @@ def plus_obj : Cᵒᵖ ⥤ D :=
 /-- An auxiliary definition used in `plus` below. -/
 @[simps]
 def plus_map {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) : J.plus_obj P ⟶ J.plus_obj Q :=
-{ app := λ X, colim_map
-  { app := λ S, multiequalizer.lift _ _
-      (λ I, multiequalizer.ι (S.unop.index P) I ≫ η.app (op I.Y)) begin
-        intros I,
-        erw [category.assoc, category.assoc, ← η.naturality, ← η.naturality,
-          ← category.assoc, ← category.assoc, multiequalizer.condition],
-        refl,
-      end,
-    naturality' := λ S T e, by { dsimp, ext, simpa } },
+{ app := λ X, colim_map (J.diagram_nat_trans η X.unop),
   naturality' := begin
     intros X Y f,
     dsimp,
@@ -121,6 +142,29 @@ def plus_map {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) : J.plus_obj P ⟶ J.plus_obj 
     simpa,
   end }
 
+@[simp]
+lemma plus_map_id (P : Cᵒᵖ ⥤ D) : J.plus_map (𝟙 P) = 𝟙 _ :=
+begin
+  ext : 2,
+  dsimp only [plus_map],
+  rw J.diagram_nat_trans_id,
+  ext,
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma plus_map_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) :
+  J.plus_map (η ≫ γ) = J.plus_map η ≫ J.plus_map γ :=
+begin
+  ext : 2,
+  dsimp only [plus_map],
+  rw J.diagram_nat_trans_comp,
+  ext,
+  dsimp,
+  simp,
+end
+
 variable (D)
 
 /-- The plus construction, a functor sending `P` to `J.plus_obj P`. -/
@@ -128,27 +172,8 @@ variable (D)
 def plus_functor : (Cᵒᵖ ⥤ D) ⥤ Cᵒᵖ ⥤ D :=
 { obj := λ P, J.plus_obj P,
   map := λ P Q η, J.plus_map η,
-  map_id' := begin
-    intros P,
-    ext,
-    dsimp,
-    simp only [ι_colim_map, category.comp_id],
-    convert category.id_comp _,
-    ext,
-    simp only [multiequalizer.lift_ι, category.id_comp],
-    exact category.comp_id _,
-  end,
-  map_comp' := begin
-    intros P Q R η γ,
-    ext,
-    dsimp,
-    simp only [ι_colim_map, ι_colim_map_assoc],
-    rw ← category.assoc,
-    congr' 1,
-    ext,
-    dsimp,
-    simp,
-  end }
+  map_id' := λ _, plus_map_id _ _,
+  map_comp' := λ _ _ _ _ _, plus_map_comp _ _ _ }
 
 variable {D}
 
@@ -164,7 +189,7 @@ def to_plus : P ⟶ J.plus_obj P :=
     delta cover.to_multiequalizer,
     simp only [diagram_pullback_app, colimit.ι_pre, ι_colim_map_assoc, category.assoc],
     dsimp only [functor.op, unop_op],
-    let e : (J.pullback f.unop).obj ⊤ ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
+    let e : (J.pullback f.unop).obj ⊤ ⟶ ⊤ := hom_of_le (order_top.le_top _),
     rw [← colimit.w _ e.op, ← category.assoc, ← category.assoc, ← category.assoc],
     congr' 1,
     ext,
@@ -174,24 +199,28 @@ def to_plus : P ⟶ J.plus_obj P :=
     simp,
   end }
 
+@[simp]
+lemma to_plus_naturality {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) :
+  η ≫ J.to_plus Q = J.to_plus _ ≫ J.plus_map η :=
+begin
+  ext,
+  dsimp,
+  delta cover.to_multiequalizer,
+  simp only [ι_colim_map, category.assoc],
+  simp_rw ← category.assoc,
+  congr' 1,
+  ext,
+  dsimp,
+  simp,
+end
+
 variable (D)
 
 /-- The natural transformation from the identity functor to `plus`. -/
 @[simps]
 def to_plus_nat_trans : (𝟭 (Cᵒᵖ ⥤ D)) ⟶ J.plus_functor D :=
 { app := λ P, J.to_plus P,
-  naturality' := begin
-    intros P Q η,
-    ext,
-    dsimp,
-    delta cover.to_multiequalizer,
-    simp only [ι_colim_map, category.assoc],
-    simp_rw ← category.assoc,
-    congr' 1,
-    ext,
-    dsimp,
-    simp,
-  end }
+  naturality' := λ _ _ _, to_plus_naturality _ _ }
 
 variable {D}
 
@@ -203,7 +232,7 @@ begin
   dsimp,
   delta cover.to_multiequalizer,
   simp only [ι_colim_map],
-  let e : S.unop ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
+  let e : S.unop ⟶ ⊤ := hom_of_le (order_top.le_top _),
   simp_rw [← colimit.w _ e.op, ← category.assoc],
   congr' 1,
   ext I,
@@ -211,7 +240,7 @@ begin
   simp only [diagram_pullback_app, colimit.ι_pre, multiequalizer.lift_ι,
     ι_colim_map_assoc, category.assoc],
   dsimp only [functor.op],
-  let ee : (J.pullback (I.map e).f).obj S.unop ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
+  let ee : (J.pullback (I.map e).f).obj S.unop ⟶ ⊤ := hom_of_le (order_top.le_top _),
   simp_rw [← colimit.w _ ee.op, ← category.assoc],
   congr' 1,
   ext II,
@@ -261,9 +290,7 @@ begin
   rw ← category.assoc,
   rw iso.comp_inv_eq,
   dsimp only [iso_to_plus, as_iso],
-  change (J.to_plus_nat_trans D).app _ ≫ _ = _,
-  erw (J.to_plus_nat_trans D).naturality,
-  refl,
+  rw to_plus_naturality,
 end
 
 lemma plus_lift_unique {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q)
@@ -271,11 +298,10 @@ lemma plus_lift_unique {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sh
 begin
   dsimp only [plus_lift],
   symmetry,
-  change (J.plus_functor D).map η ≫ _ = _,
-  rw [iso.comp_inv_eq, ← hγ, (J.plus_functor D).map_comp],
+  rw [iso.comp_inv_eq, ← hγ],
+  rw plus_map_comp,
   dsimp only [iso_to_plus, as_iso],
-  change _ = (𝟭 _).map γ ≫ (J.to_plus_nat_trans D).app _,
-  erw (J.to_plus_nat_trans D).naturality,
+  rw to_plus_naturality,
   congr' 1,
   dsimp only [plus_functor, to_plus_nat_trans],
   rw [J.plus_map_to_plus P],

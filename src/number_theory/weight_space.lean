@@ -1942,9 +1942,82 @@ instance : semilattice_sup ℕ := infer_instance
 -- set_option pp.proofs true
 
 -- def G (f : locally_constant ℤ_[p] R) (a : ℤ_[p]) : ℕ := ⨅ n : ℕ, loc_const_const -- is this really needed?
-
--- lemma loc_const_comp (f : locally_constant ℤ_[p] R)
 variable [has_coe ℚ R]
+lemma equi_class_clopen (n : ℕ) (a : zmod (d * p^n)) (hc : gcd c p = 1) (hc' : gcd c d = 1)
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] (hm : n < m)
+  (b : (equi_class p d n m hm a)) : (b.val : zmod d × ℤ_[p]) ∈ (clopen_from p d n a).val :=
+begin
+  have := b.prop,
+  rw mem_equi_class at this,
+  rw subtype.val_eq_coe,
+  rw mem_clopen_from,
+  conv { congr, { to_rhs, congr, rw ←this, },
+      to_lhs, congr, rw ←this, },
+  split,
+  {
+    sorry, },
+  { sorry, },
+end
+
+example {α β : Type*} (h : α ≃ β) : function.injective h.to_fun := equiv.injective h
+
+lemma g_char_fn (n : ℕ) (a : zmod (d * p^n)) (hc : gcd c p = 1) (hc' : gcd c d = 1)
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] (hm : n < m) :
+  (g p d R hc hc' hd' (char_fn (zmod d × ℤ_[p]) (clopen_from p d n a)) h').to_seq m =
+  ∑ (y : equi_class p d n m hm a), (E_c p d hc m y) :=
+begin
+  rw g_def,
+  rw char_fn,
+  simp only [algebra.id.smul_eq_mul, boole_mul, locally_constant.coe_mk, subtype.val_eq_coe],
+  rw finset.sum_ite, simp only [add_zero, finset.sum_const_zero],
+  rw finset.sum_bij,
+  swap 5,
+  { rintros b hb, simp only [finset.mem_filter, finset.mem_range] at hb,
+    refine ⟨b, _⟩, rw mem_equi_class, cases hb with h1 h2, rw ←subtype.val_eq_coe at h2,
+    rw mem_clopen_from at h2,
+    { apply (function.injective.eq_iff
+        (equiv.injective (zmod.chinese_remainder (coprime_pow_spl p d n h')).to_equiv )).1,
+      rw prod.ext_iff,
+      split,
+      { convert h2.1 using 1,
+        { --refine (function.injective.eq_iff prod.fst_injective).2 _,
+          sorry, },
+        { sorry, }, },
+      { convert (h2.2).symm,
+        { sorry, },
+        { sorry, }, }, }, }, -- use ring_hom.zmod_ext and ring_hom.comp for all goals above
+  { rintros, apply finset.mem_univ, },
+  { rintros b hb, simp only [subtype.coe_mk], },
+  { rintros b c hb hc h, simp only [subtype.mk_eq_mk] at h,
+    simp only [finset.mem_filter, finset.mem_range] at hc,
+    simp only [finset.mem_filter, finset.mem_range] at hb,
+    rw ←zmod.val_cast_of_lt hb.1,
+    rw ←zmod.val_cast_of_lt hc.1,
+    rw function.injective.eq_iff (zmod.val_injective _),
+    { exact h, },
+    { apply hd m, }, },
+  { rintros b hb, simp only [finset.mem_filter, finset.mem_range, subtype.val_eq_coe],
+    refine ⟨(b.val).val, _, _⟩,
+    { simp only [finset.mem_filter, finset.mem_range, subtype.val_eq_coe, zmod.nat_cast_val],
+      split,
+      { apply zmod.val_lt, },
+      { rw ←subtype.val_eq_coe,
+        apply equi_class_clopen p d R m n a hc hc' h' hd', }, },
+    { rw subtype.ext_iff_val, simp only [zmod.cast_id', id.def, zmod.nat_cast_val], }, },
+end
+#exit
+lemma seq_lim_g_char_fn (n : ℕ) (a : zmod (d * p^n)) (hc : gcd c p = 1) (hc' : gcd c d = 1)
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] :
+  sequence_limit_index' (g p d R hc hc' hd' (char_fn (zmod d × ℤ_[p])
+    (clopen_from p d n a)) h') ≤ n :=
+begin
+  apply nat.Inf_le, simp only [set.mem_set_of_eq], rintros m hm,
+  rw g_def,
+  sorry
+end
+#exit
+-- lemma loc_const_comp (f : locally_constant ℤ_[p] R)
+
 -- can hd be removed?
 lemma bernoulli_measure_nonempty [has_coe ℝ R] (hc : gcd c p = 1) (hc' : gcd c d = 1)
   [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) :

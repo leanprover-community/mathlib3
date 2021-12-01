@@ -480,6 +480,14 @@ add_monoid_algebra.support_mul_single p _ (by simp) _
   (X s * p).support = p.support.map (add_left_embedding (single s 1)) :=
 add_monoid_algebra.support_single_mul p _ (by simp) _
 
+lemma support_sdiff_support_subset_support_add [decidable_eq σ] (p q : mv_polynomial σ R) :
+  p.support \ q.support ⊆ (p + q).support :=
+begin
+  intros m hm,
+  simp only [not_not, mem_support_iff, finset.mem_sdiff, ne.def] at hm,
+  simp [hm.2, hm.1],
+end
+
 lemma coeff_mul_monomial' (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
   coeff m (p * monomial s r) = if s ≤ m then coeff (m - s) p * r else 0 :=
 begin

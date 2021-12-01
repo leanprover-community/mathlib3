@@ -38,42 +38,42 @@ namespace measure_theory
 
 /-- A `filtration` on measurable space `α` with σ-algebra `m` is a monotone
 sequence of of sub-σ-algebras of `m`. -/
-structure filtration (α ι : Type*) [preorder ι] (m : measurable_space α) :=
+structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_space α) :=
 (seq : ι → measurable_space α)
 (mono : monotone seq) (le : ∀ i : ι, seq i ≤ m)
 
-instance {α ι : Type*} [preorder ι] {m : measurable_space α} :
-  has_coe_to_fun (filtration α ι m) (λ _, ι → measurable_space α) :=
+variables {α β ι : Type*} {m : measurable_space α} [measurable_space β]
+
+instance [preorder ι] :
+  has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
 ⟨λ f, f.seq⟩
 
-instance {α ι : Type*} [preorder ι] {m : measurable_space α} : inhabited (filtration α ι m) :=
+instance [preorder ι] : inhabited (filtration ι m) :=
 ⟨⟨λ i, m, monotone_const, λ i, le_rfl⟩⟩
 
 open topological_space
-
-variables {α β ι : Type*} {m : measurable_space α} [measurable_space β]
 
 section
 
 variables [preorder ι]
 
-lemma measurable_set_of_filtration {f : filtration α ι m} {s : set α} {i : ι}
+lemma measurable_set_of_filtration {f : filtration ι m} {s : set α} {i : ι}
   (hs : measurable_set[f i] s) : measurable_set[m] s :=
 f.le i s hs
 
 /-- A measure is σ-finite with respect to filtration if it is σ-finite with respect
 to all the sub-σ-algebra of the filtration. -/
-class sigma_finite_filtration (μ : measure α) (f : filtration α ι m) : Prop :=
-(sigma_finite : ∀ ⦃i : ι⦄, @sigma_finite α (f i) (μ.trim (f.le i)))
+class sigma_finite_filtration (μ : measure α) (f : filtration ι m) : Prop :=
+(sigma_finite : ∀ ⦃i : ι⦄, sigma_finite (μ.trim (f.le i)))
 
-instance sigma_finite_of_sigma_finite_filtration (μ : measure α) (f : filtration α ι m)
+instance sigma_finite_of_sigma_finite_filtration (μ : measure α) (f : filtration ι m)
   [hf : sigma_finite_filtration μ f] (i : ι) :
-  @sigma_finite α (f i) (μ.trim (f.le i)) :=
+  sigma_finite (μ.trim (f.le i)) :=
 by apply hf.sigma_finite -- can't exact here
 
 /-- A sequence of functions `u` is adapted to a filtration `f` if for all `i`,
 `u i` is `f i`-measurable. -/
-def adapted (f : filtration α ι m) (u : ι → α → β) : Prop :=
+def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
 ∀ ⦃i : ι⦄, measurable[f i] (u i)
 
 namespace filtration
@@ -81,7 +81,7 @@ namespace filtration
 /-- Given a sequence of functions, the natural filtration is the smallest sequence
 of σ-algebras such that that sequence of functions is measurable with respect to
 the filtration. -/
-def natural (u : ι → α → β) (hum : ∀ i, measurable (u i)) : filtration α ι m :=
+def natural (u : ι → α → β) (hum : ∀ i, measurable (u i)) : filtration ι m :=
 { seq := λ i, ⨆ j ≤ i, measurable_space.comap (u j) infer_instance,
   mono := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
   le := λ i, bsupr_le (λ j hj s hs, let ⟨t, ht, ht'⟩ := hs in ht' ▸ hum j ht) }
@@ -92,7 +92,7 @@ lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) 
 
 end filtration
 
-variables {μ : measure α} {f : filtration α ι m}
+variables {μ : measure α} {f : filtration ι m}
 
 /-- A stopping time with respect to some filtration `f` is a function
 `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is measurable
@@ -100,13 +100,11 @@ with respect to `f i`.
 
 Intuitively, the stopping time `τ` describes some stopping rule such that at time
 `i`, we may determine it with the information we have at time `i`. -/
-def is_stopping_time (f : filtration α ι m) (τ : α → ι) :=
+def is_stopping_time (f : filtration ι m) (τ : α → ι) :=
 ∀ i : ι, measurable_set[f i] $ {x | τ x ≤ i}
 
-section
-
 lemma is_stopping_time.measurable_set_eq
-  {f : filtration α ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) (i : ℕ) :
+  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) (i : ℕ) :
   measurable_set[f i] $ {x | τ x = i} :=
 begin
   cases i,
@@ -123,12 +121,12 @@ begin
 end
 
 lemma is_stopping_time.measurable_set_eq_le
-  {f : filtration α ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
+  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
   measurable_set[f j] $ {x | τ x = i} :=
 f.mono hle _ $ hτ.measurable_set_eq i
 
 lemma is_stopping_time_of_measurable_set_eq
-  {f : filtration α ℕ m} {τ : α → ℕ} (hτ : ∀ i, measurable_set[f i] $ {x | τ x = i}) :
+  {f : filtration ℕ m} {τ : α → ℕ} (hτ : ∀ i, measurable_set[f i] $ {x | τ x = i}) :
   is_stopping_time f τ :=
 begin
   intro i,
@@ -137,9 +135,7 @@ begin
   exact f.mono hk _ (hτ k),
 end
 
-end
-
-lemma is_stopping_time_const {f : filtration α ι m} (i : ι) :
+lemma is_stopping_time_const {f : filtration ι m} (i : ι) :
   is_stopping_time f (λ x, i) :=
 λ j, by simp
 
@@ -147,7 +143,7 @@ end
 
 namespace is_stopping_time
 
-lemma max [linear_order ι] {f : filtration α ι m} {τ π : α → ι}
+lemma max [linear_order ι] {f : filtration ι m} {τ π : α → ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ x, max (τ x) (π x)) :=
 begin
@@ -156,7 +152,7 @@ begin
   exact @measurable_set.inter _ (f i) _ _ (hτ i) (hπ i),
 end
 
-lemma min [linear_order ι] {f : filtration α ι m} {τ π : α → ι}
+lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ x, min (τ x) (π x)) :=
 begin
@@ -168,7 +164,7 @@ end
 lemma add_const
   [add_group ι] [preorder ι] [covariant_class ι ι (function.swap (+)) (≤)]
   [covariant_class ι ι (+) (≤)]
-  {f : filtration α ι m} {τ : α → ι} (hτ : is_stopping_time f τ) {i : ι} (hi : 0 ≤ i) :
+  {f : filtration ι m} {τ : α → ι} (hτ : is_stopping_time f τ) {i : ι} (hi : 0 ≤ i) :
   is_stopping_time f (λ x, τ x + i) :=
 begin
   intro j,
@@ -176,7 +172,7 @@ begin
   exact f.mono (sub_le_self j hi) _ (hτ (j - i)),
 end
 
-variables [preorder ι] {f : filtration α ι m}
+variables [preorder ι] {f : filtration ι m}
 
 /-- The associated σ-algebra with a stopping time. -/
 def measurable_space
@@ -234,7 +230,7 @@ end
 
 section nat
 
-lemma measurable_set_eq_const {f : filtration α ℕ m}
+lemma measurable_set_eq_const {f : filtration ℕ m}
   {τ : α → ℕ} (hτ : is_stopping_time f τ) (i : ℕ) :
   measurable_set[hτ.measurable_space] {x | τ x = i} :=
 begin
@@ -255,7 +251,7 @@ begin
       rwa not_le at h } }
 end
 
-lemma measurable {f : filtration α ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) :
+lemma measurable {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) :
   @measurable _ _ hτ.measurable_space ⊤ τ :=
 begin
   refine @measurable_to_encodable ℕ α ⊤ hτ.measurable_space _ τ _,

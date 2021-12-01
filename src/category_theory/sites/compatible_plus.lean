@@ -83,7 +83,7 @@ end) begin
   intros X Y f,
   apply (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).hom_ext,
   intros W,
-  dsimp,
+  dsimp [plus_obj, plus_map],
   simp only [functor.map_comp, category.assoc],
   slice_rhs 1 2
   { erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).fac },
@@ -123,18 +123,19 @@ begin
   simp,
 end
 
+@[simp, reassoc]
 lemma plus_comp_iso_whisker_left {F G : D ⥤ E} (η : F ⟶ G) (P : Cᵒᵖ ⥤ D)
   [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ F]
   [∀ (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D), preserves_limit (W.index P).multicospan F]
   [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ G]
   [∀ (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D), preserves_limit (W.index P).multicospan G] :
-  (J.plus_comp_iso F P).hom ≫ J.plus_map (whisker_left _ η) =
-  whisker_left _ η ≫ (J.plus_comp_iso G P).hom :=
+  whisker_left _ η ≫ (J.plus_comp_iso G P).hom =
+  (J.plus_comp_iso F P).hom ≫ J.plus_map (whisker_left _ η) :=
 begin
   ext X,
   apply (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).hom_ext,
   intros W,
-  dsimp,
+  dsimp [plus_obj, plus_map],
   simp only [ι_plus_comp_iso_hom, ι_colim_map, whisker_left_app, ι_plus_comp_iso_hom_assoc,
     nat_trans.naturality_assoc, grothendieck_topology.diagram_nat_trans_app],
   simp only [← category.assoc],
@@ -145,7 +146,7 @@ begin
 end
 
 /-- The isomorphism between `P⁺ ⋙ F` and `(P ⋙ F)⁺`, functorially in `F`. -/
-@[simps hom inv]
+@[simps hom_app inv_app]
 def plus_functor_whisker_left_iso (P : Cᵒᵖ ⥤ D)
   [∀ (F : D ⥤ E) (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ F]
   [∀ (F : D ⥤ E) (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D),
@@ -153,22 +154,17 @@ def plus_functor_whisker_left_iso (P : Cᵒᵖ ⥤ D)
   (whiskering_left _ _ E).obj (J.plus_obj P) ≅
   (whiskering_left _ _ _).obj P ⋙ J.plus_functor E :=
 nat_iso.of_components
-(λ X, plus_comp_iso _ _ _)
-begin
-  intros F G η,
-  dsimp only [whiskering_left, functor.comp_map, plus_functor],
-  symmetry,
-  apply plus_comp_iso_whisker_left,
-end
+(λ X, plus_comp_iso _ _ _) $ λ F G η, plus_comp_iso_whisker_left _ _ _
 
+@[simp, reassoc]
 lemma plus_comp_iso_whisker_right {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) :
-  (J.plus_comp_iso F P).hom ≫ J.plus_map (whisker_right η F) =
-  whisker_right (J.plus_map η) F ≫ (J.plus_comp_iso F Q).hom :=
+  whisker_right (J.plus_map η) F ≫ (J.plus_comp_iso F Q).hom =
+  (J.plus_comp_iso F P).hom ≫ J.plus_map (whisker_right η F) :=
 begin
   ext X,
   apply (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P X.unop))).hom_ext,
   intros W,
-  dsimp,
+  dsimp [plus_obj, plus_map],
   simp only [ι_colim_map, whisker_right_app, ι_plus_comp_iso_hom_assoc,
     grothendieck_topology.diagram_nat_trans_app],
   simp only [← category.assoc, ← F.map_comp],
@@ -186,23 +182,17 @@ begin
 end
 
 /-- The isomorphism between `P⁺ ⋙ F` and `(P ⋙ F)⁺`, functorially in `P`. -/
-@[simps hom inv]
+@[simps hom_app inv_app]
 def plus_functor_whisker_right_iso : J.plus_functor D ⋙ (whiskering_right _ _ _).obj F ≅
   (whiskering_right _ _ _).obj F ⋙ J.plus_functor E :=
-nat_iso.of_components (λ P, J.plus_comp_iso _ _)
-begin
-  intros P Q η,
-  dsimp only [whiskering_right, functor.comp_map, plus_functor],
-  symmetry,
-  apply plus_comp_iso_whisker_right,
-end
+nat_iso.of_components (λ P, J.plus_comp_iso _ _) $ λ P Q η, plus_comp_iso_whisker_right _ _ _
 
-@[simp]
+@[simp, reassoc]
 lemma whisker_right_to_plus_comp_plus_comp_iso_hom :
   whisker_right (J.to_plus _) _ ≫ (J.plus_comp_iso F P).hom = J.to_plus _ :=
 begin
   ext,
-  dsimp,
+  dsimp [to_plus],
   simp only [ι_plus_comp_iso_hom, functor.map_comp, category.assoc],
   simp only [← category.assoc],
   congr' 1,
@@ -213,20 +203,13 @@ begin
   refl,
 end
 
-@[simp]
 lemma to_plus_comp_plus_comp_iso_inv : J.to_plus _ ≫ (J.plus_comp_iso F P).inv =
   whisker_right (J.to_plus _) _ :=
-begin
-  rw iso.comp_inv_eq,
-  simp,
-end
+by simp [iso.comp_inv_eq]
 
+@[simp]
 lemma plus_comp_iso_inv_eq_plus_lift (hP : presheaf.is_sheaf J ((J.plus_obj P) ⋙ F)) :
   (J.plus_comp_iso F P).inv = J.plus_lift (whisker_right (J.to_plus _) _) hP :=
-begin
-  apply J.plus_lift_unique,
-  rw iso.comp_inv_eq,
-  simp,
-end
+by { apply J.plus_lift_unique, simp [iso.comp_inv_eq] }
 
 end category_theory.grothendieck_topology

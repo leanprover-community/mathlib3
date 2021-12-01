@@ -197,9 +197,10 @@ def measurable_space
         exact @measurable_set.Union _ _ (f i) _ _ (hs i),
       end }
 
-lemma measurable_set {τ : α → ι} (hτ : is_stopping_time f τ)
-  (s : set α) : measurable_set[hτ.measurable_space] s ↔
-    ∀ i : ι, measurable_set[f i] (s ∩ {x | τ x ≤ i}) := iff.rfl
+lemma measurable_set {τ : α → ι} (hτ : is_stopping_time f τ) (s : set α) :
+  measurable_set[hτ.measurable_space] s ↔
+  ∀ i : ι, measurable_set[f i] (s ∩ {x | τ x ≤ i}) :=
+iff.rfl
 
 lemma measurable_space_mono
   {τ π : α → ι} (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) (hle : τ ≤ π) :

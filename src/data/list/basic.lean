@@ -3053,7 +3053,8 @@ end filter
 /-! ### remove_all -/
 
 section remove_all
-@[simp] theorem length_remove_all_le [decidable_eq α] (l r : list α) : (l.remove_all r).length ≤ l.length := 
+@[simp] theorem length_remove_all_le [decidable_eq α] (l r : list α) : 
+  (l.remove_all r).length ≤ l.length := 
 by apply length_filter_le
 
 @[simp] theorem length_remove_all_lt_of_mem_of_mem [decidable_eq α] {a : α} (l r : list α) :

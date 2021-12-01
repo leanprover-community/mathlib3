@@ -53,7 +53,7 @@ variables [preorder ι]
 instance : has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
 ⟨λ f, f.seq⟩
 
-/-- The constant filtration which is equal to `m` for all `i ∈ ι`. -/
+/-- The constant filtration which is equal to `m` for all `i : ι`. -/
 def const_filtration (m : measurable_space α) : filtration ι m :=
 ⟨λ _, m, monotone_const, λ _, le_rfl⟩
 

@@ -5,7 +5,7 @@ Authors: Ashvni Narayanan
 -/
 
 import group_theory.subgroup.basic
-import ring_theory.subsemiring
+import ring_theory.subsemiring.basic
 
 /-!
 # Subrings

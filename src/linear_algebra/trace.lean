@@ -86,11 +86,8 @@ by { rw [trace, dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
 
 theorem trace_eq_matrix_trace (f : M →ₗ[R] M) :
   trace R M f = matrix.trace ι R R (linear_map.to_matrix b b f) :=
-if hR : nontrivial R
-then by haveI := hR;
-        rw [trace_eq_matrix_trace_of_finset R b.reindex_finset_range,
-            ← trace_aux_def, ← trace_aux_def, trace_aux_eq R b]
-else @subsingleton.elim _ (not_nontrivial_iff_subsingleton.mp hR) _ _
+by rw [trace_eq_matrix_trace_of_finset R b.reindex_finset_range,
+    ← trace_aux_def, ← trace_aux_def, trace_aux_eq R b]
 
 theorem trace_mul_comm (f g : M →ₗ[R] M) :
   trace R M (f * g) = trace R M (g * f) :=

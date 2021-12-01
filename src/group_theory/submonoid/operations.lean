@@ -488,6 +488,16 @@ subtype.rec_on x $ λ x hx, begin
       ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
 end
 
+@[simp, to_additive]
+lemma closure_closure_coe_preimage {s : set M} : closure ((coe : closure s → M) ⁻¹' s) = ⊤ :=
+begin
+  refine eq_top_iff.2 (λ x hx, closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) x),
+  { intros g hg,
+    exact subset_closure hg },
+  { exact submonoid.one_mem _ },
+  { exact submonoid.mul_mem _ hg₁ hg₂ },
+end
+
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
 of `M × N`. -/
 @[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`

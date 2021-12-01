@@ -218,7 +218,7 @@ apply_nolint list.traverse doc_blame
 apply_nolint multiset.traverse doc_blame
 
 -- data/nat/basic.lean
-apply_nolint nat.subtype.semilattice_sup_bot fails_quickly
+apply_nolint nat.subtype.order_bot fails_quickly
 
 -- data/num/bitwise.lean
 apply_nolint snum.cadd doc_blame
@@ -360,37 +360,14 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/stream/init.lean
-apply_nolint stream doc_blame
-apply_nolint stream.all doc_blame
-apply_nolint stream.any doc_blame
-apply_nolint stream.append_stream doc_blame
-apply_nolint stream.apply doc_blame
-apply_nolint stream.approx doc_blame
-apply_nolint stream.cons doc_blame
-apply_nolint stream.const doc_blame
+-- data/stream/defs.lean
 apply_nolint stream.corec doc_blame
 apply_nolint stream.corec' doc_blame
 apply_nolint stream.corec_on doc_blame
-apply_nolint stream.cycle doc_blame
-apply_nolint stream.drop doc_blame
-apply_nolint stream.even doc_blame
-apply_nolint stream.head doc_blame
-apply_nolint stream.inits doc_blame
-apply_nolint stream.inits_core doc_blame
-apply_nolint stream.interleave doc_blame
-apply_nolint stream.is_bisimulation doc_blame
-apply_nolint stream.iterate doc_blame
-apply_nolint stream.map doc_blame
-apply_nolint stream.mem doc_blame
-apply_nolint stream.nats doc_blame
-apply_nolint stream.nth doc_blame
-apply_nolint stream.odd doc_blame
-apply_nolint stream.pure doc_blame
-apply_nolint stream.tail doc_blame
-apply_nolint stream.tails doc_blame
 apply_nolint stream.unfolds doc_blame
-apply_nolint stream.zip doc_blame
+
+-- data/stream/init.lean
+apply_nolint stream.is_bisimulation doc_blame
 
 -- data/vector3.lean
 apply_nolint vector3 has_inhabited_instance
@@ -982,11 +959,7 @@ apply_nolint transfer.compute_transfer doc_blame
 apply_nolint tactic.wlog doc_blame
 
 -- topology/category/Top/open_nhds.lean
-apply_nolint topological_space.open_nhds has_inhabited_instance
 apply_nolint topological_space.open_nhds.map doc_blame
-
--- topology/category/TopCommRing.lean
-apply_nolint TopCommRing has_inhabited_instance
 
 -- topology/uniform_space/completion.lean
 apply_nolint Cauchy.extend doc_blame

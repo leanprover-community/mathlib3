@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
+import order.filter.pi
 import topology.bases
 import data.finset.order
 import data.set.accumulate
@@ -49,7 +50,7 @@ open set filter classical topological_space
 open_locale classical topological_space filter
 
 universes u v
-variables {α : Type u} {β : Type v} [topological_space α] {s t : set α}
+variables {α : Type u} {β : Type v}  {ι : Type*} {π : ι → Type*} [topological_space α] {s t : set α}
 
 /- compact sets -/
 section compact
@@ -811,6 +812,14 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   exact (is_compact_range continuous_inl).union (is_compact_range continuous_inr)
 end⟩
 
+instance [fintype ι] [Π i, topological_space (π i)] [∀ i, compact_space (π i)] :
+  compact_space (Σ i, π i) :=
+begin
+  refine ⟨_⟩,
+  rw sigma.univ,
+  exact compact_Union (λ i, is_compact_range continuous_sigma_mk),
+end
+
 /-- The coproduct of the cocompact filters on two topological spaces is the cocompact filter on
 their product. -/
 lemma filter.coprod_cocompact :
@@ -852,26 +861,26 @@ instance prod.noncompact_space_right [nonempty α] [noncompact_space β] : nonco
 prod.noncompact_space_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
 
 section tychonoff
-variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
+variables [Π i, topological_space (π i)]
 
 /-- **Tychonoff's theorem** -/
 lemma is_compact_pi_infinite {s : Π i, set (π i)} :
   (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
-  simp only [is_compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff,
-    le_principal_iff],
+  simp only [is_compact_iff_ultrafilter_le_nhds, nhds_pi, filter.pi, exists_prop, mem_set_of_eq,
+    le_infi_iff, le_principal_iff],
   intros h f hfs,
   have : ∀i:ι, ∃a, a∈s i ∧ tendsto (λx:Πi:ι, π i, x i) f (𝓝 a),
   { refine λ i, h i (f.map _) (mem_map.2 _),
     exact mem_of_superset hfs (λ x hx, hx i) },
   choose a ha,
-  exact  ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
+  exact ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
 end
 
 /-- A version of Tychonoff's theorem that uses `set.pi`. -/
 lemma is_compact_univ_pi {s : Π i, set (π i)} (h : ∀ i, is_compact (s i)) :
   is_compact (pi univ s) :=
-by { convert is_compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ] }
+by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq] }
 
 instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨by { rw [← pi_univ univ], exact is_compact_univ_pi (λ i, compact_univ) }⟩
@@ -1247,6 +1256,10 @@ end
 
 @[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=
 ⟨is_open_discrete _, is_closed_discrete _⟩
+
+lemma clopen_range_sigma_mk {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)] {i : ι} :
+  is_clopen (set.range (@sigma.mk ι σ i)) :=
+⟨open_embedding_sigma_mk.open_range, closed_embedding_sigma_mk.closed_range⟩
 
 end clopen
 

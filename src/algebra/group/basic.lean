@@ -616,12 +616,3 @@ end
 by rw [div_eq_iff_eq_mul, div_mul_eq_mul_div', div_eq_iff_eq_mul', mul_div_assoc]
 
 end comm_group
-
-section add_comm_group
--- TODO: Generalize the contents of this section with to_additive as per
--- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
-variables {G : Type u} [add_comm_group G] {a b c d : G}
-
-local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
-
-end add_comm_group

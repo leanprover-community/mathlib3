@@ -356,6 +356,9 @@ by field_simp
 lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
+@[priority 100] instance : cstar_ring K :=
+{ norm_star_mul_self := λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
+
 /-! ### Cast lemmas -/
 
 @[simp, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : K) = n :=
@@ -785,9 +788,5 @@ linear_isometry.norm_to_continuous_linear_map of_real_li
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
 
 end linear_maps
-
-instance {K : Type*} [is_R_or_C K] : cstar_ring K :=
-{ norm_star_mul_self := λ x,
-  by simp only [←star_ring_aut_apply, norm_eq_abs, abs_mul, abs_conj] }
 
 end is_R_or_C

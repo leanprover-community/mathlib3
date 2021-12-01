@@ -203,11 +203,11 @@ begin
   refl,
 end
 
+@[simp]
 lemma to_plus_comp_plus_comp_iso_inv : J.to_plus _ ≫ (J.plus_comp_iso F P).inv =
   whisker_right (J.to_plus _) _ :=
 by simp [iso.comp_inv_eq]
 
-@[simp]
 lemma plus_comp_iso_inv_eq_plus_lift (hP : presheaf.is_sheaf J ((J.plus_obj P) ⋙ F)) :
   (J.plus_comp_iso F P).inv = J.plus_lift (whisker_right (J.to_plus _) _) hP :=
 by { apply J.plus_lift_unique, simp [iso.comp_inv_eq] }

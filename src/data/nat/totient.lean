@@ -261,10 +261,6 @@ variables {α M N : Type*}
 -- κ (f.prod g) = f.prod (λ a b, κ (g a b)) :=
 -- monoid_hom.map_prod κ _ f.support
 
--- lemma finsupp.prod_mul_distrib [has_zero M] [comm_monoid N] {f : α →₀ M} (g1 g2 : α → M → N) :
---   f.prod (g1 * g2) = (f.prod g1) * (f.prod g2) :=
--- by simp [finsupp.prod, finset.prod_mul_distrib]
-
 lemma finsupp.prod_congr [has_zero M] [comm_monoid N] {f : α →₀ M} (g1 g2 : α → M → N) :
   (∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) → (f.prod g1 = f.prod g2) :=
 fold_congr

@@ -612,6 +612,9 @@ begin
   simp only [mul_comm, eq_comm]
 end
 
+@[to_additive] lemma div_eq_div_iff_div_eq_div : a / b = c / d ↔ a / c = b / d :=
+by rw [div_eq_iff_eq_mul, div_mul_eq_mul_div', div_eq_iff_eq_mul', mul_div_assoc]
+
 end comm_group
 
 section add_comm_group
@@ -620,8 +623,5 @@ section add_comm_group
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
-
-lemma sub_eq_sub_iff_sub_eq_sub : a - b = c - d ↔ a - c = b - d :=
-by rw [sub_eq_iff_eq_add, sub_add_eq_add_sub, sub_eq_iff_eq_add', add_sub_assoc]
 
 end add_comm_group

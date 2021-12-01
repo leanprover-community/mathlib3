@@ -1000,12 +1000,18 @@ namespace SheafOfTypes
 @[simp] lemma comp_app {X Y Z : SheafOfTypes J} (f : X ⟶ Y) (g : Y ⟶ Z) (B : Cᵒᵖ) :
   (f ≫ g).app B = f.app B ≫ g.app B := rfl
 
+instance : has_coe (SheafOfTypes.{w} J) (Cᵒᵖ ⥤ Type w) := ⟨λ P, P.val⟩
+
 end SheafOfTypes
 
 /-- The inclusion functor from sheaves to presheaves. -/
-@[simps {rhs_md := semireducible}, derive [full, faithful]]
+@[simps map {rhs_md := semireducible}, derive [full, faithful]]
 def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type w) :=
 full_subcategory_inclusion (presieve.is_sheaf J)
+
+@[simp]
+lemma SheafOfTypes_to_presheaf_obj (P : SheafOfTypes J) :
+  (SheafOfTypes_to_presheaf J).obj P = P := rfl
 
 /--
 The category of sheaves on the bottom (trivial) grothendieck topology is equivalent to the category

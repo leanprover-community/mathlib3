@@ -330,19 +330,19 @@ lemma inf_attach (s : finset β) (f : β → α) : s.attach.inf (λ x, f x) = s.
 
 lemma inf_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
   s.inf (λ b, t.inf (f b)) = t.inf (λ c, s.inf (λ b, f b c)) :=
-@sup_comm (order_dual α) _ _ _ _ _ _
+@sup_comm (order_dual α) _ _ _ _ _ _ _
 
 lemma inf_sigma {γ : β → Type*} (s : finset β) (t : Π i, finset (γ i)) (f : sigma γ → α) :
   (s.sigma t).inf f = s.inf (λ i, (t i).inf $ λ b, f ⟨i, b⟩) :=
-@sup_sigma (order_dual α) _ _ _ _ _ _
+@sup_sigma (order_dual α) _ _ _ _ _ _ _
 
 lemma inf_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
   (s.product t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
-@sup_product_left (order_dual α) _ _ _ _ _ _
+@sup_product_left (order_dual α) _ _ _ _ _ _ _
 
 lemma inf_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
   (s.product t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
-@sup_product_right (order_dual α) _ _ _ _ _ _
+@sup_product_right (order_dual α) _ _ _ _ _ _ _
 
 @[simp] lemma inf_erase_top [decidable_eq α] (s : finset α) : (s.erase ⊤).inf id = s.inf id :=
 @sup_erase_bot (order_dual α) _ _ _ _

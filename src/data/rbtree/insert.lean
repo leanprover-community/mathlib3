@@ -651,8 +651,7 @@ begin
     all_goals { simp [find, ins, cmp_using, *] } },
   all_goals { simp at hc, cases hs },
   { have := ih hs_hs₁ hlt₁ hc, simp_fi },
-  {
-    cases hn,
+  { cases hn,
     { have := lt_of_incomp_of_lt hc.symm hn,
       simp_fi },
     { have := lt_of_lt_of_incomp hn hc,

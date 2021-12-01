@@ -590,6 +590,10 @@ by { repeat { rw div_eq_mul_inv }, exact mul_right_comm _ _ _ }
 lemma mul_mul_div_cancel (a b c : G) : (a * c) * (b / c) = a * b :=
 by rw [mul_assoc, mul_div_cancel'_right]
 
+@[simp, to_additive]
+lemma div_mul_mul_cancel (a b c : G) : (a / c) * (b * c) = a * b :=
+by rw [mul_left_comm, div_mul_cancel', mul_comm]
+
 end comm_group
 
 section add_comm_group
@@ -598,9 +602,6 @@ section add_comm_group
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
-
-@[simp] lemma sub_add_add_cancel (a b c : G) : (a - c) + (b + c) = a + b :=
-by rw [add_left_comm, sub_add_cancel, add_comm]
 
 @[simp] lemma sub_add_sub_cancel' (a b c : G) : (a - b) + (c - a) = c - b :=
 by rw add_comm; apply sub_add_sub_cancel

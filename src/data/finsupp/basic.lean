@@ -770,6 +770,14 @@ lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g :
   (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
 S.prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
 
+lemma finsupp.prod_mul_distrib [has_zero M] [comm_monoid N] {f : α →₀ M} (g1 g2 : α → M → N) :
+  f.prod (g1 * g2) = (f.prod g1) * (f.prod g2) :=
+by simp [finsupp.prod, finset.prod_mul_distrib]
+
+lemma finsupp.prod_congr [has_zero M] [comm_monoid N] {f : α →₀ M} (g1 g2 : α → M → N) :
+  (∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) → (f.prod g1 = f.prod g2) :=
+fold_congr
+
 end sum_prod
 
 /-!

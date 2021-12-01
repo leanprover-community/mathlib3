@@ -1047,6 +1047,17 @@ variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
 variables [topological_space α] [normed_ring β] [star_ring β] [cstar_ring β]
 variables [normed_algebra 𝕜 β] [star_module 𝕜 β]
 
+instance : star_ring (α →ᵇ β) :=
+{ star := λ f,
+    have iso : isometry (star : β → β), from
+      star_add_equiv.to_add_monoid_hom.isometry_of_norm cstar_ring.to_normed_star_monoid.norm_star,
+    comp star iso.lipschitz f,
+  star_involutive := λ f, ext $ λ x, star_star (f x),
+  star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
+  star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
+
+@[simp] lemma coe_star (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
+
 end cstar_ring
 
 end bounded_continuous_function

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.operator_norm
+import analysis.normed_space.star
 import topology.continuous_function.algebra
 
 /-!
@@ -1029,5 +1030,23 @@ show that the space of bounded continuous functions from `α` to `β` is natural
 module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
+
+section cstar_ring
+/-!
+### Star structure
+
+In this section, if `β` is a C⋆-ring, then the space of bounded
+continuous functions from `α` to `β` inherits a C⋆-ring structure also,
+by using the star operation pointwise. Moreover, if `𝕜` is normed field
+and a ⋆-ring, over which `β` is a normed algebra and a star module, then
+the space of bounded continuous functions from `α` to `β` is a star module
+over `𝕜`. In other words, `α →ᵇ β` is a C⋆-algebra (completeness is
+guaranteed when `β` is complete). -/
+
+variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
+variables [topological_space α] [normed_ring β] [star_ring β] [cstar_ring β]
+variables [normed_algebra 𝕜 β] [star_module 𝕜 β]
+
+end cstar_ring
 
 end bounded_continuous_function

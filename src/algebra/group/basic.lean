@@ -576,6 +576,11 @@ by rw [← mul_div_assoc, mul_div_cancel''']
 lemma div_mul_cancel'' (a b : G) : a / (a * b) = b⁻¹ :=
 by rw [← inv_div', mul_div_cancel''']
 
+-- This lemma is in the `simp` set under the name `add_neg_cancel_comm_assoc`,
+-- defined  in `algebra/group/commute`
+@[to_additive] lemma mul_mul_inv_cancel'_right (a b : G) : a * (b * a⁻¹) = b :=
+by rw [← div_eq_mul_inv, mul_div_cancel'_right a b]
+
 end comm_group
 
 section add_comm_group
@@ -584,11 +589,6 @@ section add_comm_group
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
-
--- This lemma is in the `simp` set under the name `add_neg_cancel_comm_assoc`,
--- defined  in `algebra/group/commute`
-lemma add_add_neg_cancel'_right (a b : G) : a + (b + -a) = b :=
-by rw [← sub_eq_add_neg, add_sub_cancel'_right a b]
 
 lemma sub_right_comm (a b c : G) : a - b - c = a - c - b :=
 by { repeat { rw sub_eq_add_neg }, exact add_right_comm _ _ _ }

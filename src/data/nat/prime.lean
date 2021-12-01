@@ -759,7 +759,7 @@ lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
 by rw [perm_iff_count.mp (perm_factors_mul_of_coprime hab) p, count_append]
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
-lemma factors_count_pow {n k p: ℕ} : count p (n ^ k).factors = k * count p n.factors :=
+lemma factors_count_pow {n k p : ℕ} : count p (n ^ k).factors = k * count p n.factors :=
 begin
   induction k with k IH, { simp },
   rcases n.eq_zero_or_pos with rfl | hn,

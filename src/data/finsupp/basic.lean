@@ -1443,7 +1443,7 @@ begin
   refine ((sum_sum_index _ _).trans _).symm,
   { intros, exact single_zero },
   { intros, exact single_add },
-  refine sum_congr rfl (λ _ _, sum_single_index _),
+  refine finset.sum_congr rfl (λ _ _, sum_single_index _),
   { exact single_zero }
 end
 
@@ -1502,7 +1502,7 @@ finset.subset.trans support_sum $
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
   {h : β → M → N} (h_zero : ∀b, h b 0 = 1) (h_add : ∀b m₁ m₂, h b (m₁ + m₂) = h b m₁ * h b m₂) :
   (map_domain f s).prod h = s.prod (λa m, h (f a) m) :=
-(prod_sum_index h_zero h_add).trans $ prod_congr rfl $ λ _ _, prod_single_index (h_zero _)
+(prod_sum_index h_zero h_add).trans $ finset.prod_congr rfl $ λ _ _, prod_single_index (h_zero _)
 
 /--
 A version of `sum_map_domain_index` that takes a bundled `add_monoid_hom`,

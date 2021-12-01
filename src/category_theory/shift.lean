@@ -183,63 +183,7 @@ lemma shift_neg_shift' (i : A) :
   f⟦-i⟧'⟦i⟧' = (shift_neg_shift X i).hom ≫ f ≫ (shift_neg_shift Y i).inv :=
 by { symmetry, apply nat_iso.naturality_2 }
 
--- lemma shift_functor_map_iso_shift_zero (i : A) :
---   (shift_functor C i).map_iso (shift_zero X) = (shift_add X 0 i).symm ≪≫ (eq_to_iso $ by simp) :=
--- begin
---   ext,
---   apply (shift_functor C (-i)).map_injective,
---   rw [functor.map_iso_hom, ← functor.comp_map,
---     ← nat_iso.naturality_2 (shift_functor_comp_shift_functor_neg C i),
---     iso.trans_hom, eq_to_iso.hom, functor.map_comp,
---     iso.symm_hom, ← functor.map_iso_inv, shift_functor_map_iso_shift_add],
---   dsimp [shift_functor_comp_shift_functor_neg, shift_zero],
---   simp only [category.assoc, iso.hom_inv_id_app_assoc],
---   congr' 1,
---   dsimp [shift_functor_zero],
---   simp only [category.id_comp, category.assoc],
---   -- dsimp only [shift_zero, shift_functor_zero],
---   -- dsimp [functor.map_iso_hom, iso.trans_hom, eq_to_iso.hom,
---   --   nat_iso.trans_app, functor.right_unitor_inv_app, nat_iso.app_hom, iso.symm_hom,
---   --   functor.associator_inv_app, iso_whisker_right_hom, iso_whisker_left_hom,
---   --   whisker_right_app, whisker_left_app],
--- end
--- by simpa only [functor.right_unitor_inv_app, eq_to_hom_app, category.comp_id, nat_trans.comp_app]
---   using congr_arg (λ α, nat_trans.app α X) (has_shift.whisker_right_shift_zero i)
-
--- lemma shift_shift_zero_hom' (i : ℤ) :
---   (shift_zero X).hom⟦i⟧' = (shift_add X 0 i).inv ≫ (eq_to_hom $ by simp) :=
--- by simpa only [functor.right_unitor_inv_app, eq_to_hom_app, category.comp_id, nat_trans.comp_app]
---   using congr_arg (λ α, nat_trans.app α X) (has_shift.whisker_right_shift_zero i)
-
--- lemma shift_zero_shift_hom (i : ℤ) :
---   (shift_zero $ X⟦i⟧).hom = (shift_add X i 0).inv ≫ (eq_to_hom $ by simp) :=
--- by simpa only [functor.right_unitor_inv_app, eq_to_hom_app, category.comp_id, nat_trans.comp_app]
---   using congr_arg (λ α, nat_trans.app α X) (has_shift.whisker_left_shift_zero i)
-
 variables (C)
-
--- /-- Shifting by `n` is an equivalence, whose inverse is shifting by `-n`. -/
--- @[simps] def shift_equiv
---   (n : A) : C ≌ C :=
--- { functor := shift_functor C n,
---   inverse := shift_functor C (-n),
---   unit_iso := (shift_functor_comp_shift_functor_neg C n).symm,
---   counit_iso := shift_functor_neg_comp_shift_functor C n,
---   functor_unit_iso_comp' := λ X,
---   begin
---     dsimp only [shift_functor_comp_shift_functor_neg, shift_functor_neg_comp_shift_functor],
---     simp only [iso.symm_hom, iso.trans_hom, iso.trans_inv, eq_to_iso.inv, eq_to_hom_app,
---       iso.symm_inv, eq_to_hom_map, eq_to_iso.hom, functor.map_comp, nat_trans.comp_app,
---       category.assoc],
---     erw [shift_shift_add_hom'],
---     simp only [category.assoc],
---     erw [iso.hom_inv_id_app_assoc, shift_add_assoc],
---     simp only [iso.symm_hom, iso.trans_hom, iso.trans_inv, eq_to_iso.inv, eq_to_hom_app,
---       iso.symm_inv, eq_to_hom_map, eq_to_iso.hom, functor.map_comp, nat_trans.comp_app,
---       category.assoc, functor.map_iso_hom, eq_to_hom_trans_assoc, eq_to_hom_refl,
---       category.id_comp, iso.inv_hom_id_assoc],
---     sorry
---   end }
 
 /-- Shifting by `n` is an equivalence, whose inverse is shifting by `-n`. -/
 noncomputable instance (n : A) : is_equivalence (shift_functor C n) :=

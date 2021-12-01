@@ -120,7 +120,7 @@ lemma whisker_right_to_sheafify_sheafify_comp_iso_hom :
 begin
   dsimp [sheafify_comp_iso],
   erw [whisker_right_comp, category.assoc],
-  slice_lhs 2 3 { rw ← plus_comp_iso_whisker_right },
+  slice_lhs 2 3 { rw plus_comp_iso_whisker_right },
   erw [category.assoc, ← (J.plus_functor _).map_comp,
     whisker_right_to_plus_comp_plus_comp_iso_hom, ← category.assoc,
     whisker_right_to_plus_comp_plus_comp_iso_hom],

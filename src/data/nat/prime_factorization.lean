@@ -35,6 +35,15 @@ lemma prime_factorization_eq_iff {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   a.prime_factorization = b.prime_factorization ↔ a = b :=
 ⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←prime_factorization_count, h]), λ h, by rw h⟩
 
+/-- For `n > 0`, the product of `p_i ^ k_i` over the prime factorization of `n` equals `n` -/
+lemma prime_factorization_prod_pow {n : ℕ} (hn : 0 < n) :
+  n = n.prime_factorization.prod pow :=
+begin
+  rw ←finsupp.prod_to_multiset,
+  simp only [prime_factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
+  exact (prod_factors hn).symm,
+end
+
 @[simp] lemma prime_factorization_zero : prime_factorization 0 = 0  :=
 by simp [prime_factorization]
 
@@ -190,13 +199,6 @@ begin
 
   exact hn,
 end
-
----------------------------------------------------------------------------------------------------
-
-/-- For `n > 0`, the product of `p_i ^ k_i` over the prime factorization of `n` equals `n` -/
-lemma prime_factorization_prod_pow {n : ℕ} (hn : 0 < n) :
-  n = n.prime_factorization.prod pow :=
-by { refine (multiplicative_factorization hn _ _), simp }
 
 ---------------------------------------------------------------------------------------------------
 

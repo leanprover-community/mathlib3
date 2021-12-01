@@ -692,6 +692,12 @@ lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
+@[continuity]
+lemma continuous_apply_apply {κ : Type*} {ρ : κ → ι → Type*}
+  [∀ j i, topological_space (ρ j i)] (j : κ) (i : ι) :
+  continuous (λ p : (Π j, Π i, ρ j i), p j i) :=
+(continuous_apply i).comp (continuous_apply j)
+
 lemma continuous_at_apply [∀i, topological_space (π i)] (i : ι) (x : Π i, π i) :
   continuous_at (λ p : Π i, π i, p i) x :=
 (continuous_apply i).continuous_at
@@ -883,6 +889,19 @@ by simp only [is_open_supr_iff, is_open_coinduced]
 
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
 by simp only [← is_open_compl_iff, is_open_sigma_iff, preimage_compl]
+
+lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
+begin
+  rw is_open_sigma_iff,
+  intros a,
+  by_cases h : a ∈ s,
+  { convert is_open_univ,
+    ext x,
+    simp only [h, set.mem_preimage, set.mem_univ] },
+  { convert is_open_empty,
+    ext x,
+    simp only [h, set.mem_empty_eq, set.mem_preimage] }
+end
 
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin

@@ -3016,7 +3016,7 @@ begin
   simp,
   cases classical.em (p l_hd);
   simp [h],
-  { exact l_ih, },
+  { exact l_ih },
   { exact le_add_right l_ih }
 end
 

@@ -181,8 +181,9 @@ lemma is_classified_of_is_primitive_classified (hp : h.is_primitive_classified) 
 begin
   obtain ⟨m, n, H⟩ := hp,
   use [1, m, n],
-  rcases H with ⟨⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, co, pp⟩;
-  { apply and.intro _ co, rw one_mul, rw one_mul, tauto }
+  rcases H with ⟨t, co, pp⟩,
+  rw [one_mul, one_mul],
+  exact ⟨t, co⟩,
 end
 
 lemma is_classified_of_normalize_is_primitive_classified

@@ -230,36 +230,9 @@ end
 ---------------------------------------------------------------------------------------------------
 
 
-
-
 variables {α M N : Type*}
 
--- example {α : Type*} (s : finset α) {h : α → ℕ} :
---   ∏ (a : α) in s, (↑(h a): ℚ) = ↑∏ (a : α) in s, h a :=
--- begin
---   push_cast,
--- end
 
--- example {α β γ : Type*} (s : finset α) {h : α → β} [comm_monoid β] [comm_monoid γ] [has_lift_t β γ] :
---   ∏ (a : α) in s, (↑(h a): γ) = ↑∏ (a : α) in s, h a :=
--- begin
---   push_cast,
---   sorry,
--- end
-
--- example [comm_monoid N] (s : finset α) {f : α → M} (g : α → M → N) [has_coe N ℚ] :
--- ∏ (a : α) in s, (↑(g a (f a)):ℚ) = ↑∏ (a : α) in s, g a (f a)
--- :=
--- begin
---   set h := λ x, g x (f x),-- with h_def,
-
---   sorry,
--- end
-
--- lemma finsupp.map_prod {α β γ δ: Type*} [comm_monoid β] [comm_monoid γ] [comm_monoid δ]
---   [has_zero β] (κ : γ →* δ) (f : α →₀ β) (g : α → β → γ) :
--- κ (f.prod g) = f.prod (λ a b, κ (g a b)) :=
--- monoid_hom.map_prod κ _ f.support
 
 lemma finsupp.prod_congr [has_zero M] [comm_monoid N] {f : α →₀ M} (g1 g2 : α → M → N) :
   (∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) → (f.prod g1 = f.prod g2) :=
@@ -270,6 +243,7 @@ lemma finsupp.prod_coe [has_zero M] [comm_monoid N] {f : α →₀ M} (g : α �
   f.prod (λ a b, (↑(g a b):ℚ)) = ↑(f.prod g) :=
 by push_cast [finsupp.prod]
 
+---------------------------------------------------------------------------------------------------
 
 theorem totient_Euler_product_formula (n:ℕ) :
   ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹:ℚ)

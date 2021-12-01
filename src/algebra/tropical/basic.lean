@@ -267,19 +267,16 @@ instance [add_monoid R] : monoid (tropical R) :=
 { one := trop 0,
   one_mul := λ _, untrop_injective (zero_add _),
   mul_one := λ _, untrop_injective (add_zero _),
+  npow := λ n x, trop (n • untrop x),
+  npow_zero' := trop_rec (λ _, by simp only [trop_zero, zero_smul]),
+  npow_succ' := λ _, trop_rec (λ _, by simp only [succ_nsmul, untrop_trop, trop_add]),
   ..tropical.semigroup }
 
 @[simp] lemma untrop_pow [add_monoid R] (x : tropical R) (n : ℕ) :
-  untrop (x ^ n) = n • untrop x :=
-begin
-  induction n with n IH,
-  { simp },
-  { rw [pow_succ, untrop_mul, IH, succ_nsmul] }
-end
+  untrop (x ^ n) = n • untrop x := rfl
 
 @[simp] lemma trop_nsmul [add_monoid R] (x : R) (n : ℕ) :
-  trop (n • x) = trop x ^ n :=
-by simp [trop_eq_iff_eq_untrop]
+  trop (n • x) = trop x ^ n := rfl
 
 instance [add_comm_monoid R] : comm_monoid (tropical R) :=
 { ..tropical.monoid, ..tropical.comm_semigroup }
@@ -287,11 +284,23 @@ instance [add_comm_monoid R] : comm_monoid (tropical R) :=
 instance [add_group R] : group (tropical R) :=
 { inv := λ x, trop (- untrop x),
   mul_left_inv := λ _, untrop_injective (add_left_neg _),
+  zpow := λ n x, trop (n • untrop x),
+  zpow_zero' := trop_rec (λ _, by simp only [zero_zsmul, trop_zero]),
+  zpow_succ' := λ _, trop_rec (λ _, untrop_injective
+    (by simp only [succ_nsmul, of_nat_zsmul, untrop_trop, trop_add])),
+  zpow_neg' := λ _, trop_rec (λ _, untrop_injective
+    (by simp only [zsmul_neg_succ_of_nat, untrop_trop, untrop_pow, coe_nat_zsmul])),
   ..tropical.monoid }
 
 instance [add_comm_group R] : comm_group (tropical R) :=
 { mul_comm := λ _ _, untrop_injective (add_comm _ _),
   ..tropical.group }
+
+@[simp] lemma untrop_zpow [add_group R] (x : tropical R) (n : ℤ) :
+  untrop (x ^ n) = n • untrop x := rfl
+
+@[simp] lemma trop_zsmul [add_group R] (x : R) (n : ℤ) :
+  trop (n • x) = trop x ^ n := rfl
 
 end monoid
 

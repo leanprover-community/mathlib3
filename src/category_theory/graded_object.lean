@@ -102,18 +102,11 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 end
 
 instance has_shift {β : Type*} [add_comm_group β] (s : β) :
-  has_shift (graded_object_with_shift s C) :=
+  has_shift (graded_object_with_shift s C) ℤ :=
 { shift := λ n, comap _ $ λ b, b + n • s,
-  shift_zero := comap_eq _ (by { ext, simp }) ≪≫ comap_id _ _,
   shift_add := λ m n, comap_eq _ (by { ext, simp [add_zsmul, add_comm, add_assoc] }) ≪≫
     comap_comp _ _ _,
-  whisker_left_shift_zero := λ n, by { ext X b, dsimp,
-    simp only [eq_to_hom_app, category.comp_id, category.id_comp, eq_to_hom_apply, eq_to_hom_trans],
-    refl },
-  whisker_right_shift_zero := λ n, by { ext X b, dsimp,
-    simp only [eq_to_hom_app, category.comp_id, category.id_comp, eq_to_hom_apply, eq_to_hom_trans],
-    refl },
-  whisker_right_shift_add := λ i j k, by { ext X b, dsimp,
+  iso_whisker_right_shift_add := λ i j k, by { ext X b, dsimp,
     simp only [eq_to_hom_app, category.comp_id, category.id_comp, eq_to_hom_apply, eq_to_hom_trans],
     refl } }
 

@@ -25,7 +25,7 @@ section defs
 variables [add_monoid A]
 
 /-- A category has a shift, or translation, if it is equipped with an automorphism. -/
-class has_shift (C : Type u) (A : out_param $ Type*) [category.{v} C] [add_monoid A] :=
+class has_shift (C : Type u) (A : Type*) [category.{v} C] [add_monoid A] :=
 (shift : Π (i : A), C ⥤ C)
 (shift_add : Π i j, shift (i + j) ≅ shift i ⋙ shift j)
 (iso_whisker_right_shift_add : ∀ i j k, iso_whisker_right (shift_add i j) (shift k) =
@@ -94,6 +94,10 @@ lemma shift_add' (i j : A) :
   f⟦i + j⟧' = (shift_add X i j).hom ≫ f⟦i⟧'⟦j⟧' ≫ (shift_add Y i j).inv :=
 by { symmetry, apply nat_iso.naturality_2 }
 
+@[reassoc] lemma shift_add_hom_comp (i j : A) :
+  (shift_add X i j).hom ≫ f⟦i⟧'⟦j⟧' = f⟦i + j⟧' ≫ (shift_add Y i j).hom :=
+by rw [shift_add', category.assoc, category.assoc, iso.inv_hom_id, category.comp_id]
+
 lemma shift_shift' (i j : A) :
   f⟦i⟧'⟦j⟧' = (shift_shift X i j).hom ≫ f⟦i + j⟧' ≫ (shift_shift Y i j).inv :=
 by { symmetry, apply nat_iso.naturality_1 }
@@ -152,18 +156,39 @@ def shift_functor_neg_comp_shift_functor (i : A) :
   shift_functor C (-i) ⋙ shift_functor C i ≅ 𝟭 C :=
 (shift_functor_add C (-i) i).symm ≪≫ (eq_to_iso $ by simp) ≪≫ (shift_functor_zero C A)
 
-instance shift_functor_faithful (i : A) : faithful (shift_functor C i) :=
+section
+
+variables (C)
+
+/-- Shifting by `n` is a faithful functor. -/
+lemma shift_functor_faithful (i : A) : faithful (shift_functor C i) :=
 faithful.of_comp_iso (shift_functor_comp_shift_functor_neg C i)
 
-instance shift_functor_full (i : A) : full (shift_functor C i) :=
+local attribute [instance] shift_functor_faithful
+
+/-- Shifting by `n` is a full functor. -/
+def shift_functor_full (i : A) : full (shift_functor C i) :=
 begin
   haveI : full (shift_functor C i ⋙ shift_functor C (-i)) :=
     full.of_iso (shift_functor_comp_shift_functor_neg C i).symm,
   exact full.of_comp_faithful _ (shift_functor C (-i))
 end
 
-instance shift_functor_ess_surj (i : A) : ess_surj (shift_functor C i) :=
+/-- Shifting by `n` is an essentially surjective functor. -/
+lemma shift_functor_ess_surj (i : A) : ess_surj (shift_functor C i) :=
 { mem_ess_image := λ Y, ⟨Y⟦-i⟧, ⟨(shift_functor_neg_comp_shift_functor C i).app Y⟩⟩ }
+
+local attribute [instance] shift_functor_full shift_functor_ess_surj
+
+/-- Shifting by `n` is an equivalence. -/
+noncomputable def shift_functor_is_equivalence (n : A) : is_equivalence (shift_functor C n) :=
+equivalence.of_fully_faithfully_ess_surj _
+
+end
+
+-- Unfortunately it is dangerous to make this a global instance,
+-- because it creates a loop for `shift_functor C 0`.
+local attribute [instance] shift_functor_is_equivalence
 
 variables {C}
 
@@ -185,10 +210,6 @@ by { symmetry, apply nat_iso.naturality_2 }
 
 variables (C)
 
-/-- Shifting by `n` is an equivalence, whose inverse is shifting by `-n`. -/
-noncomputable instance (n : A) : is_equivalence (shift_functor C n) :=
-equivalence.of_fully_faithfully_ess_surj _
-
 open category_theory.limits
 variables [has_zero_morphisms C]
 
@@ -197,5 +218,45 @@ lemma shift_zero_eq_zero (X Y : C) (n : A) : (0 : X ⟶ Y)⟦n⟧' = (0 : X⟦n�
 by apply is_equivalence_preserves_zero_morphisms _ (shift_functor C n)
 
 end add_group
+
+section add_comm_monoid
+
+variables {C A} [add_comm_monoid A] [has_shift C A]
+variables (X Y : C) (f : X ⟶ Y)
+
+/-- When shifts are indexed by an additive commutative monoid, then shifts commute. -/
+def shift_comm (i j : A) : X⟦i⟧⟦j⟧ ≅ X⟦j⟧⟦i⟧ :=
+shift_shift X i j ≪≫ eq_to_iso (by rw add_comm) ≪≫ shift_add X j i
+
+@[simp] lemma shift_comm_symm (i j : A) : (shift_comm X i j).symm = shift_comm X j i :=
+begin
+  dsimp [shift_comm], rw [shift_shift_symm],
+  ext, simp only [eq_to_iso.inv, iso.symm_hom, iso.trans_assoc, eq_to_iso.hom, iso.trans_hom],
+end
+
+variables {X Y}
+
+/-- When shifts are indexed by an additive commutative monoid, then shifts commute. -/
+lemma shift_comm' (i j : A) :
+  f⟦i⟧'⟦j⟧' = (shift_comm _ _ _).hom ≫ f⟦j⟧'⟦i⟧' ≫ (shift_comm _ _ _).hom :=
+begin
+  rw [shift_shift', ← category.assoc, iso.comp_inv_eq, shift_comm, shift_comm],
+  dsimp,
+  simp only [category.assoc, iso.hom_inv_id, category.comp_id, cancel_epi],
+  erw reassoc_of (nat_iso.naturality_2 (shift_functor_add C j i) f),
+  generalize_proofs h1 h2, revert h1 h2,
+  generalize hij : i + j = ij, generalize hji : j + i = ji,
+  intros h1 h2,
+  have H : ij = ji, { rw [← hij, add_comm, hji] },
+  clear hij hji,
+  cases H,
+  rw [eq_to_hom_refl, eq_to_hom_refl, category.comp_id, category.id_comp],
+end
+
+@[reassoc] lemma shift_comm_hom_comp (i j : A) :
+  (shift_comm X i j).hom ≫ f⟦j⟧'⟦i⟧' = f⟦i⟧'⟦j⟧' ≫ (shift_comm Y i j).hom :=
+by rw [shift_comm', ← shift_comm_symm, iso.symm_hom, iso.inv_hom_id_assoc]
+
+end add_comm_monoid
 
 end category_theory

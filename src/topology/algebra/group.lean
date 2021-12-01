@@ -795,7 +795,7 @@ instance [group γ] : partial_order (group_topology γ) :=
 partial_order.lift to_topological_space $ ext
 
 local notation `cont` := @continuous _ _
-@[to_additive add_group_topology.def_Inf]
+@[to_additive add_group_topology.def_Inf "Infimum of a collection of additive group topologies"]
 private def def_Inf [group γ] (S : set (group_topology γ)) : group_topology γ :=
 let Inf_S' := Inf (to_topological_space '' S) in
 { to_topological_space := Inf_S',

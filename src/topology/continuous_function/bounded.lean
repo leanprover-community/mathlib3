@@ -1087,6 +1087,9 @@ instance : cstar_ring (α →ᵇ β) :=
       exact norm_coe_le_norm (star f * f) x }
   end }
 
+instance : star_module 𝕜 (α →ᵇ β) :=
+{ star_smul := λ k f, ext $ λ x, star_smul k (f x) }
+
 end cstar_ring
 
 end bounded_continuous_function

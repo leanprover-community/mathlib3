@@ -69,9 +69,6 @@ begin
   sorry -- finish the proof
 end
 
-lemma name_later
-  ()
-
 -- roadmap to prove the above lemma
 --
 

@@ -1164,6 +1164,8 @@ variables [algebra R T] [is_scalar_tower R S T]
 Localizing wrt `M ⊆ R` and then wrt `N ⊆ S = M⁻¹R` is equal to the localization of `R` wrt this
 module. See `localization_localization_is_localization`.
 -/
+-- This should only be defined when `S` is the localization `M⁻¹R`, hence the nolint.
+@[nolint unused_arguments]
 def localization_localization_submodule : submonoid R :=
 (N ⊔ M.map (algebra_map R S)).comap (algebra_map R S)
 

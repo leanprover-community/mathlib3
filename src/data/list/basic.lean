@@ -3024,23 +3024,23 @@ begin
   }
 end
 
-@[simp] theorem length_filter_lt_of_mem {a : α} (l : list α) : 
-  a ∈ l → ¬p a → (filter p l).length < l.length :=
+@[simp] theorem length_filter_lt_of_mem {a : α} (l : list α) (ha : a ∈ l) (hpa : ¬p a) :
+   (filter p l).length < l.length :=
 begin
   induction l;
-  simp,
-  intros h_in hpa,
+  simp at ha;
+  simp [ha],
   rw list.filter,
   cases classical.em (p l_hd);
   simp [h],
   {
-    cases h_in,
+    cases ha,
     {
-      rw ←h_in at h,
+      rw ←ha at h,
       contradiction,
     },
     {
-      apply l_ih h_in hpa,
+      apply l_ih ha,
     },
   },
   {

@@ -262,7 +262,7 @@ begin
   simp only [←(rebase_prod_prime_factorization (λ x, (1 - (↑x:ℚ)⁻¹)))],
 
 -- ... we can gather the RHS into a single product
-  simp only [←@finsupp.prod_coe _ _ ℚ, ←finsupp.prod_mul],
+  simp only [←finsupp.prod_coe, ←finsupp.prod_mul],
 
 -- So now it suffices to prove that the multiplicands are equal
   apply finsupp.prod_congr _ _,

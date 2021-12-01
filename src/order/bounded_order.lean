@@ -22,8 +22,6 @@ instances for `Prop` and `fun`.
 * `order_<top/bot> α`: Order with a top/bottom element.
 * `bounded_order α`: Order with a top and bottom element.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
-* `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
-  combinations). Typical examples include `ℕ`.
 * `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
   non distributive lattice, an element can have several complements.
 * `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
@@ -255,11 +253,10 @@ inf_of_le_right bot_le
 
 end semilattice_inf_bot
 
-/-! ### Bounded lattice -/
+/-! ### Bounded order -/
 
 /-- A bounded order describes an order `(≤)` with a top and bottom element,
-  denoted `⊤` and `⊥` respectively. This allows for the interpretation
-  of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
+  denoted `⊤` and `⊥` respectively. -/
 @[ancestor order_top order_bot]
 class bounded_order (α : Type u) [has_le α] extends order_top α, order_bot α.
 
@@ -275,17 +272,6 @@ begin
   { exact h.symm },
   { exact h'.symm }
 end
-
-lemma inf_eq_bot_iff_le_compl {α : Type u} [distrib_lattice α] [bounded_order α] {a b c : α}
-  (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
-⟨λ h,
-  calc a ≤ a ⊓ (b ⊔ c) : by simp [h₁]
-    ... = (a ⊓ b) ⊔ (a ⊓ c) : by simp [inf_sup_left]
-    ... ≤ c : by simp [h, inf_le_right],
-  λ h,
-  bot_unique $
-    calc a ⊓ b ≤ b ⊓ c : by { rw inf_comm, exact inf_le_inf_left _ h }
-      ... = ⊥ : h₂⟩
 
 /-- Propositions form a distributive lattice. -/
 instance Prop.distrib_lattice : distrib_lattice Prop :=
@@ -1015,6 +1001,17 @@ end
 
 end bounded_order
 
+section linear_order
+
+variables [linear_order α]
+
+lemma min_top_left [order_top α] (a : α) : min (⊤ : α) a = a := min_eq_right le_top
+lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_top
+lemma max_bot_left [order_bot α] (a : α) : max (⊥ : α) a = a := max_eq_right bot_le
+lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
+
+end linear_order
+
 section distrib_lattice_bot
 variables [distrib_lattice α] [order_bot α] {a b c : α}
 
@@ -1058,6 +1055,17 @@ h.mono_right inf_le_right
 end semilattice_inf_bot
 
 end disjoint
+
+lemma inf_eq_bot_iff_le_compl [distrib_lattice α] [bounded_order α] {a b c : α}
+  (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
+⟨λ h,
+  calc a ≤ a ⊓ (b ⊔ c) : by simp [h₁]
+    ... = (a ⊓ b) ⊔ (a ⊓ c) : by simp [inf_sup_left]
+    ... ≤ c : by simp [h, inf_le_right],
+  λ h,
+  bot_unique $
+    calc a ⊓ b ≤ b ⊓ c : by { rw inf_comm, exact inf_le_inf_left _ h }
+      ... = ⊥ : h₂⟩
 
 section is_compl
 

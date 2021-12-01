@@ -80,7 +80,7 @@ begin
   by_cases h : x = 0,
   { simp only [h, hMp, norm_zero] },
   { obtain ⟨f, hf⟩ : ∃ g : E →L[𝕜] 𝕜, _ := exists_dual_vector 𝕜 x h,
-    calc ∥x∥ = ∥norm' 𝕜 x∥ : (norm_norm' _ _ _).symm
+    calc ∥x∥ = ∥(∥x∥ : 𝕜)∥ : is_R_or_C.norm_coe_norm.symm
     ... = ∥f x∥ : by rw hf.2
     ... ≤ M * ∥f∥ : hM f
     ... = M : by rw [hf.1, mul_one] }

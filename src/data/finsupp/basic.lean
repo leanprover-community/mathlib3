@@ -774,9 +774,10 @@ lemma finsupp.prod_mul_distrib [has_zero M] [comm_monoid N] {f : α →₀ M} (g
   f.prod (g1 * g2) = (f.prod g1) * (f.prod g2) :=
 by simp [finsupp.prod, finset.prod_mul_distrib]
 
-lemma finsupp.prod_congr [has_zero M] [comm_monoid N] {f : α →₀ M} (g1 g2 : α → M → N) :
-  (∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) → (f.prod g1 = f.prod g2) :=
-fold_congr
+@[to_additive]
+lemma prod_congr [has_zero M] [comm_monoid N] {f : α →₀ M} (g1 g2 : α → M → N)
+  (h : ∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) : f.prod g1 = f.prod g2 :=
+finset.prod_congr rfl h
 
 end sum_prod
 

@@ -114,20 +114,20 @@ begin
   erw category.id_comp,
 end
 
-@[simp]
+@[simp, reassoc]
 lemma whisker_right_to_sheafify_sheafify_comp_iso_hom :
   whisker_right (J.to_sheafify _) _ ≫ (J.sheafify_comp_iso F P).hom = J.to_sheafify _ :=
 begin
   dsimp [sheafify_comp_iso],
   erw [whisker_right_comp, category.assoc],
   slice_lhs 2 3 { rw plus_comp_iso_whisker_right },
-  erw [category.assoc, ← (J.plus_functor _).map_comp,
+  rw [category.assoc, ← J.plus_map_comp,
     whisker_right_to_plus_comp_plus_comp_iso_hom, ← category.assoc,
     whisker_right_to_plus_comp_plus_comp_iso_hom],
   refl,
 end
 
-@[simp]
+@[simp, reassoc]
 lemma to_sheafify_comp_sheafify_comp_iso_inv :
   J.to_sheafify _ ≫ (J.sheafify_comp_iso F P).inv = whisker_right (J.to_sheafify _) _ :=
 by { rw iso.comp_inv_eq, simp }

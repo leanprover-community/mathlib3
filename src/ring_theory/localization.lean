@@ -1165,20 +1165,16 @@ Given submodules `M ⊆ R` and `N ⊆ S = M⁻¹R`, with `f : R →+* S` the loc
 `N ⁻¹ S = T = (f⁻¹ (N • f(M))) ⁻¹ R`. I.e., the localization of a localization is a localization.
 -/
 lemma localization_localization_is_localization [is_localization N T] :
-  is_localization ((N ⊔ M.map (algebra_map R S)).comap (algebra_map R S).to_monoid_hom) T :=
+  is_localization ((N ⊔ M.map (algebra_map R S)).comap (algebra_map R S : R →* S)) T :=
 { map_units := begin
     rintros ⟨y, h⟩,
-    erw submonoid.mem_sup at h,
+    rw [submonoid.mem_comap, submonoid.mem_sup, ring_hom.coe_monoid_hom] at h,
     rcases h with ⟨y, hy, z, hz, eq⟩,
-    rw [is_scalar_tower.algebra_map_eq R S T, ring_hom.comp_apply],
-    erw ← eq,
-    simp only [set_like.coe_mk, is_unit.mul_iff, ring_hom.map_mul],
-    split,
-    exact is_localization.map_units T ⟨y, hy⟩,
-    refine is_unit.map (algebra_map S T).to_monoid_hom _,
+    rw [is_scalar_tower.algebra_map_eq R S T, ring_hom.comp_apply, subtype.coe_mk, ← eq,
+        ring_hom.map_mul, is_unit.mul_iff],
+    refine ⟨is_localization.map_units T ⟨y, hy⟩, is_unit.map (algebra_map S T : S →* T) _⟩,
     rcases hz with ⟨z, hz, rfl⟩,
-    apply is_localization.map_units _ ⟨z, hz⟩,
-    apply_instance
+    exact is_localization.map_units _ ⟨z, hz⟩
   end,
   surj := λ x, begin
     rcases is_localization.surj N x with ⟨⟨y, s⟩, eq₁⟩, -- x = y / s
@@ -1186,44 +1182,36 @@ lemma localization_localization_is_localization [is_localization N T] :
     rcases is_localization.surj M s.1 with ⟨⟨z', t'⟩, eq₃⟩, -- s = z' / t'
     dsimp only at eq₁ eq₂ eq₃,
     use z * t', use z' * t, -- x = y / s = (z * t') / (z' * t)
-    { erw submonoid.mem_sup,
-      refine ⟨s.1, s.2, _, ⟨_, submonoid.mul_mem _ t.2 t'.2, rfl⟩, _⟩,
-      erw [mul_comm t.val, ring_hom.map_mul, ring_hom.map_mul, ← eq₃, mul_assoc],
-      refl },
-    { simp only [set_like.coe_mk, mul_assoc, function.comp_app, ← eq₂, ← eq₁, ring_hom.coe_comp,
-        ring_hom.map_mul, subtype.val_eq_coe, ← eq₃, is_scalar_tower.algebra_map_eq R S T],
-      congr' 2,
-      exact mul_comm _ _ },
+    { rw [submonoid.mem_comap, submonoid.mem_sup, ring_hom.coe_monoid_hom, ring_hom.map_mul],
+      refine ⟨s, s.prop, _, ⟨_, submonoid.mul_mem _ t.prop t'.prop, rfl⟩, _⟩,
+      rw [ring_hom.coe_monoid_hom, mul_comm ↑t, ring_hom.map_mul, ← mul_assoc, eq₃] },
+    { simp only [subtype.coe_mk, ring_hom.map_mul, is_scalar_tower.algebra_map_apply R S T,
+        ← eq₃, ← eq₂, ← eq₁],
+      ring },
   end,
   eq_iff_exists := λ x y, begin
-    rw [is_scalar_tower.algebra_map_apply R S T, is_scalar_tower.algebra_map_apply R S T],
-    rw is_localization.eq_iff_exists N T,
+    rw [is_scalar_tower.algebra_map_apply R S T, is_scalar_tower.algebra_map_apply R S T,
+        is_localization.eq_iff_exists N T],
     split,
     { rintros ⟨z, eq₁⟩,
-      rcases is_localization.surj M z.1 with ⟨⟨z', s⟩, eq₂⟩,
-      replace eq₁ := congr_arg (λ x, x * algebra_map R S s) eq₁,
-      dsimp only [subtype.val_eq_coe] at eq₁ eq₂,
-      rw [mul_assoc, mul_assoc, eq₂, ← ring_hom.map_mul, ← ring_hom.map_mul,
-        is_localization.eq_iff_exists M S] at eq₁,
-      rcases eq₁ with ⟨c, eq₃⟩,
+      rcases is_localization.surj M (z : S) with ⟨⟨z', s⟩, eq₂⟩,
+      dsimp only at eq₂,
+      obtain ⟨c, eq₃ : x * z' * ↑ c = y * z' * ↑ c⟩ := (is_localization.eq_iff_exists M S).mp _,
+      swap, { rw [ring_hom.map_mul, ring_hom.map_mul, ← eq₂, ← mul_assoc, ← mul_assoc, ← eq₁] },
       use z' * c,
-      { erw [submonoid.mem_sup, ring_hom.map_mul, ← eq₂],
-        refine ⟨z.1, z.2, _, ⟨_, submonoid.mul_mem _ s.2 c.2, rfl⟩, _⟩,
-        rw [monoid_hom.map_mul, mul_assoc],
-        refl },
-      { simpa [mul_assoc] using eq₃ } },
+      { rw [submonoid.mem_comap, ring_hom.coe_monoid_hom, ring_hom.map_mul, submonoid.mem_sup,
+            ← eq₂],
+        refine ⟨z, z.prop, _, ⟨_, submonoid.mul_mem _ s.prop c.prop, rfl⟩, _⟩,
+        rw [ring_hom.coe_monoid_hom, ring_hom.map_mul, mul_assoc] },
+      { simpa only [mul_assoc] using eq₃ } },
     { rintro ⟨⟨c, hc⟩, eq₁⟩,
-      erw submonoid.mem_sup at hc,
-      rcases hc with ⟨z₁, hz₁, z₂, hz₂, eq₂⟩,
+      simp only [exists_prop, submonoid.mem_comap, submonoid.mem_sup, submonoid.mem_map,
+        ring_hom.coe_monoid_hom] at hc,
+      rcases hc with ⟨z₁, hz₁, _, ⟨z, hz, rfl⟩, eq₂⟩,
       use ⟨z₁, hz₁⟩,
-      replace eq₁ := congr_arg (λ x, algebra_map R S x * ring.inverse z₂) eq₁,
-      dsimp only at eq₁,
-      rw [ring_hom.map_mul, ring_hom.map_mul] at eq₁,
-      erw ← eq₂ at eq₁,
-      have : is_unit (z₂ : S),
-      { rcases hz₂ with ⟨z, hz, rfl⟩,
-        exact is_localization.map_units S ⟨z, hz⟩ },
-      simpa [mul_assoc, ring.mul_inverse_cancel _ this] using eq₁ }
+      refine (is_localization.map_units S ⟨z, hz⟩).mul_left_inj.mp _,
+      rw [subtype.coe_mk, subtype.coe_mk, mul_assoc, mul_assoc, eq₂],
+      simpa only [subtype.coe_mk, ring_hom.map_mul] using congr_arg (algebra_map R S) eq₁ }
   end }
 
 include M

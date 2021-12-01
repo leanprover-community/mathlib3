@@ -113,6 +113,14 @@ def Sheaf : Type* :=
 def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 full_subcategory_inclusion (presheaf.is_sheaf J)
 
+namespace Sheaf
+
+@[simp] lemma id_app (X : Sheaf J A) (B : Cᵒᵖ) : (𝟙 X : X ⟶ X).app B = 𝟙 _ := rfl
+@[simp] lemma comp_app {X Y Z : Sheaf J A} (f : X ⟶ Y) (g : Y ⟶ Z) (B : Cᵒᵖ) :
+  (f ≫ g).app B = f.app B ≫ g.app B := rfl
+
+end Sheaf
+
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
 @[simps] abbreviation sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
   (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op X), ℱ.property X⟩

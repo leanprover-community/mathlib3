@@ -241,6 +241,14 @@ begin
   exact (smul_add_hom R M c).map_finsum_of_injective (smul_right_injective M hc) _
 end
 
+@[to_additive] lemma finprod_inv_distrib {G : Type*} [comm_group G] (f : α → G) :
+  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
+((mul_equiv.inv G).map_finprod f).symm
+
+lemma finprod_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G) :
+  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
+((mul_equiv.inv₀ G).map_finprod f).symm
+
 end sort
 
 section type
@@ -405,14 +413,6 @@ begin
   refine finprod_eq_prod_of_mul_support_subset _ _,
   simp [mul_support_mul]
 end
-
-@[to_additive] lemma finprod_inv_distrib {G : Type*} [comm_group G] (f : α → G) :
-  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
-((mul_equiv.inv G).map_finprod f).symm
-
-lemma finprod_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G) :
-  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
-((mul_equiv.inv₀ G).map_finprod f).symm
 
 /-- If the multiplicative supports of `f` and `g` are finite, then the product of `f i / g i`
 equals the product of `f i` divided by the product over `g i`. -/

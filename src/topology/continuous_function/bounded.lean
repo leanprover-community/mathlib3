@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 import analysis.normed_space.operator_norm
 import analysis.normed_space.star
 import topology.continuous_function.algebra
+import data.real.sqrt
 
 /-!
 # Bounded continuous functions
@@ -1067,6 +1068,24 @@ instance : star_ring (α →ᵇ β) :=
   star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
 
 @[simp] lemma coe_star (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
+
+instance : cstar_ring (α →ᵇ β) :=
+{ norm_star_mul_self :=
+  begin
+    intro f,
+    refine le_antisymm _ _,
+    { rw [←sq, norm_le (sq_nonneg _)],
+      dsimp [coe_star],
+      intro x,
+      rw [cstar_ring.norm_star_mul_self, ←sq],
+      refine sq_le_sq' _ _,
+      { linarith [norm_nonneg (f x), norm_nonneg f] },
+      { exact norm_coe_le_norm f x }, },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _), norm_le (real.sqrt_nonneg _)],
+      intro x,
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact norm_coe_le_norm (star f * f) x }
+  end }
 
 end cstar_ring
 

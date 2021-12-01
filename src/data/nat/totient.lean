@@ -239,7 +239,7 @@ lemma finsupp.prod_congr [has_zero M] [comm_monoid N] {f : α →₀ M} (g1 g2 :
 fold_congr
 
 -- TODO: Generalise this
-lemma finsupp.prod_coe [has_zero M] [comm_monoid N] {f : α →₀ M} (g : α → M → ℕ) :
+lemma finsupp.prod_coe [has_zero M] {f : α →₀ M} (g : α → M → ℕ) :
   f.prod (λ a b, (↑(g a b):ℚ)) = ↑(f.prod g) :=
 by push_cast [finsupp.prod]
 

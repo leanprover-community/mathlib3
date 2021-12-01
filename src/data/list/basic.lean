@@ -3016,12 +3016,8 @@ begin
   simp,
   cases classical.em (p l_hd);
   simp [h],
-  {
-    exact l_ih,
-  },
-  {
-    exact le_add_right l_ih
-  }
+  { exact l_ih, },
+  { exact le_add_right l_ih }
 end
 
 @[simp] theorem length_filter_lt_of_mem {a : α} (l : list α) (ha : a ∈ l) (hpa : ¬p a) :
@@ -3033,20 +3029,12 @@ begin
   rw list.filter,
   cases classical.em (p l_hd);
   simp [h],
-  {
-    cases ha,
-    {
-      rw ←ha at h,
-      contradiction,
-    },
-    {
-      apply l_ih ha,
-    },
-  },
-  {
-    have leq : (list.filter p l_tl).length ≤ l_tl.length := by apply length_filter_le,
-    exact nat.lt_succ_iff.mpr leq,
-  },
+  { cases ha,
+    { rw ←ha at h,
+      contradiction },
+    { apply l_ih ha } },
+  { have leq : (list.filter p l_tl).length ≤ l_tl.length := by apply length_filter_le,
+    exact nat.lt_succ_iff.mpr leq },
 end
 end filter
 

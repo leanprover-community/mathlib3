@@ -38,23 +38,23 @@ class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] :=
 export normed_star_monoid (norm_star)
 attribute [simp] norm_star
 
-/-- The `star` map in a normed star group is a normed group homomorphism. -/
-def star_normed_group_hom {E : Type*} [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
-  normed_group_hom E E :=
-{ bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
-  .. star_add_equiv }
-
-/-- The `star` map in a normed star group is an isometry -/
-lemma star_isometry {E : Type*} [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
-  isometry (star : E → E) :=
-star_add_equiv.to_add_monoid_hom.isometry_of_norm (@normed_star_monoid.norm_star _ _ _ _)
-
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
 for every `x`. -/
 class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=
 (norm_star_mul_self : ∀ {x : E}, ∥x⋆ * x∥ = ∥x∥ * ∥x∥)
 
 variables {𝕜 E : Type*}
+
+/-- The `star` map in a normed star group is a normed group homomorphism. -/
+def star_normed_group_hom [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
+  normed_group_hom E E :=
+{ bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
+  .. star_add_equiv }
+
+/-- The `star` map in a normed star group is an isometry -/
+lemma star_isometry [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
+  isometry (star : E → E) :=
+star_add_equiv.to_add_monoid_hom.isometry_of_norm (@normed_star_monoid.norm_star _ _ _ _)
 
 open cstar_ring
 

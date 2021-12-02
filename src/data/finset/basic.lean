@@ -2214,6 +2214,15 @@ begin
   ext y, simp
 end
 
+lemma range_sdiff_zero {n : ℕ} : range (n + 1) \ {0} = (range n).image nat.succ :=
+begin
+  induction n with k hk,
+  { simp },
+  nth_rewrite 1 range_succ,
+  rw [range_succ, image_insert, ←hk, insert_sdiff_of_not_mem],
+  simp
+end
+
 end image
 end finset
 

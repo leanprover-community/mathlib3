@@ -1058,6 +1058,10 @@ lemma coe_star (f : α →ᵇ β) : ⇑(star f) = star f := rfl
 
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
+instance : normed_star_monoid (α →ᵇ β) :=
+{ norm_star := λ f, by
+  { simp only [norm_eq], congr, ext, conv_lhs { find (∥_∥) { erw (@norm_star β _ _ _ (f x)) } } } }
+
 instance : star_module 𝕜 (α →ᵇ β) :=
 { star_smul := λ k f, ext $ λ x, star_smul k (f x) }
 

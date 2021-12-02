@@ -227,17 +227,22 @@ begin
   simp only [order_of, mul_left_iterate],
 end
 
-lemma commute.order_of_mul_dvd_mul_order_of_of_coprime (y : G) (h : commute x y) :
-  order_of (x * y) ∣ (order_of x) * (order_of y) :=
+lemma commute.order_of_mul_dvd_lcm_order_of {x y : G} (h : commute x y) :
+  order_of (x * y) ∣ lcm (order_of x) (order_of y) :=
 begin
-  convert (h.function_commute_mul_left).minimal_period_of_comp_dvd_mul_of_coprime,
+  convert h.function_commute_mul_left.minimal_period_of_comp_dvd_lcm,
   simp only [order_of, comp_mul_left],
 end
 
-lemma commute.order_of_mul_eq_mul_order_of_of_coprime (y : G) (h : commute x y)
-(hco : nat.coprime (order_of x) (order_of y)) : order_of (x * y) = (order_of x) * (order_of y) :=
+lemma commute.order_of_mul_dvd_mul_order_of {x y : G} (h : commute x y) :
+  order_of (x * y) ∣ (order_of x) * (order_of y) :=
+dvd_trans h.order_of_mul_dvd_lcm_order_of (lcm_dvd_mul _ _)
+
+lemma commute.order_of_mul_eq_mul_order_of_of_coprime {x y : G} (h : commute x y)
+  (hco : nat.coprime (order_of x) (order_of y)) :
+  order_of (x * y) = (order_of x) * (order_of y) :=
 begin
-  convert (h.function_commute_mul_left).minimal_period_of_comp_eq_mul_of_coprime hco,
+  convert h.function_commute_mul_left.minimal_period_of_comp_eq_mul_of_coprime hco,
   simp only [order_of, comp_mul_left],
 end
 

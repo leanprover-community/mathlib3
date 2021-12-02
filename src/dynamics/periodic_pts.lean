@@ -312,7 +312,7 @@ begin
   exact (is_periodic_pt_minimal_period f x).comp_lcm h (is_periodic_pt_minimal_period g x)
 end
 
-lemma commute.minimal_period_of_comp_dvd_mul_of_coprime {g : α → α} (h : function.commute f g) :
+lemma commute.minimal_period_of_comp_dvd_mul {g : α → α} (h : function.commute f g) :
   minimal_period (f ∘ g) x ∣ (minimal_period f x) * (minimal_period g x) :=
 dvd_trans h.minimal_period_of_comp_dvd_lcm (lcm_dvd_mul _ _)
 
@@ -320,7 +320,7 @@ lemma commute.minimal_period_of_comp_eq_mul_of_coprime {g : α → α} (h : func
   (hco : coprime (minimal_period f x) (minimal_period g x)) :
   minimal_period (f ∘ g) x = (minimal_period f x) * (minimal_period g x) :=
 begin
-  apply dvd_antisymm (h.minimal_period_of_comp_dvd_mul_of_coprime),
+  apply dvd_antisymm (h.minimal_period_of_comp_dvd_mul),
   suffices : ∀ {f g : α → α}, commute f g → coprime (minimal_period f x) (minimal_period g x) →
     minimal_period f x ∣ minimal_period (f ∘ g) x,
     from hco.mul_dvd_of_dvd_of_dvd (this h hco) (h.comp_eq.symm ▸ this h.symm hco.symm),

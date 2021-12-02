@@ -21,6 +21,10 @@ underlying set of a simplex.
 * `simplicial_complex.vertices`: The zero dimensional faces of a simplicial complex.
 * `simplicial_complex.facets`: The maximal faces of a simplicial complex.
 
+## Notation
+
+`s ∈ K` means that `s` is a face of `K`.
+
 ## TODO
 
 Simplicial complexes can be generalized to affine spaces once `convex_hull` has been ported.
@@ -28,9 +32,9 @@ Simplicial complexes can be generalized to affine spaces once `convex_hull` has 
 
 open finset set
 
-variables {𝕜 E ι : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+variables (𝕜 E : Type*) {ι : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
 
-variables (𝕜 E)
+namespace geometry
 
 /-- A simplicial complex in a `𝕜`-module is a collection of simplices which glue nicely together. -/
 @[ext] structure simplicial_complex :=
@@ -44,12 +48,24 @@ variables (𝕜 E)
 namespace simplicial_complex
 variables {𝕜 E} {K : simplicial_complex 𝕜 E} {s t : finset E} {x : E}
 
+/-- A `finset` belongs to a `simplicial_complex` if it's a face of it. -/
+instance : has_mem (finset E) (simplicial_complex 𝕜 E) := ⟨λ s K, s ∈ K.faces⟩
+
 /-- The underlying space of a simplicial complex is the union of its faces. -/
 def space (K : simplicial_complex 𝕜 E) : set E := ⋃ s ∈ K.faces, convex_hull 𝕜 (s : set E)
 
-instance : has_coe (simplicial_complex 𝕜 E) (set E) := ⟨simplicial_complex.space⟩
+lemma mem_space_iff : x ∈ K.space ↔ ∃ s ∈ K.faces, x ∈ convex_hull 𝕜 (s : set E) := mem_bUnion_iff
 
-lemma mem_iff : x ∈ (K : set E) ↔ ∃ s ∈ K.faces, x ∈ convex_hull 𝕜 (s : set E) := mem_bUnion_iff
+lemma convex_hull_subset_space (hs : s ∈ K.faces) : convex_hull 𝕜 ↑s ⊆ K.space :=
+subset_bUnion_of_mem hs
+
+protected lemma subset_space (hs : s ∈ K.faces) : (s : set E) ⊆ K.space :=
+(subset_convex_hull 𝕜 _).trans $ convex_hull_subset_space hs
+
+lemma convex_hull_inter_convex_hull (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
+  convex_hull 𝕜 ↑s ∩ convex_hull 𝕜 ↑t = convex_hull 𝕜 (s ∩ t : set E) :=
+(K.inter_subset_convex_hull hs ht).antisymm $ subset_inter
+  (convex_hull_mono $ set.inter_subset_left _ _) $ convex_hull_mono $ set.inter_subset_right _ _
 
 /-- Construct a simplicial complex by removing the empty face for you. -/
 @[simps] def of_erase
@@ -77,25 +93,12 @@ lemma mem_iff : x ∈ (K : set E) ↔ ∃ s ∈ K.faces, x ∈ convex_hull 𝕜 
   down_closed := λ s t hs hts _, down_closed hs hts,
   inter_subset_convex_hull := λ s t hs ht, K.inter_subset_convex_hull (subset hs) (subset ht) }
 
-variables {𝕜 E}
-
-lemma convex_hull_face_subset (hs : s ∈ K.faces) : convex_hull 𝕜 ↑s ⊆ (K : set E) :=
-subset_bUnion_of_mem hs
-
-protected lemma subset (hs : s ∈ K.faces) : (s : set E) ⊆ K :=
-(subset_convex_hull 𝕜 _).trans (convex_hull_face_subset hs)
-
-lemma convex_hull_inter_convex_hull (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
-  convex_hull 𝕜 ↑s ∩ convex_hull 𝕜 ↑t = convex_hull 𝕜 (s ∩ t : set E) :=
-(K.inter_subset_convex_hull hs ht).antisymm $ subset_inter
-  (convex_hull_mono $ set.inter_subset_left _ _) $ convex_hull_mono $ set.inter_subset_right _ _
-
 /-! ### Vertices -/
 
 /-- The vertices of a simplicial complex are its zero dimensional faces. -/
 def vertices (K : simplicial_complex 𝕜 E) : set E := {x | {x} ∈ K.faces}
 
-lemma mem_vertices : x ∈ K.vertices ↔ {x} ∈ K.faces := by refl
+lemma mem_vertices : x ∈ K.vertices ↔ {x} ∈ K.faces := iff.rfl
 
 lemma vertices_eq : K.vertices = ⋃ k ∈ K.faces, (k : set E) :=
 begin
@@ -105,7 +108,7 @@ begin
   exact K.down_closed hs (finset.singleton_subset_iff.2 $ mem_coe.1 hx) (singleton_ne_empty _),
 end
 
-lemma vertices_subset : K.vertices ⊆ K :=
+lemma vertices_subset_space : K.vertices ⊆ K.space :=
 vertices_eq.subset.trans $ set.bUnion_mono $ λ x hx, subset_convex_hull 𝕜 x
 
 lemma vertex_mem_convex_hull_iff (hx : x ∈ K.vertices) (hs : s ∈ K.faces) :
@@ -151,15 +154,6 @@ end
 
 variables (𝕜 E)
 
-instance : has_bot (simplicial_complex 𝕜 E) :=
-⟨{ faces := ∅,
-  not_empty_mem := set.not_mem_empty ∅,
-  indep := λ s hs, (set.not_mem_empty _ hs).elim,
-  down_closed := λ s _ hs, (set.not_mem_empty _ hs).elim,
-  inter_subset_convex_hull := λ s _ hs, (set.not_mem_empty _ hs).elim }⟩
-
-instance : inhabited (simplicial_complex 𝕜 E) := ⟨⊥⟩
-
 /-- The complex consisting of only the faces present in both of its arguments. -/
 instance : has_inf (simplicial_complex 𝕜 E) :=
 ⟨λ K L, { faces := K.faces ∩ L.faces,
@@ -168,21 +162,32 @@ instance : has_inf (simplicial_complex 𝕜 E) :=
   down_closed := λ s t hs hst ht, ⟨K.down_closed hs.1 hst ht, L.down_closed hs.2 hst ht⟩,
   inter_subset_convex_hull := λ s t hs ht, K.inter_subset_convex_hull hs.1 ht.1 }⟩
 
-instance : semilattice_inf_bot (simplicial_complex 𝕜 E) :=
+instance : semilattice_inf (simplicial_complex 𝕜 E) :=
 { inf := (⊓),
   inf_le_left := λ K L s hs, hs.1,
   inf_le_right := λ K L s hs, hs.2,
   le_inf := λ K L M hKL hKM s hs, ⟨hKL hs, hKM hs⟩,
-  bot := ⊥,
-  bot_le := λ K, set.empty_subset _,
   .. (partial_order.lift faces $ λ x y, ext _ _) }
+
+instance : has_bot (simplicial_complex 𝕜 E) :=
+⟨{ faces := ∅,
+  not_empty_mem := set.not_mem_empty ∅,
+  indep := λ s hs, (set.not_mem_empty _ hs).elim,
+  down_closed := λ s _ hs, (set.not_mem_empty _ hs).elim,
+  inter_subset_convex_hull := λ s _ hs, (set.not_mem_empty _ hs).elim }⟩
+
+instance : order_bot (simplicial_complex 𝕜 E) :=
+{ bot_le := λ K, set.empty_subset _, .. simplicial_complex.has_bot 𝕜 E }
+
+instance : inhabited (simplicial_complex 𝕜 E) := ⟨⊥⟩
 
 variables {𝕜 E}
 
 lemma faces_bot : (⊥ : simplicial_complex 𝕜 E).faces = ∅ := rfl
 
-lemma coe_bot : ((⊥ : simplicial_complex 𝕜 E) : set E) = ∅ := set.bUnion_empty _
+lemma space_bot : (⊥ : simplicial_complex 𝕜 E).space = ∅ := set.bUnion_empty _
 
 lemma facets_bot : (⊥ : simplicial_complex 𝕜 E).facets = ∅ := eq_empty_of_subset_empty facets_subset
 
 end simplicial_complex
+end geometry

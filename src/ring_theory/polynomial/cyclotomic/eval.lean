@@ -114,11 +114,4 @@ begin
     { simpa using h.2.le } }
 end
 
-
-example : true := trivial
-
-#print axioms cyclotomic_pos
-#print cyclotomic_pos
-
-
 end polynomial

@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.nat.parity
 import data.polynomial.ring_division
-import group_theory.specific_groups.cyclic
-import ring_theory.integral_domain
-import number_theory.divisors
-import data.zmod.basic
 import tactic.zify
 import field_theory.separable
+import data.zmod.basic
+import ring_theory.integral_domain
+import number_theory.divisors
 import field_theory.finite.basic
+import group_theory.specific_groups.cyclic
+import algebra.char_p.two
 
 /-!
 # Roots of unity and primitive roots of unity
@@ -262,6 +262,9 @@ section comm_monoid
 
 variables {ζ : M} (h : is_primitive_root ζ k)
 
+@[nontriviality] lemma of_subsingleton [subsingleton M] (x : M) : is_primitive_root x 1 :=
+⟨subsingleton.elim _ _, λ _ _, one_dvd _⟩
+
 lemma pow_eq_one_iff_dvd (l : ℕ) : ζ ^ l = 1 ↔ k ∣ l :=
 ⟨h.dvd_of_pow_eq_one l,
 by { rintro ⟨i, rfl⟩, simp only [pow_mul, h.pow_eq_one, one_pow, pnat.mul_coe] }⟩
@@ -339,7 +342,43 @@ begin
   rw [← pow_mul', ← mul_assoc, ← hb, pow_mul, h.pow_eq_one, one_pow]
 end
 
+protected lemma order_of (ζ : M) : is_primitive_root ζ (order_of ζ) :=
+⟨pow_order_of_eq_one ζ, λ l, order_of_dvd_of_pow_eq_one⟩
+
+lemma unique {ζ : M} (hk : is_primitive_root ζ k) (hl : is_primitive_root ζ l) : k = l :=
+begin
+  wlog hkl : k ≤ l,
+  rcases hkl.eq_or_lt with rfl | hkl,
+  { refl },
+  rcases k.eq_zero_or_pos with rfl | hk',
+  { exact (zero_dvd_iff.mp $ hk.dvd_of_pow_eq_one l hl.pow_eq_one).symm },
+  exact absurd hk.pow_eq_one (hl.pow_ne_one_of_pos_of_lt hk' hkl)
+end
+
+lemma eq_order_of : k = order_of ζ := h.unique (is_primitive_root.order_of ζ)
+
+protected lemma iff (hk : 0 < k) :
+  is_primitive_root ζ k ↔ ζ ^ k = 1 ∧ ∀ l : ℕ, 0 < l → l < k → ζ ^ l ≠ 1 :=
+begin
+  refine ⟨λ h, ⟨h.pow_eq_one, λ l hl' hl, _⟩, λ ⟨hζ, hl⟩, is_primitive_root.mk_of_lt ζ hk hζ hl⟩,
+  rw h.eq_order_of at hl,
+  exact pow_ne_one_of_lt_order_of' hl'.ne' hl,
+end
+
+protected lemma not_iff : ¬ is_primitive_root ζ k ↔ order_of ζ ≠ k :=
+⟨λ h hk, h $ hk ▸ is_primitive_root.order_of ζ,
+ λ h hk, h.symm $ hk.unique $ is_primitive_root.order_of ζ⟩
+
 end comm_monoid
+
+section comm_monoid_with_zero
+
+variables {M₀ : Type*} [comm_monoid_with_zero M₀]
+
+lemma zero [nontrivial M₀] : is_primitive_root (0 : M₀) 0 :=
+⟨pow_zero 0, λ l hl, by simpa [zero_pow_eq, show ∀ p, ¬p → false ↔ p, from @not_not] using hl⟩
+
+end comm_monoid_with_zero
 
 section comm_group
 
@@ -441,6 +480,37 @@ end
 
 end comm_group_with_zero
 
+section comm_semiring
+
+variables [comm_semiring R] [comm_semiring S] {f : R →+* S} {ζ : R}
+
+open function
+
+lemma map_of_injective (hf : injective f) (h : is_primitive_root ζ k) : is_primitive_root (f ζ) k :=
+{ pow_eq_one := by rw [←f.map_pow, h.pow_eq_one, f.map_one],
+  dvd_of_pow_eq_one := begin
+    rw h.eq_order_of,
+    intros l hl,
+    rw [←f.map_pow, ←f.map_one] at hl,
+    exact order_of_dvd_of_pow_eq_one (hf hl)
+  end }
+
+lemma of_map_of_injective (hf : injective f) (h : is_primitive_root (f ζ) k) :
+  is_primitive_root ζ k :=
+{ pow_eq_one := by { apply_fun f, rw [f.map_pow, f.map_one, h.pow_eq_one] },
+  dvd_of_pow_eq_one := begin
+    rw h.eq_order_of,
+    intros l hl,
+    apply_fun f at hl,
+    rw [f.map_pow, f.map_one] at hl,
+    exact order_of_dvd_of_pow_eq_one hl
+  end }
+
+lemma map_iff_of_injective (hf : injective f) : is_primitive_root (f ζ) k ↔ is_primitive_root ζ k :=
+⟨λ h, h.of_map_of_injective hf, λ h, h.map_of_injective hf⟩
+
+end comm_semiring
+
 section is_domain
 
 variables {ζ : R}
@@ -464,23 +534,6 @@ begin
     exact hx }
 end
 
-lemma neg_one (p : ℕ) [char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
-mk_of_lt (-1 : R) dec_trivial (by simp only [one_pow, neg_sq]) $
-begin
-  intros l hl0 hl2,
-  obtain rfl : l = 1,
-  { unfreezingI { clear_dependent R p }, dec_trivial! },
-  simp only [pow_one, ne.def],
-  intro h,
-  suffices h2 : p ∣ 2,
-  { have := char_p.char_ne_one R p,
-    unfreezingI { clear_dependent R },
-    have aux := nat.le_of_dvd dec_trivial h2,
-    revert this hp h2, revert p, dec_trivial },
-  simp only [← char_p.cast_eq_zero_iff R p, nat.cast_bit0, nat.cast_one],
-  rw [bit0, ← h, neg_add_self] { occs := occurrences.pos [1] }
-end
-
 lemma eq_neg_one_of_two_right (h : is_primitive_root ζ 2) : ζ = -1 :=
 begin
   apply (eq_or_eq_neg_of_sq_eq_sq ζ 1 _).resolve_left,
@@ -494,6 +547,13 @@ section is_domain
 
 variables [comm_ring R]
 variables {ζ : units R} (h : is_primitive_root ζ k)
+
+lemma neg_one (p : ℕ) [nontrivial R] [h : char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
+begin
+  convert is_primitive_root.order_of (-1 : R),
+  rw [order_of_neg_one, if_neg],
+  rwa ring_char.eq_iff.mpr h
+end
 
 protected
 lemma mem_roots_of_unity {n : ℕ+} (h : is_primitive_root ζ n) : ζ ∈ roots_of_unity n R :=
@@ -907,9 +967,8 @@ begin
   replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)
     (multiplicity.le_multiplicity_of_pow_dvd (dvd_trans habs prod)),
   have hfree : squarefree (X ^ n - 1 : polynomial (zmod p)),
-  { refine squarefree_X_pow_sub_C 1 _ one_ne_zero,
-    by_contra hzero,
-    exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 hzero) },
+  { exact (separable_X_pow_sub_C 1
+          (λ h, hdiv $ (zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 h) one_ne_zero).squarefree },
   cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
     (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
   { rw nat.cast_one at habs, exact hle.not_lt habs },

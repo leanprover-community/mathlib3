@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
+import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
 
 /-!
@@ -40,6 +41,9 @@ attribute [simp] norm_star
 for every `x`. -/
 class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=
 (norm_star_mul_self : ∀ {x : E}, ∥x⋆ * x∥ = ∥x∥ * ∥x∥)
+
+noncomputable instance : cstar_ring ℝ :=
+{ norm_star_mul_self := λ x, by simp only [star, id.def, normed_field.norm_mul] }
 
 variables {𝕜 E : Type*}
 

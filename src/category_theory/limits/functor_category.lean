@@ -3,9 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.preserves.limits
 import category_theory.currying
-import category_theory.products
+import category_theory.limits.preserves.limits
 
 /-!
 # (Co)limits in functor categories.
@@ -23,13 +22,14 @@ We also show that `F : D ⥤ K ⥤ C` preserves (co)limits if it does so for eac
 
 open category_theory category_theory.category
 
+-- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ u₁ u₂ v v' u u'
+
 namespace category_theory.limits
 
-universes v v₂ u u₂ -- morphism levels before object levels. See note [category_theory universes].
+variables {C : Type u} [category.{v} C] {D : Type u'} [category.{v'} D]
 
-variables {C : Type u} [category.{v} C] {D : Type u₂} [category.{v} D]
-
-variables {J K : Type v} [small_category J] [category.{v₂} K]
+variables {J : Type u₁} [category.{v₁} J] {K : Type u₂} [category.{v₂} K]
 
 @[simp, reassoc]
 lemma limit.lift_π_app (H : J ⥤ K ⥤ C) [has_limit H] (c : cone H) (j : J) (k : K) :
@@ -154,9 +154,19 @@ instance functor_category_has_colimits_of_shape
   { cocone := combine_cocones _ (λ k, get_colimit_cocone _),
     is_colimit := combined_is_colimit _ _ } }
 
-instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) := {}
+instance functor_category_has_limits_of_size [has_limits_of_size.{v₁ u₁} C] :
+  has_limits_of_size.{v₁ u₁} (K ⥤ C) := ⟨infer_instance⟩
 
-instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) := {}
+instance functor_category_has_colimits_of_size [has_colimits_of_size.{v₁ u₁} C] :
+  has_colimits_of_size.{v₁ u₁} (K ⥤ C) := ⟨infer_instance⟩
+
+end category_theory.limits
+
+namespace category_theory.limits
+
+variables {C : Type u} [category.{v} C] {D : Type u'} [category.{v} D]
+
+variables {J : Type v} [category.{v} J] {K : Type v} [category.{v₂} K]
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
   preserves_limits_of_shape J ((evaluation K C).obj k) :=

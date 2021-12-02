@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import algebra.group_power
 import data.rat.basic
 import tactic.norm_num
 

@@ -5,7 +5,6 @@ Authors: David Wärn
 -/
 import data.fintype.basic
 import algebra.big_operators.basic
-import data.equiv.fin
 
 /-!
 # The Hales-Jewett theorem

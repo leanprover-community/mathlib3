@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import data.polynomial.eval
-import data.finsupp.antidiagonal
 import algebra.algebra.tower
+import data.finsupp.antidiagonal
+import algebra.monoid_algebra.basic
 
 /-!
 # Multivariate polynomials
@@ -456,33 +456,72 @@ lemma coeff_mul (p q : mv_polynomial σ R) (n : σ →₀ ℕ) :
   coeff n (p * q) = ∑ x in antidiagonal n, coeff x.1 p * coeff x.2 q :=
 add_monoid_algebra.mul_apply_antidiagonal p q _ _ $ λ p, mem_antidiagonal
 
+@[simp] lemma coeff_mul_monomial (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
+  coeff (m + s) (p * monomial s r) = coeff m p * r :=
+(add_monoid_algebra.mul_single_apply_aux p _ _ _ _ (λ a, add_left_inj _))
+
+@[simp] lemma coeff_monomial_mul (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
+  coeff (s + m) (monomial s r * p) = r * coeff m p :=
+(add_monoid_algebra.single_mul_apply_aux p _ _ _ _ (λ a, add_right_inj _))
+
 @[simp] lemma coeff_mul_X (m) (s : σ) (p : mv_polynomial σ R) :
   coeff (m + single s 1) (p * X s) = coeff m p :=
-(add_monoid_algebra.mul_single_apply_aux p _ _ _ _ (λ a, add_left_inj _)).trans (mul_one _)
+(coeff_mul_monomial _ _ _ _).trans (mul_one _)
+
+@[simp] lemma coeff_X_mul (m) (s : σ) (p : mv_polynomial σ R) :
+  coeff (single s 1 + m) (X s * p) = coeff m p :=
+(coeff_monomial_mul _ _ _ _).trans (one_mul _)
 
 @[simp] lemma support_mul_X (s : σ) (p : mv_polynomial σ R) :
   (p * X s).support = p.support.map (add_right_embedding (single s 1)) :=
 add_monoid_algebra.support_mul_single p _ (by simp) _
 
-lemma coeff_mul_X' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
-  coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
+@[simp] lemma support_X_mul (s : σ) (p : mv_polynomial σ R) :
+  (X s * p).support = p.support.map (add_left_embedding (single s 1)) :=
+add_monoid_algebra.support_single_mul p _ (by simp) _
+
+lemma coeff_mul_monomial' (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
+  coeff m (p * monomial s r) = if s ≤ m then coeff (m - s) p * r else 0 :=
 begin
-  nontriviality R,
+  obtain rfl | hr := eq_or_ne r 0,
+  { simp only [monomial_zero, coeff_zero, mul_zero, if_t_t], },
+  haveI : nontrivial R := nontrivial_of_ne _ _ hr,
   split_ifs with h h,
-  { conv_rhs {rw ← coeff_mul_X _ s},
+  { conv_rhs {rw ← coeff_mul_monomial _ s},
     congr' with  t,
-    by_cases hj : s = t,
-    { subst t, simp only [tsub_apply, add_apply, single_eq_same],
-      refine (tsub_add_cancel_of_le (nat.pos_of_ne_zero _).nat_succ_le).symm,
-      rwa finsupp.mem_support_iff at h },
-    { simp [single_eq_of_ne hj] } },
+    rw tsub_add_cancel_of_le h, },
   { rw ← not_mem_support_iff, intro hm, apply h,
     have H := support_mul _ _ hm, simp only [finset.mem_bUnion] at H,
     rcases H with ⟨j, hj, i', hi', H⟩,
-    rw [support_X, finset.mem_singleton] at hi', subst i',
+    rw [support_monomial, if_neg hr, finset.mem_singleton] at hi', subst i',
     rw finset.mem_singleton at H, subst m,
-    rw [finsupp.mem_support_iff, add_apply, single_apply, if_pos rfl],
-    intro H, rw [_root_.add_eq_zero_iff] at H, exact one_ne_zero H.2 }
+    exact le_add_left le_rfl, }
+end
+
+lemma coeff_monomial_mul' (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
+  coeff m (monomial s r * p) = if s ≤ m then r * coeff (m - s) p else 0 :=
+begin
+  -- note that if we allow `R` to be non-commutative we will have to duplicate the proof above.
+  rw [mul_comm, mul_comm r],
+  exact coeff_mul_monomial' _ _ _ _
+end
+
+lemma coeff_mul_X' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
+  coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
+begin
+  refine (coeff_mul_monomial' _ _ _ _).trans _,
+  simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
+    mul_one],
+  congr,
+end
+
+lemma coeff_X_mul' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
+  coeff m (X s * p) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
+begin
+  refine (coeff_monomial_mul' _ _ _ _).trans _,
+  simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
+    one_mul],
+  congr,
 end
 
 lemma eq_zero_iff {p : mv_polynomial σ R} :
@@ -950,11 +989,11 @@ def map_alg_hom [comm_semiring S₂] [algebra R S₁] [algebra R S₂] (f : S₁
   map_alg_hom (alg_hom.id R S₁) = alg_hom.id R (mv_polynomial σ S₁) :=
 alg_hom.ext map_id
 
-@[simp] lemma map_alg_hom_coe_ring_hom [comm_semiring S₂] [algebra R S₁] [algebra R S₂] 
+@[simp] lemma map_alg_hom_coe_ring_hom [comm_semiring S₂] [algebra R S₁] [algebra R S₂]
   (f : S₁ →ₐ[R] S₂) :
   ↑(map_alg_hom f : _ →ₐ[R] mv_polynomial σ S₂) =
     (map ↑f : mv_polynomial σ S₁ →+* mv_polynomial σ S₂) :=
-ring_hom.mk_coe _ _ _ _ _ 
+ring_hom.mk_coe _ _ _ _ _
 
 end map
 

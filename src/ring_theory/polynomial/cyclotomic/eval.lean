@@ -43,12 +43,6 @@ by simp
 
 -- TODO show that `eval 1 (cyclotomic n R) = 1` when `n` is not a power of a prime
 
-lemma nat.two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
-| 0 h _ _ := (h rfl).elim
-| 1 _ h _ := (h rfl).elim
-| 2 _ _ h := (h rfl).elim
-| (n+3) _ _ _ := (cmp_eq_lt_iff 2 (n + 3)).mp rfl -- this proof is magic to me but it works!
-
 private lemma cyclotomic_neg_one_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] :
   0 < eval (-1 : R) (cyclotomic n R) :=
 begin
@@ -63,9 +57,9 @@ begin
   by_contra' hx,
   have := intermediate_value_univ (-1) 0 (cyclotomic n ℝ).continuous,
   obtain ⟨y, hy⟩ := this (show (0 : ℝ) ∈ set.Icc _ _, by simpa [h0] using hx),
-  rw [←is_root] at hy,
-  replace hy : is_primitive_root (-1 : ℝ) n, sorry, --is_root_cyclotomic_iff
-  simpa [hy.eq_order_of] using hn
+  rw [←is_root, is_root_cyclotomic_iff $ show (n : ℝ) ≠ 0, by { norm_cast, linarith }] at hy,
+  rw hy.eq_order_of at hn,
+  linarith [@linear_ordered_ring.order_of_le_two ℝ y _]
 end
 
 lemma cyclotomic_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] (x : R) :
@@ -119,5 +113,12 @@ begin
       exact hn'.ne' hi.1.1.1 },
     { simpa using h.2.le } }
 end
+
+
+example : true := trivial
+
+#print axioms cyclotomic_pos
+#print cyclotomic_pos
+
 
 end polynomial

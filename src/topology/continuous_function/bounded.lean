@@ -1054,6 +1054,8 @@ instance : star_add_monoid (α →ᵇ β) :=
   star_involutive := λ f, ext $ λ x, star_star (f x),
   star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
 
+lemma coe_star (f : α →ᵇ β) : ⇑(star f) = star f := rfl
+
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
 instance : star_module 𝕜 (α →ᵇ β) :=

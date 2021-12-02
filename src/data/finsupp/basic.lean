@@ -771,7 +771,7 @@ lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g :
 S.prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
 
 @[to_additive]
-lemma prod_congr [has_zero M] [comm_monoid N] {f : α →₀ M} {g1 g2 : α → M → N}
+lemma prod_congr {f : α →₀ M} {g1 g2 : α → M → N}
   (h : ∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) : f.prod g1 = f.prod g2 :=
 finset.prod_congr rfl h
 

@@ -2761,11 +2761,11 @@ variables [has_zero M] (f : α →₀ M)
 namespace nat
 
 @[simp, norm_cast] lemma cast_finsupp_prod [comm_semiring R] (g : α → M → ℕ) :
-  (↑(f.prod g) : R) = f.prod (λ a b, (↑(g a b))) :=
+  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
 nat.cast_prod _ _
 
 @[simp, norm_cast] lemma cast_finsupp_sum [comm_semiring R] (g : α → M → ℕ) :
-  (↑(f.sum g) : R) = f.sum (λ a b, (↑(g a b))) :=
+  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
 nat.cast_sum _ _
 
 end nat
@@ -2773,11 +2773,11 @@ end nat
 namespace int
 
 @[simp, norm_cast] lemma cast_finsupp_prod [comm_ring R] (g : α → M → ℤ) :
-  (↑(f.prod g) : R) = f.prod (λ a b, (↑(g a b))) :=
+  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
 int.cast_prod _ _
 
 @[simp, norm_cast] lemma cast_finsupp_sum [comm_ring R] (g : α → M → ℤ) :
-  (↑(f.sum g) : R) = f.sum (λ a b, (↑(g a b))) :=
+  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
 int.cast_sum _ _
 
 end int

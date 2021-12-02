@@ -28,7 +28,7 @@ value in `ℝ`, `ℝ≥0` or `ℝ≥0∞`.
 open measure_theory
 
 localized "notation `𝔼[` X `|` m `,` hm `]` :=
-  measure_theory.condexp hm measure_theory.measure.volume X"
+  measure_theory.condexp m hm measure_theory.measure.volume X"
   in probability_theory
 
 localized "notation P `[` X `]` := ∫ x, X x ∂P" in probability_theory

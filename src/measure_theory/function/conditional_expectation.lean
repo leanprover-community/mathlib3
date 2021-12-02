@@ -1669,12 +1669,15 @@ local attribute [instance] fact_one_le_one_ennreal
 variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [is_scalar_tower ℝ 𝕜 F']
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
+variables (m)
 /-- Conditional expectation of a function. Its value is 0 if the function is not integrable. -/
 @[irreducible] def condexp (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') :
   α → F' :=
 if (measurable[m] f ∧ integrable f μ) then f else ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
 
-localized "notation  μ `[` f `|` m `,` hm `]` := measure_theory.condexp hm μ f" in measure_theory
+variables {m}
+
+localized "notation  μ `[` f `|` m `,` hm `]` := measure_theory.condexp m hm μ f" in measure_theory
 
 lemma condexp_of_measurable {f : α → F'} (hf : measurable[m] f) (hfi : integrable f μ) :
   μ[f|m,hm] = f :=

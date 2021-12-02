@@ -31,6 +31,14 @@ lemma filter.tendsto.is_bounded_under_le {f : filter β} {u : β → α} {a : α
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
 (is_bounded_le_nhds a).mono h
 
+lemma filter.tendsto.bdd_above_range_of_cofinite {u : β → α} {a : α}
+  (h : tendsto u cofinite (𝓝 a)) : bdd_above (set.range u) :=
+h.is_bounded_under_le.bdd_above_range_of_cofinite
+
+lemma filter.tendsto.bdd_above_range {u : ℕ → α} {a : α}
+  (h : tendsto u at_top (𝓝 a)) : bdd_above (set.range u) :=
+h.is_bounded_under_le.bdd_above_range
+
 lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
 (is_bounded_le_nhds a).is_cobounded_flip
 
@@ -49,6 +57,14 @@ lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
 lemma filter.tendsto.is_bounded_under_ge {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
 (is_bounded_ge_nhds a).mono h
+
+lemma filter.tendsto.bdd_below_range_of_cofinite {u : β → α} {a : α}
+  (h : tendsto u cofinite (𝓝 a)) : bdd_below (set.range u) :=
+h.is_bounded_under_ge.bdd_below_range_of_cofinite
+
+lemma filter.tendsto.bdd_below_range {u : ℕ → α} {a : α}
+  (h : tendsto u at_top (𝓝 a)) : bdd_below (set.range u) :=
+h.is_bounded_under_ge.bdd_below_range
 
 lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
 (is_bounded_ge_nhds a).is_cobounded_flip

@@ -5,7 +5,7 @@ Authors: Yury Kudriashov
 -/
 import algebra.big_operators.order
 import analysis.convex.hull
-import linear_algebra.affine_space.barycentric_coords
+import linear_algebra.affine_space.basis
 
 /-!
 # Convex combinations

@@ -45,7 +45,7 @@ def is_limit_map_cone_pullback_cone_equiv :
   is_limit (G.map_cone (pullback_cone.mk h k comm)) ≃
     is_limit (pullback_cone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
       : pullback_cone (G.map f) (G.map g)) :=
-(is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).symm.trans
+(is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v} _) _).symm.trans
   (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by { rintro (_ | _ | _), tidy })))
 
 /-- The property of preserving pullbacks expressed in terms of binary fans. -/

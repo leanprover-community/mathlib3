@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
+import data.int.basic
 import data.multiset.finset_ops
 import tactic.apply
 import tactic.monotonicity
@@ -98,7 +99,7 @@ called `top` with `⊤ = univ`.
 * `finset.inter`: see "The lattice structure on subsets of finsets"
 * `finset.erase`: For any `a : α`, `erase s a` returns `s` with the element `a` removed.
 * `finset.sdiff`: Defines the set difference `s \ t` for finsets `s` and `t`.
-* `finset.prod`: Given finsets of `α` and `β`, defines finsets of `α × β`.
+* `finset.product`: Given finsets of `α` and `β`, defines finsets of `α × β`.
   For arbitrary dependent products, see `data.finset.pi`.
 * `finset.sigma`: Given finsets of `α` and `β`, defines finsets of the dependent sum type `Σ α, β`
 * `finset.bUnion`: Finite unions of finsets; given an indexing function `f : α → finset β` and a
@@ -397,6 +398,9 @@ instance : has_singleton α (finset α) := ⟨λ a, ⟨{a}, nodup_singleton a⟩
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : finset α) ↔ b = a := mem_singleton
 
+theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : finset α)) : x = y :=
+mem_singleton.1 h
+
 theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := not_congr mem_singleton
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
@@ -478,6 +482,8 @@ def cons {α} (a : α) (s : finset α) (h : a ∉ s) : finset α :=
 
 @[simp] theorem mem_cons {a s h b} : b ∈ @cons α a s h ↔ b = a ∨ b ∈ s :=
 by rcases s with ⟨⟨s⟩⟩; apply list.mem_cons_iff
+
+@[simp] lemma mem_cons_self (a : α) (s : finset α) {h} : a ∈ cons a s h := mem_cons.2 $ or.inl rfl
 
 @[simp] theorem cons_val {a : α} {s : finset α} (h : a ∉ s) : (cons a s h).1 = a ::ₘ s.1 := rfl
 
@@ -961,13 +967,7 @@ instance : lattice (finset α) :=
 instance {α : Type u} : order_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset }
 
-instance : semilattice_inf_bot (finset α) :=
-{ ..finset.order_bot, ..finset.lattice }
-
 @[simp] lemma bot_eq_empty {α : Type u} : (⊥ : finset α) = ∅ := rfl
-
-instance : semilattice_sup_bot (finset α) :=
-{ ..finset.semilattice_inf_bot, ..finset.lattice }
 
 instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
@@ -978,7 +978,6 @@ instance : distrib_lattice (finset α) :=
 @[simp] theorem union_left_idem (s t : finset α) : s ∪ (s ∪ t) = s ∪ t := sup_left_idem
 
 @[simp] theorem union_right_idem (s t : finset α) : s ∪ t ∪ t = s ∪ t := sup_right_idem
-
 @[simp] theorem inter_left_idem (s t : finset α) : s ∩ (s ∩ t) = s ∩ t := inf_left_idem
 
 @[simp] theorem inter_right_idem (s t : finset α) : s ∩ t ∩ t = s ∩ t := inf_right_idem
@@ -1073,6 +1072,12 @@ calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
+lemma erase_idem {a : α} {s : finset α} : erase (erase s a) a = erase s a :=
+by simp
+
+lemma erase_right_comm {a b : α} {s : finset α} : erase (erase s a) b = erase (erase s b) a :=
+by { ext x, simp only [mem_erase, ←and_assoc], rw and_comm (x ≠ a) }
+
 theorem subset_insert_iff {a : α} {s t : finset α} : s ⊆ insert a t ↔ erase s a ⊆ t :=
 by simp only [subset_iff, or_iff_not_imp_left, mem_erase, mem_insert, and_imp];
 exact forall_congr (λ x, forall_swap)
@@ -1117,7 +1122,7 @@ instance : generalized_boolean_algebra (finset α) :=
       false_iff, inf_eq_inter, not_mem_empty], tauto },
   ..finset.has_sdiff,
   ..finset.distrib_lattice,
-  ..finset.semilattice_inf_bot }
+  ..finset.order_bot }
 
 lemma not_mem_sdiff_of_mem_right {a : α} {s t : finset α} (h : a ∈ t) : a ∉ s \ t :=
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
@@ -1504,6 +1509,9 @@ theorem filter_insert (a : α) (s : finset α) :
   filter p (insert a s) = if p a then insert a (filter p s) else filter p s :=
 by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
 
+theorem filter_erase (a : α) (s : finset α) : filter p (erase s a) = erase (filter p s) a :=
+by { ext x, simp only [and_assoc, mem_filter, iff_self, mem_erase] }
+
 theorem filter_or [decidable_pred (λ a, p a ∨ q a)] (s : finset α) :
   s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=
 ext $ λ _, by simp only [mem_filter, mem_union, and_or_distrib_left]
@@ -1822,6 +1830,10 @@ end
 @[simp] lemma to_finset_reverse {l : list α} :
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
+
+lemma to_finset_repeat_of_ne_zero {a : α} {n : ℕ} (hn : n ≠ 0):
+  (list.repeat a n).to_finset = {a} :=
+by { ext x, simp [hn, list.mem_repeat] }
 
 @[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
 by {ext, simp}
@@ -2200,6 +2212,15 @@ begin
   lift s to finset t using h,
   refine ⟨s.map (embedding.subtype _), map_subtype_subset _, _⟩,
   ext y, simp
+end
+
+lemma range_sdiff_zero {n : ℕ} : range (n + 1) \ {0} = (range n).image nat.succ :=
+begin
+  induction n with k hk,
+  { simp },
+  nth_rewrite 1 range_succ,
+  rw [range_succ, image_insert, ←hk, insert_sdiff_of_not_mem],
+  simp
 end
 
 end image

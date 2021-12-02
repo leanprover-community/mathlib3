@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.operations
-import algebra.algebra.tower
-import data.equiv.ring
+import ring_theory.non_zero_divisors
 import data.nat.choose.sum
 import ring_theory.coprime.lemmas
+import data.equiv.ring
 import ring_theory.ideal.quotient
-import ring_theory.non_zero_divisors
 /-!
 # More operations on modules and ideals
 -/
@@ -768,8 +767,7 @@ span (f '' I)
 /-- `I.comap f` is the preimage of `I` under `f`. -/
 def comap (I : ideal S) : ideal R :=
 { carrier := f ⁻¹' I,
-  smul_mem' := λ c x hx, show f (c * x) ∈ I, by { rw f.map_mul, exact I.mul_mem_left _ hx },
-  .. I.to_add_submonoid.comap (f : R →+ S) }
+  .. I.comap f.to_semilinear_map }
 
 variables {f}
 theorem map_mono (h : I ≤ J) : map f I ≤ map f J :=
@@ -794,6 +792,29 @@ variables (f)
 theorem comap_ne_top (hK : K ≠ ⊤) : comap f K ≠ ⊤ :=
 (ne_top_iff_one _).2 $ by rw [mem_comap, f.map_one];
   exact (ne_top_iff_one _).1 hK
+
+lemma map_le_comap_of_inv_on (g : S →+* R) (I : ideal R) (hf : set.left_inv_on g f I) :
+  I.map f ≤ I.comap g :=
+begin
+  refine ideal.span_le.2 _,
+  rintros x ⟨x, hx, rfl⟩,
+  rw [set_like.mem_coe, mem_comap, hf hx],
+  exact hx,
+end
+
+lemma comap_le_map_of_inv_on (g : S →+* R) (I : ideal S) (hf : set.left_inv_on g f (f ⁻¹' I)) :
+  I.comap f ≤ I.map g :=
+λ x (hx : f x ∈ I), hf hx ▸ ideal.mem_map_of_mem g hx
+
+/-- The `ideal` version of `set.image_subset_preimage_of_inverse`. -/
+lemma map_le_comap_of_inverse (g : S →+* R) (I : ideal R) (h : function.left_inverse g f) :
+  I.map f ≤ I.comap g :=
+map_le_comap_of_inv_on _ _ _ $ h.left_inv_on _
+
+/-- The `ideal` version of `set.preimage_subset_image_of_inverse`. -/
+lemma comap_le_map_of_inverse (g : S →+* R) (I : ideal S) (h : function.left_inverse g f) :
+  I.comap f ≤ I.map g :=
+comap_le_map_of_inv_on _ _ _ $ h.left_inv_on _
 
 instance is_prime.comap [hK : K.is_prime] : (comap f K).is_prime :=
 ⟨comap_ne_top _ hK.1, λ x y,
@@ -1161,10 +1182,10 @@ end ideal
 
 namespace ring_hom
 
-variables {R : Type u} {S : Type v}
+variables {R : Type u} {S : Type v} {T : Type v}
 
 section semiring
-variables [semiring R] [semiring S] (f : R →+* S)
+variables [semiring R] [semiring S] [semiring T] (f : R →+* S) (g : T →+* S)
 
 /-- Kernel of a ring homomorphism as an ideal of the domain. -/
 def ker : ideal R := ideal.comap f ⊥
@@ -1176,6 +1197,9 @@ by rw [ker, ideal.mem_comap, submodule.mem_bot]
 lemma ker_eq : ((ker f) : set R) = set.preimage f {0} := rfl
 
 lemma ker_eq_comap_bot (f : R →+* S) : f.ker = ideal.comap f ⊥ := rfl
+
+lemma comap_ker (f : S →+* R) : f.ker.comap g = (f.comp g).ker :=
+by rw [ring_hom.ker_eq_comap_bot, ideal.comap_comap, ring_hom.ker_eq_comap_bot]
 
 /-- If the target is not the zero ring, then one is not in the kernel.-/
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=

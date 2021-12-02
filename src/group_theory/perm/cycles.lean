@@ -3,10 +3,9 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.nat.parity
 import data.equiv.fintype
-import group_theory.perm.sign
 import data.finset.noncomm_prod
+import group_theory.perm.sign
 /-!
 # Cyclic permutations
 
@@ -186,9 +185,7 @@ lemma is_cycle_swap_mul_aux₂ {α : Type*} [decidable_eq α] :
   ∃ i : ℤ, ((swap x (f x) * f) ^ i) (f x) = b
 | (n : ℕ) := λ b x f, is_cycle_swap_mul_aux₁ n
 | -[1+ n] := λ b x f hb h,
-  if hfbx : f⁻¹ x = b then
-    ⟨-1, by rwa [zpow_neg, zpow_one, mul_inv_rev, mul_apply, swap_inv, swap_apply_right]⟩
-  else if hfbx' : f x = b then ⟨0, hfbx'⟩
+  if hfbx' : f x = b then ⟨0, hfbx'⟩
   else
   have f b ≠ b ∧ b ≠ x := ne_and_ne_of_swap_mul_apply_ne_self hb,
   have hb : (swap x (f⁻¹ x) * f⁻¹) (f⁻¹ b) ≠ f⁻¹ b,
@@ -228,8 +225,7 @@ end
 
 lemma is_cycle.swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cycle f) {x : α}
   (hx : f x ≠ x) (hffx : f (f x) ≠ x) : is_cycle (swap x (f x) * f) :=
-⟨f x, by { simp only [swap_apply_def, mul_apply],
-        split_ifs; simp [f.injective.eq_iff] at *; cc },
+⟨f x, by { simp [swap_apply_def, mul_apply, if_neg hffx, f.injective.eq_iff, if_neg hx, hx], },
   λ y hy,
   let ⟨i, hi⟩ := hf.exists_zpow_eq hx (ne_and_ne_of_swap_mul_apply_ne_self hy).1 in
   have hi : (f ^ (i - 1)) (f x) = y, from
@@ -347,22 +343,14 @@ lemma same_cycle.nat' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x 
   ∃ (i : ℕ) (h : i < order_of f), (f ^ i) x = y :=
 begin
   classical,
-  obtain ⟨k, rfl⟩ := id h,
-  by_cases hk : (k % order_of f) = 0,
-  { use 0,
-    rw ←int.dvd_iff_mod_eq_zero at hk,
-    obtain ⟨m, rfl⟩ := hk,
-    simp [pow_order_of_eq_one, order_of_pos, zpow_mul] },
-  { use ((k % order_of f).nat_abs),
-    rw [←zpow_coe_nat, int.nat_abs_of_nonneg, ←zpow_eq_mod_order_of],
-    { refine ⟨_, rfl⟩,
-      rw [←int.coe_nat_lt, int.nat_abs_of_nonneg],
-      { refine (int.mod_lt_of_pos _ _),
-        simpa using order_of_pos _ },
-      { refine int.mod_nonneg _ _,
-        simpa using ne_of_gt (order_of_pos _) } },
-    { refine int.mod_nonneg _ _,
-      simpa using (order_of_pos _).ne' } }
+  obtain ⟨k, rfl⟩ := h,
+  use ((k % order_of f).nat_abs),
+  have h₀ := int.coe_nat_pos.mpr (order_of_pos f),
+  have h₁ := int.mod_nonneg k h₀.ne',
+  rw [←zpow_coe_nat, int.nat_abs_of_nonneg h₁, ←zpow_eq_mod_order_of],
+  refine ⟨_, rfl⟩,
+  rw [←int.coe_nat_lt, int.nat_abs_of_nonneg h₁],
+  exact int.mod_lt_of_pos _ h₀,
 end
 
 lemma same_cycle.nat'' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x y) :

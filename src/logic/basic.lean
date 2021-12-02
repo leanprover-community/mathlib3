@@ -190,6 +190,13 @@ In particular, this class is not intended for turning the type class system
 into an automated theorem prover for first order logic. -/
 class fact (p : Prop) : Prop := (out [] : p)
 
+/--
+In most cases, we should not have global instances of `fact`; typeclass search only reads the head
+symbol and then tries any instances, which means that adding any such instance will cause slowdowns
+everywhere. We instead make them as lemmata and make them local instances as required.
+-/
+library_note "fact non-instances"
+
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
 lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
@@ -765,7 +772,7 @@ by { subst h₁, subst h₂ }
 lemma eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
 lemma eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
 
-lemma congr_arg2 {α β γ : Type*} (f : α → β → γ) {x x' : α} {y y' : β}
+lemma congr_arg2 {α β γ : Sort*} (f : α → β → γ) {x x' : α} {y y' : β}
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
 
@@ -945,6 +952,12 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq' {a' : α} : ∃ a, a' = a := ⟨_, rfl⟩
+
+@[simp] theorem exists_unique_eq {a' : α} : ∃! a, a = a' :=
+by simp only [eq_comm, exists_unique, and_self, forall_eq', exists_eq']
+
+@[simp] theorem exists_unique_eq' {a' : α} : ∃! a, a' = a :=
+by simp only [exists_unique, and_self, forall_eq', exists_eq']
 
 @[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩

@@ -1153,6 +1153,150 @@ def at_one [is_localization.away (1 : R) S] : R ≃ₐ[R] S :=
 
 end at_units
 
+section localization_localization
+
+variable (M)
+
+variables (N : submonoid S) (T : Type*) [comm_ring T] [algebra S T]
+variables [algebra R T] [is_scalar_tower R S T]
+
+/--
+Localizing wrt `M ⊆ R` and then wrt `N ⊆ S = M⁻¹R` is equal to the localization of `R` wrt this
+module. See `localization_localization_is_localization`.
+-/
+-- This should only be defined when `S` is the localization `M⁻¹R`, hence the nolint.
+@[nolint unused_arguments]
+def localization_localization_submodule : submonoid R :=
+(N ⊔ M.map (algebra_map R S)).comap (algebra_map R S)
+
+variables {M N}
+@[simp]
+lemma mem_localization_localization_submodule {x : R} :
+  x ∈ localization_localization_submodule M N ↔
+    ∃ (y : N) (z : M), algebra_map R S x = y * algebra_map R S z :=
+begin
+  rw [localization_localization_submodule, submonoid.mem_comap, submonoid.mem_sup],
+  split,
+  { rintros ⟨y, hy, _, ⟨z, hz, rfl⟩, e⟩, exact ⟨⟨y, hy⟩, ⟨z, hz⟩ ,e.symm⟩ },
+  { rintros ⟨y, z, e⟩, exact ⟨y, y.prop, _, ⟨z, z.prop, rfl⟩, e.symm⟩ }
+end
+
+variables (M N)
+
+lemma localization_localization_map_units [is_localization N T]
+  (y : localization_localization_submodule M N) : is_unit (algebra_map R T y) :=
+begin
+  obtain ⟨y', z, eq⟩ := mem_localization_localization_submodule.mp y.prop,
+  rw [is_scalar_tower.algebra_map_apply R S T, eq, ring_hom.map_mul, is_unit.mul_iff],
+  exact ⟨is_localization.map_units T y',
+    (is_localization.map_units _ z).map (algebra_map S T : S →* T)⟩,
+end
+
+lemma localization_localization_surj [is_localization N T] (x : T) :
+  ∃ (y : R × localization_localization_submodule M N),
+    x * (algebra_map R T y.2) = algebra_map R T y.1 :=
+begin
+  rcases is_localization.surj N x with ⟨⟨y, s⟩, eq₁⟩, -- x = y / s
+  rcases is_localization.surj M y with ⟨⟨z, t⟩, eq₂⟩, -- y = z / t
+  rcases is_localization.surj M (s : S) with ⟨⟨z', t'⟩, eq₃⟩, -- s = z' / t'
+  dsimp only at eq₁ eq₂ eq₃,
+  use z * t', use z' * t, -- x = y / s = (z * t') / (z' * t)
+  { rw mem_localization_localization_submodule,
+    refine ⟨s, t * t', _⟩,
+    rw [ring_hom.map_mul, ← eq₃, mul_assoc, ← ring_hom.map_mul, mul_comm t, submonoid.coe_mul] },
+  { simp only [subtype.coe_mk, ring_hom.map_mul, is_scalar_tower.algebra_map_apply R S T,
+      ← eq₃, ← eq₂, ← eq₁],
+    ring },
+end
+
+lemma localization_localization_eq_iff_exists [is_localization N T] (x y : R) :
+  algebra_map R T x = algebra_map R T y ↔
+    ∃ (c : localization_localization_submodule M N), x * c = y * c :=
+begin
+  rw [is_scalar_tower.algebra_map_apply R S T, is_scalar_tower.algebra_map_apply R S T,
+      is_localization.eq_iff_exists N T],
+  split,
+  { rintros ⟨z, eq₁⟩,
+    rcases is_localization.surj M (z : S) with ⟨⟨z', s⟩, eq₂⟩,
+    dsimp only at eq₂,
+    obtain ⟨c, eq₃ : x * z' * ↑ c = y * z' * ↑ c⟩ := (is_localization.eq_iff_exists M S).mp _,
+    swap, { rw [ring_hom.map_mul, ring_hom.map_mul, ← eq₂, ← mul_assoc, ← mul_assoc, ← eq₁] },
+    use z' * c,
+    { rw mem_localization_localization_submodule,
+      refine ⟨z, s * c, _⟩,
+      rw [ring_hom.map_mul, ← eq₂, mul_assoc, ← ring_hom.map_mul, submonoid.coe_mul] },
+    { simpa only [mul_assoc] using eq₃ } },
+  { rintro ⟨⟨c, hc⟩, eq₁ : x * c = y * c⟩,
+    rw mem_localization_localization_submodule at hc,
+    rcases hc with ⟨z₁, z, eq₂⟩,
+    use z₁,
+    refine (is_localization.map_units S z).mul_left_inj.mp _,
+    rw [mul_assoc, mul_assoc, ← eq₂, ← ring_hom.map_mul, ← ring_hom.map_mul, eq₁] }
+end
+
+/--
+Given submodules `M ⊆ R` and `N ⊆ S = M⁻¹R`, with `f : R →+* S` the localization map, we have
+`N ⁻¹ S = T = (f⁻¹ (N • f(M))) ⁻¹ R`. I.e., the localization of a localization is a localization.
+-/
+lemma localization_localization_is_localization [is_localization N T] :
+  is_localization (localization_localization_submodule M N) T :=
+{ map_units := localization_localization_map_units M N T,
+  surj := localization_localization_surj M N T,
+  eq_iff_exists := localization_localization_eq_iff_exists M N T }
+
+include M
+
+/--
+Given submodules `M ⊆ R` and `N ⊆ S = M⁻¹R`, with `f : R →+* S` the localization map, if
+`N` contains all the units of `S`, then `N ⁻¹ S = T = (f⁻¹ N) ⁻¹ R`. I.e., the localization of a
+localization is a localization.
+-/
+lemma localization_localization_is_localization_of_has_all_units
+  [is_localization N T] (H : ∀ (x : S), is_unit x → x ∈ N) :
+  is_localization (N.comap (algebra_map R S).to_monoid_hom) T :=
+begin
+  convert localization_localization_is_localization M N T,
+  symmetry,
+  rw sup_eq_left,
+  rintros _ ⟨x, hx, rfl⟩,
+  exact H _ (is_localization.map_units _ ⟨x, hx⟩),
+end
+
+/--
+Given a submodule `M ⊆ R` and a prime ideal `p` of `S = M⁻¹R`, with `f : R →+* S` the localization
+map, then `T = Sₚ` is the localization of `R` at `f⁻¹(p)`.
+-/
+lemma is_localization_is_localization_at_prime_is_localization (p : ideal S) [Hp : p.is_prime]
+  [is_localization.at_prime T p] :
+  is_localization.at_prime T (p.comap (algebra_map R S)) :=
+begin
+  apply localization_localization_is_localization_of_has_all_units M p.prime_compl T,
+  intros x hx hx',
+  exact (Hp.1 : ¬ _) (p.eq_top_of_is_unit_mem hx' hx),
+end
+
+instance (p : ideal (localization M)) [p.is_prime] : algebra R (localization.at_prime p) :=
+((algebra_map (localization M) _).comp (algebra_map R _)).to_algebra
+
+instance (p : ideal (localization M)) [p.is_prime] :
+  is_scalar_tower R (localization M) (localization.at_prime p) :=
+is_scalar_tower.of_algebra_map_eq' rfl
+
+instance localization_localization_at_prime_is_localization (p : ideal (localization M))
+  [p.is_prime] : is_localization.at_prime (localization.at_prime p) (p.comap (algebra_map R _)) :=
+is_localization_is_localization_at_prime_is_localization M _ _
+
+/--
+Given a submodule `M ⊆ R` and a prime ideal `p` of `M⁻¹R`, with `f : R →+* S` the localization
+map, then `(M⁻¹R)ₚ` is isomorphic (as an `R`-algebra) to the localization of `R` at `f⁻¹(p)`.
+-/
+noncomputable
+def localization_localization_at_prime_iso_localization (p : ideal (localization M)) [p.is_prime] :
+  localization.at_prime (p.comap (algebra_map R _)) ≃ₐ[R] localization.at_prime p :=
+is_localization.alg_equiv (p.comap (algebra_map R _)).prime_compl _ _
+
+end localization_localization
+
 variables (S)
 
 /-- Map from ideals of `R` to submodules of `S` induced by `f`. -/
@@ -1934,21 +2078,17 @@ theorem is_integral_localization (H : algebra.is_integral R S) :
     : Rₘ →+* _).is_integral :=
 begin
   intro x,
-  by_cases triv : (1 : R) = 0,
-  { have : (1 : Rₘ) = 0 := by convert congr_arg (algebra_map R Rₘ) triv; simp,
-    exact ⟨0, ⟨trans leading_coeff_zero this.symm, eval₂_zero _ _⟩⟩ },
-  { haveI : nontrivial R := nontrivial_of_ne 1 0 triv,
-    obtain ⟨⟨s, ⟨u, hu⟩⟩, hx⟩ := surj (algebra.algebra_map_submonoid S M) x,
-    obtain ⟨v, hv⟩ := hu,
-    obtain ⟨v', hv'⟩ := is_unit_iff_exists_inv'.1 (map_units Rₘ ⟨v, hv.1⟩),
-    refine @is_integral_of_is_integral_mul_unit Rₘ _ _ _
-      (localization_algebra M S) x (algebra_map S Sₘ u) v' _ _,
-    { replace hv' := congr_arg (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) hv',
-      rw [ring_hom.map_mul, ring_hom.map_one, ← ring_hom.comp_apply _ (algebra_map R Rₘ)] at hv',
-      erw is_localization.map_comp at hv',
-      exact hv.2 ▸ hv' },
-    { obtain ⟨p, hp⟩ := H s,
-      exact hx.symm ▸ is_integral_localization_at_leading_coeff p hp.2 (hp.1.symm ▸ M.one_mem) } }
+  obtain ⟨⟨s, ⟨u, hu⟩⟩, hx⟩ := surj (algebra.algebra_map_submonoid S M) x,
+  obtain ⟨v, hv⟩ := hu,
+  obtain ⟨v', hv'⟩ := is_unit_iff_exists_inv'.1 (map_units Rₘ ⟨v, hv.1⟩),
+  refine @is_integral_of_is_integral_mul_unit Rₘ _ _ _
+    (localization_algebra M S) x (algebra_map S Sₘ u) v' _ _,
+  { replace hv' := congr_arg (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) hv',
+    rw [ring_hom.map_mul, ring_hom.map_one, ← ring_hom.comp_apply _ (algebra_map R Rₘ)] at hv',
+    erw is_localization.map_comp at hv',
+    exact hv.2 ▸ hv' },
+  { obtain ⟨p, hp⟩ := H s,
+    exact hx.symm ▸ is_integral_localization_at_leading_coeff p hp.2 (hp.1.symm ▸ M.one_mem) }
 end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]

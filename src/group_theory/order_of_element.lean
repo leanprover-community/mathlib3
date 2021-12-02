@@ -3,10 +3,11 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
-import algebra.pointwise
-import group_theory.coset
-import dynamics.periodic_pts
+import data.int.gcd
 import algebra.iterate_hom
+import algebra.pointwise
+import dynamics.periodic_pts
+import group_theory.coset
 
 /-!
 # Order of an element
@@ -117,6 +118,10 @@ by rwa [order_of, minimal_period, dif_neg]
 @[to_additive add_order_of_eq_zero_iff] lemma order_of_eq_zero_iff :
   order_of x = 0 ↔ ¬ is_of_fin_order x :=
 ⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
+
+@[to_additive add_order_of_eq_zero_iff'] lemma order_of_eq_zero_iff' :
+  order_of x = 0 ↔ ∀ n : ℕ, 0 < n → x ^ n ≠ 1 :=
+by simp_rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one, not_exists, not_and]
 
 @[to_additive nsmul_ne_zero_of_lt_add_order_of']
 lemma pow_ne_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠ 1 :=
@@ -315,9 +320,6 @@ calc x ^ i = x ^ (i % order_of x + order_of x * (i / order_of x)) :
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
   x ^ n = x ^ m ↔ n = m :=
 begin
-  by_cases hx : x = 1,
-  { rw [←order_of_eq_one_iff, h] at hx,
-    contradiction },
   rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one] at h,
   push_neg at h,
   induction n with n IH generalizing m,
@@ -683,3 +685,28 @@ subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
 end
 
 end pow_is_subgroup
+
+section linear_ordered_ring
+
+variable [linear_ordered_ring G]
+
+lemma order_of_abs_ne_one (h : |x| ≠ 1) : order_of x = 0 :=
+begin
+  rw order_of_eq_zero_iff',
+  intros n hn hx,
+  replace hx : |x| ^ n = 1 := by simpa only [abs_one, abs_pow] using congr_arg abs hx,
+  cases h.lt_or_lt with h h,
+  { exact ((pow_lt_one (abs_nonneg x) h hn.ne').ne hx).elim },
+  { exact ((one_lt_pow h hn.ne').ne' hx).elim }
+end
+
+lemma linear_ordered_ring.order_of_le_two : order_of x ≤ 2 :=
+begin
+  cases ne_or_eq (|x|) 1 with h h,
+  { simp [order_of_abs_ne_one h] },
+  rcases eq_or_eq_neg_of_abs_eq h with rfl | rfl,
+  { simp },
+  apply order_of_le_of_pow_eq_one; norm_num
+end
+
+end linear_ordered_ring

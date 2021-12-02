@@ -3,8 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.preserves.limits
 import category_theory.limits.shapes.terminal
+import category_theory.limits.preserves.basic
 
 /-!
 # Preserving terminal object
@@ -37,7 +37,7 @@ The map of an empty cone is a limit iff the mapped object is terminal.
 -/
 def is_limit_map_cone_empty_cone_equiv :
   is_limit (G.map_cone (as_empty_cone X)) ≃ is_terminal (G.obj X) :=
-(is_limit.postcompose_hom_equiv (functor.empty_ext _ _) _).symm.trans
+(is_limit.postcompose_hom_equiv (functor.empty_ext.{v} _ _) _).symm.trans
   (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by tidy)))
 
 /-- The property of preserving terminal objects expressed in terms of `is_terminal`. -/
@@ -127,7 +127,7 @@ The map of an empty cocone is a colimit iff the mapped object is initial.
 -/
 def is_colimit_map_cocone_empty_cocone_equiv :
   is_colimit (G.map_cocone (as_empty_cocone X)) ≃ is_initial (G.obj X) :=
-(is_colimit.precompose_hom_equiv (functor.empty_ext _ _) _).symm.trans
+(is_colimit.precompose_hom_equiv (functor.empty_ext.{v} _ _) _).symm.trans
   (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by tidy)))
 
 /-- The property of preserving initial objects expressed in terms of `is_initial`. -/

@@ -7,6 +7,7 @@ import group_theory.submonoid.pointwise
 import group_theory.submonoid.membership
 import group_theory.submonoid.center
 import algebra.group.conj
+import algebra.module.basic
 import order.atoms
 
 /-!
@@ -650,6 +651,17 @@ subtype.rec_on x $ λ x hx, begin
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
       ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩)
     (λ x hx, exists.elim hx $ λ hx' hx, ⟨inv_mem _ hx', Hinv _ hx⟩),
+end
+
+@[simp, to_additive]
+lemma closure_closure_coe_preimage {k : set G} : closure ((coe : closure k → G) ⁻¹' k) = ⊤ :=
+begin
+  refine eq_top_iff.2 (λ x hx, closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) (λ g hg, _) x),
+  { intros g hg,
+    exact subset_closure hg },
+  { exact subgroup.one_mem _ },
+  { exact subgroup.mul_mem _ hg₁ hg₂ },
+  { exact subgroup.inv_mem _ hg }
 end
 
 variable (G)

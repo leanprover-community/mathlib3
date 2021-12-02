@@ -608,11 +608,11 @@ pushout_cocone.condition _
 /--
 Given such a diagram, then there is a natural morphism `W ×ₛ X ⟶ Y ×ₜ Z`.
 
-  W  ⟶  Y
-    ↘      ↘
-      S  ⟶  T
-    ↗      ↗
-  X  ⟶  Z
+    W  ⟶  Y
+      ↘      ↘
+        S  ⟶  T
+      ↗      ↗
+    X  ⟶  Z
 
 -/
 abbreviation pullback.map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
@@ -625,11 +625,11 @@ pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
 /--
 Given such a diagram, then there is a natural morphism `W ⨿ₛ X ⟶ Y ⨿ₜ Z`.
 
-      W  ⟶  Y
-    ↗      ↗
-  S  ⟶  T
-    ↘      ↘
-      X  ⟶  Z
+        W  ⟶  Y
+      ↗      ↗
+    S  ⟶  T
+      ↘      ↘
+        X  ⟶  Z
 
 -/
 abbreviation pushout.map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [has_pushout f₁ f₂]
@@ -1073,10 +1073,10 @@ variables (C)
 
 See https://stacks.math.columbia.edu/tag/001W.
 -/
-abbreviation has_pullbacks := has_limits_of_shape walking_cospan C
+abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
 
 /-- `has_pushouts` represents a choice of pushout for every pair of morphisms -/
-abbreviation has_pushouts := has_colimits_of_shape walking_span C
+abbreviation has_pushouts := has_colimits_of_shape walking_span.{v} C
 
 /-- If `C` has all limits of diagrams `cospan f g`, then it has all pullbacks -/
 lemma has_pullbacks_of_has_limit_cospan

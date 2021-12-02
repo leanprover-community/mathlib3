@@ -51,8 +51,8 @@ end
 end semiring
 
 section ring
-variables [ordered_ring k] [ordered_add_comm_group M] [module k M]
-  [ordered_smul k M] {a b : M} {c : k}
+variables [ordered_ring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+  {a b : M} {c : k}
 
 lemma smul_lt_smul_of_neg (h : a < b) (hc : c < 0) :
   c • b < c • a :=

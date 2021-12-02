@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import algebra.lie.of_associative
 import ring_theory.adjoin.basic
-import ring_theory.algebra_tower
+import algebra.lie.of_associative
 
 /-!
 # Derivations

@@ -483,6 +483,8 @@ def cons {α} (a : α) (s : finset α) (h : a ∉ s) : finset α :=
 @[simp] theorem mem_cons {a s h b} : b ∈ @cons α a s h ↔ b = a ∨ b ∈ s :=
 by rcases s with ⟨⟨s⟩⟩; apply list.mem_cons_iff
 
+@[simp] lemma mem_cons_self (a : α) (s : finset α) {h} : a ∈ cons a s h := mem_cons.2 $ or.inl rfl
+
 @[simp] theorem cons_val {a : α} {s : finset α} (h : a ∉ s) : (cons a s h).1 = a ::ₘ s.1 := rfl
 
 @[simp] theorem mk_cons {a : α} {s : multiset α} (h : (a ::ₘ s).nodup) :
@@ -2210,6 +2212,15 @@ begin
   lift s to finset t using h,
   refine ⟨s.map (embedding.subtype _), map_subtype_subset _, _⟩,
   ext y, simp
+end
+
+lemma range_sdiff_zero {n : ℕ} : range (n + 1) \ {0} = (range n).image nat.succ :=
+begin
+  induction n with k hk,
+  { simp },
+  nth_rewrite 1 range_succ,
+  rw [range_succ, image_insert, ←hk, insert_sdiff_of_not_mem],
+  simp
 end
 
 end image

@@ -40,7 +40,8 @@ namespace measure_theory
 sequence of of sub-σ-algebras of `m`. -/
 structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_space α) :=
 (seq : ι → measurable_space α)
-(mono : monotone seq) (le : ∀ i : ι, seq i ≤ m)
+(mono : monotone seq)
+(le : ∀ i : ι, seq i ≤ m)
 
 variables {α β ι : Type*} {m : measurable_space α} [measurable_space β]
 
@@ -242,8 +243,7 @@ begin
     exact le_trans (hle _) hle' },
 end
 
-lemma measurable_space_le [encodable ι]
-  {τ : α → ι} (hτ : is_stopping_time f τ) :
+lemma measurable_space_le [encodable ι] {τ : α → ι} (hτ : is_stopping_time f τ) :
   hτ.measurable_space ≤ m :=
 begin
   intros s hs,

@@ -128,13 +128,13 @@ def walking_parallel_pair_op_equiv : walking_parallel_pair.{u} ≌ walking_paral
       rcases i with (_|_); rcases j with (_|_); rcases g with (_|_|_); refl }) }
 
 @[simp] lemma walking_parallel_pair_op_equiv_unit_iso_zero :
-  walking_parallel_pair_op_equiv.unit_iso.app zero = iso.refl zero := rfl
+  walking_parallel_pair_op_equiv.{u u₂}.unit_iso.app zero = iso.refl zero := rfl
 @[simp] lemma walking_parallel_pair_op_equiv_unit_iso_one :
-  walking_parallel_pair_op_equiv.unit_iso.app one = iso.refl one := rfl
+  walking_parallel_pair_op_equiv.{u u₂}.unit_iso.app one = iso.refl one := rfl
 @[simp] lemma walking_parallel_pair_op_equiv_counit_iso_zero :
-  walking_parallel_pair_op_equiv.counit_iso.app (op zero) = iso.refl (op zero) := rfl
+  walking_parallel_pair_op_equiv.{u u₂}.counit_iso.app (op zero) = iso.refl (op zero) := rfl
 @[simp] lemma walking_parallel_pair_op_equiv_counit_iso_one :
-  walking_parallel_pair_op_equiv.counit_iso.app (op one) = iso.refl (op one) := rfl
+  walking_parallel_pair_op_equiv.{u u₂}.counit_iso.app (op one) = iso.refl (op one) := rfl
 
 variables {C : Type u} [category.{v} C]
 variables {X Y : C}

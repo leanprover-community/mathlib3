@@ -503,24 +503,13 @@ def pullback_cone.of_cone
 { X := t.X,
   π := t.π ≫ (diagram_iso_cospan F).hom }
 
-/--
-A diagram `walking_cospan ⥤ C` is isomorphic to some `pullback_cone.mk` after composing with
-`diagram_iso_cospan`.
--/
+/-- A diagram `walking_cospan ⥤ C` is isomorphic to some `pullback_cone.mk` after 
+composing with `diagram_iso_cospan`. -/
 def pullback_cone.iso_mk {F : walking_cospan ⥤ C} (t : cone F) :
   (cones.postcompose (diagram_iso_cospan _).hom).obj t ≅
     pullback_cone.mk (t.π.app walking_cospan.left) (t.π.app walking_cospan.right)
     ((t.π.naturality inl).symm.trans (t.π.naturality inr : _)) :=
-begin
-  fapply cones.ext,
-  exact iso.refl _,
-  change ∀ j, _ ≫ _ = 𝟙 _ ≫ _,
-  simp_rw category.id_comp,
-  rintros (_|_|_),
-  { simp },
-  { exact category.comp_id _ },
-  { exact category.comp_id _ }
-end
+cones.ext (iso.refl _) $ by rintro (_|(_|_)); { dsimp, simp }
 
 /-- Given `F : walking_span ⥤ C`, which is really the same as `span (F.map fst) (F.map snd)`,
     and a cocone on `F`, we get a pushout cocone on `F.map fst` and `F.map snd`. -/

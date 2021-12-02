@@ -101,8 +101,7 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
       { dsimp, apply_instance },
       apply pullback_cone.flip_is_limit,
       apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
-      apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).inv_fun,
-      exact hc },
+      exact (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).inv_fun hc },
     { exact (c.π.naturality walking_cospan.hom.inr).symm.trans
       (c.π.naturality walking_cospan.hom.inl : _) }
   end }
@@ -135,11 +134,11 @@ lemma preserves_pullback.iso_hom_fst :
 lemma preserves_pullback.iso_hom_snd :
   (preserves_pullback.iso G f g).hom ≫ pullback.snd = G.map pullback.snd := by simp
 
-@[simp] lemma preserves_pullback.iso_inv_fst :
+@[simp, reassoc] lemma preserves_pullback.iso_inv_fst :
   (preserves_pullback.iso G f g).inv ≫ G.map pullback.fst = pullback.fst :=
 by simp [iso.inv_comp_eq]
 
-@[simp] lemma preserves_pullback.iso_inv_snd :
+@[simp, reassoc] lemma preserves_pullback.iso_inv_snd :
   (preserves_pullback.iso G f g).inv ≫ G.map pullback.snd = pullback.snd :=
 by simp [iso.inv_comp_eq]
 
@@ -211,8 +210,7 @@ def preserves_pushout_symmetry {D : Type*} [category D] (F : C ⥤ D) (f : X ⟶
       { dsimp, apply_instance },
       apply pushout_cocone.flip_is_colimit,
       apply is_colimit.of_iso_colimit _ (pushout_cocone.iso_mk _),
-      apply (is_colimit.precompose_hom_equiv (diagram_iso_span _) _).inv_fun,
-      exact hc },
+      exact (is_colimit.precompose_hom_equiv (diagram_iso_span _) _).inv_fun hc },
     { exact (c.ι.naturality walking_span.hom.snd).trans
       (c.ι.naturality walking_span.hom.fst).symm }
   end }
@@ -245,11 +243,11 @@ lemma preserves_pushout.inl_iso_hom :
 lemma preserves_pushout.inr_iso_hom :
   pushout.inr ≫ (preserves_pushout.iso G f g).hom = G.map pushout.inr := by simp
 
-@[simp] lemma preserves_pushout.inl_iso_inv :
+@[simp, reassoc] lemma preserves_pushout.inl_iso_inv :
   G.map pushout.inl ≫ (preserves_pushout.iso G f g).inv = pushout.inl :=
 by simp [iso.comp_inv_eq]
 
-@[simp] lemma preserves_pushout.inr_iso_inv :
+@[simp, reassoc] lemma preserves_pushout.inr_iso_inv :
   G.map pushout.inr ≫ (preserves_pushout.iso G f g).inv = pushout.inr :=
 by simp [iso.comp_inv_eq]
 

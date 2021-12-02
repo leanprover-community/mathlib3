@@ -415,14 +415,14 @@ theorem proper_iff_ne_bot_top {α : Type u} [partial_order α] [bounded_order α
   polytope.is_proper a ↔ a ≠ ⊥ ∧ a ≠ ⊤ :=
 begin
   split,
-  { intro ha,
-    split,
-    { intro h,
+    { intro ha,
+      split,
+        { intro h,
+          rw h at ha,
+          exact bot_improper ha },
+      intro h,
       rw h at ha,
-      exact bot_improper ha },
-    intro h,
-    rw h at ha,
-    exact top_improper ha },
+      exact top_improper ha },
   exact λ ⟨hal, har⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.mpr hal, lt_top_iff_ne_top.mpr har⟩,
 end
 
@@ -547,8 +547,7 @@ end path
 
 /-- Proper elements are connected when they're related by a sequence of pairwise incident proper
     elements. -/
-abbreviation polytope.connected {α : Type u} [preorder α]
-  (a b : polytope.proper α) : Prop :=
+abbreviation polytope.connected {α : Type u} [preorder α] (a b : polytope.proper α) : Prop :=
 path polytope.incident a b
 
 open polytope

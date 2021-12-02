@@ -746,13 +746,13 @@ instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_se
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_semiring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [nontrivial β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   linear_ordered_semiring β :=
-{ ..linear_order.lift f hf,
-  ..‹nontrivial β›,
-  ..hf.ordered_semiring f zero one add mul }
+{ .. linear_order.lift f hf,
+  .. pullback_nonzero f zero one,
+  .. hf.ordered_semiring f zero one add mul }
 
 end linear_ordered_semiring
 
@@ -1215,14 +1215,14 @@ by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_ring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   linear_ordered_ring β :=
-{ ..linear_order.lift f hf,
-  ..‹nontrivial β›,
-  ..hf.ordered_ring f zero one add mul neg sub }
+{ .. linear_order.lift f hf,
+  .. pullback_nonzero f zero one,
+  .. hf.ordered_ring f zero one add mul neg sub }
 
 end linear_ordered_ring
 
@@ -1298,14 +1298,14 @@ variables [linear_ordered_comm_ring α]
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_comm_ring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   linear_ordered_comm_ring β :=
-{ ..linear_order.lift f hf,
-  ..‹nontrivial β›,
-  ..hf.ordered_comm_ring f zero one add mul neg sub }
+{ .. linear_order.lift f hf,
+  .. pullback_nonzero f zero one,
+  .. hf.ordered_comm_ring f zero one add mul neg sub }
 
 end linear_ordered_comm_ring
 

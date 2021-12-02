@@ -357,14 +357,13 @@ p.mod_two_eq_zero_or_one.imp_left
 
 theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
 begin
-  cases nat.eq_zero_or_pos (gcd m n) with g0 g1,
-  { rw [eq_zero_of_gcd_eq_zero_left g0, eq_zero_of_gcd_eq_zero_right g0] at H,
-    exfalso,
+  have g1 : 1 ≤ gcd m n,
+  { refine nat.succ_le_of_lt (pos_iff_ne_zero.mpr (λ g0, _)),
+    rw [eq_zero_of_gcd_eq_zero_left g0, eq_zero_of_gcd_eq_zero_right g0] at H,
     exact H 2 prime_two (dvd_zero _) (dvd_zero _) },
-  apply eq.symm,
-  apply (nat.succ_le_of_lt g1).lt_or_eq.resolve_left,
-  intro g2,
-  obtain ⟨p, hp, hpdvd⟩ := exists_prime_and_dvd g2,
+  rw [coprime_iff_gcd_eq_one, eq_comm],
+  refine g1.lt_or_eq.resolve_left (λ g2, _),
+  obtain ⟨p, hp, hpdvd⟩ := exists_prime_and_dvd (succ_le_of_lt g2),
   apply H p hp; apply dvd_trans hpdvd,
   { exact gcd_dvd_left _ _ },
   { exact gcd_dvd_right _ _ }
@@ -504,7 +503,7 @@ lemma prime.pow_dvd_of_dvd_mul_right {p n a b : ℕ} (hp : p.prime) (h : p ^ n �
   (hpb : ¬ p ∣ b) : p ^ n ∣ a :=
 begin
   induction n with n ih,
-  { simp },
+  { simp only [one_dvd, pow_zero] },
   { rw [pow_succ'] at *,
     rcases ih ((dvd_mul_right _ _).trans h) with ⟨c, rfl⟩,
     rw [mul_assoc] at h,
@@ -707,15 +706,14 @@ lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ �
 /-- **Fundamental theorem of arithmetic**-/
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) :
   l ~ factors n :=
-have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin
-  rw h at *, clear h,
-  induction l with a l hi,
-  { exact absurd h₁ dec_trivial },
-  { rw prod_cons at h₁,
-    exact nat.mul_ne_zero (ne_of_lt (prime.pos (h₂ a (mem_cons_self _ _)))).symm
-      (hi (λ p hp, h₂ p (mem_cons_of_mem _ hp))) h₁ }
-end,
-perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@prime_of_mem_factors _)
+begin
+  refine perm_of_prod_eq_prod _ h₂ (λ p, prime_of_mem_factors),
+  rw h₁,
+  refine (prod_factors (nat.pos_of_ne_zero _)).symm,
+  rintro rfl,
+  rw prod_eq_zero_iff at h₁,
+  exact prime.ne_zero (h₂ 0 h₁) rfl,
+end
 
 lemma prime.factors_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
   (p ^ n).factors = list.repeat p n :=
@@ -723,8 +721,8 @@ begin
   symmetry,
   rw ← list.repeat_perm,
   apply nat.factors_unique (list.prod_repeat p n),
-  { intros q hq,
-    rwa eq_of_mem_repeat hq },
+  intros q hq,
+  rwa eq_of_mem_repeat hq,
 end
 
 /-- For positive `a` and `b`, the prime factors of `a * b` are the union of those of `a` and `b` -/
@@ -836,11 +834,10 @@ end
 lemma min_fac_helper_0 (n : ℕ) (h : 0 < n) : min_fac_helper n 1 :=
 begin
   refine ⟨zero_lt_one, lt_of_le_of_ne _ min_fac_ne_bit0.symm⟩,
-  refine @lt_of_le_of_ne ℕ _ _ _ (nat.min_fac_pos _) _,
-  intro e,
-  have := nat.min_fac_prime _,
-  { rw ← e at this, exact nat.not_prime_one this },
-  { exact ne_of_gt (nat.bit1_lt h) }
+  rw nat.succ_le_iff,
+  refine lt_of_le_of_ne (nat.min_fac_pos _) (λ e, nat.not_prime_one _),
+  rw e,
+  exact nat.min_fac_prime (nat.bit1_lt h).ne',
 end
 
 lemma min_fac_helper_1 {n k k' : ℕ} (e : k + 1 = k')
@@ -875,8 +872,8 @@ end
 
 lemma min_fac_helper_4 (n k : ℕ) (hd : bit1 n % bit1 k = 0)
   (h : min_fac_helper n k) : nat.min_fac (bit1 n) = bit1 k :=
-by rw ← nat.dvd_iff_mod_eq_zero at hd; exact
-le_antisymm (nat.min_fac_le_of_dvd (nat.bit1_lt h.1) hd) h.2
+by { rw ← nat.dvd_iff_mod_eq_zero at hd,
+  exact le_antisymm (nat.min_fac_le_of_dvd (nat.bit1_lt h.1) hd) h.2 }
 
 lemma min_fac_helper_5 (n k k' : ℕ) (e : bit1 k * bit1 k = k')
   (hd : bit1 n < k') (h : min_fac_helper n k) : nat.min_fac (bit1 n) = bit1 n :=

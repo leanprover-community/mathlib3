@@ -29,11 +29,13 @@ section inhabited
 variables (α) [inhabited α]
 
 /-- Constructs the `⊥` of a finite inhabited `semilattice_inf`. -/
+@[reducible] -- See note [reducible non-instances]
 def fintype.to_order_bot [semilattice_inf α] : order_bot α :=
 { bot := finset.fold (⊓) (arbitrary α) id finset.univ,
   bot_le := λ a, ((finset.fold_op_rel_iff_and (@le_inf_iff α _)).1 le_rfl).2 a (finset.mem_univ _) }
 
 /-- Constructs the `⊤` of a finite inhabited `semilattice_sup` -/
+@[reducible] -- See note [reducible non-instances]
 def fintype.to_order_top [semilattice_sup α] : order_top α :=
 { top := finset.fold (⊔) (arbitrary α) id finset.univ,
   le_top := λ a,
@@ -41,6 +43,7 @@ def fintype.to_order_top [semilattice_sup α] : order_top α :=
       a (finset.mem_univ a) }
 
 /-- Constructs the `⊤` and `⊥` of a finite inhabited `lattice`. -/
+@[reducible] -- See note [reducible non-instances]
 def fintype.to_bounded_order [lattice α] : bounded_order α :=
 { .. fintype.to_order_bot α,
   .. fintype.to_order_top α }
@@ -53,6 +56,7 @@ variables (α)
 open_locale classical
 
 /-- A finite bounded lattice is complete. -/
+@[reducible] -- See note [reducible non-instances]
 noncomputable def fintype.to_complete_lattice [hl : lattice α] [hb : bounded_order α] :
   complete_lattice α :=
 { Sup := λ s, s.to_finset.sup id,
@@ -67,15 +71,22 @@ variables [nonempty α]
 
 /-- A nonempty finite lattice is complete. If the lattice is already a `bounded_order`, then use
 `fintype.to_complete_lattice` instead, as this gives definitional equality for `⊥` and `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
 noncomputable def fintype.to_complete_lattice_of_lattice [lattice α] : complete_lattice α :=
 @fintype.to_complete_lattice _ _ _ $ @fintype.to_bounded_order α _ ⟨classical.arbitrary α⟩ _
 
-/-- A nonempty finite linear order is complete.
+/-- A nonempty finite linear order is complete. -/
+@[reducible] -- See note [reducible non-instances]
+noncomputable def fintype.to_complete_linear_order [h : linear_order α] [bounded_order α] :
+  complete_linear_order α :=
+{ .. fintype.to_complete_lattice α, .. h }
 
-If the lattice is already a `bounded_order`, then build this object manually instead by combining
-`fintype.to_complete_lattice` and an appropriate `linear_order` instance, as this gives definitional
-equality for `⊥` and `⊤`. -/
-noncomputable def fintype.to_complete_linear_order [h : linear_order α] : complete_linear_order α :=
+/-- A nonempty finite linear order is complete. If the linear order is already a `bounded_order`,
+then use `fintype.to_complete_linear_order` instead, as this gives definitional equality for `⊥` and
+`⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+noncomputable def fintype.to_complete_linear_order_of_linear_order [h : linear_order α] :
+  complete_linear_order α :=
 { .. fintype.to_complete_lattice_of_lattice α,
   .. h }
 
@@ -84,5 +95,4 @@ end nonempty
 /-! ### `fin` -/
 
 noncomputable instance fin.complete_linear_order {n : ℕ} : complete_linear_order (fin (n + 1)) :=
-{ .. fintype.to_complete_lattice _,
-  .. fin.linear_order }
+fintype.to_complete_linear_order _

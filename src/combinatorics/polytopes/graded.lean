@@ -592,4 +592,27 @@ begin
   sorry
 end
 
+
+private lemma grade_le_of_order_iso {α β : Type u} [partial_order α] [graded α] [partial_order β]
+[graded β] {oiso : α ≃o β} {n : ℕ} :
+  ∀ x, grade x = n → grade x ≤ grade (oiso x) :=
+begin
+  apply nat.strong_induction_on n,
+  intros n H x,
+  sorry
+end
+
+/-- Order isomorphisms preserve grades. In other words, grade functions are unique when they
+    exist. -/
+theorem grade_eq_of_order_iso {α β : Type u} [partial_order α] [graded α] [partial_order β]
+[graded β] (oiso : α ≃o β) (x : α) :
+  grade x = grade (oiso x) :=
+begin
+  rw eq_iff_le_not_lt,
+  split, { exact (grade_le_of_order_iso _ (refl _)) },
+  have : grade x = grade (oiso.symm (oiso x)) := by rw (order_iso.symm_apply_apply _ x),
+  rw this,
+  exact not_lt_of_ge (grade_le_of_order_iso _ (refl _))
+end
+
 end graded

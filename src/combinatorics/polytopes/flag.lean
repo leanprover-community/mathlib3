@@ -482,34 +482,47 @@ begin
   exact not_lt_of_ge (grade_le_of_order_iso _ (refl _))
 end
 
-/-- Order isomorphisms preserve connectedness. -/
-theorem connected_order_iso_of_connected (oiso : α ≃o β) :
-  graded.connected α → graded.connected β :=
+/-- Order isomorphisms preserve top grades. -/
+lemma grade_top_eq_of_order_iso (oiso : α ≃o β) :
+  grade_top α = grade_top β :=
 begin
-  intros ha,
-  cases ha with ha ha', {
-    left,
-    change grade_top α with grade ⊤ at ha,
-    rwa [grade_eq_of_order_iso oiso (⊤ : α), oiso.map_top] at ha,
-  },
-  right,
-  intros x y,
-  have : ∃ a, x = oiso.proper a := ⟨oiso.proper.inv_fun x, by simp⟩,
-  cases this with a ha,
-  rw ha,
-  have : ∃ b, y = oiso.proper b := ⟨oiso.proper.inv_fun y, by simp⟩,
-  cases this with b hb,
-  rw hb,
-  apply connected_order_iso_of_connected_aux,
-  apply ha',
+  change grade_top α with grade (⊤ : α),
+  change grade_top β with grade (⊤ : β),
+  rw ←oiso.map_top,
+  exact grade_eq_of_order_iso oiso ⊤
+end
+
+/-- Order isomorphisms preserve connectedness. -/
+private lemma connected_order_iso_of_connected (oiso : α ≃o β) :
+  graded.connected β → graded.connected α :=
+begin
+  intros hb,
+  cases hb with hb hb,
+    { left,
+      rwa grade_top_eq_of_order_iso oiso },
+  exact or.inr (λ x y, (connected_els_order_iso_of_connected_els oiso x y).mpr (hb _ _)),
+end
+
+/-- Order isomorphisms preserve connectedness. -/
+theorem connected_order_iso_iff_connected (oiso : α ≃o β) :
+  graded.connected α ↔ graded.connected β :=
+⟨connected_order_iso_of_connected oiso.symm, connected_order_iso_of_connected oiso⟩
+
+/-- Order isomorphisms preserve strong connectedness. -/
+private lemma strong_connected_order_iso_of_strong_connected (oiso : α ≃o β) :
+  graded.strong_connected β → graded.strong_connected α :=
+begin
+  intros hb x y hxy,
+  have hxy' := order_iso.monotone oiso hxy,
+  exact (@connected_order_iso_iff_connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) _ _
+    (set.Icc.order_top hxy') (set.Icc.graded hxy') (oiso.Icc _ _)).mpr (hb hxy')
 end
 
 /-- Order isomorphisms preserve strong connectedness. -/
-theorem strong_connected_order_iso_of_strong_connected (oiso : α ≃o β) :
-  graded.strong_connected α → graded.strong_connected β :=
-begin
-  sorry
-end
+theorem strong_connected_order_iso_iff_strong_connected (oiso : α ≃o β) :
+  graded.strong_connected α ↔ graded.strong_connected β :=
+⟨strong_connected_order_iso_of_strong_connected oiso.symm,
+  strong_connected_order_iso_of_strong_connected oiso⟩
 
 end order_iso
 

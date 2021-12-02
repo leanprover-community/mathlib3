@@ -632,10 +632,10 @@ end order_iso
 
 namespace graded
 
-/-- If two elements are connectred, so are their maps under an isomorphism. -/
+/-- If two elements are connected, so are their maps under an isomorphism. -/
 -- Todo(Vi): Better name?
-lemma connected_order_iso_of_connected_aux (α : Type u) [partial_order α] [order_top α] [graded α]
-(β : Type u) [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x y : proper α) :
+private lemma connected_els_order_iso_of_connected_els' {α : Type u} [partial_order α] [order_top α] [graded α]
+{β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x y : proper α) :
   connected x y → connected (oiso.proper x) (oiso.proper y) :=
 begin
   intro hxy,
@@ -646,6 +646,18 @@ begin
   cases hyz (λ h, hne (congr_arg oiso h : oiso y = oiso z)) with hyz hyz,
     { exact or.inl (oiso.lt_iff_lt.mpr hyz) },
   exact or.inr (oiso.lt_iff_lt.mpr hyz),
+end
+
+/-- Two elements are connected iff their maps under an isomorphism are. -/
+-- Todo(Vi): Better name?
+lemma connected_els_order_iso_of_connected_els {α : Type u} [partial_order α] [order_top α] [graded α]
+{β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x y : proper α) :
+  connected x y ↔ connected (oiso.proper x) (oiso.proper y) :=
+begin
+  refine ⟨connected_els_order_iso_of_connected_els' oiso x y, _⟩,
+  have := connected_els_order_iso_of_connected_els' oiso.symm (oiso.proper x) (oiso.proper y),
+  rwa [(subtype.eq (oiso.left_inv _) : (oiso.symm.proper (oiso.proper x)) = x),
+       (subtype.eq (oiso.left_inv _) : (oiso.symm.proper (oiso.proper y)) = y)] at this
 end
 
 /-- Any `graded` of top grade less or equal to 2 is connected. -/

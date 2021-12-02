@@ -939,7 +939,7 @@ map_div f g h
 /-- Group homomorphisms preserve division. -/
 @[to_additive]
 protected theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
-f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
+  f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
 map_mul_inv f g h
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial.

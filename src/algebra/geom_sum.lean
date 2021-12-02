@@ -495,4 +495,46 @@ begin
     { exact geom_sum_pos hx (zero_lt_one.trans hn).ne' } }
 end
 
+lemma geom_sum_eq_zero_iff_neg_one [linear_ordered_ring α] (hn : 1 < n) :
+  geom_sum x n = 0 ↔ x = -1 ∧ even n :=
+begin
+  refine ⟨λ h, _, λ ⟨h, hn⟩, by simp [h, hn],⟩,
+  contrapose! h,
+  rcases eq_or_ne x (-1) with rfl | h,
+  { simp [h rfl] },
+  rw [ne.def, eq_neg_iff_add_eq_zero, ←ne.def] at h,
+  rcases h.lt_or_lt with h | h,
+  { have := geom_sum_alternating_of_lt_neg_one h hn,
+    split_ifs at this,
+    { exact this.ne },
+    { exact (zero_lt_one.trans this).ne' } },
+  apply ne_of_gt,
+  rcases lt_trichotomy x 0 with h' | rfl | h',
+  { exact (geom_sum_pos_and_lt_one h' h hn).1 },
+  { simp [(pos_of_gt hn).ne'] },
+  { exact geom_sum_pos h' (pos_of_gt hn).ne' }
+end
+
+lemma geom_sum_neg_iff [linear_ordered_ring α] (hn : 1 < n) :
+  geom_sum x n < 0 ↔ even n ∧ x + 1 < 0 :=
+begin
+  have hpos : ¬0 < geom_sum x n ↔ ¬(odd n ∨ 0 < x + 1) := not_iff_not.mpr (geom_sum_pos_iff hn),
+  push_neg at hpos,
+  have hne : ¬geom_sum x n = 0 ↔ ¬(x = -1 ∧ even n) := not_iff_not.mpr
+                                                       (geom_sum_eq_zero_iff_neg_one hn),
+  rw ←nat.even_iff_not_odd at hpos,
+  rw [←ne.def, not_and'] at hne,
+  refine ⟨λ h, and.intro (hpos.mp h.le).1 _, λ h, _⟩,
+  { have := hne.mp h.ne (hpos.mp h.le).1,
+    rw eq_neg_iff_add_eq_zero at this,
+    exact lt_of_le_of_ne (hpos.mp h.le).2 this },
+  { apply lt_of_le_of_ne,
+    { rw hpos,
+      exact ⟨h.1, h.2.le⟩ },
+    rw hne,
+    rintro -,
+    have := h.2.ne,
+    rwa eq_neg_iff_add_eq_zero }
+end
+
 end order

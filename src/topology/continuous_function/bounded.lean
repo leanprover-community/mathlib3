@@ -1056,9 +1056,9 @@ variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_
 variables [normed_space 𝕜 β] [star_module 𝕜 β]
 
 instance : star_add_monoid (α →ᵇ β) :=
-{ star := λ f, f.comp star star_normed_group_hom.lipschitz,
+{ star            := λ f, f.comp star star_normed_group_hom.lipschitz,
   star_involutive := λ f, ext $ λ x, star_star (f x),
-  star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
+  star_add        := λ f g, ext $ λ x, star_add (f x) (g x) }
 
 lemma coe_star (f : α →ᵇ β) : ⇑(star f) = star f := rfl
 

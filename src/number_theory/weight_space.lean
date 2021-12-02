@@ -761,20 +761,21 @@ end
 
 /-- Given `a ∈ zmod (d * p^n)`, and `n < m`, the set of all `b ∈ zmod (d * p^m)` such that
   `b = a mod (d * p^n)`. -/
-def equi_class (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) :=
+def equi_class (n m : ℕ) (h : n ≤ m) (a : zmod (d * p^n)) :=
  {b : zmod (d * p^m) | (b : zmod (d * p^n)) = a}
 -- change def to a + k*dp^m
+-- need h to be n ≤ m, not n < m for g_char_fn
 
-lemma mem_equi_class (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) (b : zmod (d * p^m)) :
+lemma mem_equi_class (n m : ℕ) (h : n ≤ m) (a : zmod (d * p^n)) (b : zmod (d * p^m)) :
   b ∈ equi_class p d n m h a ↔ (b : zmod (d * p^n)) = a :=
 ⟨λ hb, begin rw equi_class at hb, simp at hb, exact hb, end,
   λ hb, begin rw equi_class, simp, exact hb, end⟩
 
-lemma equi_class_some (n : ℕ) (x : zmod (d * p^n)) (y : equi_class p d n n.succ (lt_add_one n) x) :
+lemma equi_class_some (n : ℕ) (x : zmod (d * p^n)) (y : equi_class p d n n.succ (nat.le_succ n) x) :
   ∃ k : ℕ, k < p ∧ (y : zmod (d * p^n.succ)).val = x.val + k * d * p^n :=
 begin
-  have := (mem_equi_class p d n n.succ (lt_add_one n) x y).1 (y.prop),
-  conv { congr, funext, conv { congr, skip, to_rhs, rw ←((mem_equi_class p d n n.succ (lt_add_one n) x y).1 (y.prop)), }, },
+  have := (mem_equi_class p d n n.succ (nat.le_succ n) x y).1 (y.prop),
+  conv { congr, funext, conv { congr, skip, to_rhs, rw ←((mem_equi_class p d n n.succ (nat.le_succ n) x y).1 (y.prop)), }, },
   rw ←@zmod.nat_cast_comp_val _ _ _ _,
   show ∃ (k : ℕ), k < p ∧ (y : zmod (d * p^n.succ)).val = ((y : zmod (d * p^n.succ)).val : zmod (d * p^n)).val + k * d * p ^ n,
   rw zmod.val_nat_cast,
@@ -792,7 +793,7 @@ begin
 end
 
 /-- Giving an equivalence between `equi_class` and `fin p`. -/
-def equi_iso_fin (m : ℕ) (a : zmod (d * p^m)) : equi_class p d m m.succ (lt_add_one m) a ≃ fin p :=
+def equi_iso_fin (m : ℕ) (a : zmod (d * p^m)) : equi_class p d m m.succ (nat.le_succ m) a ≃ fin p :=
 { to_fun := λ y, ⟨((y.val).val - a.val) / (d * p^m), begin
     apply nat.div_lt_of_lt_mul,
     have : 0 < d * p ^ m.succ,
@@ -861,7 +862,7 @@ end
 
 --example {α β : Type*} (h : α ≃ β) [fintype α] {s : set α} : fintype s := by library_search
 
-noncomputable instance (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) :
+noncomputable instance (n m : ℕ) (h : n ≤ m) (a : zmod (d * p^n)) :
   fintype (equi_class p d n m h a) :=
 begin
   suffices : fintype (zmod (d * p^m)),
@@ -877,7 +878,7 @@ end
 /-
 /-- For m > n, E_c(χ_(b,a,n)) = ∑_{j, b_j = a mod p^n} E_c(χ_(b,b_j,m)) -/
 lemma sum_char_fn_dependent_Ec (m : ℕ) (a : zmod (p^m)) (b : zmod d) (hc : gcd c p = 1) :
-  E_c p d hc m a = ∑ x in set.to_finset (equi_class p d m m.succ (lt_add_one m) a), E_c p d hc m.succ x :=
+  E_c p d hc m a = ∑ x in set.to_finset (equi_class p d m m.succ (nat.le_succ m) a), E_c p d hc m.succ x :=
 sorry
 
 lemma loc_const_const (f : locally_constant (zmod d × ℤ_[p]) R) (a : zmod d × ℤ_[p]) : ∃ N : ℕ, ∀ m ≥ N,
@@ -1239,7 +1240,7 @@ def zmod' (n : ℕ) (h : 0 < n) : finset (zmod n) :=
 
 lemma succ_eq_bUnion_equi_class : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.succ) =
   (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion
-    (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) :=
+    (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (nat.le_succ m)) a)) :=
 begin
   ext y, simp only [exists_prop, finset.mem_bUnion, set.mem_to_finset], split,
   any_goals { intro h, },
@@ -1275,7 +1276,7 @@ end
 lemma equi_class_eq (f : locally_constant (zmod d × ℤ_[p]) R) (x : zmod (d * p^m)) (hd : gcd d p = 1)
   (h : classical.some (factor_F p d R hd f) ≤ m)
   (y : zmod (d * p^m.succ))
-  (hy : y ∈ ((λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x)) :
+  (hy : y ∈ ((λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (nat.le_succ m)) a)) x)) :
   f y = f x :=
 begin
   -- note that y ≠ ↑x !
@@ -1498,7 +1499,9 @@ end
 
 example (m : ℕ) : m^1 = m := pow_one m
 
-lemma sum_fract (m : ℕ) [fact (0 < m)] (x : zmod (d * p^m)) : ∑ (x_1 : (equi_class p d m m.succ (lt_add_one m) x)),
+--example (n : ℕ) : ((1 : zmod n) : ℤ) = 1 := begin  end
+
+lemma sum_fract (m : ℕ)  (x : zmod (d * p^m)) : ∑ (x_1 : (equi_class p d m m.succ (nat.le_succ m) x)),
   fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) =
     (x.val : ℚ) / (d * p^m) + (p - 1) / 2 :=
 begin
@@ -1541,12 +1544,15 @@ begin
             --rw ←zmod.nat_cast_val,
             rw zmod.val_mul, rw nat.mod_eq_of_lt _,
             { rw nat.cast_mul, rw zmod.nat_cast_val, rw zmod.nat_cast_val,
-              congr, rw ←nat.cast_pow, rw coe_nat_int, rw coe_nat_int, simp,
-              { refine lt_mul_pow (m.succ) p d _ _ _,
-                apply fact.out,
-                apply nat.prime.one_lt, apply fact.out,
-                apply nat.succ_lt_succ, apply fact.out, },
-              apply pow_lt_mul_pow, },
+              congr, rw ←nat.cast_pow,
+              by_cases m = 0,
+              { rw h, rw pow_zero, rw pow_zero, rw nat.cast_one, sorry, },
+              { rw coe_nat_int, rw coe_nat_int, simp,
+                { refine lt_mul_pow (m.succ) p d _ _ _,
+                  apply fact.out,
+                  apply nat.prime.one_lt, apply fact.out,
+                  apply nat.succ_lt_succ, apply nat.pos_of_ne_zero, assumption, },
+                apply pow_lt_mul_pow, }, },
             { rw ←nat.cast_pow, rw zmod.val_cast_of_lt _, rw zmod.val_cast_of_lt _,
               { apply mul_pow_lt_mul_pow_succ, },
               { apply pow_lt_mul_pow, },
@@ -1557,10 +1563,7 @@ begin
                   { apply nat.prime.one_lt, apply fact.out, }, }, }, }, }, },
         { rw ←nat.cast_pow, rw ←nat.cast_mul, rw zmod.val_cast_of_lt _, rw fin_le_val _ _ _ _,
           { apply fin_mul_lt, },
-          { apply le_of_lt, apply lt_mul_pow,
-            { apply fact.out, },
-            { apply nat.prime.one_lt, apply fact.out, },
-            { apply nat.succ_lt_succ, apply fact.out, }, },
+          { sorry, },
           { apply mul_pow_lt_mul_pow_succ, }, }, },
       { rw zmod.nat_cast_val, rw ←zmod.nat_cast_val, rw ←zmod.nat_cast_val (↑y * (_ * _)),
         rw ←nat.cast_add,
@@ -1617,7 +1620,10 @@ begin
               { apply fact_iff.1, assumption, }, },
             { rw ←pow_succ', apply imp p d (m + 1), } },
           { apply congr_arg2,
-            { apply congr_arg2,
+            { by_cases m = 0,
+              { rw h, rw pow_zero, rw pow_zero, },
+
+              apply congr_arg2,
               { rw ←zmod.nat_cast_val _,
                 { rw zmod.val_nat_cast, congr, apply nat.mod_eq_of_lt,
                   rw ←mul_assoc,
@@ -1626,7 +1632,7 @@ begin
                     { rw nat.succ_le_iff, apply fact_iff.1, assumption, },
                     { apply one_lt_pow,
                       { apply nat.prime.one_lt, apply fact_iff.1, assumption, },
-                      { rw nat.succ_le_iff, apply fact.out, }, }, },
+                      { rw nat.succ_le_iff, apply nat.pos_of_ne_zero h, }, }, },
                   { apply nat.prime.pos, apply fact_iff.1, assumption, }, },
                 { rw ←pow_succ', apply imp p d (m + 1), }, },
               { refl, }, },
@@ -1659,7 +1665,7 @@ begin
 end
 
 lemma card_equi_class (m : ℕ) (x : zmod (d * p^m)) :
-  finset.card (@finset.univ (equi_class p d m m.succ (lt_add_one m) x) _) = p :=
+  finset.card (@finset.univ (equi_class p d m m.succ (nat.le_succ m) x) _) = p :=
 begin
   rw finset.card_univ,
   rw ←fintype.of_equiv_card (equi_iso_fin p d m x),
@@ -1746,20 +1752,20 @@ end
 /---is this true?
 lemma E_c_sum_equi_class'' [has_coe ℝ R] (x : zmod d) (hc : gcd c p = 1)
   (hc' : gcd c d = 1) :
-  ∑ (y : equi_class p d 0 1 (lt_add_one 0) x), (E_c p d hc 1 y) = (E_c p d hc 0 x) :=
+  ∑ (y : equi_class p d 0 1 (nat.le_succ 0) x), (E_c p d hc 1 y) = (E_c p d hc 0 x) :=
 begin
   rw E_c, simp,
   sorry
 end-/
 
-lemma E_c_sum_equi_class' [has_coe ℝ R] [fact (0 < m)] (x : zmod (d * p^m)) (hc : gcd c p = 1)
+lemma E_c_sum_equi_class' [has_coe ℝ R]  (x : zmod (d * p^m)) (hc : gcd c p = 1)
   (hc' : gcd c d = 1) :
-  ∑ (y : equi_class p d m m.succ (lt_add_one m) x), (E_c p d hc m.succ y) = (E_c p d hc m x) :=
+  ∑ (y : equi_class p d m m.succ (nat.le_succ m) x), (E_c p d hc m.succ y) = (E_c p d hc m x) :=
 begin
   rw E_c, simp only,
   rw [finset.sum_add_distrib, finset.sum_sub_distrib, sum_fract, ←finset.mul_sum],
   convert_to ((x.val : ℚ) / (d * p ^ m) + (p - 1) / 2) - (c : ℚ) *
-    ∑ (x_1 : (equi_class p d m m.succ (lt_add_one m)
+    ∑ (x_1 : (equi_class p d m m.succ (nat.le_succ m)
       ( ((c : zmod (d * p^(2*m.succ)))⁻¹ : zmod (d * p^m)) * x))),
     fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) +
     (∑ (x : (equi_class p d m m.succ _ x)), ((c : ℚ) - 1) / 2) = _ - _ + _,
@@ -1820,8 +1826,8 @@ begin
 
 end-/
 
-lemma E_c_sum_equi_class [has_coe ℝ R] [has_coe ℚ R] [fact (0 < m)] (x : zmod (d * p^m)) (hc : gcd c p = 1) (hc' : gcd c d = 1) :
-∑ (y : zmod (d * p ^ m.succ)) in (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x,
+lemma E_c_sum_equi_class [has_coe ℝ R] [has_coe ℚ R] (x : zmod (d * p^m)) (hc : gcd c p = 1) (hc' : gcd c d = 1) :
+∑ (y : zmod (d * p ^ m.succ)) in (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (nat.le_succ m)) a)) x,
   ((E_c p d hc m.succ y) : R) = (E_c p d hc m x) :=
 begin
   rw ←E_c_sum_equi_class' p d R _,
@@ -1880,7 +1886,7 @@ noncomputable def g (hc : gcd c p = 1) (hc' : gcd c d = 1) [has_coe ℝ R] [has_
   simp, rintros l hl', -- why is the simp needed?
   have hl : classical.some (factor_F p d R hd' f) ≤ l,
   { apply le_trans (nat.le_succ _) hl', },
-  set t := λ a : zmod (d * p ^ l), set.to_finset ((equi_class p d l l.succ (lt_add_one l)) a) with ht,
+  set t := λ a : zmod (d * p ^ l), set.to_finset ((equi_class p d l l.succ (nat.le_succ l)) a) with ht,
   rw succ_eq_bUnion_equi_class,
   rw @finset.sum_bUnion _ _ _ _ _ _ (zmod' (d*p^l) (mul_prime_pow_pos p d l)) t _,
   { haveI : fact (0 < l),
@@ -1940,11 +1946,12 @@ example (a b : R) (h : a + b = a) : b = 0 := add_right_eq_self.mp (congr_fun (co
 instance : semilattice_sup ℕ := infer_instance
 
 -- set_option pp.proofs true
+--@[simp] lemma cast_hom_apply' {n : ℕ} (i : zmod n) : cast_hom h R i = i := rfl
 
 -- def G (f : locally_constant ℤ_[p] R) (a : ℤ_[p]) : ℕ := ⨅ n : ℕ, loc_const_const -- is this really needed?
 variable [has_coe ℚ R]
 lemma equi_class_clopen (n : ℕ) (a : zmod (d * p^n)) (hc : gcd c p = 1) (hc' : gcd c d = 1)
-  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] (hm : n < m)
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] (hm : n ≤ m)
   (b : (equi_class p d n m hm a)) : (b.val : zmod d × ℤ_[p]) ∈ (clopen_from p d n a).val :=
 begin
   have := b.prop,
@@ -1954,15 +1961,36 @@ begin
   conv { congr, { to_rhs, congr, rw ←this, },
       to_lhs, congr, rw ←this, },
   split,
-  {
-    sorry, },
-  { sorry, },
+  { simp only [prod.fst_zmod_cast],
+    repeat { rw ←zmod.cast_hom_apply _, },
+    any_goals { refine zmod.char_p _, },
+    any_goals { apply dvd_mul_right _ _, },
+    swap, { apply mul_dvd_mul_left, apply pow_dvd_pow _ _, apply hm, },
+    { rw ←ring_hom.comp_apply, apply congr_fun _,
+      congr,
+      convert ring_hom.ext_zmod _ _, }, },
+  { simp only [prod.snd_zmod_cast],
+    convert_to _ = ((b: zmod (d * p^m)) : zmod (p^n)),
+    { rw ←zmod.int_cast_cast (b: zmod (d * p^m)),
+      conv_rhs { rw ←zmod.int_cast_cast (b: zmod (d * p^m)), },
+      change (ring_hom.comp (to_zmod_pow n) (int.cast_ring_hom ℤ_[p])) ((b : zmod (d * p^m)) : ℤ) =
+        (int.cast_ring_hom (zmod (p^n))) ((b : zmod (d * p^m)) : ℤ),
+      apply congr_fun _ _, congr,
+      convert @ring_hom.ext_zmod 0 _ _ _ _, }, -- good job!
+    { repeat { rw ←zmod.cast_hom_apply _, },
+      any_goals { refine zmod.char_p _, },
+      { rw ←ring_hom.comp_apply, apply congr_fun _,
+      congr,
+      convert ring_hom.ext_zmod _ _, },
+      any_goals { apply dvd_mul_left _ _, },
+      any_goals { apply mul_dvd_mul_left, apply pow_dvd_pow _ _, apply hm, },
+      { apply dvd_mul_of_dvd_right _ _, apply pow_dvd_pow _ _, apply hm, }, }, },
 end
 
 example {α β : Type*} (h : α ≃ β) : function.injective h.to_fun := equiv.injective h
 
 lemma g_char_fn (n : ℕ) (a : zmod (d * p^n)) (hc : gcd c p = 1) (hc' : gcd c d = 1)
-  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] (hm : n < m) :
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] (hm : n ≤ m) :
   (g p d R hc hc' hd' (char_fn (zmod d × ℤ_[p]) (clopen_from p d n a)) h').to_seq m =
   ∑ (y : equi_class p d n m hm a), (E_c p d hc m y) :=
 begin
@@ -1980,12 +2008,62 @@ begin
       rw prod.ext_iff,
       split,
       { convert h2.1 using 1,
-        { --refine (function.injective.eq_iff prod.fst_injective).2 _,
-          sorry, },
-        { sorry, }, },
+        { --make into separate lemma?
+          convert_to _ = ((b : zmod (d * p^n)) : zmod d),
+          { simp only [prod.fst_nat_cast], rw zmod.cast_nat_cast _,
+            swap, { refine zmod.char_p _, },
+            { refine dvd_mul_right _ _, }, },
+          --refine (function.injective.eq_iff prod.fst_injective).2 _,
+          { change (ring_hom.comp (ring_hom.fst (zmod d) (zmod (p^n)))
+            ((zmod.chinese_remainder (coprime_pow_spl p d n h')).to_ring_hom))
+              ((b : zmod (d * p^m)) : zmod (d * p^n)) = _,
+            symmetry,
+            rw ←zmod.cast_hom_apply _,
+            { apply congr,
+              { congr, convert ring_hom.ext_zmod _ _, },
+              { rw zmod.cast_nat_cast _,
+                swap, { refine zmod.char_p _, },
+                { apply mul_dvd_mul_left, apply pow_dvd_pow _ _, apply hm, }, }, },
+            swap, { refine zmod.char_p _, },
+            { apply dvd_mul_right _ _, }, }, },
+        { change (ring_hom.comp (ring_hom.fst (zmod d) (zmod (p^n)))
+            ((zmod.chinese_remainder (coprime_pow_spl p d n h')).to_ring_hom)) a = _,
+          symmetry,
+          rw ←zmod.cast_hom_apply _,
+          { apply congr _ _,
+            { congr, convert ring_hom.ext_zmod _ _, },
+            { refl, }, },
+          swap, { refine zmod.char_p _, },
+          { apply dvd_mul_right _ _, },  }, },
       { convert (h2.2).symm,
-        { sorry, },
-        { sorry, }, }, }, }, -- use ring_hom.zmod_ext and ring_hom.comp for all goals above
+        { simp only [ring_hom.map_nat_cast, prod.snd_nat_cast],
+          --make into separate lemma?
+          convert_to _ = ((b : zmod (d * p^n)) : zmod (p^n)),
+          { rw zmod.cast_nat_cast _,
+            swap, { refine zmod.char_p _, },
+            { refine dvd_mul_left _ _, }, },
+          --refine (function.injective.eq_iff prod.fst_injective).2 _,
+          { change (ring_hom.comp (ring_hom.snd (zmod d) (zmod (p^n)))
+            ((zmod.chinese_remainder (coprime_pow_spl p d n h')).to_ring_hom))
+              ((b : zmod (d * p^m)) : zmod (d * p^n)) = _,
+            symmetry,
+            rw ←zmod.cast_hom_apply _,
+            { apply congr,
+              { congr, convert ring_hom.ext_zmod _ _, },
+              { rw zmod.cast_nat_cast _,
+                swap, { refine zmod.char_p _, },
+                { apply mul_dvd_mul_left, apply pow_dvd_pow _ _, apply hm, }, }, },
+            swap, { refine zmod.char_p _, },
+            { apply dvd_mul_left _ _, }, }, },
+        { change (ring_hom.comp (ring_hom.snd (zmod d) (zmod (p^n)))
+            ((zmod.chinese_remainder (coprime_pow_spl p d n h')).to_ring_hom)) a = _,
+          symmetry,
+          rw ←zmod.cast_hom_apply _,
+          { apply congr _ _,
+            { congr, convert ring_hom.ext_zmod _ _, },
+            { refl, }, },
+          swap, { refine zmod.char_p _, },
+          { apply dvd_mul_left _ _, },  },  }, }, }, -- use ring_hom.zmod_ext and ring_hom.comp for all goals above
   { rintros, apply finset.mem_univ, },
   { rintros b hb, simp only [subtype.coe_mk], },
   { rintros b c hb hc h, simp only [subtype.mk_eq_mk] at h,
@@ -2005,17 +2083,70 @@ begin
         apply equi_class_clopen p d R m n a hc hc' h' hd', }, },
     { rw subtype.ext_iff_val, simp only [zmod.cast_id', id.def, zmod.nat_cast_val], }, },
 end
-#exit
+
 lemma seq_lim_g_char_fn (n : ℕ) (a : zmod (d * p^n)) (hc : gcd c p = 1) (hc' : gcd c d = 1)
   [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] :
   sequence_limit_index' (g p d R hc hc' hd' (char_fn (zmod d × ℤ_[p])
     (clopen_from p d n a)) h') ≤ n :=
 begin
   apply nat.Inf_le, simp only [set.mem_set_of_eq], rintros m hm,
-  rw g_def,
-  sorry
+  repeat { rw g_char_fn, },
+  { --have : fact (0 < m), sorry,
+    conv_rhs { apply_congr, skip, rw ←E_c_sum_equi_class p d R _ _ _ hc', },
+    simp only, rw ←finset.sum_bUnion,
+    { apply finset.sum_bij,
+      swap 5, { rintros b hb, exact b.val, apply le_trans hm (nat.le_succ m), },
+      { rintros b hb,
+        simp only [exists_prop, finset.mem_univ, set_coe.exists, finset.mem_bUnion,
+          set.mem_to_finset, exists_true_left, subtype.coe_mk, subtype.val_eq_coe],
+        refine ⟨b.val, _, _, _⟩,
+        { assumption, },
+        { rw mem_equi_class,
+          have := b.prop, rw mem_equi_class at this,
+          conv_rhs { rw ←this, },
+          simp only [subtype.val_eq_coe],
+          rw ←zmod.cast_hom_apply ((b : zmod (d * p^m.succ)) : zmod (d * p^m)),
+          rw ←zmod.cast_hom_apply (b : zmod (d * p^m.succ)),
+          rw ←zmod.cast_hom_apply (b : zmod (d * p^m.succ)),
+          rw ←ring_hom.comp_apply, apply congr_fun _, congr, convert ring_hom.ext_zmod _ _,
+          any_goals { refine zmod.char_p _, },
+          any_goals { apply mul_dvd_mul_left, apply pow_dvd_pow _ _, },
+          { apply le_trans hm (nat.le_succ m), },
+          { apply nat.le_succ m, },
+          { assumption, }, },
+        { trivial, },
+        { rw mem_equi_class, rw subtype.val_eq_coe, }, },
+      { rintros b hb, simp only, rw subtype.val_eq_coe, },
+      { rintros b b' hb hb' h, simp only at h,
+        rw subtype.ext_iff_val, assumption, },
+      { rintros b hb,
+        simp only [exists_prop, finset.mem_univ, set_coe.exists, finset.mem_bUnion,
+          set.mem_to_finset, exists_true_left, subtype.coe_mk] at hb,
+        rcases hb with ⟨z, h1, h2, h3⟩,
+        simp only [exists_prop, finset.mem_univ, set_coe.exists, exists_eq_right',
+          exists_true_left, subtype.coe_mk, subtype.val_eq_coe],
+        refine ⟨b, _, trivial, rfl⟩,
+        rw mem_equi_class, rw mem_equi_class at h3,
+        rw mem_equi_class at h1, rw ←h1, rw ←h3,
+        -- stop being lazy and make a lemma from this!
+        repeat { rw ←zmod.cast_hom_apply _, },
+        rw ←ring_hom.comp_apply, apply congr_fun _, congr, convert ring_hom.ext_zmod _ _,
+        any_goals { refine zmod.char_p _, },
+        any_goals { apply mul_dvd_mul_left, apply pow_dvd_pow _ _, },
+        { apply nat.le_succ m, },
+        { assumption, },
+        { apply le_trans hm (nat.le_succ m), }, }, },
+    { rintros x hx y hy hxy,
+      rw finset.disjoint_iff_ne,
+      rintros z hz z' hz',
+      contrapose hxy, push_neg, push_neg at hxy,
+      rw finset.mem_def at *,
+      simp only [set.mem_to_finset_val] at hz,
+      simp only [set.mem_to_finset_val] at hz',
+      rw mem_equi_class at *,
+      rw subtype.ext_iff_val, rw subtype.val_eq_coe, rw subtype.val_eq_coe,
+      rw ←hz, rw ←hz', rw hxy, }, },
 end
-#exit
 -- lemma loc_const_comp (f : locally_constant ℤ_[p] R)
 
 -- can hd be removed?
@@ -2024,12 +2155,14 @@ lemma bernoulli_measure_nonempty [has_coe ℝ R] (hc : gcd c p = 1) (hc' : gcd c
   nonempty (@bernoulli_measure p _ d R _ _ _ _ _ hc _) :=
 begin
   refine mem_nonempty _,
-  have hd' : 0 < d, sorry,
+--  have hd' : 0 < d, sorry,
   refine { to_fun := λ f, sequence_limit (g p d R hc hc' _ f h'),
   map_add' := _,
   map_smul' := _ },
-  { assumption, },
+  { rw ←mul_one d, rw ←pow_zero p, apply fact_iff.1, apply hd 0, },
   { rintros,
+    have hd' : 0 < d,
+    { rw ←mul_one d, rw ←pow_zero p, apply fact_iff.1, apply hd 0, },
     set n := (sequence_limit_index' (g p d R hc hc' hd' (x + y) h')) ⊔ (sequence_limit_index' (g p d R hc hc' hd' x h'))
       ⊔ (sequence_limit_index' (g p d R hc hc' hd' y h')) with hn,
     --rw sequence_limit_eq (g p d R hc (x + y)) n _,
@@ -2043,6 +2176,8 @@ begin
     { rw le_sup_iff, left, rw le_sup_iff, right, apply le_refl, },
     { rw le_sup_iff, left, rw le_sup_iff, left, apply le_refl, }, },
   { rintros m x,
+    have hd' : 0 < d,
+    { rw ←mul_one d, rw ←pow_zero p, apply fact_iff.1, apply hd 0, },
     set n := (sequence_limit_index' (g p d R hc hc' hd' x h')) ⊔ (sequence_limit_index' (g p d R hc hc' hd' (m • x) h'))
       with hn,
     repeat { rw sequence_limit_eq (g p d R hc hc' hd' _ h') n _, },
@@ -2054,44 +2189,53 @@ begin
     { rw bernoulli_measure, simp only [le_refl, algebra.id.smul_eq_mul, pi.add_apply, locally_constant.coe_add, linear_map.coe_mk, locally_constant.coe_smul,
   subtype.forall, le_sup_iff, set.mem_set_of_eq, pi.smul_apply, subtype.coe_mk, set.singleton_prod, subtype.val_eq_coe],
   intros n a,
---      set V : clopen_basis' p d := ⟨U, hU⟩ with hV,
-      --set V :=  with hV,
---      have : U = V.val, rw hV, simp,
---      set n := classical.some U.prop with hn,
---      set a := classical.some (classical.some_spec U.prop) with ha,
---      set n' := classical.some (mem_clopen_basis' p d U hU) with hn,
---      set a' := classical.some (classical.some_spec (mem_clopen_basis' p d U hU)) with ha,
-/-/      have h1 : classical.some (bernoulli_measure._proof_5 p d
-  ⟨U, (iff.refl (U ∈ clopen_basis' p d)).mpr ((iff.refl (U ∈ clopen_basis' p d)).mpr hU)⟩) = n,
-      rw hn,
-  have h2 : classical.some (classical.some_spec (bernoulli_measure._proof_5 p d
-  ⟨U, (iff.refl (U ∈ clopen_basis' p d)).mpr ((iff.refl (U ∈ clopen_basis' p d)).mpr hU)⟩)) = a,
-      rw ha, rw h1,
-      rw ←hn, rw ←ha,
-      show _ = E_c p d hc n a, -/
---      change' _ = E_c p d hc n _,
-      have hd' : 0 < d, sorry,
-      rw sequence_limit_eq (g p d R hc hc' hd' _ h') n _,
-      { rw g_def p d R hc hc' hd' _ n h',
-        rw finset.sum_eq_add_sum_diff_singleton, swap 3, exact a.val,
-        swap, simp,
-        apply (@zmod.val_lt (d * p^(n)) (hd n) a),
+  have hd' : 0 < d,
+  { rw ←mul_one d, rw ←pow_zero p, apply fact_iff.1, apply hd 0, },
+--      have hd' : 0 < d, sorry,
+    rw sequence_limit_eq (g p d R hc hc' hd' _ h') n _,
+    { rw g_def p d R hc hc' hd' _ n h',
+      rw finset.sum_eq_add_sum_diff_singleton, swap 3, exact a.val,
+      swap,
+      { simp only [finset.mem_range], apply zmod.val_lt _, apply hd n, },
+        --apply (@zmod.val_lt (d * p^(n)) (hd n) a),
         rw zmod.nat_cast_val a, rw zmod.nat_cast_val a,
         convert_to (1 • ((E_c p d hc n a) : R)) + _ = ((E_c p d hc n a) : R),
         swap, rw one_smul, rw add_zero,
         congr,
-        { simp, convert one_mul ((E_c p d hc n a) : R),
+        { simp only [zmod.cast_id', algebra.id.smul_eq_mul, one_mul, id.def, nsmul_eq_mul, nat.cast_one],
+          convert one_mul ((E_c p d hc n a) : R),
           rw char_fn, simp only [not_exists, set.mem_preimage, set.mem_image, not_and,
           set.mem_singleton_iff, locally_constant.coe_mk, ite_eq_right_iff], rw if_pos,
-          use ((a : zmod (p^n)) : ℤ_[p]), simp, sorry, },
+          use (a : ℤ_[p]), --use ((a : zmod (p^n)) : ℤ_[p]),
+          split,
+          { rw ←zmod.int_cast_cast a, conv_rhs { rw ←zmod.int_cast_cast a, },
+            change (ring_hom.comp (to_zmod_pow n) (int.cast_ring_hom (ℤ_[p]))) (a : ℤ) =
+              (int.cast_ring_hom (zmod (p^n))) (a : ℤ),
+            apply congr_fun _, congr,
+            convert @ring_hom.ext_zmod 0 _ _ _ _, },
+          { rw prod.ext_iff,
+            simp only [true_and, prod.fst_zmod_cast, prod.snd_zmod_cast, eq_self_iff_true], }, },
         { apply finset.sum_eq_zero, rintros x hx, rw char_fn, simp only [not_exists,
           set.mem_preimage, set.mem_image, not_and, set.mem_singleton_iff, locally_constant.coe_mk,
           ite_eq_right_iff], rw if_neg,
           { rw zero_smul, },
-          { push_neg, rintros y hy h'', sorry, }, }, },
-      sorry, }, -- is this true?
+          { push_neg, rintros y hy h'',
+            simp only [finset.mem_sdiff, finset.mem_singleton, finset.mem_range] at hx,
+            apply hx.2, rw prod.ext_iff at h'',
+            simp only [prod.snd_nat_cast, prod.fst_nat_cast] at h'',
+            rw h''.2 at hy,
+            suffices : (x : zmod (p^n)) = (a : zmod (p^n)),
+            { rw ←zmod.nat_cast_val a at this, rw zmod.nat_coe_eq_nat_coe_iff at this,
+              cases h'' with h1 h2,
+              rw ←zmod.nat_cast_val a at h1, rw zmod.nat_coe_eq_nat_coe_iff at h1,
+              convert (nat.modeq_and_modeq_iff_modeq_mul (coprime_pow_spl p d n h')).1
+                ⟨nat.modeq.comm.1 h1, this⟩,
+              { rw nat.mod_eq_of_lt hx.1, },
+              { rw nat.mod_eq_of_lt (zmod.val_lt a), }, },
+            { rw hy.symm, simp only [ring_hom.map_nat_cast], }, }, }, },
+    { convert seq_lim_g_char_fn p d R n a hc hc' h' hd', simp only [set.singleton_prod], }, },
 end
-
+#exit
 -- not used, delete?
 /-- Constructing a linear map, given that _. -/
 noncomputable

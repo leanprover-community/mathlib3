@@ -179,6 +179,16 @@ def set.Icc.graded {α : Type u} [partial_order α] [graded α] {x y : α} (h : 
   end,
   ..set.Icc.order_bot h }
 
+/-- A preorder is isomorphic to the section from bottom to top. -/
+theorem set.Icc.self_order_iso_bot_top {α : Type u} [preorder α] [order_bot α] [order_top α] :
+  α ≃o set.Icc ⊥ (⊤ : α) :=
+begin
+  split,
+  swap,
+  exact ⟨(λ x, ⟨x, bot_le, le_top⟩), (λ x, x.val), (λ _, rfl), (λ _, subtype.eq rfl)⟩,
+  simp,
+end
+
 namespace graded
 
 instance (α : Type u) [preorder α] [ot : order_top α] [g : graded α] : bounded_order α :=

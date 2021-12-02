@@ -115,7 +115,7 @@ section comm_semiring
 
 variable [comm_semiring R]
 
-/-- The nilradical of a commutative semiring is the nilradical -/
+/-- The nilradical of a commutative semiring is the ideal of nilpotent elements. -/
 def nilradical (R : Type*) [comm_semiring R] : ideal R := (0 : ideal R).radical
 
 lemma mem_nilradical : x ∈ nilradical R ↔ is_nilpotent x := iff.rfl

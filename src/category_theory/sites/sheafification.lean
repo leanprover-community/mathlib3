@@ -605,7 +605,7 @@ def presheaf_to_Sheaf : (Cᵒᵖ ⥤ D) ⥤ Sheaf J D :=
   map_comp' := λ P Q R, J.sheafify_map_comp }
 
 /-- The sheafification functor is left adjoint to the forgetful functor. -/
-@[simps? hom_equiv_apply hom_equiv_symm_apply counit_app]
+@[simps hom_equiv_apply hom_equiv_symm_apply counit_app]
 def sheafification_adjunction : presheaf_to_Sheaf J D ⊣ Sheaf_to_presheaf J D :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ P Q,

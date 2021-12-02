@@ -427,6 +427,54 @@ classical.some_spec (ex_of_grade j)
 theorem grade_fin_idx : graded.grade_fin (idx j) = j :=
 subtype.ext $ grade_idx j
 
+private lemma grade_le_of_order_iso {α β : Type u} [partial_order α] [order_top α] [graded α]
+[partial_order β] [graded β] {oiso : α ≃o β} {n : ℕ} :
+  ∀ x, grade x = n → grade x ≤ grade (oiso x) :=
+begin
+  apply nat.strong_induction_on n,
+  intros n H x,
+  induction n with n,
+  { intro hg,
+    rw hg,
+    exact zero_le _ },
+  intro hgx,
+  suffices : ∃ y, grade y = n ∧ y < x,
+  { rcases this with ⟨y, hgy, hyx⟩,
+    rw [hgx, ←hgy],
+    exact nat.succ_le_of_lt
+      (lt_of_le_of_lt (H n (lt_add_one n) y hgy) (graded.strict_mono (oiso.lt_iff_lt.mpr hyx))) },
+  cases flag.ex_flag_mem x with Φ hx,
+  let x' : Φ := ⟨x, hx⟩,
+  have hn : n < grade_top Φ + 1 := begin
+    refine nat.lt_succ_of_le (le_trans (nat.le_succ n) _),
+    rw ←hgx,
+    exact grade_le_grade_top x,
+  end,
+  let n' : fin _ := ⟨n, hn⟩,
+  let y := graded.idx' Φ n',
+  use y,
+  have hgy : grade y = n := graded.grade_idx n',
+  use hgy,
+  change ↑y < x with y < x',
+  rw ←grade_lt_iff_lt,
+  have : grade x' = grade x := rfl,
+  rw [this, hgx, hgy],
+  exact lt_add_one n,
+end
+
+/-- Order isomorphisms preserve grades. In other words, grade functions are unique when they
+    exist. -/
+theorem grade_eq_of_order_iso {α β : Type u} [partial_order α] [order_top α] [graded α]
+[partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x : α) :
+  grade x = grade (oiso x) :=
+begin
+  rw eq_iff_le_not_lt,
+  split, { exact (grade_le_of_order_iso _ (refl _)) },
+  have : grade x = grade (oiso.symm (oiso x)) := by rw (order_iso.symm_apply_apply _ x),
+  rw this,
+  exact not_lt_of_ge (grade_le_of_order_iso _ (refl _))
+end
+
 end partial_order
 
 section linear_order
@@ -724,58 +772,6 @@ begin
   refine ⟨strong_connected_of_strong_flag_connected _, λ h, _⟩,
   apply strong_connected_iff_strong_flag_connected_aux (le_of_eq rfl),
   repeat { assumption },
-end
-
--- Todo(Vi): move somewhere appropriate.
-private lemma grade_le_of_order_iso {α β : Type u} [partial_order α] [order_top α] [graded α]
-[partial_order β] [order_top β] [graded β] {oiso : α ≃o β} {n : ℕ} :
-  ∀ x, grade x = n → grade x ≤ grade (oiso x) :=
-begin
-  apply nat.strong_induction_on n,
-  intros n H x,
-  induction n with n,
-  { intro hg,
-    rw hg,
-    exact zero_le _ },
-  intro hgx,
-  suffices : ∃ y, grade y = n ∧ y < x,
-  { rcases this with ⟨y, hgy, hyx⟩,
-    rw [hgx, ←hgy],
-    exact nat.succ_le_of_lt
-      (lt_of_le_of_lt (H n (lt_add_one n) y hgy) (graded.strict_mono (oiso.lt_iff_lt.mpr hyx))) },
-  cases flag.ex_flag_mem x with Φ hx,
-  let x' : Φ := ⟨x, hx⟩,
-  have hn : n < grade_top Φ + 1 := begin
-    refine nat.lt_succ_of_le (le_trans (nat.le_succ n) _),
-    rw ←hgx,
-    exact grade_le_grade_top x,
-  end,
-  let n' : fin _ := ⟨n, hn⟩,
-  let y := graded.idx' Φ n',
-  use y,
-  have hgy : grade y = n := graded.grade_idx n',
-  use hgy,
-  have : y < x' := begin
-    rw ← grade_lt_iff_lt,
-    have : grade x' = grade x := rfl,
-    rw [this, hgx, hgy],
-    exact lt_add_one n,
-  end,
-  exact this,
-end
-
-/-- Order isomorphisms preserve grades. In other words, grade functions are unique when they
-    exist. -/
--- Todo(Vi): move somewhere appropriate.
-theorem grade_eq_of_order_iso {α β : Type u} [partial_order α] [order_top α] [graded α]
-[partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x : α) :
-  grade x = grade (oiso x) :=
-begin
-  rw eq_iff_le_not_lt,
-  split, { exact (grade_le_of_order_iso _ (refl _)) },
-  have : grade x = grade (oiso.symm (oiso x)) := by rw (order_iso.symm_apply_apply _ x),
-  rw this,
-  exact not_lt_of_ge (grade_le_of_order_iso _ (refl _))
 end
 
 end

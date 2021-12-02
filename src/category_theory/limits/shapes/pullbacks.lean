@@ -506,7 +506,7 @@ def pullback_cone.of_cone
 /-- A diagram `walking_cospan ⥤ C` is isomorphic to some `pullback_cone.mk` after
 composing with `diagram_iso_cospan`. -/
 @[simps] def pullback_cone.iso_mk {F : walking_cospan ⥤ C} (t : cone F) :
-  (cones.postcompose (diagram_iso_cospan _).hom).obj t ≅
+  (cones.postcompose (diagram_iso_cospan.{v} _).hom).obj t ≅
     pullback_cone.mk (t.π.app walking_cospan.left) (t.π.app walking_cospan.right)
     ((t.π.naturality inl).symm.trans (t.π.naturality inr : _)) :=
 cones.ext (iso.refl _) $ by rintro (_|(_|_)); { dsimp, simp }
@@ -522,7 +522,7 @@ def pushout_cocone.of_cocone
 /-- A diagram `walking_span ⥤ C` is isomorphic to some `pushout_cocone.mk` after composing with
 `diagram_iso_span`. -/
 @[simps] def pushout_cocone.iso_mk {F : walking_span ⥤ C} (t : cocone F) :
-  (cocones.precompose (diagram_iso_span _).inv).obj t ≅
+  (cocones.precompose (diagram_iso_span.{v} _).inv).obj t ≅
     pushout_cocone.mk (t.ι.app walking_span.left) (t.ι.app walking_span.right)
     ((t.ι.naturality fst).trans (t.ι.naturality snd).symm) :=
 cocones.ext (iso.refl _) $ by rintro (_|(_|_)); { dsimp, simp }

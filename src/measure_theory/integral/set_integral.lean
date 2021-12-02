@@ -70,7 +70,7 @@ set_integral_congr_ae hs $ eventually_of_forall h
 
 lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
   ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
-by rw restrict_congr_set hst
+by rw measure.restrict_congr_set hst
 
 lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurable_set t)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
@@ -135,10 +135,6 @@ over the whole space is equal to `∫ x in s, f x ∂μ` defined as `∫ x, f x 
 lemma integral_indicator (hs : measurable_set s) :
   ∫ x, indicator s f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
-  by_cases hf : ae_measurable f (μ.restrict s), swap,
-  { rw integral_non_ae_measurable hf,
-    rw [← ae_measurable_indicator_iff hs] at hf,
-    exact integral_non_ae_measurable hf },
   by_cases hfi : integrable_on f s μ, swap,
   { rwa [integral_undef, integral_undef],
     rwa integrable_indicator_iff hs },

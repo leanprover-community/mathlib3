@@ -1126,7 +1126,7 @@ by simp only [h]
 
 lemma set_lintegral_congr {f : α → ℝ≥0∞} {s t : set α} (h : s =ᵐ[μ] t) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
-by rw [restrict_congr_set h]
+by rw [measure.restrict_congr_set h]
 
 lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measurable_set s)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :

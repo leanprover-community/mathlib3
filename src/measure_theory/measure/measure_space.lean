@@ -969,6 +969,18 @@ assume t ht,
 calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
 ... ≤ μ t : measure_mono $ inter_subset_left t s
 
+lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
+restrict_mono' h (le_refl μ)
+
+lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
+le_antisymm (restrict_mono_ae h.le) (restrict_mono_ae h.symm.le)
+
+lemma restrict_eq_self_of_ae_mem {m0 : measurable_space α} ⦃s : set α⦄ ⦃μ : measure α⦄
+  (hs : ∀ᵐ x ∂μ, x ∈ s) :
+  μ.restrict s = μ :=
+calc μ.restrict s = μ.restrict univ : restrict_congr_set (eventually_eq_univ.mpr hs)
+... = μ : restrict_univ
+
 lemma restrict_congr_meas (hs : measurable_set s) :
   μ.restrict s = ν.restrict s ↔ ∀ t ⊆ s, measurable_set t → μ t = ν t :=
 ⟨λ H t hts ht,
@@ -1655,16 +1667,6 @@ lemma ae_eq_dirac [measurable_singleton_class α] {a : α} (f : α → δ) :
 by simp [filter.eventually_eq]
 
 end dirac
-
-lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
-begin
-  intros u hu,
-  simp only [restrict_apply hu],
-  exact measure_mono_ae (h.mono $ λ x hx, and.imp id hx)
-end
-
-lemma restrict_congr_set (H : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
-le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
 
 section is_finite_measure
 

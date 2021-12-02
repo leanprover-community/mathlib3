@@ -344,7 +344,7 @@ begin
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
-by { by_cases h : (I : K) = 0; field_simp [h] }
+by field_simp
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 (@norm_sq K _).map_inv z
@@ -785,24 +785,3 @@ linear_isometry.norm_to_continuous_linear_map of_real_li
 end linear_maps
 
 end is_R_or_C
-
-section normalization
-variables {K : Type*} [is_R_or_C K]
-variables {E : Type*} [normed_group E] [normed_space K E]
-
-open is_R_or_C
-
-/- Note: one might think the following lemma belongs in `analysis.normed_space.basic`.  But it
-can't be placed there, because that file is an import of `data.complex.is_R_or_C`! -/
-
-/-- Lemma to normalize a vector in a normed space `E` over either `ℂ` or `ℝ` to unit length. -/
-@[simp] lemma norm_smul_inv_norm {x : E} (hx : x ≠ 0) : ∥(∥x∥⁻¹ : K) • x∥ = 1 :=
-begin
-  have h : ∥(∥x∥ : K)∥ = ∥x∥,
-  { rw norm_eq_abs,
-    exact abs_of_nonneg (norm_nonneg _) },
-  have : ∥x∥ ≠ 0 := by simp [hx],
-  field_simp [norm_smul, h]
-end
-
-end normalization

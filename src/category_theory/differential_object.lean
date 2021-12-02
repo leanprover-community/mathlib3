@@ -233,7 +233,12 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp, rw [category.assoc, functor.map_comp_assoc, shift_add_hom_comp_assoc],
-    congr' 1, sorry },
+    congr' 1, dsimp [shift_comm],
+    simp only [shift_shift_add_hom', shift_shift_add_inv', iso.hom_inv_id_assoc, category.assoc,
+      eq_to_hom_map, eq_to_hom_trans_assoc, iso.cancel_iso_inv_left, functor.map_comp],
+    rw [shift_add_hom_comp_eq_to_hom₁_assoc, shift_add_hom_comp_eq_to_hom₂_assoc,
+      iso.hom_inv_id_assoc, eq_to_hom_trans_assoc, eq_to_hom_trans_assoc, eq_to_hom_trans_assoc],
+    all_goals { exact add_comm _ _ } },
   { intros X Y f, ext1, dsimp, rw [shift_add_hom_comp] }
 end
 .

@@ -71,7 +71,7 @@ namespace uv
 /-! ### UV-compression in generalized boolean algebras -/
 
 section generalized_boolean_algebra
-variables [generalized_boolean_algebra α] [decidable_rel (@disjoint α _)]
+variables [generalized_boolean_algebra α] [decidable_rel (@disjoint α _ _)]
   [decidable_rel ((≤) : α → α → Prop)] {s : finset α} {u v a b : α}
 
 /-- To UV-compress `a`, if it doesn't touch `U` and does contain `V`, we remove `V` and

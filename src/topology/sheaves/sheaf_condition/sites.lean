@@ -516,11 +516,12 @@ variables {C : Type u} [category.{v} C] [limits.has_products C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 
-lemma is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=
+/-- The empty component of a sheaf is terminal -/
+def is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=
 ((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F).is_terminal_of_bot_cover ∅ (by tidy)
 
 /-- A variant of `is_terminal_of_empty` that is easier to `apply`. -/
-lemma is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ∅) :
+def is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ∅) :
   limits.is_terminal (F.val.obj (op U)) :=
 by convert F.is_terminal_of_empty
 

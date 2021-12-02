@@ -87,7 +87,7 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
   (g : Y ⟶ Z) [preserves_limit (cospan f g) F] : preserves_limit (cospan g f) F :=
 { preserves := λ c hc,
   begin
-    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).to_fun,
+    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v} _) _).to_fun,
     apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _).symm,
     apply pullback_cone.flip_is_limit,
     apply (is_limit_map_cone_pullback_cone_equiv _ _).to_fun,
@@ -95,7 +95,7 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
       { dsimp, apply_instance },
       apply pullback_cone.flip_is_limit,
       apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
-      exact (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).inv_fun hc },
+      exact (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v} _) _).inv_fun hc },
     { exact (c.π.naturality walking_cospan.hom.inr).symm.trans
       (c.π.naturality walking_cospan.hom.inl : _) }
   end }
@@ -146,7 +146,7 @@ def is_colimit_map_cocone_pushout_cocone_equiv :
   is_colimit (G.map_cocone (pushout_cocone.mk h k comm)) ≃
     is_colimit (pushout_cocone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
       : pushout_cocone (G.map f) (G.map g)) :=
-(is_colimit.precompose_hom_equiv (diagram_iso_span _).symm _).symm.trans
+(is_colimit.precompose_hom_equiv (diagram_iso_span.{v} _).symm _).symm.trans
   (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by { rintro (_ | _ | _), tidy, })))
 
 /-- The property of preserving pushouts expressed in terms of binary cofans. -/
@@ -188,7 +188,7 @@ def preserves_pushout_symmetry {D : Type*} [category D] (F : C ⥤ D) (f : X ⟶
   (g : X ⟶ Z) [preserves_colimit (span f g) F] : preserves_colimit (span g f) F :=
 { preserves := λ c hc,
   begin
-    apply (is_colimit.precompose_hom_equiv (diagram_iso_span _).symm _).to_fun,
+    apply (is_colimit.precompose_hom_equiv (diagram_iso_span.{v} _).symm _).to_fun,
     apply is_colimit.of_iso_colimit _ (pushout_cocone.iso_mk _).symm,
     apply pushout_cocone.flip_is_colimit,
     apply (is_colimit_map_cocone_pushout_cocone_equiv _ _).to_fun,
@@ -196,7 +196,7 @@ def preserves_pushout_symmetry {D : Type*} [category D] (F : C ⥤ D) (f : X ⟶
       { dsimp, apply_instance },
       apply pushout_cocone.flip_is_colimit,
       apply is_colimit.of_iso_colimit _ (pushout_cocone.iso_mk _),
-      exact (is_colimit.precompose_hom_equiv (diagram_iso_span _) _).inv_fun hc },
+      exact (is_colimit.precompose_hom_equiv (diagram_iso_span.{v} _) _).inv_fun hc },
     { exact (c.ι.naturality walking_span.hom.snd).trans
       (c.ι.naturality walking_span.hom.fst).symm }
   end }

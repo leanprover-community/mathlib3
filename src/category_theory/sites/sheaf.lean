@@ -159,7 +159,7 @@ instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type w)) :=
 variables {J} {A}
 
 /-- If the empty sieve is a cover of `X`, then `F(X)` is terminal. -/
-lemma Sheaf.is_terminal_of_bot_cover (F : Sheaf J A) (X : C) (H : ⊥ ∈ J X) :
+def Sheaf.is_terminal_of_bot_cover (F : Sheaf J A) (X : C) (H : ⊥ ∈ J X) :
   is_terminal (F.1.obj (op X)) :=
 begin
   apply_with is_terminal.of_unique { instances := ff },

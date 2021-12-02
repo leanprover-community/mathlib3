@@ -1048,16 +1048,6 @@ variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
 variables [topological_space α] [normed_ring β] [star_ring β] [cstar_ring β]
 variables [normed_algebra 𝕜 β] [star_module 𝕜 β]
 
-/-
-Here we can get away with `[normed_star_monoid β]` instead of `[cstar_ring β]`.
-Then change would be to replace :
-  `cstar_ring.to_normed_star_monoid.norm_star`
-with :
-  `(@normed_star_monoid.norm_star _ _ _ _)`
-But since we are mainly focused on showing that `α →ᵇ β` is a `cstar_ring`, we
-just do the slightly less general thing in favor of simplifying `variables`
-declarations.
--/
 instance : star_ring (α →ᵇ β) :=
 { star := λ f, f.comp star star_normed_group_hom.lipschitz,
   star_involutive := λ f, ext $ λ x, star_star (f x),

@@ -427,7 +427,12 @@ classical.some_spec (ex_of_grade j)
 theorem grade_fin_idx : graded.grade_fin (idx j) = j :=
 subtype.ext $ grade_idx j
 
-variables {β : Type u} [partial_order β] [order_top β] [graded β]
+end partial_order
+
+section order_iso
+
+variables {α : Type u} [partial_order α] [order_top α] [graded α] {β : Type u} [partial_order β]
+[order_top β] [graded β]
 
 -- Todo(Vi): Generalize! This doesn't actually require `order_top`.
 private lemma grade_le_of_order_iso {oiso : α ≃o β} {n : ℕ} :
@@ -477,7 +482,29 @@ begin
   exact not_lt_of_ge (grade_le_of_order_iso _ (refl _))
 end
 
-end partial_order
+/-- Order isomorphisms preserve connectedness. -/
+theorem connected_order_iso_of_connected (oiso : α ≃o β) :
+  graded.connected α → graded.connected β :=
+begin
+  intros ha,
+  cases ha with ha ha', {
+    left,
+    change grade_top α with grade ⊤ at ha,
+    rwa [grade_eq_of_order_iso oiso (⊤ : α), oiso.map_top] at ha,
+  },
+  right,
+  intros x y,
+  have : ∃ a, x = oiso.proper a := ⟨oiso.proper.inv_fun x, by simp⟩,
+  cases this with a ha,
+  rw ha,
+  have : ∃ b, y = oiso.proper b := ⟨oiso.proper.inv_fun y, by simp⟩,
+  cases this with b hb,
+  rw hb,
+  apply connected_order_iso_of_connected_aux,
+  apply ha',
+end
+
+end order_iso
 
 section linear_order
 

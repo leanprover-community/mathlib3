@@ -411,20 +411,20 @@ lemma top_improper {α : Type u} [preorder α] [order_top α] : ¬ is_proper (�
 λ ⟨_, _, ⟨_, h⟩⟩, not_le_of_gt h le_top
 
 /-- The improper elements are exactly the bottom and top ones. -/
+theorem proper_of_ne_bot_top {α : Type u} [preorder α] [bounded_order α] (a : α) :
+  polytope.is_proper a → a ≠ ⊥ ∧ a ≠ ⊤ :=
+begin
+  intro ha,
+  split,
+  repeat { intro h, rw h at ha, swap },
+  exact bot_improper ha,
+  exact top_improper ha,
+end
+
+/-- The improper elements are exactly the bottom and top ones. -/
 theorem proper_iff_ne_bot_top {α : Type u} [partial_order α] [bounded_order α] (a : α) :
   polytope.is_proper a ↔ a ≠ ⊥ ∧ a ≠ ⊤ :=
-begin
-  split,
-    { intro ha,
-      split,
-        { intro h,
-          rw h at ha,
-          exact bot_improper ha },
-      intro h,
-      rw h at ha,
-      exact top_improper ha },
-  exact λ ⟨hal, har⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.mpr hal, lt_top_iff_ne_top.mpr har⟩,
-end
+⟨proper_of_ne_bot_top a, λ ⟨hl, hr⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.mpr hl, lt_top_iff_ne_top.mpr hr⟩⟩
 
 /-- An element is proper iff it has a grade between the bottom and top element. -/
 lemma proper_iff_grade_iio {α : Type u} [partial_order α] [order_top α] [graded α] (a : α) :
@@ -563,14 +563,72 @@ protected def connected' (α : Type u) [preorder α] : Prop :=
 protected def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
 grade_top α = 2 ∨ graded.connected' α
 
+/-- Order isomorphisms preserve proper elements. -/
+lemma proper_order_iso_of_proper {α : Type u} [partial_order α] [order_top α] [graded α]
+{β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x : proper α) :
+  is_proper (oiso x) :=
+begin
+  rw proper_iff_ne_bot_top (oiso x),
+  split, {
+    intro h,
+    apply @bot_improper α,
+    have := x.prop,
+    rw ←oiso.map_bot at h,
+    rwa oiso.injective h at this,
+  },
+  intro h,
+  apply @top_improper α,
+  have := x.prop,
+  rw ←oiso.map_top at h,
+  rwa oiso.injective h at this,
+end
+
+end graded
+
+namespace order_iso
+
+variables {α : Type u} [partial_order α] [order_top α] [graded α] {β : Type u} [partial_order β]
+[order_top β] [graded β] (oiso : α ≃o β)
+
+/-- The map from proper elements to proper elements given by an order isomorphism. -/
+private def proper_aux : proper α → proper β :=
+λ x, ⟨oiso x, graded.proper_order_iso_of_proper oiso x⟩
+
+/-- An isomorphism between graded posets extends to an isomorphism between proper elements. -/
+def proper : proper α ≃o proper β :=
+{ to_fun := proper_aux oiso,
+  inv_fun := proper_aux oiso.symm,
+  left_inv := λ x, subtype.eq (oiso.symm_apply_apply x),
+  right_inv := λ x, subtype.eq (oiso.apply_symm_apply x),
+  map_rel_iff' := λ _ _, le_iff_le oiso }
+
+end order_iso
+
+namespace graded
+
+/-- If two elements are connectred, so are their maps under an isomorphism. -/
+-- Todo(Vi): Better name?
+lemma connected_order_iso_of_connected_aux (α : Type u) [partial_order α] [order_top α] [graded α]
+(β : Type u) [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x y : proper α) :
+  connected x y → connected (oiso.proper x) (oiso.proper y) :=
+begin
+  intro hxy,
+  induction hxy with _ x y z hxy hyz hxy',
+    { exact path.refl },
+  apply path.append_right hxy',
+  intro hne,
+  cases hyz (λ h, hne (congr_arg oiso h : oiso y = oiso z)) with hyz hyz,
+    { exact or.inl (oiso.lt_iff_lt.mpr hyz) },
+  exact or.inr (oiso.lt_iff_lt.mpr hyz),
+end
+
 /-- Any `graded` of top grade less or equal to 2 is connected. -/
 theorem connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
   grade_top α ≤ 2 → graded.connected α :=
 begin
   intro h,
   cases eq_or_lt_of_le h with ha ha, { exact or.inl ha },
-  have := (proper.empty (nat.le_of_lt_succ ha)).false,
-  exact or.inr (λ a, (this a).elim)
+  exact or.inr (λ a, (((proper.empty (nat.le_of_lt_succ ha)).false : proper α → false) a).elim)
 end
 
 /-- Asserts that a section of a graded poset is connected'. -/

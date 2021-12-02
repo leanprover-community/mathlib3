@@ -267,7 +267,7 @@ root_gcd_iff_root_left_right
 
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
-by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
+by rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_iff, gcd_map, is_unit_map]
 
 @[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
   p.map f = 0 ↔ p = 0 :=
@@ -413,7 +413,7 @@ lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {K : Type*} [field K]
   (f : polynomial K) (a : K) (hf' : f.derivative.eval a ≠ 0) :
   is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
 begin
-  refine or.resolve_left (dvd_or_coprime (X - C a) (f /ₘ (X - C a))
+  refine or.resolve_left (euclidean_domain.dvd_or_coprime (X - C a) (f /ₘ (X - C a))
     (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C a))) _,
   contrapose! hf' with h,
   have key : (X - C a) * (f /ₘ (X - C a)) = f - (f %ₘ (X - C a)),

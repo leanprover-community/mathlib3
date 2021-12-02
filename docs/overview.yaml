@@ -347,7 +347,7 @@ Combinatorics:
   Graph theory:
     simple graph: 'simple_graph'
     degree-sum formula: 'simple_graph.sum_degrees_eq_twice_card_edges'
-    matching: 'simple_graph.matching'
+    matching: 'simple_graph.subgraph.is_matching'
     adjacency matrix: 'simple_graph.adj_matrix'
   Pigeonhole principles:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'

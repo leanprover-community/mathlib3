@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.lift
-import topology.separation
+import topology.subset_properties
 /-!
 # Uniform spaces
 
@@ -271,6 +271,16 @@ lemma uniform_space.of_core_eq_to_core
   (u : uniform_space α) (t : topological_space α) (h : t = u.to_core.to_topological_space) :
   uniform_space.of_core_eq u.to_core t h = u :=
 uniform_space_eq rfl
+
+/-- Replace topology in a `uniform_space` instance with a propositionally (but possibly not
+definitionally) equal one. -/
+def uniform_space.replace_topology {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : uniform_space α :=
+uniform_space.of_core_eq u.to_core i $ h.trans u.to_core_to_topological_space.symm
+
+lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : u.replace_topology h = u :=
+u.of_core_eq_to_core _ _
 
 section uniform_space
 variables [uniform_space α]
@@ -865,7 +875,7 @@ section
 variable (α)
 
 lemma uniform_space.has_seq_basis [is_countably_generated $ 𝓤 α] :
-  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
+  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) V ∧ ∀ n, symmetric_rel (V n) :=
 let ⟨U, hsym, hbasis⟩ :=  uniform_space.has_basis_symmetric.exists_antitone_subbasis
 in ⟨U, hbasis, λ n, (hsym n).2⟩
 

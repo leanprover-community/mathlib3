@@ -140,9 +140,9 @@ function.update_injective _ i
 end
 end pi
 
-section extend
 namespace function
 
+section extend
 @[to_additive]
 lemma extend_one [has_one γ] (f : α → β) :
   function.extend f (1 : α → γ) (1 : β → γ) = 1 :=
@@ -163,8 +163,21 @@ lemma extend_div [has_div γ] (f : α → β) (g₁ g₂ : α → γ) (e₁ e₂
   function.extend f (g₁ / g₂) (e₁ / e₂) = function.extend f g₁ e₁ / function.extend f g₂ e₂ :=
 funext $ λ _, by convert (apply_dite2 (/) _ _ _ _ _).symm
 
-end function
 end extend
+
+lemma surjective_pi_map {F : Π i, f i → g i} (hF : ∀ i, surjective (F i)) :
+  surjective (λ x : Π i, f i, λ i, F i (x i)) :=
+λ y, ⟨λ i, (hF i (y i)).some, funext $ λ i, (hF i (y i)).some_spec⟩
+
+lemma injective_pi_map {F : Π i, f i → g i} (hF : ∀ i, injective (F i)) :
+  injective (λ x : Π i, f i, λ i, F i (x i)) :=
+λ x y h, funext $ λ i, hF i $ (congr_fun h i : _)
+
+lemma bijective_pi_map {F : Π i, f i → g i} (hF : ∀ i, bijective (F i)) :
+  bijective (λ x : Π i, f i, λ i, F i (x i)) :=
+⟨injective_pi_map (λ i, (hF i).injective), surjective_pi_map (λ i, (hF i).surjective)⟩
+
+end function
 
 lemma subsingleton.pi_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_zero α]
   (i : I) (x : α) :

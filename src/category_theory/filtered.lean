@@ -7,7 +7,7 @@ import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
 import category_theory.category.preorder
-import order.bounded_lattice
+import order.bounded_order
 
 /-!
 # Filtered categories
@@ -100,8 +100,8 @@ instance is_filtered_of_directed_order_nonempty
   (α : Type u) [directed_order α] [nonempty α] : is_filtered α := {}
 
 -- Sanity checks
-example (α : Type u) [semilattice_sup_bot α] : is_filtered α := by apply_instance
-example (α : Type u) [semilattice_sup_top α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by apply_instance
 
 namespace is_filtered
 
@@ -473,8 +473,8 @@ instance is_cofiltered_of_semilattice_inf_nonempty
   (α : Type u) [semilattice_inf α] [nonempty α] : is_cofiltered α := {}
 
 -- Sanity checks
-example (α : Type u) [semilattice_inf_bot α] : is_cofiltered α := by apply_instance
-example (α : Type u) [semilattice_inf_top α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := by apply_instance
 
 namespace is_cofiltered
 

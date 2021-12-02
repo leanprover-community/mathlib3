@@ -43,7 +43,7 @@ For each of the following structures we prove that if `β` has this structure, t
 * one-operation algebraic structures up to `comm_group`;
 * `mul_zero_class`, `distrib`, `semiring`, `comm_semiring`, `ring`, `comm_ring`;
 * `mul_action`, `distrib_mul_action`, `module`;
-* `preorder`, `partial_order`, and `lattice` structures up to `bounded_lattice`;
+* `preorder`, `partial_order`, and `lattice` structures, as well as `bounded_order`;
 * `ordered_cancel_comm_monoid` and `ordered_cancel_add_comm_monoid`.
 
 ## Tags
@@ -488,23 +488,11 @@ instance [semilattice_inf β] : semilattice_inf (germ l β) :=
     h₂.mp $ h₁.mono $ λ x, le_inf,
   .. germ.partial_order }
 
-instance [semilattice_inf_bot β] : semilattice_inf_bot (germ l β) :=
-{ .. germ.semilattice_inf, .. germ.order_bot }
-
-instance [semilattice_sup_bot β] : semilattice_sup_bot (germ l β) :=
-{ .. germ.semilattice_sup, .. germ.order_bot }
-
-instance [semilattice_inf_top β] : semilattice_inf_top (germ l β) :=
-{ .. germ.semilattice_inf, .. germ.order_top }
-
-instance [semilattice_sup_top β] : semilattice_sup_top (germ l β) :=
-{ .. germ.semilattice_sup, .. germ.order_top }
-
 instance [lattice β] : lattice (germ l β) :=
 { .. germ.semilattice_sup, .. germ.semilattice_inf }
 
-instance [bounded_lattice β] : bounded_lattice (germ l β) :=
-{ .. germ.lattice, .. germ.order_bot, .. germ.order_top }
+instance [has_le β] [bounded_order β] : bounded_order (germ l β) :=
+{ .. germ.order_bot, .. germ.order_top }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid (germ l β) :=

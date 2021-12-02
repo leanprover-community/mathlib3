@@ -92,6 +92,11 @@ lemma injective.of_comp_iff' (f : α → β) {g : γ → α} (hg : bijective g) 
     hx ▸ hy ▸ λ hf, h hf ▸ rfl,
   λ h, h.comp hg.injective⟩
 
+/-- Composition by an injective function on the left is itself injective. -/
+lemma injective.comp_left {g : β → γ} (hg : function.injective g) :
+  function.injective ((∘) g : (α → β) → (α → γ)) :=
+λ f₁ f₂ hgf, funext $ λ i, hg $ (congr_fun hgf i : _)
+
 lemma injective_of_subsingleton [subsingleton α] (f : α → β) :
   injective f :=
 λ a b ab, subsingleton.elim _ _
@@ -277,7 +282,7 @@ is_partial_inv_left (partial_inv_of_injective I)
 
 end
 
-section inv_fun
+section inv_fun_on
 variables {α : Type u} [n : nonempty α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
 include n
 local attribute [instance, priority 10] classical.prop_decidable
@@ -302,15 +307,23 @@ h _ (inv_fun_on_mem this) _ ha (inv_fun_on_eq this)
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice n :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
+end inv_fun_on
+
+section inv_fun
+
+variables {α β : Sort*} [nonempty α] {f : α → β} {a : α} {b : β}
+local attribute [instance, priority 10] classical.prop_decidable
+
 /-- The inverse of a function (which is a left inverse if `f` is injective
   and a right inverse if `f` is surjective). -/
-noncomputable def inv_fun (f : α → β) : β → α := inv_fun_on f set.univ
+noncomputable def inv_fun (f : α → β) : β → α :=
+λ y, if h : ∃ x, f x = y then h.some else classical.arbitrary α
 
-theorem inv_fun_eq (h : ∃a, f a = b) : f (inv_fun f b) = b :=
-inv_fun_on_eq $ let ⟨a, ha⟩ := h in ⟨a, trivial, ha⟩
+theorem inv_fun_eq (h : ∃ a, f a = b) : f (inv_fun f b) = b :=
+by simp only [inv_fun, dif_pos h, h.some_spec]
 
-lemma inv_fun_neg (h : ¬ ∃ a, f a = b) : inv_fun f b = classical.choice n :=
-by refine inv_fun_on_neg (mt _ h); exact assume ⟨a, _, ha⟩, ⟨a, ha⟩
+lemma inv_fun_neg (h : ¬ ∃ a, f a = b) : inv_fun f b = classical.choice ‹_› :=
+dif_neg h
 
 theorem inv_fun_eq_of_injective_of_right_inverse {g : β → α}
   (hf : injective f) (hg : right_inverse g f) : inv_fun f = g :=
@@ -321,20 +334,12 @@ lemma right_inverse_inv_fun (hf : surjective f) : right_inverse (inv_fun f) f :=
 assume b, inv_fun_eq $ hf b
 
 lemma left_inverse_inv_fun (hf : injective f) : left_inverse (inv_fun f) f :=
-assume b,
-have f (inv_fun f (f b)) = f b,
-  from inv_fun_eq ⟨b, rfl⟩,
-hf this
+λ b, hf $ inv_fun_eq ⟨b, rfl⟩
 
 lemma inv_fun_surjective (hf : injective f) : surjective (inv_fun f) :=
 (left_inverse_inv_fun hf).surjective
 
 lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_inverse_inv_fun hf
-
-end inv_fun
-
-section inv_fun
-variables {α : Type u} [nonempty α] {β : Sort v} {f : α → β}
 
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
 ⟨inv_fun f, left_inverse_inv_fun hf⟩
@@ -345,7 +350,7 @@ lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=
 end inv_fun
 
 section surj_inv
-variables {α : Sort u} {β : Sort v} {f : α → β}
+variables {α : Sort u} {β : Sort v} {γ : Sort w} {f : α → β}
 
 /-- The inverse of a surjective function. (Unlike `inv_fun`, this does not require
   `α` to be inhabited.) -/
@@ -375,6 +380,16 @@ lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
 lemma surjective_to_subsingleton [na : nonempty α] [subsingleton β] (f : α → β) :
   surjective f :=
 λ y, let ⟨a⟩ := na in ⟨a, subsingleton.elim _ _⟩
+
+/-- Composition by an surjective function on the left is itself surjective. -/
+lemma surjective.comp_left {g : β → γ} (hg : function.surjective g) :
+  function.surjective ((∘) g : (α → β) → (α → γ)) :=
+λ f, ⟨surj_inv hg ∘ f, funext $ λ x, right_inverse_surj_inv _ _⟩
+
+/-- Composition by an bijective function on the left is itself bijective. -/
+lemma bijective.comp_left {g : β → γ} (hg : function.bijective g) :
+  function.bijective ((∘) g : (α → β) → (α → γ)) :=
+⟨hg.injective.comp_left, hg.surjective.comp_left⟩
 
 end surj_inv
 

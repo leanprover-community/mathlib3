@@ -223,6 +223,7 @@ def measurable_space
         exact @measurable_set.Union _ _ (f i) _ _ (hs i),
       end }
 
+@[protected]
 lemma measurable_set {τ : α → ι} (hτ : is_stopping_time f τ) (s : set α) :
   measurable_set[hτ.measurable_space] s ↔
   ∀ i : ι, measurable_set[f i] (s ∩ {x | τ x ≤ i}) :=
@@ -279,7 +280,7 @@ begin
 end
 
 lemma measurable {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) :
-  @measurable _ _ hτ.measurable_space ⊤ τ :=
+  measurable[hτ.measurable_space] τ :=
 begin
   refine @measurable_to_encodable ℕ α ⊤ hτ.measurable_space _ τ _,
   intro y,

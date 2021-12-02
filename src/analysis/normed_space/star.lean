@@ -44,6 +44,11 @@ def star_normed_group_hom {E : Type*} [normed_group E] [star_add_monoid E] [norm
 { bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
   .. star_add_equiv }
 
+/-- The `star` map in a normed star group is an isometry -/
+lemma star_isometry {E : Type*} [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
+  isometry (star : E → E) :=
+star_add_equiv.to_add_monoid_hom.isometry_of_norm (@normed_star_monoid.norm_star _ _ _ _)
+
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
 for every `x`. -/
 class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=

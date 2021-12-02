@@ -472,8 +472,7 @@ end
 /-- Order isomorphisms preserve grades. In other words, grade functions are unique when they
     exist. -/
 -- Todo(Vi): Generalize! This doesn't actually require `order_top`.
-theorem grade_eq_of_order_iso (oiso : α ≃o β) (x : α) :
-  grade x = grade (oiso x) :=
+theorem grade_eq_of_order_iso (oiso : α ≃o β) (x : α) : grade x = grade (oiso x) :=
 begin
   rw eq_iff_le_not_lt,
   split, { exact (grade_le_of_order_iso _ (refl _)) },
@@ -483,8 +482,7 @@ begin
 end
 
 /-- Order isomorphisms preserve top grades. -/
-lemma grade_top_eq_of_order_iso (oiso : α ≃o β) :
-  grade_top α = grade_top β :=
+lemma grade_top_eq_of_order_iso (oiso : α ≃o β) : grade_top α = grade_top β :=
 begin
   change grade_top α with grade (⊤ : α),
   change grade_top β with grade (⊤ : β),
@@ -523,6 +521,12 @@ theorem strong_connected_order_iso_iff_strong_connected (oiso : α ≃o β) :
   graded.strong_connected α ↔ graded.strong_connected β :=
 ⟨strong_connected_order_iso_of_strong_connected oiso.symm,
   strong_connected_order_iso_of_strong_connected oiso⟩
+
+/-- Strong connectedness implies connectedness. -/
+theorem connected_of_strong_connected (α : Type u) [partial_order α] [order_top α] [graded α] :
+  strong_connected α → graded.connected α :=
+λ h, (@connected_order_iso_iff_connected α _ _ _ (set.Icc ⊥ (⊤ : α)) _ (set.Icc.order_top bot_le)
+  (set.Icc.graded bot_le) (set.Icc.self_order_iso_bot_top α)).mpr (h bot_le)
 
 end order_iso
 

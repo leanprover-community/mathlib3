@@ -3,16 +3,17 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.prod
-import data.sum
-import data.subtype
-import data.sigma.basic
 import data.option.basic
-import logic.function.basic
-import logic.function.conjugate
+import data.sum
 import logic.unique
-import tactic.norm_cast
+import logic.function.basic
+import data.quot
 import tactic.simps
+import logic.function.conjugate
+import data.prod
+import tactic.norm_cast
+import data.sigma.basic
+import data.subtype
 
 /-!
 # Equivalence between types
@@ -273,9 +274,9 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
 
-@[simp] theorem symm_trans (e : α ≃ β) : e.symm.trans e = equiv.refl β := ext (by simp)
+@[simp] theorem symm_trans_self (e : α ≃ β) : e.symm.trans e = equiv.refl β := ext (by simp)
 
-@[simp] theorem trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext (by simp)
+@[simp] theorem self_trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext (by simp)
 
 lemma trans_assoc {δ} (ab : α ≃ β) (bc : β ≃ γ) (cd : γ ≃ δ) :
   (ab.trans bc).trans cd = ab.trans (bc.trans cd) :=
@@ -406,6 +407,14 @@ protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 @[simps apply symm_apply {fully_applied := ff}]
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
+
+/-- `pprod α β` is equivalent to `α × β` -/
+@[simps apply symm_apply]
+def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β :=
+{ to_fun := λ x, (x.1, x.2),
+  inv_fun := λ x, ⟨x.1, x.2⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨x, y⟩, rfl }
 
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
@@ -1277,8 +1286,8 @@ by { ext, refl }
 
 @[simp] lemma subtype_equiv_symm {p : α → Prop} {q : β → Prop} (e : α ≃ β)
   (h : ∀ (a : α), p a ↔ q (e a)) :
-  (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by {
-    convert (h $ e.symm a).symm,
+  (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by
+  { convert (h $ e.symm a).symm,
     exact (e.apply_symm_apply a).symm }) :=
 rfl
 
@@ -1859,6 +1868,25 @@ of equivalences of the matching fibers.
 -/
 def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
 (equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁)
+
+@[simp] lemma coe_Pi_congr_symm :
+  ((h₁.Pi_congr h₂).symm : (Π b, Z b) → (Π a, W a)) = λ f a, (h₂ a).symm (f (h₁ a)) :=
+rfl
+
+lemma Pi_congr_symm_apply (f : Π b, Z b) :
+  (h₁.Pi_congr h₂).symm f = λ a, (h₂ a).symm (f (h₁ a)) :=
+rfl
+
+@[simp] lemma Pi_congr_apply_apply (f : Π a, W a) (a : α) :
+  h₁.Pi_congr h₂ f (h₁ a) = h₂ a (f a) :=
+begin
+  change cast _ ((h₂ (h₁.symm (h₁ a))) (f (h₁.symm (h₁ a)))) = (h₂ a) (f a),
+  generalize_proofs hZa,
+  revert hZa,
+  rw h₁.symm_apply_apply a,
+  simp,
+end
+
 end
 
 section
@@ -1872,6 +1900,27 @@ of equivalences of the matching fibres.
 -/
 def Pi_congr' : (Π a, W a) ≃ (Π b, Z b) :=
 (Pi_congr h₁.symm (λ b, (h₂ b).symm)).symm
+
+@[simp] lemma coe_Pi_congr' :
+  (h₁.Pi_congr' h₂ : (Π a, W a) → (Π b, Z b)) = λ f b, h₂ b $ f $ h₁.symm b :=
+rfl
+
+lemma Pi_congr'_apply (f : Π a, W a) :
+  h₁.Pi_congr' h₂ f = λ b, h₂ b $ f $ h₁.symm b :=
+rfl
+
+@[simp] lemma Pi_congr'_symm_apply_symm_apply (f : Π b, Z b) (b : β) :
+  (h₁.Pi_congr' h₂).symm f (h₁.symm b) = (h₂ b).symm (f b) :=
+begin
+  change cast _ ((h₂ (h₁ (h₁.symm b))).symm (f (h₁ (h₁.symm b)))) = (h₂ b).symm (f b),
+  generalize_proofs hWb,
+  revert hWb,
+  generalize hb : h₁ (h₁.symm b) = b',
+  rw h₁.apply_symm_apply b at hb,
+  subst hb,
+  simp,
+end
+
 end
 
 end equiv

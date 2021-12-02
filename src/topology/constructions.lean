@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.maps
+import order.filter.pi
+import data.fin.tuple
 
 /-!
 # Constructions of new topological spaces from old ones
@@ -310,8 +312,8 @@ begin
   have key1 : f ∘ (prod.fst : α × γ → α) = (prod.fst : β × δ → β) ∘ fxg, from rfl,
   have key2 : g ∘ (prod.snd : α × γ → γ) = (prod.snd : β × δ → δ) ∘ fxg, from rfl,
   unfold prod.topological_space,
-  conv_lhs {
-    rw [induced_compose, induced_compose, key1, key2],
+  conv_lhs
+  { rw [induced_compose, induced_compose, key1, key2],
     congr, rw ← induced_compose, skip, rw ← induced_compose, },
   rw induced_inf
 end
@@ -690,6 +692,12 @@ lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
+@[continuity]
+lemma continuous_apply_apply {κ : Type*} {ρ : κ → ι → Type*}
+  [∀ j i, topological_space (ρ j i)] (j : κ) (i : ι) :
+  continuous (λ p : (Π j, Π i, ρ j i), p j i) :=
+(continuous_apply i).comp (continuous_apply j)
+
 lemma continuous_at_apply [∀i, topological_space (π i)] (i : ι) (x : Π i, π i) :
   continuous_at (λ p : Π i, π i, p i) x :=
 (continuous_apply i).continuous_at
@@ -704,24 +712,25 @@ lemma continuous_pi_iff [topological_space α] [∀ i, topological_space (π i)]
 iff.intro (λ h i, (continuous_apply i).comp h) continuous_pi
 
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
-  𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=
+  𝓝 a = pi (λ i, 𝓝 (a i)) :=
 calc 𝓝 a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi
   ... = (⨅i, comap (λx, x i) (𝓝 (a i))) : by simp [nhds_induced]
 
-lemma tendsto_pi [t : ∀i, topological_space (π i)] {f : α → Πi, π i} {g : Πi, π i} {u : filter α} :
+lemma tendsto_pi_nhds [t : ∀i, topological_space (π i)] {f : α → Πi, π i} {g : Πi, π i}
+  {u : filter α} :
   tendsto f u (𝓝 g) ↔ ∀ x, tendsto (λ i, f i x) u (𝓝 (g x)) :=
-by simp [nhds_pi, filter.tendsto_comap_iff]
+by rw [nhds_pi, filter.tendsto_pi]
 
 lemma continuous_at_pi [∀ i, topological_space (π i)] [topological_space α] {f : α → Π i, π i}
   {x : α} :
   continuous_at f x ↔ ∀ i, continuous_at (λ y, f y i) x :=
-tendsto_pi
+tendsto_pi_nhds
 
 lemma filter.tendsto.update [∀i, topological_space (π i)] [decidable_eq ι]
   {l : filter α} {f : α → Π i, π i} {x : Π i, π i} (hf : tendsto f l (𝓝 x)) (i : ι)
   {g : α → π i} {xi : π i} (hg : tendsto g l (𝓝 xi)) :
   tendsto (λ a, function.update (f a) i (g a)) l (𝓝 $ function.update x i xi) :=
-tendsto_pi.2 $ λ j, by { rcases em (j = i) with rfl|hj; simp [*, hf.apply] }
+tendsto_pi_nhds.2 $ λ j, by { rcases em (j = i) with rfl|hj; simp [*, hf.apply] }
 
 lemma continuous_at.update [∀i, topological_space (π i)] [topological_space α] [decidable_eq ι]
   {f : α → Π i, π i} {a : α} (hf : continuous_at f a) (i : ι) {g : α → π i}
@@ -743,7 +752,7 @@ lemma filter.tendsto.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topo
   (i : fin (n + 1)) {f : α → π i} {l : filter α} {x : π i} (hf : tendsto f l (𝓝 x))
   {g : α → Π j : fin n, π (i.succ_above j)} {y : Π j, π (i.succ_above j)} (hg : tendsto g l (𝓝 y)) :
   tendsto (λ a, i.insert_nth (f a) (g a)) l (𝓝 $ i.insert_nth x y) :=
-tendsto_pi.2 (λ j, fin.succ_above_cases i (by simpa) (by simpa using tendsto_pi.1 hg) j)
+tendsto_pi_nhds.2 (λ j, fin.succ_above_cases i (by simpa) (by simpa using tendsto_pi_nhds.1 hg) j)
 
 lemma continuous_at.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
   [topological_space α] (i : fin (n + 1)) {f : α → π i} {a : α} (hf : continuous_at f a)
@@ -766,51 +775,34 @@ lemma is_closed_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, s
 by rw [pi_def];
   exact (is_closed_Inter $ λ a, is_closed_Inter $ λ ha, (hs _ ha).preimage (continuous_apply _))
 
-lemma mem_nhds_pi {ι : Type*} {α : ι → Type*} [Π (i : ι), topological_space (α i)]
+lemma mem_nhds_of_pi_mem_nhds {ι : Type*} {α : ι → Type*} [Π (i : ι), topological_space (α i)]
   {I : set ι} {s : Π i, set (α i)} (a : Π i, α i) (hs : I.pi s ∈ 𝓝 a) {i : ι} (hi : i ∈ I) :
   s i ∈ 𝓝 (a i) :=
-begin
-  set p := λ i, λ (x : Π (i : ι), α i), x i,
-  rw [nhds_pi, pi_def] at hs,
-  obtain ⟨t : ι → set (Π i, α i),
-          ht : ∀ i, t i ∈ comap (p i) (𝓝 (a i)), ht' : (⋂ i ∈ I, p i ⁻¹' s i) = ⋂ (i : ι), t i⟩ :=
-    exists_Inter_of_mem_infi hs,
-  simp only [exists_prop, mem_comap] at ht,
-  choose v hv hv' using ht,
-  apply mem_of_superset (hv i),
-  have := calc (⋂ i, p i ⁻¹' v i) ⊆ (⋂ i, t i) : Inter_subset_Inter hv'
-  ... = ⋂ i ∈ I, p i ⁻¹' s i : by simp_rw ht'
-  ... ⊆ p i ⁻¹' s i : bInter_subset_of_mem hi,
-  rwa [← image_subset_iff, image_projection_prod] at this,
-  use a,
-  rw [mem_univ_pi],
-  exact λ j, mem_of_mem_nhds (hv j)
-end
+by { rw nhds_pi at hs, exact mem_of_pi_mem_pi hs hi }
 
 lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
   {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
   pi i s ∈ 𝓝 x :=
 by { rw [pi_def, bInter_mem hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
 
-lemma set_pi_mem_nhds_iff [fintype ι] {α : ι → Type*} [Π (i : ι), topological_space (α i)]
-  {I : set ι} {s : Π i, set (α i)} (a : Π i, α i) :
+lemma set_pi_mem_nhds_iff {α : ι → Type*} [Π (i : ι), topological_space (α i)]
+  {I : set ι} (hI : I.finite) {s : Π i, set (α i)} (a : Π i, α i) :
   I.pi s ∈ 𝓝 a ↔ ∀ (i : ι), i ∈ I → s i ∈ 𝓝 (a i) :=
-⟨by apply mem_nhds_pi, set_pi_mem_nhds $ finite.of_fintype I⟩
+by { rw [nhds_pi, pi_mem_pi_iff hI], apply_instance }
 
-lemma interior_pi_set [fintype ι] {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} {s : Π i, set (α i)} :
+lemma interior_pi_set {α : ι → Type*} [Π i, topological_space (α i)]
+  {I : set ι} (hI : I.finite) {s : Π i, set (α i)} :
   interior (pi I s) = I.pi (λ i, interior (s i)) :=
-by { ext a, simp only [mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff] }
+by { ext a, simp only [set.mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff hI] }
 
 lemma exists_finset_piecewise_mem_of_mem_nhds [decidable_eq ι] [Π i, topological_space (π i)]
   {s : set (Π a, π a)} {x : Π a, π a} (hs : s ∈ 𝓝 x) (y : Π a, π a) :
   ∃ I : finset ι, I.piecewise x y ∈ s :=
 begin
-  simp only [nhds_pi, mem_infi', mem_comap] at hs,
-  rcases hs with ⟨I, hI, V, hV, hV_univ, rfl, -⟩,
-  choose t ht htV using hV,
-  refine ⟨hI.to_finset, mem_bInter $ λ i hi, htV i _⟩,
-  simpa [hI.mem_to_finset.2 hi] using mem_of_mem_nhds (ht i)
+  simp only [nhds_pi, filter.mem_pi'] at hs,
+  rcases hs with ⟨I, t, htx, hts⟩,
+  refine ⟨I, hts $ λ i hi, _⟩,
+  simpa [finset.mem_coe.1 hi] using mem_of_mem_nhds (htx i)
 end
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
@@ -819,7 +811,7 @@ lemma pi_eq_generate_from [∀a, topological_space (π a)] :
 le_antisymm
   (le_generate_from $ assume g ⟨s, i, hi, eq⟩, eq.symm ▸ is_open_set_pi (finset.finite_to_set _) hi)
   (le_infi $ assume a s ⟨t, ht, s_eq⟩, generate_open.basic _ $
-    ⟨function.update (λa, univ) a t, {a}, by simpa using ht, by ext f; simp [s_eq.symm, pi]⟩)
+    ⟨function.update (λa, univ) a t, {a}, by simpa using ht, s_eq ▸ by ext f; simp [set.pi]⟩)
 
 lemma pi_generate_from_eq {g : Πa, set (set (π a))} :
   @Pi.topological_space ι π (λa, generate_from (g a)) =
@@ -852,8 +844,8 @@ begin
     refine ⟨pi univ (λa, if a ∈ i then t a else (c : Πa, set (π a)) a), _, _, _⟩,
     { simp [pi_if] },
     { refine generate_open.basic _ ⟨_, assume a, _, rfl⟩,
-      by_cases a ∈ i; simp [*, pi] at * },
-    { have : f ∈ pi {a | a ∉ i} c, { simp [*, pi] at * },
+      by_cases a ∈ i; simp [*, set.pi] at * },
+    { have : f ∈ pi {a | a ∉ i} c, { simp [*, set.pi] at * },
       simpa [pi_if, hf] } }
 end
 
@@ -896,18 +888,28 @@ lemma is_open_sigma_iff {s : set (sigma σ)} : is_open s ↔ ∀ i, is_open (sig
 by simp only [is_open_supr_iff, is_open_coinduced]
 
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
-by simp [← is_open_compl_iff, is_open_sigma_iff]
+by simp only [← is_open_compl_iff, is_open_sigma_iff, preimage_compl]
+
+lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
+begin
+  rw is_open_sigma_iff,
+  intros a,
+  by_cases h : a ∈ s,
+  { convert is_open_univ,
+    ext x,
+    simp only [h, set.mem_preimage, set.mem_univ] },
+  { convert is_open_empty,
+    ext x,
+    simp only [h, set.mem_empty_eq, set.mem_preimage] }
+end
 
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin
   intros s hs,
   rw is_open_sigma_iff,
   intro j,
-  classical,
-  by_cases h : i = j,
-  { subst j,
-    convert hs,
-    exact set.preimage_image_eq _ sigma_mk_injective },
+  rcases eq_or_ne i j with (rfl|hne),
+  { rwa set.preimage_image_eq _ sigma_mk_injective },
   { convert is_open_empty,
     apply set.eq_empty_of_subset_empty,
     rintro x ⟨y, _, hy⟩,
@@ -916,18 +918,15 @@ begin
 end
 
 lemma is_open_range_sigma_mk {i : ι} : is_open (set.range (@sigma.mk ι σ i)) :=
-by { rw ←set.image_univ, exact is_open_map_sigma_mk _ is_open_univ }
+is_open_map_sigma_mk.is_open_range
 
 lemma is_closed_map_sigma_mk {i : ι} : is_closed_map (@sigma.mk ι σ i) :=
 begin
   intros s hs,
   rw is_closed_sigma_iff,
   intro j,
-  classical,
-  by_cases h : i = j,
-  { subst j,
-    convert hs,
-    exact set.preimage_image_eq _ sigma_mk_injective },
+  rcases eq_or_ne i j with (rfl|hne),
+  { rwa set.preimage_image_eq _ sigma_mk_injective },
   { convert is_closed_empty,
     apply set.eq_empty_of_subset_empty,
     rintro x ⟨y, _, hy⟩,
@@ -968,10 +967,7 @@ lemma is_open_map_sigma [topological_space β] {f : sigma σ → β}
 begin
   intros s hs,
   rw is_open_sigma_iff at hs,
-  have : s = ⋃ i, sigma.mk i '' (sigma.mk i ⁻¹' s),
-  { rw Union_image_preimage_sigma_mk_eq_self },
-  rw this,
-  rw [image_Union],
+  rw [← Union_image_preimage_sigma_mk_eq_self s, image_Union],
   apply is_open_Union,
   intro i,
   rw [image_image],

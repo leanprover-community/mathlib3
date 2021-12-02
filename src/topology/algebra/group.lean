@@ -263,6 +263,19 @@ rfl
 
 variable {G}
 
+namespace subgroup
+
+@[to_additive] instance (S : subgroup G) :
+  topological_group S :=
+{ continuous_inv :=
+  begin
+    rw embedding_subtype_coe.to_inducing.continuous_iff,
+    exact continuous_subtype_coe.inv
+  end,
+  ..S.to_submonoid.has_continuous_mul }
+
+end subgroup
+
 @[to_additive]
 lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
 (homeomorph.inv G).preimage_closure s

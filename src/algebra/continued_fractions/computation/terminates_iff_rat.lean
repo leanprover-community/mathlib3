@@ -5,7 +5,8 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.approximations
 import algebra.continued_fractions.computation.correctness_terminating
-import data.rat
+import algebra.order.archimedean
+import data.rat.floor
 /-!
 # Termination of Continued Fraction Computations (`gcf.of`)
 
@@ -166,7 +167,7 @@ namespace int_fract_pair
 
 lemma coe_of_rat_eq :
   ((int_fract_pair.of q).mapFr coe : int_fract_pair K) = int_fract_pair.of v :=
-by simp [int_fract_pair.of, v_eq_q, int.fract]
+by simp [int_fract_pair.of, v_eq_q]
 
 lemma coe_stream_nth_rat_eq :
     ((int_fract_pair.stream q n).map (mapFr coe) : option $ int_fract_pair K)

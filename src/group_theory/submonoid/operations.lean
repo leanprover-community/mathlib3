@@ -9,6 +9,7 @@ import group_theory.submonoid.basic
 import data.equiv.mul_add
 import algebra.group.prod
 import algebra.group.inj_surj
+import group_theory.group_action.defs
 
 /-!
 # Operations on `submonoid`s
@@ -485,6 +486,16 @@ subtype.rec_on x $ λ x hx, begin
     ⟨one_mem _, H1⟩
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
       ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
+end
+
+@[simp, to_additive]
+lemma closure_closure_coe_preimage {s : set M} : closure ((coe : closure s → M) ⁻¹' s) = ⊤ :=
+begin
+  refine eq_top_iff.2 (λ x hx, closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) x),
+  { intros g hg,
+    exact subset_closure hg },
+  { exact submonoid.one_mem _ },
+  { exact submonoid.mul_mem _ hg₁ hg₂ },
 end
 
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid

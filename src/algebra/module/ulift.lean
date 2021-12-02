@@ -3,8 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import linear_algebra.basic
 import algebra.ring.ulift
+import data.equiv.module
 
 /-!
 # `ulift` instances for module and multiplicative actions
@@ -23,15 +23,11 @@ variable {R : Type u}
 variable {M : Type v}
 variable {N : Type w}
 
-instance has_scalar [has_scalar R M] :
+instance has_scalar_left [has_scalar R M] :
   has_scalar (ulift R) M :=
 ⟨λ s x, s.down • x⟩
 
 @[simp] lemma smul_down [has_scalar R M] (s : ulift R) (x : M) : (s • x) = s.down • x := rfl
-
-instance has_scalar' [has_scalar R M] :
-  has_scalar R (ulift M) :=
-⟨λ s x, ⟨s • x.down⟩⟩
 
 @[simp]
 lemma smul_down' [has_scalar R M] (s : R) (x : ulift M) :

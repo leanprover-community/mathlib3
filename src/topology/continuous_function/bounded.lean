@@ -17,7 +17,7 @@ the uniform distance.
 noncomputable theory
 open_locale topological_space classical nnreal
 
-open set filter metric
+open set filter metric function
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -55,8 +55,13 @@ by { cases f, cases g, congr, ext, exact H x, }
 lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h, λ x, h ▸ rfl, ext⟩
 
-lemma bounded_range : bounded (range f) :=
+lemma coe_injective : @injective (α →ᵇ β) (α → β) coe_fn := λ f g h, ext $ congr_fun h
+
+lemma bounded_range (f : α →ᵇ β) : bounded (range f) :=
 bounded_range_iff.2 f.bounded
+
+lemma bounded_image (f : α →ᵇ β) (s : set α) : bounded (f '' s) :=
+f.bounded_range.mono $ image_subset_range _ _
 
 lemma eq_of_empty [is_empty α] (f g : α →ᵇ β) : f = g :=
 ext $ is_empty.elim ‹_›
@@ -103,16 +108,9 @@ lemma dist_eq : dist f g = Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤
 
 lemma dist_set_exists : ∃ C, 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C :=
 begin
-  refine if h : nonempty α then _ else ⟨0, le_refl _, λ x, h.elim ⟨x⟩⟩,
-  cases h with x,
-  rcases f.bounded with ⟨Cf, hCf : ∀ x y, dist (f x) (f y) ≤ Cf⟩,
-  rcases g.bounded with ⟨Cg, hCg : ∀ x y, dist (g x) (g y) ≤ Cg⟩,
-  let C := max 0 (dist (f x) (g x) + (Cf + Cg)),
-  refine ⟨C, le_max_left _ _, λ y, _⟩,
-  calc dist (f y) (g y) ≤ dist (f x) (g x) + (dist (f x) (f y) + dist (g x) (g y)) :
-    dist_triangle4_left _ _ _ _
-                    ... ≤ dist (f x) (g x) + (Cf + Cg) : by mono*
-                    ... ≤ C : le_max_right _ _
+  rcases f.bounded_range.union g.bounded_range with ⟨C, hC⟩,
+  refine ⟨max 0 C, le_max_left _ _, λ x, (hC _ _ _ _).trans (le_max_right _ _)⟩;
+    [left, right]; apply mem_range_self
 end
 
 /-- The pointwise distance is controlled by the distance between functions, by definition. -/
@@ -177,6 +175,13 @@ instance : metric_space (α →ᵇ β) :=
 lemma dist_zero_of_empty [is_empty α] : dist f g = 0 :=
 dist_eq_zero.2 (eq_of_empty f g)
 
+lemma dist_eq_supr : dist f g = ⨆ x : α, dist (f x) (g x) :=
+begin
+  casesI is_empty_or_nonempty α, { rw [supr_of_empty', real.Sup_empty, dist_zero_of_empty] },
+  refine (dist_le_iff_of_nonempty.mpr $ le_csupr _).antisymm (csupr_le dist_coe_le_dist),
+  exact dist_set_exists.imp (λ C hC, forall_range_iff.2 hC.2)
+end
+
 variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
@@ -231,7 +236,7 @@ begin
       refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
       rw dist_comm,
       exact lt_of_le_of_lt (fF_bdd x n) hn },
-    exact this.continuous (λN, (f N).continuous) },
+    exact this.continuous (eventually_of_forall $ λ N, (f N).continuous) },
   { /- Check that `F` is bounded -/
     rcases (f 0).bounded with ⟨C, hC⟩,
     refine ⟨C + (b 0 + b 0), λ x y, _⟩,
@@ -293,6 +298,64 @@ lemma continuous_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
 /-- Restriction (in the target) of a bounded continuous function taking values in a subset -/
 def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →ᵇ s :=
 ⟨⟨s.cod_restrict f H, continuous_subtype_mk _ f.continuous⟩, f.bounded⟩
+
+section extend
+
+variables {δ : Type*} [topological_space δ] [discrete_topology δ]
+
+/-- A version of `function.extend` for bounded continuous maps. We assume that the domain has
+discrete topology, so we only need to verify boundedness. -/
+def extend (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : δ →ᵇ β :=
+{ to_fun := extend f g h,
+  continuous_to_fun := continuous_of_discrete_topology,
+  bounded' :=
+    begin
+      rw [← bounded_range_iff, range_extend f.injective, metric.bounded_union],
+      exact ⟨g.bounded_range, h.bounded_image _⟩
+    end }
+
+@[simp] lemma extend_apply (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) (x : α) :
+  extend f g h (f x) = g x :=
+extend_apply f.injective _ _ _
+
+@[simp] lemma extend_comp (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : extend f g h ∘ f = g :=
+extend_comp f.injective _ _
+
+lemma extend_apply' {f : α ↪ δ} {x : δ} (hx : x ∉ range f) (g : α →ᵇ β) (h : δ →ᵇ β) :
+  extend f g h x = h x :=
+extend_apply' _ _ _ hx
+
+lemma extend_of_empty [is_empty α] (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) :
+  extend f g h = h :=
+coe_injective $ function.extend_of_empty f g h
+
+@[simp] lemma dist_extend_extend (f : α ↪ δ) (g₁ g₂ : α →ᵇ β) (h₁ h₂ : δ →ᵇ β) :
+  dist (g₁.extend f h₁) (g₂.extend f h₂) =
+    max (dist g₁ g₂) (dist (h₁.restrict (range f)ᶜ) (h₂.restrict (range f)ᶜ)) :=
+begin
+  refine le_antisymm ((dist_le $ le_max_iff.2 $ or.inl dist_nonneg).2 $ λ x, _) (max_le _ _),
+  { rcases em (∃ y, f y = x) with (⟨x, rfl⟩|hx),
+    { simp only [extend_apply],
+      exact (dist_coe_le_dist x).trans (le_max_left _ _) },
+    { simp only [extend_apply' hx],
+      lift x to ((range f)ᶜ : set δ) using hx,
+      calc dist (h₁ x) (h₂ x) = dist (h₁.restrict (range f)ᶜ x) (h₂.restrict (range f)ᶜ x) : rfl
+      ... ≤ dist (h₁.restrict (range f)ᶜ) (h₂.restrict (range f)ᶜ) : dist_coe_le_dist x
+      ... ≤ _ : le_max_right _ _ } },
+  { refine (dist_le dist_nonneg).2 (λ x, _),
+    rw [← extend_apply f g₁ h₁, ← extend_apply f g₂ h₂],
+    exact dist_coe_le_dist _ },
+  { refine (dist_le dist_nonneg).2 (λ x, _),
+    calc dist (h₁ x) (h₂ x) = dist (extend f g₁ h₁ x) (extend f g₂ h₂ x) :
+      by rw [extend_apply' x.coe_prop, extend_apply' x.coe_prop]
+    ... ≤ _ : dist_coe_le_dist _ }
+end
+
+lemma isometry_extend (f : α ↪ δ) (h : δ →ᵇ β) :
+  isometry (λ g : α →ᵇ β, extend f g h) :=
+isometry_emetric_iff_metric.2 $ λ g₁ g₂, by simp [dist_nonneg]
+
+end extend
 
 end basics
 

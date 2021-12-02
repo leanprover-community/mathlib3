@@ -64,13 +64,37 @@ begin
   apply congr_arg (λ (b : ℝ), 1 - b),
   simp_rw [h],
   apply congr_fun,
+  rw basis_of_aff_ind_span_eq_top,
+  rw basis_of_aff_ind_span_eq_top,
 
 
   sorry -- finish the proof
 end
 
+lemma to_prove {ι : Type*} (S T : ι → V) (σ : perm ι) (S_ind : affine_independent ℝ S)
+  (S_tot : affine_span ℝ (set.range S) = ⊤) (T_ind : affine_independent ℝ T)
+  (T_tot : affine_span ℝ (set.range T) = ⊤) (h : S = T ∘ σ) (i : ι) :
+  ((basis_of_aff_ind_span_eq_top S_ind S_tot i).sum_coords) =
+  ((basis_of_aff_ind_span_eq_top T_ind T_tot (σ i)).sum_coords) := sorry
+
+
+
 -- roadmap to prove the above lemma
---
+
+-- goal is to prove that if two bases of V contain the same set of vectors, then the
+-- sum of the coordinates is the same for any point in the space.
+
+lemma equiv.sum_coords_congr {ι ι' : Type*} (e : ι ≃ ι') (b : basis ι ℝ V) (c : basis ι' ℝ V)
+  (h : true) :
+  b.sum_coords = c.sum_coords :=
+begin
+  have := b.repr,
+  have : V ≃ₗ[ℝ] ι' →₀ ℝ,
+  {
+    refine b.repr.trans _,
+  },
+end
+
 
 lemma lemma2
   (A B C D O : V)

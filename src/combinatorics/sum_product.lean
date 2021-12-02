@@ -11,51 +11,47 @@ section
 
 variables {α β : Type*} {A B : finset α}
 
-@[simp, to_additive] lemma finset.empty_mul [decidable_eq α] [has_mul α] : ∅ * A = ∅ :=
-finset.eq_empty_of_forall_not_mem (by simp [finset.mem_mul])
-
-@[simp, to_additive] lemma finset.mul_empty [decidable_eq α] [has_mul α] : A * ∅ = ∅ :=
-finset.eq_empty_of_forall_not_mem (by simp [finset.mem_mul])
-
-@[simp, to_additive] lemma finset.mul_nonempty_iff [decidable_eq α] [has_mul α] :
-    (A * B).nonempty ↔ A.nonempty ∧ B.nonempty :=
-by simp [finset.mul_def]
-
-lemma finset.mul_singleton_zero [decidable_eq α] [mul_zero_class α] (hA : A.nonempty) :
+lemma finset.mul_singleton_zero_of_nonempty [decidable_eq α] [mul_zero_class α] (hA : A.nonempty) :
   A * {0} = {0} :=
-begin
-  ext,
-  simp only [finset.mem_mul, exists_and_distrib_right, exists_eq_left, exists_and_distrib_left,
-    finset.mem_singleton, mul_zero],
-  exact ⟨λ h, h.2.symm, λ h, ⟨hA, h.symm⟩⟩,
-end
+finset.subset.antisymm A.mul_singleton_zero (by simpa [finset.mem_mul] using hA)
 
-lemma finset.le_card_mul (A : finset ℝ) {B : finset ℝ} (hB : ∃ x ∈ B, x ≠ (0:ℝ)) :
+lemma finset.singleton_zero_mul_of_nonempty [decidable_eq α] [mul_zero_class α] (hA : A.nonempty) :
+  {(0 : α)} * A = {0} :=
+finset.subset.antisymm A.singleton_zero_mul (by simpa [finset.mem_mul] using hA)
+
+@[to_additive] lemma finset.left_le_card_mul [decidable_eq α] [right_cancel_semigroup α]
+  {A B : finset α} (hB : B.nonempty) :
   A.card ≤ (A * B).card :=
-begin
-  obtain ⟨x, xB, xn⟩ := hB,
-  refine finset.card_le_card_of_inj_on (λ a, a * x) (λ a ha, finset.mul_mem_mul ha xB) _,
-  simp [xn]
-end
+let ⟨x, xB⟩ := hB
+  in finset.card_le_card_of_inj_on (λ a, a * x) (λ a ha, finset.mul_mem_mul ha xB) (by simp)
 
-lemma finset.le_card_add {A B : finset ℝ} (hB : B.nonempty) :
-  A.card ≤ (A + B).card :=
-begin
-  obtain ⟨x, xB⟩ := hB,
-  refine finset.card_le_card_of_inj_on (λ a, a + x) (λ a ha, finset.add_mem_add ha xB) _,
-  simp
-end
+lemma finset.left_le_card_mul' [decidable_eq α] [cancel_monoid_with_zero α]
+  (A : finset α) {B : finset α} (hB : ∃ x ∈ B, x ≠ (0:α)) :
+  A.card ≤ (A * B).card :=
+let ⟨x, xB, xn⟩ := hB
+in finset.card_le_card_of_inj_on (λ a, a * x) (λ a ha, finset.mul_mem_mul ha xB)
+    (λ _ _ _ _, (mul_left_inj' xn).1)
 
-@[to_additive] lemma finset.le_card_mul' {A B : finset ℝ} (hB : ∀ x ∈ B, x = (0:ℝ)) :
+@[to_additive] lemma finset.right_le_card_mul [decidable_eq α] [left_cancel_semigroup α]
+  {A B : finset α} (hA : A.nonempty) :
+  B.card ≤ (A * B).card :=
+let ⟨x, xB⟩ := hA
+  in finset.card_le_card_of_inj_on (λ a, x * a) (λ a ha, finset.mul_mem_mul xB ha) (by simp)
+
+lemma finset.right_le_card_mul' [decidable_eq α] [cancel_monoid_with_zero α]
+  (A : finset α) {B : finset α} (hB : ∃ x ∈ B, x ≠ (0:α)) :
+  A.card ≤ (A * B).card :=
+let ⟨x, xB, xn⟩ := hB
+in finset.card_le_card_of_inj_on (λ a, a * x) (λ a ha, finset.mul_mem_mul ha xB)
+    (λ _ _ _ _, (mul_left_inj' xn).1)
+
+lemma finset.card_mul_le [decidable_eq α] [mul_zero_class α] {A B : finset α}
+  (hB : ∀ x ∈ B, x = (0:α)) :
   (A * B).card ≤ 1 :=
 begin
-  suffices : A * B ⊆ {0},
-  { simpa using finset.card_le_of_subset this },
-  intros u,
-  simp only [finset.mem_singleton, finset.mem_mul, and_imp, forall_exists_index,
-    exists_and_distrib_left],
-  rintro a ha b hb rfl,
-  simp [hB _ hb],
+  have : A * B ⊆ {0} :=
+    (finset.mul_subset_mul (finset.subset.refl _) (by simpa [finset.subset_iff])).trans A.mul_singleton_zero,
+  simpa using finset.card_le_of_subset this,
 end
 
 lemma sum_card_inter_le {α β : Type*} {s : finset α} {B : finset β}
@@ -182,32 +178,191 @@ begin
   simp,
 end
 
+-- lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
+-- begin
+--   rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
+--   exact nat.lt_succ_self _,
+-- end
+
+-- lemma floor_sub_cast {α : Type*} {x : α} {y : ℕ} [linear_ordered_field α] [floor_semiring α] :
+--   ⌊x - y⌋₊ = ⌊x⌋₊ - y :=
+-- begin
+--   cases le_total x 0,
+--   {
+
+--   },
+--   cases le_total x y,
+--   {
+--     rw [nat.floor_of_nonpos, eq_comm, tsub_eq_zero_iff_le],
+--     refine nat.cast_le.1 ((nat.floor_le _).trans h),
+--     sorry
+--   },
+--   rw eq_tsub_iff_add_eq_of_le,
+--     -- apply le_antisymm,
+--     -- sorry,
+--     -- rw nat.le_floor_iff,
+
+-- end
+
+-- #exit
+
+
+lemma floor_div_cast_eq_div {α : Type*} {x y : ℕ} [linear_ordered_field α] [floor_semiring α] :
+  ⌊(x : α) / y⌋₊ = x / y :=
+begin
+  refine (nat.floor_eq_iff _).2 _,
+  { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) },
+  split,
+  { apply nat.cast_div_le },
+  rcases y.eq_zero_or_pos with rfl | hy,
+  { simp },
+  rw [div_lt_iff, add_mul, one_mul, ←nat.cast_mul, ←nat.cast_add, nat.cast_lt],
+  apply nat.lt_div_mul_add hy,
+  rwa nat.cast_pos,
+end
+
+def nearest_neighbours
+  (A : finset ℝ) (a : ℝ) (n : ℕ) : finset ℝ :=
+nat.rec_on n ∅ $ λ _ B,
+  if h : (A \ B).nonempty
+    then insert (exists_min_image _ (λ a', |a - a'|) h).some B
+    else B
+
+@[simp] lemma nearest_neighbours_zero {A a} :
+  nearest_neighbours A a 0 = ∅ := rfl
+
+lemma nearest_neighbours_succ_pos {A : finset ℝ} {a : ℝ} {n : ℕ}
+  (h : (A \ nearest_neighbours A a n).nonempty) :
+  nearest_neighbours A a (n+1) =
+    insert (exists_min_image _ (λ a', |a - a'|) h).some (nearest_neighbours A a n) :=
+dif_pos h
+
+lemma nearest_neighbours_succ_neg {A : finset ℝ} {a : ℝ} {n : ℕ}
+  (h : ¬(A \ nearest_neighbours A a n).nonempty) :
+  nearest_neighbours A a (n+1) = nearest_neighbours A a n :=
+dif_neg h
+
+lemma nearest_neighbours_subset {A a n} :
+  nearest_neighbours A a n ⊆ A :=
+begin
+  induction n with n ih,
+  { simp },
+  by_cases h : (A \ nearest_neighbours A a n).nonempty,
+  { simp only [nearest_neighbours_succ_pos h, insert_subset, ih, and_true],
+    apply sdiff_subset _ _ (exists_min_image _ (λ a', |a - a'|) h).some_spec.some },
+  { rwa nearest_neighbours_succ_neg h },
+end
+
+lemma card_nearest_neighbours_eq {A : finset ℝ} {a : ℝ} {n : ℕ} :
+  (nearest_neighbours A a n).card = min A.card n :=
+begin
+  rw eq_comm,
+  induction n with n ih,
+  { simp },
+  by_cases h : (A \ nearest_neighbours A a n).nonempty,
+  { rw [nearest_neighbours_succ_pos h, card_insert_of_not_mem
+      (mem_sdiff.1 (exists_min_image _ (λ a', |a - a'|) h).some_spec.some).2],
+    rw [←card_pos, card_sdiff nearest_neighbours_subset, tsub_pos_iff_lt] at h,
+    simp only [min_eq_iff, h.ne', false_and, false_or] at ih,
+    rw [←ih.1, min_eq_right],
+    apply nat.succ_le_of_lt,
+    rwa ←ih.1 at h },
+  { rw nearest_neighbours_succ_neg h,
+    simp only [not_nonempty_iff_eq_empty, sdiff_eq_empty_iff_subset] at h,
+    have : nearest_neighbours A a n = A := nearest_neighbours_subset.antisymm h,
+    rw this at *,
+    rw [min_eq_left_iff, ←ih],
+    apply (min_le_right _ _).trans (nat.le_succ _) }
+end
+
+lemma card_nearest_neighbours_le {A : finset ℝ} {a : ℝ} {n : ℕ} :
+  (nearest_neighbours A a n).card ≤ n :=
+begin
+  rw card_nearest_neighbours_eq,
+  apply min_le_right,
+end
+
+lemma nearest_neighbours_subset_succ {A a n} :
+  nearest_neighbours A a n ⊆ nearest_neighbours A a (n+1) :=
+begin
+  by_cases h : (A \ nearest_neighbours A a n).nonempty,
+  { rw [nearest_neighbours_succ_pos h],
+    apply subset_insert },
+  { rw [nearest_neighbours_succ_neg h],
+    simp }
+end
+
+lemma nearest_neighbours_down_closed {A : finset ℝ} {a : ℝ} {n : ℕ} :
+  ∀ x y, x ∈ nearest_neighbours A a n → y ∈ A → |a - y| < |a - x| →
+    y ∈ nearest_neighbours A a n :=
+begin
+  induction n with n ih,
+  { simp },
+  intros x y,
+  by_cases h : (A \ nearest_neighbours A a n).nonempty,
+  { rw [nearest_neighbours_succ_pos h, mem_insert, mem_insert],
+    rintro (hx | hx) hy hxy,
+    { by_contra' q,
+      have := (exists_min_image _ (λ a', |a - a'|) h).some_spec,
+      rw [exists_prop, ←hx] at this,
+      dsimp at this,
+      apply not_le_of_lt hxy (this.2 y (by simp [hy, q.2])) },
+    apply or.inr (ih _ _ hx hy hxy) },
+  { rw [nearest_neighbours_succ_neg h],
+    apply ih }
+end
+
 variables {A B Q : finset ℝ}
 
-structure good_quad (A B Q : finset ℝ) (a b q : ℝ) : Prop :=
-(ha : a ∈ A)
-(hb : b ∈ B)
-(hq : q ∈ Q)
-(ab_sparse :
-  ((A + B).filter (λ u, abs (a + b - u) ≤ abs (A.neighbour a - a))).card * A.card ≤
-    12 * (A + B).card) -- should be 28 *
-(aq_sparse :
-  ((A * Q).filter (λ v, abs (a * q - v) ≤ abs (A.neighbour a * q - a * q))).card * A.card ≤
-    12 * (A + Q).card) -- should be 28 *
-
 def add_good_triple (A B : finset ℝ) (a b : ℝ) : Prop :=
-  ((A + B).filter (λ u, abs (a + b - u) ≤ abs (A.neighbour a - a))).card * A.card ≤
-    12 * (A + B).card
+  (((A + B).filter (λ u, |a + b - u| ≤ |A.neighbour a - a|)).card : ℝ) ≤
+    (12 * (A + B).card / A.card : ℝ)
 
 def mul_good_triple (A Q : finset ℝ) (a q : ℝ) : Prop :=
-  ((A * Q).filter (λ v, abs (a * q - v) ≤ abs (A.neighbour a * q - a * q))).card * A.card ≤
-    12 * (A * Q).card
+  (((A * Q).filter (λ v, abs (a * q - v) ≤ abs (A.neighbour a * q - a * q))).card : ℝ) ≤
+    (12 * (A * Q).card / A.card : ℝ)
+
+lemma add_good_triple_set_subset_nearest_neighbours {a b : ℝ}
+  (hA : (A.erase a).nonempty) (hB : b ∈ B) :
+  ((A + B).filter (λ u, |a + b - u| ≤ |A.neighbour a - a|)).card ≤ 12 * ((A + B).card) / (A.card) →
+  A.neighbour a + b ∈ nearest_neighbours (A + B) (a + b) (12 * (A + B).card / A.card) :=
+begin
+  intro h,
+  set U₁ := (A + B).filter (λ u, |a + b - u| ≤ |A.neighbour a - a|),
+  set U₂ := nearest_neighbours (A + B) (a + b) (12 * (A + B).card / A.card),
+  have U₁₂ : U₁ ⊆ U₂ ∨ U₂ ⊆ U₁,
+  { by_contra q,
+    simp only [not_or_distrib, subset_iff, not_forall, exists_prop] at q,
+    obtain ⟨⟨x, hx₁, hx₂⟩, y, hy₁, hy₂⟩ := q,
+    cases lt_or_le (|a + b - x|) (|a + b - y|) with xy yx,
+    { apply hx₂ (nearest_neighbours_down_closed y x hy₁ (filter_subset _ _ hx₁) xy) },
+    { apply hy₂,
+      rw mem_filter,
+      refine ⟨nearest_neighbours_subset hy₁, _⟩,
+      apply yx.trans,
+      rw [mem_filter] at hx₁,
+      apply hx₁.2 } },
+  have : U₁ ⊆ U₂,
+  { suffices : ¬ U₂ ⊂ U₁,
+    { rw ssubset_iff_subset_ne at this,
+      simp only [not_and_distrib, not_not] at this,
+      cases this,
+      { apply U₁₂.resolve_right this },
+      apply ge_of_eq this },
+    intro t,
+    apply not_le_of_lt (card_lt_card t),
+    rw [card_nearest_neighbours_eq, le_min_iff],
+    exact ⟨card_filter_le _ _, h⟩ },
+  apply this,
+  simp only [mem_filter, add_sub_add_right_eq_sub, abs_sub_comm a, le_refl, and_true],
+  apply add_mem_add (neighbour_spec hA).1 hB,
+end
 
 def good_triple (A B Q : finset ℝ) (a b q : ℝ) : Prop :=
   add_good_triple A B a b ∧ mul_good_triple A Q a q
 
 lemma add_sum_le (A B : finset ℝ) (b : ℝ):
-  ∑ a in A, ((A + B).filter (λ u, abs (a + b - u) ≤ abs (A.neighbour a - a))).card
+  ∑ a in A, ((A + B).filter (λ u, abs (a + b - u) ≤ |A.neighbour a - a|)).card
     ≤ 3 * (A + B).card := -- should be 7 *
 begin
   rw mul_comm,
@@ -239,7 +394,7 @@ begin
     have : ∃ x ∈ Q, x ≠ (0:ℝ),
     { simpa [subset_iff] using this },
     rw mul_comm,
-    apply nat.mul_le_mul _ (finset.le_card_mul A this),
+    apply nat.mul_le_mul _ (finset.left_le_card_mul' A this),
     apply le_trans _ (show 1 ≤ 3, by norm_num),
     { rw card_le_one,
       simp only [and_imp, mem_filter],
@@ -262,7 +417,7 @@ begin
 end
 
 -- def mul_good_triple (A Q : finset ℝ) (a q : ℝ) : Prop :=
---   ((A * Q).filter (λ v, abs (a * q - v) ≤ abs (A.neighbour a * q - a * q))).card * A.card ≤
+--   ((A * Q).filter (λ v, abs (v - a * q) ≤ abs (A.neighbour a * q - a * q))).card * A.card ≤
 --     12 * (A * Q).card
 
 lemma many_mul_good_triple {q : ℝ} (hQ : Q ≠ {0}) (hQ' : Q.nonempty) :
@@ -278,14 +433,14 @@ begin
   apply not_le_of_lt _ (mul_sum_le A q hQ),
   apply lt_of_lt_of_le _ (sum_le_sum_of_subset (filter_subset (λ a, ¬mul_good_triple A Q a q) _)),
   suffices :
-    (3:ℝ) * (A * Q).card < ∑ (x : ℝ) in filter (λ (a : ℝ), ¬mul_good_triple A Q a q) A, (filter (λ (v : ℝ), |x * q - v| ≤ |A.neighbour x * q - x * q|) (A * Q)).card,
+    (3:ℝ) * (A * Q).card < ∑ (x : ℝ) in filter (λ (a : ℝ), ¬mul_good_triple A Q a q) A,
+      (filter (λ (v : ℝ), |x * q - v| ≤ |A.neighbour x * q - x * q|) (A * Q)).card,
   { exact_mod_cast this },
   have : ∀ x ∈ A.filter (λ (a : ℝ), ¬mul_good_triple A Q a q), 12 * ((A * Q).card : ℝ) / A.card ≤
       (filter (λ (v : ℝ), |x * q - v| ≤ |A.neighbour x * q - x * q|) (A * Q)).card,
   { intros a ha,
     simp only [mem_filter] at ha,
-    rw div_le_iff hA',
-    exact_mod_cast (not_le.1 ha.2).le },
+    apply (not_le.1 ha.2).le },
   apply lt_of_lt_of_le _ (le_sum_of_forall_le _ _ _ this),
   rw nsmul_eq_mul,
   rw mul_div_assoc',
@@ -309,13 +464,13 @@ begin
   apply not_le_of_lt _ (add_sum_le A B b),
   apply lt_of_lt_of_le _ (sum_le_sum_of_subset (filter_subset (λ a, ¬add_good_triple A B a b) _)),
   suffices :
-    (3:ℝ) * (A + B).card < ∑ (x : ℝ) in filter (λ (a : ℝ), ¬add_good_triple A B a b) A, (filter (λ (u : ℝ), |x + b - u| ≤ |A.neighbour x - x|) (A + B)).card,
+    (3:ℝ) * (A + B).card < ∑ (x : ℝ) in filter (λ (a : ℝ), ¬add_good_triple A B a b) A,
+      (filter (λ (u : ℝ), |x + b - u| ≤ |A.neighbour x - x|) (A + B)).card,
   { exact_mod_cast this },
   have : ∀ x ∈ A.filter (λ (a : ℝ), ¬add_good_triple A B a b), 12 * ((A + B).card : ℝ) / A.card ≤
       (filter (λ (u : ℝ), |x + b - u| ≤ |A.neighbour x - x|) (A + B)).card,
   { intros a ha,
     simp only [mem_filter] at ha,
-    rw div_le_iff hA',
     exact_mod_cast (not_le.1 ha.2).le },
   apply lt_of_lt_of_le _ (le_sum_of_forall_le _ _ _ this),
   rw nsmul_eq_mul,
@@ -350,18 +505,18 @@ begin
   norm_num,
 end
 
--- ???
-lemma mul_good_triple_zero (a : ℝ) :
-  mul_good_triple A {0} a 0 ↔ A.card ≤ 12 :=
-begin
-  rw mul_good_triple,
-  rcases A.eq_empty_or_nonempty with rfl | hA,
-  { simp only [card_empty, true_iff, eq_self_iff_true, mul_zero, empty_mul, le_zero_iff],
-    norm_num },
-  simp only [filter_congr_decidable, abs_nonpos_iff, zero_sub, abs_neg, abs_zero, mul_zero],
-  rw mul_singleton_zero hA,
-  simp,
-end
+-- -- ???
+-- lemma mul_good_triple_zero (a : ℝ) :
+--   mul_good_triple A {0} a 0 ↔ A.card ≤ 12 :=
+-- begin
+--   rw mul_good_triple,
+--   rcases A.eq_empty_or_nonempty with rfl | hA,
+--   { simp only [card_empty, true_iff, eq_self_iff_true, mul_zero, empty_mul, le_zero_iff],
+--     norm_num },
+--   simp only [filter_congr_decidable, abs_nonpos_iff, zero_sub, abs_neg, abs_zero, mul_zero],
+--   rw mul_singleton_zero_of_nonempty hA,
+--   simp,
+-- end
 
 def good_triples (A B Q : finset ℝ) : finset (ℝ × ℝ × ℝ) :=
   ((A.product (B.product Q)).filter (λ (abq : ℝ × ℝ × ℝ), good_triple A B Q abq.1 abq.2.1 abq.2.2))
@@ -426,12 +581,118 @@ by rw [mul_div_assoc, ←inv_div, ←inj_on_aux_q hx hy hz hw, eq_mul_inv_iff_mu
 
 -- lemma good_triples_card_le (A B Q : finset ℝ) (hQ' : (0:ℝ) ∉ Q) :
 --   (good_triples A B Q).card =
-lemma few_good_quad (A B Q : finset ℝ) (hQ' : (0:ℝ) ∉ Q) :
-  (good_triples A B Q).card * A.card^2 ≤
-    12 * 12 * (A + B).card^2 * (A * Q).card^2  :=
+
+def three_to_four_map (A : finset ℝ) : ℝ × ℝ × ℝ → (ℝ × ℝ) × ℝ × ℝ :=
+λ ⟨a, b, q⟩, ⟨⟨a + b, A.neighbour a + b⟩, a * q, A.neighbour a * q⟩
+
+lemma three_to_four_map_inj_on (hQ : (0 : ℝ) ∉ Q) :
+  set.inj_on (three_to_four_map A) (A.product (B.product Q)) :=
+begin
+  rintro ⟨a₁, b₁, q₁⟩ h₁ ⟨a₂, b₂, q₂⟩ h₂ t,
+  simp only [mem_coe, mem_product] at h₁ h₂,
+  simp only [three_to_four_map, prod.mk.inj_iff] at t,
+  simp only [prod.mk.inj_iff],
+  have : q₁ = q₂,
+  { rw inj_on_aux_q t.1.1 t.1.2 t.2.1 t.2.2,
+    apply inj_on_aux_q rfl rfl rfl rfl },
+  subst q₁,
+  have : q₂ ≠ 0 := ne_of_mem_of_not_mem h₁.2.2 hQ,
+  have : a₁ = a₂,
+  { rw inj_on_aux_a t.1.1 t.1.2 t.2.1 t.2.2 this,
+    apply inj_on_aux_a rfl rfl rfl rfl this },
+  subst a₁,
+  simpa using t.1,
+end
+
+def good_quads (A B Q : finset ℝ) : finset ((ℝ × ℝ) × ℝ × ℝ) :=
+(good_triples A B Q).image (three_to_four_map A)
+
+lemma good_quads_card (hQ : (0:ℝ) ∉ Q) :
+  (good_quads A B Q).card = (good_triples A B Q).card :=
+begin
+  rw [good_quads, card_image_of_inj_on],
+  exact set.inj_on.mono (coe_subset.2 (filter_subset _ _)) (three_to_four_map_inj_on hQ),
+end
+
+def left_good_quads (A B Q : finset ℝ) : finset (ℝ × ℝ) := (good_quads A B Q).image prod.fst
+lemma left_good_quads_eq :
+  (left_good_quads A B Q) ⊆
+    ((A.product B).filter (λ (ab : ℝ × ℝ), add_good_triple A B ab.1 ab.2)).image
+      (λ ab, (ab.1 + ab.2, A.neighbour ab.1 + ab.2)) :=
+begin
+  simp only [subset_iff, left_good_quads, mem_image, exists_prop, mem_filter, prod.forall,
+    good_quads, and_imp, forall_exists_index, exists_and_distrib_right, prod.mk.inj_iff,
+    exists_eq_right_right, exists_eq_right, prod.exists, mem_product, good_triples, good_triple,
+    three_to_four_map, and_assoc],
+  rintro _ _ _ _ _ _ a b q ha hb hq ab aq rfl rfl rfl rfl rfl rfl,
+  exact ⟨a, b, ha, hb, ab, rfl, rfl⟩,
+end
+
+lemma left_good_quads_subset (hA : 2 ≤ A.card) :
+  (left_good_quads A B Q).card ≤ ((A + B).sigma (λ u, nearest_neighbours (A + B) u (12 * (A+B).card / A.card))).card :=
+begin
+  refine card_le_card_of_inj_on _ _ _,
+  { rintro x,
+    exact ⟨x.1, x.2⟩ },
+  { simp only [left_good_quads, mem_image, mem_sigma, and_imp, exists_prop, prod.forall,
+      forall_exists_index, exists_and_distrib_right, prod.mk.inj_iff, prod.exists, good_quads,
+      good_triples, three_to_four_map, mem_filter, good_triple, add_good_triple, mem_product],
+    rintro _ _ _ _ _ _ a b q ha hb hq hU - rfl rfl rfl rfl rfl rfl,
+    refine ⟨add_mem_add ha hb, _⟩,
+    rw ←nat.le_floor_iff at hU,
+    apply add_good_triple_set_subset_nearest_neighbours _ hb,
+    { apply hU.trans (le_of_eq _),
+      convert floor_div_cast_eq_div using 3,
+      rw nat.cast_mul,
+      norm_cast },
+    { rw [←card_pos, card_erase_of_mem ha, ←nat.succ_le_iff],
+      exact nat.le_pred_of_lt hA },
+    refine mul_nonneg (mul_nonneg (by norm_num1) (nat.cast_nonneg _)) (inv_nonneg.2 _),
+    exact nat.cast_nonneg _ },
+  simp [-and_imp],
+end
+
+lemma left_good_quads_card (hA : 2 ≤ A.card) :
+  (left_good_quads A B Q).card ≤ 12 * (A + B).card^2 / A.card :=
+begin
+  apply (left_good_quads_subset hA).trans,
+  rw card_sigma,
+  have : ∀ x ∈ A + B, (nearest_neighbours (A + B) x (12 * (A + B).card / A.card)).card ≤
+    (12 * (A + B).card / A.card),
+  { intros x hx,
+    rw card_nearest_neighbours_eq,
+    apply min_le_right },
+  apply (sum_le_of_forall_le _ _ _ this).trans,
+  simp only [algebra.id.smul_eq_mul],
+
+end
+
+
+#exit
+
+-- def add_good_triple (A B : finset ℝ) (a b : ℝ) : Prop :=
+--   ((A + B).filter (λ u, abs (u - (a + b)) ≤ abs (A.neighbour a - a))).card * A.card ≤
+--     12 * (A + B).card
+
+-- def mul_good_triple (A Q : finset ℝ) (a q : ℝ) : Prop :=
+--   ((A * Q).filter (λ v, abs (v - a * q) ≤ abs (A.neighbour a * q - a * q))).card * A.card ≤
+--     12 * (A * Q).card
+
+lemma good_quads_card_le :
+  (good_quads A B Q).card ≤ 12 * 12 * (A + B).card^2 * (A * Q).card^2 / A.card^2 :=
 begin
 
 end
+
+lemma few_good_quad (A B Q : finset ℝ) (hQ : (0:ℝ) ∉ Q) :
+  (good_triples A B Q).card * A.card^2 ≤
+    12 * 12 * (A + B).card^2 * (A * Q).card^2  :=
+begin
+  rw ←good_quads_card hQ,
+
+end
+
+#exit
 
 theorem complex_bound : ∃ (c : ℝ), 0 < c ∧ ∀ A B Q : finset ℝ,
   c * A.card ^ (3/2 : ℝ) * B.card ^ (1/2 : ℝ) * Q.card ^ (1/2 : ℝ) ≤ (A + B).card * (A * Q).card :=

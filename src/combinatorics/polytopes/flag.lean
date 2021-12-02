@@ -427,8 +427,10 @@ classical.some_spec (ex_of_grade j)
 theorem grade_fin_idx : graded.grade_fin (idx j) = j :=
 subtype.ext $ grade_idx j
 
-private lemma grade_le_of_order_iso {α β : Type u} [partial_order α] [order_top α] [graded α]
-[partial_order β] [graded β] {oiso : α ≃o β} {n : ℕ} :
+variables {β : Type u} [partial_order β] [order_top β] [graded β]
+
+-- Todo(Vi): Generalize! This doesn't actually require `order_top`.
+private lemma grade_le_of_order_iso {oiso : α ≃o β} {n : ℕ} :
   ∀ x, grade x = n → grade x ≤ grade (oiso x) :=
 begin
   apply nat.strong_induction_on n,
@@ -439,10 +441,10 @@ begin
     exact zero_le _ },
   intro hgx,
   suffices : ∃ y, grade y = n ∧ y < x,
-  { rcases this with ⟨y, hgy, hyx⟩,
-    rw [hgx, ←hgy],
-    exact nat.succ_le_of_lt
-      (lt_of_le_of_lt (H n (lt_add_one n) y hgy) (graded.strict_mono (oiso.lt_iff_lt.mpr hyx))) },
+    { rcases this with ⟨y, hgy, h⟩,
+      rw [hgx, ←hgy],
+      exact nat.succ_le_of_lt
+        (lt_of_le_of_lt (H n (lt_add_one n) y hgy) (graded.strict_mono (oiso.lt_iff_lt.mpr h))) },
   cases flag.ex_flag_mem x with Φ hx,
   let x' : Φ := ⟨x, hx⟩,
   have hn : n < grade_top Φ + 1 := begin
@@ -464,13 +466,13 @@ end
 
 /-- Order isomorphisms preserve grades. In other words, grade functions are unique when they
     exist. -/
-theorem grade_eq_of_order_iso {α β : Type u} [partial_order α] [order_top α] [graded α]
-[partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x : α) :
+-- Todo(Vi): Generalize! This doesn't actually require `order_top`.
+theorem grade_eq_of_order_iso (oiso : α ≃o β) (x : α) :
   grade x = grade (oiso x) :=
 begin
   rw eq_iff_le_not_lt,
   split, { exact (grade_le_of_order_iso _ (refl _)) },
-  have : grade x = grade (oiso.symm (oiso x)) := by rw (order_iso.symm_apply_apply _ x),
+  have : grade x = grade (oiso.symm (oiso x)) := by rw (order_iso.symm_apply_apply _ _),
   rw this,
   exact not_lt_of_ge (grade_le_of_order_iso _ (refl _))
 end
@@ -486,9 +488,9 @@ theorem grade_eq_iff_idx (a : α) : grade a = j ↔ a = graded.idx j :=
 begin
   have idx := graded.grade_idx j,
   split,
-  { intro ha,
-    rcases graded.ex_unique_of_grade j with ⟨_, _, h⟩,
-    rw [(h _ ha), (h _ idx)] },
+    { intro ha,
+      rcases graded.ex_unique_of_grade j with ⟨_, _, h⟩,
+      rw [(h _ ha), (h _ idx)] },
   intro h,
   rwa h,
 end
@@ -659,20 +661,18 @@ private lemma proper_flag_intersect_of_grade {α : Type u} [partial_order α] [o
 begin
   let k : fin (grade_top α + 1) := ⟨k, nat.lt.step H.right⟩,
   let idx := idx' Φ k,
-  use idx.val,
+  refine ⟨⟨idx.val, _⟩, idx.prop, _⟩,
     { rw proper_iff_grade_iio,
       change grade idx.val with grade idx,
       rw grade_idx,
       exact H },
-  use idx.prop,
-  have hidx : idx.val = (idx' Ψ k).val := begin
-    rw hΦΨ,
-    intro h,
-    rw ←h at hjk,
-    exact hjk (refl _),
-  end,
-  rw hidx,
-  exact subtype.mem (idx' Ψ k),
+  suffices : idx.val = (idx' Ψ k).val,
+    { rw this,
+      exact subtype.mem (idx' Ψ k) },
+  rw hΦΨ,
+  intro h,
+  rw ←h at hjk,
+  exact hjk (refl _),
 end
 
 /-- If two flags are connected, then any two elements in these flags are connected, as long as the

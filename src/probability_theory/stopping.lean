@@ -3,7 +3,8 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import probability_theory.notation
+import measure_theory.group.arithmetic
+import measure_theory.constructions.borel_space
 
 /-!
 # Filtration and stopping time
@@ -31,7 +32,7 @@ filtration, stopping time, stochastic process
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space probability_theory
+open_locale classical measure_theory nnreal ennreal topological_space
 
 namespace measure_theory
 

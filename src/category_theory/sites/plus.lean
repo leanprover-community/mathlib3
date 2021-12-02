@@ -82,9 +82,7 @@ by { ext, dsimp, simp }
 variable [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
 
 /-- The plus construction, associating a presheaf to any presheaf.
-See `plus_functor` below for a functorial version.
--/
-@[simps]
+See `plus_functor` below for a functorial version. -/
 def plus_obj : Cᵒᵖ ⥤ D :=
 { obj := λ X, colimit (J.diagram P X.unop),
   map := λ X Y f, colim_map (J.diagram_pullback P f.unop) ≫ colimit.pre _ _,
@@ -126,12 +124,11 @@ def plus_obj : Cᵒᵖ ⥤ D :=
   end }
 
 /-- An auxiliary definition used in `plus` below. -/
-@[simps]
 def plus_map {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) : J.plus_obj P ⟶ J.plus_obj Q :=
 { app := λ X, colim_map (J.diagram_nat_trans η X.unop),
   naturality' := begin
     intros X Y f,
-    dsimp,
+    dsimp [plus_obj],
     ext,
     simp only [diagram_pullback_app, ι_colim_map, colimit.ι_pre_assoc,
       colimit.ι_pre, ι_colim_map_assoc, category.assoc],
@@ -145,9 +142,9 @@ def plus_map {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) : J.plus_obj P ⟶ J.plus_obj 
 @[simp]
 lemma plus_map_id (P : Cᵒᵖ ⥤ D) : J.plus_map (𝟙 P) = 𝟙 _ :=
 begin
-  ext : 2,
-  dsimp only [plus_map],
-  rw J.diagram_nat_trans_id,
+  ext x : 2,
+  dsimp only [plus_map, plus_obj],
+  rw [J.diagram_nat_trans_id, nat_trans.id_app],
   ext,
   dsimp,
   simp,
@@ -179,13 +176,12 @@ variable {D}
 
 /-- The canonical map from `P` to `J.plus.obj P`.
 See `to_plus` for a functorial version. -/
-@[simps]
 def to_plus : P ⟶ J.plus_obj P :=
 { app := λ X, cover.to_multiequalizer (⊤ : J.cover X.unop) P ≫
     colimit.ι (J.diagram P X.unop) (op ⊤),
   naturality' := begin
     intros X Y f,
-    dsimp,
+    dsimp [plus_obj],
     delta cover.to_multiequalizer,
     simp only [diagram_pullback_app, colimit.ι_pre, ι_colim_map_assoc, category.assoc],
     dsimp only [functor.op, unop_op],
@@ -199,12 +195,12 @@ def to_plus : P ⟶ J.plus_obj P :=
     simp,
   end }
 
-@[simp]
+@[simp, reassoc]
 lemma to_plus_naturality {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) :
   η ≫ J.to_plus Q = J.to_plus _ ≫ J.plus_map η :=
 begin
   ext,
-  dsimp,
+  dsimp [to_plus, plus_map],
   delta cover.to_multiequalizer,
   simp only [ι_colim_map, category.assoc],
   simp_rw ← category.assoc,
@@ -229,7 +225,7 @@ variable {D}
 lemma plus_map_to_plus : J.plus_map (J.to_plus P) = J.to_plus (J.plus_obj P) :=
 begin
   ext X S,
-  dsimp,
+  dsimp [to_plus, plus_obj, plus_map],
   delta cover.to_multiequalizer,
   simp only [ι_colim_map],
   let e : S.unop ⟶ ⊤ := hom_of_le (order_top.le_top _),
@@ -278,11 +274,15 @@ end
 def iso_to_plus (hP : presheaf.is_sheaf J P) : P ≅ J.plus_obj P :=
 by letI := is_iso_to_plus_of_is_sheaf J P hP; exact as_iso (J.to_plus P)
 
+@[simp]
+lemma iso_to_plus_hom (hP : presheaf.is_sheaf J P) : (J.iso_to_plus P hP).hom = J.to_plus P := rfl
+
 /-- Lift a morphism `P ⟶ Q` to `P⁺ ⟶ Q` when `Q` is a sheaf. -/
 def plus_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
   J.plus_obj P ⟶ Q :=
 J.plus_map η ≫ (J.iso_to_plus Q hQ).inv
 
+@[simp, reassoc]
 lemma to_plus_plus_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
   J.to_plus P ≫ J.plus_lift η hQ = η :=
 begin
@@ -297,14 +297,9 @@ lemma plus_lift_unique {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sh
   (γ : J.plus_obj P ⟶ Q) (hγ : J.to_plus P ≫ γ = η) : γ = J.plus_lift η hQ :=
 begin
   dsimp only [plus_lift],
-  symmetry,
-  rw [iso.comp_inv_eq, ← hγ],
-  rw plus_map_comp,
-  dsimp only [iso_to_plus, as_iso],
-  rw to_plus_naturality,
-  congr' 1,
-  dsimp only [plus_functor, to_plus_nat_trans],
-  rw [J.plus_map_to_plus P],
+  rw [iso.eq_comp_inv, ← hγ, plus_map_comp],
+  dsimp,
+  simp,
 end
 
 lemma plus_hom_ext {P Q : Cᵒᵖ ⥤ D} (η γ : J.plus_obj P ⟶ Q) (hQ : presheaf.is_sheaf J Q)
@@ -314,6 +309,23 @@ begin
   { apply plus_lift_unique, refl },
   rw this,
   apply plus_lift_unique, exact h
+end
+
+@[simp]
+lemma iso_to_plus_inv (hP : presheaf.is_sheaf J P) : (J.iso_to_plus P hP).inv =
+  J.plus_lift (𝟙 _) hP :=
+begin
+  apply J.plus_lift_unique,
+  rw [iso.comp_inv_eq, category.id_comp],
+  refl,
+end
+
+@[simp]
+lemma plus_map_plus_lift {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) (hR : presheaf.is_sheaf J R) :
+  J.plus_map η ≫ J.plus_lift γ hR = J.plus_lift (η ≫ γ) hR :=
+begin
+  apply J.plus_lift_unique,
+  rw [← category.assoc, ← J.to_plus_naturality, category.assoc, J.to_plus_plus_lift],
 end
 
 end category_theory.grothendieck_topology

@@ -11,6 +11,7 @@ import set_theory.fincard
 # Index of a Subgroup
 
 In this file we define the index of a subgroup, and prove several divisibility properties.
+Several theorems proved in this file are known as Lagrange's theorem.
 
 ## Main definitions
 
@@ -21,6 +22,7 @@ In this file we define the index of a subgroup, and prove several divisibility p
 
 # Main results
 
+- `card_mul_index` : `nat.card H * H.index = nat.card G`
 - `index_mul_card` : `H.index * fintype.card H = fintype.card G`
 - `index_dvd_card` : `H.index ∣ fintype.card G`
 - `index_eq_mul_of_le` : If `H ≤ K`, then `H.index = K.index * (H.subgroup_of K).index`
@@ -177,7 +179,7 @@ nat.dvd_antisymm (H.index_map_dvd hf1) (H.dvd_index_map hf2)
   H.index = fintype.card (quotient_group.quotient H) :=
 nat.card_eq_fintype_card
 
-@[to_additive] lemma index_mul_card [fintype G] [hH : fintype H] :
+@[to_additive index_mul_card] lemma index_mul_card [fintype G] [hH : fintype H] :
   H.index * fintype.card H = fintype.card G :=
 by rw [←relindex_bot_left_eq_card, ←index_bot_eq_card, mul_comm]; exact relindex_mul_index bot_le
 

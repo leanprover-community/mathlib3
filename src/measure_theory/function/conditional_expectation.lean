@@ -1384,7 +1384,7 @@ variables (G)
 lemma dominated_fin_meas_additive_condexp_ind (hm : m ≤ m0) (μ : measure α)
   [sigma_finite (μ.trim hm)] :
   dominated_fin_meas_additive μ (condexp_ind hm μ : set α → G →L[ℝ] α →₁[μ] G) 1 :=
-⟨λ s t, condexp_ind_disjoint_union, λ s, norm_condexp_ind_le.trans (one_mul _).symm.le⟩
+⟨λ s t, condexp_ind_disjoint_union, λ s _ _, norm_condexp_ind_le.trans (one_mul _).symm.le⟩
 
 variables {G}
 

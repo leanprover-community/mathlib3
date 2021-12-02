@@ -113,7 +113,7 @@ end
 set (up to a multiplicative constant). -/
 def dominated_fin_meas_additive {β} [normed_group β] {m : measurable_space α}
   (μ : measure α) (T : set α → β) (C : ℝ) : Prop :=
-fin_meas_additive μ T ∧ ∀ s, ∥T s∥ ≤ C * (μ s).to_real
+fin_meas_additive μ T ∧ ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real
 
 end fin_meas_additive
 
@@ -326,8 +326,9 @@ calc ∥∑ x in f.range, T (f ⁻¹' {x}) x∥
 ... ≤ ∑ x in f.range, ∥T (f ⁻¹' {x})∥ * ∥x∥ :
   by { refine finset.sum_le_sum (λb hb, _), simp_rw continuous_linear_map.le_op_norm, }
 
-lemma norm_set_to_simple_func_le_sum_mul_norm (T : set α → F →L[ℝ] F') {C : ℝ}
-  (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) (f : α →ₛ F) :
+lemma norm_set_to_simple_func_le_sum_mul_norm_of_integrable (T : set α → E →L[ℝ] F') {C : ℝ}
+  (hT_norm : ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real) (f : α →ₛ E)
+  (hf : integrable f μ) :
   ∥f.set_to_simple_func T∥ ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ :=
 calc ∥f.set_to_simple_func T∥
     ≤ ∑ x in f.range, ∥T (f ⁻¹' {x})∥ * ∥x∥ : norm_set_to_simple_func_le_sum_op_norm T f
@@ -337,7 +338,9 @@ calc ∥f.set_to_simple_func T∥
     by_cases hb : ∥b∥ = 0,
     { rw hb, simp, },
     rw _root_.mul_le_mul_right _,
-    { exact hT_norm _, },
+    { refine hT_norm _ (simple_func.measurable_set_fiber _ _)
+        (simple_func.measure_preimage_lt_top_of_integrable _ hf _).ne,
+      rwa norm_eq_zero at hb, },
     { exact lt_of_le_of_ne (norm_nonneg _) (ne.symm hb), },
   end
 ... ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ : by simp_rw [mul_sum, ← mul_assoc]
@@ -461,12 +464,13 @@ begin
   exact smul_to_simple_func c f,
 end
 
-lemma norm_set_to_L1s_le (T : set α → E →L[ℝ] F) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
-  (f : α →₁ₛ[μ] E) :
+lemma norm_set_to_L1s_le (T : set α → E →L[ℝ] F) {C : ℝ}
+  (hT_norm : ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real) (f : α →₁ₛ[μ] E) :
   ∥set_to_L1s T f∥ ≤ C * ∥f∥ :=
 begin
   rw [set_to_L1s, norm_eq_sum_mul f],
-  exact simple_func.norm_set_to_simple_func_le_sum_mul_norm T hT_norm _,
+  exact simple_func.norm_set_to_simple_func_le_sum_mul_norm_of_integrable T hT_norm _
+    (simple_func.integrable f),
 end
 
 lemma set_to_L1s_indicator_const {T : set α → E →L[ℝ] F} {C : ℝ} {s : set α}
@@ -475,7 +479,7 @@ lemma set_to_L1s_indicator_const {T : set α → E →L[ℝ] F} {C : ℝ} {s : s
 begin
   have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
   { refine λ s hs hs0, norm_eq_zero.mp _,
-    refine le_antisymm ((hT.2 s).trans (le_of_eq _)) (norm_nonneg _),
+    refine le_antisymm ((hT.2 s hs (by simp [hs0])).trans (le_of_eq _)) (norm_nonneg _),
     rw [hs0, ennreal.zero_to_real, mul_zero], },
   have h_empty : T ∅ = 0, from h_zero ∅ measurable_set.empty measure_empty,
   rw set_to_L1s_eq_set_to_simple_func,
@@ -493,7 +497,7 @@ def set_to_L1s_clm' {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin
   (α →₁ₛ[μ] E) →L[𝕜] F :=
 have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
 { refine λ s hs hs0, norm_eq_zero.mp _,
-  refine le_antisymm ((hT.2 s).trans (le_of_eq _)) (norm_nonneg _),
+  refine le_antisymm ((hT.2 s hs (by simp [hs0])).trans (le_of_eq _)) (norm_nonneg _),
   rw [hs0, ennreal.zero_to_real, mul_zero], },
 linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T h_zero hT.1,
   set_to_L1s_smul T h_zero hT.1 h_smul⟩ C (λ f, norm_set_to_L1s_le T hT.2 f)
@@ -503,7 +507,7 @@ def set_to_L1s_clm {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_
   (α →₁ₛ[μ] E) →L[ℝ] F :=
 have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
 { refine λ s hs hs0, norm_eq_zero.mp _,
-  refine le_antisymm ((hT.2 s).trans (le_of_eq _)) (norm_nonneg _),
+  refine le_antisymm ((hT.2 s hs (by simp [hs0])).trans (le_of_eq _)) (norm_nonneg _),
   rw [hs0, ennreal.zero_to_real, mul_zero], },
 linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T h_zero hT.1,
   set_to_L1s_smul_real T h_zero hT.1⟩ C (λ f, norm_set_to_L1s_le T hT.2 f)

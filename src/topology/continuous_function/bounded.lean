@@ -1033,15 +1033,21 @@ module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 end normed_algebra
 
 /-!
-### Star structure
+### Star structures
 
-In this section, if `β` is a C⋆-ring, then the space of bounded
-continuous functions from `α` to `β` inherits a C⋆-ring structure also,
-by using the star operation pointwise. Moreover, if `𝕜` is normed field
-and a ⋆-ring, over which `β` is a normed algebra and a star module, then
-the space of bounded continuous functions from `α` to `β` is a star module
-over `𝕜`. In other words, `α →ᵇ β` is a C⋆-algebra (completeness is
-guaranteed when `β` is complete). -/
+In this section, if `β` is a normed ⋆-group, then so is the space of bounded
+continuous functions from `α` to `β`, by using the star operation pointwise.
+
+If `𝕜` is normed field and a ⋆-ring over which `β` is a normed algebra and a
+star module, then the space of bounded continuous functions from `α` to `β`
+is a star module.
+
+If `β` is a ⋆-ring in addition to being a normed ⋆-group, then `α →ᵇ β`
+inherits a ⋆-ring structure.
+
+In summary, if `β` is a C⋆-algebra over `𝕜`, then so is  `α →ᵇ β`; note that
+completeness is guaranteed when `β` is complete (see
+`bounded_continuous_function.complete`). -/
 
 section normed_group
 

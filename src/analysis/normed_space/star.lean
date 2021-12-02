@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
+import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
 
@@ -36,6 +37,12 @@ class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] :=
 
 export normed_star_monoid (norm_star)
 attribute [simp] norm_star
+
+/-- The `star` map in a normed star group is a normed group homomorphism. -/
+def star_normed_group_hom {E : Type*} [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
+  normed_group_hom E E :=
+{ bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
+  .. star_add_equiv }
 
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
 for every `x`. -/

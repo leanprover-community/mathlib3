@@ -3,6 +3,7 @@ import category_theory.limits.functor_category
 import algebraic_geometry.open_immersion
 import algebraic_geometry.presheafed_space.gluing
 import category_theory.limits.yoneda
+import category_theory.limits.opposites
 
 universes v u
 
@@ -1133,17 +1134,74 @@ section end
 
 lemma has_pullback_of_cover : has_pullback f g := ⟨⟨⟨_, glued_is_limit 𝒰 f g⟩⟩⟩
 
-instance : full Spec := sorry
-instance : faithful Spec := sorry
-open opposite
+instance Spec.preserves_limits : preserves_limits Spec := sorry
+instance Spec.full : full Spec := sorry
+instance Spec.faithful : faithful Spec.to_LocallyRingedSpace := sorry
+instance : has_colimits CommRing := infer_instance
+instance : has_limits CommRingᵒᵖ := has_limits_op_of_has_colimits
 
-instance : creates_limits Spec := creat
-
-instance {A B C : CommRing} (f : Spec.obj (op A) ⟶ Spec.obj (op C))
-(g : Spec.obj (op B) ⟶ Spec.obj (op C)) : has_pullback f g :=
+instance affine_has_pullback {A B C : CommRing}
+  (f : Spec.obj (opposite.op A) ⟶ Spec.obj (opposite.op C))
+  (g : Spec.obj (opposite.op B) ⟶ Spec.obj (opposite.op C)) : has_pullback f g :=
 begin
   rw [← Spec.image_preimage f, ← Spec.image_preimage g],
-  have := get_limit_cone (c)
+  exact ⟨⟨⟨_,is_limit_of_has_pullback_of_preserves_limit
+    Spec (Spec.preimage f) (Spec.preimage g)⟩⟩⟩
 end
+
+def affine_cover (X : Scheme) : open_cover X :=
+{ obj := λ x, Spec.obj $ opposite.op (X.local_affine x).some_spec.some,
+  map := λ x, ((X.local_affine x).some_spec.some_spec.some.inv ≫
+    X.to_LocallyRingedSpace.of_restrict _ : _),
+  is_open := λ x, begin
+    apply_with PresheafedSpace.is_open_immersion.comp { instances := ff },
+    apply_instance,
+    apply PresheafedSpace.is_open_immersion.of_restrict,
+  end,
+  covers :=
+  begin
+    intro x,
+    erw coe_comp,
+    rw [set.range_comp, set.range_iff_surjective.mpr, set.image_univ],
+    erw subtype.range_coe_subtype,
+    exact (X.local_affine x).some.2,
+    rw ← Top.epi_iff_surjective,
+    change epi ((SheafedSpace.forget _).map (LocallyRingedSpace.forget_to_SheafedSpace.map _)),
+    apply_instance
+  end }
+
+lemma affine_affine_has_pullback {B C : CommRing} {X : Scheme}
+  (f : X ⟶ Spec.obj (opposite.op C))
+  (g : Spec.obj (opposite.op B) ⟶ Spec.obj (opposite.op C)) : has_pullback f g :=
+has_pullback_of_cover X.affine_cover f g
+
+instance base_affine_has_pullback {C : CommRing} {X Y : Scheme}
+  (f : X ⟶ Spec.obj (opposite.op C))
+  (g : Y ⟶ Spec.obj (opposite.op C)) : has_pullback f g :=
+@@has_pullback_symmetry _ _ _
+  (@@has_pullback_of_cover Y.affine_cover g f
+    (λ x, @@has_pullback_symmetry _ _ _ $ affine_affine_has_pullback _ _))
+
+instance left_affine_comp_pullback_has_pullback {X Y Z : Scheme}
+  (f : X ⟶ Z) (g : Y ⟶ Z) (x : X.carrier) :
+    has_pullback ((Z.affine_cover.pullback_cover f).map x ≫ f) g :=
+begin
+  let Xᵢ := pullback f (Z.affine_cover.map (f.1.base x)),
+  let Yᵢ := pullback g (Z.affine_cover.map (f.1.base x)),
+  let W := pullback (pullback.snd : Yᵢ ⟶ _) (pullback.snd : Xᵢ ⟶ _),
+  have := comp_square_is_limit_of_is_limit (pullback.fst : W ⟶ _) (pullback.fst : Yᵢ ⟶ _)
+    (pullback.snd : Xᵢ ⟶ _) (Z.affine_cover.map (f.1.base x)) pullback.snd pullback.snd g
+    pullback.condition.symm pullback.condition.symm
+      (pullback_cone.flip_is_limit $ pullback_is_pullback _ _)
+      (pullback_cone.flip_is_limit $ pullback_is_pullback _ _),
+  have : has_pullback (pullback.snd ≫ Z.affine_cover.map (f.val.base x) : Xᵢ ⟶ _) g :=
+    ⟨⟨⟨_,this⟩⟩⟩,
+  rw ← pullback.condition at this,
+  exact this,
+end
+
+instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) : has_pullback f g :=
+has_pullback_of_cover (Z.affine_cover.pullback_cover f) f g
+
 
 end algebraic_geometry.Scheme

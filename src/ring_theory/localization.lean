@@ -1169,26 +1169,26 @@ module. See `localization_localization_is_localization`.
 def localization_localization_submodule : submonoid R :=
 (N ⊔ M.map (algebra_map R S)).comap (algebra_map R S)
 
+variables {M N}
 @[simp]
-lemma mem_localization_localization_submodule (x : R) :
+lemma mem_localization_localization_submodule {x : R} :
   x ∈ localization_localization_submodule M N ↔
     ∃ (y : N) (z : M), algebra_map R S x = y * algebra_map R S z :=
 begin
   rw [localization_localization_submodule, submonoid.mem_comap, submonoid.mem_sup],
   split,
-  { rintros ⟨y,hy,_,⟨z,hz,rfl⟩,e⟩, exact ⟨⟨y,hy⟩,⟨z,hz⟩,e.symm⟩ },
-  { rintros ⟨y,z,e⟩, exact ⟨y,y.prop,_,⟨z,z.prop,rfl⟩,e.symm⟩ }
+  { rintros ⟨y, hy, _, ⟨z, hz, rfl⟩, e⟩, exact ⟨⟨y, hy⟩, ⟨z, hz⟩ ,e.symm⟩ },
+  { rintros ⟨y, z, e⟩, exact ⟨y, y.prop, _, ⟨z, z.prop, rfl⟩, e.symm⟩ }
 end
+
+variables (M N)
 
 lemma localization_localization_map_units [is_localization N T]
   (y : localization_localization_submodule M N) : is_unit (algebra_map R T y) :=
 begin
-  rcases y with ⟨y, h⟩,
-  rw mem_localization_localization_submodule at h,
-  rcases h with ⟨y, z, eq⟩,
-  rw [is_scalar_tower.algebra_map_eq R S T, ring_hom.comp_apply, subtype.coe_mk, eq,
-      ring_hom.map_mul, is_unit.mul_iff],
-  refine ⟨is_localization.map_units T y,
+  obtain ⟨y', z, eq⟩ := mem_localization_localization_submodule.mp y.prop,
+  rw [is_scalar_tower.algebra_map_apply R S T, eq, ring_hom.map_mul, is_unit.mul_iff],
+  exact ⟨is_localization.map_units T y',
     (is_localization.map_units _ z).map (algebra_map S T : S →* T)⟩,
 end
 
@@ -1198,16 +1198,15 @@ lemma localization_localization_surj [is_localization N T] (x : T) :
 begin
   rcases is_localization.surj N x with ⟨⟨y, s⟩, eq₁⟩, -- x = y / s
   rcases is_localization.surj M y with ⟨⟨z, t⟩, eq₂⟩, -- y = z / t
-  rcases is_localization.surj M s.1 with ⟨⟨z', t'⟩, eq₃⟩, -- s = z' / t'
+  rcases is_localization.surj M (s : S) with ⟨⟨z', t'⟩, eq₃⟩, -- s = z' / t'
   dsimp only at eq₁ eq₂ eq₃,
   use z * t', use z' * t, -- x = y / s = (z * t') / (z' * t)
   { rw mem_localization_localization_submodule,
     refine ⟨s, t * t', _⟩,
-    rw [ring_hom.map_mul, ← eq₃, mul_assoc, ← ring_hom.map_mul, mul_comm t],
-    refl },
+    rw [ring_hom.map_mul, ← eq₃, mul_assoc, ← ring_hom.map_mul, mul_comm t, submonoid.coe_mul] },
   { simp only [subtype.coe_mk, ring_hom.map_mul, is_scalar_tower.algebra_map_apply R S T,
       ← eq₃, ← eq₂, ← eq₁],
-    ring! },
+    ring },
 end
 
 lemma localization_localization_eq_iff_exists [is_localization N T] (x y : R) :
@@ -1225,8 +1224,7 @@ begin
     use z' * c,
     { rw mem_localization_localization_submodule,
       refine ⟨z, s * c, _⟩,
-      rw [ring_hom.map_mul, ← eq₂, mul_assoc, ← ring_hom.map_mul],
-      refl },
+      rw [ring_hom.map_mul, ← eq₂, mul_assoc, ← ring_hom.map_mul, submonoid.coe_mul] },
     { simpa only [mul_assoc] using eq₃ } },
   { rintro ⟨⟨c, hc⟩, eq₁ : x * c = y * c⟩,
     rw mem_localization_localization_submodule at hc,

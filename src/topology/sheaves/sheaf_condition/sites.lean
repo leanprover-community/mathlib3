@@ -517,7 +517,12 @@ variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 
 lemma is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=
- is_terminal_of_bot_cover ((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F) ∅ (by tidy)
+((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F).is_terminal_of_bot_cover ∅ (by tidy)
+
+/-- A variant of `is_terminal_of_empty` that is easier to `apply`. -/
+lemma is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ∅) :
+  is_terminal (F.val.obj (op U)) :=
+by convert F.is_terminal_of_empty
 
 /-- If a family `B` of open sets forms a basis of the topology on `X`, and if `F'`
     is a sheaf on `X`, then a homomorphism between a presheaf `F` on `X` and `F'`

@@ -192,10 +192,7 @@ or.elim (nat.eq_zero_or_pos k)
        exact dvd_gcd (mul_dvd_mul_left _ H2) (mul_dvd_mul_right H1 _))
 
 theorem lcm_dvd_mul (m n : ℕ) : lcm m n ∣ m * n :=
-begin
-  use gcd m n,
-  rw [←gcd_mul_lcm, mul_comm],
-end
+lcm_dvd (dvd_mul_right _ _) (dvd_mul_left _ _)
 
 lemma lcm_dvd_iff {m n k : ℕ} : lcm m n ∣ k ↔ m ∣ k ∧ n ∣ k :=
 ⟨λ h, ⟨(dvd_lcm_left _ _).trans h, (dvd_lcm_right _ _).trans h⟩,

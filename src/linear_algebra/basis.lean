@@ -630,7 +630,7 @@ begin
   rw fintype.linear_independent_iff,
   rintros g sum_eq i,
   cases i,
-  simp only [function.const_apply, fin.default_eq_zero, submodule.coe_mk, univ_unique,
+  simp only [function.const_apply, fin.default_eq_zero, submodule.coe_mk, finset.univ_unique,
              function.comp_const, finset.sum_singleton] at sum_eq,
   convert (b.smul_eq_zero.mp sum_eq).resolve_right x_ne
 end

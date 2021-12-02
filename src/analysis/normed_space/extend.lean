@@ -44,7 +44,7 @@ begin
   have add : ∀ x y : F, fc (x + y) = fc x + fc y,
   { assume x y,
     simp only [fc],
-    simp only [smul_add, map_add, of_real_add],
+    simp only [smul_add, linear_map.map_add, of_real_add],
     rw mul_add,
     abel, },
   have A : ∀ (c : ℝ) (x : F), (fr ((c : 𝕜) • x) : 𝕜) = (c : 𝕜) * (fr x : 𝕜),

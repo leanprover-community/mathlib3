@@ -1032,7 +1032,6 @@ module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
 
-section cstar_ring
 /-!
 ### Star structure
 
@@ -1044,21 +1043,32 @@ the space of bounded continuous functions from `α` to `β` is a star module
 over `𝕜`. In other words, `α →ᵇ β` is a C⋆-algebra (completeness is
 guaranteed when `β` is complete). -/
 
-variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
-variables [topological_space α]
-variables [normed_ring β] [star_ring β] [normed_star_monoid β]
-variables [normed_algebra 𝕜 β] [star_module 𝕜 β]
+section normed_group
 
-instance : star_ring (α →ᵇ β) :=
+variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
+variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_monoid β]
+variables [normed_space 𝕜 β] [star_module 𝕜 β]
+
+instance : star_add_monoid (α →ᵇ β) :=
 { star := λ f, f.comp star star_normed_group_hom.lipschitz,
   star_involutive := λ f, ext $ λ x, star_star (f x),
-  star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
   star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
 
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
 instance : star_module 𝕜 (α →ᵇ β) :=
 { star_smul := λ k f, ext $ λ x, star_smul k (f x) }
+
+end normed_group
+
+section cstar_ring
+
+variables [topological_space α]
+variables [normed_ring β] [star_ring β] [normed_star_monoid β]
+
+instance : star_ring (α →ᵇ β) :=
+{ star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
+  ..bounded_continuous_function.star_add_monoid }
 
 variable [cstar_ring β]
 

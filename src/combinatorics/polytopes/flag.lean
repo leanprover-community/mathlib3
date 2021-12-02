@@ -504,6 +504,13 @@ begin
   apply ha',
 end
 
+/-- Order isomorphisms preserve strong connectedness. -/
+theorem strong_connected_order_iso_of_strong_connected (oiso : α ≃o β) :
+  graded.strong_connected α → graded.strong_connected β :=
+begin
+  sorry
+end
+
 end order_iso
 
 section linear_order

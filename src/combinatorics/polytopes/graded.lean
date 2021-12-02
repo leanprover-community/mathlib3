@@ -587,8 +587,34 @@ end graded
 
 namespace order_iso
 
-variables {α : Type u} [partial_order α] [order_top α] [graded α] {β : Type u} [partial_order β]
-[order_top β] [graded β] (oiso : α ≃o β)
+variables {α : Type u} [partial_order α] {β : Type u} [partial_order β] (oiso : α ≃o β)
+
+/-- An isomorphism between graded posets extends to an isomorphism between sections. -/
+def Icc (x y : α) : set.Icc x y ≃o set.Icc (oiso x) (oiso y) :=
+{ to_fun := λ a, ⟨oiso.to_fun a.val, (le_iff_le oiso).mpr a.prop.left, (le_iff_le oiso).mpr a.prop.right⟩,
+  inv_fun := λ a, ⟨oiso.inv_fun a, begin
+    split, {
+      have H : oiso.inv_fun (oiso.to_fun x) ≤ oiso.inv_fun a := begin
+        change oiso.inv_fun with oiso.symm,
+        rw le_iff_le oiso.symm,
+        exact a.prop.left,
+      end,
+      simp at H,
+      exact H,
+    },
+    have H : oiso.inv_fun a ≤ oiso.inv_fun (oiso.to_fun y) := begin
+      change oiso.inv_fun with oiso.symm,
+      rw le_iff_le oiso.symm,
+      exact a.prop.right,
+    end,
+    simp at H,
+    exact H,
+  end⟩,
+  left_inv := λ _, subtype.eq (by simp),
+  right_inv := λ _, subtype.eq (by simp),
+  map_rel_iff' := by simp }
+
+variables [order_top α] [graded α] [order_top β] [graded β]
 
 /-- The map from proper elements to proper elements given by an order isomorphism. -/
 private def proper_aux : proper α → proper β :=

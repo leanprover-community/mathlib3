@@ -1067,7 +1067,7 @@ instance : star_ring (α →ᵇ β) :=
   star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
   star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
 
-@[simp] lemma coe_star (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
+@[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
 instance : cstar_ring (α →ᵇ β) :=
 { norm_star_mul_self :=
@@ -1075,7 +1075,7 @@ instance : cstar_ring (α →ᵇ β) :=
     intro f,
     refine le_antisymm _ _,
     { rw [←sq, norm_le (sq_nonneg _)],
-      dsimp [coe_star],
+      dsimp [star_apply],
       intro x,
       rw [cstar_ring.norm_star_mul_self, ←sq],
       refine sq_le_sq' _ _,

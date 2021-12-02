@@ -398,6 +398,15 @@ begin
                                                     (λ i, cyclotomic i ℤ), integer]
 end
 
+lemma prod_cyclotomic_eq_geom_sum {n : ℕ} (h : 0 < n) (R) [comm_ring R] [is_domain R] :
+  ∏ i in n.divisors \ {1}, cyclotomic i R = geom_sum X n :=
+begin
+  apply_fun (* cyclotomic 1 R) using mul_left_injective₀ (cyclotomic_ne_zero 1 R),
+  have : ∏ i in {1}, cyclotomic i R = cyclotomic 1 R := finset.prod_singleton,
+  simp_rw [←this, finset.prod_sdiff $ show {1} ⊆ n.divisors, by simp [h.ne'], this, cyclotomic_one,
+           geom_sum_mul, prod_cyclotomic_eq_X_pow_sub_one h]
+end
+
 section arithmetic_function
 open nat.arithmetic_function
 open_locale arithmetic_function

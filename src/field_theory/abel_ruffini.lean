@@ -16,12 +16,12 @@ by radicals, then its minimal polynomial has solvable Galois group.
 
 ## Main definitions
 
-* `SBF F E` : the intermediate field of solvable-by-radicals elements
+* `solvable_by_rad F E` : the intermediate field of solvable-by-radicals elements
 
 ## Main results
 
-* `solvable_gal_of_solvable_by_rad` : the minimal polynomial of an element of `SBF F E` has
-solvable Galois group
+* the Abel-Ruffini Theorem `solvable_by_rad.is_solvable'` : An irreducible polynomial with a root
+that is solvable by radicals has a solvable Galois group.
 -/
 
 noncomputable theory

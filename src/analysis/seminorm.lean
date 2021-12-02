@@ -6,7 +6,6 @@ Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 import analysis.convex.function
 import analysis.normed_space.ordered
 import data.real.pointwise
-import data.set.intervals
 
 /-!
 # Seminorms and Local Convexity

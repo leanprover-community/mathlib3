@@ -4,22 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 
-import algebra.group_power
-import control.uliftable
 import control.monad.basic
-
-import data.bitvec.basic
-import data.fin.basic
-import data.list.basic
-import data.set.intervals.basic
-import data.stream.basic
-
-import tactic.cache
-import tactic.interactive
+import data.int.basic
+import data.stream.defs
+import control.uliftable
 import tactic.norm_num
+import data.bitvec.basic
 
-import system.io
-import system.random
 
 /-!
 # Rand Monad and Random Class

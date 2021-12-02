@@ -68,6 +68,7 @@ Note that we rarely use `complete_semilattice_Sup`
 
 Nevertheless it is sometimes a useful intermediate step in constructions.
 -/
+@[ancestor partial_order has_Sup]
 class complete_semilattice_Sup (α : Type*) extends partial_order α, has_Sup α :=
 (le_Sup : ∀s, ∀a∈s, a ≤ Sup s)
 (Sup_le : ∀s a, (∀b∈s, b ≤ a) → Sup s ≤ a)
@@ -116,6 +117,7 @@ Note that we rarely use `complete_semilattice_Inf`
 
 Nevertheless it is sometimes a useful intermediate step in constructions.
 -/
+@[ancestor partial_order has_Inf]
 class complete_semilattice_Inf (α : Type*) extends partial_order α, has_Inf α :=
 (Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
 (le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
@@ -161,9 +163,15 @@ end
 
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
-@[protect_proj]
+@[protect_proj, ancestor lattice complete_semilattice_Sup complete_semilattice_Inf has_top has_bot]
 class complete_lattice (α : Type*) extends
-  bounded_lattice α, complete_semilattice_Sup α, complete_semilattice_Inf α.
+  lattice α, complete_semilattice_Sup α, complete_semilattice_Inf α, has_top α, has_bot α :=
+(le_top : ∀ x : α, x ≤ ⊤)
+(bot_le : ∀ x : α, ⊥ ≤ x)
+
+@[priority 100]  -- see Note [lower instance priority]
+instance complete_lattice.to_bounded_order [h : complete_lattice α] : bounded_order α :=
+{ ..h }
 
 /-- Create a `complete_lattice` from a `partial_order` and `Inf` function
 that returns the greatest lower bound of a set. Usually this constructor provides
@@ -270,7 +278,8 @@ instance [complete_lattice α] : complete_lattice (order_dual α) :=
   Sup_le := @complete_lattice.le_Inf α _,
   Inf_le := @complete_lattice.le_Sup α _,
   le_Inf := @complete_lattice.Sup_le α _,
-  .. order_dual.bounded_lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
+  .. order_dual.lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α,
+  .. order_dual.bounded_order α }
 
 instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
 { .. order_dual.complete_lattice α, .. order_dual.linear_order α }
@@ -299,16 +308,16 @@ theorem le_Inf_inter {s t : set α} : Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
 @Sup_inter_le (order_dual α) _ _ _
 
 @[simp] theorem Sup_empty : Sup ∅ = (⊥ : α) :=
-(@is_lub_empty α _).Sup_eq
+(@is_lub_empty α _ _).Sup_eq
 
 @[simp] theorem Inf_empty : Inf ∅ = (⊤ : α) :=
-(@is_glb_empty α _).Inf_eq
+(@is_glb_empty α _ _).Inf_eq
 
 @[simp] theorem Sup_univ : Sup univ = (⊤ : α) :=
-(@is_lub_univ α _).Sup_eq
+(@is_lub_univ α _ _).Sup_eq
 
 @[simp] theorem Inf_univ : Inf univ = (⊥ : α) :=
-(@is_glb_univ α _).Inf_eq
+(@is_glb_univ α _ _).Inf_eq
 
 -- TODO(Jeremy): get this automatically
 @[simp] theorem Sup_insert {a : α} {s : set α} : Sup (insert a s) = a ⊔ Sup s :=
@@ -507,6 +516,15 @@ lemma monotone.le_map_Sup [complete_lattice β] {s : set α} {f : α → β} (hf
   (⨆a∈s, f a) ≤ f (Sup s) :=
 by rw [Sup_eq_supr]; exact hf.le_map_supr2 _
 
+lemma order_iso.map_supr [complete_lattice β] (f : α ≃o β) (x : ι → α) :
+  f (⨆ i, x i) = ⨆ i, f (x i) :=
+eq_of_forall_ge_iff $ f.surjective.forall.2 $ λ x,
+  by simp only [f.le_iff_le, supr_le_iff]
+
+lemma order_iso.map_Sup [complete_lattice β] (f : α ≃o β) (s : set α) :
+  f (Sup s) = ⨆ a ∈ s, f a :=
+by simp only [Sup_eq_supr, order_iso.map_supr]
+
 lemma supr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨆ x, f (g x)) ≤ ⨆ y, f y :=
 supr_le_supr2 $ λ x, ⟨_, le_refl _⟩
@@ -595,6 +613,14 @@ lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone
 lemma monotone.map_Inf_le [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
   f (Inf s) ≤ ⨅ a∈s, f a :=
 by rw [Inf_eq_infi]; exact hf.map_infi2_le _
+
+lemma order_iso.map_infi [complete_lattice β] (f : α ≃o β) (x : ι → α) :
+  f (⨅ i, x i) = ⨅ i, f (x i) :=
+order_iso.map_supr f.dual _
+
+lemma order_iso.map_Inf [complete_lattice β] (f : α ≃o β) (s : set α) :
+  f (Inf s) = ⨅ a ∈ s, f a :=
+order_iso.map_Sup f.dual _
 
 lemma le_infi_comp {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨅ y, f y) ≤ ⨅ x, f (g x) :=
@@ -1061,6 +1087,26 @@ by simp [supr_option]
 lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
 @supr_option_elim (order_dual α) _ _ _ _
 
+/-- When taking the supremum of `f : ι → α`, the elements of `ι` on which `f` gives `⊥` can be
+dropped, without changing the result. -/
+lemma supr_ne_bot_subtype (f : ι → α) : (⨆ i : {i // f i ≠ ⊥}, f i) = ⨆ i, f i :=
+begin
+  by_cases htriv : ∀ i, f i = ⊥,
+  { simp only [htriv, supr_bot] },
+  refine le_antisymm (supr_comp_le f _) (supr_le_supr2 _),
+  intros i,
+  by_cases hi : f i = ⊥,
+  { rw hi,
+    obtain ⟨i₀, hi₀⟩ := not_forall.mp htriv,
+    exact ⟨⟨i₀, hi₀⟩, bot_le⟩ },
+  { exact ⟨⟨i, hi⟩, rfl.le⟩ },
+end
+
+/-- When taking the infimum of `f : ι → α`, the elements of `ι` on which `f` gives `⊤` can be
+dropped, without changing the result. -/
+lemma infi_ne_top_subtype (f : ι → α) : (⨅ i : {i // f i ≠ ⊤}, f i) = ⨅ i, f i :=
+@supr_ne_bot_subtype (order_dual α) ι _ f
+
 /-!
 ### `supr` and `infi` under `ℕ`
 -/
@@ -1126,7 +1172,8 @@ instance Prop.complete_lattice : complete_lattice Prop :=
   Inf    := λs, ∀a:Prop, a∈s → a,
   Inf_le := assume s a h p, p a h,
   le_Inf := assume s a h p b hb, h b hb p,
-  .. Prop.bounded_distrib_lattice }
+  .. Prop.bounded_order,
+  .. Prop.distrib_lattice }
 
 @[simp] lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
 
@@ -1152,7 +1199,8 @@ instance pi.complete_lattice {α : Type*} {β : α → Type*} [∀ i, complete_l
   Inf_le := λ s f hf i, infi_le (λ f : s, (f : Π i, β i) i) ⟨f, hf⟩,
   Sup_le := λ s f hf i, supr_le $ λ g, hf g g.2 i,
   le_Inf := λ s f hf i, le_infi $ λ g, hf g g.2 i,
-  .. pi.bounded_lattice }
+  .. pi.bounded_order,
+  .. pi.lattice }
 
 lemma Inf_apply {α : Type*} {β : α → Type*} [Π i, has_Inf (β i)]
   {s : set (Πa, β a)} {a : α} :
@@ -1210,7 +1258,8 @@ instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × �
   le_Inf := assume s p h,
     ⟨ le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).1,
       le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
-  .. prod.bounded_lattice α β,
+  .. prod.lattice α β,
+  .. prod.bounded_order α β,
   .. prod.has_Sup α β,
   .. prod.has_Inf α β }
 

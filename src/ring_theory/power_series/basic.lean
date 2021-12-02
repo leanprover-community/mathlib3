@@ -3,13 +3,13 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
-import data.mv_polynomial
+import algebra.big_operators.nat_antidiagonal
+import data.mv_polynomial.basic
+import data.polynomial.coeff
 import linear_algebra.std_basis
 import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
-import ring_theory.algebra_tower
 import tactic.linarith
-import algebra.big_operators.nat_antidiagonal
 
 /-!
 # Formal power series
@@ -543,7 +543,7 @@ begin
         { exfalso, apply hne, rw [← hij, ← hi, prod.mk.inj_iff], refine ⟨rfl, _⟩,
           ext t, simp only [add_tsub_cancel_left, finsupp.add_apply, finsupp.tsub_apply] },
         { exact zero_mul _ } },
-        { intro hni, exfalso, apply hni, rwa [finsupp.mem_antidiagonal, add_comm] } },
+      { intro hni, exfalso, apply hni, rwa [finsupp.mem_antidiagonal, add_comm] } },
     { rw [h, coeff_mul, finset.sum_eq_zero],
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
@@ -1077,8 +1077,8 @@ noncomputable def rescale (a : R) : power_series R →+* power_series R :=
   map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
                 split_ifs, { rw [h, pow_zero], }, refl, },
   map_add' := by { intros, ext, exact mul_add _ _ _, },
-  map_mul' := λ f g, by {
-    ext,
+  map_mul' := λ f g, by
+  { ext,
     rw [power_series.coeff_mul, power_series.coeff_mk, power_series.coeff_mul, finset.mul_sum],
     apply sum_congr rfl,
     simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],
@@ -1245,29 +1245,29 @@ variables [ring R] [is_domain R]
 lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 0) :
   φ = 0 ∨ ψ = 0 :=
 begin
-    rw or_iff_not_imp_left, intro H,
-    have ex : ∃ m, coeff R m φ ≠ 0, { contrapose! H, exact ext H },
-    let m := nat.find ex,
-    have hm₁ : coeff R m φ ≠ 0 := nat.find_spec ex,
-    have hm₂ : ∀ k < m, ¬coeff R k φ ≠ 0 := λ k, nat.find_min ex,
-    ext n, rw (coeff R n).map_zero, apply nat.strong_induction_on n,
-    clear n, intros n ih,
-    replace h := congr_arg (coeff R (m + n)) h,
-    rw [linear_map.map_zero, coeff_mul, finset.sum_eq_single (m,n)] at h,
-    { replace h := eq_zero_or_eq_zero_of_mul_eq_zero h,
-      rw or_iff_not_imp_left at h, exact h hm₁ },
-    { rintro ⟨i,j⟩ hij hne,
-      by_cases hj : j < n, { rw [ih j hj, mul_zero] },
-      by_cases hi : i < m,
-      { specialize hm₂ _ hi, push_neg at hm₂, rw [hm₂, zero_mul] },
-      rw finset.nat.mem_antidiagonal at hij,
-      push_neg at hi hj,
-      suffices : m < i,
-      { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
-        exfalso, exact ne_of_lt this hij.symm },
-      contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
-      simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
-    { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
+  rw or_iff_not_imp_left, intro H,
+  have ex : ∃ m, coeff R m φ ≠ 0, { contrapose! H, exact ext H },
+  let m := nat.find ex,
+  have hm₁ : coeff R m φ ≠ 0 := nat.find_spec ex,
+  have hm₂ : ∀ k < m, ¬coeff R k φ ≠ 0 := λ k, nat.find_min ex,
+  ext n, rw (coeff R n).map_zero, apply nat.strong_induction_on n,
+  clear n, intros n ih,
+  replace h := congr_arg (coeff R (m + n)) h,
+  rw [linear_map.map_zero, coeff_mul, finset.sum_eq_single (m,n)] at h,
+  { replace h := eq_zero_or_eq_zero_of_mul_eq_zero h,
+    rw or_iff_not_imp_left at h, exact h hm₁ },
+  { rintro ⟨i,j⟩ hij hne,
+    by_cases hj : j < n, { rw [ih j hj, mul_zero] },
+    by_cases hi : i < m,
+    { specialize hm₂ _ hi, push_neg at hm₂, rw [hm₂, zero_mul] },
+    rw finset.nat.mem_antidiagonal at hij,
+    push_neg at hi hj,
+    suffices : m < i,
+    { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
+      exfalso, exact ne_of_lt this hij.symm },
+    contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
+    simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
+  { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
 instance : is_domain (power_series R) :=

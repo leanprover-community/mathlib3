@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.operations
-import algebra.algebra.tower
-import data.equiv.ring
-import data.nat.choose.sum
-import ring_theory.ideal.quotient
 import ring_theory.non_zero_divisors
+import data.nat.choose.sum
+import ring_theory.coprime.lemmas
+import data.equiv.ring
+import ring_theory.ideal.quotient
 /-!
 # More operations on modules and ideals
 -/
@@ -310,6 +310,32 @@ lemma span_singleton_mul_eq_span_singleton_mul {x y : R} (I J : ideal R) :
     ((∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ) ∧
      (∀ zJ ∈ J, ∃ zI ∈ I, x * zI = y * zJ)) :=
 by simp only [le_antisymm_iff, span_singleton_mul_le_span_singleton_mul, eq_comm]
+
+lemma prod_span {ι : Type*} (s : finset ι) (I : ι → set R) :
+  (∏ i in s, ideal.span (I i)) = ideal.span (∏ i in s, I i) :=
+submodule.prod_span s I
+
+lemma prod_span_singleton {ι : Type*} (s : finset ι) (I : ι → R) :
+  (∏ i in s, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
+submodule.prod_span_singleton s I
+
+lemma finset_inf_span_singleton {ι : Type*} (s : finset ι) (I : ι → R)
+  (hI : set.pairwise ↑s (is_coprime on I)) :
+  (s.inf $ λ i, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
+begin
+  ext x,
+  simp only [submodule.mem_finset_inf, ideal.mem_span_singleton],
+  exact ⟨finset.prod_dvd_of_coprime hI,
+    λ h i hi, (finset.dvd_prod_of_mem _ hi).trans h⟩
+end
+
+lemma infi_span_singleton {ι : Type*} [fintype ι] (I : ι → R)
+  (hI : ∀ i j (hij : i ≠ j), is_coprime (I i) (I j)):
+  (⨅ i, ideal.span ({I i} : set R)) = ideal.span {∏ i, I i} :=
+begin
+  rw [← finset.inf_univ_eq_infi, finset_inf_span_singleton],
+  rwa [finset.coe_univ, set.pairwise_univ]
+end
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩
@@ -741,8 +767,7 @@ span (f '' I)
 /-- `I.comap f` is the preimage of `I` under `f`. -/
 def comap (I : ideal S) : ideal R :=
 { carrier := f ⁻¹' I,
-  smul_mem' := λ c x hx, show f (c * x) ∈ I, by { rw f.map_mul, exact I.mul_mem_left _ hx },
-  .. I.to_add_submonoid.comap (f : R →+ S) }
+  .. I.comap f.to_semilinear_map }
 
 variables {f}
 theorem map_mono (h : I ≤ J) : map f I ≤ map f J :=
@@ -767,6 +792,29 @@ variables (f)
 theorem comap_ne_top (hK : K ≠ ⊤) : comap f K ≠ ⊤ :=
 (ne_top_iff_one _).2 $ by rw [mem_comap, f.map_one];
   exact (ne_top_iff_one _).1 hK
+
+lemma map_le_comap_of_inv_on (g : S →+* R) (I : ideal R) (hf : set.left_inv_on g f I) :
+  I.map f ≤ I.comap g :=
+begin
+  refine ideal.span_le.2 _,
+  rintros x ⟨x, hx, rfl⟩,
+  rw [set_like.mem_coe, mem_comap, hf hx],
+  exact hx,
+end
+
+lemma comap_le_map_of_inv_on (g : S →+* R) (I : ideal S) (hf : set.left_inv_on g f (f ⁻¹' I)) :
+  I.comap f ≤ I.map g :=
+λ x (hx : f x ∈ I), hf hx ▸ ideal.mem_map_of_mem g hx
+
+/-- The `ideal` version of `set.image_subset_preimage_of_inverse`. -/
+lemma map_le_comap_of_inverse (g : S →+* R) (I : ideal R) (h : function.left_inverse g f) :
+  I.map f ≤ I.comap g :=
+map_le_comap_of_inv_on _ _ _ $ h.left_inv_on _
+
+/-- The `ideal` version of `set.preimage_subset_image_of_inverse`. -/
+lemma comap_le_map_of_inverse (g : S →+* R) (I : ideal S) (h : function.left_inverse g f) :
+  I.comap f ≤ I.map g :=
+comap_le_map_of_inv_on _ _ _ $ h.left_inv_on _
 
 instance is_prime.comap [hK : K.is_prime] : (comap f K).is_prime :=
 ⟨comap_ne_top _ hK.1, λ x y,
@@ -1134,10 +1182,10 @@ end ideal
 
 namespace ring_hom
 
-variables {R : Type u} {S : Type v}
+variables {R : Type u} {S : Type v} {T : Type v}
 
 section semiring
-variables [semiring R] [semiring S] (f : R →+* S)
+variables [semiring R] [semiring S] [semiring T] (f : R →+* S) (g : T →+* S)
 
 /-- Kernel of a ring homomorphism as an ideal of the domain. -/
 def ker : ideal R := ideal.comap f ⊥
@@ -1149,6 +1197,9 @@ by rw [ker, ideal.mem_comap, submodule.mem_bot]
 lemma ker_eq : ((ker f) : set R) = set.preimage f {0} := rfl
 
 lemma ker_eq_comap_bot (f : R →+* S) : f.ker = ideal.comap f ⊥ := rfl
+
+lemma comap_ker (f : S →+* R) : f.ker.comap g = (f.comp g).ker :=
+by rw [ring_hom.ker_eq_comap_bot, ideal.comap_comap, ring_hom.ker_eq_comap_bot]
 
 /-- If the target is not the zero ring, then one is not in the kernel.-/
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=
@@ -1329,7 +1380,7 @@ begin
     rw [ring_hom.mem_ker, ← hy, ideal.quotient.lift_mk, ← ring_hom.mem_ker] at hx,
     rw [← hy, mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective],
     exact ⟨y, hx, rfl⟩ },
- { intro hx,
+  { intro hx,
     rw mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective at hx,
     obtain ⟨y, hy⟩ := hx,
     rw [ring_hom.mem_ker, ← hy.right, ideal.quotient.lift_mk, ← (ring_hom.mem_ker f)],
@@ -1647,12 +1698,12 @@ def lift_of_right_inverse
   (hf : function.right_inverse f_inv f) : {g : A →+* C // f.ker ≤ g.ker} ≃ (B →+* C) :=
 { to_fun := λ g, f.lift_of_right_inverse_aux f_inv hf g.1 g.2,
   inv_fun := λ φ, ⟨φ.comp f, λ x hx, (mem_ker _).mpr $ by simp [(mem_ker _).mp hx]⟩,
-  left_inv := λ g, by {
-    ext,
+  left_inv := λ g, by
+  { ext,
     simp only [comp_apply, lift_of_right_inverse_aux_comp_apply, subtype.coe_mk,
       subtype.val_eq_coe], },
-  right_inv := λ φ, by {
-    ext b,
+  right_inv := λ φ, by
+  { ext b,
     simp [lift_of_right_inverse_aux, hf b], } }
 
 /-- A non-computable version of `ring_hom.lift_of_right_inverse` for when no computable right

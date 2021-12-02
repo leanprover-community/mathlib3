@@ -11,6 +11,7 @@ import set_theory.fincard
 # Index of a Subgroup
 
 In this file we define the index of a subgroup, and prove several divisibility properties.
+Several theorems proved in this file are known as Lagrange's theorem.
 
 ## Main definitions
 
@@ -21,6 +22,7 @@ In this file we define the index of a subgroup, and prove several divisibility p
 
 # Main results
 
+- `card_mul_index` : `nat.card H * H.index = nat.card G`
 - `index_mul_card` : `H.index * fintype.card H = fintype.card G`
 - `index_dvd_card` : `H.index ∣ fintype.card G`
 - `index_eq_mul_of_le` : If `H ≤ K`, then `H.index = K.index * (H.subgroup_of K).index`
@@ -147,11 +149,37 @@ by rw [relindex, subgroup_of_bot_eq_top, index_top]
 @[simp, to_additive] lemma relindex_self : H.relindex H = 1 :=
 by rw [relindex, subgroup_of_self, index_top]
 
+@[simp, to_additive card_mul_index]
+lemma card_mul_index : nat.card H * H.index = nat.card G :=
+by { rw [←relindex_bot_left, ←index_bot], exact relindex_mul_index bot_le }
+
+@[to_additive] lemma index_map {G' : Type*} [group G'] (f : G →* G') :
+  (H.map f).index = (H ⊔ f.ker).index * f.range.index :=
+by rw [←comap_map_eq, index_comap, relindex_mul_index (H.map_le_range f)]
+
+@[to_additive] lemma index_map_dvd {G' : Type*} [group G'] {f : G →* G'}
+  (hf : function.surjective f) : (H.map f).index ∣ H.index :=
+begin
+  rw [index_map, f.range_top_of_surjective hf, index_top, mul_one],
+  exact index_dvd_of_le le_sup_left,
+end
+
+@[to_additive] lemma dvd_index_map {G' : Type*} [group G'] {f : G →* G'}
+  (hf : f.ker ≤ H) : H.index ∣ (H.map f).index :=
+begin
+  rw [index_map, sup_of_le_left hf],
+  apply dvd_mul_right,
+end
+
+@[to_additive] lemma index_map_eq {G' : Type*} [group G'] {f : G →* G'}
+  (hf1 : function.surjective f) (hf2 : f.ker ≤ H) : (H.map f).index = H.index :=
+nat.dvd_antisymm (H.index_map_dvd hf1) (H.dvd_index_map hf2)
+
 @[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=
 nat.card_eq_fintype_card
 
-@[to_additive] lemma index_mul_card [fintype G] [hH : fintype H] :
+@[to_additive index_mul_card] lemma index_mul_card [fintype G] [hH : fintype H] :
   H.index * fintype.card H = fintype.card G :=
 by rw [←relindex_bot_left_eq_card, ←index_bot_eq_card, mul_comm]; exact relindex_mul_index bot_le
 

@@ -202,7 +202,7 @@ def monomial (n : ℕ) : R →ₗ[R] polynomial R :=
 @[simp]
 lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
-map_zero _
+(monomial n).map_zero
 
 -- This is not a `simp` lemma as `monomial_zero_left` is more general.
 lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl

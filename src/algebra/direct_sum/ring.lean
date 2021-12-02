@@ -144,10 +144,10 @@ instance : non_unital_non_assoc_semiring (⨁ i, A i) :=
 { mul := λ a b, mul_hom A a b,
   zero := 0,
   add := (+),
-  zero_mul := λ a, by simp only [map_zero, add_monoid_hom.zero_apply],
-  mul_zero := λ a, by simp only [map_zero],
-  left_distrib := λ a b c, by simp only [map_add],
-  right_distrib := λ a b c, by simp only [map_add, add_monoid_hom.add_apply],
+  zero_mul := λ a, by simp only [add_monoid_hom.map_zero, add_monoid_hom.zero_apply],
+  mul_zero := λ a, by simp only [add_monoid_hom.map_zero],
+  left_distrib := λ a b c, by simp only [add_monoid_hom.map_add],
+  right_distrib := λ a b c, by simp only [add_monoid_hom.map_add, add_monoid_hom.add_apply],
   .. direct_sum.add_comm_monoid _ _}
 
 variables {A}

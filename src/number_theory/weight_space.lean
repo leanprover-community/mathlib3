@@ -1499,7 +1499,15 @@ end
 
 example (m : ℕ) : m^1 = m := pow_one m
 
---example (n : ℕ) : ((1 : zmod n) : ℤ) = 1 := begin  end
+lemma one_int_cast (n : ℕ) [fact (1 < n)] : ((1 : zmod n) : ℤ) = 1 :=
+begin
+  rw ←zmod.nat_cast_val _, rw zmod.val_one _,
+  simp only [int.coe_nat_zero, int.coe_nat_succ, zero_add, int.nat_cast_eq_coe_nat],
+  { assumption, },
+  { apply fact_iff.2, apply lt_trans zero_lt_one,
+    { apply fact.out, },
+    { apply_instance, }, },
+end
 
 lemma sum_fract (m : ℕ)  (x : zmod (d * p^m)) : ∑ (x_1 : (equi_class p d m m.succ (nat.le_succ m) x)),
   fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) =
@@ -1546,7 +1554,10 @@ begin
             { rw nat.cast_mul, rw zmod.nat_cast_val, rw zmod.nat_cast_val,
               congr, rw ←nat.cast_pow,
               by_cases m = 0,
-              { rw h, rw pow_zero, rw pow_zero, rw nat.cast_one, sorry, },
+              { rw h, rw pow_zero, rw pow_zero, rw nat.cast_one, apply one_int_cast _,
+                apply fact_iff.2, apply one_lt_mul,
+                { rw nat.succ_le_iff, apply fact.out, },
+                { rw pow_one p, apply nat.prime.one_lt, apply fact.out, }, },
               { rw coe_nat_int, rw coe_nat_int, simp,
                 { refine lt_mul_pow (m.succ) p d _ _ _,
                   apply fact.out,
@@ -1563,7 +1574,13 @@ begin
                   { apply nat.prime.one_lt, apply fact.out, }, }, }, }, }, },
         { rw ←nat.cast_pow, rw ←nat.cast_mul, rw zmod.val_cast_of_lt _, rw fin_le_val _ _ _ _,
           { apply fin_mul_lt, },
-          { sorry, },
+          { rw mul_comm,
+            apply le_mul_of_le_of_one_le,
+            { conv { congr, rw ←pow_one p, skip, skip, },
+              apply pow_le_pow,
+              { apply le_of_lt, apply nat.prime.one_lt, apply fact.out, },
+              { apply nat.succ_le_succ, apply nat.zero_le _, }, },
+            { rw nat.succ_le_iff, apply fact.out, }, },
           { apply mul_pow_lt_mul_pow_succ, }, }, },
       { rw zmod.nat_cast_val, rw ←zmod.nat_cast_val, rw ←zmod.nat_cast_val (↑y * (_ * _)),
         rw ←nat.cast_add,
@@ -2235,7 +2252,7 @@ begin
             { rw hy.symm, simp only [ring_hom.map_nat_cast], }, }, }, },
     { convert seq_lim_g_char_fn p d R n a hc hc' h' hd', simp only [set.singleton_prod], }, },
 end
-#exit
+
 -- not used, delete?
 /-- Constructing a linear map, given that _. -/
 noncomputable
@@ -2453,7 +2470,10 @@ end -/
 lemma subspace_induces_locally_constant (f : locally_constant (units (zmod d) × units ℤ_[p]) A) :
   ∃ (g : locally_constant (zmod d × ℤ_[p]) A),
     f.to_fun = g.to_fun ∘ (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])) :=
-sorry
+begin
+  sorry,
+end
+
 --generalize to units X
 instance is_this_even_true : compact_space (units (zmod d) × units ℤ_[p]) := sorry
 instance why_is_it_not_recognized : t2_space (units (zmod d) × units ℤ_[p]) := sorry

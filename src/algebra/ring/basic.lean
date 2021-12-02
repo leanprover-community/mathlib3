@@ -344,6 +344,30 @@ add_decl_doc ring_hom.to_monoid_hom
 The `simp`-normal form is `(f : R →+ S)`. -/
 add_decl_doc ring_hom.to_add_monoid_hom
 
+section ring_hom_class
+
+/-- `ring_hom_class F R S` states that `F` is a type of (semi)ring homomorphisms.
+You should extend this class when you extend `ring_hom`.
+
+This extends from both `monoid_hom_class` and `monoid_with_zero_hom_class` in
+order to put the fields in a sensible order, even though
+`monoid_with_zero_hom_class` already extends `monoid_hom_class`. -/
+class ring_hom_class (F : Type*) (R S : out_param Type*)
+  [non_assoc_semiring R] [non_assoc_semiring S]
+  extends monoid_hom_class F R S, add_monoid_hom_class F R S, monoid_with_zero_hom_class F R S
+
+variables {F : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [ring_hom_class F α β]
+
+/-- Ring homomorphisms preserve `bit0`. -/
+@[simp] lemma map_bit0 (f : F) (a : α) : (f (bit0 a) : β) = bit0 (f a) :=
+map_add _ _ _
+
+/-- Ring homomorphisms preserve `bit1`. -/
+@[simp] lemma map_bit1 (f : F) (a : α) : (f (bit1 a) : β) = bit1 (f a) :=
+by simp [bit1]
+
+end ring_hom_class
+
 namespace ring_hom
 
 section coe
@@ -356,15 +380,11 @@ variables {rα : non_assoc_semiring α} {rβ : non_assoc_semiring β}
 
 include rα rβ
 
-instance : add_monoid_hom_class (α →+* β) α β :=
+instance : ring_hom_class (α →+* β) α β :=
 { coe := ring_hom.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_add := ring_hom.map_add',
-  map_zero := ring_hom.map_zero' }
-
-instance : monoid_hom_class (α →+* β) α β :=
-{ coe := ring_hom.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_zero := ring_hom.map_zero',
   map_mul := ring_hom.map_mul',
   map_one := ring_hom.map_one' }
 
@@ -410,19 +430,19 @@ include rα rβ
 variables (f : α →+* β) {x y : α} {rα rβ}
 
 theorem congr_fun {f g : α →+* β} (h : f = g) (x : α) : f x = g x :=
-congr_arg (λ h : α →+* β, h x) h
+fun_like.congr_fun h x
 
 theorem congr_arg (f : α →+* β) {x y : α} (h : x = y) : f x = f y :=
-congr_arg (λ x : α, f x) h
+fun_like.congr_arg f h
 
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
-by cases f; cases g; cases h; refl
+fun_like.coe_injective h
 
 @[ext] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_inj (funext h)
+fun_like.ext _ _ h
 
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, ext h⟩
+fun_like.ext_iff
 
 @[simp] lemma mk_coe (f : α →+* β) (h₁ h₂ h₃ h₄) : ring_hom.mk f h₁ h₂ h₃ h₄ = f :=
 ext $ λ _, rfl
@@ -446,10 +466,10 @@ protected lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := 
 protected lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := map_mul f a b
 
 /-- Ring homomorphisms preserve `bit0`. -/
-@[simp] lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) := map_add _ _ _
+protected lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) := map_add _ _ _
 
 /-- Ring homomorphisms preserve `bit1`. -/
-@[simp] lemma map_bit1 (f : α →+* β) (a : α) : f (bit1 a) = bit1 (f a) :=
+protected lemma map_bit1 (f : α →+* β) (a : α) : f (bit1 a) = bit1 (f a) :=
 by simp [bit1]
 
 /-- `f : R →+* S` has a trivial codomain iff `f 1 = 0`. -/

@@ -317,17 +317,11 @@ begin
   { intro h,
     have ub := min_fac_le_of_dvd (le_refl 2) h,
     have lb := min_fac_pos n,
-    -- If `interval_cases` and `norm_num` were already available here,
-    -- this would be easy and pleasant.
-    -- But they aren't, so it isn't.
-    cases h : n.min_fac with m,
-    { rw h at lb, cases lb, },
-    { cases m with m,
-      { simp at h, subst h, cases h with n h, cases n; cases h, },
-      { cases m with m,
-        { refl, },
-        { rw h at ub,
-          cases ub with _ ub, cases ub with _ ub, cases ub, } } } }
+    apply ub.eq_or_lt.resolve_right (λ h', _),
+    have := le_antisymm (nat.succ_le_of_lt lb) (lt_succ_iff.mp h'),
+    rw [eq_comm, nat.min_fac_eq_one_iff] at this,
+    subst this,
+    exact not_lt_of_le (le_of_dvd zero_lt_one h) one_lt_two }
 end
 
 end min_fac
@@ -358,9 +352,8 @@ have np : n ≤ p, from le_of_not_ge $ λ h,
 ⟨p, np, pp⟩
 
 lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
-(nat.mod_two_eq_zero_or_one p).elim
-  (λ h, or.inl ((hp.2 2 (dvd_of_mod_eq_zero h)).resolve_left dec_trivial).symm)
-  or.inr
+p.mod_two_eq_zero_or_one.imp_left
+  (λ h, ((hp.2 2 (dvd_of_mod_eq_zero h)).resolve_left dec_trivial).symm)
 
 theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
 begin
@@ -369,8 +362,7 @@ begin
     exfalso,
     exact H 2 prime_two (dvd_zero _) (dvd_zero _) },
   apply eq.symm,
-  change 1 ≤ _ at g1,
-  apply (lt_or_eq_of_le g1).resolve_left,
+  apply (nat.succ_le_of_lt g1).lt_or_eq.resolve_left,
   intro g2,
   obtain ⟨p, hp, hpdvd⟩ := exists_prime_and_dvd g2,
   apply H p hp; apply dvd_trans hpdvd,
@@ -502,9 +494,11 @@ theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
 mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
-by induction n with n IH;
-   [exact pp.not_dvd_one.elim h,
-    by { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH } ]
+begin
+  induction n with n IH,
+  { exact pp.not_dvd_one.elim h },
+  { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH }
+end
 
 lemma prime.pow_dvd_of_dvd_mul_right {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
   (hpb : ¬ p ∣ b) : p ^ n ∣ a :=
@@ -588,23 +582,15 @@ by rw [pp.dvd_iff_not_coprime]; apply em
 
 lemma coprime_of_lt_prime {n p} (n_pos : 0 < n) (hlt : n < p) (pp : prime p) :
   coprime p n :=
-begin
-   cases coprime_or_dvd_of_prime pp n,
-   { exact h },
-   { exfalso, exact lt_le_antisymm hlt (le_of_dvd n_pos h) },
-end
+(coprime_or_dvd_of_prime pp n).resolve_right $ λ h, lt_le_antisymm hlt (le_of_dvd n_pos h)
 
 lemma eq_or_coprime_of_le_prime {n p} (n_pos : 0 < n) (hle : n ≤ p) (pp : prime p) :
   p = n ∨ coprime p n :=
-begin
-  by_cases p = n,
-  { exact or.inl h, },
-  { right, exact coprime_of_lt_prime n_pos ((ne.symm h).le_iff_lt.mp hle) pp },
-end
+hle.eq_or_lt.imp eq.symm (λ h, coprime_of_lt_prime n_pos h pp)
 
 theorem dvd_prime_pow {p : ℕ} (pp : prime p) {m i : ℕ} : i ∣ (p^m) ↔ ∃ k ≤ m, i = p^k :=
 begin
-  induction m with m IH generalizing i, {simp [pow_succ, le_zero_iff] at *},
+  induction m with m IH generalizing i, { simp },
   by_cases p ∣ i,
   { cases h with a e, subst e,
     rw [pow_succ, nat.mul_dvd_mul_iff_left pp.pos, IH],
@@ -612,14 +598,14 @@ begin
     { exact ⟨succ k, succ_le_succ h, by rw [e, pow_succ]; refl⟩ },
     cases k with k,
     { apply pp.not_dvd_one.elim,
-      simp at e, rw ← e, apply dvd_mul_right },
+      rw [← pow_zero, ← e], apply dvd_mul_right },
     { refine ⟨k, le_of_succ_le_succ h, _⟩,
       rwa [mul_comm, pow_succ', nat.mul_left_inj pp.pos] at e } },
   { split; intro d,
     { rw (pp.coprime_pow_of_not_dvd h).eq_one_of_dvd d,
-      exact ⟨0, zero_le _, rfl⟩ },
-    { rcases d with ⟨k, l, e⟩,
-      rw e, exact pow_dvd_pow _ l } }
+      exact ⟨0, zero_le _, (pow_zero p).symm⟩ },
+    { rcases d with ⟨k, l, rfl⟩,
+      exact pow_dvd_pow _ l } }
 end
 
 /--

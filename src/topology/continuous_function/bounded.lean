@@ -1045,7 +1045,8 @@ over `𝕜`. In other words, `α →ᵇ β` is a C⋆-algebra (completeness is
 guaranteed when `β` is complete). -/
 
 variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
-variables [topological_space α] [normed_ring β] [star_ring β] [cstar_ring β]
+variables [topological_space α]
+variables [normed_ring β] [star_ring β] [normed_star_monoid β]
 variables [normed_algebra 𝕜 β] [star_module 𝕜 β]
 
 instance : star_ring (α →ᵇ β) :=
@@ -1055,6 +1056,11 @@ instance : star_ring (α →ᵇ β) :=
   star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
 
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
+
+instance : star_module 𝕜 (α →ᵇ β) :=
+{ star_smul := λ k f, ext $ λ x, star_smul k (f x) }
+
+variable [cstar_ring β]
 
 instance : cstar_ring (α →ᵇ β) :=
 { norm_star_mul_self :=
@@ -1074,8 +1080,6 @@ instance : cstar_ring (α →ᵇ β) :=
       exact norm_coe_le_norm (star f * f) x }
   end }
 
-instance : star_module 𝕜 (α →ᵇ β) :=
-{ star_smul := λ k f, ext $ λ x, star_smul k (f x) }
 
 end cstar_ring
 

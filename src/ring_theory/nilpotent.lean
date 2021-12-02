@@ -45,7 +45,7 @@ end
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
 /-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
-class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] :=
+class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
 (eq_zero : ∀ (x : R), is_nilpotent x → x = 0)
 
 instance is_reduced_of_no_zero_divisors [monoid_with_zero R] [no_zero_divisors R] : is_reduced R :=

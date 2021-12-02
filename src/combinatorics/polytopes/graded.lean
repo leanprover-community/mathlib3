@@ -350,8 +350,8 @@ begin
   exact graded.strict_mono hcb
 end
 
-/-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. -/
- -- Todo(Vi): Generalize! You don't need a linear order here!
+/-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. This is generalized to a
+    partial order in `ex_of_grade`. -/
 theorem ex_of_grade_lin [order_top α] (j : fin (graded.grade_top α + 1)) : is_grade α j :=
 (nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, graded.grade_bot⟩ ⟨⊤, rfl⟩ _
   ⟨zero_le _, nat.le_of_lt_succ j.prop⟩
@@ -590,29 +590,6 @@ begin
     sorry,
   },
   sorry
-end
-
-
-private lemma grade_le_of_order_iso {α β : Type u} [partial_order α] [graded α] [partial_order β]
-[graded β] {oiso : α ≃o β} {n : ℕ} :
-  ∀ x, grade x = n → grade x ≤ grade (oiso x) :=
-begin
-  apply nat.strong_induction_on n,
-  intros n H x,
-  sorry
-end
-
-/-- Order isomorphisms preserve grades. In other words, grade functions are unique when they
-    exist. -/
-theorem grade_eq_of_order_iso {α β : Type u} [partial_order α] [graded α] [partial_order β]
-[graded β] (oiso : α ≃o β) (x : α) :
-  grade x = grade (oiso x) :=
-begin
-  rw eq_iff_le_not_lt,
-  split, { exact (grade_le_of_order_iso _ (refl _)) },
-  have : grade x = grade (oiso.symm (oiso x)) := by rw (order_iso.symm_apply_apply _ x),
-  rw this,
-  exact not_lt_of_ge (grade_le_of_order_iso _ (refl _))
 end
 
 end graded

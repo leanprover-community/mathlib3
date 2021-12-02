@@ -345,7 +345,7 @@ end
 namespace multiplicity
 
 lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_abs b.nat_abs :=
-by simp only [finite_def, ← int.nat_abs_dvd_abs_iff, int.nat_abs_pow]
+by simp only [finite_def, ← int.nat_abs_dvd_iff_dvd, int.nat_abs_pow]
 
 lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
 by rw [finite_int_iff_nat_abs_finite, finite_nat_iff, pos_iff_ne_zero, int.nat_abs_ne_zero]
@@ -378,8 +378,8 @@ lemma int.prime_iff_nat_abs_prime {k : ℤ} : prime k ↔ nat.prime k.nat_abs :=
 
 theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=
 begin
-  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_abs_iff, ←int.nat_abs_dvd_abs_iff,
-    dvd_dvd_iff_associated],
+  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_iff_dvd,
+      ←int.nat_abs_dvd_iff_dvd, dvd_dvd_iff_associated],
   exact associated_iff_eq,
 end
 

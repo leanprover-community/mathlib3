@@ -119,6 +119,7 @@ instance [decidable_eq α] : boolean_algebra (finset α) :=
   top_le_sup_compl := λ s x hx, by simp,
   sdiff_eq := λ s t, by simp [ext_iff, compl],
   ..finset.order_top,
+  ..finset.order_bot,
   ..finset.generalized_boolean_algebra }
 
 lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
@@ -1198,6 +1199,10 @@ begin
     exact λ hf, ⟨λ a ha, f a, hf, rfl⟩ }
 end
 
+@[simp] lemma coe_pi_finset (t : Π a, finset (δ a)) :
+  (pi_finset t : set (Π a, δ a)) = set.pi set.univ (λ a, t a) :=
+by { ext, simp }
+
 lemma pi_finset_subset (t₁ t₂ : Π a, finset (δ a)) (h : ∀ a, t₁ a ⊆ t₂ a) :
   pi_finset t₁ ⊆ pi_finset t₂ :=
 λ g hg, mem_pi_finset.2 $ λ a, h a $ mem_pi_finset.1 hg a
@@ -1469,11 +1474,7 @@ begin
   suffices : f ∈ perms_of_list l ∨ ∃ (b ∈ l) (g ∈ perms_of_list l), swap a b * g = f,
   { simpa only [perms_of_list, exists_prop, list.mem_map, mem_append, list.mem_bind] },
   refine or_iff_not_imp_left.2 (λ hfl, ⟨f a, _, swap a (f a) * f, IH this, _⟩),
-  { by_cases hffa : f (f a) = a,
-    { exact mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa)) },
-    { apply this,
-      simp only [mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq],
-      split_ifs; cc } },
+  { exact mem_of_ne_of_mem hfa (h _ hfa') },
   { rw [←mul_assoc, mul_def (swap a (f a)) (swap a (f a)),
         swap_swap, ←perm.one_def, one_mul] }
 end

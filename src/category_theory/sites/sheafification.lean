@@ -156,7 +156,7 @@ lemma to_plus_mk {X : C} {P : Cᵒᵖ ⥤ D} (S : J.cover X) (x : P.obj (op X)) 
   (J.to_plus P).app _ x = mk (meq.mk S x) :=
 begin
   dsimp [mk],
-  let e : S ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
+  let e : S ⟶ ⊤ := hom_of_le (order_top.le_top _),
   rw ← colimit.w _ e.op,
   delta cover.to_multiequalizer,
   simp only [comp_apply],
@@ -177,7 +177,7 @@ begin
   simp only [← comp_apply, colimit.ι_pre, ι_colim_map_assoc],
   simp only [comp_apply],
   dsimp only [functor.op],
-  let e : (J.pullback I.f).obj (unop (op S)) ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
+  let e : (J.pullback I.f).obj (unop (op S)) ⟶ ⊤ := hom_of_le (order_top.le_top _),
   rw ← colimit.w _ e.op,
   simp only [comp_apply],
   congr' 1,
@@ -542,9 +542,18 @@ begin
   exact h,
 end
 
+lemma sheafification_map_sheafify_lift {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R)
+  (hR : presheaf.is_sheaf J R) :
+  (J.sheafification D).map η ≫ J.sheafify_lift γ hR = J.sheafify_lift (η ≫ γ) hR :=
+begin
+  apply J.sheafify_lift_unique,
+  erw [← category.assoc, ← (J.to_sheafification D).naturality, functor.id_map,
+    category.assoc, to_sheafify_sheafify_lift],
+end
+
 end grothendieck_topology
 
-variables (J D)
+variables (J)
 variables
   [concrete_category.{max v u} D]
   [preserves_limits (forget D)]
@@ -553,10 +562,16 @@ variables
   [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
   [reflects_isomorphisms (forget D)]
 
+lemma grothendieck_topology.sheafify_is_sheaf (P : Cᵒᵖ ⥤ D) :
+  presheaf.is_sheaf J (J.sheafify P) :=
+grothendieck_topology.plus.is_sheaf_plus_plus _ _
+
+variables (D)
+
 /-- The sheafification functor, as a functor taking values in `Sheaf`. -/
 @[simps obj map]
 def presheaf_to_Sheaf : (Cᵒᵖ ⥤ D) ⥤ Sheaf J D :=
-{ obj := λ P, ⟨J.sheafify P, grothendieck_topology.plus.is_sheaf_plus_plus J P⟩,
+{ obj := λ P, ⟨J.sheafify P, J.sheafify_is_sheaf P⟩,
   map := λ P Q η, (J.sheafification D).map η,
   map_id' := (J.sheafification D).map_id,
   map_comp' := λ P Q R, (J.sheafification D).map_comp }
@@ -570,9 +585,8 @@ adjunction.mk_of_hom_equiv
     left_inv := λ e, (J.sheafify_lift_unique _ _ _ rfl).symm,
     right_inv := λ e, J.to_sheafify_sheafify_lift _ _ },
   hom_equiv_naturality_left_symm' := begin
-    intros P Q R η γ, dsimp, symmetry, apply J.sheafify_lift_unique,
-    erw [← category.assoc, ← (J.to_sheafification D).naturality, functor.id_map,
-      category.assoc, J.to_sheafify_sheafify_lift],
+    intros P Q R η γ, dsimp, symmetry,
+    apply J.sheafification_map_sheafify_lift,
   end,
   hom_equiv_naturality_right' := λ P Q R η γ, by { dsimp, rw category.assoc, refl } }
 

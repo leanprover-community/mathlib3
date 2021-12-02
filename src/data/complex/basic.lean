@@ -59,6 +59,9 @@ lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 @[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
 ⟨congr_arg re, congr_arg _⟩
 
+theorem of_real_injective : function.injective (coe : ℝ → ℂ) :=
+λ z w, congr_arg re
+
 instance : can_lift ℂ ℝ :=
 { cond := λ z, z.im = 0,
   coe := coe,
@@ -457,6 +460,12 @@ by simp [abs]
 
 @[simp] lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
+
+@[simp] lemma abs_pow (z : ℂ) (n : ℕ) : abs (z ^ n) = abs z ^ n :=
+monoid_hom.map_pow ⟨abs, abs_one, abs_mul⟩ z n
+
+@[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
+monoid_with_zero_hom.map_zpow ⟨abs, abs_zero, abs_one, abs_mul⟩ z n
 
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),

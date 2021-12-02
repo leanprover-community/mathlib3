@@ -39,10 +39,8 @@ section pullback
 
 variables {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} {h : W ⟶ X} {k : W ⟶ Y} (comm : h ≫ f = k ≫ g)
 
-/--
-The map of a pullback cone is a limit iff the fork consisting of the mapped morphisms is a limit.
-This essentially lets us commute `pullback_cone.mk` with `functor.map_cone`.
--/
+/-- The map of a pullback cone is a limit iff the fork consisting of the mapped morphisms is a
+limit. This essentially lets us commute `pullback_cone.mk` with `functor.map_cone`. -/
 def is_limit_map_cone_pullback_cone_equiv :
   is_limit (G.map_cone (pullback_cone.mk h k comm)) ≃
     is_limit (pullback_cone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
@@ -64,10 +62,8 @@ reflects_limit.reflects ((is_limit_map_cone_pullback_cone_equiv G comm).symm l)
 
 variables (f g) [has_pullback f g]
 
-/--
-If `G` preserves pullbacks and `C` has them, then the pullback cone constructed of the mapped
-morphisms of the pullback cone is a limit.
--/
+/-- If `G` preserves pullbacks and `C` has them, then the pullback cone constructed of the mapped
+morphisms of the pullback cone is a limit. -/
 def is_limit_of_has_pullback_of_preserves_limit
   [preserves_limit (cospan f g) G] :
   is_limit (pullback_cone.mk (G.map pullback.fst) (G.map pullback.snd) _) :=
@@ -75,10 +71,8 @@ is_limit_pullback_cone_map_of_is_limit G _ (pullback_is_pullback f g)
 
 variables [has_pullback (G.map f) (G.map g)]
 
-/--
-If the pullback comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
-pullback of `(f,g)`.
--/
+/-- If the pullback comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
+pullback of `(f,g)`. -/
 def preserves_pullback.of_iso_comparison [i : is_iso (pullback_comparison G f g)] :
   preserves_limit (cospan f g) G :=
 begin
@@ -108,10 +102,8 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
 
 variables [preserves_limit (cospan f g) G]
 
-/--
-If `G` preserves the pullback of `(f,g)`, then the pullback comparison map for `G` at `(f,g)` is
-an isomorphism.
--/
+/-- If `G` preserves the pullback of `(f,g)`, then the pullback comparison map for `G` at `(f,g)` is
+an isomorphism. -/
 def preserves_pullback.iso :
   G.obj (pullback f g) ≅ pullback (G.map f) (G.map g) :=
 is_limit.cone_point_unique_up_to_iso
@@ -128,10 +120,10 @@ begin
   apply_instance
 end
 
-lemma preserves_pullback.iso_hom_fst :
+@[reassoc] lemma preserves_pullback.iso_hom_fst :
   (preserves_pullback.iso G f g).hom ≫ pullback.fst = G.map pullback.fst := by simp
 
-lemma preserves_pullback.iso_hom_snd :
+@[reassoc] lemma preserves_pullback.iso_hom_snd :
   (preserves_pullback.iso G f g).hom ≫ pullback.snd = G.map pullback.snd := by simp
 
 @[simp, reassoc] lemma preserves_pullback.iso_inv_fst :
@@ -148,10 +140,8 @@ section pushout
 
 variables {W X Y Z : C} {h : X ⟶ Z} {k : Y ⟶ Z} {f : W ⟶ X} {g : W ⟶ Y} (comm : f ≫ h = g ≫ k)
 
-/--
-The map of a pushout cocone is a colimit iff the cofork consisting of the mapped morphisms is a
-colimit. This essentially lets us commute `pushout_cocone.mk` with `functor.map_cocone`.
--/
+/-- The map of a pushout cocone is a colimit iff the cofork consisting of the mapped morphisms is a
+colimit. This essentially lets us commute `pushout_cocone.mk` with `functor.map_cocone`. -/
 def is_colimit_map_cocone_pushout_cocone_equiv :
   is_colimit (G.map_cocone (pushout_cocone.mk h k comm)) ≃
     is_colimit (pushout_cocone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
@@ -173,10 +163,8 @@ reflects_colimit.reflects ((is_colimit_map_cocone_pushout_cocone_equiv G comm).s
 
 variables (f g) [has_pushout f g]
 
-/--
-If `G` preserves pushouts and `C` has them, then the pushout cocone constructed of the mapped
-morphisms of the pushout cocone is a colimit.
--/
+/-- If `G` preserves pushouts and `C` has them, then the pushout cocone constructed of the mapped
+morphisms of the pushout cocone is a colimit. -/
 def is_colimit_of_has_pushout_of_preserves_colimit
   [preserves_colimit (span f g) G] :
   is_colimit (pushout_cocone.mk (G.map pushout.inl) (G.map pushout.inr) _) :=
@@ -184,10 +172,8 @@ is_colimit_pushout_cocone_map_of_is_colimit G _ (pushout_is_pushout f g)
 
 variables [has_pushout (G.map f) (G.map g)]
 
-/--
-If the pushout comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
-pushout of `(f,g)`.
--/
+/-- If the pushout comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
+pushout of `(f,g)`. -/
 def preserves_pushout.of_iso_comparison [i : is_iso (pushout_comparison G f g)] :
   preserves_colimit (span f g) G :=
 begin
@@ -217,10 +203,8 @@ def preserves_pushout_symmetry {D : Type*} [category D] (F : C ⥤ D) (f : X ⟶
 
 variables [preserves_colimit (span f g) G]
 
-/--
-If `G` preserves the pushout of `(f,g)`, then the pushout comparison map for `G` at `(f,g)` is
-an isomorphism.
--/
+/-- If `G` preserves the pushout of `(f,g)`, then the pushout comparison map for `G` at `(f,g)` is
+an isomorphism. -/
 def preserves_pushout.iso :
   pushout (G.map f) (G.map g) ≅ G.obj (pushout f g) :=
 is_colimit.cocone_point_unique_up_to_iso
@@ -237,10 +221,10 @@ begin
   apply_instance
 end
 
-lemma preserves_pushout.inl_iso_hom :
+@[reassoc] lemma preserves_pushout.inl_iso_hom :
   pushout.inl ≫ (preserves_pushout.iso G f g).hom = G.map pushout.inl := by simp
 
-lemma preserves_pushout.inr_iso_hom :
+@[reassoc] lemma preserves_pushout.inr_iso_hom :
   pushout.inr ≫ (preserves_pushout.iso G f g).hom = G.map pushout.inr := by simp
 
 @[simp, reassoc] lemma preserves_pushout.inl_iso_inv :

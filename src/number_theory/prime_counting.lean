@@ -80,26 +80,6 @@ end
 --   exact split_Ico_filter (zero_le k) k_le_n p
 -- end
 
-lemma coprime_of_lt_prime {n k : ℕ} (n_pos : 0 < n) (hlt : n < k) (is_prime : prime k) :
-  coprime k n :=
-begin
-  have h := coprime_or_dvd_of_prime is_prime n,
-  cases h,
-  { exact h, },
-  { have hle := le_of_dvd n_pos h,
-    by_contra,
-    exact lt_le_antisymm hlt hle, },
-end
-
-lemma eq_or_coprime_of_le_prime {n k : ℕ} (n_pos : 0 < n) (hle : n ≤ k) (is_prime : prime k) :
-  k = n ∨ coprime k n :=
-begin
-  by_cases k = n,
-  { exact or.inl h, },
-  { right,
-    apply coprime_of_lt_prime n_pos _ is_prime,
-    exact (ne.symm h).le_iff_lt.mp hle, },
-end
 
 lemma Ico_eq_insert_Ico_succ (a b : ℕ) (h : a < b) : Ico a b = insert a (Ico a.succ b) :=
 begin

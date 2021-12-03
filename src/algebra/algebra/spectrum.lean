@@ -27,7 +27,7 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 * `spectrum.unit_mem_mul_iff_mem_swap_mul` and `spectrum.preimage_units_mul_eq_swap_mul`: the
   units (of `R`) in `σ (a*b)` coincide with those in `σ (b*a)`.
 * `spectrum.scalar_eq`: in a nontrivial algebra over a field, the spectrum of a scalar is
-  a singleton.begin
+  a singleton.
 
 ## Notations
 

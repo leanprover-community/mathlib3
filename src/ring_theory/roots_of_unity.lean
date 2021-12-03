@@ -877,7 +877,7 @@ lemma separable_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
     (minpoly ℤ μ)) ∣ X ^ n - 1,
-  { simpa [map_pow, map_X, map_one, map_sub] using
+  { simpa [map_pow, map_X, polynomial.map_one, polynomial.map_sub] using
       ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p)))
         (minpoly_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
@@ -946,7 +946,7 @@ begin
   have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
   { rw [(is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
-      (monic_X_pow_sub_C (1 : ℤ) (ne_of_gt hpos)).is_primitive), map_mul],
+      (monic_X_pow_sub_C (1 : ℤ) (ne_of_gt hpos)).is_primitive), polynomial.map_mul],
     refine is_coprime.mul_dvd _ _ _,
     { have aux := is_primitive.int.irreducible_iff_irreducible_map_cast Pmonic.is_primitive,
       refine (dvd_or_coprime _ _ (aux.1 Pirr)).resolve_left _,
@@ -959,9 +959,10 @@ begin
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
       exact minpoly_dvd_X_pow_sub_one (pow_of_prime h hprime.1 hdiv) hpos } },
   replace prod := ring_hom.map_dvd ((map_ring_hom (int.cast_ring_hom (zmod p)))) prod,
-  rw [coe_map_ring_hom, map_mul, map_sub, map_one, map_pow, map_X] at prod,
+  rw [coe_map_ring_hom, polynomial.map_mul, polynomial.map_sub,
+      polynomial.map_one, map_pow, map_X] at prod,
   obtain ⟨R, hR⟩ := minpoly_dvd_mod_p h hpos hdiv,
-  rw [hR, ← mul_assoc, ← map_mul, ← sq, map_pow] at prod,
+  rw [hR, ← mul_assoc, ← polynomial.map_mul, ← sq, map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
   { use R },
   replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)

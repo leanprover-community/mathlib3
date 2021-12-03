@@ -182,7 +182,7 @@ calc ∥2•(a⊓b) - 2•(c⊓d)∥ = ∥(a + b - |b - a|) - (c + d - |d - c|)�
   ... = 2*∥a - c∥ + 2*∥b - d∥ :
     by { ring, }
 
-lemma two_sup_sub_two_sup_le (a b c d : α) :
+lemma norm_two_sup_sub_two_sup_le (a b c d : α) :
   ∥2•(a⊔b)-2•(c⊔d)∥ ≤ 2*∥a - c∥ + 2*∥b - d∥ :=
 calc ∥2•(a⊔b) - 2•(c⊔d)∥ = ∥(a + b + |b - a|) - (c + d + |d - c|)∥ :
     by rw [lattice_ordered_comm_group.two_sup_eq_add_add_abs_sub,

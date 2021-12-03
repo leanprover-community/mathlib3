@@ -109,7 +109,7 @@ variable (A)
 /-- `embeddings_matrix_reindex A C b e : matrix ι ι C` is the matrix whose `(i, j)` coefficient
   is `σⱼ (b i)`, where `σⱼ : B →ₐ[A] C` is the embedding corresponding to `j : ι` given by a
   bijection `e : ι ≃ (B →ₐ[A] C)`. It is mostly useful for fields and `C` is algebraically closed.
-  In this case, in presnce of `h : fintype.card ι = finrank A B`, one can take
+  In this case, in presence of `h : fintype.card ι = finrank A B`, one can take
   `e := equiv_of_card_eq ((alg_hom.card A B C).trans h.symm)`. -/
 def embeddings_matrix_reindex (b : ι → B) (e : ι ≃ (B →ₐ[A] C)) :=
 reindex (equiv.refl ι) e.symm (embeddings_matrix A C b)

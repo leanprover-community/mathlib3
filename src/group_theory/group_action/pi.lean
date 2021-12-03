@@ -72,7 +72,7 @@ instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
 ⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
 
 instance {α : Type*} [Π i, has_scalar α $ f i] [Π i, has_scalar αᵐᵒᵖ $ f i]
-  [∀ i, is_symmetric_smul α (f i)] : is_symmetric_smul α (Π i, f i) :=
+  [∀ i, is_central_scalar α (f i)] : is_central_scalar α (Π i, f i) :=
 ⟨λ r m, funext $ λ i, op_smul_eq_smul _ _⟩
 
 /-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is

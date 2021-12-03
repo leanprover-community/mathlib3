@@ -151,7 +151,7 @@ instance {S₁ S₂} [has_scalar S₁ S₂] [monoid S₁] [monoid S₂] [distrib
 ⟨by { rintros _ _ ⟨⟩, simp [smul_to_finsupp] }⟩
 
 instance {S} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
-  [is_symmetric_smul S R] : is_symmetric_smul S (polynomial R) :=
+  [is_central_scalar S R] : is_central_scalar S (polynomial R) :=
 ⟨by { rintros _ ⟨⟩, simp [smul_to_finsupp, op_smul_eq_smul] }⟩
 
 instance [subsingleton R] : unique (polynomial R) :=

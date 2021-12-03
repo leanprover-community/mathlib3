@@ -621,8 +621,8 @@ instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂]
 instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
 { smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
 
-instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_symmetric_smul S M₂] :
-  is_symmetric_smul S (M →ₛₗ[σ₁₂] M₂) :=
+instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_central_scalar S M₂] :
+  is_central_scalar S (M →ₛₗ[σ₁₂] M₂) :=
 { op_smul_eq_smul := λ a b, ext $ λ x, op_smul_eq_smul _ _ }
 
 instance : distrib_mul_action S (M →ₛₗ[σ₁₂] M₂) :=

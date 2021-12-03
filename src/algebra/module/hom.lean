@@ -41,7 +41,7 @@ instance [smul_comm_class R S B] : smul_comm_class R S (A →+ B) :=
 instance [has_scalar R S] [is_scalar_tower R S B] : is_scalar_tower R S (A →+ B) :=
 ⟨λ a b f, ext $ λ x, smul_assoc _ _ _⟩
 
-instance [distrib_mul_action Rᵐᵒᵖ B] [is_symmetric_smul R B] : is_symmetric_smul R (A →+ B) :=
+instance [distrib_mul_action Rᵐᵒᵖ B] [is_central_scalar R B] : is_central_scalar R (A →+ B) :=
 ⟨λ a b, ext $ λ x, op_smul_eq_smul _ _⟩
 
 end

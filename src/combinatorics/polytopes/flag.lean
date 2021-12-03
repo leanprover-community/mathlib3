@@ -30,7 +30,7 @@ also proven in this file.
 ## Main results
 
 * `graded.ex_of_grade`: there's an element of any possible grade in a graded poset.
-* `graded.flag_card_eq_top_grade_succ`: all flags of a graded poset have the same cardinality.
+* `graded.flag_card_eq`: all flags of a graded poset have the same cardinality.
 * `graded.scon_iff_sfcon`: strong connectedness and strong flag-connectedness are equivalent.
 
 There's a few more of both I'm missing.
@@ -313,23 +313,45 @@ end polytope.automorphism
 namespace chain
 section
 
-variables {α : Type u} [has_lt α]
+variables {α : Type u}
 
 /-- The empty set is vacuously a chain. -/
-lemma empty : @zorn.chain α (<) ∅ :=
+lemma empty [has_lt α] : @zorn.chain α (<) ∅ :=
 λ _ h, h.elim
 
 /-- Any singleton is a chain. -/
-lemma singleton (x : α) : @zorn.chain α (<) (set.insert x ∅) :=
+lemma singleton [has_lt α] (x : α) : @zorn.chain α (<) (set.insert x ∅) :=
 by refine zorn.chain_insert _ _ ; repeat { exact λ _ h, h.elim }
 
 /-- Any pair of incident elements is a chain. -/
-lemma pair {x y : α} (hxy : x < y ∨ y < x) :
+lemma pair [has_lt α] {x y : α} (hxy : x < y ∨ y < x) :
   @zorn.chain α (<) (set.insert x (set.insert y ∅)) :=
 begin
   apply zorn.chain_insert (singleton _),
   intros _ hb _,
   rwa ←(list.mem_singleton.mp hb) at hxy,
+end
+
+/-- Chains of intervals are chains. -/
+lemma chain_of_chain [preorder α] {x y : α} (c : set (set.Icc x y)) :
+  @zorn.chain (set.Icc x y) (<) c → @zorn.chain α (<) (subtype.val '' c)  :=
+begin
+  intros hc a ha b hb hne,
+  have hz : ∀ {z}, z ∈ subtype.val '' c → z ∈ set.Icc x y := begin
+    intros _ hz,
+    rcases hz with ⟨z', _, hz'⟩,
+    rw ←hz',
+    exact subtype.mem z',
+  end,
+  refine hc ⟨a, hz ha⟩ _ ⟨b, hz hb⟩ _ _,
+  rcases ha with ⟨a', _, ha'⟩,
+  suffices : a' = ⟨a, _⟩, by rwa ←this,
+  swap,
+  rcases hb with ⟨b', _, hb'⟩,
+  suffices : b' = ⟨b, _⟩, by rwa ←this,
+  repeat
+    { apply subtype.eq, assumption },
+  exact λ h, hne (subtype.mk.inj h),
 end
 
 end
@@ -578,12 +600,31 @@ end
 
 end linear_order
 
+section partial_order
+
+variables {α : Type u} [partial_order α] [order_top α]
+
 /-- The cardinality of any flag is the grade of the top element. In other words, in a graded poset,
 all flags have the same cardinality. -/
-theorem flag_card_eq_top_grade_succ {α : Type u} [partial_order α] [order_top α] [graded α]
-(Φ : flag α) :
-  fintype.card Φ = grade_top α + 1 :=
+theorem flag_card_eq_top_grade_succ [graded α] (Φ : flag α) : fintype.card Φ = grade_top α + 1 :=
 fincard_eq_gt
+
+/-- Any two flags have the same cardinality. -/
+theorem flag_card_eq [graded α] (Φ Ψ : flag α) : fintype.card Φ = fintype.card Ψ :=
+by repeat { rw flag_card_eq_top_grade_succ }
+
+end partial_order
+
+def Icc_foo {α : Type u} [preorder α] [Π Φ : flag α, fintype Φ] (x y : α) :
+  Π Φ : flag (set.Icc x y), fintype Φ :=
+begin
+  intro Φ,
+  --apply fintype.of_injective ,
+  sorry
+end
+
+def foo [Π Φ : flag α, fintype Φ] (hf : ∀ (Φ Ψ : flag α), fintype.card Φ = fintype.card Ψ) : graded α := sorry
+sorry
 
 end graded
 

@@ -134,7 +134,7 @@ variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
 lemma graded_algebra.mem_support_iff
   (r : A) (i : ι) :
-i ∈ graded_algebra.support 𝒜 r ↔ (graded_algebra.proj 𝒜 i r ≠ 0) :=
+  i ∈ graded_algebra.support 𝒜 r ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=
 begin
   rw [graded_algebra.support, dfinsupp.mem_support_iff, graded_algebra.proj_apply],
   simp only [ne.def, submodule.coe_eq_zero],
@@ -154,11 +154,7 @@ lemma graded_algebra.mul_decompose (r r' : A) (i : ι) :
   ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i)
     ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
     (graded_algebra.decompose 𝒜 r ij.1 : A) * (graded_algebra.decompose 𝒜 r' ij.2 : A) :=
-begin
-  dsimp only [graded_algebra.proj_apply, graded_algebra.support],
-  rw [alg_equiv.map_mul, direct_sum.mul_eq_sum_support_ghas_mul],
-  rw [dfinsupp.finset_sum_apply, submodule.coe_sum],
-  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
-end
+by rw [alg_equiv.map_mul, graded_algebra.support, graded_algebra.support,
+       direct_sum.coe_mul_apply_submodule]
 
 end graded_algebra

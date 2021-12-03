@@ -86,14 +86,13 @@ end
 -- TODO fill out the various permutations of this lemma, as well as the version with
 -- `coprime a (a + b * c)`.
 -- Also, make a corresponding lemma for is_coprime in ring_theory/coprime/basic.lean
-@[simp]
-lemma coprime_add_left_iff_coprime (a b : ℕ) : coprime a (a + b) ↔ coprime a b :=
-  by rw [coprime, coprime, gcd_rec, add_mod_left, ←gcd_rec]
+-- @[simp]
+-- lemma coprime_add_left_iff_coprime (a b : ℕ) : coprime a (a + b) ↔ coprime a b :=
+--   by rw [coprime, coprime, gcd_rec, add_mod_left, ←gcd_rec]
 
-@[simp]
-lemma coprime_add_right_iff_coprime (a b : ℕ) : coprime a (b + a) ↔ coprime a b :=
-  by rw [add_comm, coprime_add_left_iff_coprime]
-
+-- @[simp]
+-- lemma coprime_add_right_iff_coprime (a b : ℕ) : coprime a (b + a) ↔ coprime a b :=
+--   by rw [add_comm, coprime_add_left_iff_coprime]
 
 lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
   (filter (a.coprime) (Ico n (n+a))).card = totient a := by simp [totient]

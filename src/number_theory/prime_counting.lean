@@ -46,10 +46,12 @@ lemma monotone_prime_counting' : monotone prime_counting' :=
 lemma monotone_prime_counting : monotone prime_counting :=
 λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
 
--- TODO Generalize from ℕ
+-- TODO? Generalize from ℕ
 -- Note that this does not hold for locally finitely ordered add monoids in general,
 -- as we could have a (horizontally) periodic function on ℤ² which is different over different
 -- y-coordinates. It should hold over ℤ though.
+-- TODO? Should this be tagged @[simp]?
+-- TODO? Should the RHS use `range a`?
 lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
  (pp : function.periodic p a) :
   (filter p (Ico n (n+a))).card = (filter p (Ico 0 a)).card :=
@@ -94,17 +96,12 @@ lemma coprime_add_iff_coprime (a b : ℕ) : coprime a (a + b) ↔ coprime a b :=
   by rw [coprime, coprime, gcd_rec, add_mod_left, ←gcd_rec]
 
 
-lemma filter_mod_eq_range_card (a n : ℕ) :
+lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
   (filter (a.coprime) (Ico n (n+a))).card = totient a :=
 begin
-  rw totient,
-  symmetry,
-  have h := filter_Ico_card_eq_of_periodic n a,
-  simp at h,
-  rw h,
+  rw [totient, filter_Ico_card_eq_of_periodic n a a.coprime, Ico_zero_eq_range],
   intro x,
-  rw add_comm,
-  exact coprime_add_iff_coprime a x,
+  rw [add_comm, coprime_add_iff_coprime a x],
 end
 
 lemma filter_coprime_bound (a n : ℕ) (a_pos : 0 < a) :
@@ -144,7 +141,7 @@ begin
     ... ≤ (filter a.coprime (Ico a (n % a + a * n_1))).card + a.totient :
           begin
             rw filter_union,
-            rw ←filter_mod_eq_range_card a (n % a + a * n_1),
+            rw ←filter_coprime_Ico_eq_totient a (n % a + a * n_1),
             apply card_union_le,
           end },
 end

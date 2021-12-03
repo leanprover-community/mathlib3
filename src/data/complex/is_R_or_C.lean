@@ -630,10 +630,11 @@ library_note "is_R_or_C instance"
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
   end⟩⟩
 
-/-- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
-an instance. -/
-@[priority 900, nolint dangerous_instance] instance proper_is_R_or_C -- note [is_R_or_C instance]
-  {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
+/-- A finite dimensional vector space Over an `is_R_or_C` is a proper metric space.
+
+This is not an instance because it would cause a search for `finite_dimensional ?x E` before
+`is_R_or_C ?x`. -/
+lemma proper_is_R_or_C {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
   proper_space E :=
 begin
   letI : normed_space ℝ E := restrict_scalars.normed_space ℝ K E,

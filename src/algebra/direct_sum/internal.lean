@@ -183,7 +183,7 @@ lemma direct_sum.coe_mul_apply_add_submonoid [set_like.graded_monoid 𝒜]
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
     add_submonoid.coe_finset_sum],
-  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+  simp_rw [direct_sum.coe_of_add_submonoid_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
 end add_submonoid
@@ -222,7 +222,7 @@ lemma direct_sum.coe_mul_apply_add_subgroup [set_like.graded_monoid 𝒜]
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
     add_subgroup.coe_finset_sum],
-  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+  simp_rw [direct_sum.coe_of_add_subgroup_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
 end add_subgroup

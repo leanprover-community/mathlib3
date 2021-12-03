@@ -8,7 +8,13 @@ universes u v
 
 open function
 
+section sort
+
 variables {α : Sort u} {β : Sort v}
+
+/-!
+### Definition and basic properties
+-/
 
 class countable (α : Sort u) : Prop :=
 (out' : nonempty (α ↪ ℕ))
@@ -43,17 +49,15 @@ protected lemma equiv.countable [countable β] (e : α ≃ β) : countable α :=
 lemma equiv.countable_iff (e : α ≃ β) : countable α ↔ countable β :=
 ⟨λ h, @equiv.countable _ _ h e.symm, λ h, @equiv.countable _ _ h e⟩
 
-instance [countable α] : countable (plift α) := equiv.plift.injective.countable
+/-!
+### Operations on and `Sort*`s
+-/
 
-instance {α : Type u} [countable α] : countable (ulift.{v} α) :=
-equiv.ulift.injective.countable
+instance [countable α] : countable (plift α) := equiv.plift.injective.countable
 
 instance [countable α] [countable β] : countable (pprod α β) :=
 let ⟨f⟩ := nonempty_embedding_nat α, ⟨g⟩ := nonempty_embedding_nat β in
 ((f.pprod_map g).trans (equiv.pprod_equiv_prod.trans nat.mkpair_equiv).to_embedding).countable
-
-instance {α β : Type*} [countable α] [countable β] : countable (α × β) :=
-equiv.pprod_equiv_prod.symm.countable
 
 instance {π : α → Sort*} [countable α] [∀ a, countable (π a)] : countable (Σ' a, π a) :=
 begin
@@ -67,11 +71,11 @@ begin
   refl
 end
 
-instance {α} {π : α → Type*} [countable α] [∀ a, countable (π a)] : countable (Σ a, π a) :=
-(equiv.psigma_equiv_sigma π).symm.countable
+@[priority 100]
+instance subsingleton.to_countable [subsingleton α] : countable α :=
+⟨⟨⟨λ _, 0, λ x y h, subsingleton.elim x y⟩⟩⟩
 
-instance Prop.countable' (p : Prop) : countable p :=
-by { refine ⟨⟨⟨λ _, 0, λ x y h, _⟩⟩⟩, refl }
+instance Prop.countable' (p : Prop) : countable p := subsingleton.to_countable
 
 instance bool.countable : countable bool :=
 ⟨⟨⟨λ b, cond b 0 1, bool.injective_iff.2 one_ne_zero⟩⟩⟩
@@ -83,6 +87,8 @@ instance [countable α] {p : α → Prop} : countable {x // p x} := subtype.val_
 
 @[priority 500]
 instance set_coe.countable {α} [countable α] (s : set α) : countable s := subtype.countable
+
+instance (n : ℕ) : countable (fin n) := subtype.countable
 
 instance [countable α] [countable β] : countable (psum α β) :=
 begin
@@ -97,3 +103,30 @@ end
 instance {α β} [countable α] [countable β] : countable (α ⊕ β) :=
 (equiv.psum_equiv_sum α β).symm.countable
 
+instance {α} [countable α] : countable (option α) :=
+(equiv.option_equiv_sum_punit α).countable
+
+end sort
+
+/-!
+### Operations on `Type*`s
+-/
+
+variables {α : Type u} {β : Type v}
+
+instance [countable β] : countable (ulift.{u} β) :=
+equiv.ulift.injective.countable
+
+instance [countable α] [countable β] : countable (α × β) :=
+equiv.pprod_equiv_prod.symm.countable
+
+instance {π : α → Type*} [countable α] [∀ a, countable (π a)] : countable (Σ a, π a) :=
+(equiv.psigma_equiv_sigma π).symm.countable
+
+/-!
+### Set operations
+-/
+
+variables {s t : set α}
+
+lemma countable.union (hs : countable s) (ht : countable t) : countable (s ∪ t)

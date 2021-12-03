@@ -44,17 +44,6 @@ variables {ι R A : Type*}
 variables [decidable_eq ι] [add_comm_monoid ι] [comm_semiring R] [ring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
 
-lemma direct_sum.coe_mul_apply_submodule [set_like.graded_monoid 𝒜]
-  [Π (i : ι) (x : (λ (i : ι), ↥(𝒜 i)) i), decidable (x ≠ 0)] (r r' : ⨁ i, 𝒜 i) (i : ι) :
-  ((r * r') i : A) =
-    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
-      r ij.1 * r' ij.2 :=
-begin
-  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, submodule.coe_sum],
-  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
-end
-
-
 /-- An internally-graded `R`-algebra `A` is one that can be decomposed into a collection
 of `submodule R A`s indexed by `ι` such that the canonical map `A → ⨁ i, 𝒜 i` is bijective and
 respects multiplication, i.e. the product of an element of degree `i` and an element of degree `j`
@@ -134,7 +123,7 @@ variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
 lemma graded_algebra.mem_support_iff
   (r : A) (i : ι) :
-  i ∈ graded_algebra.support 𝒜 r ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=
+i ∈ graded_algebra.support 𝒜 r ↔ (graded_algebra.proj 𝒜 i r ≠ 0) :=
 begin
   rw [graded_algebra.support, dfinsupp.mem_support_iff, graded_algebra.proj_apply],
   simp only [ne.def, submodule.coe_eq_zero],
@@ -154,7 +143,11 @@ lemma graded_algebra.mul_decompose (r r' : A) (i : ι) :
   ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i)
     ((graded_algebra.support 𝒜 r).product (graded_algebra.support 𝒜 r')),
     (graded_algebra.decompose 𝒜 r ij.1 : A) * (graded_algebra.decompose 𝒜 r' ij.2 : A) :=
-by rw [alg_equiv.map_mul, graded_algebra.support, graded_algebra.support,
-       direct_sum.coe_mul_apply_submodule]
+begin
+  dsimp only [graded_algebra.proj_apply, graded_algebra.support],
+  rw [alg_equiv.map_mul, direct_sum.mul_eq_sum_support_ghas_mul],
+  rw [dfinsupp.finset_sum_apply, submodule.coe_sum],
+  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
 
 end graded_algebra

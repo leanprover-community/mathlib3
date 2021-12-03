@@ -203,6 +203,7 @@ def set.Icc.self_order_iso_bot_top (α : Type u) [preorder α] [order_bot α] [o
 
 namespace graded
 
+@[priority 900]
 instance (α : Type u) [preorder α] [ot : order_top α] [g : graded α] : bounded_order α :=
 { ..ot, ..g }
 
@@ -218,11 +219,11 @@ lemma dual_cover_iff_cover {α : Type u} [preorder α] (a b : α) :
   a ⋖ b ↔ @polytope.covers (order_dual α) _ a b :=
 by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
 
-/-- A partial converse to `hcovers`. -/
-lemma covers_of_grade_succ_of_lt {α : Type u} [preorder α] [graded α] {x y : α} :
-  x < y → grade y = grade x + 1 → x ⋖ y :=
-λ hxy h, ⟨hxy, (λ z ⟨hzl, hzr⟩, (nat.cover_iff_succ.mpr h).right (grade z)
-  ⟨graded.strict_mono hzl, graded.strict_mono hzr⟩)⟩
+/-- A minor strengthening of `hcovers`. -/
+lemma covers_iff_grade_succ_and_lt {α : Type u} [preorder α] [graded α] {x y : α} :
+  x < y ∧ grade y = grade x + 1 ↔ x ⋖ y :=
+⟨λ ⟨hxy, h⟩, ⟨hxy, (λ z ⟨hzl, hzr⟩, (nat.cover_iff_succ.mpr h).right (grade z)
+  ⟨graded.strict_mono hzl, graded.strict_mono hzr⟩)⟩, λ h, ⟨h.left, graded.hcovers h⟩⟩
 
 section partial_order
 
@@ -322,12 +323,8 @@ not_congr (grade_eq_iff_eq x y)
 
 /-- In linear orders, `hcovers` is an equivalence. -/
 lemma covers_iff_grade_eq_succ_grade (a b : α) : a ⋖ b ↔ grade b = grade a + 1 :=
-begin
-  refine ⟨graded.hcovers, λ hba, _⟩,
-  have := nat.lt_of_succ_le (le_of_eq hba.symm),
-  rw graded.grade_lt_iff_lt at this,
-  exact covers_of_grade_succ_of_lt this hba,
-end
+⟨graded.hcovers, λ hba, covers_iff_grade_succ_and_lt.mp
+  ⟨(graded.grade_lt_iff_lt _ _).mp (nat.lt_of_succ_le (le_of_eq hba.symm)), hba⟩⟩
 
 /-- Two elements in a linear order cover each other iff their grades do. -/
 theorem cover_iff_nat_cover (a b : α) : a ⋖ b ↔ grade a ⋖ grade b :=

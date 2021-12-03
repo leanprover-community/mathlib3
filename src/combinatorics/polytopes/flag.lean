@@ -30,6 +30,7 @@ also proven in this file.
 ## Main results
 
 * `graded.ex_of_grade`: there's an element of any possible grade in a graded poset.
+* `graded.flag_card_eq_top_grade_succ`: all flags of a graded poset have the same cardinality.
 * `graded.scon_iff_sfcon`: strong connectedness and strong flag-connectedness are equivalent.
 
 There's a few more of both I'm missing.
@@ -525,12 +526,8 @@ theorem tcon_order_iso_iff_tcon (oiso : α ≃o β) : total_connected α ↔ tot
 /-- Order isomorphisms preserve strong connectedness. -/
 private lemma scon_order_iso_of_scon (oiso : α ≃o β) :
   graded.strong_connected β → graded.strong_connected α :=
-begin
-  intros hb x y hxy,
-  have hxy' := order_iso.monotone oiso hxy,
-  exact (@tcon_order_iso_iff_tcon _ _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) _
-    (set.Icc.order_top hxy') (set.Icc.graded hxy') (oiso.Icc _ _)).mpr (hb hxy')
-end
+λ hb _ _ hxy, (@tcon_order_iso_iff_tcon _ _ _ (set.Icc.order_top hxy) (set.Icc.graded _) _
+  (set.Icc.order_top (oiso.monotone hxy)) (set.Icc.graded _) (oiso.Icc _ _)).mpr (hb _)
 
 /-- Order isomorphisms preserve strong connectedness. -/
 theorem scon_order_iso_iff_scon (oiso : α ≃o β) :
@@ -569,17 +566,25 @@ rel_iso.of_surjective graded.oem_fin $ λ x, ⟨graded.idx x, by simp [graded.oe
 noncomputable instance : fintype α :=
 fintype.of_bijective (order_iso_fin).inv_fun order_iso_fin.symm.bijective
 
+/-- The cardinality of a linear order is its top grade plus one. -/
 @[simp]
-theorem fincard_eq_gt : fintype.card α = graded.grade_top α + 1 :=
+theorem fincard_eq_gt : fintype.card α = grade_top α + 1 :=
 begin
   cases hfc : fintype.card α, { rw fintype.card_eq_zero_iff at hfc, exact hfc.elim' ⊤ },
-  rw fintype.card_of_bijective order_iso_fin.bijective at hfc,
-  --rw [←hfc, fintype.card_fin],
-  --refl
-  repeat { sorry }
+  rw [fintype.card_of_bijective order_iso_fin.bijective,
+      fintype.card_fin (grade_top α + 1)] at hfc,
+  rw ←hfc
 end
 
 end linear_order
+
+/-- The cardinality of any flag is the grade of the top element. In other words, in a graded poset,
+all flags have the same cardinality. -/
+theorem flag_card_eq_top_grade_succ {α : Type u} [partial_order α] [order_top α] [graded α]
+(Φ : flag α) :
+  fintype.card Φ = grade_top α + 1 :=
+fincard_eq_gt
+
 end graded
 
 namespace flag

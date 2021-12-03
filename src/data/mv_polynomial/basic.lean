@@ -7,6 +7,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 import algebra.algebra.tower
 import data.finsupp.antidiagonal
 import algebra.monoid_algebra.basic
+import order.symm_diff
 
 /-!
 # Multivariate polynomials
@@ -479,6 +480,25 @@ add_monoid_algebra.support_mul_single p _ (by simp) _
 @[simp] lemma support_X_mul (s : σ) (p : mv_polynomial σ R) :
   (X s * p).support = p.support.map (add_left_embedding (single s 1)) :=
 add_monoid_algebra.support_single_mul p _ (by simp) _
+
+lemma support_sdiff_support_subset_support_add [decidable_eq σ] (p q : mv_polynomial σ R) :
+  p.support \ q.support ⊆ (p + q).support :=
+begin
+  intros m hm,
+  simp only [not_not, mem_support_iff, finset.mem_sdiff, ne.def] at hm,
+  simp [hm.2, hm.1],
+end
+
+lemma support_symm_diff_support_subset_support_add [decidable_eq σ] (p q : mv_polynomial σ R) :
+  p.support Δ q.support ⊆ (p + q).support :=
+begin
+  rw [symm_diff_def, finset.sup_eq_union],
+  apply finset.union_subset,
+  { exact support_sdiff_support_subset_support_add p q, },
+  { rw add_comm,
+    exact support_sdiff_support_subset_support_add q p, },
+end
+
 
 lemma coeff_mul_monomial' (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
   coeff m (p * monomial s r) = if s ≤ m then coeff (m - s) p * r else 0 :=

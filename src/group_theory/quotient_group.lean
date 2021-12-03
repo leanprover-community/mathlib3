@@ -288,7 +288,7 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   inv_fun := (lift N (mk' M) (λ n hn, quotient_group.eq.mpr (by simpa [← h] using N.inv_mem hn))),
   left_inv := λ x, x.induction_on' $ by { intro, refl },
   right_inv := λ x, x.induction_on' $ by { intro, refl },
-  map_mul' := λ x y, by rw map_mul }
+  map_mul' := λ x y, by rw monoid_hom.map_mul }
 
 @[simp, to_additive]
 lemma equiv_quotient_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :

@@ -586,6 +586,22 @@ theorem coprime_pow_primes {p q : ℕ} (n m : ℕ) (pp : prime p) (pq : prime q)
 theorem coprime_or_dvd_of_prime {p} (pp : prime p) (i : ℕ) : coprime p i ∨ p ∣ i :=
 by rw [pp.dvd_iff_not_coprime]; apply em
 
+lemma coprime_of_lt_prime {n p} (n_pos : 0 < n) (hlt : n < p) (pp : prime p) :
+  coprime p n :=
+begin
+   cases coprime_or_dvd_of_prime pp n,
+   { exact h },
+   { exfalso, exact lt_le_antisymm hlt (le_of_dvd n_pos h) },
+end
+
+lemma eq_or_coprime_of_le_prime {n p} (n_pos : 0 < n) (hle : n ≤ p) (pp : prime p) :
+  p = n ∨ coprime p n :=
+begin
+  by_cases p = n,
+  { exact or.inl h, },
+  { right, exact coprime_of_lt_prime n_pos ((ne.symm h).le_iff_lt.mp hle) pp },
+end
+
 theorem dvd_prime_pow {p : ℕ} (pp : prime p) {m i : ℕ} : i ∣ (p^m) ↔ ∃ k ≤ m, i = p^k :=
 begin
   induction m with m IH generalizing i, {simp [pow_succ, le_zero_iff] at *},
@@ -748,10 +764,25 @@ begin
   exact perm_factors_mul_of_pos ha hb,
 end
 
+/-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma count_factors_mul_of_pos {p a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
+by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
+
 /-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
 by rw [perm_iff_count.mp (perm_factors_mul_of_coprime hab) p, count_append]
+
+/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
+lemma factors_count_pow {n k p : ℕ} : count p (n ^ k).factors = k * count p n.factors :=
+begin
+  induction k with k IH, { simp },
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp [zero_pow (succ_pos k), count_nil, factors_zero, mul_zero] },
+  rw [pow_succ n k, perm_iff_count.mp (perm_factors_mul_of_pos hn (pow_pos hn k)) p],
+  rw [list.count_append, IH, add_comm, mul_comm, ←mul_succ (count p n.factors) k, mul_comm],
+end
 
 end
 

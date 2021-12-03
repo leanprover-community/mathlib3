@@ -11,8 +11,8 @@ This file defines the following notations, for functions `X,Y`, measures `P, Q` 
 measurable space `m0`, and another measurable space structure `m` with `hm : m ≤ m0`,
 - `P[X] = ∫ a, X a ∂P`
 - `𝔼[X] = ∫ a, X a`
-- `𝔼[X|hm]`: conditional expectation of `X` with respect to the measure `volume` and the
-  measurable space `m`. The similar `P[X|hm]` for a measure `P` is defined in
+- `𝔼[X|m,hm]`: conditional expectation of `X` with respect to the measure `volume` and the
+  measurable space `m`. The similar `P[X|m,hm]` for a measure `P` is defined in
   measure_theory.function.conditional_expectation.
 - `X =ₐₛ Y`: `X =ᵐ[volume] Y`
 - `X ≤ₐₛ Y`: `X ≤ᵐ[volume] Y`
@@ -27,7 +27,8 @@ value in `ℝ`, `ℝ≥0` or `ℝ≥0∞`.
 
 open measure_theory
 
-localized "notation `𝔼[` X `|` hm `]` := measure_theory.condexp hm measure_theory.measure.volume X"
+localized "notation `𝔼[` X `|` m `,` hm `]` :=
+  measure_theory.condexp m hm measure_theory.measure.volume X"
   in probability_theory
 
 localized "notation P `[` X `]` := ∫ x, X x ∂P" in probability_theory

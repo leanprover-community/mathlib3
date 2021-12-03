@@ -1,6 +1,4 @@
 import measure_theory.integral.complex
-import measure_theory.measure.complex_lebesgue
-import measure_theory.integral.divergence_theorem
 import analysis.analytic.basic
 import analysis.calculus.parametric_interval_integral
 import data.complex.basic
@@ -142,7 +140,6 @@ sorry,
 end
 
 
-
 lemma int_diff0_int (R : ℝ) (hR: 0 < R) (F : ℂ → ℂ) (F_cts :  continuous (F ))
   (z : ℂ) (w : ball z R): integrable (int_diff0 R hR (F) z w) (volume.restrict (Ioc 0  (2*π))) :=
 
@@ -165,27 +162,27 @@ lemma abs_aux (x : ℂ) (r : ℝ) (h : ∃ (b : ℂ), complex.abs (x-b)+ complex
   complex.abs(x) ≤  r :=
 begin
 obtain ⟨b, hb⟩ := h,
-sorry,
+have hs: (x -b) + b = x , by {simp,},
+rw ← hs,
+apply le_trans _ hb,
+exact (x - b).abs_add b,
 end
 
-lemma UNIF_CONV_INT (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)  (F_cts : ∀ n, continuous (F n))
-   (hlim : tendsto_uniformly F f filter.at_top) (z : ℂ) (w : ball z R) :
-tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR (F n) z w) θ)
-  at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR f z w) θ) :=
+lemma auxfind (x y z: ℂ) (h : complex.abs x ≤ complex.abs y):
+  (complex.abs x) ≤   (complex.abs z) + (complex.abs y) :=
 
 begin
-have f_cont: continuous f, by {sorry,},
+have := le_add_of_le_of_nonpos h (abs_nonneg z),
+rw add_comm,
+apply this,
+end
 
-have F_measurable : ∀ n, ae_measurable (int_diff0 R hR (F n) z w) (volume.restrict (Ioc 0  (2*π))),
- by {intro n,
-     have:= int_diff0_int R hR (F n) (F_cts n) z w,
-     apply this.ae_measurable, },
-
-
-have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
-  at_top (𝓝 (((int_diff0 R hR f z w)) a)),
-
- by {rw metric.tendsto_uniformly_iff at hlim, simp_rw metric.tendsto_nhds, simp_rw  dist_comm,
+lemma u1 (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)  (F_cts : ∀ n, continuous (F n))
+   (hlim : tendsto_uniformly F f filter.at_top) (z : ℂ) (w : ball z R) :
+    ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
+  at_top (𝓝 (((int_diff0 R hR f z w)) a)) :=
+begin
+rw metric.tendsto_uniformly_iff at hlim, simp_rw metric.tendsto_nhds, simp_rw  dist_comm,
   simp_rw int_diff0,
   simp at *,
   intros y ε hε,
@@ -240,13 +237,52 @@ have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
     rw  mul_lt_iff_lt_one_left,
     rw inv_eq_one_div,
     linarith,
-    apply hε,},
+    apply hε,
+end
+
+lemma sum_ite_eq_extract {α : Type*} [decidable_eq α] (s : finset α) (b : s) (f : s → ℂ) :
+  ∑ n, f n = f b + ∑ n, ite (n = b) 0 (f n) :=
+begin
+
+simp_rw ← tsum_fintype,
+apply tsum_ite_eq_extract,
+simp at *,
+
+sorry,
+
+
+
+end
+
+lemma add_nonneg_add_iff (a b : ℝ) : a ≤ a +b ↔ 0 ≤ b :=
+begin
+simp only [le_add_iff_nonneg_right],
+end
+
+
+lemma UNIF_CONV_INT (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)  (F_cts : ∀ n, continuous (F n))
+   (hlim : tendsto_uniformly F f filter.at_top) (z : ℂ) (w : ball z R) :
+tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR (F n) z w) θ)
+  at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR f z w) θ) :=
+
+begin
+have f_cont: continuous f, by {sorry,},
+
+have F_measurable : ∀ n, ae_measurable (int_diff0 R hR (F n) z w) (volume.restrict (Ioc 0  (2*π))),
+ by {intro n,
+     have:= int_diff0_int R hR (F n) (F_cts n) z w,
+     apply this.ae_measurable, },
+
+
+have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
+  at_top (𝓝 (((int_diff0 R hR f z w)) a)),
+ by {apply u1 R hR F f F_cts hlim},
 
 have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
   at_top (𝓝 (((int_diff0 R hR f z w)) a)),
   by {simp [h_lim''],},
 rw metric.tendsto_uniformly_iff at hlim,
-simp at hlim,
+simp only [gt_iff_lt, ge_iff_le, eventually_at_top] at hlim,
 have hlimb:= hlim 1 (zero_lt_one),
 obtain ⟨ a, ha⟩ :=hlimb,
 set bound: ℝ → ℝ :=λ θ, (∑ (i : finset.range (a+1) ),complex.abs ((int_diff0 R hR (F i) z w) θ))  +
@@ -258,27 +294,47 @@ by {
   rw  ae_restrict_iff' at *,
   rw eventually_iff_exists_mem,
   use ⊤,
-  simp,
+  simp only [true_and, and_imp, mem_Ioc, top_eq_univ, univ_mem, mem_univ, forall_true_left, norm_eq_abs],
   intros y hyl hyu,
   by_cases (n ≤ a),
   simp_rw bound,
-  sorry,
-  simp at h,
+  have:= sum_ite_eq_extract (finset.range (a+1)) ⟨n, by {simp [h],linarith}⟩
+    (λ (i : finset.range (a+1) ),complex.abs ((int_diff0 R hR (F i) z w) y)),
+    simp at *,
+    norm_cast at *,
+    simp_rw this,
+    rw add_assoc,
+    rw add_assoc,
+    simp only [le_add_iff_nonneg_right],
+    apply add_nonneg,
+    apply finset.sum_nonneg,
+    intros i hi,
+    simp only,
+    rw ← dite_eq_ite,
+    by_cases H : i =  ⟨n, by {simp only [finset.mem_range],linarith}⟩,
+    simp only [H, dite_eq_ite, if_true, eq_self_iff_true],
+    simp only [dif_neg H],
+    apply abs_nonneg,
+    simp only [add_nonneg, abs_nonneg],
+
+  simp only [not_le] at h,
   apply abs_aux ((int_diff0 R hR (F n) z w) y) (bound y),
   use int_diff0 R hR f z ↑w y,
   rw int_diff0_sub,
   simp_rw bound,
-  simp,
+  simp only [add_le_add_iff_right, finset.univ_eq_attach],
   have := int_diff0_sub_bound R hR ((F n) - f) z w 1,
   have haan:= ha n h.le,
-  simp at this,
+  simp only [of_real_one, abs_one, pi.sub_apply] at this,
   simp_rw dist_eq_norm at *,
-  simp at haan,
-  have haf:  ∀ (x : ℂ), abs (F n x - f x) ≤  1, by {intro x, sorry,},
+  simp only [norm_eq_abs] at haan,
+  have haf:  ∀ (x : ℂ), abs (F n x - f x) ≤  1, by {intro x, rw abs_sub_comm, apply (haan x).le,},
   have h5:= this haf,
   have h6:= h5 y,
-
-  sorry,
+  refine le_add_of_nonneg_of_le _ h6,
+  apply finset.sum_nonneg,
+  intros i hi,
+  apply abs_nonneg,
   all_goals {simp only [measurable_set_Ioc]},},
 
 

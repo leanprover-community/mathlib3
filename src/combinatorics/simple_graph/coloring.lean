@@ -101,11 +101,11 @@ lemma coloring.mem_color_classes {v : V} : C.color_class (C v) ∈ C.color_class
 ⟨v, rfl⟩
 
 lemma coloring.color_classes_finite_of_fintype [fintype α] : C.color_classes.finite :=
-by { rw set.finite_def, apply setoid.classes_fintype, }
+by { rw set.finite_def, apply setoid.nonempty_fintype_classes_ker, }
 
 lemma coloring.card_color_classes_le [fintype α] [fintype C.color_classes] :
   fintype.card C.color_classes ≤ fintype.card α :=
-setoid.classes_fintype_card C
+setoid.card_classes_ker_le C
 
 lemma coloring.not_adj_of_mem_color_class {c : α} {v w : V}
   (hv : v ∈ C.color_class c) (hw : w ∈ C.color_class c) :

@@ -53,29 +53,20 @@ def classes (r : setoid α) : set (set α) :=
 
 lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, rfl⟩
 
-lemma ker_classes_subset_of_singleton_preimage {β : Type*} (f : α → β) :
+lemma classes_ker_subset_fiber_set {β : Type*} (f : α → β) :
   (setoid.ker f).classes ⊆ set.range (λ y, {x | f x = y}) :=
-begin
-  rintro s ⟨x, rfl⟩,
-  simp only [set.mem_range],
-  exact ⟨f x, rfl⟩,
-end
+by { rintro s ⟨x, rfl⟩, rw set.mem_range, exact ⟨f x, rfl⟩ }
 
-lemma classes_fintype {α β : Type*} [fintype β] (f : α → β) :
+lemma nonempty_fintype_classes_ker {α β : Type*} [fintype β] (f : α → β) :
   nonempty (fintype (setoid.ker f).classes) :=
-begin
-  classical,
-  exact ⟨set.fintype_subset _ (setoid.ker_classes_subset_of_singleton_preimage f)⟩,
-end
+by { classical, exact ⟨set.fintype_subset _ (classes_ker_subset_fiber_set f)⟩ }
 
-lemma classes_fintype_card {α β : Type*} [fintype β]
+lemma card_classes_ker_le {α β : Type*} [fintype β]
   (f : α → β) [fintype (setoid.ker f).classes] :
   fintype.card (setoid.ker f).classes ≤ fintype.card β :=
 begin
   classical,
-  transitivity fintype.card (set.range (λ y, {x | f x = y})),
-  apply set.card_le_of_subset (setoid.ker_classes_subset_of_singleton_preimage f),
-  apply fintype.card_range_le,
+  exact le_trans (set.card_le_of_subset (classes_ker_subset_fiber_set f)) (fintype.card_range_le _)
 end
 
 /-- Two equivalence relations are equal iff all their equivalence classes are equal. -/

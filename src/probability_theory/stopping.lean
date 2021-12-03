@@ -288,7 +288,7 @@ section linear_order
 
 variable [linear_order ι]
 
-lemma measurable [topological_space ι] [_root_.measurable_space ι]
+lemma measurable [topological_space ι] [measurable_space ι]
   [borel_space ι] [order_topology ι] [second_countable_topology ι]
   {f : filtration ι m} {τ : α → ι} (hτ : is_stopping_time f τ) :
   measurable[hτ.measurable_space] τ :=

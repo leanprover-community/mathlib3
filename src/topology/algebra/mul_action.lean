@@ -61,7 +61,8 @@ section has_scalar
 
 variables [has_scalar M α] [has_continuous_smul M α]
 
-@[priority 100, to_additive] instance has_continuous_smul.has_continuous_smul₂ : has_continuous_smul₂ M α :=
+@[priority 100, to_additive] instance has_continuous_smul.has_continuous_smul₂ :
+  has_continuous_smul₂ M α :=
 { continuous_smul₂ := λ _, continuous_smul.comp (continuous_const.prod_mk continuous_id) }
 
 @[to_additive]

@@ -658,14 +658,14 @@ end
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 variables [fact (0 < d)]
+variable [algebra ℚ R]
 
 /-- The set of Bernoulli measures. -/
-def bernoulli_measure (hc : gcd c p = 1) [has_coe ℚ R] :=
+def bernoulli_measure (hc : gcd c p = 1) :=
  {x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
    ∀ (n : ℕ) (a : zmod (d * (p^n))), x (char_fn (zmod d × ℤ_[p]) ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
      is_clopen_prod (is_clopen_singleton (a : zmod d))
-       (proj_lim_preimage_clopen p d n a) ⟩) =
-     E_c p d hc n a }
+       (proj_lim_preimage_clopen p d n a) ⟩) = (algebra_map ℚ R) (E_c p d hc n a) }
 
 /-
 @[reducible] def clopen_basis' :=
@@ -1775,8 +1775,7 @@ begin
   sorry
 end-/
 
-lemma E_c_sum_equi_class' [has_coe ℝ R]  (x : zmod (d * p^m)) (hc : gcd c p = 1)
-  (hc' : gcd c d = 1) :
+lemma E_c_sum_equi_class' (x : zmod (d * p^m)) (hc : gcd c p = 1) (hc' : gcd c d = 1) :
   ∑ (y : equi_class p d m m.succ (nat.le_succ m) x), (E_c p d hc m.succ y) = (E_c p d hc m x) :=
 begin
   rw E_c, simp only,
@@ -1843,30 +1842,23 @@ begin
 
 end-/
 
-lemma E_c_sum_equi_class [has_coe ℝ R] [has_coe ℚ R] (x : zmod (d * p^m)) (hc : gcd c p = 1) (hc' : gcd c d = 1) :
+lemma E_c_sum_equi_class (x : zmod (d * p^m)) (hc : gcd c p = 1) (hc' : gcd c d = 1) :
 ∑ (y : zmod (d * p ^ m.succ)) in (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (nat.le_succ m)) a)) x,
-  ((E_c p d hc m.succ y) : R) = (E_c p d hc m x) :=
+  ((algebra_map ℚ R) (E_c p d hc m.succ y)) = (algebra_map ℚ R) (E_c p d hc m x) :=
 begin
-  rw ←E_c_sum_equi_class' p d R _,
-  { sorry, },
+  rw ←E_c_sum_equi_class' p d,
+  { rw ring_hom.map_sum, simp only,
+-- use finset.sum_to_finset_eq_subtype _ (λ y, E_c p d hc m.succ y)?
+    apply finset.sum_bij,
+    swap 5, { intros a ha, refine ⟨a, set.mem_to_finset.1 ha⟩, },
+    { rintros a ha, apply finset.mem_univ, },
+    { rintros a ha, simp only [subtype.coe_mk], },
+    { rintros a b ha hb h, simp only [subtype.mk_eq_mk] at h, rw h, },
+    { rintros b hb, simp only [set.mem_to_finset],
+      refine ⟨b.val, _, _⟩,
+      { rw set.mem_to_finset, apply b.prop, },
+      { rw subtype.ext_iff_val, }, }, },
   any_goals { assumption, },
-
-/-  rw E_c, simp,
-  have : ∀ (n : ℕ) (x : zmod (d * p^n)), 0 ≤ (x.val : ℝ) / (d * p^n) ∧ (x.val : ℝ) / (d * p^n) < 1,
-  { rintros n x, split, sorry, sorry, },
-  have : ∀ (n : ℕ) (x : zmod (d * p^n)), 0 ≤ (x : ℚ) / (d * p^n) ∧ (x : ℚ) / (d * p^n) < 1,
-  { rintros n x, split, sorry, sorry, },
-  conv_lhs { congr, skip, funext, rw [fract_eq_self ((this m.succ x).1) ((this m.succ x).2)], },
-  rw [fract_eq_self ((this m x).1) ((this m x).2)],
-  rw ←finset.sum_finset_coe,
-  -- conv_lhs { congr, },
-  have := set.coe_to_finset (equi_class p d m m.succ _ x), rw [this],
-  rw fintype.sum_equiv (equi_iso_fin p d m x),
-  rw [finset.sum_add_distrib],
-
-  --conv_lhs { congr, skip, funext, rw fract_eq_self, skip,
-  --{ apply_congr (this _ _).1, }, },
-  sorry,-/
 end
 -- why does has_div exist for ℤ and ℕ!?
 
@@ -1878,7 +1870,8 @@ begin
   { simp, },
 end
 
-lemma inter_nonempty_of_not_disjoint' {α : Type*} {s t : finset α} [decidable_eq α] (h : ¬disjoint s t) : ∃ x, x ∈ s ∧ x ∈ t :=
+lemma inter_nonempty_of_not_disjoint' {α : Type*} {s t : finset α} [decidable_eq α]
+  (h : ¬disjoint s t) : ∃ x, x ∈ s ∧ x ∈ t :=
 begin
   suffices : finset.nonempty (s ⊓ t),
   cases this with x hx, use x,
@@ -1891,13 +1884,13 @@ begin
 end
 
 /-- An eventually constant sequence constructed from a locally constant function. -/
-noncomputable def g (hc : gcd c p = 1) (hc' : gcd c d = 1) [has_coe ℝ R] [has_coe ℚ R] (hd : 0 < d)
+noncomputable def g (hc : gcd c p = 1) (hc' : gcd c d = 1) (hd : 0 < d)
   (f : locally_constant (zmod d × ℤ_[p]) R) (hd' : gcd d p = 1) : @eventually_constant_seq R :=
 { to_seq := λ (n : ℕ),
     --have hpos : 0 < d * p^n := mul_pos hd (pow_pos (nat.prime.pos (fact_iff.1 _inst_3)) n),
     --by
        --letI : fintype (zmod (d * p^n)) := @zmod.fintype _ ⟨hpos⟩; exact
-    ∑ a in (zmod' (d * p^n) (mul_prime_pow_pos p d n)), f(a) • ((E_c p d hc n a) : R),
+    ∑ a in (zmod' (d * p^n) (mul_prime_pow_pos p d n)), f(a) • ((algebra_map ℚ R) (E_c p d hc n a)),
   is_eventually_const := ⟨classical.some (factor_F p d R hd' f) + 1,
   begin
   simp, rintros l hl', -- why is the simp needed?
@@ -1917,10 +1910,10 @@ noncomputable def g (hc : gcd c p = 1) (hc' : gcd c d = 1) [has_coe ℝ R] [has_
     rw mem_equi_class p d l l.succ at hz, cases hz with h1 h2, rw h1 at h2,
     exact h2, }, end⟩, }
 
-lemma g_def [has_coe ℝ R] [has_coe ℚ R] (hc : gcd c p = 1) (hc' : gcd c d = 1) (hd : 0 < d)
+lemma g_def (hc : gcd c p = 1) (hc' : gcd c d = 1) (hd : 0 < d)
   (f : locally_constant (zmod d × ℤ_[p]) R) (n : ℕ) (hd' : gcd d p = 1) :
   (g p d R hc hc' hd f hd').to_seq n =
-    ∑ a in (finset.range (d * p^n)),f(a) • ((E_c p d hc n a) : R) :=
+    ∑ a in (finset.range (d * p^n)),f(a) • ((algebra_map ℚ R) (E_c p d hc n a)) :=
 begin
   rw g, simp only,
   apply finset.sum_bij,
@@ -1961,14 +1954,12 @@ example (a b : R) (h : a + b = a) : b = 0 := add_right_eq_self.mp (congr_fun (co
 --example (U : clopen_sets (zmod d × ℤ_[p])) (hU : U ∈ clopen_basis' p d) : clopen_basis' p d := ⟨U, hU⟩
 -/
 instance : semilattice_sup ℕ := infer_instance
-
 -- set_option pp.proofs true
 --@[simp] lemma cast_hom_apply' {n : ℕ} (i : zmod n) : cast_hom h R i = i := rfl
 
 -- def G (f : locally_constant ℤ_[p] R) (a : ℤ_[p]) : ℕ := ⨅ n : ℕ, loc_const_const -- is this really needed?
-variable [has_coe ℚ R]
 lemma equi_class_clopen (n : ℕ) (a : zmod (d * p^n)) (hc : gcd c p = 1) (hc' : gcd c d = 1)
-  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] (hm : n ≤ m)
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) (hm : n ≤ m)
   (b : (equi_class p d n m hm a)) : (b.val : zmod d × ℤ_[p]) ∈ (clopen_from p d n a).val :=
 begin
   have := b.prop,
@@ -2007,9 +1998,9 @@ end
 example {α β : Type*} (h : α ≃ β) : function.injective h.to_fun := equiv.injective h
 
 lemma g_char_fn (n : ℕ) (a : zmod (d * p^n)) (hc : gcd c p = 1) (hc' : gcd c d = 1)
-  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] (hm : n ≤ m) :
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) (hm : n ≤ m) :
   (g p d R hc hc' hd' (char_fn (zmod d × ℤ_[p]) (clopen_from p d n a)) h').to_seq m =
-  ∑ (y : equi_class p d n m hm a), (E_c p d hc m y) :=
+  ∑ (y : equi_class p d n m hm a), (algebra_map ℚ R) (E_c p d hc m y) :=
 begin
   rw g_def,
   rw char_fn,
@@ -2097,12 +2088,12 @@ begin
       split,
       { apply zmod.val_lt, },
       { rw ←subtype.val_eq_coe,
-        apply equi_class_clopen p d R m n a hc hc' h' hd', }, },
+        apply equi_class_clopen p d m n a hc hc' h' hd', }, },
     { rw subtype.ext_iff_val, simp only [zmod.cast_id', id.def, zmod.nat_cast_val], }, },
 end
 
 lemma seq_lim_g_char_fn (n : ℕ) (a : zmod (d * p^n)) (hc : gcd c p = 1) (hc' : gcd c d = 1)
-  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) [has_coe ℝ R] :
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) (hd' : 0 < d) :
   sequence_limit_index' (g p d R hc hc' hd' (char_fn (zmod d × ℤ_[p])
     (clopen_from p d n a)) h') ≤ n :=
 begin
@@ -2167,9 +2158,9 @@ end
 -- lemma loc_const_comp (f : locally_constant ℤ_[p] R)
 
 -- can hd be removed?
-lemma bernoulli_measure_nonempty [has_coe ℝ R] (hc : gcd c p = 1) (hc' : gcd c d = 1)
+lemma bernoulli_measure_nonempty (hc : gcd c p = 1) (hc' : gcd c d = 1)
   [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : gcd d p = 1) :
-  nonempty (@bernoulli_measure p _ d R _ _ _ _ _ hc _) :=
+  nonempty (@bernoulli_measure p _ d R _ _ _ _ _ _ hc) :=
 begin
   refine mem_nonempty _,
 --  have hd' : 0 < d, sorry,
@@ -2216,11 +2207,12 @@ begin
       { simp only [finset.mem_range], apply zmod.val_lt _, apply hd n, },
         --apply (@zmod.val_lt (d * p^(n)) (hd n) a),
         rw zmod.nat_cast_val a, rw zmod.nat_cast_val a,
-        convert_to (1 • ((E_c p d hc n a) : R)) + _ = ((E_c p d hc n a) : R),
+        convert_to (1 • ((algebra_map ℚ R) (E_c p d hc n a))) + _ =
+          ((algebra_map ℚ R) (E_c p d hc n a)),
         swap, rw one_smul, rw add_zero,
         congr,
         { simp only [zmod.cast_id', algebra.id.smul_eq_mul, one_mul, id.def, nsmul_eq_mul, nat.cast_one],
-          convert one_mul ((E_c p d hc n a) : R),
+          convert one_mul ((algebra_map ℚ R) (E_c p d hc n a)),
           rw char_fn, simp only [not_exists, set.mem_preimage, set.mem_image, not_and,
           set.mem_singleton_iff, locally_constant.coe_mk, ite_eq_right_iff], rw if_pos,
           use (a : ℤ_[p]), --use ((a : zmod (p^n)) : ℤ_[p]),
@@ -2477,9 +2469,8 @@ end
 --generalize to units X
 instance is_this_even_true : compact_space (units (zmod d) × units ℤ_[p]) := sorry
 instance why_is_it_not_recognized : t2_space (units (zmod d) × units ℤ_[p]) := sorry
+-- use injection of embed_product
 instance so_many_times : totally_disconnected_space (units (zmod d) × units ℤ_[p]) := sorry
-
-variable [has_coe ℝ R]
 
 /-- Constructs a measure from the Bernoulli measure `E_c`. -/
 noncomputable def bernoulli_measure_of_measure (hc : gcd c p = 1) (hc' : gcd c d = 1) (h' : gcd d p = 1) :
@@ -2512,3 +2503,6 @@ noncomputable def p_adic_L_function (hd : gcd d p = 1) [fact (0 < m)] (h : funct
  (f R) * (integral (units (zmod d) × units ℤ_[p]) R (bernoulli_measure_of_measure p d R hc hc' hd)
 ⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R m hd χ) a) *
   (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj m χ w hd ⟩)
+--independent of c, remove that!
+-- make R a ℚ_[p]-algebra or a ℚ-algebra?
+-- make χ and s explicit

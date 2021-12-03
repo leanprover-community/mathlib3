@@ -220,7 +220,8 @@ lemma direct_sum.coe_mul_apply_add_subgroup [set_like.graded_monoid 𝒜]
     ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
       r ij.1 * r' ij.2 :=
 begin
-  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, add_subgroup.coe_finset_sum],
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
+    add_subgroup.coe_finset_sum],
   simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 

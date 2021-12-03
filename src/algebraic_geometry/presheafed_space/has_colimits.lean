@@ -307,16 +307,12 @@ def componentwise_diagram (F : J ⥤ PresheafedSpace C)
   begin
     cases U,
     dsimp,
-    simp_rw map_comp_c_app,
-    simp_rw category.assoc,
+    simp_rw [map_comp_c_app, category.assoc],
     congr' 1,
-    rw Top.presheaf.pushforward.comp_inv_app,
-    rw Top.presheaf.pushforward_eq_hom_app,
-    rw category_theory.nat_trans.naturality_assoc,
-    rw Top.presheaf.pushforward_map_app,
+    rw [Top.presheaf.pushforward.comp_inv_app, Top.presheaf.pushforward_eq_hom_app,
+      category_theory.nat_trans.naturality_assoc, Top.presheaf.pushforward_map_app],
     congr' 1,
-    rw category.id_comp,
-    rw ← (F.obj (unop k)).presheaf.map_comp,
+    rw [category.id_comp, ← (F.obj (unop k)).presheaf.map_comp],
     erw ← (F.obj (unop k)).presheaf.map_comp,
     congr
   end }
@@ -346,9 +342,8 @@ begin
     rw Top.presheaf.pushforward.comp_inv_app,
     erw category.id_comp,
     rw category.assoc,
-    erw ← (F.obj (unop Y)).presheaf.map_comp,
-    erw (F.map f.unop).c.naturality_assoc,
-    erw ← (F.obj (unop Y)).presheaf.map_comp,
+    erw [← (F.obj (unop Y)).presheaf.map_comp, (F.map f.unop).c.naturality_assoc,
+      (F.obj (unop Y)).presheaf.map_comp],
     congr }
 end
 
@@ -362,13 +357,11 @@ begin
   rw [iso.trans_inv, iso.trans_inv, iso.app_inv, sheaf_iso_of_iso_inv, pushforward_to_of_iso_app,
     congr_app (iso.symm_inv _)],
   simp_rw category.assoc,
-  rw ← functor.map_comp_assoc,
-  rw nat_trans.naturality,
+  rw [← functor.map_comp_assoc, nat_trans.naturality],
   erw ← comp_c_app_assoc,
   rw congr_app (colimit.iso_colimit_cocone_ι_hom _ _),
   simp_rw category.assoc,
-  erw limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc,
-  erw lim_map_π_assoc,
+  erw [limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc, lim_map_π_assoc],
   convert category.comp_id _,
   erw ← (F.obj j).presheaf.map_id,
   iterate 2 { erw ← (F.obj j).presheaf.map_comp },

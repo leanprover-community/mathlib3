@@ -10,7 +10,7 @@ import category_theory.fin_category
 # Preservation of finite (co)limits.
 
 These functors are also known as left exact (flat) or right exact functors when the categories
-involved are abelian or (co)complete.
+involved are abelian, or more generally, finitely (co)complete.
 
 ## Related results
 * `category_theory.limits.preserves_finite_limits_of_preserves_equalizers_and_finite_products` :

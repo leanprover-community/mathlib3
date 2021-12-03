@@ -5,7 +5,7 @@ Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 -/
 
 import data.fintype.basic
-import data.set
+import data.set.finite
 import data.setoid.basic
 
 /-!

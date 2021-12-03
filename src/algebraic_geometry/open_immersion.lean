@@ -32,12 +32,11 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.comp`: The composition of two open
   immersions is an open immersion.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.of_iso`: An iso is an open immersion.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_iso`: An epic open immersion is iso.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_iso`: An epic open immersion is iso.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_iso`:
+  A surjective open immersion is an isomorphism.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.stalk_iso`: An open immersion induces
   an isomorphism on stalks.
 
-We also proves that the pullback of two presheaved spaces exists, and is also an open immersion.
 -/
 
 open topological_space category_theory opposite
@@ -244,6 +243,7 @@ instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
       apply_instance }
   end }
 
+/-- An open immersion is an iso if the underlying continuous map is epi. -/
 lemma to_iso (f : X ⟶ Y) [h : is_open_immersion f] [h' : epi f.base] : is_iso f :=
 begin
   apply_with is_iso_of_components { instances := ff },

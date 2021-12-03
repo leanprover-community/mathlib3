@@ -551,7 +551,7 @@ namespace equiv.perm
 
 /-- Elements which are considered equivalent if they differ only by swaps within α or β  -/
 abbreviation mod_sum_congr (α β : Type*) :=
-_ /// (equiv.perm.sum_congr_hom α β).range
+_ ⧸ (equiv.perm.sum_congr_hom α β).range
 
 lemma mod_sum_congr.swap_smul_involutive {α β : Type*} [decidable_eq (α ⊕ β)] (i j : α ⊕ β) :
   function.involutive (has_scalar.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=

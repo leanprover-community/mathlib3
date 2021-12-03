@@ -9,8 +9,8 @@ import data.set_like.basic
 /-!
 # Algebraic quotients
 
-This file defines notation for algebraic quotients, e.g. quotient groups `G /// H`,
-quotient modules `M /// N` and ideal quotients `R /// I`.
+This file defines notation for algebraic quotients, e.g. quotient groups `G ⧸ H`,
+quotient modules `M ⧸ N` and ideal quotients `R ⧸ I`.
 
 The actual quotient structures are defined in the following files:
  * quotient group: `src/group_theory/quotient_group.lean`
@@ -21,10 +21,10 @@ The actual quotient structures are defined in the following files:
 
 The following notation is introduced:
 
-* `G /// H` stands for the quotient of the type `G` by some term `H` 
+* `G ⧸ H` stands for the quotient of the type `G` by some term `H` 
   (for example, `H` can be a normal subgroup of `G`).
   To implement this notation for other quotients, you should provide a `has_quotient` instance.
-  Note that since `G` can usually be inferred from `H`, `_ /// H` can also be used,
+  Note that since `G` can usually be inferred from `H`, `_ ⧸ H` can also be used,
   but this is less readable.
 
 ## Tags
@@ -35,7 +35,7 @@ ideal quotient, quotient ring
 
 universes u v
 
-/-- `has_quotient A B` is a notation typeclass that allows us to write `A /// b` for `b : B`.
+/-- `has_quotient A B` is a notation typeclass that allows us to write `A ⧸ b` for `b : B`.
 This allows the usual notation for quotients of algebraic structures,
 such as groups, modules and rings.
 
@@ -44,7 +44,7 @@ such as groups, modules and rings.
 class has_quotient (A : out_param $ Type u) (B : Type v) :=
 (quotient' : B → Type (max u v))
 
-/-- `has_quotient.quotient A b` (with notation `A /// b`) is the quotient of the type `A` by `b`.
+/-- `has_quotient.quotient A b` (with notation `A ⧸ b`) is the quotient of the type `A` by `b`.
 
 This differs from `has_quotient.quotient'` in that the `A` argument is explicit, which is necessary
 to make Lean show the notation in the goal state.
@@ -54,4 +54,4 @@ def has_quotient.quotient (A : out_param $ Type u) {B : Type v} [has_quotient A 
   Type (max u v) :=
 has_quotient.quotient' b
 
-notation G ` /// `:35 H:34 := has_quotient.quotient G H
+notation G ` ⧸ `:35 H:34 := has_quotient.quotient G H

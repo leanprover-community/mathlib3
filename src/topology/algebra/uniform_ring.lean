@@ -161,7 +161,7 @@ setoid.ext $ assume x y, group_separation_rel x y
 
 lemma ring_sep_quot
   (α : Type u) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  quotient (separation_setoid α) = (α /// (⊥ : ideal α).closure) :=
+  quotient (separation_setoid α) = (α ⧸ (⊥ : ideal α).closure) :=
 by rw [@ring_sep_rel α r]; refl
 
 /-- Given a topological ring `α` equipped with a uniform structure that makes subtraction uniformly
@@ -169,7 +169,7 @@ continuous, get an equivalence between the separated quotient of `α` and the qu
 corresponding to the closure of zero. -/
 def sep_quot_equiv_ring_quot (α)
   [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  quotient (separation_setoid α) ≃ (α /// (⊥ : ideal α).closure) :=
+  quotient (separation_setoid α) ≃ (α ⧸ (⊥ : ideal α).closure) :=
 quotient.congr_right $ assume x y, group_separation_rel x y
 
 /- TODO: use a form of transport a.k.a. lift definition a.k.a. transfer -/

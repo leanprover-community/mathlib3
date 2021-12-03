@@ -322,7 +322,7 @@ include hv
 
 /-- `O/(p)` for `O`, ring of integers of `K`. -/
 @[nolint unused_arguments has_inhabited_instance] def mod_p :=
-O /// (ideal.span {p} : ideal O)
+O ⧸ (ideal.span {p} : ideal O)
 
 variables [hp : fact p.prime] [hvp : fact (v p ≠ 1)]
 

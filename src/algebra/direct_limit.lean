@@ -52,7 +52,7 @@ include dec_ι
 
 /-- The direct limit of a directed system is the modules glued together along the maps. -/
 def direct_limit : Type (max v w) :=
-direct_sum ι G /// (span R $ { a | ∃ (i j) (H : i ≤ j) x,
+direct_sum ι G ⧸ (span R $ { a | ∃ (i j) (H : i ≤ j) x,
   direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) = a })
 
 namespace direct_limit
@@ -280,7 +280,7 @@ open free_comm_ring
 
 /-- The direct limit of a directed system is the rings glued together along the maps. -/
 def direct_limit : Type (max v w) :=
-free_comm_ring (Σ i, G i) /// (ideal.span { a |
+free_comm_ring (Σ i, G i) ⧸ (ideal.span { a |
   (∃ i j H x, of (⟨j, f i j H x⟩ : Σ i, G i) - of ⟨i, x⟩ = a) ∨
   (∃ i, of (⟨i, 1⟩ : Σ i, G i) - 1 = a) ∨
   (∃ i x y, of (⟨i, x + y⟩ : Σ i, G i) - (of ⟨i, x⟩ + of ⟨i, y⟩) = a) ∨

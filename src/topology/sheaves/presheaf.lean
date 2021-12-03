@@ -311,5 +311,4 @@ adjunction.left_adjoint_uniq
   (presheaf_equiv_of_iso C H).to_adjunction
 
 end presheaf
-
 end Top

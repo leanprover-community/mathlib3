@@ -25,12 +25,12 @@ This definition is equivalent to left exact functors (functors that preserves fi
 
 ## Main results
 
-* `flat_of_preserves_finite_limit`: If `F : C ⥤ D` preserves finite limits and `C` has all finite
+* `flat_of_preserves_finite_limits`: If `F : C ⥤ D` preserves finite limits and `C` has all finite
   limits, then `F` is flat.
-* `preserves_finite_limit_of_flat`: If `F : C ⥤ D` is flat, then it preserves all finite limits.
-* `preserves_finite_limit_iff_flat`: If `C` has all finite limits,
+* `preserves_finite_limits_of_flat`: If `F : C ⥤ D` is flat, then it preserves all finite limits.
+* `preserves_finite_limits_iff_flat`: If `C` has all finite limits,
   then `F` is flat iff `F` is left_exact.
-* `Lan_preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat functor between small categories,
+* `Lan_preserves_finite_limits_of_flat`: If `F : C ⥤ D` is a flat functor between small categories,
   then the functor `Lan F.op` between presheaves of sets preserves all finite limits.
 * `flat_iff_Lan_flat`: If `C`, `D` are small and `C` has all finite limits, then `F` is flat iff
   `Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)` is flat.
@@ -104,7 +104,7 @@ instance cofiltered_of_has_finite_limits [has_finite_limits C] : is_cofiltered C
   cocone_maps :=  λ A B f g, ⟨equalizer f g, equalizer.ι f g, equalizer.condition f g⟩,
   nonempty := ⟨⊤_ C⟩ }
 
-lemma flat_of_preserves_finite_limit [has_finite_limits C] (F : C ⥤ D)
+lemma flat_of_preserves_finite_limits [has_finite_limits C] (F : C ⥤ D)
   [preserves_finite_limits F] : representably_flat F := ⟨λ X,
 begin
   haveI : has_finite_limits (structured_arrow X F) :=
@@ -112,7 +112,7 @@ begin
   apply_instance
 end⟩
 
-namespace preserves_finite_limit_of_flat
+namespace preserves_finite_limits_of_flat
 open structured_arrow
 open structured_arrow_cone
 variables {J : Type v₁} [small_category J] [fin_category J] {K : J ⥤ C}
@@ -178,30 +178,30 @@ begin
       ... = f₂                         : by simp
 end
 
-end preserves_finite_limit_of_flat
+end preserves_finite_limits_of_flat
 
 /-- Representably flat functors preserve finite limits. -/
 noncomputable
-def preserves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F] :
+def preserves_finite_limits_of_flat (F : C ⥤ D) [representably_flat F] :
   preserves_finite_limits F := ⟨λ J _ _, by exactI ⟨λ K, ⟨λ c hc,
-{ lift := preserves_finite_limit_of_flat.lift F hc,
-  fac' := preserves_finite_limit_of_flat.fac F hc,
+{ lift := preserves_finite_limits_of_flat.lift F hc,
+  fac' := preserves_finite_limits_of_flat.fac F hc,
   uniq' := λ s m h, by
-  { apply preserves_finite_limit_of_flat.uniq F hc,
+  { apply preserves_finite_limits_of_flat.uniq F hc,
     exact h,
-    exact preserves_finite_limit_of_flat.fac F hc s } }⟩⟩⟩
+    exact preserves_finite_limits_of_flat.fac F hc s } }⟩⟩⟩
 
 /--
 If `C` is finitely cocomplete, then `F : C ⥤ D` is representably flat iff it preserves
 finite limits.
 -/
 noncomputable
-def preserves_finite_limit_iff_flat [has_finite_limits C] (F : C ⥤ D) :
+def preserves_finite_limits_iff_flat [has_finite_limits C] (F : C ⥤ D) :
   representably_flat F ≃ preserves_finite_limits F :=
-{ to_fun := λ _, by exactI preserves_finite_limit_of_flat F,
-  inv_fun := λ _, by exactI flat_of_preserves_finite_limit F,
+{ to_fun := λ _, by exactI preserves_finite_limits_of_flat F,
+  inv_fun := λ _, by exactI flat_of_preserves_finite_limits F,
   left_inv := λ _, proof_irrel _ _,
-  right_inv := λ x, by { cases x, unfold preserves_finite_limit_of_flat, congr } }
+  right_inv := λ x, by { cases x, unfold preserves_finite_limits_of_flat, congr } }
 
 end has_limit
 
@@ -249,7 +249,7 @@ instance Lan_preserves_finite_limits_of_flat (F : C ⥤ D) [representably_flat F
 end⟩
 
 instance Lan_flat_of_flat (F : C ⥤ D) [representably_flat F] :
-  representably_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) := flat_of_preserves_finite_limit _
+  representably_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) := flat_of_preserves_finite_limits _
 
 variable [has_finite_limits C]
 
@@ -257,7 +257,7 @@ noncomputable
 instance Lan_preserves_finite_limits_of_preserves_finite_limits (F : C ⥤ D)
   [preserves_finite_limits F] : preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
 begin
-  haveI := flat_of_preserves_finite_limit F,
+  haveI := flat_of_preserves_finite_limits F,
   apply_instance
 end
 
@@ -266,10 +266,10 @@ lemma flat_iff_Lan_flat (F : C ⥤ D) :
 ⟨λ H, by exactI infer_instance, λ H,
 begin
   resetI,
-  haveI := preserves_finite_limit_of_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)),
+  haveI := preserves_finite_limits_of_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)),
   haveI : preserves_finite_limits F :=
     ⟨λ _ _ _, by exactI preserves_limit_of_Lan_presesrves_limit _ _⟩,
-  apply flat_of_preserves_finite_limit
+  apply flat_of_preserves_finite_limits
 end⟩
 
 /--
@@ -281,11 +281,11 @@ def preserves_finite_limits_iff_Lan_preserves_finite_limits (F : C ⥤ D) :
   preserves_finite_limits F ≃ preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
 { to_fun := λ _, by exactI infer_instance,
   inv_fun := λ _, ⟨λ _ _ _, by exactI preserves_limit_of_Lan_presesrves_limit _ _⟩,
-  left_inv := λ x, by { cases x, unfold preserves_finite_limit_of_flat, congr },
+  left_inv := λ x, by { cases x, unfold preserves_finite_limits_of_flat, congr },
   right_inv := λ x,
   begin
     cases x,
-    unfold preserves_finite_limit_of_flat,
+    unfold preserves_finite_limits_of_flat,
     congr,
     unfold category_theory.Lan_preserves_finite_limits_of_preserves_finite_limits
       category_theory.Lan_preserves_finite_limits_of_flat, congr

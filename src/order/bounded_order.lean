@@ -1024,6 +1024,7 @@ lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_to
 lemma max_bot_left [order_bot α] (a : α) : max (⊥ : α) a = a := max_eq_right bot_le
 lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
 
+-- `simp` can prove these, so they shouldn't be simp-lemmas.
 lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := min_eq_left bot_le
 lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := min_eq_right bot_le
 lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := max_eq_left le_top

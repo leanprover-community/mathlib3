@@ -249,14 +249,12 @@ begin
   apply prod_congr rfl,
   intros p hp,
   set k := n.prime_factorization p,
-  simp only [nat.cast_pow],
 
   have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
   have hp_pos : 0 < p := prime.pos hpp,
   have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp_pos.ne',
-
   have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
-  rw totient_prime_pow hpp hk,
+  simp only [nat.cast_pow, totient_prime_pow hpp hk],
 
   -- Finally, we need to prove: ↑(p ^ (k - 1) * (p - 1)) = ↑p ^ k * (1 - (↑p)⁻¹)
   field_simp,

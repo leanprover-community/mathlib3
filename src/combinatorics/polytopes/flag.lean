@@ -490,42 +490,39 @@ begin
   exact grade_eq_of_order_iso oiso ⊤
 end
 
-/-- Order isomorphisms preserve connectedness. -/
-private lemma connected_order_iso_of_connected (oiso : α ≃o β) :
-  graded.connected β → graded.connected α :=
+/-- Order isomorphisms preserve total connectedness. -/
+private lemma tcon_order_iso_of_tcon (oiso : α ≃o β) : total_connected β → total_connected α :=
 begin
   intros hb,
   cases hb with hb hb,
     { left,
       rwa grade_top_eq_of_order_iso oiso },
-  exact or.inr (λ x y, (connected_els_order_iso_of_connected_els oiso x y).mpr (hb _ _)),
+  exact or.inr (λ x y, (con_order_iso_iff_con oiso x y).mpr (hb _ _)),
 end
 
-/-- Order isomorphisms preserve connectedness. -/
-theorem connected_order_iso_iff_connected (oiso : α ≃o β) :
-  graded.connected α ↔ graded.connected β :=
-⟨connected_order_iso_of_connected oiso.symm, connected_order_iso_of_connected oiso⟩
+/-- Order isomorphisms preserve total connectedness. -/
+theorem tcon_order_iso_iff_tcon (oiso : α ≃o β) : total_connected α ↔ total_connected β :=
+⟨tcon_order_iso_of_tcon oiso.symm, tcon_order_iso_of_tcon oiso⟩
 
 /-- Order isomorphisms preserve strong connectedness. -/
-private lemma strong_connected_order_iso_of_strong_connected (oiso : α ≃o β) :
+private lemma scon_order_iso_of_scon (oiso : α ≃o β) :
   graded.strong_connected β → graded.strong_connected α :=
 begin
   intros hb x y hxy,
   have hxy' := order_iso.monotone oiso hxy,
-  exact (@connected_order_iso_iff_connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) _ _
+  exact (@tcon_order_iso_iff_tcon _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) _ _
     (set.Icc.order_top hxy') (set.Icc.graded hxy') (oiso.Icc _ _)).mpr (hb hxy')
 end
 
 /-- Order isomorphisms preserve strong connectedness. -/
-theorem strong_connected_order_iso_iff_strong_connected (oiso : α ≃o β) :
+theorem scon_order_iso_iff_scon (oiso : α ≃o β) :
   graded.strong_connected α ↔ graded.strong_connected β :=
-⟨strong_connected_order_iso_of_strong_connected oiso.symm,
-  strong_connected_order_iso_of_strong_connected oiso⟩
+⟨scon_order_iso_of_scon oiso.symm, scon_order_iso_of_scon oiso⟩
 
-/-- Strong connectedness implies connectedness. -/
-theorem connected_of_strong_connected (α : Type u) [partial_order α] [order_top α] [graded α] :
-  strong_connected α → graded.connected α :=
-λ h, (@connected_order_iso_iff_connected α _ _ _ (set.Icc ⊥ (⊤ : α)) _ (set.Icc.order_top bot_le)
+/-- Strong connectedness implies total connectedness. -/
+theorem tcon_of_scon (α : Type u) [partial_order α] [order_top α] [graded α] :
+  strong_connected α → total_connected α :=
+λ h, (@tcon_order_iso_iff_tcon α _ _ _ (set.Icc ⊥ (⊤ : α)) _ (set.Icc.order_top bot_le)
   (set.Icc.graded bot_le) (set.Icc.self_order_iso_bot_top α)).mpr (h bot_le)
 
 end order_iso
@@ -663,8 +660,12 @@ open polytope
 namespace graded
 section
 
-/-- A `graded` is flag-connected when any two flags are connected. -/
-protected def flag_connected (α : Type u) [preorder α] : Prop :=
+/-- A `graded` is totally flag-connected when any two flags are connected.
+
+    Here we deviate from standard nomenclature: mathematicians would just call this
+    flag-connectedness. However, by doing this, it makes it unambiguous when we're talking about two
+    flags being connected, and when we're talking about a polytope being totally flag-connected. -/
+def total_flag_connected (α : Type u) [preorder α] : Prop :=
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
 /-- Any graded poset of top grade less or equal to 1 has a single flag. -/
@@ -686,9 +687,9 @@ begin
   sorry
 end
 
-/-- Any graded poset of top grade less or equal to 2 is flag-connected. -/
-theorem flag_connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
-  grade_top α ≤ 2 → graded.flag_connected α :=
+/-- Any graded poset of top grade less or equal to 2 is totally flag-connected. -/
+theorem tfcon_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
+  grade_top α ≤ 2 → total_flag_connected α :=
 begin
   intro h,
   cases eq_or_lt_of_le h with h h, {
@@ -723,7 +724,7 @@ end
 
 /-- If two flags are connected, then any two elements in these flags are connected, as long as the
     grade exceeds 2. -/
-lemma connected_of_mem_flag_connected {α : Type u} [partial_order α] [order_top α] [graded α]
+lemma con_of_mem_fcon {α : Type u} [partial_order α] [order_top α] [graded α]
 {Φ Ψ : flag α} (hg : 2 < grade_top α) (h : flag_connected Φ Ψ) {a b : proper α} :
   a.val ∈ Φ → b.val ∈ Ψ → connected a b :=
 begin
@@ -745,53 +746,52 @@ begin
     (λ h, hj' (subtype.ext_val h))
 end
 
-/-- Flag connectedness implies connectedness. Note that the converse is false: a counterexample
-    is given by the hexagrammic antiprism. -/
-theorem connected_of_flag_connected (α : Type u) [partial_order α] [order_top α] [graded α] :
-  graded.flag_connected α → graded.connected α :=
+/-- Total flag-connectedness implies total connectedness. Note that the converse is false: a
+    counterexample is given by the hexagrammic antiprism (this proof hasn't been written down
+    yet). -/
+theorem tcon_of_tfcon (α : Type u) [partial_order α] [order_top α] [graded α] :
+  total_flag_connected α → total_connected α :=
 begin
   intro h,
   by_cases hg : grade_top α ≤ 2,
-    { exact connected_of_grade_le_two α hg },
+    { exact tcon_of_grade_le_two α hg },
   right,
   intros a b,
   cases flag.ex_flag_mem a.val with Φ hΦ,
   cases flag.ex_flag_mem b.val with Ψ hΨ,
-  exact connected_of_mem_flag_connected (lt_of_not_ge hg) (h Φ Ψ) hΦ hΨ,
+  exact con_of_mem_fcon (lt_of_not_ge hg) (h Φ Ψ) hΦ hΨ,
 end
 
-/-- Asserts that a section of a graded poset is flag connected. -/
-def section_flag_connected {α : Type u} [preorder α] (x y : α) : Prop :=
-graded.flag_connected (set.Icc x y)
+/-- Asserts that a section of a graded poset is totally flag-connected. -/
+def section_total_flag_connected {α : Type u} [preorder α] (x y : α) : Prop :=
+total_flag_connected (set.Icc x y)
 
-/-- A graded poset is strongly flag-connected when all sections are flag-connected. -/
+/-- A graded poset is strongly flag-connected when all sections are totally flag-connected. -/
 def strong_flag_connected (α : Type u) [preorder α] : Prop :=
-∀ {x y : α}, section_flag_connected x y
+∀ {x y : α}, section_total_flag_connected x y
 
-/-- Strong flag-connectedness implies flag-connectedness. -/
-theorem flag_connected_of_strong_flag_connected (α : Type u) [partial_order α] [order_top α]
-[graded α] :
-  strong_flag_connected α → graded.flag_connected α :=
+/-- Strong flag-connectedness implies total flag-connectedness. -/
+theorem tfcon_of_sfcon (α : Type u) [partial_order α] [order_top α] [graded α] :
+  strong_flag_connected α → total_flag_connected α :=
 begin
   intros h Φ Ψ,
   sorry
 end
 
 /-- Strong flag connectedness implies strong connectedness. -/
-private lemma strong_connected_of_strong_flag_connected (α : Type u) [partial_order α] [graded α] :
+private lemma scon_of_sfcon (α : Type u) [partial_order α] [graded α] :
   strong_flag_connected α → strong_connected α :=
-λ hsc _ _ hxy, @connected_of_flag_connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) hsc
+λ hsc _ _ hxy, @tcon_of_tfcon _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) hsc
 
 -- Working title.
-lemma super_duper_flag_lemma {α : Type u} [partial_order α] [order_bot α] [order_top α]
+private lemma super_duper_flag_lemma {α : Type u} [partial_order α] [order_bot α] [order_top α]
 {Φ Ψ : flag α} (x : proper α) (hΦ : x.val ∈ Φ.val) (hΨ : x.val ∈ Ψ.val)
-(h1 : section_flag_connected ⊥ x.val) (h2 : section_flag_connected x.val ⊤) :
+(h1 : section_total_flag_connected ⊥ x.val) (h2 : section_total_flag_connected x.val ⊤) :
   flag_connected Φ Ψ :=
 sorry
 
 /-- Strong connectedness is equivalent to strong flag connectedness, up to a given top grade. -/
-lemma strong_connected_iff_strong_flag_connected_aux {α : Type u} [partial_order α] [order_top α]
-[graded α] {n : ℕ} :
+private lemma scon_iff_sfcon_aux {α : Type u} [partial_order α] [order_top α] [graded α] {n : ℕ} :
   grade_top α ≤ n → strong_connected α → strong_flag_connected α :=
 begin
   /-
@@ -811,12 +811,11 @@ begin
 end
 
 /-- Strong connectedness is equivalent to strong flag connectedness. -/
-theorem strong_connected_iff_strong_flag_connected {α : Type u} [partial_order α] [order_top α]
-[graded α] :
+theorem scon_iff_sfcon {α : Type u} [partial_order α] [order_top α] [graded α] :
   strong_flag_connected α ↔ strong_connected α :=
 begin
-  refine ⟨strong_connected_of_strong_flag_connected _, λ h, _⟩,
-  apply strong_connected_iff_strong_flag_connected_aux (le_of_eq rfl),
+  refine ⟨scon_of_sfcon _, λ h, _⟩,
+  apply scon_iff_sfcon_aux (le_of_eq rfl),
   repeat { assumption },
 end
 

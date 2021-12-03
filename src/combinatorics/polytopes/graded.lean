@@ -554,14 +554,18 @@ open polytope
 
 namespace graded
 
-/-- A `graded` is connected' when any two proper elements are connected. Note that this definition
-    requires nothing more than a preorder. -/
-protected def connected' (α : Type u) [preorder α] : Prop :=
+/-- A `graded` is totally connected' when any two proper elements are connected. Note that this
+    definition requires nothing more than a preorder. -/
+def total_connected' (α : Type u) [preorder α] : Prop :=
 ∀ a b : proper α, connected a b
 
-/-- A `graded` is connected when it's of grade 2, or any two proper elements are connected. -/
-protected def connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
-grade_top α = 2 ∨ graded.connected' α
+/-- A `graded` is totally connected when it's of grade 2, or any two proper elements are connected.
+
+    Here we deviate from standard nomenclature: mathematicians would just call this connectedness.
+    However, by doing this, it makes it unambiguous when we're talking about two elements being
+    connected, and when we're talking about a polytope being totally connected. -/
+def total_connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
+grade_top α = 2 ∨ total_connected' α
 
 /-- Order isomorphisms preserve proper elements. -/
 lemma proper_order_iso_of_proper {α : Type u} [partial_order α] [order_top α] [graded α]
@@ -633,8 +637,7 @@ end order_iso
 namespace graded
 
 /-- If two elements are connected, so are their maps under an isomorphism. -/
--- Todo(Vi): Better name?
-private lemma connected_els_order_iso_of_connected_els' {α : Type u} [partial_order α] [order_top α] [graded α]
+private lemma con_order_iso_of_con {α : Type u} [partial_order α] [order_top α] [graded α]
 {β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x y : proper α) :
   connected x y → connected (oiso.proper x) (oiso.proper y) :=
 begin
@@ -649,20 +652,19 @@ begin
 end
 
 /-- Two elements are connected iff their maps under an isomorphism are. -/
--- Todo(Vi): Better name?
-lemma connected_els_order_iso_of_connected_els {α : Type u} [partial_order α] [order_top α] [graded α]
+lemma con_order_iso_iff_con {α : Type u} [partial_order α] [order_top α] [graded α]
 {β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x y : proper α) :
   connected x y ↔ connected (oiso.proper x) (oiso.proper y) :=
 begin
-  refine ⟨connected_els_order_iso_of_connected_els' oiso x y, _⟩,
-  have := connected_els_order_iso_of_connected_els' oiso.symm (oiso.proper x) (oiso.proper y),
+  refine ⟨con_order_iso_of_con oiso x y, _⟩,
+  have := con_order_iso_of_con oiso.symm (oiso.proper x) (oiso.proper y),
   rwa [(subtype.eq (oiso.left_inv _) : (oiso.symm.proper (oiso.proper x)) = x),
        (subtype.eq (oiso.left_inv _) : (oiso.symm.proper (oiso.proper y)) = y)] at this
 end
 
 /-- Any `graded` of top grade less or equal to 2 is connected. -/
-theorem connected_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
-  grade_top α ≤ 2 → graded.connected α :=
+theorem tcon_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
+  grade_top α ≤ 2 → total_connected α :=
 begin
   intro h,
   cases eq_or_lt_of_le h with ha ha, { exact or.inl ha },
@@ -671,12 +673,12 @@ end
 
 /-- Asserts that a section of a graded poset is connected'. -/
 abbreviation section_connected' {α : Type u} [preorder α] (x y : α) : Prop :=
-graded.connected' (set.Icc x y)
+total_connected' (set.Icc x y)
 
 /-- Asserts that a section of a graded poset is connected. -/
 abbreviation section_connected {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y) :
   Prop :=
-@graded.connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
+@total_connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
 
 /-- A graded poset is strongly connected when all sections are connected. -/
 abbreviation strong_connected (α : Type u) [partial_order α] [graded α] : Prop :=

@@ -147,7 +147,8 @@ lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) :
   π' n ≤ π' k + 1 + nat.totient k * (n / k) :=
 calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
             begin
-              rw [prime_counting', range_eq_Ico, ←Ico_union_Ico_eq_Ico (zero_le k) (le_of_lt k_lt_n), filter_union],
+              rw [prime_counting', range_eq_Ico,
+                  ←Ico_union_Ico_eq_Ico (zero_le k) (le_of_lt k_lt_n), filter_union],
               apply card_union_le,
             end
      ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'

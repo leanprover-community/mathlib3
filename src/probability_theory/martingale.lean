@@ -18,12 +18,7 @@ namespace measure_theory
 
 variables {α E ι : Type*} [preorder ι] [measurable_space E]
   {m0 : measurable_space α} {μ : measure α}
-
-variables (ι)
-
-variables {ι}
-
-variables [normed_group E] [normed_space ℝ E] [complete_space E] [borel_space E]
+  [normed_group E] [normed_space ℝ E] [complete_space E] [borel_space E]
   [second_countable_topology E]
   {f g : ι → α → E} {ℱ : filtration ι m0} [sigma_finite_filtration μ ℱ]
 

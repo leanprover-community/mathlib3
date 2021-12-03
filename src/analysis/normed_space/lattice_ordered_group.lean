@@ -65,10 +65,6 @@ instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 variables {α : Type*} [normed_lattice_add_comm_group α]
 open lattice_ordered_comm_group
 
-/--
-Let `α` be a normed lattice ordered group and let `a` and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
-implies `∥a∥ ≤ ∥b∥`.
--/
 lemma dual_solid (a b : α) (h: b⊓-b ≤ a⊓-a) : ∥a∥ ≤ ∥b∥ :=
 begin
   apply solid,
@@ -100,10 +96,6 @@ instance : normed_lattice_add_comm_group (order_dual α) :=
     finish,
   end, }
 
-/--
-Let `α` be a normed lattice ordered group, let `a` be an element of `α` and let `|a|` be the
-absolute value of `a`. Then `∥|a|∥ = ∥a∥`.
--/
 lemma norm_abs_eq_norm (a : α) : ∥|a|∥ = ∥a∥ :=
 (solid (abs_abs a).le).antisymm (solid (abs_abs a).symm.le)
 

@@ -68,10 +68,7 @@ instance linear_ordered_comm_group.to_covariant_class (α : Type u)
 variables {α : Type u} [lattice α] [comm_group α]
 
 -- Special case of Bourbaki A.VI.9 (1)
-/--
-Let `α` be a lattice ordered commutative group. For all elements `a`, `b` and `c` in `α`,
-$$c + (a ⊔ b) = (c + a) ⊔ (c + b).$$
--/
+-- c + (a ⊔ b) = (c + a) ⊔ (c + b)
 @[to_additive]
 lemma mul_sup [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊔ b) = (c * a) ⊔ (c * b) :=
 begin
@@ -89,10 +86,7 @@ begin
 end
 
 -- Special case of Bourbaki A.VI.9 (2)
-/--
-Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
-$$-(a ⊔ b)=(-a) ⊓ (-b).$$
--/
+-- -(a ⊔ b)=(-a) ⊓ (-b)
 @[to_additive]
 lemma inv_sup_eq_inv_inf_inv [covariant_class α α (*) (≤)] (a b : α) : (a ⊔ b)⁻¹ = a⁻¹ ⊓ b⁻¹ :=
 begin
@@ -106,19 +100,13 @@ begin
     { rw ← inv_le_inv_iff, simp, } }
 end
 
-/--
-Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
-$$ -(a ⊓ b) = -a ⊔ -b.$$
--/
+-- -(a ⊓ b) = -a ⊔ -b
 @[to_additive]
 lemma inv_inf_eq_sup_inv [covariant_class α α (*) (≤)] (a b : α) : (a ⊓ b)⁻¹ = a⁻¹ ⊔ b⁻¹ :=
 by rw [← inv_inv (a⁻¹ ⊔ b⁻¹), inv_sup_eq_inv_inf_inv a⁻¹ b⁻¹, inv_inv, inv_inv]
 
 -- Bourbaki A.VI.10 Prop 7
-/--
-Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
-$$a ⊓ b + (a ⊔ b) = a + b.$$
--/
+-- a ⊓ b + (a ⊔ b) = a + b
 @[to_additive]
 lemma inf_mul_sup [covariant_class α α (*) (≤)] (a b : α) : a ⊓ b * (a ⊔ b) = a * b :=
 calc a ⊓ b * (a ⊔ b) = a ⊓ b * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
@@ -163,11 +151,7 @@ lemma pos_one : (1 : α)⁺ = 1 := sup_idem
 lemma neg_one : (1 : α)⁻ = 1 := by rw [m_neg_part_def, one_inv, sup_idem]
 
 -- We use this in Bourbaki A.VI.12  Prop 9 a)
-/--
-Let `α` be a lattice ordered commutative group with identity `0` and let `a` be an element in `α`
-with negative component `a⁻`. Then
-$$a⁻ = -(a ⊓ 0).$$
--/
+-- a⁻ = -(a ⊓ 0)
 @[to_additive]
 lemma neg_eq_inv_inf_one [covariant_class α α (*) (≤)] (a : α) : a⁻ = (a ⊓ 1)⁻¹ :=
 by rw [m_neg_part_def, ← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv]
@@ -180,25 +164,15 @@ $$a ≤ |a|.$$
 @[to_additive le_abs]
 lemma le_mabs (a : α) : a ≤ |a| := le_sup_left
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
-`|a|`. Then,
-$$-a ≤ |a|.$$
--/
 @[to_additive]
+-- -a ≤ |a|
 lemma inv_le_abs (a : α) : a⁻¹ ≤ |a| := le_sup_right
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
- component `a⁺`. Then `a⁺` is positive.
--/
+-- 0 ≤ a⁺
 @[to_additive pos_nonneg]
 lemma one_le_pos (a : α) : 1 ≤ a⁺ := le_sup_right
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α` withnegative
-component `a⁻`. Then `a⁻` is positive.
--/
+-- 0 ≤ a⁻
 @[to_additive neg_nonneg]
 lemma one_le_neg (a : α) : 1 ≤ a⁻ := le_sup_right
 
@@ -222,40 +196,24 @@ by { rw le_antisymm_iff, simp only [one_le_neg, and_true], rw neg_le_one_iff, }
 lemma neg_eq_one_iff [covariant_class α α has_mul.mul has_le.le] {a : α} : a⁻ = 1 ↔ 1 ≤ a :=
 by { rw le_antisymm_iff, simp only [one_le_neg, and_true], rw [neg_le_one_iff, inv_le_one'], }
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
-component `a⁺`. Then `a⁺` dominates `a`.
--/
 @[to_additive le_pos]
 lemma m_le_pos (a : α) : a ≤ a⁺ := le_sup_left
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with negative
-component `a⁻`. Then `a⁻` dominates `-a`.
--/
+-- -a ≤ a⁻
 @[to_additive]
 lemma inv_le_neg (a : α) : a⁻¹ ≤ a⁻ := le_sup_left
 
 -- Bourbaki A.VI.12
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the negative
-component `a⁻` of `a` is equal to the positive component `(-a)⁺` of `-a`.
-"-/
+--  a⁻ = (-a)⁺
 @[to_additive]
 lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := rfl
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the positive
-component `a⁺` of `a` is equal to the negative component `(-a)⁻` of `-a`.
--/
+-- a⁺ = (-a)⁻
 @[to_additive]
 lemma pos_eq_neg_inv (a : α) : a⁺ = (a⁻¹)⁻ := by simp [neg_eq_pos_inv]
 
 -- We use this in Bourbaki A.VI.12  Prop 9 a)
-/--
-Let `α` be a lattice ordered commutative group. For all elements `a`, `b` and `c` in `α`,
-$$c + (a ⊓ b) = (c + a) ⊓ (c + b).$$
--/
+-- c + (a ⊓ b) = (c + a) ⊓ (c + b)
 @[to_additive]
 lemma mul_inf_eq_mul_inf_mul [covariant_class α α (*) (≤)]
   (a b c : α) : c * (a ⊓ b) = (c * a) ⊓ (c * b) :=
@@ -266,11 +224,7 @@ begin
 end
 
 -- Bourbaki A.VI.12  Prop 9 a)
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
-component `a⁺` and negative component `a⁻`. Then `a` can be decomposed as the difference of `a⁺` and
-`a⁻`.
--/
+-- a = a⁺ - a⁻
 @[to_additive, simp]
 lemma pos_div_neg [covariant_class α α (*) (≤)] (a : α) : a⁺ / a⁻ = a :=
 begin
@@ -281,22 +235,14 @@ begin
 end
 
 -- Bourbaki A.VI.12  Prop 9 a)
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
-component `a⁺` and negative component `a⁻`. Then `a⁺` and `a⁻` are co-prime (and, since they are
-positive, disjoint).
--/
+-- a⁺ ⊓ a⁻ = 0 (`a⁺` and `a⁻` are co-prime, and, since they are positive, disjoint)
 @[to_additive]
 lemma pos_inf_neg_eq_one [covariant_class α α (*) (≤)] (a : α) : a⁺ ⊓ a⁻ = 1 :=
 by rw [←mul_right_inj (a⁻)⁻¹, mul_inf_eq_mul_inf_mul, mul_one, mul_left_inv, mul_comm,
   ← div_eq_mul_inv, pos_div_neg, neg_eq_inv_inf_one, inv_inv]
 
 -- Bourbaki A.VI.12 (with a and b swapped)
-/--
-Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α`, and let
-`(a - b)⁺` be the positive componet of `a - b`. Then
-$$a⊔b = b + (a - b)⁺.$$
--/
+-- a⊔b = b + (a - b)⁺
 @[to_additive]
 lemma sup_eq_mul_pos_div [covariant_class α α (*) (≤)] (a b : α) : a ⊔ b = b * (a / b)⁺ :=
 calc a ⊔ b = (b * (a / b)) ⊔ (b * 1) : by rw [mul_one b, div_eq_mul_inv, mul_comm a,
@@ -304,11 +250,7 @@ calc a ⊔ b = (b * (a / b)) ⊔ (b * 1) : by rw [mul_one b, div_eq_mul_inv, mul
 ... = b * ((a / b) ⊔ 1) : by rw ← mul_sup (a / b) 1 b
 
 -- Bourbaki A.VI.12 (with a and b swapped)
-/--
-Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α`, and let
-`(a - b)⁺` be the positive componet of `a - b`. Then
-$$a⊓b = a - (a - b)⁺.$$
--/
+-- a⊓b = a - (a - b)⁺
 @[to_additive]
 lemma inf_eq_div_pos_div [covariant_class α α (*) (≤)] (a b : α) : a ⊓ b = a / (a / b)⁺ :=
 calc a ⊓ b = (a * 1) ⊓ (a * (b / a)) : by { rw [mul_one a, div_eq_mul_inv, mul_comm b,
@@ -321,11 +263,6 @@ calc a ⊓ b = (a * 1) ⊓ (a * (b / a)) : by { rw [mul_one a, div_eq_mul_inv, m
 ... = a / ((a / b) ⊔ 1)     : by rw [← inv_sup_eq_inv_inf_inv, ← div_eq_mul_inv]
 
 -- Bourbaki A.VI.12 Prop 9 c)
-/--
-Let `α` be a lattice ordered commutative group and let `a` and `b` be elements in `α` with positive
-components `a⁺` and `b⁺` and negative components `a⁻` and `b⁻` respectively. Then `b` dominates `a`
-if and only if `b⁺` dominates `a⁺` and `a⁻` dominates `b⁻`.
--/
 @[to_additive le_iff_pos_le_neg_ge]
 lemma m_le_iff_pos_le_neg_ge [covariant_class α α (*) (≤)] (a b : α) : a ≤ b ↔ a⁺ ≤ b⁺ ∧ b⁻ ≤ a⁻ :=
 begin
@@ -365,11 +302,7 @@ lemma one_le_abs [covariant_class α α (*) (≤)] (a : α) : 1 ≤ |a| :=
 by { rw ← m_pos_abs, exact one_le_pos _, }
 
 -- The proof from Bourbaki A.VI.12 Prop 9 d)
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
-`|a|`, positive component `a⁺` and negative component `a⁻`. Then `|a|` decomposes as the sum of `a⁺`
-and `a⁻`.
--/
+-- |a| = a⁺ - a⁻
 @[to_additive]
 lemma pos_mul_neg [covariant_class α α (*) (≤)] (a : α) : |a| = a⁺ * a⁻ :=
 begin
@@ -386,11 +319,7 @@ begin
       exact ((m_le_iff_pos_le_neg_ge _ _).mp (inv_le_abs a)).left, }, }
 end
 
-/--
-Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α` and let `|b - a|`
-be the absolute value of `b - a`. Then,
-$$a ⊔ b - (a ⊓ b) = |b - a|.$$
--/
+-- a ⊔ b - (a ⊓ b) = |b - a|
 @[to_additive]
 lemma sup_div_inf_eq_abs_div [covariant_class α α (*) (≤)] (a b : α) :
   (a ⊔ b) / (a ⊓ b) = |b / a| :=
@@ -402,22 +331,14 @@ begin
   rw [mul_inv_rev, ← div_eq_mul_inv, inv_inv, ← pos_mul_neg],
 end
 
-/--
-Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α` and let `|b - a|`
-be the absolute value of `b - a`. Then,
-$$2•(a ⊔ b) = a + b + |b - a|.$$
--/
+-- 2•(a ⊔ b) = a + b + |b - a|
 @[to_additive]
 lemma sup_sq_eq_mul_mul_abs_div [covariant_class α α (*) (≤)] (a b : α) :
   (a ⊔ b)^2 = a * b * |b / a| :=
 by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, ← mul_assoc, mul_comm,
     mul_assoc, ← pow_two, inv_mul_cancel_left]
 
-/--
-Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α` and let `|b-a|`
-be the absolute value of `b-a`. Then,
-$$2•(a ⊓ b) = a + b - |b - a|.$$
--/
+-- 2•(a ⊓ b) = a + b - |b - a|
 @[to_additive]
 lemma two_inf_eq_mul_div_abs_div [covariant_class α α (*) (≤)] (a b : α) :
   (a ⊓ b)^2 = a * b / |b / a| :=
@@ -451,12 +372,7 @@ def lattice_ordered_comm_group_to_distrib_lattice (α : Type u)
 
 -- See, e.g. Zaanen, Lectures on Riesz Spaces
 -- 3rd lecture
-/--
-Let `α` be a lattice ordered commutative group and let `a`, `b` and `c` be elements in `α`. Let
-`|a ⊔ c - (b ⊔ c)|`, `|a ⊓ c - b ⊓ c|` and `|a - b|` denote the absolute values of
-`a ⊔ c - (b ⊔ c)`, `a ⊓ c - b ⊓ c` and `a - b` respectively. Then,
-$$|a ⊔ c - (b ⊔ c)| + |a ⊓ c - b ⊓ c| = |a - b|.$$
--/
+-- |a ⊔ c - (b ⊔ c)| + |a ⊓ c-b ⊓ c| = |a - b|
 @[to_additive]
 theorem abs_div_sup_mul_abs_div_inf [covariant_class α α (*) (≤)] (a b c : α) :
   |(a ⊔ c) / (b ⊔ c)| * |(a ⊓ c) / (b ⊓ c)| = |a / b| :=
@@ -488,6 +404,7 @@ equal to its positive component `a⁺`.
 lemma pos_of_one_le (a : α) (h : 1 ≤ a) : a⁺ = a :=
 by { rw m_pos_part_def, exact sup_of_le_left h, }
 
+-- 0 ≤ a implies a⁺ = a
 @[to_additive] -- pos_of_nonpos
 lemma pos_of_le_one (a : α) (h : a ≤ 1) : a⁺ = 1 :=
 pos_eq_one_iff.mpr h
@@ -508,10 +425,7 @@ by { refine neg_of_one_le_inv _ _, rw one_le_inv', exact h, }
 lemma neg_of_one_le [covariant_class α α (*) (≤)] (a : α) (h : 1 ≤ a) : a⁻ = 1 :=
 neg_eq_one_iff.mpr h
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is
-equal to its absolute value `|a|`.
--/
+-- 0 ≤ a implies |a| = a
 @[to_additive abs_of_nonneg]
 lemma mabs_of_one_le [covariant_class α α (*) (≤)] (a : α) (h : 1 ≤ a) : |a| = a :=
 begin
@@ -523,8 +437,7 @@ begin
 end
 
 /--
-Let `α` be a lattice ordered commutative group. The unary operation of taking the absolute value is
-idempotent.
+The unary operation of taking the absolute value is idempotent.
 -/
 @[to_additive abs_abs, simp]
 lemma m_abs_abs [covariant_class α α (*) (≤)] (a : α) : | |a| | = |a| :=
@@ -550,21 +463,15 @@ end
 
 -- Commutative case, Zaanen, 3rd lecture
 -- For the non-commutative case, see Birkhoff Theorem 19 (27)
-/--
-Let `α` be a lattice ordered commutative group and let `a`, `b` and `c` be elements in `α`. Let
-`|a ⊔ c - (b ⊔ c)|`, `|a ⊓ c - b ⊓ c|` and `|a - b|` denote the absolute values of
-`a ⊔ c - (b ⊔ c)`, `a ⊓ c - b ⊓ c` and`a - b` respectively. Then `|a - b|` dominates
-`|a ⊔ c - (b ⊔ c)|` and `|a ⊓ c - b ⊓ c|`.
--/
-@[to_additive Birkhoff_inequalities] -- TODO: delete this lemma?
+-- |(a ⊔ c) - (b ⊔ c)| ⊔ |(a ⊓ c) - (b ⊓ c)| ≤ |a - b|
+@[to_additive Birkhoff_inequalities]
 theorem m_Birkhoff_inequalities [covariant_class α α (*) (≤)] (a b c : α) :
 |(a ⊔ c) / (b ⊔ c)| ⊔ |(a ⊓ c) / (b ⊓ c)| ≤ |a / b| :=
 sup_le (mabs_sup_div_sup_le_mabs a b c) (mabs_inf_div_inf_le_mabs a b c)
 
 -- Banasiak Proposition 2.12, Zaanen 2nd lecture
 /--
-Let `α` be a lattice ordered commutative group. Then the absolute value satisfies the triangle
-inequality.
+The absolute value satisfies the triangle inequality.
 -/
 @[to_additive abs_add_le]
 lemma mabs_mul_le [covariant_class α α (*) (≤)] (a b : α) : |a * b| ≤ |a| * |b| :=

@@ -16,7 +16,8 @@ involved are abelian, or more generally, finitely (co)complete.
 * `category_theory.limits.preserves_finite_limits_of_preserves_equalizers_and_finite_products` :
   see `category_theory/limits/constructions/limits_of_products_and_equalizers.lean`. Also provides
   the dual version.
-* `category_theory.limits
+* `category_theory.limits.preserves_finite_limits_iff_flat` :
+  see `category_theory/flat_functors.lean`.
 
 -/
 

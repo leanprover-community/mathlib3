@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 
-import measure_theory.decomposition.jordan
+import measure_theory.measure.vector_measure
 
 /-!
 # Complex measure

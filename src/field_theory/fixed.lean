@@ -8,7 +8,6 @@ import algebra.polynomial.group_ring_action
 import field_theory.normal
 import field_theory.separable
 import field_theory.tower
-import ring_theory.polynomial
 
 /-!
 # Fixed field under a group action.
@@ -236,8 +235,8 @@ by { rw [← minpoly_eq_minpoly, minpoly,
 
 instance separable : is_separable (fixed_points.subfield G F) F :=
 ⟨λ x, is_integral G F x,
- λ x, by {
-  -- this was a plain rw when we were using unbundled subrings
+ λ x, by
+{ -- this was a plain rw when we were using unbundled subrings
   erw [← minpoly_eq_minpoly,
     ← polynomial.separable_map (fixed_points.subfield G F).subtype,
     minpoly, polynomial.map_to_subring _ ((subfield G F).to_subring) ],

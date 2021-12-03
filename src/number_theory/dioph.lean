@@ -327,8 +327,8 @@ begin
       ⟨⟨t ∘ inl, by rwa [
         show (v ⊗ t) ∘ (inl ⊗ inr ∘ inl) = v ⊗ t ∘ inl,
         from funext $ λs, by cases s with a b; refl] at hl⟩,
-      ⟨t ∘ inr, by {
-        refine list_all.imp (λq hq, _) hr, dsimp [(∘)] at hq,
+      ⟨t ∘ inr, by
+      { refine list_all.imp (λq hq, _) hr, dsimp [(∘)] at hq,
         rwa [show (λ (x : α ⊕ γ), (v ⊗ t) ((inl ⊗ λ (x : γ), inr (inr x)) x)) = v ⊗ t ∘ inr,
              from funext $ λs, by cases s with a b; refl] at hq }⟩⟩⟩⟩
 end

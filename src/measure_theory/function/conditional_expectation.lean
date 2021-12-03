@@ -133,14 +133,14 @@ begin
   exact eventually_eq.fun_comp hff' (λ x, c • x),
 end
 
-lemma const_inner [is_R_or_C 𝕜] [borel_space 𝕜] [inner_product_space 𝕜 β]
+lemma const_inner {𝕜} [is_R_or_C 𝕜] [inner_product_space 𝕜 β]
   [second_countable_topology β] [opens_measurable_space β]
   {f : α → β} (hfm : ae_measurable' m f μ) (c : β) :
   ae_measurable' m (λ x, (inner c (f x) : 𝕜)) μ :=
 begin
   rcases hfm with ⟨f', hf'_meas, hf_ae⟩,
   refine ⟨λ x, (inner c (f' x) : 𝕜),
-    @measurable.inner _ _ _ _ _ m _ _ _ _ _ _ _ (@measurable_const _ _ _ m _) hf'_meas,
+    @measurable.inner _ _ _ _ _ m _ _ _ _ _ (@measurable_const _ _ _ m _) hf'_meas,
     hf_ae.mono (λ x hx, _)⟩,
   dsimp only,
   rw hx,
@@ -185,7 +185,7 @@ lemma ae_eq_trim_iff_of_ae_measurable' {α β} [add_group β] [measurable_space 
 
 
 variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
-  [is_R_or_C 𝕜] [measurable_space 𝕜] -- 𝕜 for ℝ or ℂ, together with a measurable_space
+  [is_R_or_C 𝕜] -- 𝕜 for ℝ or ℂ
   [measurable_space β] -- β for a generic measurable space
   -- E for an inner product space
   [inner_product_space 𝕜 E] [measurable_space E] [borel_space E] [second_countable_topology E]
@@ -519,7 +519,7 @@ section uniqueness_of_conditional_expectation
 
 /-! ## Uniqueness of the conditional expectation -/
 
-variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜]
+variables {m m0 : measurable_space α} {μ : measure α}
 
 lemma Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero
   (hm : m ≤ m0) (f : Lp_meas E' 𝕜 m p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
@@ -694,7 +694,7 @@ section condexp_L2
 
 local attribute [instance] fact_one_le_two_ennreal
 
-variables [complete_space E] [borel_space 𝕜] {m m0 : measurable_space α} {μ : measure α}
+variables [complete_space E] {m m0 : measurable_space α} {μ : measure α}
   {s t : set α}
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
@@ -721,11 +721,11 @@ lemma integrable_condexp_L2_of_is_finite_measure (hm : m ≤ m0) [is_finite_meas
   integrable (condexp_L2 𝕜 hm f) μ :=
 integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_ne_top hm (measure_ne_top _ _) f
 
-lemma norm_condexp_L2_le_one (hm : m ≤ m0) : ∥@condexp_L2 α E 𝕜 _ _ _ _ _ _ _ _ _ _ μ hm∥ ≤ 1 :=
+lemma norm_condexp_L2_le_one (hm : m ≤ m0) : ∥@condexp_L2 α E 𝕜 _ _ _ _ _ _ _ _ μ hm∥ ≤ 1 :=
 by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact orthogonal_projection_norm_le _, }
 
 lemma norm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) : ∥condexp_L2 𝕜 hm f∥ ≤ ∥f∥ :=
-((@condexp_L2 _ E 𝕜 _ _ _ _ _ _ _ _ _ _ μ hm).le_op_norm f).trans
+((@condexp_L2 _ E 𝕜 _ _ _ _ _ _ _ _ μ hm).le_op_norm f).trans
   (mul_le_of_le_one_left (norm_nonneg _) (norm_condexp_L2_le_one hm))
 
 lemma snorm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) :
@@ -904,7 +904,7 @@ begin
   exact integral_condexp_L2_eq_of_fin_meas_real _ hs hμs,
 end
 
-variables {E'' 𝕜' : Type*} [is_R_or_C 𝕜'] [measurable_space 𝕜'] [borel_space 𝕜']
+variables {E'' 𝕜' : Type*} [is_R_or_C 𝕜']
   [measurable_space E''] [inner_product_space 𝕜' E''] [borel_space E'']
   [second_countable_topology E''] [complete_space E''] [normed_space ℝ E'']
   [is_scalar_tower ℝ 𝕜 E'] [is_scalar_tower ℝ 𝕜' E'']
@@ -1109,9 +1109,9 @@ calc ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ
     = (∫ a in s, (condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a • x) ∂μ) :
   set_integral_congr_ae (hm s hs) ((condexp_ind_smul_ae_eq_smul hm ht hμt x).mono (λ x hx hxs, hx))
 ... = (∫ a in s, condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a ∂μ) • x :
-  by rw integral_smul_const _ x
+  integral_smul_const _ x
 ... = (∫ a in s, indicator_const_Lp 2 ht hμt (1 : ℝ) a ∂μ) • x :
-  by rw @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ _ _ _ _ _ _ hm
+  by rw @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ _ _ _ _ hm
     (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs
 ... = (μ (t ∩ s)).to_real • x :
   by rw [set_integral_indicator_const_Lp (hm s hs), smul_assoc, one_smul]
@@ -1132,7 +1132,7 @@ seen as an element of `α →₁[μ] G`.
 
 local attribute [instance] fact_one_le_two_ennreal
 
-variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 E']
+variables {m m0 : measurable_space α} {μ : measure α} [is_scalar_tower ℝ 𝕜 E']
   {s t : set α} [normed_space ℝ G]
 
 section condexp_ind_L1_fin
@@ -1417,7 +1417,7 @@ section condexp_L1
 
 local attribute [instance] fact_one_le_one_ennreal
 
-variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
+variables {m m0 : measurable_space α} {μ : measure α} [is_scalar_tower ℝ 𝕜 F']
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
 /-- Conditional expectation of a function as a linear map from `α →₁[μ] F'` to itself. -/
@@ -1666,7 +1666,7 @@ open_locale classical
 
 local attribute [instance] fact_one_le_one_ennreal
 
-variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
+variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [is_scalar_tower ℝ 𝕜 F']
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
 /-- Conditional expectation of a function. Its value is 0 if the function is not integrable. -/
@@ -1770,17 +1770,11 @@ end
 
 lemma condexp_smul (c : 𝕜) (f : α → F') : μ[c • f | hm] =ᵐ[μ] c • μ[f|hm] :=
 begin
-  by_cases hf : integrable f μ,
-  { refine (condexp_ae_eq_condexp_L1 _).trans _,
-    rw condexp_L1_smul c f,
-    refine (@condexp_ae_eq_condexp_L1 _ _ _ _ _ _ _ _ m _ _ hm _ f).mp _,
-    refine (coe_fn_smul c (condexp_L1 hm μ f)).mono (λ x hx1 hx2, _),
-    rw [hx1, pi.smul_apply, pi.smul_apply, hx2], },
-  { by_cases hc : c = 0,
-    { rw [hc, zero_smul, zero_smul, condexp_zero], },
-    refine (condexp_undef (mt (integrable_smul_iff hc f).mp hf)).trans _,
-    refine (@condexp_undef _ _ _ _ _ _ _ _ _ _ _ hm _ _ hf).mono (λ x hx, _),
-    rw [pi.zero_apply, pi.smul_apply, hx, pi.zero_apply, smul_zero], },
+  refine (condexp_ae_eq_condexp_L1 _).trans _,
+  rw condexp_L1_smul c f,
+  refine (@condexp_ae_eq_condexp_L1 _ _ _ _ _ _ _ _ m _ _ hm _ f).mp _,
+  refine (coe_fn_smul c (condexp_L1 hm μ f)).mono (λ x hx1 hx2, _),
+  rw [hx1, pi.smul_apply, pi.smul_apply, hx2],
 end
 
 lemma condexp_neg (f : α → F') : μ[-f|hm] =ᵐ[μ] - μ[f|hm] :=

@@ -250,7 +250,8 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
     -- We need to use the identity on the continuous maps twice, so we prepare that first:
     have t : m.base = colimit.desc (F ⋙ PresheafedSpace.forget C)
                         ((PresheafedSpace.forget C).map_cocone s),
-    { ext,
+    { apply category_theory.limits.colimit.hom_ext, intros j,
+      apply continuous_map.ext, intros x,
       dsimp,
       simp only [colimit.ι_desc_apply, map_cocone_ι_app],
       rw ← w j,
@@ -264,7 +265,7 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
       dsimp,
       have w := congr_arg op (functor.congr_obj (congr_arg opens.map t) (unop U)),
       rw nat_trans.congr (limit.π (pushforward_diagram_to_colimit F).left_op j) w,
-      simpa }
+      simp }
   end, }
 
 /--

@@ -27,7 +27,7 @@ lemma injective_arg : injective (λ z : circle, arg z) :=
 end circle
 
 lemma arg_exp_map_circle {x : ℝ} (h₁ : -π < x) (h₂ : x ≤ π) : arg (exp_map_circle x) = x :=
-by rw [exp_map_circle_apply, exp_mul_I, arg_cos_add_sin_mul_I h₁ h₂]
+by rw [exp_map_circle_apply, exp_mul_I, arg_cos_add_sin_mul_I ⟨h₁, h₂⟩]
 
 @[simp] lemma exp_map_circle_arg (z : circle) : exp_map_circle (arg z) = z :=
 circle.injective_arg $ arg_exp_map_circle (neg_pi_lt_arg _) (arg_le_pi _)

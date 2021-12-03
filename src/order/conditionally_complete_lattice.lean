@@ -103,14 +103,13 @@ class conditionally_complete_linear_order_bot (α : Type*)
 (bot_le : ∀ x : α, ⊥ ≤ x)
 (cSup_empty : Sup ∅ = ⊥)
 
-@[priority 100] -- see Note [lower instance priority]
-instance conditionally_complete_linear_order_bot.to_order_bot (α : Type*)
+@[priority 100]  -- see Note [lower instance priority]
+instance conditionally_complete_linear_order_bot.to_order_bot
   [h : conditionally_complete_linear_order_bot α] : order_bot α :=
 { ..h }
 
-/- A complete lattice is a conditionally complete lattice, as there are no restrictions
+/-- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/
-
 @[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
   conditionally_complete_lattice α :=
@@ -1002,13 +1001,6 @@ noncomputable instance with_bot.conditionally_complete_lattice
   ..with_bot.has_Sup,
   ..with_bot.has_Inf }
 
-/-- Adding a bottom and a top to a conditionally complete lattice gives a bounded lattice-/
-noncomputable instance with_top.with_bot.bounded_lattice {α : Type*}
-  [conditionally_complete_lattice α] : bounded_lattice (with_top (with_bot α)) :=
-{ ..with_top.order_bot,
-  ..with_top.order_top,
-  ..conditionally_complete_lattice.to_lattice _ }
-
 noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   [conditionally_complete_lattice α] : complete_lattice (with_top (with_bot α)) :=
 { le_Sup := λ S a haS, (with_top.is_lub_Sup' ⟨a, haS⟩).1 haS,
@@ -1035,7 +1027,8 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   le_Inf := λ S a haS, (with_top.is_glb_Inf' ⟨a, haS⟩).2 haS,
   ..with_top.has_Inf,
   ..with_top.has_Sup,
-  ..with_top.with_bot.bounded_lattice }
+  ..with_top.bounded_order,
+  ..with_top.lattice }
 
 noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
   [conditionally_complete_linear_order α] : complete_linear_order (with_top (with_bot α)) :=

@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.regular.smul
-import data.matrix.notation
-import linear_algebra.matrix.polynomial
 import linear_algebra.matrix.adjugate
+import linear_algebra.matrix.polynomial
 
 /-!
 # Nonsingular inverses
@@ -371,5 +370,12 @@ begin
   rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc,
       smul_smul, h.mul_coe_inv, one_smul]
 end
+
+/-- One form of **Cramer's rule**. See `matrix.mul_vec_cramer` for a stronger form. -/
+@[simp] lemma det_smul_inv_vec_mul_eq_cramer_transpose
+  (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
+  A.det • A⁻¹.vec_mul b = cramer Aᵀ b :=
+by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_inv, ← det_transpose,
+    Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
 
 end matrix

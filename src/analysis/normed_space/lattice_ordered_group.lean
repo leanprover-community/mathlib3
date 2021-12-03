@@ -3,9 +3,9 @@ Copyright (c) 2021 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import analysis.normed_space.basic
-import algebra.lattice_ordered_group
 import topology.order.lattice
+import analysis.normed.group.basic
+import algebra.lattice_ordered_group
 
 /-!
 # Normed lattice ordered groups
@@ -62,10 +62,6 @@ Let `α` be a normed group with a partial order. Then the order dual is also a n
 @[priority 100] -- see Note [lower instance priority]
 instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 
-/--
-Let `α` be a normed lattice ordered group and let `a` and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
-implies `∥a∥ ≤ ∥b∥`.
--/
 lemma dual_solid {α : Type*} [normed_lattice_add_comm_group α] (a b : α) (h: b⊓-b ≤ a⊓-a) :
   ∥a∥ ≤ ∥b∥ :=
 begin
@@ -100,10 +96,6 @@ solid := begin
   finish,
 end, }
 
-/--
-Let `α` be a normed lattice ordered group, let `a` be an element of `α` and let `|a|` be the
-absolute value of `a`. Then `∥|a|∥ = ∥a∥`.
--/
 lemma norm_abs_eq_norm {α : Type*} [normed_lattice_add_comm_group α] (a : α) : ∥|a|∥ = ∥a∥ :=
 begin
   rw le_antisymm_iff,
@@ -123,8 +115,8 @@ instance normed_lattice_add_comm_group_has_continuous_inf {α : Type*}
 ⟨ continuous_iff_continuous_at.2 $ λ q, tendsto_iff_norm_tendsto_zero.2 $
 begin
   have : ∀ p : α × α, ∥p.1 ⊓ p.2 - q.1 ⊓ q.2∥ ≤ ∥p.1 - q.1∥ + ∥p.2 - q.2∥,
-  {
-    intros,
+
+  { intros,
     nth_rewrite_rhs 0  ← norm_abs_eq_norm,
     nth_rewrite_rhs 1  ← norm_abs_eq_norm,
     apply le_trans _ (norm_add_le (|p.fst - q.fst|) (|p.snd - q.snd|)),
@@ -135,18 +127,16 @@ begin
           by { rw sub_add_sub_cancel, }
         ... ≤ |p.fst ⊓ p.snd - q.fst ⊓ p.snd| + |q.fst ⊓ p.snd - q.fst ⊓ q.snd| :
           by {apply lattice_ordered_comm_group.abs_triangle,}
-        ... ≤ |p.fst - q.fst | + |p.snd - q.snd| : by {
-          apply add_le_add,
+        ... ≤ |p.fst - q.fst | + |p.snd - q.snd| : by
+        { apply add_le_add,
           { exact
             (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right },
           { rw inf_comm,
           nth_rewrite 1 inf_comm,
-          exact
-            (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right }
-        }, },
+          exact (sup_le_iff.elim_left
+	   (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right } }, },
     { exact add_nonneg (lattice_ordered_comm_group.abs_pos (p.fst - q.fst))
-        (lattice_ordered_comm_group.abs_pos (p.snd - q.snd)), }
-  },
+        (lattice_ordered_comm_group.abs_pos (p.snd - q.snd)), } },
   refine squeeze_zero (λ e, norm_nonneg _) this _,
   convert (((continuous_fst.tendsto q).sub tendsto_const_nhds).norm).add
         (((continuous_snd.tendsto q).sub tendsto_const_nhds).norm),

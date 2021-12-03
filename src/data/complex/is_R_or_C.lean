@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 import data.real.sqrt
 import field_theory.tower
 import analysis.normed_space.finite_dimension
+import analysis.normed_space.star
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
@@ -212,7 +213,7 @@ end
 variables (K)
 /-- Conjugation as a ring equivalence. This is used to convert the inner product into a
 sesquilinear product. -/
-abbreviation conj_to_ring_equiv : K ≃+* Kᵒᵖ := star_ring_equiv
+abbreviation conj_to_ring_equiv : K ≃+* Kᵐᵒᵖ := star_ring_equiv
 
 variables {K}
 
@@ -344,7 +345,7 @@ begin
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
-by { by_cases h : (I : K) = 0; field_simp [h] }
+by field_simp
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 (@norm_sq K _).map_inv z
@@ -354,6 +355,9 @@ by { by_cases h : (I : K) = 0; field_simp [h] }
 
 lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
+
+@[priority 100] instance : cstar_ring K :=
+{ norm_star_mul_self := λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
 
 /-! ### Cast lemmas -/
 
@@ -786,24 +790,3 @@ linear_isometry.norm_to_continuous_linear_map of_real_li
 end linear_maps
 
 end is_R_or_C
-
-section normalization
-variables {K : Type*} [is_R_or_C K]
-variables {E : Type*} [normed_group E] [normed_space K E]
-
-open is_R_or_C
-
-/- Note: one might think the following lemma belongs in `analysis.normed_space.basic`.  But it
-can't be placed there, because that file is an import of `data.complex.is_R_or_C`! -/
-
-/-- Lemma to normalize a vector in a normed space `E` over either `ℂ` or `ℝ` to unit length. -/
-@[simp] lemma norm_smul_inv_norm {x : E} (hx : x ≠ 0) : ∥(∥x∥⁻¹ : K) • x∥ = 1 :=
-begin
-  have h : ∥(∥x∥ : K)∥ = ∥x∥,
-  { rw norm_eq_abs,
-    exact abs_of_nonneg (norm_nonneg _) },
-  have : ∥x∥ ≠ 0 := by simp [hx],
-  field_simp [norm_smul, h]
-end
-
-end normalization

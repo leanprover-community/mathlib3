@@ -5,7 +5,6 @@ Authors: Scott Morrison, Adam Topaz
 -/
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra.basic
-import linear_algebra
 
 /-!
 # Free Algebras
@@ -235,21 +234,21 @@ def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
 { to_fun := lift_aux R,
   inv_fun := λ F, F ∘ (ι R),
   left_inv := λ f, by {ext, refl},
-  right_inv := λ F, by {
-    ext x,
+  right_inv := λ F, by
+  { ext x,
     rcases x,
     induction x,
-    case pre.of : {
-      change ((F : free_algebra R X → A) ∘ (ι R)) _ = _,
+    case pre.of :
+    { change ((F : free_algebra R X → A) ∘ (ι R)) _ = _,
       refl },
-    case pre.of_scalar : {
-      change algebra_map _ _ x = F (algebra_map _ _ x),
+    case pre.of_scalar :
+    { change algebra_map _ _ x = F (algebra_map _ _ x),
       rw alg_hom.commutes F x, },
-    case pre.add : a b ha hb {
-      change lift_aux R (F ∘ ι R) (quot.mk _ _ + quot.mk _ _) = F (quot.mk _ _ + quot.mk _ _),
+    case pre.add : a b ha hb
+    { change lift_aux R (F ∘ ι R) (quot.mk _ _ + quot.mk _ _) = F (quot.mk _ _ + quot.mk _ _),
       rw [alg_hom.map_add, alg_hom.map_add, ha, hb], },
-    case pre.mul : a b ha hb {
-      change lift_aux R (F ∘ ι R) (quot.mk _ _ * quot.mk _ _) = F (quot.mk _ _ * quot.mk _ _),
+    case pre.mul : a b ha hb
+    { change lift_aux R (F ∘ ι R) (quot.mk _ _ * quot.mk _ _) = F (quot.mk _ _ * quot.mk _ _),
       rw [alg_hom.map_mul, alg_hom.map_mul, ha, hb], }, }, }
 
 @[simp] lemma lift_aux_eq (f : X → A) : lift_aux R f = lift R f := rfl
@@ -396,8 +395,8 @@ lemma induction {C : free_algebra R X → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from X
-  let s : subalgebra R (free_algebra R X) := {
-    carrier := C,
+  let s : subalgebra R (free_algebra R X) :=
+  { carrier := C,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },
@@ -414,9 +413,9 @@ end
 
 /-- The star ring formed by reversing the elements of products -/
 instance : star_ring (free_algebra R X) :=
-{ star := opposite.unop ∘ lift R (opposite.op ∘ ι R),
-  star_involutive := λ x, by {
-    unfold has_star.star,
+{ star := mul_opposite.unop ∘ lift R (mul_opposite.op ∘ ι R),
+  star_involutive := λ x, by
+  { unfold has_star.star,
     simp only [function.comp_apply],
     refine free_algebra.induction R X _ _ _ _ x; intros; simp [*] },
   star_mul := λ a b, by simp,
@@ -431,7 +430,7 @@ lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (al
 by simp [star, has_star.star]
 
 /-- `star` as an `alg_equiv` -/
-def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵒᵖ :=
+def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵐᵒᵖ :=
 { commutes' := λ r, by simp [star_algebra_map],
   ..star_ring_equiv }
 

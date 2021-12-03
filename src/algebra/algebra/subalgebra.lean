@@ -5,6 +5,7 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.operations
 import data.set.Union_lift
+import ring_theory.subring.pointwise
 
 /-!
 # Subalgebras over Commutative Semiring

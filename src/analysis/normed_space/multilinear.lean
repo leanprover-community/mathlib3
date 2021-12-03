@@ -787,44 +787,24 @@ lemma mk_pi_field_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i :
   continuous_multilinear_map.mk_pi_field 𝕜 ι (f (λi, 1)) = f :=
 to_multilinear_map_inj f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
 
+@[simp] lemma norm_mk_pi_field (z : G) : ∥continuous_multilinear_map.mk_pi_field 𝕜 ι z∥ = ∥z∥ :=
+(multilinear_map.mk_continuous_norm_le _ (norm_nonneg z) _).antisymm $
+  by simpa using (continuous_multilinear_map.mk_pi_field 𝕜 ι z).le_op_norm (λ _, 1)
+
 variables (𝕜 ι G)
 
 /-- Continuous multilinear maps on `𝕜^n` with values in `G` are in bijection with `G`, as such a
 continuous multilinear map is completely determined by its value on the constant vector made of
-ones. We register this bijection as a linear equivalence in
-`continuous_multilinear_map.pi_field_equiv_aux`. The continuous linear equivalence is
+ones. We register this bijection as a linear isometry in
 `continuous_multilinear_map.pi_field_equiv`. -/
-protected def pi_field_equiv_aux : G ≃ₗ[𝕜] (continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G) :=
+protected def pi_field_equiv : G ≃ₗᵢ[𝕜] (continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G) :=
 { to_fun    := λ z, continuous_multilinear_map.mk_pi_field 𝕜 ι z,
   inv_fun   := λ f, f (λi, 1),
   map_add'  := λ z z', by { ext m, simp [smul_add] },
   map_smul' := λ c z, by { ext m, simp [smul_smul, mul_comm] },
   left_inv  := λ z, by simp,
-  right_inv := λ f, f.mk_pi_field_apply_one_eq_self }
-
-/-- Continuous multilinear maps on `𝕜^n` with values in `G` are in bijection with `G`, as such a
-continuous multilinear map is completely determined by its value on the constant vector made of
-ones. We register this bijection as a continuous linear equivalence in
-`continuous_multilinear_map.pi_field_equiv`. -/
-protected def pi_field_equiv : G ≃L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G) :=
-{ continuous_to_fun := begin
-    refine (continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G).to_linear_map.continuous_of_bound
-      (1 : ℝ) (λz, _),
-    rw one_mul,
-    change ∥continuous_multilinear_map.mk_pi_field 𝕜 ι z∥ ≤ ∥z∥,
-    exact multilinear_map.mk_continuous_norm_le _ (norm_nonneg _) _
-  end,
-  continuous_inv_fun := begin
-    refine
-      (continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G).symm.to_linear_map.continuous_of_bound
-      (1 : ℝ) (λf, _),
-    rw one_mul,
-    change ∥f (λi, 1)∥ ≤ ∥f∥,
-    apply @continuous_multilinear_map.unit_le_op_norm 𝕜 ι (λ (i : ι), 𝕜) G _ _ _ _ _ _ _ f,
-    simp only [pi_norm_le_iff zero_le_one, norm_one],
-    exact λ _, le_rfl
-  end,
-  .. continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G }
+  right_inv := λ f, f.mk_pi_field_apply_one_eq_self,
+  norm_map' := norm_mk_pi_field }
 
 end continuous_multilinear_map
 

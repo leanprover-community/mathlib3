@@ -255,7 +255,15 @@ lemma subst_into_smul_upcast {α} [add_comm_group α]
   (prt : @smulg α _ zl tr = t) : smul l r = t :=
 by simp [← prt, prl₁, ← prl₂, prr, smul, smulg]
 
-/-- Deal with a `smul` term of the form `e₁ • e₂`, handling both natural and integer `e₁`. -/
+/-- Normalize a term of the form `smul e₁ e₂` or `smulg e₁ e₂`.
+  Normalized terms use `smul` for monoids and `smulg` for groups,
+  so there are actually four cases to handle:
+  * Using `smul` in a monoid just simplifies the pieces using `subst_into_smul`
+  * Using `smulg` in a group just simplifies the pieces using `subst_into_smulg`
+  * Using `smul a b` in a group requires converting `a` from a nat to an int and
+    then simplifying `smulg ↑a b` using `subst_into_smul_upcast`
+  * Using `smulg` in a monoid is impossible (or at least out of scope),
+    because you need a group argument to write a `smulg` term -/
 meta def eval_smul' (c : context) (eval : expr → tactic (normal_expr × expr))
   (is_smulg : bool) (e₁ e₂ : expr) : tactic (normal_expr × expr) :=
 do (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁,

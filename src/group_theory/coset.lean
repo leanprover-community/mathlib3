@@ -409,28 +409,29 @@ by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
 /-- **Order of a Subgroup** -/
-lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
+@[to_additive] lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
-by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
+by classical; simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_left ℕ]
 
-lemma card_quotient_dvd_card [fintype α] (s : subgroup α) [decidable_pred (λ a, a ∈ s)]
-  [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
-by simp [card_eq_card_quotient_mul_card_subgroup s]
+@[to_additive] lemma card_quotient_dvd_card [fintype α] (s : subgroup α)
+  [decidable_pred (λ a, a ∈ s)] [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
+by simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_right ℕ]
 
 open fintype
 
 variables {H : Type*} [group H]
 
-lemma card_dvd_of_injective [fintype α] [fintype H] (f : α →* H) (hf : function.injective f) :
-  card α ∣ card H :=
+@[to_additive] lemma card_dvd_of_injective [fintype α] [fintype H] (f : α →* H)
+  (hf : function.injective f) : card α ∣ card H :=
 by classical;
 calc card α = card (f.range : subgroup H) : card_congr (equiv.of_injective f hf)
 ...∣ card H : card_subgroup_dvd_card _
 
-lemma card_dvd_of_le {H K : subgroup α} [fintype H] [fintype K] (hHK : H ≤ K) : card H ∣ card K :=
+@[to_additive] lemma card_dvd_of_le {H K : subgroup α} [fintype H] [fintype K] (hHK : H ≤ K) :
+  card H ∣ card K :=
 card_dvd_of_injective (inclusion hHK) (inclusion_injective hHK)
 
-lemma card_comap_dvd_of_injective (K : subgroup H) [fintype K]
+@[to_additive] lemma card_comap_dvd_of_injective (K : subgroup H) [fintype K]
   (f : α →* H) [fintype (K.comap f)] (hf : function.injective f) :
   fintype.card (K.comap f) ∣ fintype.card K :=
 by haveI : fintype ((K.comap f).map f) :=

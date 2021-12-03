@@ -415,8 +415,7 @@ end
 lemma geom_sum_pos_and_lt_one [ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
   0 < geom_sum x n ∧ geom_sum x n < 1 :=
 begin
-  change 2 ≤ n at hn,
-  refine nat.le_induction _ _ n hn,
+  refine nat.le_induction _ _ n (show 2 ≤ n, from hn),
   { rw geom_sum_two,
     exact ⟨hx', (add_lt_iff_neg_right _).2 hx⟩ },
   clear hn n,
@@ -430,15 +429,16 @@ lemma geom_sum_alternating_of_lt_neg_one [ordered_ring α] (hx : x + 1 < 0) (hn 
   if even n then geom_sum x n < 0 else 1 < geom_sum x n  :=
 begin
   have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 (@zero_le_one α _)).trans_lt hx,
-  change 2 ≤ n at hn,
-  refine nat.le_induction _ _ n hn,
-  { simp [geom_sum_two, hx] },
+  refine nat.le_induction _ _ n (show 2 ≤ n, from hn),
+  { simp only [geom_sum_two, hx, true_or, nat.even_bit0, if_true_left_eq_or] },
   clear hn n,
   intros n hn ihn,
   simp only [nat.even_succ, geom_sum_succ],
-  split_ifs at ihn with hn'; simp only [hn', not_false_iff, not_true, if_pos, if_neg],
-  { rw lt_add_iff_pos_left, exact mul_pos_of_neg_of_neg hx0 ihn },
-  { have := add_lt_add_right (mul_lt_mul_of_neg_left ihn hx0) 1,
+  by_cases hn' : even n,
+  { rw [if_pos hn'] at ihn, rw [if_neg, lt_add_iff_pos_left],
+    exact mul_pos_of_neg_of_neg hx0 ihn, exact not_not_intro hn', },
+  { rw [if_neg hn'] at ihn, rw [if_pos], swap, { exact hn' },
+    have := add_lt_add_right (mul_lt_mul_of_neg_left ihn hx0) 1,
     rw mul_one at this,
     exact this.trans hx }
 end
@@ -448,17 +448,17 @@ lemma geom_sum_pos_of_odd [linear_ordered_ring α] (h : odd n) :
 begin
   rcases n with (_ | _ | k),
   { exact ((show ¬ odd 0, from dec_trivial) h).elim },
-  { simp },
+  { simp only [geom_sum_one, zero_lt_one] },
   rw nat.odd_iff_not_even at h,
   rcases lt_trichotomy (x + 1) 0 with hx | hx | hx,
   { have := geom_sum_alternating_of_lt_neg_one hx k.one_lt_succ_succ,
     simp only [h, if_false] at this,
     exact zero_lt_one.trans this },
-  { simp [eq_neg_of_add_eq_zero hx, h] },
+  { simp only [eq_neg_of_add_eq_zero hx, h, neg_one_geom_sum, if_false, zero_lt_one] },
   rcases lt_trichotomy x 0 with hx' | rfl | hx',
   { exact (geom_sum_pos_and_lt_one hx' hx k.one_lt_succ_succ).1 },
-  { simp [h] },
-  { exact geom_sum_pos hx' (by simp) }
+  { simp only [zero_geom_sum, nat.succ_ne_zero, if_false, zero_lt_one] },
+  { exact geom_sum_pos hx' (by simp only [nat.succ_ne_zero, ne.def, not_false_iff]) }
 end
 
 lemma geom_sum_pos_iff [linear_ordered_ring α] (hn : 1 < n) :
@@ -472,24 +472,24 @@ begin
     rw [←nat.even_iff_not_odd] at h,
     rcases hx.eq_or_lt with hx | hx,
     { rw [←neg_neg (1 : α), add_neg_eq_iff_eq_add, zero_add] at hx,
-      simp [hx, neg_one_geom_sum, h] },
+      simp only [hx, neg_one_geom_sum, h, if_true] },
     apply le_of_lt,
     simpa [h] using geom_sum_alternating_of_lt_neg_one hx hn },
   { rintro (hn | hx'),
     { exact geom_sum_pos_of_odd hn },
     rcases lt_trichotomy x 0 with hx | rfl | hx,
     { exact (geom_sum_pos_and_lt_one hx hx' hn).1 },
-    { simp [(zero_lt_one.trans hn).ne'] },
+    { simp only [(zero_lt_one.trans hn).ne', zero_geom_sum, if_false, zero_lt_one] },
     { exact geom_sum_pos hx (zero_lt_one.trans hn).ne' } }
 end
 
 lemma geom_sum_eq_zero_iff_neg_one [linear_ordered_ring α] (hn : 1 < n) :
   geom_sum x n = 0 ↔ x = -1 ∧ even n :=
 begin
-  refine ⟨λ h, _, λ ⟨h, hn⟩, by simp [h, hn],⟩,
+  refine ⟨λ h, _, λ ⟨h, hn⟩, by simp only [h, hn, neg_one_geom_sum, if_true]⟩,
   contrapose! h,
   rcases eq_or_ne x (-1) with rfl | h,
-  { simp [h rfl] },
+  { simp only [h rfl, neg_one_geom_sum, if_false, ne.def, not_false_iff, one_ne_zero] },
   rw [ne.def, eq_neg_iff_add_eq_zero, ←ne.def] at h,
   rcases h.lt_or_lt with h | h,
   { have := geom_sum_alternating_of_lt_neg_one h hn,
@@ -499,17 +499,21 @@ begin
   apply ne_of_gt,
   rcases lt_trichotomy x 0 with h' | rfl | h',
   { exact (geom_sum_pos_and_lt_one h' h hn).1 },
-  { simp [(pos_of_gt hn).ne'] },
+  { simp only [(pos_of_gt hn).ne', zero_geom_sum, if_false, zero_lt_one] },
   { exact geom_sum_pos h' (pos_of_gt hn).ne' }
 end
+
+lemma decidable.and_or_imp {α β γ : Prop} [decidable α] :
+  (α ∧ β) ∨ (α → γ) ↔ α → (β ∨ γ) :=
+by tauto
 
 lemma geom_sum_neg_iff [linear_ordered_ring α] (hn : 1 < n) :
   geom_sum x n < 0 ↔ even n ∧ x + 1 < 0 :=
 begin
   have := or_congr (geom_sum_pos_iff hn) (geom_sum_eq_zero_iff_neg_one hn),
   rw [← not_iff_not, not_lt, le_iff_lt_or_eq, eq_comm, this, nat.odd_iff_not_even,
-    ← add_eq_zero_iff_eq_neg, not_and, not_lt, le_iff_lt_or_eq, eq_comm],
-  tauto
+    ← add_eq_zero_iff_eq_neg, not_and, not_lt, le_iff_lt_or_eq, eq_comm,
+    ← imp_iff_not_or, or_comm, and_comm, decidable.and_or_imp, or_comm],
 end
 
 end order

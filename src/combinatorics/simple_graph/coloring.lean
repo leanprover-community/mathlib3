@@ -101,10 +101,7 @@ lemma coloring.mem_color_classes {v : V} : C.color_class (C v) ∈ C.color_class
 ⟨v, rfl⟩
 
 lemma coloring.color_classes_finite_of_fintype [fintype α] : C.color_classes.finite :=
-begin
-  rw set.finite_def,
-  apply setoid.classes_fintype,
-end
+by { rw set.finite_def, apply setoid.classes_fintype, }
 
 lemma coloring.card_color_classes_le [fintype α] [fintype C.color_classes] :
   fintype.card C.color_classes ≤ fintype.card α :=
@@ -113,17 +110,11 @@ setoid.classes_fintype_card C
 lemma coloring.not_adj_of_mem_color_class {c : α} {v w : V}
   (hv : v ∈ C.color_class c) (hw : w ∈ C.color_class c) :
   ¬G.adj v w :=
-begin
-  intro h,
-  exact C.valid h (eq.trans hv (eq.symm hw)),
-end
+λ h, C.valid h (eq.trans hv (eq.symm hw))
 
 lemma coloring.color_classes_independent (c : α) :
   is_antichain G.adj (C.color_class c) :=
-begin
-  intros v hv w hw h,
-  exact C.not_adj_of_mem_color_class hv hw,
-end
+λ v hv w hw h, C.not_adj_of_mem_color_class hv hw
 
 -- TODO make this computable
 noncomputable
@@ -148,12 +139,7 @@ lemma colorable_of_is_empty [is_empty V] (n : ℕ) : G.colorable n :=
 ⟨G.coloring_of_is_empty⟩
 
 lemma is_empty_of_colorable_zero (h : G.colorable 0) : is_empty V :=
-begin
-  split,
-  intro v,
-  obtain ⟨i, hi⟩ := h.some v,
-  exact nat.not_lt_zero _ hi,
-end
+⟨λ v, by { ⟨i, hi⟩ := h.some v, exact nat.not_lt_zero _ hi }⟩
 
 /-- The "tautological" coloring of a graph, using the vertices of the graph as colors. -/
 def self_coloring : G.coloring V :=

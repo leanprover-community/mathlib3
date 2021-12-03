@@ -77,16 +77,10 @@ def part_of_vertex (v : V) : set V :=
 classical.some (P.is_partition.2 v)
 
 lemma part_of_vertex_mem (v : V) : P.part_of_vertex v ∈ P.parts :=
-begin
-  obtain ⟨h, -⟩ := (P.is_partition.2 v).some_spec.1,
-  exact h,
-end
+by { obtain ⟨h, -⟩ := (P.is_partition.2 v).some_spec.1, exact h, }
 
 lemma mem_part_of_vertex (v : V) : v ∈ P.part_of_vertex v :=
-begin
-  obtain ⟨⟨h1, h2⟩, h3⟩ := (P.is_partition.2 v).some_spec,
-  exact h2.1,
-end
+by { obtain ⟨⟨h1, h2⟩, h3⟩ := (P.is_partition.2 v).some_spec, exact h2.1 }
 
 lemma part_of_vertex_ne_of_adj {v w : V} (h : G.adj v w) :
   P.part_of_vertex v ≠ P.part_of_vertex w :=
@@ -102,19 +96,12 @@ end
 Each vertex is colored by the part it's contained in. -/
 def to_coloring : G.coloring P.parts :=
 coloring.mk (λ v, ⟨P.part_of_vertex v, P.part_of_vertex_mem v⟩)
-begin
-  intros _ _ hvw,
-  rw [ne.def, subtype.mk_eq_mk],
-  exact P.part_of_vertex_ne_of_adj hvw,
-end
+λ _ _ hvw, by { rw [ne.def, subtype.mk_eq_mk], exact P.part_of_vertex_ne_of_adj hvw }
 
 /-- Like `simple_graph.partition.to_coloring` but uses `set V` as the coloring type. -/
 def to_coloring' : G.coloring (set V) :=
 coloring.mk P.part_of_vertex
-begin
-  intros _ _ hvw,
-  exact P.part_of_vertex_ne_of_adj hvw,
-end
+λ _ _ hvw, P.part_of_vertex_ne_of_adj hvw
 
 lemma to_colorable [fintype P.parts] : G.colorable (fintype.card P.parts) :=
 P.to_coloring.to_colorable

@@ -343,7 +343,7 @@ begin
     erw category.id_comp,
     rw category.assoc,
     erw [← (F.obj (unop Y)).presheaf.map_comp, (F.map f.unop).c.naturality_assoc,
-      (F.obj (unop Y)).presheaf.map_comp],
+      ← (F.obj (unop Y)).presheaf.map_comp],
     congr }
 end
 

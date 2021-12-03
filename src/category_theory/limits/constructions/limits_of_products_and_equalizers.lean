@@ -7,6 +7,7 @@ import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.preserves.shapes.products
 import category_theory.limits.preserves.shapes.equalizers
+import category_theory.limits.preserves.finite
 
 /-!
 # Constructing limits from products and equalizers.
@@ -177,10 +178,9 @@ end
 def preserves_finite_limits_of_preserves_equalizers_and_finite_products
   [has_equalizers C] [has_finite_products C]
   (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair G]
-  [∀ J [fintype J], preserves_limits_of_shape (discrete J) G]
-  (J : Type v) [small_category J] [fin_category J] :
-preserves_limits_of_shape J G :=
-preserves_limit_of_preserves_equalizers_and_product G
+  [∀ J [fintype J], preserves_limits_of_shape (discrete J) G] :
+  preserves_finite_limits G :=
+⟨λ _ _ _, by exactI preserves_limit_of_preserves_equalizers_and_product G⟩
 
 /-- If G preserves equalizers and products, it preserves all limits. -/
 def preserves_limits_of_preserves_equalizers_and_products
@@ -338,10 +338,9 @@ end
 def preserves_finite_colimits_of_preserves_coequalizers_and_finite_coproducts
   [has_coequalizers C] [has_finite_coproducts C]
   (G : C ⥤ D) [preserves_colimits_of_shape walking_parallel_pair G]
-  [∀ J [fintype J], preserves_colimits_of_shape (discrete J) G]
-  (J : Type v) [small_category J] [fin_category J] :
-preserves_colimits_of_shape J G :=
-preserves_colimit_of_preserves_coequalizers_and_coproduct G
+  [∀ J [fintype J], preserves_colimits_of_shape (discrete J) G] :
+  preserves_finite_colimits G :=
+⟨λ _ _ _, by exactI preserves_colimit_of_preserves_coequalizers_and_coproduct G⟩
 
 /-- If G preserves coequalizers and coproducts, it preserves all colimits. -/
 def preserves_colimits_of_preserves_coequalizers_and_coproducts

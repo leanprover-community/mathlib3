@@ -882,7 +882,7 @@ begin
     intros η η_pos,
     have sum_nn : 0 ≤ δ + η := by linarith,
     apply (ennreal.of_real_le_of_real_iff sum_nn).mp,
-    have key := (hx (δ + η) (by linarith)),
+    have key := hx (δ + η) (by linarith),
     rwa ← ennreal.of_real_to_real inf_edist_lt_top.ne at key, },
 end
 

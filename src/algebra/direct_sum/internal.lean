@@ -175,9 +175,9 @@ open_locale direct_sum big_operators
 variables [add_comm_monoid ι] [semiring R]
 variables (𝒜 : ι → add_submonoid R)
 
-lemma direct_sum.coe_mul_apply_submodule [set_like.graded_monoid 𝒜]
+lemma direct_sum.coe_mul_apply_add_submonoid [set_like.graded_monoid 𝒜]
   [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)] (r r' : ⨁ i, 𝒜 i) (i : ι) :
-  ((r * r') i : S) =
+  ((r * r') i : R) =
     ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
       r ij.1 * r' ij.2 :=
 begin
@@ -192,7 +192,7 @@ section submodule
 
 open_locale direct_sum big_operators
 
-variables [add_comm_monoid ι] [semiring R] [ring S] [algebra R S]
+variables [add_comm_monoid ι] [comm_semiring R] [ring S] [algebra R S]
 variables (𝒜 : ι → submodule R S)
 
 lemma direct_sum.coe_mul_apply_submodule [set_like.graded_monoid 𝒜]
@@ -220,7 +220,7 @@ lemma direct_sum.coe_mul_apply_add_subgroup [set_like.graded_monoid 𝒜]
     ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
       r ij.1 * r' ij.2 :=
 begin
-  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, add_subgroup.coe_prod],
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, add_subgroup.coe_sum],
   simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 

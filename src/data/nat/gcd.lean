@@ -301,6 +301,10 @@ by rw [coprime, coprime, gcd_add_self_left]
 @[simp] theorem coprime_self_add_left {m n : ℕ} : coprime (m + n) m ↔ coprime n m :=
 by rw [coprime, coprime, gcd_self_add_left]
 
+-- TODO: Do 7 other lemmas like this, permuting left/rights
+@[simp] theorem coprime_add_mul_self {m n k : ℕ} : coprime m (n + k * m) ↔ coprime m n :=
+by simp only [coprime, gcd_add_mul_self]
+
 theorem coprime.mul {m n k : ℕ} (H1 : coprime m k) (H2 : coprime n k) : coprime (m * n) k :=
 (H1.gcd_mul_left_cancel n).trans H2
 

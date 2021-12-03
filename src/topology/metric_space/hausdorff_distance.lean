@@ -858,17 +858,13 @@ lemma cthickening_subset_thickening' {δ₁ δ₂ : ℝ} (δ₂_pos : 0 < δ₂)
   cthickening δ₁ E ⊆ thickening δ₂ E :=
 λ _ hx, lt_of_le_of_lt hx ((ennreal.of_real_lt_of_real_iff δ₂_pos).mpr hlt)
 
-lemma thickening_subset_cthickening_of_le {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
-  thickening δ₁ E ⊆ cthickening δ₂ E :=
-begin
-  intros x hx,
-  rw [thickening, mem_set_of_eq] at hx,
-  exact le_trans hx.le (ennreal.of_real_le_of_real hle),
-end
-
 lemma thickening_subset_cthickening (δ : ℝ) (E : set α) :
   thickening δ E ⊆ cthickening δ E :=
-by apply thickening_subset_cthickening_of_le rfl.ge
+by { intros x hx, rw [thickening, mem_set_of_eq] at hx, exact hx.le, }
+
+lemma thickening_subset_cthickening_of_le {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
+  thickening δ₁ E ⊆ cthickening δ₂ E :=
+(thickening_subset_cthickening δ₁ E).trans (cthickening_mono hle E)
 
 lemma cthickening_eq_Inter_cthickening {δ : ℝ} {E : set α} (δ_nn : 0 ≤ δ) :
   cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), cthickening ε E :=

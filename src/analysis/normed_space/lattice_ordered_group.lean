@@ -163,7 +163,7 @@ lemma norm_abs_sub_abs (a b : α) :
   ∥ |a| - |b| ∥ ≤ ∥a-b∥ :=
 solid (lattice_ordered_comm_group.abs_abs_sub_abs_le _ _)
 
-lemma two_inf_sub_two_inf_le (a b c d : α) :
+lemma norm_two_inf_sub_two_inf_le (a b c d : α) :
   ∥2•(a⊓b)-2•(c⊓d)∥ ≤ 2*∥a - c∥ + 2*∥b - d∥ :=
 calc ∥2•(a⊓b) - 2•(c⊓d)∥ = ∥(a + b - |b - a|) - (c + d - |d - c|)∥ :
     by rw [lattice_ordered_comm_group.two_inf_eq_add_sub_abs_sub,

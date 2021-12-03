@@ -92,7 +92,7 @@ lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} :
   a ∈ Φ ↔ ∀ b : Φ, a ≠ ↑b → a < ↑b ∨ ↑b < a :=
 begin
   split,
-    { exact λ ha ⟨b, hb⟩ hne, Φ.property.left a ha b hb hne },
+    { exact λ ha ⟨b, hb⟩ hne, Φ.prop.left a ha b hb hne },
   intro H,
   by_contra ha,
   exact Φ.prop.right
@@ -780,7 +780,7 @@ end
 /-- Strong flag connectedness implies strong connectedness. -/
 private lemma strong_connected_of_strong_flag_connected (α : Type u) [partial_order α] [graded α] :
   strong_flag_connected α → strong_connected α :=
-by intros hsc _ _ _; apply connected_of_flag_connected; exact hsc
+λ hsc _ _ hxy, @connected_of_flag_connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) hsc
 
 -- Working title.
 lemma super_duper_flag_lemma {α : Type u} [partial_order α] [order_bot α] [order_top α]

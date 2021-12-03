@@ -58,7 +58,7 @@ end
 
 /-- Two `fin`s cover each other iff their values do. -/
 lemma fin.cover_iff_cover {n : ℕ} (a b : fin n) : a ⋖ b ↔ a.val ⋖ b.val :=
-  ⟨ λ ⟨hl, hr⟩, ⟨hl, λ c hc, (hr ⟨c, lt_trans hc.right b.property⟩) hc⟩,
+  ⟨ λ ⟨hl, hr⟩, ⟨hl, λ c hc, (hr ⟨c, lt_trans hc.right b.prop⟩) hc⟩,
   λ ⟨hl, hr⟩, ⟨hl, λ c hc, hr c hc⟩ ⟩
 
 /-- Covering is irreflexive. -/

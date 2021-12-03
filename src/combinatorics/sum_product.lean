@@ -206,16 +206,15 @@ end
 
 -- #exit
 
-
 lemma floor_div_cast_eq_div {α : Type*} {x y : ℕ} [linear_ordered_field α] [floor_semiring α] :
   ⌊(x : α) / y⌋₊ = x / y :=
 begin
+  rcases y.eq_zero_or_pos with rfl | hy,
+  { simp },
   refine (nat.floor_eq_iff _).2 _,
   { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) },
   split,
   { apply nat.cast_div_le },
-  rcases y.eq_zero_or_pos with rfl | hy,
-  { simp },
   rw [div_lt_iff, add_mul, one_mul, ←nat.cast_mul, ←nat.cast_add, nat.cast_lt],
   apply nat.lt_div_mul_add hy,
   rwa nat.cast_pos,
@@ -356,6 +355,42 @@ begin
   apply this,
   simp only [mem_filter, add_sub_add_right_eq_sub, abs_sub_comm a, le_refl, and_true],
   apply add_mem_add (neighbour_spec hA).1 hB,
+end
+
+lemma mul_good_triple_set_subset_nearest_neighbours {a q : ℝ}
+  (hA : (A.erase a).nonempty) (hQ : q ∈ Q) :
+  ((A * Q).filter (λ v, |a * q - v| ≤ |A.neighbour a * q - a * q|)).card ≤ 12 * ((A * Q).card) / (A.card) →
+  A.neighbour a * q ∈ nearest_neighbours (A * Q) (a * q) (12 * (A * Q).card / A.card) :=
+begin
+  intro h,
+  set U₁ := (A * Q).filter (λ v, |a * q - v| ≤ |A.neighbour a * q - a * q|),
+  set U₂ := nearest_neighbours (A * Q) (a * q) (12 * (A * Q).card / A.card),
+  have U₁₂ : U₁ ⊆ U₂ ∨ U₂ ⊆ U₁,
+  { by_contra q,
+    simp only [not_or_distrib, subset_iff, not_forall, exists_prop] at q,
+    obtain ⟨⟨x, hx₁, hx₂⟩, y, hy₁, hy₂⟩ := q,
+    cases lt_or_le (|a * q - x|) (|a * q - y|) with xy yx,
+    { apply hx₂ (nearest_neighbours_down_closed y x hy₁ (filter_subset _ _ hx₁) xy) },
+    { apply hy₂,
+      rw mem_filter,
+      refine ⟨nearest_neighbours_subset hy₁, _⟩,
+      apply yx.trans,
+      rw [mem_filter] at hx₁,
+      apply hx₁.2 } },
+  have : U₁ ⊆ U₂,
+  { suffices : ¬ U₂ ⊂ U₁,
+    { rw ssubset_iff_subset_ne at this,
+      simp only [not_and_distrib, not_not] at this,
+      cases this,
+      { apply U₁₂.resolve_right this },
+      apply ge_of_eq this },
+    intro t,
+    apply not_le_of_lt (card_lt_card t),
+    rw [card_nearest_neighbours_eq, le_min_iff],
+    exact ⟨card_filter_le _ _, h⟩ },
+  apply this,
+  simp only [mem_filter, add_sub_add_right_eq_sub, abs_sub_comm (a * q), le_refl, and_true],
+  apply mul_mem_mul (neighbour_spec hA).1 hQ,
 end
 
 def good_triple (A B Q : finset ℝ) (a b q : ℝ) : Prop :=
@@ -615,18 +650,7 @@ begin
 end
 
 def left_good_quads (A B Q : finset ℝ) : finset (ℝ × ℝ) := (good_quads A B Q).image prod.fst
-lemma left_good_quads_eq :
-  (left_good_quads A B Q) ⊆
-    ((A.product B).filter (λ (ab : ℝ × ℝ), add_good_triple A B ab.1 ab.2)).image
-      (λ ab, (ab.1 + ab.2, A.neighbour ab.1 + ab.2)) :=
-begin
-  simp only [subset_iff, left_good_quads, mem_image, exists_prop, mem_filter, prod.forall,
-    good_quads, and_imp, forall_exists_index, exists_and_distrib_right, prod.mk.inj_iff,
-    exists_eq_right_right, exists_eq_right, prod.exists, mem_product, good_triples, good_triple,
-    three_to_four_map, and_assoc],
-  rintro _ _ _ _ _ _ a b q ha hb hq ab aq rfl rfl rfl rfl rfl rfl,
-  exact ⟨a, b, ha, hb, ab, rfl, rfl⟩,
-end
+def right_good_quads (A B Q : finset ℝ) : finset (ℝ × ℝ) := (good_quads A B Q).image prod.snd
 
 lemma left_good_quads_subset (hA : 2 ≤ A.card) :
   (left_good_quads A B Q).card ≤ ((A + B).sigma (λ u, nearest_neighbours (A + B) u (12 * (A+B).card / A.card))).card :=
@@ -652,6 +676,30 @@ begin
   simp [-and_imp],
 end
 
+lemma right_good_quads_subset (hA : 2 ≤ A.card) :
+  (right_good_quads A B Q).card ≤ ((A * Q).sigma (λ u, nearest_neighbours (A * Q) u (12 * (A*Q).card / A.card))).card :=
+begin
+  refine card_le_card_of_inj_on _ _ _,
+  { rintro x,
+    exact ⟨x.1, x.2⟩ },
+  { simp only [right_good_quads, mem_image, mem_sigma, and_imp, exists_prop, prod.forall,
+      forall_exists_index, exists_and_distrib_right, prod.mk.inj_iff, prod.exists, good_quads,
+      good_triples, three_to_four_map, mem_filter, good_triple, mul_good_triple, mem_product],
+    rintro _ _ _ _ _ _ a b q ha hb hq - hU rfl rfl rfl rfl rfl rfl,
+    refine ⟨mul_mem_mul ha hq, _⟩,
+    rw ←nat.le_floor_iff at hU,
+    apply mul_good_triple_set_subset_nearest_neighbours _ hq,
+    { apply hU.trans (le_of_eq _),
+      convert floor_div_cast_eq_div using 3,
+      rw nat.cast_mul,
+      norm_cast },
+    { rw [←card_pos, card_erase_of_mem ha, ←nat.succ_le_iff],
+      exact nat.le_pred_of_lt hA },
+    refine mul_nonneg (mul_nonneg (by norm_num1) (nat.cast_nonneg _)) (inv_nonneg.2 _),
+    exact nat.cast_nonneg _ },
+  simp [-and_imp],
+end
+
 lemma left_good_quads_card (hA : 2 ≤ A.card) :
   (left_good_quads A B Q).card ≤ 12 * (A + B).card^2 / A.card :=
 begin
@@ -664,11 +712,25 @@ begin
     apply min_le_right },
   apply (sum_le_of_forall_le _ _ _ this).trans,
   simp only [algebra.id.smul_eq_mul],
-
+  apply (nat.mul_div_le_mul_div_assoc _ _ _).trans,
+  rw [mul_left_comm, sq],
 end
 
-
-#exit
+lemma right_good_quads_card (hA : 2 ≤ A.card) :
+  (right_good_quads A B Q).card ≤ 12 * (A * Q).card^2 / A.card :=
+begin
+  apply (right_good_quads_subset hA).trans,
+  rw card_sigma,
+  have : ∀ x ∈ A * Q, (nearest_neighbours (A * Q) x (12 * (A * Q).card / A.card)).card ≤
+    (12 * (A * Q).card / A.card),
+  { intros x hx,
+    rw card_nearest_neighbours_eq,
+    apply min_le_right },
+  apply (sum_le_of_forall_le _ _ _ this).trans,
+  simp only [algebra.id.smul_eq_mul],
+  apply (nat.mul_div_le_mul_div_assoc _ _ _).trans,
+  rw [mul_left_comm, sq],
+end
 
 -- def add_good_triple (A B : finset ℝ) (a b : ℝ) : Prop :=
 --   ((A + B).filter (λ u, abs (u - (a + b)) ≤ abs (A.neighbour a - a))).card * A.card ≤
@@ -678,21 +740,66 @@ end
 --   ((A * Q).filter (λ v, abs (v - a * q) ≤ abs (A.neighbour a * q - a * q))).card * A.card ≤
 --     12 * (A * Q).card
 
-lemma good_quads_card_le :
+lemma good_quads_card_le (hA : 2 ≤ A.card) :
   (good_quads A B Q).card ≤ 12 * 12 * (A + B).card^2 * (A * Q).card^2 / A.card^2 :=
 begin
-
+  refine (card_le_of_subset subset_product).trans _,
+  rw [card_product],
+  apply (nat.mul_le_mul (left_good_quads_card hA) (right_good_quads_card hA)).trans,
+  apply (nat.mul_div_le_mul_div_assoc _ _ _).trans,
+  rw [sq A.card, ←nat.div_div_eq_div_mul, mul_right_comm 12 12, mul_assoc],
+  apply nat.div_le_div_right,
+  rw [mul_comm, mul_comm (12 * (A + B).card^2)],
+  apply nat.mul_div_le_mul_div_assoc,
 end
 
-lemma few_good_quad (A B Q : finset ℝ) (hQ : (0:ℝ) ∉ Q) :
-  (good_triples A B Q).card * A.card^2 ≤
-    12 * 12 * (A + B).card^2 * (A * Q).card^2  :=
+lemma few_good_quad (A B Q : finset ℝ) (hA : 2 ≤ A.card) (hQ : (0:ℝ) ∉ Q) :
+  (good_triples A B Q).card ≤
+    12 * 12 * (A + B).card^2 * (A * Q).card^2 / A.card^2 :=
 begin
   rw ←good_quads_card hQ,
-
+  apply good_quads_card_le hA,
 end
 
-#exit
+lemma restricted_bound (A B Q : finset ℝ) (hA : 2 ≤ A.card) (hB : B.nonempty) (hQ : (0:ℝ) ∉ Q)
+  (hQ' : Q.nonempty) :
+  A.card^3 * B.card * Q.card ≤ 288 * (A + B).card ^ 2 * (A * Q).card ^ 2 :=
+begin
+  have hA' : 0 < A.card := zero_lt_two.trans_le hA,
+  have hQ'' : Q ≠ {0},
+  { rintro rfl,
+    simpa using hQ },
+  suffices : (A.card * B.card * Q.card) * A.card^2 ≤ 2 * (144 * (A + B).card^2 * (A * Q).card^2),
+  { refine le_trans (by ring_nf) (this.trans _),
+    rw [←mul_assoc, ←mul_assoc],
+    refl },
+  apply (nat.mul_le_mul_right _ (many_good_triples A B Q hB hQ' hQ'')).trans,
+  rw [mul_comm _ 2, mul_assoc],
+  apply nat.mul_le_mul_left,
+  rw ←nat.le_div_iff_mul_le _ _ (sq_pos_of_pos hA'),
+  apply few_good_quad A B Q hA hQ,
+end
+
+-- This fails when A = {0}, B = {1}, |Q| > 288
+lemma real_bound (A B Q : finset ℝ) (hA : A ≠ {0}) (hQ : (0:ℝ) ∉ Q) :
+  A.card^3 * B.card * Q.card ≤ 288 * (A + B).card ^ 2 * (A * Q).card ^ 2 :=
+begin
+  rcases B.eq_empty_or_nonempty with rfl | hB,
+  { simp },
+  rcases Q.eq_empty_or_nonempty with rfl | hQ',
+  { simp },
+  rcases lt_or_le A.card 2 with hA | hA,
+  { rw [nat.lt_succ_iff, card_le_one_iff_subset_singleton] at hA,
+    obtain ⟨x, hx⟩ := hA,
+    rcases subset_singleton_iff.1 hx with rfl | rfl,
+    { simp },
+    simp, -- |B| * |Q| ≤ 288 * |B|^2
+    -- |Q| ≤ 288 * |B|
+
+
+  },
+  apply restricted_bound _ _ _ hA hB hQ hQ',
+end
 
 theorem complex_bound : ∃ (c : ℝ), 0 < c ∧ ∀ A B Q : finset ℝ,
   c * A.card ^ (3/2 : ℝ) * B.card ^ (1/2 : ℝ) * Q.card ^ (1/2 : ℝ) ≤ (A + B).card * (A * Q).card :=

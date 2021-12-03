@@ -47,7 +47,7 @@ lemma monotone_prime_counting : monotone prime_counting :=
 λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
 
 -- TODO? Generalize from ℕ
--- Note that this does not hold for locally finitely ordered add monoids in general,
+-- Note that this does not hold for locally finitely ordered add_monoids in general,
 -- as we could have a (horizontally) periodic function on ℤ² which is different over different
 -- y-coordinates. It should hold over ℤ though.
 -- TODO? Should this be tagged @[simp]?
@@ -64,9 +64,7 @@ begin
     clear n_ih,
     simp only [succ_add],
     rw Ico_succ_right_eq_insert_Ico,
-    { rw Ico_succ_left_eq_erase_Ico,
-      rw filter_insert,
-      rw filter_erase,
+    { rw [Ico_succ_left_eq_erase_Ico, filter_insert, filter_erase],
       split_ifs,
       { rw [card_insert_eq_ite, card_erase_eq_ite],
         split_ifs,
@@ -83,9 +81,7 @@ begin
       { rw card_erase_eq_ite,
         split_ifs,
         simp [*] at *, }, },
-    { rw succ_eq_add_one,
-      simp,
-      exact one_le_iff_ne_zero.mpr h, }, },
+    { rwa [succ_eq_add_one, add_le_add_iff_left, one_le_iff_ne_zero], }, },
 end
 
 -- TODO fill out the various permutations of this lemma, as well as the version with
@@ -130,7 +126,7 @@ begin
             simp only [finset.le_eq_subset],
             rw subset_iff,
             intro x,
-            simp [mem_Ico],
+            simp only [mem_Ico, and_imp, mem_union],
             intros h1 h2,
             by_cases x < n % a + a * n_1,
             { left,

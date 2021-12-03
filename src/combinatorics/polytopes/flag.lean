@@ -3,7 +3,6 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
-
 import tactic
 import order.lattice_intervals
 import order.zorn
@@ -320,12 +319,12 @@ lemma empty [has_lt α] : @zorn.chain α (<) ∅ :=
 λ _ h, h.elim
 
 /-- Any singleton is a chain. -/
-lemma singleton [has_lt α] (x : α) : @zorn.chain α (<) (set.insert x ∅) :=
+lemma singleton [has_lt α] (x : α) : zorn.chain (<) (set.insert x ∅) :=
 by refine zorn.chain_insert _ _ ; repeat { exact λ _ h, h.elim }
 
 /-- Any pair of incident elements is a chain. -/
 lemma pair [has_lt α] {x y : α} (hxy : x < y ∨ y < x) :
-  @zorn.chain α (<) (set.insert x (set.insert y ∅)) :=
+  zorn.chain (<) (set.insert x (set.insert y ∅)) :=
 begin
   apply zorn.chain_insert (singleton _),
   intros _ hb _,
@@ -334,7 +333,7 @@ end
 
 /-- Chains of intervals are chains. -/
 lemma chain_of_chain [preorder α] {x y : α} (c : set (set.Icc x y)) :
-  @zorn.chain (set.Icc x y) (<) c → @zorn.chain α (<) (subtype.val '' c)  :=
+  zorn.chain (<) c → zorn.chain (<) (subtype.val '' c)  :=
 begin
   intros hc a ha b hb hne,
   have hz : ∀ {z}, z ∈ subtype.val '' c → z ∈ set.Icc x y := begin
@@ -352,6 +351,26 @@ begin
   repeat
     { apply subtype.eq, assumption },
   exact λ h, hne (subtype.mk.inj h),
+end
+
+/-- One can build a chain by concatenating two others. -/
+lemma chain_of_chains [preorder α] {x y z : α} (c : set (set.Icc x y)) (d : set (set.Ioc y z)) :
+  zorn.chain (<) c → zorn.chain (<) d → zorn.chain (<) (subtype.val '' c ∪ subtype.val '' d) :=
+begin
+  intros hc hd a ha b hb hne,
+  cases ha with ha ha, {
+    rcases ha with ⟨a', hac, ha⟩,
+    cases hb with hb hb, {
+      rcases hb with ⟨b', hbc, hb⟩,
+      rw [←ha, ←hb],
+      apply hc _ hac _ hbc,
+      intro h,
+      apply hne,
+      sorry,
+    },
+    sorry,
+  },
+  sorry,
 end
 
 end
@@ -623,7 +642,9 @@ begin
   sorry
 end
 
-def foo [Π Φ : flag α, fintype Φ] (hf : ∀ (Φ Ψ : flag α), fintype.card Φ = fintype.card Ψ) : graded α := sorry
+def foo {α : Type u} [preorder α] [Π Φ : flag α, fintype Φ]
+(hf : ∀ (Φ Ψ : flag α), fintype.card Φ = fintype.card Ψ) :
+  graded α :=
 sorry
 
 end graded

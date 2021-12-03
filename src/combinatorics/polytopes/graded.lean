@@ -3,7 +3,6 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
-
 import tactic
 import order.lattice_intervals
 import order.zorn

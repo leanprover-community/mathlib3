@@ -3,11 +3,11 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
-import group_theory.submonoid.basic
 import algebra.big_operators.basic
-import group_theory.group_action.group
-import data.set.finite
 import algebra.smul_with_zero
+import data.set.finite
+import group_theory.group_action.group
+import group_theory.submonoid.basic
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.
@@ -511,6 +511,10 @@ theorem range_smul_range [has_scalar α β] {ι κ : Type*} (b : ι → α) (c :
 ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_smul.1 hx in
   ⟨(i, j), hpq ▸ hi ▸ hj ▸ rfl⟩,
 λ ⟨⟨i, j⟩, h⟩, set.mem_smul.2 ⟨b i, c j, ⟨i, rfl⟩, ⟨j, rfl⟩, h⟩⟩
+
+@[simp, to_additive]
+lemma smul_singleton [has_scalar α β] (a : α) (b : β) : a • ({b} : set β) = {a • b} :=
+image_singleton
 
 @[simp, to_additive]
 lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a • t :=

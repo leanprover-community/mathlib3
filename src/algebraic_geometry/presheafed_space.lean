@@ -345,7 +345,7 @@ def restrict_top_iso (X : PresheafedSpace C) :
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $
     by { erw comp_c, rw X.of_restrict_top_c, ext, simp },
   inv_hom_id' := ext _ _ rfl $
-    by { erw comp_c, rw X.of_restrict_top_c, ext, simp, erw comp_id, refl } }
+    by { erw comp_c, rw X.of_restrict_top_c, ext, simpa [-eq_to_hom_refl] } }
 
 instance of_restrict_mono {U : Top} (X : PresheafedSpace C) (f : U ⟶ X.1)
   (hf : open_embedding f) : mono (X.of_restrict hf) :=

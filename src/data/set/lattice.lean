@@ -827,6 +827,9 @@ begin
   { intro h, cases x with i a, exact ⟨i, a, h, rfl⟩ }
 end
 
+lemma sigma.univ (X : α → Type*) : (set.univ : set (Σ a, X a)) = ⋃ a, range (sigma.mk a) :=
+set.ext $ λ x, iff_of_true trivial ⟨range (sigma.mk x.1), set.mem_range_self _, x.2, sigma.eta x⟩
+
 lemma sUnion_mono {s t : set (set α)} (h : s ⊆ t) : (⋃₀ s) ⊆ (⋃₀ t) :=
 sUnion_subset $ λ t' ht', subset_sUnion_of_mem $ h ht'
 

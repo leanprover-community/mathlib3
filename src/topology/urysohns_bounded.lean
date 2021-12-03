@@ -32,11 +32,11 @@ let ⟨f, hfs, hft, hf⟩ := exists_continuous_zero_one_of_closed hs ht hd
 in ⟨⟨f, 1, λ x y, real.dist_le_of_mem_Icc_01 (hf _) (hf _)⟩, hfs, hft, hf⟩
 
 /-- Urysohns lemma: if `s` and `t` are two disjoint closed sets in a normal topological space `X`,
-then there exists a continuous function `f : X → ℝ` such that
+and `a ≤ b` are two real numbers, then there exists a continuous function `f : X → ℝ` such that
 
-* `f` equals zero on `s`;
-* `f` equals one on `t`;
-* `0 ≤ f x ≤ 1` for all `x`.
+* `f` equals `a` on `s`;
+* `f` equals `b` on `t`;
+* `a ≤ f x ≤ b` for all `x`.
 -/
 lemma exists_bounded_mem_Icc_of_closed_of_le {X : Type*} [topological_space X] [normal_space X]
   {s t : set X} (hs : is_closed s) (ht : is_closed t) (hd : disjoint s t)

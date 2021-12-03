@@ -81,16 +81,6 @@ end
 -- end
 
 
-lemma Ico_eq_insert_Ico_succ (a b : ℕ) (h : a < b) : Ico a b = insert a (Ico a.succ b) :=
-begin
-  rw Ico_succ_left_eq_erase_Ico,
-  ext x,
-  simp only [mem_erase, mem_insert],
-  by_cases he : x = a,
-  { simp [he, h], },
-  { simp [he], },
-end
-
 -- TODO Generalize from ℕ
 -- Note that this does not hold for locally finitely ordered add monoids in general,
 -- as we could have a (horizontally) periodic function on ℤ² which is different over different

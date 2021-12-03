@@ -326,15 +326,15 @@ begin
 end
 
 -- 2•(a ⊔ b) = a + b + |b - a|
-@[to_additive]
+@[to_additive two_sup_eq_add_add_abs_sub]
 lemma sup_sq_eq_mul_mul_abs_div [covariant_class α α (*) (≤)] (a b : α) :
   (a ⊔ b)^2 = a * b * |b / a| :=
 by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, ← mul_assoc, mul_comm,
     mul_assoc, ← pow_two, inv_mul_cancel_left]
 
 -- 2•(a ⊓ b) = a + b - |b - a|
-@[to_additive]
-lemma two_inf_eq_mul_div_abs_div [covariant_class α α (*) (≤)] (a b : α) :
+@[to_additive two_inf_eq_add_sub_abs_sub]
+lemma inf_sq_eq_mul_div_abs_div [covariant_class α α (*) (≤)] (a b : α) :
   (a ⊓ b)^2 = a * b / |b / a| :=
 by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, div_eq_mul_inv,
     mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_comm_assoc, ← pow_two]
@@ -474,6 +474,33 @@ begin
   { exact mul_le_mul' (le_mabs a) (le_mabs b), },
   { rw mul_inv,
     exact mul_le_mul' (inv_le_abs _) (inv_le_abs _), }
+end
+
+-- |a - b| = |b - a|
+@[to_additive]
+lemma abs_inv_comm (a b : α) : |a/b| = |b/a| :=
+begin
+  unfold has_abs.abs,
+  rw [inv_div' a b, ← inv_inv (a / b), inv_div', sup_comm],
+end
+
+-- | |a| - |b| | ≤ |a - b|
+@[to_additive]
+lemma abs_abs_div_abs_le [covariant_class α α (*) (≤)] (a b : α) : | |a| / |b| | ≤ |a / b| :=
+begin
+  unfold has_abs.abs,
+  rw sup_le_iff,
+  split,
+  { apply div_le_iff_le_mul.2,
+    convert mabs_mul_le (a/b) b,
+    { rw div_mul_cancel', },
+    { rw div_mul_cancel', },
+    { exact covariant_swap_mul_le_of_covariant_mul_le α, } },
+  { rw [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_le_iff_le_mul, ← abs_eq_sup_inv (a / b),
+      abs_inv_comm],
+    convert  mabs_mul_le (b/a) a,
+    { rw div_mul_cancel', },
+    {rw div_mul_cancel', } },
 end
 
 end lattice_ordered_comm_group

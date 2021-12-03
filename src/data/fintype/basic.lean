@@ -195,6 +195,15 @@ lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f
 lemma inf_univ_eq_infi [complete_lattice β] (f : α → β) : finset.univ.inf f = infi f :=
 sup_univ_eq_supr (by exact f : α → order_dual β)
 
+@[simp] lemma fold_inf_univ [semilattice_inf α] [order_bot α] (a : α) :
+  finset.univ.fold (⊓) a (λ x, x) = ⊥ :=
+eq_bot_iff.2 $ ((finset.fold_op_rel_iff_and $ @_root_.le_inf_iff α _).1 le_rfl).2 ⊥ $
+  finset.mem_univ _
+
+@[simp] lemma fold_sup_univ [semilattice_sup α] [order_top α] (a : α) :
+  finset.univ.fold (⊔) a (λ x, x) = ⊤ :=
+@fold_inf_univ (order_dual α) ‹fintype α› _ _ _
+
 end finset
 
 open finset function

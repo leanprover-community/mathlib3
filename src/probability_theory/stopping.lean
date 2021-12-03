@@ -203,7 +203,7 @@ section preorder
 variables [preorder ι] {f : filtration ι m}
 
 /-- The associated σ-algebra with a stopping time. -/
-def measurable_space
+protected def measurable_space
   {τ : α → ι} (hτ : is_stopping_time f τ) : measurable_space α :=
 { measurable_set' := λ s, ∀ i : ι, measurable_set[f i] (s ∩ {x | τ x ≤ i}),
   measurable_set_empty :=
@@ -288,7 +288,7 @@ section linear_order
 
 variable [linear_order ι]
 
-lemma measurable [topological_space ι] [_root_.measurable_space ι]
+lemma measurable [topological_space ι] [measurable_space ι]
   [borel_space ι] [order_topology ι] [second_countable_topology ι]
   {f : filtration ι m} {τ : α → ι} (hτ : is_stopping_time f τ) :
   measurable[hτ.measurable_space] τ :=

@@ -127,18 +127,18 @@ begin
   intros i his g,
   refine eq_of_sub_eq_zero (linear_independent_iff'.1 (ih hs.1) s.attach (λ i, g • l i - l i) _
     ⟨i, his⟩ (mem_attach _ _) : _),
-  refine (@sum_attach _ _ s _ (λ i, (g • l i - l i) • (to_fun G F) i)).trans _, ext g', dsimp only,
+  refine (@sum_attach _ _ s _ (λ i, (g • l i - l i) • mul_action.to_fun G F i)).trans _,
+  ext g', dsimp only,
   conv_lhs { rw sum_apply, congr, skip, funext, rw [pi.smul_apply, sub_smul, smul_eq_mul] },
   rw [sum_sub_distrib, pi.zero_apply, sub_eq_zero],
   conv_lhs { congr, skip, funext,
     rw [to_fun_apply, ← mul_inv_cancel_left g g', mul_smul, ← smul_mul', ← to_fun_apply _ x] },
-  show ∑ x in s, g • (λ y, l y • to_fun G F y) x (g⁻¹ * g') =
-    ∑ x in s, (λ y, l y • to_fun G F y) x g',
+  show ∑ x in s, g • (λ y, l y • mul_action.to_fun G F y) x (g⁻¹ * g') =
+    ∑ x in s, (λ y, l y • mul_action.to_fun G F y) x g',
   rw [← smul_sum, ← sum_apply _ _ (λ y, l y • to_fun G F y),
       ← sum_apply _ _ (λ y, l y • to_fun G F y)], dsimp only,
   rw [hla, to_fun_apply, to_fun_apply, smul_smul, mul_inv_cancel_left]
 end
-
 
 variables [fintype G] (x : F)
 

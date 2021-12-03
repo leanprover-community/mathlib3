@@ -343,7 +343,7 @@ by { rw [sq, sq], exact nat_abs_lt_iff_mul_self_lt }
 lemma nat_abs_le_iff_sq_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a ^ 2 ≤ b ^ 2 :=
 by { rw [sq, sq], exact nat_abs_le_iff_mul_self_le }
 
-@[simp] lemma nat_abs_dvd_iff_dvd (a b : ℤ) : a.nat_abs ∣ b.nat_abs ↔ a ∣ b :=
+@[simp] lemma nat_abs_dvd_iff_dvd {a b : ℤ} : a.nat_abs ∣ b.nat_abs ↔ a ∣ b :=
 begin
   refine ⟨_, λ ⟨k, hk⟩, ⟨k.nat_abs, hk.symm ▸ nat_abs_mul a k⟩⟩,
   rintro ⟨k, hk⟩,

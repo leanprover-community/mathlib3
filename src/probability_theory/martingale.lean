@@ -32,7 +32,7 @@ variables [normed_group E] [normed_space ℝ E] [complete_space E] [borel_space 
 `μ[f j | ℱ.le i] =ᵐ[μ] f i`. -/
 def is_martingale (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
   [sigma_finite_filtration μ ℱ] : Prop :=
-(∀ i, integrable (f i) μ) ∧ (adapted ℱ f) ∧ ∀ i j, i ≤ j → μ[f j | ℱ.le i] =ᵐ[μ] f i
+(∀ i, integrable (f i) μ) ∧ (adapted ℱ f) ∧ ∀ i j, i ≤ j → μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i
 
 lemma is_martingale.integrable (hf : is_martingale f ℱ μ) : ∀ i, integrable (f i) μ := hf.1
 
@@ -83,7 +83,7 @@ variables {E}
 noncomputable def to_martingale (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
   [sigma_finite_filtration μ ℱ] :
   martingale E ℱ μ :=
-{ val := λ i, μ[f | ℱ.le i],
+{ val := λ i, μ[f | ℱ i, ℱ.le i],
   property := ⟨λ i, integrable_condexp, λ i, measurable_condexp,
     λ i j hij, condexp_condexp_of_le (ℱ.mono hij) _⟩, }
 

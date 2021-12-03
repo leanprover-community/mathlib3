@@ -1826,7 +1826,7 @@ end
 lemma condexp_condexp_of_le {m₁ m₂ m0 : measurable_space α} {μ : measure α}
   (hm₁₂ : m₁ ≤ m₂) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim (hm₁₂.trans hm₂))]
   [sigma_finite (μ.trim hm₂)] :
-  μ[ μ[f|hm₂] | hm₁₂.trans hm₂] =ᵐ[μ] μ[f | hm₁₂.trans hm₂] :=
+  μ[ μ[f|m₂, hm₂] | m₁, hm₁₂.trans hm₂] =ᵐ[μ] μ[f | m₁, hm₁₂.trans hm₂] :=
 begin
   refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' (hm₁₂.trans hm₂)
     (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, integrable_condexp.integrable_on)

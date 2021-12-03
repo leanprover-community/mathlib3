@@ -59,8 +59,9 @@ class PresheafedSpace.is_open_immersion {X Y : PresheafedSpace C} (f : X ⟶ Y) 
 A morphism of SheafedSpaces is an open immersion if it is an open immersion as a morphism
 of PresheafedSpaces
 -/
-abbreviation SheafedSpace.is_open_immersion [has_products C] {X Y : SheafedSpace C} (f : X ⟶ Y) :
-  Prop := PresheafedSpace.is_open_immersion f
+abbreviation SheafedSpace.is_open_immersion
+  [has_products C] {X Y : SheafedSpace C} (f : X ⟶ Y) : Prop :=
+PresheafedSpace.is_open_immersion f
 
 /--
 A morphism of LocallyRingedSpaces is an open immersion if it is an open immersion as a morphism
@@ -97,7 +98,7 @@ naturality can be applied.
 -/
 local attribute [-simp] eq_to_hom_map eq_to_iso_map
 
-/-- An open immersion `f : X ⟶ Y` induces an isomorphsm `X ≅ Y|_{f(X)}`. -/
+/-- An open immersion `f : X ⟶ Y` induces an isomorphism `X ≅ Y|_{f(X)}`. -/
 @[simps] noncomputable
 def iso_restrict : X ≅ Y.restrict H.base_open :=
 PresheafedSpace.iso_of_components (iso.refl _)

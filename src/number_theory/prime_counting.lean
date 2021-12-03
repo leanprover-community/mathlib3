@@ -39,47 +39,12 @@ def prime_counting (n : ℕ) : ℕ := ((range (n + 1)).filter (prime)).card
 localized "notation `π` := nat.prime_counting" in nat
 localized "notation `π'` := nat.prime_counting'" in nat
 
-lemma monotone_prime_counting : monotone prime_counting :=
-begin
-  intros a b a_le_b,
-  apply card_le_of_subset,
-  apply monotone_filter_left,
-  simp only [le_eq_subset, range_subset, add_le_add_iff_right],
-  exact a_le_b,
-end
 
 lemma monotone_prime_counting' : monotone prime_counting' :=
-begin
-  intros a b a_le_b,
-  unfold prime_counting',
-  apply card_le_of_subset,
-  apply monotone_filter_left,
-  simp only [le_eq_subset, range_subset],
-  exact a_le_b,
-end
+λ a b a_le_b, card_le_of_subset (monotone_filter_left prime (range_mono a_le_b))
 
-lemma range_union_Ico_eq_range {n k : ℕ} (k_le_n : k ≤ n) :
-   range k ∪ Ico k n = range n :=
-begin
-  rw [range_eq_Ico],
-  exact Ico_union_Ico_eq_Ico (zero_le k) k_le_n,
-end
-
--- lemma split_Ico_filter {S : Type} [linear_order S] [locally_finite_order S] {a b c : S}
---   (a_le_b : a ≤ b) (b_le_c : b ≤ c) (p : S → Prop) [decidable_pred p] :
---   (Ico a c).filter p = (Ico a b).filter p ∪ (Ico b c).filter p :=
--- begin
---   rw split_Ico a_le_b b_le_c,
---   exact filter_union p (Ico a b) (Ico b c),
--- end
-
--- lemma split_range_filter {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ → Prop) [decidable_pred p] :
---   (range n).filter p = (range k).filter p ∪ (Ico k n).filter p :=
--- begin
---   rw [range_eq_Ico],
---   exact split_Ico_filter (zero_le k) k_le_n p
--- end
-
+lemma monotone_prime_counting : monotone prime_counting :=
+λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
 
 -- TODO Generalize from ℕ
 -- Note that this does not hold for locally finitely ordered add monoids in general,
@@ -194,7 +159,7 @@ lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) :
   π' n ≤ π' k + 1 + nat.totient k * (n / k) :=
 calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
             begin
-              rw [prime_counting', ←range_union_Ico_eq_range (le_of_lt k_lt_n), filter_union],
+              rw [prime_counting', range_eq_Ico, ←Ico_union_Ico_eq_Ico (zero_le k) (le_of_lt k_lt_n), filter_union],
               apply card_union_le,
             end
      ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'

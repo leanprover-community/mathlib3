@@ -506,23 +506,10 @@ end
 lemma geom_sum_neg_iff [linear_ordered_ring α] (hn : 1 < n) :
   geom_sum x n < 0 ↔ even n ∧ x + 1 < 0 :=
 begin
-  have hpos : ¬0 < geom_sum x n ↔ ¬(odd n ∨ 0 < x + 1) := not_iff_not.mpr (geom_sum_pos_iff hn),
-  push_neg at hpos,
-  have hne : ¬geom_sum x n = 0 ↔ ¬(x = -1 ∧ even n) := not_iff_not.mpr
-                                                       (geom_sum_eq_zero_iff_neg_one hn),
-  rw ←nat.even_iff_not_odd at hpos,
-  rw [←ne.def, not_and'] at hne,
-  refine ⟨λ h, and.intro (hpos.mp h.le).1 _, λ h, _⟩,
-  { have := hne.mp h.ne (hpos.mp h.le).1,
-    rw eq_neg_iff_add_eq_zero at this,
-    exact lt_of_le_of_ne (hpos.mp h.le).2 this },
-  { apply lt_of_le_of_ne,
-    { rw hpos,
-      exact ⟨h.1, h.2.le⟩ },
-    rw hne,
-    rintro -,
-    have := h.2.ne,
-    rwa eq_neg_iff_add_eq_zero }
+  have := or_congr (geom_sum_pos_iff hn) (geom_sum_eq_zero_iff_neg_one hn),
+  rw [← not_iff_not, not_lt, le_iff_lt_or_eq, eq_comm, this, nat.odd_iff_not_even,
+    ← add_eq_zero_iff_eq_neg, not_and, not_lt, le_iff_lt_or_eq, eq_comm],
+  tauto
 end
 
 end order

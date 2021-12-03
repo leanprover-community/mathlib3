@@ -50,11 +50,10 @@ lemma monotone_prime_counting : monotone prime_counting :=
 -- Note that this does not hold for locally finitely ordered add_monoids in general,
 -- as we could have a (horizontally) periodic function on ℤ² which is different over different
 -- y-coordinates. It should hold over ℤ though.
--- TODO? Should this be tagged @[simp]?
--- TODO? Should the RHS use `range a`?
+@[simp]
 lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
  (pp : function.periodic p a) :
-  (filter p (Ico n (n+a))).card = (filter p (Ico 0 a)).card :=
+  (filter p (Ico n (n+a))).card = (filter p (range a)).card :=
 begin
   by_cases a = 0,
   { simp [h], },
@@ -88,17 +87,16 @@ end
 -- `coprime a (a + b * c)`.
 -- Also, make a corresponding lemma for is_coprime in ring_theory/coprime/basic.lean
 @[simp]
-lemma coprime_add_iff_coprime (a b : ℕ) : coprime a (a + b) ↔ coprime a b :=
+lemma coprime_add_left_iff_coprime (a b : ℕ) : coprime a (a + b) ↔ coprime a b :=
   by rw [coprime, coprime, gcd_rec, add_mod_left, ←gcd_rec]
+
+@[simp]
+lemma coprime_add_right_iff_coprime (a b : ℕ) : coprime a (b + a) ↔ coprime a b :=
+  by rw [add_comm, coprime_add_left_iff_coprime]
 
 
 lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
-  (filter (a.coprime) (Ico n (n+a))).card = totient a :=
-begin
-  rw [totient, filter_Ico_card_eq_of_periodic n a a.coprime, Ico_zero_eq_range],
-  intro x,
-  rw [add_comm, coprime_add_iff_coprime a x],
-end
+  (filter (a.coprime) (Ico n (n+a))).card = totient a := by simp [totient]
 
 lemma filter_coprime_bound (a n : ℕ) (a_pos : 0 < a) :
   (filter (a.coprime) (Ico a n)).card ≤ totient a * (n / a) :=

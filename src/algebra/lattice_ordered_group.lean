@@ -150,17 +150,11 @@ lemma pos_one : (1 : α)⁺ = 1 := sup_idem
 @[to_additive, simp]
 lemma neg_one : (1 : α)⁻ = 1 := by rw [m_neg_part_def, one_inv, sup_idem]
 
--- We use this in Bourbaki A.VI.12  Prop 9 a)
 -- a⁻ = -(a ⊓ 0)
 @[to_additive]
 lemma neg_eq_inv_inf_one [covariant_class α α (*) (≤)] (a : α) : a⁻ = (a ⊓ 1)⁻¹ :=
 by rw [m_neg_part_def, ← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv]
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
-`|a|`. Then,
-$$a ≤ |a|.$$
--/
 @[to_additive le_abs]
 lemma le_mabs (a : α) : a ≤ |a| := le_sup_left
 

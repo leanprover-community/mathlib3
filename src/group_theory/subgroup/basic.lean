@@ -2505,8 +2505,7 @@ variables [comm_group A]
 variables (H : subgroup A)
 variables {ι : Type*} (p : ι → H)
 
-@[to_additive]
-lemma coe_finset_prod {s : finset ι} : ↑(∏ i in s, p i) = ∏ i in s, (p i : A) :=
+@[to_additive] lemma subgroup.coe_finset_prod {s : finset ι} : ↑(∏ i in s, p i) = ∏ i in s, (p i : A) :=
  H.subtype.map_prod p s
 
 end big_operators

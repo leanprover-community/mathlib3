@@ -6,6 +6,7 @@ Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 import algebra.direct_sum.algebra
 import algebra.direct_sum.internal
 import algebra.direct_sum.ring
+import group_theory.subgroup.basic
 
 /-!
 # Internally-graded algebras

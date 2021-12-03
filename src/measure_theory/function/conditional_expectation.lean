@@ -1815,13 +1815,15 @@ begin
   { exact Union_spanning_sets (μ.trim (hm₁₂.trans hm₂)), },
 end
 
+include hm
 /-- Having this as an instance causes timeouts. -/
-def sigma_finite_of_trim [sigma_finite (μ.trim hm)] : sigma_finite μ :=
+def sigma_finite_of_trim : sigma_finite μ :=
 begin
   have h : sigma_finite (μ.trim le_rfl),
     from @measure_theory.sigma_finite_trim_of_le _ m0 μ m m0 hm le_rfl _,
   rwa trim_eq_self at h,
 end
+omit hm
 
 lemma condexp_condexp_of_le {m₁ m₂ m0 : measurable_space α} {μ : measure α}
   (hm₁₂ : m₁ ≤ m₂) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim (hm₁₂.trans hm₂))]

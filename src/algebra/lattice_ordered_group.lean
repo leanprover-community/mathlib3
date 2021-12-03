@@ -566,7 +566,7 @@ begin
     { rw div_mul_cancel', },
     { exact covariant_swap_mul_le_of_covariant_mul_le α, } },
   { rw [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_le_iff_le_mul, ← abs_eq_sup_inv (a / b),
-      abs_inv_invariant],
+      abs_inv_comm],
     convert  mabs_triangle (b/a) a,
     { rw div_mul_cancel', },
     {rw div_mul_cancel', } },

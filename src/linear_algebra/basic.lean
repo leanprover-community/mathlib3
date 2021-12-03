@@ -2624,8 +2624,8 @@ def general_linear_equiv : general_linear_group R M ≃* (M ≃ₗ[R] M) :=
   (general_linear_equiv R M f : M →ₗ[R] M) = f :=
 by {ext, refl}
 
-@[simp] lemma general_linear_equiv_to_fun (f : general_linear_group R M) :
-  ⇑(general_linear_equiv R M f) = ((f : M →ₗ[R] M) : M → M) :=
+@[simp] lemma coe_fn_general_linear_equiv (f : general_linear_group R M) :
+  ⇑(general_linear_equiv R M f) = (f : M → M) :=
 rfl
 
 end general_linear_group

@@ -8,7 +8,7 @@ import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
 import ring_theory.localization
-import ring_theory.subring
+import ring_theory.subring.basic
 
 /-!
 # The structure sheaf on `prime_spectrum R`.

@@ -51,7 +51,8 @@ namespace modular_group
 
 section upper_half_plane_action
 
-/-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
+/-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
+the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
 instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
 mul_action.comp_hom ℍ (map (algebra_map R ℝ))
 
@@ -75,19 +76,19 @@ end upper_half_plane_action
 section bottom_row
 
 /-- The two numbers `c`, `d` in the "bottom_row" of `g=[[*,*],[c,d]]` in `SL(2, ℤ)` are coprime. -/
-lemma bottom_row_coprime (g : SL(2, ℤ)) : is_coprime (↑ₘg 1 0) (↑ₘg 1 1) :=
+lemma bottom_row_coprime {R : Type*} [comm_ring R] (g : SL(2, R)) :
+  is_coprime ((↑g : matrix (fin 2) (fin 2) R) 1 0) ((↑g : matrix (fin 2) (fin 2) R) 1 1) :=
 begin
-  use [- g 0 1, g 0 0],
-  have := det_fin_two g,
-  have := g.det_coe,
-  simp only [coe_fn_eq_coe] at *,
-  linarith
+  use [- (↑g : matrix (fin 2) (fin 2) R) 0 1, (↑g : matrix (fin 2) (fin 2) R) 0 0],
+  rw [add_comm, ←neg_mul_eq_neg_mul, ←sub_eq_add_neg, ←det_fin_two],
+  exact g.det_coe,
 end
 
 /-- Every pair `![c, d]` of coprime integers is the "bottom_row" of some element `g=[[*,*],[c,d]]`
 of `SL(2,ℤ)`. -/
-lemma bottom_row_surj :
-  set.surj_on (λ g : SL(2, ℤ), ↑ₘg 1) set.univ {cd | is_coprime (cd 0) (cd 1)} :=
+lemma bottom_row_surj {R : Type*} [comm_ring R] :
+  set.surj_on (λ g : SL(2, R), @coe _ (matrix (fin 2) (fin 2) R) _ g 1) set.univ
+    {cd | is_coprime (cd 0) (cd 1)} :=
 begin
   rintros cd ⟨b₀, a, gcd_eqn⟩,
   let A := ![![a, -b₀], cd],
@@ -218,9 +219,10 @@ begin
   fin_cases j,
   { ext i,
     fin_cases i,
-    { simp [mB, f₁, vec_head, vec_tail] },
+    { simp [mB, f₁, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ] },
     { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-      simp [-special_linear_group.det_coe, ← hg, det_fin_two],
+      simp [f₁, ← hg, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ, matrix.det_fin_two,
+        -special_linear_group.det_coe],
       ring } },
   { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }
 end
@@ -355,14 +357,14 @@ begin
     rw abs_le,
     split,
     { contrapose! hg',
-      refine ⟨T * g, by simp [T, vec_head, vec_tail], _⟩,
+      refine ⟨T * g, by simp [T, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
       rw mul_action.mul_smul,
       have : |(g • z).re + 1| < |(g • z).re| :=
         by cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith,
       convert this,
       simp [T] },
     { contrapose! hg',
-      refine ⟨T' * g, by simp [T', vec_head, vec_tail], _⟩,
+      refine ⟨T' * g, by simp [T', matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
       rw mul_action.mul_smul,
       have : |(g • z).re - 1| < |(g • z).re| :=
         by cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith,

@@ -94,10 +94,16 @@ element of the endomorphism general linear group on `n → R`. -/
 def to_linear : general_linear_group n R ≃* linear_map.general_linear_group R (n → R) :=
 units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
 
--- TODO This simp-lemma should be stated for `n` rather than `fin m`, but for some reason it
--- doesn't trigger when stated in the larger generality.  Decidability issue apparently?
-@[simp] lemma coe_to_linear {m : ℕ} (M : general_linear_group (fin m) R) :
-  (to_linear M : (fin m → R) →ₗ[R] (fin m → R)) = matrix.mul_vec_lin M :=
+-- Note that without the `@` and `‹_›`, lean infers `λ a b, _inst_1 a b` instead of `_inst_1` as the
+-- decidability argument, which prevents `simp` from obtaining the instance by unification.
+-- These `λ a b, _inst a b` terms also appear in the type of `A`, but simp doesn't get confused by
+-- them so for now we do not care.
+@[simp] lemma coe_to_linear :
+  (@to_linear n ‹_› ‹_› _ _ A : (n → R) →ₗ[R] (n → R)) = matrix.mul_vec_lin A :=
+rfl
+
+@[simp] lemma to_linear_apply (v : n → R) :
+  (@to_linear n ‹_› ‹_› _ _ A) v = matrix.mul_vec_lin A v :=
 rfl
 
 end coe_lemmas
@@ -184,7 +190,7 @@ end special_linear_group
 section examples
 
 /-- The matrix [a, b; -b, a] (inspired by multiplication by a complex number); it is an element of
-`GL_2` if `a ^ 2 + b ^ 2` is nonzero. -/
+$GL_2(R)$ if `a ^ 2 + b ^ 2` is nonzero. -/
 @[simps coe {fully_applied := ff}]
 def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
   matrix.general_linear_group (fin 2) R :=

@@ -801,9 +801,9 @@ end decidable_eq
 open_locale pointwise
 variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α} {x y : β}
 
-/-- The set `(1 : finset α)` is defined as `{1}` in locale `pointwise`. -/
+/-- The finset `(1 : finset α)` is defined as `{1}` in locale `pointwise`. -/
 @[to_additive
-/-"The set `(0 : finset α)` is defined as `{0}` in locale `pointwise`. "-/]
+/-"The finset `(0 : finset α)` is defined as `{0}` in locale `pointwise`. "-/]
 protected def has_one [has_one α] : has_one (finset α) := ⟨{1}⟩
 
 localized "attribute [instance] finset.has_one finset.has_zero" in pointwise

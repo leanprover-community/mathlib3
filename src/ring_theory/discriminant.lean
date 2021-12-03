@@ -197,7 +197,7 @@ lemma trace_matrix_eq_embeddings_matrix_reindex_mul_trans
   (e : ι ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
 by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
-  mul_transpose_eq_minor_mul_minor_transpose, ← equiv.coe_refl, equiv.refl_symm]
+  ← mul_transpose_eq_minor_mul_minor_transpose, ← equiv.coe_refl, equiv.refl_symm]
 
 lemma discr_eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι]
   (e : ι ≃ (L →ₐ[K] E)) : algebra_map K E (discr K b) =

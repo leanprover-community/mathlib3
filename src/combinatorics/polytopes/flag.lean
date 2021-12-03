@@ -3,6 +3,7 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
+
 import tactic
 import order.lattice_intervals
 import order.zorn
@@ -13,11 +14,25 @@ import combinatorics.polytopes.graded
 /-!
 # Flags of polytopes
 
-In this file we define flags, which are maximal chains of a partial order. We prove that
-automorphisms of posets induces a group action on flags. We also prove that flags contain elements
-of each possible grade.
+In this file we define flags, maximal chains of a preorder. We prove that isomorphisms preserve
+flags, and as such, automorphisms of posets induce a group action on flags. We also define
+flag-adjacency and (strong) flag-connectedness.
 
-Todo(Vi): We have done so much since I wrote this three or so days ago! We need to update this.
+Flags turn out to be crucial in proving a critical theorem: every graded partial order has elements
+of each possible grade. As such, various important theorems that don't directly reference flags are
+also proven in this file.
+
+## Main definitions
+
+* `polytope.flag`: a flag of a graded preorder.
+* `graded.idx`: returns some element of a given grade.
+
+## Main results
+
+* `graded.ex_of_grade`: there's an element of any possible grade in a graded poset.
+* `graded.scon_iff_sfcon`: strong connectedness and strong flag-connectedness are equivalent.
+
+There's a few more of both I'm missing.
 -/
 
 open category_theory
@@ -125,6 +140,9 @@ namespace polytope.automorphism
 /-- The automorphism group of a poset. -/
 instance (α : Type u) [p : partial_order α] : group (automorphism α) :=
 @Aut.group (partial_order α) (Poset α) p
+
+instance (α : Type u) [p : partial_order α] : inhabited (automorphism α) :=
+⟨iso.refl _⟩
 
 variables {α : Type u} [partial_order α]
 
@@ -238,7 +256,7 @@ end
 theorem smul_is_max_chain (γ : automorphism α) (Φ : flag α) :
   @zorn.is_max_chain _ (<) (γ.smul_def Φ) :=
 begin
-  refine ⟨γ.smul_is_chain Φ, _⟩,
+  use γ.smul_is_chain Φ,
   rcases Φ with ⟨Φf, hΦ, hΦ'⟩,
   rintros ⟨w, hwl, hwr⟩,
   rcases set.exists_of_ssubset hwr with ⟨a, ha, hna⟩,
@@ -431,8 +449,8 @@ end partial_order
 
 section order_iso
 
-variables {α : Type u} [partial_order α] [order_top α] [graded α] {β : Type u} [partial_order β]
-[order_top β] [graded β]
+variables {α β : Type u} [partial_order α] [order_top α] [graded α] [partial_order β] [order_top β]
+[graded β]
 
 -- Todo(Vi): Generalize! This doesn't actually require `order_top`.
 private lemma grade_le_of_order_iso {oiso : α ≃o β} {n : ℕ} :
@@ -470,7 +488,7 @@ begin
 end
 
 /-- Order isomorphisms preserve grades. In other words, grade functions are unique when they
-    exist. -/
+exist. -/
 -- Todo(Vi): Generalize! This doesn't actually require `order_top`.
 theorem grade_eq_of_order_iso (oiso : α ≃o β) (x : α) : grade x = grade (oiso x) :=
 begin
@@ -510,7 +528,7 @@ private lemma scon_order_iso_of_scon (oiso : α ≃o β) :
 begin
   intros hb x y hxy,
   have hxy' := order_iso.monotone oiso hxy,
-  exact (@tcon_order_iso_iff_tcon _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) _ _
+  exact (@tcon_order_iso_iff_tcon _ _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) _
     (set.Icc.order_top hxy') (set.Icc.graded hxy') (oiso.Icc _ _)).mpr (hb hxy')
 end
 
@@ -522,14 +540,14 @@ theorem scon_order_iso_iff_scon (oiso : α ≃o β) :
 /-- Strong connectedness implies total connectedness. -/
 theorem tcon_of_scon (α : Type u) [partial_order α] [order_top α] [graded α] :
   strong_connected α → total_connected α :=
-λ h, (@tcon_order_iso_iff_tcon α _ _ _ (set.Icc ⊥ (⊤ : α)) _ (set.Icc.order_top bot_le)
+λ h, (@tcon_order_iso_iff_tcon α (set.Icc ⊥ (⊤ : α)) _ _ _ _ (set.Icc.order_top bot_le)
   (set.Icc.graded bot_le) (set.Icc.self_order_iso_bot_top α)).mpr (h bot_le)
 
 end order_iso
 
 section linear_order
 
-variables {α : Type u} [linear_order α] [graded α] [order_top α] (j : fin (graded.grade_top α + 1))
+variables {α : Type u} [linear_order α] [order_top α] [graded α] (j : fin (graded.grade_top α + 1))
 
 /-- `idx j` is the unique element of grade `j` in the linear order. -/
 theorem grade_eq_iff_idx (a : α) : grade a = j ↔ a = graded.idx j :=
@@ -547,6 +565,7 @@ end
 noncomputable def order_iso_fin : α ≃o fin (graded.grade_top α + 1) :=
 rel_iso.of_surjective graded.oem_fin $ λ x, ⟨graded.idx x, by simp [graded.oem_fin]⟩
 
+@[priority 900]
 noncomputable instance : fintype α :=
 fintype.of_bijective (order_iso_fin).inv_fun order_iso_fin.symm.bijective
 
@@ -570,13 +589,13 @@ section
 variable {α : Type u}
 
 /-- Two flags are adjacent when there's exactly one element in one but not in the other. This isn't
-    quite the usual definition, and we've made it more general than necessary for reasons of
-    convenience, but we prove it to be equivalent to the usual one in the case of graded posets
-    (see `adjacent_iff_ex_j_adjacent`). -/
-def adjacent [preorder α] (Φ Ψ : flag α) : Prop :=
+quite the usual definition, and we've made it more general than necessary for reasons of
+convenience, but we prove it to be equivalent to the usual one in the case of graded posets (see
+`adjacent_iff_ex_j_adjacent`). -/
+def adjacent [has_lt α] (Φ Ψ : flag α) : Prop :=
 ∃! a, a ∈ Φ.val \ Ψ.val
 
-instance [preorder α] : is_irrefl (flag α) adjacent :=
+instance [has_lt α] : is_irrefl (flag α) adjacent :=
 ⟨λ _ ⟨_, ⟨hl, hr⟩, _⟩, hr hl⟩
 
 variables [partial_order α] [order_top α] [graded α]
@@ -606,7 +625,7 @@ lemma eq_iff_eq_idx (Φ Ψ : flag α) : Φ = Ψ ↔ ∀ j, (graded.idx' Φ j).va
   (set.ext (λ _, ⟨eq_of_eq_idx h _, eq_of_eq_idx (λ j, (h j).symm) _⟩))⟩
 
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
-    adjacent to itself. -/
+adjacent to itself. -/
 def j_adjacent (j : fin (graded.grade_top α + 1)) (Φ Ψ : flag α) : Prop :=
 ∀ i, (graded.idx' Φ i).val = (graded.idx' Ψ i).val ↔ i ≠ j
 
@@ -662,9 +681,9 @@ section
 
 /-- A `graded` is totally flag-connected when any two flags are connected.
 
-    Here we deviate from standard nomenclature: mathematicians would just call this
-    flag-connectedness. However, by doing this, it makes it unambiguous when we're talking about two
-    flags being connected, and when we're talking about a polytope being totally flag-connected. -/
+Here we deviate from standard nomenclature: mathematicians would just call this flag-connectedness.
+However, by doing this, it makes it unambiguous when we're talking about two flags being connected,
+and when we're talking about a polytope being totally flag-connected. -/
 def total_flag_connected (α : Type u) [preorder α] : Prop :=
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
@@ -700,7 +719,7 @@ begin
 end
 
 /-- Two adjacent flags have a proper element in common, as long as their grade exceeds 2, and a few
-    other simple conditions hold. -/
+other simple conditions hold. -/
 private lemma proper_flag_intersect_of_grade {α : Type u} [partial_order α] [order_top α] [graded α]
 {Φ Ψ : flag α} (hg : 2 < grade_top α) {j : fin (grade_top α + 1)} (hΦΨ : flag.j_adjacent j Φ Ψ)
 (k ∈ set.Ioo 0 (grade_top α)) (hjk : j.val ≠ k) :
@@ -722,8 +741,8 @@ begin
   exact hjk (refl _),
 end
 
-/-- If two flags are connected, then any two elements in these flags are connected, as long as the
-    grade exceeds 2. -/
+/-- If two flags are flag-connected, then any two elements in these flags are connected, as long as the
+grade exceeds 2. -/
 lemma con_of_mem_fcon {α : Type u} [partial_order α] [order_top α] [graded α]
 {Φ Ψ : flag α} (hg : 2 < grade_top α) (h : flag_connected Φ Ψ) {a b : proper α} :
   a.val ∈ Φ → b.val ∈ Ψ → connected a b :=
@@ -747,8 +766,7 @@ begin
 end
 
 /-- Total flag-connectedness implies total connectedness. Note that the converse is false: a
-    counterexample is given by the hexagrammic antiprism (this proof hasn't been written down
-    yet). -/
+counterexample is given by the hexagrammic antiprism (this proof hasn't been written down yet). -/
 theorem tcon_of_tfcon (α : Type u) [partial_order α] [order_top α] [graded α] :
   total_flag_connected α → total_connected α :=
 begin
@@ -798,7 +816,8 @@ begin
   induction n with n hn, {
     intros hg _ x y hxy,
     apply flag_connected_of_grade_le_two,
-    have : @grade_top _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) = grade y - grade x := by refl,
+    have : @grade_top _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy) = grade y - grade x :=
+    by refl,
     rw this,
     have : grade y ≤ 2 := begin
       have := le_trans (grade_le_grade_top y) hg,
@@ -810,7 +829,7 @@ begin
   sorry
 end
 
-/-- Strong connectedness is equivalent to strong flag connectedness. -/
+/-- Strong connectedness is equivalent to strong flag-connectedness. -/
 theorem scon_iff_sfcon {α : Type u} [partial_order α] [order_top α] [graded α] :
   strong_flag_connected α ↔ strong_connected α :=
 begin

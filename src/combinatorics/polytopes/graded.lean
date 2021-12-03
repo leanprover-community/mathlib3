@@ -3,6 +3,7 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
+
 import tactic
 import order.lattice_intervals
 import order.zorn
@@ -10,13 +11,28 @@ import category_theory.conj
 import data.fin.basic
 
 /-!
-# Flags of polytopes
+# Graded preorders
 
-In this file we define flags, which are maximal chains of a partial order. We prove that
-automorphisms of posets induces a group action on flags. We also prove that flags contain elements
-of each possible grade.
+In this file, we define graded preorders, also known as ranked preorders. The standard approach,
+followed in e.g. ARP p.22, Stanley p. 99, Anderson p.14, is to define graded preorders as those
+where all flags (maximal chains) have the same finite length - this then allows one to construct a
+grade function. In practice, using grade functions directly is much easier. As such, we follow
+Engel's p.7 approach of having the grade function as an intrinsic property. We prove the
+correspondence between these definitions in [Todo(Vi): Actually prove this].
 
-Todo(Vi): We have done so much since I wrote this three or so days ago! We need to update this.
+We define as many of the prerequisites for polytopes as we can, except for those that involve the
+notion of flags. These are separated into `flag.lean`.
+
+## Main definitions
+
+* `polytope.graded`: graded preorders.
+* `polytope.path`: a path between two elements in a graph.
+* `polytope.total_connected`: connectedness of a bounded poset – see remark on nomenclature.
+* `polytope.strong_connected`: strong connectedness of a bounded poset.
+
+## Main results
+
+* `graded.ex_unique_of_grade`: graded linear orders have a unique element of each possible grade.
 -/
 
 open category_theory
@@ -84,22 +100,19 @@ abbreviation is_grade (α : Type u) [preorder α] [polytope.graded α] (n : ℕ)
 ∃ a : α, polytope.grade a = n
 
 /-- Grade is a relation homomorphism. -/
-def polytope.graded.rel_hom (α : Type u) [preorder α] [bg : polytope.graded α] :
-  @rel_hom α ℕ (<) (<) :=
-⟨_, bg.strict_mono⟩
+def polytope.graded.rel_hom (α : Type u) [preorder α] [polytope.graded α] : @rel_hom α ℕ (<) (<) :=
+⟨_, polytope.graded.strict_mono⟩
 
+/-- Natural numbers are graded. -/
 instance : polytope.graded ℕ :=
 ⟨id, rfl, strict_mono_id, λ _ _, nat.cover_iff_succ.mp⟩
 
+/-- Natural numbers smaller than `n + 1` are graded. -/
 instance (n : ℕ) : polytope.graded (fin (n + 1)) :=
 { grade := λ n, n,
   grade_bot := refl _,
   strict_mono := strict_mono_id,
-  hcovers := begin
-    intros x y,
-    rw fin.cover_iff_cover,
-    exact nat.cover_iff_succ.mp,
-  end }
+  hcovers := λ _ _ h, nat.cover_iff_succ.mp ((fin.cover_iff_cover _ _).mp h) }
 
 open polytope
 
@@ -170,9 +183,9 @@ def set.Icc.graded {α : Type u} [partial_order α] [graded α] {x y : α} (h : 
     rintros ⟨a, ha⟩ ⟨b, hb⟩ ⟨hab, hcov⟩,
     suffices this : ∀ z, z ∉ set.Ioo a b,
       { have : grade b = grade a + 1 := graded.hcovers ⟨hab, this⟩,
-      change grade b - grade x = grade a - grade x + 1,
-      rw [this, nat.sub_add_comm],
-      exact graded.strict_mono.monotone ha.left },
+        change grade b - grade x = grade a - grade x + 1,
+        rw [this, nat.sub_add_comm],
+        exact graded.strict_mono.monotone ha.left },
     rintros _ ⟨hl, hr⟩,
     simp at hcov, -- Todo(Vi): Remove this `simp`.
     exact hcov _ (ha.left.trans (le_of_lt hl)) ((le_of_lt hr).trans hb.right) hl hr,
@@ -180,14 +193,13 @@ def set.Icc.graded {α : Type u} [partial_order α] [graded α] {x y : α} (h : 
   ..set.Icc.order_bot h }
 
 /-- A preorder is isomorphic to the section from bottom to top. -/
-theorem set.Icc.self_order_iso_bot_top (α : Type u) [preorder α] [order_bot α] [order_top α] :
+def set.Icc.self_order_iso_bot_top (α : Type u) [preorder α] [order_bot α] [order_top α] :
   α ≃o set.Icc ⊥ (⊤ : α) :=
-begin
-  split,
-  swap,
-  exact ⟨(λ x, ⟨x, bot_le, le_top⟩), (λ x, x.val), (λ _, rfl), (λ _, subtype.eq rfl)⟩,
-  simp,
-end
+{ to_fun := λ x, ⟨x, bot_le, le_top⟩,
+  inv_fun := subtype.val,
+  left_inv := λ _, rfl,
+  right_inv := λ _, subtype.eq rfl,
+  map_rel_iff' := by simp }
 
 namespace graded
 
@@ -205,6 +217,12 @@ graded.strict_mono.monotone le_top
 lemma dual_cover_iff_cover {α : Type u} [preorder α] (a b : α) :
   a ⋖ b ↔ @polytope.covers (order_dual α) _ a b :=
 by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
+
+/-- A partial converse to `hcovers`. -/
+lemma covers_of_grade_succ_of_lt {α : Type u} [preorder α] [graded α] {x y : α} :
+  x < y → grade y = grade x + 1 → x ⋖ y :=
+λ hxy h, ⟨hxy, (λ z ⟨hzl, hzr⟩, (nat.cover_iff_succ.mpr h).right (grade z)
+  ⟨graded.strict_mono hzl, graded.strict_mono hzr⟩)⟩
 
 section partial_order
 
@@ -308,12 +326,7 @@ begin
   refine ⟨graded.hcovers, λ hba, _⟩,
   have := nat.lt_of_succ_le (le_of_eq hba.symm),
   rw graded.grade_lt_iff_lt at this,
-  refine ⟨this, λ z, _⟩,
-  rintros ⟨hzl, hzr⟩,
-  rw ←nat.cover_iff_succ at hba,
-  rw ←graded.grade_lt_iff_lt at hzl,
-  rw ←graded.grade_lt_iff_lt at hzr,
-  exact hba.right _ ⟨hzl, hzr⟩,
+  exact covers_of_grade_succ_of_lt this hba,
 end
 
 /-- Two elements in a linear order cover each other iff their grades do. -/
@@ -362,7 +375,7 @@ end
 
 /-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. This is generalized to a
     partial order in `ex_of_grade`. -/
-theorem ex_of_grade_lin [order_top α] (j : fin (graded.grade_top α + 1)) : is_grade α j :=
+lemma ex_of_grade_lin [order_top α] (j : fin (graded.grade_top α + 1)) : is_grade α j :=
 (nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, graded.grade_bot⟩ ⟨⊤, rfl⟩ _
   ⟨zero_le _, nat.le_of_lt_succ j.prop⟩
 
@@ -384,16 +397,16 @@ end graded
 namespace polytope
 
 /-- Proper elements are those that are maximal nor minimal. -/
-def is_proper {α : Type u} [preorder α] (b : α) : Prop :=
+def is_proper {α : Type u} [has_lt α] (b : α) : Prop :=
 ∃ a c, a < b ∧ b < c
 
 /-- The subtype of proper elements. -/
 @[reducible]
-def proper (α : Type u) [preorder α] : Type u :=
+def proper (α : Type u) [has_lt α] : Type u :=
 {a : α // is_proper a}
 
 /-- Proper elements are incident when they're comparable. -/
-abbreviation incident {α : Type u} [preorder α] (a b : proper α) : Prop :=
+abbreviation incident {α : Type u} [has_lt α] (a b : proper α) : Prop :=
 a.val ≠ b.val → a.val < b.val ∨ b.val < a.val
 
 end polytope
@@ -410,7 +423,7 @@ lemma bot_improper {α : Type u} [preorder α] [order_bot α] : ¬ is_proper (�
 lemma top_improper {α : Type u} [preorder α] [order_top α] : ¬ is_proper (⊤ : α) :=
 λ ⟨_, _, ⟨_, h⟩⟩, not_le_of_gt h le_top
 
-/-- The improper elements are exactly the bottom and top ones. -/
+/-- Elements other than the bottom and top ones are proper. -/
 theorem proper_of_ne_bot_top {α : Type u} [preorder α] [bounded_order α] (a : α) :
   polytope.is_proper a → a ≠ ⊥ ∧ a ≠ ⊤ :=
 begin
@@ -427,7 +440,7 @@ theorem proper_iff_ne_bot_top {α : Type u} [partial_order α] [bounded_order α
 ⟨proper_of_ne_bot_top a, λ ⟨hl, hr⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.mpr hl, lt_top_iff_ne_top.mpr hr⟩⟩
 
 /-- An element is proper iff it has a grade between the bottom and top element. -/
-lemma proper_iff_grade_iio {α : Type u} [partial_order α] [order_top α] [graded α] (a : α) :
+theorem proper_iff_grade_iio {α : Type u} [partial_order α] [order_top α] [graded α] (a : α) :
   is_proper a ↔ grade a ∈ set.Ioo 0 (grade_top α) :=
 begin
   rw proper_iff_ne_bot_top,
@@ -546,7 +559,7 @@ end
 end path
 
 /-- Proper elements are connected when they're related by a sequence of pairwise incident proper
-    elements. -/
+elements. -/
 abbreviation polytope.connected {α : Type u} [preorder α] (a b : polytope.proper α) : Prop :=
 path polytope.incident a b
 
@@ -555,20 +568,20 @@ open polytope
 namespace graded
 
 /-- A `graded` is totally connected' when any two proper elements are connected. Note that this
-    definition requires nothing more than a preorder. -/
+definition requires nothing more than a preorder. -/
 def total_connected' (α : Type u) [preorder α] : Prop :=
 ∀ a b : proper α, connected a b
 
 /-- A `graded` is totally connected when it's of grade 2, or any two proper elements are connected.
 
-    Here we deviate from standard nomenclature: mathematicians would just call this connectedness.
-    However, by doing this, it makes it unambiguous when we're talking about two elements being
-    connected, and when we're talking about a polytope being totally connected. -/
+Here we deviate from standard nomenclature: mathematicians would just call this connectedness.
+However, by doing this, it makes it unambiguous when we're talking about two elements being
+connected, and when we're talking about a polytope being totally connected. -/
 def total_connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
 grade_top α = 2 ∨ total_connected' α
 
 /-- Order isomorphisms preserve proper elements. -/
-lemma proper_order_iso_of_proper {α : Type u} [partial_order α] [order_top α] [graded α]
+private lemma proper_order_iso_of_proper {α : Type u} [partial_order α] [order_top α] [graded α]
 {β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x : proper α) :
   is_proper (oiso x) :=
 begin
@@ -587,11 +600,68 @@ begin
   rwa oiso.injective h at this,
 end
 
+/-- Order isomorphisms preserve proper elements. -/
+theorem proper_order_iso_iff_proper {α : Type u} [partial_order α] [order_top α] [graded α]
+{β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x : α) :
+  is_proper x ↔ is_proper (oiso x) :=
+begin
+  split, {
+    exact λ hx, proper_order_iso_of_proper oiso ⟨x, hx⟩,
+  },
+  intro hx,
+  have := proper_order_iso_of_proper oiso.symm ⟨oiso x, hx⟩,
+  simp at this,
+  exact this,
+end
+
 end graded
 
 namespace order_iso
 
 variables {α : Type u} [partial_order α] {β : Type u} [partial_order β] (oiso : α ≃o β)
+
+/-- Order isomorphisms preserve covering. -/
+private lemma cover' (x y : α) : x ⋖ y → oiso x ⋖ oiso y :=
+begin
+  intro hxy,
+  use oiso.strict_mono hxy.left,
+  intros z hz,
+  have : oiso.symm z ∈ set.Ioo x y := begin
+    split, {
+      have := oiso.symm.strict_mono hz.left,
+      simp at this,
+      exact this,
+    },
+    have := oiso.symm.strict_mono hz.right,
+    simp at this,
+    exact this,
+  end,
+  exact hxy.right _ this
+end
+
+/-- Order isomorphisms preserve covering. -/
+theorem cover (x y : α) : x ⋖ y ↔ oiso x ⋖ oiso y :=
+begin
+  use cover' oiso x y,
+  have := cover' oiso.symm (oiso x) (oiso y),
+  simp at this,
+  exact this,
+end
+
+/-- An isomorphism between posets, one of which is graded, is enough to give a grade function for
+the other. -/
+def graded [order_bot α] [graded β] : graded α :=
+{ grade := λ a, @grade β _ _ (oiso a),
+  grade_bot := begin
+    rw oiso.map_bot,
+    exact graded.grade_bot,
+  end,
+  strict_mono := λ _ _ hab, graded.strict_mono (oiso.strict_mono hab),
+  hcovers := begin
+    intros x y hxy,
+    apply graded.hcovers,
+    rwa ←oiso.cover x y,
+  end }
 
 /-- An isomorphism between graded posets extends to an isomorphism between sections. -/
 def Icc (x y : α) : set.Icc x y ≃o set.Icc (oiso x) (oiso y) :=
@@ -618,11 +688,11 @@ def Icc (x y : α) : set.Icc x y ≃o set.Icc (oiso x) (oiso y) :=
   right_inv := λ _, subtype.eq (by simp),
   map_rel_iff' := by simp }
 
-variables [order_top α] [graded α] [order_top β] [graded β]
+variables [order_top α] [polytope.graded α] [order_top β] [polytope.graded β]
 
 /-- The map from proper elements to proper elements given by an order isomorphism. -/
-private def proper_aux : proper α → proper β :=
-λ x, ⟨oiso x, graded.proper_order_iso_of_proper oiso x⟩
+private abbreviation proper_aux : proper α → proper β :=
+λ x, ⟨oiso x, (graded.proper_order_iso_iff_proper oiso x).mp x.prop⟩
 
 /-- An isomorphism between graded posets extends to an isomorphism between proper elements. -/
 def proper : proper α ≃o proper β :=

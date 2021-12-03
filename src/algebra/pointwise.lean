@@ -5,6 +5,7 @@ Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.big_operators.basic
 import algebra.smul_with_zero
+import data.finset.preimage
 import data.set.finite
 import group_theory.group_action.group
 import group_theory.submonoid.basic
@@ -738,6 +739,8 @@ end
 
 namespace finset
 
+section decidable_eq
+
 variables {α : Type*} [decidable_eq α] {s t : finset α}
 
 /-- The pointwise product of two finite sets `s` and `t`:
@@ -789,9 +792,164 @@ lemma mul_singleton_zero [mul_zero_class α] (s : finset α) :
   s * {0} ⊆ {0} :=
 by simp [subset_iff, mem_mul]
 
-lemma singleton_zero_mul [mul_zero_class α] (s : finset α):
+lemma singleton_zero_mul [mul_zero_class α] (s : finset α) :
   {(0 : α)} * s ⊆ {0} :=
 by simp [subset_iff, mem_mul]
+
+end decidable_eq
+
+open_locale pointwise
+variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α} {x y : β}
+
+/-- The set `(1 : finset α)` is defined as `{1}` in locale `pointwise`. -/
+@[to_additive
+/-"The set `(0 : finset α)` is defined as `{0}` in locale `pointwise`. "-/]
+protected def has_one [has_one α] : has_one (finset α) := ⟨{1}⟩
+
+localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
+
+@[to_additive]
+lemma singleton_one [has_one α] : ({1} : finset α) = 1 := rfl
+
+@[simp, to_additive]
+lemma mem_one [has_one α] : a ∈ (1 : finset α) ↔ a = 1 :=
+by simp [has_one.one]
+
+@[to_additive]
+lemma one_mem_one [has_one α] : (1 : α) ∈ (1 : finset α) := by simp [has_one.one]
+
+@[simp, to_additive]
+theorem one_subset [has_one α] : 1 ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
+
+@[to_additive]
+theorem one_nonempty [has_one α] : (1 : finset α).nonempty := ⟨1, one_mem_one⟩
+
+@[simp, to_additive]
+theorem image_one [decidable_eq β] [has_one α] {f : α → β} : image f 1 = {f 1} :=
+image_singleton f 1
+
+@[to_additive add_image_prod]
+lemma image_mul_prod [decidable_eq α] [has_mul α] :
+  image (λ x : α × α, x.fst * x.snd) (s.product t) = s * t := rfl
+
+@[simp, to_additive]
+lemma image_mul_left [decidable_eq α] [group α] :
+  image (λ b, a * b) t = preimage t (λ b, a⁻¹ * b) (assume x hx y hy, (mul_right_inj a⁻¹).mp) :=
+begin
+  have := @set.image_mul_left _ (t : set α) a _,
+  rw ← finset.coe_preimage _ (assume x hx y hy, (mul_right_inj a⁻¹).mp) at this,
+  exact_mod_cast this,
+end
+
+@[simp, to_additive]
+lemma image_mul_right [decidable_eq α] [group α] :
+  image (λ a, a * b) t = preimage t (λ a, a * b⁻¹) (assume x hx y hy, (mul_left_inj b⁻¹).mp) :=
+begin
+  have := @set.image_mul_right _ (t : set α) b _,
+  rw ← finset.coe_preimage at this,
+  swap,
+  intros x hx y hy,
+  simp,
+  exact_mod_cast this,
+end
+
+@[to_additive]
+lemma image_mul_left' [decidable_eq α] [group α] :
+  image (λ b, a⁻¹ * b) t = preimage t (λ b, a * b) (assume x hx y hy, (mul_right_inj a).mp) :=
+by simp
+
+@[to_additive]
+lemma image_mul_right' [decidable_eq α] [group α] :
+  image (λ a, a * b⁻¹) t = preimage t (λ a, a * b) (assume x hx y hy, (mul_left_inj b).mp) :=
+by simp
+
+@[simp, to_additive]
+lemma preimage_mul_left_singleton [group α] :
+  preimage {b} ((*) a) (assume x hx y hy, (mul_right_inj a).mp) = {a⁻¹ * b} :=
+by { classical, rw [← image_mul_left', image_singleton] }
+
+@[simp, to_additive]
+lemma preimage_mul_right_singleton [group α] :
+  preimage {b} (* a) (assume x hx y hy, (mul_left_inj a).mp) = {b * a⁻¹} :=
+by { classical, rw [← image_mul_right', image_singleton] }
+
+@[simp, to_additive]
+lemma preimage_mul_left_one [group α] :
+  preimage 1 (λ b, a * b) (assume x hx y hy, (mul_right_inj a).mp) = {a⁻¹} :=
+by {classical, rw [← image_mul_left', image_one, mul_one] }
+
+@[simp, to_additive]
+lemma preimage_mul_right_one [group α] :
+  preimage 1 (λ a, a * b) (assume x hx y hy, (mul_left_inj b).mp) = {b⁻¹} :=
+by {classical, rw [← image_mul_right', image_one, one_mul] }
+
+@[to_additive]
+lemma preimage_mul_left_one' [group α] :
+  preimage 1 (λ b, a⁻¹ * b) (assume x hx y hy, (mul_right_inj _).mp) = {a} := by simp
+
+@[to_additive]
+lemma preimage_mul_right_one' [group α] :
+  preimage 1 (λ a, a * b⁻¹) (assume x hx y hy, (mul_left_inj _).mp) = {b} := by simp
+
+@[simp, to_additive]
+lemma mul_singleton [decidable_eq α] [has_mul α] : s * {b} = image (λ a, a * b) s :=
+begin
+  have := @set.mul_singleton _ (s : set α) b _,
+  norm_cast at this,
+  rw (by simp : ({b} : set α) = ↑({b} : finset α)) at this,
+  exact_mod_cast this,
+end
+
+@[simp, to_additive]
+lemma singleton_mul [decidable_eq α] [has_mul α] : {a} * t = image (λ b, a * b) t :=
+begin
+  have := @set.singleton_mul _ (t : set α) a _,
+  norm_cast at this,
+  rw (by simp : ({a} : set α) = ↑({a} : finset α)) at this,
+  exact_mod_cast this,
+end
+
+@[simp, to_additive]
+lemma singleton_mul_singleton [decidable_eq α] [has_mul α] : ({a} : finset α) * {b} = {a * b} :=
+begin
+  have := @set.singleton_mul_singleton _ a b _,
+  rw (by simp : ({a} : set α) = ↑({a} : finset α)) at this,
+  rw (by simp : ({b} : set α) = ↑({b} : finset α)) at this,
+  exact_mod_cast this,
+end
+
+@[to_additive]
+protected lemma mul_comm [decidable_eq α] [comm_semigroup α] : s * t = t * s :=
+by exact_mod_cast @set.mul_comm _ (s : set α) t _
+
+/-- `finset α` is a `mul_one_class` under pointwise operations if `α` is. -/
+@[to_additive /-"`finset α` is an `add_zero_class` under pointwise operations if `α` is."-/]
+protected def mul_one_class [decidable_eq α] [mul_one_class α] : mul_one_class (finset α) :=
+{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
+  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
+  ..finset.has_one, ..finset.has_mul }
+
+/-- `finset α` is a `semigroup` under pointwise operations if `α` is. -/
+@[to_additive /-"`finset α` is an `add_semigroup` under pointwise operations if `α` is. "-/]
+protected def semigroup [decidable_eq α] [semigroup α] : semigroup (finset α) :=
+{ mul_assoc := λ a b c,
+    by exact_mod_cast (set.semigroup.mul_assoc : ∀ (a b c : set α), a * b * c = a * (b * c)) a b c,
+  ..finset.has_mul }
+
+/-- `finset α` is a `monoid` under pointwise operations if `α` is. -/
+@[to_additive /-"`finset α` is an `add_monoid` under pointwise operations if `α` is. "-/]
+protected def monoid [decidable_eq α] [monoid α] : monoid (finset α) :=
+{ ..finset.semigroup,
+  ..finset.mul_one_class }
+
+/-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
+@[to_additive /-"`finset α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
+protected def comm_monoid [decidable_eq α] [comm_monoid α] : comm_monoid (finset α) :=
+{ mul_comm := λ _ _, finset.mul_comm, ..finset.monoid }
+
+localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
+  finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid"
+  in pointwise
 
 open_locale classical
 

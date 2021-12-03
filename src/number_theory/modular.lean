@@ -32,8 +32,8 @@ Another feature is that we delay until the very end the consideration of special
 `T=[[1,1],[0,1]]` (see `modular_group.T`) and `S=[[0,-1],[1,0]]` (see `modular_group.S`), by
 instead using abstract theory on the properness of certain maps (phrased in terms of the filters
 `filter.cocompact`, `filter.cofinite`, etc) to deduce existence theorems, first to prove the
-existence of `g` maximizing `(g•z).im` (see `modular_group.exists_g_with_max_im`), and then among
-those, to minimize `|(g•z).re|` (see `modular_group.exists_g_with_given_cd_and_min_re`).
+existence of `g` maximizing `(g•z).im` (see `modular_group.exists_max_im`), and then among
+those, to minimize `|(g•z).re|` (see `modular_group.exists_row_one_eq_and_min_re`).
 -/
 
 open complex matrix matrix.special_linear_group upper_half_plane
@@ -272,7 +272,7 @@ section fundamental_domain
 local attribute [simp] coe_smul re_smul
 
 /-- For `z : ℍ`, there is a `g : SL(2,ℤ)` maximizing `(g•z).im` -/
-lemma exists_g_with_max_im (z : ℍ) :
+lemma exists_max_im (z : ℍ) :
   ∃ g : SL(2, ℤ), ∀ g' : SL(2, ℤ), (g' • z).im ≤ (g • z).im :=
 begin
   classical,
@@ -291,7 +291,7 @@ end
 
 /-- Given `z : ℍ` and a bottom row `(c,d)`, among the `g : SL(2,ℤ)` with this bottom row, minimize
   `|(g•z).re|`.  -/
-lemma exists_g_with_given_cd_and_min_re (z:ℍ) {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
+lemma exists_row_one_eq_and_min_re (z:ℍ) {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
   ∃ g : SL(2,ℤ), ↑ₘg 1 = cd ∧ (∀ g' : SL(2,ℤ), ↑ₘg 1 = ↑ₘg' 1 →
   |(g • z).re| ≤ |(g' • z).re|) :=
 begin
@@ -321,7 +321,7 @@ def fundamental_domain : set ℍ :=
 localized "notation `𝒟` := fundamental_domain" in modular
 
 /-- If `|z|<1`, then applying `S` strictly decreases `im` -/
-lemma im_lt_im_S {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
+lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
 begin
   have : z.im < z.im / norm_sq (z:ℂ),
   { have imz : 0 < z.im := im_pos z,
@@ -336,9 +336,9 @@ end
 lemma exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
 begin
   -- obtain a g₀ which maximizes im (g • z),
-  obtain ⟨g₀, hg₀⟩ := exists_g_with_max_im z,
+  obtain ⟨g₀, hg₀⟩ := exists_max_im z,
   -- then among those, minimize re
-  obtain ⟨g, hg, hg'⟩ := exists_g_with_given_cd_and_min_re z (bottom_row_coprime g₀),
+  obtain ⟨g, hg, hg'⟩ := exists_row_one_eq_and_min_re z (bottom_row_coprime g₀),
   refine ⟨g, _⟩,
   -- `g` has same max im property as `g₀`
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
@@ -350,7 +350,7 @@ begin
     contrapose! hg₀',
     refine ⟨S * g, _⟩,
     rw mul_action.mul_smul,
-    exact im_lt_im_S hg₀' },
+    exact im_lt_im_S_smul hg₀' },
   { show |(g • z).re| ≤ 1 / 2, -- if not, then either `T` or `T'` decrease |Re|.
     rw abs_le,
     split,

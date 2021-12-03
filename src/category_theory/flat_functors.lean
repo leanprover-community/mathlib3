@@ -83,6 +83,7 @@ end structured_arrow_cone
 
 section representably_flat
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+variables {E : Type u₃} [category.{v₃} E]
 
 /--
 A functor `F : C ⥤ D` is representably-flat functor if the comma category `(X/F)`
@@ -92,6 +93,74 @@ class representably_flat (F : C ⥤ D) : Prop :=
 (cofiltered : ∀ (X : D), is_cofiltered (structured_arrow X F))
 
 attribute [instance] representably_flat.cofiltered
+
+local attribute [instance] is_cofiltered.nonempty
+
+instance representably_flat.id : representably_flat (𝟭 C) :=
+begin
+  constructor,
+  intro X,
+  haveI : nonempty (structured_arrow X (𝟭 C)) := ⟨structured_arrow.mk (𝟙 _)⟩,
+  suffices : is_cofiltered_or_empty (structured_arrow X (𝟭 C)),
+  { resetI, constructor },
+  constructor,
+  { intros Y Z,
+    use structured_arrow.mk (𝟙 _),
+    use structured_arrow.hom_mk Y.hom (by erw [functor.id_map, category.id_comp]),
+    use structured_arrow.hom_mk Z.hom (by erw [functor.id_map, category.id_comp]) },
+  { intros Y Z f g,
+    use structured_arrow.mk (𝟙 _),
+    use structured_arrow.hom_mk Y.hom (by erw [functor.id_map, category.id_comp]),
+    ext,
+    transitivity Z.hom; simp }
+end
+
+instance representably_flat.comp (F : C ⥤ D) (G : D ⥤ E)
+  [representably_flat F] [representably_flat G] : representably_flat (F ⋙ G) :=
+begin
+  constructor,
+  intro X,
+  haveI : nonempty (structured_arrow X (F ⋙ G)),
+  { have f₁ : structured_arrow X G := nonempty.some infer_instance,
+    have f₂ : structured_arrow f₁.right F := nonempty.some infer_instance,
+    exact ⟨structured_arrow.mk (f₁.hom ≫ G.map f₂.hom)⟩ },
+  suffices : is_cofiltered_or_empty (structured_arrow X (F ⋙ G)),
+  { resetI, constructor },
+  constructor,
+  { intros Y Z,
+    let W := @is_cofiltered.min (structured_arrow X G) _ _
+      (structured_arrow.mk Y.hom) (structured_arrow.mk Z.hom),
+    let Y' : W ⟶ _ := is_cofiltered.min_to_left _ _,
+    let Z' : W ⟶ _ := is_cofiltered.min_to_right _ _,
+
+    let W' := @is_cofiltered.min (structured_arrow W.right F) _ _
+      (structured_arrow.mk Y'.right) (structured_arrow.mk Z'.right),
+    let Y'' : W' ⟶ _ := is_cofiltered.min_to_left _ _,
+    let Z'' : W' ⟶ _ := is_cofiltered.min_to_right _ _,
+
+    use structured_arrow.mk (W.hom ≫ G.map W'.hom),
+    use structured_arrow.hom_mk Y''.right (by simp [← G.map_comp]),
+    use structured_arrow.hom_mk Z''.right (by simp [← G.map_comp]) },
+  { intros Y Z f g,
+    let W := @is_cofiltered.eq (structured_arrow X G) _ _
+        (structured_arrow.mk Y.hom) (structured_arrow.mk Z.hom)
+        (structured_arrow.hom_mk (F.map f.right) (structured_arrow.w f))
+        (structured_arrow.hom_mk (F.map g.right) (structured_arrow.w g)),
+    let h : W ⟶ _ := is_cofiltered.eq_hom _ _,
+    let h_cond : h ≫ _ = h ≫ _ := is_cofiltered.eq_condition _ _,
+
+    let W' := @is_cofiltered.eq (structured_arrow W.right F) _ _
+        (structured_arrow.mk h.right) (structured_arrow.mk (h.right ≫ F.map f.right))
+        (structured_arrow.hom_mk f.right rfl)
+        (structured_arrow.hom_mk g.right (congr_arg comma_morphism.right h_cond).symm),
+    let h' : W' ⟶ _ := is_cofiltered.eq_hom _ _,
+    let h'_cond : h' ≫ _ = h' ≫ _ := is_cofiltered.eq_condition _ _,
+
+    use structured_arrow.mk (W.hom ≫ G.map W'.hom),
+    use structured_arrow.hom_mk h'.right (by simp [← G.map_comp]),
+    ext,
+    exact (congr_arg comma_morphism.right h'_cond : _) }
+end
 
 end representably_flat
 

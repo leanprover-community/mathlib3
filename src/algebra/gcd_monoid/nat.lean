@@ -21,7 +21,7 @@ instance : is_idempotent ℕ gcd_monoid.gcd := ⟨nat.gcd_self⟩
 namespace finset
 
 theorem coprime_of_div_gcd (s : finset ℕ) {x : ℕ} (hx : x ∈ s) (hnz : x ≠ 0) :
-  s.gcd (/ s.gcd id) = 1 :=
+  s.gcd (/ (s.gcd id)) = 1 :=
 begin
   rw nat.eq_one_iff_not_exists_prime_dvd,
   intros p hp hdvd,

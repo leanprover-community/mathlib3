@@ -1010,6 +1010,21 @@ lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_to
 lemma max_bot_left [order_bot α] (a : α) : max (⊥ : α) a = a := max_eq_right bot_le
 lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
 
+-- `simp` can prove these, so they shouldn't be simp-lemmas.
+lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := min_eq_left bot_le
+lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := min_eq_right bot_le
+lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := max_eq_left le_top
+lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := max_eq_right le_top
+
+@[simp] lemma min_eq_bot [order_bot α] {a b : α} : min a b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
+by { symmetry, cases le_total a b; simpa [*, min_eq_left, min_eq_right] using eq_bot_mono h }
+
+@[simp] lemma max_eq_top [order_top α] {a b : α} : max a b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+@min_eq_bot (order_dual α) _ _ a b
+
+@[simp] lemma max_eq_bot [order_bot α] {a b : α} : max a b = ⊥ ↔ a = ⊥ ∧ b = ⊥ := sup_eq_bot_iff
+@[simp] lemma min_eq_top [order_top α] {a b : α} : min a b = ⊤ ↔ a = ⊤ ∧ b = ⊤ := inf_eq_top_iff
+
 end linear_order
 
 section distrib_lattice_bot

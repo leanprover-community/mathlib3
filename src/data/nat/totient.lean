@@ -261,7 +261,25 @@ begin
   push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
 end
 
+lemma totient_prime_pow' {p : ℕ} (hp : p.prime) {n : ℕ} (hn : 0 < n) :
+  φ (p ^ n) = p ^ (n - 1) * (p - 1) :=
+begin
+  have hp_pos : 0 < p := prime.pos hp,
+  have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr (prime.pos hp).ne',
+  have h1 := totient_Euler_product_formula (p^n),
+  rw prime_pow_prime_divisor hn hp at h1,
+  simp only [finset.prod_singleton, nat.cast_pow] at h1,
+  field_simp only [mul_right_comm, one_mul, mul_eq_mul_right_iff] at h1,
+  norm_cast at h1,
+  apply eq_of_mul_eq_mul_right hp_pos,
+  rw [h1, mul_right_comm],
+  have := pow_sub_mul_pow p hn,
+  rw pow_one at this,
+  rw this,
+end
 
-
+lemma totient_prime_pow_succ' {p : ℕ} (hp : p.prime) (n : ℕ) :
+  φ (p ^ (n + 1)) = p ^ n * (p - 1) :=
+by simp [totient_prime_pow' hp (succ_pos n)]
 
 end nat

@@ -1095,6 +1095,15 @@ lemma aeval_eq_zero [algebra R S₂] (f : σ → S₂) (φ : mv_polynomial σ R)
   aeval f φ = 0 :=
 eval₂_hom_eq_zero _ _ _ h
 
+lemma aeval_sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
+  aeval f (∑ i in s, φ i) = ∑ i in s, aeval f (φ i) :=
+(mv_polynomial.aeval f).map_sum _ _
+
+@[to_additive]
+lemma aeval_prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
+  aeval f (∏ i in s, φ i) = ∏ i in s, aeval f (φ i) :=
+(mv_polynomial.aeval f).map_prod _ _
+
 end aeval
 
 section aeval_tower

@@ -473,7 +473,7 @@ finset.sup_le $ assume n hn,
     { exact le_max_of_le_right (finset.le_sup this) }
   end
 
-lemma total_degree_add_of_total_degree_lt_left {p q : mv_polynomial σ R}
+lemma total_degree_add_eq_left_of_total_degree_lt {p q : mv_polynomial σ R}
   (h : q.total_degree < p.total_degree) : (p + q).total_degree = p.total_degree :=
 begin
   classical,
@@ -496,9 +496,9 @@ begin
   exact finset.le_sup hbb,
 end
 
-lemma total_degree_add_of_total_degree_lt_right {p q : mv_polynomial σ R}
+lemma total_degree_add_eq_right_of_total_degree_lt {p q : mv_polynomial σ R}
   (h : q.total_degree < p.total_degree) : (q + p).total_degree = p.total_degree :=
-by rw [add_comm, total_degree_add_of_total_degree_lt_left h]
+by rw [add_comm, total_degree_add_eq_left_of_total_degree_lt h]
 
 lemma total_degree_mul (a b : mv_polynomial σ R) :
   (a * b).total_degree ≤ a.total_degree + b.total_degree :=

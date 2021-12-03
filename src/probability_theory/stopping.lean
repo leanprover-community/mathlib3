@@ -306,23 +306,4 @@ end linear_order
 
 end is_stopping_time
 
-section linear_order
-
-variables [linear_order ι]
-
-/-- Given a map `u : ι → α → E`, its stopped process with respect to the stopping
-time `τ` is the map `(i, x) ↦ u (min i (τ x)) x`.
-
-Intuitively, the stopped process stop evolving once the stopping time has occured. -/
-def stopped_process (f : filtration ι m) (u : ι → α → β) (τ : α → ι) : ι → α → β :=
-λ i x, u (linear_order.min i (τ x)) x
-
-def stopped_value (f : filtration ι m) (u : ι → α → β) (τ : α → ι) : α → β :=
-λ x, u (τ x) x
-
--- TODO: add lemmas once we have the definition of cadlag
--- stopped value is measurable
-
-end linear_order
-
 end measure_theory

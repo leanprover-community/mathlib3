@@ -584,7 +584,7 @@ instance [preorder α] : is_irrefl (flag α) adjacent :=
 
 variables [partial_order α] [order_top α] [graded α]
 
-/-- If the grades of two flags are equal, all elements of one are in the other. -/
+/-- If the indices of two flags are equal, all elements of one are in the other. -/
 private lemma eq_of_eq_idx {Φ Ψ : flag α} :
   (∀ j, (graded.idx' Φ j).val = (graded.idx' Ψ j).val) → ∀ a, a ∈ Φ → a ∈ Ψ :=
 begin
@@ -605,13 +605,8 @@ end
 
 /-- Two flags are equal iff their elements of all grades are equal. -/
 lemma eq_iff_eq_idx (Φ Ψ : flag α) : Φ = Ψ ↔ ∀ j, (graded.idx' Φ j).val = (graded.idx' Ψ j).val :=
-begin
-  refine ⟨λ h _, _, λ h, subtype.ext_val (set.ext (λ a, ⟨_, _⟩))⟩,
-  rw h,
-  apply eq_of_eq_idx h,
-  apply eq_of_eq_idx,
-  exact λ j, (h j).symm,
-end
+⟨λ h _, (by rw h), λ h, subtype.ext_val
+  (set.ext (λ _, ⟨eq_of_eq_idx h _, eq_of_eq_idx (λ j, (h j).symm) _⟩))⟩
 
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
     adjacent to itself. -/

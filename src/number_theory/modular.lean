@@ -323,7 +323,7 @@ def fundamental_domain : set ℍ :=
 localized "notation `𝒟` := fundamental_domain" in modular
 
 /-- If `|z|<1`, then applying `S` strictly decreases `im` -/
-lemma im_lt_im_S {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
+lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
 begin
   have : z.im < z.im / norm_sq (z:ℂ),
   { have imz : 0 < z.im := im_pos z,

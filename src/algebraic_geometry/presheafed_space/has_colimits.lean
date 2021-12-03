@@ -294,11 +294,11 @@ instance forget_preserves_colimits : preserves_colimits (PresheafedSpace.forget 
 
 /--
 Given a diagram of `PresheafedSpace C`s, its colimit is computed by pushing the sheaves onto
-the colimit of the underlying spaces, and taking pointwise limit.
-This is the pointwise diagram for an open set `U` of the colimit of the underlying spaces.
+the colimit of the underlying spaces, and taking componentwise limit.
+This is the componentwise diagram for an open set `U` of the colimit of the underlying spaces.
 -/
 @[simps]
-def pointwise_diagram (F : J ⥤ PresheafedSpace C)
+def componentwise_diagram (F : J ⥤ PresheafedSpace C)
   (U : opens (limits.colimit F).carrier) : Jᵒᵖ ⥤ C :=
 { obj := λ j, (F.obj (unop j)).presheaf.obj (op ((opens.map (colimit.ι F (unop j)).base).obj U)),
   map := λ j k f, (F.map f.unop).c.app _ ≫ (F.obj (unop k)).presheaf.map
@@ -323,11 +323,11 @@ def pointwise_diagram (F : J ⥤ PresheafedSpace C)
 
 /--
 The components of the colimit of a diagram of `PresheafedSpace C` is obtained
-via taking pointwise limits.
+via taking componentwise limits.
 -/
-def colimit_presheaf_obj_iso_pointwise_limit (F : J ⥤ PresheafedSpace C)
+def colimit_presheaf_obj_iso_componentwise_limit (F : J ⥤ PresheafedSpace C)
   (U : opens (limits.colimit F).carrier) :
-  (limits.colimit F).presheaf.obj (op U) ≅ limit (pointwise_diagram F U) :=
+  (limits.colimit F).presheaf.obj (op U) ≅ limit (componentwise_diagram F U) :=
 begin
   refine ((sheaf_iso_of_iso (colimit.iso_colimit_cocone
     ⟨_, colimit_cocone_is_colimit F⟩).symm).app (op U)).trans _,
@@ -353,12 +353,12 @@ begin
 end
 
 @[simp]
-lemma colimit_presheaf_obj_iso_pointwise_limit_inv_ι_app (F : J ⥤ PresheafedSpace C)
+lemma colimit_presheaf_obj_iso_componentwise_limit_inv_ι_app (F : J ⥤ PresheafedSpace C)
   (U : opens (limits.colimit F).carrier) (j : J) :
-  (colimit_presheaf_obj_iso_pointwise_limit F U).inv ≫ (colimit.ι F j).c.app (op U) =
+  (colimit_presheaf_obj_iso_componentwise_limit F U).inv ≫ (colimit.ι F j).c.app (op U) =
     limit.π _ (op j) :=
 begin
-  delta colimit_presheaf_obj_iso_pointwise_limit,
+  delta colimit_presheaf_obj_iso_componentwise_limit,
   rw [iso.trans_inv, iso.trans_inv, iso.app_inv, sheaf_iso_of_iso_inv, pushforward_to_of_iso_app,
     congr_app (iso.symm_inv _)],
   simp_rw category.assoc,
@@ -376,11 +376,11 @@ begin
 end
 
 @[simp]
-lemma colimit_presheaf_obj_iso_pointwise_limit_hom_π (F : J ⥤ PresheafedSpace C)
+lemma colimit_presheaf_obj_iso_componentwise_limit_hom_π (F : J ⥤ PresheafedSpace C)
   (U : opens (limits.colimit F).carrier) (j : J) :
-    (colimit_presheaf_obj_iso_pointwise_limit F U).hom ≫ limit.π _ (op j) =
+    (colimit_presheaf_obj_iso_componentwise_limit F U).hom ≫ limit.π _ (op j) =
       (colimit.ι F j).c.app (op U) :=
-by rw [← iso.eq_inv_comp, colimit_presheaf_obj_iso_pointwise_limit_inv_ι_app]
+by rw [← iso.eq_inv_comp, colimit_presheaf_obj_iso_componentwise_limit_inv_ι_app]
 
 end PresheafedSpace
 

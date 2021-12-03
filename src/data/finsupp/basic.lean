@@ -770,6 +770,11 @@ lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g :
   (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
 S.prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
 
+@[to_additive]
+lemma prod_congr {f : α →₀ M} {g1 g2 : α → M → N}
+  (h : ∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) : f.prod g1 = f.prod g2 :=
+finset.prod_congr rfl h
+
 end sum_prod
 
 /-!
@@ -1438,7 +1443,7 @@ begin
   refine ((sum_sum_index _ _).trans _).symm,
   { intros, exact single_zero },
   { intros, exact single_add },
-  refine sum_congr rfl (λ _ _, sum_single_index _),
+  refine sum_congr (λ _ _, sum_single_index _),
   { exact single_zero }
 end
 
@@ -1497,7 +1502,7 @@ finset.subset.trans support_sum $
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
   {h : β → M → N} (h_zero : ∀b, h b 0 = 1) (h_add : ∀b m₁ m₂, h b (m₁ + m₂) = h b m₁ * h b m₂) :
   (map_domain f s).prod h = s.prod (λa m, h (f a) m) :=
-(prod_sum_index h_zero h_add).trans $ prod_congr rfl $ λ _ _, prod_single_index (h_zero _)
+(prod_sum_index h_zero h_add).trans $ prod_congr $ λ _ _, prod_single_index (h_zero _)
 
 /--
 A version of `sum_map_domain_index` that takes a bundled `add_monoid_hom`,
@@ -2696,6 +2701,10 @@ Some of these lemmas are used to develop the partial derivative on `mv_polynomia
 section nat_sub
 section canonically_ordered_monoid
 
+instance [canonically_ordered_add_monoid M] : order_bot (α →₀ M) :=
+{ bot := 0,
+  bot_le := by simp [finsupp.le_def] }
+
 variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
 
 /-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
@@ -2708,14 +2717,13 @@ instance tsub : has_sub (α →₀ M) :=
 lemma tsub_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 instance : canonically_ordered_add_monoid (α →₀ M) :=
-{ bot := 0,
-  bot_le := λ f s, zero_le (f s),
-  le_iff_exists_add := begin
+{ le_iff_exists_add := begin
       intros f g,
       split,
       { intro H, use g - f, ext x, symmetry, exact add_tsub_cancel_of_le (H x) },
       { rintro ⟨g, rfl⟩ x, exact self_le_add_right (f x) (g x) }
     end,
+ ..finsupp.order_bot,
  ..(by apply_instance : ordered_add_comm_monoid (α →₀ M)) }
 
 instance : has_ordered_sub (α →₀ M) :=
@@ -2751,3 +2759,31 @@ lemma to_finsuppstrict_mono : strict_mono (@to_finsupp α) :=
 finsupp.order_iso_multiset.symm.strict_mono
 
 end multiset
+
+section cast_finsupp
+variables [has_zero M] (f : α →₀ M)
+
+namespace nat
+
+@[simp, norm_cast] lemma cast_finsupp_prod [comm_semiring R] (g : α → M → ℕ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
+nat.cast_prod _ _
+
+@[simp, norm_cast] lemma cast_finsupp_sum [comm_semiring R] (g : α → M → ℕ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
+nat.cast_sum _ _
+
+end nat
+
+namespace int
+
+@[simp, norm_cast] lemma cast_finsupp_prod [comm_ring R] (g : α → M → ℤ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
+int.cast_prod _ _
+
+@[simp, norm_cast] lemma cast_finsupp_sum [comm_ring R] (g : α → M → ℤ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
+int.cast_sum _ _
+
+end int
+end cast_finsupp

@@ -3,7 +3,6 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov
 -/
-import data.finset
 import data.fintype.basic
 import algebra.geom_sum
 
@@ -357,18 +356,13 @@ instance [linear_order α] [fintype α] : order_top (finset.colex α) :=
 { top := finset.univ.to_colex,
   le_top := λ x, colex_le_of_subset (subset_univ _) }
 
-instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
-{ ..finset.colex.order_bot,
+instance [linear_order α] : lattice (finset.colex α) :=
+{ ..(by apply_instance : semilattice_sup (finset.colex α)),
   ..(by apply_instance : semilattice_inf (finset.colex α)) }
 
-instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
-{ ..finset.colex.order_bot,
-  ..(by apply_instance : semilattice_sup (finset.colex α)) }
-
-instance [linear_order α] [fintype α] : bounded_lattice (finset.colex α) :=
+instance [linear_order α] [fintype α] : bounded_order (finset.colex α) :=
 { ..(by apply_instance : order_top (finset.colex α)),
-  ..(by apply_instance : semilattice_sup (finset.colex α)),
-  ..(by apply_instance : semilattice_inf_bot (finset.colex α)) }
+  ..(by apply_instance : order_bot (finset.colex α)) }
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma sum_two_pow_lt_iff_lt (A B : finset ℕ) :

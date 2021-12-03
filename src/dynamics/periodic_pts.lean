@@ -3,10 +3,10 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import data.nat.prime
 import dynamics.fixed_points.basic
-import data.set.lattice
 import data.pnat.basic
-import data.int.gcd
+import data.set.lattice
 
 /-!
 # Periodic points

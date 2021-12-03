@@ -7,7 +7,7 @@ import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
 import algebra.order.monoid_lemmas
-import order.bounded_lattice
+import order.bounded_order
 import order.min_max
 import order.rel_iso
 
@@ -116,10 +116,6 @@ lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_to
 @[simp]
 lemma add_top (a : α) : a + ⊤ = ⊤ :=
 trans (add_comm _ _) (top_add _)
-
--- TODO: Generalize to a not-yet-existing typeclass extending `linear_order` and `order_top`
-@[simp] lemma min_top_left (a : α) : min (⊤ : α) a = a := min_eq_right le_top
-@[simp] lemma min_top_right (a : α) : min a ⊤ = a := min_eq_left le_top
 
 end linear_ordered_add_comm_monoid_with_top
 
@@ -629,8 +625,8 @@ section canonically_linear_ordered_monoid
 variables [canonically_linear_ordered_monoid α]
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
-{ ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
+instance canonically_linear_ordered_monoid.semilattice_sup : semilattice_sup α :=
+{ ..lattice_of_linear_order }
 
 instance with_top.canonically_linear_ordered_add_monoid
   (α : Type*) [canonically_linear_ordered_add_monoid α] :

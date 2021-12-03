@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.colimit_limit
-import category_theory.limits.shapes.finite_limits
 
 /-!
 # Filtered colimits commute with finite limits.
@@ -309,7 +308,7 @@ begin
 end
 
 noncomputable
-instance filtered_colim_preserves_finite_limit :
+instance filtered_colim_preserves_finite_limits :
   preserves_limits_of_shape J (colim : (K ⥤ Type v) ⥤ _) := ⟨λ F, ⟨λ c hc,
 begin
   apply is_limit.of_iso_limit (limit.is_limit _),

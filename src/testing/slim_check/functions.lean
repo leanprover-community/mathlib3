@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import data.list.sigma
+import data.int.range
+import tactic.pretty_cases
 import testing.slim_check.sampleable
 import testing.slim_check.testable
-import tactic.pretty_cases
 
 /-!
 ## `slim_check`: generators for functions

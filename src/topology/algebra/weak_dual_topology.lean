@@ -115,7 +115,7 @@ theorem tendsto_iff_forall_eval_tendsto {γ : Type u} {F : filter γ}
   {ψs : γ → weak_dual 𝕜 E} {ψ : weak_dual 𝕜 E} :
   tendsto ψs F (𝓝 ψ) ↔ ∀ z : E, tendsto (λ i, ψs i z) F (𝓝 (ψ z)) :=
 begin
-  rw ←tendsto_pi,
+  rw ← tendsto_pi_nhds,
   split,
   { intros weak_star_conv,
     exact (((coe_fn_continuous 𝕜 E).tendsto ψ).comp weak_star_conv), },

@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set.lattice
+import data.set.basic
 
 /-!
 
@@ -29,7 +29,7 @@ then `g b` is `option.some a`.
 `pequiv` is canonically ordered by inclusion; that is, if a function `f` defined on a subset `s`
 is equal to `g` on that subset, but `g` is also defined on a larger set, then `f ≤ g`. We also have
 a definition of `⊥`, which is the empty `pequiv` (sends all to `none`), which in the end gives us a
-`semilattice_inf_bot` instance.
+`semilattice_inf` with an `order_bot` instance.
 
 ## Tags
 
@@ -331,10 +331,9 @@ lemma le_def {f g : α ≃. β} : f ≤ g ↔ (∀ (a : α) (b : β), b ∈ f a 
 
 instance : order_bot (α ≃. β) :=
 { bot_le := λ _ _  _ h, (not_mem_none _ h).elim,
-  ..pequiv.partial_order,
   ..pequiv.has_bot }
 
-instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) :=
+instance [decidable_eq α] [decidable_eq β] : semilattice_inf (α ≃. β) :=
 { inf := λ f g,
   { to_fun := λ a, if f a = g a then f a else none,
     inv_fun := λ b, if f.symm b = g.symm b then f.symm b else none,
@@ -351,7 +350,6 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) 
     simp [le_def],
     split_ifs; finish
   end,
-  ..pequiv.order_bot,
   ..pequiv.partial_order }
 
 end order

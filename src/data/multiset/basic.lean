@@ -2043,7 +2043,8 @@ theorem count_ne_zero {a : α} {s : multiset α} : count a s ≠ 0 ↔ a ∈ s :
 by simp [ne.def, count_eq_zero]
 
 theorem one_le_count_of_mem {x :α} {a : multiset α} (h : x ∈ a) : 1 ≤ a.count x :=
-by simpa only [multiset.count_singleton, if_pos] using multiset.count_le_of_le x ( multiset.singleton_le.2 h)
+by simpa only [multiset.count_singleton, if_pos] using multiset.count_le_of_le x
+  ( multiset.singleton_le.2 h)
 
 @[simp] theorem count_repeat_self (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by simp [repeat]

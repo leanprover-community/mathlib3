@@ -69,22 +69,15 @@ end
 
 end is_martingale
 
-variables (E)
-/-- TODO: submodule instead? -/
-def martingale (ℱ : filtration ι m0) (μ : measure α) [sigma_finite_filtration μ ℱ] :
-  add_subgroup (ι → α → E) :=
-{ carrier   := {f | is_martingale f ℱ μ},
-  zero_mem' := is_martingale_zero E ℱ μ,
-  add_mem'  := λ f g, is_martingale.add,
-  neg_mem'  := λ f, is_martingale.neg, }
-variables {E}
-
-/-- The martingale with value `μ[f | ℱ.le i]` for all `i ∈ E`. -/
-noncomputable def to_martingale (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
+/-- The martingale with value `μ[f | ℱ i, ℱ.le i]` for all `i ∈ E`. -/
+noncomputable def filtered (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
   [sigma_finite_filtration μ ℱ] :
-  martingale E ℱ μ :=
-{ val := λ i, μ[f | ℱ i, ℱ.le i],
-  property := ⟨λ i, integrable_condexp, λ i, measurable_condexp,
-    λ i j hij, condexp_condexp_of_le (ℱ.mono hij) _⟩, }
+  ι → α → E :=
+λ i, μ[f | ℱ i, ℱ.le i]
+
+lemma is_martingale_filtered (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
+  [sigma_finite_filtration μ ℱ] :
+  is_martingale (filtered f ℱ μ) ℱ μ :=
+⟨λ i, integrable_condexp, λ i, measurable_condexp, λ i j hij, condexp_condexp_of_le (ℱ.mono hij) _⟩
 
 end measure_theory

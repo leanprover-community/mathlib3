@@ -454,7 +454,7 @@ begin
     λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))
       ((quotient.mk (P.comap C : ideal R)).injective_iff.2 (λ x hx,
       by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : (P.comap C : ideal R) = ⊥)] at hx))
-      (by simpa only [leading_coeff_eq_zero, map_zero] using hp0'),
+      (by simpa only [leading_coeff_eq_zero, polynomial.map_zero] using hp0'),
   have hM : (0 : ((P.comap C : ideal R)).quotient) ∉ M := λ ⟨n, hn⟩, hp0 (pow_eq_zero hn),
   suffices : (⊥ : ideal (localization M)).is_maximal,
   { rw ← is_localization.comap_map_of_is_prime_disjoint M (localization M) ⊥ bot_prime

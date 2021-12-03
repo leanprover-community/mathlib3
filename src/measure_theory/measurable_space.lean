@@ -299,9 +299,9 @@ lemma measurable_to_nat {f : α → ℕ} : (∀ y, measurable_set (f ⁻¹' {f y
 measurable_to_encodable
 
 lemma measurable_find_greatest' {p : α → ℕ → Prop}
-  {N} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
+  {N : ℕ} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
   measurable (λ x, nat.find_greatest (p x) N) :=
-measurable_to_nat $ λ x, hN _ nat.find_greatest_le
+measurable_to_nat $ λ x, hN _ N.find_greatest_le
 
 lemma measurable_find_greatest {p : α → ℕ → Prop} {N} (hN : ∀ k ≤ N, measurable_set {x | p x k}) :
   measurable (λ x, nat.find_greatest (p x) N) :=

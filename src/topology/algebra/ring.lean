@@ -331,4 +331,32 @@ begin
   exact ht',
 end
 
+/-- The forgetful functor from ring topologies on `a` to additive group topologies on `a`. -/
+def to_add_group_topology (t : ring_topology α) : add_group_topology α :=
+{ to_topological_space     := t.to_topological_space,
+  to_topological_add_group := @topological_ring.to_topological_add_group _ _ t.to_topological_space
+    t.to_topological_ring }
+
+/-- The order embedding from ring topologies on `a` to additive group topologies on `a`. -/
+def to_add_group_topology.order_embedding : order_embedding (ring_topology α)
+  (add_group_topology α) :=
+{ to_fun       := λ t, t.to_add_group_topology,
+  inj'         :=
+  begin
+    intros t₁ t₂ h_eq,
+    dsimp only at h_eq,
+    ext,
+    have h_t₁ : t₁.to_topological_space = t₁.to_add_group_topology.to_topological_space := rfl,
+    rw [h_t₁, h_eq],
+    refl,
+  end,
+  map_rel_iff' :=
+  begin
+    intros t₁ t₂,
+    rw [embedding.coe_fn_mk],
+    have h_le : t₁ ≤ t₂ ↔ t₁.to_topological_space ≤ t₂.to_topological_space := by refl,
+    rw h_le,
+    refl,
+  end }
+
 end ring_topology

@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import data.nat.choose.sum
 import algebra.algebra.bilinear
+import ring_theory.ideal.operations
 
 /-!
 # Nilpotent elements
@@ -43,11 +44,19 @@ end
 @[simp] lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
-lemma is_nilpotent.eq_zero [monoid_with_zero R] [no_zero_divisors R]
-  (h : is_nilpotent x) : x = 0 :=
-by { obtain ⟨n, hn⟩ := h, exact pow_eq_zero hn, }
+/-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
+class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
+(eq_zero : ∀ (x : R), is_nilpotent x → x = 0)
 
-@[simp] lemma is_nilpotent_iff_eq_zero [monoid_with_zero R] [no_zero_divisors R] :
+@[priority 900]
+instance is_reduced_of_no_zero_divisors [monoid_with_zero R] [no_zero_divisors R] : is_reduced R :=
+⟨λ _ ⟨_, hn⟩, pow_eq_zero hn⟩
+
+lemma is_nilpotent.eq_zero [has_zero R] [has_pow R ℕ] [is_reduced R]
+  (h : is_nilpotent x) : x = 0 :=
+is_reduced.eq_zero x h
+
+@[simp] lemma is_nilpotent_iff_eq_zero [monoid_with_zero R] [is_reduced R] :
   is_nilpotent x ↔ x = 0 :=
 ⟨λ h, h.eq_zero, λ h, h.symm ▸ is_nilpotent.zero⟩
 
@@ -102,6 +111,30 @@ end
 end ring
 
 end commute
+
+section comm_semiring
+
+variable [comm_semiring R]
+
+/-- The nilradical of a commutative semiring is the ideal of nilpotent elements. -/
+def nilradical (R : Type*) [comm_semiring R] : ideal R := (0 : ideal R).radical
+
+lemma mem_nilradical : x ∈ nilradical R ↔ is_nilpotent x := iff.rfl
+
+lemma nilradical_eq_Inf (R : Type*) [comm_semiring R] :
+  nilradical R = Inf { J : ideal R | J.is_prime } :=
+by { convert ideal.radical_eq_Inf 0, simp }
+
+lemma nilpotent_iff_mem_prime : is_nilpotent x ↔ ∀ (J : ideal R), J.is_prime → x ∈ J :=
+by { rw [← mem_nilradical, nilradical_eq_Inf, submodule.mem_Inf], refl }
+
+lemma nilradical_le_prime (J : ideal R) [H : J.is_prime] : nilradical R ≤ J :=
+(nilradical_eq_Inf R).symm ▸ Inf_le H
+
+@[simp] lemma nilradical_eq_zero (R : Type*) [comm_semiring R] [is_reduced R] : nilradical R = 0 :=
+ideal.ext $ λ _, is_nilpotent_iff_eq_zero
+
+end comm_semiring
 
 namespace algebra
 

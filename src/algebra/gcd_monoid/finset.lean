@@ -147,6 +147,11 @@ dvd_gcd (λ b hb, (gcd_dvd hb).trans (h b hb))
 lemma gcd_mono (h : s₁ ⊆ s₂) : s₂.gcd f ∣ s₁.gcd f :=
 dvd_gcd $ assume b hb, gcd_dvd (h hb)
 
+theorem gcd_image {g : γ → β} (s: finset γ) [decidable_eq β] [is_idempotent α gcd_monoid.gcd] :
+  (s.image g).gcd f = s.gcd (f ∘ g) := by simp [gcd, fold_image_idem]
+
+theorem gcd_eq_gcd_image [decidable_eq α] [is_idempotent α gcd_monoid.gcd] :
+  s.gcd f = (s.image f).gcd id := (@gcd_image _ _ _ _ _ id _ _ _ _).symm
 
 theorem gcd_eq_zero_iff : s.gcd f = 0 ↔ ∀ (x : β), x ∈ s → f x = 0 :=
 begin

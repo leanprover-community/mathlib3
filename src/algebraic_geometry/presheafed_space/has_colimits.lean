@@ -265,7 +265,7 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
       dsimp,
       have w := congr_arg op (functor.congr_obj (congr_arg opens.map t) (unop U)),
       rw nat_trans.congr (limit.π (pushforward_diagram_to_colimit F).left_op j) w,
-      simpa }
+      simp }
   end, }
 
 /--

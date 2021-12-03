@@ -866,7 +866,7 @@ begin
   exact le_trans hx.le (ennreal.of_real_le_of_real hle),
 end
 
-lemma thickening_subset_cthickening {δ : ℝ} (E : set α) :
+lemma thickening_subset_cthickening (δ : ℝ) (E : set α) :
   thickening δ E ⊆ cthickening δ E :=
 by apply thickening_subset_cthickening_of_le rfl.ge
 

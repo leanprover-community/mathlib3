@@ -11,10 +11,89 @@ import topology.algebra.ordered.basic
 # Strictly strict_convex sets
 -/
 
-variables {𝕜 E F β : Type*}
-
 open set
 open_locale pointwise
+
+namespace set
+section image2
+variables {α β γ : Type*} {s s' : set α} {t t' : set β} {f : α → β → γ}
+
+lemma image2_subset_left (ht : t ⊆ t') : image2 f s t ⊆ image2 f s t' :=
+image2_subset (subset.refl _) ht
+
+lemma image2_subset_right (hs : s ⊆ s') : image2 f s t ⊆ image2 f s' t :=
+image2_subset hs (subset.refl _)
+
+end image2
+
+variables {α β γ : Type*} {s s' s₁ s₂ t t' t₁ t₂ : set α} {f : α → β → γ}
+
+@[to_additive]
+lemma mul_subset_mul_left [has_mul α] (h : t₁ ⊆ t₂) : s * t₁ ⊆ s * t₂ := image2_subset_left h
+
+@[to_additive]
+lemma mul_subset_mul_right [has_mul α] (h : s₁ ⊆ s₂) : s₁ * t ⊆ s₂ * t := image2_subset_right h
+
+end set
+
+section has_continuous_add
+variables {α : Type*} [topological_space α] [add_comm_group α] [has_continuous_add α] {s t : set α}
+
+lemma add_interior_subset : s + interior t ⊆ interior (s + t) :=
+begin
+  rw subset_interior_iff_subset_of_open,
+  { rintro x ⟨a, b, ha, hb, rfl⟩,
+    exact set.add_mem_add ha (interior_subset hb) },
+  { rw ←set.Union_add_left_image,
+    exact is_open_bUnion (λ x hx, (homeomorph.add_left x).is_open_map _ is_open_interior) }
+end
+
+lemma interior_add_subset : interior s + t ⊆ interior (s + t) :=
+begin
+  rw subset_interior_iff_subset_of_open,
+  { rintro x ⟨a, b, ha, hb, rfl⟩,
+    exact set.add_mem_add (interior_subset ha) hb },
+  { rw ←set.Union_add_right_image,
+    exact is_open_bUnion (λ x hx, (homeomorph.add_right x).is_open_map _ is_open_interior) }
+end
+
+lemma interior_add_interior_subset {s t : set α} :
+  interior s + interior t ⊆ interior (s + t) :=
+(set.add_subset_add_left interior_subset).trans interior_add_subset
+
+lemma is_open_map_add : is_open_map (λ x : α × α, x.1 + x.2) :=
+begin
+  sorry
+end
+
+lemma is_open_map_sub : is_open_map (λ x : α × α, x.1 - x.2) :=
+begin
+  sorry
+end
+
+end has_continuous_add
+
+section open_segment
+variables {𝕜 E : Type*} [linear_ordered_ring 𝕜] [nontrivial 𝕜] [topological_space 𝕜]
+  [order_topology 𝕜] [densely_ordered 𝕜] [linear_ordered_add_comm_group E] [topological_space E]
+  [order_topology E] [module 𝕜 E] [has_continuous_smul 𝕜 E] {x y : E} {s : set E}
+
+open_locale convex
+
+lemma segment_subset_closure_open_segment : [x -[𝕜] y] ⊆ closure (open_segment 𝕜 x y) :=
+begin
+  rw [segment_eq_image, open_segment_eq_image, ←closure_Ioo (@zero_lt_one 𝕜 _ _)],
+  exact image_closure_subset_closure_image (by continuity),
+end
+
+lemma open_segment_subset_interior (h : [x -[𝕜] y] ⊆ s) : open_segment 𝕜 x y ⊆ interior s :=
+begin
+  sorry
+end
+
+end open_segment
+
+variables {𝕜 E F β : Type*}
 
 /-!
 ### Strict convexity of sets
@@ -136,6 +215,11 @@ begin
   exact hs _ hx _ hy (hfinj.ne hxy) ha hb hab,
 end
 
+lemma strict_convex.is_linear_preimage {s : set F} (hs : strict_convex 𝕜 s) {f : E → F}
+  (h : is_linear_map 𝕜 f) (hf : continuous f) (hfinj : injective f) :
+  strict_convex 𝕜 (s.preimage f) :=
+hs.linear_preimage (h.mk' f) hf hfinj
+
 section linear_ordered_cancel_add_comm_monoid
 variables [topological_space β] [linear_ordered_cancel_add_comm_monoid β] [order_topology β]
   [module 𝕜 β] [ordered_smul 𝕜 β]
@@ -230,30 +314,30 @@ begin
     rw singleton_add,
     exact (is_open_map_add_left _).image_interior_subset _
       (mem_image_of_mem _ $ ht _ hw _ hy (ne_of_apply_ne _ h) ha hb hab) },
-  obtain rfl | hvx := eq_or_ne w y,
+  obtain rfl | hwy := eq_or_ne w y,
   { rw convex.combo_self hab,
     suffices : a • v + b • x + w ∈ interior (s + {w}),
     { exact interior_mono (add_subset_add (subset.refl _) (singleton_subset_iff.2 hw)) this },
     rw add_singleton,
     exact (is_open_map_add_right _).image_interior_subset _
       (mem_image_of_mem _ $ hs _ hv _ hx hvx ha hb hab) },
-  sorry
+  exact interior_add_interior_subset (add_mem_add (hs _ hv _ hx hvx ha hb hab) $
+    ht _ hw _ hy hwy ha hb hab),
 end
 
-lemma strict_convex.sub {s : set (E × E)} (hs : strict_convex 𝕜 s) :
+lemma strict_convex.sub [has_continuous_add E] {s : set (E × E)} (hs : strict_convex 𝕜 s) :
   strict_convex 𝕜 ((λ x : E × E, x.1 - x.2) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_sub begin
-  sorry
-end
+hs.is_linear_image is_linear_map.is_linear_map_sub is_open_map_sub
 
 end add_comm_group
 end ordered_semiring
 
 section ordered_comm_semiring
-variables [ordered_comm_semiring 𝕜] [topological_space E]
+variables [ordered_comm_semiring 𝕜] [topological_space 𝕜] [topological_space E]
 
 section add_comm_group
-variables [add_comm_group E] [module 𝕜 E] [no_zero_smul_divisors 𝕜 E] {s : set E}
+variables [add_comm_group E] [module 𝕜 E] [no_zero_smul_divisors 𝕜 E] [has_continuous_smul 𝕜 E]
+  {s : set E}
 
 lemma strict_convex.preimage_smul (hs : strict_convex 𝕜 s) (c : 𝕜) :
   strict_convex 𝕜 ((λ z, c • z) ⁻¹' s) :=
@@ -265,7 +349,8 @@ begin
     { exact strict_convex_univ },
     { exact strict_convex_empty } },
   refine hs.linear_preimage (linear_map.lsmul _ _ c) _ (smul_right_injective E hc),
-  sorry
+  unfold linear_map.lsmul linear_map.mk₂ linear_map.mk₂' linear_map.mk₂'ₛₗ,
+  exact continuous_const.smul continuous_id,
 end
 
 end add_comm_group
@@ -322,13 +407,13 @@ begin
     convex.combo_affine_apply hab⟩⟩,
 end
 
-lemma strict_convex.neg (hs : strict_convex 𝕜 s) : strict_convex 𝕜 ((λ z, -z) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_neg begin
-  sorry
-end
+lemma strict_convex.neg [topological_add_group E] (hs : strict_convex 𝕜 s) :
+  strict_convex 𝕜 ((λ z, -z) '' s) :=
+hs.is_linear_image is_linear_map.is_linear_map_neg (homeomorph.neg E).is_open_map
 
-lemma strict_convex.neg_preimage (hs : strict_convex 𝕜 s) : strict_convex 𝕜 ((λ z, -z) ⁻¹' s) :=
-hs.is_linear_preimage is_linear_map.is_linear_map_neg
+lemma strict_convex.neg_preimage [topological_add_group E] (hs : strict_convex 𝕜 s) :
+  strict_convex 𝕜 ((λ z, -z) ⁻¹' s) :=
+hs.is_linear_preimage is_linear_map.is_linear_map_neg continuous_id.neg neg_injective
 
 end add_comm_group
 end ordered_ring
@@ -348,10 +433,11 @@ begin
   { exact hs.linear_image (linear_map.lsmul _ _ c) (is_open_map_smul₀ hc) }
 end
 
-lemma strict_convex.affinity [has_continuous_add E] (hs : strict_convex 𝕜 s) (z : E) (c : 𝕜) :
+lemma strict_convex.affinity [topological_space 𝕜] [has_continuous_add E] [has_continuous_smul 𝕜 E]
+  (hs : strict_convex 𝕜 s) (z : E) (c : 𝕜) :
   strict_convex 𝕜 ((λ x, z + c • x) '' s) :=
 begin
-  have h := (hs.smul c).add_right z,
+  have h := (hs.smul c).add_left z,
   rwa [←image_smul, image_image] at h,
 end
 
@@ -378,11 +464,19 @@ end linear_ordered_field
 
 /-!
 #### Convex sets in an ordered space
-Relates `convex` and `ord_connected`.
+Relates `convex` and `set.ord_connected`.
 -/
 
 section
 variables [topological_space E]
+
+lemma set.ord_connected.strict_convex [ordered_semiring 𝕜] [linear_ordered_add_comm_monoid E]
+  [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) :
+  strict_convex 𝕜 s :=
+begin
+  rw strict_convex_iff_open_segment_subset,
+  intros x hx y hy hxy,
+end
 
 @[simp] lemma strict_convex_iff_convex [linear_ordered_field 𝕜] [topological_space 𝕜]
   [order_topology 𝕜] {s : set 𝕜} :
@@ -399,42 +493,10 @@ begin
     exact interior_mono (Icc_subset_segment.trans $ hs.segment_subset hy hx) }
 end
 
-lemma set.ord_connected.strict_convex_of_chain [ordered_semiring 𝕜] [ordered_add_comm_monoid E]
-  [topological_space E] [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected)
-  (h : zorn.chain (≤) s) :
-  strict_convex 𝕜 s :=
-begin
-  intros x hx y hy hxy a b ha hb hab,
-  obtain hxy | hyx := h.total_of_refl hx hy,
-  { refine hs.out hx hy (mem_Icc.2 ⟨_, _⟩),
-    calc
-      x   = a • x + b • x : (convex.combo_self hab _).symm
-      ... ≤ a • x + b • y : add_le_add_left (smul_le_smul_of_nonneg hxy hb) _,
-    calc
-      a • x + b • y
-          ≤ a • y + b • y : add_le_add_right (smul_le_smul_of_nonneg hxy ha) _
-      ... = y : strict_convex.combo_self hab _ },
-  { refine hs.out hy hx (mem_Icc.2 ⟨_, _⟩),
-    calc
-      y   = a • y + b • y : (convex.combo_self hab _).symm
-      ... ≤ a • x + b • y : add_le_add_right (smul_le_smul_of_nonneg hyx ha) _,
-    calc
-      a • x + b • y
-          ≤ a • x + b • x : add_le_add_left (smul_le_smul_of_nonneg hyx hb) _
-      ... = x : strict_convex.combo_self hab _ }
-end
-
-lemma set.ord_connected.strict_convex [ordered_semiring 𝕜] [linear_ordered_add_comm_monoid E] [module 𝕜 E]
-  [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) :
-  strict_convex 𝕜 s :=
-hs.strict_convex_of_chain (zorn.chain_of_trichotomous s)
-
-lemma strict_convex_iff_ord_connected [linear_ordered_field 𝕜] [topological_space 𝕜] {s : set 𝕜} :
+lemma strict_convex_iff_ord_connected [linear_ordered_field 𝕜] [topological_space 𝕜]
+  [order_topology 𝕜] {s : set 𝕜} :
   strict_convex 𝕜 s ↔ s.ord_connected :=
-begin
-  simp_rw [convex_iff_segment_subset, segment_eq_interval, ord_connected_iff_interval_subset],
-  exact forall_congr (λ x, forall_swap)
-end
+strict_convex_iff_convex.trans convex_iff_ord_connected
 
 alias strict_convex_iff_ord_connected ↔ strict_convex.ord_connected _
 

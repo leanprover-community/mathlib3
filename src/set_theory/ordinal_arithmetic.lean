@@ -150,19 +150,19 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
 @[simp] theorem card_eq_zero {o} : card o = 0 ↔ o = 0 :=
 ⟨induction_on o $ λ α r _ h, begin
   refine le_antisymm (le_of_not_lt $
-    λ hn, ne_zero_iff_nonempty.2 _ h) (ordinal.zero_le _),
+    λ hn, mk_ne_zero_iff.2 _ h) (ordinal.zero_le _),
   rw [← succ_le, succ_zero] at hn, cases hn with f,
   exact ⟨f punit.star⟩
 end, λ e, by simp only [e, card_zero]⟩
 
 @[simp] theorem type_eq_zero_of_empty [is_well_order α r] [is_empty α] : type r = 0 :=
-card_eq_zero.symm.mpr eq_zero_of_is_empty
+card_eq_zero.symm.mpr (mk_eq_zero _)
 
 @[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
-(@card_eq_zero (type r)).symm.trans eq_zero_iff_is_empty
+(@card_eq_zero (type r)).symm.trans mk_eq_zero_iff
 
 theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
-(not_congr (@card_eq_zero (type r))).symm.trans ne_zero_iff_nonempty
+(not_congr (@card_eq_zero (type r))).symm.trans mk_ne_zero_iff
 
 protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
 type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
@@ -1332,9 +1332,9 @@ not_congr nat_cast_eq_zero
 
 @[simp] theorem nat_cast_sub {m n : ℕ} : ((m - n : ℕ) : ordinal) = m - n :=
 (_root_.le_total m n).elim
-  (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
+  (λ h, by rw [tsub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
   (λ h, (add_left_cancel n).1 $ by rw [← nat.cast_add,
-     add_sub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
+     add_tsub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
 
 @[simp] theorem nat_cast_div {m n : ℕ} : ((m / n : ℕ) : ordinal) = m / n :=
 if n0 : n = 0 then by simp only [n0, nat.div_zero, nat.cast_zero, div_zero] else
@@ -1376,8 +1376,8 @@ by induction n with n ih; [simp only [nat.cast_zero, lift_zero],
 theorem lift_type_fin (n : ℕ) : lift (@type (fin n) (<) _) = n :=
 by simp only [type_fin, lift_nat_cast]
 
-theorem fintype_card (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
-by rw [← card_eq_nat, card_type, fintype_card]
+theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
+by rw [← card_eq_nat, card_type, mk_fintype]
 
 end ordinal
 
@@ -1556,7 +1556,7 @@ le_antisymm
 
 theorem mul_lt_omega_power {a b c : ordinal}
   (c0 : 0 < c) (ha : a < omega ^ c) (hb : b < omega) : a * b < omega ^ c :=
-if b0 : b = 0 then by simp only [b0, mul_zero, power_pos _ omega_pos] else begin
+begin
   rcases zero_or_succ_or_limit c with rfl|⟨c,rfl⟩|l,
   { exact (lt_irrefl _).elim c0 },
   { rw power_succ at ha,

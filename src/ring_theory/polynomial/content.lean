@@ -59,7 +59,7 @@ end
 
 end primitive
 
-variables {R : Type*} [integral_domain R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 
 section normalized_gcd_monoid
 variable [normalized_gcd_monoid R]
@@ -409,7 +409,7 @@ begin
   refine ⟨_, rfl, ⟨dvd_cancel_leads_of_dvd_of_dvd pr ps, dvd_cancel_leads_of_dvd_of_dvd qr qs⟩,
       λ rcs, rs _⟩,
   rw ← rprim.dvd_prim_part_iff_dvd s0,
-  rw [cancel_leads, nat.sub_eq_zero_of_le hs, pow_zero, mul_one] at rcs,
+  rw [cancel_leads, tsub_eq_zero_iff_le.mpr hs, pow_zero, mul_one] at rcs,
   have h := dvd_add rcs (dvd.intro_left _ rfl),
   have hC0 := rprim.ne_zero,
   rw [ne.def, ← leading_coeff_eq_zero, ← C_eq_zero] at hC0,
@@ -448,6 +448,16 @@ normalized_gcd_monoid_of_exists_lcm $ λ p q, begin
     is_unit.mul_left_dvd _ _ _ (is_unit_prim_part_C (lcm p.content q.content)), ← hr s.prim_part],
   tauto,
 end
+
+lemma degree_gcd_le_left {p : polynomial R} (hp : p ≠ 0) (q) : (gcd p q).degree ≤ p.degree :=
+begin
+  have := nat_degree_le_iff_degree_le.mp
+    (nat_degree_le_of_dvd (gcd_dvd_left p q) hp),
+  rwa degree_eq_nat_degree hp
+end
+
+lemma degree_gcd_le_right (p) {q : polynomial R} (hq : q ≠ 0) : (gcd p q).degree ≤ q.degree :=
+by { rw [gcd_comm], exact degree_gcd_le_left hq p }
 
 end normalized_gcd_monoid
 end polynomial

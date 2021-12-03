@@ -234,6 +234,9 @@ by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
 lemma sup_right_comm (a b c : α) : a ⊔ b ⊔ c = a ⊔ c ⊔ b :=
 by rw [sup_assoc, sup_assoc, @sup_comm _ _ b]
 
+lemma sup_sup_sup_comm (a b c d : α) : a ⊔ b ⊔ (c ⊔ d) = a ⊔ c ⊔ (b ⊔ d) :=
+by rw [sup_assoc, sup_left_comm b, ←sup_assoc]
+
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
   by rwa [or_iff_not_imp_left, not_forall],
@@ -261,6 +264,13 @@ begin
   have ss := funext (λ x, funext $ semilattice_sup.ext_sup H x),
   casesI A, casesI B,
   injection this; congr'
+end
+
+theorem exists_lt_of_sup (α : Type*) [semilattice_sup α] [nontrivial α] : ∃ a b : α, a < b :=
+begin
+  rcases exists_pair_ne α with ⟨a, b, hne⟩,
+  rcases forall_le_or_exists_lt_sup b with (hb|H),
+  exacts [⟨a, b, (hb a).lt_of_ne hne⟩, ⟨b, H⟩]
 end
 
 end semilattice_sup
@@ -389,6 +399,9 @@ lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
 lemma inf_right_comm (a b c : α) : a ⊓ b ⊓ c = a ⊓ c ⊓ b :=
 @sup_right_comm (order_dual α) _ a b c
 
+lemma inf_inf_inf_comm (a b c d : α) : a ⊓ b ⊓ (c ⊓ d) = a ⊓ c ⊓ (b ⊓ d) :=
+@sup_sup_sup_comm (order_dual α) _ _ _ _ _
+
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 @forall_le_or_exists_lt_sup (order_dual α) _ a
 
@@ -410,6 +423,10 @@ end
 theorem semilattice_inf.dual_dual (α : Type*) [H : semilattice_inf α] :
   order_dual.semilattice_inf (order_dual α) = H :=
 semilattice_inf.ext $ λ _ _, iff.rfl
+
+theorem exists_lt_of_inf (α : Type*) [semilattice_inf α] [nontrivial α] :
+  ∃ a b : α, a < b :=
+let ⟨a, b, h⟩ := exists_lt_of_sup (order_dual α) in ⟨b, a, h⟩
 
 end semilattice_inf
 
@@ -434,7 +451,7 @@ end
 -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[protect_proj] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 instance (α) [lattice α] : lattice (order_dual α) :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
@@ -494,6 +511,18 @@ have partial_order_eq :
 
 section lattice
 variables [lattice α] {a b c d : α}
+
+lemma inf_le_sup : a ⊓ b ≤ a ⊔ b := inf_le_left.trans le_sup_left
+
+@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b :=
+begin
+  split,
+  { rintro H rfl, simpa using H },
+  { refine λ Hne, lt_iff_le_and_ne.2 ⟨inf_le_sup, λ Heq, Hne _⟩,
+    refine le_antisymm _ _,
+    exacts [le_sup_left.trans (Heq.symm.trans_le inf_le_right),
+      le_sup_right.trans (Heq.symm.trans_le inf_le_left)] }
+end
 
 /-!
 #### Distributivity laws
@@ -620,12 +649,12 @@ See note [reducible non-instances]. -/
 { decidable_le := ‹_›, decidable_eq := ‹_›, decidable_lt := ‹_›,
   le_total := h,
   max := (⊔),
-  max_def := by {
-    funext x y, dunfold max_default,
+  max_def := by
+  { funext x y, dunfold max_default,
     split_ifs with h', exacts [sup_of_le_left h', sup_of_le_right $ (h x y).resolve_right h'] },
   min := (⊓),
-  min_def := by {
-    funext x y, dunfold min_default,
+  min_def := by
+  { funext x y, dunfold min_default,
     split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
   .. ‹lattice α› }
 

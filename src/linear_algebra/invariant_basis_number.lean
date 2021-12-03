@@ -3,8 +3,8 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
+import ring_theory.ideal.quotient
 import ring_theory.principal_ideal_domain
-import ring_theory.ideal.basic
 
 /-!
 # Invariant basis number property

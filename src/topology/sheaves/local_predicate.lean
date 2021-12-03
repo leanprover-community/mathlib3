@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import topology.sheaves.sheaf_of_functions
 import topology.sheaves.stalks
+import topology.local_homeomorph
 import topology.sheaves.sheaf_condition.unique_gluing
 
 /-!
@@ -26,7 +27,7 @@ any collection of dependent functions on a topological space
 satisfying a "local predicate".
 
 As an application, we check that continuity is a local predicate in this sense, and provide
-* `Top.sheaf_condition.to_Top`: continuous functions into a topological space form a sheaf
+* `Top.sheaf_to_Top`: continuous functions into a topological space form a sheaf
 
 A sheaf constructed in this way has a natural map `stalk_to_fiber` from the stalks
 to the types in the ambient type family.

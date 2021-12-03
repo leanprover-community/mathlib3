@@ -6,7 +6,6 @@ Authors: Kevin Buzzard, Patrick Massot
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
 import group_theory.coset
-import data.setoid.basic
 
 /-!
 # Quotients of groups by normal subgroups
@@ -79,24 +78,22 @@ instance : group (quotient N) :=
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
 def mk' : G →* quotient N := monoid_hom.mk' (quotient_group.mk) (λ _ _, rfl)
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma coe_mk' : (mk' N : G → quotient N) = coe := rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
 /-- Two `monoid_hom`s from a quotient group are equal if their compositions with
 `quotient_group.mk'` are equal.
 
 See note [partially-applied ext lemmas]. -/
-@[to_additive /-" Two `add_monoid_hom`s from an additive quotient group are equal if their
+@[ext, to_additive /-" Two `add_monoid_hom`s from an additive quotient group are equal if their
 compositions with `add_quotient_group.mk'` are equal.
 
-See note [partially-applied ext lemmas]. "-/, ext]
+See note [partially-applied ext lemmas]. "-/]
 lemma monoid_hom_ext ⦃f g : quotient N →* H⦄ (h : f.comp (mk' N) = g.comp (mk' N)) : f = g :=
 monoid_hom.ext $ λ x, quotient_group.induction_on x $ (monoid_hom.congr_fun h : _)
-
-attribute [ext] quotient_add_group.add_monoid_hom_ext
 
 @[simp, to_additive quotient_add_group.eq_zero_iff]
 lemma eq_one_iff {N : subgroup G} [nN : N.normal] (x : G) : (x : quotient N) = 1 ↔ x ∈ N :=
@@ -143,8 +140,8 @@ lemma coe_inv (a : G) : ((a⁻¹ : G) : Q) = a⁻¹ := rfl
 @[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n :=
 (mk' N).map_pow a n
 
-@[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
-(mk' N).map_gpow a n
+@[simp] lemma coe_zpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
+(mk' N).map_zpow a n
 
 /-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
 group homomorphism `G/N →* H`. -/
@@ -265,9 +262,7 @@ def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inv
   .. ker_lift φ }
 
 /-- The canonical isomorphism `G/⊥ ≃* G`. -/
-@[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse
-"The canonical isomorphism `G/⊥ ≃+ G`.",
-  simps]
+@[to_additive quotient_add_group.quotient_bot "The canonical isomorphism `G/⊥ ≃+ G`.", simps]
 def quotient_bot : quotient (⊥ : subgroup G) ≃* G :=
 quotient_ker_equiv_of_right_inverse (monoid_hom.id G) id (λ x, rfl)
 
@@ -293,7 +288,7 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   inv_fun := (lift N (mk' M) (λ n hn, quotient_group.eq.mpr (by simpa [← h] using N.inv_mem hn))),
   left_inv := λ x, x.induction_on' $ by { intro, refl },
   right_inv := λ x, x.induction_on' $ by { intro, refl },
-  map_mul' := λ x y, by rw map_mul }
+  map_mul' := λ x y, by rw monoid_hom.map_mul }
 
 @[simp, to_additive]
 lemma equiv_quotient_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :
@@ -416,11 +411,12 @@ end third_iso_thm
 
 section trivial
 
-lemma subsingleton_quotient_top : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
+@[to_additive] lemma subsingleton_quotient_top :
+  subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
 trunc.subsingleton
 
 /-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
-lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
+@[to_additive] lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
   (h : subsingleton (quotient_group.quotient H)) : H = ⊤ :=
 top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),

@@ -3,13 +3,14 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.adjunction
+import category_theory.adjunction.limits
+import category_theory.adjunction.opposites
 import category_theory.elements
 import category_theory.limits.functor_category
+import category_theory.limits.kan_extension
 import category_theory.limits.preserves.limits
 import category_theory.limits.shapes.terminal
 import category_theory.limits.types
-import category_theory.limits.kan_extension
 
 /-!
 # Colimit of representables
@@ -85,7 +86,7 @@ It is shown in `restrict_yoneda_hom_equiv_natural` that this is a natural biject
 def restrict_yoneda_hom_equiv (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ)
   {c : cocone ((category_of_elements.π P).left_op ⋙ A)} (t : is_colimit c) :
   (c.X ⟶ E) ≃ (P ⟶ (restricted_yoneda A).obj E) :=
-(t.hom_iso' E).to_equiv.trans
+((ulift_trivial _).symm ≪≫ t.hom_iso' E).to_equiv.trans
 { to_fun := λ k,
   { app := λ c p, k.1 (opposite.op ⟨_, p⟩),
     naturality' := λ c c' f, funext $ λ p,
@@ -147,7 +148,7 @@ begin
   ext J,
   erw colimit.ι_pre ((category_of_elements.π Y).left_op ⋙ A) (category_of_elements.map f).op,
   dsimp only [extend_along_yoneda, restrict_yoneda_hom_equiv,
-    is_colimit.hom_iso', is_colimit.hom_iso],
+    is_colimit.hom_iso', is_colimit.hom_iso, ulift_trivial],
   simpa
 end
 

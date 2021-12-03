@@ -87,13 +87,13 @@ end coset_mul
 section coset_semigroup
 variable [semigroup α]
 
-@[simp] lemma left_coset_assoc (s : set α) (a b : α) : a *l (b *l s) = (a * b) *l s :=
+@[simp, to_additive left_add_coset_assoc] lemma left_coset_assoc (s : set α) (a b : α) :
+  a *l (b *l s) = (a * b) *l s :=
 by simp [left_coset, right_coset, (image_comp _ _ _).symm, function.comp, mul_assoc]
-attribute [to_additive left_add_coset_assoc] left_coset_assoc
 
-@[simp] lemma right_coset_assoc (s : set α) (a b : α) : s *r a *r b = s *r (a * b) :=
+@[simp, to_additive right_add_coset_assoc] lemma right_coset_assoc (s : set α) (a b : α) :
+  s *r a *r b = s *r (a * b) :=
 by simp [left_coset, right_coset, (image_comp _ _ _).symm, function.comp, mul_assoc]
-attribute [to_additive right_add_coset_assoc] right_coset_assoc
 
 @[to_additive left_add_coset_right_add_coset]
 lemma left_coset_right_coset (s : set α) (a b : α) : a *l s *r b = a *l (s *r b) :=
@@ -104,13 +104,11 @@ end coset_semigroup
 section coset_monoid
 variables [monoid α] (s : set α)
 
-@[simp] lemma one_left_coset : 1 *l s = s :=
+@[simp, to_additive zero_left_add_coset] lemma one_left_coset : 1 *l s = s :=
 set.ext $ by simp [left_coset]
-attribute [to_additive zero_left_add_coset] one_left_coset
 
-@[simp] lemma right_coset_one : s *r 1 = s :=
+@[simp, to_additive right_add_coset_zero] lemma right_coset_one : s *r 1 = s :=
 set.ext $ by simp [right_coset]
-attribute [to_additive right_add_coset_zero] right_coset_one
 
 end coset_monoid
 
@@ -226,6 +224,8 @@ instance left_rel_decidable [decidable_pred (∈ s)] :
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
+@[to_additive "`quotient s` is the quotient type representing the left cosets of `s`.  If `s` is a
+normal subgroup, `quotient s` is a group"]
 def quotient : Type* := quotient (left_rel s)
 
 /-- The equivalence relation corresponding to the partition of a group by right cosets of a
@@ -244,16 +244,6 @@ instance right_rel_decidable [decidable_pred (∈ s)] :
   decidable_rel (right_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
 
 end quotient_group
-
-namespace quotient_add_group
-
-/-- `quotient s` is the quotient type representing the left cosets of `s`.
-  If `s` is a normal subgroup, `quotient s` is a group -/
-def quotient [add_group α] (s : add_subgroup α) : Type* := quotient (left_rel s)
-
-end quotient_add_group
-
-attribute [to_additive quotient_add_group.quotient] quotient_group.quotient
 
 namespace quotient_group
 
@@ -419,28 +409,29 @@ by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
 /-- **Order of a Subgroup** -/
-lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
+@[to_additive] lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
-by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
+by classical; simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_left ℕ]
 
-lemma card_quotient_dvd_card [fintype α] (s : subgroup α) [decidable_pred (λ a, a ∈ s)]
-  [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
-by simp [card_eq_card_quotient_mul_card_subgroup s]
+@[to_additive] lemma card_quotient_dvd_card [fintype α] (s : subgroup α)
+  [decidable_pred (λ a, a ∈ s)] [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
+by simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_right ℕ]
 
 open fintype
 
 variables {H : Type*} [group H]
 
-lemma card_dvd_of_injective [fintype α] [fintype H] (f : α →* H) (hf : function.injective f) :
-  card α ∣ card H :=
+@[to_additive] lemma card_dvd_of_injective [fintype α] [fintype H] (f : α →* H)
+  (hf : function.injective f) : card α ∣ card H :=
 by classical;
 calc card α = card (f.range : subgroup H) : card_congr (equiv.of_injective f hf)
 ...∣ card H : card_subgroup_dvd_card _
 
-lemma card_dvd_of_le {H K : subgroup α} [fintype H] [fintype K] (hHK : H ≤ K) : card H ∣ card K :=
+@[to_additive] lemma card_dvd_of_le {H K : subgroup α} [fintype H] [fintype K] (hHK : H ≤ K) :
+  card H ∣ card K :=
 card_dvd_of_injective (inclusion hHK) (inclusion_injective hHK)
 
-lemma card_comap_dvd_of_injective (K : subgroup H) [fintype K]
+@[to_additive] lemma card_comap_dvd_of_injective (K : subgroup H) [fintype K]
   (f : α →* H) [fintype (K.comap f)] (hf : function.injective f) :
   fintype.card (K.comap f) ∣ fintype.card K :=
 by haveI : fintype ((K.comap f).map f) :=

@@ -39,7 +39,7 @@ begin
       { refine le_trans pi_le_four _,
         simp only [show ((4 : ℝ) = 2 ^ 2), by norm_num, mul_one],
         apply pow_le_pow, norm_num, apply le_add_of_nonneg_left, apply nat.zero_le },
-        { apply pow_pos, norm_num }},
+      { apply pow_pos, norm_num } },
     apply add_le_add_left, rw div_le_div_right,
     rw [le_div_iff, ←mul_pow],
     refine le_trans _ (le_of_eq (one_pow 3)), apply pow_le_pow_of_le_left,

@@ -14,7 +14,7 @@ principal ideal domain (PID) is an integral domain which is a principal ideal ri
 # Main definitions
 
 Note that for principal ideal domains, one should use
-`[integral_domain R] [is_principal_ideal_ring R]`. There is no explicit definition of a PID.
+`[is_domain R] [is_principal_ideal_ring R]`. There is no explicit definition of a PID.
 Theorems about PID's are in the `principal_ideal_ring` namespace.
 
 - `is_principal_ideal_ring`: a predicate on rings, saying that every left ideal is principal.
@@ -105,6 +105,18 @@ lemma prime_generator_of_is_prime (S : ideal R) [submodule.is_principal S] [is_p
  λ h, is_prime.ne_top (S.eq_top_of_is_unit_mem (generator_mem S) h),
  by simpa only [← mem_iff_generator_dvd S] using is_prime.2⟩
 
+-- Note that the converse may not hold if `ϕ` is not injective.
+lemma generator_map_dvd_of_mem {N : submodule R M}
+  (ϕ : M →ₗ[R] R) [(N.map ϕ).is_principal] {x : M} (hx : x ∈ N) :
+  generator (N.map ϕ) ∣ ϕ x :=
+by { rw [← mem_iff_generator_dvd, submodule.mem_map], exact ⟨x, hx, rfl⟩ }
+
+-- Note that the converse may not hold if `ϕ` is not injective.
+lemma generator_submodule_image_dvd_of_mem {N O : submodule R M} (hNO : N ≤ O)
+  (ϕ : O →ₗ[R] R) [(ϕ.submodule_image N).is_principal] {x : M} (hx : x ∈ N) :
+  generator (ϕ.submodule_image N) ∣ ϕ ⟨x, hNO hx⟩ :=
+by { rw [← mem_iff_generator_dvd, linear_map.mem_submodule_image_of_le hNO], exact ⟨x, hx, rfl⟩ }
+
 end comm_ring
 
 end submodule.is_principal
@@ -116,7 +128,7 @@ open submodule.is_principal ideal
 -- 0 isn't prime in a non-ID PIR but the Krull dimension is still <= 1.
 -- The below result follows from this, but we could also use the below result to
 -- prove this (quotient out by p).
-lemma to_maximal_ideal [integral_domain R] [is_principal_ideal_ring R] {S : ideal R}
+lemma to_maximal_ideal [comm_ring R] [is_domain R] [is_principal_ideal_ring R] {S : ideal R}
   [hpi : is_prime S] (hS : S ≠ ⊥) : is_maximal S :=
 is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   assume T x hST hxS hxT,
@@ -164,7 +176,8 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
       exact ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩, λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
 end
 
-lemma is_field.is_principal_ideal_ring {R : Type*} [integral_domain R] (h : is_field R) :
+lemma is_field.is_principal_ideal_ring
+  {R : Type*} [comm_ring R] (h : is_field R) :
   is_principal_ideal_ring R :=
 @euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R (h.to_field R))
 
@@ -192,7 +205,7 @@ lemma is_maximal_of_irreducible [comm_ring R] [is_principal_ideal_ring R]
   erw [ideal.span_singleton_le_span_singleton, is_unit.mul_right_dvd hb]
 end⟩⟩
 
-variables [integral_domain R] [is_principal_ideal_ring R]
+variables [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
 
 lemma irreducible_iff_prime {p : R} : irreducible p ↔ prime p :=
 ⟨λ hp, (ideal.span_singleton_prime hp.ne_zero).1 $
@@ -216,7 +229,8 @@ begin
   exact classical.some_spec (wf_dvd_monoid.exists_factors a h)
 end
 
-lemma ne_zero_of_mem_factors {R : Type v} [integral_domain R] [is_principal_ideal_ring R] {a b : R}
+lemma ne_zero_of_mem_factors
+  {R : Type v} [comm_ring R] [is_domain R] [is_principal_ideal_ring R] {a b : R}
   (ha : a ≠ 0) (hb : b ∈ factors a) : b ≠ 0 := irreducible.ne_zero ((factors_spec a ha).1 b hb)
 
 lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
@@ -231,7 +245,7 @@ end
 /-- If a `ring_hom` maps all units and all factors of an element `a` into a submonoid `s`, then it
 also maps `a` into that submonoid. -/
 lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
-  [integral_domain R] [is_principal_ideal_ring R] [semiring S]
+  [comm_ring R] [is_domain R] [is_principal_ideal_ring R] [semiring S]
   (f : R →+* S) (s : submonoid S) (a : R) (ha : a ≠ 0)
   (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : units R, f c ∈ s) :
   f a ∈ s :=
@@ -275,3 +289,61 @@ lemma is_principal_ideal_ring.of_surjective [is_principal_ideal_ring R]
 ⟨λ I, ideal.is_principal.of_comap f hf I⟩
 
 end surjective
+
+section
+open ideal
+variables [comm_ring R] [is_domain R] [is_principal_ideal_ring R] [gcd_monoid R]
+
+theorem span_gcd (x y : R) : span ({gcd x y} : set R) = span ({x, y} : set R) :=
+begin
+  obtain ⟨d, hd⟩ := is_principal_ideal_ring.principal (span ({x, y} : set R)),
+  rw submodule_span_eq at hd,
+  rw [hd],
+  suffices : associated d (gcd x y),
+  { obtain ⟨D, HD⟩ := this,
+    rw ←HD,
+    exact (span_singleton_mul_right_unit D.is_unit _) },
+  apply associated_of_dvd_dvd,
+  { rw dvd_gcd_iff,
+    split; rw [←ideal.mem_span_singleton, ←hd, mem_span_pair],
+    { use [1, 0],
+      rw [one_mul, zero_mul, add_zero] },
+    { use [0, 1],
+      rw [one_mul, zero_mul, zero_add] } },
+  { obtain ⟨r, s, rfl⟩ : ∃ r s, r * x + s * y = d,
+    { rw [←mem_span_pair, hd, ideal.mem_span_singleton] },
+    apply dvd_add; apply dvd_mul_of_dvd_right,
+    exacts [gcd_dvd_left x y, gcd_dvd_right x y] },
+end
+
+theorem gcd_is_unit_iff (x y : R) : is_unit (gcd x y) ↔ is_coprime x y :=
+by rw [is_coprime, ←mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]
+
+-- this should be proved for UFDs surely?
+theorem is_coprime_of_dvd (x y : R)
+  (z : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits R, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
+  is_coprime x y :=
+begin
+  rw [← gcd_is_unit_iff],
+  by_contra h,
+  refine H _ h _ (gcd_dvd_left _ _) (gcd_dvd_right _ _),
+  rwa [ne, gcd_eq_zero_iff]
+end
+
+-- this should be proved for UFDs surely?
+theorem dvd_or_coprime (x y : R) (h : irreducible x) : x ∣ y ∨ is_coprime x y :=
+begin
+  refine or_iff_not_imp_left.2 (λ h', _),
+  apply is_coprime_of_dvd,
+  { unfreezingI { rintro ⟨rfl, rfl⟩ }, simpa using h },
+  { unfreezingI { rintro z nu nz ⟨w, rfl⟩ dy },
+    refine h' (dvd_trans _ dy),
+    simpa using mul_dvd_mul_left z (is_unit_iff_dvd_one.1 $
+      (of_irreducible_mul h).resolve_left nu) }
+end
+
+theorem exists_associated_pow_of_mul_eq_pow' {a b c : R}
+  (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ k) : ∃ d, associated (d ^ k) a :=
+exists_associated_pow_of_mul_eq_pow ((gcd_is_unit_iff _ _).mpr hab) h
+
+end

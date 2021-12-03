@@ -1,5 +1,6 @@
 import tactic.lint
 import data.list.basic
+import algebra.group_power.basic
 open tactic
 
 lemma test_a : true :=

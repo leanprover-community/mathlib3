@@ -172,7 +172,7 @@ begin
   simp only [finsupp.count_to_multiset],
   by_cases h0 : d = 0,
   { simp only [h0, zero_le, finsupp.zero_apply], },
-  { refine @finset.le_sup _ _ _ (p + q).support _ d _,
+  { refine @finset.le_sup _ _ _ _ (p + q).support _ d _,
     rw [mem_support_iff, coeff_add],
     suffices : q.coeff d = 0,
     { rwa [this, add_zero, coeff, ← finsupp.mem_support_iff], },
@@ -332,8 +332,8 @@ begin
     exact finset.union_subset_union (finset.subset.refl _) hsub }
 end
 
-section integral_domain
-variables {A : Type*} [integral_domain A]
+section is_domain
+variables {A : Type*} [comm_ring A] [is_domain A]
 
 lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) : (C a * φ).vars = φ.vars :=
 begin
@@ -345,7 +345,7 @@ begin
   rw [coeff_C_mul, mul_ne_zero_iff, eq_true_intro ha, true_and],
 end
 
-end integral_domain
+end is_domain
 
 end mul
 
@@ -472,6 +472,33 @@ finset.sup_le $ assume n hn,
     { exact le_max_of_le_left (finset.le_sup this) },
     { exact le_max_of_le_right (finset.le_sup this) }
   end
+
+lemma total_degree_add_eq_left_of_total_degree_lt {p q : mv_polynomial σ R}
+  (h : q.total_degree < p.total_degree) : (p + q).total_degree = p.total_degree :=
+begin
+  classical,
+  apply le_antisymm,
+  { rw ← max_eq_left_of_lt h,
+    exact total_degree_add p q, },
+  by_cases hp : p = 0,
+  { simp [hp], },
+  obtain ⟨b, hb₁, hb₂⟩ := p.support.exists_mem_eq_sup (finsupp.support_nonempty_iff.mpr hp)
+    (λ (m : σ →₀ ℕ), m.to_multiset.card),
+  have hb : ¬ b ∈ q.support,
+  { contrapose! h,
+    rw [total_degree_eq p, hb₂, total_degree_eq],
+    apply finset.le_sup h, },
+  have hbb : b ∈ (p + q).support,
+  { apply support_sdiff_support_subset_support_add,
+    rw finset.mem_sdiff,
+    exact ⟨hb₁, hb⟩, },
+  rw [total_degree_eq, hb₂, total_degree_eq],
+  exact finset.le_sup hbb,
+end
+
+lemma total_degree_add_eq_right_of_total_degree_lt {p q : mv_polynomial σ R}
+  (h : q.total_degree < p.total_degree) : (q + p).total_degree = p.total_degree :=
+by rw [add_comm, total_degree_add_eq_left_of_total_degree_lt h]
 
 lemma total_degree_mul (a b : mv_polynomial σ R) :
   (a * b).total_degree ≤ a.total_degree + b.total_degree :=

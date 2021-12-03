@@ -142,7 +142,7 @@ begin
   cases i;
     simp_rw [centroid_weights_with_circumcenter, circumcenter_weights_with_circumcenter,
              monge_point_weights_with_circumcenter];
-    rw [nat.add_sub_assoc (dec_trivial : 1 ≤ 2), (dec_trivial : 2 - 1 = 1)],
+    rw [add_tsub_assoc_of_le (dec_trivial : 1 ≤ 2), (dec_trivial : 2 - 1 = 1)],
   { rw [if_pos (mem_univ _), sub_zero, add_zero, card_fin],
     have hn3 : (n + 2 + 1 : ℝ) ≠ 0,
     { exact_mod_cast nat.succ_ne_zero _ },
@@ -422,11 +422,11 @@ begin
       have hd : finrank ℝ (s.altitude i).direction = 0,
       { rw [←h, finrank_bot] },
       simpa using hd },
-    { rw [←submodule.mem_inf, inf_comm, ←direction_altitude, ←h],
+    { rw [←submodule.mem_inf, _root_.inf_comm, ←direction_altitude, ←h],
       exact vsub_mem_vector_span ℝ (set.mem_insert _ _)
                                    (set.mem_insert_of_mem _ (set.mem_singleton _)) } },
   { rintro ⟨hne, h⟩,
-    rw [←submodule.mem_inf, inf_comm, ←direction_altitude] at h,
+    rw [←submodule.mem_inf, _root_.inf_comm, ←direction_altitude] at h,
     rw [vector_span_eq_span_vsub_set_left_ne ℝ (set.mem_insert _ _),
         set.insert_diff_of_mem _ (set.mem_singleton _),
         set.diff_singleton_eq_self (λ h, hne (set.mem_singleton_iff.1 h)), set.image_singleton],

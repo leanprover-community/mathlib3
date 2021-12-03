@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import group_theory.submonoid.operations
+import data.fintype.basic
 
 /-!
 # Centers of magmas and monoids
@@ -31,6 +32,10 @@ def center [has_mul M] : set M := {z | ∀ m, m * z = z * m}
 
 @[to_additive mem_add_center]
 lemma mem_center_iff [has_mul M] {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
+
+instance decidable_mem_center [has_mul M] [decidable_eq M] [fintype M] :
+  decidable_pred (∈ center M) :=
+λ _, decidable_of_iff' _ (mem_center_iff M)
 
 @[simp, to_additive zero_mem_add_center]
 lemma one_mem_center [mul_one_class M] : (1 : M) ∈ set.center M := by simp [mem_center_iff]
@@ -127,6 +132,9 @@ def center : submonoid M :=
 variables {M}
 
 @[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
+
+instance decidable_mem_center [decidable_eq M] [fintype M] : decidable_pred (∈ center M) :=
+λ _, decidable_of_iff' _ mem_center_iff
 
 /-- The center of a monoid is commutative. -/
 instance : comm_monoid (center M) :=

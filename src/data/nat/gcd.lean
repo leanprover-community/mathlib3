@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import data.nat.pow
+import algebra.group_power.order
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -137,17 +137,28 @@ by rw [gcd_comm, gcd_gcd_self_right_right]
 @[simp] lemma gcd_gcd_self_left_left (m n : ℕ) : gcd (gcd m n) m = gcd m n :=
 by rw [gcd_comm m n, gcd_gcd_self_left_right]
 
-lemma gcd_add_mul_self (m n k : ℕ) : gcd m (n + k * m) = gcd m n :=
+@[simp] lemma gcd_add_mul_self (m n k : ℕ) : gcd m (n + k * m) = gcd m n :=
 by simp [gcd_rec m (n + k * m), gcd_rec m n]
 
-theorem gcd_eq_zero_iff {i j : ℕ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
+@[simp] lemma gcd_add_self_right (m n : ℕ) : gcd m (n + m) = gcd m n :=
+eq.trans (by rw one_mul) (gcd_add_mul_self m n 1)
+
+@[simp] lemma gcd_add_self_left (m n : ℕ) : gcd (m + n) n = gcd m n :=
+by rw [gcd_comm, gcd_add_self_right, gcd_comm]
+
+@[simp] lemma gcd_self_add_left (m n : ℕ) : gcd (m + n) m = gcd n m :=
+by rw [add_comm, gcd_add_self_left]
+
+@[simp] lemma gcd_self_add_right (m n : ℕ) : gcd m (m + n) = gcd m n :=
+by rw [add_comm, gcd_add_self_right]
+
+@[simp] theorem gcd_eq_zero_iff {i j : ℕ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
 begin
   split,
   { intro h,
     exact ⟨eq_zero_of_gcd_eq_zero_left h, eq_zero_of_gcd_eq_zero_right h⟩, },
-  { intro h,
-    rw [h.1, h.2],
-    exact nat.gcd_zero_right _ }
+  { rintro ⟨rfl, rfl⟩,
+    exact nat.gcd_zero_right 0 }
 end
 
 /-! ### `lcm` -/
@@ -218,7 +229,10 @@ instance (m n : ℕ) : decidable (coprime m n) := by unfold coprime; apply_insta
 
 theorem coprime_iff_gcd_eq_one {m n : ℕ} : coprime m n ↔ gcd m n = 1 := iff.rfl
 
-theorem coprime.gcd_eq_one {m n : ℕ} : coprime m n → gcd m n = 1 := id
+theorem coprime.gcd_eq_one {m n : ℕ} (h : coprime m n) : gcd m n = 1 := h
+
+theorem coprime.lcm_eq_mul {m n : ℕ} (h : coprime m n) : lcm m n = m * n :=
+by rw [←one_mul (lcm m n), ←h.gcd_eq_one, gcd_mul_lcm]
 
 theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n).trans
 
@@ -230,6 +244,12 @@ by rwa [gcd_mul_left, H1.gcd_eq_one, mul_one] at t
 
 theorem coprime.dvd_of_dvd_mul_left {m n k : ℕ} (H1 : coprime k m) (H2 : k ∣ m * n) : k ∣ n :=
 by rw mul_comm at H2; exact H1.dvd_of_dvd_mul_right H2
+
+theorem coprime.dvd_mul_right {m n k : ℕ} (H : coprime k n) : k ∣ m * n ↔ k ∣ m :=
+⟨H.dvd_of_dvd_mul_right, λ h, dvd_mul_of_dvd_left h n⟩
+
+theorem coprime.dvd_mul_left {m n k : ℕ} (H : coprime k m) : k ∣ m * n ↔ k ∣ n :=
+⟨H.dvd_of_dvd_mul_left, λ h, dvd_mul_of_dvd_right h m⟩
 
 theorem coprime.gcd_mul_left_cancel {k : ℕ} (m : ℕ) {n : ℕ} (H : coprime k n) :
    gcd (k * m) n = gcd m n :=
@@ -268,6 +288,18 @@ theorem exists_coprime {m n : ℕ} (H : 0 < gcd m n) :
 theorem exists_coprime' {m n : ℕ} (H : 0 < gcd m n) :
   ∃ g m' n', 0 < g ∧ coprime m' n' ∧ m = m' * g ∧ n = n' * g :=
 let ⟨m', n', h⟩ := exists_coprime H in ⟨_, m', n', H, h⟩
+
+@[simp] theorem coprime_add_self_right {m n : ℕ} : coprime m (n + m) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_self_right]
+
+@[simp] theorem coprime_self_add_right {m n : ℕ} : coprime m (m + n) ↔ coprime m n :=
+by rw [add_comm, coprime_add_self_right]
+
+@[simp] theorem coprime_add_self_left {m n : ℕ} : coprime (m + n) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_self_left]
+
+@[simp] theorem coprime_self_add_left {m n : ℕ} : coprime (m + n) m ↔ coprime n m :=
+by rw [coprime, coprime, gcd_self_add_left]
 
 theorem coprime.mul {m n k : ℕ} (H1 : coprime m k) (H2 : coprime n k) : coprime (m * n) k :=
 (H1.gcd_mul_left_cancel n).trans H2
@@ -385,12 +417,12 @@ def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :
   { d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1 * d.2 } :=
 begin
 cases h0 : (gcd k m),
-case nat.zero {
-  have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
+case nat.zero
+{ have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
   have : m = 0 := eq_zero_of_gcd_eq_zero_right h0, subst this,
   exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
-case nat.succ : tmp {
-  have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
+case nat.succ : tmp
+{ have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
   have hd : gcd k m * (k / gcd k m) = k := (nat.mul_div_cancel' (gcd_dvd_left k m)),
   refine ⟨⟨⟨gcd k m,  gcd_dvd_right k m⟩, ⟨k / gcd k m, _⟩⟩, hd.symm⟩,
   apply dvd_of_mul_dvd_mul_left hpos,
@@ -442,6 +474,16 @@ begin
     transitivity c.gcd (a * b),
     rw [h, gcd_mul_right_right d c],
     apply gcd_mul_dvd_mul_gcd }
+end
+
+/-- If `k:ℕ` divides coprime `a` and `b` then `k = 1` -/
+lemma eq_one_of_dvd_coprimes {a b k : ℕ} (h_ab_coprime : coprime a b)
+  (hka : k ∣ a) (hkb : k ∣ b) : k = 1  :=
+begin
+  rw coprime_iff_gcd_eq_one at h_ab_coprime,
+  have h1 := dvd_gcd hka hkb,
+  rw h_ab_coprime at h1,
+  exact nat.dvd_one.mp h1,
 end
 
 end nat

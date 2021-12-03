@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.char_p
+import algebra.char_p.pi
+import algebra.char_p.quotient
+import algebra.char_p.subring
 import algebra.ring.pi
 import analysis.special_functions.pow
 import field_theory.perfect_closure
 import ring_theory.localization
-import ring_theory.subring
+import ring_theory.subring.basic
 import ring_theory.valuation.integers
 
 /-!
@@ -129,7 +131,7 @@ nat.rec_on m rfl $ λ m ih, by erw [function.iterate_succ_apply', coeff_frobeniu
 
 lemma coeff_iterate_frobenius' (f : ring.perfection R p) (n m : ℕ) (hmn : m ≤ n) :
   coeff R p n (frobenius _ p ^[m] f) = coeff R p (n - m) f :=
-eq.symm $ (coeff_iterate_frobenius _ _ m).symm.trans $ (nat.sub_add_cancel hmn).symm ▸ rfl
+eq.symm $ (coeff_iterate_frobenius _ _ m).symm.trans $ (tsub_add_cancel_of_le hmn).symm ▸ rfl
 
 lemma pth_root_frobenius : (pth_root R p).comp (frobenius _ p) = ring_hom.id _ :=
 ring_hom.ext $ λ x, ext $ λ n,
@@ -490,14 +492,15 @@ lemma val_aux_mul (f g : pre_tilt K v O hv p) :
 begin
   by_cases hf : f = 0, { rw [hf, zero_mul, val_aux_zero, zero_mul] },
   by_cases hg : g = 0, { rw [hg, mul_zero, val_aux_zero, mul_zero] },
-  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfection.ext h),
-  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfection.ext h),
-  obtain ⟨m, hm⟩ := hf, obtain ⟨n, hn⟩ := hg,
+  obtain ⟨m, hm⟩ : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfection.ext h),
+  obtain ⟨n, hn⟩ : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfection.ext h),
   replace hm := coeff_ne_zero_of_le hm (le_max_left m n),
   replace hn := coeff_ne_zero_of_le hn (le_max_right m n),
   have hfg : coeff _ _ (max m n + 1) (f * g) ≠ 0,
-  { rw ring_hom.map_mul, refine mod_p.mul_ne_zero_of_pow_p_ne_zero _ _;
-    rw [← ring_hom.map_pow, coeff_pow_p]; assumption },
+  { rw ring_hom.map_mul,
+    refine mod_p.mul_ne_zero_of_pow_p_ne_zero _ _,
+    { rw [← ring_hom.map_pow, coeff_pow_p f], assumption },
+    { rw [← ring_hom.map_pow, coeff_pow_p g], assumption } },
   rw [val_aux_eq (coeff_add_ne_zero hm 1), val_aux_eq (coeff_add_ne_zero hn 1), val_aux_eq hfg],
   rw ring_hom.map_mul at hfg ⊢, rw [mod_p.pre_val_mul hfg, mul_pow]
 end
@@ -544,7 +547,7 @@ end
 
 end classical
 
-instance : integral_domain (pre_tilt K v O hv p) :=
+instance : is_domain (pre_tilt K v O hv p) :=
 { exists_pair_ne := (char_p.nontrivial_of_char_ne_one hp.1.ne_one).1,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ f g hfg,
     by { simp_rw ← map_eq_zero at hfg ⊢, contrapose! hfg, rw valuation.map_mul,

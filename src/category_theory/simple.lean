@@ -97,7 +97,6 @@ lemma simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso 
   { introsI,
     have hx := cokernel.π_of_epi f,
     by_contradiction h,
-    push_neg at h,
     substI h,
     exact (h _).mp (cokernel.π_of_zero _ _) hx },
   { intro hf,

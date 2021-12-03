@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
-import algebra.opposites
+import algebra.group.opposite
 
 /-!
 # Monoid, group etc structures on `M × N`
@@ -103,10 +103,10 @@ instance [monoid M] [monoid N] : monoid (M × N) :=
 @[to_additive]
 instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
 { div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
-  gpow := λ z a, ⟨div_inv_monoid.gpow z a.1, div_inv_monoid.gpow z a.2⟩,
-  gpow_zero' := λ z, ext (div_inv_monoid.gpow_zero' _) (div_inv_monoid.gpow_zero' _),
-  gpow_succ' := λ z a, ext (div_inv_monoid.gpow_succ' _ _) (div_inv_monoid.gpow_succ' _ _),
-  gpow_neg' := λ z a, ext (div_inv_monoid.gpow_neg' _ _) (div_inv_monoid.gpow_neg' _ _),
+  zpow := λ z a, ⟨div_inv_monoid.zpow z a.1, div_inv_monoid.zpow z a.2⟩,
+  zpow_zero' := λ z, ext (div_inv_monoid.zpow_zero' _) (div_inv_monoid.zpow_zero' _),
+  zpow_succ' := λ z a, ext (div_inv_monoid.zpow_succ' _ _) (div_inv_monoid.zpow_succ' _ _),
+  zpow_neg' := λ z a, ext (div_inv_monoid.zpow_neg' _ _) (div_inv_monoid.zpow_neg' _ _),
   .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
 @[to_additive]
@@ -337,11 +337,11 @@ end mul_equiv
 
 section units
 
-open opposite
+open mul_opposite
 
-/-- Canonical homomorphism of monoids from `units α` into `α × αᵒᵖ`.
+/-- Canonical homomorphism of monoids from `units α` into `α × αᵐᵒᵖ`.
 Used mainly to define the natural topology of `units α`. -/
-def embed_product (α : Type*) [monoid α] : units α →* α × αᵒᵖ :=
+def embed_product (α : Type*) [monoid α] : units α →* α × αᵐᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
   map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
     and_self],

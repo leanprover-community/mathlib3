@@ -58,7 +58,7 @@ https://gist.github.com/jcommelin/47d94e4af092641017a97f7f02bf9598
 
 noncomputable theory
 
-universe variables u v
+universes u v
 
 open_locale big_operators
 

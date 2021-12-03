@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
+import order.filter.pi
 import topology.bases
 import data.finset.order
 import data.set.accumulate
@@ -28,10 +29,11 @@ For each of these definitions (except for `is_clopen`), we also have a class sta
 space satisfies that property:
 `compact_space`, `irreducible_space`
 
-Furthermore, we have two more classes:
+Furthermore, we have three more classes:
 * `locally_compact_space`: for every point `x`, every open neighborhood of `x` contains a compact
   neighborhood of `x`. The definition is formulated in terms of the neighborhood filter.
-* `sigma_compact_space`: a space that is the union of a countably many compact subspaces.
+* `sigma_compact_space`: a space that is the union of a countably many compact subspaces;
+* `noncompact_space`: a space that is not a compact space.
 
 ## On the definition of irreducible and connected sets/spaces
 
@@ -48,7 +50,7 @@ open set filter classical topological_space
 open_locale classical topological_space filter
 
 universes u v
-variables {α : Type u} {β : Type v} [topological_space α] {s t : set α}
+variables {α : Type u} {β : Type v}  {ι : Type*} {π : ι → Type*} [topological_space α] {s t : set α}
 
 /- compact sets -/
 section compact
@@ -582,27 +584,30 @@ lemma is_closed.is_compact [compact_space α] {s : set α} (h : is_closed s) :
   is_compact s :=
 compact_of_is_closed_subset compact_univ h (subset_univ _)
 
-lemma filter.cocompact_ne_bot_tfae (α : Type*) [topological_space α] :
-  tfae [ne_bot (filter.cocompact α),
-    ne_bot (filter.coclosed_compact α),
-    ¬is_compact (univ : set α),
-    ¬compact_space α] :=
+/-- `α` is a noncompact topological space if it not a compact space. -/
+class noncompact_space (α : Type*) [topological_space α] : Prop :=
+(noncompact_univ [] : ¬is_compact (univ : set α))
+
+export noncompact_space (noncompact_univ)
+
+instance [noncompact_space α] : ne_bot (filter.cocompact α) :=
 begin
-  tfae_have : 1 → 2, from λ h, h.mono filter.cocompact_le_coclosed_compact,
-  tfae_have : 3 ↔ 4, from not_congr is_compact_univ_iff,
-  tfae_have : 2 → 3, from λ h₁ h₂, (filter.has_basis_coclosed_compact.ne_bot_iff.1 h₁
-    ⟨is_closed_univ, h₂⟩).ne_empty compl_univ,
-  tfae_have : 3 → 1,
-  { refine λ h₁, filter.has_basis_cocompact.ne_bot_iff.2 (λ s hs, _),
-    contrapose! h₁, rw [not_nonempty_iff_eq_empty, compl_empty_iff] at h₁,
-    rwa ← h₁ },
-  tfae_finish
+  refine filter.has_basis_cocompact.ne_bot_iff.2 (λ s hs, _),
+  contrapose hs, rw [not_nonempty_iff_eq_empty, compl_empty_iff] at hs,
+  rw hs, exact noncompact_univ α
 end
 
-/-- `ne_bot (cocompact α)` is the canonical way to say that `α` is not a compact space using
-typeclasses. -/
-instance [ne_bot (filter.cocompact α)] : ne_bot (filter.coclosed_compact α) :=
-((filter.cocompact_ne_bot_tfae α).out 0 1).mp ‹_›
+instance [noncompact_space α] : ne_bot (filter.coclosed_compact α) :=
+ne_bot_of_le filter.cocompact_le_coclosed_compact
+
+lemma noncompact_space_of_ne_bot (h : ne_bot (filter.cocompact α)) : noncompact_space α :=
+⟨λ h', (filter.nonempty_of_mem h'.compl_mem_cocompact).ne_empty compl_univ⟩
+
+lemma filter.cocompact_ne_bot_iff : ne_bot (filter.cocompact α) ↔ noncompact_space α :=
+⟨noncompact_space_of_ne_bot, @filter.cocompact.filter.ne_bot _ _⟩
+
+lemma not_compact_space_iff : ¬compact_space α ↔ noncompact_space α :=
+⟨λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩, λ ⟨h₁⟩ ⟨h₂⟩, h₁ h₂⟩
 
 /-- A compact discrete space is finite. -/
 noncomputable
@@ -752,6 +757,14 @@ by rw [compact_iff_compact_in_subtype, image_univ, subtype.range_coe]; refl
 lemma is_compact_iff_compact_space {s : set α} : is_compact s ↔ compact_space s :=
 is_compact_iff_is_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
 
+protected lemma closed_embedding.noncompact_space [noncompact_space α] {f : α → β}
+  (hf : closed_embedding f) : noncompact_space β :=
+noncompact_space_of_ne_bot hf.tendsto_cocompact.ne_bot
+
+protected lemma closed_embedding.compact_space [h : compact_space β] {f : α → β}
+  (hf : closed_embedding f) : compact_space α :=
+by { unfreezingI { contrapose! h, rw not_compact_space_iff at h ⊢ }, exact hf.noncompact_space }
+
 lemma is_compact.prod {s : set α} {t : set β} (hs : is_compact s) (ht : is_compact t) :
   is_compact (set.prod s t) :=
 begin
@@ -799,9 +812,17 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   exact (is_compact_range continuous_inl).union (is_compact_range continuous_inr)
 end⟩
 
+instance [fintype ι] [Π i, topological_space (π i)] [∀ i, compact_space (π i)] :
+  compact_space (Σ i, π i) :=
+begin
+  refine ⟨_⟩,
+  rw sigma.univ,
+  exact compact_Union (λ i, is_compact_range continuous_sigma_mk),
+end
+
 /-- The coproduct of the cocompact filters on two topological spaces is the cocompact filter on
 their product. -/
-lemma filter.coprod_cocompact {β : Type*} [topological_space β]:
+lemma filter.coprod_cocompact :
   (filter.cocompact α).coprod (filter.cocompact β) = filter.cocompact (α × β) :=
 begin
   ext S,
@@ -827,27 +848,39 @@ begin
       exact subset.trans htS (subset_preimage_image prod.snd _) } }
 end
 
+lemma prod.noncompact_space_iff :
+  noncompact_space (α × β) ↔ noncompact_space α ∧ nonempty β ∨ nonempty α ∧ noncompact_space β :=
+by simp [← filter.cocompact_ne_bot_iff, ← filter.coprod_cocompact, filter.coprod_ne_bot_iff]
+
+@[priority 100] -- See Note [lower instance priority]
+instance prod.noncompact_space_left [noncompact_space α] [nonempty β] : noncompact_space (α × β) :=
+prod.noncompact_space_iff.2 (or.inl ⟨‹_›, ‹_›⟩)
+
+@[priority 100] -- See Note [lower instance priority]
+instance prod.noncompact_space_right [nonempty α] [noncompact_space β] : noncompact_space (α × β) :=
+prod.noncompact_space_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
+
 section tychonoff
-variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
+variables [Π i, topological_space (π i)]
 
 /-- **Tychonoff's theorem** -/
 lemma is_compact_pi_infinite {s : Π i, set (π i)} :
   (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
-  simp only [is_compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff,
-    le_principal_iff],
+  simp only [is_compact_iff_ultrafilter_le_nhds, nhds_pi, filter.pi, exists_prop, mem_set_of_eq,
+    le_infi_iff, le_principal_iff],
   intros h f hfs,
   have : ∀i:ι, ∃a, a∈s i ∧ tendsto (λx:Πi:ι, π i, x i) f (𝓝 a),
   { refine λ i, h i (f.map _) (mem_map.2 _),
     exact mem_of_superset hfs (λ x hx, hx i) },
   choose a ha,
-  exact  ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
+  exact ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
 end
 
 /-- A version of Tychonoff's theorem that uses `set.pi`. -/
 lemma is_compact_univ_pi {s : Π i, set (π i)} (h : ∀ i, is_compact (s i)) :
   is_compact (pi univ s) :=
-by { convert is_compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ] }
+by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq] }
 
 instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨by { rw [← pi_univ univ], exact is_compact_univ_pi (λ i, compact_univ) }⟩
@@ -856,33 +889,14 @@ instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π
 lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
   filter.Coprod (λ d, filter.cocompact (κ d)) = filter.cocompact (Π d, κ d) :=
 begin
-  ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap, filter.mem_cocompact],
+  ext S, rcases compl_surjective S with ⟨S, rfl⟩,
+  simp_rw [compl_mem_Coprod_iff, filter.mem_cocompact, compl_subset_compl],
   split,
-  { intros h,
-    rw filter.mem_Coprod_iff at h,
-    choose t ht1 ht2 using h,
-    choose t1 ht11 ht12 using λ d, filter.mem_cocompact.mp (ht1 d),
-    refine ⟨set.pi set.univ t1, _, _⟩,
-    { convert is_compact_pi_infinite ht11,
-      ext,
-      simp },
-    { refine subset.trans _ (set.Union_subset ht2),
-      intros x,
-      simp only [mem_Union, mem_univ_pi, exists_imp_distrib, mem_compl_eq, not_forall],
-      intros d h,
-      exact ⟨d, ht12 d h⟩ } },
-  { rintros ⟨t, h1, h2⟩,
-    rw filter.mem_Coprod_iff,
-    intros d,
-    refine ⟨((λ (k : Π (d : δ), κ d), k d) '' t)ᶜ, _, _⟩,
-    { rw filter.mem_cocompact,
-      refine ⟨(λ (k : Π (d : δ), κ d), k d) '' t, _, set.subset.refl _⟩,
-      exact is_compact.image h1 (continuous_pi_iff.mp (continuous_id) d) },
-    refine subset.trans _ h2,
-    intros x hx,
-    simp only [not_exists, mem_image, mem_preimage, mem_compl_eq] at hx,
-    simpa using mt (hx x) },
+  { rintro ⟨t, H, hSt⟩, choose K hKc htK using H,
+    exact ⟨set.pi univ K, is_compact_univ_pi hKc, hSt.trans $ pi_mono $ λ i _, htK i⟩ },
+  { rintro ⟨K, hKc, hSK⟩,
+    exact ⟨λ i, function.eval i '' K, λ i, ⟨_, hKc.image (continuous_apply i), subset.rfl⟩,
+      hSK.trans $ subset_pi_eval_image _ _⟩ }
 end
 
 end tychonoff
@@ -1103,7 +1117,7 @@ structure compact_exhaustion (X : Type*) [topological_space X] :=
 
 namespace compact_exhaustion
 
-instance : has_coe_to_fun (compact_exhaustion α) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (compact_exhaustion α) (λ _, ℕ → set α) := ⟨to_fun⟩
 
 variables {α} (K : compact_exhaustion α)
 
@@ -1242,6 +1256,10 @@ end
 
 @[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=
 ⟨is_open_discrete _, is_closed_discrete _⟩
+
+lemma clopen_range_sigma_mk {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)] {i : ι} :
+  is_clopen (set.range (@sigma.mk ι σ i)) :=
+⟨open_embedding_sigma_mk.open_range, closed_embedding_sigma_mk.closed_range⟩
 
 end clopen
 

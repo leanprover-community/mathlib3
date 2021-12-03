@@ -193,6 +193,10 @@ lemma vsub_mem_vsub {ps pt : P} (hs : ps ∈ s) (ht : pt ∈ t) :
   (ps -ᵥ pt) ∈ s -ᵥ t :=
 mem_image2_of_mem hs ht
 
+@[simp] lemma mem_vsub {s t : set P} (g : G) :
+  g ∈ s -ᵥ t ↔ ∃ (x y : P), x ∈ s ∧ y ∈ t ∧ x -ᵥ y = g :=
+mem_image2
+
 /-- `s -ᵥ t` is monotone in both arguments. -/
 @[mono] lemma vsub_subset_vsub {s' t' : set P} (hs : s ⊆ s') (ht : t ⊆ t') :
   s -ᵥ t ⊆ s' -ᵥ t' :=
@@ -217,7 +221,8 @@ variables {s s' : set G} {t t' : set P}
 @[mono] lemma vadd_subset_vadd (hs : s ⊆ s') (ht : t ⊆ t') : s +ᵥ t ⊆ s' +ᵥ t' :=
 image2_subset hs ht
 
-@[simp] lemma vadd_singleton (s : set G) (p : P) : s +ᵥ {p} = (+ᵥ p) '' s := image2_singleton_right
+@[simp] lemma set_vadd_singleton (s : set G) (p : P) : s +ᵥ {p} = (+ᵥ p) '' s :=
+image2_singleton_right
 
 lemma finite.vadd (hs : finite s) (ht : finite t) : finite (s +ᵥ t) := hs.image2 _ ht
 

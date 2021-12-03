@@ -99,9 +99,8 @@ variables (b b₁ : basis ι R M) (i : ι) (c : R) (x : M)
 section repr
 
 /-- `b i` is the `i`th basis vector. -/
-instance : has_coe_to_fun (basis ι R M) :=
-{ F := λ _, ι → M,
-  coe := λ b i, b.repr.symm (finsupp.single i 1) }
+instance : has_coe_to_fun (basis ι R M) (λ _, ι → M) :=
+{ coe := λ b i, b.repr.symm (finsupp.single i 1) }
 
 @[simp] lemma coe_of_repr (e : M ≃ₗ[R] (ι →₀ R)) :
   ⇑(of_repr e) = λ i, e.symm (finsupp.single i 1) :=
@@ -280,6 +279,8 @@ section map_coeffs
 variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (x : M), f c • x = c • x)
 
 include f h b
+
+local attribute [instance] has_scalar.comp.is_scalar_tower
 
 /-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
 then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.
@@ -617,6 +618,23 @@ protected lemma smul_eq_zero [no_zero_divisors R] (b : basis ι R M) {c : R} {x 
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
 @smul_eq_zero _ _ _ _ _ b.no_zero_smul_divisors _ _
 
+lemma _root_.eq_bot_of_rank_eq_zero [no_zero_divisors R] (b : basis ι R M) (N : submodule R M)
+  (rank_eq : ∀ {m : ℕ} (v : fin m → N),
+    linear_independent R (coe ∘ v : fin m → M) → m = 0) :
+  N = ⊥ :=
+begin
+  rw submodule.eq_bot_iff,
+  intros x hx,
+  contrapose! rank_eq with x_ne,
+  refine ⟨1, λ _, ⟨x, hx⟩, _, one_ne_zero⟩,
+  rw fintype.linear_independent_iff,
+  rintros g sum_eq i,
+  cases i,
+  simp only [function.const_apply, fin.default_eq_zero, submodule.coe_mk, finset.univ_unique,
+             function.comp_const, finset.sum_singleton] at sum_eq,
+  convert (b.smul_eq_zero.mp sum_eq).resolve_right x_ne
+end
+
 end no_zero_smul_divisors
 
 section singleton
@@ -870,6 +888,32 @@ show finsupp.total _ _ _ v _ = v i, by simp
 @[simp] lemma coe_mk : ⇑(basis.mk hli hsp) = v :=
 funext (mk_apply _ _)
 
+variables {hli hsp}
+
+/-- Given a basis, the `i`th element of the dual basis evaluates to 1 on the `i`th element of the
+basis. -/
+lemma mk_coord_apply_eq (i : ι) :
+  (basis.mk hli hsp).coord i (v i) = 1 :=
+show hli.repr ⟨v i, submodule.subset_span (mem_range_self i)⟩ i = 1,
+by simp [hli.repr_eq_single i]
+
+/-- Given a basis, the `i`th element of the dual basis evaluates to 0 on the `j`th element of the
+basis if `j ≠ i`. -/
+lemma mk_coord_apply_ne {i j : ι} (h : j ≠ i) :
+  (basis.mk hli hsp).coord i (v j) = 0 :=
+show hli.repr ⟨v j, submodule.subset_span (mem_range_self j)⟩ i = 0,
+by simp [hli.repr_eq_single j, h]
+
+/-- Given a basis, the `i`th element of the dual basis evaluates to the Kronecker delta on the
+`j`th element of the basis. -/
+lemma mk_coord_apply {i j : ι} :
+  (basis.mk hli hsp).coord i (v j) = if j = i then 1 else 0 :=
+begin
+  cases eq_or_ne j i,
+  { simp only [h, if_true, eq_self_iff_true, mk_coord_apply_eq i], },
+  { simp only [h, if_false, mk_coord_apply_ne h], },
+end
+
 end mk
 
 section span
@@ -999,6 +1043,47 @@ end fin
 end basis
 
 end module
+
+section induction
+
+variables [ring R] [is_domain R]
+variables [add_comm_group M] [module R M] {b : ι → M}
+
+/-- If `N` is a submodule with finite rank, do induction on adjoining a linear independent
+element to a submodule. -/
+def submodule.induction_on_rank_aux (b : basis ι R M) (P : submodule R M → Sort*)
+  (ih : ∀ (N : submodule R M),
+    (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') → P N)
+  (n : ℕ) (N : submodule R M)
+  (rank_le : ∀ {m : ℕ} (v : fin m → N),
+    linear_independent R (coe ∘ v : fin m → M) → m ≤ n) :
+  P N :=
+begin
+  haveI : decidable_eq M := classical.dec_eq M,
+  have Pbot : P ⊥,
+  { apply ih,
+    intros N N_le x x_mem x_ortho,
+    exfalso,
+    simpa using x_ortho 1 0 N.zero_mem },
+
+  induction n with n rank_ih generalizing N,
+  { suffices : N = ⊥,
+    { rwa this },
+    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, nat.le_zero_iff.mp (rank_le v hv)) },
+  apply ih,
+  intros N' N'_le x x_mem x_ortho,
+  apply rank_ih,
+  intros m v hli,
+  refine nat.succ_le_succ_iff.mp (rank_le (fin.cons ⟨x, x_mem⟩ (λ i, ⟨v i, N'_le (v i).2⟩)) _),
+  convert hli.fin_cons' x _ _,
+  { ext i, refine fin.cases _ _ i; simp },
+  { intros c y hcy,
+    refine x_ortho c y (submodule.span_le.mpr _ y.2) hcy,
+    rintros _ ⟨z, rfl⟩,
+    exact (v z).2 }
+end
+
+end induction
 
 section division_ring
 

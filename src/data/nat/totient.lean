@@ -229,22 +229,6 @@ end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
-
-variables {α M N : Type*}
-
-
-
-lemma finsupp.prod_congr [has_zero M] [comm_monoid N] {f : α →₀ M} (g1 g2 : α → M → N) :
-  (∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) → (f.prod g1 = f.prod g2) :=
-fold_congr
-
--- TODO: Generalise this
-lemma finsupp.prod_coe [has_zero M] {f : α →₀ M} (g : α → M → ℕ) :
-  f.prod (λ a b, (↑(g a b):ℚ)) = ↑(f.prod g) :=
-by push_cast [finsupp.prod]
-
----------------------------------------------------------------------------------------------------
-
 theorem totient_Euler_product_formula (n:ℕ) :
   ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹:ℚ)
   :=
@@ -258,23 +242,20 @@ begin
 -- Since φ is multiplicative (and primes are coprime) we can rewrite φ n
   rw (multiplicative_factorization hn0 (λ a b, totient_mul) totient_one),
 
--- So if we rebase the product over prime factors ...
-  simp only [←(rebase_prod_prime_factorization (λ x, (1 - (↑x:ℚ)⁻¹)))],
+-- So if we rebase the product over prime factors we can gather the RHS into a single product
+  simp only [←rebase_prod_prime_factorization, cast_finsupp_prod, ←finsupp.prod_mul],
 
--- ... we can gather the RHS into a single product
-  simp only [←finsupp.prod_coe, ←finsupp.prod_mul],
-
--- So now it suffices to prove that the multiplicands are equal
-  apply finsupp.prod_congr _ _,
-
+-- and so it suffices to prove that the multiplicands are equal
+  apply prod_congr rfl,
   intros p hp,
   set k := n.prime_factorization p,
+  simp only [nat.cast_pow],
 
   have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
   have hp_pos : 0 < p := prime.pos hpp,
   have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp_pos.ne',
 
-  have hk : 0 < k, { rwa [finsupp.mem_support_iff, ←zero_lt_iff] at hp },
+  have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
   rw totient_prime_pow hpp hk,
 
   -- Finally, we need to prove: ↑(p ^ (k - 1) * (p - 1)) = ↑p ^ k * (1 - (↑p)⁻¹)

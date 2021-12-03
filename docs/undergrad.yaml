@@ -37,7 +37,7 @@ Linear algebra:
     determinant of vectors: 'basis.det'
     determinant of endomorphisms: 'linear_map.det'
     special linear group: 'https://en.wikipedia.org/wiki/Special_linear_group'
-    orientation of a $\R$-vector space: 'https://en.wikipedia.org/wiki/Orientation_(vector_space)'
+    orientation of a $\R$-vector space: 'orientation'
   Matrices:
     commutative-ring-valued matrices: 'matrix'
     field-valued matrices: 'matrix'

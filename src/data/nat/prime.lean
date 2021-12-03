@@ -465,6 +465,13 @@ begin
     { exact factors_one }, }
 end
 
+lemma eq_of_perm_factors {a b : ℕ} (ha : 0 < a) (hb : 0 < b) (h : a.factors ~ b.factors) : a = b :=
+by simpa [prod_factors ha, prod_factors hb] using list.perm.prod_eq h
+
+lemma eq_of_count_factors_eq {a b : ℕ} (ha : 0 < a) (hb : 0 < b)
+  (h : ∀ p : ℕ, list.count p a.factors = list.count p b.factors) : a = b :=
+eq_of_perm_factors ha hb (list.perm_iff_count.mpr h)
+
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
  λ nd, coprime_of_dvd $ λ m m2 mp, ((prime_dvd_prime_iff_eq m2 pp).1 mp).symm ▸ nd⟩
@@ -579,6 +586,22 @@ theorem coprime_pow_primes {p q : ℕ} (n m : ℕ) (pp : prime p) (pq : prime q)
 theorem coprime_or_dvd_of_prime {p} (pp : prime p) (i : ℕ) : coprime p i ∨ p ∣ i :=
 by rw [pp.dvd_iff_not_coprime]; apply em
 
+lemma coprime_of_lt_prime {n p} (n_pos : 0 < n) (hlt : n < p) (pp : prime p) :
+  coprime p n :=
+begin
+   cases coprime_or_dvd_of_prime pp n,
+   { exact h },
+   { exfalso, exact lt_le_antisymm hlt (le_of_dvd n_pos h) },
+end
+
+lemma eq_or_coprime_of_le_prime {n p} (n_pos : 0 < n) (hle : n ≤ p) (pp : prime p) :
+  p = n ∨ coprime p n :=
+begin
+  by_cases p = n,
+  { exact or.inl h, },
+  { right, exact coprime_of_lt_prime n_pos ((ne.symm h).le_iff_lt.mp hle) pp },
+end
+
 theorem dvd_prime_pow {p : ℕ} (pp : prime p) {m i : ℕ} : i ∣ (p^m) ↔ ∃ k ≤ m, i = p^k :=
 begin
   induction m with m IH generalizing i, {simp [pow_succ, le_zero_iff] at *},
@@ -612,6 +635,20 @@ begin
   congr,
   exact le_antisymm h (not_le.1 ((not_congr (pow_dvd_pow_iff_le_right (prime.one_lt pp))).1 h₁)),
 end
+
+lemma ne_one_iff_exists_prime_dvd : ∀ {n}, n ≠ 1 ↔ ∃ p : ℕ, p.prime ∧ p ∣ n
+| 0 := by simpa using (Exists.intro 2 nat.prime_two)
+| 1 := by simp [nat.not_prime_one]
+| (n+2) :=
+let a := n+2 in
+let ha : a ≠ 1 := nat.succ_succ_ne_one n in
+begin
+  simp only [true_iff, ne.def, not_false_iff, ha],
+  exact ⟨a.min_fac, nat.min_fac_prime ha, a.min_fac_dvd⟩,
+end
+
+lemma eq_one_iff_not_exists_prime_dvd {n : ℕ} : n = 1 ↔ ∀ p : ℕ, p.prime → ¬p ∣ n :=
+by simpa using not_iff_not.mpr ne_one_iff_exists_prime_dvd
 
 section
 open list
@@ -725,6 +762,26 @@ begin
   rcases b.eq_zero_or_pos with rfl | hb,
   { simp [(coprime_zero_right _).mp hab] },
   exact perm_factors_mul_of_pos ha hb,
+end
+
+/-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma count_factors_mul_of_pos {p a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
+by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
+
+/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
+  list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
+by rw [perm_iff_count.mp (perm_factors_mul_of_coprime hab) p, count_append]
+
+/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
+lemma factors_count_pow {n k p : ℕ} : count p (n ^ k).factors = k * count p n.factors :=
+begin
+  induction k with k IH, { simp },
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp [zero_pow (succ_pos k), count_nil, factors_zero, mul_zero] },
+  rw [pow_succ n k, perm_iff_count.mp (perm_factors_mul_of_pos hn (pow_pos hn k)) p],
+  rw [list.count_append, IH, add_comm, mul_comm, ←mul_succ (count p n.factors) k, mul_comm],
 end
 
 end
@@ -1004,6 +1061,12 @@ namespace nat
 
 theorem prime_three : prime 3 := by norm_num
 
+/-- See note [fact non-instances].-/
+lemma fact_prime_two : fact (prime 2) := ⟨prime_two⟩
+
+/-- See note [fact non-instances].-/
+lemma fact_prime_three : fact (prime 3) := ⟨prime_three⟩
+
 end nat
 
 
@@ -1075,7 +1138,7 @@ for any `b` coprime to `a`. -/
 lemma factors_count_eq_of_coprime_left {p a b : ℕ} (hab : coprime a b) (hpa : p ∈ a.factors) :
   list.count p (a * b).factors = list.count p a.factors :=
 begin
-  rw [perm.count_eq (perm_factors_mul_of_coprime hab) p, count_append],
+  rw count_factors_mul_of_coprime hab,
   simpa only [count_eq_zero_of_not_mem (coprime_factors_disjoint hab hpa)],
 end
 

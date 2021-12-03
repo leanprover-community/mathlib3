@@ -337,7 +337,7 @@ def creates_colimit_of_fully_faithful_of_iso {K : J ⥤ C} {F : C ⥤ D}
 creates_colimit_of_fully_faithful_of_lift
 ({ X := X,
   ι :=
-  { app := λ j, F.preimage (colimit.ι (K ⋙ F) j ≫ i.inv),
+  { app := λ j, F.preimage (colimit.ι (K ⋙ F) j ≫ i.inv : _),
     naturality' := λ Y Z f, F.map_injective
       (by { erw category.comp_id, simp only [functor.map_comp, functor.image_preimage],
         erw colimit.w_assoc (K ⋙ F) }) }} : cocone K)

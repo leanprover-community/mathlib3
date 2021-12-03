@@ -6,7 +6,7 @@ Authors: Oliver Nash
 import analysis.normed_space.banach
 import analysis.normed_space.finite_dimension
 import analysis.convex.combination
-import linear_algebra.affine_space.barycentric_coords
+import linear_algebra.affine_space.basis
 import linear_algebra.affine_space.finite_dimensional
 
 /-!

@@ -258,6 +258,13 @@ theorem ext_ring_iff {σ : R →+* R} {f g : R →ₛₗ[σ] M} : f = g ↔ f 1 
 
 end
 
+/-- Interpret a `ring_hom` `f` as an `f`-semilinear map. -/
+@[simps]
+def _root_.ring_hom.to_semilinear_map (f : R →+* S) : R →ₛₗ[f] S :=
+{ to_fun := f,
+  map_smul' := f.map_mul,
+  .. f}
+
 section
 
 variables [semiring R₁] [semiring R₂] [semiring R₃]

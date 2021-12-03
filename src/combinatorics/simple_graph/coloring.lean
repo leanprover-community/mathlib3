@@ -230,7 +230,7 @@ lemma colorable_set_nonempty_of_colorable {n : ℕ} (hc : G.colorable n) :
 lemma chromatic_number_bdd_below : bdd_below {n : ℕ | G.colorable n} :=
 ⟨0, λ _ _, zero_le _⟩
 
-lemma chromatic_number_le_n_of_colorable {n : ℕ} (hc : G.colorable n) :
+lemma chromatic_number_le_of_colorable {n : ℕ} (hc : G.colorable n) :
   G.chromatic_number ≤ n :=
 begin
   rw chromatic_number,
@@ -239,7 +239,7 @@ begin
   exact classical.choice hc,
 end
 
-lemma chromatic_number_le [fintype α] (C : G.coloring α) :
+lemma chromatic_number_le_card [fintype α] (C : G.coloring α) :
   G.chromatic_number ≤ fintype.card α :=
 cInf_le chromatic_number_bdd_below C.to_colorable
 
@@ -296,8 +296,8 @@ begin
   exact nat.not_lt_zero _ hi,
 end
 
-lemma colorable_lower_bound {G' : simple_graph V} (h : G ≤ G') (n : ℕ) (hc : G'.colorable n) :
-  G.colorable n :=
+lemma colorable_of_le_colorable {G' : simple_graph V} (h : G ≤ G') (n : ℕ)
+  (hc : G'.colorable n) : G.colorable n :=
 ⟨hc.some.comp (hom.map_spanning_subgraphs h)⟩
 
 lemma chromatic_number_le_of_forall_imp {G' : simple_graph V}
@@ -310,20 +310,20 @@ begin
   apply colorable_chromatic_number hc,
 end
 
-lemma chromatic_number_lower_bound (G' : simple_graph V)
+lemma chromatic_number_le_of_le_colorable (G' : simple_graph V)
   {m : ℕ} (hc : G'.colorable m) (h : G ≤ G') :
   G.chromatic_number ≤ G'.chromatic_number :=
 begin
   apply chromatic_number_le_of_forall_imp hc,
-  exact colorable_lower_bound h,
+  exact colorable_of_le_colorable h,
 end
 
-lemma chromatic_number_minimal [fintype α] (C : G.coloring α)
+lemma chromatic_number_eq_card_of_forall_surj [fintype α] (C : G.coloring α)
   (h : ∀ (C' : G.coloring α), function.surjective C') :
   G.chromatic_number = fintype.card α :=
 begin
   apply le_antisymm,
-  { apply chromatic_number_le C, },
+  { apply chromatic_number_le_card C, },
   { by_contra hc,
     rw not_le at hc,
     obtain ⟨n, cn, hc⟩ := exists_lt_of_cInf_lt
@@ -344,14 +344,14 @@ begin
   let C : (⊥ : simple_graph V).coloring (fin 1) :=
     coloring.mk (λ _, 0) (λ v w h, false.elim h),
   apply le_antisymm,
-  { exact chromatic_number_le C, },
+  { exact chromatic_number_le_card C, },
   { exact zero_lt_chromatic_number C.to_colorable, },
 end
 
 lemma chromatic_number_complete_graph [fintype V] :
   (⊤ : simple_graph V).chromatic_number = fintype.card V :=
 begin
-  apply chromatic_number_minimal (self_coloring _),
+  apply chromatic_number_eq_card_of_forall_surj (self_coloring _),
   intro C,
   rw ←fintype.injective_iff_surjective,
   intros v w,
@@ -372,7 +372,7 @@ end
 lemma complete_bipartite_graph.chromatic_number {V W : Type*} [nonempty V] [nonempty W] :
   (complete_bipartite_graph V W).chromatic_number = 2 :=
 begin
-  apply chromatic_number_minimal (complete_bipartite_graph.bicoloring V W),
+  apply chromatic_number_eq_card_of_forall_surj (complete_bipartite_graph.bicoloring V W),
   intros C b,
   have v := classical.arbitrary V,
   have w := classical.arbitrary W,

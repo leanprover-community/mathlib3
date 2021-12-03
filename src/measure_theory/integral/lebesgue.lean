@@ -1126,7 +1126,7 @@ by simp only [h]
 
 lemma set_lintegral_congr {f : α → ℝ≥0∞} {s t : set α} (h : s =ᵐ[μ] t) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
-by rw [restrict_congr_set h]
+by rw [measure.restrict_congr_set h]
 
 lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measurable_set s)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
@@ -2031,7 +2031,7 @@ lemma with_density_add {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measu
   μ.with_density (f + g) = μ.with_density f + μ.with_density g :=
 begin
   refine measure.ext (λ s hs, _),
-  rw [with_density_apply _ hs, measure.coe_add, pi.add_apply,
+  rw [with_density_apply _ hs, measure.add_apply,
       with_density_apply _ hs, with_density_apply _ hs, ← lintegral_add hf hg],
   refl,
 end

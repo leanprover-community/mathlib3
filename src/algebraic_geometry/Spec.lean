@@ -50,23 +50,17 @@ def Spec.Top_obj (R : CommRing) : Top := Top.of (prime_spectrum R)
 /--
 The induced map of a ring homomorphism on the ring spectra, as a morphism of topological spaces.
 -/
-@[simps] def Spec.Top_map {R S : CommRing} (f : R ⟶ S) :
+def Spec.Top_map {R S : CommRing} (f : R ⟶ S) :
   Spec.Top_obj S ⟶ Spec.Top_obj R :=
-{ to_fun := prime_spectrum.comap f,
-  continuous_to_fun := prime_spectrum.comap_continuous f }
+prime_spectrum.comap f
 
 @[simp] lemma Spec.Top_map_id (R : CommRing) :
   Spec.Top_map (𝟙 R) = 𝟙 (Spec.Top_obj R) :=
-continuous_map.ext $ λ x,
-by erw [Spec.Top_map_to_fun, prime_spectrum.comap_id, id.def, Top.id_app]
+prime_spectrum.comap_id
 
 lemma Spec.Top_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.Top_map (f ≫ g) = Spec.Top_map g ≫ Spec.Top_map f :=
-continuous_map.ext $ λ x,
-begin
-  dsimp only [Spec.Top_map_to_fun, Top.comp_app],
-  erw prime_spectrum.comap_comp,
-end
+prime_spectrum.comap_comp _ _
 
 /--
 The spectrum, as a contravariant functor from commutative rings to topological spaces.
@@ -242,6 +236,7 @@ begin
   apply_with is_iso.comp_is_iso { instances := ff },
   apply_instance,
   apply_with is_iso.comp_is_iso { instances := ff },
+  /- I do not know why this is defeq to the goal, but I'm happy to accept that it is. -/
   exact (show is_iso (is_localization.localization_localization_at_prime_iso_localization
     M x.as_ideal).to_ring_equiv.to_CommRing_iso.hom, by apply_instance),
   apply_instance

@@ -158,12 +158,11 @@ by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
 @[simp] lemma comp_base {X Y Z : PresheafedSpace C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).base = f.base ≫ g.base := rfl
 
-/--
-The `reassoc` attribute was added despite the LHS not being a composition of two homs, since
-1. This allows us to rewrite in the opposite direction easier.
-2. Sometimes rewriting `comp_c_app` wouldn't work because of dependent type issues, but
-  `erw comp_c_app_assoc` sometimes solves this problem.
--/
+-- The `reassoc` attribute was added despite the LHS not being a composition of two homs,
+-- for the reasons explained in the docstring.
+/-- Sometimes rewriting with `comp_c_app` doesn't work because of dependent type issues.
+In that case, `erw comp_c_app_assoc` might make progress.
+The lemma `comp_c_app_assoc` is also better suited for rewrites in the opposite direction. -/
 @[reassoc, simp] lemma comp_c_app {X Y Z : PresheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) := rfl
 
@@ -202,7 +201,7 @@ def iso_of_components (H : X.1 ≅ Y.1) (α : H.hom _* X.2 ≅ Y.2) : X ≅ Y :=
     induction x using opposite.rec,
     simp only [comp_c_app, whisker_right_app, presheaf.to_pushforward_of_iso_app,
       nat_trans.comp_app, eq_to_hom_app, id_c_app, category.assoc],
-    erw [←α.hom.naturality],
+    erw [← α.hom.naturality],
     have := nat_trans.congr_app (α.inv_hom_id) (op x),
     cases x,
     rw nat_trans.comp_app at this,
@@ -233,7 +232,7 @@ def sheaf_iso_of_iso (H : X ≅ Y) : Y.2 ≅ H.hom.base _* X.2 :=
       nat_trans.id_app, H.hom.c.naturality],
     have := congr_app H.hom_inv_id ((opens.map H.hom.base).op.obj U),
     generalize_proofs h at this,
-    simpa using congr_arg (λ f, f ≫X.presheaf.map (eq_to_hom h.symm)) this
+    simpa using congr_arg (λ f, f ≫ X.presheaf.map (eq_to_hom h.symm)) this
   end }
 
 instance base_is_iso_of_iso (f : X ⟶ Y) [is_iso f] : is_iso f.base :=
@@ -241,6 +240,13 @@ is_iso.of_iso ((forget _).map_iso (as_iso f))
 
 instance c_is_iso_of_iso (f : X ⟶ Y) [is_iso f] : is_iso f.c :=
 is_iso.of_iso (sheaf_iso_of_iso (as_iso f))
+
+/-- This could be used in conjunction with `category_theory.nat_iso.is_iso_of_is_iso_app`. -/
+lemma is_iso_of_components (f : X ⟶ Y) [is_iso f.base] [is_iso f.c] : is_iso f :=
+begin
+  convert is_iso.of_iso (iso_of_components (as_iso f.base) (as_iso f.c).symm),
+  ext, { simpa }, { simp },
+end
 
 end iso
 
@@ -266,6 +272,36 @@ def of_restrict {U : Top} (X : PresheafedSpace C)
   c := { app := λ V, X.presheaf.map (h.is_open_map.adjunction.counit.app V.unop).op,
     naturality' := λ U V f, show _ = _ ≫ X.presheaf.map _,
       by { rw [← map_comp, ← map_comp], refl } } }
+
+instance of_restrict_mono {U : Top} (X : PresheafedSpace C) (f : U ⟶ X.1)
+   (hf : open_embedding f) : mono (X.of_restrict hf) :=
+ begin
+   haveI : mono f := (Top.mono_iff_injective _).mpr hf.inj,
+   constructor,
+   intros Z g₁ g₂ eq,
+   ext V,
+   { induction V using opposite.rec,
+     have hV : (opens.map (X.of_restrict hf).base).obj (hf.is_open_map.functor.obj V) = V,
+     { cases V, simp[opens.map, set.preimage_image_eq _ hf.inj] },
+     haveI : is_iso (hf.is_open_map.adjunction.counit.app
+               (unop (op (hf.is_open_map.functor.obj V)))) :=
+       (nat_iso.is_iso_app_of_is_iso (whisker_left
+         hf.is_open_map.functor hf.is_open_map.adjunction.counit) V : _),
+     have := PresheafedSpace.congr_app eq (op (hf.is_open_map.functor.obj V)),
+     simp only [PresheafedSpace.comp_c_app, PresheafedSpace.of_restrict_c_app, category.assoc,
+       cancel_epi] at this,
+     have h : _ ≫ _ = _ ≫ _ ≫ _ :=
+       congr_arg (λ f, (X.restrict hf).presheaf.map (eq_to_hom hV).op ≫ f) this,
+     erw [g₁.c.naturality, g₂.c.naturality_assoc] at h,
+     simp only [presheaf.pushforward_obj_map, eq_to_hom_op,
+       category.assoc, eq_to_hom_map, eq_to_hom_trans] at h,
+     rw ←is_iso.comp_inv_eq at h,
+     simpa using h },
+   { have := congr_arg PresheafedSpace.hom.base eq,
+     simp only [PresheafedSpace.comp_base, PresheafedSpace.of_restrict_base] at this,
+     rw cancel_mono at this,
+     exact this }
+ end
 
 lemma restrict_top_presheaf (X : PresheafedSpace C) :
   (X.restrict (opens.open_embedding ⊤)).presheaf =
@@ -309,37 +345,7 @@ def restrict_top_iso (X : PresheafedSpace C) :
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $
     by { erw comp_c, rw X.of_restrict_top_c, ext, simp },
   inv_hom_id' := ext _ _ rfl $
-    by { erw comp_c, rw X.of_restrict_top_c, ext, simp, erw comp_id, refl } }
-
-instance of_restrict_mono {U : Top} (X : PresheafedSpace C) (f : U ⟶ X.1)
-  (hf : open_embedding f) : mono (X.of_restrict hf) :=
-begin
-  haveI : mono f := (Top.mono_iff_injective _).mpr hf.inj,
-  constructor,
-  intros Z g₁ g₂ eq,
-  ext V,
-  { induction V using opposite.rec,
-    have hV : (opens.map (X.of_restrict hf).base).obj (hf.is_open_map.functor.obj V) = V,
-    { cases V, simp[opens.map, set.preimage_image_eq _ hf.inj] },
-    haveI : is_iso (hf.is_open_map.adjunction.counit.app
-              (unop (op (hf.is_open_map.functor.obj V)))) :=
-      (nat_iso.is_iso_app_of_is_iso (whisker_left
-        hf.is_open_map.functor hf.is_open_map.adjunction.counit) V : _),
-    have := PresheafedSpace.congr_app eq (op (hf.is_open_map.functor.obj V)),
-    simp only [PresheafedSpace.comp_c_app, PresheafedSpace.of_restrict_c_app, category.assoc,
-      cancel_epi] at this,
-    have h : _ ≫ _ = _ ≫ _ ≫ _ :=
-      congr_arg (λ f, (X.restrict hf).presheaf.map (eq_to_hom hV).op ≫ f) this,
-    erw [g₁.c.naturality, g₂.c.naturality_assoc] at h,
-    simp only [presheaf.pushforward_obj_map, eq_to_hom_op,
-      category.assoc, eq_to_hom_map, eq_to_hom_trans] at h,
-    rw ←is_iso.comp_inv_eq at h,
-    simpa using h },
-  { have := congr_arg PresheafedSpace.hom.base eq,
-    simp only [PresheafedSpace.comp_base, PresheafedSpace.of_restrict_base] at this,
-    rw cancel_mono at this,
-    exact this }
-end
+    by { erw comp_c, rw X.of_restrict_top_c, ext, simpa [-eq_to_hom_refl] } }
 
 end restrict
 

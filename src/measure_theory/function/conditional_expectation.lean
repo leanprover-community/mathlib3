@@ -1770,17 +1770,11 @@ end
 
 lemma condexp_smul (c : 𝕜) (f : α → F') : μ[c • f | hm] =ᵐ[μ] c • μ[f|hm] :=
 begin
-  by_cases hf : integrable f μ,
-  { refine (condexp_ae_eq_condexp_L1 _).trans _,
-    rw condexp_L1_smul c f,
-    refine (@condexp_ae_eq_condexp_L1 _ _ _ _ _ _ _ _ m _ _ hm _ f).mp _,
-    refine (coe_fn_smul c (condexp_L1 hm μ f)).mono (λ x hx1 hx2, _),
-    rw [hx1, pi.smul_apply, pi.smul_apply, hx2], },
-  { by_cases hc : c = 0,
-    { rw [hc, zero_smul, zero_smul, condexp_zero], },
-    refine (condexp_undef (mt (integrable_smul_iff hc f).mp hf)).trans _,
-    refine (@condexp_undef _ _ _ _ _ _ _ _ _ _ _ hm _ _ hf).mono (λ x hx, _),
-    rw [pi.zero_apply, pi.smul_apply, hx, pi.zero_apply, smul_zero], },
+  refine (condexp_ae_eq_condexp_L1 _).trans _,
+  rw condexp_L1_smul c f,
+  refine (@condexp_ae_eq_condexp_L1 _ _ _ _ _ _ _ _ m _ _ hm _ f).mp _,
+  refine (coe_fn_smul c (condexp_L1 hm μ f)).mono (λ x hx1 hx2, _),
+  rw [hx1, pi.smul_apply, pi.smul_apply, hx2],
 end
 
 lemma condexp_neg (f : α → F') : μ[-f|hm] =ᵐ[μ] - μ[f|hm] :=

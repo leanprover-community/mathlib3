@@ -39,8 +39,21 @@ If `R` is a ring, then negation is automatically continuous, as it is multiplica
 class topological_ring [topological_space α] [semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
 
+@[priority 50]
+instance discrete_topology.topological_ring {α} [topological_space α] [semiring α]
+  [discrete_topology α] : topological_ring α := ⟨⟩
+
 section
 variables {α} [topological_space α] [semiring α] [topological_ring α]
+
+namespace subsemiring
+
+instance (S : subsemiring α) :
+  topological_ring S :=
+{ ..S.to_submonoid.has_continuous_mul,
+  ..S.to_add_submonoid.has_continuous_add }
+
+end subsemiring
 
 /-- The (topological-space) closure of a subsemiring of a topological semiring is
 itself a subsemiring. -/
@@ -138,6 +151,14 @@ continuous_const.mul continuous_id
 /-- In a topological ring, the right-multiplication `add_monoid_hom` is continuous. -/
 lemma mul_right_continuous (x : α) : continuous (add_monoid_hom.mul_right x) :=
 continuous_id.mul continuous_const
+
+namespace subring
+
+instance (S : subring α) :
+  topological_ring S :=
+S.to_subsemiring.topological_ring
+
+end subring
 
 /-- The (topological-space) closure of a subring of a topological semiring is
 itself a subring. -/
@@ -309,5 +330,33 @@ begin
   rintros _ ⟨t', ht', rfl⟩,
   exact ht',
 end
+
+/-- The forgetful functor from ring topologies on `a` to additive group topologies on `a`. -/
+def to_add_group_topology (t : ring_topology α) : add_group_topology α :=
+{ to_topological_space     := t.to_topological_space,
+  to_topological_add_group := @topological_ring.to_topological_add_group _ _ t.to_topological_space
+    t.to_topological_ring }
+
+/-- The order embedding from ring topologies on `a` to additive group topologies on `a`. -/
+def to_add_group_topology.order_embedding : order_embedding (ring_topology α)
+  (add_group_topology α) :=
+{ to_fun       := λ t, t.to_add_group_topology,
+  inj'         :=
+  begin
+    intros t₁ t₂ h_eq,
+    dsimp only at h_eq,
+    ext,
+    have h_t₁ : t₁.to_topological_space = t₁.to_add_group_topology.to_topological_space := rfl,
+    rw [h_t₁, h_eq],
+    refl,
+  end,
+  map_rel_iff' :=
+  begin
+    intros t₁ t₂,
+    rw [embedding.coe_fn_mk],
+    have h_le : t₁ ≤ t₂ ↔ t₁.to_topological_space ≤ t₂.to_topological_space := by refl,
+    rw h_le,
+    refl,
+  end }
 
 end ring_topology

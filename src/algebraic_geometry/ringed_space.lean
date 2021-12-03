@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Justus Springer
+Authors: Justus Springer, Andrew Yang
 -/
 import algebra.category.CommRing.filtered_colimits
 import algebraic_geometry.sheafed_space
@@ -93,7 +93,7 @@ begin
 end
 
 /--
-The basic open of a global section `f` is the set of all points `x`, such that the germ of `f` at
+The basic open of a section `f` is the set of all points `x`, such that the germ of `f` at
 `x` is a unit.
 -/
 def basic_open {U : opens X} (f : X.presheaf.obj (op U)) : opens X :=

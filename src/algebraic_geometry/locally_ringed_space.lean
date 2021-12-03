@@ -91,7 +91,7 @@ instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
   is_local_ring_hom (stalk_map f x) := f.2 x
 
 instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
-  is_local_ring_hom (PresheafedSpace.stalk_map f.1 x) := f.2 x
+   is_local_ring_hom (PresheafedSpace.stalk_map f.1 x) := f.2 x
 
 /-- The identity morphism on a locally ringed space. -/
 @[simps]
@@ -212,7 +212,6 @@ lemma Γ_obj_op (X : LocallyRingedSpace) : Γ.obj (op X) = X.presheaf.obj (op �
 
 lemma Γ_map_op {X Y : LocallyRingedSpace} (f : X ⟶ Y) :
   Γ.map f.op = f.1.c.app (op ⊤) := rfl
-
 
 lemma preimage_basic_open {X Y : LocallyRingedSpace} (f : X ⟶ Y) {U : opens Y}
   (s : Y.presheaf.obj (op U)) :

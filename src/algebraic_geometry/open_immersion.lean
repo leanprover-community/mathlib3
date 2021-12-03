@@ -11,42 +11,33 @@ import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
 
 /-!
-# Open immersions of presheafed spaces
+# Open immersions of structured spaces
 
-We say that a morphism of presheaved spaces `f : X ⟶ Y` is an open immersions if
+We say that a morphism of presheafed spaces `f : X ⟶ Y` is an open immersions if
 the underlying map of spaces is an open embedding `f : X ⟶ U ⊆ Y`,
 and the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.
+
+Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Scheme`.
 
 ## Main definitions
 
 * `algebraic_geometry.PresheafedSpace.is_open_immersion`: the `Prop`-valued typeclass asserting
-  that `f` is an open_immersion
+  that a PresheafedSpace hom `f` is an open_immersion.
+* `algebraic_geometry.is_open_immersion`: the `Prop`-valued typeclass asserting
+  that a Scheme morphism `f` is an open_immersion.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.iso_restrict`: The source of an
   open immersion is isomorphic to the restriction of the target onto the image.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_cone_of_left`: An explicit limit
-  cocone of the pullback of `f, g` if `f` is an open immersion.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.lift`: If `f : X ⟶ U ⊆ Z` is an
-  open immersion, then for each `Y ⟶ Z` whose image falls in `U`, we may lift it into a unique
-  `Y ⟶ X` that commutes with them.
 
 ## Main results
 
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.comp`: The composition of two open
   immersions is an open immersion.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.of_iso`: An iso is an open immersion.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_iso`: An epic open immersion is iso.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_iso`: An epic open immersion is iso.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_iso`:
+  A surjective open immersion is an isomorphism.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.stalk_iso`: An open immersion induces
   an isomorphism on stalks.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.has_pullback_of_left`: If `f` is an
-  open immersion, then the pullback of `f, g` exists. There is also `has_pullback_of_right`.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_snd_of_left`: Open immersions
-  are stable under pullback. There is also `pullback_fst_of_right`.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_one_is_open_immersion`:
-  The pullback of two open immersions is an open immersion.
 
-
-We also proves that the pullback of two presheaved spaces exists, and is also an open immersion.
 -/
 
 open topological_space category_theory opposite
@@ -69,15 +60,17 @@ class PresheafedSpace.is_open_immersion {X Y : PresheafedSpace C} (f : X ⟶ Y) 
 A morphism of SheafedSpaces is an open immersion if it is an open immersion as a morphism
 of PresheafedSpaces
 -/
-abbreviation SheafedSpace.is_open_immersion [has_products C] {X Y : SheafedSpace C} (f : X ⟶ Y) :
-  Prop := PresheafedSpace.is_open_immersion f
+abbreviation SheafedSpace.is_open_immersion
+  [has_products C] {X Y : SheafedSpace C} (f : X ⟶ Y) : Prop :=
+PresheafedSpace.is_open_immersion f
 
 /--
-A morphism of LocallyRingedSpace is an open immersion if it is an open immersion as a morphism
+A morphism of LocallyRingedSpaces is an open immersion if it is an open immersion as a morphism
 of SheafedSpaces
 -/
-abbreviation LocallyRingedSpace.is_open_immersion {X Y : LocallyRingedSpace} (f : X ⟶ Y) :
-  Prop := SheafedSpace.is_open_immersion f.1
+abbreviation LocallyRingedSpace.is_open_immersion {X Y : LocallyRingedSpace} (f : X ⟶ Y) : Prop :=
+SheafedSpace.is_open_immersion f.1
+
 /--
 A morphism of Schemes is an open immersion if it is an open immersion as a morphism
 of LocallyRingedSpaces
@@ -100,9 +93,13 @@ variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : is_open_immersion f)
 /-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
 abbreviation open_functor := H.base_open.is_open_map.functor
 
+/-
+We want to keep `eq_to_hom`s in the form of `F.map (eq_to_hom _)` so that the lemmas about
+naturality can be applied.
+-/
 local attribute [-simp] eq_to_hom_map eq_to_iso_map
 
-/-- An open immersion `f : X ⟶ Y` induces an isomorphsm `X ≅ Y|_{f(X)}`. -/
+/-- An open immersion `f : X ⟶ Y` induces an isomorphism `X ≅ Y|_{f(X)}`. -/
 @[simps] noncomputable
 def iso_restrict : X ≅ Y.restrict H.base_open :=
 PresheafedSpace.iso_of_components (iso.refl _)
@@ -167,8 +164,7 @@ instance comp {Z : PresheafedSpace C} (f : X ⟶ Y) [hf : is_open_immersion f] (
         congr },
       rw this,
       apply_instance }
-  end
-}
+  end }
 
 /-- For an open immersion `f : X ⟶ Y` and an open set `U ⊆ X`, we have the map `X(U) ⟶ Y(U)`. -/
 noncomputable
@@ -249,13 +245,7 @@ instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
       apply_instance }
   end }
 
-/-- This could be used in conjunction with `category_theory.nat_iso.is_iso_of_is_iso_app`. -/
-lemma is_iso_of_components (f : X ⟶ Y) [is_iso f.base] [is_iso f.c] : is_iso f :=
-begin
-  convert is_iso.of_iso (iso_of_components (as_iso f.base) (as_iso f.c).symm),
-  ext, { simpa }, { simp },
-end
-
+/-- An open immersion is an iso if the underlying continuous map is epi. -/
 lemma to_iso (f : X ⟶ Y) [h : is_open_immersion f] [h' : epi f.base] : is_iso f :=
 begin
   apply_with is_iso_of_components { instances := ff },

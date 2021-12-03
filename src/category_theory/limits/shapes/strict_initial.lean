@@ -189,23 +189,10 @@ lemma is_terminal.subsingleton_to (hI : is_terminal I) {A : C} :
   subsingleton (I ⟶ A) :=
 ⟨hI.strict_hom_ext⟩
 
-variable [has_terminal C]
-
-instance terminal_is_iso_from {A : C} (f :  ⊤_ C ⟶ A) : is_iso f :=
-terminal_is_terminal.is_iso_from _
-
-@[ext] lemma terminal.hom_ext {A : C} (f g : ⊤_ C ⟶ A) : f = g :=
-terminal_is_terminal.strict_hom_ext _ _
-
-lemma terminal.subsingleton_to {A : C} : subsingleton (⊤_ C ⟶ A) :=
-terminal_is_terminal.subsingleton_to
-
 variables {J : Type v} [small_category J]
 
-/--
-If all but one object in a diagram is strict terminal, the the limit is isomorphic to the
-said object via `limit.π`.
--/
+/-- If all but one object in a diagram is strict terminal, the the limit is isomorphic to the
+said object via `limit.π`. -/
 lemma limit_π_is_iso_of_is_strict_terminal (F : J ⥤ C) [has_limit F] (i : J)
   (H : ∀ j ≠ i, is_terminal (F.obj j)) [subsingleton (i ⟶ i)] :
   is_iso (limit.π F i) :=
@@ -230,6 +217,17 @@ begin
     { apply (H _ h).hom_ext } },
   { rw limit.lift_π, simpa }
 end
+
+variable [has_terminal C]
+
+instance terminal_is_iso_from {A : C} (f :  ⊤_ C ⟶ A) : is_iso f :=
+terminal_is_terminal.is_iso_from _
+
+@[ext] lemma terminal.hom_ext {A : C} (f g : ⊤_ C ⟶ A) : f = g :=
+terminal_is_terminal.strict_hom_ext _ _
+
+lemma terminal.subsingleton_to {A : C} : subsingleton (⊤_ C ⟶ A) :=
+terminal_is_terminal.subsingleton_to
 
 end
 

@@ -104,8 +104,10 @@ univ_nonempty_iff.2 ‹_›
 lemma univ_eq_empty_iff : (univ : finset α) = ∅ ↔ is_empty α :=
 by rw [← not_nonempty_iff, ← univ_nonempty_iff, not_nonempty_iff_eq_empty]
 
-lemma univ_eq_empty [is_empty α] : (univ : finset α) = ∅ :=
-univ_eq_empty_iff.2 ‹_›
+@[simp] lemma univ_eq_empty [is_empty α] : (univ : finset α) = ∅ := univ_eq_empty_iff.2 ‹_›
+
+@[simp] lemma univ_unique [unique α] : (univ : finset α) = {default α} :=
+finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.elim x $ default α
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
@@ -192,6 +194,15 @@ lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f
 /-- A special case of `finset.inf_eq_infi` that omits the useless `x ∈ univ` binder. -/
 lemma inf_univ_eq_infi [complete_lattice β] (f : α → β) : finset.univ.inf f = infi f :=
 sup_univ_eq_supr (by exact f : α → order_dual β)
+
+@[simp] lemma fold_inf_univ [semilattice_inf α] [order_bot α] (a : α) :
+  finset.univ.fold (⊓) a (λ x, x) = ⊥ :=
+eq_bot_iff.2 $ ((finset.fold_op_rel_iff_and $ @_root_.le_inf_iff α _).1 le_rfl).2 ⊥ $
+  finset.mem_univ _
+
+@[simp] lemma fold_sup_univ [semilattice_sup α] [order_top α] (a : α) :
+  finset.univ.fold (⊔) a (λ x, x) = ⊤ :=
+@fold_inf_univ (order_dual α) ‹fintype α› _ _ _
 
 end finset
 
@@ -563,8 +574,8 @@ subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
-arbitrary `fintype` instances, use `fintype.univ_is_empty`. -/
--- no-lint since while `fintype.of_is_empty` can prove this, it isn't applicable for `dsimp`.
+arbitrary `fintype` instances, use `finset.univ_eq_empty`. -/
+-- no-lint since while `finset.univ_eq_empty` can prove this, it isn't applicable for `dsimp`.
 @[simp, nolint simp_nf] theorem univ_of_is_empty [is_empty α] : @univ α _ = ∅ := rfl
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
@@ -736,12 +747,6 @@ since that relies on a subsingleton elimination for `unique`. -/
 instance fintype.subtype_eq' (y : α) : fintype {x // y = x} :=
 fintype.subtype {y} (by simp [eq_comm])
 
-@[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
-by rw [subsingleton.elim f (@unique.fintype α _)]; refl
-
-@[simp] lemma univ_is_empty {α : Type*} [is_empty α] [fintype α] : @finset.univ α _ = ∅ :=
-finset.ext is_empty_elim
-
 @[simp] lemma fintype.card_subtype_eq (y : α) [fintype {x // x = y}] :
   fintype.card {x // x = y} = 1 :=
 fintype.card_unique
@@ -789,6 +794,8 @@ instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) :
 
 instance {α : Type*} [fintype α] : fintype (option α) :=
 ⟨univ.insert_none, λ a, by simp⟩
+
+lemma univ_option (α : Type*) [fintype α] : (univ : finset (option α)) = insert_none univ := rfl
 
 @[simp] theorem fintype.card_option {α : Type*} [fintype α] :
   fintype.card (option α) = fintype.card α + 1 :=
@@ -1187,7 +1194,7 @@ def pi_finset (t : Π a, finset (δ a)) : finset (Π a, δ a) :=
 (finset.univ.pi t).map ⟨λ f a, f a (mem_univ a), λ _ _, by simp [function.funext_iff]⟩
 
 @[simp] lemma mem_pi_finset {t : Π a, finset (δ a)} {f : Π a, δ a} :
-  f ∈ pi_finset t ↔ (∀ a, f a ∈ t a) :=
+  f ∈ pi_finset t ↔ ∀ a, f a ∈ t a :=
 begin
   split,
   { simp only [pi_finset, mem_map, and_imp, forall_prop_of_true, exists_prop, mem_univ,
@@ -1201,7 +1208,7 @@ end
 
 @[simp] lemma coe_pi_finset (t : Π a, finset (δ a)) :
   (pi_finset t : set (Π a, δ a)) = set.pi set.univ (λ a, t a) :=
-by { ext, simp }
+set.ext $ λ x, by { rw set.mem_univ_pi, exact fintype.mem_pi_finset }
 
 lemma pi_finset_subset (t₁ t₂ : Π a, finset (δ a)) (h : ∀ a, t₁ a ⊆ t₂ a) :
   pi_finset t₁ ⊆ pi_finset t₂ :=
@@ -1474,11 +1481,7 @@ begin
   suffices : f ∈ perms_of_list l ∨ ∃ (b ∈ l) (g ∈ perms_of_list l), swap a b * g = f,
   { simpa only [perms_of_list, exists_prop, list.mem_map, mem_append, list.mem_bind] },
   refine or_iff_not_imp_left.2 (λ hfl, ⟨f a, _, swap a (f a) * f, IH this, _⟩),
-  { by_cases hffa : f (f a) = a,
-    { exact mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa)) },
-    { apply this,
-      simp only [mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq],
-      split_ifs; cc } },
+  { exact mem_of_ne_of_mem hfa (h _ hfa') },
   { rw [←mul_assoc, mul_def (swap a (f a)) (swap a (f a)),
         swap_swap, ←perm.one_def, one_mul] }
 end

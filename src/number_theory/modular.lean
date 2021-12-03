@@ -274,7 +274,7 @@ section fundamental_domain
 local attribute [simp] coe_smul re_smul
 
 /-- For `z : ℍ`, there is a `g : SL(2,ℤ)` maximizing `(g•z).im` -/
-lemma exists_g_with_max_im (z : ℍ) :
+lemma exists_max_im (z : ℍ) :
   ∃ g : SL(2, ℤ), ∀ g' : SL(2, ℤ), (g' • z).im ≤ (g • z).im :=
 begin
   classical,

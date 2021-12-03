@@ -80,7 +80,7 @@ variables {Γ : Type*} [group Γ] {T : Type*} [topological_space T] [mul_action 
 
 /-- A finite group action is always properly discontinuous
 -/
-@[to_additive] instance fintype.properly_discontinuous_smul [fintype Γ] :
+@[priority 100, to_additive] instance fintype.properly_discontinuous_smul [fintype Γ] :
   properly_discontinuous_smul Γ T :=
 { finite_disjoint_inter_image := λ _ _ _ _, set.finite.of_fintype _}
 
@@ -124,7 +124,7 @@ end
 
 /-- The quotient by a discontinuous group action of a locally compact t2 space is t2.
 -/
-@[to_additive] instance is_t2_of_properly_discontinuous_smul_of_t2 [t2_space T]
+@[priority 100, to_additive] instance is_t2_of_properly_discontinuous_smul_of_t2 [t2_space T]
   [locally_compact_space T] [has_continuous_smul₂ Γ T] [properly_discontinuous_smul Γ T] :
   t2_space (quotient (mul_action.orbit_rel Γ T)) :=
 { t2 := begin

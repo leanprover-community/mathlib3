@@ -26,6 +26,8 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   that a Scheme morphism `f` is an open_immersion.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.iso_restrict`: The source of an
   open immersion is isomorphic to the restriction of the target onto the image.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.lift`: Any morphism whose range is
+  contained in an open immersion factors though the open immersion.
 
 ## Main results
 
@@ -36,8 +38,10 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   A surjective open immersion is an isomorphism.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.stalk_iso`: An open immersion induces
   an isomorphism on stalks.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.stalk_iso`: An open immersion induces
-  an isomorphism on stalks.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.has_pullback_of_left`: If `f` is an open
+  immersion, then the pullback `(f, g)` exists (and the forgetful functor to `Top` preserves it).
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_snd_of_left`: Open immersions
+  are stable under pullbacks.
 
 -/
 
@@ -413,13 +417,9 @@ def pullback_cone_of_left_is_limit :
 begin
   apply pullback_cone.is_limit_aux',
   intro s,
-  split,
-  swap,
-  exact pullback_cone_of_left_lift f g s,
-  split,
-  apply pullback_cone_of_left_lift_fst,
-  split,
-  apply pullback_cone_of_left_lift_snd,
+  use pullback_cone_of_left_lift f g s,
+  use pullback_cone_of_left_lift_fst f g s,
+  use pullback_cone_of_left_lift_snd f g s,
   intros m h₁ h₂,
   rw ← cancel_mono (pullback_cone_of_left f g).snd,
   exact (h₂.trans (pullback_cone_of_left_lift_snd f g s).symm)
@@ -459,7 +459,7 @@ end
 instance forget_preserves_limits_of_left : preserves_limit (cospan f g) (forget C) :=
 preserves_limit_of_preserves_limit_cone (pullback_cone_of_left_is_limit f g)
 begin
-  apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).to_fun,
+  apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v} _) _).to_fun,
   refine (is_limit.equiv_iso_limit _).to_fun (limit.is_limit (cospan f.base g.base)),
   fapply cones.ext,
   exact (iso.refl _),

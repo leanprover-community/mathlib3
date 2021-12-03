@@ -29,11 +29,20 @@ def is_martingale (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure �
   [sigma_finite_filtration μ ℱ] : Prop :=
 (∀ i, integrable (f i) μ) ∧ (adapted ℱ f) ∧ ∀ i j, i ≤ j → μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i
 
-lemma is_martingale.integrable (hf : is_martingale f ℱ μ) : ∀ i, integrable (f i) μ := hf.1
+variables (E)
+lemma is_martingale_zero (ℱ : filtration ι m0) (μ : measure α) [sigma_finite_filtration μ ℱ] :
+  is_martingale (0 : ι → α → E) ℱ μ :=
+⟨λ i, integrable_zero _ _ _, adapted_zero E ℱ,
+  λ i j hij, by { rw [pi.zero_apply, condexp_zero], simp, }⟩
+variables {E}
 
-lemma is_martingale.adapted (hf : is_martingale f ℱ μ) : adapted ℱ f := hf.2.1
+namespace is_martingale
 
-lemma is_martingale.add (hf : is_martingale f ℱ μ) (hg : is_martingale g ℱ μ) :
+lemma integrable (hf : is_martingale f ℱ μ) : ∀ i, integrable (f i) μ := hf.1
+
+lemma adapted (hf : is_martingale f ℱ μ) : adapted ℱ f := hf.2.1
+
+lemma add (hf : is_martingale f ℱ μ) (hg : is_martingale g ℱ μ) :
   is_martingale (f + g) ℱ μ :=
 begin
   refine ⟨λ i, (hf.integrable i).add (hg.integrable i), hf.adapted.add hg.adapted, λ i j hij, _⟩,
@@ -41,30 +50,26 @@ begin
     ((hf.2.2 i j hij).add (hg.2.2 i j hij)),
 end
 
-lemma is_martingale.neg (hf : is_martingale f ℱ μ) : is_martingale (-f) ℱ μ :=
+lemma neg (hf : is_martingale f ℱ μ) : is_martingale (-f) ℱ μ :=
 begin
   refine ⟨λ i, (hf.integrable i).neg, hf.adapted.neg, λ i j hij, _⟩,
   exact (condexp_neg (f j)).trans ((hf.2.2 i j hij).neg),
 end
 
-lemma is_martingale.sub (hf : is_martingale f ℱ μ) (hg : is_martingale g ℱ μ) :
+lemma sub (hf : is_martingale f ℱ μ) (hg : is_martingale g ℱ μ) :
   is_martingale (f - g) ℱ μ :=
 by { rw sub_eq_add_neg, exact hf.add hg.neg, }
 
-lemma is_martingale.smul (c : ℝ) (hf : is_martingale f ℱ μ) : is_martingale (c • f) ℱ μ :=
+lemma smul (c : ℝ) (hf : is_martingale f ℱ μ) : is_martingale (c • f) ℱ μ :=
 begin
   refine ⟨λ i, (hf.integrable i).smul c, hf.adapted.smul c, λ i j hij, _⟩,
-  refine (condexp_smul c (f j)).trans _,
-  refine (hf.2.2 i j hij).mono (λ x hx, _),
+  refine (condexp_smul c (f j)).trans ((hf.2.2 i j hij).mono (λ x hx, _)),
   rw [pi.smul_apply, hx, pi.smul_apply, pi.smul_apply],
 end
 
-variables (E)
-lemma is_martingale_zero (ℱ : filtration ι m0) (μ : measure α) [sigma_finite_filtration μ ℱ] :
-  is_martingale (0 : ι → α → E) ℱ μ :=
-⟨λ i, integrable_zero _ _ _, adapted_zero E ℱ,
-  λ i j hij, by { rw [pi.zero_apply, condexp_zero], simp, }⟩
+end is_martingale
 
+variables (E)
 /-- TODO: submodule instead? -/
 def martingale (ℱ : filtration ι m0) (μ : measure α) [sigma_finite_filtration μ ℱ] :
   add_subgroup (ι → α → E) :=

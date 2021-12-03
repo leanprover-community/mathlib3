@@ -234,9 +234,8 @@ lemma sup_eq_bot_iff (f : β → α)
   (S : finset β) : S.sup f = ⊥ ↔ ∀ s ∈ S, f s = ⊥ :=
 begin
   classical,
-  induction S using finset.induction with a S haS hi,
-  { simp, },
-  simp [hi],
+  induction S using finset.induction with a S haS hi;
+  simp [*],
 end
 
 end sup

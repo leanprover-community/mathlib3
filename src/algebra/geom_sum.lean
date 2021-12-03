@@ -53,14 +53,10 @@ theorem geom_sum_def (x : α) (n : ℕ) :
   geom_sum x n = ∑ i in range n, x ^ i := rfl
 
 lemma geom_sum_succ {x : α} {n : ℕ} : geom_sum x (n + 1) = x * geom_sum x n + 1 :=
-begin
-  simp only [geom_sum_def, mul_sum, ←pow_succ],
-  rw [←sum_sdiff (show {0} ⊆ range (n + 1), from _), range_sdiff_zero,
-      sum_image, sum_singleton, pow_zero]; simp
-end
+by simp only [geom_sum_def, mul_sum, ←pow_succ, sum_range_succ', pow_zero]
 
 lemma geom_sum_succ' {x : α} {n : ℕ} : geom_sum x (n + 1) = x ^ n + geom_sum x n :=
-  by simpa [geom_sum_def, sum_range_succ] using add_comm _ _
+(sum_range_succ _ _).trans (add_comm _ _)
 
 @[simp] theorem geom_sum_zero (x : α) :
   geom_sum x 0 = 0 := rfl
@@ -148,13 +144,12 @@ end semiring
 
 @[simp] lemma neg_one_geom_sum [ring α] {n : ℕ} : geom_sum (-1 : α) n = if even n then 0 else 1 :=
 begin
-  nontriviality,
   induction n with k hk,
   { simp },
-  split_ifs; rw nat.even_succ at h; try { push_neg at h }; simp only [h, if_false, if_true] at hk;
-  rw [geom_sum_succ', hk],
-  { rw [nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr h), neg_add_self] },
-  { rw [nat.neg_one_pow_of_even h, add_zero] }
+  { simp only [geom_sum_succ', nat.even_succ, hk],
+    split_ifs,
+    { rw [nat.neg_one_pow_of_even h, add_zero] },
+    { rw [nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr h), neg_add_self] } }
 end
 
 theorem geom_sum₂_self {α : Type*} [comm_ring α] (x : α) (n : ℕ) :
@@ -420,39 +415,32 @@ end
 lemma geom_sum_pos_and_lt_one [ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
   0 < geom_sum x n ∧ geom_sum x n < 1 :=
 begin
-  induction n with k hk,
-  { exact (lt_irrefl _ $ hn.trans zero_lt_one).elim },
-  rcases k with (_ | _ | k),
-  { exact (hn.ne rfl).elim },
-  { rw [geom_sum_two],
-    exact ⟨hx', by rwa [add_lt_iff_neg_right]⟩ },
-  obtain ⟨hkpos, hkle⟩ := hk k.one_lt_succ_succ,
-  rw [geom_sum_succ],
-  refine ⟨_, by simpa only [add_lt_iff_neg_right] using mul_neg_of_neg_of_pos hx hkpos⟩,
-  apply hx'.trans,
-  rw [add_lt_add_iff_right],
-  convert mul_lt_mul_of_neg_left hkle hx,
-  rw mul_one
+  change 2 ≤ n at hn,
+  refine nat.le_induction _ _ n hn,
+  { rw geom_sum_two,
+    exact ⟨hx', (add_lt_iff_neg_right _).2 hx⟩ },
+  clear hn n,
+  intros n hn ihn,
+  rw [geom_sum_succ, add_lt_iff_neg_right, ← neg_lt_iff_pos_add', neg_mul_eq_neg_mul],
+  exact ⟨mul_lt_one_of_nonneg_of_lt_one_left (neg_nonneg.2 hx.le)
+    (neg_lt_iff_pos_add'.2 hx') ihn.2.le, mul_neg_of_neg_of_pos hx ihn.1⟩
 end
 
 lemma geom_sum_alternating_of_lt_neg_one [ordered_ring α] (hx : x + 1 < 0) (hn : 1 < n) :
   if even n then geom_sum x n < 0 else 1 < geom_sum x n  :=
 begin
-  induction n with k hk,
-  { exact (lt_irrefl _ $ hn.trans zero_lt_one).elim },
-  rcases k with (_ | _ | k),
-  { exact (hn.ne rfl).elim },
-  { rwa [geom_sum_two] },
-  specialize hk k.one_lt_succ_succ,
-  haveI := nontrivial_of_lt _ _ hx,
-  -- not sure how the line guidelines work for `;` when it won't fit on one line
-  -- should I just be using `all_goals`?
-  split_ifs; rw nat.even_succ at h; try { push_neg at h }; simp only [h, if_false, if_true] at hk;
-  have := add_lt_add_of_lt_of_le (mul_lt_mul_of_neg_left hk $ (lt_add_one x).trans hx) (le_refl 1);
-  rw [geom_sum_succ],
-  { rw mul_one at this,
-    exact this.trans hx },
-  { rwa [mul_zero, zero_add] at this }
+  have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 (@zero_le_one α _)).trans_lt hx,
+  change 2 ≤ n at hn,
+  refine nat.le_induction _ _ n hn,
+  { simp [geom_sum_two, hx] },
+  clear hn n,
+  intros n hn ihn,
+  simp only [nat.even_succ, geom_sum_succ],
+  split_ifs at ihn with hn'; simp only [hn', not_false_iff, not_true, if_pos, if_neg],
+  { rw lt_add_iff_pos_left, exact mul_pos_of_neg_of_neg hx0 ihn },
+  { have := add_lt_add_right (mul_lt_mul_of_neg_left ihn hx0) 1,
+    rw mul_one at this,
+    exact this.trans hx }
 end
 
 lemma geom_sum_pos_of_odd [linear_ordered_ring α] (h : odd n) :

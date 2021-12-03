@@ -6,7 +6,6 @@ Authors: Kevin Buzzard, Patrick Massot
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
 import group_theory.coset
-import data.setoid.basic
 
 /-!
 # Quotients of groups by normal subgroups
@@ -289,7 +288,7 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   inv_fun := (lift N (mk' M) (λ n hn, quotient_group.eq.mpr (by simpa [← h] using N.inv_mem hn))),
   left_inv := λ x, x.induction_on' $ by { intro, refl },
   right_inv := λ x, x.induction_on' $ by { intro, refl },
-  map_mul' := λ x y, by rw map_mul }
+  map_mul' := λ x y, by rw monoid_hom.map_mul }
 
 @[simp, to_additive]
 lemma equiv_quotient_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :

@@ -92,8 +92,8 @@ suffices ∀ b (h : tt = b) (l : lists' α b),
   of_list (to_list l') = l', from this _ rfl,
 λ b h l, begin
   induction l, {cases h}, {exact rfl},
-  case lists'.cons' : b a l IH₁ IH₂ {
-    intro, change l' with cons' a l,
+  case lists'.cons' : b a l IH₁ IH₂
+  { intro, change l' with cons' a l,
     simpa [cons] using IH₂ rfl }
 end
 
@@ -360,8 +360,8 @@ with mem.decidable : ∀ (a : lists α) (l : lists' α tt), decidable (a ∈ l)
   refine decidable_of_iff' (a ~ ⟨_, b⟩ ∨ a ∈ l₂) _,
   rw ← lists'.mem_cons, refl
 end
-using_well_founded {
-  rel_tac := λ _ _, `[exact ⟨_, measure_wf equiv.decidable_meas⟩],
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨_, measure_wf equiv.decidable_meas⟩],
   dec_tac := `[assumption] }
 
 end decidable

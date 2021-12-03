@@ -7,8 +7,8 @@ Authors: Kenny Lau
 import algebra.char_p.basic
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
-import ring_theory.principal_ideal_domain
 import ring_theory.polynomial.content
+import ring_theory.unique_factorization_domain
 
 /-!
 # Ring-theoretic supplement of data.polynomial.
@@ -424,8 +424,7 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
         submodule.quotient.quot_mk_eq_mk, quotient.mk_eq_mk, eval₂_X_pow,
         eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow, eval₂_C, ring_hom.coe_comp,
         ring_hom.map_mul, eval₂_X] },
-  end,
-}
+  end, }
 
 @[simp]
 lemma polynomial_quotient_equiv_quotient_polynomial_symm_mk (I : ideal R) (f : polynomial R) :
@@ -928,7 +927,7 @@ begin
       { simpa [h] using hx.left },
       { simp [ne.symm h] } },
     { simp },
-   { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
+    { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
     { refine λ f g hg n, _,
       rw [smul_eq_mul, coeff_mul],
       exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },

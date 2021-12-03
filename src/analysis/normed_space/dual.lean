@@ -44,6 +44,9 @@ instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
 
 instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
 
+instance [finite_dimensional 𝕜 E] : finite_dimensional 𝕜 (dual 𝕜 E) :=
+continuous_linear_map.finite_dimensional
+
 /-- The inclusion of a normed space in its double (topological) dual, considered
    as a bounded linear map. -/
 def inclusion_in_double_dual : E →L[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
@@ -77,7 +80,7 @@ begin
   by_cases h : x = 0,
   { simp only [h, hMp, norm_zero] },
   { obtain ⟨f, hf⟩ : ∃ g : E →L[𝕜] 𝕜, _ := exists_dual_vector 𝕜 x h,
-    calc ∥x∥ = ∥norm' 𝕜 x∥ : (norm_norm' _ _ _).symm
+    calc ∥x∥ = ∥(∥x∥ : 𝕜)∥ : is_R_or_C.norm_coe_norm.symm
     ... = ∥f x∥ : by rw hf.2
     ... ≤ M * ∥f∥ : hM f
     ... = M : by rw [hf.1, mul_one] }

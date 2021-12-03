@@ -8,7 +8,6 @@ import algebra.polynomial.group_ring_action
 import field_theory.normal
 import field_theory.separable
 import field_theory.tower
-import ring_theory.polynomial
 
 /-!
 # Fixed field under a group action.
@@ -128,18 +127,18 @@ begin
   intros i his g,
   refine eq_of_sub_eq_zero (linear_independent_iff'.1 (ih hs.1) s.attach (λ i, g • l i - l i) _
     ⟨i, his⟩ (mem_attach _ _) : _),
-  refine (@sum_attach _ _ s _ (λ i, (g • l i - l i) • (to_fun G F) i)).trans _, ext g', dsimp only,
+  refine (@sum_attach _ _ s _ (λ i, (g • l i - l i) • mul_action.to_fun G F i)).trans _,
+  ext g', dsimp only,
   conv_lhs { rw sum_apply, congr, skip, funext, rw [pi.smul_apply, sub_smul, smul_eq_mul] },
   rw [sum_sub_distrib, pi.zero_apply, sub_eq_zero],
   conv_lhs { congr, skip, funext,
     rw [to_fun_apply, ← mul_inv_cancel_left g g', mul_smul, ← smul_mul', ← to_fun_apply _ x] },
-  show ∑ x in s, g • (λ y, l y • to_fun G F y) x (g⁻¹ * g') =
-    ∑ x in s, (λ y, l y • to_fun G F y) x g',
+  show ∑ x in s, g • (λ y, l y • mul_action.to_fun G F y) x (g⁻¹ * g') =
+    ∑ x in s, (λ y, l y • mul_action.to_fun G F y) x g',
   rw [← smul_sum, ← sum_apply _ _ (λ y, l y • to_fun G F y),
       ← sum_apply _ _ (λ y, l y • to_fun G F y)], dsimp only,
   rw [hla, to_fun_apply, to_fun_apply, smul_smul, mul_inv_cancel_left]
 end
-
 
 variables [fintype G] (x : F)
 
@@ -236,21 +235,18 @@ by { rw [← minpoly_eq_minpoly, minpoly,
 
 instance separable : is_separable (fixed_points.subfield G F) F :=
 ⟨λ x, is_integral G F x,
- λ x, by {
-  -- this was a plain rw when we were using unbundled subrings
+ λ x, by
+{ -- this was a plain rw when we were using unbundled subrings
   erw [← minpoly_eq_minpoly,
     ← polynomial.separable_map (fixed_points.subfield G F).subtype,
     minpoly, polynomial.map_to_subring _ ((subfield G F).to_subring) ],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
 lemma dim_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
-begin
-  refine dim_le (λ s hs, cardinal.nat_cast_le.1 _),
-  rw [← @dim_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
-    cardinal.finset_card, ← cardinal.lift_id (module.rank F (G → F))],
-  exact cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max u v)}
+dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_finset, finset.coe_sort_coe,
+  cardinal.lift_nat_cast, cardinal.nat_cast_le]
+  using cardinal_lift_le_dim_of_linear_independent'
     (linear_independent_smul_of_linear_independent G F hs)
-end
 
 instance : finite_dimensional (fixed_points.subfield G F) F :=
 is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.2 $

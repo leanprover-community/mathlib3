@@ -163,9 +163,9 @@ h.to_equiv.symm_apply_apply x
 
 @[simp] lemma symm_refl : (diffeomorph.refl I M n).symm = diffeomorph.refl I M n :=
 ext $ λ _, rfl
-@[simp] lemma trans_symm (h : M ≃ₘ^n⟮I, J⟯ N) : h.trans h.symm = diffeomorph.refl I M n :=
+@[simp] lemma self_trans_symm (h : M ≃ₘ^n⟮I, J⟯ N) : h.trans h.symm = diffeomorph.refl I M n :=
 ext h.symm_apply_apply
-@[simp] lemma symm_trans (h : M ≃ₘ^n⟮I, J⟯ N) : h.symm.trans h = diffeomorph.refl J N n :=
+@[simp] lemma symm_trans_self (h : M ≃ₘ^n⟮I, J⟯ N) : h.symm.trans h = diffeomorph.refl J N n :=
 ext h.apply_symm_apply
 @[simp] lemma symm_trans' (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : M' ≃ₘ^n⟮I', J⟯ N) :
   (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := rfl

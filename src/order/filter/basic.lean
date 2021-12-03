@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
 -/
+import control.traversable.instances
 import data.set.finite
 import order.copy
-import order.zorn
 import tactic.monotonicity
 
 /-!
@@ -689,7 +689,7 @@ filter.ext $ λ x, by simp only [mem_sup, mem_join]
   (⨆ x, join (f x)) = join (⨆ x, f x) :=
 filter.ext $ λ x, by simp only [mem_supr, mem_join]
 
-instance : bounded_distrib_lattice (filter α) :=
+instance : distrib_lattice (filter α) :=
 { le_sup_inf :=
   begin
     intros x y z s,
@@ -888,6 +888,8 @@ notation `∀ᶠ` binders ` in ` f `, ` r:(scoped p, filter.eventually p f) := r
 lemma eventually_iff {f : filter α} {P : α → Prop} : (∀ᶠ x in f, P x) ↔ {x | P x} ∈ f :=
 iff.rfl
 
+@[simp] lemma eventually_mem_set {s : set α} {l : filter α} : (∀ᶠ x in l, x ∈ s) ↔ s ∈ l := iff.rfl
+
 protected lemma ext' {f₁ f₂ : filter α}
   (h : ∀ p : α → Prop, (∀ᶠ x in f₁, p x) ↔ (∀ᶠ x in f₂, p x)) :
   f₁ = f₂ :=
@@ -1077,12 +1079,8 @@ lemma frequently_iff_forall_eventually_exists_and {p : α → Prop} {f : filter 
 lemma frequently_iff {f : filter α} {P : α → Prop} :
   (∃ᶠ x in f, P x) ↔ ∀ {U}, U ∈ f → ∃ x ∈ U, P x :=
 begin
-  rw frequently_iff_forall_eventually_exists_and,
-  split ; intro h,
-  { intros U U_in,
-    simpa [exists_prop, and_comm] using h U_in },
-  { intros H H',
-    simpa [and_comm] using h H' },
+  simp only [frequently_iff_forall_eventually_exists_and, exists_prop, and_comm (P _)],
+  refl
 end
 
 @[simp] lemma not_eventually {p : α → Prop} {f : filter α} :
@@ -1187,6 +1185,9 @@ lemma eventually_eq_set {s t : set α} {l : filter α} :
 eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
 
 alias eventually_eq_set ↔ filter.eventually_eq.mem_iff filter.eventually.set_eq
+
+@[simp] lemma eventually_eq_univ {s : set α} {l : filter α} : s =ᶠ[l] univ ↔ s ∈ l :=
+by simp [eventually_eq_set]
 
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
   ∃ s ∈ l, eq_on f g s :=
@@ -1361,15 +1362,15 @@ lemma eventually.ne_of_lt [preorder β] {l : filter α} {f g : α → β}
   (h : ∀ᶠ x in l, f x < g x) : ∀ᶠ x in l, f x ≠ g x :=
 h.mono (λ x hx, hx.ne)
 
-lemma eventually.ne_top_of_lt [order_top β] {l : filter α} {f g : α → β}
+lemma eventually.ne_top_of_lt [partial_order β] [order_top β] {l : filter α} {f g : α → β}
   (h : ∀ᶠ x in l, f x < g x) : ∀ᶠ x in l, f x ≠ ⊤ :=
 h.mono (λ x hx, hx.ne_top)
 
-lemma eventually.lt_top_of_ne [order_top β] {l : filter α} {f : α → β}
+lemma eventually.lt_top_of_ne [partial_order β] [order_top β] {l : filter α} {f : α → β}
   (h : ∀ᶠ x in l, f x ≠ ⊤) : ∀ᶠ x in l, f x < ⊤ :=
 h.mono (λ x hx, hx.lt_top)
 
-lemma eventually.lt_top_iff_ne_top [order_top β] {l : filter α} {f : α → β} :
+lemma eventually.lt_top_iff_ne_top [partial_order β] [order_top β] {l : filter α} {f : α → β} :
   (∀ᶠ x in l, f x < ⊤) ↔ ∀ᶠ x in l, f x ≠ ⊤ :=
 ⟨eventually.ne_of_lt, eventually.lt_top_of_ne⟩
 
@@ -2151,8 +2152,8 @@ begin
   { induction fs generalizing t,
     case nil { simp only [sequence, mem_pure, imp_self, forall₂_nil_left_iff,
       exists_eq_left, set.pure_def, singleton_subset_iff, traverse_nil] },
-    case cons : b fs ih t {
-      intro ht,
+    case cons : b fs ih t
+    { intro ht,
       rcases mem_seq_iff.1 ht with ⟨u, hu, v, hv, ht⟩,
       rcases mem_map_iff_exists_image.1 hu with ⟨w, hw, hwu⟩,
       rcases ih v hv with ⟨us, hus, hu⟩,
@@ -2443,6 +2444,27 @@ end
     (λ ht'e, absurd ht'e (nonempty_of_mem ht').ne_empty)),
   λ h, prod_mem_prod h.1 h.2⟩
 
+lemma mem_prod_principal {f : filter α} {s : set (α × β)} {t : set β}:
+  s ∈ f ×ᶠ 𝓟 t ↔ {a | ∀ b ∈ t, (a, b) ∈ s} ∈ f :=
+begin
+  rw [← @exists_mem_subset_iff _ f, mem_prod_iff],
+  apply exists_congr, intro u, apply exists_congr, intro u_in,
+  split,
+  { rintros ⟨v, v_in, hv⟩ a a_in b b_in,
+    exact hv (mk_mem_prod a_in $ v_in b_in) },
+  { intro h,
+    refine ⟨t, mem_principal_self t, _⟩,
+    rintros ⟨x, y⟩ ⟨hx, hy⟩,
+    exact h hx y hy }
+end
+
+lemma mem_prod_top {f : filter α} {s : set (α × β)} :
+  s ∈ f ×ᶠ (⊤ : filter β) ↔ {a | ∀ b, (a, b) ∈ s} ∈ f :=
+begin
+  rw [← principal_univ, mem_prod_principal],
+  simp only [mem_univ, forall_true_left]
+end
+
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
 by erw [comap_inf, filter.comap_comap, filter.comap_comap]
@@ -2695,63 +2717,6 @@ lemma tendsto.prod_map_coprod {δ : Type*} {f : α → γ} {g : β → δ} {a : 
 map_prod_map_coprod_le.trans (coprod_mono hf hg)
 
 end coprod
-
-/-! ### `n`-ary coproducts of filters -/
-
-section Coprod
-variables {δ : Type*} {κ : δ → Type*}  -- {f : Π d, filter (κ d)}
-
-/-- Coproduct of filters. -/
-protected def Coprod (f : Π d, filter (κ d)) : filter (Π d, κ d) :=
-⨆ d : δ, (f d).comap (λ k, k d)
-
-lemma mem_Coprod_iff {s : set (Π d, κ d)} {f : Π d, filter (κ d)} :
-  (s ∈ (filter.Coprod f)) ↔ (∀ d : δ, (∃ t₁ ∈ f d, (λ k : (Π d, κ d), k d) ⁻¹' t₁ ⊆ s)) :=
-by simp [filter.Coprod]
-
-lemma Coprod_ne_bot_iff' {f : Π d, filter (κ d)} :
-  ne_bot (filter.Coprod f) ↔ (∀ d, nonempty (κ d)) ∧ ∃ d, ne_bot (f d) :=
-by simp only [filter.Coprod, supr_ne_bot, ← exists_and_distrib_left, ← comap_eval_ne_bot_iff']
-
-@[simp] lemma Coprod_ne_bot_iff [∀ d, nonempty (κ d)] {f : Π d, filter (κ d)} :
-  ne_bot (filter.Coprod f) ↔ ∃ d, ne_bot (f d) :=
-by simp [Coprod_ne_bot_iff', *]
-
-lemma ne_bot.Coprod [∀ d, nonempty (κ d)] {f : Π d, filter (κ d)} {d : δ} (h : ne_bot (f d)) :
-  ne_bot (filter.Coprod f) :=
-Coprod_ne_bot_iff.2 ⟨d, h⟩
-
-@[instance] lemma Coprod_ne_bot [∀ d, nonempty (κ d)] [nonempty δ] (f : Π d, filter (κ d))
-  [H : ∀ d, ne_bot (f d)] : ne_bot (filter.Coprod f) :=
-(H (classical.arbitrary δ)).Coprod
-
-@[mono] lemma Coprod_mono {f₁ f₂ : Π d, filter (κ d)} (hf : ∀ d, f₁ d ≤ f₂ d) :
-  filter.Coprod f₁ ≤ filter.Coprod f₂ :=
-supr_le_supr $ λ d, comap_mono (hf d)
-
-lemma map_pi_map_Coprod_le {μ : δ → Type*}
-  {f : Π d, filter (κ d)} {m : Π d, κ d → μ d} :
-  map (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) ≤ filter.Coprod (λ d, map (m d) (f d)) :=
-begin
-  intros s h,
-  rw [mem_map', mem_Coprod_iff],
-  intros d,
-  rw mem_Coprod_iff at h,
-  obtain ⟨t, H, hH⟩ := h d,
-  rw mem_map at H,
-  refine ⟨{x : κ d | m d x ∈ t}, H, _⟩,
-  intros x hx,
-  simp only [mem_set_of_eq, preimage_set_of_eq] at hx,
-  rw mem_set_of_eq,
-  exact set.mem_of_subset_of_mem hH (mem_preimage.mpr hx),
-end
-
-lemma tendsto.pi_map_Coprod {μ : δ → Type*} {f : Π d, filter (κ d)} {m : Π d, κ d → μ d}
-  {g : Π d, filter (μ d)} (hf : ∀ d, tendsto (m d) (f d) (g d)) :
-  tendsto (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) (filter.Coprod g) :=
-map_pi_map_Coprod_le.trans (Coprod_mono hf)
-
-end Coprod
 
 end filter
 

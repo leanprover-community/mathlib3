@@ -247,10 +247,8 @@ lemma clog_le_clog_of_le (b : ℕ) {n m : ℕ} (h : n ≤ m) : clog b n ≤ clog
 begin
   cases le_or_lt b 1 with hb hb,
   { rw clog_of_left_le_one hb, exact zero_le _ },
-  { obtain rfl | hn := n.eq_zero_or_pos,
-    { rw [clog_zero_right], exact zero_le _ },
-    { rw ←le_pow_iff_clog_le hb,
-      exact h.trans (le_pow_clog hb _) } }
+  { rw ←le_pow_iff_clog_le hb,
+    exact h.trans (le_pow_clog hb _) }
 end
 
 lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=

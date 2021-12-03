@@ -140,24 +140,22 @@ calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card
      ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'
      ... ≤ π' k + ((Ico k n).filter (λ i, i = k ∨ coprime k i)).card :
             begin
-              apply add_le_add_left,
-              apply card_le_of_subset,
-              rw subset_iff,
-              simp,
+              refine add_le_add_left (card_le_of_subset _) k.prime_counting',
+              simp only [subset_iff, and_imp, mem_filter, mem_Ico],
               intros p succ_k_le_p p_lt_n p_prime,
-              -- have k_lt_p : k < p, linarith,
               split,
               { exact ⟨succ_k_le_p, p_lt_n⟩, },
               { rw coprime_comm,
-                apply eq_or_coprime_of_le_prime h0 _ p_prime,
-                exact succ_k_le_p, },
+                exact eq_or_coprime_of_le_prime h0 succ_k_le_p p_prime, },
             end
-     ... ≤ π' k + ({k} ∪ filter (λ (a : ℕ), k.coprime a) (Ico k n)).card :
+     ... = π' k + ({k} ∪ filter k.coprime (Ico k n)).card :
             begin
-              apply add_le_add_left,
               rw [filter_or, filter_eq'],
-              simp,
-              rw if_pos k_lt_n,
+              congr,
+              simp only [true_and, le_refl, not_lt, mem_Ico, ite_eq_left_iff],
+              intro n_le_k,
+              by_contra,
+              exact lt_le_antisymm k_lt_n n_le_k,
             end
       ... ≤ π' k + (1 + nat.totient k * (n / k)) :
             begin

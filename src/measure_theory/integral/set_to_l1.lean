@@ -511,7 +511,7 @@ have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
   rw [hs0, ennreal.zero_to_real, mul_zero], },
 linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T h_zero hT.1,
   set_to_L1s_smul_real T h_zero hT.1⟩ C (λ f, norm_set_to_L1s_le T hT.2 f)
-
+/-- df-/
 variables {α E μ 𝕜}
 
 lemma norm_set_to_L1s_clm_le {T : set α → E →L[ℝ] F} {C : ℝ}

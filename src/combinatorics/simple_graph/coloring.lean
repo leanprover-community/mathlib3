@@ -139,7 +139,12 @@ lemma colorable_of_is_empty [is_empty V] (n : ℕ) : G.colorable n :=
 ⟨G.coloring_of_is_empty⟩
 
 lemma is_empty_of_colorable_zero (h : G.colorable 0) : is_empty V :=
-⟨λ v, by { ⟨i, hi⟩ := h.some v, exact nat.not_lt_zero _ hi }⟩
+begin
+  split,
+  intro v,
+  obtain ⟨i, hi⟩ := h.some v,
+  exact nat.not_lt_zero _ hi,
+end
 
 /-- The "tautological" coloring of a graph, using the vertices of the graph as colors. -/
 def self_coloring : G.coloring V :=

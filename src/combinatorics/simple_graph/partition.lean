@@ -96,12 +96,19 @@ end
 Each vertex is colored by the part it's contained in. -/
 def to_coloring : G.coloring P.parts :=
 coloring.mk (λ v, ⟨P.part_of_vertex v, P.part_of_vertex_mem v⟩)
-λ _ _ hvw, by { rw [ne.def, subtype.mk_eq_mk], exact P.part_of_vertex_ne_of_adj hvw }
+begin
+  intros _ _ hvw,
+  rw [ne.def, subtype.mk_eq_mk],
+  exact P.part_of_vertex_ne_of_adj hvw,
+end
 
 /-- Like `simple_graph.partition.to_coloring` but uses `set V` as the coloring type. -/
 def to_coloring' : G.coloring (set V) :=
 coloring.mk P.part_of_vertex
-λ _ _ hvw, P.part_of_vertex_ne_of_adj hvw
+begin
+  intros _ _ hvw,
+  exact P.part_of_vertex_ne_of_adj hvw,
+end
 
 lemma to_colorable [fintype P.parts] : G.colorable (fintype.card P.parts) :=
 P.to_coloring.to_colorable

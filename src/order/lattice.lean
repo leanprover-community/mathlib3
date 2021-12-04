@@ -824,8 +824,8 @@ end subtype
 
 section lift
 
-/-- A type endowed with `⊔` and `⊓` is a `semilattice_sup`, if it admits an injective map that
-preserves `⊔` and `⊓` to a `semilatttice_sup`. -/
+/-- A type endowed with `⊔` is a `semilattice_sup`, if it admits an injective map that
+preserves `⊔` to a `semilatttice_sup`. -/
 protected def function.injective.semilattice_sup {α β : Type*} [has_sup α] [semilattice_sup β]
   (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) :
   semilattice_sup α :=
@@ -835,8 +835,8 @@ protected def function.injective.semilattice_sup {α β : Type*} [has_sup α] [s
   sup_le := λ a b c ha hb, by { change f (a ⊔ b) ≤ f c, rw map_sup, exact sup_le ha hb, },
   ..partial_order.lift f hf_inj}
 
-/-- A type endowed with `⊔` and `⊓` is a `semilattice_inf`, if it admits an injective map that
-preserves `⊔` and `⊓` to a `semilatttice_inf`. -/
+/-- A type endowed with `⊓` is a `semilattice_inf`, if it admits an injective map that
+preserves `⊓` to a `semilatttice_inf`. -/
 protected def function.injective.semilattice_inf {α β : Type*} [has_inf α] [semilattice_inf β]
   (f : α → β) (hf_inj : function.injective f) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
   semilattice_inf α :=

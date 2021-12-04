@@ -351,7 +351,7 @@ begin
   cases hk; exact ⟨_, hk⟩
 end
 
-lemma eq_of_nat_abs_eq_non_neg {a b : ℤ} (ha : 0 ≤ a) (hb : 0 ≤ b) (h : nat_abs a = nat_abs b) :
+lemma eq_of_nat_abs_eq_nonneg {a b : ℤ} (ha : 0 ≤ a) (hb : 0 ≤ b) (h : nat_abs a = nat_abs b) :
   a = b :=
 by rwa [←sq_eq_sq ha hb, ←nat_abs_eq_iff_sq_eq]
 

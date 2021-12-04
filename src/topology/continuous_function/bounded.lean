@@ -1081,7 +1081,6 @@ instance : semilattice_sup (α →ᵇ β) :=
       apply add_le_add (hf _ _) (hg _ _),
     end },
   le_sup_left := λ f g, continuous_map.le_def.mpr (begin intro, apply le_sup_left, end),
-  --inf_le_left :=
   le_sup_right := λ f g, continuous_map.le_def.mpr (begin intro, apply le_sup_right, end),
   sup_le := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ a, begin
     apply sup_le (continuous_map.le_def.mp w₁ a) (continuous_map.le_def.mp w₂ a),

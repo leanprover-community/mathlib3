@@ -22,7 +22,7 @@ class polytope (α : Type u) extends prepolytope α : Type u :=
 (scon : graded.strong_connected α)
 
 /-- The dual of a prepolytope. -/
-def dual' (α : Type u) [prepolytope α] : prepolytope (order_dual α) :=
+instance (α : Type u) [prepolytope α] : prepolytope (order_dual α) :=
 ⟨ begin
   intros a b hab hg,
   unfold graded.grade at hg,
@@ -38,6 +38,7 @@ def dual' (α : Type u) [prepolytope α] : prepolytope (order_dual α) :=
   repeat { exact (λ h, ⟨h.right, h.left⟩) },
 end ⟩
 
+/-- Any graded poset of top grade less or equal to 1 satisfies the diamond property. -/
 lemma diamond_of_grade_le_one (α : Type u) [partial_order α] [order_top α] [graded α] :
   graded.grade_top α ≤ 1 → diamond α :=
 begin
@@ -46,22 +47,26 @@ begin
   linarith,
 end
 
-/-- The nullitope as a prepolytope. This is the unique graded poset of top grade 0. -/
-def nullitope' : prepolytope (fin 1) :=
+/-- The nullitope, the unique graded poset of top grade 0. -/
+@[reducible] def nullitope : Type := fin 1
+
+/-- The point, the unique graded poset of top grade 1. -/
+@[reducible] def point : Type := fin 2
+
+/-- The nullitope is a prepolytope. This is the unique graded poset of top grade 0. -/
+instance : prepolytope nullitope :=
 ⟨ by apply diamond_of_grade_le_one; exact zero_le_one ⟩
 
-/-- The nullitope as a polytope. This is the unique graded poset of top grade 0. -/
-def nullitope : polytope (fin 1) :=
-{ scon := by apply graded.scon_of_grade_le_two; exact zero_le_two,
-  ..nullitope' }
+/-- The nullitope is a polytope. This is the unique graded poset of top grade 0. -/
+instance : polytope nullitope :=
+{ scon := by apply graded.scon_of_grade_le_two; exact zero_le_two }
 
 /-- The point as a prepolytope. This is the unique graded poset of top grade 1. -/
-def point' : prepolytope (fin 2) :=
+instance : prepolytope point :=
 ⟨ by apply diamond_of_grade_le_one; exact le_rfl ⟩
 
 /-- The point as a polytope. This is the unique graded poset of top grade 1. -/
-def point : polytope (fin 2) :=
-{ scon := by apply graded.scon_of_grade_le_two; exact one_le_two,
-  ..point' }
+instance : polytope point :=
+{ scon := by apply graded.scon_of_grade_le_two; exact one_le_two }
 
 end polytope

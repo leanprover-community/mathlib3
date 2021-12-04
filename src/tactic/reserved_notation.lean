@@ -48,8 +48,8 @@ reserve notation `to`
 precedence `?`:max
 
 -- used in `order/lattice.lean`
-reserve infixl ` ⊓ `:70
-reserve infixl ` ⊔ `:69
+reserve infixl ` ⊓ `:69
+reserve infixl ` ⊔ `:68
 
 -- used in `algebra/module/linear_map.lean`
 reserve infix ` ≃ₗ `:25

@@ -1192,7 +1192,7 @@ instance forget_map_is_open_immersion :
 
 instance has_limit_cospan_forget_of_left : has_limit (cospan f g ⋙ Scheme.forget) :=
 begin
-  apply has_limit_of_iso (diagram_iso_cospan _).symm,
+  apply has_limit_of_iso (diagram_iso_cospan.{u} _).symm,
   change has_limit (cospan (Scheme.forget.map f) (Scheme.forget.map g)),
   apply_instance
 end
@@ -1206,7 +1206,7 @@ show has_limit (cospan (Scheme.forget.map f) (Scheme.forget.map g)), from infer_
 
 instance has_limit_cospan_forget_of_right : has_limit (cospan g f ⋙ Scheme.forget) :=
 begin
-  apply has_limit_of_iso (diagram_iso_cospan _).symm,
+  apply has_limit_of_iso (diagram_iso_cospan.{u} _).symm,
   change has_limit (cospan (Scheme.forget.map g) (Scheme.forget.map f)),
   apply_instance
 end

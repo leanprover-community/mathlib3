@@ -33,41 +33,22 @@ variables {G : Type*} [group G] [measurable_space G] [topological_space G] [t2_s
 
 local notation `X` := quotient_group.quotient Γ -- X = Γ \ G
 
-variables [compact_space X] [t2_space X] [topological_space.second_countable_topology X]
-  [measurable_space X] [borel_space X] -- prove t2, prove second_countability, prove borel?
-  -- (from discreteness?)
-
-local notation `μ_X` := measure_theory.measure.haar_measure
-  (topological_space.positive_compacts_univ : topological_space.positive_compacts X)
-
+variables [measurable_space X] [borel_space X]
 
 instance subgroup.smul_invariant_measure : smul_invariant_measure Γ G μ := sorry
 
 include h𝓕
 variables [encodable Γ]
 
-lemma map_restrict_unit_interval :
-  measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕) = (μ 𝓕) • μ_X :=
+
+lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map :
+  is_mul_left_invariant (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) :=
 begin
   let π : G →* X := @quotient_group.mk' _ _ Γ _,
   have π_of_Γ : ∀ γ : Γ, π γ = 1 := λ γ, (@quotient_group.eq_one_iff _ _ Γ _ γ).mpr γ.prop,
   have meas_π : measurable π :=
     continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
   have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
-  haveI : is_finite_measure (μ.restrict 𝓕) := ⟨sorry⟩,
-  haveI : is_finite_measure (measure.map π (μ.restrict 𝓕)) :=
-    (μ.restrict 𝓕).is_finite_measure_map π,
-  -- to show that a measure is Haar, enough to show left invariance
-  suffices : is_mul_left_invariant (measure.map π (μ.restrict 𝓕)),
-  { rw @measure.haar_measure_unique X _ _ _ _ _ _ _
-      (measure.map π (μ.restrict 𝓕)) _ this
-      (topological_space.positive_compacts_univ),
-    { transitivity (μ 𝓕) • μ_X,
-      { congr,
-        rw measure.map_apply meas_π,
-        { simp [topological_space.positive_compacts_univ], },
-        { exact measurable_set.univ, }, },
-    { simp, }, }, },
   rw ←measure.map_mul_left_eq_self,
   intros x,
   ext1 A hA,
@@ -92,12 +73,37 @@ begin
   have h𝓕_translate_fundom : is_fundamental_domain Γ (has_mul.mul x1⁻¹ ⁻¹' 𝓕) μ,
   { -- this goal is just invariance of measure under group action, I think
     sorry },
+
   rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA _,
   rw two_quotients,
   { -- this goal is just invariance of measure under group action, I think
     sorry },
   -- another trivial lemma, I think we have proved this before somewhere
   sorry
+end
+
+variables [t2_space X] [topological_space.second_countable_topology X]
+ -- prove t2, prove second_countability, (from discreteness?)
+
+variables (K : topological_space.positive_compacts X)
+
+local notation `μ_X` := measure_theory.measure.haar_measure K
+
+lemma map_restrict_unit_interval (h𝓕_finite : μ 𝓕 < ⊤) :
+  measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)
+  = (μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K.val)) • μ_X :=
+begin
+  let π : G →* X := quotient_group.mk' Γ,
+  have meas_π : measurable π :=
+    continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
+  have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
+  haveI : is_finite_measure (μ.restrict 𝓕) :=
+    ⟨by { rw [measure.restrict_apply' 𝓕meas, univ_inter], exact h𝓕_finite }⟩,
+  -- the measure is left-invariant, so by the uniqueness of Haar measure it's enough to show that
+  -- it has the stated size on the reference compact set `K`.
+  rw [measure.haar_measure_unique h𝓕.is_mul_left_invariant_map K,
+        measure.map_apply meas_π, measure.restrict_apply' 𝓕meas, inter_comm],
+  exact K.prop.1.measurable_set
 end
 
 

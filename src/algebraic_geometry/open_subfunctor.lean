@@ -12,374 +12,374 @@ namespace algebraic_geometry.Scheme
 
 variables {C : Type u} [category.{v} C]
 
-section
+-- section
 
-variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+-- variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
-variables [mono g]
+-- variables [mono g]
 
-def pullback_cone_of_left_factors : pullback_cone g (f ≫ g) :=
-pullback_cone.mk f (𝟙 _) $ by simp
+-- def pullback_cone_of_left_factors : pullback_cone g (f ≫ g) :=
+-- pullback_cone.mk f (𝟙 _) $ by simp
 
-@[simp] lemma pullback_cone_of_left_factors_X :
-  (pullback_cone_of_left_factors f g).X = X := rfl
+-- @[simp] lemma pullback_cone_of_left_factors_X :
+--   (pullback_cone_of_left_factors f g).X = X := rfl
 
-@[simp] lemma pullback_cone_of_left_factors_fst :
-  (pullback_cone_of_left_factors f g).fst = f := rfl
+-- @[simp] lemma pullback_cone_of_left_factors_fst :
+--   (pullback_cone_of_left_factors f g).fst = f := rfl
 
-@[simp] lemma pullback_cone_of_left_factors_snd :
-  (pullback_cone_of_left_factors f g).snd = 𝟙 _ := rfl
+-- @[simp] lemma pullback_cone_of_left_factors_snd :
+--   (pullback_cone_of_left_factors f g).snd = 𝟙 _ := rfl
 
-@[simp] lemma pullback_cone_of_left_factors_π_app_none :
-  (pullback_cone_of_left_factors f g).π.app none = f ≫ g := rfl
+-- @[simp] lemma pullback_cone_of_left_factors_π_app_none :
+--   (pullback_cone_of_left_factors f g).π.app none = f ≫ g := rfl
 
-@[simp] lemma pullback_cone_of_left_factors_π_app_left :
-  (pullback_cone_of_left_factors f g).π.app walking_cospan.left = f := rfl
+-- @[simp] lemma pullback_cone_of_left_factors_π_app_left :
+--   (pullback_cone_of_left_factors f g).π.app walking_cospan.left = f := rfl
 
-@[simp] lemma pullback_cone_of_left_factors_π_app_right :
-  (pullback_cone_of_left_factors f g).π.app walking_cospan.right = 𝟙 _ := rfl
+-- @[simp] lemma pullback_cone_of_left_factors_π_app_right :
+--   (pullback_cone_of_left_factors f g).π.app walking_cospan.right = 𝟙 _ := rfl
 
-/-- Verify that the constructed cocone is indeed a colimit. -/
-def pullback_cone_of_left_factors_is_limit :
-  is_limit (pullback_cone_of_left_factors f g) :=
-pullback_cone.is_limit_aux' _ (λ s, ⟨s.snd, by simpa [← cancel_mono g] using s.condition.symm⟩)
+-- /-- Verify that the constructed cocone is indeed a colimit. -/
+-- def pullback_cone_of_left_factors_is_limit :
+--   is_limit (pullback_cone_of_left_factors f g) :=
+-- pullback_cone.is_limit_aux' _ (λ s, ⟨s.snd, by simpa [← cancel_mono g] using s.condition.symm⟩)
 
-instance has_pullback_of_left_factors : has_pullback g (f ≫ g) :=
-⟨⟨⟨_, pullback_cone_of_left_factors_is_limit f g⟩⟩⟩
+-- instance has_pullback_of_left_factors : has_pullback g (f ≫ g) :=
+-- ⟨⟨⟨_, pullback_cone_of_left_factors_is_limit f g⟩⟩⟩
 
-instance pullback_fst_iso_of_left_factors : is_iso (pullback.snd : pullback g (f ≫ g) ⟶ _) :=
-begin
-  have : _ ≫ 𝟙 _ = pullback.snd := limit.iso_limit_cone_hom_π
-    ⟨_, pullback_cone_of_left_factors_is_limit f g⟩ walking_cospan.right,
-  rw ← this,
-  apply_instance
-end
+-- instance pullback_fst_iso_of_left_factors : is_iso (pullback.snd : pullback g (f ≫ g) ⟶ _) :=
+-- begin
+--   have : _ ≫ 𝟙 _ = pullback.snd := limit.iso_limit_cone_hom_π
+--     ⟨_, pullback_cone_of_left_factors_is_limit f g⟩ walking_cospan.right,
+--   rw ← this,
+--   apply_instance
+-- end
 
-def pullback_cone_of_right_factors : pullback_cone (f ≫ g) g :=
-pullback_cone.mk (𝟙 _) f $ by simp
+-- def pullback_cone_of_right_factors : pullback_cone (f ≫ g) g :=
+-- pullback_cone.mk (𝟙 _) f $ by simp
 
-@[simp] lemma pullback_cone_of_right_factors_X :
-  (pullback_cone_of_right_factors f g).X = X := rfl
+-- @[simp] lemma pullback_cone_of_right_factors_X :
+--   (pullback_cone_of_right_factors f g).X = X := rfl
 
-@[simp] lemma pullback_cone_of_right_factors_fst :
-  (pullback_cone_of_right_factors f g).fst = 𝟙 _ := rfl
+-- @[simp] lemma pullback_cone_of_right_factors_fst :
+--   (pullback_cone_of_right_factors f g).fst = 𝟙 _ := rfl
 
-@[simp] lemma pullback_cone_of_right_factors_snd :
-  (pullback_cone_of_right_factors f g).snd = f := rfl
+-- @[simp] lemma pullback_cone_of_right_factors_snd :
+--   (pullback_cone_of_right_factors f g).snd = f := rfl
 
-@[simp] lemma pullback_cone_of_right_factors_π_app_none :
-  (pullback_cone_of_right_factors f g).π.app none = f ≫ g := category.id_comp _
+-- @[simp] lemma pullback_cone_of_right_factors_π_app_none :
+--   (pullback_cone_of_right_factors f g).π.app none = f ≫ g := category.id_comp _
 
-@[simp] lemma pullback_cone_of_right_factors_π_app_left :
-  (pullback_cone_of_right_factors f g).π.app walking_cospan.left = 𝟙 _ := rfl
+-- @[simp] lemma pullback_cone_of_right_factors_π_app_left :
+--   (pullback_cone_of_right_factors f g).π.app walking_cospan.left = 𝟙 _ := rfl
 
-@[simp] lemma pullback_cone_of_right_factors_π_app_right :
-  (pullback_cone_of_right_factors f g).π.app walking_cospan.right = f := rfl
+-- @[simp] lemma pullback_cone_of_right_factors_π_app_right :
+--   (pullback_cone_of_right_factors f g).π.app walking_cospan.right = f := rfl
 
-/-- Verify that the constructed cocone is indeed a colimit. -/
-def pullback_cone_of_right_factors_is_limit :
-  is_limit (pullback_cone_of_right_factors f g) :=
-pullback_cone.is_limit_aux' _ (λ s, ⟨s.fst, by simpa [← cancel_mono g] using s.condition⟩)
+-- /-- Verify that the constructed cocone is indeed a colimit. -/
+-- def pullback_cone_of_right_factors_is_limit :
+--   is_limit (pullback_cone_of_right_factors f g) :=
+-- pullback_cone.is_limit_aux' _ (λ s, ⟨s.fst, by simpa [← cancel_mono g] using s.condition⟩)
 
-instance has_pullback_of_right_factors : has_pullback (f ≫ g) g :=
-⟨⟨⟨_, pullback_cone_of_right_factors_is_limit f g⟩⟩⟩
+-- instance has_pullback_of_right_factors : has_pullback (f ≫ g) g :=
+-- ⟨⟨⟨_, pullback_cone_of_right_factors_is_limit f g⟩⟩⟩
 
-instance pullback_fst_iso_of_right_factors : is_iso (pullback.fst : pullback (f ≫ g) g ⟶ _) :=
-begin
-  have : _ ≫ 𝟙 _ = pullback.fst := limit.iso_limit_cone_hom_π
-    ⟨_, pullback_cone_of_right_factors_is_limit f g⟩ walking_cospan.left,
-  rw ← this,
-  apply_instance
-end
+-- instance pullback_fst_iso_of_right_factors : is_iso (pullback.fst : pullback (f ≫ g) g ⟶ _) :=
+-- begin
+--   have : _ ≫ 𝟙 _ = pullback.fst := limit.iso_limit_cone_hom_π
+--     ⟨_, pullback_cone_of_right_factors_is_limit f g⟩ walking_cospan.left,
+--   rw ← this,
+--   apply_instance
+-- end
 
-section
+-- section
 
-variables {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ X₂) (g₁ : X₂ ⟶ X₃) (f₂ : Y₁ ⟶ Y₂) (g₂ : Y₂ ⟶ Y₃)
-variables (i₁ : X₁ ⟶ Y₁) (i₂ : X₂ ⟶ Y₂) (i₃ : X₃ ⟶ Y₃)
-variables (h₁ : i₁ ≫ f₂ = f₁ ≫ i₂) (h₂ : i₂ ≫ g₂ = g₁ ≫ i₃)
+-- variables {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ X₂) (g₁ : X₂ ⟶ X₃) (f₂ : Y₁ ⟶ Y₂) (g₂ : Y₂ ⟶ Y₃)
+-- variables (i₁ : X₁ ⟶ Y₁) (i₂ : X₂ ⟶ Y₂) (i₃ : X₃ ⟶ Y₃)
+-- variables (h₁ : i₁ ≫ f₂ = f₁ ≫ i₂) (h₂ : i₂ ≫ g₂ = g₁ ≫ i₃)
 
-def comp_square_is_limit_of_is_limit (H : is_limit (pullback_cone.mk _ _ h₂))
-  (H' : is_limit (pullback_cone.mk _ _ h₁)) :
-  is_limit (pullback_cone.mk _ _ (show i₁ ≫ f₂ ≫ g₂ = (f₁ ≫ g₁) ≫ i₃,
-      by rw [← category.assoc, h₁, category.assoc, h₂, category.assoc])) :=
-begin
-  fapply pullback_cone.is_limit_aux',
-  intro s,
-  have : (s.fst ≫ f₂) ≫ g₂ = s.snd ≫ i₃ := by rw [← s.condition, category.assoc],
-  rcases pullback_cone.is_limit.lift' H (s.fst ≫ f₂) s.snd this with ⟨l₁, hl₁, hl₁'⟩,
-  rcases pullback_cone.is_limit.lift' H' s.fst l₁ hl₁.symm with ⟨l₂, hl₂, hl₂'⟩,
-  use l₂,
-  use hl₂,
-  use show l₂ ≫ f₁ ≫ g₁ = s.snd, by { rw [← hl₁', ← hl₂', category.assoc], refl },
-  intros m hm₁ hm₂,
-  apply pullback_cone.is_limit.hom_ext H',
-  { erw [hm₁, hl₂] },
-  { apply pullback_cone.is_limit.hom_ext H,
-    { erw [category.assoc, ← h₁, ← category.assoc, hm₁, ← hl₂,
-      category.assoc, category.assoc, h₁], refl },
-    { erw [category.assoc, hm₂, ← hl₁', ← hl₂'] } }
-end
+-- def comp_square_is_limit_of_is_limit (H : is_limit (pullback_cone.mk _ _ h₂))
+--   (H' : is_limit (pullback_cone.mk _ _ h₁)) :
+--   is_limit (pullback_cone.mk _ _ (show i₁ ≫ f₂ ≫ g₂ = (f₁ ≫ g₁) ≫ i₃,
+--       by rw [← category.assoc, h₁, category.assoc, h₂, category.assoc])) :=
+-- begin
+--   fapply pullback_cone.is_limit_aux',
+--   intro s,
+--   have : (s.fst ≫ f₂) ≫ g₂ = s.snd ≫ i₃ := by rw [← s.condition, category.assoc],
+--   rcases pullback_cone.is_limit.lift' H (s.fst ≫ f₂) s.snd this with ⟨l₁, hl₁, hl₁'⟩,
+--   rcases pullback_cone.is_limit.lift' H' s.fst l₁ hl₁.symm with ⟨l₂, hl₂, hl₂'⟩,
+--   use l₂,
+--   use hl₂,
+--   use show l₂ ≫ f₁ ≫ g₁ = s.snd, by { rw [← hl₁', ← hl₂', category.assoc], refl },
+--   intros m hm₁ hm₂,
+--   apply pullback_cone.is_limit.hom_ext H',
+--   { erw [hm₁, hl₂] },
+--   { apply pullback_cone.is_limit.hom_ext H,
+--     { erw [category.assoc, ← h₁, ← category.assoc, hm₁, ← hl₂,
+--       category.assoc, category.assoc, h₁], refl },
+--     { erw [category.assoc, hm₂, ← hl₁', ← hl₂'] } }
+-- end
 
-def is_limit_of_comp_square_is_limit (H : is_limit (pullback_cone.mk _ _ h₂))
-  (H' : is_limit (pullback_cone.mk _ _ (show i₁ ≫ f₂ ≫ g₂ = (f₁ ≫ g₁) ≫ i₃,
-      by rw [← category.assoc, h₁, category.assoc, h₂, category.assoc]))) :
-  is_limit (pullback_cone.mk _ _ h₁) :=
-begin
-  fapply pullback_cone.is_limit_aux',
-  intro s,
-  have : s.fst ≫ f₂ ≫ g₂ = (s.snd ≫ g₁) ≫ i₃ :=
-  by { rw [← category.assoc, s.condition, category.assoc, category.assoc, h₂] },
-  rcases pullback_cone.is_limit.lift' H' s.fst (s.snd ≫ g₁) this with ⟨l₁, hl₁, hl₁'⟩,
-  dsimp at *,
-  use l₁,
-  use hl₁,
-  split,
-  { apply pullback_cone.is_limit.hom_ext H,
-    { erw [category.assoc, ← h₁, ← category.assoc, hl₁, s.condition], refl },
-    { erw [category.assoc, hl₁'], refl } },
-  intros m hm₁ hm₂,
-  apply pullback_cone.is_limit.hom_ext H',
-  { erw [hm₁, hl₁] },
-  { erw [hl₁', ← hm₂], exact (category.assoc _ _ _).symm }
-end
+-- def is_limit_of_comp_square_is_limit (H : is_limit (pullback_cone.mk _ _ h₂))
+--   (H' : is_limit (pullback_cone.mk _ _ (show i₁ ≫ f₂ ≫ g₂ = (f₁ ≫ g₁) ≫ i₃,
+--       by rw [← category.assoc, h₁, category.assoc, h₂, category.assoc]))) :
+--   is_limit (pullback_cone.mk _ _ h₁) :=
+-- begin
+--   fapply pullback_cone.is_limit_aux',
+--   intro s,
+--   have : s.fst ≫ f₂ ≫ g₂ = (s.snd ≫ g₁) ≫ i₃ :=
+--   by { rw [← category.assoc, s.condition, category.assoc, category.assoc, h₂] },
+--   rcases pullback_cone.is_limit.lift' H' s.fst (s.snd ≫ g₁) this with ⟨l₁, hl₁, hl₁'⟩,
+--   dsimp at *,
+--   use l₁,
+--   use hl₁,
+--   split,
+--   { apply pullback_cone.is_limit.hom_ext H,
+--     { erw [category.assoc, ← h₁, ← category.assoc, hl₁, s.condition], refl },
+--     { erw [category.assoc, hl₁'], refl } },
+--   intros m hm₁ hm₂,
+--   apply pullback_cone.is_limit.hom_ext H',
+--   { erw [hm₁, hl₁] },
+--   { erw [hl₁', ← hm₂], exact (category.assoc _ _ _).symm }
+-- end
 
-def comp_square_is_limit_iff_is_limit (H : is_limit (pullback_cone.mk _ _ h₂)) :
-  is_limit (pullback_cone.mk _ _ (show i₁ ≫ f₂ ≫ g₂ = (f₁ ≫ g₁) ≫ i₃,
-    by rw [← category.assoc, h₁, category.assoc, h₂, category.assoc])) ≃
-  is_limit (pullback_cone.mk _ _ h₁) :=
-{ to_fun := is_limit_of_comp_square_is_limit _ _ _ _ _ _ _ h₁ h₂ H,
-  inv_fun := comp_square_is_limit_of_is_limit _ _ _ _ _ _ _ h₁ h₂ H,
-  left_inv := by tidy,
-  right_inv := by tidy }
+-- def comp_square_is_limit_iff_is_limit (H : is_limit (pullback_cone.mk _ _ h₂)) :
+--   is_limit (pullback_cone.mk _ _ (show i₁ ≫ f₂ ≫ g₂ = (f₁ ≫ g₁) ≫ i₃,
+--     by rw [← category.assoc, h₁, category.assoc, h₂, category.assoc])) ≃
+--   is_limit (pullback_cone.mk _ _ h₁) :=
+-- { to_fun := is_limit_of_comp_square_is_limit _ _ _ _ _ _ _ h₁ h₂ H,
+--   inv_fun := comp_square_is_limit_of_is_limit _ _ _ _ _ _ _ h₁ h₂ H,
+--   left_inv := by tidy,
+--   right_inv := by tidy }
 
-end
-end
-section
-variables {X Y Z X' : C} (f : X ⟶ Z) (g : Y ⟶ Z) (f' : X' ⟶ X)
-  [has_pullback f g]
-  [has_pullback f' (pullback.fst : pullback f g ⟶ _)] [has_pullback (f' ≫ f) g]
+-- end
+-- end
+-- section
+-- variables {X Y Z X' : C} (f : X ⟶ Z) (g : Y ⟶ Z) (f' : X' ⟶ X)
+--   [has_pullback f g]
+--   [has_pullback f' (pullback.fst : pullback f g ⟶ _)] [has_pullback (f' ≫ f) g]
 
-noncomputable
-def pullback_left_pullback_fst_iso :
-  pullback f' (pullback.fst : pullback f g ⟶ _) ≅ pullback (f' ≫ f) g :=
-begin
-  let := comp_square_is_limit_of_is_limit
-    (pullback.snd : pullback f' (pullback.fst : pullback f g ⟶ _) ⟶ _) pullback.snd
-    f' f pullback.fst pullback.fst g pullback.condition pullback.condition
-    (pullback_is_pullback _ _) (pullback_is_pullback _ _),
-  exact (this.cone_point_unique_up_to_iso (pullback_is_pullback _ _) : _)
-end
+-- noncomputable
+-- def pullback_left_pullback_fst_iso :
+--   pullback f' (pullback.fst : pullback f g ⟶ _) ≅ pullback (f' ≫ f) g :=
+-- begin
+--   let := comp_square_is_limit_of_is_limit
+--     (pullback.snd : pullback f' (pullback.fst : pullback f g ⟶ _) ⟶ _) pullback.snd
+--     f' f pullback.fst pullback.fst g pullback.condition pullback.condition
+--     (pullback_is_pullback _ _) (pullback_is_pullback _ _),
+--   exact (this.cone_point_unique_up_to_iso (pullback_is_pullback _ _) : _)
+-- end
 
-@[simp, reassoc]
-lemma pullback_left_pullback_fst_iso_hom_fst :
-  (pullback_left_pullback_fst_iso f g f').hom ≫ pullback.fst = pullback.fst :=
-is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.left
+-- @[simp, reassoc]
+-- lemma pullback_left_pullback_fst_iso_hom_fst :
+--   (pullback_left_pullback_fst_iso f g f').hom ≫ pullback.fst = pullback.fst :=
+-- is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.left
 
-@[simp, reassoc]
-lemma pullback_left_pullback_fst_iso_hom_snd :
-  (pullback_left_pullback_fst_iso f g f').hom ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
-is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right
+-- @[simp, reassoc]
+-- lemma pullback_left_pullback_fst_iso_hom_snd :
+--   (pullback_left_pullback_fst_iso f g f').hom ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
+-- is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right
 
-@[simp, reassoc]
-lemma pullback_left_pullback_fst_iso_inv_fst :
-  (pullback_left_pullback_fst_iso f g f').inv ≫ pullback.fst = pullback.fst :=
-is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.left
+-- @[simp, reassoc]
+-- lemma pullback_left_pullback_fst_iso_inv_fst :
+--   (pullback_left_pullback_fst_iso f g f').inv ≫ pullback.fst = pullback.fst :=
+-- is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.left
 
-@[simp, reassoc]
-lemma pullback_left_pullback_fst_iso_inv_snd_snd :
-  (pullback_left_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
-is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.right
+-- @[simp, reassoc]
+-- lemma pullback_left_pullback_fst_iso_inv_snd_snd :
+--   (pullback_left_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
+-- is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.right
 
-@[simp, reassoc]
-lemma pullback_left_pullback_fst_iso_inv_snd_fst :
-  (pullback_left_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ f' :=
-begin
-  rw ← pullback.condition,
-  exact pullback_left_pullback_fst_iso_inv_fst_assoc _ _ _ _
-end
+-- @[simp, reassoc]
+-- lemma pullback_left_pullback_fst_iso_inv_snd_fst :
+--   (pullback_left_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ f' :=
+-- begin
+--   rw ← pullback.condition,
+--   exact pullback_left_pullback_fst_iso_inv_fst_assoc _ _ _ _
+-- end
 
-section pullback_assoc
+-- section pullback_assoc
 
-noncomputable theory
-/-
+-- noncomputable theory
+-- /-
 
-X₁
+-- X₁
 
 
 
--/
+-- -/
 
-variables {X₁ X₂ X₃ Y₁ Y₂ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₁) (f₃ : X₂ ⟶ Y₂)
-variables (f₄ : X₃ ⟶ Y₂) [has_pullback f₁ f₂] [has_pullback f₃ f₄]
+-- variables {X₁ X₂ X₃ Y₁ Y₂ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₁) (f₃ : X₂ ⟶ Y₂)
+-- variables (f₄ : X₃ ⟶ Y₂) [has_pullback f₁ f₂] [has_pullback f₃ f₄]
 
-include f₁ f₂ f₃ f₄
+-- include f₁ f₂ f₃ f₄
 
-local notation `Z₁` := pullback f₁ f₂
-local notation `Z₂` := pullback f₃ f₄
-local notation `g₁` := (pullback.fst : Z₁ ⟶ X₁)
-local notation `g₂` := (pullback.snd : Z₁ ⟶ X₂)
-local notation `g₃` := (pullback.fst : Z₂ ⟶ X₂)
-local notation `g₄` := (pullback.snd : Z₂ ⟶ X₃)
-local notation `W`  := pullback (g₂ ≫ f₃) f₄
-local notation `W'` := pullback f₁ (g₃ ≫ f₂)
-local notation `l₁` := (pullback.fst : W ⟶ Z₁)
-local notation `l₂` := (pullback.lift (pullback.fst ≫ g₂) pullback.snd
-    ((category.assoc _ _ _).trans pullback.condition) : W ⟶ Z₂)
-local notation `l₁'`:= (pullback.lift pullback.fst (pullback.snd ≫ g₃)
-    (pullback.condition.trans (category.assoc _ _ _).symm) : W' ⟶ Z₁)
-local notation `l₂'`:= (pullback.snd : W' ⟶ Z₂)
+-- local notation `Z₁` := pullback f₁ f₂
+-- local notation `Z₂` := pullback f₃ f₄
+-- local notation `g₁` := (pullback.fst : Z₁ ⟶ X₁)
+-- local notation `g₂` := (pullback.snd : Z₁ ⟶ X₂)
+-- local notation `g₃` := (pullback.fst : Z₂ ⟶ X₂)
+-- local notation `g₄` := (pullback.snd : Z₂ ⟶ X₃)
+-- local notation `W`  := pullback (g₂ ≫ f₃) f₄
+-- local notation `W'` := pullback f₁ (g₃ ≫ f₂)
+-- local notation `l₁` := (pullback.fst : W ⟶ Z₁)
+-- local notation `l₂` := (pullback.lift (pullback.fst ≫ g₂) pullback.snd
+--     ((category.assoc _ _ _).trans pullback.condition) : W ⟶ Z₂)
+-- local notation `l₁'`:= (pullback.lift pullback.fst (pullback.snd ≫ g₃)
+--     (pullback.condition.trans (category.assoc _ _ _).symm) : W' ⟶ Z₁)
+-- local notation `l₂'`:= (pullback.snd : W' ⟶ Z₂)
 
-/-- `(X₁ ×[Y₁] X₂) ×[Y₂] X₃` is the pullback `(X₁ ×[Y₁] X₂) ×[X₂] (X₂ ×[Y₂] X₃)`. -/
-def pullback_pullback_left_is_pullback [has_pullback (g₂ ≫ f₃) f₄] :
-is_limit (pullback_cone.mk l₁ l₂ (show l₁ ≫ g₂ = l₂ ≫ g₃, from (pullback.lift_fst _ _ _).symm)) :=
-begin
-  apply is_limit_of_comp_square_is_limit,
-  exact pullback_is_pullback f₃ f₄,
-  convert pullback_is_pullback (g₂ ≫ f₃) f₄,
-  rw pullback.lift_snd
-end
+-- /-- `(X₁ ×[Y₁] X₂) ×[Y₂] X₃` is the pullback `(X₁ ×[Y₁] X₂) ×[X₂] (X₂ ×[Y₂] X₃)`. -/
+-- def pullback_pullback_left_is_pullback [has_pullback (g₂ ≫ f₃) f₄] :
+-- is_limit (pullback_cone.mk l₁ l₂ (show l₁ ≫ g₂ = l₂ ≫ g₃, from (pullback.lift_fst _ _ _).symm)) :=
+-- begin
+--   apply is_limit_of_comp_square_is_limit,
+--   exact pullback_is_pullback f₃ f₄,
+--   convert pullback_is_pullback (g₂ ≫ f₃) f₄,
+--   rw pullback.lift_snd
+-- end
 
-/-- `(X₁ ×[Y₁] X₂) ×[Y₂] X₃` is the pullback `X₁ ×[Y₁] (X₂ ×[Y₂] X₃)`. -/
-def pullback_assoc_is_pullback [has_pullback (g₂ ≫ f₃) f₄] :
-is_limit (pullback_cone.mk (l₁ ≫ g₁) l₂ (show (l₁ ≫ g₁) ≫ f₁ = l₂ ≫ (g₃ ≫ f₂),
-  by rw [pullback.lift_fst_assoc, category.assoc, category.assoc, pullback.condition])) :=
-begin
-  apply pullback_cone.flip_is_limit,
-  apply comp_square_is_limit_of_is_limit,
-  apply pullback_cone.flip_is_limit,
-  exact pullback_is_pullback f₁ f₂,
-  apply pullback_cone.flip_is_limit,
-  apply pullback_pullback_left_is_pullback,
-  exact pullback.lift_fst _ _ _,
-  exact pullback.condition.symm
-end
+-- /-- `(X₁ ×[Y₁] X₂) ×[Y₂] X₃` is the pullback `X₁ ×[Y₁] (X₂ ×[Y₂] X₃)`. -/
+-- def pullback_assoc_is_pullback [has_pullback (g₂ ≫ f₃) f₄] :
+-- is_limit (pullback_cone.mk (l₁ ≫ g₁) l₂ (show (l₁ ≫ g₁) ≫ f₁ = l₂ ≫ (g₃ ≫ f₂),
+--   by rw [pullback.lift_fst_assoc, category.assoc, category.assoc, pullback.condition])) :=
+-- begin
+--   apply pullback_cone.flip_is_limit,
+--   apply comp_square_is_limit_of_is_limit,
+--   apply pullback_cone.flip_is_limit,
+--   exact pullback_is_pullback f₁ f₂,
+--   apply pullback_cone.flip_is_limit,
+--   apply pullback_pullback_left_is_pullback,
+--   exact pullback.lift_fst _ _ _,
+--   exact pullback.condition.symm
+-- end
 
-lemma has_pullback_assoc [has_pullback (g₂ ≫ f₃) f₄] :
-has_pullback f₁ (g₃ ≫ f₂) :=
-⟨⟨⟨_, pullback_assoc_is_pullback f₁ f₂ f₃ f₄⟩⟩⟩
+-- lemma has_pullback_assoc [has_pullback (g₂ ≫ f₃) f₄] :
+-- has_pullback f₁ (g₃ ≫ f₂) :=
+-- ⟨⟨⟨_, pullback_assoc_is_pullback f₁ f₂ f₃ f₄⟩⟩⟩
 
-/-- `X₁ ×[Y₁] (X₂ ×[Y₂] X₃)` is the pullback `(X₁ ×[Y₁] X₂) ×[X₂] (X₂ ×[Y₂] X₃)`. -/
-def pullback_pullback_right_is_pullback [has_pullback f₁ (g₃ ≫ f₂)] :
-is_limit (pullback_cone.mk l₁' l₂' (show l₁' ≫ g₂ = l₂' ≫ g₃, from pullback.lift_snd _ _ _)) :=
-begin
-  apply pullback_cone.flip_is_limit,
-  apply is_limit_of_comp_square_is_limit,
-  apply pullback_cone.flip_is_limit,
-  exact pullback_is_pullback f₁ f₂,
-  apply pullback_cone.flip_is_limit,
-  convert pullback_is_pullback f₁ (g₃ ≫ f₂),
-  rw pullback.lift_fst,
-  exact pullback.condition.symm
-end
+-- /-- `X₁ ×[Y₁] (X₂ ×[Y₂] X₃)` is the pullback `(X₁ ×[Y₁] X₂) ×[X₂] (X₂ ×[Y₂] X₃)`. -/
+-- def pullback_pullback_right_is_pullback [has_pullback f₁ (g₃ ≫ f₂)] :
+-- is_limit (pullback_cone.mk l₁' l₂' (show l₁' ≫ g₂ = l₂' ≫ g₃, from pullback.lift_snd _ _ _)) :=
+-- begin
+--   apply pullback_cone.flip_is_limit,
+--   apply is_limit_of_comp_square_is_limit,
+--   apply pullback_cone.flip_is_limit,
+--   exact pullback_is_pullback f₁ f₂,
+--   apply pullback_cone.flip_is_limit,
+--   convert pullback_is_pullback f₁ (g₃ ≫ f₂),
+--   rw pullback.lift_fst,
+--   exact pullback.condition.symm
+-- end
 
-/-- `X₁ ×[Y₁] (X₂ ×[Y₂] X₃)` is the pullback `(X₁ ×[Y₁] X₂) ×[Y₂] X₃`. -/
-def pullback_assoc_symm_is_pullback [has_pullback f₁ (g₃ ≫ f₂)] :
-is_limit (pullback_cone.mk l₁' (l₂' ≫ g₄) (show l₁' ≫ (g₂ ≫ f₃) = (l₂' ≫ g₄) ≫ f₄,
-  by rw [pullback.lift_snd_assoc, category.assoc, category.assoc, pullback.condition])) :=
-begin
-  apply comp_square_is_limit_of_is_limit,
-  exact pullback_is_pullback f₃ f₄,
-  apply pullback_pullback_right_is_pullback
-end
+-- /-- `X₁ ×[Y₁] (X₂ ×[Y₂] X₃)` is the pullback `(X₁ ×[Y₁] X₂) ×[Y₂] X₃`. -/
+-- def pullback_assoc_symm_is_pullback [has_pullback f₁ (g₃ ≫ f₂)] :
+-- is_limit (pullback_cone.mk l₁' (l₂' ≫ g₄) (show l₁' ≫ (g₂ ≫ f₃) = (l₂' ≫ g₄) ≫ f₄,
+--   by rw [pullback.lift_snd_assoc, category.assoc, category.assoc, pullback.condition])) :=
+-- begin
+--   apply comp_square_is_limit_of_is_limit,
+--   exact pullback_is_pullback f₃ f₄,
+--   apply pullback_pullback_right_is_pullback
+-- end
 
-lemma has_pullback_assoc_symm [has_pullback f₁ (g₃ ≫ f₂)] :
-has_pullback (g₂ ≫ f₃) f₄ :=
-⟨⟨⟨_, pullback_assoc_symm_is_pullback f₁ f₂ f₃ f₄⟩⟩⟩
+-- lemma has_pullback_assoc_symm [has_pullback f₁ (g₃ ≫ f₂)] :
+-- has_pullback (g₂ ≫ f₃) f₄ :=
+-- ⟨⟨⟨_, pullback_assoc_symm_is_pullback f₁ f₂ f₃ f₄⟩⟩⟩
 
-variables [has_pullback (g₂ ≫ f₃) f₄] [has_pullback f₁ (g₃ ≫ f₂)]
+-- variables [has_pullback (g₂ ≫ f₃) f₄] [has_pullback f₁ (g₃ ≫ f₂)]
 
-noncomputable
-def pullback_assoc :
-  pullback (pullback.snd ≫ f₃ : pullback f₁ f₂ ⟶ _) f₄ ≅
-    pullback f₁ (pullback.fst ≫ f₂ : pullback f₃ f₄ ⟶ _) :=
-(pullback_pullback_left_is_pullback f₁ f₂ f₃ f₄).cone_point_unique_up_to_iso
-(pullback_pullback_right_is_pullback f₁ f₂ f₃ f₄)
+-- noncomputable
+-- def pullback_assoc :
+--   pullback (pullback.snd ≫ f₃ : pullback f₁ f₂ ⟶ _) f₄ ≅
+--     pullback f₁ (pullback.fst ≫ f₂ : pullback f₃ f₄ ⟶ _) :=
+-- (pullback_pullback_left_is_pullback f₁ f₂ f₃ f₄).cone_point_unique_up_to_iso
+-- (pullback_pullback_right_is_pullback f₁ f₂ f₃ f₄)
 
-@[simp, reassoc]
-lemma pullback_assoc_inv_fst_fst :
-  (pullback_assoc f₁ f₂ f₃ f₄).inv ≫ pullback.fst ≫ pullback.fst = pullback.fst :=
-begin
-  transitivity l₁' ≫ pullback.fst,
-  rw ← category.assoc,
-  congr' 1,
-  exact is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.left,
-  exact pullback.lift_fst _ _ _,
-end
+-- @[simp, reassoc]
+-- lemma pullback_assoc_inv_fst_fst :
+--   (pullback_assoc f₁ f₂ f₃ f₄).inv ≫ pullback.fst ≫ pullback.fst = pullback.fst :=
+-- begin
+--   transitivity l₁' ≫ pullback.fst,
+--   rw ← category.assoc,
+--   congr' 1,
+--   exact is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.left,
+--   exact pullback.lift_fst _ _ _,
+-- end
 
-@[simp, reassoc]
-lemma pullback_assoc_hom_fst :
-  (pullback_assoc f₁ f₂ f₃ f₄).hom ≫ pullback.fst = pullback.fst ≫ pullback.fst :=
-by rw [← iso.eq_inv_comp, pullback_assoc_inv_fst_fst]
+-- @[simp, reassoc]
+-- lemma pullback_assoc_hom_fst :
+--   (pullback_assoc f₁ f₂ f₃ f₄).hom ≫ pullback.fst = pullback.fst ≫ pullback.fst :=
+-- by rw [← iso.eq_inv_comp, pullback_assoc_inv_fst_fst]
 
-@[simp, reassoc]
-lemma pullback_assoc_hom_snd_fst :
-  (pullback_assoc f₁ f₂ f₃ f₄).hom ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
-begin
-  transitivity l₂ ≫ pullback.fst,
-  rw ← category.assoc,
-  congr' 1,
-  exact is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right,
-  exact pullback.lift_fst _ _ _,
-end
+-- @[simp, reassoc]
+-- lemma pullback_assoc_hom_snd_fst :
+--   (pullback_assoc f₁ f₂ f₃ f₄).hom ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
+-- begin
+--   transitivity l₂ ≫ pullback.fst,
+--   rw ← category.assoc,
+--   congr' 1,
+--   exact is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right,
+--   exact pullback.lift_fst _ _ _,
+-- end
 
-@[simp, reassoc]
-lemma pullback_assoc_hom_snd_snd :
-  (pullback_assoc f₁ f₂ f₃ f₄).hom ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
-begin
-  transitivity l₂ ≫ pullback.snd,
-  rw ← category.assoc,
-  congr' 1,
-  exact is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right,
-  exact pullback.lift_snd _ _ _,
-end
+-- @[simp, reassoc]
+-- lemma pullback_assoc_hom_snd_snd :
+--   (pullback_assoc f₁ f₂ f₃ f₄).hom ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
+-- begin
+--   transitivity l₂ ≫ pullback.snd,
+--   rw ← category.assoc,
+--   congr' 1,
+--   exact is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right,
+--   exact pullback.lift_snd _ _ _,
+-- end
 
-@[simp, reassoc]
-lemma pullback_assoc_inv_fst_snd :
-  (pullback_assoc f₁ f₂ f₃ f₄).inv ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.fst :=
-by rw [iso.inv_comp_eq, pullback_assoc_hom_snd_fst]
+-- @[simp, reassoc]
+-- lemma pullback_assoc_inv_fst_snd :
+--   (pullback_assoc f₁ f₂ f₃ f₄).inv ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.fst :=
+-- by rw [iso.inv_comp_eq, pullback_assoc_hom_snd_fst]
 
-@[simp, reassoc]
-lemma pullback_assoc_inv_snd :
-  (pullback_assoc f₁ f₂ f₃ f₄).inv ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
-by rw [iso.inv_comp_eq, pullback_assoc_hom_snd_snd]
+-- @[simp, reassoc]
+-- lemma pullback_assoc_inv_snd :
+--   (pullback_assoc f₁ f₂ f₃ f₄).inv ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
+-- by rw [iso.inv_comp_eq, pullback_assoc_hom_snd_snd]
 
-end pullback_assoc
+-- end pullback_assoc
 
-instance pullback.map_is_iso {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
-  (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) [has_pullback g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
-  (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) [is_iso i₁] [is_iso i₂] [is_iso i₃] :
-  is_iso (pullback.map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
-begin
-  constructor,
-  fconstructor,
-  refine pullback.map _ _ _ _ (inv i₁) (inv i₂) (inv i₃) _ _,
-  { rw [is_iso.comp_inv_eq, category.assoc, eq₁, is_iso.inv_hom_id_assoc] },
-  { rw [is_iso.comp_inv_eq, category.assoc, eq₂, is_iso.inv_hom_id_assoc] },
-  tidy
-end
+-- instance pullback.map_is_iso {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
+--   (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) [has_pullback g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
+--   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) [is_iso i₁] [is_iso i₂] [is_iso i₃] :
+--   is_iso (pullback.map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
+-- begin
+--   constructor,
+--   fconstructor,
+--   refine pullback.map _ _ _ _ (inv i₁) (inv i₂) (inv i₃) _ _,
+--   { rw [is_iso.comp_inv_eq, category.assoc, eq₁, is_iso.inv_hom_id_assoc] },
+--   { rw [is_iso.comp_inv_eq, category.assoc, eq₂, is_iso.inv_hom_id_assoc] },
+--   tidy
+-- end
 
-@[simps hom]
-def pullback.congr_hom {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
-  (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
-    pullback f₁ g₁ ≅ pullback f₂ g₂ :=
-as_iso $ pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂])
+-- @[simps hom]
+-- def pullback.congr_hom {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
+--   (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
+--     pullback f₁ g₁ ≅ pullback f₂ g₂ :=
+-- as_iso $ pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂])
 
-@[simp]
-lemma pullback.congr_hom_inv {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
-  (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
-  (pullback.congr_hom h₁ h₂).inv =
-    pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂]) :=
-begin
-  apply pullback.hom_ext,
-  { erw pullback.lift_fst,
-    rw iso.inv_comp_eq,
-    erw pullback.lift_fst_assoc,
-    rw [category.comp_id, category.comp_id] },
-  { erw pullback.lift_snd,
-    rw iso.inv_comp_eq,
-    erw pullback.lift_snd_assoc,
-    rw [category.comp_id, category.comp_id] },
-end
+-- @[simp]
+-- lemma pullback.congr_hom_inv {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
+--   (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
+--   (pullback.congr_hom h₁ h₂).inv =
+--     pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂]) :=
+-- begin
+--   apply pullback.hom_ext,
+--   { erw pullback.lift_fst,
+--     rw iso.inv_comp_eq,
+--     erw pullback.lift_fst_assoc,
+--     rw [category.comp_id, category.comp_id] },
+--   { erw pullback.lift_snd,
+--     rw iso.inv_comp_eq,
+--     erw pullback.lift_snd_assoc,
+--     rw [category.comp_id, category.comp_id] },
+-- end
 
 
 

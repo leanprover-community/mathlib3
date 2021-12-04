@@ -138,7 +138,6 @@ begin
 end
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/
--- TODO k_lt_n assumption may be removed by casework
 lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) :
   π' n ≤ π' k + 1 + nat.totient k * (n / k) :=
 begin

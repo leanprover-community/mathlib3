@@ -5,7 +5,6 @@ Authors: Anne Baanen
 -/
 import linear_algebra.matrix.adjugate
 import linear_algebra.matrix.to_lin
-import data.matrix.notation
 
 /-!
 # The Special Linear group $SL(n, R)$

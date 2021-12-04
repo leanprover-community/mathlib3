@@ -103,15 +103,28 @@ lemma norm_inf_sub_inf_le_add_norm (a b c d : α) : ∥a ⊓ b - c ⊓ d∥ ≤ 
 begin
   rw [← norm_abs_eq_norm (a - c), ← norm_abs_eq_norm (b - d)],
   refine le_trans (solid _) (norm_add_le (|a - c|) (|b - d|)),
-  rw abs_of_nonneg (|a - c| + |b - d|) (add_nonneg (abs_nonneg (a - c)) (abs_nonneg (b - d))),
-  calc |a ⊓ b - c ⊓ d| =
-    |a ⊓ b - c ⊓ b + (c ⊓ b - c ⊓ d)| : by rw sub_add_sub_cancel
+  calc |a ⊓ b - c ⊓ d|
+      = |a ⊓ b - c ⊓ b + (c ⊓ b - c ⊓ d)| : by rw sub_add_sub_cancel
   ... ≤ |a ⊓ b - c ⊓ b| + |c ⊓ b - c ⊓ d| : abs_add_le _ _
-  ... ≤ |a -c| + |b - d| : by
-    { apply add_le_add,
-      { exact abs_inf_sub_inf_le_abs _ _ _, },
-      { rw [@inf_comm _ _ c, @inf_comm _ _ c],
-        exact abs_inf_sub_inf_le_abs _ _ _, } },
+  ... = |a ⊓ b - c ⊓ b| + |b ⊓ c - d ⊓ c| : by rw [@inf_comm _ _ c, @inf_comm _ _ c]
+  ... ≤ |a - c| + |b - d| :
+    add_le_add (abs_inf_sub_inf_le_abs _ _ _) (abs_inf_sub_inf_le_abs _ _ _)
+  ... = | |a - c| + |b - d| | :
+    (abs_of_nonneg _ (add_nonneg (abs_nonneg (a - c)) (abs_nonneg (b - d)))).symm
+end
+
+lemma norm_sup_sub_sup_le_add_norm (a b c d : α) : ∥a ⊔ b - (c ⊔ d)∥ ≤ ∥a - c∥ + ∥b - d∥ :=
+begin
+  rw [← norm_abs_eq_norm (a - c), ← norm_abs_eq_norm (b - d)],
+  refine le_trans (solid _) (norm_add_le (|a - c|) (|b - d|)),
+  calc |a ⊔ b - (c ⊔ d)|
+      = |a ⊔ b - (c ⊔ b) + (c ⊔ b - (c ⊔ d))| : by rw sub_add_sub_cancel
+  ... ≤ |a ⊔ b - (c ⊔ b)| + |c ⊔ b - (c ⊔ d)| : abs_add_le _ _
+  ... = |a ⊔ b - (c ⊔ b)| + |b ⊔ c - (d ⊔ c)| : by rw [@sup_comm _ _ c, @sup_comm _ _ c]
+  ... ≤ |a - c| + |b - d| :
+    add_le_add (abs_sup_sub_sup_le_abs _ _ _) (abs_sup_sub_sup_le_abs _ _ _)
+  ... = | |a - c| + |b - d| | :
+    (abs_of_nonneg _ (add_nonneg (abs_nonneg (a - c)) (abs_nonneg (b - d)))).symm
 end
 
 /--

@@ -150,14 +150,19 @@ def fiber_push (X : C) : costructured_arrow (forget F) X ⥤ (F.obj X).1 :=
 
 variable (G : pseudofunctor_to_Cat C)
 
-/-def push_under (X : grothendieck G.to_lax_functor_to_Cat) : under X.base ⥤ under X :=
+noncomputable def cleavage (X : grothendieck G.to_lax_functor_to_Cat) : under X.base ⥤ under X :=
 { obj := λ f, ⟨punit.star, ⟨f.right, (G.map f.hom).obj X.fiber⟩, ⟨f.hom, 𝟙 _⟩⟩,
   map := λ f₁ f₂ g, ⟨𝟙 _,
     ⟨g.right, (inv (G.map_comp f₁.hom g.right) ≫ eq_to_hom (by rw under.w g)).app X.fiber⟩,
     by { erw category.id_comp, ext1, {erw comp_fiber, dsimp, simpa}, exact (under.w g).symm }⟩,
   map_id' := λ f, by {ext1, ext1, {dsimp, simpa}, refl},
-  map_comp' := by { intros, congr, dsimp, simp, rw G.1.assoc_components_assoc,  },
-}-/
+  map_comp' := λ f₁ f₂ f₃ g₁ g₂, by { congr, dsimp,
+    have h := (G.1.assoc_components f₁.hom g₁.right g₂.right X.fiber).symm,
+    let a := λ f, G.map_comp f g₂.right, have b := under.w g₁,
+    have h' := eq_to_hom.family_congr a b, dsimp [a] at h',
+    rw [h', ← category.assoc, ← is_iso.eq_comp_inv, ← is_iso.inv_eq_inv] at h,
+    convert eq_whisker h (eq_to_hom (by simp : _ = (G.map f₃.hom).obj X.fiber)) using 1,
+    simp, simpa } }
 
 end
 

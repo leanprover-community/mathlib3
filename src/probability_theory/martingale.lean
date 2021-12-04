@@ -69,15 +69,9 @@ end
 
 end is_martingale
 
-/-- The martingale with value `μ[f | ℱ i, ℱ.le i]` for all `i ∈ E`. -/
-noncomputable def filtered (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
+lemma is_martingale_condexp (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
   [sigma_finite_filtration μ ℱ] :
-  ι → α → E :=
-λ i, μ[f | ℱ i, ℱ.le i]
-
-lemma is_martingale_filtered (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] :
-  is_martingale (filtered f ℱ μ) ℱ μ :=
+  is_martingale (λ i, μ[f | ℱ i, ℱ.le i]) ℱ μ :=
 ⟨λ i, integrable_condexp, λ i, measurable_condexp, λ i j hij, condexp_condexp_of_le (ℱ.mono hij) _⟩
 
 end measure_theory

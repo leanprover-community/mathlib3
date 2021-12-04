@@ -855,7 +855,7 @@ protected def function.injective.lattice {α β : Type*} [has_sup α] [has_inf �
 { ..hf_inj.semilattice_sup f map_sup, ..hf_inj.semilattice_inf f map_inf}
 
 /-- A type endowed with `⊔` and `⊓` is a `distrib_lattice`, if it admits an injective map that
-preserves `⊔` and `⊓` to a `distrib_latttice`. -/
+preserves `⊔` and `⊓` to a `distrib_lattice`. -/
 protected def function.injective.distrib_lattice {α β : Type*} [has_sup α] [has_inf α]
   [distrib_lattice β] (f : α → β) (hf_inj : function.injective f)
   (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :

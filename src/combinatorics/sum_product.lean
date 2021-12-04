@@ -17,6 +17,12 @@ section
 
 variables {α β : Type*} {A B : finset α}
 
+lemma erase_eq_empty_iff [decidable_eq α] (a : α) : A.erase a = ∅ ↔ A = ∅ ∨ A = {a} :=
+begin
+  rw [←finset.sdiff_singleton_eq_erase, finset.sdiff_eq_empty_iff_subset],
+  simp,
+end
+
 lemma finset.mul_singleton_zero_of_nonempty [decidable_eq α] [mul_zero_class α] (hA : A.nonempty) :
   A * {0} = {0} :=
 finset.subset.antisymm A.mul_singleton_zero (by simpa [finset.mem_mul] using hA)
@@ -24,6 +30,38 @@ finset.subset.antisymm A.mul_singleton_zero (by simpa [finset.mem_mul] using hA)
 lemma finset.singleton_zero_mul_of_nonempty [decidable_eq α] [mul_zero_class α] (hA : A.nonempty) :
   {(0 : α)} * A = {0} :=
 finset.subset.antisymm A.singleton_zero_mul (by simpa [finset.mem_mul] using hA)
+
+-- @[simp] lemma finset.mul_singleton_one [decidable_eq α] [mul_one_class α] :
+--   A * {1} = A :=
+-- by { ext x, simp [finset.mem_mul] }
+
+-- @[simp] lemma finset.singleton_one_mul [decidable_eq α] [mul_one_class α] :
+--   {(1 : α)} * A = A :=
+-- by { ext x, simp [finset.mem_mul] }
+
+lemma finset.product_singleton [decidable_eq α] (a : α) : A.product {a} = A.image (λ i, (i, a)) :=
+begin
+  ext ⟨i, j⟩,
+  simp only [prod.mk.inj_iff, finset.mem_image, finset.mem_singleton, finset.mem_product],
+  tauto {closer := `[subst_vars; assumption]},
+end
+
+lemma finset.singleton_product [decidable_eq α] (a : α) : ({a} : finset α).product A = A.image (λ i, (a, i)) :=
+begin
+  ext ⟨i, j⟩,
+  simp only [prod.mk.inj_iff, finset.mem_image, finset.mem_singleton, finset.mem_product],
+  tauto {closer := `[subst_vars; assumption]},
+end
+
+@[simp, to_additive]
+lemma finset.mul_singleton [decidable_eq α] [has_mul α] (a : α) :
+  A * {a} = A.image (* a) :=
+by rw [finset.mul_def, finset.product_singleton, finset.image_image]
+
+@[simp, to_additive]
+lemma finset.singleton_mul [decidable_eq α] [has_mul α] (a : α) :
+  {a} * A = A.image ((*) a) :=
+by rw [finset.mul_def, finset.singleton_product, finset.image_image]
 
 @[to_additive] lemma finset.left_le_card_mul [decidable_eq α] [right_cancel_semigroup α]
   {A B : finset α} (hB : B.nonempty) :
@@ -798,7 +836,7 @@ begin
 end
 
 -- This fails when A = {0}, B = {1}, |Q| > 288
-lemma real_bound (A B Q : finset ℝ) (hA : A ≠ {0}) (hQ : (0:ℝ) ∉ Q) :
+lemma real_bound_but_not_really (A B Q : finset ℝ) (hA : A ≠ {0}) (hQ : (0:ℝ) ∉ Q) :
   A.card^3 * B.card * Q.card ≤ 288 * (A + B).card ^ 2 * (A * Q).card ^ 2 :=
 begin
   rcases B.eq_empty_or_nonempty with rfl | hB,
@@ -810,42 +848,61 @@ begin
     obtain ⟨x, hx⟩ := hA,
     rcases subset_singleton_iff.1 hx with rfl | rfl,
     { simp },
-    simp, -- |B| * |Q| ≤ 288 * |B|^2
-    -- |Q| ≤ 288 * |B|
-
-
-  },
+    rw finset.singleton_injective.ne_iff at hA,
+    rw [card_singleton, one_pow, one_mul, singleton_add,
+      card_image_of_injective _ (add_right_injective _), singleton_mul,
+      card_image_of_injective _ (mul_right_injective₀ hA), mul_assoc, ←mul_pow],
+    refine le_trans _ (nat.le_mul_of_pos_left (by norm_num1)),
+    rw sq,
+    apply nat.le_mul_self },
   apply restricted_bound _ _ _ hA hB hQ hQ',
 end
 
-theorem complex_bound : ∃ (c : ℝ), 0 < c ∧ ∀ A B Q : finset ℝ,
-  c * A.card ^ (3/2 : ℝ) * B.card ^ (1/2 : ℝ) * Q.card ^ (1/2 : ℝ) ≤ (A + B).card * (A * Q).card :=
+lemma real_bound_with_zero (A B Q : finset ℝ) (hA : A ≠ {0}) (hQ : (0 : ℝ) ∉ Q) (hQ' : Q.nonempty) :
+  A.card^3 * B.card * (insert (0 : ℝ) Q).card ≤ 576 * (A + B).card ^ 2 * (A * Q).card ^ 2 :=
 begin
-  sorry
+  change _ ≤ (2 * 288) * _ * _,
+  rw [mul_assoc 2, mul_assoc 2, two_mul, card_insert_of_not_mem hQ, mul_add, mul_one],
+  apply add_le_add (real_bound_but_not_really A B Q hA hQ),
+  have AAQ : A.card ≤ (A * Q).card,
+  { apply left_le_card_mul',
+    obtain ⟨q, hq⟩ := hQ',
+    exact ⟨q, hq, ne_of_mem_of_not_mem hq hQ⟩ },
+  have := real_bound_but_not_really A B {1} hA (by simp),
+  simp only [image_id', mul_one, mul_singleton, card_singleton] at this,
+  exact le_trans this (nat.mul_le_mul_left _ (nat.pow_le_pow_of_le_left AAQ _)),
 end
 
-theorem complex_specific_bound : ∃ (c : ℝ), 0 < c ∧ ∀ A : finset ℝ,
-  c * A.card ^ (5/4 : ℝ) ≤ max (A + A).card (A * A).card :=
+lemma real_bound_almost (A B Q : finset ℝ) (hA : A ≠ {0}) (hQ : (Q.erase 0).nonempty) :
+  A.card^3 * B.card * Q.card ≤ 576 * (A + B).card ^ 2 * (A * Q).card ^ 2 :=
 begin
-  obtain ⟨c, c_pos, hc⟩ := complex_bound,
-  refine ⟨c^(1/2 : ℝ), real.rpow_pos_of_pos c_pos _, λ A, _⟩,
-  rcases A.eq_empty_or_nonempty with rfl | hA,
-  { rw [finset.add_empty, finset.mul_empty, finset.card_empty, nat.cast_zero, max_self,
-      real.zero_rpow, mul_zero],
-    norm_num },
-  by_contra' t,
-  rw max_lt_iff at t,
-  have := hc A A A,
-  have hA' : 0 < (A.card : ℝ),
-  { rwa [nat.cast_pos, finset.card_pos] },
-  apply not_lt_of_le this,
-  rw [mul_assoc, mul_assoc, ←real.rpow_add hA', add_halves, ←real.rpow_add hA',
-    div_add_one (show (2:ℝ) ≠ 0, from two_ne_zero)],
-  apply (mul_lt_mul t.1 t.2.le _ _).trans_le,
-  { rw [←sq, mul_pow, ←real.rpow_nat_cast, ←real.rpow_nat_cast, ←real.rpow_mul c_pos.le,
-      ←real.rpow_mul hA'.le, nat.cast_two, div_mul_cancel _ (show (2:ℝ) ≠ 0, from two_ne_zero),
-      real.rpow_one],
-    norm_num },
-  { simpa [finset.card_pos] },
-  exact mul_nonneg (real.rpow_nonneg_of_nonneg c_pos.le _) (real.rpow_nonneg_of_nonneg hA'.le _),
+  cases em' ((0 : ℝ) ∈ Q) with hQ₀ hQ₀,
+  { apply (real_bound_but_not_really _ _ _ hA hQ₀).trans _,
+    rw [mul_assoc, mul_assoc],
+    exact nat.mul_le_mul_right _ (by norm_num1) },
+  rw ←insert_erase hQ₀,
+  apply (real_bound_with_zero A B (Q.erase 0) hA (not_mem_erase _ _) hQ).trans,
+  apply nat.mul_le_mul_left _ (nat.pow_le_pow_of_le_left (card_le_of_subset _) _),
+  apply finset.mul_subset_mul (finset.subset.refl _) (subset_insert _ _),
+end
+
+-- strictly speaking this works if A = {0} and Q = {0} so the condition could be strengthened to
+-- A = {0} ↔ Q = {0}. If only one is {0}, we can make B = {1} and the other large (more than 600
+-- elements) and derive a contradiction.
+lemma real_bound (A B Q : finset ℝ) (hA : A ≠ {0}) (hQ : Q ≠ {0}) :
+  A.card^3 * B.card * Q.card ≤ 576 * (A + B).card ^ 2 * (A * Q).card ^ 2 :=
+begin
+  rcases Q.eq_empty_or_nonempty with rfl | hQ',
+  { simp },
+  apply real_bound_almost _ _ _ hA,
+  rw [nonempty_iff_ne_empty, ne.def, erase_eq_empty_iff],
+  simp only [hQ'.ne_empty, hQ, false_or, not_false_iff],
+end
+
+lemma real_specific_bound :
+  A.card^5 ≤ 576 * (A + A).card^2 * (A * A).card^2 :=
+begin
+  rcases eq_or_ne A {0} with rfl | hA,
+  { simp },
+  exact le_trans (le_of_eq (by ring)) (real_bound A A A hA hA),
 end

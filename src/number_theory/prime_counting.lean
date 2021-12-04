@@ -69,8 +69,7 @@ begin
         split_ifs,
         { simp [*] at *, },
         { simp [*] at *, },
-        { rw [add_one,
-          succ_pred_eq_of_pos],
+        { rw [add_one, succ_pred_eq_of_pos],
           rw [card_pos, finset.nonempty],
           use n_n,
           assumption, },
@@ -86,7 +85,7 @@ end
 lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
   (filter (a.coprime) (Ico n (n+a))).card = totient a := by simp [totient]
 
-lemma filter_coprime_bound (a n : ℕ) (a_pos : 0 < a) :
+private lemma filter_coprime_bound (a n : ℕ) (a_pos : 0 < a) :
   (filter (a.coprime) (Ico a n)).card ≤ totient a * (n / a) :=
 begin
   conv
@@ -107,8 +106,6 @@ begin
           begin
             apply card_le_of_subset,
             apply monotone_filter_left,
-            -- let b := n % a + a * n_1,
-            -- rw ←b,
             simp only [finset.le_eq_subset],
             rw subset_iff,
             intro x,
@@ -129,6 +126,7 @@ begin
 end
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/
+-- TODO k_lt_n assumption may be removed by casework
 lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) :
   π' n ≤ π' k + 1 + nat.totient k * (n / k) :=
 calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
@@ -154,13 +152,13 @@ calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card
               congr,
               simp only [true_and, le_refl, not_lt, mem_Ico, ite_eq_left_iff],
               intro n_le_k,
-              by_contra,
+              exfalso,
               exact lt_le_antisymm k_lt_n n_le_k,
             end
       ... ≤ π' k + (1 + nat.totient k * (n / k)) :
             begin
               apply add_le_add_left,
-              apply trans (card_union_le {k} (filter (λ (a : ℕ), k.coprime a) (Ico k n))),
+              apply trans (card_union_le {k} (filter k.coprime (Ico k n))),
               simp only [add_le_add_iff_left, card_singleton],
               exact filter_coprime_bound k n h0,
             end

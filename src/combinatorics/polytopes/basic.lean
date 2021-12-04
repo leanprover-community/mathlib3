@@ -7,7 +7,7 @@ import combinatorics.polytopes.flag
 
 namespace polytope
 
-universe u
+universes u v
 
 /-- The diamond property. -/
 def diamond (α : Type u) [preorder α] [graded α] : Prop :=
@@ -68,5 +68,73 @@ instance : prepolytope point :=
 /-- The point as a polytope. This is the unique graded poset of top grade 1. -/
 instance : polytope point :=
 { scon := by apply graded.scon_of_grade_le_two; exact one_le_two }
+
+namespace products
+
+variables (α : Type u) (β : Type v)
+
+section
+
+variables [has_le α] [bounded_order α] [has_le β] [bounded_order β]
+
+/-- The generic polytope product. -/
+def product (min max : bool) :=
+{x : α × β // (min → (x.fst = ⊥ ↔ x.snd = ⊥)) ∧ (max → (x.fst = ⊤ ↔ x.snd = ⊤))}
+
+abbreviation join := product α β ff ff
+abbreviation direct_sum := product α β ff tt
+abbreviation cartesian_product := product α β tt ff
+abbreviation topological_product := product α β tt tt
+
+notation α ` ⋈ `:50 β:50 := join α β
+notation α ` ⊕ `:50 β:50 := direct_sum α β
+notation α ` ⊗ `:50 β:50 := cartesian_product α β
+notation α ` □ `:50 β:50 := topological_product α β
+
+end
+
+section
+
+variables [preorder α] [bounded_order α] [preorder β] [bounded_order β]
+
+instance {min max : bool} : preorder (product α β min max) :=
+{ le := λ a b, a.val ≤ b.val,
+  le_refl := by obviously,
+  le_trans := λ a b c, @le_trans (α × β) _ a.val b.val c.val }
+
+-- A really annoying condition that will keep coming up.
+abbreviation compatible : Prop := (⊥ : α) = (⊤ : α) ↔ (⊥ : β) = (⊤ : β)
+
+protected def order_bot {min max : bool} (h : max → compatible α β) :
+  order_bot (product α β min max) :=
+{ bot := ⟨⟨⊥, ⊥⟩, by obviously⟩,
+  bot_le := by obviously }
+
+private def order_top_aux {min max : bool} (h : min → ((⊤ : α) = (⊥ : α) ↔ (⊤ : β) = (⊥ : β))) :
+  order_top (product α β min max) :=
+{ top := ⟨⟨⊤, ⊤⟩, by obviously⟩,
+  le_top := by obviously }
+
+protected def order_top {min max : bool} (h : min → compatible α β) :
+  order_top (product α β min max) :=
+begin
+  change compatible α β with ((⊥ : α) = (⊤ : α) ↔ (⊥ : β) = (⊤ : β)) at h,
+  apply order_top_aux,
+  tauto
+end
+
+instance : order_bot (α ⋈ β) := polytope.products.order_bot α β (λ h, (bool.not_ff h).elim)
+instance : order_top (α ⋈ β) := polytope.products.order_top α β (λ h, (bool.not_ff h).elim)
+instance : order_bot (α ⊗ β) := polytope.products.order_bot α β (λ h, (bool.not_ff h).elim)
+instance : order_top (α ⊕ β) := polytope.products.order_top α β (λ h, (bool.not_ff h).elim)
+
+end
+
+instance [partial_order α] [bounded_order α] [partial_order β] [bounded_order β] {min max : bool} :
+  partial_order (product α β min max) :=
+{ le_antisymm := λ a b hab hba, subtype.eq (@le_antisymm (α × β) _ a.val b.val hab hba),
+  ..(product.preorder α β) }
+
+end products
 
 end polytope

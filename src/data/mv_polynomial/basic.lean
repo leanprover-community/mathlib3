@@ -263,11 +263,8 @@ monomial_sum_index _ _ _
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp only [X_pow_eq_monomial, ← monomial_finsupp_sum_index, finsupp.sum_single]
 
-@[recursor 5]
-lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
-  (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
-  M p :=
-have ∀s a, M (monomial s a),
+lemma induction_on_monomial {M : mv_polynomial σ R → Prop} (h_C : ∀a, M (C a))
+(h_X : ∀p n, M p → M (p * X n)) :  ∀s a, M (monomial s a) :=
 begin
   assume s a,
   apply @finsupp.induction σ ℕ _ _ s,
@@ -279,7 +276,13 @@ begin
       { simp [ih] },
       { simp [ih, pow_succ', (mul_assoc _ _ _).symm, h_X, e_ih] } },
     simp [add_comm, monomial_add_single, this] }
-end,
+end
+
+@[recursor 5]
+lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
+  (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
+  M p :=
+have ∀s a, M (monomial s a) := induction_on_monomial h_C h_X,
 finsupp.induction p
   (by have : M (C 0) := h_C 0; rwa [C_0] at this)
   (assume s a p hsp ha hp, h_add _ _ (this s a) hp)
@@ -291,6 +294,14 @@ theorem induction_on' {P : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
 finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                      show P (monomial 0 0), from h1 0 0)
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
+
+lemma induction_on'' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) (h_C : ∀a, M (C a))
+ (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
+ a ∉ f.support → b ≠ 0 → M f → M (single a b + f)) (h_X : ∀p n, M p → M (p * X n)) : M p :=
+have ∀s a, M (monomial s a) := induction_on_monomial h_C h_X,
+finsupp.induction p
+  (by have : M (C 0) := h_C 0; rwa [C_0] at this)
+  h_add_weak
 
 lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :

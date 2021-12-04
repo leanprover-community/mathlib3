@@ -518,6 +518,13 @@ theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique (units α)] {a b c :
   (h : a * b = c ^ k) : ∃ (d : α), a = d ^ k :=
 let ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow hab h in ⟨d, (associated_iff_eq.mp hd).symm⟩
 
+lemma gcd_greatest {α : Type*} [comm_cancel_monoid_with_zero α] [normalized_gcd_monoid α]
+  {a b d : α} (hd : normalize d = d) (hda : d ∣ a) (hdb : d ∣ b)
+  (he : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : d = gcd_monoid.gcd a b :=
+begin
+  have h := he _ (gcd_monoid.gcd_dvd_left a b) (gcd_monoid.gcd_dvd_right a b),
+  rw [←hd, gcd_eq_normalize h (gcd_monoid.dvd_gcd hda hdb)],
+end
 end gcd
 
 section lcm

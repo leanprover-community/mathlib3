@@ -14,7 +14,7 @@ a graph `G`, with vertices `V`, is a set `P` of disjoint nonempty subsets of `V`
 
 * The union of the subsets in `P` is `V`.
 
-* * Each element of `P` is an independent set. (Each subset contains no pair of adjacent vertices.)
+* Each element of `P` is an independent set. (Each subset contains no pair of adjacent vertices.)
 
 Graph partitions are graph colorings that do not name their colors.  They are adjoint in the
 following sense. Given a graph coloring, there is an associated partition from the set of color

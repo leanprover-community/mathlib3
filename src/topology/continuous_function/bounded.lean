@@ -1107,7 +1107,7 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
   solid :=
   begin
     intros f g h,
-    have i1: ∀ (t:α),∥f(t)∥ ≤ ∥g(t)∥ := begin
+    have i1: ∀ (t:α), ∥f t∥ ≤ ∥g t∥ := begin
       intro,
       apply solid,
       rw [abs_pointwise, abs_pointwise],

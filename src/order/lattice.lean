@@ -836,7 +836,7 @@ protected def function.injective.semilattice_sup {α β : Type*} [has_sup α] [s
   ..partial_order.lift f hf_inj}
 
 /-- A type endowed with `⊓` is a `semilattice_inf`, if it admits an injective map that
-preserves `⊓` to a `semilatttice_inf`. -/
+preserves `⊓` to a `semilattice_inf`. -/
 protected def function.injective.semilattice_inf {α β : Type*} [has_inf α] [semilattice_inf β]
   (f : α → β) (hf_inj : function.injective f) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
   semilattice_inf α :=

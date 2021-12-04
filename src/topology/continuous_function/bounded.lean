@@ -1035,7 +1035,6 @@ section normed_lattice_ordered_group
 
 variables [topological_space α] [normed_lattice_add_comm_group β]
 
--- Can we infer this from https://github.com/leanprover-community/mathlib/blob/f29b0b49badab1bcbe338cb79d102e36e79dce09/src/topology/continuous_function/basic.lean#L114 ?
 instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (by tidy)
 
 /--

@@ -165,7 +165,7 @@ See also `check_unused_arguments`.
 This tactic additionally filters out all unused arguments of type `parse _`.
 We skip all declarations that contain `sorry` in their value. -/
 private meta def unused_arguments (d : declaration) : tactic (option string) := do
-  ff ← return d.value.contains_sorry | return none,
+  ff ← d.to_name.contains_sorry | return none,
   let ns := check_unused_arguments d,
   tt ← return ns.is_some | return none,
   let ns := ns.iget,

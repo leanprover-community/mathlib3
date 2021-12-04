@@ -1240,13 +1240,8 @@ begin
 -- apply 1-variable mean value theorem to pullback
   have hMVT : ∃ (t ∈ Ioo (0:ℝ) 1), ((f' (g t) : E → ℝ) (y-x)) = (f (g 1) - f (g 0)) / (1 - 0),
   { refine exists_has_deriv_at_eq_slope (f ∘ g) _ (by norm_num) _ _,
-    { unfold continuous_on,
-      exact λ t Ht, (hfg t Ht).continuous_within_at },
-    { refine λ t Ht, (hfg t $ hIccIoo Ht).has_deriv_at _,
-      refine _root_.mem_nhds_iff.mpr _,
-      use (Ioo (0:ℝ) 1),
-      refine ⟨hIccIoo, _, Ht⟩,
-      simp [real.Ioo_eq_ball, is_open_ball] } },
+    { exact λ t Ht, (hfg t Ht).continuous_within_at },
+    { exact λ t Ht, (hfg t $ hIccIoo Ht).has_deriv_at (Icc_mem_nhds Ht.1 Ht.2) } },
 -- reinterpret on domain
   rcases hMVT with ⟨t, Ht, hMVT'⟩,
   use g t, refine ⟨hseg t $ hIccIoo Ht, _⟩,

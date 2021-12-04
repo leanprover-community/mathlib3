@@ -2425,8 +2425,6 @@ begin
           rw ← @restrict_eq_self _ _ μ s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           rw ← @restrict_eq_self _ _ ν s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           apply h_ν'_in _ h_meas_t_inter_s },
-        cases (@set.eq_empty_or_nonempty _ (t ∩ sᶜ)) with h_inter_empty h_inter_nonempty,
-        { simp [h_inter_empty] },
         { rw add_apply,
           have h_meas_inter_compl :=
             h_meas_t.inter (measurable_set.compl h_meas_s),

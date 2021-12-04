@@ -158,7 +158,7 @@ begin
                   exfalso,
                   exact lt_le_antisymm k_lt_n n_le_k,
                 end
-          ... ≤ π' k + (1 + nat.totient k * (n / k)) :
+        ... ≤ π' k + (1 + nat.totient k * (n / k)) :
                 begin
                   apply add_le_add_left,
                   apply trans (card_union_le {k} (filter k.coprime (Ico k n))),

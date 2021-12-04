@@ -77,7 +77,7 @@ lemma fin.cover_iff_cover {n : ℕ} (a b : fin n) : a ⋖ b ↔ a.val ⋖ b.val 
   λ ⟨hl, hr⟩, ⟨hl, λ c hc, hr c hc⟩ ⟩
 
 /-- Covering is irreflexive. -/
-instance covers.is_irrefl {α : Type u} [preorder α] : is_irrefl α polytope.covers :=
+instance covers.is_irrefl {α : Type u} [preorder α] : is_irrefl α (⋖) :=
 ⟨ λ _ ha, ne_of_lt ha.left (refl _) ⟩
 
 /-- A graded order is an order homomorphism into ℕ such that:
@@ -243,6 +243,14 @@ instance (α : Type u) [partial_order α] [order_top α] [graded α] : graded (o
     rw [graded.hcovers hxy, ←nat.sub_sub,
         nat.sub_add_cancel (tsub_pos_of_lt (graded.strict_mono (lt_of_lt_of_le hxy.left le_top)))]
   end }
+
+/-- Duals have the same top grade as the posets they come from. -/
+theorem top_grade_eq_top_grade_dual (α : Type u) [partial_order α] [order_top α] [graded α] :
+  grade_top α = grade_top (order_dual α) :=
+begin
+  have : grade_top α - @graded.grade α _ _ (⊥ : α) = grade_top (order_dual α) := rfl,
+  rwa [graded.grade_bot, nat.sub_zero] at this,
+end
 
 variables {α : Type u} [partial_order α] [graded α]
 
@@ -749,5 +757,14 @@ abbreviation section_connected {α : Type u} [partial_order α] [graded α] {x y
 /-- A graded poset is strongly connected when all sections are connected. -/
 abbreviation strong_connected (α : Type u) [partial_order α] [graded α] : Prop :=
 ∀ {x y : α} (hxy : x ≤ y), section_connected hxy
+
+/-- Any `graded` of top grade less or equal to 2 is strongly connected. -/
+theorem scon_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
+  grade_top α ≤ 2 → strong_connected α :=
+begin
+  intros h a b hab,
+  apply tcon_of_grade_le_two,
+  exact (le_trans tsub_le_self (le_trans (graded.grade_le_grade_top b) h)),
+end
 
 end graded

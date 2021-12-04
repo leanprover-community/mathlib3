@@ -267,9 +267,9 @@ end
 
 
 def imm_inv_app (i : D.ι) (U : opens (D.U i).carrier) :
-  (D.U i).presheaf.obj (op U) ⟶ limit (pointwise_diagram D.to_glue_data.diagram.multispan
+  (D.U i).presheaf.obj (op U) ⟶ limit (componentwise_diagram D.to_glue_data.diagram.multispan
     ((D.imm_open_embedding i).is_open_map.functor.obj U)) :=
-limit.lift (pointwise_diagram D.to_glue_data.diagram.multispan
+limit.lift (componentwise_diagram D.to_glue_data.diagram.multispan
     ((D.imm_open_embedding i).is_open_map.functor.obj U))
 { X := (D.U i).presheaf.obj (op U),
   π := { app := λ j, D.imm_inv_app_π_app i U (unop j),
@@ -321,7 +321,7 @@ limit.lift (pointwise_diagram D.to_glue_data.diagram.multispan
   end } }
 
 lemma imm_inv_app_π_id' (i : D.ι) (U : opens (D.U i).carrier) :
-  ∃ eq, D.imm_inv_app i U ≫ limit.π (pointwise_diagram D.to_glue_data.diagram.multispan
+  ∃ eq, D.imm_inv_app i U ≫ limit.π (componentwise_diagram D.to_glue_data.diagram.multispan
     ((D.imm_open_embedding i).is_open_map.functor.obj U)) (op (walking_multispan.right i)) =
     (D.U i).presheaf.map (eq_to_hom eq) :=
 begin
@@ -343,13 +343,13 @@ begin
 end
 
 lemma π_imm_inv_app_π (i j : D.ι) (U : opens (D.U i).carrier) :
-  limit.π (pointwise_diagram D.to_glue_data.diagram.multispan
+  limit.π (componentwise_diagram D.to_glue_data.diagram.multispan
     ((D.imm_open_embedding i).is_open_map.functor.obj U)) (op (walking_multispan.right i)) ≫
   (D.U i).presheaf.map (eq_to_hom (D.imm_inv_app_π_id' i U).some.symm) ≫
   D.imm_inv_app i U ≫ limit.π _ (op (walking_multispan.right j)) =
     limit.π _ (op (walking_multispan.right j)) :=
 begin
-  rw ← cancel_mono ((pointwise_diagram D' .diagram.multispan _).map
+  rw ← cancel_mono ((componentwise_diagram D' .diagram.multispan _).map
     (quiver.hom.op (walking_multispan.hom.snd (i, j))) ≫ (𝟙 _)),
   simp_rw category.assoc,
   rw limit.w_assoc,
@@ -363,7 +363,7 @@ begin
   iterate 3 { rw ← functor.map_comp_assoc },
   rw nat_trans.naturality_assoc,
   erw ← (D.V (i, j)).presheaf.map_comp,
-  convert limit.w (pointwise_diagram D.to_glue_data.diagram.multispan _)
+  convert limit.w (componentwise_diagram D.to_glue_data.diagram.multispan _)
     (quiver.hom.op (walking_multispan.hom.fst (i, j))),
   { rw category.comp_id,
     apply_with mono_comp { instances := ff },
@@ -375,7 +375,7 @@ begin
 end
 
 lemma π_imm_inv_app_eq_id (i : D.ι) (U : opens (D.U i).carrier) :
-  limit.π (pointwise_diagram D.to_glue_data.diagram.multispan
+  limit.π (componentwise_diagram D.to_glue_data.diagram.multispan
     ((D.imm_open_embedding i).is_open_map.functor.obj U)) (op (walking_multispan.right i)) ≫
   (D.U i).presheaf.map (eq_to_hom (D.imm_inv_app_π_id' i U).some.symm) ≫
   D.imm_inv_app i U = 𝟙 _ :=
@@ -383,7 +383,7 @@ begin
   ext j,
   induction j using opposite.rec,
   rcases j with (⟨j, k⟩|⟨j⟩),
-  { rw ← limit.w (pointwise_diagram D.to_glue_data.diagram.multispan _)
+  { rw ← limit.w (componentwise_diagram D.to_glue_data.diagram.multispan _)
     (quiver.hom.op (walking_multispan.hom.fst (j, k))),
     rw ← category.assoc,
     rw category.id_comp,
@@ -395,8 +395,8 @@ begin
     apply π_imm_inv_app_π }
 end
 
-instance pointwise_diagram_π_is_iso (i : D.ι) (U : opens (D.U i).carrier) :
-  is_iso (limit.π (pointwise_diagram D.to_glue_data.diagram.multispan
+instance componentwise_diagram_π_is_iso (i : D.ι) (U : opens (D.U i).carrier) :
+  is_iso (limit.π (componentwise_diagram D.to_glue_data.diagram.multispan
     ((D.imm_open_embedding i).is_open_map.functor.obj U)) (op (walking_multispan.right i))) :=
 begin
   use (D.U i).presheaf.map (eq_to_hom (D.imm_inv_app_π_id' i U).some.symm) ≫
@@ -410,7 +410,7 @@ end
 instance imm_is_open_immersion (i : D.ι) :
 is_open_immersion (D' .imm i) :=
 { base_open := D.imm_open_embedding i,
-  c_iso := λ U, by { erw ← colimit_presheaf_obj_iso_pointwise_limit_hom_π, apply_instance } }
+  c_iso := λ U, by { erw ← colimit_presheaf_obj_iso_componentwise_limit_hom_π, apply_instance } }
 
 def V_pullback_cone_is_limit (i j : D.ι) : is_limit (D' .V_pullback_cone i j) :=
 pullback_cone.is_limit_aux' _ $ λ s,

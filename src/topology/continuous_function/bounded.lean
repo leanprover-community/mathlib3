@@ -1042,7 +1042,7 @@ instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (
 Continuous normed lattice group valued functions form a meet-semilattice
 -/
 instance : semilattice_inf (α →ᵇ β) :=
-{ inf := λf g,
+{ inf := λ f g,
   { to_fun := λ t, f(t)⊓g(t),
     continuous_to_fun := begin
       continuity,

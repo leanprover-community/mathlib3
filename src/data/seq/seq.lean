@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.lazy_list
 import data.nat.basic
-import data.stream.init
+import data.stream.basic
 import data.seq.computation
 
 universes u v w

@@ -1,5 +1,5 @@
 /- test cases for coinductive predicates -/
-import data.stream.init
+import data.stream.basic
 import meta.coinductive_predicates
 universe u
 

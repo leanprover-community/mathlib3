@@ -821,3 +821,55 @@ protected def lattice [lattice α] {P : α → Prop}
 { ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }
 
 end subtype
+
+section lift
+
+lemma function.injective.semilattice_sup {α β : Type*} [has_sup α] [semilattice_sup β]
+  (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) :
+  semilattice_sup α :=
+{ sup := has_sup.sup,
+  le_sup_left := λ a b, by { change f a ≤ f (a ⊔ b), rw map_sup, exact le_sup_left, },
+  le_sup_right := λ a b, by { change f b ≤ f (a ⊔ b), rw map_sup, exact le_sup_right, },
+  sup_le := λ a b c ha hb, by { change f (a ⊔ b) ≤ f c, rw map_sup, exact sup_le ha hb, },
+  ..partial_order.lift f hf_inj}
+
+lemma function.injective.semilattice_inf {α β : Type*} [has_inf α] [semilattice_inf β]
+  (f : α → β) (hf_inj : function.injective f) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
+  semilattice_inf α :=
+{ inf := has_inf.inf,
+  inf_le_left := λ a b,  by { change f (a ⊓ b) ≤ f a, rw map_inf, exact inf_le_left, },
+  inf_le_right := λ a b, by { change f (a ⊓ b) ≤ f b, rw map_inf, exact inf_le_right, },
+  le_inf := λ a b c ha hb, by { change f a ≤ f (b ⊓ c), rw map_inf, exact le_inf ha hb, },
+  ..partial_order.lift f hf_inj}
+
+lemma function.injective.lattice {α β : Type*} [has_sup α] [has_inf α] [lattice β]
+  (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
+  lattice α :=
+{ sup := has_sup.sup,
+  inf := has_inf.inf,
+  le_sup_left := λ a b, by { change f a ≤ f (a ⊔ b), rw map_sup, exact le_sup_left, },
+  le_sup_right := λ a b, by { change f b ≤ f (a ⊔ b), rw map_sup, exact le_sup_right, },
+  sup_le := λ a b c ha hb, by { change f (a ⊔ b) ≤ f c, rw map_sup, exact sup_le ha hb, },
+  inf_le_left := λ a b,  by { change f (a ⊓ b) ≤ f a, rw map_inf, exact inf_le_left, },
+  inf_le_right := λ a b, by { change f (a ⊓ b) ≤ f b, rw map_inf, exact inf_le_right, },
+  le_inf := λ a b c ha hb, by { change f a ≤ f (b ⊓ c), rw map_inf, exact le_inf ha hb, },
+  ..partial_order.lift f hf_inj}
+
+lemma function.injective.distrib_lattice {α β : Type*} [has_sup α] [has_inf α] [distrib_lattice β]
+  (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
+  distrib_lattice α :=
+{ sup := has_sup.sup,
+  inf := has_inf.inf,
+  le_sup_left := λ a b, by { change f a ≤ f (a ⊔ b), rw map_sup, exact le_sup_left, },
+  le_sup_right := λ a b, by { change f b ≤ f (a ⊔ b), rw map_sup, exact le_sup_right, },
+  sup_le := λ a b c ha hb, by { change f (a ⊔ b) ≤ f c, rw map_sup, exact sup_le ha hb, },
+  inf_le_left := λ a b,  by { change f (a ⊓ b) ≤ f a, rw map_inf, exact inf_le_left, },
+  inf_le_right := λ a b, by { change f (a ⊓ b) ≤ f b, rw map_inf, exact inf_le_right, },
+  le_inf := λ a b c ha hb, by { change f a ≤ f (b ⊓ c), rw map_inf, exact le_inf ha hb, },
+  le_sup_inf := λ a b c, by { change f ((a ⊔ b) ⊓ (a ⊔ c)) ≤ f (a ⊔ b ⊓ c),
+    rw [map_inf, map_sup, map_sup, map_sup, map_inf], exact le_sup_inf, },
+  ..partial_order.lift f hf_inj}
+
+end lift

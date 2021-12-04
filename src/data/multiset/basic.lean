@@ -2032,6 +2032,9 @@ by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]
 
+theorem one_le_count_iff_mem {a : α} {s : multiset α} : 1 ≤ count a s ↔ a ∈ s :=
+by rw [succ_le_iff, count_pos]
+
 @[simp, priority 980]
 theorem count_eq_zero_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) : count a s = 0 :=
 by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
@@ -2041,10 +2044,6 @@ iff_not_comm.1 $ count_pos.symm.trans pos_iff_ne_zero
 
 theorem count_ne_zero {a : α} {s : multiset α} : count a s ≠ 0 ↔ a ∈ s :=
 by simp [ne.def, count_eq_zero]
-
-theorem one_le_count_iff_mem {x : α} {a : multiset α} : 1 ≤ a.count x ↔ x ∈ a :=
-⟨count_ne_zero.1 ∘ one_le_iff_ne_zero.1 ,
-  λ h, count_singleton_self x ▸ count_le_of_le x $ singleton_le.2 h⟩
 
 @[simp] theorem count_repeat_self (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by simp [repeat]

@@ -137,17 +137,28 @@ by rw [gcd_comm, gcd_gcd_self_right_right]
 @[simp] lemma gcd_gcd_self_left_left (m n : ℕ) : gcd (gcd m n) m = gcd m n :=
 by rw [gcd_comm m n, gcd_gcd_self_left_right]
 
-lemma gcd_add_mul_self (m n k : ℕ) : gcd m (n + k * m) = gcd m n :=
+@[simp] lemma gcd_add_mul_self (m n k : ℕ) : gcd m (n + k * m) = gcd m n :=
 by simp [gcd_rec m (n + k * m), gcd_rec m n]
 
-theorem gcd_eq_zero_iff {i j : ℕ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
+@[simp] lemma gcd_add_self_right (m n : ℕ) : gcd m (n + m) = gcd m n :=
+eq.trans (by rw one_mul) (gcd_add_mul_self m n 1)
+
+@[simp] lemma gcd_add_self_left (m n : ℕ) : gcd (m + n) n = gcd m n :=
+by rw [gcd_comm, gcd_add_self_right, gcd_comm]
+
+@[simp] lemma gcd_self_add_left (m n : ℕ) : gcd (m + n) m = gcd n m :=
+by rw [add_comm, gcd_add_self_left]
+
+@[simp] lemma gcd_self_add_right (m n : ℕ) : gcd m (m + n) = gcd m n :=
+by rw [add_comm, gcd_add_self_right]
+
+@[simp] theorem gcd_eq_zero_iff {i j : ℕ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
 begin
   split,
   { intro h,
     exact ⟨eq_zero_of_gcd_eq_zero_left h, eq_zero_of_gcd_eq_zero_right h⟩, },
-  { intro h,
-    rw [h.1, h.2],
-    exact nat.gcd_zero_right _ }
+  { rintro ⟨rfl, rfl⟩,
+    exact nat.gcd_zero_right 0 }
 end
 
 /-! ### `lcm` -/
@@ -190,6 +201,9 @@ or.elim (nat.eq_zero_or_pos k)
   (λkpos, dvd_of_mul_dvd_mul_left (gcd_pos_of_pos_left n (pos_of_dvd_of_pos H1 kpos)) $
     by rw [gcd_mul_lcm, ←gcd_mul_right, mul_comm n k];
        exact dvd_gcd (mul_dvd_mul_left _ H2) (mul_dvd_mul_right H1 _))
+
+theorem lcm_dvd_mul (m n : ℕ) : lcm m n ∣ m * n :=
+lcm_dvd (dvd_mul_right _ _) (dvd_mul_left _ _)
 
 lemma lcm_dvd_iff {m n k : ℕ} : lcm m n ∣ k ↔ m ∣ k ∧ n ∣ k :=
 ⟨λ h, ⟨(dvd_lcm_left _ _).trans h, (dvd_lcm_right _ _).trans h⟩,
@@ -277,6 +291,18 @@ theorem exists_coprime {m n : ℕ} (H : 0 < gcd m n) :
 theorem exists_coprime' {m n : ℕ} (H : 0 < gcd m n) :
   ∃ g m' n', 0 < g ∧ coprime m' n' ∧ m = m' * g ∧ n = n' * g :=
 let ⟨m', n', h⟩ := exists_coprime H in ⟨_, m', n', H, h⟩
+
+@[simp] theorem coprime_add_self_right {m n : ℕ} : coprime m (n + m) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_self_right]
+
+@[simp] theorem coprime_self_add_right {m n : ℕ} : coprime m (m + n) ↔ coprime m n :=
+by rw [add_comm, coprime_add_self_right]
+
+@[simp] theorem coprime_add_self_left {m n : ℕ} : coprime (m + n) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_self_left]
+
+@[simp] theorem coprime_self_add_left {m n : ℕ} : coprime (m + n) m ↔ coprime n m :=
+by rw [coprime, coprime, gcd_self_add_left]
 
 theorem coprime.mul {m n k : ℕ} (H1 : coprime m k) (H2 : coprime n k) : coprime (m * n) k :=
 (H1.gcd_mul_left_cancel n).trans H2

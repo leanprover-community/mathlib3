@@ -448,7 +448,7 @@ variables {F : Type u} [field F] {K : Type v} [field K]
 theorem separable_iff_derivative_ne_zero {f : polynomial F} (hf : irreducible f) :
   f.separable ↔ f.derivative ≠ 0 :=
 ⟨λ h1 h2, hf.not_unit $ is_coprime_zero_right.1 $ h2 ▸ h1,
-λ h, is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
+λ h, euclidean_domain.is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
 let ⟨u, hu⟩ := (hf.is_unit_or_is_unit hg3).resolve_left hg1 in
 have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa units.mul_right_dvd },
 not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derivative_lt h⟩
@@ -642,6 +642,9 @@ variables (F K : Type*) [comm_ring F] [ring K] [algebra F K]
 
 -- TODO: refactor to allow transcendental extensions?
 -- See: https://en.wikipedia.org/wiki/Separable_extension#Separability_of_transcendental_extensions
+-- Note that right now a Galois extension (class `is_galois`) is defined to be an extension which
+-- is separable and normal, so if the definition of separable changes here at some point
+-- to allow non-algebraic extensions, then the definition of `is_galois` must also be changed.
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
 the minimal polynomial of every `x : K` is separable.

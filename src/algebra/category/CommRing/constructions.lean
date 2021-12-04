@@ -102,7 +102,8 @@ end pushout
 
 section terminal
 
-lemma punit_is_terminal : is_terminal (CommRing.of punit) :=
+/-- The trivial ring is the (strict) terminal object of `CommRing`. -/
+def punit_is_terminal : is_terminal (CommRing.of punit) :=
 begin
   apply_with is_terminal.of_unique { instances := ff },
   tidy
@@ -120,7 +121,8 @@ begin
   exact e,
 end
 
-lemma Z_is_initial : is_initial (CommRing.of ℤ) :=
+/-- `ℤ` is the initial object of `CommRing`. -/
+def Z_is_initial : is_initial (CommRing.of ℤ) :=
 begin
   apply_with is_initial.of_unique { instances := ff },
   exact λ R, ⟨⟨int.cast_ring_hom R⟩, λ a, a.ext_int _⟩,
@@ -132,10 +134,12 @@ section product
 
 variables (A B : CommRing.{u})
 
-@[simps]
+/-- The product in `CommRing` is the cartesian product. This is the binary fan. -/
+@[simps X]
 def prod_fan : binary_fan A B :=
 binary_fan.mk (CommRing.of_hom $ ring_hom.fst A B) (CommRing.of_hom $ ring_hom.snd A B)
 
+/-- The product in `CommRing` is the cartesian product. -/
 def prod_fan_is_limit : is_limit (prod_fan A B) :=
 { lift := λ c, ring_hom.prod (c.π.app walking_pair.left) (c.π.app walking_pair.right),
   fac' := λ c j, by { ext, cases j; simp [of_hom] },
@@ -148,9 +152,11 @@ section equalizer
 
 variables {A B : CommRing.{u}} (f g : A ⟶ B)
 
+/-- The equalizer in `CommRing` is the equalizer as sets. This is the equalizer fork. -/
 def equalizer_fork : fork f g :=
 fork.of_ι (CommRing.of_hom (ring_hom.eq_locus f g).subtype) (by { ext ⟨x, e⟩, simpa using e })
 
+/-- The equalizer in `CommRing` is the equalizer as sets. -/
 def equalizer_fork_is_limit : is_limit (equalizer_fork f g) :=
 begin
   fapply fork.is_limit.mk',

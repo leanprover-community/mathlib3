@@ -160,7 +160,7 @@ variables {C : Type u} [category.{v} C]
 --   [has_pullback f' (pullback.fst : pullback f g ⟶ _)] [has_pullback (f' ≫ f) g]
 
 -- noncomputable
--- def pullback_left_pullback_fst_iso :
+-- def pullback_right_pullback_fst_iso :
 --   pullback f' (pullback.fst : pullback f g ⟶ _) ≅ pullback (f' ≫ f) g :=
 -- begin
 --   let := comp_square_is_limit_of_is_limit
@@ -171,31 +171,31 @@ variables {C : Type u} [category.{v} C]
 -- end
 
 -- @[simp, reassoc]
--- lemma pullback_left_pullback_fst_iso_hom_fst :
---   (pullback_left_pullback_fst_iso f g f').hom ≫ pullback.fst = pullback.fst :=
+-- lemma pullback_right_pullback_fst_iso_hom_fst :
+--   (pullback_right_pullback_fst_iso f g f').hom ≫ pullback.fst = pullback.fst :=
 -- is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.left
 
 -- @[simp, reassoc]
--- lemma pullback_left_pullback_fst_iso_hom_snd :
---   (pullback_left_pullback_fst_iso f g f').hom ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
+-- lemma pullback_right_pullback_fst_iso_hom_snd :
+--   (pullback_right_pullback_fst_iso f g f').hom ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
 -- is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right
 
 -- @[simp, reassoc]
--- lemma pullback_left_pullback_fst_iso_inv_fst :
---   (pullback_left_pullback_fst_iso f g f').inv ≫ pullback.fst = pullback.fst :=
+-- lemma pullback_right_pullback_fst_iso_inv_fst :
+--   (pullback_right_pullback_fst_iso f g f').inv ≫ pullback.fst = pullback.fst :=
 -- is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.left
 
 -- @[simp, reassoc]
--- lemma pullback_left_pullback_fst_iso_inv_snd_snd :
---   (pullback_left_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
+-- lemma pullback_right_pullback_fst_iso_inv_snd_snd :
+--   (pullback_right_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
 -- is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.right
 
 -- @[simp, reassoc]
--- lemma pullback_left_pullback_fst_iso_inv_snd_fst :
---   (pullback_left_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ f' :=
+-- lemma pullback_right_pullback_fst_iso_inv_snd_fst :
+--   (pullback_right_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ f' :=
 -- begin
 --   rw ← pullback.condition,
---   exact pullback_left_pullback_fst_iso_inv_fst_assoc _ _ _ _
+--   exact pullback_right_pullback_fst_iso_inv_fst_assoc _ _ _ _
 -- end
 
 -- section pullback_assoc
@@ -490,9 +490,9 @@ def glued_cover_t' (x y z : X.carrier) :
   pullback (pullback.fst : pullback (𝒰.map y) (𝒰.map z) ⟶ _)
     (pullback.fst : pullback (𝒰.map y) (𝒰.map x) ⟶ _) :=
 begin
-  refine (pullback_left_pullback_fst_iso _ _ _).hom ≫ _,
+  refine (pullback_right_pullback_fst_iso _ _ _).hom ≫ _,
   refine _ ≫ (pullback_symmetry _ _).hom,
-  refine _ ≫ (pullback_left_pullback_fst_iso _ _ _).inv,
+  refine _ ≫ (pullback_right_pullback_fst_iso _ _ _).inv,
   refine pullback.map _ _ _ _ (pullback_symmetry _ _).hom (𝟙 _) (𝟙 _) _ _,
   { simp [pullback.condition] },
   { simp }
@@ -742,9 +742,9 @@ abbreviation fV (x y : X.carrier) : V 𝒰 f g x y ⟶ pullback ((𝒰.map x) �
 def t' (x y z : X.carrier) :
   pullback (fV 𝒰 f g x y) (fV 𝒰 f g x z) ⟶ pullback (fV 𝒰 f g y z) (fV 𝒰 f g y x) :=
 begin
-  refine (pullback_left_pullback_fst_iso _ _ _).hom ≫ _,
+  refine (pullback_right_pullback_fst_iso _ _ _).hom ≫ _,
   refine _ ≫ (pullback_symmetry _ _).hom,
-  refine _ ≫ (pullback_left_pullback_fst_iso _ _ _).inv,
+  refine _ ≫ (pullback_right_pullback_fst_iso _ _ _).inv,
   refine pullback.map _ _ _ _ (t 𝒰 f g x y) (𝟙 _) (𝟙 _) _ _,
   { simp [← pullback.condition] },
   { simp }
@@ -898,7 +898,7 @@ def pullback_map (x y : s.X.carrier) :
     (gluing 𝒰 f g).V ⟨(s.fst.val.base) x, (s.fst.val.base) y⟩ :=
 begin
   change pullback pullback.fst pullback.fst ⟶ pullback _ _,
-  refine (pullback_left_pullback_fst_iso _ _ _).hom ≫ _,
+  refine (pullback_right_pullback_fst_iso _ _ _).hom ≫ _,
   refine pullback.map _ _ _ _ _ (𝟙 _) (𝟙 _) _ _,
   { exact (pullback_symmetry _ _).hom ≫
       pullback.map _ _ _ _ (𝟙 _) s.snd f (category.id_comp _).symm s.condition },
@@ -1008,8 +1008,8 @@ end open_cover
 --   -- have := pullback (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _)
 --   --   (pullback.fst : pullback (𝒰.map x ≫ f) g ⟶ _),
 --   -- haveI : has_pullback (pullback.fst ≫ 𝒰.map x ≫ f : pullback (𝒰.map x) (𝒰.map y) ⟶ _) g := sorry,
---   -- have a := pullback_left_pullback_fst_iso (𝒰.map x ≫ f) g (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _),
---   -- have b := pullback_left_pullback_fst_iso (𝒰.map x) (𝒰.map y) (pullback.fst : pullback (𝒰.map x ≫ f) g ⟶ _),
+--   -- have a := pullback_right_pullback_fst_iso (𝒰.map x ≫ f) g (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _),
+--   -- have b := pullback_right_pullback_fst_iso (𝒰.map x) (𝒰.map y) (pullback.fst : pullback (𝒰.map x ≫ f) g ⟶ _),
 --   -- have := b,
 --   have := is_limit_of_comp_square_is_limit ((gluing 𝒰 f g).imm x) (p2 𝒰 f g) (𝒰.map x) f
 --     pullback.fst (p1 𝒰 f g),
@@ -1019,7 +1019,7 @@ def pullback_p1_imm_imm (x y : X.carrier) :
   pullback (pullback.fst : pullback (p1 𝒰 f g) (𝒰.map x) ⟶ _) ((gluing 𝒰 f g).imm y) ⟶
     V 𝒰 f g y x :=
 (pullback_symmetry _ _ ≪≫
-  (pullback_left_pullback_fst_iso (p1 𝒰 f g) (𝒰.map x) _)).hom ≫
+  (pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map x) _)).hom ≫
     (pullback.congr_hom (multicoequalizer.π_desc _ _ _ _ _) rfl).hom
 
 @[simp, reassoc] lemma pullback_p1_imm_imm_fst (x y : X.carrier) :
@@ -1109,22 +1109,22 @@ begin
   apply (𝒰.pullback_cover s.fst).hom_ext,
   intro x,
   rw open_cover.pullback_cover_map,
-  have := pullback_left_pullback_fst_iso (p1 𝒰 f g) (𝒰.map (s.fst.val.base x)) m
+  have := pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map (s.fst.val.base x)) m
     ≪≫ pullback.congr_hom h₁ rfl,
   erw (𝒰.pullback_cover s.fst).imm_glue_morphism,
-  rw ← cancel_epi (pullback_left_pullback_fst_iso (p1 𝒰 f g) (𝒰.map (s.fst.val.base x)) m
+  rw ← cancel_epi (pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map (s.fst.val.base x)) m
     ≪≫ pullback.congr_hom h₁ rfl).hom,
   rw [iso.trans_hom, category.assoc, pullback.congr_hom_hom, pullback.lift_fst_assoc,
-    category.comp_id, pullback_left_pullback_fst_iso_hom_fst_assoc, pullback.condition],
+    category.comp_id, pullback_right_pullback_fst_iso_hom_fst_assoc, pullback.condition],
   transitivity pullback.snd ≫ (pullback_p1_iso 𝒰 f g _).hom ≫ (gluing 𝒰 f g).imm _,
   { congr' 1, rw ← pullback_p1_iso_hom_imm },
   simp_rw ← category.assoc,
   congr' 1,
   apply pullback.hom_ext,
-  { simp only [category.comp_id, pullback_left_pullback_fst_iso_hom_snd, category.assoc,
+  { simp only [category.comp_id, pullback_right_pullback_fst_iso_hom_snd, category.assoc,
       pullback_p1_iso_hom_fst, pullback.lift_snd, pullback.lift_fst,
       pullback_symmetry_hom_comp_fst] },
-  { simp only [category.comp_id, pullback_left_pullback_fst_iso_hom_fst_assoc,
+  { simp only [category.comp_id, pullback_right_pullback_fst_iso_hom_fst_assoc,
     pullback_p1_iso_hom_snd, category.assoc, pullback.lift_fst_assoc,
     pullback_symmetry_hom_comp_snd_assoc, pullback.lift_snd],
     rw [← pullback.condition_assoc, h₂] }

@@ -54,6 +54,8 @@ def coproduct : LocallyRingedSpace :=
     rcases SheafedSpace.sigma_ι_jointly_surjective (F ⋙ forget_to_SheafedSpace) x with ⟨i, y, ⟨⟩⟩,
     haveI : _root_.local_ring (((F ⋙ forget_to_SheafedSpace).obj i).to_PresheafedSpace.stalk y) :=
       (F.obj i).local_ring _,
+    have := algebraic_geometry.PresheafedSpace.stalk_map.is_iso
+      (colimit.ι (F ⋙ forget_to_SheafedSpace) i : _),
     exact (as_iso (PresheafedSpace.stalk_map (colimit.ι (F ⋙ forget_to_SheafedSpace) i : _) y)
       ).symm.CommRing_iso_to_ring_equiv.local_ring
   end }

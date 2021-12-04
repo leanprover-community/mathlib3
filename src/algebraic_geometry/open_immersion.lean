@@ -457,7 +457,7 @@ end
 instance forget_preserves_limits_of_left : preserves_limit (cospan f g) (forget C) :=
 preserves_limit_of_preserves_limit_cone (pullback_cone_of_left_is_limit f g)
 begin
-  apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).to_fun,
+  apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v} _) _).to_fun,
   refine (is_limit.equiv_iso_limit _).to_fun (limit.is_limit (cospan f.base g.base)),
   fapply cones.ext,
   exact (iso.refl _),
@@ -630,7 +630,7 @@ instance forget_map_is_open_immersion :
 
 instance has_limit_cospan_forget_of_left : has_limit (cospan f g ⋙ forget) :=
 begin
-  apply has_limit_of_iso (diagram_iso_cospan _).symm,
+  apply has_limit_of_iso (diagram_iso_cospan.{v} _).symm,
   change has_limit (cospan (forget .map f) (forget .map g)),
   apply_instance
 end
@@ -641,7 +641,7 @@ show has_limit (cospan (forget .map f) (forget .map g)), from infer_instance
 
 instance has_limit_cospan_forget_of_right : has_limit (cospan g f ⋙ forget) :=
 begin
-  apply has_limit_of_iso (diagram_iso_cospan _).symm,
+  apply has_limit_of_iso (diagram_iso_cospan.{v} _).symm,
   change has_limit (cospan (forget .map g) (forget .map f)),
   apply_instance
 end
@@ -693,7 +693,7 @@ begin
       forget (cospan f g) right,
   rw ← this,
   have := has_limit.iso_of_nat_iso_hom_π
-    (diagram_iso_cospan (cospan f g ⋙ forget))
+    (diagram_iso_cospan.{v} (cospan f g ⋙ forget))
     right,
   erw category.comp_id at this,
   rw ← this,
@@ -709,7 +709,7 @@ begin
       forget (cospan g f) left,
   rw ← this,
   have := has_limit.iso_of_nat_iso_hom_π
-    (diagram_iso_cospan (cospan g f ⋙ forget)) left,
+    (diagram_iso_cospan.{v} (cospan g f ⋙ forget)) left,
   erw category.comp_id at this,
   rw ← this,
   dsimp,

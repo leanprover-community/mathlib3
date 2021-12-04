@@ -1782,8 +1782,8 @@ namespace finset
 @[simp] lemma val_to_finset [decidable_eq α] (s : finset α) : s.val.to_finset = s :=
 by { ext, rw [multiset.mem_to_finset, ←mem_def] }
 
-lemma val_le_of_val_subset [decidable_eq α] {a : finset α} {b : multiset α} (h : a.val ⊆ b) :
-  a.val ≤ b := multiset.le_of_subset_of_nodup h a.nodup
+lemma val_le_iff_val_subset [decidable_eq α] {a : finset α} {b : multiset α} :
+  a.val ≤ b ↔ a.val ⊆ b := multiset.le_iff_subset a.nodup
 
 end finset
 

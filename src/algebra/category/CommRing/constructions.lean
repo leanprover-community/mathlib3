@@ -103,7 +103,7 @@ end pushout
 section terminal
 
 /-- The trivial ring is the (strict) terminal object of `CommRing`. -/
-def punit_is_terminal : is_terminal (CommRing.of punit) :=
+def punit_is_terminal : is_terminal (CommRing.of.{u} punit) :=
 begin
   apply_with is_terminal.of_unique { instances := ff },
   tidy

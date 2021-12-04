@@ -525,6 +525,15 @@ begin
   have h := he _ (gcd_monoid.gcd_dvd_left a b) (gcd_monoid.gcd_dvd_right a b),
   rw [←hd, gcd_eq_normalize h (gcd_monoid.dvd_gcd hda hdb)],
 end
+
+lemma gcd_greatest' {α : Type*} [comm_cancel_monoid_with_zero α] [normalized_gcd_monoid α]
+  {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
+  (he : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : gcd_monoid.gcd a b = normalize d :=
+begin
+  have h := he _ (gcd_monoid.gcd_dvd_left a b) (gcd_monoid.gcd_dvd_right a b),
+  exact gcd_eq_normalize h (gcd_monoid.dvd_gcd hda hdb),
+end
+
 end gcd
 
 section lcm

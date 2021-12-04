@@ -87,19 +87,6 @@ and therefore gives rise to an element of the type of bounded continuous functio
   (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
 ⟨⟨f, continuous_of_discrete_topology⟩, ⟨C, h⟩⟩
 
-section
-variables (α β)
-/--
-The map forgetting that a bounded continuous function is bounded.
--/
-def forget_boundedness : (α →ᵇ β) → C(α, β) :=
-λ f, f.1
-
-@[simp] lemma forget_boundedness_coe (f : α →ᵇ β) : (forget_boundedness α β f : α → β) = f :=
-rfl
-
-end
-
 /-- The uniform distance between two bounded continuous functions -/
 instance : has_dist (α →ᵇ β) :=
 ⟨λf g, Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C}⟩
@@ -584,8 +571,8 @@ variables (α β)
 
 /-- The additive map forgetting that a bounded continuous function is bounded.
 -/
-@[simps] def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
-{ to_fun := forget_boundedness α β,
+@[simps] def to_continuous_map_add_hom : (α →ᵇ β) →+ C(α, β) :=
+{ to_fun := to_continuous_map,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, }, }
 
@@ -855,8 +842,8 @@ variables (α β)
 
 /-- The linear map forgetting that a bounded continuous function is bounded. -/
 @[simps]
-def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
-{ to_fun := forget_boundedness α β,
+def to_continuous_map_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
+{ to_fun := to_continuous_map,
   map_smul' := by { intros, ext, simp, },
   map_add' := by { intros, ext, simp, }, }
 

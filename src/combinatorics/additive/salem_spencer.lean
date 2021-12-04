@@ -127,7 +127,8 @@ begin
   rw hs hb hc hd (mul_right_cancel₀ (mul_ne_zero ha ha) h),
 end
 
-lemma mul_salem_spencer_mul_left_iff₀ (ha : a ≠ 0) : mul_salem_spencer ((*) a '' s) ↔ mul_salem_spencer s :=
+lemma mul_salem_spencer_mul_left_iff₀ (ha : a ≠ 0) :
+  mul_salem_spencer ((*) a '' s) ↔ mul_salem_spencer s :=
 ⟨λ hs b c d hb hc hd h, mul_left_cancel₀ ha
   (hs (set.mem_image_of_mem _ hb) (set.mem_image_of_mem _ hc) (set.mem_image_of_mem _ hd) $
   by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),

@@ -514,7 +514,7 @@ lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 
 variables {M}
 
-lemma eq_zero_of_two_smul_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
+lemma eq_zero_of_two_nsmul_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
 by haveI := nat.no_zero_smul_divisors R M;
 exact (smul_eq_zero.mp hv).resolve_left (by norm_num)
 
@@ -555,7 +555,7 @@ include R
 
 lemma eq_zero_of_eq_neg {v : M} (hv : v = - v) : v = 0 :=
 begin
-  refine eq_zero_of_two_smul_eq_zero R _,
+  refine eq_zero_of_two_nsmul_eq_zero R _,
   rw two_smul,
   exact add_eq_zero_iff_eq_neg.mpr hv
 end

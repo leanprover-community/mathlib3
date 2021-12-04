@@ -847,7 +847,7 @@ protected def function.injective.semilattice_inf {α β : Type*} [has_inf α] [s
   ..partial_order.lift f hf_inj}
 
 /-- A type endowed with `⊔` and `⊓` is a `lattice`, if it admits an injective map that
-preserves `⊔` and `⊓` to a `latttice`. -/
+preserves `⊔` and `⊓` to a `lattice`. -/
 protected def function.injective.lattice {α β : Type*} [has_sup α] [has_inf α] [lattice β]
   (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
   (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :

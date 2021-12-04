@@ -85,6 +85,7 @@ end
 lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
   (filter (a.coprime) (Ico n (n+a))).card = totient a := by simp [totient]
 
+-- TODO: a better general lemma would be to have this for Ico 0 n
 private lemma filter_coprime_bound (a n : ℕ) (a_pos : 0 < a) :
   (filter (a.coprime) (Ico a n)).card ≤ totient a * (n / a) :=
 begin
@@ -127,42 +128,46 @@ end
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/
 -- TODO k_lt_n assumption may be removed by casework
-lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) :
+lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) :
   π' n ≤ π' k + 1 + nat.totient k * (n / k) :=
-calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
-            begin
-              rw [prime_counting', range_eq_Ico,
-                  ←Ico_union_Ico_eq_Ico (zero_le k) (le_of_lt k_lt_n), filter_union],
-              apply card_union_le,
-            end
-     ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'
-     ... ≤ π' k + ((Ico k n).filter (λ i, i = k ∨ coprime k i)).card :
-            begin
-              refine add_le_add_left (card_le_of_subset _) k.prime_counting',
-              simp only [subset_iff, and_imp, mem_filter, mem_Ico],
-              intros p succ_k_le_p p_lt_n p_prime,
-              split,
-              { exact ⟨succ_k_le_p, p_lt_n⟩, },
-              { rw coprime_comm,
-                exact eq_or_coprime_of_le_prime h0 succ_k_le_p p_prime, },
-            end
-     ... = π' k + ({k} ∪ filter k.coprime (Ico k n)).card :
-            begin
-              rw [filter_or, filter_eq'],
-              congr,
-              simp only [true_and, le_refl, not_lt, mem_Ico, ite_eq_left_iff],
-              intro n_le_k,
-              exfalso,
-              exact lt_le_antisymm k_lt_n n_le_k,
-            end
-      ... ≤ π' k + (1 + nat.totient k * (n / k)) :
-            begin
-              apply add_le_add_left,
-              apply trans (card_union_le {k} (filter k.coprime (Ico k n))),
-              simp only [add_le_add_iff_left, card_singleton],
-              exact filter_coprime_bound k n h0,
-            end
-    ... = π' k + 1 + nat.totient k * (n / k) : by rw [add_assoc]
+begin
+  cases lt_or_le k n with k_lt_n n_le_k,
+  { calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
+                begin
+                  rw [prime_counting', range_eq_Ico,
+                      ←Ico_union_Ico_eq_Ico (zero_le k) (le_of_lt k_lt_n), filter_union],
+                  apply card_union_le,
+                end
+        ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'
+        ... ≤ π' k + ((Ico k n).filter (λ i, i = k ∨ coprime k i)).card :
+                begin
+                  refine add_le_add_left (card_le_of_subset _) k.prime_counting',
+                  simp only [subset_iff, and_imp, mem_filter, mem_Ico],
+                  intros p succ_k_le_p p_lt_n p_prime,
+                  split,
+                  { exact ⟨succ_k_le_p, p_lt_n⟩, },
+                  { rw coprime_comm,
+                    exact eq_or_coprime_of_le_prime h0 succ_k_le_p p_prime, },
+                end
+        ... = π' k + ({k} ∪ filter k.coprime (Ico k n)).card :
+                begin
+                  rw [filter_or, filter_eq'],
+                  congr,
+                  simp only [true_and, le_refl, not_lt, mem_Ico, ite_eq_left_iff],
+                  intro n_le_k,
+                  exfalso,
+                  exact lt_le_antisymm k_lt_n n_le_k,
+                end
+          ... ≤ π' k + (1 + nat.totient k * (n / k)) :
+                begin
+                  apply add_le_add_left,
+                  apply trans (card_union_le {k} (filter k.coprime (Ico k n))),
+                  simp only [add_le_add_iff_left, card_singleton],
+                  exact filter_coprime_bound k n h0,
+                end
+        ... = π' k + 1 + nat.totient k * (n / k) : by rw [add_assoc] },
+  { exact le_add_right (le_add_right (monotone_prime_counting' n_le_k))},
 
+end
 
 end nat

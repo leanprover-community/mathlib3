@@ -16,10 +16,10 @@ open affine finite_dimensional finset equiv affine_basis fintype basis
 open_locale euclidean_geometry big_operators
 
 theorem lemma1
-  (O : V) (n : ℕ) (S : affine_basis (fin n) ℝ V) :
-    ∀ X : V, X -ᵥ O = ∑ (i : fin n), S.coord i O • (X -ᵥ S.points i) :=
+  (O : V) {ι : Type*} [fintype ι] (S : affine_basis ι ℝ V) :
+    ∀ X : V, X -ᵥ O = ∑ (i : ι), S.coord i O • (X -ᵥ S.points i) :=
   begin
-    set w : fin n → ℝ := λ i, S.coord i O with hw,
+    set w : ι → ℝ := λ i, S.coord i O with hw,
     have hs := sum_coord_apply_eq_one S O,
     intro X,
     have h₄ := weighted_vsub_of_point_vadd_eq_of_sum_eq_one univ w S.points hs,
@@ -55,7 +55,7 @@ begin
   rw symm_apply_apply,
 end
 
-lemma triangle_perm_barycentric_coord {ι : Type*} [fintype ι] [decidable_eq ι] (σ : perm ι) (i : ι)
+lemma affine_basis.coord_perm {ι : Type*} [fintype ι] [decidable_eq ι] (σ : perm ι) {i : ι}
   (S T : affine_basis ι ℝ V) (O : V) (h : T.points = S.points ∘ σ) :
   S.coord (σ i) O = T.coord i O :=
 begin
@@ -156,7 +156,7 @@ lemma lemma3
   (h₂ : collinear ℝ ({D, O, S.points 2} : set V)) :
   S.coord 0 O • (D -ᵥ S.points 0) + S.coord 1 O • (D -ᵥ S.points 1) = (0 : V) :=
 begin
-  have h := lemma1 O 3 S,
+  have h := lemma1 O S,
   specialize h D,
 
   have hsub : D -ᵥ O - S.coord 2 O • (D -ᵥ S.points 2) = S.coord 0 O • (D -ᵥ S.points 0) +
@@ -239,6 +239,47 @@ begin
   simp only [set.mem_insert_iff, set.mem_singleton, or_true],
 end
 
+lemma affine_basis.interior_coord_pos
+  {ι : Type*} [fintype ι] {O : V} {T : affine_basis ι ℝ V}
+  (h : O ∈ interior (convex_hull ℝ (set.range T.points))) {i : ι} :
+  0 < T.coord i O :=
+begin
+  rw interior_convex_hull_aff_basis T at h,
+  rw set.mem_set_of_eq at h,
+  exact h i,
+end
+
+lemma dist_lemma {ι : Type*} [fintype ι] [decidable_eq ι] (σ : perm ι) {O D : V}
+  (S T : affine_basis ι ℝ V) {i j : ι} (hperm : T.points = S.points ∘ σ)
+  (h : (T.coord i) O • (D -ᵥ T.points i) + (T.coord j) O • (D -ᵥ T.points j) = (0 : V))
+  (hinterior : O ∈ interior (convex_hull ℝ (set.range S.points)))  :
+  T.coord i O * dist (T.points i) D = T.coord j O * dist D (T.points j) :=
+begin
+  rw add_eq_zero_iff_eq_neg at h,
+  rw eq_neg_iff_eq_neg at h,
+  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V],
+  rw ← norm_smul_of_nonneg,
+  rw ← norm_smul_of_nonneg,
+  rw h,
+  rw ← smul_neg,
+  rw neg_vsub_eq_vsub_rev,
+
+  rw ← affine_basis.coord_perm σ S T O hperm,
+    { apply le_of_lt,
+      apply affine_basis.interior_coord_pos hinterior },
+    rw ← affine_basis.coord_perm σ S T O hperm,
+    { apply le_of_lt,
+      apply affine_basis.interior_coord_pos hinterior }
+end
+
+lemma affine_span_perm_top {n : ℕ} (S T : simplex ℝ V n) (hrank : finrank ℝ V = n)
+  (σ : perm (fin (n + 1))) (h : T.points = S.points ∘ σ)
+  (hspan : affine_span ℝ (set.range S.points) = ⊤) : affine_span ℝ (set.range T.points) = ⊤ :=
+begin
+  rw [affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one T.independent,
+    fintype.card_fin, hrank],
+end
+
 theorem Ceva_Theorem
   (A B C D E F O : V)
   (S : triangle ℝ V)
@@ -254,135 +295,58 @@ theorem Ceva_Theorem
   dist A D * dist B E * dist C F  = dist D B * dist E C * dist F A :=
 begin
   have hspan : affine_span ℝ (set.range S.points) = ⊤,
-  rw affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one S.independent,
-  { rw fintype.card_fin,
-    rw h₀ },
+  { rw affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one S.independent,
+    { rw fintype.card_fin,
+      rw h₀ }},
+  have hs := S.independent,
 
   set T : affine_basis (fin 3) ℝ V := ⟨S.points, S.independent, hspan⟩ with hT,
+  replace h₈ : O ∈ interior (convex_hull ℝ (set.range T.points)) := by simp [h₈],
 
   set σ₁ : perm (fin 3) := equiv.refl (fin 3) with hσ₁,
   set σ₂ : perm (fin 3) := list.form_perm [0, 1, 2] with hσ₂,
   set σ₃ : perm (fin 3) := equiv.trans σ₂ σ₂ with hσ₃,
 
-  have hs := S.independent,
-
   let S₁ : triangle ℝ V := ⟨![A, B, C] ∘ σ₁, by simpa [affine_independent_equiv, ← h₁]⟩,
-  have hS₁ : S₁.points = ![A, B, C] ∘ σ₁ := by refl,
-  have hS₁span : affine_span ℝ (set.range S₁.points) = ⊤,
-  rw affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one S₁.independent,
-  { rw fintype.card_fin,
-    rw h₀ },
+  have hS₁span := affine_span_perm_top S S₁ h₀ σ₁ _ hspan,
   set T₁ : affine_basis (fin 3) ℝ V := ⟨S₁.points, S₁.independent, hS₁span⟩ with hT₁,
+  have hTσ₁ : T₁.points = T.points ∘ σ₁ := by simp [h₁],
   replace h₂ : collinear ℝ ({S₁.points 0, S₁.points 1, D} : set V) := by convert h₂,
   replace h₅ : collinear ℝ ({D, O, S₁.points 2} : set V) := by convert h₅,
 
   let S₂ : triangle ℝ V := ⟨![A, B, C] ∘ σ₂, by simpa [affine_independent_equiv, ← h₁]⟩,
-  have hS₂ : S₂.points = ![A, B, C] ∘ σ₂ := by refl,
-  have hS₂span : affine_span ℝ (set.range S₂.points) = ⊤,
-  rw affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one S₂.independent,
-  { rw fintype.card_fin,
-    rw h₀ },
+  have hS₂span := affine_span_perm_top S S₂ h₀ σ₂ _ hspan,
   set T₂ : affine_basis (fin 3) ℝ V := ⟨S₂.points, S₂.independent, hS₂span⟩ with hT₂,
+  have hTσ₂ : T₂.points = T.points ∘ σ₂ := by simp [h₁],
   replace h₃ : collinear ℝ ({S₂.points 0, S₂.points 1, E} : set V) := by convert h₃,
   replace h₆ : collinear ℝ ({E, O, S₂.points 2} : set V) := by convert h₆,
 
   let S₃ : triangle ℝ V := ⟨![A, B, C] ∘ σ₃, by simp only [affine_independent_equiv, ← h₁,
     S.independent]⟩,
-  have hS₃ : S₃.points = ![A, B, C] ∘ σ₃ := by refl,
-  have hS₃span : affine_span ℝ (set.range S₃.points) = ⊤,
-  rw affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one S₃.independent,
-  { rw fintype.card_fin,
-    rw h₀ },
+  have hS₃span := affine_span_perm_top S S₃ h₀ σ₃ _ hspan,
   set T₃ : affine_basis (fin 3) ℝ V := ⟨S₃.points, S₃.independent, hS₃span⟩ with hT₃,
+  have hTσ₃ : T₃.points = T.points ∘ σ₃ := by simp [h₁],
   replace h₄ : collinear ℝ ({S₃.points 0, S₃.points 1, F} : set V) := by convert h₄,
   replace h₇ : collinear ℝ ({F, O, S₃.points 2} : set V) := by convert h₇,
 
-  have hwpos : 0 < T.coord 0 O ∧ 0 < T.coord 1 O ∧ 0 < T.coord 2 O,
-  rw interior_convex_hull_aff_basis T at h₈,
-  rw set.mem_set_of_eq at h₈,
-  refine ⟨h₈ 0, h₈ 1, h₈ 2⟩,
-
   have hwnezero : T.coord 0 O * T.coord 1 O * T.coord 2 O ≠ 0,
-  apply ne_of_gt,
-  apply mul_pos (mul_pos hwpos.1 hwpos.2.1) hwpos.2.2,
+  { apply ne_of_gt,
+    sorry },
 
   -- apply lemmas above with appropriate permutations and shifts
 
-  have hADB := lemma3 O D T₁ h₂ h₅,
-  rw add_eq_zero_iff_eq_neg at hADB,
-  rw eq_neg_iff_eq_neg at hADB,
+  have hADB := dist_lemma σ₁ T T₁ hTσ₁ (lemma3 O D T₁ h₂ h₅) h₈,
 
-  have hadb : T₁.coord 0 O * dist (S₁.points 0) D = T₁.coord 1 O * dist D (S₁.points 1),
-  { rw dist_eq_norm_vsub V,
-    rw dist_eq_norm_vsub V,
-    rw ← norm_smul_of_nonneg,
-    rw ← norm_smul_of_nonneg,
-    rw hADB,
-    rw ← smul_neg,
-    rw neg_vsub_eq_vsub_rev,
-    sorry,
-    sorry, },
+  have hBEC := dist_lemma σ₂ T T₂ hTσ₂ (lemma3 O E T₂ h₃ h₆) h₈,
 
-  have hBEC := lemma3 O E T₂ h₃ h₆,
-  rw add_eq_zero_iff_eq_neg at hBEC,
-  rw eq_neg_iff_eq_neg at hBEC,
+  have hCFA := dist_lemma σ₃ T T₃ hTσ₃ (lemma3 O F T₃ h₄ h₇) h₈,
 
-  have hbec : T₂.coord 0  O * dist (S₂.points 0) E = T₂.coord 1 O * dist E (S₂.points 1),
-  { rw dist_eq_norm_vsub V,
-    rw dist_eq_norm_vsub V,
-    rw ← norm_smul_of_nonneg,
-    rw ← norm_smul_of_nonneg,
-    rw hBEC,
-    rw ← smul_neg,
-    rw neg_vsub_eq_vsub_rev,
-    sorry,
-    sorry },
-
-  have hCFA := lemma3 O F T₃ h₄ h₇,
-  rw add_eq_zero_iff_eq_neg at hCFA,
-  rw eq_neg_iff_eq_neg at hCFA,
-
-  have hcfa : T₃.coord 0 O * dist (S₃.points 0) F = T₃.coord 1 O * dist F (S₃.points 1),
-  { rw dist_eq_norm_vsub V,
-    rw dist_eq_norm_vsub V,
-    rw ← norm_smul_of_nonneg,
-    rw ← norm_smul_of_nonneg,
-    rw hCFA,
-    rw ← smul_neg,
-    rw neg_vsub_eq_vsub_rev,
-    sorry,
-    sorry },
-
-  have : w₁ 0 = w 0,
-  { simp only [hw₁, hw, barycentric_coord],
-    simp_rw h₁,
-    sorry },
-  have : w₁ 1 = w 1,
-  { simp only [hw₁, hw, barycentric_coord],
-    simp_rw h₁,
-    sorry },
-  have : w₂ 0 = w 1,
-  { simp only [hw₂, hw, barycentric_coord],
-    simp_rw h₁,
-    sorry },
-  have : w₂ 1 = w 2,
-  { simp only [hw₂, hw, barycentric_coord],
-    simp_rw h₁,
-    sorry },
-  have : w₃ 0 = w 2,
-  { simp only [hw₃, hw, barycentric_coord],
-    simp_rw h₁,
-    sorry },
+  have h := congr_arg2 (λ a b, a * b) (congr_arg2 (λ a b, a * b) hADB hBEC) hCFA,
+  simp only [← affine_basis.coord_perm σ₁ T T₁ O hTσ₁, ← affine_basis.coord_perm σ₂ T T₂ O hTσ₂,
+    ← affine_basis.coord_perm σ₃ T T₃ O hTσ₃, σ₁, σ₂, σ₃, list.form_perm_cons_cons,
+    list.form_perm_singleton, mul_one ,swap_apply_left, swap_apply_right] at h,
+  sorry, -- how to unfold the current expression at `h` with timing out?
   sorry,
-  -- have : w₃ 1 = w 0,
-  -- { simp only [hw₃, hw, barycentric_coord],
-    -- simp_rw h₁,
-    -- sorry },
-
-  /- have h := congr_arg2 (λ a b, a * b) (congr_arg2 (λ a b, a * b) hadb hbec) hcfa,
-  dsimp at h,
-  replace h : (w 0 * w 1 * w 2) * (dist A D * dist B E * dist C F) =
-    (w 0 * w 1 * w 2) * (dist D B * dist E C * dist F A) := by linarith,
-  rw ← mul_right_inj' hwnezero,
-  exact h, -/
+  sorry,
+  sorry,
 end

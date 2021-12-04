@@ -825,7 +825,7 @@ end subtype
 section lift
 
 /-- A type endowed with `⊔` is a `semilattice_sup`, if it admits an injective map that
-preserves `⊔` to a `semilatttice_sup`.
+preserves `⊔` to a `semilattice_sup`.
 See note [reducible non-instances]. -/
 @[reducible] protected def function.injective.semilattice_sup [has_sup α] [semilattice_sup β]
   (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) :
@@ -837,7 +837,7 @@ See note [reducible non-instances]. -/
   ..partial_order.lift f hf_inj}
 
 /-- A type endowed with `⊓` is a `semilattice_inf`, if it admits an injective map that
-preserves `⊓` to a `semilatttice_inf`.
+preserves `⊓` to a `semilattice_inf`.
 See note [reducible non-instances]. -/
 @[reducible] protected def function.injective.semilattice_inf [has_inf α] [semilattice_inf β]
   (f : α → β) (hf_inj : function.injective f) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
@@ -849,7 +849,7 @@ See note [reducible non-instances]. -/
   ..partial_order.lift f hf_inj}
 
 /-- A type endowed with `⊔` and `⊓` is a `lattice`, if it admits an injective map that
-preserves `⊔` and `⊓` to a `latttice`.
+preserves `⊔` and `⊓` to a `lattice`.
 See note [reducible non-instances]. -/
 @[reducible] protected def function.injective.lattice [has_sup α] [has_inf α] [lattice β]
   (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
@@ -858,7 +858,7 @@ See note [reducible non-instances]. -/
 { ..hf_inj.semilattice_sup f map_sup, ..hf_inj.semilattice_inf f map_inf}
 
 /-- A type endowed with `⊔` and `⊓` is a `distrib_lattice`, if it admits an injective map that
-preserves `⊔` and `⊓` to a `distrib_latttice`.
+preserves `⊔` and `⊓` to a `distrib_lattice`.
 See note [reducible non-instances]. -/
 @[reducible] protected def function.injective.distrib_lattice [has_sup α] [has_inf α]
   [distrib_lattice β] (f : α → β) (hf_inj : function.injective f)

@@ -404,12 +404,11 @@ variables {n : ℕ} {x : α}
 
 lemma geom_sum_pos [ordered_semiring α] (hx : 0 < x) (hn : n ≠ 0) : 0 < geom_sum x n :=
 begin
-  induction n with k hk,
-  { exact (hn rfl).elim },
-  cases k,
+  refine nat.le_induction _ _ _ (show 1 ≤ n, from hn.bot_lt),
   { simp [@@zero_lt_one _ (nontrivial_of_lt _ _ hx)] },
+  intros k hk,
   rw [geom_sum_succ'],
-  exact add_pos (pow_pos hx _) (hk $ nat.succ_ne_zero k)
+  apply add_pos (pow_pos hx _)
 end
 
 lemma geom_sum_pos_and_lt_one [ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
@@ -503,17 +502,11 @@ begin
   { exact geom_sum_pos h' (pos_of_gt hn).ne' }
 end
 
-lemma decidable.and_or_imp {α β γ : Prop} [decidable α] :
-  (α ∧ β) ∨ (α → γ) ↔ α → (β ∨ γ) :=
-by tauto
-
 lemma geom_sum_neg_iff [linear_ordered_ring α] (hn : 1 < n) :
   geom_sum x n < 0 ↔ even n ∧ x + 1 < 0 :=
-begin
-  have := or_congr (geom_sum_pos_iff hn) (geom_sum_eq_zero_iff_neg_one hn),
-  rw [← not_iff_not, not_lt, le_iff_lt_or_eq, eq_comm, this, nat.odd_iff_not_even,
-    ← add_eq_zero_iff_eq_neg, not_and, not_lt, le_iff_lt_or_eq, eq_comm,
-    ← imp_iff_not_or, or_comm, and_comm, decidable.and_or_imp, or_comm],
-end
+by rw [← not_iff_not, not_lt, le_iff_lt_or_eq, eq_comm,
+       or_congr (geom_sum_pos_iff hn) (geom_sum_eq_zero_iff_neg_one hn), nat.odd_iff_not_even,
+       ← add_eq_zero_iff_eq_neg, not_and, not_lt, le_iff_lt_or_eq, eq_comm,
+       ← imp_iff_not_or, or_comm, and_comm, decidable.and_or_imp, or_comm]
 
 end order

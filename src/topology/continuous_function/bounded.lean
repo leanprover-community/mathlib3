@@ -1043,7 +1043,7 @@ Continuous normed lattice group valued functions form a meet-semilattice
 -/
 instance : semilattice_inf (α →ᵇ β) :=
 { inf := λ f g,
-  { to_fun := λ t, f(t)⊓g(t),
+  { to_fun := λ t, f t ⊓ g t,
     continuous_to_fun := f.continuous.inf g.continuous,
     bounded' := begin
       cases f.bounded' with C₁ hf,

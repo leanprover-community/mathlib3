@@ -86,8 +86,7 @@ begin
 end
 
 @[to_additive]
-lemma mul_salem_spencer.mul_right (hs : mul_salem_spencer s) :
-  mul_salem_spencer ((λ x, x * a) '' s) :=
+lemma mul_salem_spencer.mul_right (hs : mul_salem_spencer s) : mul_salem_spencer ((* a) '' s) :=
 begin
   rintro _ _ _ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩ h,
   rw [mul_mul_mul_comm, mul_mul_mul_comm d] at h,
@@ -108,6 +107,40 @@ lemma mul_salem_spencer_mul_right_iff :
   mul_salem_spencer.mul_right⟩
 
 end cancel_comm_monoid
+
+section comm_cancel_monoid_with_zero
+variables [comm_cancel_monoid_with_zero α] [no_zero_divisors α] {s : set α} {a : α}
+
+lemma mul_salem_spencer.mul_left₀ (hs : mul_salem_spencer s) (ha : a ≠ 0) :
+  mul_salem_spencer ((*) a '' s) :=
+begin
+  rintro _ _ _ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩ h,
+  rw [mul_mul_mul_comm, mul_mul_mul_comm a d] at h,
+  rw hs hb hc hd (mul_left_cancel₀ (mul_ne_zero ha ha) h),
+end
+
+lemma mul_salem_spencer.mul_right₀ (hs : mul_salem_spencer s) (ha : a ≠ 0) :
+  mul_salem_spencer ((* a) '' s) :=
+begin
+  rintro _ _ _ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩ h,
+  rw [mul_mul_mul_comm, mul_mul_mul_comm d] at h,
+  rw hs hb hc hd (mul_right_cancel₀ (mul_ne_zero ha ha) h),
+end
+
+lemma mul_salem_spencer_mul_left_iff₀ (ha : a ≠ 0) : mul_salem_spencer ((*) a '' s) ↔ mul_salem_spencer s :=
+⟨λ hs b c d hb hc hd h, mul_left_cancel₀ ha
+  (hs (set.mem_image_of_mem _ hb) (set.mem_image_of_mem _ hc) (set.mem_image_of_mem _ hd) $
+  by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
+  λ hs, hs.mul_left₀ ha⟩
+
+lemma mul_salem_spencer_mul_right_iff₀ (ha : a ≠ 0) :
+  mul_salem_spencer ((λ x, x * a) '' s) ↔ mul_salem_spencer s :=
+⟨λ hs b c d hb hc hd h, mul_right_cancel₀ ha
+  (hs (set.mem_image_of_mem _ hb) (set.mem_image_of_mem _ hc) (set.mem_image_of_mem _ hd) $
+  by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
+  λ hs, hs.mul_right₀ ha⟩
+
+end comm_cancel_monoid_with_zero
 
 section nat
 
@@ -215,7 +248,7 @@ variables [cancel_comm_monoid α] (s : finset α) (a : α)
 begin
   refine le_antisymm _ _,
   { obtain ⟨u, hus, hcard, hu⟩ := mul_roth_number_spec (s.map $ mul_left_embedding a),
-    rw subset_map at hus,
+    rw subset_map_iff at hus,
     obtain ⟨u, hus, rfl⟩ := hus,
     rw coe_map at hu,
     rw [←hcard, card_map],
@@ -244,8 +277,8 @@ variables {s : finset ℕ} {k n : ℕ}
 
 /-- The Roth number of a natural `N` is the largest integer `m` for which there is a subset of
 `range N` of size `m` with no arithmetic progression of length 3.
-Trivially, `roth_number N ≤ N`, but Roth's theorem (proved in ...) shows that `roth_number N = o(N)`
-and the construction by Behrend gives a lower bound of the form
+Trivially, `roth_number N ≤ N`, but Roth's theorem (proved in 1953) shows that
+`roth_number N = o(N)` and the construction by Behrend gives a lower bound of the form
 `N * exp(-C sqrt(log(N))) ≤ roth_number N`.
 A significant refinement of Roth's theorem by Bloom and Sisask announced in 2020 gives
 `roth_number N = O(N / (log N)^(1+c))` for an absolute constant `c`. -/
@@ -257,7 +290,8 @@ lemma roth_number_nat_def (n : ℕ) : roth_number_nat n = add_roth_number (range
 lemma roth_number_nat_le (N : ℕ) : roth_number_nat N ≤ N :=
 (add_roth_number_le _).trans (card_range _).le
 
-/-- A verbose specialization of `add_salem_spencer.le_add_roth_number`. -/
+/-- A verbose specialization of `add_salem_spencer.le_add_roth_number`, sometimes convenient in
+practice. -/
 lemma add_salem_spencer.le_roth_number_nat (s : finset ℕ) (hs : add_salem_spencer (s : set ℕ))
   (hsn : ∀ x ∈ s, x < n) (hsk : s.card = k) :
   k ≤ roth_number_nat n :=
@@ -293,6 +327,8 @@ end roth_number_nat
 ### Explicit values
 
 Some lemmas and calculations of the Roth number for (very) small naturals.
+
+Sequence [A003002](http://oeis.org/A003002) in the OEIS.
 -/
 
 section explicit_values
@@ -316,6 +352,37 @@ end
 
 local attribute [instance] add_salem_spencer.decidable_nat
 
+lemma roth_number_nat_succ_le {m n : ℕ} (hn : roth_number_nat n ≤ m)
+  (h : ∀ s ∈ (powerset_len m (range n)).filter (λ (s : finset ℕ), add_salem_spencer (s : set ℕ)),
+          ∃ z ∈ s, n ≤ z + z ∧ z + z - n ∈ s) :
+  roth_number_nat (n + 1) ≤ m :=
+begin
+  apply nat.le_of_lt_succ,
+  change roth_number_nat (n + 1) < m.succ,
+  apply add_roth_number_lt_of_forall_not_add_salem_spencer,
+  simp only [range_succ, powerset_len_succ_insert not_mem_range_self, mem_union, mem_image,
+    or_imp_distrib, forall_and_distrib, and_imp, coe_insert, forall_exists_index,
+    forall_apply_eq_imp_iff₂],
+  refine ⟨_, λ s hs hsN, _⟩,
+  { simp only [mem_powerset_len, and_imp],
+    rw ←not_lt at hn,
+    exact λ x hx₁ hx₂ h, hn (h.le_roth_number_nat _ (λ x hx, mem_range.1 (hx₁ hx)) hx₂) },
+  simp only [and_imp, exists_prop, mem_filter, exists_and_distrib_left] at h,
+  obtain ⟨a, hNa, ha, haN⟩ := h s hs (hsN.mono $ set.subset_insert _ _),
+  rw [mem_powerset_len] at hs,
+  replace hs := hs.1 haN,
+  rw hsN (set.mem_insert_of_mem _ haN) (set.mem_insert _ _) (set.mem_insert_of_mem _ ha) _ at hs,
+  exact not_mem_range_self hs,
+  { rw [tsub_add_cancel_of_le hNa] }
+end
+
+/-- In conjunction with `dec_trivial`, this allows quick computation of small Roth numbers. -/
+lemma roth_number_nat_succ_eq {m n : ℕ} (hn : roth_number_nat n = m)
+  (h : ∀ s ∈ (powerset_len m (range n)).filter (λ (s : finset ℕ), add_salem_spencer (s : set ℕ)),
+          ∃ z ∈ s, n ≤ z + z ∧ z + z - n ∈ s) :
+  roth_number_nat (n + 1) = m :=
+(roth_number_nat_succ_le hn.le h).antisymm $ hn.ge.trans $ roth_number_nat.mono n.le_succ
+
 @[simp] lemma roth_number_nat_zero : roth_number_nat 0 = 0 := rfl
 @[simp] lemma roth_number_nat_one : roth_number_nat 1 = 1 := rfl
 @[simp] lemma roth_number_nat_two : roth_number_nat 2 = 2 := rfl
@@ -337,7 +404,8 @@ begin
   { simp }
 end
 
--- `dec_trivial` times out on `roth_number_nat 12 = 6` with the current decidability instance
+@[simp] lemma roth_number_twelve : roth_number_nat 12 = 6 :=
+roth_number_nat_succ_eq roth_number_nat_eleven $ by dec_trivial
 
 @[simp] lemma roth_number_nat_thirteen : roth_number_nat 13 = 7 :=
 begin
@@ -357,30 +425,6 @@ begin
   { dec_trivial },
   { simp },
   { simp }
-end
-
-lemma roth_number_nat_dec_upper_bound {N M : ℕ} (h₂ : roth_number_nat N ≤ M)
-  (h : ∀ s ∈ (powerset_len M (range N)).filter (λ (s : finset ℕ), add_salem_spencer (s : set ℕ)),
-          ∃ z ∈ s, N ≤ z + z ∧ z + z - N ∈ s) :
-  roth_number_nat (N + 1) ≤ M :=
-begin
-  apply nat.le_of_lt_succ,
-  change roth_number_nat (N+1) < M.succ,
-  apply add_roth_number_lt_of_forall_not_add_salem_spencer,
-  simp only [range_succ, powerset_len_succ_insert not_mem_range_self, mem_union, mem_image,
-    or_imp_distrib, forall_and_distrib, and_imp, coe_insert, forall_exists_index,
-    forall_apply_eq_imp_iff₂],
-  refine ⟨_, λ s hs hsN, _⟩,
-  { simp only [mem_powerset_len, and_imp],
-    rw ←not_lt at h₂,
-    exact λ x hx₁ hx₂ h, h₂ (h.le_roth_number_nat _ (λ x hx, mem_range.1 (hx₁ hx)) hx₂) },
-  simp only [and_imp, exists_prop, mem_filter, exists_and_distrib_left] at h,
-  obtain ⟨a, hNa, ha, haN⟩ := h s hs (hsN.mono $ set.subset_insert _ _),
-  rw [mem_powerset_len] at hs,
-  replace hs := hs.1 haN,
-  rw hsN (set.mem_insert_of_mem _ haN) (set.mem_insert _ _) (set.mem_insert_of_mem _ ha) _ at hs,
-  exact not_mem_range_self hs,
-  { rw [tsub_add_cancel_of_le hNa] }
 end
 
 end explicit_values

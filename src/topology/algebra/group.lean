@@ -433,27 +433,27 @@ section quotient_topological_group
 variables [topological_space G] [group G] [topological_group G] (N : subgroup G) (n : N.normal)
 
 @[to_additive]
-instance {G : Type*} [group G] [topological_space G] (N : subgroup G) :
-  topological_space (quotient_group.quotient N) :=
+instance quotient_group.quotient.topological_space {G : Type*} [group G] [topological_space G]
+  (N : subgroup G) : topological_space (G ⧸ N) :=
 quotient.topological_space
 
 open quotient_group
 
 @[to_additive]
-lemma quotient_group.is_open_map_coe : is_open_map (coe : G →  quotient N) :=
+lemma quotient_group.is_open_map_coe : is_open_map (coe : G → G ⧸ N) :=
 begin
   intros s s_op,
-  change is_open ((coe : G →  quotient N) ⁻¹' (coe '' s)),
+  change is_open ((coe : G → G ⧸ N) ⁻¹' (coe '' s)),
   rw quotient_group.preimage_image_coe N s,
   exact is_open_Union (λ n, (continuous_mul_right _).is_open_preimage s s_op)
 end
 
 @[to_additive]
-instance topological_group_quotient [N.normal] : topological_group (quotient N) :=
+instance topological_group_quotient [N.normal] : topological_group (G ⧸ N) :=
 { continuous_mul := begin
-    have cont : continuous ((coe : G → quotient N) ∘ (λ (p : G × G), p.fst * p.snd)) :=
+    have cont : continuous ((coe : G → G ⧸ N) ∘ (λ (p : G × G), p.fst * p.snd)) :=
       continuous_quot_mk.comp continuous_mul,
-    have quot : quotient_map (λ p : G × G, ((p.1:quotient N), (p.2:quotient N))),
+    have quot : quotient_map (λ p : G × G, ((p.1 : G ⧸ N), (p.2 : G ⧸ N))),
     { apply is_open_map.to_quotient_map,
       { exact (quotient_group.is_open_map_coe N).prod (quotient_group.is_open_map_coe N) },
       { exact continuous_quot_mk.prod_map continuous_quot_mk },
@@ -461,7 +461,7 @@ instance topological_group_quotient [N.normal] : topological_group (quotient N) 
     exact (quotient_map.continuous_iff quot).2 cont,
   end,
   continuous_inv := begin
-    have : continuous ((coe : G → quotient N) ∘ (λ (a : G), a⁻¹)) :=
+    have : continuous ((coe : G → G ⧸ N) ∘ (λ (a : G), a⁻¹)) :=
       continuous_quot_mk.comp continuous_inv,
     convert continuous_quotient_lift _ this,
   end }

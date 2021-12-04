@@ -7,7 +7,7 @@ Linear algebra:
     vector space: 'module'
     product of vector spaces: 'prod.module'
     vector subspace: 'subspace'
-    quotient space: 'submodule.quotient'
+    quotient space: 'submodule.has_quotient'
     sum of subspaces: 'submodule.complete_lattice'
     direct sum: 'direct_sum.submodule_is_internal'
     complementary subspaces: 'submodule.exists_is_compl'
@@ -130,7 +130,7 @@ Ring Theory:
     product of rings: 'pi.ring'
   Ideals and Quotients:
     ideal of a commutative ring: 'ideal'
-    quotient rings: 'ideal.quotient'
+    quotient rings: 'ideal.has_quotient'
     prime ideals: 'ideal.is_prime'
     maximal ideals: 'ideal.is_maximal'
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'

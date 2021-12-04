@@ -1046,9 +1046,6 @@ end
 
 @[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
 
-lemma dvd_linear {d x y a b : ℤ} (hdx : d ∣ x) (hdy : d ∣ y) :  d ∣ (a*x + b*y) :=
-dvd_add (hdx.mul_left a) (hdy.mul_left b)
-
 lemma nat_abs_le_of_dvd_ne_zero {s t : ℤ} (hst : s ∣ t) (ht : t ≠ 0) : nat_abs s ≤ nat_abs t :=
 not_lt.mp (mt (eq_zero_of_dvd_of_nat_abs_lt_nat_abs hst) ht)
 

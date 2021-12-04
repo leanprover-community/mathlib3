@@ -582,6 +582,10 @@ protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
 
+lemma dvd_linear {α : Type*} [comm_semiring α] {d x y a b : α} (hdx : d ∣ x) (hdy : d ∣ y) :
+  d ∣ (a*x + b*y) :=
+dvd_add (hdx.mul_left a) (hdy.mul_left b)
+
 end comm_semiring
 
 /-!

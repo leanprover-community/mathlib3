@@ -576,11 +576,11 @@ open quotient_group
 lemma order_of_dvd_card_univ : order_of x ∣ fintype.card G :=
 begin
   classical,
-  have ft_prod : fintype (quotient (zpowers x) × (zpowers x)),
+  have ft_prod : fintype ((G ⧸ zpowers x) × zpowers x),
     from fintype.of_equiv G group_equiv_quotient_times_subgroup,
   have ft_s : fintype (zpowers x),
     from @fintype.prod_right _ _ _ ft_prod _,
-  have ft_cosets : fintype (quotient (zpowers x)),
+  have ft_cosets : fintype (G ⧸ zpowers x),
     from @fintype.prod_left _ _ _ ft_prod ⟨⟨1, (zpowers x).one_mem⟩⟩,
   have eq₁ : fintype.card G = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
     from calc fintype.card G = @fintype.card _ ft_prod :
@@ -592,7 +592,7 @@ begin
   have eq₂ : order_of x = @fintype.card _ ft_s,
     from calc order_of x = _ : order_eq_card_zpowers
       ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
-  exact dvd.intro (@fintype.card (quotient (subgroup.zpowers x)) ft_cosets)
+  exact dvd.intro (@fintype.card (G ⧸ subgroup.zpowers x) ft_cosets)
           (by rw [eq₁, eq₂, mul_comm])
 end
 

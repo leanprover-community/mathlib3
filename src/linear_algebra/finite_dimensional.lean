@@ -149,7 +149,7 @@ end
 
 /-- A quotient of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_quotient [finite_dimensional K V] (S : submodule K V) :
-  finite_dimensional K (quotient S) :=
+  finite_dimensional K (V ⧸ S) :=
 finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
 
 /-- The rank of a module as a natural number.
@@ -733,7 +733,7 @@ end
 /-- In a finite-dimensional vector space, the dimensions of a submodule and of the corresponding
 quotient add up to the dimension of the space. -/
 theorem finrank_quotient_add_finrank [finite_dimensional K V] (s : submodule K V) :
-  finrank K s.quotient + finrank K s = finrank K V :=
+  finrank K (V ⧸ s) + finrank K s = finrank K V :=
 begin
   have := dim_quotient_add_dim s,
   rw [← finrank_eq_dim, ← finrank_eq_dim, ← finrank_eq_dim] at this,
@@ -755,7 +755,7 @@ end
 
 /-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
 lemma finrank_quotient_le [finite_dimensional K V] (s : submodule K V) :
-  finrank K s.quotient ≤ finrank K V :=
+  finrank K (V ⧸ s) ≤ finrank K V :=
 by { rw ← s.finrank_quotient_add_finrank, exact nat.le_add_right _ _ }
 
 /-- The sum of the dimensions of s + t and s ∩ t is the sum of the dimensions of s and t -/
@@ -866,7 +866,7 @@ variables [finite_dimensional K V] [finite_dimensional K V₂]
   `p.quotient` is isomorphic to `q.quotient`. -/
 noncomputable def linear_equiv.quot_equiv_of_equiv
   {p : subspace K V} {q : subspace K V₂}
-  (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₂) : p.quotient ≃ₗ[K] q.quotient :=
+  (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₂) : (V ⧸ p) ≃ₗ[K] (V₂ ⧸ q) :=
 linear_equiv.of_finrank_eq _ _
 begin
   rw [← @add_right_cancel_iff _ _ (finrank K p), submodule.finrank_quotient_add_finrank,
@@ -876,7 +876,7 @@ end
 
 /-- Given the subspaces `p q`, if `p.quotient ≃ₗ[K] q`, then `q.quotient ≃ₗ[K] p` -/
 noncomputable def linear_equiv.quot_equiv_of_quot_equiv
-  {p q : subspace K V} (f : p.quotient ≃ₗ[K] q) : q.quotient ≃ₗ[K] p :=
+  {p q : subspace K V} (f : (V ⧸ p) ≃ₗ[K] q) : (V ⧸ q) ≃ₗ[K] p :=
 linear_equiv.of_finrank_eq _ _
 begin
   rw [← @add_right_cancel_iff _ _ (finrank K q), submodule.finrank_quotient_add_finrank,

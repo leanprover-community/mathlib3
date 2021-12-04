@@ -126,32 +126,32 @@ R/p → S/P
 ```
 then `P` lies over `p`.
 -/
-lemma comap_eq_of_scalar_tower_quotient [algebra R S] [algebra p.quotient P.quotient]
-  [is_scalar_tower R p.quotient P.quotient]
-  (h : function.injective (algebra_map p.quotient P.quotient)) :
+lemma comap_eq_of_scalar_tower_quotient [algebra R S] [algebra (R ⧸ p) (S ⧸ P)]
+  [is_scalar_tower R (R ⧸ p) (S ⧸ P)]
+  (h : function.injective (algebra_map (R ⧸ p) (S ⧸ P))) :
   comap (algebra_map R S) P = p :=
 begin
   ext x, split; rw [mem_comap, ← quotient.eq_zero_iff_mem, ← quotient.eq_zero_iff_mem,
-    quotient.mk_algebra_map, is_scalar_tower.algebra_map_apply _ p.quotient,
+    quotient.mk_algebra_map, is_scalar_tower.algebra_map_apply _ (R ⧸ p),
     quotient.algebra_map_eq],
   { intro hx,
-    exact (algebra_map p.quotient P.quotient).injective_iff.mp h _ hx },
+    exact (algebra_map (R ⧸ p) (S ⧸ P)).injective_iff.mp h _ hx },
   { intro hx,
     rw [hx, ring_hom.map_zero] },
 end
 
 /-- If `P` lies over `p`, then `R / p` has a canonical map to `S / P`. -/
 def quotient.algebra_quotient_of_le_comap (h : p ≤ comap f P) :
-  algebra p.quotient P.quotient :=
+  algebra (R ⧸ p) (S ⧸ P) :=
 ring_hom.to_algebra $ quotient_map _ f h
 
 /-- `R / p` has a canonical map to `S / pS`. -/
 instance quotient.algebra_quotient_map_quotient :
-  algebra p.quotient (map f p).quotient :=
+  algebra (R ⧸ p) (S ⧸ map f p) :=
 quotient.algebra_quotient_of_le_comap le_comap_map
 
 @[simp] lemma quotient.algebra_map_quotient_map_quotient (x : R) :
-  algebra_map p.quotient (map f p).quotient (quotient.mk p x) = quotient.mk _ (f x) :=
+  algebra_map (R ⧸ p) (S ⧸ map f p) (quotient.mk p x) = quotient.mk _ (f x) :=
 rfl
 
 @[simp] lemma quotient.mk_smul_mk_quotient_map_quotient (x : R) (y : S) :
@@ -159,7 +159,7 @@ rfl
 rfl
 
 instance quotient.tower_quotient_map_quotient [algebra R S] :
-  is_scalar_tower R p.quotient (map (algebra_map R S) p).quotient :=
+  is_scalar_tower R (R ⧸ p) (S ⧸ map (algebra_map R S) p) :=
 is_scalar_tower.of_algebra_map_eq $ λ x,
 by rw [quotient.algebra_map_eq, quotient.algebra_map_quotient_map_quotient,
        quotient.mk_algebra_map]
@@ -358,9 +358,9 @@ theorem exists_ideal_over_prime_of_is_integral (H : algebra.is_integral R S)
   (P : ideal R) [is_prime P] (I : ideal S) [is_prime I] (hIP : I.comap (algebra_map R S) ≤ P) :
   ∃ Q ≥ I, is_prime Q ∧ Q.comap (algebra_map R S) = P :=
 begin
-  obtain ⟨Q' : ideal I.quotient, ⟨Q'_prime, hQ'⟩⟩ :=
+  obtain ⟨Q' : ideal (S ⧸ I), ⟨Q'_prime, hQ'⟩⟩ :=
     @exists_ideal_over_prime_of_is_integral'
-      (I.comap (algebra_map R S)).quotient _ I.quotient _
+      (R ⧸ I.comap (algebra_map R S)) _ (S ⧸ I) _
       ideal.quotient_algebra
       _
       (is_integral_quotient_of_is_integral H)

@@ -503,12 +503,4 @@ begin
     {rw div_mul_cancel', } },
 end
 
--- |a - b| = |b - a|
-@[to_additive]
-lemma abs_inv_invariant (a b : α) : |a/b| = |b/a| :=
-begin
-  unfold has_abs.abs,
-  rw [inv_div' a b, ← inv_inv (a / b), inv_div', sup_comm],
-end
-
 end lattice_ordered_comm_group

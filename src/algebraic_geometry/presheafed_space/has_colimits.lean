@@ -240,10 +240,7 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
     { simp, },
     { ext,
       dsimp [desc_c_app],
-      simp only [eq_to_hom_op, limit.lift_π_assoc, eq_to_hom_map, assoc, pushforward.comp_inv_app,
-                 limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc],
-      dsimp,
-      simp },
+      simpa },
   end,
   uniq' := λ s m w,
   begin

@@ -192,7 +192,7 @@ open category_theory.limits.walking_parallel_pair_hom
 instance equalizer_ι_is_local_ring_hom' (F : walking_parallel_pair.{u}ᵒᵖ ⥤ CommRing.{u}) :
   is_local_ring_hom (limit.π F (opposite.op walking_parallel_pair.one)) :=
 begin
-  have : _ = limit.π F (walking_parallel_pair_op_equiv.functor.obj _) :=
+  have : _ = limit.π F (walking_parallel_pair_op_equiv.{u u}.functor.obj _) :=
     (limit.iso_limit_cone_inv_π ⟨_, is_limit.whisker_equivalence (limit.is_limit F)
       walking_parallel_pair_op_equiv⟩ walking_parallel_pair.zero : _),
   erw ← this,

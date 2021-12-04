@@ -39,7 +39,7 @@ class lawful_fix (α : Type*) [omega_complete_partial_order α] extends has_fix 
 lemma lawful_fix.fix_eq' {α} [omega_complete_partial_order α] [lawful_fix α]
   {f : α → α} (hf : continuous' f) :
   has_fix.fix f = f (has_fix.fix f) :=
-lawful_fix.fix_eq (continuous.to_bundled _ hf)
+lawful_fix.fix_eq (hf.to_bundled _)
 
 namespace part
 
@@ -51,7 +51,7 @@ variables (f : (Π a, part $ β a) →ₘ (Π a, part $ β a))
 
 lemma approx_mono' {i : ℕ} : fix.approx f i ≤ fix.approx f (succ i) :=
 begin
-  induction i, dsimp [approx], apply @bot_le _ _ (f ⊥),
+  induction i, dsimp [approx], apply @bot_le _ _ _ (f ⊥),
   intro, apply f.monotone, apply i_ih
 end
 

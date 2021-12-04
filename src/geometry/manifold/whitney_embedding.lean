@@ -3,6 +3,8 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import geometry.manifold.diffeomorph
+import geometry.manifold.instances.real
 import geometry.manifold.partition_of_unity
 
 /-!
@@ -109,7 +111,8 @@ lemma exists_immersion_euclidean (f : smooth_bump_covering ι I M) :
     injective e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
 begin
   set F := euclidean_space ℝ (fin $ finrank ℝ (ι → (E × ℝ))),
-  letI : finite_dimensional ℝ (E × ℝ) := by apply_instance,
+  letI : is_noetherian ℝ (E × ℝ) := is_noetherian.iff_fg.2 infer_instance,
+  letI : finite_dimensional ℝ (ι → E × ℝ) := is_noetherian.iff_fg.1 infer_instance,
   set eEF : (ι → (E × ℝ)) ≃L[ℝ] F :=
     continuous_linear_equiv.of_finrank_eq finrank_euclidean_space_fin.symm,
   refine ⟨_, eEF ∘ f.embedding_pi_tangent,
@@ -129,7 +132,7 @@ lemma exists_embedding_euclidean_of_compact [t2_space M] [compact_space M] :
   ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
     closed_embedding e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
 begin
-  rcases smooth_bump_covering.exists_is_subordinate I is_closed_univ (λ (x : M) _, univ_mem_sets)
+  rcases smooth_bump_covering.exists_is_subordinate I is_closed_univ (λ (x : M) _, univ_mem)
     with ⟨ι, f, -⟩,
   haveI := f.fintype,
   rcases f.exists_immersion_euclidean with ⟨n, e, hsmooth, hinj, hinj_mfderiv⟩,

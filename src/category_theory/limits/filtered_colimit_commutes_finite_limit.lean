@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.colimit_limit
-import category_theory.limits.shapes.finite_limits
 
 /-!
 # Filtered colimits commute with finite limits.
@@ -299,5 +298,24 @@ instance colimit_limit_to_limit_colimit_is_iso :
   is_iso (colimit_limit_to_limit_colimit F) :=
 (is_iso_iff_bijective _).mpr
   ⟨colimit_limit_to_limit_colimit_injective F, colimit_limit_to_limit_colimit_surjective F⟩
+
+instance colimit_limit_to_limit_colimit_cone_iso (F : J ⥤ K ⥤ Type v) :
+  is_iso (colimit_limit_to_limit_colimit_cone F) :=
+begin
+  haveI : is_iso (colimit_limit_to_limit_colimit_cone F).hom,
+  { dsimp only [colimit_limit_to_limit_colimit_cone], apply_instance },
+  apply cones.cone_iso_of_hom_iso,
+end
+
+noncomputable
+instance filtered_colim_preserves_finite_limits :
+  preserves_limits_of_shape J (colim : (K ⥤ Type v) ⥤ _) := ⟨λ F, ⟨λ c hc,
+begin
+  apply is_limit.of_iso_limit (limit.is_limit _),
+  symmetry,
+  transitivity (colim.map_cone (limit.cone F)),
+  exact functor.map_iso _ (hc.unique_up_to_iso (limit.is_limit F)),
+  exact as_iso (colimit_limit_to_limit_colimit_cone F),
+end ⟩⟩
 
 end category_theory.limits

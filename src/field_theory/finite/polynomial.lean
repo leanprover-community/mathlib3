@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import field_theory.finite.basic
-import field_theory.mv_polynomial
-import data.mv_polynomial.expand
-import linear_algebra.basic
 import linear_algebra.finite_dimensional
+import linear_algebra.basic
+import ring_theory.mv_polynomial.basic
+import data.mv_polynomial.expand
+import field_theory.finite.basic
 
 /-!
 ## Polynomials over finite fields
@@ -61,7 +61,7 @@ lemma eval_indicator_apply_eq_one (a : σ → K) :
   eval a (indicator a) = 1 :=
 have 0 < fintype.card K - 1,
 begin
-  rw [← finite_field.card_units, fintype.card_pos_iff],
+  rw [← fintype.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
 by { simp only [indicator, (eval a).map_prod, ring_hom.map_sub,
@@ -101,13 +101,12 @@ begin
   assume n,
   refine le_trans (multiset.count_le_of_le _ $ degrees_indicator _) (le_of_eq _),
   simp_rw [ ← multiset.coe_count_add_monoid_hom, (multiset.count_add_monoid_hom n).map_sum,
-    add_monoid_hom.map_nsmul, multiset.coe_count_add_monoid_hom,
-    multiset.singleton_eq_singleton, nsmul_eq_mul, nat.cast_id],
+    add_monoid_hom.map_nsmul, multiset.coe_count_add_monoid_hom, nsmul_eq_mul, nat.cast_id],
   transitivity,
   refine finset.sum_eq_single n _ _,
-  { assume b hb ne, rw [multiset.count_cons_of_ne ne.symm, multiset.count_zero, mul_zero] },
+  { assume b hb ne, rw [multiset.count_singleton, if_neg ne.symm, mul_zero] },
   { assume h, exact (h $ finset.mem_univ _).elim },
-  { rw [multiset.count_cons_self, multiset.count_zero, mul_one] }
+  { rw [multiset.count_singleton_self, mul_one] }
 end
 
 section
@@ -141,7 +140,7 @@ end mv_polynomial
 
 namespace mv_polynomial
 
-open_locale classical
+open_locale classical cardinal
 open linear_map submodule
 
 universe u
@@ -159,24 +158,24 @@ calc module.rank K (R σ K) =
   module.rank K (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} →₀ K) :
     linear_equiv.dim_eq
       (finsupp.supported_equiv_finsupp {s : σ →₀ ℕ | ∀n:σ, s n ≤ fintype.card K - 1 })
-  ... = cardinal.mk {s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
-    by rw [finsupp.dim_eq, dim_of_field, mul_one]
-  ... = cardinal.mk {s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
+  ... = #{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
+    by rw [finsupp.dim_eq, dim_self, mul_one]
+  ... = #{s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
     refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
-    refine forall_congr (assume n, nat.le_sub_right_iff_add_le _),
+    refine forall_congr (assume n, le_tsub_iff_right _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
-  ... = cardinal.mk (σ → {n // n < fintype.card K}) :
-    quotient.sound ⟨@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)⟩
-  ... = cardinal.mk (σ → fin (fintype.card K)) :
-    quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm⟩
-  ... = cardinal.mk (σ → K) :
-    quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm⟩
-  ... = fintype.card (σ → K) : cardinal.fintype_card _
+  ... = #(σ → {n // n < fintype.card K}) :
+    (@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)).cardinal_eq
+  ... = #(σ → fin (fintype.card K)) :
+    (equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm).cardinal_eq
+  ... = #(σ → K) :
+    (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
+  ... = fintype.card (σ → K) : cardinal.mk_fintype _
 
 instance : finite_dimensional K (R σ K) :=
-is_noetherian.iff_dim_lt_omega.mpr
+is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.mpr
   (by simpa only [dim_R] using cardinal.nat_lt_omega (fintype.card (σ → K)))
 
 lemma finrank_R : finite_dimensional.finrank K (R σ K) = fintype.card (σ → K) :=

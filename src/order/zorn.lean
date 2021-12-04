@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.lattice
+import data.set.pairwise
 
 /-!
 # Chains and Zorn's lemmas
@@ -80,7 +80,7 @@ parameters {α : Type u} (r : α → α → Prop)
 local infix ` ≺ `:50  := r
 
 /-- A chain is a subset `c` satisfying `x ≺ y ∨ x = y ∨ y ≺ x` for all `x y ∈ c`. -/
-def chain (c : set α) := pairwise_on c (λ x y, x ≺ y ∨ y ≺ x)
+def chain (c : set α) := c.pairwise (λ x y, x ≺ y ∨ y ≺ x)
 parameters {r}
 
 lemma chain.total_of_refl [is_refl α r]
@@ -90,7 +90,25 @@ if e : x = y then or.inl (e ▸ refl _) else H _ hx _ hy e
 
 lemma chain.mono {c c'} :
   c' ⊆ c → chain c → chain c' :=
-pairwise_on.mono
+set.pairwise.mono
+
+lemma chain_of_trichotomous [is_trichotomous α r] (s : set α) :
+  chain s :=
+begin
+  intros a _ b _ hab,
+  obtain h | h | h := @trichotomous _ r _ a b,
+  { exact or.inl h },
+  { exact (hab h).elim },
+  { exact or.inr h }
+end
+
+lemma chain_univ_iff :
+  chain (univ : set α) ↔ is_trichotomous α r :=
+begin
+  refine ⟨λ h, ⟨λ a b , _⟩, λ h, @chain_of_trichotomous _ _ h univ⟩,
+  rw [or.left_comm, or_iff_not_imp_left],
+  exact h a trivial b trivial,
+end
 
 lemma chain.directed_on [is_refl α r] {c} (H : chain c) :
   directed_on (≺) c :=
@@ -169,15 +187,15 @@ private lemma chain_closure_succ_total_aux (hc₁ : c₁ ∈ chain_closure) (hc�
   c₁ ⊆ c₂ ∨ succ_chain c₂ ⊆ c₁ :=
 begin
   induction hc₁,
-  case succ : c₃ hc₃ ih {
-    cases ih with ih ih,
+  case succ : c₃ hc₃ ih
+  { cases ih with ih ih,
     { have h := h hc₃ ih,
       cases h with h h,
       { exact or.inr (h ▸ subset.refl _) },
       { exact or.inl h } },
     { exact or.inr (subset.trans ih succ_increasing) } },
-  case union : s hs ih {
-    refine (or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
+  case union : s hs ih
+  { refine (or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
     apply (ih a ha).resolve_right,
     apply mt (λ h, _) hn,
     exact subset.trans h (subset_sUnion_of_mem ha) }
@@ -188,8 +206,8 @@ private lemma chain_closure_succ_total (hc₁ : c₁ ∈ chain_closure) (hc₂ :
   c₂ = c₁ ∨ succ_chain c₁ ⊆ c₂ :=
 begin
   induction hc₂ generalizing c₁ hc₁ h,
-  case succ : c₂ hc₂ ih {
-    have h₁ : c₁ ⊆ c₂ ∨ @succ_chain α r c₂ ⊆ c₁ :=
+  case succ : c₂ hc₂ ih
+  { have h₁ : c₁ ⊆ c₂ ∨ @succ_chain α r c₂ ⊆ c₁ :=
       (chain_closure_succ_total_aux hc₁ hc₂ $ λ c₁, ih),
     cases h₁ with h₁ h₁,
     { have h₂ := ih hc₁ h₁,
@@ -197,8 +215,8 @@ begin
       { exact (or.inr $ h₂ ▸ subset.refl _) },
       { exact (or.inr $ subset.trans h₂ succ_increasing) } },
     { exact (or.inl $ subset.antisymm h₁ h) } },
-  case union : s hs ih {
-    apply or.imp_left (λ h', subset.antisymm h' h),
+  case union : s hs ih
+  { apply or.imp_left (λ h', subset.antisymm h' h),
     apply classical.by_contradiction,
     simp [not_or_distrib, sUnion_subset_iff, not_forall],
     intros c₃ hc₃ h₁ h₂,
@@ -221,11 +239,11 @@ lemma chain_closure_succ_fixpoint (hc₁ : c₁ ∈ chain_closure) (hc₂ : c₂
   c₁ ⊆ c₂ :=
 begin
   induction hc₁,
-  case succ : c₁ hc₁ h {
-    exact or.elim (chain_closure_succ_total hc₁ hc₂ h)
+  case succ : c₁ hc₁ h
+  { exact or.elim (chain_closure_succ_total hc₁ hc₂ h)
       (λ h, h ▸ h_eq.symm ▸ subset.refl c₂) id },
-  case union : s hs ih {
-    exact (sUnion_subset $ λ c₁ hc₁, ih c₁ hc₁) }
+  case union : s hs ih
+  { exact (sUnion_subset $ λ c₁ hc₁, ih c₁ hc₁) }
 end
 
 lemma chain_closure_succ_fixpoint_iff (hc : c ∈ chain_closure) :
@@ -243,10 +261,10 @@ lemma chain_chain_closure (hc : c ∈ chain_closure) :
   chain c :=
 begin
   induction hc,
-  case succ : c hc h {
-    exact chain_succ h },
-  case union : s hs h {
-    have h : ∀ c ∈ s, zorn.chain c := h,
+  case succ : c hc h
+  { exact chain_succ h },
+  case union : s hs h
+  { have h : ∀ c ∈ s, zorn.chain c := h,
     exact λ c₁ ⟨t₁, ht₁, (hc₁ : c₁ ∈ t₁)⟩ c₂ ⟨t₂, ht₂, (hc₂ : c₂ ∈ t₂)⟩ hneq,
       have t₁ ⊆ t₂ ∨ t₂ ⊆ t₁, from chain_closure_total (hs _ ht₁) (hs _ ht₂),
       or.elim this

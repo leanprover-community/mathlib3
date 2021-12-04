@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 
-import data.W
+import data.W.basic
 
 /-!
 # W types
@@ -89,8 +89,8 @@ private def finv : W_type (λ i, fin (arity α i)) → prop_form α
 
 instance [encodable α] : encodable (prop_form α) :=
 begin
-  haveI : encodable (constructors α) :=
-    by { unfold constructors, apply_instance },
+  haveI : encodable (constructors α),
+  { unfold constructors, apply_instance },
   exact encodable.of_left_inverse f finv
     (by { intro p, induction p; simp [f, finv, *] })
 end

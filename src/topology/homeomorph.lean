@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Reid Barton
 -/
 import topology.dense_embedding
+import data.equiv.fin
 
 /-!
 # Homeomorphisms
@@ -41,7 +42,7 @@ infix ` ≃ₜ `:25 := homeomorph
 namespace homeomorph
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
-instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ₜ β) (λ _, α → β) := ⟨λe, e.to_equiv⟩
 
 @[simp] lemma homeomorph_mk_coe (a : equiv α β) (b c) :
   ((homeomorph.mk a b c) : α → β) = a :=
@@ -172,6 +173,22 @@ h.embedding.is_compact_iff_is_compact_image.symm
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
+lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
+{ compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
+    apply compact_space.compact_univ } }
+
+lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
+{ t2 :=
+  begin
+    intros x y hxy,
+    obtain ⟨u, v, hu, hv, hxu, hyv, huv⟩ := t2_separation (h.symm.injective.ne hxy),
+    refine ⟨h.symm ⁻¹' u, h.symm ⁻¹' v,
+      h.symm.continuous.is_open_preimage _ hu,
+      h.symm.continuous.is_open_preimage _ hv,
+      hxu, hyv, _⟩,
+    rw [← preimage_inter, huv, preimage_empty],
+  end }
+
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
   .. h.embedding }
@@ -197,6 +214,9 @@ by rw [← preimage_symm, preimage_closure]
 protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
 
 protected lemma is_closed_map (h : α ≃ₜ β) : is_closed_map h := λ s, h.is_closed_image.2
+
+protected lemma open_embedding (h : α ≃ₜ β) : open_embedding h :=
+open_embedding_of_embedding_open h.embedding h.is_open_map
 
 protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
 closed_embedding_of_embedding_closed h.embedding h.is_closed_map
@@ -236,6 +256,36 @@ h.inducing.continuous_iff.symm
 @[simp] lemma comp_continuous_iff' (h : α ≃ₜ β) {f : β → γ} :
   continuous (f ∘ h) ↔ continuous f :=
 h.quotient_map.continuous_iff.symm
+
+lemma comp_continuous_at_iff (h : α ≃ₜ β) (f : γ → α) (x : γ) :
+  continuous_at (h ∘ f) x ↔ continuous_at f x :=
+h.inducing.continuous_at_iff.symm
+
+lemma comp_continuous_at_iff' (h : α ≃ₜ β) (f : β → γ) (x : α) :
+  continuous_at (f ∘ h) x ↔ continuous_at f (h x) :=
+h.inducing.continuous_at_iff' (by simp)
+
+lemma comp_continuous_within_at_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) (x : γ) :
+  continuous_within_at f s x ↔ continuous_within_at (h ∘ f) s x :=
+h.inducing.continuous_within_at_iff
+
+@[simp] lemma comp_is_open_map_iff (h : α ≃ₜ β) {f : γ → α} :
+  is_open_map (h ∘ f) ↔ is_open_map f :=
+begin
+  refine ⟨_, λ hf, h.is_open_map.comp hf⟩,
+  intros hf,
+  rw [← function.comp.left_id f, ← h.symm_comp_self, function.comp.assoc],
+  exact h.symm.is_open_map.comp hf,
+end
+
+@[simp] lemma comp_is_open_map_iff' (h : α ≃ₜ β) {f : β → γ} :
+  is_open_map (f ∘ h) ↔ is_open_map f :=
+begin
+  refine ⟨_, λ hf, hf.comp h.is_open_map⟩,
+  intros hf,
+  rw [← function.comp.right_id f, ← h.self_comp_symm, ← function.comp.assoc],
+  exact hf.comp h.symm.is_open_map,
+end
 
 /-- If two sets are equal, then they are homeomorphic. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=
@@ -347,6 +397,24 @@ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
     (open_embedding_sigma_mk.prod open_embedding_id).is_open_map)
 
 end distrib
+
+/-- If `ι` has a unique element, then `ι → α` is homeomorphic to `α`. -/
+@[simps { fully_applied := ff }]
+def fun_unique (ι α : Type*) [unique ι] [topological_space α] : (ι → α) ≃ₜ α :=
+{ to_equiv := equiv.fun_unique ι α,
+  continuous_to_fun := continuous_apply _,
+  continuous_inv_fun := continuous_pi (λ _, continuous_id) }
+
+/-- Homeomorphism between dependent functions `Π i : fin 2, α i` and `α 0 × α 1`. -/
+@[simps { fully_applied := ff }]
+def {u} pi_fin_two (α : fin 2 → Type u) [Π i, topological_space (α i)] : (Π i, α i) ≃ₜ α 0 × α 1 :=
+{ to_equiv := pi_fin_two_equiv α,
+  continuous_to_fun := (continuous_apply 0).prod_mk (continuous_apply 1),
+  continuous_inv_fun := continuous_pi $ fin.forall_fin_two.2 ⟨continuous_fst, continuous_snd⟩ }
+
+/-- Homeomorphism between `α² = fin 2 → α` and `α × α`. -/
+@[simps { fully_applied := ff }] def fin_two_arrow : (fin 2 → α) ≃ₜ α × α :=
+{ to_equiv := fin_two_arrow_equiv α, ..  pi_fin_two (λ _, α) }
 
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.

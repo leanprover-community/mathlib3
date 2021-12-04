@@ -41,8 +41,7 @@ term of the symmetric square.
 symmetric square, unordered pairs, symmetric powers
 -/
 
-open function
-open sym
+open finset fintype function sym
 
 universe u
 variables {α : Type u}
@@ -81,6 +80,22 @@ def sym2 (α : Type u) := quotient (sym2.rel.setoid α)
 
 namespace sym2
 
+@[elab_as_eliminator]
+protected lemma ind {f : sym2 α → Prop} (h : ∀ x y, f ⟦(x, y)⟧) : ∀ i, f i :=
+quotient.ind $ prod.rec $ by exact h
+
+@[elab_as_eliminator]
+protected lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
+i.ind hf
+
+protected lemma «exists» {α : Sort*} {f : sym2 α → Prop} :
+  (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
+(surjective_quotient_mk _).exists.trans prod.exists
+
+protected lemma «forall» {α : Sort*} {f : sym2 α → Prop} :
+  (∀ (x : sym2 α), f x) ↔ ∀ x y, f ⟦(x, y)⟧ :=
+(surjective_quotient_mk _).forall.trans prod.forall
+
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }
 
@@ -105,7 +120,7 @@ def lift {β : Type*} : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f 
 { to_fun := λ f, quotient.lift (uncurry ↑f) $ by { rintro _ _ ⟨⟩, exacts [rfl, f.prop _ _] },
   inv_fun := λ F, ⟨curry (F ∘ quotient.mk), λ a₁ a₂, congr_arg F eq_swap⟩,
   left_inv := λ f, subtype.ext rfl,
-  right_inv := λ F, funext $ quotient.ind $ prod.rec $ by exact λ _ _, rfl }
+  right_inv := λ F, funext $ sym2.ind $ by exact λ x y, rfl }
 
 @[simp]
 lemma lift_mk {β : Type*} (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁}) (a₁ a₂ : α) :
@@ -188,7 +203,9 @@ begin
   { refine quotient.rec_on_subsingleton z _,
     rintros ⟨z₁, z₂⟩ ⟨hx, hy⟩,
     rw eq_iff,
-    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; cc },
+    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; subst x; subst y;
+    try { exact (hne rfl).elim };
+    simp only [true_or, eq_self_iff_true, and_self, or_true] },
   { rintro rfl, simp },
 end
 
@@ -204,7 +221,7 @@ begin
   have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
   simp only [true_iff, true_or, eq_self_iff_true, iff_true, or_true] at hx hy hx' hy',
   cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' };
-  cc,
+  simp only [eq_self_iff_true, and_self, or_self, true_or, or_true],
 end
 
 instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
@@ -217,6 +234,9 @@ A type `α` is naturally included in the diagonal of `α × α`, and this functi
 of this diagonal in `sym2 α`.
 -/
 def diag (x : α) : sym2 α := ⟦(x, x)⟧
+
+lemma diag_injective : function.injective (sym2.diag : α → sym2 α) :=
+λ x y h, by cases quotient.exact h; refl
 
 /--
 A predicate for testing whether an element of `sym2 α` is on the diagonal.
@@ -281,7 +301,7 @@ lemma from_rel_prop {sym : symmetric r} {a b : α} :
 
 lemma from_rel_irreflexive {sym : symmetric r} :
   irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
-{ mp  := λ h, quotient.ind $ prod.rec $ by { rintros a b hr (rfl : a = b), exact h _ hr },
+{ mp  := λ h, sym2.ind $ by { rintros a b hr (rfl : a = b), exact h _ hr },
   mpr := λ h x hr, h (from_rel_prop.mpr hr) rfl }
 
 lemma mem_from_rel_irrefl_other_ne {sym : symmetric r} (irrefl : irreflexive r)
@@ -438,7 +458,7 @@ begin
   simp only [h, if_true, eq_self_iff_true],
   split_ifs, assumption, refl,
   simp only [h, if_false, if_true, eq_self_iff_true],
-  cases mem_iff.mp ha; cc,
+  exact ((mem_iff.mp ha).resolve_left h).symm,
   refl,
 end
 
@@ -449,6 +469,40 @@ begin
   rw other_eq_other' at hb ⊢,
   convert other_invol' ha hb,
   rw other_eq_other',
+end
+
+lemma filter_image_quotient_mk_is_diag [decidable_eq α] (s : finset α) :
+  ((s.product s).image quotient.mk).filter is_diag =
+    s.diag.image quotient.mk :=
+begin
+  ext z,
+  induction z using quotient.induction_on,
+  rcases z with ⟨x, y⟩,
+  simp only [mem_image, mem_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  split,
+  { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
+    rw [←h, sym2.is_diag_iff_eq] at hab,
+    exact ⟨a, b, ⟨ha, hab⟩, h⟩ },
+  { rintro ⟨a, b, ⟨ha, rfl⟩, h⟩,
+    rw ←h,
+    exact ⟨⟨a, a, ⟨ha, ha⟩, rfl⟩, rfl⟩ }
+end
+
+lemma filter_image_quotient_mk_not_is_diag [decidable_eq α] (s : finset α) :
+  ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
+    s.off_diag.image quotient.mk :=
+begin
+  ext z,
+  induction z using quotient.induction_on,
+  rcases z with ⟨x, y⟩,
+  simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  split,
+  { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
+    rw [←h, sym2.is_diag_iff_eq] at hab,
+    exact ⟨a, b, ⟨ha, hb, hab⟩, h⟩ },
+  { rintro ⟨a, b, ⟨ha, hb, hab⟩, h⟩,
+    rw [ne.def, ←sym2.is_diag_iff_eq, h] at hab,
+    exact ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩ }
 end
 
 end decidable

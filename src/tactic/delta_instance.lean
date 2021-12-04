@@ -64,7 +64,8 @@ if env.is_inductive new_decl_name then return ff else
 do new_decl ← get_decl new_decl_name,
    new_decl_pexpr ← resolve_name new_decl_name,
    arity ← get_pexpr_arg_arity_with_tgt cls new_decl.type,
-   tgt ← to_expr $ apply_under_n_pis cls new_decl_pexpr new_decl.type (new_decl.type.pi_arity - arity),
+   tgt ← to_expr $ apply_under_n_pis cls new_decl_pexpr new_decl.type
+     (new_decl.type.pi_arity - arity),
    (vs, tgt') ← open_pis tgt,
    tgt ← whnf tgt' transparency.none >>= pis vs,
    (_, inst) ← solve_aux tgt $ tactic.delta_instance [new_decl_name],
@@ -72,7 +73,8 @@ do new_decl ← get_decl new_decl_name,
    inst ← replace_univ_metas_with_univ_params inst,
    tgt ← instantiate_mvars tgt,
    nm ← get_unused_decl_name $ new_decl_name <.> (delta_instance_name cls),
-   add_protected_decl $ declaration.defn nm inst.collect_univ_params tgt inst new_decl.reducibility_hints new_decl.is_trusted,
+   add_protected_decl $ declaration.defn nm inst.collect_univ_params tgt inst
+     new_decl.reducibility_hints new_decl.is_trusted,
    set_basic_attribute `instance nm tt,
    return tt
 

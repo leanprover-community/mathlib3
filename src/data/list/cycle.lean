@@ -3,9 +3,9 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import data.list.rotate
-import data.finset.basic
+import data.multiset.sort
 import data.fintype.list
+import data.list.rotate
 
 /-!
 # Cycles of a list
@@ -14,6 +14,11 @@ Lists have an equivalence relation of whether they are rotational permutations o
 This relation is defined as `is_rotated`.
 
 Based on this, we define the quotient of lists by the rotation relation, called `cycle`.
+
+We also define a representation of concrete cycles, available when viewing them in a goal state or
+via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` will be shown
+as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
+underlying element. This representation also supports cycles that can contain duplicates.
 
 -/
 
@@ -368,17 +373,17 @@ begin
   obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
   have lpos : 0 < l.length := k.zero_le.trans_lt hk,
   have key : l.length - 1 - k < l.length :=
-    (nat.sub_le _ _).trans_lt (nat.sub_lt_self lpos nat.succ_pos'),
+    (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos'),
   rw ←nth_le_pmap l.next (λ _ h, h) (by simpa using hk),
   simp_rw [←nth_le_reverse l k (key.trans_le (by simp)), pmap_next_eq_rotate_one _ h],
   rw ←nth_le_pmap l.reverse.prev (λ _ h, h),
   { simp_rw [pmap_prev_eq_rotate_length_sub_one _ (nodup_reverse.mpr h), rotate_reverse,
-             length_reverse, nat.mod_eq_of_lt (nat.sub_lt_self lpos nat.succ_pos'),
-             nat.sub_sub_self (nat.succ_le_of_lt lpos)],
+             length_reverse, nat.mod_eq_of_lt (tsub_lt_self lpos nat.succ_pos'),
+             tsub_tsub_cancel_of_le (nat.succ_le_of_lt lpos)],
     rw ←nth_le_reverse,
-    { simp [nat.sub_sub_self (nat.le_pred_of_lt hk)] },
-    { simpa using (nat.sub_le _ _).trans_lt (nat.sub_lt_self lpos nat.succ_pos') } },
-  { simpa using (nat.sub_le _ _).trans_lt (nat.sub_lt_self lpos nat.succ_pos') }
+    { simp [tsub_tsub_cancel_of_le (nat.le_pred_of_lt hk)] },
+    { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') } },
+  { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') }
 end
 
 lemma next_reverse_eq_prev (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :
@@ -577,6 +582,28 @@ The `s : cycle α` as a `multiset α`.
 def to_multiset (s : cycle α) : multiset α :=
 quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
 
+/--
+The lift of `list.map`.
+-/
+def map {β : Type*} (f : α → β) : cycle α → cycle β :=
+quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
+
+/--
+The `multiset` of lists that can make the cycle.
+-/
+def lists (s : cycle α) : multiset (list α) :=
+quotient.lift_on' s
+  (λ l, (l.cyclic_permutations : multiset (list α))) $
+  λ l₁ l₂ (h : l₁ ~r l₂), by simpa using h.cyclic_permutations.perm
+
+@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} :
+  l ∈ s.lists ↔ (l : cycle α) = s :=
+begin
+  induction s using quotient.induction_on',
+  rw [lists, quotient.lift_on'_mk'],
+  simp
+end
+
 section decidable
 
 variable [decidable_eq α]
@@ -662,5 +689,14 @@ by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
 (quotient.induction_on' s next_prev) hs x hx
 
 end decidable
+
+/--
+We define a representation of concrete cycles, available when viewing them in a goal state or
+via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` will be shown
+as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
+underlying element. This representation also supports cycles that can contain duplicates.
+-/
+instance [has_repr α] : has_repr (cycle α) :=
+⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
 
 end cycle

@@ -62,6 +62,14 @@ begin
   simp only [fin.tail]
 end
 
+lemma vandermonde_mul_vandermonde_transpose {n : ℕ} (v w : fin n → R) (i j) :
+  (vandermonde v ⬝ (vandermonde w)ᵀ) i j = ∑ (k : fin n), (v i * w j) ^ (k : ℕ) :=
+by simp only [vandermonde_apply, matrix.mul_apply, matrix.transpose_apply, mul_pow]
+
+lemma vandermonde_transpose_mul_vandermonde {n : ℕ} (v : fin n → R) (i j) :
+  ((vandermonde v)ᵀ ⬝ vandermonde v) i j = ∑ (k : fin n), v k ^ (i + j : ℕ) :=
+by simp only [vandermonde_apply, matrix.mul_apply, matrix.transpose_apply, pow_add]
+
 lemma det_vandermonde {n : ℕ} (v : fin n → R) :
   det (vandermonde v) = ∏ i : fin n, ∏ j in finset.univ.filter (λ j, i < j), (v j - v i) :=
 begin
@@ -107,7 +115,7 @@ begin
       simp },
     { intros i j,
       simp only [smul_eq_mul, pi.add_apply, fin.coe_succ, fin.coe_cast_succ, pi.smul_apply],
-      rw [finset.sum_range_succ, add_comm, nat.sub_self, pow_zero, mul_one, finset.mul_sum],
+      rw [finset.sum_range_succ, add_comm, tsub_self, pow_zero, mul_one, finset.mul_sum],
       congr' 1,
       refine finset.sum_congr rfl (λ i' hi', _),
       rw [mul_left_comm (v 0), nat.succ_sub, pow_succ],

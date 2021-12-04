@@ -2,27 +2,29 @@
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
-
-The Special Linear group $SL(n, R)$
 -/
-import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.adjugate
 import linear_algebra.matrix.to_lin
 import data.matrix.notation
 
 /-!
 # The Special Linear group $SL(n, R)$
 
-This file defines the elements of the Special Linear group `special_linear_group n R`,
-also written `SL(n, R)` or `SLₙ(R)`, consisting of all `n` by `n` `R`-matrices with
-determinant `1`.  In addition, we define the group structure on `special_linear_group n R`
-and the embedding into the general linear group `general_linear_group R (n → R)`
-(i.e. `GL(n, R)` or `GLₙ(R)`).
+This file defines the elements of the Special Linear group `special_linear_group n R`, consisting
+of all square `R`-matrices with determinant `1` on the fintype `n` by `n`.  In addition, we define
+the group structure on `special_linear_group n R` and the embedding into the general linear group
+`general_linear_group R (n → R)`.
 
 ## Main definitions
 
  * `matrix.special_linear_group` is the type of matrices with determinant 1
  * `matrix.special_linear_group.group` gives the group structure (under multiplication)
  * `matrix.special_linear_group.to_GL` is the embedding `SLₙ(R) → GLₙ(R)`
+
+## Notation
+
+For `m : ℕ`, we introduce the notation `SL(m,R)` for the special linear group on the fintype
+`n = fin m`, in the locale `matrix_groups`.
 
 ## Implementation notes
 The inverse operation in the `special_linear_group` is defined to be the adjugate
@@ -84,7 +86,7 @@ subtype.ext_iff.trans matrix.ext_iff.symm
 (special_linear_group.ext_iff A B).mpr
 
 instance has_inv : has_inv (special_linear_group n R) :=
-⟨λ A, ⟨adjugate A, det_adjugate_eq_one A.2⟩⟩
+⟨λ A, ⟨adjugate A, by rw [det_adjugate, A.prop, one_pow]⟩⟩
 
 instance has_mul : has_mul (special_linear_group n R) :=
 ⟨λ A B, ⟨A.1 ⬝ B.1, by erw [det_mul, A.2, B.2, one_mul]⟩⟩
@@ -163,14 +165,10 @@ variables {S : Type*} [comm_ring S]
 
 /-- A ring homomorphism from `R` to `S` induces a group homomorphism from
 `special_linear_group n R` to `special_linear_group n S`. -/
-def map (f : R →+* S) : special_linear_group n R →* special_linear_group n S :=
-{ to_fun := λ g, ⟨f.map_matrix ↑g, ring_hom.map_det_one f g.2⟩,
+@[simps] def map (f : R →+* S) : special_linear_group n R →* special_linear_group n S :=
+{ to_fun := λ g, ⟨f.map_matrix ↑g, by { rw ← f.map_det, simp [g.2] }⟩,
   map_one' := subtype.ext $ f.map_matrix.map_one,
-  map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul' x y }
-
-@[simp] lemma coe_matrix_map (f : R →+* S) (g : special_linear_group n R) :
-  (map f g : matrix n n S) = f.map_matrix ↑g :=
-rfl
+  map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul x y }
 
 section cast
 
@@ -181,27 +179,26 @@ instance : has_coe (special_linear_group n ℤ) (special_linear_group n R) :=
 @[simp] lemma coe_matrix_coe (g : special_linear_group n ℤ) :
   ↑(g : special_linear_group n R)
   = (↑g : matrix n n ℤ).map (int.cast_ring_hom R) :=
-coe_matrix_map (int.cast_ring_hom R) g
+map_apply_coe (int.cast_ring_hom R) g
 
 end cast
 
 section has_neg
 
+variables [fact (even (fintype.card n))]
+
 /-- Formal operation of negation on special linear group on even cardinality `n` given by negating
 each element. -/
-instance {R : Type*} [comm_ring R] [_i : fact (even (fintype.card n))] :
-  has_neg (special_linear_group n R) :=
+instance : has_neg (special_linear_group n R) :=
 ⟨λ g,
-  ⟨- g, by simpa [nat.neg_one_pow_of_even _i.elim, g.det_coe] using @det_smul _ _ _ _ _ ↑ₘg (-1)⟩⟩
+  ⟨- g, by simpa [nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), g.det_coe] using
+  det_smul ↑ₘg (-1)⟩⟩
 
-@[simp] lemma has_neg_coe_mat {R : Type*} [comm_ring R]
-  (g : special_linear_group n R) [fact (even (fintype.card n))] :
+@[simp] lemma coe_neg (g : special_linear_group n R) :
   ↑(- g) = - (↑g : matrix n n R) :=
 rfl
 
-@[simp]
-lemma has_neg_cast {R : Type*} [comm_ring R] (g : (special_linear_group n ℤ))
-  [_i : fact (even (fintype.card n))] :
+@[simp] lemma coe_int_neg (g : (special_linear_group n ℤ)) :
   ↑(-g) = (-↑g : special_linear_group n R) :=
 subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg ↑g
 
@@ -211,9 +208,8 @@ end has_neg
 section coe_fn_instance
 
 /-- This instance is here for convenience, but is not the simp-normal form. -/
-instance : has_coe_to_fun (special_linear_group n R) :=
-{ F   := λ _, n → n → R,
-  coe := λ A, A.val }
+instance : has_coe_to_fun (special_linear_group n R) (λ _, n → n → R) :=
+{ coe := λ A, A.val }
 
 @[simp]
 lemma coe_fn_eq_coe (s : special_linear_group n R) : ⇑s = ↑ₘs := rfl

@@ -3,18 +3,23 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import data.fin.basic
 import data.list.sort
 import data.list.duplicate
-import data.fin
 
 /-!
-# Isomorphism between `fin (length l)` and `{x // x ∈ l}`
+# Equivalence between `fin (length l)` and elements of a list
 
-Given a list `l,
+Given a list `l`,
 
-* if `l` has no duplicates, then `list.nodup.nth_le_equiv` is the bijection between `fin (length l)`
-  and `{x // x ∈ l}` sending `⟨i, hi⟩` to `⟨nth_le l i hi, _⟩` with the inverse sending `⟨x, hx⟩` to
-  `⟨index_of x l, _⟩`;
+* if `l` has no duplicates, then `list.nodup.nth_le_equiv` is the equivalence between
+  `fin (length l)` and `{x // x ∈ l}` sending `⟨i, hi⟩` to `⟨nth_le l i hi, _⟩` with the inverse
+  sending `⟨x, hx⟩` to `⟨index_of x l, _⟩`;
+
+* if `l` has no duplicates and contains every element of a type `α`, then
+  `list.nodup.nth_le_equiv_of_forall_mem_list` defines an equivalence between
+  `fin (length l)` and `α`;  if `α` does not have decidable equality, then
+  there is a bijection `list.nodup.nth_le_bijection_of_forall_mem_list`;
 
 * if `l` is sorted w.r.t. `(<)`, then `list.sorted.nth_le_iso` is the same bijection reinterpreted
   as an `order_iso`.
@@ -27,20 +32,38 @@ variable {α : Type*}
 
 namespace nodup
 
+/-- If `l` lists all the elements of `α` without duplicates, then `list.nth_le` defines
+a bijection `fin l.length → α`.  See `list.nodup.nth_le_equiv_of_forall_mem_list`
+for a version giving an equivalence when there is decidable equality. -/
+@[simps]
+def nth_le_bijection_of_forall_mem_list (l : list α) (nd : l.nodup) (h : ∀ (x : α), x ∈ l) :
+  {f : fin l.length → α // function.bijective f} :=
+⟨λ i, l.nth_le i i.property, λ i j h, fin.ext $ (nd.nth_le_inj_iff _ _).1 h,
+ λ x, let ⟨i, hi, hl⟩ := list.mem_iff_nth_le.1 (h x) in ⟨⟨i, hi⟩, hl⟩⟩
+
 variable [decidable_eq α]
 
-/-- If `l` has no duplicates, then `list.nth_le` defines a bijection between `fin (length l)` and
+/-- If `l` has no duplicates, then `list.nth_le` defines an equivalence between `fin (length l)` and
 the set of elements of `l`. -/
+@[simps]
 def nth_le_equiv (l : list α) (H : nodup l) : fin (length l) ≃ {x // x ∈ l} :=
 { to_fun := λ i, ⟨nth_le l i i.2, nth_le_mem l i i.2⟩,
   inv_fun := λ x, ⟨index_of ↑x l, index_of_lt_length.2 x.2⟩,
   left_inv := λ i, by simp [H],
   right_inv := λ x, by simp }
 
-variables {l : list α} (H : nodup l) (x : {x // x ∈ l}) (i : fin (length l))
+/-- If `l` lists all the elements of `α` without duplicates, then `list.nth_le` defines
+an equivalence between `fin l.length` and `α`.
 
-@[simp] lemma coe_nth_le_equiv_apply : (H.nth_le_equiv l i : α) = nth_le l i i.2 := rfl
-@[simp] lemma coe_nth_le_equiv_symm_apply : ((H.nth_le_equiv l).symm x : ℕ) = index_of ↑x l := rfl
+See `list.nodup.nth_le_bijection_of_forall_mem_list` for a version without
+decidable equality. -/
+@[simps]
+def nth_le_equiv_of_forall_mem_list (l : list α) (nd : l.nodup) (h : ∀ (x : α), x ∈ l) :
+  fin l.length ≃ α :=
+{ to_fun := λ i, l.nth_le i i.2,
+  inv_fun := λ a, ⟨_, index_of_lt_length.2 (h a)⟩,
+  left_inv := λ i, by simp [nd],
+  right_inv := λ a, by simp }
 
 end nodup
 
@@ -87,11 +110,11 @@ begin
   have : some hd = _ := hf 0,
   rw [eq_comm, list.nth_eq_some] at this,
   obtain ⟨w, h⟩ := this,
-  let f' : ℕ ↪o ℕ := order_embedding.of_map_rel_iff (λ i, f (i + 1) - (f 0 + 1))
-    (λ a b, by simp [nat.sub_le_sub_right_iff, nat.succ_le_iff, nat.lt_succ_iff]),
+  let f' : ℕ ↪o ℕ := order_embedding.of_map_le_iff (λ i, f (i + 1) - (f 0 + 1))
+    (λ a b, by simp [tsub_le_tsub_iff_right, nat.succ_le_iff, nat.lt_succ_iff]),
   have : ∀ ix, tl.nth ix = (l'.drop (f 0 + 1)).nth (f' ix),
   { intro ix,
-    simp [list.nth_drop, nat.add_sub_of_le, nat.succ_le_iff, ←hf] },
+    simp [list.nth_drop, add_tsub_cancel_of_le, nat.succ_le_iff, ←hf] },
   rw [←list.take_append_drop (f 0 + 1) l', ←list.singleton_append],
   apply list.sublist.append _ (IH _ this),
   rw [list.singleton_sublist, ←h, l'.nth_le_take _ (nat.lt_succ_self _)],
@@ -114,7 +137,7 @@ begin
       refine ⟨f.trans (order_embedding.of_strict_mono (+ 1) (λ _, by simp)), _⟩,
       simpa using hf },
     { obtain ⟨f, hf⟩ := IH,
-      refine ⟨order_embedding.of_map_rel_iff
+      refine ⟨order_embedding.of_map_le_iff
         (λ (ix : ℕ), if ix = 0 then 0 else (f ix.pred).succ) _, _⟩,
       { rintro ⟨_|a⟩ ⟨_|b⟩;
         simp [nat.succ_le_succ_iff] },
@@ -143,7 +166,7 @@ begin
       rw [nth_le_nth hi, eq_comm, nth_eq_some] at hf,
       obtain ⟨h, -⟩ := hf,
       exact h },
-    refine ⟨order_embedding.of_map_rel_iff (λ ix, ⟨f ix, h ix.is_lt⟩) _, _⟩,
+    refine ⟨order_embedding.of_map_le_iff (λ ix, ⟨f ix, h ix.is_lt⟩) _, _⟩,
     { simp },
     { intro i,
       apply option.some_injective,
@@ -188,7 +211,7 @@ begin
   { rintro ⟨n, hn, m, hm, hnm, h, h'⟩,
     refine ⟨order_embedding.of_strict_mono (λ i, if (i : ℕ) = 0 then ⟨n, hn⟩ else ⟨m, hm⟩) _, _⟩,
     { rintros ⟨⟨_|i⟩, hi⟩ ⟨⟨_|j⟩, hj⟩,
-      { simp  },
+      { simp },
       { simp [hnm] },
       { simp },
       { simp only [nat.lt_succ_iff, nat.succ_le_succ_iff, repeat, length, nonpos_iff_eq_zero]

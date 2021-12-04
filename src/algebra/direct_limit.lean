@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
 import data.finset.order
-import linear_algebra.direct_sum_module
+import algebra.direct_sum.module
 import ring_theory.free_comm_ring
 import ring_theory.ideal.operations
 /-!
@@ -52,8 +52,8 @@ include dec_ι
 
 /-- The direct limit of a directed system is the modules glued together along the maps. -/
 def direct_limit : Type (max v w) :=
-(span R $ { a | ∃ (i j) (H : i ≤ j) x,
-  direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) = a }).quotient
+direct_sum ι G ⧸ (span R $ { a | ∃ (i j) (H : i ≤ j) x,
+  direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) = a })
 
 namespace direct_limit
 
@@ -280,11 +280,11 @@ open free_comm_ring
 
 /-- The direct limit of a directed system is the rings glued together along the maps. -/
 def direct_limit : Type (max v w) :=
-(ideal.span { a |
+free_comm_ring (Σ i, G i) ⧸ (ideal.span { a |
   (∃ i j H x, of (⟨j, f i j H x⟩ : Σ i, G i) - of ⟨i, x⟩ = a) ∨
   (∃ i, of (⟨i, 1⟩ : Σ i, G i) - 1 = a) ∨
   (∃ i x y, of (⟨i, x + y⟩ : Σ i, G i) - (of ⟨i, x⟩ + of ⟨i, y⟩) = a) ∨
-  (∃ i x y, of (⟨i, x * y⟩ : Σ i, G i) - (of ⟨i, x⟩ * of ⟨i, y⟩) = a) }).quotient
+  (∃ i x y, of (⟨i, x * y⟩ : Σ i, G i) - (of ⟨i, x⟩ * of ⟨i, y⟩) = a) })
 
 namespace direct_limit
 
@@ -562,7 +562,9 @@ by rw [inv, dif_neg hp, classical.some_spec (direct_limit.exists_inv G f hp)]
 protected theorem inv_mul_cancel {p : ring.direct_limit G f} (hp : p ≠ 0) : inv G f p * p = 1 :=
 by rw [_root_.mul_comm, direct_limit.mul_inv_cancel G f hp]
 
-/-- Noncomputable field structure on the direct limit of fields. -/
+/-- Noncomputable field structure on the direct limit of fields.
+See note [reducible non-instances]. -/
+@[reducible]
 protected noncomputable def field [directed_system G (λ i j h, f' i j h)] :
   field (ring.direct_limit G (λ i j h, f' i j h)) :=
 { inv := inv G (λ i j h, f' i j h),

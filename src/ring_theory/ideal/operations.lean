@@ -1129,7 +1129,7 @@ le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
 @[simp] lemma map_quotient_self :
   map (quotient.mk I) I = ⊥ :=
 eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
-(submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
+(submodule.mem_bot (R ⧸ I)).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
 
 variables {I J K L}
 
@@ -1229,7 +1229,7 @@ variables [comm_ring R] [comm_ring S] (f : R →+* S)
 This is an isomorphism if `f` has a right inverse (`quotient_ker_equiv_of_right_inverse`) /
 is surjective (`quotient_ker_equiv_of_surjective`).
 -/
-def ker_lift (f : R →+* S) : f.ker.quotient →+* S :=
+def ker_lift (f : R →+* S) : R ⧸ f.ker →+* S :=
 ideal.quotient.lift _ f $ λ r, f.mem_ker.mp
 
 @[simp]
@@ -1247,7 +1247,7 @@ variable {f}
 /-- The **first isomorphism theorem** for commutative rings, computable version. -/
 def quotient_ker_equiv_of_right_inverse
   {g : S → R} (hf : function.right_inverse g f) :
-  f.ker.quotient ≃+* S :=
+  R ⧸ f.ker ≃+* S :=
 { to_fun := ker_lift f,
   inv_fun := (ideal.quotient.mk f.ker) ∘ g,
   left_inv := begin
@@ -1260,7 +1260,7 @@ def quotient_ker_equiv_of_right_inverse
 
 @[simp]
 lemma quotient_ker_equiv_of_right_inverse.apply {g : S → R} (hf : function.right_inverse g f)
-  (x : f.ker.quotient) : quotient_ker_equiv_of_right_inverse hf x = ker_lift f x := rfl
+  (x : R ⧸ f.ker) : quotient_ker_equiv_of_right_inverse hf x = ker_lift f x := rfl
 
 @[simp]
 lemma quotient_ker_equiv_of_right_inverse.symm.apply {g : S → R} (hf : function.right_inverse g f)
@@ -1268,7 +1268,7 @@ lemma quotient_ker_equiv_of_right_inverse.symm.apply {g : S → R} (hf : functio
 
 /-- The **first isomorphism theorem** for commutative rings. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : function.surjective f) :
-  f.ker.quotient ≃+* S :=
+  R ⧸ f.ker ≃+* S :=
 quotient_ker_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
 
 end comm_ring
@@ -1409,7 +1409,7 @@ begin
 end
 
 @[simp] lemma bot_quotient_is_maximal_iff (I : ideal R) :
-  (⊥ : ideal I.quotient).is_maximal ↔ I.is_maximal :=
+  (⊥ : ideal (R ⧸ I)).is_maximal ↔ I.is_maximal :=
 ⟨λ hI, (@mk_ker _ _ I) ▸
   @comap_is_maximal_of_surjective _ _ _ _ (quotient.mk I) quotient.mk_surjective ⊥ hI,
  λ hI, @bot_is_maximal _ (@field.to_division_ring _ (@quotient.field _ _ I hI)) ⟩
@@ -1421,7 +1421,7 @@ variables [comm_semiring R₁] [comm_semiring R₂] [comm_ring A] [comm_ring B]
 variables [algebra R₁ A] [algebra R₂ A] [algebra R₁ B]
 
 /-- The `R₁`-algebra structure on `A/I` for an `R₁`-algebra `A` -/
-instance {I : ideal A} : algebra R₁ (ideal.quotient I) :=
+instance quotient.algebra {I : ideal A} : algebra R₁ (A ⧸ I) :=
 { to_fun := λ x, ideal.quotient.mk I (algebra_map R₁ A x),
   smul := (•),
   smul_def' := λ r x, quotient.induction_on' x $ λ x,
@@ -1430,17 +1430,17 @@ instance {I : ideal A} : algebra R₁ (ideal.quotient I) :=
   .. ring_hom.comp (ideal.quotient.mk I) (algebra_map R₁ A) }
 
 -- Lean can struggle to find this instance later if we don't provide this shortcut
-instance [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
-  is_scalar_tower R₁ R₂ (ideal.quotient I) :=
+instance quotient.is_scalar_tower [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
+  is_scalar_tower R₁ R₂ (A ⧸ I) :=
 by apply_instance
 
-/-- The canonical morphism `A →ₐ[R₁] I.quotient` as morphism of `R₁`-algebras, for `I` an ideal of
+/-- The canonical morphism `A →ₐ[R₁] A ⧸ I` as morphism of `R₁`-algebras, for `I` an ideal of
 `A`, where `A` is an `R₁`-algebra. -/
-def quotient.mkₐ (I : ideal A) : A →ₐ[R₁] I.quotient :=
+def quotient.mkₐ (I : ideal A) : A →ₐ[R₁] A ⧸ I :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩
 
 lemma quotient.alg_map_eq (I : ideal A) :
-  algebra_map R₁ I.quotient = (algebra_map A I.quotient).comp (algebra_map R₁ A) :=
+  algebra_map R₁ (A ⧸ I) = (algebra_map A (A ⧸ I)).comp (algebra_map R₁ A) :=
 rfl
 
 lemma quotient.mkₐ_to_ring_hom (I : ideal A) :
@@ -1450,15 +1450,15 @@ lemma quotient.mkₐ_to_ring_hom (I : ideal A) :
   ⇑(quotient.mkₐ R₁ I) = ideal.quotient.mk I := rfl
 
 @[simp] lemma quotient.algebra_map_eq (I : ideal R) :
-  algebra_map R I.quotient = I^.quotient.mk :=
+  algebra_map R (R ⧸ I) = I^.quotient.mk :=
 rfl
 
 @[simp] lemma quotient.mk_comp_algebra_map (I : ideal A) :
-  (quotient.mk I).comp (algebra_map R₁ A) = algebra_map R₁ I.quotient :=
+  (quotient.mk I).comp (algebra_map R₁ A) = algebra_map R₁ (A ⧸ I) :=
 rfl
 
 @[simp] lemma quotient.mk_algebra_map (I : ideal A) (x : R₁) :
-  quotient.mk I (algebra_map R₁ A x) = algebra_map R₁ I.quotient x :=
+  quotient.mk I (algebra_map R₁ A x) = algebra_map R₁ (A ⧸ I) x :=
 rfl
 
 /-- The canonical morphism `A →ₐ[R₁] I.quotient` is surjective. -/
@@ -1467,12 +1467,12 @@ surjective_quot_mk _
 
 /-- The kernel of `A →ₐ[R₁] I.quotient` is `I`. -/
 @[simp]
-lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R₁ I : A →+* I.quotient).ker = I :=
+lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R₁ I : A →+* A ⧸ I).ker = I :=
 ideal.mk_ker
 
 variables {R₁}
 
-lemma ker_lift.map_smul (f : A →ₐ[R₁] B) (r : R₁) (x : f.to_ring_hom.ker.quotient) :
+lemma ker_lift.map_smul (f : A →ₐ[R₁] B) (r : R₁) (x : A ⧸ f.to_ring_hom.ker) :
   f.to_ring_hom.ker_lift (r • x) = r • f.to_ring_hom.ker_lift x :=
 begin
   obtain ⟨a, rfl⟩ := quotient.mkₐ_surjective R₁ _ x,
@@ -1485,7 +1485,7 @@ end
 This is an isomorphism if `f` has a right inverse (`quotient_ker_alg_equiv_of_right_inverse`) /
 is surjective (`quotient_ker_alg_equiv_of_surjective`).
 -/
-def ker_lift_alg (f : A →ₐ[R₁] B) : f.to_ring_hom.ker.quotient →ₐ[R₁] B :=
+def ker_lift_alg (f : A →ₐ[R₁] B) : (A ⧸ f.to_ring_hom.ker) →ₐ[R₁] B :=
 alg_hom.mk' f.to_ring_hom.ker_lift (λ _ _, ker_lift.map_smul f _ _)
 
 @[simp]
@@ -1503,13 +1503,13 @@ ring_hom.ker_lift_injective f
 /-- The **first isomorphism** theorem for algebras, computable version. -/
 def quotient_ker_alg_equiv_of_right_inverse
   {f : A →ₐ[R₁] B} {g : B → A} (hf : function.right_inverse g f) :
-  f.to_ring_hom.ker.quotient ≃ₐ[R₁] B :=
+  (A ⧸ f.to_ring_hom.ker) ≃ₐ[R₁] B :=
 { ..ring_hom.quotient_ker_equiv_of_right_inverse (λ x, show f.to_ring_hom (g x) = x, from hf x),
   ..ker_lift_alg f}
 
 @[simp]
 lemma quotient_ker_alg_equiv_of_right_inverse.apply {f : A →ₐ[R₁] B} {g : B → A}
-  (hf : function.right_inverse g f) (x : f.to_ring_hom.ker.quotient) :
+  (hf : function.right_inverse g f) (x : A ⧸ f.to_ring_hom.ker) :
   quotient_ker_alg_equiv_of_right_inverse hf x = ker_lift_alg f x := rfl
 
 @[simp]
@@ -1520,12 +1520,12 @@ lemma quotient_ker_alg_equiv_of_right_inverse_symm.apply {f : A →ₐ[R₁] B} 
 
 /-- The **first isomorphism theorem** for algebras. -/
 noncomputable def quotient_ker_alg_equiv_of_surjective
-  {f : A →ₐ[R₁] B} (hf : function.surjective f) : f.to_ring_hom.ker.quotient ≃ₐ[R₁] B :=
+  {f : A →ₐ[R₁] B} (hf : function.surjective f) : (A ⧸ f.to_ring_hom.ker) ≃ₐ[R₁] B :=
 quotient_ker_alg_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
 
 /-- The ring hom `R/I →+* S/J` induced by a ring hom `f : R →+* S` with `I ≤ f⁻¹(J)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :
-  I.quotient →+* J.quotient :=
+  R ⧸ I →+* S ⧸ J :=
 (quotient.lift I ((quotient.mk J).comp f) (λ _ ha,
   by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using hIJ ha))
 
@@ -1537,7 +1537,7 @@ quotient.lift_mk J _ _
 @[simp]
 lemma quotient_map_algebra_map {J : ideal A} {I : ideal S} {f : A →+* S} {H : J ≤ I.comap f}
   {x : R₁} :
-  quotient_map I f H (algebra_map R₁ J.quotient x) = quotient.mk I (f (algebra_map _ _ x)) :=
+  quotient_map I f H (algebra_map R₁ (A ⧸ J) x) = quotient.mk I (f (algebra_map _ _ x)) :=
 quotient.lift_mk J _ _
 
 lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} (H : J ≤ I.comap f) :
@@ -1547,7 +1547,7 @@ ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.qu
 /-- The ring equiv `R/I ≃+* S/J` induced by a ring equiv `f : R ≃+** S`,  where `J = f(I)`. -/
 @[simps]
 def quotient_equiv (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map (f : R →+* S)) :
-  I.quotient ≃+* J.quotient :=
+  R ⧸ I ≃+* S ⧸ J :=
 { inv_fun := quotient_map I ↑f.symm (by {rw hIJ, exact le_of_eq (map_comap_of_equiv I f)}),
   left_inv := by {rintro ⟨r⟩, simp },
   right_inv := by {rintro ⟨s⟩, simp },
@@ -1588,7 +1588,7 @@ end
 
 /-- The algebra hom `A/I →+* B/J` induced by an algebra hom `f : A →ₐ[R₁] B` with `I ≤ f⁻¹(J)`. -/
 def quotient_mapₐ {I : ideal A} (J : ideal B) (f : A →ₐ[R₁] B) (hIJ : I ≤ J.comap f) :
-  I.quotient →ₐ[R₁] J.quotient :=
+  A ⧸ I →ₐ[R₁] B ⧸ J :=
 { commutes' := λ r, by simp,
   ..quotient_map J ↑f hIJ }
 
@@ -1604,17 +1604,17 @@ alg_hom.ext (λ x, by simp only [quotient_map_mkₐ, quotient.mkₐ_eq_mk, alg_h
 where`J = f(I)`. -/
 def quotient_equiv_alg (I : ideal A) (J : ideal B) (f : A ≃ₐ[R₁] B)
   (hIJ : J = I.map (f : A →+* B)) :
-  I.quotient ≃ₐ[R₁] J.quotient :=
+  (A ⧸ I) ≃ₐ[R₁] B ⧸ J :=
 { commutes' := λ r, by simp,
   ..quotient_equiv I J (f : A ≃+* B) hIJ }
 
 @[priority 100]
 instance quotient_algebra {I : ideal A} [algebra R A] :
-  algebra (I.comap (algebra_map R A)).quotient I.quotient :=
+  algebra (R ⧸ I.comap (algebra_map R A)) (A ⧸ I) :=
 (quotient_map I (algebra_map R A) (le_of_eq rfl)).to_algebra
 
 lemma algebra_map_quotient_injective {I : ideal A} [algebra R A]:
-  function.injective (algebra_map (I.comap (algebra_map R A)).quotient I.quotient) :=
+  function.injective (algebra_map (R ⧸ I.comap (algebra_map R A)) (A ⧸ I)) :=
 begin
   rintros ⟨a⟩ ⟨b⟩ hab,
   replace hab := quotient.eq.mp hab,
@@ -1738,7 +1738,7 @@ open ideal
 variables {R : Type u} [comm_ring R] (I J : ideal R)
 
 /-- The obvious ring hom `R/I → R/(I ⊔ J)` -/
-def quot_left_to_quot_sup : I.quotient →+* (I ⊔ J).quotient :=
+def quot_left_to_quot_sup : R ⧸ I →+* R ⧸ (I ⊔ J) :=
 ideal.quotient.factor I (I ⊔ J) le_sup_left
 
 /-- The kernel of `quot_left_to_quot_sup` -/
@@ -1749,12 +1749,12 @@ by simp only [mk_ker, sup_idem, sup_comm, quot_left_to_quot_sup, quotient.factor
 
 /-- The ring homomorphism `(R/I)/J' -> R/(I ⊔ J)` induced by `quot_left_to_quot_sup` where `J'`
   is the image of `J` in `R/I`-/
-def quot_quot_to_quot_sup : (J.map (ideal.quotient.mk I)).quotient →+* (I ⊔ J).quotient :=
+def quot_quot_to_quot_sup : (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) →+* R ⧸ I ⊔ J :=
 ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sup I J)
   (ker_quot_left_to_quot_sup I J).symm.le
 
 /-- The composite of the maps `R → (R/I)` and `(R/I) → (R/I)/J'` -/
-def quot_quot_mk : R →+* (J.map I^.quotient.mk).quotient :=
+def quot_quot_mk : R →+* ((R ⧸ I) ⧸ J.map I^.quotient.mk) :=
 ((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
 
 /-- The kernel of `quot_quot_mk` -/
@@ -1764,12 +1764,12 @@ by rw [ring_hom.ker_eq_comap_bot, quot_quot_mk, ← comap_comap, ← ring_hom.ke
   sup_comm]
 
 /-- The ring homomorphism `R/(I ⊔ J) → (R/I)/J' `induced by `quot_quot_mk` -/
-def lift_sup_quot_quot_mk (I J : ideal R) : (I ⊔ J).quotient →+*
-  (J.map (ideal.quotient.mk I)).quotient :=
+def lift_sup_quot_quot_mk (I J : ideal R) :
+  R ⧸ (I ⊔ J) →+* (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) :=
 ideal.quotient.lift (I ⊔ J) (quot_quot_mk I J) (ker_quot_quot_mk I J).symm.le
 
 /-- `quot_quot_to_quot_add` and `lift_sup_double_qot_mk` are inverse isomorphisms -/
-def quot_quot_equiv_quot_sup : (J.map (ideal.quotient.mk I)).quotient ≃+* (I ⊔ J).quotient :=
+def quot_quot_equiv_quot_sup : (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) ≃+* R ⧸ I ⊔ J :=
 ring_equiv.of_hom_inv (quot_quot_to_quot_sup I J) (lift_sup_quot_quot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
 
@@ -1784,7 +1784,8 @@ lemma quot_quot_equiv_quot_sup_symm_quot_quot_mk (x : R) :
 rfl
 
 /-- The obvious isomorphism `(R/I)/J' → (R/J)/I' `   -/
-def quot_quot_equiv_comm : (J.map I^.quotient.mk).quotient ≃+* (I.map J^.quotient.mk).quotient :=
+def quot_quot_equiv_comm :
+  (R ⧸ I) ⧸ J.map I^.quotient.mk ≃+* (R ⧸ J) ⧸ I.map J^.quotient.mk :=
 ((quot_quot_equiv_quot_sup I J).trans (quot_equiv_of_eq sup_comm)).trans
   (quot_quot_equiv_quot_sup J I).symm
 

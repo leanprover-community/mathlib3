@@ -55,8 +55,9 @@ begin
   rw symm_apply_apply,
 end
 
-lemma triangle_perm_barycentric_coord {ι : Type*} [fintype ι] (S T : affine_basis ι ℝ V) (O : V)
-  (σ : perm ι) (h : T.points = S.points ∘ σ) (i : ι) : S.coord (σ i) O = T.coord i O :=
+lemma triangle_perm_barycentric_coord {ι : Type*} [fintype ι] [decidable_eq ι] (σ : perm ι) (i : ι)
+  (S T : affine_basis ι ℝ V) (O : V) (h : T.points = S.points ∘ σ) :
+  S.coord (σ i) O = T.coord i O :=
 begin
   simp only [affine_basis.coord, affine_map.coe_mk, ← subtype.coe_mk i _],
   apply congr_arg (λ (b : ℝ), 1 - b),
@@ -81,27 +82,22 @@ begin
       apply hj,
       apply (equiv.injective σ) h,
     end with hg,
-  have e : {j // j ≠ σ i} ≃ {j // j ≠ i},
-  {
-    use f,
+  set e : {j // j ≠ σ i} ≃ {j // j ≠ i} :=
+  begin { use f,
     use g,
     { intro j,
       rw [hf, hg],
       tidy },
     { intro j,
       rw [hg, hf],
-      tidy }},
-  have : fintype {j // j ≠ i} := by subtype.fintype _,
+      tidy }}
+  end with he,
   rw equiv.sum_coords_congr e (S.basis_of (σ i)) (T.basis_of i) _,
   ext v,
-  sorry -- finish the prove
+  simp only [coe_reindex, function.comp_app, basis_of_apply, h, e, equiv.symm, equiv.coe_fn_mk, hg],
+  congr,
+  tidy
 end
-
--- lemma to_prove {ι : Type*} (S T : ι → V) (σ : perm ι) (S_ind : affine_independent ℝ S)
-  -- (S_tot : affine_span ℝ (set.range S) = ⊤) (T_ind : affine_independent ℝ T)
-  -- (T_tot : affine_span ℝ (set.range T) = ⊤) (h : S = T ∘ σ) (i : ι) :
-  -- ((basis_of_aff_ind_span_eq_top S_ind S_tot i).sum_coords) =
-  -- ((basis_of_aff_ind_span_eq_top T_ind T_tot (σ i)).sum_coords) := sorry
 
 lemma lemma2 {O D v₁ v₂ : V} (S : affine_basis (fin 3) ℝ V) {r₁ r₂ r₃ r₄ : ℝ}
   (hA₁ : S.points 0 = r₃ • v₂ +ᵥ D) (hB₁ : S.points 1 = r₄ • v₂ +ᵥ D)

@@ -1254,7 +1254,7 @@ begin
 end
 
 theorem quotient_prod_linear_equiv (p : submodule K V) :
-  nonempty ((p.quotient × p) ≃ₗ[K] V) :=
+  nonempty (((V ⧸ p) × p) ≃ₗ[K] V) :=
 let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
 ((quotient_equiv_of_is_compl p q hq).prod (linear_equiv.refl _ _)).trans
   (prod_equiv_of_is_compl q p hq.symm)

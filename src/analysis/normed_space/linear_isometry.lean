@@ -88,7 +88,7 @@ f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
 @[simp] lemma is_complete_image_iff {s : set E} : is_complete (f '' s) ↔ is_complete s :=
 is_complete_image_iff f.isometry.uniform_inducing
 
-@[simp] lemma is_complete_map_iff [ring_hom_surjective σ₁₂] {p : submodule R E} :
+lemma is_complete_map_iff [ring_hom_surjective σ₁₂] {p : submodule R E} :
   is_complete (p.map f.to_linear_map : set E₂) ↔ is_complete (p : set E) :=
 f.is_complete_image_iff
 

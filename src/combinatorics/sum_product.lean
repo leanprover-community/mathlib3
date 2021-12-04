@@ -1,9 +1,15 @@
-import data.complex.basic
+import algebra.pointwise
 import analysis.complex.basic
+import analysis.special_functions.pow
+import data.complex.basic
 import topology.instances.real
 import tactic.by_contra
-import algebra.pointwise
-import analysis.special_functions.pow
+
+/-!
+# The sum-product problem
+
+This file proves Elekes' bound on the sum-product problem following Solymosi's proof.
+-/
 
 open_locale pointwise big_operators
 
@@ -169,8 +175,7 @@ begin
   simpa using (A.exists_is_neighbouring h).some_spec,
 end
 
-lemma neighbour_ne {A : finset ℝ} {a : ℝ} :
-  A.neighbour a ≠ a :=
+lemma neighbour_ne {A : finset ℝ} {a : ℝ} : A.neighbour a ≠ a :=
 begin
   by_cases (A.erase a).nonempty,
   { apply (neighbour_spec h).2.1 },
@@ -178,50 +183,64 @@ begin
   simp,
 end
 
--- lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
--- begin
---   rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
---   exact nat.lt_succ_self _,
--- end
+section floor
+variables {α : Type*}
 
--- lemma floor_sub_cast {α : Type*} {x : α} {y : ℕ} [linear_ordered_field α] [floor_semiring α] :
---   ⌊x - y⌋₊ = ⌊x⌋₊ - y :=
--- begin
---   cases le_total x 0,
---   {
+lemma tsub_nonpos [ordered_add_comm_monoid α] [has_sub α] [has_ordered_sub α] {a b : α} :
+  a - b ≤ 0 ↔ a ≤ b :=
+by rw [tsub_le_iff_left, add_zero]
 
---   },
---   cases le_total x y,
---   {
---     rw [nat.floor_of_nonpos, eq_comm, tsub_eq_zero_iff_le],
---     refine nat.cast_le.1 ((nat.floor_le _).trans h),
---     sorry
---   },
---   rw eq_tsub_iff_add_eq_of_le,
---     -- apply le_antisymm,
---     -- sorry,
---     -- rw nat.le_floor_iff,
+alias tsub_nonpos ↔ _ tsub_nonpos_of_le
 
--- end
-
--- #exit
-
-lemma floor_div_cast_eq_div {α : Type*} {x y : ℕ} [linear_ordered_field α] [floor_semiring α] :
-  ⌊(x : α) / y⌋₊ = x / y :=
+lemma nat.floor_le_ceil [linear_ordered_semiring α] [floor_semiring α] (a : α) : ⌊a⌋₊ ≤ ⌈a⌉₊ :=
 begin
-  rcases y.eq_zero_or_pos with rfl | hy,
-  { simp },
-  refine (nat.floor_eq_iff _).2 _,
-  { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) },
-  split,
-  { apply nat.cast_div_le },
-  rw [div_lt_iff, add_mul, one_mul, ←nat.cast_mul, ←nat.cast_add, nat.cast_lt],
-  apply nat.lt_div_mul_add hy,
-  rwa nat.cast_pos,
+  obtain ha | ha := le_total a 0,
+  { rw nat.floor_of_nonpos ha,
+    exact nat.zero_le _ },
+  { exact nat.cast_le.1 ((nat.floor_le ha).trans $ nat.le_ceil _) }
 end
 
-def nearest_neighbours
-  (A : finset ℝ) (a : ℝ) (n : ℕ) : finset ℝ :=
+lemma int.floor_le_ceil [linear_ordered_ring α] [floor_ring α] (a : α) : ⌊a⌋ ≤ ⌈a⌉ :=
+int.cast_le.1 $ (int.floor_le _).trans $ int.le_ceil _
+
+lemma floor_sub_nat [linear_ordered_ring α] [floor_semiring α] {a : α} {n : ℕ} :
+  ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
+begin
+  obtain ha | ha := le_total a 0,
+  { rw [nat.floor_of_nonpos ha, nat.floor_of_nonpos (sub_nonpos_of_le (ha.trans n.cast_nonneg)),
+      zero_tsub] },
+  cases le_total a n,
+  { rw [nat.floor_of_nonpos (tsub_nonpos_of_le h), eq_comm, tsub_eq_zero_iff_le],
+    exact nat.cast_le.1 ((nat.floor_le ha).trans h) },
+  { rw [eq_tsub_iff_add_eq_of_le (nat.le_floor h), ←nat.floor_add_nat (sub_nonneg_of_le h),
+      sub_add_cancel] }
+end
+
+lemma floor_div_nat [linear_ordered_field α] [floor_semiring α] {a : α} {n : ℕ} (ha : 0 ≤ a) :
+  ⌊a / n⌋₊ = ⌊a⌋₊ / n :=
+begin
+  obtain rfl | hn := n.eq_zero_or_pos,
+  { rw [nat.cast_zero, div_zero, nat.div_zero, nat.floor_zero] },
+  refine (nat.floor_eq_iff _).2 _,
+  { exact div_nonneg ha (nat.cast_nonneg _) },
+  split,
+  { exact nat.cast_div_le.trans (div_le_div_of_le_of_nonneg (nat.floor_le ha) n.cast_nonneg) },
+  rw [div_lt_iff, add_mul, one_mul, ←nat.cast_mul, ←nat.cast_add, ←nat.floor_lt ha],
+  exact nat.lt_div_mul_add hn,
+  { exact (nat.cast_pos.2 hn) }
+end
+
+/-- Natural division is the floor of field division. -/
+lemma floor_div_eq_div [linear_ordered_field α] [floor_semiring α] {m n : ℕ} :
+  ⌊(m : α) / n⌋₊ = m / n :=
+begin
+  convert floor_div_nat _,
+  exacts [m.floor_coe.symm, m.cast_nonneg],
+end
+
+end floor
+
+def nearest_neighbours (A : finset ℝ) (a : ℝ) (n : ℕ) : finset ℝ :=
 nat.rec_on n ∅ $ λ _ B,
   if h : (A \ B).nonempty
     then insert (exists_min_image _ (λ a', |a - a'|) h).some B
@@ -241,15 +260,14 @@ lemma nearest_neighbours_succ_neg {A : finset ℝ} {a : ℝ} {n : ℕ}
   nearest_neighbours A a (n+1) = nearest_neighbours A a n :=
 dif_neg h
 
-lemma nearest_neighbours_subset {A a n} :
-  nearest_neighbours A a n ⊆ A :=
+lemma nearest_neighbours_subset {A a n} : nearest_neighbours A a n ⊆ A :=
 begin
   induction n with n ih,
   { simp },
   by_cases h : (A \ nearest_neighbours A a n).nonempty,
   { simp only [nearest_neighbours_succ_pos h, insert_subset, ih, and_true],
     apply sdiff_subset _ _ (exists_min_image _ (λ a', |a - a'|) h).some_spec.some },
-  { rwa nearest_neighbours_succ_neg h },
+  { rwa nearest_neighbours_succ_neg h }
 end
 
 lemma card_nearest_neighbours_eq {A : finset ℝ} {a : ℝ} {n : ℕ} :
@@ -314,12 +332,12 @@ end
 variables {A B Q : finset ℝ}
 
 def add_good_triple (A B : finset ℝ) (a b : ℝ) : Prop :=
-  (((A + B).filter (λ u, |a + b - u| ≤ |A.neighbour a - a|)).card : ℝ) ≤
-    (12 * (A + B).card / A.card : ℝ)
+(((A + B).filter (λ u, |a + b - u| ≤ |A.neighbour a - a|)).card : ℝ) ≤
+  (12 * (A + B).card / A.card : ℝ)
 
 def mul_good_triple (A Q : finset ℝ) (a q : ℝ) : Prop :=
-  (((A * Q).filter (λ v, abs (a * q - v) ≤ abs (A.neighbour a * q - a * q))).card : ℝ) ≤
-    (12 * (A * Q).card / A.card : ℝ)
+(((A * Q).filter (λ v, abs (a * q - v) ≤ abs (A.neighbour a * q - a * q))).card : ℝ) ≤
+  (12 * (A * Q).card / A.card : ℝ)
 
 lemma add_good_triple_set_subset_nearest_neighbours {a b : ℝ}
   (hA : (A.erase a).nonempty) (hB : b ∈ B) :
@@ -394,9 +412,9 @@ begin
 end
 
 def good_triple (A B Q : finset ℝ) (a b q : ℝ) : Prop :=
-  add_good_triple A B a b ∧ mul_good_triple A Q a q
+add_good_triple A B a b ∧ mul_good_triple A Q a q
 
-lemma add_sum_le (A B : finset ℝ) (b : ℝ):
+lemma add_sum_le (A B : finset ℝ) (b : ℝ) :
   ∑ a in A, ((A + B).filter (λ u, abs (a + b - u) ≤ |A.neighbour a - a|)).card
     ≤ 3 * (A + B).card := -- should be 7 *
 begin
@@ -642,8 +660,7 @@ end
 def good_quads (A B Q : finset ℝ) : finset ((ℝ × ℝ) × ℝ × ℝ) :=
 (good_triples A B Q).image (three_to_four_map A)
 
-lemma good_quads_card (hQ : (0:ℝ) ∉ Q) :
-  (good_quads A B Q).card = (good_triples A B Q).card :=
+lemma good_quads_card (hQ : (0:ℝ) ∉ Q) : (good_quads A B Q).card = (good_triples A B Q).card :=
 begin
   rw [good_quads, card_image_of_inj_on],
   exact set.inj_on.mono (coe_subset.2 (filter_subset _ _)) (three_to_four_map_inj_on hQ),
@@ -666,7 +683,7 @@ begin
     rw ←nat.le_floor_iff at hU,
     apply add_good_triple_set_subset_nearest_neighbours _ hb,
     { apply hU.trans (le_of_eq _),
-      convert floor_div_cast_eq_div using 3,
+      convert floor_div_eq_div using 3,
       rw nat.cast_mul,
       norm_cast },
     { rw [←card_pos, card_erase_of_mem ha, ←nat.succ_le_iff],
@@ -690,7 +707,7 @@ begin
     rw ←nat.le_floor_iff at hU,
     apply mul_good_triple_set_subset_nearest_neighbours _ hq,
     { apply hU.trans (le_of_eq _),
-      convert floor_div_cast_eq_div using 3,
+      convert floor_div_eq_div using 3,
       rw nat.cast_mul,
       norm_cast },
     { rw [←card_pos, card_erase_of_mem ha, ←nat.succ_le_iff],

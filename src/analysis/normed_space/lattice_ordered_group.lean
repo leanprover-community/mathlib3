@@ -50,10 +50,8 @@ lemma solid {α : Type*} [normed_lattice_add_comm_group α] {a b : α} (h : |a| 
 normed_lattice_add_comm_group.solid a b h
 
 noncomputable instance : normed_lattice_add_comm_group ℝ :=
-{ add_le_add_left := by finish,
-  solid := by finish,
-  ..real.lattice,
-  ..real.normed_group, }
+{ add_le_add_left := λ _ _ h _, add_le_add le_rfl h,
+  solid := λ _ _, id, }
 /--
 A normed lattice ordered group is an ordered additive commutative group
 -/

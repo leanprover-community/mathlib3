@@ -302,6 +302,13 @@ begin
   exact int.nat_abs_dvd_iff_dvd.mpr h
 end
 
+lemma gcd_greatest {a b d : ℤ} (hd : 0 ≤ d) (hda : d ∣ a) (hdb : d ∣ b)
+  (he : ∀ e : ℤ, e ∣ a → e ∣ b → e ∣ d) : d = (gcd a b) :=
+begin
+  have h := he _ (gcd_dvd_left a b) (gcd_dvd_right a b),
+  exact eq_of_nat_abs_eq_nonneg hd (coe_zero_le (gcd a b)) (abs_eq_of_dvd_dvd (dvd_gcd hda hdb) h),
+end
+
 /-! ### lcm -/
 
 theorem lcm_comm (i j : ℤ) : lcm i j = lcm j i :=

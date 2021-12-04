@@ -1105,9 +1105,8 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
       rw [abs_pointwise, abs_pointwise],
       exact h _,
     end,
-    rw norm_le_of_nonempty,
-    intro t,
-    exact le_trans (i1 t) (norm_coe_le_norm g t),
+    rw norm_le (norm_nonneg _),
+    exact λ t, (i1 t).trans (norm_coe_le_norm g t),
   end,
   ..bounded_continuous_function.lattice, }
 

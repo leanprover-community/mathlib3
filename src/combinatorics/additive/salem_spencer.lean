@@ -8,7 +8,7 @@ import analysis.asymptotics.asymptotics
 /-!
 # Salem-Spencer sets and Roth numbers
 
-This file defines Salem-Spencer sets, the Roth number of a set and calculate small Roth numbers.
+This file defines Salem-Spencer sets, the Roth number of a set and calculates small Roth numbers.
 
 A Salem-Spencer set is a set without arithmetic progressions of length `3`. Equivalently, the
 average of any two distinct elements is not in the set.

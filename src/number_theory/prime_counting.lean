@@ -20,6 +20,23 @@ import data.finset.locally_finite
 
 In this file we define the prime counting function - the function on natural numbers that returns
 the number of primes less than or equal to its input.
+
+## Main Results
+
+The main definitions for this file are
+
+- `prime_counting`: The prime counting function π
+- `prime_counting'`: π(n - 1)
+
+We then prove that these are monotone. The last main theorem is an upper bound on π(n) which arises
+by observing that all numbers greater than `k` and not coprime to `k` are not prime, and so only at
+most `φ(k)/k` fraction of the numbers from `k` to `n` are prime.
+
+## Notation
+
+We use the standard notation `π` to represent the prime counting function (and `π'` to represent
+the reindexed version).
+
 -/
 
 namespace nat
@@ -120,8 +137,7 @@ begin
           end
     ... ≤ (filter a.coprime (Ico a (n % a + a * n_1))).card + a.totient :
           begin
-            rw filter_union,
-            rw ←filter_coprime_Ico_eq_totient a (n % a + a * n_1),
+            rw [filter_union, ←filter_coprime_Ico_eq_totient a (n % a + a * n_1)],
             apply card_union_le,
           end },
 end

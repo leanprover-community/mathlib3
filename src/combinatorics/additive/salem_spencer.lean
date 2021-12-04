@@ -25,6 +25,11 @@ the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
 * `roth_number_nat`: The Roth number of a natural. This corresponds to
   `roth_number (finset.range n)`.
 
+## TODO
+
+Can we calculate small Roth numbers quicker. The current algorithm to decide `roth_number_nat n ≤ m`
+is `O (n.choose m * m^2)`.
+
 ## Tags
 
 Salem-Spencer, Roth, arithmetic progression, average
@@ -101,7 +106,7 @@ lemma mul_salem_spencer_mul_left_iff : mul_salem_spencer ((*) a '' s) ↔ mul_sa
 
 @[to_additive]
 lemma mul_salem_spencer_mul_right_iff :
-  mul_salem_spencer ((λ x, x * a) '' s) ↔ mul_salem_spencer s :=
+  mul_salem_spencer ((* a) '' s) ↔ mul_salem_spencer s :=
 ⟨λ hs b c d hb hc hd h, mul_right_cancel (hs (set.mem_image_of_mem _ hb) (set.mem_image_of_mem _ hc)
   (set.mem_image_of_mem _ hd) $ by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
   mul_salem_spencer.mul_right⟩
@@ -135,7 +140,7 @@ lemma mul_salem_spencer_mul_left_iff₀ (ha : a ≠ 0) :
   λ hs, hs.mul_left₀ ha⟩
 
 lemma mul_salem_spencer_mul_right_iff₀ (ha : a ≠ 0) :
-  mul_salem_spencer ((λ x, x * a) '' s) ↔ mul_salem_spencer s :=
+  mul_salem_spencer ((* a) '' s) ↔ mul_salem_spencer s :=
 ⟨λ hs b c d hb hc hd h, mul_right_cancel₀ ha
   (hs (set.mem_image_of_mem _ hb) (set.mem_image_of_mem _ hc) (set.mem_image_of_mem _ hd) $
   by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
@@ -166,9 +171,11 @@ variables [decidable_eq α]
 section monoid
 variables [monoid α] [decidable_eq β] [monoid β] (s t : finset α)
 
-/-- The Roth number of a finset is the cardinality of its biggest Salem-Spencer subset. The usual
-Roth number corresponds to `roth_number (finset.range n)`, see `roth_number_nat`. -/
-@[to_additive]
+/-- The multiplicative Roth number of a finset is the cardinality of its biggest multiplicative
+Salem-Spencer subset. -/
+@[to_additive "The additive Roth number of a finset is the cardinality of its biggest additive
+Salem-Spencer subset. The usual Roth number corresponds to `roth_number (finset.range n)`, see
+`roth_number_nat`. "]
 def mul_roth_number : finset α →ₘ ℕ :=
 ⟨λ s, nat.find_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) s.card,
 begin
@@ -314,13 +321,14 @@ end
 
 open asymptotics filter
 
-lemma trivial_roth_bound' : is_O_with 1 (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
+lemma roth_number_nat_is_O_with_id :
+  is_O_with 1 (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
 is_O_with.of_bound $ by simpa only [one_mul, real.norm_coe_nat, nat.cast_le]
   using eventually_of_forall roth_number_nat_le
 
 /-- The Roth number has the trivial bound `roth_number N = O(N)`. -/
-lemma trivial_roth_bound : is_O (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
-is_O_iff_is_O_with.2 ⟨1, trivial_roth_bound'⟩
+lemma roth_number_nat_is_O_id : is_O (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
+roth_number_nat_is_O_with_id.is_O
 
 end roth_number_nat
 

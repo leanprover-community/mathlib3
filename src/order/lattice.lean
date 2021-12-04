@@ -825,7 +825,7 @@ end subtype
 section lift
 
 /-- A type endowed with `⊔` is a `semilattice_sup`, if it admits an injective map that
-preserves `⊔` to a `semilatttice_sup`. -/
+preserves `⊔` to a `semilattice_sup`. -/
 protected def function.injective.semilattice_sup {α β : Type*} [has_sup α] [semilattice_sup β]
   (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) :
   semilattice_sup α :=

@@ -355,6 +355,31 @@ lemma nat_abs_eq_nat_abs_iff_of_nonneg_of_nonneg {a b : ℤ} (ha : 0 ≤ a) (hb 
   nat_abs a = nat_abs b ↔ a = b :=
 by rw [←sq_eq_sq ha hb, ←nat_abs_eq_iff_sq_eq]
 
+lemma nat_abs_eq_nat_abs_iff_of_nonpos_of_nonpos {a b : ℤ} (ha : a ≤ 0) (hb : b ≤ 0) :
+  nat_abs a = nat_abs b ↔ a = b :=
+begin
+  have := nat_abs_eq_nat_abs_iff_of_nonneg_of_nonneg
+    (neg_nonneg_of_nonpos ha) (neg_nonneg_of_nonpos hb),
+  simp only [int.nat_abs_neg, neg_inj] at this,
+  exact this,
+end
+
+lemma nat_abs_eq_nat_abs_iff_of_nonneg_of_nonpos {a b : ℤ} (ha : 0 ≤ a) (hb : b ≤ 0) :
+  nat_abs a = nat_abs b ↔ a = -b :=
+begin
+  have := nat_abs_eq_nat_abs_iff_of_nonneg_of_nonneg ha (neg_nonneg_of_nonpos hb),
+  simp only [int.nat_abs_neg] at this,
+  exact this,
+end
+
+lemma nat_abs_eq_nat_abs_iff_of_nonpos_of_nonneg {a b : ℤ} (ha : a ≤ 0) (hb : 0 ≤ b) :
+  nat_abs a = nat_abs b ↔ -a = b :=
+begin
+  have := nat_abs_eq_nat_abs_iff_of_nonneg_of_nonneg (neg_nonneg_of_nonpos ha) hb,
+  simp at this,
+  exact this,
+end
+
 /-! ### `/`  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl

@@ -817,7 +817,7 @@ instance sigma_ι_is_open_immersion [has_strict_terminal_objects C] :
         (op (H.is_open_map.functor.obj U))),
     { convert this },
     rw PresheafedSpace.comp_c_app,
-    rw ← PresheafedSpace.colimit_presheaf_obj_iso_pointwise_limit_hom_π,
+    rw ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π,
     apply_with is_iso.comp_is_iso { instances := ff },
     { apply_instance },
     apply_with is_iso.comp_is_iso { instances := ff },

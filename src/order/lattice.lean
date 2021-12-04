@@ -824,7 +824,9 @@ end subtype
 
 section lift
 
-lemma function.injective.semilattice_sup {α β : Type*} [has_sup α] [semilattice_sup β]
+/-- A type endowed with `⊔` and `⊓` is a `semilattice_sup`, if it admits an injective map that
+preserves `⊔` and `⊓` to a `semilatttice_sup`. -/
+def function.injective.semilattice_sup {α β : Type*} [has_sup α] [semilattice_sup β]
   (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) :
   semilattice_sup α :=
 { sup := has_sup.sup,
@@ -833,7 +835,9 @@ lemma function.injective.semilattice_sup {α β : Type*} [has_sup α] [semilatti
   sup_le := λ a b c ha hb, by { change f (a ⊔ b) ≤ f c, rw map_sup, exact sup_le ha hb, },
   ..partial_order.lift f hf_inj}
 
-lemma function.injective.semilattice_inf {α β : Type*} [has_inf α] [semilattice_inf β]
+/-- A type endowed with `⊔` and `⊓` is a `semilattice_inf`, if it admits an injective map that
+preserves `⊔` and `⊓` to a `semilatttice_inf`. -/
+def function.injective.semilattice_inf {α β : Type*} [has_inf α] [semilattice_inf β]
   (f : α → β) (hf_inj : function.injective f) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
   semilattice_inf α :=
 { inf := has_inf.inf,
@@ -842,7 +846,9 @@ lemma function.injective.semilattice_inf {α β : Type*} [has_inf α] [semilatti
   le_inf := λ a b c ha hb, by { change f a ≤ f (b ⊓ c), rw map_inf, exact le_inf ha hb, },
   ..partial_order.lift f hf_inj}
 
-lemma function.injective.lattice {α β : Type*} [has_sup α] [has_inf α] [lattice β]
+/-- A type endowed with `⊔` and `⊓` is a `lattice`, if it admits an injective map that
+preserves `⊔` and `⊓` to a `latttice`. -/
+def function.injective.lattice {α β : Type*} [has_sup α] [has_inf α] [lattice β]
   (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
   (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
   lattice α :=
@@ -856,7 +862,9 @@ lemma function.injective.lattice {α β : Type*} [has_sup α] [has_inf α] [latt
   le_inf := λ a b c ha hb, by { change f a ≤ f (b ⊓ c), rw map_inf, exact le_inf ha hb, },
   ..partial_order.lift f hf_inj}
 
-lemma function.injective.distrib_lattice {α β : Type*} [has_sup α] [has_inf α] [distrib_lattice β]
+/-- A type endowed with `⊔` and `⊓` is a `distrib_lattice`, if it admits an injective map that
+preserves `⊔` and `⊓` to a `distrib_latttice`. -/
+def function.injective.distrib_lattice {α β : Type*} [has_sup α] [has_inf α] [distrib_lattice β]
   (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
   (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
   distrib_lattice α :=

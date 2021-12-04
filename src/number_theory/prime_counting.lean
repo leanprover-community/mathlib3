@@ -5,13 +5,8 @@ Authors: Bolton Bailey
 -/
 
 import data.nat.prime
-import tactic.interval_cases
-import tactic.cancel_denoms
-import tactic.linarith
 import data.nat.totient
-import data.multiset.locally_finite
 import algebra.periodic
-import data.finset.basic
 import data.finset.locally_finite
 
 

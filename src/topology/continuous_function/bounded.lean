@@ -1087,8 +1087,6 @@ begin
   simp only [pi.neg_apply, coe_neg],
 end
 
-variable [nonempty α]
-
 instance : normed_lattice_add_comm_group (α →ᵇ β) :=
 { add_le_add_left := begin
     intros f g h₁ h t,

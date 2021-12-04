@@ -1056,7 +1056,7 @@ instance : semilattice_inf (α →ᵇ β) :=
       rw [← normed_group.dist_eq, ← normed_group.dist_eq],
       apply add_le_add (hf _ _) (hg _ _),
     end },
-  inf_le_left :=  λ f g, continuous_map.le_def.mpr (begin intro, apply inf_le_left, end),
+  inf_le_left := λ f g, continuous_map.le_def.mpr (λ _, inf_le_left),
   inf_le_right := λ f g, continuous_map.le_def.mpr (begin intro, apply inf_le_right, end),
   le_inf := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ a, begin
     apply le_inf (continuous_map.le_def.mp w₁ a) (continuous_map.le_def.mp w₂ a),

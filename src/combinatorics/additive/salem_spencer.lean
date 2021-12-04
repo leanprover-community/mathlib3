@@ -4,13 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.asymptotics.asymptotics
-import data.complex.exponential_bounds
-import analysis.inner_product_space.basic
-import analysis.inner_product_space.pi_L2
-import data.nat.digits
 
 /-!
-# Salem-Spencer sets and the Roth number
+# Salem-Spencer sets and Roth numbers
 
 This file defines Salem-Spencer sets, the Roth number of a set and calculate small Roth numbers.
 
@@ -44,15 +40,15 @@ variables [monoid α] [monoid β] (s t : set α)
 
 /-- A multiplicative Salem-Spencer, aka non averaging, set `s` in a monoid is a set such that the
 multiplicative average of any two distinct elements is not in the set. -/
-@[to_additive add_salem_spencer "A Salem-Spencer, aka non averaging, set `s` in an additive monoid
+@[to_additive "A Salem-Spencer, aka non averaging, set `s` in an additive monoid
 is a set such that the average of any two distinct elements is not in the set."]
-def mul_salem_spencer : Prop := ∀ ⦃a b c⦄, a ∈ s → b ∈ s → c ∈ s → a + b = c * c → a = b
+def mul_salem_spencer : Prop := ∀ ⦃a b c⦄, a ∈ s → b ∈ s → c ∈ s → a * b = c * c → a = b
 
 /-- Whether a given finset is Salem-Spencer is decidable. -/
 @[to_additive]
 instance {α : Type*} [decidable_eq α] [monoid α] {s : finset α} :
   decidable (mul_salem_spencer (s : set α)) :=
-decidable_of_iff (∀ a ∈ s, ∀ b ∈ s, ∀ c ∈ s, a + b = c * c → a = b)
+decidable_of_iff (∀ a ∈ s, ∀ b ∈ s, ∀ c ∈ s, a * b = c * c → a = b)
   ⟨λ h a b c ha hb hc, h a ha b hb c hc, λ h a ha b hb c hc, h ha hb hc⟩
 
 variables {s t}
@@ -61,8 +57,8 @@ variables {s t}
 lemma mul_salem_spencer.mono (h : t ⊆ s) (hs : mul_salem_spencer s) : mul_salem_spencer t :=
 λ a b c ha hb hc, hs (h ha) (h hb) (h hc)
 
-@[to_additive]
-@[simp] lemma mul_salem_spencer_empty : mul_salem_spencer (∅ : set α) := λ x _ _ hx, hx.elim
+@[to_additive, simp]
+lemma mul_salem_spencer_empty : mul_salem_spencer (∅ : set α) := λ x _ _ hx, hx.elim
 
 @[to_additive]
 lemma mul_salem_spencer.prod {t : set β} (hs : mul_salem_spencer s) (ht : mul_salem_spencer t) :
@@ -79,48 +75,66 @@ lemma mul_salem_spencer_pi {ι : Type*} {α : ι → Type*} [Π i, monoid (α i)
 end monoid
 
 section cancel_comm_monoid
-variables [cancel_comm_monoid α] {s t : set α} {a : α}
+variables [cancel_comm_monoid α] {s : set α} {a : α}
 
 @[to_additive]
-lemma mul_salem_spencer.mul_left (hs : mul_salem_spencer s) : mul_salem_spencer ((+) a '' s) :=
+lemma mul_salem_spencer.mul_left (hs : mul_salem_spencer s) : mul_salem_spencer ((*) a '' s) :=
 begin
   rintro _ _ _ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩ h,
-  rw [mul_mul_mul_comm, smul_add] at h,
+  rw [mul_mul_mul_comm, mul_mul_mul_comm a d] at h,
   rw hs hb hc hd (mul_left_cancel h),
 end
 
 @[to_additive]
 lemma mul_salem_spencer.mul_right (hs : mul_salem_spencer s) :
-  mul_salem_spencer ((λ x, x + a) '' s) :=
+  mul_salem_spencer ((λ x, x * a) '' s) :=
 begin
   rintro _ _ _ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩ h,
-  rw [mul_mul_mul_comm, smul_add 2 _] at h,
+  rw [mul_mul_mul_comm, mul_mul_mul_comm d] at h,
   rw hs hb hc hd (mul_right_cancel h),
 end
 
 @[to_additive]
-lemma mul_salem_spencer_iff_eq_right {s : set α} :
-  mul_salem_spencer s ↔ ∀ ⦃a b c⦄, a ∈ s → b ∈ s → c ∈ s → a * b = c * c → a = c :=
+lemma mul_salem_spencer_mul_left_iff : mul_salem_spencer ((*) a '' s) ↔ mul_salem_spencer s :=
+⟨λ hs b c d hb hc hd h, mul_left_cancel (hs (set.mem_image_of_mem _ hb) (set.mem_image_of_mem _ hc)
+  (set.mem_image_of_mem _ hd) $ by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
+  mul_salem_spencer.mul_left⟩
+
+@[to_additive]
+lemma mul_salem_spencer_mul_right_iff :
+  mul_salem_spencer ((λ x, x * a) '' s) ↔ mul_salem_spencer s :=
+⟨λ hs b c d hb hc hd h, mul_right_cancel (hs (set.mem_image_of_mem _ hb) (set.mem_image_of_mem _ hc)
+  (set.mem_image_of_mem _ hd) $ by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
+  mul_salem_spencer.mul_right⟩
+
+end cancel_comm_monoid
+
+section nat
+
+lemma add_salem_spencer_iff_eq_right {s : set ℕ} :
+  add_salem_spencer s ↔ ∀ ⦃a b c⦄, a ∈ s → b ∈ s → c ∈ s → a + b = c + c → a = c :=
 begin
   refine forall_congr (λ a, forall_congr $ λ b, forall_congr $ λ c, forall_congr $
     λ _, forall_congr $ λ _, forall_congr $ λ _,  forall_congr $ λ habc, ⟨_, _⟩),
   { rintro rfl,
-    sorry
-  },
+    simp_rw ←two_mul at habc,
+    exact mul_left_cancel₀ two_ne_zero habc },
   { rintro rfl,
-    exact (mul_left_cancel habc).symm }
+    exact (add_left_cancel habc).symm }
 end
 
-end cancel_comm_monoid
+end nat
 end salem_spencer
 
 section roth_number
+variables [decidable_eq α]
+
 section monoid
-variables [decidable_eq α] [monoid α] [decidable_eq β] [monoid β] (s t : finset α)
+variables [monoid α] [decidable_eq β] [monoid β] (s t : finset α)
 
 /-- The Roth number of a finset is the cardinality of its biggest Salem-Spencer subset. The usual
 Roth number corresponds to `roth_number (finset.range n)`, see `roth_number_nat`. -/
-@[to_additive add_roth_number]
+@[to_additive]
 def mul_roth_number : finset α →ₘ ℕ :=
 ⟨λ s, nat.find_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) s.card,
 begin
@@ -135,7 +149,7 @@ lemma mul_roth_number_le : mul_roth_number s ≤ s.card := by convert nat.find_g
 
 @[to_additive]
 lemma mul_roth_number_spec : ∃ t ⊆ s, t.card = mul_roth_number s ∧ mul_salem_spencer (t : set α) :=
-@nat.find_greatest_spec (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) _ _ _
+@nat.find_greatest_spec _ (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) _ _
   (nat.zero_le _) ⟨∅, empty_subset _, card_empty, mul_salem_spencer_empty⟩
 
 variables {s t} {n : ℕ}
@@ -151,17 +165,17 @@ end
 @[to_additive]
 lemma mul_salem_spencer.roth_number_eq (hs : mul_salem_spencer (s : set α)) :
   mul_roth_number s = s.card :=
-(roth_number_le _).antisymm $ hs.le_roth_number $ subset.refl _
+(mul_roth_number_le _).antisymm $ hs.le_mul_roth_number $ subset.refl _
 
 @[to_additive]
 lemma mul_roth_number_union_le (s t : finset α) :
   mul_roth_number (s ∪ t) ≤ mul_roth_number s + mul_roth_number t :=
-let ⟨u, hsubs, hcard, hu⟩ := mul_roth_number_spec (s ∪ t) in
+let ⟨u, hus, hcard, hu⟩ := mul_roth_number_spec (s ∪ t) in
 calc
   mul_roth_number (s ∪ t)
       = u.card : hcard.symm
   ... = (u ∩ s ∪ u ∩ t).card
-      : by rw [←finset.inter_distrib_left, (inter_eq_left_iff_subset _ _).2 hsubs]
+      : by rw [←finset.inter_distrib_left, (inter_eq_left_iff_subset _ _).2 hus]
   ... ≤ (u ∩ s).card + (u ∩ t).card : card_union_le _ _
   ... ≤ mul_roth_number s + mul_roth_number t
       : add_le_add ((hu.mono $ inter_subset_left _ _).le_mul_roth_number $ inter_subset_right _ _)
@@ -180,11 +194,11 @@ begin
 end
 
 @[to_additive]
-lemma mul_roth_number_lt_of_forall_not_salem_spencer
+lemma mul_roth_number_lt_of_forall_not_mul_salem_spencer
   (h : ∀ t ∈ powerset_len n s, ¬mul_salem_spencer ((t : finset α) : set α)) :
   mul_roth_number s < n :=
 begin
-  obtain ⟨t, hts, hcard, ht⟩ := roth_number_spec s,
+  obtain ⟨t, hts, hcard, ht⟩ := mul_roth_number_spec s,
   rw [←hcard, ←not_le],
   intro hn,
   obtain ⟨u, hut, rfl⟩ := exists_smaller_set t n hn,
@@ -194,18 +208,32 @@ end
 end monoid
 
 section cancel_comm_monoid
-variables [decidable_eq α] [cancel_comm_monoid α] (s t : finset α) (a : α)
+variables [cancel_comm_monoid α] (s : finset α) (a : α)
 
 @[simp, to_additive] lemma mul_roth_number_map_mul_left :
   mul_roth_number (s.map $ mul_left_embedding a) = mul_roth_number s :=
 begin
-  sorry
+  refine le_antisymm _ _,
+  { obtain ⟨u, hus, hcard, hu⟩ := mul_roth_number_spec (s.map $ mul_left_embedding a),
+    rw subset_map at hus,
+    obtain ⟨u, hus, rfl⟩ := hus,
+    rw coe_map at hu,
+    rw [←hcard, card_map],
+    exact (mul_salem_spencer_mul_left_iff.1 hu).le_mul_roth_number hus },
+  { obtain ⟨u, hus, hcard, hu⟩ := mul_roth_number_spec s,
+    have h : mul_salem_spencer (u.map $ mul_left_embedding a : set α),
+    { rw coe_map,
+      exact hu.mul_left },
+    convert h.le_mul_roth_number (map_subset_map.2 hus),
+    rw [card_map, hcard] }
 end
 
 @[simp, to_additive] lemma mul_roth_number_map_mul_right :
   mul_roth_number (s.map $ mul_right_embedding a) = mul_roth_number s :=
 begin
-  sorry
+  convert mul_roth_number_map_mul_left s a,
+  ext,
+  exact mul_comm _ _,
 end
 
 end cancel_comm_monoid
@@ -222,7 +250,7 @@ and the construction by Behrend gives a lower bound of the form
 A significant refinement of Roth's theorem by Bloom and Sisask announced in 2020 gives
 `roth_number N = O(N / (log N)^(1+c))` for an absolute constant `c`. -/
 def roth_number_nat : ℕ →ₘ ℕ :=
-⟨λ n, add_roth_number (range n), add_roth_number_mono_right.comp range_mono⟩
+⟨λ n, add_roth_number (range n), add_roth_number.mono.comp range_mono⟩
 
 lemma roth_number_nat_def (n : ℕ) : roth_number_nat n = add_roth_number (range n) := rfl
 
@@ -245,7 +273,7 @@ lemma roth_number_nat_add_le (M N : ℕ) :
   roth_number_nat (M + N) ≤ roth_number_nat M + roth_number_nat N :=
 begin
   simp_rw roth_number_nat_def,
-  rw [range_add_eq_union, ←add_roth_number_map_add_right (range N) M],
+  rw [range_add_eq_union, ←add_roth_number_map_add_left (range N) M],
   exact add_roth_number_union_le _ _,
 end
 
@@ -279,10 +307,7 @@ decidable_of_iff (∀ (a ∈ s) (b ∈ s), a < b → b + (b - a) ∉ s) begin
     obtain hac | hac := lt_or_gt_of_ne h,
     { refine hs _ ha _ hc hac _,
       rwa [←add_tsub_assoc_of_le hac.le, ←habc, add_tsub_cancel_left] },
-    { have hbc : b < c,
-      {
-        sorry
-      },
+    { have hbc : b < c := lt_of_not_ge' (λ h, (add_lt_add_of_lt_of_le hac h).ne' habc),
       refine hs _ hb _ hc hbc _,
       rwa [←add_tsub_assoc_of_le hbc.le, ←habc, add_tsub_cancel_right] } },
   { refine hab.ne (hs ha h hb _),
@@ -312,29 +337,22 @@ begin
   { simp }
 end
 
-@[simp] lemma roth_number_twelve : roth_number_nat 12 = 6 :=
-begin
-  apply le_antisymm,
-  { rw ←nat.lt_succ_iff,
-    apply add_roth_number_lt_of_forall_not_add_salem_spencer,
-    dec_trivial },
-  simpa using roth_number_nat_mono (show 11 ≤ 12, by norm_num),
-end
+-- `dec_trivial` times out on `roth_number_nat 12 = 6` with the current decidability instance
 
-@[simp] lemma roth_number_thirteen : roth_number_nat 13 = 7 :=
+@[simp] lemma roth_number_nat_thirteen : roth_number_nat 13 = 7 :=
 begin
   apply le_antisymm,
-  { simpa using roth_number_nat_add_le 12 1 },
+  { simpa using roth_number_nat_add_le 10 3 },
   apply add_salem_spencer.le_roth_number_nat {0, 1, 3, 4, 9, 10, 12},
   { dec_trivial },
   { simp },
   { simp }
 end
 
-@[simp] lemma roth_number_fourteen : roth_number_nat 14 = 8 :=
+@[simp] lemma roth_number_nat_fourteen : roth_number_nat 14 = 8 :=
 begin
   apply le_antisymm,
-  { simpa using roth_number_nat_add_le 12 2 },
+  { simpa using roth_number_nat_add_le 11 3 },
   apply add_salem_spencer.le_roth_number_nat {0, 1, 3, 4, 9, 10, 12, 13}, -- unique example
   { dec_trivial },
   { simp },
@@ -348,7 +366,7 @@ lemma roth_number_nat_dec_upper_bound {N M : ℕ} (h₂ : roth_number_nat N ≤ 
 begin
   apply nat.le_of_lt_succ,
   change roth_number_nat (N+1) < M.succ,
-  apply roth_number_lt_of_forall_not_salem_spencer,
+  apply add_roth_number_lt_of_forall_not_add_salem_spencer,
   simp only [range_succ, powerset_len_succ_insert not_mem_range_self, mem_union, mem_image,
     or_imp_distrib, forall_and_distrib, and_imp, coe_insert, forall_exists_index,
     forall_apply_eq_imp_iff₂],

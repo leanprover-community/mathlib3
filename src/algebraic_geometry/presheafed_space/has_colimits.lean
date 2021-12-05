@@ -219,6 +219,25 @@ begin
   dsimp, simp,
 end
 
+/--
+Auxiliary definition for `PresheafedSpace.colimit_cocone_is_colimit`.
+-/
+def desc (F : J ⥤ PresheafedSpace C) (s : cocone F) : colimit F ⟶ s.X :=
+{ base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
+    c :=
+    { app := λ U, desc_c_app F s U,
+      naturality' := λ U V i, desc_c_naturality F s i } }
+
+lemma desc_fac  (F : J ⥤ PresheafedSpace C) (s : cocone F) (j : J) :
+  (colimit_cocone F).ι.app j ≫ desc F s = s.ι.app j :=
+begin
+  fapply PresheafedSpace.ext,
+  { simp [desc] },
+  { ext,
+    dsimp [desc, desc_c_app],
+    simpa }
+end
+
 end colimit_cocone_is_colimit
 
 open colimit_cocone_is_colimit
@@ -227,21 +246,8 @@ open colimit_cocone_is_colimit
 Auxiliary definition for `PresheafedSpace.has_colimits`.
 -/
 def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimit_cocone F) :=
-{ desc := λ s,
-  { base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
-    c :=
-    { app := λ U, desc_c_app F s U,
-      naturality' := λ U V i, desc_c_naturality F s i }, },
-  fac' := -- tidy can do this but it takes too long
-  begin
-    intros s j,
-    dsimp,
-    fapply PresheafedSpace.ext,
-    { simp, },
-    { ext,
-      dsimp [desc_c_app],
-      simpa },
-  end,
+{ desc := λ s, desc F s,
+  fac' := λ s, desc_fac F s,
   uniq' := λ s m w,
   begin
     -- We need to use the identity on the continuous maps twice, so we prepare that first:

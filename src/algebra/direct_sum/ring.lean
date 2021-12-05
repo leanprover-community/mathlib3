@@ -6,6 +6,7 @@ Authors: Eric Wieser
 import group_theory.subgroup.basic
 import algebra.graded_monoid
 import algebra.direct_sum.basic
+import algebra.big_operators.pi
 
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`
@@ -221,6 +222,24 @@ begin
   { exact of_eq_of_graded_monoid_eq (pow_zero $ graded_monoid.mk _ a).symm, },
   { rw [pow_succ, n_ih, of_mul_of],
     exact of_eq_of_graded_monoid_eq (pow_succ (graded_monoid.mk _ a) n).symm, },
+end
+
+open_locale big_operators
+
+/-- A heavily unfolded version of the definition of multiplication -/
+lemma mul_eq_sum_support_ghas_mul
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (a a' : ⨁ i, A i) :
+  a * a' =
+    ∑ (ij : ι × ι) in (dfinsupp.support a).product (dfinsupp.support a'),
+      direct_sum.of _ _ (graded_monoid.ghas_mul.mul (a ij.fst) (a' ij.snd)) :=
+begin
+  change direct_sum.mul_hom _ a a' = _,
+  dsimp [direct_sum.mul_hom, direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply],
+  simp only [dfinsupp.sum_add_hom_apply, dfinsupp.sum, dfinsupp.finset_sum_apply,
+    add_monoid_hom.coe_sum, finset.sum_apply, add_monoid_hom.flip_apply,
+    add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
+    direct_sum.gmul_hom_apply_apply],
+  rw finset.sum_product,
 end
 
 end semiring

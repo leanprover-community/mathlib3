@@ -299,54 +299,56 @@ begin
     { rw fintype.card_fin,
       rw h₀ }},
   have hs := S.independent,
-
   set T : affine_basis (fin 3) ℝ V := ⟨S.points, S.independent, hspan⟩ with hT,
-  replace h₈ : O ∈ interior (convex_hull ℝ (set.range T.points)) := by simp [h₈],
-
+  replace h₈ : O ∈ interior (convex_hull ℝ (set.range T.points)) := by exact h₈,
   set σ₁ : perm (fin 3) := equiv.refl (fin 3) with hσ₁,
   set σ₂ : perm (fin 3) := list.form_perm [0, 1, 2] with hσ₂,
   set σ₃ : perm (fin 3) := equiv.trans σ₂ σ₂ with hσ₃,
-
-  let S₁ : triangle ℝ V := ⟨![A, B, C] ∘ σ₁, by simpa [affine_independent_equiv, ← h₁]⟩,
-  have hS₁span := affine_span_perm_top S S₁ h₀ σ₁ _ hspan,
+  set S₁ : triangle ℝ V := ⟨![A, B, C] ∘ σ₁, by simpa [affine_independent_equiv, ← h₁]⟩ with hS₁,
+  have hS₁span := affine_span_perm_top S S₁ h₀ σ₁ (by simp only [coe_refl, function.comp.right_id,
+    ← h₁]) hspan,
   set T₁ : affine_basis (fin 3) ℝ V := ⟨S₁.points, S₁.independent, hS₁span⟩ with hT₁,
   have hTσ₁ : T₁.points = T.points ∘ σ₁ := by simp [h₁],
   replace h₂ : collinear ℝ ({S₁.points 0, S₁.points 1, D} : set V) := by convert h₂,
   replace h₅ : collinear ℝ ({D, O, S₁.points 2} : set V) := by convert h₅,
-
-  let S₂ : triangle ℝ V := ⟨![A, B, C] ∘ σ₂, by simpa [affine_independent_equiv, ← h₁]⟩,
-  have hS₂span := affine_span_perm_top S S₂ h₀ σ₂ _ hspan,
+  set S₂ : triangle ℝ V := ⟨![A, B, C] ∘ σ₂, by simpa [affine_independent_equiv, ← h₁]⟩ with hS₂,
+  have hS₂span := affine_span_perm_top S S₂ h₀ σ₂ (by simp only [coe_refl, function.comp.right_id,
+    ← h₁]) hspan,
   set T₂ : affine_basis (fin 3) ℝ V := ⟨S₂.points, S₂.independent, hS₂span⟩ with hT₂,
   have hTσ₂ : T₂.points = T.points ∘ σ₂ := by simp [h₁],
   replace h₃ : collinear ℝ ({S₂.points 0, S₂.points 1, E} : set V) := by convert h₃,
   replace h₆ : collinear ℝ ({E, O, S₂.points 2} : set V) := by convert h₆,
-
-  let S₃ : triangle ℝ V := ⟨![A, B, C] ∘ σ₃, by simp only [affine_independent_equiv, ← h₁,
-    S.independent]⟩,
-  have hS₃span := affine_span_perm_top S S₃ h₀ σ₃ _ hspan,
+  set S₃ : triangle ℝ V := ⟨![A, B, C] ∘ σ₃, by simp only [affine_independent_equiv, ← h₁,
+    S.independent]⟩ with hS₃,
+  have hS₃span := affine_span_perm_top S S₃ h₀ σ₃ (by simp only [coe_refl, function.comp.right_id,
+    ← h₁]) hspan,
   set T₃ : affine_basis (fin 3) ℝ V := ⟨S₃.points, S₃.independent, hS₃span⟩ with hT₃,
   have hTσ₃ : T₃.points = T.points ∘ σ₃ := by simp [h₁],
   replace h₄ : collinear ℝ ({S₃.points 0, S₃.points 1, F} : set V) := by convert h₄,
   replace h₇ : collinear ℝ ({F, O, S₃.points 2} : set V) := by convert h₇,
-
   have hwnezero : T.coord 0 O * T.coord 1 O * T.coord 2 O ≠ 0,
   { apply ne_of_gt,
-    sorry },
-
+    simp only [mul_pos, affine_basis.interior_coord_pos h₈] },
   -- apply lemmas above with appropriate permutations and shifts
-
   have hADB := dist_lemma σ₁ T T₁ hTσ₁ (lemma3 O D T₁ h₂ h₅) h₈,
-
   have hBEC := dist_lemma σ₂ T T₂ hTσ₂ (lemma3 O E T₂ h₃ h₆) h₈,
-
   have hCFA := dist_lemma σ₃ T T₃ hTσ₃ (lemma3 O F T₃ h₄ h₇) h₈,
-
+  clear h₂ h₃ h₄ h₅ h₆ h₇ h₈,
+  -- how to get rid of these below? (simp times out below otherwise)
+  have hs₁ : σ₂ 0 = 1 := by refl,
+  have hs₂ : σ₂ 1 = 2 := by refl,
+  have hs₃ : σ₂ 2 = 3 := by refl,
+  have hb : ![A, B, C] 1 = B := by refl,
+  have hc : ![A, B, C] 2 = C := by refl,
+  have ha : ![A, B, C] 3 = A := by refl,
   have h := congr_arg2 (λ a b, a * b) (congr_arg2 (λ a b, a * b) hADB hBEC) hCFA,
   simp only [← affine_basis.coord_perm σ₁ T T₁ O hTσ₁, ← affine_basis.coord_perm σ₂ T T₂ O hTσ₂,
-    ← affine_basis.coord_perm σ₃ T T₃ O hTσ₃, σ₁, σ₂, σ₃, list.form_perm_cons_cons,
-    list.form_perm_singleton, mul_one ,swap_apply_left, swap_apply_right] at h,
-  sorry, -- how to unfold the current expression at `h` with timing out?
-  sorry,
-  sorry,
-  sorry,
+    ← affine_basis.coord_perm σ₃ T T₃ O hTσ₃] at h,
+  clear hADB hBEC hCFA hTσ₁ hTσ₂ hTσ₃ hT₁ hT₂ hT₃ T₁ T₂ T₃ hS₁span hS₂span hS₃span,
+  dsimp at h, -- bad simp, how to fix it?
+  simp only [hs₁, hs₂, hs₃, hb, hc, ha] at h,
+  replace h : (T.coord 0 O * T.coord 1 O * T.coord 2 O) * (dist A D * dist B E * dist C F) =
+    (T.coord 3 O * T.coord 1 O * T.coord 2 O) * (dist D B * dist E C * dist F A) := by linarith,
+  rw ← mul_right_inj' hwnezero,
+  exact h
 end

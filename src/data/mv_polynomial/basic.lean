@@ -278,6 +278,10 @@ begin
     simp [add_comm, monomial_add_single, this] }
 end
 
+/-- Analog of `polynomial.induction_on'`.
+To prove something about mv_polynomials,
+it suffices to show the condition is closed under taking sums,
+and it holds for monomials. -/
 attribute [elab_as_eliminator]
 theorem induction_on' {P : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
     (h1 : ∀ (u : σ →₀ ℕ) (a : R), P (monomial u a))
@@ -285,12 +289,13 @@ theorem induction_on' {P : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
 finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                      show P (monomial 0 0), from h1 0 0)
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
-
+/-- Similar to `induction_on` but only a weak form of `h_add` is required.-/
 lemma induction_on'' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) (h_C : ∀ a, M (C a))
   (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
     a ∉ f.support → b ≠ 0 → M f → M (monomial a b + f)) (h_X : ∀p n, M p → M (p * X n)) : M p :=
 finsupp.induction p (C_0.rec $ h_C 0) h_add_weak
 
+/-- Analog of `polynomial.induction_on`.-/
 @[recursor 5]
 lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
   (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :

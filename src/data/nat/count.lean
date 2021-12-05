@@ -69,12 +69,12 @@ variable [decidable_pred p]
 def count (n : ℕ) : ℕ := (list.range n).countp p
 
 @[simp] lemma count_zero : count p 0 = 0 :=
-by rw [count, list.range_zero, list.filter_nil, list.length]
+by rw [count, list.range_zero, list.countp]
 
 /-- A fintype instance for the set relevant to `nat.count`. Locally an instance in locale `count` -/
 def count_set.fintype (n : ℕ) : fintype {i // i < n ∧ p i} :=
 fintype.of_finset ((finset.range n).filter p)
-  (λ x, by rw [mem_filter, mem_range, set.mem_set_of_eq])
+  (λ x, by simp,)
 
 localized "attribute [instance] count_set.fintype" in count
 

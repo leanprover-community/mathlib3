@@ -492,6 +492,22 @@ theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
   (Hm : ¬ p ∣ m) (Hn : ¬ p ∣ n) : ¬ p ∣ m * n :=
 mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 
+/-- If prime `p` divides the product of `L : list ℕ` then it divides some `a ∈ L` -/
+lemma prime.dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) (h : p ∣ L.prod) : ∃ a ∈ L, p ∣ a :=
+begin
+  induction L,
+  { simp only [nat.dvd_one, list.prod_nil] at h, rw h at pp, exact absurd pp not_prime_one },
+  { simp only [prime.dvd_mul pp, list.prod_cons] at h,
+    cases h, { use L_hd, simp [h] },
+    rcases L_ih h with ⟨x, hx1, hx2⟩,
+    use x,
+    simp [list.mem_cons_iff, hx1, hx2] },
+end
+
+lemma prime.not_dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) (hL : ∀ a ∈ L, ¬ p ∣ a) :
+  ¬ p ∣ L.prod :=
+mt (prime.dvd_prod pp) (not_bex.mpr hL)
+
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 begin
   induction n with n IH,
@@ -639,16 +655,12 @@ section
 open list
 
 lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) :
-  ∀ {l : list ℕ}, (∀ p ∈ l, prime p) → p ∣ prod l → p ∈ l
-| []       := λ h₁ h₂, absurd h₂ (prime.not_dvd_one hp)
-| (q :: l) := λ h₁ h₂,
-  have h₃ : p ∣ q * prod l := @prod_cons _ _ l q ▸ h₂,
-  have hq : prime q := h₁ q (mem_cons_self _ _),
-  or.cases_on ((prime.dvd_mul hp).1 h₃)
-    (λ h, by rw [prime.dvd_iff_not_coprime hp, coprime_primes hp hq, ne.def, not_not] at h;
-      exact h ▸ mem_cons_self _ _)
-    (λ h, have hl : ∀ p ∈ l, prime p := λ p hlp, h₁ p ((mem_cons_iff _ _ _).2 (or.inr hlp)),
-    (mem_cons_iff _ _ _).2 (or.inr (mem_list_primes_of_dvd_prod hl h)))
+  ∀ {l : list ℕ}, (∀ p ∈ l, prime p) → p ∣ prod l → p ∈ l :=
+begin
+  intros L hL hpL,
+  rcases prime.dvd_prod hp hpL with ⟨x, hx1, hx2⟩,
+  rwa ((prime_dvd_prime_iff_eq hp (hL x hx1)).mp hx2)
+end
 
 lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factors n ↔ p ∣ n :=
 ⟨λ h, prod_factors hn ▸ list.dvd_prod h,

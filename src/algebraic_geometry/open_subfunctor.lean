@@ -6,6 +6,7 @@ import category_theory.limits.yoneda
 import category_theory.limits.opposites
 
 universes v u
+noncomputable theory
 
 open category_theory category_theory.limits algebraic_geometry
 namespace algebraic_geometry.Scheme
@@ -93,9 +94,6 @@ def glued_cover : Scheme.glue_data.{u} :=
 
 abbreviation glued := 𝒰.glued_cover.glued
 
-
--- `hc` is included so that the instances can be inferred from the type.
-@[nolint unused_arguments]
 def from_glued : 𝒰.glued ⟶ X :=
 begin
   fapply multicoequalizer.desc,

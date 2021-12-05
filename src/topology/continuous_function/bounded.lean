@@ -1077,14 +1077,9 @@ instance : semilattice_sup (α →ᵇ β) :=
 instance  : lattice (α →ᵇ β) :=
 { .. bounded_continuous_function.semilattice_sup, .. bounded_continuous_function.semilattice_inf }
 
-lemma sup_pointwise (f g : α →ᵇ β) (t : α) : (f ⊔ g) t = (f t) ⊔ (g t) := by finish
+@[simp] lemma coe_fn_sup (f g : α →ᵇ β) : ⇑(f ⊔ g) = f ⊔ g := rfl
 
-lemma abs_pointwise (f : α →ᵇ β) (t : α) : |f t| = |f| t :=
-begin
-  unfold has_abs.abs,
-  rw sup_pointwise,
-  simp only [pi.neg_apply, coe_neg],
-end
+@[simp] lemma coe_fn_abs (f : α →ᵇ β) : ⇑|f| = |f| := rfl
 
 instance : normed_lattice_add_comm_group (α →ᵇ β) :=
 { add_le_add_left := begin

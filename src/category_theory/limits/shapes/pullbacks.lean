@@ -1118,7 +1118,7 @@ variables {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ X₂) (f₂ : X�
 variables (i₁ : X₁ ⟶ Y₁) (i₂ : X₂ ⟶ Y₂) (i₃ : X₃ ⟶ Y₃)
 variables (h₁ : i₁ ≫ g₁ = f₁ ≫ i₂) (h₂ : i₂ ≫ g₂ = f₂ ≫ i₃)
 
-/-
+/--
 Given
 
 X₁ - f₁ -> X₂ - f₂ -> X₃
@@ -1151,7 +1151,7 @@ begin
     { erw [category.assoc, hm₂, ← hl₁', ← hl₂'] } }
 end
 
-/-
+/--
 Given
 
 X₁ - f₁ -> X₂ - f₂ -> X₃
@@ -1184,7 +1184,7 @@ begin
   { erw [hm₂, hl₂'] }
 end
 
-/-
+/--
 Given
 
 X₁ - f₁ -> X₂ - f₂ -> X₃
@@ -1217,7 +1217,7 @@ begin
     { erw [hl₁', ← hm₂], exact (category.assoc _ _ _).symm } }
 end
 
-/-
+/--
 Given
 
 X₁ - f₁ -> X₂ - f₂ -> X₃

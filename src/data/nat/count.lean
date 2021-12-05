@@ -125,17 +125,17 @@ by by_cases h : p n; simp [h]
 alias count_succ_eq_succ_count_iff ↔ _ count_succ_eq_succ_count
 alias count_succ_eq_count_iff ↔ _ count_succ_eq_count
 
-lemma count_le_cardinal (n : ℕ) : (count p n : cardinal) ≤ cardinal.mk (set_of p) :=
-begin
-  obtain h | h := lt_or_le (cardinal.mk (set_of p)) cardinal.omega,
-  { haveI := (cardinal.lt_omega_iff_fintype.mp h).some,
-    rw [cardinal.fintype_card, cardinal.nat_cast_le, count_eq_card_fintype],
-    fapply fintype.card_le_of_injective,
-    exact λ ⟨i, _, hi⟩, ⟨i, hi⟩,
-    tidy },
-  { rw le_antisymm ((cardinal.countable_iff _).mp ((set_of p).countable_encodable)) h,
-    exact (cardinal.nat_lt_omega _).le }
-end
+-- lemma count_le_cardinal (n : ℕ) : (count p n : cardinal) ≤ cardinal.mk (set_of p) :=
+-- begin
+--   obtain h | h := lt_or_le (cardinal.mk (set_of p)) cardinal.omega,
+--   { haveI := (cardinal.lt_omega_iff_fintype.mp h).some,
+--     rw [cardinal.fintype_card, cardinal.nat_cast_le, count_eq_card_fintype],
+--     fapply fintype.card_le_of_injective,
+--     exact λ ⟨i, _, hi⟩, ⟨i, hi⟩,
+--     tidy },
+--   { rw le_antisymm ((cardinal.countable_iff _).mp ((set_of p).countable_encodable)) h,
+--     exact (cardinal.nat_lt_omega _).le }
+-- end
 
 variables {p}
 
@@ -489,55 +489,55 @@ begin
     exact ⟨hx.1, λ k hk, hx.2 k $ hk.trans_le hab⟩ }
 end
 
-/-- When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`. -/
-lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
-  nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
-begin
-  have hi := set.infinite_coe_iff.mp i,
-  induction n with k hk;
-  simp only [subtype.order_iso_of_nat_apply, subtype.of_nat, nat_zero_eq_zero],
-  { rw [subtype.semilattice_sup_bot_bot_apply, nth_zero_of_exists] },
-  { simp only [nat.subtype.succ, set.mem_set_of_eq, subtype.coe_mk, subtype.val_eq_coe],
-    rw [subtype.order_iso_of_nat_apply] at hk,
-    set b := nth p k.succ - nth p k - 1 with hb,
-    replace hb : p (↑(subtype.of_nat (set_of p) k) + b + 1),
-    { rw [hb, ←hk, sub_right_comm'],
-      have hn11: nth p k.succ - 1 + 1 = nth p k.succ,
-      { rw sub_add_cancel_iff_le,
-        apply succ_le_of_lt,
-        apply pos_of_gt,
-        apply nth_strict_mono p hi,
-        exact lt_add_one k },
-      rw add_sub_cancel_of_le,
-      { rw hn11,
-        apply nth_mem_of_infinite p hi },
-      { rw [← lt_succ_iff, ← nat.add_one, hn11],
-        apply nth_strict_mono p hi,
-        exact lt_add_one k } },
-    have H : (∃ n: ℕ , p (↑(subtype.of_nat (set_of p) k) + n + 1)) := ⟨b, hb⟩,
-    set t := nat.find H with ht,
-    obtain ⟨hp, hmin⟩ := (nat.find_eq_iff _).mp ht,
-    rw [←ht, ←hk] at hp hmin ⊢,
-    rw [nth, Inf_def ⟨_, nth_mem_of_infinite_aux p hi k.succ⟩, nat.find_eq_iff],
-    refine ⟨⟨by convert hp, λ r hr, _⟩, λ n hn, _⟩,
-    { rw lt_succ_iff at ⊢ hr,
-      exact (nth_monotone p hi hr).trans (by simp) },
-    simp only [exists_prop, not_and, not_lt, set.mem_set_of_eq, not_forall],
-    refine λ hpn, ⟨k, lt_add_one k, _⟩,
-    by_contra hlt,
-    push_neg at hlt,
-    replace hn : n - nth p k - 1 < t,
-    { rw sub_lt_iff_left,
-      { rw sub_lt_iff_left hlt.le,
-        convert hn using 1,
-        ac_refl },
-      exact le_sub_of_add_le_left' (succ_le_of_lt hlt) },
-    apply hmin,
-    apply hn,
-    convert hpn,
-    have hn11 : n - 1 + 1 = n := nat.sub_add_cancel (pos_of_gt hlt),
-    rwa [sub_right_comm', add_sub_cancel_of_le],
-    rwa [←hn11, lt_succ_iff] at hlt }
-end
+-- /-- When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`. -/
+-- lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
+--   nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
+-- begin
+--   have hi := set.infinite_coe_iff.mp i,
+--   induction n with k hk;
+--   simp only [subtype.order_iso_of_nat_apply, subtype.of_nat, nat_zero_eq_zero],
+--   { rw [subtype.semilattice_sup_bot_bot_apply, nth_zero_of_exists], },
+--   { simp only [nat.subtype.succ, set.mem_set_of_eq, subtype.coe_mk, subtype.val_eq_coe],
+--     rw [subtype.order_iso_of_nat_apply] at hk,
+--     set b := nth p k.succ - nth p k - 1 with hb,
+--     replace hb : p (↑(subtype.of_nat (set_of p) k) + b + 1),
+--     { rw [hb, ←hk, sub_right_comm'],
+--       have hn11: nth p k.succ - 1 + 1 = nth p k.succ,
+--       { rw sub_add_cancel_iff_le,
+--         apply succ_le_of_lt,
+--         apply pos_of_gt,
+--         apply nth_strict_mono p hi,
+--         exact lt_add_one k },
+--       rw add_sub_cancel_of_le,
+--       { rw hn11,
+--         apply nth_mem_of_infinite p hi },
+--       { rw [← lt_succ_iff, ← nat.add_one, hn11],
+--         apply nth_strict_mono p hi,
+--         exact lt_add_one k } },
+--     have H : (∃ n: ℕ , p (↑(subtype.of_nat (set_of p) k) + n + 1)) := ⟨b, hb⟩,
+--     set t := nat.find H with ht,
+--     obtain ⟨hp, hmin⟩ := (nat.find_eq_iff _).mp ht,
+--     rw [←ht, ←hk] at hp hmin ⊢,
+--     rw [nth, Inf_def ⟨_, nth_mem_of_infinite_aux p hi k.succ⟩, nat.find_eq_iff],
+--     refine ⟨⟨by convert hp, λ r hr, _⟩, λ n hn, _⟩,
+--     { rw lt_succ_iff at ⊢ hr,
+--       exact (nth_monotone p hi hr).trans (by simp) },
+--     simp only [exists_prop, not_and, not_lt, set.mem_set_of_eq, not_forall],
+--     refine λ hpn, ⟨k, lt_add_one k, _⟩,
+--     by_contra hlt,
+--     push_neg at hlt,
+--     replace hn : n - nth p k - 1 < t,
+--     { rw sub_lt_iff_left,
+--       { rw sub_lt_iff_left hlt.le,
+--         convert hn using 1,
+--         ac_refl },
+--       exact le_sub_of_add_le_left' (succ_le_of_lt hlt) },
+--     apply hmin,
+--     apply hn,
+--     convert hpn,
+--     have hn11 : n - 1 + 1 = n := nat.sub_add_cancel (pos_of_gt hlt),
+--     rwa [sub_right_comm', add_sub_cancel_of_le],
+--     rwa [←hn11, lt_succ_iff] at hlt }
+-- end
 
 end nat

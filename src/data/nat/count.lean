@@ -73,24 +73,24 @@ by rw [count, list.range_zero, list.countp]
 
 /-- A fintype instance for the set relevant to `nat.count`. Locally an instance in locale `count` -/
 def count_set.fintype (n : ℕ) : fintype {i // i < n ∧ p i} :=
-fintype.of_finset ((finset.range n).filter p)
-  (λ x, by simp,)
+begin
+  apply fintype.of_finset ((finset.range n).filter p),
+  intro x,
+  rw [mem_filter, mem_range],
+  refl,
+end
 
 localized "attribute [instance] count_set.fintype" in count
 
-lemma count_eq_card_filter_range (n : ℕ) : count p n = ((range n).filter p).card := rfl
-
-/-- `count p n` can be expressed as the cardinality of `{k | k ≤ n ∧ p k}`. -/
-lemma count_eq_card_fintype (n : ℕ) : count p n = fintype.card {k : ℕ | k < n ∧ p k} :=
-begin
-  rw [←set.to_finset_card, count_eq_card_filter_range],
-  congr' 1,
-  ext i,
-  rw [mem_filter, mem_range, set.mem_to_finset, set.mem_set_of_eq],
-end
+lemma count_eq_card_filter_range (n : ℕ) : count p n = ((range n).filter p).card :=
+by { rw [count, list.countp_eq_length_filter], refl,}
 
 lemma count_monotone : monotone (count p) :=
-λ x y h, list.length_le_of_sublist $ (list.range_sublist.mpr h).filter p
+begin
+  intros a b h,
+  rw [count, list.countp_eq_length_filter, count, list.countp_eq_length_filter],
+  exact list.length_le_of_sublist (list.sublist.filter p (list.range_sublist.mpr h)),
+end
 
 @[simp] lemma count_succ (n : ℕ) : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 by split_ifs; simp [count, list.range_succ, h]

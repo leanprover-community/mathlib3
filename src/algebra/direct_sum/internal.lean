@@ -77,6 +77,24 @@ direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
   direct_sum.submonoid_coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
 
+section big_operators
+
+open_locale big_operators
+
+lemma direct_sum.coe_mul_apply_add_submonoid [add_monoid ι] [decidable_eq ι] [semiring R]
+  (A : ι → add_submonoid R) [set_like.graded_monoid A]
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (i : ι) :
+  ((r * r') i : R) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
+    add_submonoid.coe_finset_sum],
+  simp_rw [direct_sum.coe_of_add_submonoid_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
+
+end big_operators
+
 /-! #### From `add_subgroup`s -/
 
 namespace add_subgroup
@@ -106,6 +124,24 @@ direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
   (A : ι → add_subgroup R) [set_like.graded_monoid A] (i : ι) (x : A i) :
   direct_sum.subgroup_coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
+
+section big_operators
+
+open_locale big_operators
+
+lemma direct_sum.coe_mul_apply_add_subgroup [add_monoid ι] [decidable_eq ι] [ring R]
+  (A : ι → add_subgroup R) [set_like.graded_monoid A] [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+  (r r' : ⨁ i, A i) (i : ι) :
+  ((r * r') i : R) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
+    add_subgroup.coe_finset_sum],
+  simp_rw [direct_sum.coe_of_add_subgroup_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
+
+end big_operators
 
 /-! #### From `submodules`s -/
 
@@ -168,36 +204,15 @@ direct_sum.to_algebra S _ (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl) (λ _, rfl
   direct_sum.submodule_coe_alg_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ rfl (λ _ _ _ _, rfl) _ _
 
-section add_submonoid
+section big_operators
 
-open_locale direct_sum big_operators
+open_locale big_operators
 
-variables [add_comm_monoid ι] [semiring R]
-variables (𝒜 : ι → add_submonoid R)
-
-lemma direct_sum.coe_mul_apply_add_submonoid [set_like.graded_monoid 𝒜]
-  [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)] (r r' : ⨁ i, 𝒜 i) (i : ι) :
+lemma direct_sum.coe_mul_apply_submodule [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+  [set_like.graded_monoid A] (r r' : ⨁ i, A i) (i : ι) :
   ((r * r') i : R) =
-    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
-      r ij.1 * r' ij.2 :=
-begin
-  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
-    add_submonoid.coe_finset_sum],
-  simp_rw [direct_sum.coe_of_add_submonoid_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
-end
-
-end add_submonoid
-
-section submodule
-
-open_locale direct_sum big_operators
-
-variables [add_comm_monoid ι] [comm_semiring R] [ring S] [algebra R S]
-variables (𝒜 : ι → submodule R S)
-
-lemma direct_sum.coe_mul_apply_submodule [set_like.graded_monoid 𝒜]
-  [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)] (r r' : ⨁ i, 𝒜 i) (i : ι) :
-  ((r * r') i : S) =
     ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
       r ij.1 * r' ij.2 :=
 begin
@@ -205,24 +220,4 @@ begin
   simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
-end submodule
-
-section add_subgroup
-
-open_locale direct_sum big_operators
-
-variables [add_comm_monoid ι] [ring R]
-variables (𝒜 : ι →  add_subgroup R)
-
-lemma direct_sum.coe_mul_apply_add_subgroup [set_like.graded_monoid 𝒜]
-  [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)] (r r' : ⨁ i, 𝒜 i) (i : ι) :
-  ((r * r') i : R) =
-    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
-      r ij.1 * r' ij.2 :=
-begin
-  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
-    add_subgroup.coe_finset_sum],
-  simp_rw [direct_sum.coe_of_add_subgroup_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
-end
-
-end add_subgroup
+end big_operators

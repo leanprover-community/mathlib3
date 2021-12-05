@@ -113,8 +113,8 @@ instance nat.subtype.semilattice_sup (s : set ℕ) :
 { ..subtype.linear_order s,
   ..lattice_of_linear_order }
 
-lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)] [h : nonempty s] :
-  ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
+lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
+  [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
 
 theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
 rfl

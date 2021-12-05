@@ -132,10 +132,15 @@ variables [has_limits C]
 /--
 Auxiliary definition for `PresheafedSpace.has_colimits`.
 -/
-@[simps]
 def colimit (F : J ⥤ PresheafedSpace C) : PresheafedSpace C :=
 { carrier := colimit (F ⋙ PresheafedSpace.forget C),
   presheaf := limit (pushforward_diagram_to_colimit F).left_op, }
+
+@[simp] lemma colimit_carrier (F : J ⥤ PresheafedSpace C) :
+  (colimit F).carrier = limits.colimit (F ⋙ PresheafedSpace.forget C) := rfl
+
+@[simp] lemma colimit_presheaf (F : J ⥤ PresheafedSpace C) :
+  (colimit F).presheaf = limit (pushforward_diagram_to_colimit F).left_op := rfl
 
 /--
 Auxiliary definition for `PresheafedSpace.has_colimits`.

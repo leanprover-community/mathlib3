@@ -108,10 +108,8 @@ calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_sel
 ... ≤ 2 * n * central_binom n    : by { rw [mul_assoc], refine le_mul_of_pos_left zero_lt_two }
 
 lemma multiplicity_central_binom_le
-  {p : ℕ}
-  (hp : p.prime)
-  {n : ℕ}
-  (n_pos : 0 < n)
+  {p : ℕ} (hp : p.prime)
+  {n : ℕ} (n_pos : 0 < n)
   : padic_val_nat p (central_binom n) ≤ log p (2 * n)
   :=
 begin
@@ -128,10 +126,8 @@ begin
 end
 
 lemma multiplicity_central_binom_of_large_le_one
-  {p : nat}
-  (hp : p.prime)
-  {n : nat}
-  (n_pos : 0 < n)
+  {p : nat} (hp : p.prime)
+  {n : nat} (n_pos : 0 < n)
   (p_large : 2 * n < p ^ 2)
   : (padic_val_nat p (central_binom n)) ≤ 1
   :=
@@ -164,12 +160,9 @@ lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p 
 | (n + 3) _ big := by linarith
 
 lemma multiplicity_central_binom_of_large_eq_zero
-  {p : nat}
-  (hp : p.prime)
-  {n : nat}
-  (n_big : 2 < n)
-  (small : p ≤ n)
-  (big : 2 * n < 3 * p)
+  {p : nat} (hp : p.prime)
+  {n : nat} (n_big : 2 < n)
+  (small : p ≤ n) (big : 2 * n < 3 * p)
   : padic_val_nat p (central_binom n) = 0
   :=
 begin

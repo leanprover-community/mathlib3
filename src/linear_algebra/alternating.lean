@@ -326,6 +326,7 @@ end linear_map
 namespace alternating_map
 
 variables {M₂ : Type*} [add_comm_monoid M₂] [module R M₂]
+variables {M₃ : Type*} [add_comm_monoid M₃] [module R M₃]
 
 /-- Composing a alternating map with the same linear map on each argument gives again an
 alternating map. -/
@@ -338,6 +339,11 @@ lemma coe_comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) 
 
 @[simp] lemma comp_linear_map_apply (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) (v : ι → M₂) :
   f.comp_linear_map g v = f (λ i, g (v i)) := rfl
+
+/-- Composing an alternating map twice with the same linear map in each argument. -/
+lemma comp_linear_map_assoc (f : alternating_map R M N ι) (g₁ : M₂ →ₗ[R] M) (g₂ : M₃ →ₗ[R] M₂) :
+  (f.comp_linear_map g₁).comp_linear_map g₂ = f.comp_linear_map (g₁ ∘ₗ g₂) :=
+rfl
 
 @[simp] lemma zero_comp_linear_map (g : M₂ →ₗ[R] M) :
   (0 : alternating_map R M N ι).comp_linear_map g = 0 :=
@@ -352,6 +358,23 @@ by { ext, simp only [comp_linear_map_apply, add_apply] }
 begin
   ext,
   simp_rw [comp_linear_map_apply, linear_map.zero_apply, ←pi.zero_def, map_zero, zero_apply],
+end
+
+/-- Composing an alternating map with the identity linear map in each argument. -/
+@[simp] lemma comp_linear_map_id (f : alternating_map R M N ι) :
+  f.comp_linear_map linear_map.id = f :=
+begin
+  ext,
+  refl
+end
+
+/-- Composing an alternating map with the same linear equiv on each argument gives the zero map
+if and only if the alternating map is the zero map. -/
+@[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M ≃ₗ[R] M) :
+  f.comp_linear_map (g : M →ₗ[R] M) = 0 ↔ f = 0 :=
+begin
+  simp_rw ←alternating_map.coe_multilinear_map_injective.eq_iff,
+  exact multilinear_map.comp_linear_equiv_eq_zero_iff _ _
 end
 
 variables (f f' : alternating_map R M N ι)

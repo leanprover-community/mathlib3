@@ -263,6 +263,7 @@ by rw [← update_snoc_last x m (c • x), f.map_smul, update_snoc_last]
 section
 
 variables {M₁' : ι → Type*} [Π i, add_comm_monoid (M₁' i)] [Π i, module R (M₁' i)]
+variables {M₁'' : ι → Type*} [Π i, add_comm_monoid (M₁'' i)] [Π i, module R (M₁'' i)]
 
 /-- If `g` is a multilinear map and `f` is a collection of linear maps,
 then `g (f₁ m₁, ..., fₙ mₙ)` is again a multilinear map, that we call
@@ -283,6 +284,42 @@ def comp_linear_map (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[
   (m : Π i, M₁ i) :
   g.comp_linear_map f m = g (λ i, f i (m i)) :=
 rfl
+
+/-- Composing a multilinear map twice with a linear map in each argument. -/
+lemma comp_linear_map_assoc (g : multilinear_map R M₁'' M₂) (f₁ : Π i, M₁' i →ₗ[R] M₁'' i)
+  (f₂ : Π i, M₁ i →ₗ[R] M₁' i) :
+  (g.comp_linear_map f₁).comp_linear_map f₂ = g.comp_linear_map (λ i, f₁ i ∘ₗ f₂ i) :=
+rfl
+
+/-- Composing the zero multilinear map with a linear map in each argument. -/
+@[simp] lemma zero_comp_linear_map (f : Π i, M₁ i →ₗ[R] M₁' i) :
+  (0 : multilinear_map R M₁' M₂).comp_linear_map f = 0 :=
+begin
+  ext,
+  simp
+end
+
+/-- Composing a multilinear map with the identity linear map in each argument. -/
+@[simp] lemma comp_linear_map_id (g : multilinear_map R M₁' M₂) :
+  g.comp_linear_map (λ i, linear_map.id) = g :=
+begin
+  ext,
+  refl
+end
+
+/-- Composing a multilinear map with a linear equiv on each argument gives the zero map
+if and only if the multilinear map is the zero map. -/
+@[simp] lemma comp_linear_equiv_eq_zero_iff (g : multilinear_map R M₁' M₂)
+  (f : Π i, M₁ i ≃ₗ[R] M₁' i) : g.comp_linear_map (λ i, (f i : M₁ i →ₗ[R] M₁' i)) = 0 ↔ g = 0 :=
+begin
+  split,
+  { intro h,
+    have h' : (g.comp_linear_map (λ i, (f i : M₁ i →ₗ[R] M₁' i))).comp_linear_map
+      (λ i, ((f i).symm : M₁' i →ₗ[R] M₁ i)) = 0, by simp [h],
+    simpa [comp_linear_map_assoc] using h' },
+  { intro h,
+    simp [h] }
+end
 
 end
 

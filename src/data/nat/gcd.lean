@@ -330,9 +330,29 @@ by rw [coprime, coprime, gcd_add_self_left]
 @[simp] theorem coprime_self_add_left {m n : ℕ} : coprime (m + n) m ↔ coprime n m :=
 by rw [coprime, coprime, gcd_self_add_left]
 
--- TODO: Do 7 other lemmas like this, permuting left/rights
-@[simp] theorem coprime_add_mul_self {m n k : ℕ} : coprime m (n + k * m) ↔ coprime m n :=
-by simp only [coprime, gcd_add_mul_right_right]
+@[simp] lemma coprime_add_mul_right_right (m n k : ℕ) : coprime m (n + k * m) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_mul_right_right]
+
+@[simp] lemma coprime_add_mul_left_right (m n k : ℕ) : coprime m (n + m * k) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_mul_left_right]
+
+@[simp] lemma coprime_mul_right_add_right (m n k : ℕ) : coprime m (k * m + n) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_mul_right_add_right]
+
+@[simp] lemma coprime_mul_left_add_right (m n k : ℕ) : coprime m (m * k + n) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_mul_left_add_right]
+
+@[simp] lemma coprime_add_mul_right_left (m n k : ℕ) : coprime (m + k * n) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_mul_right_left]
+
+@[simp] lemma coprime_add_mul_left_left (m n k : ℕ) : coprime (m + n * k) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_mul_left_left]
+
+@[simp] lemma coprime_mul_right_add_left (m n k : ℕ) : coprime (k * n + m) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_mul_right_add_left]
+
+@[simp] lemma coprime_mul_left_add_left (m n k : ℕ) : coprime (n * k + m) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_mul_left_add_left]
 
 theorem coprime.mul {m n k : ℕ} (H1 : coprime m k) (H2 : coprime n k) : coprime (m * n) k :=
 (H1.gcd_mul_left_cancel n).trans H2

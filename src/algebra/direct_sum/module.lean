@@ -210,8 +210,7 @@ def submodule_coe : (⨁ i, A i) →ₗ[R] M := to_module R ι M (λ i, (A i).su
 @[simp] lemma submodule_coe_of (i : ι) (x : A i) : submodule_coe A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
 
-lemma coe_of_submodule_apply
-  (i j : ι) (x : A i) :
+lemma coe_of_submodule_apply (i j : ι) (x : A i) :
   (direct_sum.of _ i x j : M) = if i = j then x else 0 :=
 begin
   obtain rfl | h := decidable.eq_or_ne i j,

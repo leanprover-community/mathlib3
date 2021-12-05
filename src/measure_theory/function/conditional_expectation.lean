@@ -1677,6 +1677,7 @@ if (measurable[m] f ∧ integrable f μ) then f else ae_measurable'_condexp_L1.m
 
 variables {m}
 
+localized "notation  μ `[` f `|` hm `]` := measure_theory.condexp _ hm μ f" in measure_theory
 localized "notation  μ `[` f `|` m `,` hm `]` := measure_theory.condexp m hm μ f" in measure_theory
 
 lemma condexp_of_measurable {f : α → F'} (hf : measurable[m] f) (hfi : integrable f μ) :

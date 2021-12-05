@@ -24,7 +24,7 @@ the expected theorems about them.
 
 ## Main results
 
-* `set.infinite.order_iso_nat`: An infinite set of natural numbers is order-isomorphic to the
+* `nat.nth_eq_order_iso_of_nat`: An infinite set of natural numbers is order-isomorphic to the
   natural numbers.
 -/
 

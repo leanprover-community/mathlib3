@@ -315,8 +315,8 @@ begin
 end
 
 /-- Euclid's lemma: if `a ∣ b * c` and `gcd a b = 1` then `a ∣ c`.
-Compare with `is_coprime.dvd_of_dvd_mul_left` and
-`unique_factorization_monoid.dvd_of_dvd_mul_left_of_no_prime_factors` -/
+Compare with `is_coprime.dvd_of_dvd_mul_right` and
+`unique_factorization_monoid.dvd_of_dvd_mul_right_of_no_prime_factors` -/
 lemma dvd_of_dvd_mul_right_of_gcd_one {a b c : ℤ} (habc : a ∣ b * c) (hab : (gcd a b : ℤ) = 1) :
   a ∣ c :=
 by { rw mul_comm at habc, exact dvd_of_dvd_mul_left_of_gcd_one habc hab }

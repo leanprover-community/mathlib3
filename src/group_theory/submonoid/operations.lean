@@ -9,6 +9,7 @@ import group_theory.submonoid.basic
 import data.equiv.mul_add
 import algebra.group.prod
 import algebra.group.inj_surj
+import group_theory.group_action.defs
 
 /-!
 # Operations on `submonoid`s
@@ -487,6 +488,16 @@ subtype.rec_on x $ λ x hx, begin
       ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
 end
 
+@[simp, to_additive]
+lemma closure_closure_coe_preimage {s : set M} : closure ((coe : closure s → M) ⁻¹' s) = ⊤ :=
+begin
+  refine eq_top_iff.2 (λ x hx, closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) x),
+  { intros g hg,
+    exact subset_closure hg },
+  { exact submonoid.one_mem _ },
+  { exact submonoid.mul_mem _ hg₁ hg₂ },
+end
+
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
 of `M × N`. -/
 @[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`
@@ -819,9 +830,11 @@ def of_left_inverse' (f : M →* N) {g : N → M} (h : function.left_inverse g f
 /-- A `mul_equiv` `φ` between two monoids `M` and `N` induces a `mul_equiv` between
 a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. -/
 @[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
-between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. "]
+between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. ", simps]
 def submonoid_equiv_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
-{ map_mul' := λ _ _, subtype.ext (e.map_mul _ _), ..equiv.image e.to_equiv S }
+{ to_fun := λ x, ⟨e x, _⟩,
+  inv_fun := λ x, ⟨e.symm x, _⟩, -- we restate this for `simps` to avoid `⇑e.symm.to_equiv x`
+  map_mul' := λ _ _, subtype.ext (e.map_mul _ _), ..equiv.image e.to_equiv S }
 
 end mul_equiv
 

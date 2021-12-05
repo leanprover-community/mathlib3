@@ -259,8 +259,8 @@ begin
   apply (ulift.ring_equiv.symm : ℤ ≃+* _).injective,
   simp only [←ring_equiv.coe_to_ring_hom, map_eval₂_hom],
   convert h using 1,
-  all_goals {
-    funext i,
+  all_goals
+  { funext i,
     simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,
@@ -584,8 +584,8 @@ begin
   apply (ulift.ring_equiv.symm : ℤ ≃+* _).injective,
   simp only [←ring_equiv.coe_to_ring_hom, map_eval₂_hom],
   convert h using 1,
-  all_goals {
-    funext i,
+  all_goals
+  { funext i,
     simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,
@@ -605,8 +605,8 @@ begin
   simp only [map_coeff, hf, map_aeval, peval, uncurry],
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
   try { ext ⟨i, k⟩, fin_cases i },
-  all_goals {
-    simp only [map_coeff, matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one] },
+  all_goals
+  { simp only [map_coeff, matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one] },
 end
 
 end is_poly₂

@@ -51,7 +51,7 @@ begin
   assume j hj,
   have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm hi.1 hj,
   rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
-  exact calc f i ≤ a - (nat.pred l) • ε : hi.2
+  calc f i ≤ a - (nat.pred l) • ε : hi.2
     ... = a - l • ε + ε :
       by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_nsmul',
         sub_add, add_sub_cancel] }
@@ -287,7 +287,7 @@ begin
   refine add_lt_add (lt_of_le_of_lt hsumlesum
     (by rw [← sum_mul, mul_comm]; exact (mul_lt_mul_left hPε0).mpr hsumltP)) _,
   rw sum_range_sub_sum_range (le_of_lt hNMK),
-  exact calc ∑ i in (range K).filter (λ k, max N M + 1 ≤ k),
+  calc ∑ i in (range K).filter (λ k, max N M + 1 ≤ k),
       abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k)
       ≤ ∑ i in (range K).filter (λ k, max N M + 1 ≤ k), abv (a i) * (2 * Q) :
     sum_le_sum (λ n hn, begin
@@ -879,6 +879,12 @@ by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, cos_of_real_re] }
 lemma exp_im : (exp x).im = real.exp x.re * real.sin x.im :=
 by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, sin_of_real_re] }
 
+@[simp] lemma exp_of_real_mul_I_re (x : ℝ) : (exp (x * I)).re = real.cos x :=
+by simp [exp_mul_I, cos_of_real_re]
+
+@[simp] lemma exp_of_real_mul_I_im (x : ℝ) : (exp (x * I)).im = real.sin x :=
+by simp [exp_mul_I, sin_of_real_re]
+
 /-- **De Moivre's formula** -/
 theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
   (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
@@ -1131,7 +1137,8 @@ by rw ← of_real_inj; simp [sinh_three_mul]
 
 open is_absolute_value
 
-/- TODO make this private and prove ∀ x -/
+/-- This is an intermediate result that is later replaced by `real.add_one_le_exp`; use that lemma
+instead. -/
 lemma add_one_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ exp x :=
 calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ has_abs.abs) :
   le_lim (cau_seq.le_of_exists ⟨2,
@@ -1254,7 +1261,7 @@ begin
   show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!)
     ≤ abs x ^ n * (n.succ * (n! * n)⁻¹),
   rw sum_range_sub_sum_range hj,
-  exact calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m! : ℂ))
+  calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m! : ℂ))
       = abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ n * (x ^ (m - n) / m!) : ℂ)) :
     begin
       refine congr_arg abs (sum_congr rfl (λ m hm, _)),
@@ -1343,6 +1350,18 @@ lemma exp_bound {x : ℝ} (hx : |x| ≤ 1) {n : ℕ} (hn : 0 < n) :
 begin
   have hxc : complex.abs x ≤ 1, by exact_mod_cast hx,
   convert exp_bound hxc hn; norm_cast
+end
+
+lemma exp_bound' {x : ℝ} (h1 : 0 ≤ x) (h2 : x ≤ 1) {n : ℕ} (hn : 0 < n) :
+  real.exp x ≤ ∑ m in finset.range n, x ^ m / m! + x ^ n * (n + 1) / (n! * n) :=
+begin
+  have h3 : |x| = x := by simpa,
+  have h4 : |x| ≤ 1 := by rwa h3,
+  have h' := real.exp_bound h4 hn,
+  rw h3 at h',
+  have h'' := (abs_sub_le_iff.1 h').1,
+  have t := sub_le_iff_le_add'.1 h'',
+  simpa [mul_div_assoc] using t
 end
 
 /-- A finite initial segment of the exponential series, followed by an arbitrary tail.
@@ -1504,16 +1523,86 @@ calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
           zero_le_two) _
   ... < 0 : by norm_num
 
+lemma exp_bound_div_one_sub_of_interval_approx  {x : ℝ} (h1 : 0 ≤ x) (h2 : x ≤ 1) :
+  ∑ (j : ℕ) in finset.range 3, x ^ j / (j.factorial)
+  + x ^ 3 * ((3 : ℕ) + 1) / ((3 : ℕ).factorial * (3 : ℕ))
+  ≤ ∑ j in (finset.range 3), x ^ j :=
+begin
+  norm_num [finset.sum],
+  rw [add_assoc, add_comm (x + 1) (x ^ 3 * 4 / 18), ← add_assoc, add_le_add_iff_right,
+      ← add_le_add_iff_left (-(x ^ 2 / 2)), ← add_assoc, comm_ring.add_left_neg (x ^ 2 / 2),
+      zero_add, neg_add_eq_sub, sub_half, sq, pow_succ, sq],
+  have i1 : x * 4 / 18 ≤ 1 / 2 := by linarith,
+  have i2 : 0 ≤ x * 4 / 18 := by linarith,
+  have i3 := mul_le_mul h1 h1 le_rfl h1,
+  rw zero_mul at i3,
+  have t := mul_le_mul le_rfl i1 i2 i3,
+  rw ← mul_assoc,
+  rwa [mul_one_div, ← mul_div_assoc, ← mul_assoc] at t,
+end
+
+lemma exp_bound_div_one_sub_of_interval {x : ℝ} (h1 : 0 ≤ x) (h2 : x < 1) :
+  real.exp x ≤ 1 / (1 - x) :=
+begin
+  have h : ∑ j in (finset.range 3), x ^ j ≤ 1 / (1 - x),
+  { norm_num [finset.sum],
+    have h1x : 0 < 1 - x := by simpa,
+    rw le_div_iff h1x,
+    norm_num [← add_assoc, mul_sub_left_distrib, mul_one, add_mul,
+              sub_add_eq_sub_sub, pow_succ' x 2],
+    have hx3 : 0 ≤ x ^ 3,
+    { norm_num,
+      exact h1 },
+    linarith },
+  exact (exp_bound' h1 h2.le $ by linarith).trans
+        ((exp_bound_div_one_sub_of_interval_approx h1 h2.le).trans h),
+end
+
+lemma one_sub_le_exp_minus_of_pos {y : ℝ} (h : 0 ≤ y) : 1 - y ≤ real.exp (-y) :=
+begin
+  rw real.exp_neg,
+  have r1 : (1 - y) * (real.exp y) ≤ 1,
+  { cases le_or_lt (1 - y) 0,
+    { have h'' : (1 - y) * y.exp ≤ 0,
+      { rw mul_nonpos_iff,
+        right,
+        exact ⟨h_1, y.exp_pos.le⟩ },
+    linarith },
+    have hy1 : y < 1 := by linarith,
+    rw  ← le_div_iff' h_1,
+    exact exp_bound_div_one_sub_of_interval h hy1 },
+  rw inv_eq_one_div,
+  rw le_div_iff' y.exp_pos,
+  rwa mul_comm at r1,
+end
+
+lemma add_one_le_exp_of_nonpos {x : ℝ} (h : x ≤ 0) : x + 1 ≤ real.exp x :=
+begin
+  rw add_comm,
+  have h1 : 0 ≤ -x := by linarith,
+  simpa using one_sub_le_exp_minus_of_pos h1
+end
+
+lemma add_one_le_exp (x : ℝ) : x + 1 ≤ real.exp x :=
+begin
+  cases le_or_lt 0 x,
+  { exact real.add_one_le_exp_of_nonneg h },
+  exact add_one_le_exp_of_nonpos h.le,
+end
+
 end real
 
 namespace complex
 
-lemma abs_cos_add_sin_mul_I (x : ℝ) : abs (cos x + sin x * I) = 1 :=
+@[simp] lemma abs_cos_add_sin_mul_I (x : ℝ) : abs (cos x + sin x * I) = 1 :=
 have _ := real.sin_sq_add_cos_sq x,
 by simp [add_comm, abs, norm_sq, sq, *, sin_of_real_re, cos_of_real_re, mul_re] at *
 
 @[simp] lemma abs_exp_of_real (x : ℝ) : abs (exp x) = real.exp x :=
 by rw [← of_real_exp]; exact abs_of_nonneg (le_of_lt (real.exp_pos _))
+
+@[simp] lemma abs_exp_of_real_mul_I (x : ℝ) : abs (exp (x * I)) = 1 :=
+by rw [exp_mul_I, abs_cos_add_sin_mul_I]
 
 lemma abs_exp (z : ℂ) : abs (exp z) = real.exp (z.re) :=
 by rw [exp_eq_exp_re_mul_sin_add_cos, abs_mul, abs_exp_of_real, abs_cos_add_sin_mul_I, mul_one]

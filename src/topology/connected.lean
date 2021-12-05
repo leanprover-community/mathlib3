@@ -40,7 +40,8 @@ open set function topological_space
 open_locale classical topological_space
 
 universes u v
-variables {α : Type u} {β : Type v} [topological_space α] {s t : set α}
+variables {α : Type u} {β : Type v} {ι : Type*} {π : ι → Type*} [topological_space α]
+  {s t u v : set α}
 
 section preconnected
 
@@ -214,6 +215,91 @@ begin
   contradiction
 end⟩
 
+/- TODO: The following lemmas about connection of preimages hold more generally for strict maps
+(the quotient and subspace topologies of the image agree) whose fibers are preconnected. -/
+
+lemma is_preconnected.preimage_of_open_map [topological_space β] {s : set β}
+  (hs : is_preconnected s) {f : α → β} (hinj : function.injective f) (hf : is_open_map f)
+  (hsf : s ⊆ set.range f) :
+  is_preconnected (f ⁻¹' s) :=
+λ u v hu hv hsuv hsu hsv,
+begin
+  obtain ⟨b, hbs, hbu, hbv⟩ := hs (f '' u) (f '' v) (hf u hu) (hf v hv) _ _ _,
+  obtain ⟨a, rfl⟩ := hsf hbs,
+  rw hinj.mem_set_image at hbu hbv,
+  exact ⟨a, hbs, hbu, hbv⟩,
+  { have := set.image_subset f hsuv,
+    rwa [set.image_preimage_eq_of_subset hsf, set.image_union] at this },
+  { obtain ⟨x, hx1, hx2⟩ := hsu,
+    exact ⟨f x, hx1, x, hx2, rfl⟩ },
+  { obtain ⟨y, hy1, hy2⟩ := hsv,
+    exact ⟨f y, hy1, y, hy2, rfl⟩ }
+end
+
+lemma is_preconnected.preimage_of_closed_map [topological_space β] {s : set β}
+  (hs : is_preconnected s) {f : α → β} (hinj : function.injective f) (hf : is_closed_map f)
+  (hsf : s ⊆ set.range f) :
+  is_preconnected (f ⁻¹' s) :=
+is_preconnected_closed_iff.2 $ λ u v hu hv hsuv hsu hsv,
+begin
+  obtain ⟨b, hbs, hbu, hbv⟩ :=
+    is_preconnected_closed_iff.1 hs (f '' u) (f '' v) (hf u hu) (hf v hv) _ _ _,
+  obtain ⟨a, rfl⟩ := hsf hbs,
+  rw hinj.mem_set_image at hbu hbv,
+  exact ⟨a, hbs, hbu, hbv⟩,
+  { have := set.image_subset f hsuv,
+    rwa [set.image_preimage_eq_of_subset hsf, set.image_union] at this },
+  { obtain ⟨x, hx1, hx2⟩ := hsu,
+    exact ⟨f x, hx1, x, hx2, rfl⟩ },
+  { obtain ⟨y, hy1, hy2⟩ := hsv,
+    exact ⟨f y, hy1, y, hy2, rfl⟩ }
+end
+
+lemma is_connected.preimage_of_open_map [topological_space β] {s : set β} (hs : is_connected s)
+  {f : α → β} (hinj : function.injective f) (hf : is_open_map f) (hsf : s ⊆ set.range f) :
+  is_connected (f ⁻¹' s) :=
+⟨hs.nonempty.preimage' hsf, hs.is_preconnected.preimage_of_open_map hinj hf hsf⟩
+
+lemma is_connected.preimage_of_closed_map [topological_space β] {s : set β} (hs : is_connected s)
+  {f : α → β} (hinj : function.injective f) (hf : is_closed_map f) (hsf : s ⊆ set.range f) :
+  is_connected (f ⁻¹' s) :=
+⟨hs.nonempty.preimage' hsf, hs.is_preconnected.preimage_of_closed_map hinj hf hsf⟩
+
+lemma is_preconnected.subset_or_subset (hu : is_open u) (hv : is_open v) (huv : disjoint u v)
+  (hsuv : s ⊆ u ∪ v) (hs : is_preconnected s) :
+  s ⊆ u ∨ s ⊆ v :=
+begin
+  specialize hs u v hu hv hsuv,
+  obtain hsu | hsu := (s ∩ u).eq_empty_or_nonempty,
+  { exact or.inr ((set.disjoint_iff_inter_eq_empty.2 hsu).subset_right_of_subset_union hsuv) },
+  { replace hs := mt (hs hsu),
+    simp_rw [set.not_nonempty_iff_eq_empty, ←set.disjoint_iff_inter_eq_empty,
+      set.disjoint_iff_inter_eq_empty.1 huv] at hs,
+    exact or.inl ((hs s.disjoint_empty).subset_left_of_subset_union hsuv) }
+end
+
+lemma is_preconnected.subset_left_of_subset_union (hu : is_open u) (hv : is_open v)
+  (huv : disjoint u v) (hsuv : s ⊆ u ∪ v) (hsu : (s ∩ u).nonempty) (hs : is_preconnected s) :
+  s ⊆ u :=
+disjoint.subset_left_of_subset_union hsuv
+begin
+  by_contra hsv,
+  rw set.not_disjoint_iff_nonempty_inter at hsv,
+  obtain ⟨x, _, hx⟩ := hs u v hu hv hsuv hsu hsv,
+  exact set.disjoint_iff.1 huv hx,
+end
+
+lemma is_preconnected.subset_right_of_subset_union (hu : is_open u) (hv : is_open v)
+  (huv : disjoint u v) (hsuv : s ⊆ u ∪ v) (hsv : (s ∩ v).nonempty) (hs : is_preconnected s) :
+  s ⊆ v :=
+disjoint.subset_right_of_subset_union hsuv
+begin
+  by_contra hsu,
+  rw set.not_disjoint_iff_nonempty_inter at hsu,
+  obtain ⟨x, _, hx⟩ := hs u v hu hv hsuv hsu hsv,
+  exact set.disjoint_iff.1 huv hx,
+end
+
 theorem is_preconnected.prod [topological_space β] {s : set α} {t : set β}
   (hs : is_preconnected s) (ht : is_preconnected t) :
   is_preconnected (s.prod t) :=
@@ -232,8 +318,8 @@ theorem is_connected.prod [topological_space β] {s : set α} {t : set β}
   (hs : is_connected s) (ht : is_connected t) : is_connected (s.prod t) :=
 ⟨hs.1.prod ht.1, hs.2.prod ht.2⟩
 
-theorem is_preconnected_univ_pi {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)]
-  {s : Π i, set (π i)} (hs : ∀ i, is_preconnected (s i)) :
+theorem is_preconnected_univ_pi [Π i, topological_space (π i)] {s : Π i, set (π i)}
+  (hs : ∀ i, is_preconnected (s i)) :
   is_preconnected (pi univ s) :=
 begin
   rintros u v uo vo hsuv ⟨f, hfs, hfu⟩ ⟨g, hgs, hgv⟩,
@@ -258,14 +344,86 @@ begin
     exact inter_subset_inter_left _ hsub }
 end
 
-@[simp] theorem is_connected_univ_pi {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)]
-  {s : Π i, set (π i)} :
+@[simp] theorem is_connected_univ_pi [Π i, topological_space (π i)] {s : Π i, set (π i)} :
   is_connected (pi univ s) ↔ ∀ i, is_connected (s i) :=
 begin
   simp only [is_connected, ← univ_pi_nonempty_iff, forall_and_distrib, and.congr_right_iff],
   refine λ hne, ⟨λ hc i, _, is_preconnected_univ_pi⟩,
   rw [← eval_image_univ_pi hne],
   exact hc.image _ (continuous_apply _).continuous_on
+end
+
+lemma sigma.is_connected_iff [Π i, topological_space (π i)] {s : set (Σ i, π i)} :
+  is_connected s ↔ ∃ i t, is_connected t ∧ s = sigma.mk i '' t :=
+begin
+  refine ⟨λ hs, _, _⟩,
+  { obtain ⟨⟨i, x⟩, hx⟩ := hs.nonempty,
+    have : s ⊆ set.range (sigma.mk i),
+    { have h : set.range (sigma.mk i) = sigma.fst ⁻¹' {i}, by { ext, simp },
+      rw h,
+      exact is_preconnected.subset_left_of_subset_union
+        (is_open_sigma_fst_preimage _) (is_open_sigma_fst_preimage {x | x ≠ i})
+        (set.disjoint_iff.2 $ λ x hx, hx.2 hx.1)
+        (λ y hy, by simp [classical.em]) ⟨⟨i, x⟩, hx, rfl⟩ hs.2 },
+    exact ⟨i, sigma.mk i ⁻¹' s,
+      hs.preimage_of_open_map sigma_mk_injective is_open_map_sigma_mk this,
+      (set.image_preimage_eq_of_subset this).symm⟩ },
+  { rintro ⟨i, t, ht, rfl⟩,
+    exact ht.image _ continuous_sigma_mk.continuous_on }
+end
+
+lemma sigma.is_preconnected_iff [hι : nonempty ι] [Π i, topological_space (π i)]
+  {s : set (Σ i, π i)} :
+  is_preconnected s ↔ ∃ i t, is_preconnected t ∧ s = sigma.mk i '' t :=
+begin
+  refine ⟨λ hs, _, _⟩,
+  { obtain rfl | h := s.eq_empty_or_nonempty,
+    { exact ⟨classical.choice hι, ∅, is_preconnected_empty, (set.image_empty _).symm⟩ },
+    { obtain ⟨a, t, ht, rfl⟩ := sigma.is_connected_iff.1 ⟨h, hs⟩,
+      refine ⟨a, t, ht.is_preconnected, rfl⟩ } },
+  { rintro ⟨a, t, ht, rfl⟩,
+    exact ht.image _ continuous_sigma_mk.continuous_on }
+end
+
+lemma sum.is_connected_iff [topological_space β] {s : set (α ⊕ β)} :
+  is_connected s ↔
+    (∃ t, is_connected t ∧ s = sum.inl '' t) ∨ ∃ t, is_connected t ∧ s = sum.inr '' t :=
+begin
+  refine ⟨λ hs, _, _⟩,
+  { let u : set (α ⊕ β):= set.range sum.inl,
+    let v : set (α ⊕ β) := set.range sum.inr,
+    have hu : is_open u, exact is_open_range_inl,
+    obtain ⟨x | x, hx⟩ := hs.nonempty,
+    { have h := is_preconnected.subset_left_of_subset_union
+        is_open_range_inl is_open_range_inr set.is_compl_range_inl_range_inr.disjoint
+        (show s ⊆ set.range sum.inl ∪ set.range sum.inr, by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
+      refine or.inl ⟨sum.inl ⁻¹' s, _, _⟩,
+      { exact hs.preimage_of_open_map sum.inl_injective open_embedding_inl.is_open_map h },
+      { exact (set.image_preimage_eq_of_subset h).symm } },
+    { have h := is_preconnected.subset_right_of_subset_union
+        is_open_range_inl is_open_range_inr set.is_compl_range_inl_range_inr.disjoint
+        (show s ⊆ set.range sum.inl ∪ set.range sum.inr, by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
+      refine or.inr ⟨sum.inr ⁻¹' s, _, _⟩,
+      { exact hs.preimage_of_open_map sum.inr_injective open_embedding_inr.is_open_map h },
+      { exact (set.image_preimage_eq_of_subset h).symm } } },
+  { rintro (⟨t, ht, rfl⟩ | ⟨t, ht, rfl⟩),
+    { exact ht.image _ continuous_inl.continuous_on },
+    { exact ht.image _ continuous_inr.continuous_on } }
+end
+
+lemma sum.is_preconnected_iff [topological_space β] {s : set (α ⊕ β)} :
+  is_preconnected s ↔
+    (∃ t, is_preconnected t ∧ s = sum.inl '' t) ∨ ∃ t, is_preconnected t ∧ s = sum.inr '' t :=
+begin
+  refine ⟨λ hs, _, _⟩,
+  { obtain rfl | h := s.eq_empty_or_nonempty,
+    { exact or.inl ⟨∅, is_preconnected_empty, (set.image_empty _).symm⟩ },
+    obtain ⟨t, ht, rfl⟩ | ⟨t, ht, rfl⟩ := sum.is_connected_iff.1 ⟨h, hs⟩,
+    { exact or.inl ⟨t, ht.is_preconnected, rfl⟩ },
+    { exact or.inr ⟨t, ht.is_preconnected, rfl⟩ } },
+  { rintro (⟨t, ht, rfl⟩ | ⟨t, ht, rfl⟩),
+    { exact ht.image _ continuous_inl.continuous_on },
+    { exact ht.image _ continuous_inr.continuous_on } }
 end
 
 /-- The connected component of a point is the maximal connected set
@@ -368,12 +526,11 @@ instance [topological_space β] [connected_space α] [connected_space β] :
   connected_space (α × β) :=
 ⟨prod.nonempty⟩
 
-instance {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
-  [∀ i, preconnected_space (π i)] : preconnected_space (Π i, π i) :=
+instance [Π i, topological_space (π i)] [∀ i, preconnected_space (π i)] :
+  preconnected_space (Π i, π i) :=
 ⟨by { rw ← pi_univ univ, exact is_preconnected_univ_pi (λ i, is_preconnected_univ) }⟩
 
-instance {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
-  [∀ i, connected_space (π i)] : connected_space (Π i, π i) :=
+instance [Π i, topological_space (π i)] [∀ i, connected_space (π i)] : connected_space (Π i, π i) :=
 ⟨classical.nonempty_pi.2 $ λ i, by apply_instance⟩
 
 @[priority 100] -- see Note [lower instance priority]
@@ -771,6 +928,25 @@ have H2 : is_preconnected (prod.snd '' t), from h2.image prod.snd continuous_snd
 λ x hx y hy, prod.ext
   (H1.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)
   (H2.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)⟩
+
+instance [topological_space β] [totally_disconnected_space α] [totally_disconnected_space β] :
+  totally_disconnected_space (α ⊕ β) :=
+begin
+  refine ⟨λ s _ hs, _⟩,
+  obtain (⟨t, ht, rfl⟩ | ⟨t, ht, rfl⟩) := sum.is_preconnected_iff.1 hs,
+  { exact ht.subsingleton.image _ },
+  { exact ht.subsingleton.image _ }
+end
+
+instance [Π i, topological_space (π i)] [∀ i, totally_disconnected_space (π i)] :
+  totally_disconnected_space (Σ i, π i) :=
+begin
+  refine ⟨λ s _ hs, _⟩,
+  obtain rfl | h := s.eq_empty_or_nonempty,
+  { exact set.subsingleton_empty },
+  { obtain ⟨a, t, ht, rfl⟩ := sigma.is_connected_iff.1 ⟨h, hs⟩,
+    exact ht.is_preconnected.subsingleton.image _ }
+end
 
 /-- A space is totally disconnected iff its connected components are subsingletons. -/
 lemma totally_disconnected_space_iff_connected_component_subsingleton :

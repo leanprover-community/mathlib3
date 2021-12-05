@@ -3,12 +3,13 @@ Copyright (c) 2018 Mario Carneiro, Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
-import data.multiset.finset_ops
 import group_theory.finiteness
-import linear_algebra.linear_independent
-import order.compactly_generated
+import data.multiset.finset_ops
+import algebra.algebra.tower
 import order.order_iso_nat
 import ring_theory.ideal.operations
+import order.compactly_generated
+import linear_algebra.linear_independent
 
 /-!
 # Noetherian rings and modules
@@ -238,28 +239,16 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
-/-- The image of a finitely generated ideal is finitely generated. -/
-lemma map_fg_of_fg {R S : Type*} [comm_ring R] [comm_ring S] (I : ideal R) (h : I.fg) (f : R →+* S)
-  : (I.map f).fg :=
+/-- The image of a finitely generated ideal is finitely generated.
+
+This is the `ideal` version of `submodule.fg_map`. -/
+lemma map_fg_of_fg {R S : Type*} [semiring R] [semiring S] (I : ideal R) (h : I.fg) (f : R →+* S) :
+  (I.map f).fg :=
 begin
-  obtain ⟨X, hXfin, hXgen⟩ := fg_def.1 h,
-  apply fg_def.2,
-  refine ⟨set.image f X, finite.image ⇑f hXfin, _⟩,
-  rw [ideal.map, ideal.span, ← hXgen],
-  refine le_antisymm (submodule.span_mono (image_subset _ ideal.subset_span)) _,
-  rw [submodule.span_le, image_subset_iff],
-  intros i hi,
-  refine submodule.span_induction hi (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
-  { simp only [set_like.mem_coe, mem_preimage],
-    suffices : f x ∈ f '' X, { exact ideal.subset_span this },
-    exact mem_image_of_mem ⇑f hx },
-  { simp only [set_like.mem_coe, ring_hom.map_zero, mem_preimage, zero_mem] },
-  { simp only [set_like.mem_coe, mem_preimage] at hx hy,
-    simp only [ring_hom.map_add, set_like.mem_coe, mem_preimage],
-    exact submodule.add_mem _ hx hy },
-  { simp only [set_like.mem_coe, mem_preimage] at hx,
-    simp only [algebra.id.smul_eq_mul, set_like.mem_coe, mem_preimage, ring_hom.map_mul],
-    exact submodule.smul_mem _ _ hx }
+  classical,
+  obtain ⟨s, hs : ideal.span ↑s = _⟩ := h,
+  refine ⟨s.image f, (_ : ideal.span _ = _)⟩,
+  rw [finset.coe_image, ←ideal.map_span, hs],
 end
 
 /-- The kernel of the composition of two linear maps is finitely generated if both kernels are and
@@ -272,7 +261,7 @@ begin
   rw linear_map.ker_comp,
   apply fg_of_fg_map_of_fg_inf_ker f,
   { rwa [submodule.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
-  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono (@bot_le _ _ g.ker))] }
+  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono bot_le)] }
 end
 
 lemma fg_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]
@@ -681,7 +670,7 @@ begin
 end
 
 instance submodule.quotient.is_noetherian {R} [ring R] {M} [add_comm_group M] [module R M]
-  (N : submodule R M) [h : is_noetherian R M] : is_noetherian R N.quotient :=
+  (N : submodule R M) [h : is_noetherian R M] : is_noetherian R (M ⧸ N) :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
   exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
@@ -698,7 +687,7 @@ begin
 end
 
 instance ideal.quotient.is_noetherian_ring {R : Type*} [comm_ring R] [h : is_noetherian_ring R]
-  (I : ideal R) : is_noetherian_ring I.quotient :=
+  (I : ideal R) : is_noetherian_ring (R ⧸ I) :=
 is_noetherian_ring_iff.mpr $ is_noetherian_of_tower R $ submodule.quotient.is_noetherian _
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]

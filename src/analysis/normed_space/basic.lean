@@ -5,12 +5,11 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
-import data.matrix.basic
-import topology.algebra.group_completion
-import topology.instances.ennreal
-import topology.metric_space.completion
-import topology.sequences
 import analysis.normed.group.infinite_sum
+import data.matrix.basic
+import topology.algebra.module
+import topology.instances.ennreal
+import topology.sequences
 
 /-!
 # Normed spaces
@@ -505,10 +504,10 @@ end
 lemma norm_zsmul_le (n : ℤ) (a : α) : ∥n • a∥ ≤ ∥n∥ * ∥a∥ :=
 begin
   induction n with n n,
-  { simp only [int.of_nat_eq_coe, zsmul_coe_nat],
+  { simp only [int.of_nat_eq_coe, coe_nat_zsmul],
     convert norm_nsmul_le n a,
     exact nat.abs_cast n },
-  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, zsmul_coe_nat],
+  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, coe_nat_zsmul],
     convert norm_nsmul_le n.succ a,
     exact nat.abs_cast n.succ, }
 end

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_deriv
-import analysis.special_functions.trigonometric.basic
 
 /-!
 # Differentiability of trigonometric functions
@@ -546,7 +545,7 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 
 /-- `sinh` is strictly monotone. -/
 lemma sinh_strict_mono : strict_mono sinh :=
-strict_mono_of_deriv_pos differentiable_sinh (by { rw [real.deriv_sinh], exact cosh_pos })
+strict_mono_of_deriv_pos $ by { rw real.deriv_sinh, exact cosh_pos }
 
 end real
 

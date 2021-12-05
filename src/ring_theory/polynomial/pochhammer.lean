@@ -81,11 +81,12 @@ lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X
 begin
   suffices h : pochhammer ℕ (n+1) = pochhammer ℕ n * (X + n),
   { apply_fun polynomial.map (algebra_map ℕ S) at h,
-    simpa only [pochhammer_map, map_mul, map_add, map_X, map_nat_cast] using h, },
+    simpa only [pochhammer_map, polynomial.map_mul, polynomial.map_add, map_X, map_nat_cast]
+      using h },
   induction n with n ih,
   { simp, },
-  { conv_lhs {
-    rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
+  { conv_lhs
+  { rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
       nat_cast_comp, add_assoc, add_comm (1 : polynomial ℕ)], },
     refl, },
 end

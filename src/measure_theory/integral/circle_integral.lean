@@ -79,3 +79,4 @@ def circle_integral (f : ℂ → E) (z : ℂ) (R : ℝ) : E :=
 
 notation `∮` binders ` in ` `C(` z `,` R `)` `, ` r:(scoped:60 f, circle_integral f z R) := r
 
+@[simp] lemma circle_integral.integral_smul_const

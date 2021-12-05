@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
+import measure_theory.integral.circle_integral
 import analysis.analytic.basic
 
 /-!
@@ -88,33 +89,38 @@ by refine (integral_boundary_rect_of_has_fderiv_within_at_real_off_countable f
   (λ x hx, (Hd x hx).has_fderiv_within_at.restrict_scalars ℝ) _).trans _;
     simp [← continuous_linear_map.map_smul]
 
-/-- Let `f` be a function complex differentiable on the annulus `r ≤ |z| ≤ R`. Then the integrals
-$\int_{|z|=r} f(z)\,d(\arg z)$ and $\int_{|z|=R} f(z)\,d(\arg z)$ are equal to each other. Moreover,
-the same is true if at the points of some countable set, the function `f` is only continuous.
+/-- If `f : ℂ → E` is complex differentiable on the closed annulus `r ≤ ∥z - z₀∥ ≤ R`, `0 < r ≤ R`,
+then the integrals of `f z / (z - z₀)` (formally, `(z - z₀)⁻¹ • f z`) over the circles `∥z - z₀∥ = r`
+and `∥z - z₀∥ = R` are equal to each other.
 
-Up to a rescaling, these integrals are equal to $\int_{|z|=r}\frac{f(z)dz}{z}$ and
-$\int_{|z|=R}\frac{f(z)dz}{z}$. -/
-lemma integral_circle_darg_eq_of_differentiable_on_annulus_off_countable
-  {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : countable s)
-  (hc : ∀ z ∈ s, continuous_within_at f (closed_ball 0 R \ ball 0 r) z)
-  (hd : ∀ z ∈ (closed_ball 0 R \ ball 0 r) \ s,
-    differentiable_within_at ℂ f (closed_ball 0 R \ ball 0 r) z) :
-  ∫ (θ : ℝ) in 0..2 * π, f (R * exp (θ * I)) = ∫ (θ : ℝ) in 0..2 * π, f (r * exp (θ * I)) :=
+Moreover, the same is true if `f` is differentiable at points of the annulus outside of a countable
+set `s` and is continuous at points of this set.  -/
+lemma circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable
+  {z₀ : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : countable s)
+  (hc : ∀ z ∈ s, continuous_within_at f (closed_ball z₀ R \ ball z₀ r) z)
+  (hd : ∀ z ∈ (closed_ball z₀ R \ ball z₀ r) \ s,
+    differentiable_within_at ℂ f (closed_ball z₀ R \ ball z₀ r) z) :
+  ∮ z in C(z₀, R), (z - z₀)⁻¹ • f z = ∮ z in C(z₀, r), (z - z₀)⁻¹ • f z :=
 begin
-  set A := closed_ball (0 : ℂ) R \ ball 0 r,
+  set A := closed_ball z₀ R \ ball z₀ r,
   obtain ⟨a, rfl⟩ : ∃ a, real.exp a = r, from ⟨real.log r, real.exp_log h0⟩,
   obtain ⟨b, rfl⟩ : ∃ b, real.exp b = R, from ⟨real.log R, real.exp_log (h0.trans_le hle)⟩,
-  simp only [of_real_exp, ← exp_add], rw [real.exp_le_exp] at hle,
-  replace hs : countable (exp ⁻¹' s) := hs.preimage_cexp,
+  rw [real.exp_le_exp] at hle,
+  simp only [circle_integral, add_sub_cancel', of_real_exp, ← exp_add, smul_smul,
+    ← div_eq_mul_inv, mul_div_cancel_left _ (exp_ne_zero _)],
   set R := re ⁻¹' [a, b] ∩ im ⁻¹' [0, 2 * π],
-  have h_maps : maps_to exp R A,
-  { rintro z ⟨h, -⟩, simpa [abs_exp, hle] using h.symm },
-  replace hc : ∀ z ∈ exp ⁻¹' s, continuous_within_at (f ∘ exp) R z,
-    from λ z hz, (hc (exp z) hz).comp continuous_within_at_id.cexp h_maps,
-  replace hd : ∀ z ∈ R \ exp ⁻¹' s, differentiable_within_at ℂ (f ∘ exp) R z,
+  set g : ℂ → ℂ := (+) z₀ ∘ exp,
+  have hdg : ∀ {z t}, differentiable_within_at ℂ g t z :=
+    λ z t, differentiable_at_exp.differentiable_within_at.const_add _,
+  replace hs : countable (g ⁻¹' s) := (hs.preimage (add_right_injective z₀)).preimage_cexp,
+  have h_maps : maps_to g R A,
+  { rintro z ⟨h, -⟩, simpa [dist_eq, g, abs_exp, hle] using h.symm },
+  replace hc : ∀ z ∈ g ⁻¹' s, continuous_within_at (f ∘ g) R z,
+    from λ z hz, (hc (g z) hz).comp hdg.continuous_within_at h_maps,
+  replace hd : ∀ z ∈ R \ g ⁻¹' s, differentiable_within_at ℂ (f ∘ g) R z,
   { intros z hz,
-    exact (hd (exp z) ⟨h_maps hz.1, hz.2⟩).comp z differentiable_within_at_id.cexp h_maps  },
-  simpa [exp_periodic _, sub_eq_zero, (smul_right_injective E I_ne_zero).eq_iff]
+    exact (hd (g z) ⟨h_maps hz.1, hz.2⟩).comp z hdg h_maps },
+  simpa [g, exp_periodic _, sub_eq_zero, (smul_right_injective E I_ne_zero).eq_iff]
     using integral_boundary_rect_eq_zero_of_differentiable_on_off_countable _ ⟨a, 0⟩ ⟨b, 2 * π⟩
       _ hs hc hd
 end
@@ -124,25 +130,26 @@ punctured closed disc of radius `R` and has a limit `y` at the center of the dis
 $\int_{|z|=R} f(z)\,d(\arg z)=-i\int_{|z|=R}\frac{f(z)\,dz}{z}$ is equal to $2πy`. Moreover, the
 same is true if at the points of some countable set, `f` is only continuous, not differentiable. -/
 lemma integral_circle_darg_of_differentiable_on_off_countable_of_tendsto
-  {R : ℝ} (h0 : 0 < R) {f : ℂ → E} {y : E} {s : set ℂ} (hs : countable s)
-  (hc : ∀ z ∈ s, continuous_within_at f (closed_ball 0 R \ {0}) z)
-  (hd : ∀ z ∈ closed_ball 0 R \ {(0 : ℂ)} \ s,
-    differentiable_within_at ℂ f (closed_ball 0 R \ {0}) z)
-  (hy : tendsto f (𝓝[{0}ᶜ] 0) (𝓝 y)) :
-  ∫ (θ : ℝ) in 0..2 * π, f (R * exp (θ * I)) = (2 * π) • y :=
+  {z₀ : ℂ} {R : ℝ} (h0 : 0 < R) {f : ℂ → E} {y : E} {s : set ℂ} (hs : countable s)
+  (hc : ∀ z ∈ s, continuous_within_at f (closed_ball z₀ R \ {z₀}) z)
+  (hd : ∀ z ∈ closed_ball z₀ R \ {z₀} \ s,
+    differentiable_within_at ℂ f (closed_ball z₀ R \ {z₀}) z)
+  (hy : tendsto f (𝓝[{z₀}ᶜ] z₀) (𝓝 y)) :
+  ∮ z in C(z₀, R), (z - z₀)⁻¹ • f z = (2 * π * I : ℂ) • y :=
 begin
   rw [← sub_eq_zero, ← norm_le_zero_iff],
   refine le_of_forall_le_of_dense (λ ε ε0, _),
   obtain ⟨δ, δ0, hδ⟩ :
-    ∃ δ > (0 : ℝ), ∀ z ∈ closed_ball (0 : ℂ) δ \ {0}, dist (f z) y < ε / (2 * π),
+    ∃ δ > (0 : ℝ), ∀ z ∈ closed_ball z₀ δ \ {z₀}, dist (f z) y < ε / (2 * π),
     from ((nhds_within_has_basis nhds_basis_closed_ball _).tendsto_iff nhds_basis_ball).1 hy _
       (div_pos ε0 real.two_pi_pos),
   obtain ⟨r, hr0, hrδ, hrR⟩ : ∃ r, 0 < r ∧ r ≤ δ ∧ r ≤ R :=
     ⟨min δ R, lt_min δ0 h0, min_le_left _ _, min_le_right _ _⟩,
-  have hsub : closed_ball (0 : ℂ) R \ ball 0 r ⊆ closed_ball 0 R \ {(0 : ℂ)},
+  have hsub : closed_ball z₀ R \ ball z₀ r ⊆ closed_ball z₀ R \ {z₀},
     from diff_subset_diff_right (singleton_subset_iff.2 $ mem_ball_self hr0),
-  have : ∫ (θ : ℝ) in 0..2 * π, f (R * exp (θ * I)) = ∫ (θ : ℝ) in 0..2 * π, f (r * exp (θ * I)),
-  { refine integral_circle_darg_eq_of_differentiable_on_annulus_off_countable hr0 hrR hs _ _,
+  have : ∮ z in C(z₀, R), (z - z₀)⁻¹ • f z = ∮ z in C(z₀, r), (z - z₀)⁻¹ • f z,
+  { refine circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable
+      hr0 hrR hs _ _,
     exacts [λ z hz, (hc z hz).mono hsub, λ z hz, (hd z ⟨hsub hz.1, hz.2⟩).mono hsub] },
   rw this,
   have hmem : ∀ y : ℝ, ↑r * exp (y * I) ∈ closed_ball (0 : ℂ) r \ {0},

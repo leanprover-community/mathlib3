@@ -119,7 +119,7 @@ direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
   direct_sum.subgroup_coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
 
-lemma direct_sum.coe_mul_apply_add_subgroup [add_monoid ι] [decidable_eq ι] [ring R]
+lemma direct_sum.coe_mul_apply_add_subgroup [add_monoid ι] [ring R]
   (A : ι → add_subgroup R) [set_like.graded_monoid A] [Π (i : ι) (x : A i), decidable (x ≠ 0)]
   (r r' : ⨁ i, A i) (i : ι) :
   ((r * r') i : R) =

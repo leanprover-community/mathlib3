@@ -227,6 +227,7 @@ finite-dimensional vector space is an eigenvalue for that operator. -/
 lemma has_eigenvalue_supr_of_finite_dimensional (hT : is_self_adjoint T) :
   has_eigenvalue T ↑(⨆ x : {x : E // x ≠ 0}, is_R_or_C.re ⟪T x, x⟫ / ∥(x:E)∥ ^ 2) :=
 begin
+  haveI := finite_dimensional.proper_is_R_or_C 𝕜 E,
   let T' : E →L[𝕜] E := T.to_continuous_linear_map,
   have hT' : is_self_adjoint (T' : E →ₗ[𝕜] E) := hT,
   obtain ⟨x, hx⟩ : ∃ x : E, x ≠ 0 := exists_ne 0,
@@ -249,6 +250,7 @@ finite-dimensional vector space is an eigenvalue for that operator. -/
 lemma has_eigenvalue_infi_of_finite_dimensional (hT : is_self_adjoint T) :
   has_eigenvalue T ↑(⨅ x : {x : E // x ≠ 0}, is_R_or_C.re ⟪T x, x⟫ / ∥(x:E)∥ ^ 2) :=
 begin
+  haveI := finite_dimensional.proper_is_R_or_C 𝕜 E,
   let T' : E →L[𝕜] E := T.to_continuous_linear_map,
   have hT' : is_self_adjoint (T' : E →ₗ[𝕜] E) := hT,
   obtain ⟨x, hx⟩ : ∃ x : E, x ≠ 0 := exists_ne 0,

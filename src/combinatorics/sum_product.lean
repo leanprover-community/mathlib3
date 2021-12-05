@@ -4,6 +4,7 @@ import analysis.special_functions.pow
 import data.complex.basic
 import topology.instances.real
 import tactic.by_contra
+import set_theory.fincard
 
 /-!
 # The sum-product problem
@@ -30,14 +31,6 @@ finset.subset.antisymm A.mul_singleton_zero (by simpa [finset.mem_mul] using hA)
 lemma finset.singleton_zero_mul_of_nonempty [decidable_eq α] [mul_zero_class α] (hA : A.nonempty) :
   {(0 : α)} * A = {0} :=
 finset.subset.antisymm A.singleton_zero_mul (by simpa [finset.mem_mul] using hA)
-
--- @[simp] lemma finset.mul_singleton_one [decidable_eq α] [mul_one_class α] :
---   A * {1} = A :=
--- by { ext x, simp [finset.mem_mul] }
-
--- @[simp] lemma finset.singleton_one_mul [decidable_eq α] [mul_one_class α] :
---   {(1 : α)} * A = A :=
--- by { ext x, simp [finset.mem_mul] }
 
 lemma finset.product_singleton [decidable_eq α] (a : α) : A.product {a} = A.image (λ i, (i, a)) :=
 begin
@@ -254,9 +247,13 @@ begin
       sub_add_cancel] }
 end
 
-lemma floor_div_nat [linear_ordered_field α] [floor_semiring α] {a : α} {n : ℕ} (ha : 0 ≤ a) :
+lemma floor_div_nat [linear_ordered_field α] [floor_semiring α] (a : α) (n : ℕ) :
   ⌊a / n⌋₊ = ⌊a⌋₊ / n :=
 begin
+  cases le_total a 0 with ha ha,
+  { rw [nat.floor_of_nonpos, nat.floor_of_nonpos ha],
+    { simp },
+    apply div_nonpos_of_nonpos_of_nonneg ha (nat.cast_nonneg _) },
   obtain rfl | hn := n.eq_zero_or_pos,
   { rw [nat.cast_zero, div_zero, nat.div_zero, nat.floor_zero] },
   refine (nat.floor_eq_iff _).2 _,
@@ -264,7 +261,7 @@ begin
   split,
   { exact nat.cast_div_le.trans (div_le_div_of_le_of_nonneg (nat.floor_le ha) n.cast_nonneg) },
   rw [div_lt_iff, add_mul, one_mul, ←nat.cast_mul, ←nat.cast_add, ←nat.floor_lt ha],
-  exact nat.lt_div_mul_add hn,
+  { exact nat.lt_div_mul_add hn },
   { exact (nat.cast_pos.2 hn) }
 end
 
@@ -272,8 +269,8 @@ end
 lemma floor_div_eq_div [linear_ordered_field α] [floor_semiring α] {m n : ℕ} :
   ⌊(m : α) / n⌋₊ = m / n :=
 begin
-  convert floor_div_nat _,
-  exacts [m.floor_coe.symm, m.cast_nonneg],
+  convert floor_div_nat (m : α) n,
+  rw m.floor_coe,
 end
 
 end floor
@@ -507,10 +504,6 @@ begin
   exact ⟨j, by simpa [diff.symm] using hj⟩,
 end
 
--- def mul_good_triple (A Q : finset ℝ) (a q : ℝ) : Prop :=
---   ((A * Q).filter (λ v, abs (v - a * q) ≤ abs (A.neighbour a * q - a * q))).card * A.card ≤
---     12 * (A * Q).card
-
 lemma many_mul_good_triple {q : ℝ} (hQ : Q ≠ {0}) (hQ' : Q.nonempty) :
   ((A.filter (λ a, ¬mul_good_triple A Q a q)).card : ℝ) ≤ 1/4 * (A.card : ℝ) :=
 begin
@@ -564,11 +557,7 @@ begin
     simp only [mem_filter] at ha,
     exact_mod_cast (not_le.1 ha.2).le },
   apply lt_of_lt_of_le _ (le_sum_of_forall_le _ _ _ this),
-  rw nsmul_eq_mul,
-  rw mul_div_assoc',
-  rw lt_div_iff hA',
-  rw mul_right_comm,
-  rw ←mul_assoc,
+  rw [nsmul_eq_mul, mul_div_assoc', lt_div_iff hA', mul_right_comm, ←mul_assoc],
   apply mul_lt_mul_of_pos_right _ hB'',
   linarith [h]
 end
@@ -596,32 +585,8 @@ begin
   norm_num,
 end
 
--- -- ???
--- lemma mul_good_triple_zero (a : ℝ) :
---   mul_good_triple A {0} a 0 ↔ A.card ≤ 12 :=
--- begin
---   rw mul_good_triple,
---   rcases A.eq_empty_or_nonempty with rfl | hA,
---   { simp only [card_empty, true_iff, eq_self_iff_true, mul_zero, empty_mul, le_zero_iff],
---     norm_num },
---   simp only [filter_congr_decidable, abs_nonpos_iff, zero_sub, abs_neg, abs_zero, mul_zero],
---   rw mul_singleton_zero_of_nonempty hA,
---   simp,
--- end
-
 def good_triples (A B Q : finset ℝ) : finset (ℝ × ℝ × ℝ) :=
   ((A.product (B.product Q)).filter (λ (abq : ℝ × ℝ × ℝ), good_triple A B Q abq.1 abq.2.1 abq.2.2))
-
--- lemma good_triples_degenerate_Q :
---   good_triples A B {0} = sorry :=
--- begin
---   simp only [good_triples, good_triple],
---   have : good_triples A B {0} = sorry,
--- end
-
--- lemma card_bUnion_le_card_mul [decidable_eq β] (s : finset ι) (f : ι → finset β) (n : ℕ)
---   (h : ∀ a ∈ s, (f a).card ≤ n) :
---   (s.bUnion f).card ≤ s.card * n :=
 
 lemma many_good_triples (A B Q : finset ℝ) (hB : B.nonempty)
   (hQ : Q.nonempty) (hQ' : Q ≠ {0}):
@@ -670,9 +635,6 @@ lemma inj_on_aux_a {a b q x y z w : ℝ} (hx : x = a + b) (hy : y = A.neighbour 
   a = z * (y - x) / (w - z) :=
 by rw [mul_div_assoc, ←inv_div, ←inj_on_aux_q hx hy hz hw, eq_mul_inv_iff_mul_eq₀ hq, hz]
 
--- lemma good_triples_card_le (A B Q : finset ℝ) (hQ' : (0:ℝ) ∉ Q) :
---   (good_triples A B Q).card =
-
 def three_to_four_map (A : finset ℝ) : ℝ × ℝ × ℝ → (ℝ × ℝ) × ℝ × ℝ :=
 λ ⟨a, b, q⟩, ⟨⟨a + b, A.neighbour a + b⟩, a * q, A.neighbour a * q⟩
 
@@ -708,7 +670,8 @@ def left_good_quads (A B Q : finset ℝ) : finset (ℝ × ℝ) := (good_quads A 
 def right_good_quads (A B Q : finset ℝ) : finset (ℝ × ℝ) := (good_quads A B Q).image prod.snd
 
 lemma left_good_quads_subset (hA : 2 ≤ A.card) :
-  (left_good_quads A B Q).card ≤ ((A + B).sigma (λ u, nearest_neighbours (A + B) u (12 * (A+B).card / A.card))).card :=
+  (left_good_quads A B Q).card ≤
+    ((A + B).sigma (λ u, nearest_neighbours (A + B) u (12 * (A+B).card / A.card))).card :=
 begin
   refine card_le_card_of_inj_on _ _ _,
   { rintro x,
@@ -732,7 +695,8 @@ begin
 end
 
 lemma right_good_quads_subset (hA : 2 ≤ A.card) :
-  (right_good_quads A B Q).card ≤ ((A * Q).sigma (λ u, nearest_neighbours (A * Q) u (12 * (A*Q).card / A.card))).card :=
+  (right_good_quads A B Q).card ≤
+    ((A * Q).sigma (λ u, nearest_neighbours (A * Q) u (12 * (A*Q).card / A.card))).card :=
 begin
   refine card_le_card_of_inj_on _ _ _,
   { rintro x,
@@ -786,14 +750,6 @@ begin
   apply (nat.mul_div_le_mul_div_assoc _ _ _).trans,
   rw [mul_left_comm, sq],
 end
-
--- def add_good_triple (A B : finset ℝ) (a b : ℝ) : Prop :=
---   ((A + B).filter (λ u, abs (u - (a + b)) ≤ abs (A.neighbour a - a))).card * A.card ≤
---     12 * (A + B).card
-
--- def mul_good_triple (A Q : finset ℝ) (a q : ℝ) : Prop :=
---   ((A * Q).filter (λ v, abs (v - a * q) ≤ abs (A.neighbour a * q - a * q))).card * A.card ≤
---     12 * (A * Q).card
 
 lemma good_quads_card_le (hA : 2 ≤ A.card) :
   (good_quads A B Q).card ≤ 12 * 12 * (A + B).card^2 * (A * Q).card^2 / A.card^2 :=
@@ -899,6 +855,7 @@ begin
   simp only [hQ'.ne_empty, hQ, false_or, not_false_iff],
 end
 
+variables (A)
 lemma real_specific_bound :
   A.card^5 ≤ 576 * (A + A).card^2 * (A * A).card^2 :=
 begin
@@ -906,3 +863,55 @@ begin
   { simp },
   exact le_trans (le_of_eq (by ring)) (real_bound A A A hA hA),
 end
+
+lemma pow_left_monotone (n : ℕ) : monotone (λ (i:ℕ), i^n) := λ _ _ h, pow_le_pow_of_le_left' h _
+
+lemma specific_max_bound :
+  A.card ^ 5 ≤ (5 * max (A + A).card (A * A).card) ^ 4 :=
+begin
+  rcases A.eq_empty_or_nonempty with rfl | hA,
+  { simp },
+  rw [mul_pow, (show _ ^ 4 = _, from (pow_left_monotone 4).map_max),
+    mul_max_of_nonneg _ _ (nat.zero_le _), ←not_lt, max_lt_iff],
+  rintro ⟨h₁, h₂⟩,
+  apply not_lt_of_le (real_specific_bound A),
+  rw ←(nat.pow_left_strict_mono one_le_two).lt_iff_lt,
+  dsimp,
+  rw sq (A.card ^ 5),
+  apply lt_of_le_of_lt _ (nat.mul_lt_mul h₁ h₂.le _),
+  { rw [mul_mul_mul_comm, mul_pow, mul_pow, mul_assoc, ←pow_mul, ←pow_mul],
+    apply nat.mul_le_mul_right,
+    norm_num1 },
+  refine mul_pos (by norm_num1) (pow_pos _ _),
+  simpa [card_pos],
+end
+
+-- We cannot have both A + A and A * A linear in A. Note that it is possible for either of them
+-- linear, by taking an arithmetic or geometric progression respectively, but not simultaneously
+lemma max_bound :
+  1/5 * (A.card : ℝ)^(5/4 : ℝ) ≤ max (A + A).card (A * A).card :=
+begin
+  rw [←not_lt, mul_comm, mul_one_div, lt_div_iff'],
+  intro h,
+  have : (5 * max (A + A).card (A * A).card)^4 < (A.card)^5,
+  { suffices : (5 * max (A + A).card (A * A).card : ℝ)^4 < (A.card)^5,
+    { exact_mod_cast this },
+    rw [←real.rpow_nat_cast, ←real.rpow_nat_cast],
+    simp only [nat.cast_bit1, nat.cast_bit0, nat.cast_one],
+    apply (real.rpow_lt_rpow _ h _).trans_le,
+    { rw [←real.rpow_mul (nat.cast_nonneg _), div_mul_cancel],
+      norm_num1 },
+    { exact_mod_cast (nat.zero_le _) },
+    { norm_num1 } },
+  apply not_le_of_lt this (specific_max_bound A),
+  norm_num
+end
+
+-- lemma real_specific_bound_nat_card (A : set ℝ) :
+--   (nat.card A)^5 ≤ 576 * (nat.card (A + A : set ℝ))^2 * (nat.card (A * A : set ℝ))^2 :=
+-- begin
+--   casesI fintype_or_infinite A,
+--   { simp,
+--     have := set.fintype_mul,
+--   }
+-- end

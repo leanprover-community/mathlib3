@@ -64,7 +64,7 @@ begin
   rw nat.Inf_eq_zero, right, assumption,
 end
 
-lemma Inf_plus {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m : ℕ | p m}) :
+lemma Inf_add {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m : ℕ | p m}) :
   Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
 begin
   symmetry,

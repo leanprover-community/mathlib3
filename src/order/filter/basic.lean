@@ -2286,15 +2286,6 @@ begin
   ... ≤ comap f b : by simpa [comap_comap] using comap_mono hg
 end
 
-lemma tendsto.of_tendsto_comp {f : α → β} {g : β → γ} {a : filter α} {b : filter β} {c : filter γ}
-  (hfg : tendsto (g ∘ f) a c) (hg : comap g c ≤ b) :
-  tendsto f a b :=
-begin
-  rw tendsto_iff_comap at hfg ⊢,
-  calc a ≤ comap (g ∘ f) c : hfg
-  ... ≤ comap f b : by simpa [comap_comap] using comap_mono hg
-end
-
 lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
   (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
 begin

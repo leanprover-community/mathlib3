@@ -458,6 +458,12 @@ by simp [abs]
 @[simp] lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
 
+@[simp] lemma abs_pow (z : ℂ) (n : ℕ) : abs (z ^ n) = abs z ^ n :=
+monoid_hom.map_pow ⟨abs, abs_one, abs_mul⟩ z n
+
+@[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
+monoid_with_zero_hom.map_zpow ⟨abs, abs_zero, abs_one, abs_mul⟩ z n
+
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),
        abs_mul_abs_self, mul_self_abs];

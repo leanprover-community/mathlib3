@@ -25,7 +25,7 @@ def cauchy (f : filter α) := ne_bot f ∧ f ×ᶠ f ≤ (𝓤 α)
 has a limit in `s` (formally, it satisfies `f ≤ 𝓝 x` for some `x ∈ s`). -/
 def is_complete (s : set α) := ∀f, cauchy f → f ≤ 𝓟 s → ∃x∈s, f ≤ 𝓝 x
 
-lemma filter.has_basis.cauchy_iff {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s)
+lemma filter.has_basis.cauchy_iff {ι} {p : ι → Prop} {s : ι → set (α × α)} (h : (𝓤 α).has_basis p s)
   {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ i, p i → ∃ t ∈ f, ∀ x y ∈ t, (x, y) ∈ s i)) :=
 and_congr iff.rfl $ (f.basis_sets.prod_self.le_basis_iff h).trans $
@@ -37,8 +37,7 @@ lemma cauchy_iff' {f : filter α} :
 
 lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, (set.prod t t) ⊆ s)) :=
-(𝓤 α).basis_sets.cauchy_iff.trans $
-  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
+cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
   cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α)) :=
@@ -55,16 +54,7 @@ lemma cauchy.mono' {f g : filter α} (h_c : cauchy f) (hg : ne_bot g) (h_le : g 
 h_c.mono h_le
 
 lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
-⟨nhds_ne_bot,
-  calc 𝓝 a ×ᶠ 𝓝 a =
-    (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set(α×α),
-      set.prod {y : α | (y, a) ∈ s} {y : α | (a, y) ∈ t})) : nhds_nhds_eq_uniformity_uniformity_prod
-    ... ≤ (𝓤 α).lift' (λs:set (α×α), comp_rel s s) :
-      le_infi $ assume s, le_infi $ assume hs,
-      infi_le_of_le s $ infi_le_of_le hs $ infi_le_of_le s $ infi_le_of_le hs $
-      principal_mono.mpr $
-      assume ⟨x, y⟩ ⟨(hx : (x, a) ∈ s), (hy : (a, y) ∈ s)⟩, ⟨a, hx, hy⟩
-    ... ≤ 𝓤 α : comp_le_uniformity⟩
+⟨nhds_ne_bot, nhds_prod_eq.symm.trans_le (nhds_le_uniformity a)⟩
 
 lemma cauchy_pure {a : α} : cauchy (pure a) :=
 cauchy_nhds.mono (pure_le_nhds a)

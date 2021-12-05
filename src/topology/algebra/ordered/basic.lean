@@ -2249,8 +2249,14 @@ by simp [frontier, ha]
 @[simp] lemma frontier_Ioi [no_top_order α] {a : α} : frontier (Ioi a) = {a} :=
 by simp [frontier]
 
+@[simp] lemma frontier_Ioi' {a : α} (ha : (Ioi a).nonempty) : frontier (Ioi a) = {a} :=
+let ⟨b, hb⟩ := ha in by simp [frontier, closure_Ioi' hb, Iic_diff_Iio, Icc_self]
+
 @[simp] lemma frontier_Iio [no_bot_order α] {a : α} : frontier (Iio a) = {a} :=
 by simp [frontier]
+
+@[simp] lemma frontier_Iio' {a : α} (ha : (Iio a).nonempty) : frontier (Iio a) = {a} :=
+let ⟨b, hb⟩ := ha in by simp [frontier, closure_Iio' hb, Iic_diff_Iio, Icc_self]
 
 @[simp] lemma frontier_Icc [no_bot_order α] [no_top_order α] {a b : α} (h : a < b) :
   frontier (Icc a b) = {a, b} :=
@@ -2671,3 +2677,5 @@ lemma monotone.tendsto_nhds_within_Ioi
 end conditionally_complete_linear_order
 
 end order_topology
+
+#lint

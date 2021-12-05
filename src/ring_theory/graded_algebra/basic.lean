@@ -140,3 +140,50 @@ begin
 end
 
 end graded_algebra
+
+-- section homogeneous_element
+-- open_locale pointwise
+
+-- variables {ι R A : Type*}
+-- variables [decidable_eq ι] [add_comm_monoid ι] [comm_semiring R] [ring A] [algebra R A]
+-- variables (𝒜 : ι → submodule R A)
+
+-- /-- An element `a : A` is said to be homogeneous if there is some
+-- `i : ι` such that `a ∈ 𝒜 i`-/
+-- def is_homogeneous (a : A) : Prop := ∃ i, r ∈ 𝒜 i
+
+-- /--We collect all homogeneneous elements into a subtype `homogeneous_element` -/
+-- def homogeneous_element : Type* := {a // is_homogeneous a}
+
+-- instance homogeneous_element.has_mul [graded_algebra 𝒜] :
+--   has_mul (homogeneous_element 𝒜) :=
+-- { mul := λ x y, ⟨x.1 * y.1, begin
+--   obtain ⟨i, hi⟩ := x.2,
+--   obtain ⟨j, hj⟩ := y.2,
+--   use (i + j), exact graded_ring.core.mul_respect_grading hi hj,
+-- end ⟩ }
+
+-- /--lifting is a `mul_hom`-/
+-- def homogeneous_element.coe_mul_hom [graded_algebra 𝒜] :
+--   (homogeneous_element 𝒜) →* R :=
+-- { to_fun := λ r, r.1,
+--   map_mul' := λ x y, begin
+--     cases x, cases y, simp only [subtype.val_eq_coe], refl,
+--   end }
+
+-- instance lift_homogeneous_element [graded_algebra 𝒜]
+--   : has_lift (homogeneous_element R A) R :=
+-- { lift := homogeneous_element.coe_mul_hom R A }
+
+
+-- instance lift_homogeneous_set
+--   [graded_algebra 𝒜] :
+--   has_lift (set (homogeneous_element R A)) (set R) :=
+-- { lift := λ S, (homogeneous_element.coe_mul_hom R A) '' S }
+
+-- variables [add_comm_monoid ι] [decidable_eq ι]
+
+-- instance homogeneous_element_inhabited [graded_algebra 𝒜] : inhabited (homogeneous_element 𝒜) :=
+-- ⟨⟨1, ⟨0, graded_ring.core.one_degree_zero⟩⟩⟩
+
+-- end homogeneous_element

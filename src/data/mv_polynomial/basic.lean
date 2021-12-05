@@ -289,7 +289,8 @@ theorem induction_on' {P : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
 finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                      show P (monomial 0 0), from h1 0 0)
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
-/-- Similar to `induction_on` but only a weak form of `h_add` is required.-/
+
+/-- Similar to `mv_polynomial.induction_on` but only a weak form of `h_add` is required.-/
 lemma induction_on'' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) (h_C : ∀ a, M (C a))
   (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
     a ∉ f.support → b ≠ 0 → M f → M (monomial a b + f)) (h_X : ∀p n, M p → M (p * X n)) : M p :=

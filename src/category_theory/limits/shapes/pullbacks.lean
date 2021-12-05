@@ -1025,10 +1025,11 @@ end
 
 variables (i : Z ⟶ W) [mono i]
 
-instance has_pullback_of_right_factors_mono : has_pullback i (f ≫ i) :=
+instance has_pullback_of_right_factors_mono (f : X ⟶ Z) : has_pullback i (f ≫ i) :=
 by { nth_rewrite 0 ← category.id_comp i, apply_instance }
 
-instance pullback_snd_iso_of_right_factors_mono : is_iso (pullback.snd : pullback i (f ≫ i) ⟶ _) :=
+instance pullback_snd_iso_of_right_factors_mono (f : X ⟶ Z) :
+  is_iso (pullback.snd : pullback i (f ≫ i) ⟶ _) :=
 begin
   convert (congr_arg is_iso (show _ ≫ pullback.snd = _,
     from limit.iso_limit_cone_hom_π ⟨_,pullback_is_pullback_of_comp_mono (𝟙 _) f i⟩
@@ -1221,10 +1222,11 @@ end
 
 variables (h : W ⟶ X) [epi h]
 
-instance has_pushout_of_left_factors_epi : has_pushout (h ≫ f) h :=
+instance has_pushout_of_left_factors_epi (f : X ⟶ Y) : has_pushout (h ≫ f) h :=
 by { nth_rewrite 1 ← category.comp_id h, apply_instance }
 
-instance pushout_inl_iso_of_left_factors_epi : is_iso (pushout.inl : _ ⟶ pushout (h ≫ f) h) :=
+instance pushout_inl_iso_of_left_factors_epi (f : X ⟶ Y) :
+  is_iso (pushout.inl : _ ⟶ pushout (h ≫ f) h) :=
 begin
   convert (congr_arg is_iso (show pushout.inl ≫ _ = _,
     from colimit.iso_colimit_cocone_ι_inv ⟨_, pushout_is_pushout_of_epi_comp f (𝟙 _) h⟩

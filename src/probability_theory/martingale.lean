@@ -7,7 +7,22 @@ Authors: Rémy Degenne
 import probability_theory.stopping
 import measure_theory.function.conditional_expectation
 
-/-! # Martingales
+/-!
+# Martingales
+
+A family of functions `f : ι → α → E` is a martingale with respect to a filtration `ℱ` if every
+`f i` is integrable, `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
+`μ[f j | ℱ.le i] =ᵐ[μ] f i`.
+The definitions of filtration and adapted can be found in `probability_theory.stopping`.
+
+### Definitions
+
+* `is_martingale f ℱ μ`: `f` is a martingale with respect to filtration `ℱ` and measure `μ`.
+
+### Results
+
+* `is_martingale_condexp f ℱ μ`: the sequence `λ i, μ[f | ℱ i, ℱ.le i])` is a martingale with
+  respect to `ℱ` and `μ`.
 
 -/
 

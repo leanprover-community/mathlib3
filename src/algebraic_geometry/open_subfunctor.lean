@@ -742,5 +742,4 @@ end
 instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) : has_pullback f g :=
 has_pullback_of_cover (Z.affine_cover.pullback_cover f) f g
 
-
 end algebraic_geometry.Scheme

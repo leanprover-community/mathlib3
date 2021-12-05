@@ -1794,38 +1794,6 @@ begin
   exact (condexp_add hf hg.neg).trans (eventually_eq.rfl.add (condexp_neg g)),
 end
 
-lemma trim_trim {m₁ m₂ : measurable_space α} {hm₁₂ : m₁ ≤ m₂} {hm₂ : m₂ ≤ m0} :
-  (μ.trim hm₂).trim hm₁₂ = μ.trim (hm₁₂.trans hm₂) :=
-begin
-  ext1 t ht,
-  rw [trim_measurable_set_eq hm₁₂ ht, trim_measurable_set_eq (hm₁₂.trans hm₂) ht,
-    trim_measurable_set_eq hm₂ (hm₁₂ t ht)],
-end
-
-/-- Having this as an instance causes timeouts. -/
-def sigma_finite_trim_of_le {m₁ m₂ : measurable_space α} {hm₁₂ : m₁ ≤ m₂} {hm₂ : m₂ ≤ m0}
-  [sigma_finite (μ.trim (hm₁₂.trans hm₂))] :
-  sigma_finite (μ.trim hm₂) :=
-begin
-  refine sigma_finite_iff.mpr _,
-  use spanning_sets (μ.trim (hm₁₂.trans hm₂)),
-  { simp, },
-  { refine λ i, (le_trim hm₁₂).trans_lt _,
-    rw trim_trim,
-    exact measure_spanning_sets_lt_top (μ.trim (hm₁₂.trans hm₂)) i, },
-  { exact Union_spanning_sets (μ.trim (hm₁₂.trans hm₂)), },
-end
-
-include hm
-/-- Having this as an instance causes timeouts. -/
-def sigma_finite_of_trim : sigma_finite μ :=
-begin
-  have h : sigma_finite (μ.trim le_rfl),
-    from @measure_theory.sigma_finite_trim_of_le _ m0 μ m m0 hm le_rfl _,
-  rwa trim_eq_self at h,
-end
-omit hm
-
 lemma condexp_condexp_of_le {m₁ m₂ m0 : measurable_space α} {μ : measure α}
   (hm₁₂ : m₁ ≤ m₂) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim (hm₁₂.trans hm₂))]
   [sigma_finite (μ.trim hm₂)] :

@@ -55,6 +55,9 @@ lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 1 := by simp [totient]
 | (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
+lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
+  (filter (a.coprime) (Ico n (n+a))).card = totient a := by simp [totient]
+
 open zmod
 
 /-- Note this takes an explicit `fintype (units (zmod n))` argument to avoid trouble with instance

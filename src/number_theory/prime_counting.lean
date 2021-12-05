@@ -140,4 +140,21 @@ begin
   { exact le_add_right (le_add_right (monotone_prime_counting' n_le_k))},
 end
 
+/-- A linear upper bound on the size of the `prime_counting'` function -/
+lemma linear_prime_counting_bound_6 (n : ℕ) :
+  π' n ≤ 4 + 2 * (n / 6) :=
+begin
+  have h := linear_prime_counting_bound n 6 (by linarith),
+  suffices : 4 + 2 * (n / 6) = prime_counting' 6 + 1 + totient 6 * (n / 6),
+  { rwa this, },
+  congr,
+  { -- TODO add a tactic (or perhaps an add-on to `norm_num`) to brute force `π` and `π'`
+    -- calculation.
+    -- TODO prove by simping after #9457 merged
+    sorry, },
+  { -- TODO add a tactic (or perhaps an add-on to `norm_num`) to brute force totient calculation.
+    have : 6 = 2 * 3 := by norm_num,
+    rw [this, totient_mul, totient_prime, totient_prime]; norm_num, },
+end
+
 end nat

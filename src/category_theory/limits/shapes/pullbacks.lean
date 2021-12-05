@@ -763,6 +763,8 @@ begin
   tidy
 end
 
+/-- If `f₁ = f₂` and `g₁ = g₂`, we may construct a canonical
+isomorphism `pullback f₁ g₁ ≅ pullback f₂ g₂` -/
 @[simps hom]
 def pullback.congr_hom {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
   (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
@@ -797,6 +799,8 @@ begin
   tidy
 end
 
+/-- If `f₁ = f₂` and `g₁ = g₂`, we may construct a canonical
+isomorphism `pushout f₁ g₁ ≅ pullback f₂ g₂` -/
 @[simps hom]
 def pushout.congr_hom {X Y Z : C} {f₁ f₂ : X ⟶ Y} {g₁ g₂ : X ⟶ Z}
   (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pushout f₁ g₁] [has_pushout f₂ g₂] :
@@ -1082,10 +1086,11 @@ end
 
 variables (i : Z ⟶ W) [mono i]
 
-instance has_pullback_of_left_factors_mono : has_pullback (f ≫ i) i :=
+instance has_pullback_of_left_factors_mono (f : X ⟶ Z) : has_pullback (f ≫ i) i :=
 by { nth_rewrite 1 ← category.id_comp i, apply_instance }
 
-instance pullback_snd_iso_of_left_factors_mono : is_iso (pullback.fst : pullback (f ≫ i) i ⟶ _) :=
+instance pullback_snd_iso_of_left_factors_mono (f : X ⟶ Z) :
+  is_iso (pullback.fst : pullback (f ≫ i) i ⟶ _) :=
 begin
   convert (congr_arg is_iso (show _ ≫ pullback.fst = _,
     from limit.iso_limit_cone_hom_π ⟨_,pullback_is_pullback_of_comp_mono f (𝟙 _) i⟩
@@ -1154,10 +1159,11 @@ end
 
 variables (h : W ⟶ X) [epi h]
 
-instance has_pushout_of_right_factors_epi : has_pushout h (h ≫ f) :=
+instance has_pushout_of_right_factors_epi (f : X ⟶ Y) : has_pushout h (h ≫ f) :=
 by { nth_rewrite 0 ← category.comp_id h, apply_instance }
 
-instance pushout_inr_iso_of_right_factors_epi : is_iso (pushout.inr : _ ⟶ pushout h (h ≫ f)) :=
+instance pushout_inr_iso_of_right_factors_epi (f : X ⟶ Y) :
+  is_iso (pushout.inr : _ ⟶ pushout h (h ≫ f)) :=
 begin
   convert (congr_arg is_iso (show pushout.inr ≫ _ = _,
     from colimit.iso_colimit_cocone_ι_inv ⟨_, pushout_is_pushout_of_epi_comp (𝟙 _) f h⟩

@@ -22,7 +22,7 @@ variables {α : Type u} {β : Type v} {δ : Type w}
 protected theorem eta (s : stream α) : head s :: tail s = s :=
 funext (λ i, begin cases i; refl end)
 
-theorem nth_zero_cons (a : α) (s : stream α) : nth 0 (a :: s) = a := rfl
+theorem nth_zero_cons (a : α) (s : stream α) : nth (a :: s) 0 = a := rfl
 
 theorem head_cons (a : α) (s : stream α) : head (a :: s) = a := rfl
 
@@ -31,23 +31,23 @@ theorem tail_cons (a : α) (s : stream α) : tail (a :: s) = s := rfl
 theorem tail_drop (n : nat) (s : stream α) : tail (drop n s) = drop n (tail s) :=
 funext (λ i, begin unfold tail drop, simp [nat.add_comm, nat.add_left_comm] end)
 
-theorem nth_drop (n m : nat) (s : stream α) : nth n (drop m s) = nth (n+m) s := rfl
+theorem nth_drop (n m : nat) (s : stream α) : nth (drop m s) n = nth s (n + m) := rfl
 
 theorem tail_eq_drop (s : stream α) : tail s = drop 1 s := rfl
 
 theorem drop_drop (n m : nat) (s : stream α) : drop n (drop m s) = drop (n+m) s :=
 funext (λ i, begin unfold drop, rw nat.add_assoc end)
 
-theorem nth_succ (n : nat) (s : stream α) : nth (succ n) s = nth n (tail s) := rfl
+theorem nth_succ (n : nat) (s : stream α) : nth s (succ n) = nth (tail s) n := rfl
 
 theorem drop_succ (n : nat) (s : stream α) : drop (succ n) s = drop n (tail s) := rfl
 
-protected theorem ext {s₁ s₂ : stream α} : (∀ n, nth n s₁ = nth n s₂) → s₁ = s₂ :=
+protected theorem ext {s₁ s₂ : stream α} : (∀ n, nth s₁ n = nth s₂ n) → s₁ = s₂ :=
 assume h, funext h
 
-theorem all_def (p : α → Prop) (s : stream α) : all p s = ∀ n, p (nth n s) := rfl
+theorem all_def (p : α → Prop) (s : stream α) : all p s = ∀ n, p (nth s n) := rfl
 
-theorem any_def (p : α → Prop) (s : stream α) : any p s = ∃ n, p (nth n s) := rfl
+theorem any_def (p : α → Prop) (s : stream α) : any p s = ∃ n, p (nth s n) := rfl
 
 theorem mem_cons (a : α) (s : stream α) : a ∈ (a::s) :=
 exists.intro 0 rfl
@@ -64,7 +64,7 @@ begin
   { right, rw [nth_succ, tail_cons] at h, exact ⟨n', h⟩ }
 end
 
-theorem mem_of_nth_eq {n : nat} {s : stream α} {a : α} : a = nth n s → a ∈ s :=
+theorem mem_of_nth_eq {n : nat} {s : stream α} {a : α} : a = nth s n → a ∈ s :=
 assume h, exists.intro n h
 
 section map
@@ -73,7 +73,7 @@ variable (f : α → β)
 theorem drop_map (n : nat) (s : stream α) : drop n (map f s) = map f (drop n s) :=
 stream.ext (λ i, rfl)
 
-theorem nth_map (n : nat) (s : stream α) : nth n (map f s) = f (nth n s) := rfl
+theorem nth_map (n : nat) (s : stream α) : nth (map f s) n = f (nth s n) := rfl
 
 theorem tail_map (s : stream α) : tail (map f s) = map f (tail s) :=
 begin rw tail_eq_drop, refl end
@@ -97,7 +97,7 @@ assume ⟨n, h⟩,
 exists.intro n (by rw [nth_map, h])
 
 theorem exists_of_mem_map {f} {b : β} {s : stream α} : b ∈ map f s → ∃ a, a ∈ s ∧ f a = b :=
-assume ⟨n, h⟩, ⟨nth n s, ⟨n, rfl⟩, h.symm⟩
+assume ⟨n, h⟩, ⟨nth s n, ⟨n, rfl⟩, h.symm⟩
 end map
 
 section zip
@@ -108,7 +108,7 @@ theorem drop_zip (n : nat) (s₁ : stream α) (s₂ : stream β) :
 stream.ext (λ i, rfl)
 
 theorem nth_zip (n : nat) (s₁ : stream α) (s₂ : stream β) :
-  nth n (zip f s₁ s₂) = f (nth n s₁) (nth n s₂) := rfl
+  nth (zip f s₁ s₂) n = f (nth s₁ n) (nth s₂ n) := rfl
 
 theorem head_zip (s₁ : stream α) (s₂ : stream β) : head (zip f s₁ s₂) = f (head s₁) (head s₂) := rfl
 
@@ -135,7 +135,7 @@ suffices tail (a :: const a) = const a, by rwa [← const_eq] at this, rfl
 
 theorem map_const (f : α → β) (a : α) : map f (const a) = const (f a) := rfl
 
-theorem nth_const (n : nat) (a : α) : nth n (const a) = a := rfl
+theorem nth_const (n : nat) (a : α) : nth (const a) n = a := rfl
 
 theorem drop_const (n : nat) (a : α) : drop n (const a) = const a :=
 stream.ext (λ i, rfl)
@@ -159,10 +159,10 @@ begin
   rw tail_iterate, refl
 end
 
-theorem nth_zero_iterate (f : α → α) (a : α) : nth 0 (iterate f a) = a := rfl
+theorem nth_zero_iterate (f : α → α) (a : α) : nth (iterate f a) 0 = a := rfl
 
 theorem nth_succ_iterate (n : nat) (f : α → α) (a : α) :
-  nth (succ n) (iterate f a) = nth n (iterate f (f a)) :=
+  nth (iterate f a) (succ n) = nth (iterate f (f a)) n :=
 by rw [nth_succ, tail_iterate]
 
 section bisim
@@ -172,7 +172,7 @@ section bisim
   def is_bisimulation := ∀ ⦃s₁ s₂⦄, s₁ ~ s₂ → head s₁ = head s₂ ∧ tail s₁ ~ tail s₂
 
   theorem nth_of_bisim (bisim : is_bisimulation R) :
-    ∀ {s₁ s₂} n, s₁ ~ s₂ → nth n s₁ = nth n s₂ ∧ drop (n+1) s₁ ~ drop (n+1) s₂
+    ∀ {s₁ s₂} n, s₁ ~ s₂ → nth s₁ n = nth s₂ n ∧ drop (n+1) s₁ ~ drop (n+1) s₂
   | s₁ s₂ 0     h := bisim h
   | s₁ s₂ (n+1) h :=
     match bisim h with
@@ -248,7 +248,7 @@ end corec'
 theorem unfolds_eq (g : α → β) (f : α → α) (a : α) : unfolds g f a = g a :: unfolds g f (f a) :=
 begin unfold unfolds, rw [corec_eq] end
 
-theorem nth_unfolds_head_tail : ∀ (n : nat) (s : stream α), nth n (unfolds head tail s) = nth n s :=
+theorem nth_unfolds_head_tail : ∀ (n : nat) (s : stream α), nth (unfolds head tail s) n = nth s n :=
 begin
   intro n, induction n with n' ih,
   { intro s, refl },
@@ -269,20 +269,20 @@ begin unfold interleave corec_on, rw corec_eq, refl end
 theorem interleave_tail_tail (s₁ s₂ : stream α) : tail s₁ ⋈ tail s₂ = tail (tail (s₁ ⋈ s₂)) :=
 begin rw [interleave_eq s₁ s₂], refl end
 
-theorem nth_interleave_left : ∀ (n : nat) (s₁ s₂ : stream α), nth (2*n) (s₁ ⋈ s₂) = nth n s₁
+theorem nth_interleave_left : ∀ (n : nat) (s₁ s₂ : stream α), nth (s₁ ⋈ s₂) (2 * n) = nth s₁ n
 | 0        s₁ s₂ := rfl
 | (succ n) s₁ s₂ :=
   begin
-    change nth (succ (succ (2*n))) (s₁ ⋈ s₂) = nth (succ n) s₁,
+    change nth (s₁ ⋈ s₂) (succ (succ (2*n))) = nth s₁ (succ n),
     rw [nth_succ, nth_succ, interleave_eq, tail_cons, tail_cons, nth_interleave_left],
     refl
   end
 
-theorem nth_interleave_right : ∀ (n : nat) (s₁ s₂ : stream α), nth (2*n+1) (s₁ ⋈ s₂) = nth n s₂
+theorem nth_interleave_right : ∀ (n : nat) (s₁ s₂ : stream α), nth (s₁ ⋈ s₂) (2*n+1) = nth s₂ n
 | 0        s₁ s₂ := rfl
 | (succ n) s₁ s₂ :=
   begin
-    change nth (succ (succ (2*n+1))) (s₁ ⋈ s₂) = nth (succ n) s₂,
+    change nth (s₁ ⋈ s₂) (succ (succ (2*n+1))) = nth s₂ (succ n),
     rw [nth_succ, nth_succ, interleave_eq, tail_cons, tail_cons, nth_interleave_right],
     refl
   end
@@ -330,15 +330,15 @@ eq_of_bisim
     end)
   rfl
 
-theorem nth_even : ∀ (n : nat) (s : stream α), nth n (even s) = nth (2*n) s
+theorem nth_even : ∀ (n : nat) (s : stream α), nth (even s) n = nth s (2*n)
 | 0        s := rfl
 | (succ n) s :=
   begin
-    change nth (succ n) (even s) = nth (succ (succ (2 * n))) s,
+    change nth (even s) (succ n) = nth s (succ (succ (2 * n))),
     rw [nth_succ, nth_succ, tail_even, nth_even], refl
   end
 
-theorem nth_odd : ∀ (n : nat) (s : stream α), nth n (odd s) = nth (2*n + 1) s :=
+theorem nth_odd : ∀ (n : nat) (s : stream α), nth (odd s) n = nth s (2 * n + 1) :=
 λ n s, begin rw [odd_eq, nth_even], refl end
 
 theorem mem_of_mem_even (a : α) (s : stream α) : a ∈ even s → a ∈ s :=
@@ -395,7 +395,7 @@ theorem mem_append_stream_left : ∀ {a : α} {l : list α} (s : stream α), a �
 @[simp] theorem length_take (n : ℕ) (s : stream α) : (take n s).length = n :=
 by induction n generalizing s; simp *
 
-theorem nth_take_succ : ∀ (n : nat) (s : stream α), list.nth (take (succ n) s) n = some (nth n s)
+theorem nth_take_succ : ∀ (n : nat) (s : stream α), list.nth (take (succ n) s) n = some (nth s n)
 | 0     s := rfl
 | (n+1) s := begin rw [take_succ, add_one, list.nth, nth_take_succ], refl end
 
@@ -415,7 +415,7 @@ begin
   intro h, apply stream.ext, intro n,
   induction n with n ih,
   { have aux := h 1, simp [take] at aux, exact aux },
-  { have h₁ : some (nth (succ n) s₁) = some (nth (succ n) s₂),
+  { have h₁ : some (nth s₁ (succ n)) = some (nth s₂ (succ n)),
     { rw [← nth_take_succ, ← nth_take_succ, h (succ (succ n))] },
     injection h₁ }
 end
@@ -447,7 +447,7 @@ coinduction
 theorem tails_eq (s : stream α) : tails s = tail s :: tails (tail s) :=
 by unfold tails; rw [corec_eq]; refl
 
-theorem nth_tails : ∀ (n : nat) (s : stream α), nth n (tails s) = drop n (tail s) :=
+theorem nth_tails : ∀ (n : nat) (s : stream α), nth (tails s) n = drop n (tail s) :=
 begin
   intro n, induction n with n' ih,
   { intros, refl },
@@ -468,7 +468,7 @@ theorem inits_tail (s : stream α) :
   inits (tail s) = inits_core [head (tail s)] (tail (tail s)) := rfl
 
 theorem cons_nth_inits_core : ∀ (a : α) (n : nat) (l : list α) (s : stream α),
-                                 a :: nth n (inits_core l s) = nth n (inits_core (a::l) s) :=
+                                 a :: nth (inits_core l s) n = nth (inits_core (a::l) s) n :=
 begin
   intros a n,
   induction n with n' ih,
@@ -476,7 +476,7 @@ begin
   { intros l s, rw [nth_succ, inits_core_eq, tail_cons, ih, inits_core_eq (a::l) s], refl }
 end
 
-theorem nth_inits : ∀ (n : nat) (s : stream α), nth n (inits s) = take (succ n) s  :=
+theorem nth_inits : ∀ (n : nat) (s : stream α), nth (inits s) n = take (succ n) s  :=
 begin
   intro n, induction n with n' ih,
   { intros, refl },
@@ -506,7 +506,7 @@ theorem interchange (fs : stream (α → β)) (a : α) :
   fs ⊛ pure a = pure (λ f : α → β, f a) ⊛ fs := rfl
 theorem map_eq_apply (f : α → β) (s : stream α) : map f s = pure f ⊛ s := rfl
 
-theorem nth_nats (n : nat) : nth n nats = n := rfl
+theorem nth_nats (n : nat) : nth nats n = n := rfl
 
 theorem nats_eq : nats = 0 :: map succ nats :=
 begin

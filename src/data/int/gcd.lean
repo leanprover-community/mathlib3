@@ -158,10 +158,6 @@ begin
     ... = nat_abs a / nat_abs b : by rw int.div_mul_cancel H,
 end
 
-theorem nat_abs_dvd_abs_iff {i j : ℤ} : i.nat_abs ∣ j.nat_abs ↔ i ∣ j :=
-⟨assume (H : i.nat_abs ∣ j.nat_abs), dvd_nat_abs.mp (nat_abs_dvd.mp (coe_nat_dvd.mpr H)),
-assume H : (i ∣ j), coe_nat_dvd.mp (dvd_nat_abs.mpr (nat_abs_dvd.mpr H))⟩
-
 lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : nat.prime p) {m n : ℤ} {k l : ℕ}
       (hpm : ↑(p ^ k) ∣ m)
       (hpn : ↑(p ^ l) ∣ n) (hpmn : ↑(p ^ (k+l+1)) ∣ m*n) : ↑(p ^ (k+1)) ∣ m ∨ ↑(p ^ (l+1)) ∣ n :=
@@ -201,7 +197,7 @@ theorem gcd_dvd_right (i j : ℤ) : (gcd i j : ℤ) ∣ j :=
 dvd_nat_abs.mp $ coe_nat_dvd.mpr $ nat.gcd_dvd_right _ _
 
 theorem dvd_gcd {i j k : ℤ} (h1 : k ∣ i) (h2 : k ∣ j) : k ∣ gcd i j :=
-nat_abs_dvd.1 $ coe_nat_dvd.2 $ nat.dvd_gcd (nat_abs_dvd_abs_iff.2 h1) (nat_abs_dvd_abs_iff.2 h2)
+nat_abs_dvd.1 $ coe_nat_dvd.2 $ nat.dvd_gcd (nat_abs_dvd_iff_dvd.2 h1) (nat_abs_dvd_iff_dvd.2 h2)
 
 theorem gcd_mul_lcm (i j : ℤ) : gcd i j * lcm i j = nat_abs (i * j) :=
 by rw [int.gcd, int.lcm, nat.gcd_mul_lcm, nat_abs_mul]
@@ -246,7 +242,7 @@ end
 theorem gcd_div {i j k : ℤ} (H1 : k ∣ i) (H2 : k ∣ j) :
   gcd (i / k) (j / k) = gcd i j / nat_abs k :=
 by rw [gcd, nat_abs_div i k H1, nat_abs_div j k H2];
-exact nat.gcd_div (nat_abs_dvd_abs_iff.mpr H1) (nat_abs_dvd_abs_iff.mpr H2)
+exact nat.gcd_div (nat_abs_dvd_iff_dvd.mpr H1) (nat_abs_dvd_iff_dvd.mpr H2)
 
 theorem gcd_div_gcd_div_gcd {i j : ℤ} (H : 0 < gcd i j) :
   gcd (i / gcd i j) (j / gcd i j) = 1 :=
@@ -275,7 +271,7 @@ gcd_dvd_gcd_of_dvd_right _ (dvd_mul_right _ _)
 
 theorem gcd_eq_left {i j : ℤ} (H : i ∣ j) : gcd i j = nat_abs i :=
 nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
-                 (by unfold gcd; exact nat.dvd_gcd dvd_rfl (nat_abs_dvd_abs_iff.mpr H))
+                 (by unfold gcd; exact nat.dvd_gcd dvd_rfl (nat_abs_dvd_iff_dvd.mpr H))
 
 theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
 by rw [gcd_comm, gcd_eq_left H]
@@ -300,10 +296,10 @@ let ⟨m', n', h⟩ := exists_gcd_one H in ⟨_, m', n', H, h⟩
 theorem pow_dvd_pow_iff {m n : ℤ} {k : ℕ} (k0 : 0 < k) : m ^ k ∣ n ^ k ↔ m ∣ n :=
 begin
   refine ⟨λ h, _, λ h, pow_dvd_pow_of_dvd h _⟩,
-  apply int.nat_abs_dvd_abs_iff.mp,
+  apply int.nat_abs_dvd_iff_dvd.mp,
   apply (nat.pow_dvd_pow_iff k0).mp,
   rw [← int.nat_abs_pow, ← int.nat_abs_pow],
-  exact int.nat_abs_dvd_abs_iff.mpr h
+  exact int.nat_abs_dvd_iff_dvd.mpr h
 end
 
 /-! ### lcm -/
@@ -340,7 +336,7 @@ begin
   rw int.lcm,
   intros hi hj,
   exact coe_nat_dvd_left.mpr
-    (nat.lcm_dvd (nat_abs_dvd_abs_iff.mpr hi) (nat_abs_dvd_abs_iff.mpr hj))
+    (nat.lcm_dvd (nat_abs_dvd_iff_dvd.mpr hi) (nat_abs_dvd_iff_dvd.mpr hj))
 end
 
 end int

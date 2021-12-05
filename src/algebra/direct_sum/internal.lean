@@ -39,8 +39,7 @@ mapping `⨁ i, A i →+ ⨆ i, A i` can be obtained as
 internally graded ring
 -/
 
-open_locale big_operators
-open_locale direct_sum
+open_locale direct_sum big_operators
 
 variables {ι : Type*} {S R : Type*} [decidable_eq ι]
 

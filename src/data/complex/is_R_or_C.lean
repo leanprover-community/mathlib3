@@ -646,7 +646,8 @@ end
 
 variable {E}
 
-instance is_R_or_C.proper_space_span_singleton (x : E) : proper_space (K ∙ x) := proper_is_R_or_C K (K ∙ x)
+instance is_R_or_C.proper_space_span_singleton (x : E) : proper_space (K ∙ x) :=
+proper_is_R_or_C K (K ∙ x)
 
 end finite_dimensional
 

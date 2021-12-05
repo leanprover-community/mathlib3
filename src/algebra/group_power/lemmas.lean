@@ -3,19 +3,13 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.group_power.basic
-import algebra.invertible
-import algebra.opposites
-import data.list.basic
 import data.int.cast
-import data.equiv.basic
-import data.equiv.mul_add
 
 /-!
 # Lemmas about power operations on monoids and groups
 
 This file contains lemmas about `monoid.pow`, `group.pow`, `nsmul`, `zsmul`
-which require additional imports besides those available in `.basic`.
+which require additional imports besides those available in `algebra.group_power.basic`.
 -/
 
 universes u v w x y z u₁ u₂
@@ -34,7 +28,8 @@ add_monoid_hom.eq_nat_cast
   ⟨λ n, n • (1 : A), zero_nsmul _, λ _ _, add_nsmul _ _ _⟩
   (one_nsmul _)
 
-@[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
+@[simp, norm_cast, to_additive]
+lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
 instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
@@ -112,6 +107,7 @@ open nat
 theorem zsmul_one [has_one A] (n : ℤ) : n • (1 : A) = n :=
 by cases n; simp
 
+@[to_additive add_one_zsmul]
 lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
 | (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
 | -[1+0]     := by simp [int.neg_succ_of_nat_eq]
@@ -119,13 +115,12 @@ lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
   ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev,
   inv_mul_cancel_right]
 
-theorem add_one_zsmul : ∀ (a : A) (i : ℤ), (i + 1) • a = i • a + a :=
-@zpow_add_one (multiplicative A) _
-
+@[to_additive zsmul_sub_one]
 lemma zpow_sub_one (a : G) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
 calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : (mul_inv_cancel_right _ _).symm
              ... = a^n * a⁻¹             : by rw [← zpow_add_one, sub_add_cancel]
 
+@[to_additive add_zsmul]
 lemma zpow_add (a : G) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
 begin
   induction n using int.induction_on with n ihn n ihn,
@@ -134,64 +129,46 @@ begin
   { rw [zpow_sub_one, ← mul_assoc, ← ihn, ← zpow_sub_one, add_sub_assoc] }
 end
 
+@[to_additive add_zsmul_self]
 lemma mul_self_zpow (b : G) (m : ℤ) : b*b^m = b^(m+1) :=
 by { conv_lhs {congr, rw ← zpow_one b }, rw [← zpow_add, add_comm] }
 
+@[to_additive add_self_zsmul]
 lemma mul_zpow_self (b : G) (m : ℤ) : b^m*b = b^(m+1) :=
 by { conv_lhs {congr, skip, rw ← zpow_one b }, rw [← zpow_add, add_comm] }
 
-theorem add_zsmul : ∀ (a : A) (i j : ℤ), (i + j) • a = i • a + j • a :=
-@zpow_add (multiplicative A) _
-
+@[to_additive sub_zsmul]
 lemma zpow_sub (a : G) (m n : ℤ) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 by rw [sub_eq_add_neg, zpow_add, zpow_neg]
 
-lemma sub_zsmul (m n : ℤ) (a : A) : (m - n) • a = m • a - n • a :=
-by simpa only [sub_eq_add_neg] using @zpow_sub (multiplicative A) _ _ _ _
-
+@[to_additive one_add_zsmul]
 theorem zpow_one_add (a : G) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [zpow_add, zpow_one]
 
-theorem one_add_zsmul : ∀ (a : A) (i : ℤ), (1 + i) • a = a + i • a :=
-@zpow_one_add (multiplicative A) _
-
+@[to_additive]
 theorem zpow_mul_comm (a : G) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
 by rw [← zpow_add, ← zpow_add, add_comm]
 
-theorem zsmul_add_comm : ∀ (a : A) (i j : ℤ), i • a + j • a = j • a + i • a :=
-@zpow_mul_comm (multiplicative A) _
-
+-- note that `mul_zsmul` and `zpow_mul` have the primes swapped since their argument order
+-- and therefore the more "natural" choice of lemma is reversed.
+@[to_additive mul_zsmul']
 theorem zpow_mul (a : G) (m n : ℤ) : a ^ (m * n) = (a ^ m) ^ n :=
 int.induction_on n (by simp) (λ n ihn, by simp [mul_add, zpow_add, ihn])
   (λ n ihn, by simp only [mul_sub, zpow_sub, ihn, mul_one, zpow_one])
 
-theorem zsmul_mul' : ∀ (a : A) (m n : ℤ), (m * n) • a = n • (m • a) :=
-@zpow_mul (multiplicative A) _
-
+@[to_additive mul_zsmul]
 theorem zpow_mul' (a : G) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, zpow_mul]
 
-theorem mul_zsmul (a : A) (m n : ℤ) : (m * n) • a = m • (n • a) :=
-by rw [mul_comm, zsmul_mul']
-
+@[to_additive bit0_zsmul]
 theorem zpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _ _
 
-theorem bit0_zsmul (a : A) (n : ℤ) : bit0 n • a = n • a + n • a :=
-@zpow_bit0 (multiplicative A) _ _ _
-
+@[to_additive bit1_zsmul]
 theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 by rw [bit1, zpow_add, zpow_bit0, zpow_one]
 
-theorem bit1_zsmul : ∀ (a : A) (n : ℤ), bit1 n • a = n • a + n • a + a :=
-@zpow_bit1 (multiplicative A) _
-
-@[simp] theorem monoid_hom.map_zpow (f : G →* H) (a : G) (n : ℤ) : f (a ^ n) = f a ^ n :=
-by cases n; simp
-
-@[simp] theorem add_monoid_hom.map_zsmul (f : A →+ B) (a : A) (n : ℤ) : f (n • a) = n • f a :=
-f.to_multiplicative.map_zpow a n
-
-@[simp, norm_cast] lemma units.coe_zpow (u : units G) (n : ℤ) : ((u ^ n : units G) : G) = u ^ n :=
+@[simp, norm_cast, to_additive]
+lemma units.coe_zpow (u : units G) (n : ℤ) : ((u ^ n : units G) : G) = u ^ n :=
 (units.coe_hom G).map_zpow u n
 
 end group
@@ -206,7 +183,7 @@ open int
 lemma zsmul_pos {a : A} (ha : 0 < a) {k : ℤ} (hk : (0:ℤ) < k) : 0 < k • a :=
 begin
   lift k to ℕ using int.le_of_lt hk,
-  rw zsmul_coe_nat,
+  rw coe_nat_zsmul,
   apply nsmul_pos ha,
   exact (coe_nat_pos.mp hk).ne',
 end
@@ -276,10 +253,10 @@ lemma abs_zsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℤ) (a : �
 begin
   by_cases n0 : 0 ≤ n,
   { lift n to ℕ using n0,
-    simp only [abs_nsmul, coe_nat_abs, zsmul_coe_nat] },
+    simp only [abs_nsmul, coe_nat_abs, coe_nat_zsmul] },
   { lift (- n) to ℕ using int.le_of_lt (neg_pos.mpr (not_le.mp n0)) with m h,
-    rw [← abs_neg (n • a), ← neg_zsmul, ← abs_neg n, ← h, zsmul_coe_nat, coe_nat_abs,
-      zsmul_coe_nat],
+    rw [← abs_neg (n • a), ← neg_zsmul, ← abs_neg n, ← h, coe_nat_zsmul, coe_nat_abs,
+      coe_nat_zsmul],
     exact abs_nsmul m _ },
 end
 
@@ -404,7 +381,7 @@ lemma mul_bit1 [ring R] {n r : R} : r * bit1 n = (2 : ℤ) • (r * n) + r :=
 by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
 @[simp] theorem zsmul_eq_mul [ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
-| (n : ℕ) := by { rw [zsmul_coe_nat, nsmul_eq_mul], refl }
+| (n : ℕ) := by { rw [coe_nat_zsmul, nsmul_eq_mul], refl }
 | -[1+ n] := by simp [nat.cast_succ, neg_add_rev, int.cast_neg_succ_of_nat, add_mul]
 
 theorem zsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n • a = a * n :=
@@ -431,11 +408,11 @@ lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n %
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [sq]
 
 section ordered_semiring
-variable [ordered_semiring R]
+variables [ordered_semiring R] {a : R}
 
 /-- Bernoulli's inequality. This version works for semirings but requires
 additional hypotheses `0 ≤ a * a` and `0 ≤ (1 + a) * (1 + a)`. -/
-theorem one_add_mul_le_pow' {a : R} (Hsq : 0 ≤ a * a) (Hsq' : 0 ≤ (1 + a) * (1 + a))
+theorem one_add_mul_le_pow' (Hsq : 0 ≤ a * a) (Hsq' : 0 ≤ (1 + a) * (1 + a))
   (H : 0 ≤ 2 + a) :
   ∀ (n : ℕ), 1 + (n : R) * a ≤ (1 + a) ^ n
 | 0     := by simp
@@ -452,48 +429,21 @@ calc 1 + (↑(n + 2) : R) * a ≤ 1 + ↑(n + 2) * a + (n * (a * a * (2 + a)) + 
   mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) Hsq'
 ... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
-private lemma pow_lt_pow_of_lt_one_aux {a : R} (h : 0 < a) (ha : a < 1) (i : ℕ) :
-  ∀ k : ℕ, a ^ (i + k + 1) < a ^ i
-| 0 :=
-  begin
-    rw [←one_mul (a^i), add_zero, pow_succ],
-    exact mul_lt_mul ha (le_refl _) (pow_pos h _) zero_le_one
-  end
-| (k+1) :=
-  begin
-    rw [←one_mul (a^i), pow_succ],
-    apply mul_lt_mul ha _ _ zero_le_one,
-    { apply le_of_lt, apply pow_lt_pow_of_lt_one_aux },
-    { show 0 < a ^ (i + (k + 1) + 0), apply pow_pos h }
-  end
-
-private lemma pow_le_pow_of_le_one_aux {a : R}  (h : 0 ≤ a) (ha : a ≤ 1) (i : ℕ) :
+private lemma pow_le_pow_of_le_one_aux (h : 0 ≤ a) (ha : a ≤ 1) (i : ℕ) :
   ∀ k : ℕ, a ^ (i + k) ≤ a ^ i
 | 0 := by simp
 | (k+1) := by { rw [←add_assoc, ←one_mul (a^i), pow_succ],
                 exact mul_le_mul ha (pow_le_pow_of_le_one_aux _) (pow_nonneg h _) zero_le_one }
 
-lemma pow_lt_pow_of_lt_one  {a : R} (h : 0 < a) (ha : a < 1)
-  {i j : ℕ} (hij : i < j) : a ^ j < a ^ i :=
-let ⟨k, hk⟩ := nat.exists_eq_add_of_lt hij in
-by rw hk; exact pow_lt_pow_of_lt_one_aux h ha _ _
-
-lemma pow_lt_pow_iff_of_lt_one {a : R} {n m : ℕ} (hpos : 0 < a) (h : a < 1) :
-  a ^ m < a ^ n ↔ n < m :=
-begin
-  have : strict_mono (λ (n : order_dual ℕ), a ^ (id n : ℕ)) := λ m n, pow_lt_pow_of_lt_one hpos h,
-  exact this.lt_iff_lt
-end
-
-lemma pow_le_pow_of_le_one {a : R} (h : 0 ≤ a) (ha : a ≤ 1) {i j : ℕ} (hij : i ≤ j) :
+lemma pow_le_pow_of_le_one (h : 0 ≤ a) (ha : a ≤ 1) {i j : ℕ} (hij : i ≤ j) :
   a ^ j ≤ a ^ i :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hij in
 by rw hk; exact pow_le_pow_of_le_one_aux h ha _ _
 
-lemma pow_le_of_le_one {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ a :=
+lemma pow_le_of_le_one (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ a :=
 (pow_one a).subst (pow_le_pow_of_le_one h₀ h₁ (nat.pos_of_ne_zero hn))
 
-lemma sq_le {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of_le_one h₀ h₁ two_ne_zero
+lemma sq_le (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of_le_one h₀ h₁ two_ne_zero
 
 end ordered_semiring
 
@@ -520,8 +470,7 @@ variables [linear_ordered_ring R] {a : R} {n : ℕ}
 (pow_abs a n).symm
 
 @[simp] theorem pow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
-⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _,
-  λ h, by { rw [bit1, pow_succ], exact mul_neg_of_neg_of_pos h (pow_bit0_pos h.ne _)}⟩
+⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _, λ ha, pow_bit1_neg ha n⟩
 
 @[simp] theorem pow_bit1_nonneg_iff : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
 le_iff_le_iff_lt_iff_lt.2 pow_bit1_neg_iff
@@ -577,6 +526,9 @@ begin
     { exact (pow_bit1_nonpos_iff.2 ha).trans_lt (pow_bit1_pos_iff.2 hb) } },
   { exact pow_lt_pow_of_lt_left hab ha (bit1_pos (zero_le n)) }
 end
+
+lemma odd.strict_mono_pow (hn : odd n) : strict_mono (λ a : R, a ^ n) :=
+by cases hn with k hk; simpa only [hk, two_mul] using strict_mono_pow_bit1 _
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
 theorem one_add_mul_le_pow (H : -2 ≤ a) (n : ℕ) : 1 + (n : R) * a ≤ (1 + a) ^ n :=
@@ -671,6 +623,9 @@ def zmultiples_hom [add_group A] : A ≃ (ℤ →+ A) :=
   left_inv := one_zsmul,
   right_inv := λ f, add_monoid_hom.ext_int $ one_zsmul (f 1) }
 
+attribute [to_additive multiples_hom] powers_hom
+attribute [to_additive zmultiples_hom] zpowers_hom
+
 variables {M G A}
 
 @[simp] lemma powers_hom_apply [monoid M] (x : M) (n : multiplicative ℕ) :
@@ -688,14 +643,24 @@ variables {M G A}
 @[simp] lemma multiples_hom_apply [add_monoid A] (x : A) (n : ℕ) :
   multiples_hom A x n = n • x := rfl
 
+attribute [to_additive multiples_hom_apply] powers_hom_apply
+
 @[simp] lemma multiples_hom_symm_apply [add_monoid A] (f : ℕ →+ A) :
   (multiples_hom A).symm f = f 1 := rfl
+
+attribute [to_additive multiples_hom_symm_apply] powers_hom_symm_apply
 
 @[simp] lemma zmultiples_hom_apply [add_group A] (x : A) (n : ℤ) :
   zmultiples_hom A x n = n • x := rfl
 
+attribute [to_additive zmultiples_hom_apply] zpowers_hom_apply
+
 @[simp] lemma zmultiples_hom_symm_apply [add_group A] (f : ℤ →+ A) :
   (zmultiples_hom A).symm f = f 1 := rfl
+
+attribute [to_additive zmultiples_hom_symm_apply] zpowers_hom_symm_apply
+
+-- TODO use to_additive in the rest of this file
 
 lemma monoid_hom.apply_mnat [monoid M] (f : multiplicative ℕ →* M) (n : multiplicative ℕ) :
   f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
@@ -799,7 +764,7 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simp] lemma units_zpow_right {a : M} {x y : units M} (h : semiconj_by a x y) :
+@[simp, to_additive] lemma units_zpow_right {a : M} {x y : units M} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (↑(x^m)) (↑(y^m))
 | (n : ℕ) := by simp only [zpow_coe_nat, units.coe_pow, h, pow_right]
 | -[1+n] := by simp only [zpow_neg_succ_of_nat, units.coe_pow, units_inv_right, h, pow_right]
@@ -848,11 +813,11 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simp] lemma units_zpow_right {a : M} {u : units M} (h : commute a u) (m : ℤ) :
+@[simp, to_additive] lemma units_zpow_right {a : M} {u : units M} (h : commute a u) (m : ℤ) :
   commute a (↑(u^m)) :=
 h.units_zpow_right m
 
-@[simp] lemma units_zpow_left {u : units M} {a : M} (h : commute ↑u a) (m : ℤ) :
+@[simp, to_additive] lemma units_zpow_left {u : units M} {a : M} (h : commute ↑u a) (m : ℤ) :
   commute (↑(u^m)) a :=
 (h.symm.units_zpow_right m).symm
 
@@ -923,14 +888,14 @@ lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(
 
 end units
 
-namespace opposite
+namespace mul_opposite
 
 /-- Moving to the opposite monoid commutes with taking powers. -/
 @[simp] lemma op_pow [monoid M] (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n := rfl
-@[simp] lemma unop_pow [monoid M] (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n := rfl
+@[simp] lemma unop_pow [monoid M] (x : Mᵐᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n := rfl
 
 /-- Moving to the opposite group or group_with_zero commutes with taking powers. -/
 @[simp] lemma op_zpow [div_inv_monoid M] (x : M) (z : ℤ) : op (x ^ z) = (op x) ^ z := rfl
-@[simp] lemma unop_zpow [div_inv_monoid M] (x : Mᵒᵖ) (z : ℤ) : unop (x ^ z) = (unop x) ^ z := rfl
+@[simp] lemma unop_zpow [div_inv_monoid M] (x : Mᵐᵒᵖ) (z : ℤ) : unop (x ^ z) = (unop x) ^ z := rfl
 
-end opposite
+end mul_opposite

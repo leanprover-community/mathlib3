@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.real.nnreal
-import data.set.intervals
 
 /-!
 # Extended non-negative reals
@@ -87,6 +86,13 @@ localized "notation `∞` := (⊤ : ennreal)" in ennreal
 noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
 { .. ennreal.canonically_ordered_comm_semiring,
   .. ennreal.complete_linear_order }
+
+-- TODO: why are the two covariant instances necessary? why aren't they inferred?
+instance covariant_class_mul : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
+canonically_ordered_comm_semiring.to_covariant_mul_le
+
+instance covariant_class_add : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
+ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
 
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}
@@ -451,18 +457,20 @@ begin
     exact pow_le_pow (by simpa using ha) h }
 end
 
+lemma one_le_pow_of_one_le (ha : 1 ≤ a) (n : ℕ) : 1 ≤ a ^ n :=
+by simpa using pow_le_pow ha (zero_le n)
+
 @[simp] lemma max_eq_zero_iff : max a b = 0 ↔ a = 0 ∧ b = 0 :=
 by simp only [nonpos_iff_eq_zero.symm, max_le_iff]
 
 @[simp] lemma max_zero_left : max 0 a = a := max_eq_right (zero_le a)
 @[simp] lemma max_zero_right : max a 0 = a := max_eq_left (zero_le a)
 
--- TODO: why this is not a `rfl`? There is some hidden diamond here.
 @[simp] lemma sup_eq_max : a ⊔ b = max a b :=
-eq_of_forall_ge_iff $ λ c, sup_le_iff.trans max_le_iff.symm
+rfl
 
 protected lemma pow_pos : 0 < a → ∀ n : ℕ, 0 < a^n :=
-  canonically_ordered_comm_semiring.pow_pos
+canonically_ordered_comm_semiring.pow_pos
 
 protected lemma pow_ne_zero : a ≠ 0 → ∀ n : ℕ, a^n ≠ 0 :=
 by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
@@ -993,10 +1001,9 @@ begin
   { simp only [lt_irrefl] },
   { exact inv_pos.trans lt_top_iff_ne_top.symm },
   { simp only [not_lt_zero, not_top_lt] },
-  { cases eq_or_lt_of_le (zero_le a) with ha ha;
-      cases eq_or_lt_of_le (zero_le b) with hb hb,
-    { subst a, subst b, simp },
+  { cases eq_or_lt_of_le (zero_le a) with ha ha,
     { subst a, simp },
+    cases eq_or_lt_of_le (zero_le b) with hb hb,
     { subst b, simp [pos_iff_ne_zero, lt_top_iff_ne_top, inv_ne_top] },
     { rw [← coe_inv (ne_of_gt ha), ← coe_inv (ne_of_gt hb), coe_lt_coe, coe_lt_coe],
       simp only [nnreal.coe_lt_coe.symm] at *,
@@ -1165,6 +1172,9 @@ le_of_forall_nnreal_lt $ λ r hr, (zero_le r).eq_or_lt.elim (λ h, h ▸ zero_le
 lemma eq_top_of_forall_nnreal_le {x : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r ≤ x) : x = ∞ :=
 top_unique $ le_of_forall_nnreal_lt $ λ r hr, h r
 
+lemma add_div {a b c : ℝ≥0∞} : (a + b) / c = a / c + b / c :=
+right_distrib a b (c⁻¹)
+
 lemma div_add_div_same {a b c : ℝ≥0∞} : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)
 
@@ -1268,6 +1278,107 @@ begin
   exact n.lt_two_pow
 end
 
+@[simp, norm_cast] lemma coe_zpow (hr : r ≠ 0) (n : ℤ) : (↑(r^n) : ℝ≥0∞) = r^n :=
+begin
+  cases n,
+  { simp only [int.of_nat_eq_coe, coe_pow, zpow_coe_nat] },
+  { have : r ^ n.succ ≠ 0 := pow_ne_zero (n+1) hr,
+    simp only [zpow_neg_succ_of_nat, coe_inv this, coe_pow] }
+end
+
+lemma zpow_pos (ha : a ≠ 0) (h'a : a ≠ ∞) (n : ℤ) : 0 < a ^ n :=
+begin
+  cases n,
+  { exact ennreal.pow_pos ha.bot_lt n },
+  { simp only [h'a, pow_eq_top_iff, zpow_neg_succ_of_nat, ne.def, not_false_iff,
+               inv_pos, false_and] }
+end
+
+lemma zpow_lt_top (ha : a ≠ 0) (h'a : a ≠ ∞) (n : ℤ) : a ^ n < ∞ :=
+begin
+  cases n,
+  { exact ennreal.pow_lt_top h'a.lt_top _ },
+  { simp only [ennreal.pow_pos ha.bot_lt (n + 1), zpow_neg_succ_of_nat, inv_lt_top] }
+end
+
+lemma exists_mem_Ico_zpow
+  {x y : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (hy : 1 < y) (h'y : y ≠ ⊤) :
+  ∃ n : ℤ, x ∈ Ico (y ^ n) (y ^ (n + 1)) :=
+begin
+  lift x to ℝ≥0 using h'x,
+  lift y to ℝ≥0 using h'y,
+  have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
+  obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1),
+  { refine nnreal.exists_mem_Ico_zpow _  (one_lt_coe_iff.1 hy),
+    simpa only [ne.def, coe_eq_zero] using hx },
+  refine ⟨n, _, _⟩,
+  { rwa [← ennreal.coe_zpow A, ennreal.coe_le_coe] },
+  { rwa [← ennreal.coe_zpow A, ennreal.coe_lt_coe] }
+end
+
+lemma exists_mem_Ioc_zpow
+  {x y : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (hy : 1 < y) (h'y : y ≠ ⊤) :
+  ∃ n : ℤ, x ∈ Ioc (y ^ n) (y ^ (n + 1)) :=
+begin
+  lift x to ℝ≥0 using h'x,
+  lift y to ℝ≥0 using h'y,
+  have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
+  obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1),
+  { refine nnreal.exists_mem_Ioc_zpow _  (one_lt_coe_iff.1 hy),
+    simpa only [ne.def, coe_eq_zero] using hx },
+  refine ⟨n, _, _⟩,
+  { rwa [← ennreal.coe_zpow A, ennreal.coe_lt_coe] },
+  { rwa [← ennreal.coe_zpow A, ennreal.coe_le_coe] }
+end
+
+lemma Ioo_zero_top_eq_Union_Ico_zpow {y : ℝ≥0∞} (hy : 1 < y) (h'y : y ≠ ⊤) :
+  Ioo (0 : ℝ≥0∞) (∞ : ℝ≥0∞) = ⋃ (n : ℤ), Ico (y^n) (y^(n+1)) :=
+begin
+  ext x,
+  simp only [mem_Union, mem_Ioo, mem_Ico],
+  split,
+  { rintros ⟨hx, h'x⟩,
+    exact exists_mem_Ico_zpow hx.ne' h'x.ne hy h'y },
+  { rintros ⟨n, hn, h'n⟩,
+    split,
+    { apply lt_of_lt_of_le _ hn,
+      exact ennreal.zpow_pos (ennreal.zero_lt_one.trans hy).ne' h'y _ },
+    { apply lt_trans h'n _,
+      exact ennreal.zpow_lt_top (ennreal.zero_lt_one.trans hy).ne' h'y _ } }
+end
+
+lemma zpow_le_of_le {x : ℝ≥0∞} (hx : 1 ≤ x) {a b : ℤ} (h : a ≤ b) : x ^ a ≤ x ^ b :=
+begin
+  induction a with a a; induction b with b b,
+  { simp,
+    apply pow_le_pow hx,
+    apply int.le_of_coe_nat_le_coe_nat h },
+  { apply absurd h,
+    apply not_le_of_gt,
+    exact lt_of_lt_of_le (int.neg_succ_lt_zero _) (int.of_nat_nonneg _) },
+  { simp only [zpow_neg_succ_of_nat, int.of_nat_eq_coe, zpow_coe_nat],
+    refine le_trans (inv_le_one.2 _) _;
+    apply ennreal.one_le_pow_of_one_le hx, },
+  { simp only [zpow_neg_succ_of_nat],
+    apply inv_le_inv.2,
+    { apply pow_le_pow hx,
+      have : -(↑(a+1) : ℤ) ≤ -(↑(b+1) : ℤ), from h,
+      have h' := le_of_neg_le_neg this,
+      apply int.le_of_coe_nat_le_coe_nat h' },
+    repeat { apply pow_pos (lt_of_lt_of_le zero_lt_one hx) } }
+end
+
+lemma monotone_zpow {x : ℝ≥0∞} (hx : 1 ≤ x) : monotone ((^) x : ℤ → ℝ≥0∞) :=
+λ a b h, zpow_le_of_le hx h
+
+lemma zpow_add {x : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (m n : ℤ) :
+  x ^ (m + n) = x ^ m * x ^ n :=
+begin
+  lift x to ℝ≥0 using h'x,
+  replace hx : x ≠ 0, by simpa only [ne.def, coe_eq_zero] using hx,
+  simp only [← coe_zpow hx, zpow_add₀ hx, coe_mul]
+end
+
 end inv
 
 section real
@@ -1290,7 +1401,10 @@ end
 lemma le_to_real_sub {a b : ℝ≥0∞} (hb : b ≠ ∞) : a.to_real - b.to_real ≤ (a - b).to_real :=
 begin
   lift b to ℝ≥0 using hb,
-  cases a; simp [none_eq_top, some_eq_coe, ← coe_sub, nnreal.sub_def] at *
+  cases a,
+  { simp },
+  { simp only [some_eq_coe, ←coe_sub, nnreal.sub_def, real.coe_to_nnreal', coe_to_real],
+    exact le_max_left _ _ }
 end
 
 lemma to_real_add_le : (a+b).to_real ≤ a.to_real + b.to_real :=

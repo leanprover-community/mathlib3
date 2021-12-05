@@ -385,8 +385,8 @@ begin
   change _ ≤ abv (_ * _),
   rw is_absolute_value.abv_mul abv,
   apply mul_le_mul; try { assumption },
-    { apply le_of_lt ha2 },
-    { apply is_absolute_value.abv_nonneg abv }
+  { apply le_of_lt ha2 },
+  { apply is_absolute_value.abv_nonneg abv }
 end
 
 theorem const_equiv {x y : β} : const x ≈ const y ↔ x = y :=

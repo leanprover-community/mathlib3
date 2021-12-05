@@ -31,6 +31,14 @@ lemma filter.tendsto.is_bounded_under_le {f : filter β} {u : β → α} {a : α
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
 (is_bounded_le_nhds a).mono h
 
+lemma filter.tendsto.bdd_above_range_of_cofinite {u : β → α} {a : α}
+  (h : tendsto u cofinite (𝓝 a)) : bdd_above (set.range u) :=
+h.is_bounded_under_le.bdd_above_range_of_cofinite
+
+lemma filter.tendsto.bdd_above_range {u : ℕ → α} {a : α}
+  (h : tendsto u at_top (𝓝 a)) : bdd_above (set.range u) :=
+h.is_bounded_under_le.bdd_above_range
+
 lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
 (is_bounded_le_nhds a).is_cobounded_flip
 
@@ -49,6 +57,14 @@ lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
 lemma filter.tendsto.is_bounded_under_ge {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
 (is_bounded_ge_nhds a).mono h
+
+lemma filter.tendsto.bdd_below_range_of_cofinite {u : β → α} {a : α}
+  (h : tendsto u cofinite (𝓝 a)) : bdd_below (set.range u) :=
+h.is_bounded_under_ge.bdd_below_range_of_cofinite
+
+lemma filter.tendsto.bdd_below_range {u : ℕ → α} {a : α}
+  (h : tendsto u at_top (𝓝 a)) : bdd_below (set.range u) :=
+h.is_bounded_under_ge.bdd_below_range
 
 lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
 (is_bounded_ge_nhds a).is_cobounded_flip
@@ -121,28 +137,57 @@ theorem filter.tendsto.liminf_eq {f : filter β} {u : β → α} {a : α} [ne_bo
   (h : tendsto u f (𝓝 a)) : liminf f u = a :=
 Liminf_eq_of_le_nhds h
 
-end conditionally_complete_linear_order
-
-section complete_linear_order
-variables [complete_linear_order α] [topological_space α] [order_topology α]
--- In complete_linear_order, the above theorems take a simpler form
-
 /-- If the liminf and the limsup of a function coincide, then the limit of the function
 exists and has the same value -/
 theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α}
-  (hinf : liminf f u = a) (hsup : limsup f u = a) : tendsto u f (𝓝 a) :=
-le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot hsup hinf
+  (hinf : liminf f u = a) (hsup : limsup f u = a)
+  (h : f.is_bounded_under (≤) u . is_bounded_default)
+  (h' : f.is_bounded_under (≥) u . is_bounded_default) :
+  tendsto u f (𝓝 a) :=
+le_nhds_of_Limsup_eq_Liminf h h' hsup hinf
 
 /-- If a number `a` is less than or equal to the `liminf` of a function `f` at some filter
 and is greater than or equal to the `limsup` of `f`, then `f` tends to `a` along this filter. -/
 theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : α}
-  (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a) :
+  (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a)
+  (h : f.is_bounded_under (≤) u . is_bounded_default)
+  (h' : f.is_bounded_under (≥) u . is_bounded_default) :
   tendsto u f (𝓝 a) :=
 if hf : f = ⊥ then hf.symm ▸ tendsto_bot
 else by haveI : ne_bot f := ⟨hf⟩; exact tendsto_of_liminf_eq_limsup
-  (le_antisymm (le_trans liminf_le_limsup hsup) hinf)
-  (le_antisymm hsup (le_trans hinf liminf_le_limsup))
+  (le_antisymm (le_trans (liminf_le_limsup h h') hsup) hinf)
+  (le_antisymm hsup (le_trans hinf (liminf_le_limsup h h'))) h h'
 
-end complete_linear_order
+/-- Assume that, for any `a < b`, a sequence can not be infinitely many times below `a` and
+above `b`. If it is also ultimately bounded above and below, then it has to converge. This even
+works if `a` and `b` are restricted to a dense subset.
+-/
+lemma tendsto_of_no_upcrossings [densely_ordered α]
+  {f : filter β} {u : β → α} {s : set α} (hs : dense s)
+  (H : ∀ (a ∈ s) (b ∈ s), a < b → ¬((∃ᶠ n in f, u n < a) ∧ (∃ᶠ n in f, b < u n)))
+  (h : f.is_bounded_under (≤) u . is_bounded_default)
+  (h' : f.is_bounded_under (≥) u . is_bounded_default) :
+  ∃ (c : α), tendsto u f (𝓝 c) :=
+begin
+  by_cases hbot : f = ⊥, { rw hbot, exact ⟨Inf ∅, tendsto_bot⟩ },
+  haveI : ne_bot f := ⟨hbot⟩,
+  refine ⟨limsup f u, _⟩,
+  apply tendsto_of_le_liminf_of_limsup_le _ le_rfl h h',
+  by_contra hlt,
+  push_neg at hlt,
+  obtain ⟨a, ⟨⟨la, au⟩, as⟩⟩ : ∃ a, (f.liminf u < a ∧ a < f.limsup u) ∧ a ∈ s :=
+    dense_iff_inter_open.1 hs (set.Ioo (f.liminf u) (f.limsup u)) is_open_Ioo
+    (set.nonempty_Ioo.2 hlt),
+  obtain ⟨b, ⟨⟨ab, bu⟩, bs⟩⟩ : ∃ b, (a < b ∧ b < f.limsup u) ∧ b ∈ s :=
+    dense_iff_inter_open.1 hs (set.Ioo a (f.limsup u)) is_open_Ioo
+    (set.nonempty_Ioo.2 au),
+  have A : ∃ᶠ n in f, u n < a :=
+    frequently_lt_of_liminf_lt (is_bounded.is_cobounded_ge h) la,
+  have B : ∃ᶠ n in f, b < u n :=
+    frequently_lt_of_lt_limsup (is_bounded.is_cobounded_le h') bu,
+  exact H a as b bs ab ⟨A, B⟩,
+end
+
+end conditionally_complete_linear_order
 
 end liminf_limsup

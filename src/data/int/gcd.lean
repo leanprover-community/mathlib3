@@ -308,12 +308,10 @@ Compare with `is_coprime.dvd_of_dvd_mul_left` and
 lemma dvd_of_dvd_mul_left_of_gcd_one {a b c : ℤ} (habc : a ∣ b * c) (hab : (gcd a c : ℤ) = 1) :
   a ∣ b :=
 begin
-  have h : 1 = a * gcd_a a c + c * gcd_b a c, {rw [←hab, ←(gcd_eq_gcd_ab a c)] },
-  have : b = b * a * gcd_a a c + b * c * gcd_b a c, { simp [mul_assoc, ←mul_add, ←h] },
-  rw this,
-  apply dvd_add,
-  { simp only [mul_assoc, dvd_mul_of_dvd_right (dvd.intro (gcd_a a c) rfl) b] },
-  { apply dvd_mul_of_dvd_left, exact habc },
+  rw (gcd_eq_gcd_ab a c) at hab,
+  have : b * a * gcd_a a c + b * c * gcd_b a c = b, { simp [mul_assoc, ←mul_add, hab] },
+  rw ←this,
+  exact dvd_add (dvd_mul_of_dvd_left (dvd_mul_left a b) _) (dvd_mul_of_dvd_left habc _),
 end
 
 /-- Euclid's lemma: if `a ∣ b * c` and `gcd a b = 1` then `a ∣ c`.

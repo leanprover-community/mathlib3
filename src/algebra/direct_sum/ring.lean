@@ -242,8 +242,6 @@ begin
   rw finset.sum_product,
 end
 
-
-
 end semiring
 
 section comm_semiring

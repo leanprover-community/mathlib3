@@ -107,9 +107,7 @@ lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n)
 calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_self).le
 ... ≤ 2 * n * central_binom n    : by { rw [mul_assoc], refine le_mul_of_pos_left zero_lt_two }
 
-lemma multiplicity_central_binom_le
-  {p : ℕ} (hp : p.prime)
-  {n : ℕ} (n_pos : 0 < n)
+lemma multiplicity_central_binom_le {p : ℕ} (hp : p.prime) {n : ℕ}
   : padic_val_nat p (central_binom n) ≤ log p (2 * n)
   :=
 begin
@@ -125,12 +123,8 @@ begin
       ... = (log p (2 * n) + 1) - 1                 : nat.card_Ico _ _,
 end
 
-lemma multiplicity_central_binom_of_large_le_one
-  {p : nat} (hp : p.prime)
-  {n : nat} (n_pos : 0 < n)
-  (p_large : 2 * n < p ^ 2)
-  : (padic_val_nat p (central_binom n)) ≤ 1
-  :=
+lemma multiplicity_central_binom_of_large_le_one {p : nat} (hp : p.prime) {n : nat}
+  (p_large : 2 * n < p ^ 2) : (padic_val_nat p (central_binom n)) ≤ 1 :=
 begin
   have log_weak_bound : log p (2 * n) ≤ 2,
     { calc log p (2 * n) ≤ log p (p ^ 2) : log_le_log_of_le (le_of_lt p_large)
@@ -150,7 +144,7 @@ begin
         { rw log_eq_zero (or.inl h),
           exact zero_le 1, }, }, },
 
-  exact le_trans (multiplicity_central_binom_le hp n_pos) log_bound,
+  exact le_trans (multiplicity_central_binom_le hp) log_bound,
 end
 
 lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p = 2

@@ -278,15 +278,6 @@ begin
     simp [add_comm, monomial_add_single, this] }
 end
 
-@[recursor 5]
-lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
-  (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
-  M p :=
-have ∀s a, M (monomial s a) := induction_on_monomial h_C h_X,
-finsupp.induction p
-  (by have : M (C 0) := h_C 0; rwa [C_0] at this)
-  (assume s a p hsp ha hp, h_add _ _ (this s a) hp)
-
 attribute [elab_as_eliminator]
 theorem induction_on' {P : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
     (h1 : ∀ (u : σ →₀ ℕ) (a : R), P (monomial u a))
@@ -299,6 +290,12 @@ lemma induction_on'' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) 
   (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
     a ∉ f.support → b ≠ 0 → M f → M (monomial a b + f)) (h_X : ∀p n, M p → M (p * X n)) : M p :=
 finsupp.induction p (C_0.rec $ h_C 0) h_add_weak
+
+@[recursor 5]
+lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
+  (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
+  M p :=
+induction_on'' _ h_C (λ s a p hsp ha, h_add _ _ $ induction_on_monomial h_C h_X s a) h_X
 
 lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :

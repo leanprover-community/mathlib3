@@ -66,7 +66,7 @@ section count
 variable [decidable_pred p]
 
 /-- Count the number of naturals `k < n` satisfying `p k`. -/
-def count (n : ℕ) : ℕ := ((list.range n).filter p).length
+def count (n : ℕ) : ℕ := (list.range n).countp p
 
 @[simp] lemma count_zero : count p 0 = 0 :=
 by rw [count, list.range_zero, list.filter_nil, list.length]

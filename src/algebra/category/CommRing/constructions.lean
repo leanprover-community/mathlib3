@@ -46,8 +46,8 @@ begin
   show B ⟶ _,  from algebra.tensor_product.include_right.to_ring_hom,
   ext r,
   transitivity algebra_map R (A ⊗[R] B) r,
-  exact algebra.tensor_product.include_left.commutes r,
-  exact (algebra.tensor_product.include_right.commutes r).symm,
+  { exact algebra.tensor_product.include_left.commutes r },
+  { exact (algebra.tensor_product.include_right.commutes r).symm }
 end
 
 @[simp]

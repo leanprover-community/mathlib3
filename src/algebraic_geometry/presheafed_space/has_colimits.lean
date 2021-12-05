@@ -261,7 +261,7 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
       simp, },
     fapply PresheafedSpace.ext, -- could `ext` please not reorder goals?
     { exact t, },
-    { ext U j, dsimp [desc_c_app],
+    { ext U j, dsimp [desc, desc_c_app],
       simp only [limit.lift_π, eq_to_hom_op, eq_to_hom_map, assoc,
         limit_obj_iso_limit_comp_evaluation_inv_π_app],
       rw PresheafedSpace.congr_app (w (unop j)).symm U,

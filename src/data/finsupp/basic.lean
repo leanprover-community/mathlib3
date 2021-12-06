@@ -680,6 +680,14 @@ end
 @[simp] lemma erase_zero (a : α) : erase a (0 : α →₀ M) = 0 :=
 by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
 
+theorem finsupp.not_mem_erase {α : Type*} {M : Type*} [decidable_eq α] [has_zero M]
+  (f : α →₀ M) (a : α) : a ∉ (erase a f).support :=
+begin
+  intro H,
+  apply (finset.not_mem_erase a f.support),
+  convert H,
+end
+
 end erase
 
 /-!

@@ -8,7 +8,7 @@ import analysis.asymptotics.asymptotics
 /-!
 # Salem-Spencer sets and Roth numbers
 
-This file defines Salem-Spencer sets, the Roth number of a set and calculates small Roth numbers.
+This file defines Salem-Spencer sets and the Roth number of a set.
 
 A Salem-Spencer set is a set without arithmetic progressions of length `3`. Equivalently, the
 average of any two distinct elements is not in the set.
@@ -20,19 +20,15 @@ the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
 ## Main declarations
 
 * `mul_salem_spencer`: Predicate for a set to be multiplicative Salem-Spencer.
-* `add_salem_spencer`: Predicate for a set to be Salem-Spencer.
-* `roth_number`: The Roth number of a finset.
+* `add_salem_spencer`: Predicate for a set to be additive Salem-Spencer.
+* `mul_roth_number`: The multiplicative Roth number of a finset.
+* `add_roth_number`: The additive Roth number of a finset.
 * `roth_number_nat`: The Roth number of a natural. This corresponds to
-  `roth_number (finset.range n)`.
-
-## TODO
-
-Can we calculate small Roth numbers quicker. The current algorithm to decide `roth_number_nat n ≤ m`
-is `O (n.choose m * m^2)`.
+  `add_roth_number (finset.range n)`.
 
 ## Tags
 
-Salem-Spencer, Roth, arithmetic progression, average
+Salem-Spencer, Roth, arithmetic progression, average, three-free
 -/
 
 open finset nat
@@ -97,9 +93,8 @@ lemma mul_salem_spencer_insert :
     ∀ ⦃b c⦄, b ∈ s → c ∈ s → b * c = a * a → b = c :=
 begin
   refine ⟨λ hs, ⟨hs.mono (set.subset_insert _ _),
-    λ b c hb hc, hs (set.mem_insert _ _) (set.mem_insert_of_mem _ hb) (set.mem_insert_of_mem _ hc),
-    λ b c hb hc, hs (set.mem_insert_of_mem _ hb) (set.mem_insert_of_mem _ hc) (set.mem_insert _ _)⟩,
-    _⟩,
+    λ b c hb hc, hs (or.inl rfl) (or.inr hb) (or.inr hc),
+    λ b c hb hc, hs (or.inr hb) (or.inr hc) (or.inl rfl)⟩, _⟩,
   rintro ⟨hs, ha, ha'⟩ b c d hb hc hd h,
   rw set.mem_insert_iff at hb hc hd,
   obtain rfl | hb := hb;
@@ -155,6 +150,21 @@ lemma mul_salem_spencer_mul_right_iff :
   mul_salem_spencer.mul_right⟩
 
 end cancel_comm_monoid
+
+section ordered_cancel_comm_monoid
+variables [ordered_cancel_comm_monoid α] {s : set α} {a : α}
+
+@[to_additive]
+lemma mul_salem_spencer_insert_of_lt (hs : ∀ i ∈ s, i < a) :
+  mul_salem_spencer (insert a s) ↔ mul_salem_spencer s ∧
+    ∀ ⦃b c⦄, b ∈ s → c ∈ s → a * b = c * c → a = b :=
+begin
+  refine mul_salem_spencer_insert.trans _,
+  rw ←and_assoc,
+  exact and_iff_left (λ b c hb hc h, ((mul_lt_mul''' (hs _ hb) (hs _ hc)).ne h).elim),
+end
+
+end ordered_cancel_comm_monoid
 
 section comm_cancel_monoid_with_zero
 variables [comm_cancel_monoid_with_zero α] [no_zero_divisors α] {s : set α} {a : α}
@@ -343,10 +353,7 @@ practice. -/
 lemma add_salem_spencer.le_roth_number_nat (s : finset ℕ) (hs : add_salem_spencer (s : set ℕ))
   (hsn : ∀ x ∈ s, x < n) (hsk : s.card = k) :
   k ≤ roth_number_nat n :=
-begin
-  rw ←hsk,
-  exact hs.le_add_roth_number (λ x hx, mem_range.2 $ hsn x hx),
-end
+hsk.ge.trans $ hs.le_add_roth_number $ λ x hx, mem_range.2 $ hsn x hx
 
 /-- The Roth number is a subadditive function. Note that by Fekete's lemma this shows that
 the limit `roth_number N / N` exists, but Roth's theorem gives the stronger result that this

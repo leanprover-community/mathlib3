@@ -82,9 +82,8 @@ lemma image_preimage_of_bij [decidable_eq β] (f : α → β) (s : finset β)
   image f (preimage s f hf.inj_on) = s :=
 finset.coe_inj.1 $ by simpa using hf.image_eq
 
-lemma preimage_subset {f : α ↪ β} {s : finset β} {t : finset α} {h : set.inj_on f (f ⁻¹' s)}
-  (hs : s ⊆ t.map f) :
-  s.preimage f h ⊆ t :=
+lemma preimage_subset {f : α ↪ β} {s : finset β} {t : finset α} (hs : s ⊆ t.map f) :
+  s.preimage f (f.injective.inj_on _) ⊆ t :=
 begin
   rintro x hx,
   rw ←mem_map' f,

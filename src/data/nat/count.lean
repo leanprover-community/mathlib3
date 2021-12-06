@@ -26,6 +26,14 @@ the expected theorems about them.
 
 * `nat.nth_eq_order_iso_of_nat`: An infinite set of natural numbers is order-isomorphic to the
   natural numbers.
+
+## TODO
+
+There has been some discussion on the subject of whether both of `nth` and
+`nat.subtype.order_iso_of_nat` should exist. See discussion
+[here](https://github.com/leanprover-community/mathlib/pull/9457#pullrequestreview-767221180).
+Future work should address how lemmas that use these should be written.
+
 -/
 
 lemma list.range_add (a : ℕ) :
@@ -156,7 +164,8 @@ lemma lt_of_count_lt_count {a b : ℕ} (h : count p a < count p b) : a < b :=
 end count
 
 /-- Find the `n`-th natural number satisfying `p` (indexed from `0`, so `nth p 0` is the first
-natural number satisfying `p`), or `0` if there is no such number. -/
+natural number satisfying `p`), or `0` if there is no such number. See also
+`subtype.order_iso_of_nat` for the order isomorphism with ℕ when `p` is infinitely often true. -/
 noncomputable def nth : ℕ → ℕ
 | n := Inf { i : ℕ | p i ∧ ∀ k < n, nth k < i }
 

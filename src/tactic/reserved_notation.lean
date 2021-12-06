@@ -48,8 +48,8 @@ reserve notation `to`
 precedence `?`:max
 
 -- used in `order/lattice.lean`
--- These priorities are chosen to be above `+`, `∑`, and `∏`, but below `*`. There is no particular reason for
--- this choice.
+-- These priorities are chosen to be above `+`, `∑`, and `∏`, but below `*`. There is no particular
+-- reason for this choice.
 reserve infixl ` ⊓ `:69
 reserve infixl ` ⊔ `:68
 

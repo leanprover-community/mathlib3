@@ -79,7 +79,7 @@ variables [has_le α] [bounded_order α] [has_le β] [bounded_order β]
 
 /-- The generic polytope product. -/
 def product (min max : bool) :=
-{x : α × β // (min → (x.fst = ⊥ ↔ x.snd = ⊥)) ∧ (max → (x.fst = ⊤ ↔ x.snd = ⊤))}
+{x : α × β // x = ⊥ ∨ x = ⊤ ∨ (min → (x.fst ≠ ⊥ ∧ x.snd ≠ ⊥)) ∧ (max → (x.fst ≠ ⊤ ∧ x.snd ≠ ⊤))}
 
 abbreviation join := product α β ff ff
 abbreviation direct_sum := product α β ff tt
@@ -102,31 +102,13 @@ instance {min max : bool} : preorder (product α β min max) :=
   le_refl := by obviously,
   le_trans := λ a b c, @le_trans (α × β) _ a.val b.val c.val }
 
--- A really annoying condition that will keep coming up.
-abbreviation compatible : Prop := (⊥ : α) = (⊤ : α) ↔ (⊥ : β) = (⊤ : β)
-
-protected def order_bot {min max : bool} (h : max → compatible α β) :
-  order_bot (product α β min max) :=
-{ bot := ⟨⟨⊥, ⊥⟩, by obviously⟩,
+protected def order_bot {min max : bool} : order_bot (product α β min max) :=
+{ bot := ⟨⟨⊥, ⊥⟩, by tauto⟩,
   bot_le := by obviously }
 
-private def order_top_aux {min max : bool} (h : min → ((⊤ : α) = (⊥ : α) ↔ (⊤ : β) = (⊥ : β))) :
-  order_top (product α β min max) :=
-{ top := ⟨⟨⊤, ⊤⟩, by obviously⟩,
+protected def order_top {min max : bool} : order_top (product α β min max) :=
+{ top := ⟨⟨⊤, ⊤⟩, by tauto⟩,
   le_top := by obviously }
-
-protected def order_top {min max : bool} (h : min → compatible α β) :
-  order_top (product α β min max) :=
-begin
-  change compatible α β with ((⊥ : α) = (⊤ : α) ↔ (⊥ : β) = (⊤ : β)) at h,
-  apply order_top_aux,
-  tauto
-end
-
-instance : order_bot (α ⋈ β) := polytope.products.order_bot α β (λ h, (bool.not_ff h).elim)
-instance : order_top (α ⋈ β) := polytope.products.order_top α β (λ h, (bool.not_ff h).elim)
-instance : order_bot (α ⊗ β) := polytope.products.order_bot α β (λ h, (bool.not_ff h).elim)
-instance : order_top (α ⊕ β) := polytope.products.order_top α β (λ h, (bool.not_ff h).elim)
 
 end
 
@@ -134,7 +116,7 @@ instance [partial_order α] [bounded_order α] [partial_order β] [bounded_order
   partial_order (product α β min max) :=
 { le_antisymm := λ a b hab hba, subtype.eq (@le_antisymm (α × β) _ a.val b.val hab hba),
   ..(product.preorder α β) }
-
+  
 end products
 
 end polytope

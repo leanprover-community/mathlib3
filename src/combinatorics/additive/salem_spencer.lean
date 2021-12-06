@@ -62,8 +62,16 @@ variables {s t}
 lemma mul_salem_spencer.mono (h : t ⊆ s) (hs : mul_salem_spencer s) : mul_salem_spencer t :=
 λ a b c ha hb hc, hs (h ha) (h hb) (h hc)
 
-@[to_additive, simp]
-lemma mul_salem_spencer_empty : mul_salem_spencer (∅ : set α) := λ x _ _ hx, hx.elim
+@[simp, to_additive]
+lemma mul_salem_spencer_empty : mul_salem_spencer (∅ : set α) := λ a _ _ ha, ha.elim
+
+@[to_additive]
+lemma set.subsingleton.mul_salem_spencer (hs : s.subsingleton) : mul_salem_spencer s :=
+λ a b _ ha hb _ _, hs ha hb
+
+@[simp, to_additive]
+lemma mul_salem_spencer_singleton (a : α) : mul_salem_spencer ({a} : set α) :=
+set.subsingleton_singleton.mul_salem_spencer
 
 @[to_additive]
 lemma mul_salem_spencer.prod {t : set β} (hs : mul_salem_spencer s) (ht : mul_salem_spencer t) :
@@ -81,6 +89,41 @@ end monoid
 
 section cancel_comm_monoid
 variables [cancel_comm_monoid α] {s : set α} {a : α}
+
+@[to_additive]
+lemma mul_salem_spencer_insert :
+  mul_salem_spencer (insert a s) ↔ mul_salem_spencer s ∧
+    (∀ ⦃b c⦄, b ∈ s → c ∈ s → a * b = c * c → a = b) ∧
+    ∀ ⦃b c⦄, b ∈ s → c ∈ s → b * c = a * a → b = c :=
+begin
+  refine ⟨λ hs, ⟨hs.mono (set.subset_insert _ _),
+    λ b c hb hc, hs (set.mem_insert _ _) (set.mem_insert_of_mem _ hb) (set.mem_insert_of_mem _ hc),
+    λ b c hb hc, hs (set.mem_insert_of_mem _ hb) (set.mem_insert_of_mem _ hc) (set.mem_insert _ _)⟩,
+    _⟩,
+  rintro ⟨hs, ha, ha'⟩ b c d hb hc hd h,
+  rw set.mem_insert_iff at hb hc hd,
+  obtain rfl | hb := hb;
+  obtain rfl | hc := hc,
+  { refl },
+  all_goals { obtain rfl | hd := hd },
+  { exact (mul_left_cancel h).symm },
+  { exact ha hc hd h },
+  { exact mul_right_cancel h },
+  { exact (ha hb hd $ (mul_comm _ _).trans h).symm },
+  { exact ha' hb hc h },
+  { exact hs hb hc hd h }
+end
+
+@[simp, to_additive]
+lemma mul_salem_spencer_pair (a b : α) : mul_salem_spencer ({a, b} : set α) :=
+begin
+  rw mul_salem_spencer_insert,
+  refine ⟨mul_salem_spencer_singleton _, _, _⟩,
+  { rintro c d (rfl : c = b) (rfl : d = c),
+    exact mul_right_cancel },
+  { rintro c d (rfl : c = b) (rfl : d = c) _,
+    refl }
+end
 
 @[to_additive]
 lemma mul_salem_spencer.mul_left (hs : mul_salem_spencer s) : mul_salem_spencer ((*) a '' s) :=
@@ -198,10 +241,7 @@ variables {s t} {n : ℕ}
 @[to_additive]
 lemma mul_salem_spencer.le_mul_roth_number (hs : mul_salem_spencer (s : set α)) (h : s ⊆ t) :
   s.card ≤ mul_roth_number t :=
-begin
-  convert le_find_greatest (card_le_of_subset h) _,
-  exact ⟨s, h, rfl, hs⟩,
-end
+le_find_greatest (card_le_of_subset h) ⟨s, h, rfl, hs⟩
 
 @[to_additive]
 lemma mul_salem_spencer.roth_number_eq (hs : mul_salem_spencer (s : set α)) :
@@ -331,109 +371,3 @@ lemma roth_number_nat_is_O_id : is_O (λ N, (roth_number_nat N : ℝ)) (λ N, (N
 roth_number_nat_is_O_with_id.is_O
 
 end roth_number_nat
-
-/-!
-### Explicit values
-
-Some lemmas and calculations of the Roth number for (very) small naturals.
-
-Sequence [A003002](http://oeis.org/A003002) in the OEIS.
--/
-
-section explicit_values
-
-/-- A simpler `decidable` instance for Salem-Spencer sets of naturals. We use it to prove small
-values of the Roth number by `rfl`/`dec_trivial`. -/
-def add_salem_spencer.decidable_nat {s : finset ℕ} : decidable (add_salem_spencer (s : set ℕ)) :=
-decidable_of_iff (∀ (a ∈ s) (b ∈ s), a < b → b + (b - a) ∉ s) begin
-  rw add_salem_spencer_iff_eq_right,
-  refine ⟨λ hs a b c ha hb hc habc, _, λ hs a ha b hb hab h, _⟩,
-  { by_contra h,
-    obtain hac | hac := lt_or_gt_of_ne h,
-    { refine hs _ ha _ hc hac _,
-      rwa [←add_tsub_assoc_of_le hac.le, ←habc, add_tsub_cancel_left] },
-    { have hbc : b < c := lt_of_not_ge' (λ h, (add_lt_add_of_lt_of_le hac h).ne' habc),
-      refine hs _ hb _ hc hbc _,
-      rwa [←add_tsub_assoc_of_le hbc.le, ←habc, add_tsub_cancel_right] } },
-  { refine hab.ne (hs ha h hb _),
-    rw [←add_tsub_assoc_of_le hab.le, add_tsub_cancel_of_le (le_add_left hab.le)] }
-end
-
-local attribute [instance] add_salem_spencer.decidable_nat
-
-lemma roth_number_nat_succ_le {m n : ℕ} (hn : roth_number_nat n ≤ m)
-  (h : ∀ s ∈ (powerset_len m (range n)).filter (λ (s : finset ℕ), add_salem_spencer (s : set ℕ)),
-          ∃ z ∈ s, n ≤ z + z ∧ z + z - n ∈ s) :
-  roth_number_nat (n + 1) ≤ m :=
-begin
-  apply nat.le_of_lt_succ,
-  change roth_number_nat (n + 1) < m.succ,
-  apply add_roth_number_lt_of_forall_not_add_salem_spencer,
-  simp only [range_succ, powerset_len_succ_insert not_mem_range_self, mem_union, mem_image,
-    or_imp_distrib, forall_and_distrib, and_imp, coe_insert, forall_exists_index,
-    forall_apply_eq_imp_iff₂],
-  refine ⟨_, λ s hs hsN, _⟩,
-  { simp only [mem_powerset_len, and_imp],
-    rw ←not_lt at hn,
-    exact λ x hx₁ hx₂ h, hn (h.le_roth_number_nat _ (λ x hx, mem_range.1 (hx₁ hx)) hx₂) },
-  simp only [and_imp, exists_prop, mem_filter, exists_and_distrib_left] at h,
-  obtain ⟨a, hNa, ha, haN⟩ := h s hs (hsN.mono $ set.subset_insert _ _),
-  rw [mem_powerset_len] at hs,
-  replace hs := hs.1 haN,
-  rw hsN (set.mem_insert_of_mem _ haN) (set.mem_insert _ _) (set.mem_insert_of_mem _ ha) _ at hs,
-  exact not_mem_range_self hs,
-  { rw [tsub_add_cancel_of_le hNa] }
-end
-
-/-- In conjunction with `dec_trivial`, this allows quick computation of small Roth numbers. -/
-lemma roth_number_nat_succ_eq {m n : ℕ} (hn : roth_number_nat n = m)
-  (h : ∀ s ∈ (powerset_len m (range n)).filter (λ (s : finset ℕ), add_salem_spencer (s : set ℕ)),
-          ∃ z ∈ s, n ≤ z + z ∧ z + z - n ∈ s) :
-  roth_number_nat (n + 1) = m :=
-(roth_number_nat_succ_le hn.le h).antisymm $ hn.ge.trans $ roth_number_nat.mono n.le_succ
-
-@[simp] lemma roth_number_nat_zero : roth_number_nat 0 = 0 := rfl
-@[simp] lemma roth_number_nat_one : roth_number_nat 1 = 1 := rfl
-@[simp] lemma roth_number_nat_two : roth_number_nat 2 = 2 := rfl
-@[simp] lemma roth_number_nat_three : roth_number_nat 3 = 2 := rfl
-@[simp] lemma roth_number_nat_four : roth_number_nat 4 = 3 := rfl
-@[simp] lemma roth_number_nat_five : roth_number_nat 5 = 4 := rfl
-@[simp] lemma roth_number_nat_six : roth_number_nat 6 = 4 := rfl
-@[simp] lemma roth_number_nat_seven : roth_number_nat 7 = 4 := rfl
-@[simp] lemma roth_number_nat_eight : roth_number_nat 8 = 4 := rfl
-@[simp] lemma roth_number_nat_nine : roth_number_nat 9 = 5 := rfl
-@[simp] lemma roth_number_nat_ten : roth_number_nat 10 = 5 := dec_trivial
-@[simp] lemma roth_number_nat_eleven : roth_number_nat 11 = 6 :=
-begin
-  apply le_antisymm,
-  { simpa using roth_number_nat_add_le 3 8 },
-  apply add_salem_spencer.le_roth_number_nat {0, 1, 3, 7, 8, 10},
-  { dec_trivial },
-  { simp },
-  { simp }
-end
-
-@[simp] lemma roth_number_twelve : roth_number_nat 12 = 6 :=
-roth_number_nat_succ_eq roth_number_nat_eleven $ by dec_trivial
-
-@[simp] lemma roth_number_nat_thirteen : roth_number_nat 13 = 7 :=
-begin
-  apply le_antisymm,
-  { simpa using roth_number_nat_add_le 10 3 },
-  apply add_salem_spencer.le_roth_number_nat {0, 1, 3, 4, 9, 10, 12},
-  { dec_trivial },
-  { simp },
-  { simp }
-end
-
-@[simp] lemma roth_number_nat_fourteen : roth_number_nat 14 = 8 :=
-begin
-  apply le_antisymm,
-  { simpa using roth_number_nat_add_le 11 3 },
-  apply add_salem_spencer.le_roth_number_nat {0, 1, 3, 4, 9, 10, 12, 13}, -- unique example
-  { dec_trivial },
-  { simp },
-  { simp }
-end
-
-end explicit_values

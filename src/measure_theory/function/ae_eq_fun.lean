@@ -291,13 +291,13 @@ instance : has_inf (α →ₘ[μ] β) :=
 lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
 lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
 
-private lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
+protected lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_left, }
 
-private lemma le_sup_right (f g : α →ₘ[μ] β) : g ≤ f ⊔ g :=
+protected lemma le_sup_right (f g : α →ₘ[μ] β) : g ≤ f ⊔ g :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_right, }
 
-private lemma sup_le (f g f' : α →ₘ[μ] β) (hf : f ≤ f') (hg : g ≤ f') : f ⊔ g ≤ f' :=
+protected lemma sup_le (f g f' : α →ₘ[μ] β) (hf : f ≤ f') (hg : g ≤ f') : f ⊔ g ≤ f' :=
 begin
   rw ← coe_fn_le at hf hg ⊢,
   filter_upwards [hf, hg, coe_fn_sup f g],
@@ -306,13 +306,13 @@ begin
   exact sup_le haf hag,
 end
 
-private lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
+protected lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_left, }
 
-private lemma inf_le_right (f g : α →ₘ[μ] β) : f ⊓ g ≤ g :=
+protected lemma inf_le_right (f g : α →ₘ[μ] β) : f ⊓ g ≤ g :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_right, }
 
-private lemma le_inf (f' f g : α →ₘ[μ] β) (hf : f' ≤ f) (hg : f' ≤ g) : f' ≤ f ⊓ g :=
+protected lemma le_inf (f' f g : α →ₘ[μ] β) (hf : f' ≤ f) (hg : f' ≤ g) : f' ≤ f ⊓ g :=
 begin
   rw ← coe_fn_le at hf hg ⊢,
   filter_upwards [hf, hg, coe_fn_inf f g],

@@ -2212,17 +2212,17 @@ begin
     rw closure_Ioo hab }
 end
 
-@[simp] lemma interior_Ici [no_bot_order α] {a : α} : interior (Ici a) = Ioi a :=
-by rw [← compl_Iio, interior_compl, closure_Iio, compl_Iic]
-
 @[simp] lemma interior_Ici' {a : α} (ha : (Iio a).nonempty) : interior (Ici a) = Ioi a :=
 let ⟨b, hb⟩ := ha in by rw [← compl_Iio, interior_compl, closure_Iio' hb, compl_Iic]
 
-@[simp] lemma interior_Iic [no_top_order α] {a : α} : interior (Iic a) = Iio a :=
-by rw [← compl_Ioi, interior_compl, closure_Ioi, compl_Ici]
+lemma interior_Ici [no_bot_order α] {a : α} : interior (Ici a) = Ioi a :=
+by rw [← compl_Iio, interior_compl, closure_Iio, compl_Iic]
 
 @[simp] lemma interior_Iic' {a : α} (ha : (Ioi a).nonempty) : interior (Iic a) = Iio a :=
 let ⟨b, hb⟩ := ha in by rw [← compl_Ioi, interior_compl, closure_Ioi' hb, compl_Ici]
+
+lemma interior_Iic [no_top_order α] {a : α} : interior (Iic a) = Iio a :=
+by rw [← compl_Ioi, interior_compl, closure_Ioi, compl_Ici]
 
 @[simp] lemma interior_Icc [no_bot_order α] [no_top_order α] {a b : α}:
   interior (Icc a b) = Ioo a b :=
@@ -2234,29 +2234,29 @@ by rw [← Ici_inter_Iio, interior_inter, interior_Ici, interior_Iio, Ioi_inter_
 @[simp] lemma interior_Ioc [no_top_order α] {a b : α} : interior (Ioc a b) = Ioo a b :=
 by rw [← Ioi_inter_Iic, interior_inter, interior_Ioi, interior_Iic, Ioi_inter_Iio]
 
-@[simp] lemma frontier_Ici [no_bot_order α] {a : α} : frontier (Ici a) = {a} :=
-by simp [frontier]
-
 @[simp] lemma frontier_Ici' {a : α} (ha : (Iio a).nonempty) : frontier (Ici a) = {a} :=
 by simp [frontier, ha]
 
-@[simp] lemma frontier_Iic [no_top_order α] {a : α} : frontier (Iic a) = {a} :=
+lemma frontier_Ici [no_bot_order α] {a : α} : frontier (Ici a) = {a} :=
 by simp [frontier]
 
 @[simp] lemma frontier_Iic' {a : α} (ha : (Ioi a).nonempty) : frontier (Iic a) = {a} :=
 by simp [frontier, ha]
 
-@[simp] lemma frontier_Ioi [no_top_order α] {a : α} : frontier (Ioi a) = {a} :=
+lemma frontier_Iic [no_top_order α] {a : α} : frontier (Iic a) = {a} :=
 by simp [frontier]
 
 @[simp] lemma frontier_Ioi' {a : α} (ha : (Ioi a).nonempty) : frontier (Ioi a) = {a} :=
 let ⟨b, hb⟩ := ha in by simp [frontier, closure_Ioi' hb, Iic_diff_Iio, Icc_self]
 
-@[simp] lemma frontier_Iio [no_bot_order α] {a : α} : frontier (Iio a) = {a} :=
+lemma frontier_Ioi [no_top_order α] {a : α} : frontier (Ioi a) = {a} :=
 by simp [frontier]
 
 @[simp] lemma frontier_Iio' {a : α} (ha : (Iio a).nonempty) : frontier (Iio a) = {a} :=
 let ⟨b, hb⟩ := ha in by simp [frontier, closure_Iio' hb, Iic_diff_Iio, Icc_self]
+
+lemma frontier_Iio [no_bot_order α] {a : α} : frontier (Iio a) = {a} :=
+by simp [frontier]
 
 @[simp] lemma frontier_Icc [no_bot_order α] [no_top_order α] {a b : α} (h : a < b) :
   frontier (Icc a b) = {a, b} :=

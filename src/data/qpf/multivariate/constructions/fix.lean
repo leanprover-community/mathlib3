@@ -44,7 +44,7 @@ See [avigad-carneiro-hudon2019] for more details.
 
 ## Reference
 
- * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
+ * Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
    [*Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 

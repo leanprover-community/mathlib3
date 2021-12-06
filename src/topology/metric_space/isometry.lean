@@ -133,10 +133,10 @@ theorem isometry.closed_embedding [complete_space α] [emetric_space β]
   {f : α → β} (hf : isometry f) : closed_embedding f :=
 hf.antilipschitz.closed_embedding hf.lipschitz.uniform_continuous
 
-lemma isometry.tendsto_nhds_iff [complete_space α] [emetric_space β] {ι : Type*} {f : α → β}
+lemma isometry.tendsto_nhds_iff [emetric_space β] {ι : Type*} {f : α → β}
   {g : ι → α} {a : filter ι} {b : α} (hf : isometry f) :
   filter.tendsto g a (𝓝 b) ↔ filter.tendsto (f ∘ g) a (𝓝 (f b)) :=
-hf.closed_embedding.tendsto_nhds_iff
+hf.embedding.tendsto_nhds_iff
 
 end emetric_isometry --section
 

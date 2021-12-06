@@ -132,7 +132,7 @@ begin
   { simpa [←IH] }
 end
 
-lemma finset.untrop_sum [linear_order R] [order_top R] (s : finset S)
+lemma finset.untrop_sum' [linear_order R] [order_top R] (s : finset S)
   (f : S → tropical R) : untrop (∑ i in s, f i) = s.inf (untrop ∘ f) :=
 begin
   cases s,
@@ -148,11 +148,17 @@ begin
   { simp only [set.image_empty, finset.coe_empty, finset.sum_empty,
                with_top.cInf_empty, untrop_zero] },
   rw [←finset.inf'_eq_cInf_image _ h, finset.inf'_eq_inf],
-  convert s.untrop_sum f,
+  convert s.untrop_sum' f,
   refine lattice.ext _,
   intros,
   exact iff.rfl
 end
+
+/-- Note we cannot use `i ∈ s` instead of `i : s` here
+as it is simply not true on conditionally complete lattices! -/
+lemma finset.untrop_sum [conditionally_complete_linear_order R] (s : finset S)
+  (f : S → tropical (with_top R)) : untrop (∑ i in s, f i) = ⨅ i : s, untrop (f i) :=
+by simpa [untrop_sum_eq_Inf_image, ←cinfi_set]
 
 lemma untrop_sum [conditionally_complete_linear_order R] [fintype S]
   (f : S → tropical (with_top R)) :

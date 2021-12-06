@@ -390,6 +390,11 @@ lemma ring_hom_ext ⦃F G : (⨁ i, A i) →+* R⦄
   (h : ∀ i, (↑F : _ →+ R).comp (of_add_hom A i) = (↑G : _ →+ R).comp (of_add_hom A i)) : F = G :=
 ring_hom.coe_add_monoid_hom_injective $ direct_sum.add_hom_ext' h
 
+/-- Two `ring_hom`s out of a direct sum are equal if they agree on the generators. -/
+lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄ (h : ∀ i x, f (of A i x) = g (of A i x)) :
+  f = g :=
+ring_hom_ext' $ λ i, add_monoid_hom.ext $ h i
+
 /-- A family of `add_monoid_hom`s preserving `direct_sum.ghas_one.one` and `direct_sum.ghas_mul.mul`
 describes a `ring_hom`s on `⨁ i, A i`. This is a stronger version of `direct_sum.to_monoid`.
 

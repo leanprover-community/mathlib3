@@ -363,10 +363,7 @@ end
 /-- Composing an alternating map with the identity linear map in each argument. -/
 @[simp] lemma comp_linear_map_id (f : alternating_map R M N ι) :
   f.comp_linear_map linear_map.id = f :=
-begin
-  ext,
-  refl
-end
+ext $ λ _, rfl
 
 /-- Composing an alternating map with the same linear equiv on each argument gives the zero map
 if and only if the alternating map is the zero map. -/

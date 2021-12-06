@@ -1061,6 +1061,10 @@ val_le_iff.1 $ erase_le_erase _ $ val_le_iff.2 h
 
 theorem erase_subset (a : α) (s : finset α) : erase s a ⊆ s := erase_subset _ _
 
+lemma subset_erase {a : α} {s t : finset α} : s ⊆ t.erase a ↔ s ⊆ t ∧ a ∉ s :=
+⟨λ h, ⟨h.trans (erase_subset _ _), λ ha, not_mem_erase _ _ (h ha)⟩,
+  λ h b hb, mem_erase.2 ⟨ne_of_mem_of_not_mem hb h.2, h.1 hb⟩⟩
+
 @[simp, norm_cast] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (s \ {a} : set α) :=
 set.ext $ λ _, mem_erase.trans $ by rw [and_comm, set.mem_diff, set.mem_singleton_iff]; refl
 
@@ -1230,6 +1234,12 @@ by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 
 @[simp] lemma sdiff_singleton_not_mem_eq_self (s : finset α) {a : α} (ha : a ∉ s) : s \ {a} = s :=
 by simp only [sdiff_singleton_eq_erase, ha, erase_eq_of_not_mem, not_false_iff]
+
+lemma sdiff_erase {A : finset α} {x : α} (hx : x ∈ A) : A \ A.erase x = {x} :=
+begin
+  rw [← sdiff_singleton_eq_erase, sdiff_sdiff_right_self],
+  exact inf_eq_right.2 (singleton_subset_iff.2 hx),
+end
 
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
 sdiff_sdiff_right_self
@@ -2214,6 +2224,15 @@ begin
   ext y, simp
 end
 
+lemma range_sdiff_zero {n : ℕ} : range (n + 1) \ {0} = (range n).image nat.succ :=
+begin
+  induction n with k hk,
+  { simp },
+  nth_rewrite 1 range_succ,
+  rw [range_succ, image_insert, ←hk, insert_sdiff_of_not_mem],
+  simp
+end
+
 end image
 end finset
 
@@ -2782,6 +2801,18 @@ ext $ λ x, by simp only [mem_bUnion, mem_image, mem_singleton, eq_comm]
 @[simp] lemma bUnion_singleton_eq_self [decidable_eq α] :
   s.bUnion (singleton : α → finset α) = s :=
 by { rw bUnion_singleton, exact image_id }
+
+lemma filter_bUnion (s : finset α) (f : α → finset β) (p : β → Prop) [decidable_pred p] :
+  (s.bUnion f).filter p = s.bUnion (λ a, (f a).filter p) :=
+begin
+  ext b,
+  simp only [mem_bUnion, exists_prop, mem_filter],
+  split,
+  { rintro ⟨⟨a, ha, hba⟩, hb⟩,
+    exact ⟨a, ha, hba, hb⟩ },
+  { rintro ⟨a, ha, hba, hb⟩,
+    exact ⟨⟨a, ha, hba⟩, hb⟩ }
+end
 
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :

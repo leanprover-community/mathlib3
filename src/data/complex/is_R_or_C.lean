@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 import data.real.sqrt
 import field_theory.tower
 import analysis.normed_space.finite_dimension
+import analysis.normed_space.star
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
@@ -344,7 +345,7 @@ begin
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
-by { by_cases h : (I : K) = 0; field_simp [h] }
+by field_simp
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 (@norm_sq K _).map_inv z
@@ -354,6 +355,9 @@ by { by_cases h : (I : K) = 0; field_simp [h] }
 
 lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
+
+@[priority 100] instance : cstar_ring K :=
+{ norm_star_mul_self := λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
 
 /-! ### Cast lemmas -/
 
@@ -648,7 +652,7 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   I := 0,
   I_re_ax := by simp only [add_monoid_hom.map_zero],
   I_mul_I_ax := or.intro_left _ rfl,
-  re_add_im_ax := λ z, by unfold_coes; simp [add_zero, id.def, mul_zero],
+  re_add_im_ax := λ z, by simp [add_zero, id.def, mul_zero],
   of_real_re_ax := λ r, by simp only [add_monoid_hom.id_apply, algebra.id.map_eq_self],
   of_real_im_ax := λ r, by simp only [add_monoid_hom.zero_apply],
   mul_re_ax := λ z w,

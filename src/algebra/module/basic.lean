@@ -99,6 +99,20 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
   zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
   .. hf.distrib_mul_action f smul }
 
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →+* S`.
+
+See also `function.surjective.mul_action_left` and `function.surjective.distrib_mul_action_left`.
+-/
+@[reducible]
+def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoid M]
+  [module R M] [semiring S] [has_scalar S M]
+  (f : R →+* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  module S M :=
+{ smul := (•),
+  zero_smul := λ x, by rw [← f.map_zero, hsmul, zero_smul],
+  add_smul := hf.forall₂.mpr (λ a b x, by simp only [← f.map_add, hsmul, add_smul]),
+  .. hf.distrib_mul_action_left f.to_monoid_hom hsmul }
+
 variables {R} (M)
 
 /-- Compose a `module` with a `ring_hom`, with action `f s • m`.
@@ -514,11 +528,21 @@ lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 
 variables {M}
 
-lemma eq_zero_of_smul_two_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
+lemma eq_zero_of_two_nsmul_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
 by haveI := nat.no_zero_smul_divisors R M;
 exact (smul_eq_zero.mp hv).resolve_left (by norm_num)
 
 end nat
+
+variables (R M)
+
+/-- If `M` is an `R`-module with one and `M` has characteristic zero, then `R` has characteristic
+zero as well. Usually `M` is an `R`-algebra. -/
+lemma char_zero.of_module [has_one M] [char_zero M] : char_zero R :=
+begin
+  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _ _⟩,
+  rw [← nsmul_one, ← nsmul_one, nsmul_eq_smul_cast R m (1 : M), nsmul_eq_smul_cast R n (1 : M), h]
+end
 
 end module
 
@@ -545,8 +569,7 @@ include R
 
 lemma eq_zero_of_eq_neg {v : M} (hv : v = - v) : v = 0 :=
 begin
-  haveI := nat.no_zero_smul_divisors R M,
-  refine eq_zero_of_smul_two_eq_zero R _,
+  refine eq_zero_of_two_nsmul_eq_zero R _,
   rw two_smul,
   exact add_eq_zero_iff_eq_neg.mpr hv
 end

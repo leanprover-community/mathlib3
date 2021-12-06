@@ -422,11 +422,11 @@ begin
       have hd : finrank ℝ (s.altitude i).direction = 0,
       { rw [←h, finrank_bot] },
       simpa using hd },
-    { rw [←submodule.mem_inf, inf_comm, ←direction_altitude, ←h],
+    { rw [←submodule.mem_inf, _root_.inf_comm, ←direction_altitude, ←h],
       exact vsub_mem_vector_span ℝ (set.mem_insert _ _)
                                    (set.mem_insert_of_mem _ (set.mem_singleton _)) } },
   { rintro ⟨hne, h⟩,
-    rw [←submodule.mem_inf, inf_comm, ←direction_altitude] at h,
+    rw [←submodule.mem_inf, _root_.inf_comm, ←direction_altitude] at h,
     rw [vector_span_eq_span_vsub_set_left_ne ℝ (set.mem_insert _ _),
         set.insert_diff_of_mem _ (set.mem_singleton _),
         set.diff_singleton_eq_self (λ h, hne (set.mem_singleton_iff.1 h)), set.image_singleton],

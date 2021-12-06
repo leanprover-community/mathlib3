@@ -270,7 +270,7 @@ instance : is_coatomic α :=
 end is_coatomistic
 end atomistic
 
-/-- An order is simple iff it has only two unique elements, `⊥` and `⊤`. -/
+/-- An order is simple iff it has exactly two elements, `⊥` and `⊤`. -/
 class is_simple_order (α : Type*) [has_le α] [bounded_order α] extends nontrivial α : Prop :=
 (eq_bot_or_eq_top : ∀ (a : α), a = ⊥ ∨ a = ⊤)
 

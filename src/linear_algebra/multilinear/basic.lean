@@ -302,18 +302,23 @@ ext $ λ _, rfl
   g.comp_linear_map (λ i, linear_map.id) = g :=
 ext $ λ _, rfl
 
+/-- Composing with a family of surjective linear maps is injective. -/
+lemma comp_linear_map_injective (f : Π i, M₁ i →ₗ[R] M₁' i) (hf : ∀ i, surjective (f i)) :
+  injective (λ g : multilinear_map R M₁' M₂, g.comp_linear_map f) :=
+λ g₁ g₂ h, ext $ λ x,
+  by simpa [λ i, surj_inv_eq (hf i)] using ext_iff.mp h (λ i, surj_inv (hf i) (x i))
+
+lemma comp_linear_map_inj (f : Π i, M₁ i →ₗ[R] M₁' i) (hf : ∀ i, surjective (f i))
+  (g₁ g₂ : multilinear_map R M₁' M₂) : g₁.comp_linear_map f = g₂.comp_linear_map f ↔ g₁ = g₂ :=
+(comp_linear_map_injective _ hf).eq_iff
+
 /-- Composing a multilinear map with a linear equiv on each argument gives the zero map
 if and only if the multilinear map is the zero map. -/
 @[simp] lemma comp_linear_equiv_eq_zero_iff (g : multilinear_map R M₁' M₂)
   (f : Π i, M₁ i ≃ₗ[R] M₁' i) : g.comp_linear_map (λ i, (f i : M₁ i →ₗ[R] M₁' i)) = 0 ↔ g = 0 :=
 begin
-  split,
-  { intro h,
-    have h' : (g.comp_linear_map (λ i, (f i : M₁ i →ₗ[R] M₁' i))).comp_linear_map
-      (λ i, ((f i).symm : M₁' i →ₗ[R] M₁ i)) = 0, by simp [h],
-    simpa [comp_linear_map_assoc] using h' },
-  { rintro rfl,
-    exact zero_comp_linear_map _ }
+  set f' := (λ i, (f i : M₁ i →ₗ[R] M₁' i)),
+  rw [←zero_comp_linear_map f', comp_linear_map_inj f' (λ i, (f i).surjective)],
 end
 
 end

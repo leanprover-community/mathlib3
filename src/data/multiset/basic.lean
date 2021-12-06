@@ -2160,15 +2160,17 @@ begin
     simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
 end
 
-lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
+lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
 begin
   ext a,
   rw [count_repeat, count_filter],
-  simp_rw [eq_comm],
-  split_ifs with ha,
-  { subst a },
-  { refl }
+  simp_rw [←dif_eq_if],
+  congr' 1 with rfl,
+  refl,
 end
+
+lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
+by { simp_rw [←filter_eq', eq_comm], congr }
 
 lemma pow_count [comm_monoid α] {s : multiset α} (a : α) :
   a ^ (count a s) = (filter (eq a) s).prod :=

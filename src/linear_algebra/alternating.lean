@@ -340,7 +340,8 @@ lemma coe_comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) 
 @[simp] lemma comp_linear_map_apply (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) (v : ι → M₂) :
   f.comp_linear_map g v = f (λ i, g (v i)) := rfl
 
-/-- Composing an alternating map twice with the same linear map in each argument. -/
+/-- Composing an alternating map twice with the same linear map in each argument is
+the same as composing with their composition. -/
 lemma comp_linear_map_assoc (f : alternating_map R M N ι) (g₁ : M₂ →ₗ[R] M) (g₂ : M₃ →ₗ[R] M₂) :
   (f.comp_linear_map g₁).comp_linear_map g₂ = f.comp_linear_map (g₁ ∘ₗ g₂) :=
 rfl

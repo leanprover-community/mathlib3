@@ -918,6 +918,10 @@ let ⟨y, hy⟩ := not_forall.1 h' in card_lt_of_injective_of_not_mem f h hy
 lemma card_le_of_surjective (f : α → β) (h : function.surjective f) : card β ≤ card α :=
 card_le_of_injective _ (function.injective_surj_inv h)
 
+lemma card_range_le {α β : Type*} (f : α → β) [fintype α] [fintype (set.range f)] :
+  fintype.card (set.range f) ≤ fintype.card α :=
+fintype.card_le_of_surjective (λ a, ⟨f a, by simp⟩) (λ ⟨_, a, ha⟩, ⟨a, by simpa using ha⟩)
+
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.
 This is the `fintype` version of `finset.exists_ne_map_eq_of_card_lt_of_maps_to`.

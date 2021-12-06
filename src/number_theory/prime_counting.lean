@@ -8,6 +8,7 @@ import data.nat.prime
 import data.nat.totient
 import algebra.periodic
 import data.finset.locally_finite
+import data.nat.count
 
 
 /-!
@@ -43,17 +44,15 @@ open finset
 A variant of the traditional prime counting function which gives the number of primes
 *strictly* less than the input. More convenient for avoiding off-by-one errors.
 -/
-def prime_counting' (n : ℕ) : ℕ := ((range n).filter (prime)).card
+def prime_counting' : ℕ → ℕ := nat.count prime
 
 /-- The prime counting function: Returns the number of primes less than or equal to the input. -/
-def prime_counting (n : ℕ) : ℕ := ((range (n + 1)).filter (prime)).card
+def prime_counting (n : ℕ) : ℕ := prime_counting' (n + 1)
 
 localized "notation `π` := nat.prime_counting" in nat
 localized "notation `π'` := nat.prime_counting'" in nat
 
-
-lemma monotone_prime_counting' : monotone prime_counting' :=
-λ a b a_le_b, card_le_of_subset (monotone_filter_left prime (range_mono a_le_b))
+lemma monotone_prime_counting' : monotone prime_counting' := count_monotone prime
 
 lemma monotone_prime_counting : monotone prime_counting :=
 λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
@@ -105,11 +104,12 @@ begin
   cases lt_or_le k n with k_lt_n n_le_k,
   { calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
                 begin
-                  rw [prime_counting', range_eq_Ico,
+                  rw [prime_counting', count_eq_card_filter_range, range_eq_Ico,
                       ←Ico_union_Ico_eq_Ico (zero_le k) (le_of_lt k_lt_n), filter_union],
                   apply card_union_le,
                 end
-        ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'
+        ... ≤ π' k + ((Ico k n).filter (prime)).card :
+                by rw [prime_counting', count_eq_card_filter_range]
         ... ≤ π' k + ((Ico k n).filter (λ i, i = k ∨ coprime k i)).card :
                 begin
                   refine add_le_add_left (card_le_of_subset _) k.prime_counting',
@@ -150,8 +150,8 @@ begin
   congr,
   { -- TODO add a tactic (or perhaps an add-on to `norm_num`) to brute force `π` and `π'`
     -- calculation.
-    -- TODO prove by simping after #9457 merged
-    sorry, },
+    simp [prime_counting'],
+    norm_num, },
   { -- TODO add a tactic (or perhaps an add-on to `norm_num`) to brute force totient calculation.
     have : 6 = 2 * 3 := by norm_num,
     rw [this, totient_mul, totient_prime, totient_prime]; norm_num, },

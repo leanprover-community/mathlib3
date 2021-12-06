@@ -71,6 +71,9 @@ def symm (h : homotopy_equiv X Y) : homotopy_equiv Y X :=
 @[simp]
 lemma coe_inv_fun (h : homotopy_equiv X Y) : (⇑h.inv_fun : Y → X) = ⇑h.symm := rfl
 
+@[simp]
+lemma refl_symm (X : Type u) [topological_space X] : (refl X).symm = refl X := rfl
+
 /--
 If `X` is homotopy equivalent to `Y`, and `Y` is homotopy equivalent to `Z`, then `X` is homotopy
 equivalent to `Z`.
@@ -118,5 +121,20 @@ def to_homotopy_equiv (h : X ≃ₜ Y) : homotopy_equiv X Y :=
   inv_fun := ⟨h.symm⟩,
   left_inv := by { convert homotopic.refl _, ext, simp },
   right_inv := by { convert homotopic.refl _, ext, simp } }
+
+@[simp]
+lemma coe_to_homotopy_equiv (h : X ≃ₜ Y) : ⇑(h.to_homotopy_equiv) = h := rfl
+
+@[simp]
+lemma refl_to_homotopy_equiv (X : Type u) [topological_space X] :
+  (homeomorph.refl X).to_homotopy_equiv = homotopy_equiv.refl X := rfl
+
+@[simp]
+lemma symm_to_homotopy_equiv (h : X ≃ₜ Y) :
+  h.symm.to_homotopy_equiv = h.to_homotopy_equiv.symm := rfl
+
+@[simp]
+lemma trans_to_homotopy_equiv (h₀ : X ≃ₜ Y) (h₁ : Y ≃ₜ Z) :
+  (h₀.trans h₁).to_homotopy_equiv = h₀.to_homotopy_equiv.trans h₁.to_homotopy_equiv := rfl
 
 end homeomorph

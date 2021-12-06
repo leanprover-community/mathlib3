@@ -312,8 +312,8 @@ begin
     have h' : (g.comp_linear_map (λ i, (f i : M₁ i →ₗ[R] M₁' i))).comp_linear_map
       (λ i, ((f i).symm : M₁' i →ₗ[R] M₁ i)) = 0, by simp [h],
     simpa [comp_linear_map_assoc] using h' },
-  { intro h,
-    simp [h] }
+  { rintro rfl,
+    exact zero_comp_linear_map _ }
 end
 
 end

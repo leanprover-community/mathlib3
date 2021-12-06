@@ -75,9 +75,9 @@ begin
   { rw nat.find_eq_iff,
     simp only [nat.add_sub_cancel, set.mem_set_of_eq],
     refine ⟨Inf_mem (nonempty_of_pos_Inf h), λ k hk hpk, not_mem_of_lt_Inf _ hpk⟩,
-    rwa sub_lt_iff_right,
+    rwa tsub_lt_iff_right,
     apply le_of_lt,
-    rw [←sub_pos_iff_lt, pos_iff_ne_zero],
+    rw [←tsub_pos_iff_lt, pos_iff_ne_zero],
     intro hkn,
     rw hkn at hpk,
     exact not_mem_of_lt_Inf h hpk },
@@ -126,7 +126,7 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
 
-lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
+lemma Inf_add'' {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
   Inf {m | p (m + n)} + n = Inf {m | p m} :=
 begin
   obtain h | ⟨m, hm⟩ := {m | p (m + n)}.eq_empty_or_nonempty,
@@ -147,13 +147,8 @@ lemma Inf_add' {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m | p m}) :
   Inf {m | p m} + n = Inf {m | p (m - n)} :=
 begin
   convert Inf_add _,
-  { simp_rw add_tsub_cancel_right },
-  obtain ⟨m, hm⟩ := nonempty_of_pos_Inf h,
-  refine le_cInf ⟨m + n, _⟩ (λ b hb, le_of_not_lt $ λ hbn,
-    ne_of_mem_of_not_mem _ (not_mem_of_lt_Inf h) (tsub_eq_zero_of_le hbn.le)),
-  { dsimp,
-    rwa add_tsub_cancel_right },
-  { exact hb }
+  { simp_rw add_tsub_cancel_right,
+    exact h, },
 end
 
 section

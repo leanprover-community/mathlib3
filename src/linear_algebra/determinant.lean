@@ -273,6 +273,11 @@ end linear_map
   (f : M ≃ₗ[A] M) : (f : M →ₗ[A] M).det * (f.symm : M →ₗ[A] M).det = 1 :=
 by simp [←linear_map.det_comp]
 
+/-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/
+@[simp] lemma linear_equiv.det_symm_mul_det {A : Type*} [comm_ring A] [is_domain A] [module A M]
+  (f : M ≃ₗ[A] M) : (f.symm : M →ₗ[A] M).det * (f : M →ₗ[A] M).det = 1 :=
+by simp [←linear_map.det_comp]
+
 -- Cannot be stated using `linear_map.det` because `f` is not an endomorphism.
 lemma linear_equiv.is_unit_det (f : M ≃ₗ[R] M') (v : basis ι R M) (v' : basis ι R M') :
   is_unit (linear_map.to_matrix v v' f).det :=

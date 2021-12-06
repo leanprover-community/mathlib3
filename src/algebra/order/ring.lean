@@ -735,6 +735,8 @@ lemma mul_le_iff_le_one_right (hb : 0 < b) : b * a ≤ b ↔ a ≤ 1 :=
 lemma mul_lt_iff_lt_one_right (hb : 0 < b) : b * a < b ↔ a < 1 :=
 lt_iff_lt_of_le_iff_le $ le_mul_iff_one_le_right hb
 
+-- TODO: `left` and `right` for these two lemmas are backwards compared to `neg_of_mul_pos`
+-- lemmas.
 lemma nonpos_of_mul_nonneg_left (h : 0 ≤ a * b) (hb : b < 0) : a ≤ 0 :=
 le_of_not_gt (λ ha, absurd h (mul_neg_of_pos_of_neg ha hb).not_le)
 

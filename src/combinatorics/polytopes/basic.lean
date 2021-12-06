@@ -5,21 +5,25 @@ Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
 import combinatorics.polytopes.flag
 
-namespace polytope
-
 universes u v
+
+namespace polytope
 
 /-- The diamond property. -/
 def diamond (α : Type u) [preorder α] [graded α] : Prop :=
 ∀ {a b : α}, a < b → graded.grade b = graded.grade a + 2 → ∃ x y, x ≠ y ∧ set.Ioo a b = {x, y}
 
+end polytope
+
 /-- A prepolytope is a graded partial order satisfying the diamond condition. -/
-class prepolytope (α : Type u) extends partial_order α, order_top α, graded α : Type u :=
-(diamond' : diamond α)
+class prepolytope (α : Type u) extends partial_order α, order_top α, polytope.graded α : Type u :=
+(diamond' : polytope.diamond α)
 
 /-- A polytope is a strongly connected prepolytope. -/
 class polytope (α : Type u) extends prepolytope α : Type u :=
 (scon : graded.strong_connected α)
+
+namespace polytope
 
 /-- The dual of a prepolytope. -/
 instance (α : Type u) [prepolytope α] : prepolytope (order_dual α) :=
@@ -69,7 +73,12 @@ instance : prepolytope point :=
 instance : polytope point :=
 { scon := by apply graded.scon_of_grade_le_two; exact one_le_two }
 
-namespace products
+/-- The generic polytope product. -/
+def product (α : Type u) [has_le α] [bounded_order α] (β : Type v) [has_le β] [bounded_order β]
+(min max : bool) :=
+{x : α × β // x = ⊥ ∨ x = ⊤ ∨ (min → (x.fst ≠ ⊥ ∧ x.snd ≠ ⊥)) ∧ (max → (x.fst ≠ ⊤ ∧ x.snd ≠ ⊤))}
+
+namespace product
 
 variables (α : Type u) (β : Type v)
 
@@ -77,13 +86,16 @@ section
 
 variables [has_le α] [bounded_order α] [has_le β] [bounded_order β]
 
-/-- The generic polytope product. -/
-def product (min max : bool) :=
-{x : α × β // x = ⊥ ∨ x = ⊤ ∨ (min → (x.fst ≠ ⊥ ∧ x.snd ≠ ⊥)) ∧ (max → (x.fst ≠ ⊤ ∧ x.snd ≠ ⊤))}
-
+/-- The join of two bounded orders. -/
 abbreviation join := product α β ff ff
+
+/-- The direct sum of two bounded orders. -/
 abbreviation direct_sum := product α β ff tt
+
+/-- The Cartesian product of two bounded orders. -/
 abbreviation cartesian_product := product α β tt ff
+
+/-- The topological product of two bounded orders. -/
 abbreviation topological_product := product α β tt tt
 
 notation α ` ⋈ `:50 β:50 := join α β
@@ -99,24 +111,41 @@ variables [preorder α] [bounded_order α] [preorder β] [bounded_order β]
 
 instance {min max : bool} : preorder (product α β min max) :=
 { le := λ a b, a.val ≤ b.val,
-  le_refl := by obviously,
-  le_trans := λ a b c, @le_trans (α × β) _ a.val b.val c.val }
+  le_refl := λ _, @le_refl (α × β) _ _,
+  le_trans := λ _ _ _, @le_trans (α × β) _ _ _ _ }
 
-protected def order_bot {min max : bool} : order_bot (product α β min max) :=
-{ bot := ⟨⟨⊥, ⊥⟩, by tauto⟩,
-  bot_le := by obviously }
+instance {min max : bool} : order_bot (product α β min max) :=
+{ bot := ⟨⊥, or.inl rfl⟩,
+  bot_le := λ _, bot_le }
 
-protected def order_top {min max : bool} : order_top (product α β min max) :=
-{ top := ⟨⟨⊤, ⊤⟩, by tauto⟩,
-  le_top := by obviously }
+instance {min max : bool} : order_top (product α β min max) :=
+{ top := ⟨⊤, or.inr (or.inl rfl)⟩,
+  le_top := λ _, le_top }
+
+instance {min max : bool} : inhabited (product α β min max) := ⟨⊥⟩
 
 end
 
-instance [partial_order α] [bounded_order α] [partial_order β] [bounded_order β] {min max : bool} :
-  partial_order (product α β min max) :=
+section
+
+variables [partial_order α] [bounded_order α] [partial_order β] [bounded_order β]
+
+lemma foo : (⊥ : α ⋈ β).val = (⊥ : α × β) := refl _
+
+lemma foo' : (⊥ : product α β ff ff).val = (⊥ : α × β) := refl _
+
+instance {min max : bool} : partial_order (product α β min max) :=
 { le_antisymm := λ a b hab hba, subtype.eq (@le_antisymm (α × β) _ a.val b.val hab hba),
   ..(product.preorder α β) }
-  
-end products
+
+instance [graded α] [graded β] : graded (α ⋈ β) :=
+{ grade := λ a, graded.grade a.val.fst + graded.grade a.val.snd,
+  grade_bot := sorry,
+  strict_mono := sorry,
+  hcovers := sorry }
+
+end
+
+end product
 
 end polytope

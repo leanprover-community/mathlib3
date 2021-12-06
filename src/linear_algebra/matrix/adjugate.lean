@@ -5,12 +5,11 @@ Authors: Anne Baanen
 -/
 import algebra.associated
 import algebra.regular.basic
-import data.matrix.notation
-import linear_algebra.matrix.polynomial
 import linear_algebra.matrix.mv_polynomial
+import linear_algebra.matrix.polynomial
+import ring_theory.polynomial.basic
 import tactic.linarith
 import tactic.ring_exp
-import ring_theory.polynomial.basic
 
 /-!
 # Cramer's rule and adjugate matrices
@@ -90,6 +89,9 @@ def cramer (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
 is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
 lemma cramer_apply (i : n) : cramer A b i = (A.update_column i b).det := rfl
+
+lemma cramer_transpose_apply (i : n) : cramer Aᵀ b i = (A.update_row i b).det :=
+by rw [cramer_apply, update_column_transpose, det_transpose]
 
 lemma cramer_transpose_row_self (i : n) :
   Aᵀ.cramer (A i) = pi.single i A.det :=
@@ -381,8 +383,6 @@ Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Sectio
 -/
 lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  casesI subsingleton_or_nontrivial α,
-  { simp },
   let g : matrix n n α → matrix n n (polynomial α) :=
     λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
   let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,

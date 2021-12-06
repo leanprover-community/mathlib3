@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
-import algebra.opposites
+import algebra.group.opposite
 
 /-!
 # Monoid, group etc structures on `M × N`
@@ -337,11 +337,11 @@ end mul_equiv
 
 section units
 
-open opposite
+open mul_opposite
 
-/-- Canonical homomorphism of monoids from `units α` into `α × αᵒᵖ`.
+/-- Canonical homomorphism of monoids from `units α` into `α × αᵐᵒᵖ`.
 Used mainly to define the natural topology of `units α`. -/
-def embed_product (α : Type*) [monoid α] : units α →* α × αᵒᵖ :=
+def embed_product (α : Type*) [monoid α] : units α →* α × αᵐᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
   map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
     and_self],

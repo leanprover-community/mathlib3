@@ -3,7 +3,6 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Aaron Anderson, Yakov Pechersky
 -/
-import data.finset.sort
 import data.fintype.basic
 import group_theory.perm.basic
 
@@ -370,10 +369,10 @@ lemma support_zpow_le (σ : perm α) (n : ℤ) :
 @[simp] lemma support_swap {x y : α} (h : x ≠ y) : support (swap x y) = {x, y} :=
 begin
   ext z,
-  by_cases hx : z = x;
-  by_cases hy : z = y,
-  any_goals { simpa [hx, hy] using h.symm },
-  { simp [swap_apply_of_ne_of_ne, hx, hy] }
+  by_cases hx : z = x,
+  any_goals { simpa [hx] using h.symm },
+  by_cases hy : z = y;
+  { simp [swap_apply_of_ne_of_ne, hx, hy]; cc }
 end
 
 lemma support_swap_iff (x y : α) :

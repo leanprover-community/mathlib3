@@ -3,7 +3,8 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Frédéric Dupuis, Heather Macbeth
 -/
-import analysis.normed_space.basic
+import analysis.normed.group.basic
+import topology.algebra.module
 
 /-!
 # (Semi-)linear isometries
@@ -307,6 +308,8 @@ omit σ₁₃ σ₂₁ σ₃₁ σ₃₂
 @[simp] lemma refl_trans : (refl R E).trans e = e := ext $ λ x, rfl
 @[simp] lemma self_trans_symm : e.trans e.symm = refl R E := ext e.symm_apply_apply
 @[simp] lemma symm_trans_self : e.symm.trans e = refl R₂ E₂ := ext e.apply_symm_apply
+@[simp] lemma symm_comp_self : e.symm ∘ e = id := funext e.symm_apply_apply
+@[simp] lemma self_comp_symm : e ∘ e.symm = id := e.symm.symm_comp_self
 
 include σ₁₃ σ₂₁ σ₃₂ σ₃₁
 @[simp] lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :

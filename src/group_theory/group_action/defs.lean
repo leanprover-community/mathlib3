@@ -192,11 +192,11 @@ g n • a
 
 variables (α)
 
-/-- An action of `M` on `α` and a funcion `N → M` induces an action of `N` on `α`.
+/-- An action of `M` on `α` and a function `N → M` induces an action of `N` on `α`.
 
 See note [reducible non-instances]. Since this is reducible, we make sure to go via
 `has_scalar.comp.smul` to prevent typeclass inference unfolding too far. -/
-@[reducible, to_additive /-" An additive action of `M` on `α` and a funcion `N → M` induces
+@[reducible, to_additive /-" An additive action of `M` on `α` and a function `N → M` induces
   an additive action of `N` on `α` "-/]
 def comp (g : N → M) : has_scalar N α :=
 { smul := has_scalar.comp.smul g }
@@ -269,6 +269,20 @@ protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (
 { smul := (•),
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
   mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
+
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
+
+See also `function.surjective.distrib_mul_action_left` and `function.surjective.module_left`.
+-/
+@[reducible, to_additive "Push forward the action of `R` on `M` along a compatible
+surjective map `f : R →+ S`."]
+def function.surjective.mul_action_left {R S M : Type*} [monoid R] [mul_action R M]
+  [monoid S] [has_scalar S M]
+  (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  mul_action S M :=
+{ smul := (•),
+  one_smul := λ b, by rw [← f.map_one, hsmul, one_smul],
+  mul_smul := hf.forall₂.mpr $ λ a b x, by simp only [← f.map_mul, hsmul, mul_smul] }
 
 section
 
@@ -419,6 +433,20 @@ protected def function.surjective.distrib_mul_action [add_monoid B] [has_scalar 
     simp only [smul_add, ← smul, ← f.map_add] },
   smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
   .. hf.mul_action f smul }
+
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
+
+See also `function.surjective.mul_action_left` and `function.surjective.module_left`.
+-/
+@[reducible]
+def function.surjective.distrib_mul_action_left {R S M : Type*} [monoid R] [add_monoid M]
+  [distrib_mul_action R M] [monoid S] [has_scalar S M]
+  (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  distrib_mul_action S M :=
+{ smul := (•),
+  smul_zero := hf.forall.mpr $ λ c, by rw [hsmul, smul_zero],
+  smul_add := hf.forall.mpr $ λ c x y, by simp only [hsmul, smul_add],
+  .. hf.mul_action_left f hsmul }
 
 variable (A)
 

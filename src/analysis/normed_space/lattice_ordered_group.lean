@@ -148,7 +148,7 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_lattice_add_comm_group.has_continuous_sup {α : Type*}
+instance normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
   [normed_lattice_add_comm_group α] :
   has_continuous_sup α :=
 order_dual.has_continuous_sup (order_dual α)

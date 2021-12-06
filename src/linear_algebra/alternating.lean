@@ -366,6 +366,16 @@ end
   f.comp_linear_map linear_map.id = f :=
 ext $ λ _, rfl
 
+/-- Composing with a surjective linear map is injective. -/
+lemma comp_linear_map_injective (f : M₂ →ₗ[R] M) (hf : function.surjective f) :
+  function.injective (λ g : alternating_map R M N ι, g.comp_linear_map f) :=
+λ g₁ g₂ h, ext $ λ x,
+by simpa [function.surj_inv_eq hf] using ext_iff.mp h (function.surj_inv hf ∘ x)
+
+lemma comp_linear_map_inj (f : M₂ →ₗ[R] M) (hf : function.surjective f)
+  (g₁ g₂ : alternating_map R M N ι) : g₁.comp_linear_map f = g₂.comp_linear_map f ↔ g₁ = g₂ :=
+(comp_linear_map_injective _ hf).eq_iff
+
 /-- Composing an alternating map with the same linear equiv on each argument gives the zero map
 if and only if the alternating map is the zero map. -/
 @[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M ≃ₗ[R] M) :

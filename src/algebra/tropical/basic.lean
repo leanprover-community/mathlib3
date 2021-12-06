@@ -265,11 +265,11 @@ instance [add_comm_semigroup R] : comm_semigroup (tropical R) :=
 
 instance [add_monoid R] : monoid (tropical R) :=
 { one := trop 0,
-  one_mul := λ _, untrop_injective (zero_add _),
-  mul_one := λ _, untrop_injective (add_zero _),
-  npow := λ n x, trop (n • untrop x),
-  npow_zero' := trop_rec (λ _, by simp only [trop_zero, zero_smul]),
-  npow_succ' := λ _, trop_rec (λ _, by simp only [succ_nsmul, untrop_trop, trop_add]),
+  one_mul := λ _, untrop_injective $ zero_add _,
+  mul_one := λ _, untrop_injective $ add_zero _,
+  npow := λ n x, trop $ n • untrop x,
+  npow_zero' := λ _, by simp only [trop_zero, zero_smul],
+  npow_succ' := λ _ _, by simp only [succ_nsmul, trop_add, trop_untrop],
   ..tropical.semigroup }
 
 @[simp] lemma untrop_pow [add_monoid R] (x : tropical R) (n : ℕ) :
@@ -283,13 +283,13 @@ instance [add_comm_monoid R] : comm_monoid (tropical R) :=
 
 instance [add_group R] : group (tropical R) :=
 { inv := λ x, trop (- untrop x),
-  mul_left_inv := λ _, untrop_injective (add_left_neg _),
-  zpow := λ n x, trop (n • untrop x),
-  zpow_zero' := trop_rec (λ _, by simp only [zero_zsmul, trop_zero]),
-  zpow_succ' := λ _, trop_rec (λ _, untrop_injective
-    (by simp only [succ_nsmul, of_nat_zsmul, untrop_trop, trop_add])),
-  zpow_neg' := λ _, trop_rec (λ _, untrop_injective
-    (by simp only [zsmul_neg_succ_of_nat, untrop_trop, untrop_pow, coe_nat_zsmul])),
+  mul_left_inv := λ _, untrop_injective $ add_left_neg _,
+  zpow := λ n x, trop $ n • untrop x,
+  zpow_zero' := λ _, untrop_injective $ by simp only [zero_zsmul, trop_zero],
+  zpow_succ' := λ _ _, untrop_injective $
+    by simp only [succ_nsmul, of_nat_zsmul, trop_add, trop_untrop],
+  zpow_neg' := λ _ _, untrop_injective $
+    by simp only [zsmul_neg_succ_of_nat, untrop_trop, coe_nat_zsmul],
   ..tropical.monoid }
 
 instance [add_comm_group R] : comm_group (tropical R) :=

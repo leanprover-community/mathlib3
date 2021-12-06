@@ -92,7 +92,7 @@ begin
   { simp [list.minimum_cons, ←IH] }
 end
 
-lemma multiset.trop_inf [h : linear_order R] [h' : order_top R] (s : multiset R) :
+lemma multiset.trop_inf [linear_order R] [order_top R] (s : multiset R) :
   trop s.inf = multiset.sum (s.map trop) :=
 begin
   induction s using multiset.induction with s x IH,
@@ -100,7 +100,7 @@ begin
   { simp [←IH] }
 end
 
-lemma finset.trop_inf [h : linear_order R] [h' : order_top R] (s : finset S) (f : S → R) :
+lemma finset.trop_inf [linear_order R] [order_top R] (s : finset S) (f : S → R) :
   trop (s.inf f) = ∑ i in s, trop (f i) :=
 begin
   cases s,
@@ -124,7 +124,7 @@ lemma trop_infi [conditionally_complete_linear_order R] [fintype S] (f : S → w
   trop (⨅ (i : S), f i) = ∑ (i : S), trop (f i) :=
 by rw [infi, ←set.image_univ, ←finset.coe_univ, trop_Inf_image]
 
-lemma multiset.untrop_sum [h : linear_order R] [h' : order_top R] (s : multiset (tropical R)) :
+lemma multiset.untrop_sum [linear_order R] [order_top R] (s : multiset (tropical R)) :
   untrop s.sum = multiset.inf (s.map untrop) :=
 begin
   induction s using multiset.induction with s x IH,
@@ -132,7 +132,7 @@ begin
   { simpa [←IH] }
 end
 
-lemma finset.untrop_sum [h : linear_order R] [h' : order_top R] (s : finset S)
+lemma finset.untrop_sum [linear_order R] [order_top R] (s : finset S)
   (f : S → tropical R) : untrop (∑ i in s, f i) = s.inf (untrop ∘ f) :=
 begin
   cases s,

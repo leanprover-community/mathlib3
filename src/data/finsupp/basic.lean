@@ -655,7 +655,7 @@ def erase (a : α) (f : α →₀ M) : α →₀ M :=
 
 @[simp] lemma support_erase [decidable_eq α] {a : α} {f : α →₀ M} :
   (f.erase a).support = f.support.erase a :=
-rfl
+by convert rfl
 
 @[simp] lemma erase_same {a : α} {f : α →₀ M} : (f.erase a) a = 0 :=
 if_pos rfl

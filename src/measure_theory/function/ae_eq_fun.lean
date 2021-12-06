@@ -323,13 +323,13 @@ end
 
 instance : lattice (α →ₘ[μ] β) :=
 { sup := has_sup.sup,
-  le_sup_left := le_sup_left,
-  le_sup_right := le_sup_right,
-  sup_le := sup_le,
+  le_sup_left := ae_eq_fun.le_sup_left,
+  le_sup_right := ae_eq_fun.le_sup_right,
+  sup_le := ae_eq_fun.sup_le,
   inf := has_inf.inf,
-  inf_le_left := inf_le_left,
-  inf_le_right := inf_le_right,
-  le_inf := le_inf,
+  inf_le_left := ae_eq_fun.inf_le_left,
+  inf_le_right := ae_eq_fun.inf_le_right,
+  le_inf := ae_eq_fun.le_inf,
   ..ae_eq_fun.partial_order}
 
 end lattice

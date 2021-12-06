@@ -41,7 +41,7 @@ variables {G : Type*} [group G] (H K L : subgroup G)
 @[to_additive "The index of a subgroup as a natural number,
 and returns 0 if the index is infinite."]
 noncomputable def index : ℕ :=
-nat.card (quotient_group.quotient H)
+nat.card (G ⧸ H)
 
 /-- The relative index of a subgroup as a natural number,
   and returns 0 if the relative index is infinite. -/
@@ -175,8 +175,8 @@ end
   (hf1 : function.surjective f) (hf2 : f.ker ≤ H) : (H.map f).index = H.index :=
 nat.dvd_antisymm (H.index_map_dvd hf1) (H.dvd_index_map hf2)
 
-@[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
-  H.index = fintype.card (quotient_group.quotient H) :=
+@[to_additive] lemma index_eq_card [fintype (G ⧸ H)] :
+  H.index = fintype.card (G ⧸ H) :=
 nat.card_eq_fintype_card
 
 @[to_additive index_mul_card] lemma index_mul_card [fintype G] [hH : fintype H] :
@@ -195,10 +195,10 @@ variables {H}
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩
 
-lemma index_ne_zero_of_fintype [hH : fintype (quotient_group.quotient H)] : H.index ≠ 0 :=
+lemma index_ne_zero_of_fintype [hH : fintype (G ⧸ H)] : H.index ≠ 0 :=
 by { rw index_eq_card, exact fintype.card_ne_zero }
 
-lemma one_lt_index_of_ne_top [fintype (quotient_group.quotient H)] (hH : H ≠ ⊤) : 1 < H.index :=
+lemma one_lt_index_of_ne_top [fintype (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
 nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_one.mp hH⟩
 
 end subgroup

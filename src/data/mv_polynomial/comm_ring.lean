@@ -67,7 +67,7 @@ variables (σ a a')
 @[simp] lemma support_neg : (- p).support = p.support :=
 finsupp.support_neg
 
-lemma support_sub [comm_ring R] (p q : mv_polynomial σ R) :
+lemma support_sub (p q : mv_polynomial σ R) :
   (p - q).support ⊆ p.support ∪ q.support :=
 begin
   rw [sub_eq_add_neg, ← @support_neg R _ _ q],

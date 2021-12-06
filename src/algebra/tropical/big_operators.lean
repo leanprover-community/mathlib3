@@ -35,7 +35,7 @@ open_locale big_operators
 
 variables {R S : Type*}
 
-open tropical
+open tropical finset
 
 lemma list.trop_sum [add_monoid R] (l : list R) : trop l.sum = list.prod (l.map trop) :=
 begin
@@ -112,8 +112,8 @@ lemma trop_Inf_image [conditionally_complete_linear_order R] (s : finset S)
   (f : S → with_top R) : trop (Inf (f '' s)) = ∑ i in s, trop (f i) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|h,
-  { simp only [set.image_empty, finset.coe_empty, finset.sum_empty, with_top.cInf_empty, trop_top] },
-  rw [←finset.inf'_eq_cInf_image _ h, finset.inf'_eq_inf],
+  { simp only [set.image_empty, coe_empty, sum_empty, with_top.cInf_empty, trop_top] },
+  rw [←inf'_eq_cInf_image _ h, inf'_eq_inf],
   convert s.trop_inf f,
   refine lattice.ext _,
   intros,
@@ -122,7 +122,7 @@ end
 
 lemma trop_infi [conditionally_complete_linear_order R] [fintype S] (f : S → with_top R) :
   trop (⨅ (i : S), f i) = ∑ (i : S), trop (f i) :=
-by rw [infi, ←set.image_univ, ←finset.coe_univ, trop_Inf_image]
+by rw [infi, ←set.image_univ, ←coe_univ, trop_Inf_image]
 
 lemma multiset.untrop_sum [linear_order R] [order_top R] (s : multiset (tropical R)) :
   untrop s.sum = multiset.inf (s.map untrop) :=
@@ -145,9 +145,8 @@ lemma untrop_sum_eq_Inf_image [conditionally_complete_linear_order R] (s : finse
   untrop (∑ i in s, f i) = Inf (untrop ∘ f '' s) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|h,
-  { simp only [set.image_empty, finset.coe_empty, finset.sum_empty,
-               with_top.cInf_empty, untrop_zero] },
-  rw [←finset.inf'_eq_cInf_image _ h, finset.inf'_eq_inf],
+  { simp only [set.image_empty, coe_empty, sum_empty, with_top.cInf_empty, untrop_zero] },
+  rw [←inf'_eq_cInf_image _ h, inf'_eq_inf],
   convert s.untrop_sum' f,
   refine lattice.ext _,
   intros,
@@ -157,10 +156,10 @@ end
 lemma untrop_sum [conditionally_complete_linear_order R] [fintype S]
   (f : S → tropical (with_top R)) :
   untrop (∑ i : S, f i) = ⨅ i : S, untrop (f i) :=
-by rw [infi, ←set.image_univ, ←finset.coe_univ, untrop_sum_eq_Inf_image]
+by rw [infi, ←set.image_univ, ←coe_univ, untrop_sum_eq_Inf_image]
 
 /-- Note we cannot use `i ∈ s` instead of `i : s` here
 as it is simply not true on conditionally complete lattices! -/
 lemma finset.untrop_sum [conditionally_complete_linear_order R] (s : finset S)
   (f : S → tropical (with_top R)) : untrop (∑ i in s, f i) = ⨅ i : s, untrop (f i) :=
-by simpa [←untrop_sum] using finset.sum_attach.symm
+by simpa [←untrop_sum] using sum_attach.symm

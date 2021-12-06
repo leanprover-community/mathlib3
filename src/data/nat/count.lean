@@ -141,7 +141,6 @@ begin
   { haveI := (cardinal.lt_omega_iff_fintype.mp h).some,
     simp [cardinal.mk_fintype],
     rw count_eq_card_fintype,
-    unfold_coes,
     apply fintype.card_le_of_injective,
     swap,
     exact λ ⟨i, _, hi⟩, ⟨i, hi⟩,
@@ -168,9 +167,8 @@ lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } := by { rw nth, simp }
 @[simp]
 lemma nth_zero_of_zero (h : p 0) : nth p 0 = 0 :=
 begin
-  apply nat.eq_zero_of_le_zero,
   rw nth,
-  apply nat.Inf_le,
+  refine nat.eq_zero_of_le_zero (nat.Inf_le _),
   simp [h],
 end
 
@@ -209,7 +207,7 @@ begin
   apply finset.card_erase_of_mem,
   rw [nth, set.finite.mem_to_finset],
   apply Inf_mem,
-  rwa [←set.finite.to_finset.nonempty hp'', ←finset.card_pos, hk]
+  rwa [←set.finite.to_finset.nonempty hp'', ←finset.card_pos, hk],
 end
 
 lemma nth_set_card {n : ℕ} (hp : (set_of p).finite)
@@ -218,7 +216,7 @@ lemma nth_set_card {n : ℕ} (hp : (set_of p).finite)
 begin
   obtain hn | hn := le_or_lt n hp.to_finset.card,
   { exact nth_set_card_aux p hp _ hn },
-  rw (nat.sub_eq_zero_of_le hn.le),
+  rw nat.sub_eq_zero_of_le hn.le,
   simp only [finset.card_eq_zero, set.finite_to_finset_eq_empty_iff, ←set.subset_empty_iff],
   convert_to _ ⊆ {i : ℕ | p i ∧ ∀ (k : ℕ), k < hp.to_finset.card → nth p k < i},
   { symmetry,
@@ -243,7 +241,7 @@ lemma nth_mem_of_lt_card_finite_aux (n : ℕ) (hp : (set_of p).finite) (hlt : n 
 begin
   rw nth,
   apply Inf_mem,
-  apply nth_set_nonempty_of_lt_card _ _ hlt,
+  exact nth_set_nonempty_of_lt_card _ _ hlt,
 end
 
 lemma nth_mem_of_lt_card_finite {n : ℕ} (hp : (set_of p).finite) (hlt : n < hp.to_finset.card) :
@@ -516,10 +514,7 @@ begin
     { rw [hb, ←hk, tsub_right_comm],
       have hn11: nth p k.succ - 1 + 1 = nth p k.succ,
       { rw tsub_add_cancel_iff_le,
-        apply succ_le_of_lt,
-        apply pos_of_gt,
-        apply nth_strict_mono p hi,
-        exact lt_add_one k },
+        exact succ_le_of_lt (pos_of_gt (nth_strict_mono p hi (lt_add_one k))), },
       rw add_tsub_cancel_of_le,
       { rw hn11,
         apply nth_mem_of_infinite p hi },

@@ -85,6 +85,16 @@ localized "attribute [instance] count_set.fintype" in count
 lemma count_eq_card_filter_range (n : ℕ) : count p n = ((range n).filter p).card :=
 by { rw [count, list.countp_eq_length_filter], refl,}
 
+/-- `count p n` can be expressed as the cardinality of `{k // k < n ∧ p k}`. -/
+lemma count_eq_card_fintype (n : ℕ) : count p n = fintype.card {k : ℕ // k < n ∧ p k} :=
+begin
+  rw [count_eq_card_filter_range, ←fintype.card_of_finset],
+  congr,
+  intro i,
+  rw [mem_filter, mem_range],
+  refl,
+end
+
 lemma count_monotone : monotone (count p) :=
 begin
   intros a b h,
@@ -125,17 +135,19 @@ by by_cases h : p n; simp [h]
 alias count_succ_eq_succ_count_iff ↔ _ count_succ_eq_succ_count
 alias count_succ_eq_count_iff ↔ _ count_succ_eq_count
 
--- lemma count_le_cardinal (n : ℕ) : (count p n : cardinal) ≤ cardinal.mk (set_of p) :=
--- begin
---   obtain h | h := lt_or_le (cardinal.mk (set_of p)) cardinal.omega,
---   { haveI := (cardinal.lt_omega_iff_fintype.mp h).some,
---     rw [cardinal.fintype_card, cardinal.nat_cast_le, count_eq_card_fintype],
---     fapply fintype.card_le_of_injective,
---     exact λ ⟨i, _, hi⟩, ⟨i, hi⟩,
---     tidy },
---   { rw le_antisymm ((cardinal.countable_iff _).mp ((set_of p).countable_encodable)) h,
---     exact (cardinal.nat_lt_omega _).le }
--- end
+lemma count_le_cardinal (n : ℕ) : (count p n : cardinal) ≤ cardinal.mk (set_of p) :=
+begin
+  obtain h | h := lt_or_le (cardinal.mk (set_of p)) cardinal.omega,
+  { haveI := (cardinal.lt_omega_iff_fintype.mp h).some,
+    simp [cardinal.mk_fintype],
+    rw count_eq_card_fintype,
+    unfold_coes,
+    apply fintype.card_le_of_injective,
+    swap,
+    exact λ ⟨i, _, hi⟩, ⟨i, hi⟩,
+    tidy, },
+  { exact trans (le_of_lt (cardinal.nat_lt_omega (count p n))) h},
+end
 
 variables {p}
 

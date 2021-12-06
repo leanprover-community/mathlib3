@@ -432,6 +432,14 @@ by rwa [degree_of_eq_sup n f, finset.sup_lt_iff]
 lemma degree_of_C (a : R) (x : σ):
   degree_of x (C a : mv_polynomial σ R) = 0 := by simp [degree_of, degrees_C]
 
+lemma degree_of_X (i j : σ ) [nontrivial R] :
+  degree_of i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
+begin
+  by_cases c : i = j,
+  { simp only [c, if_true, eq_self_iff_true, degree_of, degrees_X, multiset.count_singleton] },
+  simp [c, if_false, degree_of, degrees_X],
+end
+
 lemma degree_of_add_le (n : σ) (f g : mv_polynomial σ R) :
   degree_of n (f + g) ≤ max (degree_of n f) (degree_of n g) :=
 begin
@@ -454,14 +462,6 @@ begin
   repeat {rw degree_of},
   convert multiset.count_le_of_le i (degrees_mul f g),
   rw multiset.count_add,
-end
-
-lemma degree_of_X (i j : σ ) [nontrivial R] :
-  degree_of i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
-begin
-  by_cases c : i = j,
-  { simp only [c, if_true, eq_self_iff_true, degree_of, degrees_X, multiset.count_singleton] },
-  simp [c, if_false, degree_of, degrees_X],
 end
 
 lemma degree_of_mul_X_ne {i j : σ} (f : mv_polynomial σ R) (h : i ≠ j) :

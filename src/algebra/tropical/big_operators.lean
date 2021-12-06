@@ -154,13 +154,13 @@ begin
   exact iff.rfl
 end
 
-/-- Note we cannot use `i ∈ s` instead of `i : s` here
-as it is simply not true on conditionally complete lattices! -/
-lemma finset.untrop_sum [conditionally_complete_linear_order R] (s : finset S)
-  (f : S → tropical (with_top R)) : untrop (∑ i in s, f i) = ⨅ i : s, untrop (f i) :=
-by simpa [untrop_sum_eq_Inf_image, ←cinfi_set]
-
 lemma untrop_sum [conditionally_complete_linear_order R] [fintype S]
   (f : S → tropical (with_top R)) :
   untrop (∑ i : S, f i) = ⨅ i : S, untrop (f i) :=
 by rw [infi, ←set.image_univ, ←finset.coe_univ, untrop_sum_eq_Inf_image]
+
+/-- Note we cannot use `i ∈ s` instead of `i : s` here
+as it is simply not true on conditionally complete lattices! -/
+lemma finset.untrop_sum [conditionally_complete_linear_order R] (s : finset S)
+  (f : S → tropical (with_top R)) : untrop (∑ i in s, f i) = ⨅ i : s, untrop (f i) :=
+by simpa [←untrop_sum] using finset.sum_attach.symm

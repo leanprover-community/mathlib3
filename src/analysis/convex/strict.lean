@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
+Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
+Authors: Yaël Dillies
 -/
 import analysis.convex.function
 import topology.algebra.module
@@ -61,16 +61,6 @@ lemma interior_add_interior_subset {s t : set α} :
   interior s + interior t ⊆ interior (s + t) :=
 (set.add_subset_add_left interior_subset).trans interior_add_subset
 
-lemma is_open_map_add : is_open_map (λ x : α × α, x.1 + x.2) :=
-begin
-  sorry
-end
-
-lemma is_open_map_sub : is_open_map (λ x : α × α, x.1 - x.2) :=
-begin
-  sorry
-end
-
 end has_continuous_add
 
 section open_segment
@@ -84,11 +74,6 @@ lemma segment_subset_closure_open_segment : [x -[𝕜] y] ⊆ closure (open_segm
 begin
   rw [segment_eq_image, open_segment_eq_image, ←closure_Ioo (@zero_lt_one 𝕜 _ _)],
   exact image_closure_subset_closure_image (by continuity),
-end
-
-lemma open_segment_subset_interior (h : [x -[𝕜] y] ⊆ s) : open_segment 𝕜 x y ⊆ interior s :=
-begin
-  sorry
 end
 
 end open_segment
@@ -224,7 +209,7 @@ section linear_ordered_cancel_add_comm_monoid
 variables [topological_space β] [linear_ordered_cancel_add_comm_monoid β] [order_topology β]
   [module 𝕜 β] [ordered_smul 𝕜 β]
 
-lemma strict_convex_Iic [no_top_order β] (r : β) : strict_convex 𝕜 (Iic r) :=
+lemma strict_convex_Iic (r : β) : strict_convex 𝕜 (Iic r) :=
 begin
   rintro x (hx : x ≤ r) y (hy : y ≤ r) hxy a b ha hb hab,
   refine (subset_interior_iff_subset_of_open is_open_Iio).2 Iio_subset_Iic_self _,
@@ -236,10 +221,10 @@ begin
   { exact add_lt_add (smul_lt_smul_of_pos hx ha) (smul_lt_smul_of_pos hy hb) }
 end
 
-lemma strict_convex_Ici [no_bot_order β] (r : β) : strict_convex 𝕜 (Ici r) :=
-@strict_convex_Iic 𝕜 (order_dual β) _ _ _ _ _ _ _ r
+lemma strict_convex_Ici (r : β) : strict_convex 𝕜 (Ici r) :=
+@strict_convex_Iic 𝕜 (order_dual β) _ _ _ _ _ _ r
 
-lemma strict_convex_Icc [no_top_order β] [no_bot_order β] (r s : β) : strict_convex 𝕜 (Icc r s) :=
+lemma strict_convex_Icc (r s : β) : strict_convex 𝕜 (Icc r s) :=
 (strict_convex_Ici r).inter $ strict_convex_Iic s
 
 lemma strict_convex_Iio (r : β) : strict_convex 𝕜 (Iio r) :=
@@ -251,14 +236,13 @@ lemma strict_convex_Ioi (r : β) : strict_convex 𝕜 (Ioi r) :=
 lemma strict_convex_Ioo (r s : β) : strict_convex 𝕜 (Ioo r s) :=
 (strict_convex_Ioi r).inter $ strict_convex_Iio s
 
-lemma strict_convex_Ico [no_bot_order β] (r s : β) : strict_convex 𝕜 (Ico r s) :=
+lemma strict_convex_Ico (r s : β) : strict_convex 𝕜 (Ico r s) :=
 (strict_convex_Ici r).inter $ strict_convex_Iio s
 
-lemma strict_convex_Ioc [no_top_order β] (r s : β) : strict_convex 𝕜 (Ioc r s) :=
+lemma strict_convex_Ioc (r s : β) : strict_convex 𝕜 (Ioc r s) :=
 (strict_convex_Ioi r).inter $ strict_convex_Iic s
 
-lemma strict_convex_interval [no_top_order β] [no_bot_order β] (r s : β) :
-  strict_convex 𝕜 (interval r s) :=
+lemma strict_convex_interval (r s : β) : strict_convex 𝕜 (interval r s) :=
 strict_convex_Icc _ _
 
 end linear_ordered_cancel_add_comm_monoid
@@ -324,10 +308,6 @@ begin
   exact interior_add_interior_subset (add_mem_add (hs _ hv _ hx hvx ha hb hab) $
     ht _ hw _ hy hwy ha hb hab),
 end
-
-lemma strict_convex.sub [has_continuous_add E] {s : set (E × E)} (hs : strict_convex 𝕜 s) :
-  strict_convex 𝕜 ((λ x : E × E, x.1 - x.2) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_sub is_open_map_sub
 
 end add_comm_group
 end ordered_semiring
@@ -469,14 +449,6 @@ Relates `convex` and `set.ord_connected`.
 
 section
 variables [topological_space E]
-
-lemma set.ord_connected.strict_convex [ordered_semiring 𝕜] [linear_ordered_add_comm_monoid E]
-  [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) :
-  strict_convex 𝕜 s :=
-begin
-  rw strict_convex_iff_open_segment_subset,
-  intros x hx y hy hxy,
-end
 
 @[simp] lemma strict_convex_iff_convex [linear_ordered_field 𝕜] [topological_space 𝕜]
   [order_topology 𝕜] {s : set 𝕜} :

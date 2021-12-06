@@ -195,6 +195,15 @@ lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f
 lemma inf_univ_eq_infi [complete_lattice β] (f : α → β) : finset.univ.inf f = infi f :=
 sup_univ_eq_supr (by exact f : α → order_dual β)
 
+@[simp] lemma fold_inf_univ [semilattice_inf α] [order_bot α] (a : α) :
+  finset.univ.fold (⊓) a (λ x, x) = ⊥ :=
+eq_bot_iff.2 $ ((finset.fold_op_rel_iff_and $ @_root_.le_inf_iff α _).1 le_rfl).2 ⊥ $
+  finset.mem_univ _
+
+@[simp] lemma fold_sup_univ [semilattice_sup α] [order_top α] (a : α) :
+  finset.univ.fold (⊔) a (λ x, x) = ⊤ :=
+@fold_inf_univ (order_dual α) ‹fintype α› _ _ _
+
 end finset
 
 open finset function
@@ -908,6 +917,10 @@ let ⟨y, hy⟩ := not_forall.1 h' in card_lt_of_injective_of_not_mem f h hy
 
 lemma card_le_of_surjective (f : α → β) (h : function.surjective f) : card β ≤ card α :=
 card_le_of_injective _ (function.injective_surj_inv h)
+
+lemma card_range_le {α β : Type*} (f : α → β) [fintype α] [fintype (set.range f)] :
+  fintype.card (set.range f) ≤ fintype.card α :=
+fintype.card_le_of_surjective (λ a, ⟨f a, by simp⟩) (λ ⟨_, a, ha⟩, ⟨a, by simpa using ha⟩)
 
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.

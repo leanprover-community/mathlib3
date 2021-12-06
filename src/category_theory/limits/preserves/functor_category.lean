@@ -5,6 +5,8 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.functor_category
 import category_theory.limits.preserves.shapes.binary_products
+import category_theory.limits.yoneda
+import category_theory.limits.presheaf
 
 /-!
 # Preservation of (co)limits in the functor category
@@ -16,6 +18,8 @@ The idea of the proof is simply that products and colimits in the functor catego
 pointwise, so pointwise preservation implies general preservation.
 
 * Show that `F ⋙ -` preserves limits if the target category has limits.
+* Show that `F : C ⥤ D` preserves limits of a certain shape
+  if `Lan F.op : Cᵒᵖ ⥤ Type*` preserves such limits.
 
 # References
 
@@ -73,5 +77,17 @@ begin
   change is_limit (((evaluation E D).obj (F.obj Y)).map_cone c),
   exact preserves_limit.preserves hc,
 end ⟩⟩⟩
+
+/-- If `Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)` preserves limits of shape `J`, so will `F`. -/
+noncomputable
+def preserves_limit_of_Lan_presesrves_limit {C D : Type u} [small_category C] [small_category D]
+  (F : C ⥤ D) (J : Type u) [small_category J]
+  [preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u))] :
+  preserves_limits_of_shape J F :=
+begin
+  apply preserves_limits_of_shape_of_reflects_of_preserves F yoneda,
+  exact preserves_limits_of_shape_of_nat_iso (comp_yoneda_iso_yoneda_comp_Lan F).symm,
+  apply_instance
+end
 
 end category_theory

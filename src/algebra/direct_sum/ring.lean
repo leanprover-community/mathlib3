@@ -117,6 +117,9 @@ variables [has_zero ι] [graded_monoid.ghas_one A] [Π i, add_comm_monoid (A i)]
 instance : has_one (⨁ i, A i) :=
 { one := direct_sum.of (λ i, A i) 0 graded_monoid.ghas_one.one}
 
+@[simp] lemma of_zero_eq_one (x : A 0) : of A 0 x = 1 ↔ x = graded_monoid.ghas_one.one :=
+dfinsupp.single_injective.eq_iff
+
 end one
 
 section mul
@@ -386,7 +389,7 @@ then they are equal.
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
-lemma ring_hom_ext ⦃F G : (⨁ i, A i) →+* R⦄
+lemma ring_hom_ext' ⦃F G : (⨁ i, A i) →+* R⦄
   (h : ∀ i, (↑F : _ →+ R).comp (of_add_hom A i) = (↑G : _ →+ R).comp (of_add_hom A i)) : F = G :=
 ring_hom.coe_add_monoid_hom_injective $ direct_sum.add_hom_ext' h
 

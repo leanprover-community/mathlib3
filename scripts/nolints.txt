@@ -361,34 +361,10 @@ apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
 -- data/stream/defs.lean
-apply_nolint stream doc_blame
-apply_nolint stream.all doc_blame
-apply_nolint stream.any doc_blame
-apply_nolint stream.append_stream doc_blame
-apply_nolint stream.apply doc_blame
-apply_nolint stream.cons doc_blame
-apply_nolint stream.const doc_blame
 apply_nolint stream.corec doc_blame
 apply_nolint stream.corec' doc_blame
 apply_nolint stream.corec_on doc_blame
-apply_nolint stream.cycle doc_blame
-apply_nolint stream.drop doc_blame
-apply_nolint stream.even doc_blame
-apply_nolint stream.head doc_blame
-apply_nolint stream.inits doc_blame
-apply_nolint stream.inits_core doc_blame
-apply_nolint stream.interleave doc_blame
-apply_nolint stream.iterate doc_blame
-apply_nolint stream.map doc_blame
-apply_nolint stream.mem doc_blame
-apply_nolint stream.nats doc_blame
-apply_nolint stream.nth doc_blame
-apply_nolint stream.odd doc_blame
-apply_nolint stream.pure doc_blame
-apply_nolint stream.tail doc_blame
-apply_nolint stream.tails doc_blame
 apply_nolint stream.unfolds doc_blame
-apply_nolint stream.zip doc_blame
 
 -- data/stream/init.lean
 apply_nolint stream.is_bisimulation doc_blame

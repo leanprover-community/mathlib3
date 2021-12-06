@@ -82,7 +82,7 @@ protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
 
 variables (K)
 
-instance [number_field K] : char_zero (ring_of_integers K) := char_zero.of_algebra K
+instance [number_field K] : char_zero (ring_of_integers K) := char_zero.of_module _ K
 
 instance [number_field K] : is_dedekind_domain (ring_of_integers K) :=
 is_integral_closure.is_dedekind_domain ℤ ℚ K _

@@ -657,9 +657,7 @@ begin
     { have := lt_of_lt_of_incomp hn hc,
       simp_fi } },
   { have := ih hs_hs₂ hc hlt₂,
-    cases hn,
-    { have := trans hc hn, simp_fi },
-    { simp_fi } },
+    simp_fi },
   { have ih := ih hs_hs₁ hlt₁ hc,
     cases hn,
     { cases hc' : cmp_using lt y y_1; simp at hc',
@@ -699,12 +697,8 @@ begin
       { have hsi := is_searchable_ins lt hs_hs₂ hc hlt₂,
         have := find_balance2_node_gt lt hc' hsi hs_hs₁,
         simp_fi } } },
-  { cases hn,
-    { have := trans hc hn,
-      have := ih hs_hs₂ hc hlt₂,
-      simp_fi },
-    { have ih := ih hs_hs₂ hc hlt₂,
-      simp_fi } }
+  { have ih := ih hs_hs₂ hc hlt₂,
+    simp_fi }
 end
 
 end find_ins_of_not_eqv

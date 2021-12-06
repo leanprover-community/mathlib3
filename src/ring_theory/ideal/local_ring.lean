@@ -249,7 +249,7 @@ end
 
 variable (R)
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
-def residue_field := (maximal_ideal R).quotient
+def residue_field := R ⧸ maximal_ideal R
 
 noncomputable instance residue_field.field : field (residue_field R) :=
 ideal.quotient.field (maximal_ideal R)

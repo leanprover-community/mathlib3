@@ -513,6 +513,11 @@ begin
   rw [units.coe_mk_of_mul_eq_one, ha']
 end
 
+theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique (units α)] {a b c : α}
+  (hab : is_unit (gcd a b)) {k : ℕ}
+  (h : a * b = c ^ k) : ∃ (d : α), a = d ^ k :=
+let ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow hab h in ⟨d, (associated_iff_eq.mp hd).symm⟩
+
 end gcd
 
 section lcm

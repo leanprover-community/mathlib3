@@ -24,6 +24,7 @@ This files introduces:
 * `Hausdorff_edist s t`, the Hausdorff edistance of two sets in an emetric space
 * Versions of these notions on metric spaces, called respectively `inf_dist` and `Hausdorff_dist`
 * `thickening δ s`, the open thickening by radius `δ` of a set `s` in a pseudo emetric space.
+* `cthickening δ s`, the closed thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
 noncomputable theory
 open_locale classical nnreal ennreal topological_space
@@ -778,6 +779,18 @@ lemma thickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ 
   thickening δ E₁ ⊆ thickening δ E₂ :=
 λ _ hx, lt_of_le_of_lt (inf_edist_le_inf_edist_of_subset h) hx
 
+lemma mem_thickening_iff_exists_edist_lt {δ : ℝ} (E : set α) (x : α) :
+  x ∈ thickening δ E ↔ (∃ z ∈ E, edist x z < ennreal.of_real δ) :=
+begin
+  simp only [exists_prop, mem_set_of_eq],
+  split,
+  { intros h,
+    rcases (exists_edist_lt_of_inf_edist_lt h) with ⟨z, ⟨hzE, hxz⟩⟩,
+    exact ⟨z, hzE, hxz⟩, },
+  { rintros ⟨z, ⟨hzE, hxz⟩⟩,
+    exact lt_of_le_of_lt (@inf_edist_le_edist_of_mem _ _ x _ _ hzE) hxz, },
+end
+
 variables {X : Type u} [metric_space X]
 
 /-- A point in a metric space belongs to the (open) `δ`-thickening of a subset `E` if and only if
@@ -785,23 +798,14 @@ it is at distance less than `δ` from some point of `E`. -/
 lemma mem_thickening_iff {δ : ℝ} (E : set X) (x : X) :
   x ∈ thickening δ E ↔ (∃ z ∈ E, dist x z < δ) :=
 begin
-  unfold thickening,
-  simp only [exists_prop, mem_set_of_eq],
-  split,
-  { intros h,
-    rcases (exists_edist_lt_of_inf_edist_lt h) with ⟨z, ⟨hzE, hxz⟩⟩,
-    refine ⟨z, hzE, _⟩,
+  have key_iff : ∀ (z : X), edist x z < ennreal.of_real δ ↔ dist x z < δ,
+  { intros z,
     rw dist_edist,
-    apply (@ennreal.of_real_lt_of_real_iff_of_nonneg
-        ((edist x z).to_real) δ (ennreal.to_real_nonneg)).mp,
-    rwa ennreal.of_real_to_real (edist_lt_top x z).ne, },
-  { intros h,
-    rcases h with ⟨z, ⟨hzE, hxz⟩⟩,
-    rw dist_edist at hxz,
-    apply lt_of_le_of_lt (@inf_edist_le_edist_of_mem _ _ x _ _ hzE) _,
+    have d_lt_top : edist x z < ∞, by simp only [edist_dist, ennreal.of_real_lt_top],
     have key := (@ennreal.of_real_lt_of_real_iff_of_nonneg
-        ((edist x z).to_real) δ (ennreal.to_real_nonneg)).mpr hxz,
-    rwa ennreal.of_real_to_real (edist_lt_top x z).ne at key, },
+                ((edist x z).to_real) δ (ennreal.to_real_nonneg)),
+    rwa ennreal.of_real_to_real d_lt_top.ne at key, },
+  simp_rw [mem_thickening_iff_exists_edist_lt, key_iff],
 end
 
 /-- The (open) `δ`-thickening `thickening δ E` of a subset `E` in a metric space equals the
@@ -811,5 +815,81 @@ lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :
 by { ext x, rw mem_bUnion_iff, exact mem_thickening_iff E x, }
 
 end thickening --section
+
+section cthickening
+
+variables {α : Type*} [pseudo_emetric_space α]
+
+open emetric
+
+/-- The closed `δ`-thickening `cthickening δ E` of a subset `E` in a pseudo emetric space consists
+of those points that are at infimum distance at most `δ` from `E`. -/
+def cthickening (δ : ℝ) (E : set α) : set α := {x : α | inf_edist x E ≤ ennreal.of_real δ}
+
+lemma cthickening_eq_preimage_inf_edist (δ : ℝ) (E : set α) :
+  cthickening δ E = (λ x, inf_edist x E) ⁻¹' (Iic (ennreal.of_real δ)) := rfl
+
+lemma is_closed_cthickening {δ : ℝ} {E : set α} : is_closed (cthickening δ E) :=
+is_closed.preimage continuous_inf_edist is_closed_Iic
+
+@[simp] lemma cthickening_empty (δ : ℝ) : cthickening δ (∅ : set α) = ∅ :=
+by simp only [cthickening, ennreal.of_real_ne_top, set_of_false, inf_edist_empty, top_le_iff]
+
+@[simp] lemma cthickening_zero (E : set α) : cthickening 0 E = closure E :=
+by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening], }
+
+lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
+  cthickening δ₁ E ⊆ cthickening δ₂ E :=
+preimage_mono (Iic_subset_Iic.mpr (ennreal.of_real_le_of_real hle))
+
+lemma closure_subset_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
+  closure E ⊆ cthickening δ E :=
+by { rw ← cthickening_zero, exact cthickening_mono δ_nn E, }
+
+lemma cthickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ E₂) :
+  cthickening δ E₁ ⊆ cthickening δ E₂ :=
+λ _ hx, le_trans (inf_edist_le_inf_edist_of_subset h) hx
+
+lemma cthickening_subset_thickening {δ₁ : ℝ≥0} {δ₂ : ℝ} (hlt : (δ₁ : ℝ) < δ₂) (E : set α) :
+  cthickening δ₁ E ⊆ thickening δ₂ E :=
+λ _ hx, lt_of_le_of_lt hx ((ennreal.of_real_lt_of_real_iff (lt_of_le_of_lt δ₁.prop hlt)).mpr hlt)
+
+lemma cthickening_subset_thickening' {δ₁ δ₂ : ℝ} (δ₂_pos : 0 < δ₂) (hlt : δ₁ < δ₂) (E : set α) :
+  cthickening δ₁ E ⊆ thickening δ₂ E :=
+λ _ hx, lt_of_le_of_lt hx ((ennreal.of_real_lt_of_real_iff δ₂_pos).mpr hlt)
+
+lemma thickening_subset_cthickening (δ : ℝ) (E : set α) :
+  thickening δ E ⊆ cthickening δ E :=
+by { intros x hx, rw [thickening, mem_set_of_eq] at hx, exact hx.le, }
+
+lemma thickening_subset_cthickening_of_le {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
+  thickening δ₁ E ⊆ cthickening δ₂ E :=
+(thickening_subset_cthickening δ₁ E).trans (cthickening_mono hle E)
+
+lemma cthickening_eq_Inter_cthickening {δ : ℝ} {E : set α} (δ_nn : 0 ≤ δ) :
+  cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), cthickening ε E :=
+begin
+  apply le_antisymm,
+  { exact subset_bInter (λ _ hε, cthickening_mono (has_lt.lt.le hε) E) },
+  { unfold thickening cthickening,
+    intros x hx,
+    simp only [mem_Inter, mem_set_of_eq] at *,
+    have inf_edist_lt_top : inf_edist x E < ∞,
+    { exact lt_of_le_of_lt (hx (δ + 1) (by linarith)) ennreal.of_real_lt_top, },
+    rw ← ennreal.of_real_to_real inf_edist_lt_top.ne,
+    apply ennreal.of_real_le_of_real,
+    apply le_of_forall_pos_le_add,
+    intros η η_pos,
+    have sum_nn : 0 ≤ δ + η := by linarith,
+    apply (ennreal.of_real_le_of_real_iff sum_nn).mp,
+    have key := hx (δ + η) (by linarith),
+    rwa ← ennreal.of_real_to_real inf_edist_lt_top.ne at key, },
+end
+
+lemma closure_eq_Inter_cthickening {E : set α} :
+  closure E = ⋂ (δ : ℝ) (h : 0 < δ), cthickening δ E :=
+by { rw ← cthickening_zero, exact cthickening_eq_Inter_cthickening rfl.ge, }
+
+end cthickening --section
 
 end metric --namespace

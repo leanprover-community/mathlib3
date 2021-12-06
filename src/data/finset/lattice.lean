@@ -229,6 +229,15 @@ lemma sup_mem
   t.sup p ∈ s :=
 @sup_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
 
+@[simp]
+lemma sup_eq_bot_iff (f : β → α)
+  (S : finset β) : S.sup f = ⊥ ↔ ∀ s ∈ S, f s = ⊥ :=
+begin
+  classical,
+  induction S using finset.induction with a S haS hi;
+  simp [*],
+end
+
 end sup
 
 lemma disjoint_sup_right [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
@@ -398,6 +407,11 @@ lemma inf_mem
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.inf p ∈ s :=
 @inf_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
+
+@[simp]
+lemma inf_eq_top_iff (f : β → α)
+  (S : finset β) : S.inf f = ⊤ ↔ ∀ s ∈ S, f s = ⊤ :=
+@finset.sup_eq_bot_iff (order_dual α) _ _ _ _ _
 
 end inf
 

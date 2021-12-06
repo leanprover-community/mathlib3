@@ -300,10 +300,7 @@ ext $ λ _, rfl
 /-- Composing a multilinear map with the identity linear map in each argument. -/
 @[simp] lemma comp_linear_map_id (g : multilinear_map R M₁' M₂) :
   g.comp_linear_map (λ i, linear_map.id) = g :=
-begin
-  ext,
-  refl
-end
+ext $ λ _, rfl
 
 /-- Composing a multilinear map with a linear equiv on each argument gives the zero map
 if and only if the multilinear map is the zero map. -/

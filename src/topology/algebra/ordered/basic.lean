@@ -2679,5 +2679,3 @@ lemma monotone.tendsto_nhds_within_Ioi
 end conditionally_complete_linear_order
 
 end order_topology
-
-#lint

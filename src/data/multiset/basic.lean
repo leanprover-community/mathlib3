@@ -2164,9 +2164,7 @@ lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b
 begin
   ext a,
   rw [count_repeat, count_filter],
-  simp_rw [←dif_eq_if],
-  congr' 1 with rfl,
-  refl,
+  exact if_ctx_congr iff.rfl (λ h, congr_arg _ h) (λ h, rfl),
 end
 
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=

@@ -79,7 +79,7 @@ begin
           begin
             apply card_le_of_subset,
             apply monotone_filter_left,
-            rw [finset.le_eq_subset, subset_iff],
+            rw [le_eq_subset, subset_iff],
             intro x,
             simp only [mem_Ico, and_imp, mem_union],
             intros h1 h2,

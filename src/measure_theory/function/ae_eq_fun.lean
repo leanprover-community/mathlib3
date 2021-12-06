@@ -279,8 +279,7 @@ partial_order.lift to_germ to_germ_injective
 
 section lattice
 
-variables [lattice β] [topological_space β] [topological_lattice β] [borel_space β]
-  [second_countable_topology β]
+variables [lattice β] [has_measurable_sup₂ β] [has_measurable_inf₂ β]
 
 instance : has_sup (α →ₘ[μ] β) :=
 { sup := λ f g, ae_eq_fun.comp₂ (⊔) measurable_sup f g }

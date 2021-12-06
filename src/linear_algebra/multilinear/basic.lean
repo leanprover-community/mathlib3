@@ -285,7 +285,8 @@ def comp_linear_map (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[
   g.comp_linear_map f m = g (λ i, f i (m i)) :=
 rfl
 
-/-- Composing a multilinear map twice with a linear map in each argument. -/
+/-- Composing a multilinear map twice with a linear map in each argument is
+the same as composing with their composition. -/
 lemma comp_linear_map_assoc (g : multilinear_map R M₁'' M₂) (f₁ : Π i, M₁' i →ₗ[R] M₁'' i)
   (f₂ : Π i, M₁ i →ₗ[R] M₁' i) :
   (g.comp_linear_map f₁).comp_linear_map f₂ = g.comp_linear_map (λ i, f₁ i ∘ₗ f₂ i) :=

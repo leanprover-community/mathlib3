@@ -785,7 +785,7 @@ colimit.desc (E ⋙ F) ((colimit.cocone F).whisker E)
   colimit.ι (E ⋙ F) k ≫ colimit.pre F E = colimit.ι F (E.obj k) :=
 by { erw is_colimit.fac, refl, }
 
-@[simp] lemma colimit.pre_desc (c : cocone F) :
+@[simp, reassoc] lemma colimit.pre_desc (c : cocone F) :
   colimit.pre F E ≫ colimit.desc F c = colimit.desc (E ⋙ F) (c.whisker E) :=
 by ext; rw [←assoc, colimit.ι_pre]; simp
 

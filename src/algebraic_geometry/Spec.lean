@@ -103,7 +103,7 @@ end
 lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.SheafedSpace_map (f ≫ g) = Spec.SheafedSpace_map g ≫ Spec.SheafedSpace_map f :=
 PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ λ U,
-by { dsimp, rw category.comp_id, erw comap_comp f g, refl }
+by { dsimp, rw category_theory.functor.map_id, rw category.comp_id, erw comap_comp f g, refl }
 
 /--
 Spec, as a contravariant functor from commutative rings to sheafed spaces.

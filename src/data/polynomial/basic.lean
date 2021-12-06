@@ -202,14 +202,15 @@ def monomial (n : ℕ) : R →ₗ[R] polynomial R :=
 @[simp]
 lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
-by simp [monomial, monomial_fun]
+(monomial n).map_zero
 
 -- This is not a `simp` lemma as `monomial_zero_left` is more general.
 lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl
 
+-- TODO: can't we just delete this one?
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
-by simp [monomial, monomial_fun]
+(monomial n).map_add _ _
 
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=

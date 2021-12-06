@@ -36,10 +36,8 @@ universe u
 def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 ⟨set.pi set.univ (λ i, Icc 0 1), is_compact_univ_pi (λ i, is_compact_Icc),
-begin
-  rw interior_pi_set,
-  simp only [interior_Icc, univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one],
-end⟩
+by simp only [interior_pi_set, finite.of_fintype, interior_Icc, univ_pi_nonempty_iff, nonempty_Ioo,
+  implies_true_iff, zero_lt_one]⟩
 
 namespace measure_theory
 
@@ -73,7 +71,7 @@ lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
   add_haar_measure (pi_Icc01 ι) = volume :=
 begin
   convert (add_haar_measure_unique _ (pi_Icc01 ι)).symm,
-  { simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1) (λ (i : ι), measurable_set_Icc),
+  { simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1),
       finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul, sub_zero] },
   { apply_instance },
   { exact is_add_left_invariant_real_volume_pi ι }

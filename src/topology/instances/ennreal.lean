@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
-import topology.algebra.ordered.liminf_limsup
+import order.liminf_limsup
 import topology.metric_space.lipschitz
 /-!
 # Extended non-negative reals
@@ -215,13 +215,13 @@ begin
   rw nhds_generate_from, refine le_infi (assume s, le_infi $ assume hs, _),
   rcases hs with ⟨xs, ⟨a, (rfl : s = Ioi a)|(rfl : s = Iio a)⟩⟩,
   { rcases exists_between xs with ⟨b, ab, bx⟩,
-    have xb_pos : 0 < x - b := ennreal.sub_pos.2 bx,
+    have xb_pos : 0 < x - b := tsub_pos_iff_lt.2 bx,
     have xxb : x - (x - b) = b := sub_sub_cancel xt bx.le,
     refine infi_le_of_le (x - b) (infi_le_of_le xb_pos _),
     simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xxb at h₁, calc a < b : ab ... ≤ y : h₁ },
   { rcases exists_between xs with ⟨b, xb, ba⟩,
-    have bx_pos : 0 < b - x := ennreal.sub_pos.2 xb,
+    have bx_pos : 0 < b - x := tsub_pos_iff_lt.2 xb,
     have xbx : x + (b - x) = b := add_tsub_cancel_of_le xb.le,
     refine infi_le_of_le (b - x) (infi_le_of_le bx_pos _),
     simp only [mem_principal, le_principal_iff],
@@ -272,8 +272,8 @@ begin
 end,
 begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
-  cases b, {
-    simp [none_eq_top] at ha,
+  cases b,
+  { simp [none_eq_top] at ha,
     simp [*, nhds_swap (a : ℝ≥0∞) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘),
       mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
@@ -323,6 +323,27 @@ continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl h
 
 protected lemma continuous_mul_const {a : ℝ≥0∞} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
+
+@[continuity]
+lemma continuous_pow (n : ℕ) : continuous (λ a : ℝ≥0∞, a ^ n) :=
+begin
+  induction n with n IH,
+  { simp [continuous_const] },
+  simp_rw [nat.succ_eq_add_one, pow_add, pow_one, continuous_iff_continuous_at],
+  assume x,
+  refine ennreal.tendsto.mul (IH.tendsto _) _ tendsto_id _;
+  by_cases H : x = 0,
+  { simp only [H, zero_ne_top, ne.def, or_true, not_false_iff]},
+  { exact or.inl (λ h, H (pow_eq_zero h)) },
+  { simp only [H, pow_eq_top_iff, zero_ne_top, false_or, eq_self_iff_true,
+               not_true, ne.def, not_false_iff, false_and], },
+  { simp only [H, true_or, ne.def, not_false_iff] }
+end
+
+protected lemma tendsto.pow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} {n : ℕ}
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ n) f (𝓝 (a ^ n)) :=
+((continuous_pow n).tendsto a).comp hm
 
 lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0∞} (h : ∀ a < 1, a * x ≤ y) : x ≤ y :=
 begin
@@ -500,6 +521,14 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
     (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_rfl
 
+lemma exists_countable_dense_no_zero_top :
+  ∃ (s : set ℝ≥0∞), countable s ∧ dense s ∧ 0 ∉ s ∧ ∞ ∉ s :=
+begin
+  obtain ⟨s, s_count, s_dense, hs⟩ : ∃ s : set ℝ≥0∞, countable s ∧ dense s ∧
+    (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) := exists_countable_dense_no_bot_top ℝ≥0∞,
+  exact ⟨s, s_count, s_dense, λ h, hs.1 0 (by simp) h, λ h, hs.2 ∞ (by simp) h⟩,
+end
+
 end topological_space
 
 section tsum
@@ -593,6 +622,9 @@ end
 
 protected lemma le_tsum (a : α) : f a ≤ ∑'a, f a :=
 le_tsum' ennreal.summable a
+
+@[simp] protected lemma tsum_eq_zero : ∑' i, f i = 0 ↔ ∀ i, f i = 0 :=
+⟨λ h i, nonpos_iff_eq_zero.1 $ h ▸ ennreal.le_tsum i, λ h, by simp [h]⟩
 
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a

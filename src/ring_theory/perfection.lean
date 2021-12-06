@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.char_p
+import algebra.char_p.pi
+import algebra.char_p.quotient
+import algebra.char_p.subring
 import algebra.ring.pi
 import analysis.special_functions.pow
 import field_theory.perfect_closure
 import ring_theory.localization
-import ring_theory.subring
+import ring_theory.subring.basic
 import ring_theory.valuation.integers
 
 /-!
@@ -129,7 +131,7 @@ nat.rec_on m rfl $ λ m ih, by erw [function.iterate_succ_apply', coeff_frobeniu
 
 lemma coeff_iterate_frobenius' (f : ring.perfection R p) (n m : ℕ) (hmn : m ≤ n) :
   coeff R p n (frobenius _ p ^[m] f) = coeff R p (n - m) f :=
-eq.symm $ (coeff_iterate_frobenius _ _ m).symm.trans $ (nat.sub_add_cancel hmn).symm ▸ rfl
+eq.symm $ (coeff_iterate_frobenius _ _ m).symm.trans $ (tsub_add_cancel_of_le hmn).symm ▸ rfl
 
 lemma pth_root_frobenius : (pth_root R p).comp (frobenius _ p) = ring_hom.id _ :=
 ring_hom.ext $ λ x, ext $ λ n,
@@ -320,7 +322,7 @@ include hv
 
 /-- `O/(p)` for `O`, ring of integers of `K`. -/
 @[nolint unused_arguments has_inhabited_instance] def mod_p :=
-(ideal.span {p} : ideal O).quotient
+O ⧸ (ideal.span {p} : ideal O)
 
 variables [hp : fact p.prime] [hvp : fact (v p ≠ 1)]
 

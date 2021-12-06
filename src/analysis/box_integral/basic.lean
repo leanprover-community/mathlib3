@@ -114,7 +114,7 @@ begin
   rw [← integral_sum_inf_partition f vol π₁ h₂,
     ← integral_sum_inf_partition f vol π₂ h₁, integral_sum, integral_sum,
     finset.sum_sub_distrib],
-  simp only [inf_prepartition_to_prepartition, inf_comm]
+  simp only [inf_prepartition_to_prepartition, _root_.inf_comm]
 end
 
 @[simp] lemma integral_sum_disj_union (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
@@ -663,8 +663,9 @@ begin
     refine (dist_triangle_left _ _ J.upper).trans (add_le_add (h₁.1 _ _ _) (h₂.1 _ _ _)),
     { exact prepartition.bUnion_index_mem _ hJ },
     { exact box.le_iff_Icc.1 (prepartition.le_bUnion_index _ hJ) J.upper_mem_Icc },
-    { rw inf_comm at hJ, exact prepartition.bUnion_index_mem _ hJ, },
-    { rw inf_comm at hJ,
+    { rw _root_.inf_comm at hJ,
+      exact prepartition.bUnion_index_mem _ hJ },
+    { rw _root_.inf_comm at hJ,
       exact box.le_iff_Icc.1 (prepartition.le_bUnion_index _ hJ) J.upper_mem_Icc } },
   refine (norm_sum_le_of_le _ this).trans _,
   rw [← finset.sum_mul, μ.to_box_additive.sum_partition_boxes le_top (h₁p.inf h₂p)],

@@ -169,11 +169,11 @@ lemma forall_pow_eq_one_iff (i : ℕ) :
 begin
   classical,
   obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
-  rw [←fintype.card_units, ←order_of_eq_card_of_forall_mem_gpowers hx, order_of_dvd_iff_pow_eq_one],
+  rw [←fintype.card_units, ←order_of_eq_card_of_forall_mem_zpowers hx, order_of_dvd_iff_pow_eq_one],
   split,
   { intro h, apply h },
   { intros h y,
-    simp_rw ← mem_powers_iff_mem_gpowers at hx,
+    simp_rw ← mem_powers_iff_mem_zpowers at hx,
     rcases hx y with ⟨j, rfl⟩,
     rw [← pow_mul, mul_comm, pow_mul, h, one_pow], }
 end
@@ -276,14 +276,14 @@ instance : is_splitting_field (zmod p) K (X^q - X) :=
   begin
     have h : (X^q - X : polynomial K).nat_degree = q :=
       X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
-    rw [←splits_id_iff_splits, splits_iff_card_roots, map_sub, map_pow, map_X, h,
+    rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, map_pow, map_X, h,
       roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
   end,
   adjoin_roots :=
   begin
     classical,
     transitivity algebra.adjoin (zmod p) ((roots (X^q - X : polynomial K)).to_finset : set K),
-    { simp only [map_pow, map_X, map_sub], convert rfl },
+    { simp only [map_pow, map_X, polynomial.map_sub], convert rfl },
     { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 
@@ -304,11 +304,12 @@ open polynomial
 lemma expand_card (f : polynomial K) :
   expand K q f = f ^ q :=
 begin
-  cases char_p.exists K with p hp, letI := hp,
-  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, haveI : fact p.prime := ⟨hp⟩,
-  dsimp at hn, rw hn at *,
-  rw ← map_expand_pow_char,
-  rw [frobenius_pow hn, ring_hom.one_def, map_id],
+  cases char_p.exists K with p hp,
+  letI := hp,
+  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩,
+  haveI : fact p.prime := ⟨hp⟩,
+  dsimp at hn,
+  rw [hn, ← map_expand_pow_char, frobenius_pow hn, ring_hom.one_def, map_id]
 end
 
 end finite_field

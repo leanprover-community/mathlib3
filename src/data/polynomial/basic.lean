@@ -167,9 +167,9 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
 
-/-- Ring isomorphism between `(polynomial R)ᵒᵖ` and `polynomial Rᵒᵖ`. -/
+/-- Ring isomorphism between `(polynomial R)ᵐᵒᵖ` and `polynomial Rᵐᵒᵖ`. -/
 @[simps]
-def op_ring_equiv : (polynomial R)ᵒᵖ ≃+* polynomial Rᵒᵖ :=
+def op_ring_equiv : (polynomial R)ᵐᵒᵖ ≃+* polynomial Rᵐᵒᵖ :=
 ((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
 variable {R}
@@ -202,14 +202,15 @@ def monomial (n : ℕ) : R →ₗ[R] polynomial R :=
 @[simp]
 lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
-by simp [monomial, monomial_fun]
+(monomial n).map_zero
 
 -- This is not a `simp` lemma as `monomial_zero_left` is more general.
 lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl
 
+-- TODO: can't we just delete this one?
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
-by simp [monomial, monomial_fun]
+(monomial n).map_add _ _
 
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
@@ -655,10 +656,10 @@ variables [ring R]
 instance : ring (polynomial R) :=
 { neg := has_neg.neg,
   add_left_neg := by { rintros ⟨⟩, simp [neg_to_finsupp, add_to_finsupp, ← zero_to_finsupp] },
-  gsmul := (•),
-  gsmul_zero' := by { rintro ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
-  gsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul, add_comm] },
-  gsmul_neg' := by { rintros n ⟨⟩,
+  zsmul := (•),
+  zsmul_zero' := by { rintro ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
+  zsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul, add_comm] },
+  zsmul_neg' := by { rintros n ⟨⟩,
     simp only [smul_to_finsupp, neg_to_finsupp], simp [add_smul, add_mul] },
   .. polynomial.semiring }
 

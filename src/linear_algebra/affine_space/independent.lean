@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import data.finset.sort
-import data.matrix.notation
+import data.fin.vec_notation
 import linear_algebra.affine_space.combination
 import linear_algebra.affine_space.affine_equiv
 import linear_algebra.basis
@@ -209,6 +209,26 @@ begin
     { rw ←finset.mem_coe at hi0,
       rw [←set.indicator_of_mem hi0 w2, ←set.indicator_of_mem hi0 w1, ha, sub_self] },
     simpa [w2] using hws }
+end
+
+/-- A finite family is affinely independent if and only if any affine
+combinations (with sum of weights 1) that evaluate to the same point are equal. -/
+lemma affine_independent_iff_eq_of_fintype_affine_combination_eq [fintype ι] (p : ι → P) :
+  affine_independent k p ↔ ∀ (w1 w2 : ι → k), ∑ i, w1 i = 1 → ∑ i, w2 i = 1 →
+    finset.univ.affine_combination p w1 = finset.univ.affine_combination p w2 → w1 = w2 :=
+begin
+  rw affine_independent_iff_indicator_eq_of_affine_combination_eq,
+  split,
+  { intros h w1 w2 hw1 hw2 hweq,
+    simpa only [set.indicator_univ, finset.coe_univ] using h _ _ w1 w2 hw1 hw2 hweq, },
+  { intros h s1 s2 w1 w2 hw1 hw2 hweq,
+    have hw1' : ∑ i, (s1 : set ι).indicator w1 i = 1,
+    { rwa set.sum_indicator_subset _ (finset.subset_univ s1) at hw1, },
+    have hw2' : ∑ i, (s2 : set ι).indicator w2 i = 1,
+    { rwa set.sum_indicator_subset _ (finset.subset_univ s2) at hw2, },
+    rw [finset.affine_combination_indicator_subset w1 p (finset.subset_univ s1),
+        finset.affine_combination_indicator_subset w2 p (finset.subset_univ s2)] at hweq,
+    exact h _ _ hw1' hw2' hweq, },
 end
 
 variables {k}

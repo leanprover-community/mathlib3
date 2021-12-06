@@ -92,7 +92,7 @@ instance completion.has_inv : has_inv (hat K) := ⟨λ x, if x = 0 then 0 else h
 variables [topological_division_ring K]
 
 lemma hat_inv_extends {x : K} (h : x ≠ 0) : hat_inv (x : hat K) = coe (x⁻¹ : K) :=
-dense_inducing_coe.extend_eq_at _
+dense_inducing_coe.extend_eq_at
     ((continuous_coe K).continuous_at.comp (topological_division_ring.continuous_inv x h))
 
 variables [completable_top_field K]
@@ -112,7 +112,7 @@ begin
     { exact λ H, h (dense_embedding_coe.inj H) } }
 end
 
-variables [uniform_add_group K] [topological_ring K]
+variables [uniform_add_group K]
 
 lemma mul_hat_inv_cancel {x : hat K} (x_ne : x ≠ 0) : x*hat_inv x = 1 :=
 begin

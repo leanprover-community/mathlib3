@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 import ring_theory.coprime.basic
-import ring_theory.unique_factorization_domain
+import ring_theory.principal_ideal_domain
 
 /-!
 # Divisibility over ℕ and ℤ
@@ -160,8 +160,8 @@ instance : gcd_monoid ℤ :=
   gcd_dvd_left   := assume a b, int.gcd_dvd_left _ _,
   gcd_dvd_right  := assume a b, int.gcd_dvd_right _ _,
   dvd_gcd        := assume a b c, dvd_gcd,
-  gcd_mul_lcm    := λ a b, by {
-    rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+  gcd_mul_lcm    := λ a b, by
+  { rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
     exact normalize_associated (a * b) },
   lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
   lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _}
@@ -345,7 +345,7 @@ end
 namespace multiplicity
 
 lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_abs b.nat_abs :=
-by simp only [finite_def, ← int.nat_abs_dvd_abs_iff, int.nat_abs_pow]
+by simp only [finite_def, ← int.nat_abs_dvd_iff_dvd, int.nat_abs_pow]
 
 lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
 by rw [finite_int_iff_nat_abs_finite, finite_nat_iff, pos_iff_ne_zero, int.nat_abs_ne_zero]
@@ -378,8 +378,8 @@ lemma int.prime_iff_nat_abs_prime {k : ℤ} : prime k ↔ nat.prime k.nat_abs :=
 
 theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=
 begin
-  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_abs_iff, ←int.nat_abs_dvd_abs_iff,
-    dvd_dvd_iff_associated],
+  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_iff_dvd,
+      ←int.nat_abs_dvd_iff_dvd, dvd_dvd_iff_associated],
   exact associated_iff_eq,
 end
 
@@ -391,13 +391,31 @@ end
 
 namespace int
 
-lemma gmultiples_nat_abs (a : ℤ) :
-  add_subgroup.gmultiples (a.nat_abs : ℤ) = add_subgroup.gmultiples a :=
+lemma zmultiples_nat_abs (a : ℤ) :
+  add_subgroup.zmultiples (a.nat_abs : ℤ) = add_subgroup.zmultiples a :=
 le_antisymm
-  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
-  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
 
 lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
 by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }
+
+theorem eq_pow_of_mul_eq_pow_bit1_left {a b c : ℤ}
+  (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) : ∃ d, a = d ^ (bit1 k) :=
+begin
+  obtain ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow' hab h,
+  replace hd := hd.symm,
+  rw [associated_iff_nat_abs, nat_abs_eq_nat_abs_iff, ←neg_pow_bit1] at hd,
+  obtain rfl|rfl := hd; exact ⟨_, rfl⟩,
+end
+
+theorem eq_pow_of_mul_eq_pow_bit1_right {a b c : ℤ}
+  (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) : ∃ d, b = d ^ (bit1 k) :=
+eq_pow_of_mul_eq_pow_bit1_left hab.symm (by rwa mul_comm at h)
+
+theorem eq_pow_of_mul_eq_pow_bit1 {a b c : ℤ}
+  (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) :
+  (∃ d, a = d ^ (bit1 k)) ∧ (∃ e, b = e ^ (bit1 k)) :=
+⟨eq_pow_of_mul_eq_pow_bit1_left hab h, eq_pow_of_mul_eq_pow_bit1_right hab h⟩
 
 end int

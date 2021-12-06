@@ -137,7 +137,7 @@ begin
   have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
     tendsto_at_top_add_const_right at_top 1 tendsto_id,
   have B : ∀ᶠ x in at_top, x + 1 ≤ exp x :=
-    eventually_at_top.2 ⟨0, λx hx, add_one_le_exp_of_nonneg hx⟩,
+    eventually_at_top.2 ⟨0, λx hx, add_one_le_exp x⟩,
   exact tendsto_at_top_mono' at_top B A
 end
 
@@ -191,7 +191,7 @@ begin
     (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
   intros x hx,
-  simp only [fpow_neg x n],
+  simp only [zpow_neg₀ x n],
   ring,
 end
 

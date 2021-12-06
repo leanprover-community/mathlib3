@@ -267,7 +267,7 @@ root_gcd_iff_root_left_right
 
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
-by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
+by rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_iff, gcd_map, is_unit_map]
 
 @[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
   p.map f = 0 ↔ p = 0 :=
@@ -333,8 +333,43 @@ begin
   apply hp0,
 end
 
+lemma leading_coeff_div (hpq : q.degree ≤ p.degree) :
+  (p / q).leading_coeff = p.leading_coeff / q.leading_coeff :=
+begin
+  by_cases hq : q = 0, { simp [hq] },
+  rw [div_def, leading_coeff_mul, leading_coeff_C,
+      leading_coeff_div_by_monic_of_monic (monic_mul_leading_coeff_inv hq) _,
+      mul_comm, div_eq_mul_inv],
+  rwa [degree_mul_leading_coeff_inv q hq]
+end
+
+lemma div_C_mul : p / (C a * q) = C a⁻¹ * (p / q) :=
+begin
+  by_cases ha : a = 0,
+  { simp [ha] },
+  simp only [div_def, leading_coeff_mul, mul_inv₀,
+    leading_coeff_C, C.map_mul, mul_assoc],
+  congr' 3,
+  rw [mul_left_comm q, ← mul_assoc, ← C.map_mul, mul_inv_cancel ha,
+      C.map_one, one_mul]
+end
+
+lemma C_mul_dvd (ha : a ≠ 0) : C a * p ∣ q ↔ p ∣ q :=
+⟨λ h, dvd_trans (dvd_mul_left _ _) h, λ ⟨r, hr⟩, ⟨C a⁻¹ * r,
+  by rw [mul_assoc, mul_left_comm p, ← mul_assoc, ← C.map_mul, _root_.mul_inv_cancel ha,
+         C.map_one, one_mul, hr]⟩⟩
+
+lemma dvd_C_mul (ha : a ≠ 0) : p ∣ polynomial.C a * q ↔ p ∣ q :=
+⟨λ ⟨r, hr⟩, ⟨C a⁻¹ * r,
+  by rw [mul_left_comm p, ← hr, ← mul_assoc, ← C.map_mul, _root_.inv_mul_cancel ha,
+         C.map_one, one_mul]⟩,
+ λ h, dvd_trans h (dvd_mul_left _ _)⟩
+
 lemma coe_norm_unit_of_ne_zero (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
-by simp [hp]
+have p.leading_coeff ≠ 0 := mt leading_coeff_eq_zero.mp hp,
+by simp [comm_group_with_zero.coe_norm_unit _ this]
+
+lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
 
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
@@ -378,7 +413,7 @@ lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {K : Type*} [field K]
   (f : polynomial K) (a : K) (hf' : f.derivative.eval a ≠ 0) :
   is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
 begin
-  refine or.resolve_left (dvd_or_coprime (X - C a) (f /ₘ (X - C a))
+  refine or.resolve_left (euclidean_domain.dvd_or_coprime (X - C a) (f /ₘ (X - C a))
     (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C a))) _,
   contrapose! hf' with h,
   have key : (X - C a) * (f /ₘ (X - C a)) = f - (f %ₘ (X - C a)),
@@ -408,7 +443,7 @@ begin
     pairwise_coprime_X_sub function.injective_id,
   have H : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
   { intros a b hdiff, exact (hcoprime a b hdiff).pow },
-  apply finset.prod_dvd_of_coprime (pairwise.pairwise_on H (↑(multiset.to_finset p.roots) : set R)),
+  apply finset.prod_dvd_of_coprime (H.set_pairwise (↑(multiset.to_finset p.roots) : set R)),
   intros a h,
   rw multiset.mem_to_finset at h,
   exact pow_root_multiplicity_dvd p a

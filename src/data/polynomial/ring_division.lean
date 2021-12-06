@@ -141,8 +141,9 @@ lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
 begin
   simp only [←tsub_eq_of_eq_add_rev (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
   rw [reverse_mul_of_domain, nat_degree_mul hp hq, nat_degree_mul (mt reverse_eq_zero.mp hp)
-    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, ←nat.sub_sub, nat.add_comm,
-    nat.add_sub_assoc (nat.sub_le _ _), add_comm, nat.add_sub_assoc (nat.sub_le _ _)],
+    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, tsub_add_eq_tsub_tsub,
+    nat.add_comm, add_tsub_assoc_of_le (nat.sub_le _ _), add_comm,
+    add_tsub_assoc_of_le (nat.sub_le _ _)],
 end
 
 end ring
@@ -170,7 +171,7 @@ by rw [nat_degree_one, nat_degree_mul hp0 hq0, eq_comm,
 degree_eq_zero_of_is_unit ⟨u, rfl⟩
 
 theorem prime_X_sub_C (r : R) : prime (X - C r) :=
-⟨X_sub_C_ne_zero r, not_is_unit_X_sub_C,
+⟨X_sub_C_ne_zero r, not_is_unit_X_sub_C r,
  λ _ _, by { simp_rw [dvd_iff_is_root, is_root.def, eval_mul, mul_eq_zero], exact id }⟩
 
 theorem prime_X : prime (X : polynomial R) :=

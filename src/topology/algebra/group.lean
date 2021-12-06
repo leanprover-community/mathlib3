@@ -78,6 +78,14 @@ protected def homeomorph.mul_right (a : G) :
   continuous_inv_fun := continuous_id.mul continuous_const,
   .. equiv.mul_right a }
 
+@[simp, to_additive]
+lemma homeomorph.coe_mul_right (a : G) : ⇑(homeomorph.mul_right a) = λ g, g * a := rfl
+
+@[to_additive]
+lemma homeomorph.mul_right_symm (a : G) :
+  (homeomorph.mul_right a).symm = homeomorph.mul_right a⁻¹ :=
+by { ext, refl }
+
 @[to_additive]
 lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
@@ -170,6 +178,10 @@ lemma continuous.inv (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv.comp hf
 
 @[to_additive]
+lemma continuous_at.inv (hf : continuous_at f x) : continuous_at (λ x, (f x)⁻¹) x :=
+continuous_at_inv.comp hf
+
+@[to_additive]
 lemma continuous_on.inv (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv.comp_continuous_on hf
 
@@ -258,6 +270,19 @@ lemma homeomorph.shear_mul_right_symm_coe :
 rfl
 
 variable {G}
+
+namespace subgroup
+
+@[to_additive] instance (S : subgroup G) :
+  topological_group S :=
+{ continuous_inv :=
+  begin
+    rw embedding_subtype_coe.to_inducing.continuous_iff,
+    exact continuous_subtype_coe.inv
+  end,
+  ..S.to_submonoid.has_continuous_mul }
+
+end subgroup
 
 @[to_additive]
 lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
@@ -416,27 +441,27 @@ section quotient_topological_group
 variables [topological_space G] [group G] [topological_group G] (N : subgroup G) (n : N.normal)
 
 @[to_additive]
-instance {G : Type*} [group G] [topological_space G] (N : subgroup G) :
-  topological_space (quotient_group.quotient N) :=
+instance quotient_group.quotient.topological_space {G : Type*} [group G] [topological_space G]
+  (N : subgroup G) : topological_space (G ⧸ N) :=
 quotient.topological_space
 
 open quotient_group
 
 @[to_additive]
-lemma quotient_group.is_open_map_coe : is_open_map (coe : G →  quotient N) :=
+lemma quotient_group.is_open_map_coe : is_open_map (coe : G → G ⧸ N) :=
 begin
   intros s s_op,
-  change is_open ((coe : G →  quotient N) ⁻¹' (coe '' s)),
+  change is_open ((coe : G → G ⧸ N) ⁻¹' (coe '' s)),
   rw quotient_group.preimage_image_coe N s,
   exact is_open_Union (λ n, (continuous_mul_right _).is_open_preimage s s_op)
 end
 
 @[to_additive]
-instance topological_group_quotient [N.normal] : topological_group (quotient N) :=
+instance topological_group_quotient [N.normal] : topological_group (G ⧸ N) :=
 { continuous_mul := begin
-    have cont : continuous ((coe : G → quotient N) ∘ (λ (p : G × G), p.fst * p.snd)) :=
+    have cont : continuous ((coe : G → G ⧸ N) ∘ (λ (p : G × G), p.fst * p.snd)) :=
       continuous_quot_mk.comp continuous_mul,
-    have quot : quotient_map (λ p : G × G, ((p.1:quotient N), (p.2:quotient N))),
+    have quot : quotient_map (λ p : G × G, ((p.1 : G ⧸ N), (p.2 : G ⧸ N))),
     { apply is_open_map.to_quotient_map,
       { exact (quotient_group.is_open_map_coe N).prod (quotient_group.is_open_map_coe N) },
       { exact continuous_quot_mk.prod_map continuous_quot_mk },
@@ -444,7 +469,7 @@ instance topological_group_quotient [N.normal] : topological_group (quotient N) 
     exact (quotient_map.continuous_iff quot).2 cont,
   end,
   continuous_inv := begin
-    have : continuous ((coe : G → quotient N) ∘ (λ (a : G), a⁻¹)) :=
+    have : continuous ((coe : G → G ⧸ N) ∘ (λ (a : G), a⁻¹)) :=
       continuous_quot_mk.comp continuous_inv,
     convert continuous_quotient_lift _ this,
   end }
@@ -456,42 +481,76 @@ automatically holds for topological additive groups but it also holds, e.g., for
 class has_continuous_sub (G : Type*) [topological_space G] [has_sub G] : Prop :=
 (continuous_sub : continuous (λ p : G × G, p.1 - p.2))
 
-@[priority 100] -- see Note [lower instance priority]
-instance topological_add_group.to_has_continuous_sub [topological_space G] [add_group G]
-  [topological_add_group G] :
-  has_continuous_sub G :=
-⟨by { simp only [sub_eq_add_neg], exact continuous_fst.add continuous_snd.neg }⟩
+/-- A typeclass saying that `λ p : G × G, p.1 / p.2` is a continuous function. This property
+automatically holds for topological groups. Lemmas using this class have primes.
+The unprimed version is for `group_with_zero`. -/
+@[to_additive]
+class has_continuous_div (G : Type*) [topological_space G] [has_div G] : Prop :=
+(continuous_div' : continuous (λ p : G × G, p.1 / p.2))
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance topological_group.to_has_continuous_div [topological_space G] [group G]
+  [topological_group G] : has_continuous_div G :=
+⟨by { simp only [div_eq_mul_inv], exact continuous_fst.mul continuous_snd.inv }⟩
 
 export has_continuous_sub (continuous_sub)
+export has_continuous_div (continuous_div')
 
-section has_continuous_sub
+section has_continuous_div
 
-variables [topological_space G] [has_sub G] [has_continuous_sub G]
+variables [topological_space G] [has_div G] [has_continuous_div G]
 
-lemma filter.tendsto.sub {f g : α → G} {l : filter α} {a b : G} (hf : tendsto f l (𝓝 a))
-  (hg : tendsto g l (𝓝 b)) :
-  tendsto (λx, f x - g x) l (𝓝 (a - b)) :=
-(continuous_sub.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
+@[to_additive sub]
+lemma filter.tendsto.div' {f g : α → G} {l : filter α} {a b : G} (hf : tendsto f l (𝓝 a))
+  (hg : tendsto g l (𝓝 b)) : tendsto (λ x, f x / g x) l (𝓝 (a / b)) :=
+(continuous_div'.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
+
+@[to_additive const_sub]
+lemma filter.tendsto.const_div' (b : G) {c : G} {f : α → G} {l : filter α}
+  (h : tendsto f l (𝓝 c)) : tendsto (λ k : α, b / f k) l (𝓝 (b / c)) :=
+tendsto_const_nhds.div' h
+
+@[to_additive sub_const]
+lemma filter.tendsto.div_const' (b : G) {c : G} {f : α → G} {l : filter α}
+  (h : tendsto f l (𝓝 c)) : tendsto (λ k : α, f k / b) l (𝓝 (c / b)) :=
+h.div' tendsto_const_nhds
 
 variables [topological_space α] {f g : α → G} {s : set α} {x : α}
 
-@[continuity] lemma continuous.sub (hf : continuous f) (hg : continuous g) :
-  continuous (λ x, f x - g x) :=
-continuous_sub.comp (hf.prod_mk hg : _)
+@[continuity, to_additive sub] lemma continuous.div' (hf : continuous f) (hg : continuous g) :
+  continuous (λ x, f x / g x) :=
+continuous_div'.comp (hf.prod_mk hg : _)
 
-lemma continuous_within_at.sub (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
-  continuous_within_at (λ x, f x - g x) s x :=
-hf.sub hg
+@[to_additive continuous_sub_left]
+lemma continuous_div_left' (a : G) : continuous (λ b : G, a / b) :=
+continuous_const.div' continuous_id
 
-lemma continuous_on.sub (hf : continuous_on f s) (hg : continuous_on g s) :
-  continuous_on (λx, f x - g x) s :=
-λ x hx, (hf x hx).sub (hg x hx)
+@[to_additive continuous_sub_right]
+lemma continuous_div_right' (a : G) : continuous (λ b : G, b / a) :=
+continuous_id.div' continuous_const
 
-end has_continuous_sub
+@[to_additive sub]
+lemma continuous_at.div' {f g : α → G} {x : α} (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (λx, f x / g x) x :=
+hf.div' hg
 
-lemma nhds_translation [topological_space G] [add_group G] [topological_add_group G] (x : G) :
-  comap (λy:G, y - x) (𝓝 0) = 𝓝 x :=
-by simpa only [sub_eq_add_neg] using nhds_translation_add_neg x
+@[to_additive sub]
+lemma continuous_within_at.div' (hf : continuous_within_at f s x)
+  (hg : continuous_within_at g s x) :
+  continuous_within_at (λ x, f x / g x) s x :=
+hf.div' hg
+
+@[to_additive sub]
+lemma continuous_on.div' (hf : continuous_on f s) (hg : continuous_on g s) :
+  continuous_on (λx, f x / g x) s :=
+λ x hx, (hf x hx).div' (hg x hx)
+
+end has_continuous_div
+
+@[to_additive]
+lemma nhds_translation_div [topological_space G] [group G] [topological_group G] (x : G) :
+  comap (λy:G, y / x) (𝓝 1) = 𝓝 x :=
+by simpa only [div_eq_mul_inv] using nhds_translation_mul_inv x
 
 /-- additive group with a neighbourhood around 0.
 Only used to construct a topology and uniform space.
@@ -695,3 +754,117 @@ instance : topological_group (units α) :=
     (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
 
 end units
+
+/-!
+### Lattice of group topologies
+We define a type class `group_topology α` which endows a group `α` with a topology such that all
+group operations are continuous.
+
+Group topologies on a fixed group `α` are ordered, by reverse inclusion. They form a complete
+lattice, with `⊥` the discrete topology and `⊤` the indiscrete topology.
+
+Any function `f : α → β` induces `coinduced f : topological_space α → group_topology β`.
+
+The additive version `add_group_topology α` and corresponding results are provided as well.
+-/
+
+/-- A group topology on a group `α` is a topology for which multiplication and inversion
+are continuous. -/
+@[ext]
+structure group_topology (α : Type u) [group α]
+  extends topological_space α, topological_group α : Type u
+
+/-- An additive group topology on an additive group `α` is a topology for which addition and
+  negation are continuous. -/
+@[ext]
+structure add_group_topology (α : Type u) [add_group α]
+  extends topological_space α, topological_add_group α : Type u
+
+attribute [to_additive] group_topology
+
+namespace group_topology
+
+@[to_additive]
+instance inhabited {α : Type u} [group α] : inhabited (group_topology α) :=
+⟨{to_topological_space := ⊤,
+  continuous_mul       := continuous_top,
+  continuous_inv       := continuous_top}⟩
+
+variables {γ : Type*}
+
+@[ext, to_additive add_group_topology.ext]
+lemma ext' [group γ] {f g : group_topology γ} (h : f.is_open = g.is_open) : f = g :=
+by { ext, rw h }
+
+/-- The ordering on group topologies on the group `γ`.
+  `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
+@[to_additive]
+instance [group γ] : partial_order (group_topology γ) :=
+partial_order.lift to_topological_space $ ext
+
+local notation `cont` := @continuous _ _
+@[to_additive add_group_topology.def_Inf "Infimum of a collection of additive group topologies"]
+private def def_Inf [group γ] (S : set (group_topology γ)) : group_topology γ :=
+let Inf_S' := Inf (to_topological_space '' S) in
+{ to_topological_space := Inf_S',
+  continuous_mul       :=
+  begin
+    apply continuous_Inf_rng,
+    rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
+    have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
+    have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
+    have h_continuous_mul : cont (id _) t (λ (p : γ × γ), p.fst * p.snd) := continuous_mul,
+    exact @continuous.comp _ _ _ (id _) (id _) t _ _ h_continuous_mul h_continuous_id,
+  end,
+  continuous_inv       :=
+  begin
+    apply continuous_Inf_rng,
+    rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
+    exact @continuous.comp _ _ _ (id _) (id _) t _ _ continuous_inv
+      (continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id),
+  end, }
+
+/-- Group topologies on `γ` form a complete lattice, with `⊥` the discrete topology and `⊤` the
+indiscrete topology.
+
+The infimum of a collection of group topologies is the topology generated by all their open sets
+(which is a group topology).
+
+The supremum of two group topologies `s` and `t` is the infimum of the family of all group
+topologies contained in the intersection of `s` and `t`. -/
+@[to_additive]
+instance [group γ] : complete_semilattice_Inf (group_topology γ) :=
+{ Inf    := def_Inf,
+  Inf_le := λ S a haS, by { apply topological_space.complete_lattice.Inf_le, use [a, ⟨ haS, rfl⟩] },
+  le_Inf :=
+  begin
+    intros S a hab,
+    apply topological_space.complete_lattice.le_Inf,
+    rintros _ ⟨b, hbS, rfl⟩,
+    exact hab b hbS,
+  end,
+  ..group_topology.partial_order }
+
+@[to_additive]
+instance [group γ] : complete_lattice (group_topology γ) :=
+complete_lattice_of_complete_semilattice_Inf _
+
+/--  Given `f : α → β` and a topology on `α`, the coinduced group topology on `β` is the finest
+topology such that `f` is continuous and `β` is a topological group. -/
+@[to_additive "Given `f : α → β` and a topology on `α`, the coinduced additive group topology on `β`
+is the finest topology such that `f` is continuous and `β` is a topological additive group."]
+def coinduced {α β : Type*} [t : topological_space α] [group β] (f : α → β) :
+  group_topology β :=
+Inf {b : group_topology β | (topological_space.coinduced f t) ≤ b.to_topological_space}
+
+@[to_additive]
+lemma coinduced_continuous {α β : Type*} [t : topological_space α] [group β]
+  (f : α → β) : cont t (coinduced f).to_topological_space f :=
+begin
+  rw continuous_iff_coinduced_le,
+  refine le_Inf _,
+  rintros _ ⟨t', ht', rfl⟩,
+  exact ht',
+end
+
+end group_topology

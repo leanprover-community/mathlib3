@@ -3,13 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
-import algebra.algebra.basic
 import linear_algebra.basic
 
 /-!
 # Quotients by submodules
 
-* If `p` is a submodule of `M`, `submodule.quotient p` is the quotient of `M` with respect to `p`:
+* If `p` is a submodule of `M`, `M ⧸ p` is the quotient of `M` with respect to `p`:
   that is, elements of `M` are identified if their difference is in `p`. This is itself a module.
 
 -/
@@ -32,51 +31,51 @@ def quotient_rel : setoid M :=
  λ x y z h₁ h₂, by simpa [sub_eq_add_neg, add_left_comm, add_assoc] using add_mem _ h₁ h₂⟩
 
 /-- The quotient of a module `M` by a submodule `p ⊆ M`. -/
-def quotient : Type* := quotient (quotient_rel p)
+instance has_quotient : has_quotient M (submodule R M) := ⟨λ p, quotient (quotient_rel p)⟩
 
 namespace quotient
 
 /-- Map associating to an element of `M` the corresponding element of `M/p`,
 when `p` is a submodule of `M`. -/
-def mk {p : submodule R M} : M → quotient p := quotient.mk'
+def mk {p : submodule R M} : M → M ⧸ p := quotient.mk'
 
 @[simp] theorem mk_eq_mk {p : submodule R M} (x : M) :
   (@_root_.quotient.mk _ (quotient_rel p) x) = mk x := rfl
-@[simp] theorem mk'_eq_mk {p : submodule R M} (x : M) : (quotient.mk' x : quotient p) = mk x := rfl
-@[simp] theorem quot_mk_eq_mk {p : submodule R M} (x : M) : (quot.mk _ x : quotient p) = mk x := rfl
+@[simp] theorem mk'_eq_mk {p : submodule R M} (x : M) : (quotient.mk' x : M ⧸ p) = mk x := rfl
+@[simp] theorem quot_mk_eq_mk {p : submodule R M} (x : M) : (quot.mk _ x : M ⧸ p) = mk x := rfl
 
-protected theorem eq {x y : M} : (mk x : quotient p) = mk y ↔ x - y ∈ p := quotient.eq'
+protected theorem eq {x y : M} : (mk x : M ⧸ p) = mk y ↔ x - y ∈ p := quotient.eq'
 
-instance : has_zero (quotient p) := ⟨mk 0⟩
-instance : inhabited (quotient p) := ⟨0⟩
+instance : has_zero (M ⧸ p) := ⟨mk 0⟩
+instance : inhabited (M ⧸ p) := ⟨0⟩
 
-@[simp] theorem mk_zero : mk 0 = (0 : quotient p) := rfl
+@[simp] theorem mk_zero : mk 0 = (0 : M ⧸ p) := rfl
 
-@[simp] theorem mk_eq_zero : (mk x : quotient p) = 0 ↔ x ∈ p :=
+@[simp] theorem mk_eq_zero : (mk x : M ⧸ p) = 0 ↔ x ∈ p :=
 by simpa using (quotient.eq p : mk x = 0 ↔ _)
 
-instance : has_add (quotient p) :=
+instance : has_add (M ⧸ p) :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a + b)) $
   λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $
     by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ h₂⟩
 
-@[simp] theorem mk_add : (mk (x + y) : quotient p) = mk x + mk y := rfl
+@[simp] theorem mk_add : (mk (x + y) : M ⧸ p) = mk x + mk y := rfl
 
-instance : has_neg (quotient p) :=
+instance : has_neg (M ⧸ p) :=
 ⟨λ a, quotient.lift_on' a (λ a, mk (-a)) $
  λ a b h, (quotient.eq p).2 $ by simpa using neg_mem p h⟩
 
-@[simp] theorem mk_neg : (mk (-x) : quotient p) = -mk x := rfl
+@[simp] theorem mk_neg : (mk (-x) : M ⧸ p) = -mk x := rfl
 
-instance : has_sub (quotient p) :=
+instance : has_sub (M ⧸ p) :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a - b)) $
   λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $
   by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ (neg_mem p h₂)⟩
 
-@[simp] theorem mk_sub : (mk (x - y) : quotient p) = mk x - mk y := rfl
+@[simp] theorem mk_sub : (mk (x - y) : M ⧸ p) = mk x - mk y := rfl
 
-instance : add_comm_group (quotient p) :=
-{ zero := (0 : quotient p),
+instance add_comm_group : add_comm_group (M ⧸ p) :=
+{ zero := (0 : M ⧸ p),
   add := (+),
   neg := has_neg.neg,
   sub := has_sub.sub,
@@ -93,33 +92,33 @@ instance : add_comm_group (quotient p) :=
   nsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
   nsmul_succ' := by { rintros n ⟨⟩,
     simp only [nat.succ_eq_one_add, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul], refl },
-  gsmul := λ n x, quotient.lift_on' x (λ x, mk (n • x)) $
+  zsmul := λ n x, quotient.lift_on' x (λ x, mk (n • x)) $
      λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_of_tower_mem p n h,
-  gsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
-  gsmul_succ' := by { rintros n ⟨⟩,
+  zsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
+  zsmul_succ' := by { rintros n ⟨⟩,
     simp [nat.succ_eq_add_one, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul, add_smul, add_comm],
     refl },
-  gsmul_neg' := by { rintros n ⟨x⟩, simp_rw [gsmul_neg_succ_of_nat, gsmul_coe_nat], refl }, }
+  zsmul_neg' := by { rintros n ⟨x⟩, simp_rw [zsmul_neg_succ_of_nat, coe_nat_zsmul], refl }, }
 
 section has_scalar
 
 variables {S : Type*} [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] (P : submodule R M)
 
-instance has_scalar' : has_scalar S (quotient P) :=
+instance has_scalar' : has_scalar S (M ⧸ P) :=
 ⟨λ a, quotient.map' ((•) a) $ λ x y h, by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
 
 /-- Shortcut to help the elaborator in the common case. -/
-instance has_scalar : has_scalar R (quotient P) :=
+instance has_scalar : has_scalar R (M ⧸ P) :=
 quotient.has_scalar' P
 
-@[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : quotient P) = r • mk x := rfl
+@[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : M ⧸ p) = r • mk x := rfl
 
 instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
-  [smul_comm_class S T M] : smul_comm_class S T P.quotient :=
+  [smul_comm_class S T M] : smul_comm_class S T (M ⧸ P) :=
 { smul_comm := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_comm _ _ _) }
 
 instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M] [has_scalar S T]
-  [is_scalar_tower S T M] : is_scalar_tower S T P.quotient :=
+  [is_scalar_tower S T M] : is_scalar_tower S T (M ⧸ P) :=
 { smul_assoc := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_assoc _ _ _) }
 
 end has_scalar
@@ -129,27 +128,27 @@ section module
 variables {S : Type*}
 
 instance mul_action' [monoid S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
-  (P : submodule R M) : mul_action S (quotient P) :=
+  (P : submodule R M) : mul_action S (M ⧸ P) :=
 function.surjective.mul_action mk (surjective_quot_mk _) P^.quotient.mk_smul
 
-instance mul_action (P : submodule R M) : mul_action R (quotient P) :=
+instance mul_action (P : submodule R M) : mul_action R (M ⧸ P) :=
 quotient.mul_action' P
 
 instance distrib_mul_action' [monoid S] [has_scalar S R] [distrib_mul_action S M]
   [is_scalar_tower S R M]
-  (P : submodule R M) : distrib_mul_action S (quotient P) :=
+  (P : submodule R M) : distrib_mul_action S (M ⧸ P) :=
 function.surjective.distrib_mul_action
   ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
 
-instance distrib_mul_action (P : submodule R M) : distrib_mul_action R (quotient P) :=
+instance distrib_mul_action (P : submodule R M) : distrib_mul_action R (M ⧸ P) :=
 quotient.distrib_mul_action' P
 
 instance module' [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
-  (P : submodule R M) : module S (quotient P) :=
+  (P : submodule R M) : module S (M ⧸ P) :=
 function.surjective.module _
   ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
 
-instance module (P : submodule R M) : module R (quotient P) :=
+instance module (P : submodule R M) : module R (M ⧸ P) :=
 quotient.module' P
 
 variables (S)
@@ -159,7 +158,7 @@ where `P : submodule R M`.
 -/
 def restrict_scalars_equiv [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
   (P : submodule R M) :
-  (P.restrict_scalars S).quotient ≃ₗ[S] P.quotient :=
+  (M ⧸ P.restrict_scalars S) ≃ₗ[S] M ⧸ P :=
 { map_add' := λ x y, quotient.induction_on₂' x y (λ x' y', rfl),
   map_smul' := λ c x, quotient.induction_on' x (λ x', rfl),
   ..quotient.congr_right $ λ _ _, iff.rfl }
@@ -180,7 +179,7 @@ end module
 lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
 by { rintros ⟨x⟩, exact ⟨x, rfl⟩ }
 
-lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (p.quotient) :=
+lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (M ⧸ p) :=
 begin
   obtain ⟨x, _, not_mem_s⟩ := set_like.exists_of_lt h,
   refine ⟨⟨mk x, 0, _⟩⟩,
@@ -193,12 +192,12 @@ section
 
 variables {M₂ : Type*} [add_comm_group M₂] [module R M₂]
 
-lemma quot_hom_ext ⦃f g : quotient p →ₗ[R] M₂⦄ (h : ∀ x, f (quotient.mk x) = g (quotient.mk x)) :
+lemma quot_hom_ext ⦃f g : M ⧸ p →ₗ[R] M₂⦄ (h : ∀ x, f (quotient.mk x) = g (quotient.mk x)) :
   f = g :=
 linear_map.ext $ λ x, quotient.induction_on' x h
 
 /-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
-def mkq : M →ₗ[R] p.quotient :=
+def mkq : M →ₗ[R] M ⧸ p :=
 { to_fun := quotient.mk, map_add' := by simp, map_smul' := by simp }
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
@@ -212,12 +211,12 @@ variables {R₂ M₂ : Type*} [ring R₂] [add_comm_group M₂] [module R₂ M�
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
-lemma linear_map_qext ⦃f g : p.quotient →ₛₗ[τ₁₂] M₂⦄ (h : f.comp p.mkq = g.comp p.mkq) : f = g :=
+lemma linear_map_qext ⦃f g : M ⧸ p →ₛₗ[τ₁₂] M₂⦄ (h : f.comp p.mkq = g.comp p.mkq) : f = g :=
 linear_map.ext $ λ x, quotient.induction_on' x $ (linear_map.congr_fun h : _)
 
 /-- The map from the quotient of `M` by a submodule `p` to `M₂` induced by a linear map `f : M → M₂`
 vanishing on `p`, as a linear map. -/
-def liftq (f : M →ₛₗ[τ₁₂] M₂) (h : p ≤ f.ker) : p.quotient →ₛₗ[τ₁₂] M₂ :=
+def liftq (f : M →ₛₗ[τ₁₂] M₂) (h : p ≤ f.ker) : M ⧸ p →ₛₗ[τ₁₂] M₂ :=
 { to_fun := λ x, _root_.quotient.lift_on' x f $
     λ a b (ab : a - b ∈ p), eq_of_sub_eq_zero $ by simpa using h ab,
   map_add' := by rintro ⟨x⟩ ⟨y⟩; exact f.map_add x y,
@@ -235,7 +234,7 @@ eq_top_iff'.2 $ by rintro ⟨x⟩; exact ⟨x, rfl⟩
 @[simp] theorem ker_mkq : p.mkq.ker = p :=
 by ext; simp
 
-lemma le_comap_mkq (p' : submodule R p.quotient) : p ≤ comap p.mkq p' :=
+lemma le_comap_mkq (p' : submodule R (M ⧸ p)) : p ≤ comap p.mkq p' :=
 by simpa using (comap_mono bot_le : p.mkq.ker ≤ comap p.mkq p')
 
 @[simp] theorem mkq_map_self : map p.mkq p = ⊥ :=
@@ -252,7 +251,7 @@ variables (q : submodule R₂ M₂)
 /-- The map from the quotient of `M` by submodule `p` to the quotient of `M₂` by submodule `q` along
 `f : M → M₂` is linear. -/
 def mapq (f : M →ₛₗ[τ₁₂] M₂) (h : p ≤ comap f q) :
-  p.quotient →ₛₗ[τ₁₂] q.quotient :=
+  (M ⧸ p) →ₛₗ[τ₁₂] (M₂ ⧸ q) :=
 p.liftq (q.mkq.comp f) $ by simpa [ker_comp] using h
 
 @[simp] theorem mapq_apply (f : M →ₛₗ[τ₁₂] M₂) {h} (x : M) :
@@ -267,7 +266,7 @@ le_antisymm
   (by rintro ⟨x⟩ hx; exact ⟨_, hx, rfl⟩)
   (by rw [map_le_iff_le_comap, ← comap_comp, liftq_mkq]; exact le_refl _)
 
-theorem map_liftq [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) (h) (q : submodule R (quotient p)) :
+theorem map_liftq [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) (h) (q : submodule R (M ⧸ p)) :
   q.map (p.liftq f h) = (q.comap p.mkq).map f :=
 le_antisymm
   (by rintro _ ⟨⟨x⟩, hxq, rfl⟩; exact ⟨x, hxq, rfl⟩)
@@ -286,7 +285,7 @@ by rw [ker_liftq, le_antisymm h h', mkq_map_self]
 /-- The correspondence theorem for modules: there is an order isomorphism between submodules of the
 quotient of `M` by `p`, and submodules of `M` larger than `p`. -/
 def comap_mkq.rel_iso :
-  submodule R p.quotient ≃o {p' : submodule R M // p ≤ p'} :=
+  submodule R (M ⧸ p) ≃o {p' : submodule R M // p ≤ p'} :=
 { to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
@@ -296,10 +295,10 @@ def comap_mkq.rel_iso :
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/
 def comap_mkq.order_embedding :
-  submodule R p.quotient ↪o submodule R M :=
+  submodule R (M ⧸ p) ↪o submodule R M :=
 (rel_iso.to_rel_embedding $ comap_mkq.rel_iso p).trans (subtype.rel_embedding _ _)
 
-@[simp] lemma comap_mkq_embedding_eq (p' : submodule R p.quotient) :
+@[simp] lemma comap_mkq_embedding_eq (p' : submodule R (M ⧸ p)) :
   comap_mkq.order_embedding p p' = comap p.mkq p' := rfl
 
 lemma span_preimage_eq [ring_hom_surjective τ₁₂] {f : M →ₛₗ[τ₁₂] M₂} {s : set M₂} (h₀ : s.nonempty)
@@ -341,9 +340,9 @@ by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
 
 /-- An epimorphism is surjective. -/
 lemma range_eq_top_of_cancel {f : M →ₛₗ[τ₁₂] M₂}
-  (h : ∀ (u v : M₂ →ₗ[R₂] f.range.quotient), u.comp f = v.comp f → u = v) : f.range = ⊤ :=
+  (h : ∀ (u v : M₂ →ₗ[R₂] M₂ ⧸ f.range), u.comp f = v.comp f → u = v) : f.range = ⊤ :=
 begin
-  have h₁ : (0 : M₂ →ₗ[R₂] f.range.quotient).comp f = 0 := zero_comp _,
+  have h₁ : (0 : M₂ →ₗ[R₂] M₂ ⧸ f.range).comp f = 0 := zero_comp _,
   rw [←submodule.ker_mkq f.range, ←h 0 f.range.mkq (eq.trans h₁ (range_mkq_comp _).symm)],
   exact ker_zero
 end
@@ -360,7 +359,7 @@ variables {R M : Type*} {r : R} {x y : M} [ring R] [add_comm_group M] [module R 
 variables (p p' : submodule R M)
 
 /-- If `p = ⊥`, then `M / p ≃ₗ[R] M`. -/
-def quot_equiv_of_eq_bot (hp : p = ⊥) : p.quotient ≃ₗ[R] M :=
+def quot_equiv_of_eq_bot (hp : p = ⊥) : (M ⧸ p) ≃ₗ[R] M :=
 linear_equiv.of_linear (p.liftq id $ hp.symm ▸ bot_le) p.mkq (liftq_mkq _ _ _) $
   p.quot_hom_ext $ λ x, rfl
 
@@ -371,10 +370,10 @@ linear_equiv.of_linear (p.liftq id $ hp.symm ▸ bot_le) p.mkq (liftq_mkq _ _ _)
   (p.quot_equiv_of_eq_bot hp).symm x = quotient.mk x := rfl
 
 @[simp] lemma coe_quot_equiv_of_eq_bot_symm (hp : p = ⊥) :
-  ((p.quot_equiv_of_eq_bot hp).symm : M →ₗ[R] p.quotient) = p.mkq := rfl
+  ((p.quot_equiv_of_eq_bot hp).symm : M →ₗ[R] M ⧸ p) = p.mkq := rfl
 
 /-- Quotienting by equal submodules gives linearly equivalent quotients. -/
-def quot_equiv_of_eq (h : p = p') : p.quotient ≃ₗ[R] p'.quotient :=
+def quot_equiv_of_eq (h : p = p') : (M ⧸ p) ≃ₗ[R] M ⧸ p' :=
 { map_add' := by { rintros ⟨x⟩ ⟨y⟩, refl }, map_smul' := by { rintros x ⟨y⟩, refl },
   ..@quotient.congr _ _ (quotient_rel p) (quotient_rel p') (equiv.refl _) $
     λ a b, by { subst h, refl } }
@@ -398,7 +397,7 @@ namespace submodule
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`,
 the natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
-def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
+def mapq_linear : compatible_maps p q →ₗ[R] (M ⧸ p) →ₗ[R] (M₂ ⧸ q) :=
 { to_fun    := λ f, mapq _ _ f.val f.property,
   map_add'  := λ x y, by { ext, refl, },
   map_smul' := λ c f, by { ext, refl, } }

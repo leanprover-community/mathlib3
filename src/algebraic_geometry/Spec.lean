@@ -50,23 +50,17 @@ def Spec.Top_obj (R : CommRing) : Top := Top.of (prime_spectrum R)
 /--
 The induced map of a ring homomorphism on the ring spectra, as a morphism of topological spaces.
 -/
-@[simps] def Spec.Top_map {R S : CommRing} (f : R ⟶ S) :
+def Spec.Top_map {R S : CommRing} (f : R ⟶ S) :
   Spec.Top_obj S ⟶ Spec.Top_obj R :=
-{ to_fun := prime_spectrum.comap f,
-  continuous_to_fun := prime_spectrum.comap_continuous f }
+prime_spectrum.comap f
 
 @[simp] lemma Spec.Top_map_id (R : CommRing) :
   Spec.Top_map (𝟙 R) = 𝟙 (Spec.Top_obj R) :=
-continuous_map.ext $ λ x,
-by erw [Spec.Top_map_to_fun, prime_spectrum.comap_id, id.def, Top.id_app]
+prime_spectrum.comap_id
 
 lemma Spec.Top_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.Top_map (f ≫ g) = Spec.Top_map g ≫ Spec.Top_map f :=
-continuous_map.ext $ λ x,
-begin
-  dsimp only [Spec.Top_map_to_fun, Top.comp_app],
-  erw prime_spectrum.comap_comp,
-end
+prime_spectrum.comap_comp _ _
 
 /--
 The spectrum, as a contravariant functor from commutative rings to topological spaces.
@@ -102,20 +96,14 @@ PresheafedSpace.ext _ _ (Spec.Top_map_id R) $ nat_trans.ext _ _ $ funext $ λ U,
 begin
   dsimp,
   erw [PresheafedSpace.id_c_app, comap_id], swap,
-    { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
-  rw [eq_to_hom_op, eq_to_hom_map, eq_to_hom_trans],
-  refl,
+  { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
+  simpa,
 end
 
 lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.SheafedSpace_map (f ≫ g) = Spec.SheafedSpace_map g ≫ Spec.SheafedSpace_map f :=
 PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ λ U,
-begin
-  dsimp,
-  erw [Top.presheaf.pushforward.comp_inv_app, ← category.assoc, category.comp_id,
-    (structure_sheaf T).1.map_id, category.comp_id, comap_comp],
-  refl,
-end
+by { dsimp, rw category_theory.functor.map_id, rw category.comp_id, erw comap_comp f g, refl }
 
 /--
 Spec, as a contravariant functor from commutative rings to sheafed spaces.
@@ -237,5 +225,22 @@ by { ext, symmetry, apply localization.local_ring_hom_to_map }
 iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
 
 end Spec_Γ
+
+/-- The stalk map of `Spec M⁻¹R ⟶ Spec R` is an iso for each `p : Spec M⁻¹R`. -/
+lemma Spec_map_localization_is_iso (R : CommRing) (M : submonoid R)
+  (x : prime_spectrum (localization M)) :
+  is_iso (PresheafedSpace.stalk_map (Spec.to_PresheafedSpace.map
+    (CommRing.of_hom (algebra_map R (localization M))).op) x) :=
+begin
+  erw ← local_ring_hom_comp_stalk_iso,
+  apply_with is_iso.comp_is_iso { instances := ff },
+  apply_instance,
+  apply_with is_iso.comp_is_iso { instances := ff },
+  /- I do not know why this is defeq to the goal, but I'm happy to accept that it is. -/
+  exact (show is_iso (is_localization.localization_localization_at_prime_iso_localization
+    M x.as_ideal).to_ring_equiv.to_CommRing_iso.hom, by apply_instance),
+  apply_instance
+end
+
 
 end algebraic_geometry

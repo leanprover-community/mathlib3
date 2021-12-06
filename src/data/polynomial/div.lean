@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.polynomial.inductions
 import data.polynomial.monic
 import ring_theory.multiplicity
 
@@ -70,16 +71,13 @@ variables [ring R] {p q : polynomial R}
 lemma div_wf_lemma (h : degree q ≤ degree p ∧ p ≠ 0) (hq : monic q) :
   degree (p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q) < degree p :=
 have hp : leading_coeff p ≠ 0 := mt leading_coeff_eq_zero.1 h.2,
-if h0 : p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q = 0
-then h0.symm ▸ (lt_of_not_ge $ mt le_bot_iff.1 (mt degree_eq_bot.1 h.2))
-else
   have hq0 : q ≠ 0 := hq.ne_zero_of_polynomial_ne h.2,
   have hlt : nat_degree q ≤ nat_degree p := with_bot.coe_le_coe.1
     (by rw [← degree_eq_nat_degree h.2, ← degree_eq_nat_degree hq0];
     exact h.1),
   degree_sub_lt
   (by rw [hq.degree_mul, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
-      degree_eq_nat_degree hq0, ← with_bot.coe_add, nat.sub_add_cancel hlt])
+      degree_eq_nat_degree hq0, ← with_bot.coe_add, tsub_add_cancel_of_le hlt])
   h.2
   (by rw [leading_coeff_mul_monic hq, leading_coeff_mul_X_pow, leading_coeff_C])
 
@@ -265,13 +263,13 @@ begin
   haveI : nontrivial R := ⟨⟨0, 1, h01⟩⟩,
   by_cases hfg : f /ₘ g = 0,
   { rw [hfg, nat_degree_zero], rw div_by_monic_eq_zero_iff hg at hfg,
-    rw nat.sub_eq_zero_of_le (nat_degree_le_nat_degree $ le_of_lt hfg) },
+    rw tsub_eq_zero_iff_le.mpr (nat_degree_le_nat_degree $ le_of_lt hfg) },
   have hgf := hfg, rw div_by_monic_eq_zero_iff hg at hgf, push_neg at hgf,
   have := degree_add_div_by_monic hg hgf,
   have hf : f ≠ 0, { intro hf, apply hfg, rw [hf, zero_div_by_monic] },
   rw [degree_eq_nat_degree hf, degree_eq_nat_degree hg.ne_zero, degree_eq_nat_degree hfg,
       ← with_bot.coe_add, with_bot.coe_eq_coe] at this,
-  rw [← this, nat.add_sub_cancel_left]
+  rw [← this, add_tsub_cancel_left]
 end
 
 lemma div_mod_by_monic_unique {f g} (q r : polynomial R) (hg : monic g)

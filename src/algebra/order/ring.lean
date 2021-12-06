@@ -559,6 +559,18 @@ lemma pos_of_mul_pos_left (h : 0 < a * b) (ha : 0 ≤ a) : 0 < b :=
 lemma pos_of_mul_pos_right (h : 0 < a * b) (hb : 0 ≤ b) : 0 < a :=
 ((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_right $ λ h, h.2.not_le hb).1
 
+lemma pos_iff_pos_of_mul_pos (hab : 0 < a * b) : 0 < a ↔ 0 < b :=
+⟨λ h, (pos_and_pos_or_neg_and_neg_of_mul_pos hab).elim (λ hp, hp.2)
+                                                       (λ hn, false.elim (lt_asymm h hn.1)),
+ λ h, (pos_and_pos_or_neg_and_neg_of_mul_pos hab).elim (λ hp, hp.1)
+                                                       (λ hn, false.elim (lt_asymm h hn.2))⟩
+
+lemma neg_iff_neg_of_mul_pos (hab : 0 < a * b) : a < 0 ↔ b < 0 :=
+⟨λ h, (pos_and_pos_or_neg_and_neg_of_mul_pos hab).elim (λ hn, false.elim (lt_asymm h hn.1))
+                                                       (λ hp, hp.2),
+ λ h, (pos_and_pos_or_neg_and_neg_of_mul_pos hab).elim (λ hn, false.elim (lt_asymm h hn.2))
+                                                       (λ hp, hp.1)⟩
+
 @[simp] lemma inv_of_pos [invertible a] : 0 < ⅟a ↔ 0 < a :=
 begin
   have : 0 < a * ⅟a, by simp only [mul_inv_of_self, zero_lt_one],

@@ -560,10 +560,7 @@ lemma pos_of_mul_pos_right (h : 0 < a * b) (hb : 0 ≤ b) : 0 < a :=
 ((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_right $ λ h, h.2.not_le hb).1
 
 lemma pos_iff_pos_of_mul_pos (hab : 0 < a * b) : 0 < a ↔ 0 < b :=
-⟨λ h, (pos_and_pos_or_neg_and_neg_of_mul_pos hab).elim (λ hp, hp.2)
-                                                       (λ hn, false.elim (lt_asymm h hn.1)),
- λ h, (pos_and_pos_or_neg_and_neg_of_mul_pos hab).elim (λ hp, hp.1)
-                                                       (λ hn, false.elim (lt_asymm h hn.2))⟩
+⟨pos_of_mul_pos_left hab ∘ le_of_lt, pos_of_mul_pos_right hab ∘ le_of_lt⟩
 
 lemma neg_iff_neg_of_mul_pos (hab : 0 < a * b) : a < 0 ↔ b < 0 :=
 ⟨λ h, (pos_and_pos_or_neg_and_neg_of_mul_pos hab).elim (λ hn, false.elim (lt_asymm h hn.1))

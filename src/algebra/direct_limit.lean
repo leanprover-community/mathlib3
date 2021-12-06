@@ -47,6 +47,12 @@ variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
 variables {G} (f : Π i j, i ≤ j → G i →ₗ[R] G j)
 
+/-- A copy of `directed_system.map_self` specialized to linear maps, as otherwise the
+`λ i j h, f i j h` can confuse the simplifier. -/
+lemma directed_system.map_self [directed_system G (λ i j h, f i j h)] (i x h) :
+  f i i h x = x :=
+directed_system.map_self (λ i j h, f i j h) i x h
+
 /-- A copy of `directed_system.map_map` specialized to linear maps, as otherwise the
 `λ i j h, f i j h` can confuse the simplifier. -/
 lemma directed_system.map_map [directed_system G (λ i j h, f i j h)] {i j k} (hij hjk x) :

@@ -1,10 +1,8 @@
-
 /-
 Copyright (c) 2021 Mantas Bakšys. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
-
 import tactic.linarith
 import tactic.fin_cases
 import tactic.norm_num

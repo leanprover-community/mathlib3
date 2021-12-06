@@ -73,15 +73,26 @@ def mk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →+ ⨁ i, β i :=
   map_add' := λ _ _, dfinsupp.mk_add,
   map_zero' := dfinsupp.mk_zero, }
 
-/-- `of i` is the natural inclusion map from `β i` to `⨁ i, β i`. -/
-def of (i : ι) : β i →+ ⨁ i, β i :=
-dfinsupp.single_add_hom β i
+/-- `of i` is the natural inclusion map from `β i` to `⨁ i, β i`.
+
+Note that we do not bundle this as an `add_monoid_hom` immediately as `simp` is then unable to
+rewrite `i`. -/
+def of (i : ι) (x : β i) : ⨁ i, β i :=
+dfinsupp.single i x
 
 @[simp] lemma of_eq_same (i : ι) (x : β i) : (of _ i x) i = x :=
 dfinsupp.single_eq_same
 
 lemma of_eq_of_ne (i j : ι) (x : β i) (h : i ≠ j) : (of _ i x) j = 0 :=
 dfinsupp.single_eq_of_ne h
+
+@[simps] def of_add_hom (i : ι) : β i →+ ⨁ i, β i :=
+{ to_fun := of β i, ..dfinsupp.single_add_hom β i}
+
+@[simp] lemma of_zero (i : ι) : of β i 0 = 0 := dfinsupp.single_zero _
+
+@[simp] lemma of_add (i : ι) (x y : β i) : of β i (x + y) = of β i x + of β i y :=
+dfinsupp.single_add _ _ _
 
 @[simp] lemma support_zero [Π (i : ι) (x : β i), decidable (x ≠ 0)] :
   (0 : ⨁ i, β i).support = ∅ := dfinsupp.support_zero
@@ -126,7 +137,7 @@ then they are equal.
 
 See note [partially-applied ext lemmas]. -/
 @[ext] lemma add_hom_ext' {γ : Type*} [add_monoid γ] ⦃f g : (⨁ i, β i) →+ γ⦄
-  (H : ∀ (i : ι), f.comp (of _ i) = g.comp (of _ i)) : f = g :=
+  (H : ∀ (i : ι), f.comp (of_add_hom _ i) = g.comp (of_add_hom _ i)) : f = g :=
 add_hom_ext $ λ i, add_monoid_hom.congr_fun $ H i
 
 variables {γ : Type u₁} [add_comm_monoid γ]
@@ -144,7 +155,7 @@ def to_add_monoid : (⨁ i, β i) →+ γ :=
 dfinsupp.lift_add_hom_apply_single φ i x
 
 theorem to_add_monoid.unique (f : ⨁ i, β i) :
-  ψ f = to_add_monoid (λ i, ψ.comp (of β i)) f :=
+  ψ f = to_add_monoid (λ i, ψ.comp (of_add_hom β i)) f :=
 by {congr, ext, simp [to_add_monoid, of]}
 
 end to_add_monoid
@@ -156,15 +167,15 @@ induced by a family `φ` of homomorphisms `γ → β i`.
 
 Note that this is not an isomorphism. Not every homomorphism `γ →+ ⨁ i, β i` arises in this way. -/
 def from_add_monoid : (⨁ i, γ →+ β i) →+ (γ →+ ⨁ i, β i) :=
-to_add_monoid $ λ i, add_monoid_hom.comp_hom (of β i)
+to_add_monoid $ λ i, add_monoid_hom.comp_hom (of_add_hom β i)
 
 @[simp] lemma from_add_monoid_of (i : ι) (f : γ →+ β i) :
-  from_add_monoid (of _ i f) = (of _ i).comp f :=
+  from_add_monoid (of _ i f) = (of_add_hom _ i).comp f :=
 by { rw [from_add_monoid, to_add_monoid_of], refl }
 
 lemma from_add_monoid_of_apply (i : ι) (f : γ →+ β i) (x : γ) :
   from_add_monoid (of _ i f) x = of _ i (f x) :=
-by rw [from_add_monoid_of, add_monoid_hom.coe_comp]
+by rw [from_add_monoid_of, add_monoid_hom.coe_comp, function.comp_apply, of_add_hom_apply]
 
 end from_add_monoid
 
@@ -174,7 +185,7 @@ where `h : S ⊆ T`. -/
 -- TODO: generalize this to remove the assumption `S ⊆ T`.
 def set_to_set (S T : set ι) (H : S ⊆ T) :
   (⨁ (i : S), β i) →+ (⨁ (i : T), β i) :=
-to_add_monoid $ λ i, of (λ (i : subtype T), β i) ⟨↑i, H i.prop⟩
+to_add_monoid $ λ i, of_add_hom (λ (i : subtype T), β i) ⟨↑i, H i.prop⟩
 variables {β}
 
 omit dec_ι
@@ -185,9 +196,9 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
 { to_fun := direct_sum.to_add_monoid (λ _, add_monoid_hom.id M),
   inv_fun := of (λ _, M) (default ι),
   left_inv := λ x, direct_sum.induction_on x
-    (by rw [add_monoid_hom.map_zero, add_monoid_hom.map_zero])
+    (by rw [add_monoid_hom.map_zero, of_zero])
     (λ p x, by rw [unique.default_eq p, to_add_monoid_of]; refl)
-    (λ x y ihx ihy, by rw [add_monoid_hom.map_add, add_monoid_hom.map_add, ihx, ihy]),
+    (λ x y ihx ihy, by rw [add_monoid_hom.map_add, of_add, ihx, ihy]),
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
 

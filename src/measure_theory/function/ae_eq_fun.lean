@@ -313,13 +313,7 @@ protected lemma inf_le_right (f g : α →ₘ[μ] β) : f ⊓ g ≤ g :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_right, }
 
 protected lemma le_inf (f' f g : α →ₘ[μ] β) (hf : f' ≤ f) (hg : f' ≤ g) : f' ≤ f ⊓ g :=
-begin
-  rw ← coe_fn_le at hf hg ⊢,
-  filter_upwards [hf, hg, coe_fn_inf f g],
-  intros a haf hag ha_sup,
-  rw ha_sup,
-  exact le_inf haf hag,
-end
+@ae_eq_fun.sup_le α (order_dual β) _ _ _ _ _ _
 
 instance : lattice (α →ₘ[μ] β) :=
 { sup := has_sup.sup,

@@ -39,16 +39,17 @@ Let `L` be a topological space and let `L×L` be equipped with the product topol
 class has_continuous_sup (L : Type*) [topological_space L] [has_sup L] : Prop :=
 (continuous_sup : continuous (λ p : L × L, p.1 ⊔ p.2))
 
-/--
-Let `L` be a topological space with a supremum. If the order dual has a continuous infimum then the
-supremum is continuous.
--/
 @[priority 100] -- see Note [lower instance priority]
-instance has_continuous_inf_dual_has_continuous_sup
-  (L : Type*) [topological_space L] [has_sup L] [h: has_continuous_inf (order_dual L)] :
-  has_continuous_sup  L :=
-{ continuous_sup :=
-    @has_continuous_inf.continuous_inf (order_dual L) _ _ h }
+instance order_dual.has_continuous_sup
+  (L : Type*) [topological_space L] [has_inf L] [h : has_continuous_inf L] :
+  has_continuous_sup (order_dual L) :=
+{ continuous_sup := @has_continuous_inf.continuous_inf L _ _ h }
+
+@[priority 100] -- see Note [lower instance priority]
+instance order_dual.has_continuous_inf
+  (L : Type*) [topological_space L] [has_sup L] [h : has_continuous_sup L] :
+  has_continuous_inf (order_dual L) :=
+{ continuous_inf := @has_continuous_sup.continuous_sup L _ _ h }
 
 /--
 Let `L` be a lattice equipped with a topology such that `L` has continuous infimum and supremum.

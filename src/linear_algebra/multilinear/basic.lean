@@ -295,10 +295,7 @@ rfl
 /-- Composing the zero multilinear map with a linear map in each argument. -/
 @[simp] lemma zero_comp_linear_map (f : Π i, M₁ i →ₗ[R] M₁' i) :
   (0 : multilinear_map R M₁' M₂).comp_linear_map f = 0 :=
-begin
-  ext,
-  simp
-end
+ext $ λ _, rfl
 
 /-- Composing a multilinear map with the identity linear map in each argument. -/
 @[simp] lemma comp_linear_map_id (g : multilinear_map R M₁' M₂) :

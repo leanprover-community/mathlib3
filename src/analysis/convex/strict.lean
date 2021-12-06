@@ -3,80 +3,55 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import analysis.convex.function
-import topology.algebra.module
+import analysis.convex.basic
+import topology.algebra.mul_action
 import topology.algebra.ordered.basic
 
 /-!
-# Strictly strict_convex sets
+# Strictly convex sets
+
+This file defines strictly convex sets.
+
+A set is strictly convex if the open segment between any two distinct points lies in its interior.
+
+## TODO
+
+Define strictly convex spaces.
+
+Is there a better home for the pointwise topology lemmas?
 -/
 
 open set
-open_locale pointwise
+open_locale convex pointwise
 
-namespace set
-section image2
-variables {α β γ : Type*} {s s' : set α} {t t' : set β} {f : α → β → γ}
-
-lemma image2_subset_left (ht : t ⊆ t') : image2 f s t ⊆ image2 f s t' :=
-image2_subset (subset.refl _) ht
-
-lemma image2_subset_right (hs : s ⊆ s') : image2 f s t ⊆ image2 f s' t :=
-image2_subset hs (subset.refl _)
-
-end image2
-
-variables {α β γ : Type*} {s s' s₁ s₂ t t' t₁ t₂ : set α} {f : α → β → γ}
+section has_continuous_mul
+variables {α : Type*} [topological_space α] [comm_group α] [has_continuous_mul α] {s t : set α}
 
 @[to_additive]
-lemma mul_subset_mul_left [has_mul α] (h : t₁ ⊆ t₂) : s * t₁ ⊆ s * t₂ := image2_subset_left h
-
-@[to_additive]
-lemma mul_subset_mul_right [has_mul α] (h : s₁ ⊆ s₂) : s₁ * t ⊆ s₂ * t := image2_subset_right h
-
-end set
-
-section has_continuous_add
-variables {α : Type*} [topological_space α] [add_comm_group α] [has_continuous_add α] {s t : set α}
-
-lemma add_interior_subset : s + interior t ⊆ interior (s + t) :=
+lemma mul_interior_subset : s * interior t ⊆ interior (s * t) :=
 begin
   rw subset_interior_iff_subset_of_open,
   { rintro x ⟨a, b, ha, hb, rfl⟩,
-    exact set.add_mem_add ha (interior_subset hb) },
-  { rw ←set.Union_add_left_image,
-    exact is_open_bUnion (λ x hx, (homeomorph.add_left x).is_open_map _ is_open_interior) }
+    exact set.mul_mem_mul ha (interior_subset hb) },
+  { rw ←set.Union_mul_left_image,
+    exact is_open_bUnion (λ x hx, (homeomorph.mul_left x).is_open_map _ is_open_interior) }
 end
 
-lemma interior_add_subset : interior s + t ⊆ interior (s + t) :=
+@[to_additive]
+lemma interior_mul_subset : interior s * t ⊆ interior (s * t) :=
 begin
   rw subset_interior_iff_subset_of_open,
   { rintro x ⟨a, b, ha, hb, rfl⟩,
-    exact set.add_mem_add (interior_subset ha) hb },
-  { rw ←set.Union_add_right_image,
-    exact is_open_bUnion (λ x hx, (homeomorph.add_right x).is_open_map _ is_open_interior) }
+    exact set.mul_mem_mul (interior_subset ha) hb },
+  { rw ←set.Union_mul_right_image,
+    exact is_open_bUnion (λ x hx, (homeomorph.mul_right x).is_open_map _ is_open_interior) }
 end
 
-lemma interior_add_interior_subset {s t : set α} :
-  interior s + interior t ⊆ interior (s + t) :=
-(set.add_subset_add_left interior_subset).trans interior_add_subset
+lemma interior_mul_interior_subset {s t : set α} :
+  interior s * interior t ⊆ interior (s * t) :=
+(set.mul_subset_mul_left interior_subset).trans interior_mul_subset
 
-end has_continuous_add
-
-section open_segment
-variables {𝕜 E : Type*} [linear_ordered_ring 𝕜] [nontrivial 𝕜] [topological_space 𝕜]
-  [order_topology 𝕜] [densely_ordered 𝕜] [linear_ordered_add_comm_group E] [topological_space E]
-  [order_topology E] [module 𝕜 E] [has_continuous_smul 𝕜 E] {x y : E} {s : set E}
-
-open_locale convex
-
-lemma segment_subset_closure_open_segment : [x -[𝕜] y] ⊆ closure (open_segment 𝕜 x y) :=
-begin
-  rw [segment_eq_image, open_segment_eq_image, ←closure_Ioo (@zero_lt_one 𝕜 _ _)],
-  exact image_closure_subset_closure_image (by continuity),
-end
-
-end open_segment
+end has_continuous_mul
 
 variables {𝕜 E F β : Type*}
 
@@ -444,6 +419,7 @@ end linear_ordered_field
 
 /-!
 #### Convex sets in an ordered space
+
 Relates `convex` and `set.ord_connected`.
 -/
 

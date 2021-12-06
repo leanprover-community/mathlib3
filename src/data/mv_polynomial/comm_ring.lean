@@ -67,6 +67,13 @@ variables (σ a a')
 @[simp] lemma support_neg : (- p).support = p.support :=
 finsupp.support_neg
 
+lemma support_sub [comm_ring R] (p q : mv_polynomial σ R) :
+  (p - q).support ⊆ p.support ∪ q.support :=
+begin
+  rw [sub_eq_add_neg, ← @support_neg R σ _ q],
+  convert support_add,
+end
+
 variables {σ} (p)
 
 section degrees
@@ -134,6 +141,32 @@ def hom_equiv : (mv_polynomial σ ℤ →+* S) ≃ (σ → S) :=
   right_inv := λ f, funext $ λ x, by simp only [coe_eval₂_hom, function.comp_app, eval₂_X] }
 
 end eval₂
+
+section degree_of
+
+lemma degree_of_sub_lt [comm_ring R] {x : σ} {f g : mv_polynomial σ R} {k : ℕ} (h : 0 < k)
+  (hf : ∀ (m : σ →₀ ℕ), m ∈ f.support → (k ≤ m x) → coeff m f = coeff m g)
+  (hg : ∀ (m : σ →₀ ℕ), m ∈ g.support → (k ≤ m x) → coeff m f = coeff m g) :
+  degree_of x (f - g) < k :=
+begin
+  rw degree_of_lt_iff,
+  intros m hm,
+  by_contra hc,
+  simp only [not_lt] at hc,
+  have h := finset.mem_of_subset (support_sub f g) hm,
+  cases (finset.mem_union).1 h with cf cg,
+  have hf' := hf m cf hc,
+  rw [← sub_eq_zero] at hf',
+  simp only [mem_support_iff, ne.def, coeff_sub] at hm,
+  contradiction,
+  have hg' := hg m cg hc,
+  rw [← sub_eq_zero] at hg',
+  simp only [mem_support_iff, ne.def, coeff_sub] at hm,
+  contradiction,
+  exact h,
+end
+
+end degree_of
 
 section total_degree
 

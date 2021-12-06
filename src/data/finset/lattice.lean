@@ -991,6 +991,9 @@ begin
     refl }
 end
 
+lemma count_sup' [decidable_eq α] (x : α) (s t : multiset α) :
+  count x (s ⊔ t) = max (count x s) (count x t) := by simp
+
 lemma mem_sup {α β} [decidable_eq β] {s : finset α} {f : α → multiset β}
   {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
 begin

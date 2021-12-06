@@ -2155,30 +2155,31 @@ variables [topological_space α] [linear_order α] [order_topology α] [densely_
 
 /-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`, unless `a` is a top
 element. -/
-lemma closure_Ioi' {a b : α} (hab : a < b) :
+lemma closure_Ioi' {a : α} (h : (Ioi a).nonempty) :
   closure (Ioi a) = Ici a :=
 begin
+  cases h with b hb,
   apply subset.antisymm,
   { exact closure_minimal Ioi_subset_Ici_self is_closed_Ici },
   { rw [← diff_subset_closure_iff, Ici_diff_Ioi_same, singleton_subset_iff],
-    exact is_glb_Ioi.mem_closure ⟨_, hab⟩ }
+    exact is_glb_Ioi.mem_closure ⟨_, hb⟩, }
 end
 
 /-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`. -/
 @[simp] lemma closure_Ioi (a : α) [no_top_order α] :
   closure (Ioi a) = Ici a :=
-let ⟨b, hb⟩ := no_top a in closure_Ioi' hb
+closure_Ioi' nonempty_Ioi
 
 /-- The closure of the interval `(-∞, a)` is the closed interval `(-∞, a]`, unless `a` is a bottom
 element. -/
-lemma closure_Iio' {a b : α} (hab : b < a) :
+lemma closure_Iio' {a : α} (h : (Iio a).nonempty) :
   closure (Iio a) = Iic a :=
-@closure_Ioi' (order_dual α) _ _ _ _ _ _ hab
+@closure_Ioi' (order_dual α) _ _ _ _ _ h
 
 /-- The closure of the interval `(-∞, a)` is the interval `(-∞, a]`. -/
 @[simp] lemma closure_Iio (a : α) [no_bot_order α] :
   closure (Iio a) = Iic a :=
-let ⟨b, hb⟩ := no_bot a in closure_Iio' hb
+closure_Iio' nonempty_Iio
 
 /-- The closure of the open interval `(a, b)` is the closed interval `[a, b]`. -/
 @[simp] lemma closure_Ioo {a b : α} (hab : a < b) :
@@ -2213,13 +2214,13 @@ begin
 end
 
 @[simp] lemma interior_Ici' {a : α} (ha : (Iio a).nonempty) : interior (Ici a) = Ioi a :=
-let ⟨b, hb⟩ := ha in by rw [← compl_Iio, interior_compl, closure_Iio' hb, compl_Iic]
+by rw [← compl_Iio, interior_compl, closure_Iio' ha, compl_Iic]
 
 lemma interior_Ici [no_bot_order α] {a : α} : interior (Ici a) = Ioi a :=
 interior_Ici' nonempty_Iio
 
 @[simp] lemma interior_Iic' {a : α} (ha : (Ioi a).nonempty) : interior (Iic a) = Iio a :=
-let ⟨b, hb⟩ := ha in by rw [← compl_Ioi, interior_compl, closure_Ioi' hb, compl_Ici]
+by rw [← compl_Ioi, interior_compl, closure_Ioi' ha, compl_Ici]
 
 lemma interior_Iic [no_top_order α] {a : α} : interior (Iic a) = Iio a :=
 interior_Iic' nonempty_Ioi
@@ -2247,13 +2248,13 @@ lemma frontier_Iic [no_top_order α] {a : α} : frontier (Iic a) = {a} :=
 frontier_Iic' nonempty_Ioi
 
 @[simp] lemma frontier_Ioi' {a : α} (ha : (Ioi a).nonempty) : frontier (Ioi a) = {a} :=
-let ⟨b, hb⟩ := ha in by simp [frontier, closure_Ioi' hb, Iic_diff_Iio, Icc_self]
+by simp [frontier, closure_Ioi' ha, Iic_diff_Iio, Icc_self]
 
 lemma frontier_Ioi [no_top_order α] {a : α} : frontier (Ioi a) = {a} :=
 frontier_Ioi' nonempty_Ioi
 
 @[simp] lemma frontier_Iio' {a : α} (ha : (Iio a).nonempty) : frontier (Iio a) = {a} :=
-let ⟨b, hb⟩ := ha in by simp [frontier, closure_Iio' hb, Iic_diff_Iio, Icc_self]
+by simp [frontier, closure_Iio' ha, Iic_diff_Iio, Icc_self]
 
 lemma frontier_Iio [no_bot_order α] {a : α} : frontier (Iio a) = {a} :=
 frontier_Iio' nonempty_Iio
@@ -2273,7 +2274,7 @@ by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
 
 lemma nhds_within_Ioi_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : a ≤ b) :
   ne_bot (𝓝[Ioi a] b) :=
-mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Ioi' H₁], exact H₂ }
+mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Ioi' (nonempty_of_mem H₁)], exact H₂ }
 
 lemma nhds_within_Ioi_ne_bot [no_top_order α] {a b : α} (H : a ≤ b) :
   ne_bot (𝓝[Ioi a] b) :=
@@ -2295,7 +2296,8 @@ by simpa only [exists_prop, gt_iff_lt, and_comm]
 
 lemma nhds_within_Iio_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : b ≤ c) :
   ne_bot (𝓝[Iio c] b) :=
-mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Iio' H₁], exact H₂ }
+mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Iio' (nonempty_of_mem (mem_Iio.mpr H₁))],
+                                            exact H₂ }
 
 lemma nhds_within_Iio_ne_bot [no_bot_order α] {a b : α} (H : a ≤ b) :
   ne_bot (𝓝[Iio b] a) :=

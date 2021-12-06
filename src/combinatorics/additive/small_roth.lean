@@ -74,13 +74,16 @@ begin
     { exact or.inr ⟨b, hb, hp⟩ } }
 end
 
+@[simp] lemma coe_tt : tt := by exact rfl
+@[simp] lemma coe_ff : ¬ ff := ff_ne_tt
+
 end bool
 
 namespace list
 
 variables {R : α → α → Prop} {l l₁ l₂ : list α} {a b : α}
 
-lemma chain.mono [is_trans α R] (hl : l₂.chain R a) (h : l₁ <+ l₂) : l₁.chain R a :=
+lemma chain.sublist [is_trans α R] (hl : l₂.chain R a) (h : l₁ <+ l₂) : l₁.chain R a :=
 begin
   have hR : transitive R := λ a b c, trans,
   rw chain_iff_pairwise hR at ⊢ hl,
@@ -94,35 +97,52 @@ begin
   exact rel_of_pairwise_cons hl hb,
 end
 
-lemma chain'.mono [is_trans α R] (hl : l₂.chain' R) (h : l₁ <+ l₂) : l₁.chain' R :=
+lemma chain'.sublist [is_trans α R] (hl : l₂.chain' R) (h : l₁ <+ l₂) : l₁.chain' R :=
 begin
   have hR : transitive R := λ a b c, trans,
   rw chain'_iff_pairwise hR at ⊢ hl,
   exact pairwise_of_sublist h hl,
 end
 
+lemma pairwise.forall_of_forall_of_flip (h₁ : ∀ x ∈ l, R x x) (h₂ : l.pairwise R)
+  (h₃ : l.pairwise (flip R)) :
+  ∀ (x ∈ l) (y ∈ l), R x y :=
+begin
+  induction l with a l ih,
+  { exact λ x hx, hx.elim },
+  rintro x (rfl | hx) y (rfl | hy),
+  { exact h₁ _ (l.mem_cons_self _) },
+  { exact rel_of_pairwise_cons h₂ hy },
+  { convert rel_of_pairwise_cons h₃ hx },
+  { exact ih (λ x hx, h₁ _ $ mem_cons_of_mem _ hx) (pairwise_of_pairwise_cons h₂)
+    (pairwise_of_pairwise_cons h₃) _ hx _ hy }
+end
+
 end list
 
 section explicit_values
-variables {l l₁ l₂ : list ℕ} {a b : ℕ}
+variables {l l₁ l₂ : list ℕ} {a b n : ℕ}
 
 /-- `three_free a l` returns whether adding `a` to `l` keeps it three-free. -/
 def three_free : ℕ → list ℕ → bool
-| a [] := tt
+| a []       := tt
 | a (b :: l) := l.all (λ c, a + c ≠ b + b) && three_free a l
 
+/-- `roth_aux sz n d l` returns whether -/
 def roth_aux : list ℕ → ℕ → ℕ → list ℕ → bool
-| [] n d α := ff
-| (s :: sz) n d α :=
-  ((d < s) && roth_aux sz (n + 1) d α) ||
-  (three_free n α && match d with
-    | 0 := tt
-    | (d'+1) := roth_aux sz (n + 1) d' (n :: α)
+| []        n d l := ff
+| (s :: sz) n d l :=
+  ((d < s) && roth_aux sz (n + 1) d l) ||
+  (three_free n l && match d with
+    | 0        := tt
+    | (d' + 1) := roth_aux sz (n + 1) d' (n :: l)
     end)
 
 def roth : ℕ → ℕ × list ℕ
 | 0 := (0, [])
 | (n + 1) := let (a, l) := roth n in (if roth_aux (a :: l) 0 a [] then a + 1 else a, a :: l)
+
+@[simp] lemma three_free_nil : three_free n [] := by exact rfl
 
 lemma three_free.of_cons (hl : three_free a (b :: l)) : three_free a l := bool.band_elim_right hl
 
@@ -139,15 +159,14 @@ lemma three_free_spec (hl : chain (>) a l) (h₁ : add_salem_spencer {n | n ∈ 
   three_free a l ↔ add_salem_spencer {n | n ∈ a :: l} :=
 begin
   induction l with d l ih,
-  { refine iff_of_true rfl _,
-    simp_rw [mem_singleton, set.set_of_eq_eq_singleton],
-    exact add_salem_spencer_singleton a },
+  { simp only [set.set_of_eq_eq_singleton, iff_true, add_salem_spencer_singleton, mem_singleton,
+      three_free_nil] },
   have : {n : ℕ | n ∈ a :: d :: l} = insert d {n : ℕ | n ∈ a :: l},
   { ext,
     simp only [set.mem_insert_iff, mem_cons_iff, set.mem_set_of_eq],
     exact or.left_comm },
   rw [this, three_free, bool.band_comm, band_coe_iff, bool.coe_all,
-    ih (hl.mono $ sublist_cons _ _) (h₁.mono $ l.subset_cons _), add_salem_spencer_insert],
+    ih (hl.sublist $ sublist_cons _ _) (h₁.mono $ l.subset_cons _), add_salem_spencer_insert],
   simp_rw bool.coe_to_bool,
   refine and_congr_right (λ hl', ⟨λ hs, ⟨_, _⟩, _⟩),
   { rintro b c (rfl | hb) (rfl | hc),
@@ -171,14 +190,37 @@ begin
     exact (add_lt_add hbd hbd).ne' h }
 end
 
-example (s n m d : ℕ) (α : list ℕ)
-  (h₁ : add_salem_spencer {n | n ∈ α}) (h₂ : list.chain' (>) α)
-  (hm : s + m = n + 1) (hd : roth_number_nat n = d + α.length) :
-  ¬ roth_aux ((list.range s).map roth_number_nat) m d α ↔
-  (∀ t : finset ℕ, (∀ x ∈ t, x ≤ n) → {n | n ∈ α} ⊆ t →
-    add_salem_spencer (t : set ℕ) → t.card ≤ n) := sorry
+lemma roth_succ :
+  roth n.succ = (if roth_aux ((roth n).1 :: (roth n).2) 0 (roth n).1 [] then (roth n).1 + 1
+    else (roth n).1, (roth n).1 :: (roth n).2) :=
+begin
+  sorry
+end
 
-example (n : ℕ) : roth n = (roth_number_nat n, (list.range n).map roth_number_nat) := sorry
+lemma roth_aux_spec (s n m d : ℕ) (l : list ℕ)
+  (h₁ : add_salem_spencer {n | n ∈ l}) (h₂ : list.chain' (>) l)
+  (hm : s + m = n + 1) (hd : roth_number_nat n = d + l.length) :
+  ¬ roth_aux ((list.range s).map roth_number_nat) m d l ↔
+  (∀ t : finset ℕ, (∀ x ∈ t, x ≤ n) → {n | n ∈ l} ⊆ t →
+    add_salem_spencer (t : set ℕ) → t.card ≤ roth_number_nat n) :=
+begin
+
+end
+
+example (n : ℕ) : roth n = (roth_number_nat n, (list.range n).reverse.map roth_number_nat) :=
+begin
+  suffices h : ∀ n, (roth n).1 = roth_number_nat n,
+  {
+    induction n with n ih,
+    { refl },
+    refine prod.ext (h _) _,
+    rw [roth_succ, range_succ, reverse_append, reverse_singleton, singleton_append, map_cons, h n],
+    convert rfl,
+    refl,
+    rw roth,
+    change (roth n).1 :: (roth n).2 = _,
+  },
+end
 
 #exit
 

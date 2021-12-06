@@ -156,6 +156,21 @@ lemma mul_salem_spencer_mul_right_iff :
 
 end cancel_comm_monoid
 
+section ordered_cancel_comm_monoid
+variables [ordered_cancel_comm_monoid α] {s : set α} {a : α}
+
+@[to_additive]
+lemma mul_salem_spencer_insert_of_lt (hs : ∀ i ∈ s, i < a) :
+  mul_salem_spencer (insert a s) ↔ mul_salem_spencer s ∧
+    ∀ ⦃b c⦄, b ∈ s → c ∈ s → a * b = c * c → a = b :=
+begin
+  refine mul_salem_spencer_insert.trans _,
+  rw ←and_assoc,
+  exact and_iff_left (λ b c hb hc h, ((mul_lt_mul''' (hs _ hb) (hs _ hc)).ne h).elim),
+end
+
+end ordered_cancel_comm_monoid
+
 section comm_cancel_monoid_with_zero
 variables [comm_cancel_monoid_with_zero α] [no_zero_divisors α] {s : set α} {a : α}
 

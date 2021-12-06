@@ -291,17 +291,25 @@ finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
 
 /-- Similar to `mv_polynomial.induction_on` but only a weak form of `h_add` is required.-/
+lemma induction_on''' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) (h_C : ∀ a, M (C a))
+  (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
+    a ∉ f.support → b ≠ 0 → M f → M (monomial a b + f)) : M p :=
+finsupp.induction p (C_0.rec $ h_C 0) h_add_weak
+
+/-- Similar to `mv_polynomial.induction_on` but only a yet weaker form of `h_add` is required.-/
 lemma induction_on'' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) (h_C : ∀ a, M (C a))
   (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
-    a ∉ f.support → b ≠ 0 → M f → M (monomial a b + f)) (h_X : ∀p n, M p → M (p * X n)) : M p :=
-finsupp.induction p (C_0.rec $ h_C 0) h_add_weak
+    a ∉ f.support → b ≠ 0 → M f → M (monomial a b) → M (monomial a b + f))
+    (h_X : ∀ (p : mv_polynomial σ R) (n : σ), M p → M (p * mv_polynomial.X n)): M p :=
+induction_on''' p h_C (λ a b f ha hb hf,
+  h_add_weak a b f ha hb hf $ induction_on_monomial h_C h_X a b)
 
 /-- Analog of `polynomial.induction_on`.-/
 @[recursor 5]
 lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
   (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
   M p :=
-induction_on'' _ h_C (λ s a p hsp ha, h_add _ _ $ induction_on_monomial h_C h_X s a) h_X
+induction_on'' p h_C (λ a b f  ha hb hf hm, h_add (monomial a b) f hm hf) h_X
 
 lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :

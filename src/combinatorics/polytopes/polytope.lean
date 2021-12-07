@@ -15,7 +15,7 @@ variables (α)
 
 /-- An order with one element is a diamond order, aka a nullitope. -/
 def unique.to_polytope_order [unique α] [partial_order α] [bounded_order α] : polytope_order α :=
-{ scon := by apply graded.scon_of_grade_le_two; exact zero_le_two,
+{ scon := by { apply graded.scon_of_grade_le_two, exact zero_le_two },
   .. unique.to_diamond_order α }
 
 /-- A simple order is a diamond order, aka a point. -/

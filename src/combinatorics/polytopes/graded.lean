@@ -155,7 +155,7 @@ variables {α}
 @[simp]
 lemma eq_grade_top_iff_eq_top (a : α) : grade a = grade (⊤ : α) ↔ a = ⊤ :=
 begin
-  refine ⟨λ h, _, λ h, by cases h; refl⟩,
+  refine ⟨λ h, _, λ h, by cases h; { refl }⟩,
   by_contra ha,
   exact not_le_of_lt (grade_strict_mono $ lt_top_iff_ne_top.2 ha) h.ge,
 end

@@ -148,11 +148,11 @@ instance (α : Type*) [p : partial_order α] : inhabited (automorphism α) := �
 variables [partial_order α]
 
 /-- Any automorphism is a relation isomorphism. -/
-def to_rel_iso (γ : automorphism α) : ((≤) : α → α → Prop) ≃r (≤) :=
+def to_rel_iso (γ : automorphism α) : (≤) ≃r (≤) :=
 { to_fun := γ.hom,
   inv_fun := γ.inv,
-  left_inv := λ x, by change (γ.hom ≫ _) _ = _; rw γ.hom_inv_id; refl,
-  right_inv := λ x, by change (γ.inv ≫ _) _ = _; rw γ.inv_hom_id; refl,
+  left_inv := λ x, by { change (γ.hom ≫ _) _ = _, rw γ.hom_inv_id; refl },
+  right_inv := λ x, by { change (γ.inv ≫ _) _ = _, rw γ.inv_hom_id; refl },
   map_rel_iff' := begin
     intros,
     change γ.hom a ≤ γ.hom b ↔ a ≤ b,
@@ -230,7 +230,7 @@ end
 /-- Inverse automorphisms preserve `<`. -/
 @[simp]
 lemma inv_map_lt (γ : automorphism α) (a b : α) : γ.inv a < γ.inv b ↔ a < b :=
-by rw ←γ.symm_hom; apply γ.symm.hom_map_lt
+by { rw ←γ.symm_hom, apply γ.symm.hom_map_lt }
 
 /-- Scalar multiplication of automorphisms by flags. -/
 @[reducible]
@@ -316,7 +316,7 @@ lemma empty [has_lt α] : @zorn.chain α (<) ∅ :=
 
 /-- Any singleton is a chain. -/
 lemma singleton [has_lt α] (x : α) : zorn.chain (<) (set.insert x ∅) :=
-by refine zorn.chain_insert _ _ ; repeat { exact λ _ h, h.elim }
+by refine zorn.chain_insert _ _; repeat { exact  (λ _ h, false.elim h) }
 
 /-- Any pair of incident elements is a chain. -/
 lemma pair [has_lt α] {x y : α} (hxy : x < y ∨ y < x) :
@@ -380,16 +380,15 @@ variables [preorder α]
 theorem flag_of_chain (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ.val :=
 begin
   let all_chains := {s : set α | c ⊆ s ∧ zorn.chain (<) s},
-  have := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩,
-  { rcases this with ⟨Φ, hΦ₀, hΦ₁, hΦ₂⟩,
-    refine ⟨⟨Φ, hΦ₀.right, λ h, _⟩, hΦ₁⟩,
-    rcases h with ⟨d, hd, hdΦ₀, hdΦ₁⟩,
-    have := hΦ₂ d _ hdΦ₀,
-    induction this,
-    { exact hdΦ₁ hdΦ₀ },
-    change c ⊆ Φ with c ≤ Φ at hΦ₁,
-    exact ⟨le_trans hΦ₁ hdΦ₀, hd⟩ },
-  rintro cs hcs₀ hcs₁ ⟨s, hs⟩,
+  obtain ⟨Φ, ⟨_, hΦ₀⟩, hΦ₁, hΦ₂⟩ := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩,
+    { refine ⟨⟨Φ, hΦ₀, _⟩, hΦ₁⟩,
+      rintros ⟨d, hd, hdΦ₀, hdΦ₁⟩,
+      have := hΦ₂ d _ hdΦ₀,
+      induction this,
+        { exact hdΦ₁ hdΦ₀ },
+      change c ⊆ Φ with c ≤ Φ at hΦ₁,
+      exact ⟨le_trans hΦ₁ hdΦ₀, hd⟩ },
+  rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
   refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
     λ _, set.subset_sUnion_of_mem⟩,
   rintro y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
@@ -404,7 +403,7 @@ end
 
 /-- Every element belongs to some flag. -/
 theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
-by cases flag_of_chain _ (chain.singleton x) with Φ hΦ; exact ⟨Φ, hΦ (set.mem_insert x ∅)⟩
+by { cases flag_of_chain _ (chain.singleton x) with Φ hΦ, exact ⟨Φ, hΦ (set.mem_insert x ∅)⟩ }
 
 /-- Every pair of incident elements belongs to some flag. -/
 theorem ex_flag_both_mem (x y : α) (hxy : x < y ∨ y < x) :
@@ -529,16 +528,15 @@ end
 
 /-- Order isomorphisms preserve top grades. -/
 lemma grade_top_eq_of_order_iso (oiso : α ≃o β) : grade (⊤ : α) = grade (⊤ : β) :=
-by rw ←oiso.map_top; exact grade_eq_of_order_iso oiso ⊤
+by { rw ←oiso.map_top, exact grade_eq_of_order_iso oiso ⊤ }
 
 /-- Order isomorphisms preserve total connectedness. -/
 private lemma tcon_order_iso_of_tcon (oiso : α ≃o β) : total_connected β → total_connected α :=
 begin
   intros hb,
   cases hb with hb hb,
-    { left,
-      rwa grade_top_eq_of_order_iso oiso },
-  exact or.inr (λ x y, (con_order_iso_iff_con oiso x y).2 (hb _ _)),
+    { left, rwa grade_top_eq_of_order_iso oiso },
+  exact or.inr (λ _ _, (con_order_iso_iff_con oiso _ _).2 (hb _ _)),
 end
 
 /-- Order isomorphisms preserve total connectedness. -/
@@ -559,7 +557,7 @@ theorem scon_order_iso_iff_scon (oiso : α ≃o β) :
 /-- Strong connectedness implies total connectedness. -/
 theorem tcon_of_scon (α : Type*) [partial_order α] [bounded_order α] [grade_order α] :
   strong_connected α → total_connected α :=
-λ h, (@tcon_order_iso_iff_tcon α (set.Icc ⊥ (⊤ : α)) _ _ _ _ (set.Icc.bounded_order bot_le)
+λ h, (@tcon_order_iso_iff_tcon α (@set.Icc α _ ⊥ ⊤) _ _ _ _ (set.Icc.bounded_order bot_le)
   (set.Icc.graded bot_le) (set.Icc.self_order_iso_bot_top α)).2 (h bot_le)
 
 end order_iso

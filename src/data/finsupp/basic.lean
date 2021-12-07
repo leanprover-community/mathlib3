@@ -680,6 +680,9 @@ end
 @[simp] lemma erase_zero (a : α) : erase a (0 : α →₀ M) = 0 :=
 by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
 
+lemma subset_of_support_erase {f : α →₀ M} {q : α}  : (erase q f).support ⊆ f.support :=
+by { simp only [subset_iff, support_erase, mem_erase, ne.def], exact λ a ha, ha.2 }
+
 end erase
 
 /-!

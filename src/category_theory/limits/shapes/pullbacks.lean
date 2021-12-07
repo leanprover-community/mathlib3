@@ -768,7 +768,7 @@ isomorphism `pullback f₁ g₁ ≅ pullback f₂ g₂` -/
 @[simps hom]
 def pullback.congr_hom {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
   (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
-    pullback f₁ g₁ ≅ pullback f₂ g₂ :=
+  pullback f₁ g₁ ≅ pullback f₂ g₂ :=
 as_iso $ pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂])
 
 @[simp]
@@ -804,7 +804,7 @@ isomorphism `pushout f₁ g₁ ≅ pullback f₂ g₂` -/
 @[simps hom]
 def pushout.congr_hom {X Y Z : C} {f₁ f₂ : X ⟶ Y} {g₁ g₂ : X ⟶ Z}
   (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pushout f₁ g₁] [has_pushout f₂ g₂] :
-    pushout f₁ g₁ ≅ pushout f₂ g₂ :=
+  pushout f₁ g₁ ≅ pushout f₂ g₂ :=
 as_iso $ pushout.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂])
 
 @[simp]

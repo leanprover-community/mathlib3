@@ -1,72 +1,126 @@
 /-
 Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Grayson Burton, Violeta Hernández Palacios.
+Authors: Grayson Burton, Violeta Hernández Palacios
 -/
 import combinatorics.polytopes.flag
+import order.atoms
+
+variables {α β : Type*}
+
+
+section order_classes
+
+/-- A diamond order is a ranked order which has the diamond property: Every two elements whose grade
+differs by `2` have exactly two elements in between. -/
+class diamond_order (α : Type*) [preorder α] [order_bot α] extends grade_order α :=
+(diamond {a b : α} (hab : a < b) (h : grade b = grade a + 2) : ∃ x y, x ≠ y ∧ set.Ioo a b = {x, y})
+
+lemma exists_pair_Ioo_of_lt [preorder α] [order_bot α] [diamond_order α] {a b : α} (hab : a < b)
+  (h : grade b = grade a + 2) : ∃ x y, x ≠ y ∧ set.Ioo a b = {x, y} :=
+diamond_order.diamond hab h
+
+alias exists_pair_Ioo_of_lt ← has_lt.lt.exists_pair_Ioo
+
+/-- A polytope is a strongly connected diamond order. -/
+class polytope_order (α : Type*) [partial_order α] [order_bot α] extends diamond_order α :=
+(scon : graded.strong_connected α)
+
+end order_classes
 
 universes u v
 
 namespace polytope
+variables (α)
 
-/-- The diamond property. -/
-def diamond (α : Type u) [preorder α] [graded α] : Prop :=
-∀ {a b : α}, a < b → graded.grade b = graded.grade a + 2 → ∃ x y, x ≠ y ∧ set.Ioo a b = {x, y}
+/-- An order with one element is a graded order, aka a nullitope. -/
+def unique.to_graded_order [unique α] [preorder α] [order_bot α] : grade_order α :=
+{ grade := λ _, 0,
+  grade_bot := rfl,
+  strict_mono := subsingleton.strict_mono,
+  hcovers := λ a b h, (h.1.ne $ subsingleton.elim _ _).elim }
 
-end polytope
-
-/-- A prepolytope is a graded partial order satisfying the diamond condition. -/
-class prepolytope (α : Type u) extends partial_order α, order_top α, polytope.graded α : Type u :=
-(diamond' : polytope.diamond α)
-
-/-- A polytope is a strongly connected prepolytope. -/
-class polytope (α : Type u) extends prepolytope α : Type u :=
-(scon : graded.strong_connected α)
-
-namespace polytope
-
-/-- The dual of a prepolytope. -/
-instance (α : Type u) [prepolytope α] : prepolytope (order_dual α) :=
-⟨ begin
-  intros a b hab hg,
-  unfold graded.grade at hg,
-  have : @graded.grade α _ _ a =  @graded.grade α _ _ b + 2 := begin
-    have := @graded.grade_le_grade_top α _ _ _ a,
-    have := @graded.grade_le_grade_top α _ _ _ b,
-    linarith,
+/-- A simple order is a graded order, aka a point. -/
+def is_simple_order.to_graded_order [decidable_eq α] [preorder α] [bounded_order α] [is_simple_order α] :
+  grade_order α :=
+{ grade := λ a, if a = ⊥ then 0 else 1,
+  grade_bot := if_pos rfl,
+  strict_mono := λ a b h, begin
+    convert zero_lt_one,
+    { exact if_pos (is_simple_order.eq_bot_of_lt h) },
+    { exact if_neg (ne_bot_of_lt h) },
+    { apply_instance }
   end,
-  rcases prepolytope.diamond' hab this with ⟨x, y, hne, hxy⟩,
-  refine ⟨x, y, hne, _⟩,
-  suffices : set.Ioo a b = @set.Ioo α _ b a, { rwa this },
-  refine set.ext (λ _, ⟨_, _⟩),
-  repeat { exact (λ h, ⟨h.right, h.left⟩) },
-end ⟩
+  hcovers := λ a b h, begin
+    convert (zero_add 1).symm,
+    { exact if_neg (ne_bot_of_lt h.1) },
+    { exact if_pos (is_simple_order.eq_bot_of_lt h.1) }
+  end }
 
-/-- Any graded poset of top grade less or equal to 1 satisfies the diamond property. -/
-lemma diamond_of_grade_le_one (α : Type u) [partial_order α] [order_top α] [graded α] :
-  graded.grade_top α ≤ 1 → diamond α :=
-begin
-  intros h _ b _ _,
-  have := le_trans (graded.grade_le_grade_top b) h,
+variables {α}
+
+lemma unique.grade_top [unique α] [preorder α] [bounded_order α] [grade_order α] :
+  grade (⊤ : α) = 0 :=
+(congr_arg _ $ subsingleton.elim _ _).trans grade_bot
+
+lemma is_simple_order.grade_top [partial_order α] [bounded_order α] [is_simple_order α]
+  [grade_order α] :
+  grade (⊤ : α) = 1 :=
+is_simple_order.bot_covers_top.grade.trans $ by rw [grade_bot, zero_add]
+
+variables (α)
+
+/-- An order with one element is a diamond order, aka a nullitope. -/
+def unique.to_diamond_order [unique α] [preorder α] [order_bot α] : diamond_order α :=
+{ diamond := λ a b h, (h.ne $ subsingleton.elim _ _).elim,
+  .. unique.to_graded_order α }
+
+/-- A simple order is a diamond order, aka a point. -/
+def is_simple_order.to_diamond_order [decidable_eq α] [partial_order α] [bounded_order α]
+  [is_simple_order α] :
+  diamond_order α :=
+{ diamond := λ a b hab h, begin
+  change grade _ = grade _ + 2 at h,
+  rw [is_simple_order.eq_bot_of_lt hab, is_simple_order.eq_top_of_lt hab, grade_bot,
+    is_simple_order.grade_top, zero_add] at h,
   linarith,
-end
+  end,
+  .. is_simple_order.to_graded_order α }
 
-/-- The nullitope, the unique graded poset of top grade 0. -/
-@[reducible] def nullitope : Type := fin 1
+/-- An order with one element is a diamond order, aka a nullitope. -/
+def unique.to_diamond_order [unique α] [preorder α] [order_bot α] : diamond_order α :=
+{ diamond := λ a b h, (h.ne $ subsingleton.elim _ _).elim,
+  .. unique.to_graded_order α }
 
-/-- The point, the unique graded poset of top grade 1. -/
-@[reducible] def point : Type := fin 2
+/-- A simple order is a diamond order, aka a point. -/
+def is_simple_order.to_diamond_order [decidable_eq α] [partial_order α] [bounded_order α]
+  [is_simple_order α] :
+  diamond_order α :=
+{ diamond := λ a b hab h, begin
+  change grade _ = grade _ + 2 at h,
+  rw [is_simple_order.eq_bot_of_lt hab, is_simple_order.eq_top_of_lt hab, grade_bot,
+    is_simple_order.grade_top, zero_add] at h,
+  linarith,
+  end,
+  .. is_simple_order.to_graded_order α }
 
-/-- The nullitope is a prepolytope. This is the unique graded poset of top grade 0. -/
-instance : prepolytope nullitope :=
-⟨ by apply diamond_of_grade_le_one; exact zero_le_one ⟩
+/-- The dual of a diamond order. -/
+instance (α : Type*) [partial_order α] [bounded_order α] [diamond_order α] :
+  diamond_order (order_dual α) :=
+⟨ begin
+  rintro (a b : α) (hab : b < a) h,
+  obtain ⟨x, y, hne, hxy⟩ := hab.exists_pair_Ioo _,
+  exact ⟨x, y, hne, set.dual_Ioo.trans hxy⟩,
+  change grade_top α - grade b = grade_top α - grade a + 2 at h,
+  linarith [grade_le_grade_top a, grade_le_grade_top b],
+end ⟩
 
 /-- The nullitope is a polytope. This is the unique graded poset of top grade 0. -/
 instance : polytope nullitope :=
 { scon := by apply graded.scon_of_grade_le_two; exact zero_le_two }
 
-/-- The point as a prepolytope. This is the unique graded poset of top grade 1. -/
-instance : prepolytope point :=
+/-- The point as a diamond_order. This is the unique graded poset of top grade 1. -/
+instance : diamond_order point :=
 ⟨ by apply diamond_of_grade_le_one; exact le_rfl ⟩
 
 /-- The point as a polytope. This is the unique graded poset of top grade 1. -/
@@ -74,13 +128,13 @@ instance : polytope point :=
 { scon := by apply graded.scon_of_grade_le_two; exact one_le_two }
 
 /-- The generic polytope product. -/
-def product (α : Type u) [has_le α] [bounded_order α] (β : Type v) [has_le β] [bounded_order β]
+def product (α : Type*) [has_le α] [bounded_order α] (β : Type v) [has_le β] [bounded_order β]
 (min max : bool) :=
 {x : α × β // x = ⊥ ∨ x = ⊤ ∨ (min → (x.fst ≠ ⊥ ∧ x.snd ≠ ⊥)) ∧ (max → (x.fst ≠ ⊤ ∧ x.snd ≠ ⊤))}
 
 namespace product
 
-variables (α : Type u) (β : Type v)
+variables (α : Type*) (β : Type v)
 
 section
 
@@ -138,8 +192,8 @@ instance {min max : bool} : partial_order (product α β min max) :=
 { le_antisymm := λ a b hab hba, subtype.eq (@le_antisymm (α × β) _ a.val b.val hab hba),
   ..(product.preorder α β) }
 
-instance [graded α] [graded β] : graded (α ⋈ β) :=
-{ grade := λ a, graded.grade a.val.fst + graded.grade a.val.snd,
+instance [grade_order α] [graded β] : graded (α ⋈ β) :=
+{ grade := λ a, grade a.val.fst + grade a.val.snd,
   grade_bot := sorry,
   strict_mono := sorry,
   hcovers := sorry }

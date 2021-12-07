@@ -3,11 +3,11 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Violeta Hernández Palacios.
 -/
-import tactic
-import order.lattice_intervals
-import order.zorn
 import category_theory.conj
 import data.fin.basic
+import order.lattice_intervals
+import order.preorder_hom
+import .mathlib
 
 /-!
 # Graded preorders
@@ -24,7 +24,7 @@ notion of flags. These are separated into `flag.lean`.
 
 ## Main definitions
 
-* `polytope.graded`: graded preorders.
+* `grade_order`: graded preorders.
 * `polytope.path`: a path between two elements in a graph.
 * `polytope.total_connected`: connectedness of a bounded poset – see remark on nomenclature.
 * `polytope.strong_connected`: strong connectedness of a bounded poset.
@@ -34,24 +34,23 @@ notion of flags. These are separated into `flag.lean`.
 * `graded.ex_unique_of_grade`: graded linear orders have a unique element of each possible grade.
 -/
 
-open category_theory
+open category_theory nat
 
-universe u
+variables {α β : Type*}
 
 /-- One element covers another when there's no other element strictly in between. -/
-def polytope.covers {α : Type u} [preorder α] (y x : α) : Prop :=
-x < y ∧ ∀ z, ¬ z ∈ set.Ioo x y
+def covers [preorder α] (y x : α) : Prop := x < y ∧ ∀ z, ¬ z ∈ set.Ioo x y
 
-notation x ` ⋗ `:50 y:50 := polytope.covers x y
-notation x ` ⋖ `:50 y:50 := polytope.covers y x
+notation x ` ⋗ `:50 y:50 := covers x y
+notation x ` ⋖ `:50 y:50 := covers y x
 
 /-- If `x < y` but `y` does not cover `x`, then there's an element in between. -/
-private lemma between_of_ncover {α : Type u} [preorder α] {x y : α} (hnxy : ¬x ⋖ y) (hxy : x < y) :
+private lemma between_of_ncover [preorder α] {x y : α} (hnxy : ¬x ⋖ y) (hxy : x < y) :
   ∃ z, x < z ∧ z < y :=
 by by_contra hne; push_neg at hne; exact hnxy ⟨hxy, λ z ⟨hl, hr⟩, hne z hl hr⟩
 
 /-- If an element covers another, they define an empty open interval. -/
-theorem set.Ioo_is_empty_of_covers {α : Type u} [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
+lemma set.Ioo_is_empty_of_covers [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
 λ ⟨_, hr⟩, set.eq_empty_iff_forall_not_mem.mpr hr
 
 /-- A natural covers another iff it's a successor. -/
@@ -77,211 +76,162 @@ lemma fin.cover_iff_cover {n : ℕ} (a b : fin n) : a ⋖ b ↔ a.val ⋖ b.val 
   λ ⟨hl, hr⟩, ⟨hl, λ c hc, hr c hc⟩ ⟩
 
 /-- Covering is irreflexive. -/
-instance covers.is_irrefl {α : Type u} [preorder α] : is_irrefl α (⋖) :=
-⟨ λ _ ha, ne_of_lt ha.left (refl _) ⟩
+instance covers.is_irrefl [preorder α] : is_irrefl α (⋖) :=
+⟨ λ _ ha, ne_of_lt ha.left rfl ⟩
+
+lemma dual_cover_iff_cover [preorder α] (a b : α) :
+  a ⋖ b ↔ @covers (order_dual α) _ a b :=
+by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
+
+lemma is_simple_order.bot_covers_top [partial_order α] [bounded_order α] [is_simple_order α] :
+  (⊥ : α) ⋖ ⊤ :=
+⟨bot_lt_top, λ a ha, (is_simple_order.eq_bot_or_eq_top a).elim ha.1.ne' ha.2.ne⟩
 
 /-- A graded order is an order homomorphism into ℕ such that:
     * `⊥` has grade 0
     * the homomorphism respects covering. -/
-@[protect_proj]
-class polytope.graded (α : Type u) [preorder α] extends order_bot α : Type u :=
+class grade_order (α : Type*) [preorder α] [order_bot α] :=
 (grade : α → ℕ)
 (grade_bot : grade ⊥ = 0)
 (strict_mono : strict_mono grade)
 (hcovers : ∀ {x y}, x ⋖ y → grade y = grade x + 1)
 
-/-- An abbreviation for the grade function of a graded order. -/
-abbreviation polytope.grade {α : Type u} [preorder α] [polytope.graded α] : α → ℕ :=
-polytope.graded.grade
+section preorder
+variables [preorder α]
+
+section order_bot
+variables [order_bot α] [grade_order α] {a b : α}
+
+/-- The grade function of a graded order. -/
+def grade : α → ℕ := grade_order.grade
+
+lemma grade_strict_mono : strict_mono (grade : α → ℕ) := grade_order.strict_mono
+
+lemma grade_bot : grade (⊥ : α) = 0 := grade_order.grade_bot
+
+lemma covers.grade (h : a ⋖ b) : grade b = grade a + 1 := grade_order.hcovers h
 
 /-- A natural number that is the grade of some element. -/
-abbreviation is_grade (α : Type u) [preorder α] [polytope.graded α] (n : ℕ) : Prop :=
-∃ a : α, polytope.grade a = n
+def is_grade (α : Type*) [preorder α] [order_bot α] [grade_order α] (n : ℕ) : Prop :=
+∃ a : α, grade a = n
 
-/-- Grade is a relation homomorphism. -/
-def polytope.graded.rel_hom (α : Type u) [preorder α] [polytope.graded α] : @rel_hom α ℕ (<) (<) :=
-⟨_, polytope.graded.strict_mono⟩
+/-- The grade as a strict order homomorphism. -/
+def grade_order.rel_hom (α : Type*) [preorder α] [order_bot α] [grade_order α] :
+  @rel_hom α ℕ (<) (<) :=
+⟨_, grade_order.strict_mono⟩
 
 /-- Natural numbers are graded. -/
-instance : polytope.graded ℕ :=
+instance : grade_order ℕ :=
 ⟨id, rfl, strict_mono_id, λ _ _, nat.cover_iff_succ.mp⟩
 
-/-- Natural numbers smaller than `n + 1` are graded. -/
-instance (n : ℕ) : polytope.graded (fin (n + 1)) :=
+/-- `fin (n + 1)` is graded. -/
+instance (n : ℕ) : grade_order (fin (n + 1)) :=
 { grade := λ n, n,
   grade_bot := refl _,
   strict_mono := strict_mono_id,
   hcovers := λ _ _ h, nat.cover_iff_succ.mp ((fin.cover_iff_cover _ _).mp h) }
 
-open polytope
+end order_bot
 
-namespace nat
+section bounded_order
+variables (α) [bounded_order α] [grade_order α]
 
-/-- A point subdivides an interval into three. -/
-private lemma ioo_tricho {a b c : ℕ} (hc : c ∈ set.Ioo a b) (d : ℕ) :
-  c = d ∨ c ∈ set.Ioo a d ∨ c ∈ set.Ioo d b :=
-begin
-  cases eq_or_ne c d with hcd hcd,
-    { exact or.inl hcd },
-  cases ne.lt_or_lt hcd with ha hb,
-    { exact or.inr (or.inl ⟨and.left hc, ha⟩) },
-    { exact or.inr (or.inr ⟨hb, and.right hc⟩) }
-end
+/-- The grade of `⊤`. -/
+def grade_top : ℕ := grade (⊤ : α)
 
-/-- A set of nats without gaps is an interval. The sizes of the gaps and intervals we consider are
-    bounded by `n`, so that we may induct on it. -/
-private lemma all_ioo_of_ex_ioo {P : ℕ → Prop} (n : ℕ)
-  (hP : ∀ a b, b ≤ a + n → P a → P b → nonempty (set.Ioo a b) → ∃ c ∈ set.Ioo a b, P c) (a b : ℕ) :
-  b ≤ a + n → P a → P b → ∀ c ∈ set.Ioo a b, P c :=
-begin
-  revert a b,
-  induction n with n hP',
-    { exact λ _ _ hba _ _ _ hci, ((not_lt_of_ge hba) (lt_trans hci.left hci.right)).elim },
-  intros a b hba ha hb _ hci,
-  rcases hP a b hba ha hb (nonempty.intro ⟨_, hci⟩) with ⟨d, ⟨hdil, hdir⟩, hd⟩,
-  cases ioo_tricho hci d with hcd hdb, { rwa ←hcd at hd },
-  have hxy : ∃ x y, P x ∧ P y ∧ c ∈ set.Ioo x y ∧ y ≤ x + n := begin
-    cases hdb with hcad hcdb,
-      { refine ⟨a, d, ha, hd, hcad, _⟩,
-        have := lt_of_lt_of_le hdir hba,
-        rw nat.add_succ at this,
-        exact nat.le_of_lt_succ this },
-      { refine ⟨d, b, hd, hb, hcdb, _⟩,
-        have := nat.add_le_add hdil rfl.le,
-        rw nat.succ_add a n at this,
-        exact le_trans hba this }
-  end,
-  rcases hxy with ⟨x, y, hx, hy, hxy, hyx⟩,
-  exact hP' (λ _ _ hba, hP _ _ (hba.trans (nat.le_succ _))) x y hyx hx hy c hxy,
-end
-
-/-- A set of nats without gaps is an interval. -/
-lemma all_icc_of_ex_ioo {P : ℕ → Prop}
-(hP : ∀ a b, P a → P b → (nonempty (set.Ioo a b)) → ∃ c ∈ set.Ioo a b, P c) (a b : ℕ) (ha : P a)
-(hb : P b) :
-  ∀ c ∈ set.Icc a b, P c :=
-begin
-  rintros c ⟨hac, hcb⟩,
-  cases eq_or_lt_of_le hac with hac hac,
-    { rwa ←hac },
-  cases eq_or_lt_of_le hcb with hcb hcb,
-    { rwa  hcb },
-  exact all_ioo_of_ex_ioo b (λ c d _, hP c d) _ _ le_add_self ha hb _ ⟨hac, hcb⟩
-end
-
-end nat
-
-/-- A closed non-empty interval of a graded poset is a graded poset. -/
-def set.Icc.graded {α : Type u} [partial_order α] [graded α] {x y : α} (h : x ≤ y) :
-  graded (set.Icc x y) :=
-{ grade := λ a, grade a.val - grade x,
-  strict_mono := λ a b h,
-    nat.sub_mono_left_strict (graded.strict_mono.monotone a.prop.left) (graded.strict_mono h),
-  grade_bot := tsub_eq_zero_iff_le.mpr (refl _),
-  hcovers := begin
-    rintros ⟨a, ha⟩ ⟨b, hb⟩ ⟨hab, hcov⟩,
-    suffices this : ∀ z, z ∉ set.Ioo a b,
-      { have : grade b = grade a + 1 := graded.hcovers ⟨hab, this⟩,
-        change grade b - grade x = grade a - grade x + 1,
-        rw [this, nat.sub_add_comm],
-        exact graded.strict_mono.monotone ha.left },
-    rintros _ ⟨hl, hr⟩,
-    simp at hcov, -- Todo(Vi): Remove this `simp`.
-    exact hcov _ (ha.left.trans (le_of_lt hl)) ((le_of_lt hr).trans hb.right) hl hr,
-  end,
-  ..set.Icc.order_bot h }
-
-/-- A preorder is isomorphic to the section from bottom to top. -/
-def set.Icc.self_order_iso_bot_top (α : Type u) [preorder α] [order_bot α] [order_top α] :
-  α ≃o set.Icc ⊥ (⊤ : α) :=
-{ to_fun := λ x, ⟨x, bot_le, le_top⟩,
-  inv_fun := subtype.val,
-  left_inv := λ _, rfl,
-  right_inv := λ _, subtype.eq rfl,
-  map_rel_iff' := by simp }
-
-namespace graded
-
-@[priority 900]
-instance (α : Type u) [preorder α] [ot : order_top α] [g : graded α] : bounded_order α :=
-{ ..ot, ..g }
-
-/-- An abbreviation for the grade of `⊤`. -/
-abbreviation grade_top (α : Type u) [preorder α] [order_top α] [graded α] : ℕ :=
-grade (⊤ : α)
-
-lemma grade_le_grade_top {α : Type u} [partial_order α] [order_top α] [graded α] (a : α) :
-  grade a ≤ grade_top α :=
-graded.strict_mono.monotone le_top
-
-lemma dual_cover_iff_cover {α : Type u} [preorder α] (a b : α) :
-  a ⋖ b ↔ @polytope.covers (order_dual α) _ a b :=
-by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
-
-/-- A minor strengthening of `hcovers`. -/
-lemma covers_iff_grade_succ_and_lt {α : Type u} [preorder α] [graded α] {x y : α} :
-  x < y ∧ grade y = grade x + 1 ↔ x ⋖ y :=
-⟨λ ⟨hxy, h⟩, ⟨hxy, (λ z ⟨hzl, hzr⟩, (nat.cover_iff_succ.mpr h).right (grade z)
-  ⟨graded.strict_mono hzl, graded.strict_mono hzr⟩)⟩, λ h, ⟨h.left, graded.hcovers h⟩⟩
+end bounded_order
+end preorder
 
 section partial_order
+variables [partial_order α]
 
-instance (α : Type u) [partial_order α] [order_top α] [graded α] : graded (order_dual α) :=
-{ grade := λ a : α, grade_top α - grade a,
-  grade_bot := nat.sub_self _,
-  strict_mono := begin
-    refine λ (a b : α) hab, _,
-    have : grade a > grade b := graded.strict_mono hab,
-    have := grade_le_grade_top a,
-    have := grade_le_grade_top b,
-    linarith,
-  end,
+section order_bot
+variables [order_bot α] [grade_order α] {a b : α}
+
+lemma grade_mono : monotone (grade : α → ℕ) := by convert grade_strict_mono.monotone
+
+/-- The grade as an order homomorphism. -/
+def grade_order.preorder_hom : α →ₘ ℕ := ⟨grade, grade_mono⟩
+
+/-- A closed non-empty interval of a graded poset is a graded poset. -/
+def set.Icc.graded (h : a ≤ b) : @grade_order (set.Icc a b) _ (set.Icc.order_bot h) :=
+{ grade := λ x, grade x.val - grade a,
+  strict_mono := λ x y h,
+    nat.sub_mono_left_strict (grade_mono x.prop.left) (grade_strict_mono h),
+  grade_bot := tsub_eq_zero_of_le le_rfl,
   hcovers := begin
-    refine λ (x y : α) hxy, _,
-    change grade x with graded.grade x,
-    rw ←dual_cover_iff_cover at hxy,
-    rw [graded.hcovers hxy, ←nat.sub_sub,
-        nat.sub_add_cancel (tsub_pos_of_lt (graded.strict_mono (lt_of_lt_of_le hxy.left le_top)))]
+    rintros ⟨x, hx⟩ ⟨y, hy⟩ ⟨hxy, hcov⟩,
+    suffices this : ∀ z, z ∉ set.Ioo x y,
+      { have : grade y = grade x + 1 := covers.grade ⟨hxy, this⟩,
+        change grade y - grade a = grade x - grade a + 1,
+        rw [this, nat.sub_add_comm],
+        exact grade_mono hx.left },
+    rintros _ ⟨hl, hr⟩,
+    simp at hcov, -- Todo(Vi): Remove this `simp`.
+    exact hcov _ (hx.left.trans (le_of_lt hl)) ((le_of_lt hr).trans hy.right) hl hr,
   end }
 
-/-- Duals have the same top grade as the posets they come from. -/
-theorem top_grade_eq_top_grade_dual (α : Type u) [partial_order α] [order_top α] [graded α] :
-  grade_top α = grade_top (order_dual α) :=
-begin
-  have : grade_top α - @graded.grade α _ _ (⊥ : α) = grade_top (order_dual α) := rfl,
-  rwa [graded.grade_bot, nat.sub_zero] at this,
-end
-
-variables {α : Type u} [partial_order α] [graded α]
-
-/-- An element has grade 0 iff it is the bottom element. -/
+/-- An element has grade `0` iff it is the bottom element. -/
 @[simp]
-theorem eq_zero_iff_eq_bot (x : α) : grade x = 0 ↔ x = ⊥ :=
+lemma grade_eq_zero_iff (a : α) : grade a = 0 ↔ a = ⊥ :=
 begin
-  refine ⟨λ h, _, λ h, by cases h; exact graded.grade_bot⟩,
-  rw ←@graded.grade_bot α at h,
-  by_contra hx,
-  change _ ≠ _ at hx,
-  rw ←bot_lt_iff_ne_bot at hx,
-  exact not_le_of_lt (graded.strict_mono hx) (le_of_eq h)
+  refine ⟨λ h, _, _⟩,
+  { by_contra ha,
+    exact (h.le.trans grade_bot.ge).not_lt (grade_strict_mono $ bot_lt_iff_ne_bot.2 ha) },
+  { rintro rfl,
+    exact grade_bot }
 end
 
 /-- If two elements in a graded partial order cover each other, so do their grades. This is just a
     restatement of the covering condition. -/
 lemma nat_cover_of_cover {a b : α} : a ⋖ b → grade a ⋖ grade b :=
-by rw nat.cover_iff_succ; exact graded.hcovers
+by { rw nat.cover_iff_succ, exact covers.grade }
 
-variable [order_top α]
+/-- A minor strengthening of `hcovers`. -/
+lemma covers_iff_grade_succ_and_lt [preorder α] [order_bot α] [grade_order α] {x y : α} :
+  x < y ∧ grade y = grade x + 1 ↔ x ⋖ y :=
+⟨λ ⟨hxy, h⟩, ⟨hxy, (λ z ⟨hzl, hzr⟩, (nat.cover_iff_succ.mpr h).right (grade z)
+  ⟨grade_strict_mono hzl, grade_strict_mono hzr⟩)⟩, λ h, ⟨h.left, h.grade⟩⟩
+
+end order_bot
+
+section bounded_order
+variables [bounded_order α] [grade_order α]
+
+lemma grade_le_grade_top (a : α) : grade a ≤ grade_top α := grade_mono le_top
+
+variables (α)
+
+instance : grade_order (order_dual α) :=
+{ grade := λ a : α, grade_top α - grade a,
+  grade_bot := nat.sub_self _,
+  strict_mono := begin
+    refine λ (a b : α) hab, _,
+    exact (tsub_lt_tsub_iff_left_of_le $ grade_le_grade_top a).2 (grade_strict_mono hab),
+  end,
+  hcovers := begin
+    refine λ (x y : α) hxy, _,
+    rw ←dual_cover_iff_cover at hxy,
+    rw [hxy.grade, ←nat.sub_sub, grade_top,
+        nat.sub_add_cancel (tsub_pos_of_lt (grade_strict_mono (hxy.left.trans_le le_top)))],
+  end }
+
+/-- Duals have the same top grade as the posets they come from. -/
+lemma grade_top_dual : grade_top (order_dual α) = grade_top α :=
+begin
+  change grade ⊤ - grade ⊥ = grade ⊤,
+  rw [grade_bot, nat.sub_zero],
+end
+
+variables {α}
 
 /-- An element has the top grade iff it is the top element. -/
 @[simp]
-theorem eq_grade_top_iff_eq_top (x : α) : grade x = grade_top α ↔ x = ⊤ :=
+lemma eq_grade_top_iff_eq_top (a : α) : grade a = grade_top α ↔ a = ⊤ :=
 begin
   refine ⟨λ h, _, λ h, by cases h; refl⟩,
-  by_contra hx,
-  change _ ≠ _ at hx,
-  rw ←lt_top_iff_ne_top at hx,
-  exact not_le_of_lt (graded.strict_mono hx) (ge_of_eq h)
+  by_contra ha,
+  exact not_le_of_lt (grade_strict_mono $ lt_top_iff_ne_top.2 ha) h.ge,
 end
 
 /-- A grade function into `fin` for `α` with a top element. -/
@@ -289,67 +239,51 @@ def grade_fin (x : α) : fin (grade_top α + 1) :=
 ⟨grade x, by rw nat.lt_add_one_iff; exact grade_le_grade_top _⟩
 
 @[simp]
-theorem grade_fin.val_eq (x : α) : (grade_fin x).val = grade x :=
-rfl
+lemma grade_fin.val_eq (x : α) : (grade_fin x).val = grade x := rfl
 
-theorem grade_fin.strict_mono : strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
-graded.strict_mono
+lemma grade_fin.strict_mono : strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
+grade_strict_mono
 
+end bounded_order
 end partial_order
 
 section linear_order
+variables [linear_order α]
+
+section order_bot
+variables [order_bot α] [grade_order α]
 
 /-- `grade` is injective for linearly ordered `α`. -/
-theorem grade.inj (α : Type u) [linear_order α] [graded α] : function.injective (grade : α → ℕ) :=
-graded.strict_mono.injective
+lemma grade_injective : function.injective (grade : α → ℕ) := grade_strict_mono.injective
 
-variables {α : Type u} [linear_order α] [graded α]
+lemma grade_le_iff_le (x y : α) : grade x ≤ grade y ↔ x ≤ y := grade_strict_mono.le_iff_le
 
-lemma grade_le_iff_le (x y : α) : grade x ≤ grade y ↔ x ≤ y :=
-begin
-  split,
-    { contrapose,
-      exact λ hxy, not_le_of_gt (graded.strict_mono (lt_of_not_ge hxy)), },
-  exact λ hxy, graded.strict_mono.monotone hxy,
-end
-
-/-- `grade` is an order embedding into ℕ for linearly ordered `α`. -/
-def oem_nat : α ↪o ℕ :=
+/-- `grade` as an order embedding into `ℕ` for a linear order `α`. -/
+def order_embedding.grade : α ↪o ℕ :=
 { to_fun := _,
-  inj' := grade.inj α,
+  inj' := grade_injective,
   map_rel_iff' := grade_le_iff_le }
 
-lemma grade_lt_iff_lt (x y : α) : grade x < grade y ↔ x < y :=
-order_embedding.lt_iff_lt oem_nat
+lemma grade_lt_iff_lt (x y : α) : grade x < grade y ↔ x < y := grade_strict_mono.lt_iff_lt
 
-lemma grade_eq_iff_eq (x y : α) : grade x = grade y ↔ x = y :=
-order_embedding.eq_iff_eq oem_nat
+lemma grade_eq_iff_eq (x y : α) : grade x = grade y ↔ x = y := grade_strict_mono.injective.eq_iff
 
-lemma grade_ne_iff_ne (x y : α) : grade x ≠ grade y ↔ x ≠ y :=
-not_congr (grade_eq_iff_eq x y)
+lemma grade_ne_iff_ne (x y : α) : grade x ≠ grade y ↔ x ≠ y := grade_strict_mono.injective.ne_iff
 
 /-- In linear orders, `hcovers` is an equivalence. -/
 lemma covers_iff_grade_eq_succ_grade (a b : α) : a ⋖ b ↔ grade b = grade a + 1 :=
-⟨graded.hcovers, λ hba, covers_iff_grade_succ_and_lt.mp
-  ⟨(graded.grade_lt_iff_lt _ _).mp (nat.lt_of_succ_le (le_of_eq hba.symm)), hba⟩⟩
+⟨covers.grade, λ hba, covers_iff_grade_succ_and_lt.mp
+  ⟨(grade_lt_iff_lt _ _).mp (nat.lt_of_succ_le (le_of_eq hba.symm)), hba⟩⟩
 
 /-- Two elements in a linear order cover each other iff their grades do. -/
-theorem cover_iff_nat_cover (a b : α) : a ⋖ b ↔ grade a ⋖ grade b :=
+lemma cover_iff_nat_cover (a b : α) : a ⋖ b ↔ grade a ⋖ grade b :=
 begin
-  split, { rw nat.cover_iff_succ, exact graded.hcovers },
+  split,
+  { rw nat.cover_iff_succ, exact covers.grade },
   intro hab,
   rw nat.cover_iff_succ at hab,
-  rwa graded.covers_iff_grade_eq_succ_grade
+  rwa covers_iff_grade_eq_succ_grade,
 end
-
-theorem grade_fin.inj [order_top α] : function.injective (grade_fin : α → fin (grade_top α + 1)) :=
-grade_fin.strict_mono.injective
-
-/-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
-def oem_fin [order_top α] : α ↪o fin (grade_top α + 1) :=
-{ to_fun := grade_fin,
-  inj' := grade_fin.inj,
-  map_rel_iff' := grade_le_iff_le }
 
 /-- The set of grades in a linear order has no gaps. -/
 private lemma grade_ioo_lin (m n : ℕ) :
@@ -364,7 +298,7 @@ begin
   end,
 
   have hab : a < b := begin
-    rw [←graded.grade_lt_iff_lt, ham, hbn],
+    rw [←grade_lt_iff_lt, ham, hbn],
     exact lt_trans hr.left hr.right,
   end,
 
@@ -372,80 +306,108 @@ begin
   refine ⟨grade c, ⟨_, ⟨c, rfl⟩⟩⟩,
   split,
     { rw ←ham,
-      exact graded.strict_mono hac },
+      exact grade_strict_mono hac },
   rw ←hbn,
-  exact graded.strict_mono hcb
+  exact grade_strict_mono hcb
 end
+
+end order_bot
+
+section bounded_order
+variables [bounded_order α] [grade_order α]
+
+lemma grade_fin_injective : function.injective (grade_fin : α → fin (grade_top α + 1)) :=
+grade_fin.strict_mono.injective
+
+/-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
+def order_embedding.grade_fin [order_top α] : α ↪o fin (grade_top α + 1) :=
+{ to_fun := grade_fin,
+  inj' := grade_fin_injective,
+  map_rel_iff' := grade_le_iff_le }
 
 /-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. This is generalized to a
     partial order in `ex_of_grade`. -/
-lemma ex_of_grade_lin [order_top α] (j : fin (graded.grade_top α + 1)) : is_grade α j :=
-(nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, graded.grade_bot⟩ ⟨⊤, rfl⟩ _
+lemma ex_of_grade_lin (j : fin (grade_top α + 1)) : is_grade α j :=
+(nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, grade_bot⟩ ⟨⊤, rfl⟩ _
   ⟨zero_le _, nat.le_of_lt_succ j.prop⟩
 
 /-- A linear order has a unique element of grade `j` when `j ≤ grade ⊤`. -/
-theorem ex_unique_of_grade [order_top α] (j : fin (graded.grade_top α + 1)) :
+lemma ex_unique_of_grade (j : fin (grade_top α + 1)) :
   ∃! a : α, grade a = j :=
 begin
   cases ex_of_grade_lin j with a ha,
   use [a, ha],
   intros b hb,
-  apply graded.grade.inj _,
+  refine grade_injective _,
   rw [ha, hb]
 end
 
+end bounded_order
 end linear_order
 
-end graded
 
 namespace polytope
 
 /-- Proper elements are those that are maximal nor minimal. -/
-def is_proper {α : Type u} [has_lt α] (b : α) : Prop :=
-∃ a c, a < b ∧ b < c
+def is_proper [has_lt α] (b : α) : Prop := ∃ a c, a < b ∧ b < c
 
 /-- The subtype of proper elements. -/
 @[reducible]
-def proper (α : Type u) [has_lt α] : Type u :=
-{a : α // is_proper a}
+def proper (α : Type*) [has_lt α] : Type* := {a : α // is_proper a}
 
 /-- Proper elements are incident when they're comparable. -/
-abbreviation incident {α : Type u} [has_lt α] (a b : proper α) : Prop :=
-a.val ≠ b.val → a.val < b.val ∨ b.val < a.val
+def incident [has_lt α] (a b : proper α) : Prop := a.val ≠ b.val → a.val < b.val ∨ b.val < a.val
 
 end polytope
 
 open polytope
 
-namespace graded
+section preorder
+variables [preorder α]
+
+section order_bot
+variables [order_bot α]
 
 /-- The bottom element is improper. -/
-lemma bot_improper {α : Type u} [preorder α] [order_bot α] : ¬ is_proper (⊥ : α) :=
+lemma not_bot_proper : ¬ is_proper (⊥ : α) :=
 λ ⟨_, _, ⟨h, _⟩⟩, not_le_of_gt h bot_le
 
+end order_bot
+
+section bounded_order
+variables [bounded_order α]
+
 /-- The top element is improper. -/
-lemma top_improper {α : Type u} [preorder α] [order_top α] : ¬ is_proper (⊤ : α) :=
-λ ⟨_, _, ⟨_, h⟩⟩, not_le_of_gt h le_top
+lemma not_top_proper : ¬ is_proper (⊤ : α) := λ ⟨_, _, ⟨_, h⟩⟩, not_le_of_gt h le_top
 
 /-- Elements other than the bottom and top ones are proper. -/
-theorem proper_of_ne_bot_top {α : Type u} [preorder α] [bounded_order α] (a : α) :
+lemma proper.ne_bot_top (a : α) :
   polytope.is_proper a → a ≠ ⊥ ∧ a ≠ ⊤ :=
 begin
   intro ha,
   split,
   repeat { intro h, rw h at ha, swap },
-  exact bot_improper ha,
-  exact top_improper ha,
+  exact not_bot_proper ha,
+  exact not_top_proper ha,
 end
 
+end bounded_order
+end preorder
+
+section partial_order
+variables [partial_order α]
+
+section bounded_order
+variables [bounded_order α]
+
 /-- The improper elements are exactly the bottom and top ones. -/
-theorem proper_iff_ne_bot_top {α : Type u} [partial_order α] [bounded_order α] (a : α) :
-  polytope.is_proper a ↔ a ≠ ⊥ ∧ a ≠ ⊤ :=
-⟨proper_of_ne_bot_top a, λ ⟨hl, hr⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.mpr hl, lt_top_iff_ne_top.mpr hr⟩⟩
+lemma proper_iff_ne_bot_top (a : α) : polytope.is_proper a ↔ a ≠ ⊥ ∧ a ≠ ⊤ :=
+⟨proper.ne_bot_top a, λ ⟨hl, hr⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.mpr hl, lt_top_iff_ne_top.mpr hr⟩⟩
+
+variables [grade_order α]
 
 /-- An element is proper iff it has a grade between the bottom and top element. -/
-theorem proper_iff_grade_iio {α : Type u} [partial_order α] [order_top α] [graded α] (a : α) :
-  is_proper a ↔ grade a ∈ set.Ioo 0 (grade_top α) :=
+lemma proper_iff_grade_iio (a : α) : is_proper a ↔ grade a ∈ set.Ioo 0 (grade_top α) :=
 begin
   rw proper_iff_ne_bot_top,
   split,
@@ -453,7 +415,7 @@ begin
       cases ha with hal har,
       cases eq_or_lt_of_le (zero_le (grade a)) with h hl,
         { replace h := eq.symm h,
-          rw eq_zero_iff_eq_bot at h,
+          rw grade_eq_zero_iff at h,
           exact (hal h).elim },
       cases eq_or_lt_of_le (grade_le_grade_top a) with h hr,
         { rw eq_grade_top_iff_eq_top at h,
@@ -462,16 +424,15 @@ begin
   rintro ⟨hl, hr⟩,
   split,
     { intro ha,
-      rw ←eq_zero_iff_eq_bot at ha,
-      exact (ne_of_lt hl) (eq.symm ha) },
+      rw ←grade_eq_zero_iff at ha,
+      exact hl.ne' ha },
   intro ha,
   rw ←eq_grade_top_iff_eq_top at ha,
-  exact (ne_of_lt hr) ha
+  exact hr.ne ha
 end
 
 /-- A `graded` with top grade 1 or less has no proper elements. -/
-theorem proper.empty {α : Type u} [partial_order α] [order_top α] [graded α] :
-  grade_top α ≤ 1 → is_empty (polytope.proper α) :=
+lemma proper.empty : grade_top α ≤ 1 → is_empty (polytope.proper α) :=
 begin
   intro h,
   split,
@@ -482,16 +443,14 @@ begin
 end
 
 /-- A `graded` with top grade 2 or more has some proper element. -/
-lemma proper.nonempty (α : Type u) [partial_order α] [order_top α] [graded α]
-(h : 2 ≤ graded.grade_top α) :
-  nonempty (polytope.proper α) :=
+lemma proper.nonempty (h : 2 ≤ grade_top α) : nonempty (polytope.proper α) :=
 begin
-  change grade_top α with graded.grade ⊤ at h,
+  change grade_top α with grade ⊤ at h,
 
   have hbt : ¬ ⊥ ⋖ ⊤ := begin
     intro hbt,
-    have := graded.hcovers hbt,
-    rw graded.grade_bot at this,
+    have := hbt.grade,
+    rw grade_bot at this,
     rw this at h,
     exact nat.lt_asymm h h,
   end,
@@ -499,7 +458,7 @@ begin
   have hbt' : (⊥ : α) < ⊤ := begin
     rw bot_lt_iff_ne_bot,
     intro hbt',
-    rw [hbt', graded.grade_bot] at h,
+    rw [hbt', grade_bot] at h,
     exact (not_le_of_lt zero_lt_two) h,
   end,
 
@@ -507,28 +466,27 @@ begin
   exact ⟨⟨z, ⊥, ⊤, hz⟩⟩,
 end
 
-end graded
+end bounded_order
+end partial_order
 
 /-- Two elements of a type are connected by a relation when there exists a path of connected
     elements. This is essentially an inductive version of an equivalence closure. -/
  -- Todo(Vi): If someone else comes up with connected graphs sometime, we might want to rework this.
-inductive polytope.path {α : Type u} (r : α → α → Prop) : α → α → Prop
+inductive polytope.path (r : α → α → Prop) : α → α → Prop
 | start (x : α) : polytope.path x x
 | next (x y z : α) : polytope.path x y → r y z → polytope.path x z
 
 namespace path
 section
 
-variables {α : Type u} {r : α → α → Prop} {a b c : α}
+variables {r : α → α → Prop} {a b c : α}
 
 /-- Connectivity is reflexive. -/
 @[refl]
-theorem refl : path r a a :=
-path.start a
+lemma refl : path r a a := path.start a
 
 /-- Comparable proper elements are connected. -/
-theorem from_rel : r a b → path r a b :=
-(path.next a a b) (path.refl)
+lemma from_rel : r a b → path r a b := (path.next a a b) (path.refl)
 
 /-- If `a` and `b` are related, and `b` and `c` are connected, then `a` and `c` are connected. -/
 lemma append_left (hab : r a b) (hbc : path r b c) : path r a c :=
@@ -540,7 +498,7 @@ end
 
 /-- Connectedness with a symmetric relation is symmetric. -/
 @[symm]
-theorem symm [is_symm α r] (hab : path r a b) : path r b a :=
+lemma symm [is_symm α r] (hab : path r a b) : path r b a :=
 begin
   induction hab with _ _ _ _ _ hbc hba,
     { exact path.refl },
@@ -548,7 +506,7 @@ begin
 end
 
 /-- Connectedness is transitive. -/
-theorem trans (hab : path r a b) (hbc : path r b c) : path r a c :=
+lemma trans (hab : path r a b) (hbc : path r b c) : path r a c :=
 begin
   induction hab with a a d b had hdb h,
     { exact hbc },
@@ -564,7 +522,7 @@ end path
 
 /-- Proper elements are connected when they're related by a sequence of pairwise incident proper
 elements. -/
-abbreviation polytope.connected {α : Type u} [preorder α] (a b : polytope.proper α) : Prop :=
+def polytope.connected [preorder α] (a b : polytope.proper α) : Prop :=
 path polytope.incident a b
 
 open polytope
@@ -573,7 +531,7 @@ namespace graded
 
 /-- A `graded` is totally connected' when any two proper elements are connected. Note that this
 definition requires nothing more than a preorder. -/
-def total_connected' (α : Type u) [preorder α] : Prop :=
+def total_connected' (α : Type*) [preorder α] : Prop :=
 ∀ a b : proper α, connected a b
 
 /-- A `graded` is totally connected when it's of grade 2, or any two proper elements are connected.
@@ -581,38 +539,34 @@ def total_connected' (α : Type u) [preorder α] : Prop :=
 Here we deviate from standard nomenclature: mathematicians would just call this connectedness.
 However, by doing this, it makes it unambiguous when we're talking about two elements being
 connected, and when we're talking about a polytope being totally connected. -/
-def total_connected (α : Type u) [preorder α] [order_top α] [graded α] : Prop :=
+def total_connected (α : Type*) [preorder α] [bounded_order α] [grade_order α] : Prop :=
 grade_top α = 2 ∨ total_connected' α
 
 /-- Order isomorphisms preserve proper elements. -/
-private lemma proper_order_iso_of_proper {α : Type u} [partial_order α] [order_top α] [graded α]
-{β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x : proper α) :
+private lemma proper_order_iso_of_proper [partial_order α] [bounded_order α] [grade_order α]
+  [partial_order β] [bounded_order β] [grade_order β] (oiso : α ≃o β) (x : proper α) :
   is_proper (oiso x) :=
 begin
   rw proper_iff_ne_bot_top (oiso x),
   split, {
     intro h,
-    apply @bot_improper α,
+    apply @not_bot_proper α,
     have := x.prop,
     rw ←oiso.map_bot at h,
-    rwa oiso.injective h at this,
-  },
+    rwa oiso.injective h at this },
   intro h,
-  apply @top_improper α,
+  apply @not_top_proper α,
   have := x.prop,
   rw ←oiso.map_top at h,
   rwa oiso.injective h at this,
 end
 
 /-- Order isomorphisms preserve proper elements. -/
-theorem proper_order_iso_iff_proper {α : Type u} [partial_order α] [order_top α] [graded α]
-{β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x : α) :
+lemma proper_order_iso_iff_proper [partial_order α] [bounded_order α] [grade_order α]
+  [partial_order β] [bounded_order β] [grade_order β] (oiso : α ≃o β) (x : α) :
   is_proper x ↔ is_proper (oiso x) :=
 begin
-  split, {
-    exact λ hx, proper_order_iso_of_proper oiso ⟨x, hx⟩,
-  },
-  intro hx,
+  refine ⟨λ hx, proper_order_iso_of_proper oiso ⟨x, hx⟩, λ hx, _⟩,
   have := proper_order_iso_of_proper oiso.symm ⟨oiso x, hx⟩,
   simp at this,
   exact this,
@@ -622,7 +576,7 @@ end graded
 
 namespace order_iso
 
-variables {α : Type u} [partial_order α] {β : Type u} [partial_order β] (oiso : α ≃o β)
+variables [partial_order α] [partial_order β] (oiso : α ≃o β)
 
 /-- Order isomorphisms preserve covering. -/
 private lemma cover' (x y : α) : x ⋖ y → oiso x ⋖ oiso y :=
@@ -630,21 +584,19 @@ begin
   intro hxy,
   use oiso.strict_mono hxy.left,
   intros z hz,
-  have : oiso.symm z ∈ set.Ioo x y := begin
-    split, {
-      have := oiso.symm.strict_mono hz.left,
+  have : oiso.symm z ∈ set.Ioo x y,
+  { split,
+    { have := oiso.symm.strict_mono hz.left,
       simp at this,
-      exact this,
-    },
+      exact this },
     have := oiso.symm.strict_mono hz.right,
     simp at this,
-    exact this,
-  end,
+    exact this },
   exact hxy.right _ this
 end
 
 /-- Order isomorphisms preserve covering. -/
-theorem cover (x y : α) : x ⋖ y ↔ oiso x ⋖ oiso y :=
+protected lemma covers (x y : α) : x ⋖ y ↔ oiso x ⋖ oiso y :=
 begin
   use cover' oiso x y,
   have := cover' oiso.symm (oiso x) (oiso y),
@@ -654,37 +606,34 @@ end
 
 /-- An isomorphism between posets, one of which is graded, is enough to give a grade function for
 the other. -/
-def graded [order_bot α] [graded β] : graded α :=
-{ grade := λ a, @grade β _ _ (oiso a),
+protected def grade_order [order_bot α] [order_bot β] [grade_order β] : grade_order α :=
+{ grade := λ a, @grade β _ _ _ (oiso a),
   grade_bot := begin
     rw oiso.map_bot,
-    exact graded.grade_bot,
+    exact grade_bot,
   end,
-  strict_mono := λ _ _ hab, graded.strict_mono (oiso.strict_mono hab),
+  strict_mono := λ _ _ hab, grade_strict_mono (oiso.strict_mono hab),
   hcovers := begin
     intros x y hxy,
-    apply graded.hcovers,
-    rwa ←oiso.cover x y,
+    apply covers.grade,
+    rwa ←oiso.covers x y,
   end }
 
 /-- An isomorphism between graded posets extends to an isomorphism between sections. -/
-def Icc (x y : α) : set.Icc x y ≃o set.Icc (oiso x) (oiso y) :=
-{ to_fun := λ a, ⟨oiso.to_fun a.val, (le_iff_le oiso).mpr a.prop.left, (le_iff_le oiso).mpr a.prop.right⟩,
+protected def Icc (x y : α) : set.Icc x y ≃o set.Icc (oiso x) (oiso y) :=
+{ to_fun := λ a, ⟨oiso.to_fun a.1, (le_iff_le oiso).2 a.prop.left, (le_iff_le oiso).2 a.prop.right⟩,
   inv_fun := λ a, ⟨oiso.inv_fun a, begin
-    split, {
-      have H : oiso.inv_fun (oiso.to_fun x) ≤ oiso.inv_fun a := begin
-        change oiso.inv_fun with oiso.symm,
+    split,
+    { have H : oiso.inv_fun (oiso.to_fun x) ≤ oiso.inv_fun a,
+      { change oiso.inv_fun with oiso.symm,
         rw le_iff_le oiso.symm,
-        exact a.prop.left,
-      end,
+        exact a.prop.left },
       simp at H,
-      exact H,
-    },
-    have H : oiso.inv_fun a ≤ oiso.inv_fun (oiso.to_fun y) := begin
-      change oiso.inv_fun with oiso.symm,
+      exact H },
+    have H : oiso.inv_fun a ≤ oiso.inv_fun (oiso.to_fun y),
+    { change oiso.inv_fun with oiso.symm,
       rw le_iff_le oiso.symm,
-      exact a.prop.right,
-    end,
+      exact a.prop.right },
     simp at H,
     exact H,
   end⟩,
@@ -692,10 +641,10 @@ def Icc (x y : α) : set.Icc x y ≃o set.Icc (oiso x) (oiso y) :=
   right_inv := λ _, subtype.eq (by simp),
   map_rel_iff' := by simp }
 
-variables [order_top α] [polytope.graded α] [order_top β] [polytope.graded β]
+variables [bounded_order α] [grade_order α] [bounded_order β] [grade_order β]
 
 /-- The map from proper elements to proper elements given by an order isomorphism. -/
-private abbreviation proper_aux : proper α → proper β :=
+private def proper_aux : proper α → proper β :=
 λ x, ⟨oiso x, (graded.proper_order_iso_iff_proper oiso x).mp x.prop⟩
 
 /-- An isomorphism between graded posets extends to an isomorphism between proper elements. -/
@@ -711,8 +660,8 @@ end order_iso
 namespace graded
 
 /-- If two elements are connected, so are their maps under an isomorphism. -/
-private lemma con_order_iso_of_con {α : Type u} [partial_order α] [order_top α] [graded α]
-{β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x y : proper α) :
+private lemma con_order_iso_of_con [partial_order α] [bounded_order α] [grade_order α]
+  [partial_order β] [bounded_order β] [grade_order β] (oiso : α ≃o β) (x y : proper α) :
   connected x y → connected (oiso.proper x) (oiso.proper y) :=
 begin
   intro hxy,
@@ -726,8 +675,8 @@ begin
 end
 
 /-- Two elements are connected iff their maps under an isomorphism are. -/
-lemma con_order_iso_iff_con {α : Type u} [partial_order α] [order_top α] [graded α]
-{β : Type u} [partial_order β] [order_top β] [graded β] (oiso : α ≃o β) (x y : proper α) :
+lemma con_order_iso_iff_con [partial_order α] [bounded_order α] [grade_order α]
+  [partial_order β] [bounded_order β] [grade_order β] (oiso : α ≃o β) (x y : proper α) :
   connected x y ↔ connected (oiso.proper x) (oiso.proper y) :=
 begin
   refine ⟨con_order_iso_of_con oiso x y, _⟩,
@@ -737,7 +686,7 @@ begin
 end
 
 /-- Any `graded` of top grade less or equal to 2 is connected. -/
-theorem tcon_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
+lemma tcon_of_grade_le_two (α : Type*) [partial_order α] [bounded_order α] [grade_order α] :
   grade_top α ≤ 2 → total_connected α :=
 begin
   intro h,
@@ -746,25 +695,26 @@ begin
 end
 
 /-- Asserts that a section of a graded poset is connected'. -/
-abbreviation section_connected' {α : Type u} [preorder α] (x y : α) : Prop :=
+def section_connected' [preorder α] (x y : α) : Prop :=
 total_connected' (set.Icc x y)
 
 /-- Asserts that a section of a graded poset is connected. -/
-abbreviation section_connected {α : Type u} [partial_order α] [graded α] {x y : α} (hxy : x ≤ y) :
+def section_connected [partial_order α] [order_bot α] [grade_order α] {x y : α} (hxy : x ≤ y) :
   Prop :=
-@total_connected _ _ (set.Icc.order_top hxy) (set.Icc.graded hxy)
+@total_connected _ _ (set.Icc.bounded_order hxy) (set.Icc.graded hxy)
 
 /-- A graded poset is strongly connected when all sections are connected. -/
-abbreviation strong_connected (α : Type u) [partial_order α] [graded α] : Prop :=
+def strong_connected (α : Type*) [partial_order α] [order_bot α] [grade_order α] : Prop :=
 ∀ {x y : α} (hxy : x ≤ y), section_connected hxy
 
 /-- Any `graded` of top grade less or equal to 2 is strongly connected. -/
-theorem scon_of_grade_le_two (α : Type u) [partial_order α] [order_top α] [graded α] :
-  grade_top α ≤ 2 → strong_connected α :=
+lemma scon_of_grade_le_two [partial_order α] [bounded_order α] [grade_order α]
+  (h : grade_top α ≤ 2) :
+  strong_connected α :=
 begin
-  intros h a b hab,
+  intros a b hab,
   apply tcon_of_grade_le_two,
-  exact (le_trans tsub_le_self (le_trans (graded.grade_le_grade_top b) h)),
+  exact (le_trans tsub_le_self (le_trans (grade_le_grade_top b) h)),
 end
 
 end graded

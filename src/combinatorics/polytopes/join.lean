@@ -4,6 +4,20 @@ import combinatorics.polytopes.basic
 
 universe u
 
+-- Yaël: Here's the one instance I would provide:
+
+instance {α β : Type*} [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β]
+  [grade_order β] : grade_order (α × β) :=
+{ grade := λ a, grade a.fst + grade a.snd,
+  grade_bot := begin
+    convert (zero_add _).trans grade_bot,
+    exact grade_bot,
+  end,
+  strict_mono := begin
+    sorry
+  end,
+  hcovers := sorry }
+
 namespace polytope
 
 -- generalize to two universes?

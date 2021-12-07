@@ -67,8 +67,8 @@ variables (σ a a')
 @[simp] lemma support_neg : (- p).support = p.support :=
 finsupp.support_neg
 
-lemma support_sub (p q : mv_polynomial σ R) :
-  (p - q).support ⊆ p.support ∪ q.support := finsupp.support_sub
+lemma support_sub (p q : mv_polynomial σ R) : (p - q).support ⊆ p.support ∪ q.support :=
+by convert @finsupp.support_sub _ _ _ p q
 
 variables {σ} (p)
 

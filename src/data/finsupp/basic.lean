@@ -406,6 +406,10 @@ variables {b}
 
 lemma support_update_ne_zero (h : b ≠ 0) : support (f.update a b) = insert a f.support := if_neg h
 
+lemma superset_of_support_update_ne_zero {f : α →₀ M} {q : α} {b : M} (h : b ≠ 0) :
+  f.support ⊆ (f.update q b).support :=
+by simpa only [support_update_ne_zero _ _ h, subset_iff, mem_insert] using λ a ha, or.inr ha
+
 end update
 
 /-! ### Declarations about `on_finset` -/

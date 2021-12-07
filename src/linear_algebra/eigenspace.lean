@@ -9,6 +9,7 @@ import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
 import order.preorder_hom
 import linear_algebra.charpoly.basic
+import algebra.algebra.spectrum
 
 /-!
 # Eigenvectors and eigenvalues
@@ -83,6 +84,38 @@ by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, algebra_map_End_app
 lemma has_eigenvalue.exists_has_eigenvector {f : End R M} {μ : R} (hμ : f.has_eigenvalue μ) :
   ∃ v, f.has_eigenvector μ v :=
 submodule.exists_mem_ne_zero_of_ne_bot hμ
+
+--move me
+lemma is_unit_iff_bijective {f : End R M} : is_unit f ↔ function.bijective f :=
+begin
+  split,
+  { intro h,
+    refine ⟨λ x y hxy, _, λ x, _⟩,
+    { rcases is_unit.exists_left_inv h with ⟨finv, hfinv⟩,
+      have hxy' := congr_arg finv hxy,
+      change (finv * f) x = (finv * f) y at hxy',
+      simpa [hfinv] using hxy' },
+    { rcases is_unit.exists_right_inv h with ⟨finv, hfinv⟩,
+      use finv x,
+      show (f * finv) x = x, by simp only [hfinv, linear_map.one_apply] } },
+  { intro h,
+    refine ⟨_,_⟩,
+
+  }
+end
+
+lemma has_eigenvalue_iff_mem_spectrum {f : End R M} {μ : R} :
+  has_eigenvalue f μ ↔ μ ∈ spectrum R f :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  {
+    sorry,
+   },
+  {
+    simp [has_eigenvalue, eigenspace, linear_map.ker_eq_bot],
+    sorry,
+   }
+end
 
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=

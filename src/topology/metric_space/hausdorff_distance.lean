@@ -842,10 +842,6 @@ lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) 
   cthickening δ₁ E ⊆ cthickening δ₂ E :=
 preimage_mono (Iic_subset_Iic.mpr (ennreal.of_real_le_of_real hle))
 
-lemma closure_subset_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
-  closure E ⊆ cthickening δ E :=
-by { rw ← cthickening_zero, exact cthickening_mono δ_nn E, }
-
 lemma cthickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ E₂) :
   cthickening δ E₁ ⊆ cthickening δ E₂ :=
 λ _ hx, le_trans (inf_edist_le_inf_edist_of_subset h) hx
@@ -865,6 +861,24 @@ by { intros x hx, rw [thickening, mem_set_of_eq] at hx, exact hx.le, }
 lemma thickening_subset_cthickening_of_le {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
   thickening δ₁ E ⊆ cthickening δ₂ E :=
 (thickening_subset_cthickening δ₁ E).trans (cthickening_mono hle E)
+
+lemma closure_subset_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
+  closure E ⊆ cthickening δ E :=
+by { rw ← cthickening_zero, exact cthickening_mono δ_nn E, }
+
+lemma closure_subset_thickening {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
+  closure E ⊆ thickening δ E :=
+by { rw ← cthickening_zero, exact cthickening_subset_thickening' δ_pos δ_pos E, }
+
+/-- A set is contained in its own (open) thickening. -/
+lemma self_subset_thickening {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
+  E ⊆ thickening δ E :=
+(@subset_closure _ _ E).trans (closure_subset_thickening δ_pos E)
+
+/-- A set is contained in its own (closed) thickening. -/
+lemma self_subset_cthickening {δ : ℝ} (E : set α) (δ_nn : 0 ≤ δ) :
+  E ⊆ cthickening δ E :=
+(@subset_closure _ _ E).trans (closure_subset_cthickening δ_nn E)
 
 lemma cthickening_eq_Inter_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
   cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), cthickening ε E :=
@@ -912,6 +926,19 @@ lemma thickening_subset_interior_cthickening (δ : ℝ) (E : set α) :
   thickening δ E ⊆ interior (cthickening δ E) :=
 (subset_interior_iff_open.mpr (is_open_thickening)).trans
   (interior_mono (thickening_subset_cthickening δ E))
+
+lemma frontier_thickening  (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
+  frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ } :=
+begin
+  rw thickening_eq_preimage_inf_edist,
+  have frontier_interval : frontier (Iio (ennreal.of_real δ)) = {ennreal.of_real δ},
+  { refine frontier_Iio' ⟨0, ennreal.of_real_pos.mpr δ_pos⟩, },
+  have singleton_preim :
+    {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
+  by refl,
+  rw [singleton_preim, ←frontier_interval],
+  apply continuous_inf_edist.frontier_preimage_subset (Iio (ennreal.of_real δ)),
+end
 
 lemma frontier_cthickening  (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
   frontier (cthickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ } :=

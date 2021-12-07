@@ -132,10 +132,8 @@ variables (α)
 instance : grade_order (order_dual α) :=
 { grade := λ a : α, grade (⊤ : α) - grade a,
   grade_bot := nat.sub_self _,
-  strict_mono := begin
-    refine λ (a b : α) hab, _,
-    exact (tsub_lt_tsub_iff_left_of_le $ grade_le_grade_top a).2 (grade_strict_mono hab),
-  end,
+  strict_mono := λ (a b : α) hab,
+    (tsub_lt_tsub_iff_left_of_le $ grade_le_grade_top a).2 (grade_strict_mono hab),
   hcovers := begin
     refine λ (x y : α) hxy, _,
     rw ←dual_cover_iff_cover at hxy,
@@ -153,7 +151,7 @@ variables {α}
 @[simp]
 lemma eq_grade_top_iff_eq_top (a : α) : grade a = grade (⊤ : α) ↔ a = ⊤ :=
 begin
-  refine ⟨λ h, _, λ h, by cases h; { refl }⟩,
+  refine ⟨λ h, _, λ h, by rw h⟩,
   by_contra ha,
   exact not_le_of_lt (grade_strict_mono $ lt_top_iff_ne_top.2 ha) h.ge,
 end
@@ -214,25 +212,11 @@ end
 private lemma grade_ioo_lin (m n : ℕ) :
   is_grade α m → is_grade α n → nonempty (set.Ioo m n) → ∃ r ∈ set.Ioo m n, is_grade α r :=
 begin
-  rintros ⟨a, ham⟩ ⟨b, hbn⟩ ⟨r, hr⟩,
-
-  have hnab : ¬a ⋖ b := begin
-    have : ¬m ⋖ n := λ hmn, (hmn.right r) hr,
-    rwa [←ham, ←hbn] at this,
-    exact λ hab, this (nat_cover_of_cover hab),
-  end,
-
-  have hab : a < b := begin
-    rw [←grade_lt_iff_lt, ham, hbn],
-    exact lt_trans hr.left hr.right,
-  end,
-
-  obtain ⟨c, hac, hcb⟩ := exists_lt_lt_of_not_cover hnab hab,
-  refine ⟨grade c, ⟨_, _⟩, c, rfl⟩,
-  { rw ←ham,
-    exact grade_strict_mono hac },
-  { rw ←hbn,
-    exact grade_strict_mono hcb }
+  rintro ⟨a, rfl⟩ ⟨b, rfl⟩ ⟨_, hrl, hrr⟩,
+  have hab := (grade_lt_iff_lt _ _).mp (lt_trans hrl hrr),
+  obtain ⟨_, hac, hcb⟩ := exists_lt_lt_of_not_cover (λ hab, (λ ⟨_, hmn⟩, (hmn _) ⟨hrl, hrr⟩ : ¬_ ⋖ _)
+    (nat_cover_of_cover hab)) hab,
+  exact ⟨grade _, ⟨grade_strict_mono hac, grade_strict_mono hcb⟩, _, rfl⟩,
 end
 
 end order_bot
@@ -258,13 +242,7 @@ lemma ex_of_grade_lin (j : fin (grade (⊤ : α) + 1)) : is_grade α j :=
 /-- A linear order has a unique element of grade `j` when `j ≤ grade ⊤`. -/
 lemma ex_unique_of_grade (j : fin (grade (⊤ : α) + 1)) :
   ∃! a : α, grade a = j :=
-begin
-  cases ex_of_grade_lin j with a ha,
-  use [a, ha],
-  intros b hb,
-  refine grade_injective _,
-  rw [ha, hb]
-end
+by { cases ex_of_grade_lin j with _ ha, exact ⟨_, ha, λ _ hb, grade_injective (by rw [ha, hb])⟩ }
 
 end bounded_order
 end linear_order

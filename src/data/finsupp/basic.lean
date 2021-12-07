@@ -2737,6 +2737,13 @@ begin
   rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, tsub_self]
 end
 
+lemma subset_of_support_tsub {α : Type*} {M : Type*} [canonically_ordered_add_monoid M]
+  [has_sub M] [has_ordered_sub M] {f1 f2 : α →₀ M} : (f1 - f2).support ⊆ f1.support :=
+begin
+  simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply],
+  exact λ a ha H, (H ▸ ha) (zero_le (f2 a)),
+end
+
 end canonically_ordered_monoid
 
 /-! Some lemmas specifically about `ℕ`. -/

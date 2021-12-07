@@ -737,8 +737,7 @@ end group_with_zero
 end
 
 namespace finset
-
-variables {α : Type*} [decidable_eq α] {s t : finset α}
+variables {α : Type*} [decidable_eq α]
 
 /-- The pointwise product of two finite sets `s` and `t`:
 `st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }`. -/
@@ -749,49 +748,70 @@ protected def has_mul [has_mul α] : has_mul (finset α) :=
 
 localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 
-@[to_additive]
-lemma mul_def [has_mul α] :
-  s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
+section has_mul
+variables [has_mul α] {s s₁ s₂ t t₁ t₂ : finset α}
 
 @[to_additive]
-lemma mem_mul [has_mul α] {x : α} :
-  x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
+lemma mul_def : s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
+
+@[to_additive]
+lemma mem_mul {x : α} : x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
 by { simp only [finset.mul_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product] }
 
 @[simp, norm_cast, to_additive]
-lemma coe_mul [has_mul α] : (↑(s * t) : set α) = ↑s * ↑t :=
+lemma coe_mul : (↑(s * t) : set α) = ↑s * ↑t :=
 by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
 
 @[to_additive]
-lemma mul_mem_mul [has_mul α] {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
-  x * y ∈ s * t :=
+lemma mul_mem_mul {x y : α} (hx : x ∈ s) (hy : y ∈ t) : x * y ∈ s * t :=
 by { simp only [finset.mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
 
 @[to_additive]
-lemma mul_card_le [has_mul α] : (s * t).card ≤ s.card * t.card :=
+lemma mul_card_le : (s * t).card ≤ s.card * t.card :=
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 
-@[simp, to_additive] lemma empty_mul [has_mul α] (s : finset α) : ∅ * s = ∅ :=
+@[simp, to_additive] lemma empty_mul (s : finset α) : ∅ * s = ∅ :=
 eq_empty_of_forall_not_mem (by simp [mem_mul])
 
-@[simp, to_additive] lemma mul_empty [has_mul α] (s : finset α) : s * ∅ = ∅ :=
+@[simp, to_additive] lemma mul_empty (s : finset α) : s * ∅ = ∅ :=
 eq_empty_of_forall_not_mem (by simp [mem_mul])
 
-@[simp, to_additive] lemma mul_nonempty_iff [has_mul α] (s t : finset α):
-    (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+@[simp, to_additive]
+lemma mul_nonempty_iff (s t : finset α) : (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 by simp [finset.mul_def]
 
-@[to_additive, mono] lemma mul_subset_mul [has_mul α] {s₁ s₂ t₁ t₂ : finset α}
-  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
+@[to_additive, mono] lemma mul_subset_mul  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
 image_subset_image (product_subset_product hs ht)
 
-lemma mul_singleton_zero [mul_zero_class α] (s : finset α) :
-  s * {0} ⊆ {0} :=
+@[simp, to_additive]
+lemma mul_singleton (a : α) : s * {a} = s.image (* a) :=
+by { rw [mul_def, product_singleton, map_eq_image, image_image], refl }
+
+@[simp, to_additive]
+lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) :=
+by { rw [mul_def, singleton_product, map_eq_image, image_image], refl }
+
+@[simp, to_additive]
+lemma singleton_mul_singleton (a b : α) : ({a} : finset α) * {b} = {a * b} :=
+by rw [mul_def, singleton_product_singleton, image_singleton]
+
+end has_mul
+
+section mul_zero_class
+variables [mul_zero_class α] {s t : finset α}
+
+lemma mul_singleton_zero_subset (s : finset α) : s * {0} ⊆ {0} := by simp [subset_iff, mem_mul]
+
+lemma singleton_zero_mul_subset (s : finset α) : {(0 : α)} * s ⊆ {0} :=
 by simp [subset_iff, mem_mul]
 
-lemma singleton_zero_mul [mul_zero_class α] (s : finset α):
-  {(0 : α)} * s ⊆ {0} :=
-by simp [subset_iff, mem_mul]
+lemma nonempty.mul_singleton_zero (hs : s.nonempty) : s * {0} = {0} :=
+s.mul_singleton_zero_subset.antisymm $ by simpa [finset.mem_mul] using hs
+
+lemma nonempty.singleton_zero_mul (hs : s.nonempty) : {(0 : α)} * s = {0} :=
+s.singleton_zero_mul_subset.antisymm $ by simpa [finset.mem_mul] using hs
+
+end mul_zero_class
 
 open_locale classical
 

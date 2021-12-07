@@ -14,8 +14,7 @@ import number_theory.padics.padic_norm
 This file states some results about evaluating cyclotomic polynomials in various different ways.
 ## Main definitions
 * `polynomial.eval(₂)_one_cyclotomic_prime(_pow)`: `eval 1 (cyclotomic p^k R) = p`.
-* `polynomial.cyclotomic_pos` : `∀ x, 0 < eval x (cyclotomic n ℝ)` if `2 < n`.
-* `polynomial.cyclotomic_pos'`: `∀ x, 0 < eval x (cyclotomic n ℤ)` if `2 < n`.
+* `polynomial.cyclotomic_pos` : `∀ x, 0 < eval x (cyclotomic n R)` if `2 < n`.
 -/
 
 namespace polynomial
@@ -46,20 +45,20 @@ by simp
 private lemma cyclotomic_neg_one_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] :
   0 < eval (-1 : R) (cyclotomic n R) :=
 begin
-  rw [←map_cyclotomic_int, show (-1 : R) = (↑(-1 : ℤ) : R), by norm_cast, eval_int_cast_map,
+  rw [←map_cyclotomic_int, ←int.cast_one, ←int.cast_neg, eval_int_cast_map,
       int.coe_cast_ring_hom, int.cast_pos],
   suffices : 0 < eval ↑(-1 : ℤ) (cyclotomic n ℝ),
   { rw [←map_cyclotomic_int n ℝ, eval_int_cast_map, int.coe_cast_ring_hom] at this,
     exact_mod_cast this },
-  rw [show ↑(-1 : ℤ) = (-1 : ℝ), by norm_cast],
+  simp only [int.cast_one, int.cast_neg],
   have h0 := cyclotomic_coeff_zero ℝ hn.le,
   rw coeff_zero_eq_eval_zero at h0,
   by_contra' hx,
   have := intermediate_value_univ (-1) 0 (cyclotomic n ℝ).continuous,
-  obtain ⟨y, hy⟩ := this (show (0 : ℝ) ∈ set.Icc _ _, by simpa [h0] using hx),
-  rw [←is_root, is_root_cyclotomic_iff $ show (n : ℝ) ≠ 0, by { norm_cast, linarith }] at hy,
+  obtain ⟨y, hy : is_root _ y⟩ := this (show (0 : ℝ) ∈ set.Icc _ _, by simpa [h0] using hx),
+  rw [is_root_cyclotomic_iff $ show (n : ℝ) ≠ 0, by exact_mod_cast (pos_of_gt hn).ne'] at hy,
   rw hy.eq_order_of at hn,
-  linarith [@linear_ordered_ring.order_of_le_two ℝ y _]
+  exact hn.not_le linear_ordered_ring.order_of_le_two,
 end
 
 lemma cyclotomic_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] (x : R) :
@@ -67,7 +66,7 @@ lemma cyclotomic_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] (x 
 begin
   induction n using nat.strong_induction_on with k ih,
   have hn'  : 0 < k := pos_of_gt hn,
-  have hn'' : 1 < k := by linarith,
+  have hn'' : 1 < k := one_lt_two.trans hn,
   dsimp at ih,
   have := prod_cyclotomic_eq_geom_sum hn' R,
   apply_fun eval x at this,
@@ -98,7 +97,7 @@ begin
     { rwa this },
     rw [geom_sum_neg_iff hn''] at h,
     rw [eval_prod, ←prod_sdiff (show {2} ⊆ _, from _), prod_singleton]; try { apply_instance },
-    swap 2,
+    rotate,
     { intros x hx,
       rw mem_singleton at hx,
       subst hx,

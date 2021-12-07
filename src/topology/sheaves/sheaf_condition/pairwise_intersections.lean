@@ -401,9 +401,7 @@ This is the pullback cone. -/
 def inter_union_pullback_cone : pullback_cone
   (F.1.map (hom_of_le inf_le_left : U ∩ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op) :=
 pullback_cone.mk (F.1.map (hom_of_le le_sup_left).op) (F.1.map (hom_of_le le_sup_right).op)
-begin
-  rw [← F.1.map_comp, ← F.1.map_comp], congr,
-end
+  (by { rw [← F.1.map_comp, ← F.1.map_comp], congr })
 
 @[simp] lemma inter_union_pullback_cone_X :
   (inter_union_pullback_cone F U V).X = F.1.obj (op $ U ∪ V) := rfl
@@ -487,11 +485,11 @@ begin
       convert h₂,
       apply inter_union_pullback_cone_lift_right },
     all_goals
-      { dsimp only [functor.op, pairwise.cocone_ι_app, functor.map_cone_π_app,
-          cocone.op, pairwise.cocone_ι_app_2, unop_op, op_comp],
-        simp_rw [F.1.map_comp, ← category.assoc],
-        congr' 1,
-        simp_rw [category.assoc, ← F.1.map_comp] },
+    { dsimp only [functor.op, pairwise.cocone_ι_app, functor.map_cone_π_app,
+        cocone.op, pairwise.cocone_ι_app_2, unop_op, op_comp],
+      simp_rw [F.1.map_comp, ← category.assoc],
+      congr' 1,
+      simp_rw [category.assoc, ← F.1.map_comp] },
     { convert h₁,
       apply inter_union_pullback_cone_lift_left },
     { convert h₂,

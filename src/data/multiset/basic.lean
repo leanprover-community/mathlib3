@@ -2091,6 +2091,9 @@ begin
   rw [← count_add, sub_add_inter, count_sub, tsub_add_min],
 end
 
+lemma count_sup (a : α) (s t : multiset α) :
+  count a (s ⊔ t) = max (count a s) (count a t) := by simp
+
 lemma count_sum {m : multiset β} {f : β → multiset α} {a : α} :
   count a (map f m).sum = sum (m.map $ λb, count a $ f b) :=
 multiset.induction_on m (by simp) ( by simp)

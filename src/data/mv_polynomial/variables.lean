@@ -168,7 +168,7 @@ begin
   rw multiset.disjoint_iff_ne at h,
   rw multiset.le_iff_count,
   intros i,
-  rw [degrees, multiset.count_sup],
+  rw [degrees, multiset.count_finset_sup],
   simp only [finsupp.count_to_multiset],
   by_cases h0 : d = 0,
   { simp only [h0, zero_le, finsupp.zero_apply], },
@@ -419,7 +419,7 @@ def degree_of (n : σ) (p : mv_polynomial σ R) : ℕ := p.degrees.count n
 lemma degree_of_eq_sup (n : σ) (f : mv_polynomial σ R) :
   degree_of n f = f.support.sup (λ m , m n) :=
 begin
-  rw [ degree_of, degrees, multiset.count_sup ],
+  rw [ degree_of, degrees, multiset.count_finset_sup ],
   congr,
   ext,
   simp,
@@ -445,7 +445,7 @@ lemma degree_of_add_le (n : σ) (f g : mv_polynomial σ R) :
 begin
   repeat {rw degree_of},
   apply (multiset.count_le_of_le n (degrees_add f g)).trans,
-  rw multiset.count_sup',
+  rw multiset.count_sup,
 end
 
 lemma monomial_le_degree_of (i : σ) {f : mv_polynomial σ R} {m : σ →₀ ℕ}

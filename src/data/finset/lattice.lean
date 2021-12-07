@@ -980,7 +980,7 @@ end finset
 
 namespace multiset
 
-lemma count_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
+lemma count_finset_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
   count b (s.sup f) = s.sup (λa, count b (f a)) :=
 begin
   letI := classical.dec_eq α,
@@ -990,9 +990,6 @@ begin
     rw [finset.sup_insert, sup_eq_union, count_union, finset.sup_insert, ih],
     refl }
 end
-
-lemma count_sup' [decidable_eq α] (x : α) (s t : multiset α) :
-  count x (s ⊔ t) = max (count x s) (count x t) := by simp
 
 lemma mem_sup {α β} [decidable_eq β] {s : finset α} {f : α → multiset β}
   {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=

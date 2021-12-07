@@ -261,17 +261,6 @@ lemma is_open_lt [topological_space β] {f g : β → α} (hf : continuous f) (h
   is_open {b | f b < g b} :=
 by simp [lt_iff_not_ge, -not_le]; exact (is_closed_le hg hf).is_open_compl
 
-lemma subset_interior_le {α β : Type*} [topological_space α] [linear_order α]
-  [order_closed_topology α] [topological_space β] {f g : β → α} (hf : continuous f)
-  (hg : continuous g) :
-  {b | f b < g b} ⊆ interior {b | f b ≤ g b} :=
-begin
-  rw subset_interior_iff_subset_of_open,
-  { rintros p (hp : f p < g p),
-    exact hp.le },
-  { exact is_open_lt hf hg }
-end
-
 variables {a b : α}
 
 lemma is_open_Iio : is_open (Iio a) :=

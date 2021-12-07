@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import analysis.convex.basic
-import topology.algebra.mul_action
+import topology.algebra.group
 import topology.algebra.ordered.basic
 
 /-!
@@ -17,50 +17,12 @@ A set is strictly convex if the open segment between any two distinct points lie
 ## TODO
 
 Define strictly convex spaces.
-
-Is there a better home for the pointwise topology lemmas?
 -/
 
 open set
 open_locale convex pointwise
 
-section has_continuous_mul
-variables {α : Type*} [topological_space α] [comm_group α] [has_continuous_mul α] {s t : set α}
-
-@[to_additive]
-lemma mul_interior_subset : s * interior t ⊆ interior (s * t) :=
-begin
-  rw subset_interior_iff_subset_of_open,
-  { rintro x ⟨a, b, ha, hb, rfl⟩,
-    exact set.mul_mem_mul ha (interior_subset hb) },
-  { rw ←set.Union_mul_left_image,
-    exact is_open_bUnion (λ x hx, (homeomorph.mul_left x).is_open_map _ is_open_interior) }
-end
-
-@[to_additive]
-lemma interior_mul_subset : interior s * t ⊆ interior (s * t) :=
-begin
-  rw subset_interior_iff_subset_of_open,
-  { rintro x ⟨a, b, ha, hb, rfl⟩,
-    exact set.mul_mem_mul (interior_subset ha) hb },
-  { rw ←set.Union_mul_right_image,
-    exact is_open_bUnion (λ x hx, (homeomorph.mul_right x).is_open_map _ is_open_interior) }
-end
-
-lemma interior_mul_interior_subset {s t : set α} :
-  interior s * interior t ⊆ interior (s * t) :=
-(set.mul_subset_mul_left interior_subset).trans interior_mul_subset
-
-end has_continuous_mul
-
 variables {𝕜 E F β : Type*}
-
-/-!
-### Strict convexity of sets
-
-This file defines strictly convex sets.
-
--/
 
 open function set
 open_locale convex

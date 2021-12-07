@@ -1050,7 +1050,7 @@ instance : star_add_monoid (α →ᵇ β) :=
 
 /-- The right-hand side of this equality can be parsed `star ∘ ⇑f` because of the
 instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = star ⇑f`.-/
-lemma coe_star (f : α →ᵇ β) : ⇑(star f) = star f := rfl
+@[simp] lemma coe_star (f : α →ᵇ β) : ⇑(star f) = star f := rfl
 
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 

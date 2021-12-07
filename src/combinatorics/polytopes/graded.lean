@@ -91,9 +91,7 @@ def set.Icc.graded (h : a ≤ b) : @grade_order (set.Icc a b) _ (set.Icc.order_b
   hcovers := begin
     rintros ⟨x, hx⟩ ⟨y, hy⟩ ⟨hxy, hcov⟩,
     suffices this : ∀ z, z ∉ set.Ioo x y,
-      { have : grade y = grade x + 1 := covers.grade ⟨hxy, this⟩,
-        change grade y - grade a = grade x - grade a + 1,
-        rw [this, nat.sub_add_comm],
+      { rw [(covers.grade ⟨hxy, this⟩ : (grade y = grade x + 1)), nat.sub_add_comm],
         exact grade_mono hx.left },
     rintros _ ⟨hl, hr⟩,
     simp at hcov, -- Todo(Vi): Remove this `simp`.
@@ -105,10 +103,10 @@ def set.Icc.graded (h : a ≤ b) : @grade_order (set.Icc a b) _ (set.Icc.order_b
 lemma grade_eq_zero_iff (a : α) : grade a = 0 ↔ a = ⊥ :=
 begin
   refine ⟨λ h, _, _⟩,
-  { by_contra ha,
-    exact (h.le.trans grade_bot.ge).not_lt (grade_strict_mono $ bot_lt_iff_ne_bot.2 ha) },
-  { rintro rfl,
-    exact grade_bot }
+    { by_contra ha,
+      exact (h.le.trans grade_bot.ge).not_lt (grade_strict_mono $ bot_lt_iff_ne_bot.2 ha) },
+  rintro rfl,
+  exact grade_bot
 end
 
 /-- If two elements in a graded partial order cover each other, so do their grades. This is just a
@@ -396,16 +394,17 @@ instance (α : Type*) [preorder α] [bounded_order α] [grade_order α] : grade_
 
 
 namespace polytope
+variable [has_lt α]
 
 /-- Proper elements are those that are neither maximal nor minimal. -/
-def is_proper [has_lt α] (b : α) : Prop := ∃ a c, a < b ∧ b < c
+def is_proper (b : α) : Prop := ∃ a c, a < b ∧ b < c
 
 /-- The subtype of proper elements. -/
 @[reducible]
 def proper (α : Type*) [has_lt α] : Type* := {a : α // is_proper a}
 
 /-- Proper elements are incident when they're comparable. -/
-def incident [has_lt α] (a b : proper α) : Prop := a.val ≠ b.val → a.val < b.val ∨ b.val < a.val
+def incident (a b : proper α) : Prop := a.val ≠ b.val → a.val < b.val ∨ b.val < a.val
 
 end polytope
 

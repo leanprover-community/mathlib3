@@ -163,16 +163,14 @@ section polar_sets_in_weak_dual
 
 open metric set normed_space
 
-namespace polar
-
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
 is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
-lemma is_weak_dual_closed (s : set E) : is_closed (weak_dual.polar 𝕜 s) :=
+lemma weak_dual.is_closed_polar (s : set E) : is_closed (weak_dual.polar 𝕜 s) :=
 begin
-  rw [weak_dual.polar, eq_Inter, preimage_bInter],
+  rw [weak_dual.polar, polar_eq_Inter, preimage_bInter],
   apply is_closed_bInter,
   intros z hz,
   rw set.preimage_set_of_eq,
@@ -182,7 +180,5 @@ begin
   refine is_closed.preimage _ (is_closed_Iic),
   apply continuous.comp continuous_norm (weak_dual.eval_continuous _ _ z),
 end
-
-end polar
 
 end polar_sets_in_weak_dual

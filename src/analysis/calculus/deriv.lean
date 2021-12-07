@@ -1504,7 +1504,8 @@ end inverse
 section division
 /-! ### Derivative of `x ↦ c x / d x` -/
 
-variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  {c d : 𝕜 → 𝕜'} {c' d' : 𝕜'}
 
 lemma has_deriv_within_at.div
   (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) (hx : d x ≠ 0) :

@@ -48,6 +48,10 @@ lemma interval_integrable_zpow {n : ℤ} (h : 0 ≤ n ∨ (0 : ℝ) ∉ [a, b]) 
   interval_integrable (λ x, x ^ n) μ a b :=
 (continuous_on_id.zpow n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
 
+lemma interval_integrable_rpow {r : ℝ} (h : 0 ≤ r ∨ (0 : ℝ) ∉ [a, b]) :
+  interval_integrable (λ x, x ^ r) μ a b :=
+(continuous_on_id.rpow_const $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
+
 @[simp]
 lemma interval_integrable_id : interval_integrable (λ x, x) μ a b :=
 continuous_id.interval_integrable a b
@@ -167,6 +171,26 @@ end interval_integral
 open interval_integral
 
 /-! ### Integrals of simple functions -/
+
+lemma integral_rpow {r : ℝ} (h : 0 ≤ r ∨ r ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
+  ∫ x in a..b, x ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
+begin
+  suffices : ∀ x ∈ [a, b], has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { rw sub_div,
+    exact integral_eq_sub_of_has_deriv_at this (interval_integrable_rpow (h.imp_right and.right)) },
+  intros x hx,
+  have hx' : x ≠ 0 ∨ 1 ≤ r + 1,
+    from h.symm.imp (λ h, ne_of_mem_of_not_mem hx h.2) (le_add_iff_nonneg_left _).2,
+  convert (real.has_deriv_at_rpow_const hx').mul_const (r + 1)⁻¹,
+/-  convert (has_deriv_at_zpow (r + 1) x (h.symm.imp (λ h, ne_of_mem_of_not_mem hx h.2)
+    (λ h, h.trans (lt_add_one n).le))).mul_const (n + 1)⁻¹,
+  have : (n + 1 : ℝ) ≠ 0,
+  { suffices : n ≠ -1, by exact_mod_cast mt eq_neg_iff_add_eq_zero.2 this,
+    refine h.elim _ and.left,
+    rintro hn0 rfl,
+    exact zero_lt_one.not_le (neg_nonneg.1 hn0) },
+  simp [← div_eq_mul_inv, mul_div_cancel_left _ this]-/
+end
 
 lemma integral_zpow {n : ℤ} (h : 0 ≤ n ∨ n ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
   ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=

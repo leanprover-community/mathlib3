@@ -113,7 +113,7 @@ end
 set (up to a multiplicative constant). -/
 def dominated_fin_meas_additive {β} [normed_group β] {m : measurable_space α}
   (μ : measure α) (T : set α → β) (C : ℝ) : Prop :=
-fin_meas_additive μ T ∧ ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real
+fin_meas_additive μ T ∧ ∀ s, measurable_set s → μ s < ∞ → ∥T s∥ ≤ C * (μ s).to_real
 
 end fin_meas_additive
 
@@ -327,7 +327,7 @@ calc ∥∑ x in f.range, T (f ⁻¹' {x}) x∥
   by { refine finset.sum_le_sum (λb hb, _), simp_rw continuous_linear_map.le_op_norm, }
 
 lemma norm_set_to_simple_func_le_sum_mul_norm_of_integrable (T : set α → E →L[ℝ] F') {C : ℝ}
-  (hT_norm : ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real) (f : α →ₛ E)
+  (hT_norm : ∀ s, measurable_set s → μ s < ∞ → ∥T s∥ ≤ C * (μ s).to_real) (f : α →ₛ E)
   (hf : integrable f μ) :
   ∥f.set_to_simple_func T∥ ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ :=
 calc ∥f.set_to_simple_func T∥
@@ -339,7 +339,7 @@ calc ∥f.set_to_simple_func T∥
     { rw hb, simp, },
     rw _root_.mul_le_mul_right _,
     { refine hT_norm _ (simple_func.measurable_set_fiber _ _)
-        (simple_func.measure_preimage_lt_top_of_integrable _ hf _).ne,
+        (simple_func.measure_preimage_lt_top_of_integrable _ hf _),
       rwa norm_eq_zero at hb, },
     { exact lt_of_le_of_ne (norm_nonneg _) (ne.symm hb), },
   end
@@ -465,7 +465,7 @@ begin
 end
 
 lemma norm_set_to_L1s_le (T : set α → E →L[ℝ] F) {C : ℝ}
-  (hT_norm : ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real) (f : α →₁ₛ[μ] E) :
+  (hT_norm : ∀ s, measurable_set s → μ s < ∞ → ∥T s∥ ≤ C * (μ s).to_real) (f : α →₁ₛ[μ] E) :
   ∥set_to_L1s T f∥ ≤ C * ∥f∥ :=
 begin
   rw [set_to_L1s, norm_eq_sum_mul f],

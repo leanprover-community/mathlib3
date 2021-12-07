@@ -255,6 +255,13 @@ theorem decidable.imp_iff_right_iff [decidable a] : ((a → b) ↔ b) ↔ (a ∨
 @[simp] theorem imp_iff_right_iff : ((a → b) ↔ b) ↔ (a ∨ b) :=
 decidable.imp_iff_right_iff
 
+lemma decidable.and_or_imp [decidable a] : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
+if ha : a then by simp only [ha, true_and, true_implies_iff]
+          else by simp only [ha, false_or, false_and, false_implies_iff]
+
+@[simp] theorem and_or_imp : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
+decidable.and_or_imp
+
 /-! ### Declarations about `not` -/
 
 /-- Ex falso for negation. From `¬ a` and `a` anything follows. This is the same as `absurd` with

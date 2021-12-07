@@ -466,6 +466,57 @@ lemma comap_singleton_is_closed_of_is_integral (f : R →+* S) (hf : f.is_integr
 (is_closed_singleton_iff_is_maximal _).2 (ideal.is_maximal_comap_of_is_integral_of_is_maximal'
   f hf x.as_ideal $ (is_closed_singleton_iff_is_maximal x).1 hx)
 
+variable S
+
+lemma localization_comap_inducing [algebra R S] (M : submonoid R)
+  [is_localization M S] : inducing (comap (algebra_map R S)) :=
+begin
+  constructor,
+  rw topological_space_eq_iff,
+  intro U,
+  simp_rw ← is_closed_compl_iff,
+  generalize : Uᶜ = Z,
+  simp_rw [is_closed_induced_iff, is_closed_iff_zero_locus],
+  split,
+  { rintro ⟨s, rfl⟩,
+    refine ⟨_,⟨(algebra_map R S) ⁻¹' (ideal.span s),rfl⟩,_⟩,
+    rw [preimage_comap_zero_locus, ← zero_locus_span, ← zero_locus_span s],
+    congr' 1,
+    exact congr_arg submodule.carrier (is_localization.map_comap M S (ideal.span s)) },
+  { rintro ⟨_, ⟨t, rfl⟩, rfl⟩, simp }
+end
+
+lemma localization_comap_injective [algebra R S] (M : submonoid R)
+  [is_localization M S] : function.injective (comap (algebra_map R S)) :=
+begin
+  intros p q h,
+  replace h := congr_arg (λ (x : prime_spectrum R), ideal.map (algebra_map R S) x.as_ideal) h,
+  dsimp only at h,
+  erw [is_localization.map_comap M S, is_localization.map_comap M S] at h,
+  ext1,
+  exact h
+end
+
+lemma localization_comap_embedding [algebra R S] (M : submonoid R)
+  [is_localization M S] : embedding (comap (algebra_map R S)) :=
+⟨localization_comap_inducing S M, localization_comap_injective S M⟩
+
+lemma localization_comap_range [algebra R S] (M : submonoid R)
+  [is_localization M S] :
+  set.range (comap (algebra_map R S)) = { p | disjoint (M : set R) p.as_ideal } :=
+begin
+  ext x,
+  split,
+  { rintro ⟨p, rfl⟩ x ⟨hx₁, hx₂⟩,
+    exact (p.2.1 : ¬ _)
+      (p.as_ideal.eq_top_of_is_unit_mem hx₂ (is_localization.map_units S ⟨x, hx₁⟩)) },
+  { intro h,
+    use ⟨x.as_ideal.map (algebra_map R S),
+      is_localization.is_prime_of_is_prime_disjoint M S _ x.2 h⟩,
+    ext1,
+    exact is_localization.comap_map_of_is_prime_disjoint M S _ x.2 h }
+end
+
 end comap
 
 section basic_open
@@ -553,6 +604,25 @@ begin
   rw set.singleton_subset_iff,
   exact ⟨n, hs⟩
 end
+
+lemma localization_away_comap_range (S : Type v) [comm_ring S] [algebra R S] (r : R)
+  [is_localization.away r S] : set.range (comap (algebra_map R S)) = basic_open r :=
+begin
+  rw localization_comap_range S (submonoid.powers r),
+  ext,
+  simp only [mem_zero_locus, basic_open_eq_zero_locus_compl, set_like.mem_coe, set.mem_set_of_eq,
+    set.singleton_subset_iff, set.mem_compl_eq],
+  split,
+  { intros h₁ h₂,
+    exact h₁ ⟨submonoid.mem_powers r, h₂⟩ },
+  { rintros h₁ _ ⟨⟨n, rfl⟩, h₃⟩,
+    exact h₁ (x.2.mem_of_pow_mem _ h₃) },
+end
+
+lemma localization_away_open_embedding (S : Type v) [comm_ring S] [algebra R S] (r : R)
+  [is_localization.away r S] : open_embedding (comap (algebra_map R S)) :=
+{ to_embedding := localization_comap_embedding S (submonoid.powers r),
+  open_range := by { rw localization_away_comap_range S r, exact is_open_basic_open } }
 
 end basic_open
 

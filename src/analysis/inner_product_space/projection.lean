@@ -498,21 +498,26 @@ begin
   { simp }
 end
 
+lemma linear_isometry.map_orthogonal_projection {E E' : Type*} [inner_product_space 𝕜 E]
+  [inner_product_space 𝕜 E'] (f : E →ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
+  (x : E) :
+  f (orthogonal_projection p x) = orthogonal_projection (p.map f.to_linear_map) (f x) :=
+begin
+  refine (eq_orthogonal_projection_of_mem_of_inner_eq_zero (submodule.apply_coe_mem_map _ _) $
+    λ y hy, _).symm,
+  rcases hy with ⟨x', hx', rfl : f x' = y⟩,
+  rw [f.coe_to_linear_map, ← f.map_sub, f.inner_map_map,
+    orthogonal_projection_inner_eq_zero x x' hx']
+end
+
 /-- Orthogonal projection onto the `submodule.map` of a subspace. -/
 lemma orthogonal_projection_map_apply {E E' : Type*} [inner_product_space 𝕜 E]
-  [inner_product_space 𝕜 E'] (f : E ≃ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [finite_dimensional 𝕜 p]
+  [inner_product_space 𝕜 E'] (f : E ≃ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
   (x : E') :
   (orthogonal_projection (p.map (f.to_linear_equiv : E →ₗ[𝕜] E')) x : E')
   = f (orthogonal_projection p (f.symm x)) :=
-begin
-  apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
-  { exact ⟨orthogonal_projection p (f.symm x), submodule.coe_mem _, by simp⟩, },
-  rintros w ⟨a, ha, rfl⟩,
-  suffices : inner (f (f.symm x - orthogonal_projection p (f.symm x))) (f a) = (0:𝕜),
-  { simpa using this },
-  rw f.inner_map_map,
-  exact orthogonal_projection_inner_eq_zero _ _ ha,
-end
+by simpa only [f.coe_to_linear_isometry, f.apply_symm_apply]
+  using (f.to_linear_isometry.map_orthogonal_projection p (f.symm x)).symm
 
 /-- The orthogonal projection onto the trivial submodule is the zero map. -/
 @[simp] lemma orthogonal_projection_bot : orthogonal_projection (⊥ : submodule 𝕜 E) = 0 :=
@@ -634,13 +639,13 @@ lemma reflection_mem_subspace_eq_self {x : E} (hx : x ∈ K) : reflection K x = 
 
 /-- Reflection in the `submodule.map` of a subspace. -/
 lemma reflection_map_apply {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
-  (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [finite_dimensional 𝕜 K] (x : E') :
+  (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [complete_space K] (x : E') :
   reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) x = f (reflection K (f.symm x)) :=
 by simp [bit0, reflection_apply, orthogonal_projection_map_apply f K x]
 
 /-- Reflection in the `submodule.map` of a subspace. -/
 lemma reflection_map {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
-  (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [finite_dimensional 𝕜 K] :
+  (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [complete_space K] :
   reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) = f.symm.trans ((reflection K).trans f) :=
 linear_isometry_equiv.ext $ reflection_map_apply f K
 

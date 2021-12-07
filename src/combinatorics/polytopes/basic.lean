@@ -127,6 +127,20 @@ instance : diamond_order point :=
 instance : polytope point :=
 { scon := by apply graded.scon_of_grade_le_two; exact one_le_two }
 
+-- Yaël: Here's the one instance I would provide:
+
+instance {α β : Type*} [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β]
+  [grade_order β] : grade_order (α × β) :=
+{ grade := λ a, grade a.fst + grade a.snd,
+  grade_bot := begin
+    convert (zero_add _).trans grade_bot,
+    exact grade_bot,
+  end,
+  strict_mono := begin
+    sorry
+  end,
+  hcovers := sorry }
+
 /-- The generic polytope product. -/
 def product (α : Type*) [has_le α] [bounded_order α] (β : Type v) [has_le β] [bounded_order β]
 (min max : bool) :=

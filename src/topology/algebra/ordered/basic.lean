@@ -2158,11 +2158,10 @@ element. -/
 lemma closure_Ioi' {a : α} (h : (Ioi a).nonempty) :
   closure (Ioi a) = Ici a :=
 begin
-  cases h with b hb,
   apply subset.antisymm,
   { exact closure_minimal Ioi_subset_Ici_self is_closed_Ici },
   { rw [← diff_subset_closure_iff, Ici_diff_Ioi_same, singleton_subset_iff],
-    exact is_glb_Ioi.mem_closure ⟨_, hb⟩, }
+    exact is_glb_Ioi.mem_closure h }
 end
 
 /-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`. -/
@@ -2220,7 +2219,7 @@ lemma interior_Ici [no_bot_order α] {a : α} : interior (Ici a) = Ioi a :=
 interior_Ici' nonempty_Iio
 
 @[simp] lemma interior_Iic' {a : α} (ha : (Ioi a).nonempty) : interior (Iic a) = Iio a :=
-by rw [← compl_Ioi, interior_compl, closure_Ioi' ha, compl_Ici]
+@interior_Ici' (order_dual α) _ _ _ _ _ ha
 
 lemma interior_Iic [no_top_order α] {a : α} : interior (Iic a) = Iio a :=
 interior_Iic' nonempty_Ioi
@@ -2272,15 +2271,15 @@ by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
 @[simp] lemma frontier_Ioc [no_top_order α] {a b : α} (h : a < b) : frontier (Ioc a b) = {a, b} :=
 by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
 
-lemma nhds_within_Ioi_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : a ≤ b) :
+lemma nhds_within_Ioi_ne_bot' {a b : α} (H₁ : (Ioi a).nonempty) (H₂ : a ≤ b) :
   ne_bot (𝓝[Ioi a] b) :=
-mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Ioi' (nonempty_of_mem H₁)], exact H₂ }
+mem_closure_iff_nhds_within_ne_bot.1 $ by rwa [closure_Ioi' H₁]
 
 lemma nhds_within_Ioi_ne_bot [no_top_order α] {a b : α} (H : a ≤ b) :
   ne_bot (𝓝[Ioi a] b) :=
-let ⟨c, hc⟩ := no_top a in nhds_within_Ioi_ne_bot' hc H
+nhds_within_Ioi_ne_bot' nonempty_Ioi H
 
-lemma nhds_within_Ioi_self_ne_bot' {a b : α} (H : a < b) :
+lemma nhds_within_Ioi_self_ne_bot' {a : α} (H : (Ioi a).nonempty) :
   ne_bot (𝓝[Ioi a] a) :=
 nhds_within_Ioi_ne_bot' H (le_refl a)
 
@@ -2294,16 +2293,15 @@ lemma filter.eventually.exists_gt [no_top_order α] {a : α} {p : α → Prop} (
 by simpa only [exists_prop, gt_iff_lt, and_comm]
   using ((h.filter_mono (@nhds_within_le_nhds _ _ a (Ioi a))).and self_mem_nhds_within).exists
 
-lemma nhds_within_Iio_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : b ≤ c) :
+lemma nhds_within_Iio_ne_bot' {b c : α} (H₁ : (Iio c).nonempty) (H₂ : b ≤ c) :
   ne_bot (𝓝[Iio c] b) :=
-mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Iio' (nonempty_of_mem (mem_Iio.mpr H₁))],
-                                            exact H₂ }
+mem_closure_iff_nhds_within_ne_bot.1 $ by rwa closure_Iio' H₁
 
 lemma nhds_within_Iio_ne_bot [no_bot_order α] {a b : α} (H : a ≤ b) :
   ne_bot (𝓝[Iio b] a) :=
-let ⟨c, hc⟩ := no_bot b in nhds_within_Iio_ne_bot' hc H
+nhds_within_Iio_ne_bot' nonempty_Iio H
 
-lemma nhds_within_Iio_self_ne_bot' {a b : α} (H : a < b) :
+lemma nhds_within_Iio_self_ne_bot' {b : α} (H : (Iio b).nonempty) :
   ne_bot (𝓝[Iio b] b) :=
 nhds_within_Iio_ne_bot' H (le_refl b)
 

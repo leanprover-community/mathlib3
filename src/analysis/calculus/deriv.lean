@@ -1041,67 +1041,59 @@ The formula for the derivative involves `smul` in `scomp` lemmas, which can be r
 usual multiplication in `comp` lemmas.
 -/
 
-variables {h h₁ h₂ : 𝕜 → 𝕜} {h' h₁' h₂' : 𝕜}
 /- For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
 get confused since there are too many possibilities for composition -/
-variable (x)
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {s' t' : set 𝕜'}
+  {h : 𝕜 → 𝕜'} {h₁ : 𝕜 → 𝕜} {h₂ : 𝕜' → 𝕜'} {h' h₂' : 𝕜'} {h₁' : 𝕜}
+  {g₁ : 𝕜' → F} {g₁' : F} {L' : filter 𝕜'} (x)
 
 theorem has_deriv_at_filter.scomp
-  (hg : has_deriv_at_filter g g' (h x) (L.map h))
-  (hh : has_deriv_at_filter h h' x L) :
-  has_deriv_at_filter (g ∘ h) (h' • g') x L :=
-by simpa using (hg.comp x hh).has_deriv_at_filter
+  (hg : has_deriv_at_filter g₁ g₁' (h x) L')
+  (hh : has_deriv_at_filter h h' x L) (hL : tendsto h L L'):
+  has_deriv_at_filter (g₁ ∘ h) (h' • g₁') x L :=
+by simpa using ((hg.restrict_scalars 𝕜).comp x hh hL).has_deriv_at_filter
 
-theorem has_deriv_within_at.scomp {t : set 𝕜}
-  (hg : has_deriv_within_at g g' t (h x))
-  (hh : has_deriv_within_at h h' s x) (hst : s ⊆ h ⁻¹' t) :
-  has_deriv_within_at (g ∘ h) (h' • g') s x :=
-has_deriv_at_filter.scomp _ (has_deriv_at_filter.mono hg $
-  hh.continuous_within_at.tendsto_nhds_within hst) hh
+theorem has_deriv_within_at.scomp
+  (hg : has_deriv_within_at g₁ g₁' t' (h x))
+  (hh : has_deriv_within_at h h' s x) (hst : maps_to h s t') :
+  has_deriv_within_at (g₁ ∘ h) (h' • g₁') s x :=
+hg.scomp x hh $ hh.continuous_within_at.tendsto_nhds_within hst
 
 /-- The chain rule. -/
 theorem has_deriv_at.scomp
-  (hg : has_deriv_at g g' (h x)) (hh : has_deriv_at h h' x) :
-  has_deriv_at (g ∘ h) (h' • g') x :=
-(hg.mono hh.continuous_at).scomp x hh
+  (hg : has_deriv_at g₁ g₁' (h x)) (hh : has_deriv_at h h' x) :
+  has_deriv_at (g₁ ∘ h) (h' • g₁') x :=
+hg.scomp x hh hh.continuous_at
 
 theorem has_strict_deriv_at.scomp
-  (hg : has_strict_deriv_at g g' (h x)) (hh : has_strict_deriv_at h h' x) :
-  has_strict_deriv_at (g ∘ h) (h' • g') x :=
-by simpa using (hg.comp x hh).has_strict_deriv_at
+  (hg : has_strict_deriv_at g₁ g₁' (h x)) (hh : has_strict_deriv_at h h' x) :
+  has_strict_deriv_at (g₁ ∘ h) (h' • g₁') x :=
+by simpa using ((hg.restrict_scalars 𝕜).comp x hh).has_strict_deriv_at
 
 theorem has_deriv_at.scomp_has_deriv_within_at
-  (hg : has_deriv_at g g' (h x)) (hh : has_deriv_within_at h h' s x) :
-  has_deriv_within_at (g ∘ h) (h' • g') s x :=
-begin
-  rw ← has_deriv_within_at_univ at hg,
-  exact has_deriv_within_at.scomp x hg hh subset_preimage_univ
-end
+  (hg : has_deriv_at g₁ g₁' (h x)) (hh : has_deriv_within_at h h' s x) :
+  has_deriv_within_at (g₁ ∘ h) (h' • g₁') s x :=
+has_deriv_within_at.scomp x hg.has_deriv_within_at hh (maps_to_univ _ _)
 
 lemma deriv_within.scomp
-  (hg : differentiable_within_at 𝕜 g t (h x)) (hh : differentiable_within_at 𝕜 h s x)
-  (hs : s ⊆ h ⁻¹' t) (hxs : unique_diff_within_at 𝕜 s x) :
-  deriv_within (g ∘ h) s x = deriv_within h s x • deriv_within g t (h x) :=
-begin
-  apply has_deriv_within_at.deriv_within _ hxs,
-  exact has_deriv_within_at.scomp x (hg.has_deriv_within_at) (hh.has_deriv_within_at) hs
-end
+  (hg : differentiable_within_at 𝕜' g₁ t' (h x)) (hh : differentiable_within_at 𝕜 h s x)
+  (hs : maps_to h s t') (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (g₁ ∘ h) s x = deriv_within h s x • deriv_within g₁ t' (h x) :=
+(has_deriv_within_at.scomp x hg.has_deriv_within_at hh.has_deriv_within_at hs).deriv_within hxs
 
 lemma deriv.scomp
-  (hg : differentiable_at 𝕜 g (h x)) (hh : differentiable_at 𝕜 h x) :
-  deriv (g ∘ h) x = deriv h x • deriv g (h x) :=
-begin
-  apply has_deriv_at.deriv,
-  exact has_deriv_at.scomp x hg.has_deriv_at hh.has_deriv_at
-end
+  (hg : differentiable_at 𝕜' g₁ (h x)) (hh : differentiable_at 𝕜 h x) :
+  deriv (g₁ ∘ h) x = deriv h x • deriv g₁ (h x) :=
+(has_deriv_at.scomp x hg.has_deriv_at hh.has_deriv_at).deriv
 
 /-! ### Derivative of the composition of a scalar and vector functions -/
 
 theorem has_deriv_at_filter.comp_has_fderiv_at_filter {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
-  {L : filter E} (hh₁ : has_deriv_at_filter h₁ h₁' (f x) (L.map f))
-  (hf : has_fderiv_at_filter f f' x L) :
-  has_fderiv_at_filter (h₁ ∘ f) (h₁' • f') x L :=
-by { convert has_fderiv_at_filter.comp x hh₁ hf, ext x, simp [mul_comm] }
+  {L' : filter E} (hh₁ : has_deriv_at_filter h₁ h₁' (f x) L)
+  (hf : has_fderiv_at_filter f f' x L') (hL : tendsto f L' L) :
+  has_fderiv_at_filter (h₁ ∘ f) (h₁' • f') x L' :=
+by { convert hh₁.comp  x hf hL, ext x, simp [mul_comm] }
 
 theorem has_strict_deriv_at.comp_has_strict_fderiv_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
   (hh₁ : has_strict_deriv_at h₁ h₁' (f x)) (hf : has_strict_fderiv_at f f' x) :
@@ -1111,69 +1103,59 @@ by { rw has_strict_deriv_at at hh₁, convert hh₁.comp x hf, ext x, simp [mul_
 theorem has_deriv_at.comp_has_fderiv_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
   (hh₁ : has_deriv_at h₁ h₁' (f x)) (hf : has_fderiv_at f f' x) :
   has_fderiv_at (h₁ ∘ f) (h₁' • f') x :=
-(hh₁.mono hf.continuous_at).comp_has_fderiv_at_filter x hf
+hh₁.comp_has_fderiv_at_filter x hf hf.continuous_at
 
 theorem has_deriv_at.comp_has_fderiv_within_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} {s} (x)
   (hh₁ : has_deriv_at h₁ h₁' (f x)) (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (h₁ ∘ f) (h₁' • f') s x :=
-(hh₁.mono hf.continuous_within_at).comp_has_fderiv_at_filter x hf
+hh₁.comp_has_fderiv_at_filter x hf hf.continuous_within_at
 
 theorem has_deriv_within_at.comp_has_fderiv_within_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} {s t} (x)
   (hh₁ : has_deriv_within_at h₁ h₁' t (f x)) (hf : has_fderiv_within_at f f' s x)
   (hst : maps_to f s t) :
   has_fderiv_within_at (h₁ ∘ f) (h₁' • f') s x :=
-(has_deriv_at_filter.mono hh₁ $
-  hf.continuous_within_at.tendsto_nhds_within hst).comp_has_fderiv_at_filter x hf
+hh₁.comp_has_fderiv_at_filter x hf $ hf.continuous_within_at.tendsto_nhds_within hst
 
 /-! ### Derivative of the composition of two scalar functions -/
 
 theorem has_deriv_at_filter.comp
-  (hh₁ : has_deriv_at_filter h₁ h₁' (h₂ x) (L.map h₂))
-  (hh₂ : has_deriv_at_filter h₂ h₂' x L) :
-  has_deriv_at_filter (h₁ ∘ h₂) (h₁' * h₂') x L :=
-by { rw mul_comm, exact hh₁.scomp x hh₂ }
+  (hh₂ : has_deriv_at_filter h₂ h₂' (h x) L')
+  (hh : has_deriv_at_filter h h' x L) (hL : tendsto h L L') :
+  has_deriv_at_filter (h₂ ∘ h) (h₂' * h') x L :=
+by { rw mul_comm, exact hh₂.scomp x hh hL }
 
-theorem has_deriv_within_at.comp {t : set 𝕜}
-  (hh₁ : has_deriv_within_at h₁ h₁' t (h₂ x))
-  (hh₂ : has_deriv_within_at h₂ h₂' s x) (hst : s ⊆ h₂ ⁻¹' t) :
-  has_deriv_within_at (h₁ ∘ h₂) (h₁' * h₂') s x :=
-by { rw mul_comm, exact hh₁.scomp x hh₂ hst, }
+theorem has_deriv_within_at.comp
+  (hh₂ : has_deriv_within_at h₂ h₂' s' (h x))
+  (hh : has_deriv_within_at h h' s x) (hst : maps_to h s s') :
+  has_deriv_within_at (h₂ ∘ h) (h₂' * h') s x :=
+by { rw mul_comm, exact hh₂.scomp x hh hst, }
 
 /-- The chain rule. -/
 theorem has_deriv_at.comp
-  (hh₁ : has_deriv_at h₁ h₁' (h₂ x)) (hh₂ : has_deriv_at h₂ h₂' x) :
-  has_deriv_at (h₁ ∘ h₂) (h₁' * h₂') x :=
-(hh₁.mono hh₂.continuous_at).comp x hh₂
+  (hh₂ : has_deriv_at h₂ h₂' (h x)) (hh : has_deriv_at h h' x) :
+  has_deriv_at (h₂ ∘ h) (h₂' * h') x :=
+hh₂.comp x hh hh.continuous_at
 
 theorem has_strict_deriv_at.comp
-  (hh₁ : has_strict_deriv_at h₁ h₁' (h₂ x)) (hh₂ : has_strict_deriv_at h₂ h₂' x) :
-  has_strict_deriv_at (h₁ ∘ h₂) (h₁' * h₂') x :=
-by { rw mul_comm, exact hh₁.scomp x hh₂ }
+  (hh₂ : has_strict_deriv_at h₂ h₂' (h x)) (hh : has_strict_deriv_at h h' x) :
+  has_strict_deriv_at (h₂ ∘ h) (h₂' * h') x :=
+by { rw mul_comm, exact hh₂.scomp x hh }
 
 theorem has_deriv_at.comp_has_deriv_within_at
-  (hh₁ : has_deriv_at h₁ h₁' (h₂ x)) (hh₂ : has_deriv_within_at h₂ h₂' s x) :
-  has_deriv_within_at (h₁ ∘ h₂) (h₁' * h₂') s x :=
-begin
-  rw ← has_deriv_within_at_univ at hh₁,
-  exact has_deriv_within_at.comp x hh₁ hh₂ subset_preimage_univ
-end
+  (hh₂ : has_deriv_at h₂ h₂' (h x)) (hh : has_deriv_within_at h h' s x) :
+  has_deriv_within_at (h₂ ∘ h) (h₂' * h') s x :=
+hh₂.has_deriv_within_at.comp x hh (maps_to_univ _ _)
 
 lemma deriv_within.comp
-  (hh₁ : differentiable_within_at 𝕜 h₁ t (h₂ x)) (hh₂ : differentiable_within_at 𝕜 h₂ s x)
-  (hs : s ⊆ h₂ ⁻¹' t) (hxs : unique_diff_within_at 𝕜 s x) :
-  deriv_within (h₁ ∘ h₂) s x = deriv_within h₁ t (h₂ x) * deriv_within h₂ s x :=
-begin
-  apply has_deriv_within_at.deriv_within _ hxs,
-  exact has_deriv_within_at.comp x (hh₁.has_deriv_within_at) (hh₂.has_deriv_within_at) hs
-end
+  (hh₂ : differentiable_within_at 𝕜' h₂ s' (h x)) (hh : differentiable_within_at 𝕜 h s x)
+  (hs : maps_to h s s') (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (h₂ ∘ h) s x = deriv_within h₂ s' (h x) * deriv_within h s x :=
+(hh₂.has_deriv_within_at.comp x hh.has_deriv_within_at hs).deriv_within hxs
 
 lemma deriv.comp
-  (hh₁ : differentiable_at 𝕜 h₁ (h₂ x)) (hh₂ : differentiable_at 𝕜 h₂ x) :
-  deriv (h₁ ∘ h₂) x = deriv h₁ (h₂ x) * deriv h₂ x :=
-begin
-  apply has_deriv_at.deriv,
-  exact has_deriv_at.comp x hh₁.has_deriv_at hh₂.has_deriv_at
-end
+  (hh₂ : differentiable_at 𝕜' h₂ (h x)) (hh : differentiable_at 𝕜 h x) :
+  deriv (h₂ ∘ h) x = deriv h₂ (h x) * deriv h x :=
+(hh₂.has_deriv_at.comp x hh.has_deriv_at).deriv
 
 protected lemma has_deriv_at_filter.iterate {f : 𝕜 → 𝕜} {f' : 𝕜}
   (hf : has_deriv_at_filter f f' x L) (hL : tendsto f L L) (hx : f x = x) (n : ℕ) :

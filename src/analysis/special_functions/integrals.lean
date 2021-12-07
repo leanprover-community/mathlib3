@@ -44,6 +44,10 @@ variables {f : ℝ → ℝ} {μ ν : measure ℝ} [is_locally_finite_measure μ]
 lemma interval_integrable_pow : interval_integrable (λ x, x^n) μ a b :=
 (continuous_pow n).interval_integrable a b
 
+lemma interval_integrable_zpow {n : ℤ} (h : 0 ≤ n ∨ (0 : ℝ) ∉ [a, b]) :
+  interval_integrable (λ x, x ^ n) μ a b :=
+(continuous_on_id.zpow n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
+
 @[simp]
 lemma interval_integrable_id : interval_integrable (λ x, x) μ a b :=
 continuous_id.interval_integrable a b
@@ -164,16 +168,25 @@ open interval_integral
 
 /-! ### Integrals of simple functions -/
 
-@[simp]
-lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
+lemma integral_zpow {n : ℤ} (h : 0 ≤ n ∨ n ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
+  ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
 begin
-  have hderiv : deriv (λ x : ℝ, x ^ (n + 1) / (n + 1)) = λ x, x ^ n,
-  { ext,
-    have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast succ_ne_zero n,
-    simp [mul_div_assoc, mul_div_cancel' _ hne] },
-  rw integral_deriv_eq_sub' _ hderiv;
-  norm_num [div_sub_div_same, continuous_on_pow],
+  suffices : ∀ x ∈ [a, b], has_deriv_at (λ x : ℝ, x ^ (n + 1) / (n + 1)) (x ^ n) x,
+  { rw sub_div,
+    exact integral_eq_sub_of_has_deriv_at this (interval_integrable_zpow (h.imp_right and.right)) },
+  intros x hx,
+  convert (has_deriv_at_zpow (n + 1) x (h.symm.imp (λ h, ne_of_mem_of_not_mem hx h.2)
+    (λ h, h.trans (lt_add_one n).le))).mul_const (n + 1)⁻¹,
+  have : (n + 1 : ℝ) ≠ 0,
+  { suffices : n ≠ -1, by exact_mod_cast mt eq_neg_iff_add_eq_zero.2 this,
+    refine h.elim _ and.left,
+    rintro hn0 rfl,
+    exact zero_lt_one.not_le (neg_nonneg.1 hn0) },
+  simp [← div_eq_mul_inv, mul_div_cancel_left _ this]
 end
+
+@[simp] lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
+by simpa using integral_zpow (or.inl (int.coe_nat_nonneg n))
 
 /-- Integral of `|x - a| ^ n` over `Ι a b`. This integral appears in the proof of the
 Picard-Lindelöf/Cauchy-Lipschitz theorem. -/

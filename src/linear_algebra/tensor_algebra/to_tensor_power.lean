@@ -95,7 +95,6 @@ end
   of_direct_sum x.to_direct_sum = x :=
 alg_hom.congr_fun of_direct_sum_comp_to_direct_sum x
 
-
 @[simp] lemma graded_monoid.mk_eq_one {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A] (i : ι)
   (x : A i) : graded_monoid.mk i x = 1 ↔ ∃ h : i = 0, x = h.symm.rec graded_monoid.ghas_one.one :=
 begin
@@ -112,23 +111,6 @@ end
 @[simp] lemma graded_monoid.one_eq_mk {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A] (i : ι)
   (x : A i) : 1 = graded_monoid.mk i x ↔ ∃ h : 0 = i, h.rec graded_monoid.ghas_one.one = x :=
 by simp [graded_monoid.mk_eq_one, eq_comm]
-
-lemma _root_.list.map_coe_fin_range (n : ℕ) : (list.fin_range n).map coe = list.range n :=
-begin
-  simp_rw [list.fin_range, list.map_pmap, fin.mk, subtype.coe_mk, list.pmap_eq_map],
-  exact list.map_id _
-end
-
-lemma _root_.list.fin_range_succ_eq_map (n : ℕ) :
-  list.fin_range n.succ = 0 :: (list.fin_range n).map fin.succ :=
-begin
-  apply list.map_injective_iff.mpr subtype.coe_injective,
-  rw [list.map_cons, list.map_coe_fin_range, list.range_succ_eq_map, fin.coe_zero,
-    ←list.map_coe_fin_range, list.map_map, list.map_map, function.comp, function.comp],
-  congr' 2 with x,
-  exact (fin.coe_succ _).symm,
-end
-
 
 @[simp] lemma mk_reindex_cast {n m : ℕ} (h : n = m) (x : ⨂[R]^n M) :
   graded_monoid.mk m (pi_tensor_product.reindex R M (equiv.cast $ congr_arg fin h) x) =

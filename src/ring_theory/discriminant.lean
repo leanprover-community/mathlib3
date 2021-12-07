@@ -27,7 +27,7 @@ Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we 
 * `algebra.discr_of_matrix_vec_mul` and `discr_of_matrix_mul_vec` : formulas relating
   `algebra.discr A ι b` with `algebra.discr A ((P.map (algebra_map A B)).vec_mul b)` and
   `algebra.discr A ((P.map (algebra_map A B)).mul_vec b)`.
-* `algebra.discr_not_zero_of_linear_independent` : over a field, if b` is linear independent, then
+* `algebra.discr_not_zero_of_linear_independent` : over a field, if `b` is linear independent, then
   `algebra.discr K b ≠ 0`.
 * `algebra.discr_eq_det_embeddings_matrix_reindex_pow_two` if `L/K` is a fields extension and
   `b : ι → L`, then `discr K b` is the square of the determinant of the matrix whose `(i, j)`

@@ -12,11 +12,11 @@ variables {α β : Type*}
 # Diamond orders
 
 This file defines diamond orders. A diamond order is a ranked order where every two elements whose
-grade differs by `2` have exactly two elements in between.
+grades differ by `2` have exactly two elements in between.
 -/
 
-/-- A diamond order is a ranked order which has the diamond property: Every two elements whose grade
-differs by `2` have exactly two elements in between. -/
+/-- A diamond order is a ranked order which has the diamond property: every two elements whose
+grades differ by `2` have exactly two elements in between. -/
 class diamond_order (α : Type*) [preorder α] [order_bot α] extends grade_order α :=
 (diamond {a b : α} (hab : a < b) (h : grade b = grade a + 2) : ∃ x y, x ≠ y ∧ set.Ioo a b = {x, y})
 
@@ -50,9 +50,9 @@ def is_simple_order.to_diamond_order [decidable_eq α] [partial_order α] [bound
   [is_simple_order α] :
   diamond_order α :=
 { diamond := λ a b hab h, begin
-  change grade _ = grade _ + 2 at h,
-  rw [is_simple_order.eq_bot_of_lt hab, is_simple_order.eq_top_of_lt hab, grade_bot,
-    is_simple_order.grade_top, zero_add] at h,
-  linarith,
+    change grade _ = grade _ + 2 at h,
+    rw [is_simple_order.eq_bot_of_lt hab, is_simple_order.eq_top_of_lt hab, grade_bot,
+      is_simple_order.grade_top, zero_add] at h,
+    linarith,
   end,
   .. is_simple_order.to_graded_order α }

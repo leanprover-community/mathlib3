@@ -332,20 +332,20 @@ namespace prod
 
 instance [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β] [grade_order β] :
   grade_order (α × β) :=
-{ grade := λ a, grade a.fst + grade a.snd,
+{ grade := λ a, grade a.1 + grade a.2,
   grade_bot := begin
     convert (zero_add _).trans grade_bot,
     exact grade_bot,
   end,
   strict_mono := λ a b h, begin
+    apply prod.has_le,
     sorry
   end,
   hcovers := sorry }
 
 protected lemma grade [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β]
-  [grade_order β] [grade_order (α × β)] (a : α × β) :
-  grade a = grade a.1 + grade a.2 :=
-sorry
+  [grade_order β] (a : α × β) :
+  grade a = grade a.1 + grade a.2 := rfl
 
 end prod
 

@@ -14,7 +14,7 @@ begin
 end
 
 /-- A set of nats without gaps is an interval. The sizes of the gaps and intervals we consider are
-    bounded by `n`, so that we may induct on it. -/
+bounded by `n`, so that we may induct on it. -/
 private lemma all_ioo_of_ex_ioo {P : ℕ → Prop} (n : ℕ)
   (hP : ∀ a b, b ≤ a + n → P a → P b → nonempty (set.Ioo a b) → ∃ c ∈ set.Ioo a b, P c) (a b : ℕ) :
   b ≤ a + n → P a → P b → ∀ c ∈ set.Ioo a b, P c :=

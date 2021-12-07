@@ -19,10 +19,14 @@ def covers [preorder α] (y x : α) : Prop := x < y ∧ ∀ z, ¬ z ∈ set.Ioo 
 notation x ` ⋗ `:50 y:50 := covers x y
 notation x ` ⋖ `:50 y:50 := covers y x
 
+/-- In a dense order, nothing covers anything. -/
+lemma not_cover [preorder α] [densely_ordered α] {x y : α} : ¬ x ⋖ y :=
+by { rintro ⟨hl, hr⟩, obtain ⟨_, hw⟩ := exists_between hl, exact hr _ hw }
+
 /-- If `x < y` but `y` does not cover `x`, then there's an element in between. -/
 lemma exists_lt_lt_of_not_cover [preorder α] {x y : α} (hnxy : ¬x ⋖ y) (hxy : x < y) :
   ∃ z, x < z ∧ z < y :=
-by by_contra hne; push_neg at hne; exact hnxy ⟨hxy, λ z ⟨hl, hr⟩, hne z hl hr⟩
+by { by_contra hne, push_neg at hne, exact hnxy ⟨hxy, λ z ⟨hl, hr⟩, hne z hl hr⟩ }
 
 /-- If an element covers another, they define an empty open interval. -/
 lemma set.Ioo_is_empty_of_covers [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
@@ -56,7 +60,7 @@ instance covers.is_irrefl [preorder α] : is_irrefl α (⋖) :=
 
 lemma dual_cover_iff_cover [preorder α] (a b : α) :
   a ⋖ b ↔ @covers (order_dual α) _ a b :=
-by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
+by split; exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩
 
 lemma is_simple_order.bot_covers_top [partial_order α] [bounded_order α] [is_simple_order α] :
   (⊥ : α) ⋖ ⊤ :=

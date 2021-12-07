@@ -374,25 +374,18 @@ by simpa only [int.nat_abs_neg]
 section intervals
 open set
 lemma strict_mono_on_nat_abs : strict_mono_on nat_abs (Ici 0) :=
-begin
-  unfold strict_mono_on,
-  intros a ha b hb hab,
-  unfold Ici at ha hb,
-  simp at ha hb,
-  exact nat_abs_lt_nat_abs_of_nonneg_of_lt ha hab,
-end
+λ a ha b hb hab, nat_abs_lt_nat_abs_of_nonneg_of_lt ha hab
 
 lemma strict_anti_on_nat_abs : strict_anti_on nat_abs (Iic 0) :=
 begin
-  unfold strict_anti_on,
   intros a ha b hb hab,
-  unfold Iic at ha hb,
-  simp at ha hb,
   suffices : (-b).nat_abs < (-a).nat_abs, {
-    simp at this, exact this,
+    simp only [int.nat_abs_neg] at this,
+    exact this,
   },
-  apply nat_abs_lt_nat_abs_of_nonneg_of_lt;
-  simpa,
+  apply nat_abs_lt_nat_abs_of_nonneg_of_lt,
+  simpa only [right.nonneg_neg_iff],
+  simpa only [neg_lt_neg_iff],
 end
 
 lemma inj_on_nat_abs_Ici : inj_on nat_abs (Ici 0) := strict_mono_on_nat_abs.inj_on

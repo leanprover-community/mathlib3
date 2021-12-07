@@ -87,12 +87,13 @@ end
 instance [preorder α] (Φ : flag α) : is_trichotomous Φ (<) :=
 begin
   refine ⟨λ x y, _⟩,
-  by_cases heq : x = y, { exact or.inr (or.inl heq) },
+  by_cases heq : x = y,
+    { exact or.inr (or.inl heq) },
   cases x with x hx,
   cases y with y hy,
   cases (Φ.prop.left x hx y hy) (λ h, heq (subtype.ext h)) with hle hle,
-  { exact or.inl hle },
-  { exact or.inr (or.inr hle) }
+    { exact or.inl hle },
+    { exact or.inr (or.inr hle) }
 end
 
 @[priority 900] -- lower priority in case subtype.linear_order comes up with something computable
@@ -117,14 +118,14 @@ variables [partial_order α] (Φ : flag α)
 
 /-- `⊥` belongs to every flag. -/
 theorem bot_in_flag [order_bot α] : (⊥ : α) ∈ Φ :=
-by rw mem_flag_iff_comp; exact λ _ h, or.inl (bot_lt_iff_ne_bot.mpr h.symm)
+by rw mem_flag_iff_comp; exact λ _ h, or.inl (bot_lt_iff_ne_bot.2 h.symm)
 
 instance [order_bot α] : order_bot Φ :=
 subtype.order_bot Φ.bot_in_flag
 
 /-- `⊤` belongs to every flag. -/
 theorem top_in_flag [order_top α] : (⊤ : α) ∈ Φ :=
-by rw mem_flag_iff_comp; exact λ _ h, or.inr (lt_top_iff_ne_top.mpr h.symm)
+by rw mem_flag_iff_comp; exact λ _ h, or.inr (lt_top_iff_ne_top.2 h.symm)
 
 instance [order_top α] : order_top Φ :=
 subtype.order_top Φ.top_in_flag
@@ -232,11 +233,11 @@ by rw ←γ.symm_hom; apply γ.symm.hom_map_lt
 /-- Scalar multiplication of automorphisms by flags. -/
 @[reducible]
 def smul_def (γ : automorphism α) (Φ : flag α) : set α :=
-γ.hom '' Φ.val
+γ.hom '' ↑Φ
 
 /-- Definition of scalar multiplication of automorphisms by flags. -/
 @[simp]
-theorem smul_def.eq (γ : automorphism α) (Φ : flag α) : γ.smul_def Φ = γ.hom '' Φ.val :=
+theorem smul_def.eq (γ : automorphism α) (Φ : flag α) : γ.smul_def Φ = γ.hom '' ↑Φ :=
 rfl
 
 /-- Automorphisms map flags to chains. -/
@@ -290,7 +291,7 @@ instance : has_scalar (automorphism α) (flag α) :=
 ⟨λ γ Φ, ⟨γ.smul_def Φ, γ.smul_is_max_chain Φ⟩⟩
 
 @[simp]
-theorem smul_def.eq' (γ : automorphism α) (Φ : flag α) : (γ • Φ).val = γ.hom '' Φ.val :=
+theorem smul_def.eq' (γ : automorphism α) (Φ : flag α) : ↑(γ • Φ) = γ.hom '' ↑Φ :=
 rfl
 
 /-- The group action of the automorphism group of a poset on its flags. -/
@@ -323,7 +324,7 @@ lemma pair [has_lt α] {x y : α} (hxy : x < y ∨ y < x) :
 begin
   apply zorn.chain_insert (singleton _),
   intros _ hb _,
-  rwa ←(list.mem_singleton.mp hb) at hxy,
+  rwa ←(list.mem_singleton.1 hb) at hxy,
 end
 
 /-- Chains of intervals are chains. -/
@@ -427,7 +428,7 @@ begin
   cases h with hxy h,
   refine h ⟨z, _⟩ hzi,
   cases hzi with hxz hzy,
-  refine Φ.mem_flag_iff_comp.mpr (λ w hzw, _),
+  refine Φ.mem_flag_iff_comp.2 (λ w hzw, _),
   have hwi := h w,
   simp only [set.mem_Ioo, not_and, not_lt] at hwi,
   rcases lt_trichotomy x w with hxw | hxw | hxw,
@@ -440,7 +441,7 @@ instance [order_bot α] [grade_order α] (Φ : flag α) : grade_order Φ :=
 { grade := λ a, grade a.val,
   grade_bot := grade_bot,
   strict_mono := λ _ _ h, grade_strict_mono h,
-  hcovers := λ _ _ hcov, ((cover_iff_flag_cover _ _).mp hcov).grade }
+  hcovers := λ _ _ hcov, ((cover_iff_flag_cover _ _).1 hcov).grade }
 
 end partial_order
 end flag
@@ -453,9 +454,8 @@ variables [partial_order α] [bounded_order α] [grade_order α]
 /-- A graded partial order has an element of grade `j` when `j ≤ grade ⊤`. -/
 theorem ex_of_grade : is_grade α j :=
 begin
-  let Φ : flag α := default _,
-  cases @ex_of_grade_lin Φ _ _ _ j with a ha,
-  exact ⟨a.val, ha⟩,
+  cases @ex_of_grade_lin (default _ : flag α) _ _ _ j with _ ha,
+  exact ⟨_, ha⟩,
 end
 
 /-- The element of a certain grade in a graded partial order. -/
@@ -496,7 +496,7 @@ begin
     { rcases this with ⟨y, hgy, h⟩,
       rw [hgx, ←hgy],
       exact nat.succ_le_of_lt
-        (lt_of_le_of_lt (H n (lt_add_one n) y hgy) (grade_strict_mono (oiso.lt_iff_lt.mpr h))) },
+        (lt_of_le_of_lt (H n (lt_add_one n) y hgy) (grade_strict_mono (oiso.lt_iff_lt.2 h))) },
   cases flag.ex_flag_mem x with Φ hx,
   let x' : Φ := ⟨x, hx⟩,
   have hn : n < grade_top Φ + 1 := begin
@@ -544,7 +544,7 @@ begin
   cases hb with hb hb,
     { left,
       rwa grade_top_eq_of_order_iso oiso },
-  exact or.inr (λ x y, (con_order_iso_iff_con oiso x y).mpr (hb _ _)),
+  exact or.inr (λ x y, (con_order_iso_iff_con oiso x y).2 (hb _ _)),
 end
 
 /-- Order isomorphisms preserve total connectedness. -/
@@ -555,7 +555,7 @@ theorem tcon_order_iso_iff_tcon (oiso : α ≃o β) : total_connected α ↔ tot
 private lemma scon_order_iso_of_scon (oiso : α ≃o β) :
   graded.strong_connected β → graded.strong_connected α :=
 λ hb _ _ hxy, (@tcon_order_iso_iff_tcon _ _ _ (set.Icc.bounded_order hxy) (set.Icc.graded _) _
-  (set.Icc.bounded_order (oiso.monotone hxy)) (set.Icc.graded _) (oiso.Icc _ _)).mpr (hb _)
+  (set.Icc.bounded_order (oiso.monotone hxy)) (set.Icc.graded _) (oiso.Icc _ _)).2 (hb _)
 
 /-- Order isomorphisms preserve strong connectedness. -/
 theorem scon_order_iso_iff_scon (oiso : α ≃o β) :
@@ -566,7 +566,7 @@ theorem scon_order_iso_iff_scon (oiso : α ≃o β) :
 theorem tcon_of_scon (α : Type*) [partial_order α] [bounded_order α] [grade_order α] :
   strong_connected α → total_connected α :=
 λ h, (@tcon_order_iso_iff_tcon α (set.Icc ⊥ (⊤ : α)) _ _ _ _ (set.Icc.bounded_order bot_le)
-  (set.Icc.graded bot_le) (set.Icc.self_order_iso_bot_top α)).mpr (h bot_le)
+  (set.Icc.graded bot_le) (set.Icc.self_order_iso_bot_top α)).2 (h bot_le)
 
 end order_iso
 
@@ -659,7 +659,7 @@ begin
   have heq := h ga,
   have hga : (graded.idx' Φ ga) = a' := begin
     symmetry,
-    apply (grade_eq_iff_idx ga a').mp,
+    apply (graded.grade_eq_iff_idx ga a').1,
     refl,
   end,
   rw hga at heq,
@@ -678,7 +678,7 @@ def j_adjacent (j : fin (grade_top α + 1)) (Φ Ψ : flag α) : Prop :=
 ∀ i, (graded.idx' Φ i).val = (graded.idx' Ψ i).val ↔ i ≠ j
 
 instance (j : fin (grade_top α + 1)) : is_irrefl (flag α) (j_adjacent j) :=
-⟨λ _ h, (h j).mp rfl rfl⟩
+⟨λ _ h, (h j).1 rfl rfl⟩
 
 /-- j-adjacency is symmetric. -/
 theorem j_adjacent.symm {j : fin (grade_top α + 1)} {Φ Ψ : flag α} :
@@ -701,7 +701,7 @@ begin
       symmetry' at hja,
       rw subtype.ext_iff_val at hja,
       have : grade a' = j := sorry,
-      rw grade_eq_iff_idx at this,
+      rw graded.grade_eq_iff_idx at this,
       --rw ←this at hj,
       sorry,
     },

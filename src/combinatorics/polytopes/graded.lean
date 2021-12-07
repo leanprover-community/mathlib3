@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Grayson Burton, Violeta Hernández Palacios.
+Authors: Grayson Burton, Violeta Hernández Palacios
 -/
 import category_theory.conj
 import data.fin.basic
@@ -51,7 +51,7 @@ by by_contra hne; push_neg at hne; exact hnxy ⟨hxy, λ z ⟨hl, hr⟩, hne z h
 
 /-- If an element covers another, they define an empty open interval. -/
 lemma set.Ioo_is_empty_of_covers [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
-λ ⟨_, hr⟩, set.eq_empty_iff_forall_not_mem.mpr hr
+λ ⟨_, hr⟩, set.eq_empty_iff_forall_not_mem.2 hr
 
 /-- A natural covers another iff it's a successor. -/
 lemma nat.cover_iff_succ {m n : ℕ} : m ⋖ n ↔ n = m + 1 :=
@@ -122,14 +122,26 @@ def grade_order.rel_hom (α : Type*) [preorder α] [order_bot α] [grade_order �
 
 /-- Natural numbers are graded. -/
 instance : grade_order ℕ :=
-⟨id, rfl, strict_mono_id, λ _ _, nat.cover_iff_succ.mp⟩
+⟨id, rfl, strict_mono_id, λ _ _, nat.cover_iff_succ.1⟩
 
 /-- `fin (n + 1)` is graded. -/
 instance (n : ℕ) : grade_order (fin (n + 1)) :=
 { grade := λ n, n,
   grade_bot := refl _,
   strict_mono := strict_mono_id,
-  hcovers := λ _ _ h, nat.cover_iff_succ.mp ((fin.cover_iff_cover _ _).mp h) }
+  hcovers := λ _ _ h, nat.cover_iff_succ.1 ((fin.cover_iff_cover _ _).1 h) }
+
+instance {α β : Type*} [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β]
+  [grade_order β] : grade_order (α × β) :=
+{ grade := λ a, grade a.fst + grade a.snd,
+  grade_bot := begin
+    convert (zero_add _).trans grade_bot,
+    exact grade_bot,
+  end,
+  strict_mono := begin
+    sorry
+  end,
+  hcovers := sorry }
 
 end order_bot
 
@@ -190,7 +202,7 @@ by { rw nat.cover_iff_succ, exact covers.grade }
 /-- A minor strengthening of `hcovers`. -/
 lemma covers_iff_grade_succ_and_lt [preorder α] [order_bot α] [grade_order α] {x y : α} :
   x < y ∧ grade y = grade x + 1 ↔ x ⋖ y :=
-⟨λ ⟨hxy, h⟩, ⟨hxy, (λ z ⟨hzl, hzr⟩, (nat.cover_iff_succ.mpr h).right (grade z)
+⟨λ ⟨hxy, h⟩, ⟨hxy, (λ z ⟨hzl, hzr⟩, (nat.cover_iff_succ.2 h).right (grade z)
   ⟨grade_strict_mono hzl, grade_strict_mono hzr⟩)⟩, λ h, ⟨h.left, h.grade⟩⟩
 
 end order_bot
@@ -272,14 +284,15 @@ lemma grade_ne_iff_ne (x y : α) : grade x ≠ grade y ↔ x ≠ y := grade_stri
 
 /-- In linear orders, `hcovers` is an equivalence. -/
 lemma covers_iff_grade_eq_succ_grade (a b : α) : a ⋖ b ↔ grade b = grade a + 1 :=
-⟨covers.grade, λ hba, covers_iff_grade_succ_and_lt.mp
-  ⟨(grade_lt_iff_lt _ _).mp (nat.lt_of_succ_le (le_of_eq hba.symm)), hba⟩⟩
+⟨covers.grade, λ hba, covers_iff_grade_succ_and_lt.1
+  ⟨(grade_lt_iff_lt _ _).1 (nat.lt_of_succ_le (le_of_eq hba.symm)), hba⟩⟩
 
 /-- Two elements in a linear order cover each other iff their grades do. -/
 lemma cover_iff_nat_cover (a b : α) : a ⋖ b ↔ grade a ⋖ grade b :=
 begin
   split,
-  { rw nat.cover_iff_succ, exact covers.grade },
+    { rw nat.cover_iff_succ,
+      exact covers.grade },
   intro hab,
   rw nat.cover_iff_succ at hab,
   rwa covers_iff_grade_eq_succ_grade,
@@ -326,7 +339,7 @@ def order_embedding.grade_fin [order_top α] : α ↪o fin (grade_top α + 1) :=
   map_rel_iff' := grade_le_iff_le }
 
 /-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. This is generalized to a
-    partial order in `ex_of_grade`. -/
+partial order in `ex_of_grade`. -/
 lemma ex_of_grade_lin (j : fin (grade_top α + 1)) : is_grade α j :=
 (nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, grade_bot⟩ ⟨⊤, rfl⟩ _
   ⟨zero_le _, nat.le_of_lt_succ j.prop⟩
@@ -348,7 +361,7 @@ end linear_order
 
 namespace polytope
 
-/-- Proper elements are those that are maximal nor minimal. -/
+/-- Proper elements are those that are neither maximal nor minimal. -/
 def is_proper [has_lt α] (b : α) : Prop := ∃ a c, a < b ∧ b < c
 
 /-- The subtype of proper elements. -/
@@ -381,8 +394,7 @@ variables [bounded_order α]
 lemma not_top_proper : ¬ is_proper (⊤ : α) := λ ⟨_, _, ⟨_, h⟩⟩, not_le_of_gt h le_top
 
 /-- Elements other than the bottom and top ones are proper. -/
-lemma proper.ne_bot_top (a : α) :
-  polytope.is_proper a → a ≠ ⊥ ∧ a ≠ ⊤ :=
+lemma proper.ne_bot_top (a : α) : polytope.is_proper a → a ≠ ⊥ ∧ a ≠ ⊤ :=
 begin
   intro ha,
   split,
@@ -402,7 +414,7 @@ variables [bounded_order α]
 
 /-- The improper elements are exactly the bottom and top ones. -/
 lemma proper_iff_ne_bot_top (a : α) : polytope.is_proper a ↔ a ≠ ⊥ ∧ a ≠ ⊤ :=
-⟨proper.ne_bot_top a, λ ⟨hl, hr⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.mpr hl, lt_top_iff_ne_top.mpr hr⟩⟩
+⟨proper.ne_bot_top a, λ ⟨hl, hr⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.2 hl, lt_top_iff_ne_top.2 hr⟩⟩
 
 variables [grade_order α]
 
@@ -469,9 +481,9 @@ end
 end bounded_order
 end partial_order
 
-/-- Two elements of a type are connected by a relation when there exists a path of connected
-    elements. This is essentially an inductive version of an equivalence closure. -/
- -- Todo(Vi): If someone else comes up with connected graphs sometime, we might want to rework this.
+/-- Two elements of a type are connected by a relation when there exists a path of related
+elements. This is essentially an inductive version of an equivalence closure. -/
+ -- Todo(Vi): If someone comes up with connected graphs sometime, we might want to rework this.
 inductive polytope.path (r : α → α → Prop) : α → α → Prop
 | start (x : α) : polytope.path x x
 | next (x y z : α) : polytope.path x y → r y z → polytope.path x z
@@ -485,7 +497,7 @@ variables {r : α → α → Prop} {a b c : α}
 @[refl]
 lemma refl : path r a a := path.start a
 
-/-- Comparable proper elements are connected. -/
+/-- Related elements are connected. -/
 lemma from_rel : r a b → path r a b := (path.next a a b) (path.refl)
 
 /-- If `a` and `b` are related, and `b` and `c` are connected, then `a` and `c` are connected. -/
@@ -579,7 +591,7 @@ namespace order_iso
 variables [partial_order α] [partial_order β] (oiso : α ≃o β)
 
 /-- Order isomorphisms preserve covering. -/
-private lemma cover' (x y : α) : x ⋖ y → oiso x ⋖ oiso y :=
+private lemma covers' (x y : α) : x ⋖ y → oiso x ⋖ oiso y :=
 begin
   intro hxy,
   use oiso.strict_mono hxy.left,
@@ -598,8 +610,8 @@ end
 /-- Order isomorphisms preserve covering. -/
 protected lemma covers (x y : α) : x ⋖ y ↔ oiso x ⋖ oiso y :=
 begin
-  use cover' oiso x y,
-  have := cover' oiso.symm (oiso x) (oiso y),
+  use covers' oiso x y,
+  have := covers' oiso.symm (oiso x) (oiso y),
   simp at this,
   exact this,
 end
@@ -645,7 +657,7 @@ variables [bounded_order α] [grade_order α] [bounded_order β] [grade_order β
 
 /-- The map from proper elements to proper elements given by an order isomorphism. -/
 private def proper_aux : proper α → proper β :=
-λ x, ⟨oiso x, (graded.proper_order_iso_iff_proper oiso x).mp x.prop⟩
+λ x, ⟨oiso x, (graded.proper_order_iso_iff_proper oiso x).1 x.prop⟩
 
 /-- An isomorphism between graded posets extends to an isomorphism between proper elements. -/
 def proper : proper α ≃o proper β :=
@@ -670,8 +682,8 @@ begin
   apply path.append_right hxy',
   intro hne,
   cases hyz (λ h, hne (congr_arg oiso h : oiso y = oiso z)) with hyz hyz,
-    { exact or.inl (oiso.lt_iff_lt.mpr hyz) },
-  exact or.inr (oiso.lt_iff_lt.mpr hyz),
+    { exact or.inl (oiso.lt_iff_lt.2 hyz) },
+  exact or.inr (oiso.lt_iff_lt.2 hyz),
 end
 
 /-- Two elements are connected iff their maps under an isomorphism are. -/

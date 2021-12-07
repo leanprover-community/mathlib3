@@ -42,8 +42,8 @@ end
 
 /-- A set of nats without gaps is an interval. -/
 lemma all_icc_of_ex_ioo {P : ℕ → Prop}
-(hP : ∀ a b, P a → P b → (nonempty (set.Ioo a b)) → ∃ c ∈ set.Ioo a b, P c) (a b : ℕ) (ha : P a)
-(hb : P b) :
+  (hP : ∀ a b, P a → P b → (nonempty (set.Ioo a b)) → ∃ c ∈ set.Ioo a b, P c) (a b : ℕ) (ha : P a)
+  (hb : P b) :
   ∀ c ∈ set.Icc a b, P c :=
 begin
   rintros c ⟨hac, hcb⟩,

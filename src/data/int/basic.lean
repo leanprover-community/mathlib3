@@ -371,6 +371,36 @@ lemma nat_abs_eq_nat_abs_iff_of_nonpos_of_nonneg {a b : ℤ} (ha : a ≤ 0) (hb 
 by simpa only [int.nat_abs_neg]
   using nat_abs_eq_nat_abs_iff_of_nonneg_of_nonneg (neg_nonneg_of_nonpos ha) hb
 
+section intervals
+open set
+lemma strict_mono_on_nat_abs : strict_mono_on nat_abs (Ici 0) :=
+begin
+  unfold strict_mono_on,
+  intros a ha b hb hab,
+  unfold Ici at ha hb,
+  simp at ha hb,
+  exact nat_abs_lt_nat_abs_of_nonneg_of_lt ha hab,
+end
+
+lemma strict_anti_on_nat_abs : strict_anti_on nat_abs (Iic 0) :=
+begin
+  unfold strict_anti_on,
+  intros a ha b hb hab,
+  unfold Iic at ha hb,
+  simp at ha hb,
+  suffices : (-b).nat_abs < (-a).nat_abs, {
+    simp at this, exact this,
+  },
+  apply nat_abs_lt_nat_abs_of_nonneg_of_lt;
+  simpa,
+end
+
+lemma inj_on_nat_abs_Ici : inj_on nat_abs (Ici 0) := strict_mono_on_nat_abs.inj_on
+
+lemma inj_on_nat_abs_Iic : inj_on nat_abs (Iic 0) := strict_anti_on_nat_abs.inj_on
+
+end intervals
+
 /-! ### `/`  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl

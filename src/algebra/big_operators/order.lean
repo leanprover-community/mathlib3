@@ -373,6 +373,14 @@ calc f i = ∏ k in {i}, f k : prod_singleton.symm
   prod_lt_prod_of_subset' (singleton_subset_iff.2 hi) hj (mt mem_singleton.1 hij) hlt $
     λ k hks hki, hle k hks (mt mem_singleton.2 hki)
 
+@[to_additive sum_pos] lemma one_lt_prod (h : ∀i ∈ s, 1 < f i) (hs : s.nonempty) :
+  1 < (∏ i in s, f i) :=
+lt_of_le_of_lt (by rw prod_const_one) $ prod_lt_prod_of_nonempty' hs h
+
+@[to_additive] lemma prod_lt_one (h : ∀i ∈ s, f i < 1) (hs : s.nonempty) :
+  (∏ i in s, f i) < 1 :=
+(prod_lt_prod_of_nonempty' hs h).trans_le (by rw prod_const_one)
+
 end ordered_cancel_comm_monoid
 
 section linear_ordered_cancel_comm_monoid

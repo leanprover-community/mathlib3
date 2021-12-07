@@ -343,6 +343,14 @@ by { rw [sq, sq], exact nat_abs_lt_iff_mul_self_lt }
 lemma nat_abs_le_iff_sq_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a ^ 2 ≤ b ^ 2 :=
 by { rw [sq, sq], exact nat_abs_le_iff_mul_self_le }
 
+@[simp] lemma nat_abs_dvd_iff_dvd {a b : ℤ} : a.nat_abs ∣ b.nat_abs ↔ a ∣ b :=
+begin
+  refine ⟨_, λ ⟨k, hk⟩, ⟨k.nat_abs, hk.symm ▸ nat_abs_mul a k⟩⟩,
+  rintro ⟨k, hk⟩,
+  rw [←nat_abs_of_nat k, ←nat_abs_mul, nat_abs_eq_nat_abs_iff, neg_mul_eq_mul_neg] at hk,
+  cases hk; exact ⟨_, hk⟩
+end
+
 /-! ### `/`  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
@@ -1037,6 +1045,15 @@ begin
 end
 
 @[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
+
+lemma nat_abs_le_of_dvd_ne_zero {s t : ℤ} (hst : s ∣ t) (ht : t ≠ 0) : nat_abs s ≤ nat_abs t :=
+not_lt.mp (mt (eq_zero_of_dvd_of_nat_abs_lt_nat_abs hst) ht)
+
+lemma nat_abs_eq_of_dvd_dvd {s t : ℤ} (hst : s ∣ t) (hts : t ∣ s) : nat_abs s = nat_abs t :=
+nat.dvd_antisymm (nat_abs_dvd_iff_dvd.mpr hst) (nat_abs_dvd_iff_dvd.mpr hts)
+
+lemma div_dvd_of_ne_zero_dvd {s t : ℤ} (hst : s ∣ t) (hs : s ≠ 0) : (t / s) ∣ t :=
+by { rcases hst with ⟨c, hc⟩, simp [hc, int.mul_div_cancel_left _ hs] }
 
 /-! ### to_nat -/
 

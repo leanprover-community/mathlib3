@@ -95,6 +95,10 @@ noncomputable def coord (i : ι) : P →ᵃ[k] k :=
   map_vadd' := λ q v, by rw [vadd_vsub_assoc, linear_map.map_add, vadd_eq_add, linear_map.neg_apply,
     sub_add_eq_sub_sub_swap, add_comm, sub_eq_add_neg], }
 
+@[simp] lemma linear_eq_sum_coords (i : ι) :
+  (b.coord i).linear = -(b.basis_of i).sum_coords :=
+rfl
+
 @[simp] lemma coord_apply_eq (i : ι) :
   b.coord i (b.points i) = 1 :=
 by simp only [coord, basis.coe_sum_coords, linear_equiv.map_zero, linear_equiv.coe_coe,
@@ -184,8 +188,17 @@ begin
   simp [b.coord_apply_combination_of_mem hi hw],
 end
 
-/-- The vector of barycentric coordinates of a given point with respect to an affine basis. -/
-noncomputable def coords (q : P) (i : ι) := b.coord i q
+/-- Barycentric coordinates as an affine map. -/
+noncomputable def coords : P →ᵃ[k] ι → k :=
+{ to_fun    := λ q i, b.coord i q,
+  linear    :=
+  { to_fun    := λ v i, -(b.basis_of i).sum_coords v,
+    map_add'  := λ v w, by { ext i, simp only [linear_map.map_add, pi.add_apply, neg_add], },
+    map_smul' := λ t v, by { ext i, simpa only [linear_map.map_smul, pi.smul_apply, smul_neg] } },
+  map_vadd' := λ p v, by
+    { ext i,
+      simp only [linear_eq_sum_coords, linear_map.coe_mk, linear_map.neg_apply, pi.vadd_apply',
+        affine_map.map_vadd], }, }
 
 @[simp] lemma coords_apply (q : P) (i : ι) :
   b.coords q i = b.coord i q :=
@@ -234,7 +247,7 @@ begin
 end
 
 /-- Given a family of points `p : ι' → P` and an affine basis `b`, if the matrix whose rows are the
-coordinates of `p` with respect `b` has a left inverse, then `p` spans the the entire space. -/
+coordinates of `p` with respect `b` has a left inverse, then `p` spans the entire space. -/
 lemma affine_span_eq_top_of_to_matrix_left_inv [decidable_eq ι] [nontrivial k]
   (p : ι' → P) {A : matrix ι ι' k} (hA : A ⬝ b.to_matrix p = 1) : affine_span k (range p) = ⊤ :=
 begin

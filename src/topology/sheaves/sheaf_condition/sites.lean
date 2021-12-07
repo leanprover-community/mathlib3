@@ -317,7 +317,7 @@ pi.lift (λ f, pi.π _ (index_of_hom U f) ≫ F.map (eq_to_hom (index_of_hom_spe
 Even though `first_obj_to_pi_opens` and `pi_opens_to_first_obj` are not inverse to each other,
 applying them both after a fork map `s.ι` does nothing. The intuition here is that a compatible
 family `s : Π i : ι, F.obj (op (U i))` does not care about duplicate open sets:
-If `U i = U j` the the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
+If `U i = U j` the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
 hence `s i = s j` (module an `eq_to_hom` arrow).
 -/
 lemma fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq
@@ -467,9 +467,7 @@ begin
   refine equivalence.mk (Sheaf_sites_to_sheaf_spaces C X) (Sheaf_spaces_to_sheaf_sites C X) _ _,
   all_goals
   { refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
-    ext U, dsimp,
-    erw [nat_trans.comp_app, nat_trans.comp_app, eq_to_hom_refl G.1 rfl, eq_to_hom_refl F.1 rfl,
-      nat_trans.id_app G.1, category.comp_id, nat_trans.id_app F.1, category.id_comp], },
+    ext, dsimp [eq_to_hom], simp },
 end
 
 /-- The two forgetful functors are isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
@@ -515,6 +513,15 @@ open category_theory topological_space Top opposite
 variables {C : Type u} [category.{v} C] [limits.has_products C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
+
+/-- The empty component of a sheaf is terminal -/
+def is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=
+((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F).is_terminal_of_bot_cover ∅ (by tidy)
+
+/-- A variant of `is_terminal_of_empty` that is easier to `apply`. -/
+def is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ∅) :
+  limits.is_terminal (F.val.obj (op U)) :=
+by convert F.is_terminal_of_empty
 
 /-- If a family `B` of open sets forms a basis of the topology on `X`, and if `F'`
     is a sheaf on `X`, then a homomorphism between a presheaf `F` on `X` and `F'`

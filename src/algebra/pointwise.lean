@@ -3,11 +3,11 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
-import group_theory.submonoid.basic
 import algebra.big_operators.basic
-import group_theory.group_action.group
-import data.set.finite
 import algebra.smul_with_zero
+import data.set.finite
+import group_theory.group_action.group
+import group_theory.submonoid.basic
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.
@@ -407,6 +407,14 @@ lemma inter_inv [has_inv α] : (s ∩ t)⁻¹ = s⁻¹ ∩ t⁻¹ := preimage_in
 lemma union_inv [has_inv α] : (s ∪ t)⁻¹ = s⁻¹ ∪ t⁻¹ := preimage_union
 
 @[simp, to_additive]
+lemma Inter_inv {ι : Sort*} [has_inv α] (s : ι → set α) : (⋂ i, s i)⁻¹ = ⋂ i, (s i)⁻¹ :=
+preimage_Inter
+
+@[simp, to_additive]
+lemma Union_inv {ι : Sort*} [has_inv α] (s : ι → set α) : (⋃ i, s i)⁻¹ = ⋃ i, (s i)⁻¹ :=
+preimage_Union
+
+@[simp, to_additive]
 lemma compl_inv [has_inv α] : (sᶜ)⁻¹ = (s⁻¹)ᶜ := preimage_compl
 
 @[simp, to_additive]
@@ -428,6 +436,10 @@ hs.preimage $ inv_injective.inj_on _
 
 @[to_additive] lemma inv_singleton {β : Type*} [group β] (x : β) : ({x} : set β)⁻¹ = {x⁻¹} :=
 by { ext1 y, rw [mem_inv, mem_singleton_iff, mem_singleton_iff, inv_eq_iff_inv_eq, eq_comm], }
+
+@[to_additive] protected lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
+by simp_rw [←image_inv, ←image2_mul, image_image2, image2_image_left, image2_image_right,
+              mul_inv_rev, image2_swap _ s t]
 
 /-! ### Properties about scalar multiplication -/
 
@@ -505,6 +517,10 @@ theorem range_smul_range [has_scalar α β] {ι κ : Type*} (b : ι → α) (c :
 ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_smul.1 hx in
   ⟨(i, j), hpq ▸ hi ▸ hj ▸ rfl⟩,
 λ ⟨⟨i, j⟩, h⟩, set.mem_smul.2 ⟨b i, c j, ⟨i, rfl⟩, ⟨j, rfl⟩, h⟩⟩
+
+@[simp, to_additive]
+lemma smul_singleton [has_scalar α β] (a : α) (b : β) : a • ({b} : set β) = {a • b} :=
+image_singleton
 
 @[simp, to_additive]
 lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a • t :=

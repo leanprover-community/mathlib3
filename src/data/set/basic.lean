@@ -446,6 +446,11 @@ lemma not_subset_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
   ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
 by simp [subset_def]
 
+lemma univ_unique [unique α] : @set.univ α = {default α} :=
+set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x $ default α
+
+/-! ### Diagonal -/
+
 /-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
 

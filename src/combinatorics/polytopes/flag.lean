@@ -117,14 +117,14 @@ end
 variables [partial_order α] (Φ : flag α)
 
 /-- `⊥` belongs to every flag. -/
-theorem bot_in_flag [order_bot α] : (⊥ : α) ∈ Φ :=
+theorem bot_in_flag [order_bot α] : ⊥ ∈ Φ :=
 by rw mem_flag_iff_comp; exact λ _ h, or.inl (bot_lt_iff_ne_bot.2 h.symm)
 
 instance [order_bot α] : order_bot Φ :=
 subtype.order_bot Φ.bot_in_flag
 
 /-- `⊤` belongs to every flag. -/
-theorem top_in_flag [order_top α] : (⊤ : α) ∈ Φ :=
+theorem top_in_flag [order_top α] : ⊤ ∈ Φ :=
 by rw mem_flag_iff_comp; exact λ _ h, or.inr (lt_top_iff_ne_top.2 h.symm)
 
 instance [order_top α] : order_top Φ :=
@@ -449,7 +449,7 @@ end flag
 namespace graded
 section partial_order
 variables [partial_order α] [bounded_order α] [grade_order α]
-(j : fin (grade_top α + 1))
+(j : fin (grade (⊤ : α) + 1))
 
 /-- A graded partial order has an element of grade `j` when `j ≤ grade ⊤`. -/
 theorem ex_of_grade : is_grade α j :=
@@ -464,7 +464,7 @@ classical.some (ex_of_grade j)
 
 /-- Like `idx`, but allows specifying the type explicitly. -/
 noncomputable abbreviation idx' (α : Type*) [partial_order α] [bounded_order α] [grade_order α]
-  (j : fin (grade_top α + 1)) : α :=
+  (j : fin (grade ⊤ + 1)) : α :=
 idx j
 
 /-- The defining property of `idx`. -/
@@ -499,7 +499,7 @@ begin
         (lt_of_le_of_lt (H n (lt_add_one n) y hgy) (grade_strict_mono (oiso.lt_iff_lt.2 h))) },
   cases flag.ex_flag_mem x with Φ hx,
   let x' : Φ := ⟨x, hx⟩,
-  have hn : n < grade_top Φ + 1 := begin
+  have hn : n < grade (⊤ : Φ) + 1 := begin
     refine nat.lt_succ_of_le (le_trans (nat.le_succ n) _),
     rw ←hgx,
     exact grade_le_grade_top x,
@@ -529,13 +529,8 @@ begin
 end
 
 /-- Order isomorphisms preserve top grades. -/
-lemma grade_top_eq_of_order_iso (oiso : α ≃o β) : grade_top α = grade_top β :=
-begin
-  change grade_top α with grade (⊤ : α),
-  change grade_top β with grade (⊤ : β),
-  rw ←oiso.map_top,
-  exact grade_eq_of_order_iso oiso ⊤
-end
+lemma grade_top_eq_of_order_iso (oiso : α ≃o β) : grade (⊤ : α) = grade (⊤ : β) :=
+by rw ←oiso.map_top; exact grade_eq_of_order_iso oiso ⊤
 
 /-- Order isomorphisms preserve total connectedness. -/
 private lemma tcon_order_iso_of_tcon (oiso : α ≃o β) : total_connected β → total_connected α :=
@@ -571,7 +566,7 @@ theorem tcon_of_scon (α : Type*) [partial_order α] [bounded_order α] [grade_o
 end order_iso
 
 section linear_order
-variables [linear_order α] [bounded_order α] [grade_order α] (j : fin (grade_top α + 1))
+variables [linear_order α] [bounded_order α] [grade_order α] (j : fin (grade (⊤ : α) + 1))
 
 /-- `idx j` is the unique element of grade `j` in the linear order. -/
 theorem grade_eq_iff_idx (a : α) : grade a = j ↔ a = graded.idx j :=
@@ -586,7 +581,7 @@ begin
 end
 
 /-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
-noncomputable def order_iso_fin : α ≃o fin (grade_top α + 1) :=
+noncomputable def order_iso_fin : α ≃o fin (grade ⊤ + 1) :=
 rel_iso.of_surjective order_embedding.grade_fin $ λ x,
   ⟨graded.idx x, by simp [order_embedding.grade_fin]⟩
 
@@ -596,11 +591,11 @@ fintype.of_bijective (order_iso_fin).inv_fun order_iso_fin.symm.bijective
 
 /-- The cardinality of a linear order is its top grade plus one. -/
 @[simp]
-theorem fincard_eq_gt [fintype α] : fintype.card α = grade_top α + 1 :=
+theorem fincard_eq_gt [fintype α] : fintype.card α = grade (⊤ : α) + 1 :=
 begin
   cases hfc : fintype.card α, { rw fintype.card_eq_zero_iff at hfc, exact hfc.elim' ⊤ },
   rw [fintype.card_of_bijective order_iso_fin.bijective,
-      fintype.card_fin (grade_top α + 1)] at hfc,
+      fintype.card_fin (grade (⊤ : α) + 1)] at hfc,
   rw ←hfc
 end
 
@@ -611,7 +606,7 @@ variables [partial_order α] [bounded_order α] [grade_order α] [fintype α]
 
 /-- The cardinality of any flag is the grade of the top element. In other words, in a graded poset,
 all flags have the same cardinality. -/
-theorem flag_card_eq_top_grade_succ (Φ : flag α) [fintype Φ] : fintype.card Φ = grade_top α + 1 :=
+theorem flag_card_eq_top_grade_succ (Φ : flag α) [fintype Φ] : fintype.card Φ = grade (⊤ : α) + 1 :=
 fincard_eq_gt
 
 /-- Any two flags have the same cardinality. -/
@@ -674,14 +669,14 @@ lemma eq_iff_eq_idx (Φ Ψ : flag α) : Φ = Ψ ↔ ∀ j, (graded.idx' Φ j).va
 
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
 adjacent to itself. -/
-def j_adjacent (j : fin (grade_top α + 1)) (Φ Ψ : flag α) : Prop :=
+def j_adjacent (j : fin (grade ⊤ + 1)) (Φ Ψ : flag α) : Prop :=
 ∀ i, (graded.idx' Φ i).val = (graded.idx' Ψ i).val ↔ i ≠ j
 
-instance (j : fin (grade_top α + 1)) : is_irrefl (flag α) (j_adjacent j) :=
+instance (j : fin (grade ⊤ + 1)) : is_irrefl (flag α) (j_adjacent j) :=
 ⟨λ _ h, (h j).1 rfl rfl⟩
 
 /-- j-adjacency is symmetric. -/
-theorem j_adjacent.symm {j : fin (grade_top α + 1)} {Φ Ψ : flag α} :
+theorem j_adjacent.symm {j : fin (grade ⊤ + 1)} {Φ Ψ : flag α} :
   j_adjacent j Φ Ψ → j_adjacent j Ψ Φ :=
 by intros h i; rw ←(h i); exact eq_comm
 
@@ -737,7 +732,7 @@ def total_flag_connected (α : Type*) [preorder α] : Prop :=
 /-- Any graded poset of top grade less or equal to 1 has a single flag. -/
 lemma flag_eq_of_grade_le_two (α : Type*) [partial_order α] [bounded_order α] [grade_order α]
   (Φ Ψ : flag α) :
-  grade_top α ≤ 1 → Φ = Ψ :=
+  grade (⊤ : α) ≤ 1 → Φ = Ψ :=
 begin
   intro h,
   rw flag.eq_iff_eq_idx,
@@ -755,7 +750,7 @@ end
 
 /-- Any graded poset of top grade less or equal to 2 is totally flag-connected. -/
 theorem tfcon_of_grade_le_two (α : Type*) [partial_order α] [bounded_order α] [grade_order α] :
-  grade_top α ≤ 2 → total_flag_connected α :=
+  grade (⊤ : α) ≤ 2 → total_flag_connected α :=
 begin
   intro h,
   cases eq_or_lt_of_le h with h h, {
@@ -768,11 +763,11 @@ end
 /-- Two adjacent flags have a proper element in common, as long as their grade exceeds 2, and a few
 other simple conditions hold. -/
 private lemma proper_flag_intersect_of_grade [partial_order α] [bounded_order α] [grade_order α]
-  {Φ Ψ : flag α} (hg : 2 < grade_top α) {j : fin (grade_top α + 1)} (hΦΨ : flag.j_adjacent j Φ Ψ)
-  (k ∈ set.Ioo 0 (grade_top α)) (hjk : j.val ≠ k) :
+  {Φ Ψ : flag α} (hg : 2 < grade (⊤ : α)) {j : fin (grade ⊤ + 1)} (hΦΨ : flag.j_adjacent j Φ Ψ)
+  (k ∈ set.Ioo 0 (grade (⊤ : α))) (hjk : j.val ≠ k) :
   ∃ c : proper α, c.val ∈ Φ.val ∩ Ψ.val :=
 begin
-  let k : fin (grade_top α + 1) := ⟨k, nat.lt.step H.right⟩,
+  let k : fin (grade ⊤ + 1) := ⟨k, nat.lt.step H.right⟩,
   let idx := idx' Φ k,
   refine ⟨⟨idx.val, _⟩, idx.prop, _⟩,
     { rw proper_iff_grade_iio,
@@ -791,7 +786,7 @@ end
 /-- If two flags are flag-connected, then any two elements in these flags are connected, as long as the
 grade exceeds 2. -/
 lemma con_of_mem_fcon [partial_order α] [bounded_order α] [grade_order α]
-  {Φ Ψ : flag α} (hg : 2 < grade_top α) (h : flag_connected Φ Ψ) {a b : proper α} :
+  {Φ Ψ : flag α} (hg : 2 < grade (⊤ : α)) (h : flag_connected Φ Ψ) {a b : proper α} :
   a.val ∈ Φ → b.val ∈ Ψ → connected a b :=
 begin
   intros ha hb,
@@ -818,10 +813,9 @@ theorem tcon_of_tfcon (α : Type*) [partial_order α] [bounded_order α] [grade_
   total_flag_connected α → total_connected α :=
 begin
   intro h,
-  by_cases hg : grade_top α ≤ 2,
+  by_cases hg : grade ⊤ ≤ 2,
     { exact tcon_of_grade_le_two α hg },
-  right,
-  intros a b,
+  refine or.inr (λ a b, _),
   cases flag.ex_flag_mem a.val with Φ hΦ,
   cases flag.ex_flag_mem b.val with Ψ hΨ,
   exact con_of_mem_fcon (lt_of_not_ge hg) (h Φ Ψ) hΦ hΨ,
@@ -857,7 +851,7 @@ sorry
 
 /-- Strong connectedness is equivalent to strong flag connectedness, up to a given top grade. -/
 private lemma scon_iff_sfcon_aux [partial_order α] [bounded_order α] [grade_order α] {n : ℕ} :
-  grade_top α ≤ n → strong_connected α → strong_flag_connected α :=
+  grade (⊤ : α) ≤ n → strong_connected α → strong_flag_connected α :=
 begin
   /-
   induction n with n hn, {

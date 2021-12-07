@@ -144,14 +144,6 @@ instance {α β : Type*} [preorder α] [order_bot α] [grade_order α] [preorder
   hcovers := sorry }
 
 end order_bot
-
-section bounded_order
-variables (α) [bounded_order α] [grade_order α]
-
-/-- The grade of `⊤`. -/
-def grade_top : ℕ := grade (⊤ : α)
-
-end bounded_order
 end preorder
 
 section partial_order
@@ -210,12 +202,12 @@ end order_bot
 section bounded_order
 variables [bounded_order α] [grade_order α]
 
-lemma grade_le_grade_top (a : α) : grade a ≤ grade_top α := grade_mono le_top
+lemma grade_le_grade_top (a : α) : grade a ≤ grade (⊤ : α) := grade_mono le_top
 
 variables (α)
 
 instance : grade_order (order_dual α) :=
-{ grade := λ a : α, grade_top α - grade a,
+{ grade := λ a : α, grade (⊤ : α) - grade a,
   grade_bot := nat.sub_self _,
   strict_mono := begin
     refine λ (a b : α) hab, _,
@@ -224,22 +216,19 @@ instance : grade_order (order_dual α) :=
   hcovers := begin
     refine λ (x y : α) hxy, _,
     rw ←dual_cover_iff_cover at hxy,
-    rw [hxy.grade, ←nat.sub_sub, grade_top,
+    rw [hxy.grade, ←nat.sub_sub,
         nat.sub_add_cancel (tsub_pos_of_lt (grade_strict_mono (hxy.left.trans_le le_top)))],
   end }
 
 /-- Duals have the same top grade as the posets they come from. -/
-lemma grade_top_dual : grade_top (order_dual α) = grade_top α :=
-begin
-  change grade ⊤ - grade ⊥ = grade ⊤,
-  rw [grade_bot, nat.sub_zero],
-end
+lemma grade_top_dual : grade (⊤ : order_dual α) = grade (⊤ : α) :=
+by change grade ⊤ - grade ⊥ = grade ⊤; rw [grade_bot, nat.sub_zero]
 
 variables {α}
 
 /-- An element has the top grade iff it is the top element. -/
 @[simp]
-lemma eq_grade_top_iff_eq_top (a : α) : grade a = grade_top α ↔ a = ⊤ :=
+lemma eq_grade_top_iff_eq_top (a : α) : grade a = grade (⊤ : α) ↔ a = ⊤ :=
 begin
   refine ⟨λ h, _, λ h, by cases h; refl⟩,
   by_contra ha,
@@ -247,13 +236,13 @@ begin
 end
 
 /-- A grade function into `fin` for `α` with a top element. -/
-def grade_fin (x : α) : fin (grade_top α + 1) :=
+def grade_fin (x : α) : fin (grade (⊤ : α) + 1) :=
 ⟨grade x, by rw nat.lt_add_one_iff; exact grade_le_grade_top _⟩
 
 @[simp]
 lemma grade_fin.val_eq (x : α) : (grade_fin x).val = grade x := rfl
 
-lemma grade_fin.strict_mono : strict_mono (grade_fin : α → fin (grade_top α + 1)) :=
+lemma grade_fin.strict_mono : strict_mono (grade_fin : α → fin (grade (⊤ : α) + 1)) :=
 grade_strict_mono
 
 end bounded_order
@@ -329,23 +318,23 @@ end order_bot
 section bounded_order
 variables [bounded_order α] [grade_order α]
 
-lemma grade_fin_injective : function.injective (grade_fin : α → fin (grade_top α + 1)) :=
+lemma grade_fin_injective : function.injective (grade_fin : α → fin (grade (⊤ : α) + 1)) :=
 grade_fin.strict_mono.injective
 
 /-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
-def order_embedding.grade_fin [order_top α] : α ↪o fin (grade_top α + 1) :=
+def order_embedding.grade_fin : α ↪o fin (grade (⊤ : α) + 1) :=
 { to_fun := grade_fin,
   inj' := grade_fin_injective,
   map_rel_iff' := grade_le_iff_le }
 
 /-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. This is generalized to a
 partial order in `ex_of_grade`. -/
-lemma ex_of_grade_lin (j : fin (grade_top α + 1)) : is_grade α j :=
+lemma ex_of_grade_lin (j : fin (grade (⊤ : α) + 1)) : is_grade α j :=
 (nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, grade_bot⟩ ⟨⊤, rfl⟩ _
   ⟨zero_le _, nat.le_of_lt_succ j.prop⟩
 
 /-- A linear order has a unique element of grade `j` when `j ≤ grade ⊤`. -/
-lemma ex_unique_of_grade (j : fin (grade_top α + 1)) :
+lemma ex_unique_of_grade (j : fin (grade (⊤ : α) + 1)) :
   ∃! a : α, grade a = j :=
 begin
   cases ex_of_grade_lin j with a ha,
@@ -419,7 +408,7 @@ lemma proper_iff_ne_bot_top (a : α) : polytope.is_proper a ↔ a ≠ ⊥ ∧ a 
 variables [grade_order α]
 
 /-- An element is proper iff it has a grade between the bottom and top element. -/
-lemma proper_iff_grade_iio (a : α) : is_proper a ↔ grade a ∈ set.Ioo 0 (grade_top α) :=
+lemma proper_iff_grade_iio (a : α) : is_proper a ↔ grade a ∈ set.Ioo 0 (grade (⊤ : α)) :=
 begin
   rw proper_iff_ne_bot_top,
   split,
@@ -444,7 +433,7 @@ begin
 end
 
 /-- A `graded` with top grade 1 or less has no proper elements. -/
-lemma proper.empty : grade_top α ≤ 1 → is_empty (polytope.proper α) :=
+lemma proper.empty : grade (⊤ : α) ≤ 1 → is_empty (polytope.proper α) :=
 begin
   intro h,
   split,
@@ -455,9 +444,9 @@ begin
 end
 
 /-- A `graded` with top grade 2 or more has some proper element. -/
-lemma proper.nonempty (h : 2 ≤ grade_top α) : nonempty (polytope.proper α) :=
+lemma proper.nonempty (h : 2 ≤ grade (⊤ : α)) : nonempty (polytope.proper α) :=
 begin
-  change grade_top α with grade ⊤ at h,
+  change grade (⊤ : α) with grade ⊤ at h,
 
   have hbt : ¬ ⊥ ⋖ ⊤ := begin
     intro hbt,
@@ -552,7 +541,7 @@ Here we deviate from standard nomenclature: mathematicians would just call this 
 However, by doing this, it makes it unambiguous when we're talking about two elements being
 connected, and when we're talking about a polytope being totally connected. -/
 def total_connected (α : Type*) [preorder α] [bounded_order α] [grade_order α] : Prop :=
-grade_top α = 2 ∨ total_connected' α
+grade (⊤ : α) = 2 ∨ total_connected' α
 
 /-- Order isomorphisms preserve proper elements. -/
 private lemma proper_order_iso_of_proper [partial_order α] [bounded_order α] [grade_order α]
@@ -699,7 +688,7 @@ end
 
 /-- Any `graded` of top grade less or equal to 2 is connected. -/
 lemma tcon_of_grade_le_two (α : Type*) [partial_order α] [bounded_order α] [grade_order α] :
-  grade_top α ≤ 2 → total_connected α :=
+  grade (⊤ : α) ≤ 2 → total_connected α :=
 begin
   intro h,
   cases eq_or_lt_of_le h with ha ha, { exact or.inl ha },
@@ -721,7 +710,7 @@ def strong_connected (α : Type*) [partial_order α] [order_bot α] [grade_order
 
 /-- Any `graded` of top grade less or equal to 2 is strongly connected. -/
 lemma scon_of_grade_le_two [partial_order α] [bounded_order α] [grade_order α]
-  (h : grade_top α ≤ 2) :
+  (h : grade (⊤ : α) ≤ 2) :
   strong_connected α :=
 begin
   intros a b hab,

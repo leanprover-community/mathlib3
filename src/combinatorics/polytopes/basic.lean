@@ -99,8 +99,9 @@ def is_simple_order.to_polytope_order [decidable_eq α] [partial_order α] [boun
   polytope_order α :=
 { scon := begin
     apply graded.scon_of_grade_le_two,
-    sorry
-end,
+    rw is_simple_order.grade_top,
+    exact one_le_two,
+  end,
   .. is_simple_order.to_diamond_order α }
 
 /-- The dual of a diamond order. -/
@@ -110,7 +111,7 @@ instance (α : Type*) [partial_order α] [bounded_order α] [diamond_order α] :
   rintro (a b : α) (hab : b < a) h,
   obtain ⟨x, y, hne, hxy⟩ := hab.exists_pair_Ioo _,
   exact ⟨x, y, hne, set.dual_Ioo.trans hxy⟩,
-  change grade_top α - grade b = grade_top α - grade a + 2 at h,
+  change grade (⊤ : α) - grade b = grade (⊤ : α) - grade a + 2 at h,
   linarith [grade_le_grade_top a, grade_le_grade_top b],
 end ⟩
 

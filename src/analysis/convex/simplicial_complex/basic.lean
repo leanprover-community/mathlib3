@@ -25,6 +25,15 @@ underlying set of a simplex.
 
 `s ∈ K` means that `s` is a face of `K`.
 
+`K ≤ L` means that the faces of `K` are faces of `L`.
+
+## Implementation notes
+
+"glue nicely" usually means that the intersection of two faces (as sets in the ambient space) is a
+face. Given that we store the vertices, not the faces, this would be a bit awkward to spell.
+Instead, `simplicial_complex.inter_subset_convex_hull` is an equivalent condition which works on the
+vertices.
+
 ## TODO
 
 Simplicial complexes can be generalized to affine spaces once `convex_hull` has been ported.
@@ -150,7 +159,11 @@ begin
     exact ht.2.2 (subset.refl t) } -- `has_ssubset.ssubset.ne` would be handy here
 end
 
-/-! ### The semilattice of simplicial complexes -/
+/-!
+### The semilattice of simplicial complexes
+
+`K ≤ L` means that `K.faces ⊆ L.faces`.
+-/
 
 variables (𝕜 E)
 

@@ -129,9 +129,16 @@ begin
   exact (fin.coe_succ _).symm,
 end
 
-@[simp] lemma mk_reindex {n m : ℕ} (h : n = m) (x : ⨂[R]^n M) :
-  graded_monoid.mk m (pi_tensor_product.reindex R M (equiv.cast $ congr_arg fin h) x) = graded_monoid.mk n x :=
+
+@[simp] lemma mk_reindex_cast {n m : ℕ} (h : n = m) (x : ⨂[R]^n M) :
+  graded_monoid.mk m (pi_tensor_product.reindex R M (equiv.cast $ congr_arg fin h) x) =
+    graded_monoid.mk n x :=
 eq.symm (pi_tensor_product.sigma_eq_of_reindex_cast h rfl)
+
+@[simp] lemma mk_reindex_fin_cast {n m : ℕ} (h : n = m) (x : ⨂[R]^n M) :
+  graded_monoid.mk m (pi_tensor_product.reindex R M (fin.cast h).to_equiv x) =
+    graded_monoid.mk n x :=
+by rw [fin.cast_to_equiv, mk_reindex_cast h]
 
 lemma _root_.tensor_power.graded_monoid_mk_prod_single (n : ℕ) (x : fin n → M) :
   @graded_monoid.mk _ (λ i, ⨂[R]^i M) _ ((list.fin_range n).dprod (λ a : fin n, 1)
@@ -165,14 +172,13 @@ begin
         refine congr_arg x _,
         ext,
         simp,} },
-    -- rw fin.cast_eq_cast at he,
     conv_rhs {rw [this, ←pi_tensor_product.reindex_tprod e] },
     refine (graded_monoid.mk_mul_mk _ _ _).symm.trans _,
-    rw [hx', ← tensor_power.tprod_mul_tprod, ←tensor_power.ghas_mul_def, he, fin.cast_to_equiv,
-      mk_reindex, ←graded_monoid.mk_mul_mk],
+    rw [hx', ← tensor_power.tprod_mul_tprod, ←tensor_power.ghas_mul_def, he, mk_reindex_fin_cast,
+        ←graded_monoid.mk_mul_mk],
     congr' 1,
     rw ←n_ih (x ∘ fin.succ) _ rfl,
-    rw [graded_monoid.mk_list_dprod, graded_monoid.mk_list_dprod, list.map_map, add_comm] },
+    rw [graded_monoid.mk_list_dprod, graded_monoid.mk_list_dprod, list.map_map] },
 end
 
 lemma to_direct_sum_tensor_power_tprod {n} (x : fin n → M) :

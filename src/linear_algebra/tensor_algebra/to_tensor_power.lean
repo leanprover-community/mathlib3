@@ -95,13 +95,95 @@ end
   of_direct_sum x.to_direct_sum = x :=
 alg_hom.congr_fun of_direct_sum_comp_to_direct_sum x
 
+
+@[simp] lemma graded_monoid.mk_eq_one {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A] (i : ι)
+  (x : A i) : graded_monoid.mk i x = 1 ↔ ∃ h : i = 0, x = h.symm.rec graded_monoid.ghas_one.one :=
+begin
+  split,
+  { rintro (h : _ = graded_monoid.mk _ _),
+    injection h with hi hx,
+    refine ⟨hi, _⟩,
+    subst hi,
+    apply eq_of_heq hx, },
+  { rintro ⟨rfl, rfl⟩,
+    refl }
+end
+
+@[simp] lemma graded_monoid.one_eq_mk {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A] (i : ι)
+  (x : A i) : 1 = graded_monoid.mk i x ↔ ∃ h : 0 = i, h.rec graded_monoid.ghas_one.one = x :=
+by simp [graded_monoid.mk_eq_one, eq_comm]
+
+lemma _root_.list.map_coe_fin_range (n : ℕ) : (list.fin_range n).map coe = list.range n :=
+begin
+  simp_rw [list.fin_range, list.map_pmap, fin.mk, subtype.coe_mk, list.pmap_eq_map],
+  exact list.map_id _
+end
+
+lemma _root_.list.fin_range_succ_eq_map (n : ℕ) :
+  list.fin_range n.succ = 0 :: (list.fin_range n).map fin.succ :=
+begin
+  apply list.map_injective_iff.mpr subtype.coe_injective,
+  rw [list.map_cons, list.map_coe_fin_range, list.range_succ_eq_map, fin.coe_zero,
+    ←list.map_coe_fin_range, list.map_map, list.map_map, function.comp, function.comp],
+  congr' 2 with x,
+  exact (fin.coe_succ _).symm,
+end
+
+@[simp] lemma mk_reindex {n m : ℕ} (h : n = m) (x : ⨂[R]^n M) :
+  graded_monoid.mk m (pi_tensor_product.reindex R M (equiv.cast $ congr_arg fin h) x) = graded_monoid.mk n x :=
+eq.symm (pi_tensor_product.sigma_eq_of_reindex_cast h rfl)
+
+lemma _root_.tensor_power.graded_monoid_mk_prod_single (n : ℕ) (x : fin n → M) :
+  @graded_monoid.mk _ (λ i, ⨂[R]^i M) _ ((list.fin_range n).dprod (λ a : fin n, 1)
+    (λ a, pi_tensor_product.tprod R (λ i : fin 1, x a))) =
+  graded_monoid.mk n (pi_tensor_product.tprod R x) :=
+begin
+  generalize h : list.fin_range n = l,
+  -- generalize hf : (λ (i : fin n) (b : ℕ), 1 + b) = f,
+  induction n,
+  { rw list.fin_range_zero at h,
+    rw subsingleton.elim x fin.elim0,
+    subst h,
+    rw list.dprod_nil,
+    refl, },
+  { rw [list.fin_range_succ_eq_map] at h,
+    subst h,
+    rw [list.dprod_cons],
+    set x' := fin.append' (λ i : fin 1, x 0) (x ∘ fin.succ) with hx',
+    set e := (fin.cast (add_comm 1 n_n)).to_equiv with he,
+    have : x = λ i, x' (e.symm i),
+    { apply funext,
+      refine e.surjective.forall.2 _,
+      simp_rw [equiv.symm_apply_apply, hx'],
+      refine fin.add_cases (λ i, _) (λ i, _),
+      { rw subsingleton.elim i 0,
+        simp [he],
+        refine congr_arg x _,
+        ext,
+        simp,},
+      { simp [he],
+        refine congr_arg x _,
+        ext,
+        simp,} },
+    -- rw fin.cast_eq_cast at he,
+    conv_rhs {rw [this, ←pi_tensor_product.reindex_tprod e] },
+    refine (graded_monoid.mk_mul_mk _ _ _).symm.trans _,
+    rw [hx', ← tensor_power.tprod_mul_tprod, ←tensor_power.ghas_mul_def, he, fin.cast_to_equiv,
+      mk_reindex, ←graded_monoid.mk_mul_mk],
+    congr' 1,
+    rw ←n_ih (x ∘ fin.succ) _ rfl,
+    rw [graded_monoid.mk_list_dprod, graded_monoid.mk_list_dprod, list.map_map, add_comm] },
+end
+
 lemma to_direct_sum_tensor_power_tprod {n} (x : fin n → M) :
   to_direct_sum (tprod R M n x) = direct_sum.of _ n (pi_tensor_product.tprod R x) :=
 begin
   rw [tprod_apply, alg_hom.map_list_prod, list.map_of_fn, function.comp],
   simp_rw to_direct_sum_ι,
   dsimp only,
-  sorry -- something hard about `of` and `list.prod`
+  rw  direct_sum.list_prod_of_fn_of_eq_dprod,
+  apply direct_sum.of_eq_of_graded_monoid_eq,
+  rw tensor_power.graded_monoid_mk_prod_single,
 end
 
 lemma to_direct_sum_comp_of_direct_sum :

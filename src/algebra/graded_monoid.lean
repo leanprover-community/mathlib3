@@ -6,6 +6,8 @@ Authors: Eric Wieser
 import group_theory.group_action.defs
 import data.set_like.basic
 import data.sigma.basic
+import data.list.prod_monoid
+import data.list.range
 import algebra.group.inj_surj
 
 /-!
@@ -366,3 +368,40 @@ instance set_like.gcomm_monoid {S : Type*} [set_like S R] [comm_monoid R] [add_c
   ..set_like.gmonoid A}
 
 end subobjects
+
+section dprod
+
+variables {α : Type*} {A : ι → Type*} [add_monoid ι] [graded_monoid.gmonoid A]
+
+/-- A dependent product for graded monoids. -/
+def list.dprod (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  A (list.foldr (λ i b, fι i + b) 0 l) :=
+l.foldr_rec_on _ _ graded_monoid.ghas_one.one (λ i x a ha, graded_monoid.ghas_mul.mul (fA a) x)
+
+@[simp] lemma list.dprod_nil (fι : α → ι) (fA : Π a, A (fι a)) :
+  (list.nil : list α).dprod fι fA = graded_monoid.ghas_one.one := rfl
+
+@[simp] lemma list.dprod_cons (fι : α → ι) (fA : Π a, A (fι a)) (a : α) (l : list α) :
+  (a :: l).dprod fι fA = graded_monoid.ghas_mul.mul (fA a) (l.dprod fι fA) := rfl
+
+lemma graded_monoid.mk_list_dprod (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  graded_monoid.mk _ (l.dprod fι fA) = (l.map (λ a, graded_monoid.mk (fι a) (fA a))).prod :=
+begin
+  induction l,
+  { simp, refl  },
+  { simp [←l_ih, graded_monoid.mk_mul_mk, list.prod_cons],
+    refl, },
+end
+
+lemma graded_monoid.list_prod_map_eq_dprod (l : list α) (f : α → graded_monoid A) :
+  (l.map f).prod = graded_monoid.mk _ (l.dprod (λ i, (f i).1) (λ i, (f i).2)) :=
+begin
+  rw [graded_monoid.mk_list_dprod, graded_monoid.mk],
+  simp_rw sigma.eta,
+end
+
+lemma graded_monoid.list_prod_of_fn_eq_dprod {n : ℕ} (f : fin n → graded_monoid A) :
+  (list.of_fn f).prod = graded_monoid.mk _ ((list.fin_range n).dprod (λ i, (f i).1) (λ i, (f i).2)) :=
+by rw [list.of_fn_eq_map, graded_monoid.list_prod_map_eq_dprod]
+
+end dprod

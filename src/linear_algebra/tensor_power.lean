@@ -68,7 +68,11 @@ lemma tprod_mul_tprod {na nb} (a : fin na → M) (b : fin nb → M) :
 begin
   dsimp [ghas_mul_def, mul, mul_equiv],
   rw [tmul_equiv_apply R M a b],
-  refine reindex_tprod _ _,
+  refine (reindex_tprod _ _).trans _,
+  congr' 1,
+  dsimp only [fin.append', fin_sum_fin_equiv, equiv.coe_fn_symm_mk],
+  apply funext,
+  apply fin.add_cases; simp,
 end
 
 lemma one_mul {n} (a : ⨂[R]^n M) :

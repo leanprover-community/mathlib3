@@ -223,6 +223,19 @@ begin
     exact of_eq_of_graded_monoid_eq (pow_succ (graded_monoid.mk _ a) n).symm, },
 end
 
+lemma of_dprod {α} (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  of A _ (l.dprod fι fA) = (l.map $ λ a, of A (fι a) (fA a)).prod :=
+begin
+  induction l,
+  { simp, refl  },
+  { simp [←l_ih, direct_sum.of_mul_of],
+    refl, },
+end
+
+lemma list_prod_of_fn_of_eq_dprod (n : ℕ) (fι : fin n → ι) (fA : Π a, A (fι a)) :
+  (list.of_fn $ λ a, of A (fι a) (fA a)).prod = of A _ ((list.fin_range n).dprod fι fA) :=
+by rw [list.of_fn_eq_map, of_dprod]
+
 end semiring
 
 section comm_semiring

@@ -122,7 +122,7 @@ linear_independent_iff'.trans ⟨λ H s g hg hv i, if his : i ∈ s then H s g h
     (by simp_rw [ite_smul, zero_smul, finset.sum_extend_by_zero, hg]) i,
   exact (if_pos hi).symm }⟩
 
-theorem linear_dependent_iff : ¬ linear_independent R v ↔
+theorem not_linear_independent_iff : ¬ linear_independent R v ↔
   ∃ s : finset ι, ∃ g : ι → R, (∑ i in s, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
 begin
   rw linear_independent_iff',

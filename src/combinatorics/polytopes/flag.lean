@@ -78,11 +78,12 @@ protected theorem le_total [preorder α] : ∀ (Φ : flag α) (x y : Φ), x ≤ 
 begin
   rintro ⟨_, hΦ, _⟩ x y,
   by_cases heq : x = y,
-  { exact or.inl (le_of_eq heq) },
-  { cases x with x hx, cases y with y hy,
-    rw subtype.mk_eq_mk at heq,
-    cases hΦ x hx y hy heq with h h, { exact or.inl (le_of_lt h) },
-    exact or.inr (le_of_lt h) }
+    { exact or.inl (le_of_eq heq) },
+  cases x with x hx, cases y with y hy,
+  rw subtype.mk_eq_mk at heq,
+  cases hΦ x hx y hy heq with h h,
+    { exact or.inl (le_of_lt h) },
+  exact or.inr (le_of_lt h)
 end
 
 /-- `<` is trichotomous for flags. -/
@@ -108,26 +109,25 @@ noncomputable instance [partial_order α] (Φ : flag α) : linear_order Φ :=
 lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} :
   a ∈ Φ ↔ ∀ b : Φ, a ≠ ↑b → a < ↑b ∨ ↑b < a :=
 begin
-  split,
-    { exact λ ha ⟨b, hb⟩ hne, Φ.prop.left a ha b hb hne },
-  intro H,
+  rcases Φ with ⟨_, Φl, Φr⟩,
+  refine ⟨_, λ H, _⟩,
+    { exact λ ha ⟨_, hb⟩ hne, Φl _ ha _ hb hne },
   by_contra ha,
-  exact Φ.prop.right
-    ⟨_, zorn.chain_insert Φ.prop.left (λ b hb hne, H ⟨b, hb⟩ hne.symm), set.ssubset_insert ha⟩,
+  exact Φr ⟨_, zorn.chain_insert Φl (λ _ hb hne, H ⟨_, hb⟩ hne.symm), set.ssubset_insert ha⟩,
 end
 
 variables [partial_order α] (Φ : flag α)
 
 /-- `⊥` belongs to every flag. -/
 theorem bot_in_flag [order_bot α] : ⊥ ∈ Φ :=
-by rw mem_flag_iff_comp; exact λ _ h, or.inl (bot_lt_iff_ne_bot.2 h.symm)
+by { rw mem_flag_iff_comp, exact λ _ h, or.inl (bot_lt_iff_ne_bot.2 h.symm) }
 
 instance [order_bot α] : order_bot Φ :=
 subtype.order_bot Φ.bot_in_flag
 
 /-- `⊤` belongs to every flag. -/
 theorem top_in_flag [order_top α] : ⊤ ∈ Φ :=
-by rw mem_flag_iff_comp; exact λ _ h, or.inr (lt_top_iff_ne_top.2 h.symm)
+by { rw mem_flag_iff_comp, exact λ _ h, or.inr (lt_top_iff_ne_top.2 h.symm) }
 
 instance [order_top α] : order_top Φ :=
 subtype.order_top Φ.top_in_flag
@@ -151,8 +151,8 @@ variables [partial_order α]
 def to_rel_iso (γ : automorphism α) : (≤) ≃r (≤) :=
 { to_fun := γ.hom,
   inv_fun := γ.inv,
-  left_inv := λ x, by { change (γ.hom ≫ _) _ = _, rw γ.hom_inv_id; refl },
-  right_inv := λ x, by { change (γ.inv ≫ _) _ = _, rw γ.inv_hom_id; refl },
+  left_inv := λ x, by { change (γ.hom ≫ _) _ = _, rw γ.hom_inv_id, refl },
+  right_inv := λ x, by { change (γ.inv ≫ _) _ = _, rw γ.inv_hom_id, refl },
   map_rel_iff' := begin
     intros,
     change γ.hom a ≤ γ.hom b ↔ a ≤ b,
@@ -520,9 +520,8 @@ exist. -/
 theorem grade_eq_of_order_iso (oiso : α ≃o β) (x : α) : grade x = grade (oiso x) :=
 begin
   rw eq_iff_le_not_lt,
-  split, { exact (grade_le_of_order_iso _ rfl) },
-  have : grade x = grade (oiso.symm (oiso x)) := by rw (order_iso.symm_apply_apply _ _),
-  rw this,
+  refine ⟨grade_le_of_order_iso _ rfl, _⟩,
+  rw (by rw (order_iso.symm_apply_apply _ _) : grade x = grade (oiso.symm (oiso x))),
   exact not_lt_of_ge (grade_le_of_order_iso _ rfl)
 end
 
@@ -569,12 +568,9 @@ variables [linear_order α] [bounded_order α] [grade_order α] (j : fin (grade 
 theorem grade_eq_iff_idx (a : α) : grade a = j ↔ a = graded.idx j :=
 begin
   have idx := grade_idx j,
-  split,
-    { intro ha,
-      obtain ⟨_, _, h⟩ := ex_unique_of_grade j,
-      rw [(h _ ha), (h _ idx)] },
-  intro h,
-  rwa h,
+  refine ⟨λ ha, _, λ h, by rwa h⟩,
+  obtain ⟨_, _, h⟩ := ex_unique_of_grade j,
+  rw [(h _ ha), (h _ idx)]
 end
 
 /-- `grade_fin` is an order isomorphism for linearly ordered `α` with a top element. -/
@@ -661,7 +657,7 @@ end
 
 /-- Two flags are equal iff their elements of all grades are equal. -/
 lemma eq_iff_eq_idx (Φ Ψ : flag α) : Φ = Ψ ↔ ∀ j, (graded.idx' Φ j).val = (graded.idx' Ψ j).val :=
-⟨λ h _, (by rw h), λ h, subtype.ext_val
+⟨λ h _, by rw h, λ h, subtype.ext_val
   (set.ext (λ _, ⟨eq_of_eq_idx h _, eq_of_eq_idx (λ j, (h j).symm) _⟩))⟩
 
 /-- Two flags are j-adjacent iff they share all but their j-th element. Note that a flag is never
@@ -675,7 +671,7 @@ instance (j : fin (grade ⊤ + 1)) : is_irrefl (flag α) (j_adjacent j) :=
 /-- j-adjacency is symmetric. -/
 theorem j_adjacent.symm {j : fin (grade ⊤ + 1)} {Φ Ψ : flag α} :
   j_adjacent j Φ Ψ → j_adjacent j Ψ Φ :=
-by intros h i; rw ←(h i); exact eq_comm
+by { intros h i, rw ←(h i), exact eq_comm }
 
 /-- Two flags in a graded poset are adjacent iff they're j-adjacent for some j. -/
 theorem adjacent_iff_ex_j_adjacent {Φ Ψ : flag α} : adjacent Φ Ψ ↔ ∃ j, j_adjacent j Φ Ψ :=

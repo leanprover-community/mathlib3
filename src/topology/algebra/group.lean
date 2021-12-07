@@ -127,10 +127,7 @@ with continuous addition/multiplication. See also `submonoid.top_closure_mul_sel
 -/
 
 section pointwise
-variables [topological_space α]
-
-section group
-variables [group α] [has_continuous_mul α] {s t : set α}
+variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
 
 @[to_additive]
 lemma is_open.mul_left (ht : is_open t) :  is_open (s * t) :=
@@ -146,11 +143,6 @@ begin
   exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_right a s hs),
 end
 
-end group
-
-section comm_group
-variables [comm_group α] [has_continuous_mul α] {s t : set α}
-
 @[to_additive]
 lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
 interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
@@ -163,7 +155,6 @@ interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_
 lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
 (set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
 
-end comm_group
 end pointwise
 
 section topological_group

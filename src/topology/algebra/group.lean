@@ -161,7 +161,7 @@ interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_
 
 @[to_additive]
 lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
-(set.mul_subset_mul_left interior_subset).trans interior_mul_subset
+(set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
 
 end comm_group
 end pointwise
@@ -316,13 +316,15 @@ lemma homeomorph.shear_mul_right_symm_coe :
   ⇑(homeomorph.shear_mul_right G).symm = λ z : G × G, (z.1, z.1⁻¹ * z.2) :=
 rfl
 
-variable {G} {s : set α}
+variables {G}
 
 @[to_additive]
-lemma is_open.inv (hs : is_open s) : is_open s⁻¹ := homeomorph.inv.is_open_map hs
+lemma is_open.inv {s : set G} (hs : is_open s) : is_open s⁻¹ :=
+by { rw ←set.image_inv, exact (homeomorph.inv G).is_open_map _ hs }
 
 @[to_additive]
-lemma is_closed.inv (hs : is_closed s) : is_closed s⁻¹ := homeomorph.inv.is_closed_map hs
+lemma is_closed.inv {s : set G} (hs : is_closed s) : is_closed s⁻¹ :=
+by { rw ←set.image_inv, exact (homeomorph.inv G).is_closed_map _ hs }
 
 namespace subgroup
 

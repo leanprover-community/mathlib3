@@ -165,9 +165,8 @@ are the same the subtype argument can be rewritten.
 
 See [this Zulip thred](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/simp.20simp/near/263872040)
 for dome discussion about this lemma. It can occasionally result in `simp, simp` being needed. -/
-@[congr] lemma dep_congr {ι α} [set_like A B]
-  {p : ι → A} (f : Π i, p i → α) :
-  ∀ {i j} (x : p i) (h : i = j), f i x = f j ⟨x, h ▸ x.prop⟩
+@[congr] lemma dep_congr {ι α} {p : ι → A} (f : Π i, p i → α) :
+  ∀ {i j} (x : p i) (h : i = j), f i x = f j ⟨(x : B), h ▸ x.prop⟩
 | i _ ⟨x, px⟩ rfl := rfl
 
 end set_like

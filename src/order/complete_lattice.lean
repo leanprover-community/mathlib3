@@ -93,17 +93,11 @@ theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)
 
-lemma le_Sup_iff :
-  a ≤ Sup s ↔ (∀ b, (∀ x ∈ s, x ≤ b) → a ≤ b) :=
+lemma le_Sup_iff : a ≤ Sup s ↔ (∀ b ∈ upper_bounds s, a ≤ b) :=
 ⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
 
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
-le_of_forall_le' begin
-  simp only [Sup_le_iff],
-  introv h₀ h₁,
-  rcases h _ h₁ with ⟨y,hy,hy'⟩,
-  solve_by_elim [le_trans hy']
-end
+le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
 
 -- We will generalize this to conditionally complete lattices in `cSup_singleton`.
 theorem Sup_singleton {a : α} : Sup {a} = a :=

@@ -1080,7 +1080,7 @@ finset.subset.antisymm
 lemma support_sub [add_group G] {f g: α →₀ G} :
  support (f - g) ⊆ support f ∪ support g :=
 begin
-  rw [sub_eq_add_neg, ← support_neg],
+  rw [sub_eq_add_neg, ←@support_neg _  _ _ g],
   convert support_add,
 end
 

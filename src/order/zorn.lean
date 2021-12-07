@@ -272,6 +272,12 @@ begin
         (λ ht, h t₁ ht₁ c₁ hc₁ c₂ (ht hc₂) hneq) }
 end
 
+lemma chain.empty : chain ∅ :=
+chain_chain_closure chain_closure_empty
+
+lemma chain.subsingleton (hc : set.subsingleton c) : chain c :=
+λ _ hx _ hy hne, (hne (hc hx hy)).elim
+
 /-- An explicit maximal chain. `max_chain` is taken to be the union of all sets in `chain_closure`.
 -/
 def max_chain := ⋃₀ chain_closure
@@ -408,3 +414,30 @@ lemma directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
   (λ hab, (h a ha b hb hab).elim
     (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
     (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))
+
+/-- Every chain is contained in a maximal chain. This generalizes Hausdorff's maximality principle.
+-/
+theorem chain.max_chain_of_chain {α r} (c : set α) (hc : zorn.chain r c) :
+  ∃ M, @zorn.is_max_chain _ r M ∧ c ⊆ M :=
+begin
+  let all_chains := {s : set α | c ⊆ s ∧ zorn.chain r s},
+  have := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩,
+    { rcases this with ⟨M, hM₀, hM₁, hM₂⟩,
+      refine ⟨M, ⟨hM₀.right, λ h, _⟩, hM₁⟩,
+      rcases h with ⟨d, hd, hdM₀, hdM₁⟩,
+      have := hM₂ _ _ hdM₀,
+      induction this,
+        { exact hdM₁ hdM₀ },
+      change c ⊆ M with c ≤ M at hM₁,
+      exact ⟨le_trans hM₁ hdM₀, hd⟩ },
+  rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
+  refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
+    λ _, set.subset_sUnion_of_mem⟩,
+  rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
+  by_cases hsseq : sy = sz,
+    { induction hsseq,
+      exact (hcs₀ hsy).right _ hysy _ hzsz hyz, },
+  cases hcs₁ _ hsy _ hsz hsseq with h h,
+    { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
+    { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz }
+end

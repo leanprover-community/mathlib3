@@ -279,16 +279,12 @@ partial_order.lift to_germ to_germ_injective
 
 section lattice
 
-variables [lattice β] [has_measurable_sup₂ β] [has_measurable_inf₂ β]
+section sup
+variables [semilattice_sup β] [has_measurable_sup₂ β]
 
-instance : has_sup (α →ₘ[μ] β) :=
-{ sup := λ f g, ae_eq_fun.comp₂ (⊔) measurable_sup f g }
-
-instance : has_inf (α →ₘ[μ] β) :=
-{ inf := λ f g, ae_eq_fun.comp₂ (⊓) measurable_inf f g }
+instance : has_sup (α →ₘ[μ] β) := { sup := λ f g, ae_eq_fun.comp₂ (⊔) measurable_sup f g }
 
 lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
-lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
 
 protected lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_left, }
@@ -305,6 +301,15 @@ begin
   exact sup_le haf hag,
 end
 
+end sup
+
+section inf
+variables [semilattice_inf β] [has_measurable_inf₂ β]
+
+instance : has_inf (α →ₘ[μ] β) := { inf := λ f g, ae_eq_fun.comp₂ (⊓) measurable_inf f g }
+
+lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
+
 protected lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_left, }
 
@@ -320,15 +325,17 @@ begin
   exact le_inf haf hag,
 end
 
-instance : lattice (α →ₘ[μ] β) :=
-{ sup := has_sup.sup,
-  le_sup_left := ae_eq_fun.le_sup_left,
-  le_sup_right := ae_eq_fun.le_sup_right,
-  sup_le := ae_eq_fun.sup_le,
-  inf := has_inf.inf,
-  inf_le_left := ae_eq_fun.inf_le_left,
-  inf_le_right := ae_eq_fun.inf_le_right,
-  le_inf := ae_eq_fun.le_inf,
+end inf
+
+instance [lattice β] [has_measurable_sup₂ β] [has_measurable_inf₂ β] : lattice (α →ₘ[μ] β) :=
+{ sup           := has_sup.sup,
+  le_sup_left   := ae_eq_fun.le_sup_left,
+  le_sup_right  := ae_eq_fun.le_sup_right,
+  sup_le        := ae_eq_fun.sup_le,
+  inf           := has_inf.inf,
+  inf_le_left   := ae_eq_fun.inf_le_left,
+  inf_le_right  := ae_eq_fun.inf_le_right,
+  le_inf        := ae_eq_fun.le_inf,
   ..ae_eq_fun.partial_order}
 
 end lattice

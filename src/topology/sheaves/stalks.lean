@@ -8,6 +8,7 @@ import topology.sheaves.presheaf
 import topology.sheaves.sheaf_condition.unique_gluing
 import category_theory.limits.types
 import category_theory.limits.preserves.filtered
+import category_theory.limits.final
 import tactic.elementwise
 
 /-!
@@ -183,7 +184,32 @@ begin
   refl,
 end
 
+lemma stalk_pushforward_iso_of_open_embedding {f : X ⟶ Y} (hf : open_embedding f)
+   (F : X.presheaf C) (x : X) : is_iso (F.stalk_pushforward _ f x) :=
+ begin
+   haveI := functor.initial_of_adjunction (hf.is_open_map.adjunction_nhds x),
+   convert is_iso.of_iso ((functor.final.colimit_iso (hf.is_open_map.functor_nhds x).op
+     ((open_nhds.inclusion (f x)).op ⋙ f _* F) : _).symm ≪≫ colim.map_iso _),
+   swap,
+   { fapply nat_iso.of_components,
+     { intro U,
+       refine F.map_iso (eq_to_iso _),
+       dsimp only [functor.op],
+       exact congr_arg op (subtype.eq $ set.preimage_image_eq (unop U).1.1 hf.inj) },
+     { intros U V i, erw [← F.map_comp, ← F.map_comp], congr } },
+   { ext U,
+     rw ← iso.comp_inv_eq,
+     erw colimit.ι_map_assoc,
+     rw [colimit.ι_pre, category.assoc],
+     erw [colimit.ι_map_assoc, colimit.ι_pre, ← F.map_comp_assoc],
+     apply colimit.w ((open_nhds.inclusion (f x)).op ⋙ f _* F) _,
+     dsimp only [functor.op],
+     refine ((hom_of_le _).op : op (unop U) ⟶ _),
+     exact set.image_preimage_subset _ _ },
+ end
+
 end stalk_pushforward
+
 section stalk_pullback
 
 /-- The morphism `ℱ_{f x} ⟶ (f⁻¹ℱ)ₓ` that factors through `(f_*f⁻¹ℱ)_{f x}`. -/

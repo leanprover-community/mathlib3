@@ -133,6 +133,8 @@ structure is_dedekind_domain_dvr : Prop :=
 
 section inverse
 
+namespace fractional_ideal
+
 variables {R₁ : Type*} [comm_ring R₁] [is_domain R₁] [algebra R₁ K] [is_fraction_ring R₁ K]
 variables {I J : fractional_ideal R₁⁰ K}
 
@@ -262,8 +264,10 @@ begin
     ((generator (I : submodule R₁ K))⁻¹)) hI).symm
 end
 
-@[simp] lemma fractional_ideal.one_inv : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
+@[simp] lemma one_inv : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
 fractional_ideal.div_one
+
+end fractional_ideal
 
 /--
 A Dedekind domain is an integral domain such that every fractional ideal has an inverse.

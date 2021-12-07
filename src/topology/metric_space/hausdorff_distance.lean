@@ -918,8 +918,7 @@ lemma frontier_cthickening  (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
 begin
   rw cthickening_eq_preimage_inf_edist,
   have frontier_interval : frontier (Iic (ennreal.of_real δ)) = {ennreal.of_real δ},
-  { refine le_antisymm (frontier_Iic_subset _) _,
-    sorry, },
+  { exact frontier_Iic' ⟨∞, ennreal.of_real_lt_top⟩, },
   have singleton_preim :
     {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
   by refl,

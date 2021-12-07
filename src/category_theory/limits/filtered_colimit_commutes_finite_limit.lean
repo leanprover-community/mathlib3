@@ -308,7 +308,7 @@ begin
 end
 
 noncomputable
-instance filtered_colim_preserves_finite_limit :
+instance filtered_colim_preserves_finite_limits :
   preserves_limits_of_shape J (colim : (K ⥤ Type v) ⥤ _) := ⟨λ F, ⟨λ c hc,
 begin
   apply is_limit.of_iso_limit (limit.is_limit _),

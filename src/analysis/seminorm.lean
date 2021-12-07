@@ -526,7 +526,7 @@ begin
   { simpa only [s', f, set.mem_preimage, one_smul] },
   obtain ⟨ε, hε₀, hε⟩ := (metric.nhds_basis_closed_ball.1 _).1
     (is_open_iff_mem_nhds.1 hs' 1 one_mem),
-  rw real.closed_ball_eq at hε,
+  rw real.closed_ball_eq_Icc at hε,
   have hε₁ : 0 < 1 + ε := hε₀.trans (lt_one_add ε),
   have : (1 + ε)⁻¹ < 1,
   { rw inv_lt_one_iff,

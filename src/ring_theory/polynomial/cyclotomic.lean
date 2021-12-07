@@ -11,6 +11,7 @@ import field_theory.separable
 import field_theory.splitting_field
 import number_theory.arithmetic_function
 import ring_theory.roots_of_unity
+import field_theory.ratfunc
 
 /-!
 # Cyclotomic polynomials.
@@ -165,12 +166,8 @@ end
 /-- If there is a primitive `n`-th root of unity in `K`, then `X ^ n - 1`splits. -/
 lemma X_pow_sub_one_splits {ζ : K} {n : ℕ} (h : is_primitive_root ζ n) :
   splits (ring_hom.id K) (X ^ n - C (1 : K)) :=
-begin
-  by_cases hzero : n = 0,
-  { simp only [hzero, ring_hom.map_one, splits_zero, pow_zero, sub_self] },
-  rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
-    nat_degree_X_pow_sub_C],
-end
+by rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
+    nat_degree_X_pow_sub_C]
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
 `∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1`. -/
@@ -223,10 +220,6 @@ begin
   { use 1,
     simp only [hzero, cyclotomic'_zero, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
     coe_map_ring_hom, map_one, and_self] },
-  by_cases hone : k = 1,
-  { use X - 1,
-    simp only [hone, cyclotomic'_one K, set.mem_univ, pnat.one_coe, subsemiring.coe_top,
-    eq_self_iff_true, map_X, coe_map_ring_hom, map_one, and_self, map_sub], },
   let B : polynomial K := ∏ i in nat.proper_divisors k, cyclotomic' i K,
   have Bmo : B.monic,
   { apply monic_prod_of_monic,
@@ -405,20 +398,25 @@ begin
                                                     (λ i, cyclotomic i ℤ), integer]
 end
 
+lemma _root_.is_root_of_unity_iff {n : ℕ} (h : 0 < n) (R : Type*) [comm_ring R] [is_domain R]
+  {ζ : R} : ζ ^ n = 1 ↔ ∃ i ∈ n.divisors, (cyclotomic i R).is_root ζ :=
+by rw [←mem_nth_roots h, nth_roots, mem_roots $ X_pow_sub_C_ne_zero h _,
+       C_1, ←prod_cyclotomic_eq_X_pow_sub_one h, is_root_prod]; apply_instance
+
 section arithmetic_function
 open nat.arithmetic_function
 open_locale arithmetic_function
 
 /-- `cyclotomic n R` can be expressed as a product in a fraction field of `polynomial R`
   using Möbius inversion. -/
-lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n)
-  (R : Type*) [comm_ring R] [nontrivial R]
-  {K : Type*} [field K] [algebra (polynomial R) K] [is_fraction_ring (polynomial R) K] :
-  algebra_map _ K (cyclotomic n R) =
-    ∏ i in n.divisors_antidiagonal, (algebra_map (polynomial R) K (X ^ i.snd - 1)) ^ μ i.fst :=
+lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (R : Type*) [comm_ring R] [is_domain R] :
+  algebra_map _ (ratfunc R) (cyclotomic n R) =
+    ∏ i in n.divisors_antidiagonal, (algebra_map (polynomial R) _ (X ^ i.snd - 1)) ^ μ i.fst :=
 begin
+  rcases n.eq_zero_or_pos with rfl | hpos,
+  { simp },
   have h : ∀ (n : ℕ), 0 < n →
-    ∏ i in nat.divisors n, algebra_map _ K (cyclotomic i R) = algebra_map _ _ (X ^ n - 1),
+    ∏ i in nat.divisors n, algebra_map _ (ratfunc R) (cyclotomic i R) = algebra_map _ _ (X ^ n - 1),
   { intros n hn,
     rw [← prod_cyclotomic_eq_X_pow_sub_one hn R, ring_hom.map_prod] },
   rw (prod_eq_iff_prod_pow_moebius_eq_of_nonzero (λ n hn, _) (λ n hn, _)).1 h n hpos;
@@ -486,13 +484,58 @@ begin
       cyclotomic'_eq_X_pow_sub_one_div hpos hz, finset.prod_congr (refl k.proper_divisors) h]
 end
 
-/-- Any `n`-th primitive root of unity is a root of `cyclotomic n ℤ`.-/
+/-- Any `n`-th primitive root of unity is a root of `cyclotomic n K`.-/
 lemma is_root_cyclotomic {n : ℕ} {K : Type*} [field K] (hpos : 0 < n) {μ : K}
   (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
 begin
   rw [← mem_roots (cyclotomic_ne_zero n K),
       cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
   rwa [← mem_primitive_roots hpos] at h,
+end
+
+private lemma is_root_cyclotomic_iff' {n : ℕ} {K : Type*} [field K] {μ : K} (hn : (n : K) ≠ 0) :
+  is_root (cyclotomic n K) μ ↔ is_primitive_root μ n :=
+begin
+  -- in this proof, `o` stands for `order_of μ`
+  have hnpos : 0 < n := (show n ≠ 0, by { rintro rfl, contradiction }).bot_lt,
+  refine ⟨λ hμ, _, is_root_cyclotomic hnpos⟩,
+  have hμn : μ ^ n = 1,
+  { rw is_root_of_unity_iff hnpos,
+    exact ⟨n, n.mem_divisors_self hnpos.ne', hμ⟩ },
+  by_contra hnμ,
+  have ho : 0 < order_of μ,
+  { apply order_of_pos',
+    rw is_of_fin_order_iff_pow_eq_one,
+    exact ⟨n, hnpos, hμn⟩ },
+  have := pow_order_of_eq_one μ,
+  rw is_root_of_unity_iff ho at this,
+  obtain ⟨i, hio, hiμ⟩ := this,
+  replace hio := nat.dvd_of_mem_divisors hio,
+  rw is_primitive_root.not_iff at hnμ,
+  rw ←order_of_dvd_iff_pow_eq_one at hμn,
+  have key  : i < n := (nat.le_of_dvd ho hio).trans_lt ((nat.le_of_dvd hnpos hμn).lt_of_ne hnμ),
+  have key' : i ∣ n := hio.trans hμn,
+  rw ←polynomial.dvd_iff_is_root at hμ hiμ,
+  have hni : {i, n} ⊆ n.divisors,
+  { simpa [finset.insert_subset, key'] using hnpos.ne' },
+  obtain ⟨k, hk⟩ := hiμ,
+  obtain ⟨j, hj⟩ := hμ,
+  have := prod_cyclotomic_eq_X_pow_sub_one hnpos K,
+  rw [←finset.prod_sdiff hni, finset.prod_pair key.ne, hk, hj] at this,
+  replace hn := (X_pow_sub_one_separable_iff.mpr hn).squarefree,
+  rw [←this, squarefree] at hn,
+  contrapose! hn,
+  refine ⟨X - C μ, ⟨(∏ x in n.divisors \ {i, n}, cyclotomic x K) * k * j, by ring⟩, _⟩,
+  simp [polynomial.is_unit_iff_degree_eq_zero]
+end
+
+lemma is_root_cyclotomic_iff {n : ℕ} {R : Type*} [comm_ring R] [is_domain R]
+  {μ : R} (hn : (n : R) ≠ 0) : is_root (cyclotomic n R) μ ↔ is_primitive_root μ n  :=
+begin
+  let f := algebra_map R (fraction_ring R),
+  have hf : function.injective f := is_localization.injective _ le_rfl,
+  rw [←is_root_map_iff hf, ←is_primitive_root.map_iff_of_injective hf, map_cyclotomic,
+      ←is_root_cyclotomic_iff' $ by simpa only [f.map_nat_cast, hn] using f.injective_iff.mp hf n]
 end
 
 lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] {n : ℕ} (hpos: 0 < n)
@@ -616,46 +659,6 @@ begin
   rw [← prod_cyclotomic_eq_X_pow_sub_one hpos (zmod p),
     nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
     finset.prod_insert nat.proper_divisors.not_self_mem, eval_mul, hroot, zero_mul]
-end
-
-/-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
-`n`, then the multiplicative order of `a` modulo `p` is exactly `n`. -/
-lemma order_of_root_cyclotomic_eq {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.prime] {a : ℕ}
-  (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
-  order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) = n :=
-begin
-  set m := order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)),
-  have ha := coprime_of_root_cyclotomic hpos hroot,
-  have hdivcycl : map (int.cast_ring_hom (zmod p)) (X - a) ∣ (cyclotomic n (zmod p)),
-  { replace hrootdiv := dvd_iff_is_root.2 hroot,
-    simp only [C_eq_nat_cast, ring_hom.eq_nat_cast] at hrootdiv,
-    simp only [hrootdiv, map_nat_cast, map_X, map_sub] },
-  by_contra hdiff,
-  have hdiv : map (int.cast_ring_hom (zmod p)) (X - a) ∣
-    ∏ i in nat.proper_divisors n, cyclotomic i (zmod p),
-  { suffices hdivm : map (int.cast_ring_hom (zmod p)) (X - a) ∣ X ^ m - 1,
-    { exact hdivm.trans (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
-        (order_of_root_cyclotomic_dvd hpos hroot) hdiff) },
-    rw [map_sub, map_X, map_nat_cast, ← C_eq_nat_cast, dvd_iff_is_root, is_root.def, eval_sub,
-      eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.coe_unit_of_coprime a ha, ← units.coe_pow,
-      units.coe_eq_one],
-    exact pow_order_of_eq_one (zmod.unit_of_coprime a ha) },
-  have habs : (map (int.cast_ring_hom (zmod p)) (X - a)) ^ 2 ∣ X ^ n - 1,
-  { obtain ⟨P, hP⟩ := hdivcycl,
-    obtain ⟨Q, hQ⟩ := hdiv,
-    rw [← prod_cyclotomic_eq_X_pow_sub_one hpos, nat.divisors_eq_proper_divisors_insert_self_of_pos
-      hpos, finset.prod_insert nat.proper_divisors.not_self_mem, hP, hQ],
-    exact ⟨P * Q, by ring⟩ },
-  have hnzero : ↑n ≠ (0 : (zmod p)),
-  { intro ha,
-    exact hn (int.coe_nat_dvd.1 ((zmod.int_coe_zmod_eq_zero_iff_dvd n p).1 ha)) },
-  rw [sq] at habs,
-  replace habs := squarefree_X_pow_sub_C (1 : (zmod p)) hnzero one_ne_zero
-    (map (int.cast_ring_hom (zmod p)) (X - a)) habs,
-  simp only [map_nat_cast, map_X, map_sub] at habs,
-  replace habs := degree_eq_zero_of_is_unit habs,
-  rw [← C_eq_nat_cast, degree_X_sub_C] at habs,
-  exact one_ne_zero habs
 end
 
 end order

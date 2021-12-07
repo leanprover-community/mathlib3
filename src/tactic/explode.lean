@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Minchao Wu
 -/
+import meta.rb_map
 import tactic.core
 /-!
 # `#explode` command
@@ -63,8 +64,8 @@ meta def entries.head (es : entries) : option entry := es.l.head'
 
 meta def format_aux : list string → list string → list string → list entry → tactic format
 | (line :: lines) (dep :: deps) (thm :: thms) (en :: es) := do
-  fmt ← do {
-    let margin := string.join (list.repeat " │" en.depth),
+  fmt ← do
+  { let margin := string.join (list.repeat " │" en.depth),
     let margin := match en.status with
       | status.sintro := " ├" ++ margin
       | status.intro := " │" ++ margin ++ " ┌"

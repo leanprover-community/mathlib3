@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Bhavik Mehta
 -/
 
-import category_theory.sites.sheaf_of_types
-import category_theory.limits.yoneda
 import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.preserves.shapes.products
-import category_theory.concrete_category
+import category_theory.limits.yoneda
+import category_theory.sites.sheaf_of_types
 
 /-!
 # Sheaves taking values in a category
@@ -110,13 +109,25 @@ def Sheaf : Type* :=
 {P : Cᵒᵖ ⥤ A // presheaf.is_sheaf J P}
 
 /-- The inclusion functor from sheaves to presheaves. -/
-@[simps {rhs_md := semireducible}, derive [full, faithful]]
+@[simps map {rhs_md := semireducible}, derive [full, faithful]]
 def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 full_subcategory_inclusion (presheaf.is_sheaf J)
 
+namespace Sheaf
+
+@[simp] lemma id_app (X : Sheaf J A) (B : Cᵒᵖ) : (𝟙 X : X ⟶ X).app B = 𝟙 _ := rfl
+@[simp] lemma comp_app {X Y Z : Sheaf J A} (f : X ⟶ Y) (g : Y ⟶ Z) (B : Cᵒᵖ) :
+  (f ≫ g).app B = f.app B ≫ g.app B := rfl
+
+instance : has_coe (Sheaf J A) (Cᵒᵖ ⥤ A) := ⟨λ P, P.val⟩
+
+end Sheaf
+
+@[simp] lemma Sheaf_to_presheaf_obj (P : Sheaf J A) : (Sheaf_to_presheaf J A).obj P = P := rfl
+
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
 @[simps] abbreviation sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
-  (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op X), ℱ.property X⟩
+  (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨↑ℱ ⋙ coyoneda.obj (op X), ℱ.property X⟩
 
 lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type w) :
   presheaf.is_sheaf J P ↔ presieve.is_sheaf J P :=
@@ -156,6 +167,18 @@ def Sheaf_equiv_SheafOfTypes : Sheaf J (Type w) ≌ SheafOfTypes J :=
 
 instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type w)) :=
 ⟨(Sheaf_equiv_SheafOfTypes _).inverse.obj (default _)⟩
+
+variables {J} {A}
+
+/-- If the empty sieve is a cover of `X`, then `F(X)` is terminal. -/
+def Sheaf.is_terminal_of_bot_cover (F : Sheaf J A) (X : C) (H : ⊥ ∈ J X) :
+  is_terminal (F.1.obj (op X)) :=
+begin
+  apply_with is_terminal.of_unique { instances := ff },
+  intro Y,
+  choose t h using F.2 Y _ H (by tidy) (by tidy),
+  exact ⟨⟨t⟩, λ a, h.2 a (by tidy)⟩
+end
 
 end category_theory
 

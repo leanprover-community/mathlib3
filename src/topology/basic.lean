@@ -936,7 +936,7 @@ space. -/
   closure {x}ᶜ = (univ : set α) :=
 (dense_compl_singleton x).closure_eq
 
-/-- If `x` is not an isolated point of a topological space, then the interior of `{x}ᶜ` is empty. -/
+/-- If `x` is not an isolated point of a topological space, then the interior of `{x}` is empty. -/
 @[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
   interior {x} = (∅ : set α) :=
 interior_eq_empty_iff_dense_compl.2 (dense_compl_singleton x)

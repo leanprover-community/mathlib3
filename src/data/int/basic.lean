@@ -343,6 +343,14 @@ by { rw [sq, sq], exact nat_abs_lt_iff_mul_self_lt }
 lemma nat_abs_le_iff_sq_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a ^ 2 ≤ b ^ 2 :=
 by { rw [sq, sq], exact nat_abs_le_iff_mul_self_le }
 
+@[simp] lemma nat_abs_dvd_iff_dvd {a b : ℤ} : a.nat_abs ∣ b.nat_abs ↔ a ∣ b :=
+begin
+  refine ⟨_, λ ⟨k, hk⟩, ⟨k.nat_abs, hk.symm ▸ nat_abs_mul a k⟩⟩,
+  rintro ⟨k, hk⟩,
+  rw [←nat_abs_of_nat k, ←nat_abs_mul, nat_abs_eq_nat_abs_iff, neg_mul_eq_mul_neg] at hk,
+  cases hk; exact ⟨_, hk⟩
+end
+
 /-! ### `/`  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
@@ -616,8 +624,8 @@ by rw [mul_comm, mul_mod_left]
 
 lemma mul_mod (a b n : ℤ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
-  conv_lhs {
-    rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
+  conv_lhs
+  { rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
         mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left, ← mul_assoc,
         add_mul_mod_self] }
 end
@@ -724,8 +732,8 @@ end
 @[norm_cast] theorem coe_nat_dvd {m n : ℕ} : (↑m : ℤ) ∣ ↑n ↔ m ∣ n :=
 ⟨λ ⟨a, ae⟩, m.eq_zero_or_pos.elim
   (λm0, by simp [m0] at ae; simp [ae, m0])
-  (λm0l, by {
-    cases eq_coe_of_zero_le (@nonneg_of_mul_nonneg_left ℤ _ m a
+  (λm0l, by
+  { cases eq_coe_of_zero_le (@nonneg_of_mul_nonneg_left ℤ _ m a
       (by simp [ae.symm]) (by simpa using m0l)) with k e,
     subst a, exact ⟨k, int.coe_nat_inj ae⟩ }),
  λ ⟨k, e⟩, dvd.intro k $ by rw [e, int.coe_nat_mul]⟩
@@ -1038,6 +1046,15 @@ end
 
 @[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
 
+lemma nat_abs_le_of_dvd_ne_zero {s t : ℤ} (hst : s ∣ t) (ht : t ≠ 0) : nat_abs s ≤ nat_abs t :=
+not_lt.mp (mt (eq_zero_of_dvd_of_nat_abs_lt_nat_abs hst) ht)
+
+lemma nat_abs_eq_of_dvd_dvd {s t : ℤ} (hst : s ∣ t) (hts : t ∣ s) : nat_abs s = nat_abs t :=
+nat.dvd_antisymm (nat_abs_dvd_iff_dvd.mpr hst) (nat_abs_dvd_iff_dvd.mpr hts)
+
+lemma div_dvd_of_ne_zero_dvd {s t : ℤ} (hst : s ∣ t) (hs : s ≠ 0) : (t / s) ∣ t :=
+by { rcases hst with ⟨c, hc⟩, simp [hc, int.mul_div_cancel_left _ hs] }
+
 /-! ### to_nat -/
 
 theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
@@ -1269,8 +1286,8 @@ private meta def bitwise_tac : tactic unit := `[
   funext m,
   funext n,
   cases m with m m; cases n with n n; try {refl},
-  all_goals {
-    apply congr_arg of_nat <|> apply congr_arg neg_succ_of_nat,
+  all_goals
+  { apply congr_arg of_nat <|> apply congr_arg neg_succ_of_nat,
     try {dsimp [nat.land, nat.ldiff, nat.lor]},
     try {rw [
       show nat.bitwise (λ a b, a && bnot b) n m =
@@ -1298,8 +1315,8 @@ begin
     induction h : f ff tt,
     induction h : f tt ff,
     induction h : f tt tt ],
-  all_goals {
-    unfold cond, rw nat.bitwise_bit,
+  all_goals
+  { unfold cond, rw nat.bitwise_bit,
     repeat { rw bit_coe_nat <|> rw bit_neg_succ <|> rw bnot_bnot } },
   all_goals { unfold bnot {fail_if_unchanged := ff}; rw h; refl }
 end

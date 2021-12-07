@@ -373,19 +373,15 @@ by simpa only [int.nat_abs_neg]
 
 section intervals
 open set
+
 lemma strict_mono_on_nat_abs : strict_mono_on nat_abs (Ici 0) :=
 λ a ha b hb hab, nat_abs_lt_nat_abs_of_nonneg_of_lt ha hab
 
 lemma strict_anti_on_nat_abs : strict_anti_on nat_abs (Iic 0) :=
 begin
   intros a ha b hb hab,
-  suffices : (-b).nat_abs < (-a).nat_abs, {
-    simp only [int.nat_abs_neg] at this,
-    exact this,
-  },
-  apply nat_abs_lt_nat_abs_of_nonneg_of_lt,
-  simpa only [right.nonneg_neg_iff],
-  simpa only [neg_lt_neg_iff],
+  simpa [int.nat_abs_neg]
+    using nat_abs_lt_nat_abs_of_nonneg_of_lt (right.nonneg_neg_iff.mpr hb) (neg_lt_neg_iff.mpr hab),
 end
 
 lemma inj_on_nat_abs_Ici : inj_on nat_abs (Ici 0) := strict_mono_on_nat_abs.inj_on

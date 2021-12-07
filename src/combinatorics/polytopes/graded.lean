@@ -1,13 +1,10 @@
 /-
 Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Grayson Burton, Violeta Hernández Palacios
+Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
-import category_theory.conj
-import data.fin.basic
-import order.lattice_intervals
-import order.preorder_hom
-import .mathlib
+import category_theory.category.basic
+import .cover
 
 /-!
 # Graded preorders
@@ -37,55 +34,6 @@ notion of flags. These are separated into `flag.lean`.
 open category_theory nat
 
 variables {α β : Type*}
-
-/-- One element covers another when there's no other element strictly in between. -/
-def covers [preorder α] (y x : α) : Prop := x < y ∧ ∀ z, ¬ z ∈ set.Ioo x y
-
-notation x ` ⋗ `:50 y:50 := covers x y
-notation x ` ⋖ `:50 y:50 := covers y x
-
-/-- If `x < y` but `y` does not cover `x`, then there's an element in between. -/
-private lemma between_of_ncover [preorder α] {x y : α} (hnxy : ¬x ⋖ y) (hxy : x < y) :
-  ∃ z, x < z ∧ z < y :=
-by by_contra hne; push_neg at hne; exact hnxy ⟨hxy, λ z ⟨hl, hr⟩, hne z hl hr⟩
-
-/-- If an element covers another, they define an empty open interval. -/
-lemma set.Ioo_is_empty_of_covers [preorder α] {x y : α} : x ⋖ y → set.Ioo x y = ∅ :=
-λ ⟨_, hr⟩, set.eq_empty_iff_forall_not_mem.2 hr
-
-/-- A natural covers another iff it's a successor. -/
-lemma nat.cover_iff_succ {m n : ℕ} : m ⋖ n ↔ n = m + 1 :=
-begin
-  split,
-  { rintro ⟨hmnl, hmnr⟩,
-    cases le_or_gt n (m + 1) with hnm hnm,
-    exact antisymm hnm (nat.succ_le_of_lt hmnl),
-    exact (hmnr _ ⟨lt_add_one m, hnm⟩).elim },
-  intro hnm,
-  split,
-  { rw hnm,
-    exact lt_add_one m },
-  rintros r ⟨hrl, hrr⟩,
-  rw hnm at hrr,
-  exact nat.lt_irrefl _ (lt_of_le_of_lt (nat.succ_le_of_lt hrl) hrr),
-end
-
-/-- Two `fin`s cover each other iff their values do. -/
-lemma fin.cover_iff_cover {n : ℕ} (a b : fin n) : a ⋖ b ↔ a.val ⋖ b.val :=
-  ⟨ λ ⟨hl, hr⟩, ⟨hl, λ c hc, (hr ⟨c, lt_trans hc.right b.prop⟩) hc⟩,
-  λ ⟨hl, hr⟩, ⟨hl, λ c hc, hr c hc⟩ ⟩
-
-/-- Covering is irreflexive. -/
-instance covers.is_irrefl [preorder α] : is_irrefl α (⋖) :=
-⟨ λ _ ha, ne_of_lt ha.left rfl ⟩
-
-lemma dual_cover_iff_cover [preorder α] (a b : α) :
-  a ⋖ b ↔ @covers (order_dual α) _ a b :=
-by split; repeat { exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩ }
-
-lemma is_simple_order.bot_covers_top [partial_order α] [bounded_order α] [is_simple_order α] :
-  (⊥ : α) ⋖ ⊤ :=
-⟨bot_lt_top, λ a ha, (is_simple_order.eq_bot_or_eq_top a).elim ha.1.ne' ha.2.ne⟩
 
 /-- A graded order is an order homomorphism into ℕ such that:
     * `⊥` has grade 0
@@ -119,29 +67,6 @@ def is_grade (α : Type*) [preorder α] [order_bot α] [grade_order α] (n : ℕ
 def grade_order.rel_hom (α : Type*) [preorder α] [order_bot α] [grade_order α] :
   @rel_hom α ℕ (<) (<) :=
 ⟨_, grade_order.strict_mono⟩
-
-/-- Natural numbers are graded. -/
-instance : grade_order ℕ :=
-⟨id, rfl, strict_mono_id, λ _ _, nat.cover_iff_succ.1⟩
-
-/-- `fin (n + 1)` is graded. -/
-instance (n : ℕ) : grade_order (fin (n + 1)) :=
-{ grade := λ n, n,
-  grade_bot := refl _,
-  strict_mono := strict_mono_id,
-  hcovers := λ _ _ h, nat.cover_iff_succ.1 ((fin.cover_iff_cover _ _).1 h) }
-
-instance {α β : Type*} [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β]
-  [grade_order β] : grade_order (α × β) :=
-{ grade := λ a, grade a.fst + grade a.snd,
-  grade_bot := begin
-    convert (zero_add _).trans grade_bot,
-    exact grade_bot,
-  end,
-  strict_mono := begin
-    sorry
-  end,
-  hcovers := sorry }
 
 end order_bot
 end preorder
@@ -222,7 +147,7 @@ instance : grade_order (order_dual α) :=
 
 /-- Duals have the same top grade as the posets they come from. -/
 lemma grade_top_dual : grade (⊤ : order_dual α) = grade (⊤ : α) :=
-by change grade ⊤ - grade ⊥ = grade ⊤; rw [grade_bot, nat.sub_zero]
+by { change grade ⊤ - grade ⊥ = grade ⊤, rw [grade_bot, nat.sub_zero] }
 
 variables {α}
 
@@ -242,7 +167,7 @@ def grade_fin (x : α) : fin (grade (⊤ : α) + 1) :=
 @[simp]
 lemma grade_fin.val_eq (x : α) : (grade_fin x).val = grade x := rfl
 
-lemma grade_fin.strict_mono : strict_mono (grade_fin : α → fin (grade (⊤ : α) + 1)) :=
+lemma grade_fin.strict_mono : strict_mono (grade_fin : α → fin (grade ⊤ + 1)) :=
 grade_strict_mono
 
 end bounded_order
@@ -304,13 +229,12 @@ begin
     exact lt_trans hr.left hr.right,
   end,
 
-  rcases between_of_ncover hnab hab with ⟨c, hac, hcb⟩,
-  refine ⟨grade c, ⟨_, ⟨c, rfl⟩⟩⟩,
-  split,
-    { rw ←ham,
-      exact grade_strict_mono hac },
-  rw ←hbn,
-  exact grade_strict_mono hcb
+  obtain ⟨c, hac, hcb⟩ := exists_lt_lt_of_not_cover hnab hab,
+  refine ⟨grade c, ⟨_, _⟩, c, rfl⟩,
+  { rw ←ham,
+    exact grade_strict_mono hac },
+  { rw ←hbn,
+    exact grade_strict_mono hcb }
 end
 
 end order_bot
@@ -318,11 +242,11 @@ end order_bot
 section bounded_order
 variables [bounded_order α] [grade_order α]
 
-lemma grade_fin_injective : function.injective (grade_fin : α → fin (grade (⊤ : α) + 1)) :=
+lemma grade_fin_injective : function.injective (grade_fin : α → fin (grade ⊤ + 1)) :=
 grade_fin.strict_mono.injective
 
 /-- `grade_fin` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
-def order_embedding.grade_fin : α ↪o fin (grade (⊤ : α) + 1) :=
+def order_embedding.grade_fin : α ↪o fin (grade ⊤ + 1) :=
 { to_fun := grade_fin,
   inj' := grade_fin_injective,
   map_rel_iff' := grade_le_iff_le }
@@ -346,6 +270,129 @@ end
 
 end bounded_order
 end linear_order
+
+/-! ### Instances -/
+
+/-! #### Natural numbers -/
+
+namespace nat
+
+/-- Natural numbers are graded. -/
+instance : grade_order ℕ :=
+⟨id, rfl, strict_mono_id, λ _ _, nat.cover_iff_succ.1⟩
+
+protected lemma grade (n : ℕ) : grade n = n := rfl
+
+end nat
+
+/-! #### `fin` -/
+
+namespace fin
+
+/-- `fin (n + 1)` is graded. -/
+instance (n : ℕ) : grade_order (fin (n + 1)) :=
+{ grade := λ k, k,
+  grade_bot := rfl,
+  strict_mono := strict_mono_id,
+  hcovers := λ _ _ h, nat.cover_iff_succ.1 ((fin.cover_iff_cover _ _).1 h) }
+
+protected lemma grade {n : ℕ} (k : fin (n + 1)) : grade k = k := rfl
+
+end fin
+
+/-! #### `unique` -/
+
+section unique
+variables (α) [unique α] [preorder α]
+
+/-- An order with one element is a graded order, aka a nullitope. -/
+def unique.to_graded_order [order_bot α] : grade_order α :=
+{ grade := λ _, 0,
+  grade_bot := rfl,
+  strict_mono := subsingleton.strict_mono,
+  hcovers := λ a b h, (h.1.ne $ subsingleton.elim _ _).elim }
+
+variables {α}
+
+lemma unique.grade_top [bounded_order α] [grade_order α] : grade (⊤ : α) = 0 :=
+(congr_arg _ $ subsingleton.elim _ _).trans grade_bot
+
+end unique
+
+/-! #### Simple orders -/
+
+section is_simple_order
+variables (α)
+
+/-- A simple order is a graded order, aka a point. -/
+def is_simple_order.to_graded_order [decidable_eq α] [preorder α] [bounded_order α]
+  [is_simple_order α] :
+  grade_order α :=
+{ grade := λ a, if a = ⊥ then 0 else 1,
+  grade_bot := if_pos rfl,
+  strict_mono := λ a b h, begin
+    convert zero_lt_one,
+    { exact if_pos (is_simple_order.eq_bot_of_lt h) },
+    { exact if_neg (ne_bot_of_lt h) },
+    { apply_instance }
+  end,
+  hcovers := λ a b h, begin
+    convert (zero_add 1).symm,
+    { exact if_neg (ne_bot_of_lt h.1) },
+    { exact if_pos (is_simple_order.eq_bot_of_lt h.1) }
+  end }
+
+variables {α}
+
+lemma is_simple_order.grade_top [partial_order α] [bounded_order α] [is_simple_order α]
+  [grade_order α] :
+  grade (⊤ : α) = 1 :=
+is_simple_order.bot_covers_top.grade.trans $ by rw [grade_bot, zero_add]
+
+end is_simple_order
+
+/-! #### Product of two graded orders -/
+
+namespace prod
+
+instance [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β] [grade_order β] :
+  grade_order (α × β) :=
+{ grade := λ a, grade a.fst + grade a.snd,
+  grade_bot := begin
+    convert (zero_add _).trans grade_bot,
+    exact grade_bot,
+  end,
+  strict_mono := λ a b h, begin
+    sorry
+  end,
+  hcovers := sorry }
+
+protected lemma grade [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β]
+  [grade_order β] [grade_order (α × β)] (a : α × β) :
+  grade a = grade a.1 + grade a.2 :=
+sorry
+
+end prod
+
+/-! #### `with_bot`, `with_top` -/
+
+instance (α : Type*) [preorder α] [order_bot α] [grade_order α] : grade_order (with_bot α) :=
+{ grade := @with_bot.rec_bot_coe α (λ _, ℕ) 0 (λ a, grade a + 1),
+  grade_bot := rfl,
+  strict_mono := λ a b h, begin
+    sorry
+  end,
+  hcovers := sorry }
+
+instance (α : Type*) [preorder α] [bounded_order α] [grade_order α] : grade_order (with_top α) :=
+{ grade := @with_top.rec_top_coe α (λ _, ℕ) (grade (⊤ : α) + 1) grade,
+  grade_bot := grade_bot,
+  strict_mono := λ a b h, begin
+    sorry
+  end,
+  hcovers := sorry }
+
+/-! ### More stuff -/
 
 
 namespace polytope
@@ -371,8 +418,7 @@ section order_bot
 variables [order_bot α]
 
 /-- The bottom element is improper. -/
-lemma not_bot_proper : ¬ is_proper (⊥ : α) :=
-λ ⟨_, _, ⟨h, _⟩⟩, not_le_of_gt h bot_le
+lemma not_proper_bot : ¬ is_proper (⊥ : α) := λ ⟨_, _, ⟨h, _⟩⟩, not_le_of_gt h bot_le
 
 end order_bot
 
@@ -380,7 +426,7 @@ section bounded_order
 variables [bounded_order α]
 
 /-- The top element is improper. -/
-lemma not_top_proper : ¬ is_proper (⊤ : α) := λ ⟨_, _, ⟨_, h⟩⟩, not_le_of_gt h le_top
+lemma not_proper_top : ¬ is_proper (⊤ : α) := λ ⟨_, _, ⟨_, h⟩⟩, not_le_of_gt h le_top
 
 /-- Elements other than the bottom and top ones are proper. -/
 lemma proper.ne_bot_top (a : α) : polytope.is_proper a → a ≠ ⊥ ∧ a ≠ ⊤ :=
@@ -388,8 +434,8 @@ begin
   intro ha,
   split,
   repeat { intro h, rw h at ha, swap },
-  exact not_bot_proper ha,
-  exact not_top_proper ha,
+  exact not_proper_bot ha,
+  exact not_proper_top ha,
 end
 
 end bounded_order
@@ -446,8 +492,6 @@ end
 /-- A `graded` with top grade 2 or more has some proper element. -/
 lemma proper.nonempty (h : 2 ≤ grade (⊤ : α)) : nonempty (polytope.proper α) :=
 begin
-  change grade (⊤ : α) with grade ⊤ at h,
-
   have hbt : ¬ ⊥ ⋖ ⊤ := begin
     intro hbt,
     have := hbt.grade,
@@ -463,7 +507,7 @@ begin
     exact (not_le_of_lt zero_lt_two) h,
   end,
 
-  cases between_of_ncover hbt hbt' with z hz,
+  obtain ⟨z, hz⟩ := exists_lt_lt_of_not_cover hbt hbt',
   exact ⟨⟨z, ⊥, ⊤, hz⟩⟩,
 end
 
@@ -551,12 +595,12 @@ begin
   rw proper_iff_ne_bot_top (oiso x),
   split, {
     intro h,
-    apply @not_bot_proper α,
+    apply @not_proper_bot α,
     have := x.prop,
     rw ←oiso.map_bot at h,
     rwa oiso.injective h at this },
   intro h,
-  apply @not_top_proper α,
+  apply @not_proper_top α,
   have := x.prop,
   rw ←oiso.map_top at h,
   rwa oiso.injective h at this,

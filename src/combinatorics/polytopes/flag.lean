@@ -1,14 +1,11 @@
 /-
 Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Grayson Burton, Violeta Hernández Palacios
+Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
-import tactic
-import order.lattice_intervals
+import category_theory.endomorphism
 import order.zorn
-import category_theory.conj
-import data.fin.basic
-import combinatorics.polytopes.graded
+import .graded
 
 /-!
 # Flags of polytopes
@@ -40,13 +37,16 @@ open category_theory
 universe u
 variables {α β : Type*}
 
-/-- A flag is a maximal chain. -/
-@[reducible] def polytope.flag (α : Type*) [has_lt α] : Type* :=
-{c : set α // @zorn.is_max_chain α (<) c}
+/-- `flag α` is the type of flags (aka maximal chains) of `α`. -/
+def flag (α : Type*) [has_lt α] : Type* := {c : set α // @zorn.is_max_chain α (<) c}
 
-instance [fintype α] [has_lt α] [decidable_pred (@zorn.is_max_chain α (<))] :
-  fintype (polytope.flag α) :=
+instance [fintype α] [has_lt α] [decidable_pred (@zorn.is_max_chain α (<))] : fintype (flag α) :=
 subtype.fintype _
+
+-- first get `fintype (flags α × fin (grade ⊤ + 1))`,
+-- then the obvious injection `α → flags α × fin (grade ⊤ + 1)`
+-- noncomputable
+def fintype.of_flag [partial_order α] [bounded_order α] [fintype (flag α)] : fintype α := sorry
 
 /-- The category of posets of type `α`. -/
 @[instance]
@@ -56,14 +56,16 @@ private def Poset (α : Type u) [has_le α] : category (partial_order α) :=
   comp := λ a b c hab hbc, rel_hom.comp hbc hab }
 
 /-- The type of automorphisms of a poset. -/
-def polytope.automorphism (α : Type*) [p : partial_order α] :=
-@Aut (partial_order α) (Poset α) p
+def polytope.automorphism (α : Type*) [p : partial_order α] := @Aut (partial_order α) (Poset α) p
 
 open polytope
 
-namespace polytope.flag
+namespace flag
 
 instance (α : Type*) [has_lt α] : has_mem α (flag α) := ⟨λ a Φ, a ∈ Φ.val⟩
+
+-- Yaël: I'd advise you against such subtyping
+instance [has_lt α] : has_coe_to_sort (flag α) Type* := ⟨λ Φ, {x // x ∈ Φ}⟩
 
 instance [has_le α] [has_lt α] (Φ : flag α) : has_le Φ := ⟨λ a b, a.val ≤ b.val⟩
 
@@ -74,7 +76,7 @@ instance [has_lt α] : inhabited (flag α) := ⟨⟨_, zorn.max_chain_spec⟩⟩
 /-- Any two elements of a flag are comparable. -/
 protected theorem le_total [preorder α] : ∀ (Φ : flag α) (x y : Φ), x ≤ y ∨ y ≤ x :=
 begin
-  rintros ⟨_, hΦ, _⟩ x y,
+  rintro ⟨_, hΦ, _⟩ x y,
   by_cases heq : x = y,
   { exact or.inl (le_of_eq heq) },
   { cases x with x hx, cases y with y hy,
@@ -133,7 +135,7 @@ subtype.order_top Φ.top_in_flag
 instance [bounded_order α] : bounded_order Φ :=
 { ..Φ.order_top, ..Φ.order_bot }
 
-end polytope.flag
+end flag
 
 namespace polytope.automorphism
 
@@ -233,18 +235,17 @@ by rw ←γ.symm_hom; apply γ.symm.hom_map_lt
 /-- Scalar multiplication of automorphisms by flags. -/
 @[reducible]
 def smul_def (γ : automorphism α) (Φ : flag α) : set α :=
-γ.hom '' ↑Φ
+γ.hom '' Φ.val
 
 /-- Definition of scalar multiplication of automorphisms by flags. -/
 @[simp]
-theorem smul_def.eq (γ : automorphism α) (Φ : flag α) : γ.smul_def Φ = γ.hom '' ↑Φ :=
-rfl
+theorem smul_def.eq (γ : automorphism α) (Φ : flag α) : γ.smul_def Φ = γ.hom '' Φ.val := rfl
 
 /-- Automorphisms map flags to chains. -/
 lemma smul_is_chain (γ : automorphism α) (Φ : flag α) : zorn.chain (<) (γ.smul_def Φ) :=
 begin
   rcases Φ with ⟨Φf, hΦ, hΦ'⟩,
-  rintros a ⟨aw, ha, ha'⟩ b ⟨bw, hb, hb'⟩,
+  rintro a ⟨aw, ha, ha'⟩ b ⟨bw, hb, hb'⟩,
   induction ha', induction hb',
   simp only [hom_map_lt, hom_map_ne],
   exact hΦ _ ha _ hb
@@ -256,11 +257,11 @@ theorem smul_is_max_chain (γ : automorphism α) (Φ : flag α) :
 begin
   use γ.smul_is_chain Φ,
   rcases Φ with ⟨Φf, hΦ, hΦ'⟩,
-  rintros ⟨w, hwl, hwr⟩,
+  rintro ⟨w, hwl, hwr⟩,
   rcases set.exists_of_ssubset hwr with ⟨a, ha, hna⟩,
   refine hΦ' ⟨set.insert (γ.inv a) Φf, _⟩,
   split,
-    { rintros x (hx : _ ∨ _) y (hy : _ ∨ _) hne,
+    { rintro x (hx : _ ∨ _) y (hy : _ ∨ _) hne,
       have hxyne : x ≠ γ.inv a ∨ y ≠ γ.inv a,
         { rw ←not_and_distrib,
           rintro ⟨hl, hr⟩,
@@ -291,14 +292,13 @@ instance : has_scalar (automorphism α) (flag α) :=
 ⟨λ γ Φ, ⟨γ.smul_def Φ, γ.smul_is_max_chain Φ⟩⟩
 
 @[simp]
-theorem smul_def.eq' (γ : automorphism α) (Φ : flag α) : ↑(γ • Φ) = γ.hom '' ↑Φ :=
-rfl
+theorem smul_def.eq' (γ : automorphism α) (Φ : flag α) : (γ • Φ).val = γ.hom '' Φ.val := rfl
 
 /-- The group action of the automorphism group of a poset on its flags. -/
 instance : mul_action (automorphism α) (flag α) :=
 { one_smul := λ ⟨b, _⟩, subtype.eq (set.image_id b),
   mul_smul := begin
-    rintros γ γ' ⟨b, _⟩,
+    rintro γ γ' ⟨b, _⟩,
     apply subtype.eq,
     change (γ'.hom ≫ γ.hom) '' b = γ.hom '' (γ'.hom '' b),
     rw ←set.image_comp,
@@ -377,30 +377,29 @@ section preorder
 variables [preorder α]
 
 /-- Every chain is contained in a flag. -/
-theorem flag_of_chain (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ :=
+theorem flag_of_chain (c : set α) (hc : zorn.chain (<) c) : ∃ Φ : flag α, c ⊆ Φ.val :=
 begin
   let all_chains := {s : set α | c ⊆ s ∧ zorn.chain (<) s},
-  have := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩, {
-    rcases this with ⟨Φ, hΦ₀, hΦ₁, hΦ₂⟩,
+  have := zorn.zorn_subset_nonempty all_chains _ c ⟨rfl.subset, hc⟩,
+  { rcases this with ⟨Φ, hΦ₀, hΦ₁, hΦ₂⟩,
     refine ⟨⟨Φ, hΦ₀.right, λ h, _⟩, hΦ₁⟩,
     rcases h with ⟨d, hd, hdΦ₀, hdΦ₁⟩,
     have := hΦ₂ d _ hdΦ₀,
     induction this,
-      { exact hdΦ₁ hdΦ₀ },
+    { exact hdΦ₁ hdΦ₀ },
     change c ⊆ Φ with c ≤ Φ at hΦ₁,
-    exact ⟨le_trans hΦ₁ hdΦ₀, hd⟩,
-  },
-  rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
+    exact ⟨le_trans hΦ₁ hdΦ₀, hd⟩ },
+  rintro cs hcs₀ hcs₁ ⟨s, hs⟩,
   refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
     λ _, set.subset_sUnion_of_mem⟩,
-  rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
+  rintro y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
   by_cases hsseq : sy = sz,
-    { induction hsseq,
-      apply (hcs₀ hsy).right,
-      all_goals { assumption } },
+  { induction hsseq,
+    apply (hcs₀ hsy).right,
+    all_goals { assumption } },
   cases hcs₁ _ hsy _ hsz hsseq with h h,
-    { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
-    { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz },
+  { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
+  { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz }
 end
 
 /-- Every element belongs to some flag. -/
@@ -783,8 +782,8 @@ begin
   exact hjk rfl,
 end
 
-/-- If two flags are flag-connected, then any two elements in these flags are connected, as long as the
-grade exceeds 2. -/
+/-- If two flags are flag-connected, then any two elements in these flags are connected, as long as
+the grade exceeds 2. -/
 lemma con_of_mem_fcon [partial_order α] [bounded_order α] [grade_order α]
   {Φ Ψ : flag α} (hg : 2 < grade (⊤ : α)) (h : flag_connected Φ Ψ) {a b : proper α} :
   a.val ∈ Φ → b.val ∈ Ψ → connected a b :=

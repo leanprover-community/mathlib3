@@ -316,16 +316,12 @@ lemma empty [has_lt α] : @zorn.chain α (<) ∅ :=
 
 /-- Any singleton is a chain. -/
 lemma singleton [has_lt α] (x : α) : zorn.chain (<) (set.insert x ∅) :=
-by refine zorn.chain_insert _ _; repeat { exact  (λ _ h, false.elim h) }
+by refine zorn.chain_insert _ _; exact (λ _ h, false.elim h)
 
 /-- Any pair of incident elements is a chain. -/
 lemma pair [has_lt α] {x y : α} (hxy : x < y ∨ y < x) :
   zorn.chain (<) (set.insert x (set.insert y ∅)) :=
-begin
-  apply zorn.chain_insert (singleton _),
-  intros _ hb _,
-  rwa ←(list.mem_singleton.1 hb) at hxy,
-end
+zorn.chain_insert (singleton _) (λ _ hb _, by rwa ←(list.mem_singleton.1 hb) at hxy)
 
 /-- Chains of intervals are chains. -/
 lemma chain_of_chain [preorder α] {x y : α} (c : set (set.Icc x y)) :
@@ -344,8 +340,7 @@ begin
   swap,
   rcases hb with ⟨b', _, hb'⟩,
   suffices : b' = ⟨b, _⟩, by rwa ←this,
-  repeat
-    { apply subtype.eq, assumption },
+  repeat { apply subtype.eq, assumption },
   exact λ h, hne (subtype.mk.inj h),
 end
 

@@ -213,10 +213,9 @@ private lemma grade_ioo_lin (m n : ℕ) :
   is_grade α m → is_grade α n → nonempty (set.Ioo m n) → ∃ r ∈ set.Ioo m n, is_grade α r :=
 begin
   rintro ⟨a, rfl⟩ ⟨b, rfl⟩ ⟨_, hrl, hrr⟩,
-  have hab := (grade_lt_iff_lt _ _).mp (lt_trans hrl hrr),
-  obtain ⟨_, hac, hcb⟩ := exists_lt_lt_of_not_cover (λ hab, (λ ⟨_, hmn⟩, (hmn _) ⟨hrl, hrr⟩ : ¬_ ⋖ _)
-    (nat_cover_of_cover hab)) hab,
-  exact ⟨grade _, ⟨grade_strict_mono hac, grade_strict_mono hcb⟩, _, rfl⟩,
+  obtain ⟨_, hac, hcb⟩ := exists_lt_lt_of_not_cover (λ h, (λ ⟨_, hmn⟩, (hmn _) ⟨hrl, hrr⟩ : ¬_ ⋖ _)
+    (nat_cover_of_cover h)) ((grade_lt_iff_lt _ _).1 (lt_trans hrl hrr)),
+  exact ⟨_, ⟨grade_strict_mono hac, grade_strict_mono hcb⟩, _, rfl⟩,
 end
 
 end order_bot
@@ -408,11 +407,10 @@ lemma not_proper_top : ¬ is_proper (⊤ : α) := λ ⟨_, _, ⟨_, h⟩⟩, not
 /-- Elements other than the bottom and top ones are proper. -/
 lemma proper.ne_bot_top (a : α) : polytope.is_proper a → a ≠ ⊥ ∧ a ≠ ⊤ :=
 begin
-  intro ha,
-  split,
-  repeat { intro h, rw h at ha, swap },
+  refine (λ ha, ⟨λ h, _, λ h, _⟩);
+  rw h at ha,
   exact not_proper_bot ha,
-  exact not_proper_top ha,
+  exact not_proper_top ha
 end
 
 end bounded_order

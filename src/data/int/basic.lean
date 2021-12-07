@@ -351,25 +351,25 @@ begin
   cases hk; exact ⟨_, hk⟩
 end
 
-lemma nat_abs_eq_nat_abs_iff_of_nonneg_of_nonneg {a b : ℤ} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+lemma nat_abs_inj_of_nonneg_of_nonneg {a b : ℤ} (ha : 0 ≤ a) (hb : 0 ≤ b) :
   nat_abs a = nat_abs b ↔ a = b :=
 by rw [←sq_eq_sq ha hb, ←nat_abs_eq_iff_sq_eq]
 
-lemma nat_abs_eq_nat_abs_iff_of_nonpos_of_nonpos {a b : ℤ} (ha : a ≤ 0) (hb : b ≤ 0) :
+lemma nat_abs_inj_of_nonpos_of_nonpos {a b : ℤ} (ha : a ≤ 0) (hb : b ≤ 0) :
   nat_abs a = nat_abs b ↔ a = b :=
 by simpa only [int.nat_abs_neg, neg_inj]
- using nat_abs_eq_nat_abs_iff_of_nonneg_of_nonneg
+ using nat_abs_inj_of_nonneg_of_nonneg
   (neg_nonneg_of_nonpos ha) (neg_nonneg_of_nonpos hb)
 
-lemma nat_abs_eq_nat_abs_iff_of_nonneg_of_nonpos {a b : ℤ} (ha : 0 ≤ a) (hb : b ≤ 0) :
+lemma nat_abs_inj_of_nonneg_of_nonpos {a b : ℤ} (ha : 0 ≤ a) (hb : b ≤ 0) :
   nat_abs a = nat_abs b ↔ a = -b :=
 by simpa only [int.nat_abs_neg]
-  using nat_abs_eq_nat_abs_iff_of_nonneg_of_nonneg ha (neg_nonneg_of_nonpos hb)
+  using nat_abs_inj_of_nonneg_of_nonneg ha (neg_nonneg_of_nonpos hb)
 
-lemma nat_abs_eq_nat_abs_iff_of_nonpos_of_nonneg {a b : ℤ} (ha : a ≤ 0) (hb : 0 ≤ b) :
+lemma nat_abs_inj_of_nonpos_of_nonneg {a b : ℤ} (ha : a ≤ 0) (hb : 0 ≤ b) :
   nat_abs a = nat_abs b ↔ -a = b :=
 by simpa only [int.nat_abs_neg]
-  using nat_abs_eq_nat_abs_iff_of_nonneg_of_nonneg (neg_nonneg_of_nonpos ha) hb
+  using nat_abs_inj_of_nonneg_of_nonneg (neg_nonneg_of_nonpos ha) hb
 
 section intervals
 open set

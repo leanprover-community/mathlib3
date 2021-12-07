@@ -134,7 +134,7 @@ open metric set normed_space
 evaluate to something of norm at most one at all points `z ∈ s`. -/
 def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (dual 𝕜 E) :=
-{x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1 }
+{x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1}
 
 namespace polar
 
@@ -144,18 +144,15 @@ open_locale topological_space
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-@[simp] lemma zero_mem (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
+@[simp] lemma zero_mem (s : set E) :
   (0 : dual 𝕜 E) ∈ polar 𝕜 s :=
 λ _ _, by simp only [zero_le_one, continuous_linear_map.zero_apply, norm_zero]
 
-lemma eq_Inter (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
-  polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
+lemma eq_Inter (s : set E) :
+  polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1} :=
 by { ext, simp only [polar, mem_bInter_iff, mem_set_of_eq], }
 
-lemma of_empty (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] : polar 𝕜 (∅ : set E) = univ :=
+lemma of_empty : polar 𝕜 (∅ : set E) = univ :=
 by { simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true], }
 
 variables {𝕜}
@@ -177,6 +174,8 @@ begin
   rwa cancel at le,
 end
 
+variables (𝕜)
+
 /-- The `polar` of closed unit ball in a normed space `E` is the closed unit ball of the dual. -/
 lemma of_closed_unit_ball
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] :
@@ -197,12 +196,9 @@ begin
     exact (continuous_linear_map.unit_le_op_norm x' z hz).trans h, },
 end
 
-variables (𝕜)
-
 /-- Given a neighborhood `s` of the origin in a normed space `E`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
-lemma bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+lemma bounded_of_nhds_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   ∃ (c : ℝ), ∀ x' ∈ polar 𝕜 s, ∥x'∥ ≤ c :=
 begin
   obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := normed_field.exists_one_lt_norm 𝕜,

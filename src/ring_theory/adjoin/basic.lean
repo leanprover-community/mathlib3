@@ -61,7 +61,7 @@ adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 
 lemma adjoin_Union {α : Type*} (s : α → set A) :
   adjoin R (set.Union s) = ⨆ (i : α), adjoin R (s i) :=
-algebra.gc.l_supr
+(@algebra.gc R A _ _ _).l_supr
 
 lemma adjoin_attach_bUnion [decidable_eq A] {α : Type*} {s : finset α} (f : s → finset A) :
   adjoin R (s.attach.bUnion f : set A) = ⨆ x, adjoin R (f x) :=

@@ -321,7 +321,7 @@ by rw [is_coprime, ←mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_t
 
 -- this should be proved for UFDs surely?
 theorem is_coprime_of_dvd (x y : R)
-  (z : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits R, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
+  (nonzero : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits R, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
   is_coprime x y :=
 begin
   rw [← gcd_is_unit_iff],
@@ -343,11 +343,11 @@ begin
 end
 
 theorem is_coprime_of_irreducible_dvd {x y : R}
-  (z : ¬ (x = 0 ∧ y = 0))
+  (nonzero : ¬ (x = 0 ∧ y = 0))
   (H : ∀ z : R, irreducible z → z ∣ x → ¬ z ∣ y) :
   is_coprime x y :=
 begin
-  apply is_coprime_of_dvd x y z,
+  apply is_coprime_of_dvd x y nonzero,
   intros z znu znz zx zy,
   obtain ⟨i, h1, h2⟩ := wf_dvd_monoid.exists_irreducible_factor znu znz,
   apply H i h1;
@@ -355,10 +355,10 @@ begin
 end
 
 theorem is_coprime_of_prime_dvd {x y : R}
-  (z : ¬ (x = 0 ∧ y = 0))
+  (nonzero : ¬ (x = 0 ∧ y = 0))
   (H : ∀ z : R, prime z → z ∣ x → ¬ z ∣ y) :
   is_coprime x y :=
-is_coprime_of_irreducible_dvd z $ λ z zi, H z $ gcd_monoid.prime_of_irreducible zi
+is_coprime_of_irreducible_dvd nonzero $ λ z zi, H z $ gcd_monoid.prime_of_irreducible zi
 
 theorem irreducible.coprime_iff_not_dvd {p n : R} (pp : irreducible p) : is_coprime p n ↔ ¬ p ∣ n :=
 begin

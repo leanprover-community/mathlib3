@@ -998,6 +998,7 @@ namespace SheafOfTypes
 
 variable {J}
 
+/-- Morphisms between sheaves of types are just morphisms between the underlying presheaves. -/
 @[ext]
 structure hom (X Y : SheafOfTypes J) :=
 (val : X.val ⟶ Y.val)
@@ -1010,6 +1011,9 @@ instance : category (SheafOfTypes J) :=
   id_comp' := λ X Y f, hom.ext _ _ $ id_comp _,
   comp_id' := λ X Y f, hom.ext _ _ $ comp_id _,
   assoc' := λ X Y Z W f g h, hom.ext _ _ $ assoc _ _ _ }
+
+-- Let's make the inhabited linter happy...
+instance (X : SheafOfTypes J) : inhabited (hom X X) := ⟨𝟙 X⟩
 
 end SheafOfTypes
 

@@ -126,6 +126,9 @@ instance : category (Sheaf J A) :=
   comp_id' := λ X Y f, hom.ext _ _ $ comp_id _,
   assoc' := λ X Y Z W f g h, hom.ext _ _ $ assoc _ _ _ }
 
+-- Let's make the inhabited linter happy...
+instance (X : Sheaf J A) : inhabited (hom X X) := ⟨𝟙 X⟩
+
 end Sheaf
 
 /-- The inclusion functor from sheaves to presheaves. -/
@@ -140,7 +143,7 @@ instance : full (Sheaf_to_presheaf J A) := { preimage := λ X Y f, ⟨f⟩ }
 instance : faithful (Sheaf_to_presheaf J A) := {}
 
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
-@[simps] abbreviation sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
+@[simps] def sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
   (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op X), ℱ.cond X⟩
 
 lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type w) :

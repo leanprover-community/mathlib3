@@ -145,21 +145,15 @@ lemma degree_of_sub_lt {x : σ} {f g : mv_polynomial σ R} {k : ℕ} (h : 0 < k)
   (hg : ∀ (m : σ →₀ ℕ), m ∈ g.support → (k ≤ m x) → coeff m f = coeff m g) :
   degree_of x (f - g) < k :=
 begin
-  rw degree_of_lt_iff,
+  rw degree_of_lt_iff h,
   intros m hm,
   by_contra hc,
   simp only [not_lt] at hc,
-  have h := finset.mem_of_subset (support_sub σ f g) hm,
+  have h := support_sub σ f g hm,
+  simp only [mem_support_iff, ne.def, coeff_sub, sub_eq_zero] at hm,
   cases (finset.mem_union).1 h with cf cg,
-  have hf' := hf m cf hc,
-  rw [← sub_eq_zero] at hf',
-  simp only [mem_support_iff, ne.def, coeff_sub] at hm,
-  contradiction,
-  have hg' := hg m cg hc,
-  rw [← sub_eq_zero] at hg',
-  simp only [mem_support_iff, ne.def, coeff_sub] at hm,
-  contradiction,
-  exact h,
+  { exact hm (hf m cf hc), },
+  { exact hm (hg m cg hc), },
 end
 
 end degree_of

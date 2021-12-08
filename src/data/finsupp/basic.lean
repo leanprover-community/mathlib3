@@ -1077,11 +1077,11 @@ finset.subset.antisymm
   (calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
      ... ⊆ support (- f) : support_map_range)
 
-lemma support_sub [add_group G] {f g: α →₀ G} :
+lemma support_sub [decidable_eq α] [add_group G] {f g : α →₀ G} :
  support (f - g) ⊆ support f ∪ support g :=
 begin
   rw [sub_eq_add_neg, ←@support_neg _  _ _ g],
-  convert support_add,
+  exact support_add,
 end
 
 lemma erase_eq_sub_single [add_group G] (f : α →₀ G) (a : α) :

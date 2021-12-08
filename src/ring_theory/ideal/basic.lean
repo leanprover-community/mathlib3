@@ -422,7 +422,7 @@ begin
   rw [eq_top_iff_one, span, finsupp.mem_span_iff_total] at hs,
   rcases hs with ⟨f, hf⟩,
   change f.support.sum (λ a, f a * a) = 1 at hf,
-  have := pow_sum_mem_span_pow f.support (λ a, f a * a) n,
+  have := sum_pow_mem_span_pow f.support (λ a, f a * a) n,
   rw [hf, one_pow] at this,
   refine (span_le).mpr _ this,
   rintros _ hx,

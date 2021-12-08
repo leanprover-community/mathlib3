@@ -653,9 +653,9 @@ def erase (a : α) (f : α →₀ M) : α →₀ M :=
     [exact ⟨λ H _, H.1 h, λ H, (H rfl).elim⟩,
     exact and_iff_right h]⟩
 
-@[simp] lemma support_erase {a : α} {f : α →₀ M} :
+@[simp] lemma support_erase [decidable_eq α] {a : α} {f : α →₀ M} :
   (f.erase a).support = f.support.erase a :=
-rfl
+by convert rfl
 
 @[simp] lemma erase_same {a : α} {f : α →₀ M} : (f.erase a) a = 0 :=
 if_pos rfl

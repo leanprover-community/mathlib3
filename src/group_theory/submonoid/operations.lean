@@ -896,3 +896,133 @@ instance [mul_action M' α] [has_faithful_scalar M' α] (S : submonoid M') :
 end submonoid
 
 end actions
+
+-- For the pointwise inverse for submonoids of groups,
+-- please refer to `group_theory.submonoid.pointwise`.
+section pointwise_inverse
+
+namespace submonoid
+
+section monoid
+
+variables {M' : Type*} [monoid M'] (S' : submonoid M')
+
+/-- `S'.left_inv` is the submonoid containing all the left inverses of `S'`. -/
+@[to_additive "`S'.left_neg` is the additive submonoid containing all the left additive inverses
+of `S'`."]
+def left_inv : submonoid M' :=
+{ carrier := { x : M' | ∃ y : S', x * y = 1 },
+  one_mem' := ⟨1, mul_one 1⟩,
+  mul_mem' := λ a b ⟨a', ha⟩ ⟨b', hb⟩,
+    ⟨b' * a', by rw [coe_mul, ← mul_assoc, mul_assoc a, hb, mul_one, ha]⟩ }
+
+@[to_additive]
+lemma left_inv_left_inv_le : S'.left_inv.left_inv ≤ S' :=
+begin
+  rintros x ⟨⟨y, z, h₁⟩, h₂ : x * y = 1⟩,
+  convert z.prop,
+  rw [← mul_one x, ← h₁, ← mul_assoc, h₂, one_mul],
+end
+
+@[to_additive]
+lemma unit_mem_left_inv (x : units M') (hx : (x : M') ∈ S') : ((x⁻¹ : _) : M') ∈ S'.left_inv :=
+⟨⟨x, hx⟩, x.inv_val⟩
+
+attribute [to_additive] is_unit.submonoid is_unit.unit
+
+@[to_additive]
+lemma left_inv_left_inv_eq (hS' : S' ≤ is_unit.submonoid M') : S'.left_inv.left_inv = S' :=
+begin
+  refine le_antisymm S'.left_inv_left_inv_le _,
+  intros x hx,
+  have : x = ((hS' hx).unit⁻¹⁻¹ : units M') := by { rw [inv_inv (hS' hx).unit], refl },
+  rw this,
+  exact S'.left_inv.unit_mem_left_inv _ (S'.unit_mem_left_inv _ hx)
+end
+
+/-- The function from `S'.left_inv` to `S'` sending an element to its right inverse in `S'`.
+This is a `monoid_hom` when `M'` is commutative. -/
+@[to_additive "The function from `S'.left_add` to `S'` sending an element to its right additive
+inverse in `S'`. This is an `add_monoid_hom` when `M'` is commutative."]
+noncomputable
+def from_left_inv : S'.left_inv → S' := λ x, x.prop.some
+
+@[to_additive, simp] lemma mul_from_left_inv (x : S'.left_inv) : (x : M') * S'.from_left_inv x = 1 :=
+x.prop.some_spec
+
+@[to_additive, simp] lemma from_left_inv_one : S'.from_left_inv 1 = 1 :=
+(one_mul _).symm.trans (subtype.eq $ S'.mul_from_left_inv 1)
+
+end monoid
+
+section comm_monoid
+
+variables {M' : Type*} [comm_monoid M'] (S' : submonoid M')
+
+@[to_additive, simp]
+lemma from_left_inv_mul (x : S'.left_inv) : (S'.from_left_inv x : M') * x = 1 :=
+by rw [mul_comm, mul_from_left_inv]
+
+@[to_additive]
+lemma left_inv_le_is_unit : S'.left_inv ≤ is_unit.submonoid M' :=
+λ x ⟨y, hx⟩, ⟨⟨x, y, hx, mul_comm x y ▸ hx⟩, rfl⟩
+
+@[to_additive]
+lemma from_left_inv_eq_iff (a : S'.left_inv) (b : M') :
+  (S'.from_left_inv a : M') = b ↔ (a : M') * b = 1 :=
+by rw [← is_unit.mul_right_inj (left_inv_le_is_unit _ a.prop), S'.mul_from_left_inv, eq_comm]
+
+/-- The `monoid_hom` from `S'.left_inv` to `S'` sending an element to its right inverse in `S'`. -/
+@[to_additive "The `add_monoid_hom` from `S'.left_neg` to `S'` sending an element to its
+right additive inverse in `S'`.", simps]
+noncomputable
+def from_comm_left_inv : S'.left_inv →* S' :=
+{ to_fun := S'.from_left_inv,
+  map_one' := S'.from_left_inv_one,
+  map_mul' := λ x y, subtype.ext $
+    by rw [from_left_inv_eq_iff, mul_comm x, submonoid.coe_mul, submonoid.coe_mul, mul_assoc,
+      ← mul_assoc (x : M'), mul_from_left_inv, one_mul, mul_from_left_inv] }
+
+variable (hS' : S' ≤ is_unit.submonoid M')
+
+include hS'
+
+/-- The submonoid of pointwise inverse of `S'` is `mul_equiv` to `S'`. -/
+@[to_additive "The additive submonoid of pointwise additive inverse of `S'` is
+`add_equiv` to `S'`.", simps apply]
+noncomputable
+def left_inv_equiv : S'.left_inv ≃* S' :=
+{ inv_fun := λ x, by { choose x' hx using (hS' x.prop), exact ⟨x'.inv, x, hx ▸ x'.inv_val⟩ },
+  left_inv := λ x, subtype.eq $ begin
+      dsimp, generalize_proofs h, rw ← h.some.mul_left_inj,
+      exact h.some.inv_val.trans ((S'.mul_from_left_inv x).symm.trans (by rw h.some_spec)),
+  end,
+  right_inv := λ x, by { dsimp, ext, rw [from_left_inv_eq_iff], convert (hS' x.prop).some.inv_val,
+    exact (hS' x.prop).some_spec.symm },
+  ..S'.from_comm_left_inv }
+
+@[to_additive, simp] lemma from_left_inv_left_inv_equiv_symm (x : S') :
+  S'.from_left_inv ((S'.left_inv_equiv hS').symm x) = x := (S'.left_inv_equiv hS').right_inv x
+
+@[to_additive, simp] lemma left_inv_equiv_symm_from_left_inv (x : S'.left_inv) :
+  (S'.left_inv_equiv hS').symm (S'.from_left_inv x) = x := (S'.left_inv_equiv hS').left_inv x
+
+@[to_additive]
+lemma left_inv_equiv_apply_mul (x : S'.left_inv) : (S'.left_inv_equiv hS' x : M') * x = 1 := by simp
+
+@[to_additive]
+lemma mul_left_inv_equiv_apply (x : S'.left_inv) : (x : M') * S'.left_inv_equiv hS' x = 1 := by simp
+
+@[to_additive, simp] lemma left_inv_equiv_symm_apply_mul (x : S') :
+  ((S'.left_inv_equiv hS').symm x : M') * x = 1 :=
+by { convert S'.mul_left_inv_equiv_apply hS' ((S'.left_inv_equiv hS').symm x), simp }
+
+@[to_additive, simp] lemma mul_left_inv_equiv_symm_apply (x : S') :
+  (x : M') * (S'.left_inv_equiv hS').symm x = 1 :=
+by { convert S'.left_inv_equiv_apply_mul hS' ((S'.left_inv_equiv hS').symm x), simp }
+
+end comm_monoid
+
+end submonoid
+
+end pointwise_inverse

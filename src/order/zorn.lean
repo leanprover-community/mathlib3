@@ -417,7 +417,7 @@ lemma directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
 
 /-- Every chain is contained in a maximal chain. This generalizes Hausdorff's maximality principle.
 -/
-theorem chain.max_chain_of_chain {α r} (c : set α) (hc : zorn.chain r c) :
+theorem chain.max_chain_of_chain {α r} {c : set α} (hc : zorn.chain r c) :
   ∃ M, @zorn.is_max_chain _ r M ∧ c ⊆ M :=
 begin
   obtain ⟨M, ⟨_, hM₀⟩, hM₁, hM₂⟩ := zorn.zorn_subset_nonempty {s | c ⊆ s ∧ zorn.chain r s} _ c

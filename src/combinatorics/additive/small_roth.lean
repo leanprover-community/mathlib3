@@ -97,12 +97,12 @@ lemma pairwise.forall_of_forall_of_flip (h₁ : ∀ x ∈ l, R x x) (h₂ : l.pa
 begin
   induction l with a l ih,
   { exact λ x hx, hx.elim },
+  rw pairwise_cons at h₂ h₃,
   rintro x (rfl | hx) y (rfl | hy),
   { exact h₁ _ (l.mem_cons_self _) },
-  { exact rel_of_pairwise_cons h₂ hy },
-  { convert rel_of_pairwise_cons h₃ hx },
-  { exact ih (λ x hx, h₁ _ $ mem_cons_of_mem _ hx) (pairwise_of_pairwise_cons h₂)
-    (pairwise_of_pairwise_cons h₃) _ hx _ hy }
+  { exact h₂.1 _ hy },
+  { exact h₃.1 _ hx },
+  { exact ih (λ x hx, h₁ _ $ mem_cons_of_mem _ hx) h₂.2 h₃.2 _ hx _ hy }
 end
 
 end list
@@ -148,81 +148,346 @@ def roth : ℕ → ℕ × list ℕ
 
 lemma three_free.of_cons (hl : three_free a (b :: l)) : three_free a l := bool.band_elim_right hl
 
+lemma three_free_iff_pairwise :
+  three_free a l ↔ l.pairwise (λ b c, a + c ≠ b + b) :=
+by { induction l; simp [three_free, *, bool.coe_all] }
+
 lemma three_free.sublist (hl : three_free a l₂) (h : l₁ <+ l₂) : three_free a l₁ :=
 begin
-  induction h with l₁ l₂ b h ih l₁ l₂ b h ih,
-  { exact rfl },
-  { exact ih (three_free.of_cons hl) },
-  { rw [three_free, band_coe_iff, bool.coe_all] at ⊢ hl,
-    exact ⟨λ c hc, hl.1 _ (h.subset hc), ih hl.2⟩ }
+  rw three_free_iff_pairwise at hl ⊢,
+  apply pairwise_of_sublist h hl,
 end
 
 lemma three_free_spec (hl : chain (>) a l) (h₁ : add_salem_spencer {n | n ∈ l}) :
   three_free a l ↔ add_salem_spencer {n | n ∈ a :: l} :=
 begin
-  induction l with d l ih,
-  { simp only [set.set_of_eq_eq_singleton, iff_true, add_salem_spencer_singleton, mem_singleton,
-      three_free_nil] },
-  have : {n : ℕ | n ∈ a :: d :: l} = insert d {n : ℕ | n ∈ a :: l},
-  { ext,
-    simp only [set.mem_insert_iff, mem_cons_iff, set.mem_set_of_eq],
-    exact or.left_comm },
-  rw [this, three_free, bool.band_comm, band_coe_iff, bool.coe_all,
-    ih (hl.sublist $ sublist_cons _ _) (h₁.mono $ l.subset_cons _), add_salem_spencer_insert],
-  simp_rw bool.coe_to_bool,
-  refine and_congr_right (λ hl', ⟨λ hs, ⟨_, _⟩, _⟩),
-  { rintro b c (rfl | hb) (rfl | hc),
-    { exact add_right_cancel },
-    { rintro h,
-      cases hl with _ _ _ _ hdb hl,
-      have hcd : c < d := hl.rel hc,
-      exact ((add_lt_add hcd $ hcd.trans hdb).ne' h).elim },
-    { exact λ h, ((add_lt_add (rel_of_chain_cons hl : c > d) $
-        hl.rel $ mem_cons_of_mem _ hb).ne h).elim },
-    { exact h₁ (mem_cons_self _ _) (mem_cons_of_mem _ hb) (mem_cons_of_mem _ hc) } },
-  { rintro b c (rfl | hb) (rfl | hc),
-    { exact λ _, rfl },
-    { exact λ h, (hs _ hc h).elim },
-    { exact λ h, (hs _ hb $ (add_comm _ _).trans h).elim },
-    { exact h₁ (mem_cons_of_mem _ hb) (mem_cons_of_mem _ hc) (mem_cons_self _ _) } },
-  { rintro ⟨_, hs⟩ b hb h,
-    have hab : a = b := hs (mem_cons_self _ _) (or.inr hb) h,
-    rw hab at hl h,
-    have hbd : b > d := rel_of_chain_cons hl,
-    exact (add_lt_add hbd hbd).ne' h }
+  rw three_free_iff_pairwise,
+  have : {n : ℕ | n ∈ a :: l} = insert a {n : ℕ | n ∈ l},
+  { ext, simp only [set.mem_insert_iff, mem_cons_iff, set.mem_set_of_eq] },
+  rw [this, add_salem_spencer_insert],
+  refine ⟨λ H, ⟨h₁, λ b c hb hc e, _, λ b c hb hc e, _⟩, λ H, _⟩,
+  { cases H.forall_of_forall_of_flip _ _ _ hc _ hb e,
+    { exact λ b hb, (add_lt_add_right (hl.rel hb) _).ne' },
+    have : transitive ((>) : ℕ → ℕ → Prop) := λ a b c, gt_trans,
+    refine (pairwise_of_pairwise_cons ((chain_iff_pairwise this).1 hl)).imp_of_mem _,
+    exact λ b c hb hc h, (add_lt_add (hl.rel hc) h).ne' },
+  { cases (add_lt_add (hl.rel hb) (hl.rel hc)).ne e },
+  { refine pairwise.imp_mem.2 (pairwise_of_forall (λ c b hc hb e, _)),
+    exact ne_of_gt (hl.rel hb) (H.2.1 hb hc e) },
 end
 
-lemma roth_succ :
-  roth n.succ = (if roth_aux ((roth n).1 :: (roth n).2) 0 (roth n).1 [] then (roth n).1 + 1
-    else (roth n).1, (roth n).1 :: (roth n).2) :=
+def roth_ub_aux (s m d : ℕ) (α : list ℕ) : Prop :=
+add_salem_spencer {n | n ∈ α} → list.chain (>) m α →
+  ∀ β : finset ℕ, (∀ x ∈ β, x < s + m) → β.filter (< m) = list.to_finset α →
+    add_salem_spencer (β : set ℕ) → β.card ≤ d + α.length
+
+theorem roth_ub_aux_zero (m d : ℕ) (α : list ℕ) : roth_ub_aux 0 m d α :=
 begin
-  sorry
+  intros h hα β hβ hβ' hβ'',
+  rw zero_add at hβ,
+  rw finset.filter_true_of_mem hβ at hβ',
+  rw [hβ', card_to_finset, erase_dup_eq_self.2],
+  { apply le_add_self },
+  apply (pairwise_of_pairwise_cons ((chain_iff_pairwise _).1 hα)).nodup,
+  intros _ _ _,
+  exact gt_trans
 end
 
-lemma roth_aux_spec (s n m d : ℕ) (l : list ℕ)
-  (h₁ : add_salem_spencer {n | n ∈ l}) (h₂ : list.chain' (>) l)
-  (hm : s + m = n + 1) (hd : roth_number_nat n = d + l.length) :
-  ¬ roth_aux ((list.range s).map roth_number_nat) m d l ↔
-  (∀ t : finset ℕ, (∀ x ∈ t, x ≤ n) → {n | n ∈ l} ⊆ t →
-    add_salem_spencer (t : set ℕ) → t.card ≤ roth_number_nat n) :=
+def roth_ub_aux₁ (s m d : ℕ) (α : list ℕ) : Prop :=
+roth_number_nat s ≤ d ∨ roth_ub_aux s (m + 1) d α
+
+def roth_ub_aux₂ (s m d : ℕ) (α : list ℕ) : Prop :=
+¬ three_free m α ∨ ∃ d', d = d' + 1 ∧ roth_ub_aux s (m + 1) d' (m :: α)
+
+lemma thing {s m d : ℕ} (β : finset ℕ)
+  (h₁ : roth_number_nat s ≤ d)
+  (hβ₁ : ∀ (x : ℕ), x ∈ β → x < s + 1 + m)
+  (hβ₃ : add_salem_spencer (β : set ℕ)) :
+  (finset.filter (not ∘ (< m)) β).card ≤ d :=
 begin
 
 end
 
-example (n : ℕ) : roth n = (roth_number_nat n, (list.range n).reverse.map roth_number_nat) :=
+theorem roth_ub_aux_succ {s m d α}
+  (h₁ : roth_ub_aux₁ s m d α) (h₂ : roth_ub_aux₂ s m d α) : roth_ub_aux (s+1) m d α :=
 begin
-  suffices h : ∀ n, (roth n).1 = roth_number_nat n,
-  {
-    induction n with n ih,
-    { refl },
-    refine prod.ext (h _) _,
-    rw [roth_succ, range_succ, reverse_append, reverse_singleton, singleton_append, map_cons, h n],
-    convert rfl,
-    refl,
-    rw roth,
-    change (roth n).1 :: (roth n).2 = _,
-  },
+  intros hα₁ hα₂ β hβ₁ hβ₂ hβ₃,
+  rcases h₁ with h₁ | h₁,
+  { have : _ = β.card := finset.filter_card_add_filter_neg_card_eq_card (< m),
+    rw [←this, hβ₂, add_comm, card_to_finset, erase_dup_eq_self.2, add_le_add_iff_right],
+    apply thing _ h₁ hβ₁ hβ₃,
+    apply (pairwise_of_pairwise_cons ((chain_iff_pairwise _).1 hα₂)).nodup,
+    exact λ _ _ _, gt_trans },
+  { rw [roth_ub_aux₂, ←imp_iff_not_or] at h₂,
+
+    -- rcases h₂ with h₂ | ⟨d, rfl, h₂⟩,
+    -- { sorry },
+    -- have := h₂ _,
+
+  }
 end
+
+theorem roth_ub_aux₁_left {s m d α}
+  (h : roth_number_nat s ≤ d) : roth_ub_aux₁ s m d α := or.inl h
+
+theorem roth_ub_aux₁_right {s m d α}
+  (h : roth_ub_aux s (m+1) d α) : roth_ub_aux₁ s m d α := or.inr h
+
+theorem roth_ub_aux₂_left {s m d α}
+  (h : three_free m α = ff) : roth_ub_aux₂ s m d α := or.inl (by simp [h])
+
+theorem roth_ub_aux₂_right {s m d α}
+  (h : roth_ub_aux s (m+1) d (m::α)) : roth_ub_aux₂ s m (d+1) α := or.inr ⟨_, rfl, h⟩
+
+theorem roth_ub_aux_out {n d}
+  (h : roth_ub_aux n 0 d []) : roth_number_nat n ≤ d :=
+begin
+  rw roth_ub_aux at h,
+  simp only [add_zero, to_finset_nil, set.set_of_false, add_salem_spencer_empty, not_mem_nil,
+    finset.filter_false, eq_self_iff_true, length, forall_true_left, chain.nil, not_lt_zero'] at h,
+  obtain ⟨β, hβ, hβ', hβ''⟩ := add_roth_number_spec (finset.range n),
+  convert h β _ hβ'',
+  { apply hβ'.symm },
+  intros x hx,
+  apply finset.mem_range.1 (hβ hx),
+end
+
+example : roth_number_nat 3 ≤ 2 → roth_number_nat 4 ≤ 3 → roth_number_nat 8 ≤ 4 :=
+begin
+  intros h₃ h₄,
+  apply roth_ub_aux_out,
+  apply roth_ub_aux_succ,
+  { apply roth_ub_aux₁_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+    apply roth_ub_aux₂_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_left h₄ },
+    { apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_left,
+        apply h₃ },
+      apply roth_ub_aux₂_left,
+      dec_trivial } },
+    apply roth_ub_aux₂_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_left,
+        apply h₃ },
+      apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_right,
+          apply roth_ub_aux_zero },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_left,
+      dec_trivial },
+    apply roth_ub_aux₂_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_left,
+        apply h₃ },
+      apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_right,
+          apply roth_ub_aux_zero },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_left,
+      dec_trivial },
+    apply roth_ub_aux₂_left,
+    dec_trivial },
+  apply roth_ub_aux₂_right,
+  apply roth_ub_aux_succ,
+  { apply roth_ub_aux₁_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_left,
+        apply h₄ },
+      apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_left h₃ },
+      apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_left,
+      dec_trivial },
+    apply roth_ub_aux₂_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_left,
+        apply h₃ },
+      apply roth_ub_aux₂_left,
+      dec_trivial },
+    apply roth_ub_aux₂_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_right,
+          apply roth_ub_aux_zero },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_left,
+      dec_trivial },
+    apply roth_ub_aux₂_left,
+    dec_trivial },
+  apply roth_ub_aux₂_right,
+  apply roth_ub_aux_succ,
+  { apply roth_ub_aux₁_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_left,
+        apply h₃ },
+      apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_right,
+          apply roth_ub_aux_zero },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_right,
+          apply roth_ub_aux_zero },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_left,
+      dec_trivial },
+    apply roth_ub_aux₂_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_left,
+          apply roth_number_nat_le },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_left,
+      dec_trivial },
+    apply roth_ub_aux₂_right,
+    apply roth_ub_aux_succ,
+    { apply roth_ub_aux₁_right,
+      apply roth_ub_aux_succ,
+      { apply roth_ub_aux₁_right,
+        apply roth_ub_aux_succ,
+        { apply roth_ub_aux₁_right,
+          apply roth_ub_aux_zero },
+        apply roth_ub_aux₂_left,
+        dec_trivial },
+      apply roth_ub_aux₂_left,
+      dec_trivial },
+    apply roth_ub_aux₂_left,
+    dec_trivial },
+  apply roth_ub_aux₂_left,
+  dec_trivial
+end
+
+-- lemma roth_succ :
+--   roth n.succ = (if roth_aux ((roth n).1 :: (roth n).2) 0 (roth n).1 [] then (roth n).1 + 1
+--     else (roth n).1, (roth n).1 :: (roth n).2) :=
+-- begin
+--   sorry
+-- end
+
+-- lemma roth_aux_spec (s n m d : ℕ) (l : list ℕ)
+--   (h₁ : add_salem_spencer {n | n ∈ l}) (h₂ : list.chain' (>) l)
+--   (hm : s + m = n + 1) (hd : roth_number_nat n = d + l.length) :
+--   ¬ roth_aux ((list.range s).map roth_number_nat) m d l ↔
+--   (∀ t : finset ℕ, (∀ x ∈ t, x ≤ n) → {n | n ∈ l} ⊆ t →
+--     add_salem_spencer (t : set ℕ) → t.card ≤ roth_number_nat n) :=
+-- begin
+
+-- end
+
+-- example (n : ℕ) : roth n = (roth_number_nat n, (list.range n).reverse.map roth_number_nat) :=
+-- begin
+--   suffices h : ∀ n, (roth n).1 = roth_number_nat n,
+--   {
+--     induction n with n ih,
+--     { refl },
+--     refine prod.ext (h _) _,
+--     rw [roth_succ, range_succ, reverse_append, reverse_singleton, singleton_append, map_cons, h n],
+--     convert rfl,
+--     refl,
+--     rw roth,
+--     change (roth n).1 :: (roth n).2 = _,
+--   },
+-- end
 
 #exit
 

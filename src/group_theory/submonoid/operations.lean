@@ -897,8 +897,10 @@ end submonoid
 
 end actions
 
--- For the pointwise inverse for submonoids of groups,
--- please refer to `group_theory.submonoid.pointwise`.
+/-!
+For the pointwise inverse for submonoids of groups,
+please refer to `group_theory.submonoid.pointwise`.
+-/
 section pointwise_inverse
 
 namespace submonoid
@@ -939,8 +941,6 @@ end
 @[to_additive]
 lemma unit_mem_left_inv (x : units M') (hx : (x : M') ∈ S') : ((x⁻¹ : _) : M') ∈ S'.left_inv :=
 ⟨⟨x, hx⟩, x.inv_val⟩
-
-attribute [to_additive] is_unit.submonoid is_unit.unit
 
 @[to_additive]
 lemma left_inv_left_inv_eq (hS' : S' ≤ is_unit.submonoid M') : S'.left_inv.left_inv = S' :=

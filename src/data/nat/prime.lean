@@ -504,10 +504,8 @@ begin
       cases h, { use L_hd, simp [h] },
       rcases L_ih h with ⟨x, hx1, hx2⟩,
       use x,
-      simp [list.mem_cons_iff, hx1, hx2] }
-  },
-  {
-    exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
+      simp [list.mem_cons_iff, hx1, hx2] } },
+  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
 end
 
 lemma prime.not_dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) (hL : ∀ a ∈ L, ¬ p ∣ a) :

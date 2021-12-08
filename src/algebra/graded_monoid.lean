@@ -63,6 +63,14 @@ information it would contain is already supplied by `graded_monoid` when `A` is 
 of additively-closed set_like objects such as `submodules`. These constructions are explored in
 `algebra.direct_sum.internal`.
 
+
+## Dependent graded products
+
+This also introduces `list.dprod`, which takes the (possibly non-commutative) product of a list
+of graded elements of type `A i`. This definition primarily exist to allow `graded_monoid.mk`
+and `direct_sum.of` to be pulled outside a product, such as in `graded_monoid.mk_list_dprod` and
+`direct_sum.of_list_dprod`.
+
 ## tags
 
 graded monoid

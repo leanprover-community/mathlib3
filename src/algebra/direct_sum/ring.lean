@@ -223,7 +223,7 @@ begin
     exact of_eq_of_graded_monoid_eq (pow_succ (graded_monoid.mk _ a) n).symm, },
 end
 
-lemma of_dprod {α} (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+lemma of_list_dprod {α} (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
   of A _ (l.dprod fι fA) = (l.map $ λ a, of A (fι a) (fA a)).prod :=
 begin
   induction l,

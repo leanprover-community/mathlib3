@@ -35,7 +35,7 @@ instance [partial_order α] [bounded_order α] [diamond_order α] : diamond_orde
 { diamond := λ (a b : α) (hab : b < a) h, begin
     obtain ⟨x, y, hne, hxy⟩ := hab.exists_pair_Ioo _,
     exact ⟨x, y, hne, set.dual_Ioo.trans hxy⟩,
-    change grade (⊤ : α) - grade b = grade (⊤ : α) - grade a + 2 at h,
+    change grade ⊤ - grade b = grade ⊤ - grade a + 2 at h,
     linarith [grade_le_grade_top a, grade_le_grade_top b],
   end
   .. order_dual.grade_order α }

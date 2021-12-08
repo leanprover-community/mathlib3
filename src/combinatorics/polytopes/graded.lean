@@ -338,7 +338,6 @@ instance [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot 
     exact grade_bot,
   end,
   strict_mono := λ a b h, begin
-    apply prod.has_le,
     sorry
   end,
   hcovers := sorry }
@@ -354,18 +353,34 @@ end prod
 instance (α : Type*) [preorder α] [order_bot α] [grade_order α] : grade_order (with_bot α) :=
 { grade := @with_bot.rec_bot_coe α (λ _, ℕ) 0 (λ a, grade a + 1),
   grade_bot := rfl,
-  strict_mono := λ a b h, begin
-    sorry
+  strict_mono := λ x y h, begin
+    cases x,
+      { cases y,
+        { exact (ne_of_lt h rfl).elim },
+        { exact nat.zero_lt_succ _ }},
+    cases y,
+      { exact (not_le_of_lt h bot_le).elim },
+      { exact succ_lt_succ (grade_order.strict_mono (with_bot.some_lt_some.1 h)) }
   end,
-  hcovers := sorry }
+  hcovers := λ x y h, begin
+    sorry
+  end }
 
-instance (α : Type*) [preorder α] [bounded_order α] [grade_order α] : grade_order (with_top α) :=
+instance (α : Type*) [partial_order α] [bounded_order α] [grade_order α] : grade_order (with_top α) :=
 { grade := @with_top.rec_top_coe α (λ _, ℕ) (grade (⊤ : α) + 1) grade,
   grade_bot := grade_bot,
-  strict_mono := λ a b h, begin
-    sorry
+  strict_mono := λ x y h, begin
+    cases x,
+      { cases y,
+        { exact (ne_of_lt h rfl).elim },
+        { exact (not_le_of_lt h le_top).elim }},
+    cases y,
+      { exact nat.lt_succ_of_le (grade_le_grade_top _) },
+      { exact grade_order.strict_mono (with_top.some_lt_some.1 h) }
   end,
-  hcovers := sorry }
+  hcovers := λ x y h, begin
+    sorry
+  end }
 
 /-! ### More stuff -/
 
@@ -527,11 +542,7 @@ end
 
 /-- Connectedness is transitive. -/
 lemma trans (hab : path r a b) (hbc : path r b c) : path r a c :=
-begin
-  induction hab with a a d b had hdb h,
-    { exact hbc },
-    { exact h (path.append_left hdb hbc) }
-end
+by { induction hab with _ _ _ _ _ hdb h, exact hbc, exact h (path.append_left hdb hbc) }
 
 /-- If `a` and `b` are connected, and `b` and `c` are related, then `a` and `c` are connected. -/
 lemma append_right (hab : path r a b) (hbc : r b c) : path r a c :=
@@ -568,15 +579,14 @@ private lemma proper_order_iso_of_proper [partial_order α] [bounded_order α] [
   is_proper (oiso x) :=
 begin
   rw proper_iff_ne_bot_top (oiso x),
+  have := x.prop,
   split, {
     intro h,
     apply @not_proper_bot α,
-    have := x.prop,
     rw ←oiso.map_bot at h,
     rwa oiso.injective h at this },
   intro h,
   apply @not_proper_top α,
-  have := x.prop,
   rw ←oiso.map_top at h,
   rwa oiso.injective h at this,
 end

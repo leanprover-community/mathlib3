@@ -14,7 +14,7 @@ open nat
 variables {α β : Type*}
 
 /-- One element covers another when there's no other element strictly in between. -/
-def covers [preorder α] (y x : α) : Prop := x < y ∧ ∀ z, ¬ z ∈ set.Ioo x y
+def covers [has_lt α] (y x : α) : Prop := x < y ∧ ∀ z, ¬ (x < z ∧ z < y)
 
 notation x ` ⋗ `:50 y:50 := covers x y
 notation x ` ⋖ `:50 y:50 := covers y x
@@ -24,7 +24,7 @@ lemma not_cover [preorder α] [densely_ordered α] {x y : α} : ¬ x ⋖ y :=
 by { rintro ⟨hl, hr⟩, obtain ⟨_, hw⟩ := exists_between hl, exact hr _ hw }
 
 /-- If `x < y` but `y` does not cover `x`, then there's an element in between. -/
-lemma exists_lt_lt_of_not_cover [preorder α] {x y : α} (hnxy : ¬x ⋖ y) (hxy : x < y) :
+lemma exists_lt_lt_of_not_cover [has_lt α] {x y : α} (hnxy : ¬x ⋖ y) (hxy : x < y) :
   ∃ z, x < z ∧ z < y :=
 by { by_contra hne, push_neg at hne, exact hnxy ⟨hxy, λ z ⟨hl, hr⟩, hne z hl hr⟩ }
 
@@ -58,7 +58,7 @@ lemma fin.cover_iff_cover {n : ℕ} (a b : fin n) : a ⋖ b ↔ a.val ⋖ b.val 
 instance covers.is_irrefl [preorder α] : is_irrefl α (⋖) :=
 ⟨ λ _ ha, ne_of_lt ha.left rfl ⟩
 
-lemma dual_cover_iff_cover [preorder α] (a b : α) :
+lemma dual_cover_iff_cover [has_lt α] (a b : α) :
   a ⋖ b ↔ @covers (order_dual α) _ a b :=
 by split; exact λ ⟨habl, habr⟩, ⟨habl, λ c ⟨hcl, hcr⟩, habr c ⟨hcr, hcl⟩⟩
 

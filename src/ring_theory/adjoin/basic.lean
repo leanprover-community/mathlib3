@@ -59,13 +59,13 @@ le_antisymm (adjoin_le h₁) h₂
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 
-lemma algebra.adjoin_Union {α : Type*} (s : α → set A) :
-  algebra.adjoin R (set.Union s) = ⨆ (i : α), algebra.adjoin R (s i) :=
-(@algebra.gi R A _ _ _).gc.l_supr
+lemma adjoin_Union {α : Type*} (s : α → set A) :
+  adjoin R (set.Union s) = ⨆ (i : α), adjoin R (s i) :=
+algebra.gc.l_supr
 
-lemma algebra.adjoin_attach_bUnion [decidable_eq A] {α : Type*} {s : finset α} (f : s → finset A) :
-  algebra.adjoin R (s.attach.bUnion f : set A) = ⨆ x, algebra.adjoin R (f x) :=
-by simpa [algebra.adjoin_Union]
+lemma adjoin_attach_bUnion [decidable_eq A] {α : Type*} {s : finset α} (f : s → finset A) :
+  adjoin R (s.attach.bUnion f : set A) = ⨆ x, adjoin R (f x) :=
+by simpa [adjoin_Union]
 
 @[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s)
   (Hs : ∀ x ∈ s, p x)

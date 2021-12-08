@@ -214,9 +214,9 @@ begin
   have h' : ∀ s, measurable_set s → μ s = ∞ → μ' s = ∞,
   { intros s hs hμs, rw [eq_top_iff, ← hμs], exact h s hs, },
   refine ⟨hT.1.of_eq_top_imp_eq_top h', λ s hs hμ's, _⟩,
-  have hμs : μ s ≠ ∞, from ne_top_of_le_ne_top hμ's (h s hs),
+  have hμs : μ s < ∞, from (h s hs).trans_lt hμ's,
   refine (hT.2 s hs hμs).trans (mul_le_mul le_rfl _ ennreal.to_real_nonneg hC),
-  rw to_real_le_to_real hμs hμ's,
+  rw to_real_le_to_real hμs.ne hμ's.ne,
   exact h s hs,
 end
 
@@ -240,10 +240,10 @@ begin
       false_and] at hcμs,
     exact hcμs.2, },
   refine ⟨hT.1.of_eq_top_imp_eq_top h, λ s hs hμs, _⟩,
-  have hcμs : c • μ s ≠ ∞, from mt (h s hs) hμs,
+  have hcμs : c • μ s ≠ ∞, from mt (h s hs) hμs.ne,
   rw smul_eq_mul at hcμs,
   simp_rw [dominated_fin_meas_additive, measure.smul_apply, to_real_mul] at hT,
-  refine (hT.2 s hs hcμs).trans (le_of_eq _),
+  refine (hT.2 s hs hcμs.lt_top).trans (le_of_eq _),
   ring,
 end
 

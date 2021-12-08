@@ -3,10 +3,11 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import order.bounded_order
 import order.complete_lattice
+import order.cover
 import order.iterate
 import tactic.monotonicity
-import order.bounded_order
 
 /-!
 # Successor and predecessor
@@ -103,6 +104,9 @@ lemma succ_mono : monotone (succ : α → α) := λ a b, succ_le_succ
 lemma lt_succ_of_not_maximal {a b : α} (h : a < b) : a < succ a :=
 (le_succ a).lt_of_not_le (λ ha, maximal_of_succ_le ha h)
 
+lemma covers_succ_of_not_maximal {a b : α} (h : a < b) : a ⋖ succ a :=
+⟨lt_succ_of_not_maximal h, λ c hc, (succ_le_of_lt hc).not_lt⟩
+
 section no_top_order
 variables [no_top_order α] {a b : α}
 
@@ -126,6 +130,8 @@ by simp_rw [lt_iff_le_not_le, succ_le_succ_iff]
 alias succ_lt_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ
 
 lemma succ_strict_mono : strict_mono (succ : α → α) := λ a b, succ_lt_succ
+
+lemma covers_succ (a : α) : a ⋖ succ a := ⟨lt_succ a, λ c hc, (succ_le_of_lt hc).not_lt⟩
 
 end no_top_order
 
@@ -225,7 +231,7 @@ lemma succ_ne_bot (a : α) : succ a ≠ ⊥ :=
 end order_bot
 
 section linear_order
-variables [linear_order α]
+variables [linear_order α] {a b : α}
 
 /-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
 def of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
@@ -235,6 +241,13 @@ def of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b �
   maximal_of_succ_le := λ a ha, (lt_irrefl a (hsucc_le_iff.1 ha)).elim,
   succ_le_of_lt := λ a b, hsucc_le_iff.2,
   le_of_lt_succ := λ a b h, le_of_not_lt ((not_congr hsucc_le_iff).1 h.not_le) }
+
+lemma covers_iff_eq_pred [no_top_order α] [succ_order α] : a ⋖ b ↔ b = succ a :=
+begin
+  refine ⟨λ h, (le_of_not_lt $ λ h', h.2 (lt_succ _) h').antisymm $ succ_le_of_lt h.lt, _⟩,
+  rintro rfl,
+  exact covers_succ _,
+end
 
 end linear_order
 
@@ -299,6 +312,9 @@ lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
 lemma pred_lt_of_not_minimal {a b : α} (h : b < a) : pred a < a :=
 (pred_le a).lt_of_not_le (λ ha, minimal_of_le_pred ha h)
 
+lemma pred_covers_of_not_minimal {a b : α} (h : b < a) : pred a ⋖ a :=
+⟨pred_lt_of_not_minimal h, λ c hc, (le_of_pred_lt hc).not_lt⟩
+
 section no_bot_order
 variables [no_bot_order α] {a b : α}
 
@@ -322,6 +338,8 @@ by simp_rw [lt_iff_le_not_le, pred_le_pred_iff]
 alias pred_lt_pred_iff ↔ lt_of_pred_lt_pred pred_lt_pred
 
 lemma pred_strict_mono : strict_mono (pred : α → α) := λ a b, pred_lt_pred
+
+lemma pred_covers (a : α) : pred a ⋖ a := ⟨pred_lt a, λ c hc, (le_of_pred_lt hc).not_lt⟩
 
 end no_bot_order
 
@@ -419,7 +437,7 @@ lemma pred_ne_top [nontrivial α] (a : α) : pred a ≠ ⊤ :=
 end order_top
 
 section linear_order
-variables [linear_order α]
+variables [linear_order α] {a b : α}
 
 /-- A constructor for `pred_order α` usable when `α` is a linear order with no maximal element. -/
 def of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b) :
@@ -429,6 +447,13 @@ def of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b �
   minimal_of_le_pred := λ a ha, (lt_irrefl a (hle_pred_iff.1 ha)).elim,
   le_pred_of_lt := λ a b, hle_pred_iff.2,
   le_of_pred_lt := λ a b h, le_of_not_lt ((not_congr hle_pred_iff).1 h.not_le) }
+
+lemma covers_iff_eq_pred [no_bot_order α] [pred_order α] : a ⋖ b ↔ a = pred b :=
+begin
+  refine ⟨λ h, (le_pred_of_lt h.lt).antisymm $ le_of_not_lt $ λ h', h.2 h' $ pred_lt _, _⟩,
+  rintro rfl,
+  exact pred_covers _,
+end
 
 end linear_order
 

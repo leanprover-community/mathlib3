@@ -621,18 +621,13 @@ adjunction.mk_of_hom_equiv
 
 variables {J D}
 /-- A sheaf `P` is isomorphic to its own sheafification. -/
-@[simps hom_val]
+@[simps]
 def sheafification_iso (P : Sheaf J D) :
   P ≅ (presheaf_to_Sheaf J D).obj P.val :=
 { hom := ⟨(J.iso_sheafify P.2).hom⟩,
   inv := ⟨(J.iso_sheafify P.2).inv⟩,
   hom_inv_id' := by { ext1, apply (J.iso_sheafify P.2).hom_inv_id },
   inv_hom_id' := by { ext1, apply (J.iso_sheafify P.2).inv_hom_id } }
-
-@[simp]
-lemma sheafification_iso_inv_val (P : Sheaf J D) :
-  (sheafification_iso P).inv.val = J.sheafify_lift (𝟙 P.val) P.cond :=
-by { dsimp [sheafification_iso], simp }
 
 instance is_iso_sheafification_adjunction_counit (P : Sheaf J D) :
   is_iso ((sheafification_adjunction J D).counit.app P) :=

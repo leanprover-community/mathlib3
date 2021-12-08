@@ -31,13 +31,12 @@ begin
       refine absurd _ not_prime_one,
       simp only [nat.dvd_one, finset.prod_empty] at hp,
       rwa hp at pp },
-    { simp only [exists_prop, mem_insert],
-      intros a S haS h1 h2,
+    { intros a S haS h1 h2,
       rw prod_insert haS at h2,
       cases (prime.dvd_mul pp).mp h2,
       { use a, simp [h] },
       { rcases h1 h with ⟨a, ha1, ha2⟩, use a, simp [ha1, ha2] } } },
-  { rintros ⟨a, ha1, ha2⟩, exact dvd_trans ha2 (dvd_prod_of_mem g ha1) },
+  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (dvd_prod_of_mem g ha1) },
 end
 
 end finset

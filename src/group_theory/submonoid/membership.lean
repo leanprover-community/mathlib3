@@ -240,8 +240,8 @@ pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _
 theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=
 log_pow_eq_self (int.pow_right_injective h) _
 
-lemma submonoid.map_powers {N : Type*} [monoid N] (f : M →* N) (m : M) :
-  (submonoid.powers m).map f = submonoid.powers (f m) :=
+lemma map_powers {N : Type*} [monoid N] (f : M →* N) (m : M) :
+  (powers m).map f = powers (f m) :=
 begin
   ext,
   split,

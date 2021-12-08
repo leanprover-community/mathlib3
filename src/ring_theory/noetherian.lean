@@ -670,7 +670,7 @@ begin
 end
 
 instance submodule.quotient.is_noetherian {R} [ring R] {M} [add_comm_group M] [module R M]
-  (N : submodule R M) [h : is_noetherian R M] : is_noetherian R N.quotient :=
+  (N : submodule R M) [h : is_noetherian R M] : is_noetherian R (M ⧸ N) :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
   exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
@@ -687,7 +687,7 @@ begin
 end
 
 instance ideal.quotient.is_noetherian_ring {R : Type*} [comm_ring R] [h : is_noetherian_ring R]
-  (I : ideal R) : is_noetherian_ring I.quotient :=
+  (I : ideal R) : is_noetherian_ring (R ⧸ I) :=
 is_noetherian_ring_iff.mpr $ is_noetherian_of_tower R $ submodule.quotient.is_noetherian _
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]

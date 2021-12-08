@@ -82,20 +82,17 @@ adjunction.mk_of_hom_equiv
     symmetry,
     apply J.sheafify_lift_unique,
     dsimp [compose_equiv, adjunction.whisker_right],
-    erw [sheafification_map_sheafify_lift, to_sheafify_sheafify_lift],
+    erw [sheafify_map_sheafify_lift, to_sheafify_sheafify_lift],
     ext : 2,
     dsimp,
-    erw nat_trans.comp_app,
     simp,
   end,
   hom_equiv_naturality_right' := begin
     intros X Y Y' f g,
     dsimp [compose_equiv, adjunction.whisker_right],
     ext : 2,
-    erw [nat_trans.comp_app, nat_trans.comp_app, nat_trans.comp_app, nat_trans.comp_app],
     dsimp,
-    erw [nat_trans.comp_app f g],
-    simp only [category.id_comp, category.comp_id, category.assoc, functor.map_comp],
+    simp,
   end }
 
 @[simp]
@@ -153,7 +150,7 @@ lemma adjunction_to_types_hom_equiv_apply {G : Type (max v u) ⥤ D} (adj : G �
   (adj.whisker_right _).hom_equiv _ _ (J.to_sheafify _ ≫ η) := rfl
 
 @[simp]
-lemma adjunction_to_types_hom_equiv_symm_apply' {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
+lemma adjunction_to_types_hom_equiv_symm_apply {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
   (X : Sheaf J D) (Y : SheafOfTypes J) (η : Y ⟶ (Sheaf_forget J).obj X) :
   ((adjunction_to_types J adj).hom_equiv _ _).symm η =
   J.sheafify_lift (((adj.whisker_right _).hom_equiv _ _).symm η) X.2 := rfl

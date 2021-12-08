@@ -5,7 +5,7 @@ Authors: David Wärn
 -/
 import topology.stone_cech
 import topology.algebra.semigroup
-import data.stream.basic
+import data.stream.init
 
 /-!
 # Hindman's theorem on finite sums

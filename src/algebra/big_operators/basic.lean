@@ -839,7 +839,7 @@ open multiset
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
 begin
   induction s using multiset.induction_on with a s ih,
-  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
+  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, multiset.map_zero] },
   simp only [multiset.prod_cons, map_cons, to_finset_cons, ih],
   by_cases has : a ∈ s.to_finset,
   { rw [insert_eq_of_mem has, ← insert_erase has, prod_insert (not_mem_erase _ _),

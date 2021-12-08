@@ -231,6 +231,15 @@ rfl
      eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg map h.symm)) U) :=
 rfl
 
+/-- A homeomorphism of spaces gives an equivalence of categories of open sets. -/
+@[simps] def map_map_iso {X Y : Top.{u}} (H : X ≅ Y) : opens Y ≌ opens X :=
+{ functor := map H.hom,
+  inverse := map H.inv,
+  unit_iso := nat_iso.of_components (λ U, eq_to_iso (by simp [map, set.preimage_preimage]))
+    (by { intros _ _ _, simp }),
+  counit_iso := nat_iso.of_components (λ U, eq_to_iso (by simp [map, set.preimage_preimage]))
+    (by { intros _ _ _, simp }) }
+
 end topological_space.opens
 
 /--

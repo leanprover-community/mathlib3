@@ -1447,7 +1447,7 @@ rfl
 lemma minor_mul_transpose_minor [fintype n] [fintype m] [semiring α]
   (e : n ≃ m) (M : matrix n m α) :
   (M.minor id e) ⬝ (Mᵀ).minor e id = M ⬝ Mᵀ :=
-by rw [←minor_mul_equiv, minor_id_id]
+by rw [minor_mul_equiv, minor_id_id]
 
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]

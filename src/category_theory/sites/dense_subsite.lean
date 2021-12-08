@@ -272,6 +272,7 @@ def sheaf_coyoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
     apply H.is_cover,
     intros Y' f' hf',
     change unop X ⟶ ℱ.obj (op (unop _)) at x,
+    dsimp,
     simp only [pushforward_family, functor.comp_map,
       coyoneda_obj_map, hom_over_app, category.assoc],
     congr' 1,
@@ -380,6 +381,7 @@ lemma sheaf_hom_eq (α : ℱ ⟶ ℱ'.val) : sheaf_hom H (whisker_left G.op α) 
 begin
   ext X,
   apply yoneda.map_injective,
+  swap, { apply_instance },
   ext U,
   erw yoneda.image_preimage,
   symmetry,
@@ -387,10 +389,8 @@ begin
   apply sheaf_eq_amalgamation ℱ' (H.is_cover _),
   intros Y f hf,
   conv_lhs { rw ← hf.some.fac },
-  simp [-presieve.cover_by_image_structure.fac],
-  erw α.naturality_assoc,
-  refl,
-  apply_instance
+  dsimp,
+  simp,
 end
 
 /--

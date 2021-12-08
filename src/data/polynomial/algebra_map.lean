@@ -247,9 +247,13 @@ lemma coeff_zero_eq_aeval_zero' (p : polynomial R) :
   algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
 by simp [aeval_def]
 
+variable (R)
+
 theorem _root_.algebra.adjoin_singleton_eq_range_aeval (x : A) :
   algebra.adjoin R {x} = (polynomial.aeval x).range :=
 by rw [← algebra.map_top, ← adjoin_X, alg_hom.map_adjoin, set.image_singleton, aeval_X]
+
+variable {R}
 
 section comm_semiring
 

@@ -904,11 +904,11 @@ lemma induction_linear {p : (α →₀ M) → Prop} (f : α →₀ M)
   p f :=
 induction₂ f h0 (λ a b f _ _ w, hadd _ _ w (hsingle _ _))
 
-@[simp] lemma add_closure_range_uncurry_single :
-  add_submonoid.closure (set.range (function.uncurry (single : α → M → α →₀ M))) = ⊤ :=
+@[simp] lemma add_closure_set_of_eq_single :
+  add_submonoid.closure {f : α →₀ M | ∃ a b, f = single a b} = ⊤ :=
 top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
   λ a b f ha hb hf, add_submonoid.add_mem _
-    (add_submonoid.subset_closure $ ⟨(a, b), rfl⟩) hf
+    (add_submonoid.subset_closure $ ⟨a, b, rfl⟩) hf
 
 /-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
 they are equal. -/
@@ -916,8 +916,8 @@ lemma add_hom_ext [add_zero_class N] ⦃f g : (α →₀ M) →+ N⦄
   (H : ∀ x y, f (single x y) = g (single x y)) :
   f = g :=
 begin
-  refine add_monoid_hom.eq_of_eq_on_mdense add_closure_range_uncurry_single _,
-  rintro _ ⟨x, rfl⟩,
+  refine add_monoid_hom.eq_of_eq_on_mdense add_closure_set_of_eq_single _,
+  rintro _ ⟨x, y, rfl⟩,
   apply H
 end
 

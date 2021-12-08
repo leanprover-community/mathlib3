@@ -5,6 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import data.set.finite
+import data.finset
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 
@@ -100,6 +101,45 @@ instance monoid.fg_of_add_monoid_fg [add_monoid.fg N] : monoid.fg (multiplicativ
 add_monoid.fg_iff_mul_fg.1 ‹_›
 
 end monoid
+
+namespace submonoid
+
+@[to_additive]
+lemma fg_iff_monoid_fg [decidable_eq M] (N : submonoid M) : N.fg ↔ monoid.fg N :=
+begin
+  split, swap,
+  { exact λ s, ⟨s.1.some.image N.subtype, by rw [finset.coe_image, ← monoid_hom.map_mclosure,
+    s.1.some_spec, ← monoid_hom.mrange_eq_map, range_subtype]⟩ },
+  rintro ⟨s, hs⟩,
+  let s' := s.preimage N.subtype (by tidy),
+  have : (s'.image N.subtype : set M) = s := by simpa [← hs, -subset_closure] using subset_closure,
+  refine ⟨⟨s', _⟩⟩,
+  rw eq_top_iff,
+  rintros ⟨x, hx⟩ -,
+  rw [← hs, ← this, finset.coe_image, ← monoid_hom.map_mclosure] at hx,
+  rcases hx with ⟨x, hx', rfl⟩,
+  simp only [set_like.eta, submonoid.coe_subtype],
+  exact hx'
+end
+
+@[to_additive]
+instance [decidable_eq M] (r : M) : monoid.fg (submonoid.powers r) :=
+(fg_iff_monoid_fg _).mp ⟨({r} : finset M), by simpa using (powers_eq_closure _).symm⟩
+
+@[to_additive]
+lemma _root_.monoid.fg_of_surjective {M' : Type*} [monoid M'] [decidable_eq M'] [h : monoid.fg M]
+  (f : M →* M') (hf : function.surjective f) :
+  monoid.fg M' :=
+begin
+  tactic.unfreeze_local_instances,
+  rcases h with ⟨s, hs⟩,
+  use s.image f,
+  rw [finset.coe_image, ← monoid_hom.map_mclosure, hs, ← monoid_hom.mrange_eq_map,
+    monoid_hom.mrange_top_iff_surjective],
+  exact hf
+end
+
+end submonoid
 
 /-! ### Groups and subgroups -/
 

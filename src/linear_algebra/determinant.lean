@@ -83,8 +83,8 @@ lemma det_comm' [is_domain A] [decidable_eq m] [decidable_eq n]
 -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
 -- This turns the problem into one for square matrices, which is easy.
 let e := index_equiv_of_inv hMM' hM'M in
-by rw [← det_minor_equiv_self e, minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
-  ← minor_mul_equiv, equiv.coe_refl, minor_id_id]
+by rw [← det_minor_equiv_self e, ← minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
+  minor_mul_equiv, equiv.coe_refl, minor_id_id]
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
 lemma det_conj [is_domain A] [decidable_eq m] [decidable_eq n]

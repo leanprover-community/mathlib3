@@ -562,7 +562,7 @@ end
 
 @[simp] lemma support_erase (p : polynomial R) (n : ℕ) :
   support (p.erase n) = (support p).erase n :=
-by { rcases p, simp only [support, erase, support_erase], congr }
+by { rcases p, simp only [support, erase, support_erase] }
 
 lemma monomial_add_erase (p : polynomial R) (n : ℕ) : monomial n (coeff p n) + p.erase n = p :=
 begin

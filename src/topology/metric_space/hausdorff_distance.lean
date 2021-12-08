@@ -826,29 +826,29 @@ open emetric
 of those points that are at infimum distance at most `δ` from `E`. -/
 def cthickening (δ : ℝ) (E : set α) : set α := {x : α | inf_edist x E ≤ ennreal.of_real δ}
 
-/-- The (closed) thickening equals the preimage of a closed interval under `inf_edist`. -/
+/-- The closed thickening equals the preimage of a closed interval under `inf_edist`. -/
 lemma cthickening_eq_preimage_inf_edist (δ : ℝ) (E : set α) :
   cthickening δ E = (λ x, inf_edist x E) ⁻¹' (Iic (ennreal.of_real δ)) := rfl
 
-/-- The (closed) thickening is a closed set. -/
+/-- The closed thickening is a closed set. -/
 lemma is_closed_cthickening {δ : ℝ} {E : set α} : is_closed (cthickening δ E) :=
 is_closed.preimage continuous_inf_edist is_closed_Iic
 
-/-- The (closed) thickening of the empty set is empty. -/
+/-- The closed thickening of the empty set is empty. -/
 @[simp] lemma cthickening_empty (δ : ℝ) : cthickening δ (∅ : set α) = ∅ :=
 by simp only [cthickening, ennreal.of_real_ne_top, set_of_false, inf_edist_empty, top_le_iff]
 
-/-- The (closed) thickening with radius zero is the closure of the set. -/
+/-- The closed thickening with radius zero is the closure of the set. -/
 @[simp] lemma cthickening_zero (E : set α) : cthickening 0 E = closure E :=
 by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening], }
 
-/-- The (closed) thickening `cthickening δ E` of a fixed subset `E` is an increasing function of
+/-- The closed thickening `cthickening δ E` of a fixed subset `E` is an increasing function of
 the thickening radius `δ`. -/
 lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
   cthickening δ₁ E ⊆ cthickening δ₂ E :=
 preimage_mono (Iic_subset_Iic.mpr (ennreal.of_real_le_of_real hle))
 
-/-- The (closed) thickening `cthickening δ E` with a fixed thickening radius `δ` is
+/-- The closed thickening `cthickening δ E` with a fixed thickening radius `δ` is
 an increasing function of the subset `E`. -/
 lemma cthickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ E₂) :
   cthickening δ E₁ ⊆ cthickening δ E₂ :=
@@ -883,7 +883,7 @@ lemma closure_thickening_subset_cthickening (δ : ℝ) (E : set α) :
   closure (thickening δ E) ⊆ cthickening δ E :=
 (closure_mono (thickening_subset_cthickening δ E)).trans is_closed_cthickening.closure_subset
 
-/-- The (closed) thickening of a set contains the closure of the set. -/
+/-- The closed thickening of a set contains the closure of the set. -/
 lemma closure_subset_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
   closure E ⊆ cthickening δ E :=
 by { rw ← cthickening_zero, exact cthickening_mono δ_nn E, }
@@ -898,7 +898,7 @@ lemma self_subset_thickening {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
   E ⊆ thickening δ E :=
 (@subset_closure _ _ E).trans (closure_subset_thickening δ_pos E)
 
-/-- A set is contained in its own (closed) thickening. -/
+/-- A set is contained in its own closed thickening. -/
 lemma self_subset_cthickening {δ : ℝ} (E : set α) (δ_nn : 0 ≤ δ) :
   E ⊆ cthickening δ E :=
 (@subset_closure _ _ E).trans (closure_subset_cthickening δ_nn E)
@@ -933,17 +933,17 @@ begin
     exact λ ε _, thickening_subset_cthickening ε E, },
 end
 
-/-- The closure of a set equals the intersection of its (closed) thichenings of positive radii. -/
+/-- The closure of a set equals the intersection of its closed thickenings of positive radii. -/
 lemma closure_eq_Inter_cthickening (E : set α) :
   closure E = ⋂ (δ : ℝ) (h : 0 < δ), cthickening δ E :=
 by { rw ← cthickening_zero, exact cthickening_eq_Inter_cthickening rfl.ge E, }
 
-/-- The closure of a set equals the intersection of its (open) thichenings of positive radii. -/
+/-- The closure of a set equals the intersection of its (open) thickenings of positive radii. -/
 lemma closure_eq_Inter_thickening (E : set α) :
   closure E = ⋂ (δ : ℝ) (h : 0 < δ), thickening δ E :=
 by { rw ← cthickening_zero, exact cthickening_eq_Inter_thickening rfl.ge E, }
 
-/-- The frontier of the (open) thichening of a set is contained in an `inf_edist` level set. -/
+/-- The frontier of the (open) thickening of a set is contained in an `inf_edist` level set. -/
 lemma frontier_thickening_subset (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
   frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ } :=
 begin
@@ -955,7 +955,7 @@ begin
   apply continuous_inf_edist.frontier_preimage_subset (Iio (ennreal.of_real δ)),
 end
 
-/-- The frontier of the (closed) thichening of a set is contained in an `inf_edist` level set. -/
+/-- The frontier of the closed thickening of a set is contained in an `inf_edist` level set. -/
 lemma frontier_cthickening_subset (E : set α) {δ : ℝ} :
   frontier (cthickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ } :=
 begin

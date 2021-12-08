@@ -7,7 +7,7 @@ Authors: Riccardo Brasca
 import ring_theory.trace
 
 /-!
-# Discriminant
+# Discriminant of a family of vectors
 
 Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we define the
 *discriminant* of `b` as the determinant of the matrix whose `(i j)`-th element is the trace of

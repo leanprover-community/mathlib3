@@ -18,11 +18,9 @@ prime numbers.
 
 -/
 
-open nat
+open nat finset finsupp
 
-namespace finset
-
-lemma dvd_prod_iff {p : ℕ} {S : finset ℕ} (pp : prime p) (g : ℕ → ℕ) :
+lemma nat.prime.dvd_finset_prod_iff {p : ℕ} {S : finset ℕ} (pp : prime p) (g : ℕ → ℕ) :
   p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
 begin
   split,
@@ -39,12 +37,6 @@ begin
   { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (dvd_prod_of_mem g ha1) },
 end
 
-end finset
-
-namespace finsupp
-
-lemma dvd_prod_iff {p : ℕ} {f: ℕ →₀ ℕ} (pp : prime p) :
+lemma nat.prime.dvd_finsupp_prod_iff {p : ℕ} {f: ℕ →₀ ℕ} (pp : prime p) :
   p ∣ f.prod pow ↔ ∃ a ∈ f.support, p ∣ a ^ (f a) :=
-finset.dvd_prod_iff pp (λ x, x ^ (f x))
-
-end finsupp
+nat.prime.dvd_finset_prod_iff pp (λ x, x ^ (f x))

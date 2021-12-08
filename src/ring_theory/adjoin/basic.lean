@@ -227,24 +227,23 @@ begin
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
 end
 
-lemma algebra.pow_smul_mem_adjoin_smul {R S : Type*} [comm_semiring R] [comm_semiring S]
-  [algebra R S] (r : R) (s : set S) (x : algebra.adjoin R s) :
-    ∃ n : ℕ, (r ^ n • x : S) ∈ algebra.adjoin R (r • s) :=
+lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) (x : adjoin R s) :
+    ∃ n : ℕ, (r ^ n • x : A) ∈ adjoin R (r • s) :=
 begin
   rcases x with ⟨x, hx⟩,
   rw subtype.coe_mk,
-  change x ∈ (algebra.adjoin R s).to_submodule at hx,
-  rw [algebra.adjoin_eq_span, finsupp.mem_span_iff_total] at hx,
+  change x ∈ (adjoin R s).to_submodule at hx,
+  rw [adjoin_eq_span, finsupp.mem_span_iff_total] at hx,
   rcases hx with ⟨l, rfl : l.sum (λ (i : submonoid.closure s) (c : R), c • ↑i) = x⟩,
   choose n₁ n₂ using submonoid.pow_smul_mem_closure_smul r s,
   use l.support.sup n₁,
   rw finsupp.smul_sum,
-  refine (algebra.adjoin R (r • s)).to_submodule.sum_mem _,
+  refine (adjoin R (r • s)).to_submodule.sum_mem _,
   intros a ha,
   have : l.support.sup n₁ ≥ n₁ a := finset.le_sup ha,
   dsimp only,
   rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul, smul_smul _ (l a), mul_comm,
-    ← smul_smul, algebra.adjoin_eq_span],
+    ← smul_smul, adjoin_eq_span],
   refine submodule.smul_mem _ _ _,
   exact submodule.smul_mem _ _ (submodule.subset_span (n₂ a))
 end

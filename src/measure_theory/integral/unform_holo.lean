@@ -65,16 +65,103 @@ sorry,
 
 end
 
+def fbound (R : ℝ) (hR: 0 < R)  (z : ℂ) (θ : ℝ): (ℂ → ℂ) :=
+λ w, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + (2⁻¹*R) * exp (θ * I) - w)^2 : ℂ)
 
+
+lemma fbounded  (R : ℝ) (hR: 0 < R)  (z : ℂ) (θ : ℝ) :
+ ∃ (x : closed_ball z R), ∀ (y : closed_ball z R),
+ complex.abs (fbound R hR z θ y) ≤ complex.abs(fbound R hR z θ x):=
+
+begin
+have cts: continuous_on  (complex.abs ∘ (fbound R hR z θ))  ( closed_ball z R ), by {
+have c1:= continuous_abs, have c2: continuous_on abs ⊤, by {apply continuous.continuous_on c1},
+  apply continuous_on.comp c2,
+  simp_rw fbound,
+  apply continuous_on.smul,
+  apply continuous_const.continuous_on,
+  apply continuous_on.div,
+  apply continuous_const.continuous_on,
+  sorry,
+  sorry, simp,},
+have int: is_compact (closed_ball z R), by {exact proper_space.is_compact_closed_ball z R, },
+have inne:  ((closed_ball z R)).nonempty, by {simp, apply hR.le},
+have:= is_compact.exists_forall_ge int inne cts,
+simp at *,
+apply this,
+end
 
 def int_diff0' (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ): (ℝ → E) :=
 λ θ, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w)^2 : ℂ) • f (z + R * exp (θ * I))
+
+
+
+lemma int_diff0_cont' (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ) (hf : continuous f) (hw : w ∈ ball z R):
+  continuous (int_diff0' R hR f z w) :=
+  begin
+    sorry,
+  end
 
 def int_diff (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z : ℂ)
    : (ℂ → E) := λ w,  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR f z w θ)
 
 def int_diff' (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z : ℂ)
    : (ℂ → E) := λ w,  ∫ (θ : ℝ) in 0..2 * π, (int_diff0' R hR f z w θ)
+
+def der1 (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) :
+ ℂ → ℝ → ℂ := λ w, (λ θ, (int_diff0' R hR f z w θ))
+
+lemma auxle (r : ℝ) (hr : 0 ≤  r) : r ≤ 2*r :=
+begin
+linarith,
+end
+
+lemma der1bound (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) (x : ℂ) (hx : x ∈ ball z R): ∃ (boun : ℝ → ℝ),
+ ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x R, ∥der1 R hR z f y t∥ ≤  boun t :=
+ begin
+ have h2R: 0 < 2*R, by {linarith,},
+have fbb := fbounded (2*R) h2R z,
+set diskel: ℝ → (closed_ball z (2*R)):= λ r, classical.some (fbb r),
+set bound : ℝ → ℝ := λ r, (complex.abs ( fbound (2*R) h2R z r (diskel r)))*complex.abs (f(z+R*exp(r*I))) ,
+use bound,
+simp,
+ rw filter.eventually_iff_exists_mem,
+ use ⊤,
+ simp,
+ intros y hy v hv,
+ simp_rw bound,
+ simp_rw der1,
+ simp_rw int_diff0',
+ simp at *,
+ have vf:= classical.some_spec (fbb y),
+ have vfv := vf ⟨v, by {simp, have := dist_triangle v x z, have lad:= (add_lt_add hv hx).le,
+ have lad2:= le_trans this lad, simp_rw two_mul, apply lad2,}⟩,
+ simp_rw diskel,
+ simp_rw fbound at *,
+simp at *,
+have abp : 0 ≤ complex.abs (f(z+R*exp(y*I))), by {apply abs_nonneg},
+have := mul_le_mul_of_nonneg_right vfv abp,
+simp at this,
+simp_rw ← mul_assoc,
+have LE: (2 * |π|)⁻¹ * (|R| / abs (z + ↑R * exp (↑y * I) - v) ^ 2) * abs (f (z + ↑R * exp (↑y * I)))
+≤ (2 * |π|)⁻¹ * (2*|R| / abs (z + ↑R * exp (↑y * I) - v) ^ 2) * abs (f (z + ↑R * exp (↑y * I))),
+by {
+have e1: (2 * |π|)⁻¹ * (2*|R| / abs (z + ↑R * exp (↑y * I) - v) ^ 2) * abs (f (z + ↑R * exp (↑y * I)))
+  = 2*((2 * |π|)⁻¹ * (|R| / abs (z + ↑R * exp (↑y * I) - v) ^ 2) * abs (f (z + ↑R * exp (↑y * I)))),
+by {field_simp,  simp_rw ← mul_assoc, },
+simp_rw e1,
+apply auxle,
+apply mul_nonneg,
+apply mul_nonneg,
+simp,
+apply _root_.abs_nonneg,
+apply div_nonneg,
+apply _root_.abs_nonneg,
+apply pow_two_nonneg,
+apply abs_nonneg,},
+apply le_trans LE this,
+ end
+
 
 lemma int_diff_has_fdrevi (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ)  (hf: continuous f) :
   differentiable_on ℂ (int_diff R hR f z) (ball z R) :=
@@ -85,7 +172,7 @@ rw differentiable_on,
 simp_rw differentiable_within_at,
 intros x hx,
 set F: ℂ → ℝ → ℂ  := λ w, (λ θ, (int_diff0 R hR f z w θ)),
-set F': ℂ → ℝ → ℂ := λ w, (λ θ, (int_diff0' R hR f z w θ)),
+set F': ℂ → ℝ → ℂ := der1 R hR z f,
 have hF_meas : ∀ᶠ y in 𝓝 x, ae_measurable (F y) (volume.restrict (Ι 0 (2 * π))) ,
 by {simp_rw F,  rw filter.eventually_iff_exists_mem,
     have BALL:= exists_ball_subset_ball hx,
@@ -104,9 +191,24 @@ by {simp_rw F,
   have := continuous.interval_integrable (int_diff0_cont R hR f z x hf hx) 0 (2*π),
   apply this,
   apply_instance,},
-have  hF'_meas : ae_measurable (F' x) (volume.restrict (Ι 0 (2 * π))) , by {sorry},
-set bound : ℝ → ℝ := λ r, ∥F' R r∥,
-have h_bound : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x R, ∥F' y t∥ ≤  bound t, by {sorry},
+have  hF'_meas : ae_measurable (F' x) (volume.restrict (Ι 0 (2 * π))) , by {
+  simp_rw F',
+    have := continuous.ae_measurable (int_diff0_cont' R hR f z x hf _),
+    apply ae_measurable.restrict,
+    apply this,
+    apply hx,},
+have hF_int : interval_integrable (F x) volume 0  (2 * π),
+by {simp_rw F,
+  have := continuous.interval_integrable (int_diff0_cont R hR f z x hf hx) 0 (2*π),
+  apply this,
+  apply_instance,},
+  have BOU := der1bound R hR z f x hx,
+  obtain ⟨bound, h_boun⟩:= BOU,
+have h_bound : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x R, ∥F' y t∥ ≤  bound t,
+by {
+  simp_rw F',
+  apply h_boun,
+},
 have  bound_integrable : interval_integrable bound volume 0 (2 * π) , by {sorry},
 have h_diff : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x R, has_deriv_at (λ y, F y t) (F' y t) y,
 by {sorry},

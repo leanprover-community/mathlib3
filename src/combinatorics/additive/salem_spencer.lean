@@ -264,6 +264,18 @@ lemma mul_salem_spencer.roth_number_eq (hs : mul_salem_spencer (s : set α)) :
 (mul_roth_number_le _).antisymm $ hs.le_mul_roth_number $ subset.refl _
 
 @[to_additive]
+lemma mul_roth_number_empty : mul_roth_number (∅ : finset α) = 0 :=
+nat.eq_zero_of_le_zero $ (mul_roth_number_le _).trans card_empty.le
+
+@[to_additive]
+lemma mul_roth_number_singleton (a : α) : mul_roth_number ({a} : finset α) = 1 :=
+begin
+  convert mul_salem_spencer.roth_number_eq _,
+  rw coe_singleton,
+  exact mul_salem_spencer_singleton a,
+end
+
+@[to_additive]
 lemma mul_roth_number_union_le (s t : finset α) :
   mul_roth_number (s ∪ t) ≤ mul_roth_number s + mul_roth_number t :=
 let ⟨u, hus, hcard, hu⟩ := mul_roth_number_spec (s ∪ t) in
@@ -353,6 +365,10 @@ lemma roth_number_nat_def (n : ℕ) : roth_number_nat n = add_roth_number (range
 lemma roth_number_nat_le (N : ℕ) : roth_number_nat N ≤ N :=
 (add_roth_number_le _).trans (card_range _).le
 
+lemma roth_number_nat_spec (n : ℕ) :
+  ∃ t ⊆ range n, t.card = roth_number_nat n ∧ add_salem_spencer (t : set ℕ) :=
+add_roth_number_spec _
+
 /-- A verbose specialization of `add_salem_spencer.le_add_roth_number`, sometimes convenient in
 practice. -/
 lemma add_salem_spencer.le_roth_number_nat (s : finset ℕ) (hs : add_salem_spencer (s : set ℕ))
@@ -372,6 +388,20 @@ begin
   simp_rw roth_number_nat_def,
   rw [range_add_eq_union, ←add_roth_number_map_add_left (range N) M],
   exact add_roth_number_union_le _ _,
+end
+
+lemma add_roth_number_Ico (a b : ℕ) : add_roth_number (finset.Ico a b) = roth_number_nat (b - a) :=
+begin
+  obtain h | h := le_total b a,
+  { rw [finset.Ico_eq_empty_of_le h, add_roth_number_empty, tsub_eq_zero_of_le h],
+    refl },
+  convert add_roth_number_map_add_left _ a,
+  rw [finset.range_eq_Ico, finset.map_eq_image],
+  convert (finset.image_add_left_Ico _ _ _).symm,
+  { exact (add_zero a).symm },
+  { exact (add_tsub_cancel_of_le h).symm },
+  { apply_instance },
+  { apply_instance }
 end
 
 open asymptotics filter

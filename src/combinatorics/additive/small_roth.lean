@@ -1,38 +1,25 @@
 /-
-Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Copyright (c) 2021 Mario Carneiro, Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies, Bhavik Mehta
+Authors: Yaël Dillies, Bhavik Mehta, Mario Carneiro
 -/
 import combinatorics.additive.salem_spencer
 
 /-!
-# Salem-Spencer sets and Roth numbers
+# Calculation of small Roth numbers
 
-This file defines Salem-Spencer sets, the Roth number of a set and calculates small Roth numbers.
+This file implements an algorithm to calculate small Roth numbers.
 
-A Salem-Spencer set is a set without arithmetic progressions of length `3`. Equivalently, the
-average of any two distinct elements is not in the set.
+The algorithm we implement is the BASIC2 algorithm from the reference.
 
-The Roth number of a finset is the size of its biggest Salem-Spencer subset. This is a more general
-definition than the one often found in mathematical litterature, where the `n`-th Roth number is
-the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
+## References
 
-## Main declarations
-
-* `mul_salem_spencer`: Predicate for a set to be multiplicative Salem-Spencer.
-* `add_salem_spencer`: Predicate for a set to be Salem-Spencer.
-* `roth_number`: The Roth number of a finset.
-* `roth_number_nat`: The Roth number of a natural. This corresponds to
-  `roth_number (finset.range n)`.
-
-## TODO
-
-Can we calculate small Roth numbers quicker. The current algorithm to decide `roth_number_nat n ≤ m`
-is `O (n.choose m * m^2)`.
+[W. Gasarch, J. Glenn, C. Kruskal, *Finding Large 3-free sets I: The Small `n` Case]
+(https://www.cs.umd.edu/~gasarch/papers/3apI.pdf)
 
 ## Tags
 
-Salem-Spencer, Roth, arithmetic progression, average
+Roth, arithmetic progression, average, three-free, algorithm
 -/
 
 open list nat
@@ -119,6 +106,21 @@ begin
 end
 
 end list
+
+example {s m d : ℕ} (β : finset ℕ)
+  (h₁ : roth_number_nat s ≤ d)
+  (hβ₁ : ∀ (x : ℕ), x ∈ β → x < s + m)
+  (hβ₃ : add_salem_spencer (β : set ℕ)) :
+  (finset.filter (not ∘ (< m)) β).card ≤ d :=
+begin
+  refine le_trans _ h₁,
+  have : finset.filter (not ∘ (< m)) β ⊆ finset.Ico m (s + m),
+  { rintro x hx,
+    rw finset.mem_filter at hx,
+    exact finset.mem_Ico.2 ⟨not_lt.1 hx.2, hβ₁ _ hx.1⟩ },
+  rw [←add_tsub_cancel_right s m, ←add_roth_number_Ico],
+  exact (hβ₃.mono $ finset.filter_subset _ _).le_add_roth_number this,
+end
 
 section explicit_values
 variables {l l₁ l₂ : list ℕ} {a b n : ℕ}

@@ -77,7 +77,7 @@ let A := adj.whisker_right Cᵒᵖ in
 /-- An adjunction `adj : G ⊣ F` with `F : D ⥤ E` and `G : E ⥤ D` induces an adjunction
 between `Sheaf J D` and `Sheaf J E`, in contexts where one can sheafify `D`-valued presheaves,
 and `F` preserves the correct limits. -/
-@[simps hom_equiv_apply_val hom_equiv_symm_apply_val unit_app_val counit_app_val]
+@[simps unit_app_val counit_app_val]
 def adjunction (adj : G ⊣ F) : compose_and_sheafify J G ⊣ Sheaf_compose J F :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := compose_equiv J adj,
@@ -101,21 +101,9 @@ def adjunction_to_types {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D) :
 adjunction.comp _ _ ((Sheaf_equiv_SheafOfTypes J).symm.to_adjunction) (adjunction J adj)
 
 @[simp]
-lemma adjunction_to_types_hom_equiv_apply_val {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
-  (X : Sheaf J D) (Y : SheafOfTypes J) (η : (compose_and_sheafify_from_types J G).obj Y ⟶ X) :
-  ((adjunction_to_types J adj).hom_equiv _ _ η).val =
-  (adj.whisker_right _).hom_equiv _ _ (J.to_sheafify _ ≫ η.val) := rfl
-
-@[simp]
-lemma adjunction_to_types_hom_equiv_symm_apply_val {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
-  (X : Sheaf J D) (Y : SheafOfTypes J) (η : Y ⟶ (Sheaf_forget J).obj X) :
-  (((adjunction_to_types J adj).hom_equiv _ _).symm η).val =
-  J.sheafify_lift (((adj.whisker_right _).hom_equiv _ _).symm η.val) X.2 := rfl
-
-@[simp]
-lemma adjunction_to_types_unit_app {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
+lemma adjunction_to_types_unit_app_val {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
   (Y : SheafOfTypes J) :
-  (SheafOfTypes_to_presheaf J).map ((adjunction_to_types J adj).unit.app Y) =
+  ((adjunction_to_types J adj).unit.app Y).val =
   (adj.whisker_right _).unit.app ((SheafOfTypes_to_presheaf J).obj Y) ≫
   whisker_right (J.to_sheafify _) (forget D) :=
 begin
@@ -124,9 +112,9 @@ begin
 end
 
 @[simp]
-lemma adjunction_to_types_counit_app {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
+lemma adjunction_to_types_counit_app_val {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)
   (X : Sheaf J D) :
-  (Sheaf_to_presheaf _ _).map ((adjunction_to_types J adj).counit.app X) =
+  ((adjunction_to_types J adj).counit.app X).val =
   J.sheafify_lift ((functor.associator _ _ _).hom ≫ (adj.whisker_right _).counit.app _) X.2 :=
 begin
   dsimp [adjunction_to_types, adjunction.comp, adjunction.whisker_right],

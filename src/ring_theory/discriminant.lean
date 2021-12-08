@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import linear_algebra.matrix.determinant
 import ring_theory.trace
-import ring_theory.norm
-import linear_algebra.vandermonde
 
 /-!
 # Discriminant

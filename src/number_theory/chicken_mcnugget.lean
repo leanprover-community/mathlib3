@@ -95,7 +95,7 @@ begin
 end
 
 /-- Restates the original theorem with add_submonoid.closure. -/
-theorem chicken_mcnugget_add_subm_clos (m n : ℕ) (hm: 1 < m) (hn: 1 < n) (cop: coprime m n) :
+theorem chicken_mcnugget_add_submonoid (m n : ℕ) (hm: 1 < m) (hn: 1 < n) (cop: coprime m n) :
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
   ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
 begin

@@ -402,7 +402,7 @@ begin
     exact mul_mem_left _ _ hs }
 end
 
-theorem pow_sum_mem_span_pow {ι} (s : finset ι) (f : ι → α) (n : ℕ) :
+theorem sum_pow_mem_span_pow {ι} (s : finset ι) (f : ι → α) (n : ℕ) :
   (∑ i in s, f i) ^ (s.card * n + 1) ∈ span ((λ i, f i ^ (n + 1)) '' s) :=
 begin
   convert pow_multiset_sum_mem_span_pow (s.1.map f) n,

@@ -653,9 +653,9 @@ def erase (a : α) (f : α →₀ M) : α →₀ M :=
     [exact ⟨λ H _, H.1 h, λ H, (H rfl).elim⟩,
     exact and_iff_right h]⟩
 
-@[simp] lemma support_erase {a : α} {f : α →₀ M} :
+@[simp] lemma support_erase [decidable_eq α] {a : α} {f : α →₀ M} :
   (f.erase a).support = f.support.erase a :=
-rfl
+by convert rfl
 
 @[simp] lemma erase_same {a : α} {f : α →₀ M} : (f.erase a) a = 0 :=
 if_pos rfl
@@ -769,6 +769,11 @@ finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
 lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g : α → M → N)
   (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
 S.prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
+
+@[to_additive]
+lemma prod_congr {f : α →₀ M} {g1 g2 : α → M → N}
+  (h : ∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) : f.prod g1 = f.prod g2 :=
+finset.prod_congr rfl h
 
 end sum_prod
 
@@ -1438,7 +1443,7 @@ begin
   refine ((sum_sum_index _ _).trans _).symm,
   { intros, exact single_zero },
   { intros, exact single_add },
-  refine sum_congr rfl (λ _ _, sum_single_index _),
+  refine sum_congr (λ _ _, sum_single_index _),
   { exact single_zero }
 end
 
@@ -1497,7 +1502,7 @@ finset.subset.trans support_sum $
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
   {h : β → M → N} (h_zero : ∀b, h b 0 = 1) (h_add : ∀b m₁ m₂, h b (m₁ + m₂) = h b m₁ * h b m₂) :
   (map_domain f s).prod h = s.prod (λa m, h (f a) m) :=
-(prod_sum_index h_zero h_add).trans $ prod_congr rfl $ λ _ _, prod_single_index (h_zero _)
+(prod_sum_index h_zero h_add).trans $ prod_congr $ λ _ _, prod_single_index (h_zero _)
 
 /--
 A version of `sum_map_domain_index` that takes a bundled `add_monoid_hom`,
@@ -2754,3 +2759,31 @@ lemma to_finsuppstrict_mono : strict_mono (@to_finsupp α) :=
 finsupp.order_iso_multiset.symm.strict_mono
 
 end multiset
+
+section cast_finsupp
+variables [has_zero M] (f : α →₀ M)
+
+namespace nat
+
+@[simp, norm_cast] lemma cast_finsupp_prod [comm_semiring R] (g : α → M → ℕ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
+nat.cast_prod _ _
+
+@[simp, norm_cast] lemma cast_finsupp_sum [comm_semiring R] (g : α → M → ℕ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
+nat.cast_sum _ _
+
+end nat
+
+namespace int
+
+@[simp, norm_cast] lemma cast_finsupp_prod [comm_ring R] (g : α → M → ℤ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
+int.cast_prod _ _
+
+@[simp, norm_cast] lemma cast_finsupp_sum [comm_ring R] (g : α → M → ℤ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
+int.cast_sum _ _
+
+end int
+end cast_finsupp

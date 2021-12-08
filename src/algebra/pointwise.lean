@@ -3,11 +3,11 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
-import group_theory.submonoid.basic
 import algebra.big_operators.basic
-import group_theory.group_action.group
-import data.set.finite
 import algebra.smul_with_zero
+import data.set.finite
+import group_theory.group_action.group
+import group_theory.submonoid.basic
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.
@@ -215,6 +215,12 @@ end
 @[to_additive]
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
 image2_subset h₁ h₂
+
+@[to_additive]
+lemma mul_subset_mul_left [has_mul α] (h : t₁ ⊆ t₂) : s * t₁ ⊆ s * t₂ := image2_subset_left h
+
+@[to_additive]
+lemma mul_subset_mul_right [has_mul α] (h : s₁ ⊆ s₂) : s₁ * t ⊆ s₂ * t := image2_subset_right h
 
 lemma pow_subset_pow [monoid α] (hst : s ⊆ t) (n : ℕ) :
   s ^ n ⊆ t ^ n :=
@@ -511,6 +517,10 @@ theorem range_smul_range [has_scalar α β] {ι κ : Type*} (b : ι → α) (c :
 ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_smul.1 hx in
   ⟨(i, j), hpq ▸ hi ▸ hj ▸ rfl⟩,
 λ ⟨⟨i, j⟩, h⟩, set.mem_smul.2 ⟨b i, c j, ⟨i, rfl⟩, ⟨j, rfl⟩, h⟩⟩
+
+@[simp, to_additive]
+lemma smul_singleton [has_scalar α β] (a : α) (b : β) : a • ({b} : set β) = {a • b} :=
+image_singleton
 
 @[simp, to_additive]
 lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a • t :=

@@ -369,7 +369,7 @@ lemma integral_smul (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
 set_to_simple_func_smul _ weighted_smul_union weighted_smul_smul c hf
 
 lemma norm_set_to_simple_func_le_integral_norm (T : set α → E →L[ℝ] F) {C : ℝ}
-  (hT_norm : ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real) {f : α →ₛ E}
+  (hT_norm : ∀ s, measurable_set s → μ s < ∞ → ∥T s∥ ≤ C * (μ s).to_real) {f : α →ₛ E}
   (hf : integrable f μ) :
   ∥f.set_to_simple_func T∥ ≤ C * (f.map norm).integral μ :=
 calc ∥f.set_to_simple_func T∥
@@ -616,10 +616,10 @@ lemma integral_add (f g : α →₁[μ] E) : integral (f + g) = integral f + int
 map_add integral_clm f g
 
 lemma integral_neg (f : α →₁[μ] E) : integral (-f) = - integral f :=
-map_neg integral_clm f
+integral_clm.map_neg f
 
 lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - integral g :=
-map_sub integral_clm f g
+integral_clm.map_sub f g
 
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
 map_smul (integral_clm' 𝕜) c f

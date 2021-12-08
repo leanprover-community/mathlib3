@@ -375,7 +375,7 @@ theorem is_prime.pow_mem_iff_mem {I : ideal α} (hI : I.is_prime)
   {r : α} (n : ℕ) (hn : 0 < n) : r ^ n ∈ I ↔ r ∈ I :=
 ⟨hI.mem_of_pow_mem n, (λ hr, I.pow_mem_of_mem hr n hn)⟩
 
-theorem pow_sum_mem_span_pow (s : multiset α) (n : ℕ) :
+theorem pow_multiset_sum_mem_span_pow (s : multiset α) (n : ℕ) :
   s.sum ^ (s.card * n + 1) ∈ span ((s.map (λ x, x ^ (n + 1))).to_finset : set α) :=
 begin
   apply s.induction_on,
@@ -401,6 +401,14 @@ begin
     rw [this, pow_add],
     simp_rw [mul_assoc, mul_comm (s.sum ^ (s.card * n + 1)), ← mul_assoc],
     exact mul_mem_left _ _ hs }
+end
+
+theorem pow_sum_mem_span_pow {ι} (s : finset ι) (f : ι → α) (n : ℕ) :
+  (∑ i in s, f i) ^ (s.card * n + 1) ∈ span ((λ i, f i ^ (n + 1)) '' s) :=
+begin
+  convert pow_multiset_sum_mem_span_pow (s.1.map f) n,
+  { rw multiset.card_map, refl },
+  rw [multiset.map_map, multiset.to_finset_map, finset.val_to_finset, finset.coe_image]
 end
 
 theorem span_pow_eq_top (s : set α)

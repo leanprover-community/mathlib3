@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Zhao
 -/
 import data.nat.modeq
+import group_theory.submonoid.basic
+import group_theory.submonoid.membership
 
 /-!
 # Chicken McNugget Theorem
@@ -35,7 +37,7 @@ lemma chicken_mcnugget_upper_bound_aux (a b m n : ℕ) (ha : a ≠ 0) (hb : b �
   (cop : coprime m n) : a * m + b * n ≠ m * n :=
 begin
   intro h,
-obtain ⟨x, rfl⟩ := cop.symm.dvd_of_dvd_mul_right ((nat.dvd_add_iff_left (dvd_mul_left n b)).mpr
+  obtain ⟨x, rfl⟩ := cop.symm.dvd_of_dvd_mul_right ((nat.dvd_add_iff_left (dvd_mul_left n b)).mpr
     ((congr_arg _ h).mpr (dvd_mul_left n m))),
   obtain ⟨y, rfl⟩ := cop.dvd_of_dvd_mul_right ((nat.dvd_add_iff_right (dvd_mul_left m (n * x))).mpr
       ((congr_arg _ h).mpr (dvd_mul_right m n))),
@@ -73,3 +75,67 @@ end
 theorem chicken_mcnugget (m n : ℕ) (hm : 1 < m) (hn: 1 < n) (cop: coprime m n) :
   (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, m * n - m - n < k → ∃ a b, a * m + b * n = k :=
 ⟨chicken_mcnugget_upper_bound m n cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩
+
+lemma singleton_lemma (m k : ℕ): m ∈ add_submonoid.closure({k} : set ℕ) ↔
+  (∃ (n : ℕ), n * k = m) :=
+by {apply @add_submonoid.mem_closure_singleton _ _ k m, }
+
+lemma singleton_lemma_cor (m n : ℕ): m * n ∈ add_submonoid.closure({n} : set ℕ) :=
+begin
+  apply (singleton_lemma (m * n) n).2,
+  use m,
+end
+
+lemma mult_add_subm_clos (m n k: ℕ):
+  (∃ a b, a * m + b * n = k) ↔ k ∈ add_submonoid.closure(({m, n} : set ℕ)) :=
+begin
+  have basic : ({m} : set ℕ) ∪ ({n} : set ℕ) = ({m, n} : set ℕ),
+  refl,
+  rw [← basic],
+  rw add_submonoid.closure_union,
+  --have singletonlemma : ∧ x,
+  split,
+  intro condition,
+  rcases condition with ⟨a, b, condition⟩,
+  rw [← condition],
+  have h1 := singleton_lemma_cor a m,
+  have h2 := singleton_lemma_cor b n,
+
+  have rewrite : ∃ (k : ℕ) (H : k ∈ add_submonoid.closure({m} : set ℕ))
+    (l : ℕ) (H : l ∈ add_submonoid.closure({n}: set ℕ)), k + l = a * m + b * n,
+  use a * m,
+  split,
+  exact h1,
+  use b * n,
+  split,
+  exact h2,
+  refl,
+  exact add_submonoid.mem_sup.2 rewrite,
+
+  intro h,
+  have condition := add_submonoid.mem_sup.1 h,
+  rcases condition with ⟨a1, ha1, b1, hb1, condition⟩,
+  have hha1 := (singleton_lemma _ _).1 ha1,
+  have hhb1 := (singleton_lemma _ _).1 hb1,
+  cases hha1 with a hha1,
+  cases hhb1 with b hhb1,
+  use a,
+  use b,
+  rw hha1,
+  rw hhb1,
+  exact condition,
+end
+
+theorem chicken_mcnugget_addsubm_clos (m n : ℕ) (hm: 1 < m) (hn: 1 < n) (cop: coprime m n) :
+  m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
+  ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
+begin
+  cases chicken_mcnugget m n hm hn cop,
+  split,
+  intro contra,
+  have contra2 := (mult_add_subm_clos _ _ _).2 contra,
+  exact left contra2,
+  intros k kbound,
+  have statement := right _ kbound,
+  exact (mult_add_subm_clos _ _ _).1 statement,
+end

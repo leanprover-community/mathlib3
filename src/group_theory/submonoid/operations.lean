@@ -959,7 +959,8 @@ inverse in `S'`. This is an `add_monoid_hom` when `M'` is commutative."]
 noncomputable
 def from_left_inv : S'.left_inv → S' := λ x, x.prop.some
 
-@[to_additive, simp] lemma mul_from_left_inv (x : S'.left_inv) : (x : M') * S'.from_left_inv x = 1 :=
+@[to_additive, simp]
+lemma mul_from_left_inv (x : S'.left_inv) : (x : M') * S'.from_left_inv x = 1 :=
 x.prop.some_spec
 
 @[to_additive, simp] lemma from_left_inv_one : S'.from_left_inv 1 = 1 :=

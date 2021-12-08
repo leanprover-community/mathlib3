@@ -434,9 +434,9 @@ begin
     λ _, set.subset_sUnion_of_mem⟩,
   rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
   by_cases hsseq : sy = sz,
-    { induction hsseq,
-      exact (hcs₀ hsy).right _ hysy _ hzsz hyz, },
+  { induction hsseq,
+    exact (hcs₀ hsy).right _ hysy _ hzsz hyz, },
   cases hcs₁ _ hsy _ hsz hsseq with h h,
-    { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
-    { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz }
+  { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
+  { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz }
 end

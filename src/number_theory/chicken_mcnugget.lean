@@ -76,16 +76,6 @@ theorem chicken_mcnugget (m n : ℕ) (hm : 1 < m) (hn: 1 < n) (cop: coprime m n)
   (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, m * n - m - n < k → ∃ a b, a * m + b * n = k :=
 ⟨chicken_mcnugget_upper_bound m n cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩
 
-lemma singleton_lemma (m k : ℕ): m ∈ add_submonoid.closure({k} : set ℕ) ↔
-  (∃ (n : ℕ), n * k = m) :=
-by {apply @add_submonoid.mem_closure_singleton _ _ k m, }
-
-lemma singleton_lemma_cor (m n : ℕ): m * n ∈ add_submonoid.closure({n} : set ℕ) :=
-begin
-  apply (singleton_lemma (m * n) n).2,
-  use m,
-end
-
 lemma mult_add_subm_clos (m n k: ℕ):
   (∃ a b, a * m + b * n = k) ↔ k ∈ add_submonoid.closure(({m, n} : set ℕ)) :=
 begin

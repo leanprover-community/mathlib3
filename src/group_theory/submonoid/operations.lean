@@ -766,6 +766,27 @@ lemma mrange_snd : (snd M N).mrange = ⊤ :=
 lemma mrange_inl_sup_mrange_inr : (inl M N).mrange ⊔ (inr M N).mrange = ⊤ :=
 by simp only [mrange_inl, mrange_inr, prod_bot_sup_bot_prod, top_prod_top]
 
+/-- The `mul_hom` from the comap of a submonoid to itself. -/
+@[to_additive "the `add_hom` from the comap of an additive submonoid to itself.", simps]
+def from_comap (f : M →* N) (N' : submonoid N) :
+  N'.comap f →* N' :=
+{ to_fun := λ x, ⟨f x, x.prop⟩,
+  map_one' := subtype.eq f.map_one,
+  map_mul' := λ x y, subtype.eq (f.map_mul x y) }
+
+/-- The `mul_hom` from a submonoid to its image. -/
+@[to_additive "the `add_hom` from an additive submonoid to its image.", simps]
+def to_map (f : M →* N) (M' : submonoid M) :
+  M' →* M'.map f :=
+{ to_fun := λ x, ⟨f x, ⟨x, x.prop, rfl⟩⟩,
+  map_one' := subtype.eq $ f.map_one,
+  map_mul' := λ x y, subtype.eq $ f.map_mul x y }
+
+@[to_additive]
+lemma to_map_surjective (f : M →* N) (M' : submonoid M) :
+  function.surjective (M'.to_map f) :=
+by { rintro ⟨_, x, hx, rfl⟩, exact ⟨⟨x, hx⟩, rfl⟩ }
+
 /-- The monoid hom associated to an inclusion of submonoids. -/
 @[to_additive "The `add_monoid` hom associated to an inclusion of submonoids."]
 def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=

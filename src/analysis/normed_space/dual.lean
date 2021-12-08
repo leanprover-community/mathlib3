@@ -149,15 +149,15 @@ lemma polar_eq_Inter (s : set E) :
   polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1} :=
 by { ext, simp only [polar, mem_bInter_iff, mem_set_of_eq], }
 
-lemma polar_empty : polar 𝕜 (∅ : set E) = univ :=
-by { simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true], }
+@[simp] lemma polar_empty : polar 𝕜 (∅ : set E) = univ :=
+by simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true]
 
 variables {𝕜}
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a
 small scalar multiple of `x'` is in `polar 𝕜 s`. -/
 lemma smul_mem_polar {s : set E} {x' : dual 𝕜 E} {c : 𝕜}
-  (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : (c⁻¹ • x') ∈ polar 𝕜 s :=
+  (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : c⁻¹ • x' ∈ polar 𝕜 s :=
 begin
   by_cases c_zero : c = 0, { simp [c_zero] },
   have eq : ∀ z, ∥ c⁻¹ • (x' z) ∥ = ∥ c⁻¹ ∥ * ∥ x' z ∥ := λ z, norm_smul c⁻¹ _,

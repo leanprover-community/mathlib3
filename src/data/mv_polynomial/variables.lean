@@ -445,7 +445,8 @@ lemma degree_of_add_le (n : σ) (f g : mv_polynomial σ R) :
 begin
   repeat {rw degree_of},
   apply (multiset.count_le_of_le n (degrees_add f g)).trans,
-  rw multiset.count_sup,
+  dsimp,
+  rw multiset.count_union,
 end
 
 lemma monomial_le_degree_of (i : σ) {f : mv_polynomial σ R} {m : σ →₀ ℕ}

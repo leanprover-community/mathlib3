@@ -538,6 +538,7 @@ lemma iso_sheafify_hom {P : Cᵒᵖ ⥤ D} (hP : presheaf.is_sheaf J P) :
 def sheafify_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
   J.sheafify P ⟶ Q := J.plus_lift (J.plus_lift η hQ) hQ
 
+@[simp, reassoc]
 lemma to_sheafify_sheafify_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
   J.to_sheafify P ≫ sheafify_lift J η hQ = η :=
 by { dsimp only [sheafify_lift, to_sheafify], simp }
@@ -570,6 +571,7 @@ begin
   exact h,
 end
 
+@[simp, reassoc]
 lemma sheafify_map_sheafify_lift {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R)
   (hR : presheaf.is_sheaf J R) :
   J.sheafify_map η ≫ J.sheafify_lift γ hR = J.sheafify_lift (η ≫ γ) hR :=

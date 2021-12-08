@@ -113,22 +113,28 @@ by apply grade_by.graded_monoid (add_monoid_hom.id _)
 
 variables {R} [add_monoid M] [decidable_eq ι] [add_monoid ι] [comm_semiring R] (f : M →+ ι)
 
+-- @[congr]
+lemma set_like.dep_congr {ι α β P} [set_like P α]
+  {p : ι → P} (f : Π i, p i → β) :
+  ∀ {i j} (x : p i) (h : i = j), f i x = f j ⟨x, h ▸ x.prop⟩
+| i _ ⟨x, px⟩ rfl := rfl
+
 /-- The canonical grade decomposition. -/
 def to_grades_by : add_monoid_algebra R M →ₐ[R] ⨁ i : ι, grade_by R f i :=
 add_monoid_algebra.lift R M _
 { to_fun := λ m, direct_sum.of (λ i : ι, grade_by R f i) (f m.to_add)
     ⟨finsupp.single m.to_add 1, single_mem_grade_by _ _ _ rfl _⟩,
-  map_one' := direct_sum.of_eq_of_graded_monoid_eq (by congr' 2; try {ext};
-    simp only [submodule.mem_to_add_submonoid, to_add_one, add_monoid_hom.map_zero]),
+  map_one' := by sorry,
   map_mul' := λ i j, begin
-    symmetry,
-    convert direct_sum.of_mul_of _ _,
-    apply direct_sum.of_eq_of_graded_monoid_eq,
-    congr' 2,
-    { rw [to_add_mul, add_monoid_hom.map_add] },
-    { ext,
-      simp only [submodule.mem_to_add_submonoid, add_monoid_hom.map_add, to_add_mul] },
-    { exact eq.trans (by rw [one_mul, to_add_mul]) single_mul_single.symm }
+    simp only [direct_sum.of_mul_of, set_like.mk_ghas_mul_mk, single_mul_single, one_mul],
+    sorry,
+    -- simp,
+    -- symmetry,
+    -- convert direct_sum.of_mul_of _ _,
+    -- { rw [to_add_mul, add_monoid_hom.map_add] },
+    -- { ext,
+    --   simp only [submodule.mem_to_add_submonoid, add_monoid_hom.map_add, to_add_mul] },
+    -- { exact eq.trans (by rw [one_mul, to_add_mul]) single_mul_single.symm }
   end }
 
 /-- The canonical grade decomposition. -/
@@ -171,7 +177,7 @@ begin
   refine finsupp.induction x _ _,
   { intros hx,
     symmetry,
-    exact add_monoid_hom.map_zero _ },
+    exact direct_sum.of_zero _ _ },
   { intros m b y hmy hb ih hmby,
     have : disjoint (finsupp.single m b).support y.support,
     { simpa only [finsupp.support_single_ne_zero hb, finset.disjoint_singleton_left] },
@@ -184,7 +190,7 @@ begin
     simp only [alg_hom.map_add, submodule.coe_mk, to_grades_by_single' f i m this],
     let ih' := ih h2,
     dsimp at ih',
-    rw [ih', ← add_monoid_hom.map_add],
+    rw [ih', ← direct_sum.of_add],
     apply direct_sum.of_eq_of_graded_monoid_eq,
     congr' 2 }
 end

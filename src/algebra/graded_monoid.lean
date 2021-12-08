@@ -332,6 +332,11 @@ instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (
   [set_like.has_graded_mul A] {i j : ι} (x : A i) (y : A j) :
     ↑(@graded_monoid.ghas_mul.mul _ (λ i, A i) _ _ _ _ x y) = (x * y : R) := rfl
 
+@[simp] lemma set_like.mk_ghas_mul_mk {S : Type*} [set_like S R] [has_mul R] [has_add ι] (A : ι → S)
+  [set_like.has_graded_mul A] {i j : ι} (x y) (hx : x ∈ A i) (hy : y ∈ A j) :
+    (@graded_monoid.ghas_mul.mul _ (λ i, A i) _ _ _ _ ⟨x, hx⟩ ⟨y, hy⟩) =
+      ⟨x * y, set_like.has_graded_mul.mul_mem hx hy⟩ := rfl
+
 /-- A version of `graded_monoid.gmonoid` for internally graded objects. -/
 class set_like.graded_monoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
   (A : ι → S) extends set_like.has_graded_one A, set_like.has_graded_mul A : Prop

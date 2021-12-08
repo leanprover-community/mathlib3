@@ -118,6 +118,9 @@ variables [has_zero ι] [graded_monoid.ghas_one A] [Π i, add_comm_monoid (A i)]
 instance : has_one (⨁ i, A i) :=
 { one := direct_sum.of (λ i, A i) 0 graded_monoid.ghas_one.one}
 
+@[simp] lemma of_zero_eq_one (x : A 0) : of A 0 x = 1 ↔ x = graded_monoid.ghas_one.one :=
+dfinsupp.single_injective.eq_iff
+
 end one
 
 section mul
@@ -139,7 +142,7 @@ def gmul_hom {i j} : A i →+ A j →+ A (i + j) :=
 def mul_hom : (⨁ i, A i) →+ (⨁ i, A i) →+ ⨁ i, A i :=
 direct_sum.to_add_monoid $ λ i,
   add_monoid_hom.flip $ direct_sum.to_add_monoid $ λ j, add_monoid_hom.flip $
-    (direct_sum.of A _).comp_hom.comp $ gmul_hom A
+    (direct_sum.of_add_hom A _).comp_hom.comp $ gmul_hom A
 
 instance : non_unital_non_assoc_semiring (⨁ i, A i) :=
 { mul := λ a b, mul_hom A a b,
@@ -158,7 +161,7 @@ lemma mul_hom_of_of {i j} (a : A i) (b : A j) :
 begin
   unfold mul_hom,
   rw [to_add_monoid_of, flip_apply, to_add_monoid_of, flip_apply, coe_comp, function.comp_app,
-      comp_hom_apply_apply, coe_comp, function.comp_app, gmul_hom_apply_apply],
+      comp_hom_apply_apply, coe_comp, function.comp_app, gmul_hom_apply_apply, of_add_hom_apply],
 end
 
 lemma of_mul_of {i j} (a : A i) (b : A j) :
@@ -199,7 +202,8 @@ suffices (mul_hom A).comp_hom.comp (mul_hom A)            -- `λ a b c, a * b * 
   from add_monoid_hom.congr_fun (add_monoid_hom.congr_fun (add_monoid_hom.congr_fun this a) b) c,
 begin
   ext ai ax bi bx ci cx : 6,
-  dsimp only [coe_comp, function.comp_app, comp_hom_apply_apply, flip_apply, flip_hom_apply],
+  dsimp only [coe_comp, function.comp_app, comp_hom_apply_apply, flip_apply, flip_hom_apply,
+    of_add_hom_apply],
   rw [mul_hom_of_of, mul_hom_of_of, mul_hom_of_of, mul_hom_of_of],
   exact of_eq_of_graded_monoid_eq (mul_assoc (graded_monoid.mk ai ax) ⟨bi, bx⟩ ⟨ci, cx⟩),
 end
@@ -326,12 +330,12 @@ of_zero_smul A a b
 
 instance grade_zero.non_unital_non_assoc_semiring : non_unital_non_assoc_semiring (A 0) :=
 function.injective.non_unital_non_assoc_semiring (of A 0) dfinsupp.single_injective
-  (of A 0).map_zero (of A 0).map_add (of_zero_mul A)
+  (of_add_hom A 0).map_zero (of_add_hom A 0).map_add (of_zero_mul A)
 
 instance grade_zero.smul_with_zero (i : ι) : smul_with_zero (A 0) (A i) :=
 begin
-  letI := smul_with_zero.comp_hom (⨁ i, A i) (of A 0).to_zero_hom,
-  refine dfinsupp.single_injective.smul_with_zero (of A i).to_zero_hom (of_zero_smul A),
+  letI := smul_with_zero.comp_hom (⨁ i, A i) (of_add_hom A 0).to_zero_hom,
+  refine dfinsupp.single_injective.smul_with_zero (of_add_hom A i).to_zero_hom (of_zero_smul A),
 end
 
 end mul
@@ -342,11 +346,11 @@ variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gsemiring A]
 /-- The `semiring` structure derived from `gsemiring A`. -/
 instance grade_zero.semiring : semiring (A 0) :=
 function.injective.semiring (of A 0) dfinsupp.single_injective
-  (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
+  (of_zero A 0) (of_zero_one A) (of_add A 0) (of_zero_mul A)
 
 /-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
-{ map_one' := of_zero_one A, map_mul' := of_zero_mul A, ..(of _ 0) }
+{ map_one' := of_zero_one A, map_mul' := of_zero_mul A, ..(of_add_hom _ 0) }
 
 /-- Each grade `A i` derives a `A 0`-module structure from `gsemiring A`. Note that this results
 in an overall `module (A 0) (⨁ i, A i)` structure via `direct_sum.module`.
@@ -354,7 +358,7 @@ in an overall `module (A 0) (⨁ i, A i)` structure via `direct_sum.module`.
 instance grade_zero.module {i} : module (A 0) (A i) :=
 begin
   letI := module.comp_hom (⨁ i, A i) (of_zero_ring_hom A),
-  exact dfinsupp.single_injective.module (A 0) (of A i) (λ a, of_zero_smul A a),
+  exact dfinsupp.single_injective.module (A 0) (of_add_hom A i) (λ a, of_zero_smul A a),
 end
 
 end semiring
@@ -366,7 +370,7 @@ variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_semiring A]
 /-- The `comm_semiring` structure derived from `gcomm_semiring A`. -/
 instance grade_zero.comm_semiring : comm_semiring (A 0) :=
 function.injective.comm_semiring (of A 0) dfinsupp.single_injective
-  (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
+  (of_zero A 0) (of_zero_one A) (of_add A 0) (of_zero_mul A)
 
 end comm_semiring
 
@@ -376,8 +380,8 @@ variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gsemiring A]
 /-- The `ring` derived from `gsemiring A`. -/
 instance grade_zero.ring : ring (A 0) :=
 function.injective.ring (of A 0) dfinsupp.single_injective
-  (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
-  (of A 0).map_neg (of A 0).map_sub
+  (of_zero A 0) (of_zero_one A) (of_add A 0) (of_zero_mul A)
+  (of_add_hom A 0).map_neg (of_add_hom A 0).map_sub
 
 end ring
 
@@ -387,8 +391,8 @@ variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_semiring A]
 /-- The `comm_ring` derived from `gcomm_semiring A`. -/
 instance grade_zero.comm_ring : comm_ring (A 0) :=
 function.injective.comm_ring (of A 0) dfinsupp.single_injective
-  (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
-  (of A 0).map_neg (of A 0).map_sub
+  (of_zero A 0) (of_zero_one A) (of_add A 0) (of_zero_mul A)
+  (of_add_hom A 0).map_neg (of_add_hom A 0).map_sub
 
 end comm_ring
 
@@ -404,9 +408,14 @@ then they are equal.
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
-lemma ring_hom_ext' (F G : (⨁ i, A i) →+* R)
-  (h : ∀ i, (F : (⨁ i, A i) →+ R).comp (of _ i) = (G : (⨁ i, A i) →+ R).comp (of _ i)) : F = G :=
+lemma ring_hom_ext' ⦃F G : (⨁ i, A i) →+* R⦄
+  (h : ∀ i, (↑F : _ →+ R).comp (of_add_hom A i) = (↑G : _ →+ R).comp (of_add_hom A i)) : F = G :=
 ring_hom.coe_add_monoid_hom_injective $ direct_sum.add_hom_ext' h
+
+/-- Two `ring_hom`s out of a direct sum are equal if they agree on the generators. -/
+lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄ (h : ∀ i x, f (of A i x) = g (of A i x)) :
+  f = g :=
+ring_hom_ext' $ λ i, add_monoid_hom.ext $ h i
 
 /-- A family of `add_monoid_hom`s preserving `direct_sum.ghas_one.one` and `direct_sum.ghas_mul.mul`
 describes a `ring_hom`s on `⨁ i, A i`. This is a stronger version of `direct_sum.to_monoid`.
@@ -454,12 +463,12 @@ def lift_ring_hom :
     ((⨁ i, A i) →+* R) :=
 { to_fun := λ f, to_semiring f.1 f.2.1 f.2.2,
   inv_fun := λ F,
-    ⟨λ i, (F : (⨁ i, A i) →+ R).comp (of _ i), begin
+    ⟨λ i, (F : (⨁ i, A i) →+ R).comp (of_add_hom _ i), begin
       simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
       rw ←F.map_one,
       refl
     end, λ i j ai aj, begin
-      simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
+      simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom, of_add_hom_apply],
       rw [←F.map_mul, of_mul_of],
     end⟩,
   left_inv := λ f, begin
@@ -472,17 +481,8 @@ def lift_ring_hom :
     simp only [ring_hom.coe_add_monoid_hom_mk,
       direct_sum.to_add_monoid_of,
       add_monoid_hom.mk_coe,
-      add_monoid_hom.comp_apply, to_semiring_coe_add_monoid_hom],
+      add_monoid_hom.comp_apply, to_semiring_coe_add_monoid_hom, of_add_hom_apply],
   end}
-
-/-- Two `ring_hom`s out of a direct sum are equal if they agree on the generators.
-
-See note [partially-applied ext lemmas]. -/
-@[ext]
-lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄
-  (h : ∀ i, (↑f : (⨁ i, A i) →+ R).comp (of A i) = (↑g : (⨁ i, A i) →+ R).comp (of A i)) :
-  f = g :=
-direct_sum.lift_ring_hom.symm.injective $ subtype.ext $ funext h
 
 end to_semiring
 

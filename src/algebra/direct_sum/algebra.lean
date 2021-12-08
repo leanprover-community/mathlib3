@@ -55,30 +55,30 @@ end
 variables [semiring B] [galgebra R A] [algebra R B]
 
 instance : algebra R (⨁ i, A i) :=
-{ to_fun := (direct_sum.of A 0).comp galgebra.to_fun,
+{ to_fun := (direct_sum.of_add_hom A 0).comp galgebra.to_fun,
   map_zero' := add_monoid_hom.map_zero _,
   map_add' := add_monoid_hom.map_add _,
-  map_one' := (direct_sum.of A 0).congr_arg galgebra.map_one,
+  map_one' := (direct_sum.of_add_hom A 0).congr_arg galgebra.map_one,
   map_mul' := λ a b, begin
-    simp only [add_monoid_hom.comp_apply],
+    simp only [add_monoid_hom.comp_apply, of_add_hom_apply],
     rw of_mul_of,
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.map_mul a b),
   end,
   commutes' := λ r x, begin
-    change add_monoid_hom.mul (direct_sum.of _ _ _) x =
-      add_monoid_hom.mul.flip (direct_sum.of _ _ _) x,
+    change add_monoid_hom.mul (of_add_hom _ _ _) x = add_monoid_hom.mul.flip (of_add_hom _ _ _) x,
     apply add_monoid_hom.congr_fun _ x,
     ext i xi : 2,
-    dsimp only [add_monoid_hom.comp_apply, add_monoid_hom.mul_apply, add_monoid_hom.flip_apply],
+    dsimp only [add_monoid_hom.comp_apply, add_monoid_hom.mul_apply, add_monoid_hom.flip_apply,
+      of_add_hom_apply],
     rw [of_mul_of, of_mul_of],
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.commutes r ⟨i, xi⟩),
   end,
   smul_def' := λ r x, begin
-    change distrib_mul_action.to_add_monoid_hom _ r x = add_monoid_hom.mul (direct_sum.of _ _ _) x,
+    change distrib_mul_action.to_add_monoid_hom _ r x = add_monoid_hom.mul (of_add_hom _ _ _) x,
     apply add_monoid_hom.congr_fun _ x,
     ext i xi : 2,
     dsimp only [add_monoid_hom.comp_apply, distrib_mul_action.to_add_monoid_hom_apply,
-      add_monoid_hom.mul_apply],
+      add_monoid_hom.mul_apply, of_add_hom_apply],
     rw [direct_sum.of_mul_of, ←of_smul],
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.smul_def r ⟨i, xi⟩),
   end }
@@ -87,7 +87,7 @@ lemma algebra_map_apply (r : R) :
   algebra_map R (⨁ i, A i) r = direct_sum.of A 0 (galgebra.to_fun r) := rfl
 
 lemma algebra_map_to_add_monoid_hom :
-  ↑(algebra_map R (⨁ i, A i)) = (direct_sum.of A 0).comp (galgebra.to_fun : R →+ A 0) := rfl
+  ↑(algebra_map R (⨁ i, A i)) = (direct_sum.of_add_hom A 0).comp (galgebra.to_fun : R →+ A 0) := rfl
 
 /-- A family of `linear_map`s preserving `direct_sum.ghas_one.one` and `direct_sum.ghas_mul.mul`
 describes an `alg_hom` on `⨁ i, A i`. This is a stronger version of `direct_sum.to_semiring`.
@@ -110,10 +110,12 @@ def to_algebra
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
-lemma alg_hom_ext ⦃f g : (⨁ i, A i) →ₐ[R] B⦄
+lemma alg_hom_ext' ⦃f g : (⨁ i, A i) →ₐ[R] B⦄
   (h : ∀ i, f.to_linear_map.comp (lof _ _ A i) = g.to_linear_map.comp (lof _ _ A i)) : f = g :=
-alg_hom.coe_ring_hom_injective $
-  direct_sum.ring_hom_ext $ λ i, add_monoid_hom.ext $ linear_map.congr_fun (h i)
+alg_hom.to_linear_map_injective $ direct_sum.linear_map_ext _ h
+
+lemma alg_hom_ext ⦃f g : (⨁ i, A i) →ₐ[R] B⦄ (h : ∀ i x, f (of A i x) = g (of A i x)) : f = g :=
+alg_hom_ext' R A $ λ i, linear_map.ext $ h i
 
 end direct_sum
 

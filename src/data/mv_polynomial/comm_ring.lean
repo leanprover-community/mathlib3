@@ -65,7 +65,7 @@ variables (σ a a')
   coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply _ _ _
 
 @[simp] lemma support_neg : (- p).support = p.support :=
-finsupp.support_neg
+finsupp.support_neg p
 
 lemma support_sub (p q : mv_polynomial σ R) : (p - q).support ⊆ p.support ∪ q.support :=
 finsupp.support_sub

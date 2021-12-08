@@ -493,7 +493,7 @@ theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
 mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 
 /-- Prime `p` divides the product of `L : list ℕ` iff it divides some `a ∈ L` -/
-lemma prime.dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) :
+lemma prime.dvd_prod_iff {p : ℕ} {L : list ℕ} (pp : prime p) :
 p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
 begin
   split,
@@ -510,7 +510,7 @@ end
 
 lemma prime.not_dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) (hL : ∀ a ∈ L, ¬ p ∣ a) :
   ¬ p ∣ L.prod :=
-mt (prime.dvd_prod pp).mp (not_bex.mpr hL)
+mt (prime.dvd_prod_iff pp).mp (not_bex.mpr hL)
 
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 begin
@@ -662,7 +662,7 @@ lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) :
   ∀ {l : list ℕ}, (∀ p ∈ l, prime p) → p ∣ prod l → p ∈ l :=
 begin
   intros L hL hpL,
-  rcases (prime.dvd_prod hp).mp hpL with ⟨x, hx1, hx2⟩,
+  rcases (prime.dvd_prod_iff hp).mp hpL with ⟨x, hx1, hx2⟩,
   rwa ((prime_dvd_prime_iff_eq hp (hL x hx1)).mp hx2)
 end
 

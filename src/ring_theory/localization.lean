@@ -236,6 +236,33 @@ lemma exist_integer_multiples_of_finset (s : finset S) :
   ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
 exist_integer_multiples M s id
 
+/-- A choice of a common multiple of a finite set of fractions. -/
+noncomputable
+def denominator_common_multiple (s : finset S) : M :=
+(exist_integer_multiples_of_finset M s).some
+
+/-- The finset of numerators after clearing the denominators of a finite set of fractions. -/
+noncomputable
+def finset_integer_multiple [decidable_eq R] (s : finset S) : finset R :=
+s.attach.image (λ t, ((exist_integer_multiples_of_finset M s).some_spec t t.prop).some)
+
+open_locale pointwise
+
+lemma finset_integer_multiple_image [decidable_eq R] (s : finset S) :
+  algebra_map R S '' (finset_integer_multiple M s) = denominator_common_multiple M s • s :=
+begin
+  delta finset_integer_multiple denominator_common_multiple,
+  rw finset.coe_image,
+  ext,
+  split,
+  { rintro ⟨_, ⟨x, -, rfl⟩, rfl⟩,
+    rw ((exist_integer_multiples_of_finset M s).some_spec x x.prop).some_spec,
+    exact set.mem_image_of_mem _ x.prop },
+  { rintro ⟨x, hx, rfl⟩,
+    refine ⟨_, ⟨⟨x, hx⟩, s.mem_attach _, rfl⟩,
+      ((exist_integer_multiples_of_finset M s).some_spec x hx).some_spec⟩ }
+end
+
 variables {R M}
 
 lemma map_right_cancel {x y} {c : M} (h : algebra_map R S (c * x) = algebra_map R S (c * y)) :

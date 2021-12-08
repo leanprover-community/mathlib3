@@ -184,11 +184,8 @@ begin
   split,
   { intros h,
     apply continuous_linear_map.op_norm_le_of_ball hr (one_div_nonneg.mpr hr.le),
-    intros z hz,
-    have key := linear_map.bound_of_ball_bound hr 1 x'.to_linear_map h z,
-    simp only [continuous_linear_map.to_linear_map_eq_coe,
-               continuous_linear_map.coe_coe, div_one] at key,
-    exact key, },
+    { exact λ z hz, linear_map.bound_of_ball_bound hr 1 x'.to_linear_map h z, },
+    { exact ring_hom_isometric.ids, }, },
   { intros h z hz,
     simp only [mem_closed_ball, dist_zero_right] at hz,
     have key := (continuous_linear_map.le_op_norm x' z).trans

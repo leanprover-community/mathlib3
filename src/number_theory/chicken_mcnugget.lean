@@ -89,53 +89,22 @@ end
 lemma mult_add_subm_clos (m n k: ℕ):
   (∃ a b, a * m + b * n = k) ↔ k ∈ add_submonoid.closure(({m, n} : set ℕ)) :=
 begin
-  have basic : ({m} : set ℕ) ∪ ({n} : set ℕ) = ({m, n} : set ℕ),
-  refl,
-  rw [← basic],
-  rw add_submonoid.closure_union,
-  --have singletonlemma : ∧ x,
-  split,
-  intro condition,
-  rcases condition with ⟨a, b, condition⟩,
-  rw [← condition],
-  have h1 := singleton_lemma_cor a m,
-  have h2 := singleton_lemma_cor b n,
-
-  have rewrite : ∃ (k : ℕ) (H : k ∈ add_submonoid.closure({m} : set ℕ))
-    (l : ℕ) (H : l ∈ add_submonoid.closure({n}: set ℕ)), k + l = a * m + b * n,
-  use a * m,
-  split,
-  exact h1,
-  use b * n,
-  split,
-  exact h2,
-  refl,
-  exact add_submonoid.mem_sup.2 rewrite,
-
-  intro h,
-  have condition := add_submonoid.mem_sup.1 h,
-  rcases condition with ⟨a1, ha1, b1, hb1, condition⟩,
-  have hha1 := (singleton_lemma _ _).1 ha1,
-  have hhb1 := (singleton_lemma _ _).1 hb1,
-  cases hha1 with a hha1,
-  cases hhb1 with b hhb1,
-  use a,
-  use b,
-  rw hha1,
-  rw hhb1,
-  exact condition,
+  rw [←set.singleton_union, add_submonoid.closure_union],
+  refine ⟨_, λ h, _⟩,
+  rintros ⟨a, b, rfl⟩,
+  exact add_submonoid.mem_sup.mpr ⟨a * m, add_submonoid.mem_closure_singleton.mpr ⟨a, rfl⟩,
+    b * n, add_submonoid.mem_closure_singleton.mpr ⟨b, rfl⟩, rfl⟩,
+  obtain ⟨a, ha, b, hb, rfl⟩ := add_submonoid.mem_sup.mp h,
+  rw [add_submonoid.mem_closure_singleton] at ha hb,
+  obtain ⟨a, rfl⟩ := ha,
+  obtain ⟨b, rfl⟩ := hb,
+  exact ⟨a, b, rfl⟩,
 end
 
 theorem chicken_mcnugget_addsubm_clos (m n : ℕ) (hm: 1 < m) (hn: 1 < n) (cop: coprime m n) :
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
   ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
 begin
-  cases chicken_mcnugget m n hm hn cop,
-  split,
-  intro contra,
-  have contra2 := (mult_add_subm_clos _ _ _).2 contra,
-  exact left contra2,
-  intros k kbound,
-  have statement := right _ kbound,
-  exact (mult_add_subm_clos _ _ _).1 statement,
+  simp_rw ← mult_add_subm_clos,
+  exact chicken_mcnugget m n hm hn cop,
 end

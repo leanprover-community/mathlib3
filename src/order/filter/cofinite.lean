@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov
 -/
 import order.filter.at_top_bot
+import order.filter.pi
 
 /-!
 # The cofinite filter
@@ -40,8 +41,11 @@ def cofinite : filter α :=
 @[simp] lemma eventually_cofinite {p : α → Prop} :
   (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
 
+lemma has_basis_cofinite : has_basis cofinite (λ s : set α, s.finite) compl :=
+⟨λ s, ⟨λ h, ⟨sᶜ, h, (compl_compl s).subset⟩, λ ⟨t, htf, hts⟩, htf.subset $ compl_subset_comm.2 hts⟩⟩
+
 instance cofinite_ne_bot [infinite α] : ne_bot (@cofinite α) :=
-⟨mt empty_mem_iff_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }⟩
+has_basis_cofinite.ne_bot_iff.2 $ λ s hs, hs.infinite_compl.nonempty
 
 lemma frequently_cofinite_iff_infinite {p : α → Prop} :
   (∃ᶠ x in cofinite, p x) ↔ set.infinite {x | p x} :=
@@ -71,29 +75,12 @@ lemma Coprod_cofinite {δ : Type*} {κ : δ → Type*} [fintype δ] :
   filter.Coprod (λ d, (cofinite : filter (κ d))) = cofinite :=
 begin
   ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap, mem_cofinite],
+  rcases compl_surjective S with ⟨S, rfl⟩,
+  simp_rw [compl_mem_Coprod_iff, mem_cofinite, compl_compl],
   split,
-  { rintros h,
-    rw mem_Coprod_iff at h,
-    choose t ht1 ht2 using h,
-    have ht1d : ∀ (d : δ), (t d)ᶜ.finite := λ d, mem_cofinite.mp (ht1 d),
-    refine (set.finite.pi ht1d).subset _,
-    have ht2d : ∀ (d : δ), Sᶜ ⊆ ((λ (k : Π (d1 : δ), (λ (d2 : δ), κ d2) d1), k d) ⁻¹' ((t d)ᶜ)) :=
-     λ d, compl_subset_compl.mpr (ht2 d),
-    convert set.subset_Inter ht2d,
-    ext,
-    simp },
-  { intro hS,
-    rw mem_Coprod_iff,
-    intros d,
-    refine ⟨((λ (k : Π (d1 : δ), κ d1), k d) '' (Sᶜ))ᶜ, _, _⟩,
-    { rw [mem_cofinite, compl_compl],
-      exact set.finite.image _ hS },
-    { intros x,
-      contrapose,
-      intros hx,
-      simp only [not_not, mem_preimage, mem_compl_eq, not_forall],
-      exact ⟨x, hx, rfl⟩ } },
+  { rintro ⟨t, htf, hsub⟩,
+    exact (finite.pi htf).subset hsub },
+  { exact λ hS, ⟨λ i, function.eval i '' S, λ i, hS.image _, subset_pi_eval_image _ _⟩ }
 end
 
 end filter
@@ -139,23 +126,42 @@ lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :
   (∃ᶠ n in at_top, p n) ↔ set.infinite {n | p n} :=
 by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]
 
-lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_order β]
-  {f : α → β} (hf : tendsto f cofinite at_top) :
-  ∃ a₀, ∀ a, f a₀ ≤ f a :=
+lemma filter.tendsto.exists_within_forall_le {α β : Type*} [linear_order β] {s : set α}
+  (hs : s.nonempty)
+  {f : α → β} (hf : filter.tendsto f filter.cofinite filter.at_top) :
+  ∃ a₀ ∈ s, ∀ a ∈ s, f a₀ ≤ f a :=
 begin
-  rcases em (∃ y, ∃ x, f y < x) with ⟨y, x, hx⟩|not_all_top,
+  rcases em (∃ y ∈ s, ∃ x, f y < x) with ⟨y, hys, x, hx⟩|not_all_top,
   { -- the set of points `{y | f y < x}` is nonempty and finite, so we take `min` over this set
     have : finite {y | ¬x ≤ f y} := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
     simp only [not_le] at this,
-    obtain ⟨a₀, ha₀ : f a₀ < x, others_bigger⟩ := exists_min_image _ f this ⟨y, hx⟩,
-    exact ⟨a₀, λ a, (lt_or_le (f a) x).elim (others_bigger _) (le_trans ha₀.le)⟩ },
+    obtain ⟨a₀, ⟨ha₀ : f a₀ < x, ha₀s⟩, others_bigger⟩ :=
+      exists_min_image _ f (this.inter_of_left s) ⟨y, hx, hys⟩,
+    refine ⟨a₀, ha₀s, λ a has, (lt_or_le (f a) x).elim _ (le_trans ha₀.le)⟩,
+    exact λ h, others_bigger a ⟨h, has⟩ },
   { -- in this case, f is constant because all values are at top
     push_neg at not_all_top,
-    inhabit α,
-    exact ⟨default α, λ a, not_all_top a (f $ default α)⟩ }
+    obtain ⟨a₀, ha₀s⟩ := hs,
+    exact ⟨a₀, ha₀s, λ a ha, not_all_top a ha (f a₀)⟩ }
 end
+
+lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_order β]
+  {f : α → β} (hf : tendsto f cofinite at_top) :
+  ∃ a₀, ∀ a, f a₀ ≤ f a :=
+let ⟨a₀, _, ha₀⟩ := hf.exists_within_forall_le univ_nonempty in ⟨a₀, λ a, ha₀ a (mem_univ _)⟩
+
+lemma filter.tendsto.exists_within_forall_ge {α β : Type*} [linear_order β] {s : set α}
+  (hs : s.nonempty)
+  {f : α → β} (hf : filter.tendsto f filter.cofinite filter.at_bot) :
+  ∃ a₀ ∈ s, ∀ a ∈ s, f a ≤ f a₀ :=
+@filter.tendsto.exists_within_forall_le _ (order_dual β) _ _ hs _ hf
 
 lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_order β]
   {f : α → β} (hf : tendsto f cofinite at_bot) :
   ∃ a₀, ∀ a, f a ≤ f a₀ :=
 @filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf
+
+/-- For an injective function `f`, inverse images of finite sets are finite. -/
+lemma function.injective.tendsto_cofinite {α β : Type*} {f : α → β} (hf : function.injective f) :
+  tendsto f cofinite cofinite :=
+λ s h, h.preimage (hf.inj_on _)

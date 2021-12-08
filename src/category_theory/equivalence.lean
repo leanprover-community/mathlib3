@@ -549,6 +549,11 @@ noncomputable
 instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=
 equivalence.of_fully_faithfully_ess_surj _
 
+noncomputable
+instance fully_faithful_to_ess_image (F : C ⥤ D) [full F] [faithful F] :
+  is_equivalence F.to_ess_image :=
+of_fully_faithfully_ess_surj F.to_ess_image
+
 end equivalence
 
 end category_theory

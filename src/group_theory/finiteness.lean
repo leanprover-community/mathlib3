@@ -6,7 +6,7 @@ Authors: Riccardo Brasca
 
 import data.set.finite
 import group_theory.submonoid.operations
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Finitely generated monoids and groups

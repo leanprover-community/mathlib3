@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
 import measure_theory.pi_system
-import data.matrix.notation
+import data.fin.vec_notation
 import topology.algebra.infinite_sum
 
 /-!
@@ -70,7 +70,7 @@ section basic
 
 variables {α : Type*} {β : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
 
-instance : has_coe_to_fun (outer_measure α) := ⟨_, λ m, m.measure_of⟩
+instance : has_coe_to_fun (outer_measure α) (λ _, set α → ℝ≥0∞) := ⟨λ m, m.measure_of⟩
 
 @[simp] lemma measure_of_eq_coe (m : outer_measure α) : m.measure_of = m := rfl
 
@@ -131,7 +131,7 @@ begin
   rcases nat.find_x ⟨i, hx⟩ with ⟨j, hj, hlt⟩, clear hx i,
   cases le_or_lt j n with hjn hnj, { exact or.inl (h' hjn hj) },
   have : j - (n + 1) + n + 1 = j,
-    by rw [add_assoc, nat.sub_add_cancel hnj],
+    by rw [add_assoc, tsub_add_cancel_of_le hnj.nat_succ_le],
   refine or.inr (mem_Union.2 ⟨j - (n + 1), _, hlt _ _⟩),
   { rwa this },
   { rw [← nat.succ_le_iff, nat.succ_eq_add_one, this] }
@@ -215,19 +215,23 @@ instance : module ℝ≥0∞ (outer_measure α) :=
 
 instance : has_bot (outer_measure α) := ⟨0⟩
 
-instance outer_measure.order_bot : order_bot (outer_measure α) :=
+@[simp] theorem coe_bot : (⊥ : outer_measure α) = 0 := rfl
+
+instance outer_measure.partial_order : partial_order (outer_measure α) :=
 { le          := λm₁ m₂, ∀s, m₁ s ≤ m₂ s,
-  bot         := 0,
   le_refl     := assume a s, le_refl _,
   le_trans    := assume a b c hab hbc s, le_trans (hab s) (hbc s),
-  le_antisymm := assume a b hab hba, ext $ assume s, le_antisymm (hab s) (hba s),
-  bot_le      := assume a s, zero_le _ }
+  le_antisymm := assume a b hab hba, ext $ assume s, le_antisymm (hab s) (hba s) }
+
+instance outer_measure.order_bot : order_bot (outer_measure α) :=
+{ bot_le      := assume a s, by simp only [coe_zero, pi.zero_apply, coe_bot, zero_le],
+  ..outer_measure.has_bot }
 
 section supremum
 
 instance : has_Sup (outer_measure α) :=
-⟨λms, {
-  measure_of := λs, ⨆ m ∈ ms, (m : outer_measure α) s,
+⟨λms,
+{ measure_of := λs, ⨆ m ∈ ms, (m : outer_measure α) s,
   empty      := nonpos_iff_eq_zero.1 $ bsupr_le $ λ m h, le_of_eq m.empty,
   mono       := assume s₁ s₂ hs, bsupr_le_bsupr $ assume m hm, m.mono hs,
   Union_nat  := assume f, bsupr_le $ assume m hm,
@@ -440,7 +444,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
     infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
   Union_nat := assume s, ennreal.le_of_forall_pos_le_add $ begin
     assume ε hε (hb : ∑'i, μ (s i) < ∞),
-    rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_lt_coe.2 hε) ℕ with ⟨ε', hε', hl⟩,
+    rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_pos.2 hε).ne' ℕ with ⟨ε', hε', hl⟩,
     refine le_trans _ (add_le_add_left (le_of_lt hl) _),
     rw ← ennreal.tsum_add,
     choose f hf using show
@@ -448,8 +452,8 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
     { intro,
       have : μ (s i) < μ (s i) + ε' i :=
         ennreal.lt_add_right
-          (lt_of_le_of_lt (by apply ennreal.le_tsum) hb)
-          (by simpa using hε' i),
+          (ne_top_of_le_ne_top hb.ne $ ennreal.le_tsum _)
+          (by simpa using (hε' i).ne'),
       simpa [μ, infi_lt_iff] },
     refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hf i).2),
     rw [← ennreal.tsum_prod, ← equiv.nat_prod_nat_equiv_nat.symm.tsum_eq],
@@ -601,6 +605,9 @@ by simp [bounded_by, of_function_apply]
 theorem bounded_by_eq (s : set α) (m_empty : m ∅ = 0) (m_mono : ∀ ⦃t : set α⦄, s ⊆ t → m s ≤ m t)
   (m_subadd : ∀ (s : ℕ → set α), m (⋃i, s i) ≤ ∑'i, m (s i)) : bounded_by m s = m s :=
 by rw [bounded_by_eq_of_function m_empty, of_function_eq s m_mono m_subadd]
+
+@[simp] theorem bounded_by_eq_self (m : outer_measure α) : bounded_by m = m :=
+ext $ λ s, bounded_by_eq _ m.empty' (λ t ht, m.mono' ht) m.Union
 
 theorem le_bounded_by {μ : outer_measure α} : μ ≤ bounded_by m ↔ ∀ s, μ s ≤ m s :=
 begin
@@ -1114,11 +1121,11 @@ begin
 end
 
 lemma induced_outer_measure_exists_set {s : set α}
-  (hs : induced_outer_measure m P0 m0 s < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hs : induced_outer_measure m P0 m0 s ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ (t : set α) (ht : P t), s ⊆ t ∧
     induced_outer_measure m P0 m0 t ≤ induced_outer_measure m P0 m0 s + ε :=
 begin
-  have := ennreal.lt_add_right hs (ennreal.zero_lt_coe_iff.2 hε),
+  have := ennreal.lt_add_right hs hε,
   conv at this {to_lhs, rw induced_outer_measure_eq_infi _ msU m_mono },
   simp only [infi_lt_iff] at this,
   rcases this with ⟨t, h1t, h2t, h3t⟩,
@@ -1257,8 +1264,8 @@ begin
       simpa [infi_lt_iff] using hs },
     have : ∀ n : ℕ, ∃ t, s ⊆ t ∧ measurable_set t ∧ m t < ms + n⁻¹,
     { assume n,
-      refine this _ (ennreal.lt_add_right (lt_top_iff_ne_top.2 hs) _),
-      exact (ennreal.inv_pos.2 $ ennreal.nat_ne_top _) },
+      refine this _ (ennreal.lt_add_right hs _),
+      simp },
     choose t hsub hm hm',
     refine ⟨⋂ n, t n, subset_Inter hsub, measurable_set.Inter hm, _⟩,
     have : tendsto (λ n : ℕ, ms + n⁻¹) at_top (𝓝 (ms + 0)),

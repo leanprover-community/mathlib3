@@ -3,12 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import algebra.indicator_function
+import order.symm_diff
+import order.disjointed
+import order.conditionally_complete_lattice
 import data.equiv.encodable.lattice
 import data.set.countable
-import order.disjointed
-import order.filter.basic
-import order.symm_diff
 
 /-!
 # Measurable spaces and measurable functions
@@ -42,7 +41,7 @@ measurable space, σ-algebra, measurable function
 -/
 
 open set encodable function equiv
-open_locale classical filter
+open_locale classical
 
 
 variables {α β γ δ δ' : Type*} {ι : Sort*} {s t u : set α}
@@ -252,6 +251,9 @@ lemma measurable_set.insert {s : set α} (hs : measurable_set s) (a : α) :
   else insert_diff_self_of_not_mem ha ▸ h.diff (measurable_set_singleton _),
   λ h, h.insert a⟩
 
+lemma set.subsingleton.measurable_set {s : set α} (hs : s.subsingleton) : measurable_set s :=
+hs.induction_on measurable_set.empty measurable_set_singleton
+
 lemma set.finite.measurable_set {s : set α} (hs : finite s) : measurable_set s :=
 finite.induction_on hs measurable_set.empty $ λ a s ha hsf hsm, hsm.insert _
 
@@ -270,11 +272,17 @@ namespace measurable_space
 
 section complete_lattice
 
+instance : has_le (measurable_space α) :=
+{ le          := λ m₁ m₂, m₁.measurable_set' ≤ m₂.measurable_set' }
+
+lemma le_def {α} {a b : measurable_space α} :
+  a ≤ b ↔ a.measurable_set' ≤ b.measurable_set' := iff.rfl
+
 instance : partial_order (measurable_space α) :=
-{ le          := λ m₁ m₂, m₁.measurable_set' ≤ m₂.measurable_set',
-  le_refl     := assume a b, le_refl _,
-  le_trans    := assume a b c, le_trans,
-  le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩ }
+{ le_refl     := assume a b, le_refl _,
+  le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
+  le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩,
+  ..measurable_space.has_le }
 
 /-- The smallest σ-algebra containing a collection `s` of basic sets -/
 inductive generate_measurable (s : set (set α)) : set α → Prop
@@ -363,12 +371,11 @@ iff.rfl
 
 @[simp] theorem measurable_set_Inf {ms : set (measurable_space α)} {s : set α} :
   @measurable_set _ (Inf ms) s ↔ ∀ m ∈ ms, @measurable_set _ m s :=
-show s ∈ (⋂ m ∈ ms, {t | @measurable_set _ m t }) ↔ _, by simp
+show s ∈ (⋂₀ _) ↔ _, by simp
 
 @[simp] theorem measurable_set_infi {ι} {m : ι → measurable_space α} {s : set α} :
   @measurable_set _ (infi m) s ↔ ∀ i, @measurable_set _ (m i) s :=
-show s ∈ (λ m, {s | @measurable_set _ m s }) (infi m) ↔ _,
-by { rw (@gi_generate_from α).gc.u_infi, simp }
+by rw [infi, measurable_set_Inf, forall_range_iff]
 
 theorem measurable_set_sup {m₁ m₂ : measurable_space α} {s : set α} :
   @measurable_set _ (m₁ ⊔ m₂) s ↔ generate_measurable (m₁.measurable_set' ∪ m₂.measurable_set') s :=
@@ -378,17 +385,14 @@ theorem measurable_set_Sup {ms : set (measurable_space α)} {s : set α} :
   @measurable_set _ (Sup ms) s ↔
     generate_measurable {s : set α | ∃ m ∈ ms, @measurable_set _ m s} s :=
 begin
-  change @measurable_set' _ (generate_from $ ⋃ m ∈ ms, _) _ ↔ _,
+  change @measurable_set' _ (generate_from $ ⋃₀ _) _ ↔ _,
   simp [generate_from, ← set_of_exists]
 end
 
 theorem measurable_set_supr {ι} {m : ι → measurable_space α} {s : set α} :
   @measurable_set _ (supr m) s ↔
     generate_measurable {s : set α | ∃ i, @measurable_set _ (m i) s} s :=
-begin
-  convert @measurable_set_Sup _ (range m) s,
-  simp,
-end
+by simp only [supr, measurable_set_Sup, exists_range_iff]
 
 end complete_lattice
 

@@ -43,20 +43,21 @@ begin
   let c : set ℝ := d '' {s | measurable_set s },
   let γ : ℝ := Sup c,
 
-  have hμ : ∀s, μ s < ∞ := measure_lt_top μ,
-  have hν : ∀s, ν s < ∞ := measure_lt_top ν,
+  have hμ : ∀ s, μ s ≠ ∞ := measure_ne_top μ,
+  have hν : ∀ s, ν s ≠ ∞ := measure_ne_top ν,
   have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ℝ≥0∞) = μ s :=
-    (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hμ _),
+    (assume s, ennreal.coe_to_nnreal $ hμ _),
   have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ℝ≥0∞) = ν s :=
-    (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hν _),
+    (assume s, ennreal.coe_to_nnreal $ hν _),
 
-  have d_empty : d ∅ = 0, { simp [d], rw [measure_empty, measure_empty], simp },
+  have d_empty : d ∅ = 0,
+  { change _ - _ = _, rw [measure_empty, measure_empty, sub_self] },
 
   have d_split : ∀s t, measurable_set s → measurable_set t →
     d s = d (s \ t) + d (s ∩ t),
   { assume s t hs ht,
     simp only [d],
-    rw [measure_eq_inter_diff hs ht, measure_eq_inter_diff hs ht,
+    rw [← measure_inter_add_diff s ht, ← measure_inter_add_diff s ht,
       ennreal.to_nnreal_add (hμ _) (hμ _), ennreal.to_nnreal_add (hν _) (hν _),
       nnreal.coe_add, nnreal.coe_add],
     simp only [sub_eq_add_neg, neg_add],
@@ -66,8 +67,8 @@ begin
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋃n, s n))),
   { assume s hs hm,
     refine tendsto.sub _ _;
-      refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Union hs hm),
+      refine (nnreal.tendsto_coe.2 $ (ennreal.tendsto_to_nnreal _).comp $
+        tendsto_measure_Union hs hm),
     exact hμ _,
     exact hν _ },
 
@@ -75,12 +76,9 @@ begin
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋂n, s n))),
   { assume s hs hm,
     refine tendsto.sub _ _;
-      refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Inter hs hm _),
-    exact hμ _,
-    exact ⟨0, hμ _⟩,
-    exact hν _,
-    exact ⟨0, hν _⟩ },
+      refine (nnreal.tendsto_coe.2 $ (ennreal.tendsto_to_nnreal $ _).comp $
+        tendsto_measure_Inter hs hm _),
+    exacts [hμ _, ⟨0, hμ _⟩, hν _, ⟨0, hν _⟩] },
 
   have bdd_c : bdd_above c,
   { use (μ univ).to_nnreal,
@@ -114,16 +112,13 @@ begin
   { assume a b c d hab hcd,
     dsimp only [f],
     rw [finset.inf_eq_infi, finset.inf_eq_infi],
-    refine bInter_subset_bInter_left _,
-    simp,
-    rintros j ⟨hbj, hjc⟩,
-    exact ⟨le_trans hab hbj, lt_of_lt_of_le hjc $ add_le_add_right hcd 1⟩ },
+    exact bInter_subset_bInter_left (finset.Ico_subset_Ico hab $ nat.succ_le_succ hcd) },
 
   have f_succ : ∀n m, n ≤ m → f n (m + 1) = f n m ∩ e (m + 1),
   { assume n m hnm,
     have : n ≤ m + 1 := le_of_lt (nat.succ_le_succ hnm),
     simp only [f],
-    rw [finset.Ico.succ_top this, finset.inf_insert, set.inter_comm],
+    rw [nat.Ico_succ_right_eq_insert_Ico this, finset.inf_insert, set.inter_comm],
     refl },
 
   have le_d_f : ∀n m, m ≤ n → γ - 2 * ((1 / 2) ^ m) + (1 / 2) ^ n ≤ d (f m n),
@@ -131,7 +126,7 @@ begin
     refine nat.le_induction _ _ n h,
     { have := he₂ m,
       simp only [f],
-      rw [finset.Ico.succ_singleton, finset.inf_singleton],
+      rw [nat.Ico_succ_singleton, finset.inf_singleton],
       exact aux this },
     { assume n (hmn : m ≤ n) ih,
       have : γ + (γ - 2 * (1 / 2)^m + (1 / 2) ^ (n + 1)) ≤ γ + d (f m (n + 1)),

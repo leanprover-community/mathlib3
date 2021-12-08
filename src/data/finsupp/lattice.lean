@@ -19,9 +19,6 @@ variables {γ : Type*} [canonically_linear_ordered_add_monoid γ]
 
 namespace finsupp
 
-instance : order_bot (α →₀ μ) :=
-{ bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero], .. finsupp.partial_order}
-
 instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
 { inf := zip_with (⊓) inf_idem,
   inf_le_left := λ a b c, inf_le_left,
@@ -37,10 +34,7 @@ lemma support_inf {f g : α →₀ γ} : (f ⊓ g).support = f.support ∩ g.sup
 begin
   ext, simp only [inf_apply, mem_support_iff,  ne.def,
     finset.mem_union, finset.mem_filter, finset.mem_inter],
-  rw [← decidable.not_or_iff_and_not, ← not_congr],
-  rw inf_eq_min, unfold min, split_ifs;
-  { try {apply or_iff_left_of_imp}, try {apply or_iff_right_of_imp}, intro con, rw con at h,
-    revert h, simp, }
+  simp only [inf_eq_min, ← nonpos_iff_eq_zero, min_le_iff, not_or_distrib]
 end
 
 instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=
@@ -54,8 +48,7 @@ instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=
 lemma sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a = f a ⊔ g a := rfl
 
 @[simp]
-lemma support_sup
-  {f g : α →₀ γ} : (f ⊔ g).support = f.support ∪ g.support :=
+lemma support_sup {f g : α →₀ γ} : (f ⊔ g).support = f.support ∪ g.support :=
 begin
   ext, simp only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ← bot_eq_zero],
   rw sup_eq_bot_iff, tauto,
@@ -63,9 +56,6 @@ end
 
 instance lattice [lattice β] : lattice (α →₀ β) :=
 { .. finsupp.semilattice_inf, .. finsupp.semilattice_sup}
-
-instance semilattice_inf_bot : semilattice_inf_bot (α →₀ γ) :=
-{ ..finsupp.order_bot, ..finsupp.lattice}
 
 lemma bot_eq_zero : (⊥ : α →₀ γ) = 0 := rfl
 

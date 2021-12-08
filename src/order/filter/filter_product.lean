@@ -105,7 +105,7 @@ begin
   { rw [min_eq_right h, map₂_coe, coe_eq], exact h.mono (λ i hi, (min_eq_right hi).symm) }
 end
 
-lemma abs_def [linear_ordered_add_comm_group β] (x : β*) : abs x = map abs x :=
+lemma abs_def [linear_ordered_add_comm_group β] (x : β*) : |x| = map abs x :=
 induction_on x $ λ a, by exact rfl
 
 @[simp] lemma const_max [linear_order β] (x y : β) : (↑(max x y : β) : β*) = max ↑x ↑y :=
@@ -115,7 +115,7 @@ by rw [max_def, map₂_const]
 by rw [min_def, map₂_const]
 
 @[simp] lemma const_abs [linear_ordered_add_comm_group β] (x : β) :
-  (↑(abs x) : β*) = abs ↑x :=
+  (↑(|x|) : β*) = |↑x| :=
 by rw [abs_def, map_const]
 
 lemma lattice_of_linear_order_eq_filter_germ_lattice [linear_order β] :

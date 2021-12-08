@@ -74,12 +74,12 @@ namespace has_limits
 Construction of a limit cone in `Algebra R`.
 (Internal use only; use the limits API.)
 -/
-def limit_cone (F : J ⥤ Algebra R) : cone F :=
+def limit_cone (F : J ⥤ Algebra.{v} R) : cone F :=
 { X := Algebra.of R (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := limit_π_alg_hom F,
     naturality' := λ j j' f,
-      alg_hom.coe_fn_inj ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
+      alg_hom.coe_fn_injective ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
 
 /--
 Witness that the limit cone in `Algebra R` is a limit cone.

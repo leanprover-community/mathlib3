@@ -3,7 +3,8 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.basic
+import algebra.algebra.bilinear
+import algebra.module.submodule_pointwise
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -30,6 +31,7 @@ multiplication of submodules, division of subodules, submodule semiring
 universes uι u v
 
 open algebra set
+open_locale big_operators
 open_locale pointwise
 
 namespace submodule
@@ -220,7 +222,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  ..submodule.add_comm_monoid_submodule,
+  ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
   ..submodule.has_mul }
 
@@ -265,6 +267,20 @@ le_antisymm (mul_le.2 $ λ r hrm s hsn, mul_mem_mul_rev hsn hrm)
 instance : comm_semiring (submodule R A) :=
 { mul_comm := submodule.mul_comm,
   .. submodule.semiring }
+
+lemma prod_span {ι : Type*} (s : finset ι) (M : ι → set A) :
+  (∏ i in s, submodule.span R (M i)) = submodule.span R (∏ i in s, M i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ _,
+  { simp [one_eq_span, set.singleton_one] },
+  { intros _ _ H ih,
+    rw [finset.prod_insert H, finset.prod_insert H, ih, span_mul_span] }
+end
+
+lemma prod_span_singleton {ι : Type*} (s : finset ι) (x : ι → A) :
+  (∏ i in s, span R ({x i} : set A)) = span R {∏ i in s, x i} :=
+by rw [prod_span, set.finset_prod_singleton]
 
 variables (R A)
 
@@ -313,8 +329,8 @@ which is equivalent to `x • J ⊆ I` (see `mem_div_iff_smul_subset`), but nice
 This is the general form of the ideal quotient, traditionally written $I : J$.
 -/
 instance : has_div (submodule R A) :=
-⟨ λ I J, {
-  carrier   := { x | ∀ y ∈ J, x * y ∈ I },
+⟨ λ I J,
+{ carrier   := { x | ∀ y ∈ J, x * y ∈ I },
   zero_mem' := λ y hy, by { rw zero_mul, apply submodule.zero_mem },
   add_mem'  := λ a b ha hb y hy, by { rw add_mul, exact submodule.add_mem _ (ha _ hy) (hb _ hy) },
   smul_mem' := λ r x hx y hy, by { rw algebra.smul_mul_assoc,

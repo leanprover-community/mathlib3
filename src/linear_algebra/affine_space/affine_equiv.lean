@@ -55,7 +55,7 @@ namespace affine_equiv
 
 include V₁ V₂
 
-instance : has_coe_to_fun (P₁ ≃ᵃ[k] P₂) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (P₁ ≃ᵃ[k] P₂) (λ _, P₁ → P₂) := ⟨λ e, e.to_fun⟩
 
 instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ ≃ P₂) := ⟨affine_equiv.to_equiv⟩
 
@@ -118,10 +118,10 @@ to_affine_map_injective.eq_iff
 @[ext] lemma ext {e e' : P₁ ≃ᵃ[k] P₂} (h : ∀ x, e x = e' x) : e = e' :=
 to_affine_map_injective $ affine_map.ext h
 
-lemma coe_fn_injective : injective (λ (e : P₁ ≃ᵃ[k] P₂) (x : P₁), e x) :=
+lemma coe_fn_injective : @injective (P₁ ≃ᵃ[k] P₂) (P₁ → P₂) coe_fn :=
 λ e e' H, ext $ congr_fun H
 
-@[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : ⇑e = e' ↔ e = e' :=
+@[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : (e : P₁ → P₂) = e' ↔ e = e' :=
 coe_fn_injective.eq_iff
 
 lemma to_equiv_injective : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁ ≃ P₂)) :=
@@ -211,10 +211,10 @@ ext $ λ _, rfl
 @[simp] lemma refl_trans (e : P₁ ≃ᵃ[k] P₂) : (refl k P₁).trans e = e :=
 ext $ λ _, rfl
 
-@[simp] lemma trans_symm (e : P₁ ≃ᵃ[k] P₂) : e.trans e.symm = refl k P₁ :=
+@[simp] lemma self_trans_symm (e : P₁ ≃ᵃ[k] P₂) : e.trans e.symm = refl k P₁ :=
 ext e.symm_apply_apply
 
-@[simp] lemma symm_trans (e : P₁ ≃ᵃ[k] P₂) : e.symm.trans e = refl k P₂ :=
+@[simp] lemma symm_trans_self (e : P₁ ≃ᵃ[k] P₂) : e.symm.trans e = refl k P₂ :=
 ext e.apply_symm_apply
 
 @[simp] lemma apply_line_map (e : P₁ ≃ᵃ[k] P₂) (a b : P₁) (c : k) :
@@ -230,7 +230,7 @@ instance : group (P₁ ≃ᵃ[k] P₁) :=
   mul_assoc := λ e₁ e₂ e₃, trans_assoc _ _ _,
   one_mul := trans_refl,
   mul_one := refl_trans,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 lemma one_def : (1 : P₁ ≃ᵃ[k] P₁) = refl k P₁ := rfl
 

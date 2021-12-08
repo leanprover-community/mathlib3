@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard, Scott Morrison
+Authors: Kevin Buzzard, Scott Morrison, Jakob von Raumer
 -/
 import category_theory.monoidal.braided
 import algebra.category.Module.basic
@@ -181,13 +181,27 @@ lemma left_unitor_hom_apply {M : Module.{u} R} (r : R) (m : M) :
 tensor_product.lid_tmul m r
 
 @[simp]
+lemma left_unitor_inv_apply {M : Module.{u} R} (m : M) :
+  ((λ_ M).inv : M ⟶ 𝟙_ (Module.{u} R) ⊗ M) m = 1 ⊗ₜ[R] m :=
+tensor_product.lid_symm_apply m
+
+@[simp]
 lemma right_unitor_hom_apply {M : Module.{u} R} (m : M) (r : R) :
   ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
 tensor_product.rid_tmul m r
 
 @[simp]
+lemma right_unitor_inv_apply {M : Module.{u} R} (m : M) :
+  ((ρ_ M).inv : M ⟶ M ⊗ 𝟙_ (Module.{u} R)) m = m ⊗ₜ[R] 1 :=
+tensor_product.rid_symm_apply m
+
+@[simp]
 lemma associator_hom_apply {M N K : Module.{u} R} (m : M) (n : N) (k : K) :
   ((α_ M N K).hom : (M ⊗ N) ⊗ K ⟶ M ⊗ (N ⊗ K)) ((m ⊗ₜ n) ⊗ₜ k) = (m ⊗ₜ (n ⊗ₜ k)) := rfl
+
+@[simp]
+lemma associator_inv_apply {M N K : Module.{u} R} (m : M) (n : N) (k : K) :
+  ((α_ M N K).inv : M ⊗ (N ⊗ K) ⟶ (M ⊗ N) ⊗ K) (m ⊗ₜ (n ⊗ₜ k)) = ((m ⊗ₜ n) ⊗ₜ k) := rfl
 
 end monoidal_category
 

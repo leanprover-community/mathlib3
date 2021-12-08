@@ -54,7 +54,7 @@ variable (R : Type*)
 /-- An arithmetic function is a function from `ℕ` that maps 0 to 0. In the literature, they are
   often instead defined as functions from `ℕ+`. Multiplication on `arithmetic_functions` is by
   Dirichlet convolution. -/
-@[derive [has_coe_to_fun, has_zero, inhabited]]
+@[derive [has_zero, inhabited]]
 def arithmetic_function [has_zero R] := zero_hom ℕ R
 
 variable {R}
@@ -63,6 +63,8 @@ namespace arithmetic_function
 
 section has_zero
 variable [has_zero R]
+
+instance : has_coe_to_fun (arithmetic_function R) (λ _, ℕ → R) := zero_hom.has_coe_to_fun
 
 @[simp] lemma to_fun_eq (f : arithmetic_function R) : f.to_fun = f := rfl
 
@@ -206,14 +208,14 @@ begin
     rintros rfl h2 rfl rfl,
     exact ⟨⟨eq.trans H₁.2.1.symm H₂.2.1, rfl⟩, rfl, rfl⟩ },
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩,
-  { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
-    rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
-    refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
-    rw mul_ne_zero_iff at *,
-    exact ⟨n0.1, j0.1⟩ },
-  { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
-      ne.def, mem_sigma, heq_iff_eq] at H ⊢,
-    rw H.2.1 } }
+    { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
+      rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
+      refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
+      rw mul_ne_zero_iff at *,
+      exact ⟨n0.1, j0.1⟩ },
+    { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
+        ne.def, mem_sigma, heq_iff_eq] at H ⊢,
+      rw H.2.1 } }
 end
 
 lemma one_smul' (b : arithmetic_function M) :
@@ -364,9 +366,9 @@ end
 theorem coe_mul_zeta_apply [semiring R] {f : arithmetic_function R} {x : ℕ} :
   (f * ζ) x = ∑ i in divisors x, f i :=
 begin
-  apply opposite.op_injective,
+  apply mul_opposite.op_injective,
   rw [op_sum],
-  convert @coe_zeta_mul_apply Rᵒᵖ _ { to_fun := opposite.op ∘ f, map_zero' := by simp} x,
+  convert @coe_zeta_mul_apply Rᵐᵒᵖ _ { to_fun := mul_opposite.op ∘ f, map_zero' := by simp} x,
   rw [mul_apply, mul_apply, op_sum],
   conv_lhs { rw ← map_swap_divisors_antidiagonal, },
   rw sum_map,
@@ -655,7 +657,7 @@ end
 lemma card_factors_mul {m n : ℕ} (m0 : m ≠ 0) (n0 : n ≠ 0) :
   Ω (m * n) = Ω m + Ω n :=
 by rw [card_factors_apply, card_factors_apply, card_factors_apply, ← multiset.coe_card,
-  ← factors_eq, unique_factorization_monoid.factors_mul m0 n0, factors_eq, factors_eq,
+  ← factors_eq, unique_factorization_monoid.normalized_factors_mul m0 n0, factors_eq, factors_eq,
   multiset.card_add, multiset.coe_card, multiset.coe_card]
 
 lemma card_factors_multiset_prod {s : multiset ℕ} (h0 : s.prod ≠ 0) :
@@ -686,7 +688,7 @@ begin
   split; intro h,
   { rw ← list.eq_of_sublist_of_length_eq n.factors.erase_dup_sublist h,
     apply list.nodup_erase_dup },
-  { rw list.erase_dup_eq_self.2 h,
+  { rw h.erase_dup,
     refl }
 end
 
@@ -739,7 +741,8 @@ begin
   convert int.cast_zero,
   simp only [moebius_ne_zero_iff_squarefree],
   suffices :
-    ∑ (y : finset ℕ) in (unique_factorization_monoid.factors x.succ.succ).to_finset.powerset,
+    ∑ (y : finset ℕ) in
+      (unique_factorization_monoid.normalized_factors x.succ.succ).to_finset.powerset,
     ite (squarefree y.val.prod) ((-1:ℤ) ^ Ω y.val.prod) 0 = 0,
   { have h : ∑ i in _, ite (squarefree i) ((-1:ℤ) ^ Ω i) 0 = _ :=
       (sum_divisors_filter_squarefree (nat.succ_ne_zero _)),
@@ -747,22 +750,22 @@ begin
   apply eq.trans (sum_congr rfl _) (sum_powerset_neg_one_pow_card_of_nonempty _),
   { intros y hy,
     rw [finset.mem_powerset, ← finset.val_le_iff, multiset.to_finset_val] at hy,
-    have h : unique_factorization_monoid.factors y.val.prod = y.val,
+    have h : unique_factorization_monoid.normalized_factors y.val.prod = y.val,
     { apply factors_multiset_prod_of_irreducible,
       intros z hz,
-      apply irreducible_of_factor _ (multiset.subset_of_le
+      apply irreducible_of_normalized_factor _ (multiset.subset_of_le
         (le_trans hy (multiset.erase_dup_le _)) hz) },
     rw [if_pos],
     { rw [card_factors_apply, ← multiset.coe_card, ← factors_eq, h, finset.card] },
-    rw [unique_factorization_monoid.squarefree_iff_nodup_factors, h],
+    rw [unique_factorization_monoid.squarefree_iff_nodup_normalized_factors, h],
     { apply y.nodup },
     rw [ne.def, multiset.prod_eq_zero_iff],
     intro con,
     rw ← h at con,
-    exact not_irreducible_zero (irreducible_of_factor 0 con) },
+    exact not_irreducible_zero (irreducible_of_normalized_factor 0 con) },
   { rw finset.nonempty,
     rcases wf_dvd_monoid.exists_irreducible_factor _ (nat.succ_ne_zero _) with ⟨i, hi⟩,
-    { rcases exists_mem_factors_of_dvd (nat.succ_ne_zero _) hi.1 hi.2 with ⟨j, hj, hj2⟩,
+    { rcases exists_mem_normalized_factors_of_dvd (nat.succ_ne_zero _) hi.1 hi.2 with ⟨j, hj, hj2⟩,
       use j,
       apply multiset.mem_to_finset.2 hj },
     rw nat.is_unit_iff,
@@ -840,7 +843,7 @@ begin
   apply forall_congr,
   intro a,
   apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
-  rw [gsmul_eq_mul],
+  rw [zsmul_eq_mul],
 end
 
 /-- Möbius inversion for functions to a `comm_group`. -/
@@ -869,7 +872,7 @@ begin
       prod_congr rfl _],
     intros x hx,
     rw [dif_pos (nat.pos_of_mem_divisors (nat.snd_mem_divisors_of_mem_antidiagonal hx)),
-      units.coe_hom_apply, units.coe_gpow', units.coe_mk0] }
+      units.coe_hom_apply, units.coe_zpow₀, units.coe_mk0] }
 end
 
 end special_functions

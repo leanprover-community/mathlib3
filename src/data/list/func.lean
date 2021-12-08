@@ -83,7 +83,7 @@ def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list 
 /- set -/
 
 lemma length_set : ∀ {m : ℕ} {as : list α},
-  (as {m ↦ a}).length = _root_.max as.length (m+1)
+  (as {m ↦ a}).length = max as.length (m+1)
 | 0 []          := rfl
 | 0 (a::as)     := by {rw max_eq_left, refl, simp [nat.le_add_right]}
 | (m+1) []      := by simp only [set, nat.zero_max, length, @length_set m]
@@ -278,7 +278,7 @@ lemma get_pointwise [inhabited γ] {f : α → β → γ} (h1 : f (default α) (
 
 lemma length_pointwise {f : α → β → γ} :
   ∀ {as : list α} {bs : list β},
-  (pointwise f as bs).length = _root_.max as.length bs.length
+  (pointwise f as bs).length = max as.length bs.length
 | []      []      := rfl
 | []      (b::bs) :=
   by simp only [pointwise, length, length_map,
@@ -301,7 +301,7 @@ by {apply get_pointwise, apply zero_add}
 
 @[simp] lemma length_add {α : Type u}
   [has_zero α] [has_add α] {xs ys : list α} :
-  (add xs ys).length = _root_.max xs.length ys.length :=
+  (add xs ys).length = max xs.length ys.length :=
 @length_pointwise α α α ⟨0⟩ ⟨0⟩ _ _ _
 
 @[simp] lemma nil_add {α : Type u} [add_monoid α]
@@ -349,7 +349,7 @@ end
 by {apply get_pointwise, apply sub_zero}
 
 @[simp] lemma length_sub [has_zero α] [has_sub α] {xs ys : list α} :
-  (sub xs ys).length = _root_.max xs.length ys.length :=
+  (sub xs ys).length = max xs.length ys.length :=
 @length_pointwise α α α ⟨0⟩ ⟨0⟩ _ _ _
 
 @[simp] lemma nil_sub {α : Type} [add_group α]

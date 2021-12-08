@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import ring_theory.polynomial
 import algebra.big_operators.basic
+import ring_theory.polynomial.basic
 
 /-!
 # Lagrange interpolation
@@ -61,7 +61,7 @@ by { split_ifs with H, { subst H, apply eval_basis_self }, { exact eval_basis_ne
 begin
   unfold basis, generalize hsx : s.erase x = sx,
   have : x ∉ sx := hsx ▸ finset.not_mem_erase x s,
-  rw [← finset.insert_erase hx, hsx, finset.card_insert_of_not_mem this, nat.add_sub_cancel],
+  rw [← finset.insert_erase hx, hsx, finset.card_insert_of_not_mem this, add_tsub_cancel_right],
   clear hx hsx s, revert this, apply sx.induction_on,
   { intros hx, rw [finset.prod_empty, nat_degree_one], refl },
   { intros y s hys ih hx, rw [finset.mem_insert, not_or_distrib] at hx,
@@ -156,7 +156,9 @@ of degree less than `s.card`. -/
 def fun_equiv_degree_lt : degree_lt F s.card ≃ₗ[F] (s → F) :=
 { to_fun := λ f x, f.1.eval x,
   map_add' := λ f g, funext $ λ x, eval_add,
-  map_smul' := λ c f, funext $ λ x, by { rw [pi.smul_apply, smul_eq_mul, ← @eval_C F c _ x,
+  map_smul' := λ c f, funext $ λ x, by
+    { change eval ↑x (c • f).val = (c • λ (x : s), eval ↑x f.val) x,
+      rw [pi.smul_apply, smul_eq_mul, ← @eval_C F c _ x,
       ← eval_mul, eval_C, C_mul'], refl },
   inv_fun := λ f, ⟨interpolate s f, mem_degree_lt.2 $ degree_interpolate_lt s f⟩,
   left_inv := λ f, subtype.eq $ eq_interpolate s f $ mem_degree_lt.1 f.2,

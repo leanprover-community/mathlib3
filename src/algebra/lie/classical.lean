@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.invertible
-import algebra.lie.skew_adjoint
+import data.matrix.basis
+import data.matrix.dmatrix
 import algebra.lie.abelian
 import linear_algebra.matrix.trace
+import algebra.lie.skew_adjoint
 
 /-!
 # Classical Lie algebras
@@ -64,6 +66,7 @@ classical lie algebra, special linear, symplectic, orthogonal
 universes u₁ u₂
 
 namespace lie_algebra
+open matrix
 open_locale matrix
 
 variables (n p q l : Type*) (R : Type u₂)
@@ -74,7 +77,7 @@ variables [comm_ring R]
   matrix.trace n R R ⁅X, Y⁆ = 0 :=
 calc _ = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (Y ⬝ X) : linear_map.map_sub _ _ _
    ... = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (X ⬝ Y) :
-     congr_arg (λ x, _ - x) (matrix.trace_mul_comm X Y)
+     congr_arg (λ x, _ - x) (matrix.trace_mul_comm Y X)
    ... = 0 : sub_self _
 
 namespace special_linear
@@ -88,28 +91,16 @@ lemma sl_bracket [fintype n] (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val -
 
 section elementary_basis
 
-variables {n} (i j : n)
-
-/-- It is useful to define these matrices for explicit calculations in sl n R. -/
-abbreviation E : matrix n n R := λ i' j', if i = i' ∧ j = j' then 1 else 0
-
-@[simp] lemma E_apply_one : E R i j i j = 1 := if_pos (and.intro rfl rfl)
-
-@[simp] lemma E_apply_zero (i' j' : n) (h : ¬(i = i' ∧ j = j')) : E R i j i' j' = 0 := if_neg h
-
-@[simp] lemma E_diag_zero (h : j ≠ i) : matrix.diag n R R (E R i j) = 0 :=
-funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
-
-variable [fintype n]
-
-lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
+variables {n} [fintype n] (i j : n)
 
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
 basis of sl n R. -/
 def Eb (h : j ≠ i) : sl n R :=
-⟨E R i j, show E R i j ∈ linear_map.ker (matrix.trace n R R), from E_trace_zero R i j h⟩
+⟨matrix.std_basis_matrix i j (1 : R),
+  show matrix.std_basis_matrix i j (1 : R) ∈ linear_map.ker (matrix.trace n R R),
+  from matrix.std_basis_matrix.trace_zero i j (1 : R) h⟩
 
-@[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = E R i j := rfl
+@[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = matrix.std_basis_matrix i j 1 := rfl
 
 end elementary_basis
 
@@ -121,8 +112,7 @@ begin
   let B := Eb R j i hij.symm,
   intros c,
   have c' : A.val ⬝ B.val = B.val ⬝ A.val, by { rw [← sub_eq_zero, ← sl_bracket, c.trivial], refl },
-  have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
-  exact one_ne_zero this,
+  simpa [std_basis_matrix, matrix.mul_apply, hij] using   congr_fun (congr_fun c' i) i,
 end
 
 end special_linear
@@ -181,12 +171,9 @@ begin
     by_cases h : x = y; simp [Pso, indefinite_diagonal, h, hi], },
 end
 
-lemma is_unit_Pso {i : R} (hi : i*i = -1) : is_unit (Pso p q R i) :=
-⟨{ val     := Pso p q R i,
-   inv     := Pso p q R (-i),
-   val_inv := Pso_inv p q R hi,
-   inv_val := by { apply matrix.nonsing_inv_left_right, exact Pso_inv p q R hi, }, },
-rfl⟩
+/-- There is a constructive inverse of `Pso p q R i`. -/
+def invertible_Pso {i : R} (hi : i*i = -1) : invertible (Pso p q R i) :=
+invertible_of_right_inverse _ _ (Pso_inv p q R hi)
 
 lemma indefinite_diagonal_transform {i : R} (hi : i*i = -1) :
   (Pso p q R i)ᵀ ⬝ (indefinite_diagonal p q R) ⬝ (Pso p q R i) = 1 :=
@@ -204,10 +191,10 @@ end
 
 /-- An equivalence between the indefinite and definite orthogonal Lie algebras, over a ring
 containing a square root of -1. -/
-noncomputable def so_indefinite_equiv {i : R} (hi : i*i = -1) : so' p q R ≃ₗ⁅R⁆ so (p ⊕ q) R :=
+def so_indefinite_equiv {i : R} (hi : i*i = -1) : so' p q R ≃ₗ⁅R⁆ so (p ⊕ q) R :=
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv
-    (indefinite_diagonal p q R) (Pso p q R i) (is_unit_Pso p q R hi)).trans,
+    (indefinite_diagonal p q R) (Pso p q R i) (invertible_Pso p q R hi)).trans,
   apply lie_equiv.of_eq,
   ext A, rw indefinite_diagonal_transform p q R hi, refl,
 end
@@ -267,18 +254,14 @@ begin
   simp [h],
 end
 
-lemma is_unit_PD [fintype l] [invertible (2 : R)] : is_unit (PD l R) :=
-⟨{ val     := PD l R,
-   inv     := ⅟(2 : R) • (PD l R)ᵀ,
-   val_inv := PD_inv l R,
-   inv_val := by { apply matrix.nonsing_inv_left_right, exact PD_inv l R, }, },
-rfl⟩
+instance invertible_PD [fintype l] [invertible (2 : R)] : invertible (PD l R) :=
+invertible_of_right_inverse _ _ (PD_inv l R)
 
 /-- An equivalence between two possible definitions of the classical Lie algebra of type D. -/
-noncomputable def type_D_equiv_so' [fintype l] [invertible (2 : R)] :
+def type_D_equiv_so' [fintype l] [invertible (2 : R)] :
   type_D l R ≃ₗ⁅R⁆ so' l l R :=
 begin
-  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (is_unit_PD l R)).trans,
+  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (by apply_instance)).trans,
   apply lie_equiv.of_eq,
   ext A,
   rw [JD_transform, ← coe_unit_of_invertible (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
@@ -325,18 +308,15 @@ def PB := matrix.from_blocks (1 : matrix unit unit R) 0 0 (PD l R)
 
 variable [fintype l]
 
-lemma PB_inv [invertible (2 : R)] : (PB l R) * (matrix.from_blocks 1 0 0 (PD l R)⁻¹) = 1 :=
+lemma PB_inv [invertible (2 : R)] : PB l R * matrix.from_blocks 1 0 0 (⅟(PD l R)) = 1 :=
 begin
-  simp [PB, matrix.from_blocks_multiply, (PD l R).mul_nonsing_inv, is_unit_PD,
-        ← (PD l R).is_unit_iff_is_unit_det]
+  rw [PB, matrix.mul_eq_mul, matrix.from_blocks_multiply, matrix.mul_inv_of_self],
+  simp only [matrix.mul_zero, matrix.mul_one, matrix.zero_mul, zero_add, add_zero,
+    matrix.from_blocks_one]
 end
 
-lemma is_unit_PB [invertible (2 : R)] : is_unit (PB l R) :=
-⟨{ val     := PB l R,
-   inv     := matrix.from_blocks 1 0 0 (PD l R)⁻¹,
-   val_inv := PB_inv l R,
-   inv_val := by { apply matrix.nonsing_inv_left_right, exact PB_inv l R, }, },
-rfl⟩
+instance invertible_PB [invertible (2 : R)] : invertible (PB l R) :=
+invertible_of_right_inverse _ _ (PB_inv l R)
 
 lemma JB_transform : (PB l R)ᵀ ⬝ (JB l R) ⬝ (PB l R) = (2 : R) • matrix.from_blocks 1 0 0 (S l R) :=
 by simp [PB, JB, JD_transform, matrix.from_blocks_transpose, matrix.from_blocks_multiply,
@@ -360,10 +340,10 @@ begin
 end
 
 /-- An equivalence between two possible definitions of the classical Lie algebra of type B. -/
-noncomputable def type_B_equiv_so' [invertible (2 : R)] :
+def type_B_equiv_so' [invertible (2 : R)] :
   type_B l R ≃ₗ⁅R⁆ so' (unit ⊕ l) l R :=
 begin
-  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JB l R) (PB l R) (is_unit_PB l R)).trans,
+  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JB l R) (PB l R) (by apply_instance)).trans,
   symmetry,
   apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
     (indefinite_diagonal (unit ⊕ l) l R)

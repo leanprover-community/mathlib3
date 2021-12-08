@@ -29,13 +29,14 @@ open_locale non_zero_divisors
 This definition uses `fraction_ring R` to denote `Frac(R)`. See `is_integrally_closed_iff`
 if you want to choose another field of fractions for `R`.
 -/
-class is_integrally_closed (R : Type*) [integral_domain R] : Prop :=
+class is_integrally_closed (R : Type*) [comm_ring R] [is_domain R] : Prop :=
 (algebra_map_eq_of_integral :
   ∀ {x : fraction_ring R}, is_integral R x → ∃ y, algebra_map R (fraction_ring R) y = x)
 
 section iff
 
-variables {R : Type*} [integral_domain R] (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
+variables {R : Type*} [comm_ring R] [is_domain R]
+variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
 
 /-- `R` is integrally closed iff all integral elements of its fraction field `K`
 are also elements of `R`. -/
@@ -74,7 +75,7 @@ end iff
 
 namespace is_integrally_closed
 
-variables {R : Type*} [integral_domain R] [iic : is_integrally_closed R]
+variables {R : Type*} [comm_ring R] [is_domain R] [iic : is_integrally_closed R]
 variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
 
 instance : is_integral_closure R R K :=
@@ -112,7 +113,7 @@ namespace integral_closure
 
 open is_integrally_closed
 
-variables {R : Type*} [integral_domain R] [iic : is_integrally_closed R]
+variables {R : Type*} [comm_ring R] [is_domain R] [iic : is_integrally_closed R]
 variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
 variables {L : Type*} [field L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
 

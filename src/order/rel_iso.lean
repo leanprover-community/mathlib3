@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group.defs
+import data.equiv.set
 import logic.embedding
 import order.rel_classes
 
@@ -53,7 +54,7 @@ infix ` →r `:25 := rel_hom
 
 namespace rel_hom
 
-instance : has_coe_to_fun (r →r s) := ⟨λ _, α → β, λ o, o.to_fun⟩
+instance : has_coe_to_fun (r →r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
 
 initialize_simps_projections rel_hom (to_fun → apply)
 
@@ -64,13 +65,12 @@ theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel
 
 @[simp] theorem coe_fn_to_fun (f : r →r s) : (f.to_fun : α → β) = f := rfl
 
-/-- The map `coe_fn : (r →r s) → (α → β)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r →r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r →r s) → (α → β)` is injective. -/
+theorem coe_fn_injective : @function.injective (r →r s) (α → β) coe_fn
 | ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ h := by { congr, exact h }
 
 @[ext] theorem ext ⦃f g : r →r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_inj (funext h)
+coe_fn_injective (funext h)
 
 theorem ext_iff {f g : r →r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -182,7 +182,7 @@ def to_rel_hom (f : r ↪r s) : (r →r s) :=
 
 instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (r ↪r s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
+instance : has_coe_to_fun (r ↪r s) (λ _, α → β) := ⟨λ o, o.to_embedding⟩
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
 because it is a composition of multiple projections. -/
@@ -203,13 +203,12 @@ theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map
 
 @[simp] theorem coe_fn_to_embedding (f : r ↪r s) : (f.to_embedding : α → β) = f := rfl
 
-/-- The map `coe_fn : (r ↪r s) → (α → β)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r ↪r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r ↪r s) → (α → β)` is injective. -/
+theorem coe_fn_injective : @function.injective (r ↪r s) (α → β) coe_fn
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
 @[ext] theorem ext ⦃f g : r ↪r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_inj (funext h)
+coe_fn_injective (funext h)
 
 theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -420,7 +419,7 @@ def to_rel_embedding (f : r ≃r s) : r ↪r s :=
 
 instance : has_coe (r ≃r s) (r ↪r s) := ⟨to_rel_embedding⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (r ≃r s) := ⟨λ _, α → β, λ f, f⟩
+instance : has_coe_to_fun (r ≃r s) (λ _, α → β) := ⟨λ f, f⟩
 
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 
@@ -685,6 +684,15 @@ def set.univ : (set.univ : set α) ≃o α :=
 { to_equiv := equiv.set.univ α,
   map_rel_iff' := λ x y, iff.rfl }
 
+/-- Order isomorphism between `α → β` and `β`, where `α` has a unique element. -/
+@[simps to_equiv apply] def fun_unique (α β : Type*) [unique α] [preorder β] :
+  (α → β) ≃o β :=
+{ to_equiv := equiv.fun_unique α β,
+  map_rel_iff' := λ f g, by simp [pi.le_def, unique.forall_iff] }
+
+@[simp] lemma fun_unique_symm_apply {α β : Type*} [unique α] [preorder β] :
+  ((fun_unique α β).symm : β → α → β) = function.const α := rfl
+
 end order_iso
 
 namespace equiv
@@ -707,8 +715,8 @@ end equiv
 
 /-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
 between `s` and its image. -/
-protected noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order α] [preorder β]
-  (f : α → β) (s : set α) (hf : strict_mono_incr_on f s) :
+protected noncomputable def strict_mono_on.order_iso {α β} [linear_order α] [preorder β]
+  (f : α → β) (s : set α) (hf : strict_mono_on f s) :
   s ≃o f '' s :=
 { to_equiv := hf.inj_on.bij_on_image.equiv _,
   map_rel_iff' := λ x y, hf.le_iff_le x.2 y.2 }
@@ -755,23 +763,25 @@ def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p
   rel_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
 /-- An order isomorphism is also an order isomorphism between dual orders. -/
-protected def order_iso.dual [preorder α] [preorder β] (f : α ≃o β) :
+protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) :
   order_dual α ≃o order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
 
 section lattice_isos
 
-lemma order_iso.map_bot' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+lemma order_iso.map_bot' [has_le α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
   (hx : ∀ x', x ≤ x') (hy : ∀ y', y ≤ y') : f x = y :=
 by { refine le_antisymm _ (hy _), rw [← f.apply_symm_apply y, f.map_rel_iff], apply hx }
 
-lemma order_iso.map_bot [order_bot α] [order_bot β] (f : α ≃o β) : f ⊥ = ⊥ :=
+lemma order_iso.map_bot [has_le α] [partial_order β] [order_bot α] [order_bot β] (f : α ≃o β) :
+  f ⊥ = ⊥ :=
 f.map_bot' (λ _, bot_le) (λ _, bot_le)
 
-lemma order_iso.map_top' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+lemma order_iso.map_top' [has_le α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
   (hx : ∀ x', x' ≤ x) (hy : ∀ y', y' ≤ y) : f x = y :=
 f.dual.map_bot' hx hy
 
-lemma order_iso.map_top [order_top α] [order_top β] (f : α ≃o β) : f ⊤ = ⊤ :=
+lemma order_iso.map_top [has_le α] [partial_order β] [order_top α] [order_top β] (f : α ≃o β) :
+  f ⊤ = ⊤ :=
 f.dual.map_bot
 
 lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
@@ -787,6 +797,18 @@ begin
   simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
 end
 
+/-- Note that this goal could also be stated `(disjoint on f) a b` -/
+lemma disjoint.map_order_iso [semilattice_inf α] [order_bot α] [semilattice_inf β] [order_bot β]
+  {a b : α} (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
+begin
+  rw [disjoint, ←f.map_inf, ←f.map_bot],
+  exact f.monotone ha,
+end
+
+@[simp] lemma disjoint_map_order_iso_iff [semilattice_inf α] [order_bot α] [semilattice_inf β]
+  [order_bot β] {a b : α} (f : α ≃o β) : disjoint (f a) (f b) ↔ disjoint a b :=
+⟨λ h, f.symm_apply_apply a ▸ f.symm_apply_apply b ▸ h.map_order_iso f.symm, λ h, h.map_order_iso f⟩
+
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
   (f : α ↪o β) (x y : α) :
   f x ⊔ f y ≤ f (x ⊔ y) :=
@@ -797,9 +819,9 @@ lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
   f (x ⊔ y) = f x ⊔ f y :=
 f.dual.map_inf x y
 
-section bounded_lattice
+section bounded_order
 
-variables [bounded_lattice α] [bounded_lattice β] (f : α ≃o β)
+variables [lattice α] [lattice β] [bounded_order α] [bounded_order β] (f : α ≃o β)
 include f
 
 lemma order_iso.is_compl {x y : α} (h : is_compl x y) : is_compl (f x) (f y) :=
@@ -825,5 +847,5 @@ theorem order_iso.is_complemented_iff :
   is_complemented α ↔ is_complemented β :=
 ⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
 
-end bounded_lattice
+end bounded_order
 end lattice_isos

@@ -3,8 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import tactic.basic
 import logic.is_empty
+import tactic.basic
+import logic.relator
 
 /-!
 # Option of a type
@@ -71,7 +72,7 @@ theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a 
 option.some.inj $ ha.symm.trans hb
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
-⟨λ a o b, mem_unique⟩
+λ a o b, mem_unique
 
 theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
@@ -446,5 +447,11 @@ begin
 end
 
 end
+
+@[simp] lemma to_list_some (a : α) : (a : option α).to_list = [a] :=
+rfl
+
+@[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
+rfl
 
 end option

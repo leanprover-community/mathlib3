@@ -12,7 +12,7 @@ import analysis.normed_space.ordered
 In this file, we define the relation `is_equivalent u v l`, which means that `u-v` is little o of
 `v` along the filter `l`.
 
-Unlike `is_[oO]` relations, this one requires `u` and `v` to have the same codomaine `β`. While the
+Unlike `is_[oO]` relations, this one requires `u` and `v` to have the same codomain `β`. While the
 definition only requires `β` to be a `normed_group`, most interesting properties require it to be a
 `normed_field`.
 
@@ -264,10 +264,10 @@ begin
   rw is_equivalent_iff_exists_eq_mul at *,
   rcases huv with ⟨φ, hφ, h⟩,
   rw ← inv_one,
-  refine ⟨λ x, (φ x)⁻¹, tendsto.inv' hφ (by norm_num) , _⟩,
+  refine ⟨λ x, (φ x)⁻¹, tendsto.inv₀ hφ (by norm_num) , _⟩,
   convert h.inv,
   ext,
-  simp [mul_inv']
+  simp [mul_inv₀]
 end
 
 lemma is_equivalent.div (htu : t ~[l] u) (hvw : v ~[l] w) :

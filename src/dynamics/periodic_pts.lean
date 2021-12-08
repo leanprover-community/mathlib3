@@ -3,10 +3,10 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import data.nat.prime
 import dynamics.fixed_points.basic
-import data.set.lattice
 import data.pnat.basic
-import data.int.gcd
+import data.set.lattice
 
 /-!
 # Periodic points
@@ -91,8 +91,8 @@ protected lemma sub (hm : is_periodic_pt f m x) (hn : is_periodic_pt f n x) :
 begin
   cases le_total n m with h h,
   { refine left_of_add _ hn,
-    rwa [nat.sub_add_cancel h] },
-  { rw [nat.sub_eq_zero_of_le h],
+    rwa [tsub_add_cancel_of_le h] },
+  { rw [tsub_eq_zero_iff_le.mpr h],
     apply is_periodic_pt_zero }
 end
 

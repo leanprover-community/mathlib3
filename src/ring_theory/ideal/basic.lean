@@ -404,9 +404,15 @@ begin
 end
 
 theorem span_pow_eq_top (s : set α)
-  (hs : span s = ⊤) (n : ℕ) : span ((λ x, x ^ (n + 1)) '' s) = ⊤ :=
+  (hs : span s = ⊤) (n : ℕ) : span ((λ x, x ^ n) '' s) = ⊤ :=
 begin
   rw eq_top_iff_one,
+  cases n,
+  { by_cases s = ∅,
+    { subst h,
+      rw [set.image_empty, hs],
+      trivial },
+    { exact subset_span ⟨_, (set.ne_empty_iff_nonempty.mp h).some_spec, pow_zero _⟩ } },
   rw [eq_top_iff_one, span, finsupp.mem_span_iff_total] at hs,
   rcases hs with ⟨f, hf⟩,
   change f.support.sum (λ a, f a * a) = 1 at hf,

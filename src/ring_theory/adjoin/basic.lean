@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import algebra.algebra.tower
 import linear_algebra.prod
+import linear_algebra.finsupp
 
 /-!
 # Adjoining elements to form subalgebras
@@ -43,6 +44,9 @@ algebra.gc.le_u_l s
 theorem adjoin_le {S : subalgebra R A} (H : s ⊆ S) : adjoin R s ≤ S :=
 algebra.gc.l_le H
 
+lemma adjoin_eq_Inf : adjoin R s = Inf {p | s ⊆ p} :=
+le_antisymm (le_Inf (λ _ h, adjoin_le h)) (Inf_le subset_adjoin)
+
 theorem adjoin_le_iff {S : subalgebra R A} : adjoin R s ≤ S ↔ s ⊆ S:=
 algebra.gc _ _
 
@@ -54,6 +58,14 @@ le_antisymm (adjoin_le h₁) h₂
 
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
+
+lemma algebra.adjoin_Union {α : Type*} (s : α → set A) :
+  algebra.adjoin R (set.Union s) = ⨆ (i : α), algebra.adjoin R (s i) :=
+(@algebra.gi R A _ _ _).gc.l_supr
+
+lemma algebra.adjoin_attach_bUnion [decidable_eq A] {α : Type*} {s : finset α} (f : s → finset A) :
+  algebra.adjoin R (s.attach.bUnion f : set A) = ⨆ x, algebra.adjoin R (f x) :=
+by simpa [algebra.adjoin_Union]
 
 @[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s)
   (Hs : ∀ x ∈ s, p x)
@@ -213,6 +225,28 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
+end
+
+lemma algebra.pow_smul_mem_adjoin_smul {R S : Type*} [comm_semiring R] [comm_semiring S]
+  [algebra R S] (r : R) (s : set S) (x : algebra.adjoin R s) :
+    ∃ n : ℕ, (r ^ n • x : S) ∈ algebra.adjoin R (r • s) :=
+begin
+  rcases x with ⟨x, hx⟩,
+  rw subtype.coe_mk,
+  change x ∈ (algebra.adjoin R s).to_submodule at hx,
+  rw [algebra.adjoin_eq_span, finsupp.mem_span_iff_total] at hx,
+  rcases hx with ⟨l, rfl : l.sum (λ (i : submonoid.closure s) (c : R), c • ↑i) = x⟩,
+  choose n₁ n₂ using submonoid.pow_smul_mem_closure_smul r s,
+  use l.support.sup n₁,
+  rw finsupp.smul_sum,
+  refine (algebra.adjoin R (r • s)).to_submodule.sum_mem _,
+  intros a ha,
+  have : l.support.sup n₁ ≥ n₁ a := finset.le_sup ha,
+  dsimp only,
+  rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul, smul_smul _ (l a), mul_comm,
+    ← smul_smul, algebra.adjoin_eq_span],
+  refine submodule.smul_mem _ _ _,
+  exact submodule.smul_mem _ _ (submodule.subset_span (n₂ a))
 end
 
 end comm_semiring

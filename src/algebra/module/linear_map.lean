@@ -161,20 +161,16 @@ theorem is_linear : is_linear_map R fₗ := ⟨fₗ.map_add', fₗ.map_smul'⟩
 
 variables {fₗ gₗ f g σ}
 
--- TODO: can be replaced with `fun_like.coe_injective`
 theorem coe_injective : @injective (M →ₛₗ[σ] M₃) (M → M₃) coe_fn :=
 fun_like.coe_injective
 
--- TODO: can be replaced with `fun_like.congr_arg`
 protected lemma congr_arg {x x' : M} : x = x' → f x = f x' :=
 fun_like.congr_arg f
 
--- TODO: can be replaced with `fun_like.congr_fun`
 /-- If two linear maps are equal, they are equal at each point. -/
 protected lemma congr_fun (h : f = g) (x : M) : f x = g x :=
 fun_like.congr_fun h x
 
--- TODO: can be replaced with `fun_like.ext_iff`
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 

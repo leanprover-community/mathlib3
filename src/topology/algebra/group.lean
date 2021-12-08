@@ -127,8 +127,7 @@ with continuous addition/multiplication. See also `submonoid.top_closure_mul_sel
 -/
 
 section pointwise
-section group
-variables [group α] [has_continuous_mul α] {s t : set α}
+variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
 
 @[to_additive]
 lemma is_open.mul_left (ht : is_open t) :  is_open (s * t) :=
@@ -138,16 +137,11 @@ begin
 end
 
 @[to_additive]
-lemma is_open.mul_right (hs : is_open t) : is_open s → is_open (s * t) := λ hs,
+lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
 begin
   rw ←Union_mul_right_image,
   exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_right a s hs),
 end
-
-end group
-
-section comm_group
-variables [comm_group α] [has_continuous_mul α] {s t : set α}
 
 @[to_additive]
 lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
@@ -159,21 +153,8 @@ interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_
 
 @[to_additive]
 lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
-(set.mul_subset_mul_left interior_subset).trans interior_mul_subset
+(set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
 
-@[to_additive]
-lemma subset_closure_mul_left : closure s * t ⊆ closure (s * t) :=
-closure_minimal (set.mul_subset_mul_right subset_closure) is_closed_closure.mul_right
-
-@[to_additive]
-lemma subset_closure_mul_right : s * closure t ⊆ closure (s * t) :=
-closure_minimal (set.mul_subset_mul_left subset_closure) is_closed_closure.mul_left
-
-@[to_additive]
-lemma subset_closure_mul : closure s * closure t ⊆ closure (s * t)  :=
-(set.mul_subset_mul_left subset_closure).trans closure_mul_subset_right
-
-end comm_group
 end pointwise
 
 section topological_group
@@ -326,7 +307,13 @@ lemma homeomorph.shear_mul_right_symm_coe :
   ⇑(homeomorph.shear_mul_right G).symm = λ z : G × G, (z.1, z.1⁻¹ * z.2) :=
 rfl
 
-variable {G}
+variables {G}
+
+@[to_additive]
+lemma is_open.inv {s : set G} (hs : is_open s) : is_open s⁻¹ := hs.preimage continuous_inv
+
+@[to_additive]
+lemma is_closed.inv {s : set G} (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
 
 namespace subgroup
 

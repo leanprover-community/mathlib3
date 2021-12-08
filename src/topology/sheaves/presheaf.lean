@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Mario Carneiro, Reid Barton, Andrew Yang
 -/
 import category_theory.limits.kan_extension
+import category_theory.adjunction
 import topology.category.Top.opens
 
 /-!
@@ -184,8 +185,6 @@ end
 namespace pullback
 variables {X Y : Top.{v}} (ℱ : Y.presheaf C)
 
-local attribute [reassoc] colimit.pre_desc
-
 /-- The pullback along the identity is isomorphic to the original presheaf. -/
 def id : pullback_obj (𝟙 _) ℱ ≅ ℱ :=
 nat_iso.of_components
@@ -193,8 +192,8 @@ nat_iso.of_components
     ℱ.map_iso (eq_to_iso (by simp)))
   (λ U V i,
   begin
-      ext, simp[-eq_to_hom_map,-eq_to_iso_map],
-      erw category_theory.limits.colimit.pre_desc_assoc,
+      ext, simp [-eq_to_hom_map,-eq_to_iso_map],
+      erw colimit.pre_desc_assoc,
       erw colimit.ι_desc_assoc,
       erw colimit.ι_desc_assoc,
       dsimp, simp only [←ℱ.map_comp], congr
@@ -231,17 +230,85 @@ begin
     erw h (opens.op_map_id_obj U), simpa },
   { intros, apply pushforward.id_eq },
 end
-variables [has_colimits C]
+
+section iso
+
+/-- A homeomorphism of spaces gives an equivalence of categories of presheaves. -/
+@[simps] def presheaf_equiv_of_iso {X Y : Top} (H : X ≅ Y) :
+  X.presheaf C ≌ Y.presheaf C :=
+equivalence.congr_left (opens.map_map_iso H).symm.op
+
+variable {C}
+
+/--
+If `H : X ≅ Y` is a homeomorphism,
+then given an `H _* ℱ ⟶ 𝒢`, we may obtain an `ℱ ⟶ H ⁻¹ _* 𝒢`.
+-/
+def to_pushforward_of_iso {X Y : Top} (H : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
+  (α : H.hom _* ℱ ⟶ 𝒢) : ℱ ⟶ H.inv _* 𝒢 :=
+(presheaf_equiv_of_iso _ H).to_adjunction.hom_equiv ℱ 𝒢 α
+
+@[simp]
+lemma to_pushforward_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
+  (H₂ : H₁.hom _* ℱ ⟶ 𝒢) (U : (opens X)ᵒᵖ) :
+(to_pushforward_of_iso H₁ H₂).app U =
+  ℱ.map (eq_to_hom (by simp [opens.map, set.preimage_preimage])) ≫
+  H₂.app (op ((opens.map H₁.inv).obj (unop U))) :=
+begin
+  delta to_pushforward_of_iso,
+  simp only [equiv.to_fun_as_coe, nat_trans.comp_app, equivalence.equivalence_mk'_unit,
+    eq_to_hom_map, presheaf_equiv_of_iso_unit_iso_hom_app_app, equivalence.to_adjunction,
+    equivalence.equivalence_mk'_counit, presheaf_equiv_of_iso_inverse_map_app,
+    adjunction.mk_of_unit_counit_hom_equiv_apply],
+  congr
+end
+
+/--
+If `H : X ≅ Y` is a homeomorphism,
+then given an `H _* ℱ ⟶ 𝒢`, we may obtain an `ℱ ⟶ H ⁻¹ _* 𝒢`.
+-/
+def pushforward_to_of_iso {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C} {𝒢 : X.presheaf C}
+  (H₂ : ℱ ⟶ H₁.hom _* 𝒢) : H₁.inv _* ℱ ⟶ 𝒢 :=
+((presheaf_equiv_of_iso _ H₁.symm).to_adjunction.hom_equiv ℱ 𝒢).symm H₂
+
+@[simp]
+lemma pushforward_to_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C} {𝒢 : X.presheaf C}
+  (H₂ : ℱ ⟶ H₁.hom _* 𝒢) (U : (opens X)ᵒᵖ) :
+(pushforward_to_of_iso H₁ H₂).app U =
+  H₂.app (op ((opens.map H₁.inv).obj (unop U))) ≫
+  𝒢.map (eq_to_hom (by simp [opens.map, set.preimage_preimage])) :=
+by simpa [pushforward_to_of_iso, equivalence.to_adjunction]
+
+end iso
+
+variables (C) [has_colimits C]
 
 /-- Pullback a presheaf on `Y` along a continuous map `f : X ⟶ Y`, obtaining a presheaf
 on `X`. -/
-@[simps]
+@[simps map_app]
 def pullback {X Y : Top.{v}} (f : X ⟶ Y) : Y.presheaf C ⥤ X.presheaf C := Lan (opens.map f).op
+
+@[simp] lemma pullback_obj_eq_pullback_obj {C} [category C] [has_colimits C] {X Y : Top.{v}}
+  (f : X ⟶ Y) (ℱ : Y.presheaf C) : (pullback C f).obj ℱ = pullback_obj f ℱ := rfl
 
 /-- The pullback and pushforward along a continuous map are adjoint to each other. -/
 @[simps unit_app_app counit_app_app]
 def pushforward_pullback_adjunction {X Y : Top.{v}} (f : X ⟶ Y) :
   pullback C f ⊣ pushforward C f := Lan.adjunction _ _
+
+/-- Pulling back along a homeomorphism is the same as pushing forward along its inverse. -/
+def pullback_hom_iso_pushforward_inv {X Y : Top.{v}} (H : X ≅ Y) :
+  pullback C H.hom ≅ pushforward C H.inv :=
+adjunction.left_adjoint_uniq
+  (pushforward_pullback_adjunction C H.hom)
+  (presheaf_equiv_of_iso C H.symm).to_adjunction
+
+/-- Pulling back along the inverse of a homeomorphism is the same as pushing forward along it. -/
+def pullback_inv_iso_pushforward_hom {X Y : Top.{v}} (H : X ≅ Y) :
+  pullback C H.inv ≅ pushforward C H.hom :=
+adjunction.left_adjoint_uniq
+  (pushforward_pullback_adjunction C H.inv)
+  (presheaf_equiv_of_iso C H).to_adjunction
 
 end presheaf
 end Top

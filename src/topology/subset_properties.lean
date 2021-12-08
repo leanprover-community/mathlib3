@@ -50,7 +50,7 @@ open set filter classical topological_space
 open_locale classical topological_space filter
 
 universes u v
-variables {α : Type u} {β : Type v} [topological_space α] {s t : set α}
+variables {α : Type u} {β : Type v}  {ι : Type*} {π : ι → Type*} [topological_space α] {s t : set α}
 
 /- compact sets -/
 section compact
@@ -812,6 +812,14 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   exact (is_compact_range continuous_inl).union (is_compact_range continuous_inr)
 end⟩
 
+instance [fintype ι] [Π i, topological_space (π i)] [∀ i, compact_space (π i)] :
+  compact_space (Σ i, π i) :=
+begin
+  refine ⟨_⟩,
+  rw sigma.univ,
+  exact compact_Union (λ i, is_compact_range continuous_sigma_mk),
+end
+
 /-- The coproduct of the cocompact filters on two topological spaces is the cocompact filter on
 their product. -/
 lemma filter.coprod_cocompact :
@@ -853,7 +861,7 @@ instance prod.noncompact_space_right [nonempty α] [noncompact_space β] : nonco
 prod.noncompact_space_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
 
 section tychonoff
-variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
+variables [Π i, topological_space (π i)]
 
 /-- **Tychonoff's theorem** -/
 lemma is_compact_pi_infinite {s : Π i, set (π i)} :
@@ -1248,6 +1256,10 @@ end
 
 @[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=
 ⟨is_open_discrete _, is_closed_discrete _⟩
+
+lemma clopen_range_sigma_mk {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)] {i : ι} :
+  is_clopen (set.range (@sigma.mk ι σ i)) :=
+⟨open_embedding_sigma_mk.open_range, closed_embedding_sigma_mk.closed_range⟩
 
 end clopen
 

@@ -420,15 +420,15 @@ lemma directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
 theorem chain.max_chain_of_chain {α r} {c : set α} (hc : zorn.chain r c) :
   ∃ M, @zorn.is_max_chain _ r M ∧ c ⊆ M :=
 begin
-  obtain ⟨M, ⟨_, hM₀⟩, hM₁, hM₂⟩ := zorn.zorn_subset_nonempty {s | c ⊆ s ∧ zorn.chain r s} _ c
-  ⟨rfl.subset, hc⟩,
-    { refine ⟨M, ⟨hM₀, _⟩, hM₁⟩,
-      rintros ⟨d, hd, hdM₀, hdM₁⟩,
-      have := hM₂ _ _ hdM₀,
-      induction this,
-        { exact hdM₁ hdM₀ },
-      change c ⊆ M with c ≤ M at hM₁,
-      exact ⟨le_trans hM₁ hdM₀, hd⟩ },
+  obtain ⟨M, ⟨_, hM₀⟩, hM₁, hM₂⟩ :=
+    zorn.zorn_subset_nonempty {s | c ⊆ s ∧ zorn.chain r s} _ c ⟨rfl.subset, hc⟩,
+  { refine ⟨M, ⟨hM₀, _⟩, hM₁⟩,
+    rintros ⟨d, hd, hdM₀, hdM₁⟩,
+    have := hM₂ _ _ hdM₀,
+    induction this,
+    { exact hdM₁ hdM₀ },
+    change c ⊆ M with c ≤ M at hM₁,
+    exact ⟨le_trans hM₁ hdM₀, hd⟩ },
   rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
   refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
     λ _, set.subset_sUnion_of_mem⟩,

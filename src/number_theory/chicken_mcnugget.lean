@@ -10,7 +10,8 @@ import group_theory.submonoid.membership
 /-!
 # Chicken McNugget Theorem
 
-In this file we prove the Chicken McNugget Theorem.
+In this file we prove the Chicken McNugget Theorem, first using natural multiplication,
+then using addative submonoid closures.
 
 ## Theorem Statement:
 The Chicken McNugget Theorem states,
@@ -56,6 +57,7 @@ begin
       ←add_assoc, h, nat.sub_sub, nat.sub_add_cancel (add_le_mul hm hn)],
 end
 
+/-- Providing construction. -/
 lemma chicken_mcnugget_construction (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   ∀ k, m * n - m - n < k → ∃ (a b : ℕ), a * m + b * n = k :=
 begin
@@ -76,6 +78,7 @@ theorem chicken_mcnugget (m n : ℕ) (hm : 1 < m) (hn: 1 < n) (cop: coprime m n)
   (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, m * n - m - n < k → ∃ a b, a * m + b * n = k :=
 ⟨chicken_mcnugget_upper_bound m n cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩
 
+/-- Auxiliary lemma for add_submonoid statement. -/
 lemma mult_add_subm_clos (m n k: ℕ):
   (∃ a b, a * m + b * n = k) ↔ k ∈ add_submonoid.closure(({m, n} : set ℕ)) :=
 begin
@@ -91,7 +94,8 @@ begin
   exact ⟨a, b, rfl⟩,
 end
 
-theorem chicken_mcnugget_addsubm_clos (m n : ℕ) (hm: 1 < m) (hn: 1 < n) (cop: coprime m n) :
+/-- Restates the original theorem with add_submonoid.closure. -/
+theorem chicken_mcnugget_add_subm_clos (m n : ℕ) (hm: 1 < m) (hn: 1 < n) (cop: coprime m n) :
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
   ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
 begin

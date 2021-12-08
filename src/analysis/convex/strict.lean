@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import analysis.convex.basic
-import topology.algebra.group
+import topology.algebra.mul_action
 import topology.algebra.ordered.basic
 
 /-!
@@ -242,7 +242,7 @@ begin
     rw add_singleton,
     exact (is_open_map_add_right _).image_interior_subset _
       (mem_image_of_mem _ $ hs _ hv _ hx hvx ha hb hab) },
-  exact interior_add_interior_subset (add_mem_add (hs _ hv _ hx hvx ha hb hab) $
+  exact subset_interior_add (add_mem_add (hs _ hv _ hx hvx ha hb hab) $
     ht _ hw _ hy hwy ha hb hab),
 end
 

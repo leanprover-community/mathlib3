@@ -44,10 +44,7 @@ end finset
 namespace finsupp
 
 lemma dvd_prod_iff {p : ℕ} {f: ℕ →₀ ℕ} (pp : prime p) :
-  (p ∣ f.prod pow) ↔ ∃ a ∈ f.support, p ∣ a^(f a) :=
-begin
-  unfold prod,
-  exact finset.dvd_prod_iff pp (λ x, x ^ (f x)),
-end
+  (p ∣ f.prod pow) ↔ ∃ a ∈ f.support, p ∣ a ^ (f a) :=
+finset.dvd_prod_iff pp (λ x, x ^ (f x))
 
 end finsupp

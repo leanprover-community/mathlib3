@@ -310,12 +310,10 @@ rfl
 variables {G}
 
 @[to_additive]
-lemma is_open.inv {s : set G} (hs : is_open s) : is_open s⁻¹ :=
-by { rw ←set.image_inv, exact (homeomorph.inv G).is_open_map _ hs }
+lemma is_open.inv {s : set G} (hs : is_open s) : is_open s⁻¹ := hs.preimage continuous_inv
 
 @[to_additive]
-lemma is_closed.inv {s : set G} (hs : is_closed s) : is_closed s⁻¹ :=
-by { rw ←set.image_inv, exact (homeomorph.inv G).is_closed_map _ hs }
+lemma is_closed.inv {s : set G} (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
 
 namespace subgroup
 

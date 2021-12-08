@@ -399,15 +399,15 @@ by convert rfl
 by { ext, simp }
 
 lemma support_update [decidable_eq α] : support (f.update a b) =
-  if b = 0 then f.support.erase a else insert a f.support := rfl
+  if b = 0 then f.support.erase a else insert a f.support := by convert rfl
 
 @[simp] lemma support_update_zero [decidable_eq α] :
-  support (f.update a 0) = f.support.erase a := if_pos rfl
+  support (f.update a 0) = f.support.erase a := by convert if_pos rfl
 
 variables {b}
 
 lemma support_update_ne_zero [decidable_eq α] (h : b ≠ 0) :
-  support (f.update a b) = insert a f.support := if_neg h
+  support (f.update a b) = insert a f.support := by convert if_neg h
 
 end update
 

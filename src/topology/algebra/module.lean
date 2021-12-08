@@ -1017,7 +1017,7 @@ def coe_lm : (M →L[R] N₃) →ₗ[S] (M →ₗ[R] N₃) :=
 
 variables {S} (σ₁₃)
 
-/-- The coercion from `M →L[R] M₂` to `M →ₗ[R] M₂`, as a linear map. -/
+/-- The coercion from `M →SL[σ] M₂` to `M →ₛₗ[σ] M₂`, as a linear map. -/
 @[simps]
 def coe_lmₛₗ : (M →SL[σ₁₃] M₃) →ₗ[S₃] (M →ₛₗ[σ₁₃] M₃) :=
 { to_fun := coe,

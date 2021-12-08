@@ -1405,19 +1405,11 @@ variables (𝕜 E Fₗ)
 def smul_rightL : (E →L[𝕜] 𝕜) →L[𝕜] Fₗ →L[𝕜] E →L[𝕜] Fₗ :=
 linear_map.mk_continuous₂
   { to_fun := smul_rightₗ,
-    map_add' := λ c₁ c₂, by
-    { apply linear_map.ext,
-      intro x,
-      apply continuous_linear_map.ext,
-      intro y,
-      simp only [add_smul, coe_smul_rightₗ, add_apply, smul_right_apply, linear_map.add_apply] },
-    map_smul' := λ m c, by
-    { apply linear_map.ext,
-      intro x,
-      apply continuous_linear_map.ext,
-      intro y,
-      simp only [smul_smul, coe_smul_rightₗ, algebra.id.smul_eq_mul, coe_smul', smul_right_apply,
-                 linear_map.smul_apply, ring_hom.id_apply, pi.smul_apply]} }
+    map_add' := λ c₁ c₂, by { ext x, simp only [add_smul, coe_smul_rightₗ, add_apply,
+                                               smul_right_apply, linear_map.add_apply] },
+    map_smul' := λ m c, by { ext x, simp only [smul_smul, coe_smul_rightₗ, algebra.id.smul_eq_mul,
+                                               coe_smul', smul_right_apply, linear_map.smul_apply,
+                                               ring_hom.id_apply, pi.smul_apply] } }
   1 $ λ c x, by simp only [coe_smul_rightₗ, one_mul, norm_smul_right_apply, linear_map.coe_mk]
 
 variables {𝕜 E Fₗ}

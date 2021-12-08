@@ -6,6 +6,8 @@ Authors: Eric Wieser
 import group_theory.group_action.defs
 import data.set_like.basic
 import data.sigma.basic
+import data.list.prod_monoid
+import data.list.range
 import algebra.group.inj_surj
 
 /-!
@@ -366,3 +368,66 @@ instance set_like.gcomm_monoid {S : Type*} [set_like S R] [comm_monoid R] [add_c
   ..set_like.gmonoid A}
 
 end subobjects
+
+section dprod
+
+variables {α : Type*} {A : ι → Type*} [add_monoid ι] [graded_monoid.gmonoid A]
+
+/-- The index used by `list.dprod`. Propositionally this is equal to `(l.map fι).sum`, but
+definitionally it needs to have a different form to avoid introducing `eq.rec`s in `list.dprod`. -/
+def list.dprod_index (l : list α) (fι : α → ι) : ι :=
+l.foldr (λ i b, fι i + b) 0
+
+@[simp] lemma list.dprod_index_nil (fι : α → ι) : ([] : list α).dprod_index fι = 0 := rfl
+@[simp] lemma list.dprod_index_cons (a : α) (l : list α) (fι : α → ι) :
+  (a :: l).dprod_index fι = fι a + l.dprod_index fι := rfl
+
+@[simp] lemma list.dprod_index_eq_map_sum (l : list α) (fι : α → ι) :
+  l.dprod_index fι = (l.map fι).sum :=
+begin
+  dunfold list.dprod_index,
+  induction l,
+  { simp, },
+  { simp [l_ih], },
+end
+
+/-- A dependent product for graded monoids represented by the indexed family of types `A i`.
+This is a dependent version of `(l.map fA).prod`.
+
+For a list `l : list α`, this computes the product of `fA a` over `a`, where each `fA` is of type
+`A (fι a)`. -/
+def list.dprod (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  A (l.dprod_index fι) :=
+l.foldr_rec_on _ _ graded_monoid.ghas_one.one (λ i x a ha, graded_monoid.ghas_mul.mul (fA a) x)
+
+@[simp] lemma list.dprod_nil (fι : α → ι) (fA : Π a, A (fι a)) :
+  (list.nil : list α).dprod fι fA = graded_monoid.ghas_one.one := rfl
+
+-- the `( : _)` in this lemma statement results in the type on the RHS not being unfolded, which
+-- is nicer in the goal view.
+@[simp] lemma list.dprod_cons (fι : α → ι) (fA : Π a, A (fι a)) (a : α) (l : list α) :
+  (a :: l).dprod fι fA = (graded_monoid.ghas_mul.mul (fA a) (l.dprod fι fA) : _) := rfl
+
+lemma graded_monoid.mk_list_dprod (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  graded_monoid.mk _ (l.dprod fι fA) = (l.map (λ a, graded_monoid.mk (fι a) (fA a))).prod :=
+begin
+  induction l,
+  { simp, refl  },
+  { simp [←l_ih, graded_monoid.mk_mul_mk, list.prod_cons],
+    refl, },
+end
+
+/-- A variant of `graded_monoid.mk_list_dprod` for rewriting in the other direction. -/
+lemma graded_monoid.list_prod_map_eq_dprod (l : list α) (f : α → graded_monoid A) :
+  (l.map f).prod = graded_monoid.mk _ (l.dprod (λ i, (f i).1) (λ i, (f i).2)) :=
+begin
+  rw [graded_monoid.mk_list_dprod, graded_monoid.mk],
+  simp_rw sigma.eta,
+end
+
+lemma graded_monoid.list_prod_of_fn_eq_dprod {n : ℕ} (f : fin n → graded_monoid A) :
+  (list.of_fn f).prod =
+    graded_monoid.mk _ ((list.fin_range n).dprod (λ i, (f i).1) (λ i, (f i).2)) :=
+by rw [list.of_fn_eq_map, graded_monoid.list_prod_map_eq_dprod]
+
+end dprod

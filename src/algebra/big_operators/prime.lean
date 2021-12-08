@@ -23,7 +23,7 @@ open nat
 namespace finset
 
 lemma dvd_prod_iff {p : ℕ} {S : finset ℕ} (pp : prime p) (g : ℕ → ℕ) :
-  p ∣ S.prod g ↔ ∃ (a : ℕ) (H : a ∈ S), p ∣ g a :=
+  p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
 begin
   split,
   { apply @finset.induction_on ℕ (λ S, p ∣ S.prod g → (∃ (a : ℕ) (H : a ∈ S), p ∣ g a)),
@@ -44,7 +44,7 @@ end finset
 namespace finsupp
 
 lemma dvd_prod_iff {p : ℕ} {f: ℕ →₀ ℕ} (pp : prime p) :
-  (p ∣ f.prod pow) ↔ ∃ a ∈ f.support, p ∣ a ^ (f a) :=
+  p ∣ f.prod pow ↔ ∃ a ∈ f.support, p ∣ a ^ (f a) :=
 finset.dvd_prod_iff pp (λ x, x ^ (f x))
 
 end finsupp

@@ -947,13 +947,11 @@ by { rw ← cthickening_zero, exact cthickening_eq_Inter_thickening rfl.ge E, }
 lemma frontier_thickening_subset (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
   frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ } :=
 begin
-  rw thickening_eq_preimage_inf_edist,
-  have frontier_interval : frontier (Iio (ennreal.of_real δ)) = {ennreal.of_real δ},
-  { refine frontier_Iio' ⟨0, ennreal.of_real_pos.mpr δ_pos⟩, },
   have singleton_preim :
     {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
   by refl,
-  rw [singleton_preim, ←frontier_interval],
+  rw [thickening_eq_preimage_inf_edist, singleton_preim,
+      ← (frontier_Iio' ⟨(0 : ℝ≥0∞), ennreal.of_real_pos.mpr δ_pos⟩)],
   apply continuous_inf_edist.frontier_preimage_subset (Iio (ennreal.of_real δ)),
 end
 
@@ -961,13 +959,11 @@ end
 lemma frontier_cthickening_subset (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
   frontier (cthickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ } :=
 begin
-  rw cthickening_eq_preimage_inf_edist,
-  have frontier_interval : frontier (Iic (ennreal.of_real δ)) = {ennreal.of_real δ},
-  { exact frontier_Iic' ⟨∞, ennreal.of_real_lt_top⟩, },
   have singleton_preim :
     {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
   by refl,
-  rw [singleton_preim, ←frontier_interval],
+  rw [cthickening_eq_preimage_inf_edist, singleton_preim,
+      ← frontier_Iic' ⟨∞, ennreal.of_real_lt_top⟩],
   apply continuous_inf_edist.frontier_preimage_subset (Iic (ennreal.of_real δ)),
 end
 

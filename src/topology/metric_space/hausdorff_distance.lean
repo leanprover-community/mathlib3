@@ -956,7 +956,7 @@ begin
 end
 
 /-- The frontier of the (closed) thichening of a set is contained in an `inf_edist` level set. -/
-lemma frontier_cthickening_subset (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
+lemma frontier_cthickening_subset (E : set α) {δ : ℝ} :
   frontier (cthickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ } :=
 begin
   have singleton_preim :

@@ -607,7 +607,6 @@ begin
   ext,
   cases p,
   simp only [coeff, update, function.update_apply, coe_update],
-  congr
 end
 
 lemma coeff_update_apply (p : polynomial R) (n : ℕ) (a : R) (i : ℕ) :

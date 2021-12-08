@@ -378,9 +378,8 @@ theorem is_prime.pow_mem_iff_mem {I : ideal α} (hI : I.is_prime)
 theorem pow_multiset_sum_mem_span_pow (s : multiset α) (n : ℕ) :
   s.sum ^ (s.card * n + 1) ∈ span ((s.map (λ x, x ^ (n + 1))).to_finset : set α) :=
 begin
-  apply s.induction_on,
+  induction s using multiset.induction_on with a s hs,
   { simp },
-  rintros a s hs,
   simp only [finset.coe_insert, multiset.map_cons, multiset.to_finset_cons, multiset.sum_cons,
     multiset.card_cons, add_pow],
   refine submodule.sum_mem _ _,

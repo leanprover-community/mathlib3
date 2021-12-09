@@ -67,7 +67,7 @@ lt_of_sub_neg $
         - ((∑ i : fin (n + 1), a i) - n * a n) : by simp [fin.sum_univ_cast_succ]
   ... = n * (a n - a (n + 1))                  : by ring
   ... < 0
-    : mul_neg_iff.mpr (or.inl ⟨by simp, sub_neg_of_lt (hinc n)⟩)
+    : mul_neg_of_pos_of_neg (by simp) (sub_neg_of_lt (hinc n))
 
 section descending
 

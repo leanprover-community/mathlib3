@@ -37,10 +37,12 @@ The first main result concerns the comparison of the operator norm topology on `
 weak-* topology on (its type synonym) `weak_dual 𝕜 E`:
 * `dual_norm_topology_le_weak_dual_topology`: The weak-* topology on the dual of a normed space is
   coarser (not necessarily strictly) than the operator norm topology.
-* `polar_nhd_weak_star_compact` (a version of the Banach-Alaoglu theorem): The polar set of a
-  neighborhood of the origin in a normed space `E` over `ℝ` or `ℂ` is compact in `weak_dual _ E`.
-* `unit_ball_weak_star_compact` (the most common special case of the Banach-Alaoglu theorem):
-  The dual unit ball of a normed space `E` over `ℝ` or `ℂ` is compact in the weak-star topology.
+* `weak_dual.is_compact_polar` (a version of the Banach-Alaoglu theorem): The polar set of a
+  neighborhood of the origin in a normed space `E` over `𝕜` is compact in `weak_dual _ E`, if the
+  nondiscrete normed field `𝕜` is proper as a topological space.
+* `weak_dual.is_compact_closed_ball` (the most common special case of the Banach-Alaoglu theorem):
+  Closed balls in the dual of a normed space `E` over `ℝ` or `ℂ` are compact in the weak-star
+  topology.
 
 TODOs:
 * Add that in finite dimensions, the weak-* topology and the dual norm topology coincide.
@@ -143,11 +145,11 @@ end normed_space.dual
 
 namespace weak_dual
 
-lemma to_normed_dual.preimage_closed_unit_ball :
-  (to_normed_dual ⁻¹' metric.closed_ball (0 : dual 𝕜 E) 1) =
-    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} :=
+lemma to_normed_dual.preimage_closed_ball (r : ℝ) :
+  (to_normed_dual ⁻¹' metric.closed_ball (0 : dual 𝕜 E) r) =
+    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ r} :=
 begin
-  have eq : metric.closed_ball (0 : dual 𝕜 E) 1 = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1},
+  have eq : metric.closed_ball (0 : dual 𝕜 E) r = {x' : dual 𝕜 E | ∥ x' ∥ ≤ r},
   { ext x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
   rw eq,
   exact set.preimage_set_of_eq,
@@ -198,8 +200,8 @@ open metric set normed_space
 functionals `E → 𝕜`. Such functionals can be interpreted as elements of the Cartesian
 product `Π (_ : E), 𝕜` via the function `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜`. -/
 def _root_.weak_dual.to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E]
-  (x' : weak_dual 𝕜 E) := ((λ z, (x' z)) : (Π (_ : E), 𝕜))
+  (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] (x' : weak_dual 𝕜 E) :=
+((λ z, (x' z)) : (Π (_ : E), 𝕜))
 
 /-- In the product of copies of a normed field, sets of the form `{g | ∥ f(i) - g(i) ∥ < ε}` for
 `ε > 0` are neighborhoods of `f`. -/
@@ -207,15 +209,13 @@ lemma _root_.basic_nhd_of_Pi_normed_field {ι : Type*}
   (f : (Π (_ : ι), 𝕜)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
   {g : (Π (_ : ι), 𝕜) | ∥ f i - g i ∥ < ε} ∈ 𝓝 f :=
 begin
-  have eq : { g : (Π (_ : ι), 𝕜) | ∥ f i - g i ∥ < ε}
-            = set.pi ({i} : set ι) (λ _, ball (f i) ε),
+  have eq : { g : (Π (_ : ι), 𝕜) | ∥ f i - g i ∥ < ε} = set.pi ({i} : set ι) (λ _, ball (f i) ε),
   { ext g,
     simp only [mem_ball, singleton_pi, mem_set_of_eq, mem_preimage],
     rw dist_comm,
     exact mem_ball_iff_norm.symm, },
   rw eq,
-  apply set_pi_mem_nhds,
-  exact finite_singleton i,
+  apply set_pi_mem_nhds (finite_singleton i),
   intros j hj,
   have eq₀ : j = i := hj,
   rw eq₀,
@@ -227,11 +227,7 @@ lemma embedding_weak_dual_to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
   embedding (λ (x' : weak_dual 𝕜 E), weak_dual.to_Pi 𝕜 E x') :=
 { induced := eq_of_nhds_eq_nhds (congr_fun rfl),
-  inj := begin
-    intros φ₁ φ₂ h,
-    ext z,
-    exact congr_fun h z,
-  end, }
+  inj := by { intros φ₁ φ₂ h, ext z, exact congr_fun h z, }, }
 
 namespace embedding_weak_dual_to_Pi
 
@@ -422,24 +418,26 @@ end
 
 end embedding_weak_dual_to_Pi
 
-/-- The Banach-Alaoglu theorem: the polar `polar s` of a neighborhood `s` of the origin in a
-normed space `E` over `𝕜` is compact subset of `weak_dual 𝕜 E` (assuming `[is_R_or_C 𝕜]`). -/
-theorem polar_nhd_weak_star_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+/-- The Banach-Alaoglu theorem: the polar set of a neighborhood `s` of the origin in a
+normed space `E` is a compact subset of `weak_dual 𝕜 E`. -/
+theorem weak_dual.is_compact_polar [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_compact (weak_dual.polar 𝕜 s) :=
 begin
   apply (embedding_weak_dual_to_Pi 𝕜 E).is_compact_iff_is_compact_image.mpr,
   exact embedding_weak_dual_to_Pi.image_polar_nhd_compact s_nhd,
 end
 
-/-- The Banach-Alaoglu theorem: the dual unit ball is compact in the weak-star topology. -/
-theorem unit_ball_weak_star_compact
-  {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] :
-  is_compact {x' : weak_dual 𝕜 E | (∥ x'.to_normed_dual ∥ ≤ 1)} :=
+/-- The Banach-Alaoglu theorem: closed balls of the dual of a normed space `E` over `ℝ` or `ℂ`
+are compact in the weak-star topology. -/
+theorem weak_dual.is_compact_closed_ball
+  {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] (r : ℝ) (hr : 0 < r) :
+  is_compact {x' : weak_dual 𝕜 E | (∥ x'.to_normed_dual ∥ ≤ r)} :=
 begin
-  have as_polar := @polar_closed_ball 𝕜 _ E _ _ 1 zero_lt_one,
-  rw [div_one] at as_polar,
-  rw [←weak_dual.to_normed_dual.preimage_closed_unit_ball, ←as_polar],
-  exact polar_nhd_weak_star_compact (closed_ball_mem_nhds (0 : E) (@zero_lt_one ℝ _ _)),
+  have as_polar := @polar_closed_ball 𝕜 _ E _ _ r⁻¹ (inv_pos.mpr hr),
+  simp only [one_div, inv_inv₀] at as_polar,
+  rw [←weak_dual.to_normed_dual.preimage_closed_ball, ←as_polar],
+  apply weak_dual.is_compact_polar (closed_ball_mem_nhds (0 : E) (inv_pos.mpr hr)),
+  exact finite_dimensional.proper_real 𝕜,
 end
 
 end embedding_to_Pi

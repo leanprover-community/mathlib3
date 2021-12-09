@@ -27,6 +27,11 @@ value in `ℝ`, `ℝ≥0` or `ℝ≥0∞`.
 
 open measure_theory
 
+-- We define notations `𝔼[f|hm]` and `𝔼[f|m,hm]` for the conditional expectation of `f` with
+-- respect to `m`. Both can be used in code but only the second one will be used by the goal view.
+-- The first notation avoids the repetition of `m`, which is already present in `hm`. The second
+-- one ensures that `m` stays visible in the goal view: when `hm` is complicated, it gets rendered
+-- as `_` and the measurable space would not be visible in `𝔼[f|_]`, but is clear in `𝔼[f|m,_]`.
 localized "notation `𝔼[` X `|` hm `]` :=
   measure_theory.condexp _ hm measure_theory.measure.volume X" in probability_theory
 localized "notation `𝔼[` X `|` m `,` hm `]` :=

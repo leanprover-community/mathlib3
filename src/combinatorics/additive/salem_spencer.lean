@@ -258,11 +258,11 @@ lemma mul_salem_spencer.roth_number_eq (hs : mul_salem_spencer (s : set α)) :
   mul_roth_number s = s.card :=
 (mul_roth_number_le _).antisymm $ hs.le_mul_roth_number $ subset.refl _
 
-@[to_additive]
+@[simp, to_additive]
 lemma mul_roth_number_empty : mul_roth_number (∅ : finset α) = 0 :=
 nat.eq_zero_of_le_zero $ (mul_roth_number_le _).trans card_empty.le
 
-@[to_additive]
+@[simp, to_additive]
 lemma mul_roth_number_singleton (a : α) : mul_roth_number ({a} : finset α) = 1 :=
 begin
   convert mul_salem_spencer.roth_number_eq _,
@@ -382,18 +382,16 @@ begin
   exact add_roth_number_union_le _ _,
 end
 
+@[simp] lemma roth_number_nat_zero : roth_number_nat 0 = 0 := rfl
+
 lemma add_roth_number_Ico (a b : ℕ) : add_roth_number (Ico a b) = roth_number_nat (b - a) :=
 begin
   obtain h | h := le_total b a,
-  { rw [Ico_eq_empty_of_le h, add_roth_number_empty, tsub_eq_zero_of_le h],
-    refl },
+  { rw [tsub_eq_zero_of_le h, Ico_eq_empty_of_le h, roth_number_nat_zero, add_roth_number_empty] },
   convert add_roth_number_map_add_left _ a,
   rw [range_eq_Ico, map_eq_image],
-  convert (image_add_left_Ico _ _ _).symm,
-  { exact (add_zero a).symm },
-  { exact (add_tsub_cancel_of_le h).symm },
-  { apply_instance },
-  { apply_instance }
+  convert (image_add_left_Ico 0 (b - a) _).symm,
+  exact (add_tsub_cancel_of_le h).symm,
 end
 
 open asymptotics filter

@@ -148,22 +148,15 @@ lemma to_normed_dual.preimage_closed_unit_ball :
     {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} :=
 begin
   have eq : metric.closed_ball (0 : dual 𝕜 E) 1 = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1},
-<<<<<<< HEAD
-  { ext1 x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
-=======
   { ext x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
->>>>>>> master
   rw eq,
   exact set.preimage_set_of_eq,
 end
 
 variables (𝕜)
 
-<<<<<<< HEAD
-=======
 /-- The polar set `polar 𝕜 s` of `s : set E` seen as a subset of the dual of `E` with the
 weak-star topology is `weak_dual.polar 𝕜 s`. -/
->>>>>>> master
 def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' (polar 𝕜 s)
 
 end weak_dual
@@ -174,25 +167,11 @@ section polar_sets_in_weak_dual
 
 open metric set normed_space
 
-<<<<<<< HEAD
-namespace polar
-
-=======
->>>>>>> master
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
 is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
-<<<<<<< HEAD
-lemma is_weak_dual_closed (s : set E) : is_closed (weak_dual.polar 𝕜 s) :=
-begin
-  rw [weak_dual.polar, eq_Inter, preimage_bInter],
-  apply is_closed_bInter,
-  intros z hz,
-  rw set.preimage_set_of_eq,
-   have eq : {x' : weak_dual 𝕜 E | ∥weak_dual.to_normed_dual x' z∥ ≤ 1}
-=======
 lemma weak_dual.is_closed_polar (s : set E) : is_closed (weak_dual.polar 𝕜 s) :=
 begin
   rw [weak_dual.polar, polar_eq_Inter, preimage_bInter],
@@ -200,15 +179,11 @@ begin
   intros z hz,
   rw set.preimage_set_of_eq,
   have eq : {x' : weak_dual 𝕜 E | ∥weak_dual.to_normed_dual x' z∥ ≤ 1}
->>>>>>> master
     = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1) := by refl,
   rw eq,
   refine is_closed.preimage _ (is_closed_Iic),
   apply continuous.comp continuous_norm (weak_dual.eval_continuous _ _ z),
 end
-
-<<<<<<< HEAD
-end polar
 
 end polar_sets_in_weak_dual
 
@@ -338,8 +313,8 @@ lemma continuous_of_mem_closure_polar_nhd
   (hφ : φ ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s))) :
   @continuous E 𝕜 _ _ φ :=
 begin
-  cases @polar.bounded_of_nhds_zero 𝕜 _ E _ _ s s_nhd with c hc,
-  have c_nn : 0 ≤ c := le_trans (norm_nonneg _) (hc 0 (polar.zero_mem 𝕜 s)),
+  cases @polar_bounded_of_nhds_zero 𝕜 _ E _ _ s s_nhd with c hc,
+  have c_nn : 0 ≤ c := le_trans (norm_nonneg _) (hc 0 (zero_mem_polar 𝕜 s)),
   have hφ' : φ ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
   { apply mem_of_mem_of_subset hφ _,
     apply closure_mono,
@@ -424,7 +399,7 @@ a neighborhood `s` of the origin is compact if the field `𝕜` is a proper topo
 lemma image_polar_nhd_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_compact ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)) :=
 begin
-  cases polar.bounded_of_nhds_zero 𝕜 s_nhd with c hc,
+  cases polar_bounded_of_nhds_zero 𝕜 s_nhd with c hc,
   have ss : (weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s) ⊆
     (set.pi (univ : set E) (λ z, (closed_ball (0 : 𝕜) (c * ∥ z ∥)))),
   { intros f hf,
@@ -435,7 +410,7 @@ begin
     have bd : ∥ x' z ∥ ≤ c * ∥ z ∥,
     { apply (continuous_linear_map.le_op_norm x' z).trans
         (mul_le_mul (hc x' hx') (le_refl ∥z∥) (norm_nonneg z) _),
-      have c_nn := hc 0 (polar.zero_mem 𝕜 s),
+      have c_nn := hc 0 (zero_mem_polar 𝕜 s),
       rwa norm_zero at c_nn, },
     have eq : x' z = f z := congr_fun f_eq z,
     rwa eq at bd, },
@@ -461,11 +436,10 @@ theorem unit_ball_weak_star_compact
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] :
   is_compact {x' : weak_dual 𝕜 E | (∥ x'.to_normed_dual ∥ ≤ 1)} :=
 begin
-  rw [←weak_dual.to_normed_dual.preimage_closed_unit_ball, ←polar.of_closed_unit_ball],
+  have as_polar := @polar_closed_ball 𝕜 _ E _ _ 1 zero_lt_one,
+  rw [div_one] at as_polar,
+  rw [←weak_dual.to_normed_dual.preimage_closed_unit_ball, ←as_polar],
   exact polar_nhd_weak_star_compact (closed_ball_mem_nhds (0 : E) (@zero_lt_one ℝ _ _)),
 end
 
 end embedding_to_Pi
-=======
-end polar_sets_in_weak_dual
->>>>>>> master

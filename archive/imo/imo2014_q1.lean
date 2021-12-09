@@ -41,12 +41,8 @@ end
 lemma second_ineq_iff {n : ℕ+} :
   (↑∑ i : fin (n + 1), a i : ℚ) / n ≤ a (n + 1) ↔ d a (n + 1) ≤ 0 :=
 show _ / ↑(n : ℤ) ≤ _ ↔ _, begin
-  have : (↑(a (n + 1)) : ℚ) = ↑(a (n + 1)) / ↑(1 : ℤ) := by simp, rw this,
-  simp only [rat.div_num_denom, mul_one, rat.num_one, one_mul, rat.coe_int_denom, int.coe_nat_zero,
-    rat.coe_int_num, int.coe_nat_succ, zero_add, coe_coe],
-  rw rat.le_def, swap,
-  { norm_cast, have : 1 ≤ ↑n := pnat.one_le n, linarith }, swap,
-  { exact zero_lt_one },
+  rw [div_le_iff, ← int.cast_mul, int.cast_le],
+  swap, { simp },
   simp only [d, @fin.sum_univ_cast_succ _ _ ↑(n + 1), mul_one, fin.coe_last, pnat.one_coe,
     fin.coe_cast_succ, int.coe_nat_succ, pnat.add_coe, sub_nonpos, coe_coe, add_mul, one_mul],
   rw [add_le_add_iff_right,	mul_comm], refl,

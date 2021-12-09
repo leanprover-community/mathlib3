@@ -9,6 +9,7 @@ import group_theory.submonoid.basic
 import data.equiv.mul_add
 import algebra.group.prod
 import algebra.group.inj_surj
+import group_theory.group_action.defs
 
 /-!
 # Operations on `submonoid`s
@@ -487,6 +488,16 @@ subtype.rec_on x $ λ x hx, begin
       ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
 end
 
+@[simp, to_additive]
+lemma closure_closure_coe_preimage {s : set M} : closure ((coe : closure s → M) ⁻¹' s) = ⊤ :=
+begin
+  refine eq_top_iff.2 (λ x hx, closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) x),
+  { intros g hg,
+    exact subset_closure hg },
+  { exact submonoid.one_mem _ },
+  { exact submonoid.mul_mem _ hg₁ hg₂ },
+end
+
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
 of `M × N`. -/
 @[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`
@@ -724,6 +735,29 @@ lemma mker_prod_map {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class 
   (g : M' →* N') : (prod_map f g).mker = f.mker.prod g.mker :=
 by rw [←comap_bot', ←comap_bot', ←comap_bot', ←prod_map_comap_prod', bot_prod_bot]
 
+/-- The `monoid_hom` from the preimage of a submonoid to itself. -/
+@[to_additive "the `add_monoid_hom` from the preimage of an additive submonoid to itself.", simps]
+def submonoid_comap (f : M →* N) (N' : submonoid N) :
+  N'.comap f →* N' :=
+{ to_fun := λ x, ⟨f x, x.prop⟩,
+  map_one' := subtype.eq f.map_one,
+  map_mul' := λ x y, subtype.eq (f.map_mul x y) }
+
+/-- The `monoid_hom` from a submonoid to its image.
+See `mul_equiv.submonoid_equiv_map` for a variant for `mul_equiv`s. -/
+@[to_additive "the `add_monoid_hom` from an additive submonoid to its image. See
+`add_equiv.add_submonoid_equiv_map` for a variant for `add_equiv`s.", simps]
+def submonoid_map (f : M →* N) (M' : submonoid M) :
+  M' →* M'.map f :=
+{ to_fun := λ x, ⟨f x, ⟨x, x.prop, rfl⟩⟩,
+  map_one' := subtype.eq $ f.map_one,
+  map_mul' := λ x y, subtype.eq $ f.map_mul x y }
+
+@[to_additive]
+lemma submonoid_map_surjective (f : M →* N) (M' : submonoid M) :
+  function.surjective (f.submonoid_map M') :=
+by { rintro ⟨_, x, hx, rfl⟩, exact ⟨⟨x, hx⟩, rfl⟩ }
+
 end monoid_hom
 
 namespace submonoid
@@ -817,11 +851,16 @@ def of_left_inverse' (f : M →* N) {g : N → M} (h : function.left_inverse g f
   .. f.mrange_restrict }
 
 /-- A `mul_equiv` `φ` between two monoids `M` and `N` induces a `mul_equiv` between
-a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. -/
+a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`.
+See `monoid_hom.submonoid_map` for a variant for `monoid_hom`s. -/
 @[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
-between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. "]
+between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. See `add_monoid_hom.add_submonoid_map`
+for a variant for `add_monoid_hom`s.", simps]
 def submonoid_equiv_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
-{ map_mul' := λ _ _, subtype.ext (e.map_mul _ _), ..equiv.image e.to_equiv S }
+{ to_fun := λ x, ⟨e x, _⟩,
+  inv_fun := λ x, ⟨e.symm x, _⟩, -- we restate this for `simps` to avoid `⇑e.symm.to_equiv x`
+  ..e.to_monoid_hom.submonoid_map S,
+  ..e.to_equiv.image S }
 
 end mul_equiv
 

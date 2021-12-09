@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 
-import linear_algebra.bilinear_map
 import topology.algebra.nonarchimedean.basic
 import topology.algebra.filter_basis
 import algebra.module.submodule_pointwise

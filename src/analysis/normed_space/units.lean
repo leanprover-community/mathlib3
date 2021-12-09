@@ -175,7 +175,6 @@ end
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
 lemma inverse_add_norm (x : units R) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
-  nontriviality R,
   simp only [is_O_iff, norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
   use C * ∥((x⁻¹:units R):R)∥,
@@ -263,7 +262,7 @@ end
 end normed_ring
 
 namespace units
-open opposite filter normed_ring
+open mul_opposite filter normed_ring
 
 /-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
 embedding in `R × R`) to `R` is an open map. -/
@@ -274,7 +273,7 @@ begin
   rw [mem_map, mem_nhds_induced],
   rintros ⟨t, ht, hts⟩,
   obtain ⟨u, hu, v, hv, huvt⟩ :
-    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵒᵖ), v ∈ 𝓝 (opposite.op ↑x⁻¹) ∧ u.prod v ⊆ t,
+    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵐᵒᵖ), v ∈ 𝓝 (op ↑x⁻¹) ∧ u.prod v ⊆ t,
   { simpa [embed_product, mem_nhds_prod_iff] using ht },
   have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : units R → R)) ∈ 𝓝 ↑x,
   { refine inter_mem (inter_mem hu _) (units.nhds x),

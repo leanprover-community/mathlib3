@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
-import measure_theory.integral.interval_integral
 
 /-!
 # Divergence theorem for Bochner integral
@@ -116,10 +115,10 @@ begin
     rw continuous_on_pi at Hc,
     refine (A.unique B).trans (sum_congr rfl $ λ i hi, _),
     refine congr_arg2 has_sub.sub _ _,
-    { have := box.continuous_on_face_Icc (Hc i) (right_mem_Icc.2 (hle i)),
+    { have := box.continuous_on_face_Icc (Hc i) (set.right_mem_Icc.2 (hle i)),
       have := (this.integrable_on_compact (box.is_compact_Icc _)).mono_set box.coe_subset_Icc,
       exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance },
-    { have := box.continuous_on_face_Icc (Hc i) (left_mem_Icc.2 (hle i)),
+    { have := box.continuous_on_face_Icc (Hc i) (set.left_mem_Icc.2 (hle i)),
       have := (this.integrable_on_compact (box.is_compact_Icc _)).mono_set box.coe_subset_Icc,
       exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance } }
 end

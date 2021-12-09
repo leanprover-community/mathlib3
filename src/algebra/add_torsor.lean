@@ -221,7 +221,8 @@ variables {s s' : set G} {t t' : set P}
 @[mono] lemma vadd_subset_vadd (hs : s ⊆ s') (ht : t ⊆ t') : s +ᵥ t ⊆ s' +ᵥ t' :=
 image2_subset hs ht
 
-@[simp] lemma vadd_singleton (s : set G) (p : P) : s +ᵥ {p} = (+ᵥ p) '' s := image2_singleton_right
+@[simp] lemma set_vadd_singleton (s : set G) (p : P) : s +ᵥ {p} = (+ᵥ p) '' s :=
+image2_singleton_right
 
 lemma finite.vadd (hs : finite s) (ht : finite t) : finite (s +ᵥ t) := hs.image2 _ ht
 

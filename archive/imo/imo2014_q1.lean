@@ -15,7 +15,7 @@ Prove that there exists a unique `n ≥ 1` such that
 
   `aₙ < (a₀ + a₁ + ⋯ + aₙ) / n < aₙ₊₁`.
 
-This solutions is a translation of the official solution, which may be found as the
+This solution is a translation of the official solution, which may be found as the
 solution to problem A1 [here](https://www.imo-official.org/problems/IMO2014SL.pdf).
 -/
 

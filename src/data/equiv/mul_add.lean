@@ -590,16 +590,13 @@ def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
   ..equiv.inv G }
 
 /-- When the group with zero is commutative, `equiv.inv₀` is a `mul_equiv`. -/
-def mul_equiv.inv₀ (G : Type*) [comm_group_with_zero G] : G ≃* G :=
+@[simps apply] def mul_equiv.inv₀ (G : Type*) [comm_group_with_zero G] : G ≃* G :=
 { to_fun   := has_inv.inv,
   inv_fun  := has_inv.inv,
   map_mul' := λ x y, mul_inv₀,
   ..equiv.inv₀ G }
 
-@[simp] lemma mul_equiv.inv₀.def (G : Type*) [comm_group_with_zero G] {x : G} :
-  mul_equiv.inv₀ G x = x⁻¹ := rfl
-
-@[simp] lemma mul_equiv.inv₀.symm_def (G : Type*) [comm_group_with_zero G] {x : G} :
+@[simp] lemma mul_equiv.inv₀_symm (G : Type*) [comm_group_with_zero G] :
   (mul_equiv.inv₀ G).symm = mul_equiv.inv₀ G := rfl
 
 section type_tags

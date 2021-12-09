@@ -849,6 +849,7 @@ lemma submodule.finrank_add_inf_finrank_orthogonal {K₁ K₂ : submodule 𝕜 E
   finrank 𝕜 K₁ + finrank 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = finrank 𝕜 K₂ :=
 begin
   haveI := submodule.finite_dimensional_of_le h,
+  haveI := proper_is_R_or_C 𝕜 K₁,
   have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, finrank_bot,
       submodule.sup_orthogonal_inf_of_complete_space h] at hd,
@@ -1000,11 +1001,26 @@ variables {ι : Type*}
 /-- An orthogonal family of subspaces of `E` satisfies `direct_sum.submodule_is_internal` (that is,
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
+lemma orthogonal_family.submodule_is_internal_iff_of_is_complete [decidable_eq ι]
+  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V) (hc : is_complete (↑(supr V) : set E)) :
+  direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥ :=
+begin
+  haveI : complete_space ↥(supr V) := hc.complete_space_coe,
+  simp only [direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top, hV.independent,
+    true_and, submodule.orthogonal_eq_bot_iff]
+end
+
+/-- An orthogonal family of subspaces of `E` satisfies `direct_sum.submodule_is_internal` (that is,
+they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
+orthogonal complement. -/
 lemma orthogonal_family.submodule_is_internal_iff [decidable_eq ι] [finite_dimensional 𝕜 E]
   {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V) :
   direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥ :=
-by simp only [direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top, hV.independent,
-  true_and, submodule.orthogonal_eq_bot_iff]
+begin
+  haveI h := finite_dimensional.proper_is_R_or_C 𝕜 ↥(supr V),
+  exact hV.submodule_is_internal_iff_of_is_complete
+    (complete_space_coe_iff_is_complete.mp infer_instance)
+end
 
 end orthogonal_family
 
@@ -1116,6 +1132,7 @@ lemma maximal_orthonormal_iff_basis_of_finite_dimensional
   (hv : orthonormal 𝕜 (coe : v → E)) :
   (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ ∃ b : basis v 𝕜 E, ⇑b = coe :=
 begin
+  haveI := proper_is_R_or_C 𝕜 (span 𝕜 v),
   rw maximal_orthonormal_iff_orthogonal_complement_eq_bot hv,
   have hv_compl : is_complete (span 𝕜 v : set E) := (span 𝕜 v).complete_of_finite_dimensional,
   rw submodule.orthogonal_eq_bot_iff,

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import algebra.group_power
+import algebra.group_power.basic
 import logic.function.iterate
 import group_theory.perm.basic
 
@@ -32,12 +32,14 @@ variables {M : Type*} {N : Type*} {G : Type*} {H : Type*}
 /-- An auxiliary lemma that can be used to prove `⇑(f ^ n) = (⇑f^[n])`. -/
 lemma hom_coe_pow {F : Type*} [monoid F] (c : F → M → M) (h1 : c 1 = id)
   (hmul : ∀ f g, c (f * g) = c f ∘ c g) (f : F) : ∀ n, c (f ^ n) = (c f^[n])
-| 0 := h1
+| 0 := by { rw [pow_zero, h1], refl }
 | (n + 1) := by rw [pow_succ, iterate_succ', hmul, hom_coe_pow]
 
 namespace monoid_hom
 
-variables [monoid M] [monoid N] [group G] [group H]
+section
+
+variables [mul_one_class M] [mul_one_class N]
 
 @[simp, to_additive]
 theorem iterate_map_one (f : M →* M) (n : ℕ) : f^[n] 1 = 1 :=
@@ -48,6 +50,10 @@ theorem iterate_map_mul (f : M →* M) (n : ℕ) (x y) :
   f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
 semiconj₂.iterate f.map_mul n x y
 
+end
+
+variables [monoid M] [monoid N] [group G] [group H]
+
 @[simp, to_additive]
 theorem iterate_map_inv (f : G →* G) (n : ℕ) (x) :
   f^[n] (x⁻¹) = (f^[n] x)⁻¹ :=
@@ -56,8 +62,8 @@ commute.iterate_left f.map_inv n x
 theorem iterate_map_pow (f : M →* M) (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
 commute.iterate_left (λ x, f.map_pow x m) n a
 
-theorem iterate_map_gpow (f : G →* G) (a) (n : ℕ) (m : ℤ) : f^[n] (a^m) = (f^[n] a)^m :=
-commute.iterate_left (λ x, f.map_gpow x m) n a
+theorem iterate_map_zpow (f : G →* G) (a) (n : ℕ) (m : ℤ) : f^[n] (a^m) = (f^[n] a)^m :=
+commute.iterate_left (λ x, f.map_zpow x m) n a
 
 lemma coe_pow {M} [comm_monoid M] (f : monoid.End M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 hom_coe_pow _ rfl (λ f g, rfl) _ _
@@ -74,12 +80,12 @@ theorem iterate_map_sub (f : G →+ G) (n : ℕ) (x y) :
 semiconj₂.iterate f.map_sub n x y
 
 theorem iterate_map_smul (f : M →+ M) (n m : ℕ) (x : M) :
-  f^[n] (m •ℕ x) = m •ℕ (f^[n] x) :=
+  f^[n] (m • x) = m • (f^[n] x) :=
 f.to_multiplicative.iterate_map_pow x n m
 
-theorem iterate_map_gsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
-  f^[n] (m •ℤ x) = m •ℤ (f^[n] x) :=
-f.to_multiplicative.iterate_map_gpow x n m
+theorem iterate_map_zsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
+  f^[n] (m • x) = m • (f^[n] x) :=
+f.to_multiplicative.iterate_map_zpow x n m
 
 end add_monoid_hom
 
@@ -106,7 +112,7 @@ theorem iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
 f.to_monoid_hom.iterate_map_pow a n m
 
 theorem iterate_map_smul (n m : ℕ) (x : R) :
-  f^[n] (m •ℕ x) = m •ℕ (f^[n] x) :=
+  f^[n] (m • x) = m • (f^[n] x) :=
 f.to_add_monoid_hom.iterate_map_smul n m x
 
 end semiring
@@ -119,27 +125,59 @@ f.to_add_monoid_hom.iterate_map_sub n x y
 theorem iterate_map_neg : f^[n] (-x) = -(f^[n] x) :=
 f.to_add_monoid_hom.iterate_map_neg n x
 
-theorem iterate_map_gsmul (n : ℕ) (m : ℤ) (x : R) :
-  f^[n] (m •ℤ x) = m •ℤ (f^[n] x) :=
-f.to_add_monoid_hom.iterate_map_gsmul n m x
+theorem iterate_map_zsmul (n : ℕ) (m : ℤ) (x : R) :
+  f^[n] (m • x) = m • (f^[n] x) :=
+f.to_add_monoid_hom.iterate_map_zsmul n m x
 
 end ring_hom
 
 lemma equiv.perm.coe_pow {α : Type*} (f : equiv.perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
 hom_coe_pow _ rfl (λ _ _, rfl) _ _
 
-@[simp] lemma mul_left_iterate [monoid M] (a : M) (n : ℕ) : ((*) a)^[n] = (*) (a^n) :=
+--what should be the namespace for this section?
+section monoid
+
+variables [monoid G] (a : G) (n : ℕ)
+
+@[simp, to_additive] lemma mul_left_iterate : ((*) a)^[n] = (*) (a^n) :=
 nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
 funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
 
-@[simp] lemma add_left_iterate [add_monoid M] (a : M) (n : ℕ) : ((+) a)^[n] = (+) (n •ℕ a) :=
-@mul_left_iterate (multiplicative M) _ a n
+@[simp, to_additive] lemma mul_right_iterate : (* a)^[n] = (* a ^ n) :=
+begin
+  induction n with d hd,
+  { simpa },
+  { simp [← pow_succ, hd] }
+end
 
-@[simp] lemma mul_right_iterate [monoid M] (a : M) (n : ℕ) :
-  (λ x, x * a)^[n] = (λ x, x * a^n) :=
-nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
-funext $ λ x, by simp [iterate_succ, ihn, pow_succ, mul_assoc]
+@[to_additive]
+lemma mul_right_iterate_apply_one : (* a)^[n] 1 = a ^ n :=
+by simp [mul_right_iterate]
 
-@[simp] lemma add_right_iterate [add_monoid M] (a : M) (n : ℕ) :
-  (λ x, x + a)^[n] = λ x, x + (n •ℕ a) :=
-@mul_right_iterate (multiplicative M) _ a n
+end monoid
+
+section semigroup
+
+variables [semigroup G] {a b c : G}
+
+@[to_additive]
+lemma semiconj_by.function_semiconj_mul_left (h : semiconj_by a b c) :
+  function.semiconj ((*)a) ((*)b) ((*)c) :=
+λ j, by rw [← mul_assoc, h.eq, mul_assoc]
+
+@[to_additive]
+lemma commute.function_commute_mul_left (h : commute a b) :
+  function.commute ((*)a) ((*)b) :=
+semiconj_by.function_semiconj_mul_left h
+
+@[to_additive]
+lemma semiconj_by.function_semiconj_mul_right_swap (h : semiconj_by a b c) :
+  function.semiconj (*a) (*c) (*b) :=
+λ j, by simp_rw [mul_assoc, ← h.eq]
+
+@[to_additive]
+lemma commute.function_commute_mul_right (h : commute a b) :
+  function.commute (*a) (*b) :=
+semiconj_by.function_semiconj_mul_right_swap h
+
+end semigroup

@@ -74,7 +74,8 @@ variables {A A'} (n : ℕ) (f : A →+* A')
 
 @[simp] lemma coeff_exp : coeff A n (exp A) = algebra_map ℚ A (1 / n!) := coeff_mk _ _
 
-@[simp] lemma constant_coeff_exp : constant_coeff A (exp A) = 1 := ring_hom.map_one _
+@[simp] lemma constant_coeff_exp : constant_coeff A (exp A) = 1 :=
+by { rw [← coeff_zero_eq_constant_coeff_apply, coeff_exp], simp }
 
 @[simp] lemma map_exp : map (f : A →+* A') (exp A) = exp A' := by { ext, simp }
 

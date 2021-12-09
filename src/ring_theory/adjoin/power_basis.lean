@@ -22,9 +22,12 @@ namespace algebra
 open polynomial
 open power_basis
 
-lemma power_basis_is_basis {x : S} (hx : _root_.is_integral K x) :
-  is_basis K (λ (i : fin (minpoly K x).nat_degree),
-    (⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ) : adjoin K ({x} : set S))) :=
+open_locale big_operators
+
+/-- The elements `1, x, ..., x ^ (d - 1)` for a basis for the `K`-module `K[x]`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+noncomputable def adjoin.power_basis_aux {x : S} (hx : _root_.is_integral K x) :
+  basis (fin (minpoly K x).nat_degree) K (adjoin K ({x} : set S)) :=
 begin
   have hST : function.injective (algebra_map (adjoin K ({x} : set S)) S) := subtype.coe_injective,
   have hx' : _root_.is_integral K
@@ -33,14 +36,16 @@ begin
     convert hx,
     apply_instance },
   have minpoly_eq := minpoly.eq_of_algebra_map_eq hST hx' rfl,
-  refine ⟨_, _root_.eq_top_iff.mpr _⟩,
+  apply @basis.mk (fin (minpoly K x).nat_degree) _
+    (adjoin K {x}) (λ i, ⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ)),
   { have := hx'.linear_independent_pow,
     rwa minpoly_eq at this },
-  { rintros ⟨y, hy⟩ _,
+  { rw _root_.eq_top_iff,
+    rintros ⟨y, hy⟩ _,
     have := hx'.mem_span_pow,
     rw minpoly_eq at this,
     apply this,
-    { rw [adjoin_singleton_eq_range] at hy,
+    { rw [adjoin_singleton_eq_range_aeval] at hy,
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
@@ -53,6 +58,7 @@ noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
   power_basis K (adjoin K ({x} : set S)) :=
 { gen := ⟨x, subset_adjoin (set.mem_singleton x)⟩,
   dim := (minpoly K x).nat_degree,
-  is_basis := power_basis_is_basis hx }
+  basis := adjoin.power_basis_aux hx,
+  basis_eq_pow := basis.mk_apply _ _ }
 
 end algebra

@@ -3,14 +3,13 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import ring_theory.adjoin_root
-import ring_theory.algebra_tower
-import ring_theory.algebraic
-import ring_theory.polynomial
 import field_theory.minpoly
+import ring_theory.adjoin_root
 import linear_algebra.finite_dimensional
-import tactic.field_simp
 import algebra.polynomial.big_operators
+import ring_theory.algebraic
+import ring_theory.algebra_tower
+import tactic.field_simp
 
 /-!
 # Splitting fields
@@ -69,7 +68,7 @@ f = 0 ∨ ∀ {g : polynomial L}, irreducible g → g ∣ f.map i → degree g =
 @[simp] lemma splits_C (a : K) : splits i (C a) :=
 if ha : a = 0 then ha.symm ▸ (@C_0 K _).symm ▸ splits_zero i
 else
-have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
+have hia : i a ≠ 0, from mt ((i.injective_iff).1
   i.injective _) ha,
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
@@ -112,9 +111,9 @@ else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.
 lemma splits_of_splits_mul {f g : polynomial K} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
   splits i f ∧ splits i g :=
 ⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact dvd.trans hg (dvd_mul_right _ _)),
+   (by rw map_mul; exact hg.trans (dvd_mul_right _ _)),
  or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact dvd.trans hg (dvd_mul_left _ _))⟩
+   (by rw map_mul; exact hg.trans (dvd_mul_left _ _))⟩
 
 lemma splits_of_splits_of_dvd {f g : polynomial K} (hf0 : f ≠ 0) (hf : splits i f) (hgf : g ∣ f) :
   splits i g :=
@@ -246,8 +245,7 @@ begin
   rw [roots_multiset_prod _ h2, multiset.bind_map,
       roots_multiset_prod _ h1, multiset.bind_map],
   simp_rw roots_X_sub_C,
-  rw [multiset.bind_cons, multiset.bind_zero, add_zero,
-      multiset.bind_cons, multiset.bind_zero, add_zero, multiset.map_id']
+  rw [multiset.bind_singleton, multiset.bind_singleton, multiset.map_id']
 end
 
 lemma eq_prod_roots_of_splits {p : polynomial K} {i : K →+* L}
@@ -267,12 +265,24 @@ begin
   have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
   { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
     intros a s ih,
-    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C,
-        multiset.cons_add, zero_add] },
+    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C, multiset.singleton_add] },
 
   rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
       roots_multiset_prod _ zero_nmem,
       map_bind_roots_eq]
+end
+
+lemma eq_prod_roots_of_splits_id {p : polynomial K}
+  (hsplit : splits (ring_hom.id K) p) :
+  p = C (p.leading_coeff) * (p.roots.map (λ a, X - C a)).prod :=
+by simpa using eq_prod_roots_of_splits hsplit
+
+lemma eq_prod_roots_of_monic_of_splits_id {p : polynomial K}
+  (m : monic p) (hsplit : splits (ring_hom.id K) p) :
+  p = (p.roots.map (λ a, X - C a)).prod :=
+begin
+  convert eq_prod_roots_of_splits_id hsplit,
+  simp [m],
 end
 
 lemma eq_X_sub_C_of_splits_of_single_root {x : K} {h : polynomial K} (h_splits : splits i h)
@@ -316,19 +326,20 @@ if hf0 : f = 0 then or.inl hf0
 else
   or.inr $ λ p hp hdp,
     have ht : multiset.rel associated
-      (factors (f.map i)) (s.map (λ a : L, (X : polynomial L) - C a)) :=
+      (normalized_factors (f.map i)) (s.map (λ a : L, (X : polynomial L) - C a)) :=
     factors_unique
-      (λ p hp, irreducible_of_factor _ hp)
+      (λ p hp, irreducible_of_normalized_factor _ hp)
       (λ p' m, begin
           obtain ⟨a,m,rfl⟩ := multiset.mem_map.1 m,
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
         end)
       (associated.symm $ calc _ ~ᵤ f.map i :
-        ⟨(units.map' C : units L →* units (polynomial L)) (units.mk0 (f.map i).leading_coeff
+        ⟨(units.map C.to_monoid_hom : units L →* units (polynomial L))
+          (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
-          by conv_rhs {rw [hs, ← leading_coeff_map i, mul_comm]}; refl⟩
-        ... ~ᵤ _ : associated.symm (unique_factorization_monoid.factors_prod (by simpa using hf0))),
-  let ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd (by simpa) hp hdp in
+          by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩
+        ... ~ᵤ _ : (unique_factorization_monoid.normalized_factors_prod (by simpa using hf0)).symm),
+  let ⟨q, hq, hpq⟩ := exists_mem_normalized_factors_of_dvd (by simpa) hp hdp in
   let ⟨q', hq', hqq'⟩ := multiset.exists_mem_of_rel_of_mem ht hq in
   let ⟨a, ha⟩ := multiset.mem_map.1 hq' in
   by rw [← degree_X_sub_C a, ha.2];
@@ -341,7 +352,7 @@ unique_factorization_monoid.induction_on_prime f (λ _, splits_zero _)
   (λ a p ha0 hp ih hfi, splits_mul _
     (splits_of_degree_eq_one _
       ((splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).1.resolve_left
-        hp.1 (irreducible_of_prime hp) (by rw map_id)))
+        hp.1 hp.irreducible (by rw map_id)))
     (ih (splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).2))
 
 end UFD
@@ -425,6 +436,18 @@ begin
     exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
 end
 
+lemma aeval_root_derivative_of_splits [algebra K L] {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (algebra_map K L)) {r : L} (hr : r ∈ (P.map (algebra_map K L)).roots) :
+  aeval r P.derivative =
+  (multiset.map (λ a, r - a) ((P.map (algebra_map K L)).roots.erase r)).prod :=
+begin
+  replace hmo := monic_map (algebra_map K L) hmo,
+  replace hP := (splits_id_iff_splits (algebra_map K L)).2 hP,
+  rw [aeval_def, ← eval_map, ← derivative_map],
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [eval_multiset_prod_X_sub_C_derivative hr]
+end
+
 end splits
 
 end polynomial
@@ -442,12 +465,15 @@ alg_equiv.symm $ alg_equiv.of_bijective
   (alg_hom.cod_restrict
     (adjoin_root.lift_hom _ x $ minpoly.aeval F x) _
     (λ p, adjoin_root.induction_on _ p $ λ p,
-      (algebra.adjoin_singleton_eq_range F x).symm ▸ (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
+      (algebra.adjoin_singleton_eq_range_aeval F x).symm ▸
+        (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
   ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
     adjoin_root.induction_on _ p $ λ p hp, ideal.quotient.eq_zero_iff_mem.2 $
     ideal.mem_span_singleton.2 $ minpoly.dvd F x hp,
-  λ y, let ⟨p, _, hp⟩ := (subalgebra.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) y).1 y.2 in
-  ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
+  λ y,
+    let ⟨p, hp⟩ := (set_like.ext_iff.1
+      (algebra.adjoin_singleton_eq_range_aeval F x) (y : R)).1 y.2 in
+    ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
 
 open finset
 
@@ -468,7 +494,7 @@ begin
     exact ⟨(algebra.of_id F L).comp (algebra.bot_equiv F K)⟩ },
   rw forall_mem_insert at H, rcases H with ⟨⟨H1, H2⟩, H3⟩, cases ih H3 with f,
   choose H3 H4 using H3,
-  rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union],
+  rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union_eq_adjoin_adjoin],
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
     (submodule.fg_iff_finite_dimensional _).1
@@ -485,7 +511,7 @@ begin
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
     { rw [← is_scalar_tower.aeval_apply, minpoly.aeval] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (ne_of_lt (minpoly.degree_pos H5)).symm,
-  refine ⟨subalgebra.of_under _ _ _⟩,
+  refine ⟨subalgebra.of_restrict_scalars _ _ _⟩,
   refine (adjoin_root.lift_hom (minpoly (algebra.adjoin F (↑s : set K)) a) y hy).comp _,
   exact alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly (algebra.adjoin F (↑s : set K)) a
 end
@@ -561,39 +587,74 @@ nat.rec_on n (λ K _ _ _, ‹field K›) $ λ n ih K _ f hf, ih _
 instance inhabited {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n) :
   inhabited (splitting_field_aux n f hfn) := ⟨37⟩
 
-instance algebra (n : ℕ) : Π {K : Type u} [field K], by exactI
-  Π {f : polynomial K} (hfn : f.nat_degree = n), algebra K (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ K _ _ _, by exactI algebra.id K) $ λ n ih K _ f hfn,
-by exactI @@algebra.comap.algebra _ _ _ _ _ _ _ (ih _)
+/-
+Note that the recursive nature of this definition and `splitting_field_aux.field` creates
+non-definitionally-equal diamonds in the `ℕ`- and `ℤ`- actions.
+```lean
+example (n : ℕ) {K : Type u} [field K] {f : polynomial K} (hfn : f.nat_degree = n) :
+    (add_comm_monoid.nat_module : module ℕ (splitting_field_aux n f hfn)) =
+  @algebra.to_module _ _ _ _ (splitting_field_aux.algebra n _ hfn) :=
+rfl  -- fails
+```
+It's not immediately clear whether this _can_ be fixed; the failure is much the same as the reason
+that the following fails:
+```lean
+def cases_twice {α} (a₀ aₙ : α) : ℕ → α × α
+| 0 := (a₀, a₀)
+| (n + 1) := (aₙ, aₙ)
 
-instance algebra' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  algebra (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
-splitting_field_aux.algebra n _
+example (x : ℕ) {α} (a₀ aₙ : α) : (cases_twice a₀ aₙ x).1 = (cases_twice a₀ aₙ x).2 := rfl  -- fails
+```
+We don't really care at this point because this is an implementation detail (which is why this is
+not a docstring), but we do in `splitting_field.algebra'` below. -/
+instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_semiring R] [field K],
+  by exactI Π [algebra R K] {f : polynomial K} (hfn : f.nat_degree = n),
+    algebra R (splitting_field_aux n f hfn) :=
+nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
+         λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
 
-instance algebra'' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra (n+1) hfn
+instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
+  [comm_semiring R₁] [comm_semiring R₂] [has_scalar R₁ R₂] [field K],
+  by exactI Π [algebra R₁ K] [algebra R₂ K],
+  by exactI Π [is_scalar_tower R₁ R₂ K] {f : polynomial K} (hfn : f.nat_degree = n),
+    is_scalar_tower R₁ R₂ (splitting_field_aux n f hfn) :=
+nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _ _, by exactI ‹is_scalar_tower R₁ R₂ K›) $
+         λ n ih R₁ R₂ K _ _ _ _ _ _ _ f hfn, by exactI ih R₁ R₂ (nat_degree_remove_factor' hfn)
 
 instance algebra''' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
   algebra (adjoin_root f.factor)
     (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra n _
+splitting_field_aux.algebra n _ _
 
-instance scalar_tower {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
-is_scalar_tower.of_algebra_map_eq $ λ x, rfl
+instance algebra' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
+  algebra (adjoin_root f.factor) (splitting_field_aux n.succ f hfn) :=
+splitting_field_aux.algebra''' _
+
+instance algebra'' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
+  algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
+splitting_field_aux.algebra n K _
 
 instance scalar_tower' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
   is_scalar_tower K (adjoin_root f.factor)
     (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-is_scalar_tower.of_algebra_map_eq $ λ x, rfl
+begin
+  -- finding this instance ourselves makes things faster
+  haveI : is_scalar_tower K (adjoin_root f.factor) (adjoin_root f.factor) :=
+    is_scalar_tower.right,
+  exact
+    splitting_field_aux.is_scalar_tower n K (adjoin_root f.factor) (nat_degree_remove_factor' hfn),
+end
+
+instance scalar_tower {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
+  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux _ f hfn) :=
+splitting_field_aux.scalar_tower' _
 
 theorem algebra_map_succ (n : ℕ) (f : polynomial K) (hfn : f.nat_degree = n + 1) :
   by exact algebra_map K (splitting_field_aux _ _ hfn) =
     (algebra_map (adjoin_root f.factor)
         (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn))).comp
       (adjoin_root.of f.factor) :=
-rfl
+is_scalar_tower.algebra_map_eq _ _ _
 
 protected theorem splits (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : polynomial K) (hfn : f.nat_degree = n),
@@ -633,13 +694,14 @@ have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
 have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := map_ne_zero hfn0,
 by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf, map_mul] at hmf0 ⊢,
 rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add, finset.coe_union,
-    multiset.to_finset_cons, multiset.to_finset_zero, insert_emptyc_eq, finset.coe_singleton,
-    algebra.adjoin_union, ← set.image_singleton, algebra.adjoin_algebra_map K (adjoin_root f.factor)
+    multiset.to_finset_singleton, finset.coe_singleton,
+    algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
+    algebra.adjoin_algebra_map K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
-    is_scalar_tower.range_under_adjoin K (adjoin_root f.factor)
+    is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
-    ih, subalgebra.res_top] }
+    ih, subalgebra.restrict_scalars_top] }
 
 end splitting_field_aux
 
@@ -656,8 +718,33 @@ splitting_field_aux.field _ _
 
 instance inhabited : inhabited (splitting_field f) := ⟨37⟩
 
+/-- This should be an instance globally, but it creates diamonds with the `ℕ` and `ℤ` actions:
+
+```lean
+example :
+  (add_comm_monoid.nat_module : module ℕ (splitting_field f)) =
+    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+rfl  -- fails
+
+example :
+  (add_comm_group.int_module _ : module ℤ (splitting_field f)) =
+    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+rfl  -- fails
+```
+
+Until we resolve these diamonds, it's more convenient to only turn this instance on with
+`local attribute [instance]` in places where the benefit of having the instance outweighs the cost.
+
+In the meantime, the `splitting_field.algebra` instance below is immune to these particular diamonds
+since `K = ℕ` and `K = ℤ` are not possible due to the `field K` assumption. Diamonds in
+`algebra ℚ (splitting_field f)` instances are still possible, but this is a problem throughout the
+library and not unique to this `algebra` instance.
+-/
+instance algebra' {R} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
+splitting_field_aux.algebra _ _ _
+
 instance : algebra K (splitting_field f) :=
-splitting_field_aux.algebra _ _
+splitting_field_aux.algebra _ _ _
 
 protected theorem splits : splits (algebra_map K (splitting_field f)) f :=
 splitting_field_aux.splits _ _ _
@@ -699,7 +786,8 @@ variables {K}
 instance map (f : polynomial F) [is_splitting_field F L f] :
   is_splitting_field K L (f.map $ algebra_map F K) :=
 ⟨by { rw [splits_map_iff, ← is_scalar_tower.algebra_map_eq], exact splits L f },
- subalgebra.res_inj F $ by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.res_top,
+ subalgebra.restrict_scalars_injective F $
+  by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.restrict_scalars_top,
     eq_top_iff, ← adjoin_roots L f, algebra.adjoin_le_iff],
   exact λ x hx, @algebra.subset_adjoin K _ _ _ _ _ _ hx }⟩
 
@@ -709,9 +797,9 @@ theorem splits_iff (f : polynomial K) [is_splitting_field K L f] :
 ⟨λ h, eq_bot_iff.2 $ adjoin_roots L f ▸ (roots_map (algebra_map K L) h).symm ▸
   algebra.adjoin_le_iff.2 (λ y hy,
     let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
-    hxy ▸ subalgebra.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
+    hxy ▸ set_like.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
  λ h, @ring_equiv.to_ring_hom_refl K _ ▸
-  ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
+  ring_equiv.self_trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits L f) }⟩
 
 theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field F K f]
@@ -721,12 +809,13 @@ theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_fie
   (splits_comp_of_splits _ _ (splits K f))
   ((splits_map_iff _ _).1 (splits L $ g.map $ algebra_map F K)),
  by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
-        (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union, algebra.adjoin_union,
+        (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union,
+      algebra.adjoin_union_eq_adjoin_adjoin,
       is_scalar_tower.algebra_map_eq F K L, ← map_map,
       roots_map (algebra_map K L) ((splits_id_iff_splits $ algebra_map F K).2 $ splits K f),
       multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots,
-      algebra.map_top, is_scalar_tower.range_under_adjoin, ← map_map, adjoin_roots,
-      subalgebra.res_top]⟩
+      algebra.map_top, is_scalar_tower.adjoin_range_to_alg_hom, ← map_map, adjoin_roots,
+      subalgebra.restrict_scalars_top]⟩
 
 end scalar_tower
 
@@ -745,12 +834,12 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
   algebra.to_top
 
 theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finite_dimensional K L :=
-finite_dimensional.iff_fg.2 $ @algebra.coe_top K L _ _ _ ▸ adjoin_roots L f ▸
+⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
   else (is_algebraic_iff_is_integral _).1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
-    (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)
+    (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩
 
 instance (f : polynomial K) : _root_.finite_dimensional K f.splitting_field :=
 finite_dimensional f.splitting_field f
@@ -762,16 +851,16 @@ begin
     ⟨ring_hom.injective (lift L f $ splits (splitting_field f) f).to_ring_hom, _⟩,
   haveI := finite_dimensional (splitting_field f) f,
   haveI := finite_dimensional L f,
-  have : finite_dimensional.findim K L = finite_dimensional.findim K (splitting_field f) :=
+  have : finite_dimensional.finrank K L = finite_dimensional.finrank K (splitting_field f) :=
   le_antisymm
-    (linear_map.findim_le_findim_of_injective
+    (linear_map.finrank_le_finrank_of_injective
       (show function.injective (lift L f $ splits (splitting_field f) f).to_linear_map, from
         ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)))
-    (linear_map.findim_le_findim_of_injective
+    (linear_map.finrank_le_finrank_of_injective
       (show function.injective (lift (splitting_field f) f $ splits L f).to_linear_map, from
         ring_hom.injective (lift (splitting_field f) f $ splits L f : f.splitting_field →+* L))),
   change function.surjective (lift L f $ splits (splitting_field f) f).to_linear_map,
-  refine (linear_map.injective_iff_surjective_of_findim_eq_findim this).1 _,
+  refine (linear_map.injective_iff_surjective_of_finrank_eq_finrank this).1 _,
   exact ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)
 end
 

@@ -39,12 +39,16 @@ reserve prefix `#where`:max
 
 -- used in `tactic/simps.lean`
 reserve notation `initialize_simps_projections`
+reserve notation `as_prefix`
 
 -- used in `tactic/lift.lean`
 reserve notation `to`
 
 -- used in `tactic/rcases.lean`
 precedence `?`:max
+
+-- used in `tactic/induction.lean`
+precedence `fixing`:0
 
 -- used in `order/lattice.lean`
 reserve infixl ` ⊓ `:70

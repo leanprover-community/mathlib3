@@ -3,7 +3,6 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Julian Kuelshammer, Heather Macbeth
 -/
-
 import data.polynomial.derivative
 import tactic.ring
 
@@ -66,7 +65,7 @@ noncomputable def T : ℕ → polynomial R
 @[simp] lemma T_zero : T R 0 = 1 := rfl
 @[simp] lemma T_one : T R 1 = X := rfl
 lemma T_two : T R 2 = 2 * X ^ 2 - 1 :=
-by simp only [T, sub_left_inj, pow_two, mul_assoc]
+by simp only [T, sub_left_inj, sq, mul_assoc]
 @[simp] lemma T_add_two (n : ℕ) :
   T R (n + 2) = 2 * X * T R (n + 1) - T R n :=
 by rw T
@@ -83,11 +82,12 @@ variables {R S}
 
 lemma map_T (f : R →+* S) :
   ∀ (n : ℕ), map f (T R n) = T S n
-| 0       := by simp only [T_zero, map_one]
+| 0       := by simp only [T_zero, polynomial.map_one]
 | 1       := by simp only [T_one, map_X]
 | (n + 2) :=
 begin
-  simp only [T_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
+  simp only [T_add_two, polynomial.map_mul, polynomial.map_sub, map_X, bit0,
+             polynomial.map_add, polynomial.map_one],
   rw [map_T (n + 1), map_T n],
 end
 
@@ -145,7 +145,7 @@ calc T R (n + 2 + 2)
             by ring
 ... = X * T R (n + 2 + 1) - (1 - X ^ 2) * U R (n + 2) : by rw [T_add_two _ (n + 1), U_add_two]
 
-lemma one_sub_X_pow_two_mul_U_eq_pol_in_T (n : ℕ) :
+lemma one_sub_X_sq_mul_U_eq_pol_in_T (n : ℕ) :
   (1 - X ^ 2) * U R n = X * T R (n + 1) - T R (n + 2) :=
 by rw [T_eq_X_mul_T_sub_pol_U, ←sub_add, sub_self, zero_add]
 
@@ -153,16 +153,17 @@ variables {R S}
 
 @[simp] lemma map_U (f : R →+* S) :
   ∀ (n : ℕ), map f (U R n) = U S n
-| 0       := by simp only [U_zero, map_one]
+| 0       := by simp only [U_zero, polynomial.map_one]
 | 1       :=
 begin
-  simp only [U_one, map_X, map_mul, map_add, map_one],
+  simp only [U_one, map_X, polynomial.map_mul, polynomial.map_add, polynomial.map_one],
   change map f (1+1) * X = 2 * X,
-  simpa only [map_add, map_one]
+  simpa only [polynomial.map_add, polynomial.map_one]
 end
 | (n + 2) :=
 begin
-  simp only [U_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
+  simp only [U_add_two, polynomial.map_mul, polynomial.map_sub, map_X, bit0, polynomial.map_add,
+             polynomial.map_one],
   rw [map_U (n + 1), map_U n],
 end
 
@@ -185,7 +186,7 @@ lemma T_derivative_eq_U :
   ... = (n + 2 + 1) * U R (n + 2) : by ring
   ... = (↑(n + 2) + 1) * U R (n + 2) : by norm_cast
 
-lemma one_sub_X_pow_two_mul_derivative_T_eq_poly_in_T (n : ℕ) :
+lemma one_sub_X_sq_mul_derivative_T_eq_poly_in_T (n : ℕ) :
   (1 - X ^ 2)  * (derivative (T R (n+1))) =
     (n + 1) * (T R n - X * T R (n+1)) :=
   calc
@@ -193,7 +194,7 @@ lemma one_sub_X_pow_two_mul_derivative_T_eq_poly_in_T (n : ℕ) :
             by rw T_derivative_eq_U
   ... = (n + 1) * ((1 - X ^ 2) * U R n) : by ring
   ... = (n + 1) * (X * T R (n + 1) - (2 * X * T R (n + 1) - T R n)) :
-            by rw [one_sub_X_pow_two_mul_U_eq_pol_in_T, T_add_two]
+            by rw [one_sub_X_sq_mul_U_eq_pol_in_T, T_add_two]
   ... = (n + 1) * (T R n - X * T R (n+1)) : by ring
 
 lemma add_one_mul_T_eq_poly_in_U (n : ℕ) :

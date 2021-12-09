@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 import topology.bases
 import topology.homeomorph
+import topology.continuous_function.basic
 /-!
 # Open sets
 
@@ -16,7 +17,6 @@ We define the subtype of open sets in a topological space.
 
 - `opens α` is the type of open subsets of a topological space `α`.
 - `open_nhds_of x` is the type of open subsets of a topological space `α` containing `x : α`.
--
 -/
 
 open filter set
@@ -61,8 +61,10 @@ def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
 lemma gc : galois_connection (coe : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
 
+open order_dual (of_dual to_dual)
+
 /-- The galois insertion between sets and opens, but ordered by reverse inclusion. -/
-def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ interior subtype.val :=
+def gi : galois_insertion (to_dual ∘ @interior α _ ∘ of_dual) (to_dual ∘ subtype.val ∘ of_dual) :=
 { choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
   gc := gc.dual,
   le_l_u := λ _, interior_subset,
@@ -76,28 +78,21 @@ complete_lattice.copy
 /- le  -/ (λ U V, U ⊆ V) rfl
 /- top -/ ⟨set.univ, is_open_univ⟩ (subtype.ext_iff_val.mpr interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl
-/- sup -/ (λ U V, ⟨↑U ∪ ↑V, is_open_union U.2 V.2⟩) rfl
-/- inf -/ (λ U V, ⟨↑U ∩ ↑V, is_open_inter U.2 V.2⟩)
+/- sup -/ (λ U V, ⟨↑U ∪ ↑V, is_open.union U.2 V.2⟩) rfl
+/- inf -/ (λ U V, ⟨↑U ∩ ↑V, is_open.inter U.2 V.2⟩)
 begin
   funext,
   apply subtype.ext_iff_val.mpr,
-  exact (is_open_inter U.2 V.2).interior_eq.symm,
+  exact (is_open.inter U.2 V.2).interior_eq.symm,
 end
-/- Sup -/ (λ Us, ⟨⋃₀ (coe '' Us), is_open_sUnion $ λ U hU,
-by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
-begin
-  funext,
-  apply subtype.ext_iff_val.mpr,
-  simp [Sup_range],
-  refl,
-end
+/- Sup -/ _ rfl
 /- Inf -/ _ rfl
 
 lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) :=
 by refl
 
 @[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
-  (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open_inter hU hV⟩ := rfl
+  (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl
 @[simp,norm_cast] lemma coe_inf {U V : opens α} :
   ((U ⊓ V : opens α) : set α) = (U : set α) ⊓ (V : set α) := rfl
 
@@ -111,23 +106,23 @@ instance : inhabited (opens α) := ⟨∅⟩
 @[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
 @[simp] lemma Sup_s {Us : set (opens α)} : ↑(Sup Us) = ⋃₀ ((coe : _ → set α) '' Us) :=
-begin
-  rw [@galois_connection.l_Sup (opens α) (set α) _ _ (coe : opens α → set α) interior gc Us],
-  rw [set.sUnion_image]
-end
+by { rw [(@gc α _).l_Sup, set.sUnion_image], refl }
 
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
 by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
 
 @[simp] lemma supr_mk {ι} (s : ι → set α) (h : Π i, is_open (s i)) :
-  (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⨆ i, s i, is_open_Union h⟩ :=
+  (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⋃ i, s i, is_open_Union h⟩ :=
 by { rw supr_def, simp }
 
 @[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
 by simp [supr_def]
 
-theorem mem_supr {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
+@[simp] theorem mem_supr {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
 by { rw [←mem_coe], simp, }
+
+@[simp] lemma mem_Sup {Us : set (opens α)} {x : α} : x ∈ Sup Us ↔ ∃ u ∈ Us, x ∈ u :=
+by simp_rw [Sup_eq_supr, mem_supr]
 
 lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
   open_embedding (set.inclusion i) :=
@@ -139,6 +134,7 @@ lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
     exact U.property.preimage continuous_subtype_val
   end, }
 
+/-- A set of `opens α` is a basis if the set of corresponding sets is a topological basis. -/
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
 lemma is_basis_iff_nbhd {B : set (opens α)} :
@@ -146,7 +142,7 @@ lemma is_basis_iff_nbhd {B : set (opens α)} :
 begin
   split; intro h,
   { rintros ⟨sU, hU⟩ x hx,
-    rcases (mem_nhds_of_is_topological_basis h).mp (mem_nhds_sets hU hx)
+    rcases h.mem_nhds_iff.mp (is_open.mem_nhds hU hx)
       with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
     refine ⟨V, H₁, _⟩,
     cases V, dsimp at H₂, subst H₂, exact hsV },
@@ -162,63 +158,53 @@ lemma is_basis_iff_cover {B : set (opens α)} :
 begin
   split,
   { intros hB U,
-    rcases sUnion_basis_of_is_open hB U.prop with ⟨sUs, H, hU⟩,
-    existsi {U : opens α | U ∈ B ∧ ↑U ∈ sUs},
-    split,
-    { intros U hU, exact hU.left },
-    { apply ext,
-      rw [Sup_s, hU],
-      congr' with s; split; intro hs,
-      { rcases H hs with ⟨V, hV⟩,
-        rw ← hV.right at hs,
-        refine ⟨V, ⟨⟨hV.left, hs⟩, hV.right⟩⟩ },
-      { rcases hs with ⟨V, ⟨⟨H₁, H₂⟩, H₃⟩⟩,
-        subst H₃, exact H₂ } } },
+    refine ⟨{V : opens α | V ∈ B ∧ V ⊆ U}, λ U hU, hU.left, _⟩,
+    apply ext,
+    rw [Sup_s, hB.open_eq_sUnion' U.prop],
+    simp_rw [sUnion_image, sUnion_eq_bUnion, Union, supr_and, supr_image],
+    refl },
   { intro h,
     rw is_basis_iff_nbhd,
     intros U x hx,
-    rcases h U with ⟨Us, hUs, H⟩,
-    replace H := congr_arg (coe : _ → set α) H,
-    rw Sup_s at H,
-    change x ∈ ↑U at hx,
-    rw H at hx,
-    rcases set.mem_sUnion.mp hx with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
-    refine ⟨V,hUs H₁,_⟩,
-    cases V with V hV,
-    dsimp at H₂, subst H₂,
-    refine ⟨hsV,_⟩,
-    change V ⊆ U, rw H,
-    exact set.subset_sUnion_of_mem ⟨⟨V, _⟩, ⟨H₁, rfl⟩⟩ }
+    rcases h U with ⟨Us, hUs, rfl⟩,
+    rcases mem_Sup.1 hx with ⟨U, Us, xU⟩,
+    exact ⟨U, hUs Us, xU, le_Sup Us⟩ }
 end
 
 /-- The preimage of an open set, as an open set. -/
-def comap {f : α → β} (hf : continuous f) (V : opens β) : opens α :=
-⟨f ⁻¹' V.1, V.2.preimage hf⟩
+def comap (f : C(α, β)) : opens β →ₘ opens α :=
+{ to_fun := λ V, ⟨f ⁻¹' V, V.2.preimage f.continuous⟩,
+  monotone' := λ V₁ V₂ hle, monotone_preimage hle }
 
-@[simp] lemma comap_id (U : opens α) : U.comap continuous_id = U := by { ext, refl }
+@[simp] lemma comap_id : comap (continuous_map.id : C(α, α)) = preorder_hom.id :=
+by { ext, refl }
 
-lemma comap_mono {f : α → β} (hf : continuous f) {V W : opens β} (hVW : V ⊆ W) :
-  V.comap hf ⊆ W.comap hf :=
-λ _ h, hVW h
+lemma comap_mono (f : C(α, β)) {V W : opens β} (hVW : V ⊆ W) :
+  comap f V ⊆ comap f W :=
+(comap f).monotone hVW
 
-@[simp] lemma coe_comap {f : α → β} (hf : continuous f) (U : opens β) :
-  ↑(U.comap hf) = f ⁻¹' U := rfl
+@[simp] lemma coe_comap (f : C(α, β)) (U : opens β) : ↑(comap f U) = f ⁻¹' U := rfl
 
-@[simp] lemma comap_val {f : α → β} (hf : continuous f) (U : opens β) :
-  (U.comap hf).1 = f ⁻¹' U := rfl
+@[simp] lemma comap_val (f : C(α, β)) (U : opens β) : (comap f U).1 = f ⁻¹' U := rfl
 
-protected lemma comap_comp {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f)
-  (U : opens γ) : U.comap (hg.comp hf) = (U.comap hg).comap hf :=
-by { ext1, simp only [coe_comap, preimage_preimage] }
+protected lemma comap_comp (g : C(β, γ)) (f : C(α, β)) :
+  comap (g.comp f) = (comap f).comp (comap g) :=
+rfl
+
+protected lemma comap_comap (g : C(β, γ)) (f : C(α, β)) (U : opens γ) :
+  comap f (comap g U) = comap (g.comp f) U := rfl
 
 /-- A homeomorphism induces an equivalence on open sets, by taking comaps. -/
 @[simp] protected def equiv (f : α ≃ₜ β) : opens α ≃ opens β :=
-{ to_fun := opens.comap f.symm.continuous,
-  inv_fun := opens.comap f.continuous,
-  left_inv := by { intro U, ext1,
-    simp only [coe_comap, ← preimage_comp, f.symm_comp_self, preimage_id] },
-  right_inv := by { intro U, ext1,
-    simp only [coe_comap, ← preimage_comp, f.self_comp_symm, preimage_id] } }
+{ to_fun := opens.comap f.symm.to_continuous_map,
+  inv_fun := opens.comap f.to_continuous_map,
+  left_inv := by { intro U, ext1, exact f.to_equiv.preimage_symm_preimage _ },
+  right_inv := by { intro U, ext1, exact f.to_equiv.symm_preimage_preimage _ } }
+
+/-- A homeomorphism induces an order isomorphism on open sets, by taking comaps. -/
+@[simp] protected def order_iso (f : α ≃ₜ β) : opens α ≃o opens β :=
+{ to_equiv := opens.equiv f,
+  map_rel_iff' := λ U V, f.symm.surjective.preimage_subset_preimage_iff }
 
 end opens
 

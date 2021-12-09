@@ -68,9 +68,12 @@ end
 lemma id_nonzero (X : C) [simple.{v} X] : 𝟙 X ≠ 0 :=
 (simple.mono_is_iso_iff_nonzero (𝟙 X)).mp (by apply_instance)
 
+instance (X : C) [simple.{v} X] : nontrivial (End X) :=
+nontrivial_of_ne 1 0 (id_nonzero X)
+
 section
 variable [has_zero_object C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- We don't want the definition of 'simple' to include the zero object, so we check that here. -/
 lemma zero_not_simple [simple (0 : C)] : false :=
@@ -94,7 +97,6 @@ lemma simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso 
   { introsI,
     have hx := cokernel.π_of_epi f,
     by_contradiction h,
-    push_neg at h,
     substI h,
     exact (h _).mp (cokernel.π_of_zero _ _) hx },
   { intro hf,

@@ -57,8 +57,7 @@ lemma ineq_iff {n : ℕ+} :
   (a n : ℚ) < (↑∑ i : fin (n + 1), a i : ℚ) / n ∧
   (↑∑ i : fin (n + 1), a i : ℚ) / n ≤ a (n + 1) ↔
   0 < d a n ∧ d a (n + 1) ≤ 0 :=
-⟨λ h, ⟨(first_ineq_iff a).1 h.1, (second_ineq_iff a).1 h.2⟩,
-  λ h, ⟨(first_ineq_iff a).2 h.1, (second_ineq_iff a).2 h.2⟩⟩
+and_congr (first_ineq_iff a) (second_ineq_iff a)
 
 lemma d_one : d a 1 = a 0 :=
 show a 0 + (a 1 + 0) - 1 * a 1 = a 0, by simp

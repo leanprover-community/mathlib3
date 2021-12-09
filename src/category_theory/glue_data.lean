@@ -26,7 +26,7 @@ universes v u₁ u₂
 variables (C : Type u₁) [category.{v} C] {C' : Type u₂} [category.{v} C']
 
 /--
-A family of gluing data consists of
+A gluing datum consists of
 1. An index type `J`
 2. An object `U i` for each `i : J`.
 3. An object `V i j` for each `i j : J`.

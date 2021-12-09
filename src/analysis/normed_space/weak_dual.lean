@@ -19,8 +19,6 @@ It is shown that the canonical mapping `normed_space.dual 𝕜 E → weak_dual �
 as a consequence the weak-* topology is coarser than the topology obtained from the operator norm
 (dual norm).
 
-The file is a stub, some TODOs below.
-
 ## Main definitions
 
 The main definitions concern the canonical mapping `dual 𝕜 E → weak_dual 𝕜 E`.
@@ -30,6 +28,8 @@ The main definitions concern the canonical mapping `dual 𝕜 E → weak_dual �
 * `normed_space.dual.continuous_linear_map_to_weak_dual`: A continuous linear mapping from
   `dual 𝕜 E` to `weak_dual 𝕜 E` (same as `normed_space.dual.to_weak_dual` but different bundled
   data).
+* `weak_dual.polar 𝕜 s`: The polar set of a subset `s` of `E`, viewed as a subset
+  of the weak dual `weak_dual 𝕜 E` (see `polar 𝕜 s` for the version in `dual 𝕜 E`).
 
 ## Main results
 

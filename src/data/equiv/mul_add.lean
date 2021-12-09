@@ -213,6 +213,9 @@ e.to_equiv.symm_apply_eq
 lemma eq_symm_apply (e : M ≃* N) {x y} : y = e.symm x ↔ e y = x :=
 e.to_equiv.eq_symm_apply
 
+section
+variables [mul_one_class M] [mul_one_class N] [mul_one_class P]
+
 @[to_additive] lemma eq_comp_symm (e : M ≃* N) (f : N →* P) (g : M →* P) :
   ⇑f = g ∘ e.symm ↔ f ∘ e = g := e.to_equiv.eq_comp_symm f g
 
@@ -224,6 +227,8 @@ e.to_equiv.eq_symm_apply
 
 @[to_additive] lemma symm_comp_eq (e : M ≃* N) (f : P →* M) (g : P →* N) :
   e.symm ∘ g = f ↔ ⇑g = e ∘ f := e.to_equiv.symm_comp_eq f g
+
+end
 
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/

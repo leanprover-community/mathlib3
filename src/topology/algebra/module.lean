@@ -252,6 +252,62 @@ notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (@star_ring_aut
 
 namespace continuous_linear_map
 
+section pointwise_limits
+/-!### Bundling pointwise limits of various maps -/
+
+variables {M₁ M₂ α R S : Type*}
+variables [topological_space M₂] [t2_space M₂]
+variables {l : filter α} {f : M₁ → M₂}
+
+
+/-- Construct a bundled additive monoid homomorphism from a pointwise limit of additive
+monoid homomorphisms -/
+definition add_monoid_hom_of_pointwise_tendsto [add_monoid M₁] [add_monoid M₂]
+[has_continuous_add M₂] {g : α → M₁ →+ M₂} [l.ne_bot]
+(h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) : M₁ →+ M₂ :=
+{ to_fun := f,
+  map_zero' := by
+    { refine tendsto_nhds_unique (h 0) _,
+      have : (λ a, g a 0) = (λ a, 0), from funext (λ a, (g a).map_zero'),
+      rw this,
+      exact tendsto_const_nhds },
+  map_add' := λ x y, by
+    { refine tendsto_nhds_unique (h (x + y)) _,
+      have : (λ a, g a (x + y)) = (λ a, g a x + g a y), from funext (λ a, (g a).map_add' x y),
+      rw this,
+      exact tendsto.add (h x) (h y) } }
+
+lemma coe_add_monoid_hom_of_pointwise_tendsto [add_monoid M₁] [add_monoid M₂]
+[has_continuous_add M₂] {g : α → M₁ →+ M₂} [l.ne_bot]
+(h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) :
+⇑(add_monoid_hom_of_pointwise_tendsto h) = f := rfl
+
+variables [semiring R] [semiring S] [add_comm_monoid M₁] [add_comm_monoid M₂]
+variables [module R M₁] [module S M₂]
+variables [topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂]
+variables {σ : R →+* S}
+
+/-- Construct a bundled linear map from a pointwise limit of linear maps -/
+definition linear_map_of_pointwise_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
+(h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) : M₁ →ₛₗ[σ] M₂ :=
+{ to_fun := f,
+  map_add' := λ x y, by
+    { refine tendsto_nhds_unique (h (x + y)) _,
+      have : (λ a, g a (x + y)) = (λ a, g a x + g a y), from funext (λ a, (g a).map_add' x y),
+      rw this,
+      exact tendsto.add (h x) (h y) },
+  map_smul' := λ r x, by
+    { refine tendsto_nhds_unique (h (r • x)) _,
+      have : (λ a, g a (r •  x)) = (λ a, σ r • (g a x)), from funext (λ a, (g a).map_smul' r x),
+      rw this,
+      exact tendsto.smul (@tendsto_const_nhds _ α _ (σ r) _)  (h x)} }
+
+lemma coe_linear_map_of_pointwise_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
+(h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) :
+⇑(linear_map_of_pointwise_tendsto h) = f := rfl
+
+end pointwise_limits
+
 section semiring
 /-!
 ### Properties that hold for non-necessarily commutative semirings.

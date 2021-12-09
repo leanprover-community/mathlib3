@@ -1283,7 +1283,7 @@ with `l < a`. -/
 lemma mem_nhds_within_Iio_iff_exists_Ico_subset [no_bot_order α] [densely_ordered α]
   {a : α} {s : set α} : s ∈ 𝓝ₗ' a ↔ ∃l ∈ Iio a, Ico l a ⊆ s :=
 begin
-  have : of_dual ⁻¹' s ∈ 𝓝ᵣ (to_dual a) ↔ _ :=
+  have : of_dual ⁻¹' s ∈ 𝓝ᵣ' (to_dual a) ↔ _ :=
     mem_nhds_within_Ioi_iff_exists_Ioc_subset,
   simpa only [order_dual.exists, exists_prop, dual_Ioc] using this,
 end

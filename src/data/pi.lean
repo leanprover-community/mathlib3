@@ -137,6 +137,9 @@ variables (f)
 lemma single_injective (i : I) : function.injective (single i : f i → Π i, f i) :=
 function.update_injective _ i
 
+@[simp] lemma single_inj (i : I) {x y : f i} : pi.single i x = pi.single i y ↔ x = y :=
+(pi.single_injective _ _).eq_iff
+
 end
 end pi
 

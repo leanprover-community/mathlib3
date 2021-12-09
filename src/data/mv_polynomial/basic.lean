@@ -263,11 +263,8 @@ monomial_sum_index _ _ _
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp only [X_pow_eq_monomial, ← monomial_finsupp_sum_index, finsupp.sum_single]
 
-@[recursor 5]
-lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
-  (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
-  M p :=
-have ∀s a, M (monomial s a),
+lemma induction_on_monomial {M : mv_polynomial σ R → Prop} (h_C : ∀ a, M (C a))
+  (h_X : ∀ p n, M p → M (p * X n)) : ∀ s a, M (monomial s a) :=
 begin
   assume s a,
   apply @finsupp.induction σ ℕ _ _ s,
@@ -279,11 +276,12 @@ begin
       { simp [ih] },
       { simp [ih, pow_succ', (mul_assoc _ _ _).symm, h_X, e_ih] } },
     simp [add_comm, monomial_add_single, this] }
-end,
-finsupp.induction p
-  (by have : M (C 0) := h_C 0; rwa [C_0] at this)
-  (assume s a p hsp ha hp, h_add _ _ (this s a) hp)
+end
 
+/-- Analog of `polynomial.induction_on'`.
+To prove something about mv_polynomials,
+it suffices to show the condition is closed under taking sums,
+and it holds for monomials. -/
 attribute [elab_as_eliminator]
 theorem induction_on' {P : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
     (h1 : ∀ (u : σ →₀ ℕ) (a : R), P (monomial u a))
@@ -291,6 +289,27 @@ theorem induction_on' {P : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
 finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                      show P (monomial 0 0), from h1 0 0)
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
+
+/-- Similar to `mv_polynomial.induction_on` but only a weak form of `h_add` is required.-/
+lemma induction_on''' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) (h_C : ∀ a, M (C a))
+  (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
+    a ∉ f.support → b ≠ 0 → M f → M (monomial a b + f)) : M p :=
+finsupp.induction p (C_0.rec $ h_C 0) h_add_weak
+
+/-- Similar to `mv_polynomial.induction_on` but only a yet weaker form of `h_add` is required.-/
+lemma induction_on'' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) (h_C : ∀ a, M (C a))
+  (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
+    a ∉ f.support → b ≠ 0 → M f → M (monomial a b) → M (monomial a b + f))
+    (h_X : ∀ (p : mv_polynomial σ R) (n : σ), M p → M (p * mv_polynomial.X n)): M p :=
+induction_on''' p h_C (λ a b f ha hb hf,
+  h_add_weak a b f ha hb hf $ induction_on_monomial h_C h_X a b)
+
+/-- Analog of `polynomial.induction_on`.-/
+@[recursor 5]
+lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
+  (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
+  M p :=
+induction_on'' p h_C (λ a b f  ha hb hf hm, h_add (monomial a b) f hm hf) h_X
 
 lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :

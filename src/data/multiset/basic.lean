@@ -2032,6 +2032,9 @@ by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]
 
+theorem one_le_count_iff_mem {a : α} {s : multiset α} : 1 ≤ count a s ↔ a ∈ s :=
+by rw [succ_le_iff, count_pos]
+
 @[simp, priority 980]
 theorem count_eq_zero_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) : count a s = 0 :=
 by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
@@ -2109,6 +2112,14 @@ quot.induction_on s $ λ l, count_filter h
   {a} {s : multiset α} (h : ¬ p a) : count a (filter p s) = 0 :=
 multiset.count_eq_zero_of_not_mem (λ t, h (of_mem_filter t))
 
+theorem count_filter {p} [decidable_pred p] {a} {s : multiset α} :
+  count a (filter p s) = if p a then count a s else 0 :=
+begin
+  split_ifs with h,
+  { exact count_filter_of_pos h },
+  { exact count_filter_of_neg h },
+end
+
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
 
@@ -2151,6 +2162,20 @@ begin
   { rw eq_repeat.2 ⟨rfl, λ b hb, eq_comm.1 ((hf H (mem_filter.1 hb).left) (mem_filter.1 hb).right)⟩,
     simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
 end
+
+lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
+begin
+  ext a,
+  rw [count_repeat, count_filter],
+  exact if_ctx_congr iff.rfl (λ h, congr_arg _ h) (λ h, rfl),
+end
+
+lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
+by { simp_rw [←filter_eq', eq_comm], congr }
+
+lemma pow_count [comm_monoid α] {s : multiset α} (a : α) :
+  a ^ (count a s) = (filter (eq a) s).prod :=
+by rw [filter_eq, prod_repeat]
 
 end
 

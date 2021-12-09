@@ -593,11 +593,11 @@ intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
 localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
-localized "notation `𝓝' ` x:100 := 𝓝[{x}ᶜ] x" in topological_space
-localized "notation `𝓝ᵣ ` x:100 := 𝓝[set.Ici x] x" in topological_space
-localized "notation `𝓝ₗ ` x:100 := 𝓝[set.Iic x] x" in topological_space
-localized "notation `𝓝ᵣ' ` x:100 := 𝓝[set.Ioi x] x" in topological_space
-localized "notation `𝓝ₗ' ` x:100 := 𝓝[set.Iio x] x" in topological_space
+localized "notation `𝓝' ` x:100 := nhds_within x {x}ᶜ" in topological_space
+localized "notation `𝓝ᵣ ` x:100 := nhds_within x (set.Ici x)" in topological_space
+localized "notation `𝓝ₗ ` x:100 := nhds_within x (set.Iic x)" in topological_space
+localized "notation `𝓝ᵣ' ` x:100 := nhds_within x (set.Ioi x)" in topological_space
+localized "notation `𝓝ₗ' ` x:100 := nhds_within x (set.Iio x)" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 

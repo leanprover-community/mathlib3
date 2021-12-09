@@ -312,7 +312,7 @@ variable {R}
 /-- The quotient of a finitely presented algebra by a finitely generated ideal is finitely
 presented. -/
 protected lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finite_presentation R A) :
-  finite_presentation R I.quotient :=
+  finite_presentation R (A ⧸ I) :=
 begin
   obtain ⟨n, f, hf⟩ := hfp,
   refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
@@ -328,7 +328,7 @@ lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.t
 equiv (hfp.quotient hker) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
 lemma iff : finite_presentation R A ↔
-  ∃ n (I : ideal (mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
+  ∃ n (I : ideal (mv_polynomial (fin n) R)) (e : (_ ⧸ I) ≃ₐ[R] A), I.fg :=
 begin
   split,
   { rintros ⟨n, f, hf⟩,

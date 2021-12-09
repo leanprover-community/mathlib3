@@ -178,6 +178,10 @@ instance is_local_ring_hom_comp [semiring R] [semiring S] [semiring T]
   is_local_ring_hom (g.comp f) :=
 { map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
 
+instance _root_.CommRing.is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T)
+  [is_local_ring_hom g] [is_local_ring_hom f] :
+  is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
+
 instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
   is_local_ring_hom f.to_ring_hom :=
 { map_nonunit := λ a ha,
@@ -249,7 +253,7 @@ end
 
 variable (R)
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
-def residue_field := (maximal_ideal R).quotient
+def residue_field := R ⧸ maximal_ideal R
 
 noncomputable instance residue_field.field : field (residue_field R) :=
 ideal.quotient.field (maximal_ideal R)

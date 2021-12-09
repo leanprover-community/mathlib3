@@ -58,7 +58,7 @@ General algebra:
 
   Ideals and quotients:
     ideal of a commutative ring: 'ideal'
-    quotient ring: 'ideal.quotient'
+    quotient ring: 'ideal.has_quotient'
     prime ideal: 'ideal.is_prime'
     maximal ideal: 'ideal.is_maximal'
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'
@@ -143,7 +143,7 @@ Linear algebra:
     linear map: 'linear_map'
     the category of modules over a ring: 'Module'
     vector space: 'module'
-    quotient space: 'submodule.quotient'
+    quotient space: 'submodule.has_quotient'
     tensor product: 'tensor_product'
     noetherian module: 'is_noetherian'
     basis: 'basis'

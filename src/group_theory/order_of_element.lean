@@ -232,6 +232,25 @@ begin
   simp only [order_of, mul_left_iterate],
 end
 
+lemma commute.order_of_mul_dvd_lcm_order_of {x y : G} (h : commute x y) :
+  order_of (x * y) ∣ lcm (order_of x) (order_of y) :=
+begin
+  convert h.function_commute_mul_left.minimal_period_of_comp_dvd_lcm,
+  simp only [order_of, comp_mul_left],
+end
+
+lemma commute.order_of_mul_dvd_mul_order_of {x y : G} (h : commute x y) :
+  order_of (x * y) ∣ (order_of x) * (order_of y) :=
+dvd_trans h.order_of_mul_dvd_lcm_order_of (lcm_dvd_mul _ _)
+
+lemma commute.order_of_mul_eq_mul_order_of_of_coprime {x y : G} (h : commute x y)
+  (hco : nat.coprime (order_of x) (order_of y)) :
+  order_of (x * y) = (order_of x) * (order_of y) :=
+begin
+  convert h.function_commute_mul_left.minimal_period_of_comp_eq_mul_of_coprime hco,
+  simp only [order_of, comp_mul_left],
+end
+
 section p_prime
 
 variables {a x n} {p : ℕ} [hp : fact p.prime]
@@ -557,11 +576,11 @@ open quotient_group
 lemma order_of_dvd_card_univ : order_of x ∣ fintype.card G :=
 begin
   classical,
-  have ft_prod : fintype (quotient (zpowers x) × (zpowers x)),
+  have ft_prod : fintype ((G ⧸ zpowers x) × zpowers x),
     from fintype.of_equiv G group_equiv_quotient_times_subgroup,
   have ft_s : fintype (zpowers x),
     from @fintype.prod_right _ _ _ ft_prod _,
-  have ft_cosets : fintype (quotient (zpowers x)),
+  have ft_cosets : fintype (G ⧸ zpowers x),
     from @fintype.prod_left _ _ _ ft_prod ⟨⟨1, (zpowers x).one_mem⟩⟩,
   have eq₁ : fintype.card G = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
     from calc fintype.card G = @fintype.card _ ft_prod :
@@ -573,7 +592,7 @@ begin
   have eq₂ : order_of x = @fintype.card _ ft_s,
     from calc order_of x = _ : order_eq_card_zpowers
       ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
-  exact dvd.intro (@fintype.card (quotient (subgroup.zpowers x)) ft_cosets)
+  exact dvd.intro (@fintype.card (G ⧸ subgroup.zpowers x) ft_cosets)
           (by rw [eq₁, eq₂, mul_comm])
 end
 

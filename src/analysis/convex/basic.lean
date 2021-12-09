@@ -244,10 +244,6 @@ begin
   exact ⟨⅟2, ⟨inv_of_nonneg.mpr zero_le_two, inv_of_le_one one_le_two⟩, rfl⟩,
 end
 
-lemma midpoint_neg [invertible (2 : 𝕜)] (x : E) :
-  midpoint 𝕜 x (-x) = 0 :=
-by rw [midpoint_eq_smul_add, add_neg_self, smul_zero]
-
 lemma self_mem_segment_sub_add [invertible (2 : 𝕜)] (x y : E) :
   x ∈ [x-y -[𝕜] x+y] :=
 begin

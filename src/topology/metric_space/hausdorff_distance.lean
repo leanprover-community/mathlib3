@@ -952,7 +952,7 @@ begin
   by refl,
   rw [thickening_eq_preimage_inf_edist, singleton_preim,
       ← (frontier_Iio' ⟨(0 : ℝ≥0∞), ennreal.of_real_pos.mpr δ_pos⟩)],
-  apply continuous_inf_edist.frontier_preimage_subset (Iio (ennreal.of_real δ)),
+  exact continuous_inf_edist.frontier_preimage_subset (Iio (ennreal.of_real δ)),
 end
 
 /-- The frontier of the closed thickening of a set is contained in an `inf_edist` level set. -/
@@ -964,7 +964,7 @@ begin
   by refl,
   rw [cthickening_eq_preimage_inf_edist, singleton_preim,
       ← frontier_Iic' ⟨∞, ennreal.of_real_lt_top⟩],
-  apply continuous_inf_edist.frontier_preimage_subset (Iic (ennreal.of_real δ)),
+  exact continuous_inf_edist.frontier_preimage_subset (Iic (ennreal.of_real δ)),
 end
 
 end cthickening --section

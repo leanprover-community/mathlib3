@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.pfun
-import tactic.norm_num
 import data.equiv.mul_add
+import tactic.norm_num
+import data.part
 
 /-!
 # Natural numbers with infinity
@@ -220,20 +220,21 @@ end
 protected lemma zero_lt_one : (0 : enat) < 1 :=
 by { norm_cast, norm_num }
 
-instance semilattice_sup_bot : semilattice_sup_bot enat :=
+instance semilattice_sup : semilattice_sup enat :=
 { sup := (⊔),
-  bot := (⊥),
-  bot_le := λ _, ⟨λ _, trivial, λ _, nat.zero_le _⟩,
   le_sup_left := λ _ _, ⟨and.left, λ _, le_sup_left⟩,
   le_sup_right := λ _ _, ⟨and.right, λ _, le_sup_right⟩,
   sup_le := λ x y z ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩, ⟨λ hz, ⟨hx₁ hz, hy₁ hz⟩,
     λ _, sup_le (hx₂ _) (hy₂ _)⟩,
   ..enat.partial_order }
 
+instance order_bot : order_bot enat :=
+{ bot := (⊥),
+  bot_le := λ _, ⟨λ _, trivial, λ _, nat.zero_le _⟩ }
+
 instance order_top : order_top enat :=
 { top := (⊤),
-  le_top := λ x, ⟨λ h, false.elim h, λ hy, false.elim hy⟩,
-  ..enat.semilattice_sup_bot }
+  le_top := λ x, ⟨λ h, false.elim h, λ hy, false.elim hy⟩ }
 
 lemma dom_of_lt {x y : enat} : x < y → x.dom :=
 enat.cases_on x not_top_lt $ λ _ _, dom_coe _
@@ -277,13 +278,16 @@ noncomputable instance : linear_order enat :=
   decidable_le := classical.dec_rel _,
   ..enat.partial_order }
 
-noncomputable instance : bounded_lattice enat :=
+instance : bounded_order enat :=
+{ ..enat.order_top,
+  ..enat.order_bot }
+
+noncomputable instance : lattice enat :=
 { inf := min,
   inf_le_left := min_le_left,
   inf_le_right := min_le_right,
   le_inf := λ _ _ _, le_min,
-  ..enat.order_top,
-  ..enat.semilattice_sup_bot }
+  ..enat.semilattice_sup }
 
 lemma sup_eq_max {a b : enat} : a ⊔ b = max a b :=
 le_antisymm (sup_le (le_max_left _ _) (le_max_right _ _))
@@ -312,7 +316,8 @@ instance : canonically_ordered_add_monoid enat :=
           (λ c (hc : (b : enat) = a + c),
             coe_le_coe.2 (by rw [← nat.cast_add, coe_inj] at hc;
               rw hc; exact nat.le_add_right _ _)) hc)⟩)),
-  ..enat.semilattice_sup_bot,
+  ..enat.semilattice_sup,
+  ..enat.order_bot,
   ..enat.ordered_add_comm_monoid }
 
 protected lemma add_lt_add_right {x y z : enat} (h : x < y) (hz : z ≠ ⊤) : x + z < y + z :=

@@ -32,7 +32,7 @@ namespace set
 
 section linear_order
 
-variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ x : α}
+variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- `interval a b` is the set of elements lying between `a` and `b`, with `a` and `b` included. -/
 def interval (a b : α) := Icc (min a b) (max a b)
@@ -84,14 +84,17 @@ Icc_subset_interval ⟨ha, hb⟩
 lemma mem_interval_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
 Icc_subset_interval' ⟨hb, ha⟩
 
-lemma not_mem_interval_of_lt {c : α} (ha : c < a) (hb : c < b) : c ∉ interval a b :=
+lemma not_mem_interval_of_lt (ha : c < a) (hb : c < b) : c ∉ interval a b :=
 not_mem_Icc_of_lt $ lt_min_iff.mpr ⟨ha, hb⟩
 
-lemma not_mem_interval_of_gt {c : α} (ha : a < c) (hb : b < c) : c ∉ interval a b :=
+lemma not_mem_interval_of_gt (ha : a < c) (hb : b < c) : c ∉ interval a b :=
 not_mem_Icc_of_gt $ max_lt_iff.mpr ⟨ha, hb⟩
 
 lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
 Icc_subset_Icc (le_min h₁.1 h₂.1) (max_le h₁.2 h₂.2)
+
+lemma interval_subset_Icc (ha : a₁ ∈ Icc a₂ b₂) (hb : b₁ ∈ Icc a₂ b₂) : [a₁, b₁] ⊆ Icc a₂ b₂ :=
+Icc_subset_Icc (le_min ha.1 hb.1) (max_le ha.2 hb.2)
 
 lemma interval_subset_interval_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
 iff.intro (λh, ⟨h left_mem_interval, h right_mem_interval⟩) (λ h, interval_subset_interval h.1 h.2)
@@ -105,6 +108,21 @@ interval_subset_interval h right_mem_interval
 
 lemma interval_subset_interval_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] :=
 interval_subset_interval left_mem_interval h
+
+/-- A sort of triangle inequality. -/
+lemma interval_subset_interval_union_interval : [a, c] ⊆ [a, b] ∪ [b, c] :=
+begin
+  rintro x hx,
+  obtain hac | hac := le_total a c,
+  { rw interval_of_le hac at hx,
+    obtain hb | hb := le_total x b,
+    { exact or.inl (mem_interval_of_le hx.1 hb) },
+    { exact or.inr (mem_interval_of_le hb hx.2) } },
+  { rw interval_of_ge hac at hx,
+    obtain hb | hb := le_total x b,
+    { exact or.inr (mem_interval_of_ge hx.1 hb) },
+    { exact or.inl (mem_interval_of_ge hb hx.2) } }
+end
 
 lemma bdd_below_bdd_above_iff_subset_interval (s : set α) :
   bdd_below s ∧ bdd_above s ↔ ∃ a b, s ⊆ [a, b] :=

@@ -515,9 +515,10 @@ end partial_order
 
 section order_top
 
-variables {α : Type u} [order_top α] {a : α}
+variables {α : Type u} [preorder α] [order_top α] {a : α}
 
-@[simp] lemma Ici_top : Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
+@[simp] lemma Ici_top {α : Type u} [partial_order α] [order_top α] :
+  Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
 @[simp] lemma Iic_top : Iic (⊤ : α) = univ := eq_univ_of_forall $ λ x, le_top
 @[simp] lemma Icc_top : Icc a ⊤ = Ici a := by simp [← Ici_inter_Iic]
 @[simp] lemma Ioc_top : Ioc a ⊤ = Ioi a := by simp [← Ioi_inter_Iic]
@@ -526,10 +527,11 @@ end order_top
 
 section order_bot
 
-variables {α : Type u} [order_bot α] {a : α}
+variables {α : Type u} [preorder α] [order_bot α] {a : α}
 
-@[simp] lemma Iic_bot : Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
-@[simp] lemma Ici_bot : Ici (⊥ : α) = univ := @Iic_top (order_dual α) _
+@[simp] lemma Iic_bot {α : Type u} [partial_order α] [order_bot α] :
+  Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
+@[simp] lemma Ici_bot : Ici (⊥ : α) = univ := @Iic_top (order_dual α) _ _
 @[simp] lemma Icc_bot : Icc ⊥ a = Iic a := by simp [← Ici_inter_Iic]
 @[simp] lemma Ico_bot : Ico ⊥ a = Iio a := by simp [← Ici_inter_Iio]
 
@@ -1101,8 +1103,8 @@ begin
   cases le_total a b with hab hab; cases le_total c d with hcd hcd;
     simp only [min_eq_left, min_eq_right, max_eq_left, max_eq_right, hab, hcd] at h₁ h₂,
   { exact Ioo_union_Ioo' h₂ h₁ },
-  all_goals {
-    simp [*, min_eq_left_of_lt, min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt,
+  all_goals
+  { simp [*, min_eq_left_of_lt, min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt,
       le_of_lt h₂, le_of_lt h₁] },
 end
 
@@ -1168,7 +1170,7 @@ by simp only [Ioi_inter_Iio.symm, Ioi_inter_Ioi.symm, Iio_inter_Iio.symm]; ac_re
 
 end both
 
-lemma Icc_bot_top {α} [bounded_lattice α] : Icc (⊥ : α) ⊤ = univ := by simp
+lemma Icc_bot_top {α} [partial_order α] [bounded_order α] : Icc (⊥ : α) ⊤ = univ := by simp
 
 end lattice
 
@@ -1393,12 +1395,12 @@ by rw [e.image_eq_preimage, e.symm.preimage_Icc, e.symm_symm]
 end preorder
 
 /-- Order isomorphism between `Iic (⊤ : α)` and `α` when `α` has a top element -/
-def Iic_top [order_top α] : set.Iic (⊤ : α) ≃o α :=
+def Iic_top [preorder α] [order_top α] : set.Iic (⊤ : α) ≃o α :=
 { map_rel_iff' := λ x y, by refl,
   .. (@equiv.subtype_univ_equiv α (set.Iic (⊤ : α)) (λ x, le_top)), }
 
 /-- Order isomorphism between `Ici (⊥ : α)` and `α` when `α` has a bottom element -/
-def Ici_bot [order_bot α] : set.Ici (⊥ : α) ≃o α :=
+def Ici_bot [preorder α] [order_bot α] : set.Ici (⊥ : α) ≃o α :=
 { map_rel_iff' := λ x y, by refl,
   .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
 

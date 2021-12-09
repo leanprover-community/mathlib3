@@ -1,69 +1,77 @@
 /-
 Copyright (c) 2020 Alena Gusakov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alena Gusakov
+Authors: Alena Gusakov, Arthur Paulino, Kyle Miller
 -/
-import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.subgraph
 
 /-!
 # Matchings
 
+A *matching* for a simple graph is a set of disjoint pairs of adjacent vertices, and the set of all
+the vertices in a matching is called its *support* (and sometimes the vertices in the support are
+said to be *saturated* by the matching). A *perfect matching* is a matching whose support contains
+every vertex of the graph.
+
+In this module, we represent a matching as a subgraph whose vertices are each incident to at most
+one edge, and the edges of the subgraph represent the paired vertices.
 
 ## Main definitions
 
-* a `matching` on a simple graph is a subset of its edge set such that
-   no two edges share an endpoint.
+* `simple_graph.subgraph.is_matching`: `M.is_matching` means that `M` is a matching of its
+  underlying graph.
+  denoted `M.is_matching`.
 
-* a `perfect_matching` on a simple graph is a matching in which every
-   vertex belongs to an edge.
+* `simple_graph.subgraph.is_perfect_matching` defines when a subgraph `M` of a simple graph is a
+  perfect matching, denoted `M.is_perfect_matching`.
 
-TODO:
-  - Lemma stating that the existence of a perfect matching on `G` implies that
-    the cardinality of `V` is even (assuming it's finite)
-  - Hall's Marriage Theorem (see combinatorics.hall)
-  - Tutte's Theorem
-  - consider coercions instead of type definition for `matching`:
-    https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532935457
-  - consider expressing `matching_verts` as union:
-    https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532906131
+## TODO
 
-TODO: Tutte and Hall require a definition of subgraphs.
+* https://github.com/leanprover-community/mathlib/pull/10210#pullrequestreview-806303684
+
+* Lemma stating that the existence of a perfect matching on `G` implies that
+  the cardinality of `V` is even (assuming it's finite)
+
+* Tutte's Theorem
+
+* Hall's Marriage Theorem (see combinatorics.hall)
 -/
-open finset
+
 universe u
 
 namespace simple_graph
-variables {V : Type u} (G : simple_graph V)
+variables {V : Type u} {G : simple_graph V} (M : subgraph G)
+
+namespace subgraph
 
 /--
-A matching on `G` is a subset of its edges such that no two edges share a vertex.
+The subgraph `M` of `G` is a matching if every vertex of `M` is incident to exactly one edge in `M`.
+We say that the vertices in `M.support` are *matched* or *saturated*.
 -/
-structure matching :=
-(edges : set (sym2 V))
-(sub_edges : edges ⊆ G.edge_set)
-(disjoint : ∀ (x y ∈ edges) (v : V), v ∈ x ∧ v ∈ y → x = y)
-
-instance : inhabited (matching G) :=
-⟨⟨∅, set.empty_subset _, λ _ _ hx, false.elim (set.not_mem_empty _ hx)⟩⟩
-
-variables {G}
+def is_matching : Prop := ∀ ⦃v⦄, v ∈ M.verts → ∃! w, M.adj v w
 
 /--
-`M.support` is the set of vertices of `G` that are
-contained in some edge of matching `M`
+The subgraph `M` of `G` is a perfect matching on `G` if it's a matching and every vertex `G` is
+matched.
 -/
-def matching.support (M : G.matching) : set V :=
-{v : V | ∃ x ∈ M.edges, v ∈ x}
+def is_perfect_matching : Prop := M.is_matching ∧ M.is_spanning
 
-/--
-A perfect matching `M` on graph `G` is a matching such that
-  every vertex is contained in an edge of `M`.
--/
-def matching.is_perfect (M : G.matching) : Prop :=
-M.support = set.univ
+lemma is_matching.support_eq_verts {M : subgraph G} (h : M.is_matching) : M.support = M.verts :=
+begin
+  refine M.support_subset_verts.antisymm (λ v hv, _),
+  obtain ⟨w, hvw, -⟩ := h hv,
+  exact ⟨_, hvw⟩,
+end
 
-lemma matching.is_perfect_iff (M : G.matching) :
-M.is_perfect ↔ ∀ (v : V), ∃ e ∈ M.edges, v ∈ e :=
-set.eq_univ_iff_forall
+lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=
+begin
+  refine ⟨_, λ hm, ⟨λ v hv, hm v, λ v, _⟩⟩,
+  { rintro ⟨hm, hs⟩ v,
+    exact hm (hs v) },
+  { obtain ⟨w, hw, -⟩ := hm v,
+    exact M.edge_vert hw }
+end
+
+end subgraph
 
 end simple_graph

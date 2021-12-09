@@ -178,6 +178,10 @@ instance is_local_ring_hom_comp [semiring R] [semiring S] [semiring T]
   is_local_ring_hom (g.comp f) :=
 { map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
 
+instance _root_.CommRing.is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T)
+  [is_local_ring_hom g] [is_local_ring_hom f] :
+  is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
+
 instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
   is_local_ring_hom f.to_ring_hom :=
 { map_nonunit := λ a ha,
@@ -225,9 +229,31 @@ end
 namespace local_ring
 variables [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
 
+/--
+A ring homomorphism between local rings is a local ring hom iff it reflects units,
+i.e. any preimage of a unit is still a unit. https://stacks.math.columbia.edu/tag/07BJ
+-/
+theorem local_hom_tfae (f : R →+* S) :
+  tfae [is_local_ring_hom f,
+        f '' (maximal_ideal R).1 ⊆ maximal_ideal S,
+        (maximal_ideal R).map f ≤ maximal_ideal S,
+        maximal_ideal R ≤ (maximal_ideal S).comap f,
+        (maximal_ideal S).comap f = maximal_ideal R] :=
+begin
+  tfae_have : 1 → 2, rintros _ _ ⟨a,ha,rfl⟩,
+    resetI, exact map_nonunit f a ha,
+  tfae_have : 2 → 4, exact set.image_subset_iff.1,
+  tfae_have : 3 ↔ 4, exact ideal.map_le_iff_le_comap,
+  tfae_have : 4 → 1, intro h, fsplit, exact λ x, not_imp_not.1 (@h x),
+  tfae_have : 1 → 5, intro, resetI, ext,
+    exact not_iff_not.2 (is_unit_map_iff f x),
+  tfae_have : 5 → 4, exact λ h, le_of_eq h.symm,
+  tfae_finish,
+end
+
 variable (R)
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
-def residue_field := (maximal_ideal R).quotient
+def residue_field := R ⧸ maximal_ideal R
 
 noncomputable instance residue_field.field : field (residue_field R) :=
 ideal.quotient.field (maximal_ideal R)

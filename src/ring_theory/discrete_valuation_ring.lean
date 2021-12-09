@@ -200,8 +200,6 @@ begin
     intros a b h,
     by_cases ha : a = 0,
     { rw ha, simp only [true_or, dvd_zero], },
-    by_cases hb : b = 0,
-    { rw hb, simp only [or_true, dvd_zero], },
     obtain ⟨m, u, rfl⟩ := spec.2 ha,
     rw [mul_assoc, mul_left_comm, is_unit.dvd_mul_left _ _ _ (units.is_unit _)] at h,
     rw is_unit.dvd_mul_right (units.is_unit _),

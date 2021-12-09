@@ -680,6 +680,13 @@ begin
   { rw [erase_ne hs] }
 end
 
+@[simp] lemma erase_of_not_mem_support {f : α →₀ M} {a} (haf : a ∉ f.support) : erase a f = f :=
+begin
+  ext b, by_cases hab : a = b,
+  { rwa [←hab, erase_same, eq_comm, ←not_mem_support_iff] },
+  { rw erase_ne (ne.symm hab) }
+end
+
 @[simp] lemma erase_zero (a : α) : erase a (0 : α →₀ M) = 0 :=
 by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
 

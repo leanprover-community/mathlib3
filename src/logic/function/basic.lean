@@ -400,13 +400,13 @@ lemma surjective_to_subsingleton [na : nonempty α] [subsingleton β] (f : α �
 λ y, let ⟨a⟩ := na in ⟨a, subsingleton.elim _ _⟩
 
 /-- Composition by an surjective function on the left is itself surjective. -/
-lemma surjective.comp_left {g : β → γ} (hg : function.surjective g) :
-  function.surjective ((∘) g : (α → β) → (α → γ)) :=
+lemma surjective.comp_left {g : β → γ} (hg : surjective g) :
+  surjective ((∘) g : (α → β) → (α → γ)) :=
 λ f, ⟨surj_inv hg ∘ f, funext $ λ x, right_inverse_surj_inv _ _⟩
 
 /-- Composition by an bijective function on the left is itself bijective. -/
-lemma bijective.comp_left {g : β → γ} (hg : function.bijective g) :
-  function.bijective ((∘) g : (α → β) → (α → γ)) :=
+lemma bijective.comp_left {g : β → γ} (hg : bijective g) :
+  bijective ((∘) g : (α → β) → (α → γ)) :=
 ⟨hg.injective.comp_left, hg.surjective.comp_left⟩
 
 end surj_inv
@@ -565,6 +565,20 @@ end
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
   extend f g e' ∘ f = g :=
 funext $ λ a, extend_apply hf g e' a
+
+lemma injective.surjective_comp_right' (hf : injective f) (g₀ : β → γ) :
+  surjective (λ g : β → γ, g ∘ f) :=
+λ g, ⟨extend f g g₀, extend_comp hf _ _⟩
+
+lemma injective.surjective_comp_right [nonempty γ] (hf : injective f) :
+  surjective (λ g : β → γ, g ∘ f) :=
+hf.surjective_comp_right' (λ _, classical.choice ‹_›)
+
+lemma bijective.comp_right (hf : bijective f) :
+  bijective (λ g : β → γ, g ∘ f) :=
+⟨hf.surjective.injective_comp_right,
+  λ g, ⟨g ∘ surj_inv hf.surjective,
+    by simp only [comp.assoc g _ f, (left_inverse_surj_inv hf).comp_eq_id, comp.right_id]⟩⟩
 
 end extend
 

@@ -2737,8 +2737,7 @@ begin
   rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, tsub_self]
 end
 
-lemma support_tsub {α : Type*} {M : Type*} [canonically_ordered_add_monoid M]
-  [has_sub M] [has_ordered_sub M] {f1 f2 : α →₀ M} : (f1 - f2).support ⊆ f1.support :=
+lemma support_tsub {f1 f2 : α →₀ M} : (f1 - f2).support ⊆ f1.support :=
 by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
     not_imp_not, zero_le, implies_true_iff] {contextual := tt}
 

@@ -392,29 +392,6 @@ theorem zorn_superset_nonempty {α : Type u} (S : set (set α))
 @zorn_nonempty_partial_order₀ (order_dual (set α)) _ S (λ c cS hc y yc, H _ cS
   hc.symm ⟨y, yc⟩) _ hx
 
-lemma chain.total {α : Type u} [preorder α] {c : set α} (H : chain (≤) c) :
-  ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=
-λ x y, H.total_of_refl
-
-lemma chain.image {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) (f : α → β)
-  (h : ∀ x y, r x y → s (f x) (f y)) {c : set α} (hrc : chain r c) :
-  chain s (f '' c) :=
-λ x ⟨a, ha₁, ha₂⟩ y ⟨b, hb₁, hb₂⟩, ha₂ ▸ hb₂ ▸ λ hxy,
-  (hrc a ha₁ b hb₁ (mt (congr_arg f) $ hxy)).elim
-    (or.inl ∘ h _ _) (or.inr ∘ h _ _)
-
-end zorn
-
-lemma directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
-  (h : zorn.chain (f ⁻¹'o r) c) :
-  directed r (λ x : {a : α // a ∈ c}, f x) :=
-λ ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
-  (λ hab : a = b, by simp only [hab, exists_prop, and_self, subtype.exists];
-    exact ⟨b, hb, refl _⟩)
-  (λ hab, (h a ha b hb hab).elim
-    (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
-    (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))
-
 /-- Every chain is contained in a maximal chain. This generalizes Hausdorff's maximality principle.
 -/
 theorem chain.max_chain_of_chain {α r} {c : set α} (hc : zorn.chain r c) :
@@ -440,3 +417,27 @@ begin
   { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
   { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz }
 end
+
+
+lemma chain.total {α : Type u} [preorder α] {c : set α} (H : chain (≤) c) :
+  ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=
+λ x y, H.total_of_refl
+
+lemma chain.image {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) (f : α → β)
+  (h : ∀ x y, r x y → s (f x) (f y)) {c : set α} (hrc : chain r c) :
+  chain s (f '' c) :=
+λ x ⟨a, ha₁, ha₂⟩ y ⟨b, hb₁, hb₂⟩, ha₂ ▸ hb₂ ▸ λ hxy,
+  (hrc a ha₁ b hb₁ (mt (congr_arg f) $ hxy)).elim
+    (or.inl ∘ h _ _) (or.inr ∘ h _ _)
+
+end zorn
+
+lemma directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
+  (h : zorn.chain (f ⁻¹'o r) c) :
+  directed r (λ x : {a : α // a ∈ c}, f x) :=
+λ ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
+  (λ hab : a = b, by simp only [hab, exists_prop, and_self, subtype.exists];
+    exact ⟨b, hb, refl _⟩)
+  (λ hab, (h a ha b hb hab).elim
+    (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
+    (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))

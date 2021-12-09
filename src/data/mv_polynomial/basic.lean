@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import algebra.algebra.tower
+import ring_theory.adjoin.basic
 import data.finsupp.antidiagonal
 import algebra.monoid_algebra.basic
 import order.symm_diff
@@ -322,7 +322,7 @@ hom_eq_hom f (ring_hom.id _) hC hX p
 alg_hom.coe_ring_hom_injective (mv_polynomial.ring_hom_ext'
   (congr_arg alg_hom.to_ring_hom h₁) h₂)
 
-@[ext] lemma alg_hom_ext {A : Type*} [comm_semiring A] [algebra R A]
+@[ext] lemma alg_hom_ext {A : Type*} [semiring A] [algebra R A]
   {f g : mv_polynomial σ R →ₐ[R] A} (hf : ∀ i : σ, f (X i) = g (X i)) :
   f = g :=
 add_monoid_algebra.alg_hom_ext' (mul_hom_ext' (λ (x : σ), monoid_hom.ext_mnat (hf x)))
@@ -330,6 +330,16 @@ add_monoid_algebra.alg_hom_ext' (mul_hom_ext' (λ (x : σ), monoid_hom.ext_mnat 
 @[simp] lemma alg_hom_C (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R) (r : R) :
   f (C r) = C r :=
 f.commutes r
+
+@[simp] lemma adjoin_range_X : algebra.adjoin R (range (X : σ → mv_polynomial σ R)) = ⊤ :=
+begin
+  set S := algebra.adjoin R (range (X : σ → mv_polynomial σ R)),
+  refine top_unique (λ p hp, _), clear hp,
+  induction p using mv_polynomial.induction_on,
+  case h_C : { exact S.algebra_map_mem _ },
+  case h_add : p q hp hq { exact S.add_mem hp hq },
+  case h_X : p i hp { exact S.mul_mem hp (algebra.subset_adjoin $ mem_range_self _) }
+end
 
 @[ext] lemma linear_map_ext {M : Type*} [add_comm_monoid M] [module R M]
   {f g : mv_polynomial σ R →ₗ[R] M} (h : ∀ s, f ∘ₗ monomial s = g ∘ₗ monomial s) :

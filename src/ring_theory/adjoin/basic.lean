@@ -251,4 +251,12 @@ lemma map_adjoin (φ : A →ₐ[R] B) (s : set A) :
   (adjoin R s).map φ = adjoin R (φ '' s) :=
 (adjoin_image _ _ _).symm
 
+lemma adjoin_le_equalizer (φ₁ φ₂ : A →ₐ[R] B) {s : set A} (h : s.eq_on φ₁ φ₂) :
+  adjoin R s ≤ φ₁.equalizer φ₂ :=
+adjoin_le h
+
+lemma ext_of_adjoin_eq_top {s : set A} (h : adjoin R s = ⊤) ⦃φ₁ φ₂ : A →ₐ[R] B⦄
+  (hs : s.eq_on φ₁ φ₂) : φ₁ = φ₂ :=
+ext $ λ x, adjoin_le_equalizer φ₁ φ₂ hs $ h.symm ▸ trivial
+
 end alg_hom

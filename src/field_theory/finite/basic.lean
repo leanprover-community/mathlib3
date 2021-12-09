@@ -97,7 +97,7 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 
 end polynomial
 
-lemma prod_univ_units_id_eq_neg_one [field K] [fintype (units K)] :
+lemma prod_univ_units_id_eq_neg_one [comm_ring K] [is_domain K] [fintype (units K)] :
   (∏ x : units K, x) = (-1 : units K) :=
 begin
   classical,

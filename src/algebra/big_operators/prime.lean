@@ -40,3 +40,8 @@ end
 lemma nat.prime.dvd_finsupp_prod_iff {p : ℕ} {f: ℕ →₀ ℕ} (pp : prime p) :
   p ∣ f.prod pow ↔ ∃ a ∈ f.support, p ∣ a ^ (f a) :=
 nat.prime.dvd_finset_prod_iff pp (λ x, x ^ (f x))
+
+-- TODO: Generalise the types of `f` and `g`
+example {p : ℕ} {f: ℕ →₀ ℕ} {g : ℕ → ℕ → ℕ} (pp : prime p) :
+  p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=
+nat.prime.dvd_finset_prod_iff pp (λ x, g x (f x))

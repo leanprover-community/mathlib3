@@ -26,10 +26,8 @@ p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
 begin
   split,
   { apply @finset.induction_on α (λ S, p ∣ S.prod g → (∃ (a : α) (H : a ∈ S), p ∣ g a)),
-    { intros hp,
-      refine absurd _ not_prime_one,
-      simp only [nat.dvd_one, finset.prod_empty] at hp,
-      rwa hp at pp },
+    { simp only [nat.dvd_one, finset.prod_empty],
+      exact λ h, absurd ((h ▸ pp) : prime 1) not_prime_one },
     { intros a S haS h1 h2,
       rw prod_insert haS at h2,
       cases (prime.dvd_mul pp).mp h2,

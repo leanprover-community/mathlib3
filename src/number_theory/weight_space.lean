@@ -2459,13 +2459,158 @@ end -/
   (f : locally_constant U A) :
   ∃ (g : locally_constant X A), f.to_fun = (set.restrict g.to_fun U) := sorry -/
 
-lemma subspace_induces_locally_constant (f : locally_constant (units (zmod d) × units ℤ_[p]) A) :
-  ∃ (g : locally_constant (zmod d × ℤ_[p]) A),
-    f.to_fun = g.to_fun ∘ (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])) :=
+--example {A B : Type*} [monoid A] [monoid B] : units (A × B) ≃ units A × units B :=
+
+example {α : Type*} [topological_space α] {x : α} : ∃ {s : set α}, is_open s ∧ x ∈ s :=
 begin
   sorry,
 end
 
+example {A B : Type*} {U : set (A × B)} : set A := (prod.fst)'' U
+
+lemma embed_prod_open_range : is_open (set.range (embed_product ℤ_[p])) :=
+begin
+  rw is_open_iff_forall_mem_open, rintros x hx, simp at hx, cases hx with y hy,
+end
+#exit
+lemma is_open_coe : is_open_map (coe : units ℤ_[p] → ℤ_[p]) :=
+begin
+  change is_open_map (@units.val ℤ_[p] _), rintros U hU, rw is_open_induced_iff at hU,
+  rcases hU with ⟨t, ht, htU⟩, rw is_open_prod_iff at ht,
+  rw is_open_iff_forall_mem_open, rintros x hx, simp at hx,
+  rcases hx with ⟨y, hy, hyx⟩,
+  rcases ht (y : ℤ_[p]) (opposite.op ((y.inv) : ℤ_[p])) _ with ⟨u, v, hu, hv, memu, memv, h⟩,
+  { refine ⟨(units.val)'' ((embed_product ℤ_[p])⁻¹' u.prod v), _, _, _⟩,
+    { rw set.image_subset_image_iff _,
+      { rw ←htU, rw set.preimage_subset_preimage_iff _,
+        sorry,
+        sorry, },
+      sorry, },
+    sorry,
+    sorry, },
+  sorry,
+/-    refine ⟨u, _, hu, _⟩,
+    { rw ←htU, rintros z hz, simp,
+      sorry, },
+    sorry, },
+  sorry,
+
+  change is_open_map ((prod.fst ∘ (embed_product ℤ_[p]).to_fun)),
+  apply is_open_map.comp,
+  { exact is_open_map_fst, },
+  { apply inducing.is_open_map,
+    { exact {induced := _}, exact eq_of_nhds_eq_nhds (congr_fun rfl), },
+    { rw is_open_iff_forall_mem_open, rintros x hx,
+      rw set.mem_range at hx, cases hx with y hy,
+      set U' : set (units ℤ_[p]) := (units.coe_hom ℤ_[p])⁻¹'
+          ((padic_int.to_zmod_pow 0)⁻¹' {(y.val).appr 0}) with hU',
+      set V' : set (ℤ_[p] × ℤ_[p]ᵒᵖ) := (embed_product ℤ_[p])'' U' with hV',
+/-      set U : set (units ℤ_[p]) := (units.coe_hom ℤ_[p])⁻¹'
+        ((padic_int.to_zmod_pow 0)⁻¹' {(prod.fst x : ℤ_[p]).appr 0}) with hU,
+      set V : set (ℤ_[p] × ℤ_[p]ᵒᵖ) := (embed_product ℤ_[p])'' U with hV,-/
+      refine ⟨V', _, _, _⟩,
+      { rw hV', simp only [set.subset_univ, set.image_subset_iff, monoid_hom.to_fun_eq_coe,
+        set.preimage_range], },
+      { rw hV', rw hU', rw is_open_prod_iff, rintros a b hab,
+        simp only [set.mem_preimage, set.mem_image, units.coe_hom_apply,
+          set.mem_singleton_iff] at hab,
+        rcases hab with ⟨y, hy1, hy2⟩, rw embed_product at hy2, simp at hy2,
+        set U' : set (units ℤ_[p]) := (units.coe_hom ℤ_[p])⁻¹'
+          ((padic_int.to_zmod_pow 0)⁻¹' {(y.val).appr 0}) with hU',
+        set V' : set (ℤ_[p] × ℤ_[p]ᵒᵖ) := (embed_product ℤ_[p])'' U' with hV',
+        refine ⟨(prod.fst)'' V', (prod.snd)'' V', _, _, _, _, _⟩,
+        { rw hV', rw ←set.image_comp,
+          change is_open ((units.val)'' U'),
+          convert_to is_open ((to_zmod_pow 0) ⁻¹' {↑(y.val.appr 0)}),
+          { rw hU', apply set.image_preimage_eq_of_subset, intros z hz,
+            simp only [set.mem_preimage, set.mem_singleton_iff, units.val_eq_coe] at hz,
+            simp only [set.mem_range, units.val_eq_coe],
+            have uz : is_unit z,
+            { sorry, },
+            refine ⟨is_unit.unit uz, rfl⟩, },
+          { rw preimage_to_zmod_pow_eq_ball, apply metric.is_open_ball, }, },
+        sorry,
+        sorry,
+        sorry,
+        { convert_to V' ⊆ _, sorry,
+          rw hV',  rw hU', rw hU, rw ←hy1, convert set.subset.refl _, }, },
+      rw hV, simp, simp at hx, cases hx with y hy, refine ⟨y, _, hy⟩,
+      rw embed_product at hy, simp at hy, rw prod.ext_iff at hy, simp at hy, rw ←hy.1,
+      dsimp [to_zmod_pow, to_zmod_hom], refl, }, }, -/
+end
+#exit
+lemma subspace_induces_locally_constant [has_zero A] (f : locally_constant (units (zmod d) × units ℤ_[p]) A) :
+  ∃ (g : locally_constant (zmod d × ℤ_[p]) A),
+    f.to_fun = g.to_fun ∘ (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])) :=
+begin
+  haveI : ∀ (x : zmod d), decidable (is_unit x),
+  { intro x,
+    exact classical.dec (is_unit x), },
+  haveI : ∀ (x : ℤ_[p]), decidable (is_unit x),
+  { intro x,
+    exact classical.dec (is_unit x), },
+  set g := λ x : (zmod d × ℤ_[p]),
+    dite (is_unit x.1 ∧ is_unit x.2) (λ h, f (is_unit.unit h.1, is_unit.unit h.2)) (λ h, 0) with hg,
+  have : f.to_fun = g ∘ (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])),
+  sorry,
+  refine ⟨⟨g, _⟩, _⟩,
+  { --rw is_locally_constant.iff_exists_open,
+    rw is_locally_constant,
+    rintros s,
+    by_cases (0 : A) ∈ s,
+    sorry,
+    { have h1 := f.is_locally_constant s,
+      rw this at h1,
+      have h2 := @mul_equiv.prod_units (zmod d) (ℤ_[p]) _ _,
+      rw set.preimage_comp at h1,
+      /-have h3 : prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p]) =
+        units.coe_hom (zmod d × ℤ_[p]) ∘ h2.to_equiv.inv_fun, sorry,
+      rw h3 at h1, rw set.preimage_comp at h1,
+      have : is_open_map (units.coe_hom (zmod d × ℤ_[p])),
+      { intros U hU, sorry, }, -/
+      rw ←open_embedding.open_iff_preimage_open _ _ at h1,
+      { exact h1, },
+      { apply open_embedding.prod,
+        { refine open_embedding_of_continuous_injective_open _ _ _,
+          { exact units.continuous_coe, },
+          { exact units.ext, },
+          { rw is_open_map, rintros, exact is_open_discrete (coe '' U), }, },
+        { refine open_embedding_of_continuous_injective_open _ _ _,
+          { exact units.continuous_coe, },
+          { exact units.ext, },
+          { --change is_open_map ((prod.fst ∘ (embed_product ℤ_[p]).to_fun)),
+            rw is_open_map, rintros U hU, rw is_open_induced_iff at hU,
+            rcases hU with ⟨t, h3, h4⟩,
+--            apply is_open_map.comp,
+--            { exact is_open_map_fst, },
+            --rw embed_product, simp only,
+--            change is_open ((prod.fst ∘ (embed_product ℤ_[p]).to_fun)'' U),
+            rw ←h4,
+            rw set.image_comp,
+            refine is_open_prod_iff.mpr _,
+            rintros a b h',
+            rw is_open_prod_iff at h3,
+            simp at h',
+            rcases h' with ⟨z, hz1, hz2⟩,
+            rw hz2 at hz1,
+            rcases h3 a b hz1 with ⟨u, v, hu, hv, au, bv, h5⟩,
+            refine ⟨u, v, hu, hv, au, bv, _⟩,
+            intros y hy, simp,
+            apply set.subset.trans,
+            { exact h5, },
+
+            convert h3,
+            convert set.image_preimage_eq_of_subset _,
+
+
+            conv { congr, rw set.image_preimage_eq_of_subset, },
+
+            apply is_open_map_fst,
+             sorry, }, }, },
+      sorry, }, },
+  { rw this, },
+end
+#exit
 --generalize to units X
 instance is_this_even_true : compact_space (units (zmod d) × units ℤ_[p]) := sorry
 instance why_is_it_not_recognized : t2_space (units (zmod d) × units ℤ_[p]) := sorry

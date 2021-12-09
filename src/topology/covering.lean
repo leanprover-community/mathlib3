@@ -2,6 +2,7 @@ import topology.connected
 import topology.continuous_function.basic
 import topology.homotopy.fundamental_groupoid
 import category_theory.full_subcategory
+import topology.maps
 section for_mathlib
 
 /-lemma open_embedding_of_open_embedding_compose_injective {A B C : Type*}
@@ -31,6 +32,15 @@ variables {E E' X : Type u} [topological_space E] [topological_space E'] [topolo
 
 def evenly_covered (f : E → X) (U : set X) : Prop :=
 ∃ (α : Type u) (ι : (Σ a : α, U) → E), embedding ι ∧ set.range ι = f ⁻¹' U ∧ ∀ s, f (ι s) = s.2
+
+lemma evenly_covered_sub_evenly_covered (f : E → X) (U : set X) (V : set X)[V⊂U]
+ [evenly_covered f U]: evenly_covered f V:=
+ begin
+   cases _inst_5 with r hr,
+   cases hr with z hz,
+   --have t:(Σ (a : r), ↥V) → E:= λ x, z x,
+   sorry,
+ end
 
 -- not sure if we'll end up needing this lemma
 lemma evenly_covered.comp {f : E' → X} {g : E → E'} {U : set X}
@@ -73,5 +83,13 @@ infixr ` ↠ `:25 := covering_map -- shortcut: type `\rr-` or just type `\rr `
 instance : has_coe_to_fun (E ↠ X) (λ _, E → X) := ⟨λ q, q.to_fun⟩
 
 @[continuity] lemma continuous (q : E ↠ X) : continuous q := q.continuous_to_fun
+
+lemma covering_map_open (q:E↠ X): is_open_map q:=
+begin
+  intros U hU,
+  sorry,
+end
+lemma covering_map_quotient (q:E↠ X): quotient_map q :=
+ is_open_map.to_quotient_map (covering_map_open q) (continuous q) (q.surjective)
 
 end covering_map

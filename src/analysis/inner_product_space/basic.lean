@@ -1382,21 +1382,6 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
             h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
             neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
---/-- The inner product with a fixed left element, as a continuous linear map.  This can be upgraded
---to a continuous map which is jointly conjugate-linear in the left argument and linear in the right
---argument, once (TODO) conjugate-linear maps have been defined. -/
---def inner_right (v : E) : E →L[𝕜] 𝕜 :=
---linear_map.mk_continuous
---  { to_fun := λ w, ⟪v, w⟫,
---    map_add' := λ x y, inner_add_right,
---    map_smul' := λ c x, inner_smul_right }
---  ∥v∥
---  (by simpa using norm_inner_le_norm v)
---
---@[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
---
---@[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
-
 /-- The inner product as a sesquilinear map. -/
 def innerₛₗ : E →ₗ⋆[𝕜] E →ₗ[𝕜] 𝕜 :=
 linear_map.mk₂'ₛₗ _ _ (λ v w, ⟪v, w⟫) (λ _ _ _, inner_add_left) (λ _ _ _, inner_smul_left)

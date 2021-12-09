@@ -1382,10 +1382,11 @@ lemma minor_one_equiv [has_zero α] [has_one α] [decidable_eq m] [decidable_eq 
   (1 : matrix m m α).minor e e = 1 :=
 minor_one e e.injective
 
+@[simp]
 lemma minor_mul_equiv [fintype n] [fintype o] [semiring α] {p q : Type*}
   (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
-  (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
-minor_mul M N e₁ e₂ e₃ e₂.bijective
+  (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) = (M ⬝ N).minor e₁ e₃ :=
+(minor_mul M N e₁ e₂ e₃ e₂.bijective).symm
 
 lemma mul_minor_one [fintype n] [fintype o] [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l → o)
   (M : matrix m n α) : M ⬝ (1 : matrix o o α).minor e₁ e₂ = minor M id (e₁.symm ∘ e₂) :=
@@ -1393,7 +1394,7 @@ begin
   let A := M.minor id e₁.symm,
   have : M = A.minor id e₁,
   { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
-  rw [this, ←minor_mul_equiv],
+  rw [this, minor_mul_equiv],
   simp only [matrix.mul_one, minor_minor, function.comp.right_id, minor_id_id,
     equiv.symm_comp_self],
 end
@@ -1404,7 +1405,7 @@ begin
   let A := M.minor e₂.symm id,
   have : M = A.minor e₂ id,
   { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
-  rw [this, ←minor_mul_equiv],
+  rw [this, minor_mul_equiv],
   simp only [matrix.one_mul, minor_minor, function.comp.right_id, minor_id_id,
     equiv.symm_comp_self],
 end

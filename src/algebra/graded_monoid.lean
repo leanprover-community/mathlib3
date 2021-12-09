@@ -383,7 +383,7 @@ lemma set_like.is_homogeneous.mul [has_add ι] [has_mul R] {A : ι → S} [set_l
 | ⟨i, hi⟩ ⟨j, hj⟩ := ⟨i + j, set_like.has_graded_mul.mul_mem hi hj⟩
 
 /-- When `A` is a `set_like.graded_monoid A`, then the homogeneous elements forms a submonoid of `R`-/
-def homogeneous_submonoid {R : Type*} [monoid R] (A : ι → submonoid R) [set_like.graded_monoid A] : submonoid R :=
+def homogeneous_submonoid [add_monoid ι] [monoid R] [set_like.graded_monoid A] : submonoid R :=
 { carrier := { a | set_like.is_homogeneous A a },
   one_mem' := set_like.is_homogeneous_one A,
   mul_mem' := λ a b, set_like.is_homogeneous.mul }

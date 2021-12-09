@@ -235,6 +235,18 @@ lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 lemma eq_symm_apply {x y} : y = e.symm x ↔ e y = x := e.to_equiv.eq_symm_apply
 omit σ'
 
+lemma eq_comp_symm (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ →ₛₗ[σ₁₃] M₃) :
+  f = g.comp ↑e.symm ↔ f.comp ↑e = g := by {split; intro h; ext, simp [h], simp [←h]}
+
+lemma comp_symm_eq (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ →ₛₗ[σ₁₃] M₃) :
+  g.comp ↑e.symm = f ↔ g= f.comp ↑e := by {split; intro h; ext, simp [←h], simp [h]}
+
+lemma eq_symm_comp (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
+  f = ↑e.symm.comp g ↔ ↑e.comp f = g := by {split; intro h; ext, simp [h], simp [←h]}
+
+lemma symm_comp_eq (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
+  ↑e.symm.comp g = f ↔ g = ↑e.comp f := by {split; intro h; ext, simp [←h], simp [h]}
+
 @[simp] lemma refl_symm [module R M] : (refl R M).symm = linear_equiv.refl R M := rfl
 
 @[simp] lemma self_trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :

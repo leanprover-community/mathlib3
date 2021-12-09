@@ -302,11 +302,7 @@ lemma submodule_is_internal_iff_independent_and_supr_eq_top (A : ι → submodul
 /-! Now copy the lemmas for subgroup and submonoids. -/
 
 lemma add_submonoid_is_internal.independent {M : Type*} [add_comm_monoid M]
-<<<<<<< HEAD
-  (A : ι → add_submonoid M) (h : add_submonoid_is_internal A) :
-=======
   {A : ι → add_submonoid M} (h : add_submonoid_is_internal A) :
->>>>>>> graded_ring_dep_4
   complete_lattice.independent A :=
 complete_lattice.independent_of_dfinsupp_sum_add_hom_injective _ h.injective
 

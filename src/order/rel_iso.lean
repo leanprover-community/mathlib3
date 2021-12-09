@@ -790,25 +790,22 @@ begin
 end
 
 /-- Note that this goal could also be stated `(disjoint on f) a b` -/
-<<<<<<< HEAD
 lemma disjoint.comap_order_iso [semilattice_inf_bot α] [semilattice_inf_bot β] {a b : α}
   (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
-=======
 lemma disjoint.map_order_iso [semilattice_inf α] [order_bot α] [semilattice_inf β] [order_bot β]
   {a b : α} (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
->>>>>>> graded_ring_dep_4
+
+lemma disjoint.map_order_iso [semilattice_inf α] [order_bot α] [semilattice_inf β] [order_bot β]
+  {a b : α} (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
 begin
   rw [disjoint, ←f.map_inf, ←f.map_bot],
   exact f.monotone ha,
 end
 
-<<<<<<< HEAD
-=======
 @[simp] lemma disjoint_map_order_iso_iff [semilattice_inf α] [order_bot α] [semilattice_inf β]
   [order_bot β] {a b : α} (f : α ≃o β) : disjoint (f a) (f b) ↔ disjoint a b :=
 ⟨λ h, f.symm_apply_apply a ▸ f.symm_apply_apply b ▸ h.map_order_iso f.symm, λ h, h.map_order_iso f⟩
 
->>>>>>> graded_ring_dep_4
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
   (f : α ↪o β) (x y : α) :
   f x ⊔ f y ≤ f (x ⊔ y) :=

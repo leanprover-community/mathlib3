@@ -259,7 +259,7 @@ begin
     rw ((exist_integer_multiples_of_finset M s).some_spec x x.prop).some_spec,
     exact set.mem_image_of_mem _ x.prop },
   { rintro ⟨x, hx, rfl⟩,
-    refine ⟨_, ⟨⟨x, hx⟩, s.mem_attach _, rfl⟩,
+    exact ⟨_, ⟨⟨x, hx⟩, s.mem_attach _, rfl⟩,
       ((exist_integer_multiples_of_finset M s).some_spec x hx).some_spec⟩ }
 end
 

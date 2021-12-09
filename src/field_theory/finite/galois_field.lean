@@ -144,7 +144,7 @@ by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : polynomial (
 variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
 
 theorem splits_X_pow_card_sub_X : splits (algebra_map (zmod p) K) (X ^ fintype.card K - X) :=
-by rw [←splits_id_iff_splits, map_sub, map_pow, map_X, splits_iff_card_roots,
+by rw [←splits_id_iff_splits, polynomial.map_sub, map_pow, map_X, splits_iff_card_roots,
   finite_field.roots_X_pow_card_sub_X, ←finset.card_def, finset.card_univ,
   finite_field.X_pow_card_sub_X_nat_degree_eq]; exact fintype.one_lt_card
 
@@ -157,7 +157,7 @@ lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
     { rintro rfl, rw [pow_zero, fintype.card_eq_one_iff_nonempty_unique] at h,
       cases h, resetI, exact false_of_nontrivial_of_subsingleton K },
     refine algebra.eq_top_iff.mpr (λ x, algebra.subset_adjoin _),
-    rw [map_sub, map_pow, map_X, finset.mem_coe, multiset.mem_to_finset, mem_roots,
+    rw [polynomial.map_sub, map_pow, map_X, finset.mem_coe, multiset.mem_to_finset, mem_roots,
         is_root.def, eval_sub, eval_pow, eval_X, ← h, finite_field.pow_card, sub_self],
     exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out _)
   end }

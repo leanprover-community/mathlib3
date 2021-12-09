@@ -44,14 +44,14 @@ def drop (n : nat) (s : stream α) : stream α :=
 λ i, s (i+n)
 
 /-- `n`-th element of a stream. -/
-def nth (n : nat) (s : stream α) : α :=
+def nth (s : stream α) (n : ℕ) : α :=
 s n
 
 /-- Proposition saying that all elements of a stream satisfy a predicate. -/
-def all (p : α → Prop) (s : stream α) := ∀ n, p (nth n s)
+def all (p : α → Prop) (s : stream α) := ∀ n, p (nth s n)
 
 /-- Proposition saying that at least one element of a stream satisfies a predicate. -/
-def any (p : α → Prop) (s : stream α) := ∃ n, p (nth n s)
+def any (p : α → Prop) (s : stream α) := ∃ n, p (nth s n)
 
 /-- `a ∈ s` means that `a = stream.nth n s` for some `n`. -/
 instance : has_mem α (stream α) :=
@@ -59,12 +59,12 @@ instance : has_mem α (stream α) :=
 
 /-- Apply a function `f` to all elements of a stream `s`. -/
 def map (f : α → β) (s : stream α) : stream β :=
-λ n, f (nth n s)
+λ n, f (nth s n)
 
 /-- Zip two streams using a binary operation:
 `stream.nth n (stream.zip f s₁ s₂) = f (stream.nth s₁) (stream.nth s₂)`. -/
 def zip (f : α → β → δ) (s₁ : stream α) (s₂ : stream β) : stream δ :=
-λ n, f (nth n s₁) (nth n s₂)
+λ n, f (nth s₁ n) (nth s₂ n)
 
 /-- The constant stream: `stream.nth n (stream.const a) = a`. -/
 def const (a : α) : stream α :=
@@ -155,7 +155,7 @@ const a
 
 /-- Given a stream of functions and a stream of values, apply `n`-th function to `n`-th value. -/
 def apply (f : stream (α → β)) (s : stream α) : stream β :=
-λ n, (nth n f) (nth n s)
+λ n, (nth f n) (nth s n)
 
 infix `⊛`:75 := apply  -- input as \o*
 

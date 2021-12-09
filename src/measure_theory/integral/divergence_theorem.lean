@@ -17,7 +17,7 @@ Let `E` be a complete normed space with second countably topology. If `f : ℝ�
 differentiable on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, with derivative
 `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on `[a, b]`,
 where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the sum of
-integrals of `f` over the faces of `[a, b]`, taken with appropriat signs. Moreover, the same is true
+integrals of `f` over the faces of `[a, b]`, taken with appropriate signs. Moreover, the same is true
 if the function is not differentiable but continuous at countably many points of `[a, b]`.
 
 Once we prove the general theorem, we deduce corollaries for functions `ℝ → E` and pairs of
@@ -265,8 +265,11 @@ begin
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi.symm }
 end
 
-/-- **Divergence theorem** for functions on the plane. It is formulated in terms of two functions
-`f g : ℝ × ℝ → E` and an integral over `Icc a b`, where `a b : ℝ × ℝ`, `a ≤ b`.
+/-- **Divergence theorem** for functions on the plane along rectangles. It is formulated in terms of two functions
+`f g : ℝ × ℝ → E` and an integral over `Icc a b = [a.1, b.1] ×[a.2, b.2]`, where `a b : ℝ × ℝ`, `a ≤ b`. When thinking of
+`f` and `g` as the two coordinates of a single function `F : ℝ × ℝ → E × E` and when `E = ℝ`, this is the usual statement
+that the integral of the divergence of `F` inside the rectangle equals the integral of the normal derivative of `F` along
+the boundary.
 
 See also `measure_theory.integral2_divergence_prod_of_has_fderiv_within_at_off_countable` for a
 version that does not assume `a ≤ b` and uses iterated interval integral instead of the integral

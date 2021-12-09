@@ -2109,6 +2109,27 @@ begin
   exact of_mul_image_zpowers_eq_zmultiples_of_mul,
 end
 
+namespace monoid_hom
+
+variables {G' : Type*} [group G']
+
+/-- The `monoid_hom` from the comap of a subgroup to itself. -/
+@[to_additive "the `add_monoid_hom` from the comap of an additive subgroup to itself.", simps]
+def subgroup_comap (f : G →* G') (H' : subgroup G') : H'.comap f →* H' :=
+f.submonoid_comap H'.to_submonoid
+
+/-- The `monoid_hom` from a subgroup to its image. -/
+@[to_additive "the `add_monoid_hom` from an additive subgroup to its image", simps]
+def subgroup_map (f : G →* G') (H : subgroup G) : H →* H.map f :=
+f.submonoid_map H.to_submonoid
+
+@[to_additive]
+lemma subgroup_map_surjective (f : G →* G') (H : subgroup G) :
+  function.surjective (f.subgroup_map H) :=
+f.submonoid_map_surjective H.to_submonoid
+
+end monoid_hom
+
 namespace mul_equiv
 
 variables {H K : subgroup G}

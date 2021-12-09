@@ -3,7 +3,7 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov, Yaël Dillies
 -/
-import data.finset.lattice
+import combinatorics.set_family.slice
 
 /-!
 # Shadows
@@ -39,7 +39,7 @@ open finset nat
 variables {α : Type*}
 
 namespace finset
-variables [decidable_eq α] {𝒜 : finset (finset α)} {s t : finset α} {a : α} {k : ℕ}
+variables [decidable_eq α] {𝒜 : finset (finset α)} {s t : finset α} {a : α} {k r : ℕ}
 
 /-- The shadow of a set family `𝒜` is all sets we can get by removing one element from any set in
 `𝒜`, and the (`k` times) iterated shadow (`shadow^[k]`) is all sets we can get by removing `k`
@@ -59,6 +59,15 @@ localized "notation `∂ `:90 := finset.shadow" in finset_family
 get `s`. -/
 lemma mem_shadow_iff : s ∈ ∂ 𝒜 ↔ ∃ t ∈ 𝒜, ∃ a ∈ t, erase t a = s :=
 by simp only [shadow, mem_sup, mem_image]
+
+/-- The shadow of a family of `r`-sets is a family of `r - 1`-sets. -/
+lemma sized.shadow (h𝒜 : 𝒜.sized r) : (∂ 𝒜).sized (r - 1) :=
+begin
+  intros A h,
+  obtain ⟨A, hA, i, hi, rfl⟩ := mem_shadow_iff.1 h,
+  rw [card_erase_of_mem hi, h𝒜 hA],
+  refl,
+end
 
 lemma erase_mem_shadow (hs : s ∈ 𝒜) (ha : a ∈ s) : erase s a ∈ ∂ 𝒜 :=
 mem_shadow_iff.2 ⟨s, hs, a, ha, rfl⟩

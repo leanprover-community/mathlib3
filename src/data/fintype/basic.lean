@@ -1272,9 +1272,13 @@ fintype.of_equiv _ sym.sym_equiv_sym'.symm
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
 
+lemma finset.mem_powerset_len_univ_iff [fintype α] {s : finset α} {k : ℕ} :
+  s ∈ powerset_len k (univ : finset α) ↔ card s = k :=
+mem_powerset_len.trans $ and_iff_right $ subset_univ _
+
 @[simp] lemma finset.univ_filter_card_eq (α : Type*) [fintype α] (k : ℕ) :
   (finset.univ : finset (finset α)).filter (λ s, s.card = k) = finset.univ.powerset_len k :=
-by { ext, simp [finset.mem_powerset_len] }
+by { ext, simp [finset.mem_powerset_len_univ_iff] }
 
 @[simp] lemma fintype.card_finset_len [fintype α] (k : ℕ) :
   fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=

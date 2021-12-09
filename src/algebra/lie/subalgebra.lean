@@ -233,8 +233,8 @@ by { rw ← coe_to_submodule_eq_iff, exact (K : submodule R L).range_subtype, }
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
 def map : lie_subalgebra R L₂ :=
-{ lie_mem' := λ x y hx hy, by {
-    erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
+{ lie_mem' := λ x y hx hy, by
+  { erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
     erw submodule.mem_map,
     exact ⟨⁅x', y'⁆, K.lie_mem hx' hy', f.map_lie x' y'⟩, },

@@ -3,7 +3,8 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Frédéric Dupuis, Heather Macbeth
 -/
-import analysis.normed_space.basic
+import analysis.normed.group.basic
+import topology.algebra.module
 
 /-!
 # (Semi-)linear isometries
@@ -83,6 +84,17 @@ f.to_linear_map.map_smul c x
 
 protected lemma isometry : isometry f :=
 f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
+
+@[simp] lemma is_complete_image_iff {s : set E} : is_complete (f '' s) ↔ is_complete s :=
+is_complete_image_iff f.isometry.uniform_inducing
+
+lemma is_complete_map_iff [ring_hom_surjective σ₁₂] {p : submodule R E} :
+  is_complete (p.map f.to_linear_map : set E₂) ↔ is_complete (p : set E) :=
+f.is_complete_image_iff
+
+instance complete_space_map [ring_hom_surjective σ₁₂] (p : submodule R E) [complete_space p] :
+  complete_space (p.map f.to_linear_map) :=
+(f.is_complete_map_iff.2 $ complete_space_coe_iff_is_complete.1 ‹_›).complete_space_coe
 
 @[simp] lemma dist_map (x y : E) : dist (f x) (f y) = dist x y := f.isometry.dist_eq x y
 @[simp] lemma edist_map (x y : E) : edist (f x) (f y) = edist x y := f.isometry.edist_eq x y
@@ -305,8 +317,10 @@ omit σ₁₃ σ₂₁ σ₃₁ σ₃₂
 
 @[simp] lemma trans_refl : e.trans (refl R₂ E₂) = e := ext $ λ x, rfl
 @[simp] lemma refl_trans : (refl R E).trans e = e := ext $ λ x, rfl
-@[simp] lemma trans_symm : e.trans e.symm = refl R E := ext e.symm_apply_apply
-@[simp] lemma symm_trans : e.symm.trans e = refl R₂ E₂ := ext e.apply_symm_apply
+@[simp] lemma self_trans_symm : e.trans e.symm = refl R E := ext e.symm_apply_apply
+@[simp] lemma symm_trans_self : e.symm.trans e = refl R₂ E₂ := ext e.apply_symm_apply
+@[simp] lemma symm_comp_self : e.symm ∘ e = id := funext e.symm_apply_apply
+@[simp] lemma self_comp_symm : e ∘ e.symm = id := e.symm.symm_comp_self
 
 include σ₁₃ σ₂₁ σ₃₂ σ₃₁
 @[simp] lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
@@ -326,7 +340,7 @@ instance : group (E ≃ₗᵢ[R] E) :=
   one_mul := trans_refl,
   mul_one := refl_trans,
   mul_assoc := λ _ _ _, trans_assoc _ _ _,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 @[simp] lemma coe_one : ⇑(1 : E ≃ₗᵢ[R] E) = id := rfl
 @[simp] lemma coe_mul (e e' : E ≃ₗᵢ[R] E) : ⇑(e * e') = e ∘ e' := rfl
@@ -395,6 +409,10 @@ e.isometry.comp_continuous_on_iff
   continuous (e ∘ f) ↔ continuous f :=
 e.isometry.comp_continuous_iff
 
+instance complete_space_map (p : submodule R E) [complete_space p] :
+  complete_space (p.map (e.to_linear_equiv : E →ₛₗ[σ₁₂] E₂)) :=
+e.to_linear_isometry.complete_space_map p
+
 include σ₂₁
 /-- Construct a linear isometry equiv from a surjective linear isometry. -/
 noncomputable def of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂)
@@ -414,5 +432,28 @@ variables {R}
 @[simp] lemma coe_neg : (neg R : E → E) = λ x, -x := rfl
 
 @[simp] lemma symm_neg : (neg R : E ≃ₗᵢ[R] E).symm = neg R := rfl
+
+variables (R E E₂ E₃)
+
+/-- The natural equivalence `(E × E₂) × E₃ ≃ E × (E₂ × E₃)` is a linear isometry. -/
+noncomputable def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
+{ to_fun    := equiv.prod_assoc E E₂ E₃,
+  inv_fun   := (equiv.prod_assoc E E₂ E₃).symm,
+  map_add'  := by simp,
+  map_smul' := by simp,
+  norm_map' :=
+    begin
+      rintros ⟨⟨e, f⟩, g⟩,
+      simp only [linear_equiv.coe_mk, equiv.prod_assoc_apply, prod.semi_norm_def, max_assoc],
+    end,
+  .. equiv.prod_assoc E E₂ E₃, }
+
+@[simp] lemma coe_prod_assoc [module R E₂] [module R E₃] :
+  (prod_assoc R E E₂ E₃ : (E × E₂) × E₃ → E × E₂ × E₃) = equiv.prod_assoc E E₂ E₃ :=
+rfl
+
+@[simp] lemma coe_prod_assoc_symm [module R E₂] [module R E₃] :
+  ((prod_assoc R E E₂ E₃).symm : E × E₂ × E₃ → (E × E₂) × E₃) = (equiv.prod_assoc E E₂ E₃).symm :=
+rfl
 
 end linear_isometry_equiv

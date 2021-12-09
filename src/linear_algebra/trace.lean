@@ -28,7 +28,9 @@ namespace linear_map
 
 open_locale big_operators
 open_locale matrix
+open finite_dimensional
 
+section
 variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
 variables {ι : Type w} [decidable_eq ι] [fintype ι]
 variables {κ : Type*} [decidable_eq κ] [fintype κ]
@@ -84,16 +86,44 @@ by { rw [trace, dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
 
 theorem trace_eq_matrix_trace (f : M →ₗ[R] M) :
   trace R M f = matrix.trace ι R R (linear_map.to_matrix b b f) :=
-if hR : nontrivial R
-then by haveI := hR;
-        rw [trace_eq_matrix_trace_of_finset R b.reindex_finset_range,
-            ← trace_aux_def, ← trace_aux_def, trace_aux_eq R b]
-else @subsingleton.elim _ (not_nontrivial_iff_subsingleton.mp hR) _ _
+by rw [trace_eq_matrix_trace_of_finset R b.reindex_finset_range,
+    ← trace_aux_def, ← trace_aux_def, trace_aux_eq R b]
 
 theorem trace_mul_comm (f g : M →ₗ[R] M) :
   trace R M (f * g) = trace R M (g * f) :=
 if H : ∃ (s : finset M), nonempty (basis s R M) then let ⟨s, ⟨b⟩⟩ := H in
 by { simp_rw [trace_eq_matrix_trace R b, linear_map.to_matrix_mul], apply matrix.trace_mul_comm }
 else by rw [trace, dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
+
+/-- The trace of an endomorphism is invariant under conjugation -/
+@[simp]
+theorem trace_conj (g : M →ₗ[R] M) (f : units (M →ₗ[R] M)) :
+  trace R M (↑f * g * ↑f⁻¹) = trace R M g :=
+by { rw trace_mul_comm, simp }
+
+/-- The trace of an endomorphism is invariant under conjugation -/
+@[simp]
+theorem trace_conj' (f g : M →ₗ[R] M) [invertible f] :
+  trace R M (f * g * ⅟ f) = trace R M g :=
+by { rw trace_mul_comm, simp }
+
+end
+
+section
+variables (R : Type u) [field R] {M : Type v} [add_comm_group M] [module R M]
+
+/-- The trace of the identity endomorphism is the dimension of the vector space -/
+@[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=
+begin
+  classical,
+  by_cases H : ∃ (s : finset M), nonempty (basis s R M),
+  { obtain ⟨s, ⟨b⟩⟩ := H,
+    rw [trace_eq_matrix_trace R b, to_matrix_one, finrank_eq_card_finset_basis b],
+    simp, },
+  { suffices : (finrank R M : R) = 0, { simp [this, trace, H], },
+    simp [finrank_eq_zero_of_not_exists_basis H], },
+end
+
+end
 
 end linear_map

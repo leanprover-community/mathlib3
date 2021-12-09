@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
+import data.zmod.basic
 import number_theory.padics.padic_integers
 
 /-!
@@ -119,8 +120,6 @@ end
 lemma norm_sub_mod_part (h : ∥(r : ℚ_[p])∥ ≤ 1) : ∥(⟨r,h⟩ - mod_part p r : ℤ_[p])∥ < 1 :=
 begin
   let n := mod_part p r,
-  by_cases aux : (⟨r,h⟩ - n : ℤ_[p]) = 0,
-  { rw [aux, norm_zero], exact zero_lt_one, },
   rw [norm_lt_one_iff_dvd, ← (is_unit_denom r h).dvd_mul_right],
   suffices : ↑p ∣ r.num - n * r.denom,
   { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,

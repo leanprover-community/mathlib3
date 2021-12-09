@@ -97,13 +97,19 @@ To differentiate the statements from the corresponding statements in (unconditio
 complete linear orders, we prefix Inf and Sup by a c everywhere. The same statements should
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
+@[ancestor conditionally_complete_linear_order has_bot]
 class conditionally_complete_linear_order_bot (α : Type*)
-  extends conditionally_complete_linear_order α, order_bot α :=
+  extends conditionally_complete_linear_order α, has_bot α :=
+(bot_le : ∀ x : α, ⊥ ≤ x)
 (cSup_empty : Sup ∅ = ⊥)
 
-/- A complete lattice is a conditionally complete lattice, as there are no restrictions
-on the properties of Inf and Sup in a complete lattice.-/
+@[priority 100]  -- see Note [lower instance priority]
+instance conditionally_complete_linear_order_bot.to_order_bot
+  [h : conditionally_complete_linear_order_bot α] : order_bot α :=
+{ ..h }
 
+/-- A complete lattice is a conditionally complete lattice, as there are no restrictions
+on the properties of Inf and Sup in a complete lattice.-/
 @[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
   conditionally_complete_lattice α :=
@@ -516,18 +522,19 @@ theorem cinfi_eq_of_forall_ge_of_forall_gt_exists_lt [nonempty ι] {f : ι → �
 
 /-- Nested intervals lemma: if `f` is a monotone sequence, `g` is an antitone sequence, and
 `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
-lemma monotone.csupr_mem_Inter_Icc_of_antitone [nonempty β] [semilattice_sup β]
+lemma monotone.csupr_mem_Inter_Icc_of_antitone [semilattice_sup β]
   {f g : β → α} (hf : monotone f) (hg : antitone g) (h : f ≤ g) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 begin
-  inhabit β,
-  refine mem_Inter.2 (λ n, ⟨le_csupr ⟨g $ default β, forall_range_iff.2 $ λ m, _⟩ _,
-    csupr_le $ λ m, _⟩); exact hf.forall_le_of_antitone hg h _ _
+  refine mem_Inter.2 (λ n, _),
+  haveI : nonempty β := ⟨n⟩,
+  have : ∀ m, f m ≤ g n := λ m, hf.forall_le_of_antitone hg h m n,
+  exact ⟨le_csupr ⟨g $ n, forall_range_iff.2 this⟩ _, csupr_le this⟩
 end
 
 /-- Nested intervals lemma: if `[f n, g n]` is an antitone sequence of nonempty
 closed intervals, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
-lemma csupr_mem_Inter_Icc_of_antitone_Icc [nonempty β] [semilattice_sup β]
+lemma csupr_mem_Inter_Icc_of_antitone_Icc [semilattice_sup β]
   {f g : β → α} (h : antitone (λ n, Icc (f n) (g n))) (h' : ∀ n, f n ≤ g n) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 monotone.csupr_mem_Inter_Icc_of_antitone (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).1)
@@ -994,13 +1001,6 @@ noncomputable instance with_bot.conditionally_complete_lattice
   ..with_bot.has_Sup,
   ..with_bot.has_Inf }
 
-/-- Adding a bottom and a top to a conditionally complete lattice gives a bounded lattice-/
-noncomputable instance with_top.with_bot.bounded_lattice {α : Type*}
-  [conditionally_complete_lattice α] : bounded_lattice (with_top (with_bot α)) :=
-{ ..with_top.order_bot,
-  ..with_top.order_top,
-  ..conditionally_complete_lattice.to_lattice _ }
-
 noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   [conditionally_complete_lattice α] : complete_lattice (with_top (with_bot α)) :=
 { le_Sup := λ S a haS, (with_top.is_lub_Sup' ⟨a, haS⟩).1 haS,
@@ -1027,7 +1027,8 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   le_Inf := λ S a haS, (with_top.is_glb_Inf' ⟨a, haS⟩).2 haS,
   ..with_top.has_Inf,
   ..with_top.has_Sup,
-  ..with_top.with_bot.bounded_lattice }
+  ..with_top.bounded_order,
+  ..with_top.lattice }
 
 noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
   [conditionally_complete_linear_order α] : complete_linear_order (with_top (with_bot α)) :=

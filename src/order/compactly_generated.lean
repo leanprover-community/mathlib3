@@ -3,11 +3,11 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import data.finset.order
+import tactic.tfae
 import order.atoms
 import order.order_iso_nat
 import order.zorn
-import tactic.tfae
+import data.finset.order
 
 /-!
 # Compactness properties for complete lattices
@@ -76,22 +76,12 @@ theorem is_compact_element_iff_le_of_directed_Sup_le (k : α) :
 begin
   classical,
   split,
-  { by_cases hbot : k = ⊥,
-    -- Any nonempty directed set certainly has sup above ⊥
-    { rintros _ _ ⟨x, hx⟩ _ _, use x, by simp only [hx, hbot, bot_le, and_self], },
-    { intros hk s hne hdir hsup,
-      obtain ⟨t, ht⟩ := hk s hsup,
-      -- If t were empty, its sup would be ⊥, which is not above k ≠ ⊥.
-      have tne : t.nonempty,
-      { by_contradiction n,
-        rw [finset.nonempty_iff_ne_empty, not_not] at n,
-        simp only [n, true_and, set.empty_subset, finset.coe_empty,
-          finset.sup_empty, le_bot_iff] at ht,
-        exact absurd ht hbot, },
-      -- certainly every element of t is below something in s, since ↑t ⊆ s.
-      have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, by refl⟩,
-      obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
-      exact ⟨x, ⟨hxs, le_trans ht.right hsupx⟩⟩, }, },
+  { intros hk s hne hdir hsup,
+    obtain ⟨t, ht⟩ := hk s hsup,
+    -- certainly every element of t is below something in s, since ↑t ⊆ s.
+    have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, le_rfl⟩,
+    obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
+    exact ⟨x, ⟨hxs, le_trans ht.right hsupx⟩⟩, },
   { intros hk s hsup,
     -- Consider the set of finite joins of elements of the (plain) set s.
     let S : set α := { x | ∃ t : finset α, ↑t ⊆ s ∧ x = t.sup id },
@@ -373,7 +363,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
 end⟩
 
 lemma coatomic_of_top_compact (h : is_compact_element (⊤ : α)) : is_coatomic α :=
-(@order_iso.Iic_top α _).is_coatomic_iff.mp (Iic_coatomic_of_compact_element h)
+(@order_iso.Iic_top α _ _).is_coatomic_iff.mp (Iic_coatomic_of_compact_element h)
 
 end complete_lattice
 

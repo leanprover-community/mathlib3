@@ -129,6 +129,10 @@ end galois_connection
 
 /-! ### Union and intersection over an indexed family of sets -/
 
+instance : order_top (set α) :=
+{ top := univ,
+  le_top := by simp }
+
 @[congr] theorem Union_congr_Prop {p q : Prop} {f₁ : p → set α} {f₂ : q → set α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Union f₁ = Union f₂ :=
 supr_congr_Prop pq f
@@ -823,6 +827,9 @@ begin
   { intro h, cases x with i a, exact ⟨i, a, h, rfl⟩ }
 end
 
+lemma sigma.univ (X : α → Type*) : (set.univ : set (Σ a, X a)) = ⋃ a, range (sigma.mk a) :=
+set.ext $ λ x, iff_of_true trivial ⟨range (sigma.mk x.1), set.mem_range_self _, x.2, sigma.eta x⟩
+
 lemma sUnion_mono {s t : set (set α)} (h : s ⊆ t) : (⋃₀ s) ⊆ (⋃₀ t) :=
 sUnion_subset $ λ t' ht', subset_sUnion_of_mem $ h ht'
 
@@ -1424,6 +1431,12 @@ inf_right _ h
 lemma inter_right' (u : set α) (h : disjoint s t) : disjoint s (u ∩ t) :=
 inf_right' _ h
 
+lemma subset_left_of_subset_union (h : s ⊆ t ∪ u) (hac : disjoint s u) : s ⊆ t :=
+hac.left_le_of_le_sup_right h
+
+lemma subset_right_of_subset_union (h : s ⊆ t ∪ u) (hab : disjoint s t) : s ⊆ u :=
+hab.left_le_of_le_sup_left h
+
 lemma preimage {α β} (f : α → β) {s t : set β} (h : disjoint s t) : disjoint (f ⁻¹' s) (f ⁻¹' t) :=
 λ x hx, h hx
 
@@ -1500,6 +1513,14 @@ by rw [disjoint_singleton_left, mem_singleton_iff]
 theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : set γ}
   (h : ∀ b ∈ s, ∀ c ∈ t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintro a ⟨⟨b, hb, eq⟩, c, hc, rfl⟩; exact h b hb c hc eq
+
+lemma disjoint_image_of_injective {f : α → β} (hf : injective f) {s t : set α}
+  (hd : disjoint s t) : disjoint (f '' s) (f '' t) :=
+disjoint_image_image $ λ x hx y hy, hf.ne $ λ H, set.disjoint_iff.1 hd ⟨hx, H.symm ▸ hy⟩
+
+lemma disjoint_preimage {s t : set β} (hd : disjoint s t) (f : α → β) :
+  disjoint (f ⁻¹' s) (f ⁻¹' t) :=
+λ x hx, hd hx
 
 lemma preimage_eq_empty {f : α → β} {s : set β} (h : disjoint s (range f)) :
   f ⁻¹' s = ∅ :=

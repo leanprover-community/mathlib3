@@ -110,8 +110,8 @@ by simpa only [disjoint.comm] using @supr_disjoint_iff _ _ _ a f
 end complete_distrib_lattice
 
 @[priority 100] -- see Note [lower instance priority]
-instance complete_distrib_lattice.bounded_distrib_lattice [d : complete_distrib_lattice α] :
-  bounded_distrib_lattice α :=
+instance complete_distrib_lattice.to_distrib_lattice [d : complete_distrib_lattice α] :
+  distrib_lattice α :=
 { le_sup_inf := λ x y z, by rw [← Inf_pair, ← Inf_pair, sup_Inf_eq, ← Inf_image, set.image_pair],
   ..d }
 

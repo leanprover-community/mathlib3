@@ -227,20 +227,19 @@ begin
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
 end
 
-lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) (x : adjoin R s) :
-    ∃ n : ℕ, (r ^ n • x : A) ∈ adjoin R (r • s) :=
+lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) {x : A} (hx : x ∈ adjoin R s) :
+    ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ adjoin R (r • s) :=
 begin
-  rcases x with ⟨x, hx⟩,
-  rw subtype.coe_mk,
   change x ∈ (adjoin R s).to_submodule at hx,
   rw [adjoin_eq_span, finsupp.mem_span_iff_total] at hx,
   rcases hx with ⟨l, rfl : l.sum (λ (i : submonoid.closure s) (c : R), c • ↑i) = x⟩,
-  choose n₁ n₂ using submonoid.pow_smul_mem_closure_smul r s,
+  choose n₁ n₂ using (λ x : submonoid.closure s, submonoid.pow_smul_mem_closure_smul r s x.prop),
   use l.support.sup n₁,
+  intros n hn,
   rw finsupp.smul_sum,
   refine (adjoin R (r • s)).to_submodule.sum_mem _,
   intros a ha,
-  have : l.support.sup n₁ ≥ n₁ a := finset.le_sup ha,
+  have : n ≥ n₁ a := le_trans (finset.le_sup ha) hn,
   dsimp only,
   rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul, smul_smul _ (l a), mul_comm,
     ← smul_smul, adjoin_eq_span],

@@ -252,8 +252,14 @@ lemma self_mem_segment_sub_add [invertible (2 : 𝕜)] (x y : E) :
   x ∈ [x-y -[𝕜] x+y] :=
 begin
   convert @midpoint_mem_segment 𝕜 _ _ _ _ _ _ _,
-  rw [sub_eq_add_neg, ← vadd_eq_add, ← vadd_eq_add, ← midpoint_vadd_midpoint, vadd_eq_add,
-      midpoint_self, midpoint_comm, midpoint_neg, add_zero]
+  rw midpoint_sub_add
+end
+
+lemma self_mem_segment_add_sub [invertible (2 : 𝕜)] (x y : E) :
+  x ∈ [x+y -[𝕜] x-y] :=
+begin
+  convert @midpoint_mem_segment 𝕜 _ _ _ _ _ _ _,
+  rw midpoint_add_sub
 end
 
 end add_comm_group

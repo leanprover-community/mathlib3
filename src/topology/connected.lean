@@ -1067,27 +1067,37 @@ section connected_component_setoid
 def connected_component_setoid (α : Type*) [topological_space α] : setoid α :=
 ⟨λ x y, connected_component x = connected_component y,
   ⟨λ x, by trivial, λ x y h1, h1.symm, λ x y z h1 h2, h1.trans h2⟩⟩
--- see Note [lower instance priority]
-local attribute [instance, priority 100] connected_component_setoid
-
-lemma connected_component_rel_iff {x y : α} : ⟦x⟧ = ⟦y⟧ ↔
-  connected_component x = connected_component y :=
-⟨λ h, quotient.exact h, λ h, quotient.sound h⟩
-
-lemma connected_component_nrel_iff {x y : α} : ⟦x⟧ ≠ ⟦y⟧ ↔
-  connected_component x ≠ connected_component y :=
-by { rw not_iff_not, exact connected_component_rel_iff }
 
 /-- The quotient of a space by its connected components -/
 def connected_components (α : Type u) [topological_space α] :=
-  quotient (connected_component_setoid α)
+quotient (connected_component_setoid α)
 
-instance [inhabited α] : inhabited (connected_components α) := ⟨quotient.mk (default _)⟩
-instance connected_components.topological_space : topological_space (connected_components α) :=
-  quotient.topological_space
+instance : has_coe_t α (connected_components α) := ⟨quotient.mk'⟩
 
-lemma continuous.image_eq_of_equiv {β : Type*} [topological_space β] [totally_disconnected_space β]
-  {f : α → β} (h : continuous f) (a b : α) (hab : a ≈ b) : f a = f b :=
+namespace connected_components
+
+@[simp] lemma coe_eq_coe {x y : α} :
+  (x : connected_components α) = y ↔ connected_component x = connected_component y :=
+quotient.eq'
+
+lemma coe_ne_coe {x y : α} :
+  (x : connected_components α) ≠ y ↔ connected_component x ≠ connected_component y :=
+not_congr coe_eq_coe
+
+instance [inhabited α] : inhabited (connected_components α) := ⟨↑(default α)⟩
+
+instance : topological_space (connected_components α) :=
+quotient.topological_space
+
+lemma surjective_coe : surjective (coe : α → connected_components α) :=
+surjective_quot_mk _
+
+end connected_components
+
+variables [topological_space β] [totally_disconnected_space β] {f : α → β}
+
+lemma continuous.image_eq_of_connected_component_eq {f : α → β} (h : continuous f) (a b : α)
+  (hab : connected_component a = connected_component b) : f a = f b :=
 singleton_eq_singleton_iff.1 $
   h.image_connected_component_eq_singleton a ▸
   h.image_connected_component_eq_singleton b ▸ hab ▸ rfl
@@ -1095,32 +1105,28 @@ singleton_eq_singleton_iff.1 $
 /--
 The lift to `connected_components α` of a continuous map from `α` to a totally disconnected space
 -/
-def continuous.connected_components_lift {β : Type*} [topological_space β]
-  [totally_disconnected_space β] {f : α → β} (h : continuous f) : connected_components α → β :=
-quotient.lift f h.image_eq_of_equiv
+def continuous.connected_components_lift (h : continuous f) :
+  connected_components α → β :=
+λ x, quotient.lift_on' x f h.image_eq_of_connected_component_eq
 
-@[continuity] lemma continuous.connected_components_lift_continuous {β : Type*}
-  [topological_space β] [totally_disconnected_space β] {f : α → β} (h : continuous f) :
+@[continuity] lemma continuous.connected_components_lift_continuous (h : continuous f) :
   continuous h.connected_components_lift :=
-continuous_quotient_lift h.image_eq_of_equiv h
+continuous_quotient_lift_on' h.image_eq_of_connected_component_eq h
 
-@[simp] lemma continuous.connected_components_lift_factors {β : Type*} [topological_space β]
-  [totally_disconnected_space β] {f : α → β} (h : continuous f) :
-  h.connected_components_lift ∘ quotient.mk = f := rfl
+@[simp] lemma continuous.connected_components_lift_apply_coe (h : continuous f) (x : α) :
+  h.connected_components_lift x = f x := rfl
 
-lemma continuous.connected_components_lift_unique {β : Type*} [topological_space β]
-  [totally_disconnected_space β] {f : α → β} (h : continuous f) (g : connected_components α → β)
-  (hg : g ∘ quotient.mk = f) : g = h.connected_components_lift :=
+@[simp] lemma continuous.connected_components_lift_comp_coe (h : continuous f) :
+  h.connected_components_lift ∘ coe = f := rfl
+
+lemma continuous.connected_components_lift_unique (h : continuous f)
+  (g : connected_components α → β) (hg : g ∘ coe = f) : g = h.connected_components_lift :=
 by { subst hg, ext1 x, exact quotient.induction_on x (λ a, refl _) }
 
-lemma connected_components_lift_unique' {β : Type*} (g₁ : connected_components α → β)
-  (g₂ : connected_components α → β) (hg : g₁ ∘ quotient.mk = g₂ ∘ quotient.mk ) : g₁ = g₂ :=
-begin
-  ext1 x,
-  refine quotient.induction_on x (λ a, _),
-  change (g₁ ∘ quotient.mk) a = (g₂ ∘ quotient.mk) a,
-  rw hg,
-end
+lemma connected_components_lift_unique' {β : Sort*} (g₁ : connected_components α → β)
+  (g₂ : connected_components α → β) (hg : g₁ ∘ (coe : α → connected_components α) = g₂ ∘ coe) :
+  g₁ = g₂ :=
+connected_components.surjective_coe
 
 /-- The preimage of a singleton in `connected_components` is the connected component
 of an element in the equivalence class. -/

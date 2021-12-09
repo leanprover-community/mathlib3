@@ -526,7 +526,7 @@ include rβ rγ
 
 lemma cancel_right {g₁ g₂ : β →+* γ} {f : α →+* β} (hf : surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, ring_hom.ext $ (forall_iff_forall_surj hf).1 (ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, ring_hom.ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
 
 lemma cancel_left {g : β →+* γ} {f₁ f₂ : α →+* β} (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=

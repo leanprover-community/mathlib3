@@ -236,41 +236,41 @@ lemma exist_integer_multiples_of_finset (s : finset S) :
   ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
 exist_integer_multiples M s id
 
-/-- A choice of a common multiple of a `finset`-indexed family of fractions. -/
+/-- A choice of a common multiple of the denominators of a `finset`-indexed family of fractions. -/
 noncomputable
-def denominator_common_multiple {ι : Type*} (s : finset ι) (f : ι → S) : M :=
+def common_multiple {ι : Type*} (s : finset ι) (f : ι → S) : M :=
 (exist_integer_multiples M s f).some
 
-lemma denominator_common_multiple_mul_is_integer {ι : Type*} (s : finset ι) (f : ι → S)
-  (i : s) : is_integer R (denominator_common_multiple M s f • f i) :=
+lemma common_multiple_mul_is_integer {ι : Type*} (s : finset ι) (f : ι → S)
+  (i : s) : is_integer R (common_multiple M s f • f i) :=
 (exist_integer_multiples M s f).some_spec i i.prop
 
-/-- A choice of a common multiple of a finite set of fractions. -/
+/-- A choice of a common multiple of the denominators of a finite set of fractions. -/
 noncomputable
-def denominator_common_multiple_of_finset (s : finset S) : M :=
-denominator_common_multiple M s id
+def common_multiple_of_finset (s : finset S) : M :=
+common_multiple M s id
 
-lemma denominator_common_multiple_of_finset_mul_is_integer (s : finset S) (x : s) :
-  is_integer R (denominator_common_multiple_of_finset M s • (x : S)) :=
-denominator_common_multiple_mul_is_integer M s id x
+lemma common_multiple_of_finset_mul_is_integer (s : finset S) (x : s) :
+  is_integer R (common_multiple_of_finset M s • (x : S)) :=
+common_multiple_mul_is_integer M s id x
 
 /-- The finset of numerators after clearing the denominators of a finite set of fractions. -/
 noncomputable
 def finset_integer_multiple [decidable_eq R] (s : finset S) : finset R :=
-s.attach.image (λ t, (denominator_common_multiple_of_finset_mul_is_integer M s t).some)
+s.attach.image (λ t, (common_multiple_of_finset_mul_is_integer M s t).some)
 
 open_locale pointwise
 
 lemma finset_integer_multiple_image [decidable_eq R] (s : finset S) :
   algebra_map R S '' (finset_integer_multiple M s) =
-    denominator_common_multiple_of_finset M s • s :=
+    common_multiple_of_finset M s • s :=
 begin
-  delta finset_integer_multiple denominator_common_multiple,
+  delta finset_integer_multiple common_multiple,
   rw finset.coe_image,
   ext,
   split,
   { rintro ⟨_, ⟨x, -, rfl⟩, rfl⟩,
-    rw (denominator_common_multiple_of_finset_mul_is_integer M s x).some_spec,
+    rw (common_multiple_of_finset_mul_is_integer M s x).some_spec,
     exact set.mem_image_of_mem _ x.prop },
   { rintro ⟨x, hx, rfl⟩,
     refine ⟨_, ⟨⟨x, hx⟩, s.mem_attach _, rfl⟩,

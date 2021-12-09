@@ -969,10 +969,24 @@ begin
   exact λ _ hε, nonempty_Ioc.mpr hε,
 end
 
+/-- The closure of a set equals the intersection of its closed thickenings of positive radii
+accumulating at zero. -/
+lemma closure_eq_Inter_cthickening' (E : set α)
+  (s : set ℝ) (hs₀ : s ⊆ Ioi 0) (hs : ∀ ε, 0 < ε → (s ∩ (Ioc 0 ε)).nonempty) :
+  closure E = ⋂ δ ∈ s, cthickening δ E :=
+by { rw ← cthickening_zero, apply cthickening_eq_Inter_cthickening' rfl.ge _ hs₀ hs, }
+
 /-- The closure of a set equals the intersection of its closed thickenings of positive radii. -/
 lemma closure_eq_Inter_cthickening (E : set α) :
   closure E = ⋂ (δ : ℝ) (h : 0 < δ), cthickening δ E :=
 by { rw ← cthickening_zero, exact cthickening_eq_Inter_cthickening rfl.ge E, }
+
+/-- The closure of a set equals the intersection of its open thickenings of positive radii
+accumulating at zero. -/
+lemma closure_eq_Inter_thickening' (E : set α)
+  (s : set ℝ) (hs₀ : s ⊆ Ioi 0) (hs : ∀ ε, 0 < ε → (s ∩ (Ioc 0 ε)).nonempty) :
+  closure E = ⋂ δ ∈ s, thickening δ E :=
+by { rw ← cthickening_zero, apply cthickening_eq_Inter_thickening' rfl.ge _ hs₀ hs, }
 
 /-- The closure of a set equals the intersection of its (open) thickenings of positive radii. -/
 lemma closure_eq_Inter_thickening (E : set α) :

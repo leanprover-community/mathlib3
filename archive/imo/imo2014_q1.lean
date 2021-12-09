@@ -13,9 +13,9 @@ import data.pnat.basic
 Let `a₀ < a₁ < a₂ < ⋯` be an infinite sequence of positive integers.
 Prove that there exists a unique `n ≥ 1` such that
 
-  `aₙ < (a₀ + a₁ + ⋯ + aₙ) / n < aₙ₊₁`.
+  `aₙ < (a₀ + a₁ + ⋯ + aₙ) / n ≤ aₙ₊₁`.
 
-This solutions is a translation of the official solution, which may be found as the
+This solution is a translation of the official solution, which may be found as the
 solution to problem A1 [here](https://www.imo-official.org/problems/IMO2014SL.pdf).
 -/
 
@@ -33,20 +33,15 @@ def d (n : ℕ+) : ℤ := (∑ i : fin (n + 1), a i) - n * (a n)
 lemma first_ineq_iff {n : ℕ+} :
   (a n : ℚ) < (↑∑ i : fin (n + 1), a i : ℚ) / n ↔ 0 < d a n :=
 show _ < _ / ↑(n : ℤ) ↔ _, begin
-  have : (↑(a n) : ℚ) = ↑(a n) / ↑(1 : ℤ) := by simp,
-  rw [this, rat.div_lt_div_iff_mul_lt_mul (int.zero_lt_one)],
+  rw [lt_div_iff, ← int.cast_mul, int.cast_lt],
   { simp [d, mul_comm] }, simp,
 end
 
 lemma second_ineq_iff {n : ℕ+} :
   (↑∑ i : fin (n + 1), a i : ℚ) / n ≤ a (n + 1) ↔ d a (n + 1) ≤ 0 :=
 show _ / ↑(n : ℤ) ≤ _ ↔ _, begin
-  have : (↑(a (n + 1)) : ℚ) = ↑(a (n + 1)) / ↑(1 : ℤ) := by simp, rw this,
-  simp only [rat.div_num_denom, mul_one, rat.num_one, one_mul, rat.coe_int_denom, int.coe_nat_zero,
-    rat.coe_int_num, int.coe_nat_succ, zero_add, coe_coe],
-  rw rat.le_def, swap,
-  { norm_cast, have : 1 ≤ ↑n := pnat.one_le n, linarith }, swap,
-  { exact zero_lt_one },
+  rw [div_le_iff, ← int.cast_mul, int.cast_le],
+  swap, { simp },
   simp only [d, @fin.sum_univ_cast_succ _ _ ↑(n + 1), mul_one, fin.coe_last, pnat.one_coe,
     fin.coe_cast_succ, int.coe_nat_succ, pnat.add_coe, sub_nonpos, coe_coe, add_mul, one_mul],
   rw [add_le_add_iff_right,	mul_comm], refl,
@@ -57,8 +52,7 @@ lemma ineq_iff {n : ℕ+} :
   (a n : ℚ) < (↑∑ i : fin (n + 1), a i : ℚ) / n ∧
   (↑∑ i : fin (n + 1), a i : ℚ) / n ≤ a (n + 1) ↔
   0 < d a n ∧ d a (n + 1) ≤ 0 :=
-⟨λ h, ⟨(first_ineq_iff a).1 h.1, (second_ineq_iff a).1 h.2⟩,
-  λ h, ⟨(first_ineq_iff a).2 h.1, (second_ineq_iff a).2 h.2⟩⟩
+and_congr (first_ineq_iff a) (second_ineq_iff a)
 
 lemma d_one : d a 1 = a 0 :=
 show a 0 + (a 1 + 0) - 1 * a 1 = a 0, by simp
@@ -72,7 +66,7 @@ lt_of_sub_neg $
         - ((∑ i : fin (n + 1), a i) - n * a n) : by simp [fin.sum_univ_cast_succ]
   ... = n * (a n - a (n + 1))                  : by ring
   ... < 0
-    : mul_neg_iff.mpr (or.inl ⟨by simp, sub_neg_of_lt (hinc n)⟩)
+    : mul_neg_of_pos_of_neg (by simp) (sub_neg_of_lt (hinc n))
 
 section descending
 

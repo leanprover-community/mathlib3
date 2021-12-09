@@ -87,6 +87,7 @@ instance colimit_module : module R M :=
 { one_smul := λ x, begin
     apply quot.induction_on x, clear x, intro x, cases x with j x,
     erw [colimit_smul_mk_eq F 1 ⟨j, x⟩, one_smul],
+    dsimp,
     refl,
   end,
   mul_smul := λ r s x, begin

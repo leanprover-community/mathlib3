@@ -33,8 +33,7 @@ def d (n : ℕ+) : ℤ := (∑ i : fin (n + 1), a i) - n * (a n)
 lemma first_ineq_iff {n : ℕ+} :
   (a n : ℚ) < (↑∑ i : fin (n + 1), a i : ℚ) / n ↔ 0 < d a n :=
 show _ < _ / ↑(n : ℤ) ↔ _, begin
-  have : (↑(a n) : ℚ) = ↑(a n) / ↑(1 : ℤ) := by simp,
-  rw [this, rat.div_lt_div_iff_mul_lt_mul (int.zero_lt_one)],
+  rw [lt_div_iff, ← int.cast_mul, int.cast_lt],
   { simp [d, mul_comm] }, simp,
 end
 

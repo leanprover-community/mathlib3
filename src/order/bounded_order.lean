@@ -1216,7 +1216,7 @@ end is_compl
 
 section nontrivial
 
-variables [lattice α] [bounded_order α] [nontrivial α]
+variables [partial_order α] [bounded_order α] [nontrivial α]
 
 lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
 λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›

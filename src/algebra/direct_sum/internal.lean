@@ -178,6 +178,21 @@ instance nat_power_graded_monoid
 { one_mem := by { rw [←one_le, pow_zero], exact le_rfl },
   mul_mem := λ i j p q hp hq, by { rw pow_add, exact submodule.mul_mem_mul hp hq } }
 
+section homogeneous_element
+
+lemma set_like.is_homogeneous_zero [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) [set_like.graded_monoid A] : set_like.is_homogeneous A (0 : R) :=
+⟨0, zero_mem _⟩
+
+lemma set_like.is_homogeneous.smul [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) [set_like.graded_monoid A] {s : S}
+  (r : R) (hr : set_like.is_homogeneous A r) : set_like.is_homogeneous A (s • r) :=
+⟨Exists.some hr, smul_mem _ _ (Exists.some_spec hr)⟩
+
+end homogeneous_element
+
 end submodule
 
 /-- The canonical algebra isomorphism between `⨁ i, A i` and `R`. -/

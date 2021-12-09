@@ -121,14 +121,6 @@ begin
 end
 
 @[to_additive]
-lemma _root_.submonoid.powers_fg (r : M) : (powers r).fg :=
-⟨{r}, (finset.coe_singleton r).symm ▸ (powers_eq_closure r).symm⟩
-
-@[to_additive]
-instance (r : M) : monoid.fg (submonoid.powers r) :=
-(fg_iff_submonoid_fg _).mpr (submonoid.powers_fg r)
-
-@[to_additive]
 lemma fg_of_surjective {M' : Type*} [monoid M'] [monoid.fg M]
   (f : M →* M') (hf : function.surjective f) : fg M' :=
 begin
@@ -141,6 +133,14 @@ begin
 end
 
 end monoid
+
+@[to_additive]
+lemma submonoid.powers_fg (r : M) : (submonoid.powers r).fg :=
+⟨{r}, (finset.coe_singleton r).symm ▸ (submonoid.powers_eq_closure r).symm⟩
+
+@[to_additive]
+instance (r : M) : monoid.fg (submonoid.powers r) :=
+(monoid.fg_iff_submonoid_fg _).mpr (submonoid.powers_fg r)
 
 /-! ### Groups and subgroups -/
 

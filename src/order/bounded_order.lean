@@ -441,6 +441,10 @@ lemma none_lt_some [has_lt α] (a : α) :
   @has_lt.lt (with_bot α) _ none (some a) :=
 ⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
 
+lemma not_lt_none [has_lt α] (a : option α) :
+  ¬ @has_lt.lt (with_bot α) _ a none :=
+λ ⟨_, h, _⟩, option.not_mem_none _ h
+
 lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := none_lt_some a
 
 instance : can_lift (with_bot α) α :=
@@ -598,17 +602,17 @@ have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
   from λ b ih hba, acc.intro _ (λ c, option.rec_on c (λ _, acc_bot)
     (λ c hc, ih _ (some_lt_some.1 hc) (lt_trans hc hba)))))))⟩
 
-instance densely_ordered [partial_order α] [densely_ordered α] [no_bot_order α] :
+instance densely_ordered [has_lt α] [densely_ordered α] [no_bot_order α] :
   densely_ordered (with_bot α) :=
 ⟨ λ a b,
   match a, b with
-  | a,      none   := λ h : a < ⊥, (not_lt_bot h).elim
+  | a,      none   := λ h : a < ⊥, (not_lt_none _ h).elim
   | none,   some b := λ h, let ⟨a, ha⟩ := no_bot b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
   | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
-instance {α : Type*} [preorder α] [no_top_order α] [nonempty α] : no_top_order (with_bot α) :=
+instance {α : Type*} [has_lt α] [no_top_order α] [nonempty α] : no_top_order (with_bot α) :=
 ⟨begin
   apply with_bot.rec_bot_coe,
   { apply ‹nonempty α›.elim,
@@ -691,6 +695,10 @@ by simp [(≤)]
 @[simp] theorem some_lt_none [has_lt α] (a : α) :
   @has_lt.lt (with_top α) _ (some a) none :=
 by simp [(<)]; existsi a; refl
+
+@[simp] theorem not_none_lt [has_lt α] (a : option α) :
+  ¬ @has_lt.lt (with_top α) _ none a :=
+λ ⟨_, h, _⟩, option.not_mem_none _ h
 
 instance : can_lift (with_top α) α :=
 { coe := coe,
@@ -831,7 +839,7 @@ instance order_bot [has_le α] [order_bot α] : order_bot (with_top α) :=
 instance bounded_order [has_le α] [order_bot α] : bounded_order (with_top α) :=
 { ..with_top.order_top, ..with_top.order_bot }
 
-lemma well_founded_lt {α : Type*} [partial_order α] (h : well_founded ((<) : α → α → Prop)) :
+lemma well_founded_lt {α : Type*} [preorder α] (h : well_founded ((<) : α → α → Prop)) :
   well_founded ((<) : with_top α → with_top α → Prop) :=
 have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (some a) :=
 λ a, acc.intro _ (well_founded.induction h a
@@ -842,11 +850,11 @@ have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (so
 ⟨λ a, option.rec_on a (acc.intro _ (λ y, option.rec_on y (λ h, (lt_irrefl _ h).elim)
   (λ _ _, acc_some _))) acc_some⟩
 
-instance densely_ordered [partial_order α] [densely_ordered α] [no_top_order α] :
+instance densely_ordered [has_lt α] [densely_ordered α] [no_top_order α] :
   densely_ordered (with_top α) :=
 ⟨ λ a b,
   match a, b with
-  | none,   a   := λ h : ⊤ < a, (not_top_lt h).elim
+  | none,   a   := λ h : ⊤ < a, (not_none_lt _ h).elim
   | some a, none := λ h, let ⟨b, hb⟩ := no_top a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
   | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
@@ -858,7 +866,7 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_ord
 ⟨λ h, let ⟨y, hy⟩ := exists_between h, ⟨x, hx⟩ := lt_iff_exists_coe.1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
-instance {α : Type*} [preorder α] [no_bot_order α] [nonempty α] : no_bot_order (with_top α) :=
+instance {α : Type*} [has_lt α] [no_bot_order α] [nonempty α] : no_bot_order (with_top α) :=
 ⟨begin
   apply with_top.rec_top_coe,
   { apply ‹nonempty α›.elim,

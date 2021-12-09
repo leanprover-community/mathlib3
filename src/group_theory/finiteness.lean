@@ -120,7 +120,7 @@ end
 
 @[to_additive]
 lemma _root_.submonoid.powers_fg (r : M) : (powers r).fg :=
-⟨{r}, by simpa using (powers_eq_closure _).symm⟩
+⟨{r}, (finset.coe_singleton r).symm ▸ (powers_eq_closure r).symm⟩
 
 @[to_additive]
 instance (r : M) : monoid.fg (submonoid.powers r) :=

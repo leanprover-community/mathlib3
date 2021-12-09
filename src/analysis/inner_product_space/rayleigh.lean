@@ -156,7 +156,6 @@ lemma eq_smul_self_of_is_local_extr_on (hT : is_self_adjoint (T : E →ₗ[𝕜]
   T x₀ = (↑(rayleigh_quotient x₀) : 𝕜) • x₀ :=
 begin
   letI := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let S : E →L[ℝ] E :=
     @continuous_linear_map.restrict_scalars 𝕜 E E _ _ _ _ _ _ _ ℝ _ _ _ _ T,
   have hSA : is_self_adjoint (S : E →ₗ[ℝ] E) := λ x y, by

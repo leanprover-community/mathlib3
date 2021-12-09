@@ -212,19 +212,26 @@ theorem roth_ub_aux_succ {s m d α}
   (h₁ : roth_ub_aux₁ s m d α) (h₂ : roth_ub_aux₂ s m d α) : roth_ub_aux (s+1) m d α :=
 begin
   intros hα₁ hα₂ β hβ₁ hβ₂ hβ₃,
-  rcases h₁ with h₁ | h₁,
-  { have : _ = β.card := finset.filter_card_add_filter_neg_card_eq_card (< m),
-    rw [←this, hβ₂, add_comm, card_to_finset, erase_dup_eq_self.2, add_le_add_iff_right],
-    apply thing _ h₁ hβ₁ hβ₃,
-    apply (pairwise_of_pairwise_cons ((chain_iff_pairwise _).1 hα₂)).nodup,
+  have hα₃ : α.nodup,
+  { apply (pairwise_of_pairwise_cons ((chain_iff_pairwise _).1 hα₂)).nodup,
     exact λ _ _ _, gt_trans },
-  { rw [roth_ub_aux₂, ←imp_iff_not_or] at h₂,
+  have : _ = β.card := finset.filter_card_add_filter_neg_card_eq_card (< m),
+  rw [←this, hβ₂, add_comm, card_to_finset, erase_dup_eq_self.2 hα₃, add_le_add_iff_right],
+  clear_dependent this,
 
-    -- rcases h₂ with h₂ | ⟨d, rfl, h₂⟩,
-    -- { sorry },
-    -- have := h₂ _,
+  -- rcases h₁ with h₁ | h₁,
+  -- { sorry
+  --   },
+  -- {
 
-  }
+  -- }
+  -- { rw [roth_ub_aux₂, ←imp_iff_not_or] at h₂,
+
+  --   -- rcases h₂ with h₂ | ⟨d, rfl, h₂⟩,
+  --   -- { sorry },
+  --   -- have := h₂ _,
+
+  -- }
 end
 
 theorem roth_ub_aux₁_left {s m d α}
@@ -457,6 +464,130 @@ begin
   dec_trivial
 end
 
+meta def tactic.roth_auto_step : tactic unit :=
+do t ← tactic.target,
+   match t with
+   | `(roth_ub_aux 0 _ _ _) := `[refine roth_ub_aux_zero _ _ _]
+   | `(roth_ub_aux _ _ _ _) := tactic.refine ``(roth_ub_aux_succ _ _)
+   | _ := tactic.fail "no"
+   end
+
+meta def tactic.interactive.roth_start : tactic unit :=
+`[refine roth_ub_aux_out _] >> tactic.roth_auto_step
+
+meta def tactic.interactive.roth_left : tactic unit :=
+do t ← tactic.target,
+  match t with
+  | `(roth_ub_aux₁ _ _ _ _) := `[refine roth_ub_aux₁_left _]
+  | `(roth_ub_aux₂ _ _ _ _) :=
+      `[exact roth_ub_aux₂_left dec_trivial] <|> tactic.trace "Try this: roth_right"
+  | _ := tactic.fail "goal isn't a roth proof"
+  end
+
+meta def tactic.interactive.roth_right : tactic unit :=
+do t ← tactic.target,
+  match t with
+  | `(roth_ub_aux₁ _ _ _ _) := `[refine roth_ub_aux₁_right _] >> tactic.roth_auto_step
+  | `(roth_ub_aux₂ _ _ _ _) := `[refine roth_ub_aux₂_right _] >> tactic.roth_auto_step
+  | _ := tactic.fail "goal isn't a roth proof"
+  end
+
+example : roth_number_nat 3 ≤ 2 → roth_number_nat 4 ≤ 3 → roth_number_nat 8 ≤ 4 →
+  roth_number_nat 10 ≤ 5 :=
+begin
+  intros h₃ h₄ h₈,
+  roth_start,
+  { roth_right,
+    { roth_left,
+      sorry },
+    roth_right,
+    { roth_left,
+      sorry },
+    roth_right,
+    { roth_right,
+      { roth_right,
+        { roth_left,
+          sorry },
+        roth_right,
+        { roth_left,
+          sorry },
+        roth_right,
+        { roth_right,
+          { roth_left,
+            sorry },
+          roth_left },
+        roth_left },
+      roth_right,
+      { roth_right,
+        { roth_left,
+          sorry },
+        { roth_left } },
+      roth_right,
+      { roth_right,
+        { roth_right,
+          { roth_left,
+            sorry },
+          roth_left },
+        roth_left },
+      roth_left },
+    roth_left },
+  roth_right,
+  { roth_left,
+    sorry },
+  roth_right,
+  { roth_right,
+    { roth_right,
+      { roth_right,
+        { roth_left,
+          sorry },
+        roth_right,
+        { roth_left,
+          sorry },
+        roth_right,
+        { roth_right,
+          { roth_left,
+            sorry },
+          roth_right,
+          { roth_right },
+          roth_left },
+        roth_left },
+      roth_right,
+      { roth_right,
+        { roth_left,
+          sorry },
+        roth_right,
+        { roth_right,
+          { roth_left,
+            sorry },
+          roth_left },
+        roth_left },
+      roth_right,
+      { roth_right,
+        { roth_right,
+          { roth_left,
+            sorry },
+          roth_left },
+        roth_left },
+      roth_left },
+    roth_right,
+    { roth_right,
+      { roth_right,
+        { roth_left,
+          sorry },
+        roth_left },
+      roth_left },
+    roth_right,
+    { roth_right,
+      { roth_right,
+        { roth_right,
+          { roth_left,
+            sorry },
+          roth_left },
+        roth_left },
+      roth_left },
+    roth_left },
+  roth_left,
+end
 -- lemma roth_succ :
 --   roth n.succ = (if roth_aux ((roth n).1 :: (roth n).2) 0 (roth n).1 [] then (roth n).1 + 1
 --     else (roth n).1, (roth n).1 :: (roth n).2) :=

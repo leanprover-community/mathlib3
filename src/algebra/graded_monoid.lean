@@ -366,3 +366,28 @@ instance set_like.gcomm_monoid {S : Type*} [set_like S R] [comm_monoid R] [add_c
   ..set_like.gmonoid A}
 
 end subobjects
+
+section homogeneous_elements
+
+variables {R S : Type*} [set_like S R]
+
+/-- An element `a : R` is said to be homogeneous if there is some `i : ι` such that `a ∈ A i`-/
+def set_like.is_homogeneous (A : ι → S) (a : R) : Prop := ∃ i, a ∈ A i
+
+lemma set_like.is_homogeneous_one [has_zero ι] [has_one R]
+  (A : ι → S) [set_like.has_graded_one A] : set_like.is_homogeneous A (1 : R) :=
+⟨0, set_like.has_graded_one.one_mem⟩
+
+variables [add_monoid ι] [monoid R]
+
+lemma set_like.is_homogeneous.mul {A : ι → S} [set_like.has_graded_mul A] {a b : R} :
+  set_like.is_homogeneous A a → set_like.is_homogeneous A b → set_like.is_homogeneous A (a * b)
+| ⟨i, hi⟩ ⟨j, hj⟩ := ⟨i + j, set_like.has_graded_mul.mul_mem hi hj⟩
+
+/-- When `A` is a `set_like.graded_monoid A`, then the homogeneous elements forms a submonoid of `R`-/
+def homogeneous_submonoid {R : Type*} [monoid R] (A : ι → submonoid R) [set_like.graded_monoid A] : submonoid R :=
+{ carrier := { a | set_like.is_homogeneous A a },
+  one_mem' := set_like.is_homogeneous_one A,
+  mul_mem' := λ a b, set_like.is_homogeneous.mul }
+
+end homogeneous_elements

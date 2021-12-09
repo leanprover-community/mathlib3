@@ -211,10 +211,10 @@ if_pos rfl
 @[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ M) a' = 0 :=
 if_neg h
 
-lemma single_eq_update : ⇑(single a b) = function.update 0 a b :=
+lemma single_eq_update [decidable_eq α] : ⇑(single a b) = function.update 0 a b :=
 by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
 
-lemma single_eq_pi_single : ⇑(single a b) = pi.single a b :=
+lemma single_eq_pi_single [decidable_eq α] : ⇑(single a b) = pi.single a b :=
 single_eq_update
 
 @[simp] lemma single_zero : (single a 0 : α →₀ M) = 0 :=
@@ -300,7 +300,7 @@ begin
   simpa [H]
 end
 
-lemma support_single_disjoint {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
+lemma support_single_disjoint [decidable_eq α] {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
 by rw [support_single_ne_zero hb, support_single_ne_zero hb', disjoint_singleton]
 
@@ -363,11 +363,11 @@ lemma card_support_le_one' [nonempty α] {f : α →₀ M} :
   card f.support ≤ 1 ↔ ∃ a b, f = single a b :=
 by simp only [card_le_one_iff_subset_singleton, support_subset_singleton']
 
-@[simp] lemma equiv_fun_on_fintype_single [fintype α] (x : α) (m : M) :
+@[simp] lemma equiv_fun_on_fintype_single [decidable_eq α] [fintype α] (x : α) (m : M) :
   (@finsupp.equiv_fun_on_fintype α M _ _) (finsupp.single x m) = pi.single x m :=
 by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
 
-@[simp] lemma equiv_fun_on_fintype_symm_single [fintype α] (x : α) (m : M) :
+@[simp] lemma equiv_fun_on_fintype_symm_single [decidable_eq α] [fintype α] (x : α) (m : M) :
   (@finsupp.equiv_fun_on_fintype α M _ _).symm (pi.single x m) = finsupp.single x m :=
 by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
 
@@ -393,18 +393,21 @@ def update : α →₀ M :=
     simp [ha, hb]
   end⟩
 
-@[simp] lemma coe_update : (f.update a b : α → M) = function.update f a b := rfl
+@[simp] lemma coe_update [decidable_eq α] : (f.update a b : α → M) = function.update f a b :=
+by convert rfl
 @[simp] lemma update_self : f.update a (f a) = f :=
 by { ext, simp }
 
-lemma support_update : support (f.update a b) =
-  if b = 0 then f.support.erase a else insert a f.support := rfl
+lemma support_update [decidable_eq α] : support (f.update a b) =
+  if b = 0 then f.support.erase a else insert a f.support := by convert rfl
 
-@[simp] lemma support_update_zero : support (f.update a 0) = f.support.erase a := if_pos rfl
+@[simp] lemma support_update_zero [decidable_eq α] :
+  support (f.update a 0) = f.support.erase a := by convert if_pos rfl
 
 variables {b}
 
-lemma support_update_ne_zero (h : b ≠ 0) : support (f.update a b) = insert a f.support := if_neg h
+lemma support_update_ne_zero [decidable_eq α] (h : b ≠ 0) :
+  support (f.update a b) = insert a f.support := by convert if_neg h
 
 end update
 
@@ -653,9 +656,9 @@ def erase (a : α) (f : α →₀ M) : α →₀ M :=
     [exact ⟨λ H _, H.1 h, λ H, (H rfl).elim⟩,
     exact and_iff_right h]⟩
 
-@[simp] lemma support_erase {a : α} {f : α →₀ M} :
+@[simp] lemma support_erase [decidable_eq α] {a : α} {f : α →₀ M} :
   (f.erase a).support = f.support.erase a :=
-rfl
+by convert rfl
 
 @[simp] lemma erase_same {a : α} {f : α →₀ M} : (f.erase a) a = 0 :=
 if_pos rfl
@@ -904,11 +907,11 @@ lemma induction_linear {p : (α →₀ M) → Prop} (f : α →₀ M)
   p f :=
 induction₂ f h0 (λ a b f _ _ w, hadd _ _ w (hsingle _ _))
 
-@[simp] lemma add_closure_Union_range_single :
-  add_submonoid.closure (⋃ a : α, set.range (single a : M → α →₀ M)) = ⊤ :=
+@[simp] lemma add_closure_set_of_eq_single :
+  add_submonoid.closure {f : α →₀ M | ∃ a b, f = single a b} = ⊤ :=
 top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
   λ a b f ha hb hf, add_submonoid.add_mem _
-    (add_submonoid.subset_closure $ set.mem_Union.2 ⟨a, set.mem_range_self _⟩) hf
+    (add_submonoid.subset_closure $ ⟨a, b, rfl⟩) hf
 
 /-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
 they are equal. -/
@@ -916,9 +919,8 @@ lemma add_hom_ext [add_zero_class N] ⦃f g : (α →₀ M) →+ N⦄
   (H : ∀ x y, f (single x y) = g (single x y)) :
   f = g :=
 begin
-  refine add_monoid_hom.eq_of_eq_on_mdense add_closure_Union_range_single (λ f hf, _),
-  simp only [set.mem_Union, set.mem_range] at hf,
-  rcases hf with ⟨x, y, rfl⟩,
+  refine add_monoid_hom.eq_of_eq_on_mdense add_closure_set_of_eq_single _,
+  rintro _ ⟨x, y, rfl⟩,
   apply H
 end
 
@@ -1940,9 +1942,9 @@ to_multiset.map_add m n
 lemma to_multiset_apply (f : α →₀ ℕ) : f.to_multiset = f.sum (λ a n, n • {a}) := rfl
 
 @[simp]
-lemma to_multiset_symm_apply (s : multiset α) (x : α) :
+lemma to_multiset_symm_apply [decidable_eq α] (s : multiset α) (x : α) :
   finsupp.to_multiset.symm s x = s.count x :=
-rfl
+by convert rfl
 
 @[simp] lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n • {a} :=
 by rw [to_multiset_apply, sum_single_index]; apply zero_nsmul
@@ -2736,6 +2738,13 @@ begin
   { rw [h, tsub_apply, single_eq_same, single_eq_same, single_eq_same] },
   rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, tsub_self]
 end
+
+lemma support_tsub {f1 f2 : α →₀ M} : (f1 - f2).support ⊆ f1.support :=
+by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
+    not_imp_not, zero_le, implies_true_iff] {contextual := tt}
+
+lemma subset_support_tsub {f1 f2 : α →₀ M} : f1.support \ f2.support ⊆ (f1 - f2).support :=
+by simp [subset_iff] {contextual := tt}
 
 end canonically_ordered_monoid
 

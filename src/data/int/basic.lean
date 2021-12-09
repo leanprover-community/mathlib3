@@ -351,6 +351,42 @@ begin
   cases hk; exact ⟨_, hk⟩
 end
 
+lemma nat_abs_inj_of_nonneg_of_nonneg {a b : ℤ} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+  nat_abs a = nat_abs b ↔ a = b :=
+by rw [←sq_eq_sq ha hb, ←nat_abs_eq_iff_sq_eq]
+
+lemma nat_abs_inj_of_nonpos_of_nonpos {a b : ℤ} (ha : a ≤ 0) (hb : b ≤ 0) :
+  nat_abs a = nat_abs b ↔ a = b :=
+by simpa only [int.nat_abs_neg, neg_inj]
+ using nat_abs_inj_of_nonneg_of_nonneg
+  (neg_nonneg_of_nonpos ha) (neg_nonneg_of_nonpos hb)
+
+lemma nat_abs_inj_of_nonneg_of_nonpos {a b : ℤ} (ha : 0 ≤ a) (hb : b ≤ 0) :
+  nat_abs a = nat_abs b ↔ a = -b :=
+by simpa only [int.nat_abs_neg]
+  using nat_abs_inj_of_nonneg_of_nonneg ha (neg_nonneg_of_nonpos hb)
+
+lemma nat_abs_inj_of_nonpos_of_nonneg {a b : ℤ} (ha : a ≤ 0) (hb : 0 ≤ b) :
+  nat_abs a = nat_abs b ↔ -a = b :=
+by simpa only [int.nat_abs_neg]
+  using nat_abs_inj_of_nonneg_of_nonneg (neg_nonneg_of_nonpos ha) hb
+
+section intervals
+open set
+
+lemma strict_mono_on_nat_abs : strict_mono_on nat_abs (Ici 0) :=
+λ a ha b hb hab, nat_abs_lt_nat_abs_of_nonneg_of_lt ha hab
+
+lemma strict_anti_on_nat_abs : strict_anti_on nat_abs (Iic 0) :=
+λ a ha b hb hab, by simpa [int.nat_abs_neg]
+  using nat_abs_lt_nat_abs_of_nonneg_of_lt (right.nonneg_neg_iff.mpr hb) (neg_lt_neg_iff.mpr hab)
+
+lemma inj_on_nat_abs_Ici : inj_on nat_abs (Ici 0) := strict_mono_on_nat_abs.inj_on
+
+lemma inj_on_nat_abs_Iic : inj_on nat_abs (Iic 0) := strict_anti_on_nat_abs.inj_on
+
+end intervals
+
 /-! ### `/`  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
@@ -1045,6 +1081,15 @@ begin
 end
 
 @[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
+
+lemma nat_abs_le_of_dvd_ne_zero {s t : ℤ} (hst : s ∣ t) (ht : t ≠ 0) : nat_abs s ≤ nat_abs t :=
+not_lt.mp (mt (eq_zero_of_dvd_of_nat_abs_lt_nat_abs hst) ht)
+
+lemma nat_abs_eq_of_dvd_dvd {s t : ℤ} (hst : s ∣ t) (hts : t ∣ s) : nat_abs s = nat_abs t :=
+nat.dvd_antisymm (nat_abs_dvd_iff_dvd.mpr hst) (nat_abs_dvd_iff_dvd.mpr hts)
+
+lemma div_dvd_of_ne_zero_dvd {s t : ℤ} (hst : s ∣ t) (hs : s ≠ 0) : (t / s) ∣ t :=
+by { rcases hst with ⟨c, hc⟩, simp [hc, int.mul_div_cancel_left _ hs] }
 
 /-! ### to_nat -/
 

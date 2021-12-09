@@ -58,7 +58,7 @@ General algebra:
 
   Ideals and quotients:
     ideal of a commutative ring: 'ideal'
-    quotient ring: 'ideal.quotient'
+    quotient ring: 'ideal.has_quotient'
     prime ideal: 'ideal.is_prime'
     maximal ideal: 'ideal.is_maximal'
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'
@@ -143,7 +143,7 @@ Linear algebra:
     linear map: 'linear_map'
     the category of modules over a ring: 'Module'
     vector space: 'module'
-    quotient space: 'submodule.quotient'
+    quotient space: 'submodule.has_quotient'
     tensor product: 'tensor_product'
     noetherian module: 'is_noetherian'
     basis: 'basis'
@@ -172,8 +172,8 @@ Linear algebra:
     existence of an eigenvalue: 'module.End.exists_eigenvalue'
   Bilinear and quadratic forms:
     bilinear form: 'bilin_form'
-    alternating bilinear form: 'alt_bilin_form.is_alt'
-    symmetric bilinear form: 'sym_bilin_form.is_sym'
+    alternating bilinear form: 'bilin_form.is_alt'
+    symmetric bilinear form: 'bilin_form.is_symm'
     matrix representation: 'bilin_form.to_matrix'
     quadratic form: 'quadratic_form'
     polar form of a quadratic: 'quadratic_form.polar'
@@ -347,7 +347,7 @@ Combinatorics:
   Graph theory:
     simple graph: 'simple_graph'
     degree-sum formula: 'simple_graph.sum_degrees_eq_twice_card_edges'
-    matching: 'simple_graph.matching'
+    matching: 'simple_graph.subgraph.is_matching'
     adjacency matrix: 'simple_graph.adj_matrix'
   Pigeonhole principles:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'

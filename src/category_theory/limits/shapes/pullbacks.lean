@@ -503,6 +503,14 @@ def pullback_cone.of_cone
 { X := t.X,
   π := t.π ≫ (diagram_iso_cospan F).hom }
 
+/-- A diagram `walking_cospan ⥤ C` is isomorphic to some `pullback_cone.mk` after
+composing with `diagram_iso_cospan`. -/
+@[simps] def pullback_cone.iso_mk {F : walking_cospan ⥤ C} (t : cone F) :
+  (cones.postcompose (diagram_iso_cospan.{v} _).hom).obj t ≅
+    pullback_cone.mk (t.π.app walking_cospan.left) (t.π.app walking_cospan.right)
+    ((t.π.naturality inl).symm.trans (t.π.naturality inr : _)) :=
+cones.ext (iso.refl _) $ by rintro (_|(_|_)); { dsimp, simp }
+
 /-- Given `F : walking_span ⥤ C`, which is really the same as `span (F.map fst) (F.map snd)`,
     and a cocone on `F`, we get a pushout cocone on `F.map fst` and `F.map snd`. -/
 @[simps]
@@ -511,6 +519,13 @@ def pushout_cocone.of_cocone
 { X := t.X,
   ι := (diagram_iso_span F).inv ≫ t.ι }
 
+/-- A diagram `walking_span ⥤ C` is isomorphic to some `pushout_cocone.mk` after composing with
+`diagram_iso_span`. -/
+@[simps] def pushout_cocone.iso_mk {F : walking_span ⥤ C} (t : cocone F) :
+  (cocones.precompose (diagram_iso_span.{v} _).inv).obj t ≅
+    pushout_cocone.mk (t.ι.app walking_span.left) (t.ι.app walking_span.right)
+    ((t.ι.naturality fst).trans (t.ι.naturality snd).symm) :=
+cocones.ext (iso.refl _) $ by rintro (_|(_|_)); { dsimp, simp }
 /--
 `has_pullback f g` represents a particular choice of limiting cone
 for the pair of morphisms `f : X ⟶ Z` and `g : Y ⟶ Z`.
@@ -608,11 +623,11 @@ pushout_cocone.condition _
 /--
 Given such a diagram, then there is a natural morphism `W ×ₛ X ⟶ Y ×ₜ Z`.
 
-  W  ⟶  Y
-    ↘      ↘
-      S  ⟶  T
-    ↗      ↗
-  X  ⟶  Z
+    W  ⟶  Y
+      ↘      ↘
+        S  ⟶  T
+      ↗      ↗
+    X  ⟶  Z
 
 -/
 abbreviation pullback.map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
@@ -625,11 +640,11 @@ pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
 /--
 Given such a diagram, then there is a natural morphism `W ⨿ₛ X ⟶ Y ⨿ₜ Z`.
 
-      W  ⟶  Y
-    ↗      ↗
-  S  ⟶  T
-    ↘      ↘
-      X  ⟶  Z
+        W  ⟶  Y
+      ↗      ↗
+    S  ⟶  T
+      ↘      ↘
+        X  ⟶  Z
 
 -/
 abbreviation pushout.map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [has_pushout f₁ f₂]
@@ -738,6 +753,37 @@ lemma map_lift_pullback_comparison (f : X ⟶ Z) (g : Y ⟶ Z)
   {W : C} {h : W ⟶ X} {k : W ⟶ Y} (w : h ≫ f = k ≫ g) :
     G.map (pullback.lift _ _ w) ≫ pullback_comparison G f g =
       pullback.lift (G.map h) (G.map k) (by simp only [←G.map_comp, w]) :=
+by { ext; simp [← G.map_comp] }
+
+/--
+The comparison morphism for the pushout of `f,g`.
+This is an isomorphism iff `G` preserves the pushout of `f,g`; see
+`category_theory/limits/preserves/shapes/pullbacks.lean`
+-/
+def pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
+  pushout (G.map f) (G.map g) ⟶ G.obj (pushout f g) :=
+pushout.desc (G.map pushout.inl) (G.map pushout.inr)
+  (by simp only [←G.map_comp, pushout.condition])
+
+@[simp, reassoc]
+lemma inl_comp_pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
+  pushout.inl ≫ pushout_comparison G f g = G.map pushout.inl :=
+pushout.inl_desc _ _ _
+
+@[simp, reassoc]
+lemma inr_comp_pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
+  pushout.inr ≫ pushout_comparison G f g = G.map pushout.inr :=
+pushout.inr_desc _ _ _
+
+@[simp, reassoc]
+lemma pushout_comparison_map_desc (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)]
+  {W : C} {h : Y ⟶ W} {k : Z ⟶ W} (w : f ≫ h = g ≫ k) :
+    pushout_comparison G f g ≫ G.map (pushout.desc _ _ w) =
+      pushout.desc (G.map h) (G.map k) (by simp only [←G.map_comp, w]) :=
 by { ext; simp [← G.map_comp] }
 
 end
@@ -1073,10 +1119,10 @@ variables (C)
 
 See https://stacks.math.columbia.edu/tag/001W.
 -/
-abbreviation has_pullbacks := has_limits_of_shape walking_cospan C
+abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
 
 /-- `has_pushouts` represents a choice of pushout for every pair of morphisms -/
-abbreviation has_pushouts := has_colimits_of_shape walking_span C
+abbreviation has_pushouts := has_colimits_of_shape walking_span.{v} C
 
 /-- If `C` has all limits of diagrams `cospan f g`, then it has all pullbacks -/
 lemma has_pullbacks_of_has_limit_cospan

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import data.equiv.mul_add
-import algebra.field
-import algebra.opposites
+import algebra.field.basic
+import algebra.ring.opposite
 import algebra.big_operators.basic
 
 /-!
@@ -101,9 +101,9 @@ instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
 
-lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
+@[simp] lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
 
-lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = ↑f := rfl
+@[simp] lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = ↑f := rfl
 
 @[simp, norm_cast] lemma coe_to_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
 
@@ -177,36 +177,36 @@ e.to_equiv.image_eq_preimage s
 end basic
 
 section opposite
-open opposite
+open mul_opposite
 
-/-- A ring iso `α ≃+* β` can equivalently be viewed as a ring iso `αᵒᵖ ≃+* βᵒᵖ`. -/
+/-- A ring iso `α ≃+* β` can equivalently be viewed as a ring iso `αᵐᵒᵖ ≃+* βᵐᵒᵖ`. -/
 @[simps]
 protected def op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
-  (α ≃+* β) ≃ (αᵒᵖ ≃+* βᵒᵖ) :=
+  (α ≃+* β) ≃ (αᵐᵒᵖ ≃+* βᵐᵒᵖ) :=
 { to_fun    := λ f, { ..f.to_add_equiv.op, ..f.to_mul_equiv.op},
   inv_fun   := λ f, { ..(add_equiv.op.symm f.to_add_equiv), ..(mul_equiv.op.symm f.to_mul_equiv) },
   left_inv  := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
 
-/-- The 'unopposite' of a ring iso `αᵒᵖ ≃+* βᵒᵖ`. Inverse to `ring_equiv.op`. -/
+/-- The 'unopposite' of a ring iso `αᵐᵒᵖ ≃+* βᵐᵒᵖ`. Inverse to `ring_equiv.op`. -/
 @[simp] protected def unop {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
-  (αᵒᵖ ≃+* βᵒᵖ) ≃ (α ≃+* β) := ring_equiv.op.symm
+  (αᵐᵒᵖ ≃+* βᵐᵒᵖ) ≃ (α ≃+* β) := ring_equiv.op.symm
 
 section comm_semiring
 
 variables (R) [comm_semiring R]
 
 /-- A commutative ring is isomorphic to its opposite. -/
-def to_opposite : R ≃+* Rᵒᵖ :=
+def to_opposite : R ≃+* Rᵐᵒᵖ :=
 { map_add' := λ x y, rfl,
   map_mul' := λ x y, mul_comm (op y) (op x),
-  ..equiv_to_opposite }
+  .. mul_opposite.op_equiv }
 
 @[simp]
 lemma to_opposite_apply (r : R) : to_opposite R r = op r := rfl
 
 @[simp]
-lemma to_opposite_symm_apply (r : Rᵒᵖ) : (to_opposite R).symm r = unop r := rfl
+lemma to_opposite_symm_apply (r : Rᵐᵒᵖ) : (to_opposite R).symm r = unop r := rfl
 
 end comm_semiring
 
@@ -371,8 +371,8 @@ lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S)
   f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
 
 /-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
-lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵒᵖ) (l : list R) :
-  opposite.unop (f l.prod) = (l.map (opposite.unop ∘ f)).reverse.prod :=
+lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
+  mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
 f.to_ring_hom.unop_map_list_prod l
 
 lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :

@@ -3,15 +3,14 @@ Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
-import algebra.big_operators.pi
-import algebra.module.pi
-import algebra.module.linear_map
-import algebra.big_operators.ring
-import algebra.star.pi
 import algebra.algebra.basic
+import algebra.big_operators.pi
+import algebra.big_operators.ring
+import algebra.module.linear_map
+import algebra.module.pi
+import algebra.star.pi
 import data.equiv.ring
 import data.fintype.card
-import data.matrix.dmatrix
 
 /-!
 # Matrices
@@ -1162,15 +1161,16 @@ lemma transpose_sum [add_comm_monoid α] {ι : Type*} (s : finset ι) (M : ι �
 
 /-- `matrix.transpose` as a `ring_equiv` to the opposite ring -/
 @[simps]
-def transpose_ring_equiv [comm_semiring α] [fintype m] : matrix m m α ≃+* (matrix m m α)ᵒᵖ :=
-{ to_fun := λ M, opposite.op (Mᵀ),
+def transpose_ring_equiv [comm_semiring α] [fintype m] : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ :=
+{ to_fun := λ M, mul_opposite.op (Mᵀ),
   inv_fun := λ M, M.unopᵀ,
-  map_mul' := λ M N, (congr_arg opposite.op (transpose_mul M N)).trans (opposite.op_mul _ _),
-  ..transpose_add_equiv.trans opposite.op_add_equiv }
+  map_mul' := λ M N, (congr_arg mul_opposite.op (transpose_mul M N)).trans
+    (mul_opposite.op_mul _ _),
+  ..transpose_add_equiv.trans mul_opposite.op_add_equiv }
 
 lemma transpose_list_prod [comm_semiring α] [fintype m] [decidable_eq m] (l : list (matrix m m α)) :
   l.prodᵀ = (l.map transpose).reverse.prod :=
-(transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵒᵖ).unop_map_list_prod l
+(transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ).unop_map_list_prod l
 
 end transpose
 
@@ -1242,16 +1242,17 @@ lemma conj_transpose_sum [add_comm_monoid α] [star_add_monoid α] {ι : Type*} 
 /-- `matrix.conj_transpose` as a `ring_equiv` to the opposite ring -/
 @[simps]
 def conj_transpose_ring_equiv [comm_semiring α] [star_ring α] [fintype m] :
-  matrix m m α ≃+* (matrix m m α)ᵒᵖ :=
-{ to_fun := λ M, opposite.op (Mᴴ),
+  matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ :=
+{ to_fun := λ M, mul_opposite.op (Mᴴ),
   inv_fun := λ M, M.unopᴴ,
-  map_mul' := λ M N, (congr_arg opposite.op (conj_transpose_mul M N)).trans (opposite.op_mul _ _),
-  ..conj_transpose_add_equiv.trans opposite.op_add_equiv }
+  map_mul' := λ M N, (congr_arg mul_opposite.op (conj_transpose_mul M N)).trans
+    (mul_opposite.op_mul _ _),
+  ..conj_transpose_add_equiv.trans mul_opposite.op_add_equiv }
 
 lemma conj_transpose_list_prod [comm_semiring α] [star_ring α] [fintype m] [decidable_eq m]
   (l : list (matrix m m α)) :
   l.prodᴴ = (l.map conj_transpose).reverse.prod :=
-(conj_transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵒᵖ).unop_map_list_prod l
+(conj_transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ).unop_map_list_prod l
 
 end conj_transpose
 
@@ -1381,10 +1382,11 @@ lemma minor_one_equiv [has_zero α] [has_one α] [decidable_eq m] [decidable_eq 
   (1 : matrix m m α).minor e e = 1 :=
 minor_one e e.injective
 
+@[simp]
 lemma minor_mul_equiv [fintype n] [fintype o] [semiring α] {p q : Type*}
   (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
-  (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
-minor_mul M N e₁ e₂ e₃ e₂.bijective
+  (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) = (M ⬝ N).minor e₁ e₃ :=
+(minor_mul M N e₁ e₂ e₃ e₂.bijective).symm
 
 lemma mul_minor_one [fintype n] [fintype o] [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l → o)
   (M : matrix m n α) : M ⬝ (1 : matrix o o α).minor e₁ e₂ = minor M id (e₁.symm ∘ e₂) :=
@@ -1392,7 +1394,7 @@ begin
   let A := M.minor id e₁.symm,
   have : M = A.minor id e₁,
   { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
-  rw [this, ←minor_mul_equiv],
+  rw [this, minor_mul_equiv],
   simp only [matrix.mul_one, minor_minor, function.comp.right_id, minor_id_id,
     equiv.symm_comp_self],
 end
@@ -1403,7 +1405,7 @@ begin
   let A := M.minor e₂.symm id,
   have : M = A.minor e₂ id,
   { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
-  rw [this, ←minor_mul_equiv],
+  rw [this, minor_mul_equiv],
   simp only [matrix.one_mul, minor_minor, function.comp.right_id, minor_id_id,
     equiv.symm_comp_self],
 end

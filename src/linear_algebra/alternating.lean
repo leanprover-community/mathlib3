@@ -326,6 +326,7 @@ end linear_map
 namespace alternating_map
 
 variables {M₂ : Type*} [add_comm_monoid M₂] [module R M₂]
+variables {M₃ : Type*} [add_comm_monoid M₃] [module R M₃]
 
 /-- Composing a alternating map with the same linear map on each argument gives again an
 alternating map. -/
@@ -338,6 +339,12 @@ lemma coe_comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) 
 
 @[simp] lemma comp_linear_map_apply (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) (v : ι → M₂) :
   f.comp_linear_map g v = f (λ i, g (v i)) := rfl
+
+/-- Composing an alternating map twice with the same linear map in each argument is
+the same as composing with their composition. -/
+lemma comp_linear_map_assoc (f : alternating_map R M N ι) (g₁ : M₂ →ₗ[R] M) (g₂ : M₃ →ₗ[R] M₂) :
+  (f.comp_linear_map g₁).comp_linear_map g₂ = f.comp_linear_map (g₁ ∘ₗ g₂) :=
+rfl
 
 @[simp] lemma zero_comp_linear_map (g : M₂ →ₗ[R] M) :
   (0 : alternating_map R M N ι).comp_linear_map g = 0 :=
@@ -352,6 +359,30 @@ by { ext, simp only [comp_linear_map_apply, add_apply] }
 begin
   ext,
   simp_rw [comp_linear_map_apply, linear_map.zero_apply, ←pi.zero_def, map_zero, zero_apply],
+end
+
+/-- Composing an alternating map with the identity linear map in each argument. -/
+@[simp] lemma comp_linear_map_id (f : alternating_map R M N ι) :
+  f.comp_linear_map linear_map.id = f :=
+ext $ λ _, rfl
+
+/-- Composing with a surjective linear map is injective. -/
+lemma comp_linear_map_injective (f : M₂ →ₗ[R] M) (hf : function.surjective f) :
+  function.injective (λ g : alternating_map R M N ι, g.comp_linear_map f) :=
+λ g₁ g₂ h, ext $ λ x,
+by simpa [function.surj_inv_eq hf] using ext_iff.mp h (function.surj_inv hf ∘ x)
+
+lemma comp_linear_map_inj (f : M₂ →ₗ[R] M) (hf : function.surjective f)
+  (g₁ g₂ : alternating_map R M N ι) : g₁.comp_linear_map f = g₂.comp_linear_map f ↔ g₁ = g₂ :=
+(comp_linear_map_injective _ hf).eq_iff
+
+/-- Composing an alternating map with the same linear equiv on each argument gives the zero map
+if and only if the alternating map is the zero map. -/
+@[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M ≃ₗ[R] M) :
+  f.comp_linear_map (g : M →ₗ[R] M) = 0 ↔ f = 0 :=
+begin
+  simp_rw ←alternating_map.coe_multilinear_map_injective.eq_iff,
+  exact multilinear_map.comp_linear_equiv_eq_zero_iff _ _
 end
 
 variables (f f' : alternating_map R M N ι)
@@ -551,7 +582,7 @@ namespace equiv.perm
 
 /-- Elements which are considered equivalent if they differ only by swaps within α or β  -/
 abbreviation mod_sum_congr (α β : Type*) :=
-quotient_group.quotient (equiv.perm.sum_congr_hom α β).range
+_ ⧸ (equiv.perm.sum_congr_hom α β).range
 
 lemma mod_sum_congr.swap_smul_involutive {α β : Type*} [decidable_eq (α ⊕ β)] (i j : α ⊕ β) :
   function.involutive (has_scalar.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
@@ -625,21 +656,21 @@ begin
   dsimp only [quotient.lift_on'_mk', quotient.map'_mk', multilinear_map.smul_apply,
     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply, dom_coprod.summand],
   intro hσ,
-  with_cases {
-    cases hi : σ⁻¹ i;
+  with_cases
+  { cases hi : σ⁻¹ i;
       cases hj : σ⁻¹ j;
       rw perm.inv_eq_iff_eq at hi hj;
       substs hi hj, },
-  case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j'] {
-    -- the term pairs with and cancels another term
+  case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
+  { -- the term pairs with and cancels another term
     all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
     work_on_goal 0 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
     work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
-    all_goals {
-      rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
+    all_goals
+    { rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
       simpa using hσ, }, },
-  case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j'] {
-    -- the term does not pair but is zero
+  case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j']
+  { -- the term does not pair but is zero
     all_goals { convert smul_zero _, },
     work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
     work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
@@ -752,8 +783,8 @@ begin
   apply σ.induction_on' (λ σ, _),
 
   -- unfold the quotient mess left by `finset.sum_partition`
-  conv in (_ = quotient.mk' _) {
-    change quotient.mk' _ = quotient.mk' _,
+  conv in (_ = quotient.mk' _)
+  { change quotient.mk' _ = quotient.mk' _,
     rw quotient.eq',
     rw [quotient_group.left_rel],
     dsimp only [setoid.r] },

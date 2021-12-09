@@ -223,9 +223,7 @@ begin
       rw [hx, inner_zero_left, zero_mul, neg_zero] },
     { rw norm_eq_zero at hy,
       rw [hy, inner_zero_right, zero_mul, neg_zero] } },
-  { field_simp [h],
-    ring_nf,
-    ring_nf, }
+  { field_simp [h], ring_nf }
 end
 
 /-- The angle between two vectors is zero if and only if they are
@@ -715,9 +713,8 @@ classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete
-      (complete_space_coe_iff_is_complete.mp ‹_›),
-    exact direction_mk' p s.directionᗮ
+    rw direction_mk' p s.directionᗮ,
+    exact submodule.is_compl_orthogonal_of_complete_space,
   end
 
 /-- The intersection of the subspace and the orthogonal subspace
@@ -732,9 +729,8 @@ classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete
-      (complete_space_coe_iff_is_complete.mp ‹_›),
-    exact direction_mk' p s.directionᗮ
+    rw direction_mk' p s.directionᗮ,
+    exact submodule.is_compl_orthogonal_of_complete_space
   end
 
 /-- The `orthogonal_projection_fn` lies in the given subspace.  This

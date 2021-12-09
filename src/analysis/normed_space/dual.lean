@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.normed_space.hahn_banach
-import analysis.seminorm
 import analysis.normed_space.is_R_or_C
 
 /-!
@@ -89,7 +88,7 @@ begin
   by_cases h : x = 0,
   { simp only [h, hMp, norm_zero] },
   { obtain ⟨f, hf⟩ : ∃ g : E →L[𝕜] 𝕜, _ := exists_dual_vector 𝕜 x h,
-    calc ∥x∥ = ∥norm' 𝕜 x∥ : (norm_norm' _ _ _).symm
+    calc ∥x∥ = ∥(∥x∥ : 𝕜)∥ : is_R_or_C.norm_coe_norm.symm
     ... = ∥f x∥ : by rw hf.2
     ... ≤ M * ∥f∥ : hM f
     ... = M : by rw [hf.1, mul_one] }
@@ -115,7 +114,7 @@ def inclusion_in_double_dual_li : E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
     apply le_antisymm,
     { exact double_dual_bound 𝕜 E x },
     rw continuous_linear_map.norm_def,
-    apply le_cInf continuous_linear_map.bounds_nonempty,
+    refine le_cInf continuous_linear_map.bounds_nonempty _,
     rintros c ⟨hc1, hc2⟩,
     exact norm_le_dual_bound 𝕜 x hc1 hc2
   end,
@@ -134,9 +133,7 @@ open metric set normed_space
 evaluate to something of norm at most one at all points `z ∈ s`. -/
 def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (dual 𝕜 E) :=
-{x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1 }
-
-namespace polar
+{x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1}
 
 open metric set normed_space
 open_locale topological_space
@@ -144,26 +141,23 @@ open_locale topological_space
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-@[simp] lemma zero_mem (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
+@[simp] lemma zero_mem_polar (s : set E) :
   (0 : dual 𝕜 E) ∈ polar 𝕜 s :=
 λ _ _, by simp only [zero_le_one, continuous_linear_map.zero_apply, norm_zero]
 
-lemma eq_Inter (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
-  polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
+lemma polar_eq_Inter (s : set E) :
+  polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1} :=
 by { ext, simp only [polar, mem_bInter_iff, mem_set_of_eq], }
 
-lemma of_empty (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] : polar 𝕜 (∅ : set E) = univ :=
-by { simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true], }
+@[simp] lemma polar_empty : polar 𝕜 (∅ : set E) = univ :=
+by simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true]
 
 variables {𝕜}
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a
 small scalar multiple of `x'` is in `polar 𝕜 s`. -/
-lemma smul_mem {s : set E} {x' : dual 𝕜 E} {c : 𝕜}
-  (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : (c⁻¹ • x') ∈ polar 𝕜 s :=
+lemma smul_mem_polar {s : set E} {x' : dual 𝕜 E} {c : 𝕜}
+  (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : c⁻¹ • x' ∈ polar 𝕜 s :=
 begin
   by_cases c_zero : c = 0, { simp [c_zero] },
   have eq : ∀ z, ∥ c⁻¹ • (x' z) ∥ = ∥ c⁻¹ ∥ * ∥ x' z ∥ := λ z, norm_smul c⁻¹ _,
@@ -177,32 +171,31 @@ begin
   rwa cancel at le,
 end
 
-/-- The `polar` of closed unit ball in a normed space `E` is the closed unit ball of the dual. -/
-lemma of_closed_unit_ball
-  {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] :
-  polar 𝕜 (closed_ball (0 : E) 1) = closed_ball (0 : dual 𝕜 E) 1 :=
+variables (𝕜)
+
+/-- The `polar` of closed ball in a normed space `E` is the closed ball of the dual with
+inverse radius. -/
+lemma polar_closed_ball
+  {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] {r : ℝ} (hr : 0 < r) :
+  polar 𝕜 (closed_ball (0 : E) r) = closed_ball (0 : dual 𝕜 E) (1/r) :=
 begin
   ext x',
   simp only [mem_closed_ball, mem_set_of_eq, dist_zero_right],
   split,
   { intros h,
-    apply continuous_linear_map.op_norm_le_of_ball zero_lt_one zero_le_one,
-    intros z hz,
-    have key := linear_map.bound_of_ball_bound zero_lt_one 1 x'.to_linear_map h z,
-    simp only [continuous_linear_map.to_linear_map_eq_coe,
-               continuous_linear_map.coe_coe, div_one] at key,
-    exact key, },
+    apply continuous_linear_map.op_norm_le_of_ball hr (one_div_nonneg.mpr hr.le),
+    { exact λ z hz, linear_map.bound_of_ball_bound hr 1 x'.to_linear_map h z, },
+    { exact ring_hom_isometric.ids, }, },
   { intros h z hz,
     simp only [mem_closed_ball, dist_zero_right] at hz,
-    exact (continuous_linear_map.unit_le_op_norm x' z hz).trans h, },
+    have key := (continuous_linear_map.le_op_norm x' z).trans
+      (mul_le_mul h hz (norm_nonneg _) (one_div_nonneg.mpr hr.le)),
+    rwa [one_div_mul_cancel hr.ne.symm] at key, },
 end
-
-variables (𝕜)
 
 /-- Given a neighborhood `s` of the origin in a normed space `E`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
-lemma bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+lemma polar_bounded_of_nhds_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   ∃ (c : ℝ), ∀ x' ∈ polar 𝕜 s, ∥x'∥ ≤ c :=
 begin
   obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := normed_field.exists_one_lt_norm 𝕜,
@@ -216,7 +209,5 @@ begin
   ... = (∥a∥ / r) * (r / ∥a∥) : by field_simp [r_pos.ne', (zero_lt_one.trans ha).ne']
   ... ≤ (∥a∥ / r) * ∥x∥ : mul_le_mul_of_nonneg_left hx I
 end
-
-end polar
 
 end polar_sets

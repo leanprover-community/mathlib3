@@ -85,8 +85,8 @@ H.2 _ (by linarith [lt_1000 ppn]) ppn
 lemma right_direction {n : ℕ} : problem_predicate n → solution_predicate n :=
 begin
   have := search_up_to_start,
-  iterate 82 {
-    replace := search_up_to_step this (by norm_num1; refl) (by norm_num1; refl)
+  iterate 82
+  { replace := search_up_to_step this (by norm_num1; refl) (by norm_num1; refl)
       (by norm_num1; refl) dec_trivial },
   exact search_up_to_end this
 end

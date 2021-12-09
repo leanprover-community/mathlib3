@@ -427,8 +427,8 @@ variables [module R M] [module R M₂] [module R M₃]
 The family of linear maps `M₂ → M` parameterised by `f ∈ M₂ → R`, `x ∈ M`, is linear in `f`, `x`.
 -/
 def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
-{ to_fun := λ f, {
-    to_fun    := linear_map.smul_right f,
+{ to_fun := λ f,
+  { to_fun    := linear_map.smul_right f,
     map_add'  := λ m m', by { ext, apply smul_add, },
     map_smul' := λ c m, by { ext, apply smul_comm, } },
   map_add'  := λ f f', by { ext, apply add_smul, },
@@ -862,6 +862,27 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (H1 : ∀ x y, p x → p y → p (x + y))
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
+
+/-- The difference with `submodule.span_induction` is that this acts on the subtype. -/
+lemma span_induction' {p : span R s → Prop} (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_span h⟩) (H0 : p 0)
+  (H1 : ∀ x y, p x → p y → p (x + y)) (H2 : ∀ (a : R) x, p x → p (a • x)) (x : span R s) : p x :=
+subtype.rec_on x $ λ x hx, begin
+  refine exists.elim _ (λ (hx : x ∈ span R s) (hc : p ⟨x, hx⟩), hc),
+  refine span_induction hx (λ m hm, ⟨subset_span hm, Hs m hm⟩) ⟨zero_mem _, H0⟩
+    (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
+    ⟨add_mem _ hx' hy', H1 _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
+    ⟨smul_mem _ _ hx', H2 r _ hx⟩)
+end
+
+@[simp] lemma span_span_coe_preimage : span R ((coe : span R s → M) ⁻¹' s) = ⊤ :=
+begin
+  refine eq_top_iff.2 (λ x hx, span_induction' (λ x hx, _) _ _ (λ r x hx, _) x),
+  { exact subset_span hx },
+  { exact submodule.zero_mem _ },
+  { intros x y hx hy,
+    exact submodule.add_mem _ hx hy },
+  { exact submodule.smul_mem _ _ hx }
+end
 
 lemma span_nat_eq_add_submonoid_closure (s : set M) :
   (span ℕ s).to_add_submonoid = add_submonoid.closure s :=
@@ -1934,8 +1955,8 @@ set_like.coe_injective $ by simp [e.image_eq_preimage]
 
 This is `linear_equiv.of_submodule'` but with `map` on the right instead of `comap` on the left. -/
 def of_submodule (p : submodule R M) : p ≃ₛₗ[σ₁₂] ↥(p.map (e : M →ₛₗ[σ₁₂] M₂) : submodule R₂ M₂) :=
-{ inv_fun   := λ y, ⟨(e.symm : M₂ →ₛₗ[σ₂₁] M) y, by {
-    rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
+{ inv_fun   := λ y, ⟨(e.symm : M₂ →ₛₗ[σ₂₁] M) y, by
+  { rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
     simp only [symm_apply_apply, submodule.coe_mk, coe_coe, hx], }⟩,
   left_inv  := λ x, by simp,
   right_inv := λ y, by { apply set_coe.ext, simp, },
@@ -2623,6 +2644,10 @@ def general_linear_equiv : general_linear_group R M ≃* (M ≃ₗ[R] M) :=
 @[simp] lemma general_linear_equiv_to_linear_map (f : general_linear_group R M) :
   (general_linear_equiv R M f : M →ₗ[R] M) = f :=
 by {ext, refl}
+
+@[simp] lemma coe_fn_general_linear_equiv (f : general_linear_group R M) :
+  ⇑(general_linear_equiv R M f) = (f : M → M) :=
+rfl
 
 end general_linear_group
 

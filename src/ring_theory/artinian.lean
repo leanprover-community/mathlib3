@@ -319,7 +319,7 @@ theorem is_artinian_of_submodule_of_artinian (R M) [ring R] [add_comm_group M] [
 by apply_instance
 
 theorem is_artinian_of_quotient_of_artinian (R) [ring R] (M) [add_comm_group M] [module R M]
-  (N : submodule R M) (h : is_artinian R M) : is_artinian R N.quotient :=
+  (N : submodule R M) (h : is_artinian R M) : is_artinian R (M ⧸ N) :=
 is_artinian_of_surjective M (submodule.mkq N) (submodule.quotient.mk_surjective N)
 
 /-- If `M / S / R` is a scalar tower, and `M / R` is Artinian, then `M / S` is

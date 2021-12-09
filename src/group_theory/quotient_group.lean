@@ -6,6 +6,7 @@ Authors: Kevin Buzzard, Patrick Massot
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
 import group_theory.coset
+import group_theory.congruence
 
 /-!
 # Quotients of groups by normal subgroups
@@ -43,36 +44,16 @@ namespace quotient_group
 variables {G : Type u} [group G] (N : subgroup G) [nN : N.normal] {H : Type v} [group H]
 include nN
 
--- Define the `div_inv_monoid` before the `group` structure,
--- to make sure we have `inv` fully defined before we show `mul_left_inv`.
--- TODO: is there a non-invasive way of defining this in one declaration?
-@[to_additive quotient_add_group.div_inv_monoid]
-instance : div_inv_monoid (G ⧸ N) :=
-{ one := (1 : G),
-  mul := quotient.map₂' (*)
-  (λ a₁ b₁ hab₁ a₂ b₂ hab₂,
-    ((N.mul_mem_cancel_right (N.inv_mem hab₂)).1
-        (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
-          mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
-          exact nN.conj_mem _ hab₁ _))),
-  mul_assoc := λ a b c, quotient.induction_on₃' a b c
-    (λ a b c, congr_arg mk (mul_assoc a b c)),
-  one_mul := λ a, quotient.induction_on' a
-    (λ a, congr_arg mk (one_mul a)),
-  mul_one := λ a, quotient.induction_on' a
-    (λ a, congr_arg mk (mul_one a)),
-  inv := λ a, quotient.lift_on' a (λ a, ((a⁻¹ : G) : G ⧸ N))
-    (λ a b hab, quotient.sound' begin
-      show a⁻¹⁻¹ * b⁻¹ ∈ N,
-      rw ← mul_inv_rev,
-      exact N.inv_mem (nN.mem_comm hab)
-    end) }
+@[to_additive] protected def con : con G :=
+{ to_setoid := left_rel N,
+  mul' := λ a b c d (hab : a⁻¹ * b ∈ N) (hcd : c⁻¹ * d ∈ N),
+    calc (a * c)⁻¹ * (b * d) = c⁻¹ * (a⁻¹ * b) * c⁻¹⁻¹ * (c⁻¹ * d) :
+      by simp only [mul_inv_rev, mul_assoc, inv_mul_cancel_left]
+    ... ∈ N : N.mul_mem (nN.conj_mem _ hab _) hcd }
 
 @[to_additive quotient_add_group.add_group]
 instance quotient.group : group (G ⧸ N) :=
-{ mul_left_inv := λ a, quotient.induction_on' a
-    (λ a, congr_arg mk (mul_left_inv a)),
- .. quotient.div_inv_monoid _ }
+(quotient_group.con N).group
 
 /-- The group homomorphism from `G` to `G/N`. -/
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]

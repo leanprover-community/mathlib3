@@ -47,6 +47,9 @@ reserve notation `to`
 -- used in `tactic/rcases.lean`
 precedence `?`:max
 
+-- used in `tactic/induction.lean`
+precedence `fixing`:0
+
 -- used in `order/lattice.lean`
 reserve infixl ` ⊓ `:70
 reserve infixl ` ⊔ `:65

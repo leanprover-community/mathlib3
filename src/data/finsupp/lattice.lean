@@ -12,15 +12,11 @@ This file provides instances of ordered structures on finsupps.
 
 -/
 
-open_locale classical
 noncomputable theory
 variables {α : Type*} {β : Type*} [has_zero β] {μ : Type*} [canonically_ordered_add_monoid μ]
 variables {γ : Type*} [canonically_linear_ordered_add_monoid γ]
 
 namespace finsupp
-
-instance : order_bot (α →₀ μ) :=
-{ bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero], .. finsupp.partial_order}
 
 instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
 { inf := zip_with (⊓) inf_idem,
@@ -33,7 +29,7 @@ instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
 lemma inf_apply [semilattice_inf β] {a : α} {f g : α →₀ β} : (f ⊓ g) a = f a ⊓ g a := rfl
 
 @[simp]
-lemma support_inf {f g : α →₀ γ} : (f ⊓ g).support = f.support ∩ g.support :=
+lemma support_inf [decidable_eq α] {f g : α →₀ γ} : (f ⊓ g).support = f.support ∩ g.support :=
 begin
   ext, simp only [inf_apply, mem_support_iff,  ne.def,
     finset.mem_union, finset.mem_filter, finset.mem_inter],
@@ -51,8 +47,7 @@ instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=
 lemma sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a = f a ⊔ g a := rfl
 
 @[simp]
-lemma support_sup
-  {f g : α →₀ γ} : (f ⊔ g).support = f.support ∪ g.support :=
+lemma support_sup [decidable_eq α] {f g : α →₀ γ} : (f ⊔ g).support = f.support ∪ g.support :=
 begin
   ext, simp only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ← bot_eq_zero],
   rw sup_eq_bot_iff, tauto,
@@ -61,12 +56,9 @@ end
 instance lattice [lattice β] : lattice (α →₀ β) :=
 { .. finsupp.semilattice_inf, .. finsupp.semilattice_sup}
 
-instance semilattice_inf_bot : semilattice_inf_bot (α →₀ γ) :=
-{ ..finsupp.order_bot, ..finsupp.lattice}
-
 lemma bot_eq_zero : (⊥ : α →₀ γ) = 0 := rfl
 
-lemma disjoint_iff {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=
+lemma disjoint_iff [decidable_eq α] {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=
 begin
   unfold disjoint, repeat {rw le_bot_iff},
   rw [finsupp.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.support_inf], refl,

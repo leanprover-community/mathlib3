@@ -58,7 +58,7 @@ General algebra:
 
   Ideals and quotients:
     ideal of a commutative ring: 'ideal'
-    quotient ring: 'ideal.quotient'
+    quotient ring: 'ideal.has_quotient'
     prime ideal: 'ideal.is_prime'
     maximal ideal: 'ideal.is_maximal'
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'
@@ -143,7 +143,7 @@ Linear algebra:
     linear map: 'linear_map'
     the category of modules over a ring: 'Module'
     vector space: 'module'
-    quotient space: 'submodule.quotient'
+    quotient space: 'submodule.has_quotient'
     tensor product: 'tensor_product'
     noetherian module: 'is_noetherian'
     basis: 'basis'
@@ -172,14 +172,14 @@ Linear algebra:
     existence of an eigenvalue: 'module.End.exists_eigenvalue'
   Bilinear and quadratic forms:
     bilinear form: 'bilin_form'
-    alternating bilinear form: 'alt_bilin_form.is_alt'
-    symmetric bilinear form: 'sym_bilin_form.is_sym'
+    alternating bilinear form: 'bilin_form.is_alt'
+    symmetric bilinear form: 'bilin_form.is_symm'
     matrix representation: 'bilin_form.to_matrix'
     quadratic form: 'quadratic_form'
     polar form of a quadratic: 'quadratic_form.polar'
-    Euclidean vector space: 'inner_product_space'
-    Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
-    self-adjoint endomorphism: 'bilin_form.is_self_adjoint'
+  Finite-dimensional inner product spaces (see also Hilbert spaces, below):
+    existence of orthonormal basis: 'orthonormal_basis'
+    diagonalization of self-adjoint endomorphisms: 'is_self_adjoint.diagonalization_basis_apply_self_apply'
 
 Topology:
   General topology:
@@ -211,7 +211,7 @@ Topology:
     Cauchy filter: 'cauchy'
     Cauchy sequence: 'cauchy_seq'
     completeness: 'complete_space'
-    completion: 'completion'
+    completion: 'uniform_space.completion'
     Heine-Cantor theorem: 'compact_space.uniform_continuous_of_continuous'
   Topological algebra:
     order topology: 'order_topology'
@@ -224,6 +224,7 @@ Topology:
     topological ring: 'topological_ring'
     completion of a topological ring: 'uniform_space.completion.ring'
     topological module: 'has_continuous_smul'
+    continuous linear map: 'continuous_linear_map'
     weak-* topology: 'weak_dual.topological_space'
     Haar measure on a locally compact Hausdorff group: 'measure_theory.measure.haar_measure'
   Metric spaces:
@@ -236,25 +237,34 @@ Topology:
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
     Baire theorem: 'dense_Inter_of_open'
     Arzela-Ascoli theorem: 'bounded_continuous_function.arzela_ascoli'
-    Hausdorff distance: ' emetric.Hausdorff_edist'
+    Hausdorff distance: 'emetric.Hausdorff_edist'
     Gromov-Hausdorff space: 'Gromov_Hausdorff.GH_space'
 
 Analysis:
-  Normed vector spaces:
+  Normed vector spaces/Banach spaces:
     normed vector space over a normed field: 'normed_space'
     topology on a normed vector space: 'semi_normed_space.has_bounded_smul'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
     finite dimensional normed spaces over complete normed fields are complete: 'submodule.complete_of_finite_dimensional'
     Heine-Borel theorem (finite dimensional normed spaces are proper): 'finite_dimensional.proper'
-    continuous linear map: 'continuous_linear_map'
     norm of a continuous linear map: 'linear_map.mk_continuous'
     Banach open mapping theorem: 'open_mapping'
     absolutely convergent series in Banach spaces: 'summable_of_summable_norm'
     Hahn-Banach theorem: 'exists_extension_norm_eq'
     dual of a normed space: 'normed_space.dual'
-    Fréchet-Riesz representation of the dual of a Hilbert space: 'inner_product_space.to_dual'
     isometric inclusion in double dual: 'normed_space.inclusion_in_double_dual_li'
     completeness of spaces of bounded continuous functions: 'bounded_continuous_function.complete_space'
+
+  Hilbert spaces:
+    Inner product space, over $R$ or $C$: 'inner_product_space'
+    Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
+    self-adjoint endomorphism: 'is_self_adjoint'
+    orthogonal projection: 'orthogonal_projection'
+    reflection: 'reflection'
+    orthogonal complement: 'submodule.orthogonal'
+    existence of Hilbert basis: 'exists_is_orthonormal_dense_span'
+    eigenvalues from Rayleigh quotient: 'is_self_adjoint.has_eigenvector_of_is_local_extr_on'
+    Fréchet-Riesz representation of the dual of a Hilbert space: 'inner_product_space.to_dual'
 
   Differentiability:
     differentiable function between normed vector spaces: 'has_fderiv_at'
@@ -337,7 +347,7 @@ Combinatorics:
   Graph theory:
     simple graph: 'simple_graph'
     degree-sum formula: 'simple_graph.sum_degrees_eq_twice_card_edges'
-    matching: 'simple_graph.matching'
+    matching: 'simple_graph.subgraph.is_matching'
     adjacency matrix: 'simple_graph.adj_matrix'
   Pigeonhole principles:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'

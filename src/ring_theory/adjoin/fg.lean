@@ -3,6 +3,8 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import ring_theory.polynomial.basic
+import ring_theory.principal_ideal_domain
 import ring_theory.adjoin.polynomial
 
 /-!
@@ -47,10 +49,10 @@ begin
       exact adjoin_mono (set.subset_union_left _ _) this },
     have : y ∈ (adjoin (adjoin R s) t).to_submodule,
     { rw ← hq', exact subset_span hy },
-    change y ∈ adjoin R (s ∪ t), rwa adjoin_union_eq_under },
+    change y ∈ adjoin R (s ∪ t), rwa adjoin_union_eq_adjoin_adjoin },
   { intros r hr,
     change r ∈ adjoin R (s ∪ t) at hr,
-    rw adjoin_union_eq_under at hr,
+    rw adjoin_union_eq_adjoin_adjoin at hr,
     change r ∈ (adjoin (adjoin R s) t).to_submodule at hr,
     rw [← hq', ← set.image_id q, finsupp.mem_span_image_iff_total (adjoin R s)] at hr,
     rcases hr with ⟨l, hlq, rfl⟩,

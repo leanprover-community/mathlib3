@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.group.inj_surj
-import algebra.group_power.basic
+import data.list.big_operators
+import data.list.range
 import data.set_like.basic
 import data.sigma.basic
 import group_theory.group_action.defs
@@ -124,7 +125,7 @@ sigma.ext (zero_nsmul _) (heq_of_cast_eq _ rfl).symm
 
 /-- Tactic used to autofill `graded_monoid.gmonoid.gnpow_zero'` when the default
 `graded_monoid.gmonoid.gnpow_rec` is used. -/
-meta def apply_gnpow_rec_zero_tac : tactic unit := `[apply direct_sum.gmonoid.gnpow_rec_zero]
+meta def apply_gnpow_rec_zero_tac : tactic unit := `[apply graded_monoid.gmonoid.gnpow_rec_zero]
 
 @[simp] lemma gnpow_rec_succ (n : ℕ) (a : graded_monoid A) :
   (graded_monoid.mk _ $ gnpow_rec n.succ a.snd) = a * ⟨_, gnpow_rec n a.snd⟩ :=
@@ -132,7 +133,7 @@ sigma.ext (succ_nsmul _ _) (heq_of_cast_eq _ rfl).symm
 
 /-- Tactic used to autofill `graded_monoid.gmonoid.gnpow_succ'` when the default
 `graded_monoid.gmonoid.gnpow_rec` is used. -/
-meta def apply_gnpow_rec_succ_tac : tactic unit := `[apply direct_sum.gmonoid.gnpow_rec_succ]
+meta def apply_gnpow_rec_succ_tac : tactic unit := `[apply graded_monoid.gmonoid.gnpow_rec_succ]
 
 end gmonoid
 
@@ -206,13 +207,13 @@ end one
 section mul
 variables [add_monoid ι] [ghas_mul A]
 
-/-- `(•) : A 0 → A i → A i` is the value provided in `direct_sum.ghas_mul.mul`, composed with
+/-- `(•) : A 0 → A i → A i` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + i)` into `A i`.
 -/
 instance grade_zero.has_scalar (i : ι) : has_scalar (A 0) (A i) :=
 { smul := λ x y, (zero_add i).rec (ghas_mul.mul x y) }
 
-/-- `(*) : A 0 → A 0 → A 0` is the value provided in `direct_sum.ghas_mul.mul`, composed with
+/-- `(*) : A 0 → A 0 → A 0` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + 0)` into `A 0`.
 -/
 instance grade_zero.has_mul : has_mul (A 0) :=
@@ -316,6 +317,9 @@ instance set_like.ghas_one {S : Type*} [set_like S R] [has_one R] [has_zero ι] 
   [set_like.has_graded_one A] : graded_monoid.ghas_one (λ i, A i) :=
 { one := ⟨1, set_like.has_graded_one.one_mem⟩ }
 
+@[simp] lemma set_like.coe_ghas_one {S : Type*} [set_like S R] [has_one R] [has_zero ι] (A : ι → S)
+  [set_like.has_graded_one A] : ↑(@graded_monoid.ghas_one.one _ (λ i, A i) _ _) = (1 : R) := rfl
+
 /-- A version of `graded_monoid.ghas_one` for internally graded objects. -/
 class set_like.has_graded_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι]
   (A : ι → S) : Prop :=
@@ -326,9 +330,43 @@ instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (
   graded_monoid.ghas_mul (λ i, A i) :=
 { mul := λ i j a b, ⟨(a * b : R), set_like.has_graded_mul.mul_mem a.prop b.prop⟩ }
 
+@[simp] lemma set_like.coe_ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (A : ι → S)
+  [set_like.has_graded_mul A] {i j : ι} (x : A i) (y : A j) :
+    ↑(@graded_monoid.ghas_mul.mul _ (λ i, A i) _ _ _ _ x y) = (x * y : R) := rfl
+
 /-- A version of `graded_monoid.gmonoid` for internally graded objects. -/
 class set_like.graded_monoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
   (A : ι → S) extends set_like.has_graded_one A, set_like.has_graded_mul A : Prop
+
+namespace set_like.graded_monoid
+variables {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
+variables {A : ι → S} [set_like.graded_monoid A]
+
+lemma pow_mem (n : ℕ) {r : R} {i : ι} (h : r ∈ A i) : r ^ n ∈ A (n • i) :=
+begin
+  induction n,
+  { rw [pow_zero, zero_nsmul], exact one_mem },
+  { rw [pow_succ', succ_nsmul'], exact mul_mem n_ih h },
+end
+
+lemma list_prod_map_mem {ι'} (l : list ι') (i : ι' → ι) (r : ι' → R) (h : ∀ j ∈ l, r j ∈ A (i j)) :
+  (l.map r).prod ∈ A (l.map i).sum :=
+begin
+  induction l,
+  { rw [list.map_nil, list.map_nil, list.prod_nil, list.sum_nil],
+    exact one_mem },
+  { rw [list.map_cons, list.map_cons, list.prod_cons, list.sum_cons],
+    exact mul_mem (h _ $ list.mem_cons_self _ _) (l_ih $ λ j hj, h _ $ list.mem_cons_of_mem _ hj) },
+end
+
+lemma list_prod_of_fn_mem {n} (i : fin n → ι) (r : fin n → R) (h : ∀ j, r j ∈ A (i j)) :
+  (list.of_fn r).prod ∈ A (list.of_fn i).sum :=
+begin
+  rw [list.of_fn_eq_map, list.of_fn_eq_map],
+  exact list_prod_map_mem _ _ _ (λ _ _, h _),
+end
+
+end set_like.graded_monoid
 
 /-- Build a `gmonoid` instance for a collection of subobjects. -/
 instance set_like.gmonoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι] (A : ι → S)
@@ -338,15 +376,15 @@ instance set_like.gmonoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι] 
   mul_one := λ ⟨i, a, h⟩, sigma.subtype_ext (add_zero _) (mul_one _),
   mul_assoc := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩ ⟨k, c, hc⟩,
     sigma.subtype_ext (add_assoc _ _ _) (mul_assoc _ _ _),
-  gnpow := λ n i a, ⟨a ^ n, begin
-    induction n,
-    { rw [pow_zero, zero_nsmul], exact set_like.has_graded_one.one_mem },
-    { rw [pow_succ', succ_nsmul'], exact set_like.has_graded_mul.mul_mem n_ih a.prop },
-  end⟩,
+  gnpow := λ n i a, ⟨a ^ n, set_like.graded_monoid.pow_mem n a.prop⟩,
   gnpow_zero' := λ n, sigma.subtype_ext (zero_nsmul _) (pow_zero _),
   gnpow_succ' := λ n a, sigma.subtype_ext (succ_nsmul _ _) (pow_succ _ _),
   ..set_like.ghas_one A,
   ..set_like.ghas_mul A }
+
+@[simp] lemma set_like.coe_gnpow {S : Type*} [set_like S R] [monoid R] [add_monoid ι] (A : ι → S)
+  [set_like.graded_monoid A] {i : ι} (x : A i) (n : ℕ) :
+    ↑(@graded_monoid.gmonoid.gnpow _ (λ i, A i) _ _ n _ x) = (x ^ n : R) := rfl
 
 /-- Build a `gcomm_monoid` instance for a collection of subobjects. -/
 instance set_like.gcomm_monoid {S : Type*} [set_like S R] [comm_monoid R] [add_comm_monoid ι]

@@ -144,7 +144,7 @@ lemma log_le_log_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n 
 begin
   cases n, { simp },
   rw ← pow_le_iff_le_log hc (zero_lt_succ n),
-  exact calc
+  calc
     c ^ log b n.succ ≤ b ^ log b n.succ : pow_le_pow_of_le_left
                                             (le_of_lt $ zero_lt_one.trans hc) hb _
                  ... ≤ n.succ           : pow_log_le_self (lt_of_lt_of_le hc hb)
@@ -247,17 +247,15 @@ lemma clog_le_clog_of_le (b : ℕ) {n m : ℕ} (h : n ≤ m) : clog b n ≤ clog
 begin
   cases le_or_lt b 1 with hb hb,
   { rw clog_of_left_le_one hb, exact zero_le _ },
-  { obtain rfl | hn := n.eq_zero_or_pos,
-    { rw [clog_zero_right], exact zero_le _ },
-    { rw ←le_pow_iff_clog_le hb,
-      exact h.trans (le_pow_clog hb _) } }
+  { rw ←le_pow_iff_clog_le hb,
+    exact h.trans (le_pow_clog hb _) }
 end
 
 lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=
 begin
   cases n, { simp },
   rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
-  exact calc
+  calc
     n.succ ≤ c ^ clog c n.succ : le_pow_clog hc _
        ... ≤ b ^ clog c n.succ : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
 end

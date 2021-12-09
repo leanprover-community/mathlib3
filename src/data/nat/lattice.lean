@@ -44,6 +44,9 @@ begin
     simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
 
+@[simp] lemma Inf_empty : Inf ∅ = 0 :=
+by { rw Inf_eq_zero, right, refl }
+
 lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
 by { rw [nat.Inf_def h], exact nat.find_spec h }
 
@@ -104,6 +107,36 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   end,
   .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
+
+lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
+  Inf {m | p (m + n)} + n = Inf {m | p m} :=
+begin
+  obtain h | ⟨m, hm⟩ := {m | p (m + n)}.eq_empty_or_nonempty,
+  { rw [h, nat.Inf_empty, zero_add],
+    obtain hnp | hnp := hn.eq_or_lt,
+    { exact hnp },
+    suffices hp : p (Inf {m | p m} - n + n),
+    { exact (h.subset hp).elim },
+    rw tsub_add_cancel_of_le hn,
+    exact Inf_mem (nonempty_of_pos_Inf $ n.zero_le.trans_lt hnp) },
+  { have hp : ∃ n, n ∈ {m | p m} := ⟨_, hm⟩,
+    rw [nat.Inf_def ⟨m, hm⟩, nat.Inf_def hp],
+    rw [nat.Inf_def hp] at hn,
+    exact find_add hn }
+end
+
+lemma Inf_add' {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m | p m}) :
+  Inf {m | p m} + n = Inf {m | p (m - n)} :=
+begin
+  convert Inf_add _,
+  { simp_rw add_tsub_cancel_right },
+  obtain ⟨m, hm⟩ := nonempty_of_pos_Inf h,
+  refine le_cInf ⟨m + n, _⟩ (λ b hb, le_of_not_lt $ λ hbn,
+    ne_of_mem_of_not_mem _ (not_mem_of_lt_Inf h) (tsub_eq_zero_of_le hbn.le)),
+  { dsimp,
+    rwa add_tsub_cancel_right },
+  { exact hb }
+end
 
 section
 

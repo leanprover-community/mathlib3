@@ -735,8 +735,8 @@ lemma mker_prod_map {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class 
   (g : M' →* N') : (prod_map f g).mker = f.mker.prod g.mker :=
 by rw [←comap_bot', ←comap_bot', ←comap_bot', ←prod_map_comap_prod', bot_prod_bot]
 
-/-- The `monoid_hom` from the comap of a submonoid to itself. -/
-@[to_additive "the `add_monoid_hom` from the comap of an additive submonoid to itself.", simps]
+/-- The `monoid_hom` from the preimage of a submonoid to itself. -/
+@[to_additive "the `add_monoid_hom` from the preimage of an additive submonoid to itself.", simps]
 def submonoid_comap (f : M →* N) (N' : submonoid N) :
   N'.comap f →* N' :=
 { to_fun := λ x, ⟨f x, x.prop⟩,

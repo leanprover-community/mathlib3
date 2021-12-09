@@ -2113,8 +2113,8 @@ namespace monoid_hom
 
 variables {G' : Type*} [group G']
 
-/-- The `monoid_hom` from the comap of a subgroup to itself. -/
-@[to_additive "the `add_monoid_hom` from the comap of an additive subgroup to itself.", simps]
+/-- The `monoid_hom` from the preimage of a subgroup to itself. -/
+@[to_additive "the `add_monoid_hom` from the preimage of an additive subgroup to itself.", simps]
 def subgroup_comap (f : G →* G') (H' : subgroup G') : H'.comap f →* H' :=
 f.submonoid_comap H'.to_submonoid
 

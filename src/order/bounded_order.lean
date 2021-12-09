@@ -590,7 +590,7 @@ instance order_top [has_le α] [order_top α] : order_top (with_bot α) :=
 instance bounded_order [has_le α] [order_top α] : bounded_order (with_bot α) :=
 { ..with_bot.order_top, ..with_bot.order_bot }
 
-lemma well_founded_lt [partial_order α] (h : well_founded ((<) : α → α → Prop)) :
+lemma well_founded_lt [preorder α] (h : well_founded ((<) : α → α → Prop)) :
   well_founded ((<) : with_bot α → with_bot α → Prop) :=
 have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
   acc.intro _ (λ a ha, (not_le_of_gt ha bot_le).elim),

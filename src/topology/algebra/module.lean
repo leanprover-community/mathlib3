@@ -1000,7 +1000,7 @@ prod_ext_iff.2 ⟨hl, hr⟩
 variables [has_continuous_add M₂]
 
 instance : module S (M →L[R] M₂) :=
-{ zero_smul := λ _, ext $ λ _, zero_smul _ _,
+{ zero_smul := λ _, ext $ λ x, by exact zero_smul _ _,
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _, }
 
 variables (S) [has_continuous_add M₃]

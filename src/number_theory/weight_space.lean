@@ -2471,8 +2471,9 @@ example {A B : Type*} {U : set (A × B)} : set A := (prod.fst)'' U
 lemma embed_prod_open_range : is_open (set.range (embed_product ℤ_[p])) :=
 begin
   rw is_open_iff_forall_mem_open, rintros x hx, simp at hx, cases hx with y hy,
+  sorry,
 end
-#exit
+
 lemma is_open_coe : is_open_map (coe : units ℤ_[p] → ℤ_[p]) :=
 begin
   change is_open_map (@units.val ℤ_[p] _), rintros U hU, rw is_open_induced_iff at hU,

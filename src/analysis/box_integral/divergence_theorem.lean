@@ -170,7 +170,7 @@ begin
     `volume J ≤ (2 * δ) ^ (n + 1)` is small, and the difference of the integrals is small
     because each of the integrals is close to `volume (J.face i) • f x`.
     TODO: there should be a shorter and more readable way to formalize this simple proof. -/
-    have : ∀ᶠ δ in 𝓝[Ioi 0] (0 : ℝ), δ ∈ Ioc (0 : ℝ) (1 / 2) ∧
+    have : ∀ᶠ δ in 𝓝ᵣ' (0 : ℝ), δ ∈ Ioc (0 : ℝ) (1 / 2) ∧
       (∀ y₁ y₂ ∈ closed_ball x δ ∩ I.Icc, ∥f y₁ - f y₂∥ ≤ ε / 2) ∧
       ((2 * δ) ^ (n + 1) * ∥f' x (pi.single i 1)∥ ≤ ε / 2),
     { refine eventually.and _ (eventually.and _ _),

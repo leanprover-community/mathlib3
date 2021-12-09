@@ -359,7 +359,7 @@ by rwa norm_zpow⟩
 variable {α}
 
 @[instance]
-lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[{x}ᶜ] x) :=
+lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝' x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -416,7 +416,7 @@ This is a particular case of `module.punctured_nhds_ne_bot`. -/
 instance punctured_nhds_module_ne_bot
   {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
   [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
-  ne_bot (𝓝[{x}ᶜ] x) :=
+  ne_bot (𝓝' x) :=
 module.punctured_nhds_ne_bot ℝ E x
 
 end real

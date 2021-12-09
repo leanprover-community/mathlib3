@@ -105,18 +105,18 @@ variables (R M)
 /-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
 normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
 such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
-using `ne_bot (𝓝[{x}ᶜ] x)`.
+using `ne_bot (𝓝' x)`.
 
 This lemma is not an instance because Lean would need to find `[has_continuous_smul ?m_1 M]` with
 unknown `?m_1`. We register this as an instance for `R = ℝ` in `real.punctured_nhds_module_ne_bot`.
 One can also use `haveI := module.punctured_nhds_ne_bot R M` in a proof.
 -/
-lemma module.punctured_nhds_ne_bot [nontrivial M] [ne_bot (𝓝[{0}ᶜ] (0 : R))]
+lemma module.punctured_nhds_ne_bot [nontrivial M] [ne_bot (𝓝' (0 : R))]
   [no_zero_smul_divisors R M] (x : M) :
-  ne_bot (𝓝[{x}ᶜ] x) :=
+  ne_bot (𝓝' x) :=
 begin
   rcases exists_ne (0 : M) with ⟨y, hy⟩,
-  suffices : tendsto (λ c : R, x + c • y) (𝓝[{0}ᶜ] 0) (𝓝[{x}ᶜ] x), from this.ne_bot,
+  suffices : tendsto (λ c : R, x + c • y) (𝓝' 0) (𝓝' x), from this.ne_bot,
   refine tendsto.inf _ (tendsto_principal_principal.2 $ _),
   { convert tendsto_const_nhds.add ((@tendsto_id R _).smul_const y),
     rw [zero_smul, add_zero] },

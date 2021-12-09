@@ -375,12 +375,12 @@ on a closed subset, contains `a`, and for any `x ∈ s ∩ [a, b)` the set `s` i
 neighborhood of `x` within `(x, +∞)`, then `[a, b] ⊆ s`. -/
 lemma is_closed.Icc_subset_of_forall_mem_nhds_within {a b : α} {s : set α}
   (hs : is_closed (s ∩ Icc a b)) (ha : a ∈ s)
-  (hgt : ∀ x ∈ s ∩ Ico a b, s ∈ 𝓝[Ioi x] x) :
+  (hgt : ∀ x ∈ s ∩ Ico a b, s ∈ 𝓝ᵣ' x) :
   Icc a b ⊆ s :=
 begin
   apply hs.Icc_subset_of_forall_exists_gt ha,
   rintros x ⟨hxs, hxab⟩ y hyxb,
-  have : s ∩ Ioc x y ∈ 𝓝[Ioi x] x,
+  have : s ∩ Ioc x y ∈ 𝓝ᵣ' x,
     from inter_mem (hgt x ⟨hxs, hxab⟩) (Ioc_mem_nhds_within_Ioi ⟨le_refl _, hyxb⟩),
   exact (nhds_within_Ioi_self_ne_bot' ⟨b, hxab.2⟩).nonempty_of_mem this
 end
@@ -398,7 +398,7 @@ begin
   apply (is_closed.inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
   rintros z ⟨zs, hz⟩,
   have zt : z ∈ tᶜ, from λ zt, hst ⟨z, xyab $ Ico_subset_Icc_self hz, zs, zt⟩,
-  have : tᶜ ∩ Ioc z y ∈ 𝓝[Ioi z] z,
+  have : tᶜ ∩ Ioc z y ∈ 𝓝ᵣ' z,
   { rw [← nhds_within_Ioc_eq_nhds_within_Ioi hz.2],
     exact mem_nhds_within.2 ⟨tᶜ, ht.is_open_compl, zt, subset.refl _⟩},
   apply mem_of_superset this,

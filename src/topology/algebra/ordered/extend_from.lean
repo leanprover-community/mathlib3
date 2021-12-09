@@ -19,7 +19,7 @@ variables {α : Type u} {β : Type v}
 lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [regular_space β] {f : α → β} {a b : α}
   {la lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
+  (ha : tendsto f (𝓝ᵣ' a) (𝓝 la)) (hb : tendsto f (𝓝ₗ' b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Icc a b) :=
 begin
   apply continuous_on_extend_from,
@@ -35,7 +35,7 @@ end
 
 lemma eq_lim_at_left_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
-  {la : β} (hab : a < b) (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) :
+  {la : β} (hab : a < b) (ha : tendsto f (𝓝ᵣ' a) (𝓝 la)) :
   extend_from (Ioo a b) f a = la :=
 begin
   apply extend_from_eq,
@@ -46,7 +46,7 @@ end
 
 lemma eq_lim_at_right_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
-  {lb : β} (hab : a < b) (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
+  {lb : β} (hab : a < b) (hb : tendsto f (𝓝ₗ' b) (𝓝 lb)) :
   extend_from (Ioo a b) f b = lb :=
 begin
   apply extend_from_eq,
@@ -58,7 +58,7 @@ end
 lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
   [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
   [regular_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) :
+  (ha : tendsto f (𝓝ᵣ' a) (𝓝 la)) :
   continuous_on (extend_from (Ioo a b) f) (Ico a b) :=
 begin
   apply continuous_on_extend_from,
@@ -73,7 +73,7 @@ end
 lemma continuous_on_Ioc_extend_from_Ioo [topological_space α]
   [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
   [regular_space β] {f : α → β} {a b : α} {lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
+  (hb : tendsto f (𝓝ₗ' b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Ioc a b) :=
 begin
   have := @continuous_on_Ico_extend_from_Ioo (order_dual α) _ _ _ _ _ _ _ f _ _ _ hab,

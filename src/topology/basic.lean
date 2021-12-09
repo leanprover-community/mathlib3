@@ -593,6 +593,11 @@ intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
 localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
+localized "notation `𝓝' ` x:100 := 𝓝[{x}ᶜ] x" in topological_space
+localized "notation `𝓝ᵣ ` x:100 := 𝓝[set.Ici x] x" in topological_space
+localized "notation `𝓝ₗ ` x:100 := 𝓝[set.Iic x] x" in topological_space
+localized "notation `𝓝ᵣ' ` x:100 := 𝓝[set.Ioi x] x" in topological_space
+localized "notation `𝓝ₗ' ` x:100 := 𝓝[set.Iio x] x" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
@@ -922,7 +927,7 @@ mem_closure_iff_cluster_pt
 
 /-- If `x` is not an isolated point of a topological space, then `{x}ᶜ` is dense in the whole
 space. -/
-lemma dense_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] : dense ({x}ᶜ : set α) :=
+lemma dense_compl_singleton (x : α) [ne_bot (𝓝' x)] : dense ({x}ᶜ : set α) :=
 begin
   intro y,
   unfreezingI { rcases eq_or_ne y x with rfl|hne },
@@ -932,12 +937,12 @@ end
 
 /-- If `x` is not an isolated point of a topological space, then the closure of `{x}ᶜ` is the whole
 space. -/
-@[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+@[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝' x)] :
   closure {x}ᶜ = (univ : set α) :=
 (dense_compl_singleton x).closure_eq
 
 /-- If `x` is not an isolated point of a topological space, then the interior of `{x}` is empty. -/
-@[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+@[simp] lemma interior_singleton (x : α) [ne_bot (𝓝' x)] :
   interior {x} = (∅ : set α) :=
 interior_eq_empty_iff_dense_compl.2 (dense_compl_singleton x)
 

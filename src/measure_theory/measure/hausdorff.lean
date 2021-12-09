@@ -287,7 +287,7 @@ lemma mono_pre_nat (m : set X → ℝ≥0∞) :
 λ k l h, le_pre.2 $ λ s hs, pre_le (hs.trans $ by simpa)
 
 lemma tendsto_pre (m : set X → ℝ≥0∞) (s : set X) :
-  tendsto (λ r, pre m r s) (𝓝[Ioi 0] 0) (𝓝 $ mk_metric' m s) :=
+  tendsto (λ r, pre m r s) (𝓝ᵣ' 0) (𝓝 $ mk_metric' m s) :=
 begin
   rw [← map_coe_Ioi_at_bot, tendsto_map'_iff],
   simp only [mk_metric', outer_measure.supr_apply, supr_subtype'],
@@ -344,9 +344,9 @@ begin
 end
 
 /-- If `c ∉ {0, ∞}` and `m₁ d ≤ c * m₂ d` for `0 < d < ε` for some `ε > 0`
-(we use `≤ᶠ[𝓝[Ioi 0]]` to state this), then `mk_metric m₁ hm₁ ≤ c • mk_metric m₂ hm₂`. -/
+(we use `≤ᶠ[𝓝ᵣ' 0]` to state this), then `mk_metric m₁ hm₁ ≤ c • mk_metric m₂ hm₂`. -/
 lemma mk_metric_mono_smul {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} {c : ℝ≥0∞} (hc : c ≠ ∞) (h0 : c ≠ 0)
-  (hle : m₁ ≤ᶠ[𝓝[Ioi 0] 0] c • m₂) :
+  (hle : m₁ ≤ᶠ[𝓝ᵣ' 0] c • m₂) :
   (mk_metric m₁ : outer_measure X) ≤ c • mk_metric m₂ :=
 begin
   classical,
@@ -366,9 +366,9 @@ begin
   { simp [h0] }
 end
 
-/-- If `m₁ d ≤ m₂ d` for `0 < d < ε` for some `ε > 0` (we use `≤ᶠ[𝓝[Ioi 0]]` to state this), then
+/-- If `m₁ d ≤ m₂ d` for `0 < d < ε` for some `ε > 0` (we use `≤ᶠ[𝓝ᵣ' 0]` to state this), then
 `mk_metric m₁ hm₁ ≤ mk_metric m₂ hm₂`-/
-lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[𝓝[Ioi 0] 0] m₂) :
+lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[𝓝ᵣ' 0] m₂) :
   (mk_metric m₁ : outer_measure X) ≤ mk_metric m₂ :=
 by { convert mk_metric_mono_smul ennreal.one_ne_top ennreal.zero_lt_one.ne' _; simp * }
 
@@ -468,9 +468,9 @@ namespace measure
 variables [measurable_space X] [borel_space X]
 
 /-- If `c ∉ {0, ∞}` and `m₁ d ≤ c * m₂ d` for `0 < d < ε` for some `ε > 0`
-(we use `≤ᶠ[𝓝[Ioi 0]]` to state this), then `mk_metric m₁ hm₁ ≤ c • mk_metric m₂ hm₂`. -/
+(we use `≤ᶠ[𝓝ᵣ' 0]` to state this), then `mk_metric m₁ hm₁ ≤ c • mk_metric m₂ hm₂`. -/
 lemma mk_metric_mono_smul {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} {c : ℝ≥0∞} (hc : c ≠ ∞) (h0 : c ≠ 0)
-  (hle : m₁ ≤ᶠ[𝓝[Ioi 0] 0] c • m₂) :
+  (hle : m₁ ≤ᶠ[𝓝ᵣ' 0] c • m₂) :
   (mk_metric m₁ : measure X) ≤ c • mk_metric m₂ :=
 begin
   intros s hs,
@@ -478,9 +478,9 @@ begin
   exact outer_measure.mk_metric_mono_smul hc h0 hle s
 end
 
-/-- If `m₁ d ≤ m₂ d` for `0 < d < ε` for some `ε > 0` (we use `≤ᶠ[𝓝[Ioi 0]]` to state this), then
+/-- If `m₁ d ≤ m₂ d` for `0 < d < ε` for some `ε > 0` (we use `≤ᶠ[𝓝ᵣ' 0]` to state this), then
 `mk_metric m₁ hm₁ ≤ mk_metric m₂ hm₂`-/
-lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[𝓝[Ioi 0] 0] m₂) :
+lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[𝓝ᵣ' 0] m₂) :
   (mk_metric m₁ : measure X) ≤ mk_metric m₂ :=
 by { convert mk_metric_mono_smul ennreal.one_ne_top ennreal.zero_lt_one.ne' _; simp * }
 

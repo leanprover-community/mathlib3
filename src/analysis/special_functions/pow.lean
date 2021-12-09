@@ -699,10 +699,10 @@ begin
   cases p with x y,
   obtain hx|rfl := ne_or_eq x 0,
   { exact continuous_at_rpow_of_ne (x, y) hx },
-  have A : tendsto (λ p : ℝ × ℝ, exp (log p.1 * p.2)) (𝓝[{0}ᶜ] 0 ×ᶠ 𝓝 y) (𝓝 0) :=
+  have A : tendsto (λ p : ℝ × ℝ, exp (log p.1 * p.2)) (𝓝' 0 ×ᶠ 𝓝 y) (𝓝 0) :=
     tendsto_exp_at_bot.comp
       ((tendsto_log_nhds_within_zero.comp tendsto_fst).at_bot_mul hp tendsto_snd),
-  have B : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝[{0}ᶜ] 0 ×ᶠ 𝓝 y) (𝓝 0) :=
+  have B : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝' 0 ×ᶠ 𝓝 y) (𝓝 0) :=
     squeeze_zero_norm (λ p, abs_rpow_le_exp_log_mul p.1 p.2) A,
   have C : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝[{0}] 0 ×ᶠ 𝓝 y) (pure 0),
   { rw [nhds_within_singleton, tendsto_pure, pure_prod, eventually_map],

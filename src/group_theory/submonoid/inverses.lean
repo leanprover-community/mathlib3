@@ -25,8 +25,6 @@ Define the submonoid of right inverses and two-sided inverses.
 -/
 variables {M : Type*}
 
-section pointwise_inverse
-
 namespace submonoid
 
 @[to_additive]
@@ -35,11 +33,13 @@ noncomputable instance [monoid M] : group (is_unit.submonoid M) :=
   mul_left_inv := λ x, subtype.eq x.prop.unit.inv_val,
  ..(show monoid (is_unit.submonoid M), by apply_instance) }
 
-
 @[to_additive]
 noncomputable instance [comm_monoid M] : comm_group (is_unit.submonoid M) :=
 { mul_comm := λ a b, mul_comm a b,
  ..(show group (is_unit.submonoid M), by apply_instance) }
+
+@[to_additive] lemma is_unit.submonoid.coe_inv [monoid M] (x : is_unit.submonoid M) :
+  ↑(x⁻¹) = (↑x.prop.unit⁻¹ : M) := rfl
 
 section monoid
 
@@ -94,7 +94,7 @@ end monoid
 
 section comm_monoid
 
-variables {M : Type*} [comm_monoid M] (S : submonoid M)
+variables [comm_monoid M] (S : submonoid M)
 
 @[to_additive, simp]
 lemma from_left_inv_mul (x : S.left_inv) : (S.from_left_inv x : M) * x = 1 :=
@@ -161,5 +161,3 @@ by { convert S.left_inv_equiv_apply_mul hS ((S.left_inv_equiv hS).symm x), simp 
 end comm_monoid
 
 end submonoid
-
-end pointwise_inverse

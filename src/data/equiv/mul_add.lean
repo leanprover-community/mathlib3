@@ -596,6 +596,12 @@ def mul_equiv.inv₀ (G : Type*) [comm_group_with_zero G] : G ≃* G :=
   map_mul' := λ x y, mul_inv₀,
   ..equiv.inv₀ G }
 
+@[simp] lemma mul_equiv.inv₀.def (G : Type*) [comm_group_with_zero G] {x : G} :
+  mul_equiv.inv₀ G x = x⁻¹ := rfl
+
+@[simp] lemma mul_equiv.inv₀.symm_def (G : Type*) [comm_group_with_zero G] {x : G} :
+  (mul_equiv.inv₀ G).symm = mul_equiv.inv₀ G := rfl
+
 section type_tags
 
 /-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/

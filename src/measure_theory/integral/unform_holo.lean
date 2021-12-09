@@ -68,6 +68,44 @@ end
 def fbound (R : ℝ) (hR: 0 < R)  (z : ℂ) (θ : ℝ): (ℂ → ℂ) :=
 λ w, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + (2⁻¹*R) * exp (θ * I) - w)^2 : ℂ)
 
+def fbound' (R : ℝ) (hR: 0 < R)  (z : ℂ): (ℂ × ℝ → ℂ) :=
+λ w, (1/(2 • π • I)) • ((R * exp (w.2 * I) * I) / (z + (R) * exp (w.2 * I) - w.1)^2 : ℂ)
+
+
+lemma fbounded'  (R : ℝ) (hR: 0 < R)  (z : ℂ) (θ : ℝ) :
+ ∃ (x : (closed_ball z R).prod (interval 0 (2*π))) , ∀  (y : (closed_ball z R).prod (interval 0 (2*π))),
+ complex.abs (fbound' R hR z  y) ≤ complex.abs(fbound' R hR z  x):=
+ begin
+ have cts: continuous_on  (complex.abs ∘ (fbound' R hR z ))  ((closed_ball z R).prod (interval 0 (2*π))),
+ by {simp_rw fbound',
+ have c1:= continuous_abs, have c2: continuous_on abs ⊤, by {apply continuous.continuous_on c1},
+  apply continuous_on.comp c2,
+   apply continuous_on.smul,
+   apply continuous_const.continuous_on,
+    apply continuous_on.div,
+
+ sorry,
+ apply continuous_on.pow,
+ apply continuous_on.sub,
+ apply continuous_on.add,
+ apply continuous_const.continuous_on,
+ apply continuous_on.mul,
+ apply continuous_const.continuous_on,
+ apply continuous_on.cexp,
+ apply continuous_on.mul,
+ apply continuous.continuous_on,
+ rw metric.continuous_iff,
+ intros b ε hε,
+ use ε,
+
+ simp [hε],
+ intros a b1 hab1,
+
+
+ },
+
+ end
+
 
 lemma fbounded  (R : ℝ) (hR: 0 < R)  (z : ℂ) (θ : ℝ) :
  ∃ (x : closed_ball z R), ∀ (y : closed_ball z R),
@@ -211,7 +249,9 @@ by {
 },
 have  bound_integrable : interval_integrable bound volume 0 (2 * π) , by {sorry},
 have h_diff : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x R, has_deriv_at (λ y, F y t) (F' y t) y,
-by {sorry},
+by {
+
+  sorry},
 have := interval_integral.has_deriv_at_integral_of_dominated_loc_of_deriv_le hR hF_meas hF_int hF'_meas
   h_bound bound_integrable h_diff,
 simp_rw F at this,
@@ -253,6 +293,7 @@ intro θ,
 simp_rw int_diff0,
 simp,
 simp_rw ← mul_assoc,
+
 sorry,
 end
 

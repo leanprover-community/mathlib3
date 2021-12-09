@@ -848,39 +848,6 @@ theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α
 tendsto_set_to_fun_of_dominated_convergence (dominated_fin_meas_additive_weighted_smul μ) bound
   F_measurable bound_integrable h_bound h_lim
 
-theorem uniform_tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α → E}
-  (F_integrable : ∀ n, integrable (F n) μ)
-  (h_lim : tendsto_uniformly F f at_top) :
-  tendsto (λn, ∫ a, F n a ∂μ) at_top (𝓝 $ ∫ a, f a ∂μ) :=
-
-begin
-  have h_lim' : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a)),
-  by {rw metric.tendsto_uniformly_iff at h_lim, simp_rw metric.tendsto_nhds, simp_rw  dist_comm,
-  rw eventually_iff_exists_mem,
-   use ⊤,
-  simp at *,
-  intros y ε hε,
-  have h_lim2:= h_lim ε hε,
-  obtain ⟨a, ha⟩ := h_lim2,
-  use a,
-  intros b hb,
-  simp [ha b hb],},
-  have f_measurable : ae_measurable f μ, by  {apply ae_measurable_of_tendsto_metric_ae _ h_lim',
-  intro n, apply (F_integrable n).1,},
-  simp_rw metric.tendsto_uniformly_iff at h_lim,
-  simp at *,
-  simp_rw dist_eq_norm at *,
-  have h_lim2:= h_lim 1,
-  simp at *,
-   obtain ⟨a, ha⟩ := h_lim2,
-   set bb: α →  ℕ → ℝ := λ r, (λ n, ∥F n r ∥),
-  have Hne : ∀ r : α, ((finset.image (bb r) (finset.range a))).nonempty, by {sorry,},
-  set b: α → ℝ := λ r, finset.max' ((finset.image (bb r) (finset.range a))) (Hne r),
-
-sorry,
-end
-
-
 /-- Lebesgue dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   [l.is_countably_generated]

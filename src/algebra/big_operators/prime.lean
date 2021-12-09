@@ -8,7 +8,7 @@ import data.nat.prime
 import data.finset.basic
 import data.finsupp.basic
 import algebra.big_operators.basic
-
+import algebra.associated
 
 /-!
 # Products and sums involving prime numbers
@@ -18,25 +18,44 @@ prime numbers.
 
 -/
 
-open nat finset finsupp
+open finset finsupp
 
-lemma nat.prime.dvd_finset_prod_iff {α : Type*} [decidable_eq α] {S : finset α} {p : ℕ}
-  (pp : prime p) (g : α → ℕ) :
-p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
+section comm_monoid_with_zero
+
+variables {α M : Type*} [decidable_eq α] [comm_monoid_with_zero M]
+
+lemma prime.dvd_finset_prod_iff {S : finset α} {p : M}  (pp : prime p) (g : α → M) :
+  p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
 begin
   split,
   { apply @finset.induction_on α (λ S, p ∣ S.prod g → (∃ (a : α) (H : a ∈ S), p ∣ g a)),
     { simp only [nat.dvd_one, finset.prod_empty],
-      exact λ h, absurd ((h ▸ pp) : prime 1) not_prime_one },
+      exact λ h, absurd h (prime.not_dvd_one pp) },
     { intros a S haS h1 h2,
       rw prod_insert haS at h2,
-      cases (prime.dvd_mul pp).mp h2,
+      cases (prime.dvd_or_dvd pp) h2,
       { use a, simp [h] },
       { rcases h1 h with ⟨a, ha1, ha2⟩, use a, simp [ha1, ha2] } } },
   { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (dvd_prod_of_mem g ha1) },
 end
 
+lemma prime.dvd_finsupp_prod_iff  {f: α →₀ M} {g : α → M → ℕ} {p : ℕ} (pp : prime p) :
+  p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=
+prime.dvd_finset_prod_iff pp _
+
+end comm_monoid_with_zero
+
+open nat
+
+lemma nat.prime.dvd_finset_prod_iff {α : Type*} [decidable_eq α] {S : finset α} {p : ℕ}
+  (pp : nat.prime p) (g : α → ℕ) :
+p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
+begin
+  apply prime.dvd_finset_prod_iff,
+  sorry,
+end
+
 lemma nat.prime.dvd_finsupp_prod_iff {α M : Type*} [decidable_eq α] [has_zero M] {f: α →₀ M}
-  {g : α → M → ℕ} {p : ℕ} (pp : prime p) :
+  {g : α → M → ℕ} {p : ℕ} (pp : nat.prime p) :
 p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=
 nat.prime.dvd_finset_prod_iff pp _

@@ -11,7 +11,7 @@ import algebra.big_operators.basic
 
 
 /-!
-# Prime numbers
+# Products and sums involving prime numbers
 
 This file contains theorems about products and sums of `finset`s and `finsupp`s involving
 prime numbers.

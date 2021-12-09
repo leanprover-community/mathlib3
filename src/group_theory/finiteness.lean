@@ -102,37 +102,46 @@ add_monoid.fg_iff_mul_fg.1 ‹_›
 
 end monoid
 
-namespace monoid
-
-open submonoid
-
-@[simp, to_additive]
-lemma fg_iff_submonoid_fg (N : submonoid M) : fg N ↔ N.fg :=
+@[to_additive]
+lemma submonoid.fg.map {M' : Type*} [monoid M'] {P : submonoid M} (h : P.fg) (e : M →* M') :
+  (P.map e).fg :=
 begin
   classical,
-  split,
-  { rintro ⟨s, hs⟩,
-    refine ⟨s.image N.subtype, _⟩,
-    rw [finset.coe_image, ← monoid_hom.map_mclosure, hs,
-      ← monoid_hom.mrange_eq_map, range_subtype] },
-  { rintro ⟨s, hs⟩,
-    refine ⟨⟨s.preimage N.subtype (subtype.coe_injective.inj_on _), _⟩⟩,
-    rw [finset.coe_preimage, submonoid.coe_subtype, ← hs, closure_closure_coe_preimage], },
+  obtain ⟨s, rfl⟩ := h,
+  exact ⟨s.image e, by rw [finset.coe_image, monoid_hom.map_mclosure]⟩
 end
 
 @[to_additive]
-lemma fg_of_surjective {M' : Type*} [monoid M'] [monoid.fg M]
-  (f : M →* M') (hf : function.surjective f) : fg M' :=
+lemma submonoid.fg.map_injective {M' : Type*} [monoid M'] {P : submonoid M}
+  (e : M →* M') (he : function.injective e) (h : (P.map e).fg) : P.fg :=
+begin
+  obtain ⟨s, hs⟩ := h,
+  use s.preimage e (he.inj_on _),
+  apply submonoid.map_injective_of_injective he,
+  rw [← hs, e.map_mclosure, finset.coe_preimage],
+  congr,
+  rw [set.image_preimage_eq_iff, ← e.coe_mrange, ← submonoid.closure_le, hs, e.mrange_eq_map],
+  exact submonoid.monotone_map le_top
+end
+
+@[simp, to_additive]
+lemma monoid.fg_iff_submonoid_fg (N : submonoid M) : monoid.fg N ↔ N.fg :=
+begin
+  conv_rhs { rw [← N.range_subtype, monoid_hom.mrange_eq_map] },
+  exact ⟨λ h, h.out.map N.subtype, λ h, ⟨h.map_injective N.subtype subtype.coe_injective⟩⟩
+end
+
+@[to_additive]
+lemma monoid.fg_of_surjective {M' : Type*} [monoid M'] [monoid.fg M]
+  (f : M →* M') (hf : function.surjective f) : monoid.fg M' :=
 begin
   classical,
-  obtain ⟨s, hs⟩ := fg_def.mp ‹_›,
+  obtain ⟨s, hs⟩ := monoid.fg_def.mp ‹_›,
   use s.image f,
   rw [finset.coe_image, ← monoid_hom.map_mclosure, hs, ← monoid_hom.mrange_eq_map,
     monoid_hom.mrange_top_iff_surjective],
   exact hf
 end
-
-end monoid
 
 @[to_additive]
 lemma submonoid.powers_fg (r : M) : (submonoid.powers r).fg :=

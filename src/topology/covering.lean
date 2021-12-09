@@ -2,7 +2,11 @@ import topology.connected
 import topology.continuous_function.basic
 import topology.homotopy.fundamental_groupoid
 import category_theory.full_subcategory
+<<<<<<< HEAD
 import topology.maps
+=======
+
+>>>>>>> b4fea6719d0a3e8c2cc0bed8143b4c0786554659
 section for_mathlib
 
 /-lemma open_embedding_of_open_embedding_compose_injective {A B C : Type*}
@@ -26,6 +30,7 @@ end-/
 
 end for_mathlib
 
+<<<<<<< HEAD
 universes u
 
 variables {E E' X : Type u} [topological_space E] [topological_space E'] [topological_space X]
@@ -69,12 +74,30 @@ def singleton_inclusion (x:X):(singleton_subtype x)→ X:=λ s,x
 --  X (category_theory.category.{u} X) (singleton_inclusion x),
 
 variables (E E' X)
+=======
+variables (E E' X : Type*) [topological_space E] [topological_space E'] [topological_space X]
+>>>>>>> b4fea6719d0a3e8c2cc0bed8143b4c0786554659
 
 structure covering_map extends continuous_map E X :=
 (surjective : function.surjective to_fun)
-(evenly_covered : ∀ x : X, ∃ U ∈ nhds x, evenly_covered to_fun U)
+(discrete_fibers : ∀ x : X, discrete_topology (to_fun ⁻¹' {x}))
+(evenly_covered : ∀ x : X, ∃ U : set X, is_open U ∧ ∃ hx : x ∈ U,
+  ∃ ι : to_fun ⁻¹' {x} × U ≃ₜ to_fun ⁻¹' U, (∀ s, to_fun (ι s) = s.2) ∧
+    ∀ s, ι ⟨s, x, hx⟩ = ⟨s, (congr_arg (∈ U) s.2).mpr hx⟩)
 
 variables {E E' X}
+
+def fundamental_group (x : X) :=
+let y : fundamental_groupoid X := x in y ⟶ y
+
+noncomputable instance (x : X) : group (fundamental_group x) :=
+{ mul := category_theory.category_struct.comp,
+  mul_assoc := category_theory.category.assoc,
+  one := category_theory.category_struct.id _,
+  one_mul := category_theory.category.id_comp,
+  mul_one := category_theory.category.comp_id,
+  inv := category_theory.groupoid.inv,
+  mul_left_inv := category_theory.groupoid.inv_comp }
 
 namespace covering_map
 

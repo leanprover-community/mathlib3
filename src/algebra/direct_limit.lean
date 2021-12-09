@@ -36,7 +36,7 @@ variables {ι : Type v}
 variables [dec_ι : decidable_eq ι] [directed_order ι]
 variables (G : ι → Type w)
 
-/-- A directed system is a functor from the category (directed poset) to another category. -/
+/-- A directed system is a functor from a category (directed poset) to another category. -/
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
 (map_self [] : ∀ i x h, f i i h x = x)
 (map_map [] : ∀ {i j k} hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)

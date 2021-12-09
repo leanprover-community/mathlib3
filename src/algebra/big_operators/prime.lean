@@ -9,6 +9,7 @@ import data.finset.basic
 import data.finsupp.basic
 import algebra.big_operators.basic
 import algebra.associated
+import ring_theory.int.basic
 
 /-!
 # Products and sums involving prime numbers
@@ -48,12 +49,8 @@ end comm_monoid_with_zero
 open nat
 
 lemma nat.prime.dvd_finset_prod_iff {α : Type*} [decidable_eq α] {S : finset α} {p : ℕ}
-  (pp : nat.prime p) (g : α → ℕ) :
-p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
-begin
-  apply prime.dvd_finset_prod_iff,
-  sorry,
-end
+  (pp : nat.prime p) (g : α → ℕ) : p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
+prime.dvd_finset_prod_iff (prime_iff.mp pp) _
 
 lemma nat.prime.dvd_finsupp_prod_iff {α M : Type*} [decidable_eq α] [has_zero M] {f: α →₀ M}
   {g : α → M → ℕ} {p : ℕ} (pp : nat.prime p) :

@@ -100,46 +100,45 @@ monoid.fg_iff_add_fg.1 ‹_›
 instance monoid.fg_of_add_monoid_fg [add_monoid.fg N] : monoid.fg (multiplicative N) :=
 add_monoid.fg_iff_mul_fg.1 ‹_›
 
-end monoid
+namespace monoid
 
-namespace submonoid
+open submonoid
 
-@[to_additive]
-lemma fg_iff_monoid_fg [decidable_eq M] (N : submonoid M) : N.fg ↔ monoid.fg N :=
+@[simp, to_additive]
+lemma fg_iff_submonoid_fg (N : submonoid M) : fg N ↔ N.fg :=
 begin
-  split, swap,
-  { exact λ s, ⟨s.1.some.image N.subtype, by rw [finset.coe_image, ← monoid_hom.map_mclosure,
-    s.1.some_spec, ← monoid_hom.mrange_eq_map, range_subtype]⟩ },
-  rintro ⟨s, hs⟩,
-  let s' := s.preimage N.subtype (by tidy),
-  have : (s'.image N.subtype : set M) = s := by simpa [← hs, -subset_closure] using subset_closure,
-  refine ⟨⟨s', _⟩⟩,
-  rw eq_top_iff,
-  rintros ⟨x, hx⟩ -,
-  rw [← hs, ← this, finset.coe_image, ← monoid_hom.map_mclosure] at hx,
-  rcases hx with ⟨x, hx', rfl⟩,
-  simp only [set_like.eta, submonoid.coe_subtype],
-  exact hx'
+  classical,
+  split,
+  { rintro ⟨s, hs⟩,
+    refine ⟨s.image N.subtype, _⟩,
+    rw [finset.coe_image, ← monoid_hom.map_mclosure, hs,
+      ← monoid_hom.mrange_eq_map, range_subtype] },
+  { rintro ⟨s, hs⟩,
+    refine ⟨⟨s.preimage N.subtype (subtype.coe_injective.inj_on _), _⟩⟩,
+    rw [finset.coe_preimage, submonoid.coe_subtype, ← hs, closure_closure_coe_preimage], },
 end
 
 @[to_additive]
-instance [decidable_eq M] (r : M) : monoid.fg (submonoid.powers r) :=
-(fg_iff_monoid_fg _).mp ⟨({r} : finset M), by simpa using (powers_eq_closure _).symm⟩
+lemma _root_.submonoid.powers_fg (r : M) : (powers r).fg :=
+⟨{r}, by simpa using (powers_eq_closure _).symm⟩
 
 @[to_additive]
-lemma _root_.monoid.fg_of_surjective {M' : Type*} [monoid M'] [decidable_eq M'] [h : monoid.fg M]
-  (f : M →* M') (hf : function.surjective f) :
-  monoid.fg M' :=
+instance (r : M) : monoid.fg (submonoid.powers r) :=
+(fg_iff_submonoid_fg _).mpr (submonoid.powers_fg r)
+
+@[to_additive]
+lemma fg_of_surjective {M' : Type*} [monoid M'] [monoid.fg M]
+  (f : M →* M') (hf : function.surjective f) : fg M' :=
 begin
-  tactic.unfreeze_local_instances,
-  rcases h with ⟨s, hs⟩,
+  classical,
+  obtain ⟨s, hs⟩ := fg_def.mp ‹_›,
   use s.image f,
   rw [finset.coe_image, ← monoid_hom.map_mclosure, hs, ← monoid_hom.mrange_eq_map,
     monoid_hom.mrange_top_iff_surjective],
   exact hf
 end
 
-end submonoid
+end monoid
 
 /-! ### Groups and subgroups -/
 

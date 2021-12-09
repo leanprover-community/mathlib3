@@ -465,4 +465,41 @@ lemma graded_monoid.list_prod_of_fn_eq_dprod {n : ℕ} (f : fin n → graded_mon
     graded_monoid.mk _ ((list.fin_range n).dprod (λ i, (f i).1) (λ i, (f i).2)) :=
 by rw [list.of_fn_eq_map, graded_monoid.list_prod_map_eq_dprod]
 
+/-- When all the indexed types are the same, the dependent product is just the regular product. -/
+@[simp] lemma list.dprod_monoid {M : Type*} [monoid M] (l : list α) (fι : α → ι) (fA : α → M) :
+  (l.dprod fι fA : (λ i : ι, M) _) = ((l.map fA).prod : _) :=
+begin
+  induction l,
+  { rw [list.dprod_nil, list.map_nil, list.prod_nil], refl },
+  { rw [list.dprod_cons, list.map_cons, list.prod_cons, l_ih], refl },
+end
+
+section set_like
+open set_like set_like.graded_monoid
+
+variables {S M : Type*} [set_like S M] [monoid M] [add_monoid ι]
+
+/-- Coercing a dependent product of subtypes is the same as taking the regular product of the
+coercions. -/
+@[simp] lemma list.coe_dprod_set_like (A : ι → S) [set_like.graded_monoid A]
+  (fι : α → ι) (fA : Π a, A (fι a)) (l : list α) :
+  ↑(l.dprod fι fA : (λ i, ↥(A i)) _) = (list.prod (l.map (λ a, fA a)) : M) :=
+begin
+  induction l,
+  { rw [list.dprod_nil, coe_ghas_one, list.map_nil, list.prod_nil] },
+  { rw [list.dprod_cons, coe_ghas_mul, list.map_cons, list.prod_cons, l_ih], },
+end
+
+include M
+
+/-- A version of `list.coe_dprod_set_like` with `subtype.mk`. -/
+lemma list.dprod_set_like (A : ι → S) [set_like.graded_monoid A]
+  (fι : α → ι) (fA : Π a, A (fι a)) (l : list α) :
+  (l.dprod fι fA : (λ i, ↥(A i)) _) =
+    ⟨list.prod (l.map (λ a, fA a)), (l.dprod_index_eq_map_sum fι).symm ▸
+      list_prod_map_mem l _ _ (λ i hi, (fA i).prop)⟩ :=
+subtype.ext $ list.coe_dprod_set_like _ _ _ _
+
+end set_like
+
 end dprod

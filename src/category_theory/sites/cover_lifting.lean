@@ -260,7 +260,7 @@ def sites.copullback {G : C ⥤ D} (hG : cover_lifting J K G) :
 Given a functor between sites that is cover-preserving, cover-lifting, and compatible-preserving,
 the pullback and copullback along `G` are adjoint to each other
 -/
-@[simps] noncomputable
+@[simps unit_app_val counit_app_val] noncomputable
 def sites.pullback_copullback_adjunction {G : C ⥤ D} (Hp : cover_preserving J K G)
   (Hl : cover_lifting J K G) (Hc : compatible_preserving K G) :
   sites.pullback A Hc Hp ⊣ sites.copullback A Hl :=

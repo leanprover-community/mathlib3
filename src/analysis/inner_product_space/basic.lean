@@ -30,7 +30,8 @@ product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_spac
 - We define the class `inner_product_space 𝕜 E` extending `normed_space 𝕜 E` with a number of basic
   properties, most notably the Cauchy-Schwarz inequality. Here `𝕜` is understood to be either `ℝ`
   or `ℂ`, through the `is_R_or_C` typeclass.
-- We show that the inner product is continuous, `continuous_inner`.
+- We show that the inner product is continuous, `continuous_inner`, and bundle it as the
+  the continuous sesquilinear map `innerSL` (see also `innerₛₗ` for the non-continuous version).
 - We define `orthonormal`, a predicate on a function `v : ι → E`, and prove the existence of a
   maximal orthonormal set, `exists_maximal_orthonormal`.  Bessel's inequality,
   `orthonormal.tsum_inner_products_le`, states that given an orthonormal set `v` and a vector `x`,

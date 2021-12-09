@@ -903,34 +903,70 @@ lemma self_subset_cthickening {δ : ℝ} (E : set α) (δ_nn : 0 ≤ δ) :
   E ⊆ cthickening δ E :=
 (@subset_closure _ _ E).trans (closure_subset_cthickening δ_nn E)
 
-lemma cthickening_eq_Inter_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
-  cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), cthickening ε E :=
+lemma cthickening_eq_Inter_cthickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
+  (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
+  cthickening δ E = ⋂ ε ∈ s, cthickening ε E :=
 begin
   apply le_antisymm,
-  { exact subset_bInter (λ _ hε, cthickening_mono (has_lt.lt.le hε) E), },
+  { exact subset_bInter (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
   { unfold thickening cthickening,
     intros x hx,
     simp only [mem_Inter, mem_set_of_eq] at *,
+    rcases hs (δ + 1) (by linarith) with ⟨ε₀, ⟨hsε₀, hε₀⟩⟩,
     have inf_edist_lt_top : inf_edist x E < ∞,
-    { exact lt_of_le_of_lt (hx (δ + 1) (by linarith)) ennreal.of_real_lt_top, },
+    { exact lt_of_le_of_lt (hx ε₀ hsε₀) ennreal.of_real_lt_top, },
     rw ← ennreal.of_real_to_real inf_edist_lt_top.ne,
     apply ennreal.of_real_le_of_real,
     apply le_of_forall_pos_le_add,
     intros η η_pos,
+    rcases hs (δ + η) (by linarith) with ⟨ε, ⟨hsε, hε⟩⟩,
     have sum_nn : 0 ≤ δ + η := by linarith,
     apply (ennreal.of_real_le_of_real_iff sum_nn).mp,
-    have key := hx (δ + η) (by linarith),
+    have key := (hx ε hsε).trans (ennreal.of_real_le_of_real hε.2),
+    rwa ← ennreal.of_real_to_real inf_edist_lt_top.ne at key, },
+end
+
+lemma cthickening_eq_Inter_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
+  cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), cthickening ε E :=
+begin
+  apply cthickening_eq_Inter_cthickening' δ_nn (Ioi δ) rfl.subset,
+  simp_rw inter_eq_right_iff_subset.mpr Ioc_subset_Ioi_self,
+  exact λ _ hε, nonempty_Ioc.mpr hε,
+end
+
+lemma cthickening_eq_Inter_thickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
+  (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
+  cthickening δ E = ⋂ ε ∈ s, thickening ε E :=
+begin
+  apply le_antisymm,
+  { apply subset_bInter,
+    intros ε hε,
+    rcases hs ε (mem_Ioi.mp (hsδ hε)) with ⟨ε', ⟨hsε', hε'⟩⟩,
+    have ss := cthickening_subset_thickening' (lt_of_le_of_lt δ_nn hε'.1) hε'.1 E,
+    exact ss.trans (thickening_mono hε'.2 E), },
+  { unfold thickening cthickening,
+    intros x hx,
+    simp only [mem_Inter, mem_set_of_eq] at *,
+    rcases hs (δ + 1) (by linarith) with ⟨ε₀, ⟨hsε₀, hε₀⟩⟩,
+    have inf_edist_lt_top : inf_edist x E < ∞,
+    { exact lt_trans (hx ε₀ hsε₀) ennreal.of_real_lt_top, },
+    rw ← ennreal.of_real_to_real inf_edist_lt_top.ne,
+    apply ennreal.of_real_le_of_real,
+    apply le_of_forall_pos_le_add,
+    intros η η_pos,
+    rcases hs (δ + η) (by linarith) with ⟨ε, ⟨hsε, hε⟩⟩,
+    have sum_nn : 0 ≤ δ + η := by linarith,
+    apply (ennreal.of_real_le_of_real_iff sum_nn).mp,
+    have key := (lt_of_lt_of_le (hx ε hsε) (ennreal.of_real_le_of_real hε.2)).le,
     rwa ← ennreal.of_real_to_real inf_edist_lt_top.ne at key, },
 end
 
 lemma cthickening_eq_Inter_thickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
   cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), thickening ε E :=
 begin
-  apply le_antisymm,
-  { exact subset_bInter (λ _ hε, cthickening_subset_thickening' (δ_nn.trans_lt hε) hε E), },
-  { rw cthickening_eq_Inter_cthickening δ_nn E,
-    apply bInter_mono,
-    exact λ ε _, thickening_subset_cthickening ε E, },
+  apply cthickening_eq_Inter_thickening' δ_nn (Ioi δ) rfl.subset,
+  simp_rw inter_eq_right_iff_subset.mpr Ioc_subset_Ioi_self,
+  exact λ _ hε, nonempty_Ioc.mpr hε,
 end
 
 /-- The closure of a set equals the intersection of its closed thickenings of positive radii. -/

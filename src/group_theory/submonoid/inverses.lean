@@ -23,25 +23,27 @@ For the pointwise inverse of submonoids of groups, please refer to
 Define the submonoid of right inverses and two-sided inverses.
 
 -/
+variables {M : Type*}
+
 section pointwise_inverse
 
 namespace submonoid
 
-@[to_additive] noncomputable
-instance {M : Type*} [monoid M] : group (is_unit.submonoid M) :=
+@[to_additive]
+noncomputable instance [monoid M] : group (is_unit.submonoid M) :=
 { inv := λ x, ⟨_, (x.prop.unit⁻¹).is_unit⟩,
   mul_left_inv := λ x, subtype.eq x.prop.unit.inv_val,
  ..(show monoid (is_unit.submonoid M), by apply_instance) }
 
 
-@[to_additive] noncomputable
-instance {M : Type*} [comm_monoid M] : comm_group (is_unit.submonoid M) :=
+@[to_additive]
+noncomputable instance [comm_monoid M] : comm_group (is_unit.submonoid M) :=
 { mul_comm := λ a b, mul_comm a b,
  ..(show group (is_unit.submonoid M), by apply_instance) }
 
 section monoid
 
-variables {M : Type*} [monoid M] (S : submonoid M)
+variables [monoid M] (S : submonoid M)
 
 /-- `S.left_inv` is the submonoid containing all the left inverses of `S`. -/
 @[to_additive "`S.left_neg` is the additive submonoid containing all the left additive inverses

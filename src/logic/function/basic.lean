@@ -122,7 +122,7 @@ lemma surjective.of_comp_iff (f : α → β) {g : γ → α} (hg : surjective g)
   surjective (f ∘ g) ↔ surjective f :=
 ⟨surjective.of_comp, λ h, h.comp hg⟩
 
-lemma surjective.of_comp_iff' {f : α → β} (hf : bijective f) (g : γ → α) :
+lemma surjective.of_comp_iff' (hf : bijective f) (g : γ → α) :
   surjective (f ∘ g) ↔ surjective g :=
 ⟨λ h x, let ⟨x', hx'⟩ := h (f x) in ⟨x', hf.injective hx'⟩, hf.surjective.comp⟩
 
@@ -130,29 +130,47 @@ instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
 | f g := decidable_of_iff (∀ hp, f hp = g hp) funext_iff.symm
 
-protected theorem surjective.forall {f : α → β} (hf : surjective f) {p : β → Prop} :
+protected theorem surjective.forall (hf : surjective f) {p : β → Prop} :
   (∀ y, p y) ↔ ∀ x, p (f x) :=
 ⟨λ h x, h (f x), λ h y, let ⟨x, hx⟩ := hf y in hx ▸ h x⟩
 
-protected theorem surjective.forall₂ {f : α → β} (hf : surjective f) {p : β → β → Prop} :
+protected theorem surjective.forall₂ (hf : surjective f) {p : β → β → Prop} :
   (∀ y₁ y₂, p y₁ y₂) ↔ ∀ x₁ x₂, p (f x₁) (f x₂) :=
 hf.forall.trans $ forall_congr $ λ x, hf.forall
 
-protected theorem surjective.forall₃ {f : α → β} (hf : surjective f) {p : β → β → β → Prop} :
+protected theorem surjective.forall₃ (hf : surjective f) {p : β → β → β → Prop} :
   (∀ y₁ y₂ y₃, p y₁ y₂ y₃) ↔ ∀ x₁ x₂ x₃, p (f x₁) (f x₂) (f x₃) :=
 hf.forall.trans $ forall_congr $ λ x, hf.forall₂
 
-protected theorem surjective.exists {f : α → β} (hf : surjective f) {p : β → Prop} :
+protected theorem surjective.exists (hf : surjective f) {p : β → Prop} :
   (∃ y, p y) ↔ ∃ x, p (f x) :=
 ⟨λ ⟨y, hy⟩, let ⟨x, hx⟩ := hf y in ⟨x, hx.symm ▸ hy⟩, λ ⟨x, hx⟩, ⟨f x, hx⟩⟩
 
-protected theorem surjective.exists₂ {f : α → β} (hf : surjective f) {p : β → β → Prop} :
+protected theorem surjective.exists₂ (hf : surjective f) {p : β → β → Prop} :
   (∃ y₁ y₂, p y₁ y₂) ↔ ∃ x₁ x₂, p (f x₁) (f x₂) :=
 hf.exists.trans $ exists_congr $ λ x, hf.exists
 
-protected theorem surjective.exists₃ {f : α → β} (hf : surjective f) {p : β → β → β → Prop} :
+protected theorem surjective.exists₃ (hf : surjective f) {p : β → β → β → Prop} :
   (∃ y₁ y₂ y₃, p y₁ y₂ y₃) ↔ ∃ x₁ x₂ x₃, p (f x₁) (f x₂) (f x₃) :=
 hf.exists.trans $ exists_congr $ λ x, hf.exists₂
+
+lemma surjective.injective_comp_right (hf : surjective f) :
+  injective (λ g : β → γ, g ∘ f) :=
+λ g₁ g₂ h, funext $ hf.forall.2 $ congr_fun h
+
+protected lemma surjective.right_cancellable (hf : surjective f) {g₁ g₂ : β → γ} :
+  g₁ ∘ f = g₂ ∘ f ↔ g₁ = g₂ :=
+hf.injective_comp_right.eq_iff
+
+lemma surjective_of_right_cancellable_Prop (h : ∀ g₁ g₂ : β → Prop, g₁ ∘ f = g₂ ∘ f → g₁ = g₂) :
+  surjective f :=
+begin
+  specialize h (λ _, true) (λ y, ∃ x, f x = y) (funext $ λ x, _),
+  { simp only [(∘), exists_apply_eq_apply] },
+  { intro y,
+    have : true = ∃ x, f x = y, from congr_fun h y,
+    rw ← this, exact trivial }
+end
 
 lemma bijective_iff_exists_unique (f : α → β) : bijective f ↔
   ∀ b : β, ∃! (a : α), f a = b :=

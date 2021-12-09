@@ -17,8 +17,8 @@ Let `E` be a complete normed space with second countably topology. If `f : ℝ�
 differentiable on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, with derivative
 `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on `[a, b]`,
 where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the sum of
-integrals of `f` over the faces of `[a, b]`, taken with appropriate signs. Moreover, the same is true
-if the function is not differentiable but continuous at countably many points of `[a, b]`.
+integrals of `f` over the faces of `[a, b]`, taken with appropriate signs. Moreover, the same is
+true if the function is not differentiable but continuous at countably many points of `[a, b]`.
 
 Once we prove the general theorem, we deduce corollaries for functions `ℝ → E` and pairs of
 functions `(ℝ × ℝ) → E`.

@@ -3,7 +3,7 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import logic.basic
+import logic.function.basic
 import tactic.protected
 /-!
 # Types that are empty
@@ -44,6 +44,15 @@ instance [is_empty α] [is_empty β] : is_empty (psum α β) :=
 ⟨λ x, psum.rec is_empty.false is_empty.false x⟩
 instance {α β} [is_empty α] [is_empty β] : is_empty (α ⊕ β) :=
 ⟨λ x, sum.rec is_empty.false is_empty.false x⟩
+/-- subtypes of an empty type are empty -/
+instance [is_empty α] (p : α → Prop) : is_empty (subtype p) :=
+⟨λ x, is_empty.false x.1⟩
+/-- subtypes by an all-false predicate are false. -/
+lemma subtype.is_empty_of_false {p : α → Prop} (hp : ∀ a, ¬(p a)) : is_empty (subtype p) :=
+⟨λ x, hp _ x.2⟩
+/-- subtypes by false are false. -/
+instance subtype.is_empty_false : is_empty {a : α // false} :=
+subtype.is_empty_of_false (λ a, id)
 
 /- Test that `pi.is_empty` finds this instance. -/
 example [h : nonempty α] [is_empty β] : is_empty (α → β) := by apply_instance
@@ -89,8 +98,31 @@ end is_empty
 @[simp] lemma not_is_empty_iff : ¬ is_empty α ↔ nonempty α :=
 not_iff_comm.mp not_nonempty_iff
 
+@[simp] lemma is_empty_pi {π : α → Sort*} : is_empty (Π a, π a) ↔ ∃ a, is_empty (π a) :=
+by simp only [← not_nonempty_iff, classical.nonempty_pi, not_forall]
+
+@[simp] lemma is_empty_prod {α β : Type*} : is_empty (α × β) ↔ is_empty α ∨ is_empty β :=
+by simp only [← not_nonempty_iff, nonempty_prod, not_and_distrib]
+
+@[simp] lemma is_empty_pprod : is_empty (pprod α β) ↔ is_empty α ∨ is_empty β :=
+by simp only [← not_nonempty_iff, nonempty_pprod, not_and_distrib]
+
+@[simp] lemma is_empty_sum {α β} : is_empty (α ⊕ β) ↔ is_empty α ∧ is_empty β :=
+by simp only [← not_nonempty_iff, nonempty_sum, not_or_distrib]
+
+@[simp] lemma is_empty_psum {α β} : is_empty (psum α β) ↔ is_empty α ∧ is_empty β :=
+by simp only [← not_nonempty_iff, nonempty_psum, not_or_distrib]
+
+variables (α)
+
 lemma is_empty_or_nonempty : is_empty α ∨ nonempty α :=
 (em $ is_empty α).elim or.inl $ or.inr ∘ not_is_empty_iff.mp
 
 @[simp] lemma not_is_empty_of_nonempty [h : nonempty α] : ¬ is_empty α :=
 not_is_empty_iff.mpr h
+
+variable {α}
+
+lemma function.extend_of_empty [is_empty α] (f : α → β) (g : α → γ) (h : β → γ) :
+  function.extend f g h = h :=
+funext $ λ x, function.extend_apply' _ _ _ $ λ ⟨a, h⟩, is_empty_elim a

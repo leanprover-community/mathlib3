@@ -74,6 +74,8 @@ the monomorphisms in `AddCommGroup` are just the injective functions.
 example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :=
 (mono_iff_injective f).1 (right_adjoint_preserves_mono adj (by apply_instance : mono f))
 
+instance : is_right_adjoint (forget AddCommGroup.{u}) := ⟨_, adj⟩
+
 end AddCommGroup
 
 namespace Group
@@ -91,7 +93,9 @@ def free : Type u ⥤ Group :=
 def adj : free ⊣ forget Group.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_group.lift.symm,
-  hom_equiv_naturality_left_symm' := λ X Y G f g, begin ext1, refl end  }
+  hom_equiv_naturality_left_symm' := λ X Y G f g, by { ext1, refl } }
+
+instance : is_right_adjoint (forget Group.{u}) := ⟨_, adj⟩
 
 end Group
 

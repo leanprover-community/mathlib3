@@ -100,9 +100,7 @@ lemma extend_subtype_apply_of_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : p x)
   e.extend_subtype x = e ⟨x, hx⟩ :=
 by { dunfold extend_subtype,
      simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
-     -- `p` gets turned into `λ x, p x` which `rw` doesn't like, so we have to use `erw`
-     erw [equiv.set.sum_compl_symm_apply_of_mem hx, sum.map_inl,
-          equiv.set.sum_compl_apply_inl q] }
+     rw [sum_compl_apply_symm_of_pos _ _ hx, sum.map_inl, sum_compl_apply_inl] }
 
 lemma extend_subtype_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : p x) :
   q (e.extend_subtype x) :=
@@ -112,10 +110,8 @@ by { convert (e ⟨x, hx⟩).2,
 lemma extend_subtype_apply_of_not_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : ¬ p x) :
   e.extend_subtype x = e.to_compl ⟨x, hx⟩ :=
 by { dunfold extend_subtype,
-    simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
-    -- `p` gets turned into `λ x, p x` which `rw` doesn't like, so we have to use `erw`
-    erw [equiv.set.sum_compl_symm_apply_of_not_mem hx, sum.map_inr,
-         equiv.set.sum_compl_apply_inr q] }
+     simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
+     rw [sum_compl_apply_symm_of_neg _ _ hx, sum.map_inr, sum_compl_apply_inr] }
 
 lemma extend_subtype_not_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : ¬ p x) :
   ¬ q (e.extend_subtype x) :=

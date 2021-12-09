@@ -31,7 +31,7 @@ variables (R : Type*) [topological_space R] [comm_semiring R]
 variables (A : Type u) [topological_space A]
 variables [semiring A]
 
-lemma continuous_algebra_map_iff_smul [algebra R A] [topological_semiring A] :
+lemma continuous_algebra_map_iff_smul [algebra R A] [topological_ring A] :
   continuous (algebra_map R A) ↔ continuous (λ p : R × A, p.1 • p.2) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
@@ -40,11 +40,11 @@ begin
 end
 
 @[continuity]
-lemma continuous_algebra_map [algebra R A] [topological_semiring A] [has_continuous_smul R A] :
+lemma continuous_algebra_map [algebra R A] [topological_ring A] [has_continuous_smul R A] :
   continuous (algebra_map R A) :=
 (continuous_algebra_map_iff_smul R A).2 continuous_smul
 
-lemma has_continuous_smul_of_algebra_map [algebra R A] [topological_semiring A]
+lemma has_continuous_smul_of_algebra_map [algebra R A] [topological_ring A]
   (h : continuous (algebra_map R A)) :
   has_continuous_smul R A :=
 ⟨(continuous_algebra_map_iff_smul R A).1 h⟩
@@ -55,7 +55,7 @@ section topological_algebra
 variables {R : Type*} [comm_semiring R]
 variables {A : Type u} [topological_space A]
 variables [semiring A]
-variables [algebra R A] [topological_semiring A]
+variables [algebra R A] [topological_ring A]
 
 /-- The closure of a subalgebra in a topological algebra as a subalgebra. -/
 def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
@@ -67,9 +67,9 @@ def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
   (s.topological_closure : set A) = closure (s : set A) :=
 rfl
 
-instance subalgebra.topological_closure_topological_semiring (s : subalgebra R A) :
-  topological_semiring (s.topological_closure) :=
-s.to_subsemiring.topological_closure_topological_semiring
+instance subalgebra.topological_closure_topological_ring (s : subalgebra R A) :
+  topological_ring (s.topological_closure) :=
+s.to_subsemiring.topological_closure_topological_ring
 
 instance subalgebra.topological_closure_topological_algebra
   [topological_space R] [has_continuous_smul R A] (s : subalgebra R A) :

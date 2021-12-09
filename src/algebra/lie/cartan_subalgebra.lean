@@ -43,32 +43,21 @@ def normalizer : lie_subalgebra R L :=
 lemma mem_normalizer_iff (x : L) : x ∈ H.normalizer ↔ ∀ (y : L), (y ∈ H) → ⁅x, y⁆ ∈ H := iff.rfl
 
 lemma le_normalizer : H ≤ H.normalizer :=
-begin
-  rw le_def, intros x hx,
-  simp only [set_like.mem_coe, mem_coe_submodule, coe_coe, mem_normalizer_iff] at ⊢ hx,
-  intros y, exact H.lie_mem hx,
-end
+λ x hx, show ∀ (y : L), y ∈ H → ⁅x,y⁆ ∈ H, from λ y, H.lie_mem hx
 
 /-- A Lie subalgebra is an ideal of its normalizer. -/
 lemma ideal_in_normalizer : ∀ (x y : L), x ∈ H.normalizer → y ∈ H → ⁅x,y⁆ ∈ H :=
-begin
-  simp only [mem_normalizer_iff],
-  intros x y h, exact h y,
-end
+λ x y h, h y
 
 /-- The normalizer of a Lie subalgebra `H` is the maximal Lie subalgebra in which `H` is a Lie
 ideal. -/
 lemma le_normalizer_of_ideal {N : lie_subalgebra R L}
   (h : ∀ (x y : L), x ∈ N → y ∈ H → ⁅x,y⁆ ∈ H) : N ≤ H.normalizer :=
-begin
-  intros x hx,
-  rw mem_normalizer_iff,
-  exact λ y, h x y hx,
-end
+λ x hx y, h x y hx
 
 /-- A Cartan subalgebra is a nilpotent, self-normalizing subalgebra. -/
 class is_cartan_subalgebra : Prop :=
-(nilpotent : lie_algebra.is_nilpotent R H)
+(nilpotent        : lie_algebra.is_nilpotent R H)
 (self_normalizing : H.normalizer = H)
 
 end lie_subalgebra
@@ -77,8 +66,9 @@ end lie_subalgebra
   [comm_ring R] [lie_ring L] [lie_algebra R L] (I : lie_ideal R L) :
   (I : lie_subalgebra R L).normalizer = ⊤ :=
 begin
-  ext x, simp only [lie_subalgebra.mem_normalizer_iff, lie_subalgebra.mem_top, iff_true],
-  intros y hy, exact I.lie_mem hy,
+  ext x,
+  simpa only [lie_subalgebra.mem_normalizer_iff, lie_subalgebra.mem_top, iff_true]
+    using λ y hy, I.lie_mem hy
 end
 
 open lie_ideal

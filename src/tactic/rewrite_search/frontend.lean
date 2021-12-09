@@ -55,15 +55,6 @@ namespace tactic.interactive
 open lean.parser interactive interactive.types tactic.rewrite_search
 
 /--
-Parse a specification for a single rewrite rule.
-The name of a lemma indicates using it as a rewrite. Prepending a "←" reverses the direction.
--/
-private meta def rws_parser : lean.parser (pexpr × bool) :=
-do flipped ← optional $ tk "←",
-   pexp ← lean.parser.pexpr 0,
-   return (pexp, flipped.is_some)
-
-/--
 Search for a chain of rewrites to prove an equation or iff statement.
 
 Collects rewrite rules, runs a graph search to find a chain of rewrites to prove the
@@ -72,13 +63,14 @@ current target, and generates a string explanation for it.
 Takes an optional list of rewrite rules specified in the same way as the `rw` tactic accepts.
 -/
 meta def rewrite_search (explain : parse $ optional (tk "?"))
-  (rs : parse $ optional (list_of rws_parser)) (cfg : config := {}) : tactic unit :=
+  (rs : parse $ optional (list_of (rw_rule_p $ lean.parser.pexpr 0)))
+  (cfg : config := {}) : tactic unit :=
 do t ← tactic.target,
   if t.has_meta_var then
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"
   else tactic.skip,
   implicit_rules ← collect_rules,
-  explicit_rules ← (rs.get_or_else []).mmap (λ ⟨pe, dir⟩, do e ← to_expr' pe, return (e, dir)),
+  explicit_rules ← (rs.get_or_else []).mmap (λ ⟨_, dir, pe⟩, do e ← to_expr' pe, return (e, dir)),
   let rules := implicit_rules ++ explicit_rules,
   g ← mk_graph cfg rules t,
   (_, proof, steps) ← g.find_proof,

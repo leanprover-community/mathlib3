@@ -3,9 +3,9 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-
 import analysis.calculus.deriv
-import measure_theory.borel_space
+import measure_theory.constructions.borel_space
+import tactic.ring_exp
 
 /-!
 # Derivative is measurable
@@ -174,7 +174,7 @@ lemma norm_sub_le_of_mem_A {c : 𝕜} (hc : 1 < ∥c∥)
 begin
   have : 0 ≤ 4 * ∥c∥ * ε :=
     mul_nonneg (mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) (norm_nonneg _)) hε.le,
-  apply op_norm_le_of_shell (half_pos hr) this hc,
+  refine op_norm_le_of_shell (half_pos hr) this hc _,
   assume y ley ylt,
   rw [div_div_eq_div_mul,
       div_le_iff' (mul_pos (by norm_num : (0 : ℝ) < 2) (zero_lt_one.trans hc))] at ley,
@@ -333,10 +333,8 @@ begin
     { apply le_of_mem_A (hn e (n e) m (le_refl _) m_ge).2.2,
       { simp only [mem_closed_ball, dist_self],
         exact div_nonneg (le_of_lt P) (zero_le_two) },
-      { simp [dist_eq_norm],
-        convert h'k,
-        field_simp,
-        ring_exp } },
+      { simpa only [dist_eq_norm, add_sub_cancel', mem_closed_ball, pow_succ', mul_one_div]
+          using h'k } },
     have J2 : ∥f (x + y) - f x - L e (n e) m y∥ ≤ 4 * (1/2) ^ e * ∥y∥ := calc
       ∥f (x + y) - f x - L e (n e) m y∥ ≤ (1/2) ^ e * (1/2) ^ m :
         by simpa only [add_sub_cancel'] using J1
@@ -346,12 +344,10 @@ begin
     -- use the previous estimates to see that `f (x + y) - f x - f' y` is small.
     calc ∥f (x + y) - f x - f' y∥
         = ∥(f (x + y) - f x - L e (n e) m y) + (L e (n e) m - f') y∥ :
-      by { congr' 1, simp, abel }
-    ... ≤ ∥f (x + y) - f x - L e (n e) m y∥ + ∥(L e (n e) m - f') y∥ :
-      norm_add_le _ _
+      congr_arg _ (by simp)
     ... ≤ 4 * (1/2) ^ e * ∥y∥ + 12 * ∥c∥ * (1/2) ^ e * ∥y∥ :
-      add_le_add J2
-        (le_trans (le_op_norm _ _) (mul_le_mul_of_nonneg_right (Lf' _ _ m_ge) (norm_nonneg _)))
+      norm_add_le_of_le J2
+        ((le_op_norm _ _).trans (mul_le_mul_of_nonneg_right (Lf' _ _ m_ge) (norm_nonneg _)))
     ... = (4 + 12 * ∥c∥) * ∥y∥ * (1/2) ^ e : by ring
     ... ≤ (4 + 12 * ∥c∥) * ∥y∥ * (ε / (4 + 12 * ∥c∥)) :
       mul_le_mul_of_nonneg_left he.le

@@ -197,15 +197,15 @@ lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
 
 /-Complete graphs are strongly regular. Note that the parameter `m` can take any value
   for complete graphs, since there are no distinct pairs of nonadjacent vertices. -/
-/-lemma complete_strongly_regular (m : ℕ) :
-  (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) m :=
+lemma complete_strongly_regular (m : ℕ) :
+  (⊤ : simple_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) m :=
 { card := rfl,
   regular := --exact compl_regular_is_regular G k h.regular,
     begin
-      simp_rw ← compl_empty,
-      rw ← nat.sub_zero (fintype.card V),
-      apply compl_regular_is_regular (empty_graph V) 0,
-      sorry,
+      simp only [fintype.card_of_finset, mem_common_neighbors, filter_not, ←not_or_distrib,
+                 filter_eq, filter_or, card_univ_diff, mem_univ, if_pos, ←insert_eq, top_adj],
+      rw [card_insert_of_not_mem, card_singleton],
+      simp [h]
     end,
   adj_common := _,
   nadj_common := _ }-/

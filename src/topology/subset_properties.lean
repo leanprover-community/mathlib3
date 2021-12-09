@@ -3,9 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
+import order.filter.pi
 import topology.bases
 import data.finset.order
 import data.set.accumulate
+import tactic.tfae
 
 /-!
 # Properties of subsets of topological spaces
@@ -27,10 +29,11 @@ For each of these definitions (except for `is_clopen`), we also have a class sta
 space satisfies that property:
 `compact_space`, `irreducible_space`
 
-Furthermore, we have two more classes:
+Furthermore, we have three more classes:
 * `locally_compact_space`: for every point `x`, every open neighborhood of `x` contains a compact
   neighborhood of `x`. The definition is formulated in terms of the neighborhood filter.
-* `sigma_compact_space`: a space that is the union of a countably many compact subspaces.
+* `sigma_compact_space`: a space that is the union of a countably many compact subspaces;
+* `noncompact_space`: a space that is not a compact space.
 
 ## On the definition of irreducible and connected sets/spaces
 
@@ -47,7 +50,7 @@ open set filter classical topological_space
 open_locale classical topological_space filter
 
 universes u v
-variables {α : Type u} {β : Type v} [topological_space α] {s t : set α}
+variables {α : Type u} {β : Type v}  {ι : Type*} {π : ι → Type*} [topological_space α] {s t : set α}
 
 /- compact sets -/
 section compact
@@ -75,7 +78,7 @@ begin
   refine hs.compl_mem_sets (λ a ha, _),
   rcases hf a ha with ⟨t, ht, hst⟩,
   replace ht := mem_inf_principal.1 ht,
-  refine mem_inf_sets.2 ⟨_, ht, _, hst, _⟩,
+  apply mem_inf_of_inter ht hst,
   rintros x ⟨h₁, h₂⟩ hs,
   exact h₂ (h₁ hs)
 end
@@ -124,15 +127,15 @@ inter_eq_self_of_subset_right h ▸ hs.inter_right ht
 lemma is_compact.adherence_nhdset {f : filter α}
   (hs : is_compact s) (hf₂ : f ≤ 𝓟 s) (ht₁ : is_open t) (ht₂ : ∀a∈s, cluster_pt a f → a ∈ t) :
   t ∈ f :=
-classical.by_cases mem_sets_of_eq_bot $
+classical.by_cases mem_of_eq_bot $
   assume : f ⊓ 𝓟 tᶜ ≠ ⊥,
-  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 tᶜ)⟩ := @@hs ⟨this⟩ $ inf_le_left_of_le hf₂ in
+  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 tᶜ)⟩ := @@hs ⟨this⟩ $ inf_le_of_left_le hf₂ in
   have a ∈ t,
     from ht₂ a ha (hfa.of_inf_left),
   have tᶜ ∩ t ∈ 𝓝[tᶜ] a,
     from inter_mem_nhds_within _ (is_open.mem_nhds ht₁ this),
   have A : 𝓝[tᶜ] a = ⊥,
-    from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
+    from empty_mem_iff_bot.1 $ compl_inter_self t ▸ this,
   have 𝓝[tᶜ] a ≠ ⊥,
     from hfa.of_inf_right.ne,
   absurd A this
@@ -172,7 +175,7 @@ lemma is_compact.elim_nhds_subcover' (hs : is_compact s) (U : Π x ∈ s, set α
   ∃ t : finset s, s ⊆ ⋃ x ∈ t, U (x : s) x.2 :=
 (hs.elim_finite_subcover (λ x : s, interior (U x x.2)) (λ x, is_open_interior)
   (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 $ hU _ _⟩)).imp $ λ t ht,
-subset.trans ht $ bUnion_subset_bUnion_right $ λ _ _, interior_subset
+subset.trans ht $ bUnion_mono $ λ _ _, interior_subset
 
 lemma is_compact.elim_nhds_subcover (hs : is_compact s) (U : α → set α) (hU : ∀ x ∈ s, U x ∈ 𝓝 x) :
   ∃ t : finset α, (∀ x ∈ t, x ∈ s) ∧ s ⊆ ⋃ x ∈ t, U x :=
@@ -251,7 +254,7 @@ lemma is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed
   (Z : ℕ → set α) (hZd : ∀ i, Z (i+1) ⊆ Z i)
   (hZn : ∀ i, (Z i).nonempty) (hZ0 : is_compact (Z 0)) (hZcl : ∀ i, is_closed (Z i)) :
   (⋂ i, Z i).nonempty :=
-have Zmono : _, from @monotone_of_monotone_nat (order_dual _) _ Z hZd,
+have Zmono : antitone Z := antitone_nat_of_succ_le hZd,
 have hZd : directed (⊇) Z, from directed_of_sup Zmono,
 have ∀ i, Z i ⊆ Z 0, from assume i, Zmono $ zero_le i,
 have hZc : ∀ i, is_compact (Z i), from assume i, compact_of_is_closed_subset hZ0 (hZcl i) (this i),
@@ -264,7 +267,9 @@ lemma is_compact.elim_finite_subcover_image {b : set β} {c : β → set α}
 begin
   rcases hs.elim_finite_subcover (λ i, c i : b → set α) _ _ with ⟨d, hd⟩;
     [skip, simpa using hc₁, simpa using hc₂],
-  refine ⟨↑(d.image coe), _, finset.finite_to_set _, _⟩; simp *
+  refine ⟨↑(d.image coe), _, finset.finite_to_set _, _⟩,
+  { simp },
+  { rwa [finset.coe_image, bUnion_image] }
 end
 
 /-- A set `s` is compact if for every family of closed sets whose intersection avoids `s`,
@@ -278,26 +283,26 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt
     by simpa only [cluster_pt, not_exists, not_not, ne_bot_iff],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
-    have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
-    let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_sets] at this; exact this in
+    have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_mem_iff_bot, hf x hxs],
+    let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_iff] at this; exact this in
     have ∅ ∈ 𝓝[t₂] x,
-      from (𝓝[t₂] x).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
+      by { rw [ht, inter_comm], exact inter_mem_nhds_within _ ht₁ },
     have 𝓝[t₂] x = ⊥,
-      by rwa [empty_in_sets_eq_bot] at this,
+      by rwa [empty_mem_iff_bot] at this,
     by simp only [closure_eq_cluster_pts] at hx; exact (hx t₂ ht₂).ne this,
   let ⟨t, ht⟩ := h (λ i : f.sets, closure i.1) (λ i, is_closed_closure)
     (by simpa [eq_empty_iff_forall_not_mem, not_exists]) in
   have (⋂i∈t, subtype.val i) ∈ f,
     from t.Inter_mem_sets.2 $ assume i hi, i.2,
   have s ∩ (⋂i∈t, subtype.val i) ∈ f,
-    from inter_mem_sets (le_principal_iff.1 hfs) this,
+    from inter_mem (le_principal_iff.1 hfs) this,
   have ∅ ∈ f,
-    from mem_sets_of_superset this $ assume x ⟨hxs, hx⟩,
+    from mem_of_superset this $ assume x ⟨hxs, hx⟩,
     let ⟨i, hit, hxi⟩ := (show ∃i ∈ t, x ∉ closure (subtype.val i),
       by { rw [eq_empty_iff_forall_not_mem] at ht, simpa [hxs, not_forall] using ht x }) in
     have x ∈ closure i.val, from subset_closure (mem_bInter_iff.mp hx i hit),
     show false, from hxi this,
-  hfn.ne $ by rwa [empty_in_sets_eq_bot] at this
+  hfn.ne $ by rwa [empty_mem_iff_bot] at this
 
 /-- A set `s` is compact if for every open cover of `s`, there exists a finite subcover. -/
 lemma is_compact_of_finite_subcover
@@ -331,7 +336,7 @@ theorem is_compact_iff_finite_subfamily_closed :
 @[simp]
 lemma is_compact_empty : is_compact (∅ : set α) :=
 assume f hnf hsf, not.elim hnf.ne $
-empty_in_sets_eq_bot.1 $ le_principal_iff.1 hsf
+empty_mem_iff_bot.1 $ le_principal_iff.1 hsf
 
 @[simp]
 lemma is_compact_singleton {a : α} : is_compact ({a} : set α) :=
@@ -418,30 +423,58 @@ begin
     { intros i j,
       rcases hV i j with ⟨k, hki, hkj⟩,
       use k,
-      split ; intro x ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto  } },
+      split ; intro x ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto } },
   have : ¬ (⋂ (i : ι), V i) ⊆ W,
     by simpa [← Inter_inter, inter_compl_nonempty_iff],
   contradiction
 end
 
+namespace filter
+
 /-- `filter.cocompact` is the filter generated by complements to compact sets. -/
-def filter.cocompact (α : Type*) [topological_space α] : filter α :=
+def cocompact (α : Type*) [topological_space α] : filter α :=
 ⨅ (s : set α) (hs : is_compact s), 𝓟 (sᶜ)
 
-lemma filter.has_basis_cocompact : (filter.cocompact α).has_basis is_compact compl :=
+lemma has_basis_cocompact : (cocompact α).has_basis is_compact compl :=
 has_basis_binfi_principal'
   (λ s hs t ht, ⟨s ∪ t, hs.union ht, compl_subset_compl.2 (subset_union_left s t),
     compl_subset_compl.2 (subset_union_right s t)⟩)
   ⟨∅, is_compact_empty⟩
 
-lemma filter.mem_cocompact : s ∈ filter.cocompact α ↔ ∃ t, is_compact t ∧ tᶜ ⊆ s :=
-filter.has_basis_cocompact.mem_iff.trans $ exists_congr $ λ t,  exists_prop
+lemma mem_cocompact : s ∈ cocompact α ↔ ∃ t, is_compact t ∧ tᶜ ⊆ s :=
+has_basis_cocompact.mem_iff.trans $ exists_congr $ λ t, exists_prop
 
-lemma filter.mem_cocompact' : s ∈ filter.cocompact α ↔ ∃ t, is_compact t ∧ sᶜ ⊆ t :=
-filter.mem_cocompact.trans $ exists_congr $ λ t, and_congr_right $ λ ht, compl_subset_comm
+lemma mem_cocompact' : s ∈ cocompact α ↔ ∃ t, is_compact t ∧ sᶜ ⊆ t :=
+mem_cocompact.trans $ exists_congr $ λ t, and_congr_right $ λ ht, compl_subset_comm
 
-lemma is_compact.compl_mem_cocompact (hs : is_compact s) : sᶜ ∈ filter.cocompact α :=
-filter.has_basis_cocompact.mem_of_mem hs
+lemma _root_.is_compact.compl_mem_cocompact (hs : is_compact s) : sᶜ ∈ filter.cocompact α :=
+has_basis_cocompact.mem_of_mem hs
+
+/-- `filter.coclosed_compact` is the filter generated by complements to closed compact sets.
+In a Hausdorff space, this is the same as `filter.cocompact`. -/
+def coclosed_compact (α : Type*) [topological_space α] : filter α :=
+⨅ (s : set α) (h₁ : is_closed s) (h₂ : is_compact s), 𝓟 (sᶜ)
+
+lemma has_basis_coclosed_compact :
+  (filter.coclosed_compact α).has_basis (λ s, is_closed s ∧ is_compact s) compl :=
+begin
+  simp only [filter.coclosed_compact, infi_and'],
+  refine has_basis_binfi_principal' _ ⟨∅, is_closed_empty, is_compact_empty⟩,
+  rintro s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
+  exact ⟨s ∪ t, ⟨⟨hs₁.union ht₁, hs₂.union ht₂⟩, compl_subset_compl.2 (subset_union_left _ _),
+    compl_subset_compl.2 (subset_union_right _ _)⟩⟩
+end
+
+lemma mem_coclosed_compact : s ∈ coclosed_compact α ↔ ∃ t, is_closed t ∧ is_compact t ∧ tᶜ ⊆ s :=
+by simp [has_basis_coclosed_compact.mem_iff, and_assoc]
+
+lemma mem_coclosed_compact' : s ∈ coclosed_compact α ↔ ∃ t, is_closed t ∧ is_compact t ∧ sᶜ ⊆ t :=
+by simp only [mem_coclosed_compact, compl_subset_comm]
+
+lemma cocompact_le_coclosed_compact : cocompact α ≤ coclosed_compact α :=
+infi_le_infi $ λ s, le_infi $ λ _, le_rfl
+
+end filter
 
 section tube_lemma
 
@@ -520,6 +553,8 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 instance subsingleton.compact_space [subsingleton α] : compact_space α :=
 ⟨subsingleton_univ.is_compact⟩
 
+lemma is_compact_univ_iff : is_compact (univ : set α) ↔ compact_space α := ⟨λ h, ⟨h⟩, λ h, h.1⟩
+
 lemma compact_univ [h : compact_space α] : is_compact (univ : set α) := h.compact_univ
 
 lemma cluster_point_of_compact [compact_space α] (f : filter α) [ne_bot f] :
@@ -549,6 +584,31 @@ lemma is_closed.is_compact [compact_space α] {s : set α} (h : is_closed s) :
   is_compact s :=
 compact_of_is_closed_subset compact_univ h (subset_univ _)
 
+/-- `α` is a noncompact topological space if it not a compact space. -/
+class noncompact_space (α : Type*) [topological_space α] : Prop :=
+(noncompact_univ [] : ¬is_compact (univ : set α))
+
+export noncompact_space (noncompact_univ)
+
+instance [noncompact_space α] : ne_bot (filter.cocompact α) :=
+begin
+  refine filter.has_basis_cocompact.ne_bot_iff.2 (λ s hs, _),
+  contrapose hs, rw [not_nonempty_iff_eq_empty, compl_empty_iff] at hs,
+  rw hs, exact noncompact_univ α
+end
+
+instance [noncompact_space α] : ne_bot (filter.coclosed_compact α) :=
+ne_bot_of_le filter.cocompact_le_coclosed_compact
+
+lemma noncompact_space_of_ne_bot (h : ne_bot (filter.cocompact α)) : noncompact_space α :=
+⟨λ h', (filter.nonempty_of_mem h'.compl_mem_cocompact).ne_empty compl_univ⟩
+
+lemma filter.cocompact_ne_bot_iff : ne_bot (filter.cocompact α) ↔ noncompact_space α :=
+⟨noncompact_space_of_ne_bot, @filter.cocompact.filter.ne_bot _ _⟩
+
+lemma not_compact_space_iff : ¬compact_space α ↔ noncompact_space α :=
+⟨λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩, λ ⟨h₁⟩ ⟨h₂⟩, h₁ h₂⟩
+
 /-- A compact discrete space is finite. -/
 noncomputable
 def fintype_of_compact_of_discrete [compact_space α] [discrete_topology α] :
@@ -564,7 +624,7 @@ in ⟨t, univ_subset_iff.1 ht⟩
 lemma finite_cover_nhds [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, U x) = univ :=
 let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $
-  ht ▸ bUnion_subset_bUnion_right (λ x hx, interior_subset)⟩
+  ht ▸ bUnion_mono (λ x hx, interior_subset)⟩
 
 /-- If `α` is a compact space, then a locally finite family of sets of `α` can have only finitely
 many nonempty elements. -/
@@ -607,6 +667,18 @@ end
 lemma is_compact.image {f : α → β} (hs : is_compact s) (hf : continuous f) :
   is_compact (f '' s) :=
 hs.image_of_continuous_on hf.continuous_on
+
+/-- The comap of the cocompact filter on `β` by a continuous function `f : α → β` is less than or
+equal to the cocompact filter on `α`.
+This is a reformulation of the fact that images of compact sets are compact. -/
+lemma filter.comap_cocompact {f : α → β} (hf : continuous f) :
+  (filter.cocompact β).comap f ≤ filter.cocompact α :=
+begin
+  rw (filter.has_basis_cocompact.comap f).le_basis_iff filter.has_basis_cocompact,
+  intros t ht,
+  refine ⟨f '' t, ht.image hf, _⟩,
+  simpa using t.subset_preimage_image f
+end
 
 lemma is_compact_range [compact_space α] {f : α → β} (hf : continuous f) :
   is_compact (range f) :=
@@ -685,6 +757,14 @@ by rw [compact_iff_compact_in_subtype, image_univ, subtype.range_coe]; refl
 lemma is_compact_iff_compact_space {s : set α} : is_compact s ↔ compact_space s :=
 is_compact_iff_is_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
 
+protected lemma closed_embedding.noncompact_space [noncompact_space α] {f : α → β}
+  (hf : closed_embedding f) : noncompact_space β :=
+noncompact_space_of_ne_bot hf.tendsto_cocompact.ne_bot
+
+protected lemma closed_embedding.compact_space [h : compact_space β] {f : α → β}
+  (hf : closed_embedding f) : compact_space α :=
+by { unfreezingI { contrapose! h, rw not_compact_space_iff at h ⊢ }, exact hf.noncompact_space }
+
 lemma is_compact.prod {s : set α} {t : set β} (hs : is_compact s) (ht : is_compact t) :
   is_compact (set.prod s t) :=
 begin
@@ -692,10 +772,10 @@ begin
   intros f hfs,
   rw le_principal_iff at hfs,
   obtain ⟨a : α, sa : a ∈ s, ha : map prod.fst ↑f ≤ 𝓝 a⟩ :=
-    hs (f.map prod.fst) (le_principal_iff.2 $ mem_map.2 $ mem_sets_of_superset hfs (λ x, and.left)),
+    hs (f.map prod.fst) (le_principal_iff.2 $ mem_map.2 $ mem_of_superset hfs (λ x, and.left)),
   obtain ⟨b : β, tb : b ∈ t, hb : map prod.snd ↑f ≤ 𝓝 b⟩ :=
     ht (f.map prod.snd) (le_principal_iff.2 $ mem_map.2 $
-      mem_sets_of_superset hfs (λ x, and.right)),
+      mem_of_superset hfs (λ x, and.right)),
   rw map_le_iff_le_comap at ha hb,
   refine ⟨⟨a, b⟩, ⟨sa, tb⟩, _⟩,
   rw nhds_prod_eq, exact le_inf ha hb
@@ -732,13 +812,21 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   exact (is_compact_range continuous_inl).union (is_compact_range continuous_inr)
 end⟩
 
+instance [fintype ι] [Π i, topological_space (π i)] [∀ i, compact_space (π i)] :
+  compact_space (Σ i, π i) :=
+begin
+  refine ⟨_⟩,
+  rw sigma.univ,
+  exact compact_Union (λ i, is_compact_range continuous_sigma_mk),
+end
+
 /-- The coproduct of the cocompact filters on two topological spaces is the cocompact filter on
 their product. -/
-lemma filter.coprod_cocompact {β : Type*} [topological_space β]:
+lemma filter.coprod_cocompact :
   (filter.cocompact α).coprod (filter.cocompact β) = filter.cocompact (α × β) :=
 begin
   ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, filter.mem_cocompact],
+  simp only [mem_coprod_iff, exists_prop, mem_comap, filter.mem_cocompact],
   split,
   { rintro ⟨⟨A, ⟨t, ht, hAt⟩, hAS⟩, B, ⟨t', ht', hBt'⟩, hBS⟩,
     refine ⟨t.prod t', ht.prod ht', _⟩,
@@ -760,27 +848,39 @@ begin
       exact subset.trans htS (subset_preimage_image prod.snd _) } }
 end
 
-section tychonoff
-variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
+lemma prod.noncompact_space_iff :
+  noncompact_space (α × β) ↔ noncompact_space α ∧ nonempty β ∨ nonempty α ∧ noncompact_space β :=
+by simp [← filter.cocompact_ne_bot_iff, ← filter.coprod_cocompact, filter.coprod_ne_bot_iff]
 
-/-- Tychonoff's theorem -/
+@[priority 100] -- See Note [lower instance priority]
+instance prod.noncompact_space_left [noncompact_space α] [nonempty β] : noncompact_space (α × β) :=
+prod.noncompact_space_iff.2 (or.inl ⟨‹_›, ‹_›⟩)
+
+@[priority 100] -- See Note [lower instance priority]
+instance prod.noncompact_space_right [nonempty α] [noncompact_space β] : noncompact_space (α × β) :=
+prod.noncompact_space_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
+
+section tychonoff
+variables [Π i, topological_space (π i)]
+
+/-- **Tychonoff's theorem** -/
 lemma is_compact_pi_infinite {s : Π i, set (π i)} :
   (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
-  simp only [is_compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff,
-    le_principal_iff],
+  simp only [is_compact_iff_ultrafilter_le_nhds, nhds_pi, filter.pi, exists_prop, mem_set_of_eq,
+    le_infi_iff, le_principal_iff],
   intros h f hfs,
   have : ∀i:ι, ∃a, a∈s i ∧ tendsto (λx:Πi:ι, π i, x i) f (𝓝 a),
   { refine λ i, h i (f.map _) (mem_map.2 _),
-    exact mem_sets_of_superset hfs (λ x hx, hx i) },
+    exact mem_of_superset hfs (λ x hx, hx i) },
   choose a ha,
-  exact  ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
+  exact ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
 end
 
 /-- A version of Tychonoff's theorem that uses `set.pi`. -/
 lemma is_compact_univ_pi {s : Π i, set (π i)} (h : ∀ i, is_compact (s i)) :
   is_compact (pi univ s) :=
-by { convert is_compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ] }
+by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq] }
 
 instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨by { rw [← pi_univ univ], exact is_compact_univ_pi (λ i, compact_univ) }⟩
@@ -789,33 +889,14 @@ instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π
 lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
   filter.Coprod (λ d, filter.cocompact (κ d)) = filter.cocompact (Π d, κ d) :=
 begin
-  ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, filter.mem_cocompact],
+  ext S, rcases compl_surjective S with ⟨S, rfl⟩,
+  simp_rw [compl_mem_Coprod_iff, filter.mem_cocompact, compl_subset_compl],
   split,
-  { intros h,
-    rw filter.mem_Coprod_iff at h,
-    choose t ht1 ht2 using h,
-    choose t1 ht11 ht12 using λ d, filter.mem_cocompact.mp (ht1 d),
-    refine ⟨set.pi set.univ t1, _, _⟩,
-    { convert is_compact_pi_infinite ht11,
-      ext,
-      simp },
-    { refine subset.trans _ (set.Union_subset ht2),
-      intros x,
-      simp only [mem_Union, mem_univ_pi, exists_imp_distrib, mem_compl_eq, not_forall],
-      intros d h,
-      exact ⟨d, ht12 d h⟩ } },
-  { rintros ⟨t, h1, h2⟩,
-    rw filter.mem_Coprod_iff,
-    intros d,
-    refine ⟨((λ (k : Π (d : δ), κ d), k d) '' t)ᶜ, _, _⟩,
-    { rw filter.mem_cocompact,
-      refine ⟨(λ (k : Π (d : δ), κ d), k d) '' t, _, set.subset.refl _⟩,
-      exact is_compact.image h1 (continuous_pi_iff.mp (continuous_id) d) },
-    refine subset.trans _ h2,
-    intros x hx,
-    simp only [not_exists, mem_image, mem_preimage, mem_compl_eq] at hx,
-    simpa using mt (hx x) },
+  { rintro ⟨t, H, hSt⟩, choose K hKc htK using H,
+    exact ⟨set.pi univ K, is_compact_univ_pi hKc, hSt.trans $ pi_mono $ λ i _, htK i⟩ },
+  { rintro ⟨K, hKc, hSK⟩,
+    exact ⟨λ i, function.eval i '' K, λ i, ⟨_, hKc.image (continuous_apply i), subset.rfl⟩,
+      hSK.trans $ subset_pi_eval_image _ _⟩ }
 end
 
 end tychonoff
@@ -975,6 +1056,9 @@ monotone_accumulate h
 
 variable {α}
 
+lemma exists_mem_compact_covering (x : α) : ∃ n, x ∈ compact_covering α n :=
+Union_eq_univ_iff.mp (Union_compact_covering α) x
+
 /-- If `α` is a `σ`-compact space, then a locally finite family of nonempty sets of `α` can have
 only countably many elements, `set.countable` version. -/
 lemma locally_finite.countable_of_sigma_compact {ι : Type*} {f : ι → set α} (hf : locally_finite f)
@@ -988,19 +1072,32 @@ begin
   exact mem_Union.2 ⟨n, x, hx, hn⟩
 end
 
+/-- In a topological space with sigma compact topology, if `f` is a function that sends each point
+`x` of a closed set `s` to a neighborhood of `x` within `s`, then for some countable set `t ⊆ s`,
+the neighborhoods `f x`, `x ∈ t`, cover the whole set `s`. -/
+lemma countable_cover_nhds_within_of_sigma_compact {f : α → set α} {s : set α} (hs : is_closed s)
+  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ ⋃ x ∈ t, f x :=
+begin
+  simp only [nhds_within, mem_inf_principal] at hf,
+  choose t ht hsub using λ n, ((is_compact_compact_covering α n).inter_right hs).elim_nhds_subcover
+    _ (λ x hx, hf x hx.right),
+  refine ⟨⋃ n, (t n : set α), Union_subset $ λ n x hx, (ht n x hx).2,
+    countable_Union $ λ n, (t n).countable_to_set, λ x hx, mem_bUnion_iff.2 _⟩,
+  rcases exists_mem_compact_covering x with ⟨n, hn⟩,
+  rcases mem_bUnion_iff.1 (hsub n ⟨hn, hx⟩) with ⟨y, hyt : y ∈ t n, hyf : x ∈ s → x ∈ f y⟩,
+  exact ⟨y, mem_Union.2 ⟨n, hyt⟩, hyf hx⟩
+end
+
 /-- In a topological space with sigma compact topology, if `f` is a function that sends each
 point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
 `x ∈ s`, cover the whole space. -/
 lemma countable_cover_nhds_of_sigma_compact {f : α → set α}
   (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
 begin
-  choose t ht hsub using λ n, (is_compact_compact_covering α n).elim_nhds_subcover f (λ x _, hf x),
-  refine ⟨⋃ n, (t n : set α), countable_Union $ λ n, (t n).countable_to_set, _⟩,
-  simp only [eq_univ_iff_forall, mem_Union, exists_prop],
-  intro x,
-  rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,
-  rcases mem_bUnion_iff.1 (hsub n hn) with ⟨c, hct, hfx⟩,
-  exact ⟨c, ⟨n, hct⟩, hfx⟩
+  simp only [← nhds_within_univ] at hf,
+  rcases countable_cover_nhds_within_of_sigma_compact is_closed_univ (λ x _, hf x)
+    with ⟨s, -, hsc, hsU⟩,
+  exact ⟨s, hsc, univ_subset_iff.1 hsU⟩
 end
 
 end compact
@@ -1020,7 +1117,7 @@ structure compact_exhaustion (X : Type*) [topological_space X] :=
 
 namespace compact_exhaustion
 
-instance : has_coe_to_fun (compact_exhaustion α) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (compact_exhaustion α) (λ _, ℕ → set α) := ⟨to_fun⟩
 
 variables {α} (K : compact_exhaustion α)
 
@@ -1033,7 +1130,7 @@ lemma subset_succ (n : ℕ) : K n ⊆ K (n + 1) :=
 subset.trans (K.subset_interior_succ n) interior_subset
 
 @[mono] protected lemma subset ⦃m n : ℕ⦄ (h : m ≤ n) : K m ⊆ K n :=
-show K m ≤ K n, from monotone_of_monotone_nat K.subset_succ h
+show K m ≤ K n, from monotone_nat_of_le_succ K.subset_succ h
 
 lemma subset_interior ⦃m n : ℕ⦄ (h : m < n) : K m ⊆ interior (K n) :=
 subset.trans (K.subset_interior_succ m) $ interior_mono $ K.subset h
@@ -1156,6 +1253,13 @@ begin
   { rintros x ⟨hx₁, hx₂⟩,
     exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩ }
 end
+
+@[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=
+⟨is_open_discrete _, is_closed_discrete _⟩
+
+lemma clopen_range_sigma_mk {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)] {i : ι} :
+  is_clopen (set.range (@sigma.mk ι σ i)) :=
+⟨open_embedding_sigma_mk.open_range, closed_embedding_sigma_mk.closed_range⟩
 
 end clopen
 

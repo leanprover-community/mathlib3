@@ -6,7 +6,7 @@ Authors: Riccardo Brasca
 
 import data.set.finite
 import group_theory.submonoid.operations
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Finitely generated monoids and groups
@@ -27,6 +27,7 @@ group.
 
 /-! ### Monoids and submonoids -/
 
+open_locale pointwise
 variables {M N : Type*} [monoid M] [add_monoid N]
 
 section submonoid

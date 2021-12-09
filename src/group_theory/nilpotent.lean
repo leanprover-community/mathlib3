@@ -90,13 +90,13 @@ open quotient_group
 /-- The proof that `upper_central_series_step H` is the preimage of the centre of `G/H` under
 the canonical surjection. -/
 lemma upper_central_series_step_eq_comap_center :
-  upper_central_series_step H = subgroup.comap (mk' H) (center (quotient H)) :=
+  upper_central_series_step H = subgroup.comap (mk' H) (center (G ⧸ H)) :=
 begin
   ext,
   rw [mem_comap, mem_center_iff, forall_coe],
   apply forall_congr,
   intro y,
-  change x * y * x⁻¹ * y⁻¹ ∈ H ↔ ((y * x : G) : quotient H) = (x * y : G),
+  change x * y * x⁻¹ * y⁻¹ ∈ H ↔ ((y * x : G) : G ⧸ H) = (x * y : G),
   rw [eq_comm, eq_iff_div_mem, div_eq_mul_inv],
   congr' 2,
   group,
@@ -219,7 +219,7 @@ begin
     { refine ⟨hn, λ x m hx g, _⟩,
       dsimp at hx,
       by_cases hm : n ≤ m,
-      { have hnm : n - m = 0 := nat.sub_eq_zero_of_le hm,
+      { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
         rw [hnm, h0, subgroup.mem_bot] at hx,
         subst hx,
         convert subgroup.one_mem _,
@@ -228,16 +228,16 @@ begin
         apply hH,
         convert hx,
         rw nat.sub_succ,
-        exact nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt hm) } },
+        exact nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm) } },
     { use n,
-      rwa nat.sub_self } },
+      rwa tsub_self } },
   { rintro ⟨H, ⟨h0, hH⟩, n, hn⟩,
     use (λ m, H (n - m)),
     split,
     { refine ⟨hn, λ x m hx g, _⟩,
       dsimp only at hx,
       by_cases hm : n ≤ m,
-      { have hnm : n - m = 0 := nat.sub_eq_zero_of_le hm,
+      { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
         dsimp only,
         rw [hnm, h0],
         exact mem_top _ },
@@ -245,9 +245,9 @@ begin
         dsimp only,
         convert hH x _ hx g,
         rw nat.sub_succ,
-        exact (nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt hm)).symm } },
+        exact (nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm)).symm } },
     { use n,
-      rwa nat.sub_self } },
+      rwa tsub_self } },
 end
 
 /-- The lower central series of a group `G` is a sequence `H n` of subgroups of `G`, defined
@@ -273,9 +273,8 @@ rfl
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin
   induction n with d hd,
-  { simp [subgroup.top_normal] },
-  { haveI := hd,
-    exact general_commutator_normal (lower_central_series G d) ⊤ },
+  { exact (⊤ : subgroup G).normal_of_characteristic },
+  { exactI general_commutator_normal (lower_central_series G d) ⊤ },
 end
 
 lemma lower_central_series_antitone :

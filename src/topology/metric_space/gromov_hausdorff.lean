@@ -620,8 +620,8 @@ begin
   -- A function `F` associating to `p : GH_space` the data of all distances between points
   -- in the `ε`-dense set `s p`.
   let F : GH_space → Σn:ℕ, (fin n → fin n → ℤ) :=
-    λ p, ⟨N p, λ a b, floor (ε⁻¹ * dist ((E p).symm a) ((E p).symm b))⟩,
-  refine ⟨_, by apply_instance, F, λ p q hpq, _⟩,
+    λp, ⟨N p, λa b, ⌊ε⁻¹ * dist ((E p).symm a) ((E p).symm b)⌋⟩,
+  refine ⟨Σ n, fin n → fin n → ℤ, by apply_instance, F, λp q hpq, _⟩,
   /- As the target space of F is countable, it suffices to show that two points
   `p` and `q` with `F p = F q` are at distance `≤ δ`.
   For this, we construct a map `Φ` from `s p ⊆ p.rep` (representing `p`)
@@ -764,12 +764,12 @@ begin
   choose s N hN E hs using this,
   -- Define a function `F` taking values in a finite type and associating to `p` enough data
   -- to reconstruct it up to `ε`, namely the (discretized) distances between elements of `s p`.
-  let M := ⌊(ε⁻¹ * max C 0)⌋₊,
+  let M := ⌊ε⁻¹ * max C 0⌋₊,
   let F : GH_space → (Σk:fin ((K n).succ), (fin k → fin k → fin (M.succ))) :=
     λ p, ⟨⟨N p, lt_of_le_of_lt (hN p) (nat.lt_succ_self _)⟩,
-         λ a b, ⟨min M ⌊(ε⁻¹ * dist ((E p).symm a) ((E p).symm b))⌋₊,
+         λ a b, ⟨min M ⌊ε⁻¹ * dist ((E p).symm a) ((E p).symm b)⌋₊,
                 ( min_le_left _ _).trans_lt (nat.lt_succ_self _) ⟩ ⟩,
-  refine ⟨_, by apply_instance, (λ p, F p), _⟩,
+  refine ⟨_, _, (λ p, F p), _⟩, apply_instance,
   -- It remains to show that if `F p = F q`, then `p` and `q` are `ε`-close
   rintros ⟨p, pt⟩ ⟨q, qt⟩ hpq,
   have Npq : N p = N q := (fin.ext_iff _ _).1 (sigma.mk.inj_iff.1 hpq).1,
@@ -838,12 +838,12 @@ begin
           exact hdiam p pt
         end,
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
-      have Aq : ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋₊ := calc
+      have Aq : ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ := calc
         ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ((F q).2 ((E q) (Ψ x)) ((E q) (Ψ y))).1 :
           by { congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] }
-        ... = min M ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋₊ :
+        ... = min M ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ :
           by simp only [F, (E q).symm_apply_apply]
-        ... = ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋₊ :
+        ... = ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ :
         begin
           refine min_eq_right (nat.floor_mono _),
           refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) ((inv_pos.2 εpos).le),
@@ -863,13 +863,14 @@ begin
         subst hpq,
         intros,
         refl },
-      have : ⌊ε⁻¹ * dist x y⌋ = ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋,
+      have : ⌊ε⁻¹ * dist x y⌋ = ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋,
       { rw [Ap, Aq] at this,
         have D : 0 ≤ ⌊ε⁻¹ * dist x y⌋ :=
           floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos.2 εpos)) dist_nonneg),
-        have D' : 0 ≤ ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋ :=
+        have D' : 0 ≤ ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋ :=
           floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos.2 εpos)) dist_nonneg),
-        rw [← int.to_nat_of_nonneg D, ← int.to_nat_of_nonneg D', ←nat.floor, ←nat.floor, this] },
+        rw [← int.to_nat_of_nonneg D, ← int.to_nat_of_nonneg D', int.floor_to_nat,int.floor_to_nat,
+          this] },
       -- deduce that the distances coincide up to `ε`, by a straightforward computation
       -- that should be automated
       have I := calc

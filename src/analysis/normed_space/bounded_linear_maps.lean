@@ -509,7 +509,6 @@ spaces is an open subset of the space of linear maps between them.
 
 protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
 begin
-  nontriviality E,
   rw [is_open_iff_mem_nhds, forall_range_iff],
   refine λ e, is_open.mem_nhds _ (mem_range_self _),
   let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
@@ -522,7 +521,7 @@ begin
   { rintros ⟨w, hw⟩,
     use (units_equiv 𝕜 E w).trans e,
     ext x,
-    simp [hw] }
+    simp [coe_fn_coe_base' w, hw] }
 end
 
 protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :

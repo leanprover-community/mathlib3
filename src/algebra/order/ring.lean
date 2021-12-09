@@ -73,7 +73,7 @@ immediate predecessors and what conditions are added to each of them.
 * `linear_ordered_comm_ring`
   - `ordered_comm_ring` & totality of the order & nontriviality
   - `linear_ordered_ring` & commutativity of multiplication
-  - `integral_domain` & linear order structure
+  - `is_domain` & linear order structure
 * `canonically_ordered_comm_semiring`
   - `canonically_ordered_add_monoid` & multiplication & `*` respects `<` & no zero divisors
   - `comm_semiring` & `a ≤ b ↔ ∃ c, b = a + c` & no zero divisors
@@ -701,25 +701,27 @@ lemma lt_mul_iff_one_lt_right (hb : 0 < b) : b < b * a ↔ 1 < a :=
 suffices b * 1 < b * a ↔ 1 < a, by rwa mul_one at this,
 mul_lt_mul_left hb
 
-theorem mul_nonneg_iff_right_nonneg_of_pos (ha : 0 < a) : 0 ≤ b * a ↔ 0 ≤ b :=
+theorem mul_nonneg_iff_right_nonneg_of_pos (ha : 0 < a) : 0 ≤ a * b ↔ 0 ≤ b :=
 by haveI := @linear_order.decidable_le α _; exact
-⟨λ h, nonneg_of_mul_nonneg_right h ha, λ h, decidable.mul_nonneg h ha.le⟩
+⟨λ h, nonneg_of_mul_nonneg_left h ha, λ h, decidable.mul_nonneg ha.le h⟩
+
+theorem mul_nonneg_iff_left_nonneg_of_pos (hb : 0 < b) : 0 ≤ a * b ↔ 0 ≤ a :=
+by haveI := @linear_order.decidable_le α _; exact
+⟨λ h, nonneg_of_mul_nonneg_right h hb, λ h, decidable.mul_nonneg h hb.le⟩
 
 lemma mul_le_iff_le_one_left (hb : 0 < b) : a * b ≤ b ↔ a ≤ 1 :=
 ⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).2 h.not_lt),
   λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).1 h.not_lt) ⟩
 
 lemma mul_lt_iff_lt_one_left (hb : 0 < b) : a * b < b ↔ a < 1 :=
-⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).2 h.not_le),
-  λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).1 h.not_le) ⟩
+lt_iff_lt_of_le_iff_le $ le_mul_iff_one_le_left hb
 
 lemma mul_le_iff_le_one_right (hb : 0 < b) : b * a ≤ b ↔ a ≤ 1 :=
 ⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).2 h.not_lt),
   λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).1 h.not_lt) ⟩
 
 lemma mul_lt_iff_lt_one_right (hb : 0 < b) : b * a < b ↔ a < 1 :=
-⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).2 h.not_le),
-  λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).1 h.not_le) ⟩
+lt_iff_lt_of_le_iff_le $ le_mul_iff_one_le_right hb
 
 lemma nonpos_of_mul_nonneg_left (h : 0 ≤ a * b) (hb : b < 0) : a ≤ 0 :=
 le_of_not_gt (λ ha, absurd h (mul_neg_of_pos_of_neg ha hb).not_le)
@@ -744,13 +746,13 @@ instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_se
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_semiring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [nontrivial β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   linear_ordered_semiring β :=
-{ ..linear_order.lift f hf,
-  ..‹nontrivial β›,
-  ..hf.ordered_semiring f zero one add mul }
+{ .. linear_order.lift f hf,
+  .. pullback_nonzero f zero one,
+  .. hf.ordered_semiring f zero one add mul }
 
 end linear_ordered_semiring
 
@@ -1013,7 +1015,7 @@ instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semirin
   ..‹linear_ordered_ring α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.to_domain : domain α :=
+instance linear_ordered_ring.is_domain : is_domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros a b hab,
@@ -1213,14 +1215,14 @@ by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_ring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   linear_ordered_ring β :=
-{ ..linear_order.lift f hf,
-  ..‹nontrivial β›,
-  ..hf.ordered_ring f zero one add mul neg sub }
+{ .. linear_order.lift f hf,
+  .. pullback_nonzero f zero one,
+  .. hf.ordered_ring f zero one add mul neg sub }
 
 end linear_ordered_ring
 
@@ -1233,11 +1235,6 @@ class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, com
 instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] :
   ordered_comm_ring α :=
 { ..d }
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
-  integral_domain α :=
-{ ..linear_ordered_ring.to_domain, ..s }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
@@ -1301,14 +1298,14 @@ variables [linear_ordered_comm_ring α]
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_comm_ring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   linear_ordered_comm_ring β :=
-{ ..linear_order.lift f hf,
-  ..‹nontrivial β›,
-  ..hf.ordered_comm_ring f zero one add mul neg sub }
+{ .. linear_order.lift f hf,
+  .. pullback_nonzero f zero one,
+  .. hf.ordered_comm_ring f zero one add mul neg sub }
 
 end linear_ordered_comm_ring
 
@@ -1414,35 +1411,29 @@ section sub
 variables [canonically_ordered_comm_semiring α] {a b c : α}
 variables [has_sub α] [has_ordered_sub α]
 
-lemma sub_mul_ge : a * c - b * c ≤ (a - b) * c :=
-by { rw [sub_le_iff_right, ← add_mul], exact mul_le_mul_right' le_sub_add c }
-
-lemma mul_sub_ge : a * b - a * c ≤ a * (b - c) :=
-by simp only [mul_comm a, sub_mul_ge]
-
 variables [is_total α (≤)]
 
 namespace add_le_cancellable
-protected lemma mul_sub (h : add_le_cancellable (a * c)) :
+protected lemma mul_tsub (h : add_le_cancellable (a * c)) :
   a * (b - c) = a * b - a * c :=
 begin
   cases total_of (≤) b c with hbc hcb,
-  { rw [sub_eq_zero_iff_le.2 hbc, mul_zero, sub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
-  { apply h.eq_sub_of_add_eq, rw [← mul_add, sub_add_cancel_of_le hcb] }
+  { rw [tsub_eq_zero_iff_le.2 hbc, mul_zero, tsub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
+  { apply h.eq_tsub_of_add_eq, rw [← mul_add, tsub_add_cancel_of_le hcb] }
 end
 
-protected lemma sub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=
-by { simp only [mul_comm _ c] at *, exact h.mul_sub }
+protected lemma tsub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=
+by { simp only [mul_comm _ c] at *, exact h.mul_tsub }
 
 end add_le_cancellable
 
 variables [contravariant_class α α (+) (≤)]
 
-lemma mul_sub' (a b c : α) : a * (b - c) = a * b - a * c :=
-contravariant.add_le_cancellable.mul_sub
+lemma mul_tsub (a b c : α) : a * (b - c) = a * b - a * c :=
+contravariant.add_le_cancellable.mul_tsub
 
-lemma sub_mul' (a b c : α) : (a - b) * c = a * c - b * c :=
-contravariant.add_le_cancellable.sub_mul
+lemma tsub_mul (a b c : α) : (a - b) * c = a * c - b * c :=
+contravariant.add_le_cancellable.tsub_mul
 
 end sub
 

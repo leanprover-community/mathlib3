@@ -50,7 +50,7 @@ This file defines the predicate `separated`, and common separation axioms
 * `t2_iff_nhds`: A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter.
 * `t2_iff_is_closed_diagonal`: A space is T₂ iff the `diagonal` of `α` (that is, the set of all
   points of the form `(a, a) : α × α`) is closed under the product topology.
-* `finset_disjoing_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
+* `finset_disjoint_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
 * Most topological constructions preserve Hausdorffness;
   these results are part of the typeclass inference system (e.g. `embedding.t2_space`)
 * `set.eq_on.closure`: If two functions are equal on some set `s`, they are equal on its closure.
@@ -304,7 +304,7 @@ begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
 end
 
-lemma finite.is_closed {α} [topological_space α] [t1_space α] {s : set α} (hs : set.finite s) :
+lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
   is_closed s :=
 begin
   rw ← bUnion_of_singleton s,
@@ -320,6 +320,48 @@ begin
   rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
+
+/-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
+lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+  dense (s \ {x}) :=
+hs.inter_of_open_right (dense_compl_singleton x) is_open_compl_singleton
+
+/-- Removing a finset from a dense set in a space without isolated points, one still
+obtains a dense set. -/
+lemma dense.diff_finset [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : dense s) (t : finset α) :
+  dense (s \ t) :=
+begin
+  induction t using finset.induction_on with x s hxs ih hd,
+  { simpa using hs },
+  { rw [finset.coe_insert, ← union_singleton, ← diff_diff],
+    exact ih.diff_singleton _, }
+end
+
+/-- Removing a finite set from a dense set in a space without isolated points, one still
+obtains a dense set. -/
+lemma dense.diff_finite [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : dense s) {t : set α} (ht : finite t) :
+  dense (s \ t) :=
+begin
+  convert hs.diff_finset ht.to_finset,
+  exact (finite.coe_to_finset _).symm,
+end
+
+/-- If a function to a `t1_space` tends to some limit `b` at some point `a`, then necessarily
+`b = f a`. -/
+lemma eq_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
+  (h : tendsto f (𝓝 a) (𝓝 b)) : f a = b :=
+by_contra $ assume (hfa : f a ≠ b),
+have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
+have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id' $ pure_le_nhds a),
+fact₂ fact₁ (eq.refl $ f a)
+
+/-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that
+`f` admits *some* limit at `a`. -/
+lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
+  (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
+show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
@@ -566,7 +608,7 @@ lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α}
 ⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
 
 /-- A T₂.₅ space, also known as a Urysohn space, is a topological space
-  where for every pair `x ≠ y`, there are two open sets, with the intersection of clousures
+  where for every pair `x ≠ y`, there are two open sets, with the intersection of closures
   empty, one containing `x` and the other `y` . -/
 class t2_5_space (α : Type u) [topological_space α]: Prop :=
 (t2_5 : ∀ x y  (h : x ≠ y), ∃ (U V: set α), is_open U ∧  is_open V ∧
@@ -920,7 +962,7 @@ lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a)
   ∃ t ∈ 𝓝 a, t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_iff.mp h in
 have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
-  from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
+  from regular_space.regular h₂.is_closed_compl (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨tᶜ,
   mem_of_eq_bot $ by rwa [compl_compl],
@@ -931,6 +973,22 @@ lemma closed_nhds_basis [regular_space α] (a : α) :
   (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_closed s) id :=
 ⟨λ t, ⟨λ t_in, let ⟨s, s_in, h_st, h⟩ := nhds_is_closed t_in in ⟨s, ⟨s_in, h⟩, h_st⟩,
        λ ⟨s, ⟨s_in, hs⟩, hst⟩, mem_of_superset s_in hst⟩⟩
+
+lemma topological_space.is_topological_basis.exists_closure_subset [regular_space α]
+  {B : set (set α)} (hB : topological_space.is_topological_basis B) {a : α} {s : set α}
+  (h : s ∈ 𝓝 a) :
+  ∃ t ∈ B, a ∈ t ∧ closure t ⊆ s :=
+begin
+  rcases nhds_is_closed h with ⟨t, hat, hts, htc⟩,
+  rcases hB.mem_nhds_iff.1 hat with ⟨u, huB, hau, hut⟩,
+  exact ⟨u, huB, hau, (closure_minimal hut htc).trans hts⟩
+end
+
+lemma topological_space.is_topological_basis.nhds_basis_closure [regular_space α]
+  {B : set (set α)} (hB : topological_space.is_topological_basis B) (a : α) :
+  (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ s ∈ B) closure :=
+⟨λ s, ⟨λ h, let ⟨t, htB, hat, hts⟩ := hB.exists_closure_subset h in ⟨t, ⟨hat, htB⟩, hts⟩,
+  λ ⟨t, ⟨hat, htB⟩, hts⟩, mem_of_superset (hB.mem_nhds htB hat) (subset_closure.trans hts)⟩⟩
 
 instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_space (subtype p) :=
 ⟨begin
@@ -1022,6 +1080,58 @@ begin
   refine ⟨assume s t hs ht st, _⟩,
   simp only [disjoint_iff],
   exact compact_compact_separated hs.is_compact ht.is_compact st.eq_bot
+end
+
+open topological_space
+
+variable (α)
+
+/-- A regular topological space with second countable topology is a normal space.
+This lemma is not an instance to avoid a loop. -/
+lemma normal_space_of_regular_second_countable [second_countable_topology α] [regular_space α] :
+  normal_space α :=
+begin
+  have key : ∀ {s t : set α}, is_closed t → disjoint s t →
+    ∃ U : set (countable_basis α), (s ⊆ ⋃ u ∈ U, ↑u) ∧
+      (∀ u ∈ U, disjoint (closure ↑u) t) ∧
+      ∀ n : ℕ, is_closed (⋃ (u ∈ U) (h : encodable.encode u ≤ n), closure (u : set α)),
+  { intros s t hc hd,
+    rw disjoint_left at hd,
+    have : ∀ x ∈ s, ∃ U ∈ countable_basis α, x ∈ U ∧ disjoint (closure U) t,
+    { intros x hx,
+      rcases (is_basis_countable_basis α).exists_closure_subset (hc.is_open_compl.mem_nhds (hd hx))
+        with ⟨u, hu, hxu, hut⟩,
+      exact ⟨u, hu, hxu, disjoint_left.2 hut⟩ },
+    choose! U hu hxu hd,
+    set V : s → countable_basis α := maps_to.restrict _ _ _ hu,
+    refine ⟨range V, _, forall_range_iff.2 $ subtype.forall.2 hd, λ n, _⟩,
+    { rw bUnion_range,
+      exact λ x hx, mem_Union.2 ⟨⟨x, hx⟩, hxu x hx⟩ },
+    { simp only [← supr_eq_Union, supr_and'],
+      exact is_closed_bUnion (((finite_le_nat n).preimage_embedding (encodable.encode' _)).subset $
+        inter_subset_right _ _) (λ u hu, is_closed_closure) } },
+  refine ⟨λ s t hs ht hd, _⟩,
+  rcases key ht hd with ⟨U, hsU, hUd, hUc⟩,
+  rcases key hs hd.symm with ⟨V, htV, hVd, hVc⟩,
+  refine ⟨⋃ u ∈ U, ↑u \ ⋃ (v ∈ V) (hv : encodable.encode v ≤ encodable.encode u), closure ↑v,
+    ⋃ v ∈ V, ↑v \ ⋃ (u ∈ U) (hu : encodable.encode u ≤ encodable.encode v), closure ↑u,
+    is_open_bUnion $ λ u hu, (is_open_of_mem_countable_basis u.2).sdiff (hVc _),
+    is_open_bUnion $ λ v hv, (is_open_of_mem_countable_basis v.2).sdiff (hUc _),
+    λ x hx, _, λ x hx, _, _⟩,
+  { rcases mem_bUnion_iff.1 (hsU hx) with ⟨u, huU, hxu⟩,
+    refine mem_bUnion huU ⟨hxu, _⟩,
+    simp only [mem_Union],
+    rintro ⟨v, hvV, -, hxv⟩,
+    exact hVd v hvV ⟨hxv, hx⟩ },
+  { rcases mem_bUnion_iff.1 (htV hx) with ⟨v, hvV, hxv⟩,
+    refine mem_bUnion hvV ⟨hxv, _⟩,
+    simp only [mem_Union],
+    rintro ⟨u, huU, -, hxu⟩,
+    exact hUd u huU ⟨hxu, hx⟩ },
+  { simp only [disjoint_left, mem_Union, mem_diff, not_exists, not_and, not_forall, not_not],
+    rintro a ⟨u, huU, hau, haV⟩ v hvV hav,
+    cases le_total (encodable.encode u) (encodable.encode v) with hle hle,
+    exacts [⟨u, huU, hle, subset_closure hau⟩, (haV _ hvV hle $ subset_closure hav).elim] }
 end
 
 end normality

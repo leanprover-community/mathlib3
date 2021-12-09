@@ -68,8 +68,7 @@ let b := basis.of_vector_space F K, c := basis.of_vector_space K A in
 of_fintype_basis $ b.smul c
 
 lemma right [hf : finite_dimensional F A] : finite_dimensional K A :=
-let ⟨⟨b, hb⟩⟩ := iff_fg.1 hf in
-iff_fg.2 ⟨⟨b, submodule.restrict_scalars_injective F _ _ $
+let ⟨⟨b, hb⟩⟩ := hf in ⟨⟨b, submodule.restrict_scalars_injective F _ _ $
 by { rw [submodule.restrict_scalars_top, eq_top_iff, ← hb, submodule.span_le],
   exact submodule.subset_span }⟩⟩
 

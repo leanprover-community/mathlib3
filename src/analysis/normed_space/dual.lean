@@ -36,11 +36,16 @@ variables (E : Type*) [semi_normed_group E] [semi_normed_space 𝕜 E]
 variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
 /-- The topological dual of a seminormed space `E`. -/
-@[derive [inhabited, has_coe_to_fun, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+@[derive [inhabited, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+
+instance : has_coe_to_fun (dual 𝕜 E) (λ _, E → 𝕜) := continuous_linear_map.to_fun
 
 instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
 
 instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
+
+instance [finite_dimensional 𝕜 E] : finite_dimensional 𝕜 (dual 𝕜 E) :=
+continuous_linear_map.finite_dimensional
 
 /-- The inclusion of a normed space in its double (topological) dual, considered
    as a bounded linear map. -/
@@ -75,7 +80,7 @@ begin
   by_cases h : x = 0,
   { simp only [h, hMp, norm_zero] },
   { obtain ⟨f, hf⟩ : ∃ g : E →L[𝕜] 𝕜, _ := exists_dual_vector 𝕜 x h,
-    calc ∥x∥ = ∥norm' 𝕜 x∥ : (norm_norm' _ _ _).symm
+    calc ∥x∥ = ∥(∥x∥ : 𝕜)∥ : is_R_or_C.norm_coe_norm.symm
     ... = ∥f x∥ : by rw hf.2
     ... ≤ M * ∥f∥ : hM f
     ... = M : by rw [hf.1, mul_one] }
@@ -101,7 +106,7 @@ def inclusion_in_double_dual_li : E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
     apply le_antisymm,
     { exact double_dual_bound 𝕜 E x },
     rw continuous_linear_map.norm_def,
-    apply le_cInf continuous_linear_map.bounds_nonempty,
+    refine le_cInf continuous_linear_map.bounds_nonempty _,
     rintros c ⟨hc1, hc2⟩,
     exact norm_le_dual_bound 𝕜 x hc1 hc2
   end,

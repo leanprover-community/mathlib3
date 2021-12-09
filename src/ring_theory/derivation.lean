@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import algebra.lie.of_associative
 import ring_theory.adjoin.basic
-import ring_theory.algebra_tower
+import algebra.lie.of_associative
 
 /-!
 # Derivations
@@ -50,7 +49,7 @@ variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module R M]
 variables [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
-instance : has_coe_to_fun (derivation R A M) := ⟨_, λ D, D.to_linear_map.to_fun⟩
+instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
 
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩
@@ -143,8 +142,8 @@ instance Rscalar : has_scalar R (derivation R A M) :=
 lemma Rsmul_apply (r : R) (D : derivation R A M) : (r • D) a = r • D a := rfl
 
 instance has_scalar : has_scalar A (derivation R A M) :=
-⟨λ a D, { leibniz' := λ b c, by {
-            dsimp, simp only [smul_add, leibniz, smul_comm a, add_comm] },
+⟨λ a D, { leibniz' := λ b c, by
+          { dsimp, simp only [smul_add, leibniz, smul_comm a, add_comm] },
           ..(a • D : A →ₗ[R] M) }⟩
 
 @[simp] lemma coe_smul (a : A) (D : derivation R A M) : ⇑(a • D) = a • D := rfl
@@ -212,7 +211,7 @@ variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 @[simp] lemma map_neg : D (-a) = -D a := linear_map.map_neg D a
 @[simp] lemma map_sub : D (a - b) = D a - D b := linear_map.map_sub D a b
 
-lemma map_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
+lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
 begin
   rw neg_smul,
   refine eq_neg_of_add_eq_zero _,
@@ -221,8 +220,16 @@ begin
                      ... = 0                         : by rw [h, map_one_eq_zero, smul_zero]
 end
 
-lemma map_inv_of [invertible a] : D (⅟a) = -⅟a^2 • D a :=
-D.map_of_mul_eq_one $ inv_of_mul_self a
+lemma leibniz_inv_of [invertible a] : D (⅟a) = -⅟a^2 • D a :=
+D.leibniz_of_mul_eq_one $ inv_of_mul_self a
+
+lemma leibniz_inv {K : Type*} [field K] [module K M] [algebra R K] [is_scalar_tower R K M]
+  (D : derivation R K M) (a : K) : D (a⁻¹) = -a⁻¹ ^ 2 • D a :=
+begin
+  rcases eq_or_ne a 0 with (rfl|ha),
+  { simp },
+  { exact D.leibniz_of_mul_eq_one (inv_mul_cancel ha) }
+end
 
 instance : has_neg (derivation R A M) :=
 ⟨λ D, { leibniz' := λ a b, by simp only [linear_map.neg_apply, smul_neg, neg_add_rev, leibniz,

@@ -48,7 +48,7 @@ We prove that, on a locally compact space, the measure `μ.measure` is regular.
 * <https://en.wikipedia.org/wiki/Content_(measure_theory)>
 -/
 
-universe variables u v w
+universes u v w
 noncomputable theory
 
 open set topological_space
@@ -76,7 +76,7 @@ instance : inhabited (content G) :=
 /-- Although the `to_fun` field of a content takes values in `ℝ≥0`, we register a coercion to
 functions taking values in `ℝ≥0∞` as most constructions below rely on taking suprs and infs, which
 is more convenient in a complete lattice, and aim at constructing a measure. -/
-instance : has_coe_to_fun (content G) := ⟨_, λ μ s, (μ.to_fun s : ℝ≥0∞)⟩
+instance : has_coe_to_fun (content G) (λ _, compacts G → ℝ≥0∞) := ⟨λ μ s, μ.to_fun s⟩
 
 namespace content
 
@@ -144,7 +144,7 @@ begin
   have := ennreal.sub_lt_self hU h.ne_bot h'ε,
   conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
-  rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U
+  rw [← tsub_le_iff_right], exact le_of_lt h2U
 end
 
 /-- The inner content of a supremum of opens is at most the sum of the individual inner
@@ -179,7 +179,7 @@ by { have := μ.inner_content_Sup_nat (λ i, ⟨U i, hU i⟩), rwa [opens.supr_d
 
 lemma inner_content_comap (f : G ≃ₜ G)
   (h : ∀ ⦃K : compacts G⦄, μ (K.map f f.continuous) = μ K) (U : opens G) :
-  μ.inner_content (U.comap f.continuous) = μ.inner_content U :=
+  μ.inner_content (opens.comap f.to_continuous_map U) = μ.inner_content U :=
 begin
   refine supr_congr _ ((compacts.equiv f).surjective) _,
   intro K, refine supr_congr_Prop image_subset_iff _,
@@ -190,7 +190,8 @@ end
 @[to_additive]
 lemma is_mul_left_invariant_inner_content [group G] [topological_group G]
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
-  (U : opens G) : μ.inner_content (U.comap $ continuous_mul_left g) = μ.inner_content U :=
+  (U : opens G) :
+  μ.inner_content (opens.comap (homeomorph.mul_left g).to_continuous_map U) = μ.inner_content U :=
 by convert μ.inner_content_comap (homeomorph.mul_left g) (λ K, h g) U
 
 @[to_additive]
@@ -203,7 +204,7 @@ begin
   rcases compact_covered_by_mul_left_translates K.2 this with ⟨s, hs⟩,
   suffices : μ K ≤ s.card * μ.inner_content U,
   { exact (ennreal.mul_pos_iff.mp $ hK.bot_lt.trans_le this).2 },
-  have : K.1 ⊆ ↑⨆ (g ∈ s), U.comap $ continuous_mul_left g,
+  have : K.1 ⊆ ↑⨆ (g ∈ s), opens.comap (homeomorph.mul_left g).to_continuous_map U,
   { simpa only [opens.supr_def, opens.coe_comap, subtype.coe_mk] },
   refine (μ.le_inner_content _ _ this).trans _,
   refine (rel_supr_sum (μ.inner_content) (μ.inner_content_empty) (≤)

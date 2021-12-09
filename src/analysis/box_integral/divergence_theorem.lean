@@ -72,8 +72,8 @@ begin
   integrate a function of the norm `≤ ε * diam I.Icc` over a box of volume
   `∏ j ≠ i, (I.upper j - I.lower j)`. Since `diam I.Icc ≤ c * (I.upper i - I.lower i)`, we get the
   required estimate.  -/
-  have Hl : I.lower i ∈ Icc (I.lower i) (I.upper i), from left_mem_Icc.2 (I.lower_le_upper i),
-  have Hu : I.upper i ∈ Icc (I.lower i) (I.upper i), from right_mem_Icc.2 (I.lower_le_upper i),
+  have Hl : I.lower i ∈ Icc (I.lower i) (I.upper i) := set.left_mem_Icc.2 (I.lower_le_upper i),
+  have Hu : I.upper i ∈ Icc (I.lower i) (I.upper i) := set.right_mem_Icc.2 (I.lower_le_upper i),
   have Hi : ∀ x ∈ Icc (I.lower i) (I.upper i),
     integrable.{0 u u} (I.face i) ⊥ (f ∘ i.insert_nth x) box_additive_map.volume,
     from λ x hx, integrable_of_continuous_on _ (box.continuous_on_face_Icc hfc hx) volume,
@@ -97,7 +97,7 @@ begin
       { intros y hy,
         refine (hε y hy).trans (mul_le_mul_of_nonneg_left _ h0.le),
         rw ← dist_eq_norm,
-        exact dist_le_diam_of_mem (is_compact_pi_Icc I.lower I.upper).bounded hy hxI },
+        exact dist_le_diam_of_mem I.is_compact_Icc.bounded hy hxI },
       rw [two_mul, add_mul],
       exact norm_sub_le_of_le (hε _ (this _ Hl)) (hε _ (this _ Hu)) } },
   calc ∥(∏ j, (I.upper j - I.lower j)) • f' (pi.single i 1) -
@@ -191,8 +191,8 @@ begin
         simpa using half_pos ε0 } },
     rcases this.exists with ⟨δ, ⟨hδ0, hδ12⟩, hdfδ, hδ⟩,
     refine ⟨δ, hδ0, λ J hJI hJδ hxJ hJc, add_halves ε ▸ _⟩,
-    have Hl : J.lower i ∈ Icc (J.lower i) (J.upper i), from left_mem_Icc.2 (J.lower_le_upper i),
-    have Hu : J.upper i ∈ Icc (J.lower i) (J.upper i), from right_mem_Icc.2 (J.lower_le_upper i),
+    have Hl : J.lower i ∈ Icc (J.lower i) (J.upper i) := set.left_mem_Icc.2 (J.lower_le_upper i),
+    have Hu : J.upper i ∈ Icc (J.lower i) (J.upper i) := set.right_mem_Icc.2 (J.lower_le_upper i),
     have Hi : ∀ x ∈ Icc (J.lower i) (J.upper i),
       integrable.{0 u u} (J.face i) ⊥ (λ y, f (i.insert_nth x y)) box_additive_map.volume,
       from λ x hx, integrable_of_continuous_on _

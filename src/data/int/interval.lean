@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.int.basic
-import data.nat.interval
+import algebra.char_zero
+import order.locally_finite
 
 /-!
 # Finite intervals of integers

@@ -58,7 +58,7 @@ variables {X : Type u} {Y : Type v} {Z : Type w}
 
 variables [metric_space X] [metric_space Y]
           {Φ : Z → X} {Ψ : Z → Y} {ε : ℝ}
-open sum (inl inr)
+open _root_.sum (inl inr)
 
 /-- Define a predistance on `X ⊕ Y`, for which `Φ p` and `Ψ p` are at distance `ε` -/
 def glue_dist (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ) : X ⊕ Y → X ⊕ Y → ℝ
@@ -325,7 +325,7 @@ section gluing
 variables {X : Type u} {Y : Type v} {Z : Type w}
 variables [nonempty Z] [metric_space Z] [metric_space X] [metric_space Y]
           {Φ : Z → X} {Ψ : Z → Y} {ε : ℝ}
-open sum (inl inr)
+open _root_.sum (inl inr)
 local attribute [instance] pseudo_metric.dist_setoid
 
 /-- Given two isometric embeddings `Φ : Z → X` and `Ψ : Z → Y`, we define a pseudo metric space

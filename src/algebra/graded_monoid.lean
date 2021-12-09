@@ -405,7 +405,8 @@ lemma set_like.is_homogeneous_one [has_zero ι] [has_one R]
   (A : ι → S) [set_like.has_graded_one A] : set_like.is_homogeneous A (1 : R) :=
 ⟨0, set_like.has_graded_one.one_mem⟩
 
-lemma set_like.is_homogeneous.mul [has_add ι] [has_mul R] {A : ι → S} [set_like.has_graded_mul A] {a b : R} :
+lemma set_like.is_homogeneous.mul [has_add ι] [has_mul R] {A : ι → S}
+  [set_like.has_graded_mul A] {a b : R} :
   set_like.is_homogeneous A a → set_like.is_homogeneous A b → set_like.is_homogeneous A (a * b)
 | ⟨i, hi⟩ ⟨j, hj⟩ := ⟨i + j, set_like.has_graded_mul.mul_mem hi hj⟩
 

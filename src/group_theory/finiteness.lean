@@ -100,6 +100,8 @@ monoid.fg_iff_add_fg.1 ‹_›
 instance monoid.fg_of_add_monoid_fg [add_monoid.fg N] : monoid.fg (multiplicative N) :=
 add_monoid.fg_iff_mul_fg.1 ‹_›
 
+end monoid
+
 namespace monoid
 
 open submonoid

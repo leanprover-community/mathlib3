@@ -136,7 +136,7 @@ lemma integral_divergence_of_has_fderiv_within_at_off_countable' (hle : a ≤ b)
   (f : fin (n + 1) → ℝⁿ⁺¹ → E) (f' : fin (n + 1) → ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] E)
   (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : ∀ (x ∈ s) i, continuous_within_at (f i) (Icc a b) x)
   (Hd : ∀ (x ∈ Icc a b \ s) i, has_fderiv_within_at (f i) (f' i x) (Icc a b) x)
-  (Hi : integrable_on (λ x, ∑ i, f' i x (pi.single i 1)) (Icc a b)) :
+  (Hi : integrable_on (λ x, ∑ i, f' i x (e i)) (Icc a b)) :
   ∫ x in Icc a b, ∑ i, f' i x (e i) =
     ∑ i : fin (n + 1),
       ((∫ x in face i, f i (front_face i x)) - ∫ x in face i, f i (back_face i x)) :=
@@ -265,11 +265,12 @@ begin
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi.symm }
 end
 
-/-- **Divergence theorem** for functions on the plane along rectangles. It is formulated in terms of two functions
-`f g : ℝ × ℝ → E` and an integral over `Icc a b = [a.1, b.1] ×[a.2, b.2]`, where `a b : ℝ × ℝ`, `a ≤ b`. When thinking of
-`f` and `g` as the two coordinates of a single function `F : ℝ × ℝ → E × E` and when `E = ℝ`, this is the usual statement
-that the integral of the divergence of `F` inside the rectangle equals the integral of the normal derivative of `F` along
-the boundary.
+/-- **Divergence theorem** for functions on the plane along rectangles. It is formulated in terms of
+two functions `f g : ℝ × ℝ → E` and an integral over `Icc a b = [a.1, b.1] × [a.2, b.2]`, where
+`a b : ℝ × ℝ`, `a ≤ b`. When thinking of `f` and `g` as the two coordinates of a single function
+`F : ℝ × ℝ → E × E` and when `E = ℝ`, this is the usual statement that the integral of the
+divergence of `F` inside the rectangle equals the integral of the normal derivative of `F` along the
+boundary.
 
 See also `measure_theory.integral2_divergence_prod_of_has_fderiv_within_at_off_countable` for a
 version that does not assume `a ≤ b` and uses iterated interval integral instead of the integral
@@ -319,7 +320,11 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
   end
 
 /-- **Divergence theorem** for functions on the plane. It is formulated in terms of two functions
-`f g : ℝ × ℝ → E` and iterated interval integral.
+`f g : ℝ × ℝ → E` and iterated integral `∫ x in a₁..b₁, ∫ y in a₂..b₂, _`, where
+`a₁ a₂ b₁ b₂ : ℝ`. When thinking of `f` and `g` as the two coordinates of a single function
+`F : ℝ × ℝ → E × E` and when `E = ℝ`, this is the usual statement that the integral of the
+divergence of `F` inside the rectangle with vertices `(aᵢ, bⱼ)`, `i, j =1,2`, equals the integral of
+the normal derivative of `F` along the boundary.
 
 See also `measure_theory.integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le`
 for a version that uses an integral over `Icc a b`, where `a b : ℝ × ℝ`, `a ≤ b`. -/

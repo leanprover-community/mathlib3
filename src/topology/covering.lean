@@ -2,11 +2,8 @@ import topology.connected
 import topology.continuous_function.basic
 import topology.homotopy.fundamental_groupoid
 import category_theory.full_subcategory
-<<<<<<< HEAD
 import topology.maps
-=======
 
->>>>>>> b4fea6719d0a3e8c2cc0bed8143b4c0786554659
 section for_mathlib
 
 /-lemma open_embedding_of_open_embedding_compose_injective {A B C : Type*}
@@ -30,7 +27,6 @@ end-/
 
 end for_mathlib
 
-<<<<<<< HEAD
 universes u
 
 variables {E E' X : Type u} [topological_space E] [topological_space E'] [topological_space X]
@@ -74,9 +70,7 @@ def singleton_inclusion (x:X):(singleton_subtype x)→ X:=λ s,x
 --  X (category_theory.category.{u} X) (singleton_inclusion x),
 
 variables (E E' X)
-=======
 variables (E E' X : Type*) [topological_space E] [topological_space E'] [topological_space X]
->>>>>>> b4fea6719d0a3e8c2cc0bed8143b4c0786554659
 
 structure covering_map extends continuous_map E X :=
 (surjective : function.surjective to_fun)

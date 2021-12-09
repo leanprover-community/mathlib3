@@ -39,7 +39,7 @@ mapping `⨁ i, A i →+ ⨆ i, A i` can be obtained as
 internally graded ring
 -/
 
-open_locale direct_sum
+open_locale direct_sum big_operators
 
 variables {ι : Type*} {S R : Type*} [decidable_eq ι]
 
@@ -77,6 +77,18 @@ direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
   direct_sum.submonoid_coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
 
+lemma direct_sum.coe_mul_apply_add_submonoid [add_monoid ι] [semiring R]
+  (A : ι → add_submonoid R) [set_like.graded_monoid A]
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (i : ι) :
+  ((r * r') i : R) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
+    add_submonoid.coe_finset_sum],
+  simp_rw [direct_sum.coe_of_add_submonoid_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
+
 /-! #### From `add_subgroup`s -/
 
 namespace add_subgroup
@@ -106,6 +118,18 @@ direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
   (A : ι → add_subgroup R) [set_like.graded_monoid A] (i : ι) (x : A i) :
   direct_sum.subgroup_coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
+
+lemma direct_sum.coe_mul_apply_add_subgroup [add_monoid ι] [ring R]
+  (A : ι → add_subgroup R) [set_like.graded_monoid A] [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+  (r r' : ⨁ i, A i) (i : ι) :
+  ((r * r') i : R) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
+    add_subgroup.coe_finset_sum],
+  simp_rw [direct_sum.coe_of_add_subgroup_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
 
 /-! #### From `submodules`s -/
 
@@ -167,3 +191,15 @@ direct_sum.to_algebra S _ (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl) (λ _, rfl
   (A : ι → submodule S R) [h : set_like.graded_monoid A] (i : ι) (x : A i) :
   direct_sum.submodule_coe_alg_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ rfl (λ _ _ _ _, rfl) _ _
+
+lemma direct_sum.coe_mul_apply_submodule [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+  [set_like.graded_monoid A] (r r' : ⨁ i, A i) (i : ι) :
+  ((r * r') i : R) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, submodule.coe_sum],
+  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end

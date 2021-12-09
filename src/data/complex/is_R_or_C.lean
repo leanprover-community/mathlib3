@@ -720,7 +720,8 @@ linear_map.mk_continuous re_lm 1 $ by
 begin
   apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
   convert continuous_linear_map.ratio_le_op_norm _ (1 : K),
-  simp,
+  { simp },
+  { apply_instance }
 end
 
 @[simp, norm_cast] lemma re_clm_coe : ((re_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = re_lm := rfl

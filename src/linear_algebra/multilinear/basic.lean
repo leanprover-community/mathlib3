@@ -263,6 +263,7 @@ by rw [← update_snoc_last x m (c • x), f.map_smul, update_snoc_last]
 section
 
 variables {M₁' : ι → Type*} [Π i, add_comm_monoid (M₁' i)] [Π i, module R (M₁' i)]
+variables {M₁'' : ι → Type*} [Π i, add_comm_monoid (M₁'' i)] [Π i, module R (M₁'' i)]
 
 /-- If `g` is a multilinear map and `f` is a collection of linear maps,
 then `g (f₁ m₁, ..., fₙ mₙ)` is again a multilinear map, that we call
@@ -283,6 +284,42 @@ def comp_linear_map (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[
   (m : Π i, M₁ i) :
   g.comp_linear_map f m = g (λ i, f i (m i)) :=
 rfl
+
+/-- Composing a multilinear map twice with a linear map in each argument is
+the same as composing with their composition. -/
+lemma comp_linear_map_assoc (g : multilinear_map R M₁'' M₂) (f₁ : Π i, M₁' i →ₗ[R] M₁'' i)
+  (f₂ : Π i, M₁ i →ₗ[R] M₁' i) :
+  (g.comp_linear_map f₁).comp_linear_map f₂ = g.comp_linear_map (λ i, f₁ i ∘ₗ f₂ i) :=
+rfl
+
+/-- Composing the zero multilinear map with a linear map in each argument. -/
+@[simp] lemma zero_comp_linear_map (f : Π i, M₁ i →ₗ[R] M₁' i) :
+  (0 : multilinear_map R M₁' M₂).comp_linear_map f = 0 :=
+ext $ λ _, rfl
+
+/-- Composing a multilinear map with the identity linear map in each argument. -/
+@[simp] lemma comp_linear_map_id (g : multilinear_map R M₁' M₂) :
+  g.comp_linear_map (λ i, linear_map.id) = g :=
+ext $ λ _, rfl
+
+/-- Composing with a family of surjective linear maps is injective. -/
+lemma comp_linear_map_injective (f : Π i, M₁ i →ₗ[R] M₁' i) (hf : ∀ i, surjective (f i)) :
+  injective (λ g : multilinear_map R M₁' M₂, g.comp_linear_map f) :=
+λ g₁ g₂ h, ext $ λ x,
+  by simpa [λ i, surj_inv_eq (hf i)] using ext_iff.mp h (λ i, surj_inv (hf i) (x i))
+
+lemma comp_linear_map_inj (f : Π i, M₁ i →ₗ[R] M₁' i) (hf : ∀ i, surjective (f i))
+  (g₁ g₂ : multilinear_map R M₁' M₂) : g₁.comp_linear_map f = g₂.comp_linear_map f ↔ g₁ = g₂ :=
+(comp_linear_map_injective _ hf).eq_iff
+
+/-- Composing a multilinear map with a linear equiv on each argument gives the zero map
+if and only if the multilinear map is the zero map. -/
+@[simp] lemma comp_linear_equiv_eq_zero_iff (g : multilinear_map R M₁' M₂)
+  (f : Π i, M₁ i ≃ₗ[R] M₁' i) : g.comp_linear_map (λ i, (f i : M₁ i →ₗ[R] M₁' i)) = 0 ↔ g = 0 :=
+begin
+  set f' := (λ i, (f i : M₁ i →ₗ[R] M₁' i)),
+  rw [←zero_comp_linear_map f', comp_linear_map_inj f' (λ i, (f i).surjective)],
+end
 
 end
 

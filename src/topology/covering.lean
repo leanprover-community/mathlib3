@@ -2,6 +2,7 @@ import topology.connected
 import topology.continuous_function.basic
 import topology.homotopy.fundamental_groupoid
 import category_theory.full_subcategory
+import topology.maps
 
 section for_mathlib
 
@@ -133,5 +134,14 @@ infixr ` ↠ `:25 := covering_map -- shortcut: type `\rr-` or just type `\rr `
 instance : has_coe_to_fun (E ↠ X) (λ _, E → X) := ⟨λ q, q.to_fun⟩
 
 @[continuity] lemma continuous (q : E ↠ X) : continuous q := q.continuous_to_fun
+
+lemma covering_map_open (q : E ↠ X) : is_open_map q :=
+begin
+  intros U hU,
+  sorry,
+end
+
+lemma covering_map_quotient (q : E ↠ X) : quotient_map q :=
+q.covering_map_open.to_quotient_map q.continuous q.surjective
 
 end covering_map

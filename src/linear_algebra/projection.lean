@@ -178,6 +178,24 @@ lemma exists_unique_add_of_is_compl (hc : is_compl p q) (x : E) :
 let ⟨u, hu₁, hu₂⟩ := exists_unique_add_of_is_compl_prod hc x in
   ⟨u.1, u.2, hu₁, λ r s hrs, prod.eq_iff_fst_eq_snd_eq.1 (hu₂ ⟨r, s⟩ hrs)⟩
 
+lemma eq_linear_proj_add_linear_proj_of_is_compl (hpq : is_compl p q) (x : E) :
+  x = p.linear_proj_of_is_compl q hpq x + q.linear_proj_of_is_compl p hpq.symm x :=
+begin
+  rcases exists_unique_add_of_is_compl hpq x with ⟨u, v, rfl, -⟩,
+  simp only [ map_add, add_zero, linear_proj_of_is_compl_apply_right,
+              zero_add, linear_proj_of_is_compl_apply_left ],
+end
+
+lemma not_mem_of_is_compl_of_ne_zero (hpq : is_compl p q) {a : p} (ha : a ≠ 0) :
+  (a : E) ∉ q :=
+begin
+  intro h,
+  have h' : (a : E) ∈ p := coe_mem a,
+  have h'' : (a : E) ∈ p ⊓ q := mem_inf.mpr ⟨h', h⟩,
+  rw [hpq.inf_eq_bot, mem_bot, coe_eq_zero] at h'',
+  exact ha h''
+end
+
 end submodule
 
 namespace linear_map

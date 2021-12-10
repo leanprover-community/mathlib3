@@ -127,7 +127,7 @@ end
 lemma count_add' (a b : ℕ) : count p (a + b) = count (λ k, p (k + b)) a + count p b :=
 by { rw [add_comm, count_add, add_comm], simp_rw add_comm b, congr' 2 }
 
-lemma count_one : count p 1 = if p 0 then 1 else 0 := by simp
+lemma count_one : count p 1 = if p 0 then 1 else 0 := by simp [count_succ]
 
 lemma count_succ' (n : ℕ) : count p (n + 1) = count (λ k, p (k + 1)) n + if p 0 then 1 else 0 :=
 by rw [count_add', count_one]
@@ -135,10 +135,10 @@ by rw [count_add', count_one]
 variables {p}
 
 lemma count_succ_eq_succ_count_iff {n : ℕ} : count p (n + 1) = count p n + 1 ↔ p n :=
-by by_cases h : p n; simp [h]
+by by_cases h : p n; simp [h, count_succ]
 
 lemma count_succ_eq_count_iff {n : ℕ} : count p (n + 1) = count p n ↔ ¬p n :=
-by by_cases h : p n; simp [h]
+by by_cases h : p n; simp [h, count_succ]
 
 alias count_succ_eq_succ_count_iff ↔ _ count_succ_eq_succ_count
 alias count_succ_eq_count_iff ↔ _ count_succ_eq_count

@@ -73,7 +73,8 @@ begin
   rw [divisors_eq_proper_divisors_insert_self_of_pos hn', insert_sdiff_of_not_mem,
       prod_insert, eval_mul, eval_geom_sum] at this,
   rotate,
-  { simp },
+  { simp only [lt_self_iff_false, mem_sdiff, not_false_iff, mem_proper_divisors, and_false,
+      false_and]},
   { simpa only [mem_singleton] using hn''.ne' },
   rcases lt_trichotomy 0 (geom_sum x k) with h | h | h,
   { apply pos_of_mul_pos_right,
@@ -87,7 +88,7 @@ begin
       { exact hn'.ne' (zero_dvd_iff.mp hi.1.1) },
       { exact even_iff_not_odd.mp (even_iff_two_dvd.mpr hi.1.1) hk } },
     { rcases eq_or_ne i 2 with rfl | hk,
-      { simpa using hx.le },
+      { simpa only [eval_X, eval_one, cyclotomic_two, eval_add] using hx.le },
       refine (ih _ hi.1.2 (nat.two_lt_of_ne _ hi.2 hk)).le,
       rintro rfl,
       exact (hn'.ne' $ zero_dvd_iff.mp hi.1.1) } },
@@ -96,13 +97,10 @@ begin
   { apply pos_of_mul_neg_left,
     { rwa this },
     rw [geom_sum_neg_iff hn''] at h,
-    rw [eval_prod, ←prod_sdiff (show {2} ⊆ _, from _), prod_singleton]; try { apply_instance },
-    rotate,
-    { intros x hx,
-      rw mem_singleton at hx,
-      subst hx,
-      rw [mem_sdiff, mem_proper_divisors, not_mem_singleton],
+    have h2 : {2} ⊆ k.proper_divisors \ {1},
+    { rw [singleton_subset_iff, mem_sdiff, mem_proper_divisors, not_mem_singleton],
       exact ⟨⟨h.1, hn⟩, (nat.one_lt_bit0 one_ne_zero).ne'⟩ },
+    rw [eval_prod, ←prod_sdiff h2, prod_singleton]; try { apply_instance },
     apply mul_nonpos_of_nonneg_of_nonpos,
     { refine prod_nonneg (λ i hi, le_of_lt _),
       simp only [mem_sdiff, mem_proper_divisors, mem_singleton] at hi,
@@ -110,7 +108,7 @@ begin
       rintro rfl,
       rw zero_dvd_iff at hi,
       exact hn'.ne' hi.1.1.1 },
-    { simpa using h.2.le } }
+    { simpa only [eval_X, eval_one, cyclotomic_two, eval_add] using h.right.le } }
 end
 
 end polynomial

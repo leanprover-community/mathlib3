@@ -14,6 +14,11 @@ sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint
 
 In distributive lattices, this is equivalent to being pairwise disjoint.
 
+## Implementation notes
+
+We avoid the "obvious" definition `∀ i ∈ s, disjoint (f i) ((s.erase i).sup f)` because `erase`
+would require decidable equality on `ι`.
+
 ## TODO
 
 `complete_lattice.independent` and `complete_lattice.set_independent` should live in this file.
@@ -38,11 +43,8 @@ lemma sup_indep_empty (f : ι → α) : (∅ : finset ι).sup_indep f := λ _ _ 
 
 lemma sup_indep_singleton (i : ι) (f : ι → α) : ({i} : finset ι).sup_indep f :=
 λ s hs j hji hj, begin
-  suffices h : s = ∅,
-  { rw [h, sup_empty],
-    exact disjoint_bot_right },
-  refine eq_empty_iff_forall_not_mem.2 (λ k hk, ne_of_mem_of_not_mem hk hj _),
-  rw [mem_singleton.1 hji, mem_singleton.1 (hs hk)],
+  rw [eq_empty_of_ssubset_singleton ⟨hs, λ h, hj (h hji)⟩, sup_empty],
+  exact disjoint_bot_right,
 end
 
 lemma sup_indep.pairwise_disjoint (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=

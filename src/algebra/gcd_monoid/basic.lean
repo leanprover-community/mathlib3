@@ -171,7 +171,7 @@ protected def out : associates α → α :=
 quotient.lift (normalize : α → α) $ λ a b ⟨u, hu⟩, hu ▸
 normalize_eq_normalize ⟨_, rfl⟩ (units.mul_right_dvd.2 $ dvd_refl a)
 
-lemma out_mk (a : α) : (associates.mk a).out = normalize a := rfl
+@[simp] lemma out_mk (a : α) : (associates.mk a).out = normalize a := rfl
 
 @[simp] lemma out_one : (1 : associates α).out = 1 :=
 normalize_one
@@ -203,7 +203,7 @@ begin
   rw [←associates.mk, ←associates.mk, ←mk_normalize, ←mk_normalize b, hab]
 end
 
-lemma mk_out (a : associates α) : associates.mk (a.out) = a :=
+@[simp] lemma mk_out (a : associates α) : associates.mk (a.out) = a :=
 out_injective (by rw [out_mk, normalize_out])
 
 end associates

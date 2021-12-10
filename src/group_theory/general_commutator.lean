@@ -80,7 +80,7 @@ begin
   rw general_commutator_le,
   intros p hp q hq,
   have h : (p * q * p⁻¹ * q⁻¹)⁻¹ ∈ ⁅H₂, H₁⁆ := subset_closure ⟨q, hq, p, hp, by group⟩,
-  convert inv_mem ⁅H₂, H₁⁆ h,
+  convert inv_mem h,
   group,
 end
 
@@ -89,7 +89,7 @@ lemma general_commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] :
 begin
   rw general_commutator_le,
   intros p hp q hq,
-  exact mul_mem H₂ (h.conj_mem q hq p) (inv_mem H₂ hq),
+  exact mul_mem (h.conj_mem q hq p) (inv_mem hq),
 end
 
 lemma general_commutator_le_left (H₁ H₂ : subgroup G) [h : normal H₁] :

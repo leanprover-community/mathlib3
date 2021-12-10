@@ -480,7 +480,7 @@ end
 
 /- TODO in the following we have equality iff f ≠ 0 -/
 lemma degree_of_mul_X_eq (j : σ) (f : mv_polynomial σ R) :
-  degree_of j (f * X j)  ≤ degree_of j f + 1 :=
+  degree_of j (f * X j) ≤ degree_of j f + 1 :=
 begin
   repeat {rw degree_of},
   apply (multiset.count_le_of_le j (degrees_mul f (X j))).trans,

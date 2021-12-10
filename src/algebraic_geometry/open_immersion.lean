@@ -348,7 +348,7 @@ variable (s : pullback_cone f g)
 -/
 def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
 { base := pullback.lift s.fst.base s.snd.base
-  (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition),
+    (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition),
   c :=
   { app := λ U, s.snd.c.app _ ≫ s.X.presheaf.map (eq_to_hom (begin
       dsimp only [opens.map, is_open_map.functor, functor.op],
@@ -369,8 +369,7 @@ def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
     end } }
 
 lemma pullback_cone_of_left_lift_fst :
-  pullback_cone_of_left_lift f g s ≫
-    (pullback_cone_of_left f g).fst = s.fst :=
+  pullback_cone_of_left_lift f g s ≫ (pullback_cone_of_left f g).fst = s.fst :=
 begin
   ext x,
   { induction x using opposite.rec,
@@ -389,8 +388,7 @@ begin
 end
 
 lemma pullback_cone_of_left_lift_snd :
-  pullback_cone_of_left_lift f g s ≫
-    (pullback_cone_of_left f g).snd = s.snd :=
+  pullback_cone_of_left_lift f g s ≫ (pullback_cone_of_left f g).snd = s.snd :=
 begin
   ext x,
   { change (_ ≫ _ ≫ _) ≫ _ = _,

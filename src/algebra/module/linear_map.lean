@@ -106,12 +106,32 @@ section
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
 variables [module R M] [module R M₂] [module S M₃]
+variables {σ : R →+* S}
+
+instance : add_monoid_hom_class (M →ₛₗ[σ] M₃) M M₃ :=
+{ coe := linear_map.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_add := linear_map.map_add',
+  map_zero := λ f, show f.to_fun 0 = 0, by { rw [← zero_smul R (0 : M), f.map_smul'], simp } }
 
 /-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
-{ map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
+{ map_zero' := show f 0 = 0, from map_zero f, ..f }
 
-instance {σ : R →+* S} : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
+/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+-/
+instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe {f : M →ₛₗ[σ] M₃} : f.to_fun = (f : M → M₃) := rfl
+
+@[ext] theorem ext {f g : M →ₛₗ[σ] M₃} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
+
+/-- Copy of a `linear_map` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : M →ₛₗ[σ] M₃ :=
+{ to_fun := f',
+  map_add' := h.symm ▸ f.map_add',
+  map_smul' := h.symm ▸ f.map_smul' }
 
 initialize_simps_projections linear_map (to_fun → apply)
 
@@ -137,33 +157,29 @@ variables [module R M] [module R M₂] [module S M₃]
 variables (σ : R →+* S)
 variables (fₗ gₗ : M →ₗ[R] M₂) (f g : M →ₛₗ[σ] M₃)
 
-@[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
-
 theorem is_linear : is_linear_map R fₗ := ⟨fₗ.map_add', fₗ.map_smul'⟩
 
 variables {fₗ gₗ f g σ}
 
 theorem coe_injective : @injective (M →ₛₗ[σ] M₃) (M → M₃) coe_fn :=
-by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
+fun_like.coe_injective
 
-@[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_injective $ funext H
-
-protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x'
-| _ _ rfl := rfl
+protected lemma congr_arg {x x' : M} : x = x' → f x = f x' :=
+fun_like.congr_arg f
 
 /-- If two linear maps are equal, they are equal at each point. -/
-protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
+protected lemma congr_fun (h : f = g) (x : M) : f x = g x :=
+fun_like.congr_fun h x
 
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
-⟨by { rintro rfl x, refl }, ext⟩
+fun_like.ext_iff
 
 @[simp] lemma mk_coe (f : M →ₛₗ[σ] M₃) (h₁ h₂) :
   (linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) = f := ext $ λ _, rfl
 
 variables (fₗ gₗ f g)
 
-@[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
+protected lemma map_add (x y : M) : f (x + y) = f x + f y := map_add f x y
 
 @[simp] lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := f.map_smul' c x
 
@@ -173,9 +189,9 @@ lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) 
   c • f x = f (σ' c • x) :=
 by simp
 
-@[simp] lemma map_zero : f 0 = 0 :=
-by { rw [←zero_smul R (0 : M), map_smulₛₗ], simp }
+protected lemma map_zero : f 0 = 0 := map_zero f
 
+-- TODO: generalize to `zero_hom_class`
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
 ⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
 
@@ -320,11 +336,9 @@ variables [semiring R] [semiring S] [add_comm_group M] [add_comm_group M₂]
 variables {module_M : module R M} {module_M₂ : module S M₂} {σ : R →+* S}
 variables (f : M →ₛₗ[σ] M₂)
 
-@[simp] lemma map_neg (x : M) : f (- x) = - f x :=
-f.to_add_monoid_hom.map_neg x
+protected lemma map_neg (x : M) : f (- x) = - f x := map_neg f x
 
-@[simp] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
-f.to_add_monoid_hom.map_sub x y
+protected lemma map_sub (x y : M) : f (x - y) = f x - f y := map_sub f x y
 
 instance compatible_smul.int_module
   {S : Type*} [semiring S] [module S M] [module S M₂] : compatible_smul M M₂ ℤ S :=
@@ -620,6 +634,10 @@ instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂]
 -- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
 instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
 { smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
+
+instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_central_scalar S M₂] :
+  is_central_scalar S (M →ₛₗ[σ₁₂] M₂) :=
+{ op_smul_eq_smul := λ a b, ext $ λ x, op_smul_eq_smul _ _ }
 
 instance : distrib_mul_action S (M →ₛₗ[σ₁₂] M₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,

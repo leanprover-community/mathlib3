@@ -9,6 +9,7 @@ import topology.algebra.ring
 import ring_theory.subring.basic
 import group_theory.archimedean
 import algebra.periodic
+import order.filter.archimedean
 
 /-!
 # Topological properties of ℝ
@@ -98,13 +99,12 @@ instance : proper_space ℤ :=
     exact (set.finite_Icc _ _).is_compact,
   end ⟩
 
+@[simp] lemma cocompact_eq : cocompact ℤ = at_bot ⊔ at_top :=
+by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℤ), dist_eq, sub_zero, cast_zero,
+  ← cast_abs, ← @comap_comap _ _ _ _ abs, int.comap_coe_at_top, comap_abs_at_top]
+
 instance : noncompact_space ℤ :=
-begin
-  rw [← not_compact_space_iff, metric.compact_space_iff_bounded_univ],
-  rintro ⟨r, hr⟩,
-  refine (hr (⌊r⌋ + 1) 0 trivial trivial).not_lt _,
-  simpa [dist_eq] using (lt_floor_add_one r).trans_le (le_abs_self _)
-end
+noncompact_space_of_ne_bot $ by simp [at_top_ne_bot]
 
 end int
 
@@ -159,6 +159,10 @@ is_topological_basis_of_open_of_nhds
     ⟨Ioo q p,
       by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
+
+@[simp] lemma real.cocompact_eq : cocompact ℝ = at_bot ⊔ at_top :=
+by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℝ), real.dist_eq, sub_zero,
+  comap_abs_at_top]
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=

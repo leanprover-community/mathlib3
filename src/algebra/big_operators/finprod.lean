@@ -325,6 +325,15 @@ begin
   exact (h hxs).2 hx
 end
 
+@[to_additive] lemma finprod_cond_ne (f : α → M) (a : α) [decidable_eq α]
+  (hf : finite (mul_support f)) : (∏ᶠ i ≠ a, f i) = ∏ i in hf.to_finset.erase a, f i :=
+begin
+  apply finprod_cond_eq_prod_of_cond_iff,
+  intros x hx,
+  rw [finset.mem_erase, finite.mem_to_finset, mem_mul_support],
+  exact ⟨λ h, and.intro h hx, λ h, h.1⟩
+end
+
 @[to_additive] lemma finprod_mem_eq_prod_of_inter_mul_support_eq (f : α → M) {s : set α}
   {t : finset α} (h : s ∩ mul_support f = t ∩ mul_support f) :
   ∏ᶠ i ∈ s, f i = ∏ i in t, f i :=
@@ -757,16 +766,15 @@ over `a ∈ ⋃₀ t` is the product over `s ∈ t` of the products of `f a` ove
 by rw [set.sUnion_eq_bUnion, finprod_mem_bUnion h ht₀ ht₁]
 
 @[to_additive] lemma finprod_mul_sdiff_singleton (a : α) (hf : finite (mul_support f)) :
-  f a * (∏ᶠ i ∈ (mul_support f) \ {a}, f i) = ∏ᶠ i, f i  :=
+  f a * (∏ᶠ i ≠ a, f i) = ∏ᶠ i, f i :=
 begin
   classical,
-  rw [finprod_eq_prod _ hf, finprod_mem_eq_finite_to_finset_prod _
-    (finite.subset hf (diff_subset (mul_support f) {a}))],
-  have : (finite.subset hf (diff_subset (mul_support f) {a})).to_finset = hf.to_finset \ {a},
-  { ext,
-    simp only [mem_singleton_iff, iff_self, finite.mem_to_finset, finset.mem_sdiff, mem_diff,
-    finset.mem_singleton],},
-  rw [this, finset.sdiff_singleton_eq_erase],
+  rw [finprod_eq_prod _ hf],
+  have h : ∀ x : α, f x ≠ 1 → (x ≠ a ↔ x ∈ hf.to_finset \ {a}),
+  { intros x hx,
+    rw [finset.mem_sdiff, finset.mem_singleton, finite.mem_to_finset, mem_mul_support],
+    exact ⟨λ h, and.intro hx h, λ h, h.2⟩,},
+  rw [finprod_cond_eq_prod_of_cond_iff f h, finset.sdiff_singleton_eq_erase],
   by_cases ha : a ∈ mul_support f,
   { apply finset.mul_prod_erase _ _ ((finite.mem_to_finset _ ).mpr ha), },
   { rw [mem_mul_support, not_not] at ha,

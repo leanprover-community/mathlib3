@@ -46,6 +46,6 @@ begin
 end
 
 lemma range_add_eq_union (a b : ℕ) : range (a + b) = range a ∪ (range b).map (λ x, a + x) :=
-by rw [range_add, add_eq_union_iff_disjoint.2 (range_disjoint_map_add _ _)]
+by { rw [range_add, add_eq_union_iff_disjoint], apply range_disjoint_map_add }
 
 end multiset

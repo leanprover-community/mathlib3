@@ -723,7 +723,7 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 def associates_equiv_of_unique_units : associates α ≃* α :=
 { to_fun := associates.out,
   inv_fun := associates.mk,
-  left_inv := λ t, by rw [associates.mk_out],
+  left_inv := λ t, by rw associates.mk_out,
   right_inv := λ t, by rw [associates.out_mk, normalize_eq],
   map_mul' := λ x y, by rw associates.out_mul }
 

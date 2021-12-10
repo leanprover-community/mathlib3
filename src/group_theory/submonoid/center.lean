@@ -139,7 +139,7 @@ instance decidable_mem_center [decidable_eq M] [fintype M] : decidable_pred (∈
 /-- The center of a monoid is commutative. -/
 instance : comm_monoid (center M) :=
 { mul_comm := λ a b, subtype.ext $ b.prop _,
-  .. (center M).to_monoid }
+  .. submonoid_class.to_monoid (center M) }
 
 end
 

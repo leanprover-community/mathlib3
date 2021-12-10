@@ -204,7 +204,7 @@ begin
 end
 
 lemma mk_out (a : associates α) : associates.mk (a.out) = a :=
-associates.out_injective (by rw [out_mk, normalize_out])
+out_injective (by rw [out_mk, normalize_out])
 
 end associates
 

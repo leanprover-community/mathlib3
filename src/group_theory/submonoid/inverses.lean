@@ -21,6 +21,7 @@ For the pointwise inverse of submonoids of groups, please refer to
 ## TODO
 
 Define the submonoid of right inverses and two-sided inverses.
+See the comments of #10679 for a possible implementation.
 
 -/
 variables {M : Type*}

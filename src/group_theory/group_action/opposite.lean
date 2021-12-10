@@ -50,6 +50,18 @@ instance {M N} [has_scalar M α] [has_scalar N α] [smul_comm_class M N α] :
   smul_comm_class M N αᵐᵒᵖ :=
 ⟨λ x y z, unop_injective $ smul_comm _ _ _⟩
 
+instance (R : Type*) [has_scalar R α] [has_scalar Rᵐᵒᵖ α] [is_central_scalar R α] :
+  is_central_scalar R αᵐᵒᵖ :=
+⟨λ r m, unop_injective $ op_smul_eq_smul _ _⟩
+
+lemma op_smul_eq_op_smul_op {R : Type*} [has_scalar R α] [has_scalar Rᵐᵒᵖ α] [is_central_scalar R α]
+  (r : R) (a : α) : op (r • a) = op r • op a :=
+(op_smul_eq_smul r (op a)).symm
+
+lemma unop_smul_eq_unop_smul_unop {R : Type*} [has_scalar R α] [has_scalar Rᵐᵒᵖ α]
+  [is_central_scalar R α] (r : Rᵐᵒᵖ) (a : αᵐᵒᵖ) : unop (r • a) = unop r • unop a :=
+(unop_smul_eq_smul r (unop a)).symm
+
 end mul_opposite
 
 /-! ### Actions _by_ the opposite type (right actions)
@@ -82,6 +94,9 @@ instance semigroup.opposite_smul_comm_class [semigroup α] :
 instance semigroup.opposite_smul_comm_class' [semigroup α] :
   smul_comm_class α αᵐᵒᵖ α :=
 { smul_comm := λ x y z, (mul_assoc _ _ _).symm }
+
+instance comm_semigroup.is_central_scalar [comm_semigroup α] : is_central_scalar α α :=
+⟨λ r m, mul_comm _ _⟩
 
 /-- Like `monoid.to_mul_action`, but multiplies on the right. -/
 instance monoid.to_opposite_mul_action [monoid α] : mul_action αᵐᵒᵖ α :=

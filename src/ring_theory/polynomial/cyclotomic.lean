@@ -485,12 +485,17 @@ begin
 end
 
 /-- Any `n`-th primitive root of unity is a root of `cyclotomic n K`.-/
-lemma is_root_cyclotomic {n : ℕ} {K : Type*} [field K] (hpos : 0 < n) {μ : K}
+lemma is_root_cyclotomic {n : ℕ} {K : Type*} [comm_ring K] [is_domain K] (hpos : 0 < n) {μ : K}
   (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
 begin
-  rw [← mem_roots (cyclotomic_ne_zero n K),
+  suffices : is_root (cyclotomic n (fraction_ring K)) (algebra_map K (fraction_ring K) μ),
+  { rw [←map_cyclotomic n (algebra_map K (fraction_ring K))] at this,
+    apply is_root.of_map this,
+    exact is_fraction_ring.injective K (fraction_ring K) },
+  replace h := h.map_of_injective (is_fraction_ring.injective K (fraction_ring K)),
+  rw [← mem_roots (cyclotomic_ne_zero n (fraction_ring K)),
       cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
-  rwa [← mem_primitive_roots hpos] at h,
+  rwa [← mem_primitive_roots hpos] at h
 end
 
 private lemma is_root_cyclotomic_iff' {n : ℕ} {K : Type*} [field K] {μ : K} (hn : (n : K) ≠ 0) :

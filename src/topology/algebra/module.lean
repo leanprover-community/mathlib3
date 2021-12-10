@@ -296,9 +296,18 @@ instance : has_coe (M₁ →SL[σ₁₂] M₂) (M₁ →ₛₗ[σ₁₂] M₂) :
 -- make the coercion the preferred form
 @[simp] lemma to_linear_map_eq_coe (f : M₁ →SL[σ₁₂] M₂) : f.to_linear_map = f := rfl
 
+theorem coe_injective : function.injective (coe : (M₁ →SL[σ₁₂] M₂) → (M₁ →ₛₗ[σ₁₂] M₂)) :=
+by { intros f g H, cases f, cases g, congr' }
+
+instance : add_monoid_hom_class (M₁ →SL[σ₁₂] M₂) M₁ M₂ :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, coe_injective (fun_like.coe_injective h),
+  map_add := λ f, map_add f.to_linear_map,
+  map_zero := λ f, linear_map.map_zero f }
+
 /-- Coerce continuous linear maps to functions. -/
 -- see Note [function coercion]
-instance to_fun : has_coe_to_fun (M₁ →SL[σ₁₂] M₂) (λ _, M₁ → M₂) := ⟨λ f, f⟩
+instance to_fun : has_coe_to_fun (M₁ →SL[σ₁₂] M₂) (λ _, M₁ → M₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ →ₛₗ[σ₁₂] M₂) = f := rfl
 @[simp] lemma coe_mk' (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ → M₂) = f := rfl
@@ -306,15 +315,12 @@ instance to_fun : has_coe_to_fun (M₁ →SL[σ₁₂] M₂) (λ _, M₁ → M�
 @[continuity]
 protected lemma continuous (f : M₁ →SL[σ₁₂] M₂) : continuous f := f.2
 
-theorem coe_injective : function.injective (coe : (M₁ →SL[σ₁₂] M₂) → (M₁ →ₛₗ[σ₁₂] M₂)) :=
-by { intros f g H, cases f, cases g, congr' }
-
 @[simp, norm_cast] lemma coe_inj {f g : M₁ →SL[σ₁₂] M₂} :
   (f : M₁ →ₛₗ[σ₁₂] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
 theorem coe_fn_injective : @function.injective (M₁ →SL[σ₁₂] M₂) (M₁ → M₂) coe_fn :=
-linear_map.coe_injective.comp coe_injective
+fun_like.coe_injective
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
@@ -327,16 +333,16 @@ initialize_simps_projections continuous_linear_map
   (to_linear_map_to_fun → apply, to_linear_map → coe)
 
 @[ext] theorem ext {f g : M₁ →SL[σ₁₂] M₂} (h : ∀ x, f x = g x) : f = g :=
-coe_fn_injective $ funext h
+fun_like.ext f g h
 
 theorem ext_iff {f g : M₁ →SL[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, by rw h, by ext⟩
+fun_like.ext_iff
 
 variables (f g : M₁ →SL[σ₁₂] M₂) (c : R₁) (h : M₂ →SL[σ₂₃] M₃) (x y z : M₁)
 
 -- make some straightforward lemmas available to `simp`.
-@[simp] lemma map_zero : f (0 : M₁) = 0 := (to_linear_map _).map_zero
-@[simp] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
+protected lemma map_zero : f (0 : M₁) = 0 := map_zero f
+protected lemma map_add  : f (x + y) = f x + f y := map_add f x y
 @[simp] lemma map_smulₛₗ : f (c • x) = (σ₁₂ c) • f x := (to_linear_map _).map_smulₛₗ _ _
 
 @[simp] lemma map_smul [module R₁ M₂] (f : M₁ →L[R₁] M₂)(c : R₁) (x : M₁) : f (c • x) = c • f x :=
@@ -349,7 +355,7 @@ lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M₁]
   f (c • x) = c • f x :=
 linear_map.compatible_smul.map_smul f c x
 
-lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M₁) :
+protected lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M₁) :
   f (∑ i in s, g i) = ∑ i in s, f (g i) := f.to_linear_map.map_sum
 
 @[simp, norm_cast] lemma coe_coe : ((f : M₁ →ₛₗ[σ₁₂] M₂) : (M₁ → M₂)) = (f : M₁ → M₂) := rfl
@@ -832,8 +838,8 @@ variables
 section
 variables (f g : M →SL[σ₁₂] M₂) (x y : M)
 
-@[simp] lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
-@[simp] lemma map_sub  : f (x - y) = f x - f y := (to_linear_map _).map_sub _ _
+protected lemma map_neg : f (-x) = - (f x) := (to_linear_map _).map_neg _
+protected lemma map_sub : f (x - y) = f x - f y := (to_linear_map _).map_sub _ _
 @[simp] lemma sub_apply' (x : M) : ((f : M →ₛₗ[σ₁₂] M₂) - g) x = f x - g x := rfl
 end
 
@@ -913,7 +919,7 @@ instance [topological_add_group M] : ring (M →L[R] M) :=
   mul_one := λ _, ext $ λ _, rfl,
   one_mul := λ _, ext $ λ _, rfl,
   mul_assoc := λ _ _ _, ext $ λ _, rfl,
-  left_distrib := λ _ _ _, ext $ λ _, map_add _ _ _,
+  left_distrib := λ f g h, ext $ λ x, map_add f (g x) (h x),
   right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
   ..continuous_linear_map.add_comm_group }
 

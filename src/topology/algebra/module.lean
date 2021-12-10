@@ -262,7 +262,7 @@ variables {l : filter α} {f : M₁ → M₂}
 
 /-- Construct a bundled additive monoid homomorphism from a pointwise limit of additive
 monoid homomorphisms -/
-definition add_monoid_hom_of_pointwise_tendsto [add_monoid M₁] [add_monoid M₂]
+definition add_monoid_hom_of_tendsto [add_monoid M₁] [add_monoid M₂]
 [has_continuous_add M₂] {g : α → M₁ →+ M₂} [l.ne_bot]
 (h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) : M₁ →+ M₂ :=
 { to_fun := f,
@@ -273,10 +273,10 @@ definition add_monoid_hom_of_pointwise_tendsto [add_monoid M₁] [add_monoid M�
     { refine tendsto_nhds_unique (h (x + y)) _,
       simpa only [add_monoid_hom.map_add] using (h x).add (h y) } }
 
-@[simp] lemma coe_add_monoid_hom_of_pointwise_tendsto [add_monoid M₁] [add_monoid M₂]
+@[simp] lemma coe_add_monoid_hom_of_tendsto [add_monoid M₁] [add_monoid M₂]
 [has_continuous_add M₂] {g : α → M₁ →+ M₂} [l.ne_bot]
 (h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) :
-⇑(add_monoid_hom_of_pointwise_tendsto h) = f := rfl
+⇑(add_monoid_hom_of_tendsto h) = f := rfl
 
 variables [semiring R] [semiring S] [add_comm_monoid M₁] [add_comm_monoid M₂]
 variables [module R M₁] [module S M₂]
@@ -284,7 +284,7 @@ variables [topological_space S] [has_continuous_smul S M₂] [has_continuous_add
 variables {σ : R →+* S}
 
 /-- Construct a bundled linear map from a pointwise limit of linear maps -/
-definition linear_map_of_pointwise_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
+definition linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
 (h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) : M₁ →ₛₗ[σ] M₂ :=
 { to_fun := f,
   map_add' := λ x y, by
@@ -294,9 +294,9 @@ definition linear_map_of_pointwise_tendsto {g : α → M₁ →ₛₗ[σ] M₂} 
     { refine tendsto_nhds_unique (h (r • x)) _,
       simpa only [linear_map.map_smulₛₗ] using tendsto.smul tendsto_const_nhds (h x) } }
 
-@[simp] lemma coe_linear_map_of_pointwise_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
+@[simp] lemma coe_linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
 (h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) :
-⇑(linear_map_of_pointwise_tendsto h) = f := rfl
+⇑(linear_map_of_tendsto h) = f := rfl
 
 end pointwise_limits
 

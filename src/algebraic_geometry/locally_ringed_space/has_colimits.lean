@@ -64,7 +64,7 @@ noncomputable
 def coproduct : LocallyRingedSpace :=
 { to_SheafedSpace := colimit (F ⋙ forget_to_SheafedSpace : _),
   local_ring := λ x, begin
-    rcases SheafedSpace.sigma_ι_jointly_surjective (F ⋙ forget_to_SheafedSpace) x with ⟨i, y, ⟨⟩⟩,
+    obtain ⟨i, y, ⟨⟩⟩ := SheafedSpace.sigma_ι_jointly_surjective (F ⋙ forget_to_SheafedSpace) x,
     haveI : _root_.local_ring (((F ⋙ forget_to_SheafedSpace).obj i).to_PresheafedSpace.stalk y) :=
       (F.obj i).local_ring _,
     exact (as_iso (PresheafedSpace.stalk_map (colimit.ι (F ⋙ forget_to_SheafedSpace) i : _) y)
@@ -83,13 +83,12 @@ def coproduct_cofan_is_colimit : is_colimit (coproduct_cofan F) :=
 { desc := λ s, ⟨colimit.desc (F ⋙ forget_to_SheafedSpace) (forget_to_SheafedSpace.map_cocone s),
   begin
     intro x,
-    rcases SheafedSpace.sigma_ι_jointly_surjective (F ⋙ forget_to_SheafedSpace) x with ⟨i, y, ⟨⟩⟩,
+    obtain ⟨i, y, ⟨⟩⟩ := SheafedSpace.sigma_ι_jointly_surjective (F ⋙ forget_to_SheafedSpace) x,
     have := PresheafedSpace.stalk_map.comp (colimit.ι (F ⋙ forget_to_SheafedSpace) i : _)
       (colimit.desc (F ⋙ forget_to_SheafedSpace) (forget_to_SheafedSpace.map_cocone s)) y,
     rw ← is_iso.comp_inv_eq at this,
-    erw ← this,
-    erw PresheafedSpace.stalk_map.congr_hom _ _
-      (colimit.ι_desc (forget_to_SheafedSpace.map_cocone s) i : _),
+    erw [← this, PresheafedSpace.stalk_map.congr_hom _ _
+      (colimit.ι_desc (forget_to_SheafedSpace.map_cocone s) i : _)],
     haveI : is_local_ring_hom (PresheafedSpace.stalk_map
       ((forget_to_SheafedSpace.map_cocone s).ι.app i) y) := (s.ι.app i).2 y,
     apply_instance

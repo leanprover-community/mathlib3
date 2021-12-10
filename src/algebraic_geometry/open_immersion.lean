@@ -279,11 +279,9 @@ end PresheafedSpace.is_open_immersion
 
 namespace SheafedSpace.is_open_immersion
 
-variable [has_products C]
-
 section prod
 
-variables {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) [has_colimit F] [has_limits C] (i : ι)
+variables [has_limits C] {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) [has_colimit F] (i : ι)
 
 lemma sigma_ι_open_embedding : open_embedding (colimit.ι F i).base :=
 begin
@@ -296,12 +294,9 @@ begin
   have : colimit.ι _ _ ≫ _ = _ := Top.sigma_iso_sigma_hom_ι (F ⋙ SheafedSpace.forget C).obj i,
   rw ← iso.eq_comp_inv at this,
   rw this,
-  simp_rw [← category.assoc, coe_comp],
-  apply (Top.homeo_of_iso _).symm.open_embedding.comp,
-  apply (Top.homeo_of_iso _).symm.open_embedding.comp,
-  apply (Top.homeo_of_iso (Top.sigma_iso_sigma _)).symm.open_embedding.comp,
-  exact open_embedding_sigma_mk.comp (Top.homeo_of_iso
-    (as_iso (discrete.nat_iso_functor.hom.app i))).open_embedding
+  simp_rw [← category.assoc, Top.open_embedding_iff_comp_is_iso,
+    Top.open_embedding_iff_is_iso_comp],
+  exact open_embedding_sigma_mk
 end
 
 lemma image_preimage_is_empty (j : ι) (h : i ≠ j) (U : opens (F.obj i)) :
@@ -338,12 +333,13 @@ instance sigma_ι_is_open_immersion [has_strict_terminal_objects C] :
       (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv).c.app
         (op (H.is_open_map.functor.obj U))),
     { convert this },
-    rw PresheafedSpace.comp_c_app,
-    rw ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π,
-    apply_with is_iso.comp_is_iso { instances := ff },
-    { apply_instance },
-    apply_with is_iso.comp_is_iso { instances := ff },
-    { apply_instance },
+    rw [PresheafedSpace.comp_c_app,
+      ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π],
+    suffices : is_iso (limit.π (PresheafedSpace.componentwise_diagram
+      (F ⋙ SheafedSpace.forget_to_PresheafedSpace)
+      ((opens.map (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv.base).obj
+      (unop $ op $ H.is_open_map.functor.obj U))) (op i)),
+    { resetI, apply_instance },
     apply limit_π_is_iso_of_is_strict_terminal,
     intros j hj,
     induction j using opposite.rec,

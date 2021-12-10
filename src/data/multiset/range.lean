@@ -33,4 +33,14 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subs
 
 theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := list.self_mem_range_succ n
 
+lemma range_add (a b : ℕ) :
+  range (a + b) = range a ∪ (range b).map (λ x, a + x) :=
+begin
+  rw [range, list.range_add, ←coe_add, ←coe_map],
+  refine add_eq_union_iff_disjoint.2 (λ x hxa hxb, _),
+  rw [mem_coe, list.mem_range] at hxa,
+  obtain ⟨c, _, rfl⟩ := mem_map.1 hxb,
+  exact (self_le_add_right _ _).not_lt hxa,
+end
+
 end multiset

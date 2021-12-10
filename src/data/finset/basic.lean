@@ -2117,6 +2117,13 @@ iff.intro
   (assume ⟨i, hi, ha⟩,
     ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
 
+lemma range_add (a b : ℕ) :
+  range (a + b) = range a ∪ (range b).image (λ x, a + x) :=
+begin
+  rw [←val_inj, range, union_val,
+    image_val_of_inj_on ((add_right_injective a).inj_on _)],
+  exact multiset.range_add a b,
+end
 
 @[simp] lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
 eq_of_veq $ by rw [image_val, attach_val, multiset.attach_map_val, erase_dup_eq_self]

@@ -250,8 +250,6 @@ notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
 notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
 
-namespace continuous_linear_map
-
 section pointwise_limits
 
 variables
@@ -275,6 +273,8 @@ variables
       simpa only [linear_map.map_smulₛₗ] using tendsto.smul tendsto_const_nhds (h x) } }
 
 end pointwise_limits
+
+namespace continuous_linear_map
 
 section semiring
 /-!

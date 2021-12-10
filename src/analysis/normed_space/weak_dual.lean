@@ -70,7 +70,7 @@ different topology instances.
 
 For the proof of Banach-Alaoglu theorem, the weak dual of `E` is embedded in a product of copies
 of the ground field `𝕜` via `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜`. The fact that this
-is an embedding is  `embedding_weak_dual_to_Pi`.
+is an embedding is  `weak_dual.to_Pi_embedding`.
 
 ## References
 
@@ -214,7 +214,7 @@ def _root_.weak_dual.to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 
 /-- In the product of copies of a normed field, sets of the form `{g | ∥ f(i) - g(i) ∥ < ε}` for
 `ε > 0` are neighborhoods of `f`. -/
-lemma _root_.basic_nhd_of_Pi_normed_field {ι : Type*}
+lemma _root_.mem_nhds_Pi_normed_field {ι : Type*}
   (f : (Π (_ : ι), 𝕜)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
   {g : (Π (_ : ι), 𝕜) | ∥ f i - g i ∥ < ε} ∈ 𝓝 f :=
 begin
@@ -277,18 +277,18 @@ def linear_of_mem_closure_range
 { to_fun := f,
   map_add' := begin
     intros z₁ z₂,
-    have key := weak_dual.to_Pi_embedding.linear_of_mem_closure_range' f hf (1 : 𝕜) (1 : 𝕜) z₁ z₂,
+    have key := linear_of_mem_closure_range' f hf (1 : 𝕜) (1 : 𝕜) z₁ z₂,
     rwa [one_smul, one_smul, one_smul 𝕜 _, one_smul 𝕜 _] at key,
   end,
   map_smul' := begin
     intros c z,
-    have key := weak_dual.to_Pi_embedding.linear_of_mem_closure_range' f hf c (0 : 𝕜) z (0 : E),
+    have key := linear_of_mem_closure_range' f hf c (0 : 𝕜) z (0 : E),
     rwa [zero_smul, zero_smul, add_zero, add_zero] at key,
   end, }
 
 lemma linear_of_mem_closure_range_apply
   (f : (Π (_ : E), 𝕜)) (hf : f ∈ closure (range (@weak_dual.to_Pi 𝕜 _ E _ _ _))) (z : E) :
-  weak_dual.to_Pi_embedding.linear_of_mem_closure_range f hf z = f z := rfl
+  linear_of_mem_closure_range f hf z = f z := rfl
 
 /-- Elements of the closure of the image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of
 a subset defined by a non-strict bound on the norm still satisfy the same bound. -/
@@ -300,7 +300,7 @@ begin
   suffices : ∀ (ε : ℝ), 0 < ε → ∥ f (z) ∥ ≤ c + ε,
   { exact le_of_forall_pos_le_add this, },
   intros ε ε_pos,
-  have nhd := basic_nhd_of_Pi_normed_field f z ε_pos,
+  have nhd := mem_nhds_Pi_normed_field f z ε_pos,
   have clos := mem_closure_iff_nhds.mp hf _ nhd,
   cases clos with g hg,
   simp only [mem_image, mem_inter_eq, mem_set_of_eq] at hg,
@@ -313,7 +313,7 @@ end
 
 /-- Elements of the closure of the image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of
 a polar `polar s` of a neighborhood `s` of the origin are continuous (linear) functions. -/
-lemma continuous_of_mem_closure_polar_nhd
+lemma continuous_of_mem_closure_polar
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (φ : (Π (_ : E), 𝕜))
   (hφ : φ ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s))) :
   @continuous E 𝕜 _ _ φ :=
@@ -324,7 +324,7 @@ begin
   { apply mem_of_mem_of_subset hφ _,
     apply closure_mono,
     simp only [preimage_univ, preimage_range, subset_univ, image_subset_iff], },
-  set flin := weak_dual.to_Pi_embedding.linear_of_mem_closure_range φ hφ' with hflin,
+  set flin := linear_of_mem_closure_range φ hφ' with hflin,
   suffices : continuous flin,
   { assumption, },
   apply linear_map.continuous_of_bound flin c,
@@ -353,7 +353,7 @@ end
 
 /-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of a polar `polar s` of a
 neighborhood `s` of the origin is a closed set. -/
-lemma image_polar_nhd_closed
+lemma image_polar_closed
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_closed ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)) :=
 begin
@@ -365,8 +365,8 @@ begin
   have f_in_closure₀ : f ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
   { apply closure_mono (image_subset_range _ _),
     exact mem_closure_iff_cluster_pt.mpr hf, },
-  set f_lin := weak_dual.to_Pi_embedding.linear_of_mem_closure_range f f_in_closure₀ with h_f_lin,
-  have f_cont := weak_dual.to_Pi_embedding.continuous_of_mem_closure_polar_nhd
+  set f_lin := linear_of_mem_closure_range f f_in_closure₀ with h_f_lin,
+  have f_cont := continuous_of_mem_closure_polar
     s_nhd f f_in_closure,
   set φ : weak_dual 𝕜 E :=
     { to_fun := f,
@@ -374,14 +374,14 @@ begin
         intros z₁ z₂,
         have key := f_lin.map_add z₁ z₂,
         rw h_f_lin at key,
-        repeat {rwa weak_dual.to_Pi_embedding.linear_of_mem_closure_range_apply
+        repeat {rwa linear_of_mem_closure_range_apply
           f f_in_closure₀ _ at key, },
       end,
       map_smul' := begin
         intros c z,
         have key := f_lin.map_smul c z,
         rw h_f_lin at key,
-        repeat {rwa weak_dual.to_Pi_embedding.linear_of_mem_closure_range_apply
+        repeat {rwa linear_of_mem_closure_range_apply
           f f_in_closure₀ _ at key, },
       end,
       cont := f_cont, } with hφ,
@@ -390,7 +390,7 @@ begin
   dunfold weak_dual.polar,
   dunfold polar,
   intros z hz,
-  apply weak_dual.to_Pi_embedding.norm_eval_le_of_mem_closure_norm_eval_le z 1 f,
+  apply norm_eval_le_of_mem_closure_norm_eval_le z 1 f,
   have ss : weak_dual.polar 𝕜 s ⊆ {x' : weak_dual 𝕜 E | ∥x' z∥ ≤ 1},
   { intros x' hx',
     simp only [weak_dual.polar, polar, mem_set_of_eq, preimage_set_of_eq] at hx',
@@ -401,7 +401,7 @@ end
 
 /-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of the polar `polar s` of
 a neighborhood `s` of the origin is compact if the field `𝕜` is a proper topological space. -/
-lemma image_polar_nhd_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+lemma image_polar_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_compact ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)) :=
 begin
   cases polar_bounded_of_nhds_zero 𝕜 s_nhd with c hc,
@@ -422,7 +422,7 @@ begin
   apply compact_of_is_closed_subset _ _ ss,
   { apply is_compact_univ_pi,
     exact λ z, proper_space.is_compact_closed_ball 0 _, },
-  exact weak_dual.to_Pi_embedding.image_polar_nhd_closed s_nhd,
+  exact image_polar_closed s_nhd,
 end
 
 end weak_dual.to_Pi_embedding
@@ -433,7 +433,7 @@ theorem weak_dual.is_compact_polar [proper_space 𝕜] {s : set E} (s_nhd : s �
   is_compact (weak_dual.polar 𝕜 s) :=
 begin
   apply (weak_dual.to_Pi_embedding 𝕜 E).is_compact_iff_is_compact_image.mpr,
-  exact weak_dual.to_Pi_embedding.image_polar_nhd_compact s_nhd,
+  exact weak_dual.to_Pi_embedding.image_polar_compact s_nhd,
 end
 
 /-- The Banach-Alaoglu theorem: closed balls of the dual of a normed space `E` over `ℝ` or `ℂ`

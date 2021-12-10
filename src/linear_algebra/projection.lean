@@ -186,14 +186,12 @@ begin
               zero_add, linear_proj_of_is_compl_apply_left ],
 end
 
-lemma not_mem_of_is_compl_of_ne_zero (hpq : is_compl p q) {a : p} (ha : a ≠ 0) :
-  (a : E) ∉ q :=
+lemma eq_zero_of_coe_mem_of_is_compl (hpq : is_compl p q) {a : p} (ha : (a : E) ∈ q) :
+  a = 0 :=
 begin
-  intro h,
   have h' : (a : E) ∈ p := coe_mem a,
-  have h'' : (a : E) ∈ p ⊓ q := mem_inf.mpr ⟨h', h⟩,
-  rw [hpq.inf_eq_bot, mem_bot, coe_eq_zero] at h'',
-  exact ha h''
+  have h'' : (a : E) ∈ p ⊓ q := mem_inf.mpr ⟨h', ha⟩,
+  rwa [hpq.inf_eq_bot, mem_bot, coe_eq_zero] at h''
 end
 
 end submodule

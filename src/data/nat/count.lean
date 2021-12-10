@@ -164,3 +164,5 @@ lemma lt_of_count_lt_count {a b : ℕ} (h : count p a < count p b) : a < b :=
 (count_monotone p).reflect_lt h
 
 end count
+
+end

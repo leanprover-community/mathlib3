@@ -31,8 +31,8 @@ variables {U I}
 
 structure evenly_covered_point :=
 (to_homeomorph : f ⁻¹' {x} × U ≃ₜ f ⁻¹' U)
-(left_commutes' : ∀ p, to_homeomorph ⟨p, x, hx⟩ = ⟨p, (congr_arg (∈ U) p.2).mpr hx⟩)
-(right_commutes' : ∀ p, f (to_homeomorph p) = p.2)
+(commutes' : ∀ p, f (to_homeomorph p) = p.2)
+(compatible' : ∀ p, to_homeomorph ⟨p, x, hx⟩ = ⟨p, (congr_arg (∈ U) p.2).mpr hx⟩)
 
 variables {f hx}
 
@@ -43,13 +43,17 @@ instance : has_coe_to_fun (evenly_covered f U I) (λ ι, I × U → f ⁻¹' U) 
 
 variables (ι : evenly_covered f U I)
 
-def commutes (p : I × U) : f (ι p) = p.2 := ι.commutes' p
+def commutes (p : I × U) : f (ι p) = p.2 :=
+ι.commutes' p
 
-def symm : f ⁻¹' U ≃ₜ I × U := ι.to_homeomorph.symm
+def symm : f ⁻¹' U ≃ₜ I × U :=
+ι.to_homeomorph.symm
 
-def apply_symm_apply (p : f ⁻¹' U) : ι (ι.symm p) = p := ι.to_homeomorph.apply_symm_apply p
+def apply_symm_apply (p : f ⁻¹' U) : ι (ι.symm p) = p :=
+ι.to_homeomorph.apply_symm_apply p
 
-def symm_apply_apply (p : I × U) : ι.symm (ι p) = p := ι.to_homeomorph.symm_apply_apply p
+def symm_apply_apply (p : I × U) : ι.symm (ι p) = p :=
+ι.to_homeomorph.symm_apply_apply p
 
 def homeomorph_of_mem : f ⁻¹' {y} ≃ₜ I :=
 { to_fun := λ p, (ι.symm ⟨p, (congr_arg (∈ U) p.2).mpr hy⟩).1,
@@ -66,10 +70,10 @@ def homeomorph_of_mem : f ⁻¹' {y} ≃ₜ I :=
 
 def to_evenly_covered_point : evenly_covered_point f hy :=
   { to_homeomorph := ((ι.homeomorph_of_mem hy).prod_congr (homeomorph.refl U)).trans ι.to_homeomorph,
-    left_commutes' := λ p, subtype.ext (by
+    commutes' := λ p, ι.commutes' _,
+    compatible' := λ p, subtype.ext (by
     { have this := subtype.ext_iff.mp ((ι.homeomorph_of_mem hy).symm_apply_apply p),
-      exact this }),
-    right_commutes' := λ p, ι.commutes' _ }
+      exact this }) }
 
 end evenly_covered
 
@@ -80,20 +84,23 @@ instance : has_coe_to_fun (evenly_covered_point f hx) (λ ι, f ⁻¹' {x} × U 
 
 variables (ι : evenly_covered_point f hx)
 
-def right_commutes (p : f ⁻¹' {x} × U) : f (ι p) = p.2 := ι.right_commutes' p
+def commutes (p : f ⁻¹' {x} × U) : f (ι p) = p.2 :=
+ι.commutes' p
 
-def left_commutes (p : f ⁻¹' {x}) : ι ⟨p, x, hx⟩ = ⟨p, (congr_arg (∈ U) p.2).mpr hx⟩ :=
-ι.left_commutes' p
+def compatible (p : f ⁻¹' {x}) : ι ⟨p, x, hx⟩ = ⟨p, (congr_arg (∈ U) p.2).mpr hx⟩ :=
+ι.compatible' p
 
-def symm : f ⁻¹' U ≃ₜ f ⁻¹' {x} × U := ι.to_homeomorph.symm
+def symm : f ⁻¹' U ≃ₜ f ⁻¹' {x} × U :=
+ι.to_homeomorph.symm
 
-def apply_symm_apply (p : f ⁻¹' U) : ι (ι.symm p) = p := ι.to_homeomorph.apply_symm_apply p
+def apply_symm_apply (p : f ⁻¹' U) : ι (ι.symm p) = p :=
+ι.to_homeomorph.apply_symm_apply p
 
-def symm_apply_apply (p : f ⁻¹' {x} × U) : ι.symm (ι p) = p := ι.to_homeomorph.symm_apply_apply p
+def symm_apply_apply (p : f ⁻¹' {x} × U) : ι.symm (ι p) = p :=
+ι.to_homeomorph.symm_apply_apply p
 
 def to_evenly_covered : evenly_covered f U (f ⁻¹' {x}) :=
-{ to_homeomorph := ι.to_homeomorph,
-  commutes' := ι.right_commutes' }
+{ .. ι }
 
 def to_evenly_covered_point : evenly_covered_point f hy :=
 ι.to_evenly_covered.to_evenly_covered_point hy

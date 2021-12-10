@@ -335,7 +335,7 @@ begin
 end
 
 /-- If `1 < |z|`, then `|S•z| < 1` -/
-lemma normsq_S_lt_of_normsq {z : ℍ} (h: 1 < norm_sq z) : norm_sq ↑(S • z) < 1 :=
+lemma norm_sq_S_smul_lt_one {z : ℍ} (h: 1 < norm_sq z) : norm_sq ↑(S • z) < 1 :=
 begin
   rw ← inv_lt_inv z.norm_sq_pos zero_lt_one at h,
   simpa [S] using h

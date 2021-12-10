@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stuart Presnell
 -/
 import algebra.associated
-import data.nat.prime
-import ring_theory.int.basic
 
 /-!
 # Temp file
@@ -24,8 +22,3 @@ begin
       { rcases L_ih h_1 with ⟨x, hx1, hx2⟩, use x, simp [list.mem_cons_iff, hx1, hx2] } } },
   { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
 end
-
-/-- Prime `p` divides the product of `L : list ℕ` iff it divides some `a ∈ L` -/
-lemma prime.dvd_prod_iff {p : ℕ} {L : list ℕ} (pp : prime p) :
-  p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
-prime.dvd_prod_iff (nat.prime_iff.mp pp)

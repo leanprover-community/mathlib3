@@ -36,7 +36,7 @@ by { simp_rw [covers, not_and, not_forall, exists_prop, not_not], exact imp_iff_
 
 open order_dual
 
-lemma to_dual_cover_to_dual_iff : to_dual b ⋖ to_dual a ↔ a ⋖ b :=
+@[simp] lemma to_dual_cover_to_dual_iff : to_dual b ⋖ to_dual a ↔ a ⋖ b :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
 
 end has_lt

@@ -115,6 +115,12 @@ lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y 
 lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
 ⟨λ h', h'.antisymm h, eq.le⟩
 
+lemma eq_of_not_lt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : a = b :=
+hab.antisymm $ not_not.1 $ λ h, hba $ hab.lt_of_not_le h
+
+lemma eq_of_not_gt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : b = a :=
+(hab.eq_of_not_lt hba).symm
+
 lemma lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
 (lt_or_ge a c).imp id $ λ hc, le_trans hc h
 

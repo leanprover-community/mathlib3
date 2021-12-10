@@ -50,8 +50,7 @@ Is `galois_connection pred succ` always true? If not, we should introduce
 class succ_pred_order (α : Type*) [preorder α] extends succ_order α, pred_order α :=
 (pred_succ_gc : galois_connection (pred : α → α) succ)
 ```
-This gives `succ (pred n) = n` and `pred (succ n)` for free when `no_bot_order α` and
-`no_top_order α` respectively.
+`covers` should help here.
 -/
 
 open function
@@ -168,6 +167,9 @@ begin
   { exact ⟨le_succ a, le_rfl⟩ }
 end
 
+lemma _root_.covers.succ_eq {a b : α} (h : a ⋖ b) : succ a = b :=
+(succ_le_of_lt h.lt).eq_of_not_lt $ λ h', h.2 (lt_succ_of_not_maximal h.lt) h'
+
 section no_top_order
 variables [no_top_order α] {a b : α}
 
@@ -191,6 +193,9 @@ lt_succ_iff.trans le_iff_lt_or_eq
 
 lemma le_succ_iff_lt_or_eq : a ≤ succ b ↔ (a ≤ b ∨ a = succ b) :=
 by rw [←lt_succ_iff, ←lt_succ_iff, lt_succ_iff_lt_or_eq]
+
+lemma _root_.covers_iff_succ_eq : a ⋖ b ↔ succ a = b :=
+⟨_root_.covers.succ_eq, by { rintro rfl, exact covers_succ _ }⟩
 
 end no_top_order
 
@@ -241,13 +246,6 @@ def of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b �
   maximal_of_succ_le := λ a ha, (lt_irrefl a (hsucc_le_iff.1 ha)).elim,
   succ_le_of_lt := λ a b, hsucc_le_iff.2,
   le_of_lt_succ := λ a b h, le_of_not_lt ((not_congr hsucc_le_iff).1 h.not_le) }
-
-lemma covers_iff_eq_pred [no_top_order α] [succ_order α] : a ⋖ b ↔ b = succ a :=
-begin
-  refine ⟨λ h, (le_of_not_lt $ λ h', h.2 (lt_succ _) h').antisymm $ succ_le_of_lt h.lt, _⟩,
-  rintro rfl,
-  exact covers_succ _,
-end
 
 end linear_order
 
@@ -376,6 +374,9 @@ begin
   { exact ⟨le_rfl, pred_le a⟩ }
 end
 
+lemma _root_.covers.pred_eq {a b : α} (h : a ⋖ b) : pred b = a :=
+(le_pred_of_lt h.lt).eq_of_not_gt $ λ h', h.2 h' $ pred_lt_of_not_minimal h.lt
+
 section no_bot_order
 variables [no_bot_order α] {a b : α}
 
@@ -397,6 +398,9 @@ pred_lt_iff.trans le_iff_lt_or_eq
 
 lemma le_pred_iff_lt_or_eq : pred a ≤ b ↔ (a ≤ b ∨ pred a = b) :=
 by rw [←pred_lt_iff, ←pred_lt_iff, pred_lt_iff_lt_or_eq]
+
+lemma _root_.covers_iff_eq_pred : a ⋖ b ↔ pred b = a :=
+⟨covers.pred_eq, by { rintro rfl, exact pred_covers _ }⟩
 
 end no_bot_order
 
@@ -448,13 +452,6 @@ def of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b �
   le_pred_of_lt := λ a b, hle_pred_iff.2,
   le_of_pred_lt := λ a b h, le_of_not_lt ((not_congr hle_pred_iff).1 h.not_le) }
 
-lemma covers_iff_eq_pred [no_bot_order α] [pred_order α] : a ⋖ b ↔ a = pred b :=
-begin
-  refine ⟨λ h, (le_pred_of_lt h.lt).antisymm $ le_of_not_lt $ λ h', h.2 h' $ pred_lt _, _⟩,
-  rintro rfl,
-  exact pred_covers _,
-end
-
 end linear_order
 
 section complete_lattice
@@ -473,6 +470,22 @@ end complete_lattice
 end pred_order
 
 open succ_order pred_order
+
+/-! ### Successor-predecessor orders -/
+
+section succ_pred_order
+variables [partial_order α] [succ_order α] [pred_order α] {a b : α}
+
+@[simp] lemma succ_pred_of_not_minimal (h : b < a) : succ (pred a) = a :=
+(pred_covers_of_not_minimal h).succ_eq
+
+@[simp] lemma pred_succ_of_not_maximal (h : a < b) : pred (succ a) = a :=
+(covers_succ_of_not_maximal h).pred_eq
+
+@[simp] lemma succ_pred [no_bot_order α] (a : α) : succ (pred a) = a := (pred_covers _).succ_eq
+@[simp] lemma pred_succ [no_top_order α] (a : α) : pred (succ a) = a := (covers_succ _).pred_eq
+
+end succ_pred_order
 
 /-! ### Dual order -/
 

@@ -5,6 +5,10 @@ Authors: Stuart Presnell
 -/
 import algebra.associated
 
+/-!
+# Temp file
+-/
+
 /-- Prime `p` divides the product of a list `L` iff it divides some `a ∈ L` -/
 lemma prime.dvd_prod_iff {M : Type*} [comm_monoid_with_zero M] {p : M} {L : list M} (pp : prime p) :
 p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=

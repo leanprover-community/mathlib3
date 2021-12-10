@@ -2117,11 +2117,9 @@ iff.intro
   (assume ⟨i, hi, ha⟩,
     ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
 
-lemma range_add (a b : ℕ) :
-  range (a + b) = range a ∪ (range b).image (λ x, a + x) :=
+lemma range_add (a b : ℕ) : range (a + b) = range a ∪ (range b).map (add_left_embedding a) :=
 begin
-  rw [←val_inj, range, union_val,
-    image_val_of_inj_on ((add_right_injective a).inj_on _)],
+  rw [←val_inj, union_val],
   exact multiset.range_add a b,
 end
 

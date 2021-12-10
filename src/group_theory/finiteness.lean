@@ -138,9 +138,8 @@ begin
   classical,
   obtain ⟨s, hs⟩ := monoid.fg_def.mp ‹_›,
   use s.image f,
-  rw [finset.coe_image, ← monoid_hom.map_mclosure, hs, ← monoid_hom.mrange_eq_map,
+  rwa [finset.coe_image, ← monoid_hom.map_mclosure, hs, ← monoid_hom.mrange_eq_map,
     monoid_hom.mrange_top_iff_surjective],
-  exact hf
 end
 
 @[to_additive]

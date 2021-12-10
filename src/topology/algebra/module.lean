@@ -273,7 +273,7 @@ definition add_monoid_hom_of_pointwise_tendsto [add_monoid M₁] [add_monoid M�
     { refine tendsto_nhds_unique (h (x + y)) _,
       simpa only [add_monoid_hom.map_add] using (h x).add (h y) } }
 
-lemma coe_add_monoid_hom_of_pointwise_tendsto [add_monoid M₁] [add_monoid M₂]
+@[simp] lemma coe_add_monoid_hom_of_pointwise_tendsto [add_monoid M₁] [add_monoid M₂]
 [has_continuous_add M₂] {g : α → M₁ →+ M₂} [l.ne_bot]
 (h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) :
 ⇑(add_monoid_hom_of_pointwise_tendsto h) = f := rfl
@@ -294,7 +294,7 @@ definition linear_map_of_pointwise_tendsto {g : α → M₁ →ₛₗ[σ] M₂} 
     { refine tendsto_nhds_unique (h (r • x)) _,
       simpa only [linear_map.map_smulₛₗ] using tendsto.smul tendsto_const_nhds (h x) } }
 
-lemma coe_linear_map_of_pointwise_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
+@[simp] lemma coe_linear_map_of_pointwise_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
 (h : ∀ x : M₁, tendsto (λ a : α, g a x) l (𝓝 (f x))) :
 ⇑(linear_map_of_pointwise_tendsto h) = f := rfl
 

@@ -29,7 +29,8 @@ open set measure_theory
 variables {G : Type*} [group G] [measurable_space G] [topological_space G] [t2_space G]
   [topological_group G] [borel_space G]
   {μ : measure G} [measure_theory.measure.is_haar_measure μ]
-  {Γ : subgroup G} [subgroup.normal Γ] {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ 𝓕 μ)
+  {Γ : subgroup G} --[subgroup.normal Γ]
+  {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ 𝓕 μ)
 
 local notation `X` := quotient_group.quotient Γ -- X = Γ \ G
 
@@ -40,46 +41,64 @@ instance subgroup.smul_invariant_measure : smul_invariant_measure Γ G μ := sor
 include h𝓕
 variables [encodable Γ]
 
-
-lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map :
-  is_mul_left_invariant (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) :=
+lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map :
+  smul_invariant_measure G _ (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) :=
+{ measure_preimage_smul :=
 begin
-  let π : G →* X := @quotient_group.mk' _ _ Γ _,
-  have π_of_Γ : ∀ γ : Γ, π γ = 1 := λ γ, (@quotient_group.eq_one_iff _ _ Γ _ γ).mpr γ.prop,
+  let π : G → X := @quotient_group.mk G _ Γ ,
+  have π_of_Γ : ∀ γ : Γ, π γ = π 1,
+  {
+    -- := λ γ,  (@quotient_group.eq_one_iff G _ Γ _ γ).mpr γ.prop,
+    sorry,
+  },
   have meas_π : measurable π :=
     continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
   have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
-  rw ←measure.map_mul_left_eq_self,
-  intros x,
-  ext1 A hA,
+  --rw ←measure_theory.smul_invariant_measure_tfae,
+  intros g A hA,
+--  ext1 A hA,
   have meas_πA : measurable_set (π ⁻¹' A) := measurable_set_preimage meas_π hA,
-  rw [measure.map_apply meas_π hA,
-      measure.map_apply (measurable_const_mul _) hA,
-      measure.map_apply meas_π (measurable_set_preimage (measurable_const_mul _) hA)],
-  rw [measure.restrict_apply' 𝓕meas, measure.restrict_apply' 𝓕meas],
+  rw [measure.map_apply meas_π hA],
+  rw measure.map_apply,
+  rw measure.restrict_apply' 𝓕meas,
+  rw measure.restrict_apply' 𝓕meas,
+  --rw [measure.map_apply meas_π (measurable_set_preimage (measurable_const_mul _) hA)],
+  --rw [measure.restrict_apply' 𝓕meas, measure.restrict_apply' 𝓕meas],
   -- step1: get x1 ∈ 𝓕 with π(x1)=x
-  obtain ⟨x1, hx, xquotx1⟩ : ∃ x1, x1 ∈ 𝓕 ∧ x = π x1,
-  { obtain ⟨x0, (hx0 : π x0 = x)⟩ := @quotient.exists_rep _ (quotient_group.left_rel Γ) x,
-    -- not quite the same as the fundamental domain condition because we only required that the
-    -- translates by `Γ` cover *almost all* of `G`
-    -- how to deal with this?
-    sorry },
   set π_preA := π ⁻¹' A,
-  set π_prexA := π ⁻¹' (has_mul.mul x ⁻¹' A),
-  have two_quotients : π_prexA = has_mul.mul x1 ⁻¹' π_preA,
-  { ext1 y,
-    simp [xquotx1], },
+--  set π_pregA := π ⁻¹' (has_scalar.smul g ⁻¹' A),
+  rw (by ext1 y; simp :
+    (quotient_group.mk ⁻¹' ((λ (x : quotient_group.quotient Γ), g • x) ⁻¹' A))
+    = has_mul.mul g ⁻¹' π_preA),
 
-  have h𝓕_translate_fundom : is_fundamental_domain Γ (has_mul.mul x1⁻¹ ⁻¹' 𝓕) μ,
+  have : μ (has_mul.mul g ⁻¹' π_preA ∩ 𝓕) = μ (π_preA ∩ has_mul.mul (g⁻¹) ⁻¹' 𝓕),
+  {
+    sorry,
+  },
+  rw this,
+
+  have h𝓕_translate_fundom : is_fundamental_domain Γ (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ,
   { -- this goal is just invariance of measure under group action, I think
     sorry },
 
   rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA _,
-  rw two_quotients,
-  { -- this goal is just invariance of measure under group action, I think
-    sorry },
-  -- another trivial lemma, I think we have proved this before somewhere
-  sorry
+
+  intros γ,
+  sorry,
+
+  repeat {sorry},
+
+end }
+
+lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ] :
+  is_mul_left_invariant (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) :=
+begin
+  intros x A hA,
+  obtain ⟨x₁, _⟩ := @quotient.exists_rep _ (quotient_group.left_rel Γ) x,
+  haveI := h𝓕.smul_invariant_measure_map,
+  haveI : has_measurable_smul G (quotient_group.quotient Γ) := sorry,
+  convert measure_theory.measure_preimage_smul x₁ ((measure.map quotient_group.mk) (μ.restrict 𝓕)) A,
+  sorry, -- ALEX hoemwork
 end
 
 variables [t2_space X] [topological_space.second_countable_topology X]

@@ -2120,7 +2120,7 @@ iff.intro
 lemma range_add (a b : ℕ) : range (a + b) = range a ∪ (range b).map (add_left_embedding a) :=
 begin
   rw [←val_inj, union_val],
-  exact multiset.range_add a b,
+  exact multiset.range_add_eq_union a b,
 end
 
 @[simp] lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=

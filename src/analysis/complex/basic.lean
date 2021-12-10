@@ -216,7 +216,9 @@ end
 lemma has_sum_iff {α} (f : α → ℂ) (c : ℂ) :
   has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=
 begin
-  refine ⟨λ h, ⟨h.mapL re_clm, h.mapL im_clm⟩, _⟩,
+  -- For some reason, `continuous_linear_map.has_sum` is orders of magnitude faster than
+  -- `has_sum.mapL` here:
+  refine ⟨λ h, ⟨re_clm.has_sum h, im_clm.has_sum h⟩, _⟩,
   rintro ⟨h₁, h₂⟩,
   convert (h₁.prod_mk h₂).mapL equiv_real_prodₗ.symm.to_continuous_linear_map,
   { ext x; refl },

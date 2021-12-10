@@ -171,7 +171,7 @@ protected def out : associates α → α :=
 quotient.lift (normalize : α → α) $ λ a b ⟨u, hu⟩, hu ▸
 normalize_eq_normalize ⟨_, rfl⟩ (units.mul_right_dvd.2 $ dvd_refl a)
 
-lemma out_mk (a : α) : (associates.mk a).out = normalize a := rfl
+@[simp] lemma out_mk (a : α) : (associates.mk a).out = normalize a := rfl
 
 @[simp] lemma out_one : (1 : associates α).out = 1 :=
 normalize_one
@@ -193,6 +193,12 @@ normalize_zero
 
 @[simp] lemma normalize_out (a : associates α) : normalize a.out = a.out :=
 quotient.induction_on a normalize_idem
+
+@[simp] lemma mk_out (a : associates α) : associates.mk (a.out) = a :=
+quotient.induction_on a mk_normalize
+
+lemma out_injective : function.injective (associates.out : _ → α) :=
+function.left_inverse.injective mk_out
 
 end associates
 
@@ -706,6 +712,15 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
+
+/-- If a monoid's only unit is `1`, then it is isomorphic to its associates. -/
+@[simps]
+def associates_equiv_of_unique_units : associates α ≃* α :=
+{ to_fun := associates.out,
+  inv_fun := associates.mk,
+  left_inv := associates.mk_out,
+  right_inv := λ t, (associates.out_mk _).trans $ normalize_eq _,
+  map_mul' := associates.out_mul }
 
 end unique_unit
 

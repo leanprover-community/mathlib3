@@ -216,6 +216,12 @@ end
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
 image2_subset h₁ h₂
 
+@[to_additive]
+lemma mul_subset_mul_left [has_mul α] (h : t₁ ⊆ t₂) : s * t₁ ⊆ s * t₂ := image2_subset_left h
+
+@[to_additive]
+lemma mul_subset_mul_right [has_mul α] (h : s₁ ⊆ s₂) : s₁ * t ⊆ s₂ * t := image2_subset_right h
+
 lemma pow_subset_pow [monoid α] (hst : s ⊆ t) (n : ℕ) :
   s ^ n ⊆ t ^ n :=
 begin
@@ -557,6 +563,10 @@ instance is_scalar_tower'' {γ : Type*}
   [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
+
+instance is_central_scalar [has_scalar α β] [has_scalar αᵐᵒᵖ β] [is_central_scalar α β] :
+  is_central_scalar α (set β) :=
+⟨λ a S, congr_arg (λ f, f '' S) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
 
 section monoid
 

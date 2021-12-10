@@ -10,7 +10,7 @@ import algebra.group_power.lemmas
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`
 
-This file defines extra structures on `comm_cancel_monoid_with_zero`s, including `is_domain`s.
+This file defines extra structures on `cancel_comm_monoid_with_zero`s, including `is_domain`s.
 
 ## Main Definitions
 
@@ -69,7 +69,7 @@ variables {α : Type*}
 /-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated
 elements. -/
 @[protect_proj] class normalization_monoid (α : Type*)
-  [comm_cancel_monoid_with_zero α] :=
+  [cancel_comm_monoid_with_zero α] :=
 (norm_unit : α → units α)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
@@ -80,7 +80,7 @@ export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_co
 attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
 section normalization_monoid
-variables [comm_cancel_monoid_with_zero α] [normalization_monoid α]
+variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
 
 @[simp] theorem norm_unit_one : norm_unit (1:α) = 1 :=
 norm_unit_coe_units 1
@@ -162,7 +162,7 @@ units.mul_right_dvd
 end normalization_monoid
 
 namespace associates
-variables [comm_cancel_monoid_with_zero α] [normalization_monoid α]
+variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
 
 local attribute [instance] associated.setoid
 
@@ -202,11 +202,11 @@ function.left_inverse.injective mk_out
 
 end associates
 
-/-- GCD monoid: a `comm_cancel_monoid_with_zero` with `gcd` (greatest common divisor) and
+/-- GCD monoid: a `cancel_comm_monoid_with_zero` with `gcd` (greatest common divisor) and
 `lcm` (least common multiple) operations, determined up to a unit. The type class focuses on `gcd`
 and we derive the corresponding `lcm` facts from `gcd`.
 -/
-@[protect_proj] class gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] :=
+@[protect_proj] class gcd_monoid (α : Type*) [cancel_comm_monoid_with_zero α] :=
 (gcd : α → α → α)
 (lcm : α → α → α)
 (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
@@ -216,13 +216,13 @@ and we derive the corresponding `lcm` facts from `gcd`.
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
 
-/-- Normalized GCD monoid: a `comm_cancel_monoid_with_zero` with normalization and `gcd`
+/-- Normalized GCD monoid: a `cancel_comm_monoid_with_zero` with normalization and `gcd`
 (greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
 `lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
 supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the
 corresponding `lcm` facts from `gcd`.
 -/
-class normalized_gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α]
+class normalized_gcd_monoid (α : Type*) [cancel_comm_monoid_with_zero α]
   extends normalization_monoid α, gcd_monoid α :=
 (normalize_gcd : ∀a b, normalize (gcd a b) = gcd a b)
 (normalize_lcm : ∀a b, normalize (lcm a b) = lcm a b)
@@ -233,7 +233,7 @@ export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm
 attribute [simp] lcm_zero_left lcm_zero_right
 
 section gcd_monoid
-variables [comm_cancel_monoid_with_zero α]
+variables [cancel_comm_monoid_with_zero α]
 
 @[simp] theorem normalize_gcd [normalized_gcd_monoid α] : ∀a b:α, normalize (gcd a b) = gcd a b :=
 normalized_gcd_monoid.normalize_gcd
@@ -700,7 +700,7 @@ end gcd_monoid
 
 section unique_unit
 
-variables [comm_cancel_monoid_with_zero α] [unique (units α)]
+variables [cancel_comm_monoid_with_zero α] [unique (units α)]
 
 @[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=
@@ -754,7 +754,7 @@ noncomputable theory
 
 open associates
 
-variables [comm_cancel_monoid_with_zero α]
+variables [cancel_comm_monoid_with_zero α]
 
 private lemma map_mk_unit_aux [decidable_eq α] {f : associates α →* α}
   (hinv : function.right_inverse f associates.mk) (a : α) :

@@ -256,32 +256,10 @@ section pointwise_limits
 /-!### Bundling pointwise limits of various maps -/
 
 variables {M₁ M₂ α R S : Type*}
-variables [topological_space M₂] [t2_space M₂]
-variables {l : filter α} {f : M₁ → M₂}
-
-
-/-- Construct a bundled additive monoid homomorphism from a pointwise limit of additive
-monoid homomorphisms -/
-definition add_monoid_hom_of_tendsto [add_monoid M₁] [add_monoid M₂]
-[has_continuous_add M₂] {g : α → M₁ →+ M₂} [l.ne_bot]
-(h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →+ M₂ :=
-{ to_fun := f,
-  map_zero' := by
-    { refine tendsto_nhds_unique (tendsto_pi_nhds.mp h 0) _,
-      simpa only [add_monoid_hom.map_zero] using tendsto_const_nhds },
-  map_add' := λ x y, by
-    { rw tendsto_pi_nhds at h,
-      refine tendsto_nhds_unique (h (x + y)) _,
-      simpa only [add_monoid_hom.map_add] using (h x).add (h y) } }
-
-@[simp] lemma coe_add_monoid_hom_of_tendsto [add_monoid M₁] [add_monoid M₂]
-[has_continuous_add M₂] {g : α → M₁ →+ M₂} [l.ne_bot]
-(h : tendsto (λ a x, g a x) l (𝓝 f)) : ⇑(add_monoid_hom_of_tendsto h) = f := rfl
-
-variables [semiring R] [semiring S] [add_comm_monoid M₁] [add_comm_monoid M₂]
-variables [module R M₁] [module S M₂]
+variables [topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
+variables [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
 variables [topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂]
-variables {σ : R →+* S}
+variables {σ : R →+* S} {l : filter α} {f : M₁ → M₂}
 
 /-- Construct a bundled linear map from a pointwise limit of linear maps -/
 definition linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]

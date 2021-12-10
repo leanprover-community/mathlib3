@@ -386,8 +386,8 @@ notation `𝒟ᵒ` := fundamental_domain_open
 lemma int.eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
 int.is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
 
-lemma int.eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) : (z = 1 ∧ w = 1) ∨
-(z = -1 ∧ w = -1) :=
+lemma int.eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) :
+  (z = 1 ∧ w = 1) ∨ (z = -1 ∧ w = -1) :=
 begin
   cases int.eq_one_or_neg_one_of_mul_eq_one h,
   { left,

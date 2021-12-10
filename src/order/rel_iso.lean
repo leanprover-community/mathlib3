@@ -725,6 +725,15 @@ noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] 
   (f : α → β) (h_mono : strict_mono f) (h_surj : surjective f) : α ≃o β :=
 (h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
 
+/-- A strictly monotone function with a right inverse is an order isomorphism. -/
+def strict_mono.order_iso_of_right_inverse {α β} [linear_order α] [preorder β]
+  (f : α → β) (h_mono : strict_mono f) (g : β → α) (hg : right_inverse g f) : α ≃o β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ x, h_mono.injective $ hg _,
+  right_inv := hg,
+  .. order_embedding.of_strict_mono f h_mono }
+
 /-- `subrel r p` is the inherited relation on a subset. -/
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
 (coe : p → α) ⁻¹'o r

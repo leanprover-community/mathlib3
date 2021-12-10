@@ -684,13 +684,11 @@ In many cases the actual implementation is not important, so we don't mark the p
 @[simps { attrs := [] }]
 def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E] :
   E ≃ₜ ball (0 : E) 1 :=
-{ to_fun := λ x,
-    begin
-      refine ⟨(1 + ∥x∥)⁻¹ • x, mem_ball_zero_iff.2 _⟩,
-      have : ∥x∥ < |1 + ∥x∥| := (lt_one_add _).trans_le (le_abs_self _),
-      rwa [norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
-        div_lt_one ((norm_nonneg x).trans_lt this)],
-    end,
+{ to_fun := λ x, ⟨(1 + ∥x∥)⁻¹ • x, begin
+    have : ∥x∥ < |1 + ∥x∥| := (lt_one_add _).trans_le (le_abs_self _),
+    rwa [← mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
+      div_lt_one ((norm_nonneg x).trans_lt this)],
+  end⟩,
   inv_fun := λ x, (1 - ∥(x : E)∥)⁻¹ • (x : E),
   left_inv := λ x,
     begin

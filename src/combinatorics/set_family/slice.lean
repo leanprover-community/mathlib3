@@ -33,7 +33,7 @@ namespace finset
 section sized
 variables {A B : finset (finset α)} {r : ℕ}
 
-/-! ### Sized -/
+/-! ### Families of `r`-sets -/
 
 /-- `sized r A` means that every finset in `A` has size `r`. -/
 def sized (r : ℕ) (A : finset (finset α)) : Prop := ∀ ⦃x⦄, x ∈ A → card x = r
@@ -61,13 +61,7 @@ end
 
 end sized
 
-/-!
-### Slices
-
-The `r`-th slice of a set family the subset of its elements which have
-cardinality `r`.
-A few basic facts about slices.
--/
+/-! ### Slices -/
 section slice
 variables {𝒜 : finset (finset α)} {A A₁ A₂ : finset α} {r r₁ r₂ : ℕ}
 
@@ -85,8 +79,11 @@ lemma slice_subset : 𝒜 # r ⊆ 𝒜 := filter_subset _ _
 /-- Everything in the `r`-th slice of `𝒜` has size `r`. -/
 lemma sized_slice : (𝒜 # r).sized r := λ _, and.right ∘ mem_slice.mp
 
+lemma eq_of_mem_slice (h₁ : A ∈ 𝒜 # r₁) (h₂ : A ∈ 𝒜 # r₂) : r₁ = r₂ :=
+(sized_slice h₁).symm.trans $ sized_slice h₂
+
 /-- Elements in distinct slices must be distinct. -/
-lemma ne_of_diff_slice (h₁ : A₁ ∈ 𝒜 # r₁) (h₂ : A₂ ∈ 𝒜 # r₂) : r₁ ≠ r₂ → A₁ ≠ A₂ :=
+lemma ne_of_mem_slice (h₁ : A₁ ∈ 𝒜 # r₁) (h₂ : A₂ ∈ 𝒜 # r₂) : r₁ ≠ r₂ → A₁ ≠ A₂ :=
 mt $ λ h, (sized_slice h₁).symm.trans ((congr_arg card h).trans (sized_slice h₂))
 
 variables [decidable_eq α]

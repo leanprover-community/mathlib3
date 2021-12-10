@@ -1330,7 +1330,7 @@ submodule.map_mul _ _ (algebra.of_id R S)
 lemma coe_submodule_fg
   (hS : function.injective (algebra_map R S)) (I : ideal R) :
   submodule.fg (coe_submodule S I) ↔ submodule.fg I :=
-⟨submodule.fg_of_fg_map _ (linear_map.ker_eq_bot.mpr hS), submodule.fg_map⟩
+⟨submodule.fg_of_fg_map _ (linear_map.ker_eq_bot.mpr hS), submodule.fg.map _⟩
 
 @[simp]
 lemma coe_submodule_span (s : set R) :

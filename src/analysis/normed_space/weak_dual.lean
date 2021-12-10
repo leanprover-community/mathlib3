@@ -212,7 +212,7 @@ def _root_.weak_dual.to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] (x' : weak_dual 𝕜 E) :=
 ((λ z, (x' z)) : (Π (_ : E), 𝕜))
 
-/-- In the product of copies of a normed field, sets of the form `{g | ∥ f(i) - g(i) ∥ < ε}` for
+/-- In a product of copies of a normed field, sets of the form `{g | ∥ f(i) - g(i) ∥ < ε}` for
 `ε > 0` are neighborhoods of `f`. -/
 lemma _root_.mem_nhds_Pi_normed_field {ι : Type*}
   (f : (Π (_ : ι), 𝕜)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :

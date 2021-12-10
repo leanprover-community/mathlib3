@@ -686,7 +686,7 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [semi_normed_space �
   E ≃ₜ ball (0 : E) 1 :=
 { to_fun := λ x, ⟨(1 + ∥x∥)⁻¹ • x, begin
     have : ∥x∥ < |1 + ∥x∥| := (lt_one_add _).trans_le (le_abs_self _),
-    rwa [← mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
+    rwa [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
       div_lt_one ((norm_nonneg x).trans_lt this)],
   end⟩,
   inv_fun := λ x, (1 - ∥(x : E)∥)⁻¹ • (x : E),

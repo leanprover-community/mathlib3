@@ -23,11 +23,11 @@ They are of interest in additive combinatorics.
 ## Notation
 
 * `A →*[n] β`: Multiplicative `n`-Freiman homomorphism
-* `α →+[n] β`: Additive`n`-Freiman homomorphism
+* `A →+[n] β`: Additive `n`-Freiman homomorphism
 
 ## References
 
-[Yufei Zhao, *Graph Theory and Additivite Combinatorics][https://yufeizhao.com/gtac/]
+[Yufei Zhao, *18.225: Graph Theory and Additive Combinatorics][https://yufeizhao.com/gtac/]
 
 ## TODO
 
@@ -81,7 +81,7 @@ structure add_freiman_hom (A : set α) (β : Type*) [add_comm_monoid α] [add_co
   (hs : s.card = n) (ht : t.card = n) (h : s.sum = t.sum) :
   (s.map to_fun).sum = (t.map to_fun).sum)
 
-/-- A `n`-Freiman homomorphism is a map which preserves products of `n` elements. -/
+/-- A `n`-Freiman homomorphism on a set `A` is a map which preserves products of `n` elements. -/
 @[to_additive add_freiman_hom]
 structure freiman_hom (A : set α) (β : Type*) [comm_monoid α] [comm_monoid β] (n : ℕ) :=
 (to_fun : α → β)
@@ -325,8 +325,12 @@ instance monoid_hom.fun_like : fun_like (α →* β) α (λ _, β) :=
   coe_injective' := λ f g h, by { cases f, cases g, cases h, refl } }
 
 --TODO: change to `monoid_hom_class F A β → freiman_hom_class F A β n` once #9888 is merged
+/-- A monoid homomorphism is naturally a `freiman_hom` on its entire domain.
+
+We can't leave the domain `A : set α` of the `freiman_hom` a free variable, since it wouldn't be inferrable.
+-/
 @[to_additive]
-instance monoid_hom.freiman_hom_class : freiman_hom_class (α →* β) A β n :=
+instance monoid_hom.freiman_hom_class : freiman_hom_class (α →* β) set.univ β n :=
 { map_prod_eq_map_prod' := λ f s t _ _ _ _ h, by rw [←f.map_multiset_prod, h, f.map_multiset_prod] }
 
 /-- A `monoid_hom` is naturally a `freiman_hom`. -/
@@ -334,7 +338,8 @@ instance monoid_hom.freiman_hom_class : freiman_hom_class (α →* β) A β n :=
 `add_freiman_hom`"]
 def monoid_hom.to_freiman_hom (A : set α) (n : ℕ) (f : α →* β) : A →*[n] β :=
 { to_fun := f,
-  map_prod_eq_map_prod' := λ s t, map_prod_eq_map_prod f }
+  map_prod_eq_map_prod' := λ s t hsA htA, map_prod_eq_map_prod f
+    (λ _ _, set.mem_univ _) (λ _ _, set.mem_univ _) }
 
 @[simp, to_additive]
 lemma monoid_hom.to_freiman_hom_coe (f : α →* β) : (f.to_freiman_hom A n : α → β) = f := rfl

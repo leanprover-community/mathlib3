@@ -253,7 +253,6 @@ notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (@star_ring_aut
 namespace continuous_linear_map
 
 section pointwise_limits
-/-!### Bundling pointwise limits of various maps -/
 
 variables
 {M₁ M₂ α R S : Type*}

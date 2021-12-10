@@ -32,8 +32,6 @@ The main definitions concern the canonical mapping `dual 𝕜 E → weak_dual �
 * `normed_space.dual.continuous_linear_map_to_weak_dual`: A continuous linear mapping from
   `dual 𝕜 E` to `weak_dual 𝕜 E` (same as `normed_space.dual.to_weak_dual` but different bundled
   data).
-* `weak_dual.polar 𝕜 s`: The polar set of a subset `s` of `E`, viewed as a subset
-  of the weak dual `weak_dual 𝕜 E` (see `polar 𝕜 s` for the version in `dual 𝕜 E`).
 
 ## Main results
 
@@ -71,6 +69,11 @@ different topology instances.
 For the proof of Banach-Alaoglu theorem, the weak dual of `E` is embedded in a product of copies
 of the ground field `𝕜` via `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜`. The fact that this
 is an embedding is  `weak_dual.to_Pi_embedding`.
+
+The polar set `polar 𝕜 s` of a subset `s` of `E` is originally defined as a subset of the dual
+`dual 𝕜 E`. We care about properties of these w.r.t. weak-* topology, and for this purpose give
+the definition `weak_dual.polar 𝕜 s` for the "same" subset viewed as a subset of `weak_dual 𝕜 E`
+(a type synonym of the dual but with a different topology instance).
 
 ## References
 

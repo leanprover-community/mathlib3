@@ -194,6 +194,18 @@ normalize_zero
 @[simp] lemma normalize_out (a : associates α) : normalize a.out = a.out :=
 quotient.induction_on a normalize_idem
 
+lemma out_injective : function.injective (associates.out : _ → α) :=
+begin
+  intros x y,
+  apply quotient.induction_on₂ x y,
+  simp_rw [associates.out, quotient.lift_mk],
+  intros a b hab,
+  rw [←associates.mk, ←associates.mk, ←mk_normalize, ←mk_normalize b, hab]
+end
+
+lemma mk_out (a : associates α) : associates.mk (a.out) = a :=
+associates.out_injective (by rw [out_mk, normalize_out])
+
 end associates
 
 /-- GCD monoid: a `comm_cancel_monoid_with_zero` with `gcd` (greatest common divisor) and
@@ -706,6 +718,14 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
+
+/-- If a monoid's only unit is `1`, then it is isomorphic to its associates. -/
+def associates_equiv_of_unique_units : associates α ≃* α :=
+{ to_fun := associates.out,
+  inv_fun := associates.mk,
+  left_inv := λ t, by rw [associates.mk_out],
+  right_inv := λ t, by rw [associates.out_mk, normalize_eq],
+  map_mul' := λ x y, by rw associates.out_mul }
 
 end unique_unit
 

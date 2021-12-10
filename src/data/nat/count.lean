@@ -36,6 +36,7 @@ Future work should address how lemmas that use these should be written.
 
 -/
 
+-- TODO open a new PR for these three lemmas
 lemma list.range_add (a : ℕ) :
   ∀ b, list.range (a + b) = list.range a ++ (list.range b).map (λ x, a + x)
 | 0 := by rw [add_zero, list.range_zero, list.map_nil, list.append_nil]
@@ -60,6 +61,7 @@ begin
   exact multiset.range_add a b,
 end
 
+-- TODO this is in #10702, remove this when that is merged
 lemma galois_connection.lt_iff_lt {α β : Type*} [linear_order α] [linear_order β] {l : α → β}
   {u : β → α} (gc : galois_connection l u) {a : α} {b : β} :
   b < l a ↔ u b < a :=
@@ -162,6 +164,8 @@ lemma lt_of_count_lt_count {a b : ℕ} (h : count p a < count p b) : a < b :=
 (count_monotone p).reflect_lt h
 
 end count
+
+-- TODO spin off everything south of this line to new PR
 
 /-- Find the `n`-th natural number satisfying `p` (indexed from `0`, so `nth p 0` is the first
 natural number satisfying `p`), or `0` if there is no such number. See also

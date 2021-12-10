@@ -36,37 +36,6 @@ Future work should address how lemmas that use these should be written.
 
 -/
 
--- TODO open a new PR for these three lemmas
-lemma list.range_add (a : ℕ) :
-  ∀ b, list.range (a + b) = list.range a ++ (list.range b).map (λ x, a + x)
-| 0 := by rw [add_zero, list.range_zero, list.map_nil, list.append_nil]
-| (b + 1) := by rw [nat.add_succ, list.range_succ, list.range_add b, list.range_succ,
-  list.map_append, list.map_singleton, list.append_assoc]
-
-lemma multiset.range_add (a b : ℕ) :
-  multiset.range (a + b) = multiset.range a ∪ (multiset.range b).map (λ x, a + x) :=
-begin
-  rw [multiset.range, list.range_add, ←multiset.coe_add, ←multiset.coe_map],
-  refine multiset.add_eq_union_iff_disjoint.2 (λ x hxa hxb, _),
-  rw [multiset.mem_coe, list.mem_range] at hxa,
-  obtain ⟨c, _, rfl⟩ := multiset.mem_map.1 hxb,
-  exact (self_le_add_right _ _).not_lt hxa,
-end
-
-lemma finset.range_add (a b : ℕ) :
-  finset.range (a + b) = finset.range a ∪ (finset.range b).image (λ x, a + x) :=
-begin
-  rw [←finset.val_inj, finset.range, finset.union_val,
-    finset.image_val_of_inj_on ((add_right_injective a).inj_on _)],
-  exact multiset.range_add a b,
-end
-
--- TODO this is in #10702, remove this when that is merged
-lemma galois_connection.lt_iff_lt {α β : Type*} [linear_order α] [linear_order β] {l : α → β}
-  {u : β → α} (gc : galois_connection l u) {a : α} {b : β} :
-  b < l a ↔ u b < a :=
-lt_iff_lt_of_le_iff_le (gc a b)
-
 open finset
 
 namespace nat

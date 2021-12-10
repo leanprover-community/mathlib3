@@ -262,8 +262,8 @@ variables
 {σ : R →+* S} {l : filter α} {f : M₁ → M₂}
 
 /-- Construct a bundled linear map from a pointwise limit of linear maps -/
-definition linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
-(h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →ₛₗ[σ] M₂ :=
+def linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
+  (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →ₛₗ[σ] M₂ :=
 { to_fun := f,
   map_add' := λ x y, by
     { rw tendsto_pi_nhds at h,

@@ -168,8 +168,8 @@ variables {M₁ M₂ : Type*} [topological_space M₂] [t2_space M₂] {l : filt
 monoid homomorphisms -/
 @[to_additive]
 definition monoid_hom_of_tendsto [monoid M₁] [monoid M₂]
-[has_continuous_mul M₂] {g : α → M₁ →* M₂} [l.ne_bot]
-(h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=
+  [has_continuous_mul M₂] {g : α → M₁ →* M₂} [l.ne_bot]
+  (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=
 { to_fun := f,
   map_one' := by
     { refine tendsto_nhds_unique (tendsto_pi_nhds.mp h 1) _,

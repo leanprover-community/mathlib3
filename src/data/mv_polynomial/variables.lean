@@ -417,22 +417,22 @@ section degree_of
 def degree_of (n : σ) (p : mv_polynomial σ R) : ℕ := p.degrees.count n
 
 lemma degree_of_eq_sup (n : σ) (f : mv_polynomial σ R) :
-  degree_of n f = f.support.sup (λ m , m n) :=
+  degree_of n f = f.support.sup (λ m, m n) :=
 begin
-  rw [ degree_of, degrees, multiset.count_finset_sup ],
+  rw [degree_of, degrees, multiset.count_finset_sup],
   congr,
   ext,
   simp,
 end
 
-lemma degree_of_lt_iff {n : σ} {f : mv_polynomial σ R}
-  {d : ℕ} (h : 0 < d):  degree_of n f < d ↔ ∀ m : σ →₀ ℕ, m ∈ f.support → m n < d :=
+lemma degree_of_lt_iff {n : σ} {f : mv_polynomial σ R} {d : ℕ} (h : 0 < d) :
+  degree_of n f < d ↔ ∀ m : σ →₀ ℕ, m ∈ f.support → m n < d :=
 by rwa [degree_of_eq_sup n f, finset.sup_lt_iff]
 
 @[simp] lemma degree_of_C (a : R) (x : σ):
   degree_of x (C a : mv_polynomial σ R) = 0 := by simp [degree_of, degrees_C]
 
-lemma degree_of_X (i j : σ ) [nontrivial R] :
+lemma degree_of_X (i j : σ) [nontrivial R] :
   degree_of i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
 begin
   by_cases c : i = j,

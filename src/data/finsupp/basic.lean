@@ -2300,6 +2300,10 @@ instance [monoid R] [monoid S] [add_monoid M] [distrib_mul_action R M] [distrib_
   smul_comm_class R S (α →₀ M) :=
 { smul_comm := λ r s a, ext $ λ _, smul_comm _ _ _ }
 
+instance [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M]
+  [is_central_scalar R M] : is_central_scalar R (α →₀ M) :=
+{ op_smul_eq_smul := λ r a, ext $ λ _, op_smul_eq_smul _ _ }
+
 instance [semiring R] [add_comm_monoid M] [module R M] : module R (α →₀ M) :=
 { smul      := (•),
   zero_smul := λ x, ext $ λ _, zero_smul _ _,

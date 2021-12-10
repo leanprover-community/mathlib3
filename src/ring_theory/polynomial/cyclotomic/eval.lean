@@ -64,9 +64,9 @@ end
 lemma cyclotomic_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] (x : R) :
   0 < eval x (cyclotomic n R) :=
 begin
-  induction n using nat.strong_induction_on with k ih,
-  have hn'  : 0 < k := pos_of_gt hn,
-  have hn'' : 1 < k := one_lt_two.trans hn,
+  induction n using nat.strong_induction_on with n ih,
+  have hn'  : 0 < n := pos_of_gt hn,
+  have hn'' : 1 < n := one_lt_two.trans hn,
   dsimp at ih,
   have := prod_cyclotomic_eq_geom_sum hn' R,
   apply_fun eval x at this,
@@ -76,7 +76,7 @@ begin
   { simp only [lt_self_iff_false, mem_sdiff, not_false_iff, mem_proper_divisors, and_false,
       false_and]},
   { simpa only [mem_singleton] using hn''.ne' },
-  rcases lt_trichotomy 0 (geom_sum x k) with h | h | h,
+  rcases lt_trichotomy 0 (geom_sum x n) with h | h | h,
   { apply pos_of_mul_pos_right,
     { rwa this },
     rw eval_prod,
@@ -97,7 +97,7 @@ begin
   { apply pos_of_mul_neg_left,
     { rwa this },
     rw [geom_sum_neg_iff hn''] at h,
-    have h2 : {2} ⊆ k.proper_divisors \ {1},
+    have h2 : {2} ⊆ n.proper_divisors \ {1},
     { rw [singleton_subset_iff, mem_sdiff, mem_proper_divisors, not_mem_singleton],
       exact ⟨⟨h.1, hn⟩, (nat.one_lt_bit0 one_ne_zero).ne'⟩ },
     rw [eval_prod, ←prod_sdiff h2, prod_singleton]; try { apply_instance },

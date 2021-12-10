@@ -376,7 +376,7 @@ lemma two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
 | 0 h _ _ := (h rfl).elim
 | 1 _ h _ := (h rfl).elim
 | 2 _ _ h := (h rfl).elim
-| (n+3) _ _ _ := (cmp_eq_lt_iff 2 (n + 3)).mp rfl -- this proof is magic to me but it works!
+| (n+3) _ _ _ := dec_trivial
 
 /-! ### `add` -/
 

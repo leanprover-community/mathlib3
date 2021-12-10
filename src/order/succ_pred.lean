@@ -399,7 +399,7 @@ pred_lt_iff.trans le_iff_lt_or_eq
 lemma le_pred_iff_lt_or_eq : pred a ≤ b ↔ (a ≤ b ∨ pred a = b) :=
 by rw [←pred_lt_iff, ←pred_lt_iff, pred_lt_iff_lt_or_eq]
 
-lemma _root_.covers_iff_eq_pred : a ⋖ b ↔ pred b = a :=
+lemma _root_.covers_iff_pred_eq : a ⋖ b ↔ pred b = a :=
 ⟨covers.pred_eq, by { rintro rfl, exact pred_covers _ }⟩
 
 end no_bot_order

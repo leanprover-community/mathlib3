@@ -262,7 +262,7 @@ variables
 {σ : R →+* S} {l : filter α} {f : M₁ → M₂}
 
 /-- Construct a bundled linear map from a pointwise limit of linear maps -/
-def linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
+@[simps] def linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
   (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →ₛₗ[σ] M₂ :=
 { to_fun := f,
   map_add' := λ x y, by
@@ -273,9 +273,6 @@ def linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
     { rw tendsto_pi_nhds at h,
       refine tendsto_nhds_unique (h (r • x)) _,
       simpa only [linear_map.map_smulₛₗ] using tendsto.smul tendsto_const_nhds (h x) } }
-
-@[simp] lemma coe_linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
-(h : tendsto (λ a x, g a x) l (𝓝 f)) : ⇑(linear_map_of_tendsto h) = f := rfl
 
 end pointwise_limits
 

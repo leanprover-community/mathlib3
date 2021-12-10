@@ -167,7 +167,7 @@ variables {M₁ M₂ : Type*} [topological_space M₂] [t2_space M₂] {l : filt
 /-- Construct a bundled monoid homomorphism from a pointwise limit of
 monoid homomorphisms -/
 @[to_additive "Construct a bundled additive monoid homomorphism from
-a pointwise limit of monoid homomorphisms"]
+a pointwise limit of monoid homomorphisms", simps]
 definition monoid_hom_of_tendsto [monoid M₁] [monoid M₂]
   [has_continuous_mul M₂] {g : α → M₁ →* M₂} [l.ne_bot]
   (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=
@@ -179,11 +179,6 @@ definition monoid_hom_of_tendsto [monoid M₁] [monoid M₂]
     { rw tendsto_pi_nhds at h,
       refine tendsto_nhds_unique (h (x * y)) _,
       simpa only [monoid_hom.map_mul] using (h x).mul (h y) } }
-
-@[to_additive, simp]
-lemma coe_monoid_hom_of_tendsto [monoid M₁] [monoid M₂]
-[has_continuous_mul M₂] {g : α → M₁ →* M₂} [l.ne_bot]
-(h : tendsto (λ a x, g a x) l (𝓝 f)) : ⇑(monoid_hom_of_tendsto h) = f := rfl
 
 end pointwise_limits
 

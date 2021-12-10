@@ -244,11 +244,11 @@ def common_denom {ι : Type*} (s : finset ι) (f : ι → S) : M :=
 /-- The numerator of a fraction after clearing the denominators
 of a `finset`-indexed family of fractions. -/
 noncomputable
-def integer_multiple {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → S) (i : s) : R :=
+def integer_multiple {ι : Type*} (s : finset ι) (f : ι → S) (i : s) : R :=
 ((exist_integer_multiples M s f).some_spec i i.prop).some
 
 @[simp]
-lemma map_integer_multiple {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → S) (i : s) :
+lemma map_integer_multiple {ι : Type*} (s : finset ι) (f : ι → S) (i : s) :
   algebra_map R S (integer_multiple M s f i) = common_denom M s f • f i :=
 ((exist_integer_multiples M s f).some_spec _ i.prop).some_spec
 
@@ -259,12 +259,12 @@ common_denom M s id
 
 /-- The finset of numerators after clearing the denominators of a finite set of fractions. -/
 noncomputable
-def finset_integer_multiple [decidable_eq R] [decidable_eq S] (s : finset S) : finset R :=
+def finset_integer_multiple [decidable_eq R] (s : finset S) : finset R :=
 s.attach.image (λ t, integer_multiple M s id t)
 
 open_locale pointwise
 
-lemma finset_integer_multiple_image [decidable_eq R] [decidable_eq S] (s : finset S) :
+lemma finset_integer_multiple_image [decidable_eq R] (s : finset S) :
   algebra_map R S '' (finset_integer_multiple M s) =
     common_denom_of_finset M s • s :=
 begin

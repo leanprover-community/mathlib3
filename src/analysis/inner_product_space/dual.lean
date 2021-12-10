@@ -48,20 +48,8 @@ If `E` is complete, this operation is surjective, hence a conjugate-linear isome
 see `to_dual`.
 -/
 def to_dual_map : E →ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
-{ norm_map' := λ x, begin
-    refine le_antisymm _ _,
-    { exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
-    { cases eq_or_lt_of_le (norm_nonneg x) with h h,
-      { have : x = 0 := norm_eq_zero.mp (eq.symm h),
-        simp [this] },
-      { refine (mul_le_mul_right h).mp _,
-        calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : by ring
-        ... = re ⟪x, x⟫ : norm_sq_eq_inner _
-        ... ≤ abs ⟪x, x⟫ : re_le_abs _
-        ... = ∥linear_map.mk_continuous _ _ _ x∥ : by simp [norm_eq_abs]
-        ... ≤ ∥linear_map.mk_continuous _ _ _∥ * ∥x∥ : le_op_norm _ x } }
-  end,
-  ..innerSL }
+{ norm_map' := λ _, innerSL_apply_norm,
+ ..innerSL }
 
 variables {E}
 

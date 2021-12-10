@@ -255,11 +255,12 @@ namespace continuous_linear_map
 section pointwise_limits
 /-!### Bundling pointwise limits of various maps -/
 
-variables {M₁ M₂ α R S : Type*}
-variables [topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
-variables [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
-variables [topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂]
-variables {σ : R →+* S} {l : filter α} {f : M₁ → M₂}
+variables
+{M₁ M₂ α R S : Type*}
+[topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
+[add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
+[topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂]
+{σ : R →+* S} {l : filter α} {f : M₁ → M₂}
 
 /-- Construct a bundled linear map from a pointwise limit of linear maps -/
 definition linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]

@@ -162,9 +162,7 @@ end has_continuous_mul
 
 section pointwise_limits
 
-variables {M₁ M₂ : Type*}
-variables [topological_space M₂] [t2_space M₂]
-variables {l : filter α} {f : M₁ → M₂}
+variables {M₁ M₂ : Type*} [topological_space M₂] [t2_space M₂] {l : filter α} {f : M₁ → M₂}
 
 /-- Construct a bundled additive monoid homomorphism from a pointwise limit of additive
 monoid homomorphisms -/

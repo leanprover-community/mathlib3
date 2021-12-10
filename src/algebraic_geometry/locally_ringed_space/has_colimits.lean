@@ -18,6 +18,7 @@ We construct the explict coproducts of `LocallyRingedSpace`.
 Construct the explict coequalizers of `LocallyRingedSpace`.
 It then follows that `LocallyRingedSpace` has all colimits, and
 `forget_to_SheafedSpace` preserves them.
+
 -/
 
 namespace algebraic_geometry

@@ -110,7 +110,7 @@ begin
   exact list.length_le_of_sublist (list.sublist.filter p (list.range_sublist.mpr h)),
 end
 
-@[simp] lemma count_succ (n : ℕ) : count p (n + 1) = count p n + (if p n then 1 else 0) :=
+lemma count_succ (n : ℕ) : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 by split_ifs; simp [count, list.range_succ, h]
 
 lemma count_add (a b : ℕ) : count p (a + b) = count p a + count (λ k, p (a + k)) b :=

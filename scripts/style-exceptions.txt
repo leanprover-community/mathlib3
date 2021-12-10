@@ -13,11 +13,7 @@ src/data/analysis/topology.lean : line 10 : ERR_MOD : Module docstring missing, 
 src/data/array/lemmas.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/bitvec/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/data/pfunctor/multivariate/M.lean : line 43 : ERR_LIN : Line has more than 100 characters
-src/data/pfunctor/multivariate/W.lean : line 42 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/multivariate/basic.lean : line 73 : ERR_LIN : Line has more than 100 characters
-src/data/qpf/multivariate/constructions/cofix.lean : line 38 : ERR_LIN : Line has more than 100 characters
-src/data/qpf/multivariate/constructions/fix.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/univariate/basic.lean : line 35 : ERR_LIN : Line has more than 100 characters
 src/data/rbmap/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/rbmap/default.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -49,7 +45,6 @@ src/tactic/elide.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/ext.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/find.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/hint.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/tactic/induction.lean : line 1328 : ERR_RNT : Reserved notation outside tactic.reserved_notation
 src/tactic/interactive.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/lint/default.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/local_cache.lean : line 8 : ERR_MOD : Module docstring missing, or too late

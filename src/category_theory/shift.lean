@@ -246,6 +246,22 @@ lemma shift_neg_shift' (i : A) :
   f⟦-i⟧'⟦i⟧' = (shift_neg_shift X i).hom ≫ f ≫ (shift_neg_shift Y i).inv :=
 by { symmetry, apply nat_iso.naturality_2 }
 
+@[simp, reassoc] lemma shift_shift'_comp_shift_shift_neg (i : A) :
+  f⟦i⟧'⟦-i⟧' ≫ (shift_shift_neg _ _).hom = (shift_shift_neg _ _).hom ≫ f :=
+by rw [← iso.eq_comp_inv, shift_shift_neg', category.assoc]
+
+@[simp, reassoc] lemma shift_shift_neg_inv_comp_shift_shift' (i : A) :
+  (shift_shift_neg _ _).inv ≫ f⟦i⟧'⟦-i⟧' = f ≫ (shift_shift_neg _ _).inv :=
+by rw [iso.inv_comp_eq, shift_shift_neg']
+
+@[simp, reassoc] lemma shift_shift'_comp_shift_neg_shift (i : A) :
+  f⟦-i⟧'⟦i⟧' ≫ (shift_neg_shift _ _).hom = (shift_neg_shift _ _).hom ≫ f :=
+by rw [← iso.eq_comp_inv, shift_neg_shift', category.assoc]
+
+@[simp, reassoc] lemma shift_neg_shift_inv_comp_shift_shift' (i : A) :
+  (shift_neg_shift _ _).inv ≫ f⟦-i⟧'⟦i⟧' = f ≫ (shift_neg_shift _ _).inv :=
+by rw [iso.inv_comp_eq, shift_neg_shift']
+
 variables (C)
 
 open category_theory.limits

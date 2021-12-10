@@ -33,10 +33,10 @@ namespace category_theory.triangulated
 open category_theory.category
 
 /-
-We work in an preadditive category `C` equipped with an additive shift.
+We work in a preadditive category `C` equipped with an additive shift.
 -/
-variables (C : Type u) [category.{v} C] [has_zero_object C] [has_shift C] [preadditive C]
-  [functor.additive (shift C).functor]
+variables (C : Type u) [category.{v} C] [has_zero_object C] [has_shift C ℤ] [preadditive C]
+  [∀ n : ℤ, functor.additive (shift_functor C n)]
 
 /--
 A preadditive category `C` with an additive shift, and a class of "distinguished triangles"
@@ -57,6 +57,7 @@ relative to that shift is called pretriangulated if the following hold:
   ```
   where the left square commutes, and whose rows are distinguished triangles,
   there exists a morphism `c : Z ⟶ Z'` such that `(a,b,c)` is a triangle morphism.
+
 See https://stacks.math.columbia.edu/tag/0145
 -/
 class pretriangulated :=
@@ -64,10 +65,11 @@ class pretriangulated :=
 (isomorphic_distinguished : Π (T₁ ∈ distinguished_triangles) (T₂ : triangle C) (T₁ ≅ T₂),
   T₂ ∈ distinguished_triangles)
 (contractible_distinguished : Π (X : C), (contractible_triangle C X) ∈ distinguished_triangles)
-(distinguished_cocone_triangle : Π (X Y : C) (f: X ⟶ Y), (∃ (Z : C) (g : Y ⟶ Z) (h : Z ⟶ X⟦1⟧),
+(distinguished_cocone_triangle : Π (X Y : C) (f : X ⟶ Y), (∃ (Z : C) (g : Y ⟶ Z)
+  (h : Z ⟶ X⟦(1:ℤ)⟧),
   triangle.mk _ f g h ∈ distinguished_triangles))
-(rotate_distinguished_triangle : Π (T : triangle C),
-  T ∈ distinguished_triangles ↔ T.rotate ∈ distinguished_triangles)
+-- (rotate_distinguished_triangle : Π (T : triangle C),
+--   T ∈ distinguished_triangles ↔ T.rotate ∈ distinguished_triangles)
 (complete_distinguished_triangle_morphism : Π (T₁ T₂ : triangle C)
   (h₁ : T₁ ∈ distinguished_triangles) (h₂ : T₂ ∈ distinguished_triangles) (a : T₁.obj₁ ⟶ T₂.obj₁)
   (b : T₁.obj₂ ⟶ T₂.obj₂) (comm₁ : T₁.mor₁ ≫ b = a ≫ T₂.mor₁),

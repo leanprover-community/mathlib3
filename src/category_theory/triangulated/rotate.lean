@@ -30,7 +30,8 @@ open category_theory.category
 /--
 We work in an preadditive category `C` equipped with an additive shift.
 -/
-variables {C : Type u} [category.{v} C] [has_shift C] [preadditive C]
+variables {C : Type u} [category.{v} C] [preadditive C]
+variables [has_shift C ℤ] [is_equivalence (shift_functor C (0:ℤ))]
 
 variables (X : C)
 
@@ -66,8 +67,8 @@ not necessarily equal to `Z`, but it is isomorphic, by the `counit_iso` of `shif
 -/
 @[simps]
 def triangle.inv_rotate (T : triangle C) : triangle C :=
-triangle.mk _ (-T.mor₃⟦-1⟧' ≫ (shift C).unit_iso.inv.app T.obj₁) T.mor₁
-  (T.mor₂ ≫ (shift C).counit_iso.inv.app T.obj₃)
+triangle.mk _ (-T.mor₃⟦(-1:ℤ)⟧' ≫ (shift_shift_neg _ _).hom) T.mor₁
+  (T.mor₂ ≫ (shift_neg_shift _ _).inv)
 
 
 namespace triangle_morphism
@@ -141,10 +142,8 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
   hom₃ := f.hom₂,
   comm₁' := begin
     dsimp [inv_rotate_mor₁],
-    simp_rw [comp_neg, neg_comp, ← assoc, ← functor.map_comp (shift C ).inverse, ← f.comm₃,
-      functor.map_comp, assoc, equivalence.inv_fun_map, assoc, iso.hom_inv_id_app],
-    dsimp,
-    simp only [comp_id],
+    rw [comp_neg, neg_comp, ← assoc, ← functor.map_comp, ← f.comm₃,
+      functor.map_comp, assoc, assoc, shift_shift'_comp_shift_shift_neg],
   end }
 
 end triangle_morphism
@@ -165,7 +164,7 @@ def inv_rotate : (triangle C) ⥤ (triangle C) :=
 { obj := triangle.inv_rotate,
   map := λ _ _ f, f.inv_rotate }
 
-variables [functor.additive (shift C).functor]
+variables [∀ n : ℤ, functor.additive (shift_functor C n)]
 
 /--
 There is a natural transformation between the identity functor on triangles in `C`,
@@ -174,11 +173,11 @@ and the composition of a rotation with an inverse rotation.
 @[simps]
 def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ rotate ⋙ inv_rotate :=
 { app := λ T,
-  { hom₁ := (shift C).unit.app T.obj₁,
+  { hom₁ := (shift_shift_neg _ _).inv,
     hom₂ := 𝟙 T.obj₂,
     hom₃ := 𝟙 T.obj₃,
     comm₃' := begin
-      dsimp,
+      dsimp, sorry;
       rw [id_comp, equivalence.counit_inv_app_functor],
     end } }
 

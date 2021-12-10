@@ -11,7 +11,7 @@ import set_theory.fincard
 /-!
 # Counting on ℕ
 
-This files defines ways to get basic properties of a predicate on ℕ, such as "how many numbers
+This file defines ways to get basic properties of a predicate on ℕ, such as "how many numbers
 under `k` satisfy the predicate" and "what is the `n`th number that satisifies this predicate".
 We define these as two functions, `count` and `nth`, that answer these questions, and prove
 the expected theorems about them.

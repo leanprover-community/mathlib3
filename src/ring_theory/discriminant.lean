@@ -119,7 +119,7 @@ lemma discr_eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι]
 by rw [discr_def, ring_hom.map_det, ring_hom.map_matrix_apply,
     trace_matrix_eq_embeddings_matrix_reindex_mul_trans, det_mul, det_transpose, pow_two]
 
-lemma discr_of_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j), (e j pb.gen- (e i pb.gen)) ^ 2 :=
 begin

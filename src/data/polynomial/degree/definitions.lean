@@ -745,7 +745,7 @@ begin
     exact add_le_add_left hi _ }
 end
 
-@[simp] lemma coeff_pow_degree_mul_degree (p : polynomial R) (n : ℕ) :
+@[simp] lemma coeff_pow_mul_nat_degree (p : polynomial R) (n : ℕ) :
   (p ^ n).coeff (n * p.nat_degree) = p.leading_coeff ^ n :=
 begin
   induction n with i hi,

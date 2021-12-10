@@ -775,6 +775,33 @@ lemma on_finset_prod {s : finset α} {f : α → M} {g : α → M → N}
   (on_finset s f hf).prod g = ∏ a in s, g a (f a) :=
 finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
 
+/-- Taking a product over `f : α →₀ M` is the same as multiplying the value on a single element
+`y ∈ f.support` by the product over `erase y f`. -/
+lemma mul_prod_erase (f : α →₀ M) (y : α) (g : α → M → N) (hyf : y ∈ f.support) :
+  g y (f y) * (erase y f).prod g = f.prod g :=
+begin
+  classical,
+  unfold finsupp.prod,
+  rw ←(finset.mul_prod_erase _ _ hyf),
+  apply congr_arg (λ {a : N}, (g y (f y)) * a),
+  rw finsupp.support_erase,
+  apply finset.prod_congr rfl,
+  intros x hx,
+  rw finsupp.erase_ne (ne_of_mem_erase hx),
+end
+
+/-- Generalisation of `finsupp.mul_prod_erase`: if `g` maps a second argument of 0 to 1,
+then its product over `f : α →₀ M` is the same as multiplying the value on any element
+`y : α` by the product over `erase y f`. -/
+lemma mul_prod_erase' (f : α →₀ M) (y : α) (g : α → M → N) (hg : ∀ (i : α), g i 0 = 1) :
+  g y (f y) * (erase y f).prod g = f.prod g :=
+begin
+  classical,
+  by_cases hyf : y ∈ f.support,
+  { exact finsupp.mul_prod_erase f y g hyf },
+  { rw [not_mem_support_iff.mp hyf, hg y, erase_of_not_mem_support hyf, one_mul] },
+end
+
 @[to_additive]
 lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g : α → M → N)
   (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=

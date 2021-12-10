@@ -164,9 +164,10 @@ section pointwise_limits
 
 variables {M₁ M₂ : Type*} [topological_space M₂] [t2_space M₂] {l : filter α} {f : M₁ → M₂}
 
-/-- Construct a bundled additive monoid homomorphism from a pointwise limit of additive
+/-- Construct a bundled monoid homomorphism from a pointwise limit of
 monoid homomorphisms -/
-@[to_additive]
+@[to_additive "Construct a bundled additive monoid homomorphism from
+a pointwise limit of monoid homomorphisms"]
 definition monoid_hom_of_tendsto [monoid M₁] [monoid M₂]
   [has_continuous_mul M₂] {g : α → M₁ →* M₂} [l.ne_bot]
   (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=

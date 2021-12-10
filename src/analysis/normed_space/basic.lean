@@ -677,7 +677,11 @@ begin
 end
 
 /-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.
-This homeomorphism sends `x : E` to `(1 + ∥x∥)⁻¹ • x`. -/
+This homeomorphism sends `x : E` to `(1 + ∥x∥)⁻¹ • x`.
+
+In many cases the actual implementation is not important, so we don't mark the projection lemmas
+`homeomorph_unit_ball_apply_coe` and `homeomorph_unit_ball_symm_apply` as `@[simp]`. -/
+@[simps { attrs := [] }]
 def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E] :
   E ≃ₜ ball (0 : E) 1 :=
 { to_fun := λ x,

@@ -226,6 +226,11 @@ lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
   (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
 show s ≤ Sup S, from le_Sup hs
 
+lemma eq_zero_of_coe_mem_of_is_compl (hpq : is_compl p q) {a : p} (ha : (a : M) ∈ q) :
+  a = 0 :=
+have this : (a : M) ∈ p ⊓ q, from mem_inf.mpr ⟨coe_mem a, ha⟩,
+by rwa [hpq.inf_eq_bot, mem_bot, coe_eq_zero] at this
+
 end submodule
 
 section nat_submodule

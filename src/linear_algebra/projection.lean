@@ -186,14 +186,6 @@ begin
               zero_add, linear_proj_of_is_compl_apply_left ],
 end
 
-lemma eq_zero_of_coe_mem_of_is_compl (hpq : is_compl p q) {a : p} (ha : (a : E) ∈ q) :
-  a = 0 :=
-begin
-  have h' : (a : E) ∈ p := coe_mem a,
-  have h'' : (a : E) ∈ p ⊓ q := mem_inf.mpr ⟨h', ha⟩,
-  rwa [hpq.inf_eq_bot, mem_bot, coe_eq_zero] at h''
-end
-
 end submodule
 
 namespace linear_map

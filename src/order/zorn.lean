@@ -275,7 +275,7 @@ end
 lemma chain_empty : chain ∅ :=
 chain_chain_closure chain_closure_empty
 
-lemma chain_of_subsingleton (hc : set.subsingleton c) : chain c :=
+lemma _root_.set.subsingleton.chain (hc : set.subsingleton c) : chain c :=
 λ _ hx _ hy hne, (hne (hc hx hy)).elim
 
 /-- An explicit maximal chain. `max_chain` is taken to be the union of all sets in `chain_closure`.

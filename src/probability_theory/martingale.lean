@@ -48,14 +48,14 @@ def martingale (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
   [sigma_finite_filtration μ ℱ] : Prop :=
 adapted ℱ f ∧ ∀ i j, i ≤ j → μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i
 
-/-- A family of integrable functions `f : ι → α → E` is a martingale with respect to a
+/-- A family of integrable functions `f : ι → α → E` is a supermartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `μ[f j | ℱ.le i] ≤ᵐ[μ] f i`. -/
 def supermartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
   [sigma_finite_filtration μ ℱ] : Prop :=
 adapted ℱ f ∧ (∀ i j, i ≤ j → μ[f j | ℱ i, ℱ.le i] ≤ᵐ[μ] f i) ∧ ∀ i, integrable (f i) μ
 
-/-- A family of integrable functions `f : ι → α → E` is a martingale with respect to a
+/-- A family of integrable functions `f : ι → α → E` is a submartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `f i ≤ᵐ[μ] μ[f j | ℱ.le i]`. -/
 def submartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)

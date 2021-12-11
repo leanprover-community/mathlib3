@@ -273,9 +273,9 @@ instance no_zero_smul_divisors_bot [no_zero_smul_divisors R A] : no_zero_smul_di
   {S : subalgebra R A} (x y : S) : (↑(x - y) : A) = ↑x - ↑y := rfl
 @[simp, norm_cast] lemma coe_smul [semiring R'] [has_scalar R' R] [module R' A]
   [is_scalar_tower R' R A] (r : R') (x : S) : (↑(r • x) : A) = r • ↑x := rfl
-@[simp, norm_cast] lemma coe_algebra_map [comm_semiring R'] [has_scalar R' R] [algebra R' A]
-  [is_scalar_tower R' R A] (r : R') :
-  ↑(algebra_map R' S r) = algebra_map R' A r := rfl
+@[simp, norm_cast] lemma coe_algebra_map [comm_semiring R'] [algebra R' A]
+  [has_scalar R' R] [is_scalar_tower R' R A] [has_scalar R'ᵐᵒᵖ R] [is_scalar_tower R'ᵐᵒᵖ R A]
+  (r : R') : ↑(algebra_map R' S r) = algebra_map R' A r := rfl
 
 @[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x^n) : A) = (↑x)^n :=
 begin

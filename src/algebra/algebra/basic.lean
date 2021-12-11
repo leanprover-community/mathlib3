@@ -52,8 +52,10 @@ Given an `algebra R A` instance, the structure morphism `R →+* A` is denoted `
 @[nolint has_inhabited_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
   extends has_scalar R A, R →+* A :=
+(rsmul : A → R → A)
 (commutes' : ∀ r x, to_fun r * x = x * to_fun r)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
+(rsmul_def' : ∀ x r, rsmul x r = x * to_fun r)
 end prio
 
 /-- Embedding `R →+* A` given by `algebra` structure. -/
@@ -65,8 +67,10 @@ def ring_hom.to_algebra' {R S} [comm_semiring R] [semiring S] (i : R →+* S)
   (h : ∀ c x, i c * x = x * i c) :
   algebra R S :=
 { smul := λ c x, i c * x,
+  rsmul := λ x c, x * i c,
   commutes' := h,
   smul_def' := λ c x, rfl,
+  rsmul_def' := λ x c, rfl,
   to_ring_hom := i}
 
 /-- Creating an algebra from a morphism to a commutative semiring. -/
@@ -89,16 +93,18 @@ over `R`.
 
 See note [reducible non-instances]. -/
 @[reducible]
-def of_module' [comm_semiring R] [semiring A] [module R A]
+def of_module' [comm_semiring R] [semiring A] [module R A] [module Rᵐᵒᵖ A] [is_central_scalar R A]
   (h₁ : ∀ (r : R) (x : A), (r • 1) * x = r • x)
   (h₂ : ∀ (r : R) (x : A), x * (r • 1) = r • x) : algebra R A :=
 { to_fun := λ r, r • 1,
+  rsmul := λ x r, mul_opposite.op r • x,
   map_one' := one_smul _ _,
   map_mul' := λ r₁ r₂, by rw [h₁, mul_smul],
   map_zero' := zero_smul _ _,
   map_add' := λ r₁ r₂, add_smul r₁ r₂ 1,
   commutes' := λ r x, by simp only [h₁, h₂],
-  smul_def' := λ r x, by simp only [h₁] }
+  smul_def' := λ r x, by simp only [h₁],
+  rsmul_def' := λ x r, by simp only [op_smul_eq_smul, h₂] }
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • x) * y = x * (r • y) = r • (x * y)` for all `r : R` and `x y : A`, then `A`
@@ -106,7 +112,7 @@ is an `algebra` over `R`.
 
 See note [reducible non-instances]. -/
 @[reducible]
-def of_module [comm_semiring R] [semiring A] [module R A]
+def of_module [comm_semiring R] [semiring A] [module R A] [module Rᵐᵒᵖ A] [is_central_scalar R A]
   (h₁ : ∀ (r : R) (x y : A), (r • x) * y = r • (x * y))
   (h₂ : ∀ (r : R) (x y : A), x * (r • y) = r • (x * y)) : algebra R A :=
 of_module' (λ r x, by rw [h₁, one_mul]) (λ r x, by rw [h₂, mul_one])
@@ -140,6 +146,10 @@ begin
     apply w, },
   { ext r,
     exact w r, },
+  { funext a r,
+    replace w := congr_arg ((*) a) (w r),
+    refine (P_rsmul_def' _ _).trans (w.trans (Q_rsmul_def' _ _).symm), },
+  { apply proof_irrel_heq, },
   { apply proof_irrel_heq, },
   { apply proof_irrel_heq, },
 end
@@ -153,12 +163,25 @@ instance to_module : module R A :=
   add_smul := by simp [smul_def'', add_mul],
   zero_smul := by simp [smul_def''] }
 
+@[priority 200] -- see Note [lower instance priority]
+instance to_opposite_module : module Rᵐᵒᵖ A :=
+{ smul := λ r a, algebra.rsmul a r.unop,
+  one_smul := by simp [rsmul_def'],
+  mul_smul := by simp [rsmul_def', mul_assoc],
+  smul_add := by simp [rsmul_def', add_mul],
+  smul_zero := by simp [rsmul_def'],
+  add_smul := by simp [rsmul_def', mul_add],
+  zero_smul := by simp [rsmul_def'] }
+
 -- From now on, we don't want to use the following instance anymore.
 -- Unfortunately, leaving it in place causes deterministic timeouts later in mathlib.
 attribute [instance, priority 0] algebra.to_has_scalar
 
 lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
+
+lemma op_smul_def (r : R) (x : A) : mul_opposite.op r • x = x * algebra_map R A r :=
+algebra.rsmul_def' x r
 
 lemma algebra_map_eq_smul_one (r : R) : algebra_map R A r = r • 1 :=
 calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm
@@ -183,6 +206,9 @@ by rw [mul_assoc, commutes, ←mul_assoc]
 
 instance _root_.is_scalar_tower.right : is_scalar_tower R A A :=
 ⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, smul_def, smul_def, mul_assoc]⟩
+
+instance to_is_central_scalar : is_central_scalar R A :=
+⟨λ r a, by rw [op_smul_def, smul_def, commutes]⟩
 
 /-- This is just a special case of the global `mul_smul_comm` lemma that requires less typeclass
 search (and was here first). -/
@@ -255,6 +281,8 @@ variables (R A B)
 instance : algebra R (A × B) :=
 { commutes' := by { rintro r ⟨a, b⟩, dsimp, rw [commutes r a, commutes r b] },
   smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [smul_def r a, smul_def r b] },
+  rsmul := λ x r, mul_opposite.op r • x,
+  rsmul_def' := by { rintro ⟨a, b⟩ r, dsimp, rw [op_smul_def r a, op_smul_def r b] },
   .. prod.module,
   .. ring_hom.prod (algebra_map R A) (algebra_map R B) }
 
@@ -268,14 +296,17 @@ end prod
 /-- Algebra over a subsemiring. This builds upon `subsemiring.module`. -/
 instance of_subsemiring (S : subsemiring R) : algebra S A :=
 { smul := (•),
+  rsmul := λ x r, mul_opposite.op (r : R) • x,
   commutes' := λ r x, algebra.commutes r x,
   smul_def' := λ r x, algebra.smul_def r x,
+  rsmul_def' := λ x r, algebra.op_smul_def r x,
   .. (algebra_map R A).comp S.subtype }
 
 /-- Algebra over a subring. This builds upon `subring.module`. -/
 instance of_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   (S : subring R) : algebra S A :=
 { smul := (•),
+  rsmul := λ x r, mul_opposite.op (r : R) • x,
   .. algebra.of_subsemiring S.to_subsemiring,
   .. (algebra_map R A).comp S.subtype }
 
@@ -387,8 +418,11 @@ variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 
 instance : algebra R Aᵐᵒᵖ :=
 { to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
+  rsmul := λ x r, mul_opposite.op (mul_opposite.op r • x.unop),
   smul_def' := λ c x, unop_injective $
     by { dsimp, simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop] },
+  rsmul_def' := λ c x, unop_injective $
+    by { dsimp, simp only [op_mul, algebra.op_smul_def, algebra.commutes, op_unop] },
   commutes' := λ r, mul_opposite.rec $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
   .. mul_opposite.has_scalar A R }
 
@@ -1165,6 +1199,7 @@ section nat
 
 variables {R : Type*} [semiring R]
 
+-- FIXME
 -- Lower the priority so that `algebra.id` is picked most of the time when working with
 -- `ℕ`-algebras. This is only an issue since `algebra.id` and `algebra_nat` are not yet defeq.
 -- TODO: fix this by adding an `of_nat` field to semirings.
@@ -1240,6 +1275,7 @@ section int
 
 variables (R : Type*) [ring R]
 
+-- FIXME
 -- Lower the priority so that `algebra.id` is picked most of the time when working with
 -- `ℤ`-algebras. This is only an issue since `algebra.id ℤ` and `algebra_int ℤ` are not yet defeq.
 -- TODO: fix this by adding an `of_int` field to rings.
@@ -1269,6 +1305,7 @@ variable {f : I → Type v} -- The family of types already equipped with instanc
 variables (x y : Π i, f i) (i : I)
 variables (I f)
 
+-- FIXME
 instance algebra {r : comm_semiring R}
   [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] :
   algebra R (Π i : I, f i) :=

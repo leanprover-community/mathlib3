@@ -757,10 +757,9 @@ begin
       { rw [hp2, zero_mul, coeff_zero] },
       { apply coeff_eq_zero_of_nat_degree_lt,
         have h1 : (p ^ i).nat_degree < i * p.nat_degree,
-        { by_contra h,
-          replace h := eq_iff_le_not_lt.mpr ⟨nat_degree_pow_le, h⟩,
+        { apply lt_of_le_of_ne nat_degree_pow_le (λ h, hp2 _),
           rw [←h, hp1] at hi,
-          exact (leading_coeff_ne_zero.mpr hp2) hi },
+          exact leading_coeff_eq_zero.mp hi },
         calc (p ^ i * p).nat_degree ≤ (p ^ i).nat_degree + p.nat_degree : nat_degree_mul_le
                                 ... < i * p.nat_degree + p.nat_degree : add_lt_add_right h1 _ } },
     { rw [←nat_degree_pow' hp1, ←leading_coeff_pow' hp1],

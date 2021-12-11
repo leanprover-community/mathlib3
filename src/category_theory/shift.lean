@@ -291,18 +291,6 @@ by rw [← iso.eq_comp_inv, shift_neg_shift', category.assoc]
   (shift_neg_shift _ _).inv ≫ f⟦-i⟧'⟦i⟧' = f ≫ (shift_neg_shift _ _).inv :=
 by rw [iso.inv_comp_eq, shift_neg_shift']
 
-variables {D E : Type*} [category D] [category E]
-
-@[simp]
-lemma nat_iso.inv_inv_app {F G : C ⥤ D} (e : F ≅ G) (X : C) :
-  inv (e.inv.app X) = e.hom.app X := by { ext, simp }
-
-@[simp]
-lemma as_equivalence_counit {F : C ⥤ D} [is_equivalence F] :
-  F.as_equivalence.counit_iso = is_equivalence.counit_iso := rfl
-
-local attribute [simp, reassoc] is_equivalence.functor_unit_iso_comp
-
 variable (A)
 
 lemma shift_functor_zero_shift_zero (X : C) :

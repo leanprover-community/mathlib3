@@ -146,12 +146,7 @@ creates_limit_of_reflects_iso $ λ E hE,
     fac' := λ S j, by { ext1, apply hE.fac ((Sheaf_to_presheaf J D).map_cone S) j },
     uniq' := λ S m hm, begin
       ext1,
-      dsimp,
-      apply hE.uniq ((Sheaf_to_presheaf J D).map_cone S) m.val,
-      intros j,
-      dsimp,
-      rw ← hm,
-      refl,
+      exact hE.uniq ((Sheaf_to_presheaf J D).map_cone S) m.val (λ j, congr_arg hom.val (hm j)),
     end } }
 
 instance : creates_limits_of_shape K (Sheaf_to_presheaf J D) := {}

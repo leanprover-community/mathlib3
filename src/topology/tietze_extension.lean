@@ -11,6 +11,25 @@ import data.set.intervals.monotone
 /-!
 # Tietze extension theorem
 
+In this file we prove a few version of the Tietze extension theorem. The theorem says that a
+continuous function `s → ℝ` defined on a closed set in a normap topological space `Y` can be
+extended to a continuous function on the whole space. Moreover, if all values of the original
+function belong to some (finite or infinite, open or closed) interval, then the extension can be
+chosen so that it takes values in the same interval. In particular, if the original function is a
+bounded function, then there exists a bounded extension of the same norm.
+
+The proof mostly follows https://ncatlab.org/nlab/show/Tietze+extension+theorem. We patch a small
+gap in the proof for unbounded functions, see
+`exists_extension_forall_exists_le_ge_of_closed_embedding`.
+
+## Implementation notes
+
+We first prove the theorems for a closed embedding `e : X → Y` of a topological space into a normal
+topological space, then specialize them to the case `X = s : set Y`, `e = coe`.
+
+## Tags
+
+Tietze extension theorem, Urysohn's lemma, normal topological space
 -/
 
 variables {X Y : Type*} [topological_space X] [topological_space Y] [normal_space Y]
@@ -21,7 +40,10 @@ noncomputable theory
 
 namespace bounded_continuous_function
 
-/-- One step in the proof of the Tietze extension theorem. -/
+/-- One step in the proof of the Tietze extension theorem. If `e : C(X, Y)` is a closed embedding
+of a topological space into a normal topological space and `f : X →ᵇ ℝ` is a bounded continuous
+function, then there exists a bounded continuous function `g : Y →ᵇ ℝ` of the norm `∥g∥ ≤ ∥f∥ / 3`
+such that the distance betwenn `g ∘ e` and `f` is at most `(2 / 3) * ∥f∥`. -/
 lemma tietze_extension_step (f : X →ᵇ ℝ) (e : C(X, Y)) (he : closed_embedding e) :
   ∃ g : Y →ᵇ ℝ, ∥g∥ ≤ ∥f∥ / 3 ∧ dist (g.comp_continuous e) f ≤ (2 / 3) * ∥f∥ :=
 begin
@@ -59,10 +81,16 @@ begin
         ... ≤ (2 / 3) * ∥f∥ : by linarith } } }
 end
 
-lemma exists_extension_norm_le_of_closed_embedding' (f : X →ᵇ ℝ) (e : C(X, Y))
+/-- **Tietze extension theorem** for real-valued bounded continuous maps, a version with a closed
+embedding and bundled composition. If `e : C(X, Y)` is a closed embedding of a topological space
+into a normal topological space and `f : X →ᵇ ℝ` is a bounded continuous function, then there exists
+a bounded continuous function `g : Y →ᵇ ℝ` of the same norm such that `g ∘ e = f`. -/
+lemma exists_extension_norm_eq_of_closed_embedding' (f : X →ᵇ ℝ) (e : C(X, Y))
   (he : closed_embedding e) :
-  ∃ g : Y →ᵇ ℝ, ∥g∥ ≤ ∥f∥ ∧ g.comp_continuous e = f :=
+  ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g.comp_continuous e = f :=
 begin
+  /- For the proof, we iterate `tietze_extension_step`. Each time we apply it to the difference
+  between the previous approximation and `f`. -/
   choose F hF_norm hF_dist using λ f : X →ᵇ ℝ, tietze_extension_step f e he,
   set g : ℕ → Y →ᵇ ℝ := λ n, (λ g, g + F (f - g.comp_continuous e))^[n] 0,
   have g0 : g 0 = 0 := rfl,
@@ -87,40 +115,52 @@ begin
   have hg_cau : cauchy_seq g, from cauchy_seq_of_le_geometric _ _ (by norm_num1) hg_dist,
   have : tendsto (λ n, (g n).comp_continuous e) at_top (𝓝 $ (lim at_top g).comp_continuous e),
     from ((continuous_comp_continuous e).tendsto _).comp hg_cau.tendsto_lim,
-  refine ⟨lim at_top g, _, _⟩,
+  have hge : (lim at_top g).comp_continuous e = f,
+  { refine tendsto_nhds_unique this (tendsto_iff_dist_tendsto_zero.2 _),
+    refine squeeze_zero (λ _, dist_nonneg) hgf _,
+    rw ← zero_mul (∥f∥),
+    refine (tendsto_pow_at_top_nhds_0_of_lt_1 _ _).mul tendsto_const_nhds; norm_num1 },
+  refine ⟨lim at_top g, le_antisymm _ _, hge⟩,
   { rw [← dist_zero_left, ← g0],
     refine (dist_le_of_le_geometric_of_tendsto₀ _ _ (by norm_num1)
       hg_dist hg_cau.tendsto_lim).trans_eq _,
     field_simp [show (3 - 2 : ℝ) = 1, by norm_num1] },
-  { refine tendsto_nhds_unique this (tendsto_iff_dist_tendsto_zero.2 _),
-    refine squeeze_zero (λ _, dist_nonneg) hgf _,
-    rw ← zero_mul (∥f∥),
-    refine (tendsto_pow_at_top_nhds_0_of_lt_1 _ _).mul tendsto_const_nhds; norm_num1 }
+  { rw ← hge, exact norm_comp_continuous_le _ _ }
 end
 
-lemma exists_extension_norm_le_of_closed_embedding (f : X →ᵇ ℝ) {e : X → Y}
+/-- **Tietze extension theorem** for real-valued bounded continuous maps, a version with a closed
+embedding and unbundled composition. If `e : C(X, Y)` is a closed embedding of a topological space
+into a normal topological space and `f : X →ᵇ ℝ` is a bounded continuous function, then there exists
+a bounded continuous function `g : Y →ᵇ ℝ` of the same norm such that `g ∘ e = f`. -/
+lemma exists_extension_norm_eq_of_closed_embedding (f : X →ᵇ ℝ) {e : X → Y}
   (he : closed_embedding e) :
-  ∃ g : Y →ᵇ ℝ, ∥g∥ ≤ ∥f∥ ∧ g ∘ e = f :=
+  ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g ∘ e = f :=
 begin
-  rcases exists_extension_norm_le_of_closed_embedding' f ⟨e, he.continuous⟩ he with ⟨g, hg, rfl⟩,
+  rcases exists_extension_norm_eq_of_closed_embedding' f ⟨e, he.continuous⟩ he with ⟨g, hg, rfl⟩,
   exact ⟨g, hg, rfl⟩
 end
 
-lemma exists_restrict_eq_norm_le_of_closed {s : set Y} (hs : is_closed s) (f : s →ᵇ ℝ) :
-  ∃ g : Y →ᵇ ℝ, ∥g∥ ≤ ∥f∥ ∧ g.restrict s = f :=
-exists_extension_norm_le_of_closed_embedding' f (continuous_map.id.restrict s)
+/-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
+set. If `f` is a bounded continuous real-valued function defined on a closed set in a normal
+topological space, then it can be extended to a bounded continuous function of the same norm defined
+on the whole space. -/
+lemma exists_norm_eq_restrict_eq_of_closed {s : set Y} (hs : is_closed s) (f : s →ᵇ ℝ) :
+  ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g.restrict s = f :=
+exists_extension_norm_eq_of_closed_embedding' f (continuous_map.id.restrict s)
   (closed_embedding_subtype_coe hs)
 
+/-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
+embedding and a bounded continuous function that takes values in a non-trivial interval. -/
 lemma exists_extension_forall_mem_Icc_of_closed_embedding (f : X →ᵇ ℝ) {a b : ℝ} {e : X → Y}
   (hf : ∀ x, f x ∈ Icc a b) (hle : a ≤ b) (he : closed_embedding e) :
   ∃ g : Y →ᵇ ℝ, (∀ y, g y ∈ Icc a b) ∧ g ∘ e = f :=
 begin
-  rcases exists_extension_norm_le_of_closed_embedding (f - const X ((a + b) / 2)) he
+  rcases exists_extension_norm_eq_of_closed_embedding (f - const X ((a + b) / 2)) he
     with ⟨g, hgf, hge⟩,
   refine ⟨const Y ((a + b) / 2) + g, λ y, _, _⟩,
   { suffices : ∥f - const X ((a + b) / 2)∥ ≤ (b - a) / 2,
       by simpa [real.Icc_eq_closed_ball, add_mem_closed_ball_iff_norm]
-        using (norm_coe_le_norm g y).trans (hgf.trans this),
+        using (norm_coe_le_norm g y).trans (hgf.trans_le this),
     refine (norm_le $ div_nonneg (sub_nonneg.2 hle) zero_le_two).2 (λ x, _),
     simpa only [real.Icc_eq_closed_ball] using hf x },
   { ext x,

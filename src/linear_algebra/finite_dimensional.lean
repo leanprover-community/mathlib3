@@ -465,7 +465,7 @@ lemma exists_nontrivial_relation_of_dim_lt_card
   ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   have := mt finset_card_le_finrank_of_linear_independent (by { simpa using h }),
-  rw linear_dependent_iff at this,
+  rw not_linear_independent_iff at this,
   obtain ⟨s, g, sum, z, zm, nonzero⟩ := this,
   -- Now we have to extend `g` to all of `t`, then to all of `V`.
   let f : V → K :=

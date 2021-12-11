@@ -300,7 +300,7 @@ begin
   rw iso.eq_inv_comp,
   dsimp [shift_functor_zero, shift_zero],
   simp only [iso.inv_hom_id_app_assoc, is_equivalence.fun_inv_map, functor.map_comp,
-    equivalence.equivalence_mk'_counit_inv, category.id_comp, ← category.assoc
+    equivalence.equivalence_mk'_counit_inv, category.id_comp, ← category.assoc,
     functor.as_equivalence_counit, equivalence.equivalence_mk'_counit],
   erw functor.map_id,
   iterate 3 { rw ← is_iso.eq_comp_inv },

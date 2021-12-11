@@ -45,9 +45,10 @@ end
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
 /-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
-class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] :=
+class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
 (eq_zero : ∀ (x : R), is_nilpotent x → x = 0)
 
+@[priority 900]
 instance is_reduced_of_no_zero_divisors [monoid_with_zero R] [no_zero_divisors R] : is_reduced R :=
 ⟨λ _ ⟨_, hn⟩, pow_eq_zero hn⟩
 
@@ -115,7 +116,7 @@ section comm_semiring
 
 variable [comm_semiring R]
 
-/-- The nilradical of a commutative semiring is the nilradical -/
+/-- The nilradical of a commutative semiring is the ideal of nilpotent elements. -/
 def nilradical (R : Type*) [comm_semiring R] : ideal R := (0 : ideal R).radical
 
 lemma mem_nilradical : x ∈ nilradical R ↔ is_nilpotent x := iff.rfl
@@ -130,7 +131,7 @@ by { rw [← mem_nilradical, nilradical_eq_Inf, submodule.mem_Inf], refl }
 lemma nilradical_le_prime (J : ideal R) [H : J.is_prime] : nilradical R ≤ J :=
 (nilradical_eq_Inf R).symm ▸ Inf_le H
 
-@[simp] lemma nilradical_eq_zero [comm_semiring R] [is_reduced R] : nilradical R = 0 :=
+@[simp] lemma nilradical_eq_zero (R : Type*) [comm_semiring R] [is_reduced R] : nilradical R = 0 :=
 ideal.ext $ λ _, is_nilpotent_iff_eq_zero
 
 end comm_semiring

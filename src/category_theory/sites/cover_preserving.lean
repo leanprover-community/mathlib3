@@ -145,6 +145,7 @@ begin
     rintros V f ⟨Z, f', g', h, rfl⟩,
     erw family_of_elements.comp_of_compatible (S.functor_pushforward G)
       hx' (image_mem_functor_pushforward G S h) g',
+    dsimp at ⊢ hy,
     simp [hG₁.apply_map (sheaf_over ℱ X) hx h, ←hy f' h] }
 end
 

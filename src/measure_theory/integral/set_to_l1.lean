@@ -69,19 +69,63 @@ def fin_meas_additive {β} [add_monoid β] {m : measurable_space α}
   (μ : measure α) (T : set α → β) : Prop :=
 ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅ → T (s ∪ t) = T s + T t
 
-lemma map_empty_eq_zero_of_map_union {β} [add_cancel_monoid β] (T : set α → β)
-  (h_add : fin_meas_additive μ T) :
+namespace fin_meas_additive
+
+variables {β : Type*} [add_comm_monoid β] {T T' : set α → β}
+
+lemma zero : fin_meas_additive μ (0 : set α → β) := λ s t hs ht hμs hμt hst, by simp
+
+lemma add (hT : fin_meas_additive μ T) (hT' : fin_meas_additive μ T') :
+  fin_meas_additive μ (T + T') :=
+begin
+  intros s t hs ht hμs hμt hst,
+  simp only [hT s t hs ht hμs hμt hst, hT' s t hs ht hμs hμt hst, pi.add_apply],
+  abel,
+end
+
+lemma smul [monoid 𝕜] [distrib_mul_action 𝕜 β] (hT : fin_meas_additive μ T) (c : 𝕜) :
+  fin_meas_additive μ (λ s, c • (T s)) :=
+λ s t hs ht hμs hμt hst, by simp [hT s t hs ht hμs hμt hst]
+
+lemma of_eq_top_imp_eq_top {μ' : measure α}
+  (h : ∀ s, measurable_set s → μ s = ∞ → μ' s = ∞) (hT : fin_meas_additive μ T) :
+  fin_meas_additive μ' T :=
+λ s t hs ht hμ's hμ't hst, hT s t hs ht (mt (h s hs) hμ's) (mt (h t ht) hμ't) hst
+
+lemma of_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞) (hT : fin_meas_additive (c • μ) T) :
+  fin_meas_additive μ T :=
+begin
+  refine of_eq_top_imp_eq_top (λ s hs hμs, _) hT,
+  rw [measure.smul_apply, with_top.mul_eq_top_iff] at hμs,
+  simp only [hc_ne_top, or_false, ne.def, false_and] at hμs,
+  exact hμs.2,
+end
+
+lemma smul_measure (c : ℝ≥0∞) (hc_ne_zero : c ≠ 0) (hT : fin_meas_additive μ T) :
+  fin_meas_additive (c • μ) T :=
+begin
+  refine of_eq_top_imp_eq_top (λ s hs hμs, _) hT,
+  rw [measure.smul_apply, with_top.mul_eq_top_iff],
+  simp only [hc_ne_zero, true_and, ne.def, not_false_iff],
+  exact or.inl hμs,
+end
+
+lemma smul_measure_iff (c : ℝ≥0∞) (hc_ne_zero : c ≠ 0) (hc_ne_top : c ≠ ∞) :
+  fin_meas_additive (c • μ) T ↔ fin_meas_additive μ T :=
+⟨λ hT, of_smul_measure c hc_ne_top hT, λ hT, smul_measure c hc_ne_zero hT⟩
+
+lemma map_empty_eq_zero {β} [add_cancel_monoid β] {T : set α → β} (hT : fin_meas_additive μ T) :
   T ∅ = 0 :=
 begin
   have h_empty : μ ∅ ≠ ∞, from (measure_empty.le.trans_lt ennreal.coe_lt_top).ne,
-  specialize h_add ∅ ∅ measurable_set.empty measurable_set.empty h_empty h_empty
+  specialize hT ∅ ∅ measurable_set.empty measurable_set.empty h_empty h_empty
     (set.inter_empty ∅),
-  rw set.union_empty at h_add,
-  nth_rewrite 0 ← add_zero (T ∅) at h_add,
-  exact (add_left_cancel h_add).symm,
+  rw set.union_empty at hT,
+  nth_rewrite 0 ← add_zero (T ∅) at hT,
+  exact (add_left_cancel hT).symm,
 end
 
-lemma map_Union_fin_meas_set_eq_sum {β} [add_comm_monoid β] (T : set α → β) (T_empty : T ∅ = 0)
+lemma map_Union_fin_meas_set_eq_sum (T : set α → β) (T_empty : T ∅ = 0)
   (h_add : fin_meas_additive μ T)
   {ι} (S : ι → set α) (sι : finset ι) (hS_meas : ∀ i, measurable_set (S i))
   (hSp : ∀ i ∈ sι, μ (S i) ≠ ∞) (h_disj : ∀ i j ∈ sι, i ≠ j → disjoint (S i) (S j)) :
@@ -109,11 +153,106 @@ begin
     exact has hi, },
 end
 
+end fin_meas_additive
+
 /-- A `fin_meas_additive` set function whose norm on every set is less than the measure of the
 set (up to a multiplicative constant). -/
-def dominated_fin_meas_additive {β} [normed_group β] {m : measurable_space α}
+def dominated_fin_meas_additive {β} [semi_normed_group β] {m : measurable_space α}
   (μ : measure α) (T : set α → β) (C : ℝ) : Prop :=
 fin_meas_additive μ T ∧ ∀ s, measurable_set s → μ s < ∞ → ∥T s∥ ≤ C * (μ s).to_real
+
+namespace dominated_fin_meas_additive
+
+variables {β : Type*} [semi_normed_group β] {T T' : set α → β} {C C' : ℝ}
+
+lemma zero {m : measurable_space α} (μ : measure α) (hC : 0 ≤ C) :
+  dominated_fin_meas_additive μ (0 : set α → β) C :=
+begin
+  refine ⟨fin_meas_additive.zero, λ s hs hμs, _⟩,
+  rw [pi.zero_apply, norm_zero],
+  exact mul_nonneg hC to_real_nonneg,
+end
+
+lemma eq_zero_of_measure_zero {β : Type*} [normed_group β] {T : set α → β} {C : ℝ}
+  (hT : dominated_fin_meas_additive μ T C) {s : set α}
+  (hs : measurable_set s) (hs_zero : μ s = 0) :
+  T s = 0 :=
+begin
+  refine norm_eq_zero.mp _,
+  refine ((hT.2 s hs (by simp [hs_zero])).trans (le_of_eq _)).antisymm (norm_nonneg _),
+  rw [hs_zero, ennreal.zero_to_real, mul_zero],
+end
+
+lemma eq_zero {β : Type*} [normed_group β] {T : set α → β} {C : ℝ}
+  {m : measurable_space α} (hT : dominated_fin_meas_additive (0 : measure α) T C)
+  {s : set α} (hs : measurable_set s) :
+  T s = 0 :=
+eq_zero_of_measure_zero hT hs (by simp only [measure.coe_zero, pi.zero_apply])
+
+lemma add (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C') :
+  dominated_fin_meas_additive μ (T + T') (C + C') :=
+begin
+  refine ⟨hT.1.add hT'.1, λ s hs hμs, _⟩,
+  rw [pi.add_apply, add_mul],
+  exact (norm_add_le _ _).trans (add_le_add (hT.2 s hs hμs) (hT'.2 s hs hμs)),
+end
+
+lemma smul [normed_field 𝕜] [semi_normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
+  (c : 𝕜) :
+  dominated_fin_meas_additive μ (λ s, c • (T s)) (∥c∥ * C) :=
+begin
+  refine ⟨hT.1.smul c, λ s hs hμs, _⟩,
+  dsimp only,
+  rw [norm_smul, mul_assoc],
+  exact mul_le_mul le_rfl (hT.2 s hs hμs) (norm_nonneg _) (norm_nonneg _),
+end
+
+lemma of_measure_le {μ' : measure α} (h : μ ≤ μ') (hT : dominated_fin_meas_additive μ T C)
+  (hC : 0 ≤ C) :
+  dominated_fin_meas_additive μ' T C :=
+begin
+  have h' : ∀ s, measurable_set s → μ s = ∞ → μ' s = ∞,
+  { intros s hs hμs, rw [eq_top_iff, ← hμs], exact h s hs, },
+  refine ⟨hT.1.of_eq_top_imp_eq_top h', λ s hs hμ's, _⟩,
+  have hμs : μ s < ∞, from (h s hs).trans_lt hμ's,
+  refine (hT.2 s hs hμs).trans (mul_le_mul le_rfl _ ennreal.to_real_nonneg hC),
+  rw to_real_le_to_real hμs.ne hμ's.ne,
+  exact h s hs,
+end
+
+lemma add_measure_right {m : measurable_space α}
+  (μ ν : measure α) (hT : dominated_fin_meas_additive μ T C) (hC : 0 ≤ C) :
+  dominated_fin_meas_additive (μ + ν) T C :=
+ of_measure_le (measure.le_add_right le_rfl) hT hC
+
+lemma add_measure_left {m : measurable_space α}
+  (μ ν : measure α) (hT : dominated_fin_meas_additive ν T C) (hC : 0 ≤ C) :
+  dominated_fin_meas_additive (μ + ν) T C :=
+ of_measure_le (measure.le_add_left le_rfl) hT hC
+
+lemma of_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
+  (hT : dominated_fin_meas_additive (c • μ) T C) :
+  dominated_fin_meas_additive μ T (c.to_real * C) :=
+begin
+  have h : ∀ s, measurable_set s → c • μ s = ∞ → μ s = ∞,
+  { intros s hs hcμs,
+    simp only [hc_ne_top, algebra.id.smul_eq_mul, with_top.mul_eq_top_iff, or_false, ne.def,
+      false_and] at hcμs,
+    exact hcμs.2, },
+  refine ⟨hT.1.of_eq_top_imp_eq_top h, λ s hs hμs, _⟩,
+  have hcμs : c • μ s ≠ ∞, from mt (h s hs) hμs.ne,
+  rw smul_eq_mul at hcμs,
+  simp_rw [dominated_fin_meas_additive, measure.smul_apply, to_real_mul] at hT,
+  refine (hT.2 s hs hcμs.lt_top).trans (le_of_eq _),
+  ring,
+end
+
+lemma of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞) (h : μ ≤ c • μ')
+  (hT : dominated_fin_meas_additive μ T C) (hC : 0 ≤ C) :
+  dominated_fin_meas_additive μ' T (c.to_real * C) :=
+(hT.of_measure_le h hC).of_smul_measure c hc
+
+end dominated_fin_meas_additive
 
 end fin_meas_additive
 
@@ -151,7 +290,7 @@ lemma map_set_to_simple_func (T : set α → F →L[ℝ] F') (h_add : fin_meas_a
   {f : α →ₛ G} (hf : integrable f μ) {g : G → F} (hg : g 0 = 0) :
   (f.map g).set_to_simple_func T = ∑ x in f.range, T (f ⁻¹' {x}) (g x) :=
 begin
-  have T_empty : T ∅ = 0, from map_empty_eq_zero_of_map_union T h_add,
+  have T_empty : T ∅ = 0, from h_add.map_empty_eq_zero,
   have hfp : ∀ x ∈ f.range, x ≠ 0 → μ (f ⁻¹' {x}) ≠ ∞,
     from λ x hx hx0, (measure_preimage_lt_top_of_integrable f hf hx0).ne,
   simp only [set_to_simple_func, range_map],
@@ -170,7 +309,7 @@ begin
     = T (⋃ y ∈ (filter (λ (b : G), g b = g (f a)) f.range), f ⁻¹' {y}) (g (f a)),
   { congr, rw ← finset.set_bUnion_preimage_singleton, },
   rw h_left_eq',
-  rw map_Union_fin_meas_set_eq_sum T T_empty h_add,
+  rw h_add.map_Union_fin_meas_set_eq_sum T T_empty,
   { simp only [filter_congr_decidable, sum_apply, continuous_linear_map.coe_sum'],
     refine finset.sum_congr rfl (λ x hx, _),
     rw mem_filter at hx,
@@ -477,14 +616,11 @@ lemma set_to_L1s_indicator_const {T : set α → E →L[ℝ] F} {C : ℝ} {s : s
   (hT : dominated_fin_meas_additive μ T C) (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
   set_to_L1s T (simple_func.indicator_const 1 hs hμs x) = T s x :=
 begin
-  have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
-  { refine λ s hs hs0, norm_eq_zero.mp _,
-    refine le_antisymm ((hT.2 s hs (by simp [hs0])).trans (le_of_eq _)) (norm_nonneg _),
-    rw [hs0, ennreal.zero_to_real, mul_zero], },
-  have h_empty : T ∅ = 0, from h_zero ∅ measurable_set.empty measure_empty,
+  have h_empty : T ∅ = 0, from hT.eq_zero_of_measure_zero measurable_set.empty measure_empty,
   rw set_to_L1s_eq_set_to_simple_func,
   refine eq.trans _ (simple_func.set_to_simple_func_indicator T h_empty hs x),
-  refine simple_func.set_to_simple_func_congr T h_zero hT.1 (simple_func.integrable _) _,
+  refine simple_func.set_to_simple_func_congr T (λ _, hT.eq_zero_of_measure_zero) hT.1
+    (simple_func.integrable _) _,
   exact Lp.simple_func.to_simple_func_indicator_const hs hμs x,
 end
 
@@ -495,22 +631,16 @@ variables (α E μ 𝕜)
 def set_to_L1s_clm' {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) :
   (α →₁ₛ[μ] E) →L[𝕜] F :=
-have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
-{ refine λ s hs hs0, norm_eq_zero.mp _,
-  refine le_antisymm ((hT.2 s hs (by simp [hs0])).trans (le_of_eq _)) (norm_nonneg _),
-  rw [hs0, ennreal.zero_to_real, mul_zero], },
-linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T h_zero hT.1,
-  set_to_L1s_smul T h_zero hT.1 h_smul⟩ C (λ f, norm_set_to_L1s_le T hT.2 f)
+linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
+  set_to_L1s_smul T (λ _, hT.eq_zero_of_measure_zero) hT.1 h_smul⟩ C
+  (λ f, norm_set_to_L1s_le T hT.2 f)
 
 /-- Extend `set α → E →L[ℝ] F` to `(α →₁ₛ[μ] E) →L[ℝ] F`. -/
 def set_to_L1s_clm {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C) :
   (α →₁ₛ[μ] E) →L[ℝ] F :=
-have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
-{ refine λ s hs hs0, norm_eq_zero.mp _,
-  refine le_antisymm ((hT.2 s hs (by simp [hs0])).trans (le_of_eq _)) (norm_nonneg _),
-  rw [hs0, ennreal.zero_to_real, mul_zero], },
-linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T h_zero hT.1,
-  set_to_L1s_smul_real T h_zero hT.1⟩ C (λ f, norm_set_to_L1s_le T hT.2 f)
+linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
+  set_to_L1s_smul_real T (λ _, hT.eq_zero_of_measure_zero) hT.1⟩ C
+  (λ f, norm_set_to_L1s_le T hT.2 f)
 
 variables {α E μ 𝕜}
 

@@ -682,7 +682,7 @@ begin
 end
 
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
-ssubset_iff_insert.2 ⟨a, h, subset.refl _⟩
+ssubset_iff_insert.2 ⟨a, h, subset.rfl⟩
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, or.left_comm
@@ -1477,9 +1477,8 @@ instance (f : α → β) (s : set α) [nonempty s] : nonempty (f '' s) :=
   f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
 ball_image_iff
 
-theorem image_preimage_subset (f : α → β) (s : set β) :
-  f '' (f ⁻¹' s) ⊆ s :=
-image_subset_iff.2 (subset.refl _)
+theorem image_preimage_subset (f : α → β) (s : set β) : f '' (f ⁻¹' s) ⊆ s :=
+image_subset_iff.2 subset.rfl
 
 theorem subset_preimage_image (f : α → β) (s : set α) :
   s ⊆ f ⁻¹' (f '' s) :=
@@ -2551,8 +2550,7 @@ variable {α : Type*}
 def inclusion {s t : set α} (h : s ⊆ t) : s → t :=
 λ x : s, (⟨x, h x.2⟩ : t)
 
-@[simp] lemma inclusion_self {s : set α} (x : s) :
-  inclusion (set.subset.refl _) x = x :=
+@[simp] lemma inclusion_self {s : set α} (x : s) : inclusion subset.rfl x = x :=
 by { cases x, refl }
 
 @[simp] lemma inclusion_right {s t : set α} (h : s ⊆ t) (x : t) (m : (x : α) ∈ s) :
@@ -2656,6 +2654,11 @@ lemma mem_image2_iff (hf : injective2 f) : f a b ∈ image2 f s t ↔ a ∈ s �
 /-- image2 is monotone with respect to `⊆`. -/
 lemma image2_subset (hs : s ⊆ s') (ht : t ⊆ t') : image2 f s t ⊆ image2 f s' t' :=
 by { rintro _ ⟨a, b, ha, hb, rfl⟩, exact mem_image2_of_mem (hs ha) (ht hb) }
+
+lemma image2_subset_left (ht : t ⊆ t') : image2 f s t ⊆ image2 f s t' := image2_subset subset.rfl ht
+
+lemma image2_subset_right (hs : s ⊆ s') : image2 f s t ⊆ image2 f s' t :=
+image2_subset hs subset.rfl
 
 lemma forall_image2_iff {p : γ → Prop} :
   (∀ z ∈ image2 f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=

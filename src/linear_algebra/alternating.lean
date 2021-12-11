@@ -466,7 +466,7 @@ lemma map_linear_dependent
   (h : ¬linear_independent K v) :
   f v = 0 :=
 begin
-  obtain ⟨s, g, h, i, hi, hz⟩ := linear_dependent_iff.mp h,
+  obtain ⟨s, g, h, i, hi, hz⟩ := not_linear_independent_iff.mp h,
   suffices : f (update v i (g i • v i)) = 0,
   { rw [f.map_smul, function.update_eq_self, smul_eq_zero] at this,
     exact or.resolve_left this hz, },

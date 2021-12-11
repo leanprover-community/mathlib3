@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import data.zmod.basic
 import group_theory.index
 import group_theory.group_action.conj_act
 import group_theory.perm.cycle_type
@@ -82,7 +83,7 @@ begin
 end
 
 lemma to_quotient (H : subgroup G) [H.normal] :
-  is_p_group p (quotient_group.quotient H) :=
+  is_p_group p (G ⧸ H) :=
 hG.of_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
 
 lemma of_equiv {H : Type*} [group H] (ϕ : G ≃* H) : is_p_group p H :=
@@ -92,7 +93,7 @@ variables [hp : fact p.prime]
 
 include hp
 
-lemma index (H : subgroup G) [fintype (quotient_group.quotient H)] :
+lemma index (H : subgroup G) [fintype (G ⧸ H)] :
   ∃ n : ℕ, H.index = p ^ n :=
 begin
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),

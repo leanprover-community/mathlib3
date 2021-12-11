@@ -123,11 +123,11 @@ map_sub (right_comp P g) f f'
 map_sub (left_comp R f) g g'
 
 @[simp, reassoc] lemma neg_comp : (-f) ≫ g = -(f ≫ g) :=
-map_neg (right_comp _ _) _
+map_neg (right_comp P g) f
 
 /- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
 @[reassoc, simp] lemma comp_neg : f ≫ (-g) = -(f ≫ g) :=
-map_neg (left_comp _ _) _
+map_neg (left_comp R f) g
 
 @[reassoc] lemma neg_comp_neg : (-f) ≫ (-g) = f ≫ g :=
 by simp
@@ -161,8 +161,8 @@ instance {P Q : C} {f : P ⟶ Q} [mono f] : mono (-f) :=
 @[priority 100]
 instance preadditive_has_zero_morphisms : has_zero_morphisms C :=
 { has_zero := infer_instance,
-  comp_zero' := λ P Q f R, map_zero $ left_comp R f,
-  zero_comp' := λ P Q R f, map_zero $ right_comp P f }
+  comp_zero' := λ P Q f R, show left_comp R f 0 = 0, from map_zero _,
+  zero_comp' := λ P Q R f, show right_comp P f 0 = 0, from map_zero _ }
 
 lemma mono_of_cancel_zero {Q R : C} (f : Q ⟶ R) (h : ∀ {P : C} (g : P ⟶ Q), g ≫ f = 0 → g = 0) :
   mono f :=

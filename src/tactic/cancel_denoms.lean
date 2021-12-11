@@ -161,7 +161,6 @@ do (n, p) ← derive e,
    tp ← infer_type e,
    n' ← tp.of_nat n, tgt ← to_expr ``(%%n' ≠ 0),
    (_, pn) ← solve_aux tgt `[norm_num, done],
-   infer_type p >>= trace, infer_type pn >>= trace,
    prod.mk n <$> mk_mapp ``cancel_factors_eq_div [none, none, n', none, none, p, pn]
 
 /--

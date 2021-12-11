@@ -5,6 +5,7 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.basic
 import linear_algebra.tensor_product
+import algebra.iterate_hom
 
 /-!
 # Facts about algebras involving bilinear maps and tensor products

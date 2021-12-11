@@ -130,6 +130,10 @@ protected lemma is_topological_basis.is_open {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
 by { rw hb.eq_generate_from, exact generate_open.basic s hs }
 
+protected lemma is_topological_basis.mem_nhds {a : α} {s : set α} {b : set (set α)}
+  (hb : is_topological_basis b) (hs : s ∈ b) (ha : a ∈ s) : s ∈ 𝓝 a :=
+(hb.is_open hs).mem_nhds ha
+
 lemma is_topological_basis.exists_subset_of_mem_open {b : set (set α)}
   (hb : is_topological_basis b) {a:α} {u : set α} (au : a ∈ u)
   (ou : is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
@@ -328,42 +332,18 @@ lemma is_topological_basis_pi {ι : Type*} {X : ι → Type*}
   is_topological_basis {S : set (Π i, X i) | ∃ (U : Π i, set (X i)) (F : finset ι),
     (∀ i, i ∈ F → (U i) ∈ T i) ∧ S = (F : set ι).pi U } :=
 begin
-  classical,
   refine is_topological_basis_of_open_of_nhds _ _,
   { rintro _ ⟨U, F, h1, rfl⟩,
     apply is_open_set_pi F.finite_to_set,
     intros i hi,
-    exact is_topological_basis.is_open (cond i) (h1 i hi) },
+    exact (cond i).is_open (h1 i hi) },
   { intros a U ha hU,
-    have : U ∈ nhds a := is_open.mem_nhds hU ha,
-    rw [nhds_pi, filter.mem_infi] at this,
-    obtain ⟨F, hF, V, hV1, rfl⟩ := this,
-    choose U' hU' using hV1,
-    obtain ⟨hU1, hU2⟩ := ⟨λ i, (hU' i).1, λ i, (hU' i).2⟩,
-    have : ∀ j : F, ∃ (T' : set (X j)) (hT : T' ∈ T j), a j ∈ T' ∧ T' ⊆ U' j,
-    { intros i,
-      specialize hU1 i,
-      rwa (cond i).mem_nhds_iff at hU1 },
-    choose U'' hU'' using this,
-    let U : Π (i : ι), set (X i) := λ i,
-      if hi : i ∈ F then U'' ⟨i, hi⟩ else set.univ,
-    refine ⟨F.pi U, ⟨U, hF.to_finset, λ i hi, _, by simp⟩, _, _⟩,
-    { dsimp only [U],
-      rw [dif_pos],
-      swap, { simpa using hi },
-      exact (hU'' _).1 },
-    { rw set.mem_pi,
-      intros i hi,
-      dsimp only [U],
-      rw dif_pos hi,
-      exact (hU'' _).2.1 },
-    { intros x hx,
-      rintros - ⟨i, rfl⟩,
-      refine hU2 i ((hU'' i).2.2 _),
-      convert hx i i.2,
-      rcases i with ⟨i, p⟩,
-      dsimp [U],
-      rw dif_pos p, } },
+    obtain ⟨I, t, hta, htU⟩ :
+      ∃ (I : finset ι) (t : Π (i : ι), set (X i)), (∀ i, t i ∈ 𝓝 (a i)) ∧ set.pi ↑I t ⊆ U,
+    { rw [← filter.mem_pi', ← nhds_pi], exact hU.mem_nhds ha },
+    have : ∀ i, ∃ V ∈ T i, a i ∈ V ∧ V ⊆ t i := λ i, (cond i).mem_nhds_iff.1 (hta i),
+    choose V hVT haV hVt,
+    exact ⟨_, ⟨V, I, λ i hi, hVT i, rfl⟩, λ i hi, haV i, (pi_mono $ λ i hi, hVt i).trans htU⟩ },
 end
 
 lemma is_topological_basis_infi {β : Type*} {ι : Type*} {X : ι → Type*}
@@ -414,7 +394,8 @@ in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _
 /-- Let `s` be a dense set in a topological space `α` with partial order structure. If `s` is a
 separable space (e.g., if `α` has a second countable topology), then there exists a countable
 dense subset `t ⊆ s` such that `t` contains bottom/top element of `α` when they exist and belong
-to `s`. -/
+to `s`. For a dense subset containing neither bot nor top elements, see
+`dense.exists_countable_dense_subset_no_bot_top`. -/
 lemma dense.exists_countable_dense_subset_bot_top {α : Type*} [topological_space α]
   [partial_order α] {s : set α} [separable_space s] (hs : dense s) :
   ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∈ s → x ∈ t) ∧
@@ -435,7 +416,8 @@ instance separable_space_univ {α : Type*} [topological_space α] [separable_spa
 
 /-- If `α` is a separable topological space with a partial order, then there exists a countable
 dense set `s : set α` that contains those of both bottom and top elements of `α` that actually
-exist. -/
+exist. For a dense set containing neither bot nor top elements, see
+`exists_countable_dense_no_bot_top`. -/
 lemma exists_countable_dense_bot_top (α : Type*) [topological_space α] [separable_space α]
   [partial_order α] :
   ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∈ s) ∧ (∀ x, is_top x → x ∈ s) :=

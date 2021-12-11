@@ -195,18 +195,18 @@ ext (λ g, sylow.smul_eq_iff_mem_normalizer)
 
 /-- Sylow `p`-subgroups are in bijection with cosets of the normalizer of a Sylow `p`-subgroup -/
 noncomputable def sylow.equiv_quotient_normalizer [fact p.prime] [fintype (sylow p G)]
-  (P : sylow p G) : sylow p G ≃ quotient_group.quotient P.1.normalizer :=
+  (P : sylow p G) : sylow p G ≃ G ⧸ P.1.normalizer :=
 calc sylow p G ≃ (⊤ : set (sylow p G)) : (equiv.set.univ (sylow p G)).symm
 ... ≃ orbit G P : by rw P.orbit_eq_top
-... ≃ quotient_group.quotient (stabilizer G P) : orbit_equiv_quotient_stabilizer G P
-... ≃ quotient_group.quotient P.1.normalizer : by rw P.stabilizer_eq_normalizer
+... ≃ G ⧸ (stabilizer G P) : orbit_equiv_quotient_stabilizer G P
+... ≃ G ⧸ P.1.normalizer : by rw P.stabilizer_eq_normalizer
 
 noncomputable instance [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
-  fintype (quotient_group.quotient P.1.normalizer) :=
+  fintype (G ⧸ P.1.normalizer) :=
 of_equiv (sylow p G) P.equiv_quotient_normalizer
 
 lemma card_sylow_eq_card_quotient_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
-  card (sylow p G) = card (quotient_group.quotient P.1.normalizer) :=
+  card (sylow p G) = card (G ⧸ P.1.normalizer) :=
 card_congr P.equiv_quotient_normalizer
 
 lemma card_sylow_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
@@ -244,7 +244,7 @@ variables {G : Type u} {α : Type v} {β : Type w} [group G]
 local attribute [instance, priority 10] subtype.fintype set_fintype classical.prop_decidable
 
 lemma quotient_group.card_preimage_mk [fintype G] (s : subgroup G)
-  (t : set (quotient s)) : fintype.card (quotient_group.mk ⁻¹' t) =
+  (t : set (G ⧸ s)) : fintype.card (quotient_group.mk ⁻¹' t) =
   fintype.card s * fintype.card t :=
 by rw [← fintype.card_prod, fintype.card_congr
   (preimage_mk_equiv_subgroup_times_set _ _)]
@@ -255,8 +255,8 @@ open subgroup submonoid mul_action
 
 lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
   [fintype ((H : set G) : Type u)] {x : G} :
-  (x : quotient H) ∈ fixed_points H (quotient H) ↔ x ∈ normalizer H :=
-⟨λ hx, have ha : ∀ {y : quotient H}, y ∈ orbit H (x : quotient H) → y = x,
+  (x : G ⧸ H) ∈ fixed_points H (G ⧸ H) ↔ x ∈ normalizer H :=
+⟨λ hx, have ha : ∀ {y : G ⧸ H}, y ∈ orbit H (x : G ⧸ H) → y = x,
   from λ _, ((mem_fixed_points' _).1 hx _),
   (inv_mem_iff _).1 (@mem_normalizer_fintype _ _ _ _inst_2 _ (λ n (hn : n ∈ H),
     have (n⁻¹ * x)⁻¹ * x ∈ H := quotient_group.eq.1 (ha (mem_orbit _ ⟨n⁻¹, H.inv_mem hn⟩)),
@@ -271,8 +271,8 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
 def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : set G)] :
-  mul_action.fixed_points H (quotient H) ≃
-  quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
+  mul_action.fixed_points H (G ⧸ H) ≃
+  normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
 @subtype_quotient_equiv_quotient_subtype G (normalizer H : set G) (id _) (id _) (fixed_points _ _)
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
   (by intros; refl)
@@ -281,8 +281,8 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   mod `p` to the index of `H`.  -/
 lemma card_quotient_normalizer_modeq_card_quotient [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
   {H : subgroup G} (hH : fintype.card H = p ^ n) :
-  card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H))
-  ≡ card (quotient H) [MOD p] :=
+  card (normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H))
+  ≡ card (G ⧸ H) [MOD p] :=
 begin
   rw [← fintype.card_congr (fixed_points_mul_left_cosets_equiv_quotient H)],
   exact ((is_p_group.of_card hH).card_modeq_card_fixed_points _).symm
@@ -309,15 +309,15 @@ end
   index of `H` inside its normalizer. -/
 lemma prime_dvd_card_quotient_normalizer [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ (n + 1) ∣ card G) {H : subgroup G} (hH : fintype.card H = p ^ n) :
-  p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
+  p ∣ card (normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
-have hcard : card (quotient H) = s * p :=
+have hcard : card (G ⧸ H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
-  card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
+  card (normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
   hcard ▸ (card_quotient_normalizer_modeq_card_quotient hH).symm,
 nat.dvd_of_mod_eq_zero
   (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm)
@@ -337,16 +337,16 @@ theorem exists_subgroup_card_pow_succ [fintype G] {p : ℕ} {n : ℕ} [hp : fact
   (hdvd : p ^ (n + 1) ∣ card G) {H : subgroup G} (hH : fintype.card H = p ^ n) :
   ∃ K : subgroup G, fintype.card K = p ^ (n + 1) ∧ H ≤ K :=
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
-have hcard : card (quotient H) = s * p :=
+have hcard : card (G ⧸ H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
-  card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
+  card (normalizer H ⧸ (subgroup.comap (normalizer H).subtype H)) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
     (is_p_group.of_card hH).card_modeq_card_fixed_points _,
-have hm' : p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
+have hm' : p ∣ card (normalizer H ⧸ (subgroup.comap (normalizer H).subtype H)) :=
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),
 let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.quotient.group _) _ _ hp hm' in

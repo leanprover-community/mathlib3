@@ -7,7 +7,7 @@ import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
 import category_theory.category.preorder
-import order.bounded_lattice
+import order.bounded_order
 
 /-!
 # Filtered categories
@@ -100,8 +100,8 @@ instance is_filtered_of_directed_order_nonempty
   (α : Type u) [directed_order α] [nonempty α] : is_filtered α := {}
 
 -- Sanity checks
-example (α : Type u) [semilattice_sup_bot α] : is_filtered α := by apply_instance
-example (α : Type u) [semilattice_sup_top α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by apply_instance
 
 namespace is_filtered
 
@@ -167,9 +167,9 @@ begin
   { rintros X O' nm ⟨S', w'⟩,
     use max X S',
     rintros Y mY,
-    by_cases h : X = Y,
-    { subst h, exact ⟨left_to_max _ _⟩, },
-    { exact ⟨(w' (by finish)).some ≫ right_to_max _ _⟩, }, }
+    obtain rfl|h := eq_or_ne Y X,
+    { exact ⟨left_to_max _ _⟩, },
+    { exact ⟨(w' (finset.mem_of_mem_insert_of_ne mY h)).some ≫ right_to_max _ _⟩, }, }
 end
 
 variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))
@@ -473,8 +473,8 @@ instance is_cofiltered_of_semilattice_inf_nonempty
   (α : Type u) [semilattice_inf α] [nonempty α] : is_cofiltered α := {}
 
 -- Sanity checks
-example (α : Type u) [semilattice_inf_bot α] : is_cofiltered α := by apply_instance
-example (α : Type u) [semilattice_inf_top α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := by apply_instance
 
 namespace is_cofiltered
 
@@ -540,9 +540,9 @@ begin
   { rintros X O' nm ⟨S', w'⟩,
     use min X S',
     rintros Y mY,
-    by_cases h : X = Y,
-    { subst h, exact ⟨min_to_left _ _⟩, },
-    { exact ⟨min_to_right _ _ ≫ (w' (by finish)).some⟩, }, }
+    obtain rfl|h := eq_or_ne Y X,
+    { exact ⟨min_to_left _ _⟩, },
+    { exact ⟨min_to_right _ _ ≫ (w' (finset.mem_of_mem_insert_of_ne mY h)).some⟩, }, }
 end
 
 variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))

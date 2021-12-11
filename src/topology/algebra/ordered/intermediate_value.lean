@@ -382,7 +382,7 @@ begin
   rintros x ⟨hxs, hxab⟩ y hyxb,
   have : s ∩ Ioc x y ∈ 𝓝[Ioi x] x,
     from inter_mem (hgt x ⟨hxs, hxab⟩) (Ioc_mem_nhds_within_Ioi ⟨le_refl _, hyxb⟩),
-  exact (nhds_within_Ioi_self_ne_bot' hxab.2).nonempty_of_mem this
+  exact (nhds_within_Ioi_self_ne_bot' ⟨b, hxab.2⟩).nonempty_of_mem this
 end
 
 /-- A closed interval in a densely ordered conditionally complete linear order is preconnected. -/

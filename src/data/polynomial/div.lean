@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.polynomial.inductions
 import data.polynomial.monic
 import ring_theory.multiplicity
 
@@ -70,9 +71,6 @@ variables [ring R] {p q : polynomial R}
 lemma div_wf_lemma (h : degree q ≤ degree p ∧ p ≠ 0) (hq : monic q) :
   degree (p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q) < degree p :=
 have hp : leading_coeff p ≠ 0 := mt leading_coeff_eq_zero.1 h.2,
-if h0 : p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q = 0
-then h0.symm ▸ (lt_of_not_ge $ mt le_bot_iff.1 (mt degree_eq_bot.1 h.2))
-else
   have hq0 : q ≠ 0 := hq.ne_zero_of_polynomial_ne h.2,
   have hlt : nat_degree q ≤ nat_degree p := with_bot.coe_le_coe.1
     (by rw [← degree_eq_nat_degree h.2, ← degree_eq_nat_degree hq0];

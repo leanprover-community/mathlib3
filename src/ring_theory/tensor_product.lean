@@ -166,9 +166,12 @@ linear_equiv.of_linear
   (lift $ tensor_product.uncurry A _ _ _ $ comp (lcurry R A _ _ _) $
     tensor_product.mk A M (P ⊗[R] N))
   (tensor_product.uncurry A _ _ _ $ comp (uncurry R A _ _ _) $
-    by apply tensor_product.curry; exact (mk R A _ _))
+    by { apply tensor_product.curry, exact (mk R A _ _) })
   (by { ext, refl, })
-  (by { ext, refl, })
+  (by { ext, simp only [curry_apply, tensor_product.curry_apply, mk_apply, tensor_product.mk_apply,
+              uncurry_apply, tensor_product.uncurry_apply, id_apply, lift_tmul, compr₂_apply,
+              restrict_scalars_apply, function.comp_app, to_fun_eq_coe, lcurry_apply,
+              linear_map.comp_apply] })
 
 end comm_semiring
 
@@ -301,17 +304,17 @@ lemma mul_assoc' (mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] 
       mul (a₁ ⊗ₜ[R] b₁) (mul (a₂ ⊗ₜ[R] b₂) (a₃ ⊗ₜ[R] b₃))) :
   ∀ (x y z : A ⊗[R] B), mul (mul x y) z = mul x (mul y z) :=
 begin
-    intros,
-    apply tensor_product.induction_on x,
-    { simp only [linear_map.map_zero, linear_map.zero_apply], },
-    apply tensor_product.induction_on y,
-    { simp only [linear_map.map_zero, forall_const, linear_map.zero_apply], },
-    apply tensor_product.induction_on z,
-    { simp only [linear_map.map_zero, forall_const], },
-    { intros, simp only [h], },
-    { intros, simp only [linear_map.map_add, *], },
-    { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
-    { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
+  intros,
+  apply tensor_product.induction_on x,
+  { simp only [linear_map.map_zero, linear_map.zero_apply], },
+  apply tensor_product.induction_on y,
+  { simp only [linear_map.map_zero, forall_const, linear_map.zero_apply], },
+  apply tensor_product.induction_on z,
+  { simp only [linear_map.map_zero, forall_const], },
+  { intros, simp only [h], },
+  { intros, simp only [linear_map.map_add, *], },
+  { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
+  { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
 end
 
 lemma mul_assoc (x y z : A ⊗[R] B) : mul (mul x y) z = mul x (mul y z) :=
@@ -564,27 +567,27 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
   map_mul' := λ x y,
   begin
     apply tensor_product.induction_on x,
-    { simp, },
+    { simp only [map_zero, zero_mul] },
     { intros ab₁ c₁,
       apply tensor_product.induction_on y,
-      { simp, },
+      { simp only [map_zero, mul_zero] },
       { intros ab₂ c₂,
         apply tensor_product.induction_on ab₁,
-        { simp, },
+        { simp only [zero_tmul, map_zero, zero_mul] },
         { intros a₁ b₁,
           apply tensor_product.induction_on ab₂,
-          { simp, },
-          { simp [w₁], },
+          { simp only [zero_tmul, map_zero, mul_zero] },
+          { intros, simp only [tmul_mul_tmul, w₁] },
           { intros x₁ x₂ h₁ h₂,
-            simp at h₁ h₂,
-            simp [mul_add, add_tmul, h₁, h₂], }, },
+            simp only [tmul_mul_tmul] at h₁ h₂,
+            simp only [tmul_mul_tmul, mul_add, add_tmul, map_add, h₁, h₂] } },
         { intros x₁ x₂ h₁ h₂,
-          simp at h₁ h₂,
-          simp [add_mul, add_tmul, h₁, h₂], }, },
+          simp only [tmul_mul_tmul] at h₁ h₂,
+          simp only [tmul_mul_tmul, add_mul, add_tmul, map_add, h₁, h₂] } },
       { intros x₁ x₂ h₁ h₂,
-        simp [mul_add, add_mul, h₁, h₂], }, },
+        simp only [tmul_mul_tmul, map_add, mul_add, add_mul, h₁, h₂], }, },
     { intros x₁ x₂ h₁ h₂,
-      simp [mul_add, add_mul, h₁, h₂], }
+      simp only [tmul_mul_tmul, map_add, mul_add, add_mul, h₁, h₂], }
   end,
   commutes' := λ r, by simp [w₂],
   .. f }

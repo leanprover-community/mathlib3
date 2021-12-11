@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import logic.unique
-import logic.relation
 import order.boolean_algebra
 
 /-!
@@ -447,6 +446,11 @@ lemma not_subset_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
   ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
 by simp [subset_def]
 
+lemma univ_unique [unique α] : @set.univ α = {default α} :=
+set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x $ default α
+
+/-! ### Diagonal -/
+
 /-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
 
@@ -678,7 +682,7 @@ begin
 end
 
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
-ssubset_iff_insert.2 ⟨a, h, subset.refl _⟩
+ssubset_iff_insert.2 ⟨a, h, subset.rfl⟩
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, or.left_comm
@@ -765,12 +769,21 @@ ne_empty_iff_nonempty
 instance unique_singleton (a : α) : unique ↥({a} : set α) :=
 ⟨⟨⟨a, mem_singleton a⟩⟩, λ ⟨x, h⟩, subtype.eq h⟩
 
-lemma eq_singleton_iff_unique_mem {s : set α} {a : α} : s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
+lemma eq_singleton_iff_unique_mem : s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
 subset.antisymm_iff.trans $ and.comm.trans $ and_congr_left' singleton_subset_iff
 
-lemma eq_singleton_iff_nonempty_unique_mem {s : set α} {a : α} :
-  s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
+lemma eq_singleton_iff_nonempty_unique_mem : s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
 eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩, λ ⟨x, h⟩, H x h ▸ h⟩
+
+lemma exists_eq_singleton_iff_nonempty_unique_mem :
+  (∃ a : α, s = {a}) ↔ (s.nonempty ∧ ∀ a b ∈ s, a = b) :=
+begin
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨a, rfl⟩,
+    refine ⟨set.singleton_nonempty a, λ b c hb hc, hb.trans hc.symm⟩ },
+  { obtain ⟨a, ha⟩ := h.1,
+    refine ⟨a, set.eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, (h.2 b a hb ha)⟩⟩ },
+end
 
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
 @[simp] lemma default_coe_singleton (x : α) :
@@ -1464,9 +1477,8 @@ instance (f : α → β) (s : set α) [nonempty s] : nonempty (f '' s) :=
   f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
 ball_image_iff
 
-theorem image_preimage_subset (f : α → β) (s : set β) :
-  f '' (f ⁻¹' s) ⊆ s :=
-image_subset_iff.2 (subset.refl _)
+theorem image_preimage_subset (f : α → β) (s : set β) : f '' (f ⁻¹' s) ⊆ s :=
+image_subset_iff.2 subset.rfl
 
 theorem subset_preimage_image (f : α → β) (s : set α) :
   s ⊆ f ⁻¹' (f '' s) :=
@@ -1723,7 +1735,11 @@ theorem image_subset_range (f : α → β) (s) : f '' s ⊆ range f :=
 by rw ← image_univ; exact image_subset _ (subset_univ _)
 
 theorem mem_range_of_mem_image (f : α → β) (s) {x : β} (h : x ∈ f '' s) : x ∈ range f :=
-mem_of_mem_of_subset h $ image_subset_range f s
+image_subset_range f s h
+
+lemma nonempty.preimage' {s : set β} (hs : s.nonempty) {f : α → β} (hf : s ⊆ set.range f) :
+  (f ⁻¹' s).nonempty :=
+let ⟨y, hy⟩ := hs, ⟨x, hx⟩ := hf hy in ⟨x, set.mem_preimage.2 $ hx.symm ▸ hy⟩
 
 theorem range_comp (g : α → β) (f : ι → α) : range (g ∘ f) = g '' range f :=
 subset.antisymm
@@ -2534,8 +2550,7 @@ variable {α : Type*}
 def inclusion {s t : set α} (h : s ⊆ t) : s → t :=
 λ x : s, (⟨x, h x.2⟩ : t)
 
-@[simp] lemma inclusion_self {s : set α} (x : s) :
-  inclusion (set.subset.refl _) x = x :=
+@[simp] lemma inclusion_self {s : set α} (x : s) : inclusion subset.rfl x = x :=
 by { cases x, refl }
 
 @[simp] lemma inclusion_right {s t : set α} (h : s ⊆ t) (x : t) (m : (x : α) ∈ s) :
@@ -2639,6 +2654,11 @@ lemma mem_image2_iff (hf : injective2 f) : f a b ∈ image2 f s t ↔ a ∈ s �
 /-- image2 is monotone with respect to `⊆`. -/
 lemma image2_subset (hs : s ⊆ s') (ht : t ⊆ t') : image2 f s t ⊆ image2 f s' t' :=
 by { rintro _ ⟨a, b, ha, hb, rfl⟩, exact mem_image2_of_mem (hs ha) (ht hb) }
+
+lemma image2_subset_left (ht : t ⊆ t') : image2 f s t ⊆ image2 f s t' := image2_subset subset.rfl ht
+
+lemma image2_subset_right (hs : s ⊆ s') : image2 f s t ⊆ image2 f s' t :=
+image2_subset hs subset.rfl
 
 lemma forall_image2_iff {p : γ → Prop} :
   (∀ z ∈ image2 f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=

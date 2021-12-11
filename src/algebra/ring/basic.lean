@@ -344,6 +344,30 @@ add_decl_doc ring_hom.to_monoid_hom
 The `simp`-normal form is `(f : R →+ S)`. -/
 add_decl_doc ring_hom.to_add_monoid_hom
 
+section ring_hom_class
+
+/-- `ring_hom_class F R S` states that `F` is a type of (semi)ring homomorphisms.
+You should extend this class when you extend `ring_hom`.
+
+This extends from both `monoid_hom_class` and `monoid_with_zero_hom_class` in
+order to put the fields in a sensible order, even though
+`monoid_with_zero_hom_class` already extends `monoid_hom_class`. -/
+class ring_hom_class (F : Type*) (R S : out_param Type*)
+  [non_assoc_semiring R] [non_assoc_semiring S]
+  extends monoid_hom_class F R S, add_monoid_hom_class F R S, monoid_with_zero_hom_class F R S
+
+variables {F : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [ring_hom_class F α β]
+
+/-- Ring homomorphisms preserve `bit0`. -/
+@[simp] lemma map_bit0 (f : F) (a : α) : (f (bit0 a) : β) = bit0 (f a) :=
+map_add _ _ _
+
+/-- Ring homomorphisms preserve `bit1`. -/
+@[simp] lemma map_bit1 (f : F) (a : α) : (f (bit1 a) : β) = bit1 (f a) :=
+by simp [bit1]
+
+end ring_hom_class
+
 namespace ring_hom
 
 section coe
@@ -356,6 +380,16 @@ variables {rα : non_assoc_semiring α} {rβ : non_assoc_semiring β}
 
 include rα rβ
 
+instance : ring_hom_class (α →+* β) α β :=
+{ coe := ring_hom.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_add := ring_hom.map_add',
+  map_zero := ring_hom.map_zero',
+  map_mul := ring_hom.map_mul',
+  map_one := ring_hom.map_one' }
+
+/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+-/
 instance : has_coe_to_fun (α →+* β) (λ _, α → β) := ⟨ring_hom.to_fun⟩
 
 initialize_simps_projections ring_hom (to_fun → apply)
@@ -396,19 +430,19 @@ include rα rβ
 variables (f : α →+* β) {x y : α} {rα rβ}
 
 theorem congr_fun {f g : α →+* β} (h : f = g) (x : α) : f x = g x :=
-congr_arg (λ h : α →+* β, h x) h
+fun_like.congr_fun h x
 
 theorem congr_arg (f : α →+* β) {x y : α} (h : x = y) : f x = f y :=
-congr_arg (λ x : α, f x) h
+fun_like.congr_arg f h
 
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
-by cases f; cases g; cases h; refl
+fun_like.coe_injective h
 
 @[ext] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_inj (funext h)
+fun_like.ext _ _ h
 
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, ext h⟩
+fun_like.ext_iff
 
 @[simp] lemma mk_coe (f : α →+* β) (h₁ h₂ h₃ h₄) : ring_hom.mk f h₁ h₂ h₃ h₄ = f :=
 ext $ λ _, rfl
@@ -420,22 +454,22 @@ theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (
 λ f g h, ext (λ x, monoid_hom.congr_fun h x)
 
 /-- Ring homomorphisms map zero to zero. -/
-@[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
+protected lemma map_zero (f : α →+* β) : f 0 = 0 := map_zero f
 
 /-- Ring homomorphisms map one to one. -/
-@[simp] lemma map_one (f : α →+* β) : f 1 = 1 := f.map_one'
+protected lemma map_one (f : α →+* β) : f 1 = 1 := map_one f
 
 /-- Ring homomorphisms preserve addition. -/
-@[simp] lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := f.map_add' a b
+protected lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := map_add f a b
 
 /-- Ring homomorphisms preserve multiplication. -/
-@[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
+protected lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := map_mul f a b
 
 /-- Ring homomorphisms preserve `bit0`. -/
-@[simp] lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) := map_add _ _ _
+protected lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) := map_add _ _ _
 
 /-- Ring homomorphisms preserve `bit1`. -/
-@[simp] lemma map_bit1 (f : α →+* β) (a : α) : f (bit1 a) = bit1 (f a) :=
+protected lemma map_bit1 (f : α →+* β) (a : α) : f (bit1 a) = bit1 (f a) :=
 by simp [bit1]
 
 /-- `f : R →+* S` has a trivial codomain iff `f 1 = 0`. -/
@@ -526,7 +560,7 @@ include rβ rγ
 
 lemma cancel_right {g₁ g₂ : β →+* γ} {f : α →+* β} (hf : surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, ring_hom.ext $ (forall_iff_forall_surj hf).1 (ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, ring_hom.ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
 
 lemma cancel_left {g : β →+* γ} {f₁ f₂ : α →+* β} (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
@@ -581,6 +615,10 @@ protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
+
+lemma has_dvd.dvd.linear_comb {d x y : α} (hdx : d ∣ x) (hdy : d ∣ y) (a b : α) :
+  d ∣ (a * x + b * y) :=
+dvd_add (hdx.mul_left a) (hdy.mul_left b)
 
 end comm_semiring
 
@@ -740,12 +778,12 @@ lemma is_unit.neg_iff [ring α] (a : α) : is_unit (-a) ↔ is_unit a :=
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/
-@[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
-(f : α →+ β).map_neg x
+protected theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
+map_neg f x
 
 /-- Ring homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
-  f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
+protected theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
+  f (x - y) = (f x) - (f y) := map_sub f x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
 theorem injective_iff {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
@@ -953,7 +991,7 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
-  This is imlemented as a mixin for `ring α`.
+  This is implemented as a mixin for `ring α`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
 @[protect_proj] class is_domain (α : Type u) [ring α]
   extends no_zero_divisors α, nontrivial α : Prop
@@ -984,7 +1022,7 @@ section comm_ring
 variables [comm_ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_domain.to_comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero α :=
+instance is_domain.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero α :=
 { ..comm_semiring.to_comm_monoid_with_zero, ..is_domain.to_cancel_monoid_with_zero }
 
 lemma mul_self_eq_mul_self_iff {a b : α} : a * a = b * b ↔ a = b ∨ a = -b :=

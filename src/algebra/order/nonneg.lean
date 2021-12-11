@@ -44,21 +44,27 @@ namespace nonneg
 /-- This instance uses data fields from `subtype.partial_order` to help type-class inference.
 The `set.Ici` data fields are definitionally equal, but that requires unfolding semireducible
 definitions, so type-class inference won't see this. -/
-instance order_bot [partial_order α] {a : α} : order_bot {x : α // a ≤ x} :=
-{ ..subtype.partial_order _, ..set.Ici.order_bot }
+instance order_bot [preorder α] {a : α} : order_bot {x : α // a ≤ x} :=
+{ ..set.Ici.order_bot }
+
+lemma bot_eq [preorder α] {a : α} : (⊥ : {x : α // a ≤ x}) = ⟨a, le_rfl⟩ := rfl
 
 instance no_top_order [partial_order α] [no_top_order α] {a : α} : no_top_order {x : α // a ≤ x} :=
 set.Ici.no_top_order
 
-/-- This instance uses data fields from `subtype.partial_order` to help type-class inference.
-The `set.Ici` data fields are definitionally equal, but that requires unfolding semireducible
-definitions, so type-class inference won't see this. -/
-instance semilattice_inf_bot [semilattice_inf α] {a : α} : semilattice_inf_bot {x : α // a ≤ x} :=
-{ ..nonneg.order_bot, ..set.Ici.semilattice_inf_bot }
+instance semilattice_inf [semilattice_inf α] {a : α} : semilattice_inf {x : α // a ≤ x} :=
+set.Ici.semilattice_inf
 
 instance densely_ordered [preorder α] [densely_ordered α] {a : α} :
   densely_ordered {x : α // a ≤ x} :=
 show densely_ordered (Ici a), from set.densely_ordered
+
+/-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order`. -/
+@[reducible]
+protected noncomputable def conditionally_complete_linear_order
+  [conditionally_complete_linear_order α] {a : α} :
+  conditionally_complete_linear_order {x : α // a ≤ x} :=
+{ .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩ _ }
 
 /-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order_bot`.
 
@@ -71,10 +77,9 @@ protected noncomputable def conditionally_complete_linear_order_bot
   conditionally_complete_linear_order_bot {x : α // a ≤ x} :=
 { cSup_empty := (function.funext_iff.1
     (@subset_Sup_def α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩) ∅).trans $ subtype.eq $
-      by { cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
+      by { rw bot_eq, cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
   ..nonneg.order_bot,
-  ..(by apply_instance : linear_order {x : α // a ≤ x}),
-  .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩ _ }
+  ..nonneg.conditionally_complete_linear_order }
 
 instance inhabited [preorder α] {a : α} : inhabited {x : α // a ≤ x} :=
 ⟨⟨a, le_rfl⟩⟩

@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.fin.basic
+import data.fin.vec_notation
 import data.equiv.basic
 import tactic.norm_num
 
@@ -50,17 +50,31 @@ non-dependent version and `prod_equiv_pi_fin_two` for a version with inputs `α 
   left_inv := λ f, funext $ fin.forall_fin_two.2 ⟨rfl, rfl⟩,
   right_inv := λ ⟨x, y⟩, rfl }
 
+lemma fin.preimage_apply_01_prod {α : fin 2 → Type u} (s : set (α 0)) (t : set (α 1)) :
+  (λ f : Π i, α i, (f 0, f 1)) ⁻¹' (s.prod t) =
+    set.pi set.univ (fin.cons s $ fin.cons t fin.elim0) :=
+begin
+  ext f,
+  have : (fin.cons s (fin.cons t fin.elim0) : Π i, set (α i)) 1 = t := rfl,
+  simp [fin.forall_fin_two, this]
+end
+
+lemma fin.preimage_apply_01_prod' {α : Type u} (s t : set α) :
+  (λ f : fin 2 → α, (f 0, f 1)) ⁻¹' (s.prod t) = set.pi set.univ ![s, t] :=
+fin.preimage_apply_01_prod s t
+
 /-- A product space `α × β` is equivalent to the space `Π i : fin 2, γ i`, where
 `γ = fin.cons α (fin.cons β fin_zero_elim)`. See also `pi_fin_two_equiv` and
 `fin_two_arrow_equiv`. -/
 @[simps {fully_applied := ff }] def prod_equiv_pi_fin_two (α β : Type u) :
-  α × β ≃ Π i : fin 2, @fin.cons _ (λ _, Type u) α (fin.cons β fin_zero_elim) i :=
+  α × β ≃ Π i : fin 2, ![α, β] i :=
 (pi_fin_two_equiv (fin.cons α (fin.cons β fin_zero_elim))).symm
 
 /-- The space of functions `fin 2 → α` is equivalent to `α × α`. See also `pi_fin_two_equiv` and
 `prod_equiv_pi_fin_two`. -/
-@[simps {fully_applied := ff}] def fin_two_arrow_equiv (α : Type*) : (fin 2 → α) ≃ α × α :=
-pi_fin_two_equiv (λ _, α)
+@[simps { fully_applied := ff }] def fin_two_arrow_equiv (α : Type*) : (fin 2 → α) ≃ α × α :=
+{ inv_fun := λ x, ![x.1, x.2],
+  .. pi_fin_two_equiv (λ _, α) }
 
 /-- `Π i : fin 2, α i` is order equivalent to `α 0 × α 1`. See also `order_iso.fin_two_arrow_equiv`
 for a non-dependent version. -/
@@ -72,7 +86,7 @@ def order_iso.pi_fin_two_iso (α : fin 2 → Type u) [Π i, preorder (α i)] :
 /-- The space of functions `fin 2 → α` is order equivalent to `α × α`. See also
 `order_iso.pi_fin_two_iso`. -/
 def order_iso.fin_two_arrow_iso (α : Type*) [preorder α] : (fin 2 → α) ≃o α × α :=
-order_iso.pi_fin_two_iso (λ _, α)
+{ to_equiv := fin_two_arrow_equiv α, .. order_iso.pi_fin_two_iso (λ _, α) }
 
 /-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
 def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=
@@ -311,17 +325,15 @@ lemma coe_fin_rotate {n : ℕ} (i : fin n.succ) :
 by rw [fin_rotate_succ_apply, fin.coe_add_one i]
 
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
+@[simps]
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
-{ to_fun := λ x, ⟨x.2.1 + n * x.1.1,
+{ to_fun := λ x, ⟨x.2 + n * x.1,
     calc x.2.1 + n * x.1.1 + 1
         = x.1.1 * n + x.2.1 + 1 : by ac_refl
     ... ≤ x.1.1 * n + n : nat.add_le_add_left x.2.2 _
     ... = (x.1.1 + 1) * n : eq.symm $ nat.succ_mul _ _
     ... ≤ m * n : nat.mul_le_mul_right _ x.1.2⟩,
-  inv_fun := λ x,
-    have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero x.1 $ by subst H; from x.2,
-    (⟨x.1 / n, (nat.div_lt_iff_lt_mul _ _ H).2 x.2⟩,
-     ⟨x.1 % n, nat.mod_lt _ H⟩),
+  inv_fun := λ x, (x.div_nat, x.mod_nat),
   left_inv := λ ⟨x, y⟩,
     have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero y.1 $ H ▸ y.2,
     prod.ext

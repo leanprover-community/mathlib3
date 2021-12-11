@@ -3,7 +3,9 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin, Bhavik Mehta
 -/
-import category_theory.natural_isomorphism
+import category_theory.isomorphism
+import category_theory.functor_category
+import category_theory.eq_to_hom
 
 /-!
 # Comma categories
@@ -126,6 +128,12 @@ def snd : comma L R ⥤ B :=
 @[simps]
 def nat_trans : fst L R ⋙ L ⟶ snd L R ⋙ R :=
 { app := λ X, X.hom }
+
+@[simp] lemma eq_to_hom_left (X Y : comma L R) (H : X = Y) :
+  comma_morphism.left (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
+
+@[simp] lemma eq_to_hom_right (X Y : comma L R) (H : X = Y) :
+  comma_morphism.right (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
 
 section
 variables {L₁ L₂ L₃ : A ⥤ T} {R₁ R₂ R₃ : B ⥤ T}

@@ -291,17 +291,27 @@ the statement only requires `[has_star R] [has_star A] [has_scalar R A]`.
 If used as `[comm_ring R] [star_ring R] [semiring A] [star_ring A] [algebra R A]`, this represents a
 star algebra.
 -/
-class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scalar R A] :=
-(star_smul : ∀ (r : R) (a : A), star (r • a) = star r • star a)
+class star_module (R : Type u) (A : Type v) [has_star R] [has_star A]
+  [has_scalar R A] [has_scalar Rᵐᵒᵖ A] :=
+(star_smul : ∀ (r : R) (a : A), star (r • a) = op (star r) • star a)
 
 export star_module (star_smul)
 attribute [simp] star_smul
 
-/-- A commutative star monoid is a star module over itself via `monoid.to_mul_action`. -/
-instance star_monoid.to_star_module [comm_monoid R] [star_monoid R] : star_module R R :=
-⟨star_mul'⟩
+/-- A star monoid is a star module over itself via `monoid.to_mul_action`. -/
+instance star_monoid.to_star_module [monoid R] [star_monoid R] : star_module R R :=
+⟨star_mul⟩
 
 namespace ring_hom_inv_pair
+
+/-- Instance needed to define star-linear maps over a noncommutative star ring -/
+instance [semiring R] [star_ring R] :
+  ring_hom_inv_pair _ _ :=
+ring_hom_inv_pair.of_ring_equiv (star_ring_equiv : R ≃+* Rᵐᵒᵖ)
+instance [semiring R] [star_ring R] :
+  ring_hom_inv_pair
+    (↑(star_ring_equiv.symm : Rᵐᵒᵖ ≃+* R) : Rᵐᵒᵖ →+* R) ↑(star_ring_equiv : R ≃+* Rᵐᵒᵖ) :=
+ring_hom_inv_pair.symm _ _
 
 /-- Instance needed to define star-linear maps over a commutative star ring
 (ex: conjugate-linear maps when R = ℂ).  -/
@@ -330,8 +340,9 @@ instance : star_monoid (units R) :=
 @[simp] lemma coe_star (u : units R) : ↑(star u) = (star ↑u : R) := rfl
 @[simp] lemma coe_star_inv (u : units R) : ↑(star u)⁻¹ = (star ↑u⁻¹ : R) := rfl
 
-instance {A : Type*} [has_star A] [has_scalar R A] [star_module R A] : star_module (units R) A :=
-⟨λ u a, (star_smul ↑u a : _)⟩
+-- instance {A : Type*} [has_star A] [has_scalar R A] [has_scalar Rᵐᵒᵖ A] [star_module R A] :
+--   star_module (units R) A :=
+-- ⟨λ u a, (star_smul ↑u a : _)⟩
 
 end units
 
@@ -373,7 +384,7 @@ instance [semiring R] [star_ring R] : star_ring (Rᵐᵒᵖ) :=
 
 end mul_opposite
 
-/-- A commutative star monoid is a star module over its opposite via
-`monoid.to_opposite_mul_action`. -/
-instance star_monoid.to_opposite_star_module [comm_monoid R] [star_monoid R] : star_module Rᵐᵒᵖ R :=
-⟨λ r s, star_mul' s r.unop⟩
+-- /-- A commutative star monoid is a star module over its opposite via
+-- `monoid.to_opposite_mul_action`. -/
+-- instance star_monoid.to_opposite_star_module [comm_monoid R] [star_monoid R] : star_module Rᵐᵒᵖ R :=
+-- ⟨λ r s, star_mul s r.unop⟩

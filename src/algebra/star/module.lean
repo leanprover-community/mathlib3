@@ -28,8 +28,20 @@ It is defined on a star algebra `A` over the base ring `R`.
 then `star` is a semilinear equivalence. -/
 @[simps]
 def star_linear_equiv (R : Type*) {A : Type*}
-  [comm_ring R] [star_ring R] [semiring A] [star_ring A] [module R A] [star_module R A]  :
+  [comm_semiring R] [star_ring R] [semiring A] [star_ring A] [module R A] [module Rᵐᵒᵖ A]
+  [is_central_scalar R A] [star_module R A] :
     A ≃ₗ⋆[R] A :=
+{ to_fun := star,
+  map_smul' := λ r a, (star_smul _ _).trans (op_smul_eq_smul _ _),
+  .. star_add_equiv }
+
+/-- If `A` is a module over a non-commutative `R` with compatible actions,
+then `star` is a semilinear equivalence. -/
+@[simps]
+def star_linear_equiv' (R : Type*) {A : Type*}
+  [semiring R] [star_ring R] [semiring A] [star_ring A] [module R A] [module Rᵐᵒᵖ A]
+  [star_module R A]  :
+    A ≃ₛₗ[(↑(star_ring_equiv : R ≃+* Rᵐᵒᵖ) : R →+* Rᵐᵒᵖ)] A :=
 { to_fun := star,
   map_smul' := star_smul,
   .. star_add_equiv }

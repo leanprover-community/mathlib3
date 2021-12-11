@@ -35,7 +35,8 @@ open_locale direct_sum
 
 variables (R : Type uR) (A : ι → Type uA) {B : Type uB} [decidable_eq ι]
 
-variables [comm_semiring R] [Π i, add_comm_monoid (A i)] [Π i, module R (A i)]
+variables [comm_semiring R] [Π i, add_comm_monoid (A i)]
+variables [Π i, module R (A i)] [Π i, module Rᵐᵒᵖ (A i)]
 variables [add_monoid ι] [gsemiring A]
 
 section
@@ -49,6 +50,8 @@ class galgebra :=
   graded_monoid.mk _ (to_fun (r * s)) = ⟨_, graded_monoid.ghas_mul.mul (to_fun r) (to_fun s)⟩)
 (commutes : ∀ r x, graded_monoid.mk _ (to_fun r) * x = x * ⟨_, to_fun r⟩)
 (smul_def : ∀ r (x : graded_monoid A), graded_monoid.mk x.1 (r • x.2) = ⟨_, to_fun (r)⟩ * x)
+(op_smul_def : ∀ (x : graded_monoid A) r,
+  graded_monoid.mk x.1 (mul_opposite.op r • x.2) = x * ⟨_, to_fun (r)⟩)
 
 end
 
@@ -81,6 +84,16 @@ instance : algebra R (⨁ i, A i) :=
       add_monoid_hom.mul_apply],
     rw [direct_sum.of_mul_of, ←of_smul],
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.smul_def r ⟨i, xi⟩),
+  end,
+  op_smul_def' := λ x r, begin
+    change distrib_mul_action.to_add_monoid_hom _ (mul_opposite.op r) x =
+      add_monoid_hom.mul.flip (direct_sum.of _ _ _) x,
+    apply add_monoid_hom.congr_fun _ x,
+    ext i xi : 2,
+    dsimp only [add_monoid_hom.comp_apply, distrib_mul_action.to_add_monoid_hom_apply,
+      add_monoid_hom.mul_apply, add_monoid_hom.flip_apply],
+    rw [direct_sum.of_mul_of, ←of_smul],
+    apply dfinsupp.single_eq_of_sigma_eq (galgebra.op_smul_def ⟨i, xi⟩ r),
   end }
 
 lemma algebra_map_apply (r : R) :
@@ -133,7 +146,8 @@ instance algebra.direct_sum_galgebra {R A : Type*} [decidable_eq ι]
   map_mul := λ a b, sigma.ext (zero_add _).symm (heq_of_eq $ (algebra_map R A).map_mul a b),
   commutes := λ r ⟨ai, a⟩, sigma.ext ((zero_add _).trans (add_zero _).symm)
                                     (heq_of_eq $ algebra.commutes _ _),
-  smul_def := λ r ⟨ai, a⟩, sigma.ext (zero_add _).symm (heq_of_eq $ algebra.smul_def _ _) }
+  smul_def := λ r ⟨ai, a⟩, sigma.ext (zero_add _).symm (heq_of_eq $ algebra.smul_def _ _),
+  op_smul_def := λ ⟨ai, a⟩ r, sigma.ext (add_zero _).symm (heq_of_eq $ algebra.op_smul_def _ _)  }
 
 namespace submodule
 

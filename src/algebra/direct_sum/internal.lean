@@ -164,7 +164,8 @@ instance galgebra [add_monoid ι]
   map_mul := λ x y, sigma.subtype_ext (add_zero 0).symm $ (algebra_map S R).map_mul _ _,
   commutes := λ r ⟨i, xi⟩,
     sigma.subtype_ext ((zero_add i).trans (add_zero i).symm) $ algebra.commutes _ _,
-  smul_def := λ r ⟨i, xi⟩, sigma.subtype_ext (zero_add i).symm $ algebra.smul_def _ _ }
+  smul_def := λ r ⟨i, xi⟩, sigma.subtype_ext (zero_add i).symm $ algebra.smul_def _ _,
+  op_smul_def := λ ⟨i, xi⟩ r, sigma.subtype_ext (add_zero i).symm $ algebra.op_smul_def _ _  }
 
 @[simp] lemma set_like.coe_galgebra_to_fun [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]

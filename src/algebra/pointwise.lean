@@ -789,7 +789,7 @@ image_subset_image (product_subset_product hs ht)
 end has_mul
 
 section mul_zero_class
-variables [mul_zero_class α] {s t : finset α}
+variables [mul_zero_class α]
 
 lemma mul_singleton_zero_subset (s : finset α) : s * {0} ⊆ {0} := by simp [subset_iff, mem_mul]
 

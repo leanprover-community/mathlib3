@@ -1445,6 +1445,12 @@ lemma conj_transpose_reindex [has_star α] (eₘ : m ≃ l) (eₙ : n ≃ o) (M 
   (reindex eₘ eₙ M)ᴴ = (reindex eₙ eₘ Mᴴ) :=
 rfl
 
+@[simp]
+lemma minor_mul_transpose_minor [fintype n] [fintype m] [semiring α]
+  (e : n ≃ m) (M : matrix n m α) :
+  (M.minor id e) ⬝ (Mᵀ).minor e id = M ⬝ Mᵀ :=
+by rw [minor_mul_equiv, minor_id_id]
+
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]
 def sub_left {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin l) α :=

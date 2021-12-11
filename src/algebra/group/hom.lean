@@ -680,23 +680,23 @@ lemma monoid_with_zero_hom.comp_assoc {Q : Type*}
 lemma one_hom.cancel_right [has_one M] [has_one N] [has_one P]
   {g₁ g₂ : one_hom N P} {f : one_hom M N} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, one_hom.ext $ (forall_iff_forall_surj hf).1 (one_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, one_hom.ext $ hf.forall.2 (one_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
 @[to_additive]
 lemma mul_hom.cancel_right [has_mul M] [has_mul N] [has_mul P]
   {g₁ g₂ : mul_hom N P} {f : mul_hom M N} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, mul_hom.ext $ (forall_iff_forall_surj hf).1 (mul_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, mul_hom.ext $ hf.forall.2 (mul_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
 @[to_additive]
 lemma monoid_hom.cancel_right
   [mul_one_class M] [mul_one_class N] [mul_one_class P]
   {g₁ g₂ : N →* P} {f : M →* N} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, monoid_hom.ext $ (forall_iff_forall_surj hf).1 (monoid_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, monoid_hom.ext $ hf.forall.2 (monoid_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
 lemma monoid_with_zero_hom.cancel_right
   [mul_zero_one_class M] [mul_zero_one_class N] [mul_zero_one_class P]
   {g₁ g₂ : monoid_with_zero_hom N P} {f : monoid_with_zero_hom M N} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, monoid_with_zero_hom.ext $ (forall_iff_forall_surj hf).1 (monoid_with_zero_hom.ext_iff.1 h),
+⟨λ h, monoid_with_zero_hom.ext $ hf.forall.2 (monoid_with_zero_hom.ext_iff.1 h),
  λ h, h ▸ rfl⟩
 
 @[to_additive]

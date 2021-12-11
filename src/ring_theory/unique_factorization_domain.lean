@@ -974,14 +974,14 @@ end
 include dec dec' dec_irr
 
 theorem eq_factors_of_eq_counts {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
-  (h :  ∀ (p : associates α) (hp : irreducible p), p.count a.factors = p.count b.factors) :
+  (h : ∀ (p : associates α) (hp : irreducible p), p.count a.factors = p.count b.factors) :
   a.factors = b.factors :=
 begin
   obtain ⟨sa, h_sa⟩ := factors_eq_some_iff_ne_zero.mpr ha,
   obtain ⟨sb, h_sb⟩ := factors_eq_some_iff_ne_zero.mpr hb,
   rw [h_sa, h_sb] at h ⊢,
   rw option.some_inj,
-  have h_count :  ∀ (p : associates α) (hp : irreducible p), sa.count ⟨p, hp⟩ = sb.count ⟨p, hp⟩,
+  have h_count : ∀ (p : associates α) (hp : irreducible p), sa.count ⟨p, hp⟩ = sb.count ⟨p, hp⟩,
   { intros p hp, rw [← count_some, ← count_some, h p hp] },
   apply multiset.to_finsupp.injective,
   ext ⟨p, hp⟩,
@@ -989,7 +989,7 @@ begin
 end
 
 theorem eq_of_eq_counts {a b : associates α} (ha : a ≠ 0) (hb  : b ≠ 0)
-  (h :  ∀ (p : associates α), irreducible p → p.count a.factors = p.count b.factors) : a = b :=
+  (h : ∀ (p : associates α), irreducible p → p.count a.factors = p.count b.factors) : a = b :=
 eq_of_factors_eq_factors (eq_factors_of_eq_counts ha hb h)
 
 omit dec_irr
@@ -1181,7 +1181,7 @@ begin
   refine ⟨λ h, associates.le_of_count_ne_zero (associates.mk_ne_zero.mpr ha0)
     ((associates.irreducible_mk p).mpr hp) h, λ h, _⟩,
   { rw [← pow_one (associates.mk p), associates.prime_pow_dvd_iff_le
-    (associates.mk_ne_zero.mpr ha0)  ((associates.irreducible_mk p).mpr hp)] at h,
+      (associates.mk_ne_zero.mpr ha0) ((associates.irreducible_mk p).mpr hp)] at h,
     exact (zero_lt_one.trans_le h).ne' }
 end
 

@@ -6,7 +6,6 @@ Authors: Kenny Lau, Ken Lee, Chris Hughes
 import algebra.big_operators.basic
 import data.fintype.basic
 import data.int.gcd
-import data.set.pairwise
 import ring_theory.coprime.basic
 
 /-!
@@ -55,7 +54,7 @@ theorem is_coprime.of_prod_right (H1 : is_coprime x (∏ i in t, s i)) (i : I) (
 is_coprime.prod_right_iff.1 H1 i hit
 
 theorem finset.prod_dvd_of_coprime :
-  ∀ (Hs : set.pairwise (↑t : set I) (is_coprime on s)) (Hs1 : ∀ i ∈ t, s i ∣ z),
+  ∀ (Hs : (t : set I).pairwise (is_coprime on s)) (Hs1 : ∀ i ∈ t, s i ∣ z),
   ∏ x in t, s x ∣ z :=
 finset.induction_on t (λ _ _, one_dvd z)
 begin

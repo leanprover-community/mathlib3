@@ -31,7 +31,7 @@ open category_theory.category
 We work in an preadditive category `C` equipped with an additive shift.
 -/
 variables {C : Type u} [category.{v} C] [preadditive C]
-variables [has_shift C ℤ] [is_equivalence (shift_functor C (0:ℤ))]
+variables [has_shift C ℤ]
 
 variables (X : C)
 
@@ -66,7 +66,7 @@ applying `inv_rotate` gives a triangle that can be thought of as:
 not necessarily equal to `Z`, but it is isomorphic, by the `counit_iso` of `shift C`)
 -/
 @[simps]
-def triangle.inv_rotate (T : triangle C) : triangle C :=
+def triangle.inv_rotate [is_equivalence (shift_functor C (0:ℤ))] (T : triangle C) : triangle C :=
 triangle.mk _ (-T.mor₃⟦(-1:ℤ)⟧' ≫ (shift_shift_neg _ _).hom) T.mor₁
   (T.mor₂ ≫ (shift_neg_shift _ _).inv)
 
@@ -135,7 +135,7 @@ as `Z⟦-1⟧⟦1⟧` is not necessarily equal to `Z`, and `Z'⟦-1⟧⟦1⟧` i
 but they are isomorphic, by the `counit_iso` of `shift C`)
 -/
 @[simps]
-def inv_rotate (f : triangle_morphism T₁ T₂) :
+def inv_rotate [is_equivalence (shift_functor C (0:ℤ))] (f : triangle_morphism T₁ T₂) :
   triangle_morphism (T₁.inv_rotate) (T₂.inv_rotate) :=
 { hom₁ := f.hom₃⟦-1⟧',
   hom₂ := f.hom₁,
@@ -155,6 +155,8 @@ Rotating triangles gives an endofunctor on the category of triangles in `C`.
 def rotate : (triangle C) ⥤ (triangle C) :=
 { obj := triangle.rotate,
   map := λ _ _ f, f.rotate }
+
+variable [is_equivalence (shift_functor C (0:ℤ))]
 
 /--
 The inverse rotation of triangles gives an endofunctor on the category of triangles in `C`.

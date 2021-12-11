@@ -101,7 +101,7 @@ lemma shift_add' (i j : A) :
   f⟦i + j⟧' = (shift_add X i j).hom ≫ f⟦i⟧'⟦j⟧' ≫ (shift_add Y i j).inv :=
 by { symmetry, apply nat_iso.naturality_2 }
 
-@[simp, reassoc] lemma shift_add_hom_comp (i j : A) :
+@[reassoc] lemma shift_add_hom_comp (i j : A) :
   (shift_add X i j).hom ≫ f⟦i⟧'⟦j⟧' = f⟦i + j⟧' ≫ (shift_add Y i j).hom :=
 by rw [shift_add', category.assoc, category.assoc, iso.inv_hom_id, category.comp_id]
 
@@ -148,11 +148,11 @@ begin
     category.assoc],
 end
 
-@[simp, reassoc] lemma shift_add_hom_comp_eq_to_hom₁ (i i' j : A) (h : i = i') :
+@[reassoc] lemma shift_add_hom_comp_eq_to_hom₁ (i i' j : A) (h : i = i') :
   (shift_add X i j).hom ≫ eq_to_hom (by rw h) = eq_to_hom (by rw h) ≫ (shift_add X i' j).hom :=
 by { cases h, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
-@[simp, reassoc] lemma shift_add_hom_comp_eq_to_hom₂ (i j j' : A) (h : j = j') :
+@[reassoc] lemma shift_add_hom_comp_eq_to_hom₂ (i j j' : A) (h : j = j') :
   (shift_add X i j).hom ≫ eq_to_hom (by rw h) = eq_to_hom (by rw h) ≫ (shift_add X i j').hom :=
 by { cases h, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
@@ -161,11 +161,11 @@ by { cases h, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.com
     eq_to_hom (by rw [h₁, h₂]) ≫ (shift_add X i' j').hom :=
 by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
-@[simp, reassoc] lemma eq_to_hom_comp_shift_add_inv₁ (i i' j : A) (h : i = i') :
+@[reassoc] lemma eq_to_hom_comp_shift_add_inv₁ (i i' j : A) (h : i = i') :
   eq_to_hom (by rw h) ≫ (shift_add X i' j).inv = (shift_add X i j).inv ≫ eq_to_hom (by rw h) :=
 by rw [iso.comp_inv_eq, category.assoc, iso.eq_inv_comp, shift_add_hom_comp_eq_to_hom₁]
 
-@[simp, reassoc] lemma eq_to_hom_comp_shift_add_inv₂ (i j j' : A) (h : j = j') :
+@[reassoc] lemma eq_to_hom_comp_shift_add_inv₂ (i j j' : A) (h : j = j') :
   eq_to_hom (by rw h) ≫ (shift_add X i j').inv = (shift_add X i j).inv ≫ eq_to_hom (by rw h) :=
 by rw [iso.comp_inv_eq, category.assoc, iso.eq_inv_comp, shift_add_hom_comp_eq_to_hom₂]
 
@@ -305,7 +305,6 @@ local attribute [simp, reassoc] is_equivalence.functor_unit_iso_comp
 
 variable (A)
 
-@[simp]
 lemma shift_functor_zero_shift_zero (X : C) :
   (shift_zero A X).hom⟦0⟧' =
     (shift_add X 0 0).inv ≫ eq_to_hom (by simp) :=
@@ -338,12 +337,12 @@ begin
   all_goals { simp }
 end
 
-@[simp, reassoc]
+@[simp]
 lemma shift_zero_hom_shift (n : A) (X : C) :
   (shift_zero A X).hom⟦n⟧' = (shift_add X 0 n).inv ≫ eq_to_hom (by simp) :=
 by { convert shift_functor_zero_shift' n X; simp }
 
-@[simp, reassoc]
+@[simp]
 lemma shift_zero_inv_shift (n : A) (X : C) :
   (shift_zero A X).inv⟦n⟧' = eq_to_hom (by simp) ≫ (shift_add X 0 n).hom :=
 begin
@@ -389,6 +388,7 @@ category_theory.iso.ext $ shift_shift_neg_hom_shift _ _
 
 variables (C)
 
+/-- Shifting by `n` and shifting by `-n` forms an equivalence. -/
 @[simps]
 def shift_equiv (n : A) : C ≌ C :=
 { functor := shift_functor C n,

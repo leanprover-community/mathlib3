@@ -135,31 +135,30 @@ prod.add_comm_group
 end add
 
 section smul
-variables (R : Type u) (M : Type v)
+variables {S : Type*} (R : Type u) (M : Type v)
 
-instance [has_mul R] [has_scalar R M] : has_scalar R (tsze R M) :=
-⟨λ r x, (r * x.1, r • x.2)⟩
+instance [has_scalar S R] [has_scalar S M] : has_scalar S (tsze R M) :=
+prod.has_scalar
 
-@[simp] lemma fst_smul [has_mul R] [has_scalar R M] (r : R) (x : tsze R M) :
-  (r • x).fst = r * x.fst := rfl
-@[simp] lemma snd_smul [has_mul R] [has_scalar R M] (r : R) (x : tsze R M) :
+@[simp] lemma fst_smul [has_scalar S R] [has_scalar S M] (r : S) (x : tsze R M) :
+  (r • x).fst = r • x.fst := rfl
+@[simp] lemma snd_smul [has_scalar S R] [has_scalar S M] (r : S) (x : tsze R M) :
   (r • x).snd = r • x.snd := rfl
 
-@[simp] lemma inr_smul [mul_zero_class R] [has_scalar R M] (r : R) (m : M) :
-  (inr (r • m) : tsze R M) = r • inr m :=
-ext (mul_zero _).symm rfl
+@[simp] lemma inr_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_scalar S M]
+  (r : S) (m : M) : (inr (r • m) : tsze R M) = r • inr m :=
+ext (smul_zero' _ _).symm rfl
 
-instance [monoid R] [mul_action R M] : mul_action R (tsze R M) :=
-{ one_smul := λ x, ext (one_mul x.1) (one_smul R x.2) ,
-  mul_smul := λ r₁ r₂ x, ext (mul_assoc r₁ r₂ x.1) (mul_smul r₁ r₂ x.2) }
+instance [monoid S] [mul_action S R] [mul_action S M] : mul_action S (tsze R M) :=
+prod.mul_action
 
-instance [semiring R] [add_monoid M] [distrib_mul_action R M] : distrib_mul_action R (tsze R M) :=
-{ smul_add := λ r x₁ x₂, ext (mul_add r x₁.1 x₂.1) (smul_add r x₁.2 x₂.2),
-  smul_zero := λ r, ext (mul_zero r) (smul_zero r) }
+instance [monoid S] [add_monoid R] [add_monoid M]
+  [distrib_mul_action S R] [distrib_mul_action S M] : distrib_mul_action S (tsze R M) :=
+prod.distrib_mul_action
 
-instance [semiring R] [add_comm_monoid M] [module R M] : module R (tsze R M) :=
-{ add_smul := λ r₁ r₂ x, ext (add_mul r₁ r₂ x.1) (add_smul r₁ r₂ x.2),
-  zero_smul := λ x, ext (zero_mul x.1) (zero_smul R x.2) }
+instance [semiring S] [add_comm_monoid R] [add_comm_monoid M]
+  [module S R] [module S M] : module S (tsze R M) :=
+prod.module
 
 /-- The canonical `R`-linear inclusion `M → triv_sq_zero_ext R M`. -/
 @[simps apply]
@@ -250,16 +249,20 @@ def inl_hom [comm_semiring R] [add_comm_monoid M] [module R M] : R →+* tsze R 
 end mul
 
 section algebra
-variables (R : Type u) (M : Type v)
+variables (S : Type*) (R : Type u) (M : Type v)
 
-instance [comm_semiring R] [add_comm_monoid M] [module R M] : algebra R (tsze R M) :=
+instance [comm_semiring R] [add_comm_monoid M]
+  [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M] : algebra R (tsze R M) :=
 { commutes' := λ r x, mul_comm _ _,
   smul_def' := λ r x, ext rfl $ show r • x.2 = r • x.2 + x.1 • 0, by rw [smul_zero, add_zero],
+  op_smul_def' := λ x r, ext rfl $
+    show mul_opposite.op r • x.2 = x.1 • 0 + r • x.2, by rw [smul_zero, zero_add, op_smul_eq_smul],
   .. triv_sq_zero_ext.module R M,
   .. triv_sq_zero_ext.inl_hom R M }
 
 /-- The canonical `R`-algebra projection `triv_sq_zero_ext R M → R`. -/
-def fst_hom [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₐ[R] R :=
+def fst_hom [comm_semiring R] [add_comm_monoid M]
+  [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M] : tsze R M →ₐ[R] R :=
 { to_fun := fst,
   map_one' := fst_one R M,
   map_mul' := fst_mul R M,

@@ -163,6 +163,9 @@ instance : inhabited (free_algebra R X) := ⟨0⟩
 instance : has_scalar R (free_algebra R X) :=
 { smul := λ r, quot.map ((*) ↑r) (λ a b, rel.mul_compat_right) }
 
+instance has_op_scalar : has_scalar Rᵐᵒᵖ (free_algebra R X) :=
+{ smul := λ r x, x * quot.mk _ r.unop }
+
 instance : algebra R (free_algebra R X) :=
 { to_fun := λ r, quot.mk _ r,
   map_one' := rfl,
@@ -170,7 +173,8 @@ instance : algebra R (free_algebra R X) :=
   map_zero' := rfl,
   map_add' := λ _ _, quot.sound rel.add_scalar,
   commutes' := λ _, by { rintros ⟨⟩, exact quot.sound rel.central_scalar },
-  smul_def' := λ _ _, rfl }
+  smul_def' := λ _ _, rfl,
+  op_smul_def' := λ _ _, rfl }
 
 instance {S : Type*} [comm_ring S] : ring (free_algebra S X) := algebra.semiring_to_ring S
 

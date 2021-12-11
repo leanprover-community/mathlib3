@@ -36,7 +36,7 @@ open_locale direct_sum
 variables (R : Type uR) (A : ι → Type uA) {B : Type uB} [decidable_eq ι]
 
 variables [comm_semiring R] [Π i, add_comm_monoid (A i)]
-variables [Π i, module R (A i)] [Π i, module Rᵐᵒᵖ (A i)]
+variables [Π i, module R (A i)] [Π i, module Rᵐᵒᵖ (A i)] [Π i, is_central_scalar R (A i)]
 variables [add_monoid ι] [gsemiring A]
 
 section
@@ -48,10 +48,19 @@ class galgebra :=
 (map_one : to_fun 1 = graded_monoid.ghas_one.one)
 (map_mul : ∀ r s,
   graded_monoid.mk _ (to_fun (r * s)) = ⟨_, graded_monoid.ghas_mul.mul (to_fun r) (to_fun s)⟩)
-(commutes : ∀ r x, graded_monoid.mk _ (to_fun r) * x = x * ⟨_, to_fun r⟩)
 (smul_def : ∀ r (x : graded_monoid A), graded_monoid.mk x.1 (r • x.2) = ⟨_, to_fun (r)⟩ * x)
 (op_smul_def : ∀ (x : graded_monoid A) r,
   graded_monoid.mk x.1 (mul_opposite.op r • x.2) = x * ⟨_, to_fun (r)⟩)
+
+namespace galgebra
+
+variables {R A}
+
+lemma commutes [galgebra R A] (r : R) (x : graded_monoid A) :
+  graded_monoid.mk _ (to_fun r) * x = x * ⟨_, to_fun r⟩ :=
+(smul_def r x).symm.trans $ ((op_smul_def x r).symm.trans $ congr_arg _ (op_smul_eq_smul _ _)).symm
+
+end galgebra
 
 end
 
@@ -144,8 +153,6 @@ instance algebra.direct_sum_galgebra {R A : Type*} [decidable_eq ι]
 { to_fun := (algebra_map R A).to_add_monoid_hom,
   map_one := (algebra_map R A).map_one,
   map_mul := λ a b, sigma.ext (zero_add _).symm (heq_of_eq $ (algebra_map R A).map_mul a b),
-  commutes := λ r ⟨ai, a⟩, sigma.ext ((zero_add _).trans (add_zero _).symm)
-                                    (heq_of_eq $ algebra.commutes _ _),
   smul_def := λ r ⟨ai, a⟩, sigma.ext (zero_add _).symm (heq_of_eq $ algebra.smul_def _ _),
   op_smul_def := λ ⟨ai, a⟩ r, sigma.ext (add_zero _).symm (heq_of_eq $ algebra.op_smul_def _ _)  }
 

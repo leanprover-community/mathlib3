@@ -162,8 +162,6 @@ instance galgebra [add_monoid ι]
   end,
   map_one := subtype.ext $ by exact (algebra_map S R).map_one,
   map_mul := λ x y, sigma.subtype_ext (add_zero 0).symm $ (algebra_map S R).map_mul _ _,
-  commutes := λ r ⟨i, xi⟩,
-    sigma.subtype_ext ((zero_add i).trans (add_zero i).symm) $ algebra.commutes _ _,
   smul_def := λ r ⟨i, xi⟩, sigma.subtype_ext (zero_add i).symm $ algebra.smul_def _ _,
   op_smul_def := λ ⟨i, xi⟩ r, sigma.subtype_ext (add_zero i).symm $ algebra.op_smul_def _ _  }
 
@@ -171,6 +169,10 @@ instance galgebra [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] (s : S) :
     ↑(@direct_sum.galgebra.to_fun _ S (λ i, A i) _ _ _ _ _ _ _ s) = (algebra_map S R s : R) := rfl
+
+example [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : submodule S R) : module Sᵐᵒᵖ A := submodule.module' _
 
 /-- A direct sum of powers of a submodule of an algebra has a multiplicative structure. -/
 instance nat_power_graded_monoid

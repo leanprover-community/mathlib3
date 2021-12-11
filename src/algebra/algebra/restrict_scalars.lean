@@ -127,12 +127,15 @@ def restrict_scalars.alg_equiv : restrict_scalars R S A ≃ₐ[S] A := alg_equiv
 
 variables [comm_semiring R] [algebra R S]
 
+instance restrict_scalars.op_module : module Rᵐᵒᵖ (restrict_scalars R S A) :=
+module.comp_hom A (algebra_map R S).op
+
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance : algebra R (restrict_scalars R S A) :=
 { smul := (•),
   commutes' := λ r x, algebra.commutes _ _,
   smul_def' := λ _ _, algebra.smul_def _ _,
-  op_smul_def' := λ _ _, algebra.op_smul_def _ _,
+  op_smul_def' := λ x r, algebra.op_smul_def (algebra_map R S r) x,
   .. (algebra_map S A).comp (algebra_map R S) }
 
 end algebra

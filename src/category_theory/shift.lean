@@ -299,9 +299,9 @@ lemma shift_functor_zero_shift_zero (X : C) :
 begin
   rw iso.eq_inv_comp,
   dsimp [shift_functor_zero, shift_zero],
-  simp only [iso.inv_hom_id_app_assoc, is_equivalence.fun_inv_map,
-    equivalence.equivalence_mk'_counit_inv, category.id_comp, as_equivalence_counit,
-    functor.map_comp, equivalence.equivalence_mk'_counit, ← category.assoc],
+  simp only [iso.inv_hom_id_app_assoc, is_equivalence.fun_inv_map, functor.map_comp,
+    equivalence.equivalence_mk'_counit_inv, category.id_comp, ← category.assoc
+    functor.as_equivalence_counit, equivalence.equivalence_mk'_counit],
   erw functor.map_id,
   iterate 3 { rw ← is_iso.eq_comp_inv },
   simpa [← functor.map_inv],

@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 import ring_theory.polynomial.basic
 import ring_theory.principal_ideal_domain
-import ring_theory.adjoin.polynomial
 
 /-!
 # Adjoining elements to form subalgebras

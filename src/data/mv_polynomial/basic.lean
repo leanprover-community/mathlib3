@@ -1136,6 +1136,15 @@ lemma aeval_prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
   aeval f (∏ i in s, φ i) = ∏ i in s, aeval f (φ i) :=
 (mv_polynomial.aeval f).map_prod _ _
 
+lemma adjoin_range_eq_range_aeval :
+  algebra.adjoin R (set.range f) = (mv_polynomial.aeval f).range :=
+by simp only [← algebra.map_top, ← mv_polynomial.adjoin_range_X, alg_hom.map_adjoin,
+  ← set.range_comp, (∘), mv_polynomial.aeval_X]
+
+theorem adjoin_eq_range {s : set S₁} :
+  algebra.adjoin R s = (mv_polynomial.aeval (coe : s → S₁)).range :=
+by rw [← adjoin_range_eq_range_aeval, subtype.range_coe]
+
 end aeval
 
 section aeval_tower

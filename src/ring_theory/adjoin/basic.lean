@@ -10,17 +10,11 @@ import linear_algebra.prod
 # Adjoining elements to form subalgebras
 
 This file develops the basic theory of subalgebras of an R-algebra generated
-by a set of elements. A basic interface for `adjoin` is set up, and various
-results about finitely-generated subalgebras and submodules are proved.
-
-## Definitions
-
-* `fg (S : subalgebra R A)` : A predicate saying that the subalgebra is finitely-generated
-as an A-algebra
+by a set of elements. A basic interface for `adjoin` is set up.
 
 ## Tags
 
-adjoin, algebra, finitely-generated algebra
+adjoin, algebra
 
 -/
 

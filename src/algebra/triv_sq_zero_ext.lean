@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 
 import algebra.algebra.basic
+import linear_algebra.prod
 
 /-!
 # Trivial Square-Zero Extension
@@ -14,6 +15,15 @@ to be the `R`-algebra `R ⊕ M` with multiplication given by
 `(r₁ + m₁) * (r₂ + m₂) = r₁ r₂ + r₁ m₂ + r₂ m₁`.
 
 It is a square-zero extension because `M^2 = 0`.
+
+## Main definitions
+
+* `triv_sq_zero_ext.inl`, `triv_sq_zero_ext.inr`: the canonical inclusions into
+  `triv_sq_zero_ext R M`.
+* `triv_sq_zero_ext.fst`, `triv_sq_zero_ext.snd`: the canonical projections from
+  `triv_sq_zero_ext R M`.
+* `triv_sq_zero_ext.algebra`: the associated `R`-algebra structure.
+
 -/
 
 universes u v w
@@ -27,7 +37,7 @@ to be the `R`-algebra `R × M` with multiplication given by
 
 It is a square-zero extension because `M^2 = 0`.
 -/
-@[nolint has_inhabited_instance] def triv_sq_zero_ext (R : Type u) (M : Type v) :=
+def triv_sq_zero_ext (R : Type u) (M : Type v) :=
 R × M
 
 local notation `tsze` := triv_sq_zero_ext
@@ -69,59 +79,37 @@ function.left_inverse.injective snd_inr
 
 end basic
 
-section add
-variables (R : Type u) (M : Type v)
+/-! ### Structures inherited from `prod`
+
+Additive operators and scalar multiplication operate elementwise. -/
+
+section additive
+
+variables {T : Type*} {S : Type*} {R : Type u} {M : Type v}
+
+instance [inhabited R] [inhabited M] : inhabited (tsze R M) :=
+prod.inhabited
 
 instance [has_zero R] [has_zero M] : has_zero (tsze R M) :=
 prod.has_zero
 
-@[simp] lemma fst_zero [has_zero R] [has_zero M] : (0 : tsze R M).fst = 0 := rfl
-@[simp] lemma snd_zero [has_zero R] [has_zero M] : (0 : tsze R M).snd = 0 := rfl
-@[simp] lemma inl_zero [has_zero R] [has_zero M] : (inl 0 : tsze R M) = 0 := rfl
-@[simp] lemma inr_zero [has_zero R] [has_zero M] : (inr 0 : tsze R M) = 0 := rfl
-
 instance [has_add R] [has_add M] : has_add (tsze R M) :=
 prod.has_add
-
-@[simp] lemma fst_add [has_add R] [has_add M] (x₁ x₂ : tsze R M) :
-  (x₁ + x₂).fst = x₁.fst + x₂.fst := rfl
-@[simp] lemma snd_add [has_add R] [has_add M] (x₁ x₂ : tsze R M) :
-  (x₁ + x₂).snd = x₁.snd + x₂.snd := rfl
 
 instance [has_neg R] [has_neg M] : has_neg (tsze R M) :=
 prod.has_neg
 
-@[simp] lemma fst_neg [has_neg R] [has_neg M] (x : tsze R M) : (-x).fst = -x.fst := rfl
-@[simp] lemma snd_neg [has_neg R] [has_neg M] (x : tsze R M) : (-x).snd = -x.snd := rfl
-
 instance [add_semigroup R] [add_semigroup M] : add_semigroup (tsze R M) :=
 prod.add_semigroup
+
+instance [add_zero_class R] [add_zero_class M] : add_zero_class (tsze R M) :=
+prod.add_zero_class
 
 instance [add_monoid R] [add_monoid M] : add_monoid (tsze R M) :=
 prod.add_monoid
 
-@[simp] lemma inl_add [has_add R] [add_monoid M] (r₁ r₂ : R) :
-  (inl (r₁ + r₂) : tsze R M) = inl r₁ + inl r₂ :=
-ext rfl (add_zero 0).symm
-
-@[simp] lemma inr_add [add_monoid R] [has_add M] (m₁ m₂ : M) :
-  (inr (m₁ + m₂) : tsze R M) = inr m₁ + inr m₂ :=
-ext (add_zero 0).symm rfl
-
-lemma inl_fst_add_inr_snd_eq [add_monoid R] [add_monoid M] (x : tsze R M) :
-  inl x.fst + inr x.snd = x :=
-ext (add_zero x.1) (zero_add x.2)
-
 instance [add_group R] [add_group M] : add_group (tsze R M) :=
 prod.add_group
-
-@[simp] lemma inl_neg [has_neg R] [add_group M] (r : R) :
-  (inl (-r) : tsze R M) = -inl r :=
-ext rfl neg_zero.symm
-
-@[simp] lemma inr_neg [add_group R] [has_neg M] (m : M) :
-  (inr (-m) : tsze R M) = -inr m :=
-ext neg_zero.symm rfl
 
 instance [add_comm_semigroup R] [add_comm_semigroup M] : add_comm_semigroup (tsze R M) :=
 prod.add_comm_semigroup
@@ -132,61 +120,120 @@ prod.add_comm_monoid
 instance [add_comm_group R] [add_comm_group M] : add_comm_group (tsze R M) :=
 prod.add_comm_group
 
-end add
+instance [has_scalar S R] [has_scalar S M] : has_scalar S (tsze R M) :=
+prod.has_scalar
 
-section smul
-variables (R : Type u) (M : Type v)
+instance [has_scalar T R] [has_scalar T M] [has_scalar S R] [has_scalar S M] [has_scalar T S]
+  [is_scalar_tower T S R] [is_scalar_tower T S M] : is_scalar_tower T S (tsze R M) :=
+prod.is_scalar_tower
 
-instance [has_mul R] [has_scalar R M] : has_scalar R (tsze R M) :=
-⟨λ r x, (r * x.1, r • x.2)⟩
+instance [has_scalar T R] [has_scalar T M] [has_scalar S R] [has_scalar S M]
+  [smul_comm_class T S R] [smul_comm_class T S M] : smul_comm_class T S (tsze R M) :=
+prod.smul_comm_class
 
-@[simp] lemma fst_smul [has_mul R] [has_scalar R M] (r : R) (x : tsze R M) :
-  (r • x).fst = r * x.fst := rfl
-@[simp] lemma snd_smul [has_mul R] [has_scalar R M] (r : R) (x : tsze R M) :
-  (r • x).snd = r • x.snd := rfl
+instance [has_scalar S R] [has_scalar S M] [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M]
+  [is_central_scalar S R] [is_central_scalar S M] : is_central_scalar S (tsze R M) :=
+prod.is_central_scalar
 
-@[simp] lemma inr_smul [mul_zero_class R] [has_scalar R M] (r : R) (m : M) :
-  (inr (r • m) : tsze R M) = r • inr m :=
-ext (mul_zero _).symm rfl
+instance [monoid S] [mul_action S R] [mul_action S M] : mul_action S (tsze R M) :=
+prod.mul_action
 
-instance [monoid R] [mul_action R M] : mul_action R (tsze R M) :=
-{ one_smul := λ x, ext (one_mul x.1) (one_smul R x.2) ,
-  mul_smul := λ r₁ r₂ x, ext (mul_assoc r₁ r₂ x.1) (mul_smul r₁ r₂ x.2) }
+instance [monoid S] [add_monoid R] [add_monoid M]
+  [distrib_mul_action S R] [distrib_mul_action S M] : distrib_mul_action S (tsze R M) :=
+prod.distrib_mul_action
 
-instance [semiring R] [add_monoid M] [distrib_mul_action R M] : distrib_mul_action R (tsze R M) :=
-{ smul_add := λ r x₁ x₂, ext (mul_add r x₁.1 x₂.1) (smul_add r x₁.2 x₂.2),
-  smul_zero := λ r, ext (mul_zero r) (smul_zero r) }
+instance [semiring S] [add_comm_monoid R] [add_comm_monoid M]
+  [module S R] [module S M] : module S (tsze R M) :=
+prod.module
 
-instance [semiring R] [add_comm_monoid M] [module R M] : module R (tsze R M) :=
-{ add_smul := λ r₁ r₂ x, ext (add_mul r₁ r₂ x.1) (add_smul r₁ r₂ x.2),
-  zero_smul := λ x, ext (zero_mul x.1) (zero_smul R x.2) }
+@[simp] lemma fst_zero [has_zero R] [has_zero M] : (0 : tsze R M).fst = 0 := rfl
+@[simp] lemma snd_zero [has_zero R] [has_zero M] : (0 : tsze R M).snd = 0 := rfl
+
+@[simp] lemma fst_add [has_add R] [has_add M] (x₁ x₂ : tsze R M) :
+  (x₁ + x₂).fst = x₁.fst + x₂.fst := rfl
+@[simp] lemma snd_add [has_add R] [has_add M] (x₁ x₂ : tsze R M) :
+  (x₁ + x₂).snd = x₁.snd + x₂.snd := rfl
+
+@[simp] lemma fst_neg [has_neg R] [has_neg M] (x : tsze R M) : (-x).fst = -x.fst := rfl
+@[simp] lemma snd_neg [has_neg R] [has_neg M] (x : tsze R M) : (-x).snd = -x.snd := rfl
+
+@[simp] lemma fst_smul [has_scalar S R] [has_scalar S M] (s : S) (x : tsze R M) :
+  (s • x).fst = s • x.fst := rfl
+@[simp] lemma snd_smul [has_scalar S R] [has_scalar S M] (s : S) (x : tsze R M) :
+  (s • x).snd = s • x.snd := rfl
+
+section
+variables (M)
+
+@[simp] lemma inl_zero [has_zero R] [has_zero M] : (inl 0 : tsze R M) = 0 := rfl
+
+@[simp] lemma inl_add [has_add R] [add_zero_class M] (r₁ r₂ : R) :
+  (inl (r₁ + r₂) : tsze R M) = inl r₁ + inl r₂ :=
+ext rfl (add_zero 0).symm
+
+@[simp] lemma inl_neg [has_neg R] [add_group M] (r : R) :
+  (inl (-r) : tsze R M) = -inl r :=
+ext rfl neg_zero.symm
+
+@[simp] lemma inl_smul [monoid S] [add_monoid M] [has_scalar S R] [distrib_mul_action S M]
+  (s : S) (r : R) : (inl (s • r) : tsze R M) = s • inl r :=
+ext rfl (smul_zero s).symm
+
+end
+
+section
+variables (R)
+
+@[simp] lemma inr_zero [has_zero R] [has_zero M] : (inr 0 : tsze R M) = 0 := rfl
+
+@[simp] lemma inr_add [add_zero_class R] [add_zero_class M] (m₁ m₂ : M) :
+  (inr (m₁ + m₂) : tsze R M) = inr m₁ + inr m₂ :=
+ext (add_zero 0).symm rfl
+
+@[simp] lemma inr_neg [add_group R] [has_neg M] (m : M) :
+  (inr (-m) : tsze R M) = -inr m :=
+ext neg_zero.symm rfl
+
+@[simp] lemma inr_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_scalar S M]
+  (r : S) (m : M) : (inr (r • m) : tsze R M) = r • inr m :=
+ext (smul_zero' _ _).symm rfl
+
+end
+
+lemma inl_fst_add_inr_snd_eq [add_zero_class R] [add_zero_class M] (x : tsze R M) :
+  inl x.fst + inr x.snd = x :=
+ext (add_zero x.1) (zero_add x.2)
 
 /-- The canonical `R`-linear inclusion `M → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inr_hom [semiring R] [add_comm_monoid M] [module R M] : M →ₗ[R] tsze R M :=
-{ to_fun := inr,
-  map_add' := inr_add R M,
-  map_smul' := inr_smul R M }
+{ to_fun := inr, ..linear_map.inr _ _ _ }
 
-end smul
+end additive
+
+/-! ### Multiplicative structure -/
 
 section mul
-variables (R : Type u) (M : Type v)
+variables {R : Type u} {M : Type v}
 
 instance [has_one R] [has_zero M] : has_one (tsze R M) :=
 ⟨(1, 0)⟩
 
-@[simp] lemma fst_one [has_one R] [has_zero M] : (1 : tsze R M).fst = 1 := rfl
-@[simp] lemma snd_one [has_one R] [has_zero M] : (1 : tsze R M).snd = 0 := rfl
-@[simp] lemma inl_one [has_one R] [has_zero M] : (inl 1 : tsze R M) = 1 := rfl
-
 instance [has_mul R] [has_add M] [has_scalar R M] : has_mul (tsze R M) :=
 ⟨λ x y, (x.1 * y.1, x.1 • y.2 + y.1 • x.2)⟩
+
+@[simp] lemma fst_one [has_one R] [has_zero M] : (1 : tsze R M).fst = 1 := rfl
+@[simp] lemma snd_one [has_one R] [has_zero M] : (1 : tsze R M).snd = 0 := rfl
 
 @[simp] lemma fst_mul [has_mul R] [has_add M] [has_scalar R M] (x₁ x₂ : tsze R M) :
   (x₁ * x₂).fst = x₁.fst * x₂.fst := rfl
 @[simp] lemma snd_mul [has_mul R] [has_add M] [has_scalar R M] (x₁ x₂ : tsze R M) :
   (x₁ * x₂).snd = x₁.fst • x₂.snd + x₂.fst • x₁.snd := rfl
+
+section
+variables (M)
+
+@[simp] lemma inl_one [has_one R] [has_zero M] : (inl 1 : tsze R M) = 1 := rfl
 
 @[simp] lemma inl_mul [monoid R] [add_monoid M] [distrib_mul_action R M] (r₁ r₂ : R) :
   (inl (r₁ * r₂) : tsze R M) = inl r₁ * inl r₂ :=
@@ -194,7 +241,18 @@ ext rfl $ show (0 : M) = r₁ • 0 + r₂ • 0, by rw [smul_zero, zero_add, sm
 
 lemma inl_mul_inl [monoid R] [add_monoid M] [distrib_mul_action R M] (r₁ r₂ : R) :
   (inl r₁ * inl r₂ : tsze R M) = inl (r₁ * r₂) :=
-(inl_mul R M r₁ r₂).symm
+(inl_mul M r₁ r₂).symm
+
+end
+
+section
+variables (R)
+
+@[simp] lemma inr_mul_inr [semiring R] [add_comm_monoid M] [module R M] (m₁ m₂ : M) :
+  (inr m₁ * inr m₂ : tsze R M) = 0 :=
+ext (mul_zero _) $ show (0 : R) • m₂ + (0 : R) • m₁ = 0, by rw [zero_smul, zero_add, zero_smul]
+
+end
 
 lemma inl_mul_inr [semiring R] [add_comm_monoid M] [module R M] (r : R) (m : M) :
   (inl r * inr m : tsze R M) = inr (r • m) :=
@@ -204,26 +262,16 @@ lemma inr_mul_inl [semiring R] [add_comm_monoid M] [module R M] (r : R) (m : M) 
   (inr m * inl r : tsze R M) = inr (r • m) :=
 ext (zero_mul r) $ show (0 : R) • 0 + r • m = r • m, by rw [smul_zero, zero_add]
 
-@[simp] lemma inr_mul_inr [semiring R] [add_comm_monoid M] [module R M] (m₁ m₂ : M) :
-  (inr m₁ * inr m₂ : tsze R M) = 0 :=
-ext (mul_zero _) $ show (0 : R) • m₂ + (0 : R) • m₁ = 0, by rw [zero_smul, zero_add, zero_smul]
-
-instance [comm_monoid R] [add_monoid M] [distrib_mul_action R M] : monoid (tsze R M) :=
-{ mul_assoc := λ x y z, ext (mul_assoc x.1 y.1 z.1) $
-    show (x.1 * y.1) • z.2 + z.1 • (x.1 • y.2 + y.1 • x.2) =
-      x.1 • (y.1 • z.2 + z.1 • y.2) + (y.1 * z.1) • x.2,
-    by simp_rw [smul_add, ← mul_smul, add_assoc, mul_comm],
-  one_mul := λ x, ext (one_mul x.1) $ show (1 : R) • x.2 + x.1 • 0 = x.2,
+instance [monoid R] [add_monoid M] [distrib_mul_action R M] : mul_one_class (tsze R M) :=
+{ one_mul := λ x, ext (one_mul x.1) $ show (1 : R) • x.2 + x.1 • 0 = x.2,
     by rw [one_smul, smul_zero, add_zero],
   mul_one := λ x, ext (mul_one x.1) $ show (x.1 • 0 : M) + (1 : R) • x.2 = x.2,
     by rw [smul_zero, zero_add, one_smul],
-  .. triv_sq_zero_ext.has_one R M,
-  .. triv_sq_zero_ext.has_mul R M }
+  .. triv_sq_zero_ext.has_one,
+  .. triv_sq_zero_ext.has_mul }
 
-instance [comm_semiring R] [add_comm_monoid M] [module R M] : comm_semiring (tsze R M) :=
-{ mul_comm := λ x₁ x₂, ext (mul_comm x₁.1 x₂.1) $
-    show x₁.1 • x₂.2 + x₂.1 • x₁.2 = x₂.1 • x₁.2 + x₁.1 • x₂.2, from add_comm _ _,
-  zero_mul := λ x, ext (zero_mul x.1) $ show (0 : R) • x.2 + x.1 • 0 = 0,
+instance [semiring R] [add_comm_monoid M] [module R M] : non_assoc_semiring (tsze R M) :=
+{ zero_mul := λ x, ext (zero_mul x.1) $ show (0 : R) • x.2 + x.1 • 0 = 0,
     by rw [zero_smul, zero_add, smul_zero],
   mul_zero := λ x, ext (mul_zero x.1) $ show (x.1 • 0 : M) + (0 : R) • x.2 = 0,
     by rw [smul_zero, zero_add, zero_smul],
@@ -235,44 +283,62 @@ instance [comm_semiring R] [add_comm_monoid M] [module R M] : comm_semiring (tsz
     show (x₁.1 + x₂.1) • x₃.2 + x₃.1 • (x₁.2 + x₂.2) =
       x₁.1 • x₃.2 + x₃.1 • x₁.2 + (x₂.1 • x₃.2 + x₃.1 • x₂.2),
     by simp_rw [add_smul, smul_add, add_add_add_comm],
-  .. triv_sq_zero_ext.monoid R M,
-  .. triv_sq_zero_ext.add_comm_monoid R M }
+  .. triv_sq_zero_ext.mul_one_class,
+  .. triv_sq_zero_ext.add_comm_monoid }
+
+instance [comm_monoid R] [add_monoid M] [distrib_mul_action R M] : monoid (tsze R M) :=
+{ mul_assoc := λ x y z, ext (mul_assoc x.1 y.1 z.1) $
+    show (x.1 * y.1) • z.2 + z.1 • (x.1 • y.2 + y.1 • x.2) =
+      x.1 • (y.1 • z.2 + z.1 • y.2) + (y.1 * z.1) • x.2,
+    by simp_rw [smul_add, ← mul_smul, add_assoc, mul_comm],
+  .. triv_sq_zero_ext.mul_one_class }
+
+instance [comm_monoid R] [add_comm_monoid M] [distrib_mul_action R M] : comm_monoid (tsze R M) :=
+{ mul_comm := λ x₁ x₂, ext (mul_comm x₁.1 x₂.1) $
+    show x₁.1 • x₂.2 + x₂.1 • x₁.2 = x₂.1 • x₁.2 + x₁.1 • x₂.2, from add_comm _ _,
+  .. triv_sq_zero_ext.monoid }
+
+instance [comm_semiring R] [add_comm_monoid M] [module R M] : comm_semiring (tsze R M) :=
+{ .. triv_sq_zero_ext.comm_monoid,
+  .. triv_sq_zero_ext.non_assoc_semiring }
 
 /-- The canonical inclusion of rings `R → triv_sq_zero_ext R M`. -/
 @[simps apply]
-def inl_hom [comm_semiring R] [add_comm_monoid M] [module R M] : R →+* tsze R M :=
+def inl_hom [semiring R] [add_comm_monoid M] [module R M] : R →+* tsze R M :=
 { to_fun := inl,
-  map_one' := inl_one R M,
-  map_mul' := inl_mul R M,
-  map_zero' := inl_zero R M,
-  map_add' := inl_add R M }
+  map_one' := inl_one M,
+  map_mul' := inl_mul M,
+  map_zero' := inl_zero M,
+  map_add' := inl_add M }
 
 end mul
 
 section algebra
-variables (R : Type u) (M : Type v)
+variables (S : Type*) (R : Type u) (M : Type v)
 
-instance [comm_semiring R] [add_comm_monoid M] [module R M] : algebra R (tsze R M) :=
+instance algebra' [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
+  [algebra S R] [module S M] [module R M] [is_scalar_tower S R M] : algebra S (tsze R M) :=
 { commutes' := λ r x, mul_comm _ _,
-  smul_def' := λ r x, ext rfl $ show r • x.2 = r • x.2 + x.1 • 0, by rw [smul_zero, add_zero],
-  .. triv_sq_zero_ext.module R M,
-  .. triv_sq_zero_ext.inl_hom R M }
+  smul_def' := λ r x, ext (algebra.smul_def _ _) $
+    show r • x.2 = algebra_map S R r • x.2 + x.1 • 0, by rw [smul_zero, add_zero, algebra_map_smul],
+  .. triv_sq_zero_ext.inl_hom.comp (algebra_map S R) }
+instance [comm_semiring R] [add_comm_monoid M] [module R M] : algebra R (tsze R M) :=
+triv_sq_zero_ext.algebra' _ _ _
 
 /-- The canonical `R`-algebra projection `triv_sq_zero_ext R M → R`. -/
+@[simps]
 def fst_hom [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₐ[R] R :=
 { to_fun := fst,
-  map_one' := fst_one R M,
-  map_mul' := fst_mul R M,
-  map_zero' := fst_zero R M,
-  map_add' := fst_add R M,
+  map_one' := fst_one,
+  map_mul' := fst_mul,
+  map_zero' := fst_zero,
+  map_add' := fst_add,
   commutes' := fst_inl }
 
 /-- The canonical `R`-module projection `triv_sq_zero_ext R M → M`. -/
 @[simps apply]
 def snd_hom [semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₗ[R] M :=
-{ to_fun := snd,
-  map_add' := snd_add R M,
-  map_smul' := snd_smul R M}
+{ to_fun := snd, ..linear_map.snd _ _ _ }
 
 end algebra
 

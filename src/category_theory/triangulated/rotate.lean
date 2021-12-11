@@ -87,7 +87,7 @@ Given a triangle morphism of the form:
       f'      g'      h'
 ```
 applying `rotate` gives a triangle morphism of the form:
-⟦⟧
+
 ```
       g        h       -f⟦1⟧
   Y  ───> Z  ───>  X⟦1⟧ ───> Y⟦1⟧
@@ -175,11 +175,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ rotate ⋙ inv_rotate :=
 { app := λ T,
   { hom₁ := (shift_shift_neg _ _).inv,
     hom₂ := 𝟙 T.obj₂,
-    hom₃ := 𝟙 T.obj₃,
-    comm₃' := begin
-      dsimp, sorry;
-      rw [id_comp, equivalence.counit_inv_app_functor],
-    end } }
+    hom₃ := 𝟙 T.obj₃ } }
 
 /--
 There is a natural transformation between the composition of a rotation with an inverse rotation
@@ -188,7 +184,7 @@ on triangles in `C`, and the identity functor.
 @[simps]
 def rot_comp_inv_rot_inv : rotate ⋙ inv_rotate ⟶ 𝟭 (triangle C) :=
 { app := λ T,
-  { hom₁ := (shift C).unit_inv.app T.obj₁,
+  { hom₁ := (shift_equiv C 1).unit_inv.app T.obj₁,
     hom₂ := 𝟙 T.obj₂,
     hom₃ := 𝟙 T.obj₃ } }
 
@@ -211,7 +207,7 @@ def inv_rot_comp_rot_hom : inv_rotate ⋙ rotate  ⟶ 𝟭 (triangle C) :=
 { app := λ T,
   { hom₁ := 𝟙 T.obj₁,
     hom₂ := 𝟙 T.obj₂,
-    hom₃ := (shift C).counit.app T.obj₃ } }
+    hom₃ := (shift_equiv C 1).counit.app T.obj₃ } }
 
 /--
 There is a natural transformation between the identity functor on triangles in `C`,
@@ -222,7 +218,7 @@ def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ inv_rotate ⋙ rotate :=
 { app := λ T,
   { hom₁ := 𝟙 T.obj₁,
     hom₂ := 𝟙 T.obj₂,
-    hom₃ := (shift C).counit_inv.app T.obj₃ } }
+    hom₃ := (shift_equiv C 1).counit_inv.app T.obj₃ } }
 
 /--
 The natural transformations between the composition of a rotation with an inverse rotation

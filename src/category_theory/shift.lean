@@ -253,6 +253,18 @@ def shift_shift_neg (i : A) : X⟦i⟧⟦-i⟧ ≅ X := (shift_functor_comp_shif
 /-- Shifting by `-i` and then shifting by `i` is the identity. -/
 def shift_neg_shift (i : A) : X⟦-i⟧⟦i⟧ ≅ X := (shift_functor_neg_comp_shift_functor C i).app _
 
+@[simp] lemma shift_functor_comp_shift_functor_neg_hom_app (i : A) :
+  (shift_functor_comp_shift_functor_neg C i).hom.app X = (shift_shift_neg X i).hom := rfl
+
+@[simp] lemma shift_functor_comp_shift_functor_neg_inv_app (i : A) :
+  (shift_functor_comp_shift_functor_neg C i).inv.app X = (shift_shift_neg X i).inv := rfl
+
+@[simp] lemma shift_functor_neg_comp_shift_functor_hom_app (i : A) :
+  (shift_functor_neg_comp_shift_functor C i).hom.app X = (shift_neg_shift X i).hom := rfl
+
+@[simp] lemma shift_functor_neg_comp_shift_functor_inv_app (i : A) :
+  (shift_functor_neg_comp_shift_functor C i).inv.app X = (shift_neg_shift X i).inv := rfl
+
 variables {X Y}
 
 lemma shift_shift_neg' (i : A) :
@@ -351,22 +363,41 @@ begin
   all_goals { simp },
 end
 
-lemma equiv_triangle (n : A) (X : C) :
-  ((shift_functor_comp_shift_functor_neg C n).inv.app X)⟦n⟧' ≫
-      (shift_functor_neg_comp_shift_functor C n).hom.app (X⟦n⟧) = 𝟙 (X⟦n⟧) :=
+lemma shift_equiv_triangle (n : A) (X : C) :
+  (shift_shift_neg X n).inv⟦n⟧' ≫ (shift_neg_shift (X⟦n⟧) n).hom = 𝟙 (X⟦n⟧) :=
 begin
-  dsimp [shift_functor_comp_shift_functor_neg, shift_functor_neg_comp_shift_functor],
+  dsimp [shift_shift_neg, shift_functor_comp_shift_functor_neg,
+    shift_neg_shift, shift_functor_neg_comp_shift_functor],
   simp,
 end
 
+@[simp]
+lemma shift_shift_neg_hom_shift (n : A) (X : C) :
+  (shift_shift_neg X n).hom ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).hom :=
+by rw [← cancel_epi ((shift_shift_neg X n).inv⟦n⟧'), shift_equiv_triangle,
+    ← functor.map_comp, iso.inv_hom_id, functor.map_id]
+
+@[simp]
+lemma shift_shift_neg_inv_shift (n : A) (X : C) :
+  (shift_shift_neg X n).inv ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).inv :=
+by { ext, rw [← shift_shift_neg_hom_shift, ← functor.map_comp, iso.hom_inv_id, functor.map_id] }
+
+@[simp]
+lemma shift_shift_neg_shift_eq (n : A) (X : C) :
+  (shift_functor C n).map_iso (shift_shift_neg X n) = shift_neg_shift (X⟦n⟧) n :=
+category_theory.iso.ext $ shift_shift_neg_hom_shift _ _
+
+variables (C)
+
+@[simps]
 def shift_equiv (n : A) : C ≌ C :=
 { functor := shift_functor C n,
   inverse := shift_functor C (-n),
   unit_iso := (shift_functor_comp_shift_functor_neg C n).symm,
   counit_iso := shift_functor_neg_comp_shift_functor C n,
-  functor_unit_iso_comp' := equiv_triangle n }
+  functor_unit_iso_comp' := shift_equiv_triangle n }
 
-variables (C)
+variable {C}
 
 open limits
 variables [has_zero_morphisms C]

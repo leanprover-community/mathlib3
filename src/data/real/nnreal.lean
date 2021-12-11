@@ -143,8 +143,15 @@ section actions
 instance {M : Type*} [mul_action ℝ M] : mul_action ℝ≥0 M :=
 mul_action.comp_hom M to_real_hom.to_monoid_hom
 
+/-- A right `mul_action` over `ℝ` restricts to a right `mul_action` over `ℝ≥0`. -/
+instance nnreal.op_mul_action {M : Type*} [mul_action ℝᵐᵒᵖ M] : mul_action ℝ≥0ᵐᵒᵖ M :=
+mul_action.comp_hom M to_real_hom.to_monoid_hom.op
+
 lemma smul_def {M : Type*} [mul_action ℝ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ) • x := rfl
+
+lemma op_smul_def {M : Type*} [mul_action ℝᵐᵒᵖ M] (c : ℝ≥0) (x : M) :
+  mul_opposite.op c • x = mul_opposite.op (c : ℝ) • x := rfl
 
 instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_scalar M N]
   [is_scalar_tower ℝ M N] : is_scalar_tower ℝ≥0 M N :=
@@ -171,6 +178,7 @@ instance {A : Type*} [semiring A] [algebra ℝ A] : algebra ℝ≥0 A :=
 { smul := (•),
   commutes' := λ r x, by simp [algebra.commutes],
   smul_def' := λ r x, by simp [←algebra.smul_def (r : ℝ) x, smul_def],
+  op_smul_def' := λ x r, by simp [←algebra.op_smul_def (r : ℝ) x, op_smul_def],
   to_ring_hom := ((algebra_map ℝ A).comp (to_real_hom : ℝ≥0 →+* ℝ)) }
 
 -- verify that the above produces instances we might care about

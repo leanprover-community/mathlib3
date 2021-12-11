@@ -275,8 +275,16 @@ section actions
 noncomputable instance {M : Type*} [mul_action ℝ≥0∞ M] : mul_action ℝ≥0 M :=
 mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
 
+/-- A right `mul_action` over `ℝ≥0∞` restricts to a right `mul_action` over `ℝ≥0`. -/
+noncomputable instance ennreal.op_mul_action {M : Type*} [mul_action ℝ≥0∞ᵐᵒᵖ M] :
+  mul_action ℝ≥0ᵐᵒᵖ M :=
+mul_action.comp_hom M of_nnreal_hom.to_monoid_hom.op
+
 lemma smul_def {M : Type*} [mul_action ℝ≥0∞ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ≥0∞) • x := rfl
+
+lemma op_smul_def {M : Type*} [mul_action ℝ≥0∞ᵐᵒᵖ M] (c : ℝ≥0) (x : M) :
+  mul_opposite.op c • x = mul_opposite.op (c : ℝ≥0∞) • x := rfl
 
 instance {M N : Type*} [mul_action ℝ≥0∞ M] [mul_action ℝ≥0∞ N] [has_scalar M N]
   [is_scalar_tower ℝ≥0∞ M N] : is_scalar_tower ℝ≥0 M N :=
@@ -304,6 +312,7 @@ noncomputable instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra
 { smul := (•),
   commutes' := λ r x, by simp [algebra.commutes],
   smul_def' := λ r x, by simp [←algebra.smul_def (r : ℝ≥0∞) x, smul_def],
+  op_smul_def' := λ x r, by simp [←algebra.op_smul_def (r : ℝ≥0∞) x, op_smul_def],
   to_ring_hom := ((algebra_map ℝ≥0∞ A).comp (of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞)) }
 
 -- verify that the above produces instances we might care about

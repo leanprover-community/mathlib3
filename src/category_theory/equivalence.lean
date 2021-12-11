@@ -435,8 +435,8 @@ is_equivalence.of_equivalence F.as_equivalence.symm
 @[simp] lemma as_equivalence_inverse (F : C ⥤ D) [is_equivalence F] :
   F.as_equivalence.inverse = inv F := rfl
 
-@[simp] lemma as_equivalence_unit {F : C ⥤ D} [is_equivalence F] :
-  F.as_equivalence.unit_iso = is_equivalence.unit_iso := rfl
+@[simp] lemma as_equivalence_unit {F : C ⥤ D} [h : is_equivalence F] :
+  F.as_equivalence.unit_iso = @@is_equivalence.unit_iso _ _ h := rfl
 
 @[simp] lemma as_equivalence_counit {F : C ⥤ D} [is_equivalence F] :
   F.as_equivalence.counit_iso = is_equivalence.counit_iso := rfl

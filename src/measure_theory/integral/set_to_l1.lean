@@ -267,7 +267,7 @@ def set_to_simple_func {m : measurable_space α} (T : set α → F →L[ℝ] F')
 by simp [set_to_simple_func]
 
 lemma set_to_simple_func_zero' {T : set α → E →L[ℝ] F'}
-  (h_zero : ∀ s, measurable_set s → μ s ≠ ∞ → T s = 0) (f : α →ₛ E) (hf : integrable f μ) :
+  (h_zero : ∀ s, measurable_set s → μ s < ∞ → T s = 0) (f : α →ₛ E) (hf : integrable f μ) :
   set_to_simple_func T f = 0 :=
 begin
   simp_rw set_to_simple_func,
@@ -275,7 +275,7 @@ begin
   by_cases hx0 : x = 0,
   { simp [hx0], },
   rw [h_zero (f ⁻¹' ({x} : set E)) (measurable_set_fiber _ _)
-      (measure_preimage_lt_top_of_integrable f hf hx0).ne,
+      (measure_preimage_lt_top_of_integrable f hf hx0),
     continuous_linear_map.zero_apply],
 end
 
@@ -379,7 +379,7 @@ begin
 end
 
 lemma set_to_simple_func_congr_left (T T' : set α → E →L[ℝ] F)
-  (h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = T' s) (f : α →ₛ E) (hf : integrable f μ) :
+  (h : ∀ s, measurable_set s → μ s < ∞ → T s = T' s) (f : α →ₛ E) (hf : integrable f μ) :
   set_to_simple_func T f = set_to_simple_func T' f :=
 begin
   simp_rw set_to_simple_func,
@@ -387,7 +387,7 @@ begin
   by_cases hx0 : x = 0,
   { simp [hx0], },
   { rw h (f ⁻¹' {x}) (simple_func.measurable_set_fiber _ _)
-      (simple_func.measure_preimage_lt_top_of_integrable _ hf hx0).ne, },
+      (simple_func.measure_preimage_lt_top_of_integrable _ hf hx0), },
 end
 
 lemma set_to_simple_func_add_left {m : measurable_space α} (T T' : set α → F →L[ℝ] F')
@@ -400,7 +400,7 @@ begin
 end
 
 lemma set_to_simple_func_add_left' (T T' T'' : set α → E →L[ℝ] F)
-  (h_add : ∀ s, measurable_set s → μ s ≠ ∞ → T'' s = T s + T' s) {f : α →ₛ E}
+  (h_add : ∀ s, measurable_set s → μ s < ∞ → T'' s = T s + T' s) {f : α →ₛ E}
   (hf : integrable f μ) :
   set_to_simple_func (T'') f = set_to_simple_func T f + set_to_simple_func T' f :=
 begin
@@ -414,7 +414,7 @@ begin
     rw pi.add_apply, },
   intros x hx,
   refine h_add (f ⁻¹' {x}) (measurable_set_preimage _ _)
-    (measure_preimage_lt_top_of_integrable _ hf _).ne,
+    (measure_preimage_lt_top_of_integrable _ hf _),
   rw mem_filter at hx,
   exact hx.2,
 end
@@ -425,7 +425,7 @@ lemma set_to_simple_func_smul_left [has_continuous_smul ℝ F'] {m : measurable_
 by simp_rw [set_to_simple_func, continuous_linear_map.smul_apply, smul_sum]
 
 lemma set_to_simple_func_smul_left' [has_continuous_smul ℝ F']
-  (T T' : set α → E →L[ℝ] F') (c : ℝ) (h_smul : ∀ s, measurable_set s → μ s ≠ ∞ → T' s = c • (T s))
+  (T T' : set α → E →L[ℝ] F') (c : ℝ) (h_smul : ∀ s, measurable_set s → μ s < ∞ → T' s = c • (T s))
   {f : α →ₛ E} (hf : integrable f μ) :
   set_to_simple_func T' f = c • set_to_simple_func T f :=
 begin
@@ -437,7 +437,7 @@ begin
     refl, },
   intros x hx,
   refine h_smul (f ⁻¹' {x}) (measurable_set_preimage _ _)
-    (measure_preimage_lt_top_of_integrable _ hf _).ne,
+    (measure_preimage_lt_top_of_integrable _ hf _),
   rw mem_filter at hx,
   exact hx.2,
 end
@@ -650,7 +650,7 @@ rfl
 simple_func.set_to_simple_func_zero _
 
 lemma set_to_L1s_zero_left' {T : set α → E →L[ℝ] F}
-  (h_zero : ∀ s, measurable_set s → μ s ≠ ∞ → T s = 0) (f : α →₁ₛ[μ] E) :
+  (h_zero : ∀ s, measurable_set s → μ s < ∞ → T s = 0) (f : α →₁ₛ[μ] E) :
   set_to_L1s T f = 0 :=
 simple_func.set_to_simple_func_zero' h_zero _ (simple_func.integrable f)
 
@@ -661,7 +661,7 @@ lemma set_to_L1s_congr (T : set α → E →L[ℝ] F) (h_zero : ∀ s, measurabl
 simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable f) h
 
 lemma set_to_L1s_congr_left (T T' : set α → E →L[ℝ] F)
-  (h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = T' s) (f : α →₁ₛ[μ] E) :
+  (h : ∀ s, measurable_set s → μ s < ∞ → T s = T' s) (f : α →₁ₛ[μ] E) :
   set_to_L1s T f = set_to_L1s T' f :=
 simple_func.set_to_simple_func_congr_left T T' h (simple_func.to_simple_func f)
   (simple_func.integrable f)
@@ -687,7 +687,7 @@ lemma set_to_L1s_add_left (T T' : set α → E →L[ℝ] F) (f : α →₁ₛ[μ
 simple_func.set_to_simple_func_add_left T T'
 
 lemma set_to_L1s_add_left' (T T' T'' : set α → E →L[ℝ] F)
-  (h_add : ∀ s, measurable_set s → μ s ≠ ∞ → T'' s = T s + T' s) (f : α →₁ₛ[μ] E) :
+  (h_add : ∀ s, measurable_set s → μ s < ∞ → T'' s = T s + T' s) (f : α →₁ₛ[μ] E) :
   set_to_L1s T'' f = set_to_L1s T f + set_to_L1s T' f :=
 simple_func.set_to_simple_func_add_left' T T' T'' h_add (simple_func.integrable f)
 
@@ -696,7 +696,7 @@ lemma set_to_L1s_smul_left (T : set α → E →L[ℝ] F) (c : ℝ) (f : α →�
 simple_func.set_to_simple_func_smul_left T c _
 
 lemma set_to_L1s_smul_left' (T T' : set α → E →L[ℝ] F) (c : ℝ)
-  (h_smul : ∀ s, measurable_set s → μ s ≠ ∞ → T' s = c • (T s)) (f : α →₁ₛ[μ] E) :
+  (h_smul : ∀ s, measurable_set s → μ s < ∞ → T' s = c • (T s)) (f : α →₁ₛ[μ] E) :
   set_to_L1s T' f = c • set_to_L1s T f :=
 simple_func.set_to_simple_func_smul_left' T T' c h_smul (simple_func.integrable f)
 
@@ -765,21 +765,21 @@ end
 
 lemma set_to_L1s_indicator_const {T : set α → E →L[ℝ] F} {s : set α}
   (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0) (h_add : fin_meas_additive μ T)
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
-  set_to_L1s T (simple_func.indicator_const 1 hs hμs x) = T s x :=
+  (hs : measurable_set s) (hμs : μ s < ∞) (x : E) :
+  set_to_L1s T (simple_func.indicator_const 1 hs hμs.ne x) = T s x :=
 begin
   have h_empty : T ∅ = 0, from h_zero _ measurable_set.empty measure_empty,
   rw set_to_L1s_eq_set_to_simple_func,
   refine eq.trans _ (simple_func.set_to_simple_func_indicator T h_empty hs x),
   refine simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable _) _,
-  exact Lp.simple_func.to_simple_func_indicator_const hs hμs x,
+  exact Lp.simple_func.to_simple_func_indicator_const hs hμs.ne x,
 end
 
 lemma set_to_L1s_const [is_finite_measure μ] {T : set α → E →L[ℝ] F}
   (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0) (h_add : fin_meas_additive μ T) (x : E) :
   set_to_L1s T (simple_func.indicator_const 1 measurable_set.univ (measure_ne_top μ _) x)
     = T univ x :=
-set_to_L1s_indicator_const h_zero h_add measurable_set.univ (measure_ne_top _ _) x
+set_to_L1s_indicator_const h_zero h_add measurable_set.univ (measure_lt_top _ _) x
 
 variables [normed_space 𝕜 F] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
@@ -809,7 +809,7 @@ variables {T T' T'' : set α → E →L[ℝ] F} {C C' C'' : ℝ}
 set_to_L1s_zero_left _
 
 lemma set_to_L1s_clm_zero_left' (hT : dominated_fin_meas_additive μ T C)
-  (h_zero : ∀ s, measurable_set s → μ s ≠ ∞ → T s = 0) (f : α →₁ₛ[μ] E) :
+  (h_zero : ∀ s, measurable_set s → μ s < ∞ → T s = 0) (f : α →₁ₛ[μ] E) :
   set_to_L1s_clm α E μ hT f = 0 :=
 set_to_L1s_zero_left' h_zero f
 
@@ -820,7 +820,7 @@ set_to_L1s_congr_left T T' (λ _ _ _, by rw h) f
 
 lemma set_to_L1s_clm_congr_left' (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C')
-  (h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = T' s) (f : α →₁ₛ[μ] E) :
+  (h : ∀ s, measurable_set s → μ s < ∞ → T s = T' s) (f : α →₁ₛ[μ] E) :
   set_to_L1s_clm α E μ hT f = set_to_L1s_clm α E μ hT' f :=
 set_to_L1s_congr_left T T' h f
 
@@ -837,7 +837,7 @@ set_to_L1s_add_left T T' f
 
 lemma set_to_L1s_clm_add_left' (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C') (hT'' : dominated_fin_meas_additive μ T'' C'')
-  (h_add : ∀ s, measurable_set s → μ s ≠ ∞ → T'' s = T s + T' s) (f : α →₁ₛ[μ] E) :
+  (h_add : ∀ s, measurable_set s → μ s < ∞ → T'' s = T s + T' s) (f : α →₁ₛ[μ] E) :
   set_to_L1s_clm α E μ hT'' f = set_to_L1s_clm α E μ hT f + set_to_L1s_clm α E μ hT' f :=
 set_to_L1s_add_left' T T' T'' h_add f
 
@@ -847,7 +847,7 @@ set_to_L1s_smul_left T c f
 
 lemma set_to_L1s_clm_smul_left' (c : ℝ)
   (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
-  (h_smul : ∀ s, measurable_set s → μ s ≠ ∞ → T' s = c • (T s)) (f : α →₁ₛ[μ] E) :
+  (h_smul : ∀ s, measurable_set s → μ s < ∞ → T' s = c • (T s)) (f : α →₁ₛ[μ] E) :
   set_to_L1s_clm α E μ hT' f = c • set_to_L1s_clm α E μ hT f :=
 set_to_L1s_smul_left' T T' c h_smul f
 
@@ -919,7 +919,7 @@ begin
 end
 
 lemma set_to_L1_zero_left' (hT : dominated_fin_meas_additive μ T C)
-  (h_zero : ∀ s, measurable_set s → μ s ≠ ∞ → T s = 0) (f : α →₁[μ] E) :
+  (h_zero : ∀ s, measurable_set s → μ s < ∞ → T s = 0) (f : α →₁[μ] E) :
   set_to_L1 hT f = 0 :=
 begin
   suffices : set_to_L1 hT = 0, by { rw this, simp, },
@@ -945,7 +945,7 @@ end
 
 lemma set_to_L1_congr_left' (T T' : set α → E →L[ℝ] F) {C C' : ℝ}
   (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
-  (h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = T' s) (f : α →₁[μ] E) :
+  (h : ∀ s, measurable_set s → μ s < ∞ → T s = T' s) (f : α →₁[μ] E) :
   set_to_L1 hT f = set_to_L1 hT' f :=
 begin
   suffices : set_to_L1 hT = set_to_L1 hT', by rw this,
@@ -974,7 +974,7 @@ end
 
 lemma set_to_L1_add_left' (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C') (hT'' : dominated_fin_meas_additive μ T'' C'')
-  (h_add : ∀ s, measurable_set s → μ s ≠ ∞ → T'' s = T s + T' s) (f : α →₁[μ] E) :
+  (h_add : ∀ s, measurable_set s → μ s < ∞ → T'' s = T s + T' s) (f : α →₁[μ] E) :
   set_to_L1 hT'' f = set_to_L1 hT f + set_to_L1 hT' f :=
 begin
   suffices : set_to_L1 hT'' = set_to_L1 hT + set_to_L1 hT',
@@ -1004,7 +1004,7 @@ end
 
 lemma set_to_L1_smul_left' (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C') (c : ℝ)
-  (h_smul : ∀ s, measurable_set s → μ s ≠ ∞ → T' s = c • (T s)) (f : α →₁[μ] E) :
+  (h_smul : ∀ s, measurable_set s → μ s < ∞ → T' s = c • (T s)) (f : α →₁[μ] E) :
   set_to_L1 hT' f = c • set_to_L1 hT f :=
 begin
   suffices : set_to_L1 hT' = c • set_to_L1 hT,
@@ -1026,24 +1026,24 @@ begin
 end
 
 lemma set_to_L1_simple_func_indicator_const (hT : dominated_fin_meas_additive μ T C) {s : set α}
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
-  set_to_L1 hT (simple_func.indicator_const 1 hs hμs x) = T s x :=
+  (hs : measurable_set s) (hμs : μ s < ∞) (x : E) :
+  set_to_L1 hT (simple_func.indicator_const 1 hs hμs.ne x) = T s x :=
 begin
   rw set_to_L1_eq_set_to_L1s_clm,
   exact set_to_L1s_indicator_const (λ s, hT.eq_zero_of_measure_zero) hT.1 hs hμs x,
 end
 
 lemma set_to_L1_indicator_const_Lp (hT : dominated_fin_meas_additive μ T C) {s : set α}
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
-  set_to_L1 hT (indicator_const_Lp 1 hs hμs x) = T s x :=
+  (hs : measurable_set s) (hμs : μ s < ∞) (x : E) :
+  set_to_L1 hT (indicator_const_Lp 1 hs hμs.ne x) = T s x :=
 begin
-  rw ← Lp.simple_func.coe_indicator_const hs hμs x,
+  rw ← Lp.simple_func.coe_indicator_const hs hμs.ne x,
   exact set_to_L1_simple_func_indicator_const hT hs hμs x,
 end
 
 lemma set_to_L1_const [is_finite_measure μ] (hT : dominated_fin_meas_additive μ T C) (x : E) :
   set_to_L1 hT (indicator_const_Lp 1 measurable_set.univ (measure_ne_top _ _) x) = T univ x :=
-set_to_L1_indicator_const_Lp hT measurable_set.univ (measure_ne_top _ _) x
+set_to_L1_indicator_const_Lp hT measurable_set.univ (measure_lt_top _ _) x
 
 lemma norm_set_to_L1_le_norm_set_to_L1s_clm (hT : dominated_fin_meas_additive μ T C) :
   ∥set_to_L1 hT∥ ≤ ∥set_to_L1s_clm α E μ hT∥ :=
@@ -1135,7 +1135,7 @@ end
 
 lemma set_to_fun_congr_left'
   (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
-  (h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = T' s) (f : α → E) :
+  (h : ∀ s, measurable_set s → μ s < ∞ → T s = T' s) (f : α → E) :
   set_to_fun μ T hT f = set_to_fun μ T' hT' f :=
 begin
   by_cases hf : integrable f μ,
@@ -1154,7 +1154,7 @@ end
 
 lemma set_to_fun_add_left' (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C') (hT'' : dominated_fin_meas_additive μ T'' C'')
-  (h_add : ∀ s, measurable_set s → μ s ≠ ∞ → T'' s = T s + T' s) (f : α → E) :
+  (h_add : ∀ s, measurable_set s → μ s < ∞ → T'' s = T s + T' s) (f : α → E) :
   set_to_fun μ T'' hT'' f = set_to_fun μ T hT f + set_to_fun μ T' hT' f :=
 begin
   by_cases hf : integrable f μ,
@@ -1172,7 +1172,7 @@ end
 
 lemma set_to_fun_smul_left' (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C') (c : ℝ)
-  (h_smul : ∀ s, measurable_set s → μ s ≠ ∞ → T' s = c • (T s)) (f : α → E) :
+  (h_smul : ∀ s, measurable_set s → μ s < ∞ → T' s = c • (T s)) (f : α → E) :
   set_to_fun μ T' hT' f = c • set_to_fun μ T hT f :=
 begin
   by_cases hf : integrable f μ,
@@ -1197,7 +1197,7 @@ begin
 end
 
 lemma set_to_fun_zero_left' (hT : dominated_fin_meas_additive μ T C)
-  (h_zero : ∀ s, measurable_set s → μ s ≠ ∞ → T s = 0) :
+  (h_zero : ∀ s, measurable_set s → μ s < ∞ → T s = 0) :
   set_to_fun μ T hT f = 0 :=
 begin
   by_cases hf : integrable f μ,
@@ -1279,7 +1279,7 @@ lemma set_to_fun_measure_zero (hT : dominated_fin_meas_additive μ T C) (h : μ 
 by { have : f =ᵐ[μ] 0, by simp [h], rw [set_to_fun_congr_ae hT this, set_to_fun_zero], }
 
 lemma set_to_fun_measure_zero' (hT : dominated_fin_meas_additive μ T C)
-  (h : ∀ s, measurable_set s → μ s ≠ ∞ → μ s = 0) :
+  (h : ∀ s, measurable_set s → μ s < ∞ → μ s = 0) :
   set_to_fun μ T hT f = 0 :=
 set_to_fun_zero_left' hT (λ s hs hμs, hT.eq_zero_of_measure_zero hs (h s hs hμs))
 
@@ -1293,7 +1293,7 @@ lemma set_to_fun_indicator_const (hT : dominated_fin_meas_additive μ T C) {s : 
 begin
   rw set_to_fun_congr_ae hT (@indicator_const_Lp_coe_fn _ _ _ 1 _ _ _ _ hs hμs x _ _).symm,
   rw L1.set_to_fun_eq_set_to_L1 hT,
-  exact L1.set_to_L1_indicator_const_Lp hT hs hμs x,
+  exact L1.set_to_L1_indicator_const_Lp hT hs hμs.lt_top x,
 end
 
 lemma set_to_fun_const [is_finite_measure μ] (hT : dominated_fin_meas_additive μ T C) (x : E) :
@@ -1427,6 +1427,7 @@ lemma set_to_fun_top_smul_measure (hT : dominated_fin_meas_additive (∞ • μ)
   set_to_fun (∞ • μ) T hT f = 0 :=
 begin
   refine set_to_fun_measure_zero' hT (λ s hs hμs, _),
+  rw lt_top_iff_ne_top at hμs,
   simp only [true_and, measure.smul_apply, with_top.mul_eq_top_iff, eq_self_iff_true, top_ne_zero,
     ne.def, not_false_iff, auto.not_or_eq, not_not] at hμs,
   simp only [hμs.right, measure.smul_apply, mul_zero],
@@ -1439,7 +1440,7 @@ lemma set_to_fun_congr_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
 begin
   by_cases hc0 : c = 0,
   { simp [hc0] at hT_smul,
-    have h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = 0,
+    have h : ∀ s, measurable_set s → μ s < ∞ → T s = 0,
       from λ s hs hμs, hT_smul.eq_zero hs,
     rw [set_to_fun_zero_left' _ h, set_to_fun_measure_zero],
     simp [hc0], },

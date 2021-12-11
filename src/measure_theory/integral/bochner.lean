@@ -229,7 +229,7 @@ lemma dominated_fin_meas_additive_weighted_smul {m : measurable_space α} (μ : 
   dominated_fin_meas_additive μ (weighted_smul μ : set α → F →L[ℝ] F) 1 :=
 ⟨weighted_smul_union, λ s _ _, (norm_weighted_smul_le s).trans (one_mul _).symm.le⟩
 
-lemma weighted_smul_nonneg (s : set α) (hs : measurable_set s) (hμs : μ s ≠ ⊤) (x : ℝ)
+lemma weighted_smul_nonneg (s : set α) (hs : measurable_set s) (hμs : μ s < ⊤) (x : ℝ)
   (hx : 0 ≤ x) :
   0 ≤ weighted_smul μ s x :=
 begin
@@ -935,12 +935,11 @@ begin
   apply lintegral_congr_ae,
   filter_upwards [Lp.coe_fn_pos_part f₁, hf.coe_fn_to_L1],
   assume a h₁ h₂,
-  rw [Lp.pos_part, h₁, h₂, ennreal.of_real],
+  rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,
-  rw real.nnnorm_of_nonneg le_sup_right,
+  rw real.nnnorm_of_nonneg (le_max_right _ _),
   simp only [real.coe_to_nnreal', subtype.coe_mk],
-  rw _root_.sup_eq_max,
 end,
 -- Go to the `L¹` space
 have eq₂ : ennreal.to_real (∫⁻ a, (ennreal.of_real $ - f a) ∂μ)  = ∥Lp.neg_part f₁∥ :=
@@ -948,13 +947,13 @@ begin
   rw L1.norm_def,
   congr' 1,
   apply lintegral_congr_ae,
-  filter_upwards [Lp.coe_fn_neg' f₁, hf.coe_fn_to_L1],
+  filter_upwards [Lp.coe_fn_neg_part f₁, hf.coe_fn_to_L1],
   assume a h₁ h₂,
-  rw [Lp.neg_part, h₁, h₂, ennreal.of_real],
+  rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,
-  simp only [← _root_.sup_eq_max, real.coe_to_nnreal', coe_nnnorm, nnnorm_neg],
-  rw [real.norm_of_nonpos inf_le_right, neg_inf_eq_sup_neg, neg_zero],
+  simp only [real.coe_to_nnreal', coe_nnnorm, nnnorm_neg],
+  rw [real.norm_of_nonpos (min_le_right _ _), ← max_neg_neg, neg_zero],
 end,
 begin
   rw [eq₁, eq₂, integral, dif_pos],
@@ -1194,9 +1193,9 @@ begin
     ← set_to_fun_congr_measure_of_add_left hν_dfma (dominated_fin_meas_additive_weighted_smul ν)
       f hfi],
   refine set_to_fun_add_left' _ _ _ (λ s hs hμνs, _) f,
-  rw [measure.coe_add, pi.add_apply, add_ne_top] at hμνs,
+  rw [measure.coe_add, pi.add_apply, add_lt_top] at hμνs,
   rw [weighted_smul, weighted_smul, weighted_smul, ← add_smul, measure.coe_add, pi.add_apply,
-    to_real_add hμνs.1 hμνs.2],
+    to_real_add hμνs.1.ne hμνs.2.ne],
 end
 
 @[simp] lemma integral_zero_measure {m : measurable_space α} (f : α → E) :

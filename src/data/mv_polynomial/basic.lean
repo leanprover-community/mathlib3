@@ -119,6 +119,10 @@ instance [monoid R] [monoid S₁][comm_semiring S₂]
   [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
+instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [distrib_mul_action Rᵐᵒᵖ S₁]
+  [is_central_scalar R S₁] :
+  is_central_scalar R (mv_polynomial σ S₁) :=
+add_monoid_algebra.is_central_scalar
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
 -- TODO[gh-6025]: make this an instance once safe to do so

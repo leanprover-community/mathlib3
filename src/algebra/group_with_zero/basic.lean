@@ -470,22 +470,22 @@ classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel₀ ha $ h₂.symm �
 
 end cancel_monoid_with_zero
 
-section comm_cancel_monoid_with_zero
+section cancel_comm_monoid_with_zero
 
-variables [comm_cancel_monoid_with_zero M₀] {a b c : M₀}
+variables [cancel_comm_monoid_with_zero M₀] {a b c : M₀}
 
-/-- Pullback a `comm_cancel_monoid_with_zero` class along an injective function.
+/-- Pullback a `cancel_comm_monoid_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.comm_cancel_monoid_with_zero
+protected def function.injective.cancel_comm_monoid_with_zero
   [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
-  comm_cancel_monoid_with_zero M₀' :=
+  cancel_comm_monoid_with_zero M₀' :=
 { .. hf.comm_monoid_with_zero f zero one mul,
   .. hf.cancel_monoid_with_zero f zero one mul }
 
-end comm_cancel_monoid_with_zero
+end cancel_comm_monoid_with_zero
 
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
@@ -931,7 +931,7 @@ section comm_group_with_zero -- comm
 variables [comm_group_with_zero G₀] {a b c : G₀}
 
 @[priority 10] -- see Note [lower instance priority]
-instance comm_group_with_zero.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero G₀ :=
+instance comm_group_with_zero.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero G₀ :=
 { ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
 
 /-- Pullback a `comm_group_with_zero` class along an injective function.

@@ -293,6 +293,12 @@ begin
   exact continuous_linear_map.map_zero _,
 end
 
+lemma set_to_simple_func_mono {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  {m : measurable_space α}
+  (T : set α → F →L[ℝ] G) (T' : set α → F →L[ℝ] G) (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →ₛ F) :
+  set_to_simple_func T f ≤ set_to_simple_func T' f :=
+by { simp_rw set_to_simple_func, exact sum_le_sum (λ i hi, hTT' _ i), }
+
 lemma map_set_to_simple_func (T : set α → F →L[ℝ] F') (h_add : fin_meas_additive μ T)
   {f : α →ₛ G} (hf : integrable f μ) {g : G → F} (hg : g 0 = 0) :
   (f.map g).set_to_simple_func T = ∑ x in f.range, T (f ⁻¹' {x}) (g x) :=

@@ -193,6 +193,22 @@ by rw [fin_range, length_pmap, length_range]
 @[simp] lemma fin_range_eq_nil {n : ℕ} : fin_range n = [] ↔ n = 0 :=
 by rw [← length_eq_zero, length_fin_range]
 
+@[simp] lemma map_coe_fin_range (n : ℕ) : (fin_range n).map coe = list.range n :=
+begin
+  simp_rw [fin_range, map_pmap, fin.mk, subtype.coe_mk, pmap_eq_map],
+  exact list.map_id _
+end
+
+lemma fin_range_succ_eq_map (n : ℕ) :
+  fin_range n.succ = 0 :: (fin_range n).map fin.succ :=
+begin
+  apply map_injective_iff.mpr subtype.coe_injective,
+  rw [map_cons, map_coe_fin_range, range_succ_eq_map, fin.coe_zero, ←map_coe_fin_range, map_map,
+    map_map, function.comp, function.comp],
+  congr' 2 with x,
+  exact (fin.coe_succ _).symm,
+end
+
 @[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
   ((range n.succ).map f).prod = ((range n).map f).prod * f n :=

@@ -1900,6 +1900,9 @@ begin
     exact (h i).zero_eq x hx },
   { intros m hm x hx,
     have := has_fderiv_within_at_pi.2 (λ i, (h i).fderiv_within m hm x hx),
+    -- TODO: lean can't find the instance without this: If we remove this `letI`, we have to add
+    -- `local attribute [-instance] punit.mul_action` instead!
+    letI : normed_space 𝕜 (E [×m]→L[𝕜] (Π i, F' i)) := infer_instance,
     convert (L m).has_fderiv_at.comp_has_fderiv_within_at x this },
   { intros m hm,
     have := continuous_on_pi.2 (λ i, (h i).cont m hm),

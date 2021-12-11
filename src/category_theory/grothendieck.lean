@@ -148,9 +148,10 @@ def fiber_push (X : C) : costructured_arrow (forget F) X ⥤ (F.obj X).1 :=
       simpa },
     simp } }
 
-variable (G : pseudofunctor_to_Cat C)
+variables (G : pseudofunctor_to_Cat C) (X : grothendieck G.to_lax_functor_to_Cat)
 
-noncomputable def cleavage (X : grothendieck G.to_lax_functor_to_Cat) : under X.base ⥤ under X :=
+@[simps obj map]
+noncomputable def cleavage : under X.base ⥤ under X :=
 { obj := λ f, ⟨punit.star, ⟨f.right, (G.map f.hom).obj X.fiber⟩, ⟨f.hom, 𝟙 _⟩⟩,
   map := λ f₁ f₂ g, ⟨𝟙 _,
     ⟨g.right, (inv (G.map_comp f₁.hom g.right) ≫ eq_to_hom (by rw under.w g)).app X.fiber⟩,
@@ -163,6 +164,22 @@ noncomputable def cleavage (X : grothendieck G.to_lax_functor_to_Cat) : under X.
     rw [h', ← category.assoc, ← is_iso.eq_comp_inv, ← is_iso.inv_eq_inv] at h,
     convert eq_whisker h (eq_to_hom (by simp : _ = (G.map f₃.hom).obj X.fiber)) using 1,
     simp, simpa } }
+
+def cleavage_forget_counit : under.post (forget G.1) ⋙ cleavage G X ⟶ 𝟭 (under X) :=
+{ app := λ f, ⟨eq_to_hom (by simp), ⟨𝟙 _, (G.map_id _).app _ ≫ f.hom.fiber⟩,
+    by { dsimp, rw category.id_comp, ext,
+      { erw comp_fiber, dsimp, simpa }, { erw comp_base, simp } }⟩,
+  naturality' := λ f₁ f₂ g, by { ext,
+    { dsimp, erw [comp_fiber, comp_fiber], dsimp, simp, } }}
+
+
+def cleavage_forget_adjunction :
+  cleavage G X ⊣ under.post (forget G.1) := adjunction.mk_of_unit_counit
+{ unit := eq_to_hom $ by { apply functor.hext, { rintro ⟨⟨_⟩,_⟩, refl },
+    { rintros ⟨⟨_⟩,_⟩ ⟨⟨_⟩,_⟩ ⟨⟨_⟩,_⟩, dsimp, congr } },
+  counit := ,
+  left_triangle' := ,
+  right_triangle' := }
 
 end
 

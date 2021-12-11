@@ -236,9 +236,39 @@ sorry,
  end
 
 
-lemma der1bound' (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) (x : ℂ) (hx : x ∈ ball z (2⁻¹*R)):
+lemma int_aux : Ι 0 (2 * π) ⊆ [0, 2*π] :=
+begin
+ have h0:  0 ≤ 2*π , by {apply real.two_pi_pos.le,},
+have := interval_oc_of_le h0,
+rw this,
+rw interval_of_le h0,
+apply Ioc_subset_Icc_self,
+end
+
+lemma bound_cts (R : ℝ)  (hR: 0 < R) (z a: ℂ) (b : ℝ) (f : ℂ → ℂ) (hf : continuous f) :
+continuous (λ (r : ℝ), (complex.abs ( fbound (R) hR z b a))*complex.abs (f(z+R*exp(r*I)))) :=
+begin
+apply continuous.mul,
+apply continuous_const,
+apply continuous.comp,
+apply continuous_abs,
+apply continuous.comp,
+apply hf,
+apply continuous.add,
+apply continuous_const,
+apply continuous.mul,
+apply continuous_const,
+apply continuous.cexp,
+apply continuous.mul,
+apply continuous.comp,
+apply continuous_of_real,
+apply continuous_id,
+apply continuous_const,
+end
+
+lemma der1bound' (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) (x : ℂ) (hx : x ∈ ball z (2⁻¹*R)) (hf : continuous f):
 ∃ (boun : ℝ → ℝ) (ε : ℝ), 0 < ε ∧
- ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε, ∥der1 R hR z f y t∥ ≤  boun t :=
+ (∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε, ∥der1 R hR z f y t∥ ≤  boun t) ∧ continuous boun:=
  begin
 have h2R: 0 < 2*R, by {linarith,},
 have fbb := fbounded' (R) hR z,
@@ -251,6 +281,7 @@ use bound,
 use ε',
 simp at hε',
 simp [hε'],
+split,
  rw filter.eventually_iff_exists_mem,
  use ⊤,
  simp,
@@ -264,15 +295,29 @@ simp [hε'],
  simp_rw fbound,
   simp at *,
 
-  have hyy : y ∈ [0,2*π ], by {sorry,},
+  have hyy : y ∈ [0,2*π ], by {apply int_aux, apply hy,},
    have hab2:= hab.2 v y hvz.le hyy,
    have abp : 0 ≤ complex.abs (f(z+R*exp(y*I))), by {apply abs_nonneg},
    have:= mul_le_mul_of_nonneg_right hab2 abp,
    simp at this,
    simp_rw ← mul_assoc,
+
    apply this,
+   have cts:= bound_cts R hR z a b f hf,
+   simp_rw fbound at cts,
+
+   simp_rw [bound, fbound],
+    simp at *,
+   apply cts,
  end
 
+lemma half_ball_sub (R: ℝ) (hR: 0 < R) (z : ℂ) : ball z (2⁻¹*R) ⊆ ball z R :=
+begin
+apply ball_subset_ball,
+rw mul_le_iff_le_one_left hR,
+apply inv_le_one,
+linarith,
+end
 
 lemma int_diff_has_fdrevi (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ)  (hf: continuous f) :
   differentiable_on ℂ (int_diff R hR f z) (ball z (2⁻¹*R)) :=
@@ -282,7 +327,7 @@ simp_rw int_diff0,
 rw differentiable_on,
 simp_rw differentiable_within_at,
 intros x hx,
-have h4R: 0 < (4⁻¹*R), by {sorry},
+have h4R: 0 < (4⁻¹*R), by {apply mul_pos, rw inv_pos, linarith, apply hR,},
 set F: ℂ → ℝ → ℂ  := λ w, (λ θ, (int_diff0 R hR f z w θ)),
 set F': ℂ → ℝ → ℂ := der1 R hR z f,
 have hF_meas : ∀ᶠ y in 𝓝 x, ae_measurable (F y) (volume.restrict (Ι 0 (2 * π))) ,
@@ -296,7 +341,7 @@ by {simp_rw F,  rw filter.eventually_iff_exists_mem,
     have := continuous.ae_measurable (int_diff0_cont R hR f z y hf _),
     apply ae_measurable.restrict,
     apply this,
-    have HBB: ball z (2⁻¹*R) ⊆ ball z R, by {sorry},
+    have HBB:= half_ball_sub R hR z,
     apply HBB,
     apply HB,
     simp [hy],},
@@ -304,7 +349,7 @@ have hF_int : interval_integrable (F x) volume 0  (2 * π),
 by {simp_rw F,
 
   have cts :=  int_diff0_cont R hR f z x hf,
-  have hxx: x ∈ ball z R, by {sorry,},
+  have hxx: x ∈ ball z R, by {have HB:= half_ball_sub R hR z, apply HB, apply hx,},
   have ctss:= cts hxx,
   have := continuous.interval_integrable ctss 0 (2*π),
   apply this,
@@ -314,17 +359,21 @@ have  hF'_meas : ae_measurable (F' x) (volume.restrict (Ι 0 (2 * π))) , by {
     have := continuous.ae_measurable (int_diff0_cont' R hR f z x hf _),
     apply ae_measurable.restrict,
     apply this,
-    sorry,},
-  have BOU := der1bound' R hR z f x hx,
-  obtain ⟨bound, ε, hε ,h_boun⟩:= BOU,
+    have HB:= half_ball_sub R hR z,
+    apply HB,
+    apply hx,},
+  have BOU := der1bound' R hR z f x hx hf,
+  obtain ⟨bound, ε, hε ,h_boun, hcts⟩:= BOU,
 have h_bound : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε , ∥F' y t∥ ≤  bound t,
 by {
   simp_rw F',
   apply h_boun,
 },
-have  bound_integrable : interval_integrable bound volume 0 (2 * π) , by {sorry},
+have  bound_integrable : interval_integrable bound volume 0 (2 * π) ,
+by {apply continuous.interval_integrable, apply hcts,},
 have h_diff : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε, has_deriv_at (λ y, F y t) (F' y t) y,
 by {
+  simp_rw [F, F', int_diff0, der1, int_diff0'],
 
   sorry},
 have := interval_integral.has_deriv_at_integral_of_dominated_loc_of_deriv_le hε hF_meas hF_int hF'_meas

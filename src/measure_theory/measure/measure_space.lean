@@ -2630,6 +2630,14 @@ lemma ae_eq_of_ae_eq_trim {E} {hm : m ≤ m0} {f₁ f₂ : α → E}
   f₁ =ᵐ[μ] f₂ :=
 measure_eq_zero_of_trim_eq_zero hm h12
 
+lemma trim_trim {m₁ m₂ : measurable_space α} {hm₁₂ : m₁ ≤ m₂} {hm₂ : m₂ ≤ m0} :
+  (μ.trim hm₂).trim hm₁₂ = μ.trim (hm₁₂.trans hm₂) :=
+begin
+  ext1 t ht,
+  rw [trim_measurable_set_eq hm₁₂ ht, trim_measurable_set_eq (hm₁₂.trans hm₂) ht,
+    trim_measurable_set_eq hm₂ (hm₁₂ t ht)],
+end
+
 lemma restrict_trim (hm : m ≤ m0) (μ : measure α) (hs : @measurable_set α m s) :
   @measure.restrict α m (μ.trim hm) s = (μ.restrict s).trim hm :=
 begin

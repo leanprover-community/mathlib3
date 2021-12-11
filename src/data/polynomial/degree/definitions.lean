@@ -750,20 +750,20 @@ end
 begin
   induction n with i hi,
   { simp },
-  { by_cases hp1 : p.leading_coeff ^ i = 0; repeat { rw pow_succ' },
-    { by_cases hp2 : p ^ i = 0; rw [hp1, zero_mul],
+  { rw [pow_succ', pow_succ', nat.succ_mul],
+    by_cases hp1 : p.leading_coeff ^ i = 0,
+    { rw [hp1, zero_mul],
+      by_cases hp2 : p ^ i = 0,
       { rw [hp2, zero_mul, coeff_zero] },
-      { have h1 : (p ^ i).nat_degree < i * p.nat_degree,
+      { apply coeff_eq_zero_of_nat_degree_lt,
+        have h1 : (p ^ i).nat_degree < i * p.nat_degree,
         { by_contra h,
           replace h := eq_iff_le_not_lt.mpr ⟨nat_degree_pow_le, h⟩,
           rw [←h, hp1] at hi,
           exact (leading_coeff_ne_zero.mpr hp2) hi },
-        have h2 : (p ^ i * p).nat_degree < i.succ * p.nat_degree,
-        by calc (p ^ i * p).nat_degree ≤ (p ^ i).nat_degree + p.nat_degree : nat_degree_mul_le
-                                   ... < i * p.nat_degree + p.nat_degree : nat.add_lt_add_right h1 _
-                                   ... = i.succ * p.nat_degree : by rw ←nat.succ_mul,
-        rw coeff_eq_zero_of_nat_degree_lt h2 } },
-    { rw [nat.succ_mul, ←nat_degree_pow' hp1, ←leading_coeff_pow' hp1],
+        calc (p ^ i * p).nat_degree ≤ (p ^ i).nat_degree + p.nat_degree : nat_degree_mul_le
+                                ... < i * p.nat_degree + p.nat_degree : add_lt_add_right h1 _ } },
+    { rw [←nat_degree_pow' hp1, ←leading_coeff_pow' hp1],
       exact coeff_mul_degree_add_degree _ _ } }
 end
 

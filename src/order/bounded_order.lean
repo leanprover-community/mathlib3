@@ -441,8 +441,7 @@ lemma none_lt_some [has_lt α] (a : α) :
   @has_lt.lt (with_bot α) _ none (some a) :=
 ⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
 
-lemma not_lt_none [has_lt α] (a : option α) :
-  ¬ @has_lt.lt (with_bot α) _ a none :=
+lemma not_lt_none [has_lt α] (a : option α) : ¬ @has_lt.lt (with_bot α) _ a none :=
 λ ⟨_, h, _⟩, option.not_mem_none _ h
 
 lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := none_lt_some a

@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.operator_norm
+import analysis.normed_space.star
 import topology.continuous_function.algebra
+import data.real.sqrt
+import analysis.normed_space.lattice_ordered_group
 
 /-!
 # Bounded continuous functions
@@ -86,19 +89,6 @@ and therefore gives rise to an element of the type of bounded continuous functio
 @[simps] def mk_of_discrete [discrete_topology α] (f : α → β)
   (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
 ⟨⟨f, continuous_of_discrete_topology⟩, ⟨C, h⟩⟩
-
-section
-variables (α β)
-/--
-The map forgetting that a bounded continuous function is bounded.
--/
-def forget_boundedness : (α →ᵇ β) → C(α, β) :=
-λ f, f.1
-
-@[simp] lemma forget_boundedness_coe (f : α →ᵇ β) : (forget_boundedness α β f : α → β) = f :=
-rfl
-
-end
 
 /-- The uniform distance between two bounded continuous functions -/
 instance : has_dist (α →ᵇ β) :=
@@ -584,8 +574,8 @@ variables (α β)
 
 /-- The additive map forgetting that a bounded continuous function is bounded.
 -/
-@[simps] def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
-{ to_fun := forget_boundedness α β,
+@[simps] def to_continuous_map_add_hom : (α →ᵇ β) →+ C(α, β) :=
+{ to_fun := to_continuous_map,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, }, }
 
@@ -855,8 +845,8 @@ variables (α β)
 
 /-- The linear map forgetting that a bounded continuous function is bounded. -/
 @[simps]
-def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
-{ to_fun := forget_boundedness α β,
+def to_continuous_map_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
+{ to_fun := to_continuous_map,
   map_smul' := by { intros, ext, simp, },
   map_add' := by { intros, ext, simp, }, }
 
@@ -1029,5 +1019,147 @@ show that the space of bounded continuous functions from `α` to `β` is natural
 module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
+
+/-!
+### Star structures
+
+In this section, if `β` is a normed ⋆-group, then so is the space of bounded
+continuous functions from `α` to `β`, by using the star operation pointwise.
+
+If `𝕜` is normed field and a ⋆-ring over which `β` is a normed algebra and a
+star module, then the space of bounded continuous functions from `α` to `β`
+is a star module.
+
+If `β` is a ⋆-ring in addition to being a normed ⋆-group, then `α →ᵇ β`
+inherits a ⋆-ring structure.
+
+In summary, if `β` is a C⋆-algebra over `𝕜`, then so is  `α →ᵇ β`; note that
+completeness is guaranteed when `β` is complete (see
+`bounded_continuous_function.complete`). -/
+
+section normed_group
+
+variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
+variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_monoid β]
+variables [normed_space 𝕜 β] [star_module 𝕜 β]
+
+instance : star_add_monoid (α →ᵇ β) :=
+{ star            := λ f, f.comp star star_normed_group_hom.lipschitz,
+  star_involutive := λ f, ext $ λ x, star_star (f x),
+  star_add        := λ f g, ext $ λ x, star_add (f x) (g x) }
+
+/-- The right-hand side of this equality can be parsed `star ∘ ⇑f` because of the
+instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = star ⇑f`.-/
+@[simp] lemma coe_star (f : α →ᵇ β) : ⇑(star f) = star f := rfl
+
+@[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
+
+instance : normed_star_monoid (α →ᵇ β) :=
+{ norm_star := λ f, by
+  { simp only [norm_eq], congr, ext, conv_lhs { find (∥_∥) { erw (@norm_star β _ _ _ (f x)) } } } }
+
+instance : star_module 𝕜 (α →ᵇ β) :=
+{ star_smul := λ k f, ext $ λ x, star_smul k (f x) }
+
+end normed_group
+
+section cstar_ring
+
+variables [topological_space α]
+variables [normed_ring β] [star_ring β] [normed_star_monoid β]
+
+instance : star_ring (α →ᵇ β) :=
+{ star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
+  ..bounded_continuous_function.star_add_monoid }
+
+variable [cstar_ring β]
+
+instance : cstar_ring (α →ᵇ β) :=
+{ norm_star_mul_self :=
+  begin
+    intro f,
+    refine le_antisymm _ _,
+    { rw [←sq, norm_le (sq_nonneg _)],
+      dsimp [star_apply],
+      intro x,
+      rw [cstar_ring.norm_star_mul_self, ←sq],
+      refine sq_le_sq' _ _,
+      { linarith [norm_nonneg (f x), norm_nonneg f] },
+      { exact norm_coe_le_norm f x }, },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _), norm_le (real.sqrt_nonneg _)],
+      intro x,
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact norm_coe_le_norm (star f * f) x }
+  end }
+
+end cstar_ring
+
+section normed_lattice_ordered_group
+
+variables [topological_space α] [normed_lattice_add_comm_group β]
+
+instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (by tidy)
+
+/--
+Continuous normed lattice group valued functions form a meet-semilattice
+-/
+instance : semilattice_inf (α →ᵇ β) :=
+{ inf := λ f g,
+  { to_fun := λ t, f t ⊓ g t,
+    continuous_to_fun := f.continuous.inf g.continuous,
+    bounded' := begin
+      cases f.bounded' with C₁ hf,
+      cases g.bounded' with C₂ hg,
+      refine ⟨C₁ + C₂, λ x y, _⟩,
+      simp_rw normed_group.dist_eq at hf hg ⊢,
+      exact (norm_inf_sub_inf_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),
+    end },
+  inf_le_left := λ f g, continuous_map.le_def.mpr (λ _, inf_le_left),
+  inf_le_right := λ f g, continuous_map.le_def.mpr (λ _, inf_le_right),
+  le_inf := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ _, le_inf (continuous_map.le_def.mp w₁ _)
+    (continuous_map.le_def.mp w₂ _)),
+  ..bounded_continuous_function.partial_order }
+
+instance : semilattice_sup (α →ᵇ β) :=
+{ sup := λ f g,
+  { to_fun := λ t, f t ⊔ g t,
+    continuous_to_fun := f.continuous.sup g.continuous,
+    bounded' := begin
+      cases f.bounded' with C₁ hf,
+      cases g.bounded' with C₂ hg,
+      refine ⟨C₁ + C₂, λ x y, _⟩,
+      simp_rw normed_group.dist_eq at hf hg ⊢,
+      exact (norm_sup_sub_sup_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),
+    end },
+  le_sup_left := λ f g, continuous_map.le_def.mpr (λ _, le_sup_left),
+  le_sup_right := λ f g, continuous_map.le_def.mpr (λ _, le_sup_right),
+  sup_le := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ _, sup_le (continuous_map.le_def.mp w₁ _)
+    (continuous_map.le_def.mp w₂ _)),
+  ..bounded_continuous_function.partial_order }
+
+instance  : lattice (α →ᵇ β) :=
+{ .. bounded_continuous_function.semilattice_sup, .. bounded_continuous_function.semilattice_inf }
+
+@[simp] lemma coe_fn_sup (f g : α →ᵇ β) : ⇑(f ⊔ g) = f ⊔ g := rfl
+
+@[simp] lemma coe_fn_abs (f : α →ᵇ β) : ⇑|f| = |f| := rfl
+
+instance : normed_lattice_add_comm_group (α →ᵇ β) :=
+{ add_le_add_left := begin
+    intros f g h₁ h t,
+    simp only [coe_to_continuous_fun, pi.add_apply, add_le_add_iff_left, coe_add,
+      continuous_map.to_fun_eq_coe],
+    exact h₁ _,
+  end,
+  solid :=
+  begin
+    intros f g h,
+    have i1: ∀ t, ∥f t∥ ≤ ∥g t∥ := λ t, solid (h t),
+    rw norm_le (norm_nonneg _),
+    exact λ t, (i1 t).trans (norm_coe_le_norm g t),
+  end,
+  ..bounded_continuous_function.lattice, }
+
+end normed_lattice_ordered_group
 
 end bounded_continuous_function

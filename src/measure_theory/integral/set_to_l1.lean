@@ -711,6 +711,24 @@ begin
     (add_to_simple_func f g),
 end
 
+lemma set_to_L1s_neg {T : set α → E →L[ℝ] F}
+  (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0) (h_add : fin_meas_additive μ T)
+  (f : α →₁ₛ[μ] E) :
+  set_to_L1s T (-f) = - set_to_L1s T f :=
+begin
+  simp_rw set_to_L1s,
+  have : simple_func.to_simple_func (-f) =ᵐ[μ] ⇑(-simple_func.to_simple_func f),
+    from neg_to_simple_func f,
+  rw simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable _) this,
+  exact simple_func.set_to_simple_func_neg T h_add (simple_func.integrable f),
+end
+
+lemma set_to_L1s_sub {T : set α → E →L[ℝ] F}
+  (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0) (h_add : fin_meas_additive μ T)
+  (f g : α →₁ₛ[μ] E) :
+  set_to_L1s T (f - g) = set_to_L1s T f - set_to_L1s T g :=
+by rw [sub_eq_add_neg, set_to_L1s_add T h_zero h_add, set_to_L1s_neg h_zero h_add, sub_eq_add_neg]
+
 lemma set_to_L1s_smul_real (T : set α → E →L[ℝ] F)
   (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0) (h_add : fin_meas_additive μ T)
   (c : ℝ) (f : α →₁ₛ[μ] E) :
@@ -762,20 +780,6 @@ lemma set_to_L1s_const [is_finite_measure μ] {T : set α → E →L[ℝ] F}
   set_to_L1s T (simple_func.indicator_const 1 measurable_set.univ (measure_ne_top μ _) x)
     = T univ x :=
 set_to_L1s_indicator_const h_zero h_add measurable_set.univ (measure_ne_top _ _) x
-
-lemma set_to_L1s_sub {T : set α → E →L[ℝ] F}
-  (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0) (h_add : fin_meas_additive μ T)
-  (f g : α →₁ₛ[μ] E) :
-  set_to_L1s T (f - g) = set_to_L1s T f - set_to_L1s T g :=
-begin
-  simp_rw set_to_L1s,
-  have : simple_func.to_simple_func (f - g)
-      =ᵐ[μ] ⇑(simple_func.to_simple_func f - simple_func.to_simple_func g),
-    from sub_to_simple_func f g,
-  rw simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable _) this,
-  exact simple_func.set_to_simple_func_sub T h_add (simple_func.integrable f)
-    (simple_func.integrable g),
-end
 
 variables [normed_space 𝕜 F] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 

@@ -3,8 +3,9 @@ Copyright (c) 2021 Alex J. Best. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
-import order.rel_iso
 import algebra.order.ring
+import order.rel_iso
+import order.preorder_hom
 
 /-!
 # Ordered ring homomorphisms
@@ -21,32 +22,44 @@ Homomorphisms between ordered (semi)rings that respect the ordering.
 * `→+*o`: order homomorphisms of ordered rings.
 
 ## Tags
+
 ordered ring homomorphism, order homomorphism
 -/
 
-/-- Homomorphism respecting the multiplicative, additive and order structure. -/
+/-- `ordered_ring_hom R S` is the type of monotone semiring homomorphisms from `R` to `S`.
+
+When possible, instead of parametrizing results over `(f : ordered_ring_hom R S)`,
+you should parametrize over `(F : Type*) [ordered_ring_hom_class F R S] (f : F)`.
+When you extend this structure, make sure to extend `ordered_ring_hom_class`.
+-/
 structure ordered_ring_hom (R S : Type*) [ordered_semiring R] [ordered_semiring S]
   extends R →+* S :=
-(map_rel' : ∀ {a b}, a ≤ b → to_fun a ≤ to_fun b)
+(monotone' : monotone to_fun)
 
 /-- Reinterpret an ordered ring homomorphism as a ring homomorphism. -/
 add_decl_doc ordered_ring_hom.to_ring_hom
-
-namespace ordered_ring_hom
 
 infix ` →+*o `:25 := ordered_ring_hom
 
 variables {R S : Type*} [ordered_semiring R] [ordered_semiring S]
 
 /-- Reinterpret an ordered ring homomorphism as an order homomorphism. -/
-def to_rel_hom (f : R →+*o S) : ((≤) : R → R → Prop) →r ((≤) : S → S → Prop) := { ..f }
+def to_order_hom (f : R →+*o S) : R →ₘ S := { ..f }
 
-instance has_coe_to_ring_hom : has_coe (R →+*o S) (R →+* S) := ⟨to_ring_hom⟩
-instance has_coe_to_hom : has_coe (R →+*o S) (R → S) := ⟨ring_hom.to_fun ∘ to_ring_hom⟩
-instance has_coe_to_rel_hom : has_coe (R →+*o S) (((≤) : R → R → Prop) →r ((≤) : S → S → Prop)) :=
-⟨to_rel_hom⟩
+/-- `ordered_ring_hom_class F R S` states that `F` is a type of ordered semiring homomorphisms.
+You should extend this typeclass when you extend `ordered_ring_hom`. -/
+class ordered_ring_hom_class (F : Type*) (R S : out_param $ Type*)
+  [ordered_semiring R] [ordered_semiring S] extends ring_hom_class F R S :=
+(monotone (f : F) : monotone f)
 
-instance : has_coe_to_fun (R →+*o S) := ⟨_, λ f, f.to_fun⟩
+instance ordered_ring_hom.ordered_ring_hom_class : ordered_ring_hom_class (R →+*o S) R S :=
+{ coe := λ f, f,
+  coe_injective' := _,
+  map_mul := _,
+  map_one := _,
+  map_add := _,
+  map_zero := _,
+  monotone := _ }
 
 @[simp] lemma to_ring_hom_eq_coe {f : R →+*o S} : f.to_ring_hom = f := rfl
 @[simp] lemma to_order_iso_eq_coe {f : R →+*o S} : f.to_rel_hom = f := rfl

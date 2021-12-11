@@ -115,12 +115,6 @@ lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y 
 lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
 ⟨λ h', h'.antisymm h, eq.le⟩
 
-lemma eq_of_not_lt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : a = b :=
-hab.antisymm $ not_not.1 $ λ h, hba $ hab.lt_of_not_le h
-
-lemma eq_of_not_gt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : b = a :=
-(hab.eq_of_not_lt hba).symm
-
 lemma lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
 (lt_or_ge a c).imp id $ λ hc, le_trans hc h
 
@@ -195,6 +189,15 @@ alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 
 attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
+
+lemma eq_of_le_of_not_lt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : a = b :=
+hab.eq_or_lt.resolve_right hba
+
+lemma eq_of_ge_of_not_gt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : b = a :=
+(hab.eq_or_lt.resolve_right hba).symm
+
+alias eq_of_le_of_not_lt ← has_le.le.eq_of_not_lt
+alias eq_of_ge_of_not_gt ← has_le.le.eq_of_not_gt
 
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩

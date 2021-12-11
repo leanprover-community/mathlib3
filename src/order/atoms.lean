@@ -53,20 +53,25 @@ section atoms
 
 section is_atom
 
-variables [partial_order α] [order_bot α]
+variables [partial_order α] [order_bot α] {a b x : α}
 
 /-- An atom of an `order_bot` is an element with no other element between it and `⊥`,
   which is not `⊥`. -/
 def is_atom (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
 
-lemma eq_bot_or_eq_of_le_atom {a b : α} (ha : is_atom a) (hab : b ≤ a) : b = ⊥ ∨ b = a :=
+lemma eq_bot_or_eq_of_le_atom (ha : is_atom a) (hab : b ≤ a) : b = ⊥ ∨ b = a :=
 hab.lt_or_eq.imp_left (ha.2 b)
 
-lemma is_atom.Iic {x a : α} (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set.Iic x) :=
+lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set.Iic x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
 
-lemma is_atom.of_is_atom_coe_Iic {x : α} {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
+lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
+
+lemma is_atom_iff_bot_covers : is_atom a ↔ ⊥ ⋖ a :=
+⟨λ h, ⟨h.1.bot_lt, λ b hb, (h.2 _ hb).not_lt⟩, λ h, ⟨h.ne, λ b hb, eq_bot_of_minimal $ λ c, h.2 _⟩⟩
+
+alias is_atom_iff_bot_covers ↔ is_atom.bot_covers covers.is_atom
 
 end is_atom
 
@@ -87,6 +92,13 @@ lemma is_coatom.Ici {x a : α} (ha : is_coatom a) (hax : x ≤ a) : is_coatom (�
 lemma is_coatom.of_is_coatom_coe_Ici {x : α} {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans a.prop hba.le⟩ hba)⟩
+
+lemma is_coatom_iff_covers_top : is_coatom a ↔ a ⋖ ⊤ :=
+begin
+
+end
+
+alias is_coatom_iff_covers_top ↔ is_coatom.covers_top covers.is_coatom
 
 end is_coatom
 

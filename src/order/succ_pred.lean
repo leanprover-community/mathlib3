@@ -103,8 +103,12 @@ lemma succ_mono : monotone (succ : α → α) := λ a b, succ_le_succ
 lemma lt_succ_of_not_maximal {a b : α} (h : a < b) : a < succ a :=
 (le_succ a).lt_of_not_le (λ ha, maximal_of_succ_le ha h)
 
+alias lt_succ_of_not_maximal ← has_lt.lt.lt_succ
+
 lemma covers_succ_of_not_maximal {a b : α} (h : a < b) : a ⋖ succ a :=
-⟨lt_succ_of_not_maximal h, λ c hc, (succ_le_of_lt hc).not_lt⟩
+⟨h.lt_succ, λ c hc, (succ_le_of_lt hc).not_lt⟩
+
+alias covers_succ_of_not_maximal ← has_lt.lt.covers_succ
 
 section no_top_order
 variables [no_top_order α] {a b : α}
@@ -195,7 +199,7 @@ lemma le_succ_iff_lt_or_eq : a ≤ succ b ↔ (a ≤ b ∨ a = succ b) :=
 by rw [←lt_succ_iff, ←lt_succ_iff, lt_succ_iff_lt_or_eq]
 
 lemma _root_.covers_iff_succ_eq : a ⋖ b ↔ succ a = b :=
-⟨_root_.covers.succ_eq, by { rintro rfl, exact covers_succ _ }⟩
+⟨covers.succ_eq, by { rintro rfl, exact covers_succ _ }⟩
 
 end no_top_order
 
@@ -236,7 +240,7 @@ lemma succ_ne_bot (a : α) : succ a ≠ ⊥ :=
 end order_bot
 
 section linear_order
-variables [linear_order α] {a b : α}
+variables [linear_order α]
 
 /-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
 def of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
@@ -310,8 +314,12 @@ lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
 lemma pred_lt_of_not_minimal {a b : α} (h : b < a) : pred a < a :=
 (pred_le a).lt_of_not_le (λ ha, minimal_of_le_pred ha h)
 
+alias pred_lt_of_not_minimal ← has_lt.lt.pred_lt
+
 lemma pred_covers_of_not_minimal {a b : α} (h : b < a) : pred a ⋖ a :=
-⟨pred_lt_of_not_minimal h, λ c hc, (le_of_pred_lt hc).not_lt⟩
+⟨h.pred_lt, λ c hc, (le_of_pred_lt hc).not_lt⟩
+
+alias pred_covers_of_not_minimal ← has_lt.lt.pred_covers
 
 section no_bot_order
 variables [no_bot_order α] {a b : α}
@@ -476,14 +484,13 @@ open succ_order pred_order
 section succ_pred_order
 variables [partial_order α] [succ_order α] [pred_order α] {a b : α}
 
-@[simp] lemma succ_pred_of_not_minimal (h : b < a) : succ (pred a) = a :=
-(pred_covers_of_not_minimal h).succ_eq
-
-@[simp] lemma pred_succ_of_not_maximal (h : a < b) : pred (succ a) = a :=
-(covers_succ_of_not_maximal h).pred_eq
-
+@[simp] lemma succ_pred_of_not_minimal (h : b < a) : succ (pred a) = a := h.pred_covers.succ_eq
+@[simp] lemma pred_succ_of_not_maximal (h : a < b) : pred (succ a) = a := h.covers_succ.pred_eq
 @[simp] lemma succ_pred [no_bot_order α] (a : α) : succ (pred a) = a := (pred_covers _).succ_eq
 @[simp] lemma pred_succ [no_top_order α] (a : α) : pred (succ a) = a := (covers_succ _).pred_eq
+
+alias succ_pred_of_not_minimal ← has_lt.lt.succ_pred
+alias pred_succ_of_not_maximal ← has_lt.lt.pred_succ
 
 end succ_pred_order
 

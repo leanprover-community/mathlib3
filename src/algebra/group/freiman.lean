@@ -22,8 +22,14 @@ They are of interest in additive combinatorics.
 
 ## Notation
 
-* `A →*[n] β`: Multiplicative `n`-Freiman homomorphism
-* `A →+[n] β`: Additive `n`-Freiman homomorphism
+* `A →*[n] β`: Multiplicative `n`-Freiman homomorphism on `A`
+* `A →+[n] β`: Additive `n`-Freiman homomorphism on `A`
+
+## Implementation notes
+
+In the context of combinatorics, we are interested in Freiman homomorphisms over sets which are not
+necessarily closed under addition/multiplication. This means we must parametrize them with a set in
+an `add_monoid`/`monoid` instead of the `add_monoid`/`monoid` itself.
 
 ## References
 
@@ -166,14 +172,8 @@ protected def comp (f : B →*[n] γ) (g : A →*[n] β) (hAB : A.maps_to g B) :
     rw [←map_map,
     map_prod_eq_map_prod f _ _ ((s.card_map _).trans hs) ((t.card_map _).trans ht)
       (map_prod_eq_map_prod g hsA htA hs ht h), map_map],
-    { rintro x hx,
-      rw mem_map at hx,
-      obtain ⟨x, hx, rfl⟩ := hx,
-      exact hAB (hsA hx) },
-    { rintro x hx,
-      rw mem_map at hx,
-      obtain ⟨x, hx, rfl⟩ := hx,
-      exact hAB (htA hx) }
+    { simpa using (λ a h, hAB (hsA h)) },
+    { simpa using (λ a h, hAB (htA h)) }
   end }
 
 @[simp, to_additive]
@@ -190,7 +190,7 @@ lemma comp_assoc (f : A →*[n] β) (g : B →*[n] γ) (h : C →*[n] δ) {hf hh
 @[to_additive]
 lemma cancel_right {g₁ g₂ : B →*[n] γ} {f : A →*[n] β} (hf : function.surjective f) {hg₁ hg₂} :
   g₁.comp f hg₁ = g₂.comp f hg₂ ↔ g₁ = g₂ :=
-⟨λ h, ext $ (forall_iff_forall_surj hf).1 (fun_like.ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, ext $ hf.forall.2 $ fun_like.ext_iff.1 h, λ h, h ▸ rfl⟩
 
 -- @[to_additive]
 -- lemma cancel_left {g : B →*[n] γ} {f₁ f₂ : A →*[n] β} (hg : function.injective g)
@@ -366,7 +366,7 @@ begin
   rw [←hs, card_pos_iff_exists_mem] at hm,
   obtain ⟨a, ha⟩ := hm,
   suffices : ((s + repeat a (n - m)).map f).prod = ((t + repeat a (n - m)).map f).prod,
-  { simp_rw [map_add, prod_add] at this,
+  { simp_rw [multiset.map_add, prod_add] at this,
     exact mul_right_cancel this },
   replace ha := hsA _ ha,
   refine map_prod_eq_map_prod f (λ x hx, _) (λ x hx, _) _ _ _,

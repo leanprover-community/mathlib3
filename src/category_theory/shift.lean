@@ -399,7 +399,8 @@ def shift_equiv (n : A) : C ≌ C :=
 
 variable {C}
 
-open limits
+open category_theory.limits
+
 variables [has_zero_morphisms C]
 
 @[simp]

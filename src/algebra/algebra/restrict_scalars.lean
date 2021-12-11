@@ -132,6 +132,7 @@ instance : algebra R (restrict_scalars R S A) :=
 { smul := (•),
   commutes' := λ r x, algebra.commutes _ _,
   smul_def' := λ _ _, algebra.smul_def _ _,
+  op_smul_def' := λ _ _, algebra.op_smul_def _ _,
   .. (algebra_map S A).comp (algebra_map R S) }
 
 end algebra

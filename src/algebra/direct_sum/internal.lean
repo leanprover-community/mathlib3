@@ -168,11 +168,8 @@ instance galgebra [add_monoid ι]
 @[simp] lemma set_like.coe_galgebra_to_fun [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] (s : S) :
-    ↑(@direct_sum.galgebra.to_fun _ S (λ i, A i) _ _ _ _ _ _ _ s) = (algebra_map S R s : R) := rfl
-
-example [add_monoid ι]
-  [comm_semiring S] [semiring R] [algebra S R]
-  (A : submodule S R) : module Sᵐᵒᵖ A := submodule.module' _
+    ↑(@direct_sum.galgebra.to_fun _ S (λ i, A i) _ _ _ _ _ _ _ _ _ s) = (algebra_map S R s : R) :=
+rfl
 
 /-- A direct sum of powers of a submodule of an algebra has a multiplicative structure. -/
 instance nat_power_graded_monoid

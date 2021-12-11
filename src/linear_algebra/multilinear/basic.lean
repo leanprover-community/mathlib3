@@ -114,7 +114,7 @@ theorem ext_iff {f g : multilinear_map R M₁ M₂} : f = g ↔ ∀ x, f x = g x
   (⟨f, h₁, h₂⟩ : multilinear_map R M₁ M₂) = f :=
 by { ext, refl, }
 
-@[simp] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
+@[simp] protected lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.map_add' m i x y
 
@@ -833,7 +833,7 @@ instance : has_neg (multilinear_map R M₁ M₂) :=
 instance : has_sub (multilinear_map R M₁ M₂) :=
 ⟨λ f g,
   ⟨λ m, f m - g m,
-   λ m i x y, by { simp only [map_add, sub_eq_add_neg, neg_add], cc },
+   λ m i x y, by { simp only [multilinear_map.map_add, sub_eq_add_neg, neg_add], cc },
    λ m i c x, by { simp only [map_smul, smul_sub] }⟩⟩
 
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - g) m = f m - g m := rfl
@@ -863,11 +863,12 @@ variables [semiring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
 
 @[simp] lemma map_neg (m : Πi, M₁ i) (i : ι) (x : M₁ i) :
   f (update m i (-x)) = -f (update m i x) :=
-eq_neg_of_add_eq_zero $ by rw [←map_add, add_left_neg, f.map_coord_zero i (update_same i 0 m)]
+eq_neg_of_add_eq_zero $ by rw [←multilinear_map.map_add, add_left_neg,
+  f.map_coord_zero i (update_same i 0 m)]
 
 @[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, map_add, map_neg]
+by rw [sub_eq_add_neg, sub_eq_add_neg, multilinear_map.map_add, map_neg]
 
 end add_comm_group
 
@@ -929,7 +930,7 @@ def linear_map.uncurry_left
       revert x y,
       rw ← succ_pred i h,
       assume x y,
-      rw [tail_update_succ, map_add, tail_update_succ, tail_update_succ] }
+      rw [tail_update_succ, multilinear_map.map_add, tail_update_succ, tail_update_succ] }
   end,
   map_smul' := λm i c x, begin
     by_cases h : i = 0,
@@ -1013,8 +1014,8 @@ def multilinear_map.uncurry_right
       revert x y,
       rw [(cast_succ_cast_lt i h).symm],
       assume x y,
-      rw [init_update_cast_succ, map_add, init_update_cast_succ, init_update_cast_succ,
-          linear_map.add_apply] },
+      rw [init_update_cast_succ, multilinear_map.map_add, init_update_cast_succ,
+        init_update_cast_succ, linear_map.add_apply] },
     { revert x y,
       rw eq_last_of_not_lt h,
       assume x y,
@@ -1125,7 +1126,7 @@ def uncurry_sum (f : multilinear_map R (λ x : ι, M') (multilinear_map R (λ x 
   multilinear_map R (λ x : ι ⊕ ι', M') M₂ :=
 { to_fun := λ u, f (u ∘ sum.inl) (u ∘ sum.inr),
   map_add' := λ u i x y, by cases i;
-    simp only [map_add, add_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
+    simp only [multilinear_map.map_add, add_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
       sum.update_inr_comp_inl, sum.update_inr_comp_inr],
   map_smul' := λ u i c x, by cases i;
     simp only [map_smul, smul_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,

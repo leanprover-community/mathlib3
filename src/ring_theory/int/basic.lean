@@ -270,8 +270,9 @@ begin
       associates.mk_eq_mk_iff_associated.2 $ associated.symm $ ⟨norm_unit a, _⟩),
     show normalize a = int.nat_abs (normalize a),
     rw [int.coe_nat_abs_eq_normalize, normalize_idem] },
-  { intro n, dsimp, rw [associates.out_mk ↑n,
-    ← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
+  { intro n,
+    dsimp,
+    rw [←normalize_apply, ← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
 end
 
 lemma int.prime.dvd_mul {m n : ℤ} {p : ℕ}

@@ -78,7 +78,7 @@ lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   finite R N :=
 ⟨begin
   rw [← linear_map.range_eq_top.2 hf, ← submodule.map_top],
-  exact submodule.fg_map hM.1
+  exact hM.1.map f
 end⟩
 
 lemma of_injective [is_noetherian R N] (f : M →ₗ[R] N)
@@ -311,13 +311,13 @@ variable {R}
 
 /-- The quotient of a finitely presented algebra by a finitely generated ideal is finitely
 presented. -/
-protected lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finite_presentation R A) :
+protected lemma quotient {I : ideal A} (h : I.fg) (hfp : finite_presentation R A) :
   finite_presentation R (A ⧸ I) :=
 begin
   obtain ⟨n, f, hf⟩ := hfp,
   refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
   { exact (ideal.quotient.mkₐ_surjective R I).comp hf.1 },
-  { refine submodule.fg_ker_ring_hom_comp _ _ hf.2 _ hf.1,
+  { refine ideal.fg_ker_comp _ _ hf.2 _ hf.1,
     simp [h] }
 end
 
@@ -347,7 +347,7 @@ begin
     set ulift_var := mv_polynomial.rename_equiv R equiv.ulift,
     refine ⟨ulift (fin n), infer_instance, f.comp ulift_var.to_alg_hom,
       hfs.comp ulift_var.surjective,
-      submodule.fg_ker_ring_hom_comp _ _ _ hfk ulift_var.surjective⟩,
+      ideal.fg_ker_comp _ _ _ hfk ulift_var.surjective⟩,
     convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv ulift_var.to_ring_equiv, },
   { rintro ⟨ι, hfintype, f, hf⟩,
@@ -356,7 +356,7 @@ begin
     replace equiv := mv_polynomial.rename_equiv R equiv,
     refine ⟨fintype.card ι, f.comp equiv.symm,
       hf.1.comp (alg_equiv.symm equiv).surjective,
-      submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,
+      ideal.fg_ker_comp _ f _ hf.2 equiv.symm.surjective⟩,
     convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv), }
 end
@@ -373,11 +373,11 @@ begin
   let g := (mv_polynomial.map_alg_hom f).comp (mv_polynomial.sum_alg_equiv R ι ι').to_alg_hom,
   refine ⟨ι ⊕ ι', by apply_instance, g,
     (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
-    submodule.fg_ker_ring_hom_comp _ _ _ _ (alg_equiv.surjective _)⟩,
+    ideal.fg_ker_comp _ _ _ _ (alg_equiv.surjective _)⟩,
   { convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv _, },
   { rw [alg_hom.to_ring_hom_eq_coe, mv_polynomial.map_alg_hom_coe_ring_hom, mv_polynomial.ker_map],
-    exact submodule.map_fg_of_fg _ hf_ker mv_polynomial.C, }
+    exact hf_ker.map mv_polynomial.C, }
 end
 
 /-- If `A` is an `R`-algebra and `S` is an `A`-algebra, both finitely presented, then `S` is

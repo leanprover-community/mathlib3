@@ -685,7 +685,7 @@ submodule.mem_span_mul_finite_of_mem_mul (by simpa using mem_coe.mpr hx)
 variables (S)
 
 lemma coe_ideal_fg (inj : function.injective (algebra_map R P)) (I : ideal R) :
-  fg ((I : fractional_ideal S P) : submodule R P) ↔ fg I :=
+  fg ((I : fractional_ideal S P) : submodule R P) ↔ I.fg :=
 coe_submodule_fg _ inj _
 
 variables {S}
@@ -1013,7 +1013,7 @@ variables [algebra R₁ K] [is_fraction_ring R₁ K]
 
 open_locale classical
 
-open submodule submodule.is_principal
+open submodule.is_principal
 
 include loc
 
@@ -1280,7 +1280,7 @@ begin
   rw is_noetherian_iff,
   intros J hJ,
   obtain ⟨J, rfl⟩ := le_one_iff_exists_coe_ideal.mp (le_trans hJ coe_ideal_le_one),
-  exact fg_map (is_noetherian.noetherian J),
+  exact (is_noetherian.noetherian J).map _,
 end
 
 include frac

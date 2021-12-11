@@ -72,6 +72,13 @@ def fbound' (R : ℝ) (z : ℂ): (ℂ × ℝ → ℂ) :=
 λ w, (1/(2 • π • I)) • ((R * exp (w.2 * I) * I) / (z + (R) * exp (w.2 * I) - w.1)^2 : ℂ)
 
 
+lemma a1: 1 ≤ (2 : ℝ)⁻¹ → false :=
+begin
+sorry,
+
+end
+
+
 lemma fbounded'  (R : ℝ) (hR: 0 < R)  (z : ℂ) :
  ∃ (x : (closed_ball z (2⁻¹*R)).prod (interval 0 (2*π))) , ∀  (y : (closed_ball z (2⁻¹*R)).prod (interval 0 (2*π))),
  complex.abs (fbound' R  z  y) ≤ complex.abs(fbound' R z  x):=
@@ -85,7 +92,16 @@ lemma fbounded'  (R : ℝ) (hR: 0 < R)  (z : ℂ) :
     apply continuous_on.div,
 
   apply continuous.continuous_on,
- sorry,
+  apply continuous.mul,
+  apply continuous.mul,
+  apply continuous_const,
+  apply continuous.cexp,
+  apply continuous.mul,
+  apply continuous.comp,
+  apply continuous_of_real,
+  apply continuous_snd,
+  apply continuous_const,
+  apply continuous_const,
  apply continuous_on.pow,
  apply continuous_on.sub,
  apply continuous_on.add,
@@ -124,7 +140,9 @@ lemma fbounded'  (R : ℝ) (hR: 0 < R)  (z : ℂ) :
    have hr : 0 ≤ R, by {apply hR.le},
    rw ← abs_eq_self at hr,
    simp_rw hr at hx1,
-
+   simp_rw [le_mul_iff_one_le_left hR] at hx1,
+   rw one_le_inv_iff at hx1,
+   simp at hx1,
  sorry,
  simp,
  },
@@ -141,27 +159,7 @@ apply this,
  end
 
 
-lemma fbounded  (R : ℝ) (hR: 0 < R)  (z : ℂ) (θ : ℝ) :
- ∃ (x : closed_ball z R), ∀ (y : closed_ball z R),
- complex.abs (fbound R hR z θ y) ≤ complex.abs(fbound R hR z θ x):=
 
-begin
-have cts: continuous_on  (complex.abs ∘ (fbound R hR z θ))  ( closed_ball z R ), by {
-have c1:= continuous_abs, have c2: continuous_on abs ⊤, by {apply continuous.continuous_on c1},
-  apply continuous_on.comp c2,
-  simp_rw fbound,
-  apply continuous_on.smul,
-  apply continuous_const.continuous_on,
-  apply continuous_on.div,
-  apply continuous_const.continuous_on,
-  sorry,
-  sorry, simp,},
-have int: is_compact (closed_ball z R), by {exact proper_space.is_compact_closed_ball z R, },
-have inne:  ((closed_ball z R)).nonempty, by {simp, apply hR.le},
-have:= is_compact.exists_forall_ge int inne cts,
-simp at *,
-apply this,
-end
 
 def int_diff0' (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ): (ℝ → E) :=
 λ θ, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w)^2 : ℂ) • f (z + R * exp (θ * I))
@@ -188,52 +186,6 @@ begin
 linarith,
 end
 
-lemma der1bound (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) (x : ℂ) (hx : x ∈ ball z R): ∃ (boun : ℝ → ℝ),
- ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x R, ∥der1 R hR z f y t∥ ≤  boun t :=
- begin
- have h2R: 0 < 2*R, by {linarith,},
-have fbb := fbounded (2*R) h2R z,
-set diskel: ℝ → (closed_ball z (2*R)):= λ r, classical.some (fbb r),
-set bound : ℝ → ℝ := λ r, (complex.abs ( fbound (2*R) h2R z r (diskel r)))*complex.abs (f(z+R*exp(r*I))) ,
-use bound,
-simp,
- rw filter.eventually_iff_exists_mem,
- use ⊤,
- simp,
- intros y hy v hv,
- simp_rw bound,
- simp_rw der1,
- simp_rw int_diff0',
- simp at *,
- have vf:= classical.some_spec (fbb y),
- have vfv := vf ⟨v, by {simp, have := dist_triangle v x z, have lad:= (add_lt_add hv hx).le,
- have lad2:= le_trans this lad, simp_rw two_mul, apply lad2,}⟩,
- simp_rw diskel,
- simp_rw fbound at *,
-simp at *,
-have abp : 0 ≤ complex.abs (f(z+R*exp(y*I))), by {apply abs_nonneg},
-have := mul_le_mul_of_nonneg_right vfv abp,
-simp at this,
-simp_rw ← mul_assoc,
-have LE: (2 * |π|)⁻¹ * (|R| / abs (z + ↑R * exp (↑y * I) - v) ^ 2) * abs (f (z + ↑R * exp (↑y * I)))
-≤ (2 * |π|)⁻¹ * (2*|R| / abs (z + ↑R * exp (↑y * I) - v) ^ 2) * abs (f (z + ↑R * exp (↑y * I))),
-by {
-have e1: (2 * |π|)⁻¹ * (2*|R| / abs (z + ↑R * exp (↑y * I) - v) ^ 2) * abs (f (z + ↑R * exp (↑y * I)))
-  = 2*((2 * |π|)⁻¹ * (|R| / abs (z + ↑R * exp (↑y * I) - v) ^ 2) * abs (f (z + ↑R * exp (↑y * I)))),
-by {field_simp,  simp_rw ← mul_assoc, },
-simp_rw e1,
-apply auxle,
-apply mul_nonneg,
-apply mul_nonneg,
-simp,
-apply _root_.abs_nonneg,
-apply div_nonneg,
-apply _root_.abs_nonneg,
-apply pow_two_nonneg,
-apply abs_nonneg,},
-sorry,
---apply le_trans LE this,
- end
 
 
 lemma int_aux : Ι 0 (2 * π) ⊆ [0, 2*π] :=

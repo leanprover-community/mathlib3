@@ -27,6 +27,21 @@ namespace homological_complex
 variables {β : Type*} [add_comm_group β] (b : β)
 variables (V : Type*) [category V] [has_zero_morphisms V]
 
+@[simp, reassoc] lemma eq_to_hom_d (X : differential_object (graded_object_with_shift b V))
+  {x y : β} (h : x = y) :
+  eq_to_hom (congr_arg X.X h) ≫ X.d y = X.d x ≫ eq_to_hom (by { cases h, refl }) :=
+by { cases h, simp }
+
+@[simp, reassoc] lemma d_eq_to_hom (X : homological_complex V (complex_shape.up' b))
+  {x y z : β} (h : y = z) :
+  X.d x y ≫ eq_to_hom (by { cases h, refl }) = X.d x z :=
+by { cases h, simp }
+
+@[simp, reassoc] lemma eq_to_hom_f {X Y : differential_object (graded_object_with_shift b V)}
+  (f : X ⟶ Y) {x y : β} (h : x = y) :
+  eq_to_hom (congr_arg X.X h) ≫ f.f y = f.f x ≫ eq_to_hom (by { cases h, refl }) :=
+by { cases h, simp }
+
 /--
 The functor from differential graded objects to homological complexes.
 -/
@@ -36,20 +51,24 @@ def dgo_to_homological_complex :
     homological_complex V (complex_shape.up' b) :=
 { obj := λ X,
   { X := λ i, X.X i,
-    d := λ i j, if h : i + b = j then X.d i ≫ eq_to_hom (congr_arg X.X h) else 0,
+    d := λ i j, if h : i + b = j then X.d i ≫
+      eq_to_hom (congr_arg X.X (show i + (1 : ℤ) • b = j, by simp [h])) else 0,
     shape' := λ i j w, by { dsimp at w, rw dif_neg w, },
     d_comp_d' := λ i j k hij hjk, begin
       dsimp at hij hjk, substs hij hjk,
-      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl],
-      exact congr_fun (X.d_squared) i,
+      have : X.d i ≫ X.d (i + 1 • b) = 0 := congr_fun (X.d_squared) i,
+      reassoc! this,
+      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl, category.assoc,
+        eq_to_hom_d_assoc, eq_to_hom_trans, this, zero_comp]
     end },
   map := λ X Y f,
   { f := f.f,
     comm' := λ i j h, begin
       dsimp at h ⊢,
       subst h,
-      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl],
-      exact (congr_fun f.comm i).symm
+      have : f.f i ≫ Y.d i = X.d i ≫ f.f (i + 1 • b) := (congr_fun f.comm i).symm,
+      reassoc! this,
+      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl, this, category.assoc, eq_to_hom_f]
     end, } }
 
 /--
@@ -61,7 +80,7 @@ def homological_complex_to_dgo :
     differential_object (graded_object_with_shift b V) :=
 { obj := λ X,
   { X := λ i, X.X i,
-    d := λ i, X.d i (i + b),
+    d := λ i, X.d i (i + 1 • b),
     d_squared' := by { ext i, dsimp, simp, } },
   map := λ X Y f,
   { f := f.f,
@@ -91,12 +110,16 @@ nat_iso.of_components (λ X,
       comm' := λ i j h, begin
         dsimp at h ⊢, subst h,
         simp only [category.comp_id, category.id_comp, dif_pos rfl, eq_to_hom_refl],
+        erw d_eq_to_hom,
+        simp
       end },
     inv :=
     { f := λ i, 𝟙 (X.X i),
       comm' := λ i j h, begin
         dsimp at h ⊢, subst h,
         simp only [category.comp_id, category.id_comp, dif_pos rfl, eq_to_hom_refl],
+        erw d_eq_to_hom,
+        simp
       end }, }) (by tidy)
 
 /--

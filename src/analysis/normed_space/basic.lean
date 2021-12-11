@@ -1068,3 +1068,22 @@ end
 end nat
 
 end cauchy_product
+
+section ring_hom_isometric
+
+variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
+
+/-- This class states that a ring homomorphism is isometric. This is a sufficient assumption
+for a continuous semilinear map to be bounded and this is the main use for this typeclass. -/
+class ring_hom_isometric [semiring R₁] [semiring R₂] [has_norm R₁] [has_norm R₂]
+  (σ : R₁ →+* R₂) : Prop :=
+(is_iso : ∀ {x : R₁}, ∥σ x∥ = ∥x∥)
+
+attribute [simp] ring_hom_isometric.is_iso
+
+variables [semi_normed_ring R₁] [semi_normed_ring R₂] [semi_normed_ring R₃]
+
+instance ring_hom_isometric.ids : ring_hom_isometric (ring_hom.id R₁) :=
+⟨λ x, rfl⟩
+
+end ring_hom_isometric

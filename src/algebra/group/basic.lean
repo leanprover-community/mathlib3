@@ -164,11 +164,13 @@ lemma mul_one_div (x y : G) :
   x * (1 / y) = x / y :=
 by rw [div_eq_mul_inv, one_mul, div_eq_mul_inv]
 
-lemma mul_div_assoc {a b c : G} : a * b / c = a * (b / c) :=
+@[to_additive]
+lemma mul_div_assoc (a b c : G) : a * b / c = a * (b / c) :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
 
+@[to_additive]
 lemma mul_div_assoc' (a b c : G) : a * (b / c) = (a * b) / c :=
-mul_div_assoc.symm
+(mul_div_assoc _ _ _).symm
 
 @[simp, to_additive] lemma one_div (a : G) : 1 / a = a⁻¹ :=
 (inv_eq_one_div a).symm
@@ -176,7 +178,7 @@ mul_div_assoc.symm
 end div_inv_monoid
 
 section group
-variables {G : Type u} [group G] {a b c : G}
+variables {G : Type u} [group G] {a b c d : G}
 
 @[simp, to_additive]
 lemma inv_mul_cancel_right (a b : G) : a * b⁻¹ * b = a :=
@@ -346,105 +348,123 @@ inv_eq_of_mul_eq_one ( by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc, inv_mul
 lemma div_mul_cancel' (a b : G) : a / b * b = a :=
 by rw [div_eq_mul_inv, inv_mul_cancel_right a b]
 
-end group
+@[simp, to_additive sub_self]
+lemma div_self' (a : G) : a / a = 1 :=
+by rw [div_eq_mul_inv, mul_right_inv a]
 
-section add_group
--- TODO: Generalize the contents of this section with to_additive as per
--- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
-variables {G : Type u} [add_group G] {a b c d : G}
+@[simp, to_additive add_sub_cancel]
+lemma mul_div_cancel'' (a b : G) : a * b / b = a :=
+by rw [div_eq_mul_inv, mul_inv_cancel_right a b]
 
-@[simp] lemma sub_self (a : G) : a - a = 0 :=
-by rw [sub_eq_add_neg, add_right_neg a]
+@[to_additive eq_of_sub_eq_zero]
+lemma eq_of_div_eq_one' (h : a / b = 1) : a = b :=
+calc a = a / b * b : (div_mul_cancel' a b).symm
+   ... = b         : by rw [h, one_mul]
 
-@[simp] lemma add_sub_cancel (a b : G) : a + b - b = a :=
-by rw [sub_eq_add_neg, add_neg_cancel_right a b]
+@[to_additive]
+lemma div_ne_one_of_ne (h : a ≠ b) : a / b ≠ 1 :=
+mt eq_of_div_eq_one' h
 
-lemma add_sub_assoc (a b c : G) : a + b - c = a + (b - c) :=
-by rw [sub_eq_add_neg, add_assoc, ←sub_eq_add_neg]
+@[simp, to_additive]
+lemma div_inv_eq_mul (a b : G) : a / (b⁻¹) = a * b :=
+by rw [div_eq_mul_inv, inv_inv]
 
-lemma eq_of_sub_eq_zero (h : a - b = 0) : a = b :=
-calc a = a - b + b : (sub_add_cancel a b).symm
-   ... = b         : by rw [h, zero_add]
+local attribute [simp] mul_assoc
 
-lemma sub_ne_zero_of_ne (h : a ≠ b) : a - b ≠ 0 :=
-mt eq_of_sub_eq_zero h
+@[to_additive]
+lemma mul_div (a b c : G) : a * (b / c) = a * b / c :=
+by simp only [mul_assoc, div_eq_mul_inv]
 
-@[simp] lemma sub_neg_eq_add (a b : G) : a - (-b) = a + b :=
-by rw [sub_eq_add_neg, neg_neg]
+@[to_additive]
+lemma div_mul_eq_div_div_swap (a b c : G) : a / (b * c) = a / c / b :=
+by simp only [mul_assoc, mul_inv_rev , div_eq_mul_inv]
 
-local attribute [simp] add_assoc
+@[simp, to_additive]
+lemma mul_div_mul_right_eq_div (a b c : G) : (a * c) / (b * c) = a / b :=
+by rw [div_mul_eq_div_div_swap]; simp only [mul_left_inj, eq_self_iff_true, mul_div_cancel'']
 
-lemma add_sub (a b c : G) : a + (b - c) = a + b - c :=
-by simp
-
-lemma sub_add_eq_sub_sub_swap (a b c : G) : a - (b + c) = a - c - b :=
-by simp
-
-@[simp] lemma add_sub_add_right_eq_sub (a b c : G) : (a + c) - (b + c) = a - b :=
-by rw [sub_add_eq_sub_sub_swap]; simp
-
-lemma eq_sub_of_add_eq (h : a + c = b) : a = b - c :=
+@[to_additive eq_sub_of_add_eq]
+lemma eq_div_of_mul_eq' (h : a * c = b) : a = b / c :=
 by simp [← h]
 
-lemma sub_eq_of_eq_add (h : a = c + b) : a - b = c :=
+@[to_additive sub_eq_of_eq_add]
+lemma div_eq_of_eq_mul'' (h : a = c * b) : a / b = c :=
 by simp [h]
 
-lemma eq_add_of_sub_eq (h : a - c = b) : a = b + c :=
+@[to_additive]
+lemma eq_mul_of_div_eq (h : a / c = b) : a = b * c :=
 by simp [← h]
 
-lemma add_eq_of_eq_sub (h : a = c - b) : a + b = c :=
+@[to_additive]
+lemma mul_eq_of_eq_div (h : a = c / b) : a * b = c :=
 by simp [h]
 
-@[simp] lemma sub_right_inj : a - b = a - c ↔ b = c :=
-sub_right_injective.eq_iff
+@[simp, to_additive]
+lemma div_right_inj : a / b = a / c ↔ b = c :=
+div_right_injective.eq_iff
 
-@[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
-by { rw [sub_eq_add_neg, sub_eq_add_neg], exact add_left_inj _ }
+@[simp, to_additive]
+lemma div_left_inj : b / a = c / a ↔ b = c :=
+by { rw [div_eq_mul_inv, div_eq_mul_inv], exact mul_left_inj _ }
 
-@[simp] lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
-by rw [← add_sub_assoc, sub_add_cancel]
+@[simp, to_additive sub_add_sub_cancel]
+lemma div_mul_div_cancel' (a b c : G) : (a / b) * (b / c) = a / c :=
+by rw [← mul_div_assoc, div_mul_cancel']
 
-@[simp] lemma sub_sub_sub_cancel_right (a b c : G) : (a - c) - (b - c) = a - b :=
-by rw [← neg_sub c b, sub_neg_eq_add, sub_add_sub_cancel]
+@[simp, to_additive sub_sub_sub_cancel_right]
+lemma div_div_div_cancel_right' (a b c : G) : (a / c) / (b / c) = a / b :=
+by rw [← inv_div' c b, div_inv_eq_mul, div_mul_div_cancel']
 
-theorem sub_sub_assoc_swap : a - (b - c) = a + c - b :=
-by simp
+@[to_additive]
+theorem div_div_assoc_swap : a / (b / c) = a * c / b :=
+by simp only [mul_assoc, mul_inv_rev, inv_inv, div_eq_mul_inv]
 
-theorem sub_eq_zero : a - b = 0 ↔ a = b :=
-⟨eq_of_sub_eq_zero, λ h, by rw [h, sub_self]⟩
+@[to_additive]
+theorem div_eq_one : a / b = 1 ↔ a = b :=
+⟨eq_of_div_eq_one', λ h, by rw [h, div_self']⟩
 
+alias div_eq_one ↔ _ div_eq_one_of_eq
 alias sub_eq_zero ↔ _ sub_eq_zero_of_eq
 
-theorem sub_ne_zero : a - b ≠ 0 ↔ a ≠ b :=
-not_congr sub_eq_zero
+@[to_additive]
+theorem div_ne_one : a / b ≠ 1 ↔ a ≠ b :=
+not_congr div_eq_one
 
-@[simp] theorem sub_eq_self : a - b = a ↔ b = 0 :=
-by rw [sub_eq_add_neg, add_right_eq_self, neg_eq_zero]
+@[simp, to_additive]
+theorem div_eq_self : a / b = a ↔ b = 1 :=
+by rw [div_eq_mul_inv, mul_right_eq_self, inv_eq_one]
 
-theorem eq_sub_iff_add_eq : a = b - c ↔ a + c = b :=
-by rw [sub_eq_add_neg, eq_add_neg_iff_add_eq]
+@[to_additive eq_sub_iff_add_eq]
+theorem eq_div_iff_mul_eq' : a = b / c ↔ a * c = b :=
+by rw [div_eq_mul_inv, eq_mul_inv_iff_mul_eq]
 
-theorem sub_eq_iff_eq_add : a - b = c ↔ a = c + b :=
-by rw [sub_eq_add_neg, add_neg_eq_iff_eq_add]
+@[to_additive]
+theorem div_eq_iff_eq_mul : a / b = c ↔ a = c * b :=
+by rw [div_eq_mul_inv, mul_inv_eq_iff_eq_mul]
 
-theorem eq_iff_eq_of_sub_eq_sub (H : a - b = c - d) : a = b ↔ c = d :=
-by rw [← sub_eq_zero, H, sub_eq_zero]
+@[to_additive]
+theorem eq_iff_eq_of_div_eq_div (H : a / b = c / d) : a = b ↔ c = d :=
+by rw [← div_eq_one, H, div_eq_one]
 
-theorem left_inverse_sub_add_left (c : G) : function.left_inverse (λ x, x - c) (λ x, x + c) :=
-assume x, add_sub_cancel x c
+@[to_additive]
+theorem left_inverse_div_mul_left (c : G) : function.left_inverse (λ x, x / c) (λ x, x * c) :=
+assume x, mul_div_cancel'' x c
 
-theorem left_inverse_add_left_sub (c : G) : function.left_inverse (λ x, x + c) (λ x, x - c) :=
-assume x, sub_add_cancel x c
+@[to_additive]
+theorem left_inverse_mul_left_div (c : G) : function.left_inverse (λ x, x * c) (λ x, x / c) :=
+assume x, div_mul_cancel' x c
 
-theorem left_inverse_add_right_neg_add (c : G) :
-  function.left_inverse (λ x, c + x) (λ x, - c + x) :=
-assume x, add_neg_cancel_left c x
+@[to_additive]
+theorem left_inverse_mul_right_inv_mul (c : G) :
+  function.left_inverse (λ x, c * x) (λ x, c⁻¹ * x) :=
+assume x, mul_inv_cancel_left c x
 
-theorem left_inverse_neg_add_add_right (c : G) :
-  function.left_inverse (λ x, - c + x) (λ x, c + x) :=
-assume x, neg_add_cancel_left c x
+@[to_additive]
+theorem left_inverse_inv_mul_mul_right (c : G) :
+  function.left_inverse (λ x, c⁻¹ * x) (λ x, c * x) :=
+assume x, inv_mul_cancel_left c x
 
-end add_group
+end group
 
 section comm_group
 variables {G : Type u} [comm_group G]

@@ -135,10 +135,6 @@ over the whole space is equal to `∫ x in s, f x ∂μ` defined as `∫ x, f x 
 lemma integral_indicator (hs : measurable_set s) :
   ∫ x, indicator s f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
-  by_cases hf : ae_measurable f (μ.restrict s), swap,
-  { rw integral_non_ae_measurable hf,
-    rw [← ae_measurable_indicator_iff hs] at hf,
-    exact integral_non_ae_measurable hf },
   by_cases hfi : integrable_on f s μ, swap,
   { rwa [integral_undef, integral_undef],
     rwa integrable_indicator_iff hs },
@@ -769,7 +765,7 @@ lemma continuous_integral_comp_L1 (L : E →L[𝕜] F) :
   continuous (λ (φ : α →₁[μ] E), ∫ (a : α), L (φ a) ∂μ) :=
 by { rw ← funext L.integral_comp_Lp, exact continuous_integral.comp (L.comp_LpL 1 μ).continuous, }
 
-variables [complete_space E] [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [is_scalar_tower ℝ 𝕜 F]
+variables [complete_space E] [normed_space ℝ E]
 
 lemma integral_comp_comm (L : E →L[𝕜] F) {φ : α → E} (φ_int : integrable φ μ) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
@@ -815,9 +811,8 @@ end continuous_linear_map
 namespace linear_isometry
 
 variables [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
-  [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
+  [normed_space ℝ F]
   [borel_space E] [second_countable_topology E] [complete_space E] [normed_space ℝ E]
-  [is_scalar_tower ℝ 𝕜 E]
 
 lemma integral_comp_comm (L : E →ₗᵢ[𝕜] F) (φ : α → E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
@@ -875,8 +870,7 @@ lemma integral_pair {f : α → E} {g : α → F} (hf : integrable f μ) (hg : i
   ∫ x, (f x, g x) ∂μ = (∫ x, f x ∂μ, ∫ x, g x ∂μ) :=
 have _ := hf.prod_mk hg, prod.ext (fst_integral this) (snd_integral this)
 
-lemma integral_smul_const {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
-  [measurable_space 𝕜] [borel_space 𝕜] (f : α → 𝕜) (c : E) :
+lemma integral_smul_const {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] (f : α → 𝕜) (c : E) :
   ∫ x, f x • c ∂μ = (∫ x, f x ∂μ) • c :=
 begin
   by_cases hf : integrable f μ,
@@ -890,7 +884,7 @@ end
 section inner
 
 variables {E' : Type*} [inner_product_space 𝕜 E'] [measurable_space E'] [borel_space E']
-  [second_countable_topology E'] [complete_space E'] [normed_space ℝ E'] [is_scalar_tower ℝ 𝕜 E']
+  [second_countable_topology E'] [complete_space E'] [normed_space ℝ E']
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
 

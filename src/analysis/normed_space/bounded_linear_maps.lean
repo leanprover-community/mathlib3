@@ -88,7 +88,7 @@ def to_linear_map (f : E → F) (h : is_bounded_linear_map 𝕜 f) : E →ₗ[�
 
 /-- Construct a continuous linear map from is_bounded_linear_map -/
 def to_continuous_linear_map {f : E → F} (hf : is_bounded_linear_map 𝕜 f) : E →L[𝕜] F :=
-{ cont := let ⟨C, Cpos, hC⟩ := hf.bound in linear_map.continuous_of_bound _ C hC,
+{ cont := let ⟨C, Cpos, hC⟩ := hf.bound in (to_linear_map f hf).continuous_of_bound C hC,
   ..to_linear_map f hf}
 
 lemma zero : is_bounded_linear_map 𝕜 (λ (x:E), (0:F)) :=
@@ -509,7 +509,6 @@ spaces is an open subset of the space of linear maps between them.
 
 protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
 begin
-  nontriviality E,
   rw [is_open_iff_mem_nhds, forall_range_iff],
   refine λ e, is_open.mem_nhds _ (mem_range_self _),
   let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,

@@ -187,7 +187,7 @@ lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 
 lemma nhds_zero_basis_Iic : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) Iic := nhds_bot_basis_Iic
 
 @[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
-nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
+nhds_within_Ioi_self_ne_bot' ⟨⊤, ennreal.coe_lt_top⟩
 
 @[instance] lemma nhds_within_Ioi_zero_ne_bot : (𝓝[Ioi 0] (0 : ℝ≥0∞)).ne_bot :=
 nhds_within_Ioi_coe_ne_bot
@@ -350,7 +350,7 @@ begin
   have : tendsto (* x) (𝓝[Iio 1] 1) (𝓝 (1 * x)) :=
     (ennreal.continuous_at_mul_const (or.inr one_ne_zero)).mono_left inf_le_left,
   rw one_mul at this,
-  haveI : (𝓝[Iio 1] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ennreal.zero_lt_one,
+  haveI : (𝓝[Iio 1] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ⟨0, ennreal.zero_lt_one⟩,
   exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
 end
 

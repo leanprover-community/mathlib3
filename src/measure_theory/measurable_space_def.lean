@@ -423,4 +423,8 @@ lemma measurable.comp {g : β → γ} {f : α → β} (hg : measurable g) (hf : 
 @[simp] lemma measurable_const {a : α} : measurable (λ b : β, a) :=
 assume s hs, measurable_set.const (a ∈ s)
 
+lemma measurable.le {α} {m m0 : measurable_space α} (hm : m ≤ m0) {f : α → β}
+  (hf : measurable[m] f) : measurable[m0] f :=
+λ s hs, hm _ (hf hs)
+
 end measurable_functions

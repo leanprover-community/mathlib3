@@ -635,6 +635,16 @@ tendsto_at_top_mono le_abs_self tendsto_id
 lemma tendsto_abs_at_bot_at_top : tendsto (abs : α → α) at_bot at_top :=
 tendsto_at_top_mono neg_le_abs_self tendsto_neg_at_bot_at_top
 
+@[simp] lemma comap_abs_at_top : comap (abs : α → α) at_top = at_bot ⊔ at_top :=
+begin
+  refine le_antisymm (((at_top_basis.comap _).le_basis_iff (at_bot_basis.sup at_top_basis)).2 _)
+    (sup_le tendsto_abs_at_bot_at_top.le_comap tendsto_abs_at_top_at_top.le_comap),
+  rintro ⟨a, b⟩ -,
+  refine ⟨max (-a) b, trivial, λ x hx, _⟩,
+  rw [mem_preimage, mem_Ici, le_abs', max_le_iff, ← min_neg_neg, le_min_iff, neg_neg] at hx,
+  exact hx.imp and.left and.right
+end
+
 end linear_ordered_add_comm_group
 
 section linear_ordered_semiring
@@ -828,15 +838,23 @@ alias tendsto_at_bot_at_bot_of_monotone ← monotone.tendsto_at_bot_at_bot
 alias tendsto_at_top_at_top_iff_of_monotone ← monotone.tendsto_at_top_at_top_iff
 alias tendsto_at_bot_at_bot_iff_of_monotone ← monotone.tendsto_at_bot_at_bot_iff
 
+lemma comap_embedding_at_top [preorder β] [preorder γ] {e : β → γ}
+  (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
+  comap e at_top = at_top :=
+le_antisymm
+  (le_infi $ λ b, le_principal_iff.2 $ mem_comap.2 ⟨Ici (e b), mem_at_top _, λ x, (hm _ _).1⟩)
+  (tendsto_at_top_at_top_of_monotone (λ _ _, (hm _ _).2) hu).le_comap
+
+lemma comap_embedding_at_bot [preorder β] [preorder γ] {e : β → γ}
+  (hm : ∀ b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, e b ≤ c) :
+  comap e at_bot = at_bot :=
+@comap_embedding_at_top (order_dual β) (order_dual γ) _ _ e (function.swap hm) hu
+
 lemma tendsto_at_top_embedding [preorder β] [preorder γ]
   {f : α → β} {e : β → γ} {l : filter α}
   (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
   tendsto (e ∘ f) l at_top ↔ tendsto f l at_top :=
-begin
-  refine ⟨_, (tendsto_at_top_at_top_of_monotone (λ b₁ b₂, (hm b₁ b₂).2) hu).comp⟩,
-  rw [tendsto_at_top, tendsto_at_top],
-  exact λ hc b, (hc (e b)).mono (λ a, (hm b (f a)).1)
-end
+by rw [← comap_embedding_at_top hm hu, tendsto_comap_iff]
 
 /-- A function `f` goes to `-∞` independent of an order-preserving embedding `e`. -/
 lemma tendsto_at_bot_embedding [preorder β] [preorder γ]
@@ -1220,50 +1238,42 @@ from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
   by simp [set.image_subset_iff]; exact hv)
 
 lemma has_antitone_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
-  {p : ι → Prop} {s : ι → set α} (hl : l.has_antitone_basis p s) {φ : ι → α}
+  {s : ι → set α} (hl : l.has_antitone_basis s) {φ : ι → α}
   (h : ∀ i : ι, φ i ∈ s i) : tendsto φ at_top l  :=
 (at_top_basis.tendsto_iff hl.to_has_basis).2 $ assume i hi,
-  ⟨i, trivial, λ j hij, hl.decreasing hi (hl.mono hij hi) hij (h j)⟩
+  ⟨i, trivial, λ j hij, hl.antitone hij (h _)⟩
+
+/-- If `f` is a nontrivial countably generated filter, then there exists a sequence that converges
+to `f`. -/
+lemma exists_seq_tendsto (f : filter α) [is_countably_generated f] [ne_bot f] :
+  ∃ x : ℕ → α, tendsto x at_top f :=
+begin
+  obtain ⟨B, h⟩ := f.exists_antitone_basis,
+  have := λ n, nonempty_of_mem (h.to_has_basis.mem_of_mem trivial : B n ∈ f), choose x hx,
+  exact ⟨x, h.tendsto hx⟩
+end
 
 /-- An abstract version of continuity of sequentially continuous functions on metric spaces:
 if a filter `k` is countably generated then `tendsto f k l` iff for every sequence `u`
 converging to `k`, `f ∘ u` tends to `l`. -/
 lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.is_countably_generated] :
   tendsto f k l ↔ (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
-suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
-  from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
 begin
-  obtain ⟨g, gbasis, gmon, -⟩ := k.exists_antitone_basis,
-  contrapose,
-  simp only [not_forall, gbasis.tendsto_left_iff, exists_const, not_exists, not_imp],
-  rintro ⟨B, hBl, hfBk⟩,
-  choose x h using hfBk,
-  use x, split,
-  { exact (at_top_basis.tendsto_iff gbasis).2
-      (λ i _, ⟨i, trivial, λ j hj, gmon trivial trivial hj (h j).1⟩) },
-  { simp only [tendsto_at_top', (∘), not_forall, not_exists],
-    use [B, hBl],
-    intro i, use [i, (le_refl _)],
-    apply (h i).right },
+  refine ⟨λ h x hx, h.comp hx, λ H s hs, _⟩,
+  contrapose! H,
+  haveI : ne_bot (k ⊓ 𝓟 (f ⁻¹' sᶜ)), by simpa [ne_bot_iff,  inf_principal_eq_bot],
+  rcases (k ⊓ 𝓟 (f ⁻¹' sᶜ)).exists_seq_tendsto with ⟨x, hx⟩,
+  rw [tendsto_inf, tendsto_principal] at hx,
+  refine ⟨x, hx.1, λ h, _⟩,
+  rcases (hx.2.and (h hs)).exists with ⟨N, hnmem, hmem⟩,
+  exact hnmem hmem
 end
 
 lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.is_countably_generated] :
   (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
 tendsto_iff_seq_tendsto.2
 
-/-- If `f` is a nontrivial countably generated basis, then there exists a sequence that converges
-to `f`. -/
-lemma exists_seq_tendsto (f : filter α) [is_countably_generated f] [ne_bot f] :
-  ∃ x : ℕ → α, tendsto x at_top f :=
-begin
-  obtain ⟨B, h, h_mono, -⟩ := f.exists_antitone_basis,
-  have := λ n, nonempty_of_mem (h.mem_of_mem trivial : B n ∈ f), choose x hx,
-  exact ⟨x, h.tendsto_right_iff.2 $
-    λ n hn, eventually_at_top.2 ⟨n, λ m hm, h_mono trivial trivial hm (hx m)⟩⟩
-end
-
-lemma subseq_tendsto_of_ne_bot {f : filter α} [is_countably_generated f]
-  {u : ℕ → α}
+lemma subseq_tendsto_of_ne_bot {f : filter α} [is_countably_generated f] {u : ℕ → α}
   (hx : ne_bot (f ⊓ map u at_top)) :
   ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
 begin

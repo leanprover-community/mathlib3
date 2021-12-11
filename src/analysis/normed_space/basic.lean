@@ -676,6 +676,37 @@ begin
   { exact smul_closed_ball' hc x r }
 end
 
+/-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.
+This homeomorphism sends `x : E` to `(1 + ∥x∥)⁻¹ • x`.
+
+In many cases the actual implementation is not important, so we don't mark the projection lemmas
+`homeomorph_unit_ball_apply_coe` and `homeomorph_unit_ball_symm_apply` as `@[simp]`. -/
+@[simps { attrs := [] }]
+def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E] :
+  E ≃ₜ ball (0 : E) 1 :=
+{ to_fun := λ x, ⟨(1 + ∥x∥)⁻¹ • x, begin
+    have : ∥x∥ < |1 + ∥x∥| := (lt_one_add _).trans_le (le_abs_self _),
+    rwa [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
+      div_lt_one ((norm_nonneg x).trans_lt this)],
+  end⟩,
+  inv_fun := λ x, (1 - ∥(x : E)∥)⁻¹ • (x : E),
+  left_inv := λ x,
+    begin
+      have : 0 < 1 + ∥x∥ := (norm_nonneg x).trans_lt (lt_one_add _),
+      field_simp [this.ne', abs_of_pos this, norm_smul, smul_smul, real.norm_eq_abs, abs_div]
+    end,
+  right_inv := λ x, subtype.ext
+    begin
+      have : 0 < 1 - ∥(x : E)∥ := sub_pos.2 (mem_ball_zero_iff.1 x.2),
+      field_simp [norm_smul, smul_smul, real.norm_eq_abs, abs_div, abs_of_pos this, this.ne']
+    end,
+  continuous_to_fun := continuous_subtype_mk _ $
+    ((continuous_const.add continuous_norm).inv₀
+      (λ x, ((norm_nonneg x).trans_lt (lt_one_add _)).ne')).smul continuous_id,
+  continuous_inv_fun := continuous.smul
+    ((continuous_const.sub continuous_subtype_coe.norm).inv₀ $
+      λ x, (sub_pos.2 $ mem_ball_zero_iff.1 x.2).ne') continuous_subtype_coe }
+
 variables (α)
 
 lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : x ≠ - x :=

@@ -41,7 +41,8 @@ internally graded ring
 
 open_locale direct_sum big_operators
 
-variables {ι : Type*} {S R : Type*} [decidable_eq ι]
+variables {ι : Type*} {S R : Type*} [deq : decidable_eq ι]
+include deq
 
 /-! #### From `add_submonoid`s -/
 
@@ -171,6 +172,7 @@ instance galgebra [add_monoid ι]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] (s : S) :
     ↑(@direct_sum.galgebra.to_fun _ S (λ i, A i) _ _ _ _ _ _ _ s) = (algebra_map S R s : R) := rfl
 
+omit deq
 /-- A direct sum of powers of a submodule of an algebra has a multiplicative structure. -/
 instance nat_power_graded_monoid
   [comm_semiring S] [semiring R] [algebra S R] (p : submodule S R) :
@@ -182,13 +184,12 @@ section homogeneous_element
 
 lemma set_like.is_homogeneous_zero [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]
-  (A : ι → submodule S R) [set_like.graded_monoid A] : set_like.is_homogeneous A (0 : R) :=
+  (A : ι → submodule S R) : set_like.is_homogeneous A (0 : R) :=
 ⟨0, zero_mem _⟩
 
-lemma set_like.is_homogeneous.smul [add_monoid ι]
-  [comm_semiring S] [semiring R] [algebra S R]
-  (A : ι → submodule S R) [set_like.graded_monoid A] {s : S}
-  (r : R) (hr : set_like.is_homogeneous A r) : set_like.is_homogeneous A (s • r) :=
+lemma set_like.is_homogeneous.smul [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) {s : S}
+  {r : R} (hr : set_like.is_homogeneous A r) : set_like.is_homogeneous A (s • r) :=
 ⟨Exists.some hr, smul_mem _ _ (Exists.some_spec hr)⟩
 
 end homogeneous_element

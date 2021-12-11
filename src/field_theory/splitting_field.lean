@@ -38,7 +38,7 @@ if it is the smallest field extension of `K` such that `f` splits.
   `L`, then `algebra.adjoin F S` embeds into `L`.
 * `polynomial.is_splitting_field.lift`: An embedding of a splitting field of the polynomial `f` into
   another field such that `f` splits.
-* `polynomial.is_splitting_field.alg_equiv`: Every splitting field of a polynomial `f` is isomorpic
+* `polynomial.is_splitting_field.alg_equiv`: Every splitting field of a polynomial `f` is isomorphic
   to `splitting_field f` and thus, being a splitting field is unique up to isomorphism.
 
 -/
@@ -373,12 +373,12 @@ end
 
 /-- A monic polynomial `p` that has as many roots as its degree
 can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
-lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {p : polynomial K}
+lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field {p : polynomial K}
   (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
   (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
 begin
   have hprodmonic : (multiset.map (λ (a : K), X - C a) p.roots).prod.monic,
-  { simp only [prod_multiset_root_eq_finset_root (ne_zero_of_monic hmonic),
+  { simp only [prod_multiset_root_eq_finset_root,
       monic_prod_of_monic, monic_X_sub_C, monic_pow, forall_true_iff] },
   have hdegree : (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree = p.nat_degree,
   { rw [← hroots, nat_degree_multiset_prod _ (zero_nmem_multiset_map_X_sub_C _ (λ a : K, a))],
@@ -398,6 +398,89 @@ begin
   have hassoc : associated (multiset.map (λ (a : K), X - C a) p.roots).prod p,
   { rw associated, use u, rw [hu, ← hq] },
   exact eq_of_monic_of_associated hprodmonic hmonic hassoc
+end
+
+lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {K : Type*} [comm_ring K] [is_domain K]
+  {p : polynomial K} (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
+  (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
+begin
+  suffices : (multiset.map (λ (a : K), X - C a) p.roots).prod.map (algebra_map K (fraction_ring K))
+    = p.map (algebra_map K (fraction_ring K)),
+  { apply' map_injective _ _ this,
+    exact is_fraction_ring.injective K (fraction_ring K), },
+  rw map_multiset_prod,
+  simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
+  have : p.roots.map (algebra_map K (fraction_ring K)) =
+    (map (algebra_map K (fraction_ring K)) p).roots,
+  { rw eq_iff_le_not_lt,
+    by_cases hp0 : p = 0,
+    { simp [hp0], },
+    split,
+    { rw multiset.le_iff_count,
+      intro a,
+      simp only [count_roots],
+      by_cases h : ∃ t, algebra_map K (fraction_ring K) t = a,
+      { rcases h with ⟨h_w, rfl⟩,
+      -- TODO fix this lemma
+      -- also make countp_map for count
+        rw multiset.count_map_eq_count' (algebra_map K (fraction_ring K)) _,
+        simp only [count_roots],
+        rw root_multiplicity,
+        rw root_multiplicity,
+        rw [dif_neg hp0],
+        rw [dif_neg],
+        simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
+        intros m hm,
+        have : (X - C ((algebra_map K (fraction_ring K)) h_w)) ^ (m + 1) =
+            polynomial.map (algebra_map K (fraction_ring K)) ((X - C h_w) ^ (m + 1)),
+        { simp, },
+        rw this,
+        rw map_dvd_map,
+        exact hm m (le_refl m),
+        exact (is_fraction_ring.injective K (fraction_ring K)),
+        apply monic_pow,
+        exact monic_X_sub_C h_w,
+        { intro hf, -- duplicate subgoal
+          apply hp0,
+          apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
+          simp [hf], },
+        exact is_fraction_ring.injective K (fraction_ring K), },
+    rw root_multiplicity,
+    split_ifs with hh,
+    { have : p = 0,
+      { apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
+        simp [hh], },
+      simp [this], },
+    suffices : multiset.count a (multiset.map (algebra_map K (fraction_ring K)) p.roots) = 0,
+    { rw this,
+      exact zero_le _, },
+      rw multiset.count,
+      rw multiset.countp_map,
+      simp only [multiset.card_eq_zero],
+      rw multiset.filter_eq_nil,
+      intros k hk hhh,
+      apply h,
+      use [k, hhh.symm], },
+    { intro h,
+      have := multiset.card_lt_of_lt h,
+      simp only [hroots, multiset.card_map] at this,
+      have hh := card_roots (_ : map (algebra_map K (fraction_ring K)) p ≠ 0),
+      { rw degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)) at hh,
+        rw degree_eq_nat_degree hp0 at hh,
+        norm_cast at hh,
+        linarith, },
+      { intro hf,
+        apply hp0,
+        apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
+        simp [hf], }, }, },
+  rw ← prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field
+    (monic_map (algebra_map K (fraction_ring K)) hmonic),
+  { simp only [map_C, function.comp_app, map_X, map_sub],
+    congr' 1,
+    rw ← this,
+    simp, },
+  { rw [nat_degree_map' (is_fraction_ring.injective K (fraction_ring K)), ← this],
+    simp only [←hroots, multiset.card_map], },
 end
 
 /-- A polynomial `p` that has as many roots as its degree

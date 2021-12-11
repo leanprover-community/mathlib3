@@ -432,7 +432,7 @@ lemma count_roots_le_one {p : polynomial R} (hsep : separable p) (x : R) :
 begin
   rcases eq_or_ne p 0 with rfl | hp,
   { simp },
-  rw count_roots hp,
+  rw count_roots,
   exact root_multiplicity_le_one_of_separable hp hsep x
 end
 

@@ -183,12 +183,12 @@ instance nat_power_graded_monoid
 section homogeneous_element
 
 lemma _root_.set_like.is_homogeneous_zero_submodule [add_monoid ι]
-  [comm_semiring S] [semiring R] [algebra S R]
+  [semiring S] [add_comm_monoid R] [module S R]
   (A : ι → submodule S R) : set_like.is_homogeneous A (0 : R) :=
 ⟨0, zero_mem _⟩
 
 lemma set_like.is_homogeneous.smul [comm_semiring S] [semiring R] [algebra S R]
-  (A : ι → submodule S R) {s : S}
+  {A : ι → submodule S R} {s : S}
   {r : R} (hr : set_like.is_homogeneous A r) : set_like.is_homogeneous A (s • r) :=
 ⟨Exists.some hr, smul_mem _ _ (Exists.some_spec hr)⟩
 

@@ -239,17 +239,18 @@ instance [semiring R'] [has_scalar R' R] [module R' A] [is_scalar_tower R' R A] 
   is_scalar_tower R' R S :=
 S.to_submodule.is_scalar_tower
 
-instance algebra' [comm_semiring R'] [has_scalar R' R] [algebra R' A]
-  [is_scalar_tower R' R A] : algebra R' S :=
+instance algebra' [comm_semiring R'] [algebra R' A]
+  [has_scalar R' R] [is_scalar_tower R' R A] [has_scalar R'ᵐᵒᵖ R] [is_scalar_tower R'ᵐᵒᵖ R A] :
+  algebra R' S :=
 { commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
+  op_smul_def' := λ c x, subtype.eq $ algebra.op_smul_def _ _,
   .. (algebra_map R' A).cod_srestrict S.to_subsemiring $ λ x, begin
     rw [algebra.algebra_map_eq_smul_one, ←smul_one_smul R x (1 : A),
       ←algebra.algebra_map_eq_smul_one],
     exact algebra_map_mem S _,
   end }
 instance : algebra R S := S.algebra'
-
 
 end
 

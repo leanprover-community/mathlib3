@@ -378,7 +378,7 @@ begin
   rwa [h.1, h.2],
 end
 
-lemma set_to_simple_func_congr_left' (T T' : set α → E →L[ℝ] F)
+lemma set_to_simple_func_congr_left (T T' : set α → E →L[ℝ] F)
   (h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = T' s) (f : α →ₛ E) (hf : integrable f μ) :
   set_to_simple_func T f = set_to_simple_func T' f :=
 begin
@@ -660,14 +660,10 @@ lemma set_to_L1s_congr (T : set α → E →L[ℝ] F) (h_zero : ∀ s, measurabl
   set_to_L1s T f = set_to_L1s T g :=
 simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable f) h
 
-lemma set_to_L1s_congr_left (T T' : set α → E →L[ℝ] F) (h : T = T') (f : α →₁ₛ[μ] E) :
-  set_to_L1s T f = set_to_L1s T' f :=
-by rw h
-
-lemma set_to_L1s_congr_left' (T T' : set α → E →L[ℝ] F)
+lemma set_to_L1s_congr_left (T T' : set α → E →L[ℝ] F)
   (h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = T' s) (f : α →₁ₛ[μ] E) :
   set_to_L1s T f = set_to_L1s T' f :=
-simple_func.set_to_simple_func_congr_left' T T' h (simple_func.to_simple_func f)
+simple_func.set_to_simple_func_congr_left T T' h (simple_func.to_simple_func f)
   (simple_func.integrable f)
 
 /-- `set_to_L1s` does not change if we replace the measure `μ` by `μ'` with `μ ≪ μ'`. The statement
@@ -767,32 +763,16 @@ lemma set_to_L1s_const [is_finite_measure μ] {T : set α → E →L[ℝ] F}
     = T univ x :=
 set_to_L1s_indicator_const h_zero h_add measurable_set.univ (measure_ne_top _ _) x
 
-lemma Lp.simple_func.coe_fn_sub (f g : α →₁ₛ[μ] E) : ⇑(f - g) =ᵐ[μ] f - g :=
-begin
-  rw [coe_fn_coe_base' (f - g), coe_fn_coe_base' f, coe_fn_coe_base' g, add_subgroup.coe_sub],
-  exact Lp.coe_fn_sub _ _,
-end
-
-lemma Lp.to_simple_func.sub (f g : α →₁ₛ[μ] E) :
-  simple_func.to_simple_func (f - g)
-    =ᵐ[μ] ⇑(simple_func.to_simple_func f - simple_func.to_simple_func g) :=
-begin
-  have h1 := Lp.simple_func.to_simple_func_eq_to_fun (f - g),
-  have h2 := Lp.simple_func.to_simple_func_eq_to_fun f,
-  have h3 := Lp.simple_func.to_simple_func_eq_to_fun g,
-  have h4 := Lp.simple_func.coe_fn_sub f g,
-  rw simple_func.coe_sub,
-  exact h1.trans (h4.trans (eventually_eq.sub h2.symm h3.symm)),
-end
-
 lemma set_to_L1s_sub {T : set α → E →L[ℝ] F}
   (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0) (h_add : fin_meas_additive μ T)
   (f g : α →₁ₛ[μ] E) :
   set_to_L1s T (f - g) = set_to_L1s T f - set_to_L1s T g :=
 begin
   simp_rw set_to_L1s,
-  rw simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable _)
-    (Lp.to_simple_func.sub _ _),
+  have : simple_func.to_simple_func (f - g)
+      =ᵐ[μ] ⇑(simple_func.to_simple_func f - simple_func.to_simple_func g),
+    from sub_to_simple_func f g,
+  rw simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable _) this,
   exact simple_func.set_to_simple_func_sub T h_add (simple_func.integrable f)
     (simple_func.integrable g),
 end
@@ -832,13 +812,13 @@ set_to_L1s_zero_left' h_zero f
 lemma set_to_L1s_clm_congr_left (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C') (h : T = T') (f : α →₁ₛ[μ] E) :
   set_to_L1s_clm α E μ hT f = set_to_L1s_clm α E μ hT' f :=
-set_to_L1s_congr_left T T' h f
+set_to_L1s_congr_left T T' (λ _ _ _, by rw h) f
 
 lemma set_to_L1s_clm_congr_left' (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C')
   (h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = T' s) (f : α →₁ₛ[μ] E) :
   set_to_L1s_clm α E μ hT f = set_to_L1s_clm α E μ hT' f :=
-set_to_L1s_congr_left' T T' h f
+set_to_L1s_congr_left T T' h f
 
 lemma set_to_L1s_clm_congr_measure {μ' : measure α}
   (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ' T C')

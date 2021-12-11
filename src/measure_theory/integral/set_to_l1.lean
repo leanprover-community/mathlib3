@@ -307,7 +307,7 @@ begin
   refine sum_le_sum (λ i hi, _),
   by_cases h0 : i = 0,
   { simp [h0], },
-  { exact hTT' _ (measurable_set_fiber _ _) (measure_preimage_lt_top_of_integrable _ hf h0).ne i, }
+  { exact hTT' _ (measurable_set_fiber _ _) (measure_preimage_lt_top_of_integrable _ hf h0) i, }
 end
 
 lemma set_to_simple_func_nonneg {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
@@ -334,7 +334,7 @@ begin
   by_cases h0 : i = 0,
   { simp [h0], },
   refine hT_nonneg _ (measurable_set_fiber _ _)
-    (measure_preimage_lt_top_of_integrable _ hfi h0).ne i _,
+    (measure_preimage_lt_top_of_integrable _ hfi h0) i _,
   rw mem_range at hi,
   obtain ⟨y, hy⟩ := set.mem_range.mp hi,
   rw ← hy,
@@ -1365,10 +1365,6 @@ begin
   exact set_to_L1_nonneg hT hT_nonneg hfg,
 end
 
-lemma set_to_L1_const [is_finite_measure μ] (hT : dominated_fin_meas_additive μ T C) (x : E) :
-  set_to_L1 hT (indicator_const_Lp 1 measurable_set.univ (measure_ne_top _ _) x) = T univ x :=
-set_to_L1_indicator_const_Lp hT measurable_set.univ (measure_ne_top _ _) x
-
 lemma norm_set_to_L1_le_norm_set_to_L1s_clm (hT : dominated_fin_meas_additive μ T C) :
   ∥set_to_L1 hT∥ ≤ ∥set_to_L1s_clm α E μ hT∥ :=
 calc ∥set_to_L1 hT∥
@@ -1672,7 +1668,7 @@ lemma set_to_fun_mono {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ
   [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
   [second_countable_topology G] [complete_space G'] [order_closed_topology G']
   {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
-  (hT_nonneg : ∀ s, measurable_set s → μ s ≠ ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
+  (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
   {f g : α → G} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
   set_to_fun μ T hT f ≤ set_to_fun μ T hT g :=
 begin

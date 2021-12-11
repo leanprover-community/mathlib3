@@ -788,10 +788,10 @@ begin
   rw finsupp.erase_ne (ne_of_mem_erase hx),
 end
 
-/-- Generalisation of `finsupp.mul_prod_erase`: if `g` maps a second argument of 0 to 1,
+/-- Generalization of `finsupp.mul_prod_erase`: if `g` maps a second argument of 0 to 1,
 then its product over `f : α →₀ M` is the same as multiplying the value on any element
 `y : α` by the product over `erase y f`. -/
-@[to_additive /-" Generalisation of `finsupp.add_sum_erase`: if `g` maps a second argument of 0
+@[to_additive /-" Generalization of `finsupp.add_sum_erase`: if `g` maps a second argument of 0
 to 0, then its sum over `f : α →₀ M` is the same as adding the value on any element
 `y : α` to the sum over `erase y f`. "-/]
 lemma mul_prod_erase' (f : α →₀ M) (y : α) (g : α → M → N) (hg : ∀ (i : α), g i 0 = 1) :

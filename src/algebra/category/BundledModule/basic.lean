@@ -1,8 +1,22 @@
+/-
+Copyright (c) 2021 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
 import algebra.category.Module.basic
 import algebra.category.CommRing.basic
 import category_theory.category.basic
 
 open category_theory
+
+/-!
+# The category of bundled module
+
+`BundledModule.{u}` is the category of pairs of the shape `(R, M)` where `R` is
+a ring in universe u and `M` is an `R`-module. A morphism between `M1 = (R, M)`
+and `M2 = (S, N)` is a pair of morphism `(f, g)` where `f : R ⟶ S` is a ring
+homomorphism and `g : M ⟶ f* N` is a module homomorphism (linear map).
+-/
 
 section restriction_of_scalars
 

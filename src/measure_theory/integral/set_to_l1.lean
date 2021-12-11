@@ -1329,7 +1329,7 @@ begin
   { have hμ'0 : μ' = 0,
     { rw ← measure.nonpos_iff_eq_zero', refine hμ'_le.trans _, simp [hc'0], },
     have h_im_zero : (λ f : α →₁[μ] G,
-        (integrable.of_measure_le c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) = 0,
+        (integrable.of_measure_le_mul c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) = 0,
       by { ext1 f, ext1, simp_rw hμ'0, simp only [ae_zero], },
     rw h_im_zero,
     exact continuous_zero, },
@@ -1342,7 +1342,7 @@ begin
     exact ⟨lt_of_le_of_ne (zero_le _) (ne.symm hc'0), hc'⟩, },
   intros g hfg,
   rw Lp.dist_def at hfg ⊢,
-  let h_int := λ f' : α →₁[μ] G, (L1.integrable_coe_fn f').of_measure_le c' hc' hμ'_le,
+  let h_int := λ f' : α →₁[μ] G, (L1.integrable_coe_fn f').of_measure_le_mul c' hc' hμ'_le,
   have : snorm (integrable.to_L1 g (h_int g) - integrable.to_L1 f (h_int f)) 1 μ'
       = snorm (g - f) 1 μ',
     from snorm_congr_ae ((integrable.coe_fn_to_L1 _).sub (integrable.coe_fn_to_L1 _)),
@@ -1375,7 +1375,7 @@ lemma set_to_fun_congr_measure_of_integrable {μ' : measure α} (c' : ℝ≥0∞
 begin
   /- integrability for `μ` implies integrability for `μ'`. -/
   have h_int : ∀ g : α → E, integrable g μ → integrable g μ',
-    from λ g hg, integrable.of_measure_le c' hc' hμ'_le hg,
+    from λ g hg, integrable.of_measure_le_mul c' hc' hμ'_le hg,
   /- We use `integrable.induction` -/
   refine hfμ.induction _ _ _ _ _,
   { intros c s hs hμs,
@@ -1406,9 +1406,9 @@ begin
   by_cases hf : integrable f μ,
   { exact set_to_fun_congr_measure_of_integrable c' hc' hμ'_le hT hT' f hf, },
   { /- if `f` is not integrable, both `set_to_fun` are 0. -/
-    have h_int : ∀ g : α → E, integrable g μ ↔ integrable g μ',
-      from integrable_iff_of_measure_le c c' hc hc' hμ_le hμ'_le,
-    simp_rw [set_to_fun_undef _ hf, set_to_fun_undef _ (mt (h_int f).mpr hf)], },
+    have h_int : ∀ g : α → E, ¬ integrable g μ → ¬ integrable g μ',
+      from λ g, mt (λ h, h.of_measure_le_mul _ hc hμ_le),
+    simp_rw [set_to_fun_undef _ hf, set_to_fun_undef _ (h_int f hf)], },
 end
 
 lemma set_to_fun_congr_measure_of_add_right {μ' : measure α}

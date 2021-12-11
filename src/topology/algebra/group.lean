@@ -771,11 +771,54 @@ instance multiplicative.topological_group {G} [h : topological_space G]
 
 namespace units
 
-variables [monoid α] [topological_space α] [has_continuous_mul α]
+variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β] [topological_space β]
+  [has_continuous_mul β]
 
 instance : topological_group (units α) :=
 { continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
     (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
+
+/-- The topological group isomorphism between the units of a product of two monoids, and the product
+    of the units of each monoid. -/
+def homeomorph.prod_units : homeomorph (units (α × β)) (units α × units β) :=
+{ continuous_to_fun  :=
+  begin
+    apply continuous.prod_mk,
+    { apply continuous_induced_rng,
+      apply continuous.prod_mk,
+      { apply continuous.comp continuous_fst units.continuous_coe },
+      { apply continuous.comp continuous_op,
+        apply continuous.comp continuous_fst,
+        simp_rw units.inv_eq_coe_inv,
+        apply continuous.comp units.continuous_coe continuous_inv,
+        apply_instance, }},
+    { apply continuous_induced_rng,
+      apply continuous.prod_mk,
+      { apply continuous.comp continuous_snd units.continuous_coe },
+      { simp_rw units.coe_map_inv,
+        apply continuous.comp continuous_op
+          (continuous.comp continuous_snd (continuous.comp units.continuous_coe continuous_inv)),
+        apply_instance, }},
+  end,
+  continuous_inv_fun :=
+  begin
+    apply continuous_induced_rng,
+    apply continuous.prod_mk,
+    { apply continuous.prod_mk (continuous.comp units.continuous_coe continuous_fst)
+        (continuous.comp units.continuous_coe continuous_snd), },
+    { apply continuous.comp continuous_op,
+      apply continuous.comp units.continuous_coe,
+      apply continuous_induced_rng,
+      apply continuous.prod_mk,
+      { apply continuous.prod_mk
+          (continuous.comp units.continuous_coe (continuous.comp continuous_inv continuous_fst))
+          (continuous.comp units.continuous_coe (continuous.comp continuous_inv continuous_snd));
+        apply_instance },
+      { apply continuous.comp continuous_op
+          (continuous.prod_mk (continuous.comp units.continuous_coe continuous_fst)
+            (continuous.comp units.continuous_coe continuous_snd)) }}
+  end,
+  ..mul_equiv.prod_units }
 
 end units
 

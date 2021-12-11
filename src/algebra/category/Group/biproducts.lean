@@ -3,11 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Group.limits
+import algebra.group.pi
 import algebra.category.Group.preadditive
 import category_theory.limits.shapes.biproducts
-import category_theory.limits.shapes.types
-import algebra.group.pi
+import algebra.category.Group.limits
 
 /-!
 # The category of abelian groups has finite biproducts

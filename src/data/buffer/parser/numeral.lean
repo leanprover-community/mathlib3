@@ -3,7 +3,6 @@ Copyright (c) 2020 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import data.fintype.card
 import data.buffer.parser.basic
 
 /-!
@@ -111,8 +110,8 @@ that the resulting value is within the cardinality of the type `α`.
 def numeral.char.of_fintype [fintype α] (fromc : char) : parser α :=
 do
   c ← decorate_error
-    (sformat!"<char from '{fromc.to_string}' to '{
-      (char.of_nat (fromc.to_nat + fintype.card α - 1)).to_string}' inclusively>")
+    (sformat!"<char from '{fromc.to_string}' to '
+    { (char.of_nat (fromc.to_nat + fintype.card α - 1)).to_string}' inclusively>")
     (sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat)),
   pure $ nat.bin_cast (c.to_nat - fromc.to_nat)
 

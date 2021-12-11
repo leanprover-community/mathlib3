@@ -3,7 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.subalgebra
+import algebra.algebra.tower
 import linear_algebra.prod
 
 /-!
@@ -26,17 +26,16 @@ adjoin, algebra, finitely-generated algebra
 
 universes u v w
 
-open submodule
 open_locale pointwise
-
-namespace algebra
+open submodule subsemiring
 
 variables {R : Type u} {A : Type v} {B : Type w}
+
+namespace algebra
 
 section semiring
 variables [comm_semiring R] [semiring A] [semiring B]
 variables [algebra R A] [algebra R B] {s t : set A}
-open subsemiring
 
 theorem subset_adjoin : s ⊆ adjoin R s :=
 algebra.gc.le_u_l s
@@ -56,7 +55,7 @@ le_antisymm (adjoin_le h₁) h₂
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 
-@[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s) 
+@[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s)
   (Hs : ∀ x ∈ s, p x)
   (Halg : ∀ r, p (algebra_map R A r))
   (Hadd : ∀ x y, p x → p y → p (x + y))
@@ -64,6 +63,29 @@ adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 let S : subalgebra R A :=
 { carrier := p, mul_mem' := Hmul, add_mem' := Hadd, algebra_map_mem' := Halg } in
 adjoin_le (show s ≤ S, from Hs) h
+
+/-- The difference with `algebra.adjoin_induction` is that this acts on the subtype. -/
+lemma adjoin_induction' {p : adjoin R s → Prop} (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_adjoin h⟩)
+  (Halg : ∀ r, p (algebra_map R _ r)) (Hadd : ∀ x y, p x → p y → p (x + y))
+  (Hmul : ∀ x y, p x → p y → p (x * y)) (x : adjoin R s) : p x :=
+subtype.rec_on x $ λ x hx, begin
+  refine exists.elim _ (λ (hx : x ∈ adjoin R s) (hc : p ⟨x, hx⟩), hc),
+  exact adjoin_induction hx (λ x hx, ⟨subset_adjoin hx, Hs x hx⟩)
+    (λ r, ⟨subalgebra.algebra_map_mem _ r, Halg r⟩)
+    (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
+    ⟨subalgebra.add_mem _ hx' hy', Hadd _ _ hx hy⟩) (λ x y hx hy, exists.elim hx $ λ hx' hx,
+    exists.elim hy $ λ hy' hy, ⟨subalgebra.mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
+end
+
+@[simp] lemma adjoin_adjoin_coe_preimage {s : set A} :
+  adjoin R ((coe : adjoin R s → A) ⁻¹' s) = ⊤ :=
+begin
+  refine eq_top_iff.2 (λ x, adjoin_induction' (λ a ha, _) (λ r, _) (λ _ _, _) (λ _ _, _) x),
+  { exact subset_adjoin ha },
+  { exact subalgebra.algebra_map_mem _ r },
+  { exact subalgebra.add_mem _ },
+  { exact subalgebra.mul_mem _ }
+end
 
 lemma adjoin_union (s t : set A) : adjoin R (s ∪ t) = adjoin R s ⊔ adjoin R t :=
 (algebra.gc : galois_connection _ (coe : subalgebra R A → set A)).l_sup
@@ -125,33 +147,18 @@ le_antisymm
     ⟨subset_adjoin (set.mem_insert _ _), adjoin_mono (set.subset_insert _ _)⟩))
   (algebra.adjoin_mono (set.insert_subset_insert algebra.subset_adjoin))
 
-lemma adjoint_prod_le (s : set A) (t : set B) :
+lemma adjoin_prod_le (s : set A) (t : set B) :
   adjoin R (set.prod s t) ≤ (adjoin R s).prod (adjoin R t) :=
 adjoin_le $ set.prod_mono subset_adjoin subset_adjoin
-
-lemma adjoin_inl_union_inr_le_prod (s) (t) :
-  adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪
-  linear_map.inr R A B '' (t ∪ {1})) ≤ (adjoin R s).prod (adjoin R t) :=
-begin
-  rw [set.image_union, set.image_union],
-  refine adjoin_le (λ x hx, subalgebra.mem_prod.2 _),
-  rcases hx with (⟨x₁, ⟨hx₁, rfl⟩⟩ | ⟨x₂, ⟨hx₂, rfl⟩⟩) | (⟨x₃, ⟨hx₃, rfl⟩⟩ | ⟨x₄, ⟨hx₄, rfl⟩⟩),
-  { exact ⟨subset_adjoin hx₁, subalgebra.zero_mem _⟩ },
-  { rw set.mem_singleton_iff.1 hx₂,
-    exact ⟨subalgebra.one_mem _, subalgebra.zero_mem _⟩ },
-  { exact ⟨subalgebra.zero_mem _, subset_adjoin hx₃⟩ },
-  { rw set.mem_singleton_iff.1 hx₄,
-    exact ⟨subalgebra.zero_mem _, subalgebra.one_mem _⟩ }
-end
 
 lemma mem_adjoin_of_map_mul {s} {x : A} {f : A →ₗ[R] B} (hf : ∀ a₁ a₂, f(a₁ * a₂) = f a₁ * f a₂)
   (h : x ∈ adjoin R s) : f x ∈ adjoin R (f '' (s ∪ {1})) :=
 begin
   refine @adjoin_induction R A _ _ _ _ (λ a, f a ∈ adjoin R (f '' (s ∪ {1}))) x h
-  (λ a ha, subset_adjoin ⟨a, ⟨set.subset_union_left _ _ ha, rfl⟩⟩)
-  (λ r, _)
-  (λ y z hy hz, by simpa [hy, hz] using subalgebra.add_mem _ hy hz)
-  (λ y z hy hz, by simpa [hy, hz, hf y z] using subalgebra.mul_mem _ hy hz),
+    (λ a ha, subset_adjoin ⟨a, ⟨set.subset_union_left _ _ ha, rfl⟩⟩)
+    (λ r, _)
+    (λ y z hy hz, by simpa [hy, hz] using subalgebra.add_mem _ hy hz)
+    (λ y z hy hz, by simpa [hy, hz, hf y z] using subalgebra.mul_mem _ hy hz),
   have : f 1 ∈ adjoin R (f '' (s ∪ {1})) :=
   subset_adjoin ⟨1, ⟨set.subset_union_right _ _ $ set.mem_singleton 1, rfl⟩⟩,
   replace this := subalgebra.smul_mem (adjoin R (f '' (s ∪ {1}))) this r,
@@ -161,21 +168,24 @@ begin
 end
 
 lemma adjoin_inl_union_inr_eq_prod (s) (t) :
-  adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪
-  linear_map.inr R A B '' (t ∪ {1})) = (adjoin R s).prod (adjoin R t) :=
+  adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪ linear_map.inr R A B '' (t ∪ {1})) =
+    (adjoin R s).prod (adjoin R t) :=
 begin
-  let P := adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪ linear_map.inr R A B '' (t ∪ {1})),
-  refine le_antisymm (adjoin_inl_union_inr_le_prod R s t) _,
-  rintro ⟨a, b⟩ ⟨ha, hb⟩,
-  have Ha : (a, (0 : B)) ∈ adjoin R ((linear_map.inl R A B) '' (s ∪ {1})) :=
-    mem_adjoin_of_map_mul R (linear_map.inl_map_mul) ha,
-  have Hb : ((0 : A), b) ∈ adjoin R ((linear_map.inr R A B) '' (t ∪ {1})) :=
-    mem_adjoin_of_map_mul R (linear_map.inr_map_mul) hb,
-  replace Ha : (a, (0 : B)) ∈ P :=
-    adjoin_mono (set.subset_union_of_subset_left (set.subset.refl _) _) Ha,
-  replace Hb : ((0 : A), b) ∈ P :=
-    adjoin_mono (set.subset_union_of_subset_right (set.subset.refl _) _) Hb,
-  simpa using subalgebra.add_mem _ Ha Hb
+  apply le_antisymm,
+  { simp only [adjoin_le_iff, set.insert_subset, subalgebra.zero_mem, subalgebra.one_mem,
+      subset_adjoin, -- the rest comes from `squeeze_simp`
+      set.union_subset_iff, linear_map.coe_inl, set.mk_preimage_prod_right,
+      set.image_subset_iff, set_like.mem_coe, set.mk_preimage_prod_left, linear_map.coe_inr,
+      and_self, set.union_singleton, subalgebra.coe_prod] },
+  { rintro ⟨a, b⟩ ⟨ha, hb⟩,
+    let P := adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪ linear_map.inr R A B '' (t ∪ {1})),
+    have Ha : (a, (0 : B)) ∈ adjoin R ((linear_map.inl R A B) '' (s ∪ {1})) :=
+      mem_adjoin_of_map_mul R (linear_map.inl_map_mul) ha,
+    have Hb : ((0 : A), b) ∈ adjoin R ((linear_map.inr R A B) '' (t ∪ {1})) :=
+      mem_adjoin_of_map_mul R (linear_map.inr_map_mul) hb,
+    replace Ha : (a, (0 : B)) ∈ P := adjoin_mono (set.subset_union_left _ _) Ha,
+    replace Hb : ((0 : A), b) ∈ P := adjoin_mono (set.subset_union_right _ _) Hb,
+    simpa using subalgebra.add_mem _ Ha Hb }
 end
 
 end semiring
@@ -183,10 +193,10 @@ end semiring
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A]
 variables [algebra R A] {s t : set A}
-open subsemiring
 
 variables (R s t)
-theorem adjoin_union_eq_under : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
+theorem adjoin_union_eq_adjoin_adjoin :
+  adjoin R (s ∪ t) = (adjoin (adjoin R s) t).restrict_scalars R :=
 le_antisymm
   (closure_mono $ set.union_subset
     (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map R (adjoin R s) r, rfl⟩)
@@ -230,3 +240,15 @@ subring.ext $ λ x, mem_adjoin_iff
 end ring
 
 end algebra
+
+open algebra subalgebra
+
+namespace alg_hom
+
+variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+
+lemma map_adjoin (φ : A →ₐ[R] B) (s : set A) :
+  (adjoin R s).map φ = adjoin R (φ '' s) :=
+(adjoin_image _ _ _).symm
+
+end alg_hom

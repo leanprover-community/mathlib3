@@ -6,7 +6,7 @@ Authors: Devon Tuma
 import ring_theory.jacobson
 import field_theory.is_alg_closed.basic
 import field_theory.mv_polynomial
-import algebraic_geometry.prime_spectrum
+import algebraic_geometry.prime_spectrum.basic
 
 /-!
 # Nullstellensatz
@@ -88,7 +88,7 @@ lemma mem_vanishing_ideal_singleton_iff (x : σ → k) (p : mv_polynomial σ k) 
 instance vanishing_ideal_singleton_is_maximal {x : σ → k} :
   (vanishing_ideal {x} : ideal (mv_polynomial σ k)).is_maximal :=
 begin
-  have : (vanishing_ideal {x} : ideal (mv_polynomial σ k)).quotient ≃+* k := ring_equiv.of_bijective
+  have : mv_polynomial σ k ⧸ vanishing_ideal {x} ≃+* k := ring_equiv.of_bijective
     (ideal.quotient.lift _ (eval x) (λ p h, (mem_vanishing_ideal_singleton_iff x p).mp h))
     begin
       refine ⟨(ring_hom.injective_iff _).mpr (λ p hp, _), λ z,
@@ -136,8 +136,8 @@ begin
   refine ⟨λ hI, _, λ h, let ⟨x, hx⟩ := h in
     hx.symm ▸ (mv_polynomial.vanishing_ideal_singleton_is_maximal)⟩,
   letI : I.is_maximal := hI,
-  letI : field I.quotient := quotient.field I,
-  let ϕ : k →+* I.quotient := (ideal.quotient.mk I).comp C,
+  letI : field (mv_polynomial σ k ⧸ I) := quotient.field I,
+  let ϕ : k →+* mv_polynomial σ k ⧸ I := (ideal.quotient.mk I).comp C,
   have hϕ : function.bijective ϕ := ⟨quotient_mk_comp_C_injective _ _ I hI.ne_top,
     is_alg_closed.algebra_map_surjective_of_is_integral' ϕ
       (mv_polynomial.comp_C_integral_of_surjective_of_jacobson _ quotient.mk_surjective)⟩,

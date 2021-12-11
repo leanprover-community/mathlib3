@@ -36,7 +36,7 @@ begin
       rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
     have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
     rw [dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
-    calc 1 / ε ≤ ⌈1 / ε⌉₊ : le_nat_ceil _
+    calc 1 / ε ≤ ⌈1 / ε⌉₊ : nat.le_ceil _
           ... ≤ n : by exact_mod_cast hn.le
           ... < 2 * n + 1 : by { norm_cast, linarith } },
   { exact tendsto_const_nhds },

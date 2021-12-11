@@ -22,7 +22,7 @@ Let `p : polynomial R`.
 ## Main Results
  - `polynomial.content_mul`:
   If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
- - `polynomial.gcd_monoid`:
+ - `polynomial.normalized_gcd_monoid`:
   The polynomial ring of a GCD domain is itself a GCD domain.
 
 -/
@@ -59,10 +59,10 @@ end
 
 end primitive
 
-variables {R : Type*} [integral_domain R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 
-section gcd_monoid
-variable [gcd_monoid R]
+section normalized_gcd_monoid
+variable [normalized_gcd_monoid R]
 
 /-- `p.content` is the `gcd` of the coefficients of `p`. -/
 def content (p : polynomial R) : R := (p.support).gcd p.coeff
@@ -409,7 +409,7 @@ begin
   refine ⟨_, rfl, ⟨dvd_cancel_leads_of_dvd_of_dvd pr ps, dvd_cancel_leads_of_dvd_of_dvd qr qs⟩,
       λ rcs, rs _⟩,
   rw ← rprim.dvd_prim_part_iff_dvd s0,
-  rw [cancel_leads, nat.sub_eq_zero_of_le hs, pow_zero, mul_one] at rcs,
+  rw [cancel_leads, tsub_eq_zero_iff_le.mpr hs, pow_zero, mul_one] at rcs,
   have h := dvd_add rcs (dvd.intro_left _ rfl),
   have hC0 := rprim.ne_zero,
   rw [ne.def, ← leading_coeff_eq_zero, ← C_eq_zero] at hC0,
@@ -432,8 +432,8 @@ begin
 end
 
 @[priority 100]
-instance gcd_monoid : gcd_monoid (polynomial R) :=
-gcd_monoid_of_exists_lcm $ λ p q, begin
+instance normalized_gcd_monoid : normalized_gcd_monoid (polynomial R) :=
+normalized_gcd_monoid_of_exists_lcm $ λ p q, begin
   rcases exists_primitive_lcm_of_is_primitive p.is_primitive_prim_part q.is_primitive_prim_part
     with ⟨r, rprim, hr⟩,
   refine ⟨C (lcm p.content q.content) * r, λ s, _⟩,
@@ -449,5 +449,15 @@ gcd_monoid_of_exists_lcm $ λ p q, begin
   tauto,
 end
 
-end gcd_monoid
+lemma degree_gcd_le_left {p : polynomial R} (hp : p ≠ 0) (q) : (gcd p q).degree ≤ p.degree :=
+begin
+  have := nat_degree_le_iff_degree_le.mp
+    (nat_degree_le_of_dvd (gcd_dvd_left p q) hp),
+  rwa degree_eq_nat_degree hp
+end
+
+lemma degree_gcd_le_right (p) {q : polynomial R} (hq : q ≠ 0) : (gcd p q).degree ≤ q.degree :=
+by { rw [gcd_comm], exact degree_gcd_le_left hq p }
+
+end normalized_gcd_monoid
 end polynomial

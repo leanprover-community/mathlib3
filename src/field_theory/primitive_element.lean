@@ -7,6 +7,7 @@ Authors: Thomas Browning, Patrick Lutz
 import field_theory.adjoin
 import field_theory.is_alg_closed.basic
 import field_theory.separable
+import ring_theory.integral_domain
 
 /-!
 # Primitive Element Theorem
@@ -109,14 +110,14 @@ begin
     { rw adjoin_le_iff,
       have α_in_Fγ : α ∈ F⟮γ⟯,
       { rw ← add_sub_cancel α (c • β),
-        exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c)},
+        exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c) },
       exact λ x hx, by cases hx; cases hx; cases hx; assumption },
-      { rw adjoin_le_iff,
-        change {γ} ⊆ _,
-        rw set.singleton_subset_iff,
-        have α_in_Fαβ : α ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert α {β}),
-        have β_in_Fαβ : β ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert_of_mem α rfl),
-        exact F⟮α,β⟯.add_mem α_in_Fαβ (F⟮α, β⟯.smul_mem β_in_Fαβ) } },
+    { rw adjoin_le_iff,
+      change {γ} ⊆ _,
+      rw set.singleton_subset_iff,
+      have α_in_Fαβ : α ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert α {β}),
+      have β_in_Fαβ : β ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert_of_mem α rfl),
+      exact F⟮α,β⟯.add_mem α_in_Fαβ (F⟮α, β⟯.smul_mem β_in_Fαβ) } },
   let p := euclidean_domain.gcd ((f.map (algebra_map F F⟮γ⟯)).comp
     (C (adjoin_simple.gen F γ) - (C ↑c * X))) (g.map (algebra_map F F⟮γ⟯)),
   let h := euclidean_domain.gcd ((f.map ιFE).comp (C γ - (C (ιFE c) * X))) (g.map ιFE),
@@ -154,7 +155,7 @@ begin
     apply (div_eq_iff (sub_ne_zero.mpr a)).mpr,
     simp only [algebra.smul_def, ring_hom.map_add, ring_hom.map_mul, ring_hom.comp_apply],
     ring },
-  rw ← eq_X_sub_C_of_separable_of_root_eq h_ne_zero h_sep h_root h_splits h_roots,
+  rw ← eq_X_sub_C_of_separable_of_root_eq h_sep h_root h_splits h_roots,
   transitivity euclidean_domain.gcd (_ : polynomial E) (_ : polynomial E),
   { dsimp only [p],
     convert (gcd_map (algebra_map F⟮γ⟯ E)).symm },

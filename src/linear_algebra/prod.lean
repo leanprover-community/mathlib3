@@ -125,8 +125,11 @@ eq.symm $ range_inr R M M₂
 
 end
 
-@[simp] theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
-@[simp] theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
+@[simp] theorem coe_inl : (inl R M M₂ : M → M × M₂) = λ x, (x, 0) := rfl
+theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
+
+@[simp] theorem coe_inr : (inr R M M₂ : M₂ → M × M₂) = prod.mk 0 := rfl
+theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
 
 theorem inl_eq_prod : inl R M M₂ = prod linear_map.id 0 := rfl
 
@@ -138,7 +141,7 @@ theorem inl_injective : function.injective (inl R M M₂) :=
 theorem inr_injective : function.injective (inr R M M₂) :=
 λ _, by simp
 
-/-- The coprod function `λ x : M × M₂, f.1 x.1 + f.2 x.2` is a linear map. -/
+/-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
 def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
 f.comp (fst _ _ _) + g.comp (snd _ _ _)
 

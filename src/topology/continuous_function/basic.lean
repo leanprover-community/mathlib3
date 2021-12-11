@@ -31,7 +31,7 @@ attribute [continuity] continuous_map.continuous_to_fun
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
+instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := ⟨continuous_map.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
 
@@ -39,7 +39,7 @@ variables {α β} {f g : continuous_map α β}
 
 @[continuity] protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 @[continuity] lemma continuous_set_coe (s : set C(α, β)) (f : s) : continuous f :=
-by { cases f, dsimp, continuity, }
+by { cases f, rw @coe_fn_coe_base', continuity }
 
 protected lemma continuous_at (f : C(α, β)) (x : α) : continuous_at f x :=
 f.continuous.continuous_at
@@ -210,6 +210,26 @@ lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, �
 end inf'
 
 end lattice
+
+section prod
+
+variables {α₁ α₂ β₁ β₂ : Type*}
+
+/-- Given two continuous maps `f` and `g`, this is the continuous map `x ↦ (f x, g x)`. -/
+def prod_mk {α β₁ β₂ : Type*} [topological_space α] [topological_space β₁]
+  [topological_space β₂] (f : C(α, β₁)) (g : C(α, β₂)) :
+  C(α, β₁ × β₂) :=
+{ to_fun := (λ x, (f x, g x)),
+  continuous_to_fun := continuous.prod_mk f.continuous g.continuous }
+
+/-- Given two continuous maps `f` and `g`, this is the continuous map `(x, y) ↦ (f x, g y)`. -/
+def prod_map {α₁ α₂ β₁ β₂ : Type*} [topological_space α₁] [topological_space α₂]
+  [topological_space β₁] [topological_space β₂] (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
+  C(α₁ × β₁, α₂ × β₂) :=
+{ to_fun := prod.map f g,
+  continuous_to_fun := continuous.prod_map f.continuous g.continuous }
+
+end prod
 
 section restrict
 

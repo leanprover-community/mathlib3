@@ -3,7 +3,8 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yaël Dillies
 -/
-import order.basic
+import order.compare
+import order.order_dual
 
 /-!
 # Monotonicity
@@ -69,11 +70,11 @@ def monotone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
 /-- A function `f` is antitone if `a ≤ b` implies `f b ≤ f a`. -/
 def antitone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f b ≤ f a
 
-/-- A function `f` is monotone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f b ≤ f a`. -/
+/-- A function `f` is monotone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f a ≤ f b`. -/
 def monotone_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f a ≤ f b
 
-/-- A function `f` is antitone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f a ≤ f b`. -/
+/-- A function `f` is antitone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f b ≤ f a`. -/
 def antitone_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f b ≤ f a
 
@@ -97,106 +98,93 @@ def strict_anti_on (f : α → β) (s : set α) : Prop :=
 
 end monotone_def
 
-/-! #### Monotonicity on the dual order -/
+/-! #### Monotonicity on the dual order
+
+Strictly many of the `*_on.dual` lemmas in this section should use `of_dual ⁻¹' s` instead of `s`,
+but right now this is not possible as `set.preimage` is not defined yet, and importing it creates
+an import cycle.
+-/
 
 section order_dual
 open order_dual
 variables [preorder α] [preorder β] {f : α → β} {s : set α}
 
-protected theorem monotone.dual (hf : monotone f) :
-  @monotone (order_dual α) (order_dual β) _ _ f :=
+protected theorem monotone.dual (hf : monotone f) : monotone (to_dual ∘ f ∘ of_dual) :=
 λ a b h, hf h
 
-protected lemma monotone.dual_left  (hf : monotone f) :
-  @antitone (order_dual α) β _ _ f :=
+protected lemma monotone.dual_left (hf : monotone f) : antitone (f ∘ of_dual) :=
 λ a b h, hf h
 
-protected lemma monotone.dual_right  (hf : monotone f) :
-  @antitone α (order_dual β) _ _ f :=
+protected lemma monotone.dual_right (hf : monotone f) : antitone (to_dual ∘ f) :=
 λ a b h, hf h
 
-protected theorem antitone.dual  (hf : antitone f) :
-  @antitone (order_dual α) (order_dual β) _ _ f :=
+protected theorem antitone.dual (hf : antitone f) : antitone (to_dual ∘ f ∘ of_dual) :=
 λ a b h, hf h
 
-protected lemma antitone.dual_left  (hf : antitone f) :
-  @monotone (order_dual α) β _ _ f :=
+protected lemma antitone.dual_left (hf : antitone f) : monotone (f ∘ of_dual) :=
 λ a b h, hf h
 
-protected lemma antitone.dual_right  (hf : antitone f) :
-  @monotone α (order_dual β) _ _ f :=
+protected lemma antitone.dual_right (hf : antitone f) : monotone (to_dual ∘ f) :=
 λ a b h, hf h
 
-protected theorem monotone_on.dual (hf : monotone_on f s) :
-  @monotone_on (order_dual α) (order_dual β) _ _ f s :=
+protected theorem monotone_on.dual (hf : monotone_on f s) : monotone_on (to_dual ∘ f ∘ of_dual) s :=
 λ a ha b hb, hf hb ha
 
-protected lemma monotone_on.dual_left (hf : monotone_on f s) :
-  @antitone_on (order_dual α) β _ _ f s :=
+protected lemma monotone_on.dual_left (hf : monotone_on f s) : antitone_on (f ∘ of_dual) s :=
 λ a ha b hb, hf hb ha
 
-protected lemma monotone_on.dual_right (hf : monotone_on f s) :
-  @antitone_on α (order_dual β) _ _ f s :=
+protected lemma monotone_on.dual_right (hf : monotone_on f s) : antitone_on (to_dual ∘ f) s :=
 λ a ha b hb, hf ha hb
 
-protected theorem antitone_on.dual (hf : antitone_on f s) :
-  @antitone_on (order_dual α) (order_dual β) _ _ f s :=
+protected theorem antitone_on.dual (hf : antitone_on f s) : antitone_on (to_dual ∘ f ∘ of_dual) s :=
 λ a ha b hb, hf hb ha
 
-protected lemma antitone_on.dual_left (hf : antitone_on f s) :
-  @monotone_on (order_dual α) β _ _ f s :=
+protected lemma antitone_on.dual_left (hf : antitone_on f s) : monotone_on (f ∘ of_dual) s :=
 λ a ha b hb, hf hb ha
 
-protected lemma antitone_on.dual_right (hf : antitone_on f s) :
-  @monotone_on α (order_dual β) _ _ f s :=
+protected lemma antitone_on.dual_right (hf : antitone_on f s) : monotone_on (to_dual ∘ f) s :=
 λ a ha b hb, hf ha hb
 
-protected theorem strict_mono.dual (hf : strict_mono f) :
-  @strict_mono (order_dual α) (order_dual β) _ _ f :=
+protected theorem strict_mono.dual (hf : strict_mono f) : strict_mono (to_dual ∘ f ∘ of_dual) :=
 λ a b h, hf h
 
-protected lemma strict_mono.dual_left  (hf : strict_mono f) :
-  @strict_anti (order_dual α) β _ _ f :=
+protected lemma strict_mono.dual_left (hf : strict_mono f) : strict_anti (f ∘ of_dual) :=
 λ a b h, hf h
 
-protected lemma strict_mono.dual_right  (hf : strict_mono f) :
-  @strict_anti α (order_dual β) _ _ f :=
+protected lemma strict_mono.dual_right (hf : strict_mono f) : strict_anti (to_dual ∘ f) :=
 λ a b h, hf h
 
-protected theorem strict_anti.dual  (hf : strict_anti f) :
-  @strict_anti (order_dual α) (order_dual β) _ _ f :=
+protected theorem strict_anti.dual (hf : strict_anti f) : strict_anti (to_dual ∘ f ∘ of_dual) :=
 λ a b h, hf h
 
-protected lemma strict_anti.dual_left  (hf : strict_anti f) :
-  @strict_mono (order_dual α) β _ _ f :=
+protected lemma strict_anti.dual_left (hf : strict_anti f) : strict_mono (f ∘ of_dual) :=
 λ a b h, hf h
 
-protected lemma strict_anti.dual_right  (hf : strict_anti f) :
-  @strict_mono α (order_dual β) _ _ f :=
+protected lemma strict_anti.dual_right (hf : strict_anti f) : strict_mono (to_dual ∘ f) :=
 λ a b h, hf h
 
 protected theorem strict_mono_on.dual (hf : strict_mono_on f s) :
-  @strict_mono_on (order_dual α) (order_dual β) _ _ f s :=
+  strict_mono_on (to_dual ∘ f ∘ of_dual) s :=
 λ a ha b hb, hf hb ha
 
 protected lemma strict_mono_on.dual_left (hf : strict_mono_on f s) :
-  @strict_anti_on (order_dual α) β _ _ f s :=
+  strict_anti_on (f ∘ of_dual) s :=
 λ a ha b hb, hf hb ha
 
 protected lemma strict_mono_on.dual_right (hf : strict_mono_on f s) :
-  @strict_anti_on α (order_dual β) _ _ f s :=
+  strict_anti_on (to_dual ∘ f) s :=
 λ a ha b hb, hf ha hb
 
 protected theorem strict_anti_on.dual (hf : strict_anti_on f s) :
-  @strict_anti_on (order_dual α) (order_dual β) _ _ f s :=
+  strict_anti_on (to_dual ∘ f ∘ of_dual) s :=
 λ a ha b hb, hf hb ha
 
 protected lemma strict_anti_on.dual_left (hf : strict_anti_on f s) :
-  @strict_mono_on (order_dual α) β _ _ f s :=
+  strict_mono_on (f ∘ of_dual) s :=
 λ a ha b hb, hf hb ha
 
 protected lemma strict_anti_on.dual_right (hf : strict_anti_on f s) :
-  @strict_mono_on α (order_dual β) _ _ f s :=
+  strict_mono_on (to_dual ∘ f) s :=
 λ a ha b hb, hf ha hb
 
 end order_dual
@@ -278,15 +266,21 @@ end partial_order
 end preorder
 
 section partial_order
-variables [partial_order α] [preorder β] {f : α → β}
+variables [partial_order α] [preorder β] {f : α → β} {s : set α}
 
 -- `preorder α` isn't strong enough: if the preorder on `α` is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
+protected lemma strict_mono_on.monotone_on (hf : strict_mono_on f s) : monotone_on f s :=
+λ a ha b hb h, h.eq_or_lt.elim (λ H, H ▸ le_rfl) (λ H, (hf ha hb H).le)
+
+protected lemma strict_anti_on.antitone_on (hf : strict_anti_on f s) : antitone_on f s :=
+hf.dual_right.monotone_on.dual_right
+
 protected lemma strict_mono.monotone (hf : strict_mono f) : monotone f :=
-λ a b h, h.eq_or_lt.rec (by { rintro rfl, refl }) (le_of_lt ∘ (@hf _ _))
+monotone_on_univ.1 (hf.strict_mono_on set.univ).monotone_on
 
 protected lemma strict_anti.antitone (hf : strict_anti f) : antitone f :=
-λ a b h, h.eq_or_lt.rec (by { rintro rfl, refl }) (le_of_lt ∘ (@hf _ _))
+hf.dual_right.monotone.dual_right
 
 end partial_order
 
@@ -304,17 +298,15 @@ theorem antitone_const [preorder α] [preorder β] {c : β} : antitone (λ (a : 
 
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
   (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
-λ a b, by simp [lt_iff_le_not_le, h] {contextual := tt}
+λ a b, (lt_iff_lt_of_le_iff_le' (h _ _) (h _ _)).1
 
 lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) :
   injective f :=
 begin
-  intros x y k,
-  contrapose k,
-  rw [←ne.def, ne_iff_lt_or_gt] at k,
-  cases k,
-  { exact h _ _ k },
-  { exact (h _ _ k).symm }
+  intros x y hxy,
+  contrapose hxy,
+  cases ne.lt_or_lt hxy with hxy hxy,
+  exacts [h _ _ hxy, (h _ _ hxy).symm]
 end
 
 lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
@@ -347,7 +339,7 @@ protected lemma strict_anti.ite' (hf : strict_anti f) (hg : strict_anti g) {p : 
   [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
   (hfg : ∀ ⦃x y⦄, p x → ¬p y → x < y → g y < f x) :
   strict_anti (λ x, if p x then f x else g x) :=
-@strict_mono.ite' α (order_dual β) _ _ f g hf hg p _ hp hfg
+(strict_mono.ite' hf.dual_right hg.dual_right hp hfg).dual_right
 
 protected lemma strict_anti.ite (hf : strict_anti f) (hg : strict_anti g) {p : α → Prop}
   [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x) (hfg : ∀ x, g x ≤ f x) :

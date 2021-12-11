@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import order.complete_boolean_algebra
+import order.cover
 import order.modular_lattice
 import data.fintype.basic
 
@@ -69,7 +70,8 @@ lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a :
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
 
 lemma is_atom_iff_bot_covers : is_atom a ↔ ⊥ ⋖ a :=
-⟨λ h, ⟨h.1.bot_lt, λ b hb, (h.2 _ hb).not_lt⟩, λ h, ⟨h.ne, λ b hb, eq_bot_of_minimal $ λ c, h.2 _⟩⟩
+⟨λ h, ⟨h.1.bot_lt, λ b hb hba, hb.ne' $ h.2 _ hba⟩,
+  λ h, ⟨h.lt.ne', λ b hba, not_not.1 $ λ hb, h.2 (ne.bot_lt hb) hba⟩⟩
 
 alias is_atom_iff_bot_covers ↔ is_atom.bot_covers covers.is_atom
 
@@ -77,26 +79,25 @@ end is_atom
 
 section is_coatom
 
-variables [partial_order α] [order_top α]
+variables [partial_order α] [order_top α] {a b x : α}
 
 /-- A coatom of an `order_top` is an element with no other element between it and `⊤`,
   which is not `⊤`. -/
 def is_coatom (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
 
-lemma eq_top_or_eq_of_coatom_le {a b : α} (ha : is_coatom a) (hab : a ≤ b) : b = ⊤ ∨ b = a :=
+lemma eq_top_or_eq_of_coatom_le (ha : is_coatom a) (hab : a ≤ b) : b = ⊤ ∨ b = a :=
 hab.lt_or_eq.imp (ha.2 b) eq_comm.2
 
-lemma is_coatom.Ici {x a : α} (ha : is_coatom a) (hax : x ≤ a) : is_coatom (⟨a, hax⟩ : set.Ici x) :=
+lemma is_coatom.Ici (ha : is_coatom a) (hax : x ≤ a) : is_coatom (⟨a, hax⟩ : set.Ici x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
 
-lemma is_coatom.of_is_coatom_coe_Ici {x : α} {a : set.Ici x} (ha : is_coatom a) :
+lemma is_coatom.of_is_coatom_coe_Ici {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans a.prop hba.le⟩ hba)⟩
 
 lemma is_coatom_iff_covers_top : is_coatom a ↔ a ⋖ ⊤ :=
-begin
-
-end
+⟨λ h, ⟨h.1.lt_top, λ b hab hb, hb.ne $ h.2 _ hab⟩,
+  λ h, ⟨h.ne, λ b hab, not_not.1 $ λ hb, h.2 hab $ ne.lt_top hb⟩⟩
 
 alias is_coatom_iff_covers_top ↔ is_coatom.covers_top covers.is_coatom
 
@@ -342,6 +343,8 @@ protected def is_simple_order.linear_order [decidable_eq α] : linear_order α :
 ⟨top_ne_bot, λ a ha, or.resolve_right (eq_bot_or_eq_top a) (ne_of_lt ha)⟩
 
 @[simp] lemma is_coatom_bot : is_coatom (⊥ : α) := is_atom_dual_iff_is_coatom.1 is_atom_top
+
+lemma bot_covers_top : (⊥ : α) ⋖ ⊤ := is_atom_top.bot_covers
 
 end is_simple_order
 

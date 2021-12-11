@@ -695,8 +695,7 @@ by simp [(≤)]
   @has_lt.lt (with_top α) _ (some a) none :=
 by simp [(<)]; existsi a; refl
 
-@[simp] theorem not_none_lt [has_lt α] (a : option α) :
-  ¬ @has_lt.lt (with_top α) _ none a :=
+@[simp] theorem not_none_lt [has_lt α] (a : option α) : ¬ @has_lt.lt (with_top α) _ none a :=
 λ ⟨_, h, _⟩, option.not_mem_none _ h
 
 instance : can_lift (with_top α) α :=

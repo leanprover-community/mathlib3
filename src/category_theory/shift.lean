@@ -126,9 +126,9 @@ lemma shift_shift_add_inv' (i j k : A) :
 begin
   have := congr_arg iso.inv (iso_whisker_right_shift_functor_add C i j k),
   apply_fun (λ α, nat_trans.app α X) at this,
-  simpa only [iso_whisker_right_inv, whisker_right_app, functor.associator_hom_app, iso.trans_inv, eq_to_iso.inv, eq_to_hom_app,
-    whisker_left_app, iso.symm_inv, category.id_comp, iso_whisker_left_inv, nat_trans.comp_app,
-    category.assoc] using this,
+  simpa only [iso_whisker_right_inv, whisker_right_app, functor.associator_hom_app,
+    iso.trans_inv, eq_to_iso.inv, eq_to_hom_app, whisker_left_app, iso.symm_inv, category.id_comp,
+    iso_whisker_left_inv, nat_trans.comp_app, category.assoc] using this,
 end
 
 lemma shift_functor_map_iso_shift_add (i j k : A) :

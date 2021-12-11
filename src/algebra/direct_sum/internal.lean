@@ -182,7 +182,7 @@ instance nat_power_graded_monoid
 
 section homogeneous_element
 
-lemma set_like.is_homogeneous_zero [add_monoid ι]
+lemma _root_.set_like.is_homogeneous_zero_submodule [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) : set_like.is_homogeneous A (0 : R) :=
 ⟨0, zero_mem _⟩

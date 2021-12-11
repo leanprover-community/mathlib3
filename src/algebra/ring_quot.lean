@@ -58,6 +58,12 @@ by simp only [sub_eq_add_neg, h.neg.add_right]
 theorem rel.smul {r : A → A → Prop} (k : S) ⦃a b : A⦄ (h : rel r a b) : rel r (k • a) (k • b) :=
 by simp only [algebra.smul_def, rel.mul_right h]
 
+open mul_opposite
+
+theorem rel.op_smul {r : A → A → Prop} (k : S) ⦃a b : A⦄ (h : rel r a b) :
+  rel r (op k • a) (op k • b) :=
+by simp only [algebra.op_smul_def, rel.mul_left h]
+
 end ring_quot
 
 /-- The quotient of a ring by an arbitrary relation. -/
@@ -81,6 +87,8 @@ variable (r : R → R → Prop)
 | ⟨a⟩ ⟨b⟩ := ⟨quot.map₂ has_sub.sub rel.sub_right rel.sub_left a b⟩
 @[irreducible] private def smul [algebra S R] (n : S) : ring_quot r → ring_quot r
 | ⟨a⟩ := ⟨quot.map (λ a, n • a) (rel.smul n) a⟩
+@[irreducible] private def op_smul [algebra S R] (n : Sᵐᵒᵖ) : ring_quot r → ring_quot r
+| ⟨a⟩ := ⟨quot.map (λ a, n • a) (rel.op_smul n.unop) a⟩
 
 instance : has_zero (ring_quot r) := ⟨zero r⟩
 instance : has_one (ring_quot r) := ⟨one r⟩
@@ -89,6 +97,7 @@ instance : has_mul (ring_quot r) := ⟨mul r⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_neg (ring_quot r) := ⟨neg r⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_sub (ring_quot r) := ⟨sub r⟩
 instance [algebra S R] : has_scalar S (ring_quot r) := ⟨smul r⟩
+instance has_op_scalar [algebra S R] : has_scalar Sᵐᵒᵖ (ring_quot r) := ⟨op_smul r⟩
 
 lemma zero_quot : (⟨quot.mk _ 0⟩ : ring_quot r) = 0 := show _ = zero r, by rw zero
 lemma one_quot : (⟨quot.mk _ 1⟩ : ring_quot r) = 1 := show _ = one r, by rw one
@@ -105,6 +114,9 @@ by { show sub r _ _ = _, rw sub, refl }
 lemma smul_quot [algebra S R] {n : S} {a : R} :
   (n • ⟨quot.mk _ a⟩ : ring_quot r) = ⟨quot.mk _ (n • a)⟩ :=
 by { show smul r _ _ = _, rw smul, refl }
+lemma op_smul_quot [algebra S R] {n : Sᵐᵒᵖ} {a : R} :
+  (n • ⟨quot.mk _ a⟩ : ring_quot r) = ⟨quot.mk _ (n • a)⟩ :=
+by { show op_smul r _ _ = _, rw op_smul, refl }
 
 instance (r : R → R → Prop) : semiring (ring_quot r) :=
 { add           := (+),
@@ -151,7 +163,8 @@ instance [algebra S R] (r : R → R → Prop) : algebra S (ring_quot r) :=
   map_zero' := by simp [← zero_quot],
   map_add'  := by simp [add_quot],
   commutes' := λ r, by { rintro ⟨⟨a⟩⟩, simp [algebra.commutes, mul_quot] },
-  smul_def' := λ r, by { rintro ⟨⟨a⟩⟩, simp [smul_quot, algebra.smul_def, mul_quot], }, }
+  smul_def' := λ r, by { rintro ⟨⟨a⟩⟩, simp [smul_quot, algebra.smul_def, mul_quot], },
+  op_smul_def' := by { rintro ⟨⟨a⟩⟩ r, simp [op_smul_quot, algebra.op_smul_def, mul_quot], },  }
 
 /--
 The quotient map from a ring to its quotient, as a homomorphism of rings.

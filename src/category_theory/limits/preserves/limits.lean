@@ -113,8 +113,8 @@ by { ext, simp [← G.map_comp] }
 
 variables [preserves_colimits_of_shape J G] [has_colimits_of_shape J D] [has_colimits_of_shape J C]
 
-/-- If `C, D` has all limits of shape `J`, and `G` preserves them, then `preserves_limit_iso` is
-functorial wrt `F`. -/
+/-- If `C, D` has all colimits of shape `J`, and `G` preserves them, then `preserves_colimit_iso`
+is functorial wrt `F`. -/
 @[simps] def preserves_colimit_nat_iso : colim ⋙ G ≅ (whiskering_right J C D).obj G ⋙ colim :=
 nat_iso.of_components (λ F, preserves_colimit_iso G F)
 begin

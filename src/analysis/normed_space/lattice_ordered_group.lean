@@ -49,6 +49,9 @@ class normed_lattice_add_comm_group (α : Type*)
 lemma solid {α : Type*} [normed_lattice_add_comm_group α] {a b : α} (h : |a| ≤ |b|) : ∥a∥ ≤ ∥b∥ :=
 normed_lattice_add_comm_group.solid a b h
 
+noncomputable instance : normed_lattice_add_comm_group ℝ :=
+{ add_le_add_left := λ _ _ h _, add_le_add le_rfl h,
+  solid := λ _ _, id, }
 /--
 A normed lattice ordered group is an ordered additive commutative group
 -/
@@ -114,6 +117,21 @@ begin
         exact abs_inf_sub_inf_le_abs _ _ _, } },
 end
 
+lemma norm_sup_sub_sup_le_add_norm (a b c d : α) : ∥a ⊔ b - (c ⊔ d)∥ ≤ ∥a - c∥ + ∥b - d∥ :=
+begin
+  rw [← norm_abs_eq_norm (a - c), ← norm_abs_eq_norm (b - d)],
+  refine le_trans (solid _) (norm_add_le (|a - c|) (|b - d|)),
+  rw abs_of_nonneg (|a - c| + |b - d|) (add_nonneg (abs_nonneg (a - c)) (abs_nonneg (b - d))),
+  calc |a ⊔ b - (c ⊔ d)| =
+    |a ⊔ b - (c ⊔ b) + (c ⊔ b - (c ⊔ d))| : by rw sub_add_sub_cancel
+  ... ≤ |a ⊔ b - (c ⊔ b)| + |c ⊔ b - (c ⊔ d)| : abs_add_le _ _
+  ... ≤ |a -c| + |b - d| : by
+    { apply add_le_add,
+      { exact abs_sup_sub_sup_le_abs _ _ _, },
+      { rw [@sup_comm _ _ c, @sup_comm _ _ c],
+        exact abs_sup_sub_sup_le_abs _ _ _, } },
+end
+
 /--
 Let `α` be a normed lattice ordered group. Then the infimum is jointly continuous.
 -/
@@ -129,9 +147,19 @@ begin
   simp,
 end
 
+@[priority 100] -- see Note [lower instance priority]
+instance normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
+  [normed_lattice_add_comm_group α] :
+  has_continuous_sup α :=
+order_dual.has_continuous_sup (order_dual α)
+
 /--
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_topological_lattice : topological_lattice α :=
 topological_lattice.mk
+
+lemma norm_abs_sub_abs (a b : α) :
+  ∥ |a| - |b| ∥ ≤ ∥a-b∥ :=
+solid (lattice_ordered_comm_group.abs_abs_sub_abs_le _ _)

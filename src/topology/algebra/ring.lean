@@ -201,8 +201,8 @@ section topological_ring
 variables {α : Type*} [topological_space α] [comm_ring α] (N : ideal α)
 open ideal.quotient
 
-instance topological_ring_quotient_topology : topological_space N.quotient :=
-by dunfold ideal.quotient submodule.quotient; apply_instance
+instance topological_ring_quotient_topology : topological_space (α ⧸ N) :=
+show topological_space (quotient _), by apply_instance
 
 -- note for the reader: in the following, `mk` is `ideal.quotient.mk`, the canonical map `R → R/I`.
 
@@ -222,7 +222,7 @@ is_open_map.to_quotient_map
 ((continuous_quot_mk.comp continuous_fst).prod_mk (continuous_quot_mk.comp continuous_snd))
 (by rintro ⟨⟨x⟩, ⟨y⟩⟩; exact ⟨(x, y), rfl⟩)
 
-instance topological_ring_quotient : topological_ring N.quotient :=
+instance topological_ring_quotient : topological_ring (α ⧸ N) :=
 { continuous_add :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
       continuous_quot_mk.comp continuous_add,

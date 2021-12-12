@@ -3,9 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
-
-import order.filter.pointwise
 import group_theory.quotient_group
+import order.filter.pointwise
 import topology.algebra.monoid
 import topology.homeomorph
 import topology.compacts
@@ -78,6 +77,14 @@ protected def homeomorph.mul_right (a : G) :
   continuous_inv_fun := continuous_id.mul continuous_const,
   .. equiv.mul_right a }
 
+@[simp, to_additive]
+lemma homeomorph.coe_mul_right (a : G) : ⇑(homeomorph.mul_right a) = λ g, g * a := rfl
+
+@[to_additive]
+lemma homeomorph.mul_right_symm (a : G) :
+  (homeomorph.mul_right a).symm = homeomorph.mul_right a⁻¹ :=
+by { ext, refl }
+
 @[to_additive]
 lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
@@ -110,6 +117,45 @@ lemma discrete_topology_iff_open_singleton_one : discrete_topology G ↔ is_open
 ⟨λ h, forall_open_iff_discrete.mpr h {1}, discrete_topology_of_open_singleton_one⟩
 
 end continuous_mul_group
+
+/-!
+### Topological operations on pointwise sums and products
+
+A few results about interior and closure of the pointwise addition/multiplication of sets in groups
+with continuous addition/multiplication. See also `submonoid.top_closure_mul_self_eq` in
+`topology.algebra.monoid`.
+-/
+
+section pointwise
+variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
+
+@[to_additive]
+lemma is_open.mul_left (ht : is_open t) :  is_open (s * t) :=
+begin
+  rw ←Union_mul_left_image,
+  exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_left a t ht),
+end
+
+@[to_additive]
+lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
+begin
+  rw ←Union_mul_right_image,
+  exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_right a s hs),
+end
+
+@[to_additive]
+lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
+interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
+
+@[to_additive]
+lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
+interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_left
+
+@[to_additive]
+lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+(set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
+
+end pointwise
 
 section topological_group
 
@@ -261,7 +307,13 @@ lemma homeomorph.shear_mul_right_symm_coe :
   ⇑(homeomorph.shear_mul_right G).symm = λ z : G × G, (z.1, z.1⁻¹ * z.2) :=
 rfl
 
-variable {G}
+variables {G}
+
+@[to_additive]
+lemma is_open.inv {s : set G} (hs : is_open s) : is_open s⁻¹ := hs.preimage continuous_inv
+
+@[to_additive]
+lemma is_closed.inv {s : set G} (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
 
 namespace subgroup
 
@@ -433,27 +485,27 @@ section quotient_topological_group
 variables [topological_space G] [group G] [topological_group G] (N : subgroup G) (n : N.normal)
 
 @[to_additive]
-instance {G : Type*} [group G] [topological_space G] (N : subgroup G) :
-  topological_space (quotient_group.quotient N) :=
+instance quotient_group.quotient.topological_space {G : Type*} [group G] [topological_space G]
+  (N : subgroup G) : topological_space (G ⧸ N) :=
 quotient.topological_space
 
 open quotient_group
 
 @[to_additive]
-lemma quotient_group.is_open_map_coe : is_open_map (coe : G →  quotient N) :=
+lemma quotient_group.is_open_map_coe : is_open_map (coe : G → G ⧸ N) :=
 begin
   intros s s_op,
-  change is_open ((coe : G →  quotient N) ⁻¹' (coe '' s)),
+  change is_open ((coe : G → G ⧸ N) ⁻¹' (coe '' s)),
   rw quotient_group.preimage_image_coe N s,
   exact is_open_Union (λ n, (continuous_mul_right _).is_open_preimage s s_op)
 end
 
 @[to_additive]
-instance topological_group_quotient [N.normal] : topological_group (quotient N) :=
+instance topological_group_quotient [N.normal] : topological_group (G ⧸ N) :=
 { continuous_mul := begin
-    have cont : continuous ((coe : G → quotient N) ∘ (λ (p : G × G), p.fst * p.snd)) :=
+    have cont : continuous ((coe : G → G ⧸ N) ∘ (λ (p : G × G), p.fst * p.snd)) :=
       continuous_quot_mk.comp continuous_mul,
-    have quot : quotient_map (λ p : G × G, ((p.1:quotient N), (p.2:quotient N))),
+    have quot : quotient_map (λ p : G × G, ((p.1 : G ⧸ N), (p.2 : G ⧸ N))),
     { apply is_open_map.to_quotient_map,
       { exact (quotient_group.is_open_map_coe N).prod (quotient_group.is_open_map_coe N) },
       { exact continuous_quot_mk.prod_map continuous_quot_mk },
@@ -461,7 +513,7 @@ instance topological_group_quotient [N.normal] : topological_group (quotient N) 
     exact (quotient_map.continuous_iff quot).2 cont,
   end,
   continuous_inv := begin
-    have : continuous ((coe : G → quotient N) ∘ (λ (a : G), a⁻¹)) :=
+    have : continuous ((coe : G → G ⧸ N) ∘ (λ (a : G), a⁻¹)) :=
       continuous_quot_mk.comp continuous_inv,
     convert continuous_quotient_lift _ this,
   end }
@@ -558,27 +610,7 @@ class add_group_with_zero_nhd (G : Type u) extends add_comm_group G :=
 section filter_mul
 
 section
-variables [topological_space G] [group G] [topological_group G]
-
-@[to_additive]
-lemma is_open.mul_left {s t : set G} : is_open t → is_open (s * t) := λ ht,
-begin
-  have : ∀a, is_open ((λ (x : G), a * x) '' t) :=
-    assume a, is_open_map_mul_left a t ht,
-  rw ← Union_mul_left_image,
-  exact is_open_Union (λa, is_open_Union $ λha, this _),
-end
-
-@[to_additive]
-lemma is_open.mul_right {s t : set G} : is_open s → is_open (s * t) := λ hs,
-begin
-  have : ∀a, is_open ((λ (x : G), x * a) '' s),
-    assume a, apply is_open_map_mul_right, exact hs,
-  rw ← Union_mul_right_image,
-  exact is_open_Union (λa, is_open_Union $ λha, this _),
-end
-
-variables (G)
+variables (G) [topological_space G] [group G] [topological_group G]
 
 @[to_additive]
 lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=

@@ -3,8 +3,8 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-
 import data.stream.defs
+import tactic.ext
 
 /-!
 # Streams a.k.a. infinite lists a.k.a. infinite sequences
@@ -19,6 +19,9 @@ universes u v w
 namespace stream
 variables {α : Type u} {β : Type v} {δ : Type w}
 
+instance {α} [inhabited α] : inhabited (stream α) :=
+⟨stream.const (default _)⟩
+
 protected theorem eta (s : stream α) : head s :: tail s = s :=
 funext (λ i, begin cases i; refl end)
 
@@ -29,7 +32,7 @@ theorem head_cons (a : α) (s : stream α) : head (a :: s) = a := rfl
 theorem tail_cons (a : α) (s : stream α) : tail (a :: s) = s := rfl
 
 theorem tail_drop (n : nat) (s : stream α) : tail (drop n s) = drop n (tail s) :=
-funext (λ i, begin unfold tail drop, simp [nat.add_comm, nat.add_left_comm] end)
+funext (λ i, begin unfold tail drop, simp [nth, nat.add_comm, nat.add_left_comm] end)
 
 theorem nth_drop (n m : nat) (s : stream α) : nth (drop m s) n = nth s (n + m) := rfl
 
@@ -42,7 +45,10 @@ theorem nth_succ (n : nat) (s : stream α) : nth s (succ n) = nth (tail s) n := 
 
 theorem drop_succ (n : nat) (s : stream α) : drop (succ n) s = drop n (tail s) := rfl
 
-protected theorem ext {s₁ s₂ : stream α} : (∀ n, nth s₁ n = nth s₂ n) → s₁ = s₂ :=
+@[simp] lemma head_drop {α} (a : stream α) (n : ℕ) : (a.drop n).head = a.nth n :=
+by simp only [drop, head, nat.zero_add, stream.nth]
+
+@[ext] protected theorem ext {s₁ s₂ : stream α} : (∀ n, nth s₁ n = nth s₂ n) → s₁ = s₂ :=
 assume h, funext h
 
 theorem all_def (p : α → Prop) (s : stream α) : all p s = ∀ n, p (nth s n) := rfl

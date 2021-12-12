@@ -163,10 +163,10 @@ end linear_order
 end function
 
 theorem strict_mono.id_le_of_wo {α : Type*} [linear_order α] {φ : α → α}
-(H : @well_founded α (≤)) (h : strict_mono φ) :
+(H : @well_founded α (<)) (h : strict_mono φ) :
   ∀ n, n ≤ φ n :=
 begin
   by_contra h',
   push_neg at h',
-  exact (H.not_lt_min _ h' (@h _ (H.min _ h') (H.min_mem _ h'))) (le_of_lt (H.min_mem _ h'))
+  exact H.not_lt_min _ h' (@h _ (H.min _ h') (H.min_mem _ h')) (H.min_mem _ h')
 end

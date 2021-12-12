@@ -139,7 +139,7 @@ hf.adapted i
 
 lemma integrable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
-lemma condexp_ae_eq [has_le E] (hf : supermartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
+lemma condexp_ae_le [has_le E] (hf : supermartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
   μ[f j | ℱ i, ℱ.le i] ≤ᵐ[μ] f i :=
 hf.2.1 i j hij
 
@@ -178,15 +178,17 @@ begin
   simpa,
 end
 
--- We need a notion of "ordered_normed_group" for the following
--- lemma smul_nonneg [preorder E] {c : ℝ} (hc : 0 ≤ c) (hf : supermartingale f ℱ μ) :
+-- lemma smul_nonneg [normed_lattice_add_comm_group E]
+--   {c : ℝ} (hc : 0 ≤ c) (hf : supermartingale f ℱ μ) :
 --   supermartingale (c • f) ℱ μ :=
 -- begin
 --   refine ⟨hf.1.smul c, λ i j hij, _, λ i, (hf.2.2 i).smul c⟩,
 --   refine (condexp_smul c (f j)).le.trans _,
 --   filter_upwards [hf.2.1 i j hij],
 --   intros _ hle,
---   have := @smul_le_smul_of_nonneg hle hc,
+--   simp,
+--   refine smul_le_smul_of_nonneg  hle hc,
+--   -- failed to synthesize type class instance for smul_with_zero ℝ E
 -- end
 
 end supermartingale
@@ -200,7 +202,7 @@ hf.adapted i
 
 lemma integrable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
-lemma condexp_ae_eq [has_le E] (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
+lemma ae_le_condexp [has_le E] (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
   f i ≤ᵐ[μ] μ[f j | ℱ i, ℱ.le i] :=
 hf.2.1 i j hij
 

@@ -406,9 +406,8 @@ begin
   refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
     λ _, set.subset_sUnion_of_mem⟩,
   rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
-  by_cases hsseq : sy = sz,
-  { induction hsseq,
-    exact (hcs₀ hsy).right _ hysy _ hzsz hyz, },
+  obtain rfl | hsseq := eq_or_ne sy sz,
+  { exact (hcs₀ hsy).right _ hysy _ hzsz hyz },
   cases hcs₁ _ hsy _ hsz hsseq with h h,
   { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
   { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz }

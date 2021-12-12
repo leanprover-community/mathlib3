@@ -318,17 +318,12 @@ end freiman_hom
 
 /-! ### Hom hierarchy -/
 
---TODO: merge this with `monoid_hom_class.fun_like` once #9888 is merged
-@[to_additive]
-instance monoid_hom.fun_like : fun_like (α →* β) α (λ _, β) :=
-{ coe := coe_fn,
-  coe_injective' := λ f g h, by { cases f, cases g, cases h, refl } }
-
---TODO: change to `monoid_hom_class F A β → freiman_hom_class F A β n` once #9888 is merged
+--TODO: change to `monoid_hom_class F A β → freiman_hom_class F A β n` once `map_multiset_prod` is
+-- generalized
 /-- A monoid homomorphism is naturally a `freiman_hom` on its entire domain.
 
-We can't leave the domain `A : set α` of the `freiman_hom` a free variable, since it wouldn't be inferrable.
--/
+We can't leave the domain `A : set α` of the `freiman_hom` a free variable, since it wouldn't be
+inferrable. -/
 @[to_additive]
 instance monoid_hom.freiman_hom_class : freiman_hom_class (α →* β) set.univ β n :=
 { map_prod_eq_map_prod' := λ f s t _ _ _ _ h, by rw [←f.map_multiset_prod, h, f.map_multiset_prod] }

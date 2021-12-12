@@ -6,6 +6,7 @@ Authors: Eric Wieser
 import algebra.quaternion_basis
 import data.complex.module
 import linear_algebra.clifford_algebra.conjugation
+import algebra.dual_number
 
 /-!
 # Other constructions isomorphic to Clifford Algebras
@@ -46,6 +47,11 @@ and vice-versa:
 
 * `clifford_algebra_quaternion.to_quaternion_involute_reverse`
 * `clifford_algebra_quaternion.of_quaternion_conj`
+
+## Dual numbers
+
+* `clifford_algebra_dual_number.equiv`: `𝔻[R]` is is equivalent as an `R`-algebra to a clifford
+  algebra over `R` where `Q = 0`.
 
 -/
 
@@ -343,3 +349,28 @@ clifford_algebra_quaternion.equiv.injective $
 attribute [protected] Q
 
 end clifford_algebra_quaternion
+
+/-! ### The clifford algebra isomorphic to the dual numbers -/
+section clifford_algebra_dual_number
+open_locale dual_number
+open dual_number triv_sq_zero_ext
+
+variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+
+local notation `↑ₐ[` R `]` := ⇑(algebra_map R _)
+
+lemma ι_mul_ι (r₁ r₂) : ι (0 : quadratic_form R R) r₁ * ι (0 : quadratic_form R R) r₂ = 0 :=
+by rw [←mul_one r₁, ←mul_one r₂, ←smul_eq_mul R, ←smul_eq_mul R, linear_map.map_smul,
+       linear_map.map_smul, smul_mul_smul, ι_sq_scalar, quadratic_form.zero_apply,
+       ring_hom.map_zero, smul_zero]
+
+/-- The clifford algebra over a 1-dimensional vector space with 0 quadratic form is isomorphic to
+the dual numbers. -/
+protected def equiv : clifford_algebra (0 : quadratic_form R R) ≃ₐ[R] 𝔻[R] :=
+alg_equiv.of_alg_hom
+  (clifford_algebra.lift (0 : quadratic_form R R) ⟨inr_hom, λ m, inr_mul_inr _ m m⟩)
+  (dual_number.lift_aux (ι _ (1 : R)) (ι_mul_ι _ _))
+  (by { ext x : 1, dsimp, rw [lift_aux_apply_eps, lift_ι_apply, inr_hom_apply, eps] })
+  (by { ext : 2, dsimp, rw [lift_ι_apply, inr_hom_apply, ←eps, lift_aux_apply_eps] })
+
+end clifford_algebra_dual_number

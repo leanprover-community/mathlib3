@@ -508,7 +508,7 @@ instance inhabited_lifts_to_colimit (K : J ⥤ C) (F : C ⥤ D)
 
 section comp
 
-variables {E : Type u₃} [ℰ : category.{u₃} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 variables (F : C ⥤ D) (G : D ⥤ E)
 
 instance comp_creates_limit [creates_limit K F] [creates_limit (K ⋙ F) G] :

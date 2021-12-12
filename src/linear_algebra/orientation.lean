@@ -355,6 +355,20 @@ begin
     exact (same_ray_smul_left_iff e.det_ne_zero (_ : R)).2 h }
 end
 
+/-- Composing a basis with a linear equiv gives the same orientation if and only if the
+determinant is positive. -/
+lemma orientation_comp_linear_equiv_eq_iff_det_pos (e : basis ι R M) (f : M ≃ₗ[R] M) :
+  (e.map f).orientation = e.orientation ↔ 0 < (f : M →ₗ[R] M).det :=
+begin
+  rw [basis.orientation, basis.orientation, ray_eq_iff, (e.map f).det.eq_smul_basis_det e,
+      same_ray_smul_left_iff e.det_ne_zero (_ : R), e.det_map, ←linear_equiv.coe_coe,
+      e.det_comp f.symm e, e.det_self, mul_one],
+  have h : 0 < (f.symm : M →ₗ[R] M).det * (f : M →ₗ[R] M).det,
+  { rw linear_equiv.det_symm_mul_det,
+    exact zero_lt_one },
+  exact pos_iff_pos_of_mul_pos h
+end
+
 end basis
 
 end linear_ordered_comm_ring
@@ -406,5 +420,28 @@ begin
 end
 
 end orientation
+
+namespace alternating_map
+
+variables [fintype ι] [finite_dimensional R M]
+
+open finite_dimensional
+
+/-- If the index type has cardinality equal to the finite dimension, composing an alternating
+map with the same linear equiv on each argument gives the same orientation if and only if the
+determinant is positive. -/
+lemma orientation_comp_linear_equiv_eq_iff_det_pos (f : alternating_map R M R ι) (hf : f ≠ 0)
+  (g : M ≃ₗ[R] M) (h : fintype.card ι = finrank R M) :
+  ray_of_ne_zero R (f.comp_linear_map ↑g)
+                   ((not_iff_not.2 (f.comp_linear_equiv_eq_zero_iff g)).2 hf)
+    = ray_of_ne_zero R f hf ↔ 0 < (g : M →ₗ[R] M).det :=
+begin
+  have e := (fin_basis R M).reindex (fintype.equiv_fin_of_card_eq h).symm,
+  rw [ray_eq_iff, (f.comp_linear_map ↑g).eq_smul_basis_det e, f.eq_smul_basis_det e,
+      comp_linear_map_apply, smul_apply, basis.det_comp, basis.det_self, mul_one, smul_eq_mul,
+      mul_comm, mul_smul, ←f.eq_smul_basis_det e, same_ray_smul_left_iff hf (g : M →ₗ[R] M).det]
+end
+
+end alternating_map
 
 end linear_ordered_field

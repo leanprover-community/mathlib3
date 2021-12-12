@@ -50,6 +50,9 @@ example (xl yl zl xr yr zr : Prop) :
     xl ∧ (yl ∧ zl ∨ yr ∧ zr) ∨ xr ∧ (yl ∧ zr ∨ yr ∧ zl) :=
 by itauto
 
+example : 0 < 1 ∨ ¬ 0 < 1 := by itauto
+example (p : Prop) (h : 0 < 1 → p) (h2 : ¬ 0 < 1 → p) : p := by itauto
+
 -- failure tests
 example (p q r : Prop) : true :=
 begin

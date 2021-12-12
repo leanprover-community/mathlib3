@@ -569,6 +569,17 @@ using_new_ref mk_name_map $ λ hs, do
         | _ := pure Γ
         end))
     (except.ok (native.rb_map.mk _ _)),
+  Γ ← read_ref atoms >>= λ ats, ats.2.iterate (pure Γ) (λ i e r, r >>= λ Γ, do
+    res ← try_core (mk_app ``decidable [e] >>= mk_instance),
+    match res with
+    | some (expr.local_const _ _ _ _) := pure Γ
+    | some pf := do
+      n ← mk_fresh_name,
+      let A := prop.var i.1,
+      read_ref hs >>= λ Γ, write_ref hs (Γ.insert n pf),
+      pure (Γ >>= λ Γ', Γ'.add (A.or A.not) (proof.em n))
+    | none := pure Γ
+    end),
   let o := state_t.run (match Γ with
   | except.ok Γ := prove Γ t
   | except.error p := pure (p t)

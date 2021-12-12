@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro
 -/
 import data.nat.prime
+import data.int.order
+import tactic.ring
 /-!
 # Extended GCD and divisibility over ℤ
 
@@ -319,6 +321,64 @@ Compare with `is_coprime.dvd_of_dvd_mul_right` and
 `unique_factorization_monoid.dvd_of_dvd_mul_right_of_no_prime_factors` -/
 lemma dvd_of_dvd_mul_right_of_gcd_one {a b c : ℤ} (habc : a ∣ b * c) (hab : gcd a b = 1) : a ∣ c :=
 by { rw mul_comm at habc, exact dvd_of_dvd_mul_left_of_gcd_one habc hab }
+
+/-- For nonzero integers `a` and `b`, `gcd a b` is the smallest positive integer that can be
+written in the form `a * x + b * y` for some pair of integers `x` and `y` -/
+theorem gcd_least_linear {a b : ℤ} (ha : a ≠ 0) :
+  is_least { j : ℤ | 0 < j ∧ ∃ x y : ℤ, j = a * x + b * y } ↑(a.gcd b) :=
+begin
+  set S := { j : ℤ | 0 < j ∧ ∃ x y : ℤ, j = a * x + b * y },
+  have h_gcd_in_S : ↑(a.gcd b) ∈ S,
+  { simp only [int.coe_nat_pos, set.mem_set_of_eq],
+    use (gcd_pos_of_non_zero_left b ha),
+    use [a.gcd_a b, a.gcd_b b, gcd_eq_gcd_ab a b] },
+
+  use h_gcd_in_S,
+
+  simp only [lower_bounds, and_imp, forall_exists_index, set.mem_set_of_eq],
+  intros k hk_pos x y hk,
+
+  have := @int.exists_least_of_bdd (∈ S) _ (by use [↑(a.gcd b), h_gcd_in_S]),
+  swap,
+  use [0, λ x hx, le_of_lt hx.1],
+  rcases this with ⟨d, hdS, hd_min⟩,
+
+  suffices : ↑(gcd a b) = d, { rw this, apply hd_min, use [hk_pos, x, y, hk] },
+
+  have : ↑(a.gcd b) ∣ d,
+  { rcases hdS.2 with ⟨x, y, hd⟩,
+    have : x * a + y * b = a * x + b * y, { simp only [mul_comm] },
+    rw [hd, ←this],
+    exact has_dvd.dvd.linear_comb (gcd_dvd_left a b) (gcd_dvd_right a b) x y },
+
+  apply dvd_antisymm (by simp) (le_of_lt hdS.1) this,
+
+  apply dvd_gcd,
+  { apply dvd_of_mod_eq_zero,
+    by_contra,
+    suffices : a % d ∈ S,
+    { exact absurd (mod_lt_of_pos a hdS.1) (not_lt.mpr (hd_min (a % d) this)) },
+
+      use [(ne.symm h).le_iff_lt.mp (mod_nonneg _ (ne_of_gt hdS.1))],
+      rw (mod_def a d),
+
+      rcases hdS.2 with ⟨x0, y0, hdxy⟩,
+      use [(1 - (a/d)*x0), -(a/d)*y0],
+      nth_rewrite_lhs 0 hdxy,
+      ring },
+  { apply dvd_of_mod_eq_zero,
+    by_contra,
+    suffices : b % d ∈ S,
+    { exact absurd (mod_lt_of_pos b hdS.1) (not_lt.mpr (hd_min (b % d) this)) },
+
+    use [(ne.symm h).le_iff_lt.mp (mod_nonneg _ (ne_of_gt hdS.1))],
+    rw (mod_def b d),
+
+    rcases hdS.2 with ⟨x0, y0, hdxy⟩,
+    use [-(b/d) * x0, (1 - (b/d) * y0)],
+    nth_rewrite_lhs 0 hdxy,
+    ring },
+end
 
 /-! ### lcm -/
 

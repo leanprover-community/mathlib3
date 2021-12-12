@@ -3,9 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Junyan Xu
 -/
+
 import category_theory.lax_functor
 import category_theory.elements
 import category_theory.over
+import category_theory.limits.preserves.basic
 
 /-!
 # The Grothendieck construction for lax functors
@@ -51,11 +53,11 @@ See also `category_theory.elements` for the category of elements of functor `F :
 
 -/
 
-universe u
+universes u₁ v₁ u₂ v₂
 
 namespace category_theory
 
-variables {C : Type*} [category.{u} C] (F : lax_functor_to_Cat C)
+variables {C : Type u₁} [category.{v₁} C] (F : lax_functor_to_Cat.{u₁ v₁ u₂ v₂} C)
 
 /--
 The Grothendieck construction (often written as `∫ F` in mathematics) for a functor `F : C ⥤ Cat`
@@ -134,6 +136,7 @@ def forget : grothendieck F ⥤ C :=
 { obj := λ X, X.1,
   map := λ X Y f, f.1 }
 
+@[simps obj map]
 def fiber_push (X : C) : costructured_arrow (forget F) X ⥤ (F.obj X).1 :=
 { obj := λ f, (F.map f.hom).obj f.left.fiber,
   map := λ f₁ f₂ g, (eq_to_hom (by {rw ← costructured_arrow.w g, refl}) ≫
@@ -142,11 +145,59 @@ def fiber_push (X : C) : costructured_arrow (forget F) X ⥤ (F.obj X).1 :=
   map_comp' := λ f₁ f₂ f₃ g₁ g₂, by {
     rw [category.assoc, nat_trans.naturality_assoc, ←category.assoc], /- RHS -/
     erw comp_fiber, rw [functor.map_comp, ←category.assoc], /- LHS -/
-    congr' 1,
+    congr' 1, swap, simp,
     { rw [nat_trans.comp_app, category.assoc], erw F.assoc_components,
       erw eq_to_hom.family_congr (F.map_comp g₁.left.base) (costructured_arrow.w g₂),
-      simpa },
-    simp } }
+      simpa } } }
+
+end
+
+section colimit
+noncomputable theory
+open limits
+
+--universes v₁ u₁
+variables {J : Type*} [small_category J] (𝒟 : J ⥤ grothendieck F)
+(cb : cocone (𝒟 ⋙ forget F))
+
+@[simp]
+def fiber_diagram : J ⥤ (F.obj cb.X).1 :=
+costructured_arrow.of_cocone _ _ cb.ι ⋙ costructured_arrow.pre _ _ _ ⋙ fiber_push _ _
+
+variable (cf : cocone (fiber_diagram 𝒟 cb))
+
+def colimit_cocone : cocone 𝒟 :=
+{ X := { base := cb.X, fiber := cf.X },
+  ι := { app := λ j, { base := cb.ι.app j, fiber := cf.ι.app j },
+    naturality' := λ j j' f, by { erw category.comp_id, ext, swap,
+      exact cocone.w cb f, { erw ← cocone.w cf f,
+       dunfold fiber_diagram costructured_arrow.of_cocone fiber_push, simpa } } } }
+
+variable (lb : is_colimit cb)
+
+--def desc_base (c : cocone 𝒟) : cb.X ⟶ c.X.base :=
+--lb.desc (functor.map_cocone (forget F) c)
+--{X := c.X.base, ι := whisker_right c.ι (forget F)}
+--#check fiber_diagram 𝒟 cb
+--#check grothendieck F
+
+variable (lf : ∀ {c : C} {f : cb.X ⟶ c}, is_colimit (functor.map_cocone (F.map f) cf))
+--variable [∀ c, preserves_colimit (fiber_diagram 𝒟 cb) (F.map (desc_base 𝒟 cb lb c))]
+variable (hi : )
+
+def colimit_cocone_is_colimit : is_colimit (colimit_cocone 𝒟 cb cf) :=
+{ desc := λ c,
+  { base := lb.desc (functor.map_cocone (forget F) c),
+    fiber := },
+
+}
+
+variables [Hb : has_colimits_of_shape J C]
+[Hf : ∀ X : C, has_colimits_of_shape J (F.obj X).1]
+
+end colimit
+
+section
 
 variables (G : pseudofunctor_to_Cat C) (X : grothendieck G.to_lax_functor_to_Cat)
 

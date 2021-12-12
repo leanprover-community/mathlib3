@@ -39,17 +39,12 @@ noncomputable theory
 namespace category_theory.limits
 
 -- morphism levels before object levels. See note [category_theory universes].
-universes w' w v v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
+universes w' w₂' w w₂ v₁ v₂ v₃ u₁ u₂ u₃
 
 variables {C : Type u₁} [category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D]
 
 variables {J : Type w} [category.{w'} J] {K : J ⥤ C}
-
-variables {C' : Type u₁} [category.{v} C']
-variables {D' : Type u₂} [category.{v} D']
-
-variables {J' : Type v} [category.{v} J'] {K' : J ⥤ C}
 
 /--
 A functor `F` preserves limits of `K` (written as `preserves_limit K F`)
@@ -222,7 +217,7 @@ def preserves_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_limits 
 { preserves_limits_of_shape := λ J 𝒥₁, by exactI preserves_limits_of_shape_of_nat_iso h }
 
 /-- Transfer preservation of limits along a equivalence in the shape. -/
-def preserves_limits_of_shape_of_equiv {J' : Type v} [small_category J'] (e : J ≌ J')
+def preserves_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e : J ≌ J')
   (F : C ⥤ D) [preserves_limits_of_shape J F] :
   preserves_limits_of_shape J' F :=
 { preserves_limit := λ K,
@@ -268,7 +263,7 @@ def preserves_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_colim
 { preserves_colimits_of_shape := λ J 𝒥₁, by exactI preserves_colimits_of_shape_of_nat_iso h }
 
 /-- Transfer preservation of colimits along a equivalence in the shape. -/
-def preserves_colimits_of_shape_of_equiv {J' : Type v} [small_category J'] (e : J ≌ J')
+def preserves_colimits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e : J ≌ J')
   (F : C ⥤ D) [preserves_colimits_of_shape J F] :
   preserves_colimits_of_shape J' F :=
 { preserves_colimit := λ K,
@@ -420,7 +415,7 @@ instance id_reflects_colimits : reflects_colimits (𝟭 C) :=
      exact h.uniq _ m w⟩⟩ } }
 
 section
-variables {E : Type u₃} [ℰ : category.{v} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 variables (F : C ⥤ D) (G : D ⥤ E)
 
 instance comp_reflects_limit [reflects_limit K F] [reflects_limit (K ⋙ F) G] :
@@ -530,8 +525,8 @@ def reflects_limits_of_shape_of_reflects_isomorphisms {G : C ⥤ D}
 If `C` has limits and `G` preserves limits, then if `G` reflects isomorphisms then it reflects
 limits.
 -/
-def reflects_limits_of_reflects_isomorphisms {G : C' ⥤ D'}
-  [reflects_isomorphisms G] [has_limits_of_size.{w' w} C'] [preserves_limits_of_size.{w' w} G] :
+def reflects_limits_of_reflects_isomorphisms {G : C ⥤ D}
+  [reflects_isomorphisms G] [has_limits_of_size.{w' w} C] [preserves_limits_of_size.{w' w} G] :
   reflects_limits_of_size.{w' w} G :=
 { reflects_limits_of_shape := λ J 𝒥₁,
   by exactI reflects_limits_of_shape_of_reflects_isomorphisms }

@@ -392,6 +392,12 @@ theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm 
 theorem lipschitz : lipschitz_with ∥f∥₊ f :=
 (f : E →ₛₗ[σ₁₂] F).lipschitz_of_bound_nnnorm _ f.le_op_nnnorm
 
+variables [ring_hom_isometric σ₁₃]
+
+lemma op_norm_ext (f : E →SL[σ₁₂] F) (g : E →SL[σ₁₃] G) (h : ∀ x, ∥f x∥ = ∥g x∥) : ∥f∥ = ∥g∥ :=
+op_norm_eq_of_bounds (norm_nonneg _) (λ x, by { rw h x, exact le_op_norm _ _ })
+  (λ c hc h₂, op_norm_le_bound _ hc (λ z, by { rw ←h z, exact h₂ z }))
+
 end
 
 section
@@ -1330,6 +1336,17 @@ namespace linear_isometry
 @[simp] lemma norm_to_continuous_linear_map [nontrivial E] (f : E →ₛₗᵢ[σ₁₂] F) :
   ∥f.to_continuous_linear_map∥ = 1 :=
 f.to_continuous_linear_map.homothety_norm $ by simp
+
+variables {σ₁₃ : 𝕜 →+* 𝕜₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_isometric σ₁₃]
+
+include σ₁₃
+/-- Postcomposition of a continuous linear map with a linear isometry preserves
+the operator norm. -/
+lemma norm_to_continuous_linear_map_comp (f : F →ₛₗᵢ[σ₂₃] G) {g : E →SL[σ₁₂] F} :
+  ∥f.to_continuous_linear_map.comp g∥ = ∥g∥ :=
+op_norm_ext (f.to_continuous_linear_map.comp g) g
+  (λ x, by simp only [norm_map, coe_to_continuous_linear_map, coe_comp'])
+omit σ₁₃
 
 end linear_isometry
 

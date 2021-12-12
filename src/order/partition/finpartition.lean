@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
-import data.finset.lattice
-import data.finset.pairwise
+import order.sup_indep
 
 /-!
 # Finite partitions
@@ -34,8 +33,6 @@ We provide many ways to build finpartitions:
 
 ## TODO
 
-`distrib_lattice_bot` shuld be replaced everywhere by `lattice_bot`, which we don't have.
-
 Link `finpartition` and `setoid.is_partition`.
 -/
 
@@ -46,24 +43,24 @@ variables {α : Type*}
 
 /-- A finite partition of `a : α` is a pairwise disjoint finite set of elements whose supremum is
 `a`. We forbid `⊥` as a part. -/
-@[ext] structure finpartition {α : Type*} [distrib_lattice_bot α] (a : α) :=
+@[ext] structure finpartition {α : Type*} [lattice α] [order_bot α] (a : α) :=
 (parts : finset α)
-(disjoint : (parts : set α).pairwise_disjoint)
+(sup_indep : parts.sup_indep id)
 (sup_parts : parts.sup id = a)
 (not_bot_mem : ⊥ ∉ parts)
 
-attribute [protected] finpartition.disjoint
+attribute [protected] finpartition.sup_indep
 
 namespace finpartition
-section distrib_lattice_bot
-variables [distrib_lattice_bot α]
+section lattice
+variables [lattice α] [order_bot α]
 
 /-- A `finpartition` constructor which does not insist on `⊥` not being a part. -/
 @[simps] def of_erase [decidable_eq α] {a : α} (parts : finset α)
-  (disjoint : (parts : set α).pairwise_disjoint) (sup_parts : parts.sup id = a) :
+  (sup_indep : parts.sup_indep id) (sup_parts : parts.sup id = a) :
   finpartition a :=
 { parts := parts.erase ⊥,
-  disjoint := disjoint.subset (erase_subset _ _),
+  sup_indep := sup_indep.subset (erase_subset _ _),
   sup_parts := (sup_erase_bot _).trans sup_parts,
   not_bot_mem := not_mem_erase _ _ }
 
@@ -72,7 +69,7 @@ variables [distrib_lattice_bot α]
   (subset : parts ⊆ P.parts) (sup_parts : parts.sup id = b) :
   finpartition b :=
 { parts := parts,
-  disjoint := P.disjoint.subset subset,
+  sup_indep := P.sup_indep.subset subset,
   sup_parts := sup_parts,
   not_bot_mem := λ h, P.not_bot_mem (subset h) }
 
@@ -81,20 +78,24 @@ variables (α)
 /-- The empty finpartition. -/
 @[simps] protected def empty : finpartition (⊥ : α) :=
 { parts := ∅,
-  disjoint := coe_empty.symm.subst set.pairwise_disjoint_empty,
+  sup_indep := coe_empty.symm.subst sup_indep_empty,
   sup_parts := finset.sup_empty,
   not_bot_mem := not_mem_empty ⊥ }
+
+instance : inhabited (finpartition (⊥ : α)) := ⟨finpartition.empty α⟩
 
 variables {α} {a : α}
 
 /-- The finpartition in one part, aka indiscrete finpartition. -/
 @[simps] def indiscrete (ha : a ≠ ⊥) : finpartition a :=
 { parts := {a},
-  disjoint := (coe_singleton a).symm.subst (set.pairwise_disjoint_singleton _),
+  sup_indep := (coe_singleton a).symm.subst (sup_indep_singleton _),
   sup_parts := finset.sup_singleton,
   not_bot_mem := λ h, ha (mem_singleton.1 h).symm }
 
-instance : inhabited (finpartition (⊥ : α)) := ⟨finpartition.empty α ⟩
+/-- There's a unique partition of an atom. -/
+def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a) :=
+{ uniq := indiscrete ha.1,  }
 
 variables (P : finpartition a)
 
@@ -124,6 +125,26 @@ end
 lemma parts_nonempty_iff : P.parts.nonempty ↔ a ≠ ⊥ :=
 by rw [nonempty_iff_ne_empty, not_iff_not, parts_eq_empty_iff]
 
+/-! ### Refinement order -/
+
+section order
+
+/-- We say that `P ≤ Q` if `P ` refines `Q`: each part of `P` is less than some part of `Q`. -/
+instance : has_le (finpartition a) := ⟨λ P Q, ∀ b ∈ P.parts, ∃ c ∈ Q.parts, b ≤ c⟩
+
+instance [decidable (a = ⊥)] : order_top (finpartition a) :=
+{ top := if ha : a = ⊥ then finpartition.empty α else indiscrete ha,
+  le_top := λ P, begin
+    split_ifs,
+    { sorry },
+    { exact λ b hb, ⟨a, P.le hb⟩ }
+  end }
+
+instance : lattice (finpartition a) :=
+
+
+end order
+
 section bind
 variables [decidable_eq α]
 
@@ -131,13 +152,13 @@ variables [decidable_eq α]
 finpartition of `a` obtained by juxtaposing all the subpartitions. -/
 @[simps] def bind (P : finpartition a) (Q : Π i ∈ P.parts, finpartition i) : finpartition a :=
 { parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
-  disjoint := λ a ha b hb h, begin
+  sup_indep := λ a ha b hb h, begin
     rw [finset.mem_coe, finset.mem_bUnion] at ha hb,
     obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
     obtain ⟨⟨B, hB⟩, -, hb⟩ := hb,
     obtain rfl | hAB := eq_or_ne A B,
-    { exact (Q A hA).disjoint _ ha _ hb h },
-    { exact (P.disjoint _ hA _ hB hAB).mono ((Q A hA).le ha) ((Q B hB).le hb) }
+    { exact (Q A hA).sup_indep _ ha _ hb h },
+    { exact (P.sup_indep _ hA _ hB hAB).mono ((Q A hA).le ha) ((Q B hB).le hb) }
   end,
   sup_parts := begin
     simp_rw [sup_bUnion, ←P.sup_parts],
@@ -170,7 +191,7 @@ begin
   rintro ⟨hdb, hdc⟩,
   rw [ne.def, subtype.mk_eq_mk] at hbc,
   exact (Q b hb).ne_bot hdb (eq_bot_iff.2 $
-    (le_inf ((Q b hb).le hdb) $ (Q c hc).le hdc).trans $ P.disjoint _ hb _ hc hbc),
+    (le_inf ((Q b hb).le hdb) $ (Q c hc).le hdc).trans $ P.sup_indep _ hb _ hc hbc),
 end
 
 end bind
@@ -180,10 +201,10 @@ end bind
   (hab : disjoint a b) (hc : a ⊔ b = c) :
   finpartition c :=
 { parts := insert b P.parts,
-  disjoint :=
+  sup_indep :=
   begin
     rw coe_insert,
-    exact P.disjoint.insert (λ d hd hbd, hab.symm.mono_right $ P.le hd),
+    exact P.sup_indep.insert (λ d hd hbd, hab.symm.mono_right $ P.le hd),
   end,
   sup_parts := by rwa [sup_insert, P.sup_parts, sup_comm],
   not_bot_mem := λ h, (mem_insert.1 h).elim hb.symm P.not_bot_mem }
@@ -193,7 +214,7 @@ lemma card_extend [decidable_eq α] (P : finpartition a) (b c : α) {hb : b ≠ 
   (P.extend hb hab hc).parts.card = P.parts.card + 1 :=
 card_insert_of_not_mem $ λ h, hb $ hab.symm.eq_bot_of_le $ P.le h
 
-end distrib_lattice_bot
+end lattice
 
 section generalized_boolean_algebra
 variables [generalized_boolean_algebra α] [decidable_eq α] {a : α} (P : finpartition a)
@@ -202,7 +223,7 @@ variables [generalized_boolean_algebra α] [decidable_eq α] {a : α} (P : finpa
 def avoid (b : α) : finpartition (a \ b) :=
 of_erase
   (P.parts.image (\ b))
-  (P.disjoint.image_finset $ λ a, sdiff_le)
+  (P.sup_indep.image_finset $ λ a, sdiff_le)
   (begin
     rw [sup_image, comp.left_id, finset.sup_sdiff_right],
     congr,
@@ -227,7 +248,7 @@ lemma bUnion_parts : P.parts.bUnion id = s := (sup_eq_bUnion _ _).symm.trans P.s
 
 lemma sum_card_parts : ∑ i in P.parts, i.card = s.card :=
 begin
-  rw ←card_bUnion P.disjoint,
+  rw ←card_bUnion P.sup_indep,
   exact congr_arg finset.card P.bUnion_parts,
 end
 
@@ -238,7 +259,7 @@ parts_nonempty_iff.2 univ_nonempty.ne_empty
 /-- The partition in singletons. -/
 @[simps] def discrete (s : finset α) : finpartition s :=
 { parts := s.map ⟨singleton, singleton_injective⟩,
-  disjoint :=
+  sup_indep :=
     begin
       rw finset.coe_map,
       exact finset.pairwise_disjoint_range_singleton.subset (set.image_subset_range _ _),

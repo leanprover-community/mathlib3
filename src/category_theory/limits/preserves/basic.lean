@@ -212,8 +212,8 @@ def preserves_limits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserve
 { preserves_limit := λ K, preserves_limit_of_nat_iso K h }
 
 /-- Transfer preservation of limits along a natural isomorphism in the functor. -/
-def preserves_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_limits F] :
-  preserves_limits G :=
+def preserves_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_limits_of_size.{w w'} F] :
+  preserves_limits_of_size.{w w'} G :=
 { preserves_limits_of_shape := λ J 𝒥₁, by exactI preserves_limits_of_shape_of_nat_iso h }
 
 /-- Transfer preservation of limits along a equivalence in the shape. -/
@@ -258,8 +258,8 @@ def preserves_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
 { preserves_colimit := λ K, preserves_colimit_of_nat_iso K h }
 
 /-- Transfer preservation of colimits along a natural isomorphism in the functor. -/
-def preserves_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_colimits F] :
-  preserves_colimits G :=
+def preserves_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_colimits_of_size.{w w'} F] :
+  preserves_colimits_of_size.{w w'} G :=
 { preserves_colimits_of_shape := λ J 𝒥₁, by exactI preserves_colimits_of_shape_of_nat_iso h }
 
 /-- Transfer preservation of colimits along a equivalence in the shape. -/
@@ -398,7 +398,7 @@ instance reflects_colimits_of_shape_of_reflects_colimits (J : Type w) [category.
   (F : C ⥤ D) [H : reflects_colimits_of_size.{w' w} F] : reflects_colimits_of_shape J F :=
 reflects_colimits_of_size.reflects_colimits_of_shape
 
-instance id_reflects_limits : reflects_limits (𝟭 C) :=
+instance id_reflects_limits : reflects_limits_of_size.{w w'} (𝟭 C) :=
 { reflects_limits_of_shape := λ J 𝒥,
   { reflects_limit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.lift ⟨s.X, λ j, s.π.app j, λ j j' f, s.π.naturality f⟩,
@@ -406,7 +406,7 @@ instance id_reflects_limits : reflects_limits (𝟭 C) :=
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩;
      exact h.uniq _ m w⟩⟩ } }
 
-instance id_reflects_colimits : reflects_colimits (𝟭 C) :=
+instance id_reflects_colimits : reflects_colimits_of_size.{w w'} (𝟭 C) :=
 { reflects_colimits_of_shape := λ J 𝒥,
   { reflects_colimit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
@@ -576,8 +576,8 @@ def reflects_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
 { reflects_colimit := λ K, reflects_colimit_of_nat_iso K h }
 
 /-- Transfer reflection of colimits along a natural isomorphism in the functor. -/
-def reflects_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_colimits F] :
-  reflects_colimits G :=
+def reflects_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_colimits_of_size.{w w'} F] :
+  reflects_colimits_of_size.{w w'} G :=
 { reflects_colimits_of_shape := λ J 𝒥₁, by exactI reflects_colimits_of_shape_of_nat_iso h }
 
 /--
@@ -620,7 +620,7 @@ end
 variable (F : C ⥤ D)
 
 /-- A fully faithful functor reflects limits. -/
-def fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits F :=
+def fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits_of_size.{w w'} F :=
 { reflects_limits_of_shape := λ J 𝒥₁, by exactI
   { reflects_limit := λ K,
     { reflects := λ c t,
@@ -632,7 +632,7 @@ def fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits F :=
       end } } }
 
 /-- A fully faithful functor reflects colimits. -/
-def fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits F :=
+def fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits_of_size.{w w'} F :=
 { reflects_colimits_of_shape := λ J 𝒥₁, by exactI
   { reflects_colimit := λ K,
     { reflects := λ c t,

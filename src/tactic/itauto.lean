@@ -202,9 +202,10 @@ inductive proof
 -- (p₁: A ∨ B) (p₂: (x: A) ⊢ C) (p₃: (x: B) ⊢ C) ⊢ C
 | or_elim' (p₁ : proof) (x : name) (p₂ p₃ : proof) : proof
 -- (p₁: decidable A) (p₂: (x: A) ⊢ C) (p₃: (x: ¬ A) ⊢ C) ⊢ C
-| decidable_elim (p₁ x : name) (p₂ p₃ : proof) : proof
--- (p: decidable A) ⊢ A ∨ ¬A
-| em (p : name) : proof
+| decidable_elim (classical : bool) (p₁ x : name) (p₂ p₃ : proof) : proof
+-- classical = ff: (p: decidable A) ⊢ A ∨ ¬A
+-- classical = tt: (p: Prop) ⊢ p ∨ ¬p
+| em (classical : bool) (p : name) : proof
 -- The variable x here names the variable that will be used in the elaborated proof
 -- (p: ((x:A) → B) → C) ⊢ B → C
 | imp_imp_simp (x : name) (p : proof) : proof
@@ -229,8 +230,9 @@ meta def proof.to_format : proof → format
 | (proof.or_inr p) := format!"(or.inr {p.to_format})"
 | (proof.or_elim' p x q r) :=
   format!"({p.to_format}.elim (λ {x}, {q.to_format}) (λ {x}, {r.to_format})"
-| (proof.em p) := format!"(decidable.em {p})"
-| (proof.decidable_elim p x q r) :=
+| (proof.em ff p) := format!"(decidable.em {p})"
+| (proof.em tt p) := format!"(classical.em {p})"
+| (proof.decidable_elim _ p x q r) :=
   format!"({p}.elim (λ {x}, {q.to_format}) (λ {x}, {r.to_format})"
 | (proof.imp_imp_simp _ p) := format!"(imp_imp_simp {p.to_format})"
 
@@ -243,7 +245,7 @@ meta def proof.exfalso : prop → proof → proof
 
 /-- A variant on `proof.or_elim` that performs opportunistic simplification. -/
 meta def proof.or_elim : proof → name → proof → proof → proof
-| (proof.em p) x q r := proof.decidable_elim p x q r
+| (proof.em cl p) x q r := proof.decidable_elim cl p x q r
 | p x q r := proof.or_elim' p x q r
 
 /-- A variant on `proof.app'` that performs opportunistic simplification.
@@ -525,11 +527,21 @@ meta def apply_proof : name_map expr → proof → tactic unit
   gs ← get_goals, set_goals (t₁::t₂::t₃::gs), apply_proof Γ p,
   e ← intro_core x, apply_proof (Γ.insert x e) p₁,
   e ← intro_core x, apply_proof (Γ.insert x e) p₂
-| Γ (proof.em n) := do
+| Γ (proof.em ff n) := do
   e ← Γ.find n,
   to_expr ``(@decidable.em _ %%e) >>= exact
-| Γ (proof.decidable_elim n x p₁ p₂) := do
+| Γ (proof.em tt n) := do
   e ← Γ.find n,
+  to_expr ``(@classical.em %%e) >>= exact
+| Γ (proof.decidable_elim ff n x p₁ p₂) := do
+  e ← Γ.find n,
+  t₁ ← mk_mvar, t₂ ← mk_mvar, to_expr ``(@dite _ _ %%e %%t₁ %%t₂) tt ff >>= exact,
+  gs ← get_goals, set_goals (t₁::t₂::gs),
+  e ← intro_core x, apply_proof (Γ.insert x e) p₁,
+  e ← intro_core x, apply_proof (Γ.insert x e) p₂
+| Γ (proof.decidable_elim tt n x p₁ p₂) := do
+  e ← Γ.find n,
+  e ← to_expr ``(@classical.dec %%e),
   t₁ ← mk_mvar, t₂ ← mk_mvar, to_expr ``(@dite _ _ %%e %%t₁ %%t₂) tt ff >>= exact,
   gs ← get_goals, set_goals (t₁::t₂::gs),
   e ← intro_core x, apply_proof (Γ.insert x e) p₁,
@@ -541,7 +553,7 @@ meta def apply_proof : name_map expr → proof → tactic unit
 end itauto
 
 namespace interactive
-
+setup_tactic_parser
 open itauto
 
 /-- A decision procedure for intuitionistic propositional logic. Unlike `finish` and `tauto!` this
@@ -551,7 +563,7 @@ tactic never uses the law of excluded middle, and the proof search is tailored f
 example (p : Prop) : ¬ (p ↔ ¬ p) := by itauto
 ```
 -/
-meta def itauto : tactic unit :=
+meta def itauto (dec : parse (tk "!")?) : tactic unit :=
 using_new_ref mk_buffer $ λ atoms,
 using_new_ref mk_name_map $ λ hs, do
   t ← target,
@@ -570,20 +582,21 @@ using_new_ref mk_name_map $ λ hs, do
           A ← reify atoms p,
           let n := h.local_uniq_name,
           read_ref hs >>= λ Γ, write_ref hs (Γ.insert n h),
-          pure (Γ >>= λ Γ', Γ'.add (A.or A.not) (proof.em n))
+          pure (Γ >>= λ Γ', Γ'.add (A.or A.not) (proof.em ff n))
         | _ := pure Γ
         end))
     (except.ok (native.rb_map.mk _ _)),
   Γ ← read_ref atoms >>= λ ats, ats.2.iterate (pure Γ) (λ i e r, r >>= λ Γ, do
     res ← try_core (mk_app ``decidable [e] >>= mk_instance),
-    match res with
-    | some (expr.local_const _ _ _ _) := pure Γ
-    | some pf := do
+    let add_proof (cl : bool) pf := (do
       n ← mk_fresh_name,
       let A := prop.var i.1,
       read_ref hs >>= λ Γ, write_ref hs (Γ.insert n pf),
-      pure (Γ >>= λ Γ', Γ'.add (A.or A.not) (proof.em n))
-    | none := pure Γ
+      pure (Γ >>= λ Γ', Γ'.add (A.or A.not) (proof.em cl n))),
+    match res with
+    | some (expr.local_const _ _ _ _) := pure Γ
+    | some pf := add_proof ff pf
+    | none := if dec.is_some then add_proof tt e else pure Γ
     end),
   let o := state_t.run (match Γ with
   | except.ok Γ := prove Γ t

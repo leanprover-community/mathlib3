@@ -53,6 +53,9 @@ by itauto
 example : 0 < 1 ∨ ¬ 0 < 1 := by itauto
 example (p : Prop) (h : 0 < 1 → p) (h2 : ¬ 0 < 1 → p) : p := by itauto
 
+example (b : bool) : ¬ b ∨ b := by itauto
+example (p : Prop) : ¬ p ∨ p := by itauto!
+
 -- failure tests
 example (p q r : Prop) : true :=
 begin

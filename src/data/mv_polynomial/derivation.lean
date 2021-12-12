@@ -28,7 +28,7 @@ section
 variable (R)
 
 def mk_derivationₗ (f : σ → A) : mv_polynomial σ R →ₗ[R] A :=
-finsupp.lsum R $ λ xs : σ →₀ ℕ, (linear_map.ring_lmap_equiv_self R _ R).symm $
+finsupp.lsum R $ λ xs : σ →₀ ℕ, (linear_map.ring_lmap_equiv_self R R A).symm $
   xs.sum $ λ i k, monomial (xs - finsupp.single i 1) (k : R) • f i
 
 end
@@ -66,12 +66,7 @@ f.map_algebra_map a
 @[ext] lemma derivation_ext {f g : derivation R (mv_polynomial σ R) A}
   (h : ∀ i, f (X i) = g (X i)) :
   f = g :=
-begin
-  apply derivation.to_linear_map_injective, ext s, dsimp,
-  induction s using finsupp.induction with i n s hi hn ihs,
-  { exact f.map_one_eq_zero.trans g.map_one_eq_zero.symm },
-  { simp only [monomial_single_add, ihs, h, derivation.leibniz, derivation.leibniz_pow] }
-end
+derivation.ext_of_adjoin_eq_top _ adjoin_range_X $ set.forall_range_iff.2 h
 
 variables {R} [module (mv_polynomial σ R) A] [is_scalar_tower R (mv_polynomial σ R) A]
 
@@ -92,10 +87,10 @@ begin
       [skip, by simp, by { intros, simp only [nat.cast_add, (monomial _).map_add, add_smul] }],
     rw [finsupp.sum_single_index, finsupp.sum_single_index];
       [skip, by simp, by simp],
-    rw [finsupp.nat_sub_self, finsupp.nat_add_sub_cancel, nat.cast_one, ← C_apply, C_1, one_smul,
+    rw [tsub_self, add_tsub_cancel_right, nat.cast_one, ← C_apply, C_1, one_smul,
       add_comm, add_right_inj, finsupp.smul_sum],
     refine finset.sum_congr rfl (λ j hj, _), dsimp only,
-    rw [smul_smul, monomial_mul, one_mul, add_comm s, finsupp.nat_add_sub_assoc],
+    rw [smul_smul, monomial_mul, one_mul, add_comm s, add_tsub_assoc_of_le],
     rwa [finsupp.single_le_iff, nat.succ_le_iff, pos_iff_ne_zero, ← finsupp.mem_support_iff] }
 end
 

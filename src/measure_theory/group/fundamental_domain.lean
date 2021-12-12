@@ -152,6 +152,19 @@ calc ∫⁻ x in s, f x ∂μ = ∑' g : G, ∫⁻ x in s ∩ g • t, f x ∂μ
 ... = ∫⁻ x in t, f x ∂μ :
   (hs.set_lintegral_eq_tsum _ _).symm
 
+@[to_additive] lemma measure_set_eq (hs : is_fundamental_domain G s μ)
+  (ht : is_fundamental_domain G t μ) {A : set α} (hA₀ : measurable_set A)
+  (hA : ∀ (g : G), (λ x, g • x) ⁻¹' A = A) :
+  μ (A ∩ s) = μ (A ∩ t) :=
+begin
+  have : ∫⁻ x in s, A.indicator 1 x ∂μ = ∫⁻ x in t, A.indicator 1 x ∂μ,
+  { refine hs.set_lintegral_eq ht (set.indicator A (λ _, 1)) _,
+    intros g x,
+    convert (set.indicator_comp_right (λ x : α, g • x)).symm,
+    rw hA g },
+  simpa [measure.restrict_apply hA₀, lintegral_indicator _ hA₀] using this
+end
+
 /-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
 @[to_additive] protected lemma measure_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=

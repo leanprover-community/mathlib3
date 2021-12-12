@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import algebra.lie.of_associative
 import ring_theory.adjoin.basic
-import ring_theory.algebra_tower
+import algebra.lie.of_associative
 
 /-!
 # Derivations
@@ -50,7 +49,17 @@ variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module R M]
 variables [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
+instance : add_monoid_hom_class (derivation R A M) A M :=
+{ coe := λ D, D.to_fun,
+  coe_injective' := λ D1 D2 h, by { cases D1, cases D2, congr, exact fun_like.coe_injective h },
+  map_add := λ D, D.to_linear_map.map_add',
+  map_zero := λ D, D.to_linear_map.map_zero }
+
+/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
 instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
+
+-- Not a simp lemma because it can be proved via `coe_fn_coe` + `to_linear_map_eq_coe`
+lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
 
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩
@@ -64,16 +73,16 @@ instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 lemma coe_fn_coe (f : derivation R A M) : ⇑(f : A →ₗ[R] M) = f := rfl
 
 lemma coe_injective : @function.injective (derivation R A M) (A → M) coe_fn :=
-λ D1 D2 h, by { rcases D1 with ⟨⟨⟩⟩, rcases D2 with ⟨⟨⟩⟩, congr', }
+fun_like.coe_injective
 
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=
-coe_injective $ funext H
+fun_like.ext _ _ H
 
-lemma congr_fun (h : D1 = D2) (a : A) : D1 a = D2 a := congr_fun (congr_arg coe_fn h) a
+lemma congr_fun (h : D1 = D2) (a : A) : D1 a = D2 a := fun_like.congr_fun h a
 
-@[simp] lemma map_add : D (a + b) = D a + D b := linear_map.map_add D a b
-@[simp] lemma map_zero : D 0 = 0 := linear_map.map_zero D
-@[simp] lemma map_smul : D (r • a) = r • D a := linear_map.map_smul D r a
+protected lemma map_add : D (a + b) = D a + D b := map_add D a b
+protected lemma map_zero : D 0 = 0 := map_zero D
+@[simp] lemma map_smul : D (r • a) = r • D a := D.to_linear_map.map_smul r a
 @[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
 
 @[simp] lemma map_one_eq_zero : D 1 = 0 :=
@@ -140,8 +149,8 @@ instance Rscalar : has_scalar R (derivation R A M) :=
 lemma Rsmul_apply (r : R) (D : derivation R A M) : (r • D) a = r • D a := rfl
 
 instance has_scalar : has_scalar A (derivation R A M) :=
-⟨λ a D, { leibniz' := λ b c, by {
-            dsimp, simp only [smul_add, leibniz, smul_comm a, add_comm] },
+⟨λ a D, { leibniz' := λ b c, by
+          { dsimp, simp only [smul_add, leibniz, smul_comm a, add_comm] },
           ..(a • D : A →ₗ[R] M) }⟩
 
 @[simp] lemma coe_smul (a : A) (D : derivation R A M) : ⇑(a • D) = a • D := rfl
@@ -206,8 +215,8 @@ section
 variables {M : Type*} [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
-@[simp] lemma map_neg : D (-a) = -D a := linear_map.map_neg D a
-@[simp] lemma map_sub : D (a - b) = D a - D b := linear_map.map_sub D a b
+protected lemma map_neg : D (-a) = -D a := map_neg D a
+protected lemma map_sub : D (a - b) = D a - D b := map_sub D a b
 
 lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
 begin

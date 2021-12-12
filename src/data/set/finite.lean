@@ -573,10 +573,10 @@ lemma finite.pi {δ : Type*} [fintype δ] {κ : δ → Type*} {t : Π d, set (κ
   (ht : ∀ d, (t d).finite) :
   (pi univ t).finite :=
 begin
+  lift t to Π d, finset (κ d) using ht,
   classical,
-  convert (fintype.pi_finset (λ d, (ht d).to_finset)).finite_to_set,
-  ext,
-  simp,
+  rw ← fintype.coe_pi_finset,
+  exact (fintype.pi_finset t).finite_to_set,
 end
 
 /-- A finite union of finsets is finite. -/

@@ -3,10 +3,10 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import data.nat.prime
 import dynamics.fixed_points.basic
-import data.set.lattice
 import data.pnat.basic
-import data.int.gcd
+import data.set.lattice
 
 /-!
 # Periodic points
@@ -111,12 +111,29 @@ begin
   exact hf.is_fixed_pt.iterate m
 end
 
+lemma comp {g : α → α} (hco : commute f g) (hf : is_periodic_pt f n x) (hg : is_periodic_pt g n x) :
+  is_periodic_pt (f ∘ g) n x :=
+by { rw [is_periodic_pt, hco.comp_iterate], exact hf.comp hg }
+
+lemma comp_lcm {g : α → α} (hco : commute f g) (hf : is_periodic_pt f m x)
+  (hg : is_periodic_pt g n x) :
+  is_periodic_pt (f ∘ g) (nat.lcm m n) x :=
+(hf.trans_dvd $ nat.dvd_lcm_left _ _).comp hco (hg.trans_dvd $ nat.dvd_lcm_right _ _)
+
+lemma left_of_comp {g : α → α} (hco : commute f g) (hfg : is_periodic_pt (f ∘ g) n x)
+  (hg : is_periodic_pt g n x) : is_periodic_pt f n x :=
+begin
+  rw [is_periodic_pt, hco.comp_iterate] at hfg,
+  exact hfg.left_of_comp hg
+end
+
+lemma iterate_mod_apply (h : is_periodic_pt f n x) (m : ℕ) :
+  f^[m % n] x = (f^[m] x) :=
+by conv_rhs { rw [← nat.mod_add_div m n, iterate_add_apply, (h.mul_const _).eq] }
+
 protected lemma mod (hm : is_periodic_pt f m x) (hn : is_periodic_pt f n x) :
   is_periodic_pt f (m % n) x :=
-begin
-  rw [← nat.mod_add_div m n] at hm,
-  exact hm.left_of_add (hn.mul_const _)
-end
+(hn.iterate_mod_apply m).trans hm
 
 protected lemma gcd (hm : is_periodic_pt f m x) (hn : is_periodic_pt f n x) :
   is_periodic_pt f (m.gcd n) x :=
@@ -210,16 +227,11 @@ begin
 end
 
 lemma iterate_eq_mod_minimal_period : f^[n] x = (f^[n % minimal_period f x] x) :=
-begin
-  conv_lhs { rw ← nat.mod_add_div n (minimal_period f x) },
-  rw [iterate_add, mul_comm, iterate_mul, comp_app],
-  congr,
-  exact is_periodic_pt.iterate (is_periodic_pt_minimal_period _ _) _,
-end
+((is_periodic_pt_minimal_period f x).iterate_mod_apply n).symm
 
 lemma minimal_period_pos_of_mem_periodic_pts (hx : x ∈ periodic_pts f) :
   0 < minimal_period f x :=
-by simp only [minimal_period, dif_pos hx, gt_iff_lt.1 (nat.find_spec hx).fst]
+by simp only [minimal_period, dif_pos hx, (nat.find_spec hx).fst.lt]
 
 lemma is_periodic_pt.minimal_period_pos (hn : 0 < n) (hx : is_periodic_pt f n x) :
   0 < minimal_period f x :=
@@ -296,10 +308,27 @@ end
 lemma commute.minimal_period_of_comp_dvd_lcm {g : α → α} (h : function.commute f g) :
   minimal_period (f ∘ g) x ∣ nat.lcm (minimal_period f x) (minimal_period g x) :=
 begin
-  rw [← is_periodic_pt_iff_minimal_period_dvd, is_periodic_pt, h.comp_iterate],
-  refine is_fixed_pt.comp _ _;
-  rw [← is_periodic_pt, is_periodic_pt_iff_minimal_period_dvd];
-  exact nat.dvd_lcm_left _ _ <|> exact dvd_lcm_right _ _
+  rw [← is_periodic_pt_iff_minimal_period_dvd],
+  exact (is_periodic_pt_minimal_period f x).comp_lcm h (is_periodic_pt_minimal_period g x)
+end
+
+lemma commute.minimal_period_of_comp_dvd_mul {g : α → α} (h : function.commute f g) :
+  minimal_period (f ∘ g) x ∣ (minimal_period f x) * (minimal_period g x) :=
+dvd_trans h.minimal_period_of_comp_dvd_lcm (lcm_dvd_mul _ _)
+
+lemma commute.minimal_period_of_comp_eq_mul_of_coprime {g : α → α} (h : function.commute f g)
+  (hco : coprime (minimal_period f x) (minimal_period g x)) :
+  minimal_period (f ∘ g) x = (minimal_period f x) * (minimal_period g x) :=
+begin
+  apply dvd_antisymm (h.minimal_period_of_comp_dvd_mul),
+  suffices : ∀ {f g : α → α}, commute f g → coprime (minimal_period f x) (minimal_period g x) →
+    minimal_period f x ∣ minimal_period (f ∘ g) x,
+    from hco.mul_dvd_of_dvd_of_dvd (this h hco) (h.comp_eq.symm ▸ this h.symm hco.symm),
+  clear hco h f g,
+  intros f g h hco,
+  refine hco.dvd_of_dvd_mul_left (is_periodic_pt.left_of_comp h _ _).minimal_period_dvd,
+  { exact (is_periodic_pt_minimal_period _ _).const_mul _ },
+  { exact (is_periodic_pt_minimal_period _ _).mul_const _ }
 end
 
 private lemma minimal_period_iterate_eq_div_gcd_aux (h : 0 < gcd (minimal_period f x) n) :

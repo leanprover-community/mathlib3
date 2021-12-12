@@ -1403,10 +1403,9 @@ product satisfies `is_bounded_bilinear_map`.
 In order to state these results, we need a `normed_space ℝ E` instance. We will later establish
 such an instance by restriction-of-scalars, `inner_product_space.is_R_or_C_to_real 𝕜 E`, but this
 instance may be not definitionally equal to some other “natural” instance. So, we assume
-`[normed_space ℝ E]` and `[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ`
-we have these instances.
+`[normed_space ℝ E]`.
 -/
-lemma is_bounded_bilinear_map_inner [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] :
+lemma is_bounded_bilinear_map_inner [normed_space ℝ E] :
   is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
 { add_left := λ _ _ _, inner_add_left,
   smul_left := λ r x y,
@@ -1494,7 +1493,7 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 /-! ### Families of mutually-orthogonal subspaces of an inner product space -/
 
 section orthogonal_family
-variables {ι : Type*} (𝕜)
+variables {ι : Type*} [dec_ι : decidable_eq ι] (𝕜)
 open_locale direct_sum
 
 /-- An indexed family of mutually-orthogonal subspaces of an inner product space `E`. -/
@@ -1503,6 +1502,7 @@ def orthogonal_family (V : ι → submodule 𝕜 E) : Prop :=
 
 variables {𝕜} {V : ι → submodule 𝕜 E}
 
+include dec_ι
 lemma orthogonal_family.eq_ite (hV : orthogonal_family 𝕜 V) {i j : ι} (v : V i) (w : V j) :
   ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
 begin
@@ -1535,6 +1535,7 @@ begin
   intros h,
   simp [h]
 end
+omit dec_ι
 
 lemma orthogonal_family.inner_right_fintype
   [fintype ι] (hV : orthogonal_family 𝕜 V) (l : Π i, V i) (i : ι) (v : V i) :
@@ -1563,6 +1564,36 @@ begin
     hV.inner_right_dfinsupp] using this,
 end
 
+/-- The composition of an orthogonal family of subspaces with an injective function is also an
+orthogonal family. -/
+lemma orthogonal_family.comp (hV : orthogonal_family 𝕜 V) {γ : Type*} {f : γ → ι}
+  (hf : function.injective f) :
+  orthogonal_family 𝕜 (V ∘ f) :=
+λ i j hij v hv w hw, hV (hf.ne hij) hv hw
+
+lemma orthogonal_family.orthonormal_sigma_orthonormal (hV : orthogonal_family 𝕜 V) {α : ι → Type*}
+  {v_family : Π i, (α i) → V i} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
+  orthonormal 𝕜 (λ a : Σ i, α i, (v_family a.1 a.2 : E)) :=
+begin
+  split,
+  { rintros ⟨i, vi⟩,
+    exact (hv_family i).1 vi },
+  rintros ⟨i, vi⟩ ⟨j, vj⟩ hvij,
+  by_cases hij : i = j,
+  { subst hij,
+    have : vi ≠ vj := by simpa using hvij,
+    exact (hv_family i).2 this },
+  { exact hV hij (v_family i vi : V i).prop (v_family j vj : V j).prop }
+end
+
+include dec_ι
+lemma direct_sum.submodule_is_internal.collected_basis_orthonormal (hV : orthogonal_family 𝕜 V)
+  (hV_sum : direct_sum.submodule_is_internal V) {α : ι → Type*}
+  {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
+  orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
+by simpa using hV.orthonormal_sigma_orthonormal hv_family
+omit dec_ι
+
 end orthogonal_family
 
 section is_R_or_C_to_real
@@ -1584,11 +1615,11 @@ structure. -/
 def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
-  add_left := λ x y z, by {
-    change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
+  add_left := λ x y z, by
+  { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
     simp [inner_add_left] },
-  smul_left := λ x y r, by {
-    change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
+  smul_left := λ x y r, by
+  { change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
     simp [inner_smul_left] },
   ..has_inner.is_R_or_C_to_real 𝕜 E,
   ..normed_space.restrict_scalars ℝ 𝕜 E }
@@ -1619,7 +1650,6 @@ section continuous
 lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   exact is_bounded_bilinear_map_inner.continuous
 end
 
@@ -1712,6 +1742,19 @@ submodule.inner_right_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 /-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
 lemma inner_left_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪v, u⟫ = 0 :=
 submodule.inner_left_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
+
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_right (u : E) {v : E} (hv : ⟪u, v⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+begin
+  intros w hw,
+  rw submodule.mem_span_singleton at hw,
+  obtain ⟨c, rfl⟩ := hw,
+  simp [inner_smul_left, hv],
+end
+
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_left (u : E) {v : E} (hv : ⟪v, u⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
 
 variables (K)
 
@@ -1849,5 +1892,12 @@ begin
   rw ← eq_conj_iff_real,
   exact hT.conj_inner_sym x x
 end
+
+/-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
+self-adjoint. -/
+lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
+  {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
+  is_self_adjoint (T.restrict hV) :=
+λ v w, hT v w
 
 end is_self_adjoint

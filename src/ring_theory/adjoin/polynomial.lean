@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import ring_theory.adjoin.basic
-import ring_theory.polynomial.basic
+import data.mv_polynomial.rename
+import data.polynomial.algebra_map
 
 /-!
 # Adjoining elements to form subalgebras: relation to polynomials

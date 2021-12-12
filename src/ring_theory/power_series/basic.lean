@@ -3,13 +3,13 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
-import data.mv_polynomial
+import algebra.big_operators.nat_antidiagonal
+import data.mv_polynomial.basic
+import data.polynomial.coeff
 import linear_algebra.std_basis
 import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
-import ring_theory.algebra_tower
 import tactic.linarith
-import algebra.big_operators.nat_antidiagonal
 
 /-!
 # Formal power series
@@ -1077,8 +1077,8 @@ noncomputable def rescale (a : R) : power_series R →+* power_series R :=
   map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
                 split_ifs, { rw [h, pow_zero], }, refl, },
   map_add' := by { intros, ext, exact mul_add _ _ _, },
-  map_mul' := λ f g, by {
-    ext,
+  map_mul' := λ f g, by
+  { ext,
     rw [power_series.coeff_mul, power_series.coeff_mk, power_series.coeff_mul, finset.mul_sum],
     apply sum_congr rfl,
     simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],

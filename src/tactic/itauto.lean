@@ -200,7 +200,11 @@ inductive proof
 | or_inr (p : proof) : proof
 -- (p: B) ⊢ A ∨ B
 -- (p₁: A ∨ B) (p₂: (x: A) ⊢ C) (p₃: (x: B) ⊢ C) ⊢ C
-| or_elim (p₁ : proof) (x : name) (p₂ p₃ : proof) : proof
+| or_elim' (p₁ : proof) (x : name) (p₂ p₃ : proof) : proof
+-- (p₁: decidable A) (p₂: (x: A) ⊢ C) (p₃: (x: ¬ A) ⊢ C) ⊢ C
+| decidable_elim (p₁ x : name) (p₂ p₃ : proof) : proof
+-- (p: decidable A) ⊢ A ∨ ¬A
+| em (p : name) : proof
 -- The variable x here names the variable that will be used in the elaborated proof
 -- (p: ((x:A) → B) → C) ⊢ B → C
 | imp_imp_simp (x : name) (p : proof) : proof
@@ -223,8 +227,11 @@ meta def proof.to_format : proof → format
 | (proof.or_imp_right p) := format!"(or_imp_right {p.to_format})"
 | (proof.or_inl p) := format!"(or.inl {p.to_format})"
 | (proof.or_inr p) := format!"(or.inr {p.to_format})"
-| (proof.or_elim p x q r) :=
+| (proof.or_elim' p x q r) :=
   format!"({p.to_format}.elim (λ {x}, {q.to_format}) (λ {x}, {r.to_format})"
+| (proof.em p) := format!"(decidable.em {p})"
+| (proof.decidable_elim p x q r) :=
+  format!"({p}.elim (λ {x}, {q.to_format}) (λ {x}, {r.to_format})"
 | (proof.imp_imp_simp _ p) := format!"(imp_imp_simp {p.to_format})"
 
 meta instance : has_to_format proof := ⟨proof.to_format⟩
@@ -233,6 +240,11 @@ meta instance : has_to_format proof := ⟨proof.to_format⟩
 meta def proof.exfalso : prop → proof → proof
 | prop.false p := p
 | A p := proof.exfalso' p
+
+/-- A variant on `proof.or_elim` that performs opportunistic simplification. -/
+meta def proof.or_elim : proof → name → proof → proof → proof
+| (proof.em p) x q r := proof.decidable_elim p x q r
+| p x q r := proof.or_elim' p x q r
 
 /-- A variant on `proof.app'` that performs opportunistic simplification.
 (This doesn't do full normalization because we don't want the proof size to blow up.) -/
@@ -503,9 +515,18 @@ meta def apply_proof : name_map expr → proof → tactic unit
 | Γ (proof.or_inr p) := do
   t ← mk_mvar, to_expr ``(or.inr %%t) tt ff >>= exact,
   gs ← get_goals, set_goals (t::gs), apply_proof Γ p
-| Γ (proof.or_elim p x p₁ p₂) := do
+| Γ (proof.or_elim' p x p₁ p₂) := do
   t₁ ← mk_mvar, t₂ ← mk_mvar, t₃ ← mk_mvar, to_expr ``(or.elim %%t₁ %%t₂ %%t₃) tt ff >>= exact,
   gs ← get_goals, set_goals (t₁::t₂::t₃::gs), apply_proof Γ p,
+  e ← intro_core x, apply_proof (Γ.insert x e) p₁,
+  e ← intro_core x, apply_proof (Γ.insert x e) p₂
+| Γ (proof.em n) := do
+  e ← Γ.find n,
+  to_expr ``(@decidable.em _ %%e) >>= exact
+| Γ (proof.decidable_elim n x p₁ p₂) := do
+  e ← Γ.find n,
+  t₁ ← mk_mvar, t₂ ← mk_mvar, to_expr ``(@dite _ _ %%e %%t₁ %%t₂) tt ff >>= exact,
+  gs ← get_goals, set_goals (t₁::t₂::gs),
   e ← intro_core x, apply_proof (Γ.insert x e) p₁,
   e ← intro_core x, apply_proof (Γ.insert x e) p₂
 | Γ (proof.imp_imp_simp x p) := do
@@ -539,7 +560,14 @@ using_new_ref mk_name_map $ λ hs, do
           let n := h.local_uniq_name,
           read_ref hs >>= λ Γ, write_ref hs (Γ.insert n h),
           pure (Γ >>= λ Γ', Γ'.add A (proof.hyp n)))
-        (pure Γ))
+        (match e with
+        | `(decidable %%p) := do
+          A ← reify atoms p,
+          let n := h.local_uniq_name,
+          read_ref hs >>= λ Γ, write_ref hs (Γ.insert n h),
+          pure (Γ >>= λ Γ', Γ'.add (A.or A.not) (proof.em n))
+        | _ := pure Γ
+        end))
     (except.ok (native.rb_map.mk _ _)),
   let o := state_t.run (match Γ with
   | except.ok Γ := prove Γ t

@@ -181,17 +181,18 @@ instance : mul_action G (module.ray R M) :=
 @[simp] lemma smul_ray_of_ne_zero (g : G) (v : M) (hv) :
   g • ray_of_ne_zero R v hv = ray_of_ne_zero R (g • v) ((smul_ne_zero_iff_ne _).2 hv) := rfl
 
+end action
+
+namespace module.ray
+
 /-- Scaling by a positive unit is a no-op. -/
-lemma module.ray.smul_pos_unit (u : units R) (hu : 0 < (u : R)) (v : module.ray R M) : u • v = v :=
+lemma unit_smul_of_pos [nontrivial R] (u : units R) (hu : 0 < (u : R)) (v : module.ray R M) :
+  u • v = v :=
 begin
   induction v using module.ray.ind,
   rw [smul_ray_of_ne_zero, ray_eq_iff],
   exact same_ray_pos_smul_left _ hu,
 end
-
-end action
-
-namespace module.ray
 
 /-- An arbitrary `ray_vector` giving a ray. -/
 def some_ray_vector [nontrivial R] (x : module.ray R M) : ray_vector M :=

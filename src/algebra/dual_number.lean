@@ -56,39 +56,30 @@ alg_hom_ext' $ linear_map.ext_ring $ h
 
 variables {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 
-/-- There is an alg_hom from the dual numbers over `R` to any `R`-algebra with an element that
-squares to `0`.
-
-See `dual_number.lift` for this as an equiv. -/
-def lift_aux (e : A) (he : e * e = 0) : 𝔻[R] →ₐ[R] A :=
-alg_hom.of_linear_map
-  ((algebra.linear_map _ _).comp (triv_sq_zero_ext.fst_hom R R).to_linear_map
-    + (linear_map.to_span_singleton _ _ e).comp (triv_sq_zero_ext.snd_hom R R))
-  (show algebra_map R _ 1 + (0 : R) • e = 1, by rw [zero_smul, map_one, add_zero])
-  (triv_sq_zero_ext.ind $ λ r₁ m₁, triv_sq_zero_ext.ind $ λ r₂ m₂, begin
-    dsimp [triv_sq_zero_ext.fst_hom],
-    simp only [add_zero, zero_add, add_mul, mul_add, smul_mul_smul, he, smul_zero],
-    rw [←ring_hom.map_mul, add_smul, ←algebra.commutes _ (m₁ • e), ←algebra.smul_def,
-        ←algebra.smul_def, add_right_comm, add_assoc, mul_smul, mul_smul],
-  end)
-
-@[simp] lemma lift_aux_apply_eps (e : A) (he : e * e = 0) : lift_aux e he (eps : 𝔻[R]) = e :=
-show algebra_map R A 0 + (1 : R) • e = e, by rw [ring_hom.map_zero, one_smul, zero_add]
-
 /-- A universal property of the dual numbers, providing a unique `𝔻[R] →ₐ[R] A` for every element
 of `A` which squares to `-1`.
 
 This isomorphism is named to match the very similar `complex.lift`. -/
 @[simps]
 def lift : {e : A // e * e = 0} ≃ (𝔻[R] →ₐ[R] A) :=
-{ to_fun := λ e, lift_aux e e.prop,
-  inv_fun := λ F, ⟨F eps, (F.map_mul _ _).symm.trans $ (F.congr_arg eps_mul_eps).trans F.map_zero⟩,
-  left_inv := λ e, by { ext, exact lift_aux_apply_eps _ e.prop },
-  right_inv := λ F, by { ext, exact lift_aux_apply_eps _ _, } }
+equiv.trans
+  (show {e : A // e * e = 0} ≃ {f : R →ₗ[R] A // ∀ x y, f x * f y = 0}, from
+    { to_fun := λ e, ⟨linear_map.to_span_singleton _ _ (e : A),
+      (λ x y, show x • ↑e * y • ↑e = (0 : A),
+              from (smul_mul_smul _ _ _ _).trans $ e.prop.symm ▸ smul_zero _)⟩,
+      inv_fun := λ f, ⟨(f : R →ₗ[R] A) 1, f.prop 1 1⟩,
+      left_inv := λ e, by { ext, exact one_smul _ _ },
+      right_inv := λ f, by { ext,  exact one_smul _ _, } })
+  triv_sq_zero_ext.lift
 
 /- When applied to `eps` itself, `lift` is the identity. -/
 @[simp]
-lemma lift_aux_eps : lift_aux eps (by exact eps_mul_eps) = alg_hom.id R 𝔻[R] :=
-alg_hom_ext $ lift_aux_apply_eps _ _
+lemma lift_apply_eps (e : {e : A // e * e = 0}) : lift e (eps : 𝔻[R]) = e :=
+(triv_sq_zero_ext.lift_aux_apply_inr _ _ _).trans $ one_smul _ _
+
+/- When applied to `eps` itself, `lift` is the identity. -/
+@[simp]
+lemma lift_eps : lift ⟨eps, by exact eps_mul_eps⟩ = alg_hom.id R 𝔻[R] :=
+alg_hom_ext $ lift_apply_eps _
 
 end dual_number

@@ -217,6 +217,18 @@ inl_fst_add_inr_snd_eq x ▸ h x.1 x.2
 def inr_hom [semiring R] [add_comm_monoid M] [module R M] : M →ₗ[R] tsze R M :=
 { to_fun := inr, ..linear_map.inr _ _ _ }
 
+/-- The canonical `R`-module projection `triv_sq_zero_ext R M → M`. -/
+@[simps apply]
+def snd_hom [semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₗ[R] M :=
+{ to_fun := snd, ..linear_map.snd _ _ _ }
+
+@[ext]
+lemma linear_map_ext {N} [semiring S] [add_comm_monoid R] [add_comm_monoid M] [add_comm_monoid N]
+  [module S R] [module S M] [module S N] ⦃f g : tsze R M →ₗ[S] N⦄
+  (hl : ∀ r, f (inl r) = g (inl r)) (hr : ∀ m, f (inr m) = g (inr m)) :
+  f = g :=
+linear_map.prod_ext (linear_map.ext hl) (linear_map.ext hr)
+
 end additive
 
 /-! ### Multiplicative structure -/
@@ -319,20 +331,15 @@ def inl_hom [semiring R] [add_comm_monoid M] [module R M] : R →+* tsze R M :=
   map_zero' := inl_zero M,
   map_add' := inl_add M }
 
-@[ext]
-lemma linear_map_ext {N} [semiring R] [add_comm_monoid M] [add_comm_monoid N] [module R M]
-  [module R N] ⦃f g : tsze R M →ₗ[R] N⦄
-  (hl : ∀ r, f (inl r) = g (inl r)) (hr : ∀ m, f (inr m) = g (inr m)) :
-  f = g :=
-linear_map.prod_ext (linear_map.ext hl) (linear_map.ext hr)
-
 end mul
 
 section algebra
 variables (S : Type*) (R : Type u) (M : Type v)
 
-instance algebra' [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
-  [algebra S R] [module S M] [module R M] [is_scalar_tower S R M] : algebra S (tsze R M) :=
+variables [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
+variables [algebra S R] [module S M] [module R M] [is_scalar_tower S R M]
+
+instance algebra' : algebra S (tsze R M) :=
 { commutes' := λ r x, mul_comm _ _,
   smul_def' := λ r x, ext (algebra.smul_def _ _) $
     show r • x.2 = algebra_map S R r • x.2 + x.1 • 0, by rw [smul_zero, add_zero, algebra_map_smul],
@@ -340,12 +347,12 @@ instance algebra' [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
 instance [comm_semiring R] [add_comm_monoid M] [module R M] : algebra R (tsze R M) :=
 triv_sq_zero_ext.algebra' _ _ _
 
-lemma algebra_map_eq_inl [comm_semiring R] [add_comm_monoid M] [module R M] :
-  ⇑(algebra_map R (tsze R M)) = inl := rfl
+lemma algebra_map_eq_inl : ⇑(algebra_map R (tsze R M)) = inl := rfl
+lemma algebra_map_eq_inl' (s : S) : algebra_map S (tsze R M) s = inl (algebra_map S R s) := rfl
 
 /-- The canonical `R`-algebra projection `triv_sq_zero_ext R M → R`. -/
 @[simps]
-def fst_hom [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₐ[R] R :=
+def fst_hom : tsze R M →ₐ[R] R :=
 { to_fun := fst,
   map_one' := fst_one,
   map_mul' := fst_mul,
@@ -353,18 +360,13 @@ def fst_hom [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₐ
   map_add' := fst_add,
   commutes' := fst_inl }
 
-/-- The canonical `R`-module projection `triv_sq_zero_ext R M → M`. -/
-@[simps apply]
-def snd_hom [semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₗ[R] M :=
-{ to_fun := snd, ..linear_map.snd _ _ _ }
 
 variables {R S M}
 
-lemma alg_hom_ext {A} [comm_semiring R] [add_comm_monoid M] [semiring A] [module R M]
-  [algebra R A] ⦃f g : tsze R M →ₐ[R] A⦄ (h : ∀ m, f (inr m) = g (inr m)) :
+lemma alg_hom_ext {A} [semiring A] [algebra R A] ⦃f g : tsze R M →ₐ[R] A⦄
+  (h : ∀ m, f (inr m) = g (inr m)) :
   f = g :=
-alg_hom.to_linear_map_injective $
-  linear_map_ext (λ r, (f.commutes _).trans (g.commutes _).symm) h
+alg_hom.to_linear_map_injective $ linear_map_ext (λ r, (f.commutes _).trans (g.commutes _).symm) h
 
 @[ext]
 lemma alg_hom_ext' {A} [comm_semiring R] [add_comm_monoid M] [semiring A] [module R M]
@@ -372,6 +374,45 @@ lemma alg_hom_ext' {A} [comm_semiring R] [add_comm_monoid M] [semiring A] [modul
   ⦃f g : tsze R M →ₐ[R] A⦄ (h : f.to_linear_map.comp inr_hom = g.to_linear_map.comp inr_hom) :
   f = g :=
 alg_hom_ext $ linear_map.congr_fun h
+
+variables {A : Type*} [semiring A] [algebra R A]
+
+/-- There is an alg_hom from the trivial square zero extension to any `R`-algebra with an subalgebra
+that squares to zero.
+
+See `triv_sq_zero_ext.lift` for this as an equiv. -/
+def lift_aux (f : M →ₗ[R] A) (hf : ∀ x y, f x * f y = 0) : tsze R M →ₐ[R] A :=
+alg_hom.of_linear_map
+  ((algebra.linear_map _ _).comp (triv_sq_zero_ext.fst_hom R M).to_linear_map
+    + f.comp (triv_sq_zero_ext.snd_hom))
+  (show algebra_map R _ 1 + f (0 : M) = 1, by rw [map_zero, map_one, add_zero])
+  (triv_sq_zero_ext.ind $ λ r₁ m₁, triv_sq_zero_ext.ind $ λ r₂ m₂, begin
+    dsimp [triv_sq_zero_ext.fst_hom],
+    simp only [add_zero, zero_add, add_mul, mul_add, smul_mul_smul, hf, smul_zero],
+    rw [←ring_hom.map_mul, linear_map.map_add, ←algebra.commutes _ (f _), ←algebra.smul_def,
+        ←algebra.smul_def, add_right_comm, add_assoc, linear_map.map_smul, linear_map.map_smul],
+  end)
+
+@[simp] lemma lift_aux_apply_inr (f : M →ₗ[R] A) (hf : ∀ x y, f x * f y = 0) (m : M) :
+  lift_aux f hf (inr m) = f m :=
+show algebra_map R A 0 + f m = f m, by rw [ring_hom.map_zero, zero_add]
+
+/-- A universal property of the dual numbers, providing a unique `𝔻[R] →ₐ[R] A` for every element
+of `A` which squares to `-1`.
+
+This isomorphism is named to match the very similar `complex.lift`. -/
+@[simps]
+def lift : {f : M →ₗ[R] A // ∀ x y, f x * f y = 0} ≃ (tsze R M →ₐ[R] A) :=
+{ to_fun := λ f, lift_aux f f.prop,
+  inv_fun := λ F, ⟨F.to_linear_map.comp inr_hom, λ x y, (F.map_mul _ _).symm.trans $ (F.congr_arg $ inr_mul_inr _ _ _).trans F.map_zero⟩,
+  left_inv := λ f, by { ext, exact lift_aux_apply_inr _ f.prop _ },
+  right_inv := λ F, by { ext, dsimp, exact lift_aux_apply_inr _ _ _, } }
+
+/- When applied to `inr` itself, `lift` is the identity. -/
+@[simp]
+lemma lift_aux_inr_hom :
+  lift_aux (inr_hom : _ →ₗ[R] tsze R M) (inr_mul_inr R) = alg_hom.id R (tsze R M):=
+alg_hom_ext $ lift_aux_apply_inr _ _
 
 end algebra
 

@@ -224,12 +224,12 @@ category_theory.Sheaf.category_theory.Sheaf_to_presheaf.category_theory.creates_
 variables [concrete_category.{v₁} A] [preserves_limits (forget A)] [has_colimits A] [has_limits A]
 variables [preserves_filtered_colimits (forget A)] [reflects_isomorphisms (forget A)]
 
+local attribute [instance] reflects_limits_of_reflects_isomorphisms
+
 instance {X : C} : is_cofiltered (J.cover X) := infer_instance
 
 @[simps] def sites.pushforward (G : C ⥤ D) : Sheaf J A ⥤ Sheaf K A :=
   Sheaf_to_presheaf J A ⋙ Lan G.op ⋙ presheaf_to_Sheaf K A
-
-section end
 
 instance (G : C ⥤ D) [representably_flat G] :
   preserves_finite_limits (sites.pushforward A J K G) :=
@@ -237,6 +237,7 @@ begin
   apply_with comp_preserves_finite_limits { instances := ff },
   apply_instance,
   apply_with comp_preserves_finite_limits { instances := ff },
+  apply category_theory.Lan_preserves_finite_limits_of_flat,
   apply_instance,
   -- suffices : preserves_finite_limits (Lan G.op : _),
   -- { resetI, apply_instance },

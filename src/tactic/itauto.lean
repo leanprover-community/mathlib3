@@ -562,6 +562,9 @@ tactic never uses the law of excluded middle, and the proof search is tailored f
 ```lean
 example (p : Prop) : ¬ (p ↔ ¬ p) := by itauto
 ```
+
+Using `itauto!` allows the use of LEM in proofs, which turns this into a complete decision
+procedure for classical propositional logic. It still uses intuitionistic rules when it can.
 -/
 meta def itauto (dec : parse (tk "!")?) : tactic unit :=
 using_new_ref mk_buffer $ λ atoms,

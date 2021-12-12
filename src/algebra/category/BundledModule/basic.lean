@@ -7,8 +7,6 @@ import algebra.category.Module.basic
 import algebra.category.CommRing.basic
 import category_theory.category.basic
 
-open category_theory
-
 /-!
 # The category of bundled module
 
@@ -17,6 +15,8 @@ a ring in universe u and `M` is an `R`-module. A morphism between `M1 = (R, M)`
 and `M2 = (S, N)` is a pair of morphism `(f, g)` where `f : R ⟶ S` is a ring
 homomorphism and `g : M ⟶ f* N` is a module homomorphism (linear map).
 -/
+
+open category_theory
 
 section restriction_of_scalars
 
@@ -106,7 +106,7 @@ def restriction_of_scalar.bundled : BundledModule :=
 local notation f `*` M2 := restriction_of_scalar.bundled f
 
 @[simp] lemma restriction_of_scalar.R :
-  (f * M2).R = M1.R := rfl
+  (f* M2).R = M1.R := rfl
 
 @[simp] lemma restriction_of_scalar.M :
   (f* M2).M = restriction_of_scalar.module f M2.M := rfl
@@ -150,3 +150,17 @@ def BundledModule.forget : BundledModule ⥤ Ring :=
   map := λ M1 M2 f, f.1 }
 
 end BundledModule
+
+section composition
+
+universe u
+variables {M1 M2 M3 : BundledModule.{u}} (f : M1.R ⟶ M2.R) (g : M2.R ⟶ M3.R)
+include f g
+
+lemma restriction_of_scalar.restrict_comp :
+  restriction_of_scalar.bundled (f ≫ g) ≅
+  @restriction_of_scalar.bundled M1 (@restriction_of_scalar.bundled M2 M3 g) f :=
+{ hom := ⟨𝟙 _, 𝟙 _⟩,
+  inv := ⟨𝟙 _, 𝟙 _⟩ }
+
+end composition

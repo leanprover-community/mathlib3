@@ -43,6 +43,7 @@ class is_reduced : Prop :=
 
 attribute [instance] is_reduced.component_reduced
 
+@[priority 900]
 instance is_reduced_of_is_integral [is_integral X] : is_reduced X :=
 begin
   constructor,

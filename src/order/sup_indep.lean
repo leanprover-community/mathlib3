@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.lattice
-import data.set.pairwise
 
 /-!
 # Finite supremum independence

@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Andrew Yang. All rights reserved.
+Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
@@ -15,8 +15,12 @@ import category_theory.limits.preserves.limits
 /-!
 # Constructions of (co)limits in CommRing
 
-In this file we prove that tensor product is indeed the fibered coproduct in `CommRing`, and
-provide the explicit pushout cocone.
+In this file we provide the explicit (co)cones for various (co)limits in `CommRing`, including
+* tensor product is the pushout
+* `Z` is the initial object
+* `0` is the strict terminal object
+* cartesian product is the product
+* `ring_hom.eq_locus` is the equalizer
 
 -/
 
@@ -42,8 +46,8 @@ begin
   show B ⟶ _,  from algebra.tensor_product.include_right.to_ring_hom,
   ext r,
   transitivity algebra_map R (A ⊗[R] B) r,
-  exact algebra.tensor_product.include_left.commutes r,
-  exact (algebra.tensor_product.include_right.commutes r).symm,
+  { exact algebra.tensor_product.include_left.commutes r },
+  { exact (algebra.tensor_product.include_right.commutes r).symm }
 end
 
 @[simp]
@@ -98,7 +102,8 @@ end pushout
 
 section terminal
 
-lemma punit_is_terminal : is_terminal (CommRing.of punit) :=
+/-- The trivial ring is the (strict) terminal object of `CommRing`. -/
+def punit_is_terminal : is_terminal (CommRing.of.{u} punit) :=
 begin
   apply_with is_terminal.of_unique { instances := ff },
   tidy
@@ -116,7 +121,8 @@ begin
   exact e,
 end
 
-lemma Z_is_initial : is_initial (CommRing.of ℤ) :=
+/-- `ℤ` is the initial object of `CommRing`. -/
+def Z_is_initial : is_initial (CommRing.of ℤ) :=
 begin
   apply_with is_initial.of_unique { instances := ff },
   exact λ R, ⟨⟨int.cast_ring_hom R⟩, λ a, a.ext_int _⟩,
@@ -124,13 +130,33 @@ end
 
 end terminal
 
+section product
+
+variables (A B : CommRing.{u})
+
+/-- The product in `CommRing` is the cartesian product. This is the binary fan. -/
+@[simps X]
+def prod_fan : binary_fan A B :=
+binary_fan.mk (CommRing.of_hom $ ring_hom.fst A B) (CommRing.of_hom $ ring_hom.snd A B)
+
+/-- The product in `CommRing` is the cartesian product. -/
+def prod_fan_is_limit : is_limit (prod_fan A B) :=
+{ lift := λ c, ring_hom.prod (c.π.app walking_pair.left) (c.π.app walking_pair.right),
+  fac' := λ c j, by { ext, cases j; simpa [of_hom] },
+  uniq' := λ s m h, by { ext, { simpa using congr_hom (h walking_pair.left) x },
+    { simpa using congr_hom (h walking_pair.right) x } } }
+
+end product
+
 section equalizer
 
 variables {A B : CommRing.{u}} (f g : A ⟶ B)
 
+/-- The equalizer in `CommRing` is the equalizer as sets. This is the equalizer fork. -/
 def equalizer_fork : fork f g :=
 fork.of_ι (CommRing.of_hom (ring_hom.eq_locus f g).subtype) (by { ext ⟨x, e⟩, simpa using e })
 
+/-- The equalizer in `CommRing` is the equalizer as sets. -/
 def equalizer_fork_is_limit : is_limit (equalizer_fork f g) :=
 begin
   fapply fork.is_limit.mk',

@@ -179,8 +179,8 @@ instance is_local_ring_hom_comp [semiring R] [semiring S] [semiring T]
 { map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
 
 instance _root_.CommRing.is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T)
-  [is_local_ring_hom f] [is_local_ring_hom g] : is_local_ring_hom (f ≫ g) :=
-is_local_ring_hom_comp _ _
+  [is_local_ring_hom g] [is_local_ring_hom f] :
+  is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
 
 instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
   is_local_ring_hom f.to_ring_hom :=

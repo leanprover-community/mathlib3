@@ -229,9 +229,9 @@ Auxiliary definition for `PresheafedSpace.colimit_cocone_is_colimit`.
 -/
 def desc (F : J ⥤ PresheafedSpace C) (s : cocone F) : colimit F ⟶ s.X :=
 { base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
-    c :=
-    { app := λ U, desc_c_app F s U,
-      naturality' := λ U V i, desc_c_naturality F s i } }
+  c :=
+  { app := λ U, desc_c_app F s U,
+    naturality' := λ U V i, desc_c_naturality F s i } }
 
 lemma desc_fac  (F : J ⥤ PresheafedSpace C) (s : cocone F) (j : J) :
   (colimit_cocone F).ι.app j ≫ desc F s = s.ι.app j :=

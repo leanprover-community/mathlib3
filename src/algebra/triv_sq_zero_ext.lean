@@ -204,6 +204,14 @@ lemma inl_fst_add_inr_snd_eq [add_zero_class R] [add_zero_class M] (x : tsze R M
   inl x.fst + inr x.snd = x :=
 ext (add_zero x.1) (zero_add x.2)
 
+/-- To show a property hold on all `triv_sq_zero_ext R M` it suffices to show it holds
+on terms of the form `inl r + inr m`.
+
+This can be used as `induction x using triv_sq_zero_ext.ind`. -/
+lemma ind {R M} [add_monoid R] [add_monoid M] {P : triv_sq_zero_ext R M → Prop}
+  (h : ∀ r m, P (inl r + inr m)) (x) : P x :=
+inl_fst_add_inr_snd_eq x ▸ h x.1 x.2
+
 /-- The canonical `R`-linear inclusion `M → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inr_hom [semiring R] [add_comm_monoid M] [module R M] : M →ₗ[R] tsze R M :=
@@ -311,6 +319,13 @@ def inl_hom [semiring R] [add_comm_monoid M] [module R M] : R →+* tsze R M :=
   map_zero' := inl_zero M,
   map_add' := inl_add M }
 
+@[ext]
+lemma linear_map_ext {N} [semiring R] [add_comm_monoid M] [add_comm_monoid N] [module R M]
+  [module R N] ⦃f g : tsze R M →ₗ[R] N⦄
+  (hl : ∀ r, f (inl r) = g (inl r)) (hr : ∀ m, f (inr m) = g (inr m)) :
+  f = g :=
+linear_map.prod_ext (linear_map.ext hl) (linear_map.ext hr)
+
 end mul
 
 section algebra
@@ -324,6 +339,9 @@ instance algebra' [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
   .. triv_sq_zero_ext.inl_hom.comp (algebra_map S R) }
 instance [comm_semiring R] [add_comm_monoid M] [module R M] : algebra R (tsze R M) :=
 triv_sq_zero_ext.algebra' _ _ _
+
+lemma algebra_map_eq_inl [comm_semiring R] [add_comm_monoid M] [module R M] :
+  ⇑(algebra_map R (tsze R M)) = inl := rfl
 
 /-- The canonical `R`-algebra projection `triv_sq_zero_ext R M → R`. -/
 @[simps]
@@ -339,6 +357,21 @@ def fst_hom [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₐ
 @[simps apply]
 def snd_hom [semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₗ[R] M :=
 { to_fun := snd, ..linear_map.snd _ _ _ }
+
+variables {R S M}
+
+lemma alg_hom_ext {A} [comm_semiring R] [add_comm_monoid M] [semiring A] [module R M]
+  [algebra R A] ⦃f g : tsze R M →ₐ[R] A⦄ (h : ∀ m, f (inr m) = g (inr m)) :
+  f = g :=
+alg_hom.to_linear_map_injective $
+  linear_map_ext (λ r, (f.commutes _).trans (g.commutes _).symm) h
+
+@[ext]
+lemma alg_hom_ext' {A} [comm_semiring R] [add_comm_monoid M] [semiring A] [module R M]
+  [algebra R A]
+  ⦃f g : tsze R M →ₐ[R] A⦄ (h : f.to_linear_map.comp inr_hom = g.to_linear_map.comp inr_hom) :
+  f = g :=
+alg_hom_ext $ linear_map.congr_fun h
 
 end algebra
 

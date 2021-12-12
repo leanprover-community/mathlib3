@@ -398,7 +398,7 @@ theorem chain.max_chain_of_chain {α r} {c : set α} (hc : zorn.chain r c) :
   ∃ M, @zorn.is_max_chain _ r M ∧ c ⊆ M :=
 begin
   obtain ⟨M, ⟨_, hM₀⟩, hM₁, hM₂⟩ :=
-    zorn.zorn_subset_nonempty {s | c ⊆ s ∧ zorn.chain r s} _ c ⟨rfl.subset, hc⟩,
+    zorn.zorn_subset_nonempty {s | c ⊆ s ∧ zorn.chain r s} _ c ⟨subset.rfl, hc⟩,
   { refine ⟨M, ⟨hM₀, _⟩, hM₁⟩,
     rintro ⟨d, hd, hMd, hdM⟩,
     exact hdM (hM₂ _ ⟨hM₁.trans hMd, hd⟩ hMd).le },

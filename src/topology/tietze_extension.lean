@@ -144,13 +144,19 @@ end
 set. If `f` is a bounded continuous real-valued function defined on a closed set in a normal
 topological space, then it can be extended to a bounded continuous function of the same norm defined
 on the whole space. -/
-lemma exists_norm_eq_restrict_eq_of_closed {s : set Y} (hs : is_closed s) (f : s →ᵇ ℝ) :
+lemma exists_norm_eq_restrict_eq_of_closed {s : set Y} (f : s →ᵇ ℝ) (hs : is_closed s) :
   ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g.restrict s = f :=
 exists_extension_norm_eq_of_closed_embedding' f (continuous_map.id.restrict s)
   (closed_embedding_subtype_coe hs)
 
 /-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
-embedding and a bounded continuous function that takes values in a non-trivial interval. -/
+embedding and a bounded continuous function that takes values in a non-trivial closed interval.
+See also `exists_extension_forall_mem_of_closed_embedding` for a more general statement that works
+for any interval (finite or infinite, open or closed).
+
+If `e : X → Y` is a closed embedding and `f : X →ᵇ ℝ` is a bounded continuous function such that
+`f x ∈ [a, b]` for all `x`, where `a ≤ b`, then there exists a bounded continuous function
+`g : Y →ᵇ ℝ` such that `g y ∈ [a, b]` for all `y` and `g ∘ e = f`. -/
 lemma exists_extension_forall_mem_Icc_of_closed_embedding (f : X →ᵇ ℝ) {a b : ℝ} {e : X → Y}
   (hf : ∀ x, f x ∈ Icc a b) (hle : a ≤ b) (he : closed_embedding e) :
   ∃ g : Y →ᵇ ℝ, (∀ y, g y ∈ Icc a b) ∧ g ∘ e = f :=
@@ -168,6 +174,11 @@ begin
     simp [this] }
 end
 
+/-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
+embedding. Let `e` be a closed embedding of a nonempty topological space `X` into a normal
+topological space `Y`. Let `f` be a bounded continuous real-valued function on `X`. Then there
+exists a bounded continuous function `g : Y →ᵇ ℝ` such that `g ∘ e = f` and each value `g y` belongs
+to a closed interval `[f x₁, f x₂]` for some `x₁` and `x₂`.  -/
 lemma exists_extension_forall_exists_le_ge_of_closed_embedding [nonempty X] (f : X →ᵇ ℝ) {e : X → Y}
   (he : closed_embedding e) :
   ∃ g : Y →ᵇ ℝ, (∀ y, ∃ x₁ x₂, g y ∈ Icc (f x₁) (f x₂)) ∧ g ∘ e = f :=
@@ -178,15 +189,22 @@ begin
     from ⟨_, is_glb_cinfi (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).1⟩,
   obtain ⟨b, hb⟩ : ∃ b, is_lub (range f) b,
     from ⟨_, is_lub_csupr (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).2⟩,
+  -- Then `f x ∈ [a, b]` for all `x`
   have hmem : ∀ x, f x ∈ Icc a b, from λ x, ⟨ha.1 ⟨x, rfl⟩, hb.1 ⟨x, rfl⟩⟩,
+  -- Rule out the trivial case `a = b`
   have hle : a ≤ b := (hmem (default X)).1.trans (hmem (default X)).2,
   rcases hle.eq_or_lt with (rfl|hlt),
   { have : ∀ x, f x = a, by simpa using hmem,
     use const Y a, simp [this, function.funext_iff] },
+  -- Put `c = (a + b) / 2`. Then `a < c < b` and `c - a = b - c`.
   set c := (a + b) / 2,
   have hac : a < c := left_lt_add_div_two.2 hlt,
   have hcb : c < b := add_div_two_lt_right.2 hlt,
   have hsub : c - a = b - c, by { simp only [c], field_simp, ring },
+  /- Due to `exists_extension_forall_mem_Icc_of_closed_embedding`, there exists an extension `g`
+  such that `g y ∈ [a, b]` for all `y`. However, if `a` and/or `b` do not belong to the range of
+  `f`, then we need to ensure that these points do not belong to the range of `g`. This is done
+  in two almost identical steps. First we deal with the case `∀ x, f x ≠ a`. -/
   obtain ⟨g, hg_mem, hgf⟩ : ∃ g : Y →ᵇ ℝ, (∀ y, ∃ x, g y ∈ Icc (f x) b) ∧ g ∘ e = f,
   { rcases exists_extension_forall_mem_Icc_of_closed_embedding f hmem hle he
       with ⟨g, hg_mem, hgf⟩,
@@ -216,6 +234,7 @@ begin
       { simp [dg0 (or.inr hc), (hg_mem y).2] },
       { calc g y + dg y ≤ c + (c - a) : add_le_add hc (dgmem _).2
                     ... = b           : by rw [hsub, add_sub_cancel'_right] } } },
+  /- Now we deal with the case `∀ x, f x ≠ b`. -/
   choose xl hxl hgb using hg_mem,
   rcases em (∃ x, f x = b) with ⟨x, rfl⟩|hb',
   { exact ⟨g, λ y, ⟨xl y, x, hxl y, hgb y⟩, hgf⟩ },
@@ -253,6 +272,13 @@ begin
       simp [dg0 (or.inr hc), hxl] } },
 end
 
+/-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
+embedding. Let `e` be a closed embedding of a nonempty topological space `X` into a normal
+topological space `Y`. Let `f` be a bounded continuous real-valued function on `X`. Let `s` be
+a nonempty convex set of real numbers (we use `ord_connected` instead of `convex` to automatically
+deduce this argument by typeclass search) such that `f x ∈ s` for all `x`. Then there exists
+a bounded continuous real-valued function `g : Y →ᵇ ℝ` such that `g y ∈ s` for all `y` and
+`g ∘ e = f`. -/
 lemma exists_extension_forall_mem_of_closed_embedding (f : X →ᵇ ℝ) {s : set ℝ} {e : X → Y}
   [hs : ord_connected s] (hf : ∀ x, f x ∈ s) (hne : s.nonempty) (he : closed_embedding e) :
   ∃ g : Y →ᵇ ℝ, (∀ y, g y ∈ s) ∧ g ∘ e = f :=
@@ -266,10 +292,31 @@ begin
   exact hs.out (hf _) (hf _) h
 end
 
+/-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
+set. Let `s` be a closed set in a normal topological space `Y`. Let `f` be a bounded continuous
+real-valued function on `s`. Let `t` be a nonempty convex set of real numbers (we use
+`ord_connected` instead of `convex` to automatically deduce this argument by typeclass search) such
+that `f x ∈ t` for all `x : s`. Then there exists a bounded continuous real-valued function
+`g : Y →ᵇ ℝ` such that `g y ∈ t` for all `y` and `g.restrict s = f`. -/
+lemma exists_forall_mem_restrict_eq_of_closed {s : set Y} (f : s →ᵇ ℝ) (hs : is_closed s)
+  {t : set ℝ} [ord_connected t] (hf : ∀ x, f x ∈ t) (hne : t.nonempty) :
+  ∃ g : Y →ᵇ ℝ, (∀ y, g y ∈ t) ∧ g.restrict s = f :=
+begin
+  rcases exists_extension_forall_mem_of_closed_embedding f hf hne (closed_embedding_subtype_coe hs)
+    with ⟨g, hg, hgf⟩,
+  exact ⟨g, hg, coe_injective hgf⟩
+end
+
 end bounded_continuous_function
 
 namespace continuous_map
 
+/-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed
+embedding. Let `e` be a closed embedding of a nonempty topological space `X` into a normal
+topological space `Y`. Let `f` be a continuous real-valued function on `X`. Let `s` be a nonempty
+convex set of real numbers (we use `ord_connected` instead of `convex` to automatically deduce this
+argument by typeclass search) such that `f x ∈ s` for all `x`. Then there exists a continuous
+real-valued function `g : C(Y, ℝ)` such that `g y ∈ s` for all `y` and `g ∘ e = f`. -/
 lemma exists_extension_forall_mem_of_closed_embedding (f : C(X, ℝ)) {s : set ℝ} {e : X → Y}
   [hs : ord_connected s] (hf : ∀ x, f x ∈ s) (hne : s.nonempty) (he : closed_embedding e) :
   ∃ g : C(Y, ℝ), (∀ y, g y ∈ s) ∧ g ∘ e = f :=
@@ -302,11 +349,21 @@ begin
   { ext x, exact hgG.2 (congr_fun hGF _) }
 end
 
+/-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed
+embedding. Let `e` be a closed embedding of a nonempty topological space `X` into a normal
+topological space `Y`. Let `f` be a continuous real-valued function on `X`. Then there exists a
+continuous real-valued function `g : C(Y, ℝ)` such that `g ∘ e = f`. -/
 lemma exists_extension_of_closed_embedding (f : C(X, ℝ)) (e : X → Y) (he : closed_embedding e) :
   ∃ g : C(Y, ℝ), g ∘ e = f :=
 (exists_extension_forall_mem_of_closed_embedding f (λ x, mem_univ _) univ_nonempty he).imp $
   λ g, and.right
 
+/-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed set. Let
+`s` be a closed set in a normal topological space `Y`. Let `f` be a continuous real-valued function
+on `s`. Let `t` be a nonempty convex set of real numbers (we use `ord_connected` instead of `convex`
+to automatically deduce this argument by typeclass search) such that `f x ∈ t` for all `x : s`. Then
+there exists a continuous real-valued function `g : C(Y, ℝ)` such that `g y ∈ t` for all `y` and
+`g.restrict s = f`. -/
 lemma exists_restrict_eq_forall_mem_of_closed {s : set Y} (f : C(s, ℝ)) {t : set ℝ}
   [ord_connected t] (ht : ∀ x, f x ∈ t) (hne : t.nonempty) (hs : is_closed s) :
   ∃ g : C(Y, ℝ), (∀ y, g y ∈ t) ∧ g.restrict s = f :=
@@ -314,6 +371,10 @@ let ⟨g, hgt, hgf⟩ := exists_extension_forall_mem_of_closed_embedding f ht hn
   (closed_embedding_subtype_coe hs)
 in ⟨g, hgt, coe_inj hgf⟩
   
+/-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed set. Let
+`s` be a closed set in a normal topological space `Y`. Let `f` be a continuous real-valued function
+on `s`. Then there exists a continuous real-valued function `g : C(Y, ℝ)` such that
+`g.restrict s = f`. -/
 lemma exists_restrict_eq_of_closed {s : set Y} (f : C(s, ℝ)) (hs : is_closed s) :
   ∃ g : C(Y, ℝ), g.restrict s = f :=
 let ⟨g, hg, hgf⟩ := exists_restrict_eq_forall_mem_of_closed f (λ _, mem_univ _) univ_nonempty hs

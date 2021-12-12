@@ -357,7 +357,7 @@ end
 
 /-- Given a basis, an orientation equals the negation of that given by that basis if and only
 if it does not equal that given by that basis. -/
-lemma orientation_ne_iff_eq_neg (e : basis ι R M) (x : orientation R M ι) [no_zero_smul_divisors R (alternating_map R M R ι)] :
+lemma orientation_ne_iff_eq_neg (e : basis ι R M) (x : orientation R M ι) :
   x ≠ e.orientation ↔ x = -e.orientation :=
 ⟨λ h, (e.orientation_eq_or_eq_neg x).resolve_left h,
  λ h, h.symm ▸ (module.ray.ne_neg_self e.orientation).symm⟩

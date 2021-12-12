@@ -66,7 +66,7 @@ begin
   obtain ⟨m, hm⟩ := this,
   apply m.prop,
   refine hp₂ _,
-  erw submodule.mem_annihilator_span_singleton (⟨x, trivial⟩ : (⊤ : ideal R)) (m : R),
+  erw submodule.mem_annihilator_span_singleton,
   rwa mul_comm at hm,
 end
 

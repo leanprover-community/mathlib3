@@ -56,10 +56,6 @@ begin
   simp
 end
 
-lemma fintype.trop_sum [add_comm_monoid R] [fintype S] (f : S → R) :
-  trop (∑ i : S, f i) = ∏ i : S, trop (f i) :=
-trop_sum _ _
-
 lemma list.untrop_prod [add_monoid R] (l : list (tropical R)) :
   untrop l.prod = list.sum (l.map untrop) :=
 begin
@@ -79,10 +75,6 @@ begin
   convert multiset.untrop_prod _,
   simp
 end
-
-lemma fintype.untrop_prod [add_comm_monoid R] [fintype S] (f : S → tropical R) :
-  untrop (∏ i : S, f i) = ∑ i : S, untrop (f i) :=
-untrop_prod _ _
 
 lemma list.trop_minimum [linear_order R] (l : list R) :
   trop l.minimum = list.sum (l.map (trop ∘ coe)) :=

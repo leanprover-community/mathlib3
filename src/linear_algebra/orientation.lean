@@ -186,7 +186,7 @@ end action
 namespace module.ray
 
 /-- Scaling by a positive unit is a no-op. -/
-lemma unit_smul_of_pos [nontrivial R] (u : units R) (hu : 0 < (u : R)) (v : module.ray R M) :
+lemma units_smul_of_pos [nontrivial R] (u : units R) (hu : 0 < (u : R)) (v : module.ray R M) :
   u • v = v :=
 begin
   induction v using module.ray.ind,
@@ -298,7 +298,7 @@ begin
 end
 
 /-- Scaling by a negative unit is negation. -/
-lemma unit_smul_of_neg [nontrivial R] (u : units R) (hu : (u : R) < 0) (v : module.ray R M) :
+lemma units_smul_of_neg [nontrivial R] (u : units R) (hu : (u : R) < 0) (v : module.ray R M) :
   u • v = -v :=
 begin
   induction v using module.ray.ind,
@@ -334,9 +334,12 @@ begin
   exact same_ray_pos_smul_left _ hr,
 end
 
+section
+variables [no_zero_smul_divisors R M]
+
 /-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
 is positive. -/
-@[simp] lemma same_ray_smul_right_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0) (r : R) :
+@[simp] lemma same_ray_smul_right_iff {v : M} (hv : v ≠ 0) (r : R) :
   same_ray R v (r • v) ↔ 0 < r :=
 begin
   split,
@@ -352,7 +355,7 @@ end
 
 /-- A multiple of a nonzero vector is in the same ray as that vector if and only if that multiple
 is positive. -/
-@[simp] lemma same_ray_smul_left_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0) (r : R) :
+@[simp] lemma same_ray_smul_left_iff {v : M} (hv : v ≠ 0) (r : R) :
   same_ray R (r • v) v ↔ 0 < r :=
 begin
   rw (symmetric_same_ray R M).iff,
@@ -361,8 +364,8 @@ end
 
 /-- The negation of a nonzero vector is in the same ray as a multiple of that vector if and
 only if that multiple is negative. -/
-@[simp] lemma same_ray_neg_smul_right_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0)
-  (r : R) : same_ray R (-v) (r • v) ↔ r < 0 :=
+@[simp] lemma same_ray_neg_smul_right_iff {v : M} (hv : v ≠ 0) (r : R) :
+  same_ray R (-v) (r • v) ↔ r < 0 :=
 begin
   rw [←same_ray_neg_iff, neg_neg, ←neg_smul, same_ray_smul_right_iff hv (-r)],
   exact right.neg_pos_iff
@@ -370,11 +373,33 @@ end
 
 /-- A multiple of a nonzero vector is in the same ray as the negation of that vector if and
 only if that multiple is negative. -/
-@[simp] lemma same_ray_neg_smul_left_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0)
-  (r : R) : same_ray R (r • v) (-v) ↔ r < 0 :=
+@[simp] lemma same_ray_neg_smul_left_iff {v : M} (hv : v ≠ 0) (r : R) :
+  same_ray R (r • v) (-v) ↔ r < 0 :=
 begin
   rw [←same_ray_neg_iff, neg_neg, ←neg_smul, same_ray_smul_left_iff hv (-r)],
   exact left.neg_pos_iff
+end
+
+/-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
+is positive. -/
+@[simp] lemma units_smul_eq_self_iff {u : units R} {v : module.ray R M} :
+  u • v = v ↔ (0 : R) < u :=
+begin
+  induction v using module.ray.ind with v hv,
+  rw [smul_ray_of_ne_zero, ray_eq_iff, units.smul_def],
+  exact same_ray_smul_left_iff hv _,
+end
+
+/-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
+is positive. -/
+@[simp] lemma units_smul_eq_neg_iff {u : units R} {v : module.ray R M} :
+  u • v = -v ↔ ↑u < (0 : R) :=
+begin
+  induction v using module.ray.ind with v hv,
+  rw [smul_ray_of_ne_zero, ←ray_neg, ray_eq_iff, units.smul_def],
+  exact same_ray_neg_smul_left_iff hv _,
+end
+
 end
 
 namespace basis

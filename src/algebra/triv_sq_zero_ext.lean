@@ -66,16 +66,23 @@ x.2
 @[ext] lemma ext {x y : tsze R M} (h1 : x.fst = y.fst) (h2 : x.snd = y.snd) : x = y :=
 prod.ext h1 h2
 
+section
+variables (M)
 @[simp] lemma fst_inl [has_zero M] (r : R) : (inl r : tsze R M).fst = r := rfl
 @[simp] lemma snd_inl [has_zero M] (r : R) : (inl r : tsze R M).snd = 0 := rfl
+end
+
+section
+variables (R)
 @[simp] lemma fst_inr [has_zero R] (m : M) : (inr m : tsze R M).fst = 0 := rfl
 @[simp] lemma snd_inr [has_zero R] (m : M) : (inr m : tsze R M).snd = m := rfl
+end
 
 lemma inl_injective [has_zero M] : function.injective (inl : R → tsze R M) :=
-function.left_inverse.injective fst_inl
+function.left_inverse.injective $ fst_inl _
 
 lemma inr_injective [has_zero R] : function.injective (inr : M → tsze R M) :=
-function.left_inverse.injective snd_inr
+function.left_inverse.injective $ snd_inr _
 
 end basic
 
@@ -211,6 +218,11 @@ variables (R M)
 def inr_hom [semiring R] [add_comm_monoid M] [module R M] : M →ₗ[R] tsze R M :=
 { to_fun := inr, ..linear_map.inr _ _ _ }
 
+/-- The canonical `R`-linear projection `triv_sq_zero_ext R M → M`. -/
+@[simps apply]
+def snd_hom [semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₗ[R] M :=
+{ to_fun := snd, ..linear_map.snd _ _ _ }
+
 end additive
 
 /-! ### Multiplicative structure -/
@@ -319,30 +331,31 @@ end mul
 
 section algebra
 variables (S : Type*) (R : Type u) (M : Type v)
+variables [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
+variables [algebra S R] [module S M] [module R M] [is_scalar_tower S R M]
 
-instance algebra' [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
-  [algebra S R] [module S M] [module R M] [is_scalar_tower S R M] : algebra S (tsze R M) :=
+instance algebra'  : algebra S (tsze R M) :=
 { commutes' := λ r x, mul_comm _ _,
   smul_def' := λ r x, ext (algebra.smul_def _ _) $
     show r • x.2 = algebra_map S R r • x.2 + x.1 • 0, by rw [smul_zero, add_zero, algebra_map_smul],
   .. (triv_sq_zero_ext.inl_hom R M).comp (algebra_map S R) }
-instance [comm_semiring R] [add_comm_monoid M] [module R M] : algebra R (tsze R M) :=
-triv_sq_zero_ext.algebra' _ _ _
+
+-- shortcut instance for the common case
+instance : algebra R (tsze R M) := triv_sq_zero_ext.algebra' _ _ _
+
+lemma algebra_map_eq_inl : ⇑(algebra_map R (tsze R M)) = inl := rfl
+lemma algebra_map_eq_inl_hom : algebra_map R (tsze R M) = inl_hom R M := rfl
+lemma algebra_map_eq_inl' (s : S) : algebra_map S (tsze R M) s = inl (algebra_map S R s) := rfl
 
 /-- The canonical `R`-algebra projection `triv_sq_zero_ext R M → R`. -/
 @[simps]
-def fst_hom [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₐ[R] R :=
+def fst_hom : tsze R M →ₐ[R] R :=
 { to_fun := fst,
   map_one' := fst_one,
   map_mul' := fst_mul,
   map_zero' := fst_zero,
   map_add' := fst_add,
-  commutes' := fst_inl }
-
-/-- The canonical `R`-module projection `triv_sq_zero_ext R M → M`. -/
-@[simps apply]
-def snd_hom [semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₗ[R] M :=
-{ to_fun := snd, ..linear_map.snd _ _ _ }
+  commutes' := fst_inl M }
 
 end algebra
 

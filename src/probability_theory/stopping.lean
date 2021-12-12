@@ -352,14 +352,28 @@ begin
     { exact h } }
 end
 
--- lemma adapted.stopped_process_adapted [has_measurable_add₂ β]
---   (hu : adapted f u) (hτ : is_stopping_time f τ) :
---   adapted f (stopped_process f u τ) :=
--- begin
---   intro i,
---   rw stopped_process_eq,
---   refine @measurable.add _ _ _ _ (f i) _ _ _ _ _,
--- end
+lemma adapted.stopped_process_adapted [has_measurable_add₂ β]
+  (hu : adapted f u) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process f u τ) :=
+begin
+  intro i,
+  rw stopped_process_eq,
+  refine @measurable.add _ _ _ _ (f i) _ _ _ _ _,
+  { refine @measurable.indicator _ _ (f i) _ _ _ _ (hu i) _,
+    convert @measurable_set.union _ (f i) _ _
+      (@measurable_set.compl _ _ (f i) (hτ i)) (hτ.measurable_set_eq i),
+    ext x,
+    change i ≤ τ x ↔ ¬ τ x ≤ i ∨ τ x = i,
+    rw [not_le, le_iff_lt_or_eq, eq_comm] },
+  { refine @finset.measurable_sum' _ _ _ _ _ _ (f i) _ _ _,
+    refine λ j hij, @measurable.indicator _ _ (f i) _ _ _ _ _ _,
+    { rw finset.mem_range at hij,
+      exact measurable.le (f.mono hij.le) (hu j) },
+    { rw finset.mem_range at hij,
+      refine f.mono hij.le _ _,
+      convert hτ.measurable_set_eq j,
+      simpa only [eq_comm] } }
+end
 
 end nat
 

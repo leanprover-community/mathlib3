@@ -36,9 +36,10 @@ variables [add_comm_monoid E] [add_comm_monoid F]
 section has_scalar
 variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (s : set E)
 
-/-- Convexity of sets. -/
+/-- A set is strictly convex if the open segment between any two distinct points lies is in its
+interior. This basically means "convex and not flat on the boundary". -/
 def strict_convex : Prop :=
-s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ interior s)
+s.pairwise $ λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ interior s
 
 variables {𝕜 s} {x y : E}
 
@@ -66,7 +67,7 @@ begin
   exact mem_univ _,
 end
 
-lemma strict_convex.inter {t : set E} (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
+protected lemma strict_convex.inter {t : set E} (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
   strict_convex 𝕜 (s ∩ t) :=
 begin
   intros x hx y hy hxy a b ha hb hab,
@@ -99,11 +100,11 @@ end has_scalar
 section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}
 
-lemma strict_convex.convex (hs : strict_convex 𝕜 s) : convex 𝕜 s :=
+protected lemma strict_convex.convex (hs : strict_convex 𝕜 s) : convex 𝕜 s :=
 convex_iff_pairwise_pos.2 $ λ x hx y hy hxy a b ha hb hab,
   interior_subset $ hs x hx y hy hxy ha hb hab
 
-lemma convex.strict_convex (h : is_open s) (hs : convex 𝕜 s) : strict_convex 𝕜 s :=
+protected lemma convex.strict_convex (h : is_open s) (hs : convex 𝕜 s) : strict_convex 𝕜 s :=
 λ x hx y hy _ a b ha hb hab, h.interior_eq.symm ▸ hs hx hy ha.le hb.le hab
 
 lemma is_open.strict_convex_iff (h : is_open s) : strict_convex 𝕜 s ↔ convex 𝕜 s :=
@@ -114,7 +115,7 @@ lemma strict_convex_singleton (c : E) : strict_convex 𝕜 ({c} : set E) := pair
 lemma set.subsingleton.strict_convex (hs : s.subsingleton) : strict_convex 𝕜 s := hs.pairwise _
 
 lemma strict_convex.linear_image (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕜] F) (hf : is_open_map f) :
-  strict_convex 𝕜 (s.image f) :=
+  strict_convex 𝕜 (f '' s) :=
 begin
   rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
   exact hf.image_interior_subset _
@@ -278,6 +279,17 @@ variables [ordered_ring 𝕜] [topological_space E] [topological_space F]
 
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x y : E}
+
+lemma strict_convex.eq_of_open_segment_subset_frontier [nontrivial 𝕜] [densely_ordered 𝕜]
+  (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s) (h : open_segment 𝕜 x y ⊆ frontier s) :
+  x = y :=
+begin
+  obtain ⟨a, ha₀, ha₁⟩ := densely_ordered.dense (0 : 𝕜) 1 zero_lt_one,
+  classical,
+  by_contra hxy,
+  exact (h ⟨a, 1 - a, ha₀, sub_pos_of_lt ha₁, add_sub_cancel'_right _ _, rfl⟩).2
+    (hs _ hx _ hy hxy ha₀ (sub_pos_of_lt ha₁) $ add_sub_cancel'_right _ _),
+end
 
 lemma strict_convex.add_smul_mem (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hxy : x + y ∈ s)
   (hy : y ≠ 0) {t : 𝕜} (ht₀ : 0 < t) (ht₁ : t < 1) :

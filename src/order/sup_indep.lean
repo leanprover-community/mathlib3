@@ -76,7 +76,7 @@ begin
   refine ⟨λ hs a ha b hb hab, (hs ha).mono_right $ le_sup $ mem_erase.2 ⟨hab.symm, hb⟩,
     λ hs a ha, _⟩,
   rw disjoint_sup_right,
-  exact λ b hb, hs a ha b (mem_of_mem_erase hb) (ne_of_mem_erase hb).symm,
+  exact λ b hb, hs ha (mem_of_mem_erase hb) (ne_of_mem_erase hb).symm,
 end
 
 alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint

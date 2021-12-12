@@ -6,7 +6,6 @@ Authors: Jujian Zhang
 import linear_algebra.tensor_product
 import algebra.category.CommRing.basic
 import algebra.category.Module.basic
-import tactic
 
 /-!
 # Extension of scalars

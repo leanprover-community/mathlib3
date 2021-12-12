@@ -31,7 +31,7 @@ filtration, stopping time, stochastic process
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space
+open_locale classical measure_theory nnreal ennreal topological_space big_operators
 
 namespace measure_theory
 
@@ -305,5 +305,64 @@ end
 end linear_order
 
 end is_stopping_time
+
+section linear_order
+
+variable [linear_order ι]
+
+/-- Given a map `u : ι → α → E`, its stopped process with respect to the stopping
+time `τ` is the map `(i, x) ↦ u (min i (τ x)) x`.
+Intuitively, the stopped process stop evolving once the stopping time has occured. -/
+def filtration.stopped_process (f : filtration ι m) (u : ι → α → β) (τ : α → ι) : ι → α → β :=
+λ i x, u (linear_order.min i (τ x)) x
+
+def filtration.stopped_value (f : filtration ι m) (u : ι → α → β) (τ : α → ι) : α → β :=
+λ x, u (τ x) x
+
+-- We will need cadlag to generalize the following to continuous processes
+section nat
+
+open filtration
+
+variables [add_comm_monoid β] {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
+
+lemma stopped_process_eq (n : ℕ) :
+  f.stopped_process u τ n =
+  set.indicator (λ a, n ≤ τ a) (u n) +
+    ∑ i in finset.range n, set.indicator (λ a, i = τ a) (u i) :=
+begin
+  ext x,
+  rw [pi.add_apply, finset.sum_apply],
+  by_cases h : τ x < n,
+  { simp only [stopped_process, min_eq_right (le_of_lt h)],
+    rw finset.sum_eq_single_of_mem (τ x),
+    { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
+      { exact rfl }, -- refl does not work
+      { exact not_le.2 h } },
+    { rwa [finset.mem_range] },
+    { intros b hb hneq,
+      rw set.indicator_of_not_mem,
+      exact hneq } },
+  { rw not_lt at h,
+    simp only [stopped_process, min_eq_left h],
+    rw [set.indicator_of_mem, finset.sum_eq_zero, add_zero],
+    { intros m hm,
+      rw finset.mem_range at hm,
+      exact set.indicator_of_not_mem ((lt_of_lt_of_le hm h).ne) _ },
+    { exact h } }
+end
+
+-- lemma adapted.stopped_process_adapted [has_measurable_add₂ β]
+--   (hu : adapted f u) (hτ : is_stopping_time f τ) :
+--   adapted f (stopped_process f u τ) :=
+-- begin
+--   intro i,
+--   rw stopped_process_eq,
+--   refine @measurable.add _ _ _ _ (f i) _ _ _ _ _,
+-- end
+
+end nat
+
+end linear_order
 
 end measure_theory

@@ -125,7 +125,6 @@ lemma subsingleton_of_is_terminal {X : CommRing} (hX : is_terminal X) : subsingl
 (hX.unique_up_to_iso punit_is_terminal).CommRing_iso_to_ring_equiv.to_equiv
   .subsingleton_congr.mpr (show subsingleton punit, by apply_instance)
 
-
 /-- `ℤ` is the initial object of `CommRing`. -/
 def Z_is_initial : is_initial (CommRing.of ℤ) :=
 begin

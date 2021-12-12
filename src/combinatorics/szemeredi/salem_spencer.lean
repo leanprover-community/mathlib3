@@ -98,18 +98,18 @@ variables [decidable_eq α] [add_monoid α] [decidable_eq β] [add_monoid β] (s
 /-- The Roth number of a finset is the cardinality of its biggest Salem-Spencer subset. The usual
 Roth number corresponds to `roth_number (finset.range n)`, see `roth_number_nat`. -/
 def roth_number : finset α →ₘ ℕ :=
-⟨λ s, nat.fand_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ is_salem_spencer (t : set α)) s.card,
+⟨λ s, nat.find_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ is_salem_spencer (t : set α)) s.card,
 begin
   rintro t u htu,
-  refine nat.fand_greatest_mono (λ m, _) (card_le_of_subset htu),
+  refine nat.find_greatest_mono (λ m, _) (card_le_of_subset htu),
   rintro ⟨v, hvt, hv⟩,
   exact ⟨v, hvt.trans htu, hv⟩,
 end⟩
 
-lemma roth_number_le : roth_number s ≤ s.card := by convert nat.fand_greatest_le s.card
+lemma roth_number_le : roth_number s ≤ s.card := by convert nat.find_greatest_le s.card
 
 lemma roth_number_spec : ∃ t ⊆ s, t.card = roth_number s ∧ is_salem_spencer (t : set α) :=
-@nat.fand_greatest_spec (λ m, ∃ t ⊆ s, t.card = m ∧ is_salem_spencer (t : set α)) _ _ _
+@nat.find_greatest_spec (λ m, ∃ t ⊆ s, t.card = m ∧ is_salem_spencer (t : set α)) _ _ _
   (nat.zero_le _) ⟨∅, empty_subset _, card_empty, is_salem_spencer_empty⟩
 
 variables {s t} {n : ℕ}
@@ -117,7 +117,7 @@ variables {s t} {n : ℕ}
 lemma is_salem_spencer.le_roth_number (hs : is_salem_spencer (s : set α)) (h : s ⊆ t) :
   s.card ≤ roth_number t :=
 begin
-  convert le_fand_greatest (card_le_of_subset h) _,
+  convert le_find_greatest (card_le_of_subset h) _,
   exact ⟨s, h, rfl, hs⟩,
 end
 

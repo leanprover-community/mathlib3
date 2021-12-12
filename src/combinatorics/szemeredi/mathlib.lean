@@ -17,111 +17,6 @@ open finset fintype function
 variables {α β ι ι' : Type*}
 
 namespace nat
-section find_greatest
-
-/-- `fand_greatest P b` is the largest `i ≤ bound` such that `P i` holds, or `0` if no such `i`
-exists -/
-protected def fand_greatest (P : ℕ → Prop) [decidable_pred P] : ℕ →ₘ ℕ :=
-⟨λ n, n.rec_on 0 (λ k find : ℕ, if P (k + 1) then k + 1 else find), begin
-  have : ∀ n : ℕ, n.rec_on 0 (λ k find : ℕ, if P (k + 1) then k + 1 else find) ≤ n,
-  { rintro n,
-    induction n with n hn,
-    { refl },
-    simp only [rec_add_one],
-    split_ifs,
-    { refl },
-    { exact hn.trans (le_succ _) } },
-  refine monotone_nat_of_le_succ (λ n, _),
-  simp only [rec_add_one],
-  split_ifs,
-  { exact (this n).trans (le_succ _) },
-  { refl }
-end⟩
-
-variables {P : ℕ → Prop} [decidable_pred P] {b m n : ℕ}
-
-@[simp] lemma fand_greatest_zero : nat.fand_greatest P 0 = 0 := rfl
-
-lemma fand_greatest_succ (n : ℕ) :
-  nat.fand_greatest P (n + 1) = if P (n + 1) then n + 1 else nat.fand_greatest P n := rfl
-
-@[simp] lemma fand_greatest_eq : ∀ {b}, P b → nat.fand_greatest P b = b
-| 0       h := rfl
-| (n + 1) h := by simp [nat.fand_greatest, h]
-
-@[simp] lemma fand_greatest_of_not {b} (h : ¬ P (b + 1)) :
-  nat.fand_greatest P (b + 1) = nat.fand_greatest P b :=
-by simp [nat.fand_greatest, h]
-
-lemma fand_greatest_mono_left {P Q : ℕ → Prop} [decidable_pred P] [decidable_pred Q]
-  (hPQ : P ≤ Q) :
-  nat.fand_greatest P ≤ nat.fand_greatest Q :=
-begin
-  intro n,
-  induction n with n hn,
-  { refl },
-  by_cases P (n + 1),
-  { rw [fand_greatest_eq h, fand_greatest_eq (hPQ _ h)] },
-  { rw fand_greatest_of_not h,
-    exact hn.trans ((nat.fand_greatest _).mono $ le_succ _) }
-end
-
-lemma fand_greatest_mono {P Q : ℕ → Prop} {a b : ℕ} [decidable_pred P] [decidable_pred Q]
-  (hPQ : P ≤ Q) (hab : a ≤ b) :
-  nat.fand_greatest P a ≤ nat.fand_greatest Q b :=
-((nat.fand_greatest _).mono hab).trans $ fand_greatest_mono_left hPQ _
-
-lemma fand_greatest_eq_iff :
-  nat.fand_greatest P b = m ↔ m ≤ b ∧ (m ≠ 0 → P m) ∧ (∀ ⦃n⦄, m < n → n ≤ b → ¬P n) :=
-begin
-  induction b with b ihb generalizing m,
-  { rw [eq_comm, iff.comm],
-    simp only [nonpos_iff_eq_zero, ne.def, and_iff_left_iff_imp, fand_greatest_zero],
-    rintro rfl,
-    exact ⟨λ h, (h rfl).elim, λ n hlt heq, (hlt.ne heq.symm).elim⟩ },
-  { by_cases hb : P (b + 1),
-    { rw [fand_greatest_eq hb], split,
-      { rintro rfl,
-        exact ⟨le_rfl, λ _, hb, λ n hlt hle, (hlt.not_le hle).elim⟩ },
-      { rintros ⟨hle, h0, hm⟩,
-        rcases decidable.eq_or_lt_of_le hle with rfl|hlt,
-        exacts [rfl, (hm hlt le_rfl hb).elim] } },
-    { rw [fand_greatest_of_not hb, ihb],
-      split,
-      { rintros ⟨hle, hP, hm⟩,
-        refine ⟨hle.trans b.le_succ, hP, λ n hlt hle, _⟩,
-        rcases decidable.eq_or_lt_of_le hle with rfl|hlt',
-        exacts [hb, hm hlt $ lt_succ_iff.1 hlt'] },
-      { rintros ⟨hle, hP, hm⟩,
-        refine ⟨lt_succ_iff.1 (hle.lt_of_ne _), hP, λ n hlt hle, hm hlt (hle.trans b.le_succ)⟩,
-        rintro rfl,
-        exact hb (hP b.succ_ne_zero) } } }
-end
-
-lemma fand_greatest_eq_zero_iff {b} : nat.fand_greatest P b = 0 ↔ ∀ ⦃n⦄, 0 < n → n ≤ b → ¬P n :=
-by simp [fand_greatest_eq_iff]
-
-lemma fand_greatest_spec (hmb : m ≤ b) (hm : P m) : P (nat.fand_greatest P b) :=
-begin
-  by_cases h : nat.fand_greatest P b = 0,
-  { cases m, { rwa h },
-    exact ((fand_greatest_eq_zero_iff.1 h) m.zero_lt_succ hmb hm).elim },
-  { exact (fand_greatest_eq_iff.1 rfl).2.1 h }
-end
-
-lemma fand_greatest_le (n : ℕ) : nat.fand_greatest P n ≤ n := (fand_greatest_eq_iff.1 rfl).1
-
-lemma le_fand_greatest {b m} (hmb : m ≤ b) (hm : P m) : m ≤ nat.fand_greatest P b :=
-le_of_not_lt $ λ hlt, (fand_greatest_eq_iff.1 rfl).2.2 hlt hmb hm
-
-lemma fand_greatest_is_greatest {b k} (hk : nat.fand_greatest P b < k) (hkb : k ≤ b) :
-  ¬ P k :=
-(fand_greatest_eq_iff.1 rfl).2.2 hk hkb
-
-lemma fand_greatest_of_ne_zero {b m} (h : nat.fand_greatest P b = m) (h0 : m ≠ 0) : P m :=
-(fand_greatest_eq_iff.1 h).2.1 h0
-
-end find_greatest
 
 lemma weird_thing : ∀ {d : ℕ}, d ≤ 2 * d - 1
 | 0 := by simp
@@ -248,7 +143,7 @@ lemma pairwise_disjoint_pi {α : ι' → Type*} {ι : ι' → Type*} {s : Π i, 
 λ I hI J hJ hIJ a ⟨haI, haJ⟩, hIJ $ funext $ λ i,
   (hs i).elim_set (hI i trivial) (hJ i trivial) (a i) (haI i trivial) (haJ i trivial)
 
-lemma pairwise_disjoint.attach [semilattice_inf_bot α] {s : finset ι} {f : ι → α}
+lemma pairwise_disjoint.attach [semilattice_inf α] [order_bot α] {s : finset ι} {f : ι → α}
   (hs : (s : set ι).pairwise_disjoint f) :
   (s.attach : set {x // x ∈ s}).pairwise_disjoint (f ∘ subtype.val) :=
 λ i _ j _ hij, hs _ i.2 _ j.2 $ mt subtype.ext_val hij
@@ -256,25 +151,6 @@ lemma pairwise_disjoint.attach [semilattice_inf_bot α] {s : finset ι} {f : ι 
 end set
 
 namespace finset
-
-lemma coe_product (s : finset α) (t : finset β) :
-  (s.product t : set (α × β)) = (s : set α).prod t :=
-set.ext $ λ x, finset.mem_product
-
-lemma coe_pi {α : Type*} {δ : α → Type*} [decidable_eq α] [fintype α] (s : finset α)
-  (t : Π a, finset (δ a)) :
-  (fintype.pi_finset t : set (Π a, δ a)) = (set.univ : set α).pi (λ a, t a) :=
-set.ext $ λ x, by { rw set.mem_univ_pi, exact fintype.mem_pi_finset }
-
-lemma range_add_eq_union (m n : ℕ) :
-  range (m + n) = range m ∪ (range n).map (add_right_embedding m) :=
-begin
-  ext,
-  simp_rw [mem_union, mem_map, exists_prop, add_right_embedding_apply, mem_range],
-  refine ⟨λ h, _, _⟩,
-  sorry,
-  sorry
-end
 
 lemma sum_mod (s : finset α) {m : ℕ} (f : α → ℕ) :
   (∑ i in s, f i) % m = (∑ i in s, (f i % m)) % m :=
@@ -284,34 +160,6 @@ begin
   { simp },
   rw [sum_insert hi, sum_insert hi, nat.add_mod, ih, nat.add_mod],
   simp,
-end
-
-variables [decidable_eq α]
-
-lemma card_eq_two {s : finset α} :
-  s.card = 2 ↔ ∃ x y, x ≠ y ∧ s = {x,y} :=
-begin
-  split,
-  { rw card_eq_succ,
-    simp only [card_eq_one],
-    rintro ⟨a, _, hab, rfl, b, rfl⟩,
-    simp only [mem_singleton] at hab,
-    exact ⟨a, b, hab, rfl⟩ },
-  { rintro ⟨x, y, hxy, rfl⟩,
-    simp [hxy] }
-end
-
-lemma card_eq_three {s : finset α} :
-  s.card = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y ≠ z ∧ s = {x,y,z} :=
-begin
-  split,
-  { rw card_eq_succ,
-    simp only [card_eq_two],
-    rintro ⟨a, _, abc, rfl, b, c, bc, rfl⟩,
-    simp only [mem_insert, mem_singleton, not_or_distrib] at abc,
-    refine ⟨a, b, c, abc.1, abc.2, bc, rfl⟩ },
-  rintro ⟨x, y, z, xy, xz, yz, rfl⟩,
-  simp [xy, xz, yz],
 end
 
 -- lemma nonempty_diff [decidable_eq α] {s t : finset α} : (s \ t).nonempty ↔ ¬ s ⊆ t :=
@@ -372,8 +220,8 @@ end
 
 end linear_ordered_field
 
-lemma disjoint.eq_bot_of_ge {α : Type*} [semilattice_inf_bot α] {a b : α} (hab : disjoint a b)
-  (h : b ≤ a) :
+lemma disjoint.eq_bot_of_ge {α : Type*} [semilattice_inf α] [order_bot α] {a b : α}
+  (hab : disjoint a b) (h : b ≤ a) :
   b = ⊥ :=
 hab.symm.eq_bot_of_le h
 
@@ -735,7 +583,7 @@ by simp_rw [is_equipartition, finset.equitable_on_iff, P.sum_card_parts]
 
 variables {P}
 
-lemma is_equipartition_of_subsingleton (h : (P.parts : set (finset α)).subsingleton) :
+lemma _root_.set.subsingleton.is_equipartition (h : (P.parts : set (finset α)).subsingleton) :
   P.is_equipartition :=
 h.equitable_on _
 
@@ -764,13 +612,13 @@ lemma finpartition.is_equipartition.card_part_le_average_add_one [decidable_eq �
 namespace finpartition
 variables [decidable_eq α] (s : finset α)
 
-lemma discrete_is_equipartition : (discrete s).is_equipartition :=
+lemma bot_is_equipartition : (⊥ : finpartition s).is_equipartition :=
 set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
 
-lemma indiscrete_is_equipartition {hs : s.nonempty} : (indiscrete hs.ne_empty).is_equipartition :=
+lemma indiscrete_is_equipartition {hs : s ≠ ∅} : (indiscrete hs).is_equipartition :=
 by { rw [is_equipartition, indiscrete_parts, coe_singleton], exact set.equitable_on_singleton s _ }
 
-lemma indiscrete'_is_equipartition : (indiscrete' s).is_equipartition :=
-is_equipartition_of_subsingleton subsingleton_parts_indiscrete
+lemma top_is_equipartition : (⊤ : finpartition s).is_equipartition :=
+parts_top_subsingleton.is_equipartition
 
 end finpartition

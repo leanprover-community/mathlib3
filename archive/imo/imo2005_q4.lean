@@ -36,7 +36,7 @@ begin
   { have : 1 ≤ p - 1 := le_tsub_of_add_le_right hp.two_le,
     conv_lhs { rw ← nat.sub_add_cancel this },
     refl },
-  -- Main calculation: `6 * a (p - 2)` is a multiple of `6`
+  -- Main calculation: `6 * a (p - 2)` is a multiple of `p`
   have H : (6:ℤ) * a (p - 2) ≡ 0 [ZMOD p],
   calc (6:ℤ) * a (p - 2)
       = 3 * 2 ^ (p - 1) + 2 * 3 ^ (p - 1) + 6 ^ (p - 1) - 6 :
@@ -45,7 +45,7 @@ begin
   by { apply_rules [int.modeq.sub_right, int.modeq.add, int.modeq.mul_left,
     int.modeq.pow_card_sub_one_eq_one hp] }
   ... = 0 : by norm_num,
-  -- Since `6` has an inverse mod `p`, `a (p - 2)` itself is a multiple of `6`
+  -- Since `6` has an inverse mod `p`, `a (p - 2)` itself is a multiple of `p`
   calc (a (p - 2) : ℤ) = 1 * a (p - 2) : by ring
   ... ≡ (6 * b) * a (p - 2) [ZMOD p] : int.modeq.mul_right _ hb.symm
   ... = b * (6 * a (p - 2)) : by ring

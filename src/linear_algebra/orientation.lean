@@ -90,6 +90,13 @@ lemma same_ray.pos_smul_left {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) 
   same_ray R (r • v₁) v₂ :=
 transitive_same_ray R M (same_ray_pos_smul_left v₁ hr) h
 
+/-- If two vectors are on the same ray then both scaled by the same action are also on the same
+ray. -/
+lemma same_ray.smul {S : Type*} [has_scalar S M] [smul_comm_class R S M] {v₁ v₂ : M} (s : S)
+  (h : same_ray R v₁ v₂) : same_ray R (s • v₁) (s • v₂) :=
+let ⟨r₁, r₂, hr₁, hr₂, h⟩ := h in
+⟨r₁, r₂, hr₁, hr₂, by rw [smul_comm r₁ s v₁, smul_comm r₂ s v₂, h]⟩
+
 variables (R M)
 
 /-- The setoid of the `same_ray` relation for elements of a module. -/
@@ -152,6 +159,37 @@ begin
   rw ray_eq_iff,
   exact same_ray_pos_smul_left v hr
 end
+
+
+section action
+variables {G : Type*} [group G] [nontrivial R] [distrib_mul_action G M] [smul_comm_class R G M]
+
+/-- Any invertible action preserves the non-zeroness of ray vectors. This is primarily of interest
+when `G = units R` -/
+instance : mul_action G (ray_vector M) :=
+{ smul := λ r, (subtype.map ((•) r) $ λ a, (smul_ne_zero_iff_ne _).2),
+  mul_smul := λ a b m, subtype.ext $ mul_smul a b _,
+  one_smul := λ m, subtype.ext $ one_smul _ _ }
+
+/-- Any invertible action preserves the non-zeroness of rays. This is primarily of interest when
+`G = units R` -/
+instance : mul_action G (module.ray R M) :=
+{ smul := λ r, quotient.map ((•) r) (λ a b, same_ray.smul _),
+  mul_smul := λ a b, quotient.ind $ by exact(λ m, congr_arg quotient.mk $ mul_smul a b _),
+  one_smul := quotient.ind $ by exact (λ m, congr_arg quotient.mk $ one_smul _ _), }
+
+@[simp] lemma smul_ray_of_ne_zero (g : G) (v : M) (hv) :
+  g • ray_of_ne_zero R v hv = ray_of_ne_zero R (g • v) ((smul_ne_zero_iff_ne _).2 hv) := rfl
+
+/-- Scaling by a positive unit is a no-op. -/
+lemma module.ray.smul_pos_unit (u : units R) (hu : 0 < (u : R)) (v : module.ray R M) : u • v = v :=
+begin
+  induction v using module.ray.ind,
+  rw [smul_ray_of_ne_zero, ray_eq_iff],
+  exact same_ray_pos_smul_left _ hu,
+end
+
+end action
 
 namespace module.ray
 
@@ -256,6 +294,15 @@ begin
   induction x using module.ray.ind,
   rw [←ray_neg, ray_eq_iff] at h,
   exact x_hv (eq_zero_of_same_ray_self_neg h)
+end
+
+/-- Scaling by a negative unit is negation. -/
+lemma unit_smul_of_neg [nontrivial R] (u : units R) (hu : (u : R) < 0) (v : module.ray R M) :
+  u • v = -v :=
+begin
+  induction v using module.ray.ind,
+  rw [smul_ray_of_ne_zero, ←ray_neg, ray_eq_iff, ←same_ray_neg_swap, units.smul_def, ←neg_smul],
+  exact same_ray_pos_smul_left _ (neg_pos_of_neg hu),
 end
 
 end module.ray

@@ -1106,6 +1106,15 @@ have ∀ c, f.sum (λ a b, g a b c) ≠ 0 → (∃ a, f a ≠ 0 ∧ ¬ (g a (f a
   ⟨a, mem_support_iff.mp ha, ne⟩,
 by simpa only [finset.subset_iff, mem_support_iff, finset.mem_bUnion, sum_apply, exists_prop]
 
+lemma support_sum' [decidable_eq β] [add_comm_monoid M] {s : finset α} {f : α → (β →₀ M)} :
+  (finset.sum s f).support ⊆ s.sup (λ x, (f x).support) :=
+begin
+  induction s using finset.cons_induction_on with a s ha ih,
+  { refl },
+  { rw [finset.sum_cons, finset.sup_cons],
+    exact support_add.trans (finset.union_subset_union (finset.subset.refl _) ih), },
+end
+
 @[simp] lemma sum_zero [has_zero M] [add_comm_monoid N] {f : α →₀ M} :
   f.sum (λa b, (0 : N)) = 0 :=
 finset.sum_const_zero

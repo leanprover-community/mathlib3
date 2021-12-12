@@ -315,7 +315,7 @@ meta def context := native.rb_map prop proof
 
 /-- Debug printer for the context. -/
 meta def context.to_format (Γ : context) : format :=
-Γ.fold "" $ λ P p f, P.to_format ++ " := " ++ p.to_format ++ ",\n" ++ f
+Γ.fold "" $ λ P p f, P.to_format /- ++ " := " ++ p.to_format -/ ++ ",\n" ++ f
 
 meta instance : has_to_format context := ⟨context.to_format⟩
 
@@ -368,26 +368,29 @@ meta def search (prove : context → prop → state_t ℕ option proof) :
 | Γ B := match Γ.find B with
   | some p := pure p
   | none :=
+    ⟨λ n, Γ.fold none $ λ A p r, match r with
+      | some r := some r
+      | none := match A with
+        | prop.imp A' C := match Γ.find A' with
+          | some q := (context.with_add (Γ.erase A) C (p.app q) B prove).1 n
+          | none := match A' with
+            | prop.imp A₁ A₂ :=
+              (do
+              { let Γ : context := Γ.erase A,
+                a ← fresh_name,
+                p₁ ← Γ.with_add A₁ (proof.hyp a) A₂ $ λ Γ_A₁ A₂,
+                  Γ_A₁.with_add (prop.imp A₂ C) (proof.imp_imp_simp a p) A₂ prove,
+                Γ.with_add C (p.app (proof.intro a p₁)) B prove } : state_t ℕ option proof).1 n
+            | _ := none
+            end
+          end
+        | _ := none
+        end
+      end⟩ <|>
     match B with
     | prop.or B₁ B₂ := proof.or_inl <$> prove Γ B₁ <|> proof.or_inr <$> prove Γ B₂
     | _ := failure
-    end <|>
-    ⟨λ n, Γ.fold none $ λ A p r, r <|> match A with
-      | prop.imp A' C := match Γ.find A' with
-        | some q := (context.with_add (Γ.erase A) C (p.app q) B prove).1 n
-        | none := match A' with
-          | prop.imp A₁ A₂ :=
-            (do
-            { let Γ : context := Γ.erase A,
-              a ← fresh_name,
-              p₁ ← Γ.with_add A₁ (proof.hyp a) A₂ $ λ Γ_A₁ A₂,
-                Γ_A₁.with_add (prop.imp A₂ C) (proof.imp_imp_simp a p) A₂ prove,
-              Γ.with_add C (p.app (proof.intro a p₁)) B prove } : state_t ℕ option proof).1 n
-          | _ := none
-          end
-        end
-      | _ := none
-      end⟩
+    end
   end
 
 /-- The main prover. This receives a context of proven or assumed lemmas and a target proposition,

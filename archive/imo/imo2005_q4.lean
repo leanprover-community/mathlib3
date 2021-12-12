@@ -64,8 +64,8 @@ begin
   -- Conversely, suppose `k` is a number with the property, and let `p` be `k.min_fac` (by
   -- definition this is the minimal prime factor of `k` if `k ≠ 1`, and otherwise `1`.
   let p := k.min_fac,
-  -- Testing the special property of `k` for the `48`th term of the sequence, we see that `p` is
-  -- coprime to `6`.
+  -- Testing the special property of `k` for `48`, the second term of the sequence, we see that `p`
+  -- is coprime to `6`.
   have hp₆ : is_coprime (6:ℤ) p,
   { refine is_coprime.of_coprime_of_dvd_right _ (int.coe_nat_dvd.mpr k.min_fac_dvd),
     exact (id (h 2 one_le_two) : is_coprime (8 * 6 : ℤ) k).of_mul_left_right, },

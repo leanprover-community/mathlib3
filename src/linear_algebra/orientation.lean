@@ -355,6 +355,13 @@ begin
     exact (same_ray_smul_left_iff e.det_ne_zero (_ : R)).2 h }
 end
 
+/-- Given a basis, an orientation equals the negation of that given by that basis if and only
+if it does not equal that given by that basis. -/
+lemma orientation_ne_iff_eq_neg (e : basis ι R M) (x : orientation R M ι) [no_zero_smul_divisors R (alternating_map R M R ι)] :
+  x ≠ e.orientation ↔ x = -e.orientation :=
+⟨λ h, (e.orientation_eq_or_eq_neg x).resolve_left h,
+ λ h, h.symm ▸ (module.ray.ne_neg_self e.orientation).symm⟩
+
 /-- Composing a basis with a linear equiv gives the same orientation if and only if the
 determinant is positive. -/
 lemma orientation_comp_linear_equiv_eq_iff_det_pos (e : basis ι R M) (f : M ≃ₗ[R] M) :
@@ -367,6 +374,16 @@ begin
   { rw linear_equiv.det_symm_mul_det,
     exact zero_lt_one },
   exact pos_iff_pos_of_mul_pos h
+end
+
+/-- Composing a basis with a linear equiv gives the negation of that orientation if and only if
+the determinant is negative. -/
+lemma orientation_comp_linear_equiv_eq_neg_iff_det_neg (e : basis ι R M) (f : M ≃ₗ[R] M) :
+  (e.map f).orientation = -e.orientation ↔ (f : M →ₗ[R] M).det < 0 :=
+begin
+  rw [←orientation_ne_iff_eq_neg, not_iff_comm, orientation_comp_linear_equiv_eq_iff_det_pos,
+      not_lt],
+  exact (is_unit.ne_zero f.is_unit_det').symm.le_iff_lt
 end
 
 end basis
@@ -419,6 +436,12 @@ begin
     simp [h₁, h₂]
 end
 
+/-- If the index type has cardinality equal to the finite dimension, an orientation equals the
+negation of another orientation if and only if they are not equal. -/
+lemma ne_iff_eq_neg (x₁ x₂ : orientation R M ι) (h : fintype.card ι = finrank R M) :
+  x₁ ≠ x₂ ↔ x₁ = -x₂ :=
+⟨λ hn, (eq_or_eq_neg x₁ x₂ h).resolve_left hn, λ he, he.symm ▸ (module.ray.ne_neg_self x₂).symm⟩
+
 end orientation
 
 namespace alternating_map
@@ -440,6 +463,20 @@ begin
   rw [ray_eq_iff, (f.comp_linear_map ↑g).eq_smul_basis_det e, f.eq_smul_basis_det e,
       comp_linear_map_apply, smul_apply, basis.det_comp, basis.det_self, mul_one, smul_eq_mul,
       mul_comm, mul_smul, ←f.eq_smul_basis_det e, same_ray_smul_left_iff hf (g : M →ₗ[R] M).det]
+end
+
+/-- If the index type has cardinality equal to the finite dimension, composing an alternating
+map with the same linear equiv on each argument gives the negation of that orientation if and
+only if the determinant is negative. -/
+lemma orientation_comp_linear_equiv_eq_neg_iff_det_neg (f : alternating_map R M R ι) (hf : f ≠ 0)
+  (g : M ≃ₗ[R] M) (h : fintype.card ι = finrank R M) :
+  ray_of_ne_zero R (f.comp_linear_map ↑g)
+                   ((not_iff_not.2 (f.comp_linear_equiv_eq_zero_iff g)).2 hf)
+    = -ray_of_ne_zero R f hf ↔ (g : M →ₗ[R] M).det < 0 :=
+begin
+  rw [←orientation.ne_iff_eq_neg _ _ h, not_iff_comm,
+      orientation_comp_linear_equiv_eq_iff_det_pos _ _ _ h, not_lt],
+  exact (is_unit.ne_zero g.is_unit_det').symm.le_iff_lt
 end
 
 end alternating_map

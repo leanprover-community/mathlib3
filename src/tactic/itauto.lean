@@ -356,7 +356,7 @@ end
 preserving and so require proof search. One obvious one is the or-introduction rule: we prove
 `A ∨ B` by proving `A` or `B`, and we might have to try one and backtrack.
 
-There are two rules dealing with implication in this category: `p, p -> C ⊢ B` where `p` is an
+There are two rules dealing with implication in this category: `p, p → C ⊢ B` where `p` is an
 atom (which is safe if we can find it but often requires the right search to expose the `p`
 assumption), and `(A₁ → A₂) → C ⊢ B`. We decompose the double implication into two subgoals: one to
 prove `A₁ → A₂`, which can be written `A₂ → C, A₁ ⊢ A₂` (where we used `A₁` to simplify
@@ -367,9 +367,12 @@ meta def search (prove : context → prop → state_t ℕ option proof) :
   context → prop → state_t ℕ option proof
 | Γ B := match Γ.find B with
   | some p := pure p
-  | none := match B with
+  | none :=
+    match B with
     | prop.or B₁ B₂ := proof.or_inl <$> prove Γ B₁ <|> proof.or_inr <$> prove Γ B₂
-    | _ := ⟨λ n, Γ.fold none $ λ A p r, r <|> match A with
+    | _ := failure
+    end <|>
+    ⟨λ n, Γ.fold none $ λ A p r, r <|> match A with
       | prop.imp A' C := match Γ.find A' with
         | some q := (context.with_add (Γ.erase A) C (p.app q) B prove).1 n
         | none := match A' with
@@ -385,7 +388,6 @@ meta def search (prove : context → prop → state_t ℕ option proof) :
         end
       | _ := none
       end⟩
-    end
   end
 
 /-- The main prover. This receives a context of proven or assumed lemmas and a target proposition,

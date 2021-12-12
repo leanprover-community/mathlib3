@@ -25,7 +25,7 @@ example (p : Prop) : p ∨ false ↔ p := by itauto
 example (p q : Prop) (h0 : q) : p → q := by itauto
 example (p q r : Prop) : p ∨ (q ∧ r) → (p ∨ q) ∧ (r ∨ p ∨ r) := by itauto
 example (p q r : Prop) : p ∨ (q ∧ r) → (p ∨ q) ∧ (r ∨ p ∨ r) := by itauto
--- example (p q r : Prop) (h : p) : (p → q ∨ r) → q ∨ r := by itauto
+example (p q r : Prop) (h : p) : (p → q ∨ r) → q ∨ r := by itauto
 example (p q : Prop) (h : ¬ (p ↔ q)) (h' : p) : ¬ q := by itauto
 example (p q : Prop) (h : ¬ (p ↔ q)) (h' : q) : ¬ p := by itauto
 example (p q : Prop) (h : ¬ (p ↔ q)) (h' : ¬ q) (h'' : ¬ p) : false := by itauto
@@ -42,7 +42,7 @@ example (p : Prop) (em : p ∨ ¬ p) : ¬ (p ↔ ¬ p) := by itauto
 
 example (p : Prop) [decidable p] : p ∨ ¬ p := by itauto
 example (p : Prop) [decidable p] : ¬ (p ↔ ¬ p) := by itauto
--- example (p q r : Prop) [decidable p] : (p → (q ∨ r)) → ((p → q) ∨ (p → r)) := by itauto
+example (p q r : Prop) [decidable p] : (p → (q ∨ r)) → ((p → q) ∨ (p → r)) := by itauto
 example (p q r : Prop) [decidable q] : (p → (q ∨ r)) → ((p → q) ∨ (p → r)) := by itauto
 
 example (xl yl zl xr yr zr : Prop) :

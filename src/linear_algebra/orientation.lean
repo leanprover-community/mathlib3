@@ -39,6 +39,7 @@ section ordered_comm_semiring
 
 variables (R : Type*) [ordered_comm_semiring R]
 variables {M : Type*} [add_comm_monoid M] [module R M]
+variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
 
 /-- Two vectors are in the same ray if some positive multiples of them are equal (in the typical
@@ -89,6 +90,17 @@ lemma same_ray_pos_smul_left (v : M) {r : R} (h : 0 < r) : same_ray R (r • v) 
 lemma same_ray.pos_smul_left {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :
   same_ray R (r • v₁) v₂ :=
 transitive_same_ray R M (same_ray_pos_smul_left v₁ hr) h
+
+/-- If two vectors are on the same ray then they remain so after appling a linear map. -/
+lemma same_ray.map {v₁ v₂ : M} (f : M →ₗ[R] N)
+  (h : same_ray R v₁ v₂) : same_ray R (f v₁) (f v₂) :=
+let ⟨r₁, r₂, hr₁, hr₂, h⟩ := h in
+⟨r₁, r₂, hr₁, hr₂, by rw [←f.map_smul, ←f.map_smul, h]⟩
+
+/-- If two vectors are on the same ray then they remain so after appling a linear equivalence. -/
+@[simp] lemma same_ray_map_iff {v₁ v₂ : M} (e : M ≃ₗ[R] N) :
+  same_ray R (e v₁) (e v₂) ↔ same_ray R v₁ v₂ :=
+⟨λ h, by simpa using same_ray.map e.symm.to_linear_map h, same_ray.map e.to_linear_map⟩
 
 /-- If two vectors are on the same ray then both scaled by the same action are also on the same
 ray. -/
@@ -160,6 +172,26 @@ begin
   exact same_ray_pos_smul_left v hr
 end
 
+/-- An equivalence between modules implies an equivalence between ray vectors. -/
+def ray_vector.map_linear_equiv (e : M ≃ₗ[R] N) : ray_vector M ≃ ray_vector N :=
+{ to_fun := (subtype.map e $ λ a, e.map_ne_zero_iff.2),
+  inv_fun := (subtype.map e.symm $ λ a, e.symm.map_ne_zero_iff.2),
+  left_inv := λ ⟨m, hm⟩, subtype.ext $ e.symm_apply_apply m,
+  right_inv := λ ⟨m, hm⟩, subtype.ext $ e.apply_symm_apply m }
+
+/-- An equivalence between modules implies an equivalence between rays. -/
+def module.ray.map [nontrivial R] (e : M ≃ₗ[R] N) : module.ray R M ≃ module.ray R N :=
+quotient.congr (ray_vector.map_linear_equiv e) $ λ ⟨a, ha⟩ ⟨b, hb⟩, (same_ray_map_iff _).symm
+
+@[simp] lemma module.ray.map_apply [nontrivial R] (e : M ≃ₗ[R] N) (v : M) (hv : v ≠ 0) :
+  module.ray.map e (ray_of_ne_zero _ v hv) = ray_of_ne_zero _ (e v) (e.map_ne_zero_iff.2 hv) := rfl
+
+@[simp] lemma module.ray.map_refl [nontrivial R] :
+  (module.ray.map $ linear_equiv.refl R M) = equiv.refl _ :=
+equiv.ext $ module.ray.ind R $ λ _ _, rfl
+
+@[simp] lemma module.ray.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
+  (module.ray.map e).symm = module.ray.map e.symm := rfl
 
 section action
 variables {G : Type*} [group G] [nontrivial R] [distrib_mul_action G M] [smul_comm_class R G M]
@@ -177,6 +209,10 @@ instance : mul_action G (module.ray R M) :=
 { smul := λ r, quotient.map ((•) r) (λ a b, same_ray.smul _),
   mul_smul := λ a b, quotient.ind $ by exact(λ m, congr_arg quotient.mk $ mul_smul a b _),
   one_smul := quotient.ind $ by exact (λ m, congr_arg quotient.mk $ one_smul _ _), }
+
+/-- The action via `linear_equiv.apply_distrib_mul_action` corresponds to `module.ray.map`. -/
+@[simp] lemma module.ray.linear_equiv_smul_eq_map (e : M ≃ₗ[R] M) (v : module.ray R M) :
+  e • v = module.ray.map e v := rfl
 
 @[simp] lemma smul_ray_of_ne_zero (g : G) (v : M) (hv) :
   g • ray_of_ne_zero R v hv = ray_of_ne_zero R (g • v) ((smul_ne_zero_iff_ne _).2 hv) := rfl

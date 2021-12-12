@@ -174,10 +174,7 @@ end
 
 /-- An equivalence between modules implies an equivalence between ray vectors. -/
 def ray_vector.map_linear_equiv (e : M ≃ₗ[R] N) : ray_vector M ≃ ray_vector N :=
-{ to_fun := (subtype.map e $ λ a, e.map_ne_zero_iff.2),
-  inv_fun := (subtype.map e.symm $ λ a, e.symm.map_ne_zero_iff.2),
-  left_inv := λ ⟨m, hm⟩, subtype.ext $ e.symm_apply_apply m,
-  right_inv := λ ⟨m, hm⟩, subtype.ext $ e.apply_symm_apply m }
+equiv.subtype_equiv e.to_equiv $ λ _, e.map_ne_zero_iff.symm
 
 /-- An equivalence between modules implies an equivalence between rays. -/
 def module.ray.map [nontrivial R] (e : M ≃ₗ[R] N) : module.ray R M ≃ module.ray R N :=

@@ -150,7 +150,7 @@ def distrib_mul_action_S_M_tensor_S : distrib_mul_action S (M ⊗ S) :=
 /--
 See above
 -/
-@[reducible] def module (M : Module R) : Module S :=
+@[reducible] def module : Module S :=
 { carrier := M ⊗ S,
   is_module :=
     { add_smul := λ s s' x, begin
@@ -183,14 +183,13 @@ See above
       end,
       ..(distrib_mul_action_S_M_tensor_S f M) } }
 
+omit M
 /--
 Extension of scalars is a functor where an `R`-module `M` is sent to `M ⊗ S` and
 `l : M1 ⟶ M2` is sent to `m ⊗ s ↦ l m ⊗ s`
 -/
-def extension_of_scalars : Module R ⥤ Module S :=
-{ obj := extension_of_scalars.module f,
-  map := λ M1 M2 l,
-    { to_fun := @tensor_product.lift R _ M1 S (M2 ⊗ S) _ _ _ _ (is_R_mod_S f) _
+def map {M1 M2 : Module R} (l : M1 ⟶ M2) : (module f M1) ⟶ (module f M2) :=
+{ to_fun := @tensor_product.lift R _ M1 S (M2 ⊗ S) _ _ _ _ (is_R_mod_S f) _
        {to_fun := λ m : M1,
         { to_fun := λ (s : ↥S), @tensor_product.tmul R _ M2 S _ _ _ (is_R_mod_S f) (l m) s,
           map_add' := λ s s', by rw tensor_product.tmul_add,
@@ -207,18 +206,22 @@ def extension_of_scalars : Module R ⥤ Module S :=
             (distrib_mul_action_R_S f),
           rw tensor_product.tmul_smul
         end},
-      map_add' := λ x y, by rw map_add,
-      map_smul' := λ s x, begin
-        rw [ring_hom.id_apply],
-        apply @tensor_product.induction_on R _ M1 S _ _ _ (is_R_mod_S f) _ x,
-        { rw [smul_zero, map_zero, smul_zero] },
-        { rintro m s', rw [has_scalar_S_M_tensor_S.smul_pure_tensor],
-          rw [tensor_product.lift.tmul, tensor_product.lift.tmul],
-          simp only [linear_map.coe_mk],
-          rw [has_scalar_S_M_tensor_S.smul_pure_tensor] },
-        { rintros x y ihx ihy,
-          conv_lhs { rw [smul_add, map_add, ihx, ihy] },
-          conv_rhs { rw [map_add, smul_add] } },
-      end  } }
+  map_add' := λ x y, by rw map_add,
+  map_smul' := λ s x, begin
+    apply @tensor_product.induction_on R _ M1 S _ _ _ (is_R_mod_S f) _ x,
+    { rw [smul_zero, map_zero, smul_zero], },
+    { rintros m s',
+      rw [has_scalar_S_M_tensor_S.smul_pure_tensor, ring_hom.id_apply,
+        tensor_product.lift.tmul, tensor_product.lift.tmul, linear_map.coe_mk, linear_map.coe_mk,
+        has_scalar_S_M_tensor_S.smul_pure_tensor], },
+    { rintros x y ihx ihy,
+      rw [ring_hom.id_apply] at ihx ihy ⊢,
+      rw [smul_add, linear_map.map_add, ihx, ihy, linear_map.map_add, smul_add], }
+  end }
+
+-- this doesn't compile for some reason
+-- example : Module R ⥤ Module S :=
+-- { obj := module f,
+--   map := λ M1 M2 l, map f l }
 
 end extension_of_scalars

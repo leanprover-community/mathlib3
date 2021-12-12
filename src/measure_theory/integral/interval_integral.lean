@@ -1219,6 +1219,16 @@ lemma integral_mono (h : f ≤ g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 integral_mono_ae hab hf hg $ ae_of_all _ h
 
+omit hg hab
+
+lemma integral_mono_interval {c d} (hca : c ≤ a) (hab : a ≤ b) (hbd : b ≤ d)
+  (hf : 0 ≤ᵐ[μ.restrict (Ioc c d)] f) (hfi : interval_integrable f μ c d):
+  ∫ x in a..b, f x ∂μ ≤ ∫ x in c..d, f x ∂μ :=
+begin
+  rw [integral_of_le hab, integral_of_le (hca.trans (hab.trans hbd))],
+  exact set_integral_mono_set hfi.1 hf (Ioc_subset_Ioc hca hbd).eventually_le
+end
+
 end mono
 
 end
@@ -2329,8 +2339,9 @@ begin
     have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) I (f x) :=
     integral_has_deriv_within_at_right h2g h3g (hg (f x) h2x),
     refine (this.scomp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,
-    dsimp only [I], rw [← image_subset_iff, ← hf.image_interval],
-    refine image_subset f (Ioo_subset_Icc_self.trans $ Icc_subset_Icc_left hx.1.le) },
+    rw ← hI,
+    exact (maps_to_image _ _).mono (Ioo_subset_Icc_self.trans $ Icc_subset_Icc_left hx.1.le)
+      subset.rfl },
   have h_int : interval_integrable (λ (x : ℝ), f' x • (g ∘ f) x) volume a b :=
   (hf'.smul (hg.comp hf $ subset_preimage_image f _)).interval_integrable,
   simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der h_int, integral_same, sub_zero],

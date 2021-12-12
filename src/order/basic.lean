@@ -572,14 +572,14 @@ instance nonempty_lt {α : Type u} [preorder α] [no_bot_order α] (a : α) :
 nonempty_subtype.2 (no_bot a)
 
 /-- An order is dense if there is an element between any pair of distinct elements. -/
-class densely_ordered (α : Type u) [preorder α] : Prop :=
+class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 
-lemma exists_between [preorder α] [densely_ordered α] :
+lemma exists_between [has_lt α] [densely_ordered α] :
   ∀ {a₁ a₂ : α}, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
 
-instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
+instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered α] :
   densely_ordered (order_dual α) :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 

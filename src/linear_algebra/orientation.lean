@@ -345,14 +345,11 @@ by rw [basis.orientation, basis.orientation, ray_eq_iff,
 lemma orientation_eq_or_eq_neg (e : basis ι R M) (x : orientation R M ι) :
   x = e.orientation ∨ x = -e.orientation :=
 begin
-  rw [basis.orientation, ←x.some_vector_ray, ray_eq_iff, ←ray_neg, ray_eq_iff,
-      x.some_vector.eq_smul_basis_det e],
-  rcases lt_trichotomy (x.some_vector e) 0 with h|h|h,
-  { right,
-    exact (same_ray_neg_smul_left_iff e.det_ne_zero (_ : R)).2 h },
-  { simpa [h] using x.some_vector.eq_smul_basis_det e },
-  { left,
-    exact (same_ray_smul_left_iff e.det_ne_zero (_ : R)).2 h }
+  induction x using module.ray.ind with x hx,
+  rw [basis.orientation, ray_eq_iff, ←ray_neg, ray_eq_iff, x.eq_smul_basis_det e,
+    same_ray_neg_smul_left_iff e.det_ne_zero (_ : R), same_ray_smul_left_iff e.det_ne_zero (_ : R),
+    lt_or_lt_iff_ne, ne_comm, alternating_map.map_basis_ne_zero_iff],
+  exact hx
 end
 
 end basis

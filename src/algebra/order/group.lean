@@ -1125,8 +1125,9 @@ section linear_ordered_add_comm_group
 
 variables [linear_ordered_add_comm_group α] {a b c d : α}
 
-lemma abs_le : |a| ≤ b ↔ - b ≤ a ∧ a ≤ b :=
-by rw [abs_le', and.comm, neg_le]
+lemma abs_le : |a| ≤ b ↔ - b ≤ a ∧ a ≤ b := by rw [abs_le', and.comm, neg_le]
+
+lemma le_abs' : a ≤ |b| ↔ b ≤ -a ∨ a ≤ b := by rw [le_abs, or.comm, le_neg]
 
 lemma neg_le_of_abs_le (h : |a| ≤ b) : -b ≤ a := (abs_le.mp h).1
 

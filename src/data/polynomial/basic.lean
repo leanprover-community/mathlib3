@@ -150,6 +150,10 @@ instance {S₁ S₂} [has_scalar S₁ S₂] [monoid S₁] [monoid S₂] [distrib
   [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
 ⟨by { rintros _ _ ⟨⟩, simp [smul_to_finsupp] }⟩
 
+instance {S} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
+  [is_central_scalar S R] : is_central_scalar S (polynomial R) :=
+⟨by { rintros _ ⟨⟩, simp [smul_to_finsupp, op_smul_eq_smul] }⟩
+
 instance [subsingleton R] : unique (polynomial R) :=
 { uniq := by { rintros ⟨x⟩, change (⟨x⟩ : polynomial R) = 0, rw [← zero_to_finsupp], simp },
 .. polynomial.inhabited }

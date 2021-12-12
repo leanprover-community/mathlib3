@@ -57,8 +57,7 @@ open topological_space measure_theory filter metric
 open_locale topological_space filter
 
 variables {α : Type*} [measurable_space α] {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜]
-          {E : Type*} [normed_group E] [normed_space ℝ E]
-          [normed_space 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
+          {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space 𝕜 E]
           [complete_space E] [second_countable_topology E]
           [measurable_space E] [borel_space E]
           {H : Type*} [normed_group H] [normed_space 𝕜 H] [second_countable_topology $ H →L[𝕜] E]
@@ -193,7 +192,6 @@ lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → α → E} {F' 
   has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' x₀ a ∂μ) x₀ :=
 begin
   letI : normed_space ℝ H := normed_space.restrict_scalars ℝ 𝕜 H,
-  haveI : is_scalar_tower ℝ 𝕜 H := restrict_scalars.is_scalar_tower ℝ 𝕜 H,
   have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos,
   have diff_x₀ : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (F' x₀ a) x₀ :=
     h_diff.mono (λ a ha, ha x₀ x₀_in),

@@ -376,8 +376,8 @@ lemma support_add : (p + q).support ⊆ p.support ∪ q.support := finsupp.suppo
 lemma support_X [nontrivial R] : (X n : mv_polynomial σ R).support = {single n 1} :=
 by rw [X, support_monomial, if_neg]; exact one_ne_zero
 
-lemma support_sum [comm_semiring R] { α : Type*} {s : finset α} {f : α → mv_polynomial σ R}
-  {m : σ →₀ ℕ} (h : m ∈ (∑ x in s, f x).support) : ∃ x ∈ s, m ∈ (f x).support :=
+lemma support_sum { α : Type*} {s : finset α} {f : α → mv_polynomial σ R} {m : σ →₀ ℕ}
+  (h : m ∈ (∑ x in s, f x).support) : ∃ x ∈ s, m ∈ (f x).support :=
 begin
   revert h,
   apply finset.cons_induction_on s,

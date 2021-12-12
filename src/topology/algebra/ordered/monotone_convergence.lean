@@ -194,7 +194,7 @@ instance {ι : Type*} {α : ι → Type*} [Π i, preorder (α i)] [Π i, topolog
 begin
   refine ⟨λ f s h, _⟩,
   simp only [is_lub_pi, ← range_restrict] at h,
-  exact tendsto_pi.2 (λ i, tendsto_at_top_is_lub ((monotone_eval _).restrict _) (h i))
+  exact tendsto_pi_nhds.2 (λ i, tendsto_at_top_is_lub ((monotone_eval _).restrict _) (h i))
 end
 
 instance {ι : Type*} {α : ι → Type*} [Π i, preorder (α i)] [Π i, topological_space (α i)]

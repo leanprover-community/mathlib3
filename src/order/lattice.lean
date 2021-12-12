@@ -451,7 +451,7 @@ end
 -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[protect_proj] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 instance (α) [lattice α] : lattice (order_dual α) :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
@@ -649,12 +649,12 @@ See note [reducible non-instances]. -/
 { decidable_le := ‹_›, decidable_eq := ‹_›, decidable_lt := ‹_›,
   le_total := h,
   max := (⊔),
-  max_def := by {
-    funext x y, dunfold max_default,
+  max_def := by
+  { funext x y, dunfold max_default,
     split_ifs with h', exacts [sup_of_le_left h', sup_of_le_right $ (h x y).resolve_right h'] },
   min := (⊓),
-  min_def := by {
-    funext x y, dunfold min_default,
+  min_def := by
+  { funext x y, dunfold min_default,
     split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
   .. ‹lattice α› }
 
@@ -821,3 +821,51 @@ protected def lattice [lattice α] {P : α → Prop}
 { ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }
 
 end subtype
+
+section lift
+
+/-- A type endowed with `⊔` is a `semilattice_sup`, if it admits an injective map that
+preserves `⊔` to a `semilattice_sup`.
+See note [reducible non-instances]. -/
+@[reducible] protected def function.injective.semilattice_sup [has_sup α] [semilattice_sup β]
+  (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) :
+  semilattice_sup α :=
+{ sup := has_sup.sup,
+  le_sup_left := λ a b, by { change f a ≤ f (a ⊔ b), rw map_sup, exact le_sup_left, },
+  le_sup_right := λ a b, by { change f b ≤ f (a ⊔ b), rw map_sup, exact le_sup_right, },
+  sup_le := λ a b c ha hb, by { change f (a ⊔ b) ≤ f c, rw map_sup, exact sup_le ha hb, },
+  ..partial_order.lift f hf_inj}
+
+/-- A type endowed with `⊓` is a `semilattice_inf`, if it admits an injective map that
+preserves `⊓` to a `semilattice_inf`.
+See note [reducible non-instances]. -/
+@[reducible] protected def function.injective.semilattice_inf [has_inf α] [semilattice_inf β]
+  (f : α → β) (hf_inj : function.injective f) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
+  semilattice_inf α :=
+{ inf := has_inf.inf,
+  inf_le_left := λ a b,  by { change f (a ⊓ b) ≤ f a, rw map_inf, exact inf_le_left, },
+  inf_le_right := λ a b, by { change f (a ⊓ b) ≤ f b, rw map_inf, exact inf_le_right, },
+  le_inf := λ a b c ha hb, by { change f a ≤ f (b ⊓ c), rw map_inf, exact le_inf ha hb, },
+  ..partial_order.lift f hf_inj}
+
+/-- A type endowed with `⊔` and `⊓` is a `lattice`, if it admits an injective map that
+preserves `⊔` and `⊓` to a `lattice`.
+See note [reducible non-instances]. -/
+@[reducible] protected def function.injective.lattice [has_sup α] [has_inf α] [lattice β]
+  (f : α → β) (hf_inj : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
+  lattice α :=
+{ ..hf_inj.semilattice_sup f map_sup, ..hf_inj.semilattice_inf f map_inf}
+
+/-- A type endowed with `⊔` and `⊓` is a `distrib_lattice`, if it admits an injective map that
+preserves `⊔` and `⊓` to a `distrib_lattice`.
+See note [reducible non-instances]. -/
+@[reducible] protected def function.injective.distrib_lattice [has_sup α] [has_inf α]
+  [distrib_lattice β] (f : α → β) (hf_inj : function.injective f)
+  (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) :
+  distrib_lattice α :=
+{ le_sup_inf := λ a b c, by { change f ((a ⊔ b) ⊓ (a ⊔ c)) ≤ f (a ⊔ b ⊓ c),
+    rw [map_inf, map_sup, map_sup, map_sup, map_inf], exact le_sup_inf, },
+  ..hf_inj.lattice f map_sup map_inf, }
+
+end lift

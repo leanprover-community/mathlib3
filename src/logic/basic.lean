@@ -190,6 +190,13 @@ In particular, this class is not intended for turning the type class system
 into an automated theorem prover for first order logic. -/
 class fact (p : Prop) : Prop := (out [] : p)
 
+/--
+In most cases, we should not have global instances of `fact`; typeclass search only reads the head
+symbol and then tries any instances, which means that adding any such instance will cause slowdowns
+everywhere. We instead make them as lemmata and make them local instances as required.
+-/
+library_note "fact non-instances"
+
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
 lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
@@ -247,6 +254,13 @@ theorem decidable.imp_iff_right_iff [decidable a] : ((a → b) ↔ b) ↔ (a ∨
 
 @[simp] theorem imp_iff_right_iff : ((a → b) ↔ b) ↔ (a ∨ b) :=
 decidable.imp_iff_right_iff
+
+lemma decidable.and_or_imp [decidable a] : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
+if ha : a then by simp only [ha, true_and, true_implies_iff]
+          else by simp only [ha, false_or, false_and, false_implies_iff]
+
+@[simp] theorem and_or_imp : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
+decidable.and_or_imp
 
 /-! ### Declarations about `not` -/
 
@@ -765,7 +779,7 @@ by { subst h₁, subst h₂ }
 lemma eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
 lemma eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
 
-lemma congr_arg2 {α β γ : Type*} (f : α → β → γ) {x x' : α} {y y' : β}
+lemma congr_arg2 {α β γ : Sort*} (f : α → β → γ) {x x' : α} {y y' : β}
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
 
@@ -815,6 +829,11 @@ exists_congr (λ a, exists₃_congr (h a))
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩
+
+/-- We intentionally restrict the type of `α` in this lemma so that this is a safer to use in simp
+than `forall_swap`. -/
+lemma imp_forall_iff {α : Type*} {p : Prop} {q : α → Prop} : (p → ∀ x, q x) ↔ (∀ x, p → q x) :=
+forall_swap
 
 theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
@@ -941,6 +960,12 @@ theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq' {a' : α} : ∃ a, a' = a := ⟨_, rfl⟩
 
+@[simp] theorem exists_unique_eq {a' : α} : ∃! a, a = a' :=
+by simp only [eq_comm, exists_unique, and_self, forall_eq', exists_eq']
+
+@[simp] theorem exists_unique_eq' {a' : α} : ∃! a, a' = a :=
+by simp only [exists_unique, and_self, forall_eq', exists_eq']
+
 @[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩
 
@@ -1030,13 +1055,6 @@ by simp [or_comm, decidable.forall_or_distrib_left]
 
 theorem forall_or_distrib_right {q : Prop} {p : α → Prop} :
   (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q := decidable.forall_or_distrib_right
-
-/-- A predicate holds everywhere on the image of a surjective functions iff
-    it holds everywhere. -/
-theorem forall_iff_forall_surj
-  {α β : Type*} {f : α → β} (h : function.surjective f) {P : β → Prop} :
-  (∀ a, P (f a)) ↔ ∀ b, P b :=
-⟨λ ha b, by cases h b with a hab; rw ←hab; exact ha a, λ hb a, hb $ f a⟩
 
 @[simp] theorem exists_prop {p q : Prop} : (∃ h : p, q) ↔ p ∧ q :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩
@@ -1145,25 +1163,18 @@ theorem cases {p : Prop → Prop} (h1 : p true) (h2 : p false) : ∀a, p a :=
 assume a, cases_on a h1 h2
 
 /- use shortened names to avoid conflict when classical namespace is open. -/
-noncomputable lemma dec (p : Prop) : decidable p := -- see Note [classical lemma]
+/-- Any prop `p` is decidable classically. A shorthand for `classical.prop_decidable`. -/
+noncomputable def dec (p : Prop) : decidable p :=
 by apply_instance
-noncomputable lemma dec_pred (p : α → Prop) : decidable_pred p := -- see Note [classical lemma]
+/-- Any predicate `p` is decidable classically. -/
+noncomputable def dec_pred (p : α → Prop) : decidable_pred p :=
 by apply_instance
-noncomputable lemma dec_rel (p : α → α → Prop) : decidable_rel p := -- see Note [classical lemma]
+/-- Any relation `p` is decidable classically. -/
+noncomputable def dec_rel (p : α → α → Prop) : decidable_rel p :=
 by apply_instance
-noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
+/-- Any type `α` has decidable equality classically. -/
+noncomputable def dec_eq (α : Sort*) : decidable_eq α :=
 by apply_instance
-
-/--
-We make decidability results that depends on `classical.choice` noncomputable lemmas.
-* We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
-  for them, and fail because it depends on `classical.choice`.
-* We make them lemmas, and not definitions, because otherwise later definitions will raise
-  \"failed to generate bytecode\" errors when writing something like
-  `letI := classical.dec_eq _`.
-Cf. <https://leanprover-community.github.io/archive/stream/113488-general/topic/noncomputable.20theorem.html>
--/
-library_note "classical lemma"
 
 /-- Construct a function from a default value `H0`, and a function to use if there exists a value
 satisfying the predicate. -/

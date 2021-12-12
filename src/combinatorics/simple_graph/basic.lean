@@ -109,6 +109,26 @@ def complete_graph (V : Type u) : simple_graph V := { adj := ne }
 /-- The graph with no edges on a given vertex type `V`. `mathlib` prefers the notation `⊥`. -/
 def empty_graph (V : Type u) : simple_graph V := { adj := λ i j, false }
 
+/--
+Two vertices are adjacent in the complete bipartite graph on two vertex types
+if and only if they are not from the same side.
+Bipartite graphs in general may be regarded as being subgraphs of one of these.
+
+TODO also introduce complete multi-partite graphs, where the vertex type is a sigma type of an
+indexed family of vertex types
+-/
+@[simps]
+def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
+{ adj := λ v w, (v.is_left ∧ w.is_right) ∨ (v.is_right ∧ w.is_left),
+  symm := begin
+    intros v w,
+    cases v; cases w; simp,
+  end,
+  loopless := begin
+    intro v,
+    cases v; simp,
+  end }
+
 namespace simple_graph
 
 variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
@@ -716,6 +736,11 @@ The underlying map on edges is given by `sym2.map`. -/
 @[simps] def map_neighbor_set (v : V) (w : G.neighbor_set v) : G'.neighbor_set (f v) :=
 ⟨f w, f.apply_mem_neighbor_set w.property⟩
 
+/-- The induced map for spanning subgraphs, which is the identity on vertices. -/
+def map_spanning_subgraphs {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
+{ to_fun := λ x, x,
+  map_rel' := h }
+
 lemma map_edge_set.injective (hinj : function.injective f) : function.injective f.map_edge_set :=
 begin
   rintros ⟨e₁, h₁⟩ ⟨e₂, h₂⟩,
@@ -763,6 +788,12 @@ map_adj_iff f
     rw subtype.mk_eq_mk at h ⊢,
     exact f.inj' h,
   end }
+
+/-- Embeddings of types induce embeddings of complete graphs on those types. -/
+def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
+{ to_fun := f,
+  inj' := f.inj',
+  map_rel_iff' := by simp }
 
 variables {G'' : simple_graph X}
 

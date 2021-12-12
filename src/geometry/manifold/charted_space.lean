@@ -404,8 +404,7 @@ def id_restr_groupoid : structure_groupoid H :=
   eq_on_source' := begin
     rintros e e' ⟨s, hs, hse⟩ hee',
     exact ⟨s, hs, setoid.trans hee' hse⟩,
-  end
-}
+  end }
 
 lemma id_restr_groupoid_mem {s : set H} (hs : is_open s) :
   of_set s hs ∈ @id_restr_groupoid H _ := ⟨s, hs, by refl⟩

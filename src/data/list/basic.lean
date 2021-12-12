@@ -3,7 +3,6 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import control.monad.basic
 import data.nat.basic
 
 /-!
@@ -236,6 +235,12 @@ end
 @[simp] lemma length_injective [subsingleton α] : injective (length : list α → ℕ) :=
 length_injective_iff.mpr $ by apply_instance
 
+lemma length_eq_two {l : list α} : l.length = 2 ↔ ∃ a b, l = [a, b] :=
+⟨match l with [a, b], _ := ⟨a, b, rfl⟩ end, λ ⟨a, b, e⟩, e.symm ▸ rfl⟩
+
+lemma length_eq_three {l : list α} : l.length = 3 ↔ ∃ a b c, l = [a, b, c] :=
+⟨match l with [a, b, c], _ := ⟨a, b, c, rfl⟩ end, λ ⟨a, b, c, e⟩, e.symm ▸ rfl⟩
+
 /-! ### set-theoretic notation of lists -/
 
 lemma empty_eq : (∅ : list α) = [] := by refl
@@ -373,8 +378,8 @@ begin
   case nil { rw nil_append, split,
     { rintro rfl, left, exact ⟨_, rfl, rfl⟩ },
     { rintro (⟨a', rfl, rfl⟩ | ⟨a', H, rfl⟩), {refl}, {rw [← append_assoc, ← H], refl} } },
-  case cons : a as ih {
-    cases c,
+  case cons : a as ih
+  { cases c,
     { simp only [cons_append, nil_append, false_and, exists_false, false_or, exists_eq_left'],
       exact eq_comm },
     { simp only [cons_append, @eq_comm _ a, ih, and_assoc, and_or_distrib_left,
@@ -2376,7 +2381,7 @@ begin
   by simp [←h (pure b)],
   induction l; intro,
   { simp },
-  { simp only [mfoldl, foldl, ←l_ih] with monad_norm }
+  { simp only [mfoldl, foldl, ←l_ih] with functor_norm }
 end
 
 @[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},
@@ -2444,51 +2449,6 @@ begin
   induction as; intro; simp! only [split_on_p_aux', append_nil],
   split_ifs; simp [zip_with, join, *],
 end
-
-/-! ### all & any -/
-
-@[simp] theorem all_nil (p : α → bool) : all [] p = tt := rfl
-
-@[simp] theorem all_cons (p : α → bool) (a : α) (l : list α) :
-  all (a::l) p = (p a && all l p) := rfl
-
-theorem all_iff_forall {p : α → bool} {l : list α} : all l p ↔ ∀ a ∈ l, p a :=
-begin
-  induction l with a l ih,
-  { exact iff_of_true rfl (forall_mem_nil _) },
-  simp only [all_cons, band_coe_iff, ih, forall_mem_cons]
-end
-
-theorem all_iff_forall_prop {p : α → Prop} [decidable_pred p]
-  {l : list α} : all l (λ a, p a) ↔ ∀ a ∈ l, p a :=
-by simp only [all_iff_forall, bool.of_to_bool_iff]
-
-@[simp] theorem any_nil (p : α → bool) : any [] p = ff := rfl
-
-@[simp] theorem any_cons (p : α → bool) (a : α) (l : list α) :
-  any (a::l) p = (p a || any l p) := rfl
-
-theorem any_iff_exists {p : α → bool} {l : list α} : any l p ↔ ∃ a ∈ l, p a :=
-begin
-  induction l with a l ih,
-  { exact iff_of_false bool.not_ff (not_exists_mem_nil _) },
-  simp only [any_cons, bor_coe_iff, ih, exists_mem_cons_iff]
-end
-
-theorem any_iff_exists_prop {p : α → Prop} [decidable_pred p]
-  {l : list α} : any l (λ a, p a) ↔ ∃ a ∈ l, p a :=
-by simp [any_iff_exists]
-
-theorem any_of_mem {p : α → bool} {a : α} {l : list α} (h₁ : a ∈ l) (h₂ : p a) : any l p :=
-any_iff_exists.2 ⟨_, h₁, h₂⟩
-
-@[priority 500] instance decidable_forall_mem {p : α → Prop} [decidable_pred p] (l : list α) :
-  decidable (∀ x ∈ l, p x) :=
-decidable_of_iff _ all_iff_forall_prop
-
-instance decidable_exists_mem {p : α → Prop} [decidable_pred p] (l : list α) :
-  decidable (∃ x ∈ l, p x) :=
-decidable_of_iff _ any_iff_exists_prop
 
 /-! ### map for partial functions -/
 
@@ -3543,11 +3503,11 @@ theorem sublist.erasep {l₁ l₂ : list α} (s : l₁ <+ l₂) : l₁.erasep p 
 begin
   induction s,
   case list.sublist.slnil { refl },
-  case list.sublist.cons : l₁ l₂ a s IH {
-    by_cases h : p a; simp [h],
+  case list.sublist.cons : l₁ l₂ a s IH
+  { by_cases h : p a; simp [h],
     exacts [IH.trans (erasep_sublist _), IH.cons _ _ _] },
-  case list.sublist.cons2 : l₁ l₂ a s IH {
-    by_cases h : p a; simp [h],
+  case list.sublist.cons2 : l₁ l₂ a s IH
+  { by_cases h : p a; simp [h],
     exacts [s, IH.cons2 _ _ _] }
 end
 

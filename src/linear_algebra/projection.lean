@@ -67,7 +67,7 @@ namespace submodule
 open linear_map
 
 /-- If `q` is a complement of `p`, then `M/p ≃ q`. -/
-def quotient_equiv_of_is_compl (h : is_compl p q) : p.quotient ≃ₗ[R] q :=
+def quotient_equiv_of_is_compl (h : is_compl p q) : (E ⧸ p) ≃ₗ[R] q :=
 linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
   (by simp only [← ker_eq_bot, ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
   (by simp only [← range_eq_top, range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
@@ -79,8 +79,8 @@ linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
   quotient_equiv_of_is_compl p q h (quotient.mk x) = x :=
 (quotient_equiv_of_is_compl p q h).apply_symm_apply x
 
-@[simp] lemma mk_quotient_equiv_of_is_compl_apply (h : is_compl p q) (x : p.quotient) :
-  (quotient.mk (quotient_equiv_of_is_compl p q h x) : p.quotient) = x :=
+@[simp] lemma mk_quotient_equiv_of_is_compl_apply (h : is_compl p q) (x : E ⧸ p) :
+  (quotient.mk (quotient_equiv_of_is_compl p q h x) : E ⧸ p) = x :=
 (quotient_equiv_of_is_compl p q h).symm_apply_apply x
 
 /-- If `q` is a complement of `p`, then `p × q` is isomorphic to `E`. It is the unique

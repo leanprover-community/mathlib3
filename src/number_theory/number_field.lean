@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan, Anne Baanen
 -/
 
-import algebra.field
+import algebra.field.basic
 import data.rat.basic
 import ring_theory.algebraic
 import ring_theory.dedekind_domain
@@ -82,9 +82,10 @@ protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
 
 variables (K)
 
-instance [number_field K] : char_zero (ring_of_integers K) := char_zero.of_algebra K
+instance [number_field K] : char_zero (ring_of_integers K) := char_zero.of_module _ K
 
--- TODO: show `ring_of_integers K` is a Dedekind domain
+instance [number_field K] : is_dedekind_domain (ring_of_integers K) :=
+is_integral_closure.is_dedekind_domain ℤ ℚ K _
 
 end ring_of_integers
 

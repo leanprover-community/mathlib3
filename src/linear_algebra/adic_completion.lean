@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import algebra.geom_sum
 import linear_algebra.smodeq
 import ring_theory.ideal.quotient
 import ring_theory.jacobson_ideal
@@ -67,11 +68,11 @@ variables (I M)
 
 /-- The Hausdorffification of a module with respect to an ideal. -/
 @[reducible] def Hausdorffification : Type* :=
-(⨅ n : ℕ, I ^ n • ⊤ : submodule R M).quotient
+M ⧸ (⨅ n : ℕ, I ^ n • ⊤ : submodule R M)
 
 /-- The completion of a module with respect to an ideal. This is not necessarily Hausdorff.
 In fact, this is only complete if the ideal is finitely generated. -/
-def adic_completion : submodule R (Π n : ℕ, (I ^ n • ⊤ : submodule R M).quotient) :=
+def adic_completion : submodule R (Π n : ℕ, (M ⧸ (I ^ n • ⊤ : submodule R M))) :=
 { carrier := { f | ∀ {m n} (h : m ≤ n), liftq _ (mkq _)
     (by { rw ker_mkq, exact smul_mono (ideal.pow_le_pow h) (le_refl _) }) (f n) = f m },
   zero_mem' := λ m n hmn, by rw [pi.zero_apply, pi.zero_apply, linear_map.map_zero],
@@ -170,13 +171,13 @@ def of : M →ₗ[R] adic_completion I M :=
 @[simp] lemma of_apply (x : M) (n : ℕ) : (of I M x).1 n = mkq _ x := rfl
 
 /-- Linearly evaluating a sequence in the completion at a given input. -/
-def eval (n : ℕ) : adic_completion I M →ₗ[R] (I ^ n • ⊤ : submodule R M).quotient :=
+def eval (n : ℕ) : adic_completion I M →ₗ[R] (M ⧸ (I ^ n • ⊤ : submodule R M)) :=
 { to_fun    := λ f, f.1 n,
   map_add'  := λ f g, rfl,
   map_smul' := λ c f, rfl }
 
 @[simp] lemma coe_eval (n : ℕ) :
-  (eval I M n : adic_completion I M → (I ^ n • ⊤ : submodule R M).quotient) = λ f, f.1 n := rfl
+  (eval I M n : adic_completion I M → (M ⧸ (I ^ n • ⊤ : submodule R M))) = λ f, f.1 n := rfl
 
 lemma eval_apply (n : ℕ) (f : adic_completion I M) : eval I M n f = f.1 n := rfl
 

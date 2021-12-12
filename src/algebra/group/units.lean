@@ -345,16 +345,21 @@ by cases ha with a ha; rw [←ha, units.mul_right_inj]
 by cases ha with a ha; rw [←ha, units.mul_left_inj]
 
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
+@[to_additive "The element of the additive group of additive units, corresponding to an element of
+an additive monoid which is an additive unit."]
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
 (classical.some h).copy a (classical.some_spec h).symm _ rfl
 
+@[to_additive]
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl
 
+@[to_additive]
 lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
   ↑(h.unit)⁻¹ * a = 1 :=
 units.mul_inv _
 
+@[to_additive]
 lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
   a * ↑(h.unit)⁻¹ = 1 :=
 begin
@@ -371,8 +376,8 @@ variables {M : Type*}
 /-- Constructs a `group` structure on a `monoid` consisting only of units. -/
 noncomputable def group_of_is_unit [hM : monoid M] (h : ∀ (a : M), is_unit a) : group M :=
 { inv := λ a, ↑((h a).unit)⁻¹,
-  mul_left_inv := λ a, by {
-    change ↑((h a).unit)⁻¹ * a = 1,
+  mul_left_inv := λ a, by
+  { change ↑((h a).unit)⁻¹ * a = 1,
     rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
 .. hM }
 
@@ -380,8 +385,8 @@ noncomputable def group_of_is_unit [hM : monoid M] (h : ∀ (a : M), is_unit a) 
 noncomputable def comm_group_of_is_unit [hM : comm_monoid M] (h : ∀ (a : M), is_unit a) :
   comm_group M :=
 { inv := λ a, ↑((h a).unit)⁻¹,
-  mul_left_inv := λ a, by {
-    change ↑((h a).unit)⁻¹ * a = 1,
+  mul_left_inv := λ a, by
+  { change ↑((h a).unit)⁻¹ * a = 1,
     rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
 .. hM }
 

@@ -3,7 +3,6 @@ Copyright (c) 2019 Johan Commelin All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import order.filter.lift
 import topology.opens
 import topology.algebra.ring
 /-!
@@ -140,18 +139,17 @@ instance : partial_order (open_subgroup G) :=
   .. partial_order.lift (coe : open_subgroup G → set G) coe_injective }
 
 @[to_additive]
-instance : order_top (open_subgroup G) :=
-{ top := ⊤,
-  le_top := λ U, set.subset_univ _ }
-
-@[to_additive]
-instance : semilattice_inf_top (open_subgroup G) :=
+instance : semilattice_inf (open_subgroup G) :=
 { inf := λ U V, { is_open' := is_open.inter U.is_open V.is_open, .. (U : subgroup G) ⊓ V },
   inf_le_left := λ U V, set.inter_subset_left _ _,
   inf_le_right := λ U V, set.inter_subset_right _ _,
   le_inf := λ U V W hV hW, set.subset_inter hV hW,
-  ..open_subgroup.order_top,
   ..open_subgroup.partial_order }
+
+@[to_additive]
+instance : order_top (open_subgroup G) :=
+{ top := ⊤,
+  le_top := λ U, set.subset_univ _ }
 
 @[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
 
@@ -223,7 +221,7 @@ namespace open_subgroup
 variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G]
 
 @[to_additive]
-instance : semilattice_sup_top (open_subgroup G) :=
+instance : semilattice_sup (open_subgroup G) :=
 { sup := λ U V,
   { is_open' := show is_open (((U : subgroup G) ⊔ V : subgroup G) : set G),
     from subgroup.is_open_mono le_sup_left U.is_open,
@@ -231,11 +229,12 @@ instance : semilattice_sup_top (open_subgroup G) :=
   le_sup_left := λ U V, coe_subgroup_le.1 le_sup_left,
   le_sup_right := λ U V, coe_subgroup_le.1 le_sup_right,
   sup_le := λ U V W hU hV, coe_subgroup_le.1 (sup_le hU hV),
-  ..open_subgroup.semilattice_inf_top }
+  ..open_subgroup.semilattice_inf }
 
 @[to_additive]
 instance : lattice (open_subgroup G) :=
-{ ..open_subgroup.semilattice_sup_top, ..open_subgroup.semilattice_inf_top }
+{ ..open_subgroup.semilattice_sup, ..open_subgroup.semilattice_inf }
+
 
 end open_subgroup
 

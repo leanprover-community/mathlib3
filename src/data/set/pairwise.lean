@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.lattice
+import logic.relation
 
 /-!
 # Relations holding pairwise
@@ -34,7 +35,7 @@ lemma pairwise.mono (hr : pairwise r) (h : ∀ ⦃i j⦄, r i j → p i j) : pai
 lemma pairwise_on_bool (hr : symmetric r) {a b : α} : pairwise (r on (λ c, cond c a b)) ↔ r a b :=
 by simpa [pairwise, function.on_fun] using @hr a b
 
-lemma pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
+lemma pairwise_disjoint_on_bool [semilattice_inf α] [order_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
 pairwise_on_bool disjoint.symm
 
@@ -46,7 +47,7 @@ lemma symmetric.pairwise_on [linear_order ι] (hr : symmetric r) (f : ι → α)
   { exact hr (h _ _ hmn') }
 end⟩
 
-lemma pairwise_disjoint_on [semilattice_inf_bot α] [linear_order ι] (f : ι → α) :
+lemma pairwise_disjoint_on [semilattice_inf α] [order_bot α] [linear_order ι] (f : ι → α) :
   pairwise (disjoint on f) ↔ ∀ m n, m < n → disjoint (f m) (f n) :=
 symmetric.pairwise_on disjoint.symm f
 
@@ -199,7 +200,7 @@ alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise
 
 namespace set
 section semilattice_inf_bot
-variables [semilattice_inf_bot α] {s t : set ι} {f g : ι → α}
+variables [semilattice_inf α] [order_bot α] {s t : set ι} {f g : ι → α}
 
 /-- A set is `pairwise_disjoint` under `f`, if the images of any distinct two elements under `f`
 are disjoint. -/

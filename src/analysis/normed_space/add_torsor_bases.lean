@@ -6,7 +6,7 @@ Authors: Oliver Nash
 import analysis.normed_space.banach
 import analysis.normed_space.finite_dimension
 import analysis.convex.combination
-import linear_algebra.affine_space.barycentric_coords
+import linear_algebra.affine_space.basis
 import linear_algebra.affine_space.finite_dimensional
 
 /-!
@@ -28,19 +28,17 @@ section barycentric
 variables {ι 𝕜 E P : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
 variables [normed_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
 variables [metric_space P] [normed_add_torsor E P]
-variables {p : ι → P} (h_ind : affine_independent 𝕜 p) (h_tot : affine_span 𝕜 (set.range p) = ⊤)
+variables (b : affine_basis ι 𝕜 P)
 
 @[continuity]
-lemma continuous_barycentric_coord (i : ι) : continuous (barycentric_coord h_ind h_tot i) :=
+lemma continuous_barycentric_coord (i : ι) : continuous (b.coord i) :=
 affine_map.continuous_of_finite_dimensional _
 
 local attribute [instance] finite_dimensional.complete
 
 lemma is_open_map_barycentric_coord [nontrivial ι] (i : ι) :
-  is_open_map (barycentric_coord h_ind h_tot i) :=
-open_mapping_affine
-  (continuous_barycentric_coord h_ind h_tot i)
-  (surjective_barycentric_coord h_ind h_tot i)
+  is_open_map (b.coord i) :=
+open_mapping_affine (continuous_barycentric_coord b i) (b.surjective_coord i)
 
 end barycentric
 
@@ -53,27 +51,26 @@ to this basis.
 TODO Restate this result for affine spaces (instead of vector spaces) once the definition of
 convexity is generalised to this setting. -/
 lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_group E] [normed_space ℝ E]
-  {p : ι → E} (h_ind : affine_independent ℝ p) (h_tot : affine_span ℝ (range p) = ⊤) :
-  interior (convex_hull ℝ (range p)) = { x | ∀ i, 0 < barycentric_coord h_ind h_tot i x } :=
+  (b : affine_basis ι ℝ E) :
+  interior (convex_hull ℝ (range b.points)) = { x | ∀ i, 0 < b.coord i x } :=
 begin
   cases subsingleton_or_nontrivial ι with h h,
   { -- The zero-dimensional case.
     haveI := h,
-    suffices : range p = univ, { simp [this], },
-    refine affine_subspace.eq_univ_of_subsingleton_span_eq_top _ h_tot,
+    suffices : range (b.points) = univ, { simp [this], },
+    refine affine_subspace.eq_univ_of_subsingleton_span_eq_top _ b.tot,
     rw ← image_univ,
-    exact subsingleton.image subsingleton_of_subsingleton p, },
+    exact subsingleton.image subsingleton_of_subsingleton b.points, },
   { -- The positive-dimensional case.
     haveI : finite_dimensional ℝ E,
     { classical,
       obtain ⟨i⟩ := (infer_instance : nonempty ι),
-      have b := basis_of_aff_ind_span_eq_top h_ind h_tot i,
-      exact finite_dimensional.of_fintype_basis b, },
-    have : convex_hull ℝ (range p) = ⋂ i, (barycentric_coord h_ind h_tot i)⁻¹' Ici 0,
-    { rw convex_hull_affine_basis_eq_nonneg_barycentric h_ind h_tot, ext, simp, },
+      exact finite_dimensional.of_fintype_basis (b.basis_of i), },
+    have : convex_hull ℝ (range b.points) = ⋂ i, (b.coord i)⁻¹' Ici 0,
+    { rw convex_hull_affine_basis_eq_nonneg_barycentric b, ext, simp, },
     ext,
     simp only [this, interior_Inter_of_fintype, ← is_open_map.preimage_interior_eq_interior_preimage
-      (continuous_barycentric_coord h_ind h_tot _) (is_open_map_barycentric_coord h_ind h_tot _),
+      (continuous_barycentric_coord b _) (is_open_map_barycentric_coord b _),
       interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end
 
@@ -140,17 +137,17 @@ begin
     obtain ⟨t, hts, h_tot, h_ind⟩ := exists_affine_independent ℝ V s,
     suffices : (interior (convex_hull ℝ (range (coe : t → V)))).nonempty,
     { rw [subtype.range_coe_subtype, set_of_mem_eq] at this,
-      apply nonempty.mono _ this, 
+      apply nonempty.mono _ this,
       mono* },
     haveI : fintype t := fintype_of_fin_dim_affine_independent ℝ h_ind,
     use finset.centroid ℝ (finset.univ : finset t) (coe : t → V),
     rw [h, ← @set_of_mem_eq V t, ← subtype.range_coe_subtype] at h_tot,
-    rw interior_convex_hull_aff_basis h_ind h_tot,
+    let b : affine_basis t ℝ V := ⟨coe, h_ind, h_tot⟩,
+    rw interior_convex_hull_aff_basis b,
     have htne : (finset.univ : finset t).nonempty,
     { simpa [finset.univ_nonempty_iff] using
         affine_subspace.nonempty_of_affine_span_eq_top ℝ V V h_tot, },
-    simp [finset.centroid_def,
-      barycentric_coord_apply_combination_of_mem h_ind h_tot (finset.mem_univ _)
+    simp [finset.centroid_def, b.coord_apply_combination_of_mem (finset.mem_univ _)
       (finset.sum_centroid_weights_eq_one_of_nonempty ℝ (finset.univ : finset t) htne),
       finset.centroid_weights_apply, nat.cast_pos, inv_pos, finset.card_pos.mpr htne], },
 end

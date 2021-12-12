@@ -289,3 +289,99 @@ lemma is_principal_ideal_ring.of_surjective [is_principal_ideal_ring R]
 ⟨λ I, ideal.is_principal.of_comap f hf I⟩
 
 end surjective
+
+section
+open ideal
+variables [comm_ring R] [is_domain R] [is_principal_ideal_ring R] [gcd_monoid R]
+
+theorem span_gcd (x y : R) : span ({gcd x y} : set R) = span ({x, y} : set R) :=
+begin
+  obtain ⟨d, hd⟩ := is_principal_ideal_ring.principal (span ({x, y} : set R)),
+  rw submodule_span_eq at hd,
+  rw [hd],
+  suffices : associated d (gcd x y),
+  { obtain ⟨D, HD⟩ := this,
+    rw ←HD,
+    exact (span_singleton_mul_right_unit D.is_unit _) },
+  apply associated_of_dvd_dvd,
+  { rw dvd_gcd_iff,
+    split; rw [←ideal.mem_span_singleton, ←hd, mem_span_pair],
+    { use [1, 0],
+      rw [one_mul, zero_mul, add_zero] },
+    { use [0, 1],
+      rw [one_mul, zero_mul, zero_add] } },
+  { obtain ⟨r, s, rfl⟩ : ∃ r s, r * x + s * y = d,
+    { rw [←mem_span_pair, hd, ideal.mem_span_singleton] },
+    apply dvd_add; apply dvd_mul_of_dvd_right,
+    exacts [gcd_dvd_left x y, gcd_dvd_right x y] },
+end
+
+theorem gcd_is_unit_iff (x y : R) : is_unit (gcd x y) ↔ is_coprime x y :=
+by rw [is_coprime, ←mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]
+
+-- this should be proved for UFDs surely?
+theorem is_coprime_of_dvd (x y : R)
+  (nonzero : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits R, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
+  is_coprime x y :=
+begin
+  rw [← gcd_is_unit_iff],
+  by_contra h,
+  refine H _ h _ (gcd_dvd_left _ _) (gcd_dvd_right _ _),
+  rwa [ne, gcd_eq_zero_iff]
+end
+
+-- this should be proved for UFDs surely?
+theorem dvd_or_coprime (x y : R) (h : irreducible x) : x ∣ y ∨ is_coprime x y :=
+begin
+  refine or_iff_not_imp_left.2 (λ h', _),
+  apply is_coprime_of_dvd,
+  { unfreezingI { rintro ⟨rfl, rfl⟩ }, simpa using h },
+  { unfreezingI { rintro z nu nz ⟨w, rfl⟩ dy },
+    refine h' (dvd_trans _ dy),
+    simpa using mul_dvd_mul_left z (is_unit_iff_dvd_one.1 $
+      (of_irreducible_mul h).resolve_left nu) }
+end
+
+theorem is_coprime_of_irreducible_dvd {x y : R}
+  (nonzero : ¬ (x = 0 ∧ y = 0))
+  (H : ∀ z : R, irreducible z → z ∣ x → ¬ z ∣ y) :
+  is_coprime x y :=
+begin
+  apply is_coprime_of_dvd x y nonzero,
+  intros z znu znz zx zy,
+  obtain ⟨i, h1, h2⟩ := wf_dvd_monoid.exists_irreducible_factor znu znz,
+  apply H i h1;
+  { apply dvd_trans h2, assumption },
+end
+
+theorem is_coprime_of_prime_dvd {x y : R}
+  (nonzero : ¬ (x = 0 ∧ y = 0))
+  (H : ∀ z : R, prime z → z ∣ x → ¬ z ∣ y) :
+  is_coprime x y :=
+is_coprime_of_irreducible_dvd nonzero $ λ z zi, H z $ gcd_monoid.prime_of_irreducible zi
+
+theorem irreducible.coprime_iff_not_dvd {p n : R} (pp : irreducible p) : is_coprime p n ↔ ¬ p ∣ n :=
+begin
+  split,
+  { intros co H,
+    apply pp.not_unit,
+    rw is_unit_iff_dvd_one,
+    apply is_coprime.dvd_of_dvd_mul_left co,
+    rw mul_one n,
+    exact H },
+  { intro nd,
+    apply is_coprime_of_irreducible_dvd,
+    { rintro ⟨hp, -⟩,
+      exact pp.ne_zero hp },
+    rintro z zi zp zn,
+    exact nd (((zi.associated_of_dvd pp zp).symm.dvd).trans zn) },
+end
+
+theorem prime.coprime_iff_not_dvd {p n : R} (pp : prime p) : is_coprime p n ↔ ¬ p ∣ n :=
+pp.irreducible.coprime_iff_not_dvd
+
+theorem exists_associated_pow_of_mul_eq_pow' {a b c : R}
+  (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ k) : ∃ d, associated (d ^ k) a :=
+exists_associated_pow_of_mul_eq_pow ((gcd_is_unit_iff _ _).mpr hab) h
+
+end

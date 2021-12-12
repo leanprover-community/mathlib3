@@ -267,7 +267,7 @@ root_gcd_iff_root_left_right
 
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
-by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
+by rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_iff, gcd_map, is_unit_map]
 
 @[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
   p.map f = 0 ↔ p = 0 :=
@@ -369,6 +369,8 @@ lemma coe_norm_unit_of_ne_zero (hp : p ≠ 0) : (norm_unit p : polynomial R) = C
 have p.leading_coeff ≠ 0 := mt leading_coeff_eq_zero.mp hp,
 by simp [comm_group_with_zero.coe_norm_unit _ this]
 
+lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
+
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
@@ -411,7 +413,7 @@ lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {K : Type*} [field K]
   (f : polynomial K) (a : K) (hf' : f.derivative.eval a ≠ 0) :
   is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
 begin
-  refine or.resolve_left (dvd_or_coprime (X - C a) (f /ₘ (X - C a))
+  refine or.resolve_left (euclidean_domain.dvd_or_coprime (X - C a) (f /ₘ (X - C a))
     (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C a))) _,
   contrapose! hf' with h,
   have key : (X - C a) * (f /ₘ (X - C a)) = f - (f %ₘ (X - C a)),

@@ -77,8 +77,8 @@ See `matrix.to_linear_equiv'` for this result on `n → R`.
 noncomputable def to_linear_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   M ≃ₗ[R] M :=
 begin
-  refine {
-    to_fun := to_lin b b A,
+  refine
+  { to_fun := to_lin b b A,
     inv_fun := to_lin b b A⁻¹,
     left_inv := λ x, _,
     right_inv := λ x, _,

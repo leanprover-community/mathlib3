@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.list.perm
-import data.list.chain
 
 /-!
 # Sorting algorithms on lists
@@ -263,8 +262,8 @@ def merge_sort : list α → list α
   cases length_split_lt e with h₁ h₂,
   exact merge r (merge_sort l₁) (merge_sort l₂)
 end
-using_well_founded {
-  rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
+using_well_founded
+{ rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
 theorem merge_sort_cons_cons {a b} {l l₁ l₂ : list α}
@@ -301,8 +300,8 @@ theorem perm_merge_sort : ∀ l : list α, merge_sort r l ~ l
   apply (perm_merge r _ _).trans,
   exact ((perm_merge_sort l₁).append (perm_merge_sort l₂)).trans (perm_split e).symm
 end
-using_well_founded {
-  rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
+using_well_founded
+{ rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
 @[simp] lemma length_merge_sort (l : list α) : (merge_sort r l).length = l.length :=
@@ -347,8 +346,8 @@ theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort r l)
   rw [merge_sort_cons_cons r e],
   exact (sorted_merge_sort l₁).merge (sorted_merge_sort l₂)
 end
-using_well_founded {
-  rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
+using_well_founded
+{ rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
 theorem merge_sort_eq_self [is_antisymm α r] {l : list α} : sorted r l → merge_sort r l = l :=

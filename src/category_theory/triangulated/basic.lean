@@ -3,9 +3,7 @@ Copyright (c) 2021 Luke Kershaw. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Kershaw
 -/
-import category_theory.additive.basic
 import category_theory.shift
-import category_theory.preadditive.additive_functor
 
 /-!
 # Triangles
@@ -19,7 +17,6 @@ TODO: generalise this to n-angles in n-angulated categories as in https://arxiv.
 noncomputable theory
 
 open category_theory
-open category_theory.preadditive
 open category_theory.limits
 
 universes v v₀ v₁ v₂ u u₀ u₁ u₂

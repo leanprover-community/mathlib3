@@ -37,6 +37,10 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 
 @[simp] lemma mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
 
+@[simp, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
+  (s.product t : set (α × β)) = (s : set α).prod t :=
+set.ext $ λ x, finset.mem_product
+
 lemma subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
   s ⊆ (s.image prod.fst).product (s.image prod.snd) :=
 λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
@@ -55,6 +59,12 @@ lemma product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t :
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
 
+lemma product_eq_bUnion_right [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
+  s.product t = t.bUnion (λ b, s.image $ λ a, (a, b)) :=
+ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
+  and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
+
+/-- See also `finset.sup_product_left`. -/
 @[simp] lemma product_bUnion [decidable_eq γ] (s : finset α) (t : finset β) (f : α × β → finset γ) :
   (s.product t).bUnion f = s.bUnion (λ a, t.bUnion (λ b, f (a, b))) :=
 by { classical, simp_rw [product_eq_bUnion, bUnion_bUnion, image_bUnion] }

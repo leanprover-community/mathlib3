@@ -220,7 +220,7 @@ def map {M1 M2 : Module R} (l : M1 ⟶ M2) : (module f M1) ⟶ (module f M2) :=
   end }
 
 -- this doesn't compile for some reason
--- example : Module R ⥤ Module S :=
+-- example : Module.{u} R ⥤ Module.{u} S :=
 -- { obj := module f,
 --   map := λ M1 M2 l, map f l }
 

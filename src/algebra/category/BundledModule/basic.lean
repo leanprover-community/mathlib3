@@ -157,7 +157,11 @@ universe u
 variables {M1 M2 M3 : BundledModule.{u}} (f : M1.R ⟶ M2.R) (g : M2.R ⟶ M3.R)
 include f g
 
-lemma restriction_of_scalar.restrict_comp :
+/--
+If `Mᵢ = (Rᵢ, Nᵢ)` and `f : R₁ ⟶ R₂` and `g : R₂ ⟶ R₃` then
+`(f ≫ g)* N₃ ≅ g* (f* N₃)`
+-/
+def restriction_of_scalar.restrict_comp :
   restriction_of_scalar.bundled (f ≫ g) ≅
   @restriction_of_scalar.bundled M1 (@restriction_of_scalar.bundled M2 M3 g) f :=
 { hom := ⟨𝟙 _, 𝟙 _⟩,

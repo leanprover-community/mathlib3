@@ -71,6 +71,7 @@ class preserves_colimits_of_shape (J : Type w) [category.{w'} J] (F : C ⥤ D) :
 
 /-- `preserves_limits_of_size.{v u} F` means that `F` sends all limit cones over any
 diagram `J ⥤ C` to limit cones, where `J : Type u` with `[category.{v} J]`. -/
+@[nolint check_univs] -- This should be used with explicit universe variables.
 class preserves_limits_of_size (F : C ⥤ D) :=
 (preserves_limits_of_shape : Π {J : Type w} [category.{w'} J],
   preserves_limits_of_shape J F . tactic.apply_instance)
@@ -81,6 +82,7 @@ abbreviation preserves_limits (F : C ⥤ D) := preserves_limits_of_size.{v₂ v�
 
 /-- `preserves_colimits_of_size.{v u} F` means that `F` sends all colimit cocones over any
 diagram `J ⥤ C` to colimit cocones, where `J : Type u` with `[category.{v} J]`. -/
+@[nolint check_univs] -- This should be used with explicit universe variables.
 class preserves_colimits_of_size (F : C ⥤ D) :=
 (preserves_colimits_of_shape : Π {J : Type w} [category.{w'} J],
   preserves_colimits_of_shape J F . tactic.apply_instance)
@@ -316,6 +318,7 @@ whenever the image of a cone over some `K : J ⥤ C` under `F` is a limit cone i
 the cone was already a limit cone in `C`.
 Note that we do not assume a priori that `D` actually has any limits.
 -/
+@[nolint check_univs] -- This should be used with explicit universe variables.
 class reflects_limits_of_size (F : C ⥤ D) :=
 (reflects_limits_of_shape : Π {J : Type w} [category.{w'} J],
   reflects_limits_of_shape J F . tactic.apply_instance)
@@ -326,12 +329,14 @@ the cone was already a limit cone in `C`.
 Note that we do not assume a priori that `D` actually has any limits.
 -/
 abbreviation reflects_limits (F : C ⥤ D) := reflects_limits_of_size.{v₂ v₂} F
+
 /--
 A functor `F : C ⥤ D` reflects colimits if
 whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
 the cocone was already a colimit cocone in `C`.
 Note that we do not assume a priori that `D` actually has any colimits.
 -/
+@[nolint check_univs] -- This should be used with explicit universe variables.
 class reflects_colimits_of_size (F : C ⥤ D) :=
 (reflects_colimits_of_shape : Π {J : Type w} [category.{w'} J],
   reflects_colimits_of_shape J F . tactic.apply_instance)

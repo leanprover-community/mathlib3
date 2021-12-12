@@ -66,6 +66,7 @@ class creates_limits_of_shape (J : Type w) [category.{w'} J] (F : C ⥤ D) :=
 (creates_limit : Π {K : J ⥤ C}, creates_limit K F . tactic.apply_instance)
 
 /-- `F` creates limits if it creates limits of shape `J` for any `J`. -/
+@[nolint check_univs] -- This should be used with explicit universe variables.
 class creates_limits_of_size (F : C ⥤ D) :=
 (creates_limits_of_shape : Π {J : Type w} [category.{w'} J],
   creates_limits_of_shape J F . tactic.apply_instance)
@@ -93,10 +94,12 @@ class creates_colimits_of_shape (J : Type w) [category.{w'} J] (F : C ⥤ D) :=
 (creates_colimit : Π {K : J ⥤ C}, creates_colimit K F . tactic.apply_instance)
 
 /-- `F` creates colimits if it creates colimits of shape `J` for any small `J`. -/
+@[nolint check_univs] -- This should be used with explicit universe variables.
 class creates_colimits_of_size (F : C ⥤ D) :=
 (creates_colimits_of_shape : Π {J : Type w} [category.{w'} J],
   creates_colimits_of_shape J F . tactic.apply_instance)
 
+/-- `F` creates small colimits if it creates colimits of shape `J` for any small `J`. -/
 abbreviation creates_colimits (F : C ⥤ D) := creates_colimits_of_size.{v₂ v₂} F
 
 attribute [instance, priority 100] -- see Note [lower instance priority]

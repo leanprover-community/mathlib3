@@ -147,7 +147,7 @@ variables (F : C ⥤ D)
 variables [preserves_limits_of_shape (discrete.{v} walking_pair) F]
 variables [preserves_limits_of_shape (discrete.{v} pempty) F]
 variables [has_finite_products.{v} C]
-set_option pp.universes true
+
 /--
 If `F` preserves the terminal object and binary products, then it preserves products indexed by
 `ulift (fin n)` for any `n`.

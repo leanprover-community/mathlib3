@@ -276,14 +276,14 @@ end has_limit
 
 
 section small_category
-variables {C D : Type u₁} [small_category C] [small_category D]
+variables {C D : Type u₁} [small_category C] [small_category D] (E : Type u₂) [category.{u₁} E]
 
 /--
 (Implementation)
 The evaluation of `Lan F` at `X` is the colimit over the costructured arrows over `X`.
 -/
 noncomputable
-def Lan_evaluation_iso_colim (E : Type u₂) [category.{u₁} E] (F : C ⥤ D) (X : D)
+def Lan_evaluation_iso_colim (F : C ⥤ D) (X : D)
   [∀ (X : D), has_colimits_of_shape (costructured_arrow F X) E] :
   Lan F ⋙ (evaluation D E).obj X ≅
   ((whiskering_left _ _ E).obj (costructured_arrow.proj F X)) ⋙ colim :=
@@ -301,16 +301,20 @@ begin
   rw [costructured_arrow.map_mk, category.id_comp, costructured_arrow.mk]
 end
 
+variables [concrete_category.{u₁} E] [has_limits E] [has_colimits E]
+variables [reflects_limits (forget E)] [preserves_filtered_colimits (forget E)]
+variables [preserves_limits (forget E)]
+
 /--
 If `F : C ⥤ D` is a representably flat functor between small categories, then the functor
 `Lan F.op` that takes presheaves over `C` to presheaves over `D` preserves finite limits.
 -/
 noncomputable
 instance Lan_preserves_finite_limits_of_flat (F : C ⥤ D) [representably_flat F] :
-  preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
+  preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ E)) :=
 ⟨λ J _ _, begin
   resetI,
-  apply preserves_limits_of_shape_of_evaluation (Lan F.op : (Cᵒᵖ ⥤ Type u₁) ⥤ (Dᵒᵖ ⥤ Type u₁)) J,
+  apply preserves_limits_of_shape_of_evaluation (Lan F.op : (Cᵒᵖ ⥤ E) ⥤ (Dᵒᵖ ⥤ E)) J,
   intro K,
   haveI : is_filtered (costructured_arrow F.op K) :=
     is_filtered.of_equivalence (structured_arrow_op_equivalence F (unop K)),
@@ -318,13 +322,13 @@ instance Lan_preserves_finite_limits_of_flat (F : C ⥤ D) [representably_flat F
 end⟩
 
 instance Lan_flat_of_flat (F : C ⥤ D) [representably_flat F] :
-  representably_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) := flat_of_preserves_finite_limits _
+  representably_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ E)) := flat_of_preserves_finite_limits _
 
 variable [has_finite_limits C]
 
 noncomputable
 instance Lan_preserves_finite_limits_of_preserves_finite_limits (F : C ⥤ D)
-  [preserves_finite_limits F] : preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
+  [preserves_finite_limits F] : preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ E)) :=
 begin
   haveI := flat_of_preserves_finite_limits F,
   apply_instance

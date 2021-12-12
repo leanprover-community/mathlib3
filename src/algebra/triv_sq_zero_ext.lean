@@ -204,6 +204,8 @@ lemma inl_fst_add_inr_snd_eq [add_zero_class R] [add_zero_class M] (x : tsze R M
   inl x.fst + inr x.snd = x :=
 ext (add_zero x.1) (zero_add x.2)
 
+variables (R M)
+
 /-- The canonical `R`-linear inclusion `M → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inr_hom [semiring R] [add_comm_monoid M] [module R M] : M →ₗ[R] tsze R M :=
@@ -302,6 +304,8 @@ instance [comm_semiring R] [add_comm_monoid M] [module R M] : comm_semiring (tsz
 { .. triv_sq_zero_ext.comm_monoid,
   .. triv_sq_zero_ext.non_assoc_semiring }
 
+variables (R M)
+
 /-- The canonical inclusion of rings `R → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inl_hom [semiring R] [add_comm_monoid M] [module R M] : R →+* tsze R M :=
@@ -321,7 +325,7 @@ instance algebra' [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
 { commutes' := λ r x, mul_comm _ _,
   smul_def' := λ r x, ext (algebra.smul_def _ _) $
     show r • x.2 = algebra_map S R r • x.2 + x.1 • 0, by rw [smul_zero, add_zero, algebra_map_smul],
-  .. triv_sq_zero_ext.inl_hom.comp (algebra_map S R) }
+  .. (triv_sq_zero_ext.inl_hom R M).comp (algebra_map S R) }
 instance [comm_semiring R] [add_comm_monoid M] [module R M] : algebra R (tsze R M) :=
 triv_sq_zero_ext.algebra' _ _ _
 

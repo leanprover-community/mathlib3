@@ -1425,6 +1425,18 @@ begin
   exact (le_mul_iff_one_le_left (norm_pos_iff.mpr hx)).mp (h x),
 end
 
+variables {E' : Type*} [inner_product_space 𝕜 E']
+
+/-- Given an operator `A : E →L[𝕜] E'`, construct the sesquilinear form `λ x y, ⟪x, A y⟫`. -/
+def continuous_linear_map.to_sesq_form : (E →L[𝕜] E') →ₗ[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+{ to_fun := λ A, continuous_linear_map.bilinear_comp
+              (innerSL : E' →L⋆[𝕜] E' →L[𝕜] 𝕜) (continuous_linear_map.id _ _) A,
+  map_add' := λ A B, by { ext x, simp [inner_add_right] },
+  map_smul' := λ r A, by { ext x y, dsimp, exact inner_smul_right } }
+
+@[simp] lemma continuous_linear_map.to_sesq_form_apply_coe {A : E →L[𝕜] E'} {x : E'} :
+  (continuous_linear_map.to_sesq_form A x : E → 𝕜) = λ y, ⟪x, A y⟫ := rfl
+
 /-- When an inner product space `E` over `𝕜` is considered as a real normed space, its inner
 product satisfies `is_bounded_bilinear_map`.
 

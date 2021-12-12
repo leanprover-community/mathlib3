@@ -220,5 +220,3 @@ def extension_of_scalars : Module R ⥤ Module S :=
       end }, }
 
 end extension_of_scalars
-
-#lint

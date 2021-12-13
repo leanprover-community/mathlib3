@@ -95,7 +95,7 @@ by simp only [mem_edge_set, exists_prop, set_coe.exists, exists_eq_right, subtyp
 
 section incidence
 
-variables [fintype V] [decidable_eq V] [decidable_rel G.adj] (R) [ring R]
+variables [fintype V] [decidable_eq V] [decidable_rel G.adj] (R) [has_zero R] [has_one R]
 
 /-- `inc_matrix G R` is the matrix `M` such that `M i e = 1` if vertex `i` is an
 endpoint of the edge `e` in the simple graph `G`, otherwise `M i j = 0`. -/
@@ -108,12 +108,12 @@ lemma inc_matrix_apply {i : V} {e : sym2 V} :
 
 /-! ### Relation between inc_matrix elements and incidence_set property -/
 
-lemma inc_matrix_coeff_eq_zero_iff {i : V} {e : sym2 V} [char_zero R] :
+lemma inc_matrix_apply_eq_zero_iff {i : V} {e : sym2 V} :
   G.inc_matrix R i e = 0 ↔ e ∉ G.incidence_set i :=
 by simp only [inc_matrix, ite_eq_right_iff, ←decidable.not_imp_not,
               forall_true_left, not_false_iff, one_ne_zero]
 
-lemma inc_matrix_coeff_eq_one_iff {i : V} {e : sym2 V} [char_zero R] :
+lemma inc_matrix_apply_eq_one_iff {i : V} {e : sym2 V} [char_zero R] :
   G.inc_matrix R i e = 1 ↔ e ∈ G.incidence_set i :=
 by simp only [inc_matrix, ite_eq_left_iff, ←decidable.not_imp_not,
               set.not_not_mem, forall_true_left, not_false_iff, zero_ne_one]
@@ -121,14 +121,14 @@ by simp only [inc_matrix, ite_eq_left_iff, ←decidable.not_imp_not,
 /-! ### One - zero properties -/
 
 lemma inc_matrix_ne_zero {i : V} {e : sym2 V} [char_zero R] :
-  ¬ G.inc_matrix R i e = 0 ↔ G.inc_matrix R i e = 1 :=
+  G.inc_matrix R i e ≠ 0 ↔ G.inc_matrix R i e = 1 :=
 by simp only [inc_matrix_coeff_eq_zero_iff, inc_matrix_coeff_eq_one_iff, set.not_not_mem]
 
 lemma inc_matrix_ne_one {i : V} {e : sym2 V} [char_zero R] :
-  ¬ G.inc_matrix R i e = 1 ↔ G.inc_matrix R i e = 0 :=
+  G.inc_matrix R i e ≠ 1 ↔ G.inc_matrix R i e = 0 :=
 by simp only [inc_matrix_coeff_eq_zero_iff, inc_matrix_coeff_eq_one_iff]
 
-theorem adj_sum_of_mul_inc_one {i j : V} (H_adj : G.adj i j) :
+theorem sum_inc_apply_mul_inc_apply_of_adj {i j : V} (H_adj : G.adj i j) :
   ∑ e, G.inc_matrix R i e * G.inc_matrix R j e = (1 : R) :=
 begin
   simp only [inc_matrix_apply, ite_mul_ite_zero_right, sum_boole,
@@ -139,14 +139,14 @@ begin
              if_true, mem_univ, nat.cast_one, card_singleton]
 end
 
-theorem inc_matrix_mul_non_adj {i j : V} {e : sym2 V} (Hne : i ≠ j) (H_non_adj : ¬G.adj i j)
+theorem inc_matrix_apply_mul_inc_matrix_apply_of_not_adj {i j : V} {e : sym2 V} (Hne : i ≠ j) (H_non_adj : ¬G.adj i j)
 [char_zero R] :
   G.inc_matrix R i e * G.inc_matrix R j e = 0 :=
 begin
   by_cases H₁ : G.inc_matrix R i e = 0,
   { rw [H₁, zero_mul] },
   { rw [inc_matrix_ne_zero, inc_matrix_coeff_eq_one_iff] at H₁,
-    by_cases H₂ : G.inc_matrix R j e = 0,
+    obtain H₂ | H₂ := eq_or_ne (G.inc_matrix R j e) 0,
     { rw [H₂, mul_zero] },
     { rw [inc_matrix_ne_zero, inc_matrix_coeff_eq_one_iff] at H₂,
       exfalso,
@@ -215,7 +215,7 @@ begin
   exact H_e (G.edge_in_two_incidence_sets (G.ne_of_adj H_adj) h),
 end
 
-lemma head_neq_tail {e : G.edge_set} : o.head(e) ≠ o.tail(e) :=
+lemma head_ne_tail {e : G.edge_set} : o.head(e) ≠ o.tail(e) :=
 begin
   apply G.ne_of_adj,
   rw [←G.mem_edge_set, ←o.consistent e],
@@ -350,7 +350,7 @@ begin
   { ext,
     simp only [mem_filter, mem_singleton, true_and, and_iff_right_iff_imp, mem_univ],
     rintro rfl,
-    exact ne.symm (G.head_neq_tail) },
+    exact (G.head_neq_tail).symm },
   rw [key, sum_singleton],
   ring_nf
 end

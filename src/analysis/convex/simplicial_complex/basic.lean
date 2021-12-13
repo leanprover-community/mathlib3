@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.topology
+import tactic.by_contra
 
 /-!
 # Simplicial complexes
@@ -75,6 +76,22 @@ lemma convex_hull_inter_convex_hull (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
   convex_hull 𝕜 ↑s ∩ convex_hull 𝕜 ↑t = convex_hull 𝕜 (s ∩ t : set E) :=
 (K.inter_subset_convex_hull hs ht).antisymm $ subset_inter
   (convex_hull_mono $ set.inter_subset_left _ _) $ convex_hull_mono $ set.inter_subset_right _ _
+
+/-- The conclusion is the usual meaning of "glue nicely" in textbooks. It turns out to be quite
+unusable, as it's about faces as sets in space rather than simplices. Further,  additional structure
+on `𝕜` means the only choice of `u` is `s ∩ t` (but it's hard to prove). -/
+example (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
+  disjoint (convex_hull 𝕜 (s : set E)) (convex_hull 𝕜 ↑t) ∨
+  ∃ u ∈ K.faces, convex_hull 𝕜 (s : set E) ∩ convex_hull 𝕜 ↑t = convex_hull 𝕜 ↑u :=
+begin
+  classical,
+  by_contra' h,
+  refine h.2 (s ∩ t) (K.down_closed hs (inter_subset_left _ _) $ λ hst, h.1 $
+    (K.inter_subset_convex_hull hs ht).trans _) _,
+  { rw [←coe_inter, hst, coe_empty, convex_hull_empty],
+    refl },
+  { rw [coe_inter, convex_hull_inter_convex_hull hs ht] }
+end
 
 /-- Construct a simplicial complex by removing the empty face for you. -/
 @[simps] def of_erase

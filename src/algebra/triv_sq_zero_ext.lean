@@ -391,8 +391,8 @@ alg_hom_ext $ linear_map.congr_fun h
 
 variables {A : Type*} [semiring A] [algebra R A]
 
-/-- There is an alg_hom from the trivial square zero extension to any `R`-algebra with an subalgebra
-that squares to zero.
+/-- There is an alg_hom from the trivial square zero extension to any `R`-algebra with a submodule
+whose products are all zero.
 
 See `triv_sq_zero_ext.lift` for this as an equiv. -/
 def lift_aux (f : M →ₗ[R] A) (hf : ∀ x y, f x * f y = 0) : tsze R M →ₐ[R] A :=
@@ -419,8 +419,8 @@ linear_map.ext $ lift_aux_apply_inr f hf
 lemma lift_aux_inr_hom : lift_aux (inr_hom R M) (inr_mul_inr R) = alg_hom.id R (tsze R M) :=
 alg_hom_ext' $ lift_aux_comp_inr_hom _ _
 
-/-- A universal property of the dual numbers, providing a unique `𝔻[R] →ₐ[R] A` for every element
-of `A` which squares to `-1`.
+/-- A universal property of the trivial square-zero extension, providing a unique
+`triv_sq_zero_ext R M →ₐ[R] A` for every linear map `M →ₗ[R] A` whose range has no non-zero products.
 
 This isomorphism is named to match the very similar `complex.lift`. -/
 @[simps]

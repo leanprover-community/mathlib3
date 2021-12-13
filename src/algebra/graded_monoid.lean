@@ -404,7 +404,7 @@ section homogeneous_elements
 
 variables {R S : Type*} [set_like S R]
 
-/-- An element `a : R` is said to be homogeneous if there is some `i : ι` such that `a ∈ A i`-/
+/-- An element `a : R` is said to be homogeneous if there is some `i : ι` such that `a ∈ A i`. -/
 def set_like.is_homogeneous (A : ι → S) (a : R) : Prop := ∃ i, a ∈ A i
 
 lemma set_like.is_homogeneous_one [has_zero ι] [has_one R]
@@ -416,7 +416,7 @@ lemma set_like.is_homogeneous.mul [has_add ι] [has_mul R] {A : ι → S}
   set_like.is_homogeneous A a → set_like.is_homogeneous A b → set_like.is_homogeneous A (a * b)
 | ⟨i, hi⟩ ⟨j, hj⟩ := ⟨i + j, set_like.has_graded_mul.mul_mem hi hj⟩
 
-/-- When `A` is a `set_like.graded_monoid A`, then the homogeneous elements forms a submonoid-/
+/-- When `A` is a `set_like.graded_monoid A`, then the homogeneous elements forms a submonoid. -/
 def set_like.homogeneous_submonoid [add_monoid ι] [monoid R]
   (A : ι → S) [set_like.graded_monoid A] : submonoid R :=
 { carrier := { a | set_like.is_homogeneous A a },

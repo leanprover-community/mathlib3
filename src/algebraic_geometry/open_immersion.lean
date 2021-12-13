@@ -368,6 +368,7 @@ def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
       congr
     end } }
 
+-- this lemma is not a `simp` lemma, because it is an implementation detail
 lemma pullback_cone_of_left_lift_fst :
   pullback_cone_of_left_lift f g s ≫ (pullback_cone_of_left f g).fst = s.fst :=
 begin
@@ -387,6 +388,7 @@ begin
     simp }
 end
 
+-- this lemma is not a `simp` lemma, because it is an implementation detail
 lemma pullback_cone_of_left_lift_snd :
   pullback_cone_of_left_lift f g s ≫ (pullback_cone_of_left f g).snd = s.snd :=
 begin

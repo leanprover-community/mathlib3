@@ -72,7 +72,7 @@ protected lemma strict_convex.inter {t : set E} (hs : strict_convex 𝕜 s) (ht 
 begin
   intros x hx y hy hxy a b ha hb hab,
   rw interior_inter,
-  exact ⟨hs x hx.1 y hy.1 hxy ha hb hab, ht x hx.2 y hy.2 hxy ha hb hab⟩,
+  exact ⟨hs hx.1 hy.1 hxy ha hb hab, ht hx.2 hy.2 hxy ha hb hab⟩,
 end
 
 lemma directed.strict_convex_Union {ι : Sort*} {s : ι → set E} (hdir : directed (⊆) s)
@@ -84,7 +84,7 @@ begin
   obtain ⟨i, hx⟩ := hx,
   obtain ⟨j, hy⟩ := hy,
   obtain ⟨k, hik, hjk⟩ := hdir i j,
-  exact interior_mono (subset_Union s k) (hs _ (hik hx) _ (hjk hy) hxy ha hb hab),
+  exact interior_mono (subset_Union s k) (hs (hik hx) (hjk hy) hxy ha hb hab),
 end
 
 lemma directed_on.strict_convex_sUnion {S : set (set E)} (hdir : directed_on (⊆) S)
@@ -234,16 +234,15 @@ begin
     { exact interior_mono (add_subset_add (singleton_subset_iff.2 hv) (subset.refl _)) this },
     rw singleton_add,
     exact (is_open_map_add_left _).image_interior_subset _
-      (mem_image_of_mem _ $ ht _ hw _ hy (ne_of_apply_ne _ h) ha hb hab) },
+      (mem_image_of_mem _ $ ht hw hy (ne_of_apply_ne _ h) ha hb hab) },
   obtain rfl | hwy := eq_or_ne w y,
   { rw convex.combo_self hab,
     suffices : a • v + b • x + w ∈ interior (s + {w}),
     { exact interior_mono (add_subset_add (subset.refl _) (singleton_subset_iff.2 hw)) this },
     rw add_singleton,
     exact (is_open_map_add_right _).image_interior_subset _
-      (mem_image_of_mem _ $ hs _ hv _ hx hvx ha hb hab) },
-  exact subset_interior_add (add_mem_add (hs _ hv _ hx hvx ha hb hab) $
-    ht _ hw _ hy hwy ha hb hab),
+      (mem_image_of_mem _ $ hs hv hx hvx ha hb hab) },
+  exact subset_interior_add (add_mem_add (hs hv hx hvx ha hb hab) $ ht hw hy hwy ha hb hab),
 end
 
 end add_comm_group
@@ -297,7 +296,7 @@ begin
   have h : x + t • y = (1 - t) • x + t • (x + y),
   { rw [smul_add, ←add_assoc, ←add_smul, sub_add_cancel, one_smul] },
   rw h,
-  refine hs _ hx _ hxy (λ h, hy $ add_left_cancel _) (sub_pos_of_lt ht₁) ht₀ (sub_add_cancel _ _),
+  refine hs hx hxy (λ h, hy $ add_left_cancel _) (sub_pos_of_lt ht₁) ht₀ (sub_add_cancel _ _),
   exact x,
   rw [←h, add_zero],
 end
@@ -377,7 +376,7 @@ lemma strict_convex_iff_div :
   apply h hx hy hxy (div_pos ha $ add_pos ha hb) (div_pos hb $ add_pos ha hb),
   rw ←add_div,
   exact div_self (add_pos ha hb).ne',
-end, λ h hx hy hxy a b ha hb hab, by convert h hx hy hxy ha hb; rw [hab, div_one] ⟩
+end, λ h x hx y hy hxy a b ha hb hab, by convert h hx hy hxy ha hb; rw [hab, div_one] ⟩
 
 lemma strict_convex.mem_smul_of_zero_mem (hs : strict_convex 𝕜 s) (zero_mem : (0 : E) ∈ s)
   (hx : x ∈ s) (hx₀ : x ≠ 0) {t : 𝕜} (ht : 1 < t) :

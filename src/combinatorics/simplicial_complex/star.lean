@@ -73,13 +73,11 @@ begin
   ext X,
   rw mem_bUnion_iff,
   split,
-  {
-    rintro ⟨Y', hY, hX, Y, (hYY' : Y = Y'), hYX⟩,
+  { rintro ⟨Y', hY, hX, Y, (hYY' : Y = Y'), hYX⟩,
     subst hYY',
     exact ⟨hX, Y, hY, hYX⟩,
   },
-  {
-    rintro ⟨hX, Y, hY, hYX⟩,
+  { rintro ⟨hX, Y, hY, hYX⟩,
     exact ⟨Y, hY, hX, Y, mem_singleton Y, hYX⟩,
   }
 end
@@ -128,12 +126,10 @@ lemma Star_singleton_empty :
 begin
   ext X,
   split,
-  {
-    rintro ⟨Y, Z, (hY : Y = ∅), hZ, hXZ, hYZ⟩,
+  { rintro ⟨Y, Z, (hY : Y = ∅), hZ, hXZ, hYZ⟩,
     exact S.down_closed hZ hXZ,
   },
-  {
-    rintro hX,
+  { rintro hX,
     exact ⟨∅, X, rfl, hX, subset.refl _, empty_subset X⟩,
   }
 end
@@ -153,12 +149,10 @@ lemma Star_eq_closure_star :
 begin
   ext X,
   split,
-  {
-    rintro ⟨Y, Z, hY, hZ, hXZ, hYZ⟩,
+  { rintro ⟨Y, Z, hY, hZ, hXZ, hYZ⟩,
     exact ⟨S.down_closed hZ hXZ, Z, ⟨hZ, Y, hY, hYZ⟩, hXZ⟩,
   },
-  {
-    rintro ⟨hX, Z, ⟨hZ, Y, hY, hYZ⟩, hXZ⟩,
+  { rintro ⟨hX, Z, ⟨hZ, Y, hY, hYZ⟩, hXZ⟩,
     exact ⟨Y, Z, hY, hZ, hXZ, hYZ⟩,
   }
 end
@@ -186,20 +180,17 @@ lemma Star_facet_iff :
   X ∈ (S.Star A).facets ↔ X ∈ S.facets ∧ ∃ {Y}, Y ∈ A ∧ Y ⊆ X :=
 begin
   split,
-  {
-    rintro ⟨⟨Y, Z, hY, hZ, hXZ, hYZ⟩, hXmax⟩,
+  { rintro ⟨⟨Y, Z, hY, hZ, hXZ, hYZ⟩, hXmax⟩,
     have := hXmax ⟨Y, Z, hY, hZ, subset.refl Z, hYZ⟩ hXZ,
     subst this,
     split,
-    {
-      use hZ,
+    {   use hZ,
       rintro W hW hXW,
       exact hXmax (star_subset_Star ⟨hW, Y, hY, subset.trans hYZ hXW⟩) hXW,
     },
     { exact ⟨Y, hY, hYZ⟩, }
   },
-  {
-    rintro ⟨hX, Y, hY, hYX⟩,
+  { rintro ⟨hX, Y, hY, hYX⟩,
     split,
     exact ⟨Y, X, hY, hX.1, subset.refl X, hYX⟩,
     rintro Z hZ,

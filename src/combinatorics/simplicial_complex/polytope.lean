@@ -54,8 +54,7 @@ lemma vertices_subset_space :
 begin
   rintro x hx,
   have hx' : x ∈ p.to_simplicial_complex.vertices,
-  {
-    --apply bInter_subset_of_mem (polytope_space_eq_realisation_space :
+  { --apply bInter_subset_of_mem (polytope_space_eq_realisation_space :
      -- p.to_simplicial_complex ∈ set_of (λ q : simplicial_complex 𝕜 E, p.space = q.space)),
      sorry
   },
@@ -88,8 +87,7 @@ lemma polytope.triangulable_of_convex (hp : convex 𝕜 p.space) :
   p.triangulation.vertices = p.vertices :=
 begin
   cases p.space.eq_empty_or_nonempty with hpempty hpnonempty,
-  {
-    /-rw empty_space_of_empty_simplicial_complex,
+  { /-rw empty_space_of_empty_simplicial_complex,
     use hpempty,
     rintro X (hX : {X} ∈ {∅}),
     simp at hX,
@@ -184,8 +182,7 @@ lemma polytopial_space_iff_simplicial_space [finite_dimensional 𝕜 E] :
   ∃ (P : polytopial_complex 𝕜 E), P.space = C :=
 begin
   split,
-  {
-    rintro ⟨S, hS⟩,
+  { rintro ⟨S, hS⟩,
     sorry
   },
   sorry

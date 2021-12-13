@@ -269,8 +269,7 @@ def preimage_polyhedron (P : polyhedron F) : polyhedron 𝕜 E :=
     use finset.image f P.Hrepr,
     ext,
     split,
-    {
-      rintro hx l hl,
+    {   rintro hx l hl,
       rw mem_preimage at hx,
       rw finset.mem_image at hl,
       obtain ⟨l', hl', rfl⟩ := hl,

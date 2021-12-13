@@ -41,12 +41,10 @@ lemma link_singleton_empty :
 begin
   ext X,
   split,
-  {
-    rintro ⟨_, _, Z, _, hZ, hXZ, _⟩,
+  { rintro ⟨_, _, Z, _, hZ, hXZ, _⟩,
     exact S.down_closed hZ hXZ,
   },
-  {
-    rintro hX,
+  { rintro hX,
     split,
     { rintro W (h : W = ∅),
       rw h,
@@ -79,17 +77,14 @@ lemma link_singleton_eq_Star_minus_star_iff_singleton (hX : X ≠ ∅) :
   (S.link {X}).faces = (S.Star {X}).faces \ S.star {X} ↔ X.card = 1 :=
 begin
   split,
-  {
-    sorry --true? The PDF claims so but I'm not sure
+  { sorry --true? The PDF claims so but I'm not sure
   },
-  {
-    rintro hXcard,
+  { rintro hXcard,
     apply subset.antisymm (link_singleton_subset hX),
     rintro Y ⟨h, hYstar⟩,
     obtain ⟨Z, hZ, hYZ, hXZ⟩ := mem_Star_singleton_iff.1 h,
     split,
-    {
-      obtain ⟨x, hxX⟩ := finset.card_eq_one.1 hXcard,
+    {   obtain ⟨x, hxX⟩ := finset.card_eq_one.1 hXcard,
       rintro W (hW : W = X),
       subst hW,
       subst hxX,
@@ -112,19 +107,16 @@ lemma link_eq_Star_sub_star_closure {S : simplicial_complex 𝕜 E} {A : set (fi
 begin
   ext X,
   split,
-  {
-    rintro ⟨hXdisj, hXStar⟩,
+  { rintro ⟨hXdisj, hXStar⟩,
     use hXStar,
     rintro ⟨hX, Y, ⟨⟨hY, Z, hZ, hYZ⟩, (hYnonempty : Y ≠ ∅)⟩, hYX⟩,
     have hYZX : Y ⊆ Z ∩ X := finset.subset_inter hYZ hYX,
     rw finset.disjoint_iff_inter_eq_empty.mp (hXdisj hZ) at hYZX,
     exact hYnonempty (finset.subset_empty.mp hYZX),
   },
-  {
-    rintro ⟨hXStar, hX'⟩,
+  { rintro ⟨hXStar, hX'⟩,
     split,
-    {
-      rintro W hW,
+    {   rintro W hW,
       rw finset.disjoint_iff_inter_eq_empty,
       apply finset.eq_empty_of_forall_not_mem,
       rintro x hx,
@@ -133,8 +125,7 @@ begin
       use {x},
       split,
       split,
-      {
-        unfold simplicial_complex.closure simplicial_complex.of_surcomplex,
+      {     unfold simplicial_complex.closure simplicial_complex.of_surcomplex,
         simp,
         exact ⟨S.down_closed (Star_subset hXStar) (subset.trans (finset.singleton_subset_iff.2 hx)
           (finset.inter_subset_right _ _)), W, hW, finset.inter_subset_left _ _ hx⟩,
@@ -159,30 +150,24 @@ lemma link_facet_iff :
    W ∈ A ∧ Y ∈ S.facets ∧ Z ∈ S.faces ∧ X ∪ W ⊆ Z ∧ ∀ {y}, y ∈ Y → y ∈ X ∨ ∃ {V}, V ∈ A ∧ y ∈ V :=
 begin
   split,
-  {
-    rintro ⟨⟨hXdisj, W, Z, hW, hZ, hXZ, hWZ⟩, hXmax⟩,
+  { rintro ⟨⟨hXdisj, W, Z, hW, hZ, hXZ, hWZ⟩, hXmax⟩,
     sorry
     /-obtain ⟨Y, hY, hZY⟩ := subfacet hZ,
     split,
-    {
-      sorry
+    {   sorry
     },
-    {
-      use [(λ W, hXdisj), W, Y, Z, hW, hY, hZ, finset.union_subset hXZ hWZ],
+    {   use [(λ W, hXdisj), W, Y, Z, hW, hY, hZ, finset.union_subset hXZ hWZ],
       rintro y hy,
       sorry
     }-/
   },
-  {
-    rintro ⟨stuff, hXdisj, W, Y, Z, hW, hY, hZ, hXYW, hunion⟩,
+  { rintro ⟨stuff, hXdisj, W, Y, Z, hW, hY, hZ, hXYW, hunion⟩,
     split,
-    {
-      have hXZ : X ⊆ Z := sorry, -- finset.union_subset_iff.1 hXYW
+    {   have hXZ : X ⊆ Z := sorry, -- finset.union_subset_iff.1 hXYW
       have hWZ : W ⊆ Z := sorry, -- finset.union_subset_iff.1 hXYW
       exact ⟨(λ V, hXdisj), W, Z, hW, hZ, hXZ, hWZ⟩,
     },
-    {
-      rintro V ⟨hVdisj, U, R, hU, hR, hVR, hUR⟩ hXV,
+    {   rintro V ⟨hVdisj, U, R, hU, hR, hVR, hUR⟩ hXV,
       apply finset.subset.antisymm hXV,
       rintro v hv,
       /-have := hA hU hW (facets_subset hY) hWY,

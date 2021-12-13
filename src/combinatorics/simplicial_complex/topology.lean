@@ -25,11 +25,9 @@ lemma boundary_space_eq_space_frontier_of_full_dimensional (hS : S.full_dimensio
 begin
   ext x,
   split,
-  {
-    sorry,
+  { sorry,
   },
-  {
-    sorry
+  { sorry
   }
 end
 
@@ -66,8 +64,7 @@ begin
   rw combi_interiors_cover,
   ext x,
   split,
-  {
-    sorry
+  { sorry
   },
   sorry
 end
@@ -86,8 +83,7 @@ begin
     unfold simplicial_complex.connected,
     sorry
   },
-  {
-    sorry
+  { sorry
   }
 end
 
@@ -96,15 +92,13 @@ lemma locally_compact_realisation_iff_locally_finite :
 begin
   rw locally_finite_iff_mem_finitely_many_faces,
   split,
-  {
-    rintro hS,
+  { rintro hS,
     apply locally_compact_of_compact_nhds,
     rintro ⟨x, hx⟩,
     specialize hS x,
     sorry
   },
-  {
-    rintro hS x,
+  { rintro hS x,
     --obtain ⟨a, b⟩ := hS x,
     sorry
   }

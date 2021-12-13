@@ -200,8 +200,7 @@ begin
     { exact div_nonneg hwd hwcd },
     exact sub_add_cancel 1 _ },
   refine ⟨y, z, hy, hz, w a + w b, w c + w d, hwab, hwcd, _, _⟩,
-  {
-    rw ← hw₁,
+  { rw ← hw₁,
     sorry,
   },
   sorry
@@ -233,8 +232,7 @@ begin
     { exact div_nonneg (mul_nonneg hwy hwby) db_nonneg },
     exact sub_add_cancel 1 _ },
   refine ⟨az, bz, haz, hbz, wx * wax + wy * way, wx * wbx + wy * wby, da_nonneg, db_nonneg, _, _⟩,
-  {
-    calc
+  { calc
       wx * wax + wy * way + (wx * wbx + wy * wby)
           = wx * (wax + wbx) + wy * (way + wby) : by ring
       ... = 1 : by rw [hwabx, hwaby, mul_one, mul_one, hwxy]
@@ -244,12 +242,10 @@ begin
   /-rw convex_iff_open_segment_subset at ⊢ hB hA,
   simp only [mem_convex_join_iff, mem_Union],
   rintro x y ((hx | hx) | ⟨a, b, ha, hb, hx⟩) hy, --((hy | hy) | ⟨a, b, ha, hb, hy⟩)
-  {
-    obtain ((hy | hy) | ⟨a, b, ha, hb, hy⟩) := hy,
+  { obtain ((hy | hy) | ⟨a, b, ha, hb, hy⟩) := hy,
     exact subset.trans (hA hx hy) (subset_convex_join_left A B),
   },
-  {
-    rintro z hz,
+  { rintro z hz,
     simp only [mem_convex_join_iff, mem_Union],
     right,
     exact ⟨x, y, hx, hy, hz⟩,

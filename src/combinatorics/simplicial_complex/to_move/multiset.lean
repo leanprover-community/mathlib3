@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import data.multiset.basic
 import combinatorics.simplicial_complex.to_move.list
 
+/-!
+# To move
+-/
+
 lemma multiset.exists_min_of_inf_closed {α : Type*} [semilattice_inf α] {s : multiset α}
   (hs₁ : s ≠ 0) (hs₂ : ∀ x y ∈ s, x ⊓ y ∈ s) :
   ∃ z ∈ s, ∀ y ∈ s, z ≤ y :=

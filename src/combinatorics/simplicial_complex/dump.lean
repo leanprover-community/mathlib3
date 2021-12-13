@@ -10,24 +10,109 @@ import linear_algebra.affine_space.finite_dimensional
 /-!
 # Previous attempt of Sperner's lemma
 -/
--- import data.nat.parity
 
 open_locale classical affine big_operators
 open set
 variables {𝕜 E α : Type*} [ordered_ring 𝕜] [ordered_add_comm_group E] [module 𝕜 E] {m n : ℕ}
+
 /-
 MATHLIB DEPARTURE ZONE
 A few PRs to be done
 -/
 
--- TODO (Bhavik): Golf
-
+lemma erase_image_subset_image_erase {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α → β)
+  (s : finset α) (a : α) :
+  (s.image f).erase (f a) ⊆ finset.image f (s.erase a) :=
+begin
+  intro b,
+  simp only [and_imp, exists_prop, finset.mem_image, exists_imp_distrib, finset.mem_erase],
+  rintro hb x hx rfl,
+  exact ⟨_, ⟨ne_of_apply_ne f hb, hx⟩, rfl⟩,
+end
 
 #exit
+
 /-
 THEOREMS ON SALE
 Previous attempts of Bhavik
 -/
+
+-- lemma affine_independent_image {n m : ℕ} {ι : Type*} (f : (fin n → 𝕜) →ₗ[𝕜] (fin m → 𝕜))
+--   (hf : function.injective f)
+--   (p : ι → fin n → 𝕜)
+--   (hp : affine_independent 𝕜 p) :
+--   affine_independent 𝕜 (f ∘ p) :=
+-- begin
+--   rw affine_independent_def,
+--   rintro s w hw hs i hi,
+--   rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin m → 𝕜) at hs,
+--   rw finset.weighted_vsub_of_point_apply at hs,
+--   simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
+--   have : s.weighted_vsub p w = (0:fin n → 𝕜),
+--   { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → 𝕜),
+--     rw finset.weighted_vsub_of_point_apply,
+--     simp only [vsub_eq_sub, sub_zero],
+--     apply hf,
+--     simpa },
+--   apply hp s w hw this _ hi,
+-- end
+
+lemma affine_independent_proj {n : ℕ} {ι : Type*}
+  {p : ι → fin (n+1) → 𝕜}
+  (hp₁ : ∀ i, p i 0 = 0)
+  (hp₂ : affine_independent 𝕜 p) :
+  affine_independent 𝕜 (matrix.vec_tail ∘ p) :=
+begin
+  rw affine_independent_def,
+  rintro s w hw hs i hi,
+  rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → 𝕜) at hs,
+  rw finset.weighted_vsub_of_point_apply at hs,
+  simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
+  have : s.weighted_vsub p w = (0:fin (n+1) → 𝕜),
+  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin (n+1) → 𝕜),
+    rw finset.weighted_vsub_of_point_apply,
+    simp only [vsub_eq_sub, sub_zero],
+    ext j,
+    simp only [pi.zero_apply],
+    rw finset.sum_apply _ s (λ i, w i • p i),
+    refine fin.cases _ _ j,
+    { simp [hp₁] },
+    intro j,
+    dsimp,
+    rw function.funext_iff at hs,
+    specialize hs j,
+    simp only [pi.zero_apply] at hs,
+    rw finset.sum_apply _ s (λ i, w i • matrix.vec_tail (p i)) at hs,
+    dsimp [matrix.vec_tail] at hs,
+    apply hs },
+  exact hp₂ s w hw this i hi,
+end
+
+lemma cons_inj {n : ℕ} (x y : fin (n+1) → 𝕜) (h0 : x 0 = y 0)
+  (h1 : matrix.vec_tail x = matrix.vec_tail y) :
+  x = y :=
+begin
+  ext i,
+  refine fin.cases h0 _ i,
+  rw function.funext_iff at h1,
+  apply h1,
+end
+
+lemma vec_tail_smul {m : ℕ} (c : 𝕜) (x : fin m.succ → 𝕜) :
+  matrix.vec_tail (c • x) = c • matrix.vec_tail x :=
+begin
+  ext i,
+  simp [matrix.vec_tail],
+end
+
+lemma is_linear_map_matrix_vec_tail {n : ℕ} :
+  is_linear_map 𝕜 (matrix.vec_tail : (fin n.succ → 𝕜) → (fin n → 𝕜)) :=
+{ map_add := by simp,
+  map_smul := λ c x,
+  begin
+    ext i,
+    simp [matrix.vec_tail],
+  end }
 
 -- lemma of_affine_independent_set (X : set E) (hX : affine_independent 𝕜 (λ p, p : X → E)) :
 --   ∀ (s : finset E) (w : E → 𝕜),
@@ -78,17 +163,9 @@ Previous attempts of Bhavik
 --     rw finset.sum_image' (λ (i : {x // x ∈ t}), _),
 --   },
 --   -- specialize hp s' w' this,
-
-
 --   -- sorry,
-
 --   -- have := (t.image z).attach,
 --   -- have : finset s := t.
--- end
-
--- example (X Y : finset E) (h : X ⊆ Y) : X ∩ Y = X :=
--- begin
---   library_search,
 -- end
 
 lemma thing {ι β : Type*} [add_comm_monoid β] (X : finset ι) (f : ι → β) :
@@ -122,7 +199,7 @@ def of_facets (S : set (finset E)) (hS₁ : ∀ X ∈ S, affine_independent 𝕜
     split,
     { simp only [and_imp, exists_imp_distrib],
       rintro X hX hx,
-      refine ⟨X, ⟨X, hX, set.subset.refl _⟩, hx⟩ },
+      refine ⟨X, ⟨X, hX, set.subset.rfl⟩, hx⟩ },
     { simp only [and_imp, exists_imp_distrib],
       rintro X Y YS XY hx,
       refine ⟨Y, YS, convex_hull_mono XY hx⟩ }
@@ -156,8 +233,7 @@ def of_facets (S : set (finset E)) (hS₁ : ∀ X ∈ S, affine_independent 𝕜
     refine ⟨XZ hx₁, YW hx₂⟩,
   end }
 
-def std_basis (n : ℕ) : fin n → fin n → 𝕜 :=
-λ i, linear_map.std_basis 𝕜 (λ i, 𝕜) i 1
+def std_basis (n : ℕ) : fin n → fin n → 𝕜 := λ i, linear_map.std_basis 𝕜 (λ i, 𝕜) i 1
 
 def basis_with_zero (n : ℕ) : fin (n+1) → fin n → 𝕜 :=
 begin
@@ -219,10 +295,10 @@ of_facets
     convert rfl,
   end)
   (begin
-    simp_rintro X Y hX hY,
-    substs X Y,
+    rintro X Y hX hY,
+    subst X Y,
     simp,
-    exact set.subset.refl _,
+    exact set.subset.rfl,
   end)
 
 variables {S : triangulation s}
@@ -313,11 +389,13 @@ begin
   dsimp only at x_zero,
   rw convex_hull_eq.{37},
   refine ⟨ι, t.filter (λ i, w i ≠ 0), w, z, _, _, _, _⟩,
-  { simp_rintro i hi only [finset.mem_filter],
+  { rintro i hi,
+    simp only [finset.mem_filter],
     apply hw₀ _ hi.1 },
   { rw ←hw₁,
     exact finset.sum_filter_ne_zero },
-  { simp_rintro i hi only [finset.mem_filter, set.mem_set_of_eq],
+  { rintro i hi,
+    simp only [finset.mem_filter, set.mem_set_of_eq],
     refine ⟨hz i hi.1, _⟩,
     have := x_zero i hi.1,
     simp only [mul_eq_zero] at this,
@@ -407,29 +485,6 @@ begin
     apply zero_le_one }
 end
 
-lemma subset_singleton_iff {ι : Type*} (x : ι) (X : finset ι) :
-  X ⊆ {x} ↔ X = ∅ ∨ X = {x} :=
-begin
-  split,
-  { rcases X.eq_empty_or_nonempty with (rfl | ⟨y, hy⟩),
-    { intro,
-      left,
-      refl },
-    { intro hx,
-      right,
-      apply finset.subset.antisymm hx,
-      rw finset.singleton_subset_iff,
-      have := hx hy,
-      simp only [finset.mem_singleton] at this,
-      rwa ← this } },
-  { rintro (rfl | rfl),
-    { apply finset.empty_subset },
-    { refl } }
-end
-
-lemma convex_hull_empty : convex_hull 𝕜 (∅ : set E) = ∅ :=
-convex_empty.convex_hull_eq
-
 lemma strong_sperner_zero_aux (S : triangulation (std_simplex 𝕜 (fin 1))) :
   S.faces = {∅, { ![1]}} :=
 begin
@@ -489,67 +544,6 @@ begin
   simp,
 end
 
--- lemma affine_independent_image {n m : ℕ} {ι : Type*} (f : (fin n → 𝕜) →ₗ[𝕜] (fin m → 𝕜))
---   (hf : function.injective f)
---   (p : ι → fin n → 𝕜)
---   (hp : affine_independent 𝕜 p) :
---   affine_independent 𝕜 (f ∘ p) :=
--- begin
---   rw affine_independent_def,
---   rintro s w hw hs i hi,
---   rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin m → 𝕜) at hs,
---   rw finset.weighted_vsub_of_point_apply at hs,
---   simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
---   have : s.weighted_vsub p w = (0:fin n → 𝕜),
---   { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → 𝕜),
---     rw finset.weighted_vsub_of_point_apply,
---     simp only [vsub_eq_sub, sub_zero],
---     apply hf,
---     simpa },
---   apply hp s w hw this _ hi,
--- end
-
-lemma cons_inj {n : ℕ} (x y : fin (n+1) → 𝕜) (h0 : x 0 = y 0)
-  (h1 : matrix.vec_tail x = matrix.vec_tail y) :
-  x = y :=
-begin
-  ext i,
-  refine fin.cases h0 _ i,
-  rw function.funext_iff at h1,
-  apply h1,
-end
-
-lemma affine_independent_proj {n : ℕ} {ι : Type*}
-  {p : ι → fin (n+1) → 𝕜}
-  (hp₁ : ∀ i, p i 0 = 0)
-  (hp₂ : affine_independent 𝕜 p) :
-  affine_independent 𝕜 (matrix.vec_tail ∘ p) :=
-begin
-  rw affine_independent_def,
-  rintro s w hw hs i hi,
-  rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → 𝕜) at hs,
-  rw finset.weighted_vsub_of_point_apply at hs,
-  simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
-  have : s.weighted_vsub p w = (0:fin (n+1) → 𝕜),
-  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin (n+1) → 𝕜),
-    rw finset.weighted_vsub_of_point_apply,
-    simp only [vsub_eq_sub, sub_zero],
-    ext j,
-    simp only [pi.zero_apply],
-    rw finset.sum_apply _ s (λ i, w i • p i),
-    refine fin.cases _ _ j,
-    { simp [hp₁] },
-    intro j,
-    dsimp,
-    rw function.funext_iff at hs,
-    specialize hs j,
-    simp only [pi.zero_apply] at hs,
-    rw finset.sum_apply _ s (λ i, w i • matrix.vec_tail (p i)) at hs,
-    dsimp [matrix.vec_tail] at hs,
-    apply hs },
-  exact hp₂ s w hw this i hi,
-end
-
 lemma thingy2 {α : Type*} [add_comm_monoid α] {n : ℕ} (k : fin n → α) :
   ∑ (i : fin n), k i = ∑ i in finset.fin_range n, k i :=
 begin
@@ -557,8 +551,6 @@ begin
   ext x,
   simp only [finset.mem_univ, finset.mem_fin_range],
 end
-
-example {α : Type*} {p : α → Prop} : subtype p ↪ α := function.embedding.subtype p
 
 lemma thingy3 {α : Type*} [add_comm_monoid α] {n : ℕ} (k : fin n → α) :
   (∑ (i : fin (n+1)), fin.cases (0:α) k i : α) = ∑ i, k i :=
@@ -584,22 +576,6 @@ begin
     refine ⟨b.pred hb, by simp, _⟩,
     simp }
 end
-
-lemma vec_tail_smul {m : ℕ} (c : 𝕜) (x : fin m.succ → 𝕜) :
-  matrix.vec_tail (c • x) = c • matrix.vec_tail x :=
-begin
-  ext i,
-  simp [matrix.vec_tail],
-end
-
-lemma is_linear_map_matrix_vec_tail {n : ℕ} :
-  is_linear_map 𝕜 (matrix.vec_tail : (fin n.succ → 𝕜) → (fin n → 𝕜)) :=
-{ map_add := by simp,
-  map_smul := λ c x,
-  begin
-    ext i,
-    simp [matrix.vec_tail],
-  end }
 
 lemma vec_tail_mem_simplex_iff {n : ℕ} (y : fin n → 𝕜) :
   matrix.vec_cons 0 y ∈ edge_of_std_simplex 𝕜 n ↔ y ∈ std_simplex 𝕜 (fin n) :=
@@ -723,10 +699,6 @@ def induct_down (S : triangulation (std_simplex 𝕜 (fin (m+1)))) :
   triangulation (std_simplex 𝕜 (fin m)) :=
 flatten_triangulation (lower_triangulation S)
 
-example {α : Type*} {s : set α} (p : α → Prop) (hs : s.finite) :
-  {x ∈ s | p x}.finite :=
-set.finite.subset hs (s.sep_subset p)
-
 lemma induct_down_finite (S : triangulation (std_simplex 𝕜 (fin (m+1)))) (hS : S.finite) :
   (induct_down S).finite :=
 begin
@@ -736,11 +708,6 @@ begin
   apply set.finite.image,
   rw lower_triangulation,
   apply set.finite.subset hS (S.faces.sep_subset _)
-end
-
-lemma test {n m : ℕ} (h : n.pred ≤ m) : n ≤ m + 1 :=
-begin
-  exact nat.pred_le_iff.mp h,
 end
 
 lemma mwe {α : Type*} {n : ℕ} (X : set (finset α)) (bound : ∀ y ∈ X, finset.card y ≤ n) :
@@ -965,32 +932,6 @@ begin
   simpa using this
 end
 
--- lemma image_subset_image_iff {α β : Type*}
---   [decidable_eq α] [decidable_eq β] (s t : finset α)
---   {f : α → β} : s.image f ⊆ t.image f → s ⊆ t :=
--- begin
---   rintro h x hx,
---   have : f x ∈ t.image f,
---   sorry,
---   simp at this,
-
---   -- refine ⟨_, finset.subset_image _⟩,
-
---   -- refine (iff.symm $ iff.intro (image_subset f) $ assume h, _),
---   -- rw [← preimage_image_eq s hf, ← preimage_image_eq t hf],
---   -- exact preimage_mono h
--- end
-
-lemma subset_erase_iff {α : Type*} [decidable_eq α] (x : α) {s t : finset α} :
-  s ⊆ t.erase x ↔ s ⊆ t ∧ x ∉ s :=
-⟨λ h, ⟨finset.subset.trans h (finset.erase_subset x t), λ q, by simpa using h q⟩,
- λ ⟨h₁, h₂⟩ y hy, finset.mem_erase_of_ne_of_mem (ne_of_mem_of_not_mem hy h₂) (h₁ hy)⟩
-
--- lemma sum_mul {α β : Type*} [add_comm_monoid β] {s : finset α} (b : β) (f : α → β) :
---   ∑ x in s, b * f x = _ :=
--- begin
--- end
-
 def plane : affine_subspace 𝕜 E :=
 { carrier := {X | ∑ i, X i = 1},
   smul_vsub_vadd_mem :=
@@ -998,11 +939,6 @@ def plane : affine_subspace 𝕜 E :=
     rintro c p₁ p₂ p₃ (hp₁ hp₂ hp₃ : _ = _),
     simp [finset.sum_add_distrib, ←finset.mul_sum, hp₁, hp₂, hp₃],
   end }
-
-lemma obvious {m : ℕ} : ∑ (i : fin m), (0 : fin m → 𝕜) i = 1 → false :=
-begin
-  simp,
-end
 
 lemma better_size_bound {X : finset E}
   (hX₁ : affine_independent 𝕜 (λ p, p : (X : set E) → E))
@@ -1039,16 +975,6 @@ le_antisymm
     have : (X.image f).card ≤ X.card := finset.card_image_le,
     simpa [hf] using this,
   end
-
-lemma erase_image_subset_image_erase {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α → β)
-  (s : finset α) (a : α) :
-  (s.image f).erase (f a) ⊆ finset.image f (s.erase a) :=
-begin
-  intro b,
-  simp only [and_imp, exists_prop, finset.mem_image, exists_imp_distrib, finset.mem_erase],
-  rintro hb x hx rfl,
-  exact ⟨_, ⟨ne_of_apply_ne f hb, hx⟩, rfl⟩,
-end
 
 lemma panchromatic_pairs_card_eq_panchromatic_card {S : triangulation (std_simplex 𝕜 (fin (m+1)))}
   (hS : S.finite) (f : (fin (m+1) → 𝕜) → (fin (m+1))) :
@@ -1172,5 +1098,3 @@ begin
 end
 
 end affine
-
--- brb

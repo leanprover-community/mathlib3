@@ -322,20 +322,17 @@ lemma frontiers_agree_of_full_dimensional [finite_dimensional ℝ E]
 begin
   ext x,
   split,
-  {
-    unfold combi_frontier,
+  { unfold combi_frontier,
     simp_rw set.mem_Union,
     rintro ⟨Y, hYX, hx⟩,
     split,
     { exact subset_closure (convex_hull_mono hYX.1 hx) },
-    {
-      rintro h,
+    {   rintro h,
       sorry,
       --have :=  finset.convex_hull_eq,
      }
   },
-  {
-    rintro ⟨h, g⟩,
+  { rintro ⟨h, g⟩,
     sorry
   }
 end

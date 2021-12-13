@@ -112,8 +112,7 @@ begin
     { exact le_of_lt (one_div_pos.2 (add_pos nat.one_div_pos_of_nat (by linarith))).le },
     { rw [←add_div, div_self],
       exact (add_pos nat.one_div_pos_of_nat (by linarith)).ne' },
-    {
-      sorry,
+    {   sorry,
     },
     { rintro rfl,
       exact hyB hxB },
@@ -177,8 +176,7 @@ begin
       ⟨1 - 1/(n + 2), 1/(n + 2), sub_pos.2 $ (div_lt_one h₀).2 h₁, div_pos zero_lt_one h₀,
       sub_add_cancel _ _, rfl⟩ },
   have h : filter.tendsto (λ (n : ℕ), 1 / ((n : ℝ) + 2)) filter.at_top (nhds (0 : ℝ)),
-  {
-    sorry
+  { sorry
   },
   rw [←add_zero x, ←one_smul ℝ x, ←zero_smul _ y],
   nth_rewrite 0 ←sub_zero (1 : ℝ),

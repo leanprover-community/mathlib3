@@ -156,23 +156,19 @@ lemma boundary_link :
 begin
   ext V,
   split,
-  {
-    rintro ⟨hVdisj, W, X, hW, ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩, hVX, hWX⟩,
+  { rintro ⟨hVdisj, W, X, hW, ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩, hVX, hWX⟩,
     use V,
     split,
-    {
-      sorry
+    { sorry
       /-split,
       exact (λ U hU, hVdisj hU),
       exact ⟨W, Z, hW, facets_subset hZ, subset.trans hVX (subset.trans hXY hYZ.1),
         subset.trans hWX (subset.trans hXY hYZ.1)⟩,-/
     },
-    {
-      /-use subset.refl V,
+    { /-use subset.refl V,
       use Z,
       split,
-      {
-        sorry --waiting for link_facet_iff. May make this lemma require more assumptions
+      { sorry --waiting for link_facet_iff. May make this lemma require more assumptions
       },
       use ⟨finset.subset.trans hVX (finset.subset.trans hXY hYZ.1),
         (λ hZV, hYZ.2 (finset.subset.trans hZV (finset.subset.trans hVX hXY)))⟩,
@@ -181,8 +177,7 @@ begin
       sorry
     }
   },
-  {
-    sorry
+  { sorry
   }
 end
 
@@ -202,18 +197,15 @@ lemma boundary_mono {S₁ S₂ : simplicial_complex 𝕜 E} (hS : S₁ ≤ S₂)
   S₁.boundary ≤ S₂.boundary :=
 begin
   /-cases S₂.faces.eq_empty_or_nonempty with hS₂empty hS₂nonempty,
-  {
-    rw hS₂empty,
+  { rw hS₂empty,
   },
   rw subdivision_iff_partition at ⊢ hS,-/
   have hspace : S₁.boundary.space = S₂.boundary.space,
-  {
-    sorry
+  { sorry
   },
   /-rw subdivision_iff_partition,
   split,
-  {
-    sorry
+  { sorry
   },
   use le_of_eq hspace,
   rintro X₂ ⟨Y₂, Z₂, hY₂, hZ₂, hX₂Y₂, hY₂Z₂, hZ₂max⟩,
@@ -225,8 +217,7 @@ begin
   use hspace,
   rintro X₁ ⟨Y₁, hY₁, hX₁Y₁, Z₁, hZ₁, hY₁Z₁, hZ₁max⟩,
   cases X₁.eq_empty_or_nonempty with hX₁empty hX₁nonempty,
-  {
-    sorry},
+  { sorry},
   obtain ⟨X₂, hX₂, hX₁X₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2
     (S₁.down_closed hY₁ hX₁Y₁),
   obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hY₁,
@@ -270,11 +261,9 @@ begin
       sorry
     },
   },
-  {
-    rintro Z' hZ' hY₂Z',
+  { rintro Z' hZ' hY₂Z',
     suffices hZ₁Z' : combi_interior Z₁ ⊆ combi_interior Z',
-    {
-      obtain ⟨z, hzZ₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hZ₁)
+    {   obtain ⟨z, hzZ₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hZ₁)
         ⟨x, hY₁Z₁.1 (hX₁Y₁ hxX₁)⟩,
       exact disjoint_interiors hZ₂ hZ' (hZ₁Z₂ hzZ₁) (hZ₁Z' hzZ₁),
     },
@@ -319,11 +308,9 @@ lemma boundary_subcell_iff_one_surface (hS : S.full_dimensional)
   -- subset of the set we know is finite, so we can convert to a finset and use normal card
 begin
   split,
-  {
-    rintro ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩,
+  { rintro ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩,
     have : X = Y,
-    {
-      sorry
+    {   sorry
     },
     sorry--rw nat.card_eq_fintype_card,
   },

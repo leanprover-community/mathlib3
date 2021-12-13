@@ -42,8 +42,7 @@ lemma convex.open_segment_subset_intrinsic_interior_of_mem_left (hA : convex �
 begin
   rintro z hz,
   split,
-  {
-    sorry -- hA
+  { sorry -- hA
   },
   dsimp,
   --obtain ⟨x₁, x₂, hx₁, hx₂, x, ⟨hxA, ι, t, hw₀, hw₁, hyA, hy⟩, hx⟩ := sorry,
@@ -83,8 +82,7 @@ begin
   use intrinsic_frontier_subset _,
   rintro x₁ x₂ hx₁ hx₂ x ⟨hxA, y, hyA, hy⟩ hx,
   split,
-  {
-    use [hx₁, y, hyA],
+  { use [hx₁, y, hyA],
     rintro z hz,
   }
 end-/
@@ -220,8 +218,7 @@ begin
   apply subset.antisymm intrinsic_frontier_subset_frontier,
   rintro x hx,
   have hxA : x ∈ affine_span ℝ A,
-  {
-    rw hA,
+  { rw hA,
     sorry,
   },
   refine ⟨⟨x, hxA⟩, _, rfl⟩,

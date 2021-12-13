@@ -41,8 +41,7 @@ lemma subcomplex_pyramid :
 begin
   by_cases v ∈ convex_hull 𝕜 S.space ∨ ∃ X ∈ S.faces,
     (X : finset E).card = finite_dimensional.finrank 𝕜 E + 1,
-  {
-    sorry
+  { sorry
   },
   sorry
   --exact λ X hX, ⟨X, hX, finset.subset_union_left X {v}⟩
@@ -53,26 +52,21 @@ lemma pyramid_mono (hS : S₁ ≤ S₂) :
 begin
   by_cases v ∈ convex_hull 𝕜 S₁.space ∨ ∃ X ∈ S₁.faces,
     (X : finset E).card = finite_dimensional.finrank 𝕜 E  + 1,
-  {
-    sorry --easy case
+  { sorry --easy case
   },
   split,
-  {
-    sorry
+  { sorry
   },
-  {
-    sorry
+  { sorry
     /-rintro X ⟨Y, hY, hXYv⟩,
     obtain ⟨Z, hZ, hYZhull⟩ := h.2 hY,
     use Z ∪ {v},
     split,
-    {
-      exact ⟨Z, hZ, subset.refl _⟩,
+    {   exact ⟨Z, hZ, subset.refl _⟩,
     },
     have hXYvhull : convex_hull 𝕜 ↑X ⊆ convex_hull 𝕜 ↑(Y ∪ {v}) := convex_hull_mono hXYv,
     have hYvZvhull : convex_hull 𝕜 ↑(Y ∪ {v}) ⊆ convex_hull 𝕜 ↑(Z ∪ {v}),
-    {
-      sorry
+    {   sorry
     },
     exact subset.trans hXYvhull hYvZvhull,-/
   }

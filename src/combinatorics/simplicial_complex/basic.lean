@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simplicial_complex.simplex
--- import data.nat.parity
 
 /-!
 # Simplicial complexes
@@ -15,7 +14,7 @@ open set
 
 variables {𝕜 E ι : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
 
-variables (𝕜 E)
+variables (𝕜 E){}
 
 /-- A simplicial complex in a `𝕜`-module. -/
 @[ext] structure simplicial_complex :=
@@ -345,8 +344,7 @@ lemma mem_combi_frontier_iff' :
 begin
   rw mem_combi_frontier_iff,
   split,
-  {
-    rintro ⟨Y, hYX, hxY⟩,
+  { rintro ⟨Y, hYX, hxY⟩,
     --rw [simplex_combi_interiors_cover, mem_bUnion_iff] at hxY,
     --obtain ⟨Z, hZ⟩ := simplex_combi_interiors_cover
     sorry
@@ -400,18 +398,15 @@ begin
   obtain ⟨w, hwpos, hwsum, hwcenter⟩ := combi_interior_subset_positive_weighings hxW,
   let u : E → E → 𝕜 := λ a, if ha : a ∈ X then classical.some (hZ.2 ha) else (λ b, 0),
   have hupos : ∀ {a}, a ∈ X → ∀ (b : E), b ∈ Z → 0 < u a b,
-  {
-    rintro a ha,
+  { rintro a ha,
     have := classical.some_spec (hZ.2 ha),
     sorry
   },
   have husum : ∀ {a}, a ∈ X → ∑ (b : E) in Z, u a b = 1,
-  {
-    sorry
+  { sorry
   },
   have hucenter : ∀ {a}, a ∈ X → Z.center_mass (u a) id = a,
-  {
-    sorry
+  { sorry
   },
   let t : E → 𝕜 := λ b, if hb : b ∈ Z then ∑ (a : E) in X, v a * u a b else 0,-/
   /-rintro y (hyX : y ∈ X),
@@ -423,24 +418,20 @@ begin
   /-apply hxX.2,
   rw mem_combi_frontier_iff at ⊢,
   use [X.filter (λ w : E, w ∈ convex_hull 𝕜 (W : set E)), finset.filter_subset _ _],
-  {
-    rintro hXW,
+  { rintro hXW,
     apply hWZ.2 (hZmin W _),
     simp,
     use [subset.trans hWZ.1 hZ.1],
     rintro y (hyX : y ∈ X),
     have := hXW hyX,
     simp at this,
-    exact this.2,
-  },
-  {
-    simp,
+    exact this.2 },
+  { simp,
     apply convex_hull_mono (subset_inter (subset.refl _) _) hxX.1,
     by_contra hXW,
     rw not_subset at hXW,
     /-suffices hXW : ↑X ⊆ convex_hull 𝕜 ↑W,
-    {
-      apply convex_hull_mono (subset_inter (subset.refl _) hXW) hxX.1,
+    { apply convex_hull_mono (subset_inter (subset.refl _) hXW) hxX.1,
     },-/
     sorry
   }-/

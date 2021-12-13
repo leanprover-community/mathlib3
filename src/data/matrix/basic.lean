@@ -668,6 +668,7 @@ instance : algebra R (matrix n n α) :=
 { commutes' := λ r x, begin
     ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes, smul_ite], end,
   smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def r], end,
+  op_smul_def' := λ x r, begin ext, simp [matrix.scalar, op_smul_eq_smul], end,
   ..((matrix.scalar n).comp (algebra_map R α)) }
 
 lemma algebra_map_matrix_apply {r : R} {i j : n} :

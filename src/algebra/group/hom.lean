@@ -6,7 +6,7 @@ Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hu
 -/
 import algebra.group.commute
 import algebra.group_with_zero.defs
-import data.fun_like
+import data.fun_like.basic
 
 /-!
 # monoid and group homomorphisms

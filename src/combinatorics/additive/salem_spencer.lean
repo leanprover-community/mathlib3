@@ -337,11 +337,7 @@ end
 
 @[simp, to_additive] lemma mul_roth_number_map_mul_right :
   mul_roth_number (s.map $ mul_right_embedding a) = mul_roth_number s :=
-begin
-  convert mul_roth_number_map_mul_left s a,
-  ext,
-  exact mul_comm _ _,
-end
+by rw [←mul_left_embedding_eq_mul_right_embedding, mul_roth_number_map_mul_left s a]
 
 end cancel_comm_monoid
 end roth_number

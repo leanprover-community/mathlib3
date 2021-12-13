@@ -93,7 +93,7 @@ noncomputable def enum_ord : ordinal.{u} → S := λ α, ⟨_, enum_ord'_mem hS 
 theorem enum_ord.strict_mono {hS : ∀ α, ∃ β, S β ∧ α ≤ β} : strict_mono (enum_ord hS) :=
 enum_ord'.strict_mono
 
-theorem aux (α) : α ≤ enum_ord hS α := (enum_ord'.strict_mono).id_le_of_wo wf _
+theorem aux (α) : α ≤ enum_ord hS α := wf.self_le_of_strict_mono enum_ord'.strict_mono  _
 
 theorem enum_ord.surjective {hS : ∀ α, ∃ β, S β ∧ α ≤ β} : function.surjective (enum_ord hS) :=
 begin
@@ -171,7 +171,7 @@ noncomputable def fix_point (hf : ordinal.is_normal f) (α : ordinal.{u}) : fixe
     { exact le_trans this H' },
     change g 0 ≤ g 1 with (f^[0] α) ≤ (f^[1] α),
     rw [function.iterate_one f, function.iterate_zero_apply f α],
-    exact hf.strict_mono.id_le_of_wo ordinal.wf _ },
+    exact ordinal.wf.self_le_of_strict_mono hf.strict_mono _ },
   exact H'
 end ⟩
 

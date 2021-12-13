@@ -1,4 +1,21 @@
+/-
+Copyright (c) 2021 Violeta Hernández Palacios. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Violeta Hernández Palacios
+-/
 import set_theory.ordinal_arithmetic
+
+/-!
+# Veblen's functions
+
+In this file, we prove Veblen's fixed point lemma, and use it to build the two-argument Veblen
+function.
+
+## Main definitions
+
+- `enum_ord`: enumerator function for an unbounded set of ordinals
+
+-/
 
 universes u v
 
@@ -105,7 +122,8 @@ begin
   exact not_lt_of_ge (@ordinal.omin_le _ h (f _) (hf h')) h',
 end
 
-/-- An explicit fixed point for a normal function. Built as `sup {f^[n] α}`. -/
+/-- An explicit fixed point for a normal function. Built as `sup {f^[n] α}`. This is guaranteed to
+be at least `α`. -/
 noncomputable def fixed_point (hf : ordinal.is_normal f) (α : ordinal.{u}) : fixed_points f :=
 begin
   let g := λ n, f^[n] α,

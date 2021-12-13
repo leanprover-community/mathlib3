@@ -2262,6 +2262,8 @@ theorem card_def (s : finset α) : s.card = s.1.card := rfl
 theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
 multiset.card_le_of_le ∘ val_le_iff.mpr
 
+@[mono] lemma card_mono (α : Type) : monotone (@finset.card α) := by apply card_le_of_subset
+
 @[simp] theorem card_eq_zero {s : finset α} : card s = 0 ↔ s = ∅ :=
 card_eq_zero.trans val_eq_zero
 

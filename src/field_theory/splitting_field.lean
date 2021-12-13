@@ -402,7 +402,7 @@ end
 
 lemma roots_map_of_injective_card_eq_total_degree {K L : Type*} [comm_ring K] [is_domain K]
   [comm_ring L] [is_domain L] {p : polynomial K} {f : K →+* L} (hf : function.injective f)
-  (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
+  (hroots : p.roots.card = p.nat_degree) :
   multiset.map f p.roots = (map f p).roots :=
 begin
   rw eq_iff_le_not_lt,
@@ -455,7 +455,7 @@ begin
   have : p.roots.map (algebra_map K (fraction_ring K)) =
     (map (algebra_map K (fraction_ring K)) p).roots :=
   roots_map_of_injective_card_eq_total_degree
-    (is_fraction_ring.injective K (fraction_ring K)) hmonic hroots,
+    (is_fraction_ring.injective K (fraction_ring K)) hroots,
   rw ← prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field
     (monic_map (algebra_map K (fraction_ring K)) hmonic),
   { simp only [map_C, function.comp_app, map_X, map_sub],

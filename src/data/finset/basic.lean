@@ -1061,6 +1061,10 @@ val_le_iff.1 $ erase_le_erase _ $ val_le_iff.2 h
 
 theorem erase_subset (a : α) (s : finset α) : erase s a ⊆ s := erase_subset _ _
 
+lemma subset_erase {a : α} {s t : finset α} : s ⊆ t.erase a ↔ s ⊆ t ∧ a ∉ s :=
+⟨λ h, ⟨h.trans (erase_subset _ _), λ ha, not_mem_erase _ _ (h ha)⟩,
+  λ h b hb, mem_erase.2 ⟨ne_of_mem_of_not_mem hb h.2, h.1 hb⟩⟩
+
 @[simp, norm_cast] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (s \ {a} : set α) :=
 set.ext $ λ _, mem_erase.trans $ by rw [and_comm, set.mem_diff, set.mem_singleton_iff]; refl
 
@@ -1230,6 +1234,12 @@ by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 
 @[simp] lemma sdiff_singleton_not_mem_eq_self (s : finset α) {a : α} (ha : a ∉ s) : s \ {a} = s :=
 by simp only [sdiff_singleton_eq_erase, ha, erase_eq_of_not_mem, not_false_iff]
+
+lemma sdiff_erase {A : finset α} {x : α} (hx : x ∈ A) : A \ A.erase x = {x} :=
+begin
+  rw [← sdiff_singleton_eq_erase, sdiff_sdiff_right_self],
+  exact inf_eq_right.2 (singleton_subset_iff.2 hx),
+end
 
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
 sdiff_sdiff_right_self
@@ -1772,6 +1782,9 @@ namespace finset
 @[simp] lemma val_to_finset [decidable_eq α] (s : finset α) : s.val.to_finset = s :=
 by { ext, rw [multiset.mem_to_finset, ←mem_def] }
 
+lemma val_le_iff_val_subset {a : finset α} {b : multiset α} :
+  a.val ≤ b ↔ a.val ⊆ b := multiset.le_iff_subset a.nodup
+
 end finset
 
 namespace list
@@ -2104,6 +2117,8 @@ iff.intro
   (assume ⟨i, hi, ha⟩,
     ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
 
+lemma range_add (a b : ℕ) : range (a + b) = range a ∪ (range b).map (add_left_embedding a) :=
+by { rw [←val_inj, union_val], exact multiset.range_add_eq_union a b }
 
 @[simp] lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
 eq_of_veq $ by rw [image_val, attach_val, multiset.attach_map_val, erase_dup_eq_self]
@@ -2791,6 +2806,18 @@ ext $ λ x, by simp only [mem_bUnion, mem_image, mem_singleton, eq_comm]
 @[simp] lemma bUnion_singleton_eq_self [decidable_eq α] :
   s.bUnion (singleton : α → finset α) = s :=
 by { rw bUnion_singleton, exact image_id }
+
+lemma filter_bUnion (s : finset α) (f : α → finset β) (p : β → Prop) [decidable_pred p] :
+  (s.bUnion f).filter p = s.bUnion (λ a, (f a).filter p) :=
+begin
+  ext b,
+  simp only [mem_bUnion, exists_prop, mem_filter],
+  split,
+  { rintro ⟨⟨a, ha, hba⟩, hb⟩,
+    exact ⟨a, ha, hba, hb⟩ },
+  { rintro ⟨a, ha, hba, hb⟩,
+    exact ⟨⟨a, ha, hba⟩, hb⟩ }
+end
 
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :

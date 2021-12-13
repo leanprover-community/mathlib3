@@ -227,7 +227,8 @@ theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
 
-lemma mul_zpow_neg_one (a b : G) : (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
+@[to_additive neg_one_zsmul_add] lemma mul_zpow_neg_one (a b : G) :
+  (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
 by simp only [mul_inv_rev, zpow_one, zpow_neg]
 
 @[to_additive neg_one_zsmul]

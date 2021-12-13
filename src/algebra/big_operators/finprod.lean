@@ -5,7 +5,6 @@ Authors: Kexing Ying, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.big_operators.order
 import algebra.indicator_function
-import data.set.pairwise
 
 /-!
 # Finite products and sums over types and sets
@@ -721,20 +720,20 @@ sets `t i`, `i ∈ I`, are finite, if all `t i`, `i ∈ I`, are pairwise disjoin
 the product of `f a` over `a ∈ ⋃ i ∈ I, t i` is equal to the product over `i ∈ I`
 of the products of `f a` over `a ∈ t i`. -/
 @[to_additive] lemma finprod_mem_bUnion {I : set ι} {t : ι → set α}
-  (h : I.pairwise (disjoint on t)) (hI : I.finite) (ht : ∀ i ∈ I, (t i).finite) :
+  (h : I.pairwise_disjoint t) (hI : I.finite) (ht : ∀ i ∈ I, (t i).finite) :
   ∏ᶠ a ∈ ⋃ x ∈ I, t x, f a = ∏ᶠ i ∈ I, ∏ᶠ j ∈ t i, f j :=
 begin
   haveI := hI.fintype,
   rw [bUnion_eq_Union, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
-  exacts [λ x y hxy, h x x.2 y y.2 (subtype.coe_injective.ne hxy), λ b, ht b b.2]
+  exacts [λ x y hxy, h x.2 y.2 (subtype.coe_injective.ne hxy), λ b, ht b b.2]
 end
 
 /-- If `t` is a finite set of pairwise disjoint finite sets, then the product of `f a`
 over `a ∈ ⋃₀ t` is the product over `s ∈ t` of the products of `f a` over `a ∈ s`. -/
-@[to_additive] lemma finprod_mem_sUnion {t : set (set α)} (h : t.pairwise disjoint)
-  (ht₀ : t.finite) (ht₁ : ∀ x ∈ t, set.finite x):
+@[to_additive] lemma finprod_mem_sUnion {t : set (set α)} (h : t.pairwise_disjoint id)
+  (ht₀ : t.finite) (ht₁ : ∀ x ∈ t, set.finite x) :
   ∏ᶠ a ∈ ⋃₀ t, f a = ∏ᶠ s ∈ t, ∏ᶠ a ∈ s, f a :=
-by rw [set.sUnion_eq_bUnion, finprod_mem_bUnion h ht₀ ht₁]
+by { rw set.sUnion_eq_bUnion, exact finprod_mem_bUnion h ht₀ ht₁ }
 
 /-- If `s : set α` and `t : set β` are finite sets, then the product over `s` commutes
 with the product over `t`. -/

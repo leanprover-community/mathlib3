@@ -5,10 +5,12 @@ Authors: Eric Wieser
 -/
 import algebra.group.inj_surj
 import data.list.big_operators
+import data.list.prod_monoid
 import data.list.range
+import group_theory.group_action.defs
+import group_theory.submonoid.basic
 import data.set_like.basic
 import data.sigma.basic
-import group_theory.group_action.defs
 
 /-!
 # Additively-graded multiplicative structures
@@ -46,6 +48,13 @@ and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplicat
 For now, these typeclasses are primarily used in the construction of `direct_sum.ring` and the rest
 of that file.
 
+## Dependent graded products
+
+This also introduces `list.dprod`, which takes the (possibly non-commutative) product of a list
+of graded elements of type `A i`. This definition primarily exist to allow `graded_monoid.mk`
+and `direct_sum.of` to be pulled outside a product, such as in `graded_monoid.mk_list_dprod` and
+`direct_sum.of_list_dprod`.
+
 ## Internally graded monoids
 
 In addition to the above typeclasses, in the most frequent case when `A` is an indexed collection of
@@ -56,12 +65,16 @@ provides the `Prop` typeclasses:
 * `set_like.has_graded_mul A` (which provides the obvious `graded_monoid.ghas_mul A` instance)
 * `set_like.graded_monoid A` (which provides the obvious `graded_monoid.gmonoid A` and
   `graded_monoid.gcomm_monoid A` instances)
+* `set_like.is_homogeneous A` (which says that `a` is homogeneous iff `a ∈ A i` for some `i : ι`)
 
 Strictly this last class is unecessary as it has no fields not present in its parents, but it is
 included for convenience. Note that there is no need for `graded_ring` or similar, as all the
 information it would contain is already supplied by `graded_monoid` when `A` is a collection
 of additively-closed set_like objects such as `submodules`. These constructions are explored in
 `algebra.direct_sum.internal`.
+
+This file also contains the definition of `set_like.homogeneous_submonoid A`, which is, as the name
+suggests, the submonoid consisting of all the homogeneous elements.
 
 ## tags
 
@@ -268,6 +281,71 @@ end grade_zero
 
 end graded_monoid
 
+/-! ### Dependent products of graded elements -/
+
+section dprod
+
+variables {α : Type*} {A : ι → Type*} [add_monoid ι] [graded_monoid.gmonoid A]
+
+/-- The index used by `list.dprod`. Propositionally this is equal to `(l.map fι).sum`, but
+definitionally it needs to have a different form to avoid introducing `eq.rec`s in `list.dprod`. -/
+def list.dprod_index (l : list α) (fι : α → ι) : ι :=
+l.foldr (λ i b, fι i + b) 0
+
+@[simp] lemma list.dprod_index_nil (fι : α → ι) : ([] : list α).dprod_index fι = 0 := rfl
+@[simp] lemma list.dprod_index_cons (a : α) (l : list α) (fι : α → ι) :
+  (a :: l).dprod_index fι = fι a + l.dprod_index fι := rfl
+
+lemma list.dprod_index_eq_map_sum (l : list α) (fι : α → ι) :
+  l.dprod_index fι = (l.map fι).sum :=
+begin
+  dunfold list.dprod_index,
+  induction l,
+  { simp, },
+  { simp [l_ih], },
+end
+
+/-- A dependent product for graded monoids represented by the indexed family of types `A i`.
+This is a dependent version of `(l.map fA).prod`.
+
+For a list `l : list α`, this computes the product of `fA a` over `a`, where each `fA` is of type
+`A (fι a)`. -/
+def list.dprod (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  A (l.dprod_index fι) :=
+l.foldr_rec_on _ _ graded_monoid.ghas_one.one (λ i x a ha, graded_monoid.ghas_mul.mul (fA a) x)
+
+@[simp] lemma list.dprod_nil (fι : α → ι) (fA : Π a, A (fι a)) :
+  (list.nil : list α).dprod fι fA = graded_monoid.ghas_one.one := rfl
+
+-- the `( : _)` in this lemma statement results in the type on the RHS not being unfolded, which
+-- is nicer in the goal view.
+@[simp] lemma list.dprod_cons (fι : α → ι) (fA : Π a, A (fι a)) (a : α) (l : list α) :
+  (a :: l).dprod fι fA = (graded_monoid.ghas_mul.mul (fA a) (l.dprod fι fA) : _) := rfl
+
+lemma graded_monoid.mk_list_dprod (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  graded_monoid.mk _ (l.dprod fι fA) = (l.map (λ a, graded_monoid.mk (fι a) (fA a))).prod :=
+begin
+  induction l,
+  { simp, refl  },
+  { simp [←l_ih, graded_monoid.mk_mul_mk, list.prod_cons],
+    refl, },
+end
+
+/-- A variant of `graded_monoid.mk_list_dprod` for rewriting in the other direction. -/
+lemma graded_monoid.list_prod_map_eq_dprod (l : list α) (f : α → graded_monoid A) :
+  (l.map f).prod = graded_monoid.mk _ (l.dprod (λ i, (f i).1) (λ i, (f i).2)) :=
+begin
+  rw [graded_monoid.mk_list_dprod, graded_monoid.mk],
+  simp_rw sigma.eta,
+end
+
+lemma graded_monoid.list_prod_of_fn_eq_dprod {n : ℕ} (f : fin n → graded_monoid A) :
+  (list.of_fn f).prod =
+    graded_monoid.mk _ ((list.fin_range n).dprod (λ i, (f i).1) (λ i, (f i).2)) :=
+by rw [list.of_fn_eq_map, graded_monoid.list_prod_map_eq_dprod]
+
+end dprod
+
 /-! ### Concrete instances -/
 section
 
@@ -301,7 +379,18 @@ instance comm_monoid.gcomm_monoid [add_comm_monoid ι] [comm_monoid R] :
 { mul_comm := λ a b, sigma.ext (add_comm _ _) (heq_of_eq (mul_comm _ _)),
   ..monoid.gmonoid ι }
 
+/-- When all the indexed types are the same, the dependent product is just the regular product. -/
+@[simp] lemma list.dprod_monoid {α} [add_monoid ι] [monoid R] (l : list α) (fι : α → ι)
+  (fA : α → R) :
+  (l.dprod fι fA : (λ i : ι, R) _) = ((l.map fA).prod : _) :=
+begin
+  induction l,
+  { rw [list.dprod_nil, list.map_nil, list.prod_nil], refl },
+  { rw [list.dprod_cons, list.map_cons, list.prod_cons, l_ih], refl },
 end
+
+end
+
 /-! ### Shorthands for creating instance of the above typeclasses for collections of subobjects -/
 
 section subobjects
@@ -393,4 +482,56 @@ instance set_like.gcomm_monoid {S : Type*} [set_like S R] [comm_monoid R] [add_c
 { mul_comm := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩, sigma.subtype_ext (add_comm _ _) (mul_comm _ _),
   ..set_like.gmonoid A}
 
+section dprod
+open set_like set_like.graded_monoid
+variables {α S : Type*} [set_like S R] [monoid R] [add_monoid ι]
+
+/-- Coercing a dependent product of subtypes is the same as taking the regular product of the
+coercions. -/
+@[simp] lemma set_like.coe_list_dprod (A : ι → S) [set_like.graded_monoid A]
+  (fι : α → ι) (fA : Π a, A (fι a)) (l : list α) :
+  ↑(l.dprod fι fA : (λ i, ↥(A i)) _) = (list.prod (l.map (λ a, fA a)) : R) :=
+begin
+  induction l,
+  { rw [list.dprod_nil, coe_ghas_one, list.map_nil, list.prod_nil] },
+  { rw [list.dprod_cons, coe_ghas_mul, list.map_cons, list.prod_cons, l_ih], },
+end
+
+include R
+
+/-- A version of `list.coe_dprod_set_like` with `subtype.mk`. -/
+lemma set_like.list_dprod_eq (A : ι → S) [set_like.graded_monoid A]
+  (fι : α → ι) (fA : Π a, A (fι a)) (l : list α) :
+  (l.dprod fι fA : (λ i, ↥(A i)) _) =
+    ⟨list.prod (l.map (λ a, fA a)), (l.dprod_index_eq_map_sum fι).symm ▸
+      list_prod_map_mem l _ _ (λ i hi, (fA i).prop)⟩ :=
+subtype.ext $ set_like.coe_list_dprod _ _ _ _
+
+end dprod
+
 end subobjects
+
+section homogeneous_elements
+
+variables {R S : Type*} [set_like S R]
+
+/-- An element `a : R` is said to be homogeneous if there is some `i : ι` such that `a ∈ A i`. -/
+def set_like.is_homogeneous (A : ι → S) (a : R) : Prop := ∃ i, a ∈ A i
+
+lemma set_like.is_homogeneous_one [has_zero ι] [has_one R]
+  (A : ι → S) [set_like.has_graded_one A] : set_like.is_homogeneous A (1 : R) :=
+⟨0, set_like.has_graded_one.one_mem⟩
+
+lemma set_like.is_homogeneous.mul [has_add ι] [has_mul R] {A : ι → S}
+  [set_like.has_graded_mul A] {a b : R} :
+  set_like.is_homogeneous A a → set_like.is_homogeneous A b → set_like.is_homogeneous A (a * b)
+| ⟨i, hi⟩ ⟨j, hj⟩ := ⟨i + j, set_like.has_graded_mul.mul_mem hi hj⟩
+
+/-- When `A` is a `set_like.graded_monoid A`, then the homogeneous elements forms a submonoid. -/
+def set_like.homogeneous_submonoid [add_monoid ι] [monoid R]
+  (A : ι → S) [set_like.graded_monoid A] : submonoid R :=
+{ carrier := { a | set_like.is_homogeneous A a },
+  one_mem' := set_like.is_homogeneous_one A,
+  mul_mem' := λ a b, set_like.is_homogeneous.mul }
+
+end homogeneous_elements

@@ -1403,10 +1403,9 @@ product satisfies `is_bounded_bilinear_map`.
 In order to state these results, we need a `normed_space ℝ E` instance. We will later establish
 such an instance by restriction-of-scalars, `inner_product_space.is_R_or_C_to_real 𝕜 E`, but this
 instance may be not definitionally equal to some other “natural” instance. So, we assume
-`[normed_space ℝ E]` and `[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ`
-we have these instances.
+`[normed_space ℝ E]`.
 -/
-lemma is_bounded_bilinear_map_inner [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] :
+lemma is_bounded_bilinear_map_inner [normed_space ℝ E] :
   is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
 { add_left := λ _ _ _, inner_add_left,
   smul_left := λ r x y,
@@ -1651,7 +1650,6 @@ section continuous
 lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   exact is_bounded_bilinear_map_inner.continuous
 end
 

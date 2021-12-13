@@ -65,7 +65,7 @@ by by_cases p; by_cases q; simp *
   to_bool p = to_bool q ↔ (p ↔ q) :=
 ⟨λ h, (coe_to_bool p).symm.trans $ by simp [h], to_bool_congr⟩
 
-lemma not_ff : ¬ ff := by simp
+lemma not_ff : ¬ ff := ff_ne_tt
 
 @[simp] theorem default_bool : default bool = ff := rfl
 

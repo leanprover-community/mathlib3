@@ -16,14 +16,12 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
 
 ## Important declarations
 
-All the following declarations exist in the namespace `nat`.
-
-- `prime`: the predicate that expresses that a natural number `p` is prime
-- `primes`: the subtype of natural numbers that are prime
-- `min_fac n`: the minimal prime factor of a natural number `n ≠ 1`
-- `exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
-- `factors n`: the prime factorization of `n`
-- `factors_unique`: uniqueness of the prime factorisation
+- `nat.prime`: the predicate that expresses that a natural number `p` is prime
+- `nat.primes`: the subtype of natural numbers that are prime
+- `nat.min_fac n`: the minimal prime factor of a natural number `n ≠ 1`
+- `nat.exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
+- `nat.factors n`: the prime factorization of `n`
+- `nat.factors_unique`: uniqueness of the prime factorisation
 
 -/
 
@@ -606,6 +604,10 @@ begin
     { rcases d with ⟨k, l, rfl⟩,
       exact pow_dvd_pow _ l } }
 end
+
+lemma prime.dvd_mul_of_dvd_ne {p1 p2 n : ℕ} (h_neq : p1 ≠ p2) (pp1 : prime p1) (pp2 : prime p2)
+  (h1 : p1 ∣ n) (h2 : p2 ∣ n) : (p1 * p2 ∣ n) :=
+coprime.mul_dvd_of_dvd_of_dvd ((coprime_primes pp1 pp2).mpr h_neq) h1 h2
 
 /--
 If `p` is prime,

@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.basic
 import data.finset.nat_antidiagonal
+import data.polynomial.basic
 
 /-!
 # Theory of univariate polynomials
@@ -34,11 +34,11 @@ coeff_monomial
 lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
 by { rcases p, rcases q, simp [coeff, add_to_finsupp] }
 
-@[simp] lemma coeff_smul [semiring S] [module R S] (r : R) (p : polynomial S) (n : ℕ) :
+@[simp] lemma coeff_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) (n : ℕ) :
   coeff (r • p) n = r • coeff p n :=
 by { rcases p, simp [coeff, smul_to_finsupp] }
 
-lemma support_smul [semiring S] [module R S] (r : R) (p : polynomial S) :
+lemma support_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) :
   support (r • p) ⊆ support p :=
 begin
   assume i hi,
@@ -60,7 +60,7 @@ variable {R}
 
 @[simp] lemma finset_sum_coeff {ι : Type*} (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
-(s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
+(lcoeff R n).map_sum
 
 lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) :=

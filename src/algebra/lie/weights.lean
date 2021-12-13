@@ -8,6 +8,7 @@ import algebra.lie.tensor_product
 import algebra.lie.character
 import algebra.lie.cartan_subalgebra
 import linear_algebra.eigenspace
+import ring_theory.tensor_product
 
 /-!
 # Weights and roots of Lie modules and Lie algebras
@@ -110,13 +111,13 @@ begin
   let f₁ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₁ x - (χ₁ x) • 1).rtensor M₂,
   let f₂ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₂ x - (χ₂ x) • 1).ltensor M₁,
   have h_comm_square : F.comp ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
-  { ext m₁ m₂, simp only [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, tensor_product.sub_tmul,
-      tensor_product.tmul_sub, tensor_product.smul_tmul, lie_tmul_right, tensor_product.tmul_smul,
-      to_endomorphism_apply_apply, tensor_product.mk_apply, lie_module_hom.map_smul,
-      linear_map.one_apply, lie_module_hom.coe_to_linear_map, linear_map.compr₂_apply, pi.add_apply,
-      linear_map.smul_apply, function.comp_app, linear_map.coe_comp, linear_map.rtensor_tmul,
-      lie_module_hom.map_add, linear_map.add_apply, lie_module_hom.map_sub, linear_map.sub_apply,
-      linear_map.ltensor_tmul], abel, },
+  { ext m₁ m₂, simp only [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, sub_tmul, tmul_sub, smul_tmul,
+      lie_tmul_right, tmul_smul, to_endomorphism_apply_apply, lie_module_hom.map_smul,
+      linear_map.one_apply, lie_module_hom.coe_to_linear_map, linear_map.smul_apply,
+      function.comp_app, linear_map.coe_comp, linear_map.rtensor_tmul, lie_module_hom.map_add,
+      linear_map.add_apply, lie_module_hom.map_sub, linear_map.sub_apply, linear_map.ltensor_tmul,
+      algebra_tensor_module.curry_apply, curry_apply, linear_map.to_fun_eq_coe,
+      linear_map.coe_restrict_scalars_eq_coe], abel, },
   suffices : ∃ k, ((f₁ + f₂)^k) (m₁ ⊗ₜ m₂) = 0,
   { obtain ⟨k, hk⟩ := this, use k,
     rw [← linear_map.comp_apply, linear_map.commute_pow_left_of_commute h_comm_square,
@@ -134,12 +135,9 @@ begin
   /- It's now just an application of the binomial theorem. -/
   use k₁ + k₂ - 1,
   have hf_comm : commute f₁ f₂,
-  { ext m₁ m₂,
-    simp only [smul_comm (χ₁ x) (χ₂ x), linear_map.rtensor_smul, to_endomorphism_apply_apply,
-      tensor_product.mk_apply, linear_map.mul_apply, linear_map.one_apply, linear_map.ltensor_sub,
-      linear_map.compr₂_apply, linear_map.smul_apply, linear_map.ltensor_smul,
-      linear_map.rtensor_tmul, linear_map.map_sub, linear_map.map_smul, linear_map.rtensor_sub,
-      linear_map.sub_apply, linear_map.ltensor_tmul], },
+  { ext m₁ m₂, simp only [linear_map.mul_apply, linear_map.rtensor_tmul, linear_map.ltensor_tmul,
+      algebra_tensor_module.curry_apply, linear_map.to_fun_eq_coe, linear_map.ltensor_tmul,
+      curry_apply, linear_map.coe_restrict_scalars_eq_coe], },
   rw hf_comm.add_pow',
   simp only [tensor_product.map_incl, submodule.subtype_apply, finset.sum_apply,
     submodule.coe_mk, linear_map.coe_fn_sum, tensor_product.map_tmul, linear_map.smul_apply],

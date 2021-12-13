@@ -13,7 +13,8 @@ import algebra.big_operators.intervals
 # Partial sums of geometric series
 
 This file determines the values of the geometric series $\sum_{i=0}^{n-1} x^i$ and
-$\sum_{i=0}^{n-1} x^i y^{n-1-i}$ and variants thereof.
+$\sum_{i=0}^{n-1} x^i y^{n-1-i}$ and variants thereof. We also provide some bounds on the
+"geometric" sum of `a/b^i` where `a b : ℕ`.
 
 ## Main definitions
 
@@ -75,7 +76,7 @@ by { have : 1 - 1 - 0 = 0 := rfl,
 @[simp] lemma op_geom_sum₂ [ring α] (x y : α) (n : ℕ) :
   op (geom_sum₂ x y n) = geom_sum₂ (op y) (op x) n :=
 begin
-  simp only [geom_sum₂_def, op_sum, op_mul, units.op_pow],
+  simp only [geom_sum₂_def, op_sum, op_mul, op_pow],
   rw ← sum_range_reflect,
   refine sum_congr rfl (λ j j_in, _),
   rw [mem_range, nat.lt_iff_add_one_le] at j_in,
@@ -151,7 +152,7 @@ lemma commute.mul_neg_geom_sum₂ [ring α] {x y : α} (h : commute x y) (n : �
   (y - x) * (geom_sum₂ x y n) = y ^ n - x ^ n :=
 begin
   rw ← op_inj_iff,
-  simp only [op_mul, op_sub, op_geom_sum₂, units.op_pow],
+  simp only [op_mul, op_sub, op_geom_sum₂, op_pow],
   exact (commute.op h.symm).geom_sum₂_mul n
 end
 
@@ -255,7 +256,7 @@ protected theorem commute.geom_sum₂_Ico_mul [ring α] {x y : α} (h : commute 
   (∑ i in finset.Ico m n, x ^ i * y ^ (n - 1 - i)) * (x - y) = x ^ n -  y ^ (n - m) * x ^ m :=
 begin
   rw ← op_inj_iff,
-  simp only [op_sub, op_mul, units.op_pow, op_sum],
+  simp only [op_sub, op_mul, op_pow, op_sum],
   have : ∑ k in Ico m n, op y ^ (n - 1 - k) * op x ^ k
     = ∑ k in Ico m n, op x ^ k * op y ^ (n - 1 - k),
   { refine sum_congr rfl (λ k k_in, _),
@@ -318,3 +319,53 @@ by simp [geom_sum_def, f.map_sum]
 theorem ring_hom.map_geom_sum₂ [semiring α] [semiring β] (x y : α) (n : ℕ) (f : α →+* β) :
   f (geom_sum₂ x y n) = geom_sum₂ (f x) (f y) n :=
 by simp [geom_sum₂_def, f.map_sum]
+
+/-! ### Geometric sum with `ℕ`-division -/
+
+lemma nat.pred_mul_geom_sum_le (a b n : ℕ) :
+  (b - 1) * ∑ i in range n.succ, a/b^i ≤ a * b - a/b^n :=
+calc
+  (b - 1) * (∑ i in range n.succ, a/b^i)
+      = ∑ i in range n, a/b^(i + 1) * b + a * b
+        - (∑ i in range n, a/b^i + a/b^n)
+      : by rw [nat.mul_sub_right_distrib, mul_comm, sum_mul, one_mul, sum_range_succ',
+          sum_range_succ, pow_zero, nat.div_one]
+  ... ≤ ∑ i in range n, a/b^i + a * b - (∑ i in range n, a/b^i + a/b^n)
+      : begin
+        refine nat.sub_le_sub_right (add_le_add_right (sum_le_sum $ λ i _, _) _) _,
+        rw [pow_succ', ←nat.div_div_eq_div_mul],
+        exact nat.div_mul_le_self _ _,
+      end
+  ... = a * b - a/b^n : nat.add_sub_add_left _ _ _
+
+lemma nat.geom_sum_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
+  ∑ i in range n, a/b^i ≤ a * b/(b - 1) :=
+begin
+  refine (nat.le_div_iff_mul_le _ _ $ nat.sub_pos_of_lt hb).2 _,
+  cases n,
+  { rw [sum_range_zero, zero_mul],
+    exact nat.zero_le _ },
+  rw mul_comm,
+  exact (nat.pred_mul_geom_sum_le a b n).trans (nat.sub_le_self _ _),
+end
+
+lemma nat.geom_sum_Ico_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
+  ∑ i in Ico 1 n, a/b^i ≤ a/(b - 1) :=
+begin
+  cases n,
+  { rw [Ico.eq_empty_of_le zero_le_one, sum_empty],
+    exact nat.zero_le _ },
+  rw ←add_le_add_iff_left a,
+  calc
+    a + ∑ (i : ℕ) in Ico 1 n.succ, a/b^i
+        = a/b^0 + ∑ (i : ℕ) in Ico 1 n.succ, a/b^i : by rw [pow_zero, nat.div_one]
+    ... = ∑ i in range n.succ, a/b^i : begin
+          rw [range_eq_Ico, ←finset.Ico.insert_succ_bot (nat.succ_pos _), sum_insert],
+          exact λ h, zero_lt_one.not_le (Ico.mem.1 h).1,
+        end
+    ... ≤ a * b/(b - 1) : nat.geom_sum_le hb a _
+    ... = (a * 1 + a * (b - 1))/(b - 1)
+        : by rw [←mul_add, nat.add_sub_cancel' (one_le_two.trans hb)]
+    ... = a + a/(b - 1)
+        : by rw [mul_one, nat.add_mul_div_right _ _ (nat.sub_pos_of_lt hb), add_comm]
+end

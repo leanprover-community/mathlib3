@@ -76,6 +76,11 @@ pairwise_iff_nth_le.trans
   .resolve_right (λ h', H _ _ h₁ h' h.symm),
  λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
 
+theorem nodup.nth_le_inj_iff {α : Type*} {l : list α} (h : nodup l)
+  {i j : ℕ} (hi : i < l.length) (hj : j < l.length) :
+  l.nth_le i hi = l.nth_le j hj ↔ i = j :=
+⟨nodup_iff_nth_le_inj.mp h _ _ _ _, by simp {contextual := tt}⟩
+
 lemma nodup.ne_singleton_iff {l : list α} (h : nodup l) (x : α) :
   l ≠ [x] ↔ l = [] ∨ ∃ y ∈ l, y ≠ x :=
 begin
@@ -116,8 +121,8 @@ theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
 | 0 := by simp [nat.zero_le]
 | 1 := by simp
 | (n+2) := iff_of_false
-  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (le_add_left 2 n)))
-  (not_le_of_lt $ le_add_left 2 n)
+  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (nat.le_add_left 2 n)))
+  (not_le_of_lt $ nat.le_add_left 2 n)
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=
@@ -321,6 +326,20 @@ begin
     simp [update_nth, hl.1] },
   { simp [ne.symm H, H, update_nth, ← apply_ite (cons (f hd))] }
 end
+
+lemma nodup.pairwise_of_forall_ne {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
+begin
+  classical,
+  refine pairwise_of_reflexive_on_dupl_of_forall_ne _ h,
+  intros x hx,
+  rw nodup_iff_count_le_one at hl,
+  exact absurd (hl x) hx.not_le
+end
+
+lemma nodup.pairwise_of_set_pairwise_on {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : {x | x ∈ l}.pairwise_on r) : l.pairwise r :=
+hl.pairwise_of_forall_ne h
 
 end list
 

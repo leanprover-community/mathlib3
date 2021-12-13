@@ -7,7 +7,7 @@ Authors: Johan Commelin
 import data.mv_polynomial
 import algebra.algebra.operations
 import data.fintype.card
-import algebra.direct_sum_graded
+import algebra.direct_sum.algebra
 
 /-!
 # Homogeneous polynomials
@@ -33,7 +33,7 @@ variables {σ : Type*} {τ : Type*} {R : Type*} {S : Type*}
 /-
 TODO
 * create definition for `∑ i in d.support, d i`
-* define graded rings, and show that mv_polynomial is an example
+* show that `mv_polynomial σ R ≃ₐ[R] ⨁ i, homogeneous_submodule σ R i`
 -/
 
 /-- A multivariate polynomial `φ` is homogeneous of degree `n`
@@ -72,7 +72,7 @@ variables {σ R}
 variables (σ R)
 
 /-- While equal, the former has a convenient definitional reduction. -/
-lemma homogenous_submodule_eq_finsupp_supported [comm_semiring R] (n : ℕ) :
+lemma homogeneous_submodule_eq_finsupp_supported [comm_semiring R] (n : ℕ) :
   homogeneous_submodule σ R n = finsupp.supported _ R {d | ∑ i in d.support, d i = n} :=
 begin
   ext,
@@ -83,7 +83,7 @@ end
 
 variables {σ R}
 
-lemma homogenous_submodule_mul [comm_semiring R] (m n : ℕ) :
+lemma homogeneous_submodule_mul [comm_semiring R] (m n : ℕ) :
   homogeneous_submodule σ R m * homogeneous_submodule σ R n ≤ homogeneous_submodule σ R (m + n) :=
 begin
   rw submodule.mul_le,
@@ -114,6 +114,7 @@ lemma is_homogeneous_monomial (d : σ →₀ ℕ) (r : R) (n : ℕ) (hn : ∑ i 
   is_homogeneous (monomial d r) n :=
 begin
   intros c hc,
+  classical,
   rw coeff_monomial at hc,
   split_ifs at hc with h,
   { subst c, exact hn },
@@ -173,7 +174,7 @@ lemma sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ℕ
 
 lemma mul (hφ : is_homogeneous φ m) (hψ : is_homogeneous ψ n) :
   is_homogeneous (φ * ψ) (m + n) :=
-homogenous_submodule_mul m n $ submodule.mul_mem_mul hφ hψ
+homogeneous_submodule_mul m n $ submodule.mul_mem_mul hφ hψ
 
 lemma prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ι → ℕ)
   (h : ∀ i ∈ s, is_homogeneous (φ i) (n i)) :
@@ -206,8 +207,8 @@ begin
 end
 
 /--
-The homogenous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`.
--/
+The homogeneous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`
+and `direct_sum.algebra`. -/
 noncomputable instance homogeneous_submodule.gcomm_monoid :
   direct_sum.gcomm_monoid (λ i, homogeneous_submodule σ R i) :=
 direct_sum.gcomm_monoid.of_submodules _
@@ -216,6 +217,7 @@ direct_sum.gcomm_monoid.of_submodules _
 
 open_locale direct_sum
 noncomputable example : comm_semiring (⨁ i, homogeneous_submodule σ R i) := infer_instance
+noncomputable example : algebra R (⨁ i, homogeneous_submodule σ R i) := infer_instance
 
 end is_homogeneous
 

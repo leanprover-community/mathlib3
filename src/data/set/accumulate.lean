@@ -40,7 +40,7 @@ begin
   apply subset.antisymm,
   { simp only [subset_def, mem_Union, exists_imp_distrib, mem_accumulate],
     intros z x x' hx'x hz, exact ⟨x', hz⟩ },
-  { exact Union_subset_Union (λ i, subset_accumulate),  }
+  { exact Union_subset_Union (λ i, subset_accumulate), }
 end
 
 end set

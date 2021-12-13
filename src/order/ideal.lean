@@ -387,7 +387,7 @@ noncomputable def sequence_of_cofinals : ℕ → P
            end
 
 lemma sequence_of_cofinals.monotone : monotone (sequence_of_cofinals p 𝒟) :=
-by { apply monotone_of_monotone_nat, intros n, dunfold sequence_of_cofinals,
+by { apply monotone_nat_of_le_succ, intros n, dunfold sequence_of_cofinals,
   cases encodable.decode ι n, { refl }, { apply cofinal.le_above }, }
 
 lemma sequence_of_cofinals.encode_mem (i : ι) :

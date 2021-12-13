@@ -326,7 +326,9 @@ noncomputable def field_of_is_unit_or_eq_zero [hR : comm_ring R]
 
 end noncomputable_defs
 
-/-- Pullback a `division_ring` along an injective function. -/
+/-- Pullback a `division_ring` along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.division_ring [division_ring K] {K'}
   [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
   [has_div K']
@@ -338,7 +340,9 @@ protected def function.injective.division_ring [division_ring K] {K'}
 { .. hf.group_with_zero f zero one mul inv div,
   .. hf.ring f zero one add mul neg sub }
 
-/-- Pullback a `field` along an injective function. -/
+/-- Pullback a `field` along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.field [field K] {K'}
   [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
   [has_div K']

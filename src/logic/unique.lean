@@ -53,6 +53,16 @@ structure unique (α : Sort u) extends inhabited α :=
 
 attribute [class] unique
 
+/-- Given an explicit `a : α` with `[subsingleton α]`, we can construct
+a `[unique α]` instance. This is a def because the typeclass search cannot
+arbitrarily invent the `a : α` term. Nevertheless, these instances are all
+equivalent by `unique.subsingleton.unique`.
+
+See note [reducible non-instances]. -/
+@[reducible] def unique_of_subsingleton {α : Sort*} [subsingleton α] (a : α) : unique α :=
+{ default := a,
+  uniq := λ _, subsingleton.elim _ _ }
+
 instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
@@ -67,6 +77,7 @@ lemma fin.eq_zero : ∀ n : fin 1, n = 0
 | ⟨n, hn⟩ := fin.eq_of_veq (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn))
 
 instance {n : ℕ} : inhabited (fin n.succ) := ⟨0⟩
+instance inhabited_fin_one_add (n : ℕ) : inhabited (fin (1 + n)) := ⟨⟨0, nat.zero_lt_one_add n⟩⟩
 
 @[simp] lemma fin.default_eq_zero (n : ℕ) : default (fin n.succ) = 0 := rfl
 
@@ -150,3 +161,26 @@ protected def injective.unique [inhabited α] [subsingleton β] (hf : injective 
 @unique.mk' _ _ hf.subsingleton
 
 end function
+
+namespace option
+
+/-- `option α` is a `subsingleton` if and only if `α` is empty. -/
+lemma subsingleton_iff_is_empty {α} : subsingleton (option α) ↔ is_empty α :=
+⟨λ h, ⟨λ x, option.no_confusion $ @subsingleton.elim _ h x none⟩,
+  λ h, ⟨λ x y, option.cases_on x (option.cases_on y rfl (λ x, h.elim x)) (λ x, h.elim x)⟩⟩
+
+instance {α} [is_empty α] : unique (option α) := @unique.mk' _ _ (subsingleton_iff_is_empty.2 ‹_›)
+
+end option
+
+section subtype
+
+instance unique.subtype_eq (y : α) : unique {x // x = y} :=
+{ default := ⟨y, rfl⟩,
+  uniq := λ ⟨x, hx⟩, by simpa using hx }
+
+instance unique.subtype_eq' (y : α) : unique {x // y = x} :=
+{ default := ⟨y, rfl⟩,
+  uniq := λ ⟨x, hx⟩, by simpa using hx.symm }
+
+end subtype

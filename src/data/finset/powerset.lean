@@ -40,6 +40,7 @@ mem_powerset.2 (subset.refl _)
 ⟨λ h, (mem_powerset.1 $ h $ mem_powerset_self _),
  λ st u h, mem_powerset.2 $ subset.trans (mem_powerset.1 h) st⟩
 
+/-- **Number of Subsets of a Set** -/
 @[simp] theorem card_powerset (s : finset α) :
   card (powerset s) = 2 ^ card s :=
 (card_pmap _ _ _).trans (card_powerset s.1)
@@ -67,7 +68,70 @@ begin
     simp [finset.erase_eq_of_not_mem h, this] }
 end
 
+/-- For predicate `p` decidable on subsets, it is decidable whether `p` holds for any subset. -/
+instance decidable_exists_of_decidable_subsets {s : finset α} {p : Π t ⊆ s, Prop}
+  [Π t (h : t ⊆ s), decidable (p t h)] : decidable (∃ t (h : t ⊆ s), p t h) :=
+decidable_of_iff (∃ t (hs : t ∈ s.powerset), p t (mem_powerset.1 hs))
+⟨(λ ⟨t, _, hp⟩, ⟨t, _, hp⟩), (λ ⟨t, hs, hp⟩, ⟨t, mem_powerset.2 hs, hp⟩)⟩
+
+/-- For predicate `p` decidable on subsets, it is decidable whether `p` holds for every subset. -/
+instance decidable_forall_of_decidable_subsets {s : finset α} {p : Π t ⊆ s, Prop}
+  [Π t (h : t ⊆ s), decidable (p t h)] : decidable (∀ t (h : t ⊆ s), p t h) :=
+decidable_of_iff (∀ t (h : t ∈ s.powerset), p t (mem_powerset.1 h))
+⟨(λ h t hs, h t (mem_powerset.2 hs)), (λ h _ _, h _ _)⟩
+
+/-- A version of `finset.decidable_exists_of_decidable_subsets` with a non-dependent `p`.
+Typeclass inference cannot find `hu` here, so this is not an instance. -/
+def decidable_exists_of_decidable_subsets' {s : finset α} {p : finset α → Prop}
+  (hu : Π t (h : t ⊆ s), decidable (p t)) : decidable (∃ t (h : t ⊆ s), p t) :=
+@finset.decidable_exists_of_decidable_subsets _ _ _ hu
+
+/-- A version of `finset.decidable_forall_of_decidable_subsets` with a non-dependent `p`.
+Typeclass inference cannot find `hu` here, so this is not an instance. -/
+def decidable_forall_of_decidable_subsets' {s : finset α} {p : finset α → Prop}
+  (hu : Π t (h : t ⊆ s), decidable (p t)) : decidable (∀ t (h : t ⊆ s), p t) :=
+@finset.decidable_forall_of_decidable_subsets _ _ _ hu
+
 end powerset
+
+section ssubsets
+variables [decidable_eq α]
+
+/-- For `s` a finset, `s.ssubsets` is the finset comprising strict subsets of `s`. -/
+def ssubsets (s : finset α) : finset (finset α) :=
+erase (powerset s) s
+
+@[simp] lemma mem_ssubsets {s t : finset α} : t ∈ s.ssubsets ↔ t ⊂ s :=
+by rw [ssubsets, mem_erase, mem_powerset, ssubset_iff_subset_ne, and.comm]
+
+lemma empty_mem_ssubsets {s : finset α} (h : s.nonempty) : ∅ ∈ s.ssubsets :=
+by { rw [mem_ssubsets, ssubset_iff_subset_ne], exact ⟨empty_subset s, h.ne_empty.symm⟩, }
+
+/-- For predicate `p` decidable on ssubsets, it is decidable whether `p` holds for any ssubset. -/
+instance decidable_exists_of_decidable_ssubsets {s : finset α} {p : Π t ⊂ s, Prop}
+  [Π t (h : t ⊂ s), decidable (p t h)] : decidable (∃ t h, p t h) :=
+decidable_of_iff (∃ t (hs : t ∈ s.ssubsets), p t (mem_ssubsets.1 hs))
+⟨(λ ⟨t, _, hp⟩, ⟨t, _, hp⟩), (λ ⟨t, hs, hp⟩, ⟨t, mem_ssubsets.2 hs, hp⟩)⟩
+
+/-- For predicate `p` decidable on ssubsets, it is decidable whether `p` holds for every ssubset. -/
+instance decidable_forall_of_decidable_ssubsets {s : finset α} {p : Π t ⊂ s, Prop}
+  [Π t (h : t ⊂ s), decidable (p t h)] : decidable (∀ t h, p t h) :=
+decidable_of_iff (∀ t (h : t ∈ s.ssubsets), p t (mem_ssubsets.1 h))
+⟨(λ h t hs, h t (mem_ssubsets.2 hs)), (λ h _ _, h _ _)⟩
+
+/-- A version of `finset.decidable_exists_of_decidable_ssubsets` with a non-dependent `p`.
+Typeclass inference cannot find `hu` here, so this is not an instance. -/
+def decidable_exists_of_decidable_ssubsets' {s : finset α} {p : finset α → Prop}
+  (hu : Π t (h : t ⊂ s), decidable (p t)) : decidable (∃ t (h : t ⊂ s), p t) :=
+@finset.decidable_exists_of_decidable_ssubsets _ _ _ _ hu
+
+/-- A version of `finset.decidable_forall_of_decidable_ssubsets` with a non-dependent `p`.
+Typeclass inference cannot find `hu` here, so this is not an instance. -/
+def decidable_forall_of_decidable_ssubsets' {s : finset α} {p : finset α → Prop}
+  (hu : Π t (h : t ⊂ s), decidable (p t)) : decidable (∀ t (h : t ⊂ s), p t) :=
+@finset.decidable_forall_of_decidable_ssubsets _ _ _ _ hu
+
+end ssubsets
 
 section powerset_len
 
@@ -79,6 +143,7 @@ def powerset_len (n : ℕ) (s : finset α) : finset (finset α) :=
  nodup_pmap (λ a ha b hb, congr_arg finset.val)
    (nodup_powerset_len s.2)⟩
 
+/-- **Formula for the Number of Combinations** -/
 theorem mem_powerset_len {n} {s t : finset α} :
   s ∈ powerset_len n t ↔ s ⊆ t ∧ card s = n :=
 by cases s; simp [powerset_len, val_le_iff.symm]; refl
@@ -88,6 +153,7 @@ by cases s; simp [powerset_len, val_le_iff.symm]; refl
 λ u h', mem_powerset_len.2 $
   and.imp (λ h₂, subset.trans h₂ h) id (mem_powerset_len.1 h')
 
+/-- **Formula for the Number of Combinations** -/
 @[simp] theorem card_powerset_len (n : ℕ) (s : finset α) :
   card (powerset_len n s) = nat.choose (card s) n :=
 (card_pmap _ _ _).trans (card_powerset_len n s.1)

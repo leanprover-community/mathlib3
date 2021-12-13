@@ -34,7 +34,7 @@ variables {C : Type u} [category.{v} C]
 variables [preadditive C]
 
 /--
-The part of Schur's lemma that holds in any preadditive category with kernels:
+The part of **Schur's lemma** that holds in any preadditive category with kernels:
 that a nonzero morphism between simple objects is an isomorphism.
 -/
 lemma is_iso_of_hom_simple [has_kernels C] {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
@@ -63,7 +63,7 @@ open finite_dimensional
 variables (𝕜 : Type*) [field 𝕜]
 
 /--
-Part of Schur's lemma for `𝕜`-linear categories:
+Part of **Schur's lemma** for `𝕜`-linear categories:
 the hom space between two non-isomorphic simple objects is 0-dimensional.
 -/
 lemma finrank_hom_simple_simple_eq_zero_of_not_iso
@@ -87,7 +87,7 @@ variables [is_alg_closed 𝕜] [linear 𝕜 C]
 -- To get around this, we use `convert I`,
 -- then check the various instances agree field-by-field,
 -- using `ext` equipped with the following extra lemmas:
-local attribute [ext] add_comm_group module distrib_mul_action mul_action has_scalar
+local attribute [ext] module distrib_mul_action mul_action has_scalar
 
 /--
 An auxiliary lemma for Schur's lemma.
@@ -109,7 +109,7 @@ begin
   { intro f,
     haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
     obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _
-      (by { convert I, ext; refl, ext; refl, }) (End.of f),
+      (by { convert I, ext, refl, ext, refl, }) (End.of f),
     use c,
     rw [is_unit_iff_is_iso, is_iso_iff_nonzero, ne.def, not_not, sub_eq_zero,
       algebra.algebra_map_eq_smul_one] at nu,
@@ -119,7 +119,7 @@ end
 variables [has_kernels C]
 
 /--
-Schur's lemma for endomorphisms in `𝕜`-linear categories.
+**Schur's lemma** for endomorphisms in `𝕜`-linear categories.
 -/
 lemma finrank_endomorphism_simple_eq_one
   (X : C) [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
@@ -132,7 +132,7 @@ lemma endomorphism_simple_eq_smul_id
 (finrank_eq_one_iff_of_nonzero' (𝟙 X) (id_nonzero X)).mp (finrank_endomorphism_simple_eq_one 𝕜 X) f
 
 /--
-Schur's lemma for `𝕜`-linear categories:
+**Schur's lemma** for `𝕜`-linear categories:
 if hom spaces are finite dimensional, then the hom space between simples is at most 1-dimensional.
 
 See `finrank_hom_simple_simple_eq_one_iff` and `finrank_hom_simple_simple_eq_zero_iff` below
@@ -175,9 +175,9 @@ end
 
 lemma finrank_hom_simple_simple_eq_zero_iff
   (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
-  finrank 𝕜 (X ⟶ Y) = 0 ↔ ¬ nonempty (X ≅ Y) :=
+  finrank 𝕜 (X ⟶ Y) = 0 ↔ is_empty (X ≅ Y) :=
 begin
-  rw ←not_congr (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y),
+  rw [← not_nonempty_iff, ← not_congr (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y)],
   refine ⟨λ h, by { rw h, simp, }, λ h, _⟩,
   have := finrank_hom_simple_simple_le_one 𝕜 X Y,
   interval_cases finrank 𝕜 (X ⟶ Y) with h',

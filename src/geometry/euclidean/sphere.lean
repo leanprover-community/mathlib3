@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2021 Manuel Candales. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Manuel Candales
+Authors: Manuel Candales, Benjamin Davidson
 -/
-import geometry.euclidean.basic
+import geometry.euclidean.triangle
 
 /-!
 # Spheres
@@ -15,6 +15,27 @@ in spheres in real inner product spaces and Euclidean affine spaces.
 
 * `mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi`: Intersecting Chords Theorem (Freek No. 55).
 * `mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_zero`: Intersecting Secants Theorem.
+* `mul_dist_add_mul_dist_eq_mul_dist_of_cospherical`: Ptolemy’s Theorem (Freek No. 95).
+
+TODO: The current statement of Ptolemy’s theorem works around the lack of a "cyclic polygon" concept
+in mathlib, which is what the theorem statement would naturally use (or two such concepts, since
+both a strict version, where all vertices must be distinct, and a weak version, where consecutive
+vertices may be equal, would be useful; Ptolemy's theorem should then use the weak one).
+
+An API needs to be built around that concept, which would include:
+- strict cyclic implies weak cyclic,
+- weak cyclic and consecutive points distinct implies strict cyclic,
+- weak/strict cyclic implies weak/strict cyclic for any subsequence,
+- any three points on a sphere are weakly or strictly cyclic according to whether they are distinct,
+- any number of points on a sphere intersected with a two-dimensional affine subspace are cyclic in
+  some order,
+- a list of points is cyclic if and only if its reversal is,
+- a list of points is cyclic if and only if any cyclic permutation is, while other permutations
+  are not when the points are distinct,
+- a point P where the diagonals of a cyclic polygon cross exists (and is unique) with weak/strict
+  betweenness depending on weak/strict cyclicity,
+- four points on a sphere with such a point P are cyclic in the appropriate order,
+and so on.
 -/
 
 open real
@@ -47,9 +68,8 @@ begin
     ... = 0                         : sub_eq_zero.mpr hk.symm },
 
   have hzy : ⟪z, y⟫ = 0,
-  { rw [← eq_of_sq_eq_sq (norm_nonneg (z - y)) (norm_nonneg (z + y)),
-        norm_add_sq_real, norm_sub_sq_real] at h₂,
-    linarith },
+    by rwa [inner_eq_zero_iff_angle_eq_pi_div_two, ← norm_add_eq_norm_sub_iff_angle_eq_pi_div_two,
+      eq_comm],
 
   have hzx : ⟪z, x⟫ = 0 := by rw [hxy, inner_smul_right, hzy, mul_zero],
 
@@ -61,7 +81,7 @@ begin
   ... = abs (r ^ 2 * ∥y∥ ^ 2 - ∥y∥ ^ 2)    : by ring_nf
   ... = abs (∥x∥ ^ 2 - ∥y∥ ^ 2)            : by simp [hxy, norm_smul, mul_pow, norm_eq_abs, sq_abs]
   ... = abs (∥z + y∥ ^ 2 - ∥z - x∥ ^ 2)    : by simp [norm_add_sq_real, norm_sub_sq_real,
-                                                    hzy, hzx, abs_sub],
+                                                    hzy, hzx, abs_sub_comm],
 end
 
 end inner_product_geometry
@@ -112,7 +132,7 @@ begin
   all_goals { simp },
 end
 
-/-- Intersecting Chords Theorem. -/
+/-- **Intersecting Chords Theorem**. -/
 theorem mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi {a b c d p : P}
   (h : cospherical ({a, b, c, d} : set P))
   (hapb : ∠ a p b = π) (hcpd : ∠ c p d = π) :
@@ -123,7 +143,7 @@ begin
   exact mul_dist_eq_mul_dist_of_cospherical h ⟨k₁, (by linarith), hab⟩ ⟨k₂, (by linarith), hcd⟩,
 end
 
-/-- Intersecting Secants Theorem. -/
+/-- **Intersecting Secants Theorem**. -/
 theorem mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_zero {a b c d p : P}
   (h : cospherical ({a, b, c, d} : set P))
   (hab : a ≠ b) (hcd : c ≠ d) (hapb : ∠ a p b = 0) (hcpd : ∠ c p d = 0) :
@@ -135,6 +155,29 @@ begin
   by_contra hnot;
   simp only [not_not, *, one_smul] at *,
   exacts [hab (vsub_left_cancel hab₁).symm, hcd (vsub_left_cancel hcd₁).symm],
+end
+
+/-- **Ptolemy’s Theorem**. -/
+theorem mul_dist_add_mul_dist_eq_mul_dist_of_cospherical {a b c d p : P}
+  (h : cospherical ({a, b, c, d} : set P))
+  (hapc : ∠ a p c = π) (hbpd : ∠ b p d = π) :
+  dist a b * dist c d + dist b c * dist d a = dist a c * dist b d :=
+begin
+  have h' : cospherical ({a, c, b, d} : set P), { rwa set.insert_comm c b {d} },
+  have hmul := mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi h' hapc hbpd,
+  have hbp := left_dist_ne_zero_of_angle_eq_pi hbpd,
+  have h₁ : dist c d = dist c p / dist b p * dist a b,
+  { rw [dist_mul_of_eq_angle_of_dist_mul b p a c p d, dist_comm a b],
+    { rw [angle_eq_angle_of_angle_eq_pi_of_angle_eq_pi hbpd hapc, angle_comm] },
+    all_goals { field_simp [mul_comm, hmul] } },
+  have h₂ : dist d a = dist a p / dist b p * dist b c,
+  { rw [dist_mul_of_eq_angle_of_dist_mul c p b d p a, dist_comm c b],
+    { rwa [angle_comm, angle_eq_angle_of_angle_eq_pi_of_angle_eq_pi], rwa angle_comm },
+    all_goals { field_simp [mul_comm, hmul] } },
+  have h₃ : dist d p = dist a p * dist c p / dist b p, { field_simp [mul_comm, hmul] },
+  have h₄ : ∀ x y : ℝ, x * (y * x) = x * x * y := λ x y, by rw [mul_left_comm, mul_comm],
+  field_simp [h₁, h₂, dist_eq_add_dist_of_angle_eq_pi hbpd, h₃, hbp, dist_comm a b,
+              h₄, ← sq, dist_sq_mul_dist_add_dist_sq_mul_dist b, hapc],
 end
 
 end euclidean_geometry

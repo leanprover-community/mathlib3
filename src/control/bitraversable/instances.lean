@@ -33,7 +33,7 @@ universes u v w
 variables {t : Type u → Type u → Type u} [bitraversable t]
 
 section
-variables {F  : Type u → Type u} [applicative F]
+variables {F : Type u → Type u} [applicative F]
 
 def prod.bitraverse {α α' β β'} (f : α → F α') (f' : β → F β') : α × β → F (α' × β')
 | (x,y) := prod.mk <$> f x <*> f' y

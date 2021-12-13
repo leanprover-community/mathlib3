@@ -38,7 +38,7 @@ is compatible with the Lie algebra structures. -/
 def lie_equiv_matrix' : module.End R (n → R) ≃ₗ⁅R⁆ matrix n n R :=
 { map_lie' := λ T S,
   begin
-    let f := @linear_map.to_matrix' R _ n n _ _ _,
+    let f := @linear_map.to_matrix' R _ n n _ _,
     change f (T.comp S - S.comp T) = (f T) * (f S) - (f S) * (f T),
     have h : ∀ (T S : module.End R _), f (T.comp S) = (f T) ⬝ (f S) := linear_map.to_matrix'_comp,
     rw [linear_equiv.map_sub, h, h, matrix.mul_eq_mul, matrix.mul_eq_mul],
@@ -66,23 +66,20 @@ by simp [linear_equiv.conj_apply, matrix.lie_conj, linear_map.to_matrix'_comp,
 by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, linear_map.to_matrix'_comp,
          linear_map.to_matrix'_to_lin']
 
+variables {m : Type w₁} [decidable_eq m] [fintype m] (e : n ≃ m)
+
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
 types, `matrix.reindex`, is an equivalence of Lie algebras. -/
-def matrix.reindex_lie_equiv {m : Type w₁} [decidable_eq m] [fintype m]
-  (e : n ≃ m) : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
+def matrix.reindex_lie_equiv : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
 { to_fun := matrix.reindex e e,
   map_lie' := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_apply,
     ←matrix.minor_mul_equiv _ _ _ _, matrix.mul_eq_mul, matrix.minor_sub, pi.sub_apply],
-  ..(matrix.reindex_linear_equiv e e) }
+  ..(matrix.reindex_linear_equiv R R e e) }
 
-@[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [decidable_eq m] [fintype m]
-  (e : n ≃ m) (M : matrix n n R) :
-  matrix.reindex_lie_equiv e M = matrix.reindex e e M :=
-rfl
+@[simp] lemma matrix.reindex_lie_equiv_apply (M : matrix n n R) :
+  matrix.reindex_lie_equiv e M = matrix.reindex e e M := rfl
 
-@[simp] lemma matrix.reindex_lie_equiv_symm {m : Type w₁} [decidable_eq m] [fintype m]
-  (e : n ≃ m) :
-  (matrix.reindex_lie_equiv e : _ ≃ₗ⁅R⁆ _).symm = matrix.reindex_lie_equiv e.symm :=
-rfl
+@[simp] lemma matrix.reindex_lie_equiv_symm :
+  (matrix.reindex_lie_equiv e : _ ≃ₗ⁅R⁆ _).symm = matrix.reindex_lie_equiv e.symm := rfl
 
 end matrices

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import algebra.invertible
-import data.indicator_function
+import algebra.indicator_function
 import linear_algebra.affine_space.affine_map
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finsupp
@@ -78,8 +78,7 @@ begin
     congr,
     skip,
     funext,
-    rw [←smul_sub, vsub_sub_vsub_cancel_left]
-  },
+    rw [←smul_sub, vsub_sub_vsub_cancel_left] },
   rw [←sum_smul, h, zero_smul]
 end
 
@@ -98,8 +97,7 @@ begin
     congr,
     skip,
     funext,
-    rw [←smul_sub, vsub_sub_vsub_cancel_left]
-  },
+    rw [←smul_sub, vsub_sub_vsub_cancel_left] },
   rw [←sum_smul, h, one_smul, vsub_add_vsub_cancel, vsub_self]
 end
 
@@ -534,10 +532,10 @@ lemma weighted_vsub_mem_vector_span {s : finset ι} {w : ι → k}
     (h : ∑ i in s, w i = 0) (p : ι → P) :
     s.weighted_vsub p w ∈ vector_span k (set.range p) :=
 begin
-  by_cases hn : nonempty ι,
-  { cases hn with i0,
-    rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
-        finsupp.mem_span_iff_total,
+  rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩,
+  { resetI, simp [finset.eq_empty_of_is_empty s] },
+  { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
+        finsupp.mem_span_image_iff_total,
         finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero s w p h (p i0),
         finset.weighted_vsub_of_point_apply],
     let w' := set.indicator ↑s w,
@@ -548,7 +546,6 @@ begin
       intros i hi,
       simp [w', set.indicator_apply, if_pos hi] },
     { exact λ _, zero_smul k _ } },
-  { simp [finset.eq_empty_of_not_nonempty hn s] }
 end
 
 /-- An `affine_combination` with sum of weights 1 is in the
@@ -584,10 +581,9 @@ lemma mem_vector_span_iff_eq_weighted_vsub {v : V} {p : ι → P} :
     ∃ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), v = s.weighted_vsub p w :=
 begin
   split,
-  { by_cases hn : nonempty ι,
-    { cases hn with i0,
-      rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
-          finsupp.mem_span_iff_total],
+  { rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩, swap,
+    { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
+          finsupp.mem_span_image_iff_total],
       rintros ⟨l, hl, hv⟩,
       use insert i0 l.support,
       set w := (l : ι → k) -
@@ -610,10 +606,11 @@ begin
       by_cases h : i = i0,
       { simp [h] },
       { simp [hwdef, h] } },
-    { rw [set.range_eq_empty.2 hn, vector_span_empty, submodule.mem_bot],
-      intro hv,
+    { resetI,
+      rw [set.range_eq_empty, vector_span_empty, submodule.mem_bot],
+      rintro rfl,
       use [∅],
-      simp [hv] } },
+      simp } },
   { rintros ⟨s, w, hw, rfl⟩,
     exact weighted_vsub_mem_vector_span hw p }
 end

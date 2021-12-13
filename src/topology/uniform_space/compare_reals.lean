@@ -62,13 +62,13 @@ begin
   { use [ε, by exact_mod_cast ε_pos],
     intros a b hab,
     apply h,
-    rw [rat.dist_eq, abs_sub] at hab,
+    rw [rat.dist_eq, abs_sub_comm] at hab,
     exact_mod_cast hab },
   { obtain ⟨ε', h', h''⟩ : ∃ ε' : ℚ, 0 < ε' ∧ (ε' : ℝ) < ε, from exists_pos_rat_lt ε_pos,
     use [ε', h'],
     intros a b hab,
     apply h,
-    rw [rat.dist_eq, abs_sub],
+    rw [rat.dist_eq, abs_sub_comm],
     refine lt_trans _ h'',
     exact_mod_cast hab }
 end

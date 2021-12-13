@@ -242,10 +242,3 @@ theorem of_mem_supp {α : Type u} {x : F α} {p : α → Prop} (h : liftp p x) :
 λ y hy, hy h
 
 end functor
-
-namespace ulift
-
-instance : functor ulift :=
-{ map := λ α β f, up ∘ f ∘ down }
-
-end ulift

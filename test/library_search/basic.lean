@@ -118,8 +118,7 @@ def map_from_sum {A B C : Type} (f : A → C) (g : B → C) : (A ⊕ B) → C :=
 lemma bind_singleton {α β} (x : α) (f : α → list β) : list.bind [x] f = f x :=
 begin
   success_if_fail {
-    library_search { md := tactic.transparency.reducible },
-  },
+    library_search { md := tactic.transparency.reducible }, },
   library_search!,
 end
 
@@ -131,5 +130,24 @@ example (a b : ℕ) (h : a ≤ b) : f a ≤ f b := by library_search
 -- Test #3432
 theorem nonzero_gt_one (n : ℕ) : ¬ n = 0 → n ≥ 1 :=
 by library_search!   -- `exact nat.pos_of_ne_zero`
+
+example (L : list (list ℕ)) : list ℕ :=
+by library_search using L
+
+example (n m : ℕ) : ℕ :=
+by library_search using n m
+
+example (P Q : list ℕ) (h : ℕ) : list ℕ :=
+by library_search using h Q
+
+example (P Q : list ℕ) (h : ℕ) : list ℕ :=
+by library_search using P Q
+
+-- Make sure `library_search` finds nothing when we list too many hypotheses after `using`.
+example (P Q R S T : list ℕ) : list ℕ :=
+begin
+  success_if_fail { library_search using P Q R S T, },
+  exact []
+end
 
 end test.library_search

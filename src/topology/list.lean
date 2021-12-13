@@ -27,7 +27,7 @@ begin
       { simpa only [] with functor_norm using this },
       exact filter.seq_mono (filter.map_mono $ pure_le_nhds a) ih } },
   { assume l s hs,
-    rcases (mem_traverse_sets_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
+    rcases (mem_traverse_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
     have : ∃v:list (set α), l.forall₂ (λa s, is_open s ∧ a ∈ s) v ∧ sequence v ⊆ s,
     { induction hu generalizing s,
       case list.forall₂.nil : hs this
@@ -38,7 +38,7 @@ begin
         exact ⟨u::v, list.forall₂.cons hu hv,
           subset.trans (set.seq_mono (set.image_subset _ hut) hvss) hts⟩ } },
     rcases this with ⟨v, hv, hvs⟩,
-    refine ⟨sequence v, mem_traverse_sets _ _ _, hvs, _⟩,
+    refine ⟨sequence v, mem_traverse _ _ _, hvs, _⟩,
     { exact hv.imp (assume a s ⟨hs, ha⟩, is_open.mem_nhds hs ha) },
     { assume u hu,
       have hu := (list.mem_traverse _ _).1 hu,
@@ -47,8 +47,8 @@ begin
         replace hv := hv.flip,
         simp only [list.forall₂_and_left, flip] at ⊢ hv,
         exact ⟨hv.1, hu.flip⟩ },
-      refine mem_sets_of_superset _ hvs,
-      exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, is_open.mem_nhds hs ha) } }
+      refine mem_of_superset _ hvs,
+      exact mem_traverse _ _ (this.imp $ assume a s ⟨hs, ha⟩, is_open.mem_nhds hs ha) } }
 end
 
 @[simp] lemma nhds_nil : 𝓝 ([] : list α) = pure [] :=

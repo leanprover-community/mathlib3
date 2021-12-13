@@ -431,7 +431,7 @@ def add_valuation := valuation R (multiplicative (order_dual Γ₀))
 end add_monoid
 
 namespace add_valuation
-variables {Γ₀   : Type*} {Γ'₀  : Type*}
+variables {Γ₀ : Type*} {Γ'₀ : Type*}
 
 section basic
 

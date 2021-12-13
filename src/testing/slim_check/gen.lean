@@ -137,7 +137,7 @@ the interval 1-9 into 1-1, 2-4, 5-9 so that the width of each interval correspon
 number in the list of generators. Then, we check which interval 4 falls into: it selects `genb`.
 -/
 def freq_aux : Π (xs : list (ℕ+ × gen α)) i, i < (xs.map (subtype.val ∘ prod.fst)).sum → gen α
-| [] i h := false.elim (not_lt_zero _ h)
+| [] i h := false.elim (nat.not_lt_zero _ h)
 | ((i, x) :: xs) j h :=
   if h' : j < i then x
   else freq_aux xs (j - i)

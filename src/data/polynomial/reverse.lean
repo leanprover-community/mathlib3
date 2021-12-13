@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.polynomial.erase_lead
-import data.polynomial.degree
+import data.polynomial.eval
 
 /-!
 # Reverse of a univariate polynomial
@@ -12,7 +12,7 @@ import data.polynomial.degree
 The main definition is `reverse`.  Applying `reverse` to a polynomial `f : polynomial R` produces
 the polynomial with a reversed list of coefficients, equivalent to `X^f.nat_degree * f(1/X)`.
 
-The main result is that `reverse (f * g) = reverse (f) * reverse (g)`, provided the leading
+The main result is that `reverse (f * g) = reverse f * reverse g`, provided the leading
 coefficients of `f` and `g` do not multiply to zero.
 -/
 

@@ -27,7 +27,7 @@ quot.lift_on s (λ l, (l.insert a : multiset α))
 
 @[simp] theorem coe_ndinsert (a : α) (l : list α) : ndinsert a l = (insert a l : list α) := rfl
 
-@[simp] theorem ndinsert_zero (a : α) : ndinsert a 0 = a ::ₘ 0 := rfl
+@[simp] theorem ndinsert_zero (a : α) : ndinsert a 0 = {a} := rfl
 
 @[simp, priority 980]
 theorem ndinsert_of_mem {a : α} {s : multiset α} : a ∈ s → ndinsert a s = s :=

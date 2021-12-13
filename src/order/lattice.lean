@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.rel_classes
+import tactic.simps
 
 /-!
 # (Semi-)lattices
@@ -66,9 +67,9 @@ end
 /- TODO: automatic construction of dual definitions / theorems -/
 
 /-- Typeclass for the `⊔` (`\lub`) notation -/
-class has_sup (α : Type u) := (sup : α → α → α)
+@[notation_class] class has_sup (α : Type u) := (sup : α → α → α)
 /-- Typeclass for the `⊓` (`\glb`) notation -/
-class has_inf (α : Type u) := (inf : α → α → α)
+@[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
 
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
@@ -134,10 +135,10 @@ semilattice_sup.le_sup_right a b
 @[ematch] theorem le_sup_right' : b ≤ (: a ⊔ b :) :=
 le_sup_right
 
-theorem le_sup_left_of_le (h : c ≤ a) : c ≤ a ⊔ b :=
+theorem le_sup_of_le_left (h : c ≤ a) : c ≤ a ⊔ b :=
 le_trans h le_sup_left
 
-theorem le_sup_right_of_le (h : c ≤ b) : c ≤ a ⊔ b :=
+theorem le_sup_of_le_right (h : c ≤ b) : c ≤ a ⊔ b :=
 le_trans h le_sup_right
 
 theorem sup_le : a ≤ c → b ≤ c → a ⊔ b ≤ c :=
@@ -166,7 +167,7 @@ sup_eq_right.2 h
 eq_comm.trans sup_eq_right
 
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
-sup_le (le_sup_left_of_le h₁) (le_sup_right_of_le h₂)
+sup_le (le_sup_of_le_left h₁) (le_sup_of_le_right h₂)
 
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
 sup_le_sup (le_refl _) h₁
@@ -187,7 +188,7 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 ⟨λ h, (total_of (≤) c b).imp
   (λ bc, by rwa sup_eq_left.2 bc at h)
   (λ bc, by rwa sup_eq_right.2 bc at h),
- λ h, h.elim le_sup_left_of_le le_sup_right_of_le⟩
+ λ h, h.elim le_sup_of_le_left le_sup_of_le_right⟩
 
 @[simp] lemma lt_sup_iff [is_total α (≤)] {a b c : α} : a < b ⊔ c ↔ a < b ∨ a < c :=
 ⟨λ h, (total_of (≤) c b).imp
@@ -208,11 +209,11 @@ instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
 le_antisymm
   (sup_le
-    (sup_le le_sup_left (le_sup_right_of_le le_sup_left))
-    (le_sup_right_of_le le_sup_right))
+    (sup_le le_sup_left (le_sup_of_le_right le_sup_left))
+    (le_sup_of_le_right le_sup_right))
   (sup_le
-    (le_sup_left_of_le le_sup_left)
-    (sup_le (le_sup_left_of_le le_sup_right) le_sup_right))
+    (le_sup_of_le_left le_sup_left)
+    (sup_le (le_sup_of_le_left le_sup_right) le_sup_right))
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
@@ -309,10 +310,10 @@ semilattice_inf.inf_le_right a b
 theorem le_inf : a ≤ b → a ≤ c → a ≤ b ⊓ c :=
 semilattice_inf.le_inf a b c
 
-theorem inf_le_left_of_le (h : a ≤ c) : a ⊓ b ≤ c :=
+theorem inf_le_of_left_le (h : a ≤ c) : a ⊓ b ≤ c :=
 le_trans inf_le_left h
 
-theorem inf_le_right_of_le (h : b ≤ c) : a ⊓ b ≤ c :=
+theorem inf_le_of_right_le (h : b ≤ c) : a ⊓ b ≤ c :=
 le_trans inf_le_right h
 
 @[simp] theorem le_inf_iff : a ≤ b ⊓ c ↔ a ≤ b ∧ a ≤ c :=
@@ -337,7 +338,7 @@ inf_eq_right.2 h
 eq_comm.trans inf_eq_right
 
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
-le_inf (inf_le_left_of_le h₁) (inf_le_right_of_le h₂)
+le_inf (inf_le_of_left_le h₁) (inf_le_of_right_le h₂)
 
 lemma inf_le_inf_right (a : α) {b c : α} (h : b ≤ c) : b ⊓ a ≤ c ⊓ a :=
 inf_le_inf h (le_refl _)
@@ -613,8 +614,8 @@ instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
   distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
-    | or.inl h := inf_le_left_of_le $ sup_le_sup_left (le_inf (le_refl b) h) _
-    | or.inr h := inf_le_right_of_le $ sup_le_sup_left (le_inf h (le_refl c)) _
+    | or.inl h := inf_le_of_left_le $ sup_le_sup_left (le_inf (le_refl b) h) _
+    | or.inr h := inf_le_of_right_le $ sup_le_sup_left (le_inf h (le_refl c)) _
     end,
   ..lattice_of_linear_order }
 
@@ -687,7 +688,9 @@ end prod
 
 namespace subtype
 
-/-- A subtype forms a `⊔`-semilattice if `⊔` preserves the property. -/
+/-- A subtype forms a `⊔`-semilattice if `⊔` preserves the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_sup [semilattice_sup α] {P : α → Prop}
   (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) : semilattice_sup {x : α // P x} :=
 { sup := λ x y, ⟨x.1 ⊔ y.1, Psup x.2 y.2⟩,
@@ -696,7 +699,9 @@ protected def semilattice_sup [semilattice_sup α] {P : α → Prop}
   sup_le := λ x y z h1 h2, @sup_le α _ _ _ _ h1 h2,
   ..subtype.partial_order P }
 
-/-- A subtype forms a `⊓`-semilattice if `⊓` preserves the property. -/
+/-- A subtype forms a `⊓`-semilattice if `⊓` preserves the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_inf [semilattice_inf α] {P : α → Prop}
   (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) : semilattice_inf {x : α // P x} :=
 { inf := λ x y, ⟨x.1 ⊓ y.1, Pinf x.2 y.2⟩,
@@ -705,7 +710,9 @@ protected def semilattice_inf [semilattice_inf α] {P : α → Prop}
   le_inf := λ x y z h1 h2, @le_inf α _ _ _ _ h1 h2,
   ..subtype.partial_order P }
 
-/-- A subtype forms a lattice if `⊔` and `⊓` preserve the property. -/
+/-- A subtype forms a lattice if `⊔` and `⊓` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def lattice [lattice α] {P : α → Prop}
   (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) :
   lattice {x : α // P x} :=

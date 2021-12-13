@@ -29,10 +29,14 @@ variables [linear_order α] [linear_order β] {f : α → β} {a b c d : α}
 @[simp] lemma max_le_iff : max a b ≤ c ↔ a ≤ c ∧ b ≤ c := sup_le_iff
 lemma max_le_max : a ≤ c → b ≤ d → max a b ≤ max c d := sup_le_sup
 lemma min_le_min : a ≤ c → b ≤ d → min a b ≤ min c d := inf_le_inf
-lemma le_max_left_of_le : a ≤ b → a ≤ max b c := le_sup_left_of_le
-lemma le_max_right_of_le : a ≤ c → a ≤ max b c := le_sup_right_of_le
-lemma min_le_left_of_le : a ≤ c → min a b ≤ c := inf_le_left_of_le
-lemma min_le_right_of_le : b ≤ c → min a b ≤ c := inf_le_right_of_le
+lemma le_max_of_le_left : a ≤ b → a ≤ max b c := le_sup_of_le_left
+lemma le_max_of_le_right : a ≤ c → a ≤ max b c := le_sup_of_le_right
+lemma lt_max_of_lt_left (h : a < b) : a < max b c := h.trans_le (le_max_left b c)
+lemma lt_max_of_lt_right (h : a < c) : a < max b c := h.trans_le (le_max_right b c)
+lemma min_le_of_left_le : a ≤ c → min a b ≤ c := inf_le_of_left_le
+lemma min_le_of_right_le : b ≤ c → min a b ≤ c := inf_le_of_right_le
+lemma min_lt_of_left_lt (h : a < c) : min a b < c := (min_le_left a b).trans_lt h
+lemma min_lt_of_right_lt (h : b < c) : min a b < c := (min_le_right a b).trans_lt h
 lemma max_min_distrib_left : max a (min b c) = min (max a b) (max a c) := sup_inf_left
 lemma max_min_distrib_right : max (min a b) c = min (max a c) (max b c) := sup_inf_right
 lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_sup_left
@@ -43,6 +47,19 @@ lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_lef
 @[simp] lemma min_eq_right_iff : min a b = b ↔ b ≤ a := inf_eq_right
 @[simp] lemma max_eq_left_iff : max a b = a ↔ b ≤ a := sup_eq_left
 @[simp] lemma max_eq_right_iff : max a b = b ↔ a ≤ b := sup_eq_right
+
+lemma min_eq_iff : min a b = c ↔ a = c ∧ a ≤ b ∨ b = c ∧ b ≤ a :=
+begin
+  split,
+  { intro h,
+    refine or.imp (λ h', _) (λ h', _) (le_total a b);
+    exact ⟨by simpa [h'] using h, h'⟩ },
+  { rintro (⟨rfl, h⟩|⟨rfl, h⟩);
+    simp [h] }
+end
+
+lemma max_eq_iff : max a b = c ↔ a = c ∧ b ≤ a ∨ b = c ∧ a ≤ b :=
+@min_eq_iff (order_dual α) _ a b c
 
 /-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
@@ -100,5 +117,23 @@ le_trans (le_max_left _ _) h
 
 lemma le_of_max_le_right {a b c : α} (h : max a b ≤ c) : b ≤ c :=
 le_trans (le_max_right _ _) h
+
+lemma max_commutative : commutative (max : α → α → α) :=
+max_comm
+
+lemma max_associative : associative (max : α → α → α) :=
+max_assoc
+
+lemma max_left_commutative : left_commutative (max : α → α → α) :=
+max_left_comm
+
+lemma min_commutative : commutative (min : α → α → α) :=
+min_comm
+
+lemma min_associative : associative (min : α → α → α) :=
+min_assoc
+
+lemma min_left_commutative : left_commutative (min : α → α → α) :=
+min_left_comm
 
 end

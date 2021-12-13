@@ -42,10 +42,7 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
       simp only [prod_comp_fst, prod_comp_snd, category.comp_id, category.assoc,
         functor.map_id, functor.map_comp, nat_trans.id_app, nat_trans.comp_app],
       slice_lhs 2 3 { rw nat_trans.naturality },
-      slice_lhs 1 2 {
-        rw [←nat_trans.comp_app, nat_trans.naturality,
-            nat_trans.comp_app],
-      },
+      slice_lhs 1 2 { rw [←nat_trans.comp_app, nat_trans.naturality, nat_trans.comp_app] },
       rw category.assoc,
     end } }.
 

@@ -138,15 +138,15 @@ def extend : ℝ → X := Icc_extend zero_le_one γ
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.Icc_extend
 
-@[simp] lemma extend_zero : γ.extend 0 = x :=
-(Icc_extend_left _ _).trans γ.source
-
-@[simp] lemma extend_one : γ.extend 1 = y :=
-(Icc_extend_right _ _).trans γ.target
-
 @[simp] lemma extend_extends {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) {t : ℝ} (ht : t ∈ (Icc 0 1 : set ℝ)) : γ.extend t = γ ⟨t, ht⟩ :=
 Icc_extend_of_mem _ γ ht
+
+lemma extend_zero : γ.extend 0 = x :=
+by simp
+
+lemma extend_one : γ.extend 1 = y :=
+by simp
 
 @[simp] lemma extend_extends' {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : (Icc 0 1 : set ℝ)) : γ.extend t = γ t :=
@@ -808,7 +808,7 @@ begin
     { rw is_open_iff_mem_nhds,
       intros y y_in,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,
-      apply mem_sets_of_superset U_in,
+      apply mem_of_superset U_in,
       rw ← path_component_congr y_in,
       exact hU.subset_path_component (mem_of_mem_nhds U_in) },
     { rw is_closed_iff_nhds,
@@ -834,7 +834,7 @@ lemma loc_path_connected_of_is_open [loc_path_connected_space X] {U : set X} (h 
   { rintros ⟨W, ⟨W_in, hW, hWU⟩, hWV⟩,
     exact ⟨coe ⁻¹' W, ⟨⟨preimage_mem_comap W_in, hW.preimage_coe hWU⟩, hWV⟩⟩ },
   { rintros ⟨W, ⟨W_in, hW⟩, hWV⟩,
-    refine ⟨coe '' W, ⟨filter.image_coe_mem_sets (is_open.mem_nhds h x_in) W_in,
+    refine ⟨coe '' W, ⟨filter.image_coe_mem_of_mem_comap (is_open.mem_nhds h x_in) W_in,
                        hW.image continuous_subtype_coe, subtype.coe_image_subset U W⟩, _⟩,
     rintros x ⟨y, ⟨y_in, hy⟩⟩,
     rw ← subtype.coe_injective hy,

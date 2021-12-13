@@ -44,6 +44,8 @@ variables {S : Type*} [has_mul S]
 @[symm, to_additive] protected theorem symm {a b : S} (h : commute a b) : commute b a :=
 eq.symm h
 
+@[to_additive] protected theorem semiconj_by {a b : S} (h : commute a b) : semiconj_by a b b := h
+
 @[to_additive]
 protected theorem symm_iff {a b : S} : commute a b ↔ commute b a :=
 ⟨commute.symm, commute.symm⟩

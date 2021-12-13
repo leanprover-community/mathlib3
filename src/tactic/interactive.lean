@@ -931,12 +931,12 @@ end
 
 -/
 meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
-  (n : parse ident?) (vs : parse with_ident_list)
+  (n : parse ident?) (vs : parse (tk "with" *> ident*)?)
   : tactic unit :=
 do tgt ← target,
    solve_aux tgt $ do {
      ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do {
-         when (¬ vs.empty) (clear_except vs),
+         vs.mmap clear_except,
          ls ← local_context,
          ls ← ls.mfilter $ succeeds ∘ is_local_def,
          n ← revert_lst ls,
@@ -1069,8 +1069,8 @@ do let (p, x) := p,
    tgt ← target,
    tgt' ← do {
      ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
-     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
-   } <|> to_expr ``(Π x, %%e = x → %%tgt),
+     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1)) }
+   <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',
    swap,
    exact ``(%%t %%e rfl),
@@ -1081,6 +1081,25 @@ add_tactic_doc
 { name       := "generalize'",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.generalize'],
+  tags       := ["context management"] }
+
+/--
+If the expression `q` is a local variable with type `x = t` or `t = x`, where `x` is a local
+constant, `tactic.interactive.subst' q` substitutes `x` by `t` everywhere in the main goal and
+then clears `q`.
+If `q` is another local variable, then we find a local constant with type `q = t` or `t = q` and
+substitute `t` for `q`.
+
+Like `tactic.interactive.subst`, but fails with a nicer error message if the substituted variable is
+a local definition. It is trickier to fix this in core, since `tactic.is_local_def` is in mathlib.
+-/
+meta def subst' (q : parse texpr) : tactic unit := do
+i_to_expr q >>= tactic.subst' >> try (tactic.reflexivity reducible)
+
+add_tactic_doc
+{ name       := "subst'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.subst'],
   tags       := ["context management"] }
 
 end interactive

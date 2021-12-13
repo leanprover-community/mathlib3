@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
-import data.nat.choose
-import data.int.modeq
 import algebra.iterate_hom
+import data.int.modeq
+import data.nat.choose
 import group_theory.order_of_element
 /-!
 # Characteristic of semirings
@@ -44,7 +44,7 @@ end
 lemma char_p.int_coe_eq_int_coe_iff [add_group R] [has_one R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
 theorem char_p.eq [add_monoid R] [has_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
   p = q :=
@@ -55,7 +55,7 @@ nat.dvd_antisymm
 instance char_p.of_char_zero [add_monoid R] [has_one R] [char_zero R] : char_p R 0 :=
 ⟨λ x, by rw [zero_dvd_iff, ← nat.cast_zero, nat.cast_inj]⟩
 
-theorem char_p.exists [semiring R] : ∃ p, char_p R p :=
+theorem char_p.exists [non_assoc_semiring R] : ∃ p, char_p R p :=
 by letI := classical.dec_eq R; exact
 classical.by_cases
   (assume H : ∀ p:ℕ, (p:R) = 0 → p = 0, ⟨0,
@@ -72,19 +72,20 @@ classical.by_cases
     λ H1, by rw [← nat.mul_div_cancel' H1, nat.cast_mul,
       of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)), zero_mul]⟩⟩⟩)
 
-theorem char_p.exists_unique [semiring R] : ∃! p, char_p R p :=
+theorem char_p.exists_unique [non_assoc_semiring R] : ∃! p, char_p R p :=
 let ⟨c, H⟩ := char_p.exists R in ⟨c, H, λ y H2, char_p.eq R H2 H⟩
 
-theorem char_p.congr {R : Type u} [semiring R] {p : ℕ} (q : ℕ) [hq : char_p R q] (h : q = p) :
+theorem char_p.congr {R : Type u} [add_monoid R] [has_one R] {p : ℕ} (q : ℕ) [hq : char_p R q]
+  (h : q = p) :
   char_p R p :=
 h ▸ hq
 
 /-- Noncomputable function that outputs the unique characteristic of a semiring. -/
-noncomputable def ring_char [semiring R] : ℕ :=
+noncomputable def ring_char [non_assoc_semiring R] : ℕ :=
 classical.some (char_p.exists_unique R)
 
 namespace ring_char
-variables [semiring R]
+variables [non_assoc_semiring R]
 
 theorem spec : ∀ x:ℕ, (x:R) = 0 ↔ ring_char R ∣ x :=
 by letI := (classical.some_spec (char_p.exists_unique R)).1;
@@ -178,7 +179,7 @@ sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 lemma eq_iff_modeq_int [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
 lemma char_p.neg_one_ne_one [ring R] (p : ℕ) [char_p R p] [fact (2 < p)] :
   (-1 : R) ≠ (1 : R) :=
@@ -192,7 +193,24 @@ begin
   rw fact_iff at *, linarith,
 end
 
-lemma ring_hom.char_p_iff_char_p {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
+lemma char_p.neg_one_pow_char [comm_ring R] (p : ℕ) [char_p R p] [fact p.prime] :
+  (-1 : R) ^ p = -1 :=
+begin
+  rw eq_neg_iff_add_eq_zero,
+  nth_rewrite 1 ← one_pow p,
+  rw [← add_pow_char, add_left_neg, zero_pow (fact.out (nat.prime p)).pos],
+end
+
+lemma char_p.neg_one_pow_char_pow [comm_ring R] (p n : ℕ) [char_p R p] [fact p.prime] :
+  (-1 : R) ^ p ^ n = -1 :=
+begin
+  rw eq_neg_iff_add_eq_zero,
+  nth_rewrite 1 ← one_pow (p ^ n),
+  rw [← add_pow_char_pow, add_left_neg, zero_pow (pow_pos (fact.out (nat.prime p)).pos _)],
+end
+
+lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [nontrivial L]
+  (f : K →+* L) (p : ℕ) :
   char_p K p ↔ char_p L p :=
 begin
   split;
@@ -212,7 +230,7 @@ def frobenius : R →+* R :=
 { to_fun := λ x, x^p,
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
-  map_zero' := zero_pow (lt_trans zero_lt_one (fact.out (nat.prime p)).one_lt),
+  map_zero' := zero_pow (fact.out (nat.prime p)).pos,
   map_add' := add_pow_char R }
 
 variable {R}
@@ -305,7 +323,7 @@ end
 section semiring
 open nat
 
-variables [semiring R]
+variables [non_assoc_semiring R]
 
 theorem char_ne_one [nontrivial R] (p : ℕ) [hc : char_p R p] : p ≠ 1 :=
 assume hp : p = 1,
@@ -366,7 +384,7 @@ end ring
 
 section char_one
 
-variables {R} [semiring R]
+variables {R} [non_assoc_semiring R]
 
 @[priority 100]  -- see Note [lower instance priority]
 instance [char_p R 1] : subsingleton R :=
@@ -427,3 +445,21 @@ begin
 end
 
 end
+
+section prod
+
+variables (S : Type v) [semiring R] [semiring S] (p q : ℕ) [char_p R p]
+
+/-- The characteristic of the product of rings is the least common multiple of the
+characteristics of the two rings. -/
+instance [char_p S q] : char_p (R × S) (nat.lcm p q) :=
+{ cast_eq_zero_iff :=
+    by simp [prod.ext_iff, char_p.cast_eq_zero_iff R p,
+      char_p.cast_eq_zero_iff S q, nat.lcm_dvd_iff] }
+
+/-- The characteristic of the product of two rings of the same characteristic
+  is the same as the characteristic of the rings -/
+instance prod.char_p [char_p S p] : char_p (R × S) p :=
+by convert nat.lcm.char_p R S p p; simp
+
+end prod

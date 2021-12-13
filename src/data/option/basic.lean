@@ -6,6 +6,30 @@ Authors: Mario Carneiro
 import tactic.basic
 import logic.is_empty
 
+/-!
+# Option of a type
+
+This file develops the basic theory of option types.
+
+If `α` is a type, then `option α` can be understood as the type with one more element than `α`.
+`option α` has terms `some a`, where `a : α`, and `none`, which is the added element.
+This is useful in multiple ways:
+* It is the prototype of addition of terms to a type. See for example `with_bot α` which uses
+  `none` as an element smaller than all others.
+* It can be used to define failsafe partial functions, which return `some the_result_we_expect`
+  if we can find `the_result_we_expect`, and `none` if there is no meaningful result. This forces
+  any subsequent use of the partial function to explicitly deal with the exceptions that make it
+  return `none`.
+* `option` is a monad. We love monads.
+
+`part` is an alternative to `option` that can be seen as the type of `true`/`false` values
+along with a term `a : α` if the value is `true`.
+
+## Implementation notes
+
+`option` is currently defined in core Lean, but this will change in Lean 4.
+-/
+
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -35,6 +59,8 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 @[simp] lemma get_some (x : α) (h : is_some (some x)) : option.get h = x := rfl
 
 @[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
+
+@[simp] lemma get_or_else_none (x : α) : option.get_or_else none x = x := rfl
 
 @[simp] lemma get_or_else_coe (x y : α) : option.get_or_else ↑x y = x := rfl
 
@@ -369,7 +395,7 @@ by cases a; refl
 @[simp] lemma lift_or_get_some_some {f} {a b : α} :
   lift_or_get f (some a) (some b) = f a b := rfl
 
-/-- given an element of `a : option α`, a default element `b : β` and a function `α → β`, apply this
+/-- Given an element of `a : option α`, a default element `b : β` and a function `α → β`, apply this
 function to `a` if it comes from `α`, and return `b` otherwise. -/
 def cases_on' : option α → β → (α → β) → β
 | none     n s := n
@@ -383,6 +409,10 @@ def cases_on' : option α → β → (α → β) → β
 
 @[simp] lemma cases_on'_none_coe (f : option α → β) (o : option α) :
   cases_on' o (f none) (f ∘ coe) = f o :=
+by cases o; refl
+
+@[simp] lemma get_or_else_map (f : α → β) (x : α) (o : option α) :
+  get_or_else (o.map f) (f x) = f (get_or_else o x) :=
 by cases o; refl
 
 section
@@ -409,11 +439,10 @@ lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempt
 begin
   fsplit,
   { intro h, exact ⟨option.get h⟩, },
-  { rintro ⟨a⟩,
-    dsimp [choice],
-    rw dif_pos,
-    fsplit,
-    exact ⟨a⟩, },
+  { intro h,
+    dsimp only [choice],
+    rw dif_pos h,
+    exact is_some_some },
 end
 
 end

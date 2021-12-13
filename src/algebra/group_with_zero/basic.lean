@@ -53,7 +53,9 @@ section mul_zero_class
 variables [mul_zero_class M₀] {a b : M₀}
 
 
-/-- Pullback a `mul_zero_class` instance along an injective function. -/
+/-- Pullback a `mul_zero_class` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.mul_zero_class [has_mul M₀'] [has_zero M₀'] (f : M₀' → M₀)
   (hf : injective f) (zero : f 0 = 0) (mul : ∀ a b, f (a * b) = f a * f b) :
   mul_zero_class M₀' :=
@@ -62,7 +64,9 @@ protected def function.injective.mul_zero_class [has_mul M₀'] [has_zero M₀']
   zero_mul := λ a, hf $ by simp only [mul, zero, zero_mul],
   mul_zero := λ a, hf $ by simp only [mul, zero, mul_zero] }
 
-/-- Pushforward a `mul_zero_class` instance along an surjective function. -/
+/-- Pushforward a `mul_zero_class` instance along an surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.mul_zero_class [has_mul M₀'] [has_zero M₀'] (f : M₀ → M₀')
   (hf : surjective f) (zero : f 0 = 0) (mul : ∀ a b, f (a * b) = f a * f b) :
   mul_zero_class M₀' :=
@@ -146,14 +150,18 @@ section
 
 variables [mul_zero_one_class M₀]
 
-/-- Pullback a `mul_zero_one_class` instance along an injective function. -/
+/-- Pullback a `mul_zero_one_class` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.mul_zero_one_class [has_mul M₀'] [has_zero M₀'] [has_one M₀']
   (f : M₀' → M₀)
   (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ a b, f (a * b) = f a * f b) :
   mul_zero_one_class M₀' :=
 { ..hf.mul_zero_class f zero mul, ..hf.mul_one_class f one mul }
 
-/-- Pushforward a `mul_zero_one_class` instance along an surjective function. -/
+/-- Pushforward a `mul_zero_one_class` instance along an surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.mul_zero_one_class [has_mul M₀'] [has_zero M₀'] [has_one M₀']
   (f : M₀ → M₀')
   (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ a b, f (a * b) = f a * f b) :
@@ -224,7 +232,9 @@ end
 
 section semigroup_with_zero
 
-/-- Pullback a `semigroup_with_zero` class along an injective function. -/
+/-- Pullback a `semigroup_with_zero` class along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.semigroup_with_zero
   [has_zero M₀'] [has_mul M₀'] [semigroup_with_zero M₀] (f : M₀' → M₀) (hf : injective f)
   (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
@@ -233,7 +243,9 @@ protected def function.injective.semigroup_with_zero
   .. ‹has_zero M₀'›,
   .. hf.semigroup f mul }
 
-/-- Pushforward a `semigroup_with_zero` class along an surjective function. -/
+/-- Pushforward a `semigroup_with_zero` class along an surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.semigroup_with_zero
   [semigroup_with_zero M₀] [has_zero M₀'] [has_mul M₀'] (f : M₀ → M₀') (hf : surjective f)
   (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
@@ -246,7 +258,9 @@ end semigroup_with_zero
 
 section monoid_with_zero
 
-/-- Pullback a `monoid_with_zero` class along an injective function. -/
+/-- Pullback a `monoid_with_zero` class along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   [monoid_with_zero M₀]
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -254,7 +268,9 @@ protected def function.injective.monoid_with_zero [has_zero M₀'] [has_mul M₀
   monoid_with_zero M₀' :=
 { .. hf.monoid f one mul, .. hf.mul_zero_class f zero mul }
 
-/-- Pushforward a `monoid_with_zero` class along a surjective function. -/
+/-- Pushforward a `monoid_with_zero` class along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   [monoid_with_zero M₀]
   (f : M₀ → M₀') (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -262,7 +278,9 @@ protected def function.surjective.monoid_with_zero [has_zero M₀'] [has_mul M�
   monoid_with_zero M₀' :=
 { .. hf.monoid f one mul, .. hf.mul_zero_class f zero mul }
 
-/-- Pullback a `monoid_with_zero` class along an injective function. -/
+/-- Pullback a `monoid_with_zero` class along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.comm_monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   [comm_monoid_with_zero M₀]
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -270,7 +288,9 @@ protected def function.injective.comm_monoid_with_zero [has_zero M₀'] [has_mul
   comm_monoid_with_zero M₀' :=
 { .. hf.comm_monoid f one mul, .. hf.mul_zero_class f zero mul }
 
-/-- Pushforward a `monoid_with_zero` class along a surjective function. -/
+/-- Pushforward a `monoid_with_zero` class along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.comm_monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   [comm_monoid_with_zero M₀]
   (f : M₀ → M₀') (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -342,7 +362,9 @@ by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
 @[simp] lemma mul_eq_mul_left_iff : a * b = a * c ↔ b = c ∨ a = 0 :=
 by by_cases ha : a = 0; [simp [ha], simp [mul_right_inj', ha]]
 
-/-- Pullback a `monoid_with_zero` class along an injective function. -/
+/-- Pullback a `monoid_with_zero` class along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.cancel_monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
@@ -365,12 +387,31 @@ classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel' ha $ h₂.symm ▸ 
 
 end cancel_monoid_with_zero
 
+section comm_cancel_monoid_with_zero
+
+variables [comm_cancel_monoid_with_zero M₀] {a b c : M₀}
+
+/-- Pullback a `comm_cancel_monoid_with_zero` class along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.comm_cancel_monoid_with_zero
+  [has_zero M₀'] [has_mul M₀'] [has_one M₀']
+  (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  comm_cancel_monoid_with_zero M₀' :=
+{ .. hf.comm_monoid_with_zero f zero one mul,
+  .. hf.cancel_monoid_with_zero f zero one mul }
+
+end comm_cancel_monoid_with_zero
+
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
 
 alias div_eq_mul_inv ← division_def
 
-/-- Pullback a `group_with_zero` class along an injective function. -/
+/-- Pullback a `group_with_zero` class along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
   [has_inv G₀'] [has_div G₀'] (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
@@ -382,7 +423,9 @@ protected def function.injective.group_with_zero [has_zero G₀'] [has_mul G₀'
   .. hf.div_inv_monoid f one mul inv div,
   .. pullback_nonzero f zero one, }
 
-/-- Pushforward a `group_with_zero` class along an surjective function. -/
+/-- Pushforward a `group_with_zero` class along an surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
   [has_inv G₀'] [has_div G₀'] (h01 : (0:G₀') ≠ 1) (f : G₀ → G₀') (hf : surjective f)
   (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y)
@@ -546,6 +589,10 @@ variables {a b : G₀}
 def mk0 (a : G₀) (ha : a ≠ 0) : units G₀ :=
 ⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
 
+@[simp] lemma mk0_one (h := one_ne_zero) :
+  mk0 (1 : G₀) h = 1 :=
+by { ext, refl }
+
 @[simp] lemma coe_mk0 {a : G₀} (h : a ≠ 0) : (mk0 a h : G₀) = a := rfl
 
 @[simp] lemma mk0_coe (u : units G₀) (h : (u : G₀) ≠ 0) : mk0 (u : G₀) h = u :=
@@ -564,6 +611,11 @@ eq_inv_of_mul_left_eq_one u.inv_mul
 
 @[simp] lemma exists_iff_ne_zero {x : G₀} : (∃ u : units G₀, ↑u = x) ↔ x ≠ 0 :=
 ⟨λ ⟨u, hu⟩, hu ▸ u.ne_zero, assume hx, ⟨mk0 x hx, rfl⟩⟩
+
+instance : can_lift G₀ (units G₀) :=
+{ coe := coe,
+  cond := (≠ 0),
+  prf := λ x, exists_iff_ne_zero.mpr }
 
 end units
 
@@ -591,6 +643,13 @@ instance group_with_zero.cancel_monoid_with_zero : cancel_monoid_with_zero G₀ 
   mul_right_cancel_of_ne_zero := λ x y z hy h,
     by rw [← mul_inv_cancel_right' hy x, h, mul_inv_cancel_right' hy z],
   .. (‹_› : group_with_zero G₀) }
+
+-- Can't be put next to the other `mk0` lemmas becuase it depends on the
+-- `no_zero_divisors` instance, which depends on `mk0`.
+@[simp] lemma units.mk0_mul (x y : G₀) (hxy) :
+  units.mk0 (x * y) hxy =
+    units.mk0 x (mul_ne_zero_iff.mp hxy).1 * units.mk0 y (mul_ne_zero_iff.mp hxy).2 :=
+by { ext, refl }
 
 lemma mul_inv_rev' (x y : G₀) : (x * y)⁻¹ = y⁻¹ * x⁻¹ :=
 begin
@@ -740,7 +799,9 @@ variables [comm_group_with_zero G₀] {a b c : G₀}
 instance comm_group_with_zero.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero G₀ :=
 { ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
 
-/-- Pullback a `comm_group_with_zero` class along an injective function. -/
+/-- Pullback a `comm_group_with_zero` class along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.comm_group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
   [has_inv G₀'] [has_div G₀'] (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)

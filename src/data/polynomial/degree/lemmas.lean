@@ -49,27 +49,6 @@ else with_bot.coe_le_coe.1 $
         (le_nat_degree_of_ne_zero (mem_support_iff.1 hn))
         (nat.zero_le _))
 
-lemma degree_map_eq_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
-  (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
-le_antisymm (degree_map_le f _) $
-  have hp0 : p ≠ 0, from λ hp0, by simpa [hp0, is_semiring_hom.map_zero f] using hf,
-  begin
-    rw [degree_eq_nat_degree hp0],
-    refine le_degree_of_ne_zero _,
-    rw [coeff_map], exact hf
-  end
-
-lemma nat_degree_map_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
-  (hf : f (leading_coeff p) ≠ 0) : nat_degree (p.map f) = nat_degree p :=
-nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f hf)
-
-lemma leading_coeff_map_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
-  (hf : f (leading_coeff p) ≠ 0) : leading_coeff (p.map f) = f (leading_coeff p) :=
-begin
-  unfold leading_coeff,
-  rw [coeff_map, nat_degree_map_of_leading_coeff_ne_zero f hf],
-end
-
 lemma degree_pos_of_root {p : polynomial R} (hp : p ≠ 0) (h : is_root p a) : 0 < degree p :=
 lt_of_not_ge $ λ hlt, begin
   have := eq_C_of_degree_le_zero hlt,
@@ -164,59 +143,6 @@ lemma degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* 
   {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
   0 < degree p :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_eval₂_root hp f hz inj)
-
-section injective
-open function
-variables {f : R →+* S} (hf : injective f)
-include hf
-
-lemma degree_map_eq_of_injective (p : polynomial R) : degree (p.map f) = degree p :=
-if h : p = 0 then by simp [h]
-else degree_map_eq_of_leading_coeff_ne_zero _
-  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
-    (mt leading_coeff_eq_zero.1 h))
-
-lemma degree_map' (p : polynomial R) :
-  degree (p.map f) = degree p :=
-p.degree_map_eq_of_injective hf
-
-lemma nat_degree_map' (p : polynomial R) :
-  nat_degree (p.map f) = nat_degree p :=
-nat_degree_eq_of_degree_eq (degree_map' hf p)
-
-lemma leading_coeff_map' (p : polynomial R) :
-  leading_coeff (p.map f) = f (leading_coeff p) :=
-begin
-  unfold leading_coeff,
-  rw [coeff_map, nat_degree_map' hf p],
-end
-
-lemma next_coeff_map (p : polynomial R) :
-  (p.map f).next_coeff = f p.next_coeff :=
-begin
-  unfold next_coeff,
-  rw nat_degree_map' hf,
-  split_ifs; simp
-end
-
-end injective
-
-section
-variable {f : polynomial R}
-
-lemma monomial_nat_degree_leading_coeff_eq_self (h : f.support.card ≤ 1) :
-  monomial f.nat_degree f.leading_coeff = f :=
-begin
-  rcases card_support_le_one_iff_monomial.1 h with ⟨n, a, rfl⟩,
-  by_cases ha : a = 0;
-  simp [ha]
-end
-
-lemma C_mul_X_pow_eq_self (h : f.support.card ≤ 1) :
-  C f.leading_coeff * X^f.nat_degree = f :=
-by rw [C_mul_X_pow_eq_monomial, monomial_nat_degree_leading_coeff_eq_self h]
-
-end
 
 end degree
 end semiring

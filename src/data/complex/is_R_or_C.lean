@@ -487,6 +487,12 @@ by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg (im z)) (abs_nonneg _),
        abs_mul_abs_self, mul_self_abs];
    apply im_sq_le_norm_sq
 
+lemma norm_re_le_norm (z : K) : ∥re z∥ ≤ ∥z∥ :=
+by { rw [is_R_or_C.norm_eq_abs, real.norm_eq_abs], exact is_R_or_C.abs_re_le_abs _, }
+
+lemma norm_im_le_norm (z : K) : ∥im z∥ ≤ ∥z∥ :=
+by { rw [is_R_or_C.norm_eq_abs, real.norm_eq_abs], exact is_R_or_C.abs_im_le_abs _, }
+
 lemma re_le_abs (z : K) : re z ≤ abs z :=
 (abs_le.1 (abs_re_le_abs _)).2
 
@@ -745,46 +751,48 @@ linear_map.mk_continuous im_lm 1 $ by
 
 @[continuity] lemma continuous_im : continuous (im : K → ℝ) := im_clm.continuous
 
-/-- Conjugate as a linear map -/
-noncomputable def conj_lm : K →ₗ[ℝ] K :=
-{ to_fun := λ x, conj x, map_add' := by simp, map_smul' := conj_smul, }
+/-- Conjugate as an `ℝ`-algebra equivalence -/
+noncomputable def conj_ae : K ≃ₐ[ℝ] K :=
+{ inv_fun := conj,
+  left_inv := conj_conj,
+  right_inv := conj_conj,
+  commutes' := conj_of_real,
+  .. conj }
 
-@[simp] lemma conj_lm_coe : (conj_lm : K → K) = conj := rfl
+@[simp] lemma conj_ae_coe : (conj_ae : K → K) = conj := rfl
 
 /-- Conjugate as a linear isometry -/
-noncomputable def conj_li : K →ₗᵢ[ℝ] K :=
-{ to_linear_map := conj_lm, norm_map' := by simp [norm_eq_abs] }
+noncomputable def conj_lie : K ≃ₗᵢ[ℝ] K := ⟨conj_ae.to_linear_equiv, λ z, by simp [norm_eq_abs]⟩
 
-@[simp] lemma conj_li_apply : (conj_li : K → K) = conj := rfl
+@[simp] lemma conj_lie_apply : (conj_lie : K → K) = conj := rfl
 
-/-- Conjugate as a continuous linear map -/
-noncomputable def conj_clm : K →L[ℝ] K := conj_li.to_continuous_linear_map
+/-- Conjugate as a continuous linear equivalence -/
+noncomputable def conj_cle : K ≃L[ℝ] K := @conj_lie K _
 
-@[simp] lemma conj_clm_coe : ((conj_clm  : K →L[ℝ] K) : K →ₗ[ℝ] K) = conj_lm := rfl
+@[simp] lemma conj_cle_coe : (@conj_cle K _).to_linear_equiv = conj_ae.to_linear_equiv := rfl
 
-@[simp] lemma conj_clm_apply : (conj_clm : K → K) = conj := rfl
+@[simp] lemma conj_cle_apply : (conj_cle : K → K) = conj := rfl
 
-@[simp] lemma conj_clm_norm : ∥(conj_clm : K →L[ℝ] K)∥ = 1 :=
-linear_isometry.norm_to_continuous_linear_map conj_li
+@[simp] lemma conj_cle_norm : ∥(@conj_cle K _ : K →L[ℝ] K)∥ = 1 :=
+(@conj_lie K _).to_linear_isometry.norm_to_continuous_linear_map
 
-@[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_li.continuous
+@[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_lie.continuous
 
 /-- The `ℝ → K` coercion, as a linear map -/
-noncomputable def of_real_lm : ℝ →ₗ[ℝ] K :=
-{ to_fun := λ x, (x : K), map_add' := by simp, map_smul' := by simp, }
+noncomputable def of_real_am : ℝ →ₐ[ℝ] K := algebra.of_id ℝ K
 
-@[simp] lemma of_real_lm_coe : (of_real_lm : ℝ → K) = coe := rfl
+@[simp] lemma of_real_am_coe : (of_real_am : ℝ → K) = coe := rfl
 
 /-- The ℝ → K coercion, as a linear isometry -/
 noncomputable def of_real_li : ℝ →ₗᵢ[ℝ] K :=
-{ to_linear_map := of_real_lm, norm_map' := by simp [norm_eq_abs] }
+{ to_linear_map := of_real_am.to_linear_map, norm_map' := by simp [norm_eq_abs] }
 
-@[simp] lemma of_real_li_apply : ((of_real_li : ℝ →ₗᵢ[ℝ] K) : ℝ → K) = coe := rfl
+@[simp] lemma of_real_li_apply : (of_real_li : ℝ → K) = coe := rfl
 
 /-- The `ℝ → K` coercion, as a continuous linear map -/
 noncomputable def of_real_clm : ℝ →L[ℝ] K := of_real_li.to_continuous_linear_map
 
-@[simp] lemma of_real_clm_coe : ((of_real_clm  : ℝ →L[ℝ] K) : ℝ →ₗ[ℝ] K) = of_real_lm := rfl
+@[simp] lemma of_real_clm_coe : ((@of_real_clm K _) : ℝ →ₗ[ℝ] K) = of_real_am.to_linear_map := rfl
 
 @[simp] lemma of_real_clm_apply : (of_real_clm : ℝ → K) = coe := rfl
 

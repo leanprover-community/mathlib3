@@ -69,4 +69,9 @@ lemma to_dual_le [has_le α] {a : α} {b : order_dual α} :
 lemma to_dual_lt [has_lt α] {a : α} {b : order_dual α} :
   to_dual a < b ↔ of_dual b < a := iff.rfl
 
+/-- Recursor for `order_dual α`. -/
+@[elab_as_eliminator]
+protected def rec {C : order_dual α → Sort*} (h₂ : Π (a : α), C (to_dual a)) :
+  Π (a : order_dual α), C a := h₂
+
 end order_dual

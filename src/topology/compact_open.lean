@@ -185,6 +185,13 @@ begin
   apply_instance
 end
 
+/-- The family of constant maps: `β → C(α, β)` as a continuous map. -/
+def const' : C(β, C(α, β)) := curry ⟨prod.fst, continuous_fst⟩
+
+@[simp] lemma coe_const' : (const' : β → C(α, β)) = const := rfl
+
+lemma continuous_const' : continuous (const : β → C(α, β)) := const'.continuous
+
 end curry
 
 end compact_open

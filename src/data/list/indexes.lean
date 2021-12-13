@@ -3,12 +3,14 @@ Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
-
-import data.list.basic
-import data.list.defs
-import data.list.zip
 import data.list.range
-import logic.basic
+
+/-! 
+# Lemmas about list.*_with_index functions.
+
+Some specification lemmas for `list.map_with_index`, `list.mmap_with_index`, `list.foldl_with_index`
+and `list.foldr_with_index`.
+-/
 
 universes u v
 

@@ -22,6 +22,21 @@ variables (x y : Π i, f i) (i : I)
 instance distrib [Π i, distrib $ f i] : distrib (Π i : I, f i) :=
 by refine_struct { add := (+), mul := (*), .. }; tactic.pi_instance_derive_field
 
+instance non_unital_non_assoc_semiring [∀ i, non_unital_non_assoc_semiring $ f i] :
+  non_unital_non_assoc_semiring (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), add := (+), mul := (*), .. };
+  tactic.pi_instance_derive_field
+
+instance non_unital_semiring [∀ i, non_unital_semiring $ f i] :
+  non_unital_semiring (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), add := (+), mul := (*), .. };
+  tactic.pi_instance_derive_field
+
+instance non_assoc_semiring [∀ i, non_assoc_semiring $ f i] :
+  non_assoc_semiring (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*), .. };
+  tactic.pi_instance_derive_field
+
 instance semiring [∀ i, semiring $ f i] : semiring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
   nsmul := λ n x i, nsmul n (x i), npow := λ n x i, npow n (x i) };
@@ -44,33 +59,48 @@ tactic.pi_instance_derive_field
 
 /-- A family of ring homomorphisms `f a : γ →+* β a` defines a ring homomorphism
 `pi.ring_hom f : γ →+* Π a, β a` given by `pi.ring_hom f x b = f b x`. -/
-protected def ring_hom
-  {α : Type u} {β : α → Type v} [R : Π a : α, semiring (β a)]
-  {γ : Type w} [semiring γ] (f : Π a : α, γ →+* β a) :
-  γ →+* Π a, β a :=
-{ to_fun := λ x b, f b x,
-  map_add' := λ x y, funext $ λ z, (f z).map_add x y,
-  map_mul' := λ x y, funext $ λ z, (f z).map_mul x y,
-  map_one' := funext $ λ z, (f z).map_one,
-  map_zero' := funext $ λ z, (f z).map_zero }
+@[simps]
+protected def ring_hom {γ : Type w} [Π i, non_assoc_semiring (f i)] [non_assoc_semiring γ]
+  (g : Π i, γ →+* f i) : γ →+* Π i, f i :=
+{ to_fun := λ x b, g b x,
+  map_add' := λ x y, funext $ λ z, (g z).map_add x y,
+  map_mul' := λ x y, funext $ λ z, (g z).map_mul x y,
+  map_one' := funext $ λ z, (g z).map_one,
+  map_zero' := funext $ λ z, (g z).map_zero }
 
-@[simp] lemma ring_hom_apply
-  {α : Type u} {β : α → Type v} [R : Π a : α, semiring (β a)]
-  {γ : Type w} [semiring γ] (f : Π a : α, γ →+* β a) (g) (a) :
-  pi.ring_hom f g a = f a g :=
-rfl
+lemma ring_hom_injective {γ : Type w} [nonempty I] [Π i, non_assoc_semiring (f i)]
+  [non_assoc_semiring γ] (g : Π i, γ →+* f i) (hg : ∀ i, function.injective (g i)) :
+  function.injective (pi.ring_hom g) :=
+λ x y h, let ⟨i⟩ := ‹nonempty I› in hg i ((function.funext_iff.mp h : _) i)
+
+end pi
 
 section ring_hom
 
-variables [Π i, semiring (f i)] (f)
+universes u v
+variable {I : Type u}
 
 /-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
 homomorphism. This is `function.eval` as a `ring_hom`. -/
 @[simps]
-def eval_ring_hom (i : I) : (Π i, f i) →+* f i :=
-{ ..(eval_monoid_hom f i),
-  ..(eval_add_monoid_hom f i) }
+def pi.eval_ring_hom (f : I → Type v) [Π i, non_assoc_semiring (f i)] (i : I) :
+  (Π i, f i) →+* f i :=
+{ ..(pi.eval_monoid_hom f i),
+  ..(pi.eval_add_monoid_hom f i) }
+
+/-- `function.const` as a `ring_hom`. -/
+@[simps]
+def pi.const_ring_hom (α β : Type*) [non_assoc_semiring β] : β →+* (α → β) :=
+{ to_fun := function.const _,
+  .. pi.ring_hom (λ _, ring_hom.id β) }
+
+/-- Ring homomorphism between the function spaces `I → α` and `I → β`, induced by a ring
+homomorphism `f` between `α` and `β`. -/
+@[simps] protected def ring_hom.comp_left {α β : Type*} [non_assoc_semiring α]
+  [non_assoc_semiring β] (f : α →+* β) (I : Type*) :
+  (I → α) →+* (I → β) :=
+{ to_fun := λ h, f ∘ h,
+  .. f.to_monoid_hom.comp_left I,
+  .. f.to_add_monoid_hom.comp_left I }
 
 end ring_hom
-
-end pi

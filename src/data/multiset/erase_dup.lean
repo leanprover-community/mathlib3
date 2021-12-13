@@ -62,7 +62,7 @@ theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
 ⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_erase_dup _,
  λ h, h.symm ▸ erase_dup_zero⟩
 
-@[simp] theorem erase_dup_singleton {a : α} : erase_dup (a ::ₘ 0) = a ::ₘ 0 :=
+@[simp] theorem erase_dup_singleton {a : α} : erase_dup ({a} : multiset α) = {a} :=
 erase_dup_eq_self.2 $ nodup_singleton _
 
 theorem le_erase_dup {s t : multiset α} : s ≤ erase_dup t ↔ s ≤ t ∧ nodup s :=

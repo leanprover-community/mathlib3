@@ -5,15 +5,25 @@ Authors: Mario Carneiro, Kenny Lau
 -/
 import data.list.basic
 
-universes u v w z
+/-!
+# zip & unzip
 
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type z}
+This file provides results about `list.zip_with`, `list.zip` and `list.unzip` (definitions are in
+core Lean).
+`zip_with f l₁ l₂` applies `f : α → β → γ` pointwise to a list `l₁ : list α` and `l₂ : list β`. It
+applies, until one of the lists is exhausted. For example,
+`zip_with f [0, 1, 2] [6.28, 31] = [f 0 6.28, f 1 31]`.
+`zip` is `zip_with` applied to `prod.mk`. For example,
+`zip [a₁, a₂] [b₁, b₂, b₃] = [(a₁, b₁), (a₂, b₂)]`.
+`unzip` undoes `zip`. For example, `unzip [(a₁, b₁), (a₂, b₂)] = ([a₁, a₂], [b₁, b₂])`.
+-/
+
+universe u
 
 open nat
 
 namespace list
-
-/- zip & unzip -/
+variables {α : Type u} {β γ δ : Type*}
 
 @[simp] theorem zip_with_cons_cons (f : α → β → γ) (a : α) (b : β) (l₁ : list α) (l₂ : list β) :
   zip_with f (a :: l₁) (b :: l₂) = f a b :: zip_with f l₁ l₂ := rfl
@@ -45,7 +55,7 @@ zip_with_nil_right _ l
 @[simp] theorem length_zip_with (f : α → β → γ) : ∀  (l₁ : list α) (l₂ : list β),
    length (zip_with f l₁ l₂) = min (length l₁) (length l₂)
 | []      l₂      := rfl
-| l₁      []      := by simp only [length, min_zero, zip_with_nil_right]
+| l₁      []      := by simp only [length, nat.min_zero, zip_with_nil_right]
 | (a::l₁) (b::l₂) := by by simp [length, zip_cons_cons, length_zip_with l₁ l₂, min_add_add_right]
 
 @[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
@@ -171,7 +181,7 @@ theorem zip_unzip : ∀ (l : list (α × β)), zip (unzip l).1 (unzip l).2 = l
 theorem unzip_zip_left : ∀ {l₁ : list α} {l₂ : list β}, length l₁ ≤ length l₂ →
   (unzip (zip l₁ l₂)).1 = l₁
 | []      l₂      h := rfl
-| l₁      []      h := by rw eq_nil_of_length_eq_zero (eq_zero_of_le_zero h); refl
+| l₁      []      h := by rw eq_nil_of_length_eq_zero (nat.eq_zero_of_le_zero h); refl
 | (a::l₁) (b::l₂) h := by simp only [zip_cons_cons, unzip_cons,
     unzip_zip_left (le_of_succ_le_succ h)]; split; refl
 

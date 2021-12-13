@@ -65,24 +65,24 @@ def gen (s : set (α × α)) : set (Cauchy α × Cauchy α) :=
 {p | s ∈ p.1.val ×ᶠ p.2.val }
 
 lemma monotone_gen : monotone gen :=
-monotone_set_of $ assume p, @monotone_mem_sets (α×α) (p.1.val ×ᶠ p.2.val)
+monotone_set_of $ assume p, @monotone_mem (α×α) (p.1.val ×ᶠ p.2.val)
 
 private lemma symm_gen : map prod.swap ((𝓤 α).lift' gen) ≤ (𝓤 α).lift' gen :=
 calc map prod.swap ((𝓤 α).lift' gen) =
   (𝓤 α).lift' (λs:set (α×α), {p | s ∈ p.2.val ×ᶠ p.1.val }) :
   begin
     delta gen,
-    simp [map_lift'_eq, monotone_set_of, monotone_mem_sets,
+    simp [map_lift'_eq, monotone_set_of, monotone_mem,
           function.comp, image_swap_eq_preimage_swap, -subtype.val_eq_coe]
   end
   ... ≤ (𝓤 α).lift' gen :
     uniformity_lift_le_swap
       (monotone_principal.comp (monotone_set_of $ assume p,
-        @monotone_mem_sets (α×α) (p.2.val ×ᶠ  p.1.val)))
+        @monotone_mem (α×α) (p.2.val ×ᶠ  p.1.val)))
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
-        simp [function.comp, h, -subtype.val_eq_coe],
-        exact le_refl _
+        simp [function.comp, h, -subtype.val_eq_coe, mem_map'],
+        exact le_refl _,
       end
 
 private lemma comp_rel_gen_gen_subset_gen_comp_rel {s t : set (α×α)} : comp_rel (gen s) (gen t) ⊆
@@ -93,7 +93,7 @@ let ⟨t₁, (ht₁ : t₁ ∈ f.val), t₂, (ht₂ : t₂ ∈ h.val), (h₁ : s
 let ⟨t₃, (ht₃ : t₃ ∈ h.val), t₄, (ht₄ : t₄ ∈ g.val), (h₂ : set.prod t₃ t₄ ⊆ t)⟩ :=
   mem_prod_iff.mp h₂ in
 have t₂ ∩ t₃ ∈ h.val,
-  from inter_mem_sets ht₂ ht₃,
+  from inter_mem ht₂ ht₃,
 let ⟨x, xt₂, xt₃⟩ :=
   h.property.left.nonempty_of_mem this in
 (f.val ×ᶠ g.val).sets_of_superset
@@ -293,7 +293,7 @@ lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [s : separ
   function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
 separated_def.1 s _ _ $ assume s hs,
 let ⟨t, ht, hts⟩ :=
-  by rw [← (@uniform_embedding_pure_cauchy α _).comap_uniformity, filter.mem_comap_sets] at hs;
+  by rw [← (@uniform_embedding_pure_cauchy α _).comap_uniformity, filter.mem_comap] at hs;
     exact hs in
 have (pure_cauchy a, pure_cauchy b) ∈ t, from quotient.exact h t ht,
 @hts (a, b) this

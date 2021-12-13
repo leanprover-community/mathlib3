@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import data.real.basic
-import data.set.disjointed
 import data.set.intervals
+import data.set.pairwise
 import set_theory.cardinal
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
@@ -497,7 +497,7 @@ def decreasing_sequence (k : ℕ) : order_dual ℝ :=
 (cs (sequence_of_cubes h k).1).w
 
 lemma strict_mono_sequence_of_cubes : strict_mono $ decreasing_sequence h :=
-strict_mono.nat $
+strict_mono_nat_of_lt_succ $
 begin
   intro k, let v := (sequence_of_cubes h k).2, dsimp only [decreasing_sequence, sequence_of_cubes],
   apply w_lt_w h v (mi_mem_bcubes : mi h v ∈ _),
@@ -513,7 +513,7 @@ begin
   dsimp only [decreasing_sequence], rw hnm
 end
 
-/-- A cube cannot be cubed. -/
+/-- **Dissection of Cubes**: A cube cannot be cubed. -/
 theorem cannot_cube_a_cube :
   ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
   ∀{ι : Type} [fintype ι] {cs : ι → cube n},     -- given a finite collection of (hyper)cubes

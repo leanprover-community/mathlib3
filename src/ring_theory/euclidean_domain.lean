@@ -35,17 +35,16 @@ begin
   { assume z ,
     simp [mem_span_singleton, euclidean_domain.gcd_dvd_left, mem_span_pair,
       @eq_comm _ _ z] {contextual := tt},
-    assume a b h,
-    exact dvd_add (dvd_mul_of_dvd_right (gcd_dvd_left _ _) _)
-      (dvd_mul_of_dvd_right (gcd_dvd_right _ _) _) }
+    exact λ a b _, dvd_add ((gcd_dvd_left x y).mul_left _)
+      ((gcd_dvd_right x y).mul_left _) }
 end
 -- this should be proved for PIDs?
 theorem gcd_is_unit_iff {α} [euclidean_domain α] {x y : α} :
   is_unit (gcd x y) ↔ is_coprime x y :=
 ⟨λ h, let ⟨b, hb⟩ := is_unit_iff_exists_inv'.1 h in ⟨b * gcd_a x y, b * gcd_b x y,
   by rw [← hb, gcd_eq_gcd_ab, mul_comm x, mul_comm y, mul_add, mul_assoc, mul_assoc]⟩,
-λ ⟨a, b, h⟩, is_unit_iff_dvd_one.2 $ h ▸ dvd_add (dvd_mul_of_dvd_right (gcd_dvd_left x y) _)
-  (dvd_mul_of_dvd_right (gcd_dvd_right x y) _)⟩
+λ ⟨a, b, h⟩, is_unit_iff_dvd_one.2 $ h ▸ dvd_add ((gcd_dvd_left x y).mul_left _)
+  ((gcd_dvd_right x y).mul_left _)⟩
 
 -- this should be proved for UFDs surely?
 theorem is_coprime_of_dvd {α} [euclidean_domain α] {x y : α}
@@ -66,7 +65,7 @@ begin
   apply is_coprime_of_dvd,
   { unfreezingI { rintro ⟨rfl, rfl⟩ }, simpa using h },
   { unfreezingI { rintro z nu nz ⟨w, rfl⟩ dy },
-    refine h' (dvd.trans _ dy),
+    refine h' (dvd_trans _ dy),
     simpa using mul_dvd_mul_left z (is_unit_iff_dvd_one.1 $
       (of_irreducible_mul h).resolve_left nu) }
 end

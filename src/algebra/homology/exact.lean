@@ -184,6 +184,12 @@ begin
   apply epi_comp,
 end
 
+instance [exact f g] : epi (kernel.lift g f (by simp)) :=
+begin
+  rw ←factor_thru_kernel_subobject_comp_kernel_subobject_iso,
+  apply epi_comp
+end
+
 variables (A)
 
 lemma kernel_subobject_arrow_eq_zero_of_exact_zero_left [exact (0 : A ⟶ B) g] :

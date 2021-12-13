@@ -261,7 +261,7 @@ end
 
 section faulhaber
 
-/-- Faulhaber's theorem relating the sum of of p-th powers to the Bernoulli numbers:
+/-- **Faulhaber's theorem** relating the **sum of of p-th powers** to the Bernoulli numbers:
 $$\sum_{k=0}^{n-1} k^p = \sum_{i=0}^p B_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
 See https://proofwiki.org/wiki/Faulhaber%27s_Formula and [orosi2018faulhaber] for
 the proof provided here. -/
@@ -318,8 +318,8 @@ begin
   field_simp [mul_right_comm _ ↑p!, ← mul_assoc _ _ ↑p!, cast_add_one_ne_zero, hne],
 end
 
-/-- Alternate form of Faulhaber's theorem, relating the sum of p-th powers to the Bernoulli numbers:
-$$\sum_{k=1}^{n} k^p = \sum_{i=0}^p (-1)^iB_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
+/-- Alternate form of **Faulhaber's theorem**, relating the sum of p-th powers to the Bernoulli
+numbers: $$\sum_{k=1}^{n} k^p = \sum_{i=0}^p (-1)^iB_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
 Deduced from `sum_range_pow`. -/
 theorem sum_Ico_pow (n p : ℕ) :
   ∑ k in Ico 1 (n + 1), (k : ℚ) ^ p =
@@ -331,7 +331,7 @@ begin
   let f' := λ i, bernoulli' i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
   suffices : ∑ k in Ico 1 n.succ, ↑k ^ p.succ = ∑ i in range p.succ.succ, f' i, { convert this },
   -- prove some algebraic facts that will make things easier for us later on
-  have hle := le_add_left 1 n,
+  have hle := nat.le_add_left 1 n,
   have hne : (p + 1 + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero p.succ,
   have h1 : ∀ r : ℚ, r * (p + 1 + 1) * n ^ p.succ / (p + 1 + 1 : ℚ) = r * n ^ p.succ :=
     λ r, by rw [mul_div_right_comm, mul_div_cancel _ hne],

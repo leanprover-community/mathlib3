@@ -93,7 +93,8 @@ begin
   simp [mem_support_not_mem_vars_zero H h],
 end
 
-lemma pderiv_X {i j : σ} : pderiv i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
+lemma pderiv_X [decidable_eq σ] {i j : σ} :
+  pderiv i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
 begin
   dsimp [pderiv],
   erw finsupp.sum_single_index,

@@ -315,7 +315,9 @@ end
 lemma Inf_glb (S : set (lie_subalgebra R L)) : is_glb S (Inf S) :=
 begin
   have h : ∀ (K K' : lie_subalgebra R L), (K : set L) ≤ K' ↔ K ≤ K', { intros, exact iff.rfl, },
-  simp only [is_glb.of_image h, Inf_coe, is_glb_binfi],
+  apply is_glb.of_image h,
+  simp only [Inf_coe],
+  exact is_glb_binfi
 end
 
 /-- The set of Lie subalgebras of a Lie algebra form a complete lattice.
@@ -455,6 +457,29 @@ begin
   { intros x m hm, rw [← h, mem_coe_submodule], exact lie_mem _ (subset_lie_span hm), },
   { rw [← coe_to_submodule_mk p h, coe_to_submodule, coe_to_submodule_eq_iff, lie_span_eq], },
 end
+
+variables (R L)
+
+/-- `lie_span` forms a Galois insertion with the coercion from `lie_subalgebra` to `set`. -/
+protected def gi : galois_insertion (lie_span R L : set L → lie_subalgebra R L) coe :=
+{ choice    := λ s _, lie_span R L s,
+  gc        := λ s t, lie_span_le,
+  le_l_u    := λ s, subset_lie_span,
+  choice_eq := λ s h, rfl }
+
+@[simp] lemma span_empty : lie_span R L (∅ : set L) = ⊥ :=
+(lie_subalgebra.gi R L).gc.l_bot
+
+@[simp] lemma span_univ : lie_span R L (set.univ : set L) = ⊤ :=
+eq_top_iff.2 $ set_like.le_def.2 $ subset_lie_span
+
+variables {L}
+
+lemma span_union (s t : set L) : lie_span R L (s ∪ t) = lie_span R L s ⊔ lie_span R L t :=
+(lie_subalgebra.gi R L).gc.l_sup
+
+lemma span_Union {ι} (s : ι → set L) : lie_span R L (⋃ i, s i) = ⨆ i, lie_span R L (s i) :=
+(lie_subalgebra.gi R L).gc.l_supr
 
 end lie_span
 

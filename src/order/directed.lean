@@ -6,6 +6,19 @@ Authors: Johannes Hölzl
 import order.lattice
 import data.set.basic
 
+/-!
+# Directed indexed families and sets
+
+This file defines directed indexed families and directed sets. An indexed family/set is
+directed iff each pair of elements has a shared upper bound.
+
+## Main declarations
+
+* `directed r f`: Predicate stating that the indexed family `f` is `r`-directed.
+* `directed_on r s`: Predicate stating that the set `s` is `r`-directed.
+* `directed_order α`: Typeclass extending `preorder` for stating that `α` is `≤`-directed.
+-/
+
 universes u v w
 
 variables {α : Type u} {β : Type v} {ι : Sort w} (r : α → α → Prop)
@@ -13,11 +26,11 @@ local infix ` ≼ ` : 50 := r
 
 /-- A family of elements of α is directed (with respect to a relation `≼` on α)
   if there is a member of the family `≼`-above any pair in the family.  -/
-def directed (f : ι → α) := ∀x y, ∃z, f x ≼ f z ∧ f y ≼ f z
+def directed (f : ι → α) := ∀ x y, ∃ z, f x ≼ f z ∧ f y ≼ f z
 
 /-- A subset of α is directed if there is an element of the set `≼`-above any
   pair of elements in the set. -/
-def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃z ∈ s, x ≼ z ∧ y ≼ z
+def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃ z ∈ s, x ≼ z ∧ y ≼ z
 
 variables {r}
 
@@ -58,8 +71,8 @@ directed_of_sup
 
 /-- An antimonotone function on an inf-semilattice is directed. -/
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
-assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
+  (hf : ∀ a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
+λ x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
 
 /-- A `preorder` is a `directed_order` if for any two elements `i`, `j`
 there is an element `k` such that `i ≤ k` and `j ≤ k`. -/

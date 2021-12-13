@@ -32,7 +32,7 @@ quot.induction_on s $ λ l, nodup_cons
 theorem nodup_cons_of_nodup {a : α} {s : multiset α} (m : a ∉ s) (n : nodup s) : nodup (a ::ₘ s) :=
 nodup_cons.2 ⟨m, n⟩
 
-theorem nodup_singleton : ∀ a : α, nodup (a ::ₘ 0) := nodup_singleton
+theorem nodup_singleton : ∀ a : α, nodup ({a} : multiset α) := nodup_singleton
 
 theorem nodup_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a ::ₘ s)) : nodup s :=
 (nodup_cons.1 h).2

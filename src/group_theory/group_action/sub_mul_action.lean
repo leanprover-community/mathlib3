@@ -5,7 +5,7 @@ Authors: Eric Wieser
 -/
 import algebra.group_action_hom
 import algebra.module.basic
-import data.set_like
+import data.set_like.basic
 import group_theory.group_action.basic
 /-!
 

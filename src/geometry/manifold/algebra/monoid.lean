@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import geometry.manifold.times_cont_mdiff
+import geometry.manifold.times_cont_mdiff_map
 
 /-!
 # Smooth monoid
@@ -15,6 +15,8 @@ In this file we define the basic structures to talk about smooth monoids: `has_s
 additive counterpart `has_smooth_add`. These structures are general enough to also talk about smooth
 semigroups.
 -/
+
+open_locale manifold
 
 section
 
@@ -112,6 +114,47 @@ lemma smooth_on.mul {f : M → G} {g : M → G} {s : set M}
   smooth_on I' I (f * g) s :=
 ((smooth_mul I).comp_smooth_on (hf.prod_mk hg) : _)
 
+variables (I) (g h : G)
+
+/-- Left multiplication by `g`. It is meant to mimic the usual notation in Lie groups.
+Lemmas involving `smooth_left_mul` with the notation `𝑳` usually use `L` instead of `𝑳` in the
+names. -/
+def smooth_left_mul : C^∞⟮I, G; I, G⟯ := ⟨(left_mul g), smooth_mul_left⟩
+
+/-- Right multiplication by `g`. It is meant to mimic the usual notation in Lie groups.
+Lemmas involving `smooth_right_mul` with the notation `𝑹` usually use `R` instead of `𝑹` in the
+names. -/
+def smooth_right_mul : C^∞⟮I, G; I, G⟯ := ⟨(right_mul g), smooth_mul_right⟩
+
+/- Left multiplication. The abbreviation is `MIL`. -/
+localized "notation `𝑳` := smooth_left_mul" in lie_group
+
+/- Right multiplication. The abbreviation is `MIR`. -/
+localized "notation `𝑹` := smooth_right_mul" in lie_group
+
+open_locale lie_group
+
+@[simp] lemma L_apply : (𝑳 I g) h = g * h := rfl
+@[simp] lemma R_apply : (𝑹 I g) h = h * g := rfl
+
+@[simp] lemma L_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
+  [has_smooth_mul I G] (g h : G) : 𝑳 I (g * h) = (𝑳 I g).comp (𝑳 I h) :=
+by { ext, simp only [times_cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
+
+@[simp] lemma R_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
+  [has_smooth_mul I G] (g h : G) : 𝑹 I (g * h) = (𝑹 I h).comp (𝑹 I g) :=
+by { ext, simp only [times_cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
+
+section
+
+variables {G' : Type*} [monoid G'] [topological_space G'] [charted_space H G']
+  [has_smooth_mul I G'] (g' : G')
+
+lemma smooth_left_mul_one : (𝑳 I g') 1 = g' := mul_one g'
+lemma smooth_right_mul_one : (𝑹 I g') 1 = g' := one_mul g'
+
+end
+
 /- Instance of product -/
 @[to_additive]
 instance has_smooth_mul.prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -127,8 +170,6 @@ instance has_smooth_mul.prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 { smooth_mul := ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
     ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)),
   .. smooth_manifold_with_corners.prod G G' }
-
-variable (I)
 
 end has_smooth_mul
 
@@ -208,7 +249,7 @@ begin
   rcases hfin x with ⟨U, hxU, hUf⟩,
   have : smooth_at I' I (λ x, ∏ i in hUf.to_finset, f i x) x,
     from smooth_finset_prod (λ i hi, h i) x,
-  refine this.congr_of_eventually_eq (mem_sets_of_superset hxU $ λ y hy, _),
+  refine this.congr_of_eventually_eq (mem_of_superset hxU $ λ y hy, _),
   refine finprod_eq_prod_of_mul_support_subset _ (λ i hi, _),
   rw [hUf.coe_to_finset],
   exact ⟨y, hi, hy⟩

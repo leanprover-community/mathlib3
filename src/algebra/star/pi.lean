@@ -3,13 +3,17 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.star.algebra
+import algebra.star.basic
+import algebra.ring.pi
 
 /-!
 # `star` on pi types
 
 We put a `has_star` structure on pi types that operates elementwise, such that it describes the
 complex conjugation of vectors.
+
+Note that `pi.star_algebra` is in a different file to avoid pulling in everything from
+`algebra/algebra/basic`.
 -/
 
 universes u v w
@@ -32,11 +36,5 @@ instance [Π i, monoid (f i)] [Π i, star_monoid (f i)] : star_monoid (Π i, f i
 instance [Π i, semiring (f i)] [Π i, star_ring (f i)] : star_ring (Π i, f i) :=
 { star_add := λ _ _, funext $ λ _, star_add _ _,
   ..(by apply_instance : star_monoid (Π i, f i)) }
-
-instance {R : Type w}
-  [comm_semiring R] [Π i, semiring (f i)] [Π i, algebra R (f i)]
-  [star_ring R] [Π i, star_ring (f i)] [Π i, star_algebra R (f i)] :
-  star_algebra R (Π i, f i) :=
-{ star_smul := λ r x, funext $ λ _, star_smul _ _ }
 
 end pi

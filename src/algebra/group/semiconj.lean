@@ -55,6 +55,13 @@ lemma mul_left (ha : semiconj_by a y z) (hb : semiconj_by b x y) :
   semiconj_by (a * b) x z :=
 by unfold semiconj_by; assoc_rw [hb.eq, ha.eq, mul_assoc]
 
+/-- The relation “there exists an element that semiconjugates `a` to `b`” on a semigroup
+is transitive. -/
+@[to_additive "The relation “there exists an element that semiconjugates `a` to `b`” on an additive
+semigroup is transitive."]
+protected lemma transitive : transitive (λ a b : S, ∃ c, semiconj_by c a b) :=
+λ a b c ⟨x, hx⟩ ⟨y, hy⟩, ⟨y * x, hy.mul_left hx⟩
+
 end semigroup
 
 section mul_one_class
@@ -68,6 +75,13 @@ lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_
 /-- One semiconjugates any element to itself. -/
 @[simp, to_additive]
 lemma one_left (x : M) : semiconj_by 1 x x := eq.symm $ one_right x
+
+/-- The relation “there exists an element that semiconjugates `a` to `b`” on a monoid (or, more
+generally, on ` mul_one_class` type) is reflexive. -/
+@[to_additive "The relation “there exists an element that semiconjugates `a` to `b`” on an additive
+monoid (or, more generally, on a `add_zero_class` type) is reflexive."]
+protected lemma reflexive : reflexive (λ a b : M, ∃ c, semiconj_by c a b) :=
+λ a, ⟨1, one_left a⟩
 
 end mul_one_class
 

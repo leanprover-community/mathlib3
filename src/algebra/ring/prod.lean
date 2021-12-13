@@ -30,6 +30,21 @@ instance [distrib R] [distrib S] : distrib (R × S) :=
   right_distrib := λ a b c, mk.inj_iff.mpr ⟨right_distrib _ _ _, right_distrib _ _ _⟩,
   .. prod.has_add, .. prod.has_mul }
 
+/-- Product of two `non_unital_non_assoc_semiring`s is a `non_unital_non_assoc_semiring`. -/
+instance [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S] :
+  non_unital_non_assoc_semiring (R × S) :=
+{ .. prod.add_comm_monoid, .. prod.mul_zero_class, .. prod.distrib }
+
+/-- Product of two `non_unital_semiring`s is a `non_unital_semiring`. -/
+instance [non_unital_semiring R] [non_unital_semiring S] :
+  non_unital_semiring (R × S) :=
+{ .. prod.non_unital_non_assoc_semiring, .. prod.semigroup }
+
+/-- Product of two `non_assoc_semiring`s is a `non_assoc_semiring`. -/
+instance [non_assoc_semiring R] [non_assoc_semiring S] :
+  non_assoc_semiring (R × S) :=
+{ .. prod.non_unital_non_assoc_semiring, .. prod.mul_one_class }
+
 /-- Product of two semirings is a semiring. -/
 instance [semiring R] [semiring S] : semiring (R × S) :=
 { .. prod.add_comm_monoid, .. prod.monoid_with_zero, .. prod.distrib }
@@ -50,7 +65,7 @@ end prod
 
 namespace ring_hom
 
-variables (R S) [semiring R] [semiring S]
+variables (R S) [non_assoc_semiring R] [non_assoc_semiring S]
 
 /-- Given semirings `R`, `S`, the natural projection homomorphism from `R × S` to `R`.-/
 def fst : R × S →+* R := { to_fun := prod.fst, .. monoid_hom.fst R S, .. add_monoid_hom.fst R S }
@@ -65,7 +80,7 @@ variables {R S}
 
 section prod
 
-variables [semiring T] (f : R →+* S) (g : R →+* T)
+variables [non_assoc_semiring T] (f : R →+* S) (g : R →+* T)
 
 /-- Combine two ring homomorphisms `f : R →+* S`, `g : R →+* T` into `f.prod g : R →+* S × T`
 given by `(f.prod g) x = (f x, g x)` -/
@@ -89,7 +104,8 @@ end prod
 
 section prod_map
 
-variables [semiring R'] [semiring S'] [semiring T] (f : R →+* R') (g : S →+* S')
+variables [non_assoc_semiring R'] [non_assoc_semiring S'] [non_assoc_semiring T]
+variables (f : R →+* R') (g : S →+* S')
 
 /-- `prod.map` as a `ring_hom`. -/
 def prod_map : R × S →* R' × S' := (f.comp (fst R S)).prod (g.comp (snd R S))
@@ -108,7 +124,7 @@ end prod_map
 end ring_hom
 
 namespace ring_equiv
-variables {R S} [semiring R] [semiring S]
+variables {R S} [non_assoc_semiring R] [non_assoc_semiring S]
 
 /-- Swapping components as an equivalence of (semi)rings. -/
 def prod_comm : R × S ≃+* S × R :=
@@ -124,5 +140,25 @@ ring_hom.ext $ λ _, rfl
 @[simp] lemma snd_comp_coe_prod_comm :
   (ring_hom.snd S R).comp ↑(prod_comm : R × S ≃+* S × R) = ring_hom.fst R S :=
 ring_hom.ext $ λ _, rfl
+
+variables (R S) [subsingleton S]
+
+/-- A ring `R` is isomorphic to `R × S` when `S` is the zero ring -/
+@[simps] def prod_zero_ring : R ≃+* R × S :=
+{ to_fun := λ x, (x, 0),
+  inv_fun := prod.fst,
+  map_add' := by simp,
+  map_mul' := by simp,
+  left_inv := λ x, rfl,
+  right_inv := λ x, by cases x; simp }
+
+/-- A ring `R` is isomorphic to `S × R` when `S` is the zero ring -/
+@[simps] def zero_ring_prod : R ≃+* S × R :=
+{ to_fun := λ x, (0, x),
+  inv_fun := prod.snd,
+  map_add' := by simp,
+  map_mul' := by simp,
+  left_inv := λ x, rfl,
+  right_inv := λ x, by cases x; simp }
 
 end ring_equiv

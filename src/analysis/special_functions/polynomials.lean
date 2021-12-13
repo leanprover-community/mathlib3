@@ -5,7 +5,7 @@ Authors: Anatole Dedecker, Devon Tuma
 -/
 import analysis.asymptotics.asymptotic_equivalent
 import analysis.asymptotics.specific_asymptotics
-import data.polynomial.erase_lead
+import data.polynomial.ring_division
 
 /-!
 # Limits related to polynomial and rational functions
@@ -243,7 +243,7 @@ begin
   { simpa [hp] using is_O_zero (λ x, eval x Q) filter.at_top },
   { have hq : Q ≠ 0 := ne_zero_of_degree_ge_degree h hp,
     have hPQ : ∀ᶠ (x : 𝕜) in at_top, eval x Q = 0 → eval x P = 0 :=
-      filter.mem_sets_of_superset (polynomial.eventually_no_roots Q hq) (λ x h h', absurd h' h),
+      filter.mem_of_superset (polynomial.eventually_no_roots Q hq) (λ x h h', absurd h' h),
     cases le_iff_lt_or_eq.mp h with h h,
     { exact is_O_of_div_tendsto_nhds hPQ 0 (div_tendsto_zero_of_degree_lt P Q h) },
     { exact is_O_of_div_tendsto_nhds hPQ _ (div_tendsto_leading_coeff_div_of_degree_eq P Q h) } }

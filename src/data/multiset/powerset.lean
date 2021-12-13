@@ -80,7 +80,7 @@ congr_arg coe powerset_aux_eq_map_coe
   @powerset α l = ((sublists' l).map coe : list (multiset α)) :=
 quot.sound powerset_aux_perm_powerset_aux'
 
-@[simp] theorem powerset_zero : @powerset α 0 = 0 ::ₘ 0 := rfl
+@[simp] theorem powerset_zero : @powerset α 0 = {0} := rfl
 
 @[simp] theorem powerset_cons (a : α) (s) :
   powerset (a ::ₘ s) = powerset s + map (cons a) (powerset s) :=
@@ -91,9 +91,9 @@ quotient.induction_on s $ λ l, by simp; refl
 quotient.induction_on₂ s t $ by simp [subperm, and.comm]
 
 theorem map_single_le_powerset (s : multiset α) :
-  s.map (λ a, a ::ₘ 0) ≤ powerset s :=
+  s.map singleton ≤ powerset s :=
 quotient.induction_on s $ λ l, begin
-  simp [powerset_coe],
+  simp only [powerset_coe, quot_mk_to_coe, coe_le, coe_map],
   show l.map (coe ∘ list.ret) <+~ (sublists l).map coe,
   rw ← list.map_map,
   exact ((map_ret_sublist_sublists _).map _).subperm
@@ -207,7 +207,7 @@ theorem powerset_len_coe (n) (l : list α) :
 congr_arg coe powerset_len_aux_eq_map_coe
 
 @[simp] theorem powerset_len_zero_left (s : multiset α) :
-  powerset_len 0 s = 0 ::ₘ 0 :=
+  powerset_len 0 s = {0} :=
 quotient.induction_on s $ λ l, by simp [powerset_len_coe']; refl
 
 @[simp] theorem powerset_len_zero_right (n : ℕ) :

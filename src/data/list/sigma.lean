@@ -431,8 +431,7 @@ begin
     { substs h₁ h₂, cases ne.irrefl h },
     { subst h₁, simp [h₂] },
     { subst h₂, simp [h] },
-    { simp [h₁, h₂, ih] }
-  }
+    { simp [h₁, h₂, ih] } }
 end
 
 theorem kerase_append_left {a} : ∀ {l₁ l₂ : list (sigma β)},

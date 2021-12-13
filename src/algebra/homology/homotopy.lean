@@ -156,6 +156,30 @@ begin
     simp, },
 end
 
+lemma d_next_nat (C D : chain_complex V ℕ) (i : ℕ) (f : Π i j, C.X i ⟶ D.X j) :
+  d_next i f = C.d i (i-1) ≫ f (i-1) i :=
+begin
+  cases i,
+  { dsimp [d_next],
+    rcases (complex_shape.down ℕ).next 0 with _|⟨j,hj⟩;
+    dsimp [d_next],
+    { rw [C.shape, zero_comp], dsimp, dec_trivial },
+    { dsimp at hj, exact (nat.succ_ne_zero _ hj).elim } },
+  rw d_next_eq, dsimp, refl
+end
+
+lemma prev_d_nat (C D : cochain_complex V ℕ) (i : ℕ) (f : Π i j, C.X i ⟶ D.X j) :
+  prev_d i f = f i (i-1) ≫ D.d (i-1) i :=
+begin
+  cases i,
+  { dsimp [prev_d],
+    rcases (complex_shape.up ℕ).prev 0 with _|⟨j,hj⟩;
+    dsimp [prev_d],
+    { rw [D.shape, comp_zero], dsimp, dec_trivial },
+    { dsimp at hj, exact (nat.succ_ne_zero _ hj).elim } },
+  rw prev_d_eq, dsimp, refl
+end
+
 /--
 A homotopy `h` between chain maps `f` and `g` consists of components `h i j : C.X i ⟶ D.X j`
 which are zero unless `c.rel j i`, satisfying the homotopy condition.
@@ -186,15 +210,20 @@ def equiv_sub_zero : homotopy f g ≃ homotopy (f - g) 0 :=
   left_inv := by tidy,
   right_inv := by tidy, }
 
-/-- Every chain map is homotopic to itself. -/
-@[refl]
-def refl (f : C ⟶ D) : homotopy f f :=
+/-- Equal chain maps are homotopic. -/
+@[simps]
+def of_eq (h : f = g) : homotopy f g :=
 { hom := 0,
-  zero' := λ i j w, rfl,
-  comm := λ i, by rw [add_monoid_hom.map_zero, add_monoid_hom.map_zero, zero_add, zero_add] }
+  zero' := λ _ _ _, rfl,
+  comm := λ _, by simp only [add_monoid_hom.map_zero, zero_add, h] }
+
+/-- Every chain map is homotopic to itself. -/
+@[simps, refl]
+def refl (f : C ⟶ D) : homotopy f f :=
+of_eq (rfl : f = f)
 
 /-- `f` is homotopic to `g` iff `g` is homotopic to `f`. -/
-@[symm]
+@[simps, symm]
 def symm {f g : C ⟶ D} (h : homotopy f g) : homotopy g f :=
 { hom := -h.hom,
   zero' := λ i j w, by rw [pi.neg_apply, pi.neg_apply, h.zero i j w, neg_zero],
@@ -202,13 +231,14 @@ def symm {f g : C ⟶ D} (h : homotopy f g) : homotopy g f :=
       ← add_assoc, neg_add_self, zero_add] }
 
 /-- homotopy is a transitive relation. -/
-@[trans]
+@[simps, trans]
 def trans {e f g : C ⟶ D} (h : homotopy e f) (k : homotopy f g) : homotopy e g :=
 { hom := h.hom + k.hom,
   zero' := λ i j w, by rw [pi.add_apply, pi.add_apply, h.zero i j w, k.zero i j w, zero_add],
   comm := λ i, by { rw [add_monoid_hom.map_add, add_monoid_hom.map_add, h.comm, k.comm], abel }, }
 
 /-- homotopy is closed under composition (on the right) -/
+@[simps]
 def comp_right {e f : C ⟶ D} (h : homotopy e f) (g : D ⟶ E) : homotopy (e ≫ g) (f ≫ g) :=
 { hom := λ i j, h.hom i j ≫ g.f j,
   zero' := λ i j w, by rw [h.zero i j w, zero_comp],
@@ -216,19 +246,28 @@ def comp_right {e f : C ⟶ D} (h : homotopy e f) (g : D ⟶ E) : homotopy (e �
     to_prev'_comp_right, comp_f], }
 
 /-- homotopy is closed under composition (on the left) -/
+@[simps]
 def comp_left {f g : D ⟶ E} (h : homotopy f g) (e : C ⟶ D) : homotopy (e ≫ f) (e ≫ g) :=
 { hom := λ i j, e.f i ≫ h.hom i j,
   zero' := λ i j w, by rw [h.zero i j w, comp_zero],
   comm := λ i, by simp only [h.comm i, d_next_comp_left, preadditive.comp_add,
     prev_d_comp_left, comp_f], }
 
+/-- homotopy is closed under composition -/
+@[simps]
+def comp {C₁ C₂ C₃ : homological_complex V c} {f₁ g₁ : C₁ ⟶ C₂} {f₂ g₂ : C₂ ⟶ C₃}
+  (h₁ : homotopy f₁ g₁) (h₂ : homotopy f₂ g₂) : homotopy (f₁ ≫ f₂) (g₁ ≫ g₂) :=
+(h₁.comp_right _).trans (h₂.comp_left _)
+
 /-- a variant of `homotopy.comp_right` useful for dealing with homotopy equivalences. -/
+@[simps]
 def comp_right_id {f : C ⟶ C} (h : homotopy f (𝟙 C)) (g : C ⟶ D) : homotopy (f ≫ g) g :=
-by { convert h.comp_right g, simp, }
+(h.comp_right g).trans (of_eq $ category.id_comp _)
 
 /-- a variant of `homotopy.comp_left` useful for dealing with homotopy equivalences. -/
+@[simps]
 def comp_left_id {f : D ⟶ D} (h : homotopy f (𝟙 D)) (g : C ⟶ D) : homotopy (g ≫ f) g :=
-by { convert h.comp_left g, simp, }
+(h.comp_left g).trans (of_eq $ category.comp_id _)
 
 /-!
 `homotopy.mk_inductive` allows us to build a homotopy inductively,

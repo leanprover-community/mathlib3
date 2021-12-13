@@ -26,6 +26,7 @@ make the notation available.
 -/
 
 universe u
+open_locale pointwise
 
 namespace set
 
@@ -114,6 +115,22 @@ begin
   { rintro ⟨a, b, h⟩, exact ⟨min a b, max a b, h⟩ }
 end
 
+/-- The open-closed interval with unordered bounds. -/
+def interval_oc : α → α → set α := λ a b, Ioc (min a b) (max a b)
+
+-- Below is a capital iota
+localized "notation `Ι` := interval_oc" in interval
+
+lemma interval_oc_of_le (h : a ≤ b) : Ι a b = Ioc a b :=
+by simp [interval_oc, h]
+
+lemma interval_oc_of_lt (h : b < a) : Ι a b = Ioc b a :=
+by simp [interval_oc, le_of_lt h]
+
+lemma forall_interval_oc_iff  {P : α → Prop} :
+  (∀ x ∈ Ι a b, P x) ↔ (∀ x ∈ Ioc a b, P x) ∧ (∀ x ∈ Ioc b a, P x) :=
+by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
+
 end linear_order
 
 open_locale interval
@@ -128,7 +145,7 @@ by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_r
 @[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
 by simpa only [add_comm] using preimage_const_add_interval a b c
 
-@[simp] lemma preimage_neg_interval : -([a, b]) = [-a, -b] :=
+@[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
 by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
 
 @[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=

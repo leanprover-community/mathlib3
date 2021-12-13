@@ -59,7 +59,9 @@ variables [linear_ordered_comm_monoid_with_zero α]
 The following facts are true more generally in a (linearly) ordered commutative monoid.
 -/
 
-/-- Pullback a `linear_ordered_comm_monoid_with_zero` under an injective map. -/
+/-- Pullback a `linear_ordered_comm_monoid_with_zero` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   [has_zero β] [has_one β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -70,57 +72,6 @@ def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   ..linear_order.lift f hf,
   ..hf.ordered_comm_monoid f one mul,
   ..hf.comm_monoid_with_zero f zero one mul }
-
-lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
-begin
-  induction n with n ih,
-  { rw pow_zero },
-  { rw pow_succ, exact one_le_mul H ih }
-end
-
-lemma pow_le_one_of_le_one {n : ℕ} (H : x ≤ 1) : x^n ≤ 1 :=
-begin
-  induction n with n ih,
-  { rw pow_zero },
-  { rw pow_succ, exact mul_le_one' H ih }
-end
-
-lemma eq_one_of_pow_eq_one {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
-begin
-  rcases nat.exists_eq_succ_of_ne_zero hn with ⟨n, rfl⟩, clear hn,
-  induction n with n ih,
-  { simpa using H },
-  { cases le_total x 1 with h,
-    all_goals
-    { have h1 := mul_le_mul_right' h (x ^ (n + 1)),
-      rw pow_succ at H,
-      rw [H, one_mul] at h1 },
-    { have h2 := pow_le_one_of_le_one h,
-      exact ih (le_antisymm h2 h1) },
-    { have h2 := one_le_pow_of_one_le' h,
-      exact ih (le_antisymm h1 h2) } }
-end
-
-lemma pow_eq_one_iff {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
-⟨eq_one_of_pow_eq_one hn, by { rintro rfl, exact one_pow _ }⟩
-
-lemma one_le_pow_iff {n : ℕ} (hn : n ≠ 0) : 1 ≤ x^n ↔ 1 ≤ x :=
-begin
-  refine ⟨_, one_le_pow_of_one_le'⟩,
-  contrapose!,
-  intro h, apply lt_of_le_of_ne (pow_le_one_of_le_one (le_of_lt h)),
-  rw [ne.def, pow_eq_one_iff hn],
-  exact ne_of_lt h,
-end
-
-lemma pow_le_one_iff {n : ℕ} (hn : n ≠ 0) : x^n ≤ 1 ↔ x ≤ 1 :=
-begin
-  refine ⟨_, pow_le_one_of_le_one⟩,
-  contrapose!,
-  intro h, apply lt_of_le_of_ne (one_le_pow_of_one_le' (le_of_lt h)),
-  rw [ne.def, eq_comm, pow_eq_one_iff hn],
-  exact ne_of_gt h,
-end
 
 lemma zero_le_one' : (0 : α) ≤ 1 :=
 linear_ordered_comm_monoid_with_zero.zero_le_one
@@ -168,11 +119,11 @@ le_of_le_mul_right h (by simpa [h] using hab)
 
 lemma div_le_div' (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
-begin
-  by_cases ha : a = 0, { simp [ha] },
-  by_cases hc : c = 0, { simp [inv_ne_zero hb, hc, hd], },
-  exact @div_le_div_iff' _ _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd)
-end
+if ha : a = 0 then by simp [ha] else
+if hc : c = 0 then by simp [inv_ne_zero hb, hc, hd] else
+show (units.mk0 a ha) * (units.mk0 b hb)⁻¹ ≤ (units.mk0 c hc) * (units.mk0 d hd)⁻¹ ↔
+  (units.mk0 a ha) * (units.mk0 d hd) ≤ (units.mk0 c hc) * (units.mk0 b hb),
+from mul_inv_le_mul_inv_iff'
 
 @[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=
 zero_lt_iff.2 $ u.ne_zero
@@ -182,8 +133,8 @@ have hb : b ≠ 0 := ne_zero_of_lt hab,
 have hd : d ≠ 0 := ne_zero_of_lt hcd,
 if ha : a = 0 then by { rw [ha, zero_mul, zero_lt_iff], exact mul_ne_zero hb hd } else
 if hc : c = 0 then by { rw [hc, mul_zero, zero_lt_iff], exact mul_ne_zero hb hd } else
-@mul_lt_mul''' _
-  (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) _ _ _ _ _ _ hab hcd
+show (units.mk0 a ha) * (units.mk0 c hc) < (units.mk0 b hb) * (units.mk0 d hd),
+from mul_lt_mul''' hab hcd
 
 lemma mul_inv_lt_of_lt_mul' (h : x < y * z) : x * z⁻¹ < y :=
 have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,
@@ -200,10 +151,12 @@ lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ 
 by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ hx, lt_trans ih (pow_lt_pow_succ hx)] }
 
 lemma inv_lt_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ < b⁻¹ ↔ b < a :=
-@inv_lt_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
+show (units.mk0 a ha)⁻¹ < (units.mk0 b hb)⁻¹ ↔ (units.mk0 b hb) < (units.mk0 a ha),
+from inv_lt_inv_iff
 
 lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
-@inv_le_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
+show (units.mk0 a ha)⁻¹ ≤ (units.mk0 b hb)⁻¹ ↔ (units.mk0 b hb) ≤ (units.mk0 a ha),
+from inv_le_inv_iff
 
 instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
 { neg_top := inv_zero,
@@ -217,18 +170,21 @@ namespace monoid_hom
 variables {R : Type*} [ring R] (f : R →* α)
 
 theorem map_neg_one : f (-1) = 1 :=
-begin
-  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
-  rw [sq, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
-end
+(pow_eq_one_iff (nat.succ_ne_zero 1)).1 $
+  calc f (-1) ^ 2 = f (-1) * f(-1) : sq _
+              ... = f ((-1) * - 1) : (f.map_mul _ _).symm
+              ... = f ( - - 1)     : congr_arg _ (neg_one_mul _)
+              ... = f 1            : congr_arg _ (neg_neg _)
+              ... = 1              : map_one f
 
 @[simp] lemma map_neg (x : R) : f (-x) = f x :=
-calc f (-x) = f (-1 * x)   : by rw [neg_one_mul]
+calc f (-x) = f (-1 * x)   : congr_arg _ (neg_one_mul _).symm
         ... = f (-1) * f x : map_mul _ _ _
-        ... = f x          : by rw [f.map_neg_one, one_mul]
+        ... = 1 * f x      : _root_.congr_arg (λ g, g * (f x)) (map_neg_one f)
+        ... = f x          : one_mul _
 
 lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
-calc f (x - y) = f (-(y - x)) : by rw show x - y = -(y-x), by abel
-           ... = _ : map_neg _ _
+calc f (x - y) = f (-(y - x)) : congr_arg _ (neg_sub _ _).symm
+           ... = _            : map_neg _ _
 
 end monoid_hom

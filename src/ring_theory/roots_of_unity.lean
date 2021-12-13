@@ -794,8 +794,8 @@ variables [char_zero K]
 /--The minimal polynomial of a root of unity `μ` divides `X ^ n - 1`. -/
 lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
-  apply integer_dvd (is_integral h hpos) (polynomial.monic.is_primitive
-  (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
+  apply minpoly.gcd_domain_dvd ℚ (is_integral h hpos) (polynomial.monic.is_primitive
+    (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
@@ -806,8 +806,8 @@ lemma separable_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
     (minpoly ℤ μ)) ∣ X ^ n - 1,
-  { simpa [map_pow, map_X, map_one, ring_hom.coe_of, map_sub] using
-      ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p))))
+  { simpa [map_pow, map_X, map_one, map_sub] using
+      ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p)))
         (minpoly_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
   by_contra hzero,
@@ -825,7 +825,7 @@ lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
   minpoly ℤ μ ∣
   expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
-  apply minpoly.integer_dvd (h.is_integral hpos),
+  apply minpoly.gcd_domain_dvd ℚ (h.is_integral hpos),
   { apply monic.is_primitive,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
@@ -846,7 +846,7 @@ begin
     map (int.cast_ring_hom (zmod p)) (expand ℤ p Q),
   by rw [← zmod.expand_card, map_expand hprime.1.pos],
   rw [hfrob],
-  apply ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))),
+  apply ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p))),
   exact minpoly_dvd_expand h hpos hprime.1 hdiv
 end
 
@@ -882,13 +882,13 @@ begin
       rw map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic,
       intro hdiv,
       refine hdiff (eq_of_monic_of_associated Pmonic Qmonic _),
-      exact associated_of_dvd_dvd hdiv (dvd_symm_of_irreducible Pirr Qirr hdiv) },
+      exact associated_of_dvd_dvd hdiv (Pirr.dvd_symm Qirr hdiv) },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
       exact minpoly_dvd_X_pow_sub_one h hpos },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
       exact minpoly_dvd_X_pow_sub_one (pow_of_prime h hprime.1 hdiv) hpos } },
-  replace prod := ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))) prod,
-  rw [ring_hom.coe_of, map_mul, map_sub, map_one, map_pow, map_X] at prod,
+  replace prod := ring_hom.map_dvd ((map_ring_hom (int.cast_ring_hom (zmod p)))) prod,
+  rw [coe_map_ring_hom, map_mul, map_sub, map_one, map_pow, map_X] at prod,
   obtain ⟨R, hR⟩ := minpoly_dvd_mod_p h hpos hdiv,
   rw [hR, ← mul_assoc, ← map_mul, ← sq, map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
@@ -903,10 +903,10 @@ begin
     (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
   { exact not_lt_of_le hle habs },
   { replace hunit := degree_eq_zero_of_is_unit hunit,
-    rw degree_map_eq_of_leading_coeff_ne_zero _ _ at hunit,
-    { exact (ne_of_lt (minpoly.degree_pos (is_integral h hpos))).symm hunit },
+    rw degree_map_eq_of_leading_coeff_ne_zero (int.cast_ring_hom (zmod p)) _ at hunit,
+    { exact (minpoly.degree_pos (is_integral h hpos)).ne' hunit },
     simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
-      not_false_iff, one_ne_zero] },
+      not_false_iff, one_ne_zero] }
 end
 
 /-- If `m : ℕ` is coprime with `n`,

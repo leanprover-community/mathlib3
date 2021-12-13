@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.zsqrtd.gaussian_int
+import number_theory.zsqrtd.gaussian_int
 /-!
 # Sums of two squares
 
@@ -16,8 +16,8 @@ open gaussian_int principal_ideal_ring
 namespace nat
 namespace prime
 
-/-- Fermat's theorem on the sum of two squares. Every prime congruent to 1 mod 4 is the sum
-of two squares -/
+/-- **Fermat's theorem on the sum of two squares**. Every prime congruent to 1 mod 4 is the sum
+of two squares. -/
 lemma sq_add_sq (p : ℕ) [hp : _root_.fact p.prime] (hp1 : p % 4 = 1) :
   ∃ a b : ℕ, a ^ 2 + b ^ 2 = p :=
 begin

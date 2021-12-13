@@ -31,13 +31,13 @@ theorem nth_of_fn_aux {n} (f : fin n → α) (i) :
 | (succ m) h l H := nth_of_fn_aux m _ _ begin
   intro j, cases j with j,
   { simp only [nth, of_fn_nth_val, zero_add, dif_pos (show m < n, from h)] },
-  { simp only [nth, H, succ_add] }
+  { simp only [nth, H, add_succ, succ_add] }
 end
 
 @[simp] theorem nth_of_fn {n} (f : fin n → α) (i) :
   nth (of_fn f) i = of_fn_nth_val f i :=
 nth_of_fn_aux f _ _ _ _ $ λ i,
-by simp only [of_fn_nth_val, dif_neg (not_lt.2 (le_add_left n i))]; refl
+by simp only [of_fn_nth_val, dif_neg (not_lt.2 (nat.le_add_left n i))]; refl
 
 theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
   nth_le (of_fn f) i ((length_of_fn f).symm ▸ i.2) = f i :=

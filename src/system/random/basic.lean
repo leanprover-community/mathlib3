@@ -273,7 +273,7 @@ instance fin_bounded_random (n : ℕ) : bounded_random (fin n) :=
 a proof that `0 < n` rather than on matching on `fin (succ n)`  -/
 def random_fin_of_pos : ∀ {n : ℕ} (h : 0 < n), random (fin n)
 | (succ n) _ := fin_random _
-| 0 h := false.elim (not_lt_zero _ h)
+| 0 h := false.elim (nat.not_lt_zero _ h)
 
 lemma bool_of_nat_mem_Icc_of_mem_Icc_to_nat (x y : bool) (n : ℕ) :
   n ∈ (x.to_nat .. y.to_nat) → bool.of_nat n ∈ (x .. y) :=

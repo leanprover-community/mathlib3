@@ -65,7 +65,7 @@ variables [conditionally_complete_linear_order α]
 theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l : f.Limsup < b) :
   ∀ᶠ a in f, a < b :=
 let ⟨c, (h : ∀ᶠ a in f, a ≤ c), hcb⟩ := exists_lt_of_cInf_lt h l in
-mem_sets_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
+mem_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
 
 theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → b < f.Liminf →
   ∀ᶠ a in f, b < a :=
@@ -83,7 +83,7 @@ tendsto_order.2 $ and.intro
   (assume b hb, lt_mem_sets_of_Limsup_lt hl $ hs.symm ▸ hb)
 
 theorem Limsup_nhds (a : α) : Limsup (𝓝 a) = a :=
-cInf_intro (is_bounded_le_nhds a)
+cInf_eq_of_forall_ge_of_forall_gt_exists_lt (is_bounded_le_nhds a)
   (assume a' (h : {n : α | n ≤ a'} ∈ 𝓝 a), show a ≤ a', from @mem_of_mem_nhds α _ a _ h)
   (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ 𝓝 a), c < b, from
     match dense_or_discrete a b with

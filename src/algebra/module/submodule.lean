@@ -183,6 +183,63 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
 
+/-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
+@[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
+p.subtype.map_sum
+
+section restrict_scalars
+variables (S) [module R M] [is_scalar_tower S R M]
+
+/--
+`V.restrict_scalars S` is the `S`-submodule of the `S`-module given by restriction of scalars,
+corresponding to `V`, an `R`-submodule of the original `R`-module.
+-/
+@[simps]
+def restrict_scalars (V : submodule R M) : submodule S M :=
+{ carrier := V.carrier,
+  zero_mem' := V.zero_mem,
+  smul_mem' := λ c m h, V.smul_of_tower_mem c h,
+  add_mem' := λ x y hx hy, V.add_mem hx hy }
+
+@[simp]
+lemma restrict_scalars_mem (V : submodule R M) (m : M) :
+  m ∈ V.restrict_scalars S ↔ m ∈ V :=
+iff.refl _
+
+variables (R S M)
+
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars S : submodule R M → submodule S M) :=
+λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (set_like.ext'_iff.1 h); refl
+
+@[simp] lemma restrict_scalars_inj {V₁ V₂ : submodule R M} :
+  restrict_scalars S V₁ = restrict_scalars S V₂ ↔ V₁ = V₂ :=
+(restrict_scalars_injective S _ _).eq_iff
+
+/-- Even though `p.restrict_scalars S` has type `submodule S M`, it is still an `R`-module. -/
+instance restrict_scalars.orig_module (p : submodule R M) :
+  module R (p.restrict_scalars S) :=
+(by apply_instance : module R p)
+
+instance (p : submodule R M) : is_scalar_tower S R (p.restrict_scalars S) :=
+{ smul_assoc := λ r s x, subtype.ext $ smul_assoc r s (x : M) }
+
+/-- `restrict_scalars S` is an embedding of the lattice of `R`-submodules into
+the lattice of `S`-submodules. -/
+@[simps]
+def restrict_scalars_embedding : submodule R M ↪o submodule S M :=
+{ to_fun := restrict_scalars S,
+  inj' := restrict_scalars_injective S R M,
+  map_rel_iff' := λ p q, by simp [set_like.le_def] }
+
+/-- Turning `p : submodule R M` into an `S`-submodule gives the same module structure
+as turning it into a type and adding a module structure. -/
+@[simps {simp_rhs := tt}]
+def restrict_scalars_equiv (p : submodule R M) : p.restrict_scalars S ≃ₗ[R] p :=
+{ to_fun := id, inv_fun := id, map_smul' := λ c x, rfl, .. add_equiv.refl p }
+
+end restrict_scalars
+
 end add_comm_monoid
 
 section add_comm_group

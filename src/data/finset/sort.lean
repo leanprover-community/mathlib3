@@ -43,6 +43,9 @@ multiset.mem_sort _
 @[simp] theorem length_sort {s : finset α} : (sort r s).length = s.card :=
 multiset.length_sort _
 
+lemma sort_perm_to_list (s : finset α) : sort r s ~ s.to_list :=
+by { rw ←multiset.coe_eq_coe, simp only [coe_to_list, sort_eq] }
+
 end sort
 
 section sort_linear_order
@@ -97,14 +100,14 @@ sorted_last_eq_max'_aux _ _ _
 
 lemma max'_eq_sorted_last {s : finset α} {h : s.nonempty} :
   s.max' h = (s.sort (≤)).nth_le ((s.sort (≤)).length - 1)
-    (by simpa using sub_lt (card_pos.mpr h) zero_lt_one) :=
+    (by simpa using nat.sub_lt (card_pos.mpr h) zero_lt_one) :=
 (sorted_last_eq_max'_aux _ _ _).symm
 
 /-- Given a finset `s` of cardinality `k` in a linear order `α`, the map `order_iso_of_fin s h`
 is the increasing bijection between `fin k` and `s` as an `order_iso`. Here, `h` is a proof that
 the cardinality of `s` is `k`. We use this instead of an iso `fin s.card ≃o s` to avoid
 casting issues in further uses of this function. -/
-def order_iso_of_fin (s : finset α) {k : ℕ} (h : s.card = k) : fin k ≃o (s : set α) :=
+def order_iso_of_fin (s : finset α) {k : ℕ} (h : s.card = k) : fin k ≃o s :=
 order_iso.trans (fin.cast ((length_sort (≤)).trans h).symm) $
   (s.sort_sorted_lt.nth_le_iso _).trans $ order_iso.set_congr _ _ $
     set.ext $ λ x, mem_sort _
@@ -120,7 +123,7 @@ def order_emb_of_fin (s : finset α) {k : ℕ} (h : s.card = k) : fin k ↪o α 
   ↑(order_iso_of_fin s h i) = order_emb_of_fin s h i :=
 rfl
 
-lemma order_iso_of_fin_symm_apply (s : finset α) {k : ℕ} (h : s.card = k) (x : (s : set α)) :
+lemma order_iso_of_fin_symm_apply (s : finset α) {k : ℕ} (h : s.card = k) (x : s) :
   ↑((s.order_iso_of_fin h).symm x) = (s.sort (≤)).index_of x :=
 rfl
 
@@ -194,7 +197,7 @@ begin
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
     (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
-  let f : fin (s.card - 1) → (t : set α) :=
+  let f : fin (s.card - 1) → t :=
   λ i, ⟨classical.some (p i), (exists_prop.mp (classical.some_spec (p i))).1⟩,
   have hf : ∀ i j : fin (s.card - 1), i < j → f i < f j :=
   λ i j hij, subtype.coe_lt_coe.mp ((exists_prop.mp (classical.some_spec (p i))).2.2.trans

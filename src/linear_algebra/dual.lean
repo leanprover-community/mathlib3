@@ -263,7 +263,7 @@ theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : 
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
-  have := linear_equiv.dim_eq_lift b.to_dual_equiv,
+  have := linear_equiv.lift_dim_eq b.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
   apply cardinal.lift_id,
@@ -388,7 +388,7 @@ lemma mem_of_mem_span {H : set ι} {x : M} (hmem : x ∈ submodule.span R (e '' 
   ∀ i : ι, ε i x ≠ 0 → i ∈ H :=
 begin
   intros i hi,
-  rcases (finsupp.mem_span_iff_total _).mp hmem with ⟨l, supp_l, rfl⟩,
+  rcases (finsupp.mem_span_image_iff_total _).mp hmem with ⟨l, supp_l, rfl⟩,
   apply not_imp_comm.mp ((finsupp.mem_supported' _ _).mp supp_l i),
   rwa [← lc_def, h.dual_lc] at hi
 end

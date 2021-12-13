@@ -3,8 +3,8 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.algebra.subalgebra
 import analysis.special_functions.bernstein
+import topology.algebra.algebra
 
 /-!
 # The Weierstrass approximation theorem for continuous functions on `[a,b]`
@@ -44,7 +44,7 @@ begin
 end
 
 /--
-The Weierstrass approximation theorem:
+The **Weierstrass Approximation Theorem**:
 polynomials functions on `[a, b] ⊆ ℝ` are dense in `C([a,b],ℝ)`
 
 (While we could deduce this as an application of the Stone-Weierstrass theorem,

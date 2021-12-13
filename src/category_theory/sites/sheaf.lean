@@ -84,7 +84,8 @@ lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type v) :
 begin
   split,
   { intros hP,
-    exact presieve.is_sheaf_iso J (coyoneda.iso_comp_punit _) (hP punit) },
+    refine presieve.is_sheaf_iso J _ (hP punit),
+    exact iso_whisker_left _ coyoneda.punit_iso ≪≫ P.right_unitor },
   { intros hP X Y S hS z hz,
     refine ⟨λ x, (hP S hS).amalgamate (λ Z f hf, z f hf x) _, _, _⟩,
     { intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ h,
@@ -264,7 +265,7 @@ begin
   letI : reflects_limits s := reflects_limits_of_reflects_isomorphisms,
   have : is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃ is_limit (fork.of_ι _ (w R (P ⋙ s))) :=
     is_sheaf_for_is_sheaf_for' P s U R,
-  rw ←equiv.nonempty_iff_nonempty this,
+  rw ←equiv.nonempty_congr this,
   split,
   { exact nonempty.map (λ t, is_limit_of_preserves s t) },
   { exact nonempty.map (λ t, is_limit_of_reflects s t) }

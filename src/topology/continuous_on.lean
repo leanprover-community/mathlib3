@@ -87,16 +87,32 @@ begin
   exact (nhds a).sets_of_superset ((nhds a).inter_sets Hw h1) hw,
 end
 
+lemma preimage_nhds_within_coinduced' {π : α → β} {s : set β} {t : set α} {a : α}
+  (h : a ∈ t) (ht : is_open t)
+  (hs : s ∈ @nhds β (topological_space.coinduced (λ x : t, π x) subtype.topological_space) (π a)) :
+  π ⁻¹' s ∈ 𝓝[t] a :=
+begin
+  letI := topological_space.coinduced (λ x : t, π x) subtype.topological_space,
+  rcases mem_nhds_iff.mp hs with ⟨V, hVs, V_op, mem_V⟩,
+  refine mem_nhds_within_iff_exists_mem_nhds_inter.mpr ⟨π ⁻¹' V, mem_nhds_iff.mpr ⟨t ∩ π ⁻¹' V,
+    inter_subset_right t (π ⁻¹' V), _, mem_sep h mem_V⟩, subset.trans (inter_subset_left _ _)
+    (preimage_mono hVs)⟩,
+  obtain ⟨u, hu1, hu2⟩ := is_open_induced_iff.mp (is_open_coinduced.1 V_op),
+  rw [preimage_comp] at hu2,
+  rw [set.inter_comm, ←(subtype.preimage_coe_eq_preimage_coe_iff.mp hu2)],
+  exact hu1.inter ht,
+end
+
 lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
   s ∈ 𝓝[t] a :=
-mem_inf_sets_of_left h
+mem_inf_of_left h
 
 theorem self_mem_nhds_within {a : α} {s : set α} : s ∈ 𝓝[s] a :=
-mem_inf_sets_of_right (mem_principal_self s)
+mem_inf_of_right (mem_principal_self s)
 
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝 a) :
   s ∩ t ∈ 𝓝[s] a :=
-inter_mem_sets self_mem_nhds_within (mem_inf_sets_of_left h)
+inter_mem self_mem_nhds_within (mem_inf_of_left h)
 
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : 𝓝[s] a ≤ 𝓝[t] a :=
 inf_le_inf_left _ (principal_mono.mpr h)
@@ -119,12 +135,12 @@ tendsto_const_pure.mono_right $ pure_le_nhds_within ha
 theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ 𝓝[s] a) :
   𝓝[s] a = 𝓝[s ∩ t] a :=
 le_antisymm
-  (le_inf inf_le_left (le_principal_iff.mpr (inter_mem_sets self_mem_nhds_within h)))
+  (le_inf inf_le_left (le_principal_iff.mpr (inter_mem self_mem_nhds_within h)))
   (inf_le_inf_left _ (principal_mono.mpr (set.inter_subset_left _ _)))
 
 theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ 𝓝 a) :
   𝓝[s] a = 𝓝[s ∩ t] a :=
-nhds_within_restrict'' s $ mem_inf_sets_of_left h
+nhds_within_restrict'' s $ mem_inf_of_left h
 
 theorem nhds_within_restrict {a : α} (s : set α) {t : set α} (h₀ : a ∈ t) (h₁ : is_open t) :
   𝓝[s] a = 𝓝[s ∩ t] a :=
@@ -140,7 +156,7 @@ begin
 end
 
 theorem nhds_within_le_nhds {a : α} {s : set α} : 𝓝[s] a ≤ 𝓝 a :=
-by { rw ← nhds_within_univ, apply nhds_within_le_of_mem, exact univ_mem_sets }
+by { rw ← nhds_within_univ, apply nhds_within_le_of_mem, exact univ_mem }
 
 theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
     (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :
@@ -150,6 +166,12 @@ by rw [nhds_within_restrict t h₀ h₁, nhds_within_restrict u h₀ h₁, h₂]
 theorem nhds_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is_open s) :
   𝓝[s] a = 𝓝 a :=
 inf_eq_left.2 $ le_principal_iff.2 $ is_open.mem_nhds h₁ h₀
+
+lemma preimage_nhds_within_coinduced {π : α → β} {s : set β} {t : set α} {a : α}
+  (h : a ∈ t) (ht : is_open t)
+  (hs : s ∈ @nhds β (topological_space.coinduced (λ x : t, π x) subtype.topological_space) (π a)) :
+  π ⁻¹' s ∈ 𝓝 a :=
+by { rw ←nhds_within_eq_of_open h ht, exact preimage_nhds_within_coinduced' h ht hs }
 
 @[simp] theorem nhds_within_empty (a : α) : 𝓝[∅] a = ⊥ :=
 by rw [nhds_within, principal_empty, inf_bot_eq]
@@ -183,7 +205,7 @@ by simp
 
 lemma insert_mem_nhds_within_insert {a : α} {s t : set α} (h : t ∈ 𝓝[s] a) :
   insert a t ∈ 𝓝[insert a s] a :=
-by simp [mem_sets_of_superset h]
+by simp [mem_of_superset h]
 
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   (a : α) (b : β) (s : set α) (t : set β) :
@@ -225,7 +247,7 @@ begin
   classical,
   split,
   { haveI : Π i, inhabited (α i) := λ i, ⟨x i⟩,
-    simp only [nhds_within, nhds_pi, inf_principal_eq_bot, mem_infi_iff', mem_comap_sets],
+    simp only [nhds_within, nhds_pi, inf_principal_eq_bot, mem_infi', mem_comap],
     rintro ⟨I, hIf, V, hV, hVs⟩, choose! t htx htV using hV,
     contrapose! hVs,
     change ∀ i, ∃ᶠ y in 𝓝 (x i), y ∈ s i at hVs,
@@ -233,7 +255,7 @@ begin
     choose! y hys hyt,
     choose z hzs using λ i, (hVs i).exists,
     suffices : I.piecewise y z ∈ (⋂ i ∈ I, V i) ∩ (pi univ s),
-      from λ H, H this.1 this.2,
+    { intro H, simpa [← H] },
     refine ⟨mem_bInter $ λ i hi, htV i hi _, λ i hi', _⟩,
     { simp only [mem_preimage, piecewise_eq_of_mem _ _ _ hi, hyt i hi] },
     { by_cases hi : i ∈ I; simp * } },
@@ -295,10 +317,6 @@ theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   𝓟 t = comap coe (𝓟 ((coe : s → α) '' t)) :=
 by rw [comap_principal, set.preimage_image_eq _ subtype.coe_injective]
 
-lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
-  x ∈ closure s ↔ ne_bot (𝓝[s] x) :=
-mem_closure_iff_cluster_pt
-
 lemma nhds_within_ne_bot_of_mem {s : set α} {x : α} (hx : x ∈ s) :
   ne_bot (𝓝[s] x) :=
 mem_closure_iff_nhds_within_ne_bot.1 $ subset_closure hx
@@ -333,7 +351,7 @@ mem_inf_principal
 
 lemma eventually_eq_nhds_within_of_eq_on {f g : α → β} {s : set α} {a : α} (h : eq_on f g s) :
   f =ᶠ[𝓝[s] a] g :=
-mem_inf_sets_of_right h
+mem_inf_of_right h
 
 lemma set.eq_on.eventually_eq_nhds_within {f g : α → β} {s : set α} {a : α} (h : eq_on f g s) :
   f =ᶠ[𝓝[s] a] g :=
@@ -345,7 +363,7 @@ lemma tendsto_nhds_within_congr {f g : α → β} {s : set α} {a : α} {l : fil
 
 lemma eventually_nhds_with_of_forall {s : set α} {a : α} {p : α → Prop} (h : ∀ x ∈ s, p x) :
   ∀ᶠ x in 𝓝[s] a, p x :=
-mem_inf_sets_of_right h
+mem_inf_of_right h
 
 lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {a : α} {l : filter β}
   {s : set α} (f : β → α) (h1 : tendsto f l (𝓝 a)) (h2 : ∀ᶠ x in l, f x ∈ s) :
@@ -381,6 +399,16 @@ filter.ext $ λ u, mem_nhds_within_subtype
 theorem nhds_within_eq_map_subtype_coe {s : set α} {a : α} (h : a ∈ s) :
   𝓝[s] a = map (coe : s → α) (𝓝 ⟨a, h⟩) :=
 by simpa only [subtype.range_coe] using (embedding_subtype_coe.map_nhds_eq ⟨a, h⟩).symm
+
+theorem mem_nhds_subtype_iff_nhds_within {s : set α} {a : s} {t : set s} :
+  t ∈ 𝓝 a ↔ coe '' t ∈ 𝓝[s] (a : α) :=
+by rw [nhds_within_eq_map_subtype_coe a.coe_prop, mem_map,
+  preimage_image_eq _ subtype.coe_injective, subtype.coe_eta]
+
+theorem preimage_coe_mem_nhds_subtype {s t : set α} {a : s} :
+  coe ⁻¹' t ∈ 𝓝 a ↔ t ∈ 𝓝[s] ↑a :=
+by simp only [mem_nhds_subtype_iff_nhds_within, subtype.image_preimage_coe, inter_mem_iff,
+  self_mem_nhds_within, and_true]
 
 theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
   tendsto f (𝓝[s] a) l ↔ tendsto (s.restrict f) (𝓝 ⟨a, h⟩) l :=
@@ -420,7 +448,7 @@ tendsto_nhds_within_iff_subtype h f _
 theorem continuous_within_at.tendsto_nhds_within {f : α → β} {x : α} {s : set α} {t : set β}
   (h : continuous_within_at f s x) (ht : maps_to f s t) :
   tendsto f (𝓝[s] x) (𝓝[t] (f x)) :=
-tendsto_inf.2 ⟨h, tendsto_principal.2 $ mem_inf_sets_of_right $ mem_principal_sets.2 $ ht⟩
+tendsto_inf.2 ⟨h, tendsto_principal.2 $ mem_inf_of_right $ mem_principal.2 $ ht⟩
 
 theorem continuous_within_at.tendsto_nhds_within_image {f : α → β} {x : α} {s : set α}
   (h : continuous_within_at f s x) :
@@ -532,7 +560,7 @@ lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : 
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
 by haveI := (mem_closure_iff_nhds_within_ne_bot.1 hx);
 exact (mem_closure_of_tendsto h $
-  mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s))
+  mem_of_superset self_mem_nhds_within (subset_preimage_image f s))
 
 lemma continuous_within_at.mem_closure {f : α → β} {s : set α} {x : α} {A : set β}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : s ⊆ f⁻¹' A) : f x ∈ closure A :=
@@ -636,6 +664,11 @@ lemma continuous_within_at.comp' {g : β → γ} {f : α → β} {s : set α} {t
   continuous_within_at (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
+lemma continuous_at.comp_continuous_within_at {g : β → γ} {f : α → β} {s : set α} {x : α}
+  (hg : continuous_at g (f x)) (hf : continuous_within_at f s x) :
+  continuous_within_at (g ∘ f) s x :=
+hg.continuous_within_at.comp hf subset_preimage_univ
+
 lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
   (hg : continuous_on g t) (hf : continuous_on f s) (h : s ⊆ f ⁻¹' t) :
   continuous_on (g ∘ f) s :=
@@ -710,7 +743,7 @@ by rwa [continuous_within_at, filter.tendsto, hx, filter.map_congr h₁]
 lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
-h.congr_of_eventually_eq (mem_sets_of_superset self_mem_nhds_within h₁) hx
+h.congr_of_eventually_eq (mem_of_superset self_mem_nhds_within h₁) hx
 
 lemma continuous_within_at.congr_mono {f g : α → β} {s s₁ : set α} {x : α}
   (h : continuous_within_at f s x) (h' : eq_on g f s₁) (h₁ : s₁ ⊆ s) (hx : g x = f x):
@@ -747,6 +780,13 @@ end
 lemma continuous_on.preimage_open_of_open {f : α → β} {s : set α} {t : set β}
   (hf : continuous_on f s) (hs : is_open s) (ht : is_open t) : is_open (s ∩ f⁻¹' t) :=
 (continuous_on_open_iff hs).1 hf t ht
+
+lemma continuous_on.is_open_preimage {f : α → β} {s : set α} {t : set β} (h : continuous_on f s)
+  (hs : is_open s) (hp : f ⁻¹' t ⊆ s) (ht : is_open t) : is_open (f ⁻¹' t) :=
+begin
+  convert (continuous_on_open_iff hs).mp h t ht,
+  rw [inter_comm, inter_eq_self_of_subset_left hp],
+end
 
 lemma continuous_on.preimage_closed_of_closed {f : α → β} {s : set α} {t : set β}
   (hf : continuous_on f s) (hs : is_closed s) (ht : is_closed t) : is_closed (s ∩ f⁻¹' t) :=
@@ -975,3 +1015,16 @@ continuous_snd.continuous_on
 lemma continuous_within_at_snd {s : set (α × β)} {p : α × β} :
   continuous_within_at prod.snd s p :=
 continuous_snd.continuous_within_at
+
+lemma continuous_within_at.fst {f : α → β × γ} {s : set α} {a : α}
+  (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).fst) s a :=
+continuous_at_fst.comp_continuous_within_at h
+
+lemma continuous_within_at.snd {f : α → β × γ} {s : set α} {a : α}
+  (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).snd) s a :=
+continuous_at_snd.comp_continuous_within_at h
+
+lemma continuous_within_at_prod_iff {f : α → β × γ} {s : set α} {x : α} :
+  continuous_within_at f s x ↔ continuous_within_at (prod.fst ∘ f) s x ∧
+  continuous_within_at (prod.snd ∘ f) s x :=
+⟨λ h, ⟨h.fst, h.snd⟩, by { rintro ⟨h1, h2⟩, convert h1.prod h2, ext, refl, refl }⟩

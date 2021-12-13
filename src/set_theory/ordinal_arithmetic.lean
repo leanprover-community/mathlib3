@@ -155,11 +155,14 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
   exact ⟨f punit.star⟩
 end, λ e, by simp only [e, card_zero]⟩
 
+@[simp] theorem type_eq_zero_of_empty [is_well_order α r] [is_empty α] : type r = 0 :=
+card_eq_zero.symm.mpr eq_zero_of_is_empty
+
+@[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
+(@card_eq_zero (type r)).symm.trans eq_zero_iff_is_empty
+
 theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
 (not_congr (@card_eq_zero (type r))).symm.trans ne_zero_iff_nonempty
-
-@[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ ¬ nonempty α :=
-(not_iff_comm.1 type_ne_zero_iff_nonempty).symm
 
 protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
 type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
@@ -479,7 +482,7 @@ by rw ← ordinal.le_zero; apply sub_le_self
 @[simp] theorem sub_self (a : ordinal) : a - a = 0 :=
 by simpa only [add_zero] using add_sub_cancel a 0
 
-theorem sub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
+protected theorem sub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
 ⟨λ h, by simpa only [h, add_zero] using le_add_sub a b,
  λ h, by rwa [← ordinal.le_zero, sub_le, add_zero]⟩
 
@@ -547,12 +550,10 @@ quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 mul_comm (mk β) (mk α)
 
 @[simp] theorem mul_zero (a : ordinal) : a * 0 = 0 :=
-induction_on a $ λ α _ _, by exactI
-type_eq_zero_iff_empty.2 (λ ⟨⟨e, _⟩⟩, e.elim)
+induction_on a $ λ α _ _, by exactI type_eq_zero_of_empty
 
 @[simp] theorem zero_mul (a : ordinal) : 0 * a = 0 :=
-induction_on a $ λ α _ _, by exactI
-type_eq_zero_iff_empty.2 (λ ⟨⟨_, e⟩⟩, e.elim)
+induction_on a $ λ α _ _, by exactI type_eq_zero_of_empty
 
 theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
@@ -940,7 +941,7 @@ theorem zero_power' (a : ordinal) : 0 ^ a = 1 - a :=
 by simp only [pow, power, if_pos rfl]
 
 @[simp] theorem zero_power {a : ordinal} (a0 : a ≠ 0) : 0 ^ a = 0 :=
-by rwa [zero_power', sub_eq_zero_iff_le, one_le_iff_ne_zero]
+by rwa [zero_power', ordinal.sub_eq_zero_iff_le, one_le_iff_ne_zero]
 
 @[simp] theorem power_zero (a : ordinal) : a ^ 0 = 1 :=
 by by_cases a = 0; [simp only [pow, power, if_pos h, sub_zero],
@@ -1331,7 +1332,7 @@ not_congr nat_cast_eq_zero
 
 @[simp] theorem nat_cast_sub {m n : ℕ} : ((m - n : ℕ) : ordinal) = m - n :=
 (_root_.le_total m n).elim
-  (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
+  (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
   (λ h, (add_left_cancel n).1 $ by rw [← nat.cast_add,
      nat.add_sub_cancel' h, add_sub_cancel_of_le (nat_cast_le.2 h)])
 

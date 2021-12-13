@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.big_operators.order
+import data.nat.totient
 import group_theory.order_of_element
+import tactic.group
 
 /-!
 # Cyclic groups
@@ -265,11 +268,10 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
   finset.sum_congr rfl
     (λ m hm, have hmd : m < d.succ, from mem_range.1 (mem_filter.1 hm).1,
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
-      card_order_of_eq_totient_aux₁ (dvd.trans hm hd) (finset.card_pos.2
+      card_order_of_eq_totient_aux₁ (hm.trans hd) (finset.card_pos.2
         ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
           by { rw [order_of_pow a, ha, gcd_eq_right (div_dvd_of_dvd hm),
-                nat.div_div_self hm (succ_pos _)]
-                }⟩⟩)),
+                nat.div_div_self hm (succ_pos _)] }⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
   from (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
@@ -329,7 +331,7 @@ lt_irrefl c $
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
 have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,
 from (card_pos.1 $
-  by rw [card_order_of_eq_totient_aux₂ hn (dvd_refl _)];
+  by rw [card_order_of_eq_totient_aux₂ hn dvd_rfl];
   exact totient_pos (fintype.card_pos_iff.2 ⟨1⟩)),
 let ⟨x, hx⟩ := this in
 is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2
@@ -362,6 +364,40 @@ end, λ H Hn, begin
 end⟩
 
 end cyclic
+
+section quotient_center
+
+open subgroup
+
+variables {G : Type*} {H : Type*} [group G] [group H]
+
+/-- A group is commutative if the quotient by the center is cyclic.
+  Also see `comm_group_of_cycle_center_quotient` for the `comm_group` instance -/
+lemma commutative_of_cyclic_center_quotient [is_cyclic H] (f : G →* H)
+  (hf : f.ker ≤ center G) (a b : G) : a * b = b * a :=
+let ⟨⟨x, y, (hxy : f y = x)⟩, (hx : ∀ a : f.range, a ∈ gpowers _)⟩ :=
+  is_cyclic.exists_generator f.range in
+let ⟨m, hm⟩ := hx ⟨f a, a, rfl⟩ in
+let ⟨n, hn⟩ := hx ⟨f b, b, rfl⟩ in
+have hm : x ^ m = f a, by simpa [subtype.ext_iff] using hm,
+have hn : x ^ n = f b, by simpa [subtype.ext_iff] using hn,
+have ha : y ^ (-m) * a ∈ center G,
+  from hf (by rw [f.mem_ker, f.map_mul, f.map_gpow, hxy, gpow_neg, hm, inv_mul_self]),
+have hb : y ^ (-n) * b ∈ center G,
+  from hf (by rw [f.mem_ker, f.map_mul, f.map_gpow, hxy, gpow_neg, hn, inv_mul_self]),
+calc a * b = y ^ m * ((y ^ (-m) * a) * y ^ n) * (y ^ (-n) * b) : by simp [mul_assoc]
+... = y ^ m * (y ^ n * (y ^ (-m) * a)) * (y ^ (-n) * b) : by rw [mem_center_iff.1 ha]
+... = y ^ m * y ^ n * y ^ (-m) * (a * (y ^ (-n) * b)) : by simp [mul_assoc]
+... = y ^ m * y ^ n * y ^ (-m) * ((y ^ (-n) * b) * a) : by rw [mem_center_iff.1 hb]
+... = b * a : by group
+
+/-- A group is commutative if the quotient by the center is cyclic. -/
+def comm_group_of_cycle_center_quotient [is_cyclic H] (f : G →* H)
+  (hf : f.ker ≤ center G) : comm_group G :=
+{ mul_comm := commutative_of_cyclic_center_quotient f hf,
+  ..show group G, by apply_instance }
+
+end quotient_center
 
 namespace is_simple_group
 

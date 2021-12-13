@@ -144,18 +144,18 @@ lemma separation_rel_comap  {f : α → β}
   𝓢 α = (prod.map f f) ⁻¹' 𝓢 β :=
 begin
   dsimp [separation_rel],
-  rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
-      ← preimage_bInter, sInter_eq_bInter],
+  simp_rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
+      ← preimage_Inter, sInter_eq_bInter],
   refl,
 end
 
-protected lemma filter.has_basis.separation_rel {ι : Type*} {p : ι → Prop} {s : ι → set (α × α)}
+protected lemma filter.has_basis.separation_rel {ι : Sort*} {p : ι → Prop} {s : ι → set (α × α)}
   (h : has_basis (𝓤 α) p s) :
-  𝓢 α = ⋂ i ∈ set_of p, s i :=
+  𝓢 α = ⋂ i (hi : p i), s i :=
 by { unfold separation_rel, rw h.sInter_sets }
 
 lemma separation_rel_eq_inter_closure : 𝓢 α = ⋂₀ (closure '' (𝓤 α).sets) :=
-by simpa [uniformity_has_basis_closure.separation_rel]
+by simp [uniformity_has_basis_closure.separation_rel]
 
 lemma is_closed_separation_rel : is_closed (𝓢 α) :=
 begin
@@ -168,22 +168,14 @@ end
 lemma separated_iff_t2 : separated_space α ↔ t2_space α :=
 begin
   classical,
-  split ; intro h,
+  split ; introI h,
   { rw [t2_iff_is_closed_diagonal, ← show 𝓢 α = diagonal α, from h.1],
     exact is_closed_separation_rel },
   { rw separated_def',
     intros x y hxy,
-    have : 𝓝 x ⊓ 𝓝 y = ⊥,
-    { rw t2_iff_nhds at h,
-      by_contra H,
-      exact hxy (h ⟨H⟩) },
-    rcases inf_eq_bot_iff.mp this with ⟨U, U_in, V, V_in, H⟩,
-    rcases uniform_space.mem_nhds_iff.mp U_in with ⟨S, S_in, S_sub⟩,
-    use [S, S_in],
-    change y ∉ ball x S,
-    intro y_in,
-    have : y ∈ U ∩ V := ⟨S_sub y_in, mem_of_mem_nhds V_in⟩,
-    rwa H at this },
+    rcases t2_separation hxy with ⟨u, v, uo, vo, hx, hy, h⟩,
+    rcases is_open_iff_ball_subset.1 uo x hx with ⟨r, hrU, hr⟩,
+    exact ⟨r, hrU, λ H, disjoint_iff.2 h ⟨hr H, hy⟩⟩ }
 end
 
 @[priority 100] -- see Note [lower instance priority]
@@ -226,7 +218,7 @@ begin
   suffices : x = y, by rwa this,
   apply eq_of_forall_symmetric,
   intros V V_in V_symm,
-  rcases hx (inter_mem_sets V₁_in V_in) with ⟨z, hz, hz'⟩,
+  rcases hx (inter_mem V₁_in V_in) with ⟨z, hz, hz'⟩,
   suffices : z = y,
   { rw ← this,
     exact ball_inter_right x _ _ hz },
@@ -499,13 +491,12 @@ begin
            separated_of_uniform_continuous uniform_continuous_snd h⟩ },
   { rintros ⟨eqv_α, eqv_β⟩ r r_in,
     rw uniformity_prod at r_in,
-    rcases r_in with ⟨t_α, ⟨r_α, r_α_in, h_α⟩, t_β, ⟨r_β, r_β_in, h_β⟩, H⟩,
-
+    rcases r_in with ⟨t_α, ⟨r_α, r_α_in, h_α⟩, t_β, ⟨r_β, r_β_in, h_β⟩, rfl⟩,
     let p_α := λ(p : (α × β) × (α × β)), (p.1.1, p.2.1),
     let p_β := λ(p : (α × β) × (α × β)), (p.1.2, p.2.2),
     have key_α : p_α ((a₁, b₁), (a₂, b₂)) ∈ r_α, { simp [p_α, eqv_α r_α r_α_in] },
     have key_β : p_β ((a₁, b₁), (a₂, b₂)) ∈ r_β, { simp [p_β, eqv_β r_β r_β_in] },
-    exact H ⟨h_α key_α, h_β key_β⟩ },
+    exact ⟨h_α key_α, h_β key_β⟩ },
 end
 
 instance separated.prod [separated_space α] [separated_space β] : separated_space (α × β) :=

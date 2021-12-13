@@ -267,8 +267,6 @@ noncomputable def equiv_congr {α β M : Type*} [has_zero M] (e : α ≃ β) : (
 theorem equiv_congr_apply {α β M : Type*} [has_zero M] (e : α ≃ β) (g : β →₀ M) (a : α) :
   equiv_congr e g a = g (e a)  :=
 begin
-  --unfold equiv_congr,
-  --dsimp,
   convert emb_domain_apply _ _ _,
   simp,
 end
@@ -289,6 +287,12 @@ def equiv_fun {X Y : Sort*} (A : Sort*) (e : X ≃ Y) : (A → X) ≃ (A → Y) 
 variables {G : Type*} [group G] (i : ℕ)
 
 noncomputable instance : distrib_mul_action G ((fin i → G) →₀ ℤ) :=
+/-
+-- for some reason
+-- introducing the notation at all
+noncomputable instance foo {G : Type*} [group G] (i : ℕ) :
+  distrib_mul_action G ((fin i → G) →₀ ℤ) :=
+-/
 { smul := λ s c, finsupp.equiv_congr (equiv_fun (fin i) (equiv.mul_left s⁻¹ : G ≃ G)) c,
   -- it could be equiv.mul_right s, I didn't check carefully
   one_smul := λ b,

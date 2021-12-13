@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.category.Top.basic
 import category_theory.eq_to_hom
+import category_theory.category.preorder
 
 /-!
 # The category of open sets in a topological space.

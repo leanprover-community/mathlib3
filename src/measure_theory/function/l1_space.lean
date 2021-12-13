@@ -440,7 +440,7 @@ lemma integrable.of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c 
   (hμ'_le : μ' ≤ c • μ) {f : α → β} (hf : integrable f μ) :
   integrable f μ' :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_measure_le_smul c hc hμ'_le, }
-d
+
 lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
   integrable f (μ + ν) :=
 ⟨hμ.ae_measurable.add_measure hν.ae_measurable,

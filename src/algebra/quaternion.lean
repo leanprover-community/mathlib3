@@ -140,12 +140,14 @@ by refine_struct
 
 instance : algebra R ℍ[R, c₁, c₂] :=
 { smul := λ r a, ⟨r * a.1, r * a.2, r * a.3, r * a.4⟩,
+  to_has_opposite_scalar := { smul := λ r a, ⟨r • a.1, r • a.2, r • a.3, r • a.4⟩ },
   to_fun := coe,
   map_one' := rfl,
   map_zero' := rfl,
   map_mul' := λ x y, by ext; simp,
   map_add' := λ x y, by ext; simp,
   smul_def' := λ r x, by ext; simp,
+  op_smul_def' := λ x r, by ext; simp,
   commutes' := λ r x, by ext; simp [mul_comm] }
 
 @[simp] lemma smul_re : (r • a).re = r • a.re := rfl

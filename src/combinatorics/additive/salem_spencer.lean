@@ -26,6 +26,10 @@ the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
 * `roth_number_nat`: The Roth number of a natural. This corresponds to
   `add_roth_number (finset.range n)`.
 
+## TODO
+
+Can `add_salem_spencer_iff_eq_right` be made more general?
+
 ## Tags
 
 Salem-Spencer, Roth, arithmetic progression, average, three-free
@@ -166,8 +170,8 @@ end
 
 end ordered_cancel_comm_monoid
 
-section comm_cancel_monoid_with_zero
-variables [comm_cancel_monoid_with_zero α] [no_zero_divisors α] {s : set α} {a : α}
+section cancel_comm_monoid_with_zero
+variables [cancel_comm_monoid_with_zero α] [no_zero_divisors α] {s : set α} {a : α}
 
 lemma mul_salem_spencer.mul_left₀ (hs : mul_salem_spencer s) (ha : a ≠ 0) :
   mul_salem_spencer ((*) a '' s) :=
@@ -199,7 +203,7 @@ lemma mul_salem_spencer_mul_right_iff₀ (ha : a ≠ 0) :
   by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
   λ hs, hs.mul_right₀ ha⟩
 
-end comm_cancel_monoid_with_zero
+end cancel_comm_monoid_with_zero
 
 section nat
 

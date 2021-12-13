@@ -244,14 +244,14 @@ begin
   exact ⟨⅟2, ⟨inv_of_nonneg.mpr zero_le_two, inv_of_le_one one_le_two⟩, rfl⟩,
 end
 
-lemma self_mem_segment_sub_add [invertible (2 : 𝕜)] (x y : E) :
+lemma mem_segment_sub_add [invertible (2 : 𝕜)] (x y : E) :
   x ∈ [x-y -[𝕜] x+y] :=
 begin
   convert @midpoint_mem_segment 𝕜 _ _ _ _ _ _ _,
   rw midpoint_sub_add
 end
 
-lemma self_mem_segment_add_sub [invertible (2 : 𝕜)] (x y : E) :
+lemma mem_segment_add_sub [invertible (2 : 𝕜)] (x y : E) :
   x ∈ [x+y -[𝕜] x-y] :=
 begin
   convert @midpoint_mem_segment 𝕜 _ _ _ _ _ _ _,

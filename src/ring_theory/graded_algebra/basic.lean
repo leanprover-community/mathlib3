@@ -189,8 +189,7 @@ begin
       rw lt_iff_not_ge, intro rid, rw ge_iff_le at rid,
       have := homogeneous_component_eq_zero _ _ rid,
       erw homogeneous_component_of_direct_sum at this, apply ha,
-      simp only [submodule.coe_eq_zero] at this, exact this,
-      },
+      simp only [submodule.coe_eq_zero] at this, exact this, },
   rw [set_eq, finset.sum_union],
   have :
     ∑ k in finset.range

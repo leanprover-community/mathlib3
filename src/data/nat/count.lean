@@ -133,4 +133,4 @@ lemma lt_of_count_lt_count {a b : ℕ} (h : count p a < count p b) : a < b :=
 
 end count
 
-end
+end nat

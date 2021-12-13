@@ -5,31 +5,36 @@ universes u v
 namespace ordinal
 
 /-- Enumerator function for an unbounded set of ordinals. -/
-noncomputable def enum_ord {S : set ordinal.{u}} (hS : ∀ α : ordinal.{u}, ∃ β, S β ∧ α < β) :
+noncomputable def enum_ord {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) :
   ordinal.{u} → ordinal.{u} :=
-wf.fix (λ α f, omin
-(λ β, S β ∧ (bsup.{u u} α f) < β) -- this can be inferred
+wf.fix (λ α f, omin _
+--(λ β, S β ∧ (bsup.{u u} α f) < β) -- this can be inferred
 (hS (bsup.{u u} α f)))
 
-theorem enum_ord_def {S : set ordinal.{u}} (hS : ∀ α : ordinal.{u}, ∃ β, S β ∧ α < β)
-(α : ordinal.{u}) :
-  enum_ord hS α = omin _ enum_ord (hS (bsup.{u u} α f)))
+theorem enum_ord_def {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) (α) :
+  enum_ord hS α = omin (λ β, S β ∧ bsup.{u u} α (λ γ _, enum_ord hS γ) < β) (hS _) :=
+wf.fix_eq _ _
 
-theorem enum_ord_mem {S : set ordinal.{u}} (hS : ∀ α : ordinal.{u}, ∃ β, S β ∧ α ≤ β) (o : ordinal.{u}):
-  enum_ord hS o ∈ S :=
-begin
-  have : enum_ord hS o = _ := wf.fix_eq _ o,
-  rw this,
-  exact (λ _ _ _ h, h (omin_mem _ _) : ∀ S T e, T ⊆ S → omin T e ∈ S) _ _ _ (λ _, and.left)
-end
+private theorem enum_ord_mem_aux {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) (α) :
+  S (enum_ord hS α) ∧ bsup.{u u} α (λ γ _, enum_ord hS γ) < (enum_ord hS α) :=
+by { rw enum_ord_def, exact omin_mem (λ _, _ ∧ _) _ }
 
-theorem enum_ord_inj {S : set ordinal.{u}} (hS : ∀ α : ordinal.{u}, ∃ β, S β ∧ α ≤ β) :
+theorem enum_ord_mem {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) (α) :
+  enum_ord hS α ∈ S :=
+(enum_ord_mem_aux hS α).left
+
+theorem enum_ord_mem' {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) (α) :
+  bsup.{u u} α (λ γ _, enum_ord hS γ) < enum_ord hS α :=
+(enum_ord_mem_aux hS α).right
+
+theorem enum_ord_inj {S : set ordinal.{u}} (hS : ∀ α : ordinal.{u}, ∃ β, S β ∧ α < β) :
 strict_mono (enum_ord hS) :=
 begin
-  intros a b hab,
-  have : enum_ord hS b = _ := wf.fix_eq _ b,
-  rw this,
-  have := (λ _ _ _ h, h (omin_mem _ _) : ∀ S T e, T ⊆ S → omin T e ∈ S) _ _ _ (λ _, and.left),
+  intros α β hαβ,
+  nth_rewrite 1 enum_ord_def,
+  by_contra h,
+  push_neg at h,
+  have := omin_le h,
 end
 
 end ordinal

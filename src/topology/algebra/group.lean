@@ -784,39 +784,25 @@ def homeomorph.prod_units : homeomorph (units (α × β)) (units α × units β)
 { continuous_to_fun  :=
   begin
     apply continuous.prod_mk,
-    { apply continuous_induced_rng,
-      apply continuous.prod_mk,
-      { apply continuous.comp continuous_fst units.continuous_coe },
-      { apply continuous.comp continuous_op,
-        apply continuous.comp continuous_fst,
-        simp_rw units.inv_eq_coe_inv,
-        apply continuous.comp units.continuous_coe continuous_inv,
-        apply_instance, }},
-    { apply continuous_induced_rng,
-      apply continuous.prod_mk,
-      { apply continuous.comp continuous_snd units.continuous_coe },
-      { simp_rw units.coe_map_inv,
-        apply continuous.comp continuous_op
-          (continuous.comp continuous_snd (continuous.comp units.continuous_coe continuous_inv)),
-        apply_instance, }},
+    { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
+      refine continuous_op.comp (continuous_fst.comp _),
+      simp_rw units.inv_eq_coe_inv,
+      exact units.continuous_coe.comp continuous_inv, },
+    { refine continuous_induced_rng ((continuous_snd.comp units.continuous_coe).prod_mk _),
+      simp_rw units.coe_map_inv,
+      exact continuous_op.comp (continuous_snd.comp (units.continuous_coe.comp continuous_inv)), }
   end,
   continuous_inv_fun :=
   begin
-    apply continuous_induced_rng,
-    apply continuous.prod_mk,
-    { apply continuous.prod_mk (continuous.comp units.continuous_coe continuous_fst)
-        (continuous.comp units.continuous_coe continuous_snd), },
-    { apply continuous.comp continuous_op,
-      apply continuous.comp units.continuous_coe,
-      apply continuous_induced_rng,
-      apply continuous.prod_mk,
-      { apply continuous.prod_mk
-          (continuous.comp units.continuous_coe (continuous.comp continuous_inv continuous_fst))
-          (continuous.comp units.continuous_coe (continuous.comp continuous_inv continuous_snd));
-        apply_instance },
-      { apply continuous.comp continuous_op
-          (continuous.prod_mk (continuous.comp units.continuous_coe continuous_fst)
-            (continuous.comp units.continuous_coe continuous_snd)) }}
+    refine continuous_induced_rng (continuous.prod_mk _ _),
+    { exact (units.continuous_coe.comp continuous_fst).prod_mk
+        (units.continuous_coe.comp continuous_snd), },
+    { refine continuous_op.comp
+        (units.continuous_coe.comp $ continuous_induced_rng $ continuous.prod_mk _ _),
+      { exact (units.continuous_coe.comp (continuous_inv.comp continuous_fst)).prod_mk
+          (units.continuous_coe.comp (continuous_inv.comp continuous_snd)) },
+      { exact continuous_op.comp ((units.continuous_coe.comp continuous_fst).prod_mk
+            (units.continuous_coe.comp continuous_snd)) }}
   end,
   ..mul_equiv.prod_units }
 

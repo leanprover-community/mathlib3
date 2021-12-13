@@ -217,22 +217,44 @@ section comm_monoid
 
 variable [cancel_comm_monoid G]
 
-open finset
-
--- TODO: this is true without the `fintype`.
-@[to_additive]
-lemma exponent_eq_Sup_order_of [fintype G] : exponent G = Sup (set.range (order_of : G → ℕ)) :=
+@[to_additive] lemma exponent_eq_Sup_order_of (h : ∀ g : G, 0 < order_of g) :
+  exponent G = Sup (set.range (order_of : G → ℕ)) :=
 begin
-  rw [←fintype.coe_image_univ, eq_comm,
-      nonempty.cSup_eq_max' (⟨1, by simp⟩ : ((@univ G _).image order_of).nonempty)],
-  generalize_proofs hne,
-  have := max'_mem (image order_of univ) hne,
-  rw mem_image at this,
-  obtain ⟨t, -, ht⟩ := this,
+  rcases eq_or_ne (exponent G) 0 with he | he,
+  { rw [he, set.infinite.nat.Sup_eq_zero],
+    contrapose! he,
+    replace he := not_not.mp he,
+    lift (set.range order_of) to finset ℕ using he with t ht,
+    have htpos : 0 < t.prod id,
+    { apply finset.prod_pos,
+      intros a ha,
+      rw [←finset.mem_coe, ht] at ha,
+      obtain ⟨k, hk⟩ := ha,
+      exact hk ▸ (h _) },
+    suffices : exponent G ∣ t.prod id,
+    { intro h,
+      rw [h, zero_dvd_iff] at this,
+      exact htpos.ne' this },
+    refine exponent_dvd_of_forall_pow_eq_one _ _ htpos (λ g, _),
+    rw pow_eq_mod_order_of,
+    convert pow_zero g,
+    apply nat.mod_eq_zero_of_dvd,
+    apply finset.dvd_prod_of_mem,
+    rw [←finset.mem_coe, ht],
+    exact set.mem_range_self _ },
+  have hne : (set.range (order_of : G → ℕ)).nonempty := ⟨1, by simp⟩,
+  have hfin : (set.range (order_of : G → ℕ)).finite,
+  { by_contra h,
+    obtain ⟨m, ⟨t, rfl⟩, het⟩ := set.infinite.exists_nat_lt h (exponent G),
+    apply pow_ne_one_of_lt_order_of' he het,
+    exact pow_exponent_eq_one t },
+  have := hne.cSup_mem hfin,
+  obtain ⟨t, ht⟩ := this,
+  symmetry,
   apply nat.dvd_antisymm,
   { rw ←ht,
     apply order_dvd_exponent },
-  refine nat.dvd_of_factors_subperm (exponent_ne_zero_of_fintype) _,
+  refine nat.dvd_of_factors_subperm he _,
   rw list.subperm_ext_iff,
   by_contra' h,
   obtain ⟨p, hp, hpe⟩ := h,
@@ -242,26 +264,33 @@ begin
   obtain ⟨g, hg⟩ := exists_max_prime_pow_dvd_exponent G hp.1,
   suffices : order_of t < order_of (t ^ (p ^ k) * g),
   { rw ht at this,
-    exact this.not_le (le_max' _ _ $ by simp) },
+    exact this.not_le (le_cSup hfin.bdd_above $ by simp) },
   have hpk  : p ^ k ∣ order_of t := pow_padic_val_nat_dvd,
   have hpk' : order_of (t ^ p ^ k) = order_of t / p ^ k,
-  { rw [order_of_pow t, nat.gcd_eq_right hpk] },
+  { rw [order_of_pow' t (pow_ne_zero k hp.1.ne_zero), nat.gcd_eq_right hpk] },
   obtain ⟨a, ha⟩ := nat.exists_eq_add_of_lt hpe,
   have hcoprime : (order_of (t ^ p ^ k)).coprime (order_of g),
   { rw [hg, nat.coprime_pow_right_iff, nat.coprime_comm],
     apply or.resolve_right (nat.coprime_or_dvd_of_prime hp.1 _),
     nth_rewrite 0 ←pow_one p,
-    convert pow_succ_padic_val_nat_not_dvd (order_of_pos (t ^ p ^ k)),
+    convert pow_succ_padic_val_nat_not_dvd (h $ t ^ p ^ k),
     rw [hpk', padic_val_nat.div_pow hpk, hk, nat.sub_self],
     { apply_instance },
     rw ha,
     exact nat.succ_pos _ },
-  rw [(commute.all _ g).order_of_mul_eq_mul_order_of_of_coprime hcoprime, hpk', hg, ha, ←ht, ←hk,
-      pow_add, pow_add, pow_one],
-  convert_to order_of t < (order_of t / p ^ k * p ^ k) * p ^ a * p,
-  { ac_refl },
-  rw [nat.div_mul_cancel hpk, mul_assoc, lt_mul_iff_one_lt_right $ order_of_pos t, ←pow_succ'],
+  rw [(commute.all _ g).order_of_mul_eq_mul_order_of_of_coprime hcoprime,
+      hpk', hg, ha, ←ht, ←hk, pow_add, pow_add, pow_one],
+  convert_to order_of t < (order_of t / p ^ k * p ^ k) * p ^ a * p, ac_refl,
+  rw [nat.div_mul_cancel hpk, mul_assoc, lt_mul_iff_one_lt_right $ h t, ←pow_succ'],
   exact one_lt_pow hp.1.one_lt a.succ_ne_zero
+end
+
+@[to_additive]
+lemma exponent_eq_max'_order_of [fintype G] :
+  exponent G = ((@finset.univ G _).image order_of).max' ⟨1, by simp⟩ :=
+begin
+  rw [←finset.nonempty.cSup_eq_max', finset.coe_image, finset.coe_univ, set.image_univ],
+  exact exponent_eq_Sup_order_of order_of_pos
 end
 
 end comm_monoid

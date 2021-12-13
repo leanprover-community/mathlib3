@@ -35,6 +35,12 @@ instance algebra_of_algebra : algebra R (polynomial A) :=
       function.comp_app, ring_hom.coe_comp, smul_to_finsupp, mul_to_finsupp],
     exact algebra.smul_def' _ _,
   end,
+  op_smul_def' := λ p r, begin
+    rcases p,
+    simp only [C, monomial, monomial_fun, ring_hom.coe_mk, ring_hom.to_fun_eq_coe,
+      function.comp_app, ring_hom.coe_comp, smul_to_finsupp, mul_to_finsupp],
+    exact algebra.op_smul_def' _ _,
+  end,
   commutes' := λ r p, begin
     rcases p,
     simp only [C, monomial, monomial_fun, ring_hom.coe_mk, ring_hom.to_fun_eq_coe,
@@ -396,7 +402,8 @@ theorem not_is_unit_X_sub_C [nontrivial R] (r : R) : ¬ is_unit (X - C r) :=
 end ring
 
 lemma aeval_endomorphism {M : Type*}
-  [comm_ring R] [add_comm_group M] [module R M]
+  [comm_ring R] [add_comm_group M]
+  [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M] [is_central_scalar R M]
   (f : M →ₗ[R] M) (v : M) (p : polynomial R) :
   aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
 begin

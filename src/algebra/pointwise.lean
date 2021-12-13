@@ -900,6 +900,21 @@ le_antisymm
     (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
   (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
+lemma pow_smul_mem_closure_smul {N : Type*} [comm_monoid N] [mul_action M N]
+  [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
+  ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=
+begin
+  apply @closure_induction N _ s
+    (λ (x : N), ∃ n : ℕ, r ^ n • x ∈ closure (r • s)) _ hx,
+  { intros x hx,
+    exact ⟨1, subset_closure ⟨_, hx, by rw pow_one⟩⟩ },
+  { exact ⟨0, by simpa using one_mem _⟩ },
+  { rintros x y ⟨nx, hx⟩ ⟨ny, hy⟩,
+    use nx + ny,
+    convert mul_mem _ hx hy,
+    rw [pow_add, smul_mul_assoc, mul_smul, mul_comm, ← smul_mul_assoc, mul_comm] }
+end
+
 end submonoid
 
 namespace group

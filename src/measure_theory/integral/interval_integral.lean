@@ -1219,6 +1219,16 @@ lemma integral_mono (h : f ≤ g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 integral_mono_ae hab hf hg $ ae_of_all _ h
 
+omit hg hab
+
+lemma integral_mono_interval {c d} (hca : c ≤ a) (hab : a ≤ b) (hbd : b ≤ d)
+  (hf : 0 ≤ᵐ[μ.restrict (Ioc c d)] f) (hfi : interval_integrable f μ c d):
+  ∫ x in a..b, f x ∂μ ≤ ∫ x in c..d, f x ∂μ :=
+begin
+  rw [integral_of_le hab, integral_of_le (hca.trans (hab.trans hbd))],
+  exact set_integral_mono_set hfi.1 hf (Ioc_subset_Ioc hca hbd).eventually_le
+end
+
 end mono
 
 end

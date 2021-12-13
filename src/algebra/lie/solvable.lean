@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.ideal_operations
 import algebra.lie.abelian
-import order.preorder_hom
+import order.order_hom
 
 /-!
 # Solvable Lie algebras

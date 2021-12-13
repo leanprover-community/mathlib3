@@ -27,6 +27,9 @@ types used for indexing.
  * `linear_map.det`: the determinant of an endomorphism `f : End R M` as a
    multiplicative homomorphism (if `M` does not have a finite `R`-basis, the
    result is `1` instead)
+ * `linear_equiv.det`: the determinant of an isomorphism `f : M ≃ₗ[R] M` as a
+   multiplicative homomorphism (if `M` does not have a finite `R`-basis, the
+   result is `1` instead)
 
 ## Tags
 
@@ -268,6 +271,26 @@ end
 
 end linear_map
 
+namespace linear_equiv
+
+variables [is_domain R]
+
+/-- On a `linear_equiv`, the domain of `linear_map.det` can be promoted to `units R`. -/
+protected def det : (M ≃ₗ[R] M) →* units R :=
+(units.map (linear_map.det : (M →ₗ[R] M) →* R)).comp
+  (linear_map.general_linear_group.general_linear_equiv R M).symm.to_monoid_hom
+
+@[simp] lemma coe_det (f : M ≃ₗ[R] M) : ↑f.det = linear_map.det (f : M →ₗ[R] M) := rfl
+@[simp] lemma coe_inv_det (f : M ≃ₗ[R] M) : ↑(f.det⁻¹) = linear_map.det (f.symm : M →ₗ[R] M) := rfl
+
+@[simp] lemma det_refl : (linear_equiv.refl R M).det = 1 := units.ext $ linear_map.det_id
+
+@[simp] lemma det_trans (f g : M ≃ₗ[R] M) : (f.trans g).det = g.det * f.det := map_mul _ g f
+
+@[simp] lemma det_symm (f : M ≃ₗ[R] M) : f.symm.det = f.det⁻¹ := map_inv _ f
+
+end linear_equiv
+
 /-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/
 @[simp] lemma linear_equiv.det_mul_det_symm {A : Type*} [comm_ring A] [is_domain A] [module A M]
   (f : M ≃ₗ[A] M) : (f : M →ₗ[A] M).det * (f.symm : M →ₗ[A] M).det = 1 :=
@@ -384,6 +407,14 @@ begin
   change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
   simp [alternating_map.map_perm, basis.det_self]
 end
+
+@[simp] lemma alternating_map.map_basis_eq_zero_iff (f : alternating_map R M R ι) :
+  f e = 0 ↔ f = 0 :=
+⟨λ h, by simpa [h] using f.eq_smul_basis_det e, λ h, h.symm ▸ alternating_map.zero_apply _⟩
+
+lemma alternating_map.map_basis_ne_zero_iff (f : alternating_map R M R ι) :
+  f e ≠ 0 ↔ f ≠ 0 :=
+not_congr $ f.map_basis_eq_zero_iff e
 
 variables {A : Type*} [comm_ring A] [is_domain A] [module A M]
 

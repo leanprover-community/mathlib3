@@ -26,6 +26,8 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   that a Scheme morphism `f` is an open_immersion.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.iso_restrict`: The source of an
   open immersion is isomorphic to the restriction of the target onto the image.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.lift`: Any morphism whose range is
+  contained in an open immersion factors though the open immersion.
 
 ## Main results
 
@@ -36,6 +38,10 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   A surjective open immersion is an isomorphism.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.stalk_iso`: An open immersion induces
   an isomorphism on stalks.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.has_pullback_of_left`: If `f` is an open
+  immersion, then the pullback `(f, g)` exists (and the forgetful functor to `Top` preserves it).
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_snd_of_left`: Open immersions
+  are stable under pullbacks.
 
 -/
 
@@ -273,6 +279,243 @@ begin
 end
 
 end
+
+section pullback
+
+noncomputable theory
+
+variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)
+
+include hf
+
+/--
+  (Implementation.) The projection map when constructing the pullback along an open immersion.
+-/
+def pullback_cone_of_left_fst :
+  Y.restrict (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base) ⟶ X :=
+{ base := pullback.fst,
+  c :=
+  { app := λ U, hf.inv_app (unop U) ≫
+      g.c.app (op (hf.base_open.is_open_map.functor.obj (unop U))) ≫
+      Y.presheaf.map (eq_to_hom
+      (begin
+        simp only [is_open_map.functor, subtype.mk_eq_mk, unop_op, op_inj_iff, opens.map,
+        subtype.coe_mk, functor.op_obj, subtype.val_eq_coe],
+        apply has_le.le.antisymm,
+          { rintros _ ⟨_, h₁, h₂⟩,
+            use (Top.pullback_iso_prod_subtype _ _).inv ⟨⟨_, _⟩, h₂⟩,
+            simpa using h₁ },
+          { rintros _ ⟨x, h₁, rfl⟩,
+            exact ⟨_, h₁, concrete_category.congr_hom pullback.condition x⟩ }
+      end)),
+    naturality' :=
+    begin
+      intros U V i,
+      induction U using opposite.rec,
+      induction V using opposite.rec,
+      simp only [quiver.hom.unop_op, Top.presheaf.pushforward_obj_map, category.assoc,
+        nat_trans.naturality_assoc, functor.op_map, inv_naturality_assoc, ← Y.presheaf.map_comp],
+      erw ← Y.presheaf.map_comp,
+      congr
+    end } }
+
+lemma pullback_cone_of_left_condition :
+  pullback_cone_of_left_fst f g ≫ f = Y.of_restrict _ ≫ g :=
+begin
+  ext U,
+  { induction U using opposite.rec,
+    dsimp only [comp_c_app, nat_trans.comp_app, unop_op,
+      whisker_right_app, pullback_cone_of_left_fst],
+    simp only [quiver.hom.unop_op, Top.presheaf.pushforward_obj_map, app_inv_app_assoc,
+      eq_to_hom_app, eq_to_hom_unop, category.assoc, nat_trans.naturality_assoc, functor.op_map],
+    erw [← Y.presheaf.map_comp, ← Y.presheaf.map_comp],
+    congr },
+  { simpa using pullback.condition }
+end
+
+/--
+We construct the pullback along an open immersion via restricting along the pullback of the
+maps of underlying spaces (which is also an open embedding).
+-/
+def pullback_cone_of_left : pullback_cone f g :=
+pullback_cone.mk (pullback_cone_of_left_fst f g) (Y.of_restrict _)
+  (pullback_cone_of_left_condition f g)
+
+variable (s : pullback_cone f g)
+
+/--
+  (Implementation.) Any cone over `cospan f g` indeed factors through the constructed cone.
+-/
+def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
+{ base := pullback.lift s.fst.base s.snd.base
+    (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition),
+  c :=
+  { app := λ U, s.snd.c.app _ ≫ s.X.presheaf.map (eq_to_hom (begin
+      dsimp only [opens.map, is_open_map.functor, functor.op],
+      congr' 2,
+      let s' : pullback_cone f.base g.base := pullback_cone.mk s.fst.base s.snd.base _,
+      have : _ = s.snd.base := limit.lift_π s' walking_cospan.right,
+      conv_lhs { erw ← this, rw coe_comp, erw ← set.preimage_preimage },
+      erw set.preimage_image_eq _
+        (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base).inj,
+      simp,
+    end)),
+    naturality' := λ U V i,
+    begin
+      erw s.snd.c.naturality_assoc,
+      rw category.assoc,
+      erw [← s.X.presheaf.map_comp, ← s.X.presheaf.map_comp],
+      congr
+    end } }
+
+-- this lemma is not a `simp` lemma, because it is an implementation detail
+lemma pullback_cone_of_left_lift_fst :
+  pullback_cone_of_left_lift f g s ≫ (pullback_cone_of_left f g).fst = s.fst :=
+begin
+  ext x,
+  { induction x using opposite.rec,
+    change ((_ ≫ _) ≫ _ ≫ _) ≫ _ = _,
+    simp_rw [category.assoc],
+    erw ← s.X.presheaf.map_comp,
+    erw s.snd.c.naturality_assoc,
+    have := congr_app s.condition (op (hf.open_functor.obj x)),
+    dsimp only [comp_c_app, unop_op] at this,
+    rw ← is_iso.comp_inv_eq at this,
+    reassoc! this,
+    erw [← this, hf.inv_app_app_assoc, s.fst.c.naturality_assoc],
+    simpa },
+  { change pullback.lift _ _ _ ≫ pullback.fst = _,
+    simp }
+end
+
+-- this lemma is not a `simp` lemma, because it is an implementation detail
+lemma pullback_cone_of_left_lift_snd :
+  pullback_cone_of_left_lift f g s ≫ (pullback_cone_of_left f g).snd = s.snd :=
+begin
+  ext x,
+  { change (_ ≫ _ ≫ _) ≫ _ = _,
+    simp_rw category.assoc,
+    erw s.snd.c.naturality_assoc,
+    erw [← s.X.presheaf.map_comp, ← s.X.presheaf.map_comp],
+    transitivity s.snd.c.app x ≫ s.X.presheaf.map (𝟙 _),
+    { congr },
+    { rw s.X.presheaf.map_id, erw category.comp_id } },
+  { change pullback.lift _ _ _ ≫ pullback.snd = _,
+    simp }
+end
+
+instance pullback_cone_snd_is_open_immersion :
+  is_open_immersion (pullback_cone_of_left f g).snd :=
+begin
+  erw category_theory.limits.pullback_cone.mk_snd,
+  apply_instance
+end
+
+/-- The constructed pullback cone is indeed the pullback. -/
+def pullback_cone_of_left_is_limit :
+  is_limit (pullback_cone_of_left f g) :=
+begin
+  apply pullback_cone.is_limit_aux',
+  intro s,
+  use pullback_cone_of_left_lift f g s,
+  use pullback_cone_of_left_lift_fst f g s,
+  use pullback_cone_of_left_lift_snd f g s,
+  intros m h₁ h₂,
+  rw ← cancel_mono (pullback_cone_of_left f g).snd,
+  exact (h₂.trans (pullback_cone_of_left_lift_snd f g s).symm)
+end
+
+instance has_pullback_of_left :
+  has_pullback f g :=
+⟨⟨⟨_, pullback_cone_of_left_is_limit f g⟩⟩⟩
+
+instance has_pullback_of_right :
+  has_pullback g f := has_pullback_symmetry f g
+
+/-- Open immersions are stable under base-change. -/
+instance pullback_snd_of_left :
+  is_open_immersion (pullback.snd : pullback f g ⟶ _) :=
+begin
+  delta pullback.snd,
+  rw ← limit.iso_limit_cone_hom_π ⟨_, pullback_cone_of_left_is_limit f g⟩ walking_cospan.right,
+  apply_instance
+end
+
+/-- Open immersions are stable under base-change. -/
+instance pullback_fst_of_right :
+  is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
+begin
+  rw ← pullback_symmetry_hom_comp_snd,
+  apply_instance
+end
+
+instance pullback_one_is_open_immersion [is_open_immersion g] :
+  is_open_immersion (limit.π (cospan f g) walking_cospan.one) :=
+begin
+  rw [←limit.w (cospan f g) walking_cospan.hom.inl, cospan_map_inl],
+  apply_instance
+end
+
+instance forget_preserves_limits_of_left : preserves_limit (cospan f g) (forget C) :=
+preserves_limit_of_preserves_limit_cone (pullback_cone_of_left_is_limit f g)
+begin
+  apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v} _) _).to_fun,
+  refine (is_limit.equiv_iso_limit _).to_fun (limit.is_limit (cospan f.base g.base)),
+  fapply cones.ext,
+  exact (iso.refl _),
+  change ∀ j, _ = 𝟙 _ ≫ _ ≫ _,
+  simp_rw category.id_comp,
+  rintros (_|_|_); symmetry,
+  { erw category.comp_id,
+    exact limit.w (cospan f.base g.base) walking_cospan.hom.inl },
+  { exact category.comp_id _ },
+  { exact category.comp_id _ },
+end
+
+instance forget_preserves_limits_of_right : preserves_limit (cospan g f) (forget C) :=
+preserves_pullback_symmetry (forget C) f g
+
+lemma pullback_snd_is_iso_of_range_subset (H : set.range g.base ⊆ set.range f.base) :
+  is_iso (pullback.snd : pullback f g ⟶ _) :=
+begin
+  haveI := Top.snd_iso_of_left_embedding_range_subset hf.base_open.to_embedding g.base H,
+  haveI : is_iso (pullback.snd : pullback f g ⟶ _).base,
+  { delta pullback.snd,
+    rw ← limit.iso_limit_cone_hom_π ⟨_, pullback_cone_of_left_is_limit f g⟩ walking_cospan.right,
+    change is_iso (_ ≫ pullback.snd),
+    apply_instance },
+  apply to_iso
+end
+
+/--
+The universal property of open immersions:
+For an open immersion `f : X ⟶ Z`, given any morphism of schemes `g : Y ⟶ Z` whose topological
+image is contained in the image of `f`, we can lift this morphism to a unique `Y ⟶ X` that
+commutes with these maps.
+-/
+def lift (H : set.range g.base ⊆ set.range f.base) : Y ⟶ X :=
+begin
+  haveI := pullback_snd_is_iso_of_range_subset f g H,
+  exact inv (pullback.snd : pullback f g ⟶ _) ≫ pullback.fst,
+end
+
+@[simp, reassoc] lemma lift_fac (H : set.range g.base ⊆ set.range f.base) :
+  lift f g H ≫ f = g :=
+by { erw category.assoc, rw is_iso.inv_comp_eq, exact pullback.condition }
+
+lemma lift_uniq (H : set.range g.base ⊆ set.range f.base) (l : Y ⟶ X)
+  (hl : l ≫ f = g) : l = lift f g H :=
+by rw [← cancel_mono f, hl, lift_fac]
+
+/-- Two open immersions with equal range is isomorphic. -/
+@[simps] def iso_of_range_eq [is_open_immersion g] (e : set.range f.base = set.range g.base) :
+  X ≅ Y :=
+{ hom := lift g f (le_of_eq e),
+  inv := lift f g (le_of_eq e.symm),
+  hom_inv_id' := by { rw ← cancel_mono f, simp },
+  inv_hom_id' := by { rw ← cancel_mono g, simp } }
+
+end pullback
 
 end PresheafedSpace.is_open_immersion
 

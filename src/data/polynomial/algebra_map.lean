@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import algebra.algebra.tower
+import ring_theory.adjoin.basic
 import data.polynomial.eval
 
 /-!
@@ -150,12 +150,16 @@ def aeval : polynomial R →ₐ[R] A :=
 
 variables {R A}
 
-@[ext] lemma alg_hom_ext {f g : polynomial R →ₐ[R] A} (h : f X = g X) : f = g :=
+@[simp] lemma adjoin_X : algebra.adjoin R ({X} : set (polynomial R)) = ⊤ :=
 begin
-  ext p,
-  rw [← sum_monomial_eq p],
-  simp [sum, f.map_sum, g.map_sum, monomial_eq_smul_X, h],
+  refine top_unique (λ p hp, _),
+  set S := algebra.adjoin R ({X} : set (polynomial R)),
+  rw [← sum_monomial_eq p], simp only [monomial_eq_smul_X, sum],
+  exact S.sum_mem (λ n hn, S.smul_mem (S.pow_mem (algebra.subset_adjoin rfl) _) _)
 end
+
+@[ext] lemma alg_hom_ext {f g : polynomial R →ₐ[R] A} (h : f X = g X) : f = g :=
+alg_hom.ext_of_adjoin_eq_top adjoin_X $ λ p hp, (set.mem_singleton_iff.1 hp).symm ▸ h
 
 theorem aeval_def (p : polynomial R) : aeval x p = eval₂ (algebra_map R A) x p := rfl
 
@@ -199,20 +203,15 @@ eval₂_comp (algebra_map R A)
   aeval b (p.map (algebra_map R A)) = aeval b p :=
 by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]
 
+theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
+alg_hom_ext $ by simp only [aeval_X, alg_hom.comp_apply]
+
+@[simp] theorem aeval_X_left : aeval (X : polynomial R) = alg_hom.id R (polynomial R) :=
+alg_hom_ext $ aeval_X X
+
 theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=
-begin
-  apply polynomial.induction_on p,
-  { intro r, rw eval₂_C, exact φ.commutes r },
-  { intros f g ih1 ih2,
-    rw [φ.map_add, ih1, ih2, eval₂_add] },
-  { intros n r ih,
-    rw [pow_succ', ← mul_assoc, φ.map_mul,
-        eval₂_mul_noncomm (algebra_map R A) _ (λ k, algebra.commutes _ _), eval₂_X, ih] }
-end
-
-theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
-alg_hom.ext $ λ p, by rw [eval_unique (f.comp (aeval x)), alg_hom.comp_apply, aeval_X, aeval_def]
+by rw [← aeval_def, aeval_alg_hom, aeval_X_left, alg_hom.comp_id]
 
 theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : polynomial R) :
   aeval (f x) p = f (aeval x p) :=
@@ -247,6 +246,14 @@ by simp [coeff_zero_eq_eval_zero]
 lemma coeff_zero_eq_aeval_zero' (p : polynomial R) :
   algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
 by simp [aeval_def]
+
+variable (R)
+
+theorem _root_.algebra.adjoin_singleton_eq_range_aeval (x : A) :
+  algebra.adjoin R {x} = (polynomial.aeval x).range :=
+by rw [← algebra.map_top, ← adjoin_X, alg_hom.map_adjoin, set.image_singleton, aeval_X]
+
+variable {R}
 
 section comm_semiring
 

@@ -218,6 +218,14 @@ This can be used as `induction x using triv_sq_zero_ext.ind`. -/
 lemma ind {R M} [add_zero_class R] [add_zero_class M] {P : triv_sq_zero_ext R M → Prop}
   (h : ∀ r m, P (inl r + inr m)) (x) : P x :=
 inl_fst_add_inr_snd_eq x ▸ h x.1 x.2
+
+@[ext]
+lemma linear_map_ext {N} [semiring S] [add_comm_monoid R] [add_comm_monoid M] [add_comm_monoid N]
+  [module S R] [module S M] [module S N] ⦃f g : tsze R M →ₗ[S] N⦄
+  (hl : ∀ r, f (inl r) = g (inl r)) (hr : ∀ m, f (inr m) = g (inr m)) :
+  f = g :=
+linear_map.prod_ext (linear_map.ext hl) (linear_map.ext hr)
+
 variables (R M)
 
 /-- The canonical `R`-linear inclusion `M → triv_sq_zero_ext R M`. -/
@@ -229,13 +237,6 @@ def inr_hom [semiring R] [add_comm_monoid M] [module R M] : M →ₗ[R] tsze R M
 @[simps apply]
 def snd_hom [semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₗ[R] M :=
 { to_fun := snd, ..linear_map.snd _ _ _ }
-
-@[ext]
-lemma linear_map_ext {N} [semiring S] [add_comm_monoid R] [add_comm_monoid M] [add_comm_monoid N]
-  [module S R] [module S M] [module S N] ⦃f g : tsze R M →ₗ[S] N⦄
-  (hl : ∀ r, f (inl r) = g (inl r)) (hr : ∀ m, f (inr m) = g (inr m)) :
-  f = g :=
-linear_map.prod_ext (linear_map.ext hl) (linear_map.ext hr)
 
 end additive
 
@@ -369,8 +370,7 @@ def fst_hom : tsze R M →ₐ[R] R :=
   map_mul' := fst_mul,
   map_zero' := fst_zero,
   map_add' := fst_add,
-  commutes' := fst_inl }
-
+  commutes' := fst_inl M }
 
 variables {R S M}
 
@@ -381,8 +381,8 @@ alg_hom.to_linear_map_injective $ linear_map_ext (λ r, (f.commutes _).trans (g.
 
 @[ext]
 lemma alg_hom_ext' {A} [comm_semiring R] [add_comm_monoid M] [semiring A] [module R M]
-  [algebra R A]
-  ⦃f g : tsze R M →ₐ[R] A⦄ (h : f.to_linear_map.comp inr_hom = g.to_linear_map.comp inr_hom) :
+  [algebra R A] ⦃f g : tsze R M →ₐ[R] A⦄
+  (h : f.to_linear_map.comp (inr_hom R M) = g.to_linear_map.comp (inr_hom R M)) :
   f = g :=
 alg_hom_ext $ linear_map.congr_fun h
 
@@ -394,11 +394,10 @@ that squares to zero.
 See `triv_sq_zero_ext.lift` for this as an equiv. -/
 def lift_aux (f : M →ₗ[R] A) (hf : ∀ x y, f x * f y = 0) : tsze R M →ₐ[R] A :=
 alg_hom.of_linear_map
-  ((algebra.linear_map _ _).comp (triv_sq_zero_ext.fst_hom R M).to_linear_map
-    + f.comp (triv_sq_zero_ext.snd_hom))
+  ((algebra.linear_map _ _).comp (fst_hom R M).to_linear_map + f.comp (snd_hom R M))
   (show algebra_map R _ 1 + f (0 : M) = 1, by rw [map_zero, map_one, add_zero])
   (triv_sq_zero_ext.ind $ λ r₁ m₁, triv_sq_zero_ext.ind $ λ r₂ m₂, begin
-    dsimp [triv_sq_zero_ext.fst_hom],
+    dsimp,
     simp only [add_zero, zero_add, add_mul, mul_add, smul_mul_smul, hf, smul_zero],
     rw [←ring_hom.map_mul, linear_map.map_add, ←algebra.commutes _ (f _), ←algebra.smul_def,
         ←algebra.smul_def, add_right_comm, add_assoc, linear_map.map_smul, linear_map.map_smul],
@@ -408,6 +407,15 @@ alg_hom.of_linear_map
   lift_aux f hf (inr m) = f m :=
 show algebra_map R A 0 + f m = f m, by rw [ring_hom.map_zero, zero_add]
 
+@[simp] lemma lift_aux_comp_inr_hom (f : M →ₗ[R] A) (hf : ∀ x y, f x * f y = 0) :
+  (lift_aux f hf).to_linear_map.comp (inr_hom R M) = f :=
+linear_map.ext $ lift_aux_apply_inr f hf
+
+/- When applied to `inr` itself, `lift_aux` is the identity. -/
+@[simp]
+lemma lift_aux_inr_hom : lift_aux (inr_hom R M) (inr_mul_inr R) = alg_hom.id R (tsze R M) :=
+alg_hom_ext' $ lift_aux_comp_inr_hom _ _
+
 /-- A universal property of the dual numbers, providing a unique `𝔻[R] →ₐ[R] A` for every element
 of `A` which squares to `-1`.
 
@@ -415,15 +423,10 @@ This isomorphism is named to match the very similar `complex.lift`. -/
 @[simps]
 def lift : {f : M →ₗ[R] A // ∀ x y, f x * f y = 0} ≃ (tsze R M →ₐ[R] A) :=
 { to_fun := λ f, lift_aux f f.prop,
-  inv_fun := λ F, ⟨F.to_linear_map.comp inr_hom, λ x y, (F.map_mul _ _).symm.trans $ (F.congr_arg $ inr_mul_inr _ _ _).trans F.map_zero⟩,
-  left_inv := λ f, by { ext, exact lift_aux_apply_inr _ f.prop _ },
-  right_inv := λ F, by { ext, dsimp, exact lift_aux_apply_inr _ _ _, } }
-
-/- When applied to `inr` itself, `lift` is the identity. -/
-@[simp]
-lemma lift_aux_inr_hom :
-  lift_aux (inr_hom : _ →ₗ[R] tsze R M) (inr_mul_inr R) = alg_hom.id R (tsze R M):=
-alg_hom_ext $ lift_aux_apply_inr _ _
+  inv_fun := λ F, ⟨F.to_linear_map.comp (inr_hom R M), λ x y,
+    (F.map_mul _ _).symm.trans $ (F.congr_arg $ inr_mul_inr _ _ _).trans F.map_zero⟩,
+  left_inv := λ f, subtype.ext $ lift_aux_comp_inr_hom _ _,
+  right_inv := λ F, alg_hom_ext' $ lift_aux_comp_inr_hom _ _, }
 
 end algebra
 

@@ -744,6 +744,21 @@ end group_with_zero
 end
 
 namespace finset
+variables {a : α} {s s₁ s₂ t t₁ t₂ : finset α}
+
+/-- The finset `(1 : finset α)` is defined as `{1}` in locale `pointwise`. -/
+@[to_additive /-"The finset `(0 : finset α)` is defined as `{0}` in locale `pointwise`. "-/]
+protected def has_one [has_one α] : has_one (finset α) := ⟨{1}⟩
+
+localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
+
+@[simp, to_additive]
+lemma mem_one [has_one α] : a ∈ (1 : finset α) ↔ a = 1 :=
+by simp [has_one.one]
+
+@[simp, to_additive]
+theorem one_subset [has_one α] : (1 : finset α) ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
+
 variables [decidable_eq α]
 
 /-- The pointwise product of two finite sets `s` and `t`:
@@ -756,7 +771,7 @@ protected def has_mul [has_mul α] : has_mul (finset α) :=
 localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 
 section has_mul
-variables [has_mul α] {s s₁ s₂ t t₁ t₂ : finset α}
+variables [has_mul α]
 
 @[to_additive]
 lemma mul_def : s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
@@ -790,15 +805,32 @@ by simp [finset.mul_def]
 @[to_additive, mono] lemma mul_subset_mul  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
 image_subset_image (product_subset_product hs ht)
 
+@[simp, to_additive]
+lemma mul_singleton (a : α) : s * {a} = s.image (* a) :=
+by { rw [mul_def, product_singleton, map_eq_image, image_image], refl }
+
+@[simp, to_additive]
+lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) :=
+by { rw [mul_def, singleton_product, map_eq_image, image_image], refl }
+
+@[simp, to_additive]
+lemma singleton_mul_singleton (a b : α) : ({a} : finset α) * {b} = {a * b} :=
+by rw [mul_def, singleton_product_singleton, image_singleton]
+
 end has_mul
 
 section mul_zero_class
 variables [mul_zero_class α]
 
-lemma mul_singleton_zero_subset (s : finset α) : s * {0} ⊆ {0} := by simp [subset_iff, mem_mul]
+lemma mul_zero_subset (s : finset α) : s * 0 ⊆ 0 := by simp [subset_iff, mem_mul]
 
-lemma singleton_zero_mul_subset (s : finset α) : {(0 : α)} * s ⊆ {0} :=
-by simp [subset_iff, mem_mul]
+lemma zero_mul_subset (s : finset α) : 0 * s ⊆ 0 := by simp [subset_iff, mem_mul]
+
+lemma nonempty.mul_zero (hs : s.nonempty) : s * 0 = 0 :=
+s.mul_zero_subset.antisymm $ by simpa [finset.mem_mul] using hs
+
+lemma nonempty.zero_mul (hs : s.nonempty) : 0 * s = 0 :=
+s.zero_mul_subset.antisymm $ by simpa [finset.mem_mul] using hs
 
 end mul_zero_class
 

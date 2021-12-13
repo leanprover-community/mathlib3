@@ -39,6 +39,7 @@ section ordered_comm_semiring
 
 variables (R : Type*) [ordered_comm_semiring R]
 variables {M : Type*} [add_comm_monoid M] [module R M]
+variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
 
 /-- Two vectors are in the same ray if some positive multiples of them are equal (in the typical
@@ -89,6 +90,24 @@ lemma same_ray_pos_smul_left (v : M) {r : R} (h : 0 < r) : same_ray R (r • v) 
 lemma same_ray.pos_smul_left {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :
   same_ray R (r • v₁) v₂ :=
 transitive_same_ray R M (same_ray_pos_smul_left v₁ hr) h
+
+/-- If two vectors are on the same ray then they remain so after appling a linear map. -/
+lemma same_ray.map {v₁ v₂ : M} (f : M →ₗ[R] N)
+  (h : same_ray R v₁ v₂) : same_ray R (f v₁) (f v₂) :=
+let ⟨r₁, r₂, hr₁, hr₂, h⟩ := h in
+⟨r₁, r₂, hr₁, hr₂, by rw [←f.map_smul, ←f.map_smul, h]⟩
+
+/-- If two vectors are on the same ray then they remain so after appling a linear equivalence. -/
+@[simp] lemma same_ray_map_iff {v₁ v₂ : M} (e : M ≃ₗ[R] N) :
+  same_ray R (e v₁) (e v₂) ↔ same_ray R v₁ v₂ :=
+⟨λ h, by simpa using same_ray.map e.symm.to_linear_map h, same_ray.map e.to_linear_map⟩
+
+/-- If two vectors are on the same ray then both scaled by the same action are also on the same
+ray. -/
+lemma same_ray.smul {S : Type*} [has_scalar S M] [smul_comm_class R S M] {v₁ v₂ : M} (s : S)
+  (h : same_ray R v₁ v₂) : same_ray R (s • v₁) (s • v₂) :=
+let ⟨r₁, r₂, hr₁, hr₂, h⟩ := h in
+⟨r₁, r₂, hr₁, hr₂, by rw [smul_comm r₁ s v₁, smul_comm r₂ s v₂, h]⟩
 
 variables (R M)
 
@@ -153,7 +172,60 @@ begin
   exact same_ray_pos_smul_left v hr
 end
 
+/-- An equivalence between modules implies an equivalence between ray vectors. -/
+def ray_vector.map_linear_equiv (e : M ≃ₗ[R] N) : ray_vector M ≃ ray_vector N :=
+equiv.subtype_equiv e.to_equiv $ λ _, e.map_ne_zero_iff.symm
+
+/-- An equivalence between modules implies an equivalence between rays. -/
+def module.ray.map [nontrivial R] (e : M ≃ₗ[R] N) : module.ray R M ≃ module.ray R N :=
+quotient.congr (ray_vector.map_linear_equiv e) $ λ ⟨a, ha⟩ ⟨b, hb⟩, (same_ray_map_iff _).symm
+
+@[simp] lemma module.ray.map_apply [nontrivial R] (e : M ≃ₗ[R] N) (v : M) (hv : v ≠ 0) :
+  module.ray.map e (ray_of_ne_zero _ v hv) = ray_of_ne_zero _ (e v) (e.map_ne_zero_iff.2 hv) := rfl
+
+@[simp] lemma module.ray.map_refl [nontrivial R] :
+  (module.ray.map $ linear_equiv.refl R M) = equiv.refl _ :=
+equiv.ext $ module.ray.ind R $ λ _ _, rfl
+
+@[simp] lemma module.ray.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
+  (module.ray.map e).symm = module.ray.map e.symm := rfl
+
+section action
+variables {G : Type*} [group G] [nontrivial R] [distrib_mul_action G M] [smul_comm_class R G M]
+
+/-- Any invertible action preserves the non-zeroness of ray vectors. This is primarily of interest
+when `G = units R` -/
+instance : mul_action G (ray_vector M) :=
+{ smul := λ r, (subtype.map ((•) r) $ λ a, (smul_ne_zero_iff_ne _).2),
+  mul_smul := λ a b m, subtype.ext $ mul_smul a b _,
+  one_smul := λ m, subtype.ext $ one_smul _ _ }
+
+/-- Any invertible action preserves the non-zeroness of rays. This is primarily of interest when
+`G = units R` -/
+instance : mul_action G (module.ray R M) :=
+{ smul := λ r, quotient.map ((•) r) (λ a b, same_ray.smul _),
+  mul_smul := λ a b, quotient.ind $ by exact(λ m, congr_arg quotient.mk $ mul_smul a b _),
+  one_smul := quotient.ind $ by exact (λ m, congr_arg quotient.mk $ one_smul _ _), }
+
+/-- The action via `linear_equiv.apply_distrib_mul_action` corresponds to `module.ray.map`. -/
+@[simp] lemma module.ray.linear_equiv_smul_eq_map (e : M ≃ₗ[R] M) (v : module.ray R M) :
+  e • v = module.ray.map e v := rfl
+
+@[simp] lemma smul_ray_of_ne_zero (g : G) (v : M) (hv) :
+  g • ray_of_ne_zero R v hv = ray_of_ne_zero R (g • v) ((smul_ne_zero_iff_ne _).2 hv) := rfl
+
+end action
+
 namespace module.ray
+
+/-- Scaling by a positive unit is a no-op. -/
+lemma units_smul_of_pos [nontrivial R] (u : units R) (hu : 0 < (u : R)) (v : module.ray R M) :
+  u • v = v :=
+begin
+  induction v using module.ray.ind,
+  rw [smul_ray_of_ne_zero, ray_eq_iff],
+  exact same_ray_pos_smul_left _ hu,
+end
 
 /-- An arbitrary `ray_vector` giving a ray. -/
 def some_ray_vector [nontrivial R] (x : module.ray R M) : ray_vector M :=
@@ -258,6 +330,15 @@ begin
   exact x_hv (eq_zero_of_same_ray_self_neg h)
 end
 
+/-- Scaling by a negative unit is negation. -/
+lemma units_smul_of_neg [nontrivial R] (u : units R) (hu : (u : R) < 0) (v : module.ray R M) :
+  u • v = -v :=
+begin
+  induction v using module.ray.ind,
+  rw [smul_ray_of_ne_zero, ←ray_neg, ray_eq_iff, ←same_ray_neg_swap, units.smul_def, ←neg_smul],
+  exact same_ray_pos_smul_left _ (neg_pos_of_neg hu),
+end
+
 end module.ray
 
 namespace basis
@@ -286,9 +367,12 @@ begin
   exact same_ray_pos_smul_left _ hr,
 end
 
+section
+variables [no_zero_smul_divisors R M]
+
 /-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
 is positive. -/
-@[simp] lemma same_ray_smul_right_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0) (r : R) :
+@[simp] lemma same_ray_smul_right_iff {v : M} (hv : v ≠ 0) (r : R) :
   same_ray R v (r • v) ↔ 0 < r :=
 begin
   split,
@@ -304,7 +388,7 @@ end
 
 /-- A multiple of a nonzero vector is in the same ray as that vector if and only if that multiple
 is positive. -/
-@[simp] lemma same_ray_smul_left_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0) (r : R) :
+@[simp] lemma same_ray_smul_left_iff {v : M} (hv : v ≠ 0) (r : R) :
   same_ray R (r • v) v ↔ 0 < r :=
 begin
   rw (symmetric_same_ray R M).iff,
@@ -313,8 +397,8 @@ end
 
 /-- The negation of a nonzero vector is in the same ray as a multiple of that vector if and
 only if that multiple is negative. -/
-@[simp] lemma same_ray_neg_smul_right_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0)
-  (r : R) : same_ray R (-v) (r • v) ↔ r < 0 :=
+@[simp] lemma same_ray_neg_smul_right_iff {v : M} (hv : v ≠ 0) (r : R) :
+  same_ray R (-v) (r • v) ↔ r < 0 :=
 begin
   rw [←same_ray_neg_iff, neg_neg, ←neg_smul, same_ray_smul_right_iff hv (-r)],
   exact right.neg_pos_iff
@@ -322,11 +406,33 @@ end
 
 /-- A multiple of a nonzero vector is in the same ray as the negation of that vector if and
 only if that multiple is negative. -/
-@[simp] lemma same_ray_neg_smul_left_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0)
-  (r : R) : same_ray R (r • v) (-v) ↔ r < 0 :=
+@[simp] lemma same_ray_neg_smul_left_iff {v : M} (hv : v ≠ 0) (r : R) :
+  same_ray R (r • v) (-v) ↔ r < 0 :=
 begin
   rw [←same_ray_neg_iff, neg_neg, ←neg_smul, same_ray_smul_left_iff hv (-r)],
   exact left.neg_pos_iff
+end
+
+/-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
+is positive. -/
+@[simp] lemma units_smul_eq_self_iff {u : units R} {v : module.ray R M} :
+  u • v = v ↔ (0 : R) < u :=
+begin
+  induction v using module.ray.ind with v hv,
+  rw [smul_ray_of_ne_zero, ray_eq_iff, units.smul_def],
+  exact same_ray_smul_left_iff hv _,
+end
+
+/-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
+is positive. -/
+@[simp] lemma units_smul_eq_neg_iff {u : units R} {v : module.ray R M} :
+  u • v = -v ↔ ↑u < (0 : R) :=
+begin
+  induction v using module.ray.ind with v hv,
+  rw [smul_ray_of_ne_zero, ←ray_neg, ray_eq_iff, units.smul_def],
+  exact same_ray_neg_smul_left_iff hv _,
+end
+
 end
 
 namespace basis
@@ -345,14 +451,11 @@ by rw [basis.orientation, basis.orientation, ray_eq_iff,
 lemma orientation_eq_or_eq_neg (e : basis ι R M) (x : orientation R M ι) :
   x = e.orientation ∨ x = -e.orientation :=
 begin
-  rw [basis.orientation, ←x.some_vector_ray, ray_eq_iff, ←ray_neg, ray_eq_iff,
-      x.some_vector.eq_smul_basis_det e],
-  rcases lt_trichotomy (x.some_vector e) 0 with h|h|h,
-  { right,
-    exact (same_ray_neg_smul_left_iff e.det_ne_zero (_ : R)).2 h },
-  { simpa [h] using x.some_vector.eq_smul_basis_det e },
-  { left,
-    exact (same_ray_smul_left_iff e.det_ne_zero (_ : R)).2 h }
+  induction x using module.ray.ind with x hx,
+  rw [basis.orientation, ray_eq_iff, ←ray_neg, ray_eq_iff, x.eq_smul_basis_det e,
+    same_ray_neg_smul_left_iff e.det_ne_zero (_ : R), same_ray_smul_left_iff e.det_ne_zero (_ : R),
+    lt_or_lt_iff_ne, ne_comm, alternating_map.map_basis_ne_zero_iff],
+  exact hx
 end
 
 end basis

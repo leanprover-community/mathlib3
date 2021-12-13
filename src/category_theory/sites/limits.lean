@@ -153,7 +153,7 @@ has_limits_of_shape_of_has_limits_of_shape_creates_limits_of_shape (Sheaf_to_pre
 
 end
 
-instance [has_limits D] : creates_limits (Sheaf_to_presheaf J D) := {}
+instance [has_limits D] : creates_limits (Sheaf_to_presheaf J D) := ⟨⟩
 
 instance [has_limits D] : has_limits (Sheaf J D) :=
 has_limits_of_has_limits_creates_limits (Sheaf_to_presheaf J D)

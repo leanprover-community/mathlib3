@@ -372,6 +372,20 @@ begin
     exact_mod_cast split_frac, }
 end
 
+protected lemma div_pow {p : ℕ} [p_prime : fact p.prime] {b k : ℕ} (dvd : p ^ k ∣ b) :
+  (padic_val_nat p (b / p ^ k)) = (padic_val_nat p b) - k :=
+begin
+  induction k with k hk,
+  { simp },
+  have hpk : p ^ k ∣ b := nat.pow_dvd_of_le_of_pow_dvd k.le_succ dvd,
+  rw [nat.sub_succ', ←hk hpk, pow_succ', ←nat.div_div_eq_div_mul],
+  refine padic_val_nat.div _,
+  rw ←pow_one p,
+  apply nat.pow_dvd_of_le_of_pow_dvd,
+  { refl },
+  rwa [pow_one, nat.dvd_div_iff hpk, ←pow_succ']
+end
+
 /-- A version of `padic_val_rat.pow` for `padic_val_nat` -/
 protected lemma pow (p q n : ℕ) [fact p.prime] (hq : q ≠ 0) :
   padic_val_nat p (q ^ n) = n * padic_val_nat p q :=

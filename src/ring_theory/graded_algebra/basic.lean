@@ -208,7 +208,6 @@ begin
   refine disjoint_sdiff_self_right,
 end
 
-
 private lemma right_inv : function.right_inverse (decompose R σ) (submodule_coe _) := λ p,
 begin
   rw [decompose, linear_map.map_sum],
@@ -223,7 +222,6 @@ begin
     conv_rhs { rw ←sum_homogeneous_component p }, apply finset.sum_congr rfl (λ _ _, rfl),
 end
 
-@[nolint fails_quickly]
 noncomputable instance mv_polynomial_is_graded :
   graded_algebra (λ i : ℕ, (homogeneous_submodule σ R i)) :=
 { decompose' := decompose R σ,

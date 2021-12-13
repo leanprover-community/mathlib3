@@ -676,7 +676,7 @@ def pow_card_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.none
   subgroup G :=
 have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
 { obtain ⟨a, ha⟩ := hS,
-  rw ← @pow_card_eq_one _ a,
+  rw ← pow_card_eq_one,
   exact set.pow_mem_pow ha (fintype.card G) },
 subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
   classical,

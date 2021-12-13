@@ -270,8 +270,6 @@ by rw [← mem_mul_support, finprod_eq_mul_indicator_apply, mul_indicator_mul_su
   ∏ᶠ a ∈ s, f a = ∏ᶠ a, mul_indicator s f a :=
 finprod_congr $ finprod_eq_mul_indicator_apply s f
 
-lemma finprod_eq_finprod_mem (f : α → M) : ∏ᶠ i, f i = (∏ᶠ i ∈ (mul_support f), f i)  := by simp
-
 @[to_additive] lemma finprod_eq_prod_of_mul_support_subset (f : α → M) {s : finset α}
   (h : mul_support f ⊆ s) :
   ∏ᶠ i, f i = ∏ i in s, f i :=
@@ -765,7 +763,7 @@ over `a ∈ ⋃₀ t` is the product over `s ∈ t` of the products of `f a` ove
   ∏ᶠ a ∈ ⋃₀ t, f a = ∏ᶠ s ∈ t, ∏ᶠ a ∈ s, f a :=
 by rw [set.sUnion_eq_bUnion, finprod_mem_bUnion h ht₀ ht₁]
 
-@[to_additive] lemma finprod_mul_sdiff_singleton (a : α) (hf : finite (mul_support f)) :
+@[to_additive] lemma mul_finprod_cond_ne (a : α) (hf : finite (mul_support f)) :
   f a * (∏ᶠ i ≠ a, f i) = ∏ᶠ i, f i :=
 begin
   classical,

@@ -57,12 +57,16 @@ provides the `Prop` typeclasses:
 * `set_like.has_graded_mul A` (which provides the obvious `graded_monoid.ghas_mul A` instance)
 * `set_like.graded_monoid A` (which provides the obvious `graded_monoid.gmonoid A` and
   `graded_monoid.gcomm_monoid A` instances)
+* `set_like.is_homogeneous A` (which says that `a` is homogeneous iff `a ∈ A i` for some `i : ι`)
 
 Strictly this last class is unecessary as it has no fields not present in its parents, but it is
 included for convenience. Note that there is no need for `graded_ring` or similar, as all the
 information it would contain is already supplied by `graded_monoid` when `A` is a collection
 of additively-closed set_like objects such as `submodules`. These constructions are explored in
 `algebra.direct_sum.internal`.
+
+This file also contains the definition of `set_like.homogeneous_submonoid A`, which is, as the name
+suggests, the submonoid consisting of all the homogeneous elements.
 
 ## tags
 

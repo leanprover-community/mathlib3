@@ -188,7 +188,7 @@ omit M
 Extension of scalars is a functor where an `R`-module `M` is sent to `M ⊗ S` and
 `l : M1 ⟶ M2` is sent to `m ⊗ s ↦ l m ⊗ s`
 -/
-def map {M1 M2 : Module R} (l : M1 ⟶ M2) : (module f M1) ⟶ (module f M2) :=
+@[reducible] def map {M1 M2 : Module R} (l : M1 ⟶ M2) : (module f M1) ⟶ (module f M2) :=
 { to_fun := @tensor_product.lift R _ M1 S (M2 ⊗ S) _ _ _ _ (is_R_mod_S f) _
        {to_fun := λ m : M1,
         { to_fun := λ (s : ↥S), @tensor_product.tmul R _ M2 S _ _ _ (is_R_mod_S f) (l m) s,
@@ -219,9 +219,29 @@ def map {M1 M2 : Module R} (l : M1 ⟶ M2) : (module f M1) ⟶ (module f M2) :=
       rw [smul_add, linear_map.map_add, ihx, ihy, linear_map.map_add, smul_add], }
   end }
 
--- this doesn't compile for some reason
--- example : Module.{u} R ⥤ Module.{u} S :=
--- { obj := module f,
---   map := λ M1 M2 l, map f l }
+/--
+The functor extension of scalars
+-/
+def _root_.extension_of_scalars : Module.{u} R ⥤ Module.{u} S :=
+{ obj := module f,
+  map := λ M1 M2 l, map f l,
+  map_id' := λ M, begin
+    ext x, rw [map, Module.id_apply],
+    apply @tensor_product.induction_on R _ M S _ _ _ (is_R_mod_S f) _ x,
+    { rw map_zero },
+    { intros m s, rw [linear_map.coe_mk, tensor_product.lift.tmul], refl, },
+    { intros x y ihx ihy, rw [linear_map.coe_mk] at ihx ihy ⊢,
+      rw [map_add, ihx, ihy], }
+  end,
+  map_comp' := λ M1 M2 M3 g h, begin
+    ext x,
+    rw [map, map, map, linear_map.coe_mk, category_theory.comp_apply,
+      linear_map.coe_mk, linear_map.coe_mk],
+    apply @tensor_product.induction_on R _ _ S _ _ _ (is_R_mod_S f) _ x,
+    { rw [map_zero, map_zero, map_zero], },
+    { rintros m s, rw [tensor_product.lift.tmul, tensor_product.lift.tmul], refl, },
+    { rintros x y ihx ihy,
+      rw [map_add, ihx, ihy, map_add, map_add], }
+  end }
 
 end extension_of_scalars

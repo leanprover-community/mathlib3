@@ -1385,7 +1385,7 @@ begin
     rw this,
     exact (continuous_set_to_fun hT').comp (continuous_L1_to_L1 c' hc' hμ'_le), },
   { intros f₂ g₂ hfg hf₂ hf_eq,
-    have hfg' : f₂ =ᵐ[μ'] g₂, from (measure.absolutely_continuous_of_le_mul hμ'_le).ae_eq hfg,
+    have hfg' : f₂ =ᵐ[μ'] g₂, from (measure.absolutely_continuous_of_le_smul hμ'_le).ae_eq hfg,
     rw [← set_to_fun_congr_ae hT hfg, hf_eq, set_to_fun_congr_ae hT' hfg'], },
 end
 

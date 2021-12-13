@@ -1411,37 +1411,39 @@ lemma subsingleton_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : subsingle
 /-!
 ### If-Then-Else
 
-lemmas about `ite` and `dite`
+Lemmas about `ite` and `dite`.
 -/
 
 section ite
-variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) (P Q : Prop) {p q : Prop} [decidable P]
-  [decidable Q] [decidable p] [decidable q] {a b c : α}
+variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) {P Q : Prop} [decidable P] [decidable Q]
+  {a b c : α}
 
-lemma ite_eq_iff : (if p then a else b) = c ↔ p ∧ a = c ∨ ¬p ∧ b = c := by by_cases p; simp *
+lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c := by by_cases P; simp *
 
-@[simp] lemma ite_eq_left_iff : (if p then a else b) = a ↔ (¬p → b = a) := by by_cases p; simp *
-@[simp] lemma ite_eq_right_iff : (if p then a else b) = b ↔ (p → a = b) := by by_cases p; simp *
+@[simp] lemma ite_eq_left_iff : ite P a b = a ↔ (¬ P → b = a) := by by_cases P; simp *
+@[simp] lemma ite_eq_right_iff : ite P a b = b ↔ (P → a = b) := by by_cases P; simp *
 
-lemma ite_eq_or_eq (a b : α) : ite p a b = a ∨ ite p a b = b :=
+variables (P Q) (a b)
+
+lemma ite_eq_or_eq : ite P a b = a ∨ ite P a b = b :=
 decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
 
 /-- A `dite` whose results do not actually depend on the condition may be reduced to an `ite`. -/
-@[simp] lemma dite_eq_ite (a b : α) : dite P (λ h, a) (λ h, b) = ite P a b := rfl
+@[simp] lemma dite_eq_ite : dite P (λ h, a) (λ h, b) = ite P a b := rfl
 
 /-- A function applied to a `dite` is a `dite` of that function applied to each of the branches. -/
 lemma apply_dite (x : P → α) (y : ¬P → α) : f (dite P x y) = dite P (λ h, f (x h)) (λ h, f (y h)) :=
-by { by_cases h : P; simp [h] }
+by by_cases h : P; simp [h]
 
 /-- A function applied to a `ite` is a `ite` of that function applied to each of the branches. -/
-lemma apply_ite (a b : α) : f (ite P a b) = ite P (f a) (f b) := apply_dite f P (λ _, a) (λ _, b)
+lemma apply_ite : f (ite P a b) = ite P (f a) (f b) := apply_dite f P (λ _, a) (λ _, b)
 
 /-- A two-argument function applied to two `dite`s is a `dite` of that two-argument function
 applied to each of the branches. -/
-lemma apply_dite2 (f : α → β → γ) (P : Prop) [decidable P] (a : P → α)
-  (b : ¬P → α) (c : P → β) (d : ¬P → β) :
+lemma apply_dite2 (f : α → β → γ) (P : Prop) [decidable P] (a : P → α) (b : ¬P → α) (c : P → β)
+  (d : ¬P → β) :
   f (dite P a b) (dite P c d) = dite P (λ h, f (a h) (c h)) (λ h, f (b h) (d h)) :=
-by { by_cases h : P; simp [h] }
+by by_cases h : P; simp [h]
 
 /-- A two-argument function applied to two `ite`s is a `ite` of that two-argument function
 applied to each of the branches. -/
@@ -1453,7 +1455,7 @@ apply_dite2 f P (λ _, a) (λ _, b) (λ _, c) (λ _, d)
 either branch to `a`. -/
 lemma dite_apply (f : P → Π a, σ a) (g : ¬ P → Π a, σ a) (a : α) :
   (dite P f g) a = dite P (λ h, f h a) (λ h, g h a) :=
-by { by_cases h : P; simp [h] }
+by by_cases h : P; simp [h]
 
 /-- A 'ite' producing a `Pi` type `Π a, σ a`, applied to a value `a : α` is a `ite` that applies
 either branch to `a`. -/
@@ -1463,13 +1465,12 @@ dite_apply P (λ _, f) (λ _, g) a
 /-- Negation of the condition `P : Prop` in a `dite` is the same as swapping the branches. -/
 @[simp] lemma dite_not (x : ¬ P → α) (y : ¬¬ P → α) :
   dite (¬ P) x y = dite P (λ h, y (not_not_intro h)) x :=
-by { by_cases h : P; simp [h] }
+by by_cases h : P; simp [h]
 
 /-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
-@[simp] lemma ite_not (a b : α) : ite (¬ P) a b = ite P b a := dite_not P (λ _, a) (λ _, b)
+@[simp] lemma ite_not : ite (¬ P) a b = ite P b a := dite_not P (λ _, a) (λ _, b)
 
-lemma ite_and : ite (p ∧ q) a b = ite p (ite q a b) b :=
-by { by_cases hp : p; by_cases hq : q; simp [hp, hq] }
-
+lemma ite_and : ite (P ∧ Q) a b = ite P (ite Q a b) b :=
+by by_cases hp : P; by_cases hq : Q; simp [hp, hq]
 
 end ite

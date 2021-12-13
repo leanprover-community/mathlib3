@@ -268,8 +268,7 @@ instance homogeneous_ideal.has_mul :
       rw set.mem_mul at hy1 ⊢,
       obtain ⟨z1, z2, hz1, hz2, hz3⟩ := hy1,
       use z1, use z2, split, rw set.mem_image, use z1, refine ⟨hz1, rfl⟩,
-      split, rw set.mem_image, use z2, refine ⟨hz2, rfl⟩, tidy,
-       }
+      split, rw set.mem_image, use z2, refine ⟨hz2, rfl⟩, tidy, }
   end }
 
 instance homogeneous_ideal.has_sup : has_sup (homogeneous_ideal R A) :=
@@ -311,8 +310,7 @@ begin
       have eq₁ : ideal.span {x | x ∈ I.1 ⊓ J.1 ∧ is_homogeneous A x}
         ≤ ideal.span {x | x ∈ J ∧ is_homogeneous A x},
       { apply ideal.span_mono, rintros y ⟨⟨_, hy₁⟩, hy₂⟩, refine ⟨hy₁, hy₂⟩, },
-      refine HK _, refine eq₁ hx, },
-  },
+      refine HK _, refine eq₁ hx, }, },
 end
 
 private lemma homogeneous_ideal.inf_subset
@@ -410,7 +408,8 @@ end, begin
                     \ {(max₁, max₂)} ∪ {(max₁, max₂)},
             (graded_algebra.proj A ij.1 x) * (graded_algebra.proj A ij.2 y)
         : _ -- (1),
-    ... = ∑ (ij : ι × ι) in ((graded_algebra.support A x).product (graded_algebra.support A y)).filter
+    ... = ∑ (ij : ι × ι) in ((graded_algebra.support A x).product
+            (graded_algebra.support A y)).filter
             (λ (z : ι × ι), prod.fst z + z.snd = max₁ + max₂)
                     \ {(max₁, max₂)},
             (graded_algebra.proj A (prod.fst ij) x) * (graded_algebra.proj A ij.snd y)

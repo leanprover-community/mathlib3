@@ -79,7 +79,8 @@ instance : my_embedding_class (my_embedding A B) A B :=
 -- [Insert `has_coe_to_fun`, `to_fun_eq_coe`, `ext` and `copy` here]
 ```
 
-The second step is to add instances of your new `my_embedding_class` for all types extending `my_embedding`.
+The second step is to add instances of your new `my_embedding_class` for all types extending
+`my_embedding`.
 Typically, you can just declare a new class analogous to `my_embedding_class`:
 
 ```

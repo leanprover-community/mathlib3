@@ -13,7 +13,7 @@ import ring_theory.integral_domain
 /-!
 # Basic properties of schemes
 
-We provide the basic properties of schemes
+We provide some basic properties of schemes
 
 ## Main definition
 * `algebraic_geometry.is_integral`: A scheme is integral if it is nontrivial and all nontrivial

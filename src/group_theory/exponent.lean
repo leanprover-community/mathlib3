@@ -6,14 +6,15 @@ Authors: Julian Kuelshammer
 import group_theory.order_of_element
 import algebra.punit_instances
 import algebra.gcd_monoid.finset
-import ring_theory.int.basic
+import tactic.by_contra
+import number_theory.padics.padic_norm
 
 /-!
 # Exponent of a group
 
 This file defines the exponent of a group, or more generally a monoid. For a group `G` it is defined
-to be the minimal `n≥1` such that `g ^ n = 1` for all `g ∈ G`. For a finite group `G` it is equal to
-the lowest common multiple of the order of all elements of the group `G`.
+to be the minimal `n≥1` such that `g ^ n = 1` for all `g ∈ G`. For a finite group `G`,
+it is equal to the lowest common multiple of the order of all elements of the group `G`.
 
 ## Main definitions
 
@@ -26,21 +27,27 @@ the lowest common multiple of the order of all elements of the group `G`.
 
 ## Main results
 
-* `lcm_order_eq_exponent`: For a finite group `G`, the exponent is equal to the `lcm` of the order
-  of its elements.
+* `monoid.lcm_order_eq_exponent`: For a finite left cancel monoid `G`, the exponent is equal to the
+  `finset.lcm` of the order of its elements.
+* `monoid.exponent_eq_Sup_order_of`: For a finite commutative cancel monoid, the exponent is
+  equal to the supremum of the order of its elements.
 
 ## TODO
-* Compute the exponent of cyclic groups.
 * Refactor the characteristic of a ring to be the exponent of its underlying additive group.
+* `monoid.exponent_eq_Sup_order_of` can be generalised to infinite groups.
 -/
 
 universe u
 
-variables (G : Type u) [monoid G]
+variable {G : Type u}
 
 open_locale classical
 
 namespace monoid
+
+section monoid
+
+variables (G) [monoid G]
 
 /--A predicate on a monoid saying that there is a positive integer `n` such that `g ^ n = 1`
   for all `g`.-/
@@ -54,6 +61,21 @@ def exponent_exists  := ∃ n, 0 < n ∧ ∀ g : G, g ^ n = 1
   `n • g = 0` for all `g ∈ G` if it exists, otherwise it is zero by convention."]
 noncomputable def exponent :=
 if h : exponent_exists G then nat.find h else 0
+
+variable {G}
+
+@[to_additive]
+lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G :=
+begin
+  rw [exponent],
+  split_ifs,
+  { simp [h, @not_lt_zero' ℕ] }, --if this isn't done this way, `to_additive` freaks
+  { tauto }
+end
+
+@[to_additive]
+lemma exponent_eq_zero_of_order_zero {g : G} (hg : order_of g = 0) : exponent G = 0 :=
+exponent_eq_zero_iff.mpr $ λ ⟨n, hn, hgn⟩, order_of_eq_zero_iff'.mp hg n hn $ hgn g
 
 @[to_additive exponent_nsmul_eq_zero]
 lemma pow_exponent_eq_one (g : G) : g ^ exponent G = 1 :=
@@ -91,9 +113,8 @@ end
 @[to_additive]
 lemma exponent_min (m : ℕ) (hpos : 0 < m) (hm : m < exponent G) : ∃ g : G, g ^ m ≠ 1 :=
 begin
-  by_contradiction,
-  push_neg at h,
-  have hcon : exponent G ≤ m := exponent_min' G m hpos h,
+  by_contra' h,
+  have hcon : exponent G ≤ m := exponent_min' m hpos h,
   linarith,
 end
 
@@ -101,47 +122,76 @@ end
 lemma exp_eq_one_of_subsingleton [subsingleton G] : exponent G = 1 :=
 begin
   apply le_antisymm,
-  { apply exponent_min' _ _ nat.one_pos,
+  { apply exponent_min' _ nat.one_pos,
     simp },
   { apply nat.succ_le_of_lt,
-    apply exponent_pos_of_exists _ 1 (nat.one_pos),
+    apply exponent_pos_of_exists 1 (nat.one_pos),
     simp },
 end
 
 @[to_additive add_order_dvd_exponent]
 lemma order_dvd_exponent (g : G) : (order_of g) ∣ exponent G :=
-order_of_dvd_of_pow_eq_one (pow_exponent_eq_one G g)
+order_of_dvd_of_pow_eq_one $ pow_exponent_eq_one g
 
-@[to_additive]
-lemma exponent_dvd_of_forall_pow_eq_one (n : ℕ) (hpos : 0 < n) (hG : ∀ g : G, g ^ n = 1) :
-  exponent G ∣ n :=
+variable (G)
+
+@[to_additive exponent_dvd_of_forall_nsmul_eq_zero]
+lemma exponent_dvd_of_forall_pow_eq_one (G) [monoid G] (n : ℕ) (hpos : 0 < n)
+  (hG : ∀ g : G, g ^ n = 1) : exponent G ∣ n :=
 begin
   apply nat.dvd_of_mod_eq_zero,
   by_contradiction h,
   have h₁ := nat.pos_of_ne_zero h,
-  have h₂ : n % exponent G < exponent G := nat.mod_lt _ (exponent_pos_of_exists _ n hpos hG),
+  have h₂ : n % exponent G < exponent G := nat.mod_lt _ (exponent_pos_of_exists n hpos hG),
   have h₃ : exponent G ≤ n % exponent G,
-  { apply exponent_min' _ _ h₁,
+  { apply exponent_min' _ h₁,
     simp_rw ←pow_eq_mod_exponent,
     exact hG },
   linarith,
 end
 
-variable [fintype G]
-
 @[to_additive lcm_add_order_of_dvd_exponent]
-lemma lcm_order_of_dvd_exponent : (finset.univ : finset G).lcm order_of ∣ exponent G :=
+lemma lcm_order_of_dvd_exponent [fintype G] : (finset.univ : finset G).lcm order_of ∣ exponent G :=
 begin
   apply finset.lcm_dvd,
   intros g hg,
-  exact order_dvd_exponent G g
+  exact order_dvd_exponent g
 end
 
-@[to_additive lcm_add_order_eq_exponent]
-lemma lcm_order_eq_exponent {H : Type u} [fintype H] [left_cancel_monoid H] :
-  (finset.univ : finset H).lcm order_of = exponent H :=
+@[to_additive]
+lemma exists_max_prime_pow_dvd_exponent {p : ℕ} (hp : p.prime) :
+  ∃ g : G, order_of g = p ^ padic_val_nat p (exponent G) :=
 begin
-  apply nat.dvd_antisymm (lcm_order_of_dvd_exponent H),
+  haveI := fact.mk hp,
+  rcases (padic_val_nat p $ exponent G).eq_zero_or_pos with h | h,
+  { refine ⟨1, by rw [h, pow_zero, order_of_one]⟩ },
+  have he : 0 < exponent G := ne.bot_lt (λ t, by {rw t at h, exact h.ne' (padic_val_nat_zero _) }),
+  have := nat.div_pos (nat.le_of_dvd he $ dvd_of_one_le_padic_val_nat h) hp.pos,
+  obtain ⟨g, hg⟩ : ∃ (g : G), g ^ (exponent G / p) ≠ 1,
+  { suffices key : ¬ exponent G ∣ exponent G / p,
+    { by simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p) this) key },
+    exact λ hd, hp.one_lt.not_le ((mul_le_iff_le_one_left he).mp $
+                nat.le_of_dvd he $ nat.mul_dvd_of_dvd_div (dvd_of_one_le_padic_val_nat h) hd) },
+  obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := pow_padic_val_nat_dvd; try {apply_instance},
+  obtain ⟨t, ht⟩ := nat.exists_eq_succ_of_ne_zero h.ne',
+  refine ⟨g ^ k, _⟩,
+  rw ht,
+  apply order_of_eq_prime_pow,
+  { rwa [hk, mul_comm, ht, pow_succ', ←mul_assoc, nat.mul_div_cancel _ hp.pos, pow_mul] at hg },
+  { rw [←nat.succ_eq_add_one, ←ht, ←pow_mul, mul_comm, ←hk],
+    exact pow_exponent_eq_one g },
+end
+
+end monoid
+
+section left_cancel_monoid
+
+variable [left_cancel_monoid G]
+
+@[to_additive lcm_add_order_eq_exponent]
+lemma lcm_order_eq_exponent [fintype G] : (finset.univ : finset G).lcm order_of = exponent G :=
+begin
+  apply nat.dvd_antisymm (lcm_order_of_dvd_exponent G),
   apply exponent_dvd_of_forall_pow_eq_one,
   { apply nat.pos_of_ne_zero,
     by_contradiction,
@@ -150,11 +200,70 @@ begin
     simp only [true_and, set.mem_univ, finset.coe_univ] at hg,
     exact ne_of_gt (order_of_pos g) hg },
   { intro g,
-    have h : (order_of g) ∣ (finset.univ : finset H).lcm order_of,
+    have h : (order_of g) ∣ (finset.univ : finset G).lcm order_of,
     { apply finset.dvd_lcm,
       exact finset.mem_univ g },
     cases h with m hm,
     rw [hm, pow_mul, pow_order_of_eq_one, one_pow] },
 end
+
+@[to_additive]
+lemma exponent_ne_zero_of_fintype [fintype G] : exponent G ≠ 0 :=
+by simpa [←lcm_order_eq_exponent, finset.lcm_eq_zero_iff] using λ x, (order_of_pos x).ne'
+
+end left_cancel_monoid
+
+section comm_monoid
+
+variable [cancel_comm_monoid G]
+
+open finset
+
+-- TODO: this is true without the `fintype`.
+@[to_additive]
+lemma exponent_eq_Sup_order_of [fintype G] : exponent G = Sup (set.range (order_of : G → ℕ)) :=
+begin
+  rw [←fintype.coe_image_univ, eq_comm,
+      nonempty.cSup_eq_max' (⟨1, by simp⟩ : ((@univ G _).image order_of).nonempty)],
+  generalize_proofs hne,
+  have := max'_mem (image order_of univ) hne,
+  rw mem_image at this,
+  obtain ⟨t, -, ht⟩ := this,
+  apply nat.dvd_antisymm,
+  { rw ←ht,
+    apply order_dvd_exponent },
+  refine nat.dvd_of_factors_subperm (exponent_ne_zero_of_fintype) _,
+  rw list.subperm_ext_iff,
+  by_contra' h,
+  obtain ⟨p, hp, hpe⟩ := h,
+  haveI hp := fact.mk (nat.prime_of_mem_factors hp),
+  simp only [←padic_val_nat_eq_factors_count p] at hpe,
+  set k := padic_val_nat p (order_of t) with hk,
+  obtain ⟨g, hg⟩ := exists_max_prime_pow_dvd_exponent G hp.1,
+  suffices : order_of t < order_of (t ^ (p ^ k) * g),
+  { rw ht at this,
+    exact this.not_le (le_max' _ _ $ by simp) },
+  have hpk  : p ^ k ∣ order_of t := pow_padic_val_nat_dvd,
+  have hpk' : order_of (t ^ p ^ k) = order_of t / p ^ k,
+  { rw [order_of_pow t, nat.gcd_eq_right hpk] },
+  obtain ⟨a, ha⟩ := nat.exists_eq_add_of_lt hpe,
+  have hcoprime : (order_of (t ^ p ^ k)).coprime (order_of g),
+  { rw [hg, nat.coprime_pow_right_iff, nat.coprime_comm],
+    apply or.resolve_right (nat.coprime_or_dvd_of_prime hp.1 _),
+    nth_rewrite 0 ←pow_one p,
+    convert pow_succ_padic_val_nat_not_dvd (order_of_pos (t ^ p ^ k)),
+    rw [hpk', padic_val_nat.div_pow hpk, hk, nat.sub_self],
+    { apply_instance },
+    rw ha,
+    exact nat.succ_pos _ },
+  rw [(commute.all _ g).order_of_mul_eq_mul_order_of_of_coprime hcoprime, hpk', hg, ha, ←ht, ←hk,
+      pow_add, pow_add, pow_one],
+  convert_to order_of t < (order_of t / p ^ k * p ^ k) * p ^ a * p,
+  { ac_refl },
+  rw [nat.div_mul_cancel hpk, mul_assoc, lt_mul_iff_one_lt_right $ order_of_pos t, ←pow_succ'],
+  exact one_lt_pow hp.1.one_lt a.succ_ne_zero
+end
+
+end comm_monoid
 
 end monoid

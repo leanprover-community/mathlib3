@@ -33,6 +33,11 @@ finsupp.lsum R $ λ xs : σ →₀ ℕ, (linear_map.ring_lmap_equiv_self R R A).
 
 end
 
+lemma mk_derivationₗ_monomial (f : σ → A) (s : σ →₀ ℕ) (r : R) :
+  mk_derivationₗ R f (monomial s r) =
+    r • (s.sum $ λ i k, monomial (s - finsupp.single i 1) (k : R) • f i) :=
+sum_monomial_eq $ linear_map.map_zero _
+
 variables [is_scalar_tower R (mv_polynomial σ R) A]
 
 lemma leibniz_iff_X
@@ -68,14 +73,7 @@ f.map_algebra_map a
   f = g :=
 derivation.ext_of_adjoin_eq_top _ adjoin_range_X $ set.forall_range_iff.2 h
 
-variables {R} [module (mv_polynomial σ R) A] [is_scalar_tower R (mv_polynomial σ R) A]
-
-lemma mk_derivationₗ_monomial (f : σ → A) (s : σ →₀ ℕ) (r : R) :
-  mk_derivationₗ R f (monomial s r) =
-    r • (s.sum $ λ i k, monomial (s - finsupp.single i 1) (k : R) • f i) :=
-sum_monomial_eq $ linear_map.map_zero _
-
-variable (R)
+variables (R)
 
 def mk_derivation (f : σ → A) : derivation R (mv_polynomial σ R) A :=
 begin

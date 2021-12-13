@@ -47,28 +47,30 @@ is equivalent to `mul_action.orbit_rel`. -/
 def same_ray (v₁ v₂ : M) : Prop :=
 ∃ (r₁ r₂ : R), 0 < r₁ ∧ 0 < r₂ ∧ r₁ • v₁ = r₂ • v₂
 
-variables (M)
+variables {R}
+
+/-- `same_ray` is reflexive. -/
+@[refl] lemma same_ray.refl [nontrivial R] (x : M) : same_ray R x x :=
+⟨1, 1, zero_lt_one, zero_lt_one, rfl⟩
 
 /-- `same_ray` is symmetric. -/
-lemma symmetric_same_ray : symmetric (same_ray R : M → M → Prop) :=
-λ _ _ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₂, r₁, hr₂, hr₁, h.symm⟩
+@[symm] lemma same_ray.symm {x y : M} : same_ray R x y → same_ray R y x :=
+λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₂, r₁, hr₂, hr₁, h.symm⟩
 
 /-- `same_ray` is transitive. -/
-lemma transitive_same_ray :
-  transitive (same_ray R : M → M → Prop) :=
-λ _ _ _ ⟨r₁, r₂, hr₁, hr₂, h₁⟩ ⟨r₃, r₄, hr₃, hr₄, h₂⟩,
+@[trans] lemma same_ray.trans {x y z : M} : same_ray R x y → same_ray R y z → same_ray R x z :=
+λ ⟨r₁, r₂, hr₁, hr₂, h₁⟩ ⟨r₃, r₄, hr₃, hr₄, h₂⟩,
   ⟨r₃ * r₁, r₂ * r₄, mul_pos hr₃ hr₁, mul_pos hr₂ hr₄,
    by rw [mul_smul, mul_smul, h₁, ←h₂, smul_comm]⟩
 
-/-- `same_ray` is reflexive. -/
-lemma reflexive_same_ray [nontrivial R] :
-  reflexive (same_ray R : M → M → Prop) :=
-λ _, ⟨1, 1, zero_lt_one, zero_lt_one, rfl⟩
+@[symm] lemma same_ray_comm {x y : M} : same_ray R x y ↔ same_ray R y x :=
+⟨same_ray.symm, same_ray.symm⟩
+
+variables (R M)
 
 /-- `same_ray` is an equivalence relation. -/
-lemma equivalence_same_ray [nontrivial R] :
-  equivalence (same_ray R : M → M → Prop) :=
-⟨reflexive_same_ray R M, symmetric_same_ray R M, transitive_same_ray R M⟩
+lemma equivalence_same_ray [nontrivial R] : equivalence (same_ray R : M → M → Prop) :=
+⟨same_ray.refl, λ _ _, same_ray.symm, λ _ _ _, same_ray.trans⟩
 
 variables {R M}
 
@@ -79,7 +81,7 @@ lemma same_ray_pos_smul_right (v : M) {r : R} (h : 0 < r) : same_ray R v (r • 
 /-- A vector is in the same ray as a positive multiple of one it is in the same ray as. -/
 lemma same_ray.pos_smul_right {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :
   same_ray R v₁ (r • v₂) :=
-transitive_same_ray R M h (same_ray_pos_smul_right v₂ hr)
+h.trans (same_ray_pos_smul_right v₂ hr)
 
 /-- A positive multiple of a vector is in the same ray as that vector. -/
 lemma same_ray_pos_smul_left (v : M) {r : R} (h : 0 < r) : same_ray R (r • v) v :=
@@ -88,13 +90,13 @@ lemma same_ray_pos_smul_left (v : M) {r : R} (h : 0 < r) : same_ray R (r • v) 
 /-- A positive multiple of a vector is in the same ray as one it is in the same ray as. -/
 lemma same_ray.pos_smul_left {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :
   same_ray R (r • v₁) v₂ :=
-transitive_same_ray R M (same_ray_pos_smul_left v₁ hr) h
+(same_ray_pos_smul_left v₁ hr).trans h
 
 variables (R M)
 
 /-- The setoid of the `same_ray` relation for elements of a module. -/
 def same_ray_setoid [nontrivial R] : setoid M :=
-{ r := λ v₁ v₂, same_ray R v₁ v₂, iseqv := equivalence_same_ray R M }
+{ r := same_ray R, iseqv := equivalence_same_ray R M }
 
 /-- Nonzero vectors, as used to define rays. -/
 @[reducible] def ray_vector := {v : M // v ≠ 0}
@@ -307,7 +309,7 @@ is positive. -/
 @[simp] lemma same_ray_smul_left_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0) (r : R) :
   same_ray R (r • v) v ↔ 0 < r :=
 begin
-  rw (symmetric_same_ray R M).iff,
+  rw same_ray_comm,
   exact same_ray_smul_right_iff hv r
 end
 

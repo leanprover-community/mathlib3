@@ -158,9 +158,8 @@ not_lt.mp $ not_lt_argmin f h a
   (hs : s.nonempty := set.nonempty_of_mem ha) : f (argmin_on f h s hs) ≤ f a :=
 not_lt.mp $ not_lt_argmin_on f h s ha hs
 
-theorem strict_mono.self_le_of_well_founded {φ : β → β} (hφ : strict_mono φ)
-(h : well_founded ((<) : β → β → Prop)) :
-  ∀ n, n ≤ φ n :=
+include h
+theorem strict_mono.self_le_of_well_founded {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
 begin
   by_contra h',
   push_neg at h',

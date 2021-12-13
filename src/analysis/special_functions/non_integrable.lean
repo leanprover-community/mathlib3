@@ -6,7 +6,9 @@ Authors: Yury Kudryashov
 import analysis.special_functions.integrals
 
 /-!
-# 
+# Non integrable functions
+
+In this file we prove that some functions (e.g., `λ x, x⁻¹`) are not interval integrable.
 -/
 
 open_locale measure_theory topological_space interval

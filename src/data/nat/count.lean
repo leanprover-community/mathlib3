@@ -87,10 +87,9 @@ by split_ifs; simp [count, list.range_succ, h]
 lemma count_add (a b : ℕ) : count p (a + b) = count p a + count (λ k, p (a + k)) b :=
 begin
   rw [count_eq_card_filter_range, count_eq_card_filter_range, count_eq_card_filter_range, range_add,
-    filter_union, card_disjoint_union, image_filter,
-    card_image_of_injective _ (add_right_injective a)],
+    filter_union, card_disjoint_union, map_filter, add_left_embedding, card_map, function.embedding.coe_fn_mk],
   intros x hx,
-  simp_rw [inf_eq_inter, mem_inter, mem_filter, mem_image, mem_range] at hx,
+  simp_rw [inf_eq_inter, mem_inter, mem_filter, mem_map, mem_range] at hx,
   obtain ⟨⟨hx, _⟩, ⟨c, _, rfl⟩, _⟩ := hx,
   exact (self_le_add_right _ _).not_lt hx,
 end

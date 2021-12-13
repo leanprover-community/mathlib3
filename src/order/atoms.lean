@@ -27,18 +27,19 @@ which are lattices with only two elements, and related ideas.
   * `is_coatomistic` indicates that every element is the `Inf` of a set of coatoms.
 
 ### Simple Lattices
-  * `is_simple_lattice` indicates that a bounded lattice has only two elements, `⊥` and `⊤`.
-  * `is_simple_lattice.bounded_distrib_lattice`
-  * Given an instance of `is_simple_lattice`, we provide the following definitions. These are not
+  * `is_simple_order` indicates that an order has only two unique elements, `⊥` and `⊤`.
+  * `is_simple_order.bounded_order`
+  * `is_simple_order.distrib_lattice`
+  * Given an instance of `is_simple_order`, we provide the following definitions. These are not
     made global instances as they contain data :
-    * `is_simple_lattice.boolean_algebra`
-    * `is_simple_lattice.complete_lattice`
-    * `is_simple_lattice.complete_boolean_algebra`
+    * `is_simple_order.boolean_algebra`
+    * `is_simple_order.complete_lattice`
+    * `is_simple_order.complete_boolean_algebra`
 
 ## Main results
   * `is_atom_dual_iff_is_coatom` and `is_coatom_dual_iff_is_atom` express the (definitional) duality
    of `is_atom` and `is_coatom`.
-  * `is_simple_lattice_iff_is_atom_top` and `is_simple_lattice_iff_is_coatom_bot` express the
+  * `is_simple_order_iff_is_atom_top` and `is_simple_order_iff_is_coatom_bot` express the
   connection between atoms, coatoms, and simple lattices
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
@@ -52,7 +53,7 @@ section atoms
 
 section is_atom
 
-variable [order_bot α]
+variables [partial_order α] [order_bot α]
 
 /-- An atom of an `order_bot` is an element with no other element between it and `⊥`,
   which is not `⊥`. -/
@@ -71,7 +72,7 @@ end is_atom
 
 section is_coatom
 
-variable [order_top α]
+variables [partial_order α] [order_top α]
 
 /-- A coatom of an `order_top` is an element with no other element between it and `⊤`,
   which is not `⊤`. -/
@@ -91,17 +92,17 @@ end is_coatom
 
 section pairwise
 
-lemma is_atom.inf_eq_bot_of_ne [semilattice_inf_bot α] {a b : α}
+lemma is_atom.inf_eq_bot_of_ne [semilattice_inf α] [order_bot α] {a b : α}
   (ha : is_atom a) (hb : is_atom b) (hab : a ≠ b) : a ⊓ b = ⊥ :=
 or.elim (eq_bot_or_eq_of_le_atom ha inf_le_left) id
   (λ h1, or.elim (eq_bot_or_eq_of_le_atom hb inf_le_right) id
   (λ h2, false.rec _ (hab (le_antisymm (inf_eq_left.mp h1) (inf_eq_right.mp h2)))))
 
-lemma is_atom.disjoint_of_ne [semilattice_inf_bot α] {a b : α}
+lemma is_atom.disjoint_of_ne [semilattice_inf α] [order_bot α] {a b : α}
   (ha : is_atom a) (hb : is_atom b) (hab : a ≠ b) : disjoint a b :=
 disjoint_iff.mpr (is_atom.inf_eq_bot_of_ne ha hb hab)
 
-lemma is_coatom.sup_eq_top_of_ne [semilattice_sup_top α] {a b : α}
+lemma is_coatom.sup_eq_top_of_ne [semilattice_sup α] [order_top α] {a b : α}
   (ha : is_coatom a) (hb : is_coatom b) (hab : a ≠ b) : a ⊔ b = ⊤ :=
 or.elim (eq_top_or_eq_of_coatom_le ha le_sup_left) id
   (λ h1, or.elim (eq_top_or_eq_of_coatom_le hb le_sup_right) id
@@ -109,21 +110,23 @@ or.elim (eq_top_or_eq_of_coatom_le ha le_sup_left) id
 
 end pairwise
 
-variable {a : α}
+variables [partial_order α] {a : α}
 
 @[simp]
-lemma is_coatom_dual_iff_is_atom [order_bot α] : is_coatom (order_dual.to_dual a) ↔ is_atom a :=
+lemma is_coatom_dual_iff_is_atom [order_bot α] :
+  is_coatom (order_dual.to_dual a) ↔ is_atom a :=
 iff.rfl
 
 @[simp]
-lemma is_atom_dual_iff_is_coatom [order_top α] : is_atom (order_dual.to_dual a) ↔ is_coatom a :=
+lemma is_atom_dual_iff_is_coatom [order_top α] :
+  is_atom (order_dual.to_dual a) ↔ is_coatom a :=
 iff.rfl
 
 end atoms
 
 section atomic
 
-variable (α)
+variables [partial_order α] (α)
 
 /-- A lattice is atomic iff every element other than `⊥` has an atom below it. -/
 class is_atomic [order_bot α] : Prop :=
@@ -173,7 +176,7 @@ end is_coatomic
 
 theorem is_atomic_iff_forall_is_atomic_Iic [order_bot α] :
   is_atomic α ↔ ∀ (x : α), is_atomic (set.Iic x) :=
-⟨@is_atomic.set.Iic.is_atomic _ _, λ h, ⟨λ x, ((@eq_bot_or_exists_atom_le _ _ (h x))
+⟨@is_atomic.set.Iic.is_atomic _ _ _, λ h, ⟨λ x, ((@eq_bot_or_exists_atom_le _ _ _ (h x))
   (⊤ : set.Iic x)).imp subtype.mk_eq_mk.1 (exists_imp_exists' coe
   (λ ⟨a, ha⟩, and.imp_left (is_atom.of_is_atom_coe_Iic)))⟩⟩
 
@@ -267,14 +270,14 @@ instance : is_coatomic α :=
 end is_coatomistic
 end atomistic
 
-/-- A lattice is simple iff it has only two elements, `⊥` and `⊤`. -/
-class is_simple_lattice (α : Type*) [bounded_lattice α] extends nontrivial α : Prop :=
+/-- An order is simple iff it has exactly two elements, `⊥` and `⊤`. -/
+class is_simple_order (α : Type*) [has_le α] [bounded_order α] extends nontrivial α : Prop :=
 (eq_bot_or_eq_top : ∀ (a : α), a = ⊥ ∨ a = ⊤)
 
-export is_simple_lattice (eq_bot_or_eq_top)
+export is_simple_order (eq_bot_or_eq_top)
 
-theorem is_simple_lattice_iff_is_simple_lattice_order_dual [bounded_lattice α] :
-  is_simple_lattice α ↔ is_simple_lattice (order_dual α) :=
+theorem is_simple_order_iff_is_simple_order_order_dual [has_le α] [bounded_order α] :
+  is_simple_order α ↔ is_simple_order (order_dual α) :=
 begin
   split; intro i; haveI := i,
   { exact { exists_pair_ne := @exists_pair_ne α _,
@@ -283,85 +286,145 @@ begin
       eq_bot_or_eq_top := λ a, or.symm (eq_bot_or_eq_top (order_dual.to_dual a)) } }
 end
 
-section is_simple_lattice
+lemma is_simple_order.bot_ne_top [has_le α] [bounded_order α] [is_simple_order α] :
+  (⊥ : α) ≠ (⊤ : α) :=
+begin
+  obtain ⟨a, b, h⟩ := exists_pair_ne α,
+  rcases eq_bot_or_eq_top a with rfl|rfl;
+  rcases eq_bot_or_eq_top b with rfl|rfl;
+  simpa <|> simpa using h.symm
+end
 
-variables [bounded_lattice α] [is_simple_lattice α]
+section is_simple_order
 
-instance : is_simple_lattice (order_dual α) :=
-is_simple_lattice_iff_is_simple_lattice_order_dual.1 (by apply_instance)
+variables [partial_order α] [bounded_order α] [is_simple_order α]
+
+instance {α} [has_le α] [bounded_order α] [is_simple_order α] : is_simple_order (order_dual α) :=
+is_simple_order_iff_is_simple_order_order_dual.1 (by apply_instance)
+
+/-- A simple `bounded_order` induces a preorder. This is not an instance to prevent loops. -/
+protected def is_simple_order.preorder {α} [has_le α] [bounded_order α] [is_simple_order α] :
+  preorder α :=
+{ le := (≤),
+  le_refl := λ a, by rcases eq_bot_or_eq_top a with rfl|rfl; simp,
+  le_trans := λ a b c, begin
+    rcases eq_bot_or_eq_top a with rfl|rfl,
+    { simp },
+    { rcases eq_bot_or_eq_top b with rfl|rfl,
+      { rcases eq_bot_or_eq_top c with rfl|rfl; simp },
+      { simp } }
+  end }
+
+/-- A simple partial ordered `bounded_order` induces a linear order.
+This is not an instance to prevent loops. -/
+protected def is_simple_order.linear_order [decidable_eq α] : linear_order α :=
+{ le_total := λ a b, by rcases eq_bot_or_eq_top a with rfl|rfl; simp,
+  decidable_le := λ a b, if ha : a = ⊥ then is_true (ha.le.trans bot_le) else
+    if hb : b = ⊤ then is_true (le_top.trans hb.ge) else
+      is_false (λ H, hb (top_unique
+        (le_trans (top_le_iff.mpr (or.resolve_left (eq_bot_or_eq_top a) ha)) H))),
+  decidable_eq := by assumption,
+  ..(infer_instance : partial_order α) }
 
 @[simp] lemma is_atom_top : is_atom (⊤ : α) :=
 ⟨top_ne_bot, λ a ha, or.resolve_right (eq_bot_or_eq_top a) (ne_of_lt ha)⟩
 
 @[simp] lemma is_coatom_bot : is_coatom (⊥ : α) := is_atom_dual_iff_is_coatom.1 is_atom_top
 
-end is_simple_lattice
+end is_simple_order
 
-namespace is_simple_lattice
+namespace is_simple_order
 
-section bounded_lattice
+section bounded_order
 
-variables [bounded_lattice α] [is_simple_lattice α]
+variables [lattice α] [bounded_order α] [is_simple_order α]
 
-/-- A simple `bounded_lattice` is also distributive. -/
-@[priority 100]
-instance : bounded_distrib_lattice α :=
+/-- A simple partial ordered `bounded_order` induces a lattice.
+This is not an instance to prevent loops -/
+protected def lattice {α} [decidable_eq α] [partial_order α] [bounded_order α]
+  [is_simple_order α] : lattice α :=
+@lattice_of_linear_order α (is_simple_order.linear_order)
+
+/-- A lattice that is a `bounded_order` is a distributive lattice.
+This is not an instance to prevent loops -/
+protected def distrib_lattice : distrib_lattice α :=
 { le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
-  .. (infer_instance : bounded_lattice α) }
+  .. (infer_instance : lattice α) }
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance : is_atomic α :=
 ⟨λ b, (eq_bot_or_eq_top b).imp_right (λ h, ⟨⊤, ⟨is_atom_top, ge_of_eq h⟩⟩)⟩
 
-@[priority 100]
-instance : is_coatomic α := is_atomic_dual_iff_is_coatomic.1 is_simple_lattice.is_atomic
+@[priority 100] -- see Note [lower instance priority]
+instance : is_coatomic α := is_atomic_dual_iff_is_coatomic.1 is_simple_order.is_atomic
 
-end bounded_lattice
+end bounded_order
 
-/- It is important that in this section `is_simple_lattice` is the last type-class argument. -/
+/- It is important that in this section `is_simple_order` is the last type-class argument. -/
 section decidable_eq
 
-variables [decidable_eq α] [bounded_lattice α] [is_simple_lattice α]
+variables [decidable_eq α] [partial_order α] [bounded_order α] [is_simple_order α]
 
-/-- Every simple lattice is order-isomorphic to `bool`. -/
-def order_iso_bool : α ≃o bool :=
+/-- Every simple lattice is isomorphic to `bool`, regardless of order. -/
+@[simps] def equiv_bool {α} [decidable_eq α] [has_le α] [bounded_order α] [is_simple_order α] :
+  α ≃ bool :=
 { to_fun := λ x, x = ⊤,
   inv_fun := λ x, cond x ⊤ ⊥,
   left_inv := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp [bot_ne_top] },
-  right_inv := λ x, by { cases x; simp [bot_ne_top] },
-  map_rel_iff' := λ a b, begin
+  right_inv := λ x, by { cases x; simp [bot_ne_top] } }
+
+/-- Every simple lattice over a partial order is order-isomorphic to `bool`. -/
+def order_iso_bool : α ≃o bool :=
+{ map_rel_iff' := λ a b, begin
     rcases (eq_bot_or_eq_top a) with rfl | rfl,
     { simp [bot_ne_top] },
     { rcases (eq_bot_or_eq_top b) with rfl | rfl,
       { simp [bot_ne_top.symm, bot_ne_top, bool.ff_lt_tt] },
       { simp [bot_ne_top] } }
-  end }
+  end,
+  ..equiv_bool }
 
-/- It is important that `is_simple_lattice` is the last type-class argument of this instance,
+/- It is important that `is_simple_order` is the last type-class argument of this instance,
 so that type-class inference fails quickly if it doesn't apply. -/
 @[priority 200]
-instance : fintype α := fintype.of_equiv bool (order_iso_bool.to_equiv).symm
+instance {α} [decidable_eq α] [has_le α] [bounded_order α] [is_simple_order α] : fintype α :=
+fintype.of_equiv bool equiv_bool.symm
 
-/-- A simple `bounded_lattice` is also a `boolean_algebra`. -/
-protected def boolean_algebra : boolean_algebra α :=
+/-- A simple `bounded_order` is also a `boolean_algebra`. -/
+protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order α]
+  [is_simple_order α] : boolean_algebra α :=
 { compl := λ x, if x = ⊥ then ⊤ else ⊥,
   sdiff := λ x y, if x = ⊤ ∧ y = ⊥ then ⊤ else ⊥,
   sdiff_eq := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
       simp [bot_ne_top, has_sdiff.sdiff, compl],
-  inf_compl_le_bot := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
+  inf_compl_le_bot := λ x, begin
+      rcases eq_bot_or_eq_top x with rfl | rfl,
+      { simp },
+      { simp only [top_inf_eq],
+        split_ifs with h h;
+        simp [h] }
+    end,
   top_le_sup_compl := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
   sup_inf_sdiff := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
       rcases eq_bot_or_eq_top y with rfl | rfl; simp [bot_ne_top],
-  inf_inf_sdiff := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
-      rcases eq_bot_or_eq_top y with rfl | rfl; simp,
-  .. is_simple_lattice.bounded_distrib_lattice }
+  inf_inf_sdiff := λ x y, begin
+      rcases eq_bot_or_eq_top x with rfl | rfl,
+      { simpa },
+      rcases eq_bot_or_eq_top y with rfl | rfl,
+      { simpa },
+      { simp only [true_and, top_inf_eq, eq_self_iff_true],
+        split_ifs with h h;
+        simpa [h] }
+    end,
+  .. (show bounded_order α, by apply_instance),
+  .. is_simple_order.distrib_lattice }
 
 end decidable_eq
 
-variables [bounded_lattice α] [is_simple_lattice α]
+variables [lattice α] [bounded_order α] [is_simple_order α]
 open_locale classical
 
-/-- A simple `bounded_lattice` is also complete. -/
+/-- A simple `bounded_order` is also complete. -/
 protected noncomputable def complete_lattice : complete_lattice α :=
 { Sup := λ s, if ⊤ ∈ s then ⊤ else ⊥,
   Inf := λ s, if ⊥ ∈ s then ⊥ else ⊤,
@@ -381,9 +444,10 @@ protected noncomputable def complete_lattice : complete_lattice α :=
     { rw if_neg,
       intro con,
       exact top_ne_bot (eq_bot_iff.2 (h ⊥ con)) } },
-  .. (infer_instance : bounded_lattice α) }
+  .. (infer_instance : lattice α),
+  .. (infer_instance : bounded_order α) }
 
-/-- A simple `bounded_lattice` is also a `complete_boolean_algebra`. -/
+/-- A simple `bounded_order` is also a `complete_boolean_algebra`. -/
 protected noncomputable def complete_boolean_algebra : complete_boolean_algebra α :=
 { infi_sup_le_sup_Inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { simp only [bot_sup_eq, ← Inf_eq_infi], apply le_refl },
@@ -391,13 +455,13 @@ protected noncomputable def complete_boolean_algebra : complete_boolean_algebra 
   inf_Sup_le_supr_inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { simp only [bot_inf_eq, bot_le] },
     { simp only [top_inf_eq, ← Sup_eq_supr], apply le_refl } },
-  .. is_simple_lattice.complete_lattice,
-  .. is_simple_lattice.boolean_algebra }
+  .. is_simple_order.complete_lattice,
+  .. is_simple_order.boolean_algebra }
 
-end is_simple_lattice
+end is_simple_order
 
-namespace is_simple_lattice
-variables [complete_lattice α] [is_simple_lattice α]
+namespace is_simple_order
+variables [complete_lattice α] [is_simple_order α]
 set_option default_priority 100
 
 instance : is_atomistic α :=
@@ -405,12 +469,12 @@ instance : is_atomistic α :=
   (λ h, ⟨∅, ⟨h.trans Sup_empty.symm, λ a ha, false.elim (set.not_mem_empty _ ha)⟩⟩)
   (λ h, ⟨{⊤}, h.trans Sup_singleton.symm, λ a ha, (set.mem_singleton_iff.1 ha).symm ▸ is_atom_top⟩)⟩
 
-instance : is_coatomistic α := is_atomistic_dual_iff_is_coatomistic.1 is_simple_lattice.is_atomistic
+instance : is_coatomistic α := is_atomistic_dual_iff_is_coatomistic.1 is_simple_order.is_atomistic
 
-end is_simple_lattice
+end is_simple_order
 namespace fintype
-namespace is_simple_lattice
-variables [bounded_lattice α] [is_simple_lattice α] [decidable_eq α]
+namespace is_simple_order
+variables [partial_order α] [bounded_order α] [is_simple_order α] [decidable_eq α]
 
 lemma univ : (finset.univ : finset α) = {⊤, ⊥} :=
 begin
@@ -423,12 +487,12 @@ end
 lemma card : fintype.card α = 2 :=
 (fintype.of_equiv_card _).trans fintype.card_bool
 
-end is_simple_lattice
+end is_simple_order
 end fintype
 
 namespace bool
 
-instance : is_simple_lattice bool :=
+instance : is_simple_order bool :=
 ⟨λ a, begin
   rw [← finset.mem_singleton, or.comm, ← finset.mem_insert,
       top_eq_tt, bot_eq_ff, ← fintype.univ_bool],
@@ -437,27 +501,27 @@ end⟩
 
 end bool
 
-theorem is_simple_lattice_iff_is_atom_top [bounded_lattice α] :
-  is_simple_lattice α ↔ is_atom (⊤ : α) :=
-⟨λ h, @is_atom_top _ _ h, λ h, {
-  exists_pair_ne := ⟨⊤, ⊥, h.1⟩,
-  eq_bot_or_eq_top := λ a, ((eq_or_lt_of_le (@le_top _ _ a)).imp_right (h.2 a)).symm }⟩
+theorem is_simple_order_iff_is_atom_top [partial_order α] [bounded_order α] :
+  is_simple_order α ↔ is_atom (⊤ : α) :=
+⟨λ h, @is_atom_top _ _ _ h, λ h,
+  { exists_pair_ne := ⟨⊤, ⊥, h.1⟩,
+    eq_bot_or_eq_top := λ a, ((eq_or_lt_of_le le_top).imp_right (h.2 a)).symm }⟩
 
-theorem is_simple_lattice_iff_is_coatom_bot [bounded_lattice α] :
-  is_simple_lattice α ↔ is_coatom (⊥ : α) :=
-is_simple_lattice_iff_is_simple_lattice_order_dual.trans is_simple_lattice_iff_is_atom_top
+theorem is_simple_order_iff_is_coatom_bot [partial_order α] [bounded_order α] :
+  is_simple_order α ↔ is_coatom (⊥ : α) :=
+is_simple_order_iff_is_simple_order_order_dual.trans is_simple_order_iff_is_atom_top
 
 namespace set
 
-theorem is_simple_lattice_Iic_iff_is_atom [bounded_lattice α] {a : α} :
-  is_simple_lattice (Iic a) ↔ is_atom a :=
-is_simple_lattice_iff_is_atom_top.trans $ and_congr (not_congr subtype.mk_eq_mk)
+theorem is_simple_order_Iic_iff_is_atom [partial_order α] [bounded_order α] {a : α} :
+  is_simple_order (Iic a) ↔ is_atom a :=
+is_simple_order_iff_is_atom_top.trans $ and_congr (not_congr subtype.mk_eq_mk)
   ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),
     λ h ⟨b, hab⟩ hbotb, subtype.mk_eq_mk.2 (h b (subtype.mk_lt_mk.1 hbotb))⟩
 
-theorem is_simple_lattice_Ici_iff_is_coatom [bounded_lattice α] {a : α} :
-  is_simple_lattice (Ici a) ↔ is_coatom a :=
-is_simple_lattice_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_mk)
+theorem is_simple_order_Ici_iff_is_coatom [partial_order α] [bounded_order α] {a : α} :
+  is_simple_order (Ici a) ↔ is_coatom a :=
+is_simple_order_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_mk)
   ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),
     λ h ⟨b, hab⟩ hbotb, subtype.mk_eq_mk.2 (h b (subtype.mk_lt_mk.1 hbotb))⟩
 
@@ -465,7 +529,10 @@ end set
 
 namespace order_iso
 
-@[simp] lemma is_atom_iff [order_bot α] {β : Type*} [order_bot β] (f : α ≃o β) (a : α) :
+variables {β : Type*}
+
+@[simp] lemma is_atom_iff [partial_order α] [order_bot α] [partial_order β] [order_bot β]
+  (f : α ≃o β) (a : α) :
   is_atom (f a) ↔ is_atom a :=
 and_congr (not_congr ⟨λ h, f.injective (f.map_bot.symm ▸ h), λ h, f.map_bot ▸ (congr rfl h)⟩)
   ⟨λ h b hb, f.injective ((h (f b) ((f : α ↪o β).lt_iff_lt.2 hb)).trans f.map_bot.symm),
@@ -476,21 +543,23 @@ and_congr (not_congr ⟨λ h, f.injective (f.map_bot.symm ▸ h), λ h, f.map_bo
     exact (f.symm : β ↪o α).lt_iff_lt.2 hb,
   end⟩
 
-@[simp] lemma is_coatom_iff [order_top α] {β : Type*} [order_top β] (f : α ≃o β) (a : α) :
+@[simp] lemma is_coatom_iff [partial_order α] [order_top α] [partial_order β] [order_top β]
+  (f : α ≃o β) (a : α) :
   is_coatom (f a) ↔ is_coatom a :=
 f.dual.is_atom_iff a
 
-lemma is_simple_lattice_iff [bounded_lattice α] {β : Type*} [bounded_lattice β] (f : α ≃o β) :
-  is_simple_lattice α ↔ is_simple_lattice β :=
-by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
+lemma is_simple_order_iff [partial_order α] [bounded_order α] [partial_order β] [bounded_order β]
+  (f : α ≃o β) :
+  is_simple_order α ↔ is_simple_order β :=
+by rw [is_simple_order_iff_is_atom_top, is_simple_order_iff_is_atom_top,
   ← f.is_atom_iff ⊤, f.map_top]
 
-lemma is_simple_lattice [bounded_lattice α] {β : Type*} [bounded_lattice β]
-  [h : is_simple_lattice β] (f : α ≃o β) :
-  is_simple_lattice α :=
-f.is_simple_lattice_iff.mpr h
+lemma is_simple_order [partial_order α] [bounded_order α] [partial_order β] [bounded_order β]
+  [h : is_simple_order β] (f : α ≃o β) :
+  is_simple_order α :=
+f.is_simple_order_iff.mpr h
 
-lemma is_atomic_iff [order_bot α] {β : Type*} [order_bot β] (f : α ≃o β) :
+lemma is_atomic_iff [partial_order α] [order_bot α] [partial_order β] [order_bot β] (f : α ≃o β) :
   is_atomic α ↔ is_atomic β :=
 begin
   suffices : (∀ b : α, b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔
@@ -507,7 +576,7 @@ begin
       rwa [←f.le_iff_le, f.apply_symm_apply], }, },
 end
 
-lemma is_coatomic_iff [order_top α] {β : Type*} [order_top β] (f : α ≃o β) :
+lemma is_coatomic_iff [partial_order α] [order_top α] [partial_order β] [order_top β] (f : α ≃o β) :
   is_coatomic α ↔ is_coatomic β :=
 by { rw [←is_atomic_dual_iff_is_coatomic, ←is_atomic_dual_iff_is_coatomic],
   exact f.dual.is_atomic_iff }
@@ -515,15 +584,15 @@ by { rw [←is_atomic_dual_iff_is_coatomic, ←is_atomic_dual_iff_is_coatomic],
 end order_iso
 
 section is_modular_lattice
-variables [bounded_lattice α] [is_modular_lattice α]
+variables [lattice α] [bounded_order α] [is_modular_lattice α]
 
 namespace is_compl
 variables {a b : α} (hc : is_compl a b)
 include hc
 
 lemma is_atom_iff_is_coatom : is_atom a ↔ is_coatom b :=
-set.is_simple_lattice_Iic_iff_is_atom.symm.trans $ hc.Iic_order_iso_Ici.is_simple_lattice_iff.trans
-  set.is_simple_lattice_Ici_iff_is_coatom
+set.is_simple_order_Iic_iff_is_atom.symm.trans $ hc.Iic_order_iso_Ici.is_simple_order_iff.trans
+  set.is_simple_order_Ici_iff_is_coatom
 
 lemma is_coatom_iff_is_atom : is_coatom a ↔ is_atom b := hc.symm.is_atom_iff_is_coatom.symm
 
@@ -548,7 +617,7 @@ lemma is_atomic_of_is_coatomic_of_is_complemented_of_is_modular [is_coatomic α]
 is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_is_complemented_of_is_modular
 
 theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
-⟨λ h, @is_coatomic_of_is_atomic_of_is_complemented_of_is_modular _ _ _ _ h,
-  λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ h⟩
+⟨λ h, @is_coatomic_of_is_atomic_of_is_complemented_of_is_modular _ _ _ _ _ h,
+  λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ _ h⟩
 
 end is_modular_lattice

@@ -79,7 +79,7 @@ namespace has_limits
 Construction of a limit cone in `Module R`.
 (Internal use only; use the limits API.)
 -/
-def limit_cone (F : J ⥤ Module R) : cone F :=
+def limit_cone (F : J ⥤ Module.{v} R) : cone F :=
 { X := Module.of R (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := limit_π_linear_map F,
@@ -140,7 +140,7 @@ variables {ι : Type v}
 variables [dec_ι : decidable_eq ι] [directed_order ι]
 variables (G : ι → Type v)
 variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
-variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [module.directed_system G f]
+variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G (λ i j h, f i j h)]
 
 /-- The diagram (in the sense of `category_theory`)
  of an unbundled `direct_limit` of modules. -/

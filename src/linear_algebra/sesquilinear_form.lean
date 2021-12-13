@@ -3,7 +3,6 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
-import ring_theory.ring_invo
 import algebra.module.linear_map
 import tactic.abel
 
@@ -37,7 +36,7 @@ open_locale big_operators
 universes u v w
 
 /-- A sesquilinear form over a module  -/
-structure sesq_form (R : Type u) (M : Type v) [ring R] (I : R ≃+* Rᵒᵖ)
+structure sesq_form (R : Type u) (M : Type v) [ring R] (I : R ≃+* Rᵐᵒᵖ)
   [add_comm_group M] [module R M] :=
 (sesq : M → M → R)
 (sesq_add_left : ∀ (x y z : M), sesq (x + y) z = sesq x z + sesq y z)
@@ -49,7 +48,7 @@ namespace sesq_form
 
 section general_ring
 variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+variables {I : R ≃+* Rᵐᵒᵖ} {S : sesq_form R M I}
 
 instance : has_coe_to_fun (sesq_form R M I) (λ _, M → M → R) := ⟨sesq⟩
 
@@ -204,7 +203,7 @@ end general_ring
 section comm_ring
 
 variables {R : Type*} [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {J : R ≃+* Rᵒᵖ} (F : sesq_form R M J) (f : M → M)
+  {J : R ≃+* Rᵐᵒᵖ} (F : sesq_form R M J) (f : M → M)
 
 instance to_module : module R (sesq_form R M J) :=
 { smul := λ c S,
@@ -230,7 +229,7 @@ section is_domain
 
 variables {R : Type*} [ring R] [is_domain R]
   {M : Type v} [add_comm_group M] [module R M]
-  {K : R ≃+* Rᵒᵖ} {G : sesq_form R M K}
+  {K : R ≃+* Rᵐᵒᵖ} {G : sesq_form R M K}
 
 theorem ortho_smul_left {x y : M} {a : R} (ha : a ≠ 0) :
   (is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
@@ -255,67 +254,51 @@ begin
     { exfalso,
       -- `map_eq_zero_iff` doesn't fire here even if marked as a simp lemma, probably bcecause
       -- different instance paths
-      simp only [opposite.unop_eq_zero_iff] at H,
+      simp only [mul_opposite.unop_eq_zero_iff] at H,
       exact ha (K.map_eq_zero_iff.mp H), },
     { exact H }}
 end
 
 end is_domain
 
-end sesq_form
-
-namespace refl_sesq_form
-
-open refl_sesq_form sesq_form
-
 variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+variables {I : R ≃+* Rᵐᵒᵖ} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is reflexive -/
 def is_refl (S : sesq_form R M I) : Prop := ∀ (x y : M), S x y = 0 → S y x = 0
 
-variable (H : is_refl S)
+namespace is_refl
+
+variable (H : S.is_refl)
 
 lemma eq_zero : ∀ {x y : M}, S x y = 0 → S y x = 0 := λ x y, H x y
 
-lemma ortho_sym {x y : M} :
-is_ortho S x y ↔ is_ortho S y x := ⟨eq_zero H, eq_zero H⟩
+lemma ortho_comm {x y : M} : is_ortho S x y ↔ is_ortho S y x := ⟨eq_zero H, eq_zero H⟩
 
-end refl_sesq_form
-
-namespace sym_sesq_form
-
-open sym_sesq_form sesq_form
-
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+end is_refl
 
 /-- The proposition that a sesquilinear form is symmetric -/
-def is_sym (S : sesq_form R M I) : Prop := ∀ (x y : M), (I (S x y)).unop = S y x
+def is_symm (S : sesq_form R M I) : Prop := ∀ (x y : M), (I (S x y)).unop = S y x
 
-variable (H : is_sym S)
+namespace is_symm
+
+variable (H : S.is_symm)
 include H
 
-lemma sym (x y : M) : (I (S x y)).unop = S y x := H x y
+protected lemma eq (x y : M) : (I (S x y)).unop = S y x := H x y
 
-lemma is_refl : refl_sesq_form.is_refl S := λ x y H1, by { rw [←H], simp [H1], }
+lemma is_refl : S.is_refl := λ x y H1, by { rw [←H], simp [H1], }
 
-lemma ortho_sym {x y : M} :
-is_ortho S x y ↔ is_ortho S y x := refl_sesq_form.ortho_sym (is_refl H)
+lemma ortho_comm {x y : M} : is_ortho S x y ↔ is_ortho S y x := H.is_refl.ortho_comm
 
-end sym_sesq_form
-
-namespace alt_sesq_form
-
-open alt_sesq_form sesq_form
-
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+end is_symm
 
 /-- The proposition that a sesquilinear form is alternating -/
 def is_alt (S : sesq_form R M I) : Prop := ∀ (x : M), S x x = 0
 
-variable (H : is_alt S)
+namespace is_alt
+
+variable (H : S.is_alt)
 include H
 
 lemma self_eq_zero (x : M) : S x x = 0 := H x
@@ -331,4 +314,14 @@ begin
   exact H1,
 end
 
-end alt_sesq_form
+lemma is_refl : S.is_refl :=
+begin
+  intros x y h,
+  rw [← neg H, h, neg_zero],
+end
+
+lemma ortho_comm {x y : M} : is_ortho S x y ↔ is_ortho S y x := H.is_refl.ortho_comm
+
+end is_alt
+
+end sesq_form

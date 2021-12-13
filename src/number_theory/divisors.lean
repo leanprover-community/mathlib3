@@ -91,6 +91,8 @@ begin
     apply nat.le_of_dvd (nat.succ_pos m) hdvd }
 end
 
+lemma mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := mem_divisors.2 ⟨dvd_rfl, h⟩
+
 lemma dvd_of_mem_divisors {m : ℕ} (h : n ∈ divisors m) : n ∣ m :=
 begin
   cases m,
@@ -396,6 +398,16 @@ begin
   not_false_iff, mem_divisors],
   intros a ha,
   exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 ⟨ha, h⟩))
+end
+
+/-- The factors of `n` are the prime divisors -/
+lemma prime_divisors_eq_to_filter_divisors_prime (n : ℕ) :
+  n.factors.to_finset = (divisors n).filter prime :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  { ext q,
+    simpa [hn, hn.ne', mem_factors] using and_comm (prime q) (q ∣ n) }
 end
 
 end nat

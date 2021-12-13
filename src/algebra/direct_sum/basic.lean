@@ -202,6 +202,15 @@ to_add_monoid (λ i, (A i).subtype)
   add_submonoid_coe A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
 
+lemma coe_of_add_submonoid_apply {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  {A : ι → add_submonoid M} (i j : ι) (x : A i) :
+  (of _ i x j : M) = if i = j then x else 0 :=
+begin
+  obtain rfl | h := decidable.eq_or_ne i j,
+  { rw [direct_sum.of_eq_same, if_pos rfl], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid.coe_zero], },
+end
+
 /-- The `direct_sum` formed by a collection of `add_submonoid`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.
 
@@ -228,6 +237,15 @@ to_add_monoid (λ i, (A i).subtype)
   (A : ι → add_subgroup M) (i : ι) (x : A i) :
   add_subgroup_coe A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
+
+lemma coe_of_add_subgroup_apply {M : Type*} [decidable_eq ι] [add_comm_group M]
+  {A : ι → add_subgroup M} (i j : ι) (x : A i) :
+  (of _ i x j : M) = if i = j then x else 0 :=
+begin
+  obtain rfl | h := decidable.eq_or_ne i j,
+  { rw [direct_sum.of_eq_same, if_pos rfl], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_subgroup.coe_zero], },
+end
 
 /-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.

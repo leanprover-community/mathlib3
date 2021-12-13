@@ -105,17 +105,3 @@ end
 
 coinductive coind_foo : list ℕ → Prop
 | mk : ∀ xs, (∀ k l m, coind_foo (k::l::m::xs)) → coind_foo xs
-
-meta example : true :=
-begin
-   success_if_fail { let := compact_relation },
-   trivial
-end
-
-import_private compact_relation from tactic.coinduction
-
-meta example : true :=
-begin
-  let := compact_relation,
-  trivial
-end

@@ -173,9 +173,8 @@ def mem (x : α) (z : sym2 α) : Prop :=
 
 instance : has_mem α (sym2 α) := ⟨mem⟩
 
-lemma mk_has_mem (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
-
-lemma mk_has_mem_right (x y : α) : y ∈ ⟦(x, y)⟧ := by { rw eq_swap, apply mk_has_mem }
+lemma mem_mk_left (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
+lemma mem_mk_right (x y : α) : y ∈ ⟦(x, y)⟧ := by { rw eq_swap, apply mem_mk_left }
 
 /--
 Given an element of the unordered pair, give the other element using `classical.some`.
@@ -190,11 +189,11 @@ by erw ← classical.some_spec h
 
 @[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, apply mk_has_mem_right } }
+  mpr := by { rintro ⟨_⟩; subst a, { apply mem_mk_left }, apply mem_mk_right } }
 
 lemma mem_other_mem {a : α} {z : sym2 α} (h : a ∈ z) :
   h.other ∈ z :=
-by { convert mk_has_mem_right a h.other, rw mem_other_spec h }
+by { convert mem_mk_right a h.other, rw mem_other_spec h }
 
 lemma elems_iff_eq {x y : α} {z : sym2 α} (hne : x ≠ y) :
   x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=

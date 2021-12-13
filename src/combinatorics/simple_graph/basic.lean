@@ -132,14 +132,15 @@ def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
 namespace simple_graph
 
 variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
+  {a b c u v w : V} {e : sym2 V}
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
 lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G.symm x⟩
 
-@[symm] lemma adj_symm {u v : V} (h : G.adj u v) : G.adj v u := G.symm h
+@[symm] lemma adj_symm (h : G.adj u v) : G.adj v u := G.symm h
 
-lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
+lemma ne_of_adj (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.irrefl hab }
 
 section order
@@ -272,17 +273,7 @@ The way `edge_set` is defined is such that `mem_edge_set` is proved by `refl`.
 -/
 def edge_set : set (sym2 V) := sym2.from_rel G.symm
 
-/--
-The `incidence_set` is the set of edges incident to a given vertex.
--/
-def incidence_set (v : V) : set (sym2 V) := {e ∈ G.edge_set | v ∈ e}
-
-lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set :=
-λ _ h, h.1
-
-@[simp]
-lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
-iff.rfl
+@[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
 
 /--
 Two vertices are adjacent iff there is an edge between them.  The
@@ -302,6 +293,9 @@ begin
     rwa mem_edge_set at he }
 end
 
+lemma adj_iff_exists_edge_coe : G.adj a b ↔ ∃ (e : G.edge_set), ↑e = ⟦(a, b)⟧ :=
+by simp only [mem_edge_set, exists_prop, set_coe.exists, exists_eq_right, subtype.coe_mk]
+
 lemma edge_other_ne {e : sym2 V} (he : e ∈ G.edge_set) {v : V} (h : v ∈ e) : h.other ≠ v :=
 begin
   erw [← sym2.mem_other_spec h, sym2.eq_swap] at he,
@@ -313,6 +307,43 @@ instance decidable_mem_edge_set [decidable_rel G.adj] :
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := subtype.fintype _
+
+/-! ### Incidence set -/
+
+/-- Set of edges incident to a given vertex, aka incidence set. -/
+def incidence_set (v : V) : set (sym2 V) := {e ∈ G.edge_set | v ∈ e}
+
+lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set := λ _ h, h.1
+
+lemma mem_incidence_set_iff : ⟦(b, c)⟧ ∈ G.incidence_set a ↔ G.adj b c ∧ (a = b ∨ a = c) :=
+and_congr_right' sym2.mem_iff
+
+lemma mem_incidence_set_left_iff : ⟦(a, b)⟧ ∈ G.incidence_set a ↔ G.adj a b :=
+and_iff_left $ sym2.mem_mk_left _ _
+
+lemma mem_incidence_set_right_iff : ⟦(a, b)⟧ ∈ G.incidence_set b ↔ G.adj a b :=
+and_iff_left $ sym2.mem_mk_right _ _
+
+lemma edge_mem_incidence_set_iff {e : G.edge_set} : ↑e ∈ G.incidence_set a ↔ a ∈ (e : sym2 V) :=
+and_iff_right e.2
+
+lemma incidence_set_inter_incidence_set_subset (h : a ≠ b) :
+  G.incidence_set a ∩ G.incidence_set b ⊆ {⟦(a, b)⟧} :=
+λ e he, (sym2.elems_iff_eq h).1 ⟨he.1.2, he.2.2⟩
+
+lemma incidence_set_inter_incidence_set (h : G.adj a b) :
+  G.incidence_set a ∩ G.incidence_set b = {⟦(a, b)⟧} :=
+begin
+  refine (G.incidence_set_inter_incidence_set_subset $ G.ne_of_adj h).antisymm _,
+  rintro _ (rfl : _ = ⟦(a, b)⟧),
+  exact ⟨G.mem_incidence_set_left_iff.2 h, G.mem_incidence_set_right_iff.2 h⟩,
+end
+
+lemma adj_of_mem_incidence_set (h : a ≠ b) (ha : e ∈ G.incidence_set a)
+  (hb : e ∈ G.incidence_set b) :
+  G.adj a b :=
+by rwa [←mem_incidence_set_left_iff,
+  ←set.mem_singleton_iff.1 $ G.incidence_set_inter_incidence_set_subset h ⟨ha, hb⟩]
 
 instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v : V) :
   decidable_pred (∈ G.incidence_set v) := λ e, and.decidable
@@ -443,7 +474,7 @@ We define `G.neighbor_finset v` to be the `finset` version of `G.neighbor_set v`
 Use `neighbor_finset_eq_filter` to rewrite this definition as a `filter`.
 -/
 
-variables (v : V) [fintype (G.neighbor_set v)]
+variables (v) [fintype (G.neighbor_set v)]
 /--
 `G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
 locally finite at `v`.

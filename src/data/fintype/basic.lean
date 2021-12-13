@@ -187,6 +187,9 @@ lemma univ_filter_mem_range (f : α → β) [fintype β]
   finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
 univ_filter_exists f
 
+lemma coe_filter_univ (p : α → Prop) [decidable_pred p] : (univ.filter p : set α) = {x | p x} :=
+by rw [coe_filter, coe_univ, set.sep_univ]
+
 /-- A special case of `finset.sup_eq_supr` that omits the useless `x ∈ univ` binder. -/
 lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f = supr f :=
 (sup_eq_supr _ f).trans $ congr_arg _ $ funext $ λ a, supr_pos (mem_univ _)

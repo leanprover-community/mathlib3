@@ -161,7 +161,6 @@ private lemma homogeneous_component_of_direct_sum
   (i : ℕ) (x : ⨁ i, homogeneous_submodule σ R i) :
 homogeneous_component i (submodule_coe _ x) = x i :=
 begin
-  classical,
   rw [←sum_support_of _ x, linear_map.map_sum, linear_map.map_sum, submodule_coe],
   simp_rw to_add_monoid_of,
   simp only [add_subgroup.coe_subtype, submodule.coe_sum, dfinsupp.finset_sum_apply],
@@ -196,7 +195,7 @@ begin
   have :
     ∑ k in finset.range
       ((submodule_coe
-        (λ i, (homogeneous_submodule σ R i)) x).total_degree + 1) \ x.support,
+        (λ i, homogeneous_submodule σ R i) x).total_degree + 1) \ x.support,
         (of (λ i, ↥((homogeneous_submodule σ R i))) k) ⟨↑(x k), _⟩ = 0,
   { rw ←finset.sum_const_zero, apply finset.sum_congr rfl, intros i hi,
     simp only [set_like.eta, not_not, finset.mem_sdiff, ne.def, dfinsupp.mem_support_to_fun,
@@ -212,11 +211,11 @@ private lemma right_inv : function.right_inverse (decompose R σ) (submodule_coe
 begin
   rw [decompose, linear_map.map_sum],
   have :
-    ∑ (x : ℕ) in finset.range (p.total_degree + 1),
-      submodule_coe _ ((of (λ i, ↥((homogeneous_submodule σ R i))) x)
+    ∑ x in finset.range (p.total_degree + 1),
+      submodule_coe _ ((of (λ i, homogeneous_submodule σ R i) x)
       ⟨(homogeneous_component x) p, _⟩) =
     ∑ x in finset.range (p.total_degree + 1),
-      direct_sum.to_add_monoid _ ((of (λ i, ↥((homogeneous_submodule σ R i))) x)
+      direct_sum.to_add_monoid _ ((of (λ i, homogeneous_submodule σ R i) x)
       ⟨(homogeneous_component x) p, _⟩) := rfl,
     rw this, simp_rw [to_add_monoid_of],
     conv_rhs { rw ←sum_homogeneous_component p }, apply finset.sum_congr rfl (λ _ _, rfl),

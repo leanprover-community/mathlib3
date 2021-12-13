@@ -321,7 +321,7 @@ nonempty (is_limit (fork.of_ι _ (w R P)))
 
 /-- (Implementation). An auxiliary lemma to convert between sheaf conditions. -/
 def is_sheaf_for_is_sheaf_for' (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type (max v₁ u₁))
-  [Π J, preserves_limits_of_shape (discrete J) s] (U : C) (R : presieve U) :
+  [Π J, preserves_limits_of_shape (discrete.{max v₁ u₁} J) s] (U : C) (R : presieve U) :
   is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃
     is_limit (fork.of_ι _ (equalizer.presieve.w (P ⋙ s) R)) :=
 begin

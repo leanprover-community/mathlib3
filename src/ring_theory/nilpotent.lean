@@ -52,6 +52,10 @@ class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
 instance is_reduced_of_no_zero_divisors [monoid_with_zero R] [no_zero_divisors R] : is_reduced R :=
 ⟨λ _ ⟨_, hn⟩, pow_eq_zero hn⟩
 
+@[priority 900]
+instance is_reduced_of_subsingleton [has_zero R] [has_pow R ℕ] [subsingleton R] :
+  is_reduced R := ⟨λ _ _, subsingleton.elim _ _⟩
+
 lemma is_nilpotent.eq_zero [has_zero R] [has_pow R ℕ] [is_reduced R]
   (h : is_nilpotent x) : x = 0 :=
 is_reduced.eq_zero x h

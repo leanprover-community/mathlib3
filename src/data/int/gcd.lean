@@ -349,12 +349,12 @@ end
 lemma gcd_one_iff {a b : ℤ} : gcd a b = 1 ↔ ∃ x y : ℤ, 1 = a * x + b * y :=
 by simpa only [←nat.dvd_one] using @gcd_dvd_iff a b 1
 
-lemma dvd_dvd_gcd_one {a b d : ℤ} (ha : a ≠ 0) (h : d = gcd a b) :
+lemma gcd_one_of_dvd_gcd {a b d : ℤ} (ha : a ≠ 0) (h : d = gcd a b) :
   gcd (a/d) (b/d) = 1 :=
 begin
   have h_dnz : d ≠ 0, { rw h, exact coe_nat_ne_zero_iff_pos.mpr (gcd_pos_of_non_zero_left b ha) },
-  have hda : d ∣ a, { sorry },
-  have hdb : d ∣ b, { sorry },
+  have hda : d ∣ a, { rw h, exact gcd_dvd_left a b },
+  have hdb : d ∣ b, { rw h, exact gcd_dvd_right a b },
   rw gcd_one_iff,
   use [a.gcd_a b, a.gcd_b b],
   suffices :  d * 1 = d * (a / d * a.gcd_a b + b / d * a.gcd_b b),

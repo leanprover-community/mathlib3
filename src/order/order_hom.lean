@@ -10,9 +10,9 @@ import order.bounded_order
 import logic.function.iterate
 
 /-!
-# Preorder homomorphisms
+# Order homomorphisms
 
-This file defines preorder homomorphisms, which are bundled monotone functions. A preorder
+This file defines order homomorphisms, which are bundled monotone functions. A preorder
 homomorphism `f : α →ₘ β` is a function `α → β` along with a proof that `∀ x y, x ≤ y → f x ≤ f y`.
 
 ## Main definitions

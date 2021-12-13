@@ -21,7 +21,9 @@ and linear orders.
 
 ## See also
 
-The lexicographic ordering on lists is provided in `data.list.basic`.
+The lexicographic order on lists is provided in `data.list.lex`.
+
+The lexicographic order on a sigma type is to be found in `data.sigma.lex`.
 -/
 
 universes u v

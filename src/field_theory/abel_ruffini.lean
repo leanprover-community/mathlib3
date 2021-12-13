@@ -182,8 +182,8 @@ begin
   have C_mul_C : (C (i a⁻¹)) * (C (i a)) = 1,
   { rw [←C_mul, ←i.map_mul, inv_mul_cancel ha, i.map_one, C_1] },
   have key1 : (X ^ n - 1).map i = C (i a⁻¹) * ((X ^ n - C a).map i).comp (C b * X),
-  { rw [map_sub, map_sub, map_pow, map_X, map_C, map_one, sub_comp, pow_comp, X_comp, C_comp,
-        mul_pow, ←C_pow, hb, mul_sub, ←mul_assoc, C_mul_C, one_mul] },
+  { rw [polynomial.map_sub, polynomial.map_sub, map_pow, map_X, map_C, polynomial.map_one, sub_comp,
+        pow_comp, X_comp, C_comp, mul_pow, ←C_pow, hb, mul_sub, ←mul_assoc, C_mul_C, one_mul] },
   have key2 : (λ q : polynomial E, q.comp (C b * X)) ∘ (λ c : E, X - C c) =
     (λ c : E, C b * (X - C (c / b))),
   { ext1 c,
@@ -202,10 +202,10 @@ begin
   apply gal_is_solvable_tower (X ^ n - 1) (X ^ n - C x),
   { exact splits_X_pow_sub_one_of_X_pow_sub_C _ n hx (splitting_field.splits _) },
   { exact gal_X_pow_sub_one_is_solvable n },
-  { rw [map_sub, map_pow, map_X, map_C],
+  { rw [polynomial.map_sub, map_pow, map_X, map_C],
     apply gal_X_pow_sub_C_is_solvable_aux,
     have key := splitting_field.splits (X ^ n - 1 : polynomial F),
-    rwa [←splits_id_iff_splits, map_sub, map_pow, map_X, map_one] at key },
+    rwa [←splits_id_iff_splits, polynomial.map_sub, map_pow, map_X, polynomial.map_one] at key }
 end
 
 end gal_X_pow_sub_C

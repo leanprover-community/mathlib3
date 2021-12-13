@@ -563,19 +563,19 @@ by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _
 by simp only [interval_integral, integral_smul, smul_sub]
 
 @[simp] lemma integral_smul_const {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
-  [is_scalar_tower ℝ 𝕜 E] [measurable_space 𝕜] [borel_space 𝕜] (f : α → 𝕜) (c : E) :
+  (f : α → 𝕜) (c : E) :
   ∫ x in a..b, f x • c ∂μ = (∫ x in a..b, f x ∂μ) • c :=
 by simp only [interval_integral_eq_integral_interval_oc, integral_smul_const, smul_assoc]
 
-@[simp] lemma integral_const_mul {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+@[simp] lemma integral_const_mul {𝕜 : Type*} [is_R_or_C 𝕜]
   (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, r * f x ∂μ = r * ∫ x in a..b, f x ∂μ :=
 integral_smul r f
 
-@[simp] lemma integral_mul_const {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+@[simp] lemma integral_mul_const {𝕜 : Type*} [is_R_or_C 𝕜]
   (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, f x * r ∂μ = ∫ x in a..b, f x ∂μ * r :=
 by simpa only [mul_comm r] using integral_const_mul r f
 
-@[simp] lemma integral_div {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+@[simp] lemma integral_div {𝕜 : Type*} [is_R_or_C 𝕜]
   (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, f x / r ∂μ = ∫ x in a..b, f x ∂μ / r :=
 by simpa only [div_eq_mul_inv] using integral_mul_const r⁻¹ f
 
@@ -1218,6 +1218,16 @@ by simpa only [integral_of_le hab] using set_integral_mono_on hf.1 hg.1 measurab
 lemma integral_mono (h : f ≤ g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 integral_mono_ae hab hf hg $ ae_of_all _ h
+
+omit hg hab
+
+lemma integral_mono_interval {c d} (hca : c ≤ a) (hab : a ≤ b) (hbd : b ≤ d)
+  (hf : 0 ≤ᵐ[μ.restrict (Ioc c d)] f) (hfi : interval_integrable f μ c d):
+  ∫ x in a..b, f x ∂μ ≤ ∫ x in c..d, f x ∂μ :=
+begin
+  rw [integral_of_le hab, integral_of_le (hca.trans (hab.trans hbd))],
+  exact set_integral_mono_set hfi.1 hf (Ioc_subset_Ioc hca hbd).eventually_le
+end
 
 end mono
 
@@ -2329,8 +2339,9 @@ begin
     have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) I (f x) :=
     integral_has_deriv_within_at_right h2g h3g (hg (f x) h2x),
     refine (this.scomp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,
-    dsimp only [I], rw [← image_subset_iff, ← hf.image_interval],
-    refine image_subset f (Ioo_subset_Icc_self.trans $ Icc_subset_Icc_left hx.1.le) },
+    rw ← hI,
+    exact (maps_to_image _ _).mono (Ioo_subset_Icc_self.trans $ Icc_subset_Icc_left hx.1.le)
+      subset.rfl },
   have h_int : interval_integrable (λ (x : ℝ), f' x • (g ∘ f) x) volume a b :=
   (hf'.smul (hg.comp hf $ subset_preimage_image f _)).interval_integrable,
   simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der h_int, integral_same, sub_zero],

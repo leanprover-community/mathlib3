@@ -10,7 +10,8 @@ import order.hom.basic
 /-!
 # Lattice structure on order homomorphisms
 
-This file defines the lattice structure on order homomorphisms, which are bundled monotone functions.
+This file defines the lattice structure on order homomorphisms, which are bundled
+monotone functions.
 
 ## Main definitions
 

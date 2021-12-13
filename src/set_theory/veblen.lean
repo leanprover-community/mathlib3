@@ -217,6 +217,7 @@ begin
   intros α hα β,
   use λ hαβ γ hγα, le_of_lt (lt_of_lt_of_le (fix_point_enum'.strict_mono hγα) hαβ),
   intros h,
+  sorry
 end
 
 end

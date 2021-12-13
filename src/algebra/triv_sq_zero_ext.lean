@@ -384,8 +384,7 @@ lemma alg_hom_ext {A} [semiring A] [algebra R A] ⦃f g : tsze R M →ₐ[R] A�
 alg_hom.to_linear_map_injective $ linear_map_ext (λ r, (f.commutes _).trans (g.commutes _).symm) h
 
 @[ext]
-lemma alg_hom_ext' {A} [comm_semiring R] [add_comm_monoid M] [semiring A] [module R M]
-  [algebra R A] ⦃f g : tsze R M →ₐ[R] A⦄
+lemma alg_hom_ext' {A} [semiring A] [algebra R A] ⦃f g : tsze R M →ₐ[R] A⦄
   (h : f.to_linear_map.comp (inr_hom R M) = g.to_linear_map.comp (inr_hom R M)) :
   f = g :=
 alg_hom_ext $ linear_map.congr_fun h

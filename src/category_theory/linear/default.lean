@@ -71,9 +71,13 @@ section End
 
 variables {R : Type w} [comm_ring R] [linear R C]
 
-instance (X : C) : module R (End X) := by { dsimp [End], apply_instance, }
+instance (X : C) : module R (End X) := linear.hom_module X X
 
-instance (X : C) : algebra R (End X) :=
+/-- TODO: should we have a `bilinear` class for this? -/
+instance (X : C) [linear Rᵐᵒᵖ C] [is_central_scalar R (X ⟶ X)] : is_central_scalar R (End X) :=
+‹is_central_scalar R (X ⟶ X)›
+
+instance [linear Rᵐᵒᵖ C] (X : C) [is_central_scalar R (X ⟶ X)] : algebra R (End X) :=
 algebra.of_module (λ r f g, comp_smul _ _ _ _ _ _) (λ r f g, smul_comp _ _ _ _ _ _)
 
 end End

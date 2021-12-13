@@ -7,7 +7,7 @@ import algebra.group_action_hom
 import data.fin_simplicial_complex
 import group_theory.free_abelian_group
 import algebra.big_operators.finsupp
-import algebra.monoid_algebra
+import algebra.monoid_algebra.basic
 
 /-!
 # Group cohomology

@@ -1714,6 +1714,19 @@ begin
   exact set_integral_condexp_L1 hf hs,
 end
 
+variable (hm)
+
+/-- A version of `set_integral_condexp` where the argument `m ≤ m0` is explicit. This is useful
+when arguing about martingales where we deal with different inequalities of σ-algebras. -/
+lemma set_integral_condexp' (hf : integrable f μ) (hs : measurable_set[m] s) :
+  ∫ x in s, μ[f|m,hm] x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  rw set_integral_congr_ae (hm s hs) ((condexp_ae_eq_condexp_L1 f).mono (λ x hx _, hx)),
+  exact set_integral_condexp_L1 hf hs,
+end
+
+variable {hm}
+
 lemma integral_condexp (hf : integrable f μ) : ∫ x, μ[f|m,hm] x ∂μ = ∫ x, f x ∂μ :=
 begin
   suffices : ∫ x in set.univ, μ[f|m,hm] x ∂μ = ∫ x in set.univ, f x ∂μ,

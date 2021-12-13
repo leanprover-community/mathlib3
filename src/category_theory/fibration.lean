@@ -59,6 +59,7 @@ def hom_lift (ψ : e₁ ⟶ e₃) (g : p.obj e₂ ⟶ p.obj e₃) := { χ : e₂
 def wcocartesian := ∀ {e₃} ψ (ho : p.obj e₂ = p.obj e₃)
   (hm : p.map ψ = p.map φ ≫ eq_to_hom ho), unique (hom_lift p φ ψ (eq_to_hom ho))
 
+-- should cocartesian be a typeclass?
 def cocartesian := ∀ {e₃} ψ (g : p.obj e₂ ⟶ p.obj e₃)
   (h : p.map ψ = p.map φ ≫ g), unique (hom_lift p φ ψ g)
 

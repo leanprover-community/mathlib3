@@ -53,11 +53,11 @@ See also `category_theory.elements` for the category of elements of functor `F :
 
 -/
 
-universes u₁ v₁ u₂ v₂
+universes v u₁ u₂
 
 namespace category_theory
 
-variables {C : Type u₁} [category.{v₁} C] (F : lax_functor_to_Cat.{u₁ v₁ u₂ v₂} C)
+variables {C : Type*} [category.{v} C] (F : lax_functor_to_Cat C)
 
 /--
 The Grothendieck construction (often written as `∫ F` in mathematics) for a functor `F : C ⥤ Cat`
@@ -150,45 +150,56 @@ def fiber_push (X : C) : costructured_arrow (forget F) X ⥤ (F.obj X).1 :=
       erw eq_to_hom.family_congr (F.map_comp g₁.left.base) (costructured_arrow.w g₂),
       simpa } } }
 
+def fiber_push_comp {X Y : C} (f : X ⟶ Y) :
+  costructured_arrow.map f ⋙ fiber_push F Y ⟶ fiber_push F X ⋙ F.map f :=
+{ app := λ g, (F.map_comp _ _).app _,
+  naturality' := λ g₁ g₂ f', by { dsimp, simp, } }
+
 end
 
 section colimit
-noncomputable theory
+
 open limits
 
---universes v₁ u₁
-variables {J : Type*} [small_category J] (𝒟 : J ⥤ grothendieck F)
+variables {J : Type*} [small_category J] {𝒟 : J ⥤ grothendieck F}
 (cb : cocone (𝒟 ⋙ forget F))
 
 @[simp]
 def fiber_diagram : J ⥤ (F.obj cb.X).1 :=
 costructured_arrow.of_cocone _ _ cb.ι ⋙ costructured_arrow.pre _ _ _ ⋙ fiber_push _ _
 
-variable (cf : cocone (fiber_diagram 𝒟 cb))
+variable (cf : cocone (fiber_diagram cb))
 
-def colimit_cocone : cocone 𝒟 :=
+def total_cocone : cocone 𝒟 :=
 { X := { base := cb.X, fiber := cf.X },
   ι := { app := λ j, { base := cb.ι.app j, fiber := cf.ι.app j },
     naturality' := λ j j' f, by { erw category.comp_id, ext, swap,
       exact cocone.w cb f, { erw ← cocone.w cf f,
        dunfold fiber_diagram costructured_arrow.of_cocone fiber_push, simpa } } } }
 
-variable (lb : is_colimit cb)
+variables {cb} (lb : is_colimit cb)
 
---def desc_base (c : cocone 𝒟) : cb.X ⟶ c.X.base :=
---lb.desc (functor.map_cocone (forget F) c)
+def desc_base (c : cocone 𝒟) : cb.X ⟶ c.X.base := lb.desc ((forget F).map_cocone c)
 --{X := c.X.base, ι := whisker_right c.ι (forget F)}
 --#check fiber_diagram 𝒟 cb
 --#check grothendieck F
 
-variable (lf : ∀ {c : C} {f : cb.X ⟶ c}, is_colimit (functor.map_cocone (F.map f) cf))
---variable [∀ c, preserves_colimit (fiber_diagram 𝒟 cb) (F.map (desc_base 𝒟 cb lb c))]
-variable (hi : )
+variable [∀ {X Y Z} (f : X ⟶ Y) (g : Y ⟶ Z), is_iso (F.map_comp f g)]
 
-def colimit_cocone_is_colimit : is_colimit (colimit_cocone 𝒟 cb cf) :=
+def fiber_cocone (c : cocone 𝒟) :
+  cocone (fiber_diagram cb ⋙ F.map (desc_base lb c)) :=
+{ X := c.X.fiber,
+  ι := { app := λ j, (inv (F.map_comp _ _)).app _ ≫
+    eq_to_hom (by {erw lb.fac, refl}) ≫ (c.ι.app j).fiber, -- (cb.ι.app j) (desc_base lb c)
+    naturality' := λ j j' f, by { dsimp, simp, }} }
+
+variable (lf : ∀ {c : C} (f : cb.X ⟶ c), is_colimit (functor.map_cocone (F.map f) cf))
+--variable [∀ c, preserves_colimit (fiber_diagram 𝒟 cb) (F.map (desc_base 𝒟 cb lb c))]
+
+def colimit_cocone_is_colimit : is_colimit (total_cocone cb cf) :=
 { desc := λ c,
-  { base := lb.desc (functor.map_cocone (forget F) c),
-    fiber := },
+  { base := desc_base lb c,
+    fiber := (lf (desc_base lb c)).desc  },
 
 }
 
@@ -197,6 +208,7 @@ variables [Hb : has_colimits_of_shape J C]
 
 end colimit
 
+/-
 section
 
 variables (G : pseudofunctor_to_Cat C) (X : grothendieck G.to_lax_functor_to_Cat)
@@ -233,7 +245,7 @@ def cleavage_forget_adjunction :
   right_triangle' := }
 
 end
-
+-/
 universe w
 variables (G : C ⥤ Type w)
 

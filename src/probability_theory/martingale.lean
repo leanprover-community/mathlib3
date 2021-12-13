@@ -183,19 +183,6 @@ begin
   simpa,
 end
 
--- lemma smul_nonneg [normed_lattice_add_comm_group E]
---   {c : ℝ} (hc : 0 ≤ c) (hf : supermartingale f ℱ μ) :
---   supermartingale (c • f) ℱ μ :=
--- begin
---   refine ⟨hf.1.smul c, λ i j hij, _, λ i, (hf.2.2 i).smul c⟩,
---   refine (condexp_smul c (f j)).le.trans _,
---   filter_upwards [hf.2.1 i j hij],
---   intros _ hle,
---   simp,
---   refine smul_le_smul_of_nonneg  hle hc,
---   -- failed to synthesize type class instance for smul_with_zero ℝ E
--- end
-
 end supermartingale
 
 namespace submartingale
@@ -262,6 +249,62 @@ lemma sub_martingale [preorder E] [covariant_class E E (+) (≤)]
   (hf : supermartingale f ℱ μ) (hg : martingale g ℱ μ) : supermartingale (f - g) ℱ μ :=
 hf.sub_submartingale hg.submartingale
 
+section
+
+variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
+  [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
+  [ordered_smul ℝ F]
+
+lemma smul_nonneg {f : ι → α → F}
+  {c : ℝ} (hc : 0 ≤ c) (hf : supermartingale f ℱ μ) :
+  supermartingale (c • f) ℱ μ :=
+begin
+  refine ⟨hf.1.smul c, λ i j hij, _, λ i, (hf.2.2 i).smul c⟩,
+  refine (condexp_smul c (f j)).le.trans _,
+  filter_upwards [hf.2.1 i j hij],
+  intros _ hle,
+  simp,
+  exact smul_le_smul_of_nonneg hle hc,
+end
+
+lemma smul_nonpos {f : ι → α → F}
+  {c : ℝ} (hc : c ≤ 0) (hf : supermartingale f ℱ μ) :
+  submartingale (c • f) ℱ μ :=
+begin
+  rw [← neg_neg c, (by { ext i x, simp } : - -c • f = -(-c • f))],
+  exact (hf.smul_nonneg $ neg_nonneg.2 hc).neg,
+end
+
+end
+
 end supermartingale
+
+namespace submartingale
+
+section
+
+variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
+  [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
+  [ordered_smul ℝ F]
+
+lemma smul_nonneg {f : ι → α → F}
+  {c : ℝ} (hc : 0 ≤ c) (hf : submartingale f ℱ μ) :
+  submartingale (c • f) ℱ μ :=
+begin
+  rw [← neg_neg c, (by { ext i x, simp } : - -c • f = -(c • -f))],
+  exact supermartingale.neg (hf.neg.smul_nonneg hc),
+end
+
+lemma smul_nonpos {f : ι → α → F}
+  {c : ℝ} (hc : c ≤ 0) (hf : submartingale f ℱ μ) :
+  supermartingale (c • f) ℱ μ :=
+begin
+  rw [← neg_neg c, (by { ext i x, simp } : - -c • f = -(-c • f))],
+  exact (hf.smul_nonneg $ neg_nonneg.2 hc).neg,
+end
+
+end
+
+end submartingale
 
 end measure_theory

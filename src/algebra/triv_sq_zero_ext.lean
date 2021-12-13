@@ -222,7 +222,8 @@ lemma ind {R M} [add_zero_class R] [add_zero_class M] {P : triv_sq_zero_ext R M 
   (h : ∀ r m, P (inl r + inr m)) (x) : P x :=
 inl_fst_add_inr_snd_eq x ▸ h x.1 x.2
 
-@[ext]
+/-- This cannot be marked `@[ext]` as it ends up being used instead of `linear_map.prod_ext` when
+working with `R × M`. -/
 lemma linear_map_ext {N} [semiring S] [add_comm_monoid R] [add_comm_monoid M] [add_comm_monoid N]
   [module S R] [module S M] [module S N] ⦃f g : tsze R M →ₗ[S] N⦄
   (hl : ∀ r, f (inl r) = g (inl r)) (hr : ∀ m, f (inr m) = g (inr m)) :

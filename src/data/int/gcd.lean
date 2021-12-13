@@ -346,6 +346,24 @@ begin
     exact λ n hn_pos hn, nat.le_of_dvd hn_pos hn },
 end
 
+lemma gcd_one_iff {a b : ℤ} : gcd a b = 1 ↔ ∃ x y : ℤ, 1 = a * x + b * y :=
+by simpa only [←nat.dvd_one] using @gcd_dvd_iff a b 1
+
+lemma dvd_dvd_gcd_one {a b d : ℤ} (ha : a ≠ 0) (h : d = gcd a b) :
+  gcd (a/d) (b/d) = 1 :=
+begin
+  have h_dnz : d ≠ 0, { rw h, exact coe_nat_ne_zero_iff_pos.mpr (gcd_pos_of_non_zero_left b ha) },
+  have hda : d ∣ a, { sorry },
+  have hdb : d ∣ b, { sorry },
+  rw gcd_one_iff,
+  use [a.gcd_a b, a.gcd_b b],
+  suffices :  d * 1 = d * (a / d * a.gcd_a b + b / d * a.gcd_b b),
+  { exact (mul_right_inj' h_dnz).mp this },
+  simp only [mul_one, mul_add, ←mul_assoc, ←mul_assoc],
+  rw [int.mul_div_cancel' hda, int.mul_div_cancel' hdb, h],
+  apply gcd_eq_gcd_ab,
+end
+
 /-! ### lcm -/
 
 theorem lcm_comm (i j : ℤ) : lcm i j = lcm j i :=

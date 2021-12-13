@@ -51,6 +51,9 @@ Schemes are a full subcategory of locally ringed spaces.
 instance : category Scheme :=
 induced_category.category Scheme.to_LocallyRingedSpace
 
+/-- The structure sheaf of a Scheme. -/
+protected abbreviation sheaf (X : Scheme) := X.to_SheafedSpace.sheaf
+
 /--
 The spectrum of a commutative ring, as a scheme.
 -/

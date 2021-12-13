@@ -41,8 +41,10 @@ internally graded ring
 
 open_locale direct_sum big_operators
 
-variables {ι : Type*} {S R : Type*} [deq : decidable_eq ι]
-include deq
+variables {ι : Type*} {S R : Type*}
+
+section direct_sum
+variables [decidable_eq ι]
 
 /-! #### From `add_submonoid`s -/
 

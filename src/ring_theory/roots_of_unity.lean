@@ -771,21 +771,24 @@ by rw [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h), card_mk,
 open_locale nat
 
 /-- If an integral domain has a primitive `k`-th root of unity, then it has `φ k` of them. -/
-lemma card_primitive_roots {ζ : R} {k : ℕ} (h : is_primitive_root ζ k) (h0 : 0 < k) :
+lemma card_primitive_roots {ζ : R} {k : ℕ} (h : is_primitive_root ζ k) :
   (primitive_roots k R).card = φ k :=
 begin
+  by_cases h0 : k = 0,
+  { simp [h0], },
   symmetry,
   refine finset.card_congr (λ i _, ζ ^ i) _ _ _,
   { simp only [true_and, and_imp, mem_filter, mem_range, mem_univ],
     rintro i - hi,
-    rw mem_primitive_roots h0,
+    rw mem_primitive_roots (nat.pos_of_ne_zero h0),
     exact h.pow_of_coprime i hi.symm },
   { simp only [true_and, and_imp, mem_filter, mem_range, mem_univ],
     rintro i j hi - hj - H,
     exact h.pow_inj hi hj H },
   { simp only [exists_prop, true_and, mem_filter, mem_range, mem_univ],
     intros ξ hξ,
-    rw [mem_primitive_roots h0, h.is_primitive_root_iff h0] at hξ,
+    rw [mem_primitive_roots (nat.pos_of_ne_zero h0),
+      h.is_primitive_root_iff (nat.pos_of_ne_zero h0)] at hξ,
     rcases hξ with ⟨i, hin, hi, H⟩,
     exact ⟨i, ⟨hin, hi.symm⟩, H⟩ }
 end
@@ -827,7 +830,7 @@ begin
       have hdvd := H,
       rcases H with ⟨d, hd⟩,
       rw mul_comm at hd,
-      rw (h.pow n.pos hd).card_primitive_roots (pnat.pos_of_div_pos hdvd) },
+      rw (h.pow n.pos hd).card_primitive_roots },
     { intros i hi j hj hdiff,
       simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,
       exact disjoint (pnat.pos_of_div_pos hi) (pnat.pos_of_div_pos hj) hdiff } }
@@ -1030,11 +1033,10 @@ lemma totient_le_degree_minpoly : nat.totient n ≤ (minpoly ℤ μ).nat_degree 
 let P : polynomial ℤ := minpoly ℤ μ,-- minimal polynomial of `μ`
     P_K : polynomial K := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
 in calc
-n.totient = (primitive_roots n K).card : (h.card_primitive_roots hpos).symm
+n.totient = (primitive_roots n K).card : h.card_primitive_roots.symm
 ... ≤ P_K.roots.to_finset.card : finset.card_le_of_subset (is_roots_of_minpoly h hpos)
 ... ≤ P_K.roots.card : multiset.to_finset_card_le _
-... ≤ P_K.nat_degree : (card_roots' $ map_monic_ne_zero
-        (minpoly.monic $ is_integral h hpos))
+... ≤ P_K.nat_degree : card_roots' _
 ... ≤ P.nat_degree : nat_degree_map_le _ _
 
 end minpoly

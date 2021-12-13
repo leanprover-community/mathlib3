@@ -113,11 +113,9 @@ unity in `R`. -/
 lemma nat_degree_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
   (cyclotomic' n R).nat_degree = nat.totient n :=
 begin
-  cases nat.eq_zero_or_pos n with hzero hpos,
-  { simp only [hzero, cyclotomic'_zero, nat.totient_zero, nat_degree_one] },
   rw [cyclotomic'],
   rw nat_degree_prod (primitive_roots n R) (λ (z : R), (X - C z)),
-  simp only [is_primitive_root.card_primitive_roots h hpos, mul_one,
+  simp only [is_primitive_root.card_primitive_roots h, mul_one,
   nat_degree_X_sub_C,
   nat.cast_id, finset.sum_const, nsmul_eq_mul],
   intros z hz,

@@ -427,10 +427,10 @@ begin
   rw [← C_inj, this, C_0],
 end
 
-lemma prod_multiset_root_eq_finset_root {p : polynomial R} (hzero : p ≠ 0) :
+lemma prod_multiset_root_eq_finset_root (p : polynomial R) :
   (multiset.map (λ (a : R), X - C a) p.roots).prod =
   ∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
-by simp only [count_roots hzero, finset.prod_multiset_map_count]
+by simp only [count_roots, finset.prod_multiset_map_count]
 
 /-- The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides `p`. -/
 lemma prod_multiset_X_sub_C_dvd (p : polynomial R) :
@@ -438,7 +438,7 @@ lemma prod_multiset_X_sub_C_dvd (p : polynomial R) :
 begin
   by_cases hp0 : p = 0,
   { simp only [hp0, roots_zero, is_unit_one, multiset.prod_zero, multiset.map_zero, is_unit.dvd] },
-  rw prod_multiset_root_eq_finset_root hp0,
+  rw prod_multiset_root_eq_finset_root p,
   have hcoprime : pairwise (is_coprime on λ (a : R), polynomial.X - C (id a)) :=
     pairwise_coprime_X_sub function.injective_id,
   have H : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),

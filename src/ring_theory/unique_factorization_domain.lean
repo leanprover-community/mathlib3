@@ -1208,22 +1208,26 @@ begin
     (irreducible_iff_prime.mp hp)⟩,
 end
 
-theorem count_mul_of_coprime [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
+theorem count_mul_of_coprime [nontrivial α] {a : associates α} {b : associates α}
   (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p a.factors = 0 ∨ count p a.factors = count p (a * b).factors :=
 begin
+  by_cases ha : a = 0,
+  { simp [ha], },
   cases count_of_coprime ha hb hab hp with hz hb0, { tauto },
   apply or.intro_right,
   rw [count_mul ha hb hp, hb0, add_zero]
 end
 
-theorem count_mul_of_coprime' [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
+theorem count_mul_of_coprime' [nontrivial α] {a : associates α} {b : associates α}
   (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p (a * b).factors = count p a.factors
   ∨ count p (a * b).factors = count p b.factors :=
 begin
+  by_cases ha : a = 0,
+  { simp [ha], },
   rw [count_mul ha hb hp],
   cases count_of_coprime ha hb hab hp with ha0 hb0,
   { apply or.intro_right, rw [ha0, zero_add] },

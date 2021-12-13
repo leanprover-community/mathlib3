@@ -1,13 +1,11 @@
 /-
 Copyright (c) 2021 Alex Kontorovich and Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alex Kontorovich and Heather Macbeth
+Authors: Alex Kontorovich, Heather Macbeth
 -/
 
 import measure_theory.measure.haar
-import measure_theory.measure.lebesgue
 import measure_theory.group.fundamental_domain
-import group_theory.subgroup.basic
 
 /-!
 # Haar Quotient measure
@@ -17,12 +15,12 @@ In this file does stuff.
 ## Main results
 
 * `measure_theory.is_fundamental_domain.smul_invariant_measure_map `: given a subgroup `Γ` of a
-  topological group `G`, the pushforward to `Γ \ G` of the restriction of `G`'s Haar measure to a
-  fundamental domain of `Γ` is a `G`-invariant measure on `Γ \ G`.
+  topological group `G`, the pushforward to the coset space `G ⧸ Γ` of the restriction of `G`'s
+  Haar measure to a fundamental domain of `Γ` is a `G`-invariant measure on `G ⧸ Γ`.
 
 * `measure_theory.is_fundamental_domain.is_mul_left_invariant_map `: given a normal subgroup `Γ` of
-  a topological group `G`, the pushforward to `G / Γ` of the restriction of `G`'s Haar measure to a
-  fundamental domain of `Γ` is a left-invariant measure on the quotient group `G / Γ`.
+  a topological group `G`, the pushforward to the quotient group `G ⧸ Γ` of the restriction of
+  `G`'s Haar measure to a fundamental domain of `Γ` is a left-invariant measure on `G ⧸ Γ`.
 -/
 
 open set measure_theory
@@ -33,20 +31,23 @@ variables {G : Type*} [group G] [measurable_space G] [topological_space G] [t2_s
   {Γ : subgroup G} --[subgroup.normal Γ]
   {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ 𝓕 μ)
 
-local notation `X` := quotient_group.quotient Γ -- X = Γ \ G
+variables [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
 
-variables [measurable_space X] [borel_space X]
+instance subgroup.smul_invariant_measure : smul_invariant_measure Γ G μ :=
+{ measure_preimage_smul := λ c s hs, μ.haar_preimage_mul c s }
 
-instance subgroup.smul_invariant_measure : smul_invariant_measure Γ G μ := sorry
+instance quotient_group.has_measurable_smul : has_measurable_smul G (G ⧸ Γ) := sorry
 
 include h𝓕
 variables [encodable Γ]
 
+/-- The pushforward to the coset space `G ⧸ Γ` of the restriction of Haar measure on `G` to a
+fundamental domain `𝓕` is a `G`-invariant measure on `G ⧸ Γ`. -/
 lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map :
-  smul_invariant_measure G _ (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) :=
+  smul_invariant_measure G (G ⧸ Γ) (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) :=
 { measure_preimage_smul :=
 begin
-  let π : G → X := @quotient_group.mk G _ Γ ,
+  let π : G → G ⧸ Γ := @quotient_group.mk G _ Γ ,
   have π_of_Γ : ∀ γ : Γ, π γ = π 1,
   {
     -- := λ γ,  (@quotient_group.eq_one_iff G _ Γ _ γ).mpr γ.prop,
@@ -69,7 +70,7 @@ begin
   set π_preA := π ⁻¹' A,
 --  set π_pregA := π ⁻¹' (has_scalar.smul g ⁻¹' A),
   rw (by ext1 y; simp :
-    (quotient_group.mk ⁻¹' ((λ (x : quotient_group.quotient Γ), g • x) ⁻¹' A))
+    (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A))
     = has_mul.mul g ⁻¹' π_preA),
 
   have : μ (has_mul.mul g ⁻¹' π_preA ∩ 𝓕) = μ (π_preA ∩ has_mul.mul (g⁻¹) ⁻¹' 𝓕),
@@ -91,29 +92,31 @@ begin
 
 end }
 
+/-- The pushforward to the quotient group `G ⧸ Γ` of the restriction of Haar measure on `G` to a
+fundamental domain `𝓕` is a left-invariant measure on the group `G ⧸ Γ`. -/
 lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ] :
   is_mul_left_invariant (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) :=
 begin
   intros x A hA,
   obtain ⟨x₁, _⟩ := @quotient.exists_rep _ (quotient_group.left_rel Γ) x,
   haveI := h𝓕.smul_invariant_measure_map,
-  haveI : has_measurable_smul G (quotient_group.quotient Γ) := sorry,
   convert measure_theory.measure_preimage_smul x₁ ((measure.map quotient_group.mk) (μ.restrict 𝓕)) A,
-  sorry, -- ALEX hoemwork
+  rw ← h,
+  refl,
 end
 
-variables [t2_space X] [topological_space.second_countable_topology X]
+variables [t2_space (G ⧸ Γ)] [topological_space.second_countable_topology (G ⧸ Γ)]
  -- prove t2, prove second_countability, (from discreteness?)
 
-variables (K : topological_space.positive_compacts X)
+variables (K : topological_space.positive_compacts (G ⧸ Γ))
 
 local notation `μ_X` := measure_theory.measure.haar_measure K
 
-lemma map_restrict_unit_interval (h𝓕_finite : μ 𝓕 < ⊤) :
+lemma map_restrict_unit_interval [subgroup.normal Γ] (h𝓕_finite : μ 𝓕 < ⊤) :
   measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)
   = (μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K.val)) • μ_X :=
 begin
-  let π : G →* X := quotient_group.mk' Γ,
+  let π : G →* G ⧸ Γ := quotient_group.mk' Γ,
   have meas_π : measurable π :=
     continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
   have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,

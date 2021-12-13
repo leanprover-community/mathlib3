@@ -152,7 +152,7 @@ lemma set_integral_le {f : ι → α → ℝ} (hf : supermartingale f ℱ μ)
   {i j : ι} (hij : i ≤ j) {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f j x ∂μ ≤ ∫ x in s, f i x ∂μ :=
 begin
-  rw ← set_integral_condexp' (ℱ.le i) (hf.integrable j) hs,
+  rw ← set_integral_condexp (ℱ.le i) (hf.integrable j) hs,
   refine set_integral_mono_ae integrable_condexp.integrable_on (hf.integrable i).integrable_on _,
   filter_upwards [hf.2.1 i j hij],
   intros _ heq,

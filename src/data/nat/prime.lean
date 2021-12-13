@@ -605,6 +605,10 @@ begin
       exact pow_dvd_pow _ l } }
 end
 
+lemma prime.dvd_mul_of_dvd_ne {p1 p2 n : ℕ} (h_neq : p1 ≠ p2) (pp1 : prime p1) (pp2 : prime p2)
+  (h1 : p1 ∣ n) (h2 : p2 ∣ n) : (p1 * p2 ∣ n) :=
+coprime.mul_dvd_of_dvd_of_dvd ((coprime_primes pp1 pp2).mpr h_neq) h1 h2
+
 /--
 If `p` is prime,
 and `a` doesn't divide `p^k`, but `a` does divide `p^(k+1)`

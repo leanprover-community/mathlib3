@@ -162,8 +162,8 @@ end linear_order
 
 end function
 
-theorem strict_mono.id_le_of_wo {α : Type*} [linear_order α] {φ : α → α}
-(H : @well_founded α (<)) (h : strict_mono φ) :
+theorem strict_mono.id_le_of_wo {α : Type*} [linear_order α] {φ : α → α} (h : strict_mono φ)
+(H : @well_founded α (<)) :
   ∀ n, n ≤ φ n :=
 begin
   by_contra h',

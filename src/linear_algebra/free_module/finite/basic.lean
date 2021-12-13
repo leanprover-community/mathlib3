@@ -68,7 +68,7 @@ begin
   simp only [set.image_univ, finset.coe_univ, finset.coe_image, basis.span_eq],
 end
 
-instance {ι : Type*} [fintype ι] : module.finite R (ι → R) :=
+instance module.finite.pi {ι : Type*} [fintype ι] : module.finite R (ι → R) :=
 module.finite.of_basis (pi.basis_fun R _)
 
 instance _root_.module.finite.matrix {ι₁ : Type*} [fintype ι₁] {ι₂ : Type*} [fintype ι₂] :

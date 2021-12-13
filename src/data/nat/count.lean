@@ -44,17 +44,11 @@ end
 localized "attribute [instance] count_set.fintype" in count
 
 lemma count_eq_card_filter_range (n : ℕ) : count p n = ((range n).filter p).card :=
-by { rw [count, list.countp_eq_length_filter], refl,}
+by { rw [count, list.countp_eq_length_filter], refl, }
 
 /-- `count p n` can be expressed as the cardinality of `{k // k < n ∧ p k}`. -/
 lemma count_eq_card_fintype (n : ℕ) : count p n = fintype.card {k : ℕ // k < n ∧ p k} :=
-begin
-  rw [count_eq_card_filter_range, ←fintype.card_of_finset],
-  congr,
-  intro i,
-  rw [mem_filter, mem_range],
-  refl,
-end
+by { rw [count_eq_card_filter_range, ←fintype.card_of_finset, ←count_set.fintype], congr, }
 
 lemma count_monotone : monotone (count p) :=
 begin
@@ -78,7 +72,7 @@ begin
 end
 
 lemma count_add' (a b : ℕ) : count p (a + b) = count (λ k, p (k + b)) a + count p b :=
-by { rw [add_comm, count_add, add_comm], simp_rw add_comm b, congr' 2 }
+by { rw [add_comm, count_add, add_comm], simp_rw add_comm b, congr, }
 
 lemma count_one : count p 1 = if p 0 then 1 else 0 := by simp [count_succ]
 
@@ -109,10 +103,17 @@ begin
   { exact trans (le_of_lt (cardinal.nat_lt_omega (count p n))) h},
 end
 
-variables {p}
-
 lemma lt_of_count_lt_count {a b : ℕ} (h : count p a < count p b) : a < b :=
 (count_monotone p).reflect_lt h
+
+variable {q : ℕ → Prop}
+variable [decidable_pred q]
+
+lemma count_le_count_of_imp {n : ℕ} (hpq : p ≤ q) : count p n ≤ count q n :=
+begin
+  simp only [count_eq_card_filter_range],
+  exact card_le_of_subset ((range n).monotone_filter_right hpq),
+end
 
 end count
 

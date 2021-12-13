@@ -174,7 +174,6 @@ instance galgebra [add_monoid ι]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] (s : S) :
     ↑(@direct_sum.galgebra.to_fun _ S (λ i, A i) _ _ _ _ _ _ _ s) = (algebra_map S R s : R) := rfl
 
-omit deq
 /-- A direct sum of powers of a submodule of an algebra has a multiplicative structure. -/
 instance nat_power_graded_monoid
   [comm_semiring S] [semiring R] [algebra S R] (p : submodule S R) :
@@ -183,21 +182,6 @@ instance nat_power_graded_monoid
   mul_mem := λ i j p q hp hq, by { rw pow_add, exact submodule.mul_mem_mul hp hq } }
 
 end submodule
-
-section homogeneous_element
-
-omit deq
-lemma set_like.is_homogeneous_zero_submodule [add_monoid ι]
-  [semiring S] [add_comm_monoid R] [module S R]
-  (A : ι → submodule S R) : set_like.is_homogeneous A (0 : R) :=
-⟨0, submodule.zero_mem _⟩
-
-lemma set_like.is_homogeneous.smul [comm_semiring S] [semiring R] [algebra S R]
-  {A : ι → submodule S R} {s : S}
-  {r : R} (hr : set_like.is_homogeneous A r) : set_like.is_homogeneous A (s • r) :=
-let ⟨i, hi⟩ := hr in ⟨i, submodule.smul_mem _ _ hi⟩
-
-end homogeneous_element
 
 /-- The canonical algebra isomorphism between `⨁ i, A i` and `R`. -/
 def direct_sum.submodule_coe_alg_hom [add_monoid ι]
@@ -222,3 +206,19 @@ begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, submodule.coe_sum],
   simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
+
+end direct_sum
+
+section homogeneous_element
+
+lemma set_like.is_homogeneous_zero_submodule [add_monoid ι]
+  [semiring S] [add_comm_monoid R] [module S R]
+  (A : ι → submodule S R) : set_like.is_homogeneous A (0 : R) :=
+⟨0, submodule.zero_mem _⟩
+
+lemma set_like.is_homogeneous.smul [comm_semiring S] [semiring R] [algebra S R]
+  {A : ι → submodule S R} {s : S}
+  {r : R} (hr : set_like.is_homogeneous A r) : set_like.is_homogeneous A (s • r) :=
+let ⟨i, hi⟩ := hr in ⟨i, submodule.smul_mem _ _ hi⟩
+
+end homogeneous_element

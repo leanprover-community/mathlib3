@@ -162,6 +162,9 @@ begin
     using padic_val_rat_def p n_nonzero,
 end
 
+@[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
+by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
+
 lemma one_le_padic_val_nat_of_dvd
   {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (div : p ∣ n) :
   1 ≤ padic_val_nat p n :=
@@ -356,35 +359,26 @@ begin
   exact cast_ne_zero.mpr hr,
 end
 
+protected lemma div_of_dvd (p : ℕ) [hp : fact p.prime] {a b : ℕ} (h : b ∣ a) :
+  padic_val_nat p (a / b) = padic_val_nat p a - padic_val_nat p b :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { simp },
+  obtain ⟨k, rfl⟩ := h,
+  obtain ⟨hb, hk⟩ := mul_ne_zero_iff.mp ha,
+  rw [mul_comm, k.mul_div_cancel hb.bot_lt, padic_val_nat.mul p hk hb, nat.add_sub_cancel]
+end
+
 /--
 Dividing out by a prime factor reduces the padic_val_nat by 1.
 -/
 protected lemma div {p : ℕ} [p_prime : fact p.prime] {b : ℕ} (dvd : p ∣ b) :
   (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
 begin
-  by_cases b_split : (b = 0),
-  { simp [b_split], },
-  { have split_frac : padic_val_rat p (b / p) = padic_val_rat p b - padic_val_rat p p :=
-      padic_val_rat.div p (nat.cast_ne_zero.mpr b_split)
-        (nat.cast_ne_zero.mpr (nat.prime.ne_zero p_prime.1)),
-    rw padic_val_rat.padic_val_rat_self (nat.prime.one_lt p_prime.1) at split_frac,
-    have r : 1 ≤ padic_val_nat p b := one_le_padic_val_nat_of_dvd b_split dvd,
-    exact_mod_cast split_frac, }
+  convert padic_val_nat.div_of_dvd p dvd,
+  rw padic_val_nat_self p
 end
 
-protected lemma div_pow {p : ℕ} [p_prime : fact p.prime] {b k : ℕ} (dvd : p ^ k ∣ b) :
-  (padic_val_nat p (b / p ^ k)) = (padic_val_nat p b) - k :=
-begin
-  induction k with k hk,
-  { simp },
-  have hpk : p ^ k ∣ b := nat.pow_dvd_of_le_of_pow_dvd k.le_succ dvd,
-  rw [nat.sub_succ', ←hk hpk, pow_succ', ←nat.div_div_eq_div_mul],
-  refine padic_val_nat.div _,
-  rw ←pow_one p,
-  apply nat.pow_dvd_of_le_of_pow_dvd,
-  { refl },
-  rwa [pow_one, nat.dvd_div_iff hpk, ←pow_succ']
-end
 
 /-- A version of `padic_val_rat.pow` for `padic_val_nat` -/
 protected lemma pow (p q n : ℕ) [fact p.prime] (hq : q ≠ 0) :
@@ -393,6 +387,16 @@ begin
   apply @nat.cast_injective ℤ,
   push_cast,
   exact padic_val_rat.pow _ (cast_ne_zero.mpr hq),
+end
+
+@[simp] protected lemma self_pow (p : ℕ) {k : ℕ} [h : fact p.prime] : padic_val_nat p (p ^ k) = k :=
+by rw [padic_val_nat.pow p _ _ h.1.ne_zero, padic_val_nat_self, mul_one]
+
+protected lemma div_pow {p : ℕ} [p_prime : fact p.prime] {b k : ℕ} (dvd : p ^ k ∣ b) :
+  (padic_val_nat p (b / p ^ k)) = (padic_val_nat p b) - k :=
+begin
+  convert padic_val_nat.div_of_dvd p dvd,
+  rw padic_val_nat.self_pow
 end
 
 end padic_val_nat
@@ -490,9 +494,6 @@ begin
     { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },
     rwa nat.coprime_primes hp.1 hq.1, },
 end
-
-@[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
-by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
 
 @[simp] lemma padic_val_nat_prime_pow (p n : ℕ) [fact p.prime] : padic_val_nat p (p ^ n) = n :=
 by rw [padic_val_nat.pow p _ _ (fact.out p.prime).ne_zero, padic_val_nat_self p, mul_one]

@@ -23,6 +23,8 @@ namespace ordinal
 section
 
 /-- Bounded least upper bound. -/
+-- Todo(Vi): this should be moved into `ordinal_arithmetic.lean`. We could complement it with a
+-- `lub` function.
 noncomputable def blub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 bsup o (λ a ha, (f a ha).succ)
 
@@ -34,7 +36,7 @@ blub_le_iff_lt.1 (le_refl _) _ _
 
 variables {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α ≤ β)
 
-/-- Enumerator function for an unbounded set of ordinals. For the subtype version, see `enum_ord`.
+/-- Enumerator function for an unbounded set of ordinals. For the subtype variant, see `enum_ord`.
 -/
 noncomputable def enum_ord' : ordinal.{u} → ordinal.{u} :=
 wf.fix (λ α f, omin _ (hS (blub.{u u} α f)))
@@ -115,14 +117,11 @@ begin
   { exact Swf.not_lt_min _ H this hαβ },
   by_contra' h,
   cases h with δ hδβ,
-  have : δ < γ := begin
-    by_contra' h,
-    have := le_trans (omin_mem (λ _, α ≤ _) _ : α ≤ _) (enum_ord.strict_mono.monotone h),
-    rw hδβ at this,
-    exact (not_le_of_lt hαβ) this,
-  end,
-  change enum_ord hS δ with ⟨enum_ord' hS δ, _⟩ at hδβ,
-  exact (ne_of_lt (hβr δ this)) (subtype.mk.inj hδβ)
+  refine (ne_of_lt (hβr δ _)) (subtype.mk.inj hδβ),
+  by_contra' h,
+  apply not_le_of_lt hαβ,
+  have := le_trans (omin_mem (λ _, α ≤ _) _ : α ≤ _) (enum_ord.strict_mono.monotone h),
+  rwa hδβ at this,
 end
 
 noncomputable def enum_ord.order_iso : ordinal.{u} ≃o S :=
@@ -131,31 +130,37 @@ strict_mono.order_iso_of_surjective (enum_ord hS) enum_ord.strict_mono enum_ord.
 end
 end ordinal
 
+section
+variable (f : ordinal.{u} → ordinal.{u})
 
 /-- The subtype of fixed points of a function. -/
-def fixed_points (f : ordinal.{u} → ordinal.{u}) : Type (u + 1) := {x // f x = x}
+def fixed_points : Type (u + 1) := {x // f x = x}
+
+noncomputable instance : preorder (fixed_points f) := subtype.preorder _
+
+instance : partial_order (fixed_points f) := subtype.partial_order _
+
+noncomputable instance : linear_order (fixed_points f) := subtype.linear_order _
+
+end
 
 section
 variable {f : ordinal.{u} → ordinal.{u}}
 
-theorem le_of_strict_mono (hf : strict_mono f) : ∀ α, α ≤ f α :=
-begin
-  by_contra,
-  push_neg at h,
-  have h' := ordinal.omin_mem _ h,
-  exact not_lt_of_ge (@ordinal.omin_le _ h (f _) (hf h')) h',
-end
+/-- An explicit fixed point for a normal function. For the subtype variant, see `fix_point`. -/
+noncomputable def fix_point' (hf : ordinal.is_normal f) (α : ordinal.{u}) : ordinal.{u} :=
+ordinal.sup.{0 u} (λ n, f^[n] α)
 
 /-- An explicit fixed point for a normal function. Built as `sup {f^[n] α}`. This is guaranteed to
 be at least `α`. -/
-noncomputable def fixed_point (hf : ordinal.is_normal f) (α : ordinal.{u}) : fixed_points f :=
-begin
+noncomputable def fix_point (hf : ordinal.is_normal f) (α : ordinal.{u}) : fixed_points f :=
+⟨ fix_point' hf α, begin
   let g := λ n, f^[n] α,
   have H : ∀ {n}, g (n + 1) = (f ∘ g) n := λ n, function.iterate_succ_apply' f n α,
   have H' : ∀ {n}, g (n + 1) ≤ ordinal.sup.{0 u} (f ∘ g) := λ _, by {rw H, apply ordinal.le_sup},
-  use ordinal.sup.{0 u} g,
   suffices : ordinal.sup.{0 u} (f ∘ g) = ordinal.sup.{0 u} g,
-  { rwa @ordinal.is_normal.sup.{0 u u} f hf ℕ g (nonempty.intro 0) },
+  { unfold fix_point',
+    rwa @ordinal.is_normal.sup.{0 u u} f hf ℕ g (nonempty.intro 0) },
   apply has_le.le.antisymm;
   rw ordinal.sup_le;
   intro n,
@@ -166,14 +171,38 @@ begin
     { exact le_trans this H' },
     change g 0 ≤ g 1 with (f^[0] α) ≤ (f^[1] α),
     rw [function.iterate_one f, function.iterate_zero_apply f α],
-    exact le_of_strict_mono hf.strict_mono _ },
+    exact hf.strict_mono.id_le_of_wo ordinal.wf _ },
   exact H'
-end
+end ⟩
 
-theorem fixed_point.nonempty (h : ordinal.is_normal f) : nonempty (fixed_points f) :=
-⟨fixed_point h 0⟩
+variable (hf : ordinal.is_normal f)
 
-def fix_point_enum (hf : ordinal.is_normal f) (α : ordinal.{u}) : fixed_points f := sorry
---ordinal.limit_rec_on α
+theorem self_le_fix_point (α : ordinal.{u}) : α ≤ (fix_point hf α).val :=
+ordinal.le_sup _ 0
+
+/-- Veblen's fixed point lemma: every normal function has arbitrarily large fixed points. -/
+theorem fix_point_lemma : ∀ α, ∃ β, f β = β ∧ α ≤ β :=
+λ α, ⟨_, (fix_point hf α).prop, self_le_fix_point hf α⟩
+
+theorem fix_point.nonempty : nonempty (fixed_points f) :=
+⟨fix_point hf 0⟩
+
+/-- The fixed point enumerator of a normal function. -/
+noncomputable def fix_point_enum : ordinal.{u} → fixed_points f :=
+ordinal.enum_ord (λ α, ⟨_, (fix_point hf α).prop, self_le_fix_point hf α⟩)
+
+theorem fix_point_enum.strict_mono {hf : ordinal.is_normal f} : strict_mono (fix_point_enum hf) :=
+ordinal.enum_ord.strict_mono
+
+theorem fix_point_enum.surjective {hf : ordinal.is_normal f} :
+  function.surjective (fix_point_enum hf) :=
+ordinal.enum_ord.surjective
+
+noncomputable def fix_point_enum.order_iso {hf : ordinal.is_normal f} :
+  ordinal.{u} ≃o (fixed_points f) :=
+fix_point_enum.strict_mono.order_iso_of_surjective (fix_point_enum hf) fix_point_enum.surjective
+
+/-- The fixed point enumerator is normal. This is what allows us to build Veblen's function. -/
+theorem fix_point_enum.is_normal : ordinal.is_normal (fix_point' hf) := sorry
 
 end

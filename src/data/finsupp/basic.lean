@@ -1073,11 +1073,18 @@ lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rf
 @[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
-@[simp] lemma support_neg [add_group G] {f : α →₀ G} : support (-f) = support f :=
+@[simp] lemma support_neg [add_group G] (f : α →₀ G) : support (-f) = support f :=
 finset.subset.antisymm
   support_map_range
   (calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
      ... ⊆ support (- f) : support_map_range)
+
+lemma support_sub [decidable_eq α] [add_group G] {f g : α →₀ G} :
+  support (f - g) ⊆ support f ∪ support g :=
+begin
+  rw [sub_eq_add_neg, ←support_neg g],
+  exact support_add,
+end
 
 lemma erase_eq_sub_single [add_group G] (f : α →₀ G) (a : α) :
   f.erase a = f - single a (f a) :=

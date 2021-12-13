@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import algebra.algebra.tower
 import linear_algebra.prod
+import linear_algebra.finsupp
 
 /-!
 # Adjoining elements to form subalgebras
@@ -37,6 +38,9 @@ algebra.gc.le_u_l s
 theorem adjoin_le {S : subalgebra R A} (H : s ⊆ S) : adjoin R s ≤ S :=
 algebra.gc.l_le H
 
+lemma adjoin_eq_Inf : adjoin R s = Inf {p | s ⊆ p} :=
+le_antisymm (le_Inf (λ _ h, adjoin_le h)) (Inf_le subset_adjoin)
+
 theorem adjoin_le_iff {S : subalgebra R A} : adjoin R s ≤ S ↔ s ⊆ S:=
 algebra.gc _ _
 
@@ -48,6 +52,14 @@ le_antisymm (adjoin_le h₁) h₂
 
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
+
+lemma adjoin_Union {α : Type*} (s : α → set A) :
+  adjoin R (set.Union s) = ⨆ (i : α), adjoin R (s i) :=
+(@algebra.gc R A _ _ _).l_supr
+
+lemma adjoin_attach_bUnion [decidable_eq A] {α : Type*} {s : finset α} (f : s → finset A) :
+  adjoin R (s.attach.bUnion f : set A) = ⨆ x, adjoin R (f x) :=
+by simpa [adjoin_Union]
 
 @[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s)
   (Hs : ∀ x ∈ s, p x)
@@ -207,6 +219,26 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
+end
+
+lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) {x : A} (hx : x ∈ adjoin R s) :
+  ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ adjoin R (r • s) :=
+begin
+  change x ∈ (adjoin R s).to_submodule at hx,
+  rw [adjoin_eq_span, finsupp.mem_span_iff_total] at hx,
+  rcases hx with ⟨l, rfl : l.sum (λ (i : submonoid.closure s) (c : R), c • ↑i) = x⟩,
+  choose n₁ n₂ using (λ x : submonoid.closure s, submonoid.pow_smul_mem_closure_smul r s x.prop),
+  use l.support.sup n₁,
+  intros n hn,
+  rw finsupp.smul_sum,
+  refine (adjoin R (r • s)).to_submodule.sum_mem _,
+  intros a ha,
+  have : n ≥ n₁ a := le_trans (finset.le_sup ha) hn,
+  dsimp only,
+  rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul, smul_smul _ (l a), mul_comm,
+    ← smul_smul, adjoin_eq_span],
+  refine submodule.smul_mem _ _ _,
+  exact submodule.smul_mem _ _ (submodule.subset_span (n₂ a))
 end
 
 end comm_semiring

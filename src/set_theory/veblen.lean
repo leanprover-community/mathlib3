@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Violeta Hernández Palacios
 -/
 import set_theory.ordinal_arithmetic
+import tactic.by_contra
 
 /-!
 # Veblen's functions
@@ -13,8 +14,7 @@ function.
 
 ## Main definitions
 
-- `enum_ord`: enumerator function for an unbounded set of ordinals
-
+- `enum_ord.order_iso`: an order isomorphism between the ordinals and an unbounded subset
 -/
 
 universes u v
@@ -88,21 +88,45 @@ theorem enum_ord'_lt (α) : ∀ γ, γ < α → enum_ord' hS γ < enum_ord' hS �
 /-- Enumerator function for an unbounded set of ordinals. -/
 noncomputable def enum_ord : ordinal.{u} → S := λ α, ⟨_, enum_ord'_mem hS α⟩
 
-theorem enum_ord.strict_mono : strict_mono (enum_ord hS) :=
+theorem enum_ord.strict_mono {hS : ∀ α, ∃ β, S β ∧ α ≤ β} : strict_mono (enum_ord hS) :=
 enum_ord'.strict_mono
 
-theorem aux (α) : α ≤ enum_ord hS α :=
-(enum_ord'.strict_mono).id_le_of_wo
+theorem aux (α) : α ≤ enum_ord hS α := (enum_ord'.strict_mono).id_le_of_wo wf _
 
-theorem enum_ord.surjective : function.surjective (enum_ord hS) :=
+theorem enum_ord.surjective {hS : ∀ α, ∃ β, S β ∧ α ≤ β} : function.surjective (enum_ord hS) :=
 begin
-  intro α,
   have Swf : well_founded ((<) : S → S → Prop) := inv_image.wf _ wf,
+  by_contra' H,
+  let α := Swf.min _ H,
   let γ : ordinal.{u} := omin (λ β, α ≤ enum_ord hS β) ⟨_, aux hS α⟩,
-  use γ,
-  have : enum_ord hS γ = α := sorry,
-  exact H γ this,
+  suffices : enum_ord hS γ = α,
+  { exact Swf.min_mem _ H γ this },
+  apply subtype.eq,
+  change (enum_ord hS γ).val with enum_ord' hS γ,
+  rw enum_ord'_def,
+  apply le_antisymm,
+  { refine omin_le ⟨α.prop, λ β hβ, _⟩,
+    by_contra' h,
+    exact not_lt_of_le (omin_le h : γ ≤ β) hβ },
+  rw le_omin,
+  rintros β ⟨hβl, hβr⟩,
+  by_contra' hαβ,
+  suffices : ∀ δ, enum_ord hS δ ≠ ⟨β, hβl⟩,
+  { exact Swf.not_lt_min _ H this hαβ },
+  by_contra' h,
+  cases h with δ hδβ,
+  have : δ < γ := begin
+    by_contra' h,
+    have := le_trans (omin_mem (λ _, α ≤ _) _ : α ≤ _) (enum_ord.strict_mono.monotone h),
+    rw hδβ at this,
+    exact (not_le_of_lt hαβ) this,
+  end,
+  change enum_ord hS δ with ⟨enum_ord' hS δ, _⟩ at hδβ,
+  exact (ne_of_lt (hβr δ this)) (subtype.mk.inj hδβ)
 end
+
+noncomputable def enum_ord.order_iso : ordinal.{u} ≃o S :=
+strict_mono.order_iso_of_surjective (enum_ord hS) enum_ord.strict_mono enum_ord.surjective
 
 end
 end ordinal
@@ -146,7 +170,10 @@ begin
   exact H'
 end
 
-instance (hf : ordinal.is_normal f) : nonempty (fixed_points f) := ⟨fixed_point hf 0⟩
+theorem fixed_point.nonempty (h : ordinal.is_normal f) : nonempty (fixed_points f) :=
+⟨fixed_point h 0⟩
 
-def fix_point_enum (hf : normal f) (α : ordinal.{u}) : fixed_points f := sorry
+def fix_point_enum (hf : ordinal.is_normal f) (α : ordinal.{u}) : fixed_points f := sorry
 --ordinal.limit_rec_on α
+
+end

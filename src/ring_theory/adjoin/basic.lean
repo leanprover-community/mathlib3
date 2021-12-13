@@ -228,7 +228,7 @@ begin
 end
 
 lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) {x : A} (hx : x ∈ adjoin R s) :
-    ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ adjoin R (r • s) :=
+  ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ adjoin R (r • s) :=
 begin
   change x ∈ (adjoin R s).to_submodule at hx,
   rw [adjoin_eq_span, finsupp.mem_span_iff_total] at hx,

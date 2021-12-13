@@ -159,7 +159,7 @@ span_le.2 $ set.bUnion_subset $ λ r hrS, set.bUnion_subset $ λ n hnT, set.sing
 smul_mem_smul (subset_span hrS) (subset_span hnT)
 
 lemma union_eq_smul_set (r : R) (T : set M) :
-    (⋃ (t : M) (x : t ∈ T), {r • t}) = r • T := by tidy
+  (⋃ (t : M) (x : t ∈ T), {r • t}) = r • T := by tidy
 
 lemma ideal_span_singleton_smul (r : R) (N : submodule R M) :
   (ideal.span {r} : ideal R) • N = r • N :=

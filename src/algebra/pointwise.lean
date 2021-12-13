@@ -861,8 +861,8 @@ le_antisymm
   (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
 lemma pow_smul_mem_closure_smul {N : Type*} [comm_monoid N] [mul_action M N]
-  [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s)  :
-    ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=
+  [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
+  ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=
 begin
   apply @closure_induction N _ s
     (λ (x : N), ∃ n : ℕ, r ^ n • x ∈ closure (r • s)) _ hx,

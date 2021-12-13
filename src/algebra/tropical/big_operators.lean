@@ -155,3 +155,19 @@ as it is simply not true on conditionally complete lattices! -/
 lemma finset.untrop_sum [conditionally_complete_linear_order R] (s : finset S)
   (f : S → tropical (with_top R)) : untrop (∑ i in s, f i) = ⨅ i : s, untrop (f i) :=
 by simpa [←untrop_sum] using sum_attach.symm
+
+@[simp] lemma list.trop_sum_eq_zero_iff [linear_order R] [order_top R] {l : list (tropical R)} :
+  l.sum = 0 ↔ l = [] ∨ ∀ x : tropical R, x ∈ l → x = 0 :=
+begin
+  induction l with hd tl IH,
+  { simp },
+  { simp [IH] {contextual := tt} }
+end
+
+@[simp] lemma multiset.trop_sum_eq_zero_iff [linear_order R] [order_top R]
+  {s : multiset (tropical R)} : s.sum = 0 ↔ s = 0 ∨ ∀ x : tropical R, x ∈ s → x = 0 :=
+quotient.induction_on s (by simp [multiset.coe_eq_zero])
+
+@[simp] lemma finset.trop_sum_eq_zero_iff [linear_order R] [order_top R] (s : finset S)
+  (f : S → tropical R) : ∑ i in s, f i = 0 ↔ ∀ x ∈ s, f x = 0 :=
+by { cases s, simp {contextual := tt} }

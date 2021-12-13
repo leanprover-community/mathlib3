@@ -203,7 +203,10 @@ lemma add_eq_iff {x y z : tropical R} :
   x + y = z ↔ x = z ∧ x ≤ y ∨ y = z ∧ y ≤ x :=
 by { rw [trop_add_def, trop_eq_iff_eq_untrop], simp [min_eq_iff] }
 
-@[simp] lemma add_eq_zero_iff {a b : tropical (with_top R)} :
+lemma inf_eq_add (x y : tropical R) : x ⊓ y = x + y :=
+by simpa [eq_comm, add_eq_iff] using le_total x y
+
+@[simp] lemma add_eq_zero_iff [order_top R] {a b : tropical R} :
   a + b = 0 ↔ a = 0 ∧ b = 0 :=
 begin
   rw add_eq_iff,

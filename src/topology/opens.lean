@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 import topology.bases
 import topology.homeomorph
+import topology.continuous_function.basic
 /-!
 # Open sets
 
@@ -16,7 +17,6 @@ We define the subtype of open sets in a topological space.
 
 - `opens α` is the type of open subsets of a topological space `α`.
 - `open_nhds_of x` is the type of open subsets of a topological space `α` containing `x : α`.
--
 -/
 
 open filter set
@@ -61,8 +61,10 @@ def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
 lemma gc : galois_connection (coe : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
 
+open order_dual (of_dual to_dual)
+
 /-- The galois insertion between sets and opens, but ordered by reverse inclusion. -/
-def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ interior subtype.val :=
+def gi : galois_insertion (to_dual ∘ @interior α _ ∘ of_dual) (to_dual ∘ subtype.val ∘ of_dual) :=
 { choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
   gc := gc.dual,
   le_l_u := λ _, interior_subset,
@@ -170,33 +172,39 @@ begin
 end
 
 /-- The preimage of an open set, as an open set. -/
-def comap {f : α → β} (hf : continuous f) (V : opens β) : opens α :=
-⟨f ⁻¹' V.1, V.2.preimage hf⟩
+def comap (f : C(α, β)) : opens β →ₘ opens α :=
+{ to_fun := λ V, ⟨f ⁻¹' V, V.2.preimage f.continuous⟩,
+  monotone' := λ V₁ V₂ hle, monotone_preimage hle }
 
-@[simp] lemma comap_id (U : opens α) : U.comap continuous_id = U := by { ext, refl }
+@[simp] lemma comap_id : comap (continuous_map.id : C(α, α)) = order_hom.id :=
+by { ext, refl }
 
-lemma comap_mono {f : α → β} (hf : continuous f) {V W : opens β} (hVW : V ⊆ W) :
-  V.comap hf ⊆ W.comap hf :=
-λ _ h, hVW h
+lemma comap_mono (f : C(α, β)) {V W : opens β} (hVW : V ⊆ W) :
+  comap f V ⊆ comap f W :=
+(comap f).monotone hVW
 
-@[simp] lemma coe_comap {f : α → β} (hf : continuous f) (U : opens β) :
-  ↑(U.comap hf) = f ⁻¹' U := rfl
+@[simp] lemma coe_comap (f : C(α, β)) (U : opens β) : ↑(comap f U) = f ⁻¹' U := rfl
 
-@[simp] lemma comap_val {f : α → β} (hf : continuous f) (U : opens β) :
-  (U.comap hf).1 = f ⁻¹' U := rfl
+@[simp] lemma comap_val (f : C(α, β)) (U : opens β) : (comap f U).1 = f ⁻¹' U := rfl
 
-protected lemma comap_comp {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f)
-  (U : opens γ) : U.comap (hg.comp hf) = (U.comap hg).comap hf :=
-by { ext1, simp only [coe_comap, preimage_preimage] }
+protected lemma comap_comp (g : C(β, γ)) (f : C(α, β)) :
+  comap (g.comp f) = (comap f).comp (comap g) :=
+rfl
+
+protected lemma comap_comap (g : C(β, γ)) (f : C(α, β)) (U : opens γ) :
+  comap f (comap g U) = comap (g.comp f) U := rfl
 
 /-- A homeomorphism induces an equivalence on open sets, by taking comaps. -/
 @[simp] protected def equiv (f : α ≃ₜ β) : opens α ≃ opens β :=
-{ to_fun := opens.comap f.symm.continuous,
-  inv_fun := opens.comap f.continuous,
-  left_inv := by { intro U, ext1,
-    simp only [coe_comap, ← preimage_comp, f.symm_comp_self, preimage_id] },
-  right_inv := by { intro U, ext1,
-    simp only [coe_comap, ← preimage_comp, f.self_comp_symm, preimage_id] } }
+{ to_fun := opens.comap f.symm.to_continuous_map,
+  inv_fun := opens.comap f.to_continuous_map,
+  left_inv := by { intro U, ext1, exact f.to_equiv.preimage_symm_preimage _ },
+  right_inv := by { intro U, ext1, exact f.to_equiv.symm_preimage_preimage _ } }
+
+/-- A homeomorphism induces an order isomorphism on open sets, by taking comaps. -/
+@[simp] protected def order_iso (f : α ≃ₜ β) : opens α ≃o opens β :=
+{ to_equiv := opens.equiv f,
+  map_rel_iff' := λ U V, f.symm.surjective.preimage_subset_preimage_iff }
 
 end opens
 

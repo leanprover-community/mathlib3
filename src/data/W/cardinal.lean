@@ -34,17 +34,16 @@ open cardinal
 
 lemma cardinal_mk_eq_sum : #(W_type β) = sum (λ a : α, #(W_type β) ^ #(β a)) :=
 begin
-  simp only [cardinal.lift_mk, cardinal.power_def, cardinal.sum_mk],
-  exact cardinal.eq.2 ⟨equiv_sigma β⟩
+  simp only [cardinal.power_def, ← cardinal.mk_sigma],
+  exact mk_congr (equiv_sigma β)
 end
 
 /-- `#(W_type β)` is the least cardinal `κ` such that `sum (λ a : α, κ ^ #(β a)) ≤ κ` -/
 lemma cardinal_mk_le_of_le {κ : cardinal.{u}} (hκ : sum (λ a : α, κ ^ #(β a)) ≤ κ) :
   #(W_type β) ≤ κ :=
 begin
-  conv_rhs { rw ← cardinal.mk_out κ},
-  rw [← cardinal.mk_out κ] at hκ,
-  simp only [cardinal.power_def, cardinal.sum_mk, cardinal.le_def] at hκ,
+  induction κ using cardinal.induction_on with γ,
+  simp only [cardinal.power_def, ← cardinal.mk_sigma, cardinal.le_def] at hκ,
   cases hκ,
   exact cardinal.mk_le_of_injective (elim_injective _ hκ.1 hκ.2)
 end
@@ -55,7 +54,7 @@ lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : #(W_type β) 
 (is_empty_or_nonempty α).elim
   (begin
     introI h,
-    rw [@cardinal.eq_zero_of_is_empty (W_type β)],
+    rw [cardinal.mk_eq_zero (W_type β)],
     exact zero_le _
   end) $
 λ hn,

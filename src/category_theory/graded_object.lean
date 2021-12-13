@@ -3,10 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.shift
-import category_theory.concrete_category
-import category_theory.pi.basic
 import algebra.group.basic
+import category_theory.pi.basic
+import category_theory.shift
 
 /-!
 # The category of graded objects
@@ -163,7 +162,7 @@ instance : faithful (total β C) :=
   begin
     classical,
     ext i,
-    replace w := sigma.ι (λ i : ulift β, X i.down) ⟨i⟩ ≫= w,
+    replace w := sigma.ι (λ i : ulift.{v} β, X i.down) ⟨i⟩ ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
     exact mono.right_cancellation _ _ w,
   end }

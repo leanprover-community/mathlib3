@@ -3,8 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import tactic.basic
 import logic.is_empty
+import tactic.basic
+import logic.relator
 
 /-!
 # Option of a type

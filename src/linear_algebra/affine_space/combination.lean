@@ -88,8 +88,8 @@ lemma weighted_vsub_of_point_eq_of_sum_eq_zero (w : ι → k) (p : ι → P) (h 
 begin
   apply eq_of_sub_eq_zero,
   rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←sum_sub_distrib],
-  conv_lhs {
-    congr,
+  conv_lhs
+  { congr,
     skip,
     funext,
     rw [←smul_sub, vsub_sub_vsub_cancel_left] },
@@ -105,8 +105,8 @@ begin
   erw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←@vsub_eq_zero_iff_eq V,
        vadd_vsub_assoc, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, add_comm, add_sub_assoc,
        ←sum_sub_distrib],
-  conv_lhs {
-    congr,
+  conv_lhs
+  { congr,
     skip,
     congr,
     skip,
@@ -682,7 +682,8 @@ end
 variables {k}
 
 /-- A point in the `affine_span` of an indexed family is an
-`affine_combination` with sum of weights 1. -/
+`affine_combination` with sum of weights 1. See also
+`eq_affine_combination_of_mem_affine_span_of_fintype`. -/
 lemma eq_affine_combination_of_mem_affine_span {p1 : P} {p : ι → P}
     (h : p1 ∈ affine_span k (set.range p)) :
   ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination p w :=
@@ -714,6 +715,18 @@ begin
   split,
   { simp [pi.add_apply, finset.sum_add_distrib, hw0, h'] },
   { rw [add_comm, ←finset.weighted_vsub_vadd_affine_combination, hw0s, hs', vsub_vadd] }
+end
+
+lemma eq_affine_combination_of_mem_affine_span_of_fintype [fintype ι] {p1 : P} {p : ι → P}
+  (h : p1 ∈ affine_span k (set.range p)) :
+  ∃ (w : ι → k) (hw : ∑ i, w i = 1), p1 = finset.univ.affine_combination p w :=
+begin
+  obtain ⟨s, w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span h,
+  refine ⟨(s : set ι).indicator w, _, finset.affine_combination_indicator_subset w p s.subset_univ⟩,
+  simp only [finset.mem_coe, set.indicator_apply, ← hw],
+  convert fintype.sum_extend_by_zero s w,
+  ext i,
+  congr,
 end
 
 variables (k V)

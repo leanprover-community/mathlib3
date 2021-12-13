@@ -230,6 +230,7 @@ if uniform_continuous f then
 else
   λ x, f (classical.inhabited_of_nonempty $ nonempty_Cauchy_iff.1 ⟨x⟩).default
 
+section separated_space
 variables [separated_space β]
 
 lemma extend_pure_cauchy {f : α → β} (hf : uniform_continuous f) (a : α) :
@@ -238,6 +239,8 @@ begin
   rw [extend, if_pos hf],
   exact uniformly_extend_of_ind uniform_inducing_pure_cauchy dense_range_pure_cauchy hf _
 end
+
+end separated_space
 
 variables [_root_.complete_space β]
 
@@ -391,6 +394,9 @@ lemma uniform_embedding_coe [separated_space α] : uniform_embedding  (coe : α 
 { comap_uniformity := comap_coe_eq_uniformity α,
   inj := separated_pure_cauchy_injective }
 
+lemma coe_injective [separated_space α] : function.injective (coe : α → completion α) :=
+uniform_embedding.inj (uniform_embedding_coe _)
+
 variable {α}
 
 lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
@@ -450,11 +456,7 @@ returns an arbitrary constant value if `f` is not uniformly continuous -/
 protected def extension (f : α → β) : completion α → β :=
 cpkg.extend f
 
-variables [separated_space β]
-
-@[simp]lemma extension_coe (hf : uniform_continuous f) (a : α) :
-  (completion.extension f) a = f a :=
-cpkg.extend_coe hf a
+section complete_space
 
 variables [complete_space β]
 
@@ -463,6 +465,14 @@ cpkg.uniform_continuous_extend
 
 lemma continuous_extension : continuous (completion.extension f) :=
 cpkg.continuous_extend
+
+end complete_space
+
+@[simp] lemma extension_coe [separated_space β] (hf : uniform_continuous f) (a : α) :
+  (completion.extension f) a = f a :=
+cpkg.extend_coe hf a
+
+variables [separated_space β] [complete_space β]
 
 lemma extension_unique (hf : uniform_continuous f) {g : completion α → β}
   (hg : uniform_continuous g) (h : ∀ a : α, f a = g (a : completion α)) :
@@ -551,11 +561,14 @@ open function
 protected def extension₂ (f : α → β → γ) : completion α → completion β → γ :=
 cpkg.extend₂ cpkg f
 
+section separated_space
 variables [separated_space γ] {f}
 
 @[simp] lemma extension₂_coe_coe (hf : uniform_continuous₂ f) (a : α) (b : β) :
   completion.extension₂ f a b = f a b :=
 cpkg.extension₂_coe_coe cpkg hf a b
+
+end separated_space
 
 variables [complete_space γ] (f)
 

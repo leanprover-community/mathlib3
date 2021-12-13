@@ -30,6 +30,14 @@ open set
 def antilipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀ x y, edist x y ≤ K * edist (f x) (f y)
 
+lemma antilipschitz_with.edist_lt_top [pseudo_emetric_space α] [pseudo_metric_space β] {K : ℝ≥0}
+  {f : α → β} (h : antilipschitz_with K f) (x y : α) : edist x y < ⊤ :=
+(h x y).trans_lt $ ennreal.mul_lt_top ennreal.coe_ne_top (edist_ne_top _ _)
+
+lemma antilipschitz_with.edist_ne_top [pseudo_emetric_space α] [pseudo_metric_space β] {K : ℝ≥0}
+  {f : α → β} (h : antilipschitz_with K f) (x y : α) : edist x y ≠ ⊤ :=
+(h.edist_lt_top x y).ne
+
 section metric
 
 variables [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0} {f : α → β}

@@ -5,6 +5,7 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.operations
 import data.set.Union_lift
+import ring_theory.subring.pointwise
 
 /-!
 # Subalgebras over Commutative Semiring
@@ -56,6 +57,12 @@ protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra
   mul_mem' := hs.symm ▸ S.mul_mem',
   algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
 
+@[simp] lemma coe_copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) :
+  (S.copy s hs : set A) = s := rfl
+
+lemma copy_eq (S : subalgebra R A) (s : set A) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 variables (S : subalgebra R A)
 
 theorem algebra_map_mem (r : R) : algebra_map R A r ∈ S :=
@@ -99,10 +106,10 @@ by simpa only [sub_eq_add_neg] using S.add_mem hx (S.neg_mem hy)
 theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n • x ∈ S :=
 S.to_subsemiring.nsmul_mem hx n
 
-theorem gsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
+theorem zsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : ∀ (n : ℤ), n • x ∈ S
-| (n : ℕ) := by { rw [gsmul_coe_nat], exact S.nsmul_mem hx n }
-| -[1+ n] := by { rw [gsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
+| (n : ℕ) := by { rw [coe_nat_zsmul], exact S.nsmul_mem hx n }
+| -[1+ n] := by { rw [zsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
 
 theorem coe_nat_mem (n : ℕ) : (n : A) ∈ S :=
 S.to_subsemiring.coe_nat_mem n
@@ -341,6 +348,10 @@ lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
+@[simp] lemma coe_map (S : subalgebra R A) (f : A →ₐ[R] B) :
+  (S.map f : set B) = f '' S :=
+rfl
+
 /-- Preimage of a subalgebra under an algebra homomorphism. -/
 def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
 { algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
@@ -351,21 +362,24 @@ theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
   map S f ≤ U ↔ S ≤ comap' U f :=
 set.image_subset_iff
 
+lemma gc_map_comap (f : A →ₐ[R] B) : galois_connection (λ S, map S f) (λ S, comap' S f) :=
+λ S U, map_le
+
 @[simp] lemma mem_comap (S : subalgebra R B) (f : A →ₐ[R] B) (x : A) :
   x ∈ S.comap' f ↔ f x ∈ S :=
 iff.rfl
 
 @[simp, norm_cast] lemma coe_comap (S : subalgebra R B) (f : A →ₐ[R] B) :
   (S.comap' f : set A) = f ⁻¹' (S : set B) :=
-by { ext, simp, }
+rfl
 
 instance no_zero_divisors {R A : Type*} [comm_ring R] [semiring A] [no_zero_divisors A]
   [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
 S.to_subsemiring.no_zero_divisors
 
-instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
-  (S : subalgebra R A) : integral_domain S :=
-subring.integral_domain S.to_subring
+instance is_domain {R A : Type*} [comm_ring R] [ring A] [is_domain A] [algebra R A]
+  (S : subalgebra R A) : is_domain S :=
+subring.is_domain S.to_subring
 
 end subalgebra
 
@@ -413,19 +427,12 @@ f.cod_restrict f.range f.mem_range_self
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := {a | ϕ a = ψ a},
-  add_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x + y) = ψ (x + y),
-    rw [alg_hom.map_add, alg_hom.map_add, hx, hy] },
-  mul_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x * y) = ψ (x * y),
-    rw [alg_hom.map_mul, alg_hom.map_mul, hx, hy] },
-  algebra_map_mem' := λ x, by
-  { change ϕ (algebra_map R A x) = ψ (algebra_map R A x),
-    rw [alg_hom.commutes, alg_hom.commutes] } }
+  add_mem' := λ x y (hx : ϕ x = ψ x) (hy : ϕ y = ψ y),
+    by rw [set.mem_set_of_eq, ϕ.map_add, ψ.map_add, hx, hy],
+  mul_mem' := λ x y (hx : ϕ x = ψ x) (hy : ϕ y = ψ y),
+    by rw [set.mem_set_of_eq, ϕ.map_mul, ψ.map_mul, hx, hy],
+  algebra_map_mem' := λ x,
+    by rw [set.mem_set_of_eq, alg_hom.commutes, alg_hom.commutes] }
 
 @[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
   x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
@@ -501,7 +508,7 @@ protected def gi : galois_insertion (adjoin R : set A → subalgebra R A) coe :=
 { choice := λ s hs, (adjoin R s).copy s $ le_antisymm (algebra.gc.le_u_l s) hs,
   gc := algebra.gc,
   le_l_u := λ S, (algebra.gc (S : set A) (adjoin R S)).1 $ le_refl _,
-  choice_eq := λ _ _, set_like.coe_injective $ by { generalize_proofs h, exact h } }
+  choice_eq := λ _ _, subalgebra.copy_eq _ _ _ }
 
 instance : complete_lattice (subalgebra R A) :=
 galois_insertion.lift_complete_lattice algebra.gi
@@ -571,19 +578,18 @@ theorem eq_top_iff {S : subalgebra R A} :
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
 @[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
-subalgebra.ext $ λ x,
-  ⟨λ ⟨y, _, hy⟩, ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨y, algebra.mem_top, hy⟩⟩
+set_like.coe_injective set.image_univ
 
 @[simp] theorem map_bot (f : A →ₐ[R] B) : subalgebra.map (⊥ : subalgebra R A) f = ⊥ :=
-eq_bot_iff.2 $ λ x ⟨y, hy, hfy⟩, let ⟨r, hr⟩ := mem_bot.1 hy in subalgebra.range_le _
-⟨r, by rwa [← f.commutes, hr]⟩
+set_like.coe_injective $
+  by simp only [← set.range_comp, (∘), algebra.coe_bot, subalgebra.coe_map, f.commutes]
 
 @[simp] theorem comap_top (f : A →ₐ[R] B) : subalgebra.comap' (⊤ : subalgebra R B) f = ⊤ :=
 eq_top_iff.2 $ λ x, mem_top
 
 /-- `alg_hom` to `⊤ : subalgebra R A`. -/
 def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
-by refine_struct { to_fun := λ x, (⟨x, mem_top⟩ : (⊤ : subalgebra R A)) }; intros; refl
+(alg_hom.id R A).cod_restrict ⊤ (λ _, mem_top)
 
 theorem surjective_algebra_map_iff :
   function.surjective (algebra_map R A) ↔ (⊤ : subalgebra R A) = ⊥ :=
@@ -898,18 +904,6 @@ instance no_zero_smul_divisors_top [no_zero_divisors A] (S : subalgebra R A) :
   have (c : A) = 0 ∨ x = 0,
   from eq_zero_or_eq_zero_of_mul_eq_zero h,
   this.imp_left (@subtype.ext_iff _ _ c 0).mpr⟩
-
-/-- If `S` is an `R`-subalgebra of `A` and `T` is an `S`-subalgebra of `A`,
-then `T` is an `R`-subalgebra of `A`. -/
-def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
-  {i : algebra R A} (S : subalgebra R A)
-  (T : subalgebra S A) : subalgebra R A :=
-{ algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
-  .. T }
-
-@[simp] lemma mem_under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
-  {i : algebra R A} {S : subalgebra R A} {T : subalgebra S A} {x : A} :
-  x ∈ S.under T ↔ x ∈ T := iff.rfl
 
 end actions
 

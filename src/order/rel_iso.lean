@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group.defs
+import data.equiv.set
 import logic.embedding
 import order.rel_classes
 
@@ -53,7 +54,7 @@ infix ` →r `:25 := rel_hom
 
 namespace rel_hom
 
-instance : has_coe_to_fun (r →r s) := ⟨λ _, α → β, λ o, o.to_fun⟩
+instance : has_coe_to_fun (r →r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
 
 initialize_simps_projections rel_hom (to_fun → apply)
 
@@ -107,19 +108,11 @@ protected theorem well_founded : ∀ (f : r →r s) (h : well_founded s), well_f
 
 lemma map_inf {α β : Type*} [semilattice_inf α] [linear_order β]
   (a : ((<) : β → β → Prop) →r ((<) : α → α → Prop)) (m n : β) : a (m ⊓ n) = a m ⊓ a n :=
-begin
-  symmetry, cases le_or_lt n m with h,
-  { rw [inf_eq_right.mpr h, inf_eq_right], exact strict_mono.monotone (λ x y, a.map_rel) h, },
-  { rw [inf_eq_left.mpr (le_of_lt h), inf_eq_left], exact le_of_lt (a.map_rel h), },
-end
+(strict_mono.monotone $ λ x y, a.map_rel).map_inf m n
 
 lemma map_sup {α β : Type*} [semilattice_sup α] [linear_order β]
   (a : ((>) : β → β → Prop) →r ((>) : α → α → Prop)) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
-begin
-  symmetry, cases le_or_lt m n with h,
-  { rw [sup_eq_right.mpr h, sup_eq_right], exact strict_mono.monotone (λ x y, a.swap.map_rel) h, },
-  { rw [sup_eq_left.mpr (le_of_lt h), sup_eq_left], exact le_of_lt (a.map_rel h), },
-end
+@rel_hom.map_inf (order_dual α) (order_dual β) _ _ _ _ _
 
 end rel_hom
 
@@ -181,7 +174,7 @@ def to_rel_hom (f : r ↪r s) : (r →r s) :=
 
 instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (r ↪r s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
+instance : has_coe_to_fun (r ↪r s) (λ _, α → β) := ⟨λ o, o.to_embedding⟩
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
 because it is a composition of multiple projections. -/
@@ -418,7 +411,7 @@ def to_rel_embedding (f : r ≃r s) : r ↪r s :=
 
 instance : has_coe (r ≃r s) (r ↪r s) := ⟨to_rel_embedding⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (r ≃r s) := ⟨λ _, α → β, λ f, f⟩
+instance : has_coe_to_fun (r ≃r s) (λ _, α → β) := ⟨λ f, f⟩
 
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 
@@ -762,23 +755,25 @@ def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p
   rel_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
 /-- An order isomorphism is also an order isomorphism between dual orders. -/
-protected def order_iso.dual [preorder α] [preorder β] (f : α ≃o β) :
+protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) :
   order_dual α ≃o order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
 
 section lattice_isos
 
-lemma order_iso.map_bot' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+lemma order_iso.map_bot' [has_le α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
   (hx : ∀ x', x ≤ x') (hy : ∀ y', y ≤ y') : f x = y :=
 by { refine le_antisymm _ (hy _), rw [← f.apply_symm_apply y, f.map_rel_iff], apply hx }
 
-lemma order_iso.map_bot [order_bot α] [order_bot β] (f : α ≃o β) : f ⊥ = ⊥ :=
+lemma order_iso.map_bot [has_le α] [partial_order β] [order_bot α] [order_bot β] (f : α ≃o β) :
+  f ⊥ = ⊥ :=
 f.map_bot' (λ _, bot_le) (λ _, bot_le)
 
-lemma order_iso.map_top' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+lemma order_iso.map_top' [has_le α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
   (hx : ∀ x', x' ≤ x) (hy : ∀ y', y' ≤ y) : f x = y :=
 f.dual.map_bot' hx hy
 
-lemma order_iso.map_top [order_top α] [order_top β] (f : α ≃o β) : f ⊤ = ⊤ :=
+lemma order_iso.map_top [has_le α] [partial_order β] [order_top α] [order_top β] (f : α ≃o β) :
+  f ⊤ = ⊤ :=
 f.dual.map_bot
 
 lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
@@ -794,6 +789,18 @@ begin
   simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
 end
 
+/-- Note that this goal could also be stated `(disjoint on f) a b` -/
+lemma disjoint.map_order_iso [semilattice_inf α] [order_bot α] [semilattice_inf β] [order_bot β]
+  {a b : α} (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
+begin
+  rw [disjoint, ←f.map_inf, ←f.map_bot],
+  exact f.monotone ha,
+end
+
+@[simp] lemma disjoint_map_order_iso_iff [semilattice_inf α] [order_bot α] [semilattice_inf β]
+  [order_bot β] {a b : α} (f : α ≃o β) : disjoint (f a) (f b) ↔ disjoint a b :=
+⟨λ h, f.symm_apply_apply a ▸ f.symm_apply_apply b ▸ h.map_order_iso f.symm, λ h, h.map_order_iso f⟩
+
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
   (f : α ↪o β) (x y : α) :
   f x ⊔ f y ≤ f (x ⊔ y) :=
@@ -804,9 +811,9 @@ lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
   f (x ⊔ y) = f x ⊔ f y :=
 f.dual.map_inf x y
 
-section bounded_lattice
+section bounded_order
 
-variables [bounded_lattice α] [bounded_lattice β] (f : α ≃o β)
+variables [lattice α] [lattice β] [bounded_order α] [bounded_order β] (f : α ≃o β)
 include f
 
 lemma order_iso.is_compl {x y : α} (h : is_compl x y) : is_compl (f x) (f y) :=
@@ -832,5 +839,5 @@ theorem order_iso.is_complemented_iff :
   is_complemented α ↔ is_complemented β :=
 ⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
 
-end bounded_lattice
+end bounded_order
 end lattice_isos

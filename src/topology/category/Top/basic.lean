@@ -3,9 +3,8 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
-import category_theory.concrete_category.unbundled_hom
+import category_theory.concrete_category.bundled_hom
 import topology.continuous_function.basic
-import topology.opens
 
 /-!
 # Category instance for topological spaces
@@ -29,7 +28,9 @@ namespace Top
 instance bundled_hom : bundled_hom @continuous_map :=
 ⟨@continuous_map.to_fun, @continuous_map.id, @continuous_map.comp, @continuous_map.coe_inj⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Top
+attribute [derive [large_category, concrete_category]] Top
+
+instance : has_coe_to_sort Top Type* := bundled.has_coe_to_sort
 
 instance topological_space_unbundled (x : Top) : topological_space x := x.str
 

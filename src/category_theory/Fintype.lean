@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Adam Topaz
 -/
 
-import data.fintype.basic
-import data.fin
 import category_theory.concrete_category.bundled
-import category_theory.concrete_category
 import category_theory.full_subcategory
 import category_theory.skeletal
+import data.fin.basic
+import data.fintype.basic
 
 /-!
 # The category of finite types.
@@ -27,10 +26,11 @@ open_locale classical
 open category_theory
 
 /-- The category of finite types. -/
-@[derive has_coe_to_sort]
 def Fintype := bundled fintype
 
 namespace Fintype
+
+instance : has_coe_to_sort Fintype Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Fintype` from the underlying type and typeclass. -/
 def of (X : Type*) [fintype X] : Fintype := bundled.of X

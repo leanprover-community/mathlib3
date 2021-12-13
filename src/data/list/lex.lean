@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.basic
+import order.rel_classes
 
 /-!
 # Lexicographic ordering of lists.
@@ -13,7 +13,11 @@ The lexicographic order on `list α` is defined by `L < M` iff
 * `(a :: L) < (b :: M)` where `a < b`, or
 * `(a :: L) < (a :: M)` where `L < M`.
 
-See also `order.lexicographic` for the lexicographic order on pairs.
+## See also
+
+The lexicographic order on a product type can be found in `order.lexicographic`.
+
+The lexicographic order on a sigma type can be found in `data.sigma.lex`.
 -/
 
 namespace list

@@ -379,7 +379,6 @@ begin
   rw padic_val_nat_self p
 end
 
-
 /-- A version of `padic_val_rat.pow` for `padic_val_nat` -/
 protected lemma pow (p q n : ℕ) [fact p.prime] (hq : q ≠ 0) :
   padic_val_nat p (q ^ n) = n * padic_val_nat p q :=

@@ -420,7 +420,8 @@ lemma lift_aux_inr_hom : lift_aux (inr_hom R M) (inr_mul_inr R) = alg_hom.id R (
 alg_hom_ext' $ lift_aux_comp_inr_hom _ _
 
 /-- A universal property of the trivial square-zero extension, providing a unique
-`triv_sq_zero_ext R M →ₐ[R] A` for every linear map `M →ₗ[R] A` whose range has no non-zero products.
+`triv_sq_zero_ext R M →ₐ[R] A` for every linear map `M →ₗ[R] A` whose range has no non-zero
+products.
 
 This isomorphism is named to match the very similar `complex.lift`. -/
 @[simps]

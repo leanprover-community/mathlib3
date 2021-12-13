@@ -3,40 +3,50 @@ import set_theory.ordinal_arithmetic
 universes u v
 
 namespace ordinal
+section
 
-/-- Enumerator function for an unbounded set of ordinals. -/
-noncomputable def enum_ord {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) :
-  ordinal.{u} → ordinal.{u} :=
-wf.fix (λ α f, omin _
---(λ β, S β ∧ (bsup.{u u} α f) < β) -- this can be inferred
-(hS (bsup.{u u} α f)))
+variables {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β)
 
-theorem enum_ord_def {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) (α) :
-  enum_ord hS α = omin (λ β, S β ∧ bsup.{u u} α (λ γ _, enum_ord hS γ) < β) (hS _) :=
+/-- Enumerator function for an unbounded set of ordinals. For the subtype version, see `enum_ord`.
+-/
+noncomputable def enum_ord' : ordinal.{u} → ordinal.{u} :=
+wf.fix (λ α f, omin _ (hS (bsup.{u u} α f)))
+
+theorem enum_ord'_def (α) :
+  enum_ord' hS α = omin (λ β, S β ∧ bsup.{u u} α (λ γ _, enum_ord' hS γ) < β) (hS _) :=
 wf.fix_eq _ _
 
-private theorem enum_ord_mem_aux {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) (α) :
-  S (enum_ord hS α) ∧ bsup.{u u} α (λ γ _, enum_ord hS γ) < (enum_ord hS α) :=
-by { rw enum_ord_def, exact omin_mem (λ _, _ ∧ _) _ }
+private theorem enum_ord'_mem_aux (α) :
+  S (enum_ord' hS α) ∧ bsup.{u u} α (λ γ _, enum_ord' hS γ) < (enum_ord' hS α) :=
+by { rw enum_ord'_def, exact omin_mem (λ _, _ ∧ _) _ }
 
-theorem enum_ord_mem {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) (α) :
-  enum_ord hS α ∈ S :=
-(enum_ord_mem_aux hS α).left
+theorem enum_ord'_mem (α) : enum_ord' hS α ∈ S := (enum_ord'_mem_aux hS α).left
 
-theorem enum_ord_mem' {S : set ordinal.{u}} (hS : ∀ α, ∃ β, S β ∧ α < β) (α) :
-  bsup.{u u} α (λ γ _, enum_ord hS γ) < enum_ord hS α :=
-(enum_ord_mem_aux hS α).right
+theorem enum_ord'_mem' (α) : bsup.{u u} α (λ γ _, enum_ord' hS γ) < enum_ord' hS α :=
+(enum_ord'_mem_aux hS α).right
 
-theorem enum_ord_inj {S : set ordinal.{u}} (hS : ∀ α : ordinal.{u}, ∃ β, S β ∧ α < β) :
-strict_mono (enum_ord hS) :=
+theorem enum_ord'.strict_mono : strict_mono (enum_ord' hS) :=
+λ _ _ h, lt_of_le_of_lt (le_bsup.{u u} _ _ h) (enum_ord'_mem' hS _)
+
+/-- Enumerator function for an unbounded set of ordinals. -/
+noncomputable def enum_ord : ordinal.{u} → S := λ α, ⟨_, enum_ord'_mem hS α⟩
+
+theorem enum_ord.strict_mono : strict_mono (enum_ord hS) :=
+enum_ord'.strict_mono hS
+
+theorem enum_ord.surjective : function.surjective (enum_ord hS) :=
 begin
-  intros α β hαβ,
-  nth_rewrite 1 enum_ord_def,
   by_contra h,
   push_neg at h,
-  have := omin_le h,
+  have Swf : well_founded ((<) : S → S → Prop) := inv_image.wf _ wf,
+  let α := Swf.min _ h,
+  have H := Swf.min_mem _ h,
+  let γ : ordinal.{u} := sorry,
+  have : enum_ord hS γ = α := sorry,
+  exact H γ this,
 end
 
+end
 end ordinal
 
 

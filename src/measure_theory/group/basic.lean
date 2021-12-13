@@ -303,7 +303,7 @@ a right-invariant measure. -/
 lemma lintegral_mul_right_eq_self (hμ : is_mul_right_invariant μ) (f : G → ℝ≥0∞) (g : G) :
   ∫⁻ x, f (x * g) ∂μ = ∫⁻ x, f x ∂μ :=
 begin
-  have : measure.map (homeomorph.mul_right g) μ = μ,
+  have : measure.map (λ g', g' * g) μ = μ,
   { rw ← map_mul_right_eq_self at hμ,
     exact hμ g },
   convert (lintegral_map_equiv f (homeomorph.mul_right g).to_measurable_equiv).symm,

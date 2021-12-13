@@ -10,17 +10,11 @@ import linear_algebra.prod
 # Adjoining elements to form subalgebras
 
 This file develops the basic theory of subalgebras of an R-algebra generated
-by a set of elements. A basic interface for `adjoin` is set up, and various
-results about finitely-generated subalgebras and submodules are proved.
-
-## Definitions
-
-* `fg (S : subalgebra R A)` : A predicate saying that the subalgebra is finitely-generated
-as an A-algebra
+by a set of elements. A basic interface for `adjoin` is set up.
 
 ## Tags
 
-adjoin, algebra, finitely-generated algebra
+adjoin, algebra
 
 -/
 
@@ -250,5 +244,13 @@ variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B
 lemma map_adjoin (φ : A →ₐ[R] B) (s : set A) :
   (adjoin R s).map φ = adjoin R (φ '' s) :=
 (adjoin_image _ _ _).symm
+
+lemma adjoin_le_equalizer (φ₁ φ₂ : A →ₐ[R] B) {s : set A} (h : s.eq_on φ₁ φ₂) :
+  adjoin R s ≤ φ₁.equalizer φ₂ :=
+adjoin_le h
+
+lemma ext_of_adjoin_eq_top {s : set A} (h : adjoin R s = ⊤) ⦃φ₁ φ₂ : A →ₐ[R] B⦄
+  (hs : s.eq_on φ₁ φ₂) : φ₁ = φ₂ :=
+ext $ λ x, adjoin_le_equalizer φ₁ φ₂ hs $ h.symm ▸ trivial
 
 end alg_hom

@@ -255,6 +255,13 @@ theorem decidable.imp_iff_right_iff [decidable a] : ((a → b) ↔ b) ↔ (a ∨
 @[simp] theorem imp_iff_right_iff : ((a → b) ↔ b) ↔ (a ∨ b) :=
 decidable.imp_iff_right_iff
 
+lemma decidable.and_or_imp [decidable a] : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
+if ha : a then by simp only [ha, true_and, true_implies_iff]
+          else by simp only [ha, false_or, false_and, false_implies_iff]
+
+@[simp] theorem and_or_imp : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
+decidable.and_or_imp
+
 /-! ### Declarations about `not` -/
 
 /-- Ex falso for negation. From `¬ a` and `a` anything follows. This is the same as `absurd` with
@@ -1048,13 +1055,6 @@ by simp [or_comm, decidable.forall_or_distrib_left]
 
 theorem forall_or_distrib_right {q : Prop} {p : α → Prop} :
   (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q := decidable.forall_or_distrib_right
-
-/-- A predicate holds everywhere on the image of a surjective functions iff
-    it holds everywhere. -/
-theorem forall_iff_forall_surj
-  {α β : Type*} {f : α → β} (h : function.surjective f) {P : β → Prop} :
-  (∀ a, P (f a)) ↔ ∀ b, P b :=
-⟨λ ha b, by cases h b with a hab; rw ←hab; exact ha a, λ hb a, hb $ f a⟩
 
 @[simp] theorem exists_prop {p q : Prop} : (∃ h : p, q) ↔ p ∧ q :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩

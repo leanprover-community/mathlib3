@@ -83,8 +83,8 @@ lemma det_comm' [is_domain A] [decidable_eq m] [decidable_eq n]
 -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
 -- This turns the problem into one for square matrices, which is easy.
 let e := index_equiv_of_inv hMM' hM'M in
-by rw [← det_minor_equiv_self e, minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
-  ← minor_mul_equiv, equiv.coe_refl, minor_id_id]
+by rw [← det_minor_equiv_self e, ← minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
+  minor_mul_equiv, equiv.coe_refl, minor_id_id]
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
 lemma det_conj [is_domain A] [decidable_eq m] [decidable_eq n]
@@ -268,6 +268,16 @@ end
 
 end linear_map
 
+/-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/
+@[simp] lemma linear_equiv.det_mul_det_symm {A : Type*} [comm_ring A] [is_domain A] [module A M]
+  (f : M ≃ₗ[A] M) : (f : M →ₗ[A] M).det * (f.symm : M →ₗ[A] M).det = 1 :=
+by simp [←linear_map.det_comp]
+
+/-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/
+@[simp] lemma linear_equiv.det_symm_mul_det {A : Type*} [comm_ring A] [is_domain A] [module A M]
+  (f : M ≃ₗ[A] M) : (f.symm : M →ₗ[A] M).det * (f : M →ₗ[A] M).det = 1 :=
+by simp [←linear_map.det_comp]
+
 -- Cannot be stated using `linear_map.det` because `f` is not an endomorphism.
 lemma linear_equiv.is_unit_det (f : M ≃ₗ[R] M') (v : basis ι R M) (v' : basis ι R M') :
   is_unit (linear_map.to_matrix v v' f).det :=
@@ -374,6 +384,14 @@ begin
   change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
   simp [alternating_map.map_perm, basis.det_self]
 end
+
+@[simp] lemma alternating_map.map_basis_eq_zero_iff (f : alternating_map R M R ι) :
+  f e = 0 ↔ f = 0 :=
+⟨λ h, by simpa [h] using f.eq_smul_basis_det e, λ h, h.symm ▸ alternating_map.zero_apply _⟩
+
+lemma alternating_map.map_basis_ne_zero_iff (f : alternating_map R M R ι) :
+  f e ≠ 0 ↔ f ≠ 0 :=
+not_congr $ f.map_basis_eq_zero_iff e
 
 variables {A : Type*} [comm_ring A] [is_domain A] [module A M]
 

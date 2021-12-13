@@ -470,11 +470,11 @@ by simpa using rpow_add_nat hx y 1
 lemma rpow_sub_one {x : ℝ} (hx : x ≠ 0) (y : ℝ) : x ^ (y - 1) = x ^ y / x :=
 by simpa using rpow_sub_nat hx y 1
 
-@[simp] lemma rpow_int_cast (x : ℝ) (n : ℤ) : x ^ (n : ℝ) = x ^ n :=
+@[simp, norm_cast] lemma rpow_int_cast (x : ℝ) (n : ℤ) : x ^ (n : ℝ) = x ^ n :=
 by simp only [rpow_def, ← complex.of_real_zpow, complex.cpow_int_cast,
   complex.of_real_int_cast, complex.of_real_re]
 
-@[simp] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
+@[simp, norm_cast] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
 rpow_int_cast x n
 
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=

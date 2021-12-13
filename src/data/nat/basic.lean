@@ -372,6 +372,12 @@ begin
   exact lt_succ_iff,
 end
 
+lemma two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
+| 0 h _ _ := (h rfl).elim
+| 1 _ h _ := (h rfl).elim
+| 2 _ _ h := (h rfl).elim
+| (n+3) _ _ _ := dec_trivial
+
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding

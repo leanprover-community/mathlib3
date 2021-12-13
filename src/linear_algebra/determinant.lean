@@ -385,6 +385,14 @@ begin
   simp [alternating_map.map_perm, basis.det_self]
 end
 
+@[simp] lemma alternating_map.map_basis_eq_zero_iff (f : alternating_map R M R ι) :
+  f e = 0 ↔ f = 0 :=
+⟨λ h, by simpa [h] using f.eq_smul_basis_det e, λ h, h.symm ▸ alternating_map.zero_apply _⟩
+
+lemma alternating_map.map_basis_ne_zero_iff (f : alternating_map R M R ι) :
+  f e ≠ 0 ↔ f ≠ 0 :=
+not_congr $ f.map_basis_eq_zero_iff e
+
 variables {A : Type*} [comm_ring A] [is_domain A] [module A M]
 
 @[simp] lemma basis.det_comp (e : basis ι A M) (f : M →ₗ[A] M) (v : ι → M) :

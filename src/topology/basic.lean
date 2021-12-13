@@ -28,7 +28,12 @@ partially defined functions.
 
 * `𝓝 x`: the filter of neighborhoods of a point `x`;
 * `𝓟 s`: the principal filter of a set `s`;
-* `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`.
+* `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`;
+* `𝓝ₗ x`: the filter `nhds_within x (set.Iic x)` of left-neighborhoods of `x`;
+* `𝓝ᵣ x`: the filter `nhds_within x (set.Ici x)` of right-neighborhoods of `x`;
+* `𝓝ₗ' x`: the filter `nhds_within x (set.Iio x)` of punctured left-neighborhoods of `x`;
+* `𝓝ᵣ' x`: the filter `nhds_within x (set.Ioi x)` of punctured right-neighborhoods of `x`;
+* `𝓝' x`: the filter `nhds_within x {x}ᶜ` of punctured neighborhoods of `x`.
 
 ## Implementation notes
 

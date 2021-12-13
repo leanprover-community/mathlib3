@@ -211,7 +211,7 @@ end direct_sum
 
 section homogeneous_element
 
-lemma set_like.is_homogeneous_zero_submodule [add_monoid ι]
+lemma set_like.is_homogeneous_zero_submodule [has_zero ι]
   [semiring S] [add_comm_monoid R] [module S R]
   (A : ι → submodule S R) : set_like.is_homogeneous A (0 : R) :=
 ⟨0, submodule.zero_mem _⟩

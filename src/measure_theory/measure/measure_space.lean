@@ -1397,7 +1397,7 @@ h.smul c
 
 end absolutely_continuous
 
-lemma absolutely_continuous_of_le_mul {μ' : measure α} {c : ℝ≥0∞} (hμ'_le : μ' ≤ c • μ) :
+lemma absolutely_continuous_of_le_smul {μ' : measure α} {c : ℝ≥0∞} (hμ'_le : μ' ≤ c • μ) :
   μ' ≪ μ :=
 (measure.absolutely_continuous_of_le hμ'_le).trans (measure.absolutely_continuous.rfl.smul c)
 

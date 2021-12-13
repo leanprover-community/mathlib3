@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.group.pi
+import algebra.ring.opposite
 import data.equiv.mul_add
 import data.finset.fold
 import data.fintype.basic
@@ -276,12 +277,12 @@ For a version expressed with subtypes, see `fintype.prod_subtype_mul_prod_subtyp
 For a version expressed with subtypes, see `fintype.sum_subtype_add_sum_subtype`. "]
 lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
   (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
-is_compl_compl.prod_mul_prod f
+is_compl.prod_mul_prod is_compl_compl f
 
 @[to_additive]
 lemma prod_compl_mul_prod [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
   (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
-is_compl_compl.symm.prod_mul_prod f
+(@is_compl_compl _ s _).symm.prod_mul_prod f
 
 @[to_additive]
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
@@ -838,7 +839,7 @@ open multiset
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
 begin
   induction s using multiset.induction_on with a s ih,
-  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
+  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, multiset.map_zero] },
   simp only [multiset.prod_cons, map_cons, to_finset_cons, ih],
   by_cases has : a ∈ s.to_finset,
   { rw [insert_eq_of_mem has, ← insert_erase has, prod_insert (not_mem_erase _ _),

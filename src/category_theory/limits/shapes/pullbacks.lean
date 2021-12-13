@@ -305,6 +305,22 @@ pullback_cone.is_limit_aux' _ $ λ t,
     exacts [hs.fac _ walking_cospan.left, hs.fac _ walking_cospan.right]
   end⟩⟩
 
+/-- If `W` is the pullback of `f, g`,
+it is also the pullback of `f ≫ i, g ≫ i` for any mono `i`. -/
+def is_limit_of_comp_mono (f : X ⟶ W) (g : Y ⟶ W) (i : W ⟶ Z) [mono i]
+  (s : pullback_cone f g) (H : is_limit s) :
+  is_limit (pullback_cone.mk _ _ (show s.fst ≫ f ≫ i = s.snd ≫ g ≫ i,
+    by rw [← category.assoc, ← category.assoc, s.condition])) :=
+begin
+  apply pullback_cone.is_limit_aux',
+  intro s,
+  rcases pullback_cone.is_limit.lift' H s.fst s.snd
+    ((cancel_mono i).mp (by simpa using s.condition)) with ⟨l, h₁, h₂⟩,
+  refine ⟨l,h₁,h₂,_⟩,
+  intros m hm₁ hm₂,
+  exact (pullback_cone.is_limit.hom_ext H (hm₁.trans h₁.symm) (hm₂.trans h₂.symm) : _)
+end
+
 end pullback_cone
 
 /-- A pushout cocone is just a cocone on the span formed by two morphisms `f : X ⟶ Y` and
@@ -467,6 +483,22 @@ pushout_cocone.is_colimit_aux' _ $ λ t,
     exacts [hs.fac _ walking_span.left, hs.fac _ walking_span.right]
   end⟩⟩
 
+/-- If `W` is the pushout of `f, g`,
+it is also the pushout of `h ≫ f, h ≫ g` for any epi `h`. -/
+def is_colimit_of_epi_comp (f : X ⟶ Y) (g : X ⟶ Z) (h : W ⟶ X) [epi h]
+  (s : pushout_cocone f g) (H : is_colimit s) :
+  is_colimit (pushout_cocone.mk _ _ (show (h ≫ f) ≫ s.inl = (h ≫ g) ≫ s.inr,
+    by rw [category.assoc, category.assoc, s.condition])) :=
+begin
+  apply pushout_cocone.is_colimit_aux',
+  intro s,
+  rcases pushout_cocone.is_colimit.desc' H s.inl s.inr
+    ((cancel_epi h).mp (by simpa using s.condition)) with ⟨l, h₁, h₂⟩,
+  refine ⟨l,h₁,h₂,_⟩,
+  intros m hm₁ hm₂,
+  exact (pushout_cocone.is_colimit.hom_ext H (hm₁.trans h₁.symm) (hm₂.trans h₂.symm) : _)
+end
+
 end pushout_cocone
 
 /-- This is a helper construction that can be useful when verifying that a category has all
@@ -503,6 +535,14 @@ def pullback_cone.of_cone
 { X := t.X,
   π := t.π ≫ (diagram_iso_cospan F).hom }
 
+/-- A diagram `walking_cospan ⥤ C` is isomorphic to some `pullback_cone.mk` after
+composing with `diagram_iso_cospan`. -/
+@[simps] def pullback_cone.iso_mk {F : walking_cospan ⥤ C} (t : cone F) :
+  (cones.postcompose (diagram_iso_cospan.{v} _).hom).obj t ≅
+    pullback_cone.mk (t.π.app walking_cospan.left) (t.π.app walking_cospan.right)
+    ((t.π.naturality inl).symm.trans (t.π.naturality inr : _)) :=
+cones.ext (iso.refl _) $ by rintro (_|(_|_)); { dsimp, simp }
+
 /-- Given `F : walking_span ⥤ C`, which is really the same as `span (F.map fst) (F.map snd)`,
     and a cocone on `F`, we get a pushout cocone on `F.map fst` and `F.map snd`. -/
 @[simps]
@@ -511,6 +551,13 @@ def pushout_cocone.of_cocone
 { X := t.X,
   ι := (diagram_iso_span F).inv ≫ t.ι }
 
+/-- A diagram `walking_span ⥤ C` is isomorphic to some `pushout_cocone.mk` after composing with
+`diagram_iso_span`. -/
+@[simps] def pushout_cocone.iso_mk {F : walking_span ⥤ C} (t : cocone F) :
+  (cocones.precompose (diagram_iso_span.{v} _).inv).obj t ≅
+    pushout_cocone.mk (t.ι.app walking_span.left) (t.ι.app walking_span.right)
+    ((t.ι.naturality fst).trans (t.ι.naturality snd).symm) :=
+cocones.ext (iso.refl _) $ by rintro (_|(_|_)); { dsimp, simp }
 /--
 `has_pullback f g` represents a particular choice of limiting cone
 for the pair of morphisms `f : X ⟶ Z` and `g : Y ⟶ Z`.
@@ -705,6 +752,78 @@ instance epi_coprod_to_pushout {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Y
   { simpa using congr_arg (λ f, coprod.inr ≫ f) h }
 end⟩
 
+instance pullback.map_is_iso {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
+  (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) [has_pullback g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
+  (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) [is_iso i₁] [is_iso i₂] [is_iso i₃] :
+  is_iso (pullback.map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
+begin
+  refine ⟨⟨pullback.map _ _ _ _ (inv i₁) (inv i₂) (inv i₃) _ _, _, _⟩⟩,
+  { rw [is_iso.comp_inv_eq, category.assoc, eq₁, is_iso.inv_hom_id_assoc] },
+  { rw [is_iso.comp_inv_eq, category.assoc, eq₂, is_iso.inv_hom_id_assoc] },
+  tidy
+end
+
+/-- If `f₁ = f₂` and `g₁ = g₂`, we may construct a canonical
+isomorphism `pullback f₁ g₁ ≅ pullback f₂ g₂` -/
+@[simps hom]
+def pullback.congr_hom {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
+  (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
+  pullback f₁ g₁ ≅ pullback f₂ g₂ :=
+as_iso $ pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂])
+
+@[simp]
+lemma pullback.congr_hom_inv {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
+  (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
+  (pullback.congr_hom h₁ h₂).inv =
+    pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂]) :=
+begin
+  apply pullback.hom_ext,
+  { erw pullback.lift_fst,
+    rw iso.inv_comp_eq,
+    erw pullback.lift_fst_assoc,
+    rw [category.comp_id, category.comp_id] },
+  { erw pullback.lift_snd,
+    rw iso.inv_comp_eq,
+    erw pullback.lift_snd_assoc,
+    rw [category.comp_id, category.comp_id] },
+end
+
+instance pushout.map_is_iso {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [has_pushout f₁ f₂]
+  (g₁ : T ⟶ Y) (g₂ : T ⟶ Z) [has_pushout g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
+  (eq₁ : f₁ ≫ i₁ = i₃ ≫ g₁) (eq₂ : f₂ ≫ i₂ = i₃ ≫ g₂) [is_iso i₁] [is_iso i₂] [is_iso i₃] :
+  is_iso (pushout.map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
+begin
+  refine ⟨⟨pushout.map _ _ _ _ (inv i₁) (inv i₂) (inv i₃) _ _, _, _⟩⟩,
+  { rw [is_iso.comp_inv_eq, category.assoc, eq₁, is_iso.inv_hom_id_assoc] },
+  { rw [is_iso.comp_inv_eq, category.assoc, eq₂, is_iso.inv_hom_id_assoc] },
+  tidy
+end
+
+/-- If `f₁ = f₂` and `g₁ = g₂`, we may construct a canonical
+isomorphism `pushout f₁ g₁ ≅ pullback f₂ g₂` -/
+@[simps hom]
+def pushout.congr_hom {X Y Z : C} {f₁ f₂ : X ⟶ Y} {g₁ g₂ : X ⟶ Z}
+  (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pushout f₁ g₁] [has_pushout f₂ g₂] :
+  pushout f₁ g₁ ≅ pushout f₂ g₂ :=
+as_iso $ pushout.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂])
+
+@[simp]
+lemma pushout.congr_hom_inv {X Y Z : C} {f₁ f₂ : X ⟶ Y} {g₁ g₂ : X ⟶ Z}
+  (h₁ : f₁ = f₂) (h₂ : g₁ = g₂) [has_pushout f₁ g₁] [has_pushout f₂ g₂] :
+  (pushout.congr_hom h₁ h₂).inv =
+    pushout.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simp [h₁]) (by simp [h₂]) :=
+begin
+  apply pushout.hom_ext,
+  { erw pushout.inl_desc,
+    rw [iso.comp_inv_eq, category.id_comp],
+    erw pushout.inl_desc,
+    rw category.id_comp },
+  { erw pushout.inr_desc,
+    rw [iso.comp_inv_eq, category.id_comp],
+    erw pushout.inr_desc,
+    rw category.id_comp }
+end
+
 section
 
 variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
@@ -738,6 +857,37 @@ lemma map_lift_pullback_comparison (f : X ⟶ Z) (g : Y ⟶ Z)
   {W : C} {h : W ⟶ X} {k : W ⟶ Y} (w : h ≫ f = k ≫ g) :
     G.map (pullback.lift _ _ w) ≫ pullback_comparison G f g =
       pullback.lift (G.map h) (G.map k) (by simp only [←G.map_comp, w]) :=
+by { ext; simp [← G.map_comp] }
+
+/--
+The comparison morphism for the pushout of `f,g`.
+This is an isomorphism iff `G` preserves the pushout of `f,g`; see
+`category_theory/limits/preserves/shapes/pullbacks.lean`
+-/
+def pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
+  pushout (G.map f) (G.map g) ⟶ G.obj (pushout f g) :=
+pushout.desc (G.map pushout.inl) (G.map pushout.inr)
+  (by simp only [←G.map_comp, pushout.condition])
+
+@[simp, reassoc]
+lemma inl_comp_pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
+  pushout.inl ≫ pushout_comparison G f g = G.map pushout.inl :=
+pushout.inl_desc _ _ _
+
+@[simp, reassoc]
+lemma inr_comp_pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
+  pushout.inr ≫ pushout_comparison G f g = G.map pushout.inr :=
+pushout.inr_desc _ _ _
+
+@[simp, reassoc]
+lemma pushout_comparison_map_desc (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_pushout (G.map f) (G.map g)]
+  {W : C} {h : Y ⟶ W} {k : Z ⟶ W} (w : f ≫ h = g ≫ k) :
+    pushout_comparison G f g ≫ G.map (pushout.desc _ _ w) =
+      pushout.desc (G.map h) (G.map k) (by simp only [←G.map_comp, w]) :=
 by { ext; simp [← G.map_comp] }
 
 end
@@ -820,6 +970,17 @@ section pullback_left_iso
 
 open walking_cospan
 
+/-- The pullback of `f, g` is also the pullback of `f ≫ i, g ≫ i` for any mono `i`. -/
+noncomputable
+def pullback_is_pullback_of_comp_mono (f : X ⟶ W) (g : Y ⟶ W) (i : W ⟶ Z)
+  [mono i] [has_pullback f g] :
+  is_limit (pullback_cone.mk pullback.fst pullback.snd _) :=
+pullback_cone.is_limit_of_comp_mono f g i _ (limit.is_limit (cospan f g))
+
+instance has_pullback_of_comp_mono (f : X ⟶ W) (g : Y ⟶ W) (i : W ⟶ Z)
+  [mono i] [has_pullback f g] : has_pullback (f ≫ i) (g ≫ i) :=
+⟨⟨⟨_,pullback_is_pullback_of_comp_mono f g i⟩⟩⟩
+
 variables (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso f]
 
 /-- If `f : X ⟶ Z` is iso, then `X ×[Z] Y ≅ Y`. This is the explicit limit cone. -/
@@ -860,6 +1021,20 @@ begin
   ext,
   { simp [← pullback.condition_assoc] },
   { simp [pullback.condition_assoc] },
+end
+
+variables (i : Z ⟶ W) [mono i]
+
+instance has_pullback_of_right_factors_mono (f : X ⟶ Z) : has_pullback i (f ≫ i) :=
+by { nth_rewrite 0 ← category.id_comp i, apply_instance }
+
+instance pullback_snd_iso_of_right_factors_mono (f : X ⟶ Z) :
+  is_iso (pullback.snd : pullback i (f ≫ i) ⟶ _) :=
+begin
+  convert (congr_arg is_iso (show _ ≫ pullback.snd = _,
+    from limit.iso_limit_cone_hom_π ⟨_,pullback_is_pullback_of_comp_mono (𝟙 _) f i⟩
+      walking_cospan.right)).mp infer_instance;
+    exact (category.id_comp _).symm
 end
 
 end pullback_left_iso
@@ -910,11 +1085,36 @@ begin
   { simp [pullback.condition_assoc] },
 end
 
+variables (i : Z ⟶ W) [mono i]
+
+instance has_pullback_of_left_factors_mono (f : X ⟶ Z) : has_pullback (f ≫ i) i :=
+by { nth_rewrite 1 ← category.id_comp i, apply_instance }
+
+instance pullback_snd_iso_of_left_factors_mono (f : X ⟶ Z) :
+  is_iso (pullback.fst : pullback (f ≫ i) i ⟶ _) :=
+begin
+  convert (congr_arg is_iso (show _ ≫ pullback.fst = _,
+    from limit.iso_limit_cone_hom_π ⟨_,pullback_is_pullback_of_comp_mono f (𝟙 _) i⟩
+      walking_cospan.left)).mp infer_instance;
+    exact (category.id_comp _).symm
+end
+
 end pullback_right_iso
 
 section pushout_left_iso
 
 open walking_span
+
+/-- The pushout of `f, g` is also the pullback of `h ≫ f, h ≫ g` for any epi `h`. -/
+noncomputable
+def pushout_is_pushout_of_epi_comp (f : X ⟶ Y) (g : X ⟶ Z) (h : W ⟶ X)
+  [epi h] [has_pushout f g] :
+  is_colimit (pushout_cocone.mk pushout.inl pushout.inr _) :=
+pushout_cocone.is_colimit_of_epi_comp f g h _ (colimit.is_colimit (span f g))
+
+instance has_pushout_of_epi_comp (f : X ⟶ Y) (g : X ⟶ Z) (h : W ⟶ X)
+  [epi h] [has_pushout f g] : has_pushout (h ≫ f) (h ≫ g) :=
+⟨⟨⟨_,pushout_is_pushout_of_epi_comp f g h⟩⟩⟩
 
 variables (f : X ⟶ Y) (g : X ⟶ Z) [is_iso f]
 
@@ -956,6 +1156,20 @@ begin
   ext,
   { simp [← pushout.condition] },
   { simp [pushout.condition_assoc] },
+end
+
+variables (h : W ⟶ X) [epi h]
+
+instance has_pushout_of_right_factors_epi (f : X ⟶ Y) : has_pushout h (h ≫ f) :=
+by { nth_rewrite 0 ← category.comp_id h, apply_instance }
+
+instance pushout_inr_iso_of_right_factors_epi (f : X ⟶ Y) :
+  is_iso (pushout.inr : _ ⟶ pushout h (h ≫ f)) :=
+begin
+  convert (congr_arg is_iso (show pushout.inr ≫ _ = _,
+    from colimit.iso_colimit_cocone_ι_inv ⟨_, pushout_is_pushout_of_epi_comp (𝟙 _) f h⟩
+      walking_span.right)).mp infer_instance;
+    exact (category.comp_id _).symm
 end
 
 end pushout_left_iso
@@ -1004,6 +1218,20 @@ begin
   ext,
   { simp [←pushout.condition] },
   { simp [pushout.condition] },
+end
+
+variables (h : W ⟶ X) [epi h]
+
+instance has_pushout_of_left_factors_epi (f : X ⟶ Y) : has_pushout (h ≫ f) h :=
+by { nth_rewrite 1 ← category.comp_id h, apply_instance }
+
+instance pushout_inl_iso_of_left_factors_epi (f : X ⟶ Y) :
+  is_iso (pushout.inl : _ ⟶ pushout (h ≫ f) h) :=
+begin
+  convert (congr_arg is_iso (show pushout.inl ≫ _ = _,
+    from colimit.iso_colimit_cocone_ι_inv ⟨_, pushout_is_pushout_of_epi_comp f (𝟙 _) h⟩
+      walking_span.left)).mp infer_instance;
+    exact (category.comp_id _).symm
 end
 
 end pushout_right_iso
@@ -1073,10 +1301,10 @@ variables (C)
 
 See https://stacks.math.columbia.edu/tag/001W.
 -/
-abbreviation has_pullbacks := has_limits_of_shape walking_cospan C
+abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
 
 /-- `has_pushouts` represents a choice of pushout for every pair of morphisms -/
-abbreviation has_pushouts := has_colimits_of_shape walking_span C
+abbreviation has_pushouts := has_colimits_of_shape walking_span.{v} C
 
 /-- If `C` has all limits of diagrams `cospan f g`, then it has all pullbacks -/
 lemma has_pullbacks_of_has_limit_cospan

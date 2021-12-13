@@ -260,6 +260,15 @@ lemma aeval_eq_sum_range' [algebra R S] {p : polynomial R} {n : ℕ} (hn : p.nat
 aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
 
+lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → polynomial R)
+  (g : S) : aeval g (∑ i in s, f i) = ∑ i in s, aeval g (f i) :=
+(polynomial.aeval g : polynomial R →ₐ[_] _).map_sum f s
+
+@[to_additive]
+lemma aeval_prod {ι : Type*} [algebra R S] (s : finset ι)
+  (f : ι → polynomial R) (g : S) : aeval g (∏ i in s, f i) = ∏ i in s, aeval g (f i) :=
+(polynomial.aeval g : polynomial R →ₐ[_] _).map_prod f s
+
 lemma is_root_of_eval₂_map_eq_zero
   (hf : function.injective f) {r : R} : eval₂ f (f r) p = 0 → p.is_root r :=
 begin
@@ -325,8 +334,6 @@ lemma dvd_term_of_dvd_eval_of_dvd_terms {z p : S} {f : polynomial S} (i : ℕ)
   (dvd_eval : p ∣ f.eval z) (dvd_terms : ∀ (j ≠ i), p ∣ f.coeff j * z ^ j) :
   p ∣ f.coeff i * z ^ i :=
 begin
-  by_cases hf : f = 0,
-  { simp [hf] },
   by_cases hi : i ∈ f.support,
   { rw [eval, eval₂, sum] at dvd_eval,
     rw [←finset.insert_erase hi, finset.sum_insert (finset.not_mem_erase _ _)] at dvd_eval,
@@ -376,7 +383,7 @@ begin
   simp [sum_range_sub', coeff_monomial],
 end
 
-theorem not_is_unit_X_sub_C [nontrivial R] {r : R} : ¬ is_unit (X - C r) :=
+theorem not_is_unit_X_sub_C [nontrivial R] (r : R) : ¬ is_unit (X - C r) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
 
 end ring

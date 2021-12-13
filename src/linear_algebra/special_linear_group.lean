@@ -99,6 +99,10 @@ section coe_lemmas
 
 variables (A B : special_linear_group n R)
 
+@[simp] lemma coe_mk (A : matrix n n R) (h : det A = 1) :
+  ↑(⟨A, h⟩ : special_linear_group n R) = A :=
+rfl
+
 @[simp] lemma coe_inv : ↑ₘ(A⁻¹) = adjugate A := rfl
 
 @[simp] lemma coe_mul : ↑ₘ(A * B) = ↑ₘA ⬝ ↑ₘB := rfl
@@ -156,6 +160,28 @@ def to_GL : special_linear_group n R →* general_linear_group R (n → R) :=
 
 lemma coe_to_GL (A : special_linear_group n R) : ↑A.to_GL = A.to_lin'.to_linear_map := rfl
 
+variables {S : Type*} [comm_ring S]
+
+/-- A ring homomorphism from `R` to `S` induces a group homomorphism from
+`special_linear_group n R` to `special_linear_group n S`. -/
+@[simps] def map (f : R →+* S) : special_linear_group n R →* special_linear_group n S :=
+{ to_fun := λ g, ⟨f.map_matrix ↑g, by { rw ← f.map_det, simp [g.2] }⟩,
+  map_one' := subtype.ext $ f.map_matrix.map_one,
+  map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul x y }
+
+section cast
+
+/-- Coercion of SL `n` `ℤ` to SL `n` `R` for a commutative ring `R`. -/
+instance : has_coe (special_linear_group n ℤ) (special_linear_group n R) :=
+⟨λ x, map (int.cast_ring_hom R) x⟩
+
+@[simp] lemma coe_matrix_coe (g : special_linear_group n ℤ) :
+  ↑(g : special_linear_group n R)
+  = (↑g : matrix n n ℤ).map (int.cast_ring_hom R) :=
+map_apply_coe (int.cast_ring_hom R) g
+
+end cast
+
 section has_neg
 
 variables [fact (even (fintype.card n))]
@@ -170,6 +196,10 @@ instance : has_neg (special_linear_group n R) :=
 @[simp] lemma coe_neg (g : special_linear_group n R) :
   ↑(- g) = - (↑g : matrix n n R) :=
 rfl
+
+@[simp] lemma coe_int_neg (g : (special_linear_group n ℤ)) :
+  ↑(-g) = (-↑g : special_linear_group n R) :=
+subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg ↑g
 
 end has_neg
 

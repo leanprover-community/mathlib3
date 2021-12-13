@@ -53,7 +53,8 @@ open_locale non_zero_divisors
 
 universes u v
 
-variables (K : Type u) [field K]
+variables (K : Type u) [hring : comm_ring K] [hdomain : is_domain K]
+include hring
 
 /-- `ratfunc K` is `K(x)`, the field of rational functions over `K`.
 
@@ -78,6 +79,8 @@ lemma of_fraction_ring_injective : function.injective (of_fraction_ring : _ → 
 lemma to_fraction_ring_injective :
   function.injective (to_fraction_ring : _ → fraction_ring (polynomial K))
 | ⟨x⟩ ⟨y⟩ rfl := rfl
+
+include hdomain
 
 /-- `ratfunc.mk (p q : polynomial K)` is `p / q` as a rational function.
 
@@ -245,6 +248,8 @@ lemma of_fraction_ring_mul (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p * q) = of_fraction_ring p * of_fraction_ring q :=
 by unfold has_mul.mul ratfunc.mul
 
+include hdomain
+
 /-- Division of rational functions. -/
 @[irreducible] protected def div : ratfunc K → ratfunc K → ratfunc K
 | ⟨p⟩ ⟨q⟩ := ⟨p / q⟩
@@ -270,7 +275,8 @@ by simpa only [← of_fraction_ring_inv, ← of_fraction_ring_mul, ← of_fracti
 section has_scalar
 
 variables {R : Type*} [monoid R] [distrib_mul_action R (polynomial K)]
-variables [is_scalar_tower R (polynomial K) (polynomial K)]
+variables [htower : is_scalar_tower R (polynomial K) (polynomial K)]
+include htower
 
 -- Can't define this in terms of `localization.has_scalar`, because that one
 -- is not general enough.
@@ -292,11 +298,15 @@ end has_scalar
 
 variables (K)
 
+omit hdomain
+
 instance : inhabited (ratfunc K) :=
 ⟨0⟩
-instance : nontrivial (ratfunc K) :=
+instance [is_domain K] : nontrivial (ratfunc K) :=
 ⟨⟨0, 1, mt (congr_arg to_fraction_ring) $
   by simpa only [← of_fraction_ring_zero, ← of_fraction_ring_one] using zero_ne_one⟩⟩
+
+omit hring
 
 /-- Solve equations for `ratfunc K` by working in `fraction_ring (polynomial K)`. -/
 meta def frac_tac : tactic unit :=
@@ -319,6 +329,8 @@ meta def smul_tac : tactic unit :=
     int.cast_neg_succ_of_nat, int.cast_coe_nat,
     localization.mk_zero, localization.add_mk_self, localization.neg_mk,
     of_fraction_ring_zero, ← of_fraction_ring_add, ← of_fraction_ring_neg]]
+
+include hring hdomain
 
 instance : field (ratfunc K) :=
 { add := (+),
@@ -360,6 +372,8 @@ end field
 section is_fraction_ring
 
 /-! ### `ratfunc` as field of fractions of `polynomial` -/
+
+include hdomain
 
 instance (R : Type*) [comm_semiring R] [algebra R (polynomial K)] :
   algebra R (ratfunc K) :=
@@ -410,6 +424,8 @@ mt (algebra_map_eq_zero_iff K).mp hx
 
 variables (K)
 
+omit hdomain
+
 /-- `ratfunc K` is isomorphic to the field of fractions of `polynomial K`, as rings.
 
 This is an auxiliary definition; `simp`-normal form is `is_localization.alg_equiv`.
@@ -421,6 +437,8 @@ def aux_equiv : fraction_ring (polynomial K) ≃+* ratfunc K :=
   right_inv := λ ⟨x⟩, rfl,
   map_add' := of_fraction_ring_add,
   map_mul' := of_fraction_ring_mul }
+
+include hdomain
 
 /-- `ratfunc K` is the field of fractions of the polynomials over `K`. -/
 instance : is_fraction_ring (polynomial K) (ratfunc K) :=
@@ -488,7 +506,11 @@ section num_denom
 
 open gcd_monoid polynomial
 
-/-- `ratfunc.num_denom` are numerator and denominator of a rational function,
+omit hring
+variables [hfield : field K]
+include hfield
+
+/-- `ratfunc.num_denom` are numerator and denominator of a rational function over a field,
 normalized such that the denominator is monic. -/
 def num_denom (x : ratfunc K) : polynomial K × polynomial K :=
 x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
@@ -597,7 +619,6 @@ end
 @[simp] lemma num_div_denom (x : ratfunc K) :
   algebra_map _ _ (num x) / algebra_map _ _ (denom x) = x :=
 x.induction_on (λ p q hq, begin
-  by_cases hp : p = 0, { simp [hp] },
   have q_div_ne_zero := right_div_gcd_ne_zero hq,
   rw [num_div p hq, denom_div p hq, ring_hom.map_mul, ring_hom.map_mul,
     mul_div_mul_left, div_eq_div_iff, ← ring_hom.map_mul, ← ring_hom.map_mul, mul_comm _ q,
@@ -705,6 +726,8 @@ section eval
 
 /-! ### Polynomial structure: `C`, `X`, `eval` -/
 
+include hdomain
+
 /-- `ratfunc.C a` is the constant rational function `a`. -/
 def C : K →+* ratfunc K :=
 algebra_map _ _
@@ -715,16 +738,20 @@ algebra_map _ _
 @[simp] lemma algebra_map_comp_C :
   (algebra_map (polynomial K) (ratfunc K)).comp polynomial.C = C := rfl
 
-@[simp] lemma num_C (c : K) : num (C c) = polynomial.C c :=
-num_algebra_map _
-@[simp] lemma denom_C (c : K) : denom (C c) = 1 :=
-denom_algebra_map _
-
 /-- `ratfunc.X` is the polynomial variable (aka indeterminate). -/
 def X : ratfunc K := algebra_map (polynomial K) (ratfunc K) polynomial.X
 
 @[simp] lemma algebra_map_X :
   algebra_map (polynomial K) (ratfunc K) polynomial.X = X := rfl
+
+omit hring hdomain
+variables [hfield : field K]
+include hfield
+
+@[simp] lemma num_C (c : K) : num (C c) = polynomial.C c :=
+num_algebra_map _
+@[simp] lemma denom_C (c : K) : denom (C c) = 1 :=
+denom_algebra_map _
 
 @[simp] lemma num_X : num (X : ratfunc K) = polynomial.X :=
 num_algebra_map _

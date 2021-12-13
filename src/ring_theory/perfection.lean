@@ -11,7 +11,7 @@ import algebra.ring.pi
 import analysis.special_functions.pow
 import field_theory.perfect_closure
 import ring_theory.localization
-import ring_theory.subring
+import ring_theory.subring.basic
 import ring_theory.valuation.integers
 
 /-!
@@ -322,7 +322,7 @@ include hv
 
 /-- `O/(p)` for `O`, ring of integers of `K`. -/
 @[nolint unused_arguments has_inhabited_instance] def mod_p :=
-(ideal.span {p} : ideal O).quotient
+O ⧸ (ideal.span {p} : ideal O)
 
 variables [hp : fact p.prime] [hvp : fact (v p ≠ 1)]
 

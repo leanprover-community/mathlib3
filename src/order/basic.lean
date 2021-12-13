@@ -393,14 +393,17 @@ end order_dual
 
 /-! ### Order instances on the function space -/
 
-instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] : preorder (Π i, α i) :=
-{ le       := λ x y, ∀ i, x i ≤ y i,
-  le_refl  := λ a i, le_refl (a i),
-  le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
+instance pi.has_le {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] : has_le (Π i, α i) :=
+{ le       := λ x y, ∀ i, x i ≤ y i }
 
-lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
+lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] {x y : Π i, α i} :
   x ≤ y ↔ ∀ i, x i ≤ y i :=
 iff.rfl
+
+instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] : preorder (Π i, α i) :=
+{ le_refl  := λ a i, le_refl (a i),
+  le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i),
+  ..pi.has_le }
 
 lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
@@ -569,14 +572,14 @@ instance nonempty_lt {α : Type u} [preorder α] [no_bot_order α] (a : α) :
 nonempty_subtype.2 (no_bot a)
 
 /-- An order is dense if there is an element between any pair of distinct elements. -/
-class densely_ordered (α : Type u) [preorder α] : Prop :=
+class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 
-lemma exists_between [preorder α] [densely_ordered α] :
+lemma exists_between [has_lt α] [densely_ordered α] :
   ∀ {a₁ a₂ : α}, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
 
-instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
+instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered α] :
   densely_ordered (order_dual α) :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 

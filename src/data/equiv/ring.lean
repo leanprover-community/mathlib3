@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import data.equiv.mul_add
-import algebra.field
-import algebra.opposites
+import algebra.field.basic
+import algebra.ring.opposite
 import algebra.big_operators.basic
 
 /-!

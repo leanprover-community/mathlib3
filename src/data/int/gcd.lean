@@ -304,6 +304,18 @@ begin
   exact int.nat_abs_dvd_iff_dvd.mpr h
 end
 
+lemma gcd_dvd_iff {a b : ℤ} {n : ℕ} : gcd a b ∣ n ↔ ∃ x y : ℤ, ↑n = a * x + b * y :=
+begin
+  split,
+  { intro h,
+    rw [← nat.mul_div_cancel' h, int.coe_nat_mul, gcd_eq_gcd_ab, add_mul, mul_assoc, mul_assoc],
+    refine ⟨_, _, rfl⟩, },
+  { rintro ⟨x, y, h⟩,
+    rw [←int.coe_nat_dvd, h],
+    exact dvd_add (dvd_mul_of_dvd_left (gcd_dvd_left a b) _)
+      (dvd_mul_of_dvd_left (gcd_dvd_right a b) y) }
+end
+
 /-- Euclid's lemma: if `a ∣ b * c` and `gcd a c = 1` then `a ∣ b`.
 Compare with `is_coprime.dvd_of_dvd_mul_left` and
 `unique_factorization_monoid.dvd_of_dvd_mul_left_of_no_prime_factors` -/

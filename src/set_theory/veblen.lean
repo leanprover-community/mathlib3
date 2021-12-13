@@ -187,9 +187,17 @@ theorem fix_point_lemma : ∀ α, ∃ β, f β = β ∧ α ≤ β :=
 theorem fix_point.nonempty : nonempty (fixed_points f) :=
 ⟨fix_point hf 0⟩
 
+/-- The fixed point enumerator of a normal function. For the subtype variant, see `fix_point_enum`.
+-/
+noncomputable def fix_point_enum' : ordinal.{u} → ordinal.{u} :=
+ordinal.enum_ord' (fix_point_lemma hf)
+
 /-- The fixed point enumerator of a normal function. -/
 noncomputable def fix_point_enum : ordinal.{u} → fixed_points f :=
 ordinal.enum_ord (λ α, ⟨_, (fix_point hf α).prop, self_le_fix_point hf α⟩)
+
+theorem fix_point_enum'.strict_mono {hf : ordinal.is_normal f} : strict_mono (fix_point_enum' hf) :=
+ordinal.enum_ord.strict_mono
 
 theorem fix_point_enum.strict_mono {hf : ordinal.is_normal f} : strict_mono (fix_point_enum hf) :=
 ordinal.enum_ord.strict_mono
@@ -203,6 +211,12 @@ noncomputable def fix_point_enum.order_iso {hf : ordinal.is_normal f} :
 fix_point_enum.strict_mono.order_iso_of_surjective (fix_point_enum hf) fix_point_enum.surjective
 
 /-- The fixed point enumerator is normal. This is what allows us to build Veblen's function. -/
-theorem fix_point_enum.is_normal : ordinal.is_normal (fix_point' hf) := sorry
+theorem fix_point_enum.is_normal : ordinal.is_normal (fix_point_enum' hf) :=
+begin
+  use λ α, fix_point_enum'.strict_mono (ordinal.lt_succ_self α),
+  intros α hα β,
+  use λ hαβ γ hγα, le_of_lt (lt_of_lt_of_le (fix_point_enum'.strict_mono hγα) hαβ),
+  intros h,
+end
 
 end

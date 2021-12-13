@@ -63,7 +63,7 @@ variables {R}
   ⟨r₃ * r₁, r₂ * r₄, mul_pos hr₃ hr₁, mul_pos hr₂ hr₄,
    by rw [mul_smul, mul_smul, h₁, ←h₂, smul_comm]⟩
 
-@[symm] lemma same_ray_comm {x y : M} : same_ray R x y ↔ same_ray R y x :=
+lemma same_ray_comm {x y : M} : same_ray R x y ↔ same_ray R y x :=
 ⟨same_ray.symm, same_ray.symm⟩
 
 variables (R M)

@@ -448,3 +448,128 @@ meta def linter.unused_haves_suffices : linter :=
 "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
 "proofs appear as if they are used. ",
   is_fast := ff }
+
+
+/-!
+## Linter for provable edge-cases
+-/
+
+-- set_option pp.all true
+-- #check 0
+-- #check @nat
+--TODO perhaps implement this with push_neg as ``normalize_negations `(¬ %%h)``
+-- TODO work out how to incorporate TC, e.g.
+meta def negate_hyp : expr → option expr
+| (app (app (app (const `ne l) tp) t) s) := some (app (app (app (const `eq l) tp) t) s)
+-- TODO understand why universe bumps below
+| (app (app (app (app (const `has_lt.lt [l]) (const `nat [])) tc) `(0)) s) := some (app (app (app (const `eq [l.succ]) (const `nat [])) s) `(0))
+-- | `((%%n : %%T) ≠ (@has_zero.zero _ %%f)) := some `(%%n = 0) -- more specific matches come first
+-- | `((%%n : ℤ) ≠ (0 : ℤ)) := some `((%%n : ℤ) = 0) -- more specific matches come first
+-- | `(%%n ≠ 0) := some `(%%n = 0)
+| _ := none
+
+-- set_option pp.all true
+-- run_cmd trace $ negate_hyp `(1 ≠ 0)
+-- run_cmd trace $ `(0 < 2)
+-- run_cmd trace $ negate_hyp `(0 < 2)
+-- run_cmd trace $ `(2 = 0)
+-- run_cmd trace $ negate_hyp `((1 : ℤ) ≠ 0)
+-- run_cmd trace $ negate_hyp `((1 : ℚ) ≠ 0)
+
+meta def find_provable_edge_cases (oe : expr) : expr → tactic (list string)
+| opi@(pi var_name bi var_type body) := do
+  l ← find_provable_edge_cases body,
+  o ← ((do
+    -- trace var_type,
+    new_var_type ← negate_hyp var_type,
+    -- trace "MMHMM",
+    -- trace new_var_type,
+  -- tt ← is_simp_lemma d.to_name | pure none,
+    try_for 200000 $
+    retrieve $ do
+    unfreezing intros,
+    -- (lhs, rhs) ← target >>= simp_lhs_rhs,
+    sls ← simp_lemmas.mk_default,
+    -- let sls' := sls.erase [d.to_name],
+    let ne := oe.replace (λ ee nn, match ee with -- TODO this is inefficient
+    | npi@(pi _ _ _ _) := if opi = npi then pi var_name bi new_var_type body else none
+    | _ := none end),
+    -- trace ne,
+    g ← mk_meta_var ne,
+    set_goals [g], -- TODO idk if ths is needed
+    (out, prf1, ns1) ← decorate_error "simplify fails on left-hand side:" $
+      simplify sls [] ne {fail_if_unchanged := ff},
+      -- trace out,
+    if out = `(true) then
+      return (some $ "Negating argument " ++ var_name.to_string ++
+        " gives a lemma provable with simp")
+    else
+      return none) <|> pure none),
+  -- trace o,
+  if h : o.is_some then
+    return (option.get h :: l)
+  else
+    return l
+| _ := return []
+
+/--
+Return a list of unused have and suffices terms in a declaration
+-/
+meta def provable_edge_cases : declaration → tactic (list string)
+| (declaration.thm _ _ tp bd) := find_provable_edge_cases tp tp
+| _ := return []
+
+/--
+Checks whether a declaration contains term mode have statements that have no effect on the resulting
+term.
+-/
+meta def has_provable_edge_cases (d : declaration) : tactic (option string) := do
+  ns ← provable_edge_cases d,
+  if ns.length = 0 then
+    return none
+  else
+    return (", ".intercalate (ns.map to_string))
+
+/-- A linter for checking that declarations don't have unused term mode have statements. We do not
+tag this as `@[linter]` so that it is not in the default linter set as it is slow and an uncommon
+problem. -/
+meta def linter.provable_edge_cases : linter :=
+{ test := has_provable_edge_cases,
+  auto_decls := ff,
+  no_errors_found := "No declarations have unused term mode have statements.",
+  errors_found := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE/SUFFICES BLOCKS. " ++
+"In the case of `have` this is a term of the form `have h := foo, bar` where `bar` does not " ++
+"refer to `foo`. Such statements have no effect on the generated proof, and can just be " ++
+"replaced by `bar`, in addition to being ineffectual, they may make unnecessary assumptions " ++
+"in proofs appear as if they are used. " ++
+"For `suffices` this is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo` where" ++
+" `proof_of_goal` does not refer to `foo`. " ++
+"Such statements have no effect on the generated proof, and can just be replaced by " ++
+"`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
+"proofs appear as if they are used. ",
+  is_fast := ff }
+-- local attribute [-simp] nat.succ_sub_succ_eq_sub
+-- -- the proof of this lemma uses h, but the lemma is true without
+
+-- lemma test {n : ℕ} (h : n ≠ 0) : (n - 1) + 1 - 1 = n - 1 :=
+-- begin
+--   -- simp only [nat.succ_sub_succ_eq_sub, eq_self_iff_true, nat.sub_zero],
+--   have : 0 < n,
+--   exact nat.pos_of_ne_zero h,
+--   rw (show n - 1 + 1 = n, from nat.succ_pred_eq_of_pos this),
+-- end
+
+-- lemma test' {n : ℕ} (h : 0 < n) : (n - 1) + 1 - 1 = n - 1 :=
+-- begin
+--   -- simp only [nat.succ_sub_succ_eq_sub, eq_self_iff_true, nat.sub_zero],
+--   rw (show n - 1 + 1 = n, from nat.succ_pred_eq_of_pos h),
+-- end
+-- lemma tesss {n : ℕ} (h : n = 0) : (n - 1) + 1 - 1 = n - 1 :=
+-- begin
+--   revert_all,
+--   simp,
+-- end
+-- #print tesss
+-- run_cmd (do
+--   d ← get_decl `test',
+--  trace $ provable_edge_cases d)

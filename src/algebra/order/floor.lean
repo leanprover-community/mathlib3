@@ -36,7 +36,7 @@ for `nnnorm`.
 
 ## TODO
 
-Some `nat.floor` and `nat.ceil` lemmas require `linear_ordered_ring α`.Is `has_ordered_sub` enough?
+Some `nat.floor` and `nat.ceil` lemmas require `linear_ordered_ring α`. Is `has_ordered_sub` enough?
 
 `linear_ordered_ring`/`linear_ordered_semiring` can be relaxed to `order_ring`/`order_semiring` in
 many lemmas.
@@ -180,9 +180,9 @@ lemma le_of_ceil_le (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.c
 lemma floor_le_ceil (a : α) : ⌊a⌋₊ ≤ ⌈a⌉₊ :=
 begin
   obtain ha | ha := le_total a 0,
-  { rw nat.floor_of_nonpos ha,
+  { rw floor_of_nonpos ha,
     exact nat.zero_le _ },
-  { exact nat.cast_le.1 ((nat.floor_le ha).trans $ nat.le_ceil _) }
+  { exact cast_le.1 ((floor_le ha).trans $ le_ceil _) }
 end
 
 lemma floor_lt_ceil_of_lt_of_pos {a b : α} (h : a < b) (h' : 0 < b) : ⌊a⌋₊ < ⌈b⌉₊ :=
@@ -223,12 +223,12 @@ by { convert floor_add_nat ha 1, exact cast_one.symm }
 lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
 begin
   obtain ha | ha := le_total a 0,
-  { rw [nat.floor_of_nonpos ha, nat.floor_of_nonpos (sub_nonpos_of_le (ha.trans n.cast_nonneg)),
+  { rw [floor_of_nonpos ha, floor_of_nonpos (sub_nonpos_of_le (ha.trans n.cast_nonneg)),
       zero_tsub] },
   cases le_total a n,
-  { rw [nat.floor_of_nonpos (tsub_nonpos_of_le h), eq_comm, tsub_eq_zero_iff_le],
+  { rw [floor_of_nonpos (tsub_nonpos_of_le h), eq_comm, tsub_eq_zero_iff_le],
     exact nat.cast_le.1 ((nat.floor_le ha).trans h) },
-  { rw [eq_tsub_iff_add_eq_of_le (nat.le_floor h), ←nat.floor_add_nat (sub_nonneg_of_le h),
+  { rw [eq_tsub_iff_add_eq_of_le (le_floor h), ←floor_add_nat (sub_nonneg_of_le h),
       sub_add_cancel] }
 end
 
@@ -258,18 +258,18 @@ variables [linear_ordered_field α] [floor_semiring α]
 lemma floor_div_nat (a : α) (n : ℕ) : ⌊a / n⌋₊ = ⌊a⌋₊ / n :=
 begin
   cases le_total a 0 with ha ha,
-  { rw [nat.floor_of_nonpos, nat.floor_of_nonpos ha],
+  { rw [floor_of_nonpos, floor_of_nonpos ha],
     { simp },
-    apply div_nonpos_of_nonpos_of_nonneg ha (nat.cast_nonneg _) },
+    apply div_nonpos_of_nonpos_of_nonneg ha n.cast_nonneg },
   obtain rfl | hn := n.eq_zero_or_pos,
-  { rw [nat.cast_zero, div_zero, nat.div_zero, nat.floor_zero] },
-  refine (nat.floor_eq_iff _).2 _,
-  { exact div_nonneg ha (nat.cast_nonneg _) },
+  { rw [cast_zero, div_zero, nat.div_zero, floor_zero] },
+  refine (floor_eq_iff _).2 _,
+  { exact div_nonneg ha n.cast_nonneg },
   split,
-  { exact nat.cast_div_le.trans (div_le_div_of_le_of_nonneg (nat.floor_le ha) n.cast_nonneg) },
-  rw [div_lt_iff, add_mul, one_mul, ←nat.cast_mul, ←nat.cast_add, ←nat.floor_lt ha],
-  { exact nat.lt_div_mul_add hn },
-  { exact (nat.cast_pos.2 hn) }
+  { exact cast_div_le.trans (div_le_div_of_le_of_nonneg (floor_le ha) n.cast_nonneg) },
+  rw [div_lt_iff, add_mul, one_mul, ←cast_mul, ←cast_add, ←floor_lt ha],
+  { exact lt_div_mul_add hn },
+  { exact (cast_pos.2 hn) }
 end
 
 /-- Natural division is the floor of field division. -/
@@ -582,7 +582,7 @@ lemma ceil_eq_on_Ioc (z : ℤ) : ∀ a ∈ set.Ioc (z - 1 : α) z, ⌈a⌉ = z :
 lemma ceil_eq_on_Ioc' (z : ℤ) : ∀ a ∈ set.Ioc (z - 1 : α) z, (⌈a⌉ : α) = z :=
 λ a ha, by exact_mod_cast ceil_eq_on_Ioc z a ha
 
-lemma int.floor_le_ceil (a : α) : ⌊a⌋ ≤ ⌈a⌉ := cast_le.1 $ (floor_le _).trans $ le_ceil _
+lemma floor_le_ceil (a : α) : ⌊a⌋ ≤ ⌈a⌉ := cast_le.1 $ (floor_le _).trans $ le_ceil _
 
 lemma floor_lt_ceil_of_lt {a b : α} (h : a < b) : ⌊a⌋ < ⌈b⌉ :=
 cast_lt.1 $ (floor_le a).trans_lt $ h.trans_le $ le_ceil b

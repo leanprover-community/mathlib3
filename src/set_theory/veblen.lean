@@ -60,7 +60,7 @@ theorem enum_ord'.strict_mono {hS : ∀ α, ∃ β, S β ∧ α ≤ β} : strict
 λ _ _ h, lt_of_lt_of_le (lt_blub.{u u} _ _ h) (blub_le_enum_ord' hS _)
 
 private theorem aux (α) : ∃ (β : ordinal), S β ∧ ∀ (γ : ordinal), γ < α → enum_ord' hS γ < β :=
-by { refine ⟨enum_ord' hS α ,enum_ord'_mem hS α, λ _, _⟩, apply enum_ord'.strict_mono }
+⟨_, enum_ord'_mem hS α, λ _ β, enum_ord'.strict_mono β⟩
 
 -- Explicitly specifying hS' screws up simp_rw for whatever reason.
 private theorem enum_ord'_def_aux (α) {hS'} :
@@ -70,7 +70,7 @@ begin
     (λ β, S β ∧ ∀ γ, γ < α → enum_ord' hS γ < β),
   { rw enum_ord'_def',
     simp_rw this },
-  apply funext (λ β, propext _),
+  apply funext (λ _, propext _),
   exact ⟨ λ ⟨hl, hr⟩, ⟨hl, λ _ h, lt_of_lt_of_le (lt_blub.{u u} _ _ h) hr⟩,
     λ ⟨hl, hr⟩, ⟨hl, blub_le_iff_lt.2 hr⟩ ⟩,
 end
@@ -93,7 +93,8 @@ noncomputable def enum_ord : ordinal.{u} → S := λ α, ⟨_, enum_ord'_mem hS 
 theorem enum_ord.strict_mono {hS : ∀ α, ∃ β, S β ∧ α ≤ β} : strict_mono (enum_ord hS) :=
 enum_ord'.strict_mono
 
-theorem aux (α) : α ≤ enum_ord hS α := wf.self_le_of_strict_mono enum_ord'.strict_mono  _
+theorem aux (α) : α ≤ enum_ord hS α :=
+well_founded.self_le_of_strict_mono wf enum_ord'.strict_mono  _
 
 theorem enum_ord.surjective {hS : ∀ α, ∃ β, S β ∧ α ≤ β} : function.surjective (enum_ord hS) :=
 begin

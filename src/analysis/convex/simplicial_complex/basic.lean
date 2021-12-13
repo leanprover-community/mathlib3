@@ -46,7 +46,10 @@ variables (𝕜 E : Type*) {ι : Type*} [ordered_ring 𝕜] [add_comm_group E] [
 
 namespace geometry
 
-/-- A simplicial complex in a `𝕜`-module is a collection of simplices which glue nicely together. -/
+/-- A simplicial complex in a `𝕜`-module is a collection of simplices which glue nicely together.
+Note that the textbook meaning of "glue nicely" is given in
+`geometry.simplicial_complex.disjoint_or_exists_inter_eq_convex_hull`. It is mostly useless, as
+`geometry.simplicial_complex.convex_hull_inter_convex_hull` is enough for all purposes. -/
 @[ext] structure simplicial_complex :=
 (faces : set (finset E))
 (not_empty_mem : ∅ ∉ faces)
@@ -80,7 +83,7 @@ lemma convex_hull_inter_convex_hull (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
 /-- The conclusion is the usual meaning of "glue nicely" in textbooks. It turns out to be quite
 unusable, as it's about faces as sets in space rather than simplices. Further,  additional structure
 on `𝕜` means the only choice of `u` is `s ∩ t` (but it's hard to prove). -/
-example (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
+lemma disjoint_or_exists_inter_eq_convex_hull (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
   disjoint (convex_hull 𝕜 (s : set E)) (convex_hull 𝕜 ↑t) ∨
   ∃ u ∈ K.faces, convex_hull 𝕜 (s : set E) ∩ convex_hull 𝕜 ↑t = convex_hull 𝕜 ↑u :=
 begin

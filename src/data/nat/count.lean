@@ -11,28 +11,10 @@ import set_theory.fincard
 /-!
 # Counting on ℕ
 
-This file defines ways to get basic properties of a predicate on ℕ, such as "how many numbers
-under `k` satisfy the predicate" and "what is the `n`th number that satisifies this predicate".
-We define these as two functions, `count` and `nth`, that answer these questions, and prove
-the expected theorems about them.
-
-## Main definitions
-
-* `count p n`: The number of naturals `k < n` such that `p k`.
-* `nth p n`: The `n`-th natural `k` (zero-indexed) such that `p k`. If there is no
-  such natural (that is, `p` is true for at most `n` naturals), then `nth p n = 0`.
-
-## Main results
-
-* `nat.nth_eq_order_iso_of_nat`: An infinite set of natural numbers is order-isomorphic to the
-  natural numbers.
-
-## TODO
-
-There has been some discussion on the subject of whether both of `nth` and
-`nat.subtype.order_iso_of_nat` should exist. See discussion
-[here](https://github.com/leanprover-community/mathlib/pull/9457#pullrequestreview-767221180).
-Future work should address how lemmas that use these should be written.
+This file defines the `count` function, which gives, for any predicate on the natural numbers,
+"how many numbers under `k` satisfy this predicate?".
+We then prove several expected lemmas about `count`, relating it to the cardinality of other
+objects, and helping to evaluate it for specific `k`.
 
 -/
 

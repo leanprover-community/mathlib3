@@ -1,10 +1,10 @@
-import algebra.pointwise
-import analysis.complex.basic
+/-
+Copyright (c) 2021 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta, Yaël Dillies
+-/
 import analysis.special_functions.pow
-import data.complex.basic
-import topology.instances.real
 import tactic.by_contra
-import set_theory.fincard
 
 /-!
 # The sum-product problem
@@ -15,7 +15,6 @@ This file proves Elekes' bound on the sum-product problem following Solymosi's p
 open_locale pointwise big_operators
 
 section
-
 variables {α β : Type*} {A B : finset α}
 
 lemma erase_eq_empty_iff [decidable_eq α] (a : α) : A.erase a = ∅ ↔ A = ∅ ∨ A = {a} :=
@@ -23,38 +22,6 @@ begin
   rw [←finset.sdiff_singleton_eq_erase, finset.sdiff_eq_empty_iff_subset],
   simp,
 end
-
-lemma finset.mul_singleton_zero_of_nonempty [decidable_eq α] [mul_zero_class α] (hA : A.nonempty) :
-  A * {0} = {0} :=
-finset.subset.antisymm A.mul_singleton_zero (by simpa [finset.mem_mul] using hA)
-
-lemma finset.singleton_zero_mul_of_nonempty [decidable_eq α] [mul_zero_class α] (hA : A.nonempty) :
-  {(0 : α)} * A = {0} :=
-finset.subset.antisymm A.singleton_zero_mul (by simpa [finset.mem_mul] using hA)
-
-lemma finset.product_singleton [decidable_eq α] (a : α) : A.product {a} = A.image (λ i, (i, a)) :=
-begin
-  ext ⟨i, j⟩,
-  simp only [prod.mk.inj_iff, finset.mem_image, finset.mem_singleton, finset.mem_product],
-  tauto {closer := `[subst_vars; assumption]},
-end
-
-lemma finset.singleton_product [decidable_eq α] (a : α) : ({a} : finset α).product A = A.image (λ i, (a, i)) :=
-begin
-  ext ⟨i, j⟩,
-  simp only [prod.mk.inj_iff, finset.mem_image, finset.mem_singleton, finset.mem_product],
-  tauto {closer := `[subst_vars; assumption]},
-end
-
-@[simp, to_additive]
-lemma finset.mul_singleton [decidable_eq α] [has_mul α] (a : α) :
-  A * {a} = A.image (* a) :=
-by rw [finset.mul_def, finset.product_singleton, finset.image_image]
-
-@[simp, to_additive]
-lemma finset.singleton_mul [decidable_eq α] [has_mul α] (a : α) :
-  {a} * A = A.image ((*) a) :=
-by rw [finset.mul_def, finset.singleton_product, finset.image_image]
 
 @[to_additive] lemma finset.left_le_card_mul [decidable_eq α] [right_cancel_semigroup α]
   {A B : finset α} (hB : B.nonempty) :
@@ -87,7 +54,7 @@ lemma finset.card_mul_le [decidable_eq α] [mul_zero_class α] {A B : finset α}
   (A * B).card ≤ 1 :=
 begin
   have : A * B ⊆ {0} :=
-    (finset.mul_subset_mul (finset.subset.refl _) (by simpa [finset.subset_iff])).trans A.mul_singleton_zero,
+    (finset.mul_subset_mul (finset.subset.refl _) (by simpa [finset.subset_iff])).trans A.mul_zero_subset,
   simpa using finset.card_le_of_subset this,
 end
 
@@ -103,6 +70,8 @@ begin
 end
 
 end
+
+lemma pow_left_monotone (n : ℕ) : monotone (λ (i:ℕ), i^n) := λ _ _ h, pow_le_pow_of_le_left' h _
 
 noncomputable theory
 open_locale classical
@@ -213,67 +182,6 @@ begin
   rw [finset.neighbour, dif_neg h],
   simp,
 end
-
-section floor
-variables {α : Type*}
-
-lemma tsub_nonpos [ordered_add_comm_monoid α] [has_sub α] [has_ordered_sub α] {a b : α} :
-  a - b ≤ 0 ↔ a ≤ b :=
-by rw [tsub_le_iff_left, add_zero]
-
-alias tsub_nonpos ↔ _ tsub_nonpos_of_le
-
-lemma nat.floor_le_ceil [linear_ordered_semiring α] [floor_semiring α] (a : α) : ⌊a⌋₊ ≤ ⌈a⌉₊ :=
-begin
-  obtain ha | ha := le_total a 0,
-  { rw nat.floor_of_nonpos ha,
-    exact nat.zero_le _ },
-  { exact nat.cast_le.1 ((nat.floor_le ha).trans $ nat.le_ceil _) }
-end
-
-lemma int.floor_le_ceil [linear_ordered_ring α] [floor_ring α] (a : α) : ⌊a⌋ ≤ ⌈a⌉ :=
-int.cast_le.1 $ (int.floor_le _).trans $ int.le_ceil _
-
-lemma floor_sub_nat [linear_ordered_ring α] [floor_semiring α] {a : α} {n : ℕ} :
-  ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
-begin
-  obtain ha | ha := le_total a 0,
-  { rw [nat.floor_of_nonpos ha, nat.floor_of_nonpos (sub_nonpos_of_le (ha.trans n.cast_nonneg)),
-      zero_tsub] },
-  cases le_total a n,
-  { rw [nat.floor_of_nonpos (tsub_nonpos_of_le h), eq_comm, tsub_eq_zero_iff_le],
-    exact nat.cast_le.1 ((nat.floor_le ha).trans h) },
-  { rw [eq_tsub_iff_add_eq_of_le (nat.le_floor h), ←nat.floor_add_nat (sub_nonneg_of_le h),
-      sub_add_cancel] }
-end
-
-lemma floor_div_nat [linear_ordered_field α] [floor_semiring α] (a : α) (n : ℕ) :
-  ⌊a / n⌋₊ = ⌊a⌋₊ / n :=
-begin
-  cases le_total a 0 with ha ha,
-  { rw [nat.floor_of_nonpos, nat.floor_of_nonpos ha],
-    { simp },
-    apply div_nonpos_of_nonpos_of_nonneg ha (nat.cast_nonneg _) },
-  obtain rfl | hn := n.eq_zero_or_pos,
-  { rw [nat.cast_zero, div_zero, nat.div_zero, nat.floor_zero] },
-  refine (nat.floor_eq_iff _).2 _,
-  { exact div_nonneg ha (nat.cast_nonneg _) },
-  split,
-  { exact nat.cast_div_le.trans (div_le_div_of_le_of_nonneg (nat.floor_le ha) n.cast_nonneg) },
-  rw [div_lt_iff, add_mul, one_mul, ←nat.cast_mul, ←nat.cast_add, ←nat.floor_lt ha],
-  { exact nat.lt_div_mul_add hn },
-  { exact (nat.cast_pos.2 hn) }
-end
-
-/-- Natural division is the floor of field division. -/
-lemma floor_div_eq_div [linear_ordered_field α] [floor_semiring α] {m n : ℕ} :
-  ⌊(m : α) / n⌋₊ = m / n :=
-begin
-  convert floor_div_nat (m : α) n,
-  rw m.floor_coe,
-end
-
-end floor
 
 def nearest_neighbours (A : finset ℝ) (a : ℝ) (n : ℕ) : finset ℝ :=
 nat.rec_on n ∅ $ λ _ B,
@@ -684,7 +592,7 @@ begin
     rw ←nat.le_floor_iff at hU,
     apply add_good_triple_set_subset_nearest_neighbours _ hb,
     { apply hU.trans (le_of_eq _),
-      convert floor_div_eq_div using 3,
+      convert nat.floor_div_eq_div _ _ using 3,
       rw nat.cast_mul,
       norm_cast },
     { rw [←card_pos, card_erase_of_mem ha, ←nat.succ_le_iff],
@@ -709,7 +617,7 @@ begin
     rw ←nat.le_floor_iff at hU,
     apply mul_good_triple_set_subset_nearest_neighbours _ hq,
     { apply hU.trans (le_of_eq _),
-      convert floor_div_eq_div using 3,
+      convert nat.floor_div_eq_div _ _ using 3,
       rw nat.cast_mul,
       norm_cast },
     { rw [←card_pos, card_erase_of_mem ha, ←nat.succ_le_iff],
@@ -863,8 +771,6 @@ begin
   { simp },
   exact le_trans (le_of_eq (by ring)) (real_bound A A A hA hA),
 end
-
-lemma pow_left_monotone (n : ℕ) : monotone (λ (i:ℕ), i^n) := λ _ _ h, pow_le_pow_of_le_left' h _
 
 lemma specific_max_bound :
   A.card ^ 5 ≤ (5 * max (A + A).card (A * A).card) ^ 4 :=

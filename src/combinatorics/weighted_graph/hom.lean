@@ -85,15 +85,15 @@ structure weighted_graph_embedding (G₁ : weighted_graph α W) (G₂ : weighted
 
 infix  ` ↪wg `:25 := weighted_graph_embedding
 
-instance : weighted_graph_hom_class (G₁ ↪wg G₂) G₁ G₂ :=
-{ coe := weighted_graph_embedding.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  weight_map := weighted_graph_embedding.weight_map' }
-
 namespace weighted_graph_embedding
 
+instance : weighted_graph_hom_class (G₁ ↪wg G₂) G₁ G₂ :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by obtain ⟨⟨f⟩⟩ := f; obtain ⟨⟨g⟩⟩ := g; congr',
+  weight_map := weighted_graph_embedding.weight_map' }
+
 /-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
-instance : has_coe_to_fun (G₁ ↪wg G₂) (λ _, α → β) := ⟨to_fun⟩
+instance : has_coe_to_fun (G₁ ↪wg G₂) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : G₁ ↪wg G₂} : f.to_fun = (f : α → β) := rfl
 
@@ -103,7 +103,8 @@ instance : has_coe_to_fun (G₁ ↪wg G₂) (λ _, α → β) := ⟨to_fun⟩
 definitional equalities. -/
 protected def copy (f : G₁ ↪wg G₂) (f' : α → β) (h : f' = ⇑f) : G₁ ↪wg G₂ :=
 { to_fun := f',
-  weight_map' := λ a b, h.symm ▸ (f.weight_map' a b) }
+  inj' := by { rw h, exact f.inj' },
+  weight_map' := λ a b, by { simp_rw h, exact f.weight_map' a b } }
 
 /-- Composition of weighted graph embeddings. -/
 @[simps] def comp (g : G₂ ↪wg G₃) (f : G₁ ↪wg G₂) : G₁ ↪wg G₃ :=
@@ -114,26 +115,21 @@ protected def copy (f : G₁ ↪wg G₂) (f' : α → β) (h : f' = ⇑f) : G₁
 end weighted_graph_embedding
 
 /-- Isomorphism between weighted graph `G₁` to weighted graph `G₂`. -/
-structure weighted_graph_iso (G₁ : weighted_graph α W) (G₂ : weighted_graph β W)
+@[ext] structure weighted_graph_iso (G₁ : weighted_graph α W) (G₂ : weighted_graph β W)
   extends α ≃ β :=
 (weight_map' (a b : α) : G₂.weight (to_fun a) (to_fun b) = G₁.weight a b)
 
 infix  ` ≃wg `:25 := weighted_graph_iso
 
-instance : weighted_graph_hom_class (G₁ ≃wg G₂) G₁ G₂ :=
-{ coe := weighted_graph_iso.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_op := weighted_graph_iso.weight_map' }
-
 namespace weighted_graph_iso
 
 instance weighted_graph_hom_class : weighted_graph_hom_class (G₁ ≃wg G₂) G₁ G₂ :=
-{ coe := weighted_graph_hom.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  weight_map := weighted_graph_hom.weight_map' }
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, sorry,
+  weight_map := weighted_graph_iso.weight_map' }
 
 /-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
-instance : has_coe_to_fun (G₁ ≃wg G₂) (λ _, α → β) := ⟨to_fun⟩
+instance : has_coe_to_fun (G₁ ≃wg G₂) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : G₁ ≃wg G₂} : f.to_fun = (f : α → β) := rfl
 
@@ -141,9 +137,13 @@ instance : has_coe_to_fun (G₁ ≃wg G₂) (λ _, α → β) := ⟨to_fun⟩
 
 /-- Copy of a `weighted_graph_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def copy (f : G₁ ≃wg G₂) (f' : α → β) (h : f' = ⇑f) : G₁ ≃wg G₂ :=
+protected def copy (f : G₁ ≃wg G₂) (f' : α → β) (g' : β → α) (hf : f' = ⇑f)
+  (hg : g' = f.to_equiv.symm) : G₁ ≃wg G₂ :=
 { to_fun := f',
-  weight_map' := h.symm ▸ f.weight_map' }
+  inv_fun := g',
+  left_inv := by { rw [hf, hg], exact f.left_inv },
+  right_inv := by { rw [hf, hg], exact f.right_inv },
+  weight_map' := λ a b, by { simp_rw hf, exact f.weight_map' a b } }
 
 @[simps] protected def symm (f : G₁ ≃wg G₂) : G₂ ≃wg G₁ :=
 { to_fun := f.inv_fun,
@@ -154,7 +154,7 @@ protected def copy (f : G₁ ≃wg G₂) (f' : α → β) (h : f' = ⇑f) : G₁
     sorry,
   end }
 
-@[simps] protected def trans (g : G₂ ≃wg G₃) (f : G₁ ≃wg G₂) : G₁ ≃wg G₃ :=
+protected def trans (g : G₂ ≃wg G₃) (f : G₁ ≃wg G₂) : G₁ ≃wg G₃ :=
 sorry
 
 end weighted_graph_iso
@@ -180,7 +180,9 @@ instance : inhabited (G ↪wg G) := ⟨G.embedding_id⟩
 /-- The identity as a weighted graph isomorphism. -/
 @[simps] protected def iso_id : G ≃wg G :=
 { to_fun := id,
-  inj' := λ a b, id,
+  inv_fun := id,
+  left_inv := λ a, rfl,
+  right_inv := λ a, rfl,
   weight_map' := λ a b, rfl }
 
 instance : inhabited (G ≃wg G) := ⟨G.iso_id⟩
@@ -188,10 +190,10 @@ instance : inhabited (G ≃wg G) := ⟨G.iso_id⟩
 namespace hom
 variables {G₁ G₂} (f : G₁ →wg G₂)
 
-lemma map_mem_edge_set {e : sym2 V} (h : e ∈ G.edge_set) : e.map f ∈ G₂.edge_set :=
+lemma map_mem_edge_set {e : sym2 α} (h : e ∈ G₁.edge_set) : e.map f ∈ G₂.edge_set :=
 quotient.ind (λ e h, sym2.from_rel_prop.mpr (f.map_rel' h)) e h
 
-lemma apply_mem_neighbor_set {v w : V} (h : w ∈ G.neighbor_set v) : f w ∈ G₂.neighbor_set (f v) :=
+lemma apply_mem_neighbor_set {v w : α} (h : w ∈ G.neighbor_set v) : f w ∈ G₂.neighbor_set (f v) :=
 map_adj f h
 
 /-- The map between edge sets induced by a homomorphism.
@@ -200,7 +202,7 @@ The underlying map on edges is given by `sym2.map`. -/
 ⟨sym2.map f e, f.map_mem_edge_set e.property⟩
 
 /-- The map between neighbor sets induced by a homomorphism. -/
-@[simps] def map_neighbor_set (v : V) (w : G.neighbor_set v) : G₂.neighbor_set (f v) :=
+@[simps] def map_neighbor_set (v : α) (w : G.neighbor_set v) : G₂.neighbor_set (f v) :=
 ⟨f w, f.apply_mem_neighbor_set w.property⟩
 
 /-- The induced map for spanning subgraphs, which is the identity on vertices. -/
@@ -221,12 +223,12 @@ end hom
 namespace embedding
 variables {G₁ G₂} (f : G ↪wg G₂)
 
-lemma map_adj_iff {v w : V} : G₂.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
+lemma map_adj_iff {v w : α} : G₂.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
 
 lemma map_mem_edge_set_iff {e : sym2 V} : e.map f ∈ G₂.edge_set ↔ e ∈ G.edge_set :=
 quotient.ind (λ ⟨v, w⟩, f.map_adj_iff) e
 
-lemma apply_mem_neighbor_set_iff {v w : V} : f w ∈ G₂.neighbor_set (f v) ↔ w ∈ G.neighbor_set v :=
+lemma apply_mem_neighbor_set_iff {v w : α} : f w ∈ G₂.neighbor_set (f v) ↔ w ∈ G.neighbor_set v :=
 map_adj_iff f
 
 /-- A graph embedding induces an embedding of edge sets. -/
@@ -235,7 +237,7 @@ map_adj_iff f
   inj' := hom.map_edge_set.injective f f.inj' }
 
 /-- A graph embedding induces an embedding of neighbor sets. -/
-@[simps] def map_neighbor_set (v : V) : G.neighbor_set v ↪ G₂.neighbor_set (f v) :=
+@[simps] def map_neighbor_set (v : α) : G.neighbor_set v ↪ G₂.neighbor_set (f v) :=
 { to_fun := λ w, ⟨f w, f.apply_mem_neighbor_set_iff.mpr w.2⟩,
   inj' := begin
     rintros ⟨w₁, h₁⟩ ⟨w₂, h₂⟩ h,
@@ -248,12 +250,12 @@ end embedding
 namespace iso
 variables {G₁ G₂} (f : G ≃wg G₂)
 
-lemma map_adj_iff {v w : V} : G₂.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
+lemma map_adj_iff {v w : α} : G₂.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
 
 lemma map_mem_edge_set_iff {e : sym2 V} : e.map f ∈ G₂.edge_set ↔ e ∈ G.edge_set :=
 quotient.ind (λ ⟨v, w⟩, f.map_adj_iff) e
 
-lemma apply_mem_neighbor_set_iff {v w : V} : f w ∈ G₂.neighbor_set (f v) ↔ w ∈ G.neighbor_set v :=
+lemma apply_mem_neighbor_set_iff {v w : α} : f w ∈ G₂.neighbor_set (f v) ↔ w ∈ G.neighbor_set v :=
 map_adj_iff f
 
 /-- An isomorphism of graphs induces an equivalence of edge sets. -/
@@ -278,7 +280,7 @@ map_adj_iff f
   end }
 
 /-- A graph isomorphism induces an equivalence of neighbor sets. -/
-@[simps] def map_neighbor_set (v : V) : G.neighbor_set v ≃ G₂.neighbor_set (f v) :=
+@[simps] def map_neighbor_set (v : α) : G.neighbor_set v ≃ G₂.neighbor_set (f v) :=
 { to_fun := λ w, ⟨f w, f.apply_mem_neighbor_set_iff.mpr w.2⟩,
   inv_fun := λ w, ⟨f.symm w, begin
     convert f.symm.apply_mem_neighbor_set_iff.mpr w.2,

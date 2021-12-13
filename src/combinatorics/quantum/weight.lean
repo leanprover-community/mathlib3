@@ -4,15 +4,26 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .mathlib
+import combinatorics.weighted_graph.dart
 import combinatorics.weighted_graph.matching
 
 /-!
 # Weighted graphs
 -/
 
-variables {α W : Type*}
+-- `α`: Vertices
+-- `W`: Weights
+-- `𝒸`: Colors
+variables {α W 𝒸 : Type*}
 
 namespace weighted_graph
+
+structure edge_bicoloring (G : weighted_graph α W) (𝒸 : Type*) :=
+(color : G.dart → 𝒸)
+
+structure edge_coloring (G : weighted_graph α W) (𝒸 : Type*) extends G.edge_bicoloring 𝒸 :=
+(color_rev (ab : G.dart) : color ab.rev = color ab )
+
 section monoid
 variables [monoid W] {G : weighted_graph α W}
 
@@ -27,8 +38,11 @@ end monoid
 section semiring
 variables [semiring W] (G : weighted_graph α W)
 
+def coloring_weight (f : α → 𝒸) : W :=
+∑
+
 /-- -/
-def monochromatic : Prop :=
+def monochromatic : Prop := ∀
 
 def col : ℕ :=
 sorry

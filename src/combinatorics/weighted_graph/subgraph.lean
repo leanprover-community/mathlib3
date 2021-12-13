@@ -58,18 +58,22 @@ structure subgraph (G : weighted_graph α W) :=
 (verts : set α)
 (weight : α → α → option W)
 (weight_comm (a b : α) : weight a b = weight b a)
-(eq_of_weight_ne_none {a b : α} : weight a b ≠ none → weight a b = G.weight a b)
-(mem_verts_of_weight_ne_none {a b : α} (h : weight a b ≠ none) : a ∈ verts)
+(eq_of_adj' {a b : α} (h : weight a b ≠ none) : weight a b = G.weight a b)
+(mem_verts_of_adj' {a b : α} (h : weight a b ≠ none) : a ∈ verts)
 
 namespace subgraph
 variables {G : weighted_graph α W} (G' : G.subgraph)
 
-@[simp] lemma weight_self (a : α) : G'.weight a a = none :=
-begin
-  classical,
-  by_contra,
-  exact h ((G'.eq_of_weight_ne_none h).trans $ G.weight_self a),
-end
+/-- Two vertices of a weighted subgraph are adjacent if their weight is not `none`. -/
+def adj (a b : α) : Prop := G'.weight a b ≠ none
+
+lemma eq_of_adj {a b : α} (h : G'.adj a b) : G'.weight a b = G.weight a b := G'.eq_of_adj' h
+
+lemma mem_verts_of_adj {a b : α} (h : G'.adj a b) : a ∈ G'.verts :=  G'.mem_verts_of_adj' h
+
+@[simp] lemma adj_irrefl (a : α) : ¬ G'.adj a a := λ h, h $ (G'.eq_of_adj h).trans $ G.weight_self a
+
+@[simp] lemma weight_self (a : α) : G'.weight a a = none := of_not_not $ G'.adj_irrefl a
 
 /-- Coercion from `G' : G.subgraph` to a `weighted_graph ↥G'.verts W`. -/
 @[simps] def coe : weighted_graph G'.verts W :=
@@ -106,25 +110,25 @@ def is_induced (G' : G.subgraph) : Prop :=
 ∀ {a b : α}, a ∈ G'.verts → b ∈ G'.verts → G'.weight a b = G.weight a b
 
 /-- `H.support` is the set of vertices that form edges in the subgraph `H`. -/
-def support (G' : G.subgraph) : set α := rel.dom (λ a b, G'.weight a b ≠ none)
+def support (G' : G.subgraph) : set α := rel.dom (λ a b, G'.adj a b)
 
-lemma mem_support (G' : G.subgraph) {a : α} : a ∈ G'.support ↔ ∃ b, G'.weight a b ≠ none := iff.rfl
+lemma mem_support (G' : G.subgraph) {a : α} : a ∈ G'.support ↔ ∃ b, G'.adj a b := iff.rfl
 
 lemma support_subset_verts (G' : G.subgraph) : G'.support ⊆ G'.verts :=
-λ a ⟨b, hb⟩, G'.mem_verts_of_weight_ne_none hb
+λ a ⟨b, hb⟩, G'.mem_verts_of_adj hb
 
 /-- `G'.neighbor_set v` is the set of vertices adjacent to `v` in `G'`. -/
-def neighbor_set (G' : G.subgraph) (a : α) : set α := set_of (λ b, G'.weight a b ≠ none)
+def neighbor_set (G' : G.subgraph) (a : α) : set α := set_of (λ b, G'.adj a b)
 
 lemma neighbor_set_subset (G' : G.subgraph) (a : α) : G'.neighbor_set a ⊆ G.neighbor_set a :=
 λ w h, G'.adj_sub h
 
-@[simp] lemma mem_neighbor_set (G' : G.subgraph) (a b : α) : w ∈ G'.neighbor_set v ↔ G'.adj a b :=
+@[simp] lemma mem_neighbor_set (G' : G.subgraph) (a b : α) : b ∈ G'.neighbor_set a ↔ G'.adj a b :=
 iff.rfl
 
 /-- A subgraph as a graph has equivalent neighbor sets. -/
-def coe_neighbor_set_equiv {G' : G.subgraph} (v : G'.verts) :
-  G'.coe.neighbor_set v ≃ G'.neighbor_set v :=
+def coe_neighbor_set_equiv {G' : G.subgraph} (a : G'.verts) :
+  G'.coe.neighbor_set a ≃ G'.neighbor_set a :=
 { to_fun := λ w, ⟨w, by { obtain ⟨w', hw'⟩ := w, simpa using hw' }⟩,
   inv_fun := λ w, ⟨⟨w, G'.edge_vert (G'.adj_symm w.2)⟩, by simpa using w.2⟩,
   left_inv := λ w, by simp,

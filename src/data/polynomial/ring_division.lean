@@ -445,7 +445,6 @@ begin
     rw [count_roots],
     by_cases h : ∃ t, f t = a,
     { rcases h with ⟨h_w, rfl⟩,
-      -- TODO also make countp_map for count
       rw [multiset.count_map_eq_count' f _ hf, count_roots, root_multiplicity, root_multiplicity,
         dif_neg hp0, dif_neg hmap],
       simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
@@ -458,7 +457,7 @@ begin
       suffices : multiset.count a (multiset.map f p.roots) = 0,
       { rw this,
         exact zero_le _, },
-      rw [multiset.count, multiset.countp_map, multiset.card_eq_zero, multiset.filter_eq_nil],
+      rw [multiset.count_map, multiset.card_eq_zero, multiset.filter_eq_nil],
       intros k hk hhh,
       apply h,
       use [k, hhh.symm], }, },

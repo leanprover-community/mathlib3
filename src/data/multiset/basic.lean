@@ -2151,6 +2151,10 @@ begin
     simp only [h, if_false, zero_min],
 end
 
+theorem count_map (f : α → β) (s : multiset α) [decidable_eq β] (b : β) :
+  count b (map f s) = (s.filter (λ a, b = f a)).card :=
+by exact countp_map _ _ _
+
 /-- `multiset.map f` preserves `count` if `f` is injective on the set of elements contained in
 the multiset -/
 theorem count_map_eq_count [decidable_eq β] (f : α → β) (s : multiset α)

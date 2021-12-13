@@ -14,7 +14,15 @@ homomorphism `f : α →ₘ β` is a function `α → β` along with a proof tha
 
 ## Main definitions
 
-In this file we define `order_hom α β` a.k.a. `α →ₘ β` to be a bundled monotone map.
+In this file we define the following bundled monotone maps:
+ * `order_hom α β` a.k.a. `α →ₘ β`: Preorder homomorphism.
+    An `order_hom α β` is a function `f : α → β` such that `a₁ ≤ a₂ → f a₁ ≤ f a₂`
+ * `order_embedding α β` a.k.a. `α ↪o β`: Relation embedding.
+    An `order_embedding α β` is an embedding `f : α ↪ β` such that `a ≤ b ↔ f a ≤ f b`.
+    Defined as an abbreviation of `@rel_embedding α β (≤) (≤)`.
+* `order_iso`: Relation isomorphism.
+    An `order_iso α β` is an equivalence `f : α ≃ β` such that `a ≤ b ↔ f a ≤ f b`.
+    Defined as an abbreviation of `@rel_iso α β (≤) (≤)`.
 
 We also define many `order_hom`s. In some cases we define two versions, one with `ₘ` suffix and
 one without it (e.g., `order_hom.compₘ` and `order_hom.comp`). This means that the former
@@ -64,8 +72,23 @@ structure order_hom (α β : Type*) [preorder α] [preorder β] :=
 
 infixr ` →ₘ `:25 := order_hom
 
+/-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`.
+This definition is an abbreviation of `rel_embedding (≤) (≤)`. -/
+abbreviation order_embedding (α β : Type*) [has_le α] [has_le β] :=
+@rel_embedding α β (≤) (≤)
+
+infix ` ↪o `:25 := order_embedding
+
+/-- An order isomorphism is an equivalence such that `a ≤ b ↔ (f a) ≤ (f b)`.
+This definition is an abbreviation of `rel_iso (≤) (≤)`. -/
+abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β (≤) (≤)
+
+infix ` ≃o `:25 := order_iso
+
+variables {α β γ δ : Type*}
+
 namespace order_hom
-variables {α β γ δ : Type*} [preorder α] [preorder β] [preorder γ] [preorder δ]
+variables [preorder α] [preorder β] [preorder γ] [preorder δ]
 
 instance : has_coe_to_fun (α →ₘ β) (λ _, α → β) := ⟨order_hom.to_fun⟩
 
@@ -264,7 +287,74 @@ def dual_iso (α β : Type*) [preorder α] [preorder β] :
 
 end order_hom
 
+/-- Embeddings of partial orders that preserve `<` also preserve `≤`. -/
+def rel_embedding.order_embedding_of_lt_embedding [partial_order α] [partial_order β]
+  (f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)) :
+  α ↪o β :=
+{ map_rel_iff' := by { intros, simp [le_iff_lt_or_eq,f.map_rel_iff, f.injective.eq_iff] }, .. f }
+
+@[simp]
+lemma rel_embedding.order_embedding_of_lt_embedding_apply [partial_order α] [partial_order β]
+  {f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)} {x : α} :
+  rel_embedding.order_embedding_of_lt_embedding f x = f x := rfl
+
 namespace order_embedding
+
+variables [preorder α] [preorder β] (f : α ↪o β)
+
+/-- `<` is preserved by order embeddings of preorders. -/
+def lt_embedding : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
+{ map_rel_iff' := by intros; simp [lt_iff_le_not_le, f.map_rel_iff], .. f }
+
+@[simp] lemma lt_embedding_apply (x : α) : f.lt_embedding x = f x := rfl
+
+@[simp] theorem le_iff_le {a b} : (f a) ≤ (f b) ↔ a ≤ b := f.map_rel_iff
+
+@[simp] theorem lt_iff_lt {a b} : f a < f b ↔ a < b :=
+f.lt_embedding.map_rel_iff
+
+@[simp] lemma eq_iff_eq {a b} : f a = f b ↔ a = b := f.injective.eq_iff
+
+protected theorem monotone : monotone f := λ x y, f.le_iff_le.2
+
+protected theorem strict_mono : strict_mono f := λ x y, f.lt_iff_lt.2
+
+protected theorem acc (a : α) : acc (<) (f a) → acc (<) a :=
+f.lt_embedding.acc a
+
+protected theorem well_founded :
+  well_founded ((<) : β → β → Prop) → well_founded ((<) : α → α → Prop) :=
+f.lt_embedding.well_founded
+
+protected theorem is_well_order [is_well_order β (<)] : is_well_order α (<) :=
+f.lt_embedding.is_well_order
+
+/-- An order embedding is also an order embedding between dual orders. -/
+protected def dual : order_dual α ↪o order_dual β :=
+⟨f.to_embedding, λ a b, f.map_rel_iff⟩
+
+/--
+To define an order embedding from a partial order to a preorder it suffices to give a function
+together with a proof that it satisfies `f a ≤ f b ↔ a ≤ b`.
+-/
+def of_map_le_iff {α β} [partial_order α] [preorder β] (f : α → β)
+  (hf : ∀ a b, f a ≤ f b ↔ a ≤ b) : α ↪o β :=
+rel_embedding.of_map_rel_iff f hf
+
+@[simp] lemma coe_of_map_le_iff {α β} [partial_order α] [preorder β] {f : α → β} (h) :
+  ⇑(of_map_le_iff f h) = f := rfl
+
+/-- A strictly monotone map from a linear order is an order embedding. --/
+def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
+  (h : strict_mono f) : α ↪o β :=
+of_map_le_iff f (λ _ _, h.le_iff_le)
+
+@[simp] lemma coe_of_strict_mono {α β} [linear_order α] [preorder β] {f : α → β}
+  (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl
+
+/-- Embedding of a subtype into the ambient type as an `order_embedding`. -/
+@[simps {fully_applied := ff}] def subtype (p : α → Prop) : subtype p ↪o α :=
+⟨function.embedding.subtype p, λ x y, iff.rfl⟩
 
 /-- Convert an `order_embedding` to a `order_hom`. -/
 @[simps {fully_applied := ff}]
@@ -275,7 +365,7 @@ def to_order_hom {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y) : X →�
 end order_embedding
 section rel_hom
 
-variables {α β : Type*} [partial_order α] [preorder β]
+variables [partial_order α] [preorder β]
 
 namespace rel_hom
 
@@ -295,3 +385,275 @@ lemma rel_embedding.to_order_hom_injective (f : ((<) : α → α → Prop) ↪r 
 λ _ _ h, f.injective h
 
 end rel_hom
+
+namespace order_iso
+
+section has_le
+
+variables [has_le α] [has_le β] [has_le γ]
+
+/-- Reinterpret an order isomorphism as an order embedding. -/
+def to_order_embedding (e : α ≃o β) : α ↪o β :=
+e.to_rel_embedding
+
+@[simp] lemma coe_to_order_embedding (e : α ≃o β) :
+  ⇑(e.to_order_embedding) = e := rfl
+
+protected lemma bijective (e : α ≃o β) : function.bijective e := e.to_equiv.bijective
+protected lemma injective (e : α ≃o β) : function.injective e := e.to_equiv.injective
+protected lemma surjective (e : α ≃o β) : function.surjective e := e.to_equiv.surjective
+
+@[simp] lemma range_eq (e : α ≃o β) : set.range e = set.univ := e.surjective.range_eq
+
+@[simp] lemma apply_eq_iff_eq (e : α ≃o β) {x y : α} : e x = e y ↔ x = y :=
+e.to_equiv.apply_eq_iff_eq
+
+/-- Identity order isomorphism. -/
+def refl (α : Type*) [has_le α] : α ≃o α := rel_iso.refl (≤)
+
+@[simp] lemma coe_refl : ⇑(refl α) = id := rfl
+
+lemma refl_apply (x : α) : refl α x = x := rfl
+
+@[simp] lemma refl_to_equiv : (refl α).to_equiv = equiv.refl α := rfl
+
+/-- Inverse of an order isomorphism. -/
+def symm (e : α ≃o β) : β ≃o α := e.symm
+
+@[simp] lemma apply_symm_apply (e : α ≃o β) (x : β) : e (e.symm x) = x :=
+e.to_equiv.apply_symm_apply x
+
+@[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
+e.to_equiv.symm_apply_apply x
+
+@[simp] lemma symm_refl (α : Type*) [has_le α] : (refl α).symm = refl α := rfl
+
+lemma apply_eq_iff_eq_symm_apply (e : α ≃o β) (x : α) (y : β) : e x = y ↔ x = e.symm y :=
+e.to_equiv.apply_eq_iff_eq_symm_apply
+
+theorem symm_apply_eq (e : α ≃o β) {x : α} {y : β} : e.symm y = x ↔ y = e x :=
+e.to_equiv.symm_apply_eq
+
+@[simp] lemma symm_symm (e : α ≃o β) : e.symm.symm = e := by { ext, refl }
+
+lemma symm_injective : function.injective (symm : (α ≃o β) → (β ≃o α)) :=
+λ e e' h, by rw [← e.symm_symm, h, e'.symm_symm]
+
+@[simp] lemma to_equiv_symm (e : α ≃o β) : e.to_equiv.symm = e.symm.to_equiv := rfl
+
+@[simp] lemma symm_image_image (e : α ≃o β) (s : set α) : e.symm '' (e '' s) = s :=
+e.to_equiv.symm_image_image s
+
+@[simp] lemma image_symm_image (e : α ≃o β) (s : set β) : e '' (e.symm '' s) = s :=
+e.to_equiv.image_symm_image s
+
+lemma image_eq_preimage (e : α ≃o β) (s : set α) : e '' s = e.symm ⁻¹' s :=
+e.to_equiv.image_eq_preimage s
+
+@[simp] lemma preimage_symm_preimage (e : α ≃o β) (s : set α) : e ⁻¹' (e.symm ⁻¹' s) = s :=
+e.to_equiv.preimage_symm_preimage s
+
+@[simp] lemma symm_preimage_preimage (e : α ≃o β) (s : set β) : e.symm ⁻¹' (e ⁻¹' s) = s :=
+e.to_equiv.symm_preimage_preimage s
+
+@[simp] lemma image_preimage (e : α ≃o β) (s : set β) : e '' (e ⁻¹' s) = s :=
+e.to_equiv.image_preimage s
+
+@[simp] lemma preimage_image (e : α ≃o β) (s : set α) : e ⁻¹' (e '' s) = s :=
+e.to_equiv.preimage_image s
+
+/-- Composition of two order isomorphisms is an order isomorphism. -/
+@[trans] def trans (e : α ≃o β) (e' : β ≃o γ) : α ≃o γ := e.trans e'
+
+@[simp] lemma coe_trans (e : α ≃o β) (e' : β ≃o γ) : ⇑(e.trans e') = e' ∘ e := rfl
+
+lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
+
+@[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
+
+@[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
+
+end has_le
+
+open set
+
+section le
+
+variables [has_le α] [has_le β] [has_le γ]
+
+@[simp] lemma le_iff_le (e : α ≃o β) {x y : α} : e x ≤ e y ↔ x ≤ y := e.map_rel_iff
+
+lemma le_symm_apply (e : α ≃o β) {x : α} {y : β} : x ≤ e.symm y ↔ e x ≤ y :=
+e.rel_symm_apply
+
+lemma symm_apply_le (e : α ≃o β) {x : α} {y : β} : e.symm y ≤ x ↔ y ≤ e x :=
+e.symm_apply_rel
+
+end le
+
+variables [preorder α] [preorder β] [preorder γ]
+
+protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
+
+protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embedding.strict_mono
+
+@[simp] lemma lt_iff_lt (e : α ≃o β) {x y : α} : e x < e y ↔ x < y :=
+e.to_order_embedding.lt_iff_lt
+
+/-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
+    it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
+def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)
+  (h : ∀ (a : α) (b : β), cmp a (g b) = cmp (f a) b) : α ≃o β :=
+have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_self_eq_eq] },
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ a, (gf a).symm,
+  right_inv := by { intro, rw [←cmp_eq_eq_iff, ←h, cmp_self_eq_eq] },
+  map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert (h _ _).symm, apply gf } }
+
+/-- Order isomorphism between two equal sets. -/
+def set_congr (s t : set α) (h : s = t) : s ≃o t :=
+{ to_equiv := equiv.set_congr h,
+  map_rel_iff' := λ x y, iff.rfl }
+
+/-- Order isomorphism between `univ : set α` and `α`. -/
+def set.univ : (set.univ : set α) ≃o α :=
+{ to_equiv := equiv.set.univ α,
+  map_rel_iff' := λ x y, iff.rfl }
+
+/-- Order isomorphism between `α → β` and `β`, where `α` has a unique element. -/
+@[simps to_equiv apply] def fun_unique (α β : Type*) [unique α] [preorder β] :
+  (α → β) ≃o β :=
+{ to_equiv := equiv.fun_unique α β,
+  map_rel_iff' := λ f g, by simp [pi.le_def, unique.forall_iff] }
+
+@[simp] lemma fun_unique_symm_apply {α β : Type*} [unique α] [preorder β] :
+  ((fun_unique α β).symm : β → α → β) = function.const α := rfl
+
+end order_iso
+
+namespace equiv
+
+variables [preorder α] [preorder β]
+
+/-- If `e` is an equivalence with monotone forward and inverse maps, then `e` is an
+order isomorphism. -/
+def to_order_iso (e : α ≃ β) (h₁ : monotone e) (h₂ : monotone e.symm) :
+  α ≃o β :=
+⟨e, λ x y, ⟨λ h, by simpa only [e.symm_apply_apply] using h₂ h, λ h, h₁ h⟩⟩
+
+@[simp] lemma coe_to_order_iso (e : α ≃ β) (h₁ : monotone e) (h₂ : monotone e.symm) :
+  ⇑(e.to_order_iso h₁ h₂) = e := rfl
+
+@[simp] lemma to_order_iso_to_equiv (e : α ≃ β) (h₁ : monotone e) (h₂ : monotone e.symm) :
+  (e.to_order_iso h₁ h₂).to_equiv = e := rfl
+
+end equiv
+
+/-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
+between `s` and its image. -/
+protected noncomputable def strict_mono_on.order_iso {α β} [linear_order α] [preorder β]
+  (f : α → β) (s : set α) (hf : strict_mono_on f s) :
+  s ≃o f '' s :=
+{ to_equiv := hf.inj_on.bij_on_image.equiv _,
+  map_rel_iff' := λ x y, hf.le_iff_le x.2 y.2 }
+
+/-- A strictly monotone function from a linear order is an order isomorphism between its domain and
+its range. -/
+protected noncomputable def strict_mono.order_iso {α β} [linear_order α] [preorder β] (f : α → β)
+  (h_mono : strict_mono f) : α ≃o set.range f :=
+{ to_equiv := equiv.of_injective f h_mono.injective,
+  map_rel_iff' := λ a b, h_mono.le_iff_le }
+
+/-- A strictly monotone surjective function from a linear order is an order isomorphism. -/
+noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] [preorder β]
+  (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) : α ≃o β :=
+(h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
+
+/-- An order isomorphism is also an order isomorphism between dual orders. -/
+protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) :
+  order_dual α ≃o order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
+
+section lattice_isos
+
+lemma order_iso.map_bot' [has_le α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+  (hx : ∀ x', x ≤ x') (hy : ∀ y', y ≤ y') : f x = y :=
+by { refine le_antisymm _ (hy _), rw [← f.apply_symm_apply y, f.map_rel_iff], apply hx }
+
+lemma order_iso.map_bot [has_le α] [partial_order β] [order_bot α] [order_bot β] (f : α ≃o β) :
+  f ⊥ = ⊥ :=
+f.map_bot' (λ _, bot_le) (λ _, bot_le)
+
+lemma order_iso.map_top' [has_le α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+  (hx : ∀ x', x' ≤ x) (hy : ∀ y', y' ≤ y) : f x = y :=
+f.dual.map_bot' hx hy
+
+lemma order_iso.map_top [has_le α] [partial_order β] [order_top α] [order_top β] (f : α ≃o β) :
+  f ⊤ = ⊤ :=
+f.dual.map_bot
+
+lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
+  (f : α ↪o β) (x y : α) :
+  f (x ⊓ y) ≤ f x ⊓ f y :=
+f.monotone.map_inf_le x y
+
+lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
+  (f : α ≃o β) (x y : α) :
+  f (x ⊓ y) = f x ⊓ f y :=
+begin
+  refine (f.to_order_embedding.map_inf_le x y).antisymm _,
+  simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
+end
+
+/-- Note that this goal could also be stated `(disjoint on f) a b` -/
+lemma disjoint.map_order_iso [semilattice_inf α] [order_bot α] [semilattice_inf β] [order_bot β]
+  {a b : α} (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
+begin
+  rw [disjoint, ←f.map_inf, ←f.map_bot],
+  exact f.monotone ha,
+end
+
+@[simp] lemma disjoint_map_order_iso_iff [semilattice_inf α] [order_bot α] [semilattice_inf β]
+  [order_bot β] {a b : α} (f : α ≃o β) : disjoint (f a) (f b) ↔ disjoint a b :=
+⟨λ h, f.symm_apply_apply a ▸ f.symm_apply_apply b ▸ h.map_order_iso f.symm, λ h, h.map_order_iso f⟩
+
+lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
+  (f : α ↪o β) (x y : α) :
+  f x ⊔ f y ≤ f (x ⊔ y) :=
+f.monotone.le_map_sup x y
+
+lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
+  (f : α ≃o β) (x y : α) :
+  f (x ⊔ y) = f x ⊔ f y :=
+f.dual.map_inf x y
+
+section bounded_order
+
+variables [lattice α] [lattice β] [bounded_order α] [bounded_order β] (f : α ≃o β)
+include f
+
+lemma order_iso.is_compl {x y : α} (h : is_compl x y) : is_compl (f x) (f y) :=
+⟨by { rw [← f.map_bot, ← f.map_inf, f.map_rel_iff], exact h.1 },
+  by { rw [← f.map_top, ← f.map_sup, f.map_rel_iff], exact h.2 }⟩
+
+theorem order_iso.is_compl_iff {x y : α} :
+  is_compl x y ↔ is_compl (f x) (f y) :=
+⟨f.is_compl, λ h, begin
+  rw [← f.symm_apply_apply x, ← f.symm_apply_apply y],
+  exact f.symm.is_compl h,
+end⟩
+
+lemma order_iso.is_complemented
+  [is_complemented α] : is_complemented β :=
+⟨λ x, begin
+  obtain ⟨y, hy⟩ := exists_is_compl (f.symm x),
+  rw ← f.symm_apply_apply y at hy,
+  refine ⟨f y, f.symm.is_compl_iff.2 hy⟩,
+end⟩
+
+theorem order_iso.is_complemented_iff :
+  is_complemented α ↔ is_complemented β :=
+⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
+
+end bounded_order
+end lattice_isos

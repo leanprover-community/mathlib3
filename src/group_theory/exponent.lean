@@ -285,8 +285,7 @@ begin
   exact one_lt_pow hp.1.one_lt a.succ_ne_zero
 end
 
-@[to_additive]
-lemma exponent_eq_max'_order_of [fintype G] :
+@[to_additive] lemma exponent_eq_max'_order_of [fintype G] :
   exponent G = ((@finset.univ G _).image order_of).max' ⟨1, by simp⟩ :=
 begin
   rw [←finset.nonempty.cSup_eq_max', finset.coe_image, finset.coe_univ, set.image_univ],

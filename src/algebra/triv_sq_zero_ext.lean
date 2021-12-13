@@ -66,16 +66,23 @@ x.2
 @[ext] lemma ext {x y : tsze R M} (h1 : x.fst = y.fst) (h2 : x.snd = y.snd) : x = y :=
 prod.ext h1 h2
 
+section
+variables (M)
 @[simp] lemma fst_inl [has_zero M] (r : R) : (inl r : tsze R M).fst = r := rfl
 @[simp] lemma snd_inl [has_zero M] (r : R) : (inl r : tsze R M).snd = 0 := rfl
+end
+
+section
+variables (R)
 @[simp] lemma fst_inr [has_zero R] (m : M) : (inr m : tsze R M).fst = 0 := rfl
 @[simp] lemma snd_inr [has_zero R] (m : M) : (inr m : tsze R M).snd = m := rfl
+end
 
 lemma inl_injective [has_zero M] : function.injective (inl : R → tsze R M) :=
-function.left_inverse.injective fst_inl
+function.left_inverse.injective $ fst_inl _
 
 lemma inr_injective [has_zero R] : function.injective (inr : M → tsze R M) :=
-function.left_inverse.injective snd_inr
+function.left_inverse.injective $ snd_inr _
 
 end basic
 
@@ -208,16 +215,17 @@ ext (add_zero x.1) (zero_add x.2)
 on terms of the form `inl r + inr m`.
 
 This can be used as `induction x using triv_sq_zero_ext.ind`. -/
-lemma ind {R M} [add_monoid R] [add_monoid M] {P : triv_sq_zero_ext R M → Prop}
+lemma ind {R M} [add_zero_class R] [add_zero_class M] {P : triv_sq_zero_ext R M → Prop}
   (h : ∀ r m, P (inl r + inr m)) (x) : P x :=
 inl_fst_add_inr_snd_eq x ▸ h x.1 x.2
+variables (R M)
 
 /-- The canonical `R`-linear inclusion `M → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inr_hom [semiring R] [add_comm_monoid M] [module R M] : M →ₗ[R] tsze R M :=
 { to_fun := inr, ..linear_map.inr _ _ _ }
 
-/-- The canonical `R`-module projection `triv_sq_zero_ext R M → M`. -/
+/-- The canonical `R`-linear projection `triv_sq_zero_ext R M → M`. -/
 @[simps apply]
 def snd_hom [semiring R] [add_comm_monoid M] [module R M] : tsze R M →ₗ[R] M :=
 { to_fun := snd, ..linear_map.snd _ _ _ }
@@ -322,6 +330,8 @@ instance [comm_semiring R] [add_comm_monoid M] [module R M] : comm_semiring (tsz
 { .. triv_sq_zero_ext.comm_monoid,
   .. triv_sq_zero_ext.non_assoc_semiring }
 
+variables (R M)
+
 /-- The canonical inclusion of rings `R → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inl_hom [semiring R] [add_comm_monoid M] [module R M] : R →+* tsze R M :=
@@ -335,19 +345,20 @@ end mul
 
 section algebra
 variables (S : Type*) (R : Type u) (M : Type v)
-
 variables [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
 variables [algebra S R] [module S M] [module R M] [is_scalar_tower S R M]
 
-instance algebra' : algebra S (tsze R M) :=
+instance algebra'  : algebra S (tsze R M) :=
 { commutes' := λ r x, mul_comm _ _,
   smul_def' := λ r x, ext (algebra.smul_def _ _) $
     show r • x.2 = algebra_map S R r • x.2 + x.1 • 0, by rw [smul_zero, add_zero, algebra_map_smul],
-  .. triv_sq_zero_ext.inl_hom.comp (algebra_map S R) }
-instance [comm_semiring R] [add_comm_monoid M] [module R M] : algebra R (tsze R M) :=
-triv_sq_zero_ext.algebra' _ _ _
+  .. (triv_sq_zero_ext.inl_hom R M).comp (algebra_map S R) }
+
+-- shortcut instance for the common case
+instance : algebra R (tsze R M) := triv_sq_zero_ext.algebra' _ _ _
 
 lemma algebra_map_eq_inl : ⇑(algebra_map R (tsze R M)) = inl := rfl
+lemma algebra_map_eq_inl_hom : algebra_map R (tsze R M) = inl_hom R M := rfl
 lemma algebra_map_eq_inl' (s : S) : algebra_map S (tsze R M) s = inl (algebra_map S R s) := rfl
 
 /-- The canonical `R`-algebra projection `triv_sq_zero_ext R M → R`. -/

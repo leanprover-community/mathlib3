@@ -2300,6 +2300,10 @@ instance [monoid R] [monoid S] [add_monoid M] [distrib_mul_action R M] [distrib_
   smul_comm_class R S (α →₀ M) :=
 { smul_comm := λ r s a, ext $ λ _, smul_comm _ _ _ }
 
+instance [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M]
+  [is_central_scalar R M] : is_central_scalar R (α →₀ M) :=
+{ op_smul_eq_smul := λ r a, ext $ λ _, op_smul_eq_smul _ _ }
+
 instance [semiring R] [add_comm_monoid M] [module R M] : module R (α →₀ M) :=
 { smul      := (•),
   zero_smul := λ x, ext $ λ _, zero_smul _ _,
@@ -2738,6 +2742,13 @@ begin
   { rw [h, tsub_apply, single_eq_same, single_eq_same, single_eq_same] },
   rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, tsub_self]
 end
+
+lemma support_tsub {f1 f2 : α →₀ M} : (f1 - f2).support ⊆ f1.support :=
+by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
+    not_imp_not, zero_le, implies_true_iff] {contextual := tt}
+
+lemma subset_support_tsub {f1 f2 : α →₀ M} : f1.support \ f2.support ⊆ (f1 - f2).support :=
+by simp [subset_iff] {contextual := tt}
 
 end canonically_ordered_monoid
 

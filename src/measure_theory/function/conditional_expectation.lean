@@ -1768,6 +1768,21 @@ begin
   exact (condexp_add hf hg.neg).trans (eventually_eq.rfl.add (condexp_neg g)),
 end
 
+lemma condexp_condexp_of_le {m₁ m₂ m0 : measurable_space α} {μ : measure α}
+  (hm₁₂ : m₁ ≤ m₂) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim (hm₁₂.trans hm₂))]
+  [sigma_finite (μ.trim hm₂)] :
+  μ[ μ[f|m₂, hm₂] | m₁, hm₁₂.trans hm₂] =ᵐ[μ] μ[f | m₁, hm₁₂.trans hm₂] :=
+begin
+  refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' (hm₁₂.trans hm₂)
+    (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, integrable_condexp.integrable_on)
+    _ (measurable.ae_measurable' measurable_condexp) (measurable.ae_measurable' measurable_condexp),
+  intros s hs hμs,
+  rw set_integral_condexp integrable_condexp hs,
+  by_cases hf : integrable f μ,
+  { rw [set_integral_condexp hf hs, set_integral_condexp hf (hm₁₂ s hs)], },
+  { simp_rw integral_congr_ae (ae_restrict_of_ae (condexp_undef hf)), },
+end
+
 section real
 
 lemma rn_deriv_ae_eq_condexp {f : α → ℝ} (hf : integrable f μ) :

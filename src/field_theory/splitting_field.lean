@@ -400,51 +400,6 @@ begin
   exact eq_of_monic_of_associated hprodmonic hmonic hassoc
 end
 
-lemma roots_map_of_injective_card_eq_total_degree {K L : Type*} [comm_ring K] [is_domain K]
-  [comm_ring L] [is_domain L] {p : polynomial K} {f : K →+* L} (hf : function.injective f)
-  (hroots : p.roots.card = p.nat_degree) :
-  multiset.map f p.roots = (map f p).roots :=
-begin
-  rw eq_iff_le_not_lt,
-  by_cases hp0 : p = 0,
-  { simp [hp0], },
-  have hmap : map f p ≠ 0,
-  { intro hhf,
-    apply hp0,
-    apply map_injective _ hf,
-    simp [hhf], },
-  split,
-  { rw multiset.le_iff_count,
-    intro a,
-    rw [count_roots],
-    by_cases h : ∃ t, f t = a,
-    { rcases h with ⟨h_w, rfl⟩,
-      -- TODO also make countp_map for count
-      rw [multiset.count_map_eq_count' f _ hf, count_roots, root_multiplicity, root_multiplicity,
-        dif_neg hp0, dif_neg hmap],
-      simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
-      intros m hm,
-      have : (X - C (f h_w)) ^ (m + 1) = polynomial.map f ((X - C h_w) ^ (m + 1)),
-      { simp, },
-      rw [this, map_dvd_map f hf (monic_pow (monic_X_sub_C h_w) _)],
-      exact hm m (le_refl m), },
-    { rw [root_multiplicity, dif_neg hmap],
-      suffices : multiset.count a (multiset.map f p.roots) = 0,
-      { rw this,
-        exact zero_le _, },
-      rw [multiset.count, multiset.countp_map, multiset.card_eq_zero, multiset.filter_eq_nil],
-      intros k hk hhh,
-      apply h,
-      use [k, hhh.symm], }, },
-  { intro h,
-    have := multiset.card_lt_of_lt h,
-    simp only [hroots, multiset.card_map] at this,
-    have hh := card_roots hmap,
-    rw [degree_map_eq_of_injective hf, degree_eq_nat_degree hp0] at hh,
-    norm_cast at hh,
-    linarith, },
-end
-
 lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {K : Type*} [comm_ring K] [is_domain K]
   {p : polynomial K} (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
   (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=

@@ -159,7 +159,7 @@ not_lt.mp $ not_lt_argmin f h a
 not_lt.mp $ not_lt_argmin_on f h s ha hs
 
 include h
-theorem strict_mono.self_le_of_well_founded {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
+theorem well_founded.self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
 begin
   by_contra h',
   push_neg at h',

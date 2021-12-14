@@ -49,7 +49,7 @@ lemma factor_iff_mem_factorization {n p : ℕ} :
 by simp only [support_factorization, list.mem_to_finset]
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/
-lemma factorization_eq_nil_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
+lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/

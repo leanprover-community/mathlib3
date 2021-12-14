@@ -597,7 +597,8 @@ by rw [zpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_o
   ← zpow_eq_mod_order_of]
 
 /-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/
-@[to_additive nsmul_coprime, simps] def pow_coprime (h : nat.coprime (fintype.card G) n) : G ≃ G :=
+@[to_additive nsmul_coprime "If `gcd(|G|,n)=1` then the smul by `n` is a bijection", simps]
+  def pow_coprime (h : nat.coprime (fintype.card G) n) : G ≃ G :=
 { to_fun := λ g, g ^ n,
   inv_fun := λ g, g ^ (nat.gcd_b (fintype.card G) n),
   left_inv := λ g, by
@@ -647,7 +648,7 @@ end fintype
 section pow_is_subgroup
 
 /-- A nonempty idempotent subset of a finite cancellative monoid is a submonoid -/
-@[to_additive]
+@[to_additive "A nonempty idempotent subset of a finite cancellative add monoid is a submonoid"]
 def submonoid_of_idempotent {M : Type*} [left_cancel_monoid M] [fintype M] (S : set M)
   (hS1 : S.nonempty) (hS2 : S * S = S) : submonoid M :=
 have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
@@ -661,7 +662,7 @@ have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
   mul_mem' := λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb) }
 
 /-- A nonempty idempotent subset of a finite group is a subgroup -/
-@[to_additive]
+@[to_additive "A nonempty idempotent subset of a finite add group is a subgroup"]
 def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
   (hS1 : S.nonempty) (hS2 : S * S = S) : subgroup G :=
 { carrier := S,
@@ -671,7 +672,8 @@ def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
   .. submonoid_of_idempotent S hS1 hS2 }
 
 /-- If `S` is a nonempty subset of a finite group `G`, then `S ^ |G|` is a subgroup -/
-@[to_additive smul_card_add_subgroup, simps]
+@[to_additive smul_card_add_subgroup "If `S` is a nonempty subset of a finite add group `G`,
+  then `|G| • S` is a subgroup -/", simps]
 def pow_card_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
   subgroup G :=
 have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by

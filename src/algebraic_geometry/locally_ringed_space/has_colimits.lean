@@ -176,8 +176,6 @@ begin
     exact λ _ h, h }
 end
 
-end has_coequalizer
-
 lemma image_basic_open_image_open :
   is_open ((coequalizer.π f.1 g.1).base '' (image_basic_open f g U s).1) :=
 begin
@@ -220,7 +218,7 @@ begin
   apply_instance
 end
 
-end
+end has_coequalizer
 
 /-- The coequalizer of two locally ringed space in the category of sheafed spaces is a locally
 ringed space. -/

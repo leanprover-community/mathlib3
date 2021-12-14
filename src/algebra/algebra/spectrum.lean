@@ -44,7 +44,7 @@ universes u v
 section defs
 
 variables (R : Type u) {A : Type v}
-variables [comm_ring R] [ring A] [algebra R A]
+variables [comm_semiring R] [ring A] [algebra R A]
 
 -- definition and basic properties
 

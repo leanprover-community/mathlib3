@@ -150,10 +150,14 @@ def fiber_push (X : C) : costructured_arrow (forget F) X ⥤ (F.obj X).1 :=
       erw eq_to_hom.family_congr (F.map_comp g₁.left.base) (costructured_arrow.w g₂),
       simpa } } }
 
+/-- A 2-natural transformation. -/
+@[simps]
 def fiber_push_comp {X Y : C} (f : X ⟶ Y) :
   costructured_arrow.map f ⋙ fiber_push F Y ⟶ fiber_push F X ⋙ F.map f :=
-{ app := λ g, (F.map_comp _ _).app _,
-  naturality' := λ g₁ g₂ f', by { dsimp, simp, } }
+{ app := λ _, (F.map_comp _ _).app _,
+  naturality' := λ f₁ f₂ g, by { let fn := λ g, F.map_comp g f,
+    have := eq_to_hom.family_congr fn (costructured_arrow.w g).symm,
+    dsimp [fn] at ⊢ this, simp [this] } }
 
 end
 
@@ -161,7 +165,7 @@ section colimit
 
 open limits
 
-variables {J : Type*} [small_category J] {𝒟 : J ⥤ grothendieck F}
+variables {J : Type*} [category J] {𝒟 : J ⥤ grothendieck F}
 (cb : cocone (𝒟 ⋙ forget F))
 
 @[simp]
@@ -185,6 +189,9 @@ def desc_base (c : cocone 𝒟) : cb.X ⟶ c.X.base := lb.desc ((forget F).map_c
 --#check grothendieck F
 
 variable [∀ {X Y Z} (f : X ⟶ Y) (g : Y ⟶ Z), is_iso (F.map_comp f g)]
+
+instance {X Y : C} (f : X ⟶ Y) : is_iso (fiber_push_comp F f) :=
+by { fapply nat_iso.is_iso_of_is_iso_app _, unfold fiber_push_comp, dsimp, apply_instance }
 
 def fiber_cocone (c : cocone 𝒟) :
   cocone (fiber_diagram cb ⋙ F.map (desc_base lb c)) :=

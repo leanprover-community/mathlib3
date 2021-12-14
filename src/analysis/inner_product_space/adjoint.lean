@@ -107,4 +107,13 @@ instance : star_monoid (E →L[𝕜] E) := ⟨λ _ _, adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
+instance : cstar_ring (E →L[𝕜] E) :=
+⟨begin
+  intros A,
+  refine le_antisymm _ _,
+  { calc ∥(adjoint A).comp A∥ ≤ ∥adjoint A∥ * ∥A∥  : op_norm_comp_le _ _
+                          ... = ∥A∥ * ∥A∥  : by simp only [linear_isometry_equiv.norm_map] },
+  { sorry },
+end⟩
+
 end continuous_linear_map

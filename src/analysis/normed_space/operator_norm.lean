@@ -398,6 +398,15 @@ lemma op_norm_ext (f : E →SL[σ₁₂] F) (g : E →SL[σ₁₃] G) (h : ∀ x
 op_norm_eq_of_bounds (norm_nonneg _) (λ x, by { rw h x, exact le_op_norm _ _ })
   (λ c hc h₂, op_norm_le_bound _ hc (λ z, by { rw ←h z, exact h₂ z }))
 
+lemma op_norm_ext' (f : E →SL[σ₁₂] F) (g : E →SL[σ₁₃] G) (f' : ℝ → ℝ)
+  (h : ∀ x, ∥f x∥ = (f' ∥g x∥)) : ∥f∥ = (f' ∥g∥) :=
+begin
+  refine op_norm_eq_of_bounds _ _ _,
+  sorry,
+  sorry,
+  sorry,
+end
+
 end
 
 section

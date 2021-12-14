@@ -378,7 +378,7 @@ by rw [sum_smul_vsub_eq_affine_combination_vsub, affine_combination_apply_const 
 
 /-- A weighted sum of pairwise subtractions, where the point on the left is constant and the
 sum of the weights is 1. -/
-lemma sum_smul_vsub_const_eq_vsub_affine_combination (w : ι → k) (p₂ : ι → P) (p₁ : P)
+lemma sum_smul_const_vsub_eq_vsub_affine_combination (w : ι → k) (p₂ : ι → P) (p₁ : P)
   (h : ∑ i in s, w i = 1) :
   ∑ i in s, w i • (p₁ -ᵥ p₂ i) = p₁ -ᵥ s.affine_combination p₂ w :=
 by rw [sum_smul_vsub_eq_affine_combination_vsub, affine_combination_apply_const _ _ _ h]

@@ -287,6 +287,25 @@ iff.intro
     (is_unit_of_mul_is_unit_right_of_commutes hcomm h))
   (λ h, (h.1.unit * h.2.unit).is_unit)
 
+open polynomial
+/-- This is half of the spectral mapping theorem for polynomials. We prove it separately
+because it holds over any field, whereas `spectrum.polynomial_spectrum` needs the field to
+be algebraically closed. -/
+theorem polynomial_subset (a : A) (p : polynomial 𝕜) :
+  (λ k, eval k p) '' (σ a) ⊆ σ (aeval a p) :=
+begin
+  rintros _ ⟨k, hk, rfl⟩,
+  let q := C (eval k p) - p,
+  have hroot : is_root q k, by simp only [eval_C, eval_sub, sub_self, is_root.def],
+  rw [←mul_div_eq_iff_is_root, ←neg_mul_neg, neg_sub] at hroot,
+  have aeval_q_eq : ↑ₐ(eval k p) - aeval a p = aeval a q,
+    by simp only [aeval_C, alg_hom.map_sub, sub_left_inj],
+  rw [mem_iff, aeval_q_eq, ←hroot, aeval_mul],
+  have hcomm := aeval_comm a (C k - X) (- (q / (X - C k))),
+  apply mt (is_unit_of_mul_is_unit_left_of_commutes hcomm),
+  simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
+end
+
 end scalar_field
 
 end spectrum

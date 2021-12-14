@@ -457,7 +457,7 @@ begin
   intro b,
   have prodzero : C a * p ≠ 0,
   { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
-  rw [count_roots hpzero, count_roots prodzero, root_multiplicity_mul prodzero],
+  rw [count_roots, count_roots, root_multiplicity_mul prodzero],
   have mulzero : root_multiplicity b (C a) = 0,
   { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
   simp only [mulzero, zero_add]

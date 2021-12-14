@@ -543,7 +543,7 @@ def to_SheafedSpace : SheafedSpace C :=
     apply Top.sheaf.pushforward_sheaf_of_sheaf,
     exact (Y.restrict H.base_open).is_sheaf
   end,
-to_PresheafedSpace := X }
+  to_PresheafedSpace := X }
 
 @[simp] lemma to_SheafedSpace_to_PresheafedSpace : (to_SheafedSpace Y f).to_PresheafedSpace = X :=
 rfl

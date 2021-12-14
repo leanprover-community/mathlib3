@@ -140,7 +140,7 @@ by exact_mod_cast real.geom_mean_le_arith_mean_weighted _ _ _ (λ i _, (w i).coe
 for two `nnreal` numbers. -/
 theorem geom_mean_le_arith_mean2_weighted (w₁ w₂ p₁ p₂ : ℝ≥0) :
   w₁ + w₂ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) ≤ w₁ * p₁ + w₂ * p₂ :=
-by simpa only [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
+by simpa [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
   fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one]
 using geom_mean_le_arith_mean_weighted univ ![w₁, w₂] ![p₁, p₂]
 
@@ -357,6 +357,78 @@ begin
     ((is_greatest_Lp s g hpq).2 ⟨φ, hφ, rfl⟩)
 end
 
+/-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
+equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
+exist. A version for `nnreal`-valued functions. -/
+theorem Lp_add_le' (f g : ι → ℝ≥0) {p : ℝ} (hp : 1 ≤ p) (hf : summable (λ i, (f i) ^ p))
+  (hg : summable (λ i, (g i) ^ p)) :
+  summable (λ i, (f i + g i) ^ p) ∧
+  (∑' i, (f i + g i) ^ p) ^ (1 / p) ≤ (∑' i, (f i) ^ p) ^ (1 / p) + (∑' i, (g i) ^ p) ^ (1 / p) :=
+begin
+  have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  have pos' : 0 < (1/p) := one_div_pos.mpr pos,
+  have H₁ : ∀ s : finset ι,
+    ∑ i in s, (f i + g i) ^ p ≤ ((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p,
+  { intros s,
+    rw ← nnreal.rpow_le_rpow_iff pos',
+    rw ← nnreal.rpow_mul,
+    field_simp [pos.ne'],
+    refine le_trans (Lp_add_le s f g hp) _,
+    refine add_le_add _ _,
+    { rw nnreal.rpow_le_rpow_iff pos',
+      exact sum_le_tsum _ (λ _ _, zero_le _) hf },
+    { rw nnreal.rpow_le_rpow_iff pos',
+      exact sum_le_tsum _ (λ _ _, zero_le _) hg } },
+  have bdd : bdd_above (set.range (λ s, ∑ i in s, (f i + g i) ^ p)),
+  { refine ⟨((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p, _⟩,
+    rintros a ⟨s, rfl⟩,
+    exact H₁ s },
+  have H₂ : summable _ := (has_sum_of_is_lub _ (is_lub_csupr bdd)).summable,
+  refine ⟨H₂, _⟩,
+  { rw ← nnreal.rpow_le_rpow_iff pos,
+    rw ← nnreal.rpow_mul,
+    field_simp [pos.ne'],
+    refine tsum_le_of_sum_le H₂ H₁ },
+end
+
+/-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
+equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
+exist. A version for `nnreal`-valued functions. -/
+theorem Lp_add_le'' (f g : ι → ℝ≥0) {p : ℝ} (hp : p ≤ 1) (hf : summable (λ i, (f i) ^ p))
+  (hg : summable (λ i, (g i) ^ p)) :
+  summable (λ i, (f i + g i) ^ p) ∧
+  (∑' i, (f i + g i) ^ p) ^ (1 / p)
+    ≤ max ((∑' i, (f i) ^ p) ^ (1 / p)) ((∑' i, (g i) ^ p) ^ (1 / p)) :=
+begin
+  have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  have pos' : 0 < (1/p) := one_div_pos.mpr pos,
+  have H₁ : ∀ s : finset ι,
+    ∑ i in s, (f i + g i) ^ p ≤ ((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p,
+  { intros s,
+    rw ← nnreal.rpow_le_rpow_iff pos',
+    rw ← nnreal.rpow_mul,
+    field_simp [pos.ne'],
+    refine le_trans (Lp_add_le s f g hp) _,
+    refine add_le_add _ _,
+    { rw nnreal.rpow_le_rpow_iff pos',
+      exact sum_le_tsum _ (λ _ _, zero_le _) hf },
+    { rw nnreal.rpow_le_rpow_iff pos',
+      exact sum_le_tsum _ (λ _ _, zero_le _) hg } },
+  have bdd : bdd_above (set.range (λ s, ∑ i in s, (f i + g i) ^ p)),
+  { refine ⟨((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p, _⟩,
+    rintros a ⟨s, rfl⟩,
+    exact H₁ s },
+  have H₂ : summable _ := (has_sum_of_is_lub _ (is_lub_csupr bdd)).summable,
+  refine ⟨H₂, _⟩,
+  { rw ← nnreal.rpow_le_rpow_iff pos,
+    rw ← nnreal.rpow_mul,
+    field_simp [pos.ne'],
+    refine tsum_le_of_sum_le H₂ _,
+    intros s,
+    simp,
+     },
+end
+
 end nnreal
 
 namespace real
@@ -465,6 +537,31 @@ begin
   convert this using 2;
   [skip, congr' 1, congr' 1];
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] }
+end
+
+/-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
+equal to the infinite sum of the `L_p`-seminorms of the summands. A version for `ℝ≥0∞` valued
+nonnegative functions. -/
+theorem Lp_add_le' (hp : 1 ≤ p) :
+  (∑' i, (f i + g i) ^ p)^(1/p) ≤ (∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p) :=
+begin
+  have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  have pos' : 0 < (1/p) := one_div_pos.mpr pos,
+  suffices : ∀ s : finset ι,
+    (∑ i in s, (f i + g i) ^ p)^(1/p) ≤ (∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p),
+  { rw ← ennreal.rpow_le_rpow_iff pos,
+    rw ← ennreal.rpow_mul,
+    field_simp [pos.ne'],
+    refine tsum_le_of_sum_le ennreal.summable (λ s, _),
+    rw ← ennreal.rpow_le_rpow_iff pos',
+    rw ← ennreal.rpow_mul,
+    field_simp [pos.ne'],
+    exact this s },
+  intros s,
+  refine le_trans (Lp_add_le s f g hp) _,
+  refine add_le_add _ _;
+  { rw ennreal.rpow_le_rpow_iff pos',
+    exact sum_le_tsum _ (λ _ _, zero_le _) ennreal.summable }
 end
 
 end ennreal

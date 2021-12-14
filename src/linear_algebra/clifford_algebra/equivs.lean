@@ -351,7 +351,8 @@ attribute [protected] Q
 end clifford_algebra_quaternion
 
 /-! ### The clifford algebra isomorphic to the dual numbers -/
-section clifford_algebra_dual_number
+namespace clifford_algebra_dual_number
+
 open_locale dual_number
 open dual_number triv_sq_zero_ext
 
@@ -368,7 +369,14 @@ protected def equiv : clifford_algebra (0 : quadratic_form R R) ≃ₐ[R] 𝔻[R
 alg_equiv.of_alg_hom
   (clifford_algebra.lift (0 : quadratic_form R R) ⟨inr_hom R _, λ m, inr_mul_inr _ m m⟩)
   (dual_number.lift ⟨ι _ (1 : R), ι_mul_ι (1 : R) 1⟩)
-  (by { ext x : 1, dsimp, rw [lift_apply_eps, lift_ι_apply, inr_hom_apply, eps] })
-  (by { ext : 2, dsimp, rw [lift_ι_apply, inr_hom_apply, ←eps, lift_aux_apply_eps] })
+  (by { ext x : 1, dsimp, rw [lift_apply_eps, subtype.coe_mk, lift_ι_apply, inr_hom_apply, eps] })
+  (by { ext : 2, dsimp, rw [lift_ι_apply, inr_hom_apply, ←eps, lift_apply_eps, subtype.coe_mk] })
+
+@[simp] lemma equiv_ι (r : R) : clifford_algebra_dual_number.equiv (ι _ r) = r • eps :=
+(lift_ι_apply _ _ r).trans (inr_eq_smul_eps _)
+
+@[simp] lemma equiv_symm_eps :
+  clifford_algebra_dual_number.equiv.symm (eps : 𝔻[R]) = ι (0 : quadratic_form R R) 1 :=
+dual_number.lift_apply_eps _
 
 end clifford_algebra_dual_number

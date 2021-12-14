@@ -23,6 +23,9 @@ We define the following equivalences:
   `category_theory` convention (apply `e`, then `e'`), not the convention used in function
   composition and compositions of bundled morphisms.
 
+We equip `affine_equiv k P P` with a `group` structure with multiplication corresponding to
+composition in `affine_equiv.group`.
+
 ## Tags
 
 affine space, affine equivalence
@@ -250,8 +253,8 @@ lemma inv_def (e : P₁ ≃ᵃ[k] P₁) : e⁻¹ = e.symm := rfl
 
 /-- The group of `affine_equiv`s are equivalent to the group of units of `affine_map`.
 
-This is the affine version of `linear_map.general_linear_group.general_linear_equiv` -/
-@[simps?]
+This is the affine version of `linear_map.general_linear_group.general_linear_equiv`. -/
+@[simps]
 def equiv_units_affine_map : (P₁ ≃ᵃ[k] P₁) ≃ units (P₁ →ᵃ[k] P₁) :=
 { to_fun := λ e, ⟨e, e.symm, congr_arg coe e.symm_trans_self, congr_arg coe e.self_trans_symm⟩,
   inv_fun := λ u,

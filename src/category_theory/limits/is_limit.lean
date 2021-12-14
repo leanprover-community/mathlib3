@@ -720,7 +720,7 @@ equiv_iso_colimit ((cocones.whiskering_equivalence e).unit_iso.app s).symm
   (of_left_adjoint (cocones.whiskering_equivalence e).inverse P : _)
 
 /--
-Given an equivalence of diagrams `e`, `s` is a limit cone iff `s.whisker e.functor` is.
+Given an equivalence of diagrams `e`, `s` is a colimit cocone iff `s.whisker e.functor` is.
 -/
 def whisker_equivalence_equiv {s : cocone F} (e : K ≌ J) :
   is_colimit s ≃ is_colimit (s.whisker e.functor) :=

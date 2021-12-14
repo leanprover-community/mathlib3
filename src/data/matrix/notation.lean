@@ -45,7 +45,7 @@ open_locale matrix
 -/
 instance [has_repr α] : has_repr (matrix (fin m) (fin n) α) := pi_fin.has_repr
 
-@[simp] lemma cons_val' (v : n' → α) (B : matrix (fin m) n' α) (i j) :
+lemma cons_val' (v : n' → α) (B : matrix (fin m) n' α) (i j) :
   vec_cons v B i j = vec_cons (v j) (λ i, B i j) i :=
 by { refine fin.cases _ _ i; simp }
 

@@ -85,4 +85,7 @@ begin
   ring
 end
 
+example : ![![1, 0, 0], ![0, 1, 0], ![0, 0, 1]] 2 0 = 0 :=
+by simp
+
 end matrix

@@ -53,7 +53,7 @@ satisfy `r a b → s (f a) (f b)`.
 The relations `r` and `s` are `out_param`s since figuring them out from a goal is a higher-order
 matching problem that Lean usually can't do unaided.
 -/
-class rel_hom_class (F : Type*) {α β : Type*}
+class rel_hom_class (F : Type*) {α β : out_param $ Type*}
   (r : out_param $ α → α → Prop) (s : out_param $ β → β → Prop)
   extends fun_like F α (λ _, β) :=
 (map_rel : ∀ (f : F) {a b}, r a b → s (f a) (f b))

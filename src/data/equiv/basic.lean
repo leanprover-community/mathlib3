@@ -3,7 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.fun_like.equiv
+import data.fun_like.id_comp
 import data.option.basic
 import data.prod
 import data.quot
@@ -75,7 +75,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 (left_inv  : left_inverse inv_fun to_fun)
-(right_inv : right_inverse inv_fun to_fun)
+(right_inv : function.right_inverse inv_fun to_fun) -- TODO: why disambiguate here?
 
 infix ` ≃ `:25 := equiv
 
@@ -119,12 +119,17 @@ lemma perm.ext_iff {σ τ : equiv.perm α} : σ = τ ↔ ∀ x, σ x = τ x :=
 ext_iff
 
 /-- Any type is equivalent to itself. -/
-@[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
+protected def refl (α : Sort*) : id_fun (α ≃ α) :=
+⟨⟨id, id, λ x, rfl, λ x, rfl⟩,
+ λ x, rfl⟩
 
 instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
 
 /-- Inverse of an equivalence `e : α ≃ β`. -/
-@[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
+protected def symm : symm_fun (α ≃ β) (β ≃ α) :=
+{ to_fun := λ e, ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩,
+  symm_apply_apply' := λ e x, e.left_inv x,
+  apply_symm_apply' := λ e x, e.right_inv x }
 
 /-- See Note [custom simps projection] -/
 def simps.symm_apply (e : α ≃ β) : β → α := e.symm
@@ -135,9 +140,10 @@ initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 attribute [simps] function.involutive.to_equiv
 
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
-@[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
-⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm,
-  e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
+protected def trans : trans_fun (α ≃ β) (β ≃ γ) (α ≃ γ) :=
+{ to_fun := λ e₁ e₂,
+    ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm, e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩,
+  apply := λ e₁ e₂ x, rfl }
 
 @[simp]
 lemma to_fun_as_coe (e : α ≃ β) : e.to_fun = e := rfl
@@ -184,7 +190,7 @@ e.nonempty_congr.mpr ‹_›
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
-⟨e.symm (default _)⟩
+⟨equiv.symm e (default _)⟩
 
 /-- If `α ≃ β` and `β` is a singleton type, then so is `α`. -/
 protected def unique [unique β] (e : α ≃ β) : unique α :=
@@ -194,46 +200,6 @@ e.symm.surjective.unique
 protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
 ⟨cast h, cast h.symm, λ x, by { cases h, refl }, λ x, by { cases h, refl }⟩
 
-@[simp] theorem coe_fn_symm_mk (f : α → β) (g l r) : ((equiv.mk f g l r).symm : β → α) = g :=
-rfl
-
-@[simp] theorem coe_refl : ⇑(equiv.refl α) = id := rfl
-
-@[simp] theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
-by rw [perm.subsingleton_eq_refl e, coe_refl]
-
-theorem refl_apply (x : α) : equiv.refl α x = x := rfl
-
-@[simp] theorem coe_trans (f : α ≃ β) (g : β ≃ γ) : ⇑(f.trans g) = g ∘ f := rfl
-
-theorem trans_apply (f : α ≃ β) (g : β ≃ γ) (a : α) : (f.trans g) a = g (f a) := rfl
-
-@[simp] theorem apply_symm_apply  (e : α ≃ β) (x : β) : e (e.symm x) = x :=
-e.right_inv x
-
-@[simp] theorem symm_apply_apply (e : α ≃ β) (x : α) : e.symm (e x) = x :=
-e.left_inv x
-
-@[simp] theorem symm_comp_self (e : α ≃ β) : e.symm ∘ e = id := funext e.symm_apply_apply
-
-@[simp] theorem self_comp_symm (e : α ≃ β) : e ∘ e.symm = id := funext e.apply_symm_apply
-
-@[simp] lemma symm_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
-  (f.trans g).symm a = f.symm (g.symm a) := rfl
-
--- The `simp` attribute is needed to make this a `dsimp` lemma.
--- `simp` will always rewrite with `equiv.symm_symm` before this has a chance to fire.
-@[simp, nolint simp_nf] theorem symm_symm_apply (f : α ≃ β) (b : α) : f.symm.symm b = f b := rfl
-
-theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y := equiv_like.apply_eq_iff_eq f
-
-theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) {x : α} {y : β} :
-  f x = y ↔ x = f.symm y :=
-begin
-  conv_lhs { rw ←apply_symm_apply f y, },
-  rw apply_eq_iff_eq,
-end
-
 @[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 
 @[simp] theorem cast_symm {α β} (h : α = β) : (equiv.cast h).symm = equiv.cast h.symm := rfl
@@ -241,32 +207,70 @@ end
 @[simp] theorem cast_refl {α} (h : α = α := rfl) : equiv.cast h = equiv.refl α := rfl
 
 @[simp] theorem cast_trans {α β γ} (h : α = β) (h2 : β = γ) :
-  (equiv.cast h).trans (equiv.cast h2) = equiv.cast (h.trans h2) :=
+  equiv.trans (equiv.cast h) (equiv.cast h2) = equiv.cast (h.trans h2) :=
 ext $ λ x, by { substs h h2, refl }
 
 lemma cast_eq_iff_heq {α β} (h : α = β) {a : α} {b : β} : equiv.cast h a = b ↔ a == b :=
 by { subst h, simp }
 
-lemma symm_apply_eq {α β} (e : α ≃ β) {x y} : e.symm x = y ↔ x = e y :=
+@[simp] theorem coe_fn_symm_mk (f : α → β) (g l r) : ((equiv.mk f g l r).symm : β → α) = g :=
+rfl
+
+@[simp] theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
+by rw [perm.subsingleton_eq_refl e, id_fun.coe_coe, id_fun.coe]
+
+theorem coe_refl : ⇑(equiv.refl α) = id := id_fun.coe _
+theorem refl_apply (x : α) : equiv.refl α x = x := id_fun.apply _ _
+theorem coe_trans (f : α ≃ β) (g : β ≃ γ) : ⇑(equiv.trans f g) = g ∘ f := trans_fun.coe _ _ _
+theorem trans_apply (f : α ≃ β) (g : β ≃ γ) (a : α) : (equiv.trans f g) a = g (f a) :=
+trans_fun.apply _ _ _ _
+theorem apply_symm_apply  (e : α ≃ β) (x : β) : e (equiv.symm e x) = x :=
+symm_fun.apply_symm_apply _ _ _
+theorem symm_apply_apply (e : α ≃ β) (x : α) : equiv.symm e (e x) = x :=
+symm_fun.symm_apply_apply _ _ _
+
+@[simp] theorem symm_comp_self (e : α ≃ β) : e.symm ∘ e = id := funext e.symm_apply_apply
+
+@[simp] theorem self_comp_symm (e : α ≃ β) : e ∘ e.symm = id := funext e.apply_symm_apply
+
+@[simp] lemma symm_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
+  equiv.symm (equiv.trans f g) a = equiv.symm f (equiv.symm g a) := rfl
+
+-- The `simp` attribute is needed to make this a `dsimp` lemma.
+-- `simp` will always rewrite with `equiv.symm_symm` before this has a chance to fire.
+@[simp, nolint simp_nf] theorem symm_symm_apply (f : α ≃ β) (b : α) :
+  equiv.symm f.symm b = f b :=
+rfl
+
+theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y := equiv_like.apply_eq_iff_eq f
+
+theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) {x : α} {y : β} :
+  f x = y ↔ x = equiv.symm f y :=
+begin
+  conv_lhs { rw ←apply_symm_apply f y, },
+  rw apply_eq_iff_eq,
+end
+
+lemma symm_apply_eq {α β} (e : α ≃ β) {x y} : equiv.symm e x = y ↔ x = e y :=
 ⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
 
-lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
+lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = equiv.symm e x ↔ e y = x :=
 (eq_comm.trans e.symm_apply_eq).trans eq_comm
 
 @[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by { cases e, refl }
 
-@[simp] theorem trans_refl (e : α ≃ β) : e.trans (equiv.refl β) = e := by { cases e, refl }
+@[simp] theorem trans_refl (e : α ≃ β) : equiv.trans e (equiv.refl β : β ≃ β) = e := by { cases e, refl }
 
-@[simp] theorem refl_symm : (equiv.refl α).symm = equiv.refl α := rfl
+@[simp] theorem refl_symm : (equiv.refl α : α ≃ α).symm = equiv.refl α := rfl
 
-@[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
+@[simp] theorem refl_trans (e : α ≃ β) : equiv.trans (equiv.refl α : α ≃ α) e = e := by { cases e, refl }
 
-@[simp] theorem symm_trans_self (e : α ≃ β) : e.symm.trans e = equiv.refl β := ext (by simp)
+@[simp] theorem symm_trans_self (e : α ≃ β) : equiv.trans e.symm e = equiv.refl β := ext (by simp)
 
-@[simp] theorem self_trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext (by simp)
+@[simp] theorem self_trans_symm (e : α ≃ β) : equiv.trans e e.symm = equiv.refl α := ext (by simp)
 
 lemma trans_assoc {δ} (ab : α ≃ β) (bc : β ≃ γ) (cd : γ ≃ δ) :
-  (ab.trans bc).trans cd = ab.trans (bc.trans cd) :=
+  equiv.trans (equiv.trans ab bc) cd = equiv.trans ab (equiv.trans bc cd) :=
 equiv.ext $ assume a, rfl
 
 theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_inv

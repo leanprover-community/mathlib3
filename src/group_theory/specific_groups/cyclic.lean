@@ -8,6 +8,7 @@ import algebra.big_operators.order
 import data.nat.totient
 import group_theory.order_of_element
 import tactic.group
+import group_theory.exponent
 
 /-!
 # Cyclic groups
@@ -25,6 +26,11 @@ For the concrete cyclic group of order `n`, see `data.zmod.basic`.
 * `is_cyclic_of_prime_card` proves that a finite group of prime order is cyclic.
 * `is_simple_group_of_prime_card`, `is_simple_group.is_cyclic`,
   and `is_simple_group.prime_card` classify finite simple abelian groups.
+* `is_cyclic.exponent_eq_card`: For a finite cyclic group `G`, the exponent is equal to
+  the group's cardinality.
+* `is_cyclic.exponent_eq_zero_of_infinite`: Infinite cyclic groups have exponent zero.
+* `is_cyclic.iff_exponent_eq_card`: A finite commutative group is cyclic iff its exponent
+  is equal to its cardinality
 
 ## Tags
 
@@ -125,6 +131,28 @@ lemma order_of_eq_card_of_forall_mem_zpowers [fintype α]
 by { classical, rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_zpowers],
   simp [hx], apply fintype.card_of_finset', simp, intro x, exact hx x}
 
+@[to_additive infinite.add_order_of_eq_zero_of_forall_mem_zmultiples]
+lemma infinite.order_of_eq_zero_of_forall_mem_zpowers [infinite α] {g : α}
+  (h : ∀ x, x ∈ zpowers g) : order_of g = 0 :=
+begin
+  classical,
+  rw order_of_eq_zero_iff',
+  refine λ n hn hgn, _,
+  have ho := order_of_pos' ((is_of_fin_order_iff_pow_eq_one g).mpr ⟨n, hn, hgn⟩),
+  obtain ⟨x, hx⟩ := infinite.exists_not_mem_finset
+                    (finset.image (pow g) $ finset.range $ order_of g),
+  apply hx,
+  rw [←mem_powers_iff_mem_range_order_of' g x ho, submonoid.mem_powers_iff],
+  obtain ⟨k, hk⟩ := h x,
+  obtain ⟨k, rfl | rfl⟩ := k.eq_coe_or_neg,
+  { exact ⟨k, by exact_mod_cast hk⟩ },
+  let t : ℤ := -k % (order_of g),
+  rw zpow_eq_mod_order_of at hk,
+  have : 0 ≤ t := int.mod_nonneg (-k) (by exact_mod_cast ho.ne'),
+  refine ⟨t.to_nat, _⟩,
+  rwa [←zpow_coe_nat, int.to_nat_of_nonneg this]
+end
+
 @[to_additive bot.is_add_cyclic]
 instance bot.is_cyclic {α : Type u} [group α] : is_cyclic (⊥ : subgroup α) :=
 ⟨⟨1, λ x, ⟨0, subtype.eq $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
@@ -184,21 +212,22 @@ lemma is_cyclic.card_pow_eq_one_le [decidable_eq α] [fintype α] [is_cyclic α]
   (hn0 : 0 < n) : (univ.filter (λ a : α, a ^ n = 1)).card ≤ n :=
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 calc (univ.filter (λ a : α, a ^ n = 1)).card
-  ≤ ((zpowers (g ^ (fintype.card α / (gcd n (fintype.card α))))) : set α).to_finset.card :
+  ≤ ((zpowers (g ^ (fintype.card α / (nat.gcd n (fintype.card α))))) : set α).to_finset.card :
   card_le_of_subset (λ x hx, let ⟨m, hm⟩ := show x ∈ submonoid.powers g,
     from mem_powers_iff_mem_zpowers.2 $ hg x in
-    set.mem_to_finset.2 ⟨(m / (fintype.card α / (gcd n (fintype.card α))) : ℕ),
-      have hgmn : g ^ (m * gcd n (fintype.card α)) = 1,
+    set.mem_to_finset.2 ⟨(m / (fintype.card α / (nat.gcd n (fintype.card α))) : ℕ),
+      have hgmn : g ^ (m * nat.gcd n (fintype.card α)) = 1,
         by rw [pow_mul, hm, ← pow_gcd_card_eq_one_iff]; exact (mem_filter.1 hx).2,
       begin
         rw [zpow_coe_nat, ← pow_mul, nat.mul_div_cancel_left', hm],
         refine dvd_of_mul_dvd_mul_right (gcd_pos_of_pos_left (fintype.card α) hn0) _,
-        conv {to_lhs,
-          rw [nat.div_mul_cancel (gcd_dvd_right _ _), ← order_of_eq_card_of_forall_mem_zpowers hg]},
+        conv_lhs
+        { rw [nat.div_mul_cancel (nat.gcd_dvd_right _ _),
+              ←order_of_eq_card_of_forall_mem_zpowers hg] },
         exact order_of_dvd_of_pow_eq_one hgmn
       end⟩)
 ... ≤ n :
-  let ⟨m, hm⟩ := gcd_dvd_right n (fintype.card α) in
+  let ⟨m, hm⟩ := nat.gcd_dvd_right n (fintype.card α) in
   have hm0 : 0 < m, from nat.pos_of_ne_zero $
     λ hm0, by { rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm, exact hm.elim' 1 },
   begin
@@ -207,7 +236,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
       hm, nat.mul_div_cancel _ hm0],
-    exact le_of_dvd hn0 (gcd_dvd_left _ _)
+    exact le_of_dvd hn0 (nat.gcd_dvd_left _ _)
   end
 
 end classical
@@ -277,7 +306,7 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
       card_order_of_eq_totient_aux₁ (hm.trans hd) (finset.card_pos.2
         ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
-          by { rw [order_of_pow a, ha, gcd_eq_right (div_dvd_of_dvd hm),
+          by { rw [order_of_pow a, ha, nat.gcd_eq_right (div_dvd_of_dvd hm),
                 nat.div_div_self hm (succ_pos _)] }⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
@@ -490,3 +519,36 @@ begin
     haveI : fact (fintype.card α).prime := ⟨hp⟩,
     exact is_simple_group_of_prime_card rfl }
 end
+
+section exponent
+
+open monoid
+
+@[to_additive] lemma is_cyclic.exponent_eq_card [group α] [fintype α] [is_cyclic α] :
+  exponent α = fintype.card α :=
+begin
+  obtain ⟨g, hg⟩ := is_cyclic.exists_generator α,
+  rw ←lcm_order_eq_exponent,
+  apply nat.dvd_antisymm,
+  { rw finset.lcm_dvd_iff,
+    rintros b -,
+    exact order_of_dvd_card_univ },
+  rw ←order_of_eq_card_of_forall_mem_zpowers hg,
+  exact finset.dvd_lcm (finset.mem_univ g)
+end
+
+@[to_additive] lemma is_cyclic.of_exponent_eq_card [comm_group α] [fintype α]
+  (h : exponent α = fintype.card α) : is_cyclic α :=
+let ⟨g, _, hg⟩ := finset.mem_image.mp (finset.max'_mem _ _) in
+is_cyclic_of_order_of_eq_card g (hg.trans $ exponent_eq_max'_order_of.symm.trans h)
+
+@[to_additive] lemma is_cyclic.iff_exponent_eq_card [comm_group α] [fintype α] :
+  is_cyclic α ↔ exponent α = fintype.card α :=
+⟨λ h, by exactI is_cyclic.exponent_eq_card, is_cyclic.of_exponent_eq_card⟩
+
+@[to_additive] lemma is_cyclic.exponent_eq_zero_of_infinite [group α] [is_cyclic α] [infinite α] :
+  exponent α = 0 :=
+let ⟨g, hg⟩ := is_cyclic.exists_generator α in
+exponent_eq_zero_of_order_zero $ infinite.order_of_eq_zero_of_forall_mem_zpowers hg
+
+end exponent

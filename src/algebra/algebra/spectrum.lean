@@ -330,6 +330,17 @@ begin
       eval_C, eval_sub, is_root.def, sub_eq_zero] using r_mem }
 end
 
+/-- In this version of the spectral mapping theorem, we assume the spectrum
+is nonempty instead of assuming the degree of the polynomial is positive. Note: the
+assumption `[nontrivial A]` is necessary for the same reason as in `spectrum.zero_eq`. -/
+theorem polynomial_eq_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : polynomial 𝕜)
+  (hnon : (σ a).nonempty) : (λ k, eval k p) '' (σ a) = σ (aeval a p) :=
+begin
+  refine or.elim (le_or_gt (degree p) 0) (λ h, _) (polynomial_eq_of_degree_pos a p),
+  { rw eq_C_of_degree_le_zero h,
+    simp only [set.image_congr, eval_C, aeval_C, scalar_eq, set.nonempty.image_const hnon] },
+end
+
 end scalar_field
 
 end spectrum

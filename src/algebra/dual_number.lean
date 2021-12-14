@@ -62,7 +62,7 @@ variables {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 of `A` which squares to `-1`.
 
 This isomorphism is named to match the very similar `complex.lift`. -/
-@[simps]
+@[simps {attrs := []}]
 def lift : {e : A // e * e = 0} ≃ (𝔻[R] →ₐ[R] A) :=
 equiv.trans
   (show {e : A // e * e = 0} ≃ {f : R →ₗ[R] A // ∀ x y, f x * f y = 0}, from

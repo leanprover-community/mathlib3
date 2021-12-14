@@ -368,9 +368,9 @@ by rw [←mul_one r₁, ←mul_one r₂, ←smul_eq_mul R, ←smul_eq_mul R, lin
 the dual numbers. -/
 protected def equiv : clifford_algebra (0 : quadratic_form R R) ≃ₐ[R] 𝔻[R] :=
 alg_equiv.of_alg_hom
-  (clifford_algebra.lift (0 : quadratic_form R R) ⟨inr_hom, λ m, inr_mul_inr _ m m⟩)
-  (dual_number.lift_aux (ι _ (1 : R)) (ι_mul_ι _ _))
-  (by { ext x : 1, dsimp, rw [lift_aux_apply_eps, lift_ι_apply, inr_hom_apply, eps] })
+  (clifford_algebra.lift (0 : quadratic_form R R) ⟨inr_hom R _, λ m, inr_mul_inr _ m m⟩)
+  (dual_number.lift ⟨ι _ (1 : R), ι_mul_ι (1 : R) 1⟩)
+  (by { ext x : 1, dsimp, rw [lift_apply_eps, lift_ι_apply, inr_hom_apply, eps] })
   (by { ext : 2, dsimp, rw [lift_ι_apply, inr_hom_apply, ←eps, lift_aux_apply_eps] })
 
 end clifford_algebra_dual_number

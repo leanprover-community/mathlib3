@@ -584,7 +584,7 @@ begin
   { rw [add_zero] at hab, rwa [hab, zero_smul, one_smul, add_zero] },
   obtain rfl | hxy := eq_or_ne x y,
   { rwa convex.combo_self hab },
-  exact h _ hx _ hy hxy ha' hb' hab,
+  exact h hx hy hxy ha' hb' hab,
 end
 
 lemma convex_iff_open_segment_subset :

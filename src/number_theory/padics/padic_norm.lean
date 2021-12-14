@@ -388,14 +388,14 @@ begin
   exact padic_val_rat.pow _ (cast_ne_zero.mpr hq),
 end
 
-@[simp] protected lemma self_pow (p : ℕ) {k : ℕ} [h : fact p.prime] : padic_val_nat p (p ^ k) = k :=
-by rw [padic_val_nat.pow p _ _ h.1.ne_zero, padic_val_nat_self, mul_one]
+@[simp] protected lemma prime_pow (p n : ℕ) [fact p.prime] : padic_val_nat p (p ^ n) = n :=
+by rw [padic_val_nat.pow p _ _ (fact.out p.prime).ne_zero, padic_val_nat_self p, mul_one]
 
 protected lemma div_pow {p : ℕ} [p_prime : fact p.prime] {b k : ℕ} (dvd : p ^ k ∣ b) :
   (padic_val_nat p (b / p ^ k)) = (padic_val_nat p b) - k :=
 begin
   convert padic_val_nat.div_of_dvd p dvd,
-  rw padic_val_nat.self_pow
+  rw padic_val_nat.prime_pow
 end
 
 end padic_val_nat
@@ -493,9 +493,6 @@ begin
     { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },
     rwa nat.coprime_primes hp.1 hq.1, },
 end
-
-@[simp] lemma padic_val_nat_prime_pow (p n : ℕ) [fact p.prime] : padic_val_nat p (p ^ n) = n :=
-by rw [padic_val_nat.pow p _ _ (fact.out p.prime).ne_zero, padic_val_nat_self p, mul_one]
 
 open_locale big_operators
 

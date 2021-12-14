@@ -30,23 +30,17 @@ open category_theory category_theory.limits opposite
 namespace SheafedSpace
 
 variables {C : Type u} [category.{v} C] [has_limits C]
-variables {ι : Type v} (F : discrete ι ⥤ SheafedSpace C)
+variables {J : Type v} [category.{v} J] (F : J ⥤ SheafedSpace C)
 
-lemma sigma_ι_jointly_surjective (x : colimit F) :
-  ∃ (i : ι) (y : F.obj i), (colimit.ι F i).base y = x :=
-begin
-  let e : (colimit F).carrier ≅ _ :=
-    preserves_colimit_iso (SheafedSpace.forget _) _ ≪≫
-      colim.map_iso discrete.nat_iso_functor ≪≫ Top.sigma_iso_sigma _,
-  refine ⟨(e.hom x).1, (e.hom x).2, _⟩,
-  apply (Top.mono_iff_injective e.hom).mp infer_instance,
-  generalize : e.hom x = y,
-  rw ← Top.comp_app,
-  erw [ι_preserves_colimits_iso_hom_assoc (SheafedSpace.forget _), colimit.ι_map_assoc,
-    Top.sigma_iso_sigma_hom_ι_apply],
-  cases y,
-  refl
-end
+lemma is_colimit_exists_rep {c : cocone F} (hc : is_colimit c) (x : c.X) :
+  ∃ (i : J) (y : F.obj i), (c.ι.app i).base y = x :=
+concrete.is_colimit_exists_rep (F ⋙ SheafedSpace.forget _)
+  (is_colimit_of_preserves (SheafedSpace.forget _) hc) x
+
+lemma colimit_exists_rep (x : colimit F) :
+  ∃ (i : J) (y : F.obj i), (colimit.ι F i).base y = x :=
+concrete.is_colimit_exists_rep (F ⋙ SheafedSpace.forget _)
+  (is_colimit_of_preserves (SheafedSpace.forget _) (colimit.is_colimit F)) x
 
 instance {X Y : SheafedSpace C} (f g : X ⟶ Y) : epi (coequalizer.π f g).base :=
 begin
@@ -69,7 +63,7 @@ noncomputable
 def coproduct : LocallyRingedSpace :=
 { to_SheafedSpace := colimit (F ⋙ forget_to_SheafedSpace : _),
   local_ring := λ x, begin
-    obtain ⟨i, y, ⟨⟩⟩ := SheafedSpace.sigma_ι_jointly_surjective (F ⋙ forget_to_SheafedSpace) x,
+    obtain ⟨i, y, ⟨⟩⟩ := SheafedSpace.colimit_exists_rep (F ⋙ forget_to_SheafedSpace) x,
     haveI : _root_.local_ring (((F ⋙ forget_to_SheafedSpace).obj i).to_PresheafedSpace.stalk y) :=
       (F.obj i).local_ring _,
     exact (as_iso (PresheafedSpace.stalk_map (colimit.ι (F ⋙ forget_to_SheafedSpace) i : _) y)
@@ -88,7 +82,7 @@ def coproduct_cofan_is_colimit : is_colimit (coproduct_cofan F) :=
 { desc := λ s, ⟨colimit.desc (F ⋙ forget_to_SheafedSpace) (forget_to_SheafedSpace.map_cocone s),
   begin
     intro x,
-    obtain ⟨i, y, ⟨⟩⟩ := SheafedSpace.sigma_ι_jointly_surjective (F ⋙ forget_to_SheafedSpace) x,
+    obtain ⟨i, y, ⟨⟩⟩ := SheafedSpace.colimit_exists_rep (F ⋙ forget_to_SheafedSpace) x,
     have := PresheafedSpace.stalk_map.comp (colimit.ι (F ⋙ forget_to_SheafedSpace) i : _)
       (colimit.desc (F ⋙ forget_to_SheafedSpace) (forget_to_SheafedSpace.map_cocone s)) y,
     rw ← is_iso.comp_inv_eq at this,

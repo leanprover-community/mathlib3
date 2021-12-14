@@ -1426,6 +1426,8 @@ instance quotient.algebra {I : ideal A} : algebra R₁ (A ⧸ I) :=
   smul := (•),
   smul_def' := λ r x, quotient.induction_on' x $ λ x,
       ((quotient.mk I).congr_arg $ algebra.smul_def _ _).trans (ring_hom.map_mul _ _ _),
+  op_smul_def' := λ r x, quotient.induction_on' x $ λ x,
+      ((quotient.mk I).congr_arg $ algebra.op_smul_def _ _).trans (ring_hom.map_mul _ _ _),
   commutes' := λ _ _, mul_comm _ _,
   .. ring_hom.comp (ideal.quotient.mk I) (algebra_map R₁ A) }
 

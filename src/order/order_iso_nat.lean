@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.equiv.denumerable
-import order.order_hom
 import data.nat.lattice
+import logic.function.iterate
+import order.hom.basic
 
 /-!
 # Relation embeddings from the naturals

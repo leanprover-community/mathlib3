@@ -1705,6 +1705,8 @@ end
 lemma integrable_condexp : integrable (μ[f|m,hm]) μ :=
 (integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 f).symm
 
+variable (hm)
+
 /-- The integral of the conditional expectation `μ[f|hm]` over an `m`-measurable set is equal to
 the integral of `f` on that set. -/
 lemma set_integral_condexp (hf : integrable f μ) (hs : measurable_set[m] s) :
@@ -1714,11 +1716,13 @@ begin
   exact set_integral_condexp_L1 hf hs,
 end
 
+variable {hm}
+
 lemma integral_condexp (hf : integrable f μ) : ∫ x, μ[f|m,hm] x ∂μ = ∫ x, f x ∂μ :=
 begin
   suffices : ∫ x in set.univ, μ[f|m,hm] x ∂μ = ∫ x in set.univ, f x ∂μ,
     by { simp_rw integral_univ at this, exact this, },
-  exact set_integral_condexp hf (@measurable_set.univ _ m),
+  exact set_integral_condexp hm hf (@measurable_set.univ _ m),
 end
 
 /-- **Uniqueness of the conditional expectation**
@@ -1734,7 +1738,7 @@ begin
   refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' hm hg_int_finite
     (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, _) hgm
     (measurable.ae_measurable' measurable_condexp),
-  rw [hg_eq s hs hμs, set_integral_condexp hf hs],
+  rw [hg_eq s hs hμs, set_integral_condexp hm hf hs],
 end
 
 lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :
@@ -1777,9 +1781,9 @@ begin
     (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, integrable_condexp.integrable_on)
     _ (measurable.ae_measurable' measurable_condexp) (measurable.ae_measurable' measurable_condexp),
   intros s hs hμs,
-  rw set_integral_condexp integrable_condexp hs,
+  rw set_integral_condexp _ integrable_condexp hs,
   by_cases hf : integrable f μ,
-  { rw [set_integral_condexp hf hs, set_integral_condexp hf (hm₁₂ s hs)], },
+  { rw [set_integral_condexp _ hf hs, set_integral_condexp _ hf (hm₁₂ s hs)], },
   { simp_rw integral_congr_ae (ae_restrict_of_ae (condexp_undef hf)), },
 end
 

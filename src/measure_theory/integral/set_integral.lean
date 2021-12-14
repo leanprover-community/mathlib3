@@ -884,7 +884,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
 
 lemma integral_inner {f : α → E'} (hf : integrable f μ) (c : E') :
   ∫ x, ⟪c, f x⟫ ∂μ = ⟪c, ∫ x, f x ∂μ⟫ :=
-((@inner_right 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
+((@innerSL 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
 
 lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : integrable f μ)
   (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫ ∂μ = 0) :

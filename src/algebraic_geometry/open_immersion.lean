@@ -27,6 +27,8 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   that a Scheme morphism `f` is an open_immersion.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.iso_restrict`: The source of an
   open immersion is isomorphic to the restriction of the target onto the image.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.lift`: Any morphism whose range is
+  contained in an open immersion factors though the open immersion.
 
 ## Main results
 
@@ -37,6 +39,10 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   A surjective open immersion is an isomorphism.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.stalk_iso`: An open immersion induces
   an isomorphism on stalks.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.has_pullback_of_left`: If `f` is an open
+  immersion, then the pullback `(f, g)` exists (and the forgetful functor to `Top` preserves it).
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_snd_of_left`: Open immersions
+  are stable under pullbacks.
 
 -/
 
@@ -276,6 +282,10 @@ end
 end
 
 section pullback
+<<<<<<< HEAD
+=======
+
+>>>>>>> e3eb0eb024dd2c436c94d3e7386c70f50c5f1261
 noncomputable theory
 
 variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)
@@ -342,7 +352,7 @@ variable (s : pullback_cone f g)
 -/
 def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
 { base := pullback.lift s.fst.base s.snd.base
-  (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition),
+    (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition),
   c :=
   { app := λ U, s.snd.c.app _ ≫ s.X.presheaf.map (eq_to_hom (begin
       dsimp only [opens.map, is_open_map.functor, functor.op],
@@ -362,9 +372,9 @@ def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
       congr
     end } }
 
+-- this lemma is not a `simp` lemma, because it is an implementation detail
 lemma pullback_cone_of_left_lift_fst :
-  pullback_cone_of_left_lift f g s ≫
-    (pullback_cone_of_left f g).fst = s.fst :=
+  pullback_cone_of_left_lift f g s ≫ (pullback_cone_of_left f g).fst = s.fst :=
 begin
   ext x,
   { induction x using opposite.rec,
@@ -382,9 +392,9 @@ begin
     simp }
 end
 
+-- this lemma is not a `simp` lemma, because it is an implementation detail
 lemma pullback_cone_of_left_lift_snd :
-  pullback_cone_of_left_lift f g s ≫
-    (pullback_cone_of_left f g).snd = s.snd :=
+  pullback_cone_of_left_lift f g s ≫ (pullback_cone_of_left f g).snd = s.snd :=
 begin
   ext x,
   { change (_ ≫ _ ≫ _) ≫ _ = _,
@@ -411,13 +421,9 @@ def pullback_cone_of_left_is_limit :
 begin
   apply pullback_cone.is_limit_aux',
   intro s,
-  split,
-  swap,
-  exact pullback_cone_of_left_lift f g s,
-  split,
-  apply pullback_cone_of_left_lift_fst,
-  split,
-  apply pullback_cone_of_left_lift_snd,
+  use pullback_cone_of_left_lift f g s,
+  use pullback_cone_of_left_lift_fst f g s,
+  use pullback_cone_of_left_lift_snd f g s,
   intros m h₁ h₂,
   rw ← cancel_mono (pullback_cone_of_left f g).snd,
   exact (h₂.trans (pullback_cone_of_left_lift_snd f g s).symm)
@@ -505,7 +511,8 @@ lemma lift_uniq (H : set.range g.base ⊆ set.range f.base) (l : Y ⟶ X)
   (hl : l ≫ f = g) : l = lift f g H :=
 by rw [← cancel_mono f, hl, lift_fac]
 
-def iso_of_range_eq [is_open_immersion g] (e : set.range f.base = set.range g.base) :
+/-- Two open immersions with equal range is isomorphic. -/
+@[simps] def iso_of_range_eq [is_open_immersion g] (e : set.range f.base = set.range g.base) :
   X ≅ Y :=
 { hom := lift g f (le_of_eq e),
   inv := lift f g (le_of_eq e.symm),

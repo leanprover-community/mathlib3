@@ -2268,8 +2268,6 @@ lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
 
 end to_list
 
-
-
 section bUnion
 /-!
 ### bUnion

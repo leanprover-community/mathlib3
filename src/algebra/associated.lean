@@ -464,6 +464,10 @@ instance [monoid α] : has_bot (associates α) := ⟨1⟩
 lemma exists_rep [monoid α] (a : associates α) : ∃ a0 : α, associates.mk a0 = a :=
 quot.exists_rep a
 
+instance [monoid α] [subsingleton α] : unique (associates α) :=
+{ default := 1,
+  uniq := λ a, by { apply quotient.rec_on_subsingleton₂, intros a b, congr } }
+
 section comm_monoid
 variable [comm_monoid α]
 

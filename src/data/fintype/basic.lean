@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.array.lemmas
+import data.finset.card
 import data.finset.option
 import data.finset.pi
 import data.finset.powerset

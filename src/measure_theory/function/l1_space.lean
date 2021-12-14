@@ -393,6 +393,9 @@ variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 def integrable {α} {m : measurable_space α} (f : α → β) (μ : measure α . volume_tac) : Prop :=
 ae_measurable f μ ∧ has_finite_integral f μ
 
+lemma mem_ℒp_one_iff_integrable {f : α → β} : mem_ℒp f 1 μ ↔ integrable f μ :=
+by simp_rw [integrable, has_finite_integral, mem_ℒp, snorm_one_eq_lintegral_nnnorm]
+
 lemma integrable.ae_measurable {f : α → β} (hf : integrable f μ) : ae_measurable f μ := hf.1
 lemma integrable.has_finite_integral {f : α → β} (hf : integrable f μ) : has_finite_integral f μ :=
 hf.2
@@ -432,6 +435,11 @@ integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
 
 lemma integrable.mono_measure {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) : integrable f μ :=
 ⟨h.ae_measurable.mono_measure hμ, h.has_finite_integral.mono_measure hμ⟩
+
+lemma integrable.of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
+  (hμ'_le : μ' ≤ c • μ) {f : α → β} (hf : integrable f μ) :
+  integrable f μ' :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_measure_le_smul c hc hμ'_le, }
 
 lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
   integrable f (μ + ν) :=
@@ -559,9 +567,6 @@ lemma integrable.prod_mk [opens_measurable_space β] [opens_measurable_space γ]
   (hf.norm.add' hg.norm).mono $ eventually_of_forall $ λ x,
   calc max ∥f x∥ ∥g x∥ ≤ ∥f x∥ + ∥g x∥   : max_le_add_of_nonneg (norm_nonneg _) (norm_nonneg _)
                  ... ≤ ∥(∥f x∥ + ∥g x∥)∥ : le_abs_self _⟩
-
-lemma mem_ℒp_one_iff_integrable {f : α → β} : mem_ℒp f 1 μ ↔ integrable f μ :=
-by simp_rw [integrable, has_finite_integral, mem_ℒp, snorm_one_eq_lintegral_nnnorm]
 
 lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [is_finite_measure μ]
   (hfq : mem_ℒp f q μ) : integrable f μ :=

@@ -205,11 +205,11 @@ begin
   rw [submodule.span_attach_bUnion, eq_top_iff],
 
   -- It suffices to show that `r ^ n • x ∈ span T` for each `r : s`, since `{ r ^ n }` spans `R`.
-  -- This follows from the fact that each `x : R` is a linear combination of the generating set of
-  -- `Sᵣ`. By multiplying a sufficiently large power of `r`, we can cancel out the `r`s in the
+  -- This then follows from the fact that each `x : R` is a linear combination of the generating set
+  -- of `Sᵣ`. By multiplying a sufficiently large power of `r`, we can cancel out the `r`s in the
   -- denominators of both the generating set and the coefficients.
   rintro x -,
-  apply submodule.mem_of_span_top_of_smul_pow_mem _ s hs _ _,
+  apply submodule.mem_of_span_top_of_smul_pow_mem _ (s : set R) hs _ _,
   intro r,
   obtain ⟨⟨_, n₁, rfl⟩, hn₁⟩ := multiple_mem_span_of_mem_localization_span
     (submonoid.powers (r : R)) (localization.away (r : R)) (s₁ r : set (localization.away (f r)))

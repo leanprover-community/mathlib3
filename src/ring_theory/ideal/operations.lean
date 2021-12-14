@@ -189,7 +189,7 @@ end
 
 /-- Given `s`, a generating set of `R`, to check that an `x : M` falls in a
 submodule `M'` of `x`, we only need to show that `r ^ n • x ∈ M'` for some `n` for each `r : s`. -/
-lemma mem_of_span_top_of_smul_pow_mem (M' : submodule R M)
+lemma mem_of_span_eq_top_of_smul_pow_mem (M' : submodule R M)
   (s : set R) (hs : ideal.span s = ⊤) (x : M)
   (H : ∀ r : s, ∃ (n : ℕ), (r ^ n : R) • x ∈ M') : x ∈ M' :=
 begin

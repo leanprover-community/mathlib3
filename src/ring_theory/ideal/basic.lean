@@ -114,7 +114,7 @@ submodule.span_singleton_eq_bot
 
 @[simp] lemma span_one : span (1 : set α) = ⊤ := by rw [←set.singleton_one, span_singleton_one]
 
-lemma span_top_iff_finite (s : set α) :
+lemma span_eq_top_iff_finite (s : set α) :
   span s = ⊤ ↔ ∃ s' : finset α, ↑s' ⊆ s ∧ span (s' : set α) = ⊤ :=
 begin
   simp_rw eq_top_iff_one,

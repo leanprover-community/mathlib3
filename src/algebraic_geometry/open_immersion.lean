@@ -5,8 +5,8 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.presheafed_space.has_colimits
 import category_theory.limits.shapes.binary_products
-import topology.sheaves.functors
 import category_theory.limits.preserves.shapes.pullbacks
+import topology.sheaves.functors
 import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
 
@@ -759,7 +759,7 @@ end of_stalk_iso
 
 section prod
 
-variables {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) [has_colimit F] [has_limits C] (i : ι)
+variables [has_limits C] {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) [has_colimit F] (i : ι)
 
 lemma sigma_ι_open_embedding : open_embedding (colimit.ι F i).base :=
 begin
@@ -772,12 +772,9 @@ begin
   have : colimit.ι _ _ ≫ _ = _ := Top.sigma_iso_sigma_hom_ι (F ⋙ SheafedSpace.forget C).obj i,
   rw ← iso.eq_comp_inv at this,
   rw this,
-  simp_rw [← category.assoc, coe_comp],
-  apply (Top.homeo_of_iso _).symm.open_embedding.comp,
-  apply (Top.homeo_of_iso _).symm.open_embedding.comp,
-  apply (Top.homeo_of_iso (Top.sigma_iso_sigma _)).symm.open_embedding.comp,
-  exact open_embedding_sigma_mk.comp (Top.homeo_of_iso
-    (as_iso (discrete.nat_iso_functor.hom.app i))).open_embedding
+  simp_rw [← category.assoc, Top.open_embedding_iff_comp_is_iso,
+    Top.open_embedding_iff_is_iso_comp],
+  exact open_embedding_sigma_mk
 end
 
 lemma image_preimage_is_empty (j : ι) (h : i ≠ j) (U : opens (F.obj i)) :
@@ -795,36 +792,32 @@ begin
   rw ι_preserves_colimits_iso_inv at eq,
   change ((SheafedSpace.forget C).map (colimit.ι F i) ≫ _) y =
     ((SheafedSpace.forget C).map (colimit.ι F j) ≫ _) x at eq,
-  rw ι_preserves_colimits_iso_hom_assoc at eq,
-  rw ι_preserves_colimits_iso_hom_assoc at eq,
-  rw has_colimit.iso_of_nat_iso_ι_hom_assoc at eq,
-  rw has_colimit.iso_of_nat_iso_ι_hom_assoc at eq,
-  erw Top.sigma_iso_sigma_hom_ι at eq,
-  erw Top.sigma_iso_sigma_hom_ι at eq,
+  rw [ι_preserves_colimits_iso_hom_assoc, ι_preserves_colimits_iso_hom_assoc,
+    has_colimit.iso_of_nat_iso_ι_hom_assoc, has_colimit.iso_of_nat_iso_ι_hom_assoc,
+    Top.sigma_iso_sigma_hom_ι, Top.sigma_iso_sigma_hom_ι] at eq,
   exact h (congr_arg sigma.fst eq)
 end
-
-section end
 
 instance sigma_ι_is_open_immersion [has_strict_terminal_objects C] :
   SheafedSpace.is_open_immersion (colimit.ι F i) :=
 { base_open := sigma_ι_open_embedding F i,
   c_iso := λ U, begin
-    have e : colimit.ι F i = _ := (ι_preserves_colimits_iso_inv
-      SheafedSpace.forget_to_PresheafedSpace F i).symm,
+    have e : colimit.ι F i = _ :=
+      (ι_preserves_colimits_iso_inv SheafedSpace.forget_to_PresheafedSpace F i).symm,
     have H : open_embedding (colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) i ≫
       (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv).base :=
-    e ▸ sigma_ι_open_embedding F i,
+      e ▸ sigma_ι_open_embedding F i,
     suffices : is_iso ((colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) i ≫
       (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv).c.app
         (op (H.is_open_map.functor.obj U))),
     { convert this },
-    rw PresheafedSpace.comp_c_app,
-    rw ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π,
-    apply_with is_iso.comp_is_iso { instances := ff },
-    { apply_instance },
-    apply_with is_iso.comp_is_iso { instances := ff },
-    { apply_instance },
+    rw [PresheafedSpace.comp_c_app,
+      ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π],
+    suffices : is_iso (limit.π (PresheafedSpace.componentwise_diagram
+      (F ⋙ SheafedSpace.forget_to_PresheafedSpace)
+      ((opens.map (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv.base).obj
+      (unop $ op $ H.is_open_map.functor.obj U))) (op i)),
+    { resetI, apply_instance },
     apply limit_π_is_iso_of_is_strict_terminal,
     intros j hj,
     induction j using opposite.rec,

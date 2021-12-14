@@ -8,7 +8,15 @@ import analysis.special_functions.integrals
 /-!
 # Non integrable functions
 
-In this file we prove that some functions (e.g., `λ x, x⁻¹`) are not interval integrable.
+In this file we prove that the derivative of a function that tends to infinity is not interval
+integrable, see `interval_integral.not_integrable_has_deriv_at_of_tendsto_norm_at_top_filter` and
+`interval_integral.not_integrable_has_deriv_at_of_tendsto_norm_at_top_punctured`.  Then we apply the
+latter lemma to prove that the function `λ x, x⁻¹` is integrable on `a..b` if and only if `a = b` or
+`0 ∉ [a, b]`.
+
+## Tags
+
+integrable function
 -/
 
 open_locale measure_theory topological_space interval
@@ -19,7 +27,9 @@ namespace interval_integral
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [second_countable_topology E] [complete_space E]
 
-/-- If `f` has derivative `f'`  -/
+/-- If `f` has derivative `f'` eventually along a nontrivial filter `l : filter ℝ` that is generated
+by convex sets, the norm of `f` tends to infinity along `l`, then `f'` is not integrable on any
+interval `a..b` such that `[a, b] ∈ l`. -/
 lemma not_integrable_has_deriv_at_of_tendsto_norm_at_top_filter {f f' : ℝ → E} {a b : ℝ}
   (l : filter ℝ) [ne_bot l] [tendsto_Ixx_class Icc l l] (hl : [a, b] ∈ l)
   (hd : ∀ᶠ x in l, has_deriv_at f (f' x) x) (hf : tendsto (λ x, ∥f x∥) l at_top) :
@@ -50,6 +60,9 @@ begin
     (eventually_of_forall $ λ _, norm_nonneg _) hfi.norm
 end
 
+/-- If `∥f x∥ → ∞` as `x → c` (more formally, along the filter `𝓝[{c}ᶜ] c`) and `[a, b] ∋ c` is a
+nontrivial closed (unordered) interval, then the derivative `f'` of `f` is not interval integrable
+on `a..b`. -/
 lemma not_integrable_has_deriv_at_of_tendsto_norm_at_top_punctured {f f' : ℝ → E} {a b c : ℝ}
   (hne : a ≠ b) (hc : c ∈ [a, b]) (h_deriv : ∀ᶠ x in 𝓝[{c}ᶜ] c, has_deriv_at f (f' x) x)
   (h_infty : tendsto (λ x, ∥f x∥) (𝓝[{c}ᶜ] c) at_top) :
@@ -70,6 +83,7 @@ begin
   { exact λ hab hc h, this hab.symm (interval_swap a b ▸ hc) h.symm }
 end
 
+/-- The function `λ x, x⁻¹` is integrable on `a..b` if and only if `a = b` or `0 ∉ [a, b]`. -/
 @[simp] lemma interval_integrable_inv_iff {a b : ℝ} :
   interval_integrable (λ x, x⁻¹) volume a b ↔ a = b ∨ (0 : ℝ) ∉ [a, b] :=
 begin

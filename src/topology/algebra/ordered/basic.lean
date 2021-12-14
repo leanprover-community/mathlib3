@@ -1232,30 +1232,18 @@ lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset [no_top_order α] {a : α} {s : 
   s ∈ 𝓝[Ioi a] a ↔ ∃u ∈ Ioi a, Ioo a u ⊆ s :=
 let ⟨u', hu'⟩ := no_top a in mem_nhds_within_Ioi_iff_exists_Ioo_subset' hu'
 
-lemma mem_nhds_within_Ioi_iff_exists_mem_Ioo_Ioc_subset [densely_ordered α]
-  {a u' : α} {s : set α} (hu' : a < u') :
-  s ∈ 𝓝[Ioi a] a ↔ ∃ u ∈ Ioo a u', Ioc a u ⊆ s :=
-begin
-  split,
-  { rw mem_nhds_within_Ioi_iff_exists_mem_Ioc_Ioo_subset hu',
-    rintros ⟨u, ⟨au, uu'⟩, us⟩,
-    rcases exists_between au with ⟨v, av, vu⟩,
-    exact ⟨v, ⟨av, vu.trans_le uu'⟩, (Ioc_subset_Ioo_right vu).trans us⟩ },
-  { rintro ⟨u, hu, hs⟩,
-    exact mem_of_superset (Ioc_mem_nhds_within_Ioi (left_mem_Ico.2 hu.1)) hs }
-end
-
 /-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u]`
 with `a < u`. -/
 lemma mem_nhds_within_Ioi_iff_exists_Ioc_subset [no_top_order α] [densely_ordered α]
   {a : α} {s : set α} : s ∈ 𝓝[Ioi a] a ↔ ∃u ∈ Ioi a, Ioc a u ⊆ s :=
 begin
-  rcases no_top a with ⟨u', hu'⟩,
+  rw mem_nhds_within_Ioi_iff_exists_Ioo_subset,
   split,
-  { rw mem_nhds_within_Ioi_iff_exists_mem_Ioo_Ioc_subset hu',
-    exact λ ⟨u, hu, hs⟩, ⟨u, hu.1, hs⟩ },
-  { rintro ⟨u, hu, hs⟩,
-    exact mem_of_superset (Ioc_mem_nhds_within_Ioi (left_mem_Ico.2 hu)) hs }
+  { rintros ⟨u, au, as⟩,
+    rcases exists_between au with ⟨v, hv⟩,
+    exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
+  { rintros ⟨u, au, as⟩,
+    exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
 end
 
 /-- The following statements are equivalent:
@@ -1289,12 +1277,6 @@ with `l < a`. -/
 lemma mem_nhds_within_Iio_iff_exists_Ioo_subset [no_bot_order α] {a : α} {s : set α} :
   s ∈ 𝓝[Iio a] a ↔ ∃l ∈ Iio a, Ioo l a ⊆ s :=
 let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iio_iff_exists_Ioo_subset' hl'
-
-lemma mem_nhds_within_Iio_iff_exists_mem_Ioo_Ico_subset [densely_ordered α]
-  {a l' : α} {s : set α} (hlt : l' < a) :
-  s ∈ 𝓝[Iio a] a ↔ ∃ l ∈ Ioo l' a, Ico l a ⊆ s :=
-by simpa only [order_dual.exists, exists_prop, dual_Ioo, dual_Ioc]
-  using mem_nhds_within_Ioi_iff_exists_mem_Ioo_Ioc_subset (order_dual.to_dual_lt_to_dual.2 hlt)
 
 /-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `[l, a)`
 with `l < a`. -/

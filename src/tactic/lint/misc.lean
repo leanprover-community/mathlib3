@@ -456,13 +456,18 @@ meta def linter.unused_haves_suffices : linter :=
 
 -- set_option pp.all true
 -- #check 0
--- #check @nat
+-- #check ∅
+-- TODO find a way to typecheck these negations, easy to make mistakes here
 --TODO perhaps implement this with push_neg as ``normalize_negations `(¬ %%h)``
--- TODO work out how to incorporate TC, e.g.
+-- TODO work out how to incorporate TC, -- maybe done
+-- TODO nontrivial to subsingleton
 meta def negate_hyp : expr → option expr
 | (app (app (app (const `ne l) tp) t) s) := some (app (app (app (const `eq l) tp) t) s)
 -- TODO understand why universe bumps below
 | (app (app (app (app (const `has_lt.lt [l]) (const `nat [])) tc) `(0)) s) := some (app (app (app (const `eq [l.succ]) (const `nat [])) s) `(0))
+| (app (app (const `set.nonempty [l]) ty) s) := some (app (app (app (const `eq [l.succ]) (app (const `set [l]) ty)) s) (app (app (const `has_emptyc.emptyc [l]) (app (const `set [l]) ty)) (app (const `set.has_emptyc [l]) ty)))
+| (app (app (const `finset.nonempty [l]) ty) s) := some (app (app (app (const `eq [l.succ]) (app (const `finset [l]) ty)) s) (app (app (const `has_emptyc.emptyc [l]) (app (const `finset [l]) ty)) (app (const `finset.has_emptyc [l]) ty)))
+-- (hne : S.nonempty)
 -- | `((%%n : %%T) ≠ (@has_zero.zero _ %%f)) := some `(%%n = 0) -- more specific matches come first
 -- | `((%%n : ℤ) ≠ (0 : ℤ)) := some `((%%n : ℤ) = 0) -- more specific matches come first
 -- | `(%%n ≠ 0) := some `(%%n = 0)
@@ -497,9 +502,12 @@ meta def find_provable_edge_cases (oe : expr) : expr → tactic (list string)
     -- trace ne,
     g ← mk_meta_var ne,
     set_goals [g], -- TODO idk if ths is needed
-    (out, prf1, ns1) ← decorate_error "simplify fails on left-hand side:" $
-      simplify sls [] ne {fail_if_unchanged := ff},
-      -- trace out,
+  -- target >>= trace,
+    tactic.intros,
+    tactic.simp_all sls [],--
+    -- (out, prf1, ns1) ← decorate_error "simplify fails on left-hand side:" $
+    --   simplify sls [] ne {fail_if_unchanged := ff},
+    out ← target,
     if out = `(true) then
       return (some $ "Negating argument " ++ var_name.to_string ++
         " gives a lemma provable with simp")
@@ -569,7 +577,56 @@ meta def linter.provable_edge_cases : linter :=
 --   revert_all,
 --   simp,
 -- end
--- #print tesss
 -- run_cmd (do
---   d ← get_decl `test',
+--   d ← get_decl `testt,
+--  trace $ provable_edge_cases d)
+
+
+
+-- more dumb testing
+
+-- lemma testat {n : set ℕ} (b : ℕ) (h : n.nonempty) :  (n) ∩ {b} = n :=
+-- begin
+--   sorry
+--   -- simp only [nat.succ_sub_succ_eq_sub, eq_self_iff_true, nat.sub_zero],
+-- end
+-- lemma testata {n : finset ℕ} (b : ℕ) (h : n = ∅) :  (n).erase b = n :=
+-- begin
+--   simp [h],
+--   sorry
+--   -- simp only [nat.succ_sub_succ_eq_sub, eq_self_iff_true, nat.sub_zero],
+-- end
+-- open tactic
+-- run_cmd (do
+-- sls ← simp_lemmas.mk_default,
+--     g ← mk_meta_var  `(∀ {n m : finset ℕ} (b : ℕ), n = ∅ → n.erase b = n),
+--     set_goals [g], -- TODO idk if ths is needed
+--   target >>= trace,
+--   intros,
+--   tactic.simp_all sls [],--
+--   target >>= trace,
+--    e ← result,
+--    trace e,
+--     set_goals [] -- TODO idk if ths is needed
+--   -- tactic.trace $ tactic.simplify sls [] `(∀ {n : finset ℕ} (b : ℕ), n = ∅ → n.erase b = n)
+-- )
+-- #print finset
+-- set_option pp.all true
+-- #print testat
+-- -- lemma test' {n : ℕ} (h : 0 < n) : (n - 1) + 1 - 1 = n - 1 :=
+-- -- begin
+-- --   -- simp only [nat.succ_sub_succ_eq_sub, eq_self_iff_true, nat.sub_zero],
+-- --   rw (show n - 1 + 1 = n, from nat.succ_pred_eq_of_pos h),
+-- -- end
+-- -- lemma tesss {n : ℕ} (h : n = 0) : (n - 1) + 1 - 1 = n - 1 :=
+-- -- begin
+-- --   revert_all,
+-- --   simp,
+-- -- end
+-- #check λ n, @eq.{1} (finset.{0} nat) n (@has_emptyc.emptyc.{0} (finset.{0} nat) (@finset.has_emptyc.{0} nat))
+-- #check λ (n : finset ℕ), n = ∅
+
+-- open tactic
+-- run_cmd (do
+--   d ← get_decl `testat,
 --  trace $ provable_edge_cases d)

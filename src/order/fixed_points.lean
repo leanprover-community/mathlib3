@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Yury Kudryashov
 -/
-import order.order_hom
 import dynamics.fixed_points.basic
+import order.hom.lattice
 
 /-!
 # Fixed point construction on complete lattices

@@ -179,7 +179,7 @@ by { have := μ.inner_content_Sup_nat (λ i, ⟨U i, hU i⟩), rwa [opens.supr_d
 
 lemma inner_content_comap (f : G ≃ₜ G)
   (h : ∀ ⦃K : compacts G⦄, μ (K.map f f.continuous) = μ K) (U : opens G) :
-  μ.inner_content (U.comap f.continuous) = μ.inner_content U :=
+  μ.inner_content (opens.comap f.to_continuous_map U) = μ.inner_content U :=
 begin
   refine supr_congr _ ((compacts.equiv f).surjective) _,
   intro K, refine supr_congr_Prop image_subset_iff _,
@@ -190,7 +190,8 @@ end
 @[to_additive]
 lemma is_mul_left_invariant_inner_content [group G] [topological_group G]
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
-  (U : opens G) : μ.inner_content (U.comap $ continuous_mul_left g) = μ.inner_content U :=
+  (U : opens G) :
+  μ.inner_content (opens.comap (homeomorph.mul_left g).to_continuous_map U) = μ.inner_content U :=
 by convert μ.inner_content_comap (homeomorph.mul_left g) (λ K, h g) U
 
 @[to_additive]
@@ -203,7 +204,7 @@ begin
   rcases compact_covered_by_mul_left_translates K.2 this with ⟨s, hs⟩,
   suffices : μ K ≤ s.card * μ.inner_content U,
   { exact (ennreal.mul_pos_iff.mp $ hK.bot_lt.trans_le this).2 },
-  have : K.1 ⊆ ↑⨆ (g ∈ s), U.comap $ continuous_mul_left g,
+  have : K.1 ⊆ ↑⨆ (g ∈ s), opens.comap (homeomorph.mul_left g).to_continuous_map U,
   { simpa only [opens.supr_def, opens.coe_comap, subtype.coe_mk] },
   refine (μ.le_inner_content _ _ this).trans _,
   refine (rel_supr_sum (μ.inner_content) (μ.inner_content_empty) (≤)

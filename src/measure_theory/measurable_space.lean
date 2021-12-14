@@ -299,9 +299,9 @@ lemma measurable_to_nat {f : α → ℕ} : (∀ y, measurable_set (f ⁻¹' {f y
 measurable_to_encodable
 
 lemma measurable_find_greatest' {p : α → ℕ → Prop}
-  {N} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
+  {N : ℕ} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
   measurable (λ x, nat.find_greatest (p x) N) :=
-measurable_to_nat $ λ x, hN _ nat.find_greatest_le
+measurable_to_nat $ λ x, hN _ N.find_greatest_le
 
 lemma measurable_find_greatest {p : α → ℕ → Prop} {N} (hN : ∀ k ≤ N, measurable_set {x | p x k}) :
   measurable (λ x, nat.find_greatest (p x) N) :=
@@ -332,8 +332,8 @@ instance {α} {s : setoid α} [m : measurable_space α] : measurable_space (quot
 m.map quotient.mk'
 
 @[to_additive]
-instance {G} [group G] [measurable_space G] (S : subgroup G) :
-  measurable_space (quotient_group.quotient S) :=
+instance _root_.quotient_group.measurable_space {G} [group G] [measurable_space G]
+  (S : subgroup G) : measurable_space (G ⧸ S) :=
 quotient.measurable_space
 
 lemma measurable_set_quotient {s : setoid α} {t : set (quotient s)} :
@@ -357,14 +357,14 @@ iff.rfl
 λ s, id
 
 @[to_additive] lemma quotient_group.measurable_coe {G} [group G] [measurable_space G]
-  {S : subgroup G} : measurable (coe : G → quotient_group.quotient S) :=
+  {S : subgroup G} : measurable (coe : G → G ⧸ S) :=
 measurable_quotient_mk'
 
 attribute [measurability] quotient_group.measurable_coe quotient_add_group.measurable_coe
 
 @[to_additive] lemma quotient_group.measurable_from_quotient {G} [group G] [measurable_space G]
-  {S : subgroup G} {f : quotient_group.quotient S → α} :
-  measurable f ↔ measurable (f ∘ (coe : G → quotient_group.quotient S)) :=
+  {S : subgroup G} {f : G ⧸ S → α} :
+  measurable f ↔ measurable (f ∘ (coe : G → G ⧸ S)) :=
 measurable_from_quotient
 
 end quotient

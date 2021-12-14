@@ -3,9 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-
-import topology.continuous_on
 import topology.constructions
+import topology.continuous_on
 
 /-!
 # Bases of topologies. Countability axioms.
@@ -129,6 +128,10 @@ lemma is_topological_basis.nhds_has_basis {b : set (set α)} (hb : is_topologica
 protected lemma is_topological_basis.is_open {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
 by { rw hb.eq_generate_from, exact generate_open.basic s hs }
+
+protected lemma is_topological_basis.mem_nhds {a : α} {s : set α} {b : set (set α)}
+  (hb : is_topological_basis b) (hs : s ∈ b) (ha : a ∈ s) : s ∈ 𝓝 a :=
+(hb.is_open hs).mem_nhds ha
 
 lemma is_topological_basis.exists_subset_of_mem_open {b : set (set α)}
   (hb : is_topological_basis b) {a:α} {u : set α} (au : a ∈ u)
@@ -305,7 +308,7 @@ begin
       rw hij,
       exact (hf j hj).1 },
     contrapose! this,
-    exact h i hi j hj this },
+    exact h hi hj this },
   apply countable_of_injective_of_countable_image f_inj,
   apply u_count.mono _,
   exact image_subset_iff.2 (λ i hi, (hf i hi).2)

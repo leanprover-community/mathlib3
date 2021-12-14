@@ -372,6 +372,28 @@ begin
     simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
 
+/-! #### Product of two paths -/
+
+/-- Given a path in `X` and a path in `Y`, we can take their pointwise product to get a path in
+`X × Y`. -/
+protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) :
+  path (a₁, a₂) (b₁, b₂) :=
+{ to_continuous_map := continuous_map.prod_mk γ₁.to_continuous_map γ₂.to_continuous_map,
+  source' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.source, γ₂.source],
+  target' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.target, γ₂.target] }
+
+/-! #### Pointwise multiplication/addition of two paths in a topological (additive) group -/
+
+/-- Pointwise multiplication of paths in a topological group. The additive version is probably more
+useful. -/
+@[to_additive "Pointwise addition of paths in a topological additive group. -/"]
+protected def mul [has_mul X] [has_continuous_mul X] {a₁ b₁ a₂ b₂ : X}
+  (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) : path (a₁ * a₂) (b₁ * b₂) :=
+(γ₁.prod γ₂).map continuous_mul
+
+@[to_additive] protected lemma mul_apply [has_mul X] [has_continuous_mul X] {a₁ b₁ a₂ b₂ : X}
+  (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) (t : unit_interval) : (γ₁.mul γ₂) t = γ₁ t * γ₂ t := rfl
+
 /-! #### Truncating a path -/
 
 /-- `γ.truncate t₀ t₁` is the path which follows the path `γ` on the

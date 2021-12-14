@@ -8,14 +8,19 @@ import algebra.pointwise
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
-This file provides the actions
+This file provides:
+
+* `submonoid.has_inv`
+* `add_submonoid.has_neg`
+
+and the actions
 
 * `submonoid.pointwise_mul_action`
 * `add_submonoid.pointwise_mul_action`
 
 which matches the action of `mul_action_set`.
 
-These actions are available in the `pointwise` locale.
+These are all available in the `pointwise` locale.
 
 ## Implementation notes
 
@@ -26,7 +31,82 @@ on `set`s.
 
 -/
 
-variables {α : Type*} {M : Type*} {A : Type*} [monoid M] [add_monoid A]
+variables {α : Type*} {M : Type*} {G : Type*} {A : Type*} [monoid M] [add_monoid A]
+
+namespace submonoid
+
+variables [group G]
+
+open_locale pointwise
+
+/-- The submonoid with every element inverted. -/
+@[to_additive /-" The additive submonoid with every element negated. "-/]
+protected def has_inv : has_inv (submonoid G):=
+{ inv := λ S,
+  { carrier := (S : set G)⁻¹,
+    one_mem' := show (1 : G)⁻¹ ∈ S, by { rw one_inv, exact S.one_mem },
+    mul_mem' := λ a b (ha : a⁻¹ ∈ S) (hb : b⁻¹ ∈ S), show (a * b)⁻¹ ∈ S,
+      by { rw mul_inv_rev, exact S.mul_mem hb ha } } }
+
+localized "attribute [instance] submonoid.has_inv" in pointwise
+open_locale pointwise
+
+@[simp, to_additive] lemma coe_inv (S : submonoid G) : ↑(S⁻¹) = (S : set G)⁻¹ := rfl
+
+@[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
+
+@[simp, to_additive] protected lemma inv_inv (S : submonoid G) : S⁻¹⁻¹ = S :=
+set_like.coe_injective set.inv_inv
+
+@[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
+set_like.coe_subset_coe.symm.trans set.inv_subset_inv
+
+@[to_additive] lemma inv_le (S T : submonoid G) : S⁻¹ ≤ T ↔ S ≤ T⁻¹ :=
+set_like.coe_subset_coe.symm.trans set.inv_subset
+
+/-- `submonoid.has_inv` as an order isomorphism. -/
+@[to_additive /-" `add_submonoid.has_neg` as an order isomorphism "-/, simps]
+def inv_order_iso : submonoid G ≃o submonoid G :=
+{ to_fun := has_inv.inv,
+  inv_fun := has_inv.inv,
+  left_inv := submonoid.inv_inv,
+  right_inv := submonoid.inv_inv,
+  map_rel_iff' := inv_le_inv }
+
+@[to_additive] lemma closure_inv (s : set G) : closure s⁻¹ = (closure s)⁻¹ :=
+begin
+  apply le_antisymm,
+  { rw [closure_le, coe_inv, ←set.inv_subset, set.inv_inv],
+    exact subset_closure },
+  { rw [inv_le, closure_le, coe_inv, ←set.inv_subset],
+    exact subset_closure }
+end
+
+@[simp, to_additive]
+lemma inv_inf (S T : submonoid G) : (S ⊓ T)⁻¹ = S⁻¹ ⊓ T⁻¹ :=
+set_like.coe_injective set.inter_inv
+
+@[simp, to_additive]
+lemma inv_sup (S T : submonoid G) : (S ⊔ T)⁻¹ = S⁻¹ ⊔ T⁻¹ :=
+(inv_order_iso : submonoid G ≃o submonoid G).map_sup S T
+
+@[simp, to_additive]
+lemma inv_bot : (⊥ : submonoid G)⁻¹ = ⊥ :=
+set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ one_inv
+
+@[simp, to_additive]
+lemma inv_top : (⊤ : submonoid G)⁻¹ = ⊤ :=
+set_like.coe_injective $ set.inv_univ
+
+@[simp, to_additive]
+lemma inv_infi {ι : Sort*} (S : ι → submonoid G) : (⨅ i, S i)⁻¹ = ⨅ i, (S i)⁻¹ :=
+(inv_order_iso : submonoid G ≃o submonoid G).map_infi _
+
+@[simp, to_additive]
+lemma inv_supr {ι : Sort*} (S : ι → submonoid G) : (⨆ i, S i)⁻¹ = ⨆ i, (S i)⁻¹ :=
+(inv_order_iso : submonoid G ≃o submonoid G).map_supr _
+
+end submonoid
 
 namespace submonoid
 
@@ -49,6 +129,10 @@ open_locale pointwise
 
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submonoid M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
+
+instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ M] [is_central_scalar α M] :
+  is_central_scalar α (submonoid M) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 
@@ -114,19 +198,7 @@ open_locale pointwise
 @[to_additive]
 lemma mem_closure_inv {G : Type*} [group G] (S : set G) (x : G) :
   x ∈ submonoid.closure S⁻¹ ↔ x⁻¹ ∈ submonoid.closure S :=
-begin
-  suffices : ∀ (S : set G) (x : G), x ∈ submonoid.closure S⁻¹ → x⁻¹ ∈ submonoid.closure S,
-  { refine ⟨this S x, _⟩,
-    have := this S⁻¹ x⁻¹,
-    rwa [inv_inv, set.inv_inv] at this },
-  intros S x hx,
-  refine submonoid.closure_induction hx (λ x hx, _) _ (λ x y hx hy, _),
-  { exact submonoid.subset_closure (set.mem_inv.mp hx), },
-  { rw one_inv,
-    exact submonoid.one_mem _ },
-  { rw mul_inv_rev x y,
-    exact submonoid.mul_mem _ hy hx },
-end
+by rw [closure_inv, mem_inv]
 
 end submonoid
 
@@ -151,6 +223,10 @@ open_locale pointwise
 
 lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_submonoid A) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set A))
+
+instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ A] [is_central_scalar α A] :
+  is_central_scalar α (add_submonoid A) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 

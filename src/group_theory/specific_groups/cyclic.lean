@@ -540,7 +540,7 @@ end
 @[to_additive] lemma is_cyclic.of_exponent_eq_card [comm_group α] [fintype α]
   (h : exponent α = fintype.card α) : is_cyclic α :=
 let ⟨g, _, hg⟩ := finset.mem_image.mp (finset.max'_mem _ _) in
-is_cyclic_of_order_of_eq_card g (hg.trans $ exponent_eq_max'_order_of.symm.trans h)
+is_cyclic_of_order_of_eq_card g $ hg.trans $ exponent_eq_max'_order_of.symm.trans h
 
 @[to_additive] lemma is_cyclic.iff_exponent_eq_card [comm_group α] [fintype α] :
   is_cyclic α ↔ exponent α = fintype.card α :=

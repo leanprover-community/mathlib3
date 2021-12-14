@@ -95,13 +95,15 @@ variables (F : Type*)
 
 namespace mul_equiv_class
 
-@[to_additive]
+@[priority 100, -- See note [lower instance priority]
+  to_additive]
 instance [has_mul M] [has_mul N] [h : mul_equiv_class F M N] : mul_hom_class F M N :=
 { coe := (coe : F → M → N),
   coe_injective' := @equiv_like.coe_injective F _ _ _,
   .. h }
 
-@[to_additive]
+@[priority 100, -- See note [lower instance priority]
+  to_additive]
 instance [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N] :
   monoid_hom_class F M N :=
 { coe := (coe : F → M → N),

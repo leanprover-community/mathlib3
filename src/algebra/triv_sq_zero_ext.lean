@@ -350,19 +350,6 @@ end mul
 
 section algebra
 variables (S : Type*) (R : Type u) (M : Type v)
-
--- instance [comm_semiring R] [add_comm_monoid M]
---   [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M] : algebra R (tsze R M) :=
--- { commutes' := λ r x, mul_comm _ _,
---   smul_def' := λ r x, ext rfl $ show r • x.2 = r • x.2 + x.1 • 0, by rw [smul_zero, add_zero],
---   op_smul_def' := λ x r, ext rfl $
---     show mul_opposite.op r • x.2 = x.1 • 0 + r • x.2, by rw [smul_zero, zero_add, op_smul_eq_smul],
---   .. triv_sq_zero_ext.module R M,
---   .. triv_sq_zero_ext.inl_hom R M }
-
--- /-- The canonical `R`-algebra projection `triv_sq_zero_ext R M → R`. -/
--- def fst_hom [comm_semiring R] [add_comm_monoid M]
---   [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M] : tsze R M →ₐ[R] R :=
 variables [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
 variables [algebra S R] [module S M] [module Sᵐᵒᵖ M] [is_central_scalar S M]
 variables [module R M] [is_scalar_tower S R M]

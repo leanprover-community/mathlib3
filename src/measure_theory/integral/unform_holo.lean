@@ -717,17 +717,74 @@ simp_rw  integral_of_le pi,
 apply this,
 end
 
+lemma abs_norm (x : ℂ) : norm( abs x)= abs x :=
+begin
+rw real.norm_eq_abs,
+apply abs_abs,
+end
+
+lemma auxlefind {a b c r s t : ℝ} (ha :  a < r ) (hb : b < s) (hc : c < t) : a+b +c< r+s+t :=
+begin
+linarith,
+end
+
+lemma auxlefind4 {a b c d r s t u : ℝ} (ha :  a < r ) (hb : b < s) (hc : c < t) (hd: d < u) : a+b +c+d< r+s+t +u:=
+begin
+linarith,
+end
+
+lemma aux2 (a b c d e f : ℂ) (ε : ℝ) (hε: 0 < ε) (h1: abs (a- b) < 8⁻¹*ε) (h2 :abs (c- d) < 8⁻¹*ε )
+(h3 :abs ((b- d)- (e-f)) < (2/3)*ε) : abs ((a-b) - (c-d) + (b-d) - (e-f) ) < ε :=
+begin
+  have h4: abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤ abs ((a-b) - (c-d)) + abs ((b-d) - (e-f)),
+  by {set x : ℂ := (a-b) - (c-d), set y: ℂ :=((b-d) - (e-f)),
+  have := abs_add x y,
+  convert this,simp_rw y, ring,},
+  have h5: abs (a - b - (c - d)) ≤ abs (a -b)+ abs (c-d), by {have:= complex.abs_sub_le (a-b) 0 (c-d),
+  simp at this,
+  have hcd :abs (c-d)= abs (d-c), by {apply complex.abs_sub_comm,},
+  rw hcd,
+  apply this,},
+  have h6 :abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤ abs (a -b)+ abs (c-d)+  abs ((b-d) - (e-f)),
+  by {linarith,},
+  have h7:=  auxlefind h1 h2 h3,
+  have h8:= lt_of_le_of_lt h6  h7,
+  apply lt_trans h8,
+  ring_nf,
+  linarith,
+end
+
+lemma aux3 (a b c d: ℂ) (ε : ℝ) (hε : 0 < ε )
+ (h : ∃ (x y : ℂ), abs ( a- y) < 8⁻¹*ε ∧ abs (b -x) < 8⁻¹*ε ∧ abs (c -y)  < 8⁻¹*ε ∧
+ abs (d -x)  < 8⁻¹*ε) : abs ((a-b )- (c-d)) < (2/3)*ε :=
+
+begin
+obtain ⟨x, y , h1,h2, h3, h4⟩:= h,
+have h5: abs ((a-b )- (c-d)) = abs (( (a-y) -(b-x) )- ((c-y)-(d-x))) , by {ring_nf,},
+rw h5,
+have h6: abs (( (a-y) -(b-x) )- ((c-y)-(d-x))) ≤ abs (a-y) + abs(b-x)+ abs (c-y)+ abs(d-x), by {
+  sorry,
+
+},
+have h7:= auxlefind4 h1 h2 h3 h4,
+have h8:= lt_of_le_of_lt h6  h7,
+apply lt_trans h8,
+ring_nf,
+linarith,
+end
+
 lemma unif_of_diff_is_diff (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
   (hdiff : ∀ (n : ℕ), differentiable_on ℂ (F n) (closed_ball z R))
   (hlim : tendsto_uniformly F f filter.at_top) :
   differentiable_on ℂ f (ball z (2⁻¹*R)) :=
 begin
-have F_measurable : ∀ n, integrable (F n) volume, by {sorry,},
+--have F_measurable : ∀ n, integrable (F n) volume, by {sorry,},
 have F_cts : ∀ n, continuous (F n) , by {sorry,},
 rw differentiable_on,
 intros x hx,
 have hxx: x ∈ ball z R, by {have :=half_ball_sub R hR z, apply this, apply hx},
 have key:= UNIF_CONV_INT R hR F f F_cts hlim z ⟨x, hxx⟩,
+have keyb:= UNIF_CONV_INT R hR F f F_cts hlim z,
 --have key := int_diff_of_uniform' F f z x R hR hlim,
 rw differentiable_within_at,
 have h0:= int_diff R hR f z,
@@ -745,14 +802,53 @@ rw metric.tendsto_nhds at *,
 rw tendsto_uniformly_iff at hlim,
 simp_rw dist_eq_norm at *,
 intros ε hε,
-have hlim2:= hlim ε hε,
+have h8: 0 < 8⁻¹*ε, by {sorry},
+ have key2:= key (8⁻¹*ε) h8,
+have hlim2:= hlim (8⁻¹*ε) h8,
+have hDε:= hD (8⁻¹*ε) h8,
 simp at *,
 obtain ⟨a, ha⟩ := hlim2,
+obtain ⟨a', ha'⟩:= key2,
+set A' : ℕ := max a a',
+
+rw int_diff at hDε,
+simp at hDε ,
+ rw filter.eventually_iff_exists_mem at *,
+obtain ⟨S1, hS1, HS1⟩:= hDε,
+let U:= S1 ⊓ (ball x 1) ⊓ ball z (2⁻¹* R),
+use U,
+have hU: U ∈ 𝓝[ball z (2⁻¹ * R)] x , by {simp_rw U, simp_rw metric.mem_nhds_within_iff at *,
+
+ sorry,},
+simp [hU],
+intros y hy,
+simp_rw U at hy,
+simp at hy,
+simp_rw abs_norm,
+have hyz: y ∈ ball z R, by {sorry,},
+have keyy:= keyb y hyz,
+have h8': 0 < 8⁻¹*ε, by {sorry},
+rw metric.tendsto_nhds at keyy,
+simp at keyy,
+obtain ⟨a'', ha''⟩:= keyy (8⁻¹*ε) h8',
+set A : ℕ := max A' a'',
+have haA: a ≤ A, by {sorry,},
+have ha'A: a' ≤ A, by {sorry,},
+have ha''A : a'' ≤ A, by {sorry,},
 have HH: ∀ (y : ℂ), f y - f x - (D y - D x) =
-(f y - F a y) - ((f x)- (F a x)) + ((F a y)- (F a x))  - (D y - D x), by {sorry,},
+(f y - F A y) - ((f x)- (F A x)) + ((F A y)- (F A x))  - (D y - D x), by {sorry,},
 simp_rw HH,
-rw int_diff at hD,
-simp at hD,
+
+have mainineq: abs ((f y - F A y) - ((f x)- (F A x)) + ((F A y)- (F A x))  - (D y - D x)) < ε, by
+{
+apply aux2,
+apply hε,
+apply ha A haA,
+apply ha A haA,
+
+
+  sorry,
+},
 sorry,
 end
 

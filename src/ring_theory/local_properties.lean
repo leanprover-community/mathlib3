@@ -15,35 +15,100 @@ In this file, we provide the proofs of various local properties.
 
 ## Naming Conventions
 
-* `localization_P` : `P` holds for `S⁻¹R` if `P` holds for `R`.
-* `P_of_localization_maximal` : `P` holds for `R` if `P` holds for `Aₘ` for all maximal `m`.
-* `P_of_localization_span` : `P` holds for `R` if given a spanning set `{fᵢ}`, `P` holds for all
+* `localization_P`: `P` holds for `S⁻¹R` if `P` holds for `R`.
+* `P_of_localization_maximal`: `P` holds for `R` if `P` holds for `Aₘ` for all maximal `m`.
+* `P_of_localization_span`: `P` holds for `R` if given a spanning set `{fᵢ}`, `P` holds for all
   `A_{fᵢ}`.
 
 ## Main results
 
 The following properties are covered:
 
-* `finite`
-* `finite_type`
+* `finite`: `localization_finite`, `finite_of_localization_span`
+* `finite_type`: `localization_finite_type`, `finite_type_of_localization_span`
 
 -/
 
 open_locale pointwise classical big_operators
 
-universe u
+universes u
 
-variables {R S : Type u} [comm_ring R] [comm_ring S] (M : submonoid R)
-variables (N : submonoid S) (R' S' : Type u) [comm_ring R'] [comm_ring S'] (f : R →+* S)
+variables {R S : Type u} [comm_ring R] [comm_ring S] (f : R →+* S) (M : submonoid R)
+variables (N : submonoid S) (R' S' : Type u) [comm_ring R'] [comm_ring S']
 variables [algebra R R'] [algebra S S']
+
+section properties
+
+variable (P : ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S), Prop)
+
+include P
+
+/-- A property `P` of ring homs is said to be preserved by localization
+ if `P` holds for `M⁻¹R →+* M⁻¹S` whenever `P` holds for `R →+* S`. -/
+def ring_hom.localization_preserves :=
+  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S) (M : by exactI submonoid R)
+    (R' S' : Type u) [comm_ring R'] [comm_ring S'] [by exactI algebra R R']
+    [by exactI algebra S S'] [by exactI is_localization M R']
+    [by exactI is_localization (M.map (f : R →* S)) S'],
+    by exactI (P f → P (is_localization.map S' f (submonoid.le_comap_map M) : R' →+* S'))
+
+/-- A property `P` of ring homs satisfies `ring_hom.of_localization_finite_span`
+if `P` holds for `R →+* S` whenever there exists a finite set `{ r }` that spans `R` such that
+`P` holds for `Rᵣ →+* Sᵣ`.
+
+Note that this is equivalent to `ring_hom.of_localization_span` via
+`ring_hom.of_localization_span_iff_finite`, but this is easier to prove. -/
+def ring_hom.of_localization_finite_span :=
+  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+    (s : finset R) (hs : by exactI ideal.span (s : set R) = ⊤)
+    (H : by exactI (∀ (r : s), P (localization.away_map f r))), by exactI P f
+
+/-- A property `P` of ring homs satisfies `ring_hom.of_localization_finite_span`
+if `P` holds for `R →+* S` whenever there exists a set `{ r }` that spans `R` such that
+`P` holds for `Rᵣ →+* Sᵣ`.
+
+Note that this is equivalent to `ring_hom.of_localization_finite_span` via
+`ring_hom.of_localization_span_iff_finite`, but this has less restrictions when applying. -/
+def ring_hom.of_localization_span :=
+  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+    (s : set R) (hs : by exactI ideal.span s = ⊤)
+    (H : by exactI (∀ (r : s), P (localization.away_map f r))), by exactI P f
+
+lemma ring_hom.of_localization_span_iff_finite :
+  ring_hom.of_localization_span @P ↔ ring_hom.of_localization_finite_span @P :=
+begin
+  delta ring_hom.of_localization_span ring_hom.of_localization_finite_span,
+  iterate 5 { apply forall_congr, intro _ },
+  resetI,
+  split,
+  { intros h s, exact h s },
+  { intros h s hs hs',
+    obtain ⟨s', h₁, h₂⟩ := (ideal.span_eq_top_iff_finite s).mp hs,
+    exact h s' h₂ (λ x, hs' ⟨_, h₁ x.prop⟩) }
+end
+
+variables {P f R' S'}
+
+-- Almost all arguments are implicit since this is not intended to use mid-proof.
+lemma ring_hom.localization_away_of_localization_preserves
+  (H : ring_hom.localization_preserves @P) {r : R} [is_localization.away r R']
+  [is_localization.away (f r) S'] (hf : P f) :
+    P (by exactI is_localization.away.map R' S' f r) :=
+begin
+  resetI,
+  haveI : is_localization ((submonoid.powers r).map (f : R →* S)) S',
+  { rw submonoid.map_powers, assumption },
+  exact H f (submonoid.powers r) R' S' hf,
+end
+
+end properties
 
 section finite
 
 /-- If `S` is a finite `R`-algebra, then `S' = M⁻¹S` is a finite `R' = M⁻¹R`-algebra. -/
-lemma localization_finite [is_localization M R'] [is_localization (M.map (f : R →* S)) S']
-  (hf : f.finite) :
-  (is_localization.map S' f (submonoid.le_comap_map M) : R' →+* S').finite :=
+lemma localization_finite : ring_hom.localization_preserves @ring_hom.finite :=
 begin
+  introv R hf,
   -- Setting up the `algebra` and `is_scalar_tower` instances needed
   classical,
   letI := f.to_algebra,
@@ -86,11 +151,7 @@ end
 lemma localization_away_map_finite (r : R) [is_localization.away r R']
   [is_localization.away (f r) S'] (hf : f.finite) :
     (is_localization.away.map R' S' f r).finite :=
-begin
-  haveI : is_localization ((submonoid.powers r).map (f : R →* S)) S',
-  { rw submonoid.map_powers, assumption },
-  exact localization_finite (submonoid.powers r) R' S' f hf,
-end
+ring_hom.localization_away_of_localization_preserves @localization_finite hf
 
 /--
 Let `S` be an `R`-algebra, `M` an submonoid of `R`, and `S' = M⁻¹S`.
@@ -178,9 +239,10 @@ begin
   exact multiple_mem_span_of_mem_localization_span M R' _ _ hx
 end
 
-lemma finite_of_localization_span (s : finset R) (hs : ideal.span (s : set R) = ⊤)
-  (H : ∀ (r : s), (localization.away_map f r).finite) : f.finite :=
+lemma finite_of_localization_span : ring_hom.of_localization_span @ring_hom.finite :=
 begin
+  rw ring_hom.of_localization_span_iff_finite,
+  introv R hs H,
   -- We first setup the instances
   classical,
   letI := f.to_algebra,
@@ -209,7 +271,7 @@ begin
   -- of `Sᵣ`. By multiplying a sufficiently large power of `r`, we can cancel out the `r`s in the
   -- denominators of both the generating set and the coefficients.
   rintro x -,
-  apply submodule.mem_of_span_top_of_smul_pow_mem _ (s : set R) hs _ _,
+  apply submodule.mem_of_span_eq_top_of_smul_pow_mem _ (s : set R) hs _ _,
   intro r,
   obtain ⟨⟨_, n₁, rfl⟩, hn₁⟩ := multiple_mem_span_of_mem_localization_span
     (submonoid.powers (r : R)) (localization.away (r : R)) (s₁ r : set (localization.away (f r)))
@@ -231,10 +293,9 @@ end finite
 
 section finite_type
 
-lemma localization_finite_type [is_localization M R'] [is_localization (M.map (f : R →* S)) S']
-  (hf : f.finite_type) :
-  (is_localization.map S' f (submonoid.le_comap_map M) : R' →+* S').finite_type :=
+lemma localization_finite_type : ring_hom.localization_preserves @ring_hom.finite_type :=
 begin
+  introv R hf,
   -- mirrors the proof of `localization_map_finite`
   classical,
   letI := f.to_algebra,
@@ -266,6 +327,11 @@ begin
   rw map_one,
   refl,
 end
+
+lemma localization_away_map_finite_type (r : R) [is_localization.away r R']
+  [is_localization.away (f r) S'] (hf : f.finite_type) :
+    (is_localization.away.map R' S' f r).finite_type :=
+ring_hom.localization_away_of_localization_preserves @localization_finite_type hf
 
 /--
 Let `S` be an `R`-algebra, `M` an submonoid of `R`, and `S' = M⁻¹S`.
@@ -306,9 +372,10 @@ begin
   { rw mul_comm, exact algebra.smul_def _ _ }
 end
 
-lemma finite_type_of_localization_span (s : finset R) (hs : ideal.span (s : set R) = ⊤)
-  (H : ∀ (r : s), (localization.away_map f r).finite_type) : f.finite_type :=
+lemma finite_type_of_localization_span : ring_hom.of_localization_span @ring_hom.finite_type :=
 begin
+  rw ring_hom.of_localization_span_iff_finite,
+  introv R hs H,
   -- mirrors the proof of `finite_of_localization_span`
   classical,
   letI := f.to_algebra,
@@ -331,7 +398,7 @@ begin
   rw eq_top_iff,
   rintro x -,
   apply (⨆ (x : s), algebra.adjoin R (sf x : set S)).to_submodule
-    .mem_of_span_top_of_smul_pow_mem _ hs _ _,
+    .mem_of_span_eq_top_of_smul_pow_mem _ hs _ _,
   intro r,
   obtain ⟨⟨_, n₁, rfl⟩, hn₁⟩ := multiple_mem_adjoin_of_mem_localization_adjoin
     (submonoid.powers (r : R)) (localization.away (r : R)) (s₁ r : set (localization.away (f r)))

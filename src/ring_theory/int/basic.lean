@@ -67,13 +67,14 @@ namespace nat
 
 instance : wf_dvd_monoid ℕ :=
 ⟨begin
-  apply rel_hom.well_founded _ (with_top.well_founded_lt nat.lt_wf),
-  refine ⟨λ x, if x = 0 then ⊤ else x, _⟩,
+  refine rel_hom_class.well_founded
+    (⟨λ (x : ℕ), if x = 0 then (⊤ : with_top ℕ) else x, _⟩ : dvd_not_unit →r (<))
+    (with_top.well_founded_lt nat.lt_wf),
   intros a b h,
   cases a,
   { exfalso, revert h, simp [dvd_not_unit] },
   cases b,
-  {simp [succ_ne_zero, with_top.coe_lt_top]},
+  { simp [succ_ne_zero, with_top.coe_lt_top] },
   cases dvd_and_not_dvd_iff.2 h with h1 h2,
   simp only [succ_ne_zero, with_top.coe_lt_coe, if_false],
   apply lt_of_le_of_ne (nat.le_of_dvd (nat.succ_pos _) h1) (λ con, h2 _),

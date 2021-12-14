@@ -293,8 +293,8 @@ end
 /-- This is the *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
 is necessary in case `σ a = ∅`, for then the left-hand side is `∅` and the right-hand side,
 assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
-theorem polynomial_eq_of_degree_pos [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : polynomial 𝕜)
-  (hdeg : degree p > 0) : (λ k, eval k p) '' (σ a) = σ (aeval a p) :=
+theorem polynomial_eq_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : polynomial 𝕜)
+  (hdeg : 0 < degree p) : (λ k, eval k p) '' (σ a) = σ (aeval a p) :=
 begin
   /- handle the easy direction via `spectrum.polynomial_subset` -/
   apply set.eq_of_subset_of_subset (polynomial_subset a p),

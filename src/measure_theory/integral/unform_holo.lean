@@ -300,8 +300,16 @@ apply continuous_id,
 apply continuous_const,
 end
 
+lemma half_ball_sub (R: ℝ) (hR: 0 < R) (z : ℂ) : ball z (2⁻¹*R) ⊆ ball z R :=
+begin
+apply ball_subset_ball,
+rw mul_le_iff_le_one_left hR,
+apply inv_le_one,
+linarith,
+end
+
 lemma der1bound' (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) (x : ℂ) (hx : x ∈ ball z (2⁻¹*R)) (hf : continuous f):
-∃ (boun : ℝ → ℝ) (ε : ℝ), 0 < ε ∧
+∃ (boun : ℝ → ℝ) (ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
  (∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε, ∥der1 R hR z f y t∥ ≤  boun t) ∧ continuous boun:=
  begin
 have h2R: 0 < 2*R, by {linarith,},
@@ -315,6 +323,10 @@ use bound,
 use ε',
 simp at hε',
 simp [hε'],
+have h_ball : ball x ε' ⊆ ball z R, by {have: ball z (2⁻¹ * R) ⊆ ball z R,
+by {apply half_ball_sub R hR z, },
+apply subset.trans H this, },
+simp [h_ball],
 split,
  rw filter.eventually_iff_exists_mem,
  use ⊤,
@@ -345,13 +357,34 @@ split,
    apply cts,
  end
 
-lemma half_ball_sub (R: ℝ) (hR: 0 < R) (z : ℂ) : ball z (2⁻¹*R) ⊆ ball z R :=
+
+
+def antider (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) :
+ ℂ → ℝ → ℂ  := λ w, (λ θ, (int_diff0 R hR f z w θ))
+
+lemma der_deriv  (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) :
+  ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball z R,
+  has_deriv_at (λ y, (antider R hR z f) y t) ((der1 R hR z f) y t) y :=
 begin
-apply ball_subset_ball,
-rw mul_le_iff_le_one_left hR,
-apply inv_le_one,
-linarith,
+ rw filter.eventually_iff_exists_mem,
+ use ⊤,
+ simp,
+ intros y hy x hx,
+ simp_rw [antider, der1, int_diff0, int_diff0'],
+ simp,
+ simp_rw ← mul_assoc,
+ apply has_deriv_at.mul_const,
+ apply has_deriv_at.const_mul,
+ simp_rw div_eq_mul_inv,
+ apply has_deriv_at.const_mul,
+ have H: has_deriv_at (λ (y_1 : ℂ), (z + ↑R * exp (↑y * I) - y_1)) (-1 ) x,
+ by {apply has_deriv_at.const_sub, apply has_deriv_at_id,},
+ have  dnz : ((z + ↑R * exp (↑y * I) - x) ) ≠ 0, by {sorry},
+ have := has_deriv_at.inv H dnz,
+ simp at this,
+ apply this,
 end
+
 
 lemma int_diff_has_fdrevi (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ)  (hf: continuous f) :
   differentiable_on ℂ (int_diff R hR f z) (ball z (2⁻¹*R)) :=
@@ -397,7 +430,7 @@ have  hF'_meas : ae_measurable (F' x) (volume.restrict (Ι 0 (2 * π))) , by {
     apply HB,
     apply hx,},
   have BOU := der1bound' R hR z f x hx hf,
-  obtain ⟨bound, ε, hε ,h_boun, hcts⟩:= BOU,
+  obtain ⟨bound, ε, hε ,h_ball, h_boun, hcts⟩:= BOU,
 have h_bound : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε , ∥F' y t∥ ≤  bound t,
 by {
   simp_rw F',
@@ -408,8 +441,15 @@ by {apply continuous.interval_integrable, apply hcts,},
 have h_diff : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε, has_deriv_at (λ y, F y t) (F' y t) y,
 by {
   simp_rw [F, F', int_diff0, der1, int_diff0'],
-
-  sorry},
+  have := der_deriv R hR z f,
+  simp_rw [der1, antider, int_diff0, int_diff0'] at this,
+  rw filter.eventually_iff_exists_mem at *,
+  obtain ⟨ S , hS, HH⟩ := this,
+  use S,
+  use hS,
+  intros y hSy hy x hx,
+  have hxz: x ∈ ball z R, by {apply h_ball, apply hx},
+  apply HH y hSy hy x hxz,},
 have := interval_integral.has_deriv_at_integral_of_dominated_loc_of_deriv_le hε hF_meas hF_int hF'_meas
   h_bound bound_integrable h_diff,
 simp_rw F at this,
@@ -443,6 +483,14 @@ simp_rw [abs_mul],
 simp,
 end
 
+
+lemma mul_le_cancel (a b c : ℝ) (h : 0 ≤ a) : b ≤ c →  a*b ≤ a*c :=
+begin
+apply monotone_mul_left_of_nonneg h,
+end
+
+
+
 lemma int_diff0_sub_bound  (R : ℝ) (hR: 0 < R)  (f : ℂ → ℂ) (z w : ℂ) (r : ℝ)
     (h:  ∀ (x : ℂ), (complex.abs (f x) ≤ abs r)) : ∀ θ : ℝ,
     complex.abs (int_diff0 R hR f z w θ) ≤ complex.abs (int_diff0 R hR (λ x, r) z w θ) :=
@@ -451,8 +499,17 @@ intro θ,
 simp_rw int_diff0,
 simp,
 simp_rw ← mul_assoc,
-
-sorry,
+apply monotone_mul_left_of_nonneg,
+apply mul_nonneg,
+simp_rw inv_nonneg,
+apply mul_nonneg,
+linarith,
+apply _root_.abs_nonneg,
+apply div_nonneg,
+apply _root_.abs_nonneg,
+apply complex.abs_nonneg,
+rw abs_of_real at h,
+apply h,
 end
 
 
@@ -663,13 +720,14 @@ end
 lemma unif_of_diff_is_diff (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
   (hdiff : ∀ (n : ℕ), differentiable_on ℂ (F n) (closed_ball z R))
   (hlim : tendsto_uniformly F f filter.at_top) :
-  differentiable_on ℂ f (ball z R) :=
+  differentiable_on ℂ f (ball z (2⁻¹*R)) :=
 begin
 have F_measurable : ∀ n, integrable (F n) volume, by {sorry,},
 have F_cts : ∀ n, continuous (F n) , by {sorry,},
 rw differentiable_on,
 intros x hx,
-have key:= UNIF_CONV_INT R hR F f F_cts hlim z ⟨x, hx⟩,
+have hxx: x ∈ ball z R, by {have :=half_ball_sub R hR z, apply this, apply hx},
+have key:= UNIF_CONV_INT R hR F f F_cts hlim z ⟨x, hxx⟩,
 --have key := int_diff_of_uniform' F f z x R hR hlim,
 rw differentiable_within_at,
 have h0:= int_diff R hR f z,

@@ -392,7 +392,10 @@ finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
 lemma one_lt_card : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
 by { rw ←not_iff_not, push_neg, exact card_le_one }
 
-lemma exists_ne_of_one_lt_card (hs : 1 < s.card) (a : α) : ∃ b : α, b ∈ s ∧ b ≠ a :=
+lemma one_lt_card_iff : 1 < s.card ↔ ∃ a b, a ∈ s ∧ b ∈ s ∧ a ≠ b :=
+by { rw one_lt_card, simp only [exists_prop, exists_and_distrib_left] }
+
+lemma exists_ne_of_one_lt_card (hs : 1 < s.card) (a : α) : ∃ b, b ∈ s ∧ b ≠ a :=
 begin
   obtain ⟨x, hx, y, hy, hxy⟩ := finset.one_lt_card.mp hs,
   by_cases ha : y = a,

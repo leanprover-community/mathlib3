@@ -50,7 +50,7 @@ rfl
   1) there does not exist a line that passes through all of the points,
   2) there does not exist a point that is on all of the lines,
   3) there is at most one line through any two points,
-  4) there is at most one point through any two lines.
+  4) any two lines have at most one intersection point.
   Conditions 3 and 4 are equivalent. -/
 structure nondegenerate : Prop :=
 (exists_point : ∀ l, ∃ p, ¬ c p l)

@@ -766,6 +766,7 @@ lemma of_stalk_iso {X Y : SheafedSpace C} (f : X ⟶ Y)
   end }
 
 end of_stalk_iso
+
 section prod
 
 variables [has_limits C] {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) [has_colimit F] (i : ι)

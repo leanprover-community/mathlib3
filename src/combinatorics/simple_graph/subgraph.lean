@@ -254,13 +254,13 @@ instance : bounded_order (subgraph G) :=
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
 
 -- TODO simp lemmas for the other lattice operations on subgraphs
-@[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
-
 @[simp] lemma top_verts : (⊤ : subgraph G).verts = set.univ := rfl
 
-@[simp] lemma bot_adj_iff : (⊥ : subgraph G).verts = ∅ := rfl
+@[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
 
-@[simp] lemma bot_verts {v w : V} : ¬(⊥ : subgraph G).adj v w := not_false
+@[simp] lemma bot_verts : (⊥ : subgraph G).verts = ∅ := rfl
+
+@[simp] lemma bot_adj_iff {v w : V} : ¬(⊥ : subgraph G).adj v w := not_false
 
 @[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
 by { ext, refl }

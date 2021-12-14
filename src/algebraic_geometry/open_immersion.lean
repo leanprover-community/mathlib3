@@ -8,6 +8,7 @@ import category_theory.limits.shapes.binary_products
 import category_theory.limits.preserves.shapes.pullbacks
 import topology.sheaves.functors
 import algebraic_geometry.Scheme
+import category_theory.limits.shapes.strict_initial
 
 /-!
 # Open immersions of structured spaces
@@ -765,6 +766,77 @@ lemma of_stalk_iso {X Y : SheafedSpace C} (f : X ⟶ Y)
   end }
 
 end of_stalk_iso
+section prod
+
+variables [has_limits C] {ι : Type v} (F : discrete ι ⥤ SheafedSpace C) [has_colimit F] (i : ι)
+
+lemma sigma_ι_open_embedding : open_embedding (colimit.ι F i).base :=
+begin
+  rw ← (show _ = (colimit.ι F i).base,
+    from ι_preserves_colimits_iso_inv (SheafedSpace.forget C) F i),
+  have : _ = _ ≫ colimit.ι (discrete.functor (F ⋙ SheafedSpace.forget C).obj) i :=
+    has_colimit.iso_of_nat_iso_ι_hom discrete.nat_iso_functor i,
+  rw ← iso.eq_comp_inv at this,
+  rw this,
+  have : colimit.ι _ _ ≫ _ = _ := Top.sigma_iso_sigma_hom_ι (F ⋙ SheafedSpace.forget C).obj i,
+  rw ← iso.eq_comp_inv at this,
+  rw this,
+  simp_rw [← category.assoc, Top.open_embedding_iff_comp_is_iso,
+    Top.open_embedding_iff_is_iso_comp],
+  exact open_embedding_sigma_mk
+end
+
+lemma image_preimage_is_empty (j : ι) (h : i ≠ j) (U : opens (F.obj i)) :
+  (opens.map (colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) j).base).obj
+    ((opens.map (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv.base).obj
+    ((sigma_ι_open_embedding F i).is_open_map.functor.obj U)) = ∅ :=
+begin
+  ext,
+  apply iff_false_intro,
+  rintro ⟨y, hy, eq⟩,
+  replace eq := concrete_category.congr_arg
+    (preserves_colimit_iso (SheafedSpace.forget C) F ≪≫
+      has_colimit.iso_of_nat_iso discrete.nat_iso_functor ≪≫ Top.sigma_iso_sigma _).hom eq,
+  simp_rw [category_theory.iso.trans_hom, ← Top.comp_app, ← PresheafedSpace.comp_base] at eq,
+  rw ι_preserves_colimits_iso_inv at eq,
+  change ((SheafedSpace.forget C).map (colimit.ι F i) ≫ _) y =
+    ((SheafedSpace.forget C).map (colimit.ι F j) ≫ _) x at eq,
+  rw [ι_preserves_colimits_iso_hom_assoc, ι_preserves_colimits_iso_hom_assoc,
+    has_colimit.iso_of_nat_iso_ι_hom_assoc, has_colimit.iso_of_nat_iso_ι_hom_assoc,
+    Top.sigma_iso_sigma_hom_ι, Top.sigma_iso_sigma_hom_ι] at eq,
+  exact h (congr_arg sigma.fst eq)
+end
+
+instance sigma_ι_is_open_immersion [has_strict_terminal_objects C] :
+  SheafedSpace.is_open_immersion (colimit.ι F i) :=
+{ base_open := sigma_ι_open_embedding F i,
+  c_iso := λ U, begin
+    have e : colimit.ι F i = _ :=
+      (ι_preserves_colimits_iso_inv SheafedSpace.forget_to_PresheafedSpace F i).symm,
+    have H : open_embedding (colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) i ≫
+      (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv).base :=
+      e ▸ sigma_ι_open_embedding F i,
+    suffices : is_iso ((colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) i ≫
+      (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv).c.app
+        (op (H.is_open_map.functor.obj U))),
+    { convert this },
+    rw [PresheafedSpace.comp_c_app,
+      ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π],
+    suffices : is_iso (limit.π (PresheafedSpace.componentwise_diagram
+      (F ⋙ SheafedSpace.forget_to_PresheafedSpace)
+      ((opens.map (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv.base).obj
+      (unop $ op $ H.is_open_map.functor.obj U))) (op i)),
+    { resetI, apply_instance },
+    apply limit_π_is_iso_of_is_strict_terminal,
+    intros j hj,
+    induction j using opposite.rec,
+    dsimp,
+    convert (F.obj j).sheaf.is_terminal_of_empty,
+    convert image_preimage_is_empty F i j (λ h, hj (congr_arg op h.symm)) U,
+    exact (congr_arg PresheafedSpace.hom.base e).symm
+  end }
+
+end prod
 
 end SheafedSpace.is_open_immersion
 

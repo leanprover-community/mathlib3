@@ -1198,20 +1198,7 @@ begin
   -- into a function which we call `G`.
   choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
   -- Next, we show that this `G` is linear,
-  let Glin : E →ₛₗ[σ₁₂] F :=
-  { to_fun := G,
-    map_add' := λ v w, begin
-      have A := hG (v + w),
-      have B := (hG v).add (hG w),
-      simp only [map_add] at A B,
-      exact tendsto_nhds_unique A B,
-    end,
-    map_smul' := λ c v, begin
-      have A := hG (c • v),
-      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ (σ₁₂ c) _) (hG v),
-      simp only [map_smulₛₗ] at A B,
-      exact tendsto_nhds_unique A B
-    end },
+  let Glin : E →ₛₗ[σ₁₂] F := linear_map_of_tendsto _ (tendsto_pi_nhds.mpr hG),
   -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
   have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
   { assume v,

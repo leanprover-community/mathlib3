@@ -33,6 +33,9 @@ variables (P L : Type u)
 /-- A configuration is an incidence relation between collections of points and lines. -/
 def configuration := P → L → Prop
 
+instance : inhabited (configuration P L) :=
+⟨λ p l, false⟩
+
 namespace configuration
 
 variables {P L} (c : configuration P L)

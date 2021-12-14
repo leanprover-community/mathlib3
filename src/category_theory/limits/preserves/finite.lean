@@ -38,7 +38,7 @@ A functor is said to preserve finite limits, if it preserves all limits of shape
 `J` is a finite category.
 -/
 class preserves_finite_limits (F : C ⥤ D) :=
-(preserves_finite_limits : Π (J : Type*) [small_category J] [fin_category J],
+(preserves_finite_limits : Π (J : Type v) [small_category J] [fin_category J],
   preserves_limits_of_shape J F . tactic.apply_instance)
 
 attribute [instance] preserves_finite_limits.preserves_finite_limits
@@ -61,7 +61,7 @@ A functor is said to preserve finite colimits, if it preserves all colimits of s
 `J` is a finite category.
 -/
 class preserves_finite_colimits (F : C ⥤ D) :=
-(preserves_finite_colimits : Π (J : Type*) [small_category J] [fin_category J],
+(preserves_finite_colimits : Π (J : Type v) [small_category J] [fin_category J],
   preserves_colimits_of_shape J F . tactic.apply_instance)
 
 attribute [instance] preserves_finite_colimits.preserves_finite_colimits

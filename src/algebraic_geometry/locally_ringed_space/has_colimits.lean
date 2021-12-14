@@ -11,11 +11,7 @@ import category_theory.limits.constructions.limits_of_products_and_equalizers
 /-!
 # Colimits of LocallyRingedSpace
 
-We construct the explict coproducts of `LocallyRingedSpace`.
-
-## TODO
-
-Construct the explict coequalizers of `LocallyRingedSpace`.
+We construct the explict coproducts and coequalizers of `LocallyRingedSpace`.
 It then follows that `LocallyRingedSpace` has all colimits, and
 `forget_to_SheafedSpace` preserves them.
 

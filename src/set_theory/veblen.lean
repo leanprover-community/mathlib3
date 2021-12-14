@@ -7,17 +7,25 @@ import set_theory.ordinal_arithmetic
 import tactic.by_contra
 
 /-!
-# Veblen's functions
+# Veblen's lemma
 
-In this file, we prove Veblen's fixed point lemma, and use it to build the two-argument Veblen
-function.
+In this file, we prove Veblen's fixed point lemma: every normal ordinal function has arbitrarily
+large fixed points. This allows us to build an ordinal function that enumer ate
+
+TODO: build the two-argument Veblen function.
 
 ## Main definitions
 
-- `enum_ord.order_iso`: an order isomorphism between the ordinals and an unbounded subset
+- `enum_ord.order_iso`: an order isomorphism between the ordinals and an unbounded subset of them.
+
+## Main results
+
+- `fix_point_enum'.is_normal`: the fixed point enumerator of a normal function is normal.
 -/
 
 universes u v
+
+open function
 
 namespace ordinal
 section
@@ -42,7 +50,7 @@ noncomputable def enum_ord' : ordinal.{u} → ordinal.{u} :=
 wf.fix (λ a f, omin _ (hS (blub.{u u} a f)))
 
 /-- The equation that characterizes `enum_ord'` definitionally. This isn't the nicest expression to
-work with, consider using `enum_ord'_def` instead. -/
+work with, so consider using `enum_ord'_def` instead. -/
 theorem enum_ord'_def' (o) :
   enum_ord' hS o = omin (λ b, S b ∧ blub.{u u} o (λ c _, enum_ord' hS c) ≤ b) (hS _) :=
 wf.fix_eq _ _
@@ -59,10 +67,7 @@ theorem blub_le_enum_ord' (a) : blub.{u u} a (λ c _, enum_ord' hS c) ≤ enum_o
 theorem enum_ord'.strict_mono {hS : ∀ a, ∃ b, S b ∧ a ≤ b} : strict_mono (enum_ord' hS) :=
 λ _ _ h, lt_of_lt_of_le (lt_blub.{u u} _ _ h) (blub_le_enum_ord' hS _)
 
-private theorem aux (a) : ∃ b, S b ∧ ∀ c, c < a → enum_ord' hS c < b :=
-⟨_, enum_ord'_mem hS a, λ _ b, enum_ord'.strict_mono b⟩
-
--- Explicitly specifying hS' screws up simp_rw for whatever reason.
+-- Explicitly specifying hS' screws up `rw` for whatever reason.
 private theorem enum_ord'_def_aux (a) {hS'} :
   enum_ord' hS a = omin (λ b, S b ∧ ∀ c, c < a → enum_ord' hS c < b) (hS') :=
 begin
@@ -77,7 +82,8 @@ end
 
 /-- A more workable definition for `enum_ord'`. -/
 theorem enum_ord'_def (o) :
-  enum_ord' hS o = omin (λ b, S b ∧ ∀ c, c < o → enum_ord' hS c < b) (aux hS o) :=
+  enum_ord' hS o = omin (λ b, S b ∧ ∀ c, c < o → enum_ord' hS c < b)
+  (⟨_, enum_ord'_mem hS o, λ _ b, enum_ord'.strict_mono b⟩) :=
 enum_ord'_def_aux hS o
 
 /-- Enumerator function for an unbounded set of ordinals. -/
@@ -86,15 +92,13 @@ noncomputable def enum_ord : ordinal.{u} → S := λ o, ⟨_, enum_ord'_mem hS o
 theorem enum_ord.strict_mono : strict_mono (enum_ord hS) :=
 enum_ord'.strict_mono
 
-theorem aux (o) : o ≤ enum_ord' hS o :=
-function.well_founded.self_le_of_strict_mono (inv_image.wf _ wf) (enum_ord'.strict_mono) _
-
 theorem enum_ord.surjective : function.surjective (enum_ord hS) :=
 begin
   have Swf : well_founded ((<) : S → S → Prop) := inv_image.wf _ wf,
   by_contra' H,
   let a := Swf.min _ H,
-  let c : ordinal.{u} := omin (λ b, a ≤ enum_ord hS b) ⟨_, aux hS a⟩,
+  let c : ordinal.{u} := omin (λ b, a ≤ enum_ord hS b)
+    ⟨_, well_founded.self_le_of_strict_mono (inv_image.wf _ wf) (enum_ord'.strict_mono) _⟩,
   suffices : enum_ord hS c = a,
   { exact Swf.min_mem _ H c this },
   apply subtype.eq,
@@ -126,35 +130,21 @@ end
 end ordinal
 
 section
-variable (f : ordinal.{u} → ordinal.{u})
-
-/-- The subtype of fixed points of a function. -/
-def fixed_points : Type (u + 1) := {x // f x = x}
-
-noncomputable instance : preorder (fixed_points f) := subtype.preorder _
-
-instance : partial_order (fixed_points f) := subtype.partial_order _
-
-noncomputable instance : linear_order (fixed_points f) := subtype.linear_order _
-
-end
-
-section
 variable {f : ordinal.{u} → ordinal.{u}}
 
 /-- An explicit fixed point for a normal function. For the subtype variant, see `fix_point`. -/
 noncomputable def fix_point' (hf : ordinal.is_normal f) (o) : ordinal.{u} :=
 ordinal.sup.{0 u} (λ n, f^[n] o)
 
-/-- An explicit fixed point for a normal function, built as `sup {f^[n] α}`. -/
+/-- An explicit fixed point for a normal function, built as `sup (λ n, f^[n] o)`. -/
 noncomputable def fix_point (hf : ordinal.is_normal f) (o) : fixed_points f :=
 ⟨ fix_point' hf o, begin
   let g := λ n, f^[n] o,
   have H : ∀ n, g (n + 1) = (f ∘ g) n := λ n, function.iterate_succ_apply' f n o,
   have H' : ∀ n, g (n + 1) ≤ ordinal.sup.{0 u} (f ∘ g) := λ _, by {rw H, exact ordinal.le_sup _ _},
-  suffices : ordinal.sup.{0 u} (f ∘ g) = ordinal.sup.{0 u} g,
-  { unfold fix_point',
-    rwa @ordinal.is_normal.sup.{0 u u} f hf ℕ g (nonempty.intro 0) },
+  suffices : ordinal.sup.{0 u} (f ∘ g) = ordinal.sup g,
+  { change f (ordinal.sup.{0 u} _) = (ordinal.sup.{0 u} _),
+    rwa ordinal.is_normal.sup.{0 u u} hf ⟨0⟩ },
   apply has_le.le.antisymm;
   rw ordinal.sup_le;
   intro n,
@@ -173,7 +163,7 @@ theorem self_le_fix_point (o) : o ≤ fix_point' hf o := ordinal.le_sup _ 0
 theorem fix_point_lemma : ∀ a, ∃ b, f b = b ∧ a ≤ b :=
 λ a, ⟨_, (fix_point hf a).prop, self_le_fix_point hf a⟩
 
-theorem fix_point.nonempty : nonempty (fixed_points f) := ⟨fix_point hf 0⟩
+theorem fixed_points.nonempty : nonempty (fixed_points f) := ⟨fix_point hf 0⟩
 
 /-- The fixed point enumerator of a normal function. For the subtype variant, see `fix_point_enum`.
 -/
@@ -214,7 +204,7 @@ begin
   refine ⟨λ a, fix_point_enum'.strict_mono hf (ordinal.lt_succ_self a), λ a ha b,
     ⟨λ hab c hca, le_of_lt (lt_of_lt_of_le (fix_point_enum'.strict_mono hf hca) hab), λ h, _⟩⟩,
   let c := ordinal.bsup.{u u} a (λ b hb, (fix_point_enum hf b).val),
-  have hc : f c = c := fixed_point_bsup ha.1 hf _,
+  have hc := fixed_point_bsup ha.1 hf _,
   suffices : fix_point_enum' hf a ≤ c,
   { exact le_trans this (ordinal.bsup_le.2 h) },
   cases fix_point_enum.surjective hf ⟨c, hc⟩ with d hd,
@@ -222,7 +212,7 @@ begin
   rw ←hdc,
   apply (fix_point_enum'.strict_mono hf).monotone,
   by_contra' had,
-  have : (fix_point_enum hf d).val < c := lt_of_lt_of_le
+  have : _ < c := lt_of_lt_of_le
     (fix_point_enum'.strict_mono hf (ordinal.lt_succ_self d))
     (ordinal.le_bsup.{u u} (λ b hb, (fix_point_enum hf b).val) d.succ (ha.2 d had)),
   rw ←hdc at this,

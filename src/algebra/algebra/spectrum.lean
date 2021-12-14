@@ -86,20 +86,6 @@ begin
   rw [←smul_sub,is_unit_smul_iff],
 end
 
-lemma is_unit.sub_of_sub {R : Type u} [ring R] {x y : R} (h : is_unit (x - y)) :
-  is_unit (y - x) :=
-begin
-  have : (-1 : R) * -1 = 1, by simp only [mul_one, mul_neg_eq_neg_mul_symm, neg_neg],
-  let u : units R := ⟨-1, -1, this, this⟩,
-  have hu : ↑u * (x - y) = y - x,
-    by simp only [neg_mul_eq_neg_mul_symm, one_mul, units.coe_mk, neg_sub],
-  simpa only [hu] using is_unit.mul u.is_unit h,
-end
-
-lemma is_unit.sub_iff {R : Type u} [ring R] {x y : R} :
-  is_unit (x - y) ↔ is_unit (y - x) :=
-iff.intro (λ h, h.sub_of_sub) (λ h, h.sub_of_sub)
-
 namespace spectrum
 
 section scalar_ring

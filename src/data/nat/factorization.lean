@@ -28,10 +28,10 @@ noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multi
 lemma factorization_eq_count {n p : ℕ} : n.factorization p = list.count p n.factors :=
 by simp [factorization]
 
-/-- Every positive natural number has a unique prime factorization -/
-lemma factorization_eq_iff {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
-  a.factorization = b.factorization ↔ a = b :=
-⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←factorization_eq_count, h]), λ h, by rw h⟩
+/-- Every nonzero natural number has a unique prime factorization -/
+lemma factorization_inj : set.inj_on factorization { x : ℕ | x ≠ 0 } :=
+λ a ha b hb h, eq_of_count_factors_eq
+  (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb) (λ p, by simp [←factorization_eq_count, h])
 
 @[simp] lemma factorization_zero : factorization 0 = 0  :=
 by simp [factorization]

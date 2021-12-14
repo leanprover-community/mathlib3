@@ -9,6 +9,7 @@ import analysis.normed.group.hom
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
 import topology.continuous_function.compact
+import topology.algebra.ordered.liminf_limsup
 
 /-!
 # ℓp space and Lp space
@@ -264,7 +265,8 @@ lemma mem_ℓp.mem_ℓp_of_exponent_ge {p q : ℝ≥0∞} {f : Π i, E i}
   (hfq : mem_ℓp f q) (hpq : q ≤ p) :
   mem_ℓp f p :=
 begin
-  rcases p_trichotomy₂ hpq with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, hp⟩ | ⟨rfl, rfl⟩ | ⟨hq, rfl⟩ | ⟨hp, hq, hpq'⟩, --rfl | rfl | hp,
+  rcases p_trichotomy₂ hpq with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, hp⟩ | ⟨rfl, rfl⟩ | ⟨hq, rfl⟩
+    | ⟨hp, hq, hpq'⟩,
   { exact mem_ℓp_zero hfq.eq_zero },
   { rw hfq.eq_zero,
     exact zero_mem_ℓp },
@@ -272,8 +274,12 @@ begin
     exact zero_mem_ℓp },
   { exact hfq },
   { apply mem_ℓp_infty,
-    have := (hfq.summable hq).tendsto_cofinite_zero,
-    sorry },
+    obtain ⟨A, hA⟩ := (hfq.summable hq).tendsto_cofinite_zero.bdd_above_range_of_cofinite,
+    use A ^ (q.to_real⁻¹),
+    rintros x ⟨i, rfl⟩,
+    have : 0 ≤ ∥f i∥ ^ q.to_real := real.rpow_nonneg_of_nonneg (norm_nonneg _) _,
+    simpa [← real.rpow_mul, mul_inv_cancel hq.ne'] using
+      real.rpow_le_rpow this (hA ⟨i, rfl⟩) (inv_nonneg.mpr hq.le) },
   { apply mem_ℓp_gen hq,
     -- rw finset.summable_compl_iff,
     have := hfq.summable hp,
@@ -281,15 +287,13 @@ begin
   }
 end
 
-
-
-lemma foo {f g : Π i, E i} {A B : ℝ} (hA : A ∈ upper_bounds (set.range (λ i, ∥f i∥)))
-  (hB : B ∈ upper_bounds (set.range (λ i, ∥g i∥))) :
-  A + B ∈ upper_bounds (set.range (λ i, ∥(f + g) i∥)) :=
-begin
-  rintros a ⟨i, rfl⟩,
-  exact le_trans (norm_add_le _ _) (add_le_add (hA ⟨i, rfl⟩) (hB ⟨i, rfl⟩))
-end
+-- lemma foo {f g : Π i, E i} {A B : ℝ} (hA : A ∈ upper_bounds (set.range (λ i, ∥f i∥)))
+--   (hB : B ∈ upper_bounds (set.range (λ i, ∥g i∥))) :
+--   A + B ∈ upper_bounds (set.range (λ i, ∥(f + g) i∥)) :=
+-- begin
+--   rintros a ⟨i, rfl⟩,
+--   exact le_trans (norm_add_le _ _) (add_le_add (hA ⟨i, rfl⟩) (hB ⟨i, rfl⟩))
+-- end
 
 lemma mem_ℓp.add {f g : Π i, E i} (hf : mem_ℓp f p) (hg : mem_ℓp g p) : mem_ℓp (f + g) p :=
 begin
@@ -303,19 +307,20 @@ begin
     rintros a ⟨i, rfl⟩,
     exact le_trans (norm_add_le _ _) (add_le_add (hA ⟨i, rfl⟩) (hB ⟨i, rfl⟩)) },
   apply mem_ℓp_gen hp,
-  let C : ℝ := 2 ^ p.to_real,
+  let C : ℝ := if p.to_real < 1 then 1 else 2 ^ (p.to_real - 1),
   refine summable_of_nonneg_of_le _ _ (((hf.summable hp).add (hg.summable hp)).mul_left C),
   { exact λ b, real.rpow_nonneg_of_nonneg (norm_nonneg (f b + g b)) p.to_real },
   { intros i,
     refine (real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp.le).trans _,
-    by_cases hp' : p.to_real < 1,
-    { have : 1 ≤ C := sorry,
-      --have := ennreal.rpow_add_le_add_rpow,
-      sorry },
-    { sorry
-
-    }
-  }
+    dsimp [C],
+    split_ifs,
+    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp h.le) },
+    { let F : fin 2 → ℝ≥0 := ![∥f i∥₊, ∥g i∥₊],
+      have : ∀ i, (0:ℝ) ≤ F i := λ i, (F i).coe_nonneg,
+      simp only [not_lt] at h,
+      simpa [F, fin.sum_univ_succ] using
+        real.rpow_sum_le_const_mul_sum_rpow_of_nonneg (finset.univ : finset (fin 2)) h
+        (λ i _, (F i).coe_nonneg) } }
 end
 
 lemma mem_ℓp.sub {f g : Π i, E i} (hf : mem_ℓp f p) (hg : mem_ℓp g p) : mem_ℓp (f - g) p :=

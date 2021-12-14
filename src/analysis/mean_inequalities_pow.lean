@@ -148,40 +148,106 @@ by simpa [fin.sum_univ_succ] using rpow_sum_le_mul_sum_rpow univ ![z₁, z₂] h
 
 end nnreal
 
-namespace ennreal
+namespace nnreal
 
-/-- Evenly-weighted generalized mean inequality, version for sums over finite sets, with
-`ℝ≥0`-valued functions and real exponents.
--- Note: This can also be obtained from Hölder's inequality. -/
-theorem rpow_sum_le_mul_sum_rpow (z : ι → ℝ≥0∞) {p : ℝ} (hp : 1 ≤ p) :
-  (∑ i in s, z i) ^ p ≤ (finset.card s) ^ (p - 1) * ∑ i in s, z i ^ p :=
+variables (f g : ι → ℝ≥0)  {p q : ℝ}
+
+private lemma add_rpow_le_one_of_add_le_one {p : ℝ} (a b : ℝ≥0) (hab : a + b ≤ 1)
+  (hp1 : 1 ≤ p) :
+  a ^ p + b ^ p ≤ 1 :=
 begin
-  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp,
-  have hp_nonneg : 0 ≤ p, from le_of_lt hp_pos,
-  have hp_not_nonpos : ¬ p ≤ 0, by simp [hp_pos],
-  have hp_not_neg : ¬ p < 0, by simp [hp_nonneg],
-  by_cases hs : s = ∅,
-  { simp [hs, hp_pos] },
-  refine le_of_top_imp_top_of_to_nnreal_le _ _,
-  { -- first, the case when the LHS sum is ∞
-    intros h,
-    have : ∑ (i : ι) in s, z i = ⊤ := rpow_eq_top_of_nonneg _ hp_nonneg h,
-    rw sum_eq_top_iff at this,
-    obtain ⟨i, hi, hiz⟩ := this,
-    rw mul_eq_top,
-    left,
-    rw sum_eq_top_iff,
-    exact ⟨by simp [hs], i, hi, by simp [hp_pos, hiz]⟩ },
-  { intros h₁ h₂,
-
-  }
+  have h_le_one : ∀ x : ℝ≥0, x ≤ 1 → x ^ p ≤ x, from λ x hx, by sorry,
+  have ha : a ≤ 1, from (self_le_add_right a b).trans hab,
+  have hb : b ≤ 1, from (self_le_add_left b a).trans hab,
+  exact (add_le_add (h_le_one a ha) (h_le_one b hb)).trans hab,
 end
 
-/-- Evenly-weighted generalized mean inequality, version for two elements of `ℝ≥0` and real
-exponents. -/
-theorem rpow_sum_le_mul_sum_rpow2 (z₁ z₂ : ℝ≥0∞) {p : ℝ} (hp : 1 ≤ p) :
-  (z₁ + z₂) ^ p ≤ 2 ^ (p - 1) * (z₁ ^ p + z₂ ^ p) :=
-by simpa [fin.sum_univ_succ] using rpow_sum_le_mul_sum_rpow univ ![z₁, z₂] hp
+lemma add_rpow_le_rpow_add {p : ℝ} (a b : ℝ≥0) (hp1 : 1 ≤ p) :
+  a ^ p + b ^ p ≤ (a + b) ^ p :=
+begin
+  have hp_pos : 0 < p := lt_of_lt_of_le zero_lt_one hp1,
+  by_cases h_zero : a + b = 0,
+  { simp [add_eq_zero_iff.mp h_zero, hp_pos.ne'] },
+  have h_nonzero : ¬(a = 0 ∧ b = 0), by rwa add_eq_zero_iff at h_zero,
+  have h_add : a/(a+b) + b/(a+b) = 1, by rw [div_add_div_same, div_self h_zero],
+  have h := add_rpow_le_one_of_add_le_one (a/(a+b)) (b/(a+b)) h_add.le hp1,
+  rw [div_rpow a (a+b), div_rpow b (a+b)] at h,
+  have hab_0 : (a + b)^p ≠ 0, by simp [hp_pos, h_nonzero],
+  have hab_0' : 0 < (a + b) ^ p := zero_lt_iff.mpr hab_0,
+  have h_mul : (a + b)^p * (a ^ p / (a + b) ^ p + b ^ p / (a + b) ^ p) ≤ (a + b)^p,
+  { nth_rewrite 3 ←mul_one ((a + b)^p),
+    exact (mul_le_mul_left hab_0').mpr h, },
+  rwa [div_eq_mul_inv, div_eq_mul_inv, mul_add, mul_comm (a^p), mul_comm (b^p), ←mul_assoc,
+    ←mul_assoc, mul_inv_cancel hab_0, one_mul, one_mul] at h_mul,
+end
+
+lemma rpow_add_rpow_le_add {p : ℝ} (a b : ℝ≥0) (hp1 : 1 ≤ p) :
+  (a ^ p + b ^ p) ^ (1/p) ≤ a + b :=
+begin
+  rw ←@nnreal.le_rpow_one_div_iff _ _ (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1]),
+  rw one_div_one_div,
+  exact add_rpow_le_rpow_add _ _ hp1,
+end
+
+theorem rpow_add_rpow_le {p q : ℝ} (a b : ℝ≥0) (hp_pos : 0 < p) (hpq : p ≤ q) :
+  (a ^ q + b ^ q) ^ (1/q) ≤ (a ^ p + b ^ p) ^ (1/p) :=
+begin
+  have h_rpow : ∀ a : ℝ≥0, a^q = (a^p)^(q/p),
+    from λ a, by rw [←nnreal.rpow_mul, div_eq_inv_mul, ←mul_assoc,
+      _root_.mul_inv_cancel hp_pos.ne.symm, one_mul],
+  have h_rpow_add_rpow_le_add : ((a^p)^(q/p) + (b^p)^(q/p)) ^ (1/(q/p)) ≤ a^p + b^p,
+  { refine rpow_add_rpow_le_add (a^p) (b^p) _,
+    rwa one_le_div hp_pos, },
+  rw [h_rpow a, h_rpow b, nnreal.le_rpow_one_div_iff hp_pos, ←nnreal.rpow_mul, mul_comm,
+    mul_one_div],
+  rwa one_div_div at h_rpow_add_rpow_le_add,
+end
+
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+  (a + b) ^ p ≤ a ^ p + b ^ p :=
+begin
+  have h := rpow_add_rpow_le a b hp_pos hp1,
+  rw one_div_one at h,
+  repeat { rw ennreal.rpow_one at h },
+  exact (nnreal.le_rpow_one_div_iff hp_pos).mp h,
+end
+
+end nnreal
+
+namespace ennreal
+
+-- /-- Evenly-weighted generalized mean inequality, version for sums over finite sets, with
+-- `ℝ≥0`-valued functions and real exponents.
+-- -- Note: This can also be obtained from Hölder's inequality. -/
+-- theorem rpow_sum_le_mul_sum_rpow (z : ι → ℝ≥0∞) {p : ℝ} (hp : 1 ≤ p) :
+--   (∑ i in s, z i) ^ p ≤ (finset.card s) ^ (p - 1) * ∑ i in s, z i ^ p :=
+-- begin
+--   have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp,
+--   have hp_nonneg : 0 ≤ p, from le_of_lt hp_pos,
+--   have hp_not_nonpos : ¬ p ≤ 0, by simp [hp_pos],
+--   have hp_not_neg : ¬ p < 0, by simp [hp_nonneg],
+--   by_cases hs : s = ∅,
+--   { simp [hs, hp_pos] },
+--   refine le_of_top_imp_top_of_to_nnreal_le _ _,
+--   { -- first, the case when the LHS sum is ∞
+--     intros h,
+--     have : ∑ (i : ι) in s, z i = ⊤ := rpow_eq_top_of_nonneg _ hp_nonneg h,
+--     rw sum_eq_top_iff at this,
+--     obtain ⟨i, hi, hiz⟩ := this,
+--     rw mul_eq_top,
+--     left,
+--     rw sum_eq_top_iff,
+--     exact ⟨by simp [hs], i, hi, by simp [hp_pos, hiz]⟩ },
+--   { intros h₁ h₂,
+
+--   }
+-- end
+
+-- /-- Evenly-weighted generalized mean inequality, version for two elements of `ℝ≥0` and real
+-- exponents. -/
+-- theorem rpow_sum_le_mul_sum_rpow2 (z₁ z₂ : ℝ≥0∞) {p : ℝ} (hp : 1 ≤ p) :
+--   (z₁ + z₂) ^ p ≤ 2 ^ (p - 1) * (z₁ ^ p + z₂ ^ p) :=
+-- by simpa [fin.sum_univ_succ] using rpow_sum_le_mul_sum_rpow univ ![z₁, z₂] hp
 
 /-- Weighted generalized mean inequality, version for sums over finite sets, with `ℝ≥0∞`-valued
 functions and real exponents. -/
@@ -315,17 +381,17 @@ begin
   exact (ennreal.le_rpow_one_div_iff hp_pos).mp h,
 end
 
-lemma one_le_two : (1 : ℝ≥0∞) ≤ 2 :=
-ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)
+-- lemma one_le_two : (1 : ℝ≥0∞) ≤ 2 :=
+-- ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)
 
-example (a b : ℝ≥0∞) (p : ℝ) (hp : 0 < p) : (a + b) ^ p ≤ 2 ^ p * (a ^ p + b ^ p) :=
-begin
-  rcases le_or_gt p 1 with hp1 | (hp1 : 1 < p),
-  { calc (a + b) ^ p ≤ 1 * (a ^ p + b ^ p) : by simpa using rpow_add_le_add_rpow a b hp hp1
-    ... ≤ 2 ^ p * (a ^ p + b ^ p) : mul_le_mul (one_le_rpow one_le_two hp) rfl.le },
-  { calc (a + b) ^ p ≤ 2 ^ (p - 1) * (a ^ p + b ^ p) : rpow_sum_le_mul_sum_rpow2 a b hp1.le
-    ... ≤ 2 ^ p * (a ^ p + b ^ p) : mul_le_mul (rpow_le_rpow_of_exponent_le one_le_two _) rfl.le,
-    simp },
-end
+-- example (a b : ℝ≥0∞) (p : ℝ) (hp : 0 < p) : (a + b) ^ p ≤ 2 ^ p * (a ^ p + b ^ p) :=
+-- begin
+--   rcases le_or_gt p 1 with hp1 | (hp1 : 1 < p),
+--   { calc (a + b) ^ p ≤ 1 * (a ^ p + b ^ p) : by simpa using rpow_add_le_add_rpow a b hp hp1
+--     ... ≤ 2 ^ p * (a ^ p + b ^ p) : mul_le_mul (one_le_rpow one_le_two hp) rfl.le },
+--   { calc (a + b) ^ p ≤ 2 ^ (p - 1) * (a ^ p + b ^ p) : rpow_sum_le_mul_sum_rpow2 a b hp1.le
+--     ... ≤ 2 ^ p * (a ^ p + b ^ p) : mul_le_mul (rpow_le_rpow_of_exponent_le one_le_two _) rfl.le,
+--     simp },
+-- end
 
 end ennreal

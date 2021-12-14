@@ -66,7 +66,9 @@ variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables [add_comm_monoid N] [module R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
-lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
+lemma smul_eq_lsmul_rtensor [module Rᵐᵒᵖ M] [is_central_scalar R M] [smul_comm_class R Rᵐᵒᵖ M]
+  (a : A) (x : M ⊗[R] N) :
+  a • x = (lsmul R M a).rtensor N x := rfl
 
 /-- Heterobasic version of `tensor_product.curry`:
 
@@ -107,10 +109,12 @@ Constructing a linear map `M ⊗[R] N →[A] P` given a bilinear map `M →[A] N
 property that its composition with the canonical bilinear map `M →[A] N →[R] M ⊗[R] N` is
 the given bilinear map `M →[A] N →[R] P`. -/
 @[simps] def lift (f : M →ₗ[A] (N →ₗ[R] P)) : (M ⊗[R] N) →ₗ[A] P :=
-{ map_smul' := λ c, show ∀ x : M ⊗[R] N, (lift (f.restrict_scalars R)).comp (lsmul R _ c) x =
-      (lsmul R _ c).comp (lift (f.restrict_scalars R)) x,
+{ map_smul' := λ c, show ∀ x : M ⊗[R] N, (lift (f.restrict_scalars R)).comp
+    (distrib_mul_action.to_linear_map R _ c) x =
+      (distrib_mul_action.to_linear_map R _ c).comp (lift (f.restrict_scalars R)) x,
     from ext_iff.1 $ tensor_product.ext' $ λ x y,
-    by simp only [comp_apply, algebra.lsmul_coe, smul_tmul', lift.tmul, coe_restrict_scalars_eq_coe,
+    by simp only [comp_apply, distrib_mul_action.to_linear_map_apply, smul_tmul', lift.tmul,
+        coe_restrict_scalars_eq_coe,
         f.map_smul, smul_apply],
   .. lift (f.restrict_scalars R) }
 
@@ -389,6 +393,15 @@ instance : algebra R (A ⊗[R] B) :=
       rw [tensor_algebra_map, ←tmul_smul, ←smul_tmul, algebra.smul_def r a],
       simp, },
     { intros, dsimp, simp [smul_add, mul_add, *], },
+  end,
+  op_smul_def' := λ x r,
+  begin
+    apply tensor_product.induction_on x,
+    { simp [smul_zero], },
+    { intros a b,
+      rw [tensor_algebra_map, ←tmul_smul, ←smul_tmul, algebra.op_smul_def r a],
+      simp, },
+    { intros, dsimp, simp [smul_add, add_mul, *], },
   end,
   .. tensor_algebra_map,
   .. (by apply_instance : module R (A ⊗[R] B)) }.

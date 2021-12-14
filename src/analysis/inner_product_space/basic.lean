@@ -1425,17 +1425,43 @@ begin
   exact (le_mul_iff_one_le_left (norm_pos_iff.mpr hx)).mp (h x),
 end
 
-variables {E' : Type*} [inner_product_space 𝕜 E']
+namespace continuous_linear_map
 
-/-- Given an operator `A : E →L[𝕜] E'`, construct the sesquilinear form `λ x y, ⟪x, A y⟫`. -/
-def continuous_linear_map.to_sesq_form : (E →L[𝕜] E') →ₗ[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
-{ to_fun := λ A, continuous_linear_map.bilinear_comp
-              (innerSL : E' →L⋆[𝕜] E' →L[𝕜] 𝕜) (continuous_linear_map.id _ _) A,
-  map_add' := λ A B, by { ext x, simp [inner_add_right] },
-  map_smul' := λ r A, by { ext x y, dsimp, exact inner_smul_right } }
+variables {𝕜₂ : Type*} {E' : Type*} {G : Type*}
+variables [is_R_or_C 𝕜₂] [inner_product_space 𝕜 E'] [inner_product_space 𝕜₂ G]
+variables {σ : 𝕜₂ →+* 𝕜} [ring_hom_isometric σ]
 
-@[simp] lemma continuous_linear_map.to_sesq_form_apply_coe {A : E →L[𝕜] E'} {x : E'} :
-  (continuous_linear_map.to_sesq_form A x : E → 𝕜) = λ y, ⟪x, A y⟫ := rfl
+/-- Given `f : E →L[𝕜] E'`, construct the sesquilinear form `λ x y, ⟪x, A y⟫`. -/
+def to_sesq_form (f : E →L[𝕜] E') : E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+continuous_linear_map.bilinear_comp
+              (innerSL : E' →L⋆[𝕜] E' →L[𝕜] 𝕜) (continuous_linear_map.id _ _) f
+
+@[simp] lemma to_sesq_form_apply_coe {f : E →L[𝕜] E'} {x : E'} :
+  (continuous_linear_map.to_sesq_form f x : E → 𝕜) = λ y, ⟪x, f y⟫ := rfl
+
+lemma to_sesq_form_apply_norm_le {f : E →L[𝕜] E'} {v : E'} : ∥to_sesq_form f v∥ ≤ ∥f∥ * ∥v∥ :=
+begin
+  refine op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  intro x,
+  have h₁ : ∥f x∥ ≤ ∥f∥ * ∥x∥ := le_op_norm _ _,
+  have h₂ := @norm_inner_le_norm 𝕜 E' _ _ v (f x),
+  calc ∥⟪v, f x⟫∥ ≤ ∥v∥ * ∥f x∥       :  h₂
+              ... ≤ ∥v∥ * (∥f∥ * ∥x∥)  : mul_le_mul_of_nonneg_left h₁ (norm_nonneg v)
+              ... = ∥f∥ * ∥v∥ * ∥x∥    : by ring,
+end
+
+/-- Given `f : E →L[𝕜] E'`, construct the sesquilinear form `λ x y, ⟪x, A y⟫`, given
+as a linear map. -/
+def to_sesq_formₗ : (E →L[𝕜] E') →ₗ[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+{ to_fun := to_sesq_form,
+  map_add' := λ A B, by { ext x, simp only [inner_add_right, add_apply, to_sesq_form_apply_coe] },
+  map_smul' := λ c A, by { ext x, simp only [inner_smul_right, algebra.id.smul_eq_mul, coe_smul',
+                                      ring_hom.id_apply, to_sesq_form_apply_coe, pi.smul_apply] } }
+
+@[simp] lemma to_sesq_formₗ_apply_coe {f : E →L[𝕜] E'} {x : E'} :
+  (to_sesq_formₗ f x : E → 𝕜) = λ y, ⟪x, f y⟫ := rfl
+
+end continuous_linear_map
 
 /-- When an inner product space `E` over `𝕜` is considered as a real normed space, its inner
 product satisfies `is_bounded_bilinear_map`.
@@ -1455,7 +1481,10 @@ lemma is_bounded_bilinear_map_inner [normed_space ℝ E] :
     by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
   bound := ⟨1, zero_lt_one, λ x y,
     by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
+
+
 end norm
+
 
 section bessels_inequality
 

@@ -86,7 +86,7 @@ structure simple_graph (V : Type u) :=
 (loopless : irreflexive adj . obviously)
 
 /--
-Construct the simple graph induced by the given relation.  It
+Construct the simple graph induced by the given relation. It
 symmetrizes the relation and makes it irreflexive.
 -/
 def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=

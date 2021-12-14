@@ -109,7 +109,7 @@ begin
   existsi h, rintros c,
   apply eq_of_forall_ge_iff, intro z,
   rw ωSup_le_iff,
-  simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_Prop_eq, preorder_hom.coe_fun_mk,
+  simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_Prop_eq, order_hom.coe_fun_mk,
              chain.map_coe, function.comp_app, exists_imp_distrib, not_forall],
 end
 
@@ -142,10 +142,10 @@ begin
   apply eq_of_forall_ge_iff, intro z,
   specialize (hf _ (not_below_is_open z)),
   cases hf, specialize hf_h c,
-  simp only [not_below, preorder_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq] at hf_h,
+  simp only [not_below, order_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq] at hf_h,
   rw [← not_iff_not],
   simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, complete_semilattice_Sup.Sup,
-    exists_prop, set.mem_range, preorder_hom.coe_fun_mk, chain.map_coe, function.comp_app,
+    exists_prop, set.mem_range, order_hom.coe_fun_mk, chain.map_coe, function.comp_app,
     eq_iff_iff, not_forall],
   tauto,
 end

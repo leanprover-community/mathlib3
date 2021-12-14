@@ -424,3 +424,16 @@ lemma expand_card {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
 by { have h := finite_field.expand_card f, rwa zmod.card p at h }
 
 end zmod
+
+/-- **Fermat's Little Theorem**: for all `a : ℤ` coprime to `p`, we have
+`a ^ (p - 1) ≡ 1 [ZMOD p]`. -/
+lemma int.modeq.pow_card_sub_one_eq_one {p : ℕ} (hp : nat.prime p) {n : ℤ} (hpn : is_coprime n p) :
+  n ^ (p - 1) ≡ 1 [ZMOD p] :=
+begin
+  haveI : fact p.prime := ⟨hp⟩,
+  have : ¬ (n : zmod p) = 0,
+  { rw [char_p.int_cast_eq_zero_iff _ p, ← (nat.prime_iff_prime_int.mp hp).coprime_iff_not_dvd],
+    { exact hpn.symm },
+    exact zmod.char_p p },
+  simpa [← zmod.int_coe_eq_int_coe_iff] using zmod.pow_card_sub_one_eq_one this
+end

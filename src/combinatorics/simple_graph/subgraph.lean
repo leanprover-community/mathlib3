@@ -22,6 +22,8 @@ sub-relation of the adjacency relation of the simple graph.
 * `subgraph.coe` is the coercion from a `G' : subgraph G` to a `simple_graph G'.verts`.
   (This cannot be a `has_coe` instance since the destination type depends on `G'`.)
 
+* There is a coercion from `G.adj v w` to the `subgraph G` with a single edge.
+
 * `subgraph.is_spanning` for whether a subgraph is a spanning subgraph and
   `subgraph.is_induced` for whether a subgraph is an induced subgraph.
 
@@ -253,9 +255,10 @@ instance : bounded_order (subgraph G) :=
   le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
 
+@[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
+
 /-- Turn a subgraph of a `simple_graph` into a member of its subgraph type. -/
-@[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) :
-  G.subgraph :=
+@[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) : G.subgraph :=
 { verts := set.univ,
   adj := H.adj,
   adj_sub := h,
@@ -288,6 +291,37 @@ def bot_equiv : (⊥ : subgraph G).coe ≃g (⊥ : simple_graph empty) :=
   right_inv := λ v, v.elim,
   map_rel_iff' := λ a b, iff.rfl }
 
+/-- We can think of edges as being single-edge subgraphs. --/
+@[simps]
+instance edge_subgraph_coe : has_coe G.edge_set G.subgraph :=
+⟨λ e, { verts := {v | v ∈ (e : sym2 V)},
+        adj := λ a b, ⟦(a, b)⟧ = e,
+        adj_sub := λ a b h', by { rw [←G.mem_edge_set, h'], exact e.property },
+        edge_vert := λ a b h', by simp [←h'],
+        symm := λ a b, by simp only [sym2.eq_swap, imp_self]}⟩
+
+/-- We can think of adjacencies `G.adj v w` as being single-edge subgraphs. --/
+@[simps]
+instance adj_subgraph_coe (v w : V) : has_coe (G.adj v w) G.subgraph :=
+⟨λ h, ((⟨⟦(v, w)⟧, h⟩ : G.edge_set) : G.subgraph)⟩
+
+/-- Given a subgraph `G'`and a set pairs, remove all of those pairs from the edge set
+of `G'` (if they were present) -/
+@[simps]
+def delete_edges (G' : G.subgraph) (s : set (sym2 V)) : G.subgraph :=
+{ verts := G'.verts,
+  adj := λ a b, G'.adj a b ∧ ¬ ⟦(a, b)⟧ ∈ s,
+  adj_sub := λ a b h', G'.adj_sub h'.1,
+  edge_vert := λ a b h', G'.edge_vert h'.1,
+  symm := λ a b h, begin
+    rw [G'.adj_comm, sym2.eq_swap],
+    exact h,
+  end }
+
+@[simp]
+lemma delete_edges_of_empty (G' : G.subgraph) : G'.delete_edges ∅ = G' :=
+by ext; simp
+
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
 the subgraphs as graphs. -/
 def map {x y : subgraph G} (h : x ≤ y) : x.coe →g y.coe :=
@@ -307,6 +341,18 @@ lemma map_top.injective {x : subgraph G} : function.injective x.map_top :=
 
 @[simp]
 lemma map_top_to_fun {x : subgraph G} (v : x.verts) : x.map_top v = v := rfl
+
+/-- There is an induced injective homomorphism of a subgraph of `G` as
+a spanning subgraph into `G`. -/
+def map_spanning_top (x : subgraph G) : x.spanning_coe →g G :=
+{ to_fun := id,
+  map_rel' := λ v w hvw, x.adj_sub hvw }
+
+@[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
+by { ext, refl }
+
+lemma map_spanning_top.injective {x : subgraph G} : function.injective x.map_top :=
+λ v w h, subtype.ext h
 
 lemma neighbor_set_subset_of_subgraph {x y : subgraph G} (h : x ≤ y) (v : V) :
   x.neighbor_set v ⊆ y.neighbor_set v :=

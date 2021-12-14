@@ -176,7 +176,7 @@ def comap (f : C(α, β)) : opens β →ₘ opens α :=
 { to_fun := λ V, ⟨f ⁻¹' V, V.2.preimage f.continuous⟩,
   monotone' := λ V₁ V₂ hle, monotone_preimage hle }
 
-@[simp] lemma comap_id : comap (continuous_map.id : C(α, α)) = preorder_hom.id :=
+@[simp] lemma comap_id : comap (continuous_map.id : C(α, α)) = order_hom.id :=
 by { ext, refl }
 
 lemma comap_mono (f : C(α, β)) {V W : opens β} (hVW : V ⊆ W) :

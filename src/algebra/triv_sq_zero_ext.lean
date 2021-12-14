@@ -23,6 +23,9 @@ It is a square-zero extension because `M^2 = 0`.
 * `triv_sq_zero_ext.fst`, `triv_sq_zero_ext.snd`: the canonical projections from
   `triv_sq_zero_ext R M`.
 * `triv_sq_zero_ext.algebra`: the associated `R`-algebra structure.
+* `triv_sq_zero_ext.lift`: the universal property of the trivial square-zero extension; algebra
+  morphisms `triv_sq_zero_ext R M →ₐ[R] A` are uniquely defined by linear maps `M →ₗ[R] A` for
+  which the product of any two elements in the range is zero.
 
 -/
 
@@ -219,7 +222,8 @@ lemma ind {R M} [add_zero_class R] [add_zero_class M] {P : triv_sq_zero_ext R M 
   (h : ∀ r m, P (inl r + inr m)) (x) : P x :=
 inl_fst_add_inr_snd_eq x ▸ h x.1 x.2
 
-@[ext]
+/-- This cannot be marked `@[ext]` as it ends up being used instead of `linear_map.prod_ext` when
+working with `R × M`. -/
 lemma linear_map_ext {N} [semiring S] [add_comm_monoid R] [add_comm_monoid M] [add_comm_monoid N]
   [module S R] [module S M] [module S N] ⦃f g : tsze R M →ₗ[S] N⦄
   (hl : ∀ r, f (inl r) = g (inl r)) (hr : ∀ m, f (inr m) = g (inr m)) :
@@ -380,16 +384,15 @@ lemma alg_hom_ext {A} [semiring A] [algebra R A] ⦃f g : tsze R M →ₐ[R] A�
 alg_hom.to_linear_map_injective $ linear_map_ext (λ r, (f.commutes _).trans (g.commutes _).symm) h
 
 @[ext]
-lemma alg_hom_ext' {A} [comm_semiring R] [add_comm_monoid M] [semiring A] [module R M]
-  [algebra R A] ⦃f g : tsze R M →ₐ[R] A⦄
+lemma alg_hom_ext' {A} [semiring A] [algebra R A] ⦃f g : tsze R M →ₐ[R] A⦄
   (h : f.to_linear_map.comp (inr_hom R M) = g.to_linear_map.comp (inr_hom R M)) :
   f = g :=
 alg_hom_ext $ linear_map.congr_fun h
 
 variables {A : Type*} [semiring A] [algebra R A]
 
-/-- There is an alg_hom from the trivial square zero extension to any `R`-algebra with an subalgebra
-that squares to zero.
+/-- There is an alg_hom from the trivial square zero extension to any `R`-algebra with a submodule
+whose products are all zero.
 
 See `triv_sq_zero_ext.lift` for this as an equiv. -/
 def lift_aux (f : M →ₗ[R] A) (hf : ∀ x y, f x * f y = 0) : tsze R M →ₐ[R] A :=
@@ -416,8 +419,9 @@ linear_map.ext $ lift_aux_apply_inr f hf
 lemma lift_aux_inr_hom : lift_aux (inr_hom R M) (inr_mul_inr R) = alg_hom.id R (tsze R M) :=
 alg_hom_ext' $ lift_aux_comp_inr_hom _ _
 
-/-- A universal property of the dual numbers, providing a unique `𝔻[R] →ₐ[R] A` for every element
-of `A` which squares to `-1`.
+/-- A universal property of the trivial square-zero extension, providing a unique
+`triv_sq_zero_ext R M →ₐ[R] A` for every linear map `M →ₗ[R] A` whose range has no non-zero
+products.
 
 This isomorphism is named to match the very similar `complex.lift`. -/
 @[simps]

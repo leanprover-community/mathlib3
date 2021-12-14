@@ -26,13 +26,13 @@ namespace nat
  mapping each prime factor of `n` to its multiplicity in `n`. -/
 noncomputable def prime_factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
-lemma prime_factorization_count {n p : ℕ} : n.prime_factorization p = list.count p n.factors :=
+lemma prime_factorization_eq_count {n p : ℕ} : n.prime_factorization p = list.count p n.factors :=
 by simp [prime_factorization]
 
 /-- Every positive natural number has a unique prime factorization -/
 lemma prime_factorization_eq_iff {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   a.prime_factorization = b.prime_factorization ↔ a = b :=
-⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←prime_factorization_count, h]), λ h, by rw h⟩
+⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←prime_factorization_eq_count, h]), λ h, by rw h⟩
 
 @[simp] lemma prime_factorization_zero : prime_factorization 0 = 0  :=
 by simp [prime_factorization]
@@ -59,7 +59,7 @@ lemma prime_factorization_pow {n k : ℕ} :
 begin
   ext p,
   simp only [algebra.id.smul_eq_mul, finsupp.coe_smul, pi.smul_apply],
-  simp only [prime_factorization_count, factors_count_pow],
+  simp only [prime_factorization_eq_count, factors_count_pow],
 end
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity 1 -/
@@ -67,7 +67,7 @@ end
   p.prime_factorization = single p 1 :=
 begin
   ext q,
-  rw [prime_factorization_count, factors_prime hp],
+  rw [prime_factorization_eq_count, factors_prime hp],
   by_cases hqp : q = p,
   { rw hqp, simp },
   { rw finsupp.single_eq_of_ne (ne.symm hqp),

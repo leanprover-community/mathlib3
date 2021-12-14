@@ -51,12 +51,12 @@ derivative `(δu, δv) ↦ δv • cb - δu • ca` within the set `s × t` at `
 to `ca` (resp., `cb`) almost surely at `la` (resp., `lb`), where possible values of `s`, `t`, and
 corresponding filters `la`, `lb` are given in the following table.
 
-| `s`     | `la`         | `t`     | `lb`         |
-| ------- | ----         | ---     | ----         |
+| `s`     | `la`     | `t`     | `lb`     |
+| ------- | ----     | ---     | ----     |
 | `Iic a` | `𝓝[≤] a` | `Iic b` | `𝓝[≤] b` |
 | `Ici a` | `𝓝[>] a` | `Ici b` | `𝓝[>] b` |
-| `{a}`   | `⊥`          | `{b}`   | `⊥`          |
-| `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
+| `{a}`   | `⊥`      | `{b}`   | `⊥`      |
+| `univ`  | `𝓝 a`    | `univ`  | `𝓝 b`    |
 
 We use a typeclass `FTC_filter` to make Lean automatically find `la`/`lb` based on `s`/`t`. This way
 we can formulate one theorem instead of `16` (or `8` if we leave only non-trivial ones not covered
@@ -1834,12 +1834,12 @@ has derivative `(u, v) ↦ v • cb - u • ca` within `s × t` at `(a, b)`, whe
 `s ∈ {Iic a, {a}, Ici a, univ}` and `t ∈ {Iic b, {b}, Ici b, univ}` provided that `f` tends to `ca`
 and `cb` almost surely at the filters `la` and `lb` from the following table.
 
-| `s`     | `la`         | `t`     | `lb`         |
-| ------- | ----         | ---     | ----         |
+| `s`     | `la`     | `t`     | `lb`     |
+| ------- | ----     | ---     | ----     |
 | `Iic a` | `𝓝[≤] a` | `Iic b` | `𝓝[≤] b` |
 | `Ici a` | `𝓝[>] a` | `Ici b` | `𝓝[>] b` |
-| `{a}`   | `⊥`          | `{b}`   | `⊥`          |
-| `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
+| `{a}`   | `⊥`      | `{b}`   | `⊥`      |
+| `univ`  | `𝓝 a`    | `univ`  | `𝓝 b`    |
 -/
 lemma integral_has_fderiv_within_at_of_tendsto_ae
   (hf : interval_integrable f volume a b)
@@ -1864,12 +1864,12 @@ has derivative `(u, v) ↦ v • f b - u • f a` within `s × t` at `(a, b)`, w
 `f a` and `f b` at the filters `la` and `lb` from the following table. In most cases this assumption
 is definitionally equal `continuous_at f _` or `continuous_within_at f _ _`.
 
-| `s`     | `la`         | `t`     | `lb`         |
-| ------- | ----         | ---     | ----         |
+| `s`     | `la`     | `t`     | `lb`     |
+| ------- | ----     | ---     | ----     |
 | `Iic a` | `𝓝[≤] a` | `Iic b` | `𝓝[≤] b` |
 | `Ici a` | `𝓝[>] a` | `Ici b` | `𝓝[>] b` |
-| `{a}`   | `⊥`          | `{b}`   | `⊥`          |
-| `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
+| `{a}`   | `⊥`      | `{b}`   | `⊥`      |
+| `univ`  | `𝓝 a`    | `univ`  | `𝓝 b`    |
 -/
 lemma integral_has_fderiv_within_at
   (hf : interval_integrable f volume a b)
@@ -1892,12 +1892,12 @@ and `t ∈ {Iic b, Ici b, univ}`. Suppose that `f` tends to `ca` and `cb` almost
 `la` and `lb` from the table below. Then `fderiv_within ℝ (λ p, ∫ x in p.1..p.2, f x) (s.prod t)`
 is equal to `(u, v) ↦ u • cb - v • ca`.
 
-| `s`     | `la`         | `t`     | `lb`         |
-| ------- | ----         | ---     | ----         |
+| `s`     | `la`     | `t`     | `lb`     |
+| ------- | ----     | ---     | ----     |
 | `Iic a` | `𝓝[≤] a` | `Iic b` | `𝓝[≤] b` |
 | `Ici a` | `𝓝[>] a` | `Ici b` | `𝓝[>] b` |
-| `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
-
+| `{a}`   | `⊥`      | `{b}`   | `⊥`      |
+| `univ`  | `𝓝 a`    | `univ`  | `𝓝 b`    |
 -/
 lemma fderiv_within_integral_of_tendsto_ae
   (hf : interval_integrable f volume a b)

@@ -255,7 +255,7 @@ lemma inv_def (e : P₁ ≃ᵃ[k] P₁) : e⁻¹ = e.symm := rfl
 
 This is the affine version of `linear_map.general_linear_group.general_linear_equiv`. -/
 @[simps]
-def equiv_units_affine_map : (P₁ ≃ᵃ[k] P₁) ≃ units (P₁ →ᵃ[k] P₁) :=
+def equiv_units_affine_map : (P₁ ≃ᵃ[k] P₁) ≃* units (P₁ →ᵃ[k] P₁) :=
 { to_fun := λ e, ⟨e, e.symm, congr_arg coe e.symm_trans_self, congr_arg coe e.self_trans_symm⟩,
   inv_fun := λ u,
   { to_fun := (u : P₁ →ᵃ[k] P₁), inv_fun := (↑(u⁻¹) : P₁ →ᵃ[k] P₁),
@@ -265,7 +265,8 @@ def equiv_units_affine_map : (P₁ ≃ᵃ[k] P₁) ≃ units (P₁ →ᵃ[k] P�
       units.map (by exact affine_map.linear_hom) u,
     map_vadd' := λ _ _, (u : P₁ →ᵃ[k] P₁).map_vadd _ _ },
   left_inv := λ e, affine_equiv.ext $ λ x, rfl,
-  right_inv := λ u, units.ext $ affine_map.ext $ λ x, rfl }
+  right_inv := λ u, units.ext $ affine_map.ext $ λ x, rfl,
+  map_mul' := λ e₁ e₂, rfl }
 
 variable (k)
 

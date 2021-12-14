@@ -52,10 +52,11 @@ by simp only [support_factorization, list.mem_to_finset]
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
-/-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-@[simp] lemma factorization_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+/-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+@[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factorization = a.factorization + b.factorization :=
-by { ext p, simp only [finsupp.add_apply, factorization_eq_count, count_factors_mul_of_pos ha hb] }
+by { ext p, simp only [add_apply, factorization_eq_count,
+  count_factors_mul_of_pos (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb)] }
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 lemma factorization_pow {n k : ℕ} :

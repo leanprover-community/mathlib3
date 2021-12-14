@@ -1417,16 +1417,6 @@ begin
     ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
 end
 
-lemma innerSL_norm [nontrivial E] : ∥(innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜)∥ = 1 :=
-begin
-  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one
-    (λ _, by simp only [one_mul, innerSL_apply_norm]) _,
-  intros N hN h,
-  simp only [innerSL_apply_norm] at h,
-  rcases exists_ne (0 : E) with ⟨x, hx⟩,
-  exact (le_mul_iff_one_le_left (norm_pos_iff.mpr hx)).mp (h x),
-end
-
 /-- When an inner product space `E` over `𝕜` is considered as a real normed space, its inner
 product satisfies `is_bounded_bilinear_map`.
 

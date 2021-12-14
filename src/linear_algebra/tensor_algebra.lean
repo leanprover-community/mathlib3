@@ -36,7 +36,7 @@ modulo the additional relations making the inclusion of `M` into an `R`-linear m
 -/
 
 variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_monoid M] [module R M]
+variables (M : Type*) [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 
 namespace tensor_algebra
 
@@ -61,7 +61,8 @@ def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 
 namespace tensor_algebra
 
-instance {S : Type*} [comm_ring S] [module S M] : ring (tensor_algebra S M) :=
+instance {S : Type*} [comm_ring S] [module S M] [module Sᵐᵒᵖ M] [is_central_scalar S M] :
+  ring (tensor_algebra S M) :=
 ring_quot.ring (rel S M)
 
 variables {M}
@@ -179,7 +180,7 @@ def to_triv_sq_zero_ext : tensor_algebra R M →ₐ[R] triv_sq_zero_ext R M :=
 lift R (triv_sq_zero_ext.inr_hom R M)
 
 @[simp] lemma to_triv_sq_zero_ext_ι (x : M) :
-   to_triv_sq_zero_ext (ι R x) = triv_sq_zero_ext.inr x :=
+  to_triv_sq_zero_ext (ι R x) = triv_sq_zero_ext.inr x :=
 lift_ι_apply _ _
 
 /-- The left-inverse of `ι`.

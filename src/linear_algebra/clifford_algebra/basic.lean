@@ -46,7 +46,7 @@ This file is almost identical to `linear_algebra/exterior_algebra.lean`.
 -/
 
 variables {R : Type*} [comm_ring R]
-variables {M : Type*} [add_comm_group M] [module R M]
+variables {M : Type*} [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 variables (Q : quadratic_form R M)
 
 variable {n : ℕ}
@@ -230,6 +230,8 @@ section map
 variables {M₁ M₂ M₃ : Type*}
 variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
 variables [module R M₁] [module R M₂] [module R M₃]
+variables [module Rᵐᵒᵖ M₁] [module Rᵐᵒᵖ M₂] [module Rᵐᵒᵖ M₃]
+variables [is_central_scalar R M₁] [is_central_scalar R M₂] [is_central_scalar R M₃]
 variables (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) (Q₃ : quadratic_form R M₃)
 
 /-- Any linear map that preserves the quadratic form lifts to an `alg_hom` between algebras.

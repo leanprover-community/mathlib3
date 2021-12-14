@@ -48,7 +48,7 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 universes u1 u2 u3
 
 variables (R : Type u1) [comm_semiring R]
-variables (M : Type u2) [add_comm_monoid M] [module R M]
+variables (M : Type u2) [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 
 namespace exterior_algebra
 open tensor_algebra
@@ -72,7 +72,8 @@ namespace exterior_algebra
 
 variables {M}
 
-instance {S : Type u3} [comm_ring S] [module S M] : ring (exterior_algebra S M) :=
+instance {S : Type u3} [comm_ring S] [module S M] [module Sᵐᵒᵖ M] [is_central_scalar S M] :
+  ring (exterior_algebra S M) :=
 ring_quot.ring (exterior_algebra.rel S M)
 
 /--

@@ -128,7 +128,8 @@ class equiv_like (E : Sort*) (α β : out_param Sort*) :=
 (inv : E → β → α)
 (left_inv  : ∀ e, function.left_inverse (inv e) (coe e))
 (right_inv : ∀ e, function.right_inverse (inv e) (coe e))
-(coe_injective' : ∀ e g, coe e = coe g → inv e = inv g → e = g) -- Easier to prove with `congr'`
+-- The `inv` hypothesis makes this easier to prove with `congr'`
+(coe_injective' : ∀ e g, coe e = coe g → inv e = inv g → e = g) 
 
 namespace equiv_like
 

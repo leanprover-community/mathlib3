@@ -778,34 +778,21 @@ lemma prod_congr {f : α →₀ M} {g1 g2 : α → M → N}
   (h : ∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) : f.prod g1 = f.prod g2 :=
 finset.prod_congr rfl h
 
-lemma prod_eq_zero_iff [comm_monoid_with_zero M] [comm_monoid_with_zero N] (f : α →₀ M) (g : α → M → N) :
-  f.prod g = 0 ↔ ∃ p ∈ f.support, g p (f p) = 0 :=
-begin
-  have := @finset.prod_eq_zero_iff,
-  -- classical,
-  -- apply finset.induction_on s,
-  -- exact ⟨not.elim one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩,
-  -- assume a s ha ih,
-  -- rw [prod_insert ha, mul_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
-
-  sorry,
-end
-
---   f.prod g = 0 ↔ ∃ p ∈ f.support, g p (f p) = 0 :=
--- by { unfold finsupp.prod,
--- have := @finset.prod_eq_zero_iff M α f.support _ _,
--- exact finset.prod_eq_zero_iff }
-
-lemma prod_ne_zero_iff [comm_monoid_with_zero N] (f : α →₀ M) (g : α → M → N) :
-  f.prod g ≠ 0 ↔ ∀ p ∈ f.support, g p (f p) ≠ 0 :=
-begin
-  -- have := @finset.prod_ne_zero_iff,
-  sorry,
-end
---   :=
--- by { unfold finsupp.prod, exact finset.prod_ne_zero_iff }
-
 end sum_prod
+
+section prod_eq_zero
+
+variables [has_zero M] [comm_monoid_with_zero N] [nontrivial N] [no_zero_divisors N]
+
+lemma prod_eq_zero_iff (f : α →₀ M) (g : α → M → N) :
+  f.prod g = 0 ↔ ∃ p ∈ f.support, g p (f p) = 0 :=
+by { unfold finsupp.prod, exact finset.prod_eq_zero_iff }
+
+lemma prod_ne_zero_iff (f : α →₀ M) (g : α → M → N) :
+  f.prod g ≠ 0 ↔ ∀ p ∈ f.support, g p (f p) ≠ 0 :=
+by { unfold finsupp.prod, exact finset.prod_ne_zero_iff }
+
+end prod_eq_zero
 
 /-!
 ### Additive monoid structure on `α →₀ M`

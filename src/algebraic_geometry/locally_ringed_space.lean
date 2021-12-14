@@ -222,6 +222,10 @@ begin
     exact (is_unit_map_iff (PresheafedSpace.stalk_map f.1 _) _).mp hy }
 end
 
+instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)
+  [hU : nonempty U] : nontrivial (X.presheaf.obj $ op U) :=
+(X.presheaf.germ hU.some).domain_nontrivial
+
 end LocallyRingedSpace
 
 end algebraic_geometry

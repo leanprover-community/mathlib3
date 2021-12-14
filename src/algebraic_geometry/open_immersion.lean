@@ -28,6 +28,13 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   open immersion is isomorphic to the restriction of the target onto the image.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.lift`: Any morphism whose range is
   contained in an open immersion factors though the open immersion.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_SheafedSpace`: If `f : X ⟶ Y` is an
+  open immersion of presheafed spaces, and `Y` is a sheafed space, then `X` is also a sheafed
+  space. The morphism as morphisms of sheafed spaces is given by `to_SheafedSpace_hom`.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_LocallyRingedSpace`: If `f : X ⟶ Y` is
+  an open immersion of presheafed spaces, and `Y` is a locally ringed space, then `X` is also a
+  locally ringed space. The morphism as morphisms of locally ringed spaces is given by
+  `to_LocallyRingedSpace_hom`.
 
 ## Main results
 
@@ -42,6 +49,8 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   immersion, then the pullback `(f, g)` exists (and the forgetful functor to `Top` preserves it).
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_snd_of_left`: Open immersions
   are stable under pullbacks.
+* `algebraic_geometry.SheafedSpace.is_open_immersion.of_stalk_iso` An (topological) open embedding
+  between two sheafed spaces is an open immersion if all the stalk maps are isomorphisms.
 
 -/
 
@@ -672,7 +681,7 @@ instance SheafedSpace_forget_preserves_of_left :
   preserves_limit (cospan f g) (SheafedSpace.forget C) :=
 @@limits.comp_preserves_limit _ _ _ _ forget (PresheafedSpace.forget C) _
 begin
-  apply_with (preserves_limit_of_iso_diagram _ (diagram_iso_cospan _).symm) { instances := tt },
+  apply_with (preserves_limit_of_iso_diagram _ (diagram_iso_cospan.{v} _).symm) { instances := tt },
   dsimp,
   apply_instance
 end

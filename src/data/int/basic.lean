@@ -884,12 +884,11 @@ lemma nat_abs_sign_of_nonzero {z : ℤ} (hz : z ≠ 0) :
   z.sign.nat_abs = 1 :=
 by rw [int.nat_abs_sign, if_neg hz]
 
-lemma sign_coe_nat_of_pos {n : ℕ} (hn : 0 < n) :
+lemma sign_coe_nat_of_nonzero {n : ℕ} (hn : n ≠ 0) :
   int.sign n = 1 :=
 begin
-  cases n,
-  { exact absurd rfl hn.ne },
-  { refl }
+  obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
+  exact int.sign_of_succ n
 end
 
 @[simp] lemma sign_neg (z : ℤ) :

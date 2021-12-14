@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.zero
+import category_theory.monoidal.End
+import category_theory.monoidal.discrete
 
 /-!
 # Shift
@@ -16,50 +18,248 @@ term of `C`.
 -/
 namespace category_theory
 
+noncomputable theory
+
 universes v u
 
 variables (C : Type u) (A : Type*) [category.{v} C]
 
+local attribute [instance] endofunctor_monoidal_category
+local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal
+variables {M N : Type*} [category M] [category N] [monoidal_category M] [monoidal_category N]
+
 section defs
+
+section
+variables {C A}
+section monoid
+variables [add_monoid A]
+variables (F : monoidal_functor (discrete A) (C ⥤ C)) (G : monoidal_functor M N)
+
+@[simp]
+lemma monoidal_functor.μ_iso_hom (X Y : M) : (G.μ_iso X Y).hom = G.μ X Y := rfl
+@[simp]
+lemma monoidal_functor.ε_iso_hom : G.ε_iso.hom = G.ε := rfl
+
+lemma whisker_left_eq (F G H : C ⥤ C) (α : F ⟶ G) : whisker_left H α = (𝟙 _) ⊗ α :=
+by { ext, dsimp, rw G.map_id, exact (category.comp_id _).symm }
+
+lemma whisker_right_eq (F G H : C ⥤ C) (α : F ⟶ G) : whisker_right α H = α ⊗ (𝟙 _) :=
+by { ext, exact (category.id_comp _).symm }
+
+lemma comp_eq (F G : C ⥤ C) : F ⋙ G = F ⊗ G := rfl
+
+@[reassoc]
+lemma left_unitality_app (n : A) (X : C) :
+  (F.obj n).map (F.ε.app X) ≫ (F.μ 0 n).app X =
+    eq_to_hom (by { congr, exact (zero_add _).symm }) :=
+begin
+  refine eq.trans _ (category.id_comp _),
+  rw ← is_iso.comp_inv_eq,
+  have := congr_app (F.to_lax_monoidal_functor.left_unitality n) X,
+  dsimp at this,
+  simpa using this.symm,
+end
+
+@[simp]
+lemma obj_ε_app (n : A) (X : C) :
+  (F.obj n).map (F.ε.app X) =
+    eq_to_hom (by { congr, exact (zero_add _).symm }) ≫ (F.μ_iso 0 n).inv.app X :=
+begin
+  rw [← left_unitality_app, category.assoc, ← nat_iso.app_inv],
+  erw ((F.μ_iso 0 n).app X).hom_inv_id,
+  exact (category.comp_id _).symm,
+end
+
+@[reassoc]
+lemma right_unitality_app (m : A) (X : C) :
+  F.ε.app ((F.obj m).obj X) ≫ (F.μ m 0).app X =
+    eq_to_hom (by { dsimp, congr, exact (add_zero _).symm }) :=
+begin
+  refine eq.trans _ (category.id_comp _),
+  rw ← is_iso.comp_inv_eq,
+  have := congr_app (F.to_lax_monoidal_functor.right_unitality m) X,
+  dsimp at this,
+  simpa using this.symm,
+end
+
+@[simp]
+lemma ε_app_obj (n : A) (X : C) :
+  F.ε.app ((F.obj n).obj X) =
+    eq_to_hom (by { dsimp, congr, exact (add_zero _).symm }) ≫ (F.μ_iso n 0).inv.app X :=
+begin
+  rw [← right_unitality_app, category.assoc, ← nat_iso.app_inv],
+  erw ((F.μ_iso n 0).app X).hom_inv_id,
+  exact (category.comp_id _).symm,
+end
+
+@[simp]
+lemma ε_inv_app_obj (n : A) (X : C) :
+  F.ε_iso.inv.app ((F.obj n).obj X) =
+    (F.μ n 0).app X ≫ eq_to_hom (by { dsimp, congr, exact add_zero _ }) :=
+begin
+  rw ← nat_iso.app_inv,
+  ext,
+  erw right_unitality_app_assoc,
+  simp,
+end
+
+@[reassoc]
+lemma associativity_app (m₁ m₂ m₃: A) (X : C) :
+  (F.obj m₃).map ((F.μ m₁ m₂).app X) ≫ (F.μ (m₁ + m₂) m₃).app X ≫
+    eq_to_hom (by { congr' 2, exact add_assoc _ _ _ }) =
+  (F.μ m₂ m₃).app ((F.obj m₁).obj X) ≫ (F.μ m₁ (m₂ + m₃)).app X :=
+begin
+  have := congr_app (F.to_lax_monoidal_functor.associativity m₁ m₂ m₃) X,
+  dsimp at this,
+  simpa using this,
+end
+
+@[simp, reassoc, priority 900]
+lemma obj_μ_app (m₁ m₂ m₃ : A) (X : C) :
+  (F.obj m₃).map ((F.μ m₁ m₂).app X) =
+  (F.μ m₂ m₃).app ((F.obj m₁).obj X) ≫ (F.μ m₁ (m₂ + m₃)).app X ≫
+    eq_to_hom (by { congr' 2, exact (add_assoc _ _ _).symm }) ≫ (F.μ_iso (m₁ + m₂) m₃).inv.app X :=
+begin
+  rw [← associativity_app_assoc, eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp,
+    ← nat_iso.app_inv],
+  erw ((F.μ_iso (m₁ + m₂) m₃).app X).hom_inv_id,
+  exact (category.comp_id _).symm,
+end
+
+@[simp, reassoc, priority 900]
+lemma obj_μ_inv_app (m₁ m₂ m₃ : A) (X : C) :
+  (F.obj m₃).map ((F.μ_iso m₁ m₂).inv.app X) =
+  (F.μ (m₁ + m₂) m₃).app X ≫ eq_to_hom (by { congr' 2, exact add_assoc _ _ _ }) ≫
+  (F.μ_iso m₁ (m₂ + m₃)).inv.app X ≫
+  (F.μ_iso m₂ m₃).inv.app ((F.obj m₁).obj X) :=
+begin
+  rw ← is_iso.inv_eq_inv,
+  convert obj_μ_app F m₁ m₂ m₃ X using 1,
+  { ext, rw [← functor.map_comp, ←F.μ_iso_hom, iso.inv_hom_id_app, functor.map_id], },
+  { simp only [monoidal_functor.μ_iso_hom, category.assoc, inv_eq_to_hom,
+      nat_iso.inv_inv_app, is_iso.inv_comp],
+    congr,
+    ext,
+    exact (F.μ_iso _ _).hom_inv_id_app X }
+end
+
+@[simp, reassoc] lemma μ_comp_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+  (F.μ i j).app X ≫ eq_to_hom (by rw [h₁, h₂]) =
+    eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ i' j').app X :=
+by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
+
+@[simp, reassoc] lemma μ_inv_comp_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+  (F.μ_iso i j).inv.app X ≫ eq_to_hom (by rw [h₁, h₂]) =
+    eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ_iso i' j').inv.app X :=
+by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
+
+@[simp]
+lemma obj_μ_zero_app (m₁ m₂ : A) (X : C) :
+  (F.obj m₂).map ((F.μ m₁ 0).app X) =
+  (F.μ 0 m₂).app ((F.obj m₁).obj X) ≫ eq_to_hom (by { dsimp, congr; simp }) :=
+begin
+  rw ← is_iso.comp_inv_eq,
+  have := associativity_app F m₁ 0 m₂ X,
+  rw ← is_iso.comp_inv_eq at this,
+  rw [← this, category.assoc],
+  congr,
+  rw [inv_eq_to_hom, is_iso.eq_comp_inv, μ_comp_eq_to_hom],
+  { refl }, { simp }, { simp }
+end
+
+@[simp]
+lemma iso_whisker_right_μ_inv_eq (F : monoidal_functor M (C ⥤ C)) (i j k : M) :
+  iso_whisker_right (F.μ_iso i j).symm (F.obj k) =
+    (F.μ_iso (i ⊗ j) k) ≪≫ F.to_functor.map_iso (α_ _ _ _) ≪≫ (F.μ_iso i (j ⊗ k)).symm ≪≫
+      iso_whisker_left (F.obj i) (F.μ_iso j k).symm ≪≫ (functor.associator _ _ _).symm :=
+begin
+  ext1,
+  dsimp,
+  rw [whisker_right_eq, whisker_left_eq, ← category.assoc],
+  erw category.comp_id,
+  rw [← category.assoc, ← is_iso.comp_inv_eq, ← is_iso.comp_inv_eq, category.assoc,
+    ← is_iso.eq_inv_comp],
+  simp only [is_iso.inv_id, monoidal_category.inv_tensor, is_iso.iso.inv_inv,
+    lax_monoidal_functor.associativity, monoidal_functor.μ_iso_hom],
+  erw category.id_comp,
+end
+
+end monoid
+
+section group
+variables [add_group A]
+variables (F : monoidal_functor (discrete A) (C ⥤ C))
+
+include F
+
+def add_neg_ε (n : A) : F.obj n ⋙ F.obj (-n : A) ≅ 𝟭 C :=
+F.μ_iso n (-n : A) ≪≫ F.to_functor.map_iso (eq_to_iso (add_neg_self _)) ≪≫ F.ε_iso.symm
+
+def neg_add_ε (n : A) : F.obj (-n : A) ⋙ F.obj n ≅ 𝟭 C :=
+F.μ_iso (-n : A) n ≪≫ F.to_functor.map_iso (eq_to_iso (neg_add_self _)) ≪≫ F.ε_iso.symm
+
+def add_neg_equiv (n : A) : C ≌ C :=
+{ functor := F.obj n,
+  inverse := F.obj (-n : A),
+  unit_iso := (add_neg_ε F n).symm,
+  counit_iso := neg_add_ε F n,
+  functor_unit_iso_comp' :=
+  begin
+    intro X,
+    dsimp [neg_add_ε, add_neg_ε],
+    simp only [eq_to_hom_app, ε_inv_app_obj, category.assoc, obj_μ_inv_app,
+      functor.map_comp, eq_to_hom_map, obj_ε_app, ← F.μ_iso_hom],
+    erw [μ_inv_comp_eq_to_hom_assoc, ← μ_comp_eq_to_hom_assoc],
+    rw [iso.inv_hom_id_app_assoc, iso.inv_hom_id_app_assoc, ← F.μ_iso_hom,
+      iso.inv_hom_id_app_assoc],
+    all_goals { simp }
+  end }
+
+end group
+
+end
 
 variables [add_monoid A]
 
+
+variables (C A)
+
 /-- A category has a shift, or translation, if it is equipped with an automorphism. -/
 class has_shift (C : Type u) (A : Type*) [category.{v} C] [add_monoid A] :=
-(shift : Π (i : A), C ⥤ C)
-(shift_add : Π i j, shift (i + j) ≅ shift i ⋙ shift j)
-(iso_whisker_right_shift_add : ∀ i j k, iso_whisker_right (shift_add i j) (shift k) =
-  (shift_add (i+j) k).symm ≪≫ (eq_to_iso $ by rw add_assoc) ≪≫ (shift_add i (j+k)) ≪≫
-    iso_whisker_left _ (shift_add j k) ≪≫ (functor.associator _ _ _).symm)
+(shift : monoidal_functor (discrete A) (C ⥤ C))
+-- (shift : Π (i : A), C ⥤ C)
+-- (shift_add : Π i j, shift (i + j) ≅ shift i ⋙ shift j)
+-- (iso_whisker_right_shift_add : ∀ i j k, iso_whisker_right (shift_add i j) (shift k) =
+--   (shift_add (i+j) k).symm ≪≫ (eq_to_iso $ by rw add_assoc) ≪≫ (shift_add i (j+k)) ≪≫
+--     iso_whisker_left _ (shift_add j k) ≪≫ (functor.associator _ _ _).symm)
+-- (shift_functor_zero : shift 0 ≅ 𝟭 C)
+
 
 variables [has_shift C A] {A}
 
+#check has_shift.shift
+
+
 /-- The shift autoequivalence, moving objects and morphisms 'up'. -/
-def shift_functor (i : A) : C ⥤ C := has_shift.shift i
+def shift_functor (i : A) : C ⥤ C := has_shift.shift.obj i
 
 /-- Shifting by `i + j` is the same as shifting by `i` and then shifting by `j`. -/
 def shift_functor_add (i j : A) :
   shift_functor C (i + j) ≅ shift_functor C i ⋙ shift_functor C j :=
-has_shift.shift_add i j
+(has_shift.shift.μ_iso i j).symm
 
 lemma iso_whisker_right_shift_functor_add (i j k : A) :
   iso_whisker_right (shift_functor_add C i j) (shift_functor C k) =
   (shift_functor_add C (i+j) k).symm ≪≫ (eq_to_iso $ by rw add_assoc) ≪≫
     (shift_functor_add C i (j+k)) ≪≫
     iso_whisker_left _ (shift_functor_add C j k) ≪≫ (functor.associator _ _ _).symm :=
-has_shift.iso_whisker_right_shift_add i j k
+by { convert iso_whisker_right_μ_inv_eq has_shift.shift i j k, simpa }
 
 variables (A)
 
 /-- Shifting by zero is the identity functor. -/
-def shift_functor_zero [is_equivalence (shift_functor C (0:A))] :
-  shift_functor C (0 : A) ≅ 𝟭 C :=
-(functor.right_unitor _).symm ≪≫
-  iso_whisker_left (shift_functor _ _) is_equivalence.unit_iso ≪≫
-  (iso_whisker_right (eq_to_iso (by rw add_zero) ≪≫ (shift_functor_add C (0:A) 0))
-    (shift_functor C (0 : A)).inv ≪≫
-  (functor.associator _ _ _)).symm ≪≫
-  is_equivalence.unit_iso.symm
+def shift_functor_zero : shift_functor C (0 : A) ≅ 𝟭 C := has_shift.shift.ε_iso.symm
 
 end defs
 
@@ -79,22 +279,22 @@ section add_monoid
 
 variables {C A} [add_monoid A] [has_shift C A] (X Y : C) (f : X ⟶ Y)
 
-@[simp] lemma has_shift.shift_app (n : A) (X : C) : (has_shift.shift n).obj X = X⟦n⟧ := rfl
+@[simp] lemma has_shift.shift_app (n : A) (X : C) : (has_shift.shift.obj n).obj X = X⟦n⟧ := rfl
 
 /-- Shifting by `i + j` is the same as shifting by `i` and then shifting by `j`. -/
 def shift_add (i j : A) : X⟦i + j⟧ ≅ X⟦i⟧⟦j⟧ := (shift_functor_add C i j).app _
 
-@[simp] lemma has_shift.shift_add_app (i j : A) :
-  (has_shift.shift_add i j).app X = shift_add X i j := rfl
+-- @[simp] lemma has_shift.shift_add_app (i j : A) :
+--   (has_shift.shift_add i j).app X = shift_add X i j := rfl
 
-@[simp] lemma shift_functor_add_app (i j : A) :
-  (shift_functor_add C i j).app X = shift_add X i j := rfl
+-- @[simp] lemma shift_functor_add_app (i j : A) :
+--   (shift_functor_add C i j).app X = shift_add X i j := rfl
 
-@[simp] lemma shift_functor_add_hom_app (i j : A) :
-  (shift_functor_add C i j).hom.app X = (shift_add X i j).hom := rfl
+-- @[simp] lemma shift_functor_add_hom_app (i j : A) :
+--   (shift_functor_add C i j).hom.app X = (shift_add X i j).hom := rfl
 
-@[simp] lemma shift_functor_inv_hom_app (i j : A) :
-  (shift_functor_add C i j).inv.app X = (shift_add X i j).inv := rfl
+-- @[simp] lemma shift_functor_inv_hom_app (i j : A) :
+--   (shift_functor_add C i j).inv.app X = (shift_add X i j).inv := rfl
 
 @[simp]
 lemma shift_add' (i j : A) :
@@ -198,7 +398,7 @@ end add_monoid
 
 section add_group
 
-variables {A} [add_group A] [has_shift C A] [is_equivalence (shift_functor C (0 : A))]
+variables {A} [add_group A] [has_shift C A]
 variables (X Y : C) (f : X ⟶ Y)
 
 /-- Shifting by `i` and then shifting by `-i` is the identity. -/
@@ -216,13 +416,13 @@ section
 variables (C)
 
 /-- Shifting by `n` is a faithful functor. -/
-lemma shift_functor_faithful (i : A) : faithful (shift_functor C i) :=
+instance shift_functor_faithful (i : A) : faithful (shift_functor C i) :=
 faithful.of_comp_iso (shift_functor_comp_shift_functor_neg C i)
 
-local attribute [instance] shift_functor_faithful
+-- local attribute [instance] shift_functor_faithful
 
 /-- Shifting by `n` is a full functor. -/
-def shift_functor_full (i : A) : full (shift_functor C i) :=
+instance shift_functor_full (i : A) : full (shift_functor C i) :=
 begin
   haveI : full (shift_functor C i ⋙ shift_functor C (-i)) :=
     full.of_iso (shift_functor_comp_shift_functor_neg C i).symm,
@@ -230,20 +430,14 @@ begin
 end
 
 /-- Shifting by `n` is an essentially surjective functor. -/
-lemma shift_functor_ess_surj (i : A) : ess_surj (shift_functor C i) :=
+instance shift_functor_ess_surj (i : A) : ess_surj (shift_functor C i) :=
 { mem_ess_image := λ Y, ⟨Y⟦-i⟧, ⟨(shift_functor_neg_comp_shift_functor C i).app Y⟩⟩ }
 
-local attribute [instance] shift_functor_full shift_functor_ess_surj
-
 /-- Shifting by `n` is an equivalence. -/
-noncomputable def shift_functor_is_equivalence (n : A) : is_equivalence (shift_functor C n) :=
+noncomputable instance shift_functor_is_equivalence (n : A) : is_equivalence (shift_functor C n) :=
 equivalence.of_fully_faithfully_ess_surj _
 
 end
-
--- Unfortunately it is dangerous to make this a global instance,
--- because it creates a loop for `shift_functor C 0`.
-local attribute [instance] shift_functor_is_equivalence
 
 variables {C}
 
@@ -291,44 +485,16 @@ by rw [← iso.eq_comp_inv, shift_neg_shift', category.assoc]
   (shift_neg_shift _ _).inv ≫ f⟦-i⟧'⟦i⟧' = f ≫ (shift_neg_shift _ _).inv :=
 by rw [iso.inv_comp_eq, shift_neg_shift']
 
-variable (A)
-
-lemma shift_functor_zero_shift_zero (X : C) :
-  (shift_zero A X).hom⟦0⟧' =
-    (shift_add X 0 0).inv ≫ eq_to_hom (by simp) :=
-begin
-  rw iso.eq_inv_comp,
-  dsimp [shift_functor_zero, shift_zero],
-  simp only [iso.inv_hom_id_app_assoc, is_equivalence.fun_inv_map, functor.map_comp,
-    equivalence.equivalence_mk'_counit_inv, category.id_comp, ← category.assoc,
-    functor.as_equivalence_counit, equivalence.equivalence_mk'_counit],
-  erw functor.map_id,
-  iterate 3 { rw ← is_iso.eq_comp_inv },
-  simpa [← functor.map_inv],
-end
-
-variable {A}
-
-lemma shift_functor_zero_shift' (n : A) (X : C) :
-  (shift_zero A X).hom⟦0+n⟧' = (shift_add X 0 (0+n)).inv ≫ eq_to_hom (by simp) :=
-begin
-  rw [iso.eq_inv_comp, shift_add', shift_functor_zero_shift_zero],
-  dsimp [shift_functor_zero],
-  simp_rw ← category.assoc,
-  rw [iso.comp_inv_eq, ← shift_add_hom_comp_eq_to_hom₁₂],
-  simp_rw category.assoc,
-  rw cancel_epi,
-  simp only [iso.hom_inv_id_assoc, shift_shift_add_inv', eq_to_hom_app, category.assoc,
-    shift_add_hom_comp_eq_to_hom₁₂, eq_to_hom_trans_assoc, functor.map_comp, eq_to_hom_map],
-  rw ← shift_add_hom_comp_eq_to_hom₁₂_assoc,
-  erw iso.inv_hom_id_assoc,
-  all_goals { simp }
-end
-
 @[simp]
-lemma shift_zero_hom_shift (n : A) (X : C) :
-  (shift_zero A X).hom⟦n⟧' = (shift_add X 0 n).inv ≫ eq_to_hom (by simp) :=
-by { convert shift_functor_zero_shift' n X; simp }
+lemma shift_functor_zero_shift (X : C) (n : A) :
+  (shift_zero A X).hom⟦n⟧' =
+    (shift_add X 0 n).inv ≫ eq_to_hom (by simp) :=
+begin
+  dsimp [shift_functor_zero, shift_zero, shift_functor, shift_add, shift_functor_add],
+  rw [← is_iso.comp_inv_eq, ← is_iso.eq_inv_comp],
+  convert (left_unitality_app has_shift.shift n X).symm,
+  { simpa }, { rw [← functor.map_inv, nat_iso.inv_inv_app], refl }
+end
 
 @[simp]
 lemma shift_zero_inv_shift (n : A) (X : C) :
@@ -350,29 +516,35 @@ begin
   all_goals { simp },
 end
 
-lemma shift_equiv_triangle (n : A) (X : C) :
-  (shift_shift_neg X n).inv⟦n⟧' ≫ (shift_neg_shift (X⟦n⟧) n).hom = 𝟙 (X⟦n⟧) :=
-begin
-  dsimp [shift_shift_neg, shift_functor_comp_shift_functor_neg,
-    shift_neg_shift, shift_functor_neg_comp_shift_functor],
-  simp,
-end
+-- lemma shift_equiv_triangle (n : A) (X : C) :
+--   (shift_shift_neg X n).inv⟦n⟧' ≫ (shift_neg_shift (X⟦n⟧) n).hom = 𝟙 (X⟦n⟧) :=
+-- begin
+--   dsimp [shift_shift_neg, shift_functor_comp_shift_functor_neg,
+--     shift_neg_shift, shift_functor_neg_comp_shift_functor],
+--   simp only [shift_zero_inv_shift,
+--     eq_to_hom_app, ← category.assoc, eq_to_hom_trans_assoc, functor.map_comp,
+--     eq_to_hom_map],
+--   rw ← is_iso.eq_comp_inv,
+--   delta shift_functor_add shift_functor shift_zero shift_functor_zero,
+--   dsimp,
+--   simp,
+-- end
 
-@[simp]
-lemma shift_shift_neg_hom_shift (n : A) (X : C) :
-  (shift_shift_neg X n).hom ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).hom :=
-by rw [← cancel_epi ((shift_shift_neg X n).inv⟦n⟧'), shift_equiv_triangle,
-    ← functor.map_comp, iso.inv_hom_id, functor.map_id]
+-- @[simp]
+-- lemma shift_shift_neg_hom_shift (n : A) (X : C) :
+--   (shift_shift_neg X n).hom ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).hom :=
+-- by rw [← cancel_epi ((shift_shift_neg X n).inv⟦n⟧'), shift_equiv_triangle,
+--     ← functor.map_comp, iso.inv_hom_id, functor.map_id]
 
-@[simp]
-lemma shift_shift_neg_inv_shift (n : A) (X : C) :
-  (shift_shift_neg X n).inv ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).inv :=
-by { ext, rw [← shift_shift_neg_hom_shift, ← functor.map_comp, iso.hom_inv_id, functor.map_id] }
+-- @[simp]
+-- lemma shift_shift_neg_inv_shift (n : A) (X : C) :
+--   (shift_shift_neg X n).inv ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).inv :=
+-- by { ext, rw [← shift_shift_neg_hom_shift, ← functor.map_comp, iso.hom_inv_id, functor.map_id] }
 
-@[simp]
-lemma shift_shift_neg_shift_eq (n : A) (X : C) :
-  (shift_functor C n).map_iso (shift_shift_neg X n) = shift_neg_shift (X⟦n⟧) n :=
-category_theory.iso.ext $ shift_shift_neg_hom_shift _ _
+-- @[simp]
+-- lemma shift_shift_neg_shift_eq (n : A) (X : C) :
+--   (shift_functor C n).map_iso (shift_shift_neg X n) = shift_neg_shift (X⟦n⟧) n :=
+-- category_theory.iso.ext $ shift_shift_neg_hom_shift _ _
 
 variables (C)
 
@@ -381,9 +553,7 @@ variables (C)
 def shift_equiv (n : A) : C ≌ C :=
 { functor := shift_functor C n,
   inverse := shift_functor C (-n),
-  unit_iso := (shift_functor_comp_shift_functor_neg C n).symm,
-  counit_iso := shift_functor_neg_comp_shift_functor C n,
-  functor_unit_iso_comp' := shift_equiv_triangle n }
+  ..(add_neg_equiv has_shift.shift n) }
 
 variable {C}
 

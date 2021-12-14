@@ -357,8 +357,6 @@ open dual_number triv_sq_zero_ext
 
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 
-local notation `↑ₐ[` R `]` := ⇑(algebra_map R _)
-
 lemma ι_mul_ι (r₁ r₂) : ι (0 : quadratic_form R R) r₁ * ι (0 : quadratic_form R R) r₂ = 0 :=
 by rw [←mul_one r₁, ←mul_one r₂, ←smul_eq_mul R, ←smul_eq_mul R, linear_map.map_smul,
        linear_map.map_smul, smul_mul_smul, ι_sq_scalar, quadratic_form.zero_apply,

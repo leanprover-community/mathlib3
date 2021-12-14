@@ -12,35 +12,42 @@ import tactic.abel
 /-!
 # Algebras over commutative semirings
 
-In this file we define `algebra`s over commutative (semi)rings, algebra homomorphisms `alg_hom`,
-and algebra equivalences `alg_equiv`.
-We also define the usual operations on `alg_hom`s (`id`, `comp`).
+In this file we define associative unital `algebra`s over commutative (semi)rings, algebra
+homomorphisms `alg_hom`, and algebra equivalences `alg_equiv`.
 
 `subalgebra`s are defined in `algebra.algebra.subalgebra`.
 
-If `S` is an `R`-algebra and `A` is an `S`-algebra then `algebra.comap.algebra R S A` can be used
-to provide `A` with a structure of an `R`-algebra. Other than that, `algebra.comap` is now
-deprecated and replaced with `is_scalar_tower`.
-
 For the category of `R`-algebras, denoted `Algebra R`, see the file
 `algebra/category/Algebra/basic.lean`.
+
+See the implementation notes for remarks about non-associative and non-unital algebras.
+
+## Main definitions:
+
+* `algebra R A`: the algebra typeclass.
+* `alg_hom R A B`: the type of `R`-algebra morphisms from `A` to `B`.
+* `alg_equiv R A B`: the type of `R`-algebra isomorphisms between `A` to `B`.
+* `algebra_map R A : R →+* A`: the canonical map from `R` to `A`, as a `ring_hom`. This is the
+  preferred spelling of this map.
+* `algebra.linear_map R A : R →ₗ[R] A`: the canonical map from `R` to `A`, as a `linear_map`.
+* `algebra.of_id R A : R →ₐ[R] A`: the canonical map from `R` to `A`, as n `alg_hom`.
+* Instances of `algebra` in this file:
+  * `algebra.id`
+  * `pi.algebra`
+  * `prod.algebra`
+  * `algebra_nat`
+  * `algebra_int`
+  * `algebra_rat`
+  * `opposite.algebra`
+  * `module.End.algebra`
 
 ## Notations
 
 * `A →ₐ[R] B` : `R`-algebra homomorphism from `A` to `B`.
 * `A ≃ₐ[R] B` : `R`-algebra equivalence from `A` to `B`.
--/
 
-universes u v w u₁ v₁
+## Implementation notes
 
-open_locale big_operators
-
-section prio
--- We set this priority to 0 later in this file
-set_option extends_priority 200 /- control priority of
-`instance [algebra R A] : has_scalar R A` -/
-
-/--
 Given a commutative (semi)ring `R`, there are two ways to define an `R`-algebra structure on a
 (possibly noncommutative) (semi)ring `A`:
 * By endowing `A` with a morphism of rings `R →+* A` denoted `algebra_map R A` which lands in the
@@ -82,6 +89,22 @@ all be relaxed independently; for instance, this allows us to:
   which when `R' = units R` lets us talk about the "algebra-like" action of `units R` on an
   `R`-algebra `A`.
 While `alg_hom R A B` cannot be used in the second approach, `non_unital_alg_hom R A B` still can.
+
+-/
+
+universes u v w u₁ v₁
+
+open_locale big_operators
+
+section prio
+-- We set this priority to 0 later in this file
+set_option extends_priority 200 /- control priority of
+`instance [algebra R A] : has_scalar R A` -/
+
+/--
+An associative unital `R`-algebra is a semiring `A` equipped with a map into its center `R → A`.
+
+See the implementation notes in this file for discussion of the details of this definition.
 -/
 @[nolint has_inhabited_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]

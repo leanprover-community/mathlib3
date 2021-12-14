@@ -1421,6 +1421,27 @@ lemma map_range.add_equiv_to_equiv (f : M ≃+ N) :
     (map_range.equiv f.to_equiv f.map_zero f.symm.map_zero : (α →₀ _) ≃ _) :=
 equiv.ext $ λ _, rfl
 
+/-- For disjoint `f1` and `f2`, and function `g`
+ the product of `g x (f1 x + f2 x))` over `f1.support` equals the product of `g` over `f1.support` -/
+lemma disjoint_prod_add_aux {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.support)
+  {β : Type*} [comm_monoid β] {g : α → M → β} :
+(∏ (x : α) in f1.support, g x (f1 x + f2 x)) = f1.prod g :=
+begin
+  unfold finsupp.prod,
+  sorry,
+  -- rw prod_congr rfl,
+  -- intros x hx,
+  -- simp only [not_mem_support_iff.mp (finset.disjoint_left.mp hd hx), add_zero],
+end
+
+lemma disjoint_prod_add {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.support)
+  {β : Type*} [comm_monoid β] {g : α → M → β} :
+  f1.prod g * f2.prod g = (f1 + f2).prod g :=
+begin
+  rw [←disjoint_prod_add_aux hd, ←disjoint_prod_add_aux (disjoint.comm.mp hd)],
+  simp only [add_comm, finsupp.prod, support_add_eq hd, prod_union hd, add_apply],
+end
+#exit
 end add_monoid_hom
 
 end map_range

@@ -901,7 +901,7 @@ lemma self_subset_thickening {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
 /-- A set is contained in its own closed thickening. -/
 lemma self_subset_cthickening {δ : ℝ} (E : set α) (δ_nn : 0 ≤ δ) :
   E ⊆ cthickening δ E :=
-(@subset_closure _ _ E).trans (closure_subset_cthickening δ_nn E)
+subset_closure.trans (closure_subset_cthickening δ_nn E)
 
 lemma cthickening_eq_Inter_cthickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
@@ -983,7 +983,7 @@ by { rw ← cthickening_zero, exact cthickening_eq_Inter_thickening rfl.ge E, }
 
 /-- The frontier of the (open) thickening of a set is contained in an `inf_edist` level set. -/
 lemma frontier_thickening_subset (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
-  frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ } :=
+  frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
 begin
   have singleton_preim :
     {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},

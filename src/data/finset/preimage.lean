@@ -82,22 +82,16 @@ lemma image_preimage_of_bij [decidable_eq β] (f : α → β) (s : finset β)
   image f (preimage s f hf.inj_on) = s :=
 finset.coe_inj.1 $ by simpa using hf.image_eq
 
-lemma preimage_subset {f : α ↪ β} {s : finset β} {t : finset α} {h : set.inj_on f (f ⁻¹' s)}
-  (hs : s ⊆ t.map f) :
-  s.preimage f h ⊆ t :=
-begin
-  rintro x hx,
-  rw ←mem_map' f,
-  exact hs (mem_preimage.1 hx),
-end
+lemma preimage_subset {f : α ↪ β} {s : finset β} {t : finset α} (hs : s ⊆ t.map f) :
+  s.preimage f (f.injective.inj_on _) ⊆ t :=
+λ x hx, (mem_map' f).1 (hs (mem_preimage.1 hx))
 
 lemma subset_map_iff {f : α ↪ β} {s : finset β} {t : finset α} :
   s ⊆ t.map f ↔ ∃ u ⊆ t, s = u.map f :=
 begin
   classical,
-  refine ⟨λ h, ⟨(s.preimage _ $ f.injective.inj_on _), preimage_subset h, _⟩, _⟩,
-  { rw [map_eq_image, image_preimage],
-    refine (filter_true_of_mem $ λ x hx, _).symm,
+  refine ⟨λ h, ⟨_, preimage_subset h, _⟩, _⟩,
+  { rw [map_eq_image, image_preimage, filter_true_of_mem (λ x hx, _)],
     exact coe_map_subset_range _ _ (h hx) },
   { rintro ⟨u, hut, rfl⟩,
     exact map_subset_map.2 hut }

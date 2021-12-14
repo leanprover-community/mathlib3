@@ -8,7 +8,7 @@ import analysis.asymptotics.asymptotics
 /-!
 # Salem-Spencer sets and Roth numbers
 
-This file defines Salem-Spencer sets, the Roth number of a set and calculates small Roth numbers.
+This file defines Salem-Spencer sets and the Roth number of a set.
 
 A Salem-Spencer set is a set without arithmetic progressions of length `3`. Equivalently, the
 average of any two distinct elements is not in the set.
@@ -20,19 +20,19 @@ the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
 ## Main declarations
 
 * `mul_salem_spencer`: Predicate for a set to be multiplicative Salem-Spencer.
-* `add_salem_spencer`: Predicate for a set to be Salem-Spencer.
-* `roth_number`: The Roth number of a finset.
+* `add_salem_spencer`: Predicate for a set to be additive Salem-Spencer.
+* `mul_roth_number`: The multiplicative Roth number of a finset.
+* `add_roth_number`: The additive Roth number of a finset.
 * `roth_number_nat`: The Roth number of a natural. This corresponds to
-  `roth_number (finset.range n)`.
+  `add_roth_number (finset.range n)`.
 
 ## TODO
 
-Can we calculate small Roth numbers quicker. The current algorithm to decide `roth_number_nat n ≤ m`
-is `O (n.choose m * m^2)`.
+Can `add_salem_spencer_iff_eq_right` be made more general?
 
 ## Tags
 
-Salem-Spencer, Roth, arithmetic progression, average
+Salem-Spencer, Roth, arithmetic progression, average, three-free
 -/
 
 open finset nat
@@ -97,9 +97,8 @@ lemma mul_salem_spencer_insert :
     ∀ ⦃b c⦄, b ∈ s → c ∈ s → b * c = a * a → b = c :=
 begin
   refine ⟨λ hs, ⟨hs.mono (set.subset_insert _ _),
-    λ b c hb hc, hs (set.mem_insert _ _) (set.mem_insert_of_mem _ hb) (set.mem_insert_of_mem _ hc),
-    λ b c hb hc, hs (set.mem_insert_of_mem _ hb) (set.mem_insert_of_mem _ hc) (set.mem_insert _ _)⟩,
-    _⟩,
+    λ b c hb hc, hs (or.inl rfl) (or.inr hb) (or.inr hc),
+    λ b c hb hc, hs (or.inr hb) (or.inr hc) (or.inl rfl)⟩, _⟩,
   rintro ⟨hs, ha, ha'⟩ b c d hb hc hd h,
   rw set.mem_insert_iff at hb hc hd,
   obtain rfl | hb := hb;
@@ -171,8 +170,8 @@ end
 
 end ordered_cancel_comm_monoid
 
-section comm_cancel_monoid_with_zero
-variables [comm_cancel_monoid_with_zero α] [no_zero_divisors α] {s : set α} {a : α}
+section cancel_comm_monoid_with_zero
+variables [cancel_comm_monoid_with_zero α] [no_zero_divisors α] {s : set α} {a : α}
 
 lemma mul_salem_spencer.mul_left₀ (hs : mul_salem_spencer s) (ha : a ≠ 0) :
   mul_salem_spencer ((*) a '' s) :=
@@ -204,7 +203,7 @@ lemma mul_salem_spencer_mul_right_iff₀ (ha : a ≠ 0) :
   by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
   λ hs, hs.mul_right₀ ha⟩
 
-end comm_cancel_monoid_with_zero
+end cancel_comm_monoid_with_zero
 
 section nat
 
@@ -263,11 +262,11 @@ lemma mul_salem_spencer.roth_number_eq (hs : mul_salem_spencer (s : set α)) :
   mul_roth_number s = s.card :=
 (mul_roth_number_le _).antisymm $ hs.le_mul_roth_number $ subset.refl _
 
-@[to_additive]
+@[simp, to_additive]
 lemma mul_roth_number_empty : mul_roth_number (∅ : finset α) = 0 :=
 nat.eq_zero_of_le_zero $ (mul_roth_number_le _).trans card_empty.le
 
-@[to_additive]
+@[simp, to_additive]
 lemma mul_roth_number_singleton (a : α) : mul_roth_number ({a} : finset α) = 1 :=
 begin
   convert mul_salem_spencer.roth_number_eq _,
@@ -283,7 +282,7 @@ calc
   mul_roth_number (s ∪ t)
       = u.card : hcard.symm
   ... = (u ∩ s ∪ u ∩ t).card
-      : by rw [←finset.inter_distrib_left, (inter_eq_left_iff_subset _ _).2 hus]
+      : by rw [←inter_distrib_left, (inter_eq_left_iff_subset _ _).2 hus]
   ... ≤ (u ∩ s).card + (u ∩ t).card : card_union_le _ _
   ... ≤ mul_roth_number s + mul_roth_number t
       : add_le_add ((hu.mono $ inter_subset_left _ _).le_mul_roth_number $ inter_subset_right _ _)
@@ -297,7 +296,7 @@ begin
   obtain ⟨v, hvt, hvcard, hv⟩ := mul_roth_number_spec t,
   rw [←hucard, ←hvcard, ←card_product],
   refine mul_salem_spencer.le_mul_roth_number _ (product_subset_product hus hvt),
-  rw finset.coe_product,
+  rw coe_product,
   exact hu.prod hv,
 end
 
@@ -338,11 +337,7 @@ end
 
 @[simp, to_additive] lemma mul_roth_number_map_mul_right :
   mul_roth_number (s.map $ mul_right_embedding a) = mul_roth_number s :=
-begin
-  convert mul_roth_number_map_mul_left s a,
-  ext,
-  exact mul_comm _ _,
-end
+by rw [←mul_left_embedding_eq_mul_right_embedding, mul_roth_number_map_mul_left s a]
 
 end cancel_comm_monoid
 end roth_number
@@ -374,10 +369,7 @@ practice. -/
 lemma add_salem_spencer.le_roth_number_nat (s : finset ℕ) (hs : add_salem_spencer (s : set ℕ))
   (hsn : ∀ x ∈ s, x < n) (hsk : s.card = k) :
   k ≤ roth_number_nat n :=
-begin
-  rw ←hsk,
-  exact hs.le_add_roth_number (λ x hx, mem_range.2 $ hsn x hx),
-end
+hsk.ge.trans $ hs.le_add_roth_number $ λ x hx, mem_range.2 $ hsn x hx
 
 /-- The Roth number is a subadditive function. Note that by Fekete's lemma this shows that
 the limit `roth_number N / N` exists, but Roth's theorem gives the stronger result that this
@@ -390,18 +382,16 @@ begin
   exact add_roth_number_union_le _ _,
 end
 
-lemma add_roth_number_Ico (a b : ℕ) : add_roth_number (finset.Ico a b) = roth_number_nat (b - a) :=
+@[simp] lemma roth_number_nat_zero : roth_number_nat 0 = 0 := rfl
+
+lemma add_roth_number_Ico (a b : ℕ) : add_roth_number (Ico a b) = roth_number_nat (b - a) :=
 begin
   obtain h | h := le_total b a,
-  { rw [finset.Ico_eq_empty_of_le h, add_roth_number_empty, tsub_eq_zero_of_le h],
-    refl },
+  { rw [tsub_eq_zero_of_le h, Ico_eq_empty_of_le h, roth_number_nat_zero, add_roth_number_empty] },
   convert add_roth_number_map_add_left _ a,
-  rw [finset.range_eq_Ico, finset.map_eq_image],
-  convert (finset.image_add_left_Ico _ _ _).symm,
-  { exact (add_zero a).symm },
-  { exact (add_tsub_cancel_of_le h).symm },
-  { apply_instance },
-  { apply_instance }
+  rw [range_eq_Ico, map_eq_image],
+  convert (image_add_left_Ico 0 (b - a) _).symm,
+  exact (add_tsub_cancel_of_le h).symm,
 end
 
 open asymptotics filter

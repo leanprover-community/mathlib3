@@ -168,6 +168,18 @@ def Sheaf_equiv_SheafOfTypes : Sheaf J (Type w) ≌ SheafOfTypes J :=
 instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type w)) :=
 ⟨(Sheaf_equiv_SheafOfTypes _).inverse.obj (default _)⟩
 
+variables {J} {A}
+
+/-- If the empty sieve is a cover of `X`, then `F(X)` is terminal. -/
+def Sheaf.is_terminal_of_bot_cover (F : Sheaf J A) (X : C) (H : ⊥ ∈ J X) :
+  is_terminal (F.1.obj (op X)) :=
+begin
+  apply_with is_terminal.of_unique { instances := ff },
+  intro Y,
+  choose t h using F.2 Y _ H (by tidy) (by tidy),
+  exact ⟨⟨t⟩, λ a, h.2 a (by tidy)⟩
+end
+
 end category_theory
 
 namespace category_theory
@@ -309,7 +321,7 @@ nonempty (is_limit (fork.of_ι _ (w R P)))
 
 /-- (Implementation). An auxiliary lemma to convert between sheaf conditions. -/
 def is_sheaf_for_is_sheaf_for' (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type (max v₁ u₁))
-  [Π J, preserves_limits_of_shape (discrete J) s] (U : C) (R : presieve U) :
+  [Π J, preserves_limits_of_shape (discrete.{max v₁ u₁} J) s] (U : C) (R : presieve U) :
   is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃
     is_limit (fork.of_ι _ (equalizer.presieve.w (P ⋙ s) R)) :=
 begin

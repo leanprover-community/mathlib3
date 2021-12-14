@@ -21,7 +21,7 @@ namespace algebraic_geometry
 
 universes v u
 
-open category_theory category_theory.limits opposite
+open category_theory category_theory.limits opposite topological_space
 
 namespace SheafedSpace
 
@@ -106,6 +106,8 @@ section has_coequalizer
 
 variables {X Y : LocallyRingedSpace.{u}} (f g : X ⟶ Y)
 
+namespace has_coequalizer
+
 instance coequalizer_π_app_is_local_ring_hom
   (U : topological_space.opens ((coequalizer f.val g.val).carrier)) :
   is_local_ring_hom ((coequalizer.π f.val g.val : _).c.app (op U)) :=
@@ -113,13 +115,81 @@ begin
   have := ι_comp_coequalizer_comparison f.1 g.1 SheafedSpace.forget_to_PresheafedSpace,
   rw ← preserves_coequalizer.iso_hom at this,
   erw PresheafedSpace.congr_app this.symm (op U),
-  rw PresheafedSpace.comp_c_app,
-  rw ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π,
+  rw [PresheafedSpace.comp_c_app,
+    ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π],
   apply_instance
 end
 
-@[instance]
-lemma coequalizer_π_stalk_is_local_ring_hom (x : Y) :
+/-!
+We roughly follow the construction given in [MR0302656]. Given a pair `f, g : X ⟶ Y` of morphisms
+of locally ringed spaces, we want to show that the stalk map of
+`π = coequalizer.π f g` (as sheafed space homs) is a local ring hom. It then follows that
+`coequalizer f g` is indeed a locally ringed space, and `coequalizer.π f g` is a morphism of
+locally ringed space.
+
+Given a germ `⟨U, s⟩` of `x : coequalizer f g` such that `π꙳ x : Y` is invertible, we ought to show
+that `⟨U, s⟩` is invertible. That is, there exists an open set `U' ⊆ U` containing `x` such that the
+restriction of `s` onto `U'` is invertible. This `U'` is given by `π '' V`, where `V` is the
+basic open set of `π⋆x`.
+
+Since `f ⁻¹' V = Y.basic_open (f ≫ π)꙳ x = Y.basic_open (g ≫ π)꙳ x = g ⁻¹' V`, we have
+`π ⁻¹' (π '' V) = V` (as the underlying set map is merely the set-theoretic coequalizer).
+This shows that `π '' V` is indeed open, and `s` is invertible on `π '' V` as the components of `π꙳`
+are local ring homgs.
+-/
+variable (U : opens ((coequalizer f.1 g.1).carrier))
+variable (s : (coequalizer f.1 g.1).presheaf.obj (op U))
+
+/-- (Implementation). The basic open set of the section `π꙳ s`. -/
+noncomputable
+def image_basic_open : opens Y := (Y.to_RingedSpace.basic_open
+  (show Y.presheaf.obj (op (unop _)), from ((coequalizer.π f.1 g.1).c.app (op U)) s))
+
+lemma image_basic_open_image_preimage :
+  (coequalizer.π f.1 g.1).base ⁻¹' ((coequalizer.π f.1 g.1).base ''
+    (image_basic_open f g U s).1) = (image_basic_open f g U s).1 :=
+begin
+  fapply types.coequalizer_preimage_image_eq_of_preimage_eq f.1.base g.1.base,
+  { ext,
+    simp_rw [types_comp_apply, ← Top.comp_app, ← PresheafedSpace.comp_base],
+    congr' 2,
+    exact coequalizer.condition f.1 g.1 },
+  { apply is_colimit_cofork_map_of_is_colimit (forget Top),
+    apply is_colimit_cofork_map_of_is_colimit (SheafedSpace.forget _),
+    exact coequalizer_is_coequalizer f.1 g.1 },
+  { suffices : (topological_space.opens.map f.1.base).obj (image_basic_open f g U s) =
+      (topological_space.opens.map g.1.base).obj (image_basic_open f g U s),
+    { injection this },
+    delta image_basic_open,
+    rw [preimage_basic_open f, preimage_basic_open g],
+    dsimp only [functor.op, unop_op],
+    rw ← comp_apply,
+    erw ← PresheafedSpace.comp_c_app,
+    rw ← comp_apply,
+    erw [← PresheafedSpace.comp_c_app,
+      PresheafedSpace.congr_app (coequalizer.condition f.1 g.1 : _) (op U)],
+    rw comp_apply,
+    erw X.to_RingedSpace.basic_open_res,
+    apply inf_eq_right.mpr,
+    refine (RingedSpace.basic_open_subset _ _).trans _,
+    rw coequalizer.condition f.1 g.1,
+    exact λ _ h, h }
+end
+
+end has_coequalizer
+
+lemma image_basic_open_image_open :
+  is_open ((coequalizer.π f.1 g.1).base '' (image_basic_open f g U s).1) :=
+begin
+  rw [← (Top.homeo_of_iso (preserves_coequalizer.iso (SheafedSpace.forget _) f.1 g.1))
+      .is_open_preimage, Top.coequalizer_is_open_iff, ← set.preimage_comp],
+  erw ← coe_comp,
+  rw [preserves_coequalizer.iso_hom, ι_comp_coequalizer_comparison],
+  erw image_basic_open_image_preimage,
+  exact (image_basic_open f g U s).2
+end
+
+instance coequalizer_π_stalk_is_local_ring_hom (x : Y) :
   is_local_ring_hom (PresheafedSpace.stalk_map (coequalizer.π f.val g.val : _) x) :=
 begin
   constructor,
@@ -127,63 +197,29 @@ begin
   rcases Top.presheaf.germ_exist _ _ a with ⟨U, hU, s, rfl⟩,
   erw PresheafedSpace.stalk_map_germ_apply (coequalizer.π f.1 g.1 : _) U ⟨_, hU⟩ at ha,
 
-  let V : topological_space.opens Y := (Y.to_RingedSpace.basic_open
-    (show Y.presheaf.obj (op (unop _)), from ((coequalizer.π f.1 g.1).c.app (op U)) s)),
-  have hV : (coequalizer.π f.1 g.1).base ⁻¹' ((coequalizer.π f.1 g.1).base '' V.1) = V.1,
-  { fapply types.coequalizer_preimage_image_eq_of_preimage_eq f.1.base g.1.base,
-    { ext,
-      simp_rw [types_comp_apply, ← Top.comp_app, ← PresheafedSpace.comp_base],
-      congr' 2,
-      exact coequalizer.condition f.1 g.1 },
-    { apply is_colimit_cofork_map_of_is_colimit (forget Top),
-      apply is_colimit_cofork_map_of_is_colimit (SheafedSpace.forget _),
-      exact coequalizer_is_coequalizer f.1 g.1 },
-    { suffices : (topological_space.opens.map f.1.base).obj V =
-        (topological_space.opens.map g.1.base).obj V,
-      { injection this },
-      rw preimage_basic_open f,
-      rw preimage_basic_open g,
-      dsimp only,
-      rw ← comp_apply,
-      erw ← PresheafedSpace.comp_c_app,
-      rw ← comp_apply,
-      erw ← PresheafedSpace.comp_c_app,
-      erw PresheafedSpace.congr_app (coequalizer.condition f.1 g.1 : _) (op U),
-      rw comp_apply,
-      erw X.to_RingedSpace.basic_open_res,
-      erw inf_eq_right,
-      refine (RingedSpace.basic_open_subset _ _).trans _,
-      dsimp only [functor.op, unop_op],
-      rw coequalizer.condition f.1 g.1,
-      exact λ _ h, h } },
-
+  let V := image_basic_open f g U s,
+  have hV : (coequalizer.π f.1 g.1).base ⁻¹' ((coequalizer.π f.1 g.1).base '' V.1) = V.1 :=
+    image_basic_open_image_preimage f g U s,
   have hV' : V = ⟨(coequalizer.π f.1 g.1).base ⁻¹'
     ((coequalizer.π f.1 g.1).base '' V.1), hV.symm ▸ V.2⟩ := subtype.eq hV.symm,
-
-  have V_open : is_open (((coequalizer.π f.val g.val).base) '' V.val),
-  { rw ← (Top.homeo_of_iso (preserves_coequalizer.iso (SheafedSpace.forget _) f.1 g.1))
-      .is_open_preimage,
-    rw [Top.coequalizer_is_open_iff, ← set.preimage_comp], erw ← coe_comp,
-    rw [preserves_coequalizer.iso_hom, ι_comp_coequalizer_comparison],
-    erw hV,
-    exact V.2 },
+  have V_open : is_open (((coequalizer.π f.val g.val).base) '' V.val) :=
+    image_basic_open_image_open f g U s,
   have VleU :
     (⟨((coequalizer.π f.val g.val).base) '' V.val, V_open⟩ : topological_space.opens _) ≤ U,
   { exact set.image_subset_iff.mpr (Y.to_RingedSpace.basic_open_subset _) },
   have hxV : x ∈ V := ⟨⟨_, hU⟩, ha, rfl⟩,
+
   erw ← (coequalizer f.val g.val).presheaf.germ_res_apply (hom_of_le VleU)
     ⟨_, @set.mem_image_of_mem _ _ (coequalizer.π f.val g.val).base x V.1 hxV⟩ s,
-
   apply ring_hom.is_unit_map,
   rw [← is_unit_map_iff ((coequalizer.π f.val g.val : _).c.app _), ← comp_apply,
-    nat_trans.naturality, comp_apply],
-  rw Top.presheaf.pushforward_obj_map,
-  rw ← is_unit_map_iff (Y.presheaf.map (eq_to_hom hV').op),
-  rw ← comp_apply,
-  rw ← functor.map_comp,
+    nat_trans.naturality, comp_apply, Top.presheaf.pushforward_obj_map,
+    ← is_unit_map_iff (Y.presheaf.map (eq_to_hom hV').op), ← comp_apply, ← functor.map_comp],
   convert @RingedSpace.is_unit_res_basic_open Y.to_RingedSpace (unop _)
     (((coequalizer.π f.val g.val).c.app (op U)) s),
   apply_instance
+end
+
 end
 
 /-- The coequalizer of two locally ringed space in the category of sheafed spaces is a locally
@@ -239,6 +275,7 @@ begin
     exact h },
   { exact h }
 end
+
 
 instance : has_coequalizer f g := ⟨⟨⟨_, coequalizer_cofork_is_colimit f g⟩⟩⟩
 

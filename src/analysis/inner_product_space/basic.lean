@@ -1403,6 +1403,8 @@ linear_map.mk_continuous₂ innerₛₗ 1
 
 @[simp] lemma innerSL_apply (v w : E) : innerSL v w = ⟪v, w⟫ := rfl
 
+/-- `innerSL` is an isometry. Note that the associated `linear_isometry` is defined in
+`inner_product_space.dual` as `to_dual_map`.  -/
 @[simp] lemma innerSL_apply_norm {x : E} : ∥(innerSL x : E →L[𝕜] 𝕜)∥ = ∥x∥ :=
 begin
   refine le_antisymm ((innerSL x).op_norm_le_bound (norm_nonneg _) (λ y, norm_inner_le_norm _ _)) _,

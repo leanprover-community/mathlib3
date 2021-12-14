@@ -59,7 +59,7 @@ alg_hom_ext' $ linear_map.ext_ring $ h
 variables {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 
 /-- A universal property of the dual numbers, providing a unique `𝔻[R] →ₐ[R] A` for every element
-of `A` which squares to `-1`.
+of `A` which squares to `0`.
 
 This isomorphism is named to match the very similar `complex.lift`. -/
 @[simps {attrs := []}]
@@ -73,12 +73,12 @@ equiv.trans
     end)
   triv_sq_zero_ext.lift
 
-/- When applied to `eps` itself, `lift` is the identity. -/
+/- When applied to `eps`, `lift` produces the element of `A` that squares to 0. -/
 @[simp]
 lemma lift_apply_eps (e : {e : A // e * e = 0}) : lift e (eps : 𝔻[R]) = e :=
 (triv_sq_zero_ext.lift_aux_apply_inr _ _ _).trans $ one_smul _ _
 
-/- When applied to `eps` itself, `lift` is the identity. -/
+/- Lifting `eps` itself gives the identity. -/
 @[simp]
 lemma lift_eps : lift ⟨eps, by exact eps_mul_eps⟩ = alg_hom.id R 𝔻[R] :=
 alg_hom_ext $ lift_apply_eps _

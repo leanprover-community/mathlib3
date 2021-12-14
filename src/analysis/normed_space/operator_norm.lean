@@ -1198,7 +1198,7 @@ begin
   -- into a function which we call `G`.
   choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
   -- Next, we show that this `G` is linear,
-  let Glin : E →ₛₗ[σ₁₂] F := linear_map_of_tendsto (tendsto_pi_nhds.mpr hG),
+  let Glin : E →ₛₗ[σ₁₂] F := linear_map_of_tendsto _ (tendsto_pi_nhds.mpr hG),
   -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
   have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
   { assume v,

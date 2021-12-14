@@ -169,7 +169,7 @@ monoid homomorphisms -/
 @[to_additive "Construct a bundled additive monoid homomorphism from
 a pointwise limit of monoid homomorphisms", simps]
 def monoid_hom_of_tendsto [monoid M₁] [monoid M₂]
-  [has_continuous_mul M₂] {g : α → M₁ →* M₂} [l.ne_bot]
+  [has_continuous_mul M₂] (g : α → M₁ →* M₂) [l.ne_bot]
   (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=
 { to_fun := f,
   map_one' := by

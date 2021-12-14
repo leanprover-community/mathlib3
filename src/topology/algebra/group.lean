@@ -906,10 +906,10 @@ instance : bounded_order (group_topology α) :=
 instance : has_inf (group_topology α) :=
 { inf := λ x y,
   { to_topological_space := x.to_topological_space ⊓ y.to_topological_space,
-    continuous_mul       := continuous_inf_rng
+    continuous_mul := continuous_inf_rng
       (continuous_inf_dom_left₂ x.continuous_mul') (continuous_inf_dom_right₂ y.continuous_mul'),
-    continuous_inv       := continuous_inf_rng
-      (continuous_inf_dom_left x.continuous_inv') (continuous_inf_dom_right y.continuous_inv') }⟩
+    continuous_inv := continuous_inf_rng
+      (continuous_inf_dom_left x.continuous_inv') (continuous_inf_dom_right y.continuous_inv') } }
 
 @[simp, to_additive]
 lemma to_topological_space_inf (x y : group_topology α) :

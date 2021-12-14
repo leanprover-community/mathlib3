@@ -233,6 +233,9 @@ instance to_op_is_scalar_tower' : is_scalar_tower Rᵐᵒᵖ R A :=
   rw [op_smul_eq_mul, ←smul_comm, mul_smul, op_smul_def, smul_def, smul_def, smul_def,
       commutes r']⟩
 
+instance _root_.is_scalar_tower.op_right : is_scalar_tower Rᵐᵒᵖ A A :=
+⟨mul_opposite.rec $ λ x y z, by rw [op_smul_eq_smul, op_smul_eq_smul, smul_assoc]⟩
+
 /-- This is just a special case of the global `mul_smul_comm` lemma that requires less typeclass
 search (and was here first). -/
 @[simp] protected lemma mul_smul_comm (s : R) (x y : A) :

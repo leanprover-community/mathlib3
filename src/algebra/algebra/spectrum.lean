@@ -306,6 +306,18 @@ begin
   simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
 end
 
+lemma aeval_list_prod_is_unit {R M : Type*} [comm_semiring R] [ring M] [algebra R M] {m : M}
+  {s : list (polynomial R)} (h : ∀ p ∈ s, is_unit (aeval m p)) :
+  is_unit (aeval m s.prod) :=
+begin
+  induction s,
+  { simp only [aeval_one, is_unit_one, list.prod_nil] },
+  { have u_hd := h s_hd (list.mem_cons_self s_hd s_tl),
+    have u_tl := s_ih (λ p p_mem, h p (list.mem_of_mem_tail p_mem)),
+    rw [list.prod_cons, aeval_mul, is_unit.mul_iff_of_commutes (aeval_comm m _ _)],
+    exact ⟨u_hd, u_tl⟩ }
+end
+
 end scalar_field
 
 end spectrum

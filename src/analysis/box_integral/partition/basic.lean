@@ -60,7 +60,7 @@ instance : has_mem (box ι) (prepartition I) := ⟨λ J π, J ∈ π.boxes⟩
 
 lemma disjoint_coe_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (h : J₁ ≠ J₂) :
   disjoint (J₁ : set (ι → ℝ)) J₂ :=
-π.pairwise_disjoint J₁ h₁ J₂ h₂ h
+π.pairwise_disjoint h₁ h₂ h
 
 lemma eq_of_mem_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (hx₁ : x ∈ J₁) (hx₂ : x ∈ J₂) :
   J₁ = J₂ :=
@@ -320,7 +320,7 @@ def of_with_bot (boxes : finset (with_bot (box ι)))
   pairwise_disjoint := λ J₁ h₁ J₂ h₂ hne,
     begin
       simp only [mem_coe, mem_erase_none] at h₁ h₂,
-      exact box.disjoint_coe.1 (pairwise_disjoint _ h₁ _ h₂ (mt option.some_inj.1 hne))
+      exact box.disjoint_coe.1 (pairwise_disjoint h₁ h₂ (mt option.some_inj.1 hne))
     end }
 
 @[simp] lemma mem_of_with_bot {boxes : finset (with_bot (box ι))} {h₁ h₂} :

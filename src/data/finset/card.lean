@@ -13,7 +13,7 @@ This defines the cardinality of a `finset` and provides induction principles for
 
 ## Main declarations
 
-* `finset.card`: `s.card : ℕ` returns the cardinalilty of `s : finset α`.
+* `finset.card`: `s.card : ℕ` returns the cardinality of `s : finset α`.
 
 ### Induction principles
 

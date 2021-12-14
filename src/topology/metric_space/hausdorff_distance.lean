@@ -838,9 +838,13 @@ is_closed.preimage continuous_inf_edist is_closed_Iic
 @[simp] lemma cthickening_empty (δ : ℝ) : cthickening δ (∅ : set α) = ∅ :=
 by simp only [cthickening, ennreal.of_real_ne_top, set_of_false, inf_edist_empty, top_le_iff]
 
+lemma cthickening_of_nonpos {δ : ℝ} (hδ : δ ≤ 0) (E : set α) :
+  cthickening δ E = closure E :=
+by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening, ennreal.of_real_eq_zero.2 hδ] }
+
 /-- The closed thickening with radius zero is the closure of the set. -/
 @[simp] lemma cthickening_zero (E : set α) : cthickening 0 E = closure E :=
-by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening], }
+cthickening_of_nonpos le_rfl E
 
 /-- The closed thickening `cthickening δ E` of a fixed subset `E` is an increasing function of
 the thickening radius `δ`. -/
@@ -884,9 +888,9 @@ lemma closure_thickening_subset_cthickening (δ : ℝ) (E : set α) :
 (closure_mono (thickening_subset_cthickening δ E)).trans is_closed_cthickening.closure_subset
 
 /-- The closed thickening of a set contains the closure of the set. -/
-lemma closure_subset_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
+lemma closure_subset_cthickening (δ : ℝ) (E : set α) :
   closure E ⊆ cthickening δ E :=
-by { rw ← cthickening_zero, exact cthickening_mono δ_nn E, }
+by { rw ← cthickening_of_nonpos (min_le_right δ 0), exact cthickening_mono (min_le_left δ 0) E, }
 
 /-- The (open) thickening of a set contains the closure of the set. -/
 lemma closure_subset_thickening {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
@@ -901,7 +905,7 @@ lemma self_subset_thickening {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
 /-- A set is contained in its own closed thickening. -/
 lemma self_subset_cthickening {δ : ℝ} (E : set α) (δ_nn : 0 ≤ δ) :
   E ⊆ cthickening δ E :=
-subset_closure.trans (closure_subset_cthickening δ_nn E)
+subset_closure.trans (closure_subset_cthickening δ E)
 
 lemma cthickening_eq_Inter_cthickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :

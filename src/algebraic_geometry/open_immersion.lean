@@ -282,10 +282,6 @@ end
 end
 
 section pullback
-<<<<<<< HEAD
-=======
-
->>>>>>> e3eb0eb024dd2c436c94d3e7386c70f50c5f1261
 noncomputable theory
 
 variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)

@@ -348,6 +348,10 @@ lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
+@[simp] lemma coe_map (S : subalgebra R A) (f : A →ₐ[R] B) :
+  (S.map f : set B) = f '' S :=
+rfl
+
 /-- Preimage of a subalgebra under an algebra homomorphism. -/
 def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
 { algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
@@ -423,19 +427,12 @@ f.cod_restrict f.range f.mem_range_self
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := {a | ϕ a = ψ a},
-  add_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x + y) = ψ (x + y),
-    rw [alg_hom.map_add, alg_hom.map_add, hx, hy] },
-  mul_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x * y) = ψ (x * y),
-    rw [alg_hom.map_mul, alg_hom.map_mul, hx, hy] },
-  algebra_map_mem' := λ x, by
-  { change ϕ (algebra_map R A x) = ψ (algebra_map R A x),
-    rw [alg_hom.commutes, alg_hom.commutes] } }
+  add_mem' := λ x y (hx : ϕ x = ψ x) (hy : ϕ y = ψ y),
+    by rw [set.mem_set_of_eq, ϕ.map_add, ψ.map_add, hx, hy],
+  mul_mem' := λ x y (hx : ϕ x = ψ x) (hy : ϕ y = ψ y),
+    by rw [set.mem_set_of_eq, ϕ.map_mul, ψ.map_mul, hx, hy],
+  algebra_map_mem' := λ x,
+    by rw [set.mem_set_of_eq, alg_hom.commutes, alg_hom.commutes] }
 
 @[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
   x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
@@ -581,12 +578,11 @@ theorem eq_top_iff {S : subalgebra R A} :
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
 @[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
-subalgebra.ext $ λ x,
-  ⟨λ ⟨y, _, hy⟩, ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨y, algebra.mem_top, hy⟩⟩
+set_like.coe_injective set.image_univ
 
 @[simp] theorem map_bot (f : A →ₐ[R] B) : subalgebra.map (⊥ : subalgebra R A) f = ⊥ :=
-eq_bot_iff.2 $ λ x ⟨y, hy, hfy⟩, let ⟨r, hr⟩ := mem_bot.1 hy in subalgebra.range_le _
-⟨r, by rwa [← f.commutes, hr]⟩
+set_like.coe_injective $
+  by simp only [← set.range_comp, (∘), algebra.coe_bot, subalgebra.coe_map, f.commutes]
 
 @[simp] theorem comap_top (f : A →ₐ[R] B) : subalgebra.comap' (⊤ : subalgebra R B) f = ⊤ :=
 eq_top_iff.2 $ λ x, mem_top

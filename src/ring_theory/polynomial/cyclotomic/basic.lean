@@ -386,16 +386,25 @@ begin
   have integer : ∏ i in nat.divisors n, cyclotomic i ℤ = X ^ n - 1,
   { apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
     rw map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
-    simp only [int_cyclotomic_spec, map_pow, nat.cast_id, map_X, map_one, map_sub],
+    simp only [int_cyclotomic_spec, polynomial.map_pow, nat.cast_id, map_X, map_one, map_sub],
     exact prod_cyclotomic'_eq_X_pow_sub_one hpos
           (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
   have coerc : X ^ n - 1 = map (int.cast_ring_hom R) (X ^ n - 1),
-  { simp only [map_pow, map_X, map_one, map_sub] },
+  { simp only [polynomial.map_pow, polynomial.map_X, polynomial.map_one, polynomial.map_sub] },
   have h : ∀ i ∈ n.divisors, cyclotomic i R = map (int.cast_ring_hom R) (cyclotomic i ℤ),
   { intros i hi,
     exact (map_cyclotomic_int i R).symm },
   rw [finset.prod_congr (refl n.divisors) h, coerc, ←map_prod (int.cast_ring_hom R)
                                                     (λ i, cyclotomic i ℤ), integer]
+end
+
+lemma prod_cyclotomic_eq_geom_sum {n : ℕ} (h : 0 < n) (R) [comm_ring R] [is_domain R] :
+  ∏ i in n.divisors \ {1}, cyclotomic i R = geom_sum X n :=
+begin
+  apply_fun (* cyclotomic 1 R) using mul_left_injective₀ (cyclotomic_ne_zero 1 R),
+  have : ∏ i in {1}, cyclotomic i R = cyclotomic 1 R := finset.prod_singleton,
+  simp_rw [←this, finset.prod_sdiff $ show {1} ⊆ n.divisors, by simp [h.ne'], this, cyclotomic_one,
+           geom_sum_mul, prod_cyclotomic_eq_X_pow_sub_one h]
 end
 
 lemma _root_.is_root_of_unity_iff {n : ℕ} (h : 0 < n) (R : Type*) [comm_ring R] [is_domain R]
@@ -485,12 +494,17 @@ begin
 end
 
 /-- Any `n`-th primitive root of unity is a root of `cyclotomic n K`.-/
-lemma is_root_cyclotomic {n : ℕ} {K : Type*} [field K] (hpos : 0 < n) {μ : K}
+lemma is_root_cyclotomic {n : ℕ} {K : Type*} [comm_ring K] [is_domain K] (hpos : 0 < n) {μ : K}
   (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
 begin
-  rw [← mem_roots (cyclotomic_ne_zero n K),
+  suffices : is_root (cyclotomic n (fraction_ring K)) (algebra_map K (fraction_ring K) μ),
+  { rw [←map_cyclotomic n (algebra_map K (fraction_ring K))] at this,
+    apply is_root.of_map this,
+    exact is_fraction_ring.injective K (fraction_ring K) },
+  replace h := h.map_of_injective (is_fraction_ring.injective K (fraction_ring K)),
+  rw [← mem_roots (cyclotomic_ne_zero n (fraction_ring K)),
       cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
-  rwa [← mem_primitive_roots hpos] at h,
+  rwa [← mem_primitive_roots hpos] at h
 end
 
 private lemma is_root_cyclotomic_iff' {n : ℕ} {K : Type*} [field K] {μ : K} (hn : (n : K) ≠ 0) :
@@ -695,40 +709,5 @@ begin
 end
 
 end minpoly
-
-section eval_one
-
-open finset nat
-
-@[simp]
-lemma eval_one_cyclotomic_prime {R : Type*} [comm_ring R] {n : ℕ} [hn : fact (nat.prime n)] :
-  eval 1 (cyclotomic n R) = n :=
-begin
-  simp only [cyclotomic_eq_geom_sum hn.out, geom_sum_def, eval_X, one_pow, sum_const, eval_pow,
-    eval_finset_sum, card_range, smul_one_eq_coe],
-end
-
-@[simp]
-lemma eval₂_one_cyclotomic_prime {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S) {n : ℕ}
-  [fact n.prime] : eval₂ f 1 (cyclotomic n R) = n :=
-by simp
-
-@[simp]
-lemma eval_one_cyclotomic_prime_pow {R : Type*} [comm_ring R] {n : ℕ} (k : ℕ)
-  [hn : fact n.prime] : eval 1 (cyclotomic (n ^ (k + 1)) R) = n :=
-begin
-  simp only [cyclotomic_prime_pow_eq_geom_sum hn.out, geom_sum_def, eval_X, one_pow, sum_const,
-    eval_pow, eval_finset_sum, card_range, smul_one_eq_coe]
-end
-
-@[simp]
-lemma eval₂_one_cyclotomic_prime_pow {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S)
-  {n : ℕ} (k : ℕ) [fact n.prime] :
-  eval₂ f 1 (cyclotomic (n ^ (k + 1)) R) = n :=
-by simp
-
--- TODO show that `eval 1 (cyclotomic n R) = 1` when `n` is not a power of a prime
-
-end eval_one
 
 end polynomial

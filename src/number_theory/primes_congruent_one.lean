@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import ring_theory.polynomial.cyclotomic
+import ring_theory.polynomial.cyclotomic.basic
 import topology.algebra.polynomial
 import field_theory.finite.basic
 

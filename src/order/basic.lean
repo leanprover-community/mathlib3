@@ -518,13 +518,13 @@ end prod
 /-! ### Additional order classes -/
 
 /-- Order without a maximal element. Sometimes called cofinal. -/
-class no_top_order (α : Type u) [preorder α] : Prop :=
+class no_top_order (α : Type u) [has_lt α] : Prop :=
 (no_top : ∀ a : α, ∃ a', a < a')
 
-lemma no_top [preorder α] [no_top_order α] : ∀ a : α, ∃ a', a < a' :=
+lemma no_top [has_lt α] [no_top_order α] : ∀ a : α, ∃ a', a < a' :=
 no_top_order.no_top
 
-instance nonempty_gt {α : Type u} [preorder α] [no_top_order α] (a : α) :
+instance nonempty_gt {α : Type u} [has_lt α] [no_top_order α] (a : α) :
   nonempty {x // a < x} :=
 nonempty_subtype.2 (no_top a)
 
@@ -541,10 +541,10 @@ lemma is_top.unique {α : Type u} [partial_order α] {a b : α} (ha : is_top a) 
 le_antisymm hb (ha b)
 
 /-- Order without a minimal element. Sometimes called coinitial or dense. -/
-class no_bot_order (α : Type u) [preorder α] : Prop :=
+class no_bot_order (α : Type u) [has_lt α] : Prop :=
 (no_bot : ∀ a : α, ∃ a', a' < a)
 
-lemma no_bot [preorder α] [no_bot_order α] : ∀ a : α, ∃ a', a' < a :=
+lemma no_bot [has_lt α] [no_bot_order α] : ∀ a : α, ∃ a', a' < a :=
 no_bot_order.no_bot
 
 /-- `a : α` is a bottom element of `α` if it is less than or equal to any other element of `α`.
@@ -559,27 +559,27 @@ lemma is_bot.unique {α : Type u} [partial_order α] {a b : α} (ha : is_bot a) 
   a = b :=
 le_antisymm (ha b) hb
 
-instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
+instance order_dual.no_top_order (α : Type u) [has_lt α] [no_bot_order α] :
   no_top_order (order_dual α) :=
 ⟨λ a, @no_bot α _ _ a⟩
 
-instance order_dual.no_bot_order (α : Type u) [preorder α] [no_top_order α] :
+instance order_dual.no_bot_order (α : Type u) [has_lt α] [no_top_order α] :
   no_bot_order (order_dual α) :=
 ⟨λ a, @no_top α _ _ a⟩
 
-instance nonempty_lt {α : Type u} [preorder α] [no_bot_order α] (a : α) :
+instance nonempty_lt {α : Type u} [has_lt α] [no_bot_order α] (a : α) :
   nonempty {x // x < a} :=
 nonempty_subtype.2 (no_bot a)
 
 /-- An order is dense if there is an element between any pair of distinct elements. -/
-class densely_ordered (α : Type u) [preorder α] : Prop :=
+class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 
-lemma exists_between [preorder α] [densely_ordered α] :
+lemma exists_between [has_lt α] [densely_ordered α] :
   ∀ {a₁ a₂ : α}, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
 
-instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
+instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered α] :
   densely_ordered (order_dual α) :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 

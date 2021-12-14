@@ -57,8 +57,10 @@ class rel_hom_class (F : Type*) {α β : out_param $ Type*}
   (r : out_param $ α → α → Prop) (s : out_param $ β → β → Prop)
   extends fun_like F α (λ _, β) :=
 (map_rel : ∀ (f : F) {a b}, r a b → s (f a) (f b))
-
 export rel_hom_class (map_rel)
+
+-- The free parameters `r` and `s` are `out_param`s so this is not dangerous.
+attribute [nolint dangerous_instance] rel_hom_class.to_fun_like
 
 namespace rel_hom_class
 

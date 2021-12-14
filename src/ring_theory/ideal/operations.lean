@@ -193,7 +193,7 @@ lemma mem_of_span_eq_top_of_smul_pow_mem (M' : submodule R M)
   (s : set R) (hs : ideal.span s = ⊤) (x : M)
   (H : ∀ r : s, ∃ (n : ℕ), (r ^ n : R) • x ∈ M') : x ∈ M' :=
 begin
-  obtain ⟨s', hs₁, hs₂⟩ := (ideal.span_top_iff_finite _).mp hs,
+  obtain ⟨s', hs₁, hs₂⟩ := (ideal.span_eq_top_iff_finite _).mp hs,
   replace H : ∀ r : s', ∃ (n : ℕ), (r ^ n : R) • x ∈ M' := λ r, H ⟨_, hs₁ r.prop⟩,
   choose n₁ n₂ using H,
   let N := s'.attach.sup n₁,

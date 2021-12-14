@@ -464,6 +464,8 @@ multiset.to_finset (nth_roots n (1 : R))
   x ∈ nth_roots_finset n R ↔ x ^ (n : ℕ) = 1 :=
 by rw [nth_roots_finset, mem_to_finset, mem_nth_roots h]
 
+@[simp] lemma nth_roots_finset_zero : nth_roots_finset 0 R = ∅ := by simp [nth_roots_finset]
+
 end nth_roots
 
 lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :

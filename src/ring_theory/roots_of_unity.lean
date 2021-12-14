@@ -807,7 +807,8 @@ begin
 end
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
-if there is a primitive root of unity in `R`. -/
+if there is a primitive root of unity in `R`.
+This holds for any `nat`, not just `pnat`, see `nth_roots_one_eq_bUnion_primitive_roots`. -/
 lemma nth_roots_one_eq_bUnion_primitive_roots' {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
   nth_roots_finset n R = (nat.divisors ↑n).bUnion (λ i, (primitive_roots i R)) :=
 begin
@@ -840,10 +841,14 @@ end
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
-lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
+lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ}
   (h : is_primitive_root ζ n) :
   nth_roots_finset n R = (nat.divisors n).bUnion (λ i, (primitive_roots i R)) :=
-@nth_roots_one_eq_bUnion_primitive_roots' _ _ _ _ ⟨n, hpos⟩ h
+begin
+  by_cases hn : n = 0,
+  { simp [hn], },
+  exact @nth_roots_one_eq_bUnion_primitive_roots' _ _ _ _ ⟨n, nat.pos_of_ne_zero hn⟩ h
+end
 
 end is_domain
 

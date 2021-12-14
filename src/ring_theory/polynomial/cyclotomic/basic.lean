@@ -180,10 +180,9 @@ begin
              skip,
              simp [rwcyc, H] },
   rw ← finset.prod_bUnion,
-  { simp only [is_primitive_root.nth_roots_one_eq_bUnion_primitive_roots hpos h] },
+  { simp only [is_primitive_root.nth_roots_one_eq_bUnion_primitive_roots h] },
   intros x hx y hy hdiff,
-  rw finset.mem_coe at hx hy,
-  exact is_primitive_root.disjoint (nat.pos_of_mem_divisors hx) (nat.pos_of_mem_divisors hy) hdiff,
+  exact is_primitive_root.disjoint hdiff,
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then

@@ -281,6 +281,25 @@ by rw [map_mul, map_inv]
   (f : F) (x y : G) : f (x / y) = f x / f y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
+@[simp, to_additive map_nsmul] theorem map_pow [monoid G] [monoid H] [monoid_hom_class F G H]
+  (f : F) (a : G) :
+  ∀ (n : ℕ), f (a ^ n) = (f a) ^ n
+| 0     := by rw [pow_zero, pow_zero, map_one]
+| (n+1) := by rw [pow_succ, pow_succ, map_mul, map_pow]
+
+@[to_additive]
+theorem map_zpow' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H]
+  (f : F) (hf : ∀ (x : G), f (x⁻¹) = (f x)⁻¹) (a : G) :
+  ∀ n : ℤ, f (a ^ n) = (f a) ^ n
+| (n : ℕ) := by rw [zpow_coe_nat, map_pow, zpow_coe_nat]
+| -[1+n]  := by rw [zpow_neg_succ_of_nat, hf, map_pow, ← zpow_neg_succ_of_nat]
+
+/-- Group homomorphisms preserve integer power. -/
+@[simp, to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
+theorem map_zpow [group G] [group H] [monoid_hom_class F G H] (f : F) (g : G) (n : ℤ) :
+  f (g ^ n) = (f g) ^ n :=
+map_zpow' f (map_inv f) g n
+
 end mul_one
 
 section mul_zero_one
@@ -680,23 +699,23 @@ lemma monoid_with_zero_hom.comp_assoc {Q : Type*}
 lemma one_hom.cancel_right [has_one M] [has_one N] [has_one P]
   {g₁ g₂ : one_hom N P} {f : one_hom M N} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, one_hom.ext $ (forall_iff_forall_surj hf).1 (one_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, one_hom.ext $ hf.forall.2 (one_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
 @[to_additive]
 lemma mul_hom.cancel_right [has_mul M] [has_mul N] [has_mul P]
   {g₁ g₂ : mul_hom N P} {f : mul_hom M N} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, mul_hom.ext $ (forall_iff_forall_surj hf).1 (mul_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, mul_hom.ext $ hf.forall.2 (mul_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
 @[to_additive]
 lemma monoid_hom.cancel_right
   [mul_one_class M] [mul_one_class N] [mul_one_class P]
   {g₁ g₂ : N →* P} {f : M →* N} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, monoid_hom.ext $ (forall_iff_forall_surj hf).1 (monoid_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, monoid_hom.ext $ hf.forall.2 (monoid_hom.ext_iff.1 h), λ h, h ▸ rfl⟩
 lemma monoid_with_zero_hom.cancel_right
   [mul_zero_one_class M] [mul_zero_one_class N] [mul_zero_one_class P]
   {g₁ g₂ : monoid_with_zero_hom N P} {f : monoid_with_zero_hom M N} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, monoid_with_zero_hom.ext $ (forall_iff_forall_surj hf).1 (monoid_with_zero_hom.ext_iff.1 h),
+⟨λ h, monoid_with_zero_hom.ext $ hf.forall.2 (monoid_with_zero_hom.ext_iff.1 h),
  λ h, h ▸ rfl⟩
 
 @[to_additive]
@@ -760,18 +779,16 @@ monoid_with_zero_hom.ext $ λ x, rfl
   (f : monoid_with_zero_hom M N) : (monoid_with_zero_hom.id N).comp f = f :=
 monoid_with_zero_hom.ext $ λ x, rfl
 
-@[simp, to_additive add_monoid_hom.map_nsmul]
-theorem monoid_hom.map_pow [monoid M] [monoid N] (f : M →* N) (a : M) :
-  ∀(n : ℕ), f (a ^ n) = (f a) ^ n
-| 0     := by rw [pow_zero, pow_zero, f.map_one]
-| (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
+@[to_additive add_monoid_hom.map_nsmul]
+protected theorem monoid_hom.map_pow [monoid M] [monoid N] (f : M →* N) (a : M) (n : ℕ) :
+  f (a ^ n) = (f a) ^ n :=
+map_pow f a n
 
 @[to_additive]
-theorem monoid_hom.map_zpow' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
-  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a : M) :
-  ∀ n : ℤ, f (a ^ n) = (f a) ^ n
-| (n : ℕ) := by rw [zpow_coe_nat, f.map_pow, zpow_coe_nat]
-| -[1+n]  := by rw [zpow_neg_succ_of_nat, hf, f.map_pow, ← zpow_neg_succ_of_nat]
+protected theorem monoid_hom.map_zpow' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
+  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a : M) (n : ℤ) :
+  f (a ^ n) = (f a) ^ n :=
+map_zpow' f hf a n
 
 @[to_additive]
 theorem monoid_hom.map_div' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
@@ -926,9 +943,10 @@ protected theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g
 map_inv f g
 
 /-- Group homomorphisms preserve integer power. -/
-@[simp, to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
-theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) : f (g ^ n) = (f g) ^ n :=
-f.map_zpow' f.map_inv g n
+@[to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
+protected theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) :
+  f (g ^ n) = (f g) ^ n :=
+map_zpow f g n
 
 /-- Group homomorphisms preserve division. -/
 @[to_additive /-" Additive group homomorphisms preserve subtraction. "-/]

@@ -414,16 +414,10 @@ lemma set_integral_mono (h : f ≤ g) :
   ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 integral_mono hf hg h
 
-lemma set_integral_mono_set (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
+lemma set_integral_mono_set (hfi : integrable_on f t μ) (hf : 0 ≤ᵐ[μ.restrict t] f)
+  (hst : s ≤ᵐ[μ] t) :
   ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
-begin
-  repeat { rw integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf)
-            (hfi.1.mono_measure measure.restrict_le_self) },
-  rw ennreal.to_real_le_to_real
-    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2)
-    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2),
-  exact (lintegral_mono_set' hst),
-end
+integral_mono_measure (measure.restrict_mono_ae hst) hf hfi
 
 end mono
 

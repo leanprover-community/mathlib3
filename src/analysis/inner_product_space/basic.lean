@@ -1392,7 +1392,9 @@ linear_map.mk₂'ₛₗ _ _ (λ v w, ⟪v, w⟫) (λ _ _ _, inner_add_left) (λ 
 
 @[simp] lemma innerₛₗ_apply (v w : E) : innerₛₗ v w = ⟪v, w⟫ := rfl
 
-/-- The inner product as a continuous sesquilinear map. -/
+/-- The inner product as a continuous sesquilinear map. Note that `to_dual_map` (resp. `to_dual`)
+in `inner_product_space.dual` is a version of this given as a linear isometry (resp. linear
+isometric equivalence). -/
 def innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜 :=
 linear_map.mk_continuous₂ innerₛₗ 1
 (λ x y, by simp only [norm_inner_le_norm, one_mul, innerₛₗ_apply])
@@ -1401,6 +1403,8 @@ linear_map.mk_continuous₂ innerₛₗ 1
 
 @[simp] lemma innerSL_apply (v w : E) : innerSL v w = ⟪v, w⟫ := rfl
 
+/-- `innerSL` is an isometry. Note that the associated `linear_isometry` is defined in
+`inner_product_space.dual` as `to_dual_map`.  -/
 @[simp] lemma innerSL_apply_norm {x : E} : ∥(innerSL x : E →L[𝕜] 𝕜)∥ = ∥x∥ :=
 begin
   refine le_antisymm ((innerSL x).op_norm_le_bound (norm_nonneg _) (λ y, norm_inner_le_norm _ _)) _,
@@ -1413,16 +1417,6 @@ begin
     ... ≤ abs ⟪x, x⟫ : re_le_abs _
     ... = ∥innerSL x x∥ : by { rw [←is_R_or_C.norm_eq_abs], refl }
     ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
-end
-
-lemma innerSL_norm [nontrivial E] : ∥(innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜)∥ = 1 :=
-begin
-  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one
-    (λ _, by simp only [one_mul, innerSL_apply_norm]) _,
-  intros N hN h,
-  simp only [innerSL_apply_norm] at h,
-  rcases exists_ne (0 : E) with ⟨x, hx⟩,
-  exact (le_mul_iff_one_le_left (norm_pos_iff.mpr hx)).mp (h x),
 end
 
 namespace continuous_linear_map

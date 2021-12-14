@@ -24,23 +24,35 @@ noncomputable theory
 
 namespace homological_complex
 
-variables {β : Type*} [add_comm_group β] (b : β)
-variables (V : Type*) [category V] [has_zero_morphisms V]
+variables {β : Type*} [add_comm_group β] {b : β}
+variables {V : Type*} [category V] [has_zero_morphisms V]
+
+/-- Since `eq_to_hom` only preserves the fact that `X.X i = X.X j` but not `i = j`, this definition
+is used to aid the simplifier. -/
+abbreviation _root_.category_theory.differential_object.X_eq_to_hom
+  (X : differential_object (graded_object_with_shift b V))
+  {i j : β} (h : i = j) : X.X i ⟶ X.X j := eq_to_hom (congr_arg X.X h)
+
+@[simp] lemma _root_.category_theory.differential_object.X_eq_to_hom_refl
+  (X : differential_object (graded_object_with_shift b V)) (i : β) :
+    X.X_eq_to_hom (refl i) = 𝟙 _ := rfl
 
 @[simp, reassoc] lemma eq_to_hom_d (X : differential_object (graded_object_with_shift b V))
   {x y : β} (h : x = y) :
-  eq_to_hom (congr_arg X.X h) ≫ X.d y = X.d x ≫ eq_to_hom (by { cases h, refl }) :=
-by { cases h, simp }
+  X.X_eq_to_hom h ≫ X.d y = X.d x ≫ X.X_eq_to_hom (by { cases h, refl }) :=
+by { cases h, dsimp, simp }
 
 @[simp, reassoc] lemma d_eq_to_hom (X : homological_complex V (complex_shape.up' b))
   {x y z : β} (h : y = z) :
-  X.d x y ≫ eq_to_hom (by { cases h, refl }) = X.d x z :=
+  X.d x y ≫ eq_to_hom (congr_arg X.X h) = X.d x z :=
 by { cases h, simp }
 
 @[simp, reassoc] lemma eq_to_hom_f {X Y : differential_object (graded_object_with_shift b V)}
   (f : X ⟶ Y) {x y : β} (h : x = y) :
-  eq_to_hom (congr_arg X.X h) ≫ f.f y = f.f x ≫ eq_to_hom (by { cases h, refl }) :=
+  X.X_eq_to_hom h ≫ f.f y = f.f x ≫ Y.X_eq_to_hom h :=
 by { cases h, simp }
+
+variables (b V)
 
 /--
 The functor from differential graded objects to homological complexes.
@@ -52,14 +64,13 @@ def dgo_to_homological_complex :
 { obj := λ X,
   { X := λ i, X.X i,
     d := λ i j, if h : i + b = j then X.d i ≫
-      eq_to_hom (congr_arg X.X (show i + (1 : ℤ) • b = j, by simp [h])) else 0,
+      X.X_eq_to_hom (show i + (1 : ℤ) • b = j, by simp [h]) else 0,
     shape' := λ i j w, by { dsimp at w, rw dif_neg w, },
     d_comp_d' := λ i j k hij hjk, begin
       dsimp at hij hjk, substs hij hjk,
-      have : X.d i ≫ X.d (i + 1 • b) = 0 := congr_fun (X.d_squared) i,
+      have : X.d i ≫ X.d (i + 1 • b) = _ := (congr_fun X.d_squared i : _),
       reassoc! this,
-      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl, category.assoc,
-        eq_to_hom_d_assoc, eq_to_hom_trans, this, zero_comp]
+      simp [this]
     end },
   map := λ X Y f,
   { f := f.f,
@@ -109,17 +120,15 @@ nat_iso.of_components (λ X,
     { f := λ i, 𝟙 (X.X i),
       comm' := λ i j h, begin
         dsimp at h ⊢, subst h,
-        simp only [category.comp_id, category.id_comp, dif_pos rfl, eq_to_hom_refl],
-        erw d_eq_to_hom,
-        simp
+        delta homological_complex_to_dgo,
+        simp,
       end },
     inv :=
     { f := λ i, 𝟙 (X.X i),
       comm' := λ i j h, begin
         dsimp at h ⊢, subst h,
-        simp only [category.comp_id, category.id_comp, dif_pos rfl, eq_to_hom_refl],
-        erw d_eq_to_hom,
-        simp
+        delta homological_complex_to_dgo,
+        simp,
       end }, }) (by tidy)
 
 /--

@@ -20,7 +20,7 @@ less than k.
 -/
 def simplicial_complex.skeleton (S : simplicial_complex 𝕜 E) (k : ℕ) :
   simplicial_complex 𝕜 E :=
-simplicial_complex.of_surcomplex
+simplicial_complex.of_subcomplex
   {X ∈ S.faces | finset.card X ≤ k + 1}
   (λ X ⟨hX, _⟩, hX)
   (λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩)

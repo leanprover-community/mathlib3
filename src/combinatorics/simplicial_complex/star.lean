@@ -110,7 +110,7 @@ with some face in A
 -/
 def simplicial_complex.Star (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
   simplicial_complex 𝕜 E :=
-simplicial_complex.of_surcomplex {X | ∃ {Y Z}, Y ∈ A ∧ Z ∈ S.faces ∧ X ⊆ Z ∧ Y ⊆ Z}
+simplicial_complex.of_subcomplex {X | ∃ {Y Z}, Y ∈ A ∧ Z ∈ S.faces ∧ X ⊆ Z ∧ Y ⊆ Z}
   (λ X ⟨_, Z, _, hZ, hXZ, _⟩, S.down_closed hZ hXZ)
   (λ X W ⟨Y, Z, hY, hZ, hXZ, hYZ⟩ hWX, ⟨Y, Z, hY, hZ, subset.trans hWX hXZ, hYZ⟩)
 

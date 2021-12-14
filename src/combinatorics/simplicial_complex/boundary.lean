@@ -21,7 +21,7 @@ def simplicial_complex.on_boundary (S : simplicial_complex 𝕜 E) (X : finset E
 
 def simplicial_complex.boundary (S : simplicial_complex 𝕜 E) :
   simplicial_complex 𝕜 E :=
-simplicial_complex.of_surcomplex
+simplicial_complex.of_subcomplex
   {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ S.on_boundary Y}
   (λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY)
   (λ X W ⟨Y, hY, hXY, Z⟩ hWX, ⟨Y, hY, subset.trans hWX hXY, Z⟩)

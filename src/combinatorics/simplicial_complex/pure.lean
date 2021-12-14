@@ -9,118 +9,78 @@ import combinatorics.simplicial_complex.basic
 # Pure simplicial complexes
 -/
 
-namespace affine
-open set
+open geometry set
 open_locale classical
+
+namespace geometry.simplicial_complex
 variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {a b m n : ℕ}
-  {S : simplicial_complex 𝕜 E} {X : finset E}
+  {S : simplicial_complex 𝕜 E} {s : finset E}
 
 /-- A simplicial complex is pure of dimension `n` iff all its facets have dimension `n`. -/
-def simplicial_complex.pure_of (S : simplicial_complex 𝕜 E) (n : ℕ) :
-  Prop :=
-∀ ⦃X⦄, X ∈ S.facets → (X : finset _).card = n
+def pure (S : simplicial_complex 𝕜 E) (n : ℕ) : Prop := ∀ ⦃s : finset E⦄, s ∈ S.facets → s.card = n
 
-/--
-A simplicial complex is pure iff all its facets have the same dimension.
--/
-def simplicial_complex.pure (S : simplicial_complex 𝕜 E) :
-  Prop :=
-∃ n : ℕ, S.pure_of n
+-- def full_dimensional (S : simplicial_complex 𝕜 E) : Prop := S.pure (S.dim + 1) hS,
 
-def simplicial_complex.full_dimensional (S : simplicial_complex 𝕜 E) :
-  Prop :=
-S.pure_of (S.dim + 1)
-
-/--
-The pureness of a pure simplicial complex is the cardinality of its facets. Set to 0 for non pure
-complexes.
--/
-noncomputable def simplicial_complex.pureness (S : simplicial_complex 𝕜 E) :
-  ℕ :=
-if hS : S.pure then nat.find hS else 0
-
-lemma pureness_def (hS : S.pure) :
-  S.pure_of S.pureness :=
-begin
-  unfold simplicial_complex.pureness,
-  rw dif_pos hS,
-  exact nat.find_spec hS,
-end
-
-lemma pure_of_empty (h : S.faces = {∅}) :
-  S.pure :=
-begin
-  use 0,
-  rintro X hX,
-  have := facets_subset hX,
-  rw h at this,
-  change X = ∅ at this,
-  rw this,
-  exact finset.card_empty,
-end
+lemma bot_pure (n : ℕ) : (⊥ : simplicial_complex 𝕜 E).pure n :=
+λ s hs, (facets_bot.subset hs).elim
 
 variables [finite_dimensional ℝ E]
 
-lemma face_card_le_pureness (hS : S.pure_of n) (hX : X ∈ S.faces) :
-  X.card ≤ n :=
+lemma pure.card_le (hS : S.pure n) (hs : s ∈ S.faces) : s.card ≤ n :=
 begin
-  obtain ⟨Y, hY, hXY⟩ := subfacet hX,
+  obtain ⟨Y, hY, hsY⟩ := subfacet hs,
   rw ← hS hY,
-  exact finset.card_le_of_subset hXY,
+  exact finset.card_le_of_subset hsY,
 end
 
-lemma pureness_unique_of_nonempty (hS : S.faces.nonempty)
-  (ha : S.pure_of a) (hb : S.pure_of b) :
+lemma pureness_unique_of_nonempty (hS : S.faces.nonempty) (ha : S.pure a) (hb : S.pure b) :
   a = b :=
 begin
-  obtain ⟨X, hX⟩ := hS,
-  obtain ⟨Y, hY, hYX⟩ := subfacet hX,
+  obtain ⟨s, hs⟩ := hS,
+  obtain ⟨Y, hY, hYs⟩ := subfacet hs,
   rw [←ha hY, ←hb hY],
 end
 
-lemma pureness_def' (hSnonempty : S.faces.nonempty) (hS : S.pure_of n) :
-  S.pureness = n :=
+lemma pureness_def' (hSnonempty : S.faces.nonempty) (hS : S.pure n) : S.pureness = n :=
 pureness_unique_of_nonempty hSnonempty (pureness_def ⟨_, hS⟩) hS
 
-lemma facet_iff_dimension_eq_pureness (hS : S.pure_of n) (hX : X ∈ S.faces) :
-  X ∈ S.facets ↔ X.card = n :=
+lemma facet_iff_dimension_eq_pureness (hS : S.pure n) (hs : s ∈ S.faces) :
+  s ∈ S.facets ↔ s.card = n :=
 begin
-  refine ⟨λ hXfacet, hS hXfacet, λ hXcard, ⟨hX, λ Y hY hXY, finset.eq_of_subset_of_card_le hXY _⟩⟩,
-  rw hXcard,
+  refine ⟨λ hsfacet, hS hsfacet, λ hscard, ⟨hs, λ Y hY hsY, finset.eq_of_subset_of_card_le hsY _⟩⟩,
+  rw hscard,
   exact face_card_le_pureness hS hY,
 end
 
-/--
-A simplicial complex is pure iff there exists n such that all faces are subfaces of some
-(n - 1)-dimensional face.
--/
+/-- A simplicial complex is pure iff there exists n such that all faces are subfaces of some
+(n - 1)-dimensional face. -/
 lemma pure_iff :
-  S.pure ↔ ∃ n : ℕ, ∀ {X}, X ∈ S.faces → ∃ {Y}, Y ∈ S.faces ∧ finset.card Y = n ∧ X ⊆ Y :=
+  S.pure ↔ ∃ n : ℕ, ∀ {s}, s ∈ S.faces → ∃ {Y}, Y ∈ S.faces ∧ finset.card Y = n ∧ s ⊆ Y :=
 begin
   split,
   { rintro hS,
     use S.pureness,
-    rintro X hX,
-    obtain ⟨Y, hY, hXY⟩ := subfacet hX,
-    exact ⟨Y, facets_subset hY, pureness_def hS hY, hXY⟩ },
+    rintro s hs,
+    obtain ⟨Y, hY, hsY⟩ := subfacet hs,
+    exact ⟨Y, facets_subset hY, pureness_def hS hY, hsY⟩ },
   { rintro ⟨n, hS⟩,
     use n,
-    rintro X ⟨hX, hXmax⟩,
-    obtain ⟨Y, hY, hYcard, hXY⟩ := hS hX,
-    rw hXmax hY hXY,
+    rintro s ⟨hs, hsmax⟩,
+    obtain ⟨Y, hY, hYcard, hsY⟩ := hS hs,
+    rw hsmax hY hsY,
     exact hYcard }
 end
 
 lemma facets_subset_facets_of_pureness_eq_pureness_of_subcomplex {S₁ S₂ : simplicial_complex 𝕜 E}
-  (hS : S₁.faces ⊆ S₂.faces) (hS₁ : S₁.pure_of n) (hS₂ : S₂.pure_of n) :
+  (hS : S₁.faces ⊆ S₂.faces) (hS₁ : S₁.pure n) (hS₂ : S₂.pure n) :
   S₁.facets ⊆ S₂.facets :=
 begin
-  rintro X hX,
-  use hS hX.1,
-  rintro Y hY hXY,
-  apply finset.eq_of_subset_of_card_le hXY,
-  rw hS₁ hX,
+  rintro s hs,
+  use hS hs.1,
+  rintro Y hY hsY,
+  apply finset.eq_of_subset_of_card_le hsY,
+  rw hS₁ hs,
   exact face_card_le_pureness hS₂ hY,
 end
 
-end affine
+end geometry.simplicial_complex

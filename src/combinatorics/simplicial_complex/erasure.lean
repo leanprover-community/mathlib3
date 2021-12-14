@@ -20,7 +20,7 @@ faces having a vertex in A.
 -/
 def simplicial_complex.erasure (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
   simplicial_complex 𝕜 E :=
-simplicial_complex.of_surcomplex
+simplicial_complex.of_subcomplex
   {X | X ∈ S.faces ∧ ∀ {W}, W ∈ A → disjoint W X}
   (λ X hX, hX.1)
   (λ X Y ⟨hX, hXA⟩ hYX,
@@ -28,7 +28,7 @@ simplicial_complex.of_surcomplex
 /-Previous def
 def simplicial_complex.erasure (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
   simplicial_complex 𝕜 E :=
-simplicial_complex.of_surcomplex
+simplicial_complex.of_subcomplex
   {X | X ∈ S.faces ∧ ∀ {Y}, Y ∈ A → disjoint X Y}
   (λ X hX, hX.1)
   (λ X Y ⟨hX, hXA⟩ hYX,

@@ -58,7 +58,7 @@ begin
 end
 
 lemma nontrivial_sum_of_affine_independent {X : finset E}
-  (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E))
+  (hX : affine_independent 𝕜 (coe : (X : set E) → E))
   (w : E → 𝕜) (hw₀ : ∑ i in X, w i = 0) (hw₁ : ∑ i in X, w i • i = 0) :
   ∀ i ∈ X, w i = 0 :=
 begin
@@ -72,7 +72,7 @@ begin
   apply hX ⟨i, hi⟩ (mem_univ _)
 end
 
-lemma unique_combination {X : finset E} (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E))
+lemma unique_combination {X : finset E} (hX : affine_independent 𝕜 (coe : (X : set E) → E))
   (w₁ w₂ : E → 𝕜) (hw₁ : ∑ i in X, w₁ i = 1) (hw₂ : ∑ i in X, w₂ i = 1)
   (same : X.center_mass w₁ id = X.center_mass w₂ id) :
   ∀ i ∈ X, w₁ i = w₂ i :=
@@ -90,14 +90,13 @@ begin
     apply sub_eq_zero_of_eq same }
 end
 
-lemma affine_span_convex_hull_eq {X : set E} :
-  affine_span 𝕜 (convex_hull 𝕜 X) = affine_span 𝕜 X :=
+lemma affine_span_convex_hull_eq {X : set E} : affine_span 𝕜 (convex_hull 𝕜 X) = affine_span 𝕜 X :=
 le_antisymm
   (((affine_subspace.gi _ _ _).gc _ _).2 (convex_hull_subset_span_points X))
   (affine_span_mono 𝕜 (subset_convex_hull 𝕜 X))
 
 lemma disjoint_convex_hull_of_subsets {X : finset E}
-  (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E)) {Y₁ Y₂ : finset E}
+  (hX : affine_independent 𝕜 (coe : (X : set E) → E)) {Y₁ Y₂ : finset E}
   (hY₁ : Y₁ ⊆ X) (hY₂ : Y₂ ⊆ X) :
   convex_hull 𝕜 (Y₁ : set E) ∩ convex_hull 𝕜 (Y₂ : set E) ⊆ convex_hull 𝕜 (Y₁ ∩ Y₂ : set E) :=
 begin
@@ -125,7 +124,7 @@ begin
   have hX' := nontrivial_sum_of_affine_independent hX w h₁w this,
   have t₁ : ∀ x, x ∈ Y₁ → x ∉ Y₂ → w₁ x = 0,
   { intros x hx₁ hx₂,
-    have : ite (x ∈ Y₁) (w₁ x) 0 - ite (x ∈ Y₂) (w₂ x) 0 = 0 := hX' x (hY₁ hx₁),
+    have : ite (x ∈ Y₁) (w₁ x) 0 - ite (x ∈ Y₂) (w₂ x) 0 = 0 := hX' _ (hY₁ hx₁),
     simpa [hx₁, hx₂] using this },
   have h₄w₁ : ∑ (y : E) in Y₁ ∩ Y₂, w₁ y = 1,
   { rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₂w₁],
@@ -141,7 +140,7 @@ begin
     rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₃w₁],
     simp_intros x hx₁ hx₂,
     left,
-    exact t₁ x hx₁ (hx₂ hx₁) },
+    exact t₁ x hx₁ (hx₂ hx₁) }
 end
 
 lemma finrank_le_finrank_of_le {x y : submodule 𝕜 E} (h : x ≤ y) [finite_dimensional 𝕜 y] :
@@ -158,7 +157,7 @@ end
 
 -- convex_hull 𝕜 ↑X ⊆ convex_hull 𝕜 ↑Y implies that X.card <= Y.card if X is independent
 theorem card_le_of_convex_hull_subset {X Y : finset E}
-  (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E))
+  (hX : affine_independent 𝕜 (coe : (X : set E) → E))
   (hXY : convex_hull 𝕜 ↑X ⊆ convex_hull 𝕜 (Y : set E)) :
   X.card ≤ Y.card :=
 begin
@@ -189,7 +188,7 @@ begin
   { simp only [subtype.range_coe_subtype, finset.set_of_mem, finset.mem_coe] },
   rw ← dumb at finrank_le,
   rw hX.finrank_vector_span X_eq_succ at finrank_le,
-  have := finrank_vector_span_range_le 𝕜 (λ p, p : (Y : set E) → E) Y_eq_succ,
+  have := finrank_vector_span_range_le 𝕜 (coe : (Y : set E) → E) Y_eq_succ,
   have dumb₂ : set.range (λ (p : (Y : set E)), ↑p) = (Y : set E),
   { simp only [subtype.range_coe_subtype, finset.set_of_mem, finset.mem_coe] },
   rw dumb₂ at this,
@@ -199,7 +198,7 @@ begin
 end
 
 lemma affine_independent.card_le_finrank_succ [finite_dimensional 𝕜 E] {s : finset E}
-  (ha : affine_independent 𝕜 (λ p, p : (s : set E) → E)) :
+  (ha : affine_independent 𝕜 (coe : (s : set E) → E)) :
   s.card ≤ finite_dimensional.finrank 𝕜 E + 1 :=
 begin
   classical,

@@ -10,7 +10,7 @@ import data.nat.parity
 # Sperner's lemma
 -/
 
-namespace affine
+namespace geometry
 
 open_locale classical affine big_operators
 open set
@@ -20,7 +20,7 @@ variables {S : simplicial_complex 𝕜 E} {f : E → fin m}
 
 def is_sperner_coloring (S : simplicial_complex 𝕜 E)
   (f : E → fin m) : Prop :=
-∀ (x : E) i, x ∈ S.points → x i = 0 → f x ≠ i
+∀ (x : E) i, x ∈ S.vertices → x i = 0 → f x ≠ i
 
 def panchromatic (f : (fin n → 𝕜) → fin m) (X : finset (fin n → 𝕜)) :=
   X.image f = finset.univ
@@ -60,7 +60,7 @@ lemma strong_sperner_zero_aux {S : simplicial_complex (fin 1 → 𝕜)}
 begin
   have X_subs : ∀ X ∈ S.faces, X ⊆ { ![(1:𝕜)]},
   { rintro X hX,
-    have := face_subset_space hX,
+    have := subset_space hX,
     rw [hS₁, std_simplex_one] at this,
     rintro x hx,
     simpa using this hx },

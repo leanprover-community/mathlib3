@@ -20,7 +20,7 @@ variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E
 /-- The closure of a set of faces is the set of their subfaces. -/
 def simplicial_complex.closure (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
   simplicial_complex 𝕜 E :=
-simplicial_complex.of_surcomplex
+simplicial_complex.of_subcomplex
   {X | X ∈ S.faces ∧ ∃ {X'}, X' ∈ A ∧ X ⊆ X'}
   (λ X ⟨hX, _⟩, hX)
   (λ X Y ⟨hX, X', hX', hXX'⟩ hYX, ⟨S.down_closed hX hYX, X', hX', subset.trans hYX hXX'⟩)

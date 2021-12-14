@@ -125,7 +125,7 @@ begin
       use {x},
       split,
       split,
-      {     unfold simplicial_complex.closure simplicial_complex.of_surcomplex,
+      {     unfold simplicial_complex.closure simplicial_complex.of_subcomplex,
         simp,
         exact ⟨S.down_closed (Star_subset hXStar) (subset.trans (finset.singleton_subset_iff.2 hx)
           (finset.inter_subset_right _ _)), W, hW, finset.inter_subset_left _ _ hx⟩,

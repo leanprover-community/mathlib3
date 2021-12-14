@@ -42,10 +42,12 @@ set multiplication, set addition, pointwise addition, pointwise multiplication
 
 -/
 
+variables {α β γ ι κ : Type*}
+
 namespace set
 open function
 
-variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : set α} {a b : α} {x y : β}
+variables {s s₁ s₂ t t₁ t₂ u : set α} {a b : α} {x y : β}
 
 /-! ### Properties about 1 -/
 
@@ -294,7 +296,7 @@ end
 section big_operators
 open_locale big_operators
 
-variables {ι : Type*} [comm_monoid α]
+variables [comm_monoid α]
 
 /-- The n-ary version of `set.mem_mul`. -/
 @[to_additive /-" The n-ary version of `set.mem_add`. "-/]
@@ -512,7 +514,7 @@ lemma image_smul_prod [has_scalar α β] {t : set β} :
 image_prod _
 
 @[to_additive]
-theorem range_smul_range [has_scalar α β] {ι κ : Type*} (b : ι → α) (c : κ → β) :
+theorem range_smul_range [has_scalar α β] (b : ι → α) (c : κ → β) :
   range b • range c = range (λ p : ι × κ, b p.1 • c p.2) :=
 ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_smul.1 hx in
   ⟨(i, j), hpq ▸ hi ▸ hj ▸ rfl⟩,
@@ -527,40 +529,37 @@ lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a 
 image2_singleton_left
 
 @[to_additive]
-instance smul_comm_class_set {γ : Type*}
-  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_set [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α (set β) (set γ) :=
 { smul_comm := λ a T T',
     by simp only [←image2_smul, ←image_smul, image2_image_right, image_image2, smul_comm] }
 
 @[to_additive]
-instance smul_comm_class_set' {γ : Type*}
-  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_set' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (set α) β (set γ) :=
 by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
 
 @[to_additive]
-instance smul_comm_class {γ : Type*}
-  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (set α) (set β) (set γ) :=
 { smul_comm := λ T T' T'', begin
     simp only [←image2_smul, image2_swap _ T],
     exact image2_assoc (λ b c a, smul_comm a b c),
   end }
 
-instance is_scalar_tower {γ : Type*}
-  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+instance is_scalar_tower [has_scalar α β] [has_scalar α γ] [has_scalar β γ]
+  [is_scalar_tower α β γ] :
   is_scalar_tower α β (set γ) :=
 { smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
 
-instance is_scalar_tower' {γ : Type*}
-  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+instance is_scalar_tower' [has_scalar α β] [has_scalar α γ] [has_scalar β γ]
+  [is_scalar_tower α β γ] :
   is_scalar_tower α (set β) (set γ) :=
 { smul_assoc := λ a T T',
     by simp only [←image_smul, ←image2_smul, image_image2, image2_image_left, smul_assoc] }
 
-instance is_scalar_tower'' {γ : Type*}
-  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+instance is_scalar_tower'' [has_scalar α β] [has_scalar α γ] [has_scalar β γ]
+  [is_scalar_tower α β γ] :
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
@@ -654,8 +653,6 @@ open_locale pointwise
 
 section
 
-variables {α : Type*} {β : Type*}
-
 /-- A nonempty set is scaled by zero to the singleton set containing 0. -/
 lemma zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α β] {s : set β} (h : s.nonempty) :
   (0 : α) • s = (0 : set β) :=
@@ -670,21 +667,21 @@ lemma subsingleton_zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α 
 subsingleton_singleton.mono (zero_smul_subset s)
 
 section group
-variables [group α] [mul_action α β]
+variables [group α] [mul_action α β] {A B : set β} {a : α} {x : β}
 
 @[simp, to_additive]
-lemma smul_mem_smul_set_iff {a : α} {A : set β} {x : β} : a • x ∈ a • A ↔ x ∈ A :=
+lemma smul_mem_smul_set_iff : a • x ∈ a • A ↔ x ∈ A :=
 ⟨λ h, begin
   rw [←inv_smul_smul a x, ←inv_smul_smul a A],
   exact smul_mem_smul_set h,
 end, smul_mem_smul_set⟩
 
 @[to_additive]
-lemma mem_smul_set_iff_inv_smul_mem {a : α} {A : set β} {x : β} : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
+lemma mem_smul_set_iff_inv_smul_mem : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
 show x ∈ mul_action.to_perm a '' A ↔ _, from mem_image_equiv
 
 @[to_additive]
-lemma mem_inv_smul_set_iff {a : α} {A : set β} {x : β} : x ∈ a⁻¹ • A ↔ a • x ∈ A :=
+lemma mem_inv_smul_set_iff : x ∈ a⁻¹ • A ↔ a • x ∈ A :=
 by simp only [← image_smul, mem_image, inv_smul_eq_iff, exists_eq_right]
 
 @[to_additive]
@@ -696,16 +693,16 @@ lemma preimage_smul_inv (a : α) (t : set β) : (λ x, a⁻¹ • x) ⁻¹' t = 
 preimage_smul (to_units a)⁻¹ t
 
 @[simp, to_additive]
-lemma set_smul_subset_set_smul_iff {a : α} {A B : set β} : a • A ⊆ a • B ↔ A ⊆ B :=
+lemma set_smul_subset_set_smul_iff : a • A ⊆ a • B ↔ A ⊆ B :=
 image_subset_image_iff $ mul_action.injective _
 
 @[to_additive]
-lemma set_smul_subset_iff {a : α} {A B : set β} : a • A ⊆ B ↔ A ⊆ a⁻¹ • B :=
+lemma set_smul_subset_iff : a • A ⊆ B ↔ A ⊆ a⁻¹ • B :=
 (image_subset_iff).trans $ iff_of_eq $ congr_arg _ $
   preimage_equiv_eq_image_symm _ $ mul_action.to_perm _
 
 @[to_additive]
-lemma subset_set_smul_iff {a : α} {A B : set β} : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
+lemma subset_set_smul_iff : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
 iff.symm $ (image_subset_iff).trans $ iff.symm $ iff_of_eq $ congr_arg _ $
   image_equiv_eq_preimage_symm _ $ mul_action.to_perm _
 
@@ -747,8 +744,22 @@ end group_with_zero
 end
 
 namespace finset
+variables {a : α} {s s₁ s₂ t t₁ t₂ : finset α}
 
-variables {α : Type*} [decidable_eq α] {s t : finset α}
+/-- The finset `(1 : finset α)` is defined as `{1}` in locale `pointwise`. -/
+@[to_additive /-"The finset `(0 : finset α)` is defined as `{0}` in locale `pointwise`. "-/]
+protected def has_one [has_one α] : has_one (finset α) := ⟨{1}⟩
+
+localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
+
+@[simp, to_additive]
+lemma mem_one [has_one α] : a ∈ (1 : finset α) ↔ a = 1 :=
+by simp [has_one.one]
+
+@[simp, to_additive]
+theorem one_subset [has_one α] : (1 : finset α) ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
+
+variables [decidable_eq α]
 
 /-- The pointwise product of two finite sets `s` and `t`:
 `st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }`. -/
@@ -759,49 +770,69 @@ protected def has_mul [has_mul α] : has_mul (finset α) :=
 
 localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 
-@[to_additive]
-lemma mul_def [has_mul α] :
-  s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
+section has_mul
+variables [has_mul α]
 
 @[to_additive]
-lemma mem_mul [has_mul α] {x : α} :
-  x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
+lemma mul_def : s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
+
+@[to_additive]
+lemma mem_mul {x : α} : x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
 by { simp only [finset.mul_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product] }
 
 @[simp, norm_cast, to_additive]
-lemma coe_mul [has_mul α] : (↑(s * t) : set α) = ↑s * ↑t :=
+lemma coe_mul : (↑(s * t) : set α) = ↑s * ↑t :=
 by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
 
 @[to_additive]
-lemma mul_mem_mul [has_mul α] {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
-  x * y ∈ s * t :=
+lemma mul_mem_mul {x y : α} (hx : x ∈ s) (hy : y ∈ t) : x * y ∈ s * t :=
 by { simp only [finset.mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
 
 @[to_additive]
-lemma mul_card_le [has_mul α] : (s * t).card ≤ s.card * t.card :=
+lemma mul_card_le : (s * t).card ≤ s.card * t.card :=
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 
-@[simp, to_additive] lemma empty_mul [has_mul α] (s : finset α) : ∅ * s = ∅ :=
+@[simp, to_additive] lemma empty_mul (s : finset α) : ∅ * s = ∅ :=
 eq_empty_of_forall_not_mem (by simp [mem_mul])
 
-@[simp, to_additive] lemma mul_empty [has_mul α] (s : finset α) : s * ∅ = ∅ :=
+@[simp, to_additive] lemma mul_empty (s : finset α) : s * ∅ = ∅ :=
 eq_empty_of_forall_not_mem (by simp [mem_mul])
 
-@[simp, to_additive] lemma mul_nonempty_iff [has_mul α] (s t : finset α):
-    (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+@[simp, to_additive]
+lemma mul_nonempty_iff (s t : finset α) : (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 by simp [finset.mul_def]
 
-@[to_additive, mono] lemma mul_subset_mul [has_mul α] {s₁ s₂ t₁ t₂ : finset α}
-  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
+@[to_additive, mono] lemma mul_subset_mul  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
 image_subset_image (product_subset_product hs ht)
 
-lemma mul_singleton_zero [mul_zero_class α] (s : finset α) :
-  s * {0} ⊆ {0} :=
-by simp [subset_iff, mem_mul]
+@[simp, to_additive]
+lemma mul_singleton (a : α) : s * {a} = s.image (* a) :=
+by { rw [mul_def, product_singleton, map_eq_image, image_image], refl }
 
-lemma singleton_zero_mul [mul_zero_class α] (s : finset α):
-  {(0 : α)} * s ⊆ {0} :=
-by simp [subset_iff, mem_mul]
+@[simp, to_additive]
+lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) :=
+by { rw [mul_def, singleton_product, map_eq_image, image_image], refl }
+
+@[simp, to_additive]
+lemma singleton_mul_singleton (a b : α) : ({a} : finset α) * {b} = {a * b} :=
+by rw [mul_def, singleton_product_singleton, image_singleton]
+
+end has_mul
+
+section mul_zero_class
+variables [mul_zero_class α]
+
+lemma mul_zero_subset (s : finset α) : s * 0 ⊆ 0 := by simp [subset_iff, mem_mul]
+
+lemma zero_mul_subset (s : finset α) : 0 * s ⊆ 0 := by simp [subset_iff, mem_mul]
+
+lemma nonempty.mul_zero (hs : s.nonempty) : s * 0 = 0 :=
+s.mul_zero_subset.antisymm $ by simpa [finset.mem_mul] using hs
+
+lemma nonempty.zero_mul (hs : s.nonempty) : 0 * s = 0 :=
+s.zero_mul_subset.antisymm $ by simpa [finset.mem_mul] using hs
+
+end mul_zero_class
 
 open_locale classical
 
@@ -836,15 +867,14 @@ end finset
   `group_theory.submonoid.basic`, but currently we cannot because that file is imported by this. -/
 namespace submonoid
 
-variables {M : Type*} [monoid M]
+variables {M : Type*} [monoid M] {s t u : set M}
 
 @[to_additive]
-lemma mul_subset {s t : set M} {S : submonoid M} (hs : s ⊆ S) (ht : t ⊆ S) : s * t ⊆ S :=
+lemma mul_subset {S : submonoid M} (hs : s ⊆ S) (ht : t ⊆ S) : s * t ⊆ S :=
 by { rintro _ ⟨p, q, hp, hq, rfl⟩, exact submonoid.mul_mem _ (hs hp) (ht hq) }
 
 @[to_additive]
-lemma mul_subset_closure {s t u : set M} (hs : s ⊆ u) (ht : t ⊆ u) :
-  s * t ⊆ submonoid.closure u :=
+lemma mul_subset_closure (hs : s ⊆ u) (ht : t ⊆ u) : s * t ⊆ submonoid.closure u :=
 mul_subset (subset.trans hs submonoid.subset_closure) (subset.trans ht submonoid.subset_closure)
 
 @[to_additive]
@@ -869,6 +899,21 @@ le_antisymm
     (λ h hh, subset_closure ⟨h, 1, hh, K.one_mem, mul_one h⟩)
     (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
   (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
+
+lemma pow_smul_mem_closure_smul {N : Type*} [comm_monoid N] [mul_action M N]
+  [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
+  ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=
+begin
+  apply @closure_induction N _ s
+    (λ (x : N), ∃ n : ℕ, r ^ n • x ∈ closure (r • s)) _ hx,
+  { intros x hx,
+    exact ⟨1, subset_closure ⟨_, hx, by rw pow_one⟩⟩ },
+  { exact ⟨0, by simpa using one_mem _⟩ },
+  { rintros x y ⟨nx, hx⟩ ⟨ny, hy⟩,
+    use nx + ny,
+    convert mul_mem _ hx hy,
+    rw [pow_add, smul_mul_assoc, mul_smul, mul_comm, ← smul_mul_assoc, mul_comm] }
+end
 
 end submonoid
 

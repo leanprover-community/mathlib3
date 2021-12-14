@@ -6,7 +6,6 @@ Neil Strickland
 -/
 import algebra.divisibility
 import algebra.regular.basic
-import data.set.basic
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -560,7 +559,7 @@ include rβ rγ
 
 lemma cancel_right {g₁ g₂ : β →+* γ} {f : α →+* β} (hf : surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, ring_hom.ext $ (forall_iff_forall_surj hf).1 (ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, ring_hom.ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
 
 lemma cancel_left {g : β →+* γ} {f₁ f₂ : α →+* β} (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
@@ -1022,7 +1021,7 @@ section comm_ring
 variables [comm_ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_domain.to_comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero α :=
+instance is_domain.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero α :=
 { ..comm_semiring.to_comm_monoid_with_zero, ..is_domain.to_cancel_monoid_with_zero }
 
 lemma mul_self_eq_mul_self_iff {a b : α} : a * a = b * b ↔ a = b ∨ a = -b :=

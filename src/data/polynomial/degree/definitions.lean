@@ -736,6 +736,36 @@ begin
   refine add_le_add _ _; apply degree_le_nat_degree,
 end
 
+lemma nat_degree_pow_le {p : polynomial R} {n : ℕ} : (p ^ n).nat_degree ≤ n * p.nat_degree :=
+begin
+  induction n with i hi,
+  { simp },
+  { rw [pow_succ, nat.succ_mul, add_comm],
+    apply le_trans nat_degree_mul_le,
+    exact add_le_add_left hi _ }
+end
+
+@[simp] lemma coeff_pow_mul_nat_degree (p : polynomial R) (n : ℕ) :
+  (p ^ n).coeff (n * p.nat_degree) = p.leading_coeff ^ n :=
+begin
+  induction n with i hi,
+  { simp },
+  { rw [pow_succ', pow_succ', nat.succ_mul],
+    by_cases hp1 : p.leading_coeff ^ i = 0,
+    { rw [hp1, zero_mul],
+      by_cases hp2 : p ^ i = 0,
+      { rw [hp2, zero_mul, coeff_zero] },
+      { apply coeff_eq_zero_of_nat_degree_lt,
+        have h1 : (p ^ i).nat_degree < i * p.nat_degree,
+        { apply lt_of_le_of_ne nat_degree_pow_le (λ h, hp2 _),
+          rw [←h, hp1] at hi,
+          exact leading_coeff_eq_zero.mp hi },
+        calc (p ^ i * p).nat_degree ≤ (p ^ i).nat_degree + p.nat_degree : nat_degree_mul_le
+                                ... < i * p.nat_degree + p.nat_degree : add_lt_add_right h1 _ } },
+    { rw [←nat_degree_pow' hp1, ←leading_coeff_pow' hp1],
+      exact coeff_mul_degree_add_degree _ _ } }
+end
+
 lemma subsingleton_of_monic_zero (h : monic (0 : polynomial R)) :
   (∀ p q : polynomial R, p = q) ∧ (∀ a b : R, a = b) :=
 by rw [monic.def, leading_coeff_zero] at h;

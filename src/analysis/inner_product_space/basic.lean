@@ -1392,7 +1392,9 @@ linear_map.mk₂'ₛₗ _ _ (λ v w, ⟪v, w⟫) (λ _ _ _, inner_add_left) (λ 
 
 @[simp] lemma innerₛₗ_apply (v w : E) : innerₛₗ v w = ⟪v, w⟫ := rfl
 
-/-- The inner product as a continuous sesquilinear map. -/
+/-- The inner product as a continuous sesquilinear map. Note that `to_dual_map` (resp. `to_dual`)
+in `inner_product_space.dual` is a version of this given as a linear isometry (resp. linear
+isometric equivalence). -/
 def innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜 :=
 linear_map.mk_continuous₂ innerₛₗ 1
 (λ x y, by simp only [norm_inner_le_norm, one_mul, innerₛₗ_apply])

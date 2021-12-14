@@ -5,6 +5,7 @@ Authors: Frédéric Dupuis
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.dual
+import analysis.normed_space.star
 
 /-!
 # The Fréchet-Riesz representation theorem
@@ -54,6 +55,12 @@ def to_dual_map : E →ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
 variables {E}
 
 @[simp] lemma to_dual_map_apply {x y : E} : to_dual_map 𝕜 E x y = ⟪x, y⟫ := rfl
+
+lemma innerSL_norm [nontrivial E] : ∥(innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜)∥ = 1 :=
+begin
+  change ∥(to_dual_map 𝕜 E).to_continuous_linear_map∥ = 1,
+  exact linear_isometry.norm_to_continuous_linear_map _
+end
 
 variables (E) [complete_space E]
 

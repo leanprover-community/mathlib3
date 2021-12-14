@@ -242,6 +242,28 @@ lemma mul_def (e e' : P₁ ≃ᵃ[k] P₁) : e * e' = e'.trans e := rfl
 
 lemma inv_def (e : P₁ ≃ᵃ[k] P₁) : e⁻¹ = e.symm := rfl
 
+/-- `affine_equiv.linear` on automorphisms is a `monoid_hom`. -/
+@[simps] def linear_hom : (P₁ ≃ᵃ[k] P₁) →* (V₁ ≃ₗ[k] V₁) :=
+{ to_fun := linear,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
+/-- The group of `affine_equiv`s are equivalent to the group of units of `affine_map`.
+
+This is the affine version of `linear_map.general_linear_group.general_linear_equiv` -/
+@[simps?]
+def equiv_units_affine_map : (P₁ ≃ᵃ[k] P₁) ≃ units (P₁ →ᵃ[k] P₁) :=
+{ to_fun := λ e, ⟨e, e.symm, congr_arg coe e.symm_trans_self, congr_arg coe e.self_trans_symm⟩,
+  inv_fun := λ u,
+  { to_fun := (u : P₁ →ᵃ[k] P₁), inv_fun := (↑(u⁻¹) : P₁ →ᵃ[k] P₁),
+    left_inv := affine_map.congr_fun u.inv_mul,
+    right_inv := affine_map.congr_fun u.mul_inv,
+    linear := linear_map.general_linear_group.general_linear_equiv _ _ $
+      units.map (by exact affine_map.linear_hom) u,
+    map_vadd' := λ _ _, (u : P₁ →ᵃ[k] P₁).map_vadd _ _ },
+  left_inv := λ e, affine_equiv.ext $ λ x, rfl,
+  right_inv := λ u, units.ext $ affine_map.ext $ λ x, rfl }
+
 variable (k)
 
 /-- The map `v ↦ v +ᵥ b` as an affine equivalence between a module `V` and an affine space `P` with

@@ -1428,6 +1428,19 @@ lemma disjoint_prod_add_aux {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.s
 (∏ (x : α) in f1.support, g x (f1 x + f2 x)) = f1.prod g :=
 begin
   unfold finsupp.prod,
+  have h : ∀ x ∈ f1.support, g x (f1 x + f2 x) = g x (f1 x), {
+    intros x hx,
+    simp only [not_mem_support_iff.mp (finset.disjoint_left.mp hd hx), add_zero] },
+
+
+  -- simp only [h],
+
+  -- have := prod_congr,
+  -- have := not_mem_support_iff.mp,
+  --  (finset.disjoint_left.mp hd hx),
+  have := @prod_congr α M β _ _ f1 _ _ h,
+
+    -- (λ y, (f1 y) + (f2 y)),
   sorry,
   -- rw prod_congr rfl,
   -- intros x hx,

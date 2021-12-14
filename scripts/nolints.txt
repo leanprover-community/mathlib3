@@ -406,9 +406,6 @@ apply_nolint relator.lift_fun doc_blame
 apply_nolint relator.right_total doc_blame
 apply_nolint relator.right_unique doc_blame
 
--- measure_theory/function/conditional_expectation.lean
-apply_nolint measure_theory.Lp_meas.complete_space fails_quickly
-
 -- meta/coinductive_predicates.lean
 apply_nolint monotonicity doc_blame
 apply_nolint tactic.add_coinductive_predicate doc_blame

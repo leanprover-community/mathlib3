@@ -122,7 +122,7 @@ rfl
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
 
-instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
+instance nat.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero ℕ :=
 { mul_left_cancel_of_ne_zero :=
     λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
   mul_right_cancel_of_ne_zero :=
@@ -371,6 +371,12 @@ begin
   cases n, {cases n0},
   exact lt_succ_iff,
 end
+
+lemma two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
+| 0 h _ _ := (h rfl).elim
+| 1 _ h _ := (h rfl).elim
+| 2 _ _ h := (h rfl).elim
+| (n+3) _ _ _ := dec_trivial
 
 /-! ### `add` -/
 

@@ -260,7 +260,7 @@ instance : bounded_order (subgraph G) :=
 
 @[simp] lemma bot_verts : (⊥ : subgraph G).verts = ∅ := rfl
 
-@[simp] lemma bot_adj_iff {v w : V} : ¬(⊥ : subgraph G).adj v w := not_false
+@[simp] lemma not_bot_adj {v w : V} : ¬(⊥ : subgraph G).adj v w := not_false
 
 @[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
 by { ext, refl }

@@ -33,7 +33,7 @@ A morphism of locally ringed spaces is a morphism of ringed spaces
 such that the morphisms induced on stalks are local ring homomorphisms. -/
 @[nolint has_inhabited_instance]
 structure LocallyRingedSpace extends SheafedSpace CommRing :=
-(local_ring : ∀ x, local_ring (to_PresheafedSpace.stalk x))
+(local_ring : ∀ x, local_ring (presheaf.stalk x))
 
 attribute [instance] LocallyRingedSpace.local_ring
 
@@ -224,7 +224,7 @@ end
 
 instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)
   [hU : nonempty U] : nontrivial (X.presheaf.obj $ op U) :=
-(X.presheaf.germ hU.some).domain_nontrivial
+(X.to_PresheafedSpace.presheaf.germ hU.some).domain_nontrivial
 
 end LocallyRingedSpace
 

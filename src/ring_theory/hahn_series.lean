@@ -1517,7 +1517,7 @@ begin
   split,
   { rintro ⟨⟨u, i, ui, iu⟩, rfl⟩,
     refine is_unit_of_mul_eq_one (u.coeff u.order) (i.coeff i.order)
-      ((mul_coeff_order_add_order _ _).symm.trans _),
+      ((mul_coeff_order_add_order u i).symm.trans _),
     rw [ui, one_coeff, if_pos],
     rw [← order_mul (left_ne_zero_of_mul_eq_one ui)
       (right_ne_zero_of_mul_eq_one ui), ui, order_one] },

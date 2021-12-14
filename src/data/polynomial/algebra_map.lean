@@ -248,6 +248,11 @@ lemma coeff_zero_eq_aeval_zero' (p : polynomial R) :
   algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
 by simp [aeval_def]
 
+theorem aeval_comm (a : A) (p q : polynomial R) : 
+  aeval a p * aeval a q = aeval a q * aeval a p :=
+by rw [←aeval_mul, mul_comm, aeval_mul]
+
+
 section comm_semiring
 
 variables [comm_semiring S] {f : R →+* S}

@@ -40,13 +40,6 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 
 universes u v
 
-namespace polynomial
-
-theorem aeval_comm {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  (a : A) (p q : polynomial R) : aeval a p * aeval a q = aeval a q * aeval a p :=
-by rw [←aeval_mul, mul_comm, aeval_mul]
-
-end polynomial
 
 section defs
 

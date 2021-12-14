@@ -1107,7 +1107,8 @@ variables
 
 variables [topological_add_group M₂] [has_continuous_smul R M₂]
 
-instance : algebra R (M₂ →L[R] M₂) :=
+instance [module Rᵐᵒᵖ M₂] [is_central_scalar R M₂] [smul_comm_class R Rᵐᵒᵖ M₂] :
+  algebra R (M₂ →L[R] M₂) :=
 algebra.of_module smul_comp (λ _ _ _, comp_smul _ _ _)
 
 end comm_ring

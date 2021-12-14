@@ -19,29 +19,12 @@ def compact_convergence_topology : topological_space C(α, β) :=
 topological_space.generate_from
   {m | ∃ (K : set α) (hK : is_compact K) (V ∈ 𝓤 β) (f : C(α, β)), m = uniform_gen K V f }
 
-lemma uniform_gen_mono (f g : C(α, β)) (h : g ∈ uniform_gen K V f ) (hV : V ∈ 𝓤 β)  :
-  uniform_gen K V g ⊆ uniform_gen K V f :=
-begin
- simp_rw [uniform_gen] at *,
- simp at *,
- intros a ha x hx,
- have H := h x hx,
- have H2 := ha x hx,
- obtain ⟨W, hW₁, hW₄, hW₂, hW₃⟩ := comp_open_symm_mem_uniformity_sets hV,
- apply hW₃,
- rw mem_comp_rel,
-  --is this even true??
- sorry,
-end
-
-
-
 lemma mem_uniform_gen_self (hV : V ∈ 𝓤 β) : f ∈ uniform_gen K V f := λ x hx, refl_mem_uniformity hV
 
 /-- This should be sufficient to show we actually have a neighbourhood basis. -/
-lemma uniform_gen_nhd_basis {g₁ g₂ : C(α, β)}
-  (h₁ : g₁ ∈ uniform_gen K V f) (h₂ : g₂ ∈ uniform_gen K V g₁) :
-  g₂ ∈ uniform_gen K (V ○ V) f :=
+lemma uniform_gen_nhd_basis {g₁ g₂ : C(α, β)} (V' : set (β × β))
+  (h₁ : g₁ ∈ uniform_gen K V f) (h₂ : g₂ ∈ uniform_gen K V' g₁) :
+  g₂ ∈ uniform_gen K (V ○ V') f :=
 λ x hx, ⟨g₁ x, h₁ x hx, h₂ x hx⟩
 
 /-- Any point of `compact_open.gen K U` is also an interior point wrt the topology of compact
@@ -69,7 +52,6 @@ lemma Inter_compact_open_gen_subset_uniform_gen (hK : is_compact K) (hV : V ∈ 
   (f ∈ ⋂ i, continuous_map.compact_open.gen (C i) (U i)) ∧
   (⋂ i, continuous_map.compact_open.gen (C i) (U i)) ⊆ uniform_gen K V f :=
 begin
-  -- Below needs https://github.com/leanprover-community/mathlib/pull/9981
   obtain ⟨W, hW₁, hW₄, hW₂, hW₃⟩ := comp_open_symm_mem_uniformity_sets hV,
   obtain ⟨Z, hZ₁, hZ₄, hZ₂, hZ₃⟩ := comp_open_symm_mem_uniformity_sets hW₁,
   let U : α → set α := λ x, f⁻¹' (ball (f x) Z),
@@ -120,45 +102,34 @@ begin
   exact hfC,
 end
 
-
 /-- This should follow from the various lemmas above. -/
 lemma compact_open_eq_uniform :
   (compact_convergence_topology : topological_space C(α, β)) = continuous_map.compact_open :=
- begin
-
- rw [compact_convergence_topology],
- rw [continuous_map.compact_open],
- refine le_antisymm _ _,
- rw le_generate_from_iff_subset_is_open,
- simp,
- intros a x hx y hy ha,
- apply is_open_iff_forall_mem_open.2,
- intros f hf,
-  simp_rw ha at hf,
- have := uniform_gen_subset_compact_open x f hx hy hf,
- obtain ⟨ V, hV, HV⟩ :=this,
- use (uniform_gen x V f),
- rw ← ha at HV,
- have:= mem_uniform_gen_self x _ f hV,
- simp [HV, this],
- apply topological_space.generate_open.basic _ _,
- simp,
- use x,
- simp [hx],
- use V,
- simp [hV],
-rw le_generate_from_iff_subset_is_open,
-simp,
-intros a x hx V hV f hf,
-apply is_open_iff_forall_mem_open.2,
-intros s hs,
-have:= Inter_compact_open_gen_subset_uniform_gen _ _ s hx hV,
-obtain ⟨ι, hι, C, hC, U, hU, Hs1, Hs2⟩ := this,
-use ⋂ (i : ι), continuous_map.compact_open.gen (C i) (U i),
-rw hf,
-simp [Hs1, Hs2],
-sorry,
- end
+begin
+  rw [compact_convergence_topology, continuous_map.compact_open],
+  refine le_antisymm _ _;
+  rw le_generate_from_iff_subset_is_open;
+  simp only [and_imp, exists_prop, forall_exists_index, set_of_subset_set_of],
+  { rintros - K hK U hU rfl,
+    apply is_open_iff_forall_mem_open.2,
+    intros f hf,
+    obtain ⟨V, hV, hVf⟩ := uniform_gen_subset_compact_open K f hK hU hf,
+    refine ⟨uniform_gen K V f, hVf, _, mem_uniform_gen_self K V f hV⟩,
+    apply topological_space.generate_open.basic,
+    exact ⟨K, hK, V, hV, f, rfl⟩, },
+  { rintros - K hK V hV f rfl,
+    apply is_open_iff_forall_mem_open.2,
+    intros g hg,
+    obtain ⟨ι, hι, C, hC, U, hU, Hg1, Hg2⟩ := Inter_compact_open_gen_subset_uniform_gen _ _ g hK hV,
+    haveI := hι,
+    refine ⟨⋂ i, continuous_map.compact_open.gen (C i) (U i), _, _, Hg1⟩,
+    { -- Oh dear, this is not true. Have applied `Inter_compact_open_gen_subset_uniform_gen` badly.
+      sorry, },
+    { apply is_open_Inter,
+      intros i,
+      convert continuous_map.is_open_gen (hC i) (hU i),
+      finish, }, },
+end
 
 /-- I believe the topology this induces is `compact_convergence_topology`. -/
 instance : uniform_space C(α, β) :=

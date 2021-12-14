@@ -362,6 +362,26 @@ begin
   simp [h.unit_spec]
 end
 
+lemma is_unit_of_mul_is_unit_left_of_commutes [monoid M] {x y : M}
+  (hcomm : x * y = y * x) (hu : is_unit (x * y)) : is_unit x :=
+begin
+  have hu' : is_unit (y * x), by rwa ←hcomm,
+  have h₁ : x * (y * ↑hu.unit⁻¹) = 1, by { rw ←mul_assoc, exact hu.mul_coe_inv },
+  have h₂ : (↑hu'.unit⁻¹ * y) * x = 1, by { rw mul_assoc, exact hu'.coe_inv_mul },
+  exact ⟨⟨x, y * ↑hu.unit⁻¹, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁⟩, rfl⟩
+end
+
+lemma is_unit_of_mul_is_unit_right_of_commutes [monoid M] {x y : M}
+  (hcomm : x * y = y * x) (hu : is_unit (x * y)) : is_unit y :=
+is_unit_of_mul_is_unit_left_of_commutes hcomm.symm (by rwa hcomm at hu)
+
+theorem is_unit.mul_iff_of_commutes {M : Type*} [monoid M] {x y : M}
+  (hcomm : x * y = y * x) : is_unit (x * y) ↔ is_unit x ∧ is_unit y :=
+iff.intro
+  (λ h, and.intro
+    (is_unit_of_mul_is_unit_left_of_commutes hcomm h)
+    (is_unit_of_mul_is_unit_right_of_commutes hcomm h))
+  (λ h, (h.1.unit * h.2.unit).is_unit)
 end is_unit
 
 section noncomputable_defs

@@ -274,7 +274,7 @@ begin
     by simp only [aeval_C, alg_hom.map_sub, sub_left_inj],
   rw [mem_iff, aeval_q_eq, ←hroot, aeval_mul],
   have hcomm := aeval_comm a (C k - X) (- (q / (X - C k))),
-  apply mt (is_unit_of_mul_is_unit_left_of_commutes hcomm),
+  apply mt (λ h, (hcomm.is_unit_mul_iff.mp h).1),
   simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
 end
 
@@ -286,7 +286,7 @@ begin
   { simp only [aeval_one, is_unit_one, list.prod_nil] },
   { have u_hd := h s_hd (list.mem_cons_self s_hd s_tl),
     have u_tl := s_ih (λ p p_mem, h p (list.mem_of_mem_tail p_mem)),
-    rw [list.prod_cons, aeval_mul, is_unit.mul_iff_of_commutes (aeval_comm m _ _)],
+    rw [list.prod_cons, aeval_mul, (aeval_comm m _ _).is_unit_mul_iff],
     exact ⟨u_hd, u_tl⟩ }
 end
 
@@ -314,7 +314,7 @@ begin
   have p_a_eq : aeval a (C k - p) = ↑ₐk - aeval a p,
     by simp only [aeval_C, alg_hom.map_sub, sub_left_inj],
   rw [mem_iff, ←p_a_eq, hprod, aeval_mul,
-    is_unit.mul_iff_of_commutes (aeval_comm a _ _), aeval_C] at hk,
+    (aeval_comm a _ _).is_unit_mul_iff, aeval_C] at hk,
   replace hk := not_and.mp hk lead_unit,
   rw ←multiset.prod_to_list at hk,
   replace hk := (mt aeval_list_prod_is_unit) hk,

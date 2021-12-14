@@ -248,8 +248,8 @@ lemma coeff_zero_eq_aeval_zero' (p : polynomial R) :
 by simp [aeval_def]
 
 theorem aeval_comm (a : A) (p q : polynomial R) :
-  aeval a p * aeval a q = aeval a q * aeval a p :=
-by rw [←aeval_mul, mul_comm, aeval_mul]
+  commute (aeval a p) (aeval a q) :=
+by { refine (_ : _ * _ = _ * _), simp only [←aeval_mul, mul_comm] }
 
 variable (R)
 

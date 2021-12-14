@@ -93,7 +93,7 @@ lemma map_roots_of_unity (f : units M →* units N) (k : ℕ+) :
   (roots_of_unity k M).map f ≤ roots_of_unity k N :=
 begin
   rintros _ ⟨ζ, h, rfl⟩,
-  simp only [←monoid_hom.map_pow, *, mem_roots_of_unity, set_like.mem_coe, monoid_hom.map_one] at *
+  simp only [←map_pow, *, mem_roots_of_unity, set_like.mem_coe, monoid_hom.map_one] at *
 end
 
 variables [comm_ring R]
@@ -487,22 +487,22 @@ variables [comm_semiring R] [comm_semiring S] {f : R →+* S} {ζ : R}
 open function
 
 lemma map_of_injective (hf : injective f) (h : is_primitive_root ζ k) : is_primitive_root (f ζ) k :=
-{ pow_eq_one := by rw [←f.map_pow, h.pow_eq_one, f.map_one],
+{ pow_eq_one := by rw [←map_pow, h.pow_eq_one, _root_.map_one],
   dvd_of_pow_eq_one := begin
     rw h.eq_order_of,
     intros l hl,
-    rw [←f.map_pow, ←f.map_one] at hl,
+    rw [←map_pow, ←f.map_one] at hl,
     exact order_of_dvd_of_pow_eq_one (hf hl)
   end }
 
 lemma of_map_of_injective (hf : injective f) (h : is_primitive_root (f ζ) k) :
   is_primitive_root ζ k :=
-{ pow_eq_one := by { apply_fun f, rw [f.map_pow, f.map_one, h.pow_eq_one] },
+{ pow_eq_one := by { apply_fun f, rw [map_pow, _root_.map_one, h.pow_eq_one] },
   dvd_of_pow_eq_one := begin
     rw h.eq_order_of,
     intros l hl,
     apply_fun f at hl,
-    rw [f.map_pow, f.map_one] at hl,
+    rw [map_pow, _root_.map_one] at hl,
     exact order_of_dvd_of_pow_eq_one hl
   end }
 
@@ -884,7 +884,7 @@ lemma separable_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
     (minpoly ℤ μ)) ∣ X ^ n - 1,
-  { simpa [map_pow, map_X, polynomial.map_one, polynomial.map_sub] using
+  { simpa [polynomial.map_pow, map_X, polynomial.map_one, polynomial.map_sub] using
       ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p)))
         (minpoly_dvd_X_pow_sub_one h) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
@@ -910,8 +910,8 @@ begin
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
     exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
-  { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, map_pow, map_X, eval_comp,
-      eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],
+  { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, polynomial.map_pow, map_X,
+        eval_comp, eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],
     exact minpoly.aeval _ _ }
 end
 
@@ -971,9 +971,9 @@ begin
       exact minpoly_dvd_X_pow_sub_one (pow_of_prime h hprime.1 hdiv) } },
   replace prod := ring_hom.map_dvd ((map_ring_hom (int.cast_ring_hom (zmod p)))) prod,
   rw [coe_map_ring_hom, polynomial.map_mul, polynomial.map_sub,
-      polynomial.map_one, map_pow, map_X] at prod,
+      polynomial.map_one, polynomial.map_pow, map_X] at prod,
   obtain ⟨R, hR⟩ := minpoly_dvd_mod_p h hdiv,
-  rw [hR, ← mul_assoc, ← polynomial.map_mul, ← sq, map_pow] at prod,
+  rw [hR, ← mul_assoc, ← polynomial.map_mul, ← sq, polynomial.map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
   { use R },
   replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)

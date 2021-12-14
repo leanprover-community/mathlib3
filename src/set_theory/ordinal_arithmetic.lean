@@ -360,10 +360,7 @@ theorem is_normal.inj {f} (H : is_normal f) {a b} : f a = f b ↔ a = b :=
 by simp only [le_antisymm_iff, H.le_iff]
 
 theorem is_normal.le_self {f} (H : is_normal f) (a) : a ≤ f a :=
-limit_rec_on a (ordinal.zero_le _)
-  (λ a IH, succ_le.2 $ lt_of_le_of_lt IH (H.1 _))
-  (λ a l IH, (limit_le l).2 $ λ b h,
-    le_trans (IH b h) $ H.le_iff.2 $ le_of_lt h)
+well_founded.self_le_of_strict_mono wf H.strict_mono a
 
 theorem is_normal.le_set {f} (H : is_normal f) (p : ordinal → Prop)
   (p0 : ∃ x, p x) (S)

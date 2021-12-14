@@ -643,7 +643,7 @@ lemma map_mul (f₁ f₂ : M →ₗ[R] M) (g₁ g₂ : N →ₗ[R] N) :
   map (f₁ * f₂) (g₁ * g₂) = (map f₁ g₁) * (map f₂ g₂) :=
 map_comp f₁ f₂ g₁ g₂
 
-@[simp] lemma map_pow (f : M →ₗ[R] M) (g : N →ₗ[R] N) (n : ℕ) :
+@[simp] protected lemma map_pow (f : M →ₗ[R] M) (g : N →ₗ[R] N) (n : ℕ) :
   (map f g)^n = map (f^n) (g^n) :=
 begin
   induction n with n ih,
@@ -827,10 +827,10 @@ by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 variables {M}
 
 @[simp] lemma rtensor_pow (f : M →ₗ[R] M) (n : ℕ) : (f.rtensor N)^n = (f^n).rtensor N :=
-by { have h := map_pow f (id : N →ₗ[R] N) n, rwa id_pow at h, }
+by { have h := tensor_product.map_pow f (id : N →ₗ[R] N) n, rwa id_pow at h, }
 
 @[simp] lemma ltensor_pow (f : N →ₗ[R] N) (n : ℕ) : (f.ltensor M)^n = (f^n).ltensor M :=
-by { have h := map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h, }
+by { have h := tensor_product.map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h, }
 
 end linear_map
 

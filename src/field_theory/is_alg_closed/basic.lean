@@ -225,8 +225,9 @@ instance : preorder (subfield_with_hom K L M hL) :=
 open lattice
 
 lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
-  (hc : chain (≤) c) (hcn  : c.nonempty) :
+  (hc : chain (≤) c) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
+if hcn : c.nonempty then
 let ub : subfield_with_hom K L M hL :=
 by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
 { carrier := ⨆ i : c, (i : subfield_with_hom K L M hL).carrier,
@@ -249,12 +250,13 @@ by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
     simp [ub],
     refl
   end⟩⟩
+else by { rw [set.not_nonempty_iff_eq_empty] at hcn, simp [hcn], }
 
 variables (hL M)
 
 lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
   ∀ N, E ≤ N → N ≤ E :=
-zorn.exists_maximal_of_nonempty_chains_bounded
+zorn.exists_maximal_of_chains_bounded
   maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
 
 /-- The maximal `subfield_with_hom`. We later prove that this is equal to `⊤`. -/

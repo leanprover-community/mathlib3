@@ -695,7 +695,7 @@ lemma cyclotomic_eq_minpoly {n : ℕ} {K : Type*} [field K] {μ : K}
 begin
   refine eq_of_monic_of_dvd_of_nat_degree_le (minpoly.monic (is_integral h hpos))
     (cyclotomic.monic n ℤ) (minpoly_dvd_cyclotomic h hpos) _,
-  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h hpos
+  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h
 end
 
 /-- `cyclotomic n ℤ` is irreducible. -/

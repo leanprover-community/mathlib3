@@ -205,9 +205,15 @@ begin
     rw [coeff_expand_mul hp, ← leading_coeff], exact mt leading_coeff_eq_zero.1 hf }
 end
 
-theorem map_expand {p : ℕ} (hp : 0 < p) {f : R →+* S} {q : polynomial R} :
+theorem map_expand {p : ℕ} {f : R →+* S} {q : polynomial R} :
   map f (expand R p q) = expand S p (map f q) :=
-by { ext, rw [coeff_map, coeff_expand hp, coeff_expand hp], split_ifs; simp, }
+begin
+  by_cases hp : p = 0,
+  { simp [hp] },
+  ext,
+  rw [coeff_map, coeff_expand (nat.pos_of_ne_zero hp), coeff_expand (nat.pos_of_ne_zero hp)],
+  split_ifs; simp,
+end
 
 /-- Expansion is injective. -/
 lemma expand_injective {n : ℕ} (hn : 0 < n) :
@@ -301,7 +307,7 @@ begin
   { simp [ring_hom.one_def] },
   symmetry,
   rw [pow_succ', pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def,
-      ← map_map, mul_comm, expand_mul, ← map_expand (nat.prime.pos hp.1)]
+      ← map_map, mul_comm, expand_mul, ← map_expand]
 end
 
 end char_p

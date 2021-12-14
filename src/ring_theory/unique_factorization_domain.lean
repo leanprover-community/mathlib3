@@ -1220,24 +1220,24 @@ begin
   rw [count_mul ha hb hp, hb0, add_zero]
 end
 
-theorem count_mul_of_coprime' [nontrivial α] {a : associates α} {b : associates α}
-  (hb : b ≠ 0)
+theorem count_mul_of_coprime' [nontrivial α] {a b : associates α}
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p (a * b).factors = count p a.factors
   ∨ count p (a * b).factors = count p b.factors :=
 begin
-  by_cases ha : a = 0,
-  { simp [ha], },
+  by_cases ha : a = 0, { simp [ha], },
+  by_cases hb : b = 0, { simp [hb], },
   rw [count_mul ha hb hp],
   cases count_of_coprime ha hb hab hp with ha0 hb0,
   { apply or.intro_right, rw [ha0, zero_add] },
   { apply or.intro_left, rw [hb0, add_zero] }
 end
 
-theorem dvd_count_of_dvd_count_mul [nontrivial α] {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem dvd_count_of_dvd_count_mul [nontrivial α] {a b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d)
   {k : ℕ} (habk : k ∣ count p (a * b).factors) : k ∣ count p a.factors :=
 begin
+  by_cases ha : a = 0, { simpa [*] using habk, },
   cases count_of_coprime ha hb hab hp with hz h,
   { rw hz, exact dvd_zero k },
   { rw [count_mul ha hb hp, h] at habk, exact habk }
@@ -1307,7 +1307,7 @@ begin
     apply (mul_eq_one_iff.1 h).1 },
   { refine is_pow_of_dvd_count ha _,
     intros p hp,
-    apply dvd_count_of_dvd_count_mul ha hb hp hab,
+    apply dvd_count_of_dvd_count_mul hb hp hab,
     rw h,
     apply dvd_count_pow _ hp,
     rintros rfl,

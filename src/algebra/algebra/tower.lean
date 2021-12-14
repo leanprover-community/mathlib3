@@ -104,9 +104,9 @@ instance subalgebra' (S₀ : subalgebra R S) : is_scalar_tower R S₀ A :=
 (is_scalar_tower.algebra_map_apply R S A _ : _)
 
 @[ext] lemma algebra.ext {S : Type u} {A : Type v} [comm_semiring S] [semiring A]
-  (h1 h2 : algebra S A) (h : ∀ {r : S} {x : A}, (by haveI := h1; exact r • x) = r • x) : h1 = h2 :=
+  (h1 h2 : algebra S A) (h : ∀ (r : S) (x : A), (by haveI := h1; exact r • x) = r • x) : h1 = h2 :=
 algebra.algebra_ext _ _ $ λ r, by
-  simpa only [@algebra.smul_def _ _ _ _ h1, @algebra.smul_def _ _ _ _ h2, mul_one] using @h r 1
+  simpa only [@algebra.smul_def _ _ _ _ h1, @algebra.smul_def _ _ _ _ h2, mul_one] using h r 1
 
 /-- In a tower, the canonical map from the middle element to the top element is an
 algebra homomorphism over the bottom element. -/

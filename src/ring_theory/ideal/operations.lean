@@ -158,6 +158,35 @@ le_antisymm (smul_le.2 $ λ r hrS n hnT, span_induction hrS
 span_le.2 $ set.bUnion_subset $ λ r hrS, set.bUnion_subset $ λ n hnT, set.singleton_subset_iff.2 $
 smul_mem_smul (subset_span hrS) (subset_span hnT)
 
+lemma union_eq_smul_set (r : R) (T : set M) :
+  (⋃ (t : M) (x : t ∈ T), {r • t}) = r • T := by tidy
+
+lemma ideal_span_singleton_smul (r : R) (N : submodule R M) :
+  (ideal.span {r} : ideal R) • N = r • N :=
+begin
+  have : span R (⋃ (t : M) (x : t ∈ N), {r • t}) = r • N,
+  { convert span_eq _, exact union_eq_smul_set r (N : set M) },
+  conv_lhs { rw [← span_eq N, span_smul_span] },
+  simpa
+end
+
+lemma span_smul_eq (r : R) (s : set M) :
+  span R (r • s) = r • span R s :=
+begin
+  rw [← ideal_span_singleton_smul, span_smul_span],
+  congr,
+  simpa using (union_eq_smul_set r s).symm
+end
+
+lemma mem_of_span_top_of_smul_mem (M' : submodule R M)
+  (s : set R) (hs : ideal.span s = ⊤) (x : M) (H : ∀ r : s, (r : R) • x ∈ M') : x ∈ M' :=
+begin
+  suffices : (⊤ : ideal R) • (span R ({x} : set M)) ≤ M',
+  { rw top_smul at this, exact this (subset_span (set.mem_singleton x)) },
+  rw [← hs, span_smul_span, span_le],
+  simpa using H
+end
+
 variables {M' : Type w} [add_comm_monoid M'] [module R M']
 
 theorem map_smul'' (f : M →ₗ[R] M') : (I • N).map f = I • N.map f :=

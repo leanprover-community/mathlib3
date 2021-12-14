@@ -176,9 +176,11 @@ begin
 end
 
 lemma degree_eq_one_of_irreducible_of_splits {p : polynomial L}
-  (h_nz : p ≠ 0) (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
+  (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
   p.degree = 1 :=
 begin
+  by_cases h_nz : p = 0,
+  { exfalso, simp [*] at *, },
   rcases hp_splits,
   { contradiction },
   { apply hp_splits hp, simp }

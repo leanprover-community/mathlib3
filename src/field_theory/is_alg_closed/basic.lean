@@ -118,11 +118,7 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
 lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k}
   (hp : irreducible p) :
   p.degree = 1 :=
-begin
-  by_cases h_nz : p = 0,
-  { exfalso, simp [*] at *, },
-  exact degree_eq_one_of_irreducible_of_splits h_nz hp (is_alg_closed.splits_codomain _),
-end
+degree_eq_one_of_irreducible_of_splits hp (is_alg_closed.splits_codomain _)
 
 lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :

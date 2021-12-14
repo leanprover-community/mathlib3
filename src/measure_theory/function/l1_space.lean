@@ -436,10 +436,10 @@ integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
 lemma integrable.mono_measure {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) : integrable f μ :=
 ⟨h.ae_measurable.mono_measure hμ, h.has_finite_integral.mono_measure hμ⟩
 
-lemma integrable.of_measure_le_mul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
+lemma integrable.of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
   (hμ'_le : μ' ≤ c • μ) {f : α → β} (hf : integrable f μ) :
   integrable f μ' :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_measure_le_mul c hc hμ'_le, }
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_measure_le_smul c hc hμ'_le, }
 
 lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
   integrable f (μ + ν) :=

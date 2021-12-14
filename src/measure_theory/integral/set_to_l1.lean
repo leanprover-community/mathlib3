@@ -946,6 +946,7 @@ begin
 end
 
 end order
+end
 
 variables [normed_space 𝕜 F] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
@@ -1365,6 +1366,10 @@ begin
   exact set_to_L1_nonneg hT hT_nonneg hfg,
 end
 
+lemma set_to_L1_const [is_finite_measure μ] (hT : dominated_fin_meas_additive μ T C) (x : E) :
+  set_to_L1 hT (indicator_const_Lp 1 measurable_set.univ (measure_ne_top _ _) x) = T univ x :=
+set_to_L1_indicator_const_Lp hT measurable_set.univ (measure_ne_top _ _) x
+
 lemma norm_set_to_L1_le_norm_set_to_L1s_clm (hT : dominated_fin_meas_additive μ T C) :
   ∥set_to_L1 hT∥ ≤ ∥set_to_L1s_clm α E μ hT∥ :=
 calc ∥set_to_L1 hT∥
@@ -1685,17 +1690,18 @@ lemma continuous_set_to_fun (hT : dominated_fin_meas_additive μ T C) :
   continuous (λ (f : α →₁[μ] E), set_to_fun μ T hT f) :=
 by { simp_rw L1.set_to_fun_eq_set_to_L1 hT, exact continuous_linear_map.continuous _, }
 
-/-- Auxiliary lemma for `set_to_fun_congr_measure` -/
+/-- Auxiliary lemma for `set_to_fun_congr_measure`: the function sending `f : α →₁[μ] G` to
+`f : α →₁[μ'] G` is continuous when `μ' ≤ c' • μ` for `c' ≠ ∞`. -/
 lemma continuous_L1_to_L1 [borel_space G] [second_countable_topology G]
   {μ' : measure α} (c' : ℝ≥0∞) (hc' : c' ≠ ∞) (hμ'_le : μ' ≤ c' • μ) :
   continuous (λ f : α →₁[μ] G,
-    (integrable.of_measure_le_mul c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) :=
+    (integrable.of_measure_le_smul c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) :=
 begin
   by_cases hc'0 : c' = 0,
   { have hμ'0 : μ' = 0,
     { rw ← measure.nonpos_iff_eq_zero', refine hμ'_le.trans _, simp [hc'0], },
     have h_im_zero : (λ f : α →₁[μ] G,
-        (integrable.of_measure_le_mul c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) = 0,
+        (integrable.of_measure_le_smul c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) = 0,
       by { ext1 f, ext1, simp_rw hμ'0, simp only [ae_zero], },
     rw h_im_zero,
     exact continuous_zero, },
@@ -1708,7 +1714,7 @@ begin
     exact ⟨lt_of_le_of_ne (zero_le _) (ne.symm hc'0), hc'⟩, },
   intros g hfg,
   rw Lp.dist_def at hfg ⊢,
-  let h_int := λ f' : α →₁[μ] G, (L1.integrable_coe_fn f').of_measure_le_mul c' hc' hμ'_le,
+  let h_int := λ f' : α →₁[μ] G, (L1.integrable_coe_fn f').of_measure_le_smul c' hc' hμ'_le,
   have : snorm (integrable.to_L1 g (h_int g) - integrable.to_L1 f (h_int f)) 1 μ'
       = snorm (g - f) 1 μ',
     from snorm_congr_ae ((integrable.coe_fn_to_L1 _).sub (integrable.coe_fn_to_L1 _)),
@@ -1741,7 +1747,7 @@ lemma set_to_fun_congr_measure_of_integrable {μ' : measure α} (c' : ℝ≥0∞
 begin
   /- integrability for `μ` implies integrability for `μ'`. -/
   have h_int : ∀ g : α → E, integrable g μ → integrable g μ',
-    from λ g hg, integrable.of_measure_le_mul c' hc' hμ'_le hg,
+    from λ g hg, integrable.of_measure_le_smul c' hc' hμ'_le hg,
   /- We use `integrable.induction` -/
   refine hfμ.induction _ _ _ _ _,
   { intros c s hs hμs,
@@ -1760,7 +1766,7 @@ begin
     rw this,
     exact (continuous_set_to_fun hT').comp (continuous_L1_to_L1 c' hc' hμ'_le), },
   { intros f₂ g₂ hfg hf₂ hf_eq,
-    have hfg' : f₂ =ᵐ[μ'] g₂, from (measure.absolutely_continuous_of_le_mul hμ'_le).ae_eq hfg,
+    have hfg' : f₂ =ᵐ[μ'] g₂, from (measure.absolutely_continuous_of_le_smul hμ'_le).ae_eq hfg,
     rw [← set_to_fun_congr_ae hT hfg, hf_eq, set_to_fun_congr_ae hT' hfg'], },
 end
 
@@ -1773,7 +1779,7 @@ begin
   { exact set_to_fun_congr_measure_of_integrable c' hc' hμ'_le hT hT' f hf, },
   { /- if `f` is not integrable, both `set_to_fun` are 0. -/
     have h_int : ∀ g : α → E, ¬ integrable g μ → ¬ integrable g μ',
-      from λ g, mt (λ h, h.of_measure_le_mul _ hc hμ_le),
+      from λ g, mt (λ h, h.of_measure_le_smul _ hc hμ_le),
     simp_rw [set_to_fun_undef _ hf, set_to_fun_undef _ (h_int f hf)], },
 end
 

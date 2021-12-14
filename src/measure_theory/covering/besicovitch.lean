@@ -599,7 +599,7 @@ begin
       rw [← finset.set_bUnion_coe, inter_comm _ o, inter_bUnion, finset.set_bUnion_coe,
           measure_bUnion_finset],
       { have : (w : set (u i)).pairwise_disjoint (λ (b : u i), closed_ball (b : α) (r (b : α))),
-          by { assume k hk l hl hkl, exact hu i k k.2 l l.2 (subtype.coe_injective.ne hkl) },
+          by { assume k hk l hl hkl, exact hu i k.2 l.2 (subtype.coe_injective.ne hkl) },
         exact this.mono (λ k, inter_subset_right _ _) },
       { assume b hb,
         apply omeas.inter measurable_set_closed_ball }
@@ -612,7 +612,7 @@ begin
       by simpa only [mem_image, finset.mem_coe, coe_coe, finset.coe_image] using hl,
     have k'nel' : (k' : s) ≠ l',
       by { assume h, rw h at hkl, exact hkl rfl },
-    exact hu i k' k'.2 l' l'.2 k'nel' }
+    exact hu i k'.2 l'.2 k'nel' }
 end
 
 /-- The measurable Besicovitch covering theorem. Assume that, for any `x` in a set `s`,
@@ -681,7 +681,7 @@ begin
       { assume p hp q hq hpq,
         rcases (mem_image _ _ _).1 hp with ⟨p', p'v, rfl⟩,
         rcases (mem_image _ _ _).1 hq with ⟨q', q'v, rfl⟩,
-        refine hv p' p'v q' q'v (λ hp'q', _),
+        refine hv p'v q'v (λ hp'q', _),
         rw [hp'q'] at hpq,
         exact hpq rfl },
       { assume p hp q hq hpq,
@@ -825,7 +825,7 @@ begin
       { by_contra,
         have A : (x, p) ≠ (x, r x),
           by simpa only [true_and, prod.mk.inj_iff, eq_self_iff_true, ne.def] using h,
-        have H := v_disj (x, p) hxp (x, r x) hxrx A,
+        have H := v_disj hxp hxrx A,
         contrapose H,
         rw not_disjoint_iff_nonempty_inter,
         refine ⟨x, by simp [I _ hxp, I _ hxrx]⟩ },

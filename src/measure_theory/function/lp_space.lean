@@ -601,11 +601,11 @@ lemma snorm_one_smul_measure {f : α → F} (c : ℝ≥0∞) :
   snorm f 1 (c • μ) = c * snorm f 1 μ :=
 by { rw @snorm_smul_measure_of_ne_top _ _ _ μ _ 1 (@ennreal.coe_ne_top 1) f c, simp, }
 
-lemma mem_ℒp.of_measure_le_mul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
+lemma mem_ℒp.of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
   (hμ'_le : μ' ≤ c • μ) {f : α → E} (hf : mem_ℒp f p μ) :
   mem_ℒp f p μ' :=
 begin
-  refine ⟨hf.1.mono' (measure.absolutely_continuous_of_le_mul hμ'_le), _⟩,
+  refine ⟨hf.1.mono' (measure.absolutely_continuous_of_le_smul hμ'_le), _⟩,
   refine (snorm_mono_measure f hμ'_le).trans_lt _,
   by_cases hc0 : c = 0,
   { simp [hc0], },

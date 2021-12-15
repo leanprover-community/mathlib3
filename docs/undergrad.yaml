@@ -151,7 +151,7 @@ Ring Theory:
     $\Z$ is a euclidean ring: 'int.euclidean_domain'
     congruence in $\Z$: 'int.modeq'
     prime numbers: 'prime'
-    Bézout's identity: 'gcd_eq_gcd_ab'
+    Bézout's identity: 'exists_gcd_eq_mul_add_mul'
     $\Z/n\Z$ and its invertible elements: 'zmod.unit_of_coprime'
     Euler's totient function ($\varphi$): 'nat.totient'
   Polynomial rings:

@@ -903,11 +903,11 @@ lemma self_subset_thickening {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
 (@subset_closure _ _ E).trans (closure_subset_thickening δ_pos E)
 
 /-- A set is contained in its own closed thickening. -/
-lemma self_subset_cthickening {δ : ℝ} (E : set α) (δ_nn : 0 ≤ δ) :
+lemma self_subset_cthickening {δ : ℝ} (E : set α) :
   E ⊆ cthickening δ E :=
 subset_closure.trans (closure_subset_cthickening δ E)
 
-lemma cthickening_eq_Inter_cthickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
+lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
   cthickening δ E = ⋂ ε ∈ s, cthickening ε E :=
 begin
@@ -916,24 +916,20 @@ begin
   { unfold thickening cthickening,
     intros x hx,
     simp only [mem_Inter, mem_set_of_eq] at *,
-    rcases hs (δ + 1) (by linarith) with ⟨ε₀, ⟨hsε₀, hε₀⟩⟩,
-    have inf_edist_lt_top : inf_edist x E < ∞,
-    { exact lt_of_le_of_lt (hx ε₀ hsε₀) ennreal.of_real_lt_top, },
-    rw ← ennreal.of_real_to_real inf_edist_lt_top.ne,
-    apply ennreal.of_real_le_of_real,
-    apply le_of_forall_pos_le_add,
-    intros η η_pos,
-    rcases hs (δ + η) (by linarith) with ⟨ε, ⟨hsε, hε⟩⟩,
-    have sum_nn : 0 ≤ δ + η := by linarith,
-    apply (ennreal.of_real_le_of_real_iff sum_nn).mp,
-    have key := (hx ε hsε).trans (ennreal.of_real_le_of_real hε.2),
-    rwa ← ennreal.of_real_to_real inf_edist_lt_top.ne at key, },
+    apply ennreal.le_of_forall_pos_le_add,
+    intros η η_pos _,
+    rcases hs (δ + η) (lt_add_of_pos_right _ (nnreal.coe_pos.mpr η_pos)) with ⟨ε, ⟨hsε, hε⟩⟩,
+    apply ((hx ε hsε).trans (ennreal.of_real_le_of_real hε.2)).trans,
+    have eq : (η : ℝ≥0∞) = ennreal.of_real η,
+    by { rw [← ennreal.coe_to_real η, ennreal.of_real_to_real _], exact ennreal.coe_ne_top, },
+    rw eq,
+    exact ennreal.of_real_add_le, },
 end
 
-lemma cthickening_eq_Inter_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
+lemma cthickening_eq_Inter_cthickening {δ : ℝ} (E : set α) :
   cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), cthickening ε E :=
 begin
-  apply cthickening_eq_Inter_cthickening' δ_nn (Ioi δ) rfl.subset,
+  apply cthickening_eq_Inter_cthickening' (Ioi δ) rfl.subset,
   simp_rw inter_eq_right_iff_subset.mpr Ioc_subset_Ioi_self,
   exact λ _ hε, nonempty_Ioc.mpr hε,
 end
@@ -948,7 +944,7 @@ begin
     rcases hs ε (mem_Ioi.mp (hsδ hε)) with ⟨ε', ⟨hsε', hε'⟩⟩,
     have ss := cthickening_subset_thickening' (lt_of_le_of_lt δ_nn hε'.1) hε'.1 E,
     exact ss.trans (thickening_mono hε'.2 E), },
-  { rw cthickening_eq_Inter_cthickening' δ_nn s hsδ hs E,
+  { rw cthickening_eq_Inter_cthickening' s hsδ hs E,
     apply bInter_mono,
     exact λ ε hε, thickening_subset_cthickening ε E, },
 end
@@ -964,14 +960,23 @@ end
 /-- The closure of a set equals the intersection of its closed thickenings of positive radii
 accumulating at zero. -/
 lemma closure_eq_Inter_cthickening' (E : set α)
-  (s : set ℝ) (hs₀ : s ⊆ Ioi 0) (hs : ∀ ε, 0 < ε → (s ∩ (Ioc 0 ε)).nonempty) :
+  (s : set ℝ) (hs : ∀ ε, 0 < ε → (s ∩ (Ioc 0 ε)).nonempty) :
   closure E = ⋂ δ ∈ s, cthickening δ E :=
-by { rw ← cthickening_zero, apply cthickening_eq_Inter_cthickening' rfl.ge _ hs₀ hs, }
+begin
+  by_cases hs₀ : s ⊆ Ioi 0,
+  { rw ← cthickening_zero, apply cthickening_eq_Inter_cthickening' _ hs₀ hs, },
+  rcases not_subset.mp hs₀ with ⟨δ, ⟨hδs, δ_nonpos⟩⟩,
+  simp at δ_nonpos,
+  apply le_antisymm,
+  { exact subset_bInter (λ ε _, closure_subset_cthickening ε E), },
+  { rw ← cthickening_of_nonpos δ_nonpos E,
+    exact bInter_subset_of_mem hδs, },
+end
 
 /-- The closure of a set equals the intersection of its closed thickenings of positive radii. -/
 lemma closure_eq_Inter_cthickening (E : set α) :
   closure E = ⋂ (δ : ℝ) (h : 0 < δ), cthickening δ E :=
-by { rw ← cthickening_zero, exact cthickening_eq_Inter_cthickening rfl.ge E, }
+by { rw ← cthickening_zero, exact cthickening_eq_Inter_cthickening E, }
 
 /-- The closure of a set equals the intersection of its open thickenings of positive radii
 accumulating at zero. -/

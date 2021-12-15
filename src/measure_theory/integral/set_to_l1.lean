@@ -45,7 +45,6 @@ might be worth doing?)
 
 noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory pointwise
-  filter
 open set filter topological_space ennreal emetric
 
 local attribute [instance] fact_one_le_one_ennreal

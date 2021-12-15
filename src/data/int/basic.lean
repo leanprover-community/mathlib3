@@ -876,6 +876,25 @@ end
 lemma sub_div_of_dvd_sub {a b c : ℤ} (hcab : c ∣ (a - b)) : (a - b) / c = a / c - b / c :=
 by rw [eq_sub_iff_add_eq, ← int.add_div_of_dvd_left hcab, sub_add_cancel]
 
+lemma nat_abs_sign (z : ℤ) :
+  z.sign.nat_abs = if z = 0 then 0 else 1 :=
+by rcases z with (_ | _) | _; refl
+
+lemma nat_abs_sign_of_nonzero {z : ℤ} (hz : z ≠ 0) :
+  z.sign.nat_abs = 1 :=
+by rw [int.nat_abs_sign, if_neg hz]
+
+lemma sign_coe_nat_of_nonzero {n : ℕ} (hn : n ≠ 0) :
+  int.sign n = 1 :=
+begin
+  obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
+  exact int.sign_of_succ n
+end
+
+@[simp] lemma sign_neg (z : ℤ) :
+  int.sign (-z) = -int.sign z :=
+by rcases z with (_ | _)| _; refl
+
 theorem div_sign : ∀ a b, a / sign b = a * sign b
 | a (n+1:ℕ) := by unfold sign; simp
 | a 0       := by simp [sign]

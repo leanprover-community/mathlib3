@@ -116,7 +116,7 @@ section one
 variables [has_zero ι] [graded_monoid.ghas_one A] [Π i, add_comm_monoid (A i)]
 
 instance : has_one (⨁ i, A i) :=
-{ one := direct_sum.of (λ i, A i) 0 graded_monoid.ghas_one.one}
+{ one := direct_sum.of (λ i, A i) 0 graded_monoid.ghas_one.one }
 
 end one
 
@@ -223,6 +223,20 @@ begin
   { rw [pow_succ, n_ih, of_mul_of],
     exact of_eq_of_graded_monoid_eq (pow_succ (graded_monoid.mk _ a) n).symm, },
 end
+
+lemma of_list_dprod {α} (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  of A _ (l.dprod fι fA) = (l.map $ λ a, of A (fι a) (fA a)).prod :=
+begin
+  induction l,
+  { simp only [list.map_nil, list.prod_nil, list.dprod_nil],
+    refl },
+  { simp only [list.map_cons, list.prod_cons, list.dprod_cons, ←l_ih, direct_sum.of_mul_of],
+    refl },
+end
+
+lemma list_prod_of_fn_of_eq_dprod (n : ℕ) (fι : fin n → ι) (fA : Π a, A (fι a)) :
+  (list.of_fn $ λ a, of A (fι a) (fA a)).prod = of A _ ((list.fin_range n).dprod fι fA) :=
+by rw [list.of_fn_eq_map, of_list_dprod]
 
 open_locale big_operators
 
@@ -404,9 +418,14 @@ then they are equal.
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
-lemma ring_hom_ext' (F G : (⨁ i, A i) →+* R)
-  (h : ∀ i, (F : (⨁ i, A i) →+ R).comp (of _ i) = (G : (⨁ i, A i) →+ R).comp (of _ i)) : F = G :=
+lemma ring_hom_ext' ⦃F G : (⨁ i, A i) →+* R⦄
+  (h : ∀ i, (↑F : _ →+ R).comp (of A i) = (↑G : _ →+ R).comp (of A i)) : F = G :=
 ring_hom.coe_add_monoid_hom_injective $ direct_sum.add_hom_ext' h
+
+/-- Two `ring_hom`s out of a direct sum are equal if they agree on the generators. -/
+lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄ (h : ∀ i x, f (of A i x) = g (of A i x)) :
+  f = g :=
+ring_hom_ext' $ λ i, add_monoid_hom.ext $ h i
 
 /-- A family of `add_monoid_hom`s preserving `direct_sum.ghas_one.one` and `direct_sum.ghas_mul.mul`
 describes a `ring_hom`s on `⨁ i, A i`. This is a stronger version of `direct_sum.to_monoid`.
@@ -474,15 +493,6 @@ def lift_ring_hom :
       add_monoid_hom.mk_coe,
       add_monoid_hom.comp_apply, to_semiring_coe_add_monoid_hom],
   end}
-
-/-- Two `ring_hom`s out of a direct sum are equal if they agree on the generators.
-
-See note [partially-applied ext lemmas]. -/
-@[ext]
-lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄
-  (h : ∀ i, (↑f : (⨁ i, A i) →+ R).comp (of A i) = (↑g : (⨁ i, A i) →+ R).comp (of A i)) :
-  f = g :=
-direct_sum.lift_ring_hom.symm.injective $ subtype.ext $ funext h
 
 end to_semiring
 

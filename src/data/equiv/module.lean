@@ -101,9 +101,15 @@ lemma to_linear_map_injective :
   (e₁ : M →ₛₗ[σ] M₂) = e₂ ↔ e₁ = e₂ :=
 to_linear_map_injective.eq_iff
 
+instance : add_monoid_hom_class (M ≃ₛₗ[σ] M₂) M M₂ :=
+{ coe := linear_equiv.to_fun,
+  coe_injective' := λ f g h, to_linear_map_injective (fun_like.coe_injective h),
+  map_add := linear_equiv.map_add',
+  map_zero := λ f, f.to_linear_map.map_zero }
+
 lemma coe_injective :
   @injective (M ≃ₛₗ[σ] M₂) (M → M₂) coe_fn :=
-linear_map.coe_injective.comp to_linear_map_injective
+fun_like.coe_injective
 
 end
 
@@ -128,16 +134,13 @@ lemma to_linear_map_eq_coe : e.to_linear_map = (e : M →ₛₗ[σ] M₂) := rfl
 
 section
 variables {e e'}
-@[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
-coe_injective $ funext h
+@[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' := fun_like.ext _ _ h
 
-protected lemma congr_arg : Π {x x' : M}, x = x' → e x = e x'
-| _ _ rfl := rfl
+lemma ext_iff : e = e' ↔ ∀ x, e x = e' x := fun_like.ext_iff
 
-protected lemma congr_fun (h : e = e') (x : M) : e x = e' x := h ▸ rfl
+protected lemma congr_arg {x x'} : x = x' → e x = e x' := fun_like.congr_arg e
 
-lemma ext_iff : e = e' ↔ ∀ x, e x = e' x :=
-⟨λ h x, h ▸ rfl, ext⟩
+protected lemma congr_fun (h : e = e') (x : M) : e x = e' x := fun_like.congr_fun h x
 
 end
 
@@ -257,8 +260,8 @@ rfl
 @[simp] lemma mk_coe (h₁ h₂ f h₃ h₄) :
   (linear_equiv.mk e h₁ h₂ f h₃ h₄ : M ≃ₛₗ[σ] M₂) = e := ext $ λ _, rfl
 
-@[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
-@[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
+protected theorem map_add (a b : M) : e (a + b) = e a + e b := map_add e a b
+protected theorem map_zero : e 0 = 0 := map_zero e
 @[simp] theorem map_smulₛₗ (c : R) (x : M) : e (c • x) = (σ c) • e x := e.map_smul' c x
 
 include module_N₁ module_N₂

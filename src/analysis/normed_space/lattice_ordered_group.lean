@@ -5,7 +5,7 @@ Authors: Christopher Hoskin
 -/
 import topology.order.lattice
 import analysis.normed.group.basic
-import algebra.lattice_ordered_group
+import algebra.order.lattice_group
 
 /-!
 # Normed lattice ordered groups
@@ -146,6 +146,12 @@ begin
         (((continuous_snd.tendsto q).sub tendsto_const_nhds).norm),
   simp,
 end
+
+@[priority 100] -- see Note [lower instance priority]
+instance normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
+  [normed_lattice_add_comm_group α] :
+  has_continuous_sup α :=
+order_dual.has_continuous_sup (order_dual α)
 
 /--
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.

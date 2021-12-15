@@ -1,84 +1,6 @@
 import data.fun_like.equiv
 import tactic.congr
 
--- Class-based attempt: too hard to infer...
-
-/-
-/-- `fun_id F A` states that bundled morphisms of type `F ≈ A → A` have an identity map. -/
-class fun_id (F : Type*) (A : out_param $ Type*) [fun_like F A (λ _, A)] :=
-(id : F)
-(id_apply : ∀ (x : A), id x = x)
-
-namespace fun_id
-
-variables {F A : Type*} [fun_like F A (λ _, A)] [i : fun_id F A]
-include i
-
-@[simp] lemma coe_id : ⇑(fun_id.id : F) = _root_.id :=
-funext id_apply
-
-end fun_id
-
-/-- `fun_comp FBC FAB FAC A B C` states that bundled morphisms of type `FBC` can be composed
-with bundled morphisms of type `FAB` to a morphism of type `FAC`. -/
-class fun_comp (FBC FAB : Type*) (FAC A B C : out_param $ Type*)
-  [fun_like FAB A (λ _, B)] [fun_like FBC B (λ _, C)] [fun_like FAC A (λ _, C)] :=
-(comp : FBC → FAB → FAC)
-(comp_apply : ∀ (f : FBC) (g : FAB) (x : A), comp f g x = f (g x))
-
-namespace fun_comp
-
-variables {FBC FAB FAC A B C : Type*}
-variables [fun_like FAB A (λ _, B)] [fun_like FBC B (λ _, C)] [fun_like FAC A (λ _, C)]
-variables [i : fun_comp FBC FAB FAC A B C]
-include i
-
-@[simp] lemma coe_comp (f : FBC) (g : FAB) : ⇑(comp f g : FAC) = f ∘ g :=
-funext (comp_apply f g)
-
-end fun_comp
-
--- TODO: should this be `fun_inv` for symmetry with `fun_comp`/`fun_id`?
-/-- `fun_symm E E' A B` states that `E` is a type of bundled maps with inverses of type `E'`.
-
-`symm` needs to be a field of this class, otherwise `simp` isn't going to work.
--/
-class fun_symm (E : Type*) (E' A B : out_param $ Type*)
-  [fun_like E A (λ _, B)] [fun_like E' B (λ _, A)] :=
-(symm : E → E')
-(symm_apply_apply : ∀ (e : E) (x : A), symm e (e x) = x)
-(apply_symm_apply : ∀ (e : E) (x : B), e (symm e x) = x)
-
-attribute [simp] fun_symm.symm_apply_apply fun_symm.apply_symm_apply
-
-namespace fun_symm
-
-open fun_comp
-
-lemma comp_symm {E E' I A B : Type*}
-  [equiv_like E A B] [fun_like E' B (λ _, A)] [fun_like I A (λ _, A)]
-  [fun_symm E E' A B] [fun_comp E' E I A B A] [fun_id I A]
-  (e : E) :
-  comp e (symm e) = _
-
-open equiv_like
-
-lemma inv_apply {E E' A B : Type*}
-  [equiv_like E A B] [fun_like E' B (λ _, A)] [fun_symm E E' A B]
-  (e : E) (x : B) : inv e x = (symm e : E') x :=
-calc inv e x = (symm e : E') (e (inv e x)) : (symm_apply_apply _ _).symm
-         ... = (symm e : E') x : congr_arg _ (right_inv e x)
-
-@[simp]
-lemma inv_eq_coe_symm {E E' A B : Type*}
-  [equiv_like E A B] [fun_like E' B (λ _, A)] [fun_symm E E' A B]
-  (e : E) : equiv_like.inv e = (symm e : E') :=
-funext $ inv_apply e
-
-end fun_symm
-
--/
-
 def function.fun_like (A : Sort*) (B : A → Sort*) : fun_like (Π x : A, B x) A B :=
 { coe := id, coe_injective' := λ _ _ h, h }
 
@@ -110,7 +32,7 @@ instance : equiv_like (id_fun F) A A :=
   right_inv := λ e x, (apply' _ _).trans (apply' _ _) }
 
 lemma subsingleton : subsingleton (id_fun F) :=
-⟨λ i i', fun_like.ext i i' $ λ x, (apply i x).trans (apply i' x).symm⟩
+⟨λ i i', fun_like.ext i i' $ λ x, (apply' i x).trans (apply' i' x).symm⟩
 
 variables {F A} (id : id_fun F)
 
@@ -190,7 +112,7 @@ end symm_fun
 
 section id_symm
 
-@[simp] theorem id_symm {E A : Type*} [equiv_like E A A]
+@[simp] theorem id_symm {E A : Sort*} [equiv_like E A A]
   (symm : symm_fun E E) (id : id_fun E) : symm id = id :=
 fun_like.ext _ _ $ λ x,
 by rw [id.coe_coe, id.apply, ← id.apply (symm id x), ← id.coe_coe, symm.apply_symm_apply id x]
@@ -274,7 +196,7 @@ end trans_fun
 
 section id_symm_trans
 
-variables {FAA FAB FBB A B : Type*}
+variables {FAA FAB FBB A B : Sort*}
 variables [fun_like FAA A (λ _, A)] [fun_like FAB A (λ _, B)] [fun_like FBB B (λ _, B)]
 variables (idA : id_fun FAA) (idB : id_fun FBB)
 variables (transAAB : trans_fun FAA FAB FAB) (transABB : trans_fun FAB FBB FAB)
@@ -285,11 +207,12 @@ fun_like.ext _ _ $ λ x, by simp
 @[simp] theorem id_trans (f : FAB) : transAAB idA f = f :=
 fun_like.ext _ _ $ λ x, by simp
 
-variables {FBA : Type*} [fun_like FBA B (λ _, A)]
+variables {FBA : Sort*} [fun_like FBA B (λ _, A)]
 variables (symmAB : symm_fun FAB FBA)
 variables (transABA : trans_fun FAB FBA FAA) (transBAB : trans_fun FBA FAB FBB)
 
 -- Can't be `simp` since `idB` isn't inferrable:
+-- TODO: does this suggest `id_fun` should actually be a class?
 theorem symm_trans_self (e : FAB) : transBAB (symmAB e) e = idB := fun_like.ext _ _ $ λ x, by simp
 theorem self_trans_symm (e : FAB) : transABA e (symmAB e) = idA := fun_like.ext _ _ $ λ x, by simp
 

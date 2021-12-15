@@ -262,18 +262,6 @@ begin
   simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
 end
 
-lemma aeval_list_prod_is_unit {R M : Type*} [comm_semiring R] [ring M] [algebra R M] {m : M}
-  {s : list (polynomial R)} (h : ∀ p ∈ s, is_unit (aeval m p)) :
-  is_unit (aeval m s.prod) :=
-begin
-  induction s,
-  { simp only [aeval_one, is_unit_one, list.prod_nil] },
-  { have u_hd := h s_hd (list.mem_cons_self s_hd s_tl),
-    have u_tl := s_ih (λ p p_mem, h p (list.mem_of_mem_tail p_mem)),
-    rw [list.prod_cons, aeval_mul, (aeval_comm m _ _).is_unit_mul_iff],
-    exact ⟨u_hd, u_tl⟩ }
-end
-
 /-- This is the *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
 is necessary in case `σ a = ∅`, for then the left-hand side is `∅` and the right-hand side,
 assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
@@ -301,7 +289,15 @@ begin
     (aeval_comm a _ _).is_unit_mul_iff, aeval_C] at hk,
   replace hk := not_and.mp hk lead_unit,
   rw ←multiset.prod_to_list at hk,
-  replace hk := (mt aeval_list_prod_is_unit) hk,
+  have aeval_list_prod_unit : ∀ s : list (polynomial 𝕜), ∀ (h : ∀ p ∈ s, is_unit (aeval a p)),
+    is_unit (aeval a s.prod),
+    { intros s h,
+      rw alg_hom.map_list_prod,
+      apply list.prod_is_unit,
+      intros b a,
+      obtain ⟨b, hb, rfl⟩ := list.mem_map.1 a,
+      exact h _ hb },
+  replace hk := (mt (aeval_list_prod_unit _)) hk,
   push_neg at hk,
   rcases hk with ⟨q, q_mem, hq⟩,
   rw multiset.mem_to_list at q_mem,

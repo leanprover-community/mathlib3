@@ -791,6 +791,24 @@ lemma mk_zero (b) : (mk 0 b : localization M) = 0 :=
 calc mk 0 b = mk 0 1 : mk_eq_mk_iff.mpr (r_of_eq (by simp))
 ... = 0 : by  unfold has_zero.zero localization.zero
 
+/-- Scalar multiplication in a ring localization is defined as `c • ⟨a, b⟩ = ⟨c • a, c • b⟩`. -/
+@[irreducible] protected def smul {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
+  (c : S) (z : localization M) : localization M :=
+localization.lift_on z (λ a b, mk (c • a) b) $
+  λ a a' b b' h, mk_eq_mk_iff.2
+begin
+  cases b with b hb,
+  cases b' with b' hb',
+  rw r_eq_r' at h ⊢,
+  cases h with t ht,
+  use t,
+  simp only [smul_mul_assoc, ht]
+end
+
+lemma smul_mk {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
+  (c : S) (a b) : localization.smul c (mk a b : localization M) = mk (c • a) b :=
+by { unfold has_scalar.smul localization.smul, apply lift_on_mk }
+
 private meta def tac := `[
 { intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
@@ -804,12 +822,12 @@ instance : comm_ring (localization M) :=
   add  := (+),
   mul  := (*),
   npow := localization.npow _,
-  nsmul := (•),
+  nsmul := localization.smul,
   nsmul_zero' := λ x, localization.induction_on x
     (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
   nsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
-  zsmul := (•),
+  zsmul := localization.smul,
   zsmul_zero' := λ x, localization.induction_on x
     (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
   zsmul_succ' := λ n x, localization.induction_on x
@@ -828,45 +846,13 @@ instance : comm_ring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
    ..localization.comm_monoid M }
 
-instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
-  distrib_mul_action S (localization M) :=
-{ smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
-  smul_add := λ s x y, localization.induction_on₂ x y $
-    prod.rec $ by exact λ r₁ x₁, prod.rec $ by exact λ r₂ x₂,
-      by simp only [localization.smul_mk, localization.add_mk, smul_add, mul_comm _ (s • _),
-                    mul_comm _ r₁, mul_comm _ r₂, smul_mul_assoc] }
-
-instance {S : Type*} [semiring S] [mul_semiring_action S R] [is_scalar_tower S R R] :
-  mul_semiring_action S (localization M) :=
-{ ..localization.mul_distrib_mul_action }
-
-instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
-  module S (localization M) :=
-{ zero_smul := localization.ind $ prod.rec $
-    by { intros, simp only [localization.smul_mk, zero_smul, mk_zero] },
-  add_smul := λ s₁ s₂, localization.ind $ prod.rec $
-    by { intros, simp only [localization.smul_mk, add_smul, add_mk_self] },
-  ..localization.distrib_mul_action }
-
-instance {S : Type*} [comm_semiring S] [algebra S R] : algebra S (localization M) :=
-{ to_ring_hom :=
-  ring_hom.comp
-  { to_fun := (monoid_of M).to_map,
-    map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
-    map_add' := λ x y,
-      by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
-    .. localization.monoid_of M } (algebra_map S R),
-  smul_def' := λ s, localization.ind $ prod.rec $ begin
-    intros r x,
-    dsimp,
-    simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, algebra.smul_def],
-  end,
-  commutes' := λ s, localization.ind $ prod.rec $ begin
-    intros r x,
-    dsimp,
-    simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, mul_one,
-               algebra.commutes],
-  end }
+instance : algebra R (localization M) :=
+ring_hom.to_algebra $
+{ to_fun := (monoid_of M).to_map,
+  map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
+  map_add' := λ x y,
+    by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
+  .. localization.monoid_of M }
 
 instance : is_localization M (localization M) :=
 { map_units := (localization.monoid_of M).map_units,
@@ -1333,7 +1319,7 @@ begin
 end
 
 instance (p : ideal (localization M)) [p.is_prime] : algebra R (localization.at_prime p) :=
-localization.algebra
+((algebra_map (localization M) _).comp (algebra_map R _)).to_algebra
 
 instance (p : ideal (localization M)) [p.is_prime] :
   is_scalar_tower R (localization M) (localization.at_prime p) :=

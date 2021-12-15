@@ -45,8 +45,9 @@ end
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
 lemma is_nilpotent.map [monoid_with_zero R] [monoid_with_zero S] {r : R}
-  (hr : is_nilpotent r) (f : monoid_with_zero_hom R S) : is_nilpotent (f r) :=
-by { use hr.some, erw [← f.to_monoid_hom.map_pow, hr.some_spec, f.map_zero] }
+  {F : Type*} [monoid_with_zero_hom_class F R S] (hr : is_nilpotent r) (f : F) :
+    is_nilpotent (f r) :=
+by { use hr.some, rw [← map_pow, hr.some_spec, map_zero] }
 
 /-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
 class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=

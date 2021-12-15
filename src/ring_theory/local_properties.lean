@@ -119,7 +119,7 @@ begin
   intros J hJ,
   specialize h J hJ,
   resetI,
-  exact (hx.map (algebra_map R (localization.at_prime J)).to_monoid_with_zero_hom).eq_zero,
+  exact (hx.map $ algebra_map R $ localization.at_prime J).eq_zero,
 end
 
 end reduced

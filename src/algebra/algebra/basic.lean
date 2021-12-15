@@ -779,6 +779,9 @@ lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂)
 @[simp] lemma commutes : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
   e.commutes'
 
+@[simp] lemma map_smul (r : R) (x : A₁) : e (r • x) = r • e x :=
+by simp only [algebra.smul_def, map_mul, commutes]
+
 lemma map_sum {ι : Type*} (f : ι → A₁) (s : finset ι) :
   e (∑ x in s, f x) = ∑ x in s, e (f x) :=
 e.to_add_equiv.map_sum f s
@@ -950,7 +953,7 @@ noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijectiv
 /-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
 @[simps apply] def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
 { to_fun    := e,
-  map_smul' := λ r x, by simp [algebra.smul_def],
+  map_smul' := e.map_smul,
   inv_fun   := e.symm,
   .. e }
 
@@ -1065,10 +1068,10 @@ instance apply_has_faithful_scalar : has_faithful_scalar (A₁ ≃ₐ[R] A₁) A
 ⟨λ _ _, alg_equiv.ext⟩
 
 instance apply_smul_comm_class : smul_comm_class R (A₁ ≃ₐ[R] A₁) A₁ :=
-{ smul_comm := λ r e a, (e.to_linear_equiv.map_smul r a).symm }
+{ smul_comm := λ r e a, (e.map_smul r a).symm }
 
 instance apply_smul_comm_class' : smul_comm_class (A₁ ≃ₐ[R] A₁) R A₁ :=
-{ smul_comm := λ e r a, (e.to_linear_equiv.map_smul r a) }
+{ smul_comm := λ e r a, (e.map_smul r a) }
 
 @[simp] lemma algebra_map_eq_apply (e : A₁ ≃ₐ[R] A₂) {y : R} {x : A₁} :
   (algebra_map R A₂ y = e x) ↔ (algebra_map R A₁ y = x) :=

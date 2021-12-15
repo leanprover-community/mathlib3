@@ -805,8 +805,12 @@ begin
   simp only [smul_mul_assoc, ht]
 end
 
+instance {S : Type*} [has_scalar S R] [is_scalar_tower S R R] :
+  has_scalar S (localization M) :=
+{ smul := localization.smul }
+
 lemma smul_mk {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
-  (c : S) (a b) : localization.smul c (mk a b : localization M) = mk (c • a) b :=
+  (c : S) (a b) : c • (mk a b : localization M) = mk (c • a) b :=
 by { unfold has_scalar.smul localization.smul, apply lift_on_mk }
 
 private meta def tac := `[
@@ -822,12 +826,12 @@ instance : comm_ring (localization M) :=
   add  := (+),
   mul  := (*),
   npow := localization.npow _,
-  nsmul := localization.smul,
+  nsmul := (•),
   nsmul_zero' := λ x, localization.induction_on x
     (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
   nsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
-  zsmul := localization.smul,
+  zsmul := (•),
   zsmul_zero' := λ x, localization.induction_on x
     (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
   zsmul_succ' := λ n x, localization.induction_on x
@@ -848,16 +852,14 @@ instance : comm_ring (localization M) :=
 
 instance {S : Type*} [monoid S] [mul_action S R] [is_scalar_tower S R R] :
   mul_action S (localization M) :=
-{ smul := localization.smul,
-  one_smul := localization.ind $ prod.rec $
+{ one_smul := localization.ind $ prod.rec $
     by { intros, simp only [localization.smul_mk, one_smul] },
   mul_smul := λ s₁ s₂, localization.ind $ prod.rec $
     by { intros, simp only [localization.smul_mk, mul_smul] } }
 
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
-{ smul := localization.smul,
-  smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
+{ smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
   smul_add := λ s x y, localization.induction_on₂ x y $
     prod.rec $ by exact λ r₁ x₁, prod.rec $ by exact λ r₂ x₂,
       by simp only [localization.smul_mk, localization.add_mk, smul_add, mul_comm _ (s • _),
@@ -866,8 +868,7 @@ instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
 
 instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
   module S (localization M) :=
-{ smul := localization.smul,
-  zero_smul := localization.ind $ prod.rec $
+{ zero_smul := localization.ind $ prod.rec $
     by { intros, simp only [localization.smul_mk, zero_smul, mk_zero] },
   add_smul := λ s₁ s₂, localization.ind $ prod.rec $
     by { intros, simp only [localization.smul_mk, add_smul, add_mk_self] },
@@ -881,13 +882,16 @@ instance {S : Type*} [comm_semiring S] [algebra S R] : algebra S (localization M
     map_add' := λ x y,
       by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
     .. localization.monoid_of M } (algebra_map S R),
-  smul_def' := λ r, localization.ind $ prod.rec $ begin
+  smul_def' := λ s, localization.ind $ prod.rec $ begin
+    intros r x,
     dsimp,
-    sorry
+    simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, algebra.smul_def],
   end,
-  commutes' := λ r, localization.ind $ prod.rec $ begin
+  commutes' := λ s, localization.ind $ prod.rec $ begin
+    intros r x,
     dsimp,
-    sorry
+    simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, mul_one,
+               algebra.commutes],
   end }
 
 instance : is_localization M (localization M) :=
@@ -1355,7 +1359,7 @@ begin
 end
 
 instance (p : ideal (localization M)) [p.is_prime] : algebra R (localization.at_prime p) :=
-((algebra_map (localization M) _).comp (algebra_map R _)).to_algebra
+localization.algebra
 
 instance (p : ideal (localization M)) [p.is_prime] :
   is_scalar_tower R (localization M) (localization.at_prime p) :=

@@ -1425,11 +1425,10 @@ lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c := by by_cas
 @[simp] lemma ite_eq_left_iff : ite P a b = a ↔ (¬ P → b = a) := by by_cases P; simp *
 @[simp] lemma ite_eq_right_iff : ite P a b = b ↔ (P → a = b) := by by_cases P; simp *
 
-@[simp] lemma ite_ne_left_iff : ite P a b ≠ a ↔ ¬ P ∧ a ≠ b :=
+lemma ite_ne_left_iff : ite P a b ≠ a ↔ ¬ P ∧ a ≠ b :=
 by rw [ne.def, ite_eq_left_iff, ne_comm, not_imp]
 
-@[simp] lemma ite_ne_right_iff : ite P a b ≠ b ↔ P ∧ a ≠ b :=
-by rw [ne.def, ite_eq_right_iff, not_imp]
+lemma ite_ne_right_iff : ite P a b ≠ b ↔ P ∧ a ≠ b := by rw [ne.def, ite_eq_right_iff, not_imp]
 
 protected lemma ne.ite_eq_left_iff (h : a ≠ b) : ite P a b = a ↔ P :=
 ite_eq_left_iff.trans $ not_imp_comm.trans $ imp_iff_right h.symm

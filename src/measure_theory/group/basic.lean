@@ -454,7 +454,7 @@ finite-dimensional real vector space has no atom. -/
 @[priority 100, to_additive]
 instance is_haar_measure.has_no_atoms
   {G : Type*} [group G] [measurable_space G] [topological_space G] [t1_space G]
-  [topological_group G] [locally_compact_space G] [borel_space G] [(𝓝[{(1 : G)}ᶜ] (1 : G)).ne_bot]
+  [topological_group G] [locally_compact_space G] [borel_space G] [(𝓝[≠] (1 : G)).ne_bot]
   (μ : measure G) [μ.is_haar_measure] :
   has_no_atoms μ :=
 begin

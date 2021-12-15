@@ -415,6 +415,9 @@ by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
 @[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
 ext_iff.2
 
+lemma eq_zero_iff_every_coeff_zero (p : polynomial R) :
+  p = 0 ↔ ∀ (i : ℕ), polynomial.coeff p i = 0 := by simp [ext_iff]
+
 lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   (h : ∀ n a, f (monomial n a) = g (monomial n a)) :
   f = g :=

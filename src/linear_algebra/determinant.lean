@@ -244,8 +244,8 @@ by { haveI := classical.dec_eq ι,
      assumption }
 
 /-- In a finite-dimensional vector space, the zero map has determinant `1` in dimension `0`,
-and `0` otherwise. We give a formula that also works in infinite dimension, where the determinant
-is `1`. -/
+and `0` otherwise. We give a formula that also works in infinite dimension, where we define
+the determinant to be `1`. -/
 @[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M] :
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
 by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]

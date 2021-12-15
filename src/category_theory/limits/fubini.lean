@@ -47,7 +47,7 @@ variables {C : Type u} [category.{v} C]
 variables (F : J ⥤ K ⥤ C)
 
 /--
-A structure carrying a diagram of cones over the the functors `F.obj j`.
+A structure carrying a diagram of cones over the functors `F.obj j`.
 -/
 -- We could try introducing a "dependent functor type" to handle this?
 structure diagram_of_cones :=

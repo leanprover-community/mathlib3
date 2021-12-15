@@ -49,11 +49,14 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
   add_comm_group (dual S N) := by {unfold dual, apply_instance}
 
+instance : add_monoid_hom_class (dual R M) M R :=
+linear_map.add_monoid_hom_class
+
 namespace dual
 
 instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
-instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
+instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 
 /-- Maps a module M to the dual of the dual of M. See `module.erange_coe` and
 `module.eval_equiv`. -/
@@ -183,7 +186,8 @@ variables (b : basis ι R M)
 /-- A vector space is linearly equivalent to its dual space. -/
 @[simps]
 def to_dual_equiv [fintype ι] : M ≃ₗ[R] (dual R M) :=
-linear_equiv.of_bijective b.to_dual b.to_dual_ker b.to_dual_range
+linear_equiv.of_bijective b.to_dual
+  (ker_eq_bot.mp b.to_dual_ker) (range_eq_top.mp b.to_dual_range)
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
 def dual_basis [fintype ι] : basis ι R (dual R M) :=
@@ -245,7 +249,8 @@ end
 
 /-- A module with a basis is linearly equivalent to the dual of its dual space. -/
 def eval_equiv  {ι : Type*} [fintype ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
-linear_equiv.of_bijective (eval R M) b.eval_ker b.eval_range
+linear_equiv.of_bijective (eval R M)
+  (ker_eq_bot.mp b.eval_ker) (range_eq_top.mp b.eval_range)
 
 @[simp] lemma eval_equiv_to_linear_map {ι : Type*} [fintype ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
@@ -263,7 +268,7 @@ theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : 
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
-  have := linear_equiv.dim_eq_lift b.to_dual_equiv,
+  have := linear_equiv.lift_dim_eq b.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
   apply cardinal.lift_id,
@@ -286,13 +291,17 @@ theorem dual_dim_eq [finite_dimensional K V] :
 (basis.of_vector_space K V).dual_dim_eq
 
 lemma erange_coe [finite_dimensional K V] : (eval K V).range = ⊤ :=
-by { classical, exact (basis.of_vector_space K V).eval_range }
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  exact (basis.of_vector_space K V).eval_range
+end
 
 variables (K V)
 
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
-linear_equiv.of_bijective (eval K V) eval_ker (erange_coe)
+linear_equiv.of_bijective (eval K V)
+  (ker_eq_bot.mp eval_ker) (range_eq_top.mp erange_coe)
 
 variables {K V}
 
@@ -510,14 +519,14 @@ W.dual_restrict_left_inverse.injective
 /-- The quotient by the `dual_annihilator` of a subspace is isomorphic to the
   dual of that subspace. -/
 noncomputable def quot_annihilator_equiv (W : subspace K V) :
-  W.dual_annihilator.quotient ≃ₗ[K] module.dual K W :=
+  (module.dual K V ⧸ W.dual_annihilator) ≃ₗ[K] module.dual K W :=
 (quot_equiv_of_eq _ _ W.dual_restrict_ker_eq_dual_annihilator).symm.trans $
   W.dual_restrict.quot_ker_equiv_of_surjective dual_restrict_surjective
 
 /-- The natural isomorphism forom the dual of a subspace `W` to `W.dual_lift.range`. -/
 noncomputable def dual_equiv_dual (W : subspace K V) :
   module.dual K W ≃ₗ[K] W.dual_lift.range :=
-linear_equiv.of_injective _ $ ker_eq_bot.2 dual_lift_injective
+linear_equiv.of_injective _ dual_lift_injective
 
 lemma dual_equiv_dual_def (W : subspace K V) :
   W.dual_equiv_dual.to_linear_map = W.dual_lift.range_restrict := rfl
@@ -544,15 +553,15 @@ linear_equiv.finrank_eq (basis.of_vector_space K V).to_dual_equiv.symm
 
 /-- The quotient by the dual is isomorphic to its dual annihilator.  -/
 noncomputable def quot_dual_equiv_annihilator (W : subspace K V) :
-  W.dual_lift.range.quotient ≃ₗ[K] W.dual_annihilator :=
+  (module.dual K V ⧸ W.dual_lift.range) ≃ₗ[K] W.dual_annihilator :=
 linear_equiv.quot_equiv_of_quot_equiv $
   linear_equiv.trans W.quot_annihilator_equiv W.dual_equiv_dual
 
 /-- The quotient by a subspace is isomorphic to its dual annihilator. -/
 noncomputable def quot_equiv_annihilator (W : subspace K V) :
-  W.quotient ≃ₗ[K] W.dual_annihilator :=
+  (V ⧸ W) ≃ₗ[K] W.dual_annihilator :=
 begin
-  refine linear_equiv.trans _ W.quot_dual_equiv_annihilator,
+  refine _ ≪≫ₗ W.quot_dual_equiv_annihilator,
   refine linear_equiv.quot_equiv_of_equiv _ (basis.of_vector_space K V).to_dual_equiv,
   exact (basis.of_vector_space K W).to_dual_equiv.trans W.dual_equiv_dual
 end

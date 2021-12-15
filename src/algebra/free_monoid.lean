@@ -57,20 +57,16 @@ lemma of_injective : function.injective (@of α) :=
 λ a b, list.head_eq_of_cons_eq
 
 /-- Recursor for `free_monoid` using `1` and `of x * xs` instead of `[]` and `x :: xs`. -/
-@[to_additive
+@[elab_as_eliminator, to_additive
   "Recursor for `free_add_monoid` using `0` and `of x + xs` instead of `[]` and `x :: xs`."]
 def rec_on {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)
   (ih : Π x xs, C xs → C (of x * xs)) : C xs := list.rec_on xs h0 ih
 
-attribute [elab_as_eliminator] rec_on free_add_monoid.rec_on
-
-@[to_additive]
+@[ext, to_additive]
 lemma hom_eq ⦃f g : free_monoid α →* M⦄ (h : ∀ x, f (of x) = g (of x)) :
   f = g :=
 monoid_hom.ext $ λ l, rec_on l (f.map_one.trans g.map_one.symm) $
   λ x xs hxs, by simp only [h, hxs, monoid_hom.map_mul]
-
-attribute [ext] hom_eq free_add_monoid.hom_eq
 
 /-- Equivalence between maps `α → M` and monoid homomorphisms `free_monoid α →* M`. -/
 @[to_additive "Equivalence between maps `α → A` and additive monoid homomorphisms

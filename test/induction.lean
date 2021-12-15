@@ -76,8 +76,7 @@ begin
   induction' l,
   { refl },
   { dsimp only [List.append],
-    exact (congr_arg _ ih)
-  }
+    exact (congr_arg _ ih) }
 end
 
 example {k l} (h : lt k l) : le k l :=
@@ -94,19 +93,16 @@ begin
   { exact le.zero },
   { cases' hlt },
   { cases' hlt,
-    exact le.succ (@ih m hlt),
-  }
+    exact le.succ (@ih m hlt), }
 end
 
 example {α n m} {xs : Vec α n} {ys : Vec α m} (h : Vec.eq n m xs ys) : n = m :=
 begin
   induction' h,
   case nil {
-    refl
-  },
+    refl },
   case cons {
-    exact congr_arg nat.succ ih,
-  }
+    exact congr_arg nat.succ ih, }
 end
 
 -- A simple induction with complex index arguments.
@@ -202,13 +198,11 @@ begin
   cases' n,
   case nat {
     guard_hyp x : ℕ',
-    exact ()
-  },
+    exact () },
   case positive {
     guard_hyp n : ℕ,
     guard_hyp h : n > 0,
-    exact ()
-  }
+    exact () }
 end
 
 -- By default, induction' generates the most general possible induction
@@ -221,8 +215,7 @@ begin
     guard_hyp k : ℕ,
     guard_hyp n : ℕ,
     guard_hyp IH : ∀ {n}, n + k = k + n,
-    ac_refl
-  }
+    ac_refl }
 end
 
 -- Here's an example where this is more useful.
@@ -232,17 +225,14 @@ begin
   case zero {
     cases' m,
     { refl },
-    { cases' h }
-  },
+    { cases' h } },
   case succ {
     cases' m,
     { cases' h },
     { rw @ih m,
       simp only [nat.succ_eq_add_one] at h,
       replace h : n + n + 2 = m + m + 2 := by linarith,
-      injections
-    }
-  }
+      injections } }
 end
 
 -- If we don't want a hypothesis to be generalised, we can say so with a
@@ -255,8 +245,7 @@ begin
     guard_hyp k : ℕ,
     guard_hyp n : ℕ,
     guard_hyp IH : n + k = k + n,
-    ac_refl
-  }
+    ac_refl }
 end
 
 -- We can also fix all hypotheses. This gives us the behaviour of stock
@@ -273,8 +262,7 @@ begin
     guard_hyp h : n.succ + m = k,
     guard_hyp IH : n + m = k → n + m = k,
     -- Neither m nor k were generalised.
-    exact h
-  }
+    exact h }
 end
 
 -- We can also generalise only certain hypotheses using a `generalizing`
@@ -292,8 +280,7 @@ begin
     guard_hyp h : n.succ + m = k,
     guard_hyp IH : ∀ {k}, n + m = k → n + m = k,
     -- k was generalised, but m was not.
-    exact h
-  }
+    exact h }
 end
 
 -- Sometimes generalising a hypothesis H does not give us a more general
@@ -312,8 +299,7 @@ begin
     --     ∀ n k, m + k = k + m
     --
     -- with one useless additional argument.
-    ac_refl
-  }
+    ac_refl }
 end
 
 -- This example checks that constructor arguments don't 'steal' the names of
@@ -328,8 +314,7 @@ begin
     -- n is the list, which was automatically generalized and keeps its name.
     -- n_1 is the recursive argument of `nat.succ`. It would be called `n` if
     -- there wasn't already an `n` in the context.
-    exact (n_1 :: n)
-  }
+    exact (n_1 :: n) }
 end
 
 -- This example tests whether `induction'` gets confused when there are
@@ -405,8 +390,7 @@ begin
   case cons {
     guard_hyp i : ℕ,
     guard_hyp j : List ℕ,
-    exact ()
-  }
+    exact () }
 end
 
 -- "with" also works with induction'.
@@ -418,8 +402,7 @@ begin
     guard_hyp i : ℕ,
     guard_hyp j : List ℕ,
     guard_hyp k : unit,
-    exact ()
-  }
+    exact () }
 end
 
 -- An underscore in a "with" clause means "use the auto-generated name for this
@@ -432,8 +415,7 @@ begin
     guard_hyp x : ℕ,
     guard_hyp j : List ℕ,
     guard_hyp ih : unit,
-    exact ()
-  }
+    exact () }
 end
 
 namespace with_tests
@@ -495,14 +477,12 @@ begin
   case zero {
     left,
     rw list.length_reverse,
-    exact eq
-  },
+    exact eq },
   case succ : l {
     right,
     rw list.length_reverse,
     use l,
-    exact eq
-  }
+    exact eq }
 end
 
 -- Index equation simplification can deal with equations that aren't in normal
@@ -724,13 +704,11 @@ lemma head_induction_on {b} {P : ∀a : α, star r a b → Prop} {a} (h : star r
 begin
   induction' h,
   case refl {
-    exact refl
-  },
+    exact refl },
   case tail : b c hab hbc ih {
     apply ih,
     { exact head hbc _ refl, },
-    { intros _ _ hab _, exact head hab _}
-  }
+    { intros _ _ hab _, exact head hab _} }
 end
 
 end star
@@ -780,12 +758,10 @@ begin
   induction' e,
   case Var {
     guard_hyp s : string,
-    rw [subst]
-  },
+    rw [subst] },
   case Num {
     guard_hyp n : ℤ,
-    rw [subst]
-  },
+    rw [subst] },
   case Plus {
     guard_hyp e : exp,
     guard_hyp e_1 : exp,
@@ -793,8 +769,7 @@ begin
     guard_hyp ih_e_1,
     rw [subst],
     rw ih_e,
-    rw ih_e_1
-   }
+    rw ih_e_1 }
 end
 
 end expressions
@@ -817,12 +792,10 @@ begin
   intro lt_n_m,
   induction' lt_n_m,
   case zero_succ : i {
-    constructor
-  },
+    constructor },
   case succ_succ : i j lt_i_j ih {
     constructor,
-    apply ih
-  }
+    apply ih }
 end
 
 end less_than
@@ -867,16 +840,13 @@ lemma rev_palindrome {α : Type} (xs : list α) (hpal : palindrome xs) :
 begin
   induction' hpal,
   case nil {
-    exact palindrome.nil
-  },
+    exact palindrome.nil },
   case single {
-    exact palindrome.single _
-  },
+    exact palindrome.single _ },
   case sandwich {
     rw reverse_append_sandwich,
     apply palindrome.sandwich,
-    apply ih
-  }
+    apply ih }
 end
 
 end palindrome
@@ -900,11 +870,9 @@ begin
   intros a b htab hrbc,
   induction' htab fixing c,
   case base : _ _ hrab {
-    exact tc.step _ _ _ hrab (tc.base _ _ hrbc)
-  },
+    exact tc.step _ _ _ hrab (tc.base _ _ hrbc) },
   case step : _ x _ hrax {
-    exact tc.step _ _ _ hrax (ih hrbc)
-  }
+    exact tc.step _ _ _ hrax (ih hrbc) }
 end
 
 /- The same proof, but this time the variable names clash. Also, this time we
@@ -916,11 +884,9 @@ begin
   intros x y htxy hryz,
   induction' htxy,
   case base : _ _ hrxy {
-    exact tc.step _ _ _ hrxy (tc.base _ _ hryz)
-  },
+    exact tc.step _ _ _ hrxy (tc.base _ _ hryz) },
   case step : _ x' y hrxx' htx'y ih {
-    exact tc.step _ _ _ hrxx' (ih _ hryz)
-  }
+    exact tc.step _ _ _ hrxx' (ih _ hryz) }
 end
 
 /- Another proof along the same lines. -/
@@ -931,11 +897,9 @@ begin
   intros a b htab htbc,
   induction' htab,
   case base {
-    exact tc.step _ _ _ hr htbc
-  },
+    exact tc.step _ _ _ hr htbc },
   case step {
-    exact tc.step _ _ _ hr (ih _ htbc)
-  }
+    exact tc.step _ _ _ hr (ih _ htbc) }
 end
 
 /- ... and with clashing variable names: -/
@@ -946,11 +910,9 @@ begin
   intros h₁ h₂,
   induction' h₁,
   case base {
-    exact tc.step _ _ _ hr h₂
-  },
+    exact tc.step _ _ _ hr h₂ },
   case step {
-    exact tc.step _ _ _ hr (ih h₂)
-  }
+    exact tc.step _ _ _ hr (ih h₂) }
 end
 
 end transitive_closure
@@ -973,13 +935,10 @@ begin
     apply ih (n - 1),
     cases' n,
     case zero {
-      linarith
-    },
+      linarith },
     case succ {
       simp [nat.succ_eq_add_one] at *,
-      linarith
-    }
-  }
+      linarith } }
 end
 
 
@@ -1041,11 +1000,9 @@ begin
   intro hw,
   induction' hw,
   case while_true {
-    exact ih_hw_1
-  },
+    exact ih_hw_1 },
   case while_false {
-    exact hcond trivial
-  }
+    exact hcond trivial }
 end
 
 /- The same with a curried version of the predicate. It should make no
@@ -1078,11 +1035,9 @@ begin
   intro hw,
   induction' hw,
   case while_true {
-    exact ih_hw_1,
-  },
+    exact ih_hw_1, },
   case while_false {
-    exact hcond trivial
-  }
+    exact hcond trivial }
 end
 
 end semantics
@@ -1112,23 +1067,17 @@ lemma small_step_if_equal_states {S T s t s' t'}
 begin
   induction' hstep,
   { rw [hs, ht],
-    exact small_step.assign,
-  },
+    exact small_step.assign, },
   { apply small_step.seq_step,
-    exact ih hs ht,
-  },
+    exact ih hs ht, },
   { rw [hs, ht],
-    exact small_step.seq_skip,
-  },
+    exact small_step.seq_skip, },
   { rw [hs, ht],
-    exact small_step.ite_true hcond,
-  },
+    exact small_step.ite_true hcond, },
   { rw [hs, ht],
-    exact small_step.ite_false hcond,
-  },
+    exact small_step.ite_false hcond, },
   { rw [hs, ht],
-    exact small_step.while,
-  }
+    exact small_step.while, }
 end
 
 infixr ` ⇒ ` := small_step

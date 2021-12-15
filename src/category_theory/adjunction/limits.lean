@@ -6,6 +6,25 @@ Authors: Reid Barton, Johan Commelin
 import category_theory.adjunction.basic
 import category_theory.limits.creates
 
+/-!
+# Adjunctions and limits
+
+A left adjoint preserves colimits (`category_theory.adjunction.left_adjoint_preserves_colimits`),
+and a right adjoint preserves limits (`category_theory.adjunction.right_adjoint_preserves_limits`).
+
+Equivalences create and reflect (co)limits.
+(`category_theory.adjunction.is_equivalence_creates_limits`,
+`category_theory.adjunction.is_equivalence_creates_colimits`,
+`category_theory.adjunction.is_equivalence_reflects_limits`,
+`category_theory.adjunction.is_equivalence_reflects_colimits`,)
+
+In `category_theory.adjunction.cocones_iso` we show that
+when `F ⊣ G`,
+the functor associating to each `Y` the cocones over `K ⋙ F` with cone point `Y`
+is naturally isomorphic to
+the functor associating to each `Y` the cocones over `K` with cone point `G.obj Y`.
+-/
+
 open opposite
 
 namespace category_theory.adjunction
@@ -103,7 +122,7 @@ example (E : C ⥤ D) [is_equivalence E]
   (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
 preserves_colimit.preserves h
 
-instance has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
+lemma has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
   has_colimit (K ⋙ E) :=
 has_colimit.mk
 { cocone := E.map_cocone (colimit.cocone K),
@@ -112,7 +131,7 @@ has_colimit.mk
 lemma has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit (K ⋙ E)] :
   has_colimit K :=
 @has_colimit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
-(@adjunction.has_colimit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
+(@has_colimit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
 ((functor.right_unitor _).symm ≪≫ iso_whisker_left K (E.as_equivalence.unit_iso))
 
 /-- Transport a `has_colimits_of_shape` instance across an equivalence. -/
@@ -210,7 +229,7 @@ example (E : D ⥤ C) [is_equivalence E]
   (c : cone K) [h : is_limit c] : is_limit (E.map_cone c) :=
 preserves_limit.preserves h
 
-instance has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :
+lemma has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :
   has_limit (K ⋙ E) :=
 has_limit.mk
 { cone := E.map_cone (limit.cone K),
@@ -219,7 +238,7 @@ has_limit.mk
 lemma has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit (K ⋙ E)] :
   has_limit K :=
 @has_limit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
-(@adjunction.has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
+(@has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
 ((iso_whisker_left K E.as_equivalence.unit_iso.symm) ≪≫ (functor.right_unitor _))
 
 /-- Transport a `has_limits_of_shape` instance across an equivalence. -/

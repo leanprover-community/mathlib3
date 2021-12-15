@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.free
-import algebra.monoid_algebra
+import algebra.monoid_algebra.basic
 
 /-!
 # Free algebras

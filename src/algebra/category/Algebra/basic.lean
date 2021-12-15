@@ -34,8 +34,7 @@ attribute [instance] Algebra.is_ring Algebra.is_algebra
 
 namespace Algebra
 
-instance : has_coe_to_sort (Algebra R) :=
-{ S := Type v, coe := Algebra.carrier }
+instance : has_coe_to_sort (Algebra R) (Type v) := ⟨Algebra.carrier⟩
 
 instance : category (Algebra.{v} R) :=
 { hom   := λ A B, A →ₐ[R] B,
@@ -59,6 +58,10 @@ instance has_forget_to_Module : has_forget₂ (Algebra.{v} R) (Module.{v} R) :=
 /-- The object in the category of R-algebras associated to a type equipped with the appropriate
 typeclasses. -/
 def of (X : Type v) [ring X] [algebra R X] : Algebra.{v} R := ⟨X⟩
+
+/-- Typecheck a `alg_hom` as a morphism in `Algebra R`. -/
+def of_hom {R : Type u} [comm_ring R] {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y]
+  (f : X →ₐ[R] Y) : of R X ⟶ of R Y := f
 
 instance : inhabited (Algebra R) := ⟨of R R⟩
 

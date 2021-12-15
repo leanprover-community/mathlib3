@@ -101,7 +101,7 @@ ideal.principal_le_iff
 end preorder
 
 section order_top
-variables [order_top P] {F : pfilter P}
+variables [preorder P] [order_top P] {F : pfilter P}
 
 /-- A specific witness of `pfilter.nonempty` when `P` has a top element. -/
 @[simp] lemma top_mem : ⊤ ∈ F :=
@@ -110,16 +110,14 @@ ideal.bot_mem
 /-- There is a bottom filter when `P` has a top element. -/
 instance : order_bot (pfilter P) :=
 { bot := ⟨⊥⟩,
-  bot_le := λ F, (bot_le : ⊥ ≤ F.dual),
-  .. pfilter.partial_order }
+  bot_le := λ F, (bot_le : ⊥ ≤ F.dual) }
 
 end order_top
 
 /-- There is a top filter when `P` has a bottom element. -/
-instance {P} [order_bot P] : order_top (pfilter P) :=
+instance {P} [preorder P] [order_bot P] : order_top (pfilter P) :=
 { top := ⟨⊤⟩,
-  le_top := λ F, (le_top : F.dual ≤ ⊤),
-  .. pfilter.partial_order }
+  le_top := λ F, (le_top : F.dual ≤ ⊤) }
 
 section semilattice_inf
 variables [semilattice_inf P] {x y : P} {F : pfilter P}

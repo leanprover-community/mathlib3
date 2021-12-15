@@ -10,7 +10,7 @@ import category_theory.monoidal.Mon_
 # The category of commutative monoids in a braided monoidal category.
 -/
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ u₁ u₂ u
 
 open category_theory
 open category_theory.monoidal_category
@@ -113,13 +113,13 @@ namespace equiv_lax_braided_functor_punit
 
 /-- Implementation of `CommMon_.equiv_lax_braided_functor_punit`. -/
 @[simps]
-def lax_braided_to_CommMon : lax_braided_functor (discrete punit) C ⥤ CommMon_ C :=
+def lax_braided_to_CommMon : lax_braided_functor (discrete punit.{u+1}) C ⥤ CommMon_ C :=
 { obj := λ F, (F.map_CommMon : CommMon_ _ ⥤ CommMon_ C).obj (trivial (discrete punit)),
   map := λ F G α, ((map_CommMon_functor (discrete punit) C).map α).app _ }
 
 /-- Implementation of `CommMon_.equiv_lax_braided_functor_punit`. -/
 @[simps]
-def CommMon_to_lax_braided : CommMon_ C ⥤ lax_braided_functor (discrete punit) C :=
+def CommMon_to_lax_braided : CommMon_ C ⥤ lax_braided_functor (discrete punit.{u+1}) C :=
 { obj := λ A,
   { obj := λ _, A.X,
     map := λ _ _ _, 𝟙 _,
@@ -136,7 +136,7 @@ def CommMon_to_lax_braided : CommMon_ C ⥤ lax_braided_functor (discrete punit)
 /-- Implementation of `CommMon_.equiv_lax_braided_functor_punit`. -/
 @[simps]
 def unit_iso :
-  𝟭 (lax_braided_functor (discrete punit) C) ≅
+  𝟭 (lax_braided_functor (discrete punit.{u+1}) C) ≅
     lax_braided_to_CommMon C ⋙ CommMon_to_lax_braided C :=
 nat_iso.of_components (λ F, lax_braided_functor.mk_iso
   (monoidal_nat_iso.of_components
@@ -159,7 +159,7 @@ Commutative monoid objects in `C` are "just" braided lax monoidal functors from 
 braided monoidal category to `C`.
 -/
 @[simps]
-def equiv_lax_braided_functor_punit : lax_braided_functor (discrete punit) C ≌ CommMon_ C :=
+def equiv_lax_braided_functor_punit : lax_braided_functor (discrete punit.{u+1}) C ≌ CommMon_ C :=
 { functor := lax_braided_to_CommMon C,
   inverse := CommMon_to_lax_braided C,
   unit_iso := unit_iso C,

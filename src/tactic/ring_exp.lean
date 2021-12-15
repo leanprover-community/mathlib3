@@ -2,8 +2,6 @@
 Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen
-
-Solve equations in commutative (semi)rings with exponents.
 -/
 import tactic.norm_num
 import control.traversable.basic

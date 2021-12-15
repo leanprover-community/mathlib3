@@ -469,7 +469,7 @@ instance pempty_unique : unique (free_abelian_group pempty) :=
   uniq := λ x, free_abelian_group.induction_on x rfl
     (λ x, pempty.elim x)
     (λ x, pempty.elim x)
-    (by { rintros - - rfl rfl, simp })  }
+    (by { rintros - - rfl rfl, simp }) }
 
 /-- The free abelian group on a type with one term is isomorphic to `ℤ`. -/
 def punit_equiv (T : Type*) [unique T] : free_abelian_group T ≃+ ℤ :=
@@ -483,7 +483,7 @@ def punit_equiv (T : Type*) [unique T] : free_abelian_group T ≃+ ℤ :=
   right_inv := λ n,
   begin
     rw [add_monoid_hom.map_int_module_smul, lift.of],
-    exact gsmul_int_one n
+    exact zsmul_int_one n
   end,
   map_add' := add_monoid_hom.map_add _ }
 

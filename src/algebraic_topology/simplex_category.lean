@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
-import order.category.NonemptyFinLinOrd
 import category_theory.skeletal
-import data.finset.sort
 import tactic.linarith
+import data.fintype.sort
+import order.category.NonemptyFinLinOrd
 
 /-! # The simplex category
 
@@ -25,12 +25,12 @@ We provide the following functions to work with these objects:
   Use the notation `[n]` in the `simplicial` locale.
 2. `simplex_category.len` gives the "length" of an object of `simplex_category`, as a natural.
 3. `simplex_category.hom.mk` makes a morphism out of a monotone map between `fin`'s.
-4. `simplex_category.hom.to_preorder_hom` gives the underlying monotone map associated to a
+4. `simplex_category.hom.to_order_hom` gives the underlying monotone map associated to a
   term of `simplex_category.hom`.
 
 -/
 
-universe variables u
+universes u v
 
 open category_theory
 
@@ -48,17 +48,17 @@ local attribute [semireducible] simplex_category
 
 -- TODO: Make `mk` irreducible.
 /-- Interpet a natural number as an object of the simplex category. -/
-def mk (n : ℕ) : simplex_category := ulift.up n
+def mk (n : ℕ) : simplex_category.{u} := ulift.up n
 
 localized "notation `[`n`]` := simplex_category.mk n" in simplicial
 
 -- TODO: Make `len` irreducible.
 /-- The length of an object of `simplex_category`. -/
-def len (n : simplex_category) : ℕ := n.down
+def len (n : simplex_category.{u}) : ℕ := n.down
 
-@[ext] lemma ext (a b : simplex_category) : a.len = b.len → a = b := ulift.ext a b
+@[ext] lemma ext (a b : simplex_category.{u}) : a.len = b.len → a = b := ulift.ext a b
 @[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
-@[simp] lemma mk_len (n : simplex_category) : [n.len] = n := by {cases n, refl}
+@[simp] lemma mk_len (n : simplex_category.{u}) : [n.len] = n := by {cases n, refl}
 
 /-- Morphisms in the simplex_category. -/
 @[irreducible, nolint has_inhabited_instance]
@@ -75,36 +75,36 @@ def mk {a b : simplex_category.{u}} (f : fin (a.len + 1) →ₘ fin (b.len + 1))
 ulift.up f
 
 /-- Recover the monotone map from a morphism in the simplex category. -/
-def to_preorder_hom {a b : simplex_category.{u}} (f : simplex_category.hom a b) :
+def to_order_hom {a b : simplex_category.{u}} (f : simplex_category.hom a b) :
   fin (a.len + 1) →ₘ fin (b.len + 1) :=
 ulift.down f
 
 @[ext] lemma ext {a b : simplex_category.{u}} (f g : simplex_category.hom a b) :
-  f.to_preorder_hom = g.to_preorder_hom → f = g := ulift.ext _ _
+  f.to_order_hom = g.to_order_hom → f = g := ulift.ext _ _
 
-@[simp] lemma mk_to_preorder_hom {a b : simplex_category.{u}}
-  (f : simplex_category.hom a b) : mk (f.to_preorder_hom) = f :=
+@[simp] lemma mk_to_order_hom {a b : simplex_category.{u}}
+  (f : simplex_category.hom a b) : mk (f.to_order_hom) = f :=
 by {cases f, refl}
 
-@[simp] lemma to_preorder_hom_mk {a b : simplex_category.{u}}
-  (f : fin (a.len + 1) →ₘ fin (b.len + 1)) : (mk f).to_preorder_hom = f :=
-by simp [to_preorder_hom, mk]
+@[simp] lemma to_order_hom_mk {a b : simplex_category.{u}}
+  (f : fin (a.len + 1) →ₘ fin (b.len + 1)) : (mk f).to_order_hom = f :=
+by simp [to_order_hom, mk]
 
-lemma mk_to_preorder_hom_apply {a b : simplex_category.{u}}
+lemma mk_to_order_hom_apply {a b : simplex_category.{u}}
   (f : fin (a.len + 1) →ₘ fin (b.len + 1)) (i : fin (a.len + 1)) :
-  (mk f).to_preorder_hom i = f i := rfl
+  (mk f).to_order_hom i = f i := rfl
 
 /-- Identity morphisms of `simplex_category`. -/
 @[simp]
 def id (a : simplex_category.{u}) :
   simplex_category.hom a a :=
-mk preorder_hom.id
+mk order_hom.id
 
 /-- Composition of morphisms of `simplex_category`. -/
 @[simp]
 def comp {a b c : simplex_category.{u}} (f : simplex_category.hom b c)
   (g : simplex_category.hom a b) : simplex_category.hom a c :=
-mk $ f.to_preorder_hom.comp g.to_preorder_hom
+mk $ f.to_order_hom.comp g.to_order_hom
 
 end hom
 
@@ -120,7 +120,7 @@ def const (x : simplex_category.{u}) (i : fin (x.len+1)) : [0] ⟶ x :=
 
 @[simp]
 lemma const_comp (x y : simplex_category.{u}) (i : fin (x.len + 1)) (f : x ⟶ y) :
-  const x i ≫ f = const y (f.to_preorder_hom i) := rfl
+  const x i ≫ f = const y (f.to_order_hom i) := rfl
 
 /--
 Make a morphism `[n] ⟶ [m]` from a monotone map between fin's.
@@ -148,7 +148,7 @@ one given by the following generators and relations.
 
 /-- The `i`-th face map from `[n]` to `[n+1]` -/
 def δ {n} (i : fin (n+2)) : [n] ⟶ [n+1] :=
-mk_hom (fin.succ_above i).to_preorder_hom
+mk_hom (fin.succ_above i).to_order_hom
 
 /-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
 def σ {n} (i : fin (n+1)) : [n+1] ⟶ [n] := mk_hom
@@ -161,11 +161,11 @@ lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
 begin
   ext k,
   dsimp [δ, fin.succ_above],
-  simp only [order_embedding.to_preorder_hom_coe,
+  simp only [order_embedding.to_order_hom_coe,
     order_embedding.coe_of_strict_mono,
     function.comp_app,
-    simplex_category.hom.to_preorder_hom_mk,
-    preorder_hom.comp_coe],
+    simplex_category.hom.to_order_hom_mk,
+    order_hom.comp_coe],
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
@@ -311,18 +311,17 @@ end generators
 
 section skeleton
 
-
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
 @[simps obj map]
-def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd :=
+def skeletal_functor : simplex_category.{u} ⥤ NonemptyFinLinOrd.{v} :=
 { obj := λ a, NonemptyFinLinOrd.of $ ulift (fin (a.len + 1)),
   map := λ a b f,
-    ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩,
+    ⟨λ i, ulift.up (f.to_order_hom i.down), λ i j h, f.to_order_hom.monotone h⟩,
   map_id' := λ a, by { ext, simp, },
   map_comp' := λ a b c f g, by { ext, simp, }, }
 
-lemma skeletal : skeletal simplex_category :=
+lemma skeletal : skeletal simplex_category.{u} :=
 λ X Y ⟨I⟩,
 begin
   suffices : fintype.card (fin (X.len+1)) = fintype.card (fin (Y.len+1)),
@@ -334,11 +333,11 @@ end
 
 namespace skeletal_functor
 
-instance : full skeletal_functor :=
+instance : full skeletal_functor.{u v} :=
 { preimage := λ a b f, simplex_category.hom.mk ⟨λ i, (f (ulift.up i)).down, λ i j h, f.monotone h⟩,
   witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, ext1, cases x, simp, } }
 
-instance : faithful skeletal_functor :=
+instance : faithful skeletal_functor.{u v} :=
 { map_injective' := λ m n f g h,
   begin
     ext1, ext1, ext1 i, apply ulift.up.inj,
@@ -346,7 +345,7 @@ instance : faithful skeletal_functor :=
     rw h,
   end }
 
-instance : ess_surj skeletal_functor :=
+instance : ess_surj skeletal_functor.{u v} :=
 { mem_ess_image := λ X, ⟨mk (fintype.card X - 1 : ℕ), ⟨begin
     have aux : fintype.card X = fintype.card X - 1 + 1,
     { exact (nat.succ_pred_eq_of_pos $ fintype.card_pos_iff.mpr ⟨⊥⟩).symm, },
@@ -364,14 +363,14 @@ instance : ess_surj skeletal_functor :=
     { ext1, ext1 i, exact f.apply_symm_apply i },
   end⟩⟩, }
 
-noncomputable instance is_equivalence : is_equivalence skeletal_functor :=
+noncomputable instance is_equivalence : is_equivalence skeletal_functor.{u v} :=
 equivalence.of_fully_faithfully_ess_surj skeletal_functor
 
 end skeletal_functor
 
 /-- The equivalence that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
-noncomputable def skeletal_equivalence : simplex_category ≌ NonemptyFinLinOrd :=
+noncomputable def skeletal_equivalence : simplex_category.{u} ≌ NonemptyFinLinOrd.{v} :=
 functor.as_equivalence skeletal_functor
 
 end skeleton
@@ -380,13 +379,13 @@ end skeleton
 `simplex_category` is a skeleton of `NonemptyFinLinOrd`.
 -/
 noncomputable
-def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd simplex_category skeletal_functor :=
+def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd simplex_category skeletal_functor.{u v} :=
 { skel := skeletal,
   eqv := skeletal_functor.is_equivalence }
 
 /-- The truncated simplex category. -/
 @[derive small_category]
-def truncated (n : ℕ) := {a : simplex_category // a.len ≤ n}
+def truncated (n : ℕ) := {a : simplex_category.{u} // a.len ≤ n}
 
 namespace truncated
 
@@ -397,7 +396,7 @@ The fully faithful inclusion of the truncated simplex category into the usual
 simplex category.
 -/
 @[derive [full, faithful]]
-def inclusion {n : ℕ} : simplex_category.truncated n ⥤ simplex_category :=
+def inclusion {n : ℕ} : simplex_category.truncated.{u} n ⥤ simplex_category.{u} :=
 full_subcategory_inclusion _
 
 end truncated
@@ -407,7 +406,7 @@ section concrete
 instance : concrete_category.{0} simplex_category.{u} :=
 { forget :=
   { obj := λ i, fin (i.len + 1),
-    map := λ i j f, f.to_preorder_hom },
+    map := λ i j f, f.to_order_hom },
   forget_faithful := {} }
 
 end concrete
@@ -416,14 +415,14 @@ section epi_mono
 
 /-- A morphism in `simplex_category` is a monomorphism precisely when it is an injective function
 -/
-theorem mono_iff_injective {n m : simplex_category} {f : n ⟶ m} :
-  mono f ↔ function.injective f.to_preorder_hom :=
+theorem mono_iff_injective {n m : simplex_category.{u}} {f : n ⟶ m} :
+  mono f ↔ function.injective f.to_order_hom :=
 begin
   split,
   { introsI m x y h,
     have H : const n x ≫ f = const n y ≫ f,
     { dsimp, rw h },
-    change (n.const x).to_preorder_hom 0 = (n.const y).to_preorder_hom 0,
+    change (n.const x).to_order_hom 0 = (n.const y).to_order_hom 0,
     rw cancel_mono f at H,
     rw H },
   { exact concrete_category.mono_of_injective f }
@@ -431,8 +430,8 @@ end
 
 /-- A morphism in `simplex_category` is an epimorphism if and only if it is a surjective function
 -/
-lemma epi_iff_surjective {n m : simplex_category} {f: n ⟶ m} :
-  epi f ↔ function.surjective f.to_preorder_hom :=
+lemma epi_iff_surjective {n m : simplex_category.{u}} {f: n ⟶ m} :
+  epi f ↔ function.surjective f.to_order_hom :=
 begin
   split,
   { introsI hyp_f_epi x,
@@ -464,33 +463,33 @@ begin
       simp [le_iff_lt_or_eq, h_ab x_1] },
     -- We now just have to show the two auxiliary functions are not equal.
     rw category_theory.cancel_epi f at f_comp_chi_i, rename f_comp_chi_i eq_chi_i,
-    apply_fun (λ e, e.to_preorder_hom x) at eq_chi_i,
+    apply_fun (λ e, e.to_order_hom x) at eq_chi_i,
     suffices : (0 : fin 2) = 1, by exact bot_ne_top this,
     simpa using eq_chi_i },
   { exact concrete_category.epi_of_surjective f }
 end
 
 /-- A monomorphism in `simplex_category` must increase lengths-/
-lemma len_le_of_mono {x y : simplex_category} {f : x ⟶ y} :
+lemma len_le_of_mono {x y : simplex_category.{u}} {f : x ⟶ y} :
   mono f → (x.len ≤ y.len) :=
 begin
   intro hyp_f_mono,
-  have f_inj : function.injective f.to_preorder_hom.to_fun,
+  have f_inj : function.injective f.to_order_hom.to_fun,
   { exact mono_iff_injective.elim_left (hyp_f_mono) },
-  simpa using fintype.card_le_of_injective f.to_preorder_hom.to_fun f_inj,
+  simpa using fintype.card_le_of_injective f.to_order_hom.to_fun f_inj,
 end
 
 lemma le_of_mono {n m : ℕ} {f : [n] ⟶ [m]} : (category_theory.mono f) → (n ≤ m) :=
 len_le_of_mono
 
 /-- An epimorphism in `simplex_category` must decrease lengths-/
-lemma len_le_of_epi {x y : simplex_category} {f : x ⟶ y} :
+lemma len_le_of_epi {x y : simplex_category.{u}} {f : x ⟶ y} :
   epi f → y.len ≤ x.len :=
 begin
   intro hyp_f_epi,
-  have f_surj : function.surjective f.to_preorder_hom.to_fun,
+  have f_surj : function.surjective f.to_order_hom.to_fun,
   { exact epi_iff_surjective.elim_left (hyp_f_epi) },
-  simpa using fintype.card_le_of_surjective f.to_preorder_hom.to_fun f_surj,
+  simpa using fintype.card_le_of_surjective f.to_order_hom.to_fun f_surj,
 end
 
 lemma le_of_epi {n m : ℕ} {f : [n] ⟶ [m]} : epi f → (m ≤ n) :=

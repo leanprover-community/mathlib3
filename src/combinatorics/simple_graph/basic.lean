@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
 import data.fintype.basic
+import data.rel
 import data.set.finite
 import data.sym.sym2
 
@@ -64,10 +65,10 @@ finitely many vertices.
 * Upgrade `simple_graph.boolean_algebra` to a `complete_boolean_algebra`.
 
 * This is the simplest notion of an unoriented graph.  This should
-eventually fit into a more complete combinatorics hierarchy which
-includes multigraphs and directed graphs.  We begin with simple graphs
-in order to start learning what the combinatorics hierarchy should
-look like.
+  eventually fit into a more complete combinatorics hierarchy which
+  includes multigraphs and directed graphs.  We begin with simple graphs
+  in order to start learning what the combinatorics hierarchy should
+  look like.
 -/
 open finset
 universes u v w
@@ -81,7 +82,7 @@ see `simple_graph.edge_set` for the corresponding edge set.
 @[ext]
 structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)
-(sym : symmetric adj . obviously)
+(symm : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
 /--
@@ -90,7 +91,7 @@ symmetrizes the relation and makes it irreflexive.
 -/
 def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
-  sym := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
+  symm := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
 noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
@@ -108,15 +109,35 @@ def complete_graph (V : Type u) : simple_graph V := { adj := ne }
 /-- The graph with no edges on a given vertex type `V`. `mathlib` prefers the notation `⊥`. -/
 def empty_graph (V : Type u) : simple_graph V := { adj := λ i j, false }
 
+/--
+Two vertices are adjacent in the complete bipartite graph on two vertex types
+if and only if they are not from the same side.
+Bipartite graphs in general may be regarded as being subgraphs of one of these.
+
+TODO also introduce complete multi-partite graphs, where the vertex type is a sigma type of an
+indexed family of vertex types
+-/
+@[simps]
+def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
+{ adj := λ v w, (v.is_left ∧ w.is_right) ∨ (v.is_right ∧ w.is_left),
+  symm := begin
+    intros v w,
+    cases v; cases w; simp,
+  end,
+  loopless := begin
+    intro v,
+    cases v; simp,
+  end }
+
 namespace simple_graph
 
 variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
-lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G.symm x⟩
 
-@[symm] lemma adj_symm {u v : V} (h : G.adj u v) : G.adj v u := G.sym h
+@[symm] lemma adj_symm {u v : V} (h : G.adj u v) : G.adj v u := G.symm h
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.irrefl hab }
@@ -135,7 +156,7 @@ rfl
 /-- The supremum of two graphs `x ⊔ y` has edges where either `x` or `y` have edges. -/
 instance : has_sup (simple_graph V) := ⟨λ x y,
   { adj := x.adj ⊔ y.adj,
-    sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }⟩
+    symm := λ v w h, by rwa [pi.sup_apply, pi.sup_apply, x.adj_comm, y.adj_comm] }⟩
 
 @[simp] lemma sup_adj (x y : simple_graph V) (v w : V) : (x ⊔ y).adj v w ↔ x.adj v w ∨ y.adj v w :=
 iff.rfl
@@ -143,7 +164,7 @@ iff.rfl
 /-- The infinum of two graphs `x ⊓ y` has edges where both `x` and `y` have edges. -/
 instance : has_inf (simple_graph V) := ⟨λ x y,
   { adj := x.adj ⊓ y.adj,
-    sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }⟩
+    symm := λ v w h, by rwa [pi.inf_apply, pi.inf_apply, x.adj_comm, y.adj_comm] }⟩
 
 @[simp] lemma inf_adj (x y : simple_graph V) (v w : V) : (x ⊓ y).adj v w ↔ x.adj v w ∧ y.adj v w :=
 iff.rfl
@@ -155,7 +176,7 @@ are adjacent in the complement, and every nonadjacent pair of vertices is adjace
 -/
 instance : has_compl (simple_graph V) := ⟨λ G,
   { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
-    sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
+    symm := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
     loopless := λ v ⟨hne, _⟩, (hne rfl).elim }⟩
 
 @[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
@@ -163,7 +184,7 @@ instance : has_compl (simple_graph V) := ⟨λ G,
 /-- The difference of two graphs `x / y` has the edges of `x` with the edges of `y` removed. -/
 instance : has_sdiff (simple_graph V) := ⟨λ x y,
   { adj := x.adj \ y.adj,
-    sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩
+    symm := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩
 
 @[simp] lemma sdiff_adj (x y : simple_graph V) (v w : V) :
   (x \ y).adj v w ↔ (x.adj v w ∧ ¬ y.adj v w) := iff.rfl
@@ -228,6 +249,14 @@ end decidable
 
 end order
 
+/-- `G.support` is the set of vertices that form edges in `G`. -/
+def support : set V := rel.dom G.adj
+
+lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w := iff.rfl
+
+lemma support_mono {G G' : simple_graph V} (h : G ≤ G') : G.support ⊆ G'.support :=
+rel.dom_mono h
+
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
@@ -241,7 +270,7 @@ The edges of G consist of the unordered pairs of vertices related by
 The way `edge_set` is defined is such that `mem_edge_set` is proved by `refl`.
 (That is, `⟦(v, w)⟧ ∈ G.edge_set` is definitionally equal to `G.adj v w`.)
 -/
-def edge_set : set (sym2 V) := sym2.from_rel G.sym
+def edge_set : set (sym2 V) := sym2.from_rel G.symm
 
 /--
 The `incidence_set` is the set of edges incident to a given vertex.
@@ -268,14 +297,14 @@ begin
   refine ⟨λ _, ⟨G.ne_of_adj ‹_›, ⟦(v,w)⟧, _⟩, _⟩,
   { simpa },
   { rintro ⟨hne, e, he, hv⟩,
-    rw sym2.elems_iff_eq hne at hv,
+    rw sym2.mem_and_mem_iff hne at hv,
     subst e,
     rwa mem_edge_set at he }
 end
 
 lemma edge_other_ne {e : sym2 V} (he : e ∈ G.edge_set) {v : V} (h : v ∈ e) : h.other ≠ v :=
 begin
-  erw [← sym2.mem_other_spec h, sym2.eq_swap] at he,
+  erw [← sym2.other_spec h, sym2.eq_swap] at he,
   exact G.ne_of_adj he,
 end
 
@@ -316,10 +345,11 @@ lemma adj_incidence_set_inter {v : V} {e : sym2 V} (he : e ∈ G.edge_set) (h : 
 begin
   ext e',
   simp only [incidence_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
-  split,
-  { intro h', rw ←sym2.mem_other_spec h,
-    exact (sym2.elems_iff_eq (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩, },
-  { rintro rfl, use [he, h, he], apply sym2.mem_other_mem, },
+  refine ⟨λ h', _, _⟩,
+  { rw ←sym2.other_spec h,
+    exact (sym2.mem_and_mem_iff (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩ },
+  { rintro rfl,
+    exact ⟨⟨he, h⟩, he, sym2.other_mem _⟩ }
 end
 
 lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
@@ -376,18 +406,18 @@ Given an edge incident to a particular vertex, get the other vertex on the edge.
 -/
 def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
 
-lemma edge_mem_other_incident_set {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
+lemma edge_other_incident_set {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   e ∈ G.incidence_set (G.other_vertex_of_incident h) :=
-by { use h.1, simp [other_vertex_of_incident, sym2.mem_other_mem'] }
+by { use h.1, simp [other_vertex_of_incident, sym2.other_mem'] }
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   G.other_vertex_of_incident h ∈ G.neighbor_set v :=
-by { cases h with he hv, rwa [←sym2.mem_other_spec' hv, mem_edge_set] at he }
+by { cases h with he hv, rwa [←sym2.other_spec' hv, mem_edge_set] at he }
 
 @[simp]
 lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :
   G.other_vertex_of_incident (G.mem_incidence_iff_neighbor.mpr h) = w :=
-sym2.congr_right.mp (sym2.mem_other_spec' (G.mem_incidence_iff_neighbor.mpr h).right)
+sym2.congr_right.mp (sym2.other_spec' (G.mem_incidence_iff_neighbor.mpr h).right)
 
 /--
 There is an equivalence between the set of edges incident to a given
@@ -707,6 +737,11 @@ The underlying map on edges is given by `sym2.map`. -/
 @[simps] def map_neighbor_set (v : V) (w : G.neighbor_set v) : G'.neighbor_set (f v) :=
 ⟨f w, f.apply_mem_neighbor_set w.property⟩
 
+/-- The induced map for spanning subgraphs, which is the identity on vertices. -/
+def map_spanning_subgraphs {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
+{ to_fun := λ x, x,
+  map_rel' := h }
+
 lemma map_edge_set.injective (hinj : function.injective f) : function.injective f.map_edge_set :=
 begin
   rintros ⟨e₁, h₁⟩ ⟨e₂, h₂⟩,
@@ -754,6 +789,12 @@ map_adj_iff f
     rw subtype.mk_eq_mk at h ⊢,
     exact f.inj' h,
   end }
+
+/-- Embeddings of types induce embeddings of complete graphs on those types. -/
+def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
+{ to_fun := f,
+  inj' := f.inj',
+  map_rel_iff' := by simp }
 
 variables {G'' : simple_graph X}
 

@@ -45,6 +45,7 @@ universes v₁ v₂ u₁ u₂
 noncomputable theory
 
 open category_theory.category
+open opposite
 
 namespace category_theory
 
@@ -194,6 +195,25 @@ lemma is_connected_of_equivalent {K : Type u₁} [category.{v₂} K]
 { is_nonempty := nonempty.map e.functor.obj (by apply_instance),
   to_is_preconnected := is_preconnected_of_equivalent e }
 
+/-- If `J` is preconnected, then `Jᵒᵖ` is preconnected as well. -/
+instance is_preconnected_op [is_preconnected J] : is_preconnected Jᵒᵖ :=
+{ iso_constant := λ α F X, ⟨
+    nat_iso.of_components
+      (λ Y, (nonempty.some $ is_preconnected.iso_constant
+        (F.right_op ⋙ (discrete.opposite α).functor) (unop X)).app (unop Y))
+      (λ Y Z f, subsingleton.elim _ _)
+  ⟩ }
+
+/-- If `J` is connected, then `Jᵒᵖ` is connected as well. -/
+instance is_connected_op [is_connected J] : is_connected Jᵒᵖ :=
+{ is_nonempty := nonempty.intro (op (classical.arbitrary J)) }
+
+lemma is_preconnected_of_is_preconnected_op [is_preconnected Jᵒᵖ] : is_preconnected J :=
+is_preconnected_of_equivalent (op_op_equivalence J)
+
+lemma is_connected_of_is_connected_op [is_connected Jᵒᵖ] : is_connected J :=
+is_connected_of_equivalent (op_op_equivalence J)
+
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]
 def zag (j₁ j₂ : J) : Prop := nonempty (j₁ ⟶ j₂) ∨ nonempty (j₂ ⟶ j₁)
@@ -231,11 +251,7 @@ If there is a zigzag from `j₁` to `j₂`, then there is a zigzag from `F j₁`
 -/
 lemma zigzag_obj_of_zigzag (F : J ⥤ K) {j₁ j₂ : J} (h : zigzag j₁ j₂) :
   zigzag (F.obj j₁) (F.obj j₂) :=
-begin
-  refine relation.refl_trans_gen_lift _ _ h,
-  intros j k,
-  exact or.imp (nonempty.map (λ f, F.map f)) (nonempty.map (λ f, F.map f))
-end
+h.lift _ $ λ j k, or.imp (nonempty.map (λ f, F.map f)) (nonempty.map (λ f, F.map f))
 
 -- TODO: figure out the right way to generalise this to `zigzag`.
 lemma zag_of_zag_obj (F : J ⥤ K) [full F] {j₁ j₂ : J} (h : zag (F.obj j₁) (F.obj j₂)) :
@@ -297,8 +313,8 @@ begin
 end
 
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
-def discrete_is_connected_equiv_punit {α : Type*} [is_connected (discrete α)] : α ≃ punit :=
-discrete.equiv_of_equivalence
+def discrete_is_connected_equiv_punit {α : Type u₁} [is_connected (discrete α)] : α ≃ punit :=
+discrete.equiv_of_equivalence.{u₁ u₁}
   { functor := functor.star α,
     inverse := discrete.functor (λ _, classical.arbitrary _),
     unit_iso := by { exact (iso_constant _ (classical.arbitrary _)), },

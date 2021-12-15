@@ -9,9 +9,9 @@ import algebra.triv_sq_zero_ext
 /-!
 # Dual numbers
 
-The dual numbers over `R` are of the form `a + bε`, where `a` and `b` are elements of a commutative
-ring `R`, and `ε` is a symbol satisfying `ε^2 = 0`. They are a special case of `triv_sq_zero_ext R M`
-with `M = R`.
+The dual numbers over `R` are of the form `a + bε`, where `a` and `b` are typically elements of a
+commutative ring `R`, and `ε` is a symbol satisfying `ε^2 = 0`. They are a special case of
+`triv_sq_zero_ext R M` with `M = R`.
 
 ## Notation
 

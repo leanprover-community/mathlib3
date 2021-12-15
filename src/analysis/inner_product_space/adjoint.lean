@@ -51,32 +51,32 @@ def adjoint' : (E →L[𝕜] F) →L⋆[𝕜] (F →L[𝕜] E) :=
 (continuous_linear_map.compSL _ _ _ _ _ ((to_dual 𝕜 E).symm : normed_space.dual 𝕜 E →L⋆[𝕜] E)).comp
   (to_sesq_form : (E →L[𝕜] F) →L[𝕜] F →L⋆[𝕜] normed_space.dual 𝕜 E)
 
-@[simp] lemma adjoint'_apply {A : E →L[𝕜] F} {x : F} :
+@[simp] lemma adjoint'_apply (A : E →L[𝕜] F) (x : F) :
   adjoint' A x = ((to_dual 𝕜 E).symm : (normed_space.dual 𝕜 E) → E) ((to_sesq_form A) x) := rfl
 
-lemma adjoint'_inner_left {A : E →L[𝕜] F} {x : E} {y : F} : ⟪adjoint' A y, x⟫ = ⟪y, A x⟫ :=
+lemma adjoint'_inner_left (A : E →L[𝕜] F) (x : E) (y : F) : ⟪adjoint' A y, x⟫ = ⟪y, A x⟫ :=
 by { simp only [adjoint'_apply, to_dual_symm_apply, to_sesq_form_apply_coe, coe_comp',
                 innerSL_apply_coe]}
 
-lemma adjoint'_inner_right {A : E →L[𝕜] F} {x : E} {y : F} : ⟪x, adjoint' A y⟫ = ⟪A x, y⟫ :=
+lemma adjoint'_inner_right (A : E →L[𝕜] F) (x : E) (y : F) : ⟪x, adjoint' A y⟫ = ⟪A x, y⟫ :=
 by rw [←inner_conj_sym, adjoint'_inner_left, inner_conj_sym]
 
 variables [complete_space F]
 
-lemma adjoint'_adjoint'_apply (A : E →L[𝕜] F) : adjoint' (adjoint' A) = A :=
+lemma adjoint'_adjoint' (A : E →L[𝕜] F) : adjoint' (adjoint' A) = A :=
 begin
   ext v,
   refine ext_inner_left 𝕜 (λ w, _),
   rw [adjoint'_inner_right, adjoint'_inner_left],
 end
 
-lemma adjoint'_norm {A : E →L[𝕜] F} : ∥adjoint' A∥ = ∥A∥ :=
+lemma adjoint'_norm (A : E →L[𝕜] F) : ∥adjoint' A∥ = ∥A∥ :=
 begin
   refine le_antisymm _ _,
   { refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ x, _),
     rw [adjoint'_apply, linear_isometry_equiv.norm_map],
     exact to_sesq_form_apply_norm_le },
-  { nth_rewrite_lhs 0 [←adjoint'_adjoint'_apply A],
+  { nth_rewrite_lhs 0 [←adjoint'_adjoint' A],
     refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ x, _),
     rw [adjoint'_apply, linear_isometry_equiv.norm_map],
     exact to_sesq_form_apply_norm_le }
@@ -85,27 +85,27 @@ end
 /-- The adjoint of a bounded operator from Hilbert space E to Hilbert space F. -/
 def adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E) :=
 linear_isometry_equiv.of_surjective
-{ norm_map' := λ A, adjoint'_norm,
+{ norm_map' := adjoint'_norm,
   ..adjoint' }
-(λ A, ⟨adjoint' A, adjoint'_adjoint'_apply A⟩)
+(λ A, ⟨adjoint' A, adjoint'_adjoint' A⟩)
 
 local postfix `†`:1000 := adjoint
 
 /-- The fundamental property of the adjoint. -/
-lemma adjoint_inner_left {A : E →L[𝕜] F} {x : E} {y : F} : ⟪A† y, x⟫ = ⟪y, A x⟫ :=
-adjoint'_inner_left
+lemma adjoint_inner_left (A : E →L[𝕜] F) (x : E) (y : F) : ⟪A† y, x⟫ = ⟪y, A x⟫ :=
+adjoint'_inner_left A x y
 
 /-- The fundamental property of the adjoint. -/
-lemma adjoint_inner_right {A : E →L[𝕜] F} {x : E} {y : F} : ⟪x, A† y⟫ = ⟪A x, y⟫ :=
-adjoint'_inner_right
+lemma adjoint_inner_right (A : E →L[𝕜] F) (x : E) (y : F) : ⟪x, A† y⟫ = ⟪A x, y⟫ :=
+adjoint'_inner_right A x y
 
 /-- The adjoint is involutive -/
-@[simp] lemma adjoint_adjoint_apply {A : E →L[𝕜] F} : A†† = A :=
-adjoint'_adjoint'_apply A
+@[simp] lemma adjoint_adjoint (A : E →L[𝕜] F) : A†† = A :=
+adjoint'_adjoint' A
 
 /-- The adjoint of the composition of two operators is the composition of the two adjoints
 in reverse order. -/
-@[simp] lemma adjoint_comp {A : F →L[𝕜] G} {B : E →L[𝕜] F} : (A ∘L B)† = B† ∘L A† :=
+@[simp] lemma adjoint_comp (A : F →L[𝕜] G) (B : E →L[𝕜] F) : (A ∘L B)† = B† ∘L A† :=
 begin
   ext v,
   refine ext_inner_left 𝕜 (λ w, _),
@@ -114,8 +114,8 @@ end
 
 /-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
-instance : has_involutive_star (E →L[𝕜] E) := ⟨λ _, adjoint_adjoint_apply⟩
-instance : star_monoid (E →L[𝕜] E) := ⟨λ _ _, adjoint_comp⟩
+instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩
+instance : star_monoid (E →L[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 

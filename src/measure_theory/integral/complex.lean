@@ -120,7 +120,9 @@ begin
   replace hd : ∀ z ∈ R \ g ⁻¹' s, differentiable_within_at ℂ (f ∘ g) R z,
   { intros z hz,
     exact (hd (g z) ⟨h_maps hz.1, hz.2⟩).comp z hdg h_maps },
-  simpa [g, exp_periodic _, sub_eq_zero, (smul_right_injective E I_ne_zero).eq_iff]
+  simp only [circle_map_sub_center, deriv_circle_map,
+    mul_div_cancel_left _ (circle_map_ne_center (real.exp_ne_zero _))],
+  simpa [g, circle_map, exp_periodic _, sub_eq_zero, ← exp_add]
     using integral_boundary_rect_eq_zero_of_differentiable_on_off_countable _ ⟨a, 0⟩ ⟨b, 2 * π⟩
       _ hs hc hd
 end
@@ -129,7 +131,7 @@ end
 punctured closed disc of radius `R` and has a limit `y` at the center of the disc, then the integral
 $\int_{|z|=R} f(z)\,d(\arg z)=-i\int_{|z|=R}\frac{f(z)\,dz}{z}$ is equal to $2πy`. Moreover, the
 same is true if at the points of some countable set, `f` is only continuous, not differentiable. -/
-lemma integral_circle_darg_of_differentiable_on_off_countable_of_tendsto
+lemma circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendsto
   {z₀ : ℂ} {R : ℝ} (h0 : 0 < R) {f : ℂ → E} {y : E} {s : set ℂ} (hs : countable s)
   (hc : ∀ z ∈ s, continuous_within_at f (closed_ball z₀ R \ {z₀}) z)
   (hd : ∀ z ∈ closed_ball z₀ R \ {z₀} \ s,
@@ -147,98 +149,97 @@ begin
     ⟨min δ R, lt_min δ0 h0, min_le_left _ _, min_le_right _ _⟩,
   have hsub : closed_ball z₀ R \ ball z₀ r ⊆ closed_ball z₀ R \ {z₀},
     from diff_subset_diff_right (singleton_subset_iff.2 $ mem_ball_self hr0),
-  have : ∮ z in C(z₀, R), (z - z₀)⁻¹ • f z = ∮ z in C(z₀, r), (z - z₀)⁻¹ • f z,
-  { refine circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable
-      hr0 hrR hs _ _,
-    exacts [λ z hz, (hc z hz).mono hsub, λ z hz, (hd z ⟨hsub hz.1, hz.2⟩).mono hsub] },
-  rw this,
-  have hmem : ∀ y : ℝ, ↑r * exp (y * I) ∈ closed_ball (0 : ℂ) r \ {0},
-  { intro x, simp [abs_of_nonneg hr0.le, hr0.ne', exp_ne_zero] },
-  have : ∫ (θ : ℝ) in 0..2 * π, y = (2 * π) • y := by simp,
-  rw [← this, ← interval_integral.integral_sub],
-  { have : ∀ x : ℝ, ∥f (r * exp (x * I)) - y∥ ≤ ε / (2 * π),
-    { intro x, rw ← dist_eq_norm,
-      exact (hδ _ (diff_subset_diff_left (closed_ball_subset_closed_ball hrδ) (hmem x))).le },
-    refine (interval_integral.norm_integral_le_of_norm_le_const (λ x _, this x)).trans_eq _,
-    simp [real.two_pi_pos.ne', _root_.abs_of_nonneg real.two_pi_pos.le] },
-  { refine continuous.interval_integrable _ _ _,
-    have : continuous_on f (closed_ball 0 R \ {0}),
-    { intros z hz, by_cases hzs : z ∈ s,
-      exacts [hc z hzs, (hd z ⟨hz, hzs⟩).continuous_within_at] },
-    refine this.comp_continuous _ _,
-    { continuity },
-    { exact λ y, ⟨closed_ball_subset_closed_ball hrR (hmem y).1, (hmem y).2⟩ } },
-  { simp [interval_integrable, measure_lt_top] }
+  have hzne : ∀ z ∈ sphere z₀ r, z ≠ z₀,
+  { rintro z hz rfl,
+    apply hr0.ne,
+    rwa [mem_sphere, dist_self] at hz },
+  calc ∥(∮ z in C(z₀, R), (z - z₀)⁻¹ • f z) - (2 * ↑π * I) • y∥
+      = ∥(∮ z in C(z₀, r), (z - z₀)⁻¹ • f z) - ∮ z in C(z₀, r), (z - z₀)⁻¹ • y∥ :
+    begin
+      congr' 2,
+      { refine circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable
+          hr0 hrR hs _ _,
+        exacts [λ z hz, (hc z hz).mono hsub, λ z hz, (hd z ⟨hsub hz.1, hz.2⟩).mono hsub] },
+      { simp [hr0.ne'] }
+    end
+  ... = ∥∮ z in C(z₀, r), (z - z₀)⁻¹ • (f z - y)∥ :
+    begin
+      simp only [smul_sub],
+      have hc' : continuous_on (λ z, (z - z₀)⁻¹) (sphere z₀ r),
+        from (continuous_on_id.sub continuous_on_const).inv₀ (λ z hz, sub_ne_zero.2 $ hzne _ hz),
+      rw circle_integral.integral_sub; refine (hc'.smul _).circle_integrable hr0.le,
+      { have H : sphere z₀ r ⊆ closed_ball z₀ R \ {z₀},
+        { refine λ z hz, ⟨_, hzne z hz⟩,
+          rw [mem_sphere, dist_eq_norm] at hz,
+          rwa [mem_closed_ball_iff_norm, hz] },
+        intros z hz,
+        by_cases hzs : z ∈ s,
+        exacts [(hc z hzs).mono H, (hd z ⟨H hz, hzs⟩).continuous_within_at.mono H] },
+      { exact continuous_on_const }
+    end
+  ... ≤ 2 * π * r * (r⁻¹ * (ε / (2 * π))) :
+    begin
+      refine circle_integral.norm_integral_le_of_norm_le_const hr0.le (λ z hz, _),
+      specialize hzne z hz,
+      rw [mem_sphere, dist_eq_norm] at hz,
+      rw [norm_smul, normed_field.norm_inv, hz, ← dist_eq_norm],
+      refine mul_le_mul_of_nonneg_left (hδ _ ⟨_, hzne⟩).le (inv_nonneg.2 hr0.le),
+      rwa [mem_closed_ball_iff_norm, hz]
+    end
+  ... = ε : by { field_simp [hr0.ne', real.two_pi_pos.ne'], ac_refl }
 end
 
 /-- **Cauchy integral formula** for the value at the center of a disc. If `f` is differentiable on a
 closed disc of radius `R`, then the integral
 $\int_{|z|=R} f(z)\,d(\arg z)=-i\int_{|z|=R}\frac{f(z)\,dz}{z}$ is equal to $2πy`. Moreover, the
 same is true if at the points of some countable set, `f` is only continuous, not differentiable. -/
-lemma integral_circle_darg_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
-  {s : set ℂ} (hs : countable s) (hc : ∀ x ∈ s, continuous_within_at f (closed_ball 0 R) x)
-  (hd : ∀ z ∈ closed_ball (0 : ℂ) R \ s, differentiable_within_at ℂ f (closed_ball 0 R) z) :
-  ∫ (θ : ℝ) in 0..2 * π, f (R * exp (θ * I)) = (2 * π) • f 0 :=
+lemma circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 < R)
+  {f : ℂ → E} {z₀ : ℂ} {s : set ℂ} (hs : countable s)
+  (hc : ∀ x ∈ s, continuous_within_at f (closed_ball z₀ R) x)
+  (hd : ∀ z ∈ closed_ball z₀ R \ s, differentiable_within_at ℂ f (closed_ball z₀ R) z) :
+  ∮ z in C(z₀, R), (z - z₀)⁻¹ • f z = (2 * π * I : ℂ) • f z₀ :=
 begin
-  rcases h0.eq_or_lt with (rfl|h0), { simp },
-  refine integral_circle_darg_of_differentiable_on_off_countable_of_tendsto h0 hs
+  refine circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendsto h0 hs
     (λ z hz, (hc z hz).mono $ diff_subset _ _)
     (λ z hz, (hd z ⟨hz.1.1, hz.2⟩).mono $ diff_subset _ _) _,
-  suffices : continuous_within_at f (closed_ball 0 R) 0,
+  suffices : continuous_within_at f (closed_ball z₀ R) z₀,
     from (this.continuous_at (closed_ball_mem_nhds _ h0)).continuous_within_at,
-  by_cases h : (0 : ℂ) ∈ s,
+  by_cases h : (z₀ : ℂ) ∈ s,
   exacts [hc _ h, (hd _ ⟨mem_closed_ball_self h0.le, h⟩).continuous_within_at]
 end
 
 /-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
 disc equals zero. Moreover, the same is true if at the points of some countable set, `f` is only
 continuous. -/
-lemma integral_circle_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
-  {s : set ℂ} (hs : countable s) (hc : ∀ x ∈ s, continuous_within_at f (closed_ball 0 R) x)
-  (hd : ∀ z ∈ closed_ball (0 : ℂ) R \ s, differentiable_within_at ℂ f (closed_ball 0 R) z) :
-  ∫ (θ : ℝ) in 0..2 * π, (R * exp (θ * I) * I : ℂ) • f (R * exp (θ * I)) = 0 :=
-by simpa [mul_smul, smul_comm _ I, interval_integral.integral_smul, I_ne_zero]
-  using integral_circle_darg_of_differentiable_on_off_countable h0 hs
-    (λ z hz, continuous_within_at_id.smul (hc z hz))
-    (λ z hz, differentiable_within_at_id.smul (hd z hz))
-
-/-- If `|w|<R` and `n ≠ -1`, then $\int_{|z|=R} (z-w)^n\,dz=0`. -/
-lemma integral_circle_zpow_sub_of_abs_lt {R : ℝ} {w : ℂ} (hw : abs w < R) {n : ℤ} (hn : n ≠ -1) :
-  ∫ θ : ℝ in 0..2 * π, ↑R * exp (θ * I) * I * (R * exp (θ * I) - w) ^ n = 0 :=
+lemma circle_integral_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
+  {z₀ : ℂ}
+  {s : set ℂ} (hs : countable s) (hc : ∀ x ∈ s, continuous_within_at f (closed_ball z₀ R) x)
+  (hd : ∀ z ∈ closed_ball z₀ R \ s, differentiable_within_at ℂ f (closed_ball z₀ R) z) :
+  ∮ z in C(z₀, R), f z = 0 :=
 begin
-  have hR0 : 0 < R := (abs_nonneg w).trans_lt hw,
-  have h0 : ∀ θ : ℝ, ↑R * exp (θ * I) - w ≠ 0,
-  { refine λ θ, sub_ne_zero.2 (λ h₀, _),
-    simpa [h₀.symm, _root_.abs_of_nonneg hR0.le] using hw },
-  set f : ℝ → ℂ := λ θ, R * exp (θ * I) * I * (R * exp (θ * I) - w) ^ n,
-  set F : ℝ → ℂ := λ θ, (R * exp (θ * I) - w) ^ (n + 1) / (n + 1),
-  have : ∀ θ, has_deriv_at F (f θ) θ,
-  { intro θ, simp only [F, div_eq_mul_inv],
-    convert (((has_deriv_at_zpow (n + 1) _
-      (or.inl $ h0 θ)).has_fderiv_at.restrict_scalars ℝ).comp_has_deriv_at θ
-      (((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul ↑R).sub_const w)).mul_const _,
-    have : (n + 1 : ℂ) ≠ 0, by exact_mod_cast mt eq_neg_iff_add_eq_zero.2 hn,
-    field_simp [f, this], ac_refl },
-  have hfc : continuous f,
-  { have : continuous (λ θ : ℝ, ↑R * exp (θ * I)) :=
-      continuous_const.mul (continuous_of_real.mul continuous_const).cexp,
-    exact (this.mul continuous_const).mul ((this.sub continuous_const).zpow _
-      (λ θ, or.inl (h0 θ))) },
-  calc ∫ θ in 0 .. 2 * π, f θ = F (2 * π) - F 0 :
-    interval_integral.integral_eq_sub_of_has_deriv_at (λ θ _, this θ) (hfc.interval_integrable _ _)
-  ... = 0 : by { simp only [F], simp }
+  rcases h0.eq_or_lt with rfl|h0, { apply circle_integral.integral_radius_zero },
+  calc ∮ z in C(z₀, R), f z = ∮ z in C(z₀, R), (z - z₀)⁻¹ • (z - z₀) • f z :
+    begin
+      refine circle_integral.integral_congr h0.le (λ z hz, (inv_smul_smul₀ (λ h₀, _) _).symm),
+      rw [mem_sphere, dist_eq, h₀, abs_zero] at hz,
+      exact h0.ne hz
+    end
+  ... = (2 * ↑π * I : ℂ) • (z₀ - z₀) • f z₀ :
+    circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable h0 hs
+      (λ z hz, (continuous_within_at_id.sub continuous_within_at_const).smul (hc z hz))
+      (λ z hz, (differentiable_within_at_id.sub_const _).smul (hd z hz))
+  ... = 0 : by rw [sub_self, zero_smul, smul_zero]
 end
 
-def cauchy_power_series (f : ℝ → E) (R : ℝ) :
+def cauchy_power_series (f : ℂ → E) (c : ℂ) (R : ℝ) :
   formal_multilinear_series ℂ ℂ E :=
 λ n, continuous_multilinear_map.mk_pi_field ℂ _ $
-  ∫ θ : ℝ in 0..2*π, (↑R * exp (θ * I))⁻¹ ^ n • f θ
+  (2 * π * I : ℂ) • ∮ z in C(c, R), (z - c) ^ (n - 1 : ℤ) • f z
 
-lemma cauchy_power_series_apply (f : ℝ → E) (R : ℝ) (n : ℕ) (z : ℂ) :
-  cauchy_power_series f R n (λ _, z) =
-    ∫ θ : ℝ in 0..2*π, (z / (R * exp (θ * I))) ^ n • f θ :=
-by simp only [cauchy_power_series, continuous_multilinear_map.mk_pi_field_apply, fin.prod_const,
-  ← interval_integral.integral_smul, div_eq_mul_inv, mul_pow, smul_smul]
+lemma cauchy_power_series_apply (f : ℂ → E) (c : ℂ) (R : ℝ) (n : ℕ) (w : ℂ) :
+  cauchy_power_series f c R n (λ _, w) =
+    (2 * π * I : ℂ) • ∮ z in C(c, R), (w / (z - c)) ^ n • f z :=
+by simp only [cauchy_power_series, continuous_multilinear_map.mk_pi_field_apply, fin.prod_const]
 
 lemma norm_cauchy_power_series_le (f : ℝ → E) (R : ℝ) (n : ℕ) :
   ∥cauchy_power_series f R n∥ ≤ (∫ θ : ℝ in 0..2*π, ∥f θ∥) * (|R|⁻¹) ^ n :=

@@ -1088,8 +1088,13 @@ not_lt.mp (mt (eq_zero_of_dvd_of_nat_abs_lt_nat_abs hst) ht)
 lemma nat_abs_eq_of_dvd_dvd {s t : ℤ} (hst : s ∣ t) (hts : t ∣ s) : nat_abs s = nat_abs t :=
 nat.dvd_antisymm (nat_abs_dvd_iff_dvd.mpr hst) (nat_abs_dvd_iff_dvd.mpr hts)
 
-lemma div_dvd_of_ne_zero_dvd {s t : ℤ} (hst : s ∣ t) (hs : s ≠ 0) : (t / s) ∣ t :=
-by { rcases hst with ⟨c, hc⟩, simp [hc, int.mul_div_cancel_left _ hs] }
+lemma div_dvd_of_ne_zero_dvd {s t : ℤ} (hst : s ∣ t) : (t / s) ∣ t :=
+begin
+  by_cases hs : s = 0,
+  { simp [*] at *, },
+  rcases hst with ⟨c, hc⟩,
+  simp [hc, int.mul_div_cancel_left _ hs],
+end
 
 /-! ### to_nat -/
 

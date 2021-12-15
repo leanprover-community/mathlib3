@@ -1422,7 +1422,7 @@ begin
     simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
     rw (set.ext (λ x, _) : Ioo (a : ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
     { have hg : ∀ q : ℚ, g.measurable_set' (Iio q) :=
-        λ q, generate_measurable.basic (Iio q) (by simp),
+        λ q, generate_measurable.basic (Iio q) (by { simp, exact ⟨_, rfl⟩ }),
       refine @measurable_set.inter _ g _ _ _ (hg _),
       refine @measurable_set.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
       exact @measurable_set.compl _ _ g (hg _) },

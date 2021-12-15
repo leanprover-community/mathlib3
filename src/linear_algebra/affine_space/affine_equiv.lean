@@ -165,6 +165,24 @@ def mk' (e : P₁ → P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : 
 
 @[simp] lemma symm_linear (e : P₁ ≃ᵃ[k] P₂) : e.linear.symm = e.symm.linear := rfl
 
+-- `simps` is not happy with the order we have the variables in this section, so we attach them all
+-- to these lemmas manually.
+
+/-- See Note [custom simps projection] -/
+def simps.apply {k P₁ P₂ V₁ V₂ : Type*} [ring k]
+  [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
+  [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
+  (e : P₁ ≃ᵃ[k] P₂) : P₁ → P₂ := e
+
+/-- See Note [custom simps projection] -/
+def simps.symm_apply {k P₁ P₂ V₁ V₂ : Type*} [ring k]
+  [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
+  [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂] (e : P₁ ≃ᵃ[k] P₂) :
+  P₂ → P₁ := e.symm
+
+initialize_simps_projections affine_equiv
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, -to_equiv)
+
 protected lemma bijective (e : P₁ ≃ᵃ[k] P₂) : bijective e := e.to_equiv.bijective
 protected lemma surjective (e : P₁ ≃ᵃ[k] P₂) : surjective e := e.to_equiv.surjective
 protected lemma injective (e : P₁ ≃ᵃ[k] P₂) : injective e := e.to_equiv.injective

@@ -407,12 +407,11 @@ begin
     λ _, set.subset_sUnion_of_mem⟩,
   rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
   obtain rfl | hsseq := eq_or_ne sy sz,
-  { exact (hcs₀ hsy).right _ hysy _ hzsz hyz },
-  cases hcs₁ _ hsy _ hsz hsseq with h h,
-  { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
-  { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz }
+  { exact (hcs₀ hsy).right hysy hzsz hyz },
+  cases hcs₁ hsy hsz hsseq with h h,
+  { exact (hcs₀ hsz).right (h hysy) hzsz hyz },
+  { exact (hcs₀ hsy).right hysy (h hzsz) hyz }
 end
-
 
 lemma chain.total {α : Type u} [preorder α] {c : set α} (H : chain (≤) c) :
   ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=

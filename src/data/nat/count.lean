@@ -102,7 +102,7 @@ lemma lt_of_count_lt_count {a b : ℕ} (h : count p a < count p b) : a < b :=
 variable {q : ℕ → Prop}
 variable [decidable_pred q]
 
-lemma count_mono_left {n : ℕ} (hpq : p ≤ q) : count p n ≤ count q n :=
+lemma count_mono_left {n : ℕ} (hpq : ∀ k, p k → q k) : count p n ≤ count q n :=
 begin
   simp only [count_eq_card_filter_range],
   exact card_le_of_subset ((range n).monotone_filter_right hpq),

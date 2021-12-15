@@ -35,7 +35,20 @@ variables {C A}
 section monoid
 variables [add_monoid A]
 variables (F : monoidal_functor (discrete A) (C ⥤ C)) (G : monoidal_functor M N)
+variable (F' : monoidal_functor M (C ⥤ C))
+section
+variables {D : Type*} [category D] {E : Type*} [category E]
 
+@[simp, reassoc] lemma map_hom_inv_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+  (F.map e.hom).app Z ≫ (F.map e.inv).app Z = 𝟙 _ :=
+by simp [← nat_trans.comp_app, ← functor.map_comp]
+
+@[simp, reassoc] lemma map_inv_hom_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+  (F.map e.inv).app Z ≫ (F.map e.hom).app Z = 𝟙 _ :=
+by simp [← nat_trans.comp_app, ← functor.map_comp]
+
+
+end
 namespace monoidal_functor
 
 @[simp]
@@ -43,164 +56,204 @@ lemma μ_iso_hom (X Y : M) : (G.μ_iso X Y).hom = G.μ X Y := rfl
 @[simp]
 lemma ε_iso_hom : G.ε_iso.hom = G.ε := rfl
 
-@[simp, reassoc]
-lemma μ_hom_inv_app (i j : A) (X : C) :
-  (F.μ i j).app X ≫ (F.μ_iso i j).inv.app X = 𝟙 _ := (F.μ_iso i j).hom_inv_id_app X
+end monoidal_functor
 
 @[simp, reassoc]
-lemma μ_inv_hom_app (i j : A) (X : C) :
-   (F.μ_iso i j).inv.app X ≫ (F.μ i j).app X = 𝟙 _ := (F.μ_iso i j).inv_hom_id_app X
+lemma μ_hom_inv_app (i j : M) (X : C) :
+  (F'.μ i j).app X ≫ (F'.μ_iso i j).inv.app X = 𝟙 _ := (F'.μ_iso i j).hom_inv_id_app X
+
+@[simp, reassoc]
+lemma μ_inv_hom_app (i j : M) (X : C) :
+   (F'.μ_iso i j).inv.app X ≫ (F'.μ i j).app X = 𝟙 _ := (F'.μ_iso i j).inv_hom_id_app X
 
 @[simp, reassoc]
 lemma ε_hom_inv_app (X : C) :
-  F.ε.app X ≫ F.ε_iso.inv.app X = 𝟙 _ := F.ε_iso.hom_inv_id_app X
+  F'.ε.app X ≫ F'.ε_iso.inv.app X = 𝟙 _ := F'.ε_iso.hom_inv_id_app X
 
 @[simp, reassoc]
 lemma ε_inv_hom_app (X : C) :
-  F.ε_iso.inv.app X ≫ F.ε.app X = 𝟙 _ := F.ε_iso.inv_hom_id_app X
+  F'.ε_iso.inv.app X ≫ F'.ε.app X = 𝟙 _ := F'.ε_iso.inv_hom_id_app X
 
 @[simp, reassoc]
 lemma ε_naturality {X Y : C} (f : X ⟶ Y) :
-  F.ε.app X ≫ (F.obj 0).map f = f ≫ F.ε.app Y := (F.ε.naturality f).symm
+  F'.ε.app X ≫ (F'.obj (𝟙_M)).map f = f ≫ F'.ε.app Y := (F'.ε.naturality f).symm
 
-end monoidal_functor
+@[simp, reassoc]
+lemma ε_inv_naturality {X Y : C} (f : X ⟶ Y) :
+  (F'.obj (𝟙_M)).map f ≫ F'.ε_iso.inv.app Y = F'.ε_iso.inv.app X ≫ f :=
+F'.ε_iso.inv.naturality f
 
+@[simp, reassoc]
+lemma μ_naturality {m n : M} {X Y : C} (f : X ⟶ Y) :
+  (F'.obj n).map ((F'.obj m).map f) ≫ (F'.μ m n).app Y = (F'.μ m n).app X ≫ (F'.obj _).map f :=
+(F'.to_lax_monoidal_functor.μ m n).naturality f
 
-lemma whisker_left_eq (F G H : C ⥤ C) (α : F ⟶ G) : whisker_left H α = (𝟙 _) ⊗ α :=
-by { ext, dsimp, rw G.map_id, exact (category.comp_id _).symm }
+@[simp, reassoc]
+lemma μ_inv_naturality {m n : M} {X Y : C} (f : X ⟶ Y) :
+  (F'.μ_iso m n).inv.app X ≫ (F'.obj n).map ((F'.obj m).map f) =
+    (F'.obj _).map f ≫ (F'.μ_iso m n).inv.app Y :=
+((F'.μ_iso m n).inv.naturality f).symm
 
-lemma whisker_right_eq (F G H : C ⥤ C) (α : F ⟶ G) : whisker_right α H = α ⊗ (𝟙 _) :=
-by { ext, exact (category.id_comp _).symm }
-
-lemma comp_eq (F G : C ⥤ C) : F ⋙ G = F ⊗ G := rfl
-
-@[reassoc]
-lemma left_unitality_app (n : A) (X : C) :
-  (F.obj n).map (F.ε.app X) ≫ (F.μ 0 n).app X =
-    eq_to_hom (by { congr, exact (zero_add _).symm }) :=
+@[simp, reassoc]
+lemma μ_naturality₂ {m n m' n' : M} (f : m ⟶ m') (g : n ⟶ n') (X : C) :
+  (F'.map g).app ((F'.obj m).obj X) ≫ (F'.obj n').map ((F'.map f).app X) ≫ (F'.μ m' n').app X =
+    (F'.μ m n).app X ≫ (F'.map (f ⊗ g)).app X :=
 begin
-  refine eq.trans _ (category.id_comp _),
-  rw ← is_iso.comp_inv_eq,
-  have := congr_app (F.to_lax_monoidal_functor.left_unitality n) X,
+  have := congr_app (F'.to_lax_monoidal_functor.μ_natural f g) X,
   dsimp at this,
-  simpa using this.symm,
+  simpa using this,
 end
 
-@[simp]
-lemma obj_ε_app (n : A) (X : C) :
-  (F.obj n).map (F.ε.app X) =
-    eq_to_hom (by { congr, exact (zero_add _).symm }) ≫ (F.μ_iso 0 n).inv.app X :=
+@[simp, reassoc]
+lemma μ_naturalityₗ {m n m' : M} (f : m ⟶ m') (X : C) :
+  (F'.obj n).map((F'.map f).app X) ≫ (F'.μ m' n).app X =
+    (F'.μ m n).app X ≫ (F'.map (f ⊗ 𝟙 n)).app X :=
 begin
-  rw [← left_unitality_app, category.assoc, ← nat_iso.app_inv],
-  erw ((F.μ_iso 0 n).app X).hom_inv_id,
-  exact (category.comp_id _).symm,
+  rw ← μ_naturality₂ F' f (𝟙 n) X,
+  simp,
 end
 
-@[simp]
-lemma obj_ε_inv_app (n : A) (X : C) :
-  (F.obj n).map (F.ε_iso.inv.app X) =
-    (F.μ 0 n).app X ≫ eq_to_hom (by { congr, exact zero_add _ })  :=
+@[simp, reassoc]
+lemma μ_naturalityᵣ {m n n' : M} (g : n ⟶ n') (X : C) :
+  (F'.map g).app ((F'.obj m).obj X) ≫ (F'.μ m n').app X =
+    (F'.μ m n).app X ≫ (F'.map (𝟙 m ⊗ g)).app X :=
 begin
-  rw [← cancel_mono ((F.obj n).map (F.ε.app X)), ← functor.map_comp],
-  simpa,
-end
-
-@[reassoc]
-lemma right_unitality_app (m : A) (X : C) :
-  F.ε.app ((F.obj m).obj X) ≫ (F.μ m 0).app X =
-    eq_to_hom (by { dsimp, congr, exact (add_zero _).symm }) :=
-begin
-  refine eq.trans _ (category.id_comp _),
-  rw ← is_iso.comp_inv_eq,
-  have := congr_app (F.to_lax_monoidal_functor.right_unitality m) X,
-  dsimp at this,
-  simpa using this.symm,
-end
-
-@[simp]
-lemma ε_app_obj (n : A) (X : C) :
-  F.ε.app ((F.obj n).obj X) =
-    eq_to_hom (by { dsimp, congr, exact (add_zero _).symm }) ≫ (F.μ_iso n 0).inv.app X :=
-begin
-  rw [← right_unitality_app, category.assoc, ← nat_iso.app_inv],
-  erw ((F.μ_iso n 0).app X).hom_inv_id,
-  exact (category.comp_id _).symm,
-end
-
-@[simp]
-lemma ε_inv_app_obj (n : A) (X : C) :
-  F.ε_iso.inv.app ((F.obj n).obj X) =
-    (F.μ n 0).app X ≫ eq_to_hom (by { dsimp, congr, exact add_zero _ }) :=
-begin
-  rw ← nat_iso.app_inv,
-  ext,
-  erw right_unitality_app_assoc,
+  rw ← μ_naturality₂ F' (𝟙 m) g X,
   simp,
 end
 
 @[reassoc]
-lemma associativity_app (m₁ m₂ m₃: A) (X : C) :
-  (F.obj m₃).map ((F.μ m₁ m₂).app X) ≫ (F.μ (m₁ + m₂) m₃).app X ≫
-    eq_to_hom (by { congr' 2, exact add_assoc _ _ _ }) =
-  (F.μ m₂ m₃).app ((F.obj m₁).obj X) ≫ (F.μ m₁ (m₂ + m₃)).app X :=
+lemma left_unitality_app (n : M) (X : C) :
+  (F'.obj n).map (F'.ε.app X) ≫ (F'.μ (𝟙_M) n).app X
+    ≫ (F'.map (λ_ n).hom).app X = 𝟙 _ :=
 begin
-  have := congr_app (F.to_lax_monoidal_functor.associativity m₁ m₂ m₃) X,
+  have := congr_app (F'.to_lax_monoidal_functor.left_unitality n) X,
+  dsimp at this,
+  simpa using this.symm,
+end
+
+@[simp]
+lemma obj_ε_app (n : M) (X : C) :
+  (F'.obj n).map (F'.ε.app X) =
+    (F'.map (λ_ n).inv).app X ≫ (F'.μ_iso (𝟙_M) n).inv.app X :=
+begin
+  refine eq.trans _ (category.id_comp _),
+  rw [← category.assoc, ← is_iso.comp_inv_eq, ← is_iso.comp_inv_eq, category.assoc],
+  convert left_unitality_app F' n X,
+  { simp },
+  { ext, simpa }
+end
+
+@[simp, reassoc]
+lemma obj_ε_inv_app (n : M) (X : C) :
+  (F'.obj n).map (F'.ε_iso.inv.app X) =
+    (F'.μ (𝟙_M) n).app X ≫ (F'.map (λ_ n).hom).app X  :=
+begin
+  rw [← cancel_mono ((F'.obj n).map (F'.ε.app X)), ← functor.map_comp],
+  simpa,
+end
+
+@[reassoc]
+lemma right_unitality_app (n : M) (X : C) :
+  F'.ε.app ((F'.obj n).obj X) ≫ (F'.μ n (𝟙_M)).app X ≫ (F'.map (ρ_ n).hom).app X = 𝟙 _ :=
+begin
+  have := congr_app (F'.to_lax_monoidal_functor.right_unitality n) X,
+  dsimp at this,
+  simpa using this.symm,
+end
+
+@[simp]
+lemma ε_app_obj (n : M) (X : C) :
+  F'.ε.app ((F'.obj n).obj X) =
+    (F'.map (ρ_ n).inv).app X ≫ (F'.μ_iso n (𝟙_M)).inv.app X :=
+begin
+  refine eq.trans _ (category.id_comp _),
+  rw [← category.assoc, ← is_iso.comp_inv_eq, ← is_iso.comp_inv_eq, category.assoc],
+  convert right_unitality_app F' n X,
+  { simp },
+  { ext, simpa }
+end
+
+@[simp]
+lemma ε_inv_app_obj (n : M) (X : C) :
+  F'.ε_iso.inv.app ((F'.obj n).obj X) =
+    (F'.μ n (𝟙_M)).app X ≫ (F'.map (ρ_ n).hom).app X :=
+begin
+  rw [← cancel_mono (F'.ε.app ((F'.obj n).obj X)), ε_inv_hom_app],
+  simpa
+end
+
+@[reassoc]
+lemma associativity_app (m₁ m₂ m₃: M) (X : C) :
+  (F'.obj m₃).map ((F'.μ m₁ m₂).app X) ≫ (F'.μ (m₁ ⊗ m₂) m₃).app X ≫
+    (F'.map (α_ m₁ m₂ m₃).hom).app X =
+  (F'.μ m₂ m₃).app ((F'.obj m₁).obj X) ≫ (F'.μ m₁ (m₂ ⊗ m₃)).app X :=
+begin
+  have := congr_app (F'.to_lax_monoidal_functor.associativity m₁ m₂ m₃) X,
   dsimp at this,
   simpa using this,
 end
 
 @[simp, reassoc, priority 900]
-lemma obj_μ_app (m₁ m₂ m₃ : A) (X : C) :
-  (F.obj m₃).map ((F.μ m₁ m₂).app X) =
-  (F.μ m₂ m₃).app ((F.obj m₁).obj X) ≫ (F.μ m₁ (m₂ + m₃)).app X ≫
-    eq_to_hom (by { congr' 2, exact (add_assoc _ _ _).symm }) ≫ (F.μ_iso (m₁ + m₂) m₃).inv.app X :=
+lemma obj_μ_app (m₁ m₂ m₃ : M) (X : C) :
+  (F'.obj m₃).map ((F'.μ m₁ m₂).app X) =
+  (F'.μ m₂ m₃).app ((F'.obj m₁).obj X) ≫ (F'.μ m₁ (m₂ ⊗ m₃)).app X ≫
+    (F'.map (α_ m₁ m₂ m₃).inv).app X ≫ (F'.μ_iso (m₁ ⊗ m₂) m₃).inv.app X :=
 begin
-  rw [← associativity_app_assoc, eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp,
-    ← nat_iso.app_inv],
-  erw ((F.μ_iso (m₁ + m₂) m₃).app X).hom_inv_id,
-  exact (category.comp_id _).symm,
+  rw [← associativity_app_assoc],
+  dsimp,
+  simp,
+  dsimp,
+  simp,
 end
 
 @[simp, reassoc, priority 900]
-lemma obj_μ_inv_app (m₁ m₂ m₃ : A) (X : C) :
-  (F.obj m₃).map ((F.μ_iso m₁ m₂).inv.app X) =
-  (F.μ (m₁ + m₂) m₃).app X ≫ eq_to_hom (by { congr' 2, exact add_assoc _ _ _ }) ≫
-  (F.μ_iso m₁ (m₂ + m₃)).inv.app X ≫
-  (F.μ_iso m₂ m₃).inv.app ((F.obj m₁).obj X) :=
+lemma obj_μ_inv_app (m₁ m₂ m₃ : M) (X : C) :
+  (F'.obj m₃).map ((F'.μ_iso m₁ m₂).inv.app X) =
+  (F'.μ (m₁ ⊗ m₂) m₃).app X ≫ (F'.map (α_ m₁ m₂ m₃).hom).app X ≫
+  (F'.μ_iso m₁ (m₂ ⊗ m₃)).inv.app X ≫
+  (F'.μ_iso m₂ m₃).inv.app ((F'.obj m₁).obj X) :=
 begin
   rw ← is_iso.inv_eq_inv,
-  convert obj_μ_app F m₁ m₂ m₃ X using 1,
-  { ext, rw [← functor.map_comp, ←F.μ_iso_hom, iso.inv_hom_id_app, functor.map_id], },
-  { simp only [monoidal_functor.μ_iso_hom, category.assoc, inv_eq_to_hom,
-      nat_iso.inv_inv_app, is_iso.inv_comp],
+  convert obj_μ_app F' m₁ m₂ m₃ X using 1,
+  { ext, rw ← functor.map_comp, simp },
+  { simp only [monoidal_functor.μ_iso_hom, category.assoc, nat_iso.inv_inv_app, is_iso.inv_comp],
     congr,
-    ext,
-    exact (F.μ_iso _ _).hom_inv_id_app X }
+    { ext, simp },
+    { ext, simpa } }
+end
+.
+
+@[simp, reassoc]
+lemma obj_zero_map_μ_app {m : M} {X Y : C} (f : X ⟶ (F'.obj m).obj Y) :
+  (F'.obj (𝟙_M)).map f ≫ (F'.μ m (𝟙_M)).app _ =
+    F'.ε_iso.inv.app _ ≫ f ≫ (F'.map (ρ_ m).inv).app _ :=
+begin
+  rw [← is_iso.inv_comp_eq, ← is_iso.comp_inv_eq],
+  simp,
 end
 
-@[simp, reassoc] lemma eq_to_hom_μ {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
-  eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ i' j').app X =
-    (F.μ i j).app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
-by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
+-- @[simp, reassoc] lemma eq_to_hom_μ {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+--   eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ i' j').app X =
+--     (F.μ i j).app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
+-- by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
-@[simp, reassoc] lemma eq_to_hom_μ_inv {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
-  eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ_iso i' j').inv.app X =
-    (F.μ_iso i j).inv.app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
-by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
+-- @[simp, reassoc] lemma μ_inv_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+--   (F.μ_iso i j).inv.app X ≫ eq_to_hom (by rw [h₁, h₂]) =
+--     eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ_iso i' j').inv.app X :=
+-- by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
+
+-- local attribute [reassoc] nat_trans.comp_app
 
 @[simp]
-lemma obj_μ_zero_app (m₁ m₂ : A) (X : C) :
-  (F.obj m₂).map ((F.μ m₁ 0).app X) =
-  (F.μ 0 m₂).app ((F.obj m₁).obj X) ≫ eq_to_hom (by { dsimp, congr; simp }) :=
+lemma obj_μ_zero_app (m₁ m₂ : M) (X : C) :
+  (F'.obj m₂).map ((F'.μ m₁ (𝟙_M)).app X) =
+  (F'.μ (𝟙_M) m₂).app ((F'.obj m₁).obj X) ≫ (F'.map (λ_ m₂).hom).app ((F'.obj m₁).obj X) ≫
+    (F'.obj m₂).map ((F'.map (ρ_ m₁).inv).app X) :=
 begin
-  rw ← is_iso.comp_inv_eq,
-  have := associativity_app F m₁ 0 m₂ X,
-  rw ← is_iso.comp_inv_eq at this,
-  rw [← this, category.assoc],
-  congr,
-  rw [inv_eq_to_hom, is_iso.eq_comp_inv, ← eq_to_hom_μ],
-  { refl }, { simp }, { simp }
+  rw [← obj_ε_inv_app_assoc, ← functor.map_comp],
+  congr, simp,
 end
 
 @[simp]
@@ -216,6 +269,32 @@ begin
   ext,
   simp
 end
+.
+
+@[simps]
+def unit_of_tensor_iso_unit (m n : M) (h : m ⊗ n ≅ 𝟙_M) : F'.obj m ⋙ F'.obj n ≅ 𝟭 C :=
+F'.μ_iso m n ≪≫ F'.to_functor.map_iso h ≪≫ F'.ε_iso.symm
+
+.
+
+
+@[simps]
+def equiv_of_tensor_iso_unit (m n : M) (h₁ : m ⊗ n ≅ 𝟙_M) (h₂ : n ⊗ m ≅ 𝟙_M)
+  (H : (h₁.hom ⊗ 𝟙 m) ≫ (λ_ m).hom = (α_ m n m).hom ≫ (𝟙 m ⊗ h₂.hom) ≫ (ρ_ m).hom) : C ≌ C :=
+{ functor := F'.obj m,
+  inverse := F'.obj n,
+  unit_iso := (unit_of_tensor_iso_unit F' m n h₁).symm,
+  counit_iso := unit_of_tensor_iso_unit F' n m h₂,
+  functor_unit_iso_comp' :=
+  begin
+    intro X,
+    dsimp,
+    simp only [μ_naturalityᵣ_assoc, μ_naturalityₗ_assoc, ε_inv_app_obj, category.assoc,
+      obj_μ_inv_app, functor.map_comp, μ_inv_hom_app_assoc, obj_ε_app,
+      unit_of_tensor_iso_unit_inv_app],
+    simp [← nat_trans.comp_app, ← F'.to_functor.map_comp, ← H, - functor.map_comp]
+  end }
+
 
 end monoid
 
@@ -223,28 +302,10 @@ section group
 variables [add_group A]
 variables (F : monoidal_functor (discrete A) (C ⥤ C))
 
-include F
-
-def add_neg_ε (n : A) : F.obj n ⋙ F.obj (-n : A) ≅ 𝟭 C :=
-F.μ_iso n (-n : A) ≪≫ F.to_functor.map_iso (eq_to_iso (add_neg_self _)) ≪≫ F.ε_iso.symm
-
-def neg_add_ε (n : A) : F.obj (-n : A) ⋙ F.obj n ≅ 𝟭 C :=
-F.μ_iso (-n : A) n ≪≫ F.to_functor.map_iso (eq_to_iso (neg_add_self _)) ≪≫ F.ε_iso.symm
-
+@[simps functor inverse unit_iso_hom unit_iso_inv counit_iso_hom counit_iso_inv]
 def add_neg_equiv (n : A) : C ≌ C :=
-{ functor := F.obj n,
-  inverse := F.obj (-n : A),
-  unit_iso := (add_neg_ε F n).symm,
-  counit_iso := neg_add_ε F n,
-  functor_unit_iso_comp' :=
-  begin
-    intro X,
-    dsimp [neg_add_ε, add_neg_ε],
-    simp only [eq_to_hom_app, ε_inv_app_obj, category.assoc, obj_μ_inv_app,
-      functor.map_comp, eq_to_hom_map, obj_ε_app],
-    erw [← eq_to_hom_μ_inv_assoc, eq_to_hom_μ_assoc],
-    all_goals { simp }
-  end }
+equiv_of_tensor_iso_unit F n (-n : A)
+  (eq_to_iso (add_neg_self n)) (eq_to_iso (neg_add_self n)) (subsingleton.elim _ _)
 
 end group
 
@@ -420,11 +481,11 @@ lemma shift_zero' :
   f⟦(0 : A)⟧' = (shift_zero A X).hom ≫ f ≫ (shift_zero A Y).inv :=
 by { symmetry, apply nat_iso.naturality_2 }
 
-@[simp]
-lemma shift_functor_zero_hom_app : (shift_functor_zero C A).hom.app X = (shift_zero A X).hom := rfl
+-- @[simp]
+-- lemma shift_functor_zero_hom_app : (shift_functor_zero C A).hom.app X = (shift_zero A X).hom := rfl
 
-@[simp]
-lemma shift_functor_zero_inv_app : (shift_functor_zero C A).inv.app X = (shift_zero A X).inv := rfl
+-- @[simp]
+-- lemma shift_functor_zero_inv_app : (shift_functor_zero C A).inv.app X = (shift_zero A X).inv := rfl
 
 end add_monoid
 
@@ -434,14 +495,14 @@ variables {A} [add_group A] [has_shift C A]
 variables (X Y : C) (f : X ⟶ Y)
 
 /-- Shifting by `i` and then shifting by `-i` is the identity. -/
-def shift_functor_comp_shift_functor_neg (i : A) :
+abbreviation shift_functor_comp_shift_functor_neg (i : A) :
   shift_functor C i ⋙ shift_functor C (-i) ≅ 𝟭 C :=
-(shift_functor_add C i (-i)).symm ≪≫ (eq_to_iso $ by simp) ≪≫ (shift_functor_zero C A)
+unit_of_tensor_iso_unit (shift_monoidal_functor C A) i (-i : A) (eq_to_iso (add_neg_self _))
 
 /-- Shifting by `-i` and then shifting by `i` is the identity. -/
-def shift_functor_neg_comp_shift_functor (i : A) :
+abbreviation shift_functor_neg_comp_shift_functor (i : A) :
   shift_functor C (-i) ⋙ shift_functor C i ≅ 𝟭 C :=
-(shift_functor_add C (-i) i).symm ≪≫ (eq_to_iso $ by simp) ≪≫ (shift_functor_zero C A)
+unit_of_tensor_iso_unit (shift_monoidal_functor C A) (-i : A) i (eq_to_iso (neg_add_self _))
 
 section
 
@@ -479,17 +540,17 @@ abbreviation shift_shift_neg (i : A) : X⟦i⟧⟦-i⟧ ≅ X := (shift_functor_
 /-- Shifting by `-i` and then shifting by `i` is the identity. -/
 abbreviation shift_neg_shift (i : A) : X⟦-i⟧⟦i⟧ ≅ X := (shift_functor_neg_comp_shift_functor C i).app _
 
-@[simp] lemma shift_functor_comp_shift_functor_neg_hom_app (i : A) :
-  (shift_functor_comp_shift_functor_neg C i).hom.app X = (shift_shift_neg X i).hom := rfl
+-- @[simp] lemma shift_functor_comp_shift_functor_neg_hom_app (i : A) :
+--   (shift_functor_comp_shift_functor_neg C i).hom.app X = (shift_shift_neg X i).hom := rfl
 
-@[simp] lemma shift_functor_comp_shift_functor_neg_inv_app (i : A) :
-  (shift_functor_comp_shift_functor_neg C i).inv.app X = (shift_shift_neg X i).inv := rfl
+-- @[simp] lemma shift_functor_comp_shift_functor_neg_inv_app (i : A) :
+--   (shift_functor_comp_shift_functor_neg C i).inv.app X = (shift_shift_neg X i).inv := rfl
 
-@[simp] lemma shift_functor_neg_comp_shift_functor_hom_app (i : A) :
-  (shift_functor_neg_comp_shift_functor C i).hom.app X = (shift_neg_shift X i).hom := rfl
+-- @[simp] lemma shift_functor_neg_comp_shift_functor_hom_app (i : A) :
+--   (shift_functor_neg_comp_shift_functor C i).hom.app X = (shift_neg_shift X i).hom := rfl
 
-@[simp] lemma shift_functor_neg_comp_shift_functor_inv_app (i : A) :
-  (shift_functor_neg_comp_shift_functor C i).inv.app X = (shift_neg_shift X i).inv := rfl
+-- @[simp] lemma shift_functor_neg_comp_shift_functor_inv_app (i : A) :
+--   (shift_functor_neg_comp_shift_functor C i).inv.app X = (shift_neg_shift X i).inv := rfl
 
 variables {X Y}
 
@@ -522,9 +583,8 @@ lemma shift_functor_zero_shift (X : C) (n : A) :
   (shift_zero A X).hom⟦n⟧' =
     (shift_add X 0 n).inv ≫ eq_to_hom (by simp) :=
 begin
-  rw [← is_iso.comp_inv_eq, ← is_iso.eq_inv_comp],
-  convert (left_unitality_app (shift_monoidal_functor C A) n X).symm,
-  { simpa }, { rw ← functor.map_inv, congr, simp }
+  convert (obj_ε_inv_app (shift_monoidal_functor C A) n X),
+  simp,
 end
 
 @[simp]
@@ -545,35 +605,27 @@ begin
   simp
 end
 
--- lemma shift_equiv_triangle (n : A) (X : C) :
---   (shift_shift_neg X n).inv⟦n⟧' ≫ (shift_neg_shift (X⟦n⟧) n).hom = 𝟙 (X⟦n⟧) :=
--- begin
---   dsimp [shift_shift_neg, shift_functor_comp_shift_functor_neg,
---     shift_neg_shift, shift_functor_neg_comp_shift_functor],
---   simp only [shift_zero_inv_shift,
---     eq_to_hom_app, ← category.assoc, eq_to_hom_trans_assoc, functor.map_comp,
---     eq_to_hom_map],
---   rw ← is_iso.eq_comp_inv,
---   delta shift_functor_add shift_functor shift_zero shift_functor_zero,
---   dsimp,
---   simp,
--- end
+-- local attribute [semireducible] shift_shift_neg shift_neg_shift
 
--- @[simp]
--- lemma shift_shift_neg_hom_shift (n : A) (X : C) :
---   (shift_shift_neg X n).hom ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).hom :=
--- by rw [← cancel_epi ((shift_shift_neg X n).inv⟦n⟧'), shift_equiv_triangle,
---     ← functor.map_comp, iso.inv_hom_id, functor.map_id]
+lemma shift_equiv_triangle (n : A) (X : C) :
+  (shift_shift_neg X n).inv⟦n⟧' ≫ (shift_neg_shift (X⟦n⟧) n).hom = 𝟙 (X⟦n⟧) :=
+(add_neg_equiv (shift_monoidal_functor C A) n).functor_unit_iso_comp X
 
--- @[simp]
--- lemma shift_shift_neg_inv_shift (n : A) (X : C) :
---   (shift_shift_neg X n).inv ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).inv :=
--- by { ext, rw [← shift_shift_neg_hom_shift, ← functor.map_comp, iso.hom_inv_id, functor.map_id] }
+@[simp]
+lemma shift_shift_neg_hom_shift (n : A) (X : C) :
+  (shift_shift_neg X n).hom ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).hom :=
+by rw [← cancel_epi ((shift_shift_neg X n).inv⟦n⟧'), shift_equiv_triangle,
+    ← functor.map_comp, iso.inv_hom_id, functor.map_id]
 
--- @[simp]
--- lemma shift_shift_neg_shift_eq (n : A) (X : C) :
---   (shift_functor C n).map_iso (shift_shift_neg X n) = shift_neg_shift (X⟦n⟧) n :=
--- category_theory.iso.ext $ shift_shift_neg_hom_shift _ _
+@[simp]
+lemma shift_shift_neg_inv_shift (n : A) (X : C) :
+  (shift_shift_neg X n).inv ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).inv :=
+by { ext, rw [← shift_shift_neg_hom_shift, ← functor.map_comp, iso.hom_inv_id, functor.map_id] }
+
+@[simp]
+lemma shift_shift_neg_shift_eq (n : A) (X : C) :
+  (shift_functor C n).map_iso (shift_shift_neg X n) = shift_neg_shift (X⟦n⟧) n :=
+category_theory.iso.ext $ shift_shift_neg_hom_shift _ _
 
 variables (C)
 
@@ -620,8 +672,7 @@ begin
   rw [shift_shift', shift_shift'],
   dsimp [shift_comm],
   simp only [← category.assoc, cancel_mono],
-  simp only [iso.hom_inv_id_assoc, iso.cancel_iso_inv_left, category.assoc,
-    monoidal_functor.μ_inv_hom_app_assoc],
+  simp only [iso.hom_inv_id_assoc, iso.cancel_iso_inv_left, category.assoc, μ_inv_hom_app_assoc],
   congr' 1,
   generalize_proofs h1 h2, revert h1 h2,
   generalize hij : i + j = ij, generalize hji : j + i = ji, intros h1 h2,

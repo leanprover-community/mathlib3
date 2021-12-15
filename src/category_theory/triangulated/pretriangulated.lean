@@ -151,9 +151,9 @@ namespace category_theory.triangulated
 namespace pretriangulated
 
 variables (C : Type u₁) [category.{v₁} C] [has_zero_object C] [has_shift C ℤ] [preadditive C]
-[is_equivalence (shift_functor C (0 : ℤ))] [∀ n : ℤ, functor.additive (shift_functor C n)]
+  [∀ n : ℤ, functor.additive (shift_functor C n)]
 variables (D : Type u₂) [category.{v₂} D] [has_zero_object D] [has_shift D ℤ] [preadditive D]
-[is_equivalence (shift_functor D (0 : ℤ))] [∀ n : ℤ, functor.additive (shift_functor D n)]
+  [∀ n : ℤ, functor.additive (shift_functor D n)]
 
 /--
 The underlying structure of a triangulated functor between pretriangulated categories `C` and `D`

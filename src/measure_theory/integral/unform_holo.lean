@@ -733,8 +733,9 @@ begin
 linarith,
 end
 
-lemma aux2 (a b c d e f : ℂ) (ε : ℝ) (hε: 0 < ε) (h1: abs (a- b) < 8⁻¹*ε) (h2 :abs (c- d) < 8⁻¹*ε )
-(h3 :abs ((b- d)- (e-f)) < (2/3)*ε) : abs ((a-b) - (c-d) + (b-d) - (e-f) ) < ε :=
+lemma aux2 (a b c d e f r: ℂ) (ε : ℝ) (hε: 0 < ε)( hr : abs r < 1) (h1: abs (a- b) < 8⁻¹*ε)
+(h2 :abs (c- d) < 8⁻¹*ε ) (h3 :(abs r) * abs ((b- d)- (e-f)) < (2/3)*ε) :
+(abs r) * abs ((a-b) - (c-d) + (b-d) - (e-f) ) < ε :=
 begin
   have h4: abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤ abs ((a-b) - (c-d)) + abs ((b-d) - (e-f)),
   by {set x : ℂ := (a-b) - (c-d), set y: ℂ :=((b-d) - (e-f)),
@@ -745,31 +746,37 @@ begin
   have hcd :abs (c-d)= abs (d-c), by {apply complex.abs_sub_comm,},
   rw hcd,
   apply this,},
-  have h6 :abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤ abs (a -b)+ abs (c-d)+  abs ((b-d) - (e-f)),
-  by {linarith,},
-  have h7:=  auxlefind h1 h2 h3,
+  have h6 :(abs r) * abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤
+  (abs r) *abs (a -b)+ (abs r)* abs (c-d)+  (abs r) * abs ((b-d) - (e-f)),
+  by {sorry,},
+  have h11: abs(r)* abs (a-b) < (8⁻¹*ε ), by {sorry,},
+   have h22: abs(r)* abs (c-d) < (8⁻¹*ε), by {sorry,},
+  have h7:=  auxlefind h11 h22 h3,
   have h8:= lt_of_le_of_lt h6  h7,
   apply lt_trans h8,
   ring_nf,
   linarith,
 end
 
-lemma aux3 (a b c d: ℂ) (ε : ℝ) (hε : 0 < ε )
- (h : ∃ (x y : ℂ), abs ( a- y) < 8⁻¹*ε ∧ abs (b -x) < 8⁻¹*ε ∧ abs (c -y)  < 8⁻¹*ε ∧
- abs (d -x)  < 8⁻¹*ε) : abs ((a-b )- (c-d)) < (2/3)*ε :=
+lemma aux3 (a b c d r: ℂ) (ε : ℝ) (hε : 0 < ε ) (hr : abs r < 1)
+ (h : ∃ (x y : ℂ), abs ( a- y) < 8⁻¹*ε ∧ abs (b -x) < 8⁻¹*ε ∧ (abs r) *abs ((y -x)- (c -d) ) < 8⁻¹*ε) :
+ (abs r) *abs ((a-b )- (c-d)) < (2/3)*ε :=
 
 begin
-obtain ⟨x, y , h1,h2, h3, h4⟩:= h,
-have h5: abs ((a-b )- (c-d)) = abs (( (a-y) -(b-x) )- ((c-y)-(d-x))) , by {ring_nf,},
+obtain ⟨x, y , h1,h2, h3⟩:= h,
+have h33: (abs r) * abs ((c -d) - (y -x)) < 8⁻¹*ε, by {sorry,},
+have h5: abs ((a-b )- (c-d)) = abs (( (a-y) -(b-x) )- ((c-d)-(y-x))) , by {ring_nf,},
 rw h5,
-have h6: abs (( (a-y) -(b-x) )- ((c-y)-(d-x))) ≤ abs (a-y) + abs(b-x)+ abs (c-y)+ abs(d-x), by {
+have h6: (abs r) *abs (( (a-y) -(b-x) )- ((c-d)-(y-x))) ≤ abs r * abs (a-y) +
+abs r * abs(b-x)+ abs r * abs ((c-d) -(y-x)), by {
   sorry,
-
 },
-have h7:= auxlefind4 h1 h2 h3 h4,
+have h11: abs r * abs ( a- y) < 8⁻¹*ε, by {sorry,},
+have h22: abs r * abs ( b- x) < 8⁻¹*ε, by {sorry,},
+have h7:= auxlefind h11 h22 h33,
 have h8:= lt_of_le_of_lt h6  h7,
 apply lt_trans h8,
-ring_nf,
+field_simp,
 linarith,
 end
 
@@ -779,6 +786,14 @@ lemma unif_of_diff_is_diff (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ)
   differentiable_on ℂ f (ball z (2⁻¹*R)) :=
 begin
 --have F_measurable : ∀ n, integrable (F n) volume, by {sorry,},
+have F_alt: ∀ (n : ℕ) (c : ball z (2⁻¹*R) ), F n c = (int_diff R hR (F n) z) c, by {
+  intros n c,
+  have hc : c.1 ∈ ball z R, by {sorry,},
+  have ht:= holo_test hc (hdiff n),
+  simp at *,
+  rw ht,
+  simp_rw [int_diff, int_diff0],
+  simp,},
 have F_cts : ∀ n, continuous (F n) , by {sorry,},
 rw differentiable_on,
 intros x hx,
@@ -803,19 +818,15 @@ rw tendsto_uniformly_iff at hlim,
 simp_rw dist_eq_norm at *,
 intros ε hε,
 have h8: 0 < 8⁻¹*ε, by {sorry},
- have key2:= key (8⁻¹*ε) h8,
-have hlim2:= hlim (8⁻¹*ε) h8,
+
 have hDε:= hD (8⁻¹*ε) h8,
 simp at *,
-obtain ⟨a, ha⟩ := hlim2,
-obtain ⟨a', ha'⟩:= key2,
-set A' : ℕ := max a a',
 
 rw int_diff at hDε,
 simp at hDε ,
  rw filter.eventually_iff_exists_mem at *,
 obtain ⟨S1, hS1, HS1⟩:= hDε,
-let U:= S1 ⊓ (ball x 1) ⊓ ball z (2⁻¹* R),
+let U:= S1 ⊓ ball z (2⁻¹* R),
 use U,
 have hU: U ∈ 𝓝[ball z (2⁻¹ * R)] x , by {simp_rw U, simp_rw metric.mem_nhds_within_iff at *,
 
@@ -823,14 +834,22 @@ have hU: U ∈ 𝓝[ball z (2⁻¹ * R)] x , by {simp_rw U, simp_rw metric.mem_n
 simp [hU],
 intros y hy,
 simp_rw U at hy,
+let t:= abs (y -x),
 simp at hy,
 simp_rw abs_norm,
 have hyz: y ∈ ball z R, by {sorry,},
 have keyy:= keyb y hyz,
-have h8': 0 < 8⁻¹*ε, by {sorry},
+have h8': 0 < 8⁻¹*t*ε, by {sorry},
 rw metric.tendsto_nhds at keyy,
 simp at keyy,
-obtain ⟨a'', ha''⟩:= keyy (8⁻¹*ε) h8',
+have key2:= key (8⁻¹*t*ε) h8',
+have hlim2:= hlim (8⁻¹*t*ε) h8'
+,
+obtain ⟨a'', ha''⟩:= keyy (8⁻¹*t*ε) h8',
+obtain ⟨a, ha⟩ := hlim2,
+obtain ⟨a', ha'⟩:= key2,
+set A' : ℕ := max a a',
+simp at *,
 set A : ℕ := max A' a'',
 have haA: a ≤ A, by {sorry,},
 have ha'A: a' ≤ A, by {sorry,},
@@ -839,17 +858,33 @@ have HH: ∀ (y : ℂ), f y - f x - (D y - D x) =
 (f y - F A y) - ((f x)- (F A x)) + ((F A y)- (F A x))  - (D y - D x), by {sorry,},
 simp_rw HH,
 
-have mainineq: abs ((f y - F A y) - ((f x)- (F A x)) + ((F A y)- (F A x))  - (D y - D x)) < ε, by
-{
+/-
 apply aux2,
 apply hε,
 apply ha A haA,
 apply ha A haA,
-
-
+apply aux3,
+apply hε,
+use (int_diff R hR f z x),
+use (int_diff R hR f z y),
+simp_rw int_diff,
+have hyy: y ∈ ball z (2⁻¹*R), by {sorry,},
+have hxz: x ∈ ball z (2⁻¹*R), by {sorry,},
+split,
+have:= F_alt A ⟨y,hyy⟩,
+simp at this,
+rw this,
+simp_rw int_diff,
+apply ha'' A ha''A,
+split,
+have:= F_alt A ⟨x,hxz⟩,
+simp at this,
+rw this,
+simp_rw int_diff,
+apply ha' A ha'A,
+ -/
   sorry,
-},
-sorry,
+
 end
 
 end complex

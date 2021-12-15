@@ -1081,7 +1081,6 @@ def coe_lmₛₗ : (M →SL[σ₁₃] M₃) →ₗ[S₃] (M →ₛₗ[σ₁₃] 
 
 variables {σ₁₃}
 
-
 end smul
 
 section smul_rightₗ

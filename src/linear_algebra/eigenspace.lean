@@ -5,10 +5,10 @@ Authors: Alexander Bentkamp
 -/
 
 import field_theory.is_alg_closed.basic
+import linear_algebra.charpoly.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
-import order.order_hom
-import linear_algebra.charpoly.basic
+import order.hom.basic
 
 /-!
 # Eigenvectors and eigenvalues

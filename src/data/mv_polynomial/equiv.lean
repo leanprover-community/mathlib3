@@ -561,7 +561,7 @@ begin
     simp only,
     exact @finset.le_sup ℕ  _ _ _ _ (λ x, x) _
     ( (@fin_succ_equiv_support R _ n (m 0) f).2
-      ⟨finsupp.tail m, (by rwa (finsupp.cons_tail (m 0) m))⟩) },
+      ⟨finsupp.tail m, (by rwa (finsupp.cons_tail m))⟩) },
   rw ← h',
   rw coe_with_bottom_sup (support_fin_succ_equiv_nonempty h),
   congr,

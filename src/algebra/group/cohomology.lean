@@ -409,8 +409,7 @@ def left_translation_equiv (s : G) : G ≃ G :=
   right_inv := by intro h; simp
   }
 
-@[simp] lemma left_translation_equiv_eval (s g : G) :
-  left_translation_equiv s g = s * g := rfl
+@[simp] lemma left_translation_equiv_apply (s g : G) : left_translation_equiv s g = s * g := rfl
 
 @[simp] theorem left_translation_equiv.comp (g₁ g₂ : G) :
  left_translation_equiv (g₁ * g₂)
@@ -420,7 +419,6 @@ begin
   simp [mul_assoc],
 end
 
-@[simp] lemma left_translation_equiv_apply (s g : G) : left_translation_equiv s g = s * g := rfl
 
 @[simp] lemma left_translation_equiv_one : left_translation_equiv (1 : G) = equiv.refl G :=
 begin
@@ -465,11 +463,9 @@ module (monoid_algebra ℤ G) A ≃ distrib_mul_action G A := sorry
 example (G : Sort*) [group G] (A : Sort*) [add_comm_group A] (R : Sort*) [comm_ring R] :
 module (monoid_algebra R G) A ≃ module R A × distrib_mul_action G A := sorry
 
-#exit
--- module (monoid_algebra ℤ G) M ≃ mul_action G M
-
-noncomputable instance group_ring_module : module (monoid_algebra ℤ G) ((fin i → G) →₀ ℤ) :=
+instance group_ring_module : module (monoid_algebra ℤ G) ((fin i → G) →₀ ℤ) :=
 begin
+  sorry
   -- apply some instances which I want and which I don't know if they're there
 end
 

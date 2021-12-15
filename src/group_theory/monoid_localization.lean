@@ -363,7 +363,7 @@ instance [has_scalar R₁ M] [has_scalar R₂ M] [is_scalar_tower R₁ M M] [is_
     by simp only [smul_mk, smul_assoc s t r] }
 
 instance smul_comm_class_right {R : Type*} [has_scalar R M] [is_scalar_tower R M M] :
-  smul_comm_class S (localization S) (localization S) :=
+  smul_comm_class R (localization S) (localization S) :=
 { smul_comm := λ s, localization.ind $ prod.rec $ by exact λ r₁ x₁,
                     localization.ind $ prod.rec $ by exact λ r₂ x₂,
     by simp only [smul_mk, smul_eq_mul, mk_mul, mul_comm r₁, smul_mul_assoc] }

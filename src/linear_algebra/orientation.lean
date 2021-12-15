@@ -376,7 +376,7 @@ variables {R} {ι : Type*} [fintype ι] [decidable_eq ι]
 protected def orientation [nontrivial R] (e : basis ι R M) : orientation R M ι :=
 ray_of_ne_zero R _ e.det_ne_zero
 
-lemma orientation_map [nontrivial R] [is_domain R] (e : basis ι R M)
+lemma orientation_map [nontrivial R] (e : basis ι R M)
   (f : M ≃ₗ[R] N) : (e.map f).orientation = orientation.map ι f e.orientation :=
 by simp_rw [basis.orientation, orientation.map_apply, basis.det_map']
 

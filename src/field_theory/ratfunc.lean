@@ -45,6 +45,10 @@ namely `ratfunc.of_fraction_ring`, `ratfunc.to_fraction_ring`, `ratfunc.mk` and
 `ratfunc.to_fraction_ring_ring_equiv`.
 All these maps get `simp`ed to bundled morphisms like `algebra_map (polynomial K) (ratfunc K)`
 and `is_localization.alg_equiv`.
+
+To convert back to `fraction_ring`, use `(fraction_ring.alg_equiv (polynomial K) (ratfunc K)).symm`,
+possibly with `alg_equiv.restrict_scalars` to change the `ratfunc K ≃ₐ[polynomial K] polynomial K`
+to `ratfunc K ≃ₐ[K] polynomial K`.
 -/
 
 noncomputable theory

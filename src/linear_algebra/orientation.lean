@@ -351,6 +351,14 @@ variables {R} {ι : Type*} [fintype ι] [decidable_eq ι]
 protected def orientation [nontrivial R] (e : basis ι R M) : orientation R M ι :=
 ray_of_ne_zero R _ e.det_ne_zero
 
+lemma orientation_map [nontrivial R] [is_domain R] (e : basis ι R M)
+  (f : M ≃ₗ[R] M) : (e.map f).orientation = (f.det)⁻¹ • e.orientation :=
+begin
+  simp_rw [basis.orientation, smul_ray_of_ne_zero, ray_eq_iff],
+  rw [(e.map f).det.eq_smul_basis_det e, e.det_map, ←linear_equiv.coe_coe, e.det_comp f.symm e,
+      e.det_self, mul_one, units.smul_def, linear_equiv.coe_inv_det],
+end
+
 end basis
 
 end ordered_comm_ring
@@ -367,6 +375,21 @@ lemma same_ray_of_mem_orbit {v₁ v₂ : M} (h : v₁ ∈ mul_action.orbit (unit
 begin
   rcases h with ⟨⟨r, hr⟩, (rfl : r • v₂ = v₁)⟩,
   exact same_ray_pos_smul_left _ hr,
+end
+
+/-- Scaling by an inverse unit is the same as scaling by itself. -/
+lemma units_inv_smul (u : units R) (v : module.ray R M) :
+  u⁻¹ • v = u • v :=
+begin
+  induction v using module.ray.ind with v hv,
+  rw [smul_ray_of_ne_zero, smul_ray_of_ne_zero, ray_eq_iff],
+  have : ∀ {u : units R}, 0 < (u : R) → same_ray R (u⁻¹ • v) (u • v) :=
+    λ u h, ((same_ray.refl v).pos_smul_left $ units.inv_pos.mpr h).pos_smul_right h,
+  cases lt_or_lt_iff_ne.2 u.ne_zero,
+  { rw [←units.neg_neg u, units.neg_inv, (- u).neg_smul, units.neg_smul],
+    refine (this _).neg,
+    exact neg_pos_of_neg h },
+  { exact this h, },
 end
 
 section
@@ -471,25 +494,13 @@ lemma orientation_ne_iff_eq_neg (e : basis ι R M) (x : orientation R M ι) :
 determinant is positive. -/
 lemma orientation_comp_linear_equiv_eq_iff_det_pos (e : basis ι R M) (f : M ≃ₗ[R] M) :
   (e.map f).orientation = e.orientation ↔ 0 < (f : M →ₗ[R] M).det :=
-begin
-  rw [basis.orientation, basis.orientation, ray_eq_iff, (e.map f).det.eq_smul_basis_det e,
-      same_ray_smul_left_iff e.det_ne_zero (_ : R), e.det_map, ←linear_equiv.coe_coe,
-      e.det_comp f.symm e, e.det_self, mul_one],
-  have h : 0 < (f.symm : M →ₗ[R] M).det * (f : M →ₗ[R] M).det,
-  { rw linear_equiv.det_symm_mul_det,
-    exact zero_lt_one },
-  exact pos_iff_pos_of_mul_pos h
-end
+by rw [orientation_map, units_inv_smul, units_smul_eq_self_iff, linear_equiv.coe_det]
 
 /-- Composing a basis with a linear equiv gives the negation of that orientation if and only if
 the determinant is negative. -/
 lemma orientation_comp_linear_equiv_eq_neg_iff_det_neg (e : basis ι R M) (f : M ≃ₗ[R] M) :
   (e.map f).orientation = -e.orientation ↔ (f : M →ₗ[R] M).det < 0 :=
-begin
-  rw [←orientation_ne_iff_eq_neg, not_iff_comm, orientation_comp_linear_equiv_eq_iff_det_pos,
-      not_lt],
-  exact (is_unit.ne_zero f.is_unit_det').symm.le_iff_lt
-end
+by rw [orientation_map, units_inv_smul, units_smul_eq_neg_iff, linear_equiv.coe_det]
 
 end basis
 

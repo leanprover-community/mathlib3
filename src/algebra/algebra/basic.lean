@@ -37,7 +37,7 @@ See the implementation notes for remarks about non-associative and non-unital al
   * `algebra_nat`
   * `algebra_int`
   * `algebra_rat`
-  * `opposite.algebra`
+  * `mul_opposite.algebra`
   * `module.End.algebra`
 
 ## Notations
@@ -67,6 +67,7 @@ As a result, there are two ways to talk about an `R`-algebra `A` when `A` is a s
    variables [comm_semiring R] [semiring A]
    variables [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
    ```
+
 The first approach implies the second via typeclass search; so any lemma stated with the second set
 of arguments will automatically apply to the first set. Typeclass search does not know that the
 second approach implies the first, but this can be shown with:
@@ -87,6 +88,7 @@ all be relaxed independently; for instance, this allows us to:
 * Replace `comm_semiring R` and `module R A` with `comm_group R'` and `distrib_mul_action R' A`,
   which when `R' = units R` lets us talk about the "algebra-like" action of `units R` on an
   `R`-algebra `A`.
+
 While `alg_hom R A B` cannot be used in the second approach, `non_unital_alg_hom R A B` still can.
 
 You should always use the first approach when working with associative unital algebras, and mimic
@@ -311,7 +313,7 @@ end id
 section prod
 variables (R A B)
 
-instance : algebra R (A × B) :=
+instance _root_.prod.algebra : algebra R (A × B) :=
 { commutes' := by { rintro r ⟨a, b⟩, dsimp, rw [commutes r a, commutes r b] },
   smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [smul_def r a, smul_def r b] },
   .. prod.module,
@@ -1267,7 +1269,7 @@ def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+
 
 end ring_hom
 
-namespace rat
+section rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
 (rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x

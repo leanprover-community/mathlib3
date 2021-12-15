@@ -44,8 +44,8 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 namespace continuous_linear_map
 
-/-- The adjoint, as a bare function. This is only meant as an auxiliary definition for
-the main definition `adjoint`, where this is bundled as a conjugate-linear isometric
+/-- The adjoint, as a continuous conjugate-linear map.  This is only meant as an auxiliary
+definition for the main definition `adjoint`, where this is bundled as a conjugate-linear isometric
 equivalence. -/
 def adjoint' : (E →L[𝕜] F) →L⋆[𝕜] F →L[𝕜] E :=
 (continuous_linear_map.compSL _ _ _ _ _ ((to_dual 𝕜 E).symm : normed_space.dual 𝕜 E →L⋆[𝕜] E)).comp

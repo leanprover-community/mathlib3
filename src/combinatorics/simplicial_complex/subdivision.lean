@@ -5,168 +5,163 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.specific_limits
 import combinatorics.simplicial_complex.basic
-import set_theory.fincard
 
 /-!
 # Subdivision of simplicial complexes
 -/
 
-open affine set
+open geometry finset
 
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m : ℕ}
-  {S₁ S₂ : simplicial_complex 𝕜 E}
+variables {𝕜 E : Type*}
 
-/--
-S₁ ≤ S₂ (S₁ is a subdivision of S₂) iff their underlying space is the same and each face of S₁ is
-contained in some face of S₂
--/
-instance : has_le (simplicial_complex 𝕜 E) := ⟨λ S₁ S₂, S₁.space = S₂.space ∧
-  ∀ {X₁ : finset  E}, X₁ ∈ S₁.faces → ∃ X₂ ∈ S₂.faces,
-  convex_hull 𝕜 (X₁ : set E) ⊆ convex_hull 𝕜 (X₂ : set E)⟩
+namespace geometry.simplicial_complex
+section ordered_ring
+variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {m : ℕ} {K₁ K₂ : simplicial_complex 𝕜 E}
+
+/-- `K₁` is a subdivision of `K₂` iff their underlying space is the same and each face of `K₁` is
+contained in some face of `K₂`. -/
+def subdivides (K₁ K₂ : simplicial_complex 𝕜 E) : Prop :=
+K₁.space = K₂.space ∧
+  ∀ ⦃s₁⦄, s₁ ∈ K₁ → ∃ s₂ ∈ K₂, convex_hull 𝕜 (s₁ : set E) ⊆ convex_hull 𝕜 (s₂ : set E)
+
+end ordered_ring
+
+section semi_normed_group
+variables [semi_normed_group E] [t2_space E] [semi_normed_space ℝ E] {s t : finset E} {m : ℕ}
+  {K₁ K₂ : simplicial_complex ℝ E}
 
 lemma subdivision_iff_combi_interiors_subset_combi_interiors :
-  S₁ ≤ S₂ ↔ S₂.space ⊆ S₁.space ∧
-  ∀ {X₁}, X₁ ∈ S₁.faces → ∃ {X₂}, X₂ ∈ S₂.faces ∧ combi_interior X₁ ⊆ combi_interior X₂ :=
+  K₁.subdivides K₂ ↔ K₂.space ⊆ K₁.space ∧
+  ∀ s₁ ∈ K₁, ∃ s₂ ∈ K₂, combi_interior ℝ s₁ ⊆ combi_interior ℝ s₂ :=
 begin
-  split,
-  { rintro ⟨hspace, hS⟩,
-    use ge_of_eq hspace,
-    rintro X hX,
-    obtain ⟨Y, hY, hXY⟩ := hS hX,
-    obtain ⟨Z, hZY, hXZ⟩ := simplex_combi_interiors_split_interiors (S₂.indep hY) hXY,
-    exact ⟨Z, S₂.down_closed hY hZY, hXZ⟩ },
-  { rintro ⟨hspace, hS⟩,
-    split,
-    { apply subset.antisymm _ hspace,
-      rintro x hx,
-      obtain ⟨X₁, hX₁, hx⟩ := mem_space_iff.1 hx,
-      obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS hX₁,
-      rw mem_space_iff,
-      refine ⟨X₂, hX₂, _⟩,
-      apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior _ _ hX₁X₂ hx,
-      { apply S₁.indep hX₁ },
-      { apply S₂.indep hX₂ } },
-    { rintro X₁ hX₁,
-      obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS hX₁,
-      refine ⟨_, hX₂, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior _ _ _⟩,
-      { apply S₁.indep hX₁ },
-      { apply S₂.indep hX₂ },
-      { apply hX₁X₂ }}}
+  refine ⟨λ h, ⟨h.1.symm.subset, λ s hs, _⟩, λ h, ⟨set.subset.antisymm (λ x hx, _) h.1, λ s₁ hs₁, _⟩⟩,
+  { obtain ⟨t, ht, hst⟩ := h.2 hs,
+    obtain ⟨u, hut, hu, hsu⟩ := simplex_combi_interiors_split_interiors_nonempty (K₁.nonempty hs)
+      (K₂.indep ht) hst,
+    exact ⟨u, K₂.down_closed ht hut hu, hsu⟩ },
+  { obtain ⟨s₁, hs₁, hx⟩ := mem_space_iff.1 hx,
+    obtain ⟨s₂, hs₂, hs₁s₂⟩ := h.2 _ hs₁,
+    rw mem_space_iff,
+    exact ⟨s₂, hs₂, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior
+      (K₁.indep hs₁) (K₂.indep hs₂) hs₁s₂ hx⟩ },
+  { obtain ⟨s₂, hs₂, hs₁s₂⟩ := h.2 _ hs₁,
+    exact ⟨_, hs₂, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior
+      (K₁.indep hs₁) (K₂.indep hs₂) hs₁s₂⟩ }
 end
 
 lemma subdivision_iff_partition :
-  S₁ ≤ S₂ ↔ (S₁.faces.nonempty → S₂.faces.nonempty) ∧ S₁.space ⊆ S₂.space ∧ ∀ {X₂}, X₂ ∈ S₂.faces →
-  ∃ {F}, F ⊆ S₁.faces ∧ combi_interior X₂ = ⋃ (X₁ ∈ F), combi_interior X₁ :=
+  K₁.subdivides K₂ ↔ (K₁.faces.nonempty → K₂.faces.nonempty) ∧ K₁.space ⊆ K₂.space ∧
+    ∀ s₂ ∈ K₂, ∃ F ⊆ K₁.faces, combi_interior ℝ s₂ = ⋃ (s₁ ∈ F), combi_interior ℝ s₁ :=
 begin
   split,
   { rintro ⟨hspace, hsubdiv⟩,
     split,
-    { rintro ⟨X₁, hX₁⟩,
-      obtain ⟨X₂, hX₂, hX₁X₂⟩ := hsubdiv hX₁,
-      exact ⟨X₂, hX₂⟩ },
+    { rintro ⟨s₁, hs₁⟩,
+      obtain ⟨s₂, hs₂, hs₁s₂⟩ := hsubdiv hs₁,
+      exact ⟨s₂, hs₂⟩ },
     use le_of_eq hspace,
-    rintro X hX,
-    use [{Y | Y ∈ S₁.faces ∧ combi_interior Y ⊆ combi_interior X}, (λ Y hY, hY.1)],
+    rintro s hs,
+    use [{t | t ∈ K₁ ∧ combi_interior ℝ t ⊆ combi_interior ℝ s}, (λ t ht, ht.1)],
     ext x,
     split,
-    { rintro hxX,
-      have hxspace := mem_space_iff.2 ⟨X, hX, hxX.1⟩,
-      rw [←hspace, combi_interiors_cover, mem_bUnion_iff] at hxspace,
-      obtain ⟨Y, hY, hxY⟩ := hxspace,
-      apply mem_bUnion _ hxY,
-      use hY,
-      rintro y hyY,
-      obtain ⟨Z, hZ, hYZ⟩ := hsubdiv hY,
-      obtain ⟨W, hWZ, hYW⟩ := simplex_combi_interiors_split_interiors (S₂.indep hZ) hYZ,
-      rw disjoint_interiors hX (S₂.down_closed hZ hWZ) hxX (hYW hxY),
-      exact hYW hyY },
+    { rintro hxs,
+      have hxspace := mem_space_iff.2 ⟨s, hs, hxs.1⟩,
+      rw [←hspace, combi_interiors_cover, set.mem_bUnion_iff] at hxspace,
+      obtain ⟨t, ht, hxt⟩ := hxspace,
+      apply mem_bUnion _ hxt,
+      use ht,
+      rintro y hyt,
+      obtain ⟨u, hu, htu⟩ := hsubdiv ht,
+      obtain ⟨W, hWu, htW⟩ := simplex_combi_interiors_split_interiors (K₂.indep hu) htu,
+      rw disjoint_interiors hs (K₂.down_closed hu hWu) hxs (htW hxt),
+      exact htW hyt },
     { rw mem_bUnion_iff,
-      rintro ⟨Y, ⟨hY, hYX⟩, hxY⟩,
-      exact hYX hxY }},
+      rintro ⟨t, ⟨ht, hts⟩, hxt⟩,
+      exact hts hxt }},
   { rintro ⟨hempty, hspace, hpartition⟩,
-    have hspace : S₁.space = S₂.space,
+    have hspace : K₁.space = K₂.space,
     { apply subset.antisymm hspace,
       rintro x hx,
       rw [combi_interiors_cover, mem_bUnion_iff] at ⊢ hx,
-      obtain ⟨X, hX, hxX⟩ := hx,
-      obtain ⟨F, hF, hXint⟩ := hpartition hX,
-      rw [hXint, mem_bUnion_iff] at hxX,
-      obtain ⟨Y, hY, hxY⟩ := hxX,
-      exact ⟨Y, hF hY, hxY⟩ },
+      obtain ⟨s, hs, hxs⟩ := hx,
+      obtain ⟨F, hF, hsint⟩ := hpartition hs,
+      rw [hsint, mem_bUnion_iff] at hxs,
+      obtain ⟨t, ht, hxt⟩ := hxs,
+      exact ⟨t, hF ht, hxt⟩ },
     use hspace,
-    rintro X hX,
-    cases finset.eq_empty_or_nonempty X with hXempty hXnonempty,
-    { obtain ⟨Y, hY⟩ := hempty ⟨X, hX⟩,
-      use [Y, hY],
-      rw hXempty,
+    rintro s hs,
+    cases finset.eq_empty_or_nonempty s with hsempty hsnonempty,
+    { obtain ⟨t, ht⟩ := hempty ⟨s, hs⟩,
+      use [t, ht],
+      rw hsempty,
       simp },
-    obtain ⟨x, hx⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hX) hXnonempty,
-    have hxspace := mem_space_iff.2 ⟨X, hX, hx.1⟩,
+    obtain ⟨x, hx⟩ := nonempty_combi_interior_of_nonempty (K₁.indep hs) hsnonempty,
+    have hxspace := mem_space_iff.2 ⟨s, hs, hx.1⟩,
     rw [hspace, combi_interiors_cover, mem_bUnion_iff] at hxspace,
-    obtain ⟨Y, hY, hxY⟩ := hxspace,
-    use [Y, hY],
-    rw ←closure_combi_interior_eq_convex_hull (S₁.indep hX),
+    obtain ⟨t, ht, hxt⟩ := hxspace,
+    use [t, ht],
+    rw ←closure_combi_interior_eq_convex_hull (K₁.indep hs),
     apply closure_minimal _ is_closed_convex_hull,
     rintro x' hx',
-    have hxspace := mem_space_iff.2 ⟨X, hX, hx'.1⟩,
+    have hxspace := mem_space_iff.2 ⟨s, hs, hx'.1⟩,
     rw [hspace, combi_interiors_cover, mem_bUnion_iff] at hxspace,
-    obtain ⟨Y', hY', hxY'⟩ := hxspace,
-    suffices hYY' : Y = Y',
-    { rw hYY',
-      exact hxY'.1 },
-    obtain ⟨F, hF, hinterior⟩ := hpartition hY,
-    obtain ⟨F', hF', hinterior'⟩ := hpartition hY',
-    apply disjoint_interiors hY hY' (_ : x ∈ _) _,
-    { rw [hinterior, mem_bUnion_iff] at ⊢ hxY,
-      obtain ⟨Z, hZ, hxZ⟩ := hxY,
-      use [Z, hZ, hxZ] },
-    { rw [hinterior', mem_bUnion_iff] at ⊢ hxY',
-      obtain ⟨Z, hZ, hxZ⟩ := hxY',
-      use [Z, hZ],
-      rw ←disjoint_interiors hX (hF' hZ) hx' hxZ,
+    obtain ⟨t', ht', hxt'⟩ := hxspace,
+    suffices htt' : t = t',
+    { rw htt',
+      exact hxt'.1 },
+    obtain ⟨F, hF, hinterior⟩ := hpartition ht,
+    obtain ⟨F', hF', hinterior'⟩ := hpartition ht',
+    apply disjoint_interiors ht ht' (_ : x ∈ _) _,
+    { rw [hinterior, mem_bUnion_iff] at ⊢ hxt,
+      obtain ⟨u, hu, hxu⟩ := hxt,
+      use [u, hu, hxu] },
+    { rw [hinterior', mem_bUnion_iff] at ⊢ hxt',
+      obtain ⟨u, hu, hxu⟩ := hxt',
+      use [u, hu],
+      rw ←disjoint_interiors hs (hF' hu) hx' hxu,
       exact hx }}
 end
 
 instance : partial_order (simplicial_complex 𝕜 E) :=
-{ le := λ S₁ S₂, S₁ ≤ S₂,
-  le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
+{ le := λ K₁ K₂, K₁.subdivides K₂,
+  le_refl := (λ S, ⟨rfl, (λ s hs, ⟨s, hs, subset.refl _⟩)⟩),
   le_trans := begin
-    rintro S₁ S₂ S₃ h₁₂ h₂₃,
+    rintro K₁ K₂ S₃ h₁₂ h₂₃,
     use eq.trans h₁₂.1 h₂₃.1,
-    rintro X₁ hX₁,
-    obtain ⟨X₂, hX₂, hX₁₂⟩ := h₁₂.2 hX₁,
-    obtain ⟨X₃, hX₃, hX₂₃⟩ := h₂₃.2 hX₂,
-    exact ⟨X₃, hX₃, subset.trans hX₁₂ hX₂₃⟩,
+    rintro s₁ hs₁,
+    obtain ⟨s₂, hs₂, hs₁₂⟩ := h₁₂.2 hs₁,
+    obtain ⟨s₃, hs₃, hs₂₃⟩ := h₂₃.2 hs₂,
+    exact ⟨s₃, hs₃, subset.trans hs₁₂ hs₂₃⟩,
   end,
   le_antisymm := begin
-    suffices aux_lemma : ∀ {S₁ S₂ : simplicial_complex 𝕜 E}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ {X},
-      X ∈ S₁.faces → X ∈ S₂.faces,
-    { rintro S₁ S₂ h₁ h₂,
-      ext X,
-      exact ⟨λ hX, aux_lemma h₁ h₂ hX, λ hX, aux_lemma h₂ h₁ hX⟩ },
-    rintro S₁ S₂ h₁ h₂ X hX,
+    suffices aux_lemma : ∀ {K₁ K₂ : simplicial_complex 𝕜 E}, K₁.subdivides K₂ → K₂ ≤ K₁ → ∀ {s},
+      s ∈ K₁.faces → s ∈ K₂.faces,
+    { rintro K₁ K₂ h₁ h₂,
+      ext s,
+      exact ⟨λ hs, aux_lemma h₁ h₂ hs, λ hs, aux_lemma h₂ h₁ hs⟩ },
+    rintro K₁ K₂ h₁ h₂ s hs,
     rw subdivision_iff_partition at h₂ h₁,
-    cases finset.eq_empty_or_nonempty X with hXempty hXnonempty,
-    { rw hXempty,
-      exact empty_mem_faces_of_nonempty (h₁.1 ⟨X, hX⟩) },
-    obtain ⟨x, hxX⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hX) hXnonempty,
-    obtain ⟨F, hF, hFX⟩ := h₂.2.2 hX,
-    have hxX' := hxX,
-    rw [hFX, mem_bUnion_iff] at hxX',
-    obtain ⟨Y, hY, hxY⟩ := hxX',
-    obtain ⟨F', hF', hF'Y⟩ := h₁.2.2 (hF hY),
-    rw [hF'Y, mem_bUnion_iff] at hxY,
-    obtain ⟨Z, hZ, hxZ⟩ := hxY,
-    have := disjoint_interiors hX (hF' hZ) hxX hxZ,
+    cases finset.eq_empty_or_nonempty s with hsempty hsnonempty,
+    { rw hsempty,
+      exact empty_mem_faces_of_nonempty (h₁.1 ⟨s, hs⟩) },
+    obtain ⟨x, hxs⟩ := nonempty_combi_interior_of_nonempty (K₁.indep hs) hsnonempty,
+    obtain ⟨F, hF, hFs⟩ := h₂.2.2 hs,
+    have hxs' := hxs,
+    rw [hFs, mem_bUnion_iff] at hxs',
+    obtain ⟨t, ht, hxt⟩ := hxs',
+    obtain ⟨F', hF', hF't⟩ := h₁.2.2 (hF ht),
+    rw [hF't, mem_bUnion_iff] at hxt,
+    obtain ⟨u, hu, hxu⟩ := hxt,
+    have := disjoint_interiors hs (hF' hu) hxs hxu,
     subst this,
-    suffices h : X = Y,
+    suffices h : s = t,
     { rw h,
-      exact hF hY },
-    apply combi_interior.inj (S₁.indep hX) (S₂.indep (hF hY)) (subset.antisymm _ _),
-    { rw hF'Y,
-      exact subset_bUnion_of_mem hZ },
-    { rw hFX,
-      exact subset_bUnion_of_mem hY }
+      exact hF ht },
+    apply combi_interior.inj (K₁.indep hs) (K₂.indep (hF ht)) (subset.antisymm _ _),
+    { rw hF't,
+      exact subset_bUnion_of_mem hu },
+    { rw hFs,
+      exact subset_bUnion_of_mem ht }
   end }
 
 /-
@@ -178,7 +173,7 @@ def barycentrisation : list (fin m → 𝕜) → fin m → 𝕜 :=
 
 def simplicial_complex.barycentric_subdivision (S : simplicial_complex 𝕜 E) :
   simplicial_complex 𝕜 E :=
-{ faces := {X | ∃ {L : list (fin m → 𝕜)}, list.to_finset L ∈ S.faces ∧ X = },
+{ faces := {s | ∃ {L : list (fin m → 𝕜)}, list.to_finset L ∈ S.faces ∧ s = },
   indep := _,
   down_closed := _,
   disjoint := _ }-/

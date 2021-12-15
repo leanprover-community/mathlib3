@@ -333,12 +333,10 @@ variables [t2_space E]
 lemma closure_combi_interior_eq_convex_hull (hs : affine_independent ℝ (coe : (s : set E) → E)) :
   closure (combi_interior ℝ s) = convex_hull ℝ (s : set E) :=
 begin
-  apply set.subset.antisymm,
-  { rw s.is_closed_convex_hull.closure_subset_iff,
-    apply combi_interior_subset_convex_hull },
-  refine convex_hull_min (subset_closure_combi_interior hs) _,
-  apply convex.closure,
-  apply convex_combi_interior hs,
+  refine set.subset.antisymm _
+    (convex_hull_min (subset_closure_combi_interior hs) (convex_combi_interior hs).closure),
+  rw s.is_closed_convex_hull.closure_subset_iff,
+  exact combi_interior_subset_convex_hull,
 end
 
 lemma convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior

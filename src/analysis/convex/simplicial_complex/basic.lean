@@ -54,7 +54,7 @@ Note that the textbook meaning of "glue nicely" is given in
 (faces : set (finset E))
 (not_empty_mem : ∅ ∉ faces)
 (indep : ∀ {s}, s ∈ faces → affine_independent 𝕜 (coe : (s : set E) → E))
-(down_closed : ∀ {s t}, s ∈ faces → t ⊆ s → t ≠ ∅ → t ∈ faces)
+(down_closed : ∀ {s t : finset E}, s ∈ faces → t ⊆ s → t.nonempty → t ∈ faces)
 (inter_subset_convex_hull : ∀ {s t}, s ∈ faces → t ∈ faces →
   convex_hull 𝕜 ↑s ∩ convex_hull 𝕜 ↑t ⊆ convex_hull 𝕜 (s ∩ t : set E))
 
@@ -65,17 +65,17 @@ variables {𝕜 E} {K : simplicial_complex 𝕜 E} {s t : finset E} {x : E}
 instance : has_mem (finset E) (simplicial_complex 𝕜 E) := ⟨λ s K, s ∈ K.faces⟩
 
 /-- The underlying space of a simplicial complex is the union of its faces. -/
-def space (K : simplicial_complex 𝕜 E) : set E := ⋃ s ∈ K.faces, convex_hull 𝕜 (s : set E)
+def space (K : simplicial_complex 𝕜 E) : set E := ⋃ s ∈ K, convex_hull 𝕜 (s : set E)
 
-lemma mem_space_iff : x ∈ K.space ↔ ∃ s ∈ K.faces, x ∈ convex_hull 𝕜 (s : set E) := mem_bUnion_iff
+lemma mem_space_iff : x ∈ K.space ↔ ∃ s ∈ K, x ∈ convex_hull 𝕜 (s : set E) := mem_bUnion_iff
 
 lemma convex_hull_subset_space (hs : s ∈ K.faces) : convex_hull 𝕜 ↑s ⊆ K.space :=
 subset_bUnion_of_mem hs
 
-protected lemma subset_space (hs : s ∈ K.faces) : (s : set E) ⊆ K.space :=
+protected lemma subset_space (hs : s ∈ K) : (s : set E) ⊆ K.space :=
 (subset_convex_hull 𝕜 _).trans $ convex_hull_subset_space hs
 
-lemma convex_hull_inter_convex_hull (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
+lemma convex_hull_inter_convex_hull (hs : s ∈ K) (ht : t ∈ K) :
   convex_hull 𝕜 ↑s ∩ convex_hull 𝕜 ↑t = convex_hull 𝕜 (s ∩ t : set E) :=
 (K.inter_subset_convex_hull hs ht).antisymm $ subset_inter
   (convex_hull_mono $ set.inter_subset_left _ _) $ convex_hull_mono $ set.inter_subset_right _ _
@@ -83,13 +83,13 @@ lemma convex_hull_inter_convex_hull (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
 /-- The conclusion is the usual meaning of "glue nicely" in textbooks. It turns out to be quite
 unusable, as it's about faces as sets in space rather than simplices. Further,  additional structure
 on `𝕜` means the only choice of `u` is `s ∩ t` (but it's hard to prove). -/
-lemma disjoint_or_exists_inter_eq_convex_hull (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
+lemma disjoint_or_exists_inter_eq_convex_hull (hs : s ∈ K) (ht : t ∈ K) :
   disjoint (convex_hull 𝕜 (s : set E)) (convex_hull 𝕜 ↑t) ∨
-  ∃ u ∈ K.faces, convex_hull 𝕜 (s : set E) ∩ convex_hull 𝕜 ↑t = convex_hull 𝕜 ↑u :=
+  ∃ u ∈ K, convex_hull 𝕜 (s : set E) ∩ convex_hull 𝕜 ↑t = convex_hull 𝕜 ↑u :=
 begin
   classical,
   by_contra' h,
-  refine h.2 (s ∩ t) (K.down_closed hs (inter_subset_left _ _) $ λ hst, h.1 $
+  refine h.2 (s ∩ t) (K.down_closed hs (inter_subset_left _ _) $ nonempty_of_ne_empty $ λ hst, h.1 $
     (K.inter_subset_convex_hull hs ht).trans _) _,
   { rw [←coe_inter, hst, coe_empty, convex_hull_empty],
     refl },
@@ -107,40 +107,40 @@ end
 { faces := faces \ {∅},
   not_empty_mem := λ h, h.2 (mem_singleton _),
   indep := λ s hs, indep _ hs.1,
-  down_closed := λ s t hs hts ht, ⟨down_closed _ hs.1 _ hts, ht⟩,
+  down_closed := λ s t hs hts ht, ⟨down_closed _ hs.1 _ hts, ht.ne_empty⟩,
   inter_subset_convex_hull := λ s t hs ht, inter_subset_convex_hull _ _ hs.1 ht.1 }
 
 /-- Construct a simplicial complex as a subset of a given simplicial complex. -/
 @[simps] def of_subcomplex (K : simplicial_complex 𝕜 E)
   (faces : set (finset E))
   (subset : faces ⊆ K.faces)
-  (down_closed : ∀ {s t}, s ∈ faces → t ⊆ s → t ∈ faces) :
+  (down_closed : ∀ {s t : finset E}, s ∈ faces → t ⊆ s → t.nonempty → t ∈ faces) :
   simplicial_complex 𝕜 E :=
 { faces := faces,
   not_empty_mem := λ h, K.not_empty_mem (subset h),
   indep := λ s hs, K.indep (subset hs),
-  down_closed := λ s t hs hts _, down_closed hs hts,
+  down_closed := λ s t, down_closed,
   inter_subset_convex_hull := λ s t hs ht, K.inter_subset_convex_hull (subset hs) (subset ht) }
 
 /-! ### Vertices -/
 
 /-- The vertices of a simplicial complex are its zero dimensional faces. -/
-def vertices (K : simplicial_complex 𝕜 E) : set E := {x | {x} ∈ K.faces}
+def vertices (K : simplicial_complex 𝕜 E) : set E := {x | {x} ∈ K}
 
-lemma mem_vertices : x ∈ K.vertices ↔ {x} ∈ K.faces := iff.rfl
+lemma mem_vertices : x ∈ K.vertices ↔ {x} ∈ K := iff.rfl
 
-lemma vertices_eq : K.vertices = ⋃ k ∈ K.faces, (k : set E) :=
+lemma vertices_eq : K.vertices = ⋃ k ∈ K, (k : set E) :=
 begin
   ext x,
   refine ⟨λ h, mem_bUnion h $ mem_coe.2 $ mem_singleton_self x, λ h, _⟩,
   obtain ⟨s, hs, hx⟩ := mem_bUnion_iff.1 h,
-  exact K.down_closed hs (finset.singleton_subset_iff.2 $ mem_coe.1 hx) (singleton_ne_empty _),
+  exact K.down_closed hs (finset.singleton_subset_iff.2 $ mem_coe.1 hx) (singleton_nonempty _),
 end
 
 lemma vertices_subset_space : K.vertices ⊆ K.space :=
 vertices_eq.subset.trans $ set.bUnion_mono $ λ x hx, subset_convex_hull 𝕜 x
 
-lemma vertex_mem_convex_hull_iff (hx : x ∈ K.vertices) (hs : s ∈ K.faces) :
+lemma vertex_mem_convex_hull_iff (hx : x ∈ K.vertices) (hs : s ∈ K) :
   x ∈ convex_hull 𝕜 (s : set E) ↔ x ∈ s :=
 begin
   refine ⟨λ h, _, λ h, subset_convex_hull _ _ h⟩,
@@ -152,22 +152,22 @@ begin
 end
 
 /-- A face is a subset of another one iff its vertices are.  -/
-lemma face_subset_face_iff (hs : s ∈ K.faces) (ht : t ∈ K.faces) :
+lemma face_subset_face_iff (hs : s ∈ K) (ht : t ∈ K) :
   convex_hull 𝕜 (s : set E) ⊆ convex_hull 𝕜 ↑t ↔ s ⊆ t :=
 ⟨λ h x hxs, (vertex_mem_convex_hull_iff (K.down_closed hs (finset.singleton_subset_iff.2 hxs) $
-  singleton_ne_empty _) ht).1 (h (subset_convex_hull 𝕜 ↑s hxs)), convex_hull_mono⟩
+  singleton_nonempty _) ht).1 (h (subset_convex_hull 𝕜 ↑s hxs)), convex_hull_mono⟩
 
 /-! ### Facets -/
 
 /-- A facet of a simplicial complex is a maximal face. -/
 def facets (K : simplicial_complex 𝕜 E) : set (finset E) :=
-{s ∈ K.faces | ∀ ⦃t⦄, t ∈ K.faces → s ⊆ t → s = t}
+{s ∈ K.faces | ∀ ⦃t⦄, t ∈ K → s ⊆ t → s = t}
 
-lemma mem_facets : s ∈ K.facets ↔ s ∈ K.faces ∧ ∀ t ∈ K.faces, s ⊆ t → s = t := mem_sep_iff
+lemma mem_facets : s ∈ K.facets ↔ s ∈ K ∧ ∀ t ∈ K, s ⊆ t → s = t := mem_sep_iff
 
 lemma facets_subset : K.facets ⊆ K.faces := λ s hs, hs.1
 
-lemma not_facet_iff_subface (hs : s ∈ K.faces) : (s ∉ K.facets ↔ ∃ t, t ∈ K.faces ∧ s ⊂ t) :=
+lemma not_facet_iff_subface (hs : s ∈ K) : (s ∉ K.facets ↔ ∃ t, t ∈ K ∧ s ⊂ t) :=
 begin
   refine ⟨λ (hs' : ¬ (_ ∧ _)), _, _⟩,
   { push_neg at hs',

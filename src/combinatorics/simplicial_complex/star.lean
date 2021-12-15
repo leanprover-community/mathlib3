@@ -3,215 +3,142 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import combinatorics.simplicial_complex.basic
 import combinatorics.simplicial_complex.closure
 
 /-!
 # Star in a simplicial complex
 -/
 
-open set
+open finset geometry
 
 variables {𝕜 E : Type*}
 
+namespace geometry.simplicial_complex
 section ordered_ring
 variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {n : ℕ}
-  {S : simplicial_complex 𝕜 E} {X Y : finset E} {A B : set (finset E)}
+  {K : simplicial_complex 𝕜 E} {s t : finset E} {A B : set (finset E)}
 
 /-- The open star of a set of faces is the union of their surfaces. Note that the star is all of the
 original complex as soon as A contains the empty set. -/
-def simplicial_complex.star (S : simplicial_complex 𝕜 E) :
-  set (finset E) → set (finset E) :=
-λ A, {X | X ∈ S.faces ∧ ∃ {Y}, Y ∈ A ∧ Y ⊆ X}
+def star (K : simplicial_complex 𝕜 E) (A : set (finset E)) : set (finset E) :=
+{s | s ∈ K ∧ ∃ t ∈ A, t ⊆ s}
 
-lemma star_empty :
-  S.star ∅ = ∅ :=
+lemma star_empty : K.star ∅ = ∅ := by { unfold star, simp }
+
+lemma star_singleton_empty : K.star {∅} = K.faces := by { unfold star, simp, refl }
+
+lemma mem_star_singleton_iff : t ∈ K.star {s} ↔ t ∈ K ∧ s ⊆ t := by { unfold star, simp }
+
+lemma mem_star_iff : s ∈ K.star A ↔ s ∈ K.faces ∩ ⋃ (t ∈ A), {u | t ⊆ u} :=
+by { unfold star, simp }
+
+lemma star_subset : K.star A ⊆ K.faces := λ s hs, hs.1
+
+lemma subset_star : K.faces ∩ A ⊆ K.star A := λ s hs, ⟨hs.1, s, hs.2, subset.refl s⟩
+
+lemma star_mono (hAB : A ⊆ B) : K.star A ⊆ K.star B := λ s ⟨hs, t, ht, hts⟩, ⟨hs, t, hAB ht, hts⟩
+
+lemma star_up_closed : s ∈ K → t ∈ K.star A → t ⊆ s → s ∈ K.star A :=
+λ hs ⟨ht, u, hu, hut⟩ hts, ⟨hs, u, hu, subset.trans hut hts⟩
+
+lemma Union_star_eq_star : (⋃ (s ∈ A), K.star {s}) = K.star A :=
 begin
-  unfold simplicial_complex.star,
-  simp,
-end
-
-lemma star_singleton_empty :
-  S.star {∅} = S.faces :=
-begin
-  unfold simplicial_complex.star,
-  simp,
-end
-
-lemma mem_star_singleton_iff :
-  Y ∈ S.star {X} ↔ Y ∈ S.faces ∧ X ⊆ Y :=
-begin
-  unfold simplicial_complex.star,
-  simp,
-end
-
-lemma mem_star_iff :
-  X ∈ S.star A ↔ X ∈ S.faces ∩ ⋃ (Y ∈ A), {Z | Y ⊆ Z} :=
-begin
-  unfold simplicial_complex.star,
-  simp,
-end
-
-lemma star_subset : S.star A ⊆ S.faces :=
-  λ X hX, hX.1
-
-lemma subset_star :
-  S.faces ∩ A ⊆ S.star A :=
-λ X hX, ⟨hX.1, X, hX.2, subset.refl X⟩
-
-lemma star_mono (hAB : A ⊆ B) :
-  S.star A ⊆ S.star B :=
-λ X ⟨hX, Y, hY, hYX⟩, ⟨hX, Y, hAB hY, hYX⟩
-
-lemma star_up_closed :
-  X ∈ S.faces → Y ∈ S.star A → Y ⊆ X → X ∈ S.star A :=
-λ hX ⟨hY, Z, hZ, hZY⟩ hYX, ⟨hX, Z, hZ, subset.trans hZY hYX⟩
-
-lemma Union_star_eq_star :
-  (⋃ (X ∈ A), S.star {X}) = S.star A :=
-begin
-  ext X,
-  rw mem_bUnion_iff,
+  ext s,
+  rw set.mem_bUnion_iff,
   split,
-  { rintro ⟨Y', hY, hX, Y, (hYY' : Y = Y'), hYX⟩,
-    subst hYY',
-    exact ⟨hX, Y, hY, hYX⟩,
-  },
-  { rintro ⟨hX, Y, hY, hYX⟩,
-    exact ⟨Y, hY, hX, Y, mem_singleton Y, hYX⟩,
-  }
+  { rintro ⟨t', ht, hs, t, (htt' : t = t'), hts⟩,
+    subst htt',
+    exact ⟨hs, t, ht, hts⟩ },
+  { rintro ⟨hs, t, ht, hts⟩,
+    exact ⟨t, ht, hs, t, set.mem_singleton t, hts⟩ }
 end
 
---Can maybe get rid of hX?
-lemma star_singleton_eq_Inter_star_singleton (hX : X ∈ S.faces) :
-  S.star {X} = ⋂ x ∈ X, S.star {{x}} :=
+--Can maybe get rid of hs?
+lemma star_singleton_eq_Inter_star_singleton (hs : s ∈ K) : K.star {s} = ⋂ x ∈ s, K.star {{x}} :=
 begin
-  ext Y,
-  split,
-  { rintro ⟨hY, Z, (hZ : Z = X), hXY⟩,
-    rw hZ at hXY,
-    exact mem_bInter (λ x (hx : x ∈ X), ⟨hY, {x}, mem_singleton {x},
-      finset.singleton_subset_iff.2 (hXY hx)⟩) },
-  { rintro h,
-    rw mem_star_singleton_iff,
-    split,
-    { simp only [mem_Inter] at h,
+  ext t,
+  refine ⟨_, λ h, _⟩,
+  { rintro ⟨ht, u, (hu : u = s), hst⟩,
+    rw hu at hst,
+    exact set.mem_bInter (λ x (hx : x ∈ s), ⟨ht, {x}, set.mem_singleton {x},
+      singleton_subset_iff.2 $ hst hx⟩) },
+  { rw mem_star_singleton_iff,
+    refine ⟨_, λ x hx, _⟩,
+    { simp only [set.mem_Inter] at h,
       sorry
     },
-    rintro x hx,
-    obtain ⟨hY, Z, (hZ : Z = {x}), hxY⟩ := mem_bInter_iff.1 h x hx,
-    rw hZ at hxY,
-    exact finset.singleton_subset_iff.1 hxY }
+    obtain ⟨ht, u, (hu : u = {x}), hxt⟩ := set.mem_bInter_iff.1 h x hx,
+    rw hu at hxt,
+    exact singleton_subset_iff.1 hxt }
 end
 
-/--
-The closed star of a complex S and a set A is the complex whose faces are in S and share a surface
-with some face in A
--/
-def simplicial_complex.Star (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
-  simplicial_complex 𝕜 E :=
-simplicial_complex.of_subcomplex {X | ∃ {Y Z}, Y ∈ A ∧ Z ∈ S.faces ∧ X ⊆ Z ∧ Y ⊆ Z}
-  (λ X ⟨_, Z, _, hZ, hXZ, _⟩, S.down_closed hZ hXZ)
-  (λ X W ⟨Y, Z, hY, hZ, hXZ, hYZ⟩ hWX, ⟨Y, Z, hY, hZ, subset.trans hWX hXZ, hYZ⟩)
+/-- The closed star of a complex `K` and a set `A` is the complex whose faces are in `K` and share a
+surface with some face in `A`. -/
+def Star (K : simplicial_complex 𝕜 E) (A : set (finset E)) : simplicial_complex 𝕜 E :=
+K.of_subcomplex {s | s.nonempty ∧ ∃ {t u}, t ∈ A ∧ u ∈ K ∧ s ⊆ u ∧ t ⊆ u}
+  (λ s ⟨hs, _, u, _, hu, hsu, _⟩, K.down_closed hu hsu hs)
+  (λ s t ⟨hs, u, v, hu, hv, hsv, huv⟩ hts ht, ⟨ht, u, v, hu, hv, hts.trans hsv, huv⟩)
 
-lemma Star_empty :
-  (S.Star ∅).faces = ∅ :=
+lemma Star_le : K.Star A ≤ K := K.of_subcomplex_le _
+
+lemma Star_empty : K.Star ∅ = ⊥ :=
 begin
-  unfold simplicial_complex.Star,
+  ext s,
+  refine iff_of_false _ id,
+  unfold Star,
   simp,
 end
 
-lemma Star_singleton_empty :
-  S.Star {∅} = S :=
+lemma Star_singleton_empty : K.Star {∅} = K :=
 begin
-  ext X,
-  split,
-  { rintro ⟨Y, Z, (hY : Y = ∅), hZ, hXZ, hYZ⟩,
-    exact S.down_closed hZ hXZ,
-  },
-  { rintro hX,
-    exact ⟨∅, X, rfl, hX, subset.refl _, empty_subset X⟩,
-  }
+  ext s,
+  refine ⟨_, λ hs, ⟨K.nonempty hs, ∅, s, rfl, hs, subset.refl _, empty_subset s⟩⟩,
+  rintro ⟨hs, t, u, (ht : t = ∅), hu, hsu, htu⟩,
+  exact K.down_closed hu hsu hs,
 end
 
-lemma mem_Star_singleton_iff :
-  Y ∈ (S.Star {X}).faces ↔ ∃ {Z}, Z ∈ S.faces ∧ Y ⊆ Z ∧ X ⊆ Z :=
+lemma mem_Star_singleton_iff : t ∈ K.Star {s} ↔ t.nonempty ∧ ∃ u ∈ K, t ⊆ u ∧ s ⊆ u :=
 begin
-  unfold simplicial_complex.Star,
+  unfold Star,
   simp,
+  refl,
 end
 
-/--
-The closed star of a set is the closure of its open star.
--/
-lemma Star_eq_closure_star :
-  S.Star A = S.closure (S.star A) :=
+/-- The closed star of a set is the closure of its open star. -/
+lemma Star_eq_closure_star : K.Star A = K.closure (K.star A) :=
 begin
-  ext X,
+  ext s,
   split,
-  { rintro ⟨Y, Z, hY, hZ, hXZ, hYZ⟩,
-    exact ⟨S.down_closed hZ hXZ, Z, ⟨hZ, Y, hY, hYZ⟩, hXZ⟩,
-  },
-  { rintro ⟨hX, Z, ⟨hZ, Y, hY, hYZ⟩, hXZ⟩,
-    exact ⟨Y, Z, hY, hZ, hXZ, hYZ⟩,
-  }
+  { rintro ⟨hs, t, u, ht, hu, hsu, htu⟩,
+    exact ⟨K.down_closed hu hsu hs, u, ⟨hu, t, ht, htu⟩, hsu⟩ },
+  { rintro ⟨hs, u, ⟨hu, t, ht, htu⟩, hsu⟩,
+    exact ⟨K.nonempty hs, t, u, ht, hu, hsu, htu⟩ }
 end
 
-lemma Star_subset :
-  (S.Star A).faces ⊆ S.faces :=
-λ X ⟨_, Z, _, hZ, hXZ, _⟩, S.down_closed hZ hXZ
+lemma subset_Star : K.faces ∩ A ⊆ (K.Star A).faces :=
+λ s ⟨hs, hsA⟩, ⟨K.nonempty hs, s, s, hsA, hs, subset.refl s, subset.refl s⟩
 
-lemma subset_Star :
-  S.faces ∩ A ⊆ (S.Star A).faces :=
-λ X ⟨hXS, hXA⟩, ⟨X, X, hXA, hXS, subset.refl X, subset.refl X⟩
+lemma star_subset_Star : K.star A ⊆ (K.Star A).faces :=
+λ s ⟨hs, t, ht, hts⟩, ⟨K.nonempty hs, t, s, ht, hs, subset.refl s, hts⟩
 
-lemma star_subset_Star :
-  S.star A ⊆ (S.Star A).faces :=
-λ X ⟨hX, Y, hY, hYX⟩, ⟨Y, X, hY, hX, subset.refl X, hYX⟩
-
-lemma Star_mono (hAB : A ⊆ B) :
-  (S.Star A).faces ⊆ (S.Star B).faces :=
+lemma Star_mono (hAB : A ⊆ B) : K.Star A ≤ K.Star B :=
 begin
   rw [Star_eq_closure_star, Star_eq_closure_star],
-  exact closure_faces_subset_of_subset (star_mono hAB),
+  exact closure_mono (star_mono hAB),
 end
 
-lemma Star_facet_iff :
-  X ∈ (S.Star A).facets ↔ X ∈ S.facets ∧ ∃ {Y}, Y ∈ A ∧ Y ⊆ X :=
+lemma mem_facets_Star_iff : s ∈ (K.Star A).facets ↔ s ∈ K.facets ∧ ∃ t ∈ A, t ⊆ s :=
 begin
   split,
-  { rintro ⟨⟨Y, Z, hY, hZ, hXZ, hYZ⟩, hXmax⟩,
-    have := hXmax ⟨Y, Z, hY, hZ, subset.refl Z, hYZ⟩ hXZ,
+  { rintro ⟨⟨hs, t, u, ht, hu, hsu, htu⟩, hsmax⟩,
+    have := hsmax ⟨hs.mono hsu, t, u, ht, hu, subset.refl u, htu⟩ hsu,
     subst this,
-    split,
-    {   use hZ,
-      rintro W hW hXW,
-      exact hXmax (star_subset_Star ⟨hW, Y, hY, subset.trans hYZ hXW⟩) hXW,
-    },
-    { exact ⟨Y, hY, hYZ⟩, }
-  },
-  { rintro ⟨hX, Y, hY, hYX⟩,
-    split,
-    exact ⟨Y, X, hY, hX.1, subset.refl X, hYX⟩,
-    rintro Z hZ,
-    exact hX.2 (Star_subset hZ),
-  }
+    exact ⟨⟨hu, λ v hv hsv, hsmax (star_subset_Star ⟨hv, t, ht, htu.trans hsv⟩) hsv⟩, ⟨t, ht, htu⟩⟩ },
+  { rintro ⟨hs, t, ht, hts⟩,
+    exact ⟨⟨K.nonempty hs.1, t, s, ht, hs.1, subset.refl s, hts⟩, λ u hu, hs.2 $ Star_le hu⟩ }
 end
 
-lemma pure_Star_of_pure (hS : S.pure_of n) :
-  (S.Star A).pure_of n :=
-λ X hX, hS (Star_facet_iff.1 hX).1
+lemma pure.Star (hK : K.pure n) : (K.Star A).pure n := λ s hs, hK (mem_facets_Star_iff.1 hs).1
 
 end ordered_ring
-
-section linear_ordered_field
-variables [linear_ordered_field 𝕜]
-
-lemma Star_pureness_eq_pureness [finite_dimensional 𝕜 E] (hS : S.pure)
-  (hSA : (S.Star A).faces.nonempty) :
-  (S.Star A).pureness = S.pureness :=
-begin
-  obtain ⟨n, hS⟩ := hS,
-  obtain ⟨X, hX⟩ := id hSA,
-  rw [pureness_def' hSA (pure_Star_of_pure hS), pureness_def' (hSA.mono Star_subset) hS],
-end
+end geometry.simplicial_complex

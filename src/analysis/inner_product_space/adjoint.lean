@@ -55,7 +55,8 @@ def adjoint' : (E →L[𝕜] F) →L⋆[𝕜] F →L[𝕜] E :=
   adjoint' A x = ((to_dual 𝕜 E).symm : (normed_space.dual 𝕜 E) → E) ((to_sesq_form A) x) := rfl
 
 lemma adjoint'_inner_left {A : E →L[𝕜] F} {x : E} {y : F} : ⟪adjoint' A y, x⟫ = ⟪y, A x⟫ :=
-by { simp only [adjoint'_apply, to_dual_symm_apply, to_sesq_form_apply_coe]}
+by { simp only [adjoint'_apply, to_dual_symm_apply, to_sesq_form_apply_coe, coe_comp',
+                innerSL_apply_coe]}
 
 lemma adjoint'_inner_right {A : E →L[𝕜] F} {x : E} {y : F} : ⟪x, adjoint' A y⟫ = ⟪A x, y⟫ :=
 by rw [←inner_conj_sym, adjoint'_inner_left, inner_conj_sym]

@@ -1438,10 +1438,7 @@ def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] �
   (↑(star_ring_aut : 𝕜 ≃+* 𝕜) : 𝕜 →+* 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
 (continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) innerSL_flip)
 
-@[simp] lemma to_sesq_form_apply_coe {f : E →L[𝕜] E'} {x : E'} :
-  (to_sesq_form f x : E → 𝕜) = λ y, ⟪x, f y⟫ := rfl
-
-@[simp] lemma to_sesq_form_apply_coe_linear (f : E →L[𝕜] E') (x : E') :
+@[simp] lemma to_sesq_form_apply_coe (f : E →L[𝕜] E') (x : E') :
   (to_sesq_form f x : E →L[𝕜] 𝕜) = (innerSL x).comp f := rfl
 
 lemma to_sesq_form_apply_norm_le {f : E →L[𝕜] E'} {v : E'} : ∥to_sesq_form f v∥ ≤ ∥f∥ * ∥v∥ :=

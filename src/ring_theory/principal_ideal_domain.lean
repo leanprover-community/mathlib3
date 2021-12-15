@@ -316,6 +316,13 @@ begin
     exacts [gcd_dvd_left x y, gcd_dvd_right x y] },
 end
 
+/-- **Bézout's lemma** -/
+theorem gcd_eq_gcd_ab (a b : R) : ∃ x y, x * a + y * b = gcd a b :=
+by rw [←mem_span_pair, ←span_gcd, ideal.mem_span_singleton]
+
+theorem gcd_eq_gcd_ab' (a b : R) : { z | ∃ x y, x * a + y * b = z } = { z | gcd a b ∣ z } :=
+by simp_rw [←mem_span_pair, ←span_gcd, ideal.mem_span_singleton]
+
 theorem gcd_is_unit_iff (x y : R) : is_unit (gcd x y) ↔ is_coprime x y :=
 by rw [is_coprime, ←mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]
 

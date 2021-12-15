@@ -1473,7 +1473,6 @@ lemma is_bounded_bilinear_map_inner [normed_space ℝ E] :
 
 end norm
 
-
 section bessels_inequality
 
 variables {ι: Type*} (x : E) {v : ι → E}

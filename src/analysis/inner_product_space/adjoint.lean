@@ -47,7 +47,7 @@ namespace continuous_linear_map
 /-- The adjoint, as a continuous conjugate-linear map.  This is only meant as an auxiliary
 definition for the main definition `adjoint`, where this is bundled as a conjugate-linear isometric
 equivalence. -/
-def adjoint' : (E →L[𝕜] F) →L⋆[𝕜] F →L[𝕜] E :=
+def adjoint' : (E →L[𝕜] F) →L⋆[𝕜] (F →L[𝕜] E) :=
 (continuous_linear_map.compSL _ _ _ _ _ ((to_dual 𝕜 E).symm : normed_space.dual 𝕜 E →L⋆[𝕜] E)).comp
   (to_sesq_form : (E →L[𝕜] F) →L[𝕜] F →L⋆[𝕜] normed_space.dual 𝕜 E)
 

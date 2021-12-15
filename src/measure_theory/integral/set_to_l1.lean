@@ -946,7 +946,6 @@ begin
 end
 
 end order
-end
 
 variables [normed_space 𝕜 F] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
@@ -1365,10 +1364,6 @@ begin
   rw ← (set_to_L1 hT).map_sub,
   exact set_to_L1_nonneg hT hT_nonneg hfg,
 end
-
-lemma set_to_L1_const [is_finite_measure μ] (hT : dominated_fin_meas_additive μ T C) (x : E) :
-  set_to_L1 hT (indicator_const_Lp 1 measurable_set.univ (measure_ne_top _ _) x) = T univ x :=
-set_to_L1_indicator_const_Lp hT measurable_set.univ (measure_ne_top _ _) x
 
 lemma norm_set_to_L1_le_norm_set_to_L1s_clm (hT : dominated_fin_meas_additive μ T C) :
   ∥set_to_L1 hT∥ ≤ ∥set_to_L1s_clm α E μ hT∥ :=

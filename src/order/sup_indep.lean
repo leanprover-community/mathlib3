@@ -74,7 +74,7 @@ variables [distrib_lattice α] [order_bot α] {s : finset ι} {f : ι → α}
 
 lemma sup_indep_iff_pairwise_disjoint : s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
 ⟨sup_indep.pairwise_disjoint, λ hs t ht i hi hit,
-  disjoint_sup_right.2 $ λ j hj, hs _ hi _ (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
+  disjoint_sup_right.2 $ λ j hj, hs hi (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
 
 alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint
   set.pairwise_disjoint.sup_indep

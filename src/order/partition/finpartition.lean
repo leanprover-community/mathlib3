@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
+import order.atoms
 import order.sup_indep
 
 /-!
@@ -40,6 +41,16 @@ open finset function
 open_locale big_operators
 
 variables {α : Type*}
+
+lemma set.pairwise_disjoint.eq_of_le {α ι : Type*} [semilattice_inf α] [order_bot α] {s : set ι}
+  {f : ι → α} {i : ι} (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
+  (hf : f i ≠ ⊥) (hij : f i ≤ f j) :
+  i = j :=
+begin
+  classical,
+  by_contra,
+  exact hf (disjoint_self.1 $ (hs hi hj h).mono_right hij),
+end
 
 /-- A finite partition of `a : α` is a pairwise disjoint finite set of elements whose supremum is
 `a`. We forbid `⊥` as a part. -/
@@ -78,7 +89,7 @@ variables (α)
 /-- The empty finpartition. -/
 @[simps] protected def empty : finpartition (⊥ : α) :=
 { parts := ∅,
-  sup_indep := coe_empty.symm.subst sup_indep_empty,
+  sup_indep := sup_indep_empty _,
   sup_parts := finset.sup_empty,
   not_bot_mem := not_mem_empty ⊥ }
 
@@ -89,13 +100,9 @@ variables {α} {a : α}
 /-- The finpartition in one part, aka indiscrete finpartition. -/
 @[simps] def indiscrete (ha : a ≠ ⊥) : finpartition a :=
 { parts := {a},
-  sup_indep := (coe_singleton a).symm.subst (sup_indep_singleton _),
+  sup_indep := sup_indep_singleton _ _,
   sup_parts := finset.sup_singleton,
   not_bot_mem := λ h, ha (mem_singleton.1 h).symm }
-
-/-- There's a unique partition of an atom. -/
-def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a) :=
-{ uniq := indiscrete ha.1,  }
 
 variables (P : finpartition a)
 
@@ -103,13 +110,13 @@ protected lemma le {b : α} (hb : b ∈ P.parts) : b ≤ a := (le_sup hb).trans 
 
 lemma ne_bot {b : α} (hb : b ∈ P.parts) : b ≠ ⊥ := λ h, P.not_bot_mem $ h.subst hb
 
+protected lemma disjoint : (P.parts : set α).pairwise_disjoint id := P.sup_indep.pairwise_disjoint
+
 lemma eq_empty (P : finpartition (⊥ : α)) : P = finpartition.empty α :=
 begin
   ext a,
   exact iff_of_false (λ h, P.ne_bot h $ le_bot_iff.1 $ P.le h) (not_mem_empty a),
 end
-
-instance : unique (finpartition (⊥ : α)) := { uniq := eq_empty ..finpartition.inhabited }
 
 variables {P}
 
@@ -125,12 +132,53 @@ end
 lemma parts_nonempty_iff : P.parts.nonempty ↔ a ≠ ⊥ :=
 by rw [nonempty_iff_ne_empty, not_iff_not, parts_eq_empty_iff]
 
+lemma parts_nonempty (P : finpartition a) (ha : a ≠ ⊥) : P.parts.nonempty :=
+parts_nonempty_iff.2 ha
+
+instance : unique (finpartition (⊥ : α)) := { uniq := eq_empty ..finpartition.inhabited α }
+
+/-- There's a unique partition of an atom. -/
+def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a) :=
+{ default := indiscrete ha.1,
+  uniq := λ P, begin
+    have h : ∀ b ∈ P.parts, b = a,
+    { exact λ b hb, (eq_bot_or_eq_of_le_atom ha $ P.le hb).resolve_left (P.ne_bot hb) },
+    ext b,
+    refine iff.trans ⟨h b, _⟩ mem_singleton.symm,
+    rintro rfl,
+    obtain ⟨c, hc⟩ := P.parts_nonempty ha.1,
+    simp_rw ←h c hc,
+    exact hc,
+  end,  }
+
 /-! ### Refinement order -/
 
 section order
 
 /-- We say that `P ≤ Q` if `P ` refines `Q`: each part of `P` is less than some part of `Q`. -/
-instance : has_le (finpartition a) := ⟨λ P Q, ∀ b ∈ P.parts, ∃ c ∈ Q.parts, b ≤ c⟩
+instance (a : α) : has_le (finpartition a) := ⟨λ P Q, ∀ ⦃b⦄, b ∈ P.parts → ∃ c ∈ Q.parts, b ≤ c⟩
+
+instance : partial_order (finpartition a) :=
+{ le_refl := λ P b hb, ⟨b, hb, le_rfl⟩,
+  le_trans := λ P Q R hPQ hQR b hb, begin
+    obtain ⟨c, hc, hbc⟩ := hPQ hb,
+    obtain ⟨d, hd, hcd⟩ := hQR hc,
+    exact ⟨d, hd, hbc.trans hcd⟩,
+  end,
+  le_antisymm := λ P Q hPQ hQP, begin
+    ext b,
+    refine ⟨λ hb, _, λ hb, _⟩,
+    {
+      obtain ⟨c, hc, hbc⟩ := hPQ hb,
+      obtain ⟨d, hd, hcd⟩ := hQP hc,
+      have := P.disjoint.eq_of_le,
+      exact ⟨d, hd, hbc.trans hcd⟩,
+    },
+    obtain ⟨c, hc, hbc⟩ := hPQ hb,
+    obtain ⟨d, hd, hcd⟩ := hQR hc,
+    exact ⟨d, hd, hbc.trans hcd⟩,
+  end,
+  .. finpartition.has_le a }
 
 instance [decidable (a = ⊥)] : order_top (finpartition a) :=
 { top := if ha : a = ⊥ then finpartition.empty α else indiscrete ha,
@@ -140,7 +188,23 @@ instance [decidable (a = ⊥)] : order_top (finpartition a) :=
     { exact λ b hb, ⟨a, P.le hb⟩ }
   end }
 
+instance : has_inf (finpartition a) :=
+⟨λ P Q,
+  { parts := P.parts.image (λ b, Q.parts.image $ λ c, b ⊓ c),
+    sup_indep := sup_indep_singleton _ _,
+    sup_parts := finset.sup_singleton,
+    not_bot_mem := λ h, ha (mem_singleton.1 h).symm }⟩
+
 instance : lattice (finpartition a) :=
+{ sup := _,
+  le_sup_left := _,
+  le_sup_right := _,
+  sup_le := _,
+  inf := λ P,
+  inf_le_left := _,
+  inf_le_right := _,
+  le_inf := _,
+  .. }
 
 
 end order

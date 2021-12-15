@@ -92,15 +92,8 @@ alias count_succ_eq_count_iff ↔ _ count_succ_eq_count
 
 lemma count_le_cardinal (n : ℕ) : (count p n : cardinal) ≤ cardinal.mk {k | p k} :=
 begin
-  obtain h | h := lt_or_le (cardinal.mk {k | p k}) cardinal.omega,
-  { haveI := (cardinal.lt_omega_iff_fintype.mp h).some,
-    simp [cardinal.mk_fintype],
-    rw count_eq_card_fintype,
-    apply fintype.card_le_of_injective,
-    swap,
-    exact λ ⟨i, _, hi⟩, ⟨i, hi⟩,
-    tidy, },
-  { exact trans (le_of_lt (cardinal.nat_lt_omega (count p n))) h},
+  rw [count_eq_card_fintype, ← cardinal.mk_fintype],
+  exact cardinal.mk_subtype_mono (λ x hx, hx.2),
 end
 
 lemma lt_of_count_lt_count {a b : ℕ} (h : count p a < count p b) : a < b :=

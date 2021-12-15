@@ -92,7 +92,7 @@ alias count_succ_eq_count_iff ↔ _ count_succ_eq_count
 
 lemma count_le_cardinal (n : ℕ) : (count p n : cardinal) ≤ cardinal.mk {k | p k} :=
 begin
-  obtain h | h := lt_or_le (cardinal.mk (set_of p)) cardinal.omega,
+  obtain h | h := lt_or_le (cardinal.mk {k | p k}) cardinal.omega,
   { haveI := (cardinal.lt_omega_iff_fintype.mp h).some,
     simp [cardinal.mk_fintype],
     rw count_eq_card_fintype,

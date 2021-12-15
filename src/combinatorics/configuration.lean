@@ -11,13 +11,11 @@ import data.fintype.card
 This file introduces abstract configurations of points and lines, and proves some basic properties.
 
 ## Main definitions
-* `configuration`: Finite collections of points and lines with an incidence relation.
-* `configuration.dual`: The dual configuration obtained by swapping points and lines.
 * `configuration.nondegenerate`: Excludes certain degenerate configurations,
   and imposes uniqueness of intersection points.
 * `configuration.has_points`: A nondegenerate configuration in which
   every pair of lines has an intersection point.
-* `configuration.has_lines`:  nondegenerate configuration in which
+* `configuration.has_lines`:  A nondegenerate configuration in which
   every pair of points has a line through them.
 
 ## Todo

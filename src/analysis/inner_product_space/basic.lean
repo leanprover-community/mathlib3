@@ -1427,9 +1427,7 @@ continuous_linear_map.flipₗᵢ' E E 𝕜 (ring_hom.id 𝕜) (↑star_ring_aut 
 
 namespace continuous_linear_map
 
-variables {𝕜₂ : Type*} {E' : Type*} {G : Type*}
-variables [is_R_or_C 𝕜₂] [inner_product_space 𝕜 E'] [inner_product_space 𝕜₂ G]
-variables {σ : 𝕜₂ →+* 𝕜} [ring_hom_isometric σ]
+variables  {E' : Type*} [inner_product_space 𝕜 E']
 
 /-- Given `f : E →L[𝕜] E'`, construct the continuous sesquilinear form `λ x y, ⟪x, A y⟫`, given
 as a continuous linear map. -/
@@ -1439,7 +1437,7 @@ def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] �
 (continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) innerSL_flip)
 
 @[simp] lemma to_sesq_form_apply_coe (f : E →L[𝕜] E') (x : E') :
-  (to_sesq_form f x : E →L[𝕜] 𝕜) = (innerSL x).comp f := rfl
+  to_sesq_form f x = (innerSL x).comp f := rfl
 
 lemma to_sesq_form_apply_norm_le {f : E →L[𝕜] E'} {v : E'} : ∥to_sesq_form f v∥ ≤ ∥f∥ * ∥v∥ :=
 begin
@@ -1472,7 +1470,6 @@ lemma is_bounded_bilinear_map_inner [normed_space ℝ E] :
     by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
   bound := ⟨1, zero_lt_one, λ x y,
     by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
-
 
 end norm
 

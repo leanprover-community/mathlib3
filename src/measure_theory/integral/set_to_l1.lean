@@ -1268,30 +1268,30 @@ lemma set_to_L1_mono_left {G} [normed_lattice_add_comm_group G] [normed_space �
   set_to_L1 hT f ≤ set_to_L1 hT' f :=
 set_to_L1_mono_left' hT hT' (λ s _ _ x, hTT' s x) f
 
-lemma tendsto_zero_max_norm_iff {G G'} [semi_normed_group G] [semi_normed_group G']
-  (f : ℕ → G) (g : ℕ → G') :
-  tendsto (λ n, max ∥f n∥ ∥g n∥) at_top (𝓝 0)
-    ↔ tendsto (λ n, ∥f n∥) at_top (𝓝 0) ∧ tendsto (λ n, ∥g n∥) at_top (𝓝 0) :=
+lemma tendsto_zero_max_iff_of_nonneg {ι} {fi : _root_.filter ι} (f g : ι → ℝ)
+  (hf : 0 ≤ f) (hg : 0 ≤ g) :
+  tendsto (λ n, max (f n) (g n)) fi (𝓝 0)
+    ↔ tendsto (λ n, f n) fi (𝓝 0) ∧ tendsto (λ n, g n) fi (𝓝 0) :=
 begin
   split; intro h,
-  { split; refine squeeze_zero (λ _, norm_nonneg _) _ h,
-    { exact λ _, le_max_left _ _, },
-    { exact λ _, le_max_right _ _, }, },
-  { have h_add : tendsto (λ (n : ℕ), ∥f n∥ + ∥g n∥) at_top (𝓝 0),
+  { split; refine squeeze_zero _ _ h,
+    exacts [hf, λ _, le_max_left _ _ , hg, λ _, le_max_right _ _], },
+  { have h_add : tendsto (λ (n : ι), f n + g n) fi (𝓝 0),
       by { convert h.1.add h.2, rw zero_add, },
-    exact squeeze_zero (λ _, le_max_of_le_left (norm_nonneg _))
-      (λ _, max_le_add_of_nonneg (norm_nonneg _) (norm_nonneg _)) h_add, },
+    exact squeeze_zero (λ n, le_max_of_le_left (hf n))
+      (λ n, max_le_add_of_nonneg (hf n) (hg n)) h_add, },
 end
 
-lemma prod.tendsto_iff {G G'} [semi_normed_group G] [semi_normed_group G']
-  (seq : ℕ → G × G') (x : G × G') :
-  tendsto seq at_top (𝓝 x)
-    ↔ tendsto (λ n, (seq n).fst) at_top (𝓝 x.fst)
-      ∧ tendsto (λ n, (seq n).snd) at_top (𝓝 x.snd) :=
+lemma prod.tendsto_iff {ι G G'} [pseudo_metric_space G] [pseudo_metric_space G']
+  (seq : ι → G × G') {f : filter ι} (x : G × G') :
+  tendsto seq f (𝓝 x)
+    ↔ tendsto (λ n, (seq n).fst) f (𝓝 x.fst) ∧ tendsto (λ n, (seq n).snd) f (𝓝 x.snd) :=
 begin
-  rw [tendsto_iff_norm_tendsto_zero, @tendsto_iff_norm_tendsto_zero _ _ _ (λ (n : ℕ), (seq n).fst),
-    @tendsto_iff_norm_tendsto_zero _ _ _ (λ (n : ℕ), (seq n).snd)],
-  simp_rw [prod.semi_norm_def, prod.fst_sub, prod.snd_sub, ← tendsto_zero_max_norm_iff],
+  rw [tendsto_iff_dist_tendsto_zero, @tendsto_iff_dist_tendsto_zero _ _ _ (λ (n : ι), (seq n).fst),
+    @tendsto_iff_dist_tendsto_zero _ _ _ (λ (n : ι), (seq n).snd)],
+  simp_rw [prod.dist_eq],
+  rw tendsto_zero_max_iff_of_nonneg,
+  exacts [λ _, dist_nonneg, λ _, dist_nonneg],
 end
 
 lemma set_to_L1_nonneg {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]

@@ -278,18 +278,22 @@ variables {R : Type*} [monoid R] [distrib_mul_action R (polynomial K)]
 variables [htower : is_scalar_tower R (polynomial K) (polynomial K)]
 include htower
 
--- Can't define this in terms of `localization.has_scalar`, because that one
--- is not general enough.
 instance : has_scalar R (ratfunc K) :=
-⟨λ c p, p.lift_on (λ p q, ratfunc.mk (c • p) q) (λ p q p' q' hq hq' h, (mk_eq_mk hq hq').mpr $
-  by rw [smul_mul_assoc, h, smul_mul_assoc])⟩
+⟨λ c p, of_fraction_ring (c • to_fraction_ring p)⟩
+
+lemma of_fraction_ring_smul (c : R) (p : fraction_ring (polynomial K)) :
+  of_fraction_ring (c • p) = c • of_fraction_ring p := rfl
+lemma to_fraction_ring_smul (c : R) (p : ratfunc K) :
+  to_fraction_ring (c • p) = c • to_fraction_ring p := rfl
 
 lemma mk_smul (c : R) (p q : polynomial K) :
   ratfunc.mk (c • p) q = c • ratfunc.mk p q :=
-show ratfunc.mk (c • p) q = (ratfunc.mk p q).lift_on _ _,
-from symm $ (lift_on_mk p q _ (λ p, show ratfunc.mk (c • p) 0 = ratfunc.mk (c • 0) 1,
-  by rw [mk_zero, smul_zero, mk_eq_localization_mk (0 : polynomial K) one_ne_zero,
-         localization.mk_zero]) _)
+begin
+  by_cases hq : q = 0,
+  { rw [hq, mk_zero, mk_zero, ←of_fraction_ring_smul, smul_zero] },
+  { rw [mk_eq_localization_mk _ hq, mk_eq_localization_mk _ hq,
+         ←localization.smul_mk, ←of_fraction_ring_smul] }
+end
 
 instance : is_scalar_tower R (polynomial K) (ratfunc K) :=
 ⟨λ c p q, q.induction_on' (λ q r _, by rw [← mk_smul, smul_assoc, mk_smul, mk_smul])⟩

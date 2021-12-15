@@ -1269,13 +1269,6 @@ lemma set_to_L1_mono_left {G} [normed_lattice_add_comm_group G] [normed_space �
   set_to_L1 hT f ≤ set_to_L1 hT' f :=
 set_to_L1_mono_left' hT hT' (λ s _ _ x, hTT' s x) f
 
-/-- todo: move this-/
-lemma prod.tendsto_iff {ι G G'} [topological_space G] [topological_space G']
-  (seq : ι → G × G') {f : filter ι} (x : G × G') :
-  tendsto seq f (𝓝 x)
-    ↔ tendsto (λ n, (seq n).fst) f (𝓝 x.fst) ∧ tendsto (λ n, (seq n).snd) f (𝓝 x.snd) :=
-by { cases x, rw [nhds_prod_eq, tendsto_prod_iff'], }
-
 lemma set_to_L1_nonneg {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
   [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
   [second_countable_topology G] [complete_space G'] [order_closed_topology G']
@@ -1320,8 +1313,7 @@ begin
       convert this, },
     rw Lp.tendsto_Lp_iff_tendsto_ℒp',
     convert hx_tendsto,
-    ext1 n,
-    refine snorm_congr_ae (eventually_eq.sub _ _),
+    refine funext (λ n, snorm_congr_ae (eventually_eq.sub _ _)),
     { rw Lp.simple_func.to_Lp_eq_to_Lp,
       exact mem_ℒp.coe_fn_to_Lp (hx_mem_ℒp n), },
     { rw ← coe_fn_coe_base, }, },

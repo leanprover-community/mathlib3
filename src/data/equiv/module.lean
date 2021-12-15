@@ -34,7 +34,7 @@ linear equiv, linear equivalences, linear isomorphism, linear isomorphic
 -/
 
 open function
-open_locale big_operators pointwise
+open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
@@ -311,6 +311,9 @@ e.to_equiv.image_eq_preimage s
 protected lemma image_symm_eq_preimage (s : set M₂) : e.symm '' s = e ⁻¹' s :=
 e.to_equiv.symm.image_eq_preimage s
 
+section pointwise
+open_locale pointwise
+
 @[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
   e '' (c • s) = (σ c) • e '' s :=
 linear_map.image_smul_setₛₗ e.to_linear_map c s
@@ -329,6 +332,8 @@ linear_map.image_smul_set e.to_linear_map c s
 @[simp] lemma preimage_smul_set (e : M₁ ≃ₗ[R₁] N₁) (c : R₁) (s : set N₁) :
   e ⁻¹' (c • s) = c • e ⁻¹' s :=
 e.preimage_smul_setₛₗ c s
+
+end pointwise
 
 end
 

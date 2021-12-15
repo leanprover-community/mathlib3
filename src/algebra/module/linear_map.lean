@@ -53,7 +53,7 @@ linear map
 -/
 
 open function
-open_locale big_operators pointwise
+open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
@@ -195,6 +195,9 @@ protected lemma map_zero : f 0 = 0 := map_zero f
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
 ⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
 
+section pointwise
+open_locale pointwise
+
 @[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
   f '' (c • s) = (σ c) • f '' s :=
 begin
@@ -225,6 +228,8 @@ end
 lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
   fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
 fₗ.preimage_smul_setₛₗ hc s
+
+end pointwise
 
 variables (M M₂)
 /--

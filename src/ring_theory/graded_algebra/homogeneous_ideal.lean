@@ -33,8 +33,8 @@ variable (I : ideal R)
 
 /--An `I : ideal R` is called homogeneous if for every `r ∈ I`, every homogeneous component of `r`
   is in `I`.-/
-@[reducible] def is_homogeneous_ideal : Prop :=
-  ∀ {i : ι} {r : R}, r ∈ I → (graded_algebra.decompose A r i : R) ∈ I
+def is_homogeneous_ideal : Prop :=
+∀ {i : ι} {r : R}, r ∈ I → (graded_algebra.decompose A r i : R) ∈ I
 
 lemma is_homogeneous_ideal_iff_forall_subset (I : ideal R) :
   is_homogeneous_ideal A I ↔ ∀ i, (I : set R) ⊆ graded_algebra.proj A i ⁻¹' I :=
@@ -162,19 +162,14 @@ variable (I : ideal R)
 /--We collect all homogeneous ideal into a type.-/
 def homogeneous_ideal : Type* := { I : ideal R // is_homogeneous_ideal A I }
 
-instance homogeneous_ideal.inhabited : inhabited (homogeneous_ideal A) :=
+instance : has_bot (homogeneous_ideal A) :=
 ⟨⟨⊥, begin
     intros i r hr, simp only [ideal.mem_bot] at hr,
     rw [hr, alg_equiv.map_zero, zero_apply],
     apply ideal.zero_mem
   end⟩⟩
-
-instance homogeneous_ideal.has_bot : has_bot (homogeneous_ideal A) :=
-⟨⟨⊥, begin
-    intros i r hr, simp only [ideal.mem_bot] at hr,
-    rw [hr, alg_equiv.map_zero, zero_apply],
-    apply ideal.zero_mem
-  end⟩⟩
+  
+instance : inhabited (homogeneous_ideal A) := ⟨⊥⟩
 
 instance homogeneous_ideal.has_top :
   has_top (homogeneous_ideal A) :=

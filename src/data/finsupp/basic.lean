@@ -1281,6 +1281,29 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
   multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
 (multiset.sum_add_monoid_hom : multiset N →+ N).map_sum _ f.support
 
+section disjoint_prod_add
+variables [add_comm_monoid M]
+lemma disjoint_prod_add_aux  {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.support)
+  {β : Type*} [comm_monoid β] {g : α → M → β} :
+(∏ (x : α) in f1.support, g x (f1 x + f2 x)) = f1.prod g :=
+begin
+  unfold finsupp.prod,
+  rw finset.prod_congr rfl,
+  intros x hx,
+  simp only [not_mem_support_iff.mp (finset.disjoint_left.mp hd hx), add_zero],
+end
+
+/-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
+over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
+lemma disjoint_prod_add  {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.support)
+  {β : Type*} [comm_monoid β] {g : α → M → β} :
+  f1.prod g * f2.prod g = (f1 + f2).prod g :=
+begin
+  rw [←disjoint_prod_add_aux hd, ←disjoint_prod_add_aux (disjoint.comm.mp hd)],
+  simp only [add_comm, finsupp.prod, support_add_eq hd, prod_union hd, add_apply],
+end
+end disjoint_prod_add
+
 section map_range
 
 section equiv
@@ -1420,26 +1443,6 @@ lemma map_range.add_equiv_to_equiv (f : M ≃+ N) :
   (map_range.add_equiv f).to_equiv =
     (map_range.equiv f.to_equiv f.map_zero f.symm.map_zero : (α →₀ _) ≃ _) :=
 equiv.ext $ λ _, rfl
-
-lemma disjoint_prod_add_aux {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.support)
-  {β : Type*} [comm_monoid β] {g : α → M → β} :
-(∏ (x : α) in f1.support, g x (f1 x + f2 x)) = f1.prod g :=
-begin
-  unfold finsupp.prod,
-  rw finset.prod_congr rfl,
-  intros x hx,
-  simp only [not_mem_support_iff.mp (finset.disjoint_left.mp hd hx), add_zero],
-end
-
-/-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
-over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
-lemma disjoint_prod_add {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.support)
-  {β : Type*} [comm_monoid β] {g : α → M → β} :
-  f1.prod g * f2.prod g = (f1 + f2).prod g :=
-begin
-  rw [←disjoint_prod_add_aux hd, ←disjoint_prod_add_aux (disjoint.comm.mp hd)],
-  simp only [add_comm, finsupp.prod, support_add_eq hd, prod_union hd, add_apply],
-end
 
 end add_monoid_hom
 

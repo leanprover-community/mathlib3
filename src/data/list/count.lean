@@ -41,6 +41,9 @@ by induction l with x l ih; [refl, by_cases (p x)];
   [simp only [filter_cons_of_pos _ h, countp, ih, if_pos h],
    simp only [countp_cons_of_neg _ _ h, ih, filter_cons_of_neg _ h]]; refl
 
+lemma count_le_length (p : α → Prop) [decidable_pred p] (l : list α) : l.countp p ≤ l.length :=
+by { rw list.length_eq_countp_add_countp p, apply nat.le_add_right }
+
 @[simp] lemma countp_append (l₁ l₂) : countp p (l₁ ++ l₂) = countp p l₁ + countp p l₂ :=
 by simp only [countp_eq_length_filter, filter_append, length_append]
 
@@ -56,6 +59,12 @@ by simpa only [countp_eq_length_filter] using length_le_of_sublist (s.filter p)
 @[simp] lemma countp_filter {q} [decidable_pred q] (l : list α) :
   countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
 by simp only [countp_eq_length_filter, filter_filter]
+
+@[simp] lemma countp_true : l.countp (λ _, true) = l.length :=
+by simp [countp_eq_length_filter]
+
+@[simp] lemma countp_false : l.countp (λ _, false) = 0 :=
+by simp [countp_eq_length_filter]
 
 end countp
 

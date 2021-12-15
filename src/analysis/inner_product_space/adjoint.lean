@@ -41,7 +41,7 @@ namespace continuous_linear_map
 the main definition `adjoint`, where this is bundled as a conjugate-linear isometric
 equivalence. -/
 @[simps] def adjoint' (A : E →L[𝕜] F) : F →L[𝕜] E :=
-((to_dual 𝕜 E).symm : (normed_space.dual 𝕜 E) →L⋆[𝕜] E).comp (to_sesq_formₗ A)
+((to_dual 𝕜 E).symm : (normed_space.dual 𝕜 E) →L⋆[𝕜] E).comp (to_sesq_form A)
 
 lemma adjoint'_inner_left {A : E →L[𝕜] F} {x : E} {y : F} : ⟪adjoint' A y, x⟫ = ⟪y, A x⟫ :=
 by { simp only [adjoint'_apply, to_dual_symm_apply], refl }
@@ -74,8 +74,8 @@ end
 def adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E) :=
 linear_isometry_equiv.of_surjective
 { to_fun := adjoint',
-  map_add' := λ A B, by simp only [adjoint', linear_map.map_add, comp_add],
-  map_smul' := λ r A, by simp only [adjoint', linear_map.map_smulₛₗ, ring_hom.id_apply,
+  map_add' := λ A B, by simp only [adjoint', continuous_linear_map.map_add, comp_add],
+  map_smul' := λ r A, by simp only [adjoint', continuous_linear_map.map_smulₛₗ, ring_hom.id_apply,
                                     comp_smulₛₗ],
   norm_map' := λ A, adjoint'_norm }
 (λ A, ⟨adjoint' A, adjoint'_adjoint'_apply A⟩)

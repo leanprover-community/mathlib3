@@ -1419,19 +1419,27 @@ begin
     ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
 end
 
+/-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
+def innerSL_flip : E →L[𝕜] E →L⋆[𝕜] 𝕜 :=
+continuous_linear_map.flipₗᵢ' E E 𝕜 (ring_hom.id 𝕜) (↑star_ring_aut : 𝕜 →+* 𝕜) innerSL
+
+@[simp] lemma innerSL_flip_apply {x y : E} : innerSL_flip x y = ⟪y, x⟫ := rfl
+
 namespace continuous_linear_map
 
 variables {𝕜₂ : Type*} {E' : Type*} {G : Type*}
 variables [is_R_or_C 𝕜₂] [inner_product_space 𝕜 E'] [inner_product_space 𝕜₂ G]
 variables {σ : 𝕜₂ →+* 𝕜} [ring_hom_isometric σ]
 
-/-- Given `f : E →L[𝕜] E'`, construct the sesquilinear form `λ x y, ⟪x, A y⟫`. -/
-def to_sesq_form (f : E →L[𝕜] E') : E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
-continuous_linear_map.bilinear_comp
-              (innerSL : E' →L⋆[𝕜] E' →L[𝕜] 𝕜) (continuous_linear_map.id _ _) f
+/-- Given `f : E →L[𝕜] E'`, construct the continuous sesquilinear form `λ x y, ⟪x, A y⟫`, given
+as a continuous linear map. -/
+def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+↑((continuous_linear_map.flipₗᵢ' E E' 𝕜
+  (↑(star_ring_aut : 𝕜 ≃+* 𝕜) : 𝕜 →+* 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
+(continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) innerSL_flip)
 
 @[simp] lemma to_sesq_form_apply_coe {f : E →L[𝕜] E'} {x : E'} :
-  (continuous_linear_map.to_sesq_form f x : E → 𝕜) = λ y, ⟪x, f y⟫ := rfl
+  (to_sesq_form f x : E → 𝕜) = λ y, ⟪x, f y⟫ := rfl
 
 lemma to_sesq_form_apply_norm_le {f : E →L[𝕜] E'} {v : E'} : ∥to_sesq_form f v∥ ≤ ∥f∥ * ∥v∥ :=
 begin
@@ -1443,17 +1451,6 @@ begin
               ... ≤ ∥v∥ * (∥f∥ * ∥x∥)  : mul_le_mul_of_nonneg_left h₁ (norm_nonneg v)
               ... = ∥f∥ * ∥v∥ * ∥x∥    : by ring,
 end
-
-/-- Given `f : E →L[𝕜] E'`, construct the sesquilinear form `λ x y, ⟪x, A y⟫`, given
-as a linear map. -/
-def to_sesq_formₗ : (E →L[𝕜] E') →ₗ[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
-{ to_fun := to_sesq_form,
-  map_add' := λ A B, by { ext x, simp only [inner_add_right, add_apply, to_sesq_form_apply_coe] },
-  map_smul' := λ c A, by { ext x, simp only [inner_smul_right, algebra.id.smul_eq_mul, coe_smul',
-                                      ring_hom.id_apply, to_sesq_form_apply_coe, pi.smul_apply] } }
-
-@[simp] lemma to_sesq_formₗ_apply_coe {f : E →L[𝕜] E'} {x : E'} :
-  (to_sesq_formₗ f x : E → 𝕜) = λ y, ⟪x, f y⟫ := rfl
 
 end continuous_linear_map
 

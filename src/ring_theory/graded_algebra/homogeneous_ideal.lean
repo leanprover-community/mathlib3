@@ -265,6 +265,32 @@ instance homogeneous_ideal.has_sup : has_sup (homogeneous_ideal A) :=
     exact (submodule.span_union _ _).symm,
 end⟩ }
 
+instance homogeneous_ideal.has_Sup : has_Sup (homogeneous_ideal A) :=
+{ Sup := λ ℐ, ⟨Sup (set.image (λ x : homogeneous_ideal A, x.val) ℐ), begin
+    have Hℐ : ∀ I : ℐ, is_homogeneous_ideal A I.1.1 := λ I, I.1.2,
+    simp_rw [is_homogeneous_ideal_iff_exists] at Hℐ,
+    set 𝓈 : ℐ → set (homogeneous_submonoid A) := λ I : ℐ, Exists.some (Hℐ I) with 𝓈_eq,
+    have h𝓈 : ∀ I : ℐ, I.1.1 = ideal.span (coe '' 𝓈 I) := λ I : ℐ, Exists.some_spec (Hℐ I),
+    rw is_homogeneous_ideal_iff_exists,
+    use sUnion (set.range 𝓈),
+    rw [sUnion_range, image_Union, ideal.span, submodule.span_Union],
+    ext r, split,
+    { suffices : Sup ((λ (x : homogeneous_ideal A), x.val) '' ℐ) ≤ _, revert r, exact this,
+      rw Sup_le_iff, intros I HI,
+      have ineq1 : I ≤ ideal.span I := ideal.subset_span, refine le_trans ineq1 _,
+      rw ideal.span_le, simp only [coe_subset_coe, ideal.submodule_span_eq], intros x hx,
+      simp only [mem_image, subtype.val_eq_coe] at HI,
+      obtain ⟨I', HI1, HI2⟩ := HI, rw submodule.mem_supr, intros J HJ,
+      apply HJ ⟨I', HI1⟩, rw ←h𝓈 ⟨I', HI1⟩,simp only [subtype.val_eq_coe], rw HI2, assumption },
+    { suffices : _ ≤  Sup ((λ (x : homogeneous_ideal A), x.val) '' ℐ), revert r, exact this,
+      rw supr_le_iff, intros I, rw submodule.span_le, intros x hx,
+      simp only [mem_image] at hx, obtain ⟨x', hx1, hx2⟩ := hx,
+      simp only [mem_coe, subtype.val_eq_coe], dsimp only at hx1,
+      apply ideal.mem_Sup_of_mem, simp only [mem_image], use I.1, refine ⟨I.2, rfl⟩,
+      simp only [subtype.val_eq_coe] at h𝓈 ⊢, rw h𝓈,
+      refine ideal.subset_span _, rw [mem_image], use x', refine ⟨hx1, hx2⟩, }
+  end⟩ }
+
 instance homogeneous_ideal.has_add : has_add (homogeneous_ideal A) := ⟨(⊔)⟩
 
 end operations

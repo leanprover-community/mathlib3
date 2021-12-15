@@ -268,7 +268,7 @@ lemma add_haar_closed_unit_ball_eq_add_haar_unit_ball :
 begin
   apply le_antisymm _ (measure_mono ball_subset_closed_ball),
   have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))
-    (𝓝[Iio 1] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
+    (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
   { refine ennreal.tendsto.mul _ (by simp) tendsto_const_nhds (by simp),
     exact ennreal.tendsto_of_real ((tendsto_id' nhds_within_le_nhds).pow _) },
   simp only [one_pow, one_mul, ennreal.of_real_one] at A,

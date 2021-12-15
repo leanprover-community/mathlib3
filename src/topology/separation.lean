@@ -322,13 +322,13 @@ begin
 end
 
 /-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
-lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[≠] x)] :
   dense (s \ {x}) :=
 hs.inter_of_open_right (dense_compl_singleton x) is_open_compl_singleton
 
 /-- Removing a finset from a dense set in a space without isolated points, one still
 obtains a dense set. -/
-lemma dense.diff_finset [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+lemma dense.diff_finset [t1_space α] [∀ (x : α), ne_bot (𝓝[≠] x)]
   {s : set α} (hs : dense s) (t : finset α) :
   dense (s \ t) :=
 begin
@@ -340,7 +340,7 @@ end
 
 /-- Removing a finite set from a dense set in a space without isolated points, one still
 obtains a dense set. -/
-lemma dense.diff_finite [t1_space α] [∀ (x : α), ne_bot (𝓝[{x}ᶜ] x)]
+lemma dense.diff_finite [t1_space α] [∀ (x : α), ne_bot (𝓝[≠] x)]
   {s : set α} (hs : dense s) {t : set α} (ht : finite t) :
   dense (s \ t) :=
 begin
@@ -365,7 +365,7 @@ show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
-lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[{x}ᶜ] x)]
+lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[≠] x)]
   {s : set α} (hs : s ∈ 𝓝 x) : set.infinite s :=
 begin
   unfreezingI { contrapose! hx },
@@ -380,7 +380,7 @@ begin
     assume y hy,
     simp only [mem_singleton_iff, mem_inter_eq, not_and, not_not, mem_diff, mem_compl_eq] at hy,
     simp only [hy.right hy.left, mem_singleton] },
-  have D : {x}ᶜ ∈ 𝓝[{x}ᶜ] x := self_mem_nhds_within,
+  have D : {x}ᶜ ∈ 𝓝[≠] x := self_mem_nhds_within,
   simpa [← empty_mem_iff_bot] using filter.inter_mem (mem_nhds_within_of_mem_nhds C) D
 end
 
@@ -432,7 +432,7 @@ such that
 2. `U` is disjoint from `s`.
 -/
 lemma disjoint_nhds_within_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
-  ∃ U ∈ 𝓝[{x}ᶜ] x, disjoint U s :=
+  ∃ U ∈ 𝓝[≠] x, disjoint U s :=
 let ⟨V, h, h'⟩ := nhds_inter_eq_singleton_of_mem_discrete hx in
   ⟨{x}ᶜ ∩ V, inter_mem_nhds_within _ h,
     (disjoint_iff_inter_eq_empty.mpr (by { rw [inter_assoc, h', compl_inter_self] }))⟩

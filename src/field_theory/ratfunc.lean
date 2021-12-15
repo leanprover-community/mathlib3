@@ -209,6 +209,8 @@ section field
 instance : has_zero (ratfunc K) := ⟨ratfunc.zero⟩
 lemma of_fraction_ring_zero : (of_fraction_ring 0 : ratfunc K) = 0 :=
 by unfold has_zero.zero ratfunc.zero
+lemma to_fraction_ring_zero : to_fraction_ring (0 : ratfunc K) = 0 :=
+by unfold has_zero.zero ratfunc.zero
 
 /-- Addition of rational functions. -/
 @[irreducible] protected def add : ratfunc K → ratfunc K → ratfunc K
@@ -217,6 +219,9 @@ instance : has_add (ratfunc K) := ⟨ratfunc.add⟩
 lemma of_fraction_ring_add (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p + q) = of_fraction_ring p + of_fraction_ring q :=
 by unfold has_add.add ratfunc.add
+lemma to_fraction_ring_add : ∀ (p q : ratfunc K),
+  to_fraction_ring (p + q) = to_fraction_ring p + to_fraction_ring q
+| ⟨p⟩ ⟨q⟩ := by unfold has_add.add ratfunc.add
 
 /-- Subtraction of rational functions. -/
 @[irreducible] protected def sub : ratfunc K → ratfunc K → ratfunc K
@@ -225,6 +230,9 @@ instance : has_sub (ratfunc K) := ⟨ratfunc.sub⟩
 lemma of_fraction_ring_sub (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p - q) = of_fraction_ring p - of_fraction_ring q :=
 by unfold has_sub.sub ratfunc.sub
+lemma to_fraction_ring_sub : ∀ (p q : ratfunc K),
+  to_fraction_ring (p - q) = to_fraction_ring p - to_fraction_ring q
+| ⟨p⟩ ⟨q⟩ := by unfold has_sub.sub ratfunc.sub
 
 /-- Additive inverse of a rational function. -/
 @[irreducible] protected def neg : ratfunc K → ratfunc K
@@ -233,11 +241,16 @@ instance : has_neg (ratfunc K) := ⟨ratfunc.neg⟩
 lemma of_fraction_ring_neg (p : fraction_ring (polynomial K)) :
   of_fraction_ring (-p) = - of_fraction_ring p :=
 by unfold has_neg.neg ratfunc.neg
+lemma to_fraction_ring_neg : ∀ (p : ratfunc K),
+  to_fraction_ring (-p) = - to_fraction_ring p
+| ⟨p⟩ := by unfold has_neg.neg ratfunc.neg
 
 /-- The multiplicative unit of rational functions. -/
 @[irreducible] protected def one : ratfunc K := ⟨1⟩
 instance : has_one (ratfunc K) := ⟨ratfunc.one⟩
 lemma of_fraction_ring_one : (of_fraction_ring 1 : ratfunc K) = 1 :=
+by unfold has_one.one ratfunc.one
+lemma to_fraction_ring_one : to_fraction_ring (1 : ratfunc K) = 1 :=
 by unfold has_one.one ratfunc.one
 
 /-- Multiplication of rational functions. -/
@@ -247,6 +260,9 @@ instance : has_mul (ratfunc K) := ⟨ratfunc.mul⟩
 lemma of_fraction_ring_mul (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p * q) = of_fraction_ring p * of_fraction_ring q :=
 by unfold has_mul.mul ratfunc.mul
+lemma to_fraction_ring_mul : ∀ (p q : ratfunc K),
+  to_fraction_ring (p * q) = to_fraction_ring p * to_fraction_ring q
+| ⟨p⟩ ⟨q⟩ := by unfold has_mul.mul ratfunc.mul
 
 include hdomain
 
@@ -257,6 +273,9 @@ instance : has_div (ratfunc K) := ⟨ratfunc.div⟩
 lemma of_fraction_ring_div (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p / q) = of_fraction_ring p / of_fraction_ring q :=
 by unfold has_div.div ratfunc.div
+lemma to_fraction_ring_div : ∀ (p q : ratfunc K),
+  to_fraction_ring (p / q) = to_fraction_ring p / to_fraction_ring q
+| ⟨p⟩ ⟨q⟩ := by unfold has_div.div ratfunc.div
 
 /-- Multiplicative inverse of a rational function. -/
 @[irreducible] protected def inv : ratfunc K → ratfunc K
@@ -265,6 +284,31 @@ instance : has_inv (ratfunc K) := ⟨ratfunc.inv⟩
 lemma of_fraction_ring_inv (p : fraction_ring (polynomial K)) :
   of_fraction_ring (p⁻¹) = (of_fraction_ring p)⁻¹ :=
 by unfold has_inv.inv ratfunc.inv
+lemma to_fraction_ring_inv : ∀ (p : ratfunc K),
+  to_fraction_ring (p⁻¹) = (to_fraction_ring p)⁻¹
+| ⟨p⟩ := by unfold has_inv.inv ratfunc.inv
+
+/-- Power of a rational function. -/
+@[irreducible] protected def pow : ratfunc K → ℕ → ratfunc K
+| ⟨p⟩ n := ⟨p ^ n⟩
+instance : has_pow (ratfunc K) ℕ := ⟨ratfunc.pow⟩
+lemma of_fraction_ring_pow (p : fraction_ring (polynomial K)) (n : ℕ) :
+  of_fraction_ring (p ^ n) = (of_fraction_ring p) ^ n :=
+by unfold has_pow.pow ratfunc.pow
+lemma to_fraction_ring_pow : ∀ (p : ratfunc K) (n : ℕ),
+  to_fraction_ring (p ^ n) = to_fraction_ring p ^ n
+| ⟨p⟩ n := by unfold has_pow.pow ratfunc.pow
+
+/-- Power of a rational function. -/
+@[irreducible] protected def zpow : ratfunc K → ℤ → ratfunc K
+| ⟨p⟩ n := ⟨p ^ n⟩
+instance : has_pow (ratfunc K) ℤ := ⟨ratfunc.zpow⟩
+lemma of_fraction_ring_zpow (p : fraction_ring (polynomial K)) (n : ℤ) :
+  of_fraction_ring (p ^ n) = (of_fraction_ring p) ^ n :=
+by unfold has_pow.pow ratfunc.zpow
+lemma to_fraction_ring_zpow : ∀ (p : ratfunc K) (n : ℤ),
+  to_fraction_ring (p ^ n) = to_fraction_ring p ^ n
+| ⟨p⟩ n := by unfold has_pow.pow ratfunc.zpow
 
 -- Auxiliary lemma for the `field` instance
 lemma mul_inv_cancel : ∀ {p : ratfunc K} (hp : p ≠ 0), p * p⁻¹ = 1
@@ -278,21 +322,19 @@ variables {R : Type*} [monoid R] [distrib_mul_action R (polynomial K)]
 variables [htower : is_scalar_tower R (polynomial K) (polynomial K)]
 include htower
 
--- Can't define this in terms of `localization.has_scalar`, because that one
--- is not general enough.
-instance : has_scalar R (ratfunc K) :=
-⟨λ c p, p.lift_on (λ p q, ratfunc.mk (c • p) q) (λ p q p' q' hq hq' h, (mk_eq_mk hq hq').mpr $
-  by rw [smul_mul_assoc, h, smul_mul_assoc])⟩
-
-lemma mk_smul (c : R) (p q : polynomial K) :
-  ratfunc.mk (c • p) q = c • ratfunc.mk p q :=
-show ratfunc.mk (c • p) q = (ratfunc.mk p q).lift_on _ _,
-from symm $ (lift_on_mk p q _ (λ p, show ratfunc.mk (c • p) 0 = ratfunc.mk (c • 0) 1,
-  by rw [mk_zero, smul_zero, mk_eq_localization_mk (0 : polynomial K) one_ne_zero,
-         localization.mk_zero]) _)
+/-- Scalar multiplication of rational functions. -/
+@[irreducible] protected def smul : R → ratfunc K → ratfunc K
+| r ⟨p⟩ := ⟨r • p⟩
+instance : has_scalar R (ratfunc K) := ⟨ratfunc.smul⟩
+lemma of_fraction_ring_smul (r : R) (p : fraction_ring (polynomial K)) :
+  of_fraction_ring (r • p) = r • of_fraction_ring p :=
+by unfold has_scalar.smul ratfunc.smul
+lemma to_fraction_ring_smul : ∀ (r : R) (p : ratfunc K),
+  to_fraction_ring (r • p) = r • to_fraction_ring p
+| r ⟨p⟩ := by unfold has_scalar.smul ratfunc.smul
 
 instance : is_scalar_tower R (polynomial K) (ratfunc K) :=
-⟨λ c p q, q.induction_on' (λ q r _, by rw [← mk_smul, smul_assoc, mk_smul, mk_smul])⟩
+⟨λ c p ⟨q⟩, to_fraction_ring_injective $ by simp only [to_fraction_ring_smul, smul_assoc]⟩
 
 end has_scalar
 
@@ -332,40 +374,27 @@ meta def smul_tac : tactic unit :=
 
 include hring hdomain
 
+#check function.injective.field
+
+-- set_option pp.implicit true
+-- set_option pp.notation false
+
 instance : field (ratfunc K) :=
-{ add := (+),
-  add_assoc := by frac_tac,
-  add_comm := by frac_tac,
-  zero := 0,
-  zero_add := by frac_tac,
-  add_zero := by frac_tac,
-  neg := has_neg.neg,
-  add_left_neg := by frac_tac,
-  sub := has_sub.sub,
-  sub_eq_add_neg := by frac_tac,
-  mul := (*),
-  mul_assoc := by frac_tac,
-  mul_comm := by frac_tac,
-  left_distrib := by frac_tac,
-  right_distrib := by frac_tac,
-  one := 1,
-  one_mul := by frac_tac,
-  mul_one := by frac_tac,
-  inv := has_inv.inv,
-  inv_zero := by frac_tac,
-  div := (/),
-  div_eq_mul_inv := by frac_tac,
-  mul_inv_cancel := λ _, mul_inv_cancel,
-  nsmul := (•),
-  nsmul_zero' := by smul_tac,
-  nsmul_succ' := by smul_tac,
-  zsmul := (•),
-  zsmul_zero' := by smul_tac,
-  zsmul_succ' := by smul_tac,
-  zsmul_neg' := by smul_tac,
-  npow := npow_rec,
-  zpow := zpow_rec,
-  .. ratfunc.nontrivial K }
+{ ..to_fraction_ring_injective.add_monoid_smul
+    (to_fraction_ring : ratfunc K → fraction_ring (polynomial K))
+      to_fraction_ring_zero to_fraction_ring_add (λ _ _, to_fraction_ring_smul _ _),
+  ..to_fraction_ring_injective.div_inv_monoid_pow
+    (to_fraction_ring : ratfunc K → fraction_ring (polynomial K))
+      to_fraction_ring_one to_fraction_ring_mul to_fraction_ring_inv to_fraction_ring_div
+      to_fraction_ring_pow to_fraction_ring_zpow,
+  ..to_fraction_ring_injective.field
+    (to_fraction_ring : ratfunc K → fraction_ring (polynomial K))
+    to_fraction_ring_zero _ to_fraction_ring_add _ to_fraction_ring_neg to_fraction_ring_sub
+    to_fraction_ring_inv to_fraction_ring_div, }
+
+#print ratfunc.field
+
+#exit
 
 end field
 

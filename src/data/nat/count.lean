@@ -48,7 +48,7 @@ by { rw [count, list.countp_eq_length_filter], refl, }
 
 /-- `count p n` can be expressed as the cardinality of `{k // k < n ∧ p k}`. -/
 lemma count_eq_card_fintype (n : ℕ) : count p n = fintype.card {k : ℕ // k < n ∧ p k} :=
-by { rw [count_eq_card_filter_range, ←fintype.card_of_finset, ←count_set.fintype], congr, }
+by { rw [count_eq_card_filter_range, ←fintype.card_of_finset, ←count_set.fintype], refl, }
 
 lemma count_monotone : monotone (count p) :=
 begin

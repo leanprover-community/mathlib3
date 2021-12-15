@@ -433,6 +433,130 @@ lemma is_integral.sum {α : Type*} {s : finset α} (f : α → A) (h : ∀ x ∈
   is_integral R (∑ x in s, f x) :=
 (integral_closure R A).sum_mem h
 
+section
+
+variables (p : polynomial R) (x : S)
+
+namespace is_integral_elem_leading_coeff_mul
+
+/-- (Implementation) The monic polynomial whoose root is `f p.leading_coeff * x`. -/
+noncomputable
+def poly (p : polynomial R) : polynomial R :=
+∑ i in p.support, monomial i
+  (if i = p.nat_degree then 1 else p.coeff i * p.leading_coeff ^ (p.nat_degree - 1 - i))
+
+lemma poly_coeff_mul_leading_coeff_pow (i : ℕ) (hp : 1 ≤ nat_degree p) :
+  (poly p).coeff i * p.leading_coeff ^ i = p.coeff i * p.leading_coeff ^ (p.nat_degree - 1) :=
+begin
+  delta poly,
+  rw finset_sum_coeff,
+  simp_rw coeff_monomial,
+  rw finset.sum_ite_eq',
+  split_ifs with h₁ h₂,
+  { subst h₂,
+    rw [one_mul, polynomial.coeff_nat_degree, ← pow_succ,
+      tsub_add_cancel_of_le hp] },
+  { rw [mul_assoc, ← pow_add, tsub_add_cancel_of_le],
+    apply le_tsub_of_add_le_left,
+    rw [add_comm, nat.succ_le_iff],
+    exact lt_of_le_of_ne (le_nat_degree_of_mem_supp _ h₁) h₂ },
+  { rw not_mem_support_iff at h₁, rw [h₁, zero_mul, zero_mul] }
+end
+
+lemma poly_support :
+  (poly p).support ≤ p.support :=
+begin
+  intro x,
+  contrapose,
+  rw [not_mem_support_iff, not_mem_support_iff],
+  intro h,
+  delta poly,
+  rw finset_sum_coeff,
+  simp_rw coeff_monomial,
+  rw finset.sum_ite_eq',
+  split_ifs with h₁ h₂,
+  { exact (mem_support_iff.mp h₁ h).rec _ },
+  { rw [h, zero_mul] },
+  { refl }
+end
+
+lemma poly_degree :
+  (poly p).degree = p.degree :=
+begin
+  by_cases p = 0,
+  { delta poly, simp[h] },
+  nontriviality R,
+  apply le_antisymm,
+  { exact finset.sup_mono (poly_support p) },
+  { rw degree_eq_nat_degree h,
+    apply le_degree_of_ne_zero,
+    delta poly,
+    suffices : ¬p = 0 ∧ ¬(1 : R) = 0,
+    { simpa [coeff_monomial] using this },
+    exact ⟨h, one_ne_zero⟩ }
+end
+
+lemma poly_eval₂_leading_coeff_mul (h : 1 ≤ p.nat_degree) (f : R →+* S) (x : S) :
+  (poly p).eval₂ f (f p.leading_coeff * x) =
+    f p.leading_coeff ^ (p.nat_degree - 1) * (p.eval₂ f x) :=
+begin
+  rw [eval₂_eq_sum_range, eval₂_eq_sum_range, finset.mul_sum],
+  apply finset.sum_congr,
+  { rw nat_degree_eq_of_degree_eq (poly_degree p) },
+  intros n hn,
+  rw [mul_pow, ← mul_assoc, ← f.map_pow, ← f.map_mul, poly_coeff_mul_leading_coeff_pow _ _ h,
+    f.map_mul, f.map_pow],
+  ring,
+end
+
+lemma poly_monic (h : p ≠ 0) : (poly p).monic :=
+begin
+  delta monic leading_coeff,
+  rw nat_degree_eq_of_degree_eq (poly_degree p),
+  delta poly,
+  suffices : p = 0 → (0 : R) = 1,
+  { simpa [coeff_monomial] },
+  exact λ h', (h h').rec _,
+end
+
+end is_integral_elem_leading_coeff_mul
+
+open is_integral_elem_leading_coeff_mul
+
+/-- Given a `p : polynomial R` and a `x : S` such that `p.eval₂ f x = 0`,
+`f p.leading_coeff * x` is integral. -/
+lemma is_integral_elem_leading_coeff_mul (h : p.eval₂ f x = 0) :
+  f.is_integral_elem (f p.leading_coeff * x) :=
+begin
+  by_cases h' : 1 ≤ p.nat_degree,
+  { use poly p,
+    have : p ≠ 0 := λ h'', by { rw [h'', nat_degree_zero] at h', exact nat.not_succ_le_zero 0 h' },
+    use poly_monic p this,
+    rw [poly_eval₂_leading_coeff_mul p h' f x, h, mul_zero] },
+  { by_cases hp : p.map f = 0,
+    { apply_fun (λ q, coeff q p.nat_degree) at hp,
+      rw [coeff_map, coeff_zero, coeff_nat_degree] at hp,
+      rw [hp, zero_mul],
+      exact f.is_integral_zero },
+    { rw [nat.one_le_iff_ne_zero, not_not] at h',
+      rw [eq_C_of_nat_degree_eq_zero h', eval₂_C] at h,
+      suffices : p.map f = 0,
+      { exact (hp this).rec _ },
+      rw [eq_C_of_nat_degree_eq_zero h', map_C, h, C_eq_zero] } }
+end
+
+/-- Given a `p : polynomial R` and a root `x : S`,
+then `p.leading_coeff • x : S` is integral over `R`. -/
+lemma is_integral_leading_coeff_smul [algebra R S] (h : aeval x p = 0) :
+  is_integral R (p.leading_coeff • x) :=
+begin
+  rw aeval_def at h,
+  rw algebra.smul_def,
+  exact is_integral_elem_leading_coeff_mul (algebra_map R S) p x h,
+end
+
+end
+
 end
 
 section is_integral_closure

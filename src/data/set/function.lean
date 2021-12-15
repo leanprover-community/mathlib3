@@ -355,6 +355,10 @@ lemma eq_on.cancel_left (h : s.eq_on (g ∘ f₁) (g ∘ f₂)) (hg : t.inj_on g
   s.eq_on f₁ f₂ :=
 λ a ha, hg (hf₁ ha) (hf₂ ha) (h ha)
 
+lemma inj_on.cancel_left (hg : t.inj_on g) (hf₁ : s.maps_to f₁ t) (hf₂ : s.maps_to f₂ t) :
+  s.eq_on (g ∘ f₁) (g ∘ f₂) ↔ s.eq_on f₁ f₂ :=
+⟨λ h, h.cancel_left hg hf₁ hf₂, eq_on.comp_left⟩
+
 /-! ### Surjectivity on a set -/
 
 /-- `f` is surjective from `a` to `b` if `b` is contained in the image of `a`. -/
@@ -438,10 +442,6 @@ end
 lemma surj_on.cancel_right (hf : s.surj_on f t) (hf' : s.maps_to f t) :
   s.eq_on (g₁ ∘ f) (g₂ ∘ f) ↔ t.eq_on g₁ g₂ :=
 ⟨λ h, h.cancel_right hf, λ h, h.comp_right hf'⟩
-
-lemma inj_on.cancel_left (hg : t.inj_on g) (hf₁ : s.maps_to f₁ t) (hf₂ : s.maps_to f₂ t) :
-  s.eq_on (g ∘ f₁) (g ∘ f₂) ↔ s.eq_on f₁ f₂ :=
-⟨λ h, h.cancel_left hg hf₁ hf₂, eq_on.comp_left⟩
 
 /-! ### Bijectivity -/
 

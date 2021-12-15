@@ -192,6 +192,31 @@ equiv.ext $ module.ray.ind R $ λ _ _, rfl
 @[simp] lemma module.ray.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
   (module.ray.map e).symm = module.ray.map e.symm := rfl
 
+/-- An equivalence between modules implies an equivalence between orientations. -/
+def orientation.map [nontrivial R] (e : M ≃ₗ[R] N) : orientation R M ι ≃ orientation R N ι :=
+module.ray.map
+  { to_fun := λ f, f.comp_linear_map e.symm,
+    inv_fun := λ g, g.comp_linear_map e,
+    map_add' := λ _ _, rfl,
+    map_smul' := λ _ _, rfl,
+    left_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.symm_apply_apply _,
+    right_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.apply_symm_apply _ }
+
+@[simp] lemma orientation.map_apply [nontrivial R] (e : M ≃ₗ[R] N) (v : alternating_map R M R ι)
+  (hv : v ≠ 0) :
+  orientation.map ι e (ray_of_ne_zero _ v hv) = ray_of_ne_zero _ (v.comp_linear_map e.symm)
+      (mt (v.comp_linear_equiv_eq_zero_iff e.symm).mp hv) := rfl
+
+@[simp] lemma orientation.map_refl [nontrivial R] :
+  (orientation.map ι $ linear_equiv.refl R M) = equiv.refl _ :=
+equiv.ext $ module.ray.ind R $ λ _ _, begin
+  dsimp,
+  simp_rw alternating_map.comp_linear_map_id,
+end
+
+@[simp] lemma orientation.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
+  (orientation.map ι e).symm = orientation.map ι e.symm := rfl
+
 section action
 variables {G : Type*} [group G] [nontrivial R] [distrib_mul_action G M] [smul_comm_class R G M]
 
@@ -260,7 +285,7 @@ section ordered_comm_ring
 local attribute [instance] ray_vector.same_ray_setoid
 
 variables {R : Type*} [ordered_comm_ring R]
-variables {M : Type*} [add_comm_group M] [module R M]
+variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N]
 
 /-- If two vectors are in the same ray, so are their negations. -/
 lemma same_ray.neg {v₁ v₂ : M} : same_ray R v₁ v₂ → same_ray R (-v₁) (-v₂) :=
@@ -352,14 +377,23 @@ protected def orientation [nontrivial R] (e : basis ι R M) : orientation R M ι
 ray_of_ne_zero R _ e.det_ne_zero
 
 lemma orientation_map [nontrivial R] [is_domain R] (e : basis ι R M)
-  (f : M ≃ₗ[R] M) : (e.map f).orientation = (f.det)⁻¹ • e.orientation :=
+  (f : M ≃ₗ[R] N) : (e.map f).orientation = orientation.map ι f e.orientation :=
+by simp_rw [basis.orientation, orientation.map_apply, basis.det_map']
+
+-- TODO: does this generalize to an arbitrary orientation, not just `e.orientation`?
+lemma map_orientation_eq_det_inv_smul [nontrivial R] [is_domain R] (e : basis ι R M)
+  (f : M ≃ₗ[R] M) : orientation.map ι f e.orientation = (f.det)⁻¹ • e.orientation :=
 begin
-  simp_rw [basis.orientation, smul_ray_of_ne_zero, ray_eq_iff],
+  rw ← orientation_map,
+  simp_rw [basis.orientation, smul_ray_of_ne_zero, ray_eq_iff, units.smul_def,
+    linear_equiv.coe_inv_det],
   rw [(e.map f).det.eq_smul_basis_det e, e.det_map, ←linear_equiv.coe_coe, e.det_comp f.symm e,
-      e.det_self, mul_one, units.smul_def, linear_equiv.coe_inv_det],
+      e.det_self, mul_one],
 end
 
 end basis
+
+variables {R} {ι : Type*} [fintype ι] [decidable_eq ι]
 
 end ordered_comm_ring
 
@@ -494,13 +528,15 @@ lemma orientation_ne_iff_eq_neg (e : basis ι R M) (x : orientation R M ι) :
 determinant is positive. -/
 lemma orientation_comp_linear_equiv_eq_iff_det_pos (e : basis ι R M) (f : M ≃ₗ[R] M) :
   (e.map f).orientation = e.orientation ↔ 0 < (f : M →ₗ[R] M).det :=
-by rw [orientation_map, units_inv_smul, units_smul_eq_self_iff, linear_equiv.coe_det]
+by rw [orientation_map, map_orientation_eq_det_inv_smul, units_inv_smul, units_smul_eq_self_iff,
+  linear_equiv.coe_det]
 
 /-- Composing a basis with a linear equiv gives the negation of that orientation if and only if
 the determinant is negative. -/
 lemma orientation_comp_linear_equiv_eq_neg_iff_det_neg (e : basis ι R M) (f : M ≃ₗ[R] M) :
   (e.map f).orientation = -e.orientation ↔ (f : M →ₗ[R] M).det < 0 :=
-by rw [orientation_map, units_inv_smul, units_smul_eq_neg_iff, linear_equiv.coe_det]
+by rw [orientation_map, map_orientation_eq_det_inv_smul, units_inv_smul, units_smul_eq_neg_iff,
+  linear_equiv.coe_det]
 
 end basis
 

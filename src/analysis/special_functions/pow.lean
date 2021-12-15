@@ -1274,7 +1274,7 @@ h.eq_or_lt.elim (λ h0, h0 ▸ by simp only [rpow_zero, monotone_const])
 
 theorem order_iso_rpow {y : ℝ} (hy : 0 < y) : ℝ≥0∞ ≃o ℝ≥0∞ :=
 (strict_mono_rpow_of_pos hy).order_iso_of_right_inverse (λ x, x ^ y) (λ x, x ^ (1 / y))
-  (λ x, by { dsimp, rw [←rpow_mul, one_div_mul_cancel hy.ne.symm, rpow_one]   })
+  (λ x, by { dsimp, rw [←rpow_mul, one_div_mul_cancel hy.ne.symm, rpow_one] })
 
 lemma rpow_le_rpow {x y : ℝ≥0∞} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 monotone_rpow_of_nonneg h₂ h₁

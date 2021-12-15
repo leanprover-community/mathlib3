@@ -250,6 +250,27 @@ notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
 notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
 
+section pointwise_limits
+
+variables
+{M₁ M₂ α R S : Type*}
+[topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
+[add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
+[topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂]
+{σ : R →+* S} {l : filter α} {f : M₁ → M₂}
+
+/-- Construct a bundled linear map from a pointwise limit of linear maps -/
+@[simps] def linear_map_of_tendsto (g : α → M₁ →ₛₗ[σ] M₂) [l.ne_bot]
+  (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →ₛₗ[σ] M₂ :=
+{ to_fun := f,
+  map_smul' := λ r x, by
+    { rw tendsto_pi_nhds at h,
+      refine tendsto_nhds_unique (h (r • x)) _,
+      simpa only [linear_map.map_smulₛₗ] using tendsto.smul tendsto_const_nhds (h x) },
+  .. add_monoid_hom_of_tendsto (λ a, (g a).to_add_monoid_hom) h }
+
+end pointwise_limits
+
 namespace continuous_linear_map
 
 section semiring

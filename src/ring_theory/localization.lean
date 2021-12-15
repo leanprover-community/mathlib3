@@ -834,8 +834,11 @@ instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
   smul_add := λ s x y, localization.induction_on₂ x y $
     prod.rec $ by exact λ r₁ x₁, prod.rec $ by exact λ r₂ x₂,
       by simp only [localization.smul_mk, localization.add_mk, smul_add, mul_comm _ (s • _),
-                    mul_comm _ r₁, mul_comm _ r₂, smul_mul_assoc],
-  ..localization.mul_action }
+                    mul_comm _ r₁, mul_comm _ r₂, smul_mul_assoc] }
+
+instance {S : Type*} [semiring S] [mul_semiring_action S R] [is_scalar_tower S R R] :
+  mul_semiring_action S (localization M) :=
+{ ..localization.mul_distrib_mul_action }
 
 instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
   module S (localization M) :=

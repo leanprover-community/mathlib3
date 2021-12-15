@@ -24,27 +24,19 @@ This file introduces abstract configurations of points and lines, and proves som
 * Abstract projective planes.
 -/
 
-open_locale big_operators
+namespace configuration
 
 universe u
 
-variables (P L : Type u)
+variables (P L : Type u) [has_mem P L]
 
-/-- A configuration is an incidence relation between collections of points and lines. -/
-def configuration := P → L → Prop
+/-- A type synonym. -/
+def dual := P
 
-instance : inhabited (configuration P L) :=
-⟨λ p l, false⟩
+instance [this : inhabited P] : inhabited (dual P) := this
 
-namespace configuration
-
-variables {P L} (c : configuration P L)
-
-/-- The dual configuration is obtained by swapping points and lines. -/
-def dual : configuration L P := λ l p, c p l
-
-lemma dual_dual : c.dual.dual = c :=
-rfl
+instance : has_mem (dual L) (dual P) :=
+⟨function.swap (has_mem.mem : P → L → Prop)⟩
 
 /-- A configuration is nondegenerate if:
   1) there does not exist a line that passes through all of the points,
@@ -52,42 +44,43 @@ rfl
   3) there is at most one line through any two points,
   4) any two lines have at most one intersection point.
   Conditions 3 and 4 are equivalent. -/
-structure nondegenerate : Prop :=
-(exists_point : ∀ l, ∃ p, ¬ c p l)
-(exists_line : ∀ p, ∃ l, ¬ c p l)
-(unique : ∀ p₁ p₂, ∀ l₁ l₂, c p₁ l₁ → c p₂ l₁ → c p₁ l₂ → c p₂ l₂ → p₁ = p₂ ∨ l₁ = l₂)
+class nondegenerate : Prop :=
+(exists_point : ∀ l : L, ∃ p, p ∉ l)
+(exists_line : ∀ p, ∃ l : L, p ∉ l)
+(eq_or_eq : ∀ p₁ p₂ : P, ∀ l₁ l₂ : L, p₁ ∈ l₁ → p₂ ∈ l₁ → p₁ ∈ l₂ → p₂ ∈ l₂ → p₁ = p₂ ∨ l₁ = l₂)
 
 /-- A nondegenerate configuration in which every pair of lines has an intersection point. -/
-structure has_points extends nondegenerate c : Prop :=
-(exists_point' : ∀ l₁ l₂, l₁ ≠ l₂ → ∃ p, c p l₁ ∧ c p l₂)
+class has_points extends nondegenerate P L : Type u :=
+(mk_point : L → L → P)
+(mk_point_ax : ∀ l₁ l₂, mk_point l₁ l₂ ∈ l₁ ∧ mk_point l₁ l₂ ∈ l₂)
 
 /-- A nondegenerate configuration in which every pair of points has a line through them. -/
-structure has_lines extends nondegenerate c : Prop :=
-(exists_line' : ∀ p₁ p₂, p₁ ≠ p₂ → ∃ l, c p₁ l ∧ c p₂ l)
+class has_lines extends nondegenerate P L : Type u :=
+(mk_line : P → P → L)
+(mk_line_ax : ∀ p₁ p₂, p₁ ∈ mk_line p₁ p₂ ∧ p₂ ∈ mk_line p₁ p₂)
 
-variables {c}
+open nondegenerate has_points has_lines
 
-lemma has_points.exists_unique_point (hc : c.has_points) (l₁ l₂ : L) (hl : l₁ ≠ l₂) :
-  ∃! p, c p l₁ ∧ c p l₂ :=
-exists_unique_of_exists_of_unique (hc.exists_point' l₁ l₂ hl)
-  (λ p₁ p₂ ⟨h₁, h₂⟩ ⟨h₃, h₄⟩, (hc.unique p₁ p₂ l₁ l₂ h₁ h₃ h₂ h₄).resolve_right hl)
+instance [nondegenerate P L] : nondegenerate (dual L) (dual P) :=
+{ exists_point := @exists_line P L _ _,
+  exists_line := @exists_point P L _ _,
+  eq_or_eq := λ l₁ l₂ p₁ p₂ h₁ h₂ h₃ h₄, (@eq_or_eq P L _ _ p₁ p₂ l₁ l₂ h₁ h₃ h₂ h₄).symm }
 
-lemma has_lines.exists_unique_line (hc : c.has_lines) (p₁ p₂ : P) (hp : p₁ ≠ p₂) :
-  ∃! l, c p₁ l ∧ c p₂ l :=
-exists_unique_of_exists_of_unique (hc.exists_line' p₁ p₂ hp)
-  (λ l₁ l₂ ⟨h₁, h₂⟩ ⟨h₃, h₄⟩, (hc.unique p₁ p₂ l₁ l₂ h₁ h₂ h₃ h₄).resolve_left hp)
+instance [has_points P L] : has_lines (dual L) (dual P) :=
+{ mk_line := @mk_point P L _ _,
+  mk_line_ax := mk_point_ax }
 
-lemma nondegenerate.dual (hc : c.nondegenerate) : c.dual.nondegenerate :=
-{ exists_point := hc.exists_line,
-  exists_line := hc.exists_point,
-  unique := λ p₁ p₂ l₁ l₂ h₁ h₂ h₃ h₄, (hc.unique l₁ l₂ p₁ p₂ h₁ h₃ h₂ h₄).symm }
+instance [has_lines P L] : has_points (dual L) (dual P) :=
+{ mk_point := @mk_line P L _ _,
+  mk_point_ax := mk_line_ax }
 
-lemma has_points.dual (hc : c.has_points) : c.dual.has_lines :=
-{ exists_line' := hc.exists_point',
-  .. hc.to_nondegenerate.dual }
+lemma has_points.exists_unique_point [has_points P L] (l₁ l₂ : L) (hl : l₁ ≠ l₂) :
+  ∃! p, p ∈ l₁ ∧ p ∈ l₂ :=
+⟨mk_point l₁ l₂, mk_point_ax l₁ l₂, λ p hp, (eq_or_eq p (mk_point l₁ l₂) l₁ l₂
+  hp.1 (mk_point_ax l₁ l₂).1 hp.2 (mk_point_ax l₁ l₂).2).resolve_right hl⟩
 
-lemma has_lines.dual (hc : c.has_lines) : c.dual.has_points :=
-{ exists_point' := hc.exists_line',
-  .. hc.to_nondegenerate.dual }
+lemma has_lines.exists_unique_line [has_lines P L] (p₁ p₂ : P) (hp : p₁ ≠ p₂) :
+  ∃! l : L, p₁ ∈ l ∧ p₂ ∈ l :=
+has_points.exists_unique_point (dual L) (dual P) p₁ p₂ hp
 
 end configuration

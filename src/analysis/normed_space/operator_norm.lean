@@ -396,7 +396,8 @@ end
 
 section
 
-lemma op_norm_ext [ring_hom_isometric σ₁₃] (f : E →SL[σ₁₂] F) (g : E →SL[σ₁₃] G) (h : ∀ x, ∥f x∥ = ∥g x∥) : ∥f∥ = ∥g∥ :=
+lemma op_norm_ext [ring_hom_isometric σ₁₃] (f : E →SL[σ₁₂] F) (g : E →SL[σ₁₃] G)
+  (h : ∀ x, ∥f x∥ = ∥g x∥) : ∥f∥ = ∥g∥ :=
 op_norm_eq_of_bounds (norm_nonneg _) (λ x, by { rw h x, exact le_op_norm _ _ })
   (λ c hc h₂, op_norm_le_bound _ hc (λ z, by { rw ←h z, exact h₂ z }))
 

@@ -216,16 +216,6 @@ begin
   rw [this, add_haar_preimage_add]
 end
 
-lemma add_haar_closed_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
-  μ (closed_ball x r) < ∞ :=
-(proper_space.is_compact_closed_ball x r).add_haar_lt_top μ
-
-lemma add_haar_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
-  μ (ball x r) < ∞ :=
-lt_of_le_of_lt (measure_mono ball_subset_closed_ball) (add_haar_closed_ball_lt_top μ x r)
-
 lemma add_haar_ball_pos {E : Type*} [normed_group E] [measurable_space E]
   (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
   0 < μ (ball x r) :=
@@ -291,8 +281,9 @@ begin
   { exact (hr rfl).elim },
   { rw [← closed_ball_diff_ball,
         measure_diff ball_subset_closed_ball measurable_set_closed_ball measurable_set_ball
-          ((add_haar_ball_lt_top μ x r).ne),
-        add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, tsub_self] }
+          measure_ball_lt_top.ne,
+        add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, tsub_self];
+    apply_instance }
 end
 
 lemma add_haar_sphere [nontrivial E] (x : E) (r : ℝ) :

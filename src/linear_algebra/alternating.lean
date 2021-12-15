@@ -378,8 +378,8 @@ lemma comp_linear_map_inj (f : M₂ →ₗ[R] M) (hf : function.surjective f)
 
 /-- Composing an alternating map with the same linear equiv on each argument gives the zero map
 if and only if the alternating map is the zero map. -/
-@[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M ≃ₗ[R] M) :
-  f.comp_linear_map (g : M →ₗ[R] M) = 0 ↔ f = 0 :=
+@[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M₂ ≃ₗ[R] M) :
+  f.comp_linear_map (g : M₂ →ₗ[R] M) = 0 ↔ f = 0 :=
 begin
   simp_rw ←alternating_map.coe_multilinear_map_injective.eq_iff,
   exact multilinear_map.comp_linear_equiv_eq_zero_iff _ _

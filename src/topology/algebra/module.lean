@@ -25,7 +25,7 @@ The corresponding notation for equivalences is `M ≃SL[σ] M₂`, `M ≃L[R] M�
 -/
 
 open filter
-open_locale topological_space big_operators filter
+open_locale topological_space big_operators filter pointwise
 
 universes u v w u'
 
@@ -250,27 +250,6 @@ notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
 notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
 
-section pointwise_limits
-
-variables
-{M₁ M₂ α R S : Type*}
-[topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
-[add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
-[topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂]
-{σ : R →+* S} {l : filter α} {f : M₁ → M₂}
-
-/-- Construct a bundled linear map from a pointwise limit of linear maps -/
-@[simps] def linear_map_of_tendsto (g : α → M₁ →ₛₗ[σ] M₂) [l.ne_bot]
-  (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →ₛₗ[σ] M₂ :=
-{ to_fun := f,
-  map_smul' := λ r x, by
-    { rw tendsto_pi_nhds at h,
-      refine tendsto_nhds_unique (h (r • x)) _,
-      simpa only [linear_map.map_smulₛₗ] using tendsto.smul tendsto_const_nhds (h x) },
-  .. add_monoid_hom_of_tendsto (λ a, (g a).to_add_monoid_hom) h }
-
-end pointwise_limits
-
 namespace continuous_linear_map
 
 section semiring
@@ -282,10 +261,11 @@ variables
 {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} [semiring R₁] [semiring R₂] [semiring R₃]
 {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃}
 {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
+{M'₁ : Type*} [topological_space M'₁] [add_comm_monoid M'₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
-[module R₁ M₁] [module R₂ M₂] [module R₃ M₃]
+[module R₁ M₁] [module R₁ M'₁] [module R₂ M₂] [module R₃ M₃]
 
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M₁ →SL[σ₁₂] M₂) (M₁ →ₛₗ[σ₁₂] M₂) := ⟨to_linear_map⟩
@@ -335,12 +315,28 @@ fun_like.ext f g h
 theorem ext_iff {f g : M₁ →SL[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 
-variables (f g : M₁ →SL[σ₁₂] M₂) (c : R₁) (h : M₂ →SL[σ₂₃] M₃) (x y z : M₁)
+variables (f g : M₁ →SL[σ₁₂] M₂) (c : R₁) (h : M₂ →SL[σ₂₃] M₃) (x y z : M₁) (fₗ : M₁ →L[R₁] M'₁)
 
 -- make some straightforward lemmas available to `simp`.
 protected lemma map_zero : f (0 : M₁) = 0 := map_zero f
 protected lemma map_add  : f (x + y) = f x + f y := map_add f x y
 @[simp] lemma map_smulₛₗ : f (c • x) = (σ₁₂ c) • f x := (to_linear_map _).map_smulₛₗ _ _
+
+@[simp] lemma image_smul_setₛₗ (c : R₁) (s : set M₁) :
+  f '' (c • s) = (σ₁₂ c) • f '' s :=
+f.to_linear_map.image_smul_setₛₗ c s
+
+lemma image_smul_set (c : R₁) (s : set M₁) :
+  fₗ '' (c • s) = c • fₗ '' s :=
+fₗ.to_linear_map.image_smul_set c s
+
+lemma preimage_smul_setₛₗ {c : R₁} (hc : is_unit c) (s : set M₂) :
+  f ⁻¹' (σ₁₂ c • s) = c • f ⁻¹' s :=
+f.to_linear_map.preimage_smul_setₛₗ hc s
+
+lemma preimage_smul_set {c : R₁} (hc : is_unit c) (s : set M'₁) :
+  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
+fₗ.to_linear_map.preimage_smul_set hc s
 
 @[simp] lemma map_smul [module R₁ M₂] (f : M₁ →L[R₁] M₂)(c : R₁) (x : M₁) : f (c • x) = c • f x :=
 by simp only [ring_hom.id_apply, map_smulₛₗ]
@@ -1176,10 +1172,11 @@ variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} [semiring R₁] [semiring
 {σ₁₃ : R₁ →+* R₃} {σ₃₁ : R₃ →+* R₁} [ring_hom_inv_pair σ₁₃ σ₃₁] [ring_hom_inv_pair σ₃₁ σ₁₃]
 [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁]
 {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
+{M'₁ : Type*} [topological_space M'₁] [add_comm_monoid M'₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
-[module R₁ M₁] [module R₂ M₂] [module R₃ M₃]
+[module R₁ M₁] [module R₁ M'₁] [module R₂ M₂] [module R₃ M₃]
 
 include σ₂₁
 /-- A continuous linear equivalence induces a continuous linear map. -/
@@ -1438,7 +1435,22 @@ by rw [e.symm.image_eq_preimage, e.symm_symm]
 @[simp] protected lemma preimage_symm_preimage (e : M₁ ≃SL[σ₁₂] M₂) (s : set M₁) :
   e ⁻¹' (e.symm ⁻¹' s) = s := e.symm.symm_preimage_preimage s
 
+@[simp] lemma image_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₁) (s : set M₁) :
+  e '' (c • s) = (σ₁₂ c) • e '' s :=
+e.to_linear_equiv.image_smul_setₛₗ c s
+
+@[simp] lemma preimage_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₂) (s : set M₂) :
+  e ⁻¹' (c • s) = σ₂₁ c • e ⁻¹' s :=
+e.to_linear_equiv.preimage_smul_setₛₗ c s
 omit σ₂₁
+
+@[simp] lemma image_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M₁) :
+  e '' (c • s) = c • e '' s :=
+e.to_linear_equiv.image_smul_set c s
+
+@[simp] lemma preimage_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M'₁) :
+  e ⁻¹' (c • s) = c • e ⁻¹' s :=
+e.to_linear_equiv.preimage_smul_set c s
 
 /-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are
 inverse of each other. -/

@@ -53,7 +53,7 @@ linear map
 -/
 
 open function
-open_locale big_operators
+open_locale big_operators pointwise
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
@@ -194,6 +194,37 @@ protected lemma map_zero : f 0 = 0 := map_zero f
 -- TODO: generalize to `zero_hom_class`
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
 ⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
+
+@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
+  f '' (c • s) = (σ c) • f '' s :=
+begin
+  apply set.subset.antisymm,
+  { rintros x ⟨y, ⟨z, zs, rfl⟩, rfl⟩,
+    exact ⟨f z, set.mem_image_of_mem _ zs, (f.map_smulₛₗ _ _).symm ⟩ },
+  { rintros x ⟨y, ⟨z, hz, rfl⟩, rfl⟩,
+    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, f.map_smulₛₗ _ _⟩ }
+end
+
+lemma image_smul_set (c : R) (s : set M) :
+  fₗ '' (c • s) = c • fₗ '' s :=
+by simp
+
+lemma preimage_smul_setₛₗ {c : R} (hc : is_unit c) (s : set M₃) :
+  f ⁻¹' (σ c • s) = c • f ⁻¹' s :=
+begin
+  apply set.subset.antisymm,
+  { rintros x ⟨y, ys, hy⟩,
+    refine ⟨(hc.unit.inv : R) • x, _, _⟩,
+    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ, ← σ.map_mul,
+        is_unit.coe_inv_mul, one_smul, ring_hom.map_one, ys] },
+    { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
+  { rintros x ⟨y, hy, rfl⟩,
+    refine ⟨f y, hy, by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]⟩ }
+end
+
+lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
+  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
+fₗ.preimage_smul_setₛₗ hc s
 
 variables (M M₂)
 /--

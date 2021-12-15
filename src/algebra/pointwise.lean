@@ -173,7 +173,6 @@ protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
 localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup
   set.monoid set.add_monoid set.comm_monoid set.add_comm_monoid" in pointwise
 
-@[to_additive nsmul_mem_nsmul]
 lemma pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
   a ^ n ∈ s ^ n :=
 begin
@@ -198,7 +197,6 @@ lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
 @[simp, to_additive]
 lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 
-@[to_additive empty_smul]
 lemma empty_pow [monoid α] (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
@@ -668,6 +666,10 @@ lemma subsingleton_zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α 
   ((0 : α) • s).subsingleton :=
 subsingleton_singleton.mono (zero_smul_subset s)
 
+lemma smul_add_set [monoid α] [add_monoid β] [distrib_mul_action α β] (c : α) (s t : set β) :
+  c • (s + t) = c • s + c • t :=
+image_add (distrib_mul_action.to_add_monoid_hom β c).to_add_hom
+
 section group
 variables [group α] [mul_action α β] {A B : set β} {a : α} {x : β}
 
@@ -941,7 +943,6 @@ end
 
 variables {G : Type*} [group G] [fintype G] (S : set G)
 
-@[to_additive]
 lemma card_pow_eq_card_pow_card_univ [∀ (k : ℕ), decidable_pred (∈ (S ^ k))] :
   ∀ k, fintype.card G ≤ k → fintype.card ↥(S ^ k) = fintype.card ↥(S ^ (fintype.card G)) :=
 begin

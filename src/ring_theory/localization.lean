@@ -1359,7 +1359,7 @@ begin
 end
 
 instance (p : ideal (localization M)) [p.is_prime] : algebra R (localization.at_prime p) :=
-((algebra_map (localization M) _).comp (algebra_map R _)).to_algebra
+localization.algebra
 
 instance (p : ideal (localization M)) [p.is_prime] :
   is_scalar_tower R (localization M) (localization.at_prime p) :=

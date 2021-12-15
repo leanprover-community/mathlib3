@@ -43,7 +43,7 @@ open_locale big_operators
 variables {α : Type*}
 
 lemma set.pairwise_disjoint.eq_of_le {α ι : Type*} [semilattice_inf α] [order_bot α] {s : set ι}
-  {f : ι → α} {i : ι} (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
+  {f : ι → α} (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
   (hf : f i ≠ ⊥) (hij : f i ≤ f j) :
   i = j :=
 begin
@@ -51,6 +51,11 @@ begin
   by_contra,
   exact hf (disjoint_self.1 $ (hs hi hj h).mono_right hij),
 end
+
+lemma mk_mem_product {β : Type*} {s : finset α} {t : finset β} {a : α} {b : β} (ha : a ∈ s)
+  (hb : b ∈ t) :
+  (a, b) ∈ s.product t :=
+mem_product.2 ⟨ha, hb⟩
 
 /-- A finite partition of `a : α` is a pairwise disjoint finite set of elements whose supremum is
 `a`. We forbid `⊥` as a part. -/
@@ -154,9 +159,10 @@ def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a
 /-! ### Refinement order -/
 
 section order
+variables (a)
 
 /-- We say that `P ≤ Q` if `P ` refines `Q`: each part of `P` is less than some part of `Q`. -/
-instance (a : α) : has_le (finpartition a) := ⟨λ P Q, ∀ ⦃b⦄, b ∈ P.parts → ∃ c ∈ Q.parts, b ≤ c⟩
+instance : has_le (finpartition a) := ⟨λ P Q, ∀ ⦃b⦄, b ∈ P.parts → ∃ c ∈ Q.parts, b ≤ c⟩
 
 instance : partial_order (finpartition a) :=
 { le_refl := λ P b hb, ⟨b, hb, le_rfl⟩,
@@ -168,15 +174,14 @@ instance : partial_order (finpartition a) :=
   le_antisymm := λ P Q hPQ hQP, begin
     ext b,
     refine ⟨λ hb, _, λ hb, _⟩,
-    {
-      obtain ⟨c, hc, hbc⟩ := hPQ hb,
+    { obtain ⟨c, hc, hbc⟩ := hPQ hb,
       obtain ⟨d, hd, hcd⟩ := hQP hc,
-      have := P.disjoint.eq_of_le,
-      exact ⟨d, hd, hbc.trans hcd⟩,
-    },
-    obtain ⟨c, hc, hbc⟩ := hPQ hb,
-    obtain ⟨d, hd, hcd⟩ := hQR hc,
-    exact ⟨d, hd, hbc.trans hcd⟩,
+      rwa hbc.antisymm,
+      rwa P.disjoint.eq_of_le hb hd (P.ne_bot hb) (hbc.trans hcd) },
+    { obtain ⟨c, hc, hbc⟩ := hQP hb,
+      obtain ⟨d, hd, hcd⟩ := hPQ hc,
+      rwa hbc.antisymm,
+      rwa Q.disjoint.eq_of_le hb hd (Q.ne_bot hb) (hbc.trans hcd) }
   end,
   .. finpartition.has_le a }
 
@@ -188,23 +193,46 @@ instance [decidable (a = ⊥)] : order_top (finpartition a) :=
     { exact λ b hb, ⟨a, P.le hb⟩ }
   end }
 
-instance : has_inf (finpartition a) :=
-⟨λ P Q,
-  { parts := P.parts.image (λ b, Q.parts.image $ λ c, b ⊓ c),
-    sup_indep := sup_indep_singleton _ _,
-    sup_parts := finset.sup_singleton,
-    not_bot_mem := λ h, ha (mem_singleton.1 h).symm }⟩
+instance [decidable_eq α] : has_inf (finpartition a) :=
+⟨λ P Q, of_erase ((P.parts.product Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
+    begin
+      sorry
+    end
+    begin
+      sorry
+    end⟩
 
-instance : lattice (finpartition a) :=
-{ sup := _,
-  le_sup_left := _,
+instance [decidable_eq α] : has_sup (finpartition a) :=
+⟨λ P Q,
+  { parts := sorry,
+    sup_indep := sorry,
+    sup_parts := sorry,
+    not_bot_mem := sorry }⟩
+
+instance [decidable_eq α] : lattice (finpartition a) :=
+{ le_sup_left := _,
   le_sup_right := _,
   sup_le := _,
-  inf := λ P,
-  inf_le_left := _,
-  inf_le_right := _,
-  le_inf := _,
-  .. }
+  inf_le_left := λ P Q b hb, begin
+    obtain ⟨c, hc, rfl⟩ := mem_image.1 (mem_of_mem_erase hb),
+    rw mem_product at hc,
+    exact ⟨c.1, hc.1, inf_le_left⟩,
+  end,
+  inf_le_right := λ P Q b hb, begin
+    obtain ⟨c, hc, rfl⟩ := mem_image.1 (mem_of_mem_erase hb),
+    rw mem_product at hc,
+    exact ⟨c.2, hc.2, inf_le_right⟩,
+  end,
+  le_inf := λ P Q R hPQ hPR b hb, begin
+    obtain ⟨c, hc, hbc⟩ := hPQ hb,
+    obtain ⟨d, hd, hbd⟩ := hPR hb,
+    have h := _root_.le_inf hbc hbd,
+    refine ⟨c ⊓ d, mem_erase_of_ne_of_mem (ne_bot_of_le_ne_bot (P.ne_bot hb) h)
+      (mem_image.2 ⟨(c, d), mem_product.2 ⟨hc, hd⟩, rfl⟩), h⟩,
+  end,
+  .. finpartition.partial_order a,
+  .. finpartition.has_inf a,
+  .. finpartition.has_sup a }
 
 
 end order

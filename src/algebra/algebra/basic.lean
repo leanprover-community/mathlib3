@@ -90,6 +90,9 @@ all be relaxed independently; for instance, this allows us to:
   `R`-algebra `A`.
 While `alg_hom R A B` cannot be used in the second approach, `non_unital_alg_hom R A B` still can.
 
+You should always use the first approach when working with associative unital algebras, and mimic
+the second approach only when you need to weaken a condition on either `R` or `A`.
+
 -/
 
 universes u v w u₁ v₁

@@ -212,6 +212,9 @@ namespace differential_object
 variables (C : Type u) [category.{v} C]
 variables [has_zero_morphisms C] [has_shift C ℤ] [∀ n:ℤ, is_equivalence (shift_functor C n)]
 
+
+noncomputable theory
+
 /-- The shift functor on `differential_object C`. -/
 @[simps]
 def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
@@ -227,27 +230,52 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
+local attribute [instance] endofunctor_monoidal_category discrete.add_monoidal
+local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal shift_comm
+
 /-- The shift functor on `differential_object C` is additive. -/
 @[simps] def shift_functor_add (m n : ℤ) :
   shift_functor C (m + n) ≅ shift_functor C m ⋙ shift_functor C n :=
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
-  { dsimp, rw [category.assoc, functor.map_comp_assoc, shift_add_hom_comp_assoc],
-    congr' 1, dsimp [shift_comm],
-    simp only [shift_shift_add_hom', shift_shift_add_inv', iso.hom_inv_id_assoc, category.assoc,
-      eq_to_hom_map, eq_to_hom_trans_assoc, iso.cancel_iso_inv_left, functor.map_comp],
-    rw [shift_add_hom_comp_eq_to_hom₁_assoc, shift_add_hom_comp_eq_to_hom₂_assoc,
-      iso.hom_inv_id_assoc, eq_to_hom_trans_assoc, eq_to_hom_trans_assoc, eq_to_hom_trans_assoc],
-    all_goals { exact add_comm _ _ } },
-  { intros X Y f, ext1, dsimp, rw [shift_add_hom_comp] }
+  { dsimp,
+    simp only [iso.app_inv, iso.symm_inv, monoidal_functor.μ_iso_hom, obj_μ_app,
+      iso.symm_hom, iso.app_hom, category.assoc, obj_μ_inv_app, shift_add',
+      eq_to_hom_trans_assoc, functor.map_comp, eq_to_hom_map,
+      monoidal_functor.μ_inv_hom_app_assoc],
+    congr' 4,
+    erw eq_to_hom_μ_assoc,
+    simp only [eq_to_hom_trans_assoc, monoidal_functor.μ_inv_hom_app_assoc],
+    simp_rw ← category.assoc,
+    congr' 1,
+    rw [←is_iso.eq_inv_comp, inv_eq_to_hom, category.assoc, eq_to_hom_trans_assoc,
+      eq_to_hom_μ_inv_assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id],
+    exacts [rfl, add_comm _ _, add_comm _ _, rfl] },
+  { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
 .
 
+local attribute [instance] endofunctor_monoidal_category discrete.add_monoidal
+local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal shift_comm
+
+@[simps]
+def shift_ε : 𝟭 (differential_object C) ≅ shift_functor C 0 :=
+begin
+  refine nat_iso.of_components (λ X, mk_iso ((shift_monoidal_functor C ℤ).ε_iso.app X.X) _) _,
+  { dsimp, simp },
+  { introv, ext, dsimp, simp }
+end
+-- { app := λ X, { f := (shift_monoidal_functor C ℤ).ε.app X.X } }
+.
+
 instance : has_shift (differential_object C) ℤ :=
-{ shift := shift_functor C,
-  shift_add := shift_functor_add C,
-  iso_whisker_right_shift_add := λ i j k, by
-  { ext X, dsimp, rw [shift_shift_add_hom', category.comp_id, eq_to_hom_app, eq_to_hom_f], refl } }
+⟨{ ε := (shift_ε C).hom,
+  μ := λ n m, (shift_functor_add C n m).inv,
+  μ_natural' := by { rintros _ _ _ _ ⟨⟨⟨⟩⟩⟩ ⟨⟨⟨⟩⟩⟩, ext, dsimp, simp, dsimp, simp },
+  associativity' := by { intros _ _ _, ext, dsimp, simp },
+  left_unitality' := by { intros _, ext, dsimp, simp },
+  right_unitality' := by { intros _, ext, dsimp, simp },
+  ..(discrete.functor (shift_functor C)) }⟩
 
 end differential_object
 

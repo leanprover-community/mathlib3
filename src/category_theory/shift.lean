@@ -36,10 +36,35 @@ section monoid
 variables [add_monoid A]
 variables (F : monoidal_functor (discrete A) (C ⥤ C)) (G : monoidal_functor M N)
 
+namespace monoidal_functor
+
 @[simp]
-lemma monoidal_functor.μ_iso_hom (X Y : M) : (G.μ_iso X Y).hom = G.μ X Y := rfl
+lemma μ_iso_hom (X Y : M) : (G.μ_iso X Y).hom = G.μ X Y := rfl
 @[simp]
-lemma monoidal_functor.ε_iso_hom : G.ε_iso.hom = G.ε := rfl
+lemma ε_iso_hom : G.ε_iso.hom = G.ε := rfl
+
+@[simp, reassoc]
+lemma μ_hom_inv_app (i j : A) (X : C) :
+  (F.μ i j).app X ≫ (F.μ_iso i j).inv.app X = 𝟙 _ := (F.μ_iso i j).hom_inv_id_app X
+
+@[simp, reassoc]
+lemma μ_inv_hom_app (i j : A) (X : C) :
+   (F.μ_iso i j).inv.app X ≫ (F.μ i j).app X = 𝟙 _ := (F.μ_iso i j).inv_hom_id_app X
+
+@[simp, reassoc]
+lemma ε_hom_inv_app (X : C) :
+  F.ε.app X ≫ F.ε_iso.inv.app X = 𝟙 _ := F.ε_iso.hom_inv_id_app X
+
+@[simp, reassoc]
+lemma ε_inv_hom_app (X : C) :
+  F.ε_iso.inv.app X ≫ F.ε.app X = 𝟙 _ := F.ε_iso.inv_hom_id_app X
+
+@[simp, reassoc]
+lemma ε_naturality {X Y : C} (f : X ⟶ Y) :
+  F.ε.app X ≫ (F.obj 0).map f = f ≫ F.ε.app Y := (F.ε.naturality f).symm
+
+end monoidal_functor
+
 
 lemma whisker_left_eq (F G H : C ⥤ C) (α : F ⟶ G) : whisker_left H α = (𝟙 _) ⊗ α :=
 by { ext, dsimp, rw G.map_id, exact (category.comp_id _).symm }
@@ -69,6 +94,15 @@ begin
   rw [← left_unitality_app, category.assoc, ← nat_iso.app_inv],
   erw ((F.μ_iso 0 n).app X).hom_inv_id,
   exact (category.comp_id _).symm,
+end
+
+@[simp]
+lemma obj_ε_inv_app (n : A) (X : C) :
+  (F.obj n).map (F.ε_iso.inv.app X) =
+    (F.μ 0 n).app X ≫ eq_to_hom (by { congr, exact zero_add _ })  :=
+begin
+  rw [← cancel_mono ((F.obj n).map (F.ε.app X)), ← functor.map_comp],
+  simpa,
 end
 
 @[reassoc]
@@ -144,15 +178,16 @@ begin
     exact (F.μ_iso _ _).hom_inv_id_app X }
 end
 
-@[simp, reassoc] lemma μ_comp_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
-  (F.μ i j).app X ≫ eq_to_hom (by rw [h₁, h₂]) =
-    eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ i' j').app X :=
+@[simp, reassoc] lemma eq_to_hom_μ {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+  eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ i' j').app X =
+    (F.μ i j).app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
 by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
-@[simp, reassoc] lemma μ_inv_comp_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
-  (F.μ_iso i j).inv.app X ≫ eq_to_hom (by rw [h₁, h₂]) =
-    eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ_iso i' j').inv.app X :=
+@[simp, reassoc] lemma eq_to_hom_μ_inv {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+  eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ_iso i' j').inv.app X =
+    (F.μ_iso i j).inv.app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
 by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
+
 
 @[simp]
 lemma obj_μ_zero_app (m₁ m₂ : A) (X : C) :
@@ -164,25 +199,22 @@ begin
   rw ← is_iso.comp_inv_eq at this,
   rw [← this, category.assoc],
   congr,
-  rw [inv_eq_to_hom, is_iso.eq_comp_inv, μ_comp_eq_to_hom],
+  rw [inv_eq_to_hom, is_iso.eq_comp_inv, ← eq_to_hom_μ],
   { refl }, { simp }, { simp }
 end
 
 @[simp]
-lemma iso_whisker_right_μ_inv_eq (F : monoidal_functor M (C ⥤ C)) (i j k : M) :
+lemma iso_whisker_right_μ_inv_eq (F : monoidal_functor (discrete A) (C ⥤ C)) (i j k : A) :
   iso_whisker_right (F.μ_iso i j).symm (F.obj k) =
-    (F.μ_iso (i ⊗ j) k) ≪≫ F.to_functor.map_iso (α_ _ _ _) ≪≫ (F.μ_iso i (j ⊗ k)).symm ≪≫
+    (F.μ_iso (i + j) k) ≪≫ F.to_functor.map_iso (α_ _ _ _) ≪≫ (F.μ_iso i (j + k)).symm ≪≫
       iso_whisker_left (F.obj i) (F.μ_iso j k).symm ≪≫ (functor.associator _ _ _).symm :=
 begin
   ext1,
   dsimp,
-  rw [whisker_right_eq, whisker_left_eq, ← category.assoc],
-  erw category.comp_id,
-  rw [← category.assoc, ← is_iso.comp_inv_eq, ← is_iso.comp_inv_eq, category.assoc,
-    ← is_iso.eq_inv_comp],
-  simp only [is_iso.inv_id, monoidal_category.inv_tensor, is_iso.iso.inv_inv,
-    lax_monoidal_functor.associativity, monoidal_functor.μ_iso_hom],
-  erw category.id_comp,
+  simp_rw [← category.assoc],
+  rw [← is_iso.comp_inv_eq, ← is_iso.comp_inv_eq, category.assoc, ← is_iso.eq_inv_comp],
+  ext,
+  simp
 end
 
 end monoid
@@ -209,10 +241,8 @@ def add_neg_equiv (n : A) : C ≌ C :=
     intro X,
     dsimp [neg_add_ε, add_neg_ε],
     simp only [eq_to_hom_app, ε_inv_app_obj, category.assoc, obj_μ_inv_app,
-      functor.map_comp, eq_to_hom_map, obj_ε_app, ← F.μ_iso_hom],
-    erw [μ_inv_comp_eq_to_hom_assoc, ← μ_comp_eq_to_hom_assoc],
-    rw [iso.inv_hom_id_app_assoc, iso.inv_hom_id_app_assoc, ← F.μ_iso_hom,
-      iso.inv_hom_id_app_assoc],
+      functor.map_comp, eq_to_hom_map, obj_ε_app],
+    erw [← eq_to_hom_μ_inv_assoc, eq_to_hom_μ_assoc],
     all_goals { simp }
   end }
 
@@ -236,30 +266,32 @@ class has_shift (C : Type u) (A : Type*) [category.{v} C] [add_monoid A] :=
 -- (shift_functor_zero : shift 0 ≅ 𝟭 C)
 
 
-variables [has_shift C A] {A}
+variables [has_shift C A]
 
-#check has_shift.shift
+def shift_monoidal_functor : monoidal_functor (discrete A) (C ⥤ C) := has_shift.shift
 
+variable {A}
 
 /-- The shift autoequivalence, moving objects and morphisms 'up'. -/
-def shift_functor (i : A) : C ⥤ C := has_shift.shift.obj i
+abbreviation shift_functor (i : A) : C ⥤ C := (shift_monoidal_functor C A).obj i
 
 /-- Shifting by `i + j` is the same as shifting by `i` and then shifting by `j`. -/
-def shift_functor_add (i j : A) :
+abbreviation shift_functor_add (i j : A) :
   shift_functor C (i + j) ≅ shift_functor C i ⋙ shift_functor C j :=
-(has_shift.shift.μ_iso i j).symm
+((shift_monoidal_functor C A).μ_iso i j).symm
 
 lemma iso_whisker_right_shift_functor_add (i j k : A) :
   iso_whisker_right (shift_functor_add C i j) (shift_functor C k) =
   (shift_functor_add C (i+j) k).symm ≪≫ (eq_to_iso $ by rw add_assoc) ≪≫
     (shift_functor_add C i (j+k)) ≪≫
     iso_whisker_left _ (shift_functor_add C j k) ≪≫ (functor.associator _ _ _).symm :=
-by { convert iso_whisker_right_μ_inv_eq has_shift.shift i j k, simpa }
+by { convert iso_whisker_right_μ_inv_eq (shift_monoidal_functor C A) i j k, simp }
 
 variables (A)
 
 /-- Shifting by zero is the identity functor. -/
-def shift_functor_zero : shift_functor C (0 : A) ≅ 𝟭 C := has_shift.shift.ε_iso.symm
+abbreviation shift_functor_zero : shift_functor C (0 : A) ≅ 𝟭 C :=
+(shift_monoidal_functor C A).ε_iso.symm
 
 end defs
 
@@ -282,7 +314,7 @@ variables {C A} [add_monoid A] [has_shift C A] (X Y : C) (f : X ⟶ Y)
 @[simp] lemma has_shift.shift_app (n : A) (X : C) : (has_shift.shift.obj n).obj X = X⟦n⟧ := rfl
 
 /-- Shifting by `i + j` is the same as shifting by `i` and then shifting by `j`. -/
-def shift_add (i j : A) : X⟦i + j⟧ ≅ X⟦i⟧⟦j⟧ := (shift_functor_add C i j).app _
+abbreviation shift_add (i j : A) : X⟦i + j⟧ ≅ X⟦i⟧⟦j⟧ := (shift_functor_add C i j).app _
 
 -- @[simp] lemma has_shift.shift_add_app (i j : A) :
 --   (has_shift.shift_add i j).app X = shift_add X i j := rfl
@@ -381,7 +413,7 @@ by { symmetry, apply nat_iso.naturality_1 }
 variables (A) [is_equivalence (shift_functor C (0:A))]
 
 /-- Shifting by zero is the identity functor. -/
-def shift_zero  :
+abbreviation shift_zero  :
   X⟦0⟧ ≅ X := (shift_functor_zero C A).app _
 
 lemma shift_zero' :
@@ -442,10 +474,10 @@ end
 variables {C}
 
 /-- Shifting by `i` and then shifting by `-i` is the identity. -/
-def shift_shift_neg (i : A) : X⟦i⟧⟦-i⟧ ≅ X := (shift_functor_comp_shift_functor_neg C i).app _
+abbreviation shift_shift_neg (i : A) : X⟦i⟧⟦-i⟧ ≅ X := (shift_functor_comp_shift_functor_neg C i).app _
 
 /-- Shifting by `-i` and then shifting by `i` is the identity. -/
-def shift_neg_shift (i : A) : X⟦-i⟧⟦i⟧ ≅ X := (shift_functor_neg_comp_shift_functor C i).app _
+abbreviation shift_neg_shift (i : A) : X⟦-i⟧⟦i⟧ ≅ X := (shift_functor_neg_comp_shift_functor C i).app _
 
 @[simp] lemma shift_functor_comp_shift_functor_neg_hom_app (i : A) :
   (shift_functor_comp_shift_functor_neg C i).hom.app X = (shift_shift_neg X i).hom := rfl
@@ -490,10 +522,9 @@ lemma shift_functor_zero_shift (X : C) (n : A) :
   (shift_zero A X).hom⟦n⟧' =
     (shift_add X 0 n).inv ≫ eq_to_hom (by simp) :=
 begin
-  dsimp [shift_functor_zero, shift_zero, shift_functor, shift_add, shift_functor_add],
   rw [← is_iso.comp_inv_eq, ← is_iso.eq_inv_comp],
-  convert (left_unitality_app has_shift.shift n X).symm,
-  { simpa }, { rw [← functor.map_inv, nat_iso.inv_inv_app], refl }
+  convert (left_unitality_app (shift_monoidal_functor C A) n X).symm,
+  { simpa }, { rw ← functor.map_inv, congr, simp }
 end
 
 @[simp]
@@ -502,6 +533,8 @@ lemma shift_zero_inv_shift (n : A) (X : C) :
 begin
   rw [← cancel_mono ((shift_zero A X).hom⟦n⟧'), ← functor.map_comp],
   simp,
+  dsimp,
+  simp,
 end
 
 @[simp, reassoc]
@@ -509,11 +542,7 @@ lemma shift_zero_shift (n : A) (X : C) :
   (shift_add X n 0).hom ≫ (shift_zero A (X⟦n⟧)).hom = eq_to_hom (by simp) :=
 begin
   apply (shift_functor C (0 : A)).map_injective,
-  suffices : (shift_add X (n + 0) 0).inv ≫ eq_to_hom (by simp) ≫
-    (shift_add X n 0).hom = eq_to_hom (by simp),
-  { by simpa },
-  rw [← shift_add_hom_comp_eq_to_hom₁, iso.inv_hom_id_assoc],
-  all_goals { simp },
+  simp
 end
 
 -- lemma shift_equiv_triangle (n : A) (X : C) :
@@ -553,7 +582,7 @@ variables (C)
 def shift_equiv (n : A) : C ≌ C :=
 { functor := shift_functor C n,
   inverse := shift_functor C (-n),
-  ..(add_neg_equiv has_shift.shift n) }
+  ..(add_neg_equiv (shift_monoidal_functor C A) n) }
 
 variable {C}
 
@@ -579,8 +608,7 @@ def shift_comm (i j : A) : X⟦i⟧⟦j⟧ ≅ X⟦j⟧⟦i⟧ :=
 @[simp] lemma shift_comm_symm (i j : A) : (shift_comm X i j).symm = shift_comm X j i :=
 begin
   ext, dsimp [shift_comm],
-  simp only [iso.hom_inv_id_assoc, category.id_comp, eq_to_hom_refl,
-    eq_to_hom_trans_assoc, iso.inv_hom_id, category.assoc],
+  simpa,
 end
 
 variables {X Y}
@@ -592,7 +620,9 @@ begin
   rw [shift_shift', shift_shift'],
   dsimp [shift_comm],
   simp only [← category.assoc, cancel_mono],
-  simp only [iso.hom_inv_id_assoc, iso.cancel_iso_inv_left, category.assoc],
+  simp only [iso.hom_inv_id_assoc, iso.cancel_iso_inv_left, category.assoc,
+    monoidal_functor.μ_inv_hom_app_assoc],
+  congr' 1,
   generalize_proofs h1 h2, revert h1 h2,
   generalize hij : i + j = ij, generalize hji : j + i = ji, intros h1 h2,
   obtain rfl : ij = ji, { rw [← hij, add_comm, hji] }, clear hij hji,

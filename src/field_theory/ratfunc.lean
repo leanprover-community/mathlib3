@@ -274,17 +274,28 @@ by simpa only [← of_fraction_ring_inv, ← of_fraction_ring_mul, ← of_fracti
 
 section has_scalar
 
-variables {R : Type*} [monoid R] [distrib_mul_action R (polynomial K)]
+variables {R : Type*} [monoid R]
+
+/-- Scalar multiplication of rational functions. -/
+@[irreducible] protected def smul [has_scalar R (fraction_ring (polynomial K))] :
+  R → ratfunc K → ratfunc K
+| r ⟨p⟩ := ⟨r • p⟩
+
+instance [has_scalar R (fraction_ring (polynomial K))] : has_scalar R (ratfunc K) :=
+⟨ratfunc.smul⟩
+
+lemma of_fraction_ring_smul [has_scalar R (fraction_ring (polynomial K))]
+  (c : R) (p : fraction_ring (polynomial K)) :
+  of_fraction_ring (c • p) = c • of_fraction_ring p :=
+by unfold has_scalar.smul ratfunc.smul
+lemma to_fraction_ring_smul [has_scalar R (fraction_ring (polynomial K))]
+  (c : R) (p : ratfunc K) :
+  to_fraction_ring (c • p) = c • to_fraction_ring p :=
+by { cases p, rw ←of_fraction_ring_smul }
+
+variables [distrib_mul_action R (polynomial K)]
 variables [htower : is_scalar_tower R (polynomial K) (polynomial K)]
 include htower
-
-instance : has_scalar R (ratfunc K) :=
-⟨λ c p, of_fraction_ring (c • to_fraction_ring p)⟩
-
-lemma of_fraction_ring_smul (c : R) (p : fraction_ring (polynomial K)) :
-  of_fraction_ring (c • p) = c • of_fraction_ring p := rfl
-lemma to_fraction_ring_smul (c : R) (p : ratfunc K) :
-  to_fraction_ring (c • p) = c • to_fraction_ring p := rfl
 
 lemma mk_smul (c : R) (p q : polynomial K) :
   ratfunc.mk (c • p) q = c • ratfunc.mk p q :=

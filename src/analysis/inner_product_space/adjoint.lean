@@ -13,11 +13,18 @@ Given an operator `A : E →L[𝕜] F`, where `E` and `F` are Hilbert spaces, it
 `adjoint A : F →L[𝕜] E` is the unique operator such that `⟪x, A y⟫ = ⟪adjoint A x, y⟫` for all
 `x` and `y`.
 
+We then use this to put a star algebra structure on `E →L[𝕜] E` with the adjoint as the star
+operation.
+
 ## Implementation notes
 
 * The adjoint is defined as a conjugate-linear isometric equivalence between `E →L[𝕜] F` and
   `F →L[𝕜] E`. The bare function `adjoint'` is only an intermediate definition and is not meant
   to be used outside this file.
+
+## TODO
+
+* Prove the C⋆ property for `E →L[𝕜] E` to show that it is a C⋆-algebra.
 
 ## Tags
 

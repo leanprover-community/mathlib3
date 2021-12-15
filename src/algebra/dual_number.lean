@@ -9,8 +9,13 @@ import algebra.triv_sq_zero_ext
 /-!
 # Dual numbers
 
-The dual numbers are a special case of `triv_sq_zero_ext R M` with `R = M`, with notation `𝔻[R]` in
-the `dual_number` locale.
+The dual numbers over `R` are of the form `a + bε`, where `a` and `b` are elements of a commutative
+ring `R`, and `ε` is a symbol satisfying `ε^2 = 0`. They are a special case of `triv_sq_zero_ext R M`
+with `M = R`.
+
+## Notation
+
+* `𝔻[R]` as a shorthand for `dual_number R`, in the `dual_number` locale.
 
 ## Main definitions
 

@@ -248,6 +248,8 @@ iff_true_intro $ λ_, trivial
 theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
 ⟨λf, f ha, imp_intro⟩
 
+lemma imp_iff_not (hb : ¬ b) : a → b ↔ ¬ a := imp_congr_right $ λ _, iff_false_intro hb
+
 theorem decidable.imp_iff_right_iff [decidable a] : ((a → b) ↔ b) ↔ (a ∨ b) :=
 ⟨λ H, (decidable.em a).imp_right $ λ ha', H.1 $ λ ha, (ha' ha).elim,
   λ H, H.elim imp_iff_right $ λ hb, ⟨λ hab, hb, λ _ _, hb⟩⟩
@@ -1422,6 +1424,23 @@ lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c := by by_cas
 
 @[simp] lemma ite_eq_left_iff : ite P a b = a ↔ (¬ P → b = a) := by by_cases P; simp *
 @[simp] lemma ite_eq_right_iff : ite P a b = b ↔ (P → a = b) := by by_cases P; simp *
+
+lemma ite_ne_left_iff : ite P a b ≠ a ↔ ¬ P ∧ a ≠ b :=
+by rw [ne.def, ite_eq_left_iff, ne_comm, not_imp]
+
+lemma ite_ne_right_iff : ite P a b ≠ b ↔ P ∧ a ≠ b := by rw [ne.def, ite_eq_right_iff, not_imp]
+
+protected lemma ne.ite_eq_left_iff (h : a ≠ b) : ite P a b = a ↔ P :=
+ite_eq_left_iff.trans $ not_imp_comm.trans $ imp_iff_right h.symm
+
+protected lemma ne.ite_eq_right_iff (h : a ≠ b) : ite P a b = b ↔ ¬ P :=
+ite_eq_right_iff.trans $ imp_iff_not h
+
+protected lemma ne.ite_ne_left_iff (h : a ≠ b) : ite P a b ≠ a ↔ ¬ P :=
+ite_ne_left_iff.trans $ and_iff_left h
+
+protected lemma ne.ite_ne_right_iff (h : a ≠ b) : ite P a b ≠ b ↔ P :=
+ite_ne_right_iff.trans $ and_iff_left h
 
 variables (P Q) (a b)
 

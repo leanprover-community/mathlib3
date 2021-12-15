@@ -680,6 +680,13 @@ begin
   { rw [erase_ne hs] }
 end
 
+@[simp] lemma erase_of_not_mem_support {f : α →₀ M} {a} (haf : a ∉ f.support) : erase a f = f :=
+begin
+  ext b, by_cases hab : b = a,
+  { rwa [hab, erase_same, eq_comm, ←not_mem_support_iff] },
+  { rw erase_ne hab }
+end
+
 @[simp] lemma erase_zero (a : α) : erase a (0 : α →₀ M) = 0 :=
 by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
 
@@ -1073,11 +1080,18 @@ lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rf
 @[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
-@[simp] lemma support_neg [add_group G] {f : α →₀ G} : support (-f) = support f :=
+@[simp] lemma support_neg [add_group G] (f : α →₀ G) : support (-f) = support f :=
 finset.subset.antisymm
   support_map_range
   (calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
      ... ⊆ support (- f) : support_map_range)
+
+lemma support_sub [decidable_eq α] [add_group G] {f g : α →₀ G} :
+  support (f - g) ⊆ support f ∪ support g :=
+begin
+  rw [sub_eq_add_neg, ←support_neg g],
+  exact support_add,
+end
 
 lemma erase_eq_sub_single [add_group G] (f : α →₀ G) (a : α) :
   f.erase a = f - single a (f a) :=
@@ -1105,6 +1119,16 @@ have ∀ c, f.sum (λ a b, g a b c) ≠ 0 → (∃ a, f a ≠ 0 ∧ ¬ (g a (f a
   let ⟨a, ha, ne⟩ := finset.exists_ne_zero_of_sum_ne_zero h in
   ⟨a, mem_support_iff.mp ha, ne⟩,
 by simpa only [finset.subset_iff, mem_support_iff, finset.mem_bUnion, sum_apply, exists_prop]
+
+lemma support_finset_sum [decidable_eq β] [add_comm_monoid M] {s : finset α} {f : α → (β →₀ M)} :
+  (finset.sum s f).support ⊆ s.bUnion (λ x, (f x).support) :=
+begin
+  rw ←finset.sup_eq_bUnion,
+  induction s using finset.cons_induction_on with a s ha ih,
+  { refl },
+  { rw [finset.sum_cons, finset.sup_cons],
+    exact support_add.trans (finset.union_subset_union (finset.subset.refl _) ih), },
+end
 
 @[simp] lemma sum_zero [has_zero M] [add_comm_monoid N] {f : α →₀ M} :
   f.sum (λa b, (0 : N)) = 0 :=

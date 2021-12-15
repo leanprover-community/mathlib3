@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.equiv.denumerable
-import order.preorder_hom
 import data.nat.lattice
+import logic.function.iterate
+import order.hom.basic
 
 /-!
 # Relation embeddings from the naturals
@@ -166,8 +167,8 @@ begin
     use n, intros m hm, rw ← hn at range_bounded, symmetry,
     apply range_bounded (a m) (set.mem_range_self _) (a.monotone hm), },
   { rw rel_embedding.well_founded_iff_no_descending_seq, refine ⟨λ a, _⟩,
-    obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_preorder_hom,
-    exact n.succ_ne_self.symm (rel_embedding.to_preorder_hom_injective _ (hn _ n.le_succ)), },
+    obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_order_hom,
+    exact n.succ_ne_self.symm (rel_embedding.to_order_hom_injective _ (hn _ n.le_succ)), },
 end
 
 /-- Given an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered

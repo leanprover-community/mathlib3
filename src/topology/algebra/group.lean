@@ -771,11 +771,40 @@ instance multiplicative.topological_group {G} [h : topological_space G]
 
 namespace units
 
-variables [monoid α] [topological_space α] [has_continuous_mul α]
+variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β] [topological_space β]
+  [has_continuous_mul β]
 
 instance : topological_group (units α) :=
 { continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
     (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
+
+/-- The topological group isomorphism between the units of a product of two monoids, and the product
+    of the units of each monoid. -/
+def homeomorph.prod_units : homeomorph (units (α × β)) (units α × units β) :=
+{ continuous_to_fun  :=
+  begin
+    apply continuous.prod_mk,
+    { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
+      refine continuous_op.comp (continuous_fst.comp _),
+      simp_rw units.inv_eq_coe_inv,
+      exact units.continuous_coe.comp continuous_inv, },
+    { refine continuous_induced_rng ((continuous_snd.comp units.continuous_coe).prod_mk _),
+      simp_rw units.coe_map_inv,
+      exact continuous_op.comp (continuous_snd.comp (units.continuous_coe.comp continuous_inv)), }
+  end,
+  continuous_inv_fun :=
+  begin
+    refine continuous_induced_rng (continuous.prod_mk _ _),
+    { exact (units.continuous_coe.comp continuous_fst).prod_mk
+        (units.continuous_coe.comp continuous_snd), },
+    { refine continuous_op.comp
+        (units.continuous_coe.comp $ continuous_induced_rng $ continuous.prod_mk _ _),
+      { exact (units.continuous_coe.comp (continuous_inv.comp continuous_fst)).prod_mk
+          (units.continuous_coe.comp (continuous_inv.comp continuous_snd)) },
+      { exact continuous_op.comp ((units.continuous_coe.comp continuous_fst).prod_mk
+            (units.continuous_coe.comp continuous_snd)) }}
+  end,
+  ..mul_equiv.prod_units }
 
 end units
 

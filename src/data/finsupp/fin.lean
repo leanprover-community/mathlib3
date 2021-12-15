@@ -13,11 +13,11 @@ noncomputable theory
 namespace finsupp
 
 /-- `tail` for maps `fin (n+1) →₀ M`. See `fin.tail` for more details. -/
-def tail {n: ℕ } (s : fin (n+1) →₀ ℕ ) : fin n →₀ ℕ
+def tail {n : ℕ} (s : fin (n+1) →₀ ℕ) : fin n →₀ ℕ
 := finsupp.equiv_fun_on_fintype.inv_fun (fin.tail s.to_fun)
 
 /-- `cons` for maps `fin n →₀ M`. See `fin.cons` for more details. -/
-def cons {n:ℕ} (y : ℕ) (s : fin n →₀  ℕ) : fin (n+1) →₀ ℕ :=
+def cons {n :ℕ} (y : ℕ) (s : fin n →₀ ℕ) : fin (n+1) →₀ ℕ :=
 finsupp.equiv_fun_on_fintype.inv_fun (fin.cons y s.to_fun)
 
 lemma tail_eq {n :ℕ} (s : fin (n+1) →₀ ℕ) : ∀ (i : fin n), s i.succ = tail s i :=
@@ -27,7 +27,7 @@ begin
   congr,
 end
 
-lemma cons_zero {n : ℕ} (y : ℕ) (s : fin n →₀  ℕ) : cons y s 0 = y :=
+lemma cons_zero {n : ℕ} (y : ℕ) (s : fin n →₀ ℕ) : cons y s 0 = y :=
 by simp [cons, finsupp.equiv_fun_on_fintype]
 
 lemma cons_succ {n : ℕ} (i : fin n) (y : ℕ) (s : fin n →₀ ℕ) : cons y s i.succ = s i :=
@@ -53,7 +53,7 @@ begin
   { rw [←fin.succ_pred a c_a, cons_succ, tail_eq] },
 end
 
-lemma cons_zero_zero {n : ℕ} : cons 0 (0 : fin n →₀  ℕ ) = 0 :=
+lemma cons_zero_zero {n : ℕ} : cons 0 (0 : fin n →₀ ℕ) = 0 :=
 begin
   ext,
   by_cases c : a ≠ 0,

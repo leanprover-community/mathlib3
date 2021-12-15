@@ -475,14 +475,6 @@ protected lemma induction_on {P : ratfunc K → Prop} (x : ratfunc K)
   P x :=
 x.induction_on' (λ p q hq, by simpa using f p q hq)
 
-/-- `ratfunc K` is isomorphic to the field of fractions of `polynomial K`, as algebras.
-
-This is an auxiliary definition; `simp`-normal form is `is_localization.alg_equiv`.
--/
-@[simps] def to_fraction_ring_alg_equiv : ratfunc K ≃ₐ[K] fraction_ring (polynomial K) :=
-{ commutes' := by simp,
-  ..to_fraction_ring_ring_equiv K }
-
 lemma of_fraction_ring_mk' (x : polynomial K) (y : (polynomial K)⁰) :
   of_fraction_ring (is_localization.mk' _ x y) = is_localization.mk' (ratfunc K) x y :=
 by rw [is_fraction_ring.mk'_eq_div, is_fraction_ring.mk'_eq_div, ← mk_eq_div', ← mk_eq_div]

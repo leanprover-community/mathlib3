@@ -681,8 +681,8 @@ begin
   simp [norm_smul, this, real.norm_of_nonneg hr]
 end
 
-theorem smul_sphere [normed_space ℝ E] [nontrivial E]
-  (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+theorem smul_sphere {E : Type*} [normed_group E] [normed_space α E] [normed_space ℝ E]
+  [nontrivial E] (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
   c • sphere x r = sphere (c • x) (∥c∥ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,

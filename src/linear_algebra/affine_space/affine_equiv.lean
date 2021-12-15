@@ -181,7 +181,7 @@ def simps.symm_apply {k P₁ P₂ V₁ V₂ : Type*} [ring k]
   P₂ → P₁ := e.symm
 
 initialize_simps_projections affine_equiv
-  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, -to_equiv)
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, linear → linear as_prefix, -to_equiv)
 
 protected lemma bijective (e : P₁ ≃ᵃ[k] P₂) : bijective e := e.to_equiv.bijective
 protected lemma surjective (e : P₁ ≃ᵃ[k] P₂) : surjective e := e.to_equiv.surjective
@@ -290,16 +290,11 @@ variable (k)
 
 /-- The map `v ↦ v +ᵥ b` as an affine equivalence between a module `V` and an affine space `P` with
 tangent space `V`. -/
+@[simps]
 def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.vadd_const b,
   linear := linear_equiv.refl _ _,
   map_vadd' := λ p v, add_vadd _ _ _ }
-
-@[simp] lemma linear_vadd_const (b : P₁) : (vadd_const k b).linear = linear_equiv.refl k V₁ := rfl
-
-@[simp] lemma vadd_const_apply (b : P₁) (v : V₁) : vadd_const k b v = v +ᵥ b := rfl
-
-@[simp] lemma vadd_const_symm_apply (b p : P₁) : (vadd_const k b).symm p = p -ᵥ b := rfl
 
 /-- `p' ↦ p -ᵥ p'` as an equivalence. -/
 def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
@@ -314,16 +309,11 @@ def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
 variable (P₁)
 
 /-- The map `p ↦ v +ᵥ p` as an affine automorphism of an affine space. -/
+@[simps]
 def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.const_vadd P₁ v,
   linear := linear_equiv.refl _ _,
   map_vadd' := λ p w, vadd_comm _ _ _ }
-
-@[simp] lemma linear_const_vadd (v : V₁) : (const_vadd k P₁ v).linear = linear_equiv.refl _ _ := rfl
-
-@[simp] lemma const_vadd_apply (v : V₁) (p : P₁) : const_vadd k P₁ v p = v +ᵥ p := rfl
-
-@[simp] lemma const_vadd_symm_apply (v : V₁) (p : P₁) : (const_vadd k P₁ v).symm p = -v +ᵥ p := rfl
 
 section homothety
 
@@ -335,21 +325,7 @@ include V
 /-- Fixing a point in affine space, homothety about this point gives a group homomorphism from (the
 centre of) the units of the scalars into the group of affine equivalences. -/
 def homothety_units_mul_hom (p : P) : units R →* P ≃ᵃ[R] P :=
-{ to_fun   := λ t,
-  { to_fun    := affine_map.homothety p (t : R),
-    inv_fun   := affine_map.homothety p (↑t⁻¹ : R),
-    left_inv  := λ p, by simp [← affine_map.comp_apply, ← affine_map.homothety_mul],
-    right_inv := λ p, by simp [← affine_map.comp_apply, ← affine_map.homothety_mul],
-    linear    :=
-    { inv_fun   := linear_map.lsmul R V (↑t⁻¹ : R),
-      left_inv  := λ v, by simp [smul_smul],
-      right_inv := λ v, by simp [smul_smul],
-      .. linear_map.lsmul R V t, },
-    map_vadd' := λ p v, by simp only [vadd_vsub_assoc, smul_add, add_vadd, affine_map.coe_line_map,
-      affine_map.homothety_eq_line_map, equiv.coe_fn_mk, linear_equiv.coe_mk,
-      linear_map.lsmul_apply, linear_map.to_fun_eq_coe], },
-  map_one' := by { ext, simp, },
-  map_mul' := λ t₁ t₂, by { ext, simp [← affine_map.comp_apply, ← affine_map.homothety_mul], }, }
+equiv_units_affine_map.symm.to_monoid_hom.comp $ units.map (affine_map.homothety_hom p)
 
 @[simp] lemma coe_homothety_units_mul_hom_apply (p : P) (t : units R) :
   (homothety_units_mul_hom p t : P → P) = affine_map.homothety p (t : R) :=
@@ -362,7 +338,7 @@ rfl
 @[simp] lemma coe_homothety_units_mul_hom_eq_homothety_hom_coe (p : P) :
   (coe : (P ≃ᵃ[R] P) → P →ᵃ[R] P) ∘ homothety_units_mul_hom p =
   (affine_map.homothety_hom p) ∘ (coe : units R → R) :=
-by { ext, simp, }
+funext $ λ _, rfl
 
 end homothety
 

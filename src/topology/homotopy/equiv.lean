@@ -81,23 +81,9 @@ namespace continuous_map
 
 namespace homotopy_equiv
 
-def simps.apply (h : X ~ₕ Y) : X → Y := h
-
-initialize_simps_projections homotopy_equiv (to_fun_to_fun -> apply, -to_fun)
-
-/--
-Any topological space is homotopy equivalent to itself.
--/
-@[simps, refl]
-def refl (X : Type u) [topological_space X] : X ~ₕ X :=
-(homeomorph.refl X).to_homotopy_equiv
-
-instance : inhabited (homotopy_equiv unit unit) := ⟨refl unit⟩
-
 /--
 If `X` is homotopy equivalent to `Y`, then `Y` is homotopy equivalent to `X`.
 -/
-@[symm]
 def symm (h : X ~ₕ Y) : Y ~ₕ X :=
 { to_fun := h.inv_fun,
   inv_fun := h.to_fun,
@@ -107,6 +93,23 @@ def symm (h : X ~ₕ Y) : Y ~ₕ X :=
 @[simp]
 lemma coe_inv_fun (h : homotopy_equiv X Y) : (⇑h.inv_fun : Y → X) = ⇑h.symm := rfl
 
+def simps.apply (h : X ~ₕ Y) : X → Y := h
+def simps.symm_apply (h : X ~ₕ Y) : Y → X := h.symm
+
+-- #check continuous_map.homotopy_equiv.refl_apply
+
+initialize_simps_projections homotopy_equiv (to_fun_to_fun -> apply,
+  inv_fun_to_fun -> symm_apply, -to_fun, -inv_fun)
+
+/--
+Any topological space is homotopy equivalent to itself.
+-/
+@[simps]
+def refl (X : Type u) [topological_space X] : X ~ₕ X :=
+(homeomorph.refl X).to_homotopy_equiv
+
+instance : inhabited (homotopy_equiv unit unit) := ⟨refl unit⟩
+
 @[simp]
 lemma refl_symm (X : Type u) [topological_space X] : (refl X).symm = refl X := rfl
 
@@ -114,7 +117,7 @@ lemma refl_symm (X : Type u) [topological_space X] : (refl X).symm = refl X := r
 If `X` is homotopy equivalent to `Y`, and `Y` is homotopy equivalent to `Z`, then `X` is homotopy
 equivalent to `Z`.
 -/
-@[simps, trans]
+@[simps]
 def trans (h₁ : X ~ₕ Y) (h₂ : Y ~ₕ Z) : X ~ₕ Z :=
 { to_fun := h₂.to_fun.comp h₁.to_fun,
   inv_fun := h₁.inv_fun.comp h₂.inv_fun,

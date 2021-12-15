@@ -31,7 +31,7 @@ open_locale complex_conjugate
 
 variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
-variables [complete_space E] [complete_space F] [complete_space G]
+variables [complete_space E] [complete_space G]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
@@ -48,6 +48,8 @@ by { simp only [adjoint'_apply, to_dual_symm_apply], refl }
 
 lemma adjoint'_inner_right {A : E →L[𝕜] F} {x : E} {y : F} : ⟪x, adjoint' A y⟫ = ⟪A x, y⟫ :=
 by rw [←inner_conj_sym, adjoint'_inner_left, inner_conj_sym]
+
+variables [complete_space F]
 
 lemma adjoint'_adjoint'_apply (A : E →L[𝕜] F) : adjoint' (adjoint' A) = A :=
 begin
@@ -100,20 +102,11 @@ begin
   simp only [adjoint_inner_right, continuous_linear_map.coe_comp', function.comp_app],
 end
 
-/-- `E →L[𝕜] E` is a C⋆-algebra with the adjoint as the star operation. -/
+/-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨λ _, adjoint_adjoint_apply⟩
 instance : star_monoid (E →L[𝕜] E) := ⟨λ _ _, adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
-
-instance : cstar_ring (E →L[𝕜] E) :=
-⟨begin
-  intros A,
-  refine le_antisymm _ _,
-  { calc ∥(adjoint A).comp A∥ ≤ ∥adjoint A∥ * ∥A∥  : op_norm_comp_le _ _
-                          ... = ∥A∥ * ∥A∥  : by simp only [linear_isometry_equiv.norm_map] },
-  { sorry },
-end⟩
 
 end continuous_linear_map

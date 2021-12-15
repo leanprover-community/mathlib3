@@ -920,9 +920,7 @@ begin
     intros η η_pos _,
     rcases hs (δ + η) (lt_add_of_pos_right _ (nnreal.coe_pos.mpr η_pos)) with ⟨ε, ⟨hsε, hε⟩⟩,
     apply ((hx ε hsε).trans (ennreal.of_real_le_of_real hε.2)).trans,
-    have eq : (η : ℝ≥0∞) = ennreal.of_real η,
-    by { rw [← ennreal.coe_to_real η, ennreal.of_real_to_real _], exact ennreal.coe_ne_top, },
-    rw eq,
+    rw ennreal.coe_nnreal_eq η,
     exact ennreal.of_real_add_le, },
 end
 

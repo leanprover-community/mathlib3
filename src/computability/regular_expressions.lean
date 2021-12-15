@@ -302,4 +302,3 @@ begin
 end
 
 end regular_expression
-#lint

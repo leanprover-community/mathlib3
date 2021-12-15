@@ -42,7 +42,7 @@ To provide good API encapsulation and speed up unification problems,
 
 We need a couple of maps to set up the `field` and `is_fraction_ring` structure,
 namely `ratfunc.of_fraction_ring`, `ratfunc.to_fraction_ring`, `ratfunc.mk` and
-`ratfunc.aux_equiv`.
+`ratfunc.to_fraction_ring_ring_equiv`.
 All these maps get `simp`ed to bundled morphisms like `algebra_map (polynomial K) (ratfunc K)`
 and `is_localization.alg_equiv`.
 -/
@@ -306,6 +306,18 @@ instance [is_domain K] : nontrivial (ratfunc K) :=
 ⟨⟨0, 1, mt (congr_arg to_fraction_ring) $
   by simpa only [← of_fraction_ring_zero, ← of_fraction_ring_one] using zero_ne_one⟩⟩
 
+/-- `ratfunc K` is isomorphic to the field of fractions of `polynomial K`, as rings.
+
+This is an auxiliary definition; `simp`-normal form is `is_localization.alg_equiv`.
+-/
+@[simps apply] def to_fraction_ring_ring_equiv : ratfunc K ≃+* fraction_ring (polynomial K) :=
+{ to_fun := to_fraction_ring,
+  inv_fun := of_fraction_ring,
+  left_inv := λ ⟨_⟩, rfl,
+  right_inv := λ _, rfl,
+  map_add' := λ ⟨_⟩ ⟨_⟩, by simp [←of_fraction_ring_add],
+  map_mul' := λ ⟨_⟩ ⟨_⟩, by simp [←of_fraction_ring_mul] }
+
 omit hring
 
 /-- Solve equations for `ratfunc K` by working in `fraction_ring (polynomial K)`. -/
@@ -426,26 +438,16 @@ variables (K)
 
 omit hdomain
 
-/-- `ratfunc K` is isomorphic to the field of fractions of `polynomial K`, as rings.
-
-This is an auxiliary definition; `simp`-normal form is `is_localization.alg_equiv`.
--/
-def aux_equiv : fraction_ring (polynomial K) ≃+* ratfunc K :=
-{ to_fun := of_fraction_ring,
-  inv_fun := to_fraction_ring,
-  left_inv := λ x, rfl,
-  right_inv := λ ⟨x⟩, rfl,
-  map_add' := of_fraction_ring_add,
-  map_mul' := of_fraction_ring_mul }
-
 include hdomain
 
 /-- `ratfunc K` is the field of fractions of the polynomials over `K`. -/
 instance : is_fraction_ring (polynomial K) (ratfunc K) :=
 { map_units := λ y, by rw ← of_fraction_ring_algebra_map;
-    exact (aux_equiv K).to_ring_hom.is_unit_map (is_localization.map_units _ y),
+    exact (to_fraction_ring_ring_equiv K).symm.to_ring_hom.is_unit_map
+      (is_localization.map_units _ y),
   eq_iff_exists := λ x y, by rw [← of_fraction_ring_algebra_map, ← of_fraction_ring_algebra_map];
-    exact (aux_equiv K).injective.eq_iff.trans (is_localization.eq_iff_exists _ _),
+    exact (to_fraction_ring_ring_equiv K).symm.injective.eq_iff.trans
+      (is_localization.eq_iff_exists _ _),
   surj := by { rintro ⟨z⟩, convert is_localization.surj (polynomial K)⁰ z, ext ⟨x, y⟩,
     simp only [← of_fraction_ring_algebra_map, function.comp_app, ← of_fraction_ring_mul] } }
 
@@ -473,6 +475,14 @@ protected lemma induction_on {P : ratfunc K → Prop} (x : ratfunc K)
   P x :=
 x.induction_on' (λ p q hq, by simpa using f p q hq)
 
+/-- `ratfunc K` is isomorphic to the field of fractions of `polynomial K`, as algebras.
+
+This is an auxiliary definition; `simp`-normal form is `is_localization.alg_equiv`.
+-/
+@[simps] def to_fraction_ring_alg_equiv : ratfunc K ≃ₐ[K] fraction_ring (polynomial K) :=
+{ commutes' := by simp,
+  ..to_fraction_ring_ring_equiv K }
+
 lemma of_fraction_ring_mk' (x : polynomial K) (y : (polynomial K)⁰) :
   of_fraction_ring (is_localization.mk' _ x y) = is_localization.mk' (ratfunc K) x y :=
 by rw [is_fraction_ring.mk'_eq_div, is_fraction_ring.mk'_eq_div, ← mk_eq_div', ← mk_eq_div]
@@ -493,10 +503,11 @@ by simp only [localization.mk_eq_mk'_apply, of_fraction_ring_mk', is_localizatio
   ring_equiv.to_fun_eq_coe, is_localization.ring_equiv_of_ring_equiv_apply,
   is_localization.map_mk', ring_equiv.coe_to_ring_hom, ring_equiv.refl_apply, set_like.eta]
 
-@[simp] lemma aux_equiv_eq :
-  aux_equiv K = (is_localization.alg_equiv (polynomial K)⁰ _ _).to_ring_equiv :=
+@[simp] lemma to_fraction_ring_ring_equiv_symm_eq :
+  (to_fraction_ring_ring_equiv K).symm =
+    (is_localization.alg_equiv (polynomial K)⁰ _ _).to_ring_equiv :=
 by { ext x,
-     simp only [aux_equiv, ring_equiv.coe_mk, of_fraction_ring_eq, alg_equiv.coe_ring_equiv'] }
+     simp [to_fraction_ring_ring_equiv, of_fraction_ring_eq, alg_equiv.coe_ring_equiv'] }
 
 end is_fraction_ring
 

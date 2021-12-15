@@ -40,11 +40,15 @@ namespace continuous_linear_map
 /-- The adjoint, as a bare function. This is only meant as an auxiliary definition for
 the main definition `adjoint`, where this is bundled as a conjugate-linear isometric
 equivalence. -/
-@[simps] def adjoint' (A : E →L[𝕜] F) : F →L[𝕜] E :=
-((to_dual 𝕜 E).symm : (normed_space.dual 𝕜 E) →L⋆[𝕜] E).comp (to_sesq_form A)
+def adjoint' : (E →L[𝕜] F) →L⋆[𝕜] F →L[𝕜] E :=
+(continuous_linear_map.compSL _ _ _ _ _ ((to_dual 𝕜 E).symm : normed_space.dual 𝕜 E →L⋆[𝕜] E)).comp
+  (to_sesq_form : (E →L[𝕜] F) →L[𝕜] F →L⋆[𝕜] normed_space.dual 𝕜 E)
+
+@[simp] lemma adjoint'_apply {A : E →L[𝕜] F} {x : F} :
+  adjoint' A x = ((to_dual 𝕜 E).symm : (normed_space.dual 𝕜 E) → E) ((to_sesq_form A) x) := rfl
 
 lemma adjoint'_inner_left {A : E →L[𝕜] F} {x : E} {y : F} : ⟪adjoint' A y, x⟫ = ⟪y, A x⟫ :=
-by { simp only [adjoint'_apply, to_dual_symm_apply], refl }
+by { simp only [adjoint'_apply, to_dual_symm_apply, to_sesq_form_apply_coe]}
 
 lemma adjoint'_inner_right {A : E →L[𝕜] F} {x : E} {y : F} : ⟪x, adjoint' A y⟫ = ⟪A x, y⟫ :=
 by rw [←inner_conj_sym, adjoint'_inner_left, inner_conj_sym]
@@ -73,29 +77,27 @@ end
 /-- The adjoint of a bounded operator from Hilbert space E to Hilbert space F. -/
 def adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E) :=
 linear_isometry_equiv.of_surjective
-{ to_fun := adjoint',
-  map_add' := λ A B, by simp only [adjoint', continuous_linear_map.map_add, comp_add],
-  map_smul' := λ r A, by simp only [adjoint', continuous_linear_map.map_smulₛₗ, ring_hom.id_apply,
-                                    comp_smulₛₗ],
-  norm_map' := λ A, adjoint'_norm }
+{ norm_map' := λ A, adjoint'_norm,
+  ..adjoint' }
 (λ A, ⟨adjoint' A, adjoint'_adjoint'_apply A⟩)
 
+local postfix `†`:1000 := adjoint
+
 /-- The fundamental property of the adjoint. -/
-lemma adjoint_inner_left {A : E →L[𝕜] F} {x : E} {y : F} : ⟪adjoint A y, x⟫ = ⟪y, A x⟫ :=
+lemma adjoint_inner_left {A : E →L[𝕜] F} {x : E} {y : F} : ⟪A† y, x⟫ = ⟪y, A x⟫ :=
 adjoint'_inner_left
 
 /-- The fundamental property of the adjoint. -/
-lemma adjoint_inner_right {A : E →L[𝕜] F} {x : E} {y : F} : ⟪x, adjoint A y⟫ = ⟪A x, y⟫ :=
+lemma adjoint_inner_right {A : E →L[𝕜] F} {x : E} {y : F} : ⟪x, A† y⟫ = ⟪A x, y⟫ :=
 adjoint'_inner_right
 
 /-- The adjoint is involutive -/
-@[simp] lemma adjoint_adjoint_apply {A : E →L[𝕜] F} : adjoint (adjoint A) = A :=
+@[simp] lemma adjoint_adjoint_apply {A : E →L[𝕜] F} : A†† = A :=
 adjoint'_adjoint'_apply A
 
 /-- The adjoint of the composition of two operators is the composition of the two adjoints
 in reverse order. -/
-@[simp] lemma adjoint_comp {A : F →L[𝕜] G} {B : E →L[𝕜] F} :
-  adjoint (A ∘L B) = (adjoint B) ∘L (adjoint A) :=
+@[simp] lemma adjoint_comp {A : F →L[𝕜] G} {B : E →L[𝕜] F} : (A ∘L B)† = B† ∘L A† :=
 begin
   ext v,
   refine ext_inner_left 𝕜 (λ w, _),

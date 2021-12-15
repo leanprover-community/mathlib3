@@ -1441,6 +1441,9 @@ def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] �
 @[simp] lemma to_sesq_form_apply_coe {f : E →L[𝕜] E'} {x : E'} :
   (to_sesq_form f x : E → 𝕜) = λ y, ⟪x, f y⟫ := rfl
 
+@[simp] lemma to_sesq_form_apply_coe_linear (f : E →L[𝕜] E') (x : E') :
+  (to_sesq_form f x : E →L[𝕜] 𝕜) = (innerSL x).comp f := rfl
+
 lemma to_sesq_form_apply_norm_le {f : E →L[𝕜] E'} {v : E'} : ∥to_sesq_form f v∥ ≤ ∥f∥ * ∥v∥ :=
 begin
   refine op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,

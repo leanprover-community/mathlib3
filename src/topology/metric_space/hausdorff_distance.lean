@@ -163,6 +163,15 @@ begin
     exact ⟨n, hn.le⟩ },
 end
 
+lemma _root_.is_compact.exists_inf_edist_eq_edist (hs : is_compact s) (hne : s.nonempty) :
+  ∃ y ∈ s, inf_edist x s = edist x y :=
+begin
+  have A : continuous (λ y, edist x y) := continuous_const.edist continuous_id,
+  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, ∀ z, z ∈ s → edist x y ≤ edist x z :=
+    hs.exists_forall_le hne A.continuous_on,
+  exact ⟨y, ys, le_antisymm (inf_edist_le_edist_of_mem ys) (by rwa le_inf_edist)⟩
+end
+
 end inf_edist --section
 
 /-! ### The Hausdorff distance as a function into `ℝ≥0∞`. -/
@@ -791,7 +800,7 @@ begin
     exact lt_of_le_of_lt (@inf_edist_le_edist_of_mem _ _ x _ _ hzE) hxz, },
 end
 
-variables {X : Type u} [metric_space X]
+variables {X : Type u} [pseudo_metric_space X]
 
 /-- A point in a metric space belongs to the (open) `δ`-thickening of a subset `E` if and only if
 it is at distance less than `δ` from some point of `E`. -/
@@ -814,6 +823,18 @@ lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :
   thickening δ E = ⋃ x ∈ E, ball x δ :=
 by { ext x, rw mem_bUnion_iff, exact mem_thickening_iff E x, }
 
+lemma bounded.thickening {δ : ℝ} {E : set X} (h : bounded E) :
+  bounded (thickening δ E) :=
+begin
+  refine bounded_iff_mem_bounded.2 (λ x hx, _),
+  rcases h.subset_ball x with ⟨R, hR⟩,
+  refine (bounded_iff_subset_ball x).2 ⟨R + δ, _⟩,
+  assume y hy,
+  rcases (mem_thickening_iff _ _).1 hy with ⟨z, zE, hz⟩,
+  calc dist y x ≤ dist z x + dist y z : by { rw add_comm, exact dist_triangle _ _ _ }
+  ... ≤ R + δ : add_le_add (hR zE) hz.le
+end
+
 end thickening --section
 
 section cthickening
@@ -826,6 +847,20 @@ open emetric
 of those points that are at infimum distance at most `δ` from `E`. -/
 def cthickening (δ : ℝ) (E : set α) : set α := {x : α | inf_edist x E ≤ ennreal.of_real δ}
 
+lemma mem_cthickening_of_edist_le (x y : α) (δ : ℝ) (E : set α) (h : y ∈ E)
+  (h' : edist x y ≤ ennreal.of_real δ) :
+  x ∈ cthickening δ E :=
+(inf_edist_le_edist_of_mem h).trans h'
+
+lemma mem_cthickening_of_dist_le {α : Type*} [pseudo_metric_space α]
+  (x y : α) (δ : ℝ) (E : set α) (h : y ∈ E) (h' : dist x y ≤ δ) :
+  x ∈ cthickening δ E :=
+begin
+  apply mem_cthickening_of_edist_le x y δ E h,
+  rw edist_dist,
+  exact ennreal.of_real_le_of_real h',
+end
+
 lemma cthickening_eq_preimage_inf_edist (δ : ℝ) (E : set α) :
   cthickening δ E = (λ x, inf_edist x E) ⁻¹' (Iic (ennreal.of_real δ)) := rfl
 
@@ -835,16 +870,24 @@ is_closed.preimage continuous_inf_edist is_closed_Iic
 @[simp] lemma cthickening_empty (δ : ℝ) : cthickening δ (∅ : set α) = ∅ :=
 by simp only [cthickening, ennreal.of_real_ne_top, set_of_false, inf_edist_empty, top_le_iff]
 
+lemma cthickening_of_nonpos {δ : ℝ} (hδ : δ ≤ 0) (E : set α) :
+  cthickening δ E = closure E :=
+by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening, ennreal.of_real_eq_zero.2 hδ] }
+
 @[simp] lemma cthickening_zero (E : set α) : cthickening 0 E = closure E :=
-by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening], }
+cthickening_of_nonpos le_rfl E
 
 lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
   cthickening δ₁ E ⊆ cthickening δ₂ E :=
 preimage_mono (Iic_subset_Iic.mpr (ennreal.of_real_le_of_real hle))
 
-lemma closure_subset_cthickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
+lemma closure_subset_cthickening (δ : ℝ) (E : set α) :
   closure E ⊆ cthickening δ E :=
-by { rw ← cthickening_zero, exact cthickening_mono δ_nn E, }
+by { rw ← cthickening_of_nonpos (min_le_right δ 0), exact cthickening_mono (min_le_left δ 0) E }
+
+lemma subset_cthickening (δ : ℝ) (E : set α) :
+  E ⊆ cthickening δ E :=
+subset_closure.trans (closure_subset_cthickening δ E)
 
 lemma cthickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ E₂) :
   cthickening δ E₁ ⊆ cthickening δ E₂ :=
@@ -865,6 +908,15 @@ by { intros x hx, rw [thickening, mem_set_of_eq] at hx, exact hx.le, }
 lemma thickening_subset_cthickening_of_le {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
   thickening δ₁ E ⊆ cthickening δ₂ E :=
 (thickening_subset_cthickening δ₁ E).trans (cthickening_mono hle E)
+
+lemma bounded.cthickening {α : Type*} [pseudo_metric_space α] {δ : ℝ} {E : set α} (h : bounded E) :
+  bounded (cthickening δ E) :=
+begin
+  have : bounded (thickening (max (δ + 1) 1) E) := h.thickening,
+  apply bounded.mono _ this,
+  exact cthickening_subset_thickening' (zero_lt_one.trans_le (le_max_right _ _))
+    ((lt_add_one _).trans_le (le_max_left _ _)) _
+end
 
 lemma cthickening_eq_Inter_cthickening {δ : ℝ} {E : set α} (δ_nn : 0 ≤ δ) :
   cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), cthickening ε E :=

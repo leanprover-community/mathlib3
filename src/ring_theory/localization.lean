@@ -846,13 +846,49 @@ instance : comm_ring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
    ..localization.comm_monoid M }
 
-instance : algebra R (localization M) :=
-ring_hom.to_algebra $
-{ to_fun := (monoid_of M).to_map,
-  map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
-  map_add' := λ x y,
-    by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
-  .. localization.monoid_of M }
+instance {S : Type*} [monoid S] [mul_action S R] [is_scalar_tower S R R] :
+  mul_action S (localization M) :=
+{ smul := localization.smul,
+  one_smul := localization.ind $ prod.rec $
+    by { intros, simp only [localization.smul_mk, one_smul] },
+  mul_smul := λ s₁ s₂, localization.ind $ prod.rec $
+    by { intros, simp only [localization.smul_mk, mul_smul] } }
+
+instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
+  distrib_mul_action S (localization M) :=
+{ smul := localization.smul,
+  smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
+  smul_add := λ s x y, localization.induction_on₂ x y $
+    prod.rec $ by exact λ r₁ x₁, prod.rec $ by exact λ r₂ x₂,
+      by simp only [localization.smul_mk, localization.add_mk, smul_add, mul_comm _ (s • _),
+                    mul_comm _ r₁, mul_comm _ r₂, smul_mul_assoc],
+  ..localization.mul_action }
+
+instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
+  module S (localization M) :=
+{ smul := localization.smul,
+  zero_smul := localization.ind $ prod.rec $
+    by { intros, simp only [localization.smul_mk, zero_smul, mk_zero] },
+  add_smul := λ s₁ s₂, localization.ind $ prod.rec $
+    by { intros, simp only [localization.smul_mk, add_smul, add_mk_self] },
+  ..localization.distrib_mul_action }
+
+instance {S : Type*} [comm_semiring S] [algebra S R] : algebra S (localization M) :=
+{ to_ring_hom :=
+  ring_hom.comp
+  { to_fun := (monoid_of M).to_map,
+    map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
+    map_add' := λ x y,
+      by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
+    .. localization.monoid_of M } (algebra_map S R),
+  smul_def' := λ r, localization.ind $ prod.rec $ begin
+    dsimp,
+    sorry
+  end,
+  commutes' := λ r, localization.ind $ prod.rec $ begin
+    dsimp,
+    sorry
+  end }
 
 instance : is_localization M (localization M) :=
 { map_units := (localization.monoid_of M).map_units,

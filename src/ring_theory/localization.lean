@@ -813,6 +813,24 @@ lemma smul_mk {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
   (c : S) (a b) : c • (mk a b : localization M) = mk (c • a) b :=
 by { unfold has_scalar.smul localization.smul, apply lift_on_mk }
 
+instance {S T : Type*} [has_scalar S R] [has_scalar T R]
+  [is_scalar_tower S R R] [is_scalar_tower T R R]
+  [smul_comm_class S T R] : smul_comm_class S T (localization M) :=
+{ smul_comm := λ s t, localization.ind $ prod.rec $ by exact λ r x,
+    by simp only [smul_mk, smul_comm s t r]  }
+
+instance {S T : Type*} [has_scalar S R] [has_scalar T R]
+  [is_scalar_tower S R R] [is_scalar_tower T R R]
+  [has_scalar S T] [is_scalar_tower S T R] : is_scalar_tower S T (localization M) :=
+{ smul_assoc := λ s t, localization.ind $ prod.rec $ by exact λ r x,
+    by simp only [smul_mk, smul_assoc s t r]  }
+
+instance {S : Type*} [has_scalar S R] [has_scalar Sᵐᵒᵖ R]
+  [is_scalar_tower S R R] [is_scalar_tower Sᵐᵒᵖ R R]
+  [is_central_scalar S R] : is_central_scalar S (localization M) :=
+{ op_smul_eq_smul := λ s, localization.ind $ prod.rec $ by exact λ r x,
+    by simp only [smul_mk, op_smul_eq_smul] }
+
 private meta def tac := `[
 { intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
@@ -856,6 +874,18 @@ instance {S : Type*} [monoid S] [mul_action S R] [is_scalar_tower S R R] :
     by { intros, simp only [localization.smul_mk, one_smul] },
   mul_smul := λ s₁ s₂, localization.ind $ prod.rec $
     by { intros, simp only [localization.smul_mk, mul_smul] } }
+
+instance is_scalar_tower_right {S : Type*} [has_scalar S R] [is_scalar_tower S R R] :
+  is_scalar_tower S (localization M) (localization M) :=
+{ smul_assoc := λ s, localization.ind $ prod.rec $ by exact λ r₁ x₁,
+                     localization.ind $ prod.rec $ by exact λ r₂ x₂,
+    by simp only [smul_mk, smul_eq_mul, mk_mul, smul_mul_assoc] }
+
+instance smul_comm_class_right {S : Type*} [has_scalar S R] [is_scalar_tower S R R] :
+  smul_comm_class S (localization M) (localization M) :=
+{ smul_comm := λ s, localization.ind $ prod.rec $ by exact λ r₁ x₁,
+                    localization.ind $ prod.rec $ by exact λ r₂ x₂,
+    by simp only [smul_mk, smul_eq_mul, mk_mul, mul_comm r₁, smul_mul_assoc] }
 
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=

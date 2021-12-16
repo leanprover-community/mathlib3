@@ -6,7 +6,6 @@ Authors: Kenny Lau
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
-import tactic.omega
 
 /-!
 # Integral closure of a subring.
@@ -470,13 +469,13 @@ begin
   ext,
   simp only [coeff_scale_roots, poly, coeff_monomial, coeff_smul, finset.smul_sum,
     ne.def, finset.sum_ite_eq', finset_sum_coeff, smul_ite, smul_zero, mem_support_iff],
-  split_ifs,
+  split_ifs with h₁ h₂,
   { simp [*] },
   { simp [*] },
-  { rw [algebra.id.smul_eq_mul, mul_comm, mul_assoc, ← pow_succ'],
-    congr,
-    have : n < p.nat_degree := (ne.le_iff_lt h_1).mp (le_nat_degree_of_ne_zero h),
-    omega, },
+  { rw [algebra.id.smul_eq_mul, mul_comm, mul_assoc, ← pow_succ', tsub_right_comm,
+      tsub_add_cancel_of_le],
+    rw nat.succ_le_iff,
+    exact tsub_pos_of_lt (lt_of_le_of_ne (le_nat_degree_of_ne_zero h₁) h₂) },
 end
 
 lemma poly_support :

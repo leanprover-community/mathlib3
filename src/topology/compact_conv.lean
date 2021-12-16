@@ -13,12 +13,24 @@ variables (K : set α) (V : set (β × β)) (f : C(α, β))
 /-- A subbase for the topology of compact convergence. -/
 def uniform_gen : set C(α, β) := {g | ∀ (x ∈ K), (f x, g x) ∈ V }
 
+/-- A filter basis for the neighbourhood filter of a point in the topology of compact
+convergence. -/
+def compact_convergence_filter_basis (f : C(α, β)) : filter_basis C(α, β) :=
+{ sets       := { m | ∃ (K : set α) (hK : is_compact K) (V ∈ 𝓤 β), m = uniform_gen K V f },
+  nonempty   := ⟨univ, ∅, is_compact_empty, univ, filter.univ_mem, by { ext, simp [uniform_gen], }⟩,
+  inter_sets :=
+    begin
+      rintros - - ⟨K₁, hK₁, V₁, hV₁, rfl⟩ ⟨K₂, hK₂, V₂, hV₂, rfl⟩,
+      exact ⟨uniform_gen (K₁ ∪ K₂) (V₁ ∩ V₂) f,
+        ⟨K₁ ∪ K₂, hK₁.union hK₂, V₁ ∩ V₂, filter.inter_mem hV₁ hV₂, rfl⟩,
+        λ g hg, ⟨λ x hx, mem_of_mem_inter_left (hg x (mem_union_left K₂ hx)),
+                 λ x hx, mem_of_mem_inter_right (hg x (mem_union_right K₁ hx))⟩⟩,
+    end, }
+
 /-- The topology of compact convergence. I claim this topology is induced by a uniform structure,
 defined below. -/
 def compact_convergence_topology : topological_space C(α, β) :=
-topological_space.generate_from
-  {m | ∃ (K : set α) (hK : is_compact K) (V ∈ 𝓤 β) (hV : is_open V) (f : C(α, β)),
-       m = uniform_gen K V f }
+topological_space.mk_of_nhds $ λ f, (compact_convergence_filter_basis f).filter
 
 lemma mem_uniform_gen_self (hV : V ∈ 𝓤 β) : f ∈ uniform_gen K V f := λ x hx, refl_mem_uniformity hV
 
@@ -32,26 +44,28 @@ lemma uniform_gen_mono (V' : set (β × β)) (hV' : V' ⊆ V) :
   uniform_gen K V' f ⊆ uniform_gen K V f :=
 λ x hx a ha, hV' (hx a ha)
 
--- I'm not confident this is true but I think some variant of it should be the
--- right idea. For example in the case that `β` is a metric space and `V` is
--- the open entourage of points a distance at most `ε` then the conclusion
--- holds (because `k ↦ dist (f k) (g k)` is continuous on `K` and so
--- achieves its bound `δ`, say. Since `δ < ε`. We can then define `W`, `W'` as
--- entourages of points whose distances are less than some value above `δ` and
--- some value just below `ε - δ` respectively).
-lemma uniform_gen_foo (hK : is_compact K) (V ∈ 𝓤 β) (hV : is_open V)
-  {g : C(α, β)} (h : g ∈ uniform_gen K V f) :
-  ∃ (W W' ∈ 𝓤 β), W ○ W' ⊆ V ∧ g ∈ uniform_gen K W f :=
+lemma uniform_gen_nhd_basis' (hV : V ∈ 𝓤 β) :
+  ∃ (V' ∈ 𝓤 β), ∀ (g ∈ uniform_gen K V' f), ∃ (W ∈ 𝓤 β), uniform_gen K W g ⊆ uniform_gen K V f :=
 begin
-  have h' : (λ x, (f x, g x))'' K ⊆ V, { rintros b ⟨a, ha, rfl⟩, exact h a ha, },
-  obtain ⟨Z, hZ₁, hZ₂, hZ₃⟩ :=
-    lebesgue_number_of_compact_open (hK.image (f.continuous.prod_mk g.continuous)) hV h',
-  have hZ₃' : ∀ (x ∈ K) b, ((f x, g x), b) ∈ Z → b ∈ V,
-  { simp only [mem_image, and_imp, prod.forall, forall_exists_index, prod.mk.inj_iff] at hZ₃,
-    exact λ x hx, hZ₃ (f x) (g x) x hx rfl rfl, },
-  clear hZ₃,
-  -- hmm, out of time and more thought required :-/
-  sorry,
+  obtain ⟨V', hV'₁, hV'₂⟩ := comp_mem_uniformity_sets hV,
+  refine ⟨V', hV'₁, λ g hg, ⟨V', hV'₁, λ g' hg', _⟩⟩,
+  exact uniform_gen_mono K V f (V' ○ V') hV'₂ (uniform_gen_nhd_basis K V' f V' hg hg'),
+end
+
+lemma uniform_gen_nhd_basis'' (hV : V ∈ 𝓤 β) :
+  ∃ (V' ∈ 𝓤 β), V' ⊆ V ∧ ∀ (g ∈ uniform_gen K V' f), uniform_gen K V' g ⊆ uniform_gen K V f :=
+begin
+  obtain ⟨V', hV'₁, hV'₂⟩ := comp_mem_uniformity_sets hV,
+  refine ⟨V', hV'₁, subset.trans (subset_comp_self_of_mem_uniformity hV'₁) hV'₂, λ g hg g' hg', _⟩,
+  exact uniform_gen_mono K V f (V' ○ V') hV'₂ (uniform_gen_nhd_basis K V' f V' hg hg'),
+end
+
+lemma foo {g : C(α, β)} :
+  g ∈ uniform_gen K V f ↔ (λ x, (f x, g x)) '' K ⊆ V :=
+begin
+  split,
+  { rintros h b ⟨a, ha, rfl⟩, exact h a ha, },
+  { exact λ h x hx, h ⟨x, hx, rfl⟩, },
 end
 
 /-- Any point of `compact_open.gen K U` is also an interior point wrt the topology of compact
@@ -134,41 +148,49 @@ lemma compact_open_eq_uniform :
   (compact_convergence_topology : topological_space C(α, β)) = continuous_map.compact_open :=
 begin
   rw [compact_convergence_topology, continuous_map.compact_open],
-  refine le_antisymm _ _;
-  rw le_generate_from_iff_subset_is_open;
-  simp only [and_imp, exists_prop, forall_exists_index, set_of_subset_set_of],
-  { rintros - K hK U hU rfl,
-    apply is_open_iff_forall_mem_open.2,
+  refine le_antisymm _ _,
+  { rw le_generate_from_iff_subset_is_open,
+    simp only [and_imp, exists_prop, forall_exists_index, set_of_subset_set_of],
+    rintros - K hK U hU rfl,
     intros f hf,
     obtain ⟨V, hV, hV', hVf⟩ := uniform_gen_subset_compact_open K f hK hU hf,
-    refine ⟨uniform_gen K V f, hVf, _, mem_uniform_gen_self K V f hV⟩,
-    apply topological_space.generate_open.basic,
-    refine ⟨K, hK, V, hV, hV', f, rfl⟩, },
-  { rintros - K hK V hV hV' f rfl,
+    exact filter.mem_of_superset (filter_basis.mem_filter_of_mem _ ⟨K, hK, V, hV, rfl⟩) hVf, },
+  { intros X hX,
     apply is_open_iff_forall_mem_open.2,
-    intros g hg,
-    obtain ⟨W, W', hW, hW', hW₁, hW₂⟩ := uniform_gen_foo K f hK V hV hV' hg,
-    obtain ⟨ι, hι, C, hC, U, hU, Hg1, Hg2⟩ :=Inter_compact_open_gen_subset_uniform_gen _ _ g hK hW',
-    haveI := hι,
-    refine ⟨⋂ i, continuous_map.compact_open.gen (C i) (U i), _, _, Hg1⟩,
-    { intros g' hg',
-      apply uniform_gen_mono K V f _ hW₁,
-      exact uniform_gen_nhd_basis K W f W' hW₂ (Hg2 hg'), },
-    { apply is_open_Inter,
+    intros f hf,
+    have hXf : X ∈ @nhds C(α, β) compact_convergence_topology f,
+    { exact @is_open.mem_nhds C(α, β) compact_convergence_topology _ _ hX hf, },
+    rw topological_space.nhds_mk_of_nhds at hXf,
+    { obtain ⟨-, ⟨K, hK, V, hV, rfl⟩, hXf⟩ := hXf,
+      obtain ⟨ι, hι, C, hC, U, hU, h₁, h₂⟩ := Inter_compact_open_gen_subset_uniform_gen _ _ f hK hV,
+      haveI := hι,
+      refine ⟨⋂ i, continuous_map.compact_open.gen (C i) (U i), h₂.trans hXf, _, h₁⟩,
+      apply is_open_Inter,
       intros i,
-      convert continuous_map.is_open_gen (hC i) (hU i),
-      finish, }, },
+      exact continuous_map.is_open_gen (hC i) (hU i), },
+    { rintros g Y ⟨-, ⟨K, hK, V, hV, rfl⟩, hY⟩,
+      exact hY (mem_uniform_gen_self K V g hV), },
+    { rintros g Y ⟨-, ⟨K, hK, V, hV, rfl⟩, hY⟩,
+      obtain ⟨V', hV', hV'', hV'''⟩ := uniform_gen_nhd_basis'' K V g hV,
+      refine ⟨uniform_gen K V' g, filter_basis.mem_filter_of_mem _ ⟨K, hK, V', hV', rfl⟩, _, _⟩,
+      { exact set.subset.trans (uniform_gen_mono K V g V' hV'') hY, },
+      { intros g' hg',
+        rw filter_basis.mem_filter_iff,
+        refine ⟨uniform_gen K V' g', ⟨K, hK, V', hV', rfl⟩, _⟩,
+        refine set.subset.trans _ hY,
+        apply hV''',
+        exact hg', }, }, },
 end
 
 /-- I believe the topology this induces is `compact_convergence_topology`. -/
 instance : uniform_space C(α, β) :=
-{ uniformity := ⨅ (K : set α) (hK : is_compact K) (V ∈ 𝓤 β) (hV : is_open V),
+{ uniformity := ⨅ (K : set α) (hK : is_compact K) (V ∈ 𝓤 β),
                   𝓟 { p : C(α, β) × C(α, β) | ∀ (x : α), (p.1 x, p.2 x) ∈ V },
   refl :=
     begin
       simp only [filter.le_principal_iff, filter.mem_principal, mem_set_of_eq, le_infi_iff,
         id_rel_subset],
-      exact λ s hs V hV hV' f x, refl_mem_uniformity hV,
+      exact λ s hs V hV f x, refl_mem_uniformity hV,
     end,
   symm := by {simp, intros s hs V hV,   sorry}, -- trivial
   comp := by {simp, sorry}, -- trivial

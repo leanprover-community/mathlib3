@@ -2699,6 +2699,10 @@ lemma to_list_insert [decidable_eq α] {a : α} {s : finset α} (h : a ∉ s) :
 (list.perm_ext (nodup_to_list _) (by simp [h, nodup_to_list s])).2 $
   λ x, by simp only [list.mem_cons_iff, iff_self, finset.mem_to_list, finset.mem_insert]
 
+lemma to_list_cons {a : α} {s : finset α} (h : a ∉ s) :
+  (cons a s h).to_list ~ a :: s.to_list :=
+by { classical, rw cons_eq_insert, exact to_list_insert h }
+
 end to_list
 
 section bUnion

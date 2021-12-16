@@ -30,7 +30,7 @@ with tensor product given by composition of functors
 -/
 def endofunctor_monoidal_category : monoidal_category (C ⥤ C) :=
 { tensor_obj   := λ F G, F ⋙ G,
-  tensor_hom   := λ F G F G' α β, α ◫ β,
+  tensor_hom   := λ F G F' G' α β, α ◫ β,
   tensor_unit  := 𝟭 C,
   associator   := λ F G H, functor.associator F G H,
   left_unitor  := λ F, functor.left_unitor F,

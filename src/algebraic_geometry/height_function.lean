@@ -6,7 +6,7 @@ import some_lemmas
 
 noncomputable theory
 
-open_locale classical pointwise
+open_locale classical pointwise big_operators
 open finset
 
 universe u
@@ -16,11 +16,11 @@ variable (A : Ab.{u})
 structure height_function :=
 (to_fun : A → ℝ)
 (nonneg : ∀ P, 0 ≤ to_fun P)
-(C1 : A → ℝ)
+(C1 : A → ℝ) (C1_nonneg : ∀ a, 0 ≤ C1 a)
 (height_add_le : ∀ (Q P : A), to_fun (P + Q) ≤ 2 * to_fun P + C1 Q)
 (m : ℕ)
 (hm : 2 ≤ m)
-(C2 : ℝ)
+(C2 : ℝ) (C2_nonneg : 0 ≤ C2)
 (height_nsmul_ge : ∀ (P : A), ↑m^2 * to_fun P - C2 ≤ to_fun (m • P))
 (finite : ∀ (C : ℝ), set.finite { P : A | to_fun P < C })
 
@@ -87,12 +87,16 @@ omit fin_quot
 variables [fin_quot_f : fintype (A/f.m)] [non_empty_quot_f : nonempty (A/f.m)]
 include fin_quot_f non_empty_quot_f
 
-def C1' : ℝ :=
-have nemp : (image (λ a, f.C1 (-a)) (represents A f.m)).nonempty, begin
+lemma nemp1 : (image (λ a, f.C1 (-a)) (represents A f.m)).nonempty :=
+begin
+  apply non_empty_quot_f.elim, intro a,
   simp_rw [finset.nonempty, mem_image],
-  sorry
-end,
-finset.max' (image (λ a, f.C1 (-a)) (represents A f.m)) nemp
+  obtain ⟨x, hx⟩ := represents_represent_A_quot_mA f.m a,
+  use f.C1 (- x), use x, refine ⟨hx.1, rfl⟩,
+end
+
+def C1' : ℝ :=
+finset.max' (image (λ a, f.C1 (-a)) (represents A f.m)) (nemp1 f)
 
 lemma C1'_is_max :
   ∀ (a : represents A f.m), (f.C1 (-a)) ≤ C1' f := λ a,
@@ -100,6 +104,17 @@ begin
   unfold C1',
   apply finset.le_max' (image (λ a, f.C1 (-a)) (represents A f.m)),
   rw [mem_image], use a, refine ⟨a.2, rfl⟩,
+end
+
+lemma C1'_nonneg : 0 ≤ C1' f :=
+have H : _ := nemp1 f,
+begin
+  rw finset.nonempty at H,
+  obtain ⟨x, hx⟩ := H,
+  rw mem_image at hx,
+  obtain ⟨a, ha1, ha2⟩ := hx,
+  refine le_trans _ (C1'_is_max f ⟨a, ha1⟩),
+  apply f.C1_nonneg,
 end
 
 lemma property_next_height (P : A) :
@@ -119,6 +134,70 @@ begin
   rw inv_nonneg, norm_cast, apply pow_nonneg (show 0 ≤ f.m, by linarith) 2,
   refl
 end
+
+lemma property_next_height_iterated (P : A) (n : ℕ) :
+  f.to_fun ((next f.m)^[n.succ] P) ≤
+  2^n.succ * ((f.m^2)⁻¹)^n.succ * f.to_fun P +
+  (f.m^2)⁻¹ * (∑ i in finset.range n.succ,2^(i+1)) * (C1' f + f.C2) :=
+have ineq1 : _ := property_next_height f P,
+begin
+  induction n with n ih,
+
+  { rw [pow_one, function.iterate_one, pow_one, finset.range_one,
+      finset.sum_singleton, zero_add, pow_one],
+    apply le_trans ineq1, rw [add_assoc, mul_add], apply add_le_add,
+    rw ←mul_assoc, apply mul_le_mul, rw mul_comm, refl,
+    exact f.nonneg _, apply mul_nonneg, norm_num, rw inv_nonneg,
+    norm_cast, apply pow_nonneg, linarith [f.hm], apply mul_le_mul,
+    rw le_mul_iff_one_le_right, norm_num,
+    rw inv_pos, norm_cast, apply pow_pos, linarith [f.hm], refl,
+    apply add_nonneg, exact C1'_nonneg f, exact f.C2_nonneg,
+    apply mul_nonneg, rw inv_nonneg, norm_cast, apply pow_nonneg, linarith [f.hm], norm_num, },
+
+  { have ineq2 := property_next_height f ((next f.m)^[n.succ] P),
+    rw [function.iterate_succ'],
+    apply le_trans ineq2,
+    have ineq3 := mul_le_mul (show (2 : ℝ) ≤ 2, by refl) ih (f.nonneg _) (by norm_num),
+    rw [mul_add, ←mul_assoc, ←mul_assoc, show (2 : ℝ) * 2^n.succ = 2^n.succ.succ, by sorry,
+      ←mul_assoc, ←mul_assoc, mul_comm (2 : ℝ) ((f.m) ^ 2)⁻¹, mul_assoc (↑(f.m) ^ 2)⁻¹,
+      finset.mul_sum] at ineq3,
+    have ineq4 := add_le_add ineq3 (show C1' f + f.C2 ≤ C1' f + f.C2, by refl),
+    rw [←add_assoc] at ineq4,
+    sorry }
+end
+
+-- lemma property_next_height_iterated (P : A) (n : ℕ) :
+--   f.to_fun ((next f.m)^[n.succ] P) ≤ (2^(n.succ))⁻¹ * f.to_fun P + 2⁻¹ * (C1' f + f.C2) :=
+-- have ineq1 : _ := property_next_height f P,
+-- have ineq2 : 4 ≤ ((f.m : ℝ)^2), begin
+--   rw show (4:ℝ) = 2^2, by norm_num, norm_cast,
+--   rw nat.pow_le_iff_le_left, exact f.hm, linarith,
+-- end,
+-- have ineq3 : ((f.m : ℝ)^2)⁻¹ ≤ 4⁻¹, begin
+--   rw inv_le_inv, exact ineq2,
+--   apply pow_pos, norm_cast, linarith [f.hm], linarith,
+-- end,
+-- have ineq4 : ((f.m : ℝ) ^ 2)⁻¹ * 2 ≤ 4⁻¹ * 2, begin
+--   apply mul_le_mul, exact ineq3, refl, linarith,
+--   rw inv_nonneg, linarith,
+-- end,
+-- begin
+--   induction n with n ih,
+
+--   { rw [function.iterate_one, pow_one],
+--     apply le_trans ineq1 _,
+--     rw [add_assoc, mul_add, ←mul_assoc],
+--     apply add_le_add, apply mul_le_mul,
+--     apply le_trans ineq4, norm_num, refl,
+--     exact f.nonneg _, norm_num,
+--     apply mul_le_mul, apply le_trans ineq3,
+--     norm_num, refl, sorry,
+--     norm_num,
+--     -- linarith [ineq3],
+
+--      },
+--   {  },
+-- end
 
 theorem descent :
   add_subgroup.fg (⊤ : add_subgroup A) :=

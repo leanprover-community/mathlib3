@@ -201,6 +201,7 @@ begin
   exact is_closed.preimage (continuous_snd.sub continuous_fst) h,
 end
 
+@[priority 100]  -- See note [lower instance priority]
 instance normed_lattice_add_comm_group.order_closed_topology {E} [normed_lattice_add_comm_group E] :
   order_closed_topology E :=
 ⟨is_closed_le_of_is_closed_nonneg is_closed_nonneg⟩

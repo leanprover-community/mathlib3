@@ -20,8 +20,14 @@ Working with rational functions as polynomials:
  - `ratfunc.C` is the constant polynomial
  - `ratfunc.X` is the indeterminate
  - `ratfunc.eval` evaluates a rational function given a value for the indeterminate
-Use `algebra_map` to map polynomials to rational functions and `is_fraction_ring.alg_equiv`
-to map other fields of fractions of `polynomial K` to `ratfunc K`.
+You can use `is_fraction_ring` API to treat `ratfunc` as the field of fractions of polynomials:
+ * `algebra_map (polynomial K) (ratfunc K)` maps polynomials to rational functions
+ * `is_fraction_ring.alg_equiv` maps other fields of fractions of `polynomial K` to `ratfunc K`,
+    in particular:
+ * `fraction_ring.alg_equiv (polynomial K) (ratfunc K)` maps the generic field of
+    fraction construction to `ratfunc K`. Combine this with `alg_equiv.restrict_scalars` to change
+    the `fraction_ring (polynomial K) ≃ₐ[polynomial K] ratfunc K` to
+    `fraction_ring (polynomial K) ≃ₐ[K] ratfunc K`.
 
 Working with rational functions as fractions:
  - `ratfunc.num` and `ratfunc.denom` give the numerator and denominator.
@@ -46,9 +52,6 @@ namely `ratfunc.of_fraction_ring`, `ratfunc.to_fraction_ring`, `ratfunc.mk` and
 All these maps get `simp`ed to bundled morphisms like `algebra_map (polynomial K) (ratfunc K)`
 and `is_localization.alg_equiv`.
 
-To convert back to `fraction_ring`, use `(fraction_ring.alg_equiv (polynomial K) (ratfunc K)).symm`,
-possibly with `alg_equiv.restrict_scalars` to change the `ratfunc K ≃ₐ[polynomial K] polynomial K`
-to `ratfunc K ≃ₐ[K] polynomial K`.
 -/
 
 noncomputable theory

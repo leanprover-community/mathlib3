@@ -920,6 +920,13 @@ real.rpow_lt_rpow_iff x.2 y.2 hz
 lemma rpow_le_rpow_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=
 real.rpow_le_rpow_iff x.2 y.2 hz
 
+lemma le_rpow_one_div_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ (1 / z) ↔ x ^ z ≤ y :=
+begin
+  nth_rewrite 0 ←rpow_one x,
+  nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z  hz.ne',
+  rw [rpow_mul, ←one_div, @rpow_le_rpow_iff _ _ (1/z) (by simp [hz])],
+end
+
 lemma rpow_lt_rpow_of_exponent_lt {x : ℝ≥0} {y z : ℝ} (hx : 1 < x) (hyz : y < z) : x^y < x^z :=
 real.rpow_lt_rpow_of_exponent_lt hx hyz
 
@@ -959,6 +966,25 @@ real.one_lt_rpow_of_pos_of_lt_one_of_neg hx1 hx2 hz
 lemma one_le_rpow_of_pos_of_le_one_of_nonpos {x : ℝ≥0} {z : ℝ} (hx1 : 0 < x) (hx2 : x ≤ 1)
   (hz : z ≤ 0) : 1 ≤ x^z :=
 real.one_le_rpow_of_pos_of_le_one_of_nonpos hx1 hx2 hz
+
+-- move to `order.bounded_order`
+lemma eq_bot_or_bot_lt {α : Type*} [partial_order α] [order_bot α] (x : α) : x = ⊥ ∨ ⊥ < x :=
+begin
+  by_cases h : x = ⊥,
+  { exact or.inl h },
+  right,
+  rw bot_lt_iff_ne_bot,
+  exact h,
+end
+
+lemma rpow_le_self_of_le_one {x : ℝ≥0} {z : ℝ} (hx : x ≤ 1) (h_one_le : 1 ≤ z) : x ^ z ≤ x :=
+begin
+  rcases eq_bot_or_bot_lt x with rfl | (h : 0 < x),
+  { have : z ≠ 0 := by linarith,
+    simp [this] },
+  nth_rewrite 1 ←nnreal.rpow_one x,
+  exact nnreal.rpow_le_rpow_of_exponent_ge h hx h_one_le,
+end
 
 lemma pow_nat_rpow_nat_inv (x : ℝ≥0) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=

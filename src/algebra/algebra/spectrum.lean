@@ -28,8 +28,8 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
   units (of `R`) in `σ (a*b)` coincide with those in `σ (b*a)`.
 * `spectrum.scalar_eq`: in a nontrivial algebra over a field, the spectrum of a scalar is
   a singleton.
-* `spectrum.polynomial_subset`, `spectrum.polynomial_eq_of_degree_pos`,
-  `spectrum.polynomial_eq_of_nonempty`: variations on the spectral mapping theorem.
+* `spectrum.subset_polynomial_aeval`, `spectrum.map_polynomial_aeval_of_degree_pos`,
+  `spectrum.map_polynomial_aeval_of_nonempty`: variations on the spectral mapping theorem.
 
 ## Notations
 
@@ -245,9 +245,9 @@ end
 
 open polynomial
 /-- This is half of the spectral mapping theorem for polynomials. We prove it separately
-because it holds over any field, whereas `spectrum.polynomial_spectrum` needs the field to
-be algebraically closed. -/
-theorem polynomial_subset (a : A) (p : polynomial 𝕜) :
+because it holds over any field, whereas `spectrum.map_polynomial_aeval_of_degree_pos` and
+`spectrum.map_polynomial_aeval_of_nonempty` need the field to be algebraically closed. -/
+theorem subset_polynomial_aeval (a : A) (p : polynomial 𝕜) :
   (λ k, eval k p) '' (σ a) ⊆ σ (aeval a p) :=
 begin
   rintros _ ⟨k, hk, rfl⟩,
@@ -265,11 +265,11 @@ end
 /-- This is the *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
 is necessary in case `σ a = ∅`, for then the left-hand side is `∅` and the right-hand side,
 assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
-theorem map_polynomial_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : polynomial 𝕜)
+theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : polynomial 𝕜)
   (hdeg : 0 < degree p) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
 begin
   /- handle the easy direction via `spectrum.polynomial_subset` -/
-  refine set.eq_of_subset_of_subset _ (polynomial_subset a p),
+  refine set.eq_of_subset_of_subset _ (subset_polynomial_aeval a p),
   intros k hk,
   /- write `C k - p` as a product of linear factors and a constant; show `(C k - p).degree > 0`
   and hence the leading coefficient is nonzero, thus it is a unit in `A` -/
@@ -313,10 +313,10 @@ end
 /-- In this version of the spectral mapping theorem, we assume the spectrum
 is nonempty instead of assuming the degree of the polynomial is positive. Note: the
 assumption `[nontrivial A]` is necessary for the same reason as in `spectrum.zero_eq`. -/
-theorem map_polynomial_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : polynomial 𝕜)
+theorem map_polynomial_aeval_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : polynomial 𝕜)
   (hnon : (σ a).nonempty) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
 begin
-  refine or.elim (le_or_gt (degree p) 0) (λ h, _) (map_polynomial_of_degree_pos a p),
+  refine or.elim (le_or_gt (degree p) 0) (λ h, _) (map_polynomial_aeval_of_degree_pos a p),
   { rw eq_C_of_degree_le_zero h,
     simp only [set.image_congr, eval_C, aeval_C, scalar_eq, set.nonempty.image_const hnon] },
 end

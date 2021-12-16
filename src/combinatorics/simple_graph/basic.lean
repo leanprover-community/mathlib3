@@ -288,7 +288,7 @@ begin
   refine ⟨λ _, ⟨G.ne_of_adj ‹_›, ⟦(v,w)⟧, _⟩, _⟩,
   { simpa },
   { rintro ⟨hne, e, he, hv⟩,
-    rw sym2.elems_iff_eq hne at hv,
+    rw sym2.mem_and_mem_iff hne at hv,
     subst e,
     rwa mem_edge_set at he }
 end
@@ -298,7 +298,7 @@ by simp only [mem_edge_set, exists_prop, set_coe.exists, exists_eq_right, subtyp
 
 lemma edge_other_ne {e : sym2 V} (he : e ∈ G.edge_set) {v : V} (h : v ∈ e) : h.other ≠ v :=
 begin
-  erw [← sym2.mem_other_spec h, sym2.eq_swap] at he,
+  erw [← sym2.other_spec h, sym2.eq_swap] at he,
   exact G.ne_of_adj he,
 end
 
@@ -376,10 +376,11 @@ lemma adj_incidence_set_inter {v : V} {e : sym2 V} (he : e ∈ G.edge_set) (h : 
 begin
   ext e',
   simp only [incidence_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
-  split,
-  { intro h', rw ←sym2.mem_other_spec h,
-    exact (sym2.elems_iff_eq (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩, },
-  { rintro rfl, use [he, h, he], apply sym2.mem_other_mem, },
+  refine ⟨λ h', _, _⟩,
+  { rw ←sym2.other_spec h,
+    exact (sym2.mem_and_mem_iff (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩ },
+  { rintro rfl,
+    exact ⟨⟨he, h⟩, he, sym2.other_mem _⟩ }
 end
 
 lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
@@ -436,18 +437,18 @@ Given an edge incident to a particular vertex, get the other vertex on the edge.
 -/
 def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
 
-lemma edge_mem_other_incident_set {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
+lemma edge_other_incident_set {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   e ∈ G.incidence_set (G.other_vertex_of_incident h) :=
-by { use h.1, simp [other_vertex_of_incident, sym2.mem_other_mem'] }
+by { use h.1, simp [other_vertex_of_incident, sym2.other_mem'] }
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   G.other_vertex_of_incident h ∈ G.neighbor_set v :=
-by { cases h with he hv, rwa [←sym2.mem_other_spec' hv, mem_edge_set] at he }
+by { cases h with he hv, rwa [←sym2.other_spec' hv, mem_edge_set] at he }
 
 @[simp]
 lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :
   G.other_vertex_of_incident (G.mem_incidence_iff_neighbor.mpr h) = w :=
-sym2.congr_right.mp (sym2.mem_other_spec' (G.mem_incidence_iff_neighbor.mpr h).right)
+sym2.congr_right.mp (sym2.other_spec' (G.mem_incidence_iff_neighbor.mpr h).right)
 
 /--
 There is an equivalence between the set of edges incident to a given

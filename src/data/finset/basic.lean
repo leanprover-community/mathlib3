@@ -2694,6 +2694,11 @@ lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
   ∃ (l : list α), l.nodup ∧ l.to_finset = s :=
 ⟨s.to_list, s.nodup_to_list, s.to_list_to_finset⟩
 
+lemma to_list_insert [decidable_eq α] {a : α} {s : finset α} (h : a ∉ s) :
+  a :: s.to_list ~ (insert a s).to_list :=
+(list.perm_ext (by simp [h, nodup_to_list s]) (nodup_to_list _)).2 $
+  λ x, by simp only [list.mem_cons_iff, iff_self, finset.mem_to_list, finset.mem_insert]
+
 end to_list
 
 section bUnion

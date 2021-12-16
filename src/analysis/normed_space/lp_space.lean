@@ -381,7 +381,7 @@ lemma norm_eq_zero_iff {f : Lp E p} (hp : 0 < p) : ∥f∥ = 0 ↔ f = 0 :=
 begin
   classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
-  rcases p_trichotomy p with rfl | rfl | hp, --⟨hp', h⟩ | ⟨hp', h | ⟨_i, h⟩⟩ | ⟨hp', hp', h⟩,
+  rcases p_trichotomy p with rfl | rfl | hp,
   { exact Lp.eq_zero f },
   { cases is_empty_or_nonempty α with _i _i; resetI,
     { simp },
@@ -426,14 +426,13 @@ normed_group.of_core _
     rcases p_dichotomy p with rfl | hp',
     { cases is_empty_or_nonempty α; resetI,
       { simp [Lp.eq_zero' f] },
-      have := Lp.is_lub_norm f,
-      have := Lp.is_lub_norm g,
       refine (Lp.is_lub_norm (f + g)).2 _,
       rintros x ⟨i, rfl⟩,
       refine le_trans _ (add_mem_upper_bounds_add (Lp.is_lub_norm f).1 (Lp.is_lub_norm g).1
         ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
       exact norm_add_le (f i) (g i) },
-    { sorry },
+    { -- Minkowski's inequality
+      sorry },
   end,
   norm_neg := by simp }
 
@@ -472,9 +471,10 @@ begin
     sorry },
   { suffices : ∥c • f∥ ^ p.to_real = (∥c∥ * ∥f∥) ^ p.to_real, by sorry,
     apply (Lp.has_sum_norm hp (c • f)).unique,
-    have := Lp.has_sum_norm hp f,
-    simp [coe_fn_smul, norm_smul],
-    sorry }
+    convert (Lp.has_sum_norm hp f).mul_left (∥c∥ ^ p.to_real),
+    { simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },
+    have hf : 0 ≤ ∥f∥ := sorry,
+    simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) hf] }
 end
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p) :=

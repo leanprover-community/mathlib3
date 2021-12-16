@@ -28,8 +28,8 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
   units (of `R`) in `σ (a*b)` coincide with those in `σ (b*a)`.
 * `spectrum.scalar_eq`: in a nontrivial algebra over a field, the spectrum of a scalar is
   a singleton.
-* `spectrum.polynomial_subset`, `spectrum.polynomial_eq_of_degree_pos`,
-  `spectrum.polynomial_eq_of_nonempty`: variations on the spectral mapping theorem.
+* `spectrum.polynomial_subset`, `spectrum.map_polynomial_of_degree_pos`,
+  `spectrum.map_polynomial_of_nonempty`: variations on the spectral mapping theorem.
 
 ## Notations
 

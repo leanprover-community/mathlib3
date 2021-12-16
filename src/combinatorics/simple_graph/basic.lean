@@ -181,7 +181,7 @@ instance : has_compl (simple_graph V) := ⟨λ G,
 
 @[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
 
-/-- The difference of two graphs `x / y` has the edges of `x` with the edges of `y` removed. -/
+/-- The difference of two graphs `x \ y` has the edges of `x` with the edges of `y` removed. -/
 instance : has_sdiff (simple_graph V) := ⟨λ x y,
   { adj := x.adj \ y.adj,
     symm := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩

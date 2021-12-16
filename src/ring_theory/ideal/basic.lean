@@ -264,7 +264,7 @@ theorem mem_Inf {s : set (ideal R)} {x : R} :
 
 @[simp] lemma mem_inf {I J : ideal R} {x : R} : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff.rfl
 
-@[simp] lemma mem_infi {ι : Type*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
+@[simp] lemma mem_infi {ι : Sort*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
 submodule.mem_infi _
 
 @[simp] lemma mem_bot {x : R} : x ∈ (⊥ : ideal R) ↔ x = 0 :=

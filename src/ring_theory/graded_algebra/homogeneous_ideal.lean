@@ -34,7 +34,7 @@ variable (I : ideal R)
 /--An `I : ideal R` is called homogeneous if for every `r ∈ I`, every homogeneous component of `r`
   is in `I`.-/
 def is_homogeneous_ideal : Prop :=
-∀ ⦃i : ι⦄ ⦃r : R⦄, r ∈ I → (graded_algebra.decompose A r i : R) ∈ I
+∀ (i : ι) ⦃r : R⦄, r ∈ I → (graded_algebra.decompose A r i : R) ∈ I
 
 lemma is_homogeneous_ideal_iff_forall_subset :
   is_homogeneous_ideal A I ↔ ∀ i, (I : set R) ⊆ graded_algebra.proj A i ⁻¹' I :=
@@ -87,30 +87,22 @@ lemma is_homogeneous_ideal_iff_eq :
   { rw ←graded_algebra.sum_support_decompose A x,
     refine ideal.sum_mem _ _,
     intros j hj,
-    replace hI := @hI j x hx,
     rw ideal.mem_span, intros J HJ,
-    refine HJ _,
-    simp only [mem_set_of_eq],
-    refine ⟨hI, _⟩, refine ⟨j, _⟩, exact submodule.coe_mem _, },
+    refine HJ ⟨hI j hx, j, submodule.coe_mem _⟩, },
   { rw [ideal.mem_span] at hx,
     apply hx,
-    intros y hy,
-    exact hy.1,  },
+    exact inter_subset_left _ _, },
   end,
   λ hI, begin
     intros i r hr,
     rw ←graded_algebra.proj_apply,
-    rw ←is_homogeneous_ideal.exists_iff_eq_span at hI,
-    have HI := hI,
-    rw [is_homogeneous_ideal.exists_iff_eq_span, ideal.span,
-      finsupp.span_eq_range_total] at HI,
-    rw HI at hr,
+    rw [ideal.span, finsupp.span_eq_range_total] at hI,
+    rw hI at hr,
     obtain ⟨s, rfl⟩ := hr,
-    rw [finsupp.total_apply, finsupp.sum, linear_map.map_sum],
+    simp_rw [finsupp.total_apply, finsupp.sum, linear_map.map_sum, smul_eq_mul],
     refine ideal.sum_mem I _,
     rintros ⟨j, ⟨hj₁, hj₂⟩⟩ hj₃,
-    simp only [algebra.id.smul_eq_mul, subtype.coe_mk, smul_eq_mul],
-    apply mul_homogeneous_element_mem_of_mem, exact hj₂, exact hj₁,
+    exact mul_homogeneous_element_mem_of_mem _ _ _ hj₂ hj₁ _,
   end ⟩
 
 lemma is_homogeneous_ideal_iff_exists :
@@ -165,14 +157,14 @@ variables {A}
 lemma is_homogeneous_ideal.inf {I J : ideal R}
   (HI : is_homogeneous_ideal A I) (HJ : is_homogeneous_ideal A J) :
   is_homogeneous_ideal A (I ⊓ J) :=
-λ i r hr, ⟨HI hr.1, HJ hr.2⟩
+λ i r hr, ⟨HI _ hr.1, HJ _ hr.2⟩
 
 lemma homogeneous_ideal.Inf {ℐ : set (ideal R)} (h : ∀ I ∈ ℐ, is_homogeneous_ideal A I) :
   is_homogeneous_ideal A (Inf ℐ) :=
 begin
   intros i x Hx, simp only [ideal.mem_Inf] at Hx ⊢,
   intros J HJ,
-  exact h _ HJ (Hx HJ),
+  exact h _ HJ _ (Hx HJ),
 end
 
 lemma is_homogeneous_ideal.mul {I J : ideal R}

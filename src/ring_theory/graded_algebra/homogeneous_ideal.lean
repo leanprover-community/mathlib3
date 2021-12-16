@@ -70,14 +70,13 @@ begin
   apply ideal.sum_mem,
   intros k hk,
   obtain ⟨i, hi⟩ := hx₁,
-  have mem₁ : (graded_algebra.proj A k) r * x ∈ A (k + i) := graded_monoid.mul_mem
-   (by { rw [graded_algebra.proj_apply], exact submodule.coe_mem _, }) hi,
-  by_cases k + i = j,
-  { rw ←h, rw graded_algebra.proj_apply at ⊢ mem₁,
-    rw graded_algebra.decompose_of_mem A mem₁, simp only [of_eq_same, submodule.coe_mk],
-    apply I.mul_mem_left _ hx₂, },
-  { rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_ne],
-    exact I.zero_mem, exact mem₁, intro rid, apply h rid, }
+  have mem₁ : (graded_algebra.decompose A r k : R) * x ∈ A (k + i) := graded_monoid.mul_mem
+    (submodule.coe_mem _) hi,
+  rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem A mem₁,
+    coe_of_submodule_apply A, submodule.coe_mk],
+  split_ifs,
+  { exact I.mul_mem_left _ hx₂ },
+  { exact I.zero_mem },
 end
 
 lemma is_homogeneous_ideal_iff_eq :

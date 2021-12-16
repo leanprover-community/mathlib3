@@ -1283,33 +1283,21 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
 
 section disjoint_prod_add
 variables [add_comm_monoid M]
-lemma disjoint_prod_add_aux {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.support)
-  {β : Type*} [comm_monoid β] (g : α → M → β) :
-(∏ (x : α) in f1.support, g x (f1 x + f2 x)) = f1.prod g :=
-begin
-  unfold finsupp.prod,
-  rw finset.prod_congr rfl,
-  intros x hx,
-  simp only [not_mem_support_iff.mp (finset.disjoint_left.mp hd hx), add_zero],
-end
-
 /-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
 over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
 lemma prod_add_index_of_disjoint {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.support)
   {β : Type*} [comm_monoid β] (g : α → M → β) :
   (f1 + f2).prod g = f1.prod g * f2.prod g :=
 begin
---   have disjoint_prod_add_aux : (∏ (x : α) in f1.support, g x (f1 x + f2 x)) = f1.prod g,
--- {
---   unfold finsupp.prod,
---   rw finset.prod_congr rfl,
---   intros x hx,
---   simp only [not_mem_support_iff.mp (finset.disjoint_left.mp hd hx), add_zero],
--- },
-  -- have := (disjoint.comm.mp hd),
-  rw [←disjoint_prod_add_aux hd, ←disjoint_prod_add_aux (disjoint.comm.mp hd)],
+  have aux : ∀ {f1 f2 : α →₀ M},
+    disjoint f1.support f2.support → f1.prod g = (∏ (x : α) in f1.support, g x (f1 x + f2 x)),
+  { intros f1 f2 hd,
+    unfold finsupp.prod,
+    rw finset.prod_congr rfl,
+    intros x hx,
+    simp only [not_mem_support_iff.mp (finset.disjoint_left.mp hd hx), add_zero] },
+  rw [aux hd, aux (disjoint.comm.mp hd)],
   simp only [add_comm, finsupp.prod, support_add_eq hd, prod_union hd, add_apply],
-  -- sorry,
 end
 end disjoint_prod_add
 #exit

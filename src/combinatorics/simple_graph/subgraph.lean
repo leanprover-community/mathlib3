@@ -145,7 +145,7 @@ lemma edge_set_subset (G' : subgraph G) : G'.edge_set ⊆ G.edge_set :=
 @[simp]
 lemma mem_edge_set {G' : subgraph G} {v w : V} : ⟦(v, w)⟧ ∈ G'.edge_set ↔ G'.adj v w := iff.rfl
 
-lemma mem_verts_if_mem_edge {G' : subgraph G} {e : sym2 V} {v : V}
+lemma mem_verts_of_mem_edge {G' : subgraph G} {e : sym2 V} {v : V}
   (he : e ∈ G'.edge_set) (hv : v ∈ e) : v ∈ G'.verts :=
 begin
   refine quotient.ind (λ e he hv, _) e he hv,

@@ -13,25 +13,6 @@ This file defines weighted adirected graphs.
 
 variables {ι α β W W' : Type*} {σ : ι → Type*}
 
-section ite
-variables {p q : Prop} [decidable p] {a b : α}
-
-lemma imp_iff_not {a b : Prop} (hb : ¬ b) : a → b ↔ ¬ a := imp_congr_right $ λ _, iff_false_intro hb
-
-@[simp] lemma ite_ne_left_iff : ite p a b ≠ a ↔ ¬ p ∧ a ≠ b :=
-by { convert not_congr ite_eq_left_iff, rw [ne_comm, not_imp] }
-
-@[simp] lemma ite_ne_right_iff : ite p a b ≠ b ↔ p ∧ a ≠ b :=
-by { convert not_congr ite_eq_right_iff, rw not_imp }
-
-protected lemma ne.ite_ne_left_iff (h : a ≠ b) : ite p a b ≠ a ↔ ¬ p :=
-ite_ne_left_iff.trans $ and_iff_left h
-
-protected lemma ne.ite_ne_right_iff (h : a ≠ b) : ite p a b ≠ b ↔ p :=
-ite_ne_right_iff.trans $ and_iff_left h
-
-end ite
-
 namespace option
 variables {o : option α} {a : α}
 
@@ -59,12 +40,14 @@ variables (G : weighted_graph α W) (a b c : α)
 def adj : Prop := G.weight a b ≠ none
 
 lemma adj_comm {a b : α} : G.adj a b ↔ G.adj b a := by { unfold adj, rw G.weight_comm }
-lemma adj_symm : symmetric (G.adj) := λ _ _, G.adj_comm.1
+lemma adj_symm : symmetric G.adj := λ _ _, G.adj_comm.1
 
 lemma adj_irrefl : ¬ G.adj a a := λ h, h $ G.weight_self a
 
 protected lemma adj.ne {G : weighted_graph α W} {a b : α} (h : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.adj_irrefl _ h }
+
+protected lemma adj.ne' {G : weighted_graph α W} {a b : α} (h : G.adj a b) : b ≠ a := h.ne.symm
 
 instance : decidable_rel G.adj := λ a b, @not.decidable _ option.decidable_eq_none
 
@@ -127,25 +110,20 @@ end constructions
 
 variables {a b c} {e : sym2 α}
 
-/-- `G.neighbor_set a` is the set of vertices adjacent to `a` in `G`. -/
-def neighbor_set (a : α) : set α := {b | G.adj a b}
+/-- The weight of an edge.
 
-lemma not_mem_neighbor_set (a : α) : a ∉ G.neighbor_set a := G.adj_irrefl _
+The way `edge_weight` is defined is such that `edge_weight_mk` is true by definition.-/
+def edge_weight : sym2 α → option W := sym2.lift ⟨G.weight, G.weight_comm⟩
 
-instance neighbor_set.mem_decidable (a : α) [decidable_rel G.adj] :
-  decidable_pred (∈ G.neighbor_set a) :=
-by { unfold neighbor_set, apply_instance }
+lemma edge_weight_mk : G.edge_weight ⟦(a, b)⟧ = G.weight a b := rfl
+
+lemma edge_weight_mk' : G.edge_weight ⟦(a, b)⟧ = G.weight b a := G.weight_comm _ _
 
 /-- The edges of G consist of the unordered pairs of vertices related by `G.adj`.
 
 The way `edge_set` is defined is such that `mem_edge_set` is proved by `refl`.
 That is, `⟦(a, b)⟧ ∈ G.edge_set` is definitionally equal to `G.adj a b`.-/
 def edge_set : set (sym2 α) := sym2.from_rel G.adj_symm
-
-/-- The `incidence_set` is the set of edges incident to a given vertex. -/
-def incidence_set (a : α) : set (sym2 α) := {e ∈ G.edge_set | a ∈ e}
-
-lemma incidence_set_subset (a : α) : G.incidence_set a ⊆ G.edge_set := λ _ h, h.1
 
 @[simp] lemma mk_mem_edge_set : ⟦(a, b)⟧ ∈ G.edge_set ↔ G.adj a b := iff.rfl
 
@@ -156,14 +134,14 @@ lemma adj_iff_exists_edge : G.adj a b ↔ a ≠ b ∧ ∃ e ∈ G.edge_set, a �
 begin
   refine ⟨λ h, ⟨h.ne, ⟦(a, b)⟧, h, by simp⟩, _⟩,
   rintro ⟨hne, e, he, hv⟩,
-  rw sym2.elems_iff_eq hne at hv,
+  rw sym2.mem_and_mem_iff hne at hv,
   subst e,
   rwa mk_mem_edge_set at he,
 end
 
 lemma edge_other_ne (he : e ∈ G.edge_set) (h : a ∈ e) : h.other ≠ a :=
 begin
-  erw [← sym2.mem_other_spec h, sym2.eq_swap] at he,
+  erw [← sym2.other_spec h, sym2.eq_swap] at he,
   exact he.ne,
 end
 
@@ -172,10 +150,6 @@ sym2.from_rel.decidable_pred _
 
 instance edges_fintype [decidable_eq α] [fintype α] [decidable_rel G.adj] : fintype G.edge_set :=
 subtype.fintype _
-
-instance decidable_mem_incidence_set [decidable_eq α] [decidable_rel G.adj] (a : α) :
-  decidable_pred (∈ G.incidence_set a) :=
-λ e, and.decidable
 
 /-- The `edge_set` of the graph as a `finset`. -/
 def edge_finset [decidable_eq α] [fintype α] [decidable_rel G.adj] : finset (sym2 α) :=
@@ -189,7 +163,21 @@ set.mem_to_finset
   (finset.univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset $ mem_edge_finset _
 
+/-- `G.neighbor_set a` is the set of vertices adjacent to `a` in `G`. -/
+def neighbor_set (a : α) : set α := {b | G.adj a b}
+
+lemma not_mem_neighbor_set (a : α) : a ∉ G.neighbor_set a := G.adj_irrefl _
+
+instance neighbor_set.mem_decidable (a : α) [decidable_rel G.adj] :
+  decidable_pred (∈ G.neighbor_set a) :=
+by { unfold neighbor_set, apply_instance }
+
 @[simp] lemma mem_neighbor_set : b ∈ G.neighbor_set a ↔ G.adj a b := iff.rfl
+
+/-- The `incidence_set` is the set of edges incident to a given vertex. -/
+def incidence_set (a : α) : set (sym2 α) := {e ∈ G.edge_set | a ∈ e}
+
+lemma incidence_set_subset (a : α) : G.incidence_set a ⊆ G.edge_set := λ _ h, h.1
 
 @[simp] lemma mk_mem_incidence_set : ⟦(a, b)⟧ ∈ G.incidence_set a ↔ G.adj a b :=
 by simp [incidence_set]
@@ -203,11 +191,15 @@ begin
   ext e',
   simp only [incidence_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
   refine ⟨λ h', _, _⟩,
-  { rw ←sym2.mem_other_spec h,
-    exact (sym2.elems_iff_eq (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩, },
+  { rw ←sym2.other_spec h,
+    exact (sym2.mem_and_mem_iff (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩, },
   { rintro rfl,
-    exact ⟨⟨he, h⟩, he, sym2.mem_other_mem _⟩ }
+    exact ⟨⟨he, h⟩, he, sym2.other_mem _⟩ }
 end
+
+instance decidable_mem_incidence_set [decidable_eq α] [decidable_rel G.adj] (a : α) :
+  decidable_pred (∈ G.incidence_set a) :=
+λ e, and.decidable
 
 /-- The set of common neighbors between two vertices `a` and `b` in a graph `G` is the
 intersection of the neighbor sets of `a` and `b`. -/
@@ -245,15 +237,15 @@ def other_vertex_of_incident {a : α} {e : sym2 α} (h : e ∈ G.incidence_set a
 
 lemma edge_mem_other_incident_set {a : α} {e : sym2 α} (h : e ∈ G.incidence_set a) :
   e ∈ G.incidence_set (G.other_vertex_of_incident h) :=
-by { use h.1, simp [other_vertex_of_incident, sym2.mem_other_mem'] }
+by { use h.1, simp [other_vertex_of_incident, sym2.other_mem'] }
 
 lemma incidence_other_prop {a : α} {e : sym2 α} (h : e ∈ G.incidence_set a) :
   G.other_vertex_of_incident h ∈ G.neighbor_set a :=
-by { cases h with he ha, rwa [←sym2.mem_other_spec' ha, mk_mem_edge_set] at he }
+by { cases h with he ha, rwa [←sym2.other_spec' ha, mk_mem_edge_set] at he }
 
 @[simp] lemma incidence_other_neighbor_edge (h : b ∈ G.neighbor_set a) :
   G.other_vertex_of_incident (G.mk_mem_incidence_iff_neighbor.mpr h) = b :=
-sym2.congr_right.mp (sym2.mem_other_spec' (G.mk_mem_incidence_iff_neighbor.mpr h).right)
+sym2.congr_right.mp (sym2.other_spec' (G.mk_mem_incidence_iff_neighbor.mpr h).right)
 
 /-- There is an equivalence between the set of edges incident to a given vertex and the set of
 vertices adjacent to the vertex. -/

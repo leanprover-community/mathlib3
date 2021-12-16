@@ -36,26 +36,13 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 -/
 
 noncomputable theory
-open topological_space filter
-open_locale nnreal ennreal big_operators topological_space
+open_locale nnreal ennreal big_operators
 
-lemma fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_refl _⟩
-
-lemma fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
-⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
-
-lemma fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
-
-local attribute [instance] fact_one_le_one_ennreal fact_one_le_two_ennreal fact_one_le_top_ennreal
-
-variables {α G : Type*} {E : α → Type*} {F : α → Type*} {p q : ℝ≥0∞}
-  [Π i, normed_group (E i)]
-  [Π i, normed_group (F i)] [normed_group G]
+variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_group (E i)]
 
 section p_facts
 variables (p)
 
--- lemma p_trichotomy : p = 0 ∨ p = ∞ ∨ (0 < p ∧ p < ∞ ∧ 0 < p.to_real) :=
 lemma p_trichotomy : p = 0 ∨ p = ∞ ∨ 0 < p.to_real :=
 begin
   sorry
@@ -274,9 +261,6 @@ def Lp (E : α → Type*) [Π i, normed_group (E i)]
   add_mem' := λ f g, mem_ℓp.add,
   neg_mem' := λ f, mem_ℓp.neg }
 
--- localized "notation α ` →₁[`:25 `] ` E := measure_theory.Lp E 1" in measure_theory
--- localized "notation α ` →₂[`:25 `] ` E := measure_theory.Lp E 2" in measure_theory
-
 namespace Lp
 
 instance : has_coe_to_fun (Lp E p) (λ _, Π i, E i) := ⟨λ f, ((f : Π i, E i) : Π i, E i)⟩
@@ -293,15 +277,7 @@ instance _root_.subgroup.subsingleton {G : Type*} [group G] [subsingleton G] (H 
   subsingleton H :=
 ⟨ λ a b, subtype.ext (subsingleton.elim (a:G) b)⟩
 
--- instance [is_empty α] : subsingleton (Lp E p) := by apply_instance
-
-lemma is_empty_elim [is_empty α] {P : Lp E p → Sort*} (f : Lp E p) : P f :=
-begin
-  have : Π i, E i := f,
-  have := pi.unique_of_is_empty,
-  let : subsingleton (Π i, E i) := unique.subsingleton,
-  -- library_search
-end
+lemma eq_zero' [is_empty α] (f : Lp E p) : f = 0 := subsingleton.elim f 0
 
 protected lemma monotone {p q : ℝ≥0∞} (hpq : q ≤ p) : Lp E q ≤ Lp E p :=
 λ f hf, mem_ℓp.mem_ℓp_of_exponent_ge hf hpq
@@ -388,27 +364,27 @@ end
 
 lemma norm_eq_zero_iff {f : Lp E p} (hp : 0 < p) : ∥f∥ = 0 ↔ f = 0 :=
 begin
+  classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
   rcases p_trichotomy p with rfl | rfl | hp, --⟨hp', h⟩ | ⟨hp', h | ⟨_i, h⟩⟩ | ⟨hp', hp', h⟩,
   { exact Lp.eq_zero f },
   { cases is_empty_or_nonempty α with _i _i; resetI,
-    { ext i,
-      apply is_empty.elim _i i },
+    { simp },
     have H : is_lub (set.range (λ i, ∥f i∥)) 0,
     { simpa [h] using Lp.is_lub_norm f },
     ext i,
     have : ∥f i∥ = 0 := le_antisymm (H.1 ⟨i, rfl⟩) (norm_nonneg _),
     simpa using this },
-  { sorry },
-  -- have := (Lp.has_sum_norm)
-
-  -- refine ⟨_, _norm_zero⟩,
-  -- refine ⟨λ hf, _, λ hf, by simp [hf]⟩,
-  -- rw [norm_def, ennreal.to_real_eq_zero_iff] at hf,
-  -- cases hf,
-  -- { rw snorm_eq_zero_iff (Lp.ae_measurable f) hp.ne.symm at hf,
-  --   exact subtype.eq (ae_eq_fun.ext (hf.trans ae_eq_fun.coe_fn_zero.symm)), },
-  -- { exact absurd hf (snorm_ne_top f), },
+  { have hf : has_sum (λ (i : α), ∥f i∥ ^ p.to_real) 0,
+    { have := Lp.has_sum_norm hp f ,
+      rw h at this,
+      simpa [real.zero_rpow hp.ne'] using this }, -- why can't the `simp` and `rw` be combined?
+    ext i,
+    by_contra hi',
+    have hi'' : 0 < ∥f i∥ := by simpa using hi',
+    have hi : 0 < ∥f i∥ ^ p.to_real := sorry,
+    have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real := λ i, sorry,
+    simpa using has_sum_lt this hi has_sum_zero hf },
 end
 
 lemma eq_zero_iff_ae_eq_zero {f : Lp E p} : f = 0 ↔ ⇑f = 0 :=
@@ -418,22 +394,13 @@ by rw [ext_iff, coe_fn_zero]
 begin
   rcases p_trichotomy p with rfl | rfl | hp,
   { simp [Lp.norm_eq_zero] },
-  { cases hα : is_empty_or_nonempty α; resetI,
-    { have : -f = f := subsingleton.elim _ _,
-      simp [this] },
+  { cases is_empty_or_nonempty α; resetI,
+    { simp [Lp.eq_zero' f], },
     apply (Lp.is_lub_norm (-f)).unique,
-    convert Lp.is_lub_norm f,
-    ext i,
-    simp },
-  { sorry }
-  -- { rw (Lp.is).unique,
-  --   convert h₂,
-  --   ext i,
-  --   simp },
-  -- { rw h₁.unique,
-  --   convert h₂,
-  --   ext i,
-  --   simp }
+    simpa using Lp.is_lub_norm f },
+  { suffices : ∥-f∥ ^ p.to_real = ∥f∥ ^ p.to_real, by sorry,
+    apply (Lp.has_sum_norm hp (-f)).unique,
+    simpa using Lp.has_sum_norm hp f }
 end
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p) :=
@@ -464,10 +431,6 @@ normed_group.of_core _
   end,
   norm_neg := by simp }
 
-instance normed_group_L1 : normed_group (Lp E 1) := by apply_instance
-instance normed_group_L2 : normed_group (Lp E 2) := by apply_instance
-instance normed_group_Ltop : normed_group (Lp E ∞) := by apply_instance
-
 section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
@@ -492,25 +455,31 @@ instance : module 𝕜 (Lp E p) :=
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p) : ⇑(c • f) = c • f := rfl
 
 lemma norm_const_smul (c : 𝕜) (f : Lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
-sorry
--- by rw [norm_def, snorm_congr_ae (coe_fn_smul _ _), snorm_const_smul c,
---   ennreal.to_real_mul, ennreal.coe_to_real, coe_nnnorm, norm_def]
+begin
+  rcases p_trichotomy p with rfl | rfl | hp,
+  { simp [Lp.norm_eq_zero] },
+  { cases is_empty_or_nonempty α; resetI,
+    { simp [Lp.eq_zero' f], },
+    apply (Lp.is_lub_norm (c • f)).unique,
+    have := Lp.is_lub_norm f,
+    simp [coe_fn_smul, norm_smul],
+    sorry },
+  { suffices : ∥c • f∥ ^ p.to_real = (∥c∥ * ∥f∥) ^ p.to_real, by sorry,
+    apply (Lp.has_sum_norm hp (c • f)).unique,
+    have := Lp.has_sum_norm hp f,
+    simp [coe_fn_smul, norm_smul],
+    sorry }
+end
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p) :=
 { norm_smul_le := λ _ _, by simp [norm_const_smul] }
-
-instance normed_space_L1 : normed_space 𝕜 (Lp E 1) := by apply_instance
-instance normed_space_L2 : normed_space 𝕜 (Lp E 2) := by apply_instance
-instance normed_space_Ltop : normed_space 𝕜 (Lp E ∞) := by apply_instance
 
 instance [Π i, normed_space ℝ (E i)] [has_scalar ℝ 𝕜] [Π i, is_scalar_tower ℝ 𝕜 (E i)] :
   is_scalar_tower ℝ 𝕜 (Lp E p) :=
 begin
   refine ⟨λ r c f, _⟩,
   ext1,
-  refine (Lp.coe_fn_smul _ _).trans _,
-  rw smul_assoc,
-  refl,
+  exact (Lp.coe_fn_smul _ _).trans (smul_assoc _ _ _)
 end
 
 end normed_space

@@ -145,8 +145,8 @@ def homogeneous_ideal : Type* := { I : ideal R // is_homogeneous_ideal A I }
 lemma is_homogeneous_ideal.bot : is_homogeneous_ideal A ⊥ := λ i r hr,
 begin
   simp only [ideal.mem_bot] at hr,
-    rw [hr, alg_equiv.map_zero, zero_apply],
-    apply ideal.zero_mem
+  rw [hr, alg_equiv.map_zero, zero_apply],
+  apply ideal.zero_mem
 end
 
 instance homogeneous_ideal.inhabited : inhabited (homogeneous_ideal A) :=
@@ -165,15 +165,11 @@ instance homogeneous_ideal.has_top :
     apply subtype.val_injective h',
   end ⟩
 
-instance homogeneous_ideal.has_le : has_le (homogeneous_ideal A) :=
-{ le := λ I J, I.1 ≤ J.1 }
-
 instance homogeneous_ideal.order : partial_order (homogeneous_ideal A) :=
 @partial_order.lift _ _ _ (λ (I : homogeneous_ideal A), I.1) (λ I J HIJ, subtype.eq HIJ)
 
 instance homogeneous_ideal.has_mem : has_mem R (homogeneous_ideal A) :=
 { mem := λ r I, r ∈ I.1 }
-
 
 lemma is_homogeneous_ideal.inf {I J : ideal R}
   (HI : is_homogeneous_ideal A I) (HJ : is_homogeneous_ideal A J) :

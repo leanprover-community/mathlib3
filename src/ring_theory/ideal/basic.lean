@@ -241,7 +241,7 @@ show S ≤ S ⊔ T, from le_sup_left
 lemma mem_sup_right {S T : ideal R} : ∀ {x : R}, x ∈ T → x ∈ S ⊔ T :=
 show T ≤ S ⊔ T, from le_sup_right
 
-lemma mem_supr_of_mem {ι : Type*} {S : ι → ideal R} (i : ι) :
+lemma mem_supr_of_mem {ι : Sort*} {S : ι → ideal R} (i : ι) :
   ∀ {x : R}, x ∈ S i → x ∈ supr S :=
 show S i ≤ supr S, from le_supr _ _
 
@@ -255,7 +255,7 @@ theorem mem_Inf {s : set (ideal R)} {x : R} :
 
 @[simp] lemma mem_inf {I J : ideal R} {x : R} : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff.rfl
 
-@[simp] lemma mem_infi {ι : Type*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
+@[simp] lemma mem_infi {ι : Sort*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
 submodule.mem_infi _
 
 @[simp] lemma mem_bot {x : R} : x ∈ (⊥ : ideal R) ↔ x = 0 :=

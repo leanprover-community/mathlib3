@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.continuous_on
+import topology.separation
 import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
@@ -158,6 +159,28 @@ begin
 end
 
 end has_continuous_mul
+
+section pointwise_limits
+
+variables {M₁ M₂ : Type*} [topological_space M₂] [t2_space M₂] {l : filter α} {f : M₁ → M₂}
+
+/-- Construct a bundled monoid homomorphism from a pointwise limit of
+monoid homomorphisms -/
+@[to_additive "Construct a bundled additive monoid homomorphism from
+a pointwise limit of monoid homomorphisms", simps]
+def monoid_hom_of_tendsto [monoid M₁] [monoid M₂]
+  [has_continuous_mul M₂] (g : α → M₁ →* M₂) [l.ne_bot]
+  (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=
+{ to_fun := f,
+  map_one' := by
+    { refine tendsto_nhds_unique (tendsto_pi_nhds.mp h 1) _,
+      simpa only [monoid_hom.map_one] using tendsto_const_nhds },
+  map_mul' := λ x y, by
+    { rw tendsto_pi_nhds at h,
+      refine tendsto_nhds_unique (h (x * y)) _,
+      simpa only [monoid_hom.map_mul] using (h x).mul (h y) } }
+
+end pointwise_limits
 
 namespace submonoid
 

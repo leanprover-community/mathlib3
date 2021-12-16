@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 import algebra.big_operators.order
 import data.mv_polynomial.monad
-import data.set.pairwise
 
 /-!
 # Degrees and variables of polynomials
@@ -428,6 +427,10 @@ end
 lemma degree_of_lt_iff {n : σ} {f : mv_polynomial σ R} {d : ℕ} (h : 0 < d) :
   degree_of n f < d ↔ ∀ m : σ →₀ ℕ, m ∈ f.support → m n < d :=
 by rwa [degree_of_eq_sup n f, finset.sup_lt_iff]
+
+@[simp] lemma degree_of_zero (n : σ) :
+  degree_of n (0 : mv_polynomial σ R) = 0 :=
+by simp only [degree_of, degrees_zero, multiset.count_zero]
 
 @[simp] lemma degree_of_C (a : R) (x : σ):
   degree_of x (C a : mv_polynomial σ R) = 0 := by simp [degree_of, degrees_C]

@@ -1300,7 +1300,7 @@ begin
   simp only [add_comm, finsupp.prod, support_add_eq hd, prod_union hd, add_apply],
 end
 end disjoint_prod_add
-#exit
+
 section map_range
 
 section equiv

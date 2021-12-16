@@ -43,7 +43,7 @@ structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_spa
 (mono : monotone seq)
 (le : ∀ i : ι, seq i ≤ m)
 
-variables {α β ι : Type*} {m : measurable_space α} [measurable_space β]
+variables {α β ι : Type*} {m : measurable_space α}
 
 open topological_space
 
@@ -74,6 +74,8 @@ instance sigma_finite_of_sigma_finite_filtration (μ : measure α) (f : filtrati
   [hf : sigma_finite_filtration μ f] (i : ι) :
   sigma_finite (μ.trim (f.le i)) :=
 by apply hf.sigma_finite -- can't exact here
+
+variable [measurable_space β]
 
 /-- A sequence of functions `u` is adapted to a filtration `f` if for all `i`,
 `u i` is `f i`-measurable. -/
@@ -309,16 +311,19 @@ end is_stopping_time
 
 section linear_order
 
-variable [linear_order ι]
 
 /-- Given a map `u : ι → α → E`, its stopped process with respect to the stopping
 time `τ` is the map `(i, x) ↦ u (min i (τ x)) x`.
 Intuitively, the stopped process stop evolving once the stopping time has occured. -/
-def filtration.stopped_process (f : filtration ι m) (u : ι → α → β) (τ : α → ι) : ι → α → β :=
+def stopped_process [linear_order ι] (u : ι → α → β) (τ : α → ι) : ι → α → β :=
 λ i x, u (linear_order.min i (τ x)) x
 
-def filtration.stopped_value (f : filtration ι m) (u : ι → α → β) (τ : α → ι) : α → β :=
+/-- Given a map `u : ι → α → E`, its stopped value with respect to the stopping
+time `τ` is the map `x ↦ u (τ x) x`. -/
+def stopped_value (u : ι → α → β) (τ : α → ι) : α → β :=
 λ x, u (τ x) x
+
+variable [linear_order ι]
 
 -- We will need cadlag to generalize the following to continuous processes
 section nat
@@ -330,7 +335,7 @@ variables [hβ : add_comm_monoid β] {f : filtration ℕ m} {u : ℕ → α → 
 include hβ
 
 lemma stopped_process_eq (n : ℕ) :
-  f.stopped_process u τ n =
+  stopped_process u τ n =
   set.indicator (λ a, n ≤ τ a) (u n) +
     ∑ i in finset.range n, set.indicator (λ a, i = τ a) (u i) :=
 begin
@@ -355,9 +360,10 @@ begin
     { exact h } }
 end
 
-lemma adapted.stopped_process_adapted [has_measurable_add₂ β]
+lemma adapted.stopped_process_adapted
+  [measurable_space β] [has_measurable_add₂ β]
   (hu : adapted f u) (hτ : is_stopping_time f τ) :
-  adapted f (f.stopped_process u τ) :=
+  adapted f (stopped_process u τ) :=
 begin
   intro i,
   rw stopped_process_eq,
@@ -382,10 +388,11 @@ section
 
 omit hβ
 
-lemma stopped_process_has_finite_integral [normed_group β] [borel_space β]
+lemma stopped_process_has_finite_integral
+  [measurable_space β] [normed_group β] [borel_space β]
   {μ : measure α} (hτ : is_stopping_time f τ)
   (hu₁ : adapted f u) (hu₂ : ∀ n, has_finite_integral (u n) μ) (n : ℕ) :
-  has_finite_integral (f.stopped_process u τ n) μ :=
+  has_finite_integral (stopped_process u τ n) μ :=
 begin
   rw [has_finite_integral, stopped_process_eq],
   have : ∀ x, (∥(set.indicator {x | n ≤ τ x} (u n) +
@@ -433,15 +440,16 @@ begin
     simp [eq_comm] }
 end
 
-lemma stopped_process_measurable [normed_group β] [borel_space β] [has_measurable_add₂ β]
+lemma stopped_process_measurable [measurable_space β] [normed_group β] [has_measurable_add₂ β]
   (hτ : is_stopping_time f τ) (hu₁ : adapted f u) (n : ℕ) :
-  measurable (f.stopped_process u τ n) :=
+  measurable (stopped_process u τ n) :=
 (hu₁.stopped_process_adapted hτ n).le (f.le _)
 
-lemma stopped_process_integrable [normed_group β] [borel_space β] [has_measurable_add₂ β]
+lemma stopped_process_integrable
+  [measurable_space β] [normed_group β] [borel_space β] [has_measurable_add₂ β]
   {μ : measure α} (hτ : is_stopping_time f τ)
   (hu₁ : adapted f u) (hu₂ : ∀ n, has_finite_integral (u n) μ) (n : ℕ) :
-  integrable (f.stopped_process u τ n) μ :=
+  integrable (stopped_process u τ n) μ :=
 ⟨(stopped_process_measurable hτ hu₁ n).ae_measurable,
     stopped_process_has_finite_integral hτ hu₁ hu₂ n⟩
 

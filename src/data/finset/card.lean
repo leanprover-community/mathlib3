@@ -46,6 +46,8 @@ lemma card_def (s : finset α) : s.card = s.1.card := rfl
 
 lemma card_le_of_subset : s ⊆ t → s.card ≤ t.card := multiset.card_le_of_le ∘ val_le_iff.mpr
 
+@[mono] lemma card_mono : monotone (@card α) := by apply card_le_of_subset
+
 @[simp] lemma card_eq_zero : s.card = 0 ↔ s = ∅ := card_eq_zero.trans val_eq_zero
 
 lemma card_pos : 0 < s.card ↔ s.nonempty :=

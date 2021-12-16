@@ -886,14 +886,6 @@ lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) 
   cthickening δ₁ E ⊆ cthickening δ₂ E :=
 preimage_mono (Iic_subset_Iic.mpr (ennreal.of_real_le_of_real hle))
 
-lemma closure_subset_cthickening (δ : ℝ) (E : set α) :
-  closure E ⊆ cthickening δ E :=
-by { rw ← cthickening_of_nonpos (min_le_right δ 0), exact cthickening_mono (min_le_left δ 0) E }
-
-lemma subset_cthickening (δ : ℝ) (E : set α) :
-  E ⊆ cthickening δ E :=
-subset_closure.trans (closure_subset_cthickening δ E)
-
 /-- The closed thickening `cthickening δ E` with a fixed thickening radius `δ` is
 an increasing function of the subset `E`. -/
 lemma cthickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ E₂) :
@@ -929,8 +921,6 @@ begin
     ((lt_add_one _).trans_le (le_max_left _ _)) _
 end
 
-lemma cthickening_eq_Inter_cthickening {δ : ℝ} {E : set α} (δ_nn : 0 ≤ δ) :
-  cthickening δ E = ⋂ (ε : ℝ) (h : δ < ε), cthickening ε E :=
 lemma thickening_subset_interior_cthickening (δ : ℝ) (E : set α) :
   thickening δ E ⊆ interior (cthickening δ E) :=
 (subset_interior_iff_open.mpr (is_open_thickening)).trans

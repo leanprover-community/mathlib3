@@ -454,7 +454,7 @@ by simp only [polynomial.coeff_map]
 
 /- TODO: what is a good name for this one? -/
 lemma support_eval {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
-  (f : polynomial (mv_polynomial (fin n) R)) (i : ℕ) :
+  (f : polynomial (mv_polynomial (fin n) R)) :
   (polynomial.map (eval s') f).support ⊆ f.support :=
 begin
   intros i hi,
@@ -468,16 +468,12 @@ end
 lemma degree_eval_le_degree {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
   (f : polynomial (mv_polynomial (fin n) R)) :
   polynomial.degree (polynomial.map (eval s') f) ≤ polynomial.degree f :=
-begin
-  rw [polynomial.degree, polynomial.degree, finset.sup_le_iff],
-  intros b hb,
-  apply finset.le_sup (support_eval s' f b hb),
-end
+polynomial.degree_support_mono (support_eval s' f)
 
 lemma nat_degree_eval_le_nat_degree {n : ℕ} {R : Type u} [comm_semiring R] (s : fin n → R)
   (f : polynomial (mv_polynomial (fin n) R)) :
-polynomial.nat_degree (polynomial.map (eval s) f) ≤ polynomial.nat_degree f
-:= polynomial.nat_degree_le_nat_degree (degree_eval_le_degree s f)
+  polynomial.nat_degree (polynomial.map (eval s) f) ≤ polynomial.nat_degree f :=
+polynomial.nat_degree_le_nat_degree (degree_eval_le_degree s f)
 
 lemma support_coeff_fin_succ_equiv {n : ℕ} {R : Type u} [comm_semiring R]
   {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} {m : fin n →₀ ℕ } :

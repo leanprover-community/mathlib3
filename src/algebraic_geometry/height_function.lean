@@ -95,9 +95,11 @@ end,
 finset.max' (image (λ a, f.C1 (-a)) (represents A f.m)) nemp
 
 lemma C1'_is_max :
-  ∀ (a : represents A f.m), (f.C1 (-a)) ≤ C1' f :=
+  ∀ (a : represents A f.m), (f.C1 (-a)) ≤ C1' f := λ a,
 begin
-  sorry
+  unfold C1',
+  apply finset.le_max' (image (λ a, f.C1 (-a)) (represents A f.m)),
+  rw [mem_image], use a, refine ⟨a.2, rfl⟩,
 end
 
 lemma property_next_height (P : A) :

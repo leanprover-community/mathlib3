@@ -67,13 +67,49 @@ begin
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
-theorem smul_closed_ball' {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+theorem smul_sphere' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
 begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+  simp only [mem_sphere, dist_smul, normed_field.norm_inv, ← div_eq_inv_mul,
+    div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
+end
+
+/-- In a nontrivial real normed space, a sphere is nonempty if and only if its radius is
+nonnegative. -/
+@[simp] theorem normed_space.sphere_nonempty {E : Type*} [normed_group E]
+  [normed_space ℝ E] [nontrivial E] {x : E} {r : ℝ} :
+  (sphere x r).nonempty ↔ 0 ≤ r :=
+begin
+  refine ⟨λ h, nonempty_closed_ball.1 (h.mono sphere_subset_closed_ball), λ hr, _⟩,
+  rcases exists_ne x with ⟨y, hy⟩,
+  have : ∥y - x∥ ≠ 0, by simpa [sub_eq_zero],
+  use r • ∥y - x∥⁻¹ • (y - x) + x,
+  simp [norm_smul, this, real.norm_of_nonneg hr]
+end
+
+theorem smul_sphere {E : Type*} [normed_group E] [normed_space α E] [normed_space ℝ E]
+  [nontrivial E] (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { simp [zero_smul_set, set.singleton_zero, hr] },
+  { exact smul_sphere' hc x r }
+end
+
+theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+by simp only [← ball_union_sphere, set.smul_set_union, smul_ball hc, smul_sphere' hc]
+
+theorem smul_closed_ball {E : Type*} [normed_group E] [normed_space α E]
+  (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
+  { exact smul_closed_ball' hc x r }
 end
 
 lemma metric.bounded.smul {s : set E} (hs : bounded s) (c : 𝕜) :

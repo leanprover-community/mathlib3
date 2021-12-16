@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.constructions.borel_space
+import measure_theory.function.l1_space
 
 /-!
 # Filtration and stopping time
@@ -324,7 +325,9 @@ section nat
 
 open filtration
 
-variables [add_comm_monoid β] {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
+variables [hβ : add_comm_monoid β] {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
+
+include hβ
 
 lemma stopped_process_eq (n : ℕ) :
   f.stopped_process u τ n =
@@ -354,7 +357,7 @@ end
 
 lemma adapted.stopped_process_adapted [has_measurable_add₂ β]
   (hu : adapted f u) (hτ : is_stopping_time f τ) :
-  adapted f (stopped_process f u τ) :=
+  adapted f (f.stopped_process u τ) :=
 begin
   intro i,
   rw stopped_process_eq,
@@ -373,6 +376,64 @@ begin
       refine f.mono hij.le _ _,
       convert hτ.measurable_set_eq j,
       simpa only [eq_comm] } }
+end
+
+section
+
+omit hβ
+
+lemma stopped_process_has_finite_integral [normed_group β] [borel_space β]
+  {μ : measure α}  (hτ : is_stopping_time f τ)
+  (hu₁ : adapted f u) (hu₂ : ∀ n, has_finite_integral (u n) μ) (n : ℕ) :
+  has_finite_integral (f.stopped_process u τ n) μ :=
+begin
+  rw [has_finite_integral, stopped_process_eq],
+  have : ∀ x, (∥(set.indicator {x | n ≤ τ x} (u n) +
+    ∑ i in finset.range n, set.indicator {x | i = τ x} (u i)) x∥₊ : ℝ≥0∞) ≤
+    ∥set.indicator (λ a, n ≤ τ a) (u n) x∥₊ +
+    ∑ i in finset.range n, ∥set.indicator {x | i = τ x} (u i) x∥₊,
+  { intro x,
+    rw [pi.add_apply, finset.sum_apply, ← ennreal.coe_of_nnreal_hom,
+        ← ennreal.of_nnreal_hom.map_sum, ← ring_hom.map_add, ennreal.coe_of_nnreal_hom,
+        ennreal.coe_le_coe],
+    exact le_trans (nnnorm_add_le _ _) (add_le_add_left (nnnorm_sum_le _ _) _) },
+  refine lt_of_le_of_lt (lintegral_mono this) _,
+  rw [lintegral_add],
+  { rw ennreal.add_lt_top,
+    refine ⟨lt_of_le_of_lt (lintegral_mono _) (hu₂ n), _⟩,
+    { intro x,
+      by_cases hx : x ∈ {x | n ≤ τ x},
+      { simp only [ennreal.coe_le_coe],
+        erw [set.indicator_of_mem hx] },
+      { simp only [ennreal.coe_le_coe],
+        erw [set.indicator_of_not_mem hx],
+        simp only [nnnorm_zero, zero_le'] } },
+    { rw lintegral_finset_sum,
+      { refine ennreal.sum_lt_top (λ i hi, (lt_of_le_of_lt (lintegral_mono _) (hu₂ i)).ne),
+        intro x,
+        by_cases hx : x ∈ {x | i = τ x},
+        { simp only [ennreal.coe_le_coe],
+          erw [set.indicator_of_mem hx] },
+        { simp only [ennreal.coe_le_coe],
+          erw [set.indicator_of_not_mem hx],
+          simp only [nnnorm_zero, zero_le'] } },
+      { intros i hi,
+        refine (measurable.indicator ((hu₁ i).le (f.le _)) _).nnnorm.coe_nnreal_ennreal,
+        convert f.le _ _ (hτ.measurable_set_eq i),
+        simp [eq_comm],
+      } } },
+  { refine (measurable_nnnorm.comp (((hu₁ n).le (f.le _)).indicator _)).coe_nnreal_ennreal,
+    erw [← measurable_set.compl_iff, set.compl_set_of],
+    simp_rw not_le,
+    rw (by { ext x, simp [lt_iff_le_and_ne] } : {x | τ x < n} = {x | τ x ≤ n} \ {x | τ x = n}),
+    exact measurable_set.diff (f.le _ _ (hτ n)) (f.le _ _ (hτ.measurable_set_eq n)) },
+  { refine (finset.range n).measurable_sum
+      (λ n h, (measurable.indicator ((hu₁ n).le (f.le _))
+        (f.le n _ _)).nnnorm.coe_nnreal_ennreal),
+    convert hτ.measurable_set_eq n,
+    simp [eq_comm] }
+end
+
 end
 
 end nat

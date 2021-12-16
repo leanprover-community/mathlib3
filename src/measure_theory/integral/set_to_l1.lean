@@ -1178,7 +1178,7 @@ lemma set_to_L1_const [is_finite_measure μ] (hT : dominated_fin_meas_additive �
 set_to_L1_indicator_const_Lp hT measurable_set.univ (measure_ne_top _ _) x
 
 lemma set_to_L1_mono_left' {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [order_closed_topology G] [complete_space G]
+  [complete_space G]
   {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C')
   (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x) (f : α →₁[μ] E) :
@@ -1196,7 +1196,7 @@ begin
 end
 
 lemma set_to_L1_mono_left {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [order_closed_topology G] [complete_space G]
+  [complete_space G]
   {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C') (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁[μ] E) :
   set_to_L1 hT f ≤ set_to_L1 hT' f :=
@@ -1204,7 +1204,7 @@ set_to_L1_mono_left' hT hT' (λ s _ _ x, hTT' s x) f
 
 lemma set_to_L1_nonneg {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
   [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
-  [second_countable_topology G] [complete_space G'] [order_closed_topology G']
+  [second_countable_topology G] [complete_space G']
   {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
   {f : α →₁[μ] G} (hf : 0 ≤ f) :
@@ -1223,7 +1223,7 @@ end
 
 lemma set_to_L1_mono {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
   [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
-  [second_countable_topology G] [complete_space G'] [order_closed_topology G']
+  [second_countable_topology G] [complete_space G']
   {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
   {f g : α →₁[μ] G} (hfg : f ≤ g) :
@@ -1395,7 +1395,7 @@ begin
 end
 
 lemma set_to_fun_mono_left' {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [order_closed_topology G] [complete_space G]
+  [complete_space G]
   {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C')
   (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x) (f : α → E) :
@@ -1407,7 +1407,7 @@ begin
 end
 
 lemma set_to_fun_mono_left {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [order_closed_topology G] [complete_space G]
+  [complete_space G]
   {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT' : dominated_fin_meas_additive μ T' C') (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁[μ] E) :
   set_to_fun μ T hT f ≤ set_to_fun μ T' hT' f :=
@@ -1514,7 +1514,7 @@ end
 
 lemma set_to_fun_nonneg {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
   [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
-  [second_countable_topology G] [complete_space G'] [order_closed_topology G']
+  [second_countable_topology G] [complete_space G']
   {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
   {f : α → G} (hf : 0 ≤ᵐ[μ] f) :
@@ -1535,7 +1535,7 @@ end
 
 lemma set_to_fun_mono {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
   [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
-  [second_countable_topology G] [complete_space G'] [order_closed_topology G']
+  [second_countable_topology G] [complete_space G']
   {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
   {f g : α → G} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :

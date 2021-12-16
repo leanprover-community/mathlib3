@@ -356,8 +356,6 @@ begin
   exact multiple_mem_span_of_mem_localization_span M R' _ _ hx
 end
 
-local attribute [-instance] localization.has_scalar
-
 lemma finite_of_localization_span : ring_hom.of_localization_span @ring_hom.finite :=
 begin
   rw ring_hom.of_localization_span_iff_finite,
@@ -366,12 +364,9 @@ begin
   classical,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
-  letI := λ (r : s), ((algebra_map S (localization.away (f r))).comp f).to_algebra,
   haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
     (localization.away (f r)),
   { intro r, rw submonoid.map_powers, exact localization.is_localization },
-  haveI : ∀ r : s, is_scalar_tower R S (localization.away (f r)) :=
-    λ r, is_scalar_tower.of_algebra_map_eq' rfl,
   haveI : ∀ r : s, is_scalar_tower R (localization.away (r : R)) (localization.away (f r)) :=
     λ r, is_scalar_tower.of_algebra_map_eq' (is_localization.map_comp _).symm,
 
@@ -499,12 +494,9 @@ begin
   classical,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
-  letI := λ (r : s), ((algebra_map S (localization.away (f r))).comp f).to_algebra,
   haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
     (localization.away (f r)),
   { intro r, rw submonoid.map_powers, exact localization.is_localization },
-  haveI : ∀ r : s, is_scalar_tower R S (localization.away (f r)) :=
-    λ r, is_scalar_tower.of_algebra_map_eq' rfl,
   haveI : ∀ r : s, is_scalar_tower R (localization.away (r : R)) (localization.away (f r)) :=
     λ r, is_scalar_tower.of_algebra_map_eq' (is_localization.map_comp _).symm,
 

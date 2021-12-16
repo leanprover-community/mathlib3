@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import measure_theory.function.simple_func_dense
-import measure_theory.function.lp_order
 
 /-!
 # Extension of a linear function from indicators to L1
@@ -732,10 +731,9 @@ lemma set_to_L1s_congr_measure {μ' : measure α} (T : set α → E →L[ℝ] F)
   set_to_L1s T f = set_to_L1s T f' :=
 begin
   refine simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable f) _,
-  refine (Lp.simple_func.to_simple_func_eq_to_fun f).trans _,
+  refine (to_simple_func_eq_to_fun f).trans _,
   suffices : f' =ᵐ[μ] ⇑(simple_func.to_simple_func f'), from h.trans this,
-  have goal' : f' =ᵐ[μ'] simple_func.to_simple_func f',
-    from (Lp.simple_func.to_simple_func_eq_to_fun f').symm,
+  have goal' : f' =ᵐ[μ'] simple_func.to_simple_func f', from (to_simple_func_eq_to_fun f').symm,
   exact hμ.ae_eq goal',
 end
 
@@ -829,7 +827,7 @@ begin
   rw set_to_L1s_eq_set_to_simple_func,
   refine eq.trans _ (simple_func.set_to_simple_func_indicator T h_empty hs x),
   refine simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable _) _,
-  exact Lp.simple_func.to_simple_func_indicator_const hs hμs.ne x,
+  exact to_simple_func_indicator_const hs hμs.ne x,
 end
 
 lemma set_to_L1s_const [is_finite_measure μ] {T : set α → E →L[ℝ] F}
@@ -852,89 +850,25 @@ simple_func.set_to_simple_func_mono_left' T T' hTT' _ (simple_func.integrable f)
 section order
 
 variables {G'' G' : Type*} [normed_lattice_add_comm_group G''] [measurable_space G'']
-  [borel_space G''] [second_countable_topology G'']
+  [borel_space G''] [second_countable_topology G''] [normed_space ℝ G'']
   [normed_lattice_add_comm_group G'] [normed_space ℝ G']
+  {T : set α → G'' →L[ℝ] G'}
 
-lemma Lp.simple_func.coe_fn_le (f g : α →₁ₛ[μ] G'') :
-  f ≤ᵐ[μ] g ↔ f ≤ g :=
-by rw [← subtype.coe_le_coe, ← Lp.coe_fn_le, coe_fn_coe_base', coe_fn_coe_base' g]
-
-instance :
-  covariant_class (Lp.simple_func G'' 1 μ) (Lp.simple_func G'' 1 μ) has_add.add has_le.le :=
-begin
-  refine ⟨λ f g₁ g₂ hg₁₂, _⟩,
-  rw ← Lp.simple_func.coe_fn_le at hg₁₂ ⊢,
-  have h_add_1 : ⇑(f + g₁) =ᵐ[μ] f + g₁, from Lp.coe_fn_add _ _,
-  have h_add_2 : ⇑(f + g₂) =ᵐ[μ] f + g₂, from Lp.coe_fn_add _ _,
-  filter_upwards [h_add_1, h_add_2, hg₁₂],
-  intros a h1 h2 h3,
-  rw [h1, h2, pi.add_apply, pi.add_apply],
-  exact add_le_add le_rfl h3,
-end
-
-lemma Lp.simple_func.coe_fn_zero : (0 : α →₁ₛ[μ] G'') =ᵐ[μ] (0 : α → G'') :=
-begin
-  rw ← Lp.simple_func.coe_coe,
-  suffices : ↑(0 : α →₁ₛ[μ] G'') = (0 : α →₁[μ] G''),
-  { rw this, exact Lp.coe_fn_zero _ _ _, },
-  simp,
-end
-
-lemma Lp.simple_func.coe_fn_nonneg (f : α →₁ₛ[μ] G'') : 0 ≤ᵐ[μ] f ↔ 0 ≤ f :=
-begin
-  rw ← Lp.simple_func.coe_fn_le,
-  have h0 : (0 : α →₁ₛ[μ] G'') =ᵐ[μ] (0 : α → G''), from Lp.simple_func.coe_fn_zero,
-  split; intro h; filter_upwards [h, h0]; intros a h1 h2,
-  { rwa h2, },
-  { rwa ← h2, },
-end
-
-lemma set_to_L1s_nonneg [normed_space ℝ G'']
-  {T : set α → G'' →L[ℝ] G'} (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
+lemma set_to_L1s_nonneg (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
   {f : α →₁ₛ[μ] G''} (hf : 0 ≤ f) :
   0 ≤ set_to_L1s T f :=
 begin
-  rw [← Lp.simple_func.coe_fn_nonneg] at hf,
-  have hf_eq := to_simple_func_eq_to_fun f,
   simp_rw set_to_L1s,
   obtain ⟨f', hf', hff'⟩ : ∃ f' : α →ₛ G'', 0 ≤ f' ∧ simple_func.to_simple_func f =ᵐ[μ] f',
-  { have hf_ae : 0 ≤ᵐ[μ] (simple_func.to_simple_func f),
-    { filter_upwards [hf_eq, hf],
-      intros x h1 h2,
-      rwa h1, },
-    let s := (to_measurable μ {x | ¬ 0 ≤ simple_func.to_simple_func f x})ᶜ,
-    have hs_zero : μ sᶜ = 0,
-      by { rw [compl_compl, measure_to_measurable], rwa [eventually_le, ae_iff] at hf_ae, },
-    have hfs_nonneg : ∀ x ∈ s, 0 ≤ simple_func.to_simple_func f x,
-    { intros x hxs,
-      rw mem_compl_iff at hxs,
-      have hx' : x ∉ {a : α | ¬0 ≤ simple_func.to_simple_func f a},
-        from λ h, hxs (subset_to_measurable μ _ h),
-      rwa [set.nmem_set_of_eq, not_not] at hx', },
-    let f' := simple_func.piecewise s (measurable_set_to_measurable μ _).compl
-      (simple_func.to_simple_func f) (simple_func.const α (0 : G'')),
-    refine ⟨f', λ x, _, _⟩,
-    { rw simple_func.piecewise_apply,
-      by_cases hxs : x ∈ s,
-      { simp only [hxs, hfs_nonneg x hxs, if_true, pi.zero_apply, simple_func.coe_zero], },
-      { simp only [hxs, simple_func.const_zero, if_false], }, },
-    { rw simple_func.coe_piecewise,
-      have : s =ᵐ[μ] univ,
-      { rw ae_eq_set,
-        simp only [true_and, measure_empty, eq_self_iff_true, diff_univ, ← compl_eq_univ_diff],
-        exact hs_zero, },
-      refine eventually_eq.trans _ (piecewise_ae_eq_of_ae_eq_set this.symm),
-      simp only [simple_func.const_zero, indicator_univ, piecewise_eq_indicator,
-        simple_func.coe_zero], }, },
+    from exists_simple_func_nonneg_ae_eq hf,
   rw simple_func.set_to_simple_func_congr _ h_zero h_add (simple_func.integrable _) hff',
   exact simple_func.set_to_simple_func_nonneg' T hT_nonneg _ hf'
     ((simple_func.integrable f).congr hff'),
 end
 
-lemma set_to_L1s_mono [normed_space ℝ G'']
-  {T : set α → G'' →L[ℝ] G'} (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
+lemma set_to_L1s_mono (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
   {f g : α →₁ₛ[μ] G''} (hfg : f ≤ g) :
@@ -1288,13 +1222,13 @@ begin
     have hx_nonneg : ∀ n, 0 ≤ x n, from λ n a, simple_func.approx_on_mem (Lp.measurable g) _ n a,
     have hx_mem_ℒp : ∀ n, mem_ℒp (x n) 1 μ,
       from simple_func.mem_ℒp_approx_on _ hg_mem_ℒp _ ⟨ae_measurable_const, by simp⟩,
+    have h_to_Lp := λ n, mem_ℒp.coe_fn_to_Lp (hx_mem_ℒp n),
     have hx_nonneg_Lp : ∀ n, 0 ≤ to_Lp (x n) (hx_mem_ℒp n),
     { intro n,
-      rw [← simple_func.Lp.simple_func.coe_fn_le, coe_fn_coe_base' (simple_func.to_Lp (x n) _),
+      rw [← Lp.simple_func.coe_fn_le, coe_fn_coe_base' (simple_func.to_Lp (x n) _),
         Lp.simple_func.to_Lp_eq_to_Lp],
-      have h0 := simple_func.Lp.simple_func.coe_fn_zero,
-      have h_to_Lp := mem_ℒp.coe_fn_to_Lp (hx_mem_ℒp n),
-      filter_upwards [h0, h_to_Lp],
+      have h0 := Lp.simple_func.coe_fn_zero 1 μ G,
+      filter_upwards [Lp.simple_func.coe_fn_zero 1 μ G, h_to_Lp n],
       intros a ha0 ha_to_Lp,
       rw [ha0, ha_to_Lp],
       exact hx_nonneg n a, },
@@ -1314,7 +1248,7 @@ begin
     convert hx_tendsto,
     refine funext (λ n, snorm_congr_ae (eventually_eq.sub _ _)),
     { rw Lp.simple_func.to_Lp_eq_to_Lp,
-      exact mem_ℒp.coe_fn_to_Lp (hx_mem_ℒp n), },
+      exact h_to_Lp n, },
     { rw ← coe_fn_coe_base, }, },
   refine @is_closed_property {g : α →₁ₛ[μ] G // 0 ≤ g} {g : α →₁[μ] G // 0 ≤ g} _ _ _
     dense_range_coe' _ _ g,

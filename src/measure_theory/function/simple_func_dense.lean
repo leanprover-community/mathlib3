@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Heather Macbeth
 -/
 import measure_theory.function.l1_space
+import measure_theory.function.lp_order
 
 /-!
 # Density of simple functions
@@ -801,6 +802,75 @@ def coe_to_Lp : (Lp.simple_func E p μ) →L[𝕜] (Lp E p μ) :=
 variables {α E 𝕜}
 
 end coe_to_Lp
+
+section order
+
+variables {G : Type*} [normed_lattice_add_comm_group G] [measurable_space G]
+  [borel_space G] [second_countable_topology G]
+
+lemma coe_fn_le (f g : Lp.simple_func G p μ) : f ≤ᵐ[μ] g ↔ f ≤ g :=
+by rw [← subtype.coe_le_coe, ← Lp.coe_fn_le, coe_fn_coe_base', coe_fn_coe_base' g]
+
+instance : covariant_class (Lp.simple_func G p μ) (Lp.simple_func G p μ) (+) (≤) :=
+begin
+  refine ⟨λ f g₁ g₂ hg₁₂, _⟩,
+  rw ← Lp.simple_func.coe_fn_le at hg₁₂ ⊢,
+  have h_add_1 : ⇑(f + g₁) =ᵐ[μ] f + g₁, from Lp.coe_fn_add _ _,
+  have h_add_2 : ⇑(f + g₂) =ᵐ[μ] f + g₂, from Lp.coe_fn_add _ _,
+  filter_upwards [h_add_1, h_add_2, hg₁₂],
+  intros a h1 h2 h3,
+  rw [h1, h2, pi.add_apply, pi.add_apply],
+  exact add_le_add le_rfl h3,
+end
+
+variables (p μ G)
+lemma coe_fn_zero : (0 : Lp.simple_func G p μ) =ᵐ[μ] (0 : α → G) :=
+Lp.coe_fn_zero _ _ _
+variables{p μ G}
+
+
+lemma coe_fn_nonneg (f : Lp.simple_func G p μ) : 0 ≤ᵐ[μ] f ↔ 0 ≤ f :=
+begin
+  rw ← Lp.simple_func.coe_fn_le,
+  have h0 : (0 : Lp.simple_func G p μ) =ᵐ[μ] (0 : α → G), from Lp.simple_func.coe_fn_zero p μ G,
+  split; intro h; filter_upwards [h, h0]; intros a h1 h2,
+  { rwa h2, },
+  { rwa ← h2, },
+end
+
+lemma exists_simple_func_nonneg_ae_eq {f : Lp.simple_func G p μ} (hf : 0 ≤ f) :
+  ∃ f' : α →ₛ G, 0 ≤ f' ∧ simple_func.to_simple_func f =ᵐ[μ] f' :=
+begin
+  rw ← Lp.simple_func.coe_fn_nonneg at hf,
+  have hf_ae : 0 ≤ᵐ[μ] (simple_func.to_simple_func f),
+    by { filter_upwards [to_simple_func_eq_to_fun f, hf], intros x h1 h2, rwa h1, },
+  let s := (to_measurable μ {x | ¬ 0 ≤ simple_func.to_simple_func f x})ᶜ,
+  have hs_zero : μ sᶜ = 0,
+    by { rw [compl_compl, measure_to_measurable], rwa [eventually_le, ae_iff] at hf_ae, },
+  have hfs_nonneg : ∀ x ∈ s, 0 ≤ simple_func.to_simple_func f x,
+  { intros x hxs,
+    rw mem_compl_iff at hxs,
+    have hx' : x ∉ {a : α | ¬0 ≤ simple_func.to_simple_func f a},
+      from λ h, hxs (subset_to_measurable μ _ h),
+    rwa [set.nmem_set_of_eq, not_not] at hx', },
+  let f' := simple_func.piecewise s (measurable_set_to_measurable μ _).compl
+    (simple_func.to_simple_func f) (simple_func.const α (0 : G)),
+  refine ⟨f', λ x, _, _⟩,
+  { rw simple_func.piecewise_apply,
+    by_cases hxs : x ∈ s,
+    { simp only [hxs, hfs_nonneg x hxs, if_true, pi.zero_apply, simple_func.coe_zero], },
+    { simp only [hxs, simple_func.const_zero, if_false], }, },
+  { rw simple_func.coe_piecewise,
+    have : s =ᵐ[μ] univ,
+    { rw ae_eq_set,
+      simp only [true_and, measure_empty, eq_self_iff_true, diff_univ, ← compl_eq_univ_diff],
+      exact hs_zero, },
+    refine eventually_eq.trans _ (piecewise_ae_eq_of_ae_eq_set this.symm),
+    simp only [simple_func.const_zero, indicator_univ, piecewise_eq_indicator,
+      simple_func.coe_zero], },
+end
+
+end order
 
 end simple_func
 

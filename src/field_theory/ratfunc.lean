@@ -275,7 +275,7 @@ by simpa only [← of_fraction_ring_inv, ← of_fraction_ring_mul, ← of_fracti
 section has_scalar
 omit hdomain
 
-variables {R : Type*} [monoid R]
+variables {R : Type*}
 
 /-- Scalar multiplication of rational functions. -/
 @[irreducible] protected def smul [has_scalar R (fraction_ring (polynomial K))] :
@@ -295,7 +295,7 @@ lemma to_fraction_ring_smul [has_scalar R (fraction_ring (polynomial K))]
 by { cases p, rw ←of_fraction_ring_smul }
 
 include hdomain
-variables [distrib_mul_action R (polynomial K)]
+variables [monoid R] [distrib_mul_action R (polynomial K)]
 variables [htower : is_scalar_tower R (polynomial K) (polynomial K)]
 include htower
 

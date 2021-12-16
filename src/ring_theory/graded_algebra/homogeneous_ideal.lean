@@ -34,7 +34,7 @@ variable (I : ideal R)
 /--An `I : ideal R` is called homogeneous if for every `r ∈ I`, every homogeneous component of `r`
   is in `I`.-/
 def is_homogeneous_ideal : Prop :=
-∀ {i : ι} {r : R}, r ∈ I → (graded_algebra.decompose A r i : R) ∈ I
+∀ ⦃i : ι⦄ ⦃r : R⦄, r ∈ I → (graded_algebra.decompose A r i : R) ∈ I
 
 lemma is_homogeneous_ideal_iff_forall_subset :
   is_homogeneous_ideal A I ↔ ∀ i, (I : set R) ⊆ graded_algebra.proj A i ⁻¹' I :=
@@ -140,7 +140,7 @@ variables (A : ι → submodule R R) [graded_algebra A]
 variable (I : ideal R)
 
 /--We collect all homogeneous ideal into a type.-/
-def homogeneous_ideal : Type* := { I : ideal R // is_homogeneous_ideal A I }
+abbreviation homogeneous_ideal : Type* := { I : ideal R // is_homogeneous_ideal A I }
 
 lemma is_homogeneous_ideal.bot : is_homogeneous_ideal A ⊥ := λ i r hr,
 begin
@@ -150,7 +150,7 @@ begin
 end
 
 instance homogeneous_ideal.inhabited : inhabited (homogeneous_ideal A) :=
-{ default := ⟨⊥, by apply is_homogeneous_ideal.bot⟩}
+{ default := ⟨⊥, is_homogeneous_ideal.bot _⟩}
 
 instance homogeneous_ideal.has_top :
   has_top (homogeneous_ideal A) :=
@@ -165,43 +165,32 @@ instance homogeneous_ideal.has_top :
     apply subtype.val_injective h',
   end ⟩
 
-instance homogeneous_ideal.has_le : has_le (homogeneous_ideal A) :=
-{ le := λ I J, I.1 ≤ J.1 }
-
 instance homogeneous_ideal.order : partial_order (homogeneous_ideal A) :=
-@partial_order.lift _ _ _ (λ (I : homogeneous_ideal A), I.1) (λ I J HIJ, subtype.eq HIJ)
+partial_order.lift _ subtype.coe_injective
 
 instance homogeneous_ideal.has_mem : has_mem R (homogeneous_ideal A) :=
 { mem := λ r I, r ∈ I.1 }
 
+variables {A}
 
 lemma is_homogeneous_ideal.inf {I J : ideal R}
   (HI : is_homogeneous_ideal A I) (HJ : is_homogeneous_ideal A J) :
-  is_homogeneous_ideal A (I ⊓ J) := λ i r hr,
+  is_homogeneous_ideal A (I ⊓ J) :=
+λ i r hr, ⟨HI hr.1, HJ hr.2⟩
+
+lemma homogeneous_ideal.Inf {ℐ : set (ideal R)} (h : ∀ I ∈ ℐ, is_homogeneous_ideal A I) :
+  is_homogeneous_ideal A (Inf ℐ) :=
 begin
-  split, apply HI hr.1, apply HJ hr.2,
+  intros i x Hx, simp only [ideal.mem_Inf] at Hx ⊢,
+  intros J HJ,
+  exact h _ HJ (Hx HJ),
 end
-
-instance homogeneous_ideal.has_inf : has_inf (homogeneous_ideal A) :=
-{ inf := λ ⟨I, HI⟩ ⟨J, HJ⟩, ⟨I ⊓ J, by { apply is_homogeneous_ideal.inf; assumption }⟩ }
-
-instance homogeneous_ideal.has_Inf  :
-  has_Inf (homogeneous_ideal A) :=
-{ Inf := λ ℐ, ⟨Inf (set.image (λ x : homogeneous_ideal A, x.val) ℐ), begin
-    intros i x Hx, simp only [submodule.mem_Inf] at Hx ⊢,
-    intros J HJ, simp only [set.mem_image, subtype.val_eq_coe] at HJ,
-    obtain ⟨K, HK₁, HK₂⟩ := HJ, rw ←HK₂,
-    have HK₃ := K.2,
-    apply HK₃, apply Hx, simp only [set.mem_image, subtype.val_eq_coe], use K, exact ⟨HK₁, rfl⟩,
-end⟩ }
-
-
-variable [Π (i : ι) (x : A i), decidable (x ≠ 0)]
 
 lemma is_homogeneous_ideal.mul {I J : ideal R}
   (HI : is_homogeneous_ideal A I) (HJ : is_homogeneous_ideal A J) :
   is_homogeneous_ideal A (I * J) :=
 begin
+  classical,
   rw is_homogeneous_ideal_iff_exists at HI HJ,
   choose s₁ hI using HI,
   choose s₂ hJ using HJ,
@@ -231,14 +220,11 @@ begin
     split, rw set.mem_image, use z2, refine ⟨hz2, rfl⟩, tidy, }
 end
 
-instance homogeneous_ideal.has_mul :
-  has_mul (homogeneous_ideal A) :=
-{ mul := λ ⟨I, HI⟩ ⟨J, HJ⟩, ⟨I * J, by { apply is_homogeneous_ideal.mul; assumption }⟩ }
-
 lemma is_homogeneous_ideal.sup {I J : ideal R}
   (HI : is_homogeneous_ideal A I) (HJ : is_homogeneous_ideal A J) :
   is_homogeneous_ideal A (I ⊔ J) :=
 begin
+  classical,
   rw is_homogeneous_ideal_iff_exists at HI HJ,
   choose s₁ hI using HI,
   choose s₂ hJ using HJ,
@@ -248,12 +234,10 @@ begin
   exact (submodule.span_union _ _).symm,
 end
 
-instance homogeneous_ideal.has_sup : has_sup (homogeneous_ideal A) :=
-{ sup := λ ⟨I, HI⟩ ⟨J, HJ⟩, ⟨I ⊔ J, by { apply is_homogeneous_ideal.sup; assumption }⟩ }
-
 lemma is_homogeneous_ideal.Sup {ℐ : set (ideal R)} (Hℐ : ∀ (I ∈ ℐ), is_homogeneous_ideal A I) :
   is_homogeneous_ideal A (Sup ℐ) :=
 begin
+  classical,
   simp_rw [is_homogeneous_ideal_iff_exists] at Hℐ,
   set 𝓈 : ℐ → set (homogeneous_submonoid A) := λ I : ℐ, Exists.some (Hℐ I _) with 𝓈_eq,
   have h𝓈 : ∀ I : ℐ, I.1 = ideal.span (coe '' 𝓈 I) := λ I : ℐ, Exists.some_spec (Hℐ I _),
@@ -277,15 +261,24 @@ begin
   intros I, exact I.2,
 end
 
-instance homogeneous_ideal.has_Sup : has_Sup (homogeneous_ideal A) :=
-{ Sup := λ ℐ, ⟨Sup (set.image (λ x : homogeneous_ideal A, x.val) ℐ), begin
-    refine @is_homogeneous_ideal.Sup ι R _ _ _ _ _ _
-      (set.image (λ x : homogeneous_ideal A, x.val) ℐ) _,
-    intros I HI, simp only [mem_image, subtype.val_eq_coe] at HI,
-    obtain ⟨I', HI1, HI2⟩ := HI, rw [←HI2], exact I'.2,
-  end⟩ }
+variables (A)
 
-instance homogeneous_ideal.has_add : has_add (homogeneous_ideal A) := ⟨(⊔)⟩
+instance : has_inf (homogeneous_ideal A) :=
+{ inf := λ I J, ⟨I ⊓ J, I.prop.inf J.prop⟩ }
+
+instance : has_Inf (homogeneous_ideal A) :=
+{ Inf := λ ℐ, ⟨Inf (coe '' ℐ), homogeneous_ideal.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
+
+instance : has_sup (homogeneous_ideal A) :=
+{ sup := λ I J, ⟨I ⊔ J, I.prop.sup J.prop⟩ }
+
+instance : has_Sup (homogeneous_ideal A) :=
+{ Sup := λ ℐ, ⟨Sup (coe '' ℐ), is_homogeneous_ideal.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
+
+instance : has_mul (homogeneous_ideal A) :=
+{ mul := λ I J, ⟨I * J, I.prop.mul J.prop⟩ }
+
+instance : has_add (homogeneous_ideal A) := ⟨(⊔)⟩
 
 end operations
 

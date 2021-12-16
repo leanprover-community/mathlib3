@@ -84,4 +84,30 @@ end
   factorization (p^k) = single p k :=
 by simp [factorization_pow, prime.factorization hp]
 
+/-! ### Factorizations of pairs of coprime numbers -/
+
+/-- The prime factorizations of coprime `a` and `b` are disjoint -/
+lemma factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :
+  disjoint a.factorization.support b.factorization.support :=
+by simpa only [support_factorization]
+  using disjoint_to_finset_iff_disjoint.mpr (coprime_factors_disjoint hab)
+
+/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma factorization_mul_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factorization = a.factorization + b.factorization :=
+begin
+  ext q,
+  simp only [finsupp.coe_add, pi.add_apply, factorization_eq_count],
+  simp only [count_factors_mul_of_coprime hab],
+end
+
+/-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
+lemma factorization_mul_support_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factorization.support =
+    a.factorization.support ∪ b.factorization.support :=
+begin
+  rw factorization_mul_of_coprime hab,
+  exact support_add_eq (factorization_disjoint_of_coprime hab),
+end
+
 end nat

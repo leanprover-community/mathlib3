@@ -61,14 +61,9 @@ lemma is_homogeneous_ideal.exists_iff_eq_span :
     simp only [linear_map.id_coe, id.def, finsupp.mem_support_iff, linear_map.coe_smul_right,
       ne.def, smul_eq_mul, subtype.coe_mk] at hx₁ hx₂ hx₃ ⊢,
     exact ideal.mul_mem_left _ _ hx₁, }
-  end, λ hI, ⟨{x : homogeneous_submonoid A | ↑x ∈ I}, begin
-    rw hI, congr, ext r, split; intros hr,
-    { rcases hr with ⟨r_mem, ⟨i, r_eq⟩⟩,
-      use r, exact ⟨i, r_eq⟩, refine ⟨_, rfl⟩,
-      simp only [mem_set_of_eq, subtype.coe_mk], convert ←r_mem, },
-    { rcases hr with ⟨⟨r', hr'⟩, hr₁, hr₂⟩,
-      simp only [mem_set_of_eq, subtype.coe_mk] at hr₁,
-      rw ←hr₂, rw ←hI at hr₁, refine ⟨hr₁, hr'⟩, }
+  end, λ hI, ⟨(coe : homogeneous_submonoid A → R) ⁻¹' (I : set R), begin
+    rw subtype.image_preimage_coe,
+    exact hI,
   end⟩⟩
 
 lemma mul_homogeneous_element_mem_of_mem

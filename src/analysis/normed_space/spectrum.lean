@@ -89,13 +89,10 @@ metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
 theorem spectral_radius_le_nnnorm (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
 begin
-  suffices h : ∀ k ∈ σ a, (∥k∥₊ : ℝ≥0∞) ≤ ∥a∥₊,
-  { exact bsupr_le h, },
+  refine bsupr_le (λ k hk, _),
   { by_cases ha : (σ a).nonempty,
-    { intros _ hk,
-      exact_mod_cast norm_le_norm_of_mem hk },
-    { rw set.not_nonempty_iff_eq_empty at ha,
-      simp [ha, set.ball_empty_iff] } }
+    { exact_mod_cast norm_le_norm_of_mem hk },
+    { exact false.elim ((set.not_nonempty_iff_eq_empty.mp ha).subst hk), } }
 end
 
 open ennreal polynomial

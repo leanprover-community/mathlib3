@@ -350,8 +350,6 @@ begin
                polynomial.coeff_C, c_i, if_false, coeff_zero, x', if_false] },
 end
 
-local attribute [instance] classical.prop_decidable -- TODO is it okay to use this here?
-
 private lemma fin_succ_equiv_coeff_coeff_case_p_X  {n : ℕ } {R : Type u} [comm_semiring R]
   (p : mv_polynomial (fin (n + 1)) R) (j : fin (n + 1)) (hp : ∀ (i : ℕ) (m : fin n →₀ ℕ),
   coeff m (((fin_succ_equiv R n) p).coeff i) = coeff (finsupp.cons i m) p) (i : ℕ)
@@ -403,7 +401,8 @@ begin
       { simp only [finsupp.coe_tsub, pi.sub_apply],
         rw ←fin.succ_pred a c_a,
         repeat {rw finsupp.cons_succ},
-        simp [finsupp.single, c_j] } } },
+        simp [finsupp.single, c_j],
+        congr } } },
 end
 
 /-- This gives the relation between the coefficients of the coefficients of `fin_succ_equiv R n f`
@@ -453,22 +452,18 @@ lemma coeff_eval_eq_eval_coeff {n : ℕ} {R : Type u} [comm_semiring R] (s' : fi
   polynomial.coeff (polynomial.map (eval s') f) i =  eval s' (polynomial.coeff f i) :=
 by simp only [polynomial.coeff_map]
 
-/- TODO: what is a good name for this one?-/
-lemma support_eval' {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
-  (f : polynomial (mv_polynomial (fin n) R)) (i : ℕ)
-  (h : i ∈ (polynomial.map (eval s') f).support) : i ∈ f.support :=
+/- TODO: what is a good name for this one? -/
+lemma support_eval {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
+  (f : polynomial (mv_polynomial (fin n) R)) (i : ℕ) :
+  (polynomial.map (eval s') f).support ⊆ f.support :=
 begin
-  simp only [polynomial.mem_support_iff, polynomial.coeff_map, ne.def] at h,
+  intros i hi,
+  simp only [polynomial.mem_support_iff, polynomial.coeff_map, ne.def] at hi,
   by_contradiction c,
   simp only [polynomial.mem_support_iff, not_not, ne.def] at c,
-  rw c at h,
-  simpa using h,
+  rw c at hi,
+  simpa using hi,
 end
-
-/- TODO: what is a good name for this one?-/
-lemma support_eval {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
-  (f : polynomial (mv_polynomial (fin n) R)): (polynomial.map (eval s') f).support ⊆ f.support :=
-finset.subset_iff.1 (support_eval' s' f)
 
 lemma degree_eval_le_degree {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
   (f : polynomial (mv_polynomial (fin n) R)) :
@@ -476,7 +471,7 @@ lemma degree_eval_le_degree {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n
 begin
   rw [polynomial.degree, polynomial.degree, finset.sup_le_iff],
   intros b hb,
-  apply finset.le_sup (support_eval' s' f b hb),
+  apply finset.le_sup (support_eval s' f b hb),
 end
 
 lemma nat_degree_eval_le_nat_degree {n : ℕ} {R : Type u} [comm_semiring R] (s : fin n → R)

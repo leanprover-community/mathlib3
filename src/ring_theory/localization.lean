@@ -294,7 +294,22 @@ lemma eq_zero_of_fst_eq_zero {z x} {y : M}
 by { rw [hx, (algebra_map R S).map_zero] at h,
      exact (is_unit.mul_left_eq_zero (is_localization.map_units S y)).1 h}
 
-variables (S)
+variables (M S)
+
+lemma map_eq_zero_iff (r : R) :
+  algebra_map R S r = 0 ↔ ∃ m : M, r * m = 0 :=
+begin
+  split,
+  intro h,
+  { obtain ⟨m, hm⟩ := (is_localization.eq_iff_exists M S).mp
+      ((algebra_map R S).map_zero.trans h.symm),
+    exact ⟨m, by simpa using hm.symm⟩ },
+  { rintro ⟨m, hm⟩,
+    rw [← (is_localization.map_units S m).mul_left_inj, zero_mul, ← ring_hom.map_mul, hm,
+      ring_hom.map_zero] }
+end
+
+variables {M}
 
 /-- `is_localization.mk' S` is the surjection sending `(x, y) : R × M` to
 `f x * (f y)⁻¹`. -/

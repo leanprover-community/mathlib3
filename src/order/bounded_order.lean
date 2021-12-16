@@ -94,7 +94,7 @@ top_le_iff.1 $ h₂ ▸ h
 
 lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 
-lemma eq_top_or_lt_top : a = ⊤ ∨ a < ⊤ :=
+lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ :=
 begin
   by_cases h : a = ⊤,
   { exact or.inl h },
@@ -179,7 +179,7 @@ begin
   simp only [lt_iff_le_not_le, not_iff_not.mpr le_bot_iff, true_and, bot_le],
 end
 
-lemma eq_bot_or_bot_lt : a = ⊥ ∨ ⊥ < a :=
+lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a :=
 begin
   by_cases h : a = ⊥,
   { exact or.inl h },

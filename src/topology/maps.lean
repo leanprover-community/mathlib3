@@ -423,6 +423,22 @@ lemma open_embedding.comp {g : β → γ} {f : α → β}
   (hg : open_embedding g) (hf : open_embedding f) : open_embedding (g ∘ f) :=
 ⟨hg.1.comp hf.1, (hg.is_open_map.comp hf.is_open_map).is_open_range⟩
 
+lemma open_embedding_of_open_embedding_compose {α β γ : Type*} [topological_space α]
+  [topological_space β] [topological_space γ] (f : α → β) {g : β → γ} (hg : open_embedding g)
+    (h : open_embedding (g ∘ f)) : open_embedding f :=
+begin
+  have hf := hg.to_embedding.continuous_iff.mpr h.continuous,
+  split,
+  { exact embedding_of_embedding_compose hf hg.continuous h.to_embedding },
+  { rw [hg.open_iff_image_open, ← set.image_univ, ← set.image_comp, ← h.open_iff_image_open],
+    exact is_open_univ }
+end
+
+lemma open_embedding_iff_open_embedding_compose {α β γ : Type*} [topological_space α]
+  [topological_space β] [topological_space γ] (f : α → β) {g : β → γ} (hg : open_embedding g) :
+    open_embedding (g ∘ f) ↔ open_embedding f :=
+⟨open_embedding_of_open_embedding_compose f hg, hg.comp⟩
+
 end open_embedding
 
 section closed_embedding

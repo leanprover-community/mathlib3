@@ -390,7 +390,7 @@ begin
   simp_rw [integral_def],
   refine set_to_simple_func_add_left' (weighted_smul μ) (weighted_smul ν) (weighted_smul (μ + ν))
     (λ s hs hμνs, _) hf,
-  rw [measure.coe_add, pi.add_apply, ennreal.add_ne_top] at hμνs,
+  rw [lt_top_iff_ne_top, measure.coe_add, pi.add_apply, ennreal.add_ne_top] at hμνs,
   rw weighted_smul_add_measure _ _ hμνs.1 hμνs.2,
 end
 

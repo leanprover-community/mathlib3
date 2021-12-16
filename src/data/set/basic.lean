@@ -1673,6 +1673,8 @@ alias range_iff_surjective ↔ _ function.surjective.range_eq
 
 @[simp] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
 
+@[simp] theorem range_id' : range (λ (x : α), x) = univ := range_id
+
 @[simp] theorem _root_.prod.range_fst [nonempty β] : range (prod.fst : α × β → α) = univ :=
 prod.fst_surjective.range_eq
 

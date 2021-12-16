@@ -115,10 +115,10 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
-lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0)
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k}
   (hp : irreducible p) :
   p.degree = 1 :=
-degree_eq_one_of_irreducible_of_splits h_nz hp (is_alg_closed.splits_codomain _)
+degree_eq_one_of_irreducible_of_splits hp (is_alg_closed.splits_codomain _)
 
 lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :
@@ -127,7 +127,7 @@ begin
   refine λ x, ⟨-((minpoly k x).coeff 0), _⟩,
   have hq : (minpoly k x).leading_coeff = 1 := minpoly.monic (hf x),
   have h : (minpoly k x).degree = 1 := degree_eq_one_of_irreducible k
-    (minpoly.ne_zero (hf x)) (minpoly.irreducible (hf x)),
+    (minpoly.irreducible (hf x)),
   have : (aeval x (minpoly k x)) = 0 := minpoly.aeval k x,
   rw [eq_X_add_C_of_degree_eq_one h, hq, C_1, one_mul,
     aeval_add, aeval_X, aeval_C, add_eq_zero_iff_eq_neg] at this,
@@ -221,8 +221,9 @@ instance : preorder (subfield_with_hom K L M hL) :=
 open lattice
 
 lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
-  (hc : chain (≤) c) (hcn  : c.nonempty) :
+  (hc : chain (≤) c) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
+if hcn : c.nonempty then
 let ub : subfield_with_hom K L M hL :=
 by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
 { carrier := ⨆ i : c, (i : subfield_with_hom K L M hL).carrier,
@@ -245,12 +246,13 @@ by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
     simp [ub],
     refl
   end⟩⟩
+else by { rw [set.not_nonempty_iff_eq_empty] at hcn, simp [hcn], }
 
 variables (hL M)
 
 lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
   ∀ N, E ≤ N → N ≤ E :=
-zorn.exists_maximal_of_nonempty_chains_bounded
+zorn.exists_maximal_of_chains_bounded
   maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
 
 /-- The maximal `subfield_with_hom`. We later prove that this is equal to `⊤`. -/

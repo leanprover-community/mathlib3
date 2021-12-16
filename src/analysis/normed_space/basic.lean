@@ -359,7 +359,7 @@ by rwa norm_zpow⟩
 variable {α}
 
 @[instance]
-lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[{x}ᶜ] x) :=
+lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[≠] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -416,7 +416,7 @@ This is a particular case of `module.punctured_nhds_ne_bot`. -/
 instance punctured_nhds_module_ne_bot
   {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
   [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
-  ne_bot (𝓝[{x}ᶜ] x) :=
+  ne_bot (𝓝[≠] x) :=
 module.punctured_nhds_ne_bot ℝ E x
 
 end real
@@ -668,6 +668,8 @@ begin
     div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
 end
 
+/-- In a nontrivial real normed space, a sphere is nonempty if and only if its radius is
+nonnegative. -/
 @[simp] theorem normed_space.sphere_nonempty {E : Type*} [normed_group E]
   [normed_space ℝ E] [nontrivial E] {x : E} {r : ℝ} :
   (sphere x r).nonempty ↔ 0 ≤ r :=
@@ -679,8 +681,8 @@ begin
   simp [norm_smul, this, real.norm_of_nonneg hr]
 end
 
-theorem smul_sphere {E : Type*} [normed_group E] [normed_space ℝ E] [nontrivial E]
-  (c : ℝ) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+theorem smul_sphere {E : Type*} [normed_group E] [normed_space α E] [normed_space ℝ E]
+  [nontrivial E] (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
   c • sphere x r = sphere (c • x) (∥c∥ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,

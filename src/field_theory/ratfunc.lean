@@ -607,9 +607,11 @@ by { convert denom_div (1 : polynomial K) one_ne_zero; simp }
   denom (algebra_map _ (ratfunc K) p) = 1 :=
 by { convert denom_div p one_ne_zero; simp }
 
-@[simp] lemma denom_div_dvd (p : polynomial K) {q : polynomial K} (hq : q ≠ 0) :
+@[simp] lemma denom_div_dvd (p q : polynomial K) :
   denom (algebra_map _ _ p / algebra_map _ _ q) ∣ q :=
 begin
+  by_cases hq : q = 0,
+  { simp [hq], },
   rw [denom_div _ hq, C_mul_dvd],
   { exact euclidean_domain.div_dvd_of_dvd (gcd_dvd_right p q) },
   { simpa only [ne.def, inv_eq_zero, polynomial.leading_coeff_eq_zero]
@@ -689,7 +691,7 @@ begin
     rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div, div_self, mul_one, num_div_denom],
     { exact algebra_map_ne_zero hp } },
   { rintro ⟨p, rfl⟩,
-    exact denom_div_dvd p hq },
+    exact denom_div_dvd p q },
 end
 
 lemma num_mul_dvd (x y : ratfunc K) : num (x * y) ∣ num x * num y :=

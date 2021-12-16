@@ -67,7 +67,7 @@ begin
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
-theorem smul_sphere' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+theorem smul_sphere' {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • sphere x r = sphere (c • x) (∥c∥ * r) :=
 begin
   ext y,
@@ -90,8 +90,8 @@ begin
   simp [norm_smul, this, real.norm_of_nonneg hr]
 end
 
-theorem smul_sphere {E : Type*} [normed_group E] [normed_space α E] [normed_space ℝ E]
-  [nontrivial E] (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+theorem smul_sphere {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space ℝ E]
+  [nontrivial E] (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
   c • sphere x r = sphere (c • x) (∥c∥ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
@@ -99,18 +99,9 @@ begin
   { exact smul_sphere' hc x r }
 end
 
-theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+theorem smul_closed_ball' {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
 by simp only [← ball_union_sphere, set.smul_set_union, smul_ball hc, smul_sphere' hc]
-
-theorem smul_closed_ball {E : Type*} [normed_group E] [normed_space α E]
-  (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
-begin
-  rcases eq_or_ne c 0 with rfl|hc,
-  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
-  { exact smul_closed_ball' hc x r }
-end
 
 lemma metric.bounded.smul {s : set E} (hs : bounded s) (c : 𝕜) :
   bounded (c • s) :=

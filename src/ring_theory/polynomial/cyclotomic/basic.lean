@@ -395,7 +395,7 @@ begin
                                                     (λ i, cyclotomic i ℤ), integer]
 end
 
-lemma cyclotomic.dvd_X_pow_sub_one (n : ℕ) {R : Type*} [comm_ring R] :
+lemma cyclotomic.dvd_X_pow_sub_one (n : ℕ) (R : Type*) [comm_ring R] :
   (cyclotomic n R) ∣ X ^ n - 1 :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn,

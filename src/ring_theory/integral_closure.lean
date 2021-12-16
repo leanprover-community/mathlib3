@@ -6,6 +6,7 @@ Authors: Kenny Lau
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
+import tactic.omega
 
 /-!
 # Integral closure of a subring.
@@ -463,37 +464,39 @@ begin
   { rw not_mem_support_iff at h₁, rw [h₁, zero_mul, zero_mul] }
 end
 
+lemma leading_coeff_smul_poly (p : polynomial R) :
+  p.leading_coeff • poly p = scale_roots p p.leading_coeff :=
+begin
+  ext,
+  simp only [coeff_scale_roots, poly, coeff_monomial, coeff_smul, finset.smul_sum,
+    ne.def, finset.sum_ite_eq', finset_sum_coeff, smul_ite, smul_zero, mem_support_iff],
+  split_ifs,
+  { simp [*] },
+  { simp [*] },
+  { rw [algebra.id.smul_eq_mul, mul_comm, mul_assoc, ← pow_succ'],
+    congr,
+    have : n < p.nat_degree := (ne.le_iff_lt h_1).mp (le_nat_degree_of_ne_zero h),
+    omega, },
+end
+
 lemma poly_support :
   (poly p).support ≤ p.support :=
 begin
   intro x,
   contrapose,
-  rw [not_mem_support_iff, not_mem_support_iff],
-  intro h,
-  delta poly,
-  rw finset_sum_coeff,
-  simp_rw coeff_monomial,
-  rw finset.sum_ite_eq',
-  split_ifs with h₁ h₂,
-  { exact (mem_support_iff.mp h₁ h).rec _ },
-  { rw [h, zero_mul] },
-  { refl }
+  simp only [not_mem_support_iff, poly, finset_sum_coeff, coeff_monomial, finset.sum_ite_eq',
+    mem_support_iff, ne.def, not_not, ite_eq_right_iff],
+  intros h₁ h₂,
+  exact (h₂ h₁).rec _,
 end
 
 lemma poly_degree :
   (poly p).degree = p.degree :=
 begin
-  by_cases p = 0,
-  { delta poly, simp[h] },
-  nontriviality R,
   apply le_antisymm,
   { exact finset.sup_mono (poly_support p) },
-  { rw degree_eq_nat_degree h,
-    apply le_degree_of_ne_zero,
-    delta poly,
-    suffices : ¬p = 0 ∧ ¬(1 : R) = 0,
-    { simpa [coeff_monomial] using this },
-    exact ⟨h, one_ne_zero⟩ }
+  { rw [← degree_scale_roots, ← leading_coeff_smul_poly],
+    exact degree_smul_le _ _ }
 end
 
 lemma poly_eval₂_leading_coeff_mul (h : 1 ≤ p.nat_degree) (f : R →+* S) (x : S) :

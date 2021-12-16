@@ -310,18 +310,18 @@ end
 variables (A C)
 
 structure shift_mk_core :=
-(F : discrete A ⥤ (C ⥤ C))
-(ε : 𝟭 C ≅ F.obj 0)
-(μ : Π n m : A, F.obj n ⋙ F.obj m ≅ F.obj (n + m))
+(F : A → (C ⥤ C))
+(ε : 𝟭 C ≅ F 0)
+(μ : Π n m : A, F n ⋙ F m ≅ F (n + m))
 (associativity : ∀ (m₁ m₂ m₃ : A) (X : C),
-  (F.obj m₃).map ((μ m₁ m₂).hom.app X) ≫ (μ (m₁ + m₂) m₃).hom.app X ≫
+  (F m₃).map ((μ m₁ m₂).hom.app X) ≫ (μ (m₁ + m₂) m₃).hom.app X ≫
     eq_to_hom (by { congr' 2, exact add_assoc _ _ _ }) =
-    (μ m₂ m₃).hom.app ((F.obj m₁).obj X) ≫ (μ m₁ (m₂ + m₃)).hom.app X . obviously)
+    (μ m₂ m₃).hom.app ((F m₁).obj X) ≫ (μ m₁ (m₂ + m₃)).hom.app X . obviously)
 (left_unitality : ∀ (n : A) (X : C),
-  (F.obj n).map (ε.hom.app X) ≫ (μ 0 n).hom.app X =
+  (F n).map (ε.hom.app X) ≫ (μ 0 n).hom.app X =
     eq_to_hom (by { dsimp, rw zero_add }) . obviously)
 (right_unitality : ∀ (n : A) (X : C),
-  ε.hom.app ((F.obj n).obj X) ≫ (μ n 0).hom.app X =
+  ε.hom.app ((F n).obj X) ≫ (μ n 0).hom.app X =
     eq_to_hom (by { dsimp, rw add_zero }) . obviously)
 
 end monoid
@@ -347,12 +347,7 @@ variables (C A)
 /-- A category has a shift, or translation, if it is equipped with an automorphism. -/
 class has_shift (C : Type u) (A : Type*) [category.{v} C] [add_monoid A] :=
 (shift : monoidal_functor (discrete A) (C ⥤ C))
--- (shift : Π (i : A), C ⥤ C)
--- (shift_add : Π i j, shift (i + j) ≅ shift i ⋙ shift j)
--- (iso_whisker_right_shift_add : ∀ i j k, iso_whisker_right (shift_add i j) (shift k) =
---   (shift_add (i+j) k).symm ≪≫ (eq_to_iso $ by rw add_assoc) ≪≫ (shift_add i (j+k)) ≪≫
---     iso_whisker_left _ (shift_add j k) ≪≫ (functor.associator _ _ _).symm)
--- (shift_functor_zero : shift 0 ≅ 𝟭 C)
+
 @[simps]
 def has_shift_mk (h : shift_mk_core C A) : has_shift C A :=
 ⟨{ ε := h.ε.hom,
@@ -364,7 +359,7 @@ def has_shift_mk (h : shift_mk_core C A) : has_shift C A :=
    right_unitality' :=
     by { introv, ext, dsimp, rw [functor.map_id, category.comp_id,
       ← category.assoc, h.right_unitality], simp },
- .. h.F }⟩
+ ..(discrete.functor h.F) }⟩
 
 variables [has_shift C A]
 

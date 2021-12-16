@@ -253,6 +253,21 @@ end
 
 end comm_monoid
 
+section to_list
+
+open finset
+
+@[to_additive]
+lemma prod_to_list [comm_monoid β]
+  (s : finset α) (f : α → β) :
+  (list.map f s.to_list).prod = finset.prod s f :=
+begin
+  delta finset.prod,
+  rw [← multiset.coe_prod, ← multiset.coe_map, finset.coe_to_list],
+end
+
+end to_list
+
 end finset
 
 section

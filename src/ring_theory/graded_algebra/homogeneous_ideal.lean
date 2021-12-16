@@ -71,12 +71,11 @@ lemma is_homogeneous_ideal.exists_iff_eq_span :
       rw ←hr₂, rw ←hI at hr₁, refine ⟨hr₁, hr'⟩, }
   end⟩⟩
 
-variable [Π (i : ι) (x : A i), decidable (x ≠ 0)]
-
 lemma mul_homogeneous_element_mem_of_mem
   {I : ideal R} (r x : R) (hx₁ : is_homogeneous A x) (hx₂ : x ∈ I) (j : ι) :
   graded_algebra.proj A j (r * x) ∈ I :=
 begin
+  letI : Π (i : ι) (x : A i), decidable (x ≠ 0) := λ _ _, classical.dec _,
   rw [←graded_algebra.sum_support_decompose A r, finset.sum_mul, linear_map.map_sum],
   apply ideal.sum_mem,
   intros k hk,
@@ -94,6 +93,7 @@ end
 lemma is_homogeneous_ideal_iff_eq :
   is_homogeneous_ideal A I ↔ I = ideal.span {x | x ∈ I ∧ is_homogeneous A x} :=
 ⟨ λ hI, begin
+  letI : Π (i : ι) (x : A i), decidable (x ≠ 0) := λ _ _, classical.dec _,
   ext, split; intro hx,
   { rw ←graded_algebra.sum_support_decompose A x,
     refine ideal.sum_mem _ _,
@@ -190,12 +190,9 @@ lemma is_homogeneous_ideal.mul {I J : ideal R}
   (HI : is_homogeneous_ideal A I) (HJ : is_homogeneous_ideal A J) :
   is_homogeneous_ideal A (I * J) :=
 begin
-  classical,
-  rw is_homogeneous_ideal_iff_exists at HI HJ,
-  choose s₁ hI using HI,
-  choose s₂ hJ using HJ,
-  rw is_homogeneous_ideal_iff_exists,
-  rw [hI, hJ, ideal.span_mul_span'],
+  rw is_homogeneous_ideal_iff_exists at HI HJ ⊢,
+  obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
+  rw [ideal.span_mul_span'],
   refine ⟨s₁ * s₂, _⟩,
   apply congr_arg,
   ext, split; intro hx,
@@ -224,20 +221,16 @@ lemma is_homogeneous_ideal.sup {I J : ideal R}
   (HI : is_homogeneous_ideal A I) (HJ : is_homogeneous_ideal A J) :
   is_homogeneous_ideal A (I ⊔ J) :=
 begin
-  classical,
-  rw is_homogeneous_ideal_iff_exists at HI HJ,
-  choose s₁ hI using HI,
-  choose s₂ hJ using HJ,
-  rw is_homogeneous_ideal_iff_exists,
+  rw is_homogeneous_ideal_iff_exists at HI HJ ⊢,
+  obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
   refine ⟨s₁ ∪ s₂, _⟩,
-  rw [set.image_union, ideal.span, hI, hJ],
+  rw [set.image_union],
   exact (submodule.span_union _ _).symm,
 end
 
 lemma is_homogeneous_ideal.Sup {ℐ : set (ideal R)} (Hℐ : ∀ (I ∈ ℐ), is_homogeneous_ideal A I) :
   is_homogeneous_ideal A (Sup ℐ) :=
 begin
-  classical,
   simp_rw [is_homogeneous_ideal_iff_exists] at Hℐ,
   set 𝓈 : ℐ → set (homogeneous_submonoid A) := λ I : ℐ, Exists.some (Hℐ I _) with 𝓈_eq,
   have h𝓈 : ∀ I : ℐ, I.1 = ideal.span (coe '' 𝓈 I) := λ I : ℐ, Exists.some_spec (Hℐ I _),
@@ -304,7 +297,7 @@ begin
 end
 
 variables [add_comm_monoid ι] [decidable_eq ι]
-variables [graded_algebra A] [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+variables [graded_algebra A]
 
 lemma is_homogeneous_ideal.homogeneous_ideal_of_ideal :
   is_homogeneous_ideal A (homogeneous_ideal_of_ideal A I) :=

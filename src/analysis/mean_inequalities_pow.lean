@@ -120,8 +120,6 @@ end nnreal
 
 namespace nnreal
 
-variables (f g : ι → ℝ≥0)  {p q : ℝ}
-
 private lemma add_rpow_le_one_of_add_le_one {p : ℝ} (a b : ℝ≥0) (hab : a + b ≤ 1)
   (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ 1 :=
@@ -250,8 +248,6 @@ end
 end ennreal
 
 namespace ennreal
-
-variables (f g : ι → ℝ≥0∞)  {p q : ℝ}
 
 lemma add_rpow_le_rpow_add {p : ℝ} (a b : ℝ≥0∞) (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ (a + b) ^ p :=

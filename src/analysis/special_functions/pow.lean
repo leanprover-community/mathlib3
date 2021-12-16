@@ -967,16 +967,6 @@ lemma one_le_rpow_of_pos_of_le_one_of_nonpos {x : ℝ≥0} {z : ℝ} (hx1 : 0 < 
   (hz : z ≤ 0) : 1 ≤ x^z :=
 real.one_le_rpow_of_pos_of_le_one_of_nonpos hx1 hx2 hz
 
--- move to `order.bounded_order`
-lemma eq_bot_or_bot_lt {α : Type*} [partial_order α] [order_bot α] (x : α) : x = ⊥ ∨ ⊥ < x :=
-begin
-  by_cases h : x = ⊥,
-  { exact or.inl h },
-  right,
-  rw bot_lt_iff_ne_bot,
-  exact h,
-end
-
 lemma rpow_le_self_of_le_one {x : ℝ≥0} {z : ℝ} (hx : x ≤ 1) (h_one_le : 1 ≤ z) : x ^ z ≤ x :=
 begin
   rcases eq_bot_or_bot_lt x with rfl | (h : 0 < x),

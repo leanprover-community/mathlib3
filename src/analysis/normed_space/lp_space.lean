@@ -418,19 +418,6 @@ begin
     simpa using Lp.has_sum_norm hp f }
 end
 
-variables {M : Type*} [has_mul M] [preorder M] [covariant_class M M (*) (≤)]
-  [covariant_class M M (function.swap (*)) (≤)]
-
-open_locale pointwise
-
-lemma is_lub_mul {s t : set M} (a b c: M) (hs : is_lub s a) (ht : is_lub t b) :
-  is_lub (s * t) (a * b) :=
-begin
-  split,
-  { exact mul_mem_upper_bounds_mul hs.1 ht.1 },
-  intros C hC,
-end
-
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p) :=
 normed_group.of_core _
 { norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
@@ -441,21 +428,12 @@ normed_group.of_core _
       { simp [Lp.eq_zero' f] },
       have := Lp.is_lub_norm f,
       have := Lp.is_lub_norm g,
-      have := Lp.is_lub_norm (f + g),
-
-      sorry },
-    -- rcases Lp_trichotomy₃ f g (f + g) with ⟨hp, h₁, h₂, h₃⟩ | ⟨hp, h | ⟨_i, h₁, h₂, h₃⟩⟩ | ⟨hp, hp', h₁, h₂, h₃⟩,
-    -- { simp [h₁, h₂, h₃] },
+      refine (Lp.is_lub_norm (f + g)).2 _,
+      rintros x ⟨i, rfl⟩,
+      refine le_trans _ (add_mem_upper_bounds_add (Lp.is_lub_norm f).1 (Lp.is_lub_norm g).1
+        ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
+      exact norm_add_le (f i) (g i) },
     { sorry },
-    -- { sorry },
-    -- { sorry }
-    -- have := Lp_trichotomy₃ f g (f + g),
-    -- rw ← ennreal.to_real_add (snorm_ne_top f) (snorm_ne_top g),
-    -- suffices h_snorm : snorm ⇑(f + g) p ≤ snorm ⇑f p + snorm ⇑g p,
-    -- { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
-    --   exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
-    -- rw [snorm_congr_ae (coe_fn_add _ _)],
-    -- exact snorm_add_le (Lp.ae_measurable f) (Lp.ae_measurable g) hp.1,
   end,
   norm_neg := by simp }
 

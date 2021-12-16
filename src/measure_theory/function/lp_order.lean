@@ -25,7 +25,7 @@ import analysis.normed_space.lattice_ordered_group
 open topological_space measure_theory lattice_ordered_comm_group
 open_locale ennreal
 
-variables {α E : Type*} [measurable_space α] {μ : measure α} {p : ℝ≥0∞}
+variables {α E : Type*} {m : measurable_space α} {μ : measure α} {p : ℝ≥0∞}
 
 namespace measure_theory
 namespace Lp

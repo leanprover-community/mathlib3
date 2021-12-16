@@ -140,7 +140,7 @@ by exact_mod_cast real.geom_mean_le_arith_mean_weighted _ _ _ (λ i _, (w i).coe
 for two `nnreal` numbers. -/
 theorem geom_mean_le_arith_mean2_weighted (w₁ w₂ p₁ p₂ : ℝ≥0) :
   w₁ + w₂ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) ≤ w₁ * p₁ + w₂ * p₂ :=
-by simpa [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
+by simpa only [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
   fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one]
 using geom_mean_le_arith_mean_weighted univ ![w₁, w₂] ![p₁, p₂]
 

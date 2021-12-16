@@ -116,36 +116,6 @@ theorem arith_mean_le_rpow_mean (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 
 by exact_mod_cast real.arith_mean_le_rpow_mean s _ _ (λ i _, (w i).coe_nonneg)
   (by exact_mod_cast hw') (λ i _, (z i).coe_nonneg) hp
 
-/-- Evenly-weighted generalized mean inequality, version for sums over finite sets, with
-`ℝ≥0`-valued functions and real exponents.
--- Note: This can also be obtained from Hölder's inequality. -/
-theorem rpow_sum_le_mul_sum_rpow (z : ι → ℝ≥0) {p : ℝ} (hp : 1 ≤ p) :
-  (∑ i in s, z i) ^ p ≤ (finset.card s) ^ (p - 1) * ∑ i in s, z i ^ p :=
-begin
-  set n : ℕ := finset.card s,
-  by_cases hn : n = 0,
-  { have hp : p ≠ 0 := by linarith,
-    have hs : s = ∅ := by simpa using hn,
-    simp [hs, hp] },
-  have hn' : (n:ℝ) ≠ 0 := by exact_mod_cast hn,
-  have hn'' : (n:ℝ≥0) ≠ 0 := by exact_mod_cast hn,
-  have H₁ : (λ i, z i) = λ i, n * (1 / n * z i),
-  { ext i,
-    field_simp,
-    ring },
-  have H₂ : ∑ i in s, 1/(n:ℝ≥0) = 1 := by simpa [finset.sum_const] using mul_inv_cancel hn'',
-  have := rpow_arith_mean_le_arith_mean_rpow s (λ i, 1/n) z H₂ hp,
-  convert mul_le_mul_of_nonneg_left this (bot_le : (0:ℝ≥0) ≤ n ^ p) using 1,
-  { rw [H₁, ← mul_rpow, finset.mul_sum] },
-  { simp [nnreal.rpow_sub hn'', div_eq_mul_inv, mul_assoc, finset.mul_sum] }
-end
-
-/-- Evenly-weighted generalized mean inequality, version for two elements of `ℝ≥0` and real
-exponents. -/
-theorem rpow_sum_le_mul_sum_rpow2 (z₁ z₂ : ℝ≥0) {p : ℝ} (hp : 1 ≤ p) :
-  (z₁ + z₂) ^ p ≤ 2 ^ (p - 1) * (z₁ ^ p + z₂ ^ p) :=
-by simpa [fin.sum_univ_succ] using rpow_sum_le_mul_sum_rpow univ ![z₁, z₂] hp
-
 end nnreal
 
 namespace nnreal

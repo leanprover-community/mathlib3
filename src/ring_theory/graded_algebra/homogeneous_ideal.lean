@@ -47,24 +47,19 @@ subset_Inter_iff.symm
 lemma is_homogeneous_ideal.exists_iff_eq_span :
   (∃ (S : set (homogeneous_submonoid A)), I = ideal.span (coe '' S)) ↔
   I = ideal.span {x | x ∈ I ∧ is_homogeneous A x} :=
-⟨λ ⟨S, hI⟩, begin
-    ext r, split; intro hr,
-  { rw hI at hr,
-    suffices : coe '' S ⊆ {x | x ∈ I ∧ is_homogeneous A x},
-    exact (ideal.span_mono this) hr,
-    intros s hs, split, rw hI,
-    refine ideal.subset_span hs,
-    obtain ⟨⟨s', homs'⟩, hs₁, hs₂⟩ := hs,
-    convert homs', rw ←hs₂, refl },
-  { obtain ⟨l, hl⟩ := (finsupp.mem_span_iff_total R _ _).mp hr,
-    rw ←hl, apply ideal.sum_mem, rintros ⟨x, hx₁, hx₂⟩ hx₃,
-    simp only [linear_map.id_coe, id.def, finsupp.mem_support_iff, linear_map.coe_smul_right,
-      ne.def, smul_eq_mul, subtype.coe_mk] at hx₁ hx₂ hx₃ ⊢,
-    exact ideal.mul_mem_left _ _ hx₁, }
-  end, λ hI, ⟨(coe : homogeneous_submonoid A → R) ⁻¹' (I : set R), begin
-    rw subtype.image_preimage_coe,
-    exact hI,
-  end⟩⟩
+-- get rid of the messy subtypes and set coercions
+suffices (∃ s : set R, s ⊆ set_of (is_homogeneous A) ∧ I = ideal.span s) ↔
+  I = ideal.span (I ∩ set_of (is_homogeneous A)),
+from (subtype.exists_set_subtype _).trans this,
+begin
+  split,
+  { rintros ⟨s, hs, rfl⟩,
+    apply le_antisymm,
+    { exact ideal.span_mono (subset_inter (ideal.subset_span) hs) },
+    { exact ideal.span_le.2 (inter_subset_left _ _) } },
+  { intros hI,
+    exact ⟨(I : set R) ∩ set_of (is_homogeneous A), inter_subset_right _ _, hI⟩, }
+end
 
 lemma mul_homogeneous_element_mem_of_mem
   {I : ideal R} (r x : R) (hx₁ : is_homogeneous A x) (hx₂ : x ∈ I) (j : ι) :

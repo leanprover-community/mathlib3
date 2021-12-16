@@ -287,6 +287,22 @@ subtype.ext h
 lemma ext_iff {f g : Lp E p} : f = g ↔ (f : Π i, E i) = g :=
 subtype.ext_iff
 
+-- move to `group_theory.subgroup.basic`
+@[to_additive]
+instance _root_.subgroup.subsingleton {G : Type*} [group G] [subsingleton G] (H : set G) :
+  subsingleton H :=
+⟨ λ a b, subtype.ext (subsingleton.elim (a:G) b)⟩
+
+-- instance [is_empty α] : subsingleton (Lp E p) := by apply_instance
+
+lemma is_empty_elim [is_empty α] {P : Lp E p → Sort*} (f : Lp E p) : P f :=
+begin
+  have : Π i, E i := f,
+  have := pi.unique_of_is_empty,
+  let : subsingleton (Π i, E i) := unique.subsingleton,
+  -- library_search
+end
+
 protected lemma monotone {p q : ℝ≥0∞} (hpq : q ≤ p) : Lp E q ≤ Lp E p :=
 λ f hf, mem_ℓp.mem_ℓp_of_exponent_ge hf hpq
 
@@ -402,7 +418,13 @@ by rw [ext_iff, coe_fn_zero]
 begin
   rcases p_trichotomy p with rfl | rfl | hp,
   { simp [Lp.norm_eq_zero] },
-  { sorry },
+  { cases hα : is_empty_or_nonempty α; resetI,
+    { have : -f = f := subsingleton.elim _ _,
+      simp [this] },
+    apply (Lp.is_lub_norm (-f)).unique,
+    convert Lp.is_lub_norm f,
+    ext i,
+    simp },
   { sorry }
   -- { rw (Lp.is).unique,
   --   convert h₂,

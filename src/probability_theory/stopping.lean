@@ -383,7 +383,7 @@ section
 omit hβ
 
 lemma stopped_process_has_finite_integral [normed_group β] [borel_space β]
-  {μ : measure α}  (hτ : is_stopping_time f τ)
+  {μ : measure α} (hτ : is_stopping_time f τ)
   (hu₁ : adapted f u) (hu₂ : ∀ n, has_finite_integral (u n) μ) (n : ℕ) :
   has_finite_integral (f.stopped_process u τ n) μ :=
 begin
@@ -420,8 +420,7 @@ begin
       { intros i hi,
         refine (measurable.indicator ((hu₁ i).le (f.le _)) _).nnnorm.coe_nnreal_ennreal,
         convert f.le _ _ (hτ.measurable_set_eq i),
-        simp [eq_comm],
-      } } },
+        simp [eq_comm] } } },
   { refine (measurable_nnnorm.comp (((hu₁ n).le (f.le _)).indicator _)).coe_nnreal_ennreal,
     erw [← measurable_set.compl_iff, set.compl_set_of],
     simp_rw not_le,
@@ -433,6 +432,18 @@ begin
     convert hτ.measurable_set_eq n,
     simp [eq_comm] }
 end
+
+lemma stopped_process_measurable [normed_group β] [borel_space β] [has_measurable_add₂ β]
+  (hτ : is_stopping_time f τ) (hu₁ : adapted f u) (n : ℕ) :
+  measurable (f.stopped_process u τ n) :=
+(hu₁.stopped_process_adapted hτ n).le (f.le _)
+
+lemma stopped_process_integrable [normed_group β] [borel_space β] [has_measurable_add₂ β]
+  {μ : measure α} (hτ : is_stopping_time f τ)
+  (hu₁ : adapted f u) (hu₂ : ∀ n, has_finite_integral (u n) μ) (n : ℕ) :
+  integrable (f.stopped_process u τ n) μ :=
+⟨(stopped_process_measurable hτ hu₁ n).ae_measurable,
+    stopped_process_has_finite_integral hτ hu₁ hu₂ n⟩
 
 end
 

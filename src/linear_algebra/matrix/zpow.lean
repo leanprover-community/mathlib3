@@ -178,11 +178,9 @@ end
 lemma zpow_add_of_nonneg {A : M} {m n : ℤ} (hm : 0 ≤ m) (hn : 0 ≤ n) :
   A ^ (m + n) = A ^ m * A ^ n :=
 begin
-  rcases nonsing_inv_cancel_or_zero A with ⟨h, h'⟩ | h,
-  { exact zpow_add (is_unit_det_of_left_inverse h) m n },
-  { obtain ⟨k, rfl⟩ := eq_coe_of_zero_le hm,
-    obtain ⟨l, rfl⟩ := eq_coe_of_zero_le hn,
-    rw [←int.coe_nat_add, zpow_coe_nat, zpow_coe_nat, zpow_coe_nat, pow_add] }
+  obtain ⟨k, rfl⟩ := eq_coe_of_zero_le hm,
+  obtain ⟨l, rfl⟩ := eq_coe_of_zero_le hn,
+  rw [←int.coe_nat_add, zpow_coe_nat, zpow_coe_nat, zpow_coe_nat, pow_add],
 end
 
 theorem zpow_one_add {A : M} (h : is_unit A.det) (i : ℤ) : A ^ (1 + i) = A * A ^ i :=

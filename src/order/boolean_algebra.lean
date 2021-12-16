@@ -370,6 +370,9 @@ lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
               ... ≤ (x ⊔ z) ⊔ x : sup_le_sup_right h x
               ... ≤ z ⊔ x       : by rw [sup_assoc, sup_comm, sup_assoc, sup_idem])⟩
 
+@[simp] lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
+⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
+
 @[simp] lemma sdiff_eq_bot_iff : y \ x = ⊥ ↔ y ≤ x :=
 by rw [←le_bot_iff, sdiff_le_iff, sup_bot_eq]
 
@@ -751,13 +754,16 @@ variables [boolean_algebra α]
 
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 
-theorem sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
+@[simp] theorem sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
 
-theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
+@[simp] theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
 @[simp] theorem sdiff_top : x \ ⊤ = ⊥ := by rw [sdiff_eq, compl_top, inf_bot_eq]
 
 @[simp] lemma sup_inf_inf_compl : (x ⊓ y) ⊔ (x ⊓ yᶜ) = x :=
 by rw [← sdiff_eq, sup_inf_sdiff _ _]
+
+@[simp] lemma compl_sdiff : (x \ y)ᶜ = xᶜ ⊔ y :=
+by rw [sdiff_eq, compl_inf, compl_compl]
 
 end boolean_algebra
 

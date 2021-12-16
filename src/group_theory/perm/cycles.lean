@@ -185,9 +185,7 @@ lemma is_cycle_swap_mul_aux₂ {α : Type*} [decidable_eq α] :
   ∃ i : ℤ, ((swap x (f x) * f) ^ i) (f x) = b
 | (n : ℕ) := λ b x f, is_cycle_swap_mul_aux₁ n
 | -[1+ n] := λ b x f hb h,
-  if hfbx : f⁻¹ x = b then
-    ⟨-1, by rwa [zpow_neg, zpow_one, mul_inv_rev, mul_apply, swap_inv, swap_apply_right]⟩
-  else if hfbx' : f x = b then ⟨0, hfbx'⟩
+  if hfbx' : f x = b then ⟨0, hfbx'⟩
   else
   have f b ≠ b ∧ b ≠ x := ne_and_ne_of_swap_mul_apply_ne_self hb,
   have hb : (swap x (f⁻¹ x) * f⁻¹) (f⁻¹ b) ≠ f⁻¹ b,
@@ -227,8 +225,7 @@ end
 
 lemma is_cycle.swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cycle f) {x : α}
   (hx : f x ≠ x) (hffx : f (f x) ≠ x) : is_cycle (swap x (f x) * f) :=
-⟨f x, by { simp only [swap_apply_def, mul_apply],
-        split_ifs; simp [f.injective.eq_iff] at *; cc },
+⟨f x, by { simp [swap_apply_def, mul_apply, if_neg hffx, f.injective.eq_iff, if_neg hx, hx], },
   λ y hy,
   let ⟨i, hi⟩ := hf.exists_zpow_eq hx (ne_and_ne_of_swap_mul_apply_ne_self hy).1 in
   have hi : (f ^ (i - 1)) (f x) = y, from
@@ -881,7 +878,7 @@ lemma cycle_factors_finset_eq_finset {σ : perm α} {s : finset (perm α)} :
   σ.cycle_factors_finset = s ↔ (∀ f : perm α, f ∈ s → f.is_cycle) ∧
     (∃ h : (∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b), s.noncomm_prod id
       (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
-        (set.pairwise.mono' (λ _ _, disjoint.commute) h a ha b hb)) = σ) :=
+        (set.pairwise.mono' (λ _ _, disjoint.commute) h ha hb)) = σ) :=
 begin
   obtain ⟨l, hl, rfl⟩ := s.exists_list_nodup_eq,
   rw cycle_factors_finset_eq_list_to_finset hl,

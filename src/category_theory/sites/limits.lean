@@ -25,9 +25,9 @@ we show that the cocone obtained by sheafifying the cocone point is a colimit co
 This allows us to show that `Sheaf J D` has colimits (of a certain shape) as soon as `D` does.
 
 -/
-namespace category_theory.Sheaf
+namespace category_theory
+namespace Sheaf
 
-open category_theory
 open category_theory.limits
 open opposite
 
@@ -153,7 +153,7 @@ has_limits_of_shape_of_has_limits_of_shape_creates_limits_of_shape (Sheaf_to_pre
 
 end
 
-instance [has_limits D] : creates_limits (Sheaf_to_presheaf J D) := {}
+instance [has_limits D] : creates_limits (Sheaf_to_presheaf J D) := ⟨⟩
 
 instance [has_limits D] : has_limits (Sheaf J D) :=
 has_limits_of_has_limits_creates_limits (Sheaf_to_presheaf J D)
@@ -214,4 +214,5 @@ instance [has_colimits D] : has_colimits (Sheaf J D) := ⟨infer_instance⟩
 
 end colimits
 
-end category_theory.Sheaf
+end Sheaf
+end category_theory

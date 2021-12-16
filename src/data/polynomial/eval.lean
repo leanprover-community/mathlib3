@@ -488,6 +488,7 @@ by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
 /-- `polynomial.map` as a `ring_hom` -/
+-- TODO: can't we make this the main definition of `polynomial.map`?
 def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 { to_fun := polynomial.map f,
   map_add' := λ _ _, map_add f,
@@ -593,7 +594,8 @@ ring_hom.ext $ map_map g f
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
 eq.symm $ list.prod_hom _ (map_ring_hom f).to_monoid_hom
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := (map_ring_hom f).map_pow _ _
+@[simp] protected lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n :=
+(map_ring_hom f).map_pow _ _
 
 lemma mem_map_srange {p : polynomial S} :
   p ∈ (map_ring_hom f).srange ↔ ∀ n, p.coeff n ∈ f.srange :=
@@ -605,7 +607,7 @@ begin
     intros i hi,
     rcases h i with ⟨c, hc⟩,
     use [C c * X^i],
-    rw [coe_map_ring_hom, map_mul, map_C, hc, map_pow, map_X] }
+    rw [coe_map_ring_hom, map_mul, map_C, hc, polynomial.map_pow, map_X] }
 end
 
 lemma mem_map_range {R S : Type*} [ring R] [ring S] (f : R →+* S)

@@ -469,14 +469,11 @@ end
 
 Theorems in this section work both for real and complex differentiable functions. We use assumptions
 `[is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 G]` to achieve this result. For the domain `E` we
-also assume `[normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]` to have a notion of a `convex` set. In both
-interesting cases `𝕜 = ℝ` and `𝕜 = ℂ` the assumption `[is_scalar_tower ℝ 𝕜 E]` is satisfied
-automatically. -/
+also assume `[normed_space ℝ E]` to have a notion of a `convex` set. -/
 
 section
 
-variables {𝕜 G : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
-  [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 G : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_group G] [normed_space 𝕜 G]
 
 namespace convex
 
@@ -489,7 +486,6 @@ theorem norm_image_sub_le_of_norm_has_fderiv_within_le
   (hs : convex ℝ s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 begin
   letI : normed_space ℝ G := restrict_scalars.normed_space ℝ 𝕜 G,
-  letI : is_scalar_tower ℝ 𝕜 G := restrict_scalars.is_scalar_tower _ _ _,
   /- By composition with `t ↦ x + t • (y-x)`, we reduce to a statement for functions defined
   on `[0,1]`, for which it is proved in `norm_image_sub_le_of_norm_deriv_le_segment`.
   We just have to check the differentiability of the composition and bounds on its derivative,
@@ -1240,13 +1236,8 @@ begin
 -- apply 1-variable mean value theorem to pullback
   have hMVT : ∃ (t ∈ Ioo (0:ℝ) 1), ((f' (g t) : E → ℝ) (y-x)) = (f (g 1) - f (g 0)) / (1 - 0),
   { refine exists_has_deriv_at_eq_slope (f ∘ g) _ (by norm_num) _ _,
-    { unfold continuous_on,
-      exact λ t Ht, (hfg t Ht).continuous_within_at },
-    { refine λ t Ht, (hfg t $ hIccIoo Ht).has_deriv_at _,
-      refine _root_.mem_nhds_iff.mpr _,
-      use (Ioo (0:ℝ) 1),
-      refine ⟨hIccIoo, _, Ht⟩,
-      simp [real.Ioo_eq_ball, is_open_ball] } },
+    { exact λ t Ht, (hfg t Ht).continuous_within_at },
+    { exact λ t Ht, (hfg t $ hIccIoo Ht).has_deriv_at (Icc_mem_nhds Ht.1 Ht.2) } },
 -- reinterpret on domain
   rcases hMVT with ⟨t, Ht, hMVT'⟩,
   use g t, refine ⟨hseg t $ hIccIoo Ht, _⟩,
@@ -1288,7 +1279,6 @@ begin
   { intros x' H', rw ← dist_eq_norm, exact le_of_lt (hε H').2 },
 -- apply mean value theorem
   letI : normed_space ℝ G := restrict_scalars.normed_space ℝ 𝕜 G,
-  letI : is_scalar_tower ℝ 𝕜 G := restrict_scalars.is_scalar_tower _ _ _,
   refine (convex_ball _ _).norm_image_sub_le_of_norm_has_fderiv_within_le' _ hf' h.2 h.1,
   exact λ y hy, (hε hy).1.has_fderiv_within_at
 end

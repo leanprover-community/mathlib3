@@ -584,10 +584,20 @@ end equiv
 `mul_equiv.inv' G : G ≃* Gᵐᵒᵖ` for the non-commutative case. -/
 @[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`."]
 def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
-{ to_fun := has_inv.inv,
-  inv_fun := has_inv.inv,
+{ to_fun   := has_inv.inv,
+  inv_fun  := has_inv.inv,
   map_mul' := mul_inv,
-  ..equiv.inv G}
+  ..equiv.inv G }
+
+/-- When the group with zero is commutative, `equiv.inv₀` is a `mul_equiv`. -/
+@[simps apply] def mul_equiv.inv₀ (G : Type*) [comm_group_with_zero G] : G ≃* G :=
+{ to_fun   := has_inv.inv,
+  inv_fun  := has_inv.inv,
+  map_mul' := λ x y, mul_inv₀,
+  ..equiv.inv₀ G }
+
+@[simp] lemma mul_equiv.inv₀_symm (G : Type*) [comm_group_with_zero G] :
+  (mul_equiv.inv₀ G).symm = mul_equiv.inv₀ G := rfl
 
 section type_tags
 

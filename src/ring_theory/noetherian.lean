@@ -184,13 +184,15 @@ fg_def.2 ⟨linear_map.inl R M P '' tb ∪ linear_map.inr R M P '' tc,
   (htb.1.image _).union (htc.1.image _),
   by rw [linear_map.span_inl_union_inr, htb.2, htc.2]⟩
 
-theorem fg_pi {ι : Type*} [fintype ι] {p : ι → submodule R M} (hsb : ∀ i, (p i).fg) :
+theorem fg_pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
+  [Π i, module R (M i)] {p : Π i, submodule R (M i)} (hsb : ∀ i, (p i).fg) :
   (submodule.pi set.univ p).fg :=
 begin
   classical,
   simp_rw fg_def at hsb ⊢,
   choose t htf hts using hsb,
-  refine ⟨⋃ i, (linear_map.single i : _ →ₗ[R] _) '' t i, set.finite_Union $ λ i, (htf i).image _, _⟩,
+  refine ⟨
+    ⋃ i, (linear_map.single i : _ →ₗ[R] _) '' t i, set.finite_Union $ λ i, (htf i).image _, _⟩,
   simp_rw [span_Union, span_image, hts, submodule.supr_map_single],
 end
 

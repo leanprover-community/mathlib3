@@ -68,6 +68,7 @@ def tensoring_right_monoidal [monoidal_category.{v} C] : monoidal_functor C (C �
     by tidy⟩⟩,
   ..tensoring_right C }.
 
+variable {C}
 variables {M : Type*} [category M] [monoidal_category M] (F : monoidal_functor M (C ⥤ C))
 
 @[simp, reassoc]

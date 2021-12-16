@@ -58,12 +58,17 @@ begin
   exact linear_map.range_comp_le_range _ _,
 end
 
-lemma rank_of_invertible (A : matrix n n K) [invertible A] :
-  A.rank = fintype.card n :=
+lemma rank_unit (A : units (matrix n n K)) :
+  (A : matrix n n K).rank = fintype.card n :=
 begin
   refine le_antisymm (rank_le_card_width A) _,
-  simpa only [rank_one, mul_inv_of_self, ← mul_eq_mul] using rank_mul_le A (⅟A),
+  have := rank_mul_le (A : matrix n n K) (↑A⁻¹ : matrix n n K),
+  rwa [← mul_eq_mul, ← units.coe_mul, mul_inv_self, units.coe_one, rank_one] at this,
 end
+
+lemma rank_of_is_unit (A : matrix n n K) (h : is_unit A) :
+  A.rank = fintype.card n :=
+by { obtain ⟨A, rfl⟩ := h, exact rank_unit A }
 
 include m_fin
 

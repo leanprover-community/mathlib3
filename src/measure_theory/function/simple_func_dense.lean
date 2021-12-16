@@ -870,6 +870,55 @@ begin
       simple_func.coe_zero], },
 end
 
+variables (p μ G)
+/-- Coercion form nonnegative simple functions of Lp to nonnegative functions of Lp. -/
+def coe_simple_func_nonneg_to_Lp_nonneg :
+  {g : Lp.simple_func G p μ // 0 ≤ g} → {g : Lp G p μ // 0 ≤ g} :=
+λ g, ⟨g, g.2⟩
+
+lemma dense_range_coe_simple_func_nonneg_to_Lp_nonneg [hp : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) :
+  dense_range (coe_simple_func_nonneg_to_Lp_nonneg p μ G) :=
+begin
+  assume g,
+  rw mem_closure_iff_seq_limit,
+  have hg_mem_ℒp : mem_ℒp g p μ := Lp.mem_ℒp g,
+  let x := λ n, simple_func.approx_on g (Lp.measurable g) {y | 0 ≤ y} 0 le_rfl n,
+  have hx_nonneg : ∀ n, 0 ≤ x n, from λ n a, simple_func.approx_on_mem (Lp.measurable g) _ n a,
+  have hx_mem_ℒp : ∀ n, mem_ℒp (x n) p μ,
+    from simple_func.mem_ℒp_approx_on _ hg_mem_ℒp _ ⟨ae_measurable_const, by simp⟩,
+  have h_to_Lp := λ n, mem_ℒp.coe_fn_to_Lp (hx_mem_ℒp n),
+  have hx_nonneg_Lp : ∀ n, 0 ≤ to_Lp (x n) (hx_mem_ℒp n),
+  { intro n,
+    rw [← Lp.simple_func.coe_fn_le, coe_fn_coe_base' (simple_func.to_Lp (x n) _),
+      Lp.simple_func.to_Lp_eq_to_Lp],
+    have h0 := Lp.simple_func.coe_fn_zero p μ G,
+    filter_upwards [Lp.simple_func.coe_fn_zero p μ G, h_to_Lp n],
+    intros a ha0 ha_to_Lp,
+    rw [ha0, ha_to_Lp],
+    exact hx_nonneg n a, },
+  have hx_tendsto : tendsto (λ (n : ℕ), snorm (x n - g) p μ) at_top (𝓝 0),
+  { refine @simple_func.tendsto_approx_on_Lp_snorm α G _ _ _ p _ g (Lp.measurable g)
+      {y | 0 ≤ y} 0 le_rfl _ hp_ne_top μ _ _,
+    { have hg_nonneg : 0 ≤ᵐ[μ] g, from (Lp.coe_fn_nonneg _).mpr g.2,
+      refine hg_nonneg.mono (λ a ha, subset_closure _),
+      simpa using ha, },
+    { simp_rw sub_zero, exact hg_mem_ℒp.snorm_lt_top, }, },
+  refine ⟨λ n, (coe_simple_func_nonneg_to_Lp_nonneg p μ G) ⟨to_Lp (x n) (hx_mem_ℒp n),
+    hx_nonneg_Lp n⟩, λ n, mem_range_self _, _⟩,
+  suffices : tendsto (λ (n : ℕ), ↑(to_Lp (x n) (hx_mem_ℒp n))) at_top (𝓝 (g : Lp G p μ)),
+  { rw tendsto_iff_dist_tendsto_zero at this ⊢,
+    simp_rw subtype.pseudo_dist_eq,
+    convert this, },
+  rw Lp.tendsto_Lp_iff_tendsto_ℒp',
+  convert hx_tendsto,
+  refine funext (λ n, snorm_congr_ae (eventually_eq.sub _ _)),
+  { rw Lp.simple_func.to_Lp_eq_to_Lp,
+    exact h_to_Lp n, },
+  { rw ← coe_fn_coe_base, },
+end
+
+variables {p μ G}
+
 end order
 
 end simple_func

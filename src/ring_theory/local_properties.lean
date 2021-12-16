@@ -356,6 +356,8 @@ begin
   exact multiple_mem_span_of_mem_localization_span M R' _ _ hx
 end
 
+local attribute [-instance] localization.has_scalar
+
 lemma finite_of_localization_span : ring_hom.of_localization_span @ring_hom.finite :=
 begin
   rw ring_hom.of_localization_span_iff_finite,

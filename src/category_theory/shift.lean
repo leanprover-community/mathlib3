@@ -233,15 +233,15 @@ begin
   simp,
 end
 
--- @[simp, reassoc] lemma eq_to_hom_μ {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
---   eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ i' j').app X =
---     (F.μ i j).app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
--- by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
+@[simp, reassoc] lemma eq_to_hom_μ {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+  eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ i' j').app X =
+    (F.μ i j).app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
+by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
--- @[simp, reassoc] lemma μ_inv_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
---   (F.μ_iso i j).inv.app X ≫ eq_to_hom (by rw [h₁, h₂]) =
---     eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ_iso i' j').inv.app X :=
--- by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
+@[simp, reassoc] lemma μ_inv_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+  (F.μ_iso i j).inv.app X ≫ eq_to_hom (by rw [h₁, h₂]) =
+    eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ_iso i' j').inv.app X :=
+by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
 
 -- local attribute [reassoc] nat_trans.comp_app
@@ -294,7 +294,35 @@ def equiv_of_tensor_iso_unit (m n : M) (h₁ : m ⊗ n ≅ 𝟙_M) (h₂ : n ⊗
       unit_of_tensor_iso_unit_inv_app],
     simp [← nat_trans.comp_app, ← F'.to_functor.map_comp, ← H, - functor.map_comp]
   end }
+.
 
+lemma discrete_μ_natural (F : discrete A ⥤ M)
+  (μ : Π X Y : discrete A, (F.obj X) ⊗ (F.obj Y) ⟶ F.obj (X ⊗ Y))
+  ⦃X Y X' Y' : discrete A⦄ (f : X ⟶ Y) (g : X' ⟶ Y') :
+  ((F.map f) ⊗ (F.map g)) ≫ μ Y Y' = μ X X' ≫ F.map (f ⊗ g) :=
+begin
+  rcases f with ⟨⟨rfl⟩⟩,
+  rcases g with ⟨⟨rfl⟩⟩,
+  dsimp,
+  simp,
+end
+
+variables (A C)
+
+structure shift_mk_core :=
+(F : discrete A ⥤ (C ⥤ C))
+(ε : 𝟭 C ≅ F.obj 0)
+(μ : Π n m : A, F.obj n ⋙ F.obj m ≅ F.obj (n + m))
+(associativity : ∀ (m₁ m₂ m₃ : A) (X : C),
+  (F.obj m₃).map ((μ m₁ m₂).hom.app X) ≫ (μ (m₁ + m₂) m₃).hom.app X ≫
+    eq_to_hom (by { congr' 2, exact add_assoc _ _ _ }) =
+    (μ m₂ m₃).hom.app ((F.obj m₁).obj X) ≫ (μ m₁ (m₂ + m₃)).hom.app X . obviously)
+(left_unitality : ∀ (n : A) (X : C),
+  (F.obj n).map (ε.hom.app X) ≫ (μ 0 n).hom.app X =
+    eq_to_hom (by { dsimp, rw zero_add }) . obviously)
+(right_unitality : ∀ (n : A) (X : C),
+  ε.hom.app ((F.obj n).obj X) ≫ (μ n 0).hom.app X =
+    eq_to_hom (by { dsimp, rw add_zero }) . obviously)
 
 end monoid
 
@@ -325,7 +353,18 @@ class has_shift (C : Type u) (A : Type*) [category.{v} C] [add_monoid A] :=
 --   (shift_add (i+j) k).symm ≪≫ (eq_to_iso $ by rw add_assoc) ≪≫ (shift_add i (j+k)) ≪≫
 --     iso_whisker_left _ (shift_add j k) ≪≫ (functor.associator _ _ _).symm)
 -- (shift_functor_zero : shift 0 ≅ 𝟭 C)
-
+@[simps]
+def has_shift_mk (h : shift_mk_core C A) : has_shift C A :=
+⟨{ ε := h.ε.hom,
+   μ := λ m n, (h.μ m n).hom,
+   μ_natural' := discrete_μ_natural _ _,
+   associativity' := by { introv, ext, dsimp, simpa using h.associativity _ _ _ _, },
+   left_unitality' :=
+    by { introv, ext, dsimp, rw [category.id_comp, ← category.assoc, h.left_unitality], simp },
+   right_unitality' :=
+    by { introv, ext, dsimp, rw [functor.map_id, category.comp_id,
+      ← category.assoc, h.right_unitality], simp },
+ .. h.F }⟩
 
 variables [has_shift C A]
 

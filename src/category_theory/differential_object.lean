@@ -210,7 +210,7 @@ end differential_object
 namespace differential_object
 
 variables (C : Type u) [category.{v} C]
-variables [has_zero_morphisms C] [has_shift C ℤ] [∀ n:ℤ, is_equivalence (shift_functor C n)]
+variables [has_zero_morphisms C] [has_shift C ℤ]
 
 
 noncomputable theory
@@ -239,21 +239,19 @@ local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal 
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    simp only [iso.app_inv, iso.symm_inv, monoidal_functor.μ_iso_hom, obj_μ_app,
-      iso.symm_hom, iso.app_hom, category.assoc, obj_μ_inv_app, shift_add',
-      eq_to_hom_trans_assoc, functor.map_comp, eq_to_hom_map,
-      monoidal_functor.μ_inv_hom_app_assoc],
+    simp only [iso.app_inv, iso.symm_inv, monoidal_functor.μ_iso_hom, obj_μ_app, eq_to_iso.inv,
+      iso.symm_hom, iso.app_hom, category.assoc, obj_μ_inv_app, shift_add', eq_to_iso.hom,
+      eq_to_hom_trans_assoc, functor.map_comp, eq_to_hom_map, μ_inv_hom_app_assoc, eq_to_hom_app],
     congr' 4,
     erw eq_to_hom_μ_assoc,
-    simp only [eq_to_hom_trans_assoc, monoidal_functor.μ_inv_hom_app_assoc],
+    simp only [eq_to_hom_trans_assoc, μ_inv_hom_app_assoc],
     simp_rw ← category.assoc,
     congr' 1,
-    rw [←is_iso.eq_inv_comp, inv_eq_to_hom, category.assoc, eq_to_hom_trans_assoc,
-      eq_to_hom_μ_inv_assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id],
-    exacts [rfl, add_comm _ _, add_comm _ _, rfl] },
+    rw [category.assoc, ← is_iso.inv_comp_eq, inv_eq_to_hom,
+      eq_to_hom_trans_assoc, ← μ_inv_eq_to_hom],
+    exacts [rfl, rfl, add_comm _ _, add_comm _ _, rfl] },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
-.
 
 local attribute [instance] endofunctor_monoidal_category discrete.add_monoidal
 local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal shift_comm
@@ -265,7 +263,6 @@ begin
   { dsimp, simp },
   { introv, ext, dsimp, simp }
 end
--- { app := λ X, { f := (shift_monoidal_functor C ℤ).ε.app X.X } }
 .
 
 instance : has_shift (differential_object C) ℤ :=

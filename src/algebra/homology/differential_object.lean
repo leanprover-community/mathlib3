@@ -54,6 +54,8 @@ by { cases h, simp }
 
 variables (b V)
 
+local attribute [reducible] graded_object.has_shift
+
 /--
 The functor from differential graded objects to homological complexes.
 -/
@@ -64,13 +66,13 @@ def dgo_to_homological_complex :
 { obj := λ X,
   { X := λ i, X.X i,
     d := λ i j, if h : i + b = j then X.d i ≫
-      X.X_eq_to_hom (show i + (1 : ℤ) • b = j, by simp [h]) else 0,
-    shape' := λ i j w, by { dsimp at w, rw dif_neg w, },
+      (by { delta shift_functor, exact X.X_eq_to_hom (show i + (1 : ℤ) • b = j, by simp [h]) }) else 0,
+    shape' := λ i j w, by { dsimp at w, convert dif_neg w },
     d_comp_d' := λ i j k hij hjk, begin
       dsimp at hij hjk, substs hij hjk,
-      have : X.d i ≫ X.d (i + 1 • b) = _ := (congr_fun X.d_squared i : _),
+      have : X.d i ≫ _ = _ := (congr_fun X.d_squared i : _),
       reassoc! this,
-      simp [this]
+      simp [this],
     end },
   map := λ X Y f,
   { f := f.f,

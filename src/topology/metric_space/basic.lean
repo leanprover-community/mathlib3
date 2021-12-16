@@ -2098,6 +2098,9 @@ variables {x : γ} {s : set γ}
 @[simp] lemma closed_ball_zero : closed_ball x 0 = {x} :=
 set.ext $ λ y, dist_le_zero
 
+@[simp] lemma sphere_zero : sphere x 0 = {x} :=
+set.ext $ λ y, dist_eq_zero
+
 /-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
 theorem uniform_embedding_iff' [metric_space β] {f : γ → β} :

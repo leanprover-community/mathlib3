@@ -13,7 +13,7 @@ Given an operator `A : E →L[𝕜] F`, where `E` and `F` are Hilbert spaces, it
 `adjoint A : F →L[𝕜] E` is the unique operator such that `⟪x, A y⟫ = ⟪adjoint A x, y⟫` for all
 `x` and `y`.
 
-We then use this to put a star algebra structure on `E →L[𝕜] E` with the adjoint as the star
+We then use this to put a C⋆-algebra structure on `E →L[𝕜] E` with the adjoint as the star
 operation.
 
 ## Implementation notes
@@ -22,10 +22,6 @@ operation.
   `F →L[𝕜] E`. The bare function `adjoint'` is only an intermediate definition and is not meant
   to be used outside this file.
 
-## TODO
-
-* Prove the C⋆ property for `E →L[𝕜] E` to show that it is a C⋆-algebra.
-
 ## Tags
 
 adjoint
@@ -33,7 +29,7 @@ adjoint
 -/
 
 noncomputable theory
-open inner_product_space continuous_linear_map
+open inner_product_space continuous_linear_map is_R_or_C
 open_locale complex_conjugate
 
 variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
@@ -112,11 +108,38 @@ begin
   simp only [adjoint_inner_right, continuous_linear_map.coe_comp', function.comp_app],
 end
 
-/-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
+/-- `E →L[𝕜] E` is a C⋆-algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩
 instance : star_monoid (E →L[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
+
+lemma star_eq_adjoint (A : E →L[𝕜] E) : star A = A† := rfl
+
+instance : cstar_ring (E →L[𝕜] E) :=
+⟨begin
+  intros A,
+  rw [star_eq_adjoint],
+  refine le_antisymm _ _,
+  { calc ∥A† * A∥ ≤ ∥A†∥ * ∥A∥      : op_norm_comp_le _ _
+              ... = ∥A∥ * ∥A∥       : by rw [linear_isometry_equiv.norm_map] },
+  { rw [←sq, ←real.sqrt_le_sqrt_iff (norm_nonneg _), real.sqrt_sq (norm_nonneg _)],
+    refine op_norm_le_bound _ (real.sqrt_nonneg _) (λ x, _),
+    have := calc
+      re ⟪A† (A x), x⟫ ≤ abs ⟪A† (A x), x⟫    : re_le_abs _
+                  ...  ≤ ∥A† (A x)∥ * ∥x∥     : abs_inner_le_norm _ _
+                  ...  ≤ ∥A† * A∥ * ∥x∥ * ∥x∥
+                    : begin
+                        refine mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+                        rw [←comp_apply],
+                        exact le_op_norm _ _,
+                      end,
+    calc ∥A x∥ = real.sqrt (re ⟪A x, A x⟫)          : norm_eq_sqrt_inner _
+          ...  = real.sqrt (re ⟪A† (A x), x⟫)       : by rw [←adjoint_inner_left]
+          ...  ≤ real.sqrt (∥A† * A∥ * ∥x∥ * ∥x∥)   : real.sqrt_le_sqrt this
+          ...  = real.sqrt (∥A† * A∥) * ∥x∥
+            : by rw [mul_assoc, real.sqrt_mul (norm_nonneg _), real.sqrt_mul_self (norm_nonneg _)] }
+end⟩
 
 end continuous_linear_map

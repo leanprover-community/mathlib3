@@ -362,6 +362,21 @@ begin
     simpa [real.zero_rpow hp.ne'] using real.zero_rpow hp' }
 end
 
+-- move to `topology.algebra.infinite_sum`
+lemma _root_.has_sum_zero_iff_of_nonneg {ι α : Type*} [ordered_add_comm_group α] [topological_space α] [topological_add_group α]
+  [order_closed_topology α] {f : ι → α} (hf : ∀ i, 0 ≤ f i) :
+  has_sum f 0 ↔ f = 0 :=
+begin
+  split,
+  { intros hf',
+    ext i,
+    by_contra hi',
+    have hi : 0 < f i := lt_of_le_of_ne (hf i) (ne.symm hi'),
+    simpa using has_sum_lt hf hi has_sum_zero hf' },
+  { rintros rfl,
+    exact has_sum_zero },
+end
+
 lemma norm_eq_zero_iff {f : Lp E p} (hp : 0 < p) : ∥f∥ = 0 ↔ f = 0 :=
 begin
   classical,
@@ -379,12 +394,12 @@ begin
     { have := Lp.has_sum_norm hp f ,
       rw h at this,
       simpa [real.zero_rpow hp.ne'] using this }, -- why can't the `simp` and `rw` be combined?
+    have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real := λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _,
+    rw has_sum_zero_iff_of_nonneg this at hf,
     ext i,
-    by_contra hi',
-    have hi'' : 0 < ∥f i∥ := by simpa using hi',
-    have hi : 0 < ∥f i∥ ^ p.to_real := sorry,
-    have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real := λ i, sorry,
-    simpa using has_sum_lt this hi has_sum_zero hf },
+    have : f i = 0 ∧ p.to_real ≠ 0,
+    { simpa [real.rpow_eq_zero_iff_of_nonneg (norm_nonneg (f i))] using congr_fun hf i },
+    exact this.1 },
 end
 
 lemma eq_zero_iff_ae_eq_zero {f : Lp E p} : f = 0 ↔ ⇑f = 0 :=
@@ -403,6 +418,19 @@ begin
     simpa using Lp.has_sum_norm hp f }
 end
 
+variables {M : Type*} [has_mul M] [preorder M] [covariant_class M M (*) (≤)]
+  [covariant_class M M (function.swap (*)) (≤)]
+
+open_locale pointwise
+
+lemma is_lub_mul {s t : set M} (a b c: M) (hs : is_lub s a) (ht : is_lub t b) :
+  is_lub (s * t) (a * b) :=
+begin
+  split,
+  { exact mul_mem_upper_bounds_mul hs.1 ht.1 },
+  intros C hC,
+end
+
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p) :=
 normed_group.of_core _
 { norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
@@ -410,7 +438,7 @@ normed_group.of_core _
     tactic.unfreeze_local_instances,
     rcases p_dichotomy p with rfl | hp',
     { cases is_empty_or_nonempty α; resetI,
-      { sorry },
+      { simp [Lp.eq_zero' f] },
       have := Lp.is_lub_norm f,
       have := Lp.is_lub_norm g,
       have := Lp.is_lub_norm (f + g),

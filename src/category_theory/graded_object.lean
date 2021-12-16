@@ -103,27 +103,15 @@ end
 
 local attribute [reducible, instance] endofunctor_monoidal_category discrete.add_monoidal
 
-@[simps]
-def shift_functor {β : Type*} [add_comm_group β] (s : β) :
-  discrete ℤ ⥤ (graded_object_with_shift s C ⥤ graded_object_with_shift s C) :=
-discrete.functor (λ n, comap (λ _, C) $ λ (b : β), b + (@has_scalar.smul ℤ _ _ (n : ℤ) s) : _)
-
 instance has_shift {β : Type*} [add_comm_group β] (s : β) :
   has_shift (graded_object_with_shift s C) ℤ :=
-⟨{  ε := (comap_id β (λ _, C)).inv ≫ (comap_eq C (by { ext, simp })).hom,
-    μ := λ m n, (comap_comp _ _ _).hom ≫
-      (comap_eq C (by { ext, simp [add_zsmul, add_comm] })).hom,
-    μ_natural' := discrete_μ_natural (shift_functor s) _,
-    associativity' := by { introv, ext, dsimp, simp, },
-    left_unitality' := _,
-    right_unitality' := _,
-  ..(shift_functor s) }⟩
--- { shift := λ n, comap _ $ λ b, b + n • s,
---   shift_add := λ m n, comap_eq _ (by { ext, simp [add_zsmul, add_comm, add_assoc] }) ≪≫
---     comap_comp _ _ _,
---   iso_whisker_right_shift_add := λ i j k, by { ext X b, dsimp,
---     simp only [eq_to_hom_app, category.comp_id, category.id_comp, eq_to_hom_apply, eq_to_hom_trans],
---     refl } }
+has_shift_mk _ _
+{ F := λ n, comap (λ _, C) $ λ (b : β), b + n • s,
+  ε := (comap_id β (λ _, C)).symm ≪≫ (comap_eq C (by { ext, simp })),
+  μ := λ m n, comap_comp _ _ _ ≪≫ comap_eq C (by { ext, simp [add_zsmul, add_comm] }),
+  left_unitality := by { introv, ext, dsimp, simpa },
+  right_unitality := by { introv, ext, dsimp, simpa },
+  associativity := by { introv, ext, dsimp, simp } }
 
 @[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β]
   (s : β) (X : β → C) (t : β) (n : ℤ) :

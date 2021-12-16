@@ -260,19 +260,16 @@ local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal 
 def shift_ε : 𝟭 (differential_object C) ≅ shift_functor C 0 :=
 begin
   refine nat_iso.of_components (λ X, mk_iso ((shift_monoidal_functor C ℤ).ε_iso.app X.X) _) _,
-  { dsimp, simp },
+  { dsimp, simp, dsimp, simp },
   { introv, ext, dsimp, simp }
 end
 .
 
 instance : has_shift (differential_object C) ℤ :=
-⟨{ ε := (shift_ε C).hom,
-  μ := λ n m, (shift_functor_add C n m).inv,
-  μ_natural' := by { rintros _ _ _ _ ⟨⟨⟨⟩⟩⟩ ⟨⟨⟨⟩⟩⟩, ext, dsimp, simp, dsimp, simp },
-  associativity' := by { intros _ _ _, ext, dsimp, simp },
-  left_unitality' := by { intros _, ext, dsimp, simp },
-  right_unitality' := by { intros _, ext, dsimp, simp },
-  ..(discrete.functor (shift_functor C)) }⟩
+has_shift_mk _ _
+{ F := shift_functor C,
+  ε := shift_ε C,
+  μ := λ m n, (shift_functor_add C m n).symm }
 
 end differential_object
 

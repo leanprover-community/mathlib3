@@ -721,37 +721,43 @@ lemma exists_subset_nhd_of_compact_space [compact_space α] {ι : Type*} [nonemp
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
 exists_subset_nhd_of_compact' hV (λ i, (hV_closed i).is_compact) hV_closed hU
 
+/-- If `f : α → β` is an `inducing` map, then the image `f '' s` of a set `s` is compact if and only
+if the set `s` is closed. -/
 lemma inducing.is_compact_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_compact (f '' s) ↔ is_compact s :=
 begin
-  split,
-  { introsI hs F F_ne_bot F_le,
-    obtain ⟨_, ⟨x, x_in : x ∈ s, rfl⟩, hx : cluster_pt (f x) (map f F)⟩ :=
-      hs (calc map f F ≤ map f (𝓟 s) : map_mono F_le
-                  ... = 𝓟 (f '' s) : map_principal),
-    use [x, x_in],
-    suffices : (map f (𝓝 x ⊓ F)).ne_bot, by simpa [filter.map_ne_bot_iff],
-    rwa calc map f (𝓝 x ⊓ F) = map f ((comap f $ 𝓝 $ f x) ⊓ F) : by rw hf.nhds_eq_comap
-                          ... = 𝓝 (f x) ⊓ map f F : filter.push_pull' _ _ _ },
-  { intro hs,
-    exact hs.image hf.continuous }
+  refine ⟨_, λ hs, hs.image hf.continuous⟩,
+  introsI hs F F_ne_bot F_le,
+  obtain ⟨_, ⟨x, x_in : x ∈ s, rfl⟩, hx : cluster_pt (f x) (map f F)⟩ :=
+    hs (calc map f F ≤ map f (𝓟 s) : map_mono F_le
+                ... = 𝓟 (f '' s) : map_principal),
+  use [x, x_in],
+  suffices : (map f (𝓝 x ⊓ F)).ne_bot, by simpa [filter.map_ne_bot_iff],
+  rwa calc map f (𝓝 x ⊓ F) = map f ((comap f $ 𝓝 $ f x) ⊓ F) : by rw hf.nhds_eq_comap
+                        ... = 𝓝 (f x) ⊓ map f F : filter.push_pull' _ _ _
 end
 
+/-- If `f : α → β` is an `embedding` (or more generally, an `inducing` map, see
+`inducing.is_compact_iff`), then the image `f '' s` of a set `s` is compact if and only if the set
+`s` is closed. -/
 lemma embedding.is_compact_iff_is_compact_image {f : α → β} (hf : embedding f) :
   is_compact s ↔ is_compact (f '' s) :=
 hf.to_inducing.is_compact_iff.symm
 
-/-- A closed embedding is proper, ie, inverse images of compact sets are contained in compacts. -/
+/-- The preimage of a compact set under a closed embedding is a compact set. -/
+lemma closed_embedding.is_compact_preimage {f : α → β} (hf : closed_embedding f) {K : set β}
+  (hK : is_compact K) : is_compact (f ⁻¹' K) :=
+begin
+  replace hK := hK.inter_right hf.closed_range,
+  rwa [← hf.to_inducing.is_compact_iff, image_preimage_eq_inter_range]
+end
+
+/-- A closed embedding is proper, ie, inverse images of compact sets are contained in compacts.
+Moreover, the preimage of a compact set is compact, see `closed_embedding.is_compact_preimage`. -/
 lemma closed_embedding.tendsto_cocompact
   {f : α → β} (hf : closed_embedding f) : tendsto f (filter.cocompact α) (filter.cocompact β) :=
-begin
-  rw filter.has_basis_cocompact.tendsto_iff filter.has_basis_cocompact,
-  intros K hK,
-  refine ⟨f ⁻¹' (K ∩ (set.range f)), _, λ x hx, by simpa using hx⟩,
-  apply hf.to_embedding.is_compact_iff_is_compact_image.mpr,
-  rw set.image_preimage_eq_of_subset (set.inter_subset_right _ _),
-  exact hK.inter_right hf.closed_range,
-end
+filter.has_basis_cocompact.tendsto_right_iff.mpr $ λ K hK,
+  (hf.is_compact_preimage hK).compl_mem_cocompact
 
 lemma compact_iff_compact_in_subtype {p : α → Prop} {s : set {a // p a}} :
   is_compact s ↔ is_compact ((coe : _ → α) '' s) :=
@@ -951,27 +957,14 @@ begin
   { exact λ _, is_open_interior }
 end
 
-protected lemma inducing.locally_compact_space {f : α → β} (hf : inducing f)
-  (hc : ∀ x (s ∈ 𝓝 (f x)), ∃ t ∈ 𝓝 (f x), t ⊆ s ∧ is_compact (t ∩ range f)) :
-  locally_compact_space α :=
-begin
-  refine ⟨λ x s hs, _⟩,
-  rcases mem_nhds_within.1 (hf.image_mem_nhds_within hs) with ⟨t, hto, hxt, hts⟩,
-  rcases hc x _ (hto.mem_nhds hxt) with ⟨t', hxt', ht't, ht'c⟩,
-  refine ⟨f ⁻¹' t' ∩ s, inter_mem (hf.continuous.continuous_at hxt') hs, inter_subset_right _ _,
-    hf.is_compact_iff.1 _⟩,
-  convert ht'c,
-  rw image_preimage_inter,
-  exact (inter_subset_inter_right _ (image_subset_range _ _)).antisymm
-    (λ y hy, ⟨hy.1, hts ⟨ht't hy.1, hy.2⟩⟩)
-end
-
 protected lemma closed_embedding.locally_compact_space [locally_compact_space β] {f : α → β}
   (hf : closed_embedding f) : locally_compact_space α :=
 begin
-  refine hf.to_inducing.locally_compact_space (λ x s hs, _),
-  rcases locally_compact_space.local_compact_nhds _ _ hs with ⟨t, hxt, hts, htc⟩,
-  exact ⟨t, hxt, hts, htc.inter_right hf.closed_range⟩
+  have : ∀ x : α, (𝓝 x).has_basis (λ s, s ∈ 𝓝 (f x) ∧ is_compact s) (λ s, f ⁻¹' s),
+  { intro x,
+    rw hf.to_embedding.to_inducing.nhds_eq_comap,
+    exact (compact_basis_nhds _).comap _ },
+  exact locally_compact_space_of_has_basis this (λ x s hs, hf.is_compact_preimage hs.2)
 end
 
 protected lemma is_closed.locally_compact_space [locally_compact_space α] {s : set α}
@@ -981,11 +974,14 @@ protected lemma is_closed.locally_compact_space [locally_compact_space α] {s : 
 protected lemma open_embedding.locally_compact_space [locally_compact_space β] {f : α → β}
   (hf : open_embedding f) : locally_compact_space α :=
 begin
-  refine hf.to_inducing.locally_compact_space (λ x s hs, _),
-  rcases locally_compact_space.local_compact_nhds _ _
-    (inter_mem hs (hf.open_range.mem_nhds $ mem_range_self _)) with ⟨t, hxt, hts, htc⟩,
-  refine ⟨t, hxt, hts.trans (inter_subset_left _ _), _⟩,
-  rwa inter_eq_self_of_subset_left (hts.trans (inter_subset_right _ _))
+  have : ∀ x : α, (𝓝 x).has_basis (λ s, (s ∈ 𝓝 (f x) ∧ is_compact s) ∧ s ⊆ range f) (λ s, f ⁻¹' s),
+  { intro x,
+    rw hf.to_embedding.to_inducing.nhds_eq_comap,
+    exact ((compact_basis_nhds _).restrict_subset $
+      hf.open_range.mem_nhds $ mem_range_self _).comap _ },
+  refine locally_compact_space_of_has_basis this (λ x s hs, _),
+  rw [← hf.to_inducing.is_compact_iff, image_preimage_eq_of_subset hs.2],
+  exact hs.1.2
 end
 
 protected lemma is_open.locally_compact_space [locally_compact_space α] {s : set α}

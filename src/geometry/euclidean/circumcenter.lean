@@ -63,13 +63,13 @@ end
 `orthogonal_projection` is. -/
 lemma dist_set_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P} [nonempty s]
   [complete_space s.direction] {ps : set P} (hps : ps ⊆ s) (p : P) :
-  (set.pairwise ps (λ p1 p2, dist p1 p = dist p2 p) ↔
+  set.pairwise ps (λ p1 p2, dist p1 p = dist p2 p) ↔
     (set.pairwise ps (λ p1 p2, dist p1 (orthogonal_projection s p) =
-      dist p2 (orthogonal_projection s p)))) :=
+      dist p2 (orthogonal_projection s p))) :=
 ⟨λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h p1 hp1 p2 hp2 hne),
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h hp1 hp2 hne),
 λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).2 (h p1 hp1 p2 hp2 hne)⟩
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).2 (h hp1 hp2 hne)⟩
 
 /-- There exists `r` such that `p` has distance `r` from all the
 points of a set of points in `s` if and only if there exists (possibly

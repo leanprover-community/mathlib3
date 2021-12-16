@@ -86,7 +86,11 @@ end
 lemma card_roots_of_unity (n : ℕ+) : fintype.card (roots_of_unity n ℂ) = n :=
 (is_primitive_root_exp n n.ne_zero).card_roots_of_unity
 
-lemma card_primitive_roots (k : ℕ) (h : k ≠ 0) : (primitive_roots k ℂ).card = φ k :=
-(is_primitive_root_exp k h).card_primitive_roots (nat.pos_of_ne_zero h)
+lemma card_primitive_roots (k : ℕ) : (primitive_roots k ℂ).card = φ k :=
+begin
+  by_cases h : k = 0,
+  { simp [h] },
+  exact (is_primitive_root_exp k h).card_primitive_roots,
+end
 
 end complex

@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Yury Kudryashov
 -/
-import order.preorder_hom
 import dynamics.fixed_points.basic
+import order.hom.lattice
 
 /-!
 # Fixed point construction on complete lattices
@@ -13,11 +13,11 @@ This file sets up the basic theory of fixed points of a monotone function in a c
 
 ## Main definitions
 
-* `preorder_hom.lfp`: The least fixed point of a bundled monotone function.
-* `preorder_hom.gfp`: The greatest fixed point of a bundled monotone function.
-* `preorder_hom.prev_fixed`: The greatest fixed point of a bundled monotone function smaller than or
+* `order_hom.lfp`: The least fixed point of a bundled monotone function.
+* `order_hom.gfp`: The greatest fixed point of a bundled monotone function.
+* `order_hom.prev_fixed`: The greatest fixed point of a bundled monotone function smaller than or
   equal to a given element.
-* `preorder_hom.next_fixed`: The least fixed point of a bundled monotone function greater than or
+* `order_hom.next_fixed`: The least fixed point of a bundled monotone function greater than or
   equal to a given element.
 * `fixed_points.complete_lattice`: The Knaster-Tarski theorem: fixed points of a monotone
   self-map of a complete lattice form themselves a complete lattice.
@@ -32,7 +32,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 open function (fixed_points is_fixed_pt)
 
-namespace preorder_hom
+namespace order_hom
 
 section basic
 
@@ -139,8 +139,8 @@ end
 
 lemma gfp_gfp (h : α →ₘ α →ₘ α) :
   gfp (gfp.comp h) = gfp h.on_diag :=
-@lfp_lfp (order_dual α) _ $ (preorder_hom.dual_iso (order_dual α)
-  (order_dual α)).symm.to_order_embedding.to_preorder_hom.comp h.dual
+@lfp_lfp (order_dual α) _ $ (order_hom.dual_iso (order_dual α)
+  (order_dual α)).symm.to_order_embedding.to_order_hom.comp h.dual
 
 end eqn
 
@@ -203,11 +203,11 @@ le_Inf $ λ x hx, (hA hx) ▸ (f.mono $ Inf_le hx)
 
 end prev_next
 
-end preorder_hom
+end order_hom
 
 namespace fixed_points
 
-open preorder_hom
+open order_hom
 
 variables [complete_lattice α] (f : α →ₘ α)
 

@@ -145,8 +145,8 @@ abbreviation homogeneous_ideal : Type* := { I : ideal R // is_homogeneous_ideal 
 lemma is_homogeneous_ideal.bot : is_homogeneous_ideal A ⊥ := λ i r hr,
 begin
   simp only [ideal.mem_bot] at hr,
-    rw [hr, alg_equiv.map_zero, zero_apply],
-    apply ideal.zero_mem
+  rw [hr, alg_equiv.map_zero, zero_apply],
+  apply ideal.zero_mem
 end
 
 instance homogeneous_ideal.inhabited : inhabited (homogeneous_ideal A) :=

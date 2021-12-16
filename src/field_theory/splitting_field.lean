@@ -176,9 +176,11 @@ begin
 end
 
 lemma degree_eq_one_of_irreducible_of_splits {p : polynomial L}
-  (h_nz : p ≠ 0) (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
+  (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
   p.degree = 1 :=
 begin
+  by_cases h_nz : p = 0,
+  { exfalso, simp [*] at *, },
   rcases hp_splits,
   { contradiction },
   { apply hp_splits hp, simp }
@@ -378,7 +380,7 @@ lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {p : polynomial K}
   (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
 begin
   have hprodmonic : (multiset.map (λ (a : K), X - C a) p.roots).prod.monic,
-  { simp only [prod_multiset_root_eq_finset_root (ne_zero_of_monic hmonic),
+  { simp only [prod_multiset_root_eq_finset_root p,
       monic_prod_of_monic, monic_X_sub_C, monic_pow, forall_true_iff] },
   have hdegree : (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree = p.nat_degree,
   { rw [← hroots, nat_degree_multiset_prod _ (zero_nmem_multiset_map_X_sub_C _ (λ a : K, a))],

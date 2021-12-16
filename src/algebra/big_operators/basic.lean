@@ -253,7 +253,7 @@ end
 
 section to_list
 
-@[to_additive]
+@[simp, to_additive]
 lemma prod_to_list (s : finset α) (f : α → β) : (s.to_list.map f).prod = s.prod f :=
 by rw [finset.prod, ← multiset.coe_prod, ← multiset.coe_map, finset.coe_to_list]
 

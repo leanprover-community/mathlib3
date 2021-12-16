@@ -358,6 +358,10 @@ lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial R} (hp : p.coeff 0 = 0)
   is_root p 0 :=
 by rwa coeff_zero_eq_eval_zero at hp
 
+lemma is_root.dvd {R : Type*} [comm_semiring R] {p q : polynomial R} {x : R}
+  (h : p.is_root x) (hpq : p ∣ q) : q.is_root x :=
+by rwa [is_root, eval, eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ hpq]
+
 end eval
 
 section comp

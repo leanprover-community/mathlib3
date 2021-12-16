@@ -70,7 +70,7 @@ def dgo_to_homological_complex :
     shape' := λ i j w, by { dsimp at w, convert dif_neg w },
     d_comp_d' := λ i j k hij hjk, begin
       dsimp at hij hjk, substs hij hjk,
-      have : X.d i ≫ _ = _ := (congr_fun X.d_squared i : _),
+      have : X.d i ≫ X.d _ = _ := (congr_fun X.d_squared i : _),
       reassoc! this,
       simp [this],
     end },

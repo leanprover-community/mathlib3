@@ -501,6 +501,14 @@ initialize_simps_projections alg_hom (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe (f : A →ₐ[R] B) : f.to_fun = f := rfl
 
+instance : ring_hom_class (A →ₐ[R] B) A B :=
+{ coe := to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  map_add := map_add',
+  map_zero := map_zero',
+  map_mul := map_mul',
+  map_one := map_one' }
+
 instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
 
 instance coe_monoid_hom : has_coe (A →ₐ[R] B) (A →* B) := ⟨λ f, ↑(f : A →+* B)⟩
@@ -515,18 +523,15 @@ instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑
 
 @[simp, norm_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
 
--- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
-@[norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
+@[simp, norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
 
--- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
-@[norm_cast] lemma coe_to_add_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →+ B) = f := rfl
+@[simp, norm_cast] lemma coe_to_add_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →+ B) = f := rfl
 
 variables (φ : A →ₐ[R] B)
 
-theorem coe_fn_injective : @function.injective (A →ₐ[R] B) (A → B) coe_fn :=
-by { intros φ₁ φ₂ H, cases φ₁, cases φ₂, congr, exact H }
+theorem coe_fn_injective : @function.injective (A →ₐ[R] B) (A → B) coe_fn := fun_like.coe_injective
 
-theorem coe_fn_inj {φ₁ φ₂ : A →ₐ[R] B} : (φ₁ : A → B) = φ₂ ↔ φ₁ = φ₂ := coe_fn_injective.eq_iff
+theorem coe_fn_inj {φ₁ φ₂ : A →ₐ[R] B} : (φ₁ : A → B) = φ₂ ↔ φ₁ = φ₂ := fun_like.coe_fn_eq
 
 theorem coe_ring_hom_injective : function.injective (coe : (A →ₐ[R] B) → (A →+* B)) :=
 λ φ₁ φ₂ H, coe_fn_injective $ show ((φ₁ : (A →+* B)) : A → B) = ((φ₂ : (A →+* B)) : A → B),
@@ -538,15 +543,15 @@ ring_hom.coe_monoid_hom_injective.comp coe_ring_hom_injective
 theorem coe_add_monoid_hom_injective : function.injective (coe : (A →ₐ[R] B)  → (A →+ B)) :=
 ring_hom.coe_add_monoid_hom_injective.comp coe_ring_hom_injective
 
-protected lemma congr_fun {φ₁ φ₂ : A →ₐ[R] B} (H : φ₁ = φ₂) (x : A) : φ₁ x = φ₂ x := H ▸ rfl
-protected lemma congr_arg (φ : A →ₐ[R] B) {x y : A} (h : x = y) : φ x = φ y := h ▸ rfl
+protected lemma congr_fun {φ₁ φ₂ : A →ₐ[R] B} (H : φ₁ = φ₂) (x : A) : φ₁ x = φ₂ x :=
+fun_like.congr_fun H x
+protected lemma congr_arg (φ : A →ₐ[R] B) {x y : A} (h : x = y) : φ x = φ y :=
+fun_like.congr_arg φ h
 
 @[ext]
-theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
-coe_fn_injective $ funext H
+theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ := fun_like.ext _ _ H
 
-theorem ext_iff {φ₁ φ₂ : A →ₐ[R] B} : φ₁ = φ₂ ↔ ∀ x, φ₁ x = φ₂ x :=
-⟨alg_hom.congr_fun, ext⟩
+theorem ext_iff {φ₁ φ₂ : A →ₐ[R] B} : φ₁ = φ₂ ↔ ∀ x, φ₁ x = φ₂ x := fun_like.ext_iff
 
 @[simp] theorem mk_coe {f : A →ₐ[R] B} (h₁ h₂ h₃ h₄ h₅) :
   (⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := ext $ λ _, rfl
@@ -557,23 +562,15 @@ theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.comm
 theorem comp_algebra_map : (φ : A →+* B).comp (algebra_map R A) = algebra_map R B :=
 ring_hom.ext $ φ.commutes
 
-@[simp] lemma map_add (r s : A) : φ (r + s) = φ r + φ s :=
-φ.to_ring_hom.map_add r s
-
-@[simp] lemma map_zero : φ 0 = 0 :=
-φ.to_ring_hom.map_zero
-
-@[simp] lemma map_mul (x y) : φ (x * y) = φ x * φ y :=
-φ.to_ring_hom.map_mul x y
-
-@[simp] lemma map_one : φ 1 = 1 :=
-φ.to_ring_hom.map_one
+lemma map_add (r s : A) : φ (r + s) = φ r + φ s := map_add _ _ _
+lemma map_zero : φ 0 = 0 := map_zero _
+lemma map_mul (x y) : φ (x * y) = φ x * φ y := map_mul _ _ _
+lemma map_one : φ 1 = 1 := map_one _
+lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n :=
+map_pow _ _ _
 
 @[simp] lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x :=
 by simp only [algebra.smul_def, map_mul, commutes]
-
-@[simp] lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n :=
-φ.to_ring_hom.map_pow x n
 
 lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∑ x in s, f x) = ∑ x in s, φ (f x) :=
@@ -586,11 +583,8 @@ lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α)
 @[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
 φ.to_ring_hom.map_nat_cast n
 
-@[simp] lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) :=
-φ.to_ring_hom.map_bit0 x
-
-@[simp] lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) :=
-φ.to_ring_hom.map_bit1 x
+lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) := map_bit0 _ _
+lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) := map_bit1 _ _
 
 /-- If a `ring_hom` is `R`-linear, then it is an `alg_hom`. -/
 def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[R] B :=
@@ -723,11 +717,8 @@ section ring
 variables [comm_semiring R] [ring A] [ring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
-@[simp] lemma map_neg (x) : φ (-x) = -φ x :=
-φ.to_ring_hom.map_neg x
-
-@[simp] lemma map_sub (x y) : φ (x - y) = φ x - φ y :=
-φ.to_ring_hom.map_sub x y
+lemma map_neg (x) : φ (-x) = -φ x := map_neg _ _
+lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
 
 @[simp] lemma map_int_cast (n : ℤ) : φ n = n :=
 φ.to_ring_hom.map_int_cast n

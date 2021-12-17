@@ -840,14 +840,6 @@ begin
     exact ⟨hk hbj, trans hti hk'⟩ }
 end
 
-lemma ite_subset_union (s s' : finset α) (P : Prop) [decidable P] :
-  ite P s s' ⊆ s ∪ s' :=
-begin
-  split_ifs,
-  exact finset.subset_union_left s s',
-  exact finset.subset_union_right s s',
-end
-
 /-! ### inter -/
 
 /-- `s ∩ t` is the set such that `a ∈ s ∩ t` iff `a ∈ s` and `a ∈ t`. -/
@@ -956,14 +948,6 @@ finset.inter_subset_inter h (finset.subset.refl _)
 lemma inter_subset_inter_left {x y s : finset α} (h : x ⊆ y) : s ∩ x ⊆ s ∩ y :=
 finset.inter_subset_inter (finset.subset.refl _) h
 
-lemma inter_subset_ite (s s' : finset α) (P : Prop) [decidable P] :
-  s ∩ s' ⊆ ite P s s' :=
-begin
-  split_ifs,
-  exact finset.inter_subset_left s s',
-  exact finset.inter_subset_right s s',
-end
-
 /-! ### lattice laws -/
 
 instance : lattice (finset α) :=
@@ -1023,6 +1007,12 @@ theorem inter_eq_left_iff_subset (s t : finset α) :
 theorem inter_eq_right_iff_subset (s t : finset α) :
   t ∩ s = s ↔ s ⊆ t :=
 (inf_eq_right : t ⊓ s = s ↔ s ≤ t)
+
+lemma ite_subset_union (s s' : finset α) (P : Prop) [decidable P] :
+  ite P s s' ⊆ s ∪ s' := ite_le_sup s s' P
+
+lemma inter_subset_ite (s s' : finset α) (P : Prop) [decidable P] :
+  s ∩ s' ⊆ ite P s s' := inf_le_ite s s' P
 
 /-! ### erase -/
 

@@ -275,6 +275,23 @@ begin
   exact hM, refl,
 end
 
+lemma eq_linear_combination (P : A) (n : ℕ) :
+  P = (f.m) ^ n.succ • ((next f.m)^[n.succ] P) +
+    ∑ i in range n.succ, (f.m) ^ i •  (next_rep f.m ((next f.m)^[i] P)) :=
+begin
+  induction n with n ih,
+  { rw [pow_one, function.iterate_one, range_one, sum_singleton, pow_zero, one_smul,
+    function.iterate_zero, id.def, property_next, sub_add_cancel], },
+
+  { conv_rhs { rw [function.iterate_succ',
+      show (next f.m ∘ (next f.m^[n.succ])) P = next f.m (next f.m^[n.succ] P), from rfl,
+      next_prop f.m (next f.m^[n.succ] P), finset.sum_range_succ, pow_succ, mul_nsmul',
+      show ∀ (a b c : A), a + (b + c) = (a + c) + b, begin
+        intros a b c, rw [add_comm b c, add_assoc],
+      end, ←next_prop f.m (next f.m^[n.succ] P), ←nsmul_add, ←next_prop f.m (next f.m^[n.succ] P)], },
+    conv_lhs { rw ih }, },
+end
+
 theorem descent :
   add_subgroup.fg (⊤ : add_subgroup A) :=
 begin

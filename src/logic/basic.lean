@@ -385,7 +385,6 @@ instance : is_commutative Prop xor := ⟨xor_comm⟩
 
 @[simp] theorem xor_self (a : Prop) : xor a a = false := by simp [xor]
 
-
 /-! ### Declarations about `and` -/
 
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=

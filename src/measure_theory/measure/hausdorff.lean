@@ -405,7 +405,7 @@ begin
   simp
 end
 
-lemma le_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (μ : outer_measure X) (hμ : ∀ x, μ {x} = 0)
+lemma le_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (μ : outer_measure X)
   (r : ℝ≥0∞) (h0 : 0 < r) (hr : ∀ s, diam s ≤ r → μ s ≤ m (diam s)) :
   μ ≤ mk_metric m :=
 le_bsupr_of_le r h0 $ mk_metric'.le_pre.2 $ λ s hs, hr _ hs
@@ -503,12 +503,12 @@ sorry
     exact ⟨x, hx⟩ }
 end-/
 
-lemma le_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (μ : measure X) [has_no_atoms μ] (ε : ℝ≥0∞) (h₀ : 0 < ε)
+lemma le_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (μ : measure X) (ε : ℝ≥0∞) (h₀ : 0 < ε)
   (h : ∀ s : set X, diam s ≤ ε → μ s ≤ m (diam s)) :
   μ ≤ mk_metric m :=
 begin
   rw [← to_outer_measure_le, mk_metric_to_outer_measure],
-  exact outer_measure.le_mk_metric m μ.to_outer_measure measure_singleton ε h₀ h
+  exact outer_measure.le_mk_metric m μ.to_outer_measure ε h₀ h
 end
 
 /-- To bound the Hausdorff measure (or, more generally, for a measure defined using
@@ -559,33 +559,16 @@ def hausdorff_measure (d : ℝ) : measure X := mk_metric (λ r, r ^ d)
 
 localized "notation `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in measure_theory
 
-lemma le_hausdorff_measure (d : ℝ) (μ : measure X) [has_no_atoms μ] (ε : ℝ≥0∞) (h₀ : 0 < ε)
+lemma le_hausdorff_measure (d : ℝ) (μ : measure X) (ε : ℝ≥0∞) (h₀ : 0 < ε)
   (h : ∀ s : set X, diam s ≤ ε → μ s ≤ diam s ^ d) :
   μ ≤ μH[d] :=
 le_mk_metric _ μ ε h₀ h
 
-/-- A formula for `μH[d] s` that works for all `d`. In case of a positive `d` a simpler formula
-is available as `measure_theory.measure.hausdorff_measure_apply`. -/
-lemma hausdorff_measure_apply' (d : ℝ) (s : set X) :
+/-- A formula for `μH[d] s`. -/
+lemma hausdorff_measure_apply (d : ℝ) (s : set X) :
   μH[d] s = ⨆ (r : ℝ≥0∞) (hr : 0 < r), ⨅ (t : ℕ → set X) (hts : s ⊆ ⋃ n, t n)
     (ht : ∀ n, diam (t n) ≤ r), ∑' n, (diam (t n)) ^ d :=
 mk_metric_apply _ _
-
-/-- A formula for `μH[d] s` that works for all positive `d`. -/
-lemma hausdorff_measure_apply {d : ℝ} (hd : 0 < d) (s : set X) :
-  μH[d] s = ⨆ (r : ℝ≥0∞) (hr : 0 < r), ⨅ (t : ℕ → set X) (hts : s ⊆ ⋃ n, t n)
-    (ht : ∀ n, diam (t n) ≤ r), ∑' n, diam (t n) ^ d :=
-begin
-  classical,
-  rw hausdorff_measure_apply',
-  -- I wish `congr'` was able to generate this
-  refine supr_congr id surjective_id (λ r, supr_congr_Prop iff.rfl $ λ hr,
-    infi_congr id surjective_id $ λ t, infi_congr_Prop iff.rfl $ λ hts,
-    infi_congr_Prop iff.rfl $ λ ht, tsum_congr $ λ n, _),
-  rw [supr_eq_if], split_ifs with ht',
-  { erw [diam_eq_zero_iff.2 ht', ennreal.zero_rpow_of_pos hd, ennreal.bot_eq_zero] },
-  { refl }
-end
 
 /-- To bound the Hausdorff measure of a set, one may use coverings with maximum diameter tending
 to `0`, indexed by any sequence of encodable types. -/
@@ -619,7 +602,7 @@ begin
   { rw [ennreal.coe_rpow_of_ne_zero hc, pos_iff_ne_zero, ne.def, ennreal.coe_eq_zero,
       nnreal.rpow_eq_zero_iff],
     exact mt and.left hc },
-  filter_upwards [Ioo_mem_nhds_within_Ioi ⟨le_rfl, this⟩],
+  filter_upwards [Ico_mem_nhds_within_Ici ⟨le_rfl, this⟩],
   rintro r ⟨hr₀, hrc⟩,
   lift r to ℝ≥0 using ne_top_of_lt hrc,
   rw [pi.smul_apply, smul_eq_mul, ← ennreal.div_le_iff_le_mul (or.inr ennreal.coe_ne_top)
@@ -658,7 +641,7 @@ open measure
 -/
 
 /-- In the space `ι → ℝ`, Hausdorff measure coincides exactly with Lebesgue measure. -/
-@[simp] theorem hausdorff_measure_pi_real {ι : Type*} [fintype ι] [nonempty ι] :
+@[simp] theorem hausdorff_measure_pi_real {ι : Type*} [fintype ι] :
   (μH[fintype.card ι] : measure (ι → ℝ)) = volume :=
 begin
   classical,

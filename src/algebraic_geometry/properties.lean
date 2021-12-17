@@ -91,4 +91,67 @@ begin
     { intro x, exact x.rec _ } }
 end
 
+.
+
+-- example {a : Type*} (b c : set a) : (b ≤ c) → (b ∩ cᶜ = ∅) := by library_search
+
+lemma closed_eq_top_iff_nonempty_open_subset {α : Type*} [topological_space α]
+  [preirreducible_space α]
+  {U Z : set α} (hU : is_open U) (hU' : nonempty U) (hZ : is_closed Z) :
+  Z = ⊤ ↔ U ≤ Z :=
+begin
+  split,
+  { exact λ h, h.symm ▸ le_top },
+  intro h,
+  have := mt (nonempty_preirreducible_inter hU (is_open_compl_iff.mpr hZ)
+    ((set.nonempty_coe_sort _).mp hU')),
+  rw [set.inter_compl_nonempty_iff, set.not_nonempty_iff_eq_empty, not_not] at this,
+  exact set.compl_empty_iff.mp (this h),
+end
+
+
+local attribute [reducible] Scheme.X
+
+@[simps]
+def Scheme.forget_to_Top : Scheme ⥤ Top :=
+  induced_functor _ ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _
+
+def has_generic_point [h : is_integral X] : ∃ (x : X.carrier), closure ({x} : set X.carrier) = ⊤ :=
+begin
+  haveI : irreducible_space X.X := show irreducible_space X.carrier, by apply_instance,
+  obtain ⟨⟨U, hU⟩, R, ⟨e⟩⟩ := X.local_affine (nonempty.some infer_instance),
+  haveI : nonempty (U.open_embedding.is_open_map.functor.obj ⊤) :=
+    ⟨⟨_, ⟨_, hU⟩, trivial, rfl⟩⟩,
+  haveI := ((LocallyRingedSpace.Γ.map_iso e.op).symm ≪≫ Spec_Γ_identity.app R :
+    X.presheaf.obj (op $ U.open_embedding.is_open_map.functor.obj ⊤) ≅ R)
+      .CommRing_iso_to_ring_equiv.symm.is_domain _,
+  let x : U.1 := e.inv.1.base (⟨0, ideal.bot_prime⟩ : prime_spectrum R),
+  use x.1,
+  rw closed_eq_top_iff_nonempty_open_subset U.2,
+  suffices : closure ({⟨0, ideal.bot_prime⟩} : set $ prime_spectrum R) = ⊤,
+  { apply_fun (set.image e.inv.1.base) at this,
+    erw (homeo_of_iso ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _)
+      .map_iso e.symm)).image_closure at this,
+    change closure ((e.inv.val.base) '' _) = _ at this,
+    rw set.image_singleton at this,
+    intros y hy,
+    have h' := @closure_subtype _ _ U.1 ⟨y, hy⟩ ({x} : set U),
+    rw set.image_singleton at h',
+    apply h'.mp,
+    rw this,
+    erw set.image_univ,
+    rw set.range_iff_surjective.mpr ((Top.epi_iff_surjective _).mp _),
+    trivial,
+    change epi ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _)
+      .map_iso e).inv,
+    apply_instance },
+  rw eq_top_iff,
+  intros y _,
+  exact (prime_spectrum.le_iff_mem_closure _ _).mp bot_le,
+  exact nonempty.intro ⟨_, hU⟩,
+  exact is_closed_closure
+end
+
+
+
 end algebraic_geometry

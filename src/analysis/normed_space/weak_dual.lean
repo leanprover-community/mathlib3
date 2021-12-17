@@ -429,8 +429,6 @@ begin
   exact weak_dual.to_Pi_embedding.image_polar_compact s_nhd,
 end
 
-#check weak_dual.to_normed_dual
-
 /-- The Banach-Alaoglu theorem: closed balls of the dual of a normed space `E` over `ℝ` or `ℂ`
 are compact in the weak-star topology. -/
 theorem weak_dual.is_compact_closed_ball

@@ -386,11 +386,11 @@ begin
   have integer : ∏ i in nat.divisors n, cyclotomic i ℤ = X ^ n - 1,
   { apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
     rw map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
-    simp only [int_cyclotomic_spec, map_pow, nat.cast_id, map_X, map_one, map_sub],
+    simp only [int_cyclotomic_spec, polynomial.map_pow, nat.cast_id, map_X, map_one, map_sub],
     exact prod_cyclotomic'_eq_X_pow_sub_one hpos
           (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
   have coerc : X ^ n - 1 = map (int.cast_ring_hom R) (X ^ n - 1),
-  { simp only [map_pow, map_X, map_one, map_sub] },
+  { simp only [polynomial.map_pow, polynomial.map_X, polynomial.map_one, polynomial.map_sub] },
   have h : ∀ i ∈ n.divisors, cyclotomic i R = map (int.cast_ring_hom R) (cyclotomic i ℤ),
   { intros i hi,
     exact (map_cyclotomic_int i R).symm },

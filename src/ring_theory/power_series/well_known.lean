@@ -49,7 +49,7 @@ by simp [mul_sub, sub_sub_cancel]
 
 lemma map_inv_units_sub (f : R →+* S) (u : units R) :
   map f (inv_units_sub u) = inv_units_sub (units.map (f : R →* S) u) :=
-by { ext, simp [← monoid_hom.map_pow] }
+by { ext, simp [← map_pow] }
 
 end ring
 

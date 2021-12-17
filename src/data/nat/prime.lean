@@ -770,6 +770,20 @@ begin
   rw [list.count_append, IH, add_comm, mul_comm, ←mul_succ (count p n.factors) k, mul_comm],
 end
 
+lemma dvd_of_factors_subperm {a b : ℕ} (ha : a ≠ 0) (h : a.factors <+~ b.factors) : a ∣ b :=
+begin
+  rcases b.eq_zero_or_pos with rfl | hb,
+  { exact dvd_zero _ },
+  rcases a with (_|_|a),
+  { exact (ha rfl).elim },
+  { exact one_dvd _ },
+  use (b.factors.diff a.succ.succ.factors).prod,
+  nth_rewrite 0 ←nat.prod_factors ha.bot_lt,
+  rw [←list.prod_append,
+      list.perm.prod_eq $ list.subperm_append_diff_self_of_count_le $ list.subperm_ext_iff.mp h,
+      nat.prod_factors hb]
+end
+
 end
 
 lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m n k l : ℕ}

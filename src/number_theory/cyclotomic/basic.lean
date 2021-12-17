@@ -77,13 +77,7 @@ lemma iff_adjoin_eq_top : is_cyclotomic_extension S A B ↔
 lemma iff_singleton : is_cyclotomic_extension {n} A B ↔
  (∃ r : B, aeval r (cyclotomic n A) = 0) ∧
  (∀ x, x ∈ adjoin A { b : B | b ^ (n : ℕ) = 1 }) :=
-begin
-  refine ⟨λ h, ⟨((is_cyclotomic_extension_iff _ _ _).1 h).1 (set.mem_singleton _), by simpa using
-  ((is_cyclotomic_extension_iff _ _ _).1 h).2⟩,
-  λ h, ⟨λ a ha, _, by simpa using h.2⟩⟩,
-  obtain ⟨⟨b, hb⟩, H⟩ := h,
-  exact ⟨b, (set.mem_singleton_iff.1 ha).symm ▸ hb⟩
-end
+by simp [is_cyclotomic_extension_iff]
 
 /-- If `is_cyclotomic_extension ∅ A B`, then `A = B`. -/
 lemma empty [h : is_cyclotomic_extension ∅ A B] : (⊤ : subalgebra A B) = ⊥ :=

@@ -442,6 +442,14 @@ initialize_simps_projections alg_hom (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe (f : A →ₐ[R] B) : f.to_fun = f := rfl
 
+instance : ring_hom_class (A →ₐ[R] B) A B :=
+{ coe := to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  map_add := map_add',
+  map_zero := map_zero',
+  map_mul := map_mul',
+  map_one := map_one' }
+
 instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
 
 instance coe_monoid_hom : has_coe (A →ₐ[R] B) (A →* B) := ⟨λ f, ↑(f : A →+* B)⟩
@@ -464,10 +472,9 @@ instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑
 
 variables (φ : A →ₐ[R] B)
 
-theorem coe_fn_injective : @function.injective (A →ₐ[R] B) (A → B) coe_fn :=
-by { intros φ₁ φ₂ H, cases φ₁, cases φ₂, congr, exact H }
+theorem coe_fn_injective : @function.injective (A →ₐ[R] B) (A → B) coe_fn := fun_like.coe_injective
 
-theorem coe_fn_inj {φ₁ φ₂ : A →ₐ[R] B} : (φ₁ : A → B) = φ₂ ↔ φ₁ = φ₂ := coe_fn_injective.eq_iff
+theorem coe_fn_inj {φ₁ φ₂ : A →ₐ[R] B} : (φ₁ : A → B) = φ₂ ↔ φ₁ = φ₂ := fun_like.coe_fn_eq
 
 theorem coe_ring_hom_injective : function.injective (coe : (A →ₐ[R] B) → (A →+* B)) :=
 λ φ₁ φ₂ H, coe_fn_injective $ show ((φ₁ : (A →+* B)) : A → B) = ((φ₂ : (A →+* B)) : A → B),
@@ -483,11 +490,9 @@ protected lemma congr_fun {φ₁ φ₂ : A →ₐ[R] B} (H : φ₁ = φ₂) (x :
 protected lemma congr_arg (φ : A →ₐ[R] B) {x y : A} (h : x = y) : φ x = φ y := h ▸ rfl
 
 @[ext]
-theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
-coe_fn_injective $ funext H
+theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ := fun_like.ext _ _ H
 
-theorem ext_iff {φ₁ φ₂ : A →ₐ[R] B} : φ₁ = φ₂ ↔ ∀ x, φ₁ x = φ₂ x :=
-⟨alg_hom.congr_fun, ext⟩
+theorem ext_iff {φ₁ φ₂ : A →ₐ[R] B} : φ₁ = φ₂ ↔ ∀ x, φ₁ x = φ₂ x := fun_like.ext_iff
 
 @[simp] theorem mk_coe {f : A →ₐ[R] B} (h₁ h₂ h₃ h₄ h₅) :
   (⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := ext $ λ _, rfl
@@ -498,17 +503,10 @@ theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.comm
 theorem comp_algebra_map : (φ : A →+* B).comp (algebra_map R A) = algebra_map R B :=
 ring_hom.ext $ φ.commutes
 
-@[simp] lemma map_add (r s : A) : φ (r + s) = φ r + φ s :=
-φ.to_ring_hom.map_add r s
-
-@[simp] lemma map_zero : φ 0 = 0 :=
-φ.to_ring_hom.map_zero
-
-@[simp] lemma map_mul (x y) : φ (x * y) = φ x * φ y :=
-φ.to_ring_hom.map_mul x y
-
-@[simp] lemma map_one : φ 1 = 1 :=
-φ.to_ring_hom.map_one
+lemma map_add (r s : A) : φ (r + s) = φ r + φ s := map_add _ _ _
+lemma map_zero : φ 0 = 0 := map_zero _
+lemma map_mul (x y) : φ (x * y) = φ x * φ y := map_mul _ _ _
+lemma map_one : φ 1 = 1 := map_one _
 
 @[simp] lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x :=
 by simp only [algebra.smul_def, map_mul, commutes]

@@ -108,6 +108,22 @@ begin
   simp only [adjoint_inner_right, continuous_linear_map.coe_comp', function.comp_app],
 end
 
+lemma apply_norm_sq_eq_inner_adjoint_left (A : E →L[𝕜] E) (x : E) : ∥A x∥^2 = re ⟪(A† * A) x, x⟫ :=
+have h : ⟪(A† * A) x, x⟫ = ⟪A x, A x⟫ := by { rw [←adjoint_inner_left], refl },
+by rw [h, ←inner_self_eq_norm_sq _]
+
+lemma apply_norm_eq_sqrt_inner_adjoint_left (A : E →L[𝕜] E) (x : E) :
+  ∥A x∥ = real.sqrt (re ⟪(A† * A) x, x⟫) :=
+by rw [←apply_norm_sq_eq_inner_adjoint_left, real.sqrt_sq (norm_nonneg _)]
+
+lemma apply_norm_sq_eq_inner_adjoint_right (A : E →L[𝕜] E) (x : E) : ∥A x∥^2 = re ⟪x, (A† * A) x⟫ :=
+have h : ⟪x, (A† * A) x⟫ = ⟪A x, A x⟫ := by { rw [←adjoint_inner_right], refl },
+by rw [h, ←inner_self_eq_norm_sq _]
+
+lemma apply_norm_eq_sqrt_inner_adjoint_right (A : E →L[𝕜] E) (x : E) :
+  ∥A x∥ = real.sqrt (re ⟪x, (A† * A) x⟫) :=
+by rw [←apply_norm_sq_eq_inner_adjoint_right, real.sqrt_sq (norm_nonneg _)]
+
 /-- `E →L[𝕜] E` is a C⋆-algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩
@@ -135,8 +151,7 @@ instance : cstar_ring (E →L[𝕜] E) :=
                         rw [←comp_apply],
                         exact le_op_norm _ _,
                       end,
-    calc ∥A x∥ = real.sqrt (re ⟪A x, A x⟫)          : norm_eq_sqrt_inner _
-          ...  = real.sqrt (re ⟪A† (A x), x⟫)       : by rw [←adjoint_inner_left]
+    calc ∥A x∥ = real.sqrt (re ⟪(A† * A) x, x⟫)     : by rw [apply_norm_eq_sqrt_inner_adjoint_left]
           ...  ≤ real.sqrt (∥A† * A∥ * ∥x∥ * ∥x∥)   : real.sqrt_le_sqrt this
           ...  = real.sqrt (∥A† * A∥) * ∥x∥
             : by rw [mul_assoc, real.sqrt_mul (norm_nonneg _), real.sqrt_mul_self (norm_nonneg _)] }

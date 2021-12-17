@@ -1008,6 +1008,12 @@ theorem inter_eq_right_iff_subset (s t : finset α) :
   t ∩ s = s ↔ s ⊆ t :=
 (inf_eq_right : t ⊓ s = s ↔ s ≤ t)
 
+lemma ite_subset_union (s s' : finset α) (P : Prop) [decidable P] :
+  ite P s s' ⊆ s ∪ s' := ite_le_sup s s' P
+
+lemma inter_subset_ite (s s' : finset α) (P : Prop) [decidable P] :
+  s ∩ s' ⊆ ite P s s' := inf_le_ite s s' P
+
 /-! ### erase -/
 
 /-- `erase s a` is the set `s - {a}`, that is, the elements of `s` which are

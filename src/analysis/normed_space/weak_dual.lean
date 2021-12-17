@@ -157,26 +157,6 @@ end normed_space.dual
 
 namespace weak_dual
 
-lemma to_normed_dual.preimage_closed_ball (r : ℝ) :
-  (to_normed_dual ⁻¹' metric.closed_ball (0 : dual 𝕜 E) r) =
-    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ r} :=
-begin
-  have eq : metric.closed_ball (0 : dual 𝕜 E) r = {x' : dual 𝕜 E | ∥ x' ∥ ≤ r},
-  { ext x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
-  rw eq,
-  exact set.preimage_set_of_eq,
-end
-
-lemma to_normed_dual.preimage_closed_ball' (r : ℝ) :
-  (to_normed_dual ⁻¹' metric.closed_ball (0 : dual 𝕜 E) r) =
-    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ r} :=
-begin
-  have eq : metric.closed_ball (0 : dual 𝕜 E) r = {x' : dual 𝕜 E | ∥ x' ∥ ≤ r},
-  { ext x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
-  rw eq,
-  exact set.preimage_set_of_eq,
-end
-
 variables (𝕜)
 
 /-- The polar set `polar 𝕜 s` of `s : set E` seen as a subset of the dual of `E` with the

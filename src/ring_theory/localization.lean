@@ -236,6 +236,49 @@ lemma exist_integer_multiples_of_finset (s : finset S) :
   ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
 exist_integer_multiples M s id
 
+/-- A choice of a common multiple of the denominators of a `finset`-indexed family of fractions. -/
+noncomputable
+def common_denom {ι : Type*} (s : finset ι) (f : ι → S) : M :=
+(exist_integer_multiples M s f).some
+
+/-- The numerator of a fraction after clearing the denominators
+of a `finset`-indexed family of fractions. -/
+noncomputable
+def integer_multiple {ι : Type*} (s : finset ι) (f : ι → S) (i : s) : R :=
+((exist_integer_multiples M s f).some_spec i i.prop).some
+
+@[simp]
+lemma map_integer_multiple {ι : Type*} (s : finset ι) (f : ι → S) (i : s) :
+  algebra_map R S (integer_multiple M s f i) = common_denom M s f • f i :=
+((exist_integer_multiples M s f).some_spec _ i.prop).some_spec
+
+/-- A choice of a common multiple of the denominators of a finite set of fractions. -/
+noncomputable
+def common_denom_of_finset (s : finset S) : M :=
+common_denom M s id
+
+/-- The finset of numerators after clearing the denominators of a finite set of fractions. -/
+noncomputable
+def finset_integer_multiple [decidable_eq R] (s : finset S) : finset R :=
+s.attach.image (λ t, integer_multiple M s id t)
+
+open_locale pointwise
+
+lemma finset_integer_multiple_image [decidable_eq R] (s : finset S) :
+  algebra_map R S '' (finset_integer_multiple M s) =
+    common_denom_of_finset M s • s :=
+begin
+  delta finset_integer_multiple common_denom,
+  rw finset.coe_image,
+  ext,
+  split,
+  { rintro ⟨_, ⟨x, -, rfl⟩, rfl⟩,
+    rw map_integer_multiple,
+    exact set.mem_image_of_mem _ x.prop },
+  { rintro ⟨x, hx, rfl⟩,
+    exact ⟨_, ⟨⟨x, hx⟩, s.mem_attach _, rfl⟩, map_integer_multiple M s id _⟩ }
+end
+
 variables {R M}
 
 lemma map_right_cancel {x y} {c : M} (h : algebra_map R S (c * x) = algebra_map R S (c * y)) :
@@ -251,7 +294,22 @@ lemma eq_zero_of_fst_eq_zero {z x} {y : M}
 by { rw [hx, (algebra_map R S).map_zero] at h,
      exact (is_unit.mul_left_eq_zero (is_localization.map_units S y)).1 h}
 
-variables (S)
+variables (M S)
+
+lemma map_eq_zero_iff (r : R) :
+  algebra_map R S r = 0 ↔ ∃ m : M, r * m = 0 :=
+begin
+  split,
+  intro h,
+  { obtain ⟨m, hm⟩ := (is_localization.eq_iff_exists M S).mp
+      ((algebra_map R S).map_zero.trans h.symm),
+    exact ⟨m, by simpa using hm.symm⟩ },
+  { rintro ⟨m, hm⟩,
+    rw [← (is_localization.map_units S m).mul_left_inj, zero_mul, ← ring_hom.map_mul, hm,
+      ring_hom.map_zero] }
+end
+
+variables {M}
 
 /-- `is_localization.mk' S` is the surjection sending `(x, y) : R × M` to
 `f x * (f y)⁻¹`. -/
@@ -748,24 +806,6 @@ lemma mk_zero (b) : (mk 0 b : localization M) = 0 :=
 calc mk 0 b = mk 0 1 : mk_eq_mk_iff.mpr (r_of_eq (by simp))
 ... = 0 : by  unfold has_zero.zero localization.zero
 
-/-- Scalar multiplication in a ring localization is defined as `c • ⟨a, b⟩ = ⟨c • a, c • b⟩`. -/
-@[irreducible] protected def smul {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
-  (c : S) (z : localization M) : localization M :=
-localization.lift_on z (λ a b, mk (c • a) b) $
-  λ a a' b b' h, mk_eq_mk_iff.2
-begin
-  cases b with b hb,
-  cases b' with b' hb',
-  rw r_eq_r' at h ⊢,
-  cases h with t ht,
-  use t,
-  simp only [smul_mul_assoc, ht]
-end
-
-lemma smul_mk {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
-  (c : S) (a b) : localization.smul c (mk a b : localization M) = mk (c • a) b :=
-by { unfold has_scalar.smul localization.smul, apply lift_on_mk }
-
 private meta def tac := `[
 { intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
@@ -779,12 +819,12 @@ instance : comm_ring (localization M) :=
   add  := (+),
   mul  := (*),
   npow := localization.npow _,
-  nsmul := localization.smul,
+  nsmul := (•),
   nsmul_zero' := λ x, localization.induction_on x
     (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
   nsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
-  zsmul := localization.smul,
+  zsmul := (•),
   zsmul_zero' := λ x, localization.induction_on x
     (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
   zsmul_succ' := λ n x, localization.induction_on x
@@ -803,13 +843,45 @@ instance : comm_ring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
    ..localization.comm_monoid M }
 
-instance : algebra R (localization M) :=
-ring_hom.to_algebra $
-{ to_fun := (monoid_of M).to_map,
-  map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
-  map_add' := λ x y,
-    by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
-  .. localization.monoid_of M }
+instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
+  distrib_mul_action S (localization M) :=
+{ smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
+  smul_add := λ s x y, localization.induction_on₂ x y $
+    prod.rec $ by exact λ r₁ x₁, prod.rec $ by exact λ r₂ x₂,
+      by simp only [localization.smul_mk, localization.add_mk, smul_add, mul_comm _ (s • _),
+                    mul_comm _ r₁, mul_comm _ r₂, smul_mul_assoc] }
+
+instance {S : Type*} [semiring S] [mul_semiring_action S R] [is_scalar_tower S R R] :
+  mul_semiring_action S (localization M) :=
+{ ..localization.mul_distrib_mul_action }
+
+instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
+  module S (localization M) :=
+{ zero_smul := localization.ind $ prod.rec $
+    by { intros, simp only [localization.smul_mk, zero_smul, mk_zero] },
+  add_smul := λ s₁ s₂, localization.ind $ prod.rec $
+    by { intros, simp only [localization.smul_mk, add_smul, add_mk_self] },
+  ..localization.distrib_mul_action }
+
+instance {S : Type*} [comm_semiring S] [algebra S R] : algebra S (localization M) :=
+{ to_ring_hom :=
+  ring_hom.comp
+  { to_fun := (monoid_of M).to_map,
+    map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
+    map_add' := λ x y,
+      by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
+    .. localization.monoid_of M } (algebra_map S R),
+  smul_def' := λ s, localization.ind $ prod.rec $ begin
+    intros r x,
+    dsimp,
+    simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, algebra.smul_def],
+  end,
+  commutes' := λ s, localization.ind $ prod.rec $ begin
+    intros r x,
+    dsimp,
+    simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, mul_one,
+               algebra.commutes],
+  end }
 
 instance : is_localization M (localization M) :=
 { map_units := (localization.monoid_of M).map_units,
@@ -1276,7 +1348,7 @@ begin
 end
 
 instance (p : ideal (localization M)) [p.is_prime] : algebra R (localization.at_prime p) :=
-((algebra_map (localization M) _).comp (algebra_map R _)).to_algebra
+localization.algebra
 
 instance (p : ideal (localization M)) [p.is_prime] :
   is_scalar_tower R (localization M) (localization.at_prime p) :=
@@ -1330,7 +1402,7 @@ submodule.map_mul _ _ (algebra.of_id R S)
 lemma coe_submodule_fg
   (hS : function.injective (algebra_map R S)) (I : ideal R) :
   submodule.fg (coe_submodule S I) ↔ submodule.fg I :=
-⟨submodule.fg_of_fg_map _ (linear_map.ker_eq_bot.mpr hS), submodule.fg_map⟩
+⟨submodule.fg_of_fg_map _ (linear_map.ker_eq_bot.mpr hS), submodule.fg.map _⟩
 
 @[simp]
 lemma coe_submodule_span (s : set R) :

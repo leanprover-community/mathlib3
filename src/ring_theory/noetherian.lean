@@ -30,7 +30,7 @@ we don't make this explicit in the declaration names.)
 
 Let `R` be a ring and let `M` and `P` be `R`-modules. Let `N` be an `R`-submodule of `M`.
 
-* `fg N : Prop` is the assertion that `N` is finitely generated as an `R`-module.
+* `submodule.fg N : Prop` is the assertion that `N` is finitely generated as an `R`-module.
 
 * `is_noetherian R M` is the proposition that `M` is a Noetherian `R`-module. It is a class,
   implemented as the predicate that all `R`-submodules of `M` are finitely generated.
@@ -50,7 +50,7 @@ is proved in `ring_theory.polynomial`.
 ## References
 
 * [M. F. Atiyah and I. G. Macdonald, *Introduction to commutative algebra*][atiyah-macdonald]
-* [samuel]
+* [samuel1967]
 
 ## Tags
 
@@ -150,10 +150,12 @@ let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
 fg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [span_union, ht₁.2, ht₂.2]⟩
 
 variables {P : Type*} [add_comm_monoid P] [module R P]
-variables {f : M →ₗ[R] P}
+variables (f : M →ₗ[R] P)
 
-theorem fg_map {N : submodule R M} (hs : N.fg) : (N.map f).fg :=
+theorem fg.map {N : submodule R M} (hs : N.fg) : (N.map f).fg :=
 let ⟨t, ht⟩ := fg_def.1 hs in fg_def.2 ⟨f '' t, ht.1.image _, by rw [span_image, ht.2]⟩
+
+variables {f}
 
 lemma fg_of_fg_map_injective (f : M →ₗ[R] P) (hf : function.injective f) {N : submodule R M}
   (hfn : (N.map f).fg) : N.fg :=
@@ -168,12 +170,12 @@ lemma fg_of_fg_map {R M P : Type*} [ring R] [add_comm_group M] [module R M]
 fg_of_fg_map_injective f (linear_map.ker_eq_bot.1 hf) hfn
 
 lemma fg_top (N : submodule R M) : (⊤ : submodule R N).fg ↔ N.fg :=
-⟨λ h, N.range_subtype ▸ map_top N.subtype ▸ fg_map h,
+⟨λ h, N.range_subtype ▸ map_top N.subtype ▸ h.map _,
 λ h, fg_of_fg_map_injective N.subtype subtype.val_injective $ by rwa [map_top, range_subtype]⟩
 
 lemma fg_of_linear_equiv (e : M ≃ₗ[R] P) (h : (⊤ : submodule R P).fg) :
   (⊤ : submodule R M).fg :=
-e.symm.range ▸ map_top (e.symm : P →ₗ[R] M) ▸ fg_map h
+e.symm.range ▸ map_top (e.symm : P →ₗ[R] M) ▸ h.map _
 
 theorem fg_prod {sb : submodule R M} {sc : submodule R P}
   (hsb : sb.fg) (hsc : sc.fg) : (sb.prod sc).fg :=
@@ -239,15 +241,20 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
+/-- An ideal of `R` is finitely generated if it is the span of a finite subset of `R`.
+
+This is defeq to `submodule.fg`, but unfolds more nicely. -/
+def _root_.ideal.fg (I : ideal R) : Prop := ∃ S : finset R, ideal.span ↑S = I
+
 /-- The image of a finitely generated ideal is finitely generated.
 
-This is the `ideal` version of `submodule.fg_map`. -/
-lemma map_fg_of_fg {R S : Type*} [semiring R] [semiring S] (I : ideal R) (h : I.fg) (f : R →+* S) :
-  (I.map f).fg :=
+This is the `ideal` version of `submodule.fg.map`. -/
+lemma _root_.ideal.fg.map {R S : Type*} [semiring R] [semiring S] {I : ideal R} (h : I.fg)
+  (f : R →+* S) : (I.map f).fg :=
 begin
   classical,
-  obtain ⟨s, hs : ideal.span ↑s = _⟩ := h,
-  refine ⟨s.image f, (_ : ideal.span _ = _)⟩,
+  obtain ⟨s, hs⟩ := h,
+  refine ⟨s.image f, _⟩,
   rw [finset.coe_image, ←ideal.map_span, hs],
 end
 
@@ -273,7 +280,7 @@ begin
   exact submodule.span_eq_restrict_scalars R S M X h
 end
 
-lemma fg_ker_ring_hom_comp {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
+lemma _root_.ideal.fg_ker_comp {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
   (f : R →+* S) (g : S →+* A) (hf : f.ker.fg) (hg : g.ker.fg) (hsur : function.surjective f) :
   (g.comp f).ker.fg :=
 begin
@@ -338,11 +345,11 @@ theorem is_noetherian_submodule {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, s ≤ N → s.fg :=
 begin
   refine ⟨λ ⟨hn⟩, λ s hs, have s ≤ N.subtype.range, from (N.range_subtype).symm ▸ hs,
-    submodule.map_comap_eq_self this ▸ submodule.fg_map (hn _), λ h, ⟨λ s, _⟩⟩,
+    submodule.map_comap_eq_self this ▸ (hn _).map _, λ h, ⟨λ s, _⟩⟩,
   have f := (submodule.equiv_map_of_injective N.subtype subtype.val_injective s).symm,
   have h₁ := h (s.map N.subtype) (submodule.map_subtype_le N s),
   have h₂ : (⊤ : submodule R (s.map N.subtype)).map (↑f : _ →ₗ[R] s) = ⊤ := by simp,
-  have h₃ := @submodule.fg_map _ _ _ _ _ _ _ _ (↑f : _ →ₗ[R] s) _ ((submodule.fg_top _).2 h₁),
+  have h₃ := ((submodule.fg_top _).2 h₁).map (↑f : _ →ₗ[R] s),
   exact (submodule.fg_top _).1 (h₂ ▸ h₃),
 end
 
@@ -367,7 +374,7 @@ variable (M)
 theorem is_noetherian_of_surjective (f : M →ₗ[R] P) (hf : f.range = ⊤)
   [is_noetherian R M] : is_noetherian R P :=
 ⟨λ s, have (s.comap f).map f = s, from submodule.map_comap_eq_self $ hf.symm ▸ le_top,
-this ▸ submodule.fg_map $ noetherian _⟩
+this ▸ (noetherian _).map _⟩
 variable {M}
 
 theorem is_noetherian_of_linear_equiv (f : M ≃ₗ[R] P)
@@ -412,7 +419,7 @@ instance is_noetherian_prod [is_noetherian R M]
 ⟨λ s, submodule.fg_of_fg_map_of_fg_inf_ker (linear_map.snd R M P) (noetherian _) $
 have s ⊓ linear_map.ker (linear_map.snd R M P) ≤ linear_map.range (linear_map.inl R M P),
 from λ x ⟨hx1, hx2⟩, ⟨x.1, prod.ext rfl $ eq.symm $ linear_map.mem_ker.1 hx2⟩,
-submodule.map_comap_eq_self this ▸ submodule.fg_map (noetherian _)⟩
+submodule.map_comap_eq_self this ▸ (noetherian _).map _⟩
 
 instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
   [Π i, add_comm_group (M i)] [Π i, module R (M i)] [fintype ι]

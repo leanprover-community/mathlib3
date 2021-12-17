@@ -64,8 +64,9 @@ end
 lemma std_basis_eq_basis_mul_basis (i : m) (j : n) :
 std_basis_matrix i j 1 = vec_mul_vec (λ i', ite (i = i') 1 0) (λ j', ite (j = j') 1 0) :=
 begin
-  ext, norm_num [std_basis_matrix, vec_mul_vec],
-  exact ite_and,
+  ext,
+  norm_num [std_basis_matrix, vec_mul_vec],
+  exact ite_and _ _ _ _,
 end
 
 -- todo: the old proof used fintypes, I don't know `finsupp` but this feels generalizable

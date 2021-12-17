@@ -9,6 +9,8 @@ import order.zorn
 import order.atoms
 import order.compactly_generated
 import tactic.abel
+import data.nat.choose.sum
+import linear_algebra.finsupp
 /-!
 
 # Ideals over a ring
@@ -239,7 +241,7 @@ show S ≤ S ⊔ T, from le_sup_left
 lemma mem_sup_right {S T : ideal R} : ∀ {x : R}, x ∈ T → x ∈ S ⊔ T :=
 show T ≤ S ⊔ T, from le_sup_right
 
-lemma mem_supr_of_mem {ι : Type*} {S : ι → ideal R} (i : ι) :
+lemma mem_supr_of_mem {ι : Sort*} {S : ι → ideal R} (i : ι) :
   ∀ {x : R}, x ∈ S i → x ∈ supr S :=
 show S i ≤ supr S, from le_supr _ _
 
@@ -253,7 +255,7 @@ theorem mem_Inf {s : set (ideal R)} {x : R} :
 
 @[simp] lemma mem_inf {I J : ideal R} {x : R} : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff.rfl
 
-@[simp] lemma mem_infi {ι : Type*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
+@[simp] lemma mem_infi {ι : Sort*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
 submodule.mem_infi _
 
 @[simp] lemma mem_bot {x : R} : x ∈ (⊥ : ideal R) ↔ x = 0 :=
@@ -372,6 +374,67 @@ theorem is_prime.mul_mem_iff_mem_or_mem {I : ideal α} (hI : I.is_prime) :
 theorem is_prime.pow_mem_iff_mem {I : ideal α} (hI : I.is_prime)
   {r : α} (n : ℕ) (hn : 0 < n) : r ^ n ∈ I ↔ r ∈ I :=
 ⟨hI.mem_of_pow_mem n, (λ hr, I.pow_mem_of_mem hr n hn)⟩
+
+theorem pow_multiset_sum_mem_span_pow (s : multiset α) (n : ℕ) :
+  s.sum ^ (s.card * n + 1) ∈ span ((s.map (λ x, x ^ (n + 1))).to_finset : set α) :=
+begin
+  induction s using multiset.induction_on with a s hs,
+  { simp },
+  simp only [finset.coe_insert, multiset.map_cons, multiset.to_finset_cons, multiset.sum_cons,
+    multiset.card_cons, add_pow],
+  refine submodule.sum_mem _ _,
+  intros c hc,
+  rw mem_span_insert,
+  by_cases h : n+1 ≤ c,
+  { refine ⟨a ^ (c - (n + 1)) * s.sum ^ ((s.card + 1) * n + 1 - c) *
+      (((s.card + 1) * n + 1).choose c), 0, submodule.zero_mem _, _⟩,
+    rw mul_comm _ (a ^ (n + 1)),
+    simp_rw ← mul_assoc,
+    rw [← pow_add, add_zero, add_tsub_cancel_of_le h], },
+  { use 0,
+    simp_rw [zero_mul, zero_add],
+    refine ⟨_,_,rfl⟩,
+    replace h : c ≤ n := nat.lt_succ_iff.mp (not_le.mp h),
+    have : (s.card + 1) * n + 1 - c = s.card * n + 1 + (n - c),
+    { rw [add_mul, one_mul, add_assoc, add_comm n 1, ← add_assoc, add_tsub_assoc_of_le h] },
+    rw [this, pow_add],
+    simp_rw [mul_assoc, mul_comm (s.sum ^ (s.card * n + 1)), ← mul_assoc],
+    exact mul_mem_left _ _ hs }
+end
+
+theorem sum_pow_mem_span_pow {ι} (s : finset ι) (f : ι → α) (n : ℕ) :
+  (∑ i in s, f i) ^ (s.card * n + 1) ∈ span ((λ i, f i ^ (n + 1)) '' s) :=
+begin
+  convert pow_multiset_sum_mem_span_pow (s.1.map f) n,
+  { rw multiset.card_map, refl },
+  rw [multiset.map_map, multiset.to_finset_map, finset.val_to_finset, finset.coe_image]
+end
+
+theorem span_pow_eq_top (s : set α)
+  (hs : span s = ⊤) (n : ℕ) : span ((λ x, x ^ n) '' s) = ⊤ :=
+begin
+  rw eq_top_iff_one,
+  cases n,
+  { obtain rfl | ⟨x, hx⟩ := eq_empty_or_nonempty s,
+    { rw [set.image_empty, hs],
+      trivial },
+    { exact subset_span ⟨_, hx, pow_zero _⟩ } },
+  rw [eq_top_iff_one, span, finsupp.mem_span_iff_total] at hs,
+  rcases hs with ⟨f, hf⟩,
+  change f.support.sum (λ a, f a * a) = 1 at hf,
+  have := sum_pow_mem_span_pow f.support (λ a, f a * a) n,
+  rw [hf, one_pow] at this,
+  refine (span_le).mpr _ this,
+  rintros _ hx,
+  simp_rw [finset.mem_coe, set.mem_image] at hx,
+  rcases hx with ⟨x, hx, rfl⟩,
+  have : span ({x ^ (n + 1)} : set α) ≤ span ((λ (x : α), x ^ (n + 1)) '' s),
+  { rw [span_le, set.singleton_subset_iff],
+    exact subset_span ⟨x, x.prop, rfl⟩ },
+  refine this _,
+  rw [mul_pow, mem_span_singleton],
+  exact ⟨f x ^ (n + 1), mul_comm _ _⟩
+end
 
 end ideal
 

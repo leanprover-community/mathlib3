@@ -40,7 +40,6 @@ end
   {x} + ball y r = ball (x + y) r :=
 by simp only [preimage_add_ball, image_add_left, singleton_add, sub_neg_eq_add, add_comm y x]
 
-
 @[simp] lemma ball_add_singleton (x y : E) (r : ℝ) :
   ball x r + {y} = ball (x + y) r :=
 by simp [add_comm _ {y}, add_comm y]

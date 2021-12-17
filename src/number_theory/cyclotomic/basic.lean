@@ -23,15 +23,15 @@ roots of unity, for all `n ∈ S`.
 ## Main results
 
 * `is_cyclotomic_extension.trans` : is `is_cyclotomic_extension S A B` and
-`is_cyclotomic_extension T B C`, then `is_cyclotomic_extension (S ∪ T) A C`.
+  `is_cyclotomic_extension T B C`, then `is_cyclotomic_extension (S ∪ T) A C`.
 * `is_cyclotomic_extension.union_right` : given `is_cyclotomic_extension (S ∪ T) A B`, then
   `is_cyclotomic_extension T (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 }) B`.
 * `is_cyclotomic_extension.union_right` : given `is_cyclotomic_extension T A B` and `S ⊆ T`, then
   `is_cyclotomic_extension S A (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 })`.
 * `is_cyclotomic_extension.finite` : if `S` is finite and `is_cyclotomic_extension S A B`, then
   `B` is a finite `A`-algebra.
-* `is_cyclotomic_extension.number_field` : a finite cyclotomic extension of a number field is a number
-  field.
+* `is_cyclotomic_extension.number_field` : a finite cyclotomic extension of a number field is a
+  number field.
 
 ## Implementation details
 

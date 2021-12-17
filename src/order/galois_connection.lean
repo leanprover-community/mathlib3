@@ -345,6 +345,15 @@ lemma l_supr_u [complete_lattice α] [complete_lattice β] (gi : galois_insertio
 calc l (⨆ (i : ι), u (f i)) = ⨆ (i : ι), l (u (f i)) : gi.gc.l_supr
                         ... = ⨆ (i : ι), f i : congr_arg _ $ funext $ λ i, gi.l_u_eq (f i)
 
+lemma l_bsupr_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), β) :
+  l (⨆ i hi, u (f i hi)) = ⨆ i hi, f i hi :=
+by simp only [supr_subtype', gi.l_supr_u]
+
+lemma l_Sup_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u) {s : set β} :
+  l (Sup (u '' s)) = Sup s :=
+by rw [Sup_image, gi.l_bsupr_u, Sup_eq_supr]
+
 lemma l_inf_u [semilattice_inf α] [semilattice_inf β] (gi : galois_insertion l u) (a b : β) :
   l (u a ⊓ u b) = a ⊓ b :=
 calc l (u a ⊓ u b) = l (u (a ⊓ b)) : congr_arg l gi.gc.u_inf.symm
@@ -352,15 +361,33 @@ calc l (u a ⊓ u b) = l (u (a ⊓ b)) : congr_arg l gi.gc.u_inf.symm
 
 lemma l_infi_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
   {ι : Sort x} (f : ι → β) :
-  l (⨅ i, u (f i)) = ⨅ i, (f i) :=
+  l (⨅ i, u (f i)) = ⨅ i, f i :=
 calc l (⨅ (i : ι), u (f i)) = l (u (⨅ (i : ι), (f i))) : congr_arg l gi.gc.u_infi.symm
                         ... = ⨅ (i : ι), f i : gi.l_u_eq _
 
+lemma l_binfi_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), β) :
+  l (⨅ i hi, u (f i hi)) = ⨅ i hi, f i hi :=
+by simp only [infi_subtype', gi.l_infi_u]
+
+lemma l_Inf_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u) {s : set β} :
+  l (Inf (u '' s)) = Inf s :=
+by rw [Inf_image, gi.l_binfi_u, Inf_eq_infi]
+
 lemma l_infi_of_ul_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
   {ι : Sort x} (f : ι → α) (hf : ∀ i, u (l (f i)) = f i) :
-  l (⨅ i, (f i)) = ⨅ i, l (f i) :=
+  l (⨅ i, f i) = ⨅ i, l (f i) :=
 calc l (⨅ i, (f i)) =  l ⨅ (i : ι), (u (l (f i))) : by simp [hf]
                 ... = ⨅ i, l (f i) : gi.l_infi_u _
+
+lemma l_binfi_of_ul_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} {p : α → Prop} (f : Π i (hi : p i), α) (hf : ∀ i hi, u (l (f i hi)) = f i hi) :
+  l (⨅ i hi, f i hi) = ⨅ i hi, l (f i hi) :=
+begin
+  rw [infi_subtype', gi.l_infi_of_ul_eq_self, infi_subtype'],
+  rintro ⟨i, hi⟩,
+  apply hf
+end
 
 lemma u_le_u_iff [preorder α] [preorder β] (gi : galois_insertion l u) {a b} :
   u a ≤ u b ↔ a ≤ b :=

@@ -160,8 +160,8 @@ begin
   exact order_dvd_exponent g
 end
 
-@[to_additive]
-lemma exists_order_of_eq_pow_padic_val_nat_exponent {p : ℕ} (hp : p.prime) :
+@[to_additive exists_order_of_eq_pow_padic_val_nat_add_exponent]
+lemma _root_.nat.prime.exists_order_of_eq_pow_padic_val_nat_exponent {p : ℕ} (hp : p.prime) :
   ∃ g : G, order_of g = p ^ padic_val_nat p (exponent G) :=
 begin
   haveI := fact.mk hp,
@@ -256,7 +256,7 @@ begin
   haveI hp := fact.mk (nat.prime_of_mem_factors hp),
   simp only [←padic_val_nat_eq_factors_count p] at hpe,
   set k := padic_val_nat p (order_of t) with hk,
-  obtain ⟨g, hg⟩ := exists_order_of_eq_pow_padic_val_nat_exponent G hp.1,
+  obtain ⟨g, hg⟩ := hp.1.exists_order_of_eq_pow_padic_val_nat_exponent G,
   suffices : order_of t < order_of (t ^ (p ^ k) * g),
   { rw ht at this,
     exact this.not_le (le_cSup hfin.bdd_above $ by simp) },

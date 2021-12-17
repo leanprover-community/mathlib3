@@ -1,5 +1,8 @@
 import group_theory.quotient_group
 import algebra.category.Group.abelian
+import data.real.basic
+import order.filter.at_top_bot
+import topology.metric_space.basic
 
 open_locale classical pointwise
 
@@ -25,5 +28,14 @@ begin
   obtain ⟨a', h⟩ := ha,
   use a', split, simp only [add_subgroup.coe_top], rw h, refl,
 end
+
+end
+
+section
+
+open filter
+open_locale filter
+
+lemma eventually_le_one (K : ℝ) : ∃ (M : ℕ), ∀ (n : ℕ), M ≤ n → ((2 : ℝ)⁻¹)^n * K ≤ 1 := sorry
 
 end

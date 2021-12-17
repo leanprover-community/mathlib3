@@ -81,6 +81,8 @@ K.of_subcomplex {s | s.nonempty ∧ ∃ {t u}, t ∈ A ∧ u ∈ K ∧ s ⊆ u �
 
 lemma Star_le : K.Star A ≤ K := K.of_subcomplex_le _
 
+lemma Star_bot : (⊥ : simplicial_complex 𝕜 E).Star A = ⊥ := of_subcomplex_bot _
+
 lemma Star_empty : K.Star ∅ = ⊥ :=
 begin
   ext s,
@@ -138,7 +140,8 @@ begin
     exact ⟨⟨K.nonempty hs.1, t, s, ht, hs.1, subset.refl s, hts⟩, λ u hu, hs.2 $ Star_le hu⟩ }
 end
 
-lemma pure.Star (hK : K.pure n) : (K.Star A).pure n := λ s hs, hK (mem_facets_Star_iff.1 hs).1
+protected lemma pure.Star (hK : K.pure n) : (K.Star A).pure n :=
+λ s hs, hK (mem_facets_Star_iff.1 hs).1
 
 end ordered_ring
 end geometry.simplicial_complex

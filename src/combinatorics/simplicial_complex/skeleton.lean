@@ -9,70 +9,59 @@ import combinatorics.simplicial_complex.pure
 # Skeletons of a simplicial complex
 -/
 
-namespace affine
-open set
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n k : ℕ}
-  {S : simplicial_complex 𝕜 E} {X Y : finset E} {A : set (finset E)}
+open finset geometry
 
-/--
-The k-skeleton of a simplicial complex is the simplicial complex made of its simplices of dimension
-less than k.
--/
-def simplicial_complex.skeleton (S : simplicial_complex 𝕜 E) (k : ℕ) :
-  simplicial_complex 𝕜 E :=
-simplicial_complex.of_subcomplex
-  {X ∈ S.faces | finset.card X ≤ k + 1}
-  (λ X ⟨hX, _⟩, hX)
-  (λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩)
+variables {𝕜 E : Type*}
 
-lemma skeleton_subcomplex :
-  (S.skeleton k).faces ⊆ S.faces :=
-λ X ⟨hX, _⟩, hX
+namespace geometry.simplicial_complex
+section ordered_ring
+variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {m n k : ℕ}
+  {K : simplicial_complex 𝕜 E} {s t : finset E} {A : set (finset E)}
 
-lemma skeleton_nonempty_iff :
-  (S.skeleton k).faces.nonempty ↔ S.faces.nonempty :=
+/-- The `k`-skeleton of a simplicial complex is the simplicial complex made of its simplices of
+dimension less than `k`. -/
+def skeleton (K : simplicial_complex 𝕜 E) (k : ℕ) : simplicial_complex 𝕜 E :=
+K.of_subcomplex
+  {s | s ∈ K ∧ s.card ≤ k + 1}
+  (λ s ⟨hs, _⟩, hs)
+  (λ s t hs hts ht, ⟨K.down_closed hs.1 hts ht, (card_le_of_subset hts).trans hs.2⟩)
+
+lemma skeleton_le : K.skeleton k ≤ K := K.of_subcomplex_le _
+
+lemma boundary_bot (k : ℕ) : (⊥ : simplicial_complex 𝕜 E).skeleton k = ⊥ := of_subcomplex_bot _
+
+lemma skeleton_nonempty_iff : (K.skeleton k).faces.nonempty ↔ K.faces.nonempty :=
 begin
   split,
-  { apply nonempty.mono skeleton_subcomplex },
-  { rintro ⟨X, hX⟩,
-    exact ⟨∅, S.down_closed hX X.empty_subset, nat.zero_le _⟩ }
+  { exact nonempty.mono skeleton_le },
+  { rintro ⟨s, hs⟩,
+    exact ⟨∅, K.down_closed hs s.empty_subset, nat.zero_le _⟩ }
 end
 
-lemma pure_skeleton_of_pure [finite_dimensional 𝕜 E] (hS : S.pure_of n) :
-  (S.skeleton k).pure_of (min n (k + 1)) :=
+lemma pure.skeleton_of_le (hK : K.pure n) (h : k ≤ n) : (K.skeleton k).pure k :=
 begin
-  cases le_or_gt n (k + 1) with hmin hmin,
-  { rw min_eq_left hmin,
-    rintro X hXskel,
-    obtain ⟨Y, hY, hXY⟩ := subfacet (skeleton_subcomplex (facets_subset hXskel)),
-    have hYskel : Y ∈ (S.skeleton k).faces,
-    { use facets_subset hY,
-      simp,
-      rw hS hY,
-      exact hmin, },
-    rw hXskel.2 hYskel hXY,
-    exact hS hY },
-  { rw min_eq_right (le_of_lt hmin),
-    rintro X ⟨⟨hX, hXcard⟩, hXmax⟩,
-    obtain ⟨Y, hY, hXY⟩ := subfacet hX,
-    have : k + 1 - X.card + X.card ≤ Y.card,
-    { rw hS hY,
-      rw nat.sub_add_cancel hXcard,
-      exact le_of_lt hmin, },
-    obtain ⟨Z, hXZ, hZY, hZcard⟩ := finset.exists_intermediate_set (k + 1 - X.card) this hXY,
-      rw nat.sub_add_cancel hXcard at hZcard,
-    rw hXmax ⟨S.down_closed (facets_subset hY) hZY, le_of_eq hZcard⟩ hXZ,
-    exact hZcard, }
+  rintro s ⟨⟨hs, hscard⟩, hsmax⟩,
+  obtain ⟨t, ht, hst, htcard⟩ := hK.exists_face_of_card_le (add_le_add_right h 1) hs hscard,
+  rwa hsmax ⟨ht, htcard.le⟩ hst,
 end
 
-lemma skeleton_pureness_eq_min_pureness_dimension [finite_dimensional 𝕜 E] (hS : S.pure)
-  (hS' : S.faces.nonempty) :
-  (S.skeleton k).pureness = min S.pureness (k + 1) :=
+end ordered_ring
+
+section linear_ordered_field
+variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] [finite_dimensional 𝕜 E]
+  {m n k : ℕ} {K : simplicial_complex 𝕜 E} {s t : finset E} {A : set (finset E)}
+
+lemma pure.skeleton (hK : K.pure n) : (K.skeleton k).pure (min k n) :=
 begin
-  rcases hS with ⟨n, hn⟩,
-  rw [pureness_def' hS' hn, pureness_def'],
-  { rwa skeleton_nonempty_iff },
-  { apply pure_skeleton_of_pure hn },
+  obtain hn | hn := le_total k n,
+  { rw min_eq_left hn,
+    exact hK.skeleton_of_le hn },
+  { rw min_eq_right hn,
+    rintro s hs,
+    obtain ⟨t, ht, hst⟩ := subfacet (skeleton_le hs.1),
+    rw hs.2 ⟨facets_subset ht, (hK ht).le.trans (add_le_add_right hn _)⟩ hst,
+    exact hK ht }
 end
 
-end affine
+end linear_ordered_field
+end geometry.simplicial_complex

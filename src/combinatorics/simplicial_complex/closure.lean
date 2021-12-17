@@ -29,13 +29,9 @@ K.of_subcomplex
 
 lemma closure_le : K.closure A ≤ K := K.of_subcomplex_le _
 
-lemma closure_empty : K.closure ∅ = ⊥ :=
-begin
-  ext s,
-  refine iff_of_false _ id,
-  rintro ⟨hs, t, ht, hst⟩,
-  exact ht,
-end
+lemma closure_bot : (⊥ : simplicial_complex 𝕜 E).closure A = ⊥ := of_subcomplex_bot _
+
+lemma closure_empty : K.closure ∅ = ⊥ := eq_bot_of_forall_not_mem _ $ λ s ⟨hs, t, ht, hst⟩, ht
 
 --Homonymy problem
 lemma closure_singleton (hx : x ∈ K.vertices) : (K.closure {{x}}).faces = {{x}} :=

@@ -27,6 +27,9 @@ nonempty_of_ne_empty $ ne_of_mem_of_not_mem hs K.not_empty_mem
 
 lemma le_def : K₁ ≤ K₂ ↔ K₁.faces ⊆ K₂.faces := iff.rfl
 
+lemma eq_bot_of_forall_not_mem (K : simplicial_complex 𝕜 E) (h : ∀ s, s ∉ K) : K = ⊥ :=
+by { ext s, exact iff_of_false (h s) id }
+
 lemma facets_singleton (hK : K.faces = {s}) : K.facets = {s} :=
 begin
   rw set.eq_singleton_iff_unique_mem at ⊢ hK,
@@ -36,6 +39,10 @@ end
 lemma of_subcomplex_le (K : simplicial_complex 𝕜 E) (faces) {subset down_closed} :
   K.of_subcomplex faces subset down_closed ≤ K :=
 subset
+
+lemma of_subcomplex_bot (faces) {subset down_closed} :
+  (⊥ : simplicial_complex 𝕜 E).of_subcomplex faces subset down_closed = ⊥ :=
+le_bot_iff.1 $ of_subcomplex_le _ _
 
 /-- The cells of a simplicial complex are its simplices whose dimension matches the one of the
 space. -/
@@ -225,7 +232,7 @@ begin
   exact face_dimension_le_space_dimension hs,
 end
 
-lemma facets_empty_iff_eq_bot [finite_dimensional 𝕜 E] : K.facets = ∅ ↔ K = ⊥ :=
+lemma facets_eq_empty_iff [finite_dimensional 𝕜 E] : K.facets = ∅ ↔ K = ⊥ :=
 begin
   refine ⟨λ h, _, _⟩,
   { ext s,

@@ -10,170 +10,141 @@ import combinatorics.simplicial_complex.subdivision
 # Boundary of a simplicial complex
 -/
 
-namespace affine
-open set
-variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  {S : simplicial_complex 𝕜 E} {X Y : finset E} {A : set (finset E)}
+open finset geometry
 
-def simplicial_complex.on_boundary (S : simplicial_complex 𝕜 E) (X : finset E) :
-  Prop :=
-∃ (Z ∈ S.faces), X ⊂ Z ∧ ∀ {Z'}, Z' ∈ S.faces → X ⊂ Z' → Z = Z'
+variables {𝕜 E : Type*}
 
-def simplicial_complex.boundary (S : simplicial_complex 𝕜 E) :
-  simplicial_complex 𝕜 E :=
-simplicial_complex.of_subcomplex
-  {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ S.on_boundary Y}
-  (λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY)
-  (λ X W ⟨Y, hY, hXY, Z⟩ hWX, ⟨Y, hY, subset.trans hWX hXY, Z⟩)
+namespace geometry.simplicial_complex
+variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {K : simplicial_complex 𝕜 E}
+  {s t : finset E} {A : set (finset E)} {n : ℕ}
 
-lemma boundary_empty (hS : S.faces = ∅) :
-  S.boundary.faces = ∅ :=
-begin
-  unfold simplicial_complex.boundary,
-  simp,
-  rw hS,
-  simp,
-end
+def on_boundary (K : simplicial_complex 𝕜 E) (s : finset E) : Prop :=
+s.nonempty ∧ ∃ t ∈ K.faces, s ⊂ t ∧ ∀ ⦃u⦄, u ∈ K.faces → s ⊂ u → t = u
 
-lemma boundary_singleton_empty (hS : S.faces = {∅}) :
-  S.boundary.faces = ∅ :=
-begin
-  ext X,
-  unfold simplicial_complex.boundary simplicial_complex.on_boundary,
-  simp,
-  rw hS,
-  rintro _ (rfl : _ = ∅) XY Y (rfl : _ = ∅) t,
-  apply (t.2 (empty_subset _)).elim,
-end
+def boundary (K : simplicial_complex 𝕜 E) : simplicial_complex 𝕜 E :=
+K.of_subcomplex
+  {s | s.nonempty ∧ ∃ t ∈ K.faces, s ⊆ t ∧ K.on_boundary t}
+  (λ s ⟨hs, t, ht, hst, _⟩, K.down_closed ht hst hs)
+  (λ s u ⟨hs, t, ht, hst, v⟩ hus hu, ⟨hu, t, ht, hus.trans hst, v⟩)
 
-lemma boundary_subset :
-  S.boundary.faces ⊆ S.faces :=
-λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY
+lemma boundary_le : K.boundary ≤ K := K.of_subcomplex_le _
+
+lemma boundary_bot : (⊥ : simplicial_complex 𝕜 E).boundary = ⊥ := of_subcomplex_bot _
 
 lemma mem_boundary_iff_subset_unique_facet :
-  X ∈ S.boundary.faces ↔ ∃ {Y Z}, Y ∈ S.faces ∧ Z ∈ S.facets ∧ X ⊆ Y ∧ Y ⊂ Z ∧
-  ∀ {Z'}, Z' ∈ S.faces → Y ⊂ Z' → Z = Z' :=
+  s ∈ K.boundary.faces ↔ s.nonempty ∧ ∃ (t ∈ K) (u ∈ K.facets), s ⊆ t ∧ t ⊂ u ∧
+  ∀ ⦃v⦄, v ∈ K.faces → t ⊂ v → u = v :=
 begin
   split,
-  { rintro ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩,
-    suffices hZ' : Z ∈ S.facets,
-    { exact ⟨Y, Z, hY, hZ', hXY, hYZ, (λ Z', hZunique)⟩ },
-    use hZ,
-    rintro Z' hZ' hZZ',
-    exact hZunique hZ' ⟨finset.subset.trans hYZ.1 hZZ',
-      (λ hZ'Y, hYZ.2 (finset.subset.trans hZZ' hZ'Y))⟩ },
-  { rintro ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩,
-    refine ⟨Y, hY, hXY, Z, hZ.1, hYZ, λ Z', hZunique⟩ }
+  { rintro ⟨hs, t, ht, hst, ht', u, hu, htu, huunique⟩,
+    exact ⟨hs, t, ht, u, ⟨hu, λ v hv huv, huunique hv ⟨htu.1.trans huv, λ hvt, htu.2 $
+      huv.trans hvt⟩⟩, hst, htu, huunique⟩ },
+  { rintro ⟨hs, t, ht, u, hu, hst, htu, huunique⟩,
+    exact ⟨hs, t, ht, hst, K.nonempty ht, u, hu.1, htu, huunique⟩ }
 end
 
-lemma facets_disjoint_boundary :
-  disjoint S.facets S.boundary.faces :=
+lemma facets_disjoint_boundary : disjoint K.facets K.boundary.faces :=
 begin
-  rintro X ⟨⟨hX, hXunique⟩, ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩⟩,
-  apply hYZ.2,
-  rw ← hXunique hZ (subset.trans hXY hYZ.1),
-  exact hXY,
+  rintro s ⟨⟨hs, hsunique⟩, hs, t, ht, hst, ht, u, hu, htu, huunique⟩,
+  apply htu.2,
+  rw ←hsunique hu (hst.trans  htu.1),
+  exact hst,
 end
 
-lemma boundary_facet_iff :
-  X ∈ S.boundary.facets ↔ S.on_boundary X :=
+lemma boundary_facet_iff : s ∈ K.boundary.facets ↔ K.on_boundary s :=
 begin
   split,
-  { rintro ⟨⟨Y, hY, XY, Z, hZ, hYZ, hZunique⟩, hXmax⟩,
-    refine ⟨Z, hZ, finset.ssubset_of_subset_of_ssubset XY hYZ, λ Z', _⟩,
-    have hX' : Y ∈ S.boundary.faces,
-    { refine ⟨_, hY, subset.refl _, _, hZ, hYZ, λ Z', hZunique⟩ },
-    have hXX' := hXmax hX' XY,
-    subst hXX',
-    apply hZunique },
-  { rintro ⟨Y, hY, hXY, hYunique⟩,
-    refine ⟨⟨X, S.down_closed hY hXY.1, subset.refl _, _, hY, hXY, λ Y', hYunique⟩, _⟩,
-    rintro V ⟨W, hW, hVW, Z, hZ, hWZ, hZunique⟩ hXV,
-    apply finset.subset.antisymm hXV,
+  { rintro ⟨⟨hs, t, ht, hst, ht', u, hu, htu, huunique⟩, hsmax⟩,
+    refine ⟨u, hu, finset.ssubset_of_subset_of_ssubset hst htu, _⟩,
+    have hss' := hsmax ⟨K.nonempty ht, _, ht, subset.refl _, _, hu, htu, huunique⟩ st,
+    subst hss',
+    exact huunique },
+  { rintro ⟨t, ht, hst, htunique⟩,
+    refine ⟨⟨s, K.down_closed ht hst.1, subset.refl _, _, ht, hst, λ t', htunique⟩, _⟩,
+    rintro V ⟨W, hW, hVW, u, hu, hWu, huunique⟩ hsV,
+    apply finset.subset.antisymm hsV,
     classical,
-    by_contra hVX,
-    have := hYunique (S.down_closed hW hVW) ⟨hXV, hVX⟩,
+    by_contra hVs,
+    have := htunique (K.down_closed hW hVW) ⟨hsV, hVs⟩,
     subst this,
-    have := hYunique hZ ⟨subset.trans hXV (subset.trans hVW hWZ.1),
-      λ hZX, hWZ.2 (subset.trans hZX (subset.trans hXV hVW))⟩,
+    have := htunique hu ⟨subset.trans hsV (subset.trans hVW hWu.1),
+      λ hus, hWu.2 (subset.trans hus (subset.trans hsV hVW))⟩,
     subst this,
-    exact hWZ.2 hVW,
+    exact hWu.2 hVW,
   }
 end
 
 lemma boundary_facet_iff' :
-  X ∈ S.boundary.facets ↔ ∃ {Y}, Y ∈ S.facets ∧ X ⊂ Y ∧ ∀ {Y'}, Y' ∈ S.faces → X ⊂ Y' → Y = Y' :=
+  s ∈ K.boundary.facets ↔ ∃ {t}, t ∈ K.facets ∧ s ⊂ t ∧ ∀ {t'}, t' ∈ K.faces → s ⊂ t' → t = t' :=
 begin
   rw boundary_facet_iff,
   split,
-  { rintro ⟨Y, hY, hXY, hYunique⟩,
-    have hY' : Y ∈ S.facets,
-    { use hY,
-      rintro Y' hY' hYY',
-      exact hYunique hY' (finset.ssubset_of_ssubset_of_subset hXY hYY'),
+  { rintro ⟨t, ht, hst, htunique⟩,
+    have ht' : t ∈ K.facets,
+    { use ht,
+      rintro t' ht' htt',
+      exact htunique ht' (finset.ssubset_of_ssubset_of_subset hst htt'),
     },
-    exact ⟨Y, hY', hXY, (λ Y', hYunique)⟩ },
-  { rintro ⟨Y, hY, hXY, hYunique⟩,
-    exact ⟨Y, hY.1, hXY, (λ Y', hYunique)⟩ }
+    exact ⟨t, ht', hst, (λ t', htunique)⟩ },
+  { rintro ⟨t, ht, hst, htunique⟩,
+    exact ⟨t, ht.1, hst, (λ t', htunique)⟩ }
 end
 
-lemma pure_boundary_of_pure (hS : S.pure_of n) :
-  S.boundary.pure_of (n - 1) :=
+lemma pure_boundary_of_pure (hK : K.pure n) : K.boundary.pure (n - 1) :=
 begin
-  rintro X hX,
-  obtain ⟨Y, hY, hXY, hYunique⟩ := boundary_facet_iff'.1 hX,
+  rintro s hs,
+  obtain ⟨t, ht, hst, htunique⟩ := boundary_facet_iff'.1 hs,
   cases n,
   { apply nat.eq_zero_of_le_zero,
-    have hYcard : Y.card = 0 := hS hY,
-    rw ←hYcard,
-    exact le_of_lt (finset.card_lt_card hXY) },
-  have hYcard : Y.card = n.succ := hS hY,
-  have hXcard : X.card ≤ n,
-  { have := finset.card_lt_card hXY,
-    rw hYcard at this,
+    have htcard : t.card = 0 := hK ht,
+    rw ←htcard,
+    exact le_of_lt (finset.card_lt_card hst) },
+  have htcard : t.card = n.succ := hK ht,
+  have hscard : s.card ≤ n,
+  { have := finset.card_lt_card hst,
+    rw htcard at this,
     exact nat.le_of_lt_succ this },
-  have : n - X.card + X.card ≤ Y.card,
-  { rw [hS hY, nat.sub_add_cancel hXcard, nat.succ_eq_add_one],
+  have : n - s.card + s.card ≤ t.card,
+  { rw [hK ht, nat.sub_add_cancel hscard, nat.succ_eq_add_one],
     linarith },
-  obtain ⟨W, hXW, hWY, hWcard⟩ := finset.exists_intermediate_set (n - X.card) this hXY.1,
-  rw nat.sub_add_cancel hXcard at hWcard,
-  have hW : W ∈ S.boundary.faces,
-  { have hYW : ¬Y ⊆ W,
-    { have hWYcard : W.card < Y.card,
-      { rw [hWcard, hS hY, nat.succ_eq_add_one],
-        linarith },rintro hYW,
-      have : n.succ = n := by rw [← hS hY, ← hWcard,
-        finset.eq_of_subset_of_card_le hYW (le_of_lt hWYcard)],
+  obtain ⟨W, hsW, hWt, hWcard⟩ := finset.exists_intermediate_set (n - s.card) this hst.1,
+  rw nat.sub_add_cancel hscard at hWcard,
+  have hW : W ∈ K.boundary.faces,
+  { have htW : ¬t ⊆ W,
+    { have hWtcard : W.card < t.card,
+      { rw [hWcard, hK ht, nat.succ_eq_add_one],
+        linarith },rintro htW,
+      have : n.succ = n := by rw [← hK ht, ← hWcard,
+        finset.eq_of_subset_of_card_le htW (le_of_lt hWtcard)],
       exact nat.succ_ne_self n this },
-    refine ⟨W, S.down_closed (facets_subset hY) hWY, subset.refl W, Y, hY.1, ⟨hWY, hYW⟩, _⟩,
-    rintro Z hZ hWZ,
-    exact hYunique hZ ⟨subset.trans hXW hWZ.1, (λ hZX, hWZ.2 (finset.subset.trans hZX hXW))⟩ },
-  rw [nat.succ_sub_one, ←hWcard, hX.2 hW hXW],
+    refine ⟨W, K.down_closed (facets_subset ht) hWt, subset.refl W, t, ht.1, ⟨hWt, htW⟩, _⟩,
+    rintro u hu hWu,
+    exact htunique hu ⟨subset.trans hsW hWu.1, (λ hus, hWu.2 (finset.subset.trans hus hsW))⟩ },
+  rw [nat.succ_sub_one, ←hWcard, hs.2 hW hsW],
 end
 
-lemma boundary_link :
-  S.boundary.link A = (S.link A).boundary :=
+lemma link_boundary : K.boundary.link A = (K.link A).boundary :=
 begin
   ext V,
   split,
-  { rintro ⟨hVdisj, W, X, hW, ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩, hVX, hWX⟩,
+  { rintro ⟨hVdisj, W, s, hW, ⟨t, u, ht, hu, hst, htu, huunique⟩, hVs, hWs⟩,
     use V,
     split,
     { sorry
       /-split,
       exact (λ U hU, hVdisj hU),
-      exact ⟨W, Z, hW, facets_subset hZ, subset.trans hVX (subset.trans hXY hYZ.1),
-        subset.trans hWX (subset.trans hXY hYZ.1)⟩,-/
+      exact ⟨W, u, hW, facets_subset hu, subset.trans hVs (subset.trans hst htu.1),
+        subset.trans hWs (subset.trans hst htu.1)⟩,-/
     },
     { /-use subset.refl V,
-      use Z,
+      use u,
       split,
       { sorry --waiting for link_facet_iff. May make this lemma require more assumptions
       },
-      use ⟨finset.subset.trans hVX (finset.subset.trans hXY hYZ.1),
-        (λ hZV, hYZ.2 (finset.subset.trans hZV (finset.subset.trans hVX hXY)))⟩,
+      use ⟨finset.subset.trans hVs (finset.subset.trans hst htu.1),
+        (λ huV, htu.2 (finset.subset.trans huV (finset.subset.trans hVs hst)))⟩,
       rintro U ⟨hUdisj, T, R, hT, hR, hUR, hTR⟩ hVU,
-      apply hZunique (S.down_closed hR hUR),-/
+      apply huunique (K.down_closed hR hUR),-/
       sorry
     }
   },
@@ -181,26 +152,25 @@ begin
   }
 end
 
-lemma boundary_boundary [finite_dimensional 𝕜 E] (hS : S.pure_of n) (hS' : ∀ {X}, X ∈ S.faces →
-  (X : finset E).card = n - 1 → equiv {Y | Y ∈ S.faces ∧ X ⊆ Y} (fin 2)) :
-  S.boundary.boundary.faces = ∅ :=
+lemma boundary_boundary [finite_dimensional 𝕜 E] (hK : K.pure_of n) (hK' : ∀ {s}, s ∈ K.faces →
+  (s : finset E).card = n - 1 → equiv {t | t ∈ K.faces ∧ s ⊆ t} (fin 2)) :
+  K.boundary.boundary.faces = ∅ :=
 begin
   rw ← facets_empty_iff_faces_empty,
   apply eq_empty_of_subset_empty,
   rintro V hV,
   obtain ⟨W, hW, hVW, hWunique⟩ := boundary_facet_iff'.1 hV,
-  obtain ⟨X, hX, hXV, hXunique⟩ := boundary_facet_iff'.1 hW,
+  obtain ⟨s, hs, hsV, hsunique⟩ := boundary_facet_iff'.1 hW,
   sorry
 end
 
-lemma boundary_mono {S₁ S₂ : simplicial_complex 𝕜 E} (hS : S₁ ≤ S₂) :
-  S₁.boundary ≤ S₂.boundary :=
+lemma boundary_mono {K₁ K₂ : simplicial_complex 𝕜 E} (hK : K₁ ≤ K₂) : K₁.boundary ≤ K₂.boundary :=
 begin
-  /-cases S₂.faces.eq_empty_or_nonempty with hS₂empty hS₂nonempty,
-  { rw hS₂empty,
+  /-cases K₂.faces.eq_empty_or_nonempty with hK₂empty hK₂nonempty,
+  { rw hK₂empty,
   },
-  rw subdivision_iff_partition at ⊢ hS,-/
-  have hspace : S₁.boundary.space = S₂.boundary.space,
+  rw subdivision_iff_partition at ⊢ hK,-/
+  have hspace : K₁.boundary.space = K₂.boundary.space,
   { sorry
   },
   /-rw subdivision_iff_partition,
@@ -208,64 +178,64 @@ begin
   { sorry
   },
   use le_of_eq hspace,
-  rintro X₂ ⟨Y₂, Z₂, hY₂, hZ₂, hX₂Y₂, hY₂Z₂, hZ₂max⟩,
-  obtain ⟨hempty, hspace, hpartition⟩ := subdivision_iff_partition.1 hS,
-  obtain ⟨F, hF, hX₂F⟩ := hpartition (S₂.down_closed hY₂ hX₂Y₂),
-  use F, rw and.comm, use hX₂F,
-  rintro X₁ hX₁,-/
+  rintro s₂ ⟨t₂, u₂, ht₂, hu₂, hs₂t₂, ht₂u₂, hu₂max⟩,
+  obtain ⟨hempty, hspace, hpartition⟩ := subdivision_iff_partition.1 hK,
+  obtain ⟨F, hF, hs₂F⟩ := hpartition (K₂.down_closed ht₂ hs₂t₂),
+  use F, rw and.comm, use hs₂F,
+  rintro s₁ hs₁,-/
 
   use hspace,
-  rintro X₁ ⟨Y₁, hY₁, hX₁Y₁, Z₁, hZ₁, hY₁Z₁, hZ₁max⟩,
-  cases X₁.eq_empty_or_nonempty with hX₁empty hX₁nonempty,
+  rintro s₁ ⟨t₁, ht₁, hs₁t₁, u₁, hu₁, ht₁u₁, hu₁max⟩,
+  cases s₁.eq_empty_or_nonempty with hs₁empty hs₁nonempty,
   { sorry},
-  obtain ⟨X₂, hX₂, hX₁X₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2
-    (S₁.down_closed hY₁ hX₁Y₁),
-  obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hY₁,
-  obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hZ₁,
-  obtain ⟨x, hxX₁⟩ := id hX₁nonempty,
-  refine ⟨X₂, ⟨Y₂, hY₂, _, Z₂, hZ₂, ⟨_, _⟩⟩,
+  obtain ⟨s₂, hs₂, hs₁s₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hK).2
+    (K₁.down_closed ht₁ hs₁t₁),
+  obtain ⟨t₂, ht₂, ht₁t₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hK).2 ht₁,
+  obtain ⟨u₂, hu₂, hu₁u₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hK).2 hu₁,
+  obtain ⟨x, hxs₁⟩ := id hs₁nonempty,
+  refine ⟨s₂, ⟨t₂, ht₂, _, u₂, hu₂, ⟨_, _⟩⟩,
     convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior
-    (S₁.indep (S₁.down_closed hY₁ hX₁Y₁)) (S₂.indep hX₂) hX₁X₂⟩,
-  { apply subset_of_combi_interior_inter_convex_hull_nonempty hX₂ hY₂,
-    obtain ⟨x, hxX₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep (S₁.down_closed hY₁ hX₁Y₁))
-      hX₁nonempty,
-    use [x, hX₁X₂ hxX₁],
-    apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hY₁)
-      (S₂.indep hY₂) hY₁Y₂,
-    exact convex_hull_mono hX₁Y₁ hxX₁.1 },
-  { obtain ⟨y, hyY₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hY₁) ⟨x, hX₁Y₁ hxX₁⟩,
+    (K₁.indep (K₁.down_closed ht₁ hs₁t₁)) (K₂.indep hs₂) hs₁s₂⟩,
+  { apply subset_of_combi_interior_inter_convex_hull_nonempty hs₂ ht₂,
+    obtain ⟨x, hxs₁⟩ := nonempty_combi_interior_of_nonempty (K₁.indep (K₁.down_closed ht₁ hs₁t₁))
+      hs₁nonempty,
+    use [x, hs₁s₂ hxs₁],
+    apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (K₁.indep ht₁)
+      (K₂.indep ht₂) ht₁t₂,
+    exact convex_hull_mono hs₁t₁ hxs₁.1 },
+  { obtain ⟨y, hyt₁⟩ := nonempty_combi_interior_of_nonempty (K₁.indep ht₁) ⟨x, hs₁t₁ hxs₁⟩,
     split,
-    { apply subset_of_combi_interior_inter_convex_hull_nonempty hY₂ hZ₂,
-      use [y, hY₁Y₂ hyY₁],
-      apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hZ₁)
-        (S₂.indep hZ₂) hZ₁Z₂,
-      exact convex_hull_mono hY₁Z₁.1 hyY₁.1 },
-    { rintro hZ₂Y₂,
-      suffices hY₂Z₂ : ¬Y₂ ⊆ Z₂,
-      { apply (hY₁Y₂ hyY₁).2,
+    { apply subset_of_combi_interior_inter_convex_hull_nonempty ht₂ hu₂,
+      use [y, ht₁t₂ hyt₁],
+      apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (K₁.indep hu₁)
+        (K₂.indep hu₂) hu₁u₂,
+      exact convex_hull_mono ht₁u₁.1 hyt₁.1 },
+    { rintro hu₂t₂,
+      suffices ht₂u₂ : ¬t₂ ⊆ u₂,
+      { apply (ht₁t₂ hyt₁).2,
         rw mem_combi_frontier_iff,
-        use [Z₂, ⟨hZ₂Y₂, hY₂Z₂⟩],
-        apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hZ₁)
-          (S₂.indep hZ₂) hZ₁Z₂,
-        exact convex_hull_mono hY₁Z₁.1 hyY₁.1 },
-      rintro hY₂Z₂,
-      have := finset.subset.antisymm hY₂Z₂ hZ₂Y₂,
+        use [u₂, ⟨hu₂t₂, ht₂u₂⟩],
+        apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (K₁.indep hu₁)
+          (K₂.indep hu₂) hu₁u₂,
+        exact convex_hull_mono ht₁u₁.1 hyt₁.1 },
+      rintro ht₂u₂,
+      have := finset.subset.antisymm ht₂u₂ hu₂t₂,
       subst this,
-      suffices h : Y₁.card = Y₂.card,
-      { have := finset.card_lt_card hY₁Z₁,
-        have := card_le_of_convex_hull_subset (S₁.indep hZ₁)
-          (convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hZ₁)
-          (S₂.indep hY₂) hZ₁Z₂),
+      suffices h : t₁.card = t₂.card,
+      { have := finset.card_lt_card ht₁u₁,
+        have := card_le_of_convex_hull_subset (K₁.indep hu₁)
+          (convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (K₁.indep hu₁)
+          (K₂.indep ht₂) hu₁u₂),
         linarith },
 
       sorry
     },
   },
-  { rintro Z' hZ' hY₂Z',
-    suffices hZ₁Z' : combi_interior Z₁ ⊆ combi_interior Z',
-    {   obtain ⟨z, hzZ₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hZ₁)
-        ⟨x, hY₁Z₁.1 (hX₁Y₁ hxX₁)⟩,
-      exact disjoint_interiors hZ₂ hZ' (hZ₁Z₂ hzZ₁) (hZ₁Z' hzZ₁),
+  { rintro v hv ht₂v,
+    suffices hu₁v : combi_interior u₁ ⊆ combi_interior v,
+    {   obtain ⟨z, hzu₁⟩ := nonempty_combi_interior_of_nonempty (K₁.indep hu₁)
+        ⟨x, ht₁u₁.1 (hs₁t₁ hxs₁)⟩,
+      exact disjoint_interiors hu₂ hv (hu₁u₂ hzu₁) (hu₁v hzu₁),
     },
 
     sorry
@@ -273,25 +243,25 @@ begin
 end
 
 --other attempt using subdivision_iff_partition
-lemma boundary_mono' {S₁ S₂ : simplicial_complex 𝕜 E} (hS : S₁ ≤ S₂) :
-  S₁.boundary ≤ S₂.boundary :=
+lemma boundary_mono' {K₁ K₂ : simplicial_complex 𝕜 E} (hK : K₁ ≤ K₂) :
+  K₁.boundary ≤ K₂.boundary :=
 begin
   rw subdivision_iff_partition,
-  obtain ⟨hempty, hspace, hpartition⟩ := subdivision_iff_partition.1 hS,
+  obtain ⟨hempty, hspace, hpartition⟩ := subdivision_iff_partition.1 hK,
   split,
   sorry,
   split,
   sorry,
-  rintro X₂ hX₂,--rintro X₂ ⟨Y₂, hY₂, hX₂Y₂, Z₂, hZ₂, hY₂Z₂, hZ₂max⟩,
-  obtain ⟨F, hF, hXF⟩ := hpartition (boundary_subset hX₂),
-  --obtain ⟨F, hF, hXF⟩ := hpartition (S₂.down_closed hY₂ hX₂Y₂),
+  rintro s₂ hs₂,--rintro s₂ ⟨t₂, ht₂, hs₂t₂, u₂, hu₂, ht₂u₂, hu₂max⟩,
+  obtain ⟨F, hF, hsF⟩ := hpartition (boundary_subset hs₂),
+  --obtain ⟨F, hF, hsF⟩ := hpartition (K₂.down_closed ht₂ hs₂t₂),
   use F,
   rw and.comm,
-  use hXF,
-  rintro X₁ hX₁,
-  have hX₁X₂ : combi_interior X₁ ⊆ combi_interior X₂,
-  { rw hXF,
-    exact subset_bUnion_of_mem hX₁ },
+  use hsF,
+  rintro s₁ hs₁,
+  have hs₁s₂ : combi_interior s₁ ⊆ combi_interior s₂,
+  { rw hsF,
+    exact subset_bUnion_of_mem hs₁ },
   sorry
 end
 
@@ -299,23 +269,23 @@ end
 A m-simplex is on the boundary of a full dimensional complex iff it belongs to exactly one cell.
 Dull?
 -/
-lemma boundary_subcell_iff_one_surface (hS : S.full_dimensional)
-  (hXcard : X.card = finite_dimensional.finrank 𝕜 E) :
-  X ∈ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 1 :=
+lemma boundary_subcell_iff_one_surface (hK : K.full_dimensional)
+  (hscard : s.card = finite_dimensional.finrank 𝕜 E) :
+  s ∈ K.boundary.faces ↔ nat.card {t | t ∈ K.faces ∧ s ⊂ t} = 1 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in
-  -- Does this lemma need you to assume locally finite (at X)? If so, the set you care about is a
+  -- Does this lemma need you to assume locally finite (at s)? If so, the set you care about is a
   -- subset of the set we know is finite, so we can convert to a finset and use normal card
 begin
   split,
-  { rintro ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩,
-    have : X = Y,
+  { rintro ⟨t, ht, hst, u, hu, htu, huunique⟩,
+    have : s = t,
     {   sorry
     },
     sorry--rw nat.card_eq_fintype_card,
   },
-  -- have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ X → b ∉ X → X ∪ {a} ∈ S.faces → X ∪ {b} ∈ S.faces →
-  --   ∃ w : E → 𝕜, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
+  -- have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ s → b ∉ s → s ∪ {a} ∈ K.faces → s ∪ {b} ∈ K.faces →
+  --   ∃ w : E → 𝕜, w a < 0 ∧ ∑ y in s ∪ {a}, w y = 1 ∧ (s ∪ {a}).center_mass w id = b,
   -- {
   --   sorry
   -- },
@@ -326,16 +296,16 @@ end
 A m-simplex is not on the boundary of a full dimensional complex iff it belongs to exactly two
 cells.
 -/
-lemma not_boundary_subcell_iff_two_surfaces (hS : S.full_dimensional)
-  (hXcard : X.card = finite_dimensional.finrank 𝕜 E) :
-  X ∉ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
+lemma not_boundary_subcell_iff_two_surfaces (hK : K.full_dimensional)
+  (hscard : s.card = finite_dimensional.finrank 𝕜 E) :
+  s ∉ K.boundary.faces ↔ nat.card {t | t ∈ K.faces ∧ s ⊂ t} = 2 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in
-  -- Does this lemma need you to assume locally finite (at X)? If so, the set you care about is a
+  -- Does this lemma need you to assume locally finite (at s)? If so, the set you care about is a
   -- subset of the set we know is finite, so we can convert to a finset and use normal card
 begin
-  -- have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ X → b ∉ X → X ∪ {a} ∈ S.faces → X ∪ {b} ∈ S.faces →
-  --   ∃ w : E → 𝕜, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
+  -- have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ s → b ∉ s → s ∪ {a} ∈ K.faces → s ∪ {b} ∈ K.faces →
+  --   ∃ w : E → 𝕜, w a < 0 ∧ ∑ y in s ∪ {a}, w y = 1 ∧ (s ∪ {a}).center_mass w id = b,
   -- {
   --   sorry
   -- },

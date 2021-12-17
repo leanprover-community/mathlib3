@@ -172,7 +172,7 @@ begin
   refine ⟨λ (hs' : ¬ (_ ∧ _)), _, _⟩,
   { push_neg at hs',
     obtain ⟨t, ht⟩ := hs' hs,
-    exact ⟨t, ht.1, ⟨ht.2.1, (λ hts, ht.2.2 (subset.antisymm ht.2.1 hts))⟩⟩ },
+    exact ⟨t, ht.1, ⟨ht.2.1, (λ hts, ht.2.2 ht.2.1.antisymm hts)⟩⟩ },
   { rintro ⟨t, ht⟩ ⟨hs, hs'⟩,
     have := hs' ht.1 ht.2.1,
     rw this at ht,

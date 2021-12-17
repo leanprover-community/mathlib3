@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simplicial_complex.basic
+import order.well_founded_set
 
 /-!
 # Pure simplicial complexes
@@ -16,47 +17,59 @@ variables {𝕜 E : Type*}
 
 namespace geometry.simplicial_complex
 section ordered_ring
-variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {a b m n : ℕ}
+variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {a b n : ℕ}
   {K : simplicial_complex 𝕜 E} {s : finset E}
 
-/-- A simplicial complex is pure of dimension `n` iff all its facets have dimension `n`. -/
-def pure (K : simplicial_complex 𝕜 E) (n : ℕ) : Prop := ∀ ⦃s : finset E⦄, s ∈ K.facets → s.card = n
+/-- A simplicial complex is pure of dimension `n` iff all its faces have dimension less `n` and its
+facets have dimension `n`. -/
+def pure (K : simplicial_complex 𝕜 E) (n : ℕ) : Prop :=
+(∀ ⦃s : finset E⦄, s ∈ K → s.card ≤ n + 1) ∧ ∀ ⦃s : finset E⦄, s ∈ K.facets → s.card = n + 1
 
 -- def full_dimensional (S : simplicial_complex 𝕜 E) : Prop := K.pure (S.dim + 1) hK,
 
-lemma bot_pure (n : ℕ) : (⊥ : simplicial_complex 𝕜 E).pure n :=
-λ s hs, (facets_bot.subset hs).elim
+lemma bot_pure (n : ℕ) : (⊥ : simplicial_complex 𝕜 E).pure n := ⟨λ s hs, hs.elim, λ s hs, hs.1.elim⟩
 
-end ordered_ring
+lemma pure.card_le (hK : K.pure n) (hs : s ∈ K) : s.card ≤ n + 1 := hK.1 hs
 
-section linear_ordered_field
-variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] [finite_dimensional 𝕜 E]
-  {a b m n : ℕ} {K : simplicial_complex 𝕜 E} {s : finset E}
-
-lemma pure.card_le (hK : K.pure n) (hs : s ∈ K) : s.card ≤ n :=
+lemma pure.is_wf (hK : K.pure n) : K.faces.is_wf :=
 begin
-  obtain ⟨t, ht, hst⟩ := subfacet hs,
-  rw ←hK ht,
-  exact finset.card_le_of_subset hst,
+  rw set.is_wf_iff_no_descending_seq,
+  rintro f hf,
+  sorry
 end
 
-lemma pure_unique_of_nonempty (hK : K.faces.nonempty) (ha : K.pure a) (hb : K.pure b) : a = b :=
+lemma pure.exists_facet (hK : K.pure n) (hs : s ∈ K) : ∃ t ∈ K.facets, s ⊆ t :=
+begin
+  sorry
+end
+
+lemma pure.exists_face_of_card_le (hK : K.pure n) (h : k ≤ n + 1) (hs : s ∈ K)
+  (hcard : s.card ≤ k) :
+  ∃ t ∈ K, s ⊆ t ∧ t.card = k :=
+begin
+  by_cases H : s ∈ K.facets,
+  { exact ⟨s, hs, subset.refl _, hcard.antisymm $ h.trans (hK.2 H).ge⟩ },
+  {
+    unfold facets at H,
+    simp at H,
+    sorry,
+  }
+end
+
+lemma pure_unique (hK : K.faces.nonempty) (ha : K.pure a) (hb : K.pure b) : a = b :=
 begin
   obtain ⟨s, hs⟩ := hK,
-  obtain ⟨t, ht, hts⟩ := subfacet hs,
-  rw [←ha ht, ←hb ht],
+  obtain ⟨t, ht, hts⟩ := ha.exists_facet hs,
+  exact add_right_cancel ((ha.2 ht).symm.trans $ hb.2 ht),
 end
 
-lemma facet_iff_dimension_eq_pureness (hK : K.pure n) (hs : s ∈ K) : s ∈ K.facets ↔ s.card = n :=
-begin
-  refine ⟨λ hsfacet, hK hsfacet, λ hscard, ⟨hs, λ t ht hst, finset.eq_of_subset_of_card_le hst _⟩⟩,
-  rw hscard,
-  exact hK.card_le ht,
-end
+lemma pure.mem_facets_iff (hK : K.pure n) (hs : s ∈ K) : s ∈ K.facets ↔ s.card = n + 1 :=
+⟨λ hsfacet, hK.2 hsfacet, λ hscard, ⟨hs, λ t ht hst,
+  finset.eq_of_subset_of_card_le hst $ (hK.card_le ht).trans hscard.ge⟩⟩
 
-/-- A simplicial complex is pure iff there exists n such that all faces are subfaces of some
-(n - 1)-dimensional face. -/
-lemma pure_iff : K.pure n ↔ ∀ ⦃s⦄, s ∈ K → ∃ ⦃t⦄, t ∈ K ∧ finset.card t = n ∧ s ⊆ t :=
+/-- A simplicial complex is pure iff there exists `n` such that all faces are subfaces of some
+`n`-dimensional face. -/
+lemma pure_iff : K.pure n ↔ ∀ ⦃s⦄, s ∈ K → ∃ t ∈ K, finset.card t = n + 1 ∧ s ⊆ t :=
 begin
   refine ⟨λ hK s hs, _, λ hK s hs, _⟩,
   { obtain ⟨t, ht, hst⟩ := subfacet hs,
@@ -75,5 +88,5 @@ begin
   exact hK₂.card_le ht,
 end
 
-end linear_ordered_field
+end ordered_ring
 end geometry.simplicial_complex

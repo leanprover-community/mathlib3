@@ -11,7 +11,7 @@ import topology.algebra.ordered.liminf_limsup
 # ℓp space
 
 This file describes properties of elements `f` of a pi-type `Π i, E i` with finite seminorm,
-defined for `p:ℝ≥0∞` as `if (f = 0) then 0 else ∞` if `p=0`, `(∑ a, ∥f a∥^p) ^ (1/p)` for
+defined for `p:ℝ≥0∞` as `if (f = 0) then 0 else ∞` if `p=0`, `(∑' a, ∥f a∥^p) ^ (1/p)` for
 `0 < p < ∞` and `⨆ a, ∥f a∥` for `p=∞`.
 
 The Prop-valued `mem_ℓp f p` states that a function `f : Π i, E i` has finite seminorm according
@@ -40,46 +40,6 @@ open_locale nnreal ennreal big_operators
 
 variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_group (E i)]
 
-section p_facts
-variables (p)
-
-lemma p_trichotomy : p = 0 ∨ p = ∞ ∨ 0 < p.to_real :=
-begin
-  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
-  { simp },
-  rcases eq_or_lt_of_le (le_top : p ≤ ⊤) with rfl | hp',
-  { simp },
-  simp [ennreal.to_real_pos_iff, hp, hp'.ne],
-end
-
-variables {p}
-
-lemma p_trichotomy₂ (hpq : p ≤ q) :
-  (p = 0 ∧ q = 0) ∨ (p = 0 ∧ q = ∞) ∨ (p = 0 ∧ 0 < q.to_real) ∨ (p = ∞ ∧ q = ∞)
-  ∨ (0 < p.to_real ∧ q = ∞) ∨ (0 < p.to_real ∧ 0 < q.to_real ∧ p.to_real ≤ q.to_real) :=
-begin
-  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
-  { simpa using p_trichotomy q },
-  rcases eq_or_lt_of_le (le_top : q ≤ ⊤) with rfl | hq,
-  { simpa using p_trichotomy p },
-  repeat { right },
-  have hq' : 0 < q := lt_of_lt_of_le hp hpq,
-  have hp' : p < ⊤ := lt_of_le_of_lt hpq hq,
-  simp [ennreal.to_real_le_to_real, ennreal.to_real_pos_iff, hpq, hp, hp'.ne, hq', hq.ne],
-end
-
-variables (p)
-
-lemma p_dichotomy [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
-begin
-  tactic.unfreeze_local_instances,
-  have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
-  { simpa using p_trichotomy₂ (fact.out _ : 1 ≤ p) },
-  exact this.imp_right (λ h, h.2)
-end
-
-end p_facts
-
 section ℓp
 
 /-!
@@ -92,7 +52,7 @@ section ℓp_space_definition
 /-- The property that `f : Π i : α, E i`
 * is `0`, if `p = 0`, or
 * admits an upper bound for `set.range (λ i, ∥f i∥)`, if `p = ∞`, or
-* has the series `∑ i, ∥f i∥ ^ p` be summable, if `0 < p < ∞`. -/
+* has the series `∑' i, ∥f i∥ ^ p` be summable, if `0 < p < ∞`. -/
 def mem_ℓp (f : Π i, E i) (p : ℝ≥0∞) : Prop :=
 if p = 0 then (f = 0) else
   (if p = ∞ then bdd_above (set.range (λ i, ∥f i∥)) else summable (λ i, ∥f i∥ ^ p.to_real))
@@ -129,7 +89,7 @@ section zero
 
 lemma zero_mem_ℓp : mem_ℓp (0 : Π i, E i) p :=
 begin
-  rcases p_trichotomy p with rfl | rfl | hp,
+  rcases p.trichotomy with rfl | rfl | hp,
   { exact mem_ℓp_zero rfl },
   { apply mem_ℓp_infty,
     cases is_empty_or_nonempty α with _i _i; resetI,
@@ -150,7 +110,7 @@ end zero
 
 lemma mem_ℓp.neg {f : Π i, E i} (hf : mem_ℓp f p) : mem_ℓp (-f) p :=
 begin
-  rcases p_trichotomy p with rfl | rfl | hp,
+  rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     simp [hf.eq_zero] },
   { apply mem_ℓp_infty,
@@ -166,7 +126,7 @@ lemma mem_ℓp.mem_ℓp_of_exponent_ge {p q : ℝ≥0∞} {f : Π i, E i}
   (hfq : mem_ℓp f q) (hpq : q ≤ p) :
   mem_ℓp f p :=
 begin
-  rcases p_trichotomy₂ hpq with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, hp⟩ | ⟨rfl, rfl⟩ | ⟨hq, rfl⟩
+  rcases ennreal.trichotomy₂ hpq with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, hp⟩ | ⟨rfl, rfl⟩ | ⟨hq, rfl⟩
     | ⟨hp, hq, hpq'⟩,
   { exact mem_ℓp_zero hfq.eq_zero },
   { rw hfq.eq_zero,
@@ -198,7 +158,7 @@ end
 
 lemma mem_ℓp.add {f g : Π i, E i} (hf : mem_ℓp f p) (hg : mem_ℓp g p) : mem_ℓp (f + g) p :=
 begin
-  rcases p_trichotomy p with rfl | rfl | hp,
+  rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     simp [hf.eq_zero, hg.eq_zero] },
   { apply mem_ℓp_infty,
@@ -245,7 +205,7 @@ variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
 lemma mem_ℓp.const_smul {f : Π i, E i} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (c • f) p :=
 begin
-  rcases p_trichotomy p with rfl | rfl | hp,
+  rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     simp [hf.eq_zero] },
   { obtain ⟨A, hA⟩ := hf.bdd_above,
@@ -369,7 +329,7 @@ end
 
 lemma norm_nonneg' (f : Lp E p) : 0 ≤ ∥f∥ :=
 begin
-  rcases p_trichotomy p with rfl | rfl | hp,
+  rcases p.trichotomy with rfl | rfl | hp,
   { simp [Lp.norm_eq_zero f] },
   { cases is_empty_or_nonempty α with _i _i; resetI,
     { rw Lp.norm_eq_supr,
@@ -383,7 +343,7 @@ end
 
 @[simp] lemma norm_zero : ∥(0 : Lp E p)∥ = 0 :=
 begin
-  rcases p_trichotomy p with rfl | rfl | hp,
+  rcases p.trichotomy with rfl | rfl | hp,
   { exact Lp.norm_eq_zero 0 },
   { rw Lp.norm_eq_supr,
     cases is_empty_or_nonempty α; resetI,
@@ -414,7 +374,7 @@ lemma norm_eq_zero_iff {f : Lp E p} (hp : 0 < p) : ∥f∥ = 0 ↔ f = 0 :=
 begin
   classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
-  rcases p_trichotomy p with rfl | rfl | hp,
+  rcases p.trichotomy with rfl | rfl | hp,
   { exact Lp.eq_zero f },
   { cases is_empty_or_nonempty α with _i _i; resetI,
     { simp },
@@ -440,7 +400,7 @@ by rw [ext_iff, coe_fn_zero]
 
 @[simp] lemma norm_neg {f : Lp E p} : ∥-f∥ = ∥f∥ :=
 begin
-  rcases p_trichotomy p with rfl | rfl | hp,
+  rcases p.trichotomy with rfl | rfl | hp,
   { simp [Lp.norm_eq_zero] },
   { cases is_empty_or_nonempty α; resetI,
     { simp [Lp.eq_zero' f], },
@@ -457,7 +417,7 @@ normed_group.of_core _
 { norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
   triangle := λ f g, begin
     tactic.unfreeze_local_instances,
-    rcases p_dichotomy p with rfl | hp',
+    rcases p.dichotomy with rfl | hp',
     { cases is_empty_or_nonempty α; resetI,
       { simp [Lp.eq_zero' f] },
       refine (Lp.is_lub_norm (f + g)).2 _,
@@ -495,7 +455,7 @@ lemma coe_fn_smul (c : 𝕜) (f : Lp E p) : ⇑(c • f) = c • f := rfl
 
 lemma norm_const_smul (c : 𝕜) (f : Lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin
-  rcases p_trichotomy p with rfl | rfl | hp,
+  rcases p.trichotomy with rfl | rfl | hp,
   { simp [Lp.norm_eq_zero] },
   { cases is_empty_or_nonempty α; resetI,
     { simp [Lp.eq_zero' f], },

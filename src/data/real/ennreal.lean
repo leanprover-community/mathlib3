@@ -1582,6 +1582,37 @@ begin
     refl }
 end
 
+protected lemma trichotomy (p : ℝ≥0∞) : p = 0 ∨ p = ∞ ∨ 0 < p.to_real :=
+begin
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simp },
+  rcases eq_or_lt_of_le (le_top : p ≤ ⊤) with rfl | hp',
+  { simp },
+  simp [ennreal.to_real_pos_iff, hp, hp'.ne],
+end
+
+protected lemma trichotomy₂ {p q : ℝ≥0∞} (hpq : p ≤ q) :
+  (p = 0 ∧ q = 0) ∨ (p = 0 ∧ q = ∞) ∨ (p = 0 ∧ 0 < q.to_real) ∨ (p = ∞ ∧ q = ∞)
+  ∨ (0 < p.to_real ∧ q = ∞) ∨ (0 < p.to_real ∧ 0 < q.to_real ∧ p.to_real ≤ q.to_real) :=
+begin
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simpa using q.trichotomy },
+  rcases eq_or_lt_of_le (le_top : q ≤ ⊤) with rfl | hq,
+  { simpa using p.trichotomy },
+  repeat { right },
+  have hq' : 0 < q := lt_of_lt_of_le hp hpq,
+  have hp' : p < ⊤ := lt_of_le_of_lt hpq hq,
+  simp [ennreal.to_real_le_to_real, ennreal.to_real_pos_iff, hpq, hp, hp'.ne, hq', hq.ne],
+end
+
+protected lemma dichotomy (p : ℝ≥0∞) [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
+begin
+  tactic.unfreeze_local_instances,
+  have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
+  { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
+  exact this.imp_right (λ h, h.2)
+end
+
 /-- `ennreal.to_nnreal` as a `monoid_hom`. -/
 def to_nnreal_hom : ℝ≥0∞ →* ℝ≥0 :=
 { to_fun := ennreal.to_nnreal,

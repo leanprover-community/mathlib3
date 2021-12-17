@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2021 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import data.real.basic
 import algebra.category.Group.abelian
 import group_theory.finiteness
@@ -5,6 +11,10 @@ import data.set.finite
 import algebra.geom_sum
 import analysis.specific_limits
 import some_lemmas
+
+/-!
+# definition of height function and descent theorem (about finite-generatedness of abelian group)
+-/
 
 noncomputable theory
 
@@ -15,6 +25,8 @@ universe u
 
 variable (A : Ab.{u})
 
+/--doc-/
+@[nolint has_inhabited_instance]
 structure height_function :=
 (to_fun : A → ℝ)
 (nonneg : ∀ P, 0 ≤ to_fun P)
@@ -51,6 +63,8 @@ local notation A`/`m := A⧸(m • (⊤ : add_subgroup A))
 
 variable [fin_quot : fintype (A/m)]
 include fin_quot
+
+/--doc-/
 def represents : finset A :=
   image (λ (q : A/m), Exists.some (add_mk_surjective A _ q))
     (fin_quot.elems)
@@ -66,22 +80,28 @@ begin
     exact Exists.some_spec (add_mk_surjective A _ a)
 end
 
-def new_aux (P : A) : ∃ (p : A × represents A m), P = m • p.1 + p.2 :=
+lemma new_aux (P : A) : ∃ (p : A × represents A m), P = m • p.1 + p.2 :=
 have mem1 : quotient_add_group.mk P ∈ fin_quot.elems, from fintype.complete _,
 begin
   obtain ⟨a, ha1, ha2⟩ := represents_represent_A_quot_mA m (quotient_add_group.mk P),
-  rw [quotient_add_group.eq', mem_smul A m ⊤] at ha2,
+  rw [quotient_add_group.eq', mem_smul A m] at ha2,
   obtain ⟨q, hq⟩ := ha2,
   refine ⟨⟨q, ⟨a, ha1⟩⟩, _⟩, dsimp only,
   rw [←hq, add_assoc, add_comm P, ←add_assoc, ←subtype.val_eq_coe, neg_add_self, zero_add],
 end
 
+/--doc-/
 abbreviation next (P : A) : A := (Exists.some (new_aux m P)).1
+/--doc-/
 abbreviation next_rep (P : A) : represents A m := (Exists.some (new_aux m P)).2
+/--doc-/
+@[nolint def_lemma]
 abbreviation next_prop (P : A) := Exists.some_spec (new_aux m P)
+
 lemma property_next (P : A) : m • (next m P) = P - (next_rep m P) :=
 suffices h : P = m • (next m P) + (next_rep m P), by rw [eq_sub_iff_add_eq, ←h],
 by convert next_prop m P
+
 lemma property_next_rep (P : A) : (next_rep m P : A) ∈ represents A m :=
 by simp only [coe_mem]
 
@@ -99,6 +119,7 @@ begin
   use f.C1 (- x), use x, refine ⟨hx.1, rfl⟩,
 end
 
+/--doc-/
 def C1' : ℝ :=
 finset.max' (image (λ a, f.C1 (-a)) (represents A f.m)) (nemp1 f)
 
@@ -277,6 +298,7 @@ begin
   exact hM, refl,
 end
 
+omit non_empty_quot_f
 lemma eq_linear_combination (P : A) (n : ℕ) :
   P = (f.m) ^ n.succ • ((next f.m)^[n.succ] P) +
     ∑ i in range n.succ, (f.m) ^ i •  (next_rep f.m ((next f.m)^[i] P)) :=
@@ -294,6 +316,7 @@ begin
     conv_lhs { rw ih }, },
 end
 
+/--doc-/
 abbreviation generators : set A := { a | f.to_fun a < 2 + (2⁻¹ * C) } ∪ (represents A f.m)
 
 lemma subset_generators_left : { a | f.to_fun a < 2 + (2⁻¹ * C) } ⊆ generators f :=

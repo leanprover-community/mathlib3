@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2021 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import group_theory.quotient_group
 import algebra.category.Group.abelian
 import data.real.basic
@@ -5,21 +11,28 @@ import order.filter.at_top_bot
 import topology.metric_space.basic
 import topology.algebra.ordered.monotone_convergence
 
+/-!
+some lemmas that I didn't bother to put in the correct location, or check if
+they are somewhere already in mathlib.
+-/
+
 open_locale classical pointwise
 
 section
+
 variables (G : Type*) [group G] (N : subgroup G) [nN : N.normal]
 
 @[to_additive add_mk_surjective]
 lemma mk_surjective : function.surjective (@quotient_group.mk G _ N) :=
 by apply quotient.surjective_quotient_mk'
+
 end
 
 section
 
 variables (G : Type*) [add_comm_group G]
 
-lemma mem_smul (m : ℕ) (N : add_subgroup G) {a : G} :
+lemma mem_smul (m : ℕ) {a : G} :
  a ∈ m • (⊤ : add_subgroup G) ↔ ∃ a' : G, a = m • a' :=
 begin
   split; intro ha,
@@ -28,8 +41,6 @@ begin
 
   obtain ⟨a', h⟩ := ha,
   use a', split, simp only [add_subgroup.coe_top], rw h, refl,
-end
-
 end
 
 section
@@ -89,6 +100,8 @@ begin
   split, simp only [one_div], exact is_open_Iio, rw ←set.Iio_def,
   suffices : 0 < 1/K, exact this, apply div_pos, linarith,
   apply lt_of_le_of_ne, exact hk, symmetry, exact h,
+end
+
 end
 
 end

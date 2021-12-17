@@ -28,6 +28,14 @@ namespace algebraic_geometry
 
 variable (X : Scheme)
 
+instance : t0_space X.carrier :=
+begin
+  constructor,
+  intros x y h,
+  obtain ⟨U, R, ⟨e⟩⟩ := X.local_affine x,
+  by_cases y ∈ U.1, swap, { exact ⟨U.1.1, U.1.2, or.inl ⟨U.2, h⟩⟩ },
+end
+
 /-- A scheme `X` is integral if its carrier is nonempty,
 and `𝒪ₓ(U)` is an integral domain for each `U ≠ ∅`. -/
 class is_integral : Prop :=

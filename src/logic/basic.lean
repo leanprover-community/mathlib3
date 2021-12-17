@@ -385,6 +385,13 @@ instance : is_commutative Prop xor := ⟨xor_comm⟩
 
 @[simp] theorem xor_self (a : Prop) : xor a a = false := by simp [xor]
 
+@[simp] theorem not_xor (P Q : Prop) : ¬ xor P Q ↔ (P ↔ Q) :=
+by simpa [xor, not_or_distrib] using (iff_iff_implies_and_implies _ _).symm
+
+theorem xor_iff_not_iff (P Q : Prop) : xor P Q ↔ ¬ (P ↔ Q) :=
+by rw [iff_not_comm, not_xor]
+
+
 /-! ### Declarations about `and` -/
 
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=

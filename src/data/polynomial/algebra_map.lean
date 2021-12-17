@@ -249,7 +249,7 @@ by simp [aeval_def]
 
 theorem aeval_comm (a : A) (p q : polynomial R) :
   commute (aeval a p) (aeval a q) :=
-by { refine (_ : _ * _ = _ * _), simp only [←aeval_mul, mul_comm] }
+commute.map (mul_comm p q) (aeval a : polynomial R →ₐ[R] A)
 
 variable (R)
 

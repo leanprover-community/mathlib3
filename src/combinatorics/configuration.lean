@@ -110,22 +110,25 @@ begin
     obtain ⟨p, hl⟩ := exists_point l,
     rw [finset.card_singleton, finset.singleton_bUnion, nat.one_le_iff_ne_zero],
     exact finset.card_ne_zero_of_mem (set.mem_to_finset.mpr hl) },
-  by_cases hs₂ : fintype.card P ≤ s.card,
-  { obtain rfl := s.card_eq_iff_eq_univ.mp (le_antisymm s.card_le_univ (h.trans hs₂)),
-    calc finset.univ.card = fintype.card L : finset.card_univ
-    ... ≤ fintype.card P : h
-    ... = (finset.univ.bUnion t).card : ((finset.univ.bUnion t).card_eq_iff_eq_univ.mpr
-      (finset.eq_univ_iff_forall.mpr (λ p, finset.mem_bUnion.mpr _))).symm,
-    obtain ⟨l, hl⟩ := @exists_line P L _ _ p,
-    exact ⟨l, finset.mem_univ l, set.mem_to_finset.mpr hl⟩ },
-  refine nat.lt_add_one_iff.mp (lt_of_lt_of_le (not_le.mp hs₂) _),
-  rw [←tsub_le_iff_left, ←finset.card_compl, finset.card_le_one_iff],
-  intros p₁ p₂ hp₁ hp₂,
-  simp_rw [finset.mem_compl, finset.mem_bUnion, exists_prop, not_exists, not_and,
-    set.mem_to_finset, set.mem_set_of_eq, not_not] at hp₁ hp₂,
-  obtain ⟨l₁, l₂, hl₁, hl₂, hl₃⟩ :=
-  finset.one_lt_card_iff.mp (nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hs₀, hs₁⟩),
-  exact (eq_or_eq (hp₁ l₁ hl₁) (hp₂ l₁ hl₁) (hp₁ l₂ hl₂) (hp₂ l₂ hl₂)).resolve_right hl₃,
+  suffices : (s.bUnion t)ᶜ.card ≤ sᶜ.card,
+  { rw [finset.card_compl, finset.card_compl, tsub_le_iff_left] at this,
+    replace := h.trans this,
+    rwa [←add_tsub_assoc_of_le s.card_le_univ, le_tsub_iff_left
+      (le_add_left s.card_le_univ), add_le_add_iff_right] at this },
+  have hs₂ : (s.bUnion t)ᶜ.card ≤ 1,
+  { refine finset.card_le_one_iff.mpr (λ p₁ p₂ hp₁ hp₂, _),
+    simp_rw [finset.mem_compl, finset.mem_bUnion, exists_prop, not_exists, not_and,
+      set.mem_to_finset, set.mem_set_of_eq, not_not] at hp₁ hp₂,
+    obtain ⟨l₁, l₂, hl₁, hl₂, hl₃⟩ :=
+    finset.one_lt_card_iff.mp (nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hs₀, hs₁⟩),
+    exact (eq_or_eq (hp₁ l₁ hl₁) (hp₂ l₁ hl₁) (hp₁ l₂ hl₂) (hp₂ l₂ hl₂)).resolve_right hl₃ },
+  by_cases hs₃ : sᶜ.card = 0,
+  { rw [hs₃, nat.le_zero_iff],
+    rw [finset.card_compl, tsub_eq_zero_iff_le, has_le.le.le_iff_eq (finset.card_le_univ _),
+        eq_comm, finset.card_eq_iff_eq_univ, hs₃, finset.eq_univ_iff_forall] at hs₃ ⊢,
+    exact λ p, exists.elim (exists_line p)
+      (λ l hl, finset.mem_bUnion.mpr ⟨l, finset.mem_univ l, set.mem_to_finset.mpr hl⟩) },
+  { exact hs₂.trans (nat.one_le_iff_ne_zero.mpr hs₃) },
 end
 
 /-- Number of points on a given line. -/

@@ -139,6 +139,7 @@ variable (G)
 lemma exponent_dvd_of_forall_pow_eq_one (G) [monoid G] (n : ℕ) (hpos : 0 < n)
   (hG : ∀ g : G, g ^ n = 1) : exponent G ∣ n :=
 begin
+  by_cases hpos : n = 0, { simp [hpos], },
   apply nat.dvd_of_mod_eq_zero,
   by_contradiction h,
   have h₁ := nat.pos_of_ne_zero h,

@@ -39,7 +39,7 @@ def multichoose1 (n k : ℕ) := fintype.card (sym (fin n) k)
 
 def multichoose2 (n k : ℕ) := (n + k - 1).choose k
 
-def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : sum (sym (fin n) k.succ) (sym (fin n.succ) k) :=
+def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : (sym (fin n) k.succ) ⊕ (sym (fin n.succ) k) :=
   if h : fin.last n ∈ x.val then sum.inr ⟨x.val.erase (fin.last n), begin
     have := multiset.card_erase_of_mem h,
     rw this,
@@ -77,7 +77,7 @@ def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : sum (sym (fin n) k.succ) 
     exact x.property,
   end⟩
 
-def decode (n k : ℕ) : sum (sym (fin n) k.succ) (sym (fin n.succ) k) → sym (fin n.succ) k.succ := begin
+def decode (n k : ℕ) : (sym (fin n) k.succ) ⊕ (sym (fin n.succ) k) → sym (fin n.succ) k.succ := begin
   intro x,
   cases x,
   { exact ⟨x.val.map (λ a, ⟨a.val, nat.lt.step a.property⟩ : fin n → fin n.succ), begin
@@ -90,7 +90,7 @@ def decode (n k : ℕ) : sum (sym (fin n) k.succ) (sym (fin n.succ) k) → sym (
     end⟩ },
 end
 
-lemma equivalent (n k : ℕ) : equiv (sym (fin n.succ) k.succ) (sum (sym (fin n) k.succ) (sym (fin n.succ) k)) := begin
+lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k := begin
   refine ⟨encode n k, decode n k, _, _⟩,
   { rw function.left_inverse,
     intro x,

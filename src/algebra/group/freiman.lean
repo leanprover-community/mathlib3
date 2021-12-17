@@ -50,36 +50,6 @@ open multiset
 
 variables {F α β γ δ G : Type*}
 
-namespace set
-variables {A : set α} {B : set β} {g g₁ g₂ : β → γ} {f f₁ f₂ : α → β}
-
-lemma eq_on.comp_left (h : A.eq_on f₁ f₂) : A.eq_on (g ∘ f₁) (g ∘ f₂) := λ a ha, congr_arg _ $ h ha
-
-lemma eq_on.comp_right (hg : B.eq_on g₁ g₂) (hf : A.maps_to f B) : A.eq_on (g₁ ∘ f) (g₂ ∘ f) :=
-λ a ha, hg $ hf ha
-
-lemma eq_on.cancel_right (hf : A.eq_on (g₁ ∘ f) (g₂ ∘ f)) (hf' : A.surj_on f B) : B.eq_on g₁ g₂ :=
-begin
-  intros b hb,
-  obtain ⟨a, ha, rfl⟩ := hf' hb,
-  exact hf ha,
-end
-
-lemma eq_on.cancel_left (h : A.eq_on (g ∘ f₁) (g ∘ f₂)) (hg : B.inj_on g) (hf₁ : A.maps_to f₁ B)
-  (hf₂ : A.maps_to f₂ B) :
-  A.eq_on f₁ f₂ :=
-λ a ha, hg (hf₁ ha) (hf₂ ha) (h ha)
-
-lemma surj_on.cancel_right (hf : A.surj_on f B) (hf' : A.maps_to f B) :
-  A.eq_on (g₁ ∘ f) (g₂ ∘ f) ↔ B.eq_on g₁ g₂ :=
-⟨λ h, h.cancel_right hf, λ h, h.comp_right hf'⟩
-
-lemma inj_on.cancel_left (hg : B.inj_on g) (hf₁ : A.maps_to f₁ B) (hf₂ : A.maps_to f₂ B) :
-  A.eq_on (g ∘ f₁) (g ∘ f₂) ↔ A.eq_on f₁ f₂ :=
-⟨λ h, h.cancel_left hg hf₁ hf₂, eq_on.comp_left⟩
-
-end set
-
 /-- An additive `n`-Freiman homomorphism is a map which preserves sums of `n` elements. -/
 structure add_freiman_hom (A : set α) (β : Type*) [add_comm_monoid α] [add_comm_monoid β] (n : ℕ) :=
 (to_fun : α → β)

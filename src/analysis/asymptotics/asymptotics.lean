@@ -798,9 +798,10 @@ begin
     metric.mem_closed_ball, dist_zero_right]
 end
 
-theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} (hc : c ≠ 0) :
+theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} :
   is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
 begin
+  by_cases hc : c = 0, { simp [hc], },
   rw is_o_const_iff hc,
   refine ⟨λ h, tendsto_nhds_unique tendsto_const_nhds h, _⟩,
   rintros rfl,

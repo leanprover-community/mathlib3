@@ -233,35 +233,35 @@ section ordered_comm_group
 variables [topological_space H] [ordered_comm_group H] [topological_group H]
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ioi {a : H} :
-  tendsto has_inv.inv (𝓝[Ioi a] a) (𝓝[Iio (a⁻¹)] (a⁻¹)) :=
+  tendsto has_inv.inv (𝓝[>] a) (𝓝[<] (a⁻¹)) :=
 (continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
 
 @[to_additive] lemma tendsto_inv_nhds_within_Iio {a : H} :
-  tendsto has_inv.inv (𝓝[Iio a] a) (𝓝[Ioi (a⁻¹)] (a⁻¹)) :=
+  tendsto has_inv.inv (𝓝[<] a) (𝓝[>] (a⁻¹)) :=
 (continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ioi_inv {a : H} :
-  tendsto has_inv.inv (𝓝[Ioi (a⁻¹)] (a⁻¹)) (𝓝[Iio a] a) :=
+  tendsto has_inv.inv (𝓝[>] (a⁻¹)) (𝓝[<] a) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
 
 @[to_additive] lemma tendsto_inv_nhds_within_Iio_inv {a : H} :
-  tendsto has_inv.inv (𝓝[Iio (a⁻¹)] (a⁻¹)) (𝓝[Ioi a] a) :=
+  tendsto has_inv.inv (𝓝[<] (a⁻¹)) (𝓝[>] a) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ici {a : H} :
-  tendsto has_inv.inv (𝓝[Ici a] a) (𝓝[Iic (a⁻¹)] (a⁻¹)) :=
+  tendsto has_inv.inv (𝓝[≥] a) (𝓝[≤] (a⁻¹)) :=
 (continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
 
 @[to_additive] lemma tendsto_inv_nhds_within_Iic {a : H} :
-  tendsto has_inv.inv (𝓝[Iic a] a) (𝓝[Ici (a⁻¹)] (a⁻¹)) :=
+  tendsto has_inv.inv (𝓝[≤] a) (𝓝[≥] (a⁻¹)) :=
 (continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ici_inv {a : H} :
-  tendsto has_inv.inv (𝓝[Ici (a⁻¹)] (a⁻¹)) (𝓝[Iic a] a) :=
+  tendsto has_inv.inv (𝓝[≥] (a⁻¹)) (𝓝[≤] a) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ici _ _ _ _ (a⁻¹)
 
 @[to_additive] lemma tendsto_inv_nhds_within_Iic_inv {a : H} :
-  tendsto has_inv.inv (𝓝[Iic (a⁻¹)] (a⁻¹)) (𝓝[Ici a] a) :=
+  tendsto has_inv.inv (𝓝[≤] (a⁻¹)) (𝓝[≥] a) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iic _ _ _ _ (a⁻¹)
 
 end ordered_comm_group
@@ -771,11 +771,40 @@ instance multiplicative.topological_group {G} [h : topological_space G]
 
 namespace units
 
-variables [monoid α] [topological_space α] [has_continuous_mul α]
+variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β] [topological_space β]
+  [has_continuous_mul β]
 
 instance : topological_group (units α) :=
 { continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
     (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
+
+/-- The topological group isomorphism between the units of a product of two monoids, and the product
+    of the units of each monoid. -/
+def homeomorph.prod_units : homeomorph (units (α × β)) (units α × units β) :=
+{ continuous_to_fun  :=
+  begin
+    apply continuous.prod_mk,
+    { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
+      refine continuous_op.comp (continuous_fst.comp _),
+      simp_rw units.inv_eq_coe_inv,
+      exact units.continuous_coe.comp continuous_inv, },
+    { refine continuous_induced_rng ((continuous_snd.comp units.continuous_coe).prod_mk _),
+      simp_rw units.coe_map_inv,
+      exact continuous_op.comp (continuous_snd.comp (units.continuous_coe.comp continuous_inv)), }
+  end,
+  continuous_inv_fun :=
+  begin
+    refine continuous_induced_rng (continuous.prod_mk _ _),
+    { exact (units.continuous_coe.comp continuous_fst).prod_mk
+        (units.continuous_coe.comp continuous_snd), },
+    { refine continuous_op.comp
+        (units.continuous_coe.comp $ continuous_induced_rng $ continuous.prod_mk _ _),
+      { exact (units.continuous_coe.comp (continuous_inv.comp continuous_fst)).prod_mk
+          (units.continuous_coe.comp (continuous_inv.comp continuous_snd)) },
+      { exact continuous_op.comp ((units.continuous_coe.comp continuous_fst).prod_mk
+            (units.continuous_coe.comp continuous_snd)) }}
+  end,
+  ..mul_equiv.prod_units }
 
 end units
 

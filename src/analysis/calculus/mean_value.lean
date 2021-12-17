@@ -86,7 +86,7 @@ lemma image_le_of_liminf_slope_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a 
   (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
@@ -106,12 +106,12 @@ begin
     have : ∀ᶠ x in 𝓝[Icc a b] x, f x < B x,
       from A x (Ico_subset_Icc_self xab)
         (is_open.mem_nhds (is_open_lt continuous_fst continuous_snd) hxB),
-    have : ∀ᶠ x in 𝓝[Ioi x] x, f x < B x,
+    have : ∀ᶠ x in 𝓝[>] x, f x < B x,
       from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
     exact this.mono (λ y, le_of_lt) },
   { rcases exists_between (bound x xab hxB) with ⟨r, hfr, hrB⟩,
     specialize hf' x xab r hfr,
-    have HB : ∀ᶠ z in 𝓝[Ioi x] x, r < (z - x)⁻¹ * (B z - B x),
+    have HB : ∀ᶠ z in 𝓝[>] x, r < (z - x)⁻¹ * (B z - B x),
       from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1
         (hB' x xab).Ioi_of_Ici (Ioi_mem_nhds hrB),
     obtain ⟨z, ⟨hfz, hzB⟩, hz⟩ :
@@ -136,7 +136,7 @@ lemma image_le_of_liminf_slope_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b
   (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : ∀ x, has_deriv_at B (B' x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
@@ -159,7 +159,7 @@ lemma image_le_of_liminf_slope_right_le_deriv_boundary {f : ℝ → ℝ} {a b : 
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   -- `bound` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ B' x`
   (bound : ∀ x ∈ Ico a b, ∀ r, B' x < r →
-    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r) :
+    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
 begin
   have Hr : ∀ x ∈ Icc a b, ∀ r > 0, f x ≤ B x + r * (x - a),
@@ -257,7 +257,7 @@ lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [no
   {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
+    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → f' x < B' x) :
@@ -731,18 +731,18 @@ omit hfc hgc
 /-- Cauchy's **Mean Value Theorem**, extended `has_deriv_at` version. -/
 lemma exists_ratio_has_deriv_at_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))
-  (hfb : tendsto f (𝓝[Iio b] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[Iio b] b) (𝓝 lgb)) :
+  (hfa : tendsto f (𝓝[>] a) (𝓝 lfa)) (hga : tendsto g (𝓝[>] a) (𝓝 lga))
+  (hfb : tendsto f (𝓝[<] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[<] b) (𝓝 lgb)) :
   ∃ c ∈ Ioo a b, (lgb - lga) * (f' c) = (lfb - lfa) * (g' c) :=
 begin
   let h := λ x, (lgb - lga) * f x - (lfb - lfa) * g x,
-  have hha : tendsto h (𝓝[Ioi a] a) (𝓝 $ lgb * lfa - lfb * lga),
-  { have : tendsto h (𝓝[Ioi a] a)(𝓝 $ (lgb - lga) * lfa - (lfb - lfa) * lga) :=
+  have hha : tendsto h (𝓝[>] a) (𝓝 $ lgb * lfa - lfb * lga),
+  { have : tendsto h (𝓝[>] a)(𝓝 $ (lgb - lga) * lfa - (lfb - lfa) * lga) :=
       (tendsto_const_nhds.mul hfa).sub (tendsto_const_nhds.mul hga),
     convert this using 2,
     ring },
-  have hhb : tendsto h (𝓝[Iio b] b) (𝓝 $ lgb * lfa - lfb * lga),
-  { have : tendsto h (𝓝[Iio b] b)(𝓝 $ (lgb - lga) * lfb - (lfb - lfa) * lgb) :=
+  have hhb : tendsto h (𝓝[<] b) (𝓝 $ lgb * lfa - lfb * lga),
+  { have : tendsto h (𝓝[<] b)(𝓝 $ (lgb - lga) * lfb - (lfb - lfa) * lgb) :=
       (tendsto_const_nhds.mul hfb).sub (tendsto_const_nhds.mul hgb),
     convert this using 2,
     ring },
@@ -784,8 +784,8 @@ omit hfc
 /-- Cauchy's Mean Value Theorem, extended `deriv` version. -/
 lemma exists_ratio_deriv_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
   (hdf : differentiable_on ℝ f $ Ioo a b) (hdg : differentiable_on ℝ g $ Ioo a b)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))
-  (hfb : tendsto f (𝓝[Iio b] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[Iio b] b) (𝓝 lgb)) :
+  (hfa : tendsto f (𝓝[>] a) (𝓝 lfa)) (hga : tendsto g (𝓝[>] a) (𝓝 lga))
+  (hfb : tendsto f (𝓝[<] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[<] b) (𝓝 lgb)) :
   ∃ c ∈ Ioo a b, (lgb - lga) * (deriv f c) = (lfb - lfa) * (deriv g c) :=
 exists_ratio_has_deriv_at_eq_ratio_slope' _ _ hab _ _
   (λ x hx, ((hdf x hx).differentiable_at $ Ioo_mem_nhds hx.1 hx.2).has_deriv_at)

@@ -315,8 +315,12 @@ begin
   exact (classical.some_spec (exists_multiset_roots hp0)).1
 end
 
-lemma card_roots' {p : polynomial R} (hp0 : p ≠ 0) : p.roots.card ≤ nat_degree p :=
-with_bot.coe_le_coe.1 (le_trans (card_roots hp0) (le_of_eq $ degree_eq_nat_degree hp0))
+lemma card_roots' (p : polynomial R) : p.roots.card ≤ nat_degree p :=
+begin
+  by_cases hp0 : p = 0,
+  { simp [hp0], },
+  exact with_bot.coe_le_coe.1 (le_trans (card_roots hp0) (le_of_eq $ degree_eq_nat_degree hp0))
+end
 
 lemma card_roots_sub_C {p : polynomial R} {a : R} (hp0 : 0 < degree p) :
   ((p - C a).roots.card : with_bot ℕ) ≤ degree p :=
@@ -329,16 +333,16 @@ lemma card_roots_sub_C' {p : polynomial R} {a : R} (hp0 : 0 < degree p) :
 with_bot.coe_le_coe.1 (le_trans (card_roots_sub_C hp0) (le_of_eq $ degree_eq_nat_degree
   (λ h, by simp [*, lt_irrefl] at *)))
 
-@[simp] lemma count_roots : p.roots.count a = root_multiplicity a p :=
+@[simp] lemma count_roots (p : polynomial R) : p.roots.count a = root_multiplicity a p :=
 begin
-  unfold roots,
-  split_ifs with hp,
+  by_cases hp : p = 0,
   { simp [hp], },
-  exact (classical.some_spec (exists_multiset_roots hp)).2 a,
+  rw [roots, dif_neg hp],
+  exact (classical.some_spec (exists_multiset_roots hp)).2 a
 end
 
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
-by rw [← count_pos, count_roots, root_multiplicity_pos hp]
+by rw [← count_pos, count_roots p, root_multiplicity_pos hp]
 
 lemma eq_zero_of_infinite_is_root
   (p : polynomial R) (h : set.infinite {x | is_root p x}) : p = 0 :=
@@ -499,6 +503,8 @@ multiset.to_finset (nth_roots n (1 : R))
 @[simp] lemma mem_nth_roots_finset {n : ℕ} (h : 0 < n) {x : R} :
   x ∈ nth_roots_finset n R ↔ x ^ (n : ℕ) = 1 :=
 by rw [nth_roots_finset, mem_to_finset, mem_nth_roots h]
+
+@[simp] lemma nth_roots_finset_zero : nth_roots_finset 0 R = ∅ := by simp [nth_roots_finset]
 
 end nth_roots
 

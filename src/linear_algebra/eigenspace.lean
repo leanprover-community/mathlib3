@@ -5,10 +5,10 @@ Authors: Alexander Bentkamp
 -/
 
 import field_theory.is_alg_closed.basic
+import linear_algebra.charpoly.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
-import order.preorder_hom
-import linear_algebra.charpoly.basic
+import order.hom.basic
 
 /-!
 # Eigenvectors and eigenvalues
@@ -405,7 +405,7 @@ lemma has_generalized_eigenvalue_of_has_eigenvalue
   f.has_generalized_eigenvalue μ k :=
 begin
   apply has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le hk,
-  rw [has_generalized_eigenvalue, generalized_eigenspace, preorder_hom.coe_fun_mk, pow_one],
+  rw [has_generalized_eigenvalue, generalized_eigenspace, order_hom.coe_fun_mk, pow_one],
   exact hμ,
 end
 
@@ -445,7 +445,7 @@ lemma generalized_eigenspace_restrict
   generalized_eigenspace (linear_map.restrict f hfp) μ k =
     submodule.comap p.subtype (f.generalized_eigenspace μ k) :=
 begin
-  simp only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp],
+  simp only [generalized_eigenspace, order_hom.coe_fun_mk, ← linear_map.ker_comp],
   induction k with k ih,
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
@@ -473,7 +473,7 @@ begin
         (f.generalized_eigenspace μ (finrank K V))
       = ((f - algebra_map _ _ μ) ^ finrank K V *
           (f - algebra_map K (End K V) μ) ^ finrank K V).ker :
-        by { simpa only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp] }
+        by { simpa only [generalized_eigenspace, order_hom.coe_fun_mk, ← linear_map.ker_comp] }
   ... = f.generalized_eigenspace μ (finrank K V + finrank K V) :
         by { rw ←pow_add, refl }
   ... = f.generalized_eigenspace μ (finrank K V) :

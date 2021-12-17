@@ -45,12 +45,11 @@ variables (p)
 
 lemma p_trichotomy : p = 0 ∨ p = ∞ ∨ 0 < p.to_real :=
 begin
-  sorry
-end
-
-lemma p_dichotomy [fact (1 ≤ p)] : p = ∞ ∨ 0 < p.to_real :=
-begin
-  sorry
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simp },
+  rcases eq_or_lt_of_le (le_top : p ≤ ⊤) with rfl | hp',
+  { simp },
+  simp [ennreal.to_real_pos_iff, hp, hp'.ne],
 end
 
 variables {p}
@@ -59,7 +58,24 @@ lemma p_trichotomy₂ (hpq : p ≤ q) :
   (p = 0 ∧ q = 0) ∨ (p = 0 ∧ q = ∞) ∨ (p = 0 ∧ 0 < q.to_real) ∨ (p = ∞ ∧ q = ∞)
   ∨ (0 < p.to_real ∧ q = ∞) ∨ (0 < p.to_real ∧ 0 < q.to_real ∧ p.to_real ≤ q.to_real) :=
 begin
-  sorry
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simpa using p_trichotomy q },
+  rcases eq_or_lt_of_le (le_top : q ≤ ⊤) with rfl | hq,
+  { simpa using p_trichotomy p },
+  repeat { right },
+  have hq' : 0 < q := lt_of_lt_of_le hp hpq,
+  have hp' : p < ⊤ := lt_of_le_of_lt hpq hq,
+  simp [ennreal.to_real_le_to_real, ennreal.to_real_pos_iff, hpq, hp, hp'.ne, hq', hq.ne],
+end
+
+variables (p)
+
+lemma p_dichotomy [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
+begin
+  tactic.unfreeze_local_instances,
+  have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
+  { simpa using p_trichotomy₂ (fact.out _ : 1 ≤ p) },
+  exact this.imp_right (λ h, h.2)
 end
 
 end p_facts

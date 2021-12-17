@@ -30,7 +30,7 @@ roots of unity, for all `n ∈ S`.
   `is_cyclotomic_extension S A (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 })`.
 * `is_cyclotomic_extension.finite` : if `S` is finite and `is_cyclotomic_extension S A B`, then
   `B` is a finite `A`-algebra.
-* `is_cyclotomic_extension.finite` : a finite cyclotomic extension of a number field is a number
+* `is_cyclotomic_extension.number_field` : a finite cyclotomic extension of a number field is a number
   field.
 
 ## Implementation details
@@ -39,7 +39,8 @@ Our definition of `is_cyclotomic_extension` is very general, to allow rings of a
 and infinite extension, but it will mainly be used in the case `S = {n}` with `(n : A) ≠ 0` (and
 for integral domains).
 All results are in the `is_cyclotomic_extension` namespace.
-Note the some lemmas, `is_cyclotomic_extension.trans`, `is_cyclotomic_extension.finite` and
+Note the some results, `is_cyclotomic_extension.trans`, `is_cyclotomic_extension.finite` and
+`is_cyclotomic_extension.number_field` are lemmas, but they can be made local instances.
 
 -/
 

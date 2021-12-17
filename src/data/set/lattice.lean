@@ -843,10 +843,14 @@ lemma Union_subset_Union2 {s : ι → set α} {t : ι₂ → set α} (h : ∀ i,
 lemma Union_subset_Union_const {s : set α} (h : ι → ι₂) : (⋃ i : ι, s) ⊆ (⋃ j : ι₂, s) :=
 @supr_le_supr_const (set α) ι ι₂ _ s h
 
-@[simp] lemma Union_of_singleton (α : Type*) : (⋃ x, {x} : set α) = univ :=
-Union_eq_univ_iff.2 $ λ x, ⟨x, rfl⟩
+@[simp] lemma Union_singleton_eq_range {α β : Type*} (f : α → β) :
+  (⋃ (x : α), {f x}) = range f :=
+by { ext x, simp [@eq_comm _ x] }
 
-@[simp] lemma Union_of_singleton_coe (s : set α) :
+lemma Union_of_singleton (α : Type*) : (⋃ x, {x} : set α) = univ :=
+by simp
+
+lemma Union_of_singleton_coe (s : set α) :
   (⋃ (i : s), {i} : set α) = s :=
 by simp
 

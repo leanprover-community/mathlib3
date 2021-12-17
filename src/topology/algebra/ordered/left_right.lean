@@ -42,15 +42,15 @@ end partial_order
 variables {α β : Type*} [topological_space α] [linear_order α] [topological_space β]
 
 lemma nhds_left_sup_nhds_right (a : α) :
-  𝓝[Iic a] a ⊔ 𝓝[Ici a] a = 𝓝 a :=
+  𝓝[≤] a ⊔ 𝓝[≥] a = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ici, nhds_within_univ]
 
 lemma nhds_left'_sup_nhds_right (a : α) :
-  𝓝[Iio a] a ⊔ 𝓝[Ici a] a = 𝓝 a :=
+  𝓝[<] a ⊔ 𝓝[≥] a = 𝓝 a :=
 by rw [← nhds_within_union, Iio_union_Ici, nhds_within_univ]
 
 lemma nhds_left_sup_nhds_right' (a : α) :
-  𝓝[Iic a] a ⊔ 𝓝[Ioi a] a = 𝓝 a :=
+  𝓝[≤] a ⊔ 𝓝[>] a = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ioi, nhds_within_univ]
 
 lemma continuous_at_iff_continuous_left_right {a : α} {f : α → β} :

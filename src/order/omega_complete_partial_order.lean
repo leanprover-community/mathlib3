@@ -5,7 +5,7 @@ Authors: Simon Hudon
 -/
 import control.monad.basic
 import data.part
-import order.order_hom
+import order.hom.lattice
 import tactic.monotonicity
 import tactic.wlog
 

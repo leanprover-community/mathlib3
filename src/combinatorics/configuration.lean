@@ -9,6 +9,7 @@ import data.fintype.card
 /-!
 # Configurations of Points and lines
 This file introduces abstract configurations of points and lines, and proves some basic properties.
+
 ## Main definitions
 * `configuration.nondegenerate`: Excludes certain degenerate configurations,
   and imposes uniqueness of intersection points.
@@ -54,7 +55,7 @@ instance : has_mem (dual L) (dual P) :=
 class nondegenerate : Prop :=
 (exists_point : ∀ l : L, ∃ p, p ∉ l)
 (exists_line : ∀ p, ∃ l : L, p ∉ l)
-(eq_or_eq : ∀ {p₁ p₂ : P}, ∀ {l₁ l₂ : L}, p₁ ∈ l₁ → p₂ ∈ l₁ → p₁ ∈ l₂ → p₂ ∈ l₂ → p₁ = p₂ ∨ l₁ = l₂)
+(eq_or_eq : ∀ {p₁ p₂ : P} {l₁ l₂ : L}, p₁ ∈ l₁ → p₂ ∈ l₁ → p₁ ∈ l₂ → p₂ ∈ l₂ → p₁ = p₂ ∨ l₁ = l₂)
 
 /-- A nondegenerate configuration in which every pair of lines has an intersection point. -/
 class has_points extends nondegenerate P L : Type u :=

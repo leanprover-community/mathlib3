@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 -/
+import logic.nonempty
 import tactic.lint
 import tactic.dependencies
 

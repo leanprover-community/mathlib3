@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
-import order.order_hom
+import order.hom.basic
 
 /-! # Category of preorders -/
 

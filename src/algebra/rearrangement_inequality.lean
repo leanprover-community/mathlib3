@@ -3,23 +3,21 @@ Copyright (c) 2021 Mantas Bakšys. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
-
-import tactic group_theory.perm.support group_theory.perm.sign
-import data.fintype.basic data.fintype.card
+import tactic.basic tactic.abel group_theory.perm.support group_theory.perm.sign data.fintype.card
 
 open finset equiv equiv.perm
-open_locale classical big_operators
+open_locale big_operators
 
--- statement claiming that two functions vary together
+/--  Statement claiming that two functions vary together -/
 def covary {ι α β : Type*} [preorder α] [preorder β] (f : ι → α) (g : ι → β) : Prop :=
   (∀ ⦃i j⦄, f i < f j → g i ≤ g j) ∧ ∀ ⦃i j⦄, g i < g j → f i ≤ f j
 
--- statement claiming that two functions vary together but in opposite directions
+/-- Statement claiming that two functions vary together but in opposite directions -/
 def cocovary {ι α β : Type*} [preorder α] [preorder β] (f : ι → α) (g : ι → β) : Prop :=
   (∀ ⦃i j⦄, f j < f i → g i ≤ g j) ∧ ∀ ⦃i j⦄, g j < g i → f i ≤ f j
 
--- induction principle for `finset` based on the ordering induced by a function
-lemma finset.induction_on_max_value {ι α : Type*} [linear_order α] [fintype ι] (f : ι → α)
+/-- Induction principle for `finset` based on the ordering induced by a function -/
+lemma finset.induction_on_max_value {ι α : Type*} [linear_order α] [decidable_eq ι] (f : ι → α)
   {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x ≤ f a) → p s → p (insert a s)) : p s :=
 begin
@@ -42,10 +40,11 @@ begin
       exact erase_ssubset has }}
 end
 
--- induction principle for `finset` based on an ordering induced by a pair of functions
-lemma finset.induction_on_max_value' {ι α : Type*} [linear_order α] [fintype ι] (f g : ι → α)
+/-- Induction principle for `finset` based on an ordering induced by a pair of functions -/
+lemma finset.induction_on_max_value' {ι α : Type*} [decidable_eq ι] [linear_order α] (f g : ι → α)
   {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
-  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x < f a ∨ (f x = f a ∧ g x ≤ g a)) → p s → p (insert a s)) : p s :=
+  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x < f a ∨ (f x = f a ∧ g x ≤ g a)) → p s → p (insert a s)) :
+  p s :=
 begin
   induction s using finset.strong_induction_on with s ihs,
   rcases (s.image f).eq_empty_or_nonempty with hne|hne,
@@ -90,31 +89,8 @@ begin
         exact erase_ssubset has }}
 end
 
-lemma equiv.perm.mul_swap_support_subset {ι : Type*} [fintype ι] (s : finset ι) {x y : ι}
-  (hx : x ∈ s) (hy : y ∈ s) (σ : perm ι) (hσ : (σ * swap x y).support ⊆ s) : σ.support ⊆ s :=
-begin
-  contrapose hσ,
-  rw subset_iff at hσ,
-  push_neg at hσ,
-  cases hσ with z hz,
-  rw subset_iff,
-  push_neg,
-  use z,
-  refine ⟨_, hz.2⟩,
-  rw mem_support,
-  simp only [equiv.perm.coe_mul, function.comp_app],
-  rw swap_apply_of_ne_of_ne,
-  { simp only [← mem_support, hz.1] },
-  { intro hxz,
-    rw ← hxz at hx,
-    apply hz.2 hx },
-  { intro hyz,
-    rw ← hyz at hy,
-    apply hz.2 hy }
-end
-
-
-theorem rearrangement_inequality {ι α : Type*} [fintype ι] [linear_ordered_ring α]
+/-- **Rearrangement Inequality** -/
+theorem rearrangement_inequality {ι α : Type*} [decidable_eq ι] [fintype ι] [linear_ordered_ring α]
   (s : finset ι) (f g : ι → α) (σ : perm ι) (hσ : σ.support ⊆ s) (hfg : covary f g) :
   ∑ i in s, f i * g (σ i) ≤ ∑ i in s, f i * g i :=
 begin
@@ -244,8 +220,8 @@ begin
         { refl }}}}
 end
 
-lemma covary_of_monotone {α ι : Type*} [preorder ι] [linear_order α] {f g : ι → α} (hf : monotone f)
-  (hg : monotone g) : covary f g :=
+lemma covary_of_monotone {α ι : Type*} [linear_order ι] [linear_order α]
+  {f g : ι → α} (hf : monotone f) (hg : monotone g) : covary f g :=
 begin
   split,
   { intros i j hfij,
@@ -253,14 +229,18 @@ begin
     contrapose hfij,
     simp only [not_lt],
     apply hf,
-     },
-  { },
+    exact le_of_not_ge hfij },
+  { intros i j hgij,
+    apply hf,
+    contrapose hgij,
+    simp only [not_lt],
+    apply hg,
+    exact le_of_not_ge hgij },
 end
 
-
--- statement of the rearrangement inequality over `range n`
-theorem rearrangement_inequality' {α : Type*} (f g : ℕ → α) [linear_ordered_ring α] {n : ℕ}
-  (hf : monotone_on f (range n)) (hg : monotone_on g (range n)) (σ : perm ℕ)
+/-- **Rearrangement Inequality** : statement over `range n` -/
+theorem rearrangement_inequality' {α : Type*} (f g : ℕ → α) [linear_ordered_ring α]
+  {n : ℕ} (hf : monotone_on f (range n)) (hg : monotone_on g (range n)) (σ : perm ℕ)
   (hσ : {x | σ x ≠ x} ⊆ range n) : ∑ i in range n, f i * g (σ i) ≤ ∑ i in range n, f i * g i :=
 begin
   set f' : (fin n) → α := λ n, f n with hf',
@@ -298,11 +278,12 @@ begin
       rw hy }},
   set τ : perm (fin n) := perm.subtype_perm σ hσs with hτs,
   convert (rearrangement_inequality univ f' g' τ (subset_univ _) hfg) using 1,
-  { sorry },
-  { sorry },
+  { rw ← fin.sum_univ_eq_sum_range,
+    congr },
+  { rw ← fin.sum_univ_eq_sum_range }
 end
 
-lemma swap_extend_domain_eq_self {ι : Type*} (s : finset ι) (x y : s) :
+lemma swap_extend_domain_eq_self {ι : Type*} [decidable_eq ι] (s : finset ι) (x y : s) :
   (@extend_domain s ι (swap x y) (λ x, x ∈ s) _ 1) = swap ↑x ↑y :=
 begin
   ext a,
@@ -352,7 +333,7 @@ begin
     { exact ha }}
 end
 
-theorem equiv.perm.swap_induction_on'_support {ι : Type*} [fintype ι]
+theorem equiv.perm.swap_induction_on'_support {ι : Type*} [decidable_eq ι] [fintype ι]
   (s : finset ι) {P : (perm ι) → Prop} (σ : perm ι) (hσ : σ.support ⊆ s ) :
   P 1 → (∀ (f : perm ι) x y, x ≠ y → x ∈ s → y ∈ s → (f.support ⊆ s → P f) →
     ((f * swap x y).support ⊆ s → P (f * swap x y))) → P σ :=
@@ -419,4 +400,28 @@ begin
             exact coe_mem x},
           { subst z,
             exact coe_mem y}}}}
+end
+
+lemma equiv.perm.mul_swap_support_subset {ι : Type*} [decidable_eq ι] [fintype ι] (s : finset ι)
+  {x y : ι} (hx : x ∈ s) (hy : y ∈ s) (σ : perm ι) (hσ : (σ * swap x y).support ⊆ s) :
+  σ.support ⊆ s :=
+begin
+  contrapose hσ,
+  rw subset_iff at hσ,
+  push_neg at hσ,
+  cases hσ with z hz,
+  rw subset_iff,
+  push_neg,
+  use z,
+  refine ⟨_, hz.2⟩,
+  rw mem_support,
+  simp only [equiv.perm.coe_mul, function.comp_app],
+  rw swap_apply_of_ne_of_ne,
+  { simp only [← mem_support, hz.1] },
+  { intro hxz,
+    rw ← hxz at hx,
+    apply hz.2 hx },
+  { intro hyz,
+    rw ← hyz at hy,
+    apply hz.2 hy }
 end

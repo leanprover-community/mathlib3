@@ -76,8 +76,7 @@ begin
   rw ← neg_inf_eq_sup_neg,
   rw abs_eq_sup_neg,
   nth_rewrite 0 ← neg_neg b,
-  rw ← neg_inf_eq_sup_neg,
-  finish,
+  rwa [← neg_inf_eq_sup_neg, neg_le_neg_iff, @inf_comm _ _ _ b, @inf_comm _ _ _ a],
 end
 
 /--

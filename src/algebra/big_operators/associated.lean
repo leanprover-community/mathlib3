@@ -17,6 +17,7 @@ and products of multisets and finsets.
 
 variables {α β γ δ : Type*}
 
+-- the same local notation used in `algebra.associated`
 local infix ` ~ᵤ ` : 50 := associated
 open_locale big_operators
 

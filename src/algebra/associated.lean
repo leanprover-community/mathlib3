@@ -720,14 +720,6 @@ end cancel_comm_monoid_with_zero
 
 end associates
 
-namespace multiset
-
-lemma prod_ne_zero_of_prime [comm_cancel_monoid_with_zero α] [nontrivial α]
- (s : multiset α) (h : ∀ x ∈ s, prime x) : s.prod ≠ 0 :=
-multiset.prod_ne_zero (λ h0, prime.ne_zero (h 0 h0) rfl)
-
-end multiset
-
 /-- Prime `p` divides the product of a list `L` iff it divides some `a ∈ L` -/
 lemma prime.dvd_prod_iff {M : Type*} [comm_monoid_with_zero M] {p : M} {L : list M} (pp : prime p) :
 p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=

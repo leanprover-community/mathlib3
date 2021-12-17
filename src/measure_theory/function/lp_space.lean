@@ -477,7 +477,7 @@ begin
       push_cast,
       rw real.norm_rpow_of_nonneg (norm_nonneg _), },
     rw h_rpow,
-    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hq_pos,
+    have h_rpow_mono := ennreal.strict_mono_rpow_of_pos hq_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hq_pos.ne.symm).2,
     let iso := h_rpow_mono.order_iso_of_surjective _ h_rpow_surj,
     exact (iso.ess_sup_apply (λ x, ((nnnorm (f x)) : ℝ≥0∞)) μ).symm, },
@@ -600,6 +600,19 @@ end
 lemma snorm_one_smul_measure {f : α → F} (c : ℝ≥0∞) :
   snorm f 1 (c • μ) = c * snorm f 1 μ :=
 by { rw @snorm_smul_measure_of_ne_top _ _ _ μ _ 1 (@ennreal.coe_ne_top 1) f c, simp, }
+
+lemma mem_ℒp.of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
+  (hμ'_le : μ' ≤ c • μ) {f : α → E} (hf : mem_ℒp f p μ) :
+  mem_ℒp f p μ' :=
+begin
+  refine ⟨hf.1.mono' (measure.absolutely_continuous_of_le_smul hμ'_le), _⟩,
+  refine (snorm_mono_measure f hμ'_le).trans_lt _,
+  by_cases hc0 : c = 0,
+  { simp [hc0], },
+  rw [snorm_smul_measure_of_ne_zero hc0, smul_eq_mul],
+  refine ennreal.mul_lt_top _ hf.2.ne,
+  simp [hc, hc0],
+end
 
 section opens_measurable_space
 variable [opens_measurable_space E]
@@ -2021,7 +2034,7 @@ begin
   refine (lintegral_liminf_le' (λ m, ((hf m).ennnorm.pow_const _))).trans_eq _,
   have h_pow_liminf : at_top.liminf (λ n, snorm' (f n) p μ) ^ p
     = at_top.liminf (λ n, (snorm' (f n) p μ) ^ p),
-  { have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hp_pos,
+  { have h_rpow_mono := ennreal.strict_mono_rpow_of_pos hp_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
     all_goals { is_bounded_default }, },
@@ -2219,7 +2232,7 @@ begin
       (nnnorm (f (i + 1) a - f i a)))^p ∂μ
     = ∫⁻ a, at_top.liminf (λ n, (∑ i in finset.range (n + 1), (nnnorm (f (i + 1) a - f i a)))^p) ∂μ,
   { refine lintegral_congr (λ x, _),
-    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos (zero_lt_one.trans_le hp1),
+    have h_rpow_mono := ennreal.strict_mono_rpow_of_pos (zero_lt_one.trans_le hp1),
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
     all_goals { is_bounded_default }, },

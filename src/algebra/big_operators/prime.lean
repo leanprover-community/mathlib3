@@ -60,7 +60,7 @@ nat.prime.dvd_finset_prod_iff pp _
 
 namespace finset
 
-lemma count_factors_prod (α : Type*) (F : finset α) (p : ℕ) (g : α → ℕ) (hf: ∀ x ∈ F, 0 < g x) :
+lemma count_factors_prod {α : Type*} {F : finset α} {p : ℕ} {g : α → ℕ} (hf: ∀ x ∈ F, 0 < g x) :
   list.count p (F.prod g).factors = F.sum (λ x, list.count p (g x).factors) :=
 begin
   classical,

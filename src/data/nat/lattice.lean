@@ -67,24 +67,6 @@ begin
   rw nat.Inf_eq_zero, right, assumption,
 end
 
-lemma Inf_add {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m : ℕ | p m}) :
-  Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
-begin
-  symmetry,
-  rw Inf_def,
-  { rw nat.find_eq_iff,
-    simp only [nat.add_sub_cancel, set.mem_set_of_eq],
-    refine ⟨Inf_mem (nonempty_of_pos_Inf h), λ k hk hpk, not_mem_of_lt_Inf _ hpk⟩,
-    rwa tsub_lt_iff_right,
-    apply le_of_lt,
-    rw [←tsub_pos_iff_lt, pos_iff_ne_zero],
-    intro hkn,
-    rw hkn at hpk,
-    exact not_mem_of_lt_Inf h hpk },
-  { obtain ⟨t, ht⟩ := nonempty_of_pos_Inf h,
-    exact ⟨t + n, by simpa using ht⟩ }
-end
-
 lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=
 nonempty_of_pos_Inf (h.symm ▸ (succ_pos k) : Inf s > 0)
 
@@ -126,7 +108,7 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
 
-lemma Inf_add' {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
+lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
   Inf {m | p (m + n)} + n = Inf {m | p m} :=
 begin
   obtain h | ⟨m, hm⟩ := {m | p (m + n)}.eq_empty_or_nonempty,
@@ -141,6 +123,19 @@ begin
     rw [nat.Inf_def ⟨m, hm⟩, nat.Inf_def hp],
     rw [nat.Inf_def hp] at hn,
     exact find_add hn }
+end
+
+lemma Inf_add' {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m | p m}) :
+  Inf {m | p m} + n = Inf {m | p (m - n)} :=
+begin
+  convert Inf_add _,
+  { simp_rw add_tsub_cancel_right },
+  obtain ⟨m, hm⟩ := nonempty_of_pos_Inf h,
+  refine le_cInf ⟨m + n, _⟩ (λ b hb, le_of_not_lt $ λ hbn,
+    ne_of_mem_of_not_mem _ (not_mem_of_lt_Inf h) (tsub_eq_zero_of_le hbn.le)),
+  { dsimp,
+    rwa add_tsub_cancel_right },
+  { exact hb }
 end
 
 section

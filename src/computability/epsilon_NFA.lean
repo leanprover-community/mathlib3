@@ -129,3 +129,65 @@ begin
 end
 
 end NFA
+
+namespace ε_NFA
+
+/-!
+# Operations on Epsilon Nondeterministic Finite Automata
+For any alphabet `α` the class of `ε_NFA`s over `α` is closed under the regular operations
+
+-- * `0` (`zero`) matches nothing
+-- * `1` (`ε`) matches only the empty string, ε
+-- * `char a` matches only the string 'a'
+-- * `P + Q` (`plus P Q`) matches anything which match `P` or `Q`
+-- * `P * Q` (`comp P Q`) matches `x ++ y` if `x` matches `P` and `y` matches `Q`
+-- * `star P` matches any finite concatenation of strings which match `P`
+
+
+/-- An `ε_NFA` is a set of states (`σ`), a transition function from state to state labelled by the
+  alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`).
+  Note the transition function sends a state to a `set` of states and can make ε-transitions by
+  inputing `none`.
+-/
+-- structure ε_NFA (α : Type u) (σ : Type v) :=
+-- (step : σ → option α → set σ)
+-- (start : set σ)
+-- (accept : set σ)
+
+-- Sipser:
+-- 1. Q is a finite set of states,  => σ
+-- 2. Σ is a finite alphabet,       => α
+-- 3. δ: Q x Σ ∪ {ε} → P(Q) is the transition function,  => step
+-- 4. q_0 ∈ Q is the start state, and   => start  NB: WE HAVE A **SET** OF START STATES
+-- S. F ⊆ Q is the set of accept states. => accept
+-/
+
+section closure
+
+variables [decidable_eq α]
+
+def zero : ε_NFA α (fin 1) := {
+  step    := λ s x, {0},
+  start   := {0},
+  accept  := ∅,
+}
+
+def one : ε_NFA α (fin 1) := {
+  step    := λ s x, {0},
+  start   := {0},
+  accept  := {0},
+}
+
+def char (a : α) : ε_NFA α (fin 2) := {
+  step    := λ s x, if (s=0) ∧ (x=a) then {1} else ∅,
+  start   := {0},
+  accept  := {1},
+}
+
+lemma matches_zero_def : (zero : ε_NFA α _).accepts = 0 := sorry
+lemma matches_one_def  : (one  : ε_NFA α _).accepts = 1 := sorry
+lemma matches_char_def (a : α) : (char a : ε_NFA α _).accepts = {[a]} := sorry
+
+
+end closure
+end ε_NFA

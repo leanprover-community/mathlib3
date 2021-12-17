@@ -271,7 +271,7 @@ end
 lemma property_next_height_eventually (P : A) :
   ∃ (M : ℕ), ∀ (n : ℕ), M ≤ n → f.to_fun ((next f.m)^[n.succ] P) ≤ 1 + (2⁻¹ * C) :=
 begin
-  obtain ⟨M, hM⟩ := eventually_le_one (f.to_fun P),
+  obtain ⟨M, hM⟩ := eventually_le_one (f.to_fun P) (f.nonneg P),
   use M, intros n hn, specialize hM n.succ _,transitivity n, exact hn, exact nat.le_succ n,
   apply le_trans (property_next_height_iter f P n), apply add_le_add,
   exact hM, refl,

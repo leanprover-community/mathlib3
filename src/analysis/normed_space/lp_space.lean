@@ -365,6 +365,20 @@ begin
   apply_instance
 end
 
+lemma norm_nonneg' (f : Lp E p) : 0 ≤ ∥f∥ :=
+begin
+  rcases p_trichotomy p with rfl | rfl | hp,
+  { simp [Lp.norm_eq_zero f] },
+  { cases is_empty_or_nonempty α with _i _i; resetI,
+    { rw Lp.norm_eq_supr,
+      simp [real.supr_empty] },
+    inhabit α,
+    exact (norm_nonneg (f (default α))).trans ((Lp.is_lub_norm f).1 ⟨default α, rfl⟩) },
+  { rw Lp.norm_eq_tsum_rpow hp f,
+    refine real.rpow_nonneg_of_nonneg (tsum_nonneg _) _,
+    exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
+end
+
 @[simp] lemma norm_zero : ∥(0 : Lp E p)∥ = 0 :=
 begin
   rcases p_trichotomy p with rfl | rfl | hp,
@@ -379,8 +393,9 @@ begin
 end
 
 -- move to `topology.algebra.infinite_sum`
-lemma _root_.has_sum_zero_iff_of_nonneg {ι α : Type*} [ordered_add_comm_group α] [topological_space α] [topological_add_group α]
-  [order_closed_topology α] {f : ι → α} (hf : ∀ i, 0 ≤ f i) :
+lemma _root_.has_sum_zero_iff_of_nonneg {ι α : Type*} [ordered_add_comm_group α]
+  [topological_space α] [topological_add_group α] [order_closed_topology α]
+  {f : ι → α} (hf : ∀ i, 0 ≤ f i) :
   has_sum f 0 ↔ f = 0 :=
 begin
   split,
@@ -489,7 +504,7 @@ begin
     apply (Lp.has_sum_norm hp (c • f)).unique,
     convert (Lp.has_sum_norm hp f).mul_left (∥c∥ ^ p.to_real),
     { simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },
-    have hf : 0 ≤ ∥f∥ := sorry,
+    have hf : 0 ≤ ∥f∥ := Lp.norm_nonneg' f,
     simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) hf] }
 end
 

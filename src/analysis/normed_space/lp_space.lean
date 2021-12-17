@@ -446,7 +446,8 @@ begin
     { simp [Lp.eq_zero' f], },
     apply (Lp.is_lub_norm (-f)).unique,
     simpa using Lp.is_lub_norm f },
-  { suffices : ∥-f∥ ^ p.to_real = ∥f∥ ^ p.to_real, by sorry,
+  { suffices : ∥-f∥ ^ p.to_real = ∥f∥ ^ p.to_real,
+    { exact real.rpow_left_inj_on hp.ne' (norm_nonneg' _) (norm_nonneg' _) this },
     apply (Lp.has_sum_norm hp (-f)).unique,
     simpa using Lp.has_sum_norm hp f }
 end
@@ -502,7 +503,10 @@ begin
     have := Lp.is_lub_norm f,
     simp [coe_fn_smul, norm_smul],
     sorry },
-  { suffices : ∥c • f∥ ^ p.to_real = (∥c∥ * ∥f∥) ^ p.to_real, by sorry,
+  { suffices : ∥c • f∥ ^ p.to_real = (∥c∥ * ∥f∥) ^ p.to_real,
+    { refine real.rpow_left_inj_on hp.ne' _ _ this,
+      { exact norm_nonneg' _ },
+      { exact mul_nonneg (norm_nonneg _) (norm_nonneg' _) } },
     apply (Lp.has_sum_norm hp (c • f)).unique,
     convert (Lp.has_sum_norm hp f).mul_left (∥c∥ ^ p.to_real),
     { simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },

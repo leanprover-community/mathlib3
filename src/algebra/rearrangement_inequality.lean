@@ -9,6 +9,15 @@ import group_theory.perm.support
 import group_theory.perm.sign
 import data.fintype.card
 
+/-!
+This file introduces a definition `covary` for two functions that vary together. Then, a proof is
+given that for all pairs of functions that satisfy `covary`, the **Rearrangement Inequality** holds.
+Later on, the case for `monotone` pairs of functions over a `linear_order` is deduced.
+
+Note : I'm currently very unsure if this theorem should have it's own file, please feel free to
+comment on this
+-/
+
 open finset equiv equiv.perm
 open_locale big_operators
 

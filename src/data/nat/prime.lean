@@ -504,6 +504,9 @@ begin
       { rcases L_ih h_1 with ⟨x, hx1, hx2⟩, use x, simp [list.mem_cons_iff, hx1, hx2] } } },
   { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
 end
+-- TODO: This proof duplicates a more general proof in `algebra/associated`.
+-- The two proofs should be integrated after the merger of `nat.prime` and `prime`
+-- that's about to occur. (2021-12-17)
 
 lemma prime.not_dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) (hL : ∀ a ∈ L, ¬ p ∣ a) :
   ¬ p ∣ L.prod :=

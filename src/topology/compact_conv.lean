@@ -266,3 +266,12 @@ instance : uniform_space C(α, β) :=
       refine exists_congr (λ hK, exists_congr (λ hV, _)),
       simp only [prod.forall, set_of_subset_set_of, uniform_gen_subset],
     end }
+
+lemma correct_entourages (X : set (C(α, β) × C(α, β))) :
+  X ∈ 𝓤 C(α, β) ↔ ∃ (K : set α) (V : set (β × β)) (hK : is_compact K) (hV : V ∈ 𝓤 β),
+    { fg : C(α, β) × C(α, β) | ∀ (x : α), x ∈ K → (fg.1 x, fg.2 x) ∈ V } ⊆ X :=
+mem_compact_convergence_uniformity X
+
+lemma correct_topology_even_defeq :
+  @uniform_space.to_topological_space C(α, β) _ = continuous_map.compact_open :=
+rfl

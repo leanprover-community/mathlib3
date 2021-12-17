@@ -82,6 +82,8 @@ abbreviation next_prop (P : A) := Exists.some_spec (new_aux m P)
 lemma property_next (P : A) : m • (next m P) = P - (next_rep m P) :=
 suffices h : P = m • (next m P) + (next_rep m P), by rw [eq_sub_iff_add_eq, ←h],
 by convert next_prop m P
+lemma property_next_rep (P : A) : (next_rep m P : A) ∈ represents A m :=
+by simp only [coe_mem]
 
 variable (f : height_function A)
 omit fin_quot
@@ -292,8 +294,39 @@ begin
     conv_lhs { rw ih }, },
 end
 
+abbreviation generators : set A := { a | f.to_fun a < 2 + (2⁻¹ * C) } ∪ (represents A f.m)
+
+lemma subset_generators_left : { a | f.to_fun a < 2 + (2⁻¹ * C) } ⊆ generators f :=
+set.subset_union_left _ _
+
+lemma subset_generators_right : ↑(represents A f.m) ⊆ generators f :=
+set.subset_union_right _ _
+
+lemma finite_generators : (generators f).finite :=
+begin
+  apply set.finite.union,
+  exact f.finite (2 + (2⁻¹ * C)),
+  exact (represents A f.m).finite_to_set,
+end
+
 theorem descent :
   add_subgroup.fg (⊤ : add_subgroup A) :=
 begin
-  sorry
+  rw add_subgroup.fg_iff,
+  use (generators f),
+  refine ⟨_, finite_generators f⟩,
+  rw add_subgroup.eq_top_iff',
+  intro P, rw add_subgroup.mem_closure, intros K hK,
+  obtain ⟨M, hM⟩ := property_next_height_eventually f P,
+  specialize hM M (le_refl _),
+  have eq1 := eq_linear_combination f P M,
+  rw eq1,
+  apply add_subgroup.add_mem,
+  apply add_subgroup.nsmul_mem,
+  suffices : f.to_fun (next f.m^[M.succ] P) < 2 + 2⁻¹ * C,
+  have mem1 := subset_generators_left f this,
+  apply hK, exact mem1, linarith,
+  apply add_subgroup.sum_mem, intros i hi,
+  apply add_subgroup.nsmul_mem, apply hK,
+  apply subset_generators_right, apply property_next_rep,
 end

@@ -311,6 +311,10 @@ begin
 end
 
 variable (𝕜)
+/--
+Every element `a` in a nontrivial finite-dimensional algebra `A`
+over an algebraically closed field `𝕜` has non-empty spectrum. -/
+-- We will use this both to show eigenvalues exist, and to prove Schur's lemma.
 lemma nonempty_of_is_alg_closed_of_finite_dimensional [is_alg_closed 𝕜]
   [nontrivial A] [I : finite_dimensional 𝕜 A] (a : A) :
   ∃ k : 𝕜, k ∈ σ a :=

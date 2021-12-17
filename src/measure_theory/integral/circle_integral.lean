@@ -1,5 +1,6 @@
 import measure_theory.integral.interval_integral
 import analysis.special_functions.non_integrable
+import analysis.analytic.basic
 
 /-!
 -/
@@ -32,7 +33,7 @@ by simpa only [_root_.abs_of_nonneg hR] using circle_map_mem_sphere' c R θ
 @[simp] lemma range_circle_map (c : ℂ) (R : ℝ) : range (circle_map c R) = sphere c (|R|) :=
 calc range (circle_map c R) = c +ᵥ R • range (λ θ : ℝ, exp (θ * I)) :
   by simp only [← image_vadd, ← image_smul, ← range_comp, vadd_eq_add, circle_map, (∘), real_smul]
-... = sphere c (|R|) : by simp [smul_sphere _ (0 : ℂ) zero_le_one, real.norm_eq_abs]
+... = sphere c (|R|) : by simp [smul_sphere R (0 : ℂ) zero_le_one, real.norm_eq_abs]
 
 @[simp] lemma image_circle_map_Ioc (c : ℂ) (R : ℝ) :
   circle_map c R '' Ioc 0 (2 * π) = sphere c (|R|) :=
@@ -60,8 +61,11 @@ lemma differentiable_circle_map (c : ℂ) (R : ℝ) :
   differentiable ℝ (circle_map c R) :=
 λ θ, (has_deriv_at_circle_map c R θ).differentiable_at
 
-lemma continuous_circle_map (c : ℂ) (R : ℝ) : continuous (circle_map c R) :=
+@[continuity] lemma continuous_circle_map (c : ℂ) (R : ℝ) : continuous (circle_map c R) :=
 (differentiable_circle_map c R).continuous
+
+@[measurability] lemma measurable_circle_map (c : ℂ) (R : ℝ) : measurable (circle_map c R) :=
+(continuous_circle_map c R).measurable
 
 @[simp] lemma deriv_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
   deriv (circle_map c R) θ = circle_map 0 R θ * I :=
@@ -209,6 +213,10 @@ by simp only [circle_integral, ← smul_comm a, interval_integral.integral_smul]
   ∮ z in C(c, R), (f z • a) = (∮ z in C(c, R), f z) • a :=
 by simp only [circle_integral, interval_integral.integral_smul_const, ← smul_assoc]
 
+@[simp] lemma integral_const_mul (a : ℂ) (f : ℂ → ℂ) (c : ℂ) (R : ℝ) :
+  ∮ z in C(c, R), a * f z = a * ∮ z in C(c, R), f z :=
+integral_smul a f c R
+
 @[simp] lemma integral_sub_center_inv (c : ℂ) {R : ℝ} (hR : R ≠ 0) :
   ∮ z in C(c, R), (z - c)⁻¹ = 2 * π * I :=
 by simp [circle_integral, ← div_eq_mul_inv, mul_div_cancel_left _ (circle_map_ne_center hR)]
@@ -232,7 +240,7 @@ end
 lemma integral_eq_zero_of_has_deriv_within_at {f f' : ℂ → E} {c : ℂ} {R : ℝ} (hR : 0 ≤ R)
   (h : ∀ z ∈ sphere c R, has_deriv_within_at f (f' z) (sphere c R) z) :
   ∮ z in C(c, R), f' z = 0 :=
-integral_eq_zero_of_has_deriv_within_at' $ by simpa only [_root_.abs_of_nonneg hR] using h
+integral_eq_zero_of_has_deriv_within_at' $ (_root_.abs_of_nonneg hR).symm.subst h
 
 /-- If  `n ≠ -1` is an integer number, then the integral of `(z - w) ^ n` over the circle equals
 zero. -/
@@ -274,6 +282,127 @@ begin
   { push_neg at H,
     refine integral_eq_zero_of_has_deriv_within_at' (λ z hz, (hd z _).has_deriv_within_at),
     exact (ne_or_eq z w).imp_right (λ h, H $ h ▸ hz) }
+end
+
+end circle_integral
+
+def cauchy_power_series (f : ℂ → E) (c : ℂ) (R : ℝ) :
+  formal_multilinear_series ℂ ℂ E :=
+λ n, continuous_multilinear_map.mk_pi_field ℂ _ $
+  (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c)⁻¹ ^ n • (z - c)⁻¹ • f z
+
+lemma cauchy_power_series_apply (f : ℂ → E) (c : ℂ) (R : ℝ) (n : ℕ) (w : ℂ) :
+  cauchy_power_series f c R n (λ _, w) =
+    (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (w / (z - c)) ^ n • (z - c)⁻¹ • f z :=
+by simp only [cauchy_power_series, continuous_multilinear_map.mk_pi_field_apply, fin.prod_const,
+  div_eq_mul_inv, mul_pow, mul_smul, circle_integral.integral_smul, ← smul_comm (w ^ n)]
+
+lemma norm_cauchy_power_series_le (f : ℂ → E) (c : ℂ) (R : ℝ) (n : ℕ) :
+  ∥cauchy_power_series f c R n∥ ≤
+    (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ∥f (circle_map c R θ)∥) * (|R|⁻¹) ^ n :=
+calc ∥cauchy_power_series f c R n∥
+    = (2 * π)⁻¹ * ∥∮ z in C(c, R), (z - c)⁻¹ ^ n • (z - c)⁻¹ • f z∥ :
+  by simp [cauchy_power_series, norm_smul, real.pi_pos.le]
+... ≤ (2 * π)⁻¹ * ∫ θ in 0..2*π, ∥deriv (circle_map c R) θ • (circle_map c R θ - c)⁻¹ ^ n •
+  (circle_map c R θ - c)⁻¹ • f (circle_map c R θ)∥ :
+  mul_le_mul_of_nonneg_left (interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le)
+    (by simp [real.pi_pos.le])
+... = (2 * π)⁻¹ * (|R|⁻¹ ^ n * (|R| * (|R|⁻¹ * ∫ (x : ℝ) in 0..2 * π, ∥f (circle_map c R x)∥))) :
+  by simp [norm_smul, mul_left_comm (|R|)]
+... ≤ (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ∥f (circle_map c R θ)∥) * |R|⁻¹ ^ n :
+  begin
+    rcases eq_or_ne R 0 with rfl|hR,
+    { cases n; simp [real.two_pi_pos] },
+    { rw [mul_inv_cancel_left₀, mul_assoc, mul_comm (|R|⁻¹ ^ n)],
+      rwa [ne.def, _root_.abs_eq_zero] }
+  end
+
+lemma le_radius_cauchy_power_series (f : ℂ → E) (c : ℂ) (R : ℝ≥0) :
+  ↑R ≤ (cauchy_power_series f c R).radius :=
+begin
+  refine (cauchy_power_series f c R).le_radius_of_bound
+    ((2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ∥f (circle_map c R θ)∥)) (λ n, _),
+  refine (mul_le_mul_of_nonneg_right (norm_cauchy_power_series_le _ _ _ _)
+    (pow_nonneg R.coe_nonneg _)).trans _,
+  rw [_root_.abs_of_nonneg R.coe_nonneg],
+  cases eq_or_ne (R ^ n : ℝ) 0 with hR hR,
+  { rw [hR, mul_zero],
+    exact mul_nonneg (inv_nonneg.2 real.two_pi_pos.le)
+      (interval_integral.integral_nonneg real.two_pi_pos.le (λ _ _, norm_nonneg _)) },
+  { rw [inv_pow₀, inv_mul_cancel_right₀ hR] }
+end
+
+lemma has_sum_two_pi_I_cauchy_power_series_integral {f : ℂ → E} {c : ℂ} {R : ℝ} {w : ℂ}
+  (hf : circle_integrable f c R) (hw : abs w < R) :
+  has_sum (λ n : ℕ, ∮ z in C(c, R), (w / (z - c)) ^ n • (z - c)⁻¹ • f z)
+    (∮ z in C(c, R), (z - (c + w))⁻¹ • f z) :=
+begin
+  have hR : 0 < R := (abs_nonneg w).trans_lt hw,
+  have hwR : abs w / R ∈ Ico (0 : ℝ) 1,
+    from ⟨div_nonneg (abs_nonneg w) hR.le, (div_lt_one hR).2 hw⟩,
+  refine interval_integral.has_sum_integral_of_dominated_convergence
+    (λ n θ, ∥f (circle_map c R θ)∥ * (abs w / R) ^ n) (λ n, _) (λ n, _) _ _ _,
+  { simp only [deriv_circle_map], have := hf.def.1, measurability },
+  { simp [norm_smul, abs_of_pos hR, mul_left_comm R, mul_inv_cancel_left₀ hR.ne', mul_comm (∥_∥)] },
+  { exact eventually_of_forall (λ _ _, (summable_geometric_of_lt_1 hwR.1 hwR.2).mul_left _) },
+  { simpa only [tsum_mul_left, tsum_geometric_of_lt_1 hwR.1 hwR.2]
+      using hf.norm.mul_continuous_on continuous_on_const },
+  { refine eventually_of_forall (λ θ hθ, has_sum.const_smul _),
+    simp only [smul_smul],
+    refine has_sum.smul_const _,
+    have : ∥w / (circle_map c R θ - c)∥ < 1, by simpa [abs_of_pos hR] using hwR.2,
+    convert (has_sum_geometric_of_norm_lt_1 this).mul_right _,
+    simp [← sub_sub, ← mul_inv₀, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
+end
+
+lemma has_sum_cauchy_power_series_integral {f : ℂ → E} {c : ℂ} {R : ℝ} {w : ℂ}
+  (hf : circle_integrable f c R) (hw : abs w < R) :
+  has_sum (λ n, cauchy_power_series f c R n (λ _, w))
+    ((2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - (c + w))⁻¹ • f z) :=
+begin
+  simp only [cauchy_power_series_apply],
+  exact (has_sum_two_pi_I_cauchy_power_series_integral hf hw).const_smul
+end
+
+lemma sum_cauchy_power_series_eq_integral {f : ℂ → E} {c : ℂ} {R : ℝ} {w : ℂ}
+  (hf : circle_integrable f c R) (hw : abs w < R) :
+  (cauchy_power_series f c R).sum w =
+    ((2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - (c + w))⁻¹ • f z) :=
+(has_sum_cauchy_power_series_integral hf hw).tsum_eq
+
+lemma has_fpower_series_on_cauchy_integral {f : ℂ → E} {c : ℂ} {R : ℝ≥0}
+  (hf : circle_integrable f c R) (hR : 0 < R) :
+  has_fpower_series_on_ball
+    (λ w, (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - w)⁻¹ • f z)
+    (cauchy_power_series f c R) c R :=
+{ r_le := le_radius_cauchy_power_series _ _ _,
+  r_pos := ennreal.coe_pos.2 hR,
+  has_sum := λ y hy,
+    begin
+      refine has_sum_cauchy_power_series_integral hf _,
+      rw [← norm_eq_abs, ← coe_nnnorm, nnreal.coe_lt_coe, ← ennreal.coe_lt_coe],
+      exact mem_emetric_ball_zero_iff.1 hy
+    end }
+
+namespace circle_integral
+
+lemma integral_sub_inv_of_mem_ball {c w : ℂ} {R : ℝ} (hw : w ∈ ball c R) :
+  ∮ z in C(c, R), (z - w)⁻¹ = 2 * π * I :=
+begin
+  have hR : 0 < R := dist_nonneg.trans_lt hw,
+  suffices H : has_sum (λ n : ℕ, ∮ z in C(c, R), ((w - c) / (z - c)) ^ n * (z - c)⁻¹) (2 * π * I),
+  { have A : circle_integrable (λ _, (1 : ℂ)) c R, from continuous_on_const.circle_integrable',
+    refine (H.unique _).symm,
+    simpa only [smul_eq_mul, mul_one, add_sub_cancel'_right]
+      using has_sum_two_pi_I_cauchy_power_series_integral A hw },
+  have H : ∀ n : ℕ, n ≠ 0 → ∮ z in C(c, R), (z - c) ^ (-n - 1 : ℤ) = 0,
+  { refine λ n hn, integral_sub_zpow_of_ne _ _ _ _, simpa },
+  have : ∮ z in C(c, R), ((w - c) / (z - c)) ^ 0 * (z - c)⁻¹ = 2 * π * I, by simp [hR.ne'],
+  refine this ▸ has_sum_single _ (λ n hn, _),
+  simp only [div_eq_mul_inv, mul_pow, integral_const_mul, mul_assoc],
+  rw [(integral_congr hR.le (λ z hz, _)).trans (H n hn), mul_zero],
+  rw [← pow_succ', ← zpow_coe_nat, inv_zpow₀, ← zpow_neg₀, int.coe_nat_succ, neg_add,
+    sub_eq_add_neg _ (1 : ℤ)]
 end
 
 end circle_integral

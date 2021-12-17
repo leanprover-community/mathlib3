@@ -230,194 +230,62 @@ begin
       (λ z hz, (differentiable_within_at_id.sub_const _).smul (hd z hz))
   ... = 0 : by rw [sub_self, zero_smul, smul_zero]
 end
-
-def cauchy_power_series (f : ℂ → E) (c : ℂ) (R : ℝ) :
-  formal_multilinear_series ℂ ℂ E :=
-λ n, continuous_multilinear_map.mk_pi_field ℂ _ $
-  (2 * π * I : ℂ) • ∮ z in C(c, R), (z - c) ^ (n - 1 : ℤ) • f z
-
-lemma cauchy_power_series_apply (f : ℂ → E) (c : ℂ) (R : ℝ) (n : ℕ) (w : ℂ) :
-  cauchy_power_series f c R n (λ _, w) =
-    (2 * π * I : ℂ) • ∮ z in C(c, R), (w / (z - c)) ^ n • f z :=
-by simp only [cauchy_power_series, continuous_multilinear_map.mk_pi_field_apply, fin.prod_const]
-
-lemma norm_cauchy_power_series_le (f : ℝ → E) (R : ℝ) (n : ℕ) :
-  ∥cauchy_power_series f R n∥ ≤ (∫ θ : ℝ in 0..2*π, ∥f θ∥) * (|R|⁻¹) ^ n :=
-begin
-  simp only [cauchy_power_series, continuous_multilinear_map.norm_mk_pi_field],
-  refine (interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le).trans_eq _,
-  conv_rhs { rw [mul_comm, ← interval_integral.integral_const_mul] },
-  simp only [norm_smul, abs_of_real, mul_one, abs_mul, abs_exp_of_real_mul_I, abs_inv,
-    abs_pow, norm_eq_abs]
-end
-
-lemma le_radius_cauchy_power_series (f : ℝ → E) (R : ℝ≥0) :
-  ↑R ≤ (cauchy_power_series f R).radius :=
-begin
-  refine (cauchy_power_series f R).le_radius_of_bound (∫ θ : ℝ in 0..2*π, ∥f θ∥) (λ n, _),
-  refine (mul_le_mul_of_nonneg_right (norm_cauchy_power_series_le _ _ _)
-    (pow_nonneg R.coe_nonneg _)).trans _,
-  rw [_root_.abs_of_nonneg R.coe_nonneg],
-  cases eq_or_ne (R ^ n : ℝ) 0 with hR hR,
-  { rw [hR, mul_zero],
-    exact interval_integral.integral_nonneg real.two_pi_pos.le (λ _ _, norm_nonneg _) },
-  { rw [inv_pow₀, inv_mul_cancel_right₀ hR] }
-end
-
-lemma has_sum_cauchy_power_series_integral {f : ℝ → E} {R : ℝ} {z : ℂ}
-  (hf : interval_integrable f volume 0 (2 * π)) (hR : abs z < R) :
-  has_sum (λ n, cauchy_power_series f R n (λ _, z))
-    (∫ θ : ℝ in 0..2*π, (↑R * exp (θ * I) / (R * exp (θ * I) - z)) • f θ) :=
-begin
-  have hR0 : 0 < R := (abs_nonneg z).trans_lt hR,
-  have hzR : abs z / R ∈ Ico (0 : ℝ) 1,
-    from ⟨div_nonneg (abs_nonneg z) hR0.le, (div_lt_one hR0).2 hR⟩,
-  simp only [cauchy_power_series_apply],
-  refine interval_integral.has_sum_integral_of_dominated_convergence
-    (λ n t, ∥f t∥ * (abs z / R) ^ n) (λ n, _) (λ n, _) _ _ _,
-  { exact ((((measurable_of_real.mul_const _).cexp.const_mul _).const_div _).pow_const
-        _).ae_measurable.smul hf.def.ae_measurable },
-  { simp [norm_smul, _root_.abs_of_nonneg hR0.le, mul_comm (∥f _∥)] },
-  { exact eventually_of_forall (λ t ht, (summable_geometric_of_lt_1 hzR.1 hzR.2).mul_left _) },
-  { simp only [tsum_mul_left, tsum_geometric_of_lt_1 hzR.1 hzR.2,
-      hf.norm.mul_continuous_on continuous_on_const] },
-  { refine eventually_of_forall (λ θ hθ, _),
-    have : ∥z / (R * exp (θ * I))∥ < 1, by simpa [_root_.abs_of_nonneg hR0.le] using hzR.2,
-    convert (has_sum_geometric_of_norm_lt_1 this).smul_const; [skip, apply_instance],
-    have : ↑R * exp (θ * I) ≠ 0 := mul_ne_zero (of_real_ne_zero.2 hR0.ne') (exp_ne_zero _),
-    field_simp [this] }
-end
-
-lemma sum_cauchy_power_series_eq_integral {f : ℝ → E} {R : ℝ} {z : ℂ}
-  (hf : interval_integrable f volume 0 (2 * π)) (hR : abs z < R) :
-  (cauchy_power_series f R).sum z =
-    ∫ θ : ℝ in 0..2*π, (↑R * exp (θ * I) / (R * exp (θ * I) - z)) • f θ :=
-(has_sum_cauchy_power_series_integral hf hR).tsum_eq
-
-lemma has_fpower_series_on_cauchy_integral {f : ℝ → E} {R : ℝ≥0}
-  (hf : interval_integrable f volume 0 (2 * π)) (hR : 0 < R) :
-  has_fpower_series_on_ball
-    (λ z, ∫ θ : ℝ in 0..2*π, (↑R * exp (θ * I) / (R * exp (θ * I) - z)) • f θ)
-    (cauchy_power_series f R) 0 R :=
-{ r_le := le_radius_cauchy_power_series _ _,
-  r_pos := ennreal.coe_pos.2 hR,
-  has_sum := λ y hy,
-    begin
-      rw zero_add,
-      refine has_sum_cauchy_power_series_integral hf _,
-      rw [← norm_eq_abs, ← coe_nnnorm, nnreal.coe_lt_coe, ← ennreal.coe_lt_coe],
-      exact mem_emetric_ball_zero_iff.1 hy
-    end }
-
-lemma integral_circle_div_sub_of_abs_lt {R : ℝ} {w : ℂ} (hw : abs w < R) :
-  ∫ θ : ℝ in 0..2 * π, (↑R * exp (θ * I) * I / (R * exp (θ * I) - w)) = 2 • π • I :=
-begin
-  have A : interval_integrable (λ _, I) volume (0 : ℝ) (2 * π), from interval_integrable_const,
-  have B := has_sum_cauchy_power_series_integral A hw,
-  simp only [cauchy_power_series_apply, smul_eq_mul, ← mul_div_right_comm] at B,
-  refine B.unique _, clear A B,
-  have : ∫ θ : ℝ in 0..2*π, (w / (R * exp (θ * I))) ^ 0 * I = 2 • π • I, by simp [mul_assoc],
-  refine this ▸ has_sum_single _ (λ n hn, _),
-  suffices : ∫ θ : ℝ in 0..2 * π, (↑R * exp (↑θ * I))⁻¹ ^ n * I = 0,
-    by simp only [div_eq_mul_inv, mul_pow w, interval_integral.integral_const_mul, this,
-      mul_assoc, mul_zero],
-  replace hn : (-n : ℤ) - 1 ≠ -1, by simpa [sub_eq_iff_eq_add],
-  have hR0 : 0 < R := (abs_nonneg w).trans_lt hw,
-  have hR0' : abs 0 < R, by rwa abs_zero,
-  have h0 : ∀ θ : ℝ, ↑R * exp (θ * I) ≠ 0,
-    from λ θ, mul_ne_zero (of_real_ne_zero.2 hR0.ne') (exp_ne_zero _),
-  have := integral_circle_zpow_sub_of_abs_lt hR0' hn,
-  simp only [← neg_add', zpow_neg₀, sub_zero, ← int.coe_nat_succ, zpow_coe_nat, ← inv_pow₀,
-    pow_succ, ← div_eq_mul_inv] at this,
-  simpa only [mul_div_right_comm _ I, div_mul_right _ (h0 _), one_div, inv_pow₀] using this
-end
     
-lemma integral_circle_div_sub_of_differentiable_on₀ {R : ℝ} {w : ℂ} (hw : abs w < R)
-  {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball 0 R)) :
-  ∫ (θ : ℝ) in 0..2 * π, ((R * exp (θ * I) * I) / (R * exp (θ * I) - w) : ℂ) • f (R * exp (θ * I)) =
-    2 • π • I • f w :=
+lemma circle_integral_sub_inv_smul_of_differentiable_on {R : ℝ} {c w : ℂ} (hw : w ∈ ball c R)
+  {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball c R)) :
+  ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
 begin
+  have hR : 0 < R := dist_nonneg.trans_lt hw,
   set F : ℂ → E := update (λ z, (z - w)⁻¹ • (f z - f w)) w (deriv f w),
   set s : set ℂ := {w},
-  have hnhds : closed_ball (0 : ℂ) R ∈ 𝓝 w,
-    from _root_.mem_nhds_iff.2 ⟨ball 0 R, ball_subset_closed_ball, is_open_ball, by simpa⟩,
-  have hc : ∀ z ∈ s, continuous_within_at F (closed_ball 0 R) z,
+  have hnhds : closed_ball c R ∈ 𝓝 w, from closed_ball_mem_nhds_of_mem hw,
+  have hc : ∀ z ∈ s, continuous_within_at F (closed_ball c R) z,
   { rintro z (rfl|_),
     have := has_deriv_at_iff_tendsto_slope.1 (hd.has_deriv_at hnhds),
-    rw [← continuous_within_at_diff_self, continuous_within_at],
-    simp only [F, update_same],
-    refine (this.congr' _).mono_left (nhds_within_mono _ (inter_subset_right _ _)),
-    filter_upwards [self_mem_nhds_within] (λ z hz, (update_noteq hz _ _).symm) },
-  have hdF : ∀ z ∈ closed_ball (0 : ℂ) R \ s, differentiable_within_at ℂ F (closed_ball 0 R) z,
+    rw continuous_within_at_update_same,
+    exact this.mono_left (nhds_within_mono _ (inter_subset_right _ _)) },
+  have hdF : ∀ z ∈ closed_ball (c : ℂ) R \ s, differentiable_within_at ℂ F (closed_ball c R) z,
   { rintro z ⟨hzR, hzw : z ≠ w⟩,
     refine (((differentiable_within_at_id.sub_const w).inv $ sub_ne_zero.2 hzw).smul
       ((hd z hzR).sub_const (f w))).congr_of_eventually_eq _ _,
     { filter_upwards [mem_nhds_within_of_mem_nhds (is_open_ne.mem_nhds hzw)],
       exact λ x hx, update_noteq hx _ _ },
     { exact update_noteq hzw _ _ } },
-  have HI := integral_circle_eq_zero_of_differentiable_on_off_countable ((abs_nonneg w).trans hw.le)
+  have HI := circle_integral_eq_zero_of_differentiable_on_off_countable hR.le
     (countable_singleton w) hc hdF,
-  have hF : ∀ θ : ℝ, F (↑R * exp (θ * I)) = (↑R * exp (θ * I) - w)⁻¹ • (f (R * exp (θ * I)) - f w),
-  { refine λ θ, update_noteq _ _ _,
-    rintro rfl, simpa [abs_exp, (le_abs_self R).not_lt] using hw },
-  simp only [hF, smul_sub, ← div_eq_mul_inv, smul_smul] at HI ⊢,
-  have hc₁ : continuous (λ θ, R * exp (θ * I) : ℝ → ℂ),
-    from continuous_const.mul (continuous_of_real.mul continuous_const).cexp,
-  have hR0 : 0 < R := (abs_nonneg w).trans_lt hw,
-  have hne : ∀ θ : ℝ, ↑R * exp (θ * I) - w ≠ 0,
-  { refine λ θ, sub_ne_zero.2 _, rintro rfl, simpa [hR0.le] using hw.ne },
-  have hc₂ : continuous (λ θ, R * exp (θ * I) * I / (R * exp (θ * I) - w) : ℝ → ℂ),
-    from (hc₁.mul continuous_const).div (hc₁.sub continuous_const) hne,
-  have hfc : continuous (λ θ, f (R * exp (θ * I)) : ℝ → E),
-  { refine hd.continuous_on.comp_continuous hc₁ (λ θ, _),
-    simp [_root_.abs_of_nonneg hR0.le] },
-  rw [interval_integral.integral_sub, sub_eq_zero] at HI,
-  { rw [HI, interval_integral.integral_smul_const],
-    simp_rw [integral_circle_div_sub_of_abs_lt hw, smul_assoc] },
-  exacts [(hc₂.smul hfc).interval_integrable _ _,
-    (hc₂.smul continuous_const).interval_integrable _ _]
+  have hne : ∀ z ∈ sphere c R, z ≠ w, from λ z hz, ne_of_mem_of_not_mem hz (ne_of_lt hw),
+  have hFeq : eq_on F (λ z, (z - w)⁻¹ • f z - (z - w)⁻¹ • f w) (sphere c R),
+  { intros z hz,
+    calc F z = (z - w)⁻¹ • (f z - f w) : update_noteq (hne z hz) _ _
+    ... = (z - w)⁻¹ • f z - (z - w)⁻¹ • f w : smul_sub _ _ _ },
+  have hc : continuous_on (λ z, (z - w)⁻¹) (sphere c R),
+    from (continuous_on_id.sub continuous_on_const).inv₀ (λ z hz, sub_ne_zero.2 $ hne z hz),
+  rw [← circle_integral.integral_sub_inv_of_mem_ball hw, ← circle_integral.integral_smul_const,
+    ← sub_eq_zero, ← circle_integral.integral_sub, ← circle_integral.integral_congr hR.le hFeq, HI],
+  exacts [(hc.smul (hd.continuous_on.mono sphere_subset_closed_ball)).circle_integrable hR.le,
+    (hc.smul continuous_on_const).circle_integrable hR.le]
 end
 
-lemma integral_circle_div_sub_of_differentiable_on {R : ℝ} {z w : ℂ} (hw : w ∈ ball z R)
-  {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball z R)) :
-  ∫ (θ : ℝ) in 0..2 * π,
-    ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w) : ℂ) • f (z + R * exp (θ * I)) =
-    2 • π • I • f w :=
-begin
-  rw [mem_ball, dist_eq] at hw,
-  replace hd : differentiable_on ℂ (λ ζ, f (z + ζ)) (closed_ball 0 R),
-  { refine hd.comp (differentiable_on_id.const_add _) _,
-    rw [preimage_add_closed_ball, sub_self] },
-  simpa only [add_sub_cancel'_right, sub_sub_assoc_swap, add_comm _ z]
-    using integral_circle_div_sub_of_differentiable_on₀ hw hd
-end
+lemma circle_integral_div_sub_of_differentiable_on {R : ℝ} {c w : ℂ} (hw : w ∈ ball c R)
+  {f : ℂ → ℂ} (hd : differentiable_on ℂ f (closed_ball c R)) :
+  ∮ z in C(c, R), f z / (z - w) = 2 * π * I * f w :=
+by simpa only [smul_eq_mul, div_eq_inv_mul]
+  using circle_integral_sub_inv_smul_of_differentiable_on hw hd
 
-protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0} {z : ℂ} {f : ℂ → E}
-  (hd : differentiable_on ℂ f (closed_ball z R)) (hR : 0 < R) :
-  has_fpower_series_on_ball f
-    (cauchy_power_series (λ θ, (2 * π)⁻¹ • f (z + R * exp (θ * I))) R) z R :=
-{ r_le := le_radius_cauchy_power_series _ _,
+protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
+  (hd : differentiable_on ℂ f (closed_ball c R)) (hR : 0 < R) :
+  has_fpower_series_on_ball f (cauchy_power_series f c R) c R :=
+{ r_le := le_radius_cauchy_power_series _ _ _,
   r_pos := ennreal.coe_pos.2 hR,
   has_sum := λ w hw,
     begin
-      rw [mem_emetric_ball_zero_iff, ennreal.coe_lt_coe, ← nnreal.coe_lt_coe, coe_nnnorm,
-        norm_eq_abs] at hw,
-      replace hd : differentiable_on ℂ (λ ζ, f (z + ζ)) (closed_ball 0 R),
-      { refine hd.comp (differentiable_on_id.const_add _) _,
-        rw [preimage_add_closed_ball, sub_self] },
-      have hfi : interval_integrable (λ θ : ℝ, (2 * π)⁻¹ • f (z + R * exp (θ * I)))
-        volume 0 (2 * π),
-      { refine (continuous_const.smul $
-          hd.continuous_on.comp_continuous _ $ λ θ, _).interval_integrable _ _,
-        { exact continuous_const.mul (continuous_of_real.mul continuous_const).cexp },
-        { simp } },
-      convert ← has_sum_cauchy_power_series_integral hfi hw using 1,
-      convert integral_circle_div_sub_of_differentiable_on₀ hw
-        (hd.const_smul (2 * π * I : ℂ)⁻¹) using 2,
-      { simp_rw [mul_div_right_comm _ I, ← coe_smul, smul_smul, of_real_inv, of_real_mul, coe_coe,
-          of_real_bit0, of_real_one, mul_inv_rev₀, mul_assoc, mul_inv_cancel_left₀ I_ne_zero] },
-      { simp_rw [← coe_smul, two_smul, ← @two_smul ℂ E, smul_smul, ← mul_assoc],
-        rw [mul_inv_cancel, one_smul], simp [I_ne_zero, real.pi_ne_zero] }
+      have hw' : c + w ∈ ball c R,
+        by simpa only [add_mem_ball_iff_norm, ← coe_nnnorm, mem_emetric_ball_zero_iff,
+          nnreal.coe_lt_coe, ennreal.coe_lt_coe] using hw,
+      convert (has_fpower_series_on_cauchy_integral _ hR).has_sum hw,
+      { rw [circle_integral_sub_inv_smul_of_differentiable_on hw' hd, inv_smul_smul₀],
+        simp [real.pi_ne_zero, I_ne_zero] },
+      { exact (hd.mono sphere_subset_closed_ball).continuous_on.circle_integrable R.2 }
     end }
 
 protected lemma _root_.differentiable_on.analytic_at {s : set ℂ} {f : ℂ → E} {z : ℂ}

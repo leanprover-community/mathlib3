@@ -505,14 +505,11 @@ instance : preorder (associates α) :=
 protected def mk_monoid_hom : α →* (associates α) := ⟨associates.mk, mk_one, λ x y, mk_mul_mk⟩
 
 /-- `associates.mk` as a `monoid_hom` if `α` has a unique unit. -/
-protected def mk_injective [unique (units α)] : function.bijective (@associates.mk α _) :=
+lemma mk_injective [unique (units α)] : function.injective (@associates.mk α _) :=
 begin
-  rw function.bijective,
-  split,
-  { intros a b h,
-    rw [associates.mk_eq_mk_iff_associated, associated_iff_eq] at h,
-    exact h },
-  { exact associates.mk_surjective },
+  intros a b h,
+  rw [associates.mk_eq_mk_iff_associated, associated_iff_eq] at h,
+  exact h
 end
 
 @[simp] lemma mk_monoid_hom_apply (a : α) : associates.mk_monoid_hom a = associates.mk a := rfl

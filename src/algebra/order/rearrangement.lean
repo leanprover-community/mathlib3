@@ -3,34 +3,27 @@ Copyright (c) 2021 Mantas Bakšys. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
-import tactic.basic
-import tactic.abel
+import data.fintype.card
 import group_theory.perm.support
 import group_theory.perm.sign
-import data.fintype.card
+import tactic.abel
 
 /-!
-This file introduces a definition `covary` for two functions that vary together. Then, a proof is
-given that for all pairs of functions that satisfy `covary`, the **Rearrangement Inequality** holds.
+This file introduces a definition `monovary` for two functions that vary together. Then, a proof is
+given that for all pairs of functions that satisfy `monovary`, the **Rearrangement Inequality** holds.
 Later on, the case for `monotone` pairs of functions over a `linear_order` is deduced.
 
 Note : I'm currently very unsure if this theorem should have it's own file, please feel free to
 comment on this
 -/
 
-open finset equiv equiv.perm
-open_locale big_operators
 
-/--  Statement claiming that two functions vary together -/
-def covary {ι α β : Type*} [preorder α] [preorder β] (f : ι → α) (g : ι → β) : Prop :=
-  (∀ ⦃i j⦄, f i < f j → g i ≤ g j) ∧ ∀ ⦃i j⦄, g i < g j → f i ≤ f j
+variables {ι α β γ : Type*}
 
-/-- Statement claiming that two functions vary together but in opposite directions -/
-def cocovary {ι α β : Type*} [preorder α] [preorder β] (f : ι → α) (g : ι → β) : Prop :=
-  (∀ ⦃i j⦄, f j < f i → g i ≤ g j) ∧ ∀ ⦃i j⦄, g j < g i → f i ≤ f j
+namespace finset
 
-/-- Induction principle for `finset` based on the ordering induced by a function -/
-lemma finset.induction_on_max_value {ι α : Type*} [linear_order α] [decidable_eq ι] (f : ι → α)
+/-- Induction principle for `finset` based on the ordering induced by a function. -/
+lemma induction_on_max_value [linear_order α] [decidable_eq ι] (f : ι → α)
   {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x ≤ f a) → p s → p (insert a s)) : p s :=
 begin
@@ -42,19 +35,13 @@ begin
     simp only [mem_image, exists_prop] at H,
     rcases H with ⟨a, has, hfa⟩,
     rw ← insert_erase has,
-    apply step,
-    { exact not_mem_erase a s },
-    { intros x hx,
-      rw hfa,
-      apply le_max',
-      apply mem_image_of_mem,
-      exact (mem_of_mem_erase hx) },
-    { apply ihs,
-      exact erase_ssubset has }}
+    refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
+    rw hfa,
+    exact le_max' _ _ (mem_image_of_mem _ $  mem_of_mem_erase hx) }
 end
 
 /-- Induction principle for `finset` based on an ordering induced by a pair of functions -/
-lemma finset.induction_on_max_value' {ι α : Type*} [decidable_eq ι] [linear_order α] (f g : ι → α)
+lemma finset.induction_on_max' [decidable_eq ι] [linear_order α] (f g : ι → α)
   {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x < f a ∨ (f x = f a ∧ g x ≤ g a)) → p s → p (insert a s)) :
   p s :=
@@ -63,53 +50,111 @@ begin
   rcases (s.image f).eq_empty_or_nonempty with hne|hne,
   { simp only [image_eq_empty] at hne,
     simp only [hne, h0] },
-  { set t : finset ι := s.filter (λ x, f x = (s.image f).max' hne) with ht,
-    have htne : (t.image g).nonempty,
-    { simp only [nonempty.image_iff],
-      have : (s.image f).max' hne ∈ (s.image f) := by simp only [max'_mem],
-      simp only [mem_image, exists_prop] at this,
-      rcases this with ⟨a, ha, hfa⟩,
-      use a,
-      simp only [mem_filter],
-      exact ⟨ha, hfa⟩ },
-    have htmax : (t.image g).max' htne ∈ (t.image g) := by simp only [max'_mem],
-    simp only [mem_image, exists_prop, mem_filter] at htmax,
-    rcases htmax with ⟨a, ⟨has, hat⟩, hag⟩,
-    rw ← insert_erase has,
-    apply step,
-    { exact not_mem_erase a s },
-    { intros x hx,
-      rw or_iff_not_imp_left,
-      intro hfxa,
-      simp only [not_lt] at hfxa,
-      replace hfxa := eq_or_lt_of_le hfxa,
-      cases hfxa,
-      { rw hag,
-        refine ⟨hfxa.symm, _⟩,
-        apply le_max',
-        apply mem_image_of_mem,
-        rw mem_filter,
-        refine ⟨(mem_of_mem_erase hx), _⟩,
-        { rw [← hfxa, hat] }},
-      { exfalso,
-        simp only [← not_le] at hfxa,
-        apply hfxa,
-        simp only [hat],
-        apply le_max',
-        apply mem_image_of_mem,
-        exact mem_of_mem_erase hx }},
-      { apply ihs (s.erase a) _,
-        exact erase_ssubset has }}
+  set t : finset ι := s.filter (λ x, f x = (s.image f).max' hne) with ht,
+  obtain ⟨b, hb, hfb⟩ := mem_image.1 (max'_mem _ hne),
+  have htmax : (t.image g).max' _ ∈ t.image g := max'_mem _
+    (nonempty.image ⟨b, mem_filter.2 ⟨hb, hfb⟩⟩ _),
+  simp only [mem_image, exists_prop, mem_filter] at htmax,
+  rcases htmax with ⟨a, ⟨has, hat⟩, hag⟩,
+  rw ← insert_erase has,
+  refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
+  rw or_iff_not_imp_left,
+  intro hfxa,
+  obtain hfxa | hfxa := (not_lt.1 hfxa).eq_or_lt,
+  { rw hag,
+    refine ⟨hfxa.symm, le_max' _ _ $ mem_image_of_mem _ $ mem_filter.2 ⟨mem_of_mem_erase hx, _⟩⟩,
+    rw [←hfxa, hat] },
+  { simp only [← not_le] at hfxa,
+    refine (hfxa _).elim,
+    simp only [hat],
+    exact le_max' _ _ (mem_image_of_mem _ $ mem_of_mem_erase hx) }
 end
+
+end finset
+
+open finset equiv equiv.perm
+open_locale big_operators
+
+section vary
+variables [preorder α] [preorder β] [preorder γ] {f : ι → α} {g : ι → β} {k : ι → γ}
+
+open function
+
+/--  Statement claiming that two functions vary together -/
+def monovary (f : ι → α) (g : ι → β) : Prop :=
+(∀ ⦃i j⦄, f i < f j → g i ≤ g j) ∧ ∀ ⦃i j⦄, g i < g j → f i ≤ f j
+
+/-- Statement claiming that two functions vary together but in opposite directions -/
+def antivary (f : ι → α) (g : ι → β) : Prop :=
+(∀ ⦃i j⦄, f j < f i → g i ≤ g j) ∧ ∀ ⦃i j⦄, g j < g i → f i ≤ f j
+
+protected lemma monovary.symm (h : monovary f g) : monovary g f := ⟨h.2, h.1⟩
+
+protected lemma antivary.symm (h : antivary f g) : antivary g f := ⟨h.2, h.1⟩
+
+protected lemma monovary_comm : monovary f g ↔ monovary g f := ⟨monovary.symm, monovary.symm⟩
+
+protected lemma antivary_comm : antivary f g ↔ antivary g f := ⟨antivary.symm, antivary.symm⟩
+
+section order_dual
+open order_dual
+
+lemma monovary.dual (h : monovary f g) : monovary (to_dual ∘ f) (to_dual ∘ g) :=
+⟨λ i j hij, h.1 hij, λ i j hij, h.2 hij⟩
+
+lemma monovary.dual_left (h : monovary f g) : antivary (to_dual ∘ f) g :=
+⟨λ i j hij, h.1 hij, λ i j hij, h.2 hij⟩
+
+lemma monovary.dual_right (h : monovary f g) : antivary f (to_dual ∘ g) :=
+⟨λ i j hij, h.1 hij, λ i j hij, h.2 hij⟩
+
+lemma antivary.dual (h : antivary f g) : antivary (to_dual ∘ f) (to_dual ∘ g) :=
+⟨λ i j hij, h.1 hij, λ i j hij, h.2 hij⟩
+
+lemma antivary.dual_left (h : antivary f g) : monovary (to_dual ∘ f) g :=
+⟨λ i j hij, h.1 hij, λ i j hij, h.2 hij⟩
+
+lemma antivary.dual_right (h : antivary f g) : monovary f (to_dual ∘ g) :=
+⟨λ i j hij, h.1 hij, λ i j hij, h.2 hij⟩
+
+end order_dual
+
+lemma monovary_const_right (f : ι → α) (b : β) : monovary f (const ι b) :=
+⟨λ i j _, le_rfl, λ i j h, (h.ne rfl).elim⟩
+
+lemma monovary_const_left (g : ι → β) (a : α) : monovary (const ι a) g :=
+(monovary_const_right _ _).symm
+
+lemma antivary_const_right (f : ι → α) (b : β) : antivary f (const ι b) :=
+(monovary_const_right _ _).dual_right
+
+lemma antivary_const_left (g : ι → β) (a : α) : antivary (const ι a) g :=
+(monovary_const_left _ _).dual_left
+
+variables [linear_order ι]
+
+protected lemma monotone.monovary (hf : monotone f) (hg : monotone g) : monovary f g :=
+⟨λ i j hij, hg (hf.reflect_lt hij).le, λ i j hij, hf (hg.reflect_lt hij).le⟩
+
+protected lemma monotone.antivary (hf : monotone f) (hg : antitone g) : antivary f g :=
+(hf.monovary hg.dual_right).dual_right
+
+protected lemma antitone.monovary (hf : antitone f) (hg : antitone g) : monovary f g :=
+(hf.dual_right.antivary hg).dual_left
+
+protected lemma antitone.antivary (hf : antitone f) (hg : monotone g) : antivary f g :=
+(hf.monovary hg.dual_right).dual_right
+
+end vary
 
 /-- **Rearrangement Inequality** -/
 theorem rearrangement_inequality {ι α : Type*} [decidable_eq ι] [fintype ι] [linear_ordered_ring α]
-  (s : finset ι) (f g : ι → α) (σ : perm ι) (hσ : σ.support ⊆ s) (hfg : covary f g) :
+  (s : finset ι) (f g : ι → α) (σ : perm ι) (hσ : σ.support ⊆ s) (hfg : monovary f g) :
   ∑ i in s, f i * g (σ i) ≤ ∑ i in s, f i * g i :=
 begin
   revert hσ σ,
-  apply finset.induction_on_max_value' g f s,
-  { simp only [le_refl, finset.sum_empty, implies_true_iff], },
+  apply finset.induction_on_max' g f s,
+  { simp only [le_refl, finset.sum_empty, implies_true_iff] },
   { intros a s has hamax hind σ hσ,
     set k := σ a with hk,
     set j := σ⁻¹ a with hj,
@@ -233,24 +278,6 @@ begin
         { refl }}}}
 end
 
-lemma covary_of_monotone {α ι : Type*} [linear_order ι] [linear_order α]
-  {f g : ι → α} (hf : monotone f) (hg : monotone g) : covary f g :=
-begin
-  split,
-  { intros i j hfij,
-    apply hg,
-    contrapose hfij,
-    simp only [not_lt],
-    apply hf,
-    exact le_of_not_ge hfij },
-  { intros i j hgij,
-    apply hf,
-    contrapose hgij,
-    simp only [not_lt],
-    apply hg,
-    exact le_of_not_ge hgij },
-end
-
 /-- **Rearrangement Inequality** : statement over a `finset` of a `linear order` -/
 theorem rearrangement_inequality' {α ι : Type*} [linear_order ι] [linear_ordered_ring α]
   {f g : ι → α} (s : finset ι) (hf : monotone_on f s) (hg : monotone_on g s) (σ : perm ι)
@@ -272,7 +299,7 @@ begin
     { simp only [coe_mem, mem_coe]},
     { simp only [coe_mem, mem_coe]},
     { exact subtype.mono_coe (λ (x : ι), x ∈ s) hab }},
-  have hfg : covary f' g' := covary_of_monotone hf'm hg'm,
+  have hfg : monovary f' g' := hf'm.monovary hg'm,
   have hσsupp: ∀ (y : ι), y ∈ {x | σ x ≠ x} ↔ σ y ∈ {x | σ x ≠ x},
   { intro y,
     simp only [ne.def, set.mem_set_of_eq, apply_eq_iff_eq] },
@@ -283,7 +310,7 @@ begin
       { intro hs,
         apply hσ,
         rw ← hσsupp,
-        exact hy, },
+        exact hy },
       { intro hσx,
         apply hσ hy }},
     { simp only [not_not, set.mem_set_of_eq] at hy,

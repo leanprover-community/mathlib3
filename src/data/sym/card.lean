@@ -82,7 +82,9 @@ end⟩
   rw [multiset.card_cons, x.property],
 end⟩
 
-lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k := begin
+lemma equivalent (n k : ℕ) :
+  sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
+begin
   refine ⟨encode n k, decode n k, _, _⟩,
   { rw function.left_inverse,
     intro x,
@@ -162,13 +164,18 @@ lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ �
       { norm_num at h } } },
 end
 
-lemma multichoose1_rec (n k : ℕ) : multichoose1 n.succ k.succ = multichoose1 n k.succ + multichoose1 n.succ k := begin
+lemma multichoose1_rec (n k : ℕ) :
+  multichoose1 n.succ k.succ = multichoose1 n k.succ + multichoose1 n.succ k :=
+begin
   simp only [multichoose1, fintype.card_sum.symm],
   exact fintype.card_congr (equivalent n k),
 end
 
-lemma multichoose2_rec (n k : ℕ) : multichoose2 n.succ k.succ = multichoose2 n k.succ + multichoose2 n.succ k := begin
-  simp only [multichoose2, nat.add_succ, tsub_zero, nat.succ_sub_succ_eq_sub, nat.succ_add_sub_one, nat.succ_add, nat.choose_succ_succ, nat.add_comm],
+lemma multichoose2_rec (n k : ℕ) :
+  multichoose2 n.succ k.succ = multichoose2 n k.succ + multichoose2 n.succ k :=
+begin
+  simp only [multichoose2, nat.add_succ, tsub_zero, nat.succ_sub_succ_eq_sub, nat.succ_add_sub_one,
+    nat.succ_add, nat.choose_succ_succ, nat.add_comm],
 end
 
 lemma multichoose1_eq_multichoose2 : ∀ (n k : ℕ), multichoose1 n k = multichoose2 n k
@@ -200,7 +207,8 @@ end
   dec_trivial,
 end
 | (n + 1) (k + 1) := begin
-  simp only [multichoose1_rec, multichoose2_rec, multichoose1_eq_multichoose2 n k.succ, multichoose1_eq_multichoose2 n.succ k],
+  simp only [multichoose1_rec, multichoose2_rec, multichoose1_eq_multichoose2 n k.succ,
+    multichoose1_eq_multichoose2 n.succ k],
 end
 
 open finset fintype
@@ -208,7 +216,8 @@ open finset fintype
 namespace sym2
 
 lemma stars_and_bars {α : Type*} [decidable_eq α] [fintype α] (n : ℕ) :
-  fintype.card (sym α n) = (fintype.card α + n - 1).choose n := begin
+  fintype.card (sym α n) = (fintype.card α + n - 1).choose n :=
+begin
   have start := multichoose1_eq_multichoose2 (fintype.card α) n,
   simp only [multichoose1, multichoose2] at start,
   rw start.symm,
@@ -245,10 +254,9 @@ lemma stars_and_bars {α : Type*} [decidable_eq α] [fintype α] (n : ℕ) :
     rw [id, temp] },
   { rw [function.right_inverse, function.left_inverse],
     intro x,
-    simp_rw multiset.map_map,
+    simp_rw [multiset.map_map, function.comp],
     have temp := bundle.right_inv,
     rw function.right_inverse at temp,
-    simp_rw function.comp,
     have unpack : x = ⟨x.val, x.property⟩ := begin
       norm_num,
     end,

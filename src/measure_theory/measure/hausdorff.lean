@@ -668,6 +668,19 @@ begin
   ... ≤ μH[0] s : measure_mono (singleton_subset_iff.2 hx)
 end
 
+lemma hausdorff_measure_le_one_of_subsingleton
+  {s : set X} (hs : s.subsingleton) {d : ℝ} (hd : 0 ≤ d) :
+  μH[d] s ≤ 1 :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|⟨x, hx⟩,
+  { simp only [measure_empty, zero_le] },
+  { rw (subsingleton_iff_singleton hx).1 hs,
+    rcases eq_or_lt_of_le hd with rfl|dpos,
+    { simp only [le_refl, hausdorff_measure_zero_singleton] },
+    { haveI := no_atoms_hausdorff X dpos,
+      simp only [zero_le, measure_singleton] } }
+end
+
 end measure
 
 open_locale measure_theory

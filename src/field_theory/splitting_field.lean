@@ -380,7 +380,7 @@ lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field {p : polynomial K
   (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
 begin
   have hprodmonic : (multiset.map (λ (a : K), X - C a) p.roots).prod.monic,
-  { simp only [prod_multiset_root_eq_finset_root p,
+  { simp only [prod_multiset_root_eq_finset_root,
       monic_prod_of_monic, monic_X_sub_C, monic_pow, forall_true_iff] },
   have hdegree : (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree = p.nat_degree,
   { rw [← hroots, nat_degree_multiset_prod _ (zero_nmem_multiset_map_X_sub_C _ (λ a : K, a))],

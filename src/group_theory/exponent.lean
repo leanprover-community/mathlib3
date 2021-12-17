@@ -161,13 +161,13 @@ begin
 end
 
 @[to_additive]
-lemma exists_max_prime_pow_dvd_exponent {p : ℕ} (hp : p.prime) :
+lemma exists_order_of_eq_pow_padic_val_nat_exponent {p : ℕ} (hp : p.prime) :
   ∃ g : G, order_of g = p ^ padic_val_nat p (exponent G) :=
 begin
   haveI := fact.mk hp,
   rcases (padic_val_nat p $ exponent G).eq_zero_or_pos with h | h,
   { refine ⟨1, by rw [h, pow_zero, order_of_one]⟩ },
-  have he : 0 < exponent G := ne.bot_lt (λ t, by {rw t at h, exact h.ne' (padic_val_nat_zero _) }),
+  have he : 0 < exponent G := ne.bot_lt (λ ht, by {rw ht at h, exact h.ne' (padic_val_nat_zero _)}),
   obtain ⟨g, hg⟩ : ∃ (g : G), g ^ (exponent G / p) ≠ 1,
   { suffices key : ¬ exponent G ∣ exponent G / p,
     { by simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
@@ -256,7 +256,7 @@ begin
   haveI hp := fact.mk (nat.prime_of_mem_factors hp),
   simp only [←padic_val_nat_eq_factors_count p] at hpe,
   set k := padic_val_nat p (order_of t) with hk,
-  obtain ⟨g, hg⟩ := exists_max_prime_pow_dvd_exponent G hp.1,
+  obtain ⟨g, hg⟩ := exists_order_of_eq_pow_padic_val_nat_exponent G hp.1,
   suffices : order_of t < order_of (t ^ (p ^ k) * g),
   { rw ht at this,
     exact this.not_le (le_cSup hfin.bdd_above $ by simp) },

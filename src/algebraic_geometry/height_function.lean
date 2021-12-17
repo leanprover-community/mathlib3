@@ -25,7 +25,7 @@ universe u
 
 variable (A : Ab.{u})
 
-/--doc-/
+/--definition of height function-/
 @[nolint has_inhabited_instance]
 structure height_function :=
 (to_fun : A → ℝ)
@@ -64,7 +64,7 @@ local notation A`/`m := A⧸(m • (⊤ : add_subgroup A))
 variable [fin_quot : fintype (A/m)]
 include fin_quot
 
-/--doc-/
+/--the $Q_i$ in Silverman's book-/
 def represents : finset A :=
   image (λ (q : A/m), Exists.some (add_mk_surjective A _ q))
     (fin_quot.elems)
@@ -90,11 +90,11 @@ begin
   rw [←hq, add_assoc, add_comm P, ←add_assoc, ←subtype.val_eq_coe, neg_add_self, zero_add],
 end
 
-/--doc-/
+/--$P_{n+1}$ in Silverman's book-/
 abbreviation next (P : A) : A := (Exists.some (new_aux m P)).1
-/--doc-/
+/--$Q_{i_n}$ in Silverman's book-/
 abbreviation next_rep (P : A) : represents A m := (Exists.some (new_aux m P)).2
-/--doc-/
+/--$P_n$ and $P_{n+1}$ and $Q_{i_n}$ satisfies this property-/
 @[nolint def_lemma]
 abbreviation next_prop (P : A) := Exists.some_spec (new_aux m P)
 
@@ -119,7 +119,7 @@ begin
   use f.C1 (- x), use x, refine ⟨hx.1, rfl⟩,
 end
 
-/--doc-/
+/--The maximum height of $-Q_i$'s-/
 def C1' : ℝ :=
 finset.max' (image (λ a, f.C1 (-a)) (represents A f.m)) (nemp1 f)
 
@@ -316,7 +316,7 @@ begin
     conv_lhs { rw ih }, },
 end
 
-/--doc-/
+/--the set of generators of $A$-/
 abbreviation generators : set A := { a | f.to_fun a < 2 + (2⁻¹ * C) } ∪ (represents A f.m)
 
 lemma subset_generators_left : { a | f.to_fun a < 2 + (2⁻¹ * C) } ⊆ generators f :=

@@ -426,6 +426,13 @@ lemma surj_on.image_eq_of_maps_to (h₁ : surj_on f s t) (h₂ : maps_to f s t) 
   f '' s = t :=
 eq_of_subset_of_subset h₂.image_subset h₁
 
+lemma image_eq_iff_surj_on_maps_to : f '' s = t ↔ s.surj_on f t ∧ s.maps_to f t :=
+begin
+  refine ⟨_, λ h, h.1.image_eq_of_maps_to h.2⟩,
+  rintro rfl,
+  exact ⟨s.surj_on_image f, s.maps_to_image f⟩,
+end
+
 lemma surj_on.maps_to_compl (h : surj_on f s t) (h' : injective f) : maps_to f sᶜ tᶜ :=
 λ x hs ht, let ⟨x', hx', heq⟩ := h ht in hs $ h' heq ▸ hx'
 
@@ -442,6 +449,9 @@ end
 lemma surj_on.cancel_right (hf : s.surj_on f t) (hf' : s.maps_to f t) :
   s.eq_on (g₁ ∘ f) (g₂ ∘ f) ↔ t.eq_on g₁ g₂ :=
 ⟨λ h, h.cancel_right hf, λ h, h.comp_right hf'⟩
+
+lemma eq_on_comp_right_iff : s.eq_on (g₁ ∘ f) (g₂ ∘ f) ↔ (f '' s).eq_on g₁ g₂ :=
+(s.surj_on_image f).cancel_right $ s.maps_to_image f
 
 /-! ### Bijectivity -/
 

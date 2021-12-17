@@ -5,7 +5,6 @@ Authors: Yaël Dillies, Vladimir Goryachev, Kyle Miller, Scott Morrison, Eric Ro
 -/
 import data.list.basic
 import data.nat.prime
-import order.order_iso_nat
 import set_theory.fincard
 
 /-!

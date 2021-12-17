@@ -755,7 +755,7 @@ begin
   refine ⟨_, λ h, (is_o_zero g' ⊤).congr (λ x, (h x).symm) (λ x, rfl)⟩,
   simp only [is_o_iff, eventually_top],
   refine λ h x, norm_le_zero_iff.1 _,
-  have : tendsto (λ c : ℝ, c * ∥g' x∥) (𝓝[Ioi 0] 0) (𝓝 0) :=
+  have : tendsto (λ c : ℝ, c * ∥g' x∥) (𝓝[>] 0) (𝓝 0) :=
     ((continuous_id.mul continuous_const).tendsto' _ _ (zero_mul _)).mono_left inf_le_left,
   exact le_of_tendsto_of_tendsto tendsto_const_nhds this
     (eventually_nhds_within_iff.2 $ eventually_of_forall $ λ c hc, h hc x)

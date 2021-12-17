@@ -3,7 +3,8 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.lattice
+import data.finset.pairwise
+import data.set.finite
 
 /-!
 # Finite supremum independence
@@ -13,6 +14,11 @@ sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint
 
 In distributive lattices, this is equivalent to being pairwise disjoint.
 
+## Implementation notes
+
+We avoid the "obvious" definition `∀ i ∈ s, disjoint (f i) ((s.erase i).sup f)` because `erase`
+would require decidable equality on `ι`.
+
 ## TODO
 
 `complete_lattice.independent` and `complete_lattice.set_independent` should live in this file.
@@ -21,74 +27,83 @@ In distributive lattices, this is equivalent to being pairwise disjoint.
 variables {α β ι ι' : Type*}
 
 namespace finset
-variables [lattice α] [order_bot α] [decidable_eq ι] [decidable_eq ι']
+section lattice
+variables [lattice α] [order_bot α]
 
-/-- Supremum independence of finite sets. -/
-def sup_indep (s : finset ι) (f : ι → α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint (f a) ((s.erase a).sup f)
+/-- Supremum independence of finite sets. We avoid the "obvious" definition using`s.erase i` because
+`erase` would require decidable equality on `ι`. -/
+def sup_indep (s : finset ι) (f : ι → α) : Prop :=
+∀ ⦃t⦄, t ⊆ s → ∀ ⦃i⦄, i ∈ s → i ∉ t → disjoint (f i) (t.sup f)
 
-variables {s t : finset ι} {f : ι → α}
+variables {s t : finset ι} {f : ι → α} {i : ι}
 
 lemma sup_indep.subset (ht : t.sup_indep f) (h : s ⊆ t) : s.sup_indep f :=
-λ a ha, (ht $ h ha).mono_right $ sup_mono $ erase_subset_erase _ h
+λ u hu i hi, ht (hu.trans h) (h hi)
 
-lemma sup_indep_empty (f : ι → α) : (∅ : finset ι).sup_indep f := λ a ha, ha.elim
+lemma sup_indep_empty (f : ι → α) : (∅ : finset ι).sup_indep f := λ _ _ a ha, ha.elim
 
 lemma sup_indep_singleton (i : ι) (f : ι → α) : ({i} : finset ι).sup_indep f :=
-λ j hj, by { rw [mem_singleton.1 hj, erase_singleton, sup_empty], exact disjoint_bot_right }
+λ s hs j hji hj, begin
+  rw [eq_empty_of_ssubset_singleton ⟨hs, λ h, hj (h hji)⟩, sup_empty],
+  exact disjoint_bot_right,
+end
+
+lemma sup_indep.pairwise_disjoint (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=
+λ a ha b hb hab, sup_singleton.subst $ hs (singleton_subset_iff.2 hb) ha $ not_mem_singleton.2 hab
+
+/-- The RHS looks like the definition of `complete_lattice.independent`. -/
+lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
+  s.sup_indep f ↔ ∀ i ∈ s, disjoint (f i) ((s.erase i).sup f) :=
+⟨λ hs i hi, hs (erase_subset _ _) hi (not_mem_erase _ _), λ hs t ht i hi hit,
+  (hs i hi).mono_right (sup_mono $ λ j hj, mem_erase.2 ⟨ne_of_mem_of_not_mem hj hit, ht hj⟩)⟩
 
 lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (f ∘ subtype.val) :=
-λ i _,
-  by { rw [←finset.sup_image, image_erase subtype.val_injective, attach_image_val], exact hs i.2 }
-
-/-- Bind operation for `sup_indep`. -/
-lemma sup_indep.sup {α} [distrib_lattice α] [order_bot α] {s : finset ι'} {g : ι' → finset ι}
-  {f : ι → α} (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
-  (s.sup g).sup_indep f :=
 begin
-  rintro i hi,
-  rw disjoint_sup_right,
-  refine λ j hj, _,
-  rw mem_sup at hi,
-  obtain ⟨i', hi', hi⟩ := hi,
-  rw [mem_erase, mem_sup] at hj,
-  obtain ⟨hij, j', hj', hj⟩ := hj,
-  obtain hij' | hij' := eq_or_ne j' i',
-  { exact disjoint_sup_right.1 (hg i' hi' hi) _ (mem_erase.2 ⟨hij, hij'.subst hj⟩) },
-  { exact (hs hi').mono (le_sup hi) ((le_sup hj).trans $ le_sup $ mem_erase.2 ⟨hij', hj'⟩) }
+  intros t ht i _ hi,
+  classical,
+  rw ←finset.sup_image,
+  refine hs (image_subset_iff.2 $ λ (j : {x // x ∈ s}) _, j.2) i.2 (λ hi', hi _),
+  rw mem_image at hi',
+  obtain ⟨j, hj, hji⟩ := hi',
+  rwa subtype.ext hji at hj,
 end
 
-/-- Bind operation for `sup_indep`. -/
-lemma sup_indep.bUnion {α} [distrib_lattice α] [order_bot α] {s : finset ι'} {g : ι' → finset ι}
-  {f : ι → α} (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
-  (s.bUnion g).sup_indep f :=
-by { rw ←sup_eq_bUnion, exact hs.sup hg }
+end lattice
 
-lemma sup_indep.pairwise_disjoint  (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=
-λ a ha b hb hab, (hs ha).mono_right $ le_sup $ mem_erase.2 ⟨hab.symm, hb⟩
+section distrib_lattice
+variables [distrib_lattice α] [order_bot α] {s : finset ι} {f : ι → α}
 
--- Once `finset.sup_indep` will have been generalized to non distributive lattices, can we state
--- this lemma for nondistributive atomic lattices? This setting makes the `←` implication much
--- harder.
-lemma sup_indep_iff_pairwise_disjoint {α} [distrib_lattice α] [order_bot α] {f : ι → α} :
-  s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
-begin
-  refine ⟨λ hs a ha b hb hab, (hs ha).mono_right $ le_sup $ mem_erase.2 ⟨hab.symm, hb⟩,
-    λ hs a ha, _⟩,
-  rw disjoint_sup_right,
-  exact λ b hb, hs ha (mem_of_mem_erase hb) (ne_of_mem_erase hb).symm,
-end
+lemma sup_indep_iff_pairwise_disjoint : s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
+⟨sup_indep.pairwise_disjoint, λ hs t ht i hi hit,
+  disjoint_sup_right.2 $ λ j hj, hs hi (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
 
 alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint
   set.pairwise_disjoint.sup_indep
 
+/-- Bind operation for `sup_indep`. -/
+lemma sup_indep.sup [decidable_eq ι] {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
+  (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
+  (s.sup g).sup_indep f :=
+begin
+  simp_rw sup_indep_iff_pairwise_disjoint at ⊢ hs hg,
+  rw [sup_eq_bUnion, coe_bUnion],
+  exact hs.bUnion_finset hg,
+end
+
+/-- Bind operation for `sup_indep`. -/
+lemma sup_indep.bUnion [decidable_eq ι] {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
+  (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
+  (s.bUnion g).sup_indep f :=
+by { rw ←sup_eq_bUnion, exact hs.sup hg }
+
+end distrib_lattice
 end finset
 
--- TODO: Relax `complete_distrib_lattice` to `complete_lattice` once `finset.sup_indep` is general
--- enough
-lemma complete_lattice.independent_iff_sup_indep [complete_distrib_lattice α] [decidable_eq ι]
-  {s : finset ι} {f : ι → α} :
+lemma complete_lattice.independent_iff_sup_indep [complete_lattice α] {s : finset ι} {f : ι → α} :
   complete_lattice.independent (f ∘ (coe : s → ι)) ↔ s.sup_indep f :=
 begin
+  classical,
+  rw finset.sup_indep_iff_disjoint_erase,
   refine subtype.forall.trans (forall_congr $ λ a, forall_congr $ λ b, _),
   rw finset.sup_eq_supr,
   congr' 2,

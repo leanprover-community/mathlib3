@@ -156,6 +156,47 @@ lemma comp_eq_of_eq_on_range {ι : Sort*} {f : ι → α} {g₁ g₂ : α → β
   g₁ ∘ f = g₂ ∘ f :=
 funext $ λ x, h $ mem_range_self _
 
+/-! ### Congruence lemmas -/
+
+section order
+variables [preorder α] [preorder β]
+
+lemma _root_.monotone_on.congr (h₁ : monotone_on f₁ s) (h : s.eq_on f₁ f₂) : monotone_on f₂ s :=
+begin
+  intros a ha b hb hab,
+  rw [←h ha, ←h hb],
+  exact h₁ ha hb hab,
+end
+
+lemma _root_.antitone_on.congr (h₁ : antitone_on f₁ s) (h : s.eq_on f₁ f₂) : antitone_on f₂ s :=
+h₁.dual_right.congr h
+
+lemma _root_.strict_mono_on.congr (h₁ : strict_mono_on f₁ s) (h : s.eq_on f₁ f₂) :
+  strict_mono_on f₂ s :=
+begin
+  intros a ha b hb hab,
+  rw [←h ha, ←h hb],
+  exact h₁ ha hb hab,
+end
+
+lemma _root_.strict_anti_on.congr (h₁ : strict_anti_on f₁ s) (h : s.eq_on f₁ f₂) :
+  strict_anti_on f₂ s :=
+h₁.dual_right.congr h
+
+lemma eq_on.congr_monotone_on (h : s.eq_on f₁ f₂) : monotone_on f₁ s ↔ monotone_on f₂ s :=
+⟨λ h₁, h₁.congr h, λ h₂, h₂.congr h.symm⟩
+
+lemma eq_on.congr_antitone_on (h : s.eq_on f₁ f₂) : antitone_on f₁ s ↔ antitone_on f₂ s :=
+⟨λ h₁, h₁.congr h, λ h₂, h₂.congr h.symm⟩
+
+lemma eq_on.congr_strict_mono_on (h : s.eq_on f₁ f₂) : strict_mono_on f₁ s ↔ strict_mono_on f₂ s :=
+⟨λ h₁, h₁.congr h, λ h₂, h₂.congr h.symm⟩
+
+lemma eq_on.congr_strict_anti_on (h : s.eq_on f₁ f₂) : strict_anti_on f₁ s ↔ strict_anti_on f₂ s :=
+⟨λ h₁, h₁.congr h, λ h₂, h₂.congr h.symm⟩
+
+end order
+
 /-! ### maps to -/
 
 /-- `maps_to f a b` means that the image of `a` is contained in `b`. -/

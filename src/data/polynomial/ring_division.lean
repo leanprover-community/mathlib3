@@ -468,7 +468,7 @@ begin
   have hmap : map f p ≠ 0, { simpa only [map_zero] using (map_injective f hf).ne hp0, },
   apply multiset.eq_of_le_of_card_le,
   { simpa only [multiset.le_iff_count, count_roots] using count_map_roots hf },
-  { simpa only [multiset.card_map, hroots] using (card_roots' hmap).trans (nat_degree_map_le f p) },
+  { simpa only [multiset.card_map, hroots] using (card_roots' _).trans (nat_degree_map_le f p) },
 end
 
 section nth_roots

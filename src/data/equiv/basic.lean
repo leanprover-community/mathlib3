@@ -31,7 +31,7 @@ Then we define
 
 * canonical isomorphisms between various types: e.g.,
 
-  - `equiv.refl α` is the identity map interpreted as `α ≃ α`;
+  - `has_id.id (α ≃ α)` is the identity map interpreted as `α ≃ α`;
 
   - `equiv.sum_equiv_sigma_bool` is the canonical equivalence between the sum of two types `α ⊕ β`
     and the sigma-type `Σ b : bool, cond b α β`;
@@ -119,18 +119,18 @@ lemma perm.ext_iff {σ τ : equiv.perm α} : σ = τ ↔ ∀ x, σ x = τ x :=
 ext_iff
 
 /-- Any type is equivalent to itself. -/
-protected def refl (α : Sort*) : id_fun (α ≃ α) :=
+instance (α : Sort*) : has_id (α ≃ α) α :=
 ⟨⟨id, id, λ x, rfl, λ x, rfl⟩,
  λ x, rfl⟩
 
 /-- Any type is equivalent to itself.
 
-This is a restatement of `refl` since the bundled type of `refl` confuses the `@[refl]` annotation.
+This is a restatement of `has_id.id` that we can add an `@[refl]` annotation to.
 -/
-@[refl] protected def refl_aux (α : Sort*) : α ≃ α := equiv.refl α
-@[simp] lemma refl_aux_eq : equiv.refl_aux α = equiv.refl α := rfl
+@[refl] protected def refl_aux (α : Sort*) : α ≃ α := has_id.id (α ≃ α)
+@[simp] lemma refl_aux_eq : equiv.refl_aux α = has_id.id (α ≃ α) := rfl
 
-instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
+instance inhabited' : inhabited (α ≃ α) := ⟨has_id.id (α ≃ α)⟩
 
 /-- Inverse of an equivalence `e : α ≃ β`. -/
 protected def symm : symm_fun (α ≃ β) (β ≃ α) :=
@@ -199,10 +199,10 @@ instance equiv_subsingleton_dom [subsingleton α] :
 ⟨λ f g, equiv.ext $ λ x, @subsingleton.elim _ (equiv.subsingleton.symm f) _ _⟩
 
 instance perm_unique [subsingleton α] : unique (perm α) :=
-unique_of_subsingleton (equiv.refl α)
+unique_of_subsingleton (has_id.id (α ≃ α))
 
 lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
-  e = equiv.refl α := subsingleton.elim _ _
+  e = has_id.id (α ≃ α) := subsingleton.elim _ _
 
 /-- Transfer `decidable_eq` across an equivalence. -/
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
@@ -230,7 +230,7 @@ protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
 
 @[simp] theorem cast_symm {α β} (h : α = β) : (equiv.cast h).symm = equiv.cast h.symm := rfl
 
-@[simp] theorem cast_refl {α} (h : α = α := rfl) : equiv.cast h = equiv.refl α := rfl
+@[simp] theorem cast_refl {α} (h : α = α := rfl) : equiv.cast h = has_id.id (α ≃ α) := rfl
 
 @[simp] theorem cast_trans {α β γ} (h : α = β) (h2 : β = γ) :
   (equiv.cast h) ⟪⟫ₑ (equiv.cast h2) = equiv.cast (h.trans h2) :=
@@ -243,10 +243,10 @@ by { subst h, simp }
 rfl
 
 @[simp] theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
-by rw [perm.subsingleton_eq_refl e, id_fun.coe_coe, id_fun.coe]
+by rw [perm.subsingleton_eq_refl e, has_id.coe]
 
-theorem coe_refl : ⇑(equiv.refl α) = id := id_fun.coe _
-theorem refl_apply (x : α) : equiv.refl α x = x := id_fun.apply _ _
+theorem coe_refl : ⇑(has_id.id (α ≃ α)) = id := has_id.coe _
+theorem refl_apply (x : α) : has_id.id (α ≃ α) x = x := has_id.id_apply _ _
 theorem coe_trans (f : α ≃ β) (g : β ≃ γ) : ⇑(f ⟪⟫ₑ g) = g ∘ f := trans_fun.coe _ _ _
 theorem trans_apply (f : α ≃ β) (g : β ≃ γ) (a : α) : (f ⟪⟫ₑ g) a = g (f a) :=
 trans_fun.apply _ _ _ _
@@ -280,14 +280,14 @@ equiv.symm.symm_apply_eq e
 lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e⁻¹ₑ x ↔ e y = x :=
 equiv.symm.eq_symm_apply e
 
-theorem symm_symm (e : α ≃ β) : e.symm.symm = e := symm_fun.symm_symm _ _ _
-theorem trans_refl (e : α ≃ β) : e ⟪⟫ₑ ↑(equiv.refl β) = e := trans_id _ _ _
-theorem refl_trans (e : α ≃ β) : ↑(equiv.refl α) ⟪⟫ₑ e = e := id_trans _ _ _
-theorem refl_symm : (equiv.refl α : α ≃ α).symm = equiv.refl α := id_symm _ _
+#print has_id
 
--- Have to be copied over because `equiv.refl` isn't inferrable.
-@[simp] theorem symm_trans_self (e : α ≃ β) : e.symm ⟪⟫ₑ e = equiv.refl β := symm_trans_self _ _ _ _
-@[simp] theorem self_trans_symm (e : α ≃ β) : e ⟪⟫ₑ e.symm = equiv.refl α := self_trans_symm _ _ _ _
+theorem symm_symm (e : α ≃ β) : e.symm.symm = e := symm_fun.symm_symm _ _ _
+theorem trans_refl (e : α ≃ β) : e ⟪⟫ₑ has_id.id.{(max 1 v)} (β ≃ β) = e := trans_id _ _
+theorem refl_trans (e : α ≃ β) : has_id.id.{(max 1 u)} (α ≃ α) ⟪⟫ₑ e = e := id_trans _ _
+theorem refl_symm : (has_id.id (α ≃ α)).symm = has_id.id (α ≃ α) := id_symm _
+theorem symm_trans_self (e : α ≃ β) : e.symm ⟪⟫ₑ e = has_id.id (β ≃ β) := symm_trans_self _ _ _
+theorem self_trans_symm (e : α ≃ β) : e ⟪⟫ₑ e.symm = has_id.id (α ≃ α) := self_trans_symm _ _ _
 
 lemma trans_assoc {δ} (ab : α ≃ β) (bc : β ≃ γ) (cd : γ ≃ δ) :
   (ab ⟪⟫ₑ bc) ⟪⟫ₑ cd = ab ⟪⟫ₑ (bc ⟪⟫ₑ cd) :=
@@ -323,7 +323,7 @@ def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃
   assume ac, by { ext x, simp }, assume ac, by { ext x, simp } ⟩
 
 @[simp] lemma equiv_congr_refl {α β} :
-  (equiv_congr (equiv.refl α) (equiv.refl β) : (α ≃ β) ≃ (α ≃ β)) = equiv.refl (α ≃ β) :=
+  (equiv_congr (has_id.id (α ≃ α)) (has_id.id (β ≃ β)) : (α ≃ β) ≃ (α ≃ β)) = equiv.refl (α ≃ β) :=
 by { ext, refl }
 
 @[simp] lemma equiv_congr_symm {δ} (ab : α ≃ β) (cd : γ ≃ δ) :
@@ -335,10 +335,10 @@ by { ext, refl }
 by { ext, refl }
 
 @[simp] lemma equiv_congr_refl_left {α β γ} (bg : β ≃ γ) (e : α ≃ β) :
-  (equiv.refl α : α ≃ α).equiv_congr bg e = e ⟪⟫ₑ bg := rfl
+  (has_id.id (α ≃ α) : α ≃ α).equiv_congr bg e = e ⟪⟫ₑ bg := rfl
 
 @[simp] lemma equiv_congr_refl_right {α β} (ab e : α ≃ β) :
-  ab.equiv_congr ↑(equiv.refl β) e = ab.symm ⟪⟫ₑ e := rfl
+  ab.equiv_congr ↑(has_id.id (β ≃ β)) e = ab.symm ⟪⟫ₑ e := rfl
 
 @[simp] lemma equiv_congr_apply_apply {δ} (ab : α ≃ β) (cd : γ ≃ δ) (e : α ≃ γ) (x) :
   ab.equiv_congr cd e x = cd (e (ab⁻¹ₑ x)) := rfl
@@ -355,7 +355,7 @@ lemma perm_congr_def (p : equiv.perm α') :
   e.perm_congr p = (e.symm ⟪⟫ₑ p) ⟪⟫ₑ e := rfl
 
 @[simp] lemma perm_congr_refl :
-  e.perm_congr (equiv.refl α') = equiv.refl β' :=
+  e.perm_congr (has_id.id (α ≃ α)') = has_id.id (β ≃ β)' :=
 by simp [perm_congr_def]
 
 @[simp] lemma perm_congr_symm :
@@ -452,7 +452,7 @@ lemma arrow_congr_comp {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
 by { ext, simp only [comp, arrow_congr_apply, eb.symm_apply_apply] }
 
 @[simp] lemma arrow_congr_refl {α β : Sort*} :
-  arrow_congr (equiv.refl α : α ≃ α) (equiv.refl β : β ≃ β) = equiv.refl (α → β) := rfl
+  arrow_congr (has_id.id (α ≃ α) : α ≃ α) (has_id.id (β ≃ β) : β ≃ β) = equiv.refl (α → β) := rfl
 
 @[simp] lemma arrow_congr_trans {α₁ β₁ α₂ β₂ α₃ β₃ : Sort*}
   (e₁ : α₁ ≃ α₂) (e₁' : β₁ ≃ β₂) (e₂ : α₂ ≃ α₃) (e₂' : β₂ ≃ β₃) :
@@ -474,7 +474,7 @@ def arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ 
 equiv.arrow_congr hα hβ
 
 @[simp] lemma arrow_congr'_refl {α β : Type*} :
-  arrow_congr' (equiv.refl α : α ≃ α) (equiv.refl β : β ≃ β) = equiv.refl (α → β) := rfl
+  arrow_congr' (has_id.id (α ≃ α) : α ≃ α) (has_id.id (β ≃ β) : β ≃ β) = equiv.refl (α → β) := rfl
 
 @[simp] lemma arrow_congr'_trans {α₁ β₁ α₂ β₂ α₃ β₃ : Type*}
   (e₁ : α₁ ≃ α₂) (e₁' : β₁ ≃ β₂) (e₂ : α₂ ≃ α₃) (e₂' : β₂ ≃ β₃) :
@@ -489,7 +489,7 @@ rfl
 @[simps apply]
 def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
 
-@[simp] lemma conj_refl : conj (equiv.refl α : α ≃ α) = equiv.refl (α → α) := rfl
+@[simp] lemma conj_refl : conj (has_id.id (α ≃ α) : α ≃ α) = equiv.refl (α → α) := rfl
 
 @[simp] lemma conj_symm (e : α ≃ β) : e.conj.symm = e.symm.conj := rfl
 
@@ -652,7 +652,7 @@ by { ext i, cases i; refl }
 rfl
 
 @[simp] lemma sum_congr_refl {α β : Sort*} :
-  equiv.sum_congr (equiv.refl α : α ≃ α) (equiv.refl β : β ≃ β) = equiv.refl (α ⊕ β) :=
+  equiv.sum_congr (has_id.id (α ≃ α) : α ≃ α) (has_id.id (β ≃ β) : β ≃ β) = equiv.refl (α ⊕ β) :=
 by { ext i, cases i; refl }
 
 namespace perm
@@ -675,7 +675,7 @@ equiv.sum_congr_trans e f g h
 equiv.sum_congr_symm e f
 
 @[simp] lemma sum_congr_refl {α β : Sort*} :
-  sum_congr (equiv.refl α : α ≃ α) (equiv.refl β : β ≃ β) = equiv.refl (α ⊕ β) :=
+  sum_congr (has_id.id (α ≃ α) : α ≃ α) (has_id.id (β ≃ β) : β ≃ β) = equiv.refl (α ⊕ β) :=
 equiv.sum_congr_refl
 
 end perm
@@ -1080,7 +1080,7 @@ def prod_congr_left : β₁ × α₁ ≃ β₂ × α₁ :=
 prod_congr_left e (b, a) = (e a b, a) := rfl
 
 lemma prod_congr_refl_right (e : β₁ ≃ β₂) :
-  prod_congr e (equiv.refl α₁ : α₁ ≃ α₁) = prod_congr_left (λ _, e) :=
+  prod_congr e (has_id.id (α ≃ α)₁ : α₁ ≃ α₁) = prod_congr_left (λ _, e) :=
 by { ext ⟨a, b⟩ : 1, simp }
 
 /-- A family of equivalences `Π (a : α₁), β₁ ≃ β₂` generates an equivalence
@@ -1095,7 +1095,7 @@ def prod_congr_right : α₁ × β₁ ≃ α₁ × β₂ :=
   prod_congr_right e (a, b) = (a, e a b) := rfl
 
 lemma prod_congr_refl_left (e : β₁ ≃ β₂) :
-  prod_congr (equiv.refl α₁ : α₁ ≃ α₁) e = prod_congr_right (λ _, e) :=
+  prod_congr (has_id.id (α ≃ α)₁ : α₁ ≃ α₁) e = prod_congr_right (λ _, e) :=
 by { ext ⟨a, b⟩ : 1, simp }
 
 @[simp] lemma prod_congr_left_trans_prod_comm :
@@ -1222,7 +1222,7 @@ def sigma_prod_distrib {ι : Type*} (α : ι → Type*) (β : Type*) :
 
 /-- The product `bool × α` is equivalent to `α ⊕ α`. -/
 def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
-calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl α)
+calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (has_id.id (α ≃ α))
       ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
       ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
 
@@ -1294,7 +1294,7 @@ def subtype_equiv {p : α → Prop} {q : β → Prop}
 
 @[simp] lemma subtype_equiv_refl {p : α → Prop}
   (h : ∀ a, p a ↔ p (equiv.refl _ a) := λ a, iff.rfl) :
-  (equiv.refl α : α ≃ α).subtype_equiv h = equiv.refl {a : α // p a} :=
+  (has_id.id (α ≃ α) : α ≃ α).subtype_equiv h = equiv.refl {a : α // p a} :=
 by { ext, refl }
 
 @[simp] lemma subtype_equiv_symm {p : α → Prop} {q : β → Prop} (e : α ≃ β)
@@ -1320,7 +1320,7 @@ rfl
 `{x // q x}`. -/
 @[simps]
 def subtype_equiv_right {p q : α → Prop} (e : ∀x, p x ↔ q x) : {x // p x} ≃ {x // q x} :=
-subtype_equiv (equiv.refl α) e
+subtype_equiv (has_id.id (α ≃ α)) e
 
 /-- If `α ≃ β`, then for any predicate `p : β → Prop` the subtype `{a // p (e a)}` is equivalent
 to the subtype `{b // p b}`. -/
@@ -1336,7 +1336,7 @@ e.symm.subtype_equiv_of_subtype.symm
 
 /-- If two predicates are equal, then the corresponding subtypes are equivalent. -/
 def subtype_equiv_prop {α : Type*} {p q : α → Prop} (h : p = q) : subtype p ≃ subtype q :=
-subtype_equiv (equiv.refl α) (assume a, h ▸ iff.rfl)
+subtype_equiv (has_id.id (α ≃ α)) (assume a, h ▸ iff.rfl)
 
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. This
 version allows the “inner” predicate to depend on `h : p a`. -/
@@ -1576,7 +1576,7 @@ lemma perm.extend_domain_apply_not_subtype {b : β'} (h : ¬ p b) :
 by simp [perm.extend_domain, h]
 
 @[simp] lemma perm.extend_domain_refl :
-  perm.extend_domain (equiv.refl α' : α' ≃ α') f = equiv.refl β' :=
+  perm.extend_domain (has_id.id (α ≃ α)' : α' ≃ α') f = has_id.id (β ≃ β)' :=
 by simp [perm.extend_domain]
 
 @[simp] lemma perm.extend_domain_symm :
@@ -1627,7 +1627,7 @@ by { unfold swap_core, split_ifs; cc }
 def swap (a b : α) : perm α :=
 ⟨swap_core a b, swap_core a b, λr, swap_core_swap_core r a b, λr, swap_core_swap_core r a b⟩
 
-@[simp] theorem swap_self (a : α) : swap a a = equiv.refl α :=
+@[simp] theorem swap_self (a : α) : swap a a = has_id.id (α ≃ α) :=
 ext $ λ r, swap_core_self r a
 
 theorem swap_comm (a b : α) : swap a b = swap b a :=
@@ -1645,14 +1645,14 @@ by { by_cases h : b = a; simp [swap_apply_def, h], }
 theorem swap_apply_of_ne_of_ne {a b x : α} : x ≠ a → x ≠ b → swap a b x = x :=
 by simp [swap_apply_def] {contextual := tt}
 
-@[simp] theorem swap_swap (a b : α) : (swap a b) ⟪⟫ₑ (swap a b) = equiv.refl α :=
+@[simp] theorem swap_swap (a b : α) : (swap a b) ⟪⟫ₑ (swap a b) = has_id.id (α ≃ α) :=
 ext $ λ x, swap_core_swap_core _ _ _
 
 @[simp] lemma symm_swap (a b : α) : (swap a b).symm = swap a b := rfl
 
-@[simp] lemma swap_eq_refl_iff {x y : α} : swap x y = equiv.refl α ↔ x = y :=
+@[simp] lemma swap_eq_refl_iff {x y : α} : swap x y = has_id.id (α ≃ α) ↔ x = y :=
 begin
-  refine ⟨λ h, (equiv.refl α : α ≃ α).injective _, λ h, h ▸ (swap_self _)⟩,
+  refine ⟨λ h, (has_id.id (α ≃ α) : α ≃ α).injective _, λ h, h ▸ (swap_self _)⟩,
   rw [←h, swap_apply_left, h, id_fun.coe_coe, id_fun.apply]
 end
 
@@ -1711,7 +1711,7 @@ end
 namespace perm
 
 @[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :
-  equiv.perm.sum_congr (equiv.swap i j) (equiv.refl β : β ≃ β) =
+  equiv.perm.sum_congr (equiv.swap i j) (has_id.id (β ≃ β)) =
     equiv.swap (sum.inl i) (sum.inl j) :=
 begin
   ext x,
@@ -1722,7 +1722,7 @@ begin
 end
 
 @[simp] lemma sum_congr_refl_swap {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : β) :
-  equiv.perm.sum_congr (equiv.refl α : α ≃ α) (equiv.swap i j) =
+  equiv.perm.sum_congr (has_id.id (α ≃ α) : α ≃ α) (equiv.swap i j) =
     equiv.swap (sum.inr i) (sum.inr j) :=
 begin
   ext x,
@@ -2016,7 +2016,7 @@ lemma congr_mk {ra : α → α → Prop} {rb : β → β → Prop} (e : α ≃ �
 An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/
 protected def congr_right {r r' : α → α → Prop} (eq : ∀a₁ a₂, r a₁ a₂ ↔ r' a₁ a₂) :
   quot r ≃ quot r' :=
-quot.congr (equiv.refl α) eq
+quot.congr (has_id.id (α ≃ α)) eq
 
 /-- An equivalence `e : α ≃ β` generates an equivalence between the quotient space of `α`
 by a relation `ra` and the quotient space of `β` by the image of this relation under `e`. -/

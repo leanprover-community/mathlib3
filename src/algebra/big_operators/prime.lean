@@ -57,3 +57,17 @@ lemma nat.prime.dvd_finsupp_prod_iff {α M : Type*} [has_zero M] {f: α →₀ M
   {g : α → M → ℕ} {p : ℕ} (pp : p.prime) :
 p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=
 nat.prime.dvd_finset_prod_iff pp _
+
+namespace finset
+
+lemma count_factors_prod (α : Type*) (F : finset α) (p : ℕ) (g : α → ℕ) (hf: ∀ x ∈ F, 0 < g x) :
+  list.count p (F.prod g).factors = F.sum (λ x, list.count p (g x).factors) :=
+begin
+  classical,
+  apply finset.induction_on' F, { simp },
+  { intros x S hxF hSF hxS IH,
+    rw [prod_insert hxS, sum_insert hxS, ←IH],
+    exact count_factors_mul_of_pos (hf x hxF) (finset.prod_pos (λ a ha, hf a (hSF ha))) },
+end
+
+end finset

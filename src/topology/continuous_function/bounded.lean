@@ -1066,9 +1066,9 @@ end normed_group
 section cstar_ring
 
 variables [topological_space α]
-variables [normed_ring β] [star_ring β] [normed_star_monoid β]
+variables [normed_ring β] [star_ring β]
 
-instance : star_ring (α →ᵇ β) :=
+instance [normed_star_monoid β] : star_ring (α →ᵇ β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
   ..bounded_continuous_function.star_add_monoid }
 

@@ -275,7 +275,7 @@ end
 
 lemma has_deriv_at_iff_tendsto_slope :
   has_deriv_at f f' x ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[{x}ᶜ] x) (𝓝 f') :=
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[≠] x) (𝓝 f') :=
 has_deriv_at_filter_iff_tendsto_slope
 
 theorem has_deriv_within_at_congr_set {s t u : set 𝕜}
@@ -1486,7 +1486,8 @@ end inverse
 section division
 /-! ### Derivative of `x ↦ c x / d x` -/
 
-variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  {c d : 𝕜 → 𝕜'} {c' d' : 𝕜'}
 
 lemma has_deriv_within_at.div
   (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) (hx : d x ≠ 0) :
@@ -1545,28 +1546,40 @@ lemma deriv_within_div
   deriv (λx, c x / d x) x = ((deriv c x) * d x - c x * (deriv d x)) / (d x)^2 :=
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).deriv
 
-lemma differentiable_within_at.div_const (hc : differentiable_within_at 𝕜 c s x) {d : 𝕜} :
+lemma has_deriv_at.div_const (hc : has_deriv_at c c' x) (d : 𝕜') :
+  has_deriv_at (λ x, c x / d) (c' / d) x :=
+by simpa only [div_eq_mul_inv] using hc.mul_const d⁻¹
+
+lemma has_deriv_within_at.div_const (hc : has_deriv_within_at c c' s x) (d : 𝕜') :
+  has_deriv_within_at (λ x, c x / d) (c' / d) s x :=
+by simpa only [div_eq_mul_inv] using hc.mul_const d⁻¹
+
+lemma has_strict_deriv_at.div_const (hc : has_strict_deriv_at c c' x) (d : 𝕜') :
+  has_strict_deriv_at (λ x, c x / d) (c' / d) x :=
+by simpa only [div_eq_mul_inv] using hc.mul_const d⁻¹
+
+lemma differentiable_within_at.div_const (hc : differentiable_within_at 𝕜 c s x) {d : 𝕜'} :
   differentiable_within_at 𝕜 (λx, c x / d) s x :=
-by simp [div_eq_inv_mul, differentiable_within_at.const_mul, hc]
+(hc.has_deriv_within_at.div_const _).differentiable_within_at
 
-@[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :
+@[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜'} :
   differentiable_at 𝕜 (λ x, c x / d) x :=
-by simpa only [div_eq_mul_inv] using (hc.has_deriv_at.mul_const d⁻¹).differentiable_at
+(hc.has_deriv_at.div_const _).differentiable_at
 
-lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) {d : 𝕜} :
+lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) {d : 𝕜'} :
   differentiable_on 𝕜 (λx, c x / d) s :=
-by simp [div_eq_inv_mul, differentiable_on.const_mul, hc]
+λ x hx, (hc x hx).div_const
 
-@[simp] lemma differentiable.div_const (hc : differentiable 𝕜 c) {d : 𝕜} :
+@[simp] lemma differentiable.div_const (hc : differentiable 𝕜 c) {d : 𝕜'} :
   differentiable 𝕜 (λx, c x / d) :=
-by simp [div_eq_inv_mul, differentiable.const_mul, hc]
+λ x, (hc x).div_const
 
-lemma deriv_within_div_const (hc : differentiable_within_at 𝕜 c s x) {d : 𝕜}
+lemma deriv_within_div_const (hc : differentiable_within_at 𝕜 c s x) {d : 𝕜'}
   (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, c x / d) s x = (deriv_within c s x) / d :=
 by simp [div_eq_inv_mul, deriv_within_const_mul, hc, hxs]
 
-@[simp] lemma deriv_div_const (d : 𝕜) :
+@[simp] lemma deriv_div_const (d : 𝕜') :
   deriv (λx, c x / d) x = (deriv c x) / d :=
 by simp only [div_eq_mul_inv, deriv_mul_const_field]
 
@@ -1711,7 +1724,7 @@ lemma local_homeomorph.has_deriv_at_symm (f : local_homeomorph 𝕜 𝕜) {a f' 
 htff'.of_local_left_inverse (f.symm.continuous_at ha) hf' (f.eventually_right_inverse ha)
 
 lemma has_deriv_at.eventually_ne (h : has_deriv_at f f' x) (hf' : f' ≠ 0) :
-  ∀ᶠ z in 𝓝[{x}ᶜ] x, f z ≠ f x :=
+  ∀ᶠ z in 𝓝[≠] x, f z ≠ f x :=
 (has_deriv_at_iff_has_fderiv_at.1 h).eventually_ne
   ⟨∥f'∥⁻¹, λ z, by field_simp [norm_smul, mt norm_eq_zero.1 hf']⟩
 
@@ -2002,7 +2015,7 @@ lemma has_deriv_within_at.limsup_slope_le' (hf : has_deriv_within_at f f' s x)
 
 lemma has_deriv_within_at.liminf_right_slope_le
   (hf : has_deriv_within_at f f' (Ici x) x) (hr : f' < r) :
-  ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r :=
+  ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r :=
 (hf.Ioi_of_Ici.limsup_slope_le' (lt_irrefl x) hr).frequently
 
 end real
@@ -2059,7 +2072,7 @@ is less than or equal to `∥f'∥`. See also `has_deriv_within_at.limsup_norm_s
 for a stronger version using limit superior and any set `s`. -/
 lemma has_deriv_within_at.liminf_right_norm_slope_le
   (hf : has_deriv_within_at f f' (Ici x) x) (hr : ∥f'∥ < r) :
-  ∃ᶠ z in 𝓝[Ioi x] x, ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
+  ∃ᶠ z in 𝓝[>] x, ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
 (hf.Ioi_of_Ici.limsup_norm_slope_le hr).frequently
 
 /-- If `f` has derivative `f'` within `(x, +∞)` at `x`, then for any `r > ∥f'∥` the ratio
@@ -2075,7 +2088,7 @@ See also
   `∥f z - f x∥` instead of `∥f z∥ - ∥f x∥`. -/
 lemma has_deriv_within_at.liminf_right_slope_norm_le
   (hf : has_deriv_within_at f f' (Ici x) x) (hr : ∥f'∥ < r) :
-  ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
+  ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
 begin
   have := (hf.Ioi_of_Ici.limsup_slope_norm_le hr).frequently,
   refine this.mp (eventually.mono self_mem_nhds_within _),

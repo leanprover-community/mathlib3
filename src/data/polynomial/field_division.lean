@@ -434,7 +434,7 @@ end
 
 lemma prod_multiset_root_eq_finset_root {R : Type*} [comm_ring R] [is_domain R] {p : polynomial R} :
   (multiset.map (λ (a : R), X - C a) p.roots).prod =
-  ∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
+  ∏ a in p.roots.to_finset, (X - C a) ^ root_multiplicity a p :=
 by simp only [count_roots, finset.prod_multiset_map_count]
 
 /-- The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides `p`. -/

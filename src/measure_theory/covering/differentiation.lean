@@ -509,7 +509,7 @@ begin
     assume y hy,
     have : v.lim_ratio_meas hρ y = 0 := hy.1,
     simp only [this, mem_set_of_eq, hq, ennreal.coe_pos], },
-  have B : tendsto (λ (q : ℝ≥0), (q : ℝ≥0∞) * μ s) (𝓝[Ioi (0 : ℝ≥0)] 0) (𝓝 ((0 : ℝ≥0) * μ s)),
+  have B : tendsto (λ (q : ℝ≥0), (q : ℝ≥0∞) * μ s) (𝓝[>] (0 : ℝ≥0)) (𝓝 ((0 : ℝ≥0) * μ s)),
   { apply ennreal.tendsto.mul_const _ (or.inr μs),
     rw ennreal.tendsto_coe,
     exact nhds_within_le_nhds },
@@ -642,7 +642,7 @@ theorem with_density_lim_ratio_meas_eq : μ.with_density (v.lim_ratio_meas hρ) 
 begin
   ext1 s hs,
   refine le_antisymm _ _,
-  { have : tendsto (λ (t : ℝ≥0), (t^2 * ρ s : ℝ≥0∞)) (𝓝[Ioi 1] 1) (𝓝 ((1 : ℝ≥0)^2 * ρ s)),
+  { have : tendsto (λ (t : ℝ≥0), (t^2 * ρ s : ℝ≥0∞)) (𝓝[>] 1) (𝓝 ((1 : ℝ≥0)^2 * ρ s)),
     { refine ennreal.tendsto.mul _ _ tendsto_const_nhds _,
       { exact ennreal.tendsto.pow (ennreal.tendsto_coe.2 nhds_within_le_nhds) },
       { simp only [one_pow, ennreal.coe_one, true_or, ne.def, not_false_iff, one_ne_zero] },
@@ -653,7 +653,7 @@ begin
     filter_upwards [self_mem_nhds_within],
     assume t ht,
     exact v.with_density_le_mul hρ hs ht },
-  { have : tendsto (λ (t : ℝ≥0), (t : ℝ≥0∞) * μ.with_density (v.lim_ratio_meas hρ) s) (𝓝[Ioi 1] 1)
+  { have : tendsto (λ (t : ℝ≥0), (t : ℝ≥0∞) * μ.with_density (v.lim_ratio_meas hρ) s) (𝓝[>] 1)
             (𝓝 ((1 : ℝ≥0) * μ.with_density (v.lim_ratio_meas hρ) s)),
     { refine ennreal.tendsto.mul_const (ennreal.tendsto_coe.2 nhds_within_le_nhds) _,
       simp only [ennreal.coe_one, true_or, ne.def, not_false_iff, one_ne_zero], },

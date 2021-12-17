@@ -5,7 +5,7 @@ Authors: Christopher Hoskin
 -/
 import topology.order.lattice
 import analysis.normed.group.basic
-import algebra.lattice_ordered_group
+import algebra.order.lattice_group
 
 /-!
 # Normed lattice ordered groups

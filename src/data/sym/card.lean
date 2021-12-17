@@ -175,7 +175,7 @@ lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ �
       rw encode,
       split_ifs,
       { simp_rw multiset.erase_cons_head,
-        norm_num, },
+        norm_num },
       { norm_num at h } } },
 end
 

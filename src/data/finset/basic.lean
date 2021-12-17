@@ -1008,6 +1008,12 @@ theorem inter_eq_right_iff_subset (s t : finset α) :
   t ∩ s = s ↔ s ⊆ t :=
 (inf_eq_right : t ⊓ s = s ↔ s ≤ t)
 
+lemma ite_subset_union (s s' : finset α) (P : Prop) [decidable P] :
+  ite P s s' ⊆ s ∪ s' := ite_le_sup s s' P
+
+lemma inter_subset_ite (s s' : finset α) (P : Prop) [decidable P] :
+  s ∩ s' ⊆ ite P s s' := inf_le_ite s s' P
+
 /-! ### erase -/
 
 /-- `erase s a` is the set `s - {a}`, that is, the elements of `s` which are
@@ -2117,6 +2123,8 @@ iff.intro
   (assume ⟨i, hi, ha⟩,
     ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
 
+lemma range_add (a b : ℕ) : range (a + b) = range a ∪ (range b).map (add_left_embedding a) :=
+by { rw [←val_inj, union_val], exact multiset.range_add_eq_union a b }
 
 @[simp] lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
 eq_of_veq $ by rw [image_val, attach_val, multiset.attach_map_val, erase_dup_eq_self]
@@ -2259,6 +2267,8 @@ theorem card_def (s : finset α) : s.card = s.1.card := rfl
 
 theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
 multiset.card_le_of_le ∘ val_le_iff.mpr
+
+@[mono] lemma card_mono : monotone (@card α) := by apply card_le_of_subset
 
 @[simp] theorem card_eq_zero {s : finset α} : card s = 0 ↔ s = ∅ :=
 card_eq_zero.trans val_eq_zero

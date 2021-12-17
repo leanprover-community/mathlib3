@@ -315,6 +315,26 @@ begin
     rpow_one, div_self hG_zero], },
 end
 
+/-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
+sum of the `p`-th powers of `f i`. Version for sums over finite sets, with `ℝ≥0`-valued functions.
+-/
+theorem rpow_sum_le_const_mul_sum_rpow (f : ι → ℝ≥0) {p : ℝ} (hp : 1 ≤ p) :
+  (∑ i in s, f i) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, (f i) ^ p :=
+begin
+  cases eq_or_lt_of_le hp with hp hp,
+  { simp [← hp] },
+  let q : ℝ := p / (p - 1),
+  have hpq : p.is_conjugate_exponent q,
+  { rw real.is_conjugate_exponent_iff hp },
+  have hp₁ : 1 / p * p = 1 := one_div_mul_cancel hpq.ne_zero,
+  have hq : 1 / q * p = (p - 1),
+  { rw [← hpq.div_conj_eq_sub_one],
+    ring },
+  simpa only [nnreal.mul_rpow, ← nnreal.rpow_mul, hp₁, hq, one_mul, one_rpow, rpow_one,
+    pi.one_apply, sum_const, nat.smul_one_eq_coe]
+    using nnreal.rpow_le_rpow (inner_le_Lp_mul_Lq s 1 f hpq.symm) hpq.nonneg,
+end
+
 /-- The `L_p` seminorm of a vector `f` is the greatest value of the inner product
 `∑ i in s, f i * g i` over functions `g` of `L_q` seminorm less than or equal to one. -/
 theorem is_greatest_Lp (f : ι → ℝ≥0) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
@@ -367,8 +387,7 @@ variables (f g : ι → ℝ)  {p q : ℝ}
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
 with real-valued functions. -/
 theorem inner_le_Lp_mul_Lq (hpq : is_conjugate_exponent p q) :
-  ∑ i in s, f i * g i ≤ (∑ i in s, (abs $ f i)^p) ^ (1 / p) *
-  (∑ i in s, (abs $ g i)^q) ^ (1 / q) :=
+  ∑ i in s, f i * g i ≤ (∑ i in s, |f i| ^ p) ^ (1 / p) * (∑ i in s, |g i| ^ q) ^ (1 / q) :=
 begin
   have := nnreal.coe_le_coe.2 (nnreal.inner_le_Lp_mul_Lq s (λ i, ⟨_, abs_nonneg (f i)⟩)
     (λ i, ⟨_, abs_nonneg (g i)⟩) hpq),
@@ -377,11 +396,22 @@ begin
   simp only [← abs_mul, le_abs_self]
 end
 
+/-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
+sum of the `p`-th powers of `f i`. Version for sums over finite sets, with `ℝ`-valued functions. -/
+theorem rpow_sum_le_const_mul_sum_rpow (hp : 1 ≤ p) :
+  (∑ i in s, |f i|) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, |f i| ^ p :=
+begin
+  have := nnreal.coe_le_coe.2
+    (nnreal.rpow_sum_le_const_mul_sum_rpow s (λ i, ⟨_, abs_nonneg (f i)⟩) hp),
+  push_cast at this,
+  exact this, -- for some reason `exact_mod_cast` can't replace this argument
+end
+
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal
 to the sum of the `L_p`-seminorms of the summands. A version for `real`-valued functions. -/
 theorem Lp_add_le (hp : 1 ≤ p) :
-  (∑ i in s, (abs $ f i + g i) ^ p) ^ (1 / p) ≤
-    (∑ i in s, (abs $ f i) ^ p) ^ (1 / p) + (∑ i in s, (abs $ g i) ^ p) ^ (1 / p) :=
+  (∑ i in s, |f i + g i| ^ p) ^ (1 / p) ≤
+    (∑ i in s, |f i| ^ p) ^ (1 / p) + (∑ i in s, |g i| ^ p) ^ (1 / p) :=
 begin
   have := nnreal.coe_le_coe.2 (nnreal.Lp_add_le s (λ i, ⟨_, abs_nonneg (f i)⟩)
     (λ i, ⟨_, abs_nonneg (g i)⟩) hp),
@@ -401,6 +431,14 @@ theorem inner_le_Lp_mul_Lq_of_nonneg (hpq : is_conjugate_exponent p q)
   ∑ i in s, f i * g i ≤ (∑ i in s, (f i)^p) ^ (1 / p) * (∑ i in s, (g i)^q) ^ (1 / q) :=
 by convert inner_le_Lp_mul_Lq s f g hpq using 3; apply sum_congr rfl; intros i hi;
   simp only [abs_of_nonneg, hf i hi, hg i hi]
+
+/-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
+sum of the `p`-th powers of `f i`. Version for sums over finite sets, with nonnegative `ℝ`-valued
+functions. -/
+theorem rpow_sum_le_const_mul_sum_rpow_of_nonneg (hp : 1 ≤ p) (hf : ∀ i ∈ s, 0 ≤ f i) :
+  (∑ i in s, f i) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, f i ^ p :=
+by convert rpow_sum_le_const_mul_sum_rpow s f hp using 2; apply sum_congr rfl; intros i hi;
+  simp only [abs_of_nonneg, hf i hi]
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal
 to the sum of the `L_p`-seminorms of the summands. A version for `real`-valued nonnegative
@@ -445,6 +483,26 @@ begin
   [skip, skip, simp, skip, simp];
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi, -with_zero.coe_mul,
     with_top.coe_mul.symm] },
+end
+
+/-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
+sum of the `p`-th powers of `f i`. Version for sums over finite sets, with `ℝ≥0∞`-valued functions.
+-/
+theorem rpow_sum_le_const_mul_sum_rpow (hp : 1 ≤ p) :
+  (∑ i in s, f i) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, (f i) ^ p :=
+begin
+  cases eq_or_lt_of_le hp with hp hp,
+  { simp [← hp] },
+  let q : ℝ := p / (p - 1),
+  have hpq : p.is_conjugate_exponent q,
+  { rw real.is_conjugate_exponent_iff hp },
+  have hp₁ : 1 / p * p = 1 := one_div_mul_cancel hpq.ne_zero,
+  have hq : 1 / q * p = (p - 1),
+  { rw [← hpq.div_conj_eq_sub_one],
+    ring },
+  simpa only [ennreal.mul_rpow_of_nonneg _ _ hpq.nonneg, ← ennreal.rpow_mul, hp₁, hq, coe_one,
+    one_mul, one_rpow, rpow_one, pi.one_apply, sum_const, nat.smul_one_eq_coe]
+    using ennreal.rpow_le_rpow (inner_le_Lp_mul_Lq s 1 f hpq.symm) hpq.nonneg,
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal

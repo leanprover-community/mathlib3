@@ -23,7 +23,7 @@ import ring_theory.ideal.operations
 
 universes u v
 
-variables {R : Type u} {x y : R}
+variables {R S : Type u} {x y : R}
 
 /-- An element is said to be nilpotent if some natural-number-power of it equals zero.
 
@@ -44,6 +44,11 @@ end
 @[simp] lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
+lemma is_nilpotent.map [monoid_with_zero R] [monoid_with_zero S] {r : R}
+  {F : Type*} [monoid_with_zero_hom_class F R S] (hr : is_nilpotent r) (f : F) :
+    is_nilpotent (f r) :=
+by { use hr.some, rw [← map_pow, hr.some_spec, map_zero] }
+
 /-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
 class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
 (eq_zero : ∀ (x : R), is_nilpotent x → x = 0)
@@ -51,6 +56,10 @@ class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
 @[priority 900]
 instance is_reduced_of_no_zero_divisors [monoid_with_zero R] [no_zero_divisors R] : is_reduced R :=
 ⟨λ _ ⟨_, hn⟩, pow_eq_zero hn⟩
+
+@[priority 900]
+instance is_reduced_of_subsingleton [has_zero R] [has_pow R ℕ] [subsingleton R] :
+  is_reduced R := ⟨λ _ _, subsingleton.elim _ _⟩
 
 lemma is_nilpotent.eq_zero [has_zero R] [has_pow R ℕ] [is_reduced R]
   (h : is_nilpotent x) : x = 0 :=

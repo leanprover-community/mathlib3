@@ -41,6 +41,24 @@ theorem mem_annihilator {r} : r ∈ N.annihilator ↔ ∀ n ∈ N, r • n = (0:
 theorem mem_annihilator' {r} : r ∈ N.annihilator ↔ N ≤ comap (r • linear_map.id) ⊥ :=
 mem_annihilator.trans ⟨λ H n hn, (mem_bot R).2 $ H n hn, λ H n hn, (mem_bot R).1 $ H hn⟩
 
+lemma mem_annihilator_span (s : set M) (r : R) :
+  r ∈ (submodule.span R s).annihilator ↔ ∀ n : s, r • (n : M) = 0 :=
+begin
+  rw submodule.mem_annihilator,
+  split,
+  { intros h n, exact h _ (submodule.subset_span n.prop) },
+  { intros h n hn,
+    apply submodule.span_induction hn,
+    { intros x hx, exact h ⟨x, hx⟩ },
+    { exact smul_zero _ },
+    { intros x y hx hy, rw [smul_add, hx, hy, zero_add] },
+    { intros a x hx, rw [smul_comm, hx, smul_zero] } }
+end
+
+lemma mem_annihilator_span_singleton (g : M) (r : R) :
+  r ∈ (submodule.span R ({g} : set M)).annihilator ↔ r • g = 0 :=
+by simp [mem_annihilator_span]
+
 theorem annihilator_bot : (⊥ : submodule R M).annihilator = ⊤ :=
 (ideal.eq_top_iff_one _).2 $ mem_annihilator'.2 bot_le
 
@@ -157,6 +175,35 @@ le_antisymm (smul_le.2 $ λ r hrS n hnT, span_induction hrS
   (λ c r, by rw [smul_eq_mul, mul_smul]; exact submodule.smul_mem _ _)) $
 span_le.2 $ set.bUnion_subset $ λ r hrS, set.bUnion_subset $ λ n hnT, set.singleton_subset_iff.2 $
 smul_mem_smul (subset_span hrS) (subset_span hnT)
+
+lemma union_eq_smul_set (r : R) (T : set M) :
+  (⋃ (t : M) (x : t ∈ T), {r • t}) = r • T := by tidy
+
+lemma ideal_span_singleton_smul (r : R) (N : submodule R M) :
+  (ideal.span {r} : ideal R) • N = r • N :=
+begin
+  have : span R (⋃ (t : M) (x : t ∈ N), {r • t}) = r • N,
+  { convert span_eq _, exact union_eq_smul_set r (N : set M) },
+  conv_lhs { rw [← span_eq N, span_smul_span] },
+  simpa
+end
+
+lemma span_smul_eq (r : R) (s : set M) :
+  span R (r • s) = r • span R s :=
+begin
+  rw [← ideal_span_singleton_smul, span_smul_span],
+  congr,
+  simpa using (union_eq_smul_set r s).symm
+end
+
+lemma mem_of_span_top_of_smul_mem (M' : submodule R M)
+  (s : set R) (hs : ideal.span s = ⊤) (x : M) (H : ∀ r : s, (r : R) • x ∈ M') : x ∈ M' :=
+begin
+  suffices : (⊤ : ideal R) • (span R ({x} : set M)) ≤ M',
+  { rw top_smul at this, exact this (subset_span (set.mem_singleton x)) },
+  rw [← hs, span_smul_span, span_le],
+  simpa using H
+end
 
 variables {M' : Type w} [add_comm_monoid M'] [module R M']
 

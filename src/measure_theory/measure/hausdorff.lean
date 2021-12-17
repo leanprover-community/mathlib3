@@ -589,7 +589,7 @@ lemma hausdorff_measure_le_liminf_sum {β : Type*}  {ι : β → Type*} [hι : �
 mk_metric_le_liminf_sum s r hr t ht hst _
 
 /-- If `d₁ < d₂`, then for any set `s` we have either `μH[d₂] s = 0`, or `μH[d₁] s = ∞`. -/
-lemma hausdorff_measure_zero_or_top {d₁ d₂ : ℝ} (h : d₁ < d₂) (s : set X) :
+lemma hausdorff_measure_zero_or_top {d₁ d₂ : ℝ} (h : d₁ < d₂) (h' : 0 ≤ d₁) (s : set X) :
   μH[d₂] s = 0 ∨ μH[d₁] s = ∞ :=
 begin
   by_contra H, push_neg at H,
@@ -606,11 +606,14 @@ begin
   rintro r ⟨hr₀, hrc⟩,
   lift r to ℝ≥0 using ne_top_of_lt hrc,
   rw [pi.smul_apply, smul_eq_mul, ← ennreal.div_le_iff_le_mul (or.inr ennreal.coe_ne_top)
-    (or.inr $ mt ennreal.coe_eq_zero.1 hc), ← ennreal.rpow_sub _ _ hr₀.ne' ennreal.coe_ne_top],
+    (or.inr $ mt ennreal.coe_eq_zero.1 hc)],
+  rw ennreal.rpow_sub,
   refine (ennreal.rpow_lt_rpow hrc (sub_pos.2 h)).le.trans _,
   rw [← ennreal.rpow_mul, inv_mul_cancel (sub_pos.2 h).ne', ennreal.rpow_one],
   exact le_rfl
 end
+
+#exit
 
 /-- Hausdorff measure `μH[d] s` is monotone in `d`. -/
 lemma hausdorff_measure_mono {d₁ d₂ : ℝ} (h : d₁ ≤ d₂) (s : set X) : μH[d₂] s ≤ μH[d₁] s :=
@@ -624,7 +627,7 @@ end
 lemma no_atoms_hausdorff {d : ℝ} (hd : 0 < d) : has_no_atoms (hausdorff_measure d : measure X) :=
 begin
   refine ⟨λ x, _⟩,
-  rw [← nonpos_iff_eq_zero, hausdorff_measure_apply'],
+  rw [← nonpos_iff_eq_zero, hausdorff_measure_apply],
   refine bsupr_le (λ ε ε0, binfi_le_of_le (λ n, {x}) _ (infi_le_of_le (λ n, _) _)),
   { exact subset_Union (λ n, {x} : ℕ → set X) 0 },
   { simp only [emetric.diam_singleton, zero_le] },

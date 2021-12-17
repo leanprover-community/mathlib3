@@ -1169,6 +1169,18 @@ begin
   simp [coe_rpow_of_ne_zero this, nnreal.rpow_add this]
 end
 
+lemma rpow_add_of_nonneg (x : ℝ≥0∞) {y z : ℝ} (hy : 0 ≤ y) (hz : 0 ≤ z) :
+  x ^ (y + z) = x ^ y * x ^ z :=
+begin
+  rcases eq_or_lt_of_le hy with rfl|h'y, { simp },
+  rcases eq_or_lt_of_le hz with rfl|h'z, { simp },
+  rcases eq_or_ne x ∞ with rfl|h'x,
+  { simp [h'y, h'z, add_pos h'y h'z] },
+  rcases eq_or_ne x 0 with rfl|hx,
+  { simp [h'y, h'z, add_pos h'y h'z] },
+  exact rpow_add y z hx h'x
+end
+
 lemma rpow_neg (x : ℝ≥0∞) (y : ℝ) : x ^ -y = (x ^ y)⁻¹ :=
 begin
   cases x,
@@ -1183,6 +1195,11 @@ end
 
 lemma rpow_sub {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y - z) = x ^ y / x ^ z :=
 by rw [sub_eq_add_neg, rpow_add _ _ hx h'x, rpow_neg, div_eq_mul_inv]
+
+lemma rpow_sub_of_nonneg_of_nonpos (x : ℝ≥0∞) {y z : ℝ} (hy : 0 ≤ y) (hz : z ≤ 0) :
+  x ^ (y - z) = x ^ y / x ^ z :=
+by rw [div_eq_mul_inv, ← rpow_neg, sub_eq_add_neg,
+    rpow_add_of_nonneg x hy (right.nonneg_neg_iff.2 hz)]
 
 lemma rpow_neg_one (x : ℝ≥0∞) : x ^ (-1 : ℝ) = x ⁻¹ :=
 by simp [rpow_neg]

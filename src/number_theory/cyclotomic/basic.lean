@@ -129,7 +129,7 @@ lemma union_right [h : is_cyclotomic_extension (S ∪ T) A B]
 begin
   have : { b : B | ∃ (n : ℕ+), n ∈ S ∪ T ∧ b ^ (n : ℕ) = 1 } =
     { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 } ∪
-    { b : B | ∃ (n : ℕ+), n ∈ T ∧ b ^ (n : ℕ ) = 1 },
+    { b : B | ∃ (n : ℕ+), n ∈ T ∧ b ^ (n : ℕ) = 1 },
   { refine le_antisymm (λ x hx, _) (λ x hx, _),
     { obtain ⟨n, hn⟩ := hx,
       cases hn.1 with h₁ h₂,

@@ -109,17 +109,17 @@ begin
     obtain ⟨p, hl⟩ := exists_point l,
     rw [finset.card_singleton, finset.singleton_bUnion, nat.one_le_iff_ne_zero],
     exact finset.card_ne_zero_of_mem (set.mem_to_finset.mpr hl) },
-  by_cases hs₂ : fintype.card L ≤ s.card,
-  { obtain rfl := s.card_eq_iff_eq_univ.mp (le_antisymm s.card_le_univ hs₂),
-    suffices : finset.univ.bUnion t = finset.univ,
-    { rwa [this, finset.card_univ, finset.card_univ] },
-    refine finset.eq_univ_iff_forall.mpr (λ p, finset.mem_bUnion.mpr _),
+  by_cases hs₂ : fintype.card P ≤ s.card,
+  { obtain rfl := s.card_eq_iff_eq_univ.mp (le_antisymm s.card_le_univ (h.trans hs₂)),
+    calc finset.univ.card = fintype.card L : finset.card_univ
+    ... ≤ fintype.card P : h
+    ... = (finset.univ.bUnion t).card : ((finset.univ.bUnion t).card_eq_iff_eq_univ.mpr
+      (finset.eq_univ_iff_forall.mpr (λ p, finset.mem_bUnion.mpr _))).symm,
     obtain ⟨l, hl⟩ := @exists_line P L _ _ p,
     exact ⟨l, finset.mem_univ l, set.mem_to_finset.mpr hl⟩ },
-  suffices : (s.bUnion t)ᶜ.card ≤ 1,
-  { rw [finset.card_compl, tsub_le_iff_left] at this,
-    exact (add_le_add_iff_right 1).mp (le_trans (not_le.mp hs₂) (h.trans this)) },
-  refine finset.card_le_one_iff.mpr (λ p₁ p₂ hp₁ hp₂, _),
+  refine nat.lt_add_one_iff.mp (lt_of_lt_of_le (not_le.mp hs₂) _),
+  rw [←tsub_le_iff_left, ←finset.card_compl, finset.card_le_one_iff],
+  intros p₁ p₂ hp₁ hp₂,
   simp_rw [finset.mem_compl, finset.mem_bUnion, exists_prop, not_exists, not_and,
     set.mem_to_finset, set.mem_set_of_eq, not_not] at hp₁ hp₂,
   obtain ⟨l₁, l₂, hl₁, hl₂, hl₃⟩ :=

@@ -140,8 +140,11 @@ lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G
 
 @[symm] lemma adj_symm (h : G.adj u v) : G.adj v u := G.symm h
 
-lemma ne_of_adj (hab : G.adj a b) : a ≠ b :=
-by { rintro rfl, exact G.irrefl hab }
+lemma ne_of_adj (h : G.adj a b) : a ≠ b := by { rintro rfl, exact G.irrefl h }
+
+protected lemma adj.ne {G : simple_graph V} {a b : V} (h : G.adj a b) : a ≠ b := G.ne_of_adj h
+
+protected lemma adj.ne' {G : simple_graph V} {a b : V} (h : G.adj a b) : b ≠ a := h.ne.symm
 
 section order
 
@@ -315,13 +318,13 @@ def incidence_set (v : V) : set (sym2 V) := {e ∈ G.edge_set | v ∈ e}
 
 lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set := λ _ h, h.1
 
-lemma mem_incidence_set_iff : ⟦(b, c)⟧ ∈ G.incidence_set a ↔ G.adj b c ∧ (a = b ∨ a = c) :=
+lemma mk_mem_incidence_set_iff : ⟦(b, c)⟧ ∈ G.incidence_set a ↔ G.adj b c ∧ (a = b ∨ a = c) :=
 and_congr_right' sym2.mem_iff
 
-lemma mem_incidence_set_left_iff : ⟦(a, b)⟧ ∈ G.incidence_set a ↔ G.adj a b :=
+lemma mk_mem_incidence_set_left_iff : ⟦(a, b)⟧ ∈ G.incidence_set a ↔ G.adj a b :=
 and_iff_left $ sym2.mem_mk_left _ _
 
-lemma mem_incidence_set_right_iff : ⟦(a, b)⟧ ∈ G.incidence_set b ↔ G.adj a b :=
+lemma mk_mem_incidence_set_right_iff : ⟦(a, b)⟧ ∈ G.incidence_set b ↔ G.adj a b :=
 and_iff_left $ sym2.mem_mk_right _ _
 
 lemma edge_mem_incidence_set_iff {e : G.edge_set} : ↑e ∈ G.incidence_set a ↔ a ∈ (e : sym2 V) :=
@@ -329,20 +332,20 @@ and_iff_right e.2
 
 lemma incidence_set_inter_incidence_set_subset (h : a ≠ b) :
   G.incidence_set a ∩ G.incidence_set b ⊆ {⟦(a, b)⟧} :=
-λ e he, (sym2.elems_iff_eq h).1 ⟨he.1.2, he.2.2⟩
+λ e he, (sym2.mem_and_mem_iff h).1 ⟨he.1.2, he.2.2⟩
 
 lemma incidence_set_inter_incidence_set (h : G.adj a b) :
   G.incidence_set a ∩ G.incidence_set b = {⟦(a, b)⟧} :=
 begin
-  refine (G.incidence_set_inter_incidence_set_subset $ G.ne_of_adj h).antisymm _,
+  refine (G.incidence_set_inter_incidence_set_subset $ h.ne).antisymm _,
   rintro _ (rfl : _ = ⟦(a, b)⟧),
-  exact ⟨G.mem_incidence_set_left_iff.2 h, G.mem_incidence_set_right_iff.2 h⟩,
+  exact ⟨G.mk_mem_incidence_set_left_iff.2 h, G.mk_mem_incidence_set_right_iff.2 h⟩,
 end
 
 lemma adj_of_mem_incidence_set (h : a ≠ b) (ha : e ∈ G.incidence_set a)
   (hb : e ∈ G.incidence_set b) :
   G.adj a b :=
-by rwa [←mem_incidence_set_left_iff,
+by rwa [←mk_mem_incidence_set_left_iff,
   ←set.mem_singleton_iff.1 $ G.incidence_set_inter_incidence_set_subset h ⟨ha, hb⟩]
 
 instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v : V) :

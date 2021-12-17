@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
 import category_theory.category.basic
+import data.finsupp.basic
+import data.dfinsupp
+import data.sigma.order
 import .cover
 
 /-!
@@ -32,8 +35,9 @@ notion of flags. These are separated into `flag.lean`.
 -/
 
 open category_theory nat
+open_locale big_operators
 
-variables {α β : Type*}
+variables {ι α β : Type*} {σ : ι → Type*}
 
 /-- A graded order is an order homomorphism into ℕ such that:
     * `⊥` has grade 0
@@ -77,10 +81,10 @@ variables [partial_order α]
 section order_bot
 variables [order_bot α] [grade_order α] {a b : α}
 
-lemma grade_mono : monotone (grade : α → ℕ) := by convert grade_strict_mono.monotone
+lemma grade_mono : monotone (grade : α → ℕ) := grade_strict_mono.monotone
 
 /-- The grade as an order homomorphism. -/
-def grade_order.preorder_hom : α →ₘ ℕ := ⟨grade, grade_mono⟩
+def grade_order.order_hom : α →ₘ ℕ := ⟨grade, grade_mono⟩
 
 /-- A closed non-empty interval of a graded poset is a graded poset. -/
 def set.Icc.graded (h : a ≤ b) : @grade_order (set.Icc a b) _ (set.Icc.order_bot h) :=
@@ -89,11 +93,11 @@ def set.Icc.graded (h : a ≤ b) : @grade_order (set.Icc a b) _ (set.Icc.order_b
     nat.sub_mono_left_strict (grade_mono x.prop.left) (grade_strict_mono h),
   grade_bot := tsub_eq_zero_of_le le_rfl,
   hcovers := begin
-    rintros ⟨x, hx⟩ ⟨y, hy⟩ ⟨hxy, hcov⟩,
+    rintro ⟨x, hx⟩ ⟨y, hy⟩ ⟨hxy, hcov⟩,
     suffices this : ∀ z, z ∉ set.Ioo x y,
       { rw [(covers.grade ⟨hxy, this⟩ : (grade y = grade x + 1)), nat.sub_add_comm],
         exact grade_mono hx.left },
-    rintros _ ⟨hl, hr⟩,
+    rintro _ ⟨hl, hr⟩,
     simp at hcov, -- Todo(Vi): Remove this `simp`.
     exact hcov _ (hx.left.trans (le_of_lt hl)) ((le_of_lt hr).trans hy.right) hl hr,
   end }
@@ -281,7 +285,7 @@ section unique
 variables (α) [unique α] [preorder α]
 
 /-- An order with one element is a graded order, aka a nullitope. -/
-def unique.to_graded_order [order_bot α] : grade_order α :=
+def unique.to_grade_order [order_bot α] : grade_order α :=
 { grade := λ _, 0,
   grade_bot := rfl,
   strict_mono := subsingleton.strict_mono,
@@ -300,7 +304,7 @@ section is_simple_order
 variables (α)
 
 /-- A simple order is a graded order, aka a point. -/
-def is_simple_order.to_graded_order [decidable_eq α] [preorder α] [bounded_order α]
+def is_simple_order.to_grade_order [decidable_eq α] [preorder α] [bounded_order α]
   [is_simple_order α] :
   grade_order α :=
 { grade := λ a, if a = ⊥ then 0 else 1,
@@ -326,64 +330,244 @@ is_simple_order.bot_covers_top.grade.trans $ by rw [grade_bot, zero_add]
 
 end is_simple_order
 
+/-! #### Finset -/
+
+namespace finset
+
+instance (α : Type*) : grade_order (finset α) :=
+{ grade := card,
+  grade_bot := card_empty,
+  strict_mono := λ s t, card_lt_card,
+  hcovers := λ s t hst, begin
+    sorry
+  end }
+
+@[simp] protected lemma grade (s : finset α) : grade s = s.card := rfl
+
+end finset
+
+/-! #### Multiset -/
+
+namespace multiset
+
+instance (α : Type*) : grade_order (multiset α) :=
+{ grade := card,
+  grade_bot := card_zero,
+  strict_mono := λ a b, card_lt_of_lt,
+  hcovers := λ a b hab, begin
+    sorry
+  end }
+
+@[simp] protected lemma grade (m : multiset α) : grade m = m.card := rfl
+
+end multiset
+
+/-! #### Finitely supported functions to a graded order -/
+
+namespace finsupp
+variables (α β) [canonically_ordered_add_monoid β] [grade_order β]
+
+instance : grade_order (α →₀ β) :=
+{ grade := λ f, f.sum (λ _, grade),
+  grade_bot := sorry,
+  strict_mono := λ a b, begin
+    sorry
+  end,
+  hcovers := λ a b hab, begin
+    sorry
+  end }
+
+variables {α β}
+
+@[simp] protected lemma grade (f : α →₀ β) : grade f = f.sum (λ _, grade) := rfl
+
+end finsupp
+
+/-! #### Finitely supported dependent functions to graded orders -/
+
+namespace dfinsupp
+variables (ι σ) [decidable_eq ι] [Π i, canonically_ordered_add_monoid (σ i)]
+  [Π i (x : σ i), decidable (x ≠ 0)] [Π i, grade_order (σ i)]
+
+instance : grade_order (Π₀ i, σ i) :=
+{ grade := λ f, f.sum (λ i, grade),
+  grade_bot := sorry,
+  strict_mono := λ a b, sorry,
+  hcovers := λ a b hab, begin
+    sorry
+  end }
+
+variables {ι σ}
+
+@[simp] protected lemma grade (f : Π₀ i, σ i) : grade f = f.sum (λ i, grade) := rfl
+
+end dfinsupp
+
 /-! #### Product of two graded orders -/
 
 namespace prod
+variables (α β) [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β]
+  [grade_order β]
 
-instance [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β] [grade_order β] :
-  grade_order (α × β) :=
+instance : grade_order (α × β) :=
 { grade := λ a, grade a.1 + grade a.2,
   grade_bot := begin
     convert (zero_add _).trans grade_bot,
     exact grade_bot,
   end,
   strict_mono := λ a b h, begin
+    rw prod.lt_iff at h,
+    cases h,
+    {
+      sorry,
+    },
+    {
+      sorry
+    }
+  end,
+  hcovers := sorry }
+
+variables {α β}
+
+@[simp] protected lemma grade (a : α × β) : grade a = grade a.1 + grade a.2 := rfl
+
+end prod
+
+/-! #### Finite product of graded orders -/
+
+namespace pi
+variables (ι σ) [fintype ι] [Π i, preorder (σ i)] [Π i, order_bot (σ i)] [Π i, grade_order (σ i)]
+
+instance : grade_order (Π i, σ i) :=
+{ grade := λ f, ∑ i, grade (f i),
+  grade_bot := by simp_rw [bot_apply, grade_bot, finset.sum_const_zero],
+  strict_mono := λ a b h, begin
+    rw pi.lt_def at h,
+    obtain ⟨h, i, hi⟩ := h,
     sorry
   end,
   hcovers := sorry }
 
-protected lemma grade [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β]
-  [grade_order β] (a : α × β) :
-  grade a = grade a.1 + grade a.2 := rfl
+variables {ι σ}
 
-end prod
+@[simp] protected lemma grade (f : Π i, σ i) : grade f = ∑ i, grade (f i) := rfl
+
+end pi
+
+/-! #### Lexicographical sum of two graded orders -/
+
+section sum
+variables (α β) [preorder α] [bounded_order α] [grade_order α] [preorder β] [order_bot β]
+  [grade_order β]
+
+def grade_order : grade_order (α ⊕ β) :=
+{ grade := λ a, a.elim grade (λ b, grade (⊤ : α) + grade b),
+  grade_bot := grade_bot,
+  strict_mono := λ a b h, sorry,
+  hcovers := sorry }
+
+variables {α β}
+
+@[simp] protected lemma grade_inl (a : α) : grade (sum.inl a) = grade a := rfl
+
+@[simp] protected lemma grade_inr (b : β) : grade (sum.inr b) = grade (⊤ : α) + grade b := rfl
+
+end sigma
+
+/-! #### Finite lexicographical sum of graded orders -/
+
+namespace sigma.lex
+variables (ι σ) [fintype ι] [linear_order ι] [Π i, preorder (σ i)] [Π i, order_bot (σ i)]
+  [Π i, grade_order (σ i)]
+
+open_locale lex
+
+/-- The lexicographical grading on a sigma type. Turn this on by opening locale `lex`. -/
+def grade_order : grade_order (Σ i, σ i) :=
+{ grade := sorry,
+  grade_bot := sorry,
+  strict_mono := λ a b h, sorry,
+  hcovers := sorry }
+
+localized "attribute [instance] sigma.lex.grade_order" in lex
+
+variables {ι σ}
+
+@[simp] protected lemma grade (f : Σ i, σ i) : grade f = sorry := rfl
+
+end sigma.lex
+
+namespace psigma.lex
+variables (ι σ) [fintype ι] [linear_order ι] [Π i, preorder (σ i)] [Π i, order_bot (σ i)]
+  [Π i, grade_order (σ i)]
+
+open_locale lex
+
+/-- The lexicographical grading on a sigma type. Turn this on by opening locale `lex`. -/
+def grade_order : grade_order (Σ' i, σ i) :=
+{ grade := sorry,
+  grade_bot := sorry,
+  strict_mono := λ a b h, sorry,
+  hcovers := sorry }
+
+localized "attribute [instance] psigma.lex.grade_order" in lex
+
+variables {ι σ}
+
+@[simp] protected lemma grade (f : Σ' i, σ i) : grade f = sorry := rfl
+
+end psigma.lex
 
 /-! #### `with_bot`, `with_top` -/
 
-instance (α : Type*) [preorder α] [order_bot α] [grade_order α] : grade_order (with_bot α) :=
+namespace with_bot
+variables (α) [preorder α] [order_bot α] [grade_order α]
+
+instance : grade_order (with_bot α) :=
 { grade := @with_bot.rec_bot_coe α (λ _, ℕ) 0 (λ a, grade a + 1),
   grade_bot := rfl,
   strict_mono := λ x y h, begin
-    cases x,
-      { cases y,
-        { exact (ne_of_lt h rfl).elim },
-        { exact nat.zero_lt_succ _ }},
-    cases y,
-      { exact (not_le_of_lt h bot_le).elim },
-      { exact succ_lt_succ (grade_order.strict_mono (with_bot.some_lt_some.1 h)) }
+    cases x; cases y,
+    { exact (h.ne rfl).elim },
+    { exact nat.zero_lt_succ _ },
+    { exact (not_lt_bot h).elim },
+    { exact succ_lt_succ (grade_order.strict_mono (with_bot.some_lt_some.1 h)) }
   end,
   hcovers := λ x y h, begin
     sorry
   end }
 
-instance (α : Type*) [partial_order α] [bounded_order α] [grade_order α] : grade_order (with_top α) :=
+variables {α}
+
+@[simp] protected lemma grade_coe (a : α) : grade (a : with_bot α) = grade a + 1 := rfl
+
+end with_bot
+
+namespace with_top
+variables (α) [partial_order α] [bounded_order α] [grade_order α]
+
+instance : grade_order (with_top α) :=
 { grade := @with_top.rec_top_coe α (λ _, ℕ) (grade (⊤ : α) + 1) grade,
   grade_bot := grade_bot,
   strict_mono := λ x y h, begin
-    cases x,
-      { cases y,
-        { exact (ne_of_lt h rfl).elim },
-        { exact (not_le_of_lt h le_top).elim }},
-    cases y,
-      { exact nat.lt_succ_of_le (grade_le_grade_top _) },
-      { exact grade_order.strict_mono (with_top.some_lt_some.1 h) }
+    cases x; cases y,
+    { exact (h.ne rfl).elim },
+    { exact (not_le_of_lt h le_top).elim },
+    { exact nat.lt_succ_of_le (grade_le_grade_top _) },
+    { exact grade_order.strict_mono (with_top.some_lt_some.1 h) }
   end,
   hcovers := λ x y h, begin
     sorry
   end }
 
-/-! ### More stuff -/
+variables {α}
 
+@[simp] protected lemma grade_coe (a : α) : grade (a : with_top α) = grade a := rfl
+@[simp] protected lemma grade_top : grade (⊤ : with_top α) = grade (⊤ : α) + 1 := rfl
+
+end with_top
+
+/-! ### More stuff -/
 
 namespace polytope
 variable [has_lt α]
@@ -409,26 +593,23 @@ section order_bot
 variables [order_bot α]
 
 /-- The bottom element is improper. -/
-lemma not_proper_bot : ¬ is_proper (⊥ : α) := λ ⟨_, _, ⟨h, _⟩⟩, not_le_of_gt h bot_le
+lemma not_proper_bot : ¬ is_proper (⊥ : α) := λ ⟨_, _, h, _⟩, not_lt_bot h
+
+lemma is_proper.ne_bot {a : α} (h : polytope.is_proper a) : a ≠ ⊥ :=
+by { rintro rfl, exact not_proper_bot h }
 
 end order_bot
 
-section bounded_order
-variables [bounded_order α]
+section order_top
+variables [order_top α]
 
 /-- The top element is improper. -/
-lemma not_proper_top : ¬ is_proper (⊤ : α) := λ ⟨_, _, ⟨_, h⟩⟩, not_le_of_gt h le_top
+lemma not_proper_top : ¬ is_proper (⊤ : α) := λ ⟨_, _, _, h⟩, not_top_lt h
 
-/-- Elements other than the bottom and top ones are proper. -/
-lemma proper.ne_bot_top (a : α) : polytope.is_proper a → a ≠ ⊥ ∧ a ≠ ⊤ :=
-begin
-  refine (λ ha, ⟨λ h, _, λ h, _⟩);
-  rw h at ha,
-  exact not_proper_bot ha,
-  exact not_proper_top ha
-end
+lemma is_proper.ne_top {a : α} (h : polytope.is_proper a) : a ≠ ⊤ :=
+by { rintro rfl, exact not_proper_top h }
 
-end bounded_order
+end order_top
 end preorder
 
 section partial_order
@@ -439,7 +620,7 @@ variables [bounded_order α]
 
 /-- The improper elements are exactly the bottom and top ones. -/
 lemma proper_iff_ne_bot_top (a : α) : polytope.is_proper a ↔ a ≠ ⊥ ∧ a ≠ ⊤ :=
-⟨proper.ne_bot_top a, λ ⟨hl, hr⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.2 hl, lt_top_iff_ne_top.2 hr⟩⟩
+⟨λ h, ⟨h.ne_bot, h.ne_top⟩, λ ⟨hl, hr⟩, ⟨⊥, ⊤, bot_lt_iff_ne_bot.2 hl, lt_top_iff_ne_top.2 hr⟩⟩
 
 variables [grade_order α]
 

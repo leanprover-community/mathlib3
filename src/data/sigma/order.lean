@@ -63,8 +63,8 @@ def lex.has_le [has_lt ι] [Π i, has_le (α i)] : has_le (Σ i, α i) := ⟨lex
 /-- The lexicographical `<` on a sigma type. Turn this on by opening locale `lex`. -/
 def lex.has_lt [has_lt ι] [Π i, has_lt (α i)] : has_lt (Σ i, α i) := ⟨lex (<) (λ i, (<))⟩
 
-localized "attribute [instance] lex.has_le" in lex
-localized "attribute [instance] lex.has_lt" in lex
+localized "attribute [instance] sigma.lex.has_le" in lex
+localized "attribute [instance] sigma.lex.has_lt" in lex
 
 /-- The lexicographical preorder on a sigma type. Turn this on by opening locale `lex`. -/
 def lex.preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σ i, α i) :=
@@ -85,14 +85,14 @@ def lex.preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σ i, α i) :
   .. lex.has_le,
   .. lex.has_lt }
 
-localized "attribute [instance] lex.preorder" in lex
+localized "attribute [instance] sigma.lex.preorder" in lex
 
 /-- The lexicographical partial order on a sigma type. Turn this on by opening locale `lex`. -/
 def lex.partial_order [preorder ι] [Π i, partial_order (α i)] : partial_order (Σ i, α i) :=
 { le_antisymm := λ _ _, antisymm,
   .. lex.preorder }
 
-localized "attribute [instance] lex.partial_order" in lex
+localized "attribute [instance] sigma.lex.partial_order" in lex
 
 /-- The lexicographical linear order on a sigma type. Turn this on by opening locale `lex`. -/
 def lex.linear_order [linear_order ι] [Π i, linear_order (α i)] : linear_order (Σ i, α i) :=

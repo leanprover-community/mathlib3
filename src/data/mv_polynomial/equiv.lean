@@ -467,7 +467,7 @@ end
 lemma degree_eval_le_degree {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
   (f : polynomial (mv_polynomial (fin n) R)) :
   polynomial.degree (polynomial.map (eval s') f) ≤ polynomial.degree f :=
-polynomial.degree_support_mono (support_eval s' f)
+polynomial.degree_mono (support_eval s' f)
 
 lemma nat_degree_eval_le_nat_degree {n : ℕ} {R : Type u} [comm_semiring R] (s : fin n → R)
   (f : polynomial (mv_polynomial (fin n) R)) :

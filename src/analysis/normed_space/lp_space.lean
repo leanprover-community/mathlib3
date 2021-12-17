@@ -89,8 +89,10 @@ section ℓp
 
 section ℓp_space_definition
 
-/-- The property that `f:α→E` is ae_measurable and `(∫ ∥f a∥^p ∂μ)^(1/p)` is finite if `p < ∞`, or
-`ess_sup f < ∞` if `p = ∞`. -/
+/-- The property that `f : Π i : α, E i`
+* is `0`, if `p = 0`, or
+* admits an upper bound for `set.range (λ i, ∥f i∥)`, if `p = ∞`, or
+* has the series `∑ i, ∥f i∥ ^ p` be summable, if `0 < p < ∞`. -/
 def mem_ℓp (f : Π i, E i) (p : ℝ≥0∞) : Prop :=
 if p = 0 then (f = 0) else
   (if p = ∞ then bdd_above (set.range (λ i, ∥f i∥)) else summable (λ i, ∥f i∥ ^ p.to_real))
@@ -475,7 +477,7 @@ lemma mem_Lp_const_smul (c : 𝕜) (f : Lp E p) : c • ↑f ∈ Lp E p := (Lp.m
 
 variables (E p 𝕜)
 
-/-- The `𝕜`-submodule of elements of `α →ₘ[μ] E` whose `Lp` norm is finite.  This is `Lp E p`,
+/-- The `𝕜`-submodule of elements of `Π i : α, E i` whose `Lp` norm is finite.  This is `Lp E p`,
 with extra structure. -/
 def Lp_submodule : submodule 𝕜 (Π i, E i) :=
 { smul_mem' := λ c f hf, by simpa using mem_Lp_const_smul c ⟨f, hf⟩,

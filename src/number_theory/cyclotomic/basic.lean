@@ -80,12 +80,8 @@ lemma iff_singleton : is_cyclotomic_extension {n} A B ↔
 by simp [is_cyclotomic_extension_iff]
 
 /-- If `is_cyclotomic_extension ∅ A B`, then `A = B`. -/
-lemma empty [h : is_cyclotomic_extension ∅ A B] : (⊤ : subalgebra A B) = ⊥ :=
-begin
-  replace h := h.adjoint_roots,
-  simp only [set.mem_empty_eq, set.set_of_false, adjoin_empty, exists_false, false_and] at h,
-  exact (algebra.eq_top_iff.2 h).symm,
-end
+lemma empty [h : is_cyclotomic_extension ∅ A B] : (⊥ : subalgebra A B) = ⊤ :=
+by simpa [algebra.eq_top_iff, is_cyclotomic_extension_iff] using h
 
 /-- Transitivity of cyclotomic extensions. -/
 lemma trans (C : Type w) [comm_ring C] [algebra A C] [algebra B C]
@@ -188,7 +184,7 @@ begin
   refine set.finite.induction_on (set.finite.intro h₁) (λ A B, _) (λ n S hn hS H A B, _),
   { introsI _ _ _ _ _,
     refine module.finite_def.2 ⟨({1} : finset B), _⟩,
-    simp [← top_to_submodule, empty, to_submodule_bot] },
+    simp [← top_to_submodule, ← empty, to_submodule_bot] },
   { introsI _ _ _ _ h,
     haveI : is_cyclotomic_extension S A (adjoin A { b : B | ∃ (n : ℕ+),
       n ∈ S ∧ b ^ (n : ℕ) = 1 }) := union_left _ (insert n S) _ _ (subset_insert n S),

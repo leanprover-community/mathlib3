@@ -36,10 +36,37 @@ variables [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
 instance subgroup.smul_invariant_measure : smul_invariant_measure Γ G μ :=
 { measure_preimage_smul := λ c s hs, μ.haar_preimage_mul c s }
 
-instance quotient_group.has_measurable_smul : has_measurable_smul G (G ⧸ Γ) := sorry
+
+
+-- FROM OTHER PR'ed BRANCH
+class has_continuous_smul₂ (Γ : Type*) (T : Type*) [topological_space T] [has_scalar Γ T]
+ : Prop :=
+(continuous_smul₂ : ∀ γ : Γ, continuous (λ x : T, γ • x))
+
+export has_continuous_smul₂ (continuous_smul₂)
+
+instance : has_continuous_smul₂ G (G⧸Γ) :=
+{ continuous_smul₂ := begin
+  sorry,
+end }
+
+instance quotient_group.has_measurable_smul : has_measurable_smul G (G ⧸ Γ) :=
+{ measurable_const_smul := λ g, (continuous_smul₂ g).measurable,
+  measurable_smul_const := begin
+    intros x,
+    apply continuous.measurable,
+    sorry,
+  end}
 
 include h𝓕
 variables [encodable Γ]
+
+lemma measure_theory.is_fundamental_domain.smul (g : G) :
+is_fundamental_domain ↥Γ (has_mul.mul g ⁻¹' 𝓕) μ :=
+begin
+  -- ALEX HOMEWORK
+  sorry,
+end
 
 /-- The pushforward to the coset space `G ⧸ Γ` of the restriction of Haar measure on `G` to a
 fundamental domain `𝓕` is a `G`-invariant measure on `G ⧸ Γ`. -/
@@ -48,11 +75,6 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map :
 { measure_preimage_smul :=
 begin
   let π : G → G ⧸ Γ := @quotient_group.mk G _ Γ ,
-  have π_of_Γ : ∀ γ : Γ, π γ = π 1,
-  {
-    -- := λ γ,  (@quotient_group.eq_one_iff G _ Γ _ γ).mpr γ.prop,
-    sorry,
-  },
   have meas_π : measurable π :=
     continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
   have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
@@ -74,18 +96,21 @@ begin
     = has_mul.mul g ⁻¹' π_preA),
 
   have : μ (has_mul.mul g ⁻¹' π_preA ∩ 𝓕) = μ (π_preA ∩ has_mul.mul (g⁻¹) ⁻¹' 𝓕),
-  {
-    sorry,
-  },
+  { transitivity μ (has_mul.mul g ⁻¹' (π_preA ∩ has_mul.mul g⁻¹ ⁻¹' 𝓕)),
+    { rw preimage_inter,
+      congr,
+      rw [← preimage_comp, comp_mul_left, mul_left_inv],
+      ext,
+      simp, },
+    rw is_mul_left_invariant.measure_preimage_mul,
+    exact measure.is_mul_left_invariant_haar μ, },
   rw this,
 
-  have h𝓕_translate_fundom : is_fundamental_domain Γ (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ,
-  { -- this goal is just invariance of measure under group action, I think
-    sorry },
+  have h𝓕_translate_fundom : is_fundamental_domain Γ (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ := h𝓕.smul  (g⁻¹),
 
   rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA _,
 
-  intros γ,
+  intros γ, -- ALEX Homework
   sorry,
 
   repeat {sorry},

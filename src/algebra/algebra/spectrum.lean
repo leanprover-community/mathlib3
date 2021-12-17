@@ -310,6 +310,18 @@ begin
     simp only [set.image_congr, eval_C, aeval_C, scalar_eq, set.nonempty.image_const hnon] },
 end
 
+variable (𝕜)
+lemma nonempty_of_is_alg_closed_of_finite_dimensional [is_alg_closed 𝕜]
+  [nontrivial A] [I : finite_dimensional 𝕜 A] (a : A) :
+  ∃ k : 𝕜, k ∈ σ a :=
+begin
+  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian (is_noetherian.iff_fg.2 I) a,
+  have nu : ¬ is_unit (aeval a p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
+  rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p)] at nu,
+  obtain ⟨k, hk, _⟩ := exists_mem_of_not_is_unit_aeval_prod (monic.ne_zero h_mon) nu,
+  exact ⟨k, hk⟩
+end
+
 end scalar_field
 
 end spectrum

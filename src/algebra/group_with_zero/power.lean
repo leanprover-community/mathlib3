@@ -240,8 +240,12 @@ by simp only [div_eq_mul_inv, mul_pow, inv_pow₀]
   (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_zpow₀, inv_zpow₀]
 
-lemma div_sq_cancel {a : G₀} (ha : a ≠ 0) (b : G₀) : a ^ 2 * b / a = a * b :=
-by rw [sq, mul_assoc, mul_div_cancel_left _ ha]
+lemma div_sq_cancel (a b : G₀) : a ^ 2 * b / a = a * b :=
+begin
+  by_cases ha : a = 0,
+  { simp [ha] },
+  rw [sq, mul_assoc, mul_div_cancel_left _ ha]
+end
 
 end
 

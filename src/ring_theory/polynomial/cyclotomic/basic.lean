@@ -113,11 +113,9 @@ unity in `R`. -/
 lemma nat_degree_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
   (cyclotomic' n R).nat_degree = nat.totient n :=
 begin
-  cases nat.eq_zero_or_pos n with hzero hpos,
-  { simp only [hzero, cyclotomic'_zero, nat.totient_zero, nat_degree_one] },
   rw [cyclotomic'],
   rw nat_degree_prod (primitive_roots n R) (λ (z : R), (X - C z)),
-  simp only [is_primitive_root.card_primitive_roots h hpos, mul_one,
+  simp only [is_primitive_root.card_primitive_roots h, mul_one,
   nat_degree_X_sub_C,
   nat.cast_id, finset.sum_const, nsmul_eq_mul],
   intros z hz,
@@ -182,10 +180,9 @@ begin
              skip,
              simp [rwcyc, H] },
   rw ← finset.prod_bUnion,
-  { simp only [is_primitive_root.nth_roots_one_eq_bUnion_primitive_roots hpos h] },
+  { simp only [is_primitive_root.nth_roots_one_eq_bUnion_primitive_roots h] },
   intros x hx y hy hdiff,
-  rw finset.mem_coe at hx hy,
-  exact is_primitive_root.disjoint (nat.pos_of_mem_divisors hx) (nat.pos_of_mem_divisors hy) hdiff,
+  exact is_primitive_root.disjoint hdiff,
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
@@ -386,11 +383,11 @@ begin
   have integer : ∏ i in nat.divisors n, cyclotomic i ℤ = X ^ n - 1,
   { apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
     rw map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
-    simp only [int_cyclotomic_spec, map_pow, nat.cast_id, map_X, map_one, map_sub],
+    simp only [int_cyclotomic_spec, polynomial.map_pow, nat.cast_id, map_X, map_one, map_sub],
     exact prod_cyclotomic'_eq_X_pow_sub_one hpos
           (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
   have coerc : X ^ n - 1 = map (int.cast_ring_hom R) (X ^ n - 1),
-  { simp only [map_pow, map_X, map_one, map_sub] },
+  { simp only [polynomial.map_pow, polynomial.map_X, polynomial.map_one, polynomial.map_sub] },
   have h : ∀ i ∈ n.divisors, cyclotomic i R = map (int.cast_ring_hom R) (cyclotomic i ℤ),
   { intros i hi,
     exact (map_cyclotomic_int i R).symm },
@@ -697,7 +694,7 @@ lemma cyclotomic_eq_minpoly {n : ℕ} {K : Type*} [field K] {μ : K}
 begin
   refine eq_of_monic_of_dvd_of_nat_degree_le (minpoly.monic (is_integral h hpos))
     (cyclotomic.monic n ℤ) (minpoly_dvd_cyclotomic h hpos) _,
-  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h hpos
+  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h
 end
 
 /-- `cyclotomic n ℤ` is irreducible. -/

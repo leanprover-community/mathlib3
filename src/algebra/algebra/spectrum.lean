@@ -257,7 +257,7 @@ begin
   have aeval_q_eq : ↑ₐ(eval k p) - aeval a p = aeval a q,
     by simp only [aeval_C, alg_hom.map_sub, sub_left_inj],
   rw [mem_iff, aeval_q_eq, ←hroot, aeval_mul],
-  have hcomm := aeval_comm a (C k - X) (- (q / (X - C k))),
+  have hcomm := (commute.all (C k - X) (- (q / (X - C k)))).map (aeval a),
   apply mt (λ h, (hcomm.is_unit_mul_iff.mp h).1),
   simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
 end
@@ -268,7 +268,7 @@ assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
 theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : polynomial 𝕜)
   (hdeg : 0 < degree p) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
 begin
-  /- handle the easy direction via `spectrum.polynomial_subset` -/
+  /- handle the easy direction via `spectrum.subset_polynomial_aeval` -/
   refine set.eq_of_subset_of_subset _ (subset_polynomial_aeval a p),
   intros k hk,
   /- write `C k - p` as a product of linear factors and a constant; show `(C k - p).degree > 0`
@@ -286,7 +286,7 @@ begin
   have p_a_eq : aeval a (C k - p) = ↑ₐk - aeval a p,
     by simp only [aeval_C, alg_hom.map_sub, sub_left_inj],
   rw [mem_iff, ←p_a_eq, hprod, aeval_mul,
-    (aeval_comm a _ _).is_unit_mul_iff, aeval_C] at hk,
+    ((commute.all _ _).map (aeval a)).is_unit_mul_iff, aeval_C] at hk,
   replace hk := not_and.mp hk lead_unit,
   rw ←multiset.prod_to_list at hk,
   have aeval_list_prod_unit : ∀ s : list (polynomial 𝕜), ∀ (h : ∀ p ∈ s, is_unit (aeval a p)),

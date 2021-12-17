@@ -247,10 +247,6 @@ lemma coeff_zero_eq_aeval_zero' (p : polynomial R) :
   algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
 by simp [aeval_def]
 
-theorem aeval_comm (a : A) (p q : polynomial R) :
-  commute (aeval a p) (aeval a q) :=
-by { refine (_ : _ * _ = _ * _), simp only [←aeval_mul, mul_comm] }
-
 variable (R)
 
 theorem _root_.algebra.adjoin_singleton_eq_range_aeval (x : A) :

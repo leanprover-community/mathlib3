@@ -454,8 +454,7 @@ by simp only [polynomial.coeff_map]
 
 /- TODO: what is a good name for this one? -/
 lemma support_eval {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
-  (f : polynomial (mv_polynomial (fin n) R)) :
-  (polynomial.map (eval s') f).support ⊆ f.support :=
+  (f : polynomial (mv_polynomial (fin n) R)) : (polynomial.map (eval s') f).support ⊆ f.support :=
 begin
   intros i hi,
   simp only [polynomial.mem_support_iff, polynomial.coeff_map, ne.def] at hi,
@@ -486,17 +485,55 @@ begin
   simpa [mem_support_iff, ←fin_succ_equiv_coeff_coeff m f i] using h,
 end
 
-lemma fin_succ_equiv_support {R : Type u}[comm_semiring R] {n i : ℕ}
-  {f : mv_polynomial (fin (n + 1)) R} : i ∈ (fin_succ_equiv R n f).support
-  ↔ ∃ m, (finsupp.cons i m) ∈ f.support :=
+lemma support_coeff_fin_succ_equiv' {n : ℕ} {R : Type u} [comm_semiring R]
+  {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :
+  finset.image (finsupp.cons i) (polynomial.coeff ((fin_succ_equiv R n) f) i).support
+   = f.support.filter(λ m, m 0 = i) :=
 begin
+  ext m,
   apply iff.intro,
-  intro h,
-  cases ne_zero_iff.1 (polynomial.mem_support_iff.1 h) with m' hm',
-  exact ⟨m', support_coeff_fin_succ_equiv.1 (mem_support_iff.2 hm')⟩,
   intro hm,
+  rw finset.mem_image at hm,
   cases hm with m' hm',
-  simpa using ne_zero_iff.2 ⟨m', mem_support_iff.1 (support_coeff_fin_succ_equiv.mpr hm')⟩,
+  cases hm' with h hm',
+  rw [mem_support_iff, fin_succ_equiv_coeff_coeff m' f i] at h,
+  simp only [←hm', mem_support_iff, ne.def, finset.mem_filter],
+  apply and.intro,
+  exact h,
+  rw cons_zero,
+  intro h,
+  simp only [mem_support_iff, finset.mem_image, ne.def],
+  simp only [mem_support_iff, ne.def, finset.mem_filter] at h,
+  use tail m,
+  apply and.intro,
+  rw [mem_support_iff, fin_succ_equiv_coeff_coeff (tail m) f i, ← h.2, cons_tail],
+  exact h.1,
+  rw [← h.2, cons_tail],
+end
+
+lemma fin_succ_equiv_support {R : Type u} [comm_semiring R] {n : ℕ}
+  (f : mv_polynomial (fin (n + 1)) R) :
+  (fin_succ_equiv R n f).support = finset.image (λ m : fin (n + 1)→₀ ℕ, m 0) f.support :=
+begin
+  apply finset.subset.antisymm,
+  intros i hi,
+  rw finset.mem_image,
+  rw polynomial.mem_support_iff at hi,
+  rw nonzero_iff_exists at hi,
+  cases hi with m hm,
+  use cons i m,
+  apply and.intro,
+  rw ← support_coeff_fin_succ_equiv,
+  simpa using hm,
+  rw cons_zero,
+  intros i hi,
+  rw polynomial.mem_support_iff,
+  rw finset.mem_image at hi,
+  cases hi with m hm,
+  cases hm with h hm,
+  rw nonzero_iff_exists,
+  use tail m,
+  rwa [← coeff, ← mem_support_iff, support_coeff_fin_succ_equiv, ← hm, cons_tail],
 end
 
 -- where should this be?
@@ -528,23 +565,9 @@ lemma degree_fin_succ_equiv {n : ℕ} {R : Type u} [comm_semiring R]
   {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
   (fin_succ_equiv R n f).degree = degree_of 0 f :=
 begin
-  rw polynomial.degree,
   have h' : (fin_succ_equiv R n f).support.sup (λ x , x)  = degree_of 0 f,
-  { rw degree_of_eq_sup,
-    apply nat.le_antisymm,
-    apply finset.sup_le,
-    intros i hi,
-    cases fin_succ_equiv_support.1 hi with m hm,
-    simpa only [finsupp.cons_zero] using
-      @finset.le_sup ℕ _ _ _ _ (λ m, m 0 : (fin (n + 1) →₀ ℕ) → ℕ) _ hm,
-    apply @finset.sup_le _ _ _ _ (f.support) (λ (m : fin (n + 1) →₀ ℕ), m 0),
-    intros m hm,
-    simp only,
-    exact @finset.le_sup ℕ  _ _ _ _ (λ x, x) _
-    ( (@fin_succ_equiv_support R _ n (m 0) f).2
-      ⟨finsupp.tail m, (by rwa (finsupp.cons_tail m))⟩) },
-  rw ← h',
-  rw coe_with_bottom_sup (support_fin_succ_equiv_nonempty h),
+  { rw [degree_of_eq_sup, fin_succ_equiv_support f, finset.sup_image] },
+  rw [polynomial.degree, ← h', coe_with_bottom_sup (support_fin_succ_equiv_nonempty h)],
   congr,
 end
 

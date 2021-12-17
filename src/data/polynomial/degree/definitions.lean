@@ -129,8 +129,7 @@ lemma le_nat_degree_of_mem_supp (a : ℕ) :
 le_nat_degree_of_ne_zero ∘ mem_support_iff.mp
 
 lemma degree_support_mono [semiring S] {f : polynomial R} {g : polynomial S}
-  (h : f.support ⊆ g.support) : f.degree ≤ g.degree :=
-by simpa only [degree] using finset.sup_mono h
+  (h : f.support ⊆ g.support) : f.degree ≤ g.degree := finset.sup_mono h
 
 lemma supp_subset_range (h : nat_degree p < m) : p.support ⊆ finset.range m :=
 λ n hn, mem_range.2 $ (le_nat_degree_of_mem_supp _ hn).trans_lt h

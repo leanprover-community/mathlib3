@@ -39,130 +39,70 @@ def multichoose1 (n k : ℕ) := fintype.card (sym (fin n) k)
 
 def multichoose2 (n k : ℕ) := (n + k - 1).choose k
 
-def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : (sym (fin n) k.succ) ⊕ (sym (fin n.succ) k) :=
-  if h : fin.last n ∈ x.val then sum.inr ⟨x.val.erase (fin.last n), begin
-    simp only [multiset.card_erase_of_mem h, x.property],
-    refl,
-  end⟩ else sum.inl ⟨x.val.map (λ a, ⟨if a.val = n then 0 else a.val, begin
-    have not_zero : n ≠ 0 := begin
-      intro g,
-      have := h begin
-        cases n,
-        { have zero_is_mem := @multiset.exists_mem_of_ne_zero _ x.val begin
-            have := x.property,
-            intro h,
-            rw h at this,
-            norm_num at this,
-          end,
-          cases zero_is_mem with w r,
-          rw (subsingleton.elim w 0) at r,
-          exact r },
-        { norm_num at g },
-      end,
-      norm_num at this,
-    end,
-    split_ifs,
-    { exact pos_iff_ne_zero.mpr not_zero },
-    { have two_branches := lt_or_eq_of_le (nat.le_of_lt_succ a.property),
-      cases two_branches,
-      { assumption },
-      { exfalso,
-        exact h_1 two_branches } },
-  end⟩), begin
-    rw multiset.card_map,
-    exact x.property,
-  end⟩
+def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
+if h : fin.last n ∈ x then
+  sum.inr ⟨x.val.erase (fin.last n), by { rw [multiset.card_erase_of_mem h, x.property], refl }⟩
+else begin
+  refine sum.inl ⟨x.val.map (λ a, ⟨if (a : ℕ) = n then 0 else a, _⟩), _⟩,
+  { split_ifs,
+    { rw pos_iff_ne_zero,
+      rintro rfl,
+      obtain ⟨w, r⟩ := @multiset.exists_mem_of_ne_zero _ x.val (λ h, by simpa [h] using x.property),
+      simpa [subsingleton.elim w 0] using r, },
+    { cases lt_or_eq_of_le (nat.le_of_lt_succ a.property); solve_by_elim } },
+  { rw [multiset.card_map, x.property] }
+end
 
-def decode (n k : ℕ) : (sym (fin n) k.succ) ⊕ (sym (fin n.succ) k) → sym (fin n.succ) k.succ
-| (sum.inl x) := ⟨x.val.map (λ a, ⟨a.val, nat.lt.step a.property⟩ : fin n → fin n.succ), begin
-  rw multiset.card_map,
-  exact x.property,
-end⟩
-| (sum.inr x) := ⟨multiset.cons (fin.last n) x.val, begin
-  rw [multiset.card_cons, x.property],
-end⟩
+def decode (n k : ℕ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k → sym (fin n.succ) k.succ
+| (sum.inl x) := ⟨x.val.map (λ a, ⟨a.val, a.property.step⟩),
+                  by simpa [multiset.card_map] using x.property⟩
+| (sum.inr x) := ⟨multiset.cons (fin.last n) x.val, by rw [multiset.card_cons, x.property]⟩
 
-lemma equivalent (n k : ℕ) :
-  sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
-begin
-  refine ⟨encode n k, decode n k, _, _⟩,
-  { rw function.left_inverse,
-    intro x,
+lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
+{ to_fun := encode n k,
+  inv_fun := decode n k,
+  left_inv := begin
+    rintro ⟨x, hx⟩,
     rw encode,
     split_ifs,
     { rw decode,
-      norm_num,
-      have := multiset.cons_erase h,
-      norm_num at this,
-      simp_rw this,
-      norm_num },
-    { simp only [multiset.map_map, decode],
-      have unpack : x = ⟨x.val, x.property⟩ := begin
-        norm_num,
-      end,
-      conv begin
-        to_rhs,
-        rw unpack,
-      end,
-      rw subtype.mk.inj_eq,
-      conv begin
-        to_rhs,
-        rw (@multiset.map_id _ x.val).symm,
-      end,
-      apply multiset.map_congr,
-      intros g hg,
-      simp only [function.comp],
+      simp [multiset.cons_erase h], },
+    { simp only [decode, multiset.map_map, subtype.mk.inj_eq, function.comp],
+      convert multiset.map_congr _,
+      { rw multiset.map_id, },
+      rintros ⟨g, hg⟩ h',
+      split_ifs with h'',
+      { simp only [fin.coe_mk] at h'',
+        subst g,
+        exact false.elim (h h'), },
+      { refl } },
+  end,
+  right_inv := begin
+    rintro (x|x),
+    { cases x with x hx,
+      rw [decode, encode],
       split_ifs,
-      { have unpack : g = ⟨g.val, g.property⟩ := begin
-          norm_num,
-        end,
-        have : g = fin.last n := begin
-          rw unpack,
-          simp_rw [h_1, fin.last],
-        end,
-        rw this at hg,
-        tauto },
-      { norm_num } } },
-  { rw [function.right_inverse, function.left_inverse],
-    intro x,
-    cases x,
-    { simp only [encode, decode],
-      split_ifs,
-      { simp only [] at h,
-        have y := multiset.mem_map.mp h,
-        rcases y with ⟨y, ⟨v, b⟩⟩,
-        have i := y.property,
-        rw subtype.mk.inj b at i,
-        exact nat.lt_asymm i i },
+      { obtain ⟨y, v, b⟩ := multiset.mem_map.mp h,
+        rw [fin.last, subtype.mk_eq_mk] at b,
+        have := y.property,
+        rw b at this,
+        exact nat.lt_asymm this this, },
       { simp only [multiset.map_map, function.comp],
-        have unpack : x = ⟨x.val, x.property⟩ := begin
-          norm_num,
-        end,
-        conv begin
-          to_rhs,
-          rw unpack,
-        end,
-        rw subtype.mk.inj_eq,
-        conv begin
-          to_rhs,
-          rw (@multiset.map_id _ x.val).symm,
-        end,
-        apply multiset.map_congr,
-        intros g hg,
-        split_ifs,
-        { have i := g.property,
-          rw h_1 at i,
-          exfalso,
-          exact lt_irrefl n i },
-        { rw id,
-          norm_num } },
-    },
-    { simp only [encode, decode],
+        simp only [fin.val_eq_coe, subtype.mk_eq_mk, multiset.map_map, fin.coe_mk],
+        convert multiset.map_congr _,
+        { rw multiset.map_id, },
+        rintros ⟨g, hg⟩ h',
+        split_ifs with h'',
+        { simp only [fin.coe_mk] at h'',
+          subst g,
+          exact (nat.lt_asymm hg hg).elim, },
+        { refl } } },
+    { rw [decode, encode],
       split_ifs,
-      { simp_rw multiset.erase_cons_head,
-        norm_num },
-      { norm_num at h } } },
-end
+      { simp, },
+      { apply h,
+        apply multiset.mem_cons_self, } }
+  end }
 
 lemma multichoose1_rec (n k : ℕ) :
   multichoose1 n.succ k.succ = multichoose1 n k.succ + multichoose1 n.succ k :=

@@ -234,7 +234,28 @@ instance : uniform_space C(α, β) :=
       refine ⟨K, V', hK, hV', _⟩,
       simp only [prod.forall, imp_self, set_of_subset_set_of, forall_2_true_iff],
     end,
-  comp := sorry, -- trivial
+  comp :=
+    begin
+      intros X hX,
+      obtain ⟨K, V, hK, hV, hX⟩ := (mem_compact_convergence_uniformity _).mp hX,
+      obtain ⟨V', hV', hcomp⟩ := comp_mem_uniformity_sets hV,
+      let h : set (C(α, β) × C(α, β)) → set (C(α, β) × C(α, β)) := λ s, s ○ s,
+      suffices : h {fg : C(α, β) × C(α, β) | ∀ x, x ∈ K → (fg.1 x, fg.2 x) ∈ V'} ∈
+                 compact_convergence_uniformity.lift' h,
+      { change X ∈ compact_convergence_uniformity.lift' h,
+        apply filter.mem_of_superset this,
+        simp only [h],
+        rintros ⟨f, g⟩ hfg,
+        apply hX,
+        intros x hx,
+        apply hcomp,
+        rw mem_comp_rel at hfg ⊢,
+        obtain ⟨z, hz₁, hz₂⟩ := hfg,
+        exact ⟨z x, hz₁ x hx, hz₂ x hx⟩, },
+      apply filter.mem_lift',
+      rw mem_compact_convergence_uniformity,
+      exact ⟨K, V', hK, hV', subset.refl _⟩,
+    end,
   is_open_uniformity :=
     begin
       simp only [← compact_open_eq_uniform],

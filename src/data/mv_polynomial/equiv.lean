@@ -485,32 +485,6 @@ begin
   simpa [mem_support_iff, ←fin_succ_equiv_coeff_coeff m f i] using h,
 end
 
-lemma support_coeff_fin_succ_equiv' {n : ℕ} {R : Type u} [comm_semiring R]
-  {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :
-  finset.image (finsupp.cons i) (polynomial.coeff ((fin_succ_equiv R n) f) i).support
-   = f.support.filter(λ m, m 0 = i) :=
-begin
-  ext m,
-  apply iff.intro,
-  intro hm,
-  rw finset.mem_image at hm,
-  cases hm with m' hm',
-  cases hm' with h hm',
-  rw [mem_support_iff, fin_succ_equiv_coeff_coeff m' f i] at h,
-  simp only [←hm', mem_support_iff, ne.def, finset.mem_filter],
-  apply and.intro,
-  exact h,
-  rw cons_zero,
-  intro h,
-  simp only [mem_support_iff, finset.mem_image, ne.def],
-  simp only [mem_support_iff, ne.def, finset.mem_filter] at h,
-  use tail m,
-  apply and.intro,
-  rw [mem_support_iff, fin_succ_equiv_coeff_coeff (tail m) f i, ← h.2, cons_tail],
-  exact h.1,
-  rw [← h.2, cons_tail],
-end
-
 lemma fin_succ_equiv_support {R : Type u} [comm_semiring R] {n : ℕ}
   (f : mv_polynomial (fin (n + 1)) R) :
   (fin_succ_equiv R n f).support = finset.image (λ m : fin (n + 1)→₀ ℕ, m 0) f.support :=
@@ -536,13 +510,28 @@ begin
   rwa [← coeff, ← mem_support_iff, support_coeff_fin_succ_equiv, ← hm, cons_tail],
 end
 
--- where should this be?
-lemma coe_with_bottom_sup {α : Type*} {s : finset α} (h : s.nonempty) (f : α → ℕ) :
-  (↑(s.sup f) : (with_bot ℕ)) = s.sup (λ i, f i) :=
+lemma fin_succ_equiv_support' {n : ℕ} {R : Type u} [comm_semiring R]
+  {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :
+  finset.image (finsupp.cons i) (polynomial.coeff ((fin_succ_equiv R n) f) i).support
+   = f.support.filter(λ m, m 0 = i) :=
 begin
-  rw ← finset.coe_sup' h,
-  congr,
-  simp only [finset.sup'_eq_sup],
+  ext m,
+  apply iff.intro,
+  intro hm,
+  rw finset.mem_image at hm,
+  cases hm with m' hm',
+  cases hm' with h hm',
+  rw [mem_support_iff, fin_succ_equiv_coeff_coeff m' f i] at h,
+  simp only [←hm', mem_support_iff, ne.def, finset.mem_filter],
+  exact ⟨h, by rw cons_zero⟩,
+  intro h,
+  simp only [mem_support_iff, finset.mem_image, ne.def],
+  simp only [mem_support_iff, ne.def, finset.mem_filter] at h,
+  use tail m,
+  apply and.intro,
+  rw [mem_support_iff, fin_succ_equiv_coeff_coeff (tail m) f i, ← h.2, cons_tail],
+  exact h.1,
+  rw [← h.2, cons_tail],
 end
 
 lemma support_fin_succ_equiv_nonempty  {n : ℕ} {R : Type u} [comm_semiring R]
@@ -567,7 +556,7 @@ lemma degree_fin_succ_equiv {n : ℕ} {R : Type u} [comm_semiring R]
 begin
   have h' : (fin_succ_equiv R n f).support.sup (λ x , x)  = degree_of 0 f,
   { rw [degree_of_eq_sup, fin_succ_equiv_support f, finset.sup_image] },
-  rw [polynomial.degree, ← h', coe_with_bottom_sup (support_fin_succ_equiv_nonempty h)],
+  rw [polynomial.degree, ← h', finset.coe_sup_of_nonempty (support_fin_succ_equiv_nonempty h)],
   congr,
 end
 

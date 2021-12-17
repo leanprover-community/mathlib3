@@ -6,7 +6,7 @@ Authors: Bhavik Mehta, Yaël Dillies
 import data.set.lattice
 import data.set_like.basic
 import order.galois_connection
-import order.order_hom
+import order.hom.basic
 import tactic.monotonicity
 
 /-!

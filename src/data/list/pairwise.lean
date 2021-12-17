@@ -259,7 +259,7 @@ begin
     { contradiction },
     { exact imp y hy },
     { exact hr (imp x hx) },
-    { exact IH x hx y hy hxy } }
+    { exact IH hx hy hxy } }
 end
 
 lemma pairwise_of_reflexive_on_dupl_of_forall_ne [decidable_eq α] {l : list α} {r : α → α → Prop}

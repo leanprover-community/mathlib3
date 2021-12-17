@@ -58,18 +58,13 @@ noncomputable theory
 /-- Given an `A`-algebra `B` and `S : set ℕ+`, we define `is_cyclotomic_extension S A B` requiring
 that `cyclotomic a A` has a root in `B` for all `a ∈ S` and that `B` is generated over `A` by the
 roots of `X ^ n - 1`. -/
-class is_cyclotomic_extension : Prop :=
+@[mk_iff] class is_cyclotomic_extension : Prop :=
 (ex_root {a : ℕ+} (ha : a ∈ S) : ∃ r : B, aeval r (cyclotomic a A) = 0)
 (adjoint_roots : ∀ (x : B), x ∈ adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 })
 
 namespace is_cyclotomic_extension
 
 section basic
-
-lemma iff : is_cyclotomic_extension S A B ↔
- (∀ (a : ℕ+), a ∈ S → ∃ r : B, aeval r (cyclotomic a A) = 0) ∧
- (∀ x, x ∈ adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 }) :=
-⟨λ h, ⟨h.ex_root, h.adjoint_roots⟩, λ h, ⟨h.1, h.2⟩⟩
 
 /-- A reformulation of `is_cyclotomic_extension` that uses `⊤`. -/
 lemma iff_adjoin_eq_top : is_cyclotomic_extension S A B ↔
@@ -82,7 +77,8 @@ lemma iff_singleton : is_cyclotomic_extension {n} A B ↔
  (∃ r : B, aeval r (cyclotomic n A) = 0) ∧
  (∀ x, x ∈ adjoin A { b : B | b ^ (n : ℕ) = 1 }) :=
 begin
-  refine ⟨λ h, ⟨((iff _ _ _).1 h).1 n (set.mem_singleton _), by simpa using ((iff _ _ _).1 h).2⟩,
+  refine ⟨λ h, ⟨((is_cyclotomic_extension_iff _ _ _).1 h).1 (set.mem_singleton _), by simpa using
+  ((is_cyclotomic_extension_iff _ _ _).1 h).2⟩,
   λ h, ⟨λ a ha, _, by simpa using h.2⟩⟩,
   obtain ⟨⟨b, hb⟩, H⟩ := h,
   exact ⟨b, (set.mem_singleton_iff.1 ha).symm ▸ hb⟩
@@ -103,22 +99,22 @@ lemma trans (C : Type w) [comm_ring C] [algebra A C] [algebra B C]
 begin
   refine ⟨λ n hn, _, λ x, _⟩,
   { cases hn,
-    { obtain ⟨b, hb⟩ := ((iff _ _ _).1 hS).1 n hn,
+    { obtain ⟨b, hb⟩ := ((is_cyclotomic_extension_iff _ _ _).1 hS).1 hn,
       refine ⟨algebra_map B C b, _⟩,
       replace hb := congr_arg (algebra_map B C) hb,
       rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic, ring_hom.map_zero, ← eval₂_at_apply,
         eval₂_eq_eval_map, map_cyclotomic] at hb,
       rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic] },
-    { obtain ⟨c, hc⟩ := ((iff _ _ _).1 hT).1 n hn,
+    { obtain ⟨c, hc⟩ := ((is_cyclotomic_extension_iff _ _ _).1 hT).1 hn,
       refine ⟨c, _⟩,
       rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic] at hc,
       rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic] } },
-  { refine adjoin_induction (((iff _ _ _).1 hT).2 x) (λ c ⟨n, hn⟩, subset_adjoin
-      ⟨n, or.inr hn.1, hn.2⟩) (λ b, _) (λ x y hx hy, subalgebra.add_mem _ hx hy)
+  { refine adjoin_induction (((is_cyclotomic_extension_iff _ _ _).1 hT).2 x) (λ c ⟨n, hn⟩,
+      subset_adjoin ⟨n, or.inr hn.1, hn.2⟩) (λ b, _) (λ x y hx hy, subalgebra.add_mem _ hx hy)
       (λ x y hx hy, subalgebra.mul_mem _ hx hy),
     { let f := is_scalar_tower.to_alg_hom A B C,
       have hb : f b ∈ (adjoin A { b : B | ∃ (a : ℕ+), a ∈ S ∧ b ^ (a : ℕ) = 1 }).map f :=
-        ⟨b, ((iff _ _ _).1 hS).2 b, rfl⟩,
+        ⟨b, ((is_cyclotomic_extension_iff _ _ _).1 hS).2 b, rfl⟩,
       rw [is_scalar_tower.to_alg_hom_apply, ← adjoin_image] at hb,
       refine adjoin_mono (λ y hy, _) hb,
       obtain ⟨b₁, ⟨⟨n, hn⟩, h₁⟩⟩ := hy,
@@ -146,11 +142,11 @@ begin
         exact ⟨n, ⟨or.inr hn.1, hn.2⟩⟩ } } },
 
   refine ⟨λ n hn, _, λ b, _⟩,
-  { obtain ⟨b, hb⟩ := ((iff _ _ _).1 h).1 n (mem_union_right S hn),
+  { obtain ⟨b, hb⟩ := ((is_cyclotomic_extension_iff _ _ _).1 h).1 (mem_union_right S hn),
     refine ⟨b, _⟩,
     rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic] at hb,
     rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic] },
-  { replace h := ((iff _ _ _).1 h).2 b,
+  { replace h := ((is_cyclotomic_extension_iff _ _ _).1 h).2 b,
     rwa [this, adjoin_union_eq_adjoin_adjoin,
       subalgebra.mem_restrict_scalars] at h }
 end
@@ -162,7 +158,7 @@ lemma union_left [h : is_cyclotomic_extension T A B] (hS : S ⊆ T) :
   is_cyclotomic_extension S A (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 }) :=
 begin
   refine ⟨λ n hn, _, λ b, _⟩,
-  { obtain ⟨b, hb⟩ := ((iff _ _ _).1 h).1 n (hS hn),
+  { obtain ⟨b, hb⟩ := ((is_cyclotomic_extension_iff _ _ _).1 h).1 (hS hn),
     refine ⟨⟨b, subset_adjoin ⟨n, hn, _⟩⟩, _⟩,
     { rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic, ← is_root.def] at hb,
       suffices : (X ^ (n : ℕ) - 1).is_root b,

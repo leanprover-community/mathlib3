@@ -454,9 +454,9 @@ meta def linter.unused_haves_suffices : linter :=
 ## Linter for provable edge-cases
 -/
 
+set_option eqn_compiler.max_steps 2000000
 -- set_option pp.all true
 -- #check 0
--- #check ∅
 -- TODO find a way to typecheck these negations, easy to make mistakes here
 --TODO perhaps implement this with push_neg as ``normalize_negations `(¬ %%h)``
 -- TODO work out how to incorporate TC, -- maybe done
@@ -467,7 +467,20 @@ meta def negate_hyp : expr → option expr
 | (app (app (app (app (const `has_lt.lt [l]) (const `nat [])) tc) `(0)) s) := some (app (app (app (const `eq [l.succ]) (const `nat [])) s) `(0))
 | (app (app (const `set.nonempty [l]) ty) s) := some (app (app (app (const `eq [l.succ]) (app (const `set [l]) ty)) s) (app (app (const `has_emptyc.emptyc [l]) (app (const `set [l]) ty)) (app (const `set.has_emptyc [l]) ty)))
 | (app (app (const `finset.nonempty [l]) ty) s) := some (app (app (app (const `eq [l.succ]) (app (const `finset [l]) ty)) s) (app (app (const `has_emptyc.emptyc [l]) (app (const `finset [l]) ty)) (app (const `finset.has_emptyc [l]) ty)))
--- (hne : S.nonempty)
+| (app
+    (app
+      (app (app (const `has_lt.lt [l]) ty) tc)
+      -- bo@(app (app (const `has_bot.bot [lll]) _) (app (const `with_bot.has_bot [ll]) tyy)))
+      bo@(app (app (const `has_bot.bot [lll]) _) _))
+    s) := some (app (app (app (const `eq [l.succ]) ty) s) bo)
+| (app
+    (app
+      (app (app (const `has_lt.lt [l]) ty) tc)
+      s)
+    bo@(app (app (const `has_top.top [lll]) _) _))
+    := some (app (app (app (const `eq [l.succ]) ty) s) bo)
+| (app (const `nontrivial [l]) ty) := some (app (const `subsingleton [l.succ]) ty)
+| (app (const `nonempty [l]) ty) := some (app (const `is_empty [l]) ty)
 -- | `((%%n : %%T) ≠ (@has_zero.zero _ %%f)) := some `(%%n = 0) -- more specific matches come first
 -- | `((%%n : ℤ) ≠ (0 : ℤ)) := some `((%%n : ℤ) = 0) -- more specific matches come first
 -- | `(%%n ≠ 0) := some `(%%n = 0)
@@ -492,7 +505,7 @@ meta def find_provable_edge_cases (oe : expr) : expr → tactic (list string)
   -- tt ← is_simp_lemma d.to_name | pure none,
     try_for 200000 $
     retrieve $ do
-    unfreezing intros,
+    -- unfreezing intros,
     -- (lhs, rhs) ← target >>= simp_lhs_rhs,
     sls ← simp_lemmas.mk_default,
     -- let sls' := sls.erase [d.to_name],
@@ -503,7 +516,8 @@ meta def find_provable_edge_cases (oe : expr) : expr → tactic (list string)
     g ← mk_meta_var ne,
     set_goals [g], -- TODO idk if ths is needed
   -- target >>= trace,
-    tactic.intros,
+    unfreezing intros,
+    -- reset_instance_cache,
     tactic.simp_all sls [],--
     -- (out, prf1, ns1) ← decorate_error "simplify fails on left-hand side:" $
     --   simplify sls [] ne {fail_if_unchanged := ff},

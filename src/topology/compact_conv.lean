@@ -177,41 +177,71 @@ begin
         exact hg', }, }, },
 end
 
+def compact_convergence_uniformity : filter (C(α, β) × C(α, β)) :=
+⨅ KV ∈ { KV : set α × set (β × β) | is_compact KV.1 ∧ KV.2 ∈ 𝓤 β },
+𝓟 { fg : C(α, β) × C(α, β) | ∀ (x : α), x ∈ KV.1 → (fg.1 x, fg.2 x) ∈ KV.2 }
+
+lemma mem_compact_convergence_uniformity (X : set (C(α, β) × C(α, β))) :
+  X ∈ @compact_convergence_uniformity α β _ _ ↔
+  ∃ (K : set α) (V : set (β × β)) (hK : is_compact K) (hV : V ∈ 𝓤 β),
+    { fg : C(α, β) × C(α, β) | ∀ (x : α), x ∈ K → (fg.1 x, fg.2 x) ∈ V } ⊆ X :=
+begin
+  simp only [compact_convergence_uniformity],
+  have h : { KV : set α × set (β × β) | is_compact KV.1 ∧ KV.2 ∈ 𝓤 β }.nonempty,
+  { exact ⟨⟨∅, univ⟩, is_compact_empty, filter.univ_mem⟩, },
+  rw (filter.has_basis_binfi_principal _ h).mem_iff,
+  { simp only [exists_prop, prod.forall, set_of_subset_set_of, mem_set_of_eq, prod.exists],
+    split,
+    { rintros ⟨K, V, ⟨hK, hV⟩, hX⟩,
+      exact ⟨K, V, hK, hV, hX⟩, },
+    { rintros ⟨K, V, hK, hV, hX⟩,
+      exact ⟨K, V, ⟨hK, hV⟩, hX⟩, }, },
+  { rintros ⟨K₁, V₁⟩ ⟨hK₁ : is_compact K₁, hV₁ : V₁ ∈ 𝓤 β⟩
+                ⟨K₂, V₂⟩ ⟨hK₂ : is_compact K₂, hV₂ : V₂ ∈ 𝓤 β⟩,
+    refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
+    simp only [le_eq_subset, prod.forall, mem_inter_eq, mem_union_eq, set_of_subset_set_of,
+      ge_iff_le, order.preimage],
+    exact ⟨λ f g h x hx, (h x (or.inl hx)).1, λ f g h x hx, (h x (or.inr hx)).2⟩, },
+end
+
+lemma uniform_gen_subset (X : set C(α, β)) :
+  uniform_gen K V f ⊆ X ↔ ∀ (g₁ g₂ : C(α, β)), (∀ x, x ∈ K → (g₁ x, g₂ x) ∈ V) → g₁ = f → g₂ ∈ X :=
+begin
+  refine ⟨_, λ hX g hg, hX f g hg rfl⟩,
+  rintros hX g₁ g₂ hg₁ rfl,
+  exact hX hg₁,
+end
+
 instance : uniform_space C(α, β) :=
-{ uniformity := ⨅ KV ∈ { KV : set α × set (β × β) | is_compact KV.1 ∧ KV.2 ∈ 𝓤 β },
-                𝓟 { fg : C(α, β) × C(α, β) | ∀ (x : α), x ∈ KV.1 → (fg.1 x, fg.2 x) ∈ KV.2 },
+{ uniformity := compact_convergence_uniformity,
   refl :=
     begin
-      simp only [and_imp, filter.le_principal_iff, prod.forall, filter.mem_principal, mem_set_of_eq,
-        le_infi_iff, id_rel_subset],
+      simp only [compact_convergence_uniformity, and_imp, filter.le_principal_iff, prod.forall,
+        filter.mem_principal, mem_set_of_eq, le_infi_iff, id_rel_subset],
       intros K V hK hV f x hx,
       exact refl_mem_uniformity hV,
     end,
-  symm := sorry, -- trivial
+  symm :=
+    begin
+      simp only [compact_convergence_uniformity, and_imp, prod.forall, mem_set_of_eq, prod.fst_swap,
+        filter.tendsto_principal, prod.snd_swap, filter.tendsto_infi],
+      intros K V hK hV,
+      obtain ⟨V', hV', hsymm, hsub⟩ := symm_of_uniformity hV,
+      let U := { fg : C(α, β) × C(α, β) | ∀ (x : α), x ∈ K → (fg.1 x, fg.2 x) ∈ V' },
+      apply @filter.eventually_of_mem _ _ _ U _ (λ fg hfg x hx, hsub (hsymm _ _ (hfg x hx))),
+      change U ∈ compact_convergence_uniformity,
+      rw mem_compact_convergence_uniformity,
+      refine ⟨K, V', hK, hV', _⟩,
+      simp only [prod.forall, imp_self, set_of_subset_set_of, forall_2_true_iff],
+    end,
   comp := sorry, -- trivial
   is_open_uniformity :=
     begin
       simp only [← compact_open_eq_uniform],
       intros X,
-      apply forall_congr,
-      intros f,
-      apply forall_congr,
-      intros hf,
-      rw mem_compact_convergence_filter f X,
-      have h : { KV : set α × set (β × β) | is_compact KV.1 ∧ KV.2 ∈ 𝓤 β }.nonempty,
-      { exact ⟨⟨∅, univ⟩, is_compact_empty, filter.univ_mem⟩, },
-      rw (filter.has_basis_binfi_principal _ h).mem_iff,
-      { simp only [exists_prop, prod.forall, set_of_subset_set_of, mem_set_of_eq, prod.exists],
-        split,
-        { rintros ⟨K, V, hK, hV, hX⟩,
-          refine ⟨K, V, ⟨hK, hV⟩, λ g₁ g₂ hg hfg, hX _⟩,
-          exact hfg ▸ hg, },
-        { rintros ⟨K, V, ⟨hK, hV⟩, hX⟩,
-          exact ⟨K, V, hK, hV, λ g hg, hX f g hg rfl⟩, }, },
-      { rintros ⟨K₁, V₁⟩ ⟨hK₁ : is_compact K₁, hV₁ : V₁ ∈ 𝓤 β⟩
-                ⟨K₂, V₂⟩ ⟨hK₂ : is_compact K₂, hV₂ : V₂ ∈ 𝓤 β⟩,
-        refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
-        simp only [le_eq_subset, prod.forall, mem_inter_eq, mem_union_eq, set_of_subset_set_of,
-          ge_iff_le, order.preimage],
-        exact ⟨λ f g h x hx, (h x (or.inl hx)).1, λ f g h x hx, (h x (or.inr hx)).2⟩, },
+      refine forall_congr (λ f, forall_congr (λ hf, _)),
+      rw [mem_compact_convergence_filter, mem_compact_convergence_uniformity],
+      refine exists_congr (λ K, exists_congr (λ V, _)),
+      refine exists_congr (λ hK, exists_congr (λ hV, _)),
+      simp only [prod.forall, set_of_subset_set_of, uniform_gen_subset],
     end }

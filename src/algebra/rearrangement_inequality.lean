@@ -238,34 +238,33 @@ begin
     exact le_of_not_ge hgij },
 end
 
-/-- **Rearrangement Inequality** : statement over `range n` -/
-theorem rearrangement_inequality' {α : Type*} (f g : ℕ → α) [linear_ordered_ring α]
-  {n : ℕ} (hf : monotone_on f (range n)) (hg : monotone_on g (range n)) (σ : perm ℕ)
-  (hσ : {x | σ x ≠ x} ⊆ range n) : ∑ i in range n, f i * g (σ i) ≤ ∑ i in range n, f i * g i :=
+/-- **Rearrangement Inequality** : statement over a `finset` of a `linear order` -/
+theorem rearrangement_inequality' {α ι : Type*} [linear_order ι] [linear_ordered_ring α]
+  {f g : ι → α} (s : finset ι) (hf : monotone_on f s) (hg : monotone_on g s) (σ : perm ι)
+  (hσ : {x | σ x ≠ x} ⊆ s) : ∑ i in s, f i * g (σ i) ≤ ∑ i in s, f i * g i :=
 begin
-  set f' : (fin n) → α := λ n, f n with hf',
-  set g' : (fin n) → α := λ n, g n with hg',
+  set f' : s → α := λ n, f n with hf',
+  set g' : s → α := λ n, g n with hg',
   have hf'm : monotone f',
   { intros a b hab,
     simp only [hf'],
     apply hf,
-    { simp only [mem_range, mem_coe, fin.is_lt a] },
-    { simp only [mem_range, mem_coe, fin.is_lt b]},
-    { exact fin.coe_fin_le.mpr hab }},
+    { simp only [coe_mem, mem_coe]},
+    { simp only [coe_mem, mem_coe]},
+    { exact subtype.mono_coe (λ (x : ι), x ∈ s) hab}},
   have hg'm : monotone g',
   { intros a b hab,
     simp only [hg'],
     apply hg,
-    { simp only [mem_range, mem_coe, fin.is_lt a] },
-    { simp only [mem_range, mem_coe, fin.is_lt b]},
-    { exact fin.coe_fin_le.mpr hab }},
+    { simp only [coe_mem, mem_coe]},
+    { simp only [coe_mem, mem_coe]},
+    { exact subtype.mono_coe (λ (x : ι), x ∈ s) hab }},
   have hfg : covary f' g' := covary_of_monotone hf'm hg'm,
-  have hσsupp: ∀ (y : ℕ), y ∈ {x | σ x ≠ x} ↔ σ y ∈ {x | σ x ≠ x},
+  have hσsupp: ∀ (y : ι), y ∈ {x | σ x ≠ x} ↔ σ y ∈ {x | σ x ≠ x},
   { intro y,
     simp only [ne.def, set.mem_set_of_eq, apply_eq_iff_eq] },
-  have hσs : ∀ (x : ℕ), x < n ↔ σ x < n,
+  have hσs : ∀ (x : ι), x ∈ s ↔ σ x ∈ s,
   { intro y,
-    simp only [← mem_range],
     by_cases hy : y ∈ {x | σ x ≠ x},
     { split,
       { intro hs,
@@ -276,11 +275,14 @@ begin
         apply hσ hy }},
     { simp only [not_not, set.mem_set_of_eq] at hy,
       rw hy }},
-  set τ : perm (fin n) := perm.subtype_perm σ hσs with hτs,
+  set τ : perm s := perm.subtype_perm σ hσs with hτs,
   convert (rearrangement_inequality univ f' g' τ (subset_univ _) hfg) using 1,
-  { rw ← fin.sum_univ_eq_sum_range,
-    congr },
-  { rw ← fin.sum_univ_eq_sum_range }
+  { rw @sum_subtype α ι _ (λ x, x ∈ s) _ s _,
+    { congr },
+    { simp only [iff_self, implies_true_iff]}},
+  { rw @sum_subtype α ι _ (λ x, x ∈ s) _ s _,
+    { congr },
+    { simp only [iff_self, implies_true_iff] }}
 end
 
 lemma swap_extend_domain_eq_self {ι : Type*} [decidable_eq ι] (s : finset ι) (x y : s) :

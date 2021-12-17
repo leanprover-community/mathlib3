@@ -77,8 +77,7 @@ def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : (sym (fin n) k.succ) ⊕ 
     exact x.property,
   end⟩
 
-def decode (n k : ℕ) : (sym (fin n) k.succ) ⊕ (sym (fin n.succ) k) → sym (fin n.succ) k.succ := begin
-  intro x,
+def decode (n k : ℕ) (x : (sym (fin n) k.succ) ⊕ (sym (fin n.succ) k)) : sym (fin n.succ) k.succ := begin
   cases x,
   { exact ⟨x.val.map (λ a, ⟨a.val, nat.lt.step a.property⟩ : fin n → fin n.succ), begin
       rw multiset.card_map,

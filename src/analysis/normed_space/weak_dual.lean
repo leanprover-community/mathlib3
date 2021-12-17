@@ -66,9 +66,9 @@ Weak-* topology is defined generally in the file `topology.algebra.weak_dual_top
 When `E` is a normed space, the duals `dual 𝕜 E` and `weak_dual 𝕜 E` are type synonyms with
 different topology instances.
 
-For the proof of Banach-Alaoglu theorem, the weak dual of `E` is embedded in a product of copies
-of the ground field `𝕜` via `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜`. The fact that this
-is an embedding is `weak_dual.to_Pi_embedding`.
+For the proof of Banach-Alaoglu theorem, the weak dual of `E` is embedded in the space of
+functions `E → 𝕜` with the topology of pointwise convergence. The fact that this is an embedding
+is `weak_dual.to_Pi_embedding`.
 
 The polar set `polar 𝕜 s` of a subset `s` of `E` is originally defined as a subset of the dual
 `dual 𝕜 E`. We care about properties of these w.r.t. weak-* topology, and for this purpose give
@@ -167,6 +167,16 @@ begin
   exact set.preimage_set_of_eq,
 end
 
+lemma to_normed_dual.preimage_closed_ball' (r : ℝ) :
+  (to_normed_dual ⁻¹' metric.closed_ball (0 : dual 𝕜 E) r) =
+    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ r} :=
+begin
+  have eq : metric.closed_ball (0 : dual 𝕜 E) r = {x' : dual 𝕜 E | ∥ x' ∥ ≤ r},
+  { ext x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
+  rw eq,
+  exact set.preimage_set_of_eq,
+end
+
 variables (𝕜)
 
 /-- The polar set `polar 𝕜 s` of `s : set E` seen as a subset of the dual of `E` with the
@@ -210,10 +220,10 @@ open metric set normed_space
 
 /-- The (weak) dual `weak_dual 𝕜 E` of a normed space `E` consists of bounded linear
 functionals `E → 𝕜`. Such functionals can be interpreted as elements of the Cartesian
-product `Π (_ : E), 𝕜` via the function `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜`. -/
+product `E → 𝕜` via the function `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)`. -/
 def _root_.weak_dual.to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] (x' : weak_dual 𝕜 E) :=
-((λ z, (x' z)) : (Π (_ : E), 𝕜))
+x'.to_fun
 
 /-- In a product of copies of a normed field, sets of the form `{g | ∥ f(i) - g(i) ∥ < ε}` for
 `ε > 0` are neighborhoods of `f`. -/
@@ -234,7 +244,7 @@ begin
   exact ball_mem_nhds (f i) ε_pos,
 end
 
-/-- The function `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` is an embedding. -/
+/-- The function `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` is an embedding. -/
 lemma weak_dual.to_Pi_embedding (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
   embedding (weak_dual.to_Pi 𝕜 E) :=
@@ -244,13 +254,13 @@ lemma weak_dual.to_Pi_embedding (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 namespace weak_dual.to_Pi_embedding
 
 /-- Elements of the closure of the range of the embedding
-`weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` are linear. Here it is stated as the elements
+`weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` are linear. Here it is stated as the elements
 respecting linear combinations. -/
 lemma linear_of_mem_closure_range'
-  (f : (Π (_ : E), 𝕜)) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E)))
+  (f : E → 𝕜) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E)))
   (c₁ c₂ : 𝕜) (z₁ z₂ : E) : f (c₁ • z₁ + c₂ • z₂) = c₁ • f(z₁) + c₂ • f(z₂) :=
 begin
-  set φ : (Π (_ : E), 𝕜) → 𝕜 := (λ g, g (c₁ • z₁ + c₂ • z₂) - c₁ • g(z₁) - c₂ • g(z₂)) with hφ,
+  set φ : (E → 𝕜) → 𝕜 := (λ g, g (c₁ • z₁ + c₂ • z₂) - c₁ • g(z₁) - c₂ • g(z₂)) with hφ,
   have φ_cont : continuous φ,
   { apply continuous.sub,
     { apply continuous.sub,
@@ -267,15 +277,15 @@ begin
   simp only [algebra.id.smul_eq_mul, mem_singleton_iff, norm_eq_zero, mem_preimage],
   rw [hφ, ← hg₀],
   dunfold weak_dual.to_Pi,
-  rw add_comm,
+  dsimp,
   simp only [algebra.id.smul_eq_mul, continuous_linear_map.map_add, add_sub_cancel,
-             sub_self, continuous_linear_map.map_smul],
+             sub_self, continuous_linear_map.map_smul, add_sub_cancel', sub_self],
 end
 
 /-- Elements of the closure of the range of the embedding
-`weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` can be viewed as linear maps `E → 𝕜`. -/
+`weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` can be viewed as linear maps `E → 𝕜`. -/
 def linear_of_mem_closure_range
-  (f : (Π (_ : E), 𝕜)) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E))) :
+  (f : (E → 𝕜)) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E))) :
   E →ₗ[𝕜] 𝕜 :=
 { to_fun := f,
   map_add' := begin
@@ -290,13 +300,13 @@ def linear_of_mem_closure_range
   end, }
 
 lemma linear_of_mem_closure_range_apply
-  (f : (Π (_ : E), 𝕜)) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E))) (z : E) :
+  (f : E → 𝕜) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E))) (z : E) :
   linear_of_mem_closure_range f hf z = f z := rfl
 
-/-- Elements of the closure of the image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of
+/-- Elements of the closure of the image under `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` of
 a subset defined by a non-strict bound on the norm still satisfy the same bound. -/
 lemma norm_eval_le_of_mem_closure_norm_eval_le
-  (z : E) (c : ℝ) (f : (Π (_ : E), 𝕜))
+  (z : E) (c : ℝ) (f : E → 𝕜)
   (hf : f ∈ closure ((weak_dual.to_Pi 𝕜 E) '' {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ c})) :
   ∥ f z ∥ ≤ c :=
 begin
@@ -314,10 +324,10 @@ begin
   rwa [sub_add_cancel, add_comm] at key,
 end
 
-/-- Elements of the closure of the image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of
+/-- Elements of the closure of the image under `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` of
 a polar `polar s` of a neighborhood `s` of the origin are continuous (linear) functions. -/
 lemma continuous_of_mem_closure_polar
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (φ : (Π (_ : E), 𝕜))
+  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (φ : E → 𝕜)
   (hφ : φ ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s))) :
   continuous φ :=
 begin
@@ -332,7 +342,7 @@ begin
   { assumption, },
   apply linear_map.continuous_of_bound flin c,
   intros z,
-  set θ := λ (ψ : Π (_ : E), 𝕜), ∥ ψ z ∥ with hθ,
+  set θ := λ (ψ : E → 𝕜), ∥ ψ z ∥ with hθ,
   have θ_cont : continuous θ,
   { apply continuous.comp continuous_norm,
     exact continuous_apply z, },
@@ -354,7 +364,7 @@ begin
   apply mul_le_mul (hc x' polar_x') rfl.ge (norm_nonneg z) c_nn,
 end
 
-/-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of a polar `polar 𝕜 s` of a
+/-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` of a polar `polar 𝕜 s` of a
 neighborhood `s` of the origin is a closed set. -/
 lemma image_polar_closed
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
@@ -402,7 +412,7 @@ begin
   exact mem_closure_iff_cluster_pt.mpr hf,
 end
 
-/-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of the polar `polar s` of
+/-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` of the polar `polar s` of
 a neighborhood `s` of the origin is compact if the field `𝕜` is a proper topological space. -/
 lemma image_polar_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_compact ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)) :=
@@ -439,15 +449,17 @@ begin
   exact weak_dual.to_Pi_embedding.image_polar_compact s_nhd,
 end
 
+#check weak_dual.to_normed_dual
+
 /-- The Banach-Alaoglu theorem: closed balls of the dual of a normed space `E` over `ℝ` or `ℂ`
 are compact in the weak-star topology. -/
 theorem weak_dual.is_compact_closed_ball
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] (r : ℝ) (hr : 0 < r) :
-  is_compact (metric.closed_ball (0 : normed_space.dual 𝕜 E) r : set (weak_dual 𝕜 E)) :=
+  is_compact ((weak_dual.to_normed_dual) ⁻¹' (closed_ball (0 : normed_space.dual 𝕜 E) r)) :=
 begin
   have as_polar := @polar_closed_ball 𝕜 _ E _ _ r⁻¹ (inv_pos.mpr hr),
   simp only [one_div, inv_inv₀] at as_polar,
-  rw [←weak_dual.to_normed_dual.preimage_closed_ball, ←as_polar],
+  rw ←as_polar,
   exact weak_dual.is_compact_polar (closed_ball_mem_nhds (0 : E) (inv_pos.mpr hr)),
 end
 

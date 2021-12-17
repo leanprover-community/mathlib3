@@ -38,6 +38,9 @@ There is also `univ'`, the noncomputable partner to `univ`,
 which is defined to be `α` as a finset if `α` is finite,
 and the empty finset otherwise. See `data.fintype.basic`.
 
+`finset.card`, the size of a finset is defined in `data.finset.card`. This is then used to define
+`fintype.card`, the size of a type.
+
 ## Main declarations
 
 ### Main definitions

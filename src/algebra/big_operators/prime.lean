@@ -60,6 +60,9 @@ nat.prime.dvd_finset_prod_iff pp _
 
 namespace finset
 
+/-- For any `p : ℕ` and any function `g : α → ℕ` that's positive on `F : finset α`,
+the power of `p` in `F.prod g` equals the sum over `x ∈ F` of the powers of `p` in `g x`.
+Generalises `count_factors_mul_of_pos`, which is the special case where `F.card = 2`. -/
 lemma count_factors_prod {α : Type*} {F : finset α} {p : ℕ} {g : α → ℕ} (hf: ∀ x ∈ F, 0 < g x) :
   list.count p (F.prod g).factors = F.sum (λ x, list.count p (g x).factors) :=
 begin

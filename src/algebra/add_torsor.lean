@@ -344,6 +344,7 @@ end pi
 
 namespace equiv
 
+section general
 variables {G : Type*} {P : Type*} [add_group G] [add_torsor G P]
 
 include G
@@ -387,9 +388,16 @@ variable (G)
 
 variable {G}
 
+@[simp] lemma const_vadd_symm (v : G) : (const_vadd P v).symm = const_vadd P (-v) :=
+by { ext, refl }
+
 @[simp] lemma const_vadd_add (v₁ v₂ : G) :
   const_vadd P (v₁ + v₂) = const_vadd P v₁ * const_vadd P v₂ :=
 ext $ add_vadd v₁ v₂
+
+lemma const_vadd_trans_const_vadd (v₁ v₂ : G) :
+  (const_vadd P v₁).trans (const_vadd P v₂) = const_vadd P (v₂ + v₁) :=
+(const_vadd_add P v₂ v₁).symm
 
 /-- `equiv.const_vadd` as a homomorphism from `multiplicative G` to `equiv.perm P` -/
 def const_vadd_hom : multiplicative G →* equiv.perm P :=
@@ -400,6 +408,32 @@ def const_vadd_hom : multiplicative G →* equiv.perm P :=
 variable {P}
 
 open function
+
+/-- Given an additive automorphism `f` of `G`, the operation `p ↦ f (p -ᵥ p₀) +ᵥ p₀`, "basing" the
+additive automorphism at a fixed point `p₀ : P`, is an affine equivalence. -/
+def _root_.add_equiv.base_at (f : G ≃+ G) (x : P) : perm P :=
+((vadd_const x).symm.trans f.to_equiv).trans (vadd_const x)
+
+@[simp] lemma _root_.add_equiv.base_at_apply (f : G ≃+ G) (x y : P) :
+  f.base_at x y = f (y -ᵥ x) +ᵥ x :=
+rfl
+
+lemma _root_.add_equiv.const_vadd_trans_base_at (f : G ≃+ G) (x : P) (v : G) :
+  (const_vadd P v).trans (f.base_at x) = (f.base_at x).trans (const_vadd P (f v)) :=
+begin
+  ext y,
+  simp only [add_equiv.base_at_apply, coe_const_vadd, comp_app, coe_trans, ← add_vadd,
+    ← f.map_add, vadd_vsub_assoc],
+end
+
+@[simp] lemma _root_.add_equiv.base_at_symm (f : G ≃+ G) (x : P) :
+  (f.base_at x).symm = f.symm.base_at x :=
+rfl
+
+-- this seems like the natural simp-direction, but it's opposite to that for `base_at_symm`
+@[simp] lemma _root_.add_equiv.base_at_trans (f₁ f₂ : G ≃+ G) (x : P) :
+  (f₁.trans f₂).base_at x = (f₁.base_at x).trans (f₂.base_at x) :=
+by { ext, simp }
 
 /-- Point reflection in `x` as a permutation. -/
 def point_reflection (x : P) : perm P := (const_vsub x).trans (vadd_const x)
@@ -430,6 +464,29 @@ lemma injective_point_reflection_left_of_injective_bit0 {G P : Type*} [add_comm_
   by rwa [point_reflection_apply, point_reflection_apply, vadd_eq_vadd_iff_sub_eq_vsub,
     vsub_sub_vsub_cancel_right, ← neg_vsub_eq_vsub_rev, neg_eq_iff_add_eq_zero, ← bit0, ← bit0_zero,
     h.eq_iff, vsub_eq_zero_iff_eq] at hy
+
+end general
+
+section comm
+variables {G : Type*} {P : Type*} [add_comm_group G] [add_torsor G P]
+include G
+
+lemma base_at_neg (x : P) : (add_equiv.neg G).base_at x = point_reflection x :=
+by { ext y, simp [point_reflection_apply] }
+
+lemma _root_.add_equiv.base_at_vadd (f : G ≃+ G) (x : P) (v : G) :
+  f.base_at (v +ᵥ x) = (f.base_at x).trans (const_vadd P (v - f v)) :=
+begin
+  ext y,
+  dsimp,
+  have : y -ᵥ (v +ᵥ x) = - v + (y -ᵥ x),
+  { rw [← add_right_inj v, ← vadd_vsub_assoc],
+    simp },
+  rw [this, ← add_vadd, ← add_vadd, f.map_add, f.map_neg],
+  abel,
+end
+
+end comm
 
 end equiv
 

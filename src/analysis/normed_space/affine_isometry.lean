@@ -331,6 +331,10 @@ instance : inhabited (P ≃ᵃⁱ[𝕜] P) := ⟨refl 𝕜 P⟩
 @[simp] lemma to_homeomorph_refl : (refl 𝕜 P).to_homeomorph = homeomorph.refl P := rfl
 omit V
 
+@[simp] lemma linear_isometry_equiv_refl :
+  (refl 𝕜 P).linear_isometry_equiv = linear_isometry_equiv.refl 𝕜 V :=
+rfl
+
 /-- The inverse `affine_isometry_equiv`. -/
 def symm : P₂ ≃ᵃⁱ[𝕜] P :=
 { norm_map := e.linear_isometry_equiv.symm.norm_map,
@@ -344,6 +348,10 @@ def symm : P₂ ≃ᵃⁱ[𝕜] P :=
 @[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
 @[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
+@[simp] lemma linear_isometry_equiv_symm :
+  e.linear_isometry_equiv.symm = e.symm.linear_isometry_equiv :=
+rfl
+
 include V₃
 /-- Composition of `affine_isometry_equiv`s as a `affine_isometry_equiv`. -/
 def trans (e' : P₂ ≃ᵃⁱ[𝕜] P₃) : P ≃ᵃⁱ[𝕜] P₃ :=
@@ -351,6 +359,15 @@ def trans (e' : P₂ ≃ᵃⁱ[𝕜] P₃) : P ≃ᵃⁱ[𝕜] P₃ :=
 
 include V V₂
 @[simp] lemma coe_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
+
+@[simp] lemma to_affine_equiv_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) :
+  (e₁.trans e₂).to_affine_equiv = e₁.to_affine_equiv.trans e₂.to_affine_equiv :=
+rfl
+
+@[simp] lemma linear_isometry_equiv_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) :
+  (e₁.trans e₂).linear_isometry_equiv = e₁.linear_isometry_equiv.trans e₂.linear_isometry_equiv :=
+rfl
+
 omit V V₂ V₃
 
 @[simp] lemma trans_refl : e.trans (refl 𝕜 P₂) = e := ext $ λ x, rfl
@@ -440,6 +457,14 @@ include V
 @[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const 𝕜 p).symm = λ p', p' -ᵥ p :=
 rfl
 
+@[simp] lemma linear_isometry_equiv_vadd_const (b : P) :
+  (vadd_const 𝕜 b).linear_isometry_equiv = linear_isometry_equiv.refl 𝕜 V :=
+rfl
+
+@[simp] lemma linear_isometry_equiv_vadd_const_symm (b : P) :
+  (vadd_const 𝕜 b).symm.linear_isometry_equiv = linear_isometry_equiv.refl 𝕜 V :=
+rfl
+
 @[simp] lemma vadd_const_to_affine_equiv (p : P) :
   (vadd_const 𝕜 p).to_affine_equiv = affine_equiv.vadd_const 𝕜 p :=
 rfl
@@ -473,6 +498,13 @@ variables {𝕜 P}
 
 @[simp] lemma const_vadd_zero : const_vadd 𝕜 P (0:V) = refl 𝕜 P := ext $ zero_vadd V
 
+@[simp] lemma const_vadd_symm (v : V) : (const_vadd 𝕜 P v).symm = const_vadd 𝕜 P (-v) :=
+to_affine_equiv_injective $ affine_equiv.const_vadd_symm 𝕜 P v
+
+lemma const_vadd_trans_const_vadd (v₁ v₂ : V) :
+  (const_vadd 𝕜 P v₁).trans (const_vadd 𝕜 P v₂) = const_vadd 𝕜 P (v₂ + v₁) :=
+to_affine_equiv_injective $ affine_equiv.const_vadd_trans_const_vadd 𝕜 P v₁ v₂
+
 include 𝕜 V
 /-- The map `g` from `V` to `V₂` corresponding to a map `f` from `P` to `P₂`, at a base point `p`,
 is an isometry if `f` is one. -/
@@ -485,6 +517,40 @@ end
 omit 𝕜
 
 variables (𝕜)
+/-- Given a linear isometry equivalence `f`, the operation `p ↦ f (p -ᵥ p₀) +ᵥ p₀`, "basing" the
+linear isometry equivalence at a fixed point `p₀ : P`, is an affine isometry equivalence. -/
+def _root_.linear_isometry_equiv.base_at (f : V ≃ₗᵢ[𝕜] V) (x : P) : P ≃ᵃⁱ[𝕜] P :=
+((vadd_const 𝕜 x).symm.trans f.to_affine_isometry_equiv).trans (vadd_const 𝕜 x)
+
+variables {𝕜}
+include P
+@[simp] lemma _root_.linear_isometry_equiv.linear_base_at (f : V ≃ₗᵢ[𝕜] V) (x : P) :
+  (f.base_at 𝕜 x).linear_isometry_equiv = f :=
+by simp [linear_isometry_equiv.base_at]
+omit P
+
+@[simp] lemma _root_.linear_isometry_equiv.base_at_apply (f : V ≃ₗᵢ[𝕜] V) (x y : P) :
+  f.base_at 𝕜 x y = f (y -ᵥ x) +ᵥ x :=
+rfl
+
+lemma _root_.linear_isometry_equiv.const_vadd_trans_base_at (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
+  (const_vadd 𝕜 P v).trans (f.base_at 𝕜 x) = (f.base_at 𝕜 x).trans (const_vadd 𝕜 P (f v)) :=
+to_affine_equiv_injective $ f.to_linear_equiv.const_vadd_trans_base_at 𝕜 x v
+
+lemma _root_.linear_isometry_equiv.base_at_vadd (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
+  f.base_at 𝕜 (v +ᵥ x) = (f.base_at 𝕜 x).trans (const_vadd 𝕜 P (v - f v)) :=
+to_affine_equiv_injective $ f.to_linear_equiv.base_at_vadd 𝕜  x v
+
+@[simp] lemma _root_.linear_isometry_equiv.base_at_symm (f : V ≃ₗᵢ[𝕜] V) (x : P) :
+  (f.base_at 𝕜 x).symm = f.symm.base_at 𝕜 x :=
+rfl
+
+-- this seems li𝕜e the natural simp-direction, but it's opposite to that for `base_at_symm`
+@[simp] lemma _root_.linear_isometry_equiv.base_at_trans (f₁ f₂ : V ≃ₗᵢ[𝕜] V) (x : P) :
+  (f₁.trans f₂).base_at 𝕜 x = (f₁.base_at 𝕜 x).trans (f₂.base_at 𝕜 x) :=
+to_affine_equiv_injective $ f₁.to_linear_equiv.base_at_trans 𝕜 f₂.to_linear_equiv x
+
+variables (𝕜)
 /-- Point reflection in `x` as an affine isometric automorphism. -/
 def point_reflection (x : P) : P ≃ᵃⁱ[𝕜] P := (const_vsub 𝕜 x).trans (vadd_const 𝕜 x)
 variables {𝕜}
@@ -493,6 +559,9 @@ lemma point_reflection_apply (x y : P) : (point_reflection 𝕜 x) y = x -ᵥ y 
 
 @[simp] lemma point_reflection_to_affine_equiv (x : P) :
   (point_reflection 𝕜 x).to_affine_equiv = affine_equiv.point_reflection 𝕜 x := rfl
+
+lemma base_at_neg (x : P) : (linear_isometry_equiv.neg 𝕜).base_at 𝕜 x = point_reflection 𝕜 x :=
+to_affine_equiv_injective $ affine_equiv.base_at_neg 𝕜 x
 
 @[simp] lemma point_reflection_self (x : P) : point_reflection 𝕜 x x = x :=
 affine_equiv.point_reflection_self 𝕜 x

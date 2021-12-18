@@ -253,15 +253,21 @@ def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 
 @[simp] lemma linear_vadd_const (b : P₁) : (vadd_const k b).linear = linear_equiv.refl k V₁ := rfl
 
+@[simp] lemma linear_vadd_const_symm (b : P₁) :
+  (vadd_const k b).symm.linear = linear_equiv.refl k V₁ :=
+rfl
+
 @[simp] lemma vadd_const_apply (b : P₁) (v : V₁) : vadd_const k b v = v +ᵥ b := rfl
 
 @[simp] lemma vadd_const_symm_apply (b p : P₁) : (vadd_const k b).symm p = p -ᵥ b := rfl
 
-/-- `p' ↦ p -ᵥ p'` as an equivalence. -/
+/-- `p' ↦ p -ᵥ p'` as an affine equivalence. -/
 def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
 { to_equiv := equiv.const_vsub p,
   linear := linear_equiv.neg k,
   map_vadd' := λ p' v, by simp [vsub_vadd_eq_vsub_sub, neg_add_eq_sub] }
+
+@[simp] lemma linear_const_vsub (p : P₁) : (const_vsub k p).linear = linear_equiv.neg k := rfl
 
 @[simp] lemma coe_const_vsub (p : P₁) : ⇑(const_vsub k p) = (-ᵥ) p := rfl
 
@@ -279,7 +285,12 @@ def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 
 @[simp] lemma const_vadd_apply (v : V₁) (p : P₁) : const_vadd k P₁ v p = v +ᵥ p := rfl
 
-@[simp] lemma const_vadd_symm_apply (v : V₁) (p : P₁) : (const_vadd k P₁ v).symm p = -v +ᵥ p := rfl
+@[simp] lemma const_vadd_symm (v : V₁) : (const_vadd k P₁ v).symm = const_vadd k P₁ (-v) :=
+to_equiv_injective $ equiv.const_vadd_symm P₁ v
+
+lemma const_vadd_trans_const_vadd (v₁ v₂ : V₁) :
+  (const_vadd k P₁ v₁).trans (const_vadd k P₁ v₂) = const_vadd k P₁ (v₂ + v₁) :=
+to_equiv_injective $ equiv.const_vadd_trans_const_vadd P₁ v₁ v₂
 
 section homothety
 
@@ -373,6 +384,48 @@ def to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : V₁ ≃ᵃ[k] V₂ :=
   map_vadd' := λ p v, e.map_add v p }
 
 @[simp] lemma coe_to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : ⇑e.to_affine_equiv = e := rfl
+
+@[simp] lemma linear_to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : e.to_affine_equiv.linear = e := rfl
+
+open affine_equiv
+
+variables (k)
+
+/-- Given a linear equivalence `f`, the operation `p ↦ f (p -ᵥ p₀) +ᵥ p₀`, "basing" the linear
+equivalence at a fixed point `p₀ : P`, is an affine equivalence. -/
+def base_at (f : V₁ ≃ₗ[k] V₁) (x : P₁) : P₁ ≃ᵃ[k] P₁ :=
+((vadd_const k x).symm.trans f.to_affine_equiv).trans (vadd_const k x)
+
+@[simp] lemma linear_base_at (f : V₁ ≃ₗ[k] V₁) (x : P₁) :
+  (f.base_at k x).linear = f :=
+by simp [base_at, affine_equiv.trans]
+
+@[simp] lemma base_at_apply (f : V₁ ≃ₗ[k] V₁) (x y : P₁) :
+  f.base_at k x y = f (y -ᵥ x) +ᵥ x :=
+rfl
+
+lemma const_vadd_trans_base_at (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
+  (const_vadd k P₁ v).trans (f.base_at k x) = (f.base_at k x).trans (const_vadd k P₁ (f v)) :=
+affine_equiv.to_equiv_injective $ f.to_add_equiv.const_vadd_trans_base_at x v
+
+lemma base_at_vadd (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
+  f.base_at k (v +ᵥ x) = (f.base_at k x).trans (const_vadd k P₁ (v - f v)) :=
+affine_equiv.to_equiv_injective $ f.to_add_equiv.base_at_vadd x v
+
+@[simp] lemma base_at_symm (f : V₁ ≃ₗ[k] V₁) (x : P₁) :
+  (f.base_at k x).symm = f.symm.base_at k x :=
+rfl
+
+-- this seems like the natural simp-direction, but it's opposite to that for `base_at_symm`
+@[simp] lemma base_at_trans (f₁ f₂ : V₁ ≃ₗ[k] V₁) (x : P₁) :
+  (f₁.trans f₂).base_at k x = (f₁.base_at k x).trans (f₂.base_at k x) :=
+affine_equiv.to_equiv_injective $ f₁.to_add_equiv.base_at_trans f₂.to_add_equiv x
+
+include V₁
+
+lemma _root_.affine_equiv.base_at_neg (x : P₁) :
+  (linear_equiv.neg k).base_at k x = point_reflection k x :=
+affine_equiv.to_equiv_injective $ equiv.base_at_neg x
 
 end linear_equiv
 

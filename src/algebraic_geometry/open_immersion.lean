@@ -744,9 +744,10 @@ variables [reflects_isomorphisms (forget C)] [preserves_limits (forget C)]
 variables [preserves_filtered_colimits (forget C)]
 
 /--
-Suppose `C` is a concrete category, whose forgetful functor reflects isomorphisms,
-preserves limits and filtered colimits. Then an (topological) open embedding is an open immersion
-iff every stalk map is an iso.
+Suppose `X Y : SheafedSpace C`, where `C` is a concrete category,
+whose forgetful functor reflects isomorphisms, preserves limits and filtered colimits.
+Then a morphism `X ⟶ Y` that is a topological open embedding
+is an open immersion iff every stalk map is an iso.
 -/
 lemma of_stalk_iso {X Y : SheafedSpace C} (f : X ⟶ Y)
   (hf : open_embedding f.base) [H : ∀ x : X, is_iso (PresheafedSpace.stalk_map f x)] :

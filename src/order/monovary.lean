@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys, Yaël Dillies
 -/
 import order.monotone
+import data.set.basic
 
 /-!
 # Monovariance of functions
@@ -21,7 +22,7 @@ This condition comes up in the rearrangement inequality. See `algebra.order.rear
 * `antivary f g`: `f` antivaries with `g`. If `g i < g j`, then `f j ≤ f i`.
 -/
 
-open function
+open function set
 
 variables {ι ι' α β γ : Type*}
 
@@ -47,6 +48,24 @@ protected lemma monovary.monovary_on (h : monovary f g) (s : set ι) : monovary_
 
 protected lemma antivary.antivary_on (h : antivary f g) (s : set ι) : antivary_on f g s :=
 λ i j _ _ hij, h hij
+
+protected lemma monovary_on.univ_iff_monovary : monovary_on f g univ ↔ monovary f g :=
+begin
+  split,
+  { intros h i j hg,
+    exact (h (mem_univ i) (mem_univ j) hg) },
+  { intros h i j hi hj hg,
+    exact h hg }
+end
+
+protected lemma antivary_on.univ_iff_antivary : antivary_on f g univ ↔ antivary f g :=
+begin
+  split,
+  { intros h i j hg,
+    exact (h (mem_univ i) (mem_univ j) hg) },
+  { intros h i j hi hj hg,
+    exact h hg }
+end
 
 protected lemma monovary_on.subset (hst : s ⊆ t) (h : monovary_on f g t) : monovary_on f g s :=
 λ i j hi hj, h (hst hi) (hst hj)

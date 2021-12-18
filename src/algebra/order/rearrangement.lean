@@ -23,7 +23,6 @@ Note : I'm currently very unsure if this theorem should have it's own file, plea
 comment on this
 -/
 
-
 variables {ι ι' α β γ : Type*}
 
 section vary
@@ -85,13 +84,13 @@ end
 
 end finset
 
-open finset equiv equiv.perm
+open finset equiv equiv.perm order_dual
 open_locale big_operators
 
 /-- **Rearrangement Inequality** -/
 theorem rearrangement_inequality_smul {ι α β : Type*} [decidable_eq ι] [fintype ι]
-  [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β]
-  [ordered_smul α β] (s : finset ι) (f : ι → α) (g : ι → β) (σ : perm ι) (hσ : σ.support ⊆ s)
+  [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
+  (s : finset ι) (f : ι → α) (g : ι → β) (σ : perm ι) (hσ : σ.support ⊆ s)
   (hfg : monovary_on f g s) :
   ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
 begin
@@ -243,7 +242,9 @@ begin
     { simp only [coe_mem, mem_coe] },
     { simp only [coe_mem, mem_coe] },
     { exact subtype.mono_coe (λ (x : ι), x ∈ s) hab } },
-  have hfg : monovary f' g' := hf'm.monovary hg'm,
+  have hfg : monovary_on f' g' ↑univ,
+  { convert (monovary_on.univ_iff_monovary).mpr (hf'm.monovary hg'm),
+    exact coe_univ },
   have hσsupp: ∀ (y : ι), y ∈ {x | σ x ≠ x} ↔ σ y ∈ {x | σ x ≠ x},
   { intro y,
     simp only [ne.def, set.mem_set_of_eq, apply_eq_iff_eq] },
@@ -260,7 +261,7 @@ begin
     { simp only [not_not, set.mem_set_of_eq] at hy,
       rw hy } },
   set τ : perm s := perm.subtype_perm σ hσs with hτs,
-  convert (rearrangement_inequality univ f' g' τ (subset_univ _) hfg) using 1,
+  convert (rearrangement_inequality_smul univ f' g' τ (subset_univ _) hfg) using 1,
   { rw @sum_subtype α ι _ (λ x, x ∈ s) _ s _,
     { congr },
     { simp only [iff_self, implies_true_iff] } },

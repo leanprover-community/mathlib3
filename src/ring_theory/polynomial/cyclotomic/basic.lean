@@ -132,26 +132,26 @@ lemma roots_of_cyclotomic (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] :
   (cyclotomic' n R).roots = (primitive_roots n R).val :=
 by { rw cyclotomic', exact roots_prod_X_sub_C (primitive_roots n R) }
 
+/-- If there is a primitive `n`th root of unity in `K`, then `X ^ n - 1 = ∏ (X - μ)`, where `μ`
+varies over the `n`-th roots of unity. -/
+lemma X_pow_sub_one_eq_prod {ζ : R} {n : ℕ} (hpos : 0 < n)
+  (h : is_primitive_root ζ n) : X ^ n - 1 = ∏ ζ in nth_roots_finset n R, (X - C ζ) :=
+begin
+  rw [nth_roots_finset, ← multiset.to_finset_eq (is_primitive_root.nth_roots_nodup h)],
+  simp only [finset.prod_mk, ring_hom.map_one],
+  rw [nth_roots],
+  have hmonic : (X ^ n - C (1 : R)).monic := monic_X_pow_sub_C (1 : R) (ne_of_lt hpos).symm,
+  symmetry,
+  apply prod_multiset_X_sub_C_of_monic_of_roots_card_eq hmonic,
+  rw [@nat_degree_X_pow_sub_C R _ _ n 1, ← nth_roots],
+  exact is_primitive_root.card_nth_roots h
+end
+
 end is_domain
 
 section field
 
 variables {K : Type*} [field K]
-
-/-- If there is a primitive `n`th root of unity in `K`, then `X ^ n - 1 = ∏ (X - μ)`, where `μ`
-varies over the `n`-th roots of unity. -/
-lemma X_pow_sub_one_eq_prod {K : Type*} [comm_ring K] [is_domain K] {ζ : K} {n : ℕ} (hpos : 0 < n)
-  (h : is_primitive_root ζ n) : X ^ n - 1 = ∏ ζ in nth_roots_finset n K, (X - C ζ) :=
-begin
-  rw [nth_roots_finset, ← multiset.to_finset_eq (is_primitive_root.nth_roots_nodup h)],
-  simp only [finset.prod_mk, ring_hom.map_one],
-  rw [nth_roots],
-  have hmonic : (X ^ n - C (1 : K)).monic := monic_X_pow_sub_C (1 : K) (ne_of_lt hpos).symm,
-  symmetry,
-  apply prod_multiset_X_sub_C_of_monic_of_roots_card_eq hmonic,
-  rw [@nat_degree_X_pow_sub_C K _ _ n 1, ← nth_roots],
-  exact is_primitive_root.card_nth_roots h
-end
 
 /-- `cyclotomic' n K` splits. -/
 lemma cyclotomic'_splits (n : ℕ) : splits (ring_hom.id K) (cyclotomic' n K) :=

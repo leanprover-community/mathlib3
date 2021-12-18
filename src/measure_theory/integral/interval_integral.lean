@@ -51,12 +51,12 @@ derivative `(δu, δv) ↦ δv • cb - δu • ca` within the set `s × t` at `
 to `ca` (resp., `cb`) almost surely at `la` (resp., `lb`), where possible values of `s`, `t`, and
 corresponding filters `la`, `lb` are given in the following table.
 
-| `s`     | `la`         | `t`     | `lb`         |
-| ------- | ----         | ---     | ----         |
-| `Iic a` | `𝓝[Iic a] a` | `Iic b` | `𝓝[Iic b] b` |
-| `Ici a` | `𝓝[Ioi a] a` | `Ici b` | `𝓝[Ioi b] b` |
-| `{a}`   | `⊥`          | `{b}`   | `⊥`          |
-| `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
+| `s`     | `la`     | `t`     | `lb`     |
+| ------- | ----     | ---     | ----     |
+| `Iic a` | `𝓝[≤] a` | `Iic b` | `𝓝[≤] b` |
+| `Ici a` | `𝓝[>] a` | `Ici b` | `𝓝[>] b` |
+| `{a}`   | `⊥`      | `{b}`   | `⊥`      |
+| `univ`  | `𝓝 a`    | `univ`  | `𝓝 b`    |
 
 We use a typeclass `FTC_filter` to make Lean automatically find `la`/`lb` based on `s`/`t`. This way
 we can formulate one theorem instead of `16` (or `8` if we leave only non-trivial ones not covered
@@ -138,8 +138,8 @@ assumptions:
 - if `u n` and `v n` tend to `l`, then for any `s ∈ l'`, `Ioc (u n) (v n)` is eventually included
   in `s`.
 
-This typeclass has the following “real” instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`,
-`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`.
+This typeclass has the following “real” instances: `(a, pure a, ⊥)`, `(a, 𝓝[≥] a, 𝓝[>] a)`,
+`(a, 𝓝[≤] a, 𝓝[≤] a)`, `(a, 𝓝 a, 𝓝 a)`.
 Furthermore, we have the following instances that are equal to the previously mentioned instances:
 `(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`.
 While the difference between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure,
@@ -1239,7 +1239,7 @@ end
 In this section we prove a few lemmas that can be seen as versions of FTC-1 for interval integrals
 w.r.t. any measure. Many theorems are formulated for one or two pairs of filters related by
 `FTC_filter a l l'`. This typeclass has exactly four “real” instances: `(a, pure a, ⊥)`,
-`(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`, `(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances
+`(a, 𝓝[≥] a, 𝓝[>] a)`, `(a, 𝓝[≤] a, 𝓝[≤] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances
 that are equal to the first and last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and
 `(a, 𝓝[univ] a, 𝓝[univ] a)`.  We use this approach to avoid repeating arguments in many very similar
 cases.  Lean can automatically find both `a` and `l'` based on `l`.
@@ -1306,11 +1306,11 @@ instance nhds (a : β) : FTC_filter a (𝓝 a) (𝓝 a) :=
 instance nhds_univ (a : β) : FTC_filter a (𝓝[univ] a) (𝓝 a) :=
 by { rw nhds_within_univ, apply_instance }
 
-instance nhds_left (a : β) : FTC_filter a (𝓝[Iic a] a) (𝓝[Iic a] a) :=
+instance nhds_left (a : β) : FTC_filter a (𝓝[≤] a) (𝓝[≤] a) :=
 { pure_le := pure_le_nhds_within right_mem_Iic,
   le_nhds := inf_le_left }
 
-instance nhds_right (a : β) : FTC_filter a (𝓝[Ici a] a) (𝓝[Ioi a] a) :=
+instance nhds_right (a : β) : FTC_filter a (𝓝[≥] a) (𝓝[>] a) :=
 { pure_le := pure_le_nhds_within left_mem_Ici,
   le_nhds := inf_le_left }
 
@@ -1339,8 +1339,8 @@ finite at `l'`, then `∫ x in u..v, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ 
 `u` and `v` tend to `l`.
 
 See also `measure_integral_sub_linear_is_o_of_tendsto_ae` for a version assuming
-`[FTC_filter a l l']` and `[is_locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
-`𝓝[Iic a] a`, `𝓝 a`, then it's easier to apply the non-primed version.
+`[FTC_filter a l l']` and `[is_locally_finite_measure μ]`. If `l` is one of `𝓝[≥] a`,
+`𝓝[≤] a`, `𝓝 a`, then it's easier to apply the non-primed version.
 The primed version also works, e.g., for `l = l' = at_top`.
 
 We use integrals of constants instead of measures because this way it is easier to formulate
@@ -1370,8 +1370,8 @@ finite at `l`, then `∫ x in u..v, f x ∂μ = μ (Ioc u v) • c + o(μ(Ioc u 
 `u` and `v` tend to `l` so that `u ≤ v`.
 
 See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_le` for a version assuming
-`[FTC_filter a l l']` and `[is_locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
-`𝓝[Iic a] a`, `𝓝 a`, then it's easier to apply the non-primed version.
+`[FTC_filter a l l']` and `[is_locally_finite_measure μ]`. If `l` is one of `𝓝[≥] a`,
+`𝓝[≤] a`, `𝓝 a`, then it's easier to apply the non-primed version.
 The primed version also works, e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le'
   [is_measurably_generated l'] [tendsto_Ixx_class Ioc l l']
@@ -1390,8 +1390,8 @@ finite at `l`, then `∫ x in u..v, f x ∂μ = -μ (Ioc v u) • c + o(μ(Ioc v
 `u` and `v` tend to `l` so that `v ≤ u`.
 
 See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge` for a version assuming
-`[FTC_filter a l l']` and `[is_locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
-`𝓝[Iic a] a`, `𝓝 a`, then it's easier to apply the non-primed version.
+`[FTC_filter a l l']` and `[is_locally_finite_measure μ]`. If `l` is one of `𝓝[≥] a`,
+`𝓝[≤] a`, `𝓝 a`, then it's easier to apply the non-primed version.
 The primed version also works, e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge'
   [is_measurably_generated l'] [tendsto_Ixx_class Ioc l l']
@@ -1834,12 +1834,12 @@ has derivative `(u, v) ↦ v • cb - u • ca` within `s × t` at `(a, b)`, whe
 `s ∈ {Iic a, {a}, Ici a, univ}` and `t ∈ {Iic b, {b}, Ici b, univ}` provided that `f` tends to `ca`
 and `cb` almost surely at the filters `la` and `lb` from the following table.
 
-| `s`     | `la`         | `t`     | `lb`         |
-| ------- | ----         | ---     | ----         |
-| `Iic a` | `𝓝[Iic a] a` | `Iic b` | `𝓝[Iic b] b` |
-| `Ici a` | `𝓝[Ioi a] a` | `Ici b` | `𝓝[Ioi b] b` |
-| `{a}`   | `⊥`          | `{b}`   | `⊥`          |
-| `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
+| `s`     | `la`     | `t`     | `lb`     |
+| ------- | ----     | ---     | ----     |
+| `Iic a` | `𝓝[≤] a` | `Iic b` | `𝓝[≤] b` |
+| `Ici a` | `𝓝[>] a` | `Ici b` | `𝓝[>] b` |
+| `{a}`   | `⊥`      | `{b}`   | `⊥`      |
+| `univ`  | `𝓝 a`    | `univ`  | `𝓝 b`    |
 -/
 lemma integral_has_fderiv_within_at_of_tendsto_ae
   (hf : interval_integrable f volume a b)
@@ -1864,12 +1864,12 @@ has derivative `(u, v) ↦ v • f b - u • f a` within `s × t` at `(a, b)`, w
 `f a` and `f b` at the filters `la` and `lb` from the following table. In most cases this assumption
 is definitionally equal `continuous_at f _` or `continuous_within_at f _ _`.
 
-| `s`     | `la`         | `t`     | `lb`         |
-| ------- | ----         | ---     | ----         |
-| `Iic a` | `𝓝[Iic a] a` | `Iic b` | `𝓝[Iic b] b` |
-| `Ici a` | `𝓝[Ioi a] a` | `Ici b` | `𝓝[Ioi b] b` |
-| `{a}`   | `⊥`          | `{b}`   | `⊥`          |
-| `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
+| `s`     | `la`     | `t`     | `lb`     |
+| ------- | ----     | ---     | ----     |
+| `Iic a` | `𝓝[≤] a` | `Iic b` | `𝓝[≤] b` |
+| `Ici a` | `𝓝[>] a` | `Ici b` | `𝓝[>] b` |
+| `{a}`   | `⊥`      | `{b}`   | `⊥`      |
+| `univ`  | `𝓝 a`    | `univ`  | `𝓝 b`    |
 -/
 lemma integral_has_fderiv_within_at
   (hf : interval_integrable f volume a b)
@@ -1892,12 +1892,12 @@ and `t ∈ {Iic b, Ici b, univ}`. Suppose that `f` tends to `ca` and `cb` almost
 `la` and `lb` from the table below. Then `fderiv_within ℝ (λ p, ∫ x in p.1..p.2, f x) (s.prod t)`
 is equal to `(u, v) ↦ u • cb - v • ca`.
 
-| `s`     | `la`         | `t`     | `lb`         |
-| ------- | ----         | ---     | ----         |
-| `Iic a` | `𝓝[Iic a] a` | `Iic b` | `𝓝[Iic b] b` |
-| `Ici a` | `𝓝[Ioi a] a` | `Ici b` | `𝓝[Ioi b] b` |
-| `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
-
+| `s`     | `la`     | `t`     | `lb`     |
+| ------- | ----     | ---     | ----     |
+| `Iic a` | `𝓝[≤] a` | `Iic b` | `𝓝[≤] b` |
+| `Ici a` | `𝓝[>] a` | `Ici b` | `𝓝[>] b` |
+| `{a}`   | `⊥`      | `{b}`   | `⊥`      |
+| `univ`  | `𝓝 a`    | `univ`  | `𝓝 b`    |
 -/
 lemma fderiv_within_integral_of_tendsto_ae
   (hf : interval_integrable f volume a b)
@@ -2051,11 +2051,11 @@ begin
       ereal.lt_iff_exists_real_btwn.1 (g'_lt_G' t),
     -- bound from below the increase of `∫ x in a..u, G' x` on the right of `t`, using the lower
     -- semicontinuity of `G'`.
-    have I1 : ∀ᶠ u in 𝓝[Ioi t] t, (u - t) * y ≤ ∫ w in t..u, (G' w).to_real,
+    have I1 : ∀ᶠ u in 𝓝[>] t, (u - t) * y ≤ ∫ w in t..u, (G' w).to_real,
     { have B : ∀ᶠ u in 𝓝 t, (y : ereal) < G' u :=
         G'cont.lower_semicontinuous_at _ _ y_lt_G',
       rcases mem_nhds_iff_exists_Ioo_subset.1 B with ⟨m, M, ⟨hm, hM⟩, H⟩,
-      have : Ioo t (min M b) ∈ 𝓝[Ioi t] t := mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
+      have : Ioo t (min M b) ∈ 𝓝[>] t := mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
         ⟨min M b, by simp only [hM, ht.right.right, lt_min_iff, mem_Ioi, and_self], subset.refl _⟩,
       filter_upwards [this],
       assume u hu,
@@ -2083,7 +2083,7 @@ begin
           exact ereal.coe_to_real G'x.ne (ne_bot_of_gt (g'_lt_G' x)) }
       end },
     -- bound from above the increase of `g u - g a` on the right of `t`, using the derivative at `t`
-    have I2 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ (u - t) * y,
+    have I2 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ (u - t) * y,
     { have g'_lt_y : g' t < y := ereal.coe_lt_coe_iff.1 g'_lt_y',
       filter_upwards [(hderiv t ⟨ht.2.1, ht.2.2⟩).limsup_slope_le'
         (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within],
@@ -2093,11 +2093,11 @@ begin
       exact sub_pos.2 t_lt_u },
     -- combine the previous two bounds to show that `g u - g a` increases less quickly than
     -- `∫ x in a..u, G' x`.
-    have I3 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ ∫ w in t..u, (G' w).to_real,
+    have I3 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ ∫ w in t..u, (G' w).to_real,
     { filter_upwards [I1, I2],
       assume u hu1 hu2,
       exact hu2.trans hu1 },
-    have I4 : ∀ᶠ u in 𝓝[Ioi t] t, u ∈ Ioc t (min v b),
+    have I4 : ∀ᶠ u in 𝓝[>] t, u ∈ Ioc t (min v b),
     { refine mem_nhds_within_Ioi_iff_exists_Ioc_subset.2 ⟨min v b, _, subset.refl _⟩,
       simp only [lt_min_iff, mem_Ioi],
       exact ⟨t_lt_v, ht.2.2⟩ },
@@ -2233,7 +2233,7 @@ integral_eq_sub_of_has_deriv_right (has_deriv_at.continuous_on hderiv)
 
 theorem integral_eq_sub_of_has_deriv_at_of_tendsto (hab : a < b) {fa fb}
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hint : interval_integrable f' volume a b)
-  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 fa)) (hb : tendsto f (𝓝[Iio b] b) (𝓝 fb)) :
+  (ha : tendsto f (𝓝[>] a) (𝓝 fa)) (hb : tendsto f (𝓝[<] b) (𝓝 fb)) :
   ∫ y in a..b, f' y = fb - fa :=
 begin
   set F : ℝ → E := update (update f a fa) b fb,

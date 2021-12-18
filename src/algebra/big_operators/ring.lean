@@ -112,12 +112,21 @@ calc ∏ a in s, (f a + g a)
     refine congr_arg2 _
       (prod_bij (λ (a : α) (ha : a ∈ t), ⟨a, mem_powerset.1 ht ha⟩)
          _ _ _
-        (λ b hb, ⟨b, by cases b; finish⟩))
+        (λ b hb, ⟨b, by cases b;
+          simpa only [true_and, exists_prop, mem_filter, and_true, mem_attach, eq_self_iff_true,
+            subtype.coe_mk] using hb⟩))
       (prod_bij (λ (a : α) (ha : a ∈ s \ t), ⟨a, by simp * at *⟩)
         _ _ _
-        (λ b hb, ⟨b, by cases b; finish⟩));
+        (λ b hb, ⟨b, by cases b; begin
+          simp only [true_and, mem_filter, mem_attach, subtype.coe_mk] at hb,
+          simpa only [true_and, exists_prop, and_true, mem_sdiff, eq_self_iff_true, subtype.coe_mk,
+            b_property],
+        end⟩));
     intros; simp * at *; simp * at * },
-  { finish [function.funext_iff, finset.ext_iff, subset_iff] },
+  { assume a₁ a₂ h₁ h₂ H,
+    ext x,
+    simp only [function.funext_iff, subset_iff, mem_powerset, eq_iff_iff] at h₁ h₂ H,
+    exact ⟨λ hx, (H x (h₁ hx)).1 hx, λ hx, (H x (h₂ hx)).2 hx⟩ },
   { assume f hf,
     exact ⟨s.filter (λ a : α, ∃ h : a ∈ s, f a h),
       by simp, by funext; intros; simp *⟩ }

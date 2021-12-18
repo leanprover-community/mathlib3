@@ -23,8 +23,14 @@ Note : I'm currently very unsure if this theorem should have it's own file, plea
 comment on this
 -/
 
+variables {ι ι' α β γ : Type*}
 
-variables {ι α β γ : Type*}
+section vary
+variables [preorder α] [preorder β] {f : ι → α} {g : ι → β}
+
+open equiv
+
+end vary
 
 namespace finset
 
@@ -85,13 +91,13 @@ open_locale big_operators
 theorem rearrangement_inequality_smul {ι α β : Type*} [decidable_eq ι] [fintype ι]
   [ordered_semiring α] [linear_ordered_add_comm_group β] [smul_with_zero α β]
   [ordered_smul α β] (s : finset ι) (f : ι → α) (g : ι → β) (σ : perm ι) (hσ : σ.support ⊆ s)
-  (hfg : monovary f g) :
+  (hfg : monovary_on f g s) :
   ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
 sorry
 
 /-- **Rearrangement Inequality** -/
 theorem rearrangement_inequality {ι α : Type*} [decidable_eq ι] [fintype ι] [linear_ordered_ring α]
-  (s : finset ι) (f g : ι → α) (σ : perm ι) (hσ : σ.support ⊆ s) (hfg : monovary f g) :
+  (s : finset ι) (f g : ι → α) (σ : perm ι) (hσ : σ.support ⊆ s) (hfg : monovary_on f g s) :
   ∑ i in s, f i * g (σ i) ≤ ∑ i in s, f i * g i :=
 begin
   revert hσ σ,

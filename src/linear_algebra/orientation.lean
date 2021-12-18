@@ -194,13 +194,7 @@ equiv.ext $ module.ray.ind R $ λ _ _, rfl
 
 /-- An equivalence between modules implies an equivalence between orientations. -/
 def orientation.map [nontrivial R] (e : M ≃ₗ[R] N) : orientation R M ι ≃ orientation R N ι :=
-module.ray.map
-  { to_fun := λ f, f.comp_linear_map e.symm,
-    inv_fun := λ g, g.comp_linear_map e,
-    map_add' := λ _ _, rfl,
-    map_smul' := λ _ _, rfl,
-    left_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.symm_apply_apply _,
-    right_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.apply_symm_apply _ }
+module.ray.map $ alternating_map.dom_lcongr R R ι R e
 
 @[simp] lemma orientation.map_apply [nontrivial R] (e : M ≃ₗ[R] N) (v : alternating_map R M R ι)
   (hv : v ≠ 0) :
@@ -209,10 +203,7 @@ module.ray.map
 
 @[simp] lemma orientation.map_refl [nontrivial R] :
   (orientation.map ι $ linear_equiv.refl R M) = equiv.refl _ :=
-equiv.ext $ module.ray.ind R $ λ _ _, begin
-  dsimp,
-  simp_rw alternating_map.comp_linear_map_id,
-end
+by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
 
 @[simp] lemma orientation.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
   (orientation.map ι e).symm = orientation.map ι e.symm := rfl

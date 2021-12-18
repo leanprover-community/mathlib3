@@ -99,7 +99,7 @@ fold_cons_left _ _ _ _
 @[simp] lemma inf_singleton {a : α} : ({a} : multiset α).inf = a :=
 inf_top_eq
 
-@[simp] lemma sup_map (s : finset α) {f : β → γ} (h : function.injective f) (g : α → multiset β) :
+@[simp] lemma inf_map (s : finset α) {f : β → γ} (h : function.injective f) (g : α → multiset β) :
   multiset.map f (s.inf g) = s.inf (λ x,  multiset.map f (g x)) :=
 := sorry
 

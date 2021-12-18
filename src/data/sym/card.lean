@@ -39,6 +39,39 @@ def multichoose1 (n k : ℕ) := fintype.card (sym (fin n) k)
 
 def multichoose2 (n k : ℕ) := (n + k - 1).choose k
 
+instance sym.has_zero {α : Type*} : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
+instance sym.has_emptyc {α : Type*} : has_emptyc (sym α 0) := ⟨0⟩
+
+def sym.map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
+  ⟨x.val.map f, by simpa [multiset.card_map] using x.property⟩
+
+@[simp] lemma sym.mem_map {α β : Type*} {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
+  b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
+
+@[simp] lemma sym.map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map id s = s :=
+  by simp [sym.map, subtype.mk.inj_eq]
+
+@[simp] lemma sym.map_map {α β γ : Type*} {n : ℕ} (g : β → γ) (f : α → β) (s : sym α n) :
+  sym.map g (sym.map f s) = sym.map (g ∘ f) s :=
+  by simp [sym.map, subtype.mk.inj_eq]
+
+@[simp] lemma sym.map_zero {α β : Type*} (f : α → β) :
+  sym.map f (0 : sym α 0) = (0 : sym β 0) :=
+  begin
+    rw sym.has_zero,
+    simp only [sym.map, multiset.map_zero],
+    rw sym.has_zero,
+    norm_num,
+  end
+
+@[simp] lemma sym.map_cons {α β : Type*} {n : ℕ} (f : α → β) (a : α) (s : sym α n) : sym.map f (a::s) = (f a)::sym.map f s :=
+  begin
+    simp only [sym.map, subtype.mk.inj_eq, sym.cons],
+    convert multiset.map_cons f a s.val,
+    cases s,
+    rw sym.cons,
+  end
+
 def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
 if h : fin.last n ∈ x then
   sum.inr ⟨x.val.erase (fin.last n), by { rw [multiset.card_erase_of_mem h, x.property], refl }⟩

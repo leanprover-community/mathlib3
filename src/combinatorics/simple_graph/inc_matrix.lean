@@ -29,14 +29,10 @@ Define the incidence matrix of an oriented graph.
 open_locale big_operators matrix
 open finset matrix simple_graph sym2
 
-section to_move
-
 @[simp] lemma ite_zero_mul_ite_zero_right {R : Type*} [mul_zero_class R] {P Q : Prop} [decidable P]
   [decidable Q] (a b : R) :
   (ite P a 0) * (ite Q b 0) = ite (P ∧ Q) (a * b) 0 :=
 by simp [←ite_and]
-
-end to_move
 
 variables {R α : Type*}
 
@@ -48,6 +44,8 @@ variables [decidable_eq α] (G : simple_graph α) [decidable_rel G.adj] (R)
 def inc_matrix [has_zero R] [has_one R] : matrix α (sym2 α) R :=
 λ a e, if e ∈ G.incidence_set a then 1 else 0
 
+variables {R}
+
 @[simp]
 lemma inc_matrix_apply {a : α} {e : sym2 α} [has_zero R] [has_one R] :
   G.inc_matrix R a e = if e ∈ G.incidence_set a then 1 else 0 := rfl
@@ -56,11 +54,11 @@ section mul_zero_one_class
 variables [mul_zero_one_class R] {a b : α} {e : sym2 α}
 
 lemma inc_matrix_apply_mul_inc_matrix_apply :
-  G.inc_matrix R a e * G.inc_matrix R b e = if (e ∈ G.incidence_set a ∧ e ∈ G.incidence_set b)
-    then 1 else 0 :=
+  G.inc_matrix R a e * G.inc_matrix R b e =
+    if (e ∈ G.incidence_set a ∧ e ∈ G.incidence_set b) then 1 else 0 :=
 by rw [inc_matrix, ite_zero_mul_ite_zero_right _ _, mul_one]
 
-lemma inc_matrix_apply_mul_inc_matrix_apply_of_not_adj (hab : a ≠ b) (h : ¬G.adj a b) :
+lemma inc_matrix_apply_mul_inc_matrix_apply_of_not_adj (hab : a ≠ b) (h : ¬ G.adj a b) :
   G.inc_matrix R a e * G.inc_matrix R b e = 0 :=
 begin
   rw [inc_matrix_apply_mul_inc_matrix_apply, if_neg],
@@ -94,20 +92,43 @@ begin
     function.embedding.coe_fn_mk, mem_map, subtype.coe_mk],
 end
 
+lemma inc_matrix_mul_transpose_diag : (G.inc_matrix R ⬝ (G.inc_matrix R)ᵀ) a a = G.degree a :=
+begin
+  rw ←sum_inc_matrix_apply,
+  simp only [matrix.mul_apply, matrix.transpose_apply, ite_zero_mul_ite_zero_right,
+    inc_matrix_apply, and_self, mul_one],
+  congr,
+  ext,
+  congr,
+end
+
 end non_assoc_semiring
 
 section semiring
 variables [fintype α] [semiring R] {a b : α} {e : sym2 α}
 
-lemma sum_inc_matrix_apply_mul_inc_matrix_apply_of_adj (h : G.adj a b) :
-  ∑ e, G.inc_matrix R a e * G.inc_matrix R b e = (1 : R) :=
+lemma inc_matrix_mul_transpose_apply_of_adj (h : G.adj a b) :
+  (G.inc_matrix R ⬝ (G.inc_matrix R)ᵀ) a b = (1 : R) :=
 begin
-  simp_rw inc_matrix_apply_mul_inc_matrix_apply,
+  simp_rw [matrix.mul_apply, matrix.transpose_apply, inc_matrix_apply_mul_inc_matrix_apply],
   rw sum_boole,
   convert nat.cast_one,
   convert card_singleton ⟦(a, b)⟧,
   rw [←coe_eq_singleton, coe_filter_univ],
   exact G.incidence_set_inter_incidence_set h,
+end
+
+lemma inc_matrix_mul_transpose :
+  G.inc_matrix R ⬝ (G.inc_matrix R)ᵀ = λ a b,
+    if a = b then G.degree a else if G.adj a b then 1 else 0 :=
+begin
+  ext a b,
+  split_ifs with h h',
+  { subst b,
+    exact G.inc_matrix_mul_transpose_diag },
+  { exact G.inc_matrix_mul_transpose_apply_of_adj h' },
+  { simp only [matrix.mul_apply, matrix.transpose_apply,
+    G.inc_matrix_apply_mul_inc_matrix_apply_of_not_adj h h', sum_const_zero] }
 end
 
 end semiring

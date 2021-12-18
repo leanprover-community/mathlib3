@@ -20,12 +20,6 @@ open_locale classical pointwise
 
 section
 
-variables (G : Type*) [group G] (N : subgroup G) [nN : N.normal]
-
-end
-
-section
-
 variables (G : Type*) [add_comm_group G]
 
 lemma mem_smul (m : ℕ) {a : G} :

@@ -279,8 +279,9 @@ begin
 end
 
 lemma degree_of_rename_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
-{f : σ → τ} (h : function.injective f) (i : σ) : degree_of i p = degree_of (f i) (rename f p) :=
-by simp only [degree_of, rename_degrees_of_injective h, multiset.count_map_eq_count' f (p.degrees) h]
+  {f : σ → τ} (h : function.injective f) (i : σ) : degree_of i p = degree_of (f i) (rename f p) :=
+by simp only [degree_of, rename_degrees_of_injective h,
+              multiset.count_map_eq_count' f (p.degrees) h]
 
 end degree
 

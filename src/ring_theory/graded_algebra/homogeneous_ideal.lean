@@ -286,7 +286,7 @@ end
 variables [add_comm_monoid ι] [decidable_eq ι]
 variables [graded_algebra A]
 
-lemma is_homogeneous_ideal.homogeneous_ideal_of_ideal :
+lemma ideal.is_homogeneous.homogenisation :
   ideal.is_homogeneous A (ideal.homogenisation A I) :=
 begin
   rw ideal.is_homogeneous.iff_exists,

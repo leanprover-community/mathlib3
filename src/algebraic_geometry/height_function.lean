@@ -256,7 +256,8 @@ lemma property_next_height_iter (P : A) (n : ℕ) :
   f.to_fun ((next f.m)^[n.succ] P) ≤
   (2⁻¹)^n.succ * f.to_fun P + (2⁻¹ * C) :=
 have ineq1 : _ := property_next_height_iter_aux f P n,
-have eq1 : (∑' (i : ℕ), ite (i ∈ range n.succ) ((2:ℝ)⁻¹ ^ i) 0) = ∑ (i : ℕ) in range n.succ, 2⁻¹ ^ i,
+have eq1 : (∑' (i : ℕ), ite (i ∈ range n.succ) ((2:ℝ)⁻¹ ^ i) 0) =
+  ∑ (i : ℕ) in range n.succ, 2⁻¹ ^ i,
 begin
   rw tsum_eq_sum, apply finset.sum_congr, refl, intros i hi, split_ifs, refl,
   intros i hi, split_ifs, exfalso, exact hi h, refl,
@@ -312,7 +313,8 @@ begin
       next_prop f.m (next f.m^[n.succ] P), finset.sum_range_succ, pow_succ, mul_nsmul',
       show ∀ (a b c : A), a + (b + c) = (a + c) + b, begin
         intros a b c, rw [add_comm b c, add_assoc],
-      end, ←next_prop f.m (next f.m^[n.succ] P), ←nsmul_add, ←next_prop f.m (next f.m^[n.succ] P)], },
+      end, ←next_prop f.m (next f.m^[n.succ] P), ←nsmul_add,
+      ←next_prop f.m (next f.m^[n.succ] P)], },
     conv_lhs { rw ih }, },
 end
 

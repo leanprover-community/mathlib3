@@ -30,10 +30,15 @@ variable (X : Scheme)
 
 instance : t0_space X.carrier :=
 begin
-  constructor,
-  intros x y h,
+  rw t0_space_iff_distinguishable,
+  intros x y h h',
   obtain ⟨U, R, ⟨e⟩⟩ := X.local_affine x,
-  by_cases y ∈ U.1, swap, { exact ⟨U.1.1, U.1.2, or.inl ⟨U.2, h⟩⟩ },
+  have hy := (h' _ U.1.2).mp U.2,
+  erw ← subtype_indistinguishable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h',
+  let e' : U.1 ≃ₜ prime_spectrum R := homeo_of_iso (LocallyRingedSpace.forget_to_Top.map_iso e),
+  have := domain_t0_space e'.injective e'.continuous,
+  rw t0_space_iff_distinguishable at this,
+  exact this ⟨x, U.2⟩ ⟨y, hy⟩ (by simpa using h) h'
 end
 
 /-- A scheme `X` is integral if its carrier is nonempty,
@@ -91,10 +96,6 @@ begin
     { intro x, exact x.rec _ } }
 end
 
-.
-
--- example {a : Type*} (b c : set a) : (b ≤ c) → (b ∩ cᶜ = ∅) := by library_search
-
 lemma closed_eq_top_iff_nonempty_open_subset {α : Type*} [topological_space α]
   [preirreducible_space α]
   {U Z : set α} (hU : is_open U) (hU' : nonempty U) (hZ : is_closed Z) :
@@ -109,49 +110,48 @@ begin
   exact set.compl_empty_iff.mp (this h),
 end
 
-
-local attribute [reducible] Scheme.X
-
-@[simps]
-def Scheme.forget_to_Top : Scheme ⥤ Top :=
-  induced_functor _ ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _
-
-def has_generic_point [h : is_integral X] : ∃ (x : X.carrier), closure ({x} : set X.carrier) = ⊤ :=
+lemma has_generic_point [is_integral X] :
+  ∃ (x : X.carrier), closure ({x} : set X.carrier) = ⊤ :=
 begin
   haveI : irreducible_space X.X := show irreducible_space X.carrier, by apply_instance,
   obtain ⟨⟨U, hU⟩, R, ⟨e⟩⟩ := X.local_affine (nonempty.some infer_instance),
-  haveI : nonempty (U.open_embedding.is_open_map.functor.obj ⊤) :=
-    ⟨⟨_, ⟨_, hU⟩, trivial, rfl⟩⟩,
+  haveI : nonempty (U.open_embedding.is_open_map.functor.obj ⊤) := ⟨⟨_, ⟨_, hU⟩, trivial, rfl⟩⟩,
   haveI := ((LocallyRingedSpace.Γ.map_iso e.op).symm ≪≫ Spec_Γ_identity.app R :
     X.presheaf.obj (op $ U.open_embedding.is_open_map.functor.obj ⊤) ≅ R)
       .CommRing_iso_to_ring_equiv.symm.is_domain _,
-  let x : U.1 := e.inv.1.base (⟨0, ideal.bot_prime⟩ : prime_spectrum R),
+  let e' : prime_spectrum R ≃ₜ U.1 :=
+    (homeo_of_iso $ LocallyRingedSpace.forget_to_Top.map_iso e).symm,
+  let x := e' ⟨0, ideal.bot_prime⟩,
   use x.1,
-  rw closed_eq_top_iff_nonempty_open_subset U.2,
-  suffices : closure ({⟨0, ideal.bot_prime⟩} : set $ prime_spectrum R) = ⊤,
-  { apply_fun (set.image e.inv.1.base) at this,
-    erw (homeo_of_iso ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _)
-      .map_iso e.symm)).image_closure at this,
-    change closure ((e.inv.val.base) '' _) = _ at this,
-    rw set.image_singleton at this,
-    intros y hy,
-    have h' := @closure_subtype _ _ U.1 ⟨y, hy⟩ ({x} : set U),
-    rw set.image_singleton at h',
-    apply h'.mp,
-    rw this,
-    erw set.image_univ,
-    rw set.range_iff_surjective.mpr ((Top.epi_iff_surjective _).mp _),
-    trivial,
-    change epi ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _)
-      .map_iso e).inv,
-    apply_instance },
-  rw eq_top_iff,
-  intros y _,
-  exact (prime_spectrum.le_iff_mem_closure _ _).mp bot_le,
-  exact nonempty.intro ⟨_, hU⟩,
-  exact is_closed_closure
+  rw closed_eq_top_iff_nonempty_open_subset U.2 (nonempty.intro ⟨_, hU⟩) is_closed_closure,
+  intros y hy,
+  have : closure ({⟨0, ideal.bot_prime⟩} : set $ prime_spectrum R) = ⊤ :=
+    eq_top_iff.mpr (λ _ _, (prime_spectrum.le_iff_mem_closure _ _).mp bot_le),
+  apply_fun (set.image e') at this,
+  rw [e'.image_closure, set.image_singleton] at this,
+  have h' := @closure_subtype _ _ U.1 ⟨y, hy⟩ ({x} : set U),
+  rw [set.image_singleton, subtype.coe_mk] at h',
+  rw [subtype.val_eq_coe, ← h', this, set.top_eq_univ, set.image_univ,
+    set.range_iff_surjective.mpr e'.surjective],
+  trivial
 end
 
+noncomputable
+def Scheme.generic_point [is_integral X] : X.carrier := (has_generic_point X).some
 
+lemma Scheme.generic_point_closure [is_integral X] :
+  closure ({X.generic_point} : set X.carrier) = ⊤ :=
+(has_generic_point X).some_spec
+
+lemma Scheme.generic_point_mem_nonempty_open [is_integral X]
+  (U : opens X.carrier) (hU : nonempty U) : X.generic_point ∈ U :=
+begin
+  by_contra,
+  have := (is_closed.closure_subset_iff (is_closed_compl_iff.mpr U.prop)).mpr
+    (set.singleton_subset_iff.mpr h),
+  rw [X.generic_point_closure, set.top_eq_univ, set.univ_subset_iff] at this,
+  have : hU.some.1 ∈ (U : set X.carrier)ᶜ := by { rw this, trivial },
+  exact this hU.some.2
+end
 
 end algebraic_geometry

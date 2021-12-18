@@ -67,6 +67,10 @@ begin
   simp only [factorization_eq_count, factors_count_pow],
 end
 
+-- lemma count_singleton {α : Type*} [decidable_eq α] {a b : α} :
+--   list.count a [b] = ite (a=b) 1 0 :=
+-- by refl
+
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
 @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :
   p.factorization = single p 1 :=
@@ -76,6 +80,7 @@ begin
   by_cases hqp : q = p,
   { rw hqp, simp },
   { rw finsupp.single_eq_of_ne (ne.symm hqp),
+    -- rw [count_singleton, if_neg hqp],
     exact count_eq_zero_of_not_mem ((not_iff_not_of_iff list.mem_singleton).mpr hqp) },
 end
 

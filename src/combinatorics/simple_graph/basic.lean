@@ -515,6 +515,13 @@ lemma card_incidence_set_eq_degree [decidable_eq V] :
 by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simp }
 
 @[simp]
+lemma card_incidence_finset_eq_degree [decidable_eq V] : (G.incidence_finset v).card = G.degree v :=
+begin
+  convert G.card_incidence_set_eq_degree v using 1,
+  apply set.to_finset_card,
+end
+
+@[simp]
 lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
   e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
 set.mem_to_finset

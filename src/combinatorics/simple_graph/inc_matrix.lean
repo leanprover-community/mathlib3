@@ -83,13 +83,11 @@ variables [fintype α] [non_assoc_semiring R] {a b : α} {e : sym2 α}
 lemma sum_inc_matrix_apply : ∑ e, G.inc_matrix R a e = G.degree a :=
 begin
   simp only [inc_matrix_apply, sum_boole],
-  rw ←card_incidence_set_eq_degree,
+  apply congr_arg,
+  rw ←card_incidence_finset_eq_degree,
   congr' 1,
-  refine eq.trans _ (finset.card_map ⟨@subtype.val _ (G.incidence_set a), subtype.val_injective⟩),
-  congr,
   ext e,
-  simp only [true_and, exists_prop, mem_filter, set_coe.exists, mem_univ, exists_eq_right,
-    function.embedding.coe_fn_mk, mem_map, subtype.coe_mk],
+  simp,
 end
 
 lemma inc_matrix_mul_transpose_diag : (G.inc_matrix R ⬝ (G.inc_matrix R)ᵀ) a a = G.degree a :=

@@ -89,7 +89,7 @@ end
 def decode (n k : ℕ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k → sym (fin n.succ) k.succ
 | (sum.inl x) := ⟨x.val.map (λ a, ⟨a.val, a.property.step⟩),
                   by simpa [multiset.card_map] using x.property⟩
-| (sum.inr x) := ⟨multiset.cons (fin.last n) x.val, by rw [multiset.card_cons, x.property]⟩
+| (sum.inr x) := (fin.last n)::x
 
 lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
 { to_fun := encode n k,
@@ -99,7 +99,7 @@ lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ �
     rw encode,
     split_ifs,
     { rw decode,
-      simp [multiset.cons_erase h], },
+      simp [sym.cons, multiset.cons_erase h], },
     { simp only [decode, multiset.map_map, subtype.mk.inj_eq, function.comp],
       convert multiset.map_congr _,
       { rw multiset.map_id, },
@@ -132,9 +132,11 @@ lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ �
         { refl } } },
     { rw [decode, encode],
       split_ifs,
-      { simp, },
+      { cases x, simp [sym.cons] },
       { apply h,
-        apply multiset.mem_cons_self, } }
+        cases x,
+        simp only [sym.cons],
+        apply multiset.mem_cons_self } }
   end }
 
 lemma multichoose1_rec (n k : ℕ) :

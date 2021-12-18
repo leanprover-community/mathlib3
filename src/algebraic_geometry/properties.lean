@@ -109,6 +109,7 @@ begin
   trivial
 end
 
+/-- The generic point of an integral scheme. -/
 noncomputable
 def Scheme.generic_point [is_integral X] : X.carrier := (has_generic_point X).some
 

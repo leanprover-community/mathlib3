@@ -3,6 +3,7 @@ Copyright (c) 2021 Mantas Bakšys. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
+import algebra.order.smul
 import group_theory.perm.sign
 import order.monovary
 import tactic.abel
@@ -81,6 +82,14 @@ open finset equiv equiv.perm
 open_locale big_operators
 
 /-- **Rearrangement Inequality** -/
+theorem rearrangement_inequality_smul {ι α β : Type*} [decidable_eq ι] [fintype ι]
+  [ordered_semiring α] [linear_ordered_add_comm_group β] [smul_with_zero α β]
+  [ordered_smul α β] (s : finset ι) (f : ι → α) (g : ι → β) (σ : perm ι) (hσ : σ.support ⊆ s)
+  (hfg : monovary f g) :
+  ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
+sorry
+
+/-- **Rearrangement Inequality** -/
 theorem rearrangement_inequality {ι α : Type*} [decidable_eq ι] [fintype ι] [linear_ordered_ring α]
   (s : finset ι) (f g : ι → α) (σ : perm ι) (hσ : σ.support ⊆ s) (hfg : monovary f g) :
   ∑ i in s, f i * g (σ i) ≤ ∑ i in s, f i * g i :=
@@ -91,14 +100,14 @@ begin
   { intros a s has hamax hind σ hσ,
     set k := σ a with hk,
     set j := σ⁻¹ a with hj,
-    set p : ι → ι := λ x, if (x = a) then a else if (x = j) then k else σ x with hp,
-    set q : ι → ι := λ x, if (x = a) then a else if (x = k) then j else σ⁻¹ x with hq,
+    set p : ι → ι := λ x, if x = a then a else if x = j then k else σ x with hp,
+    set q : ι → ι := λ x, if x = a then a else if x = k then j else σ⁻¹ x with hq,
     have hqpleft : function.left_inverse q p,
     { intro x,
       simp only [hp, hq],
       split_ifs with h₁ h₂ h₃ h₄ h₅,
       { rw h₁ },
-      { rw [h₂, hj, eq_inv_iff_eq, ← hk, h₃]},
+      { rw [h₂, hj, eq_inv_iff_eq, ← hk, h₃] },
       { rw h₂ },
       { exfalso,
         apply h₂,
@@ -220,15 +229,15 @@ begin
   { intros a b hab,
     simp only [hf'],
     apply hf,
-    { simp only [coe_mem, mem_coe]},
-    { simp only [coe_mem, mem_coe]},
+    { simp only [coe_mem, mem_coe] },
+    { simp only [coe_mem, mem_coe] },
     { exact subtype.mono_coe (λ (x : ι), x ∈ s) hab} },
   have hg'm : monotone g',
   { intros a b hab,
     simp only [hg'],
     apply hg,
-    { simp only [coe_mem, mem_coe]},
-    { simp only [coe_mem, mem_coe]},
+    { simp only [coe_mem, mem_coe] },
+    { simp only [coe_mem, mem_coe] },
     { exact subtype.mono_coe (λ (x : ι), x ∈ s) hab } },
   have hfg : monovary f' g' := hf'm.monovary hg'm,
   have hσsupp: ∀ (y : ι), y ∈ {x | σ x ≠ x} ↔ σ y ∈ {x | σ x ≠ x},
@@ -250,7 +259,7 @@ begin
   convert (rearrangement_inequality univ f' g' τ (subset_univ _) hfg) using 1,
   { rw @sum_subtype α ι _ (λ x, x ∈ s) _ s _,
     { congr },
-    { simp only [iff_self, implies_true_iff]} },
+    { simp only [iff_self, implies_true_iff] } },
   { rw @sum_subtype α ι _ (λ x, x ∈ s) _ s _,
     { congr },
     { simp only [iff_self, implies_true_iff] } }
@@ -270,13 +279,8 @@ begin
     { rw [swap_apply_right, swap, coe_fn_mk, swap_core, subtype.coe_mk, if_pos rfl],
       exact (ite_eq_right_iff.2 id).symm },
     { rw swap_apply_of_ne_of_ne hax.symm hay.symm,
-      { rw [swap, coe_fn_mk, swap_core, subtype.coe_mk, if_neg, if_neg],
-        { intro hya,
-          apply hay,
-          simp only [hya, mk_coe] },
-        { intro hxa,
-          apply hax,
-          simp only [hxa, mk_coe] } } } },
+      exact (swap_apply_of_ne_of_ne (subtype.coe_injective.ne hax.symm) $
+        subtype.coe_injective.ne hay.symm).symm } },
   { rw [extend_domain_apply_not_subtype, swap_apply_of_ne_of_ne
       (ne_of_mem_of_not_mem x.prop ha).symm (ne_of_mem_of_not_mem y.prop ha).symm],
     exact ha }
@@ -287,31 +291,22 @@ theorem equiv.perm.swap_induction_on'_support {ι : Type*} [decidable_eq ι] [fi
   P 1 → (∀ (f : perm ι) x y, x ≠ y → x ∈ s → y ∈ s → (f.support ⊆ s → P f) →
     ((f * swap x y).support ⊆ s → P (f * swap x y))) → P σ :=
 begin
-  have hσ1 : ∀ (x : ι), x ∈ s ↔ σ x ∈ s,
+  have hσ1 : ∀ x, x ∈ s ↔ σ x ∈ s,
   { intro x,
     by_cases hx : x ∈ σ.support,
-    { split,
-      { intro hs,
-        apply hσ,
-        rw perm.apply_mem_support,
-        exact hx },
-      { intro hσx,
-        apply hσ hx } },
-    { simp only [perm.mem_support, not_not] at hx,
-      rw hx } },
+    { exact ⟨λ hs, hσ $ perm.apply_mem_support.2 hx, λ hσx, hσ hx⟩ },
+    { rw not_mem_support.1 hx } },
     set τ : perm s := perm.subtype_perm σ hσ1 with hτs,
     intros h1 hind,
     suffices : P (@extend_domain s ι τ (λ x, x ∈ s) _ 1),
     { convert this,
-     { ext x,
-       by_cases hx : x ∈ s,
-       { rw [hτs, extend_domain_apply_subtype],
-         { simp only [subtype_perm_apply, coe_one, id.def, one_symm, subtype.coe_mk] },
-         { exact hx } },
-       { rw [hτs, extend_domain_apply_not_subtype],
-         { rw ← not_mem_support,
-           tauto },
-         { exact hx } } } },
+      ext x,
+      by_cases hx : x ∈ s,
+      { rw [hτs, extend_domain_apply_subtype],
+        { simp only [subtype_perm_apply, coe_one, id.def, one_symm, subtype.coe_mk] },
+        { exact hx } },
+      { rw [hτs, not_mem_support.1 (λ h, hx $ hσ h), extend_domain_apply_not_subtype],
+        exact hx } },
     suffices : (P ∘ λ (f : perm s), (@extend_domain s ι f (λ x, x ∈ s) _ 1)) τ, { exact this },
     apply swap_induction_on' τ,
     { simp only [extend_domain_one, function.comp_app, h1] },

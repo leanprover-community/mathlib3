@@ -436,8 +436,6 @@ by simp only [count_roots, finset.prod_multiset_map_count]
 lemma prod_multiset_X_sub_C_dvd (p : polynomial R) :
   (multiset.map (λ (a : R), X - C a) p.roots).prod ∣ p :=
 begin
-  by_cases hp0 : p = 0,
-  { simp only [hp0, roots_zero, is_unit_one, multiset.prod_zero, multiset.map_zero, is_unit.dvd] },
   rw prod_multiset_root_eq_finset_root p,
   have hcoprime : pairwise (is_coprime on λ (a : R), polynomial.X - C (id a)) :=
     pairwise_coprime_X_sub function.injective_id,

@@ -264,17 +264,10 @@ variables {ι R : Type*} [comm_ring R]
 variables (A : ι → submodule R R)
 variable (I : ideal R)
 
-<<<<<<< HEAD
-/--For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal asscoiated with
-`I` spaned by all homogeneous elements in `I`. This construction will be used when proving radical
-of homogeneous ideal is homogeneous-/
-def ideal.homogenisation : ideal R := ideal.span (set_of (is_homogeneous A) ∩ I)
-=======
 /-- For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
 `I` spanned by all homogeneous elements in `I`. This construction is used when proving that the radical
 of a homogeneous ideal is homogeneous. -/
-def homogeneous_ideal_of_ideal : ideal R := ideal.span (set_of (is_homogeneous A) ∩ I)
->>>>>>> eda9ec6e2c0a84ca7412e7dab2bc731500a44d78
+def ideal.homogenisation : ideal R := ideal.span (set_of (is_homogeneous A) ∩ I)
 
 lemma ideal.homgenisation_le_ideal :
   ideal.homogenisation A I ≤ I :=

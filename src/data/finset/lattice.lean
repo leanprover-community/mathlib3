@@ -300,8 +300,8 @@ fold_image_idem
   (s.map f).inf g = s.inf (g ∘ f) :=
 fold_map
 
-@[simp] lemma inf_map_multiset (s : finset α) {f : β → γ} (h : function.injective f) (g : α → multiset β) :
-  multiset.map f (s.inf g) = s.inf (λ x,  multiset.map f (g x)) :=
+@[simp] lemma inf_map_multiset (s : finset α) {f : β → γ} (h : function.injective f)
+  (g : α → multiset β) :  multiset.map f (s.inf g) = s.inf (λ x,  multiset.map f (g x)) :=
 := sorry
 
 @[simp] lemma inf_singleton {b : β} : ({b} : finset β).inf f = f b :=

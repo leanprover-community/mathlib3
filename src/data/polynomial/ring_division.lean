@@ -336,14 +336,17 @@ by { rw [roots, dif_neg hp], exact (classical.some_spec (exists_multiset_roots h
 by rw [← count_pos, count_roots hp, root_multiplicity_pos hp]
 
 theorem card_le_degree_of_finset_roots {p : polynomial R} (hp : p ≠ 0) {Z : finset R }
-  (h : ∀ z ∈ Z, is_root p z) : Z.card ≤ p.nat_degree :=
+  (h : Z.val ⊆ p.roots) : Z.card ≤ p.nat_degree :=
 begin
-  apply trans _ (card_roots' hp),
+  apply trans _ (polynomial.card_roots' hp),
   rw finset.card,
   apply multiset.card_le_of_le (finset.val_le_iff_val_subset.2 _),
   rw multiset.subset_iff,
   intros x hx,
-  simpa [mem_roots hp] using h x hx,
+  rw polynomial.mem_roots hp,
+  have t:= h hx,
+  rwa mem_roots at t,
+  exact hp,
 end
 
 lemma eq_zero_of_infinite_is_root

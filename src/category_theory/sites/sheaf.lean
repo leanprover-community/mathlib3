@@ -104,30 +104,47 @@ variables (J : grothendieck_topology C)
 variables (A : Type u₂) [category.{v₂} A]
 
 /-- The category of sheaves taking values in `A` on a grothendieck topology. -/
-@[derive category]
-def Sheaf : Type* :=
-{P : Cᵒᵖ ⥤ A // presheaf.is_sheaf J P}
-
-/-- The inclusion functor from sheaves to presheaves. -/
-@[simps map {rhs_md := semireducible}, derive [full, faithful]]
-def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
-full_subcategory_inclusion (presheaf.is_sheaf J)
+structure Sheaf :=
+(val : Cᵒᵖ ⥤ A)
+(cond : presheaf.is_sheaf J val)
 
 namespace Sheaf
 
-@[simp] lemma id_app (X : Sheaf J A) (B : Cᵒᵖ) : (𝟙 X : X ⟶ X).app B = 𝟙 _ := rfl
-@[simp] lemma comp_app {X Y Z : Sheaf J A} (f : X ⟶ Y) (g : Y ⟶ Z) (B : Cᵒᵖ) :
-  (f ≫ g).app B = f.app B ≫ g.app B := rfl
+variables {J A}
 
-instance : has_coe (Sheaf J A) (Cᵒᵖ ⥤ A) := ⟨λ P, P.val⟩
+/-- Morphisms between sheaves are just morphisms of presheaves. -/
+@[ext]
+structure hom (X Y : Sheaf J A) :=
+(val : X.val ⟶ Y.val)
+
+@[simps]
+instance : category (Sheaf J A) :=
+{ hom := hom,
+  id := λ X, ⟨𝟙 _⟩,
+  comp := λ X Y Z f g, ⟨f.val ≫ g.val⟩,
+  id_comp' := λ X Y f, hom.ext _ _ $ id_comp _,
+  comp_id' := λ X Y f, hom.ext _ _ $ comp_id _,
+  assoc' := λ X Y Z W f g h, hom.ext _ _ $ assoc _ _ _ }
+
+-- Let's make the inhabited linter happy...
+instance (X : Sheaf J A) : inhabited (hom X X) := ⟨𝟙 X⟩
 
 end Sheaf
 
-@[simp] lemma Sheaf_to_presheaf_obj (P : Sheaf J A) : (Sheaf_to_presheaf J A).obj P = P := rfl
+/-- The inclusion functor from sheaves to presheaves. -/
+@[simps]
+def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
+{ obj := Sheaf.val,
+  map := λ _ _ f, f.val,
+  map_id' := λ X, rfl,
+  map_comp' := λ X Y Z f g, rfl }
+
+instance : full (Sheaf_to_presheaf J A) := { preimage := λ X Y f, ⟨f⟩ }
+instance : faithful (Sheaf_to_presheaf J A) := {}
 
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
-@[simps] abbreviation sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
-  (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨↑ℱ ⋙ coyoneda.obj (op X), ℱ.property X⟩
+@[simps] def sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
+  (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op X), ℱ.cond X⟩
 
 lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type w) :
   presheaf.is_sheaf J P ↔ presieve.is_sheaf J P :=
@@ -157,13 +174,13 @@ The category of sheaves taking values in Type is the same as the category of set
 @[simps]
 def Sheaf_equiv_SheafOfTypes : Sheaf J (Type w) ≌ SheafOfTypes J :=
 { functor :=
-  { obj := λ S, ⟨S.1, (is_sheaf_iff_is_sheaf_of_type _ _).1 S.2⟩,
-    map := λ S₁ S₂ f, f },
+  { obj := λ S, ⟨S.val, (is_sheaf_iff_is_sheaf_of_type _ _).1 S.2⟩,
+    map := λ S T f, ⟨f.val⟩ },
   inverse :=
-  { obj := λ S, ⟨S.1, (is_sheaf_iff_is_sheaf_of_type _ _).2 S.2⟩,
-    map := λ S₁ S₂ f, f },
-  unit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy),
-  counit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy) }
+  { obj := λ S, ⟨S.val, (is_sheaf_iff_is_sheaf_of_type _ _ ).2 S.2⟩,
+    map := λ S T f, ⟨f.val⟩ },
+  unit_iso := nat_iso.of_components (λ X, ⟨⟨𝟙 _⟩, ⟨𝟙 _⟩, by tidy, by tidy⟩) (by tidy),
+  counit_iso := nat_iso.of_components (λ X, ⟨⟨𝟙 _⟩, ⟨𝟙 _⟩, by tidy, by tidy⟩) (by tidy) }
 
 instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type w)) :=
 ⟨(Sheaf_equiv_SheafOfTypes _).inverse.obj (default _)⟩

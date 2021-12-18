@@ -294,7 +294,22 @@ lemma eq_zero_of_fst_eq_zero {z x} {y : M}
 by { rw [hx, (algebra_map R S).map_zero] at h,
      exact (is_unit.mul_left_eq_zero (is_localization.map_units S y)).1 h}
 
-variables (S)
+variables (M S)
+
+lemma map_eq_zero_iff (r : R) :
+  algebra_map R S r = 0 ↔ ∃ m : M, r * m = 0 :=
+begin
+  split,
+  intro h,
+  { obtain ⟨m, hm⟩ := (is_localization.eq_iff_exists M S).mp
+      ((algebra_map R S).map_zero.trans h.symm),
+    exact ⟨m, by simpa using hm.symm⟩ },
+  { rintro ⟨m, hm⟩,
+    rw [← (is_localization.map_units S m).mul_left_inj, zero_mul, ← ring_hom.map_mul, hm,
+      ring_hom.map_zero] }
+end
+
+variables {M}
 
 /-- `is_localization.mk' S` is the surjection sending `(x, y) : R × M` to
 `f x * (f y)⁻¹`. -/
@@ -714,6 +729,16 @@ lift x $ show is_unit ((algebra_map R P) x), from
 is_unit_of_mul_eq_one ((algebra_map R P) x) (mk' P y ⟨x * y, submonoid.mem_powers _⟩) $
 by rw [mul_mk'_eq_mk'_of_mul, mk'_self]
 
+variables (S) (Q : Type*) [comm_ring Q] [algebra P Q]
+
+/-- Given a map `f : R →+* S` and an element `r : R`, we may construct a map `Rᵣ →+* Sᵣ`. -/
+noncomputable
+def map (f : R →+* P) (r : R) [is_localization.away r S]
+  [is_localization.away (f r) Q] : S →+* Q :=
+is_localization.map Q f
+  (show submonoid.powers r ≤ (submonoid.powers (f r)).comap f,
+    by { rintros x ⟨n, rfl⟩, use n, simp })
+
 end away
 
 end away
@@ -918,6 +943,19 @@ by rw [mk_eq_mk', alg_equiv_mk']
 lemma alg_equiv_symm_mk (x : R) (y : M) :
   (alg_equiv M S).symm (mk' S x y) = mk x y :=
 by rw [mk_eq_mk', alg_equiv_symm_mk']
+
+/-- Given a map `f : R →+* S` and an element `r : R`, such that `f r` is invertible,
+  we may construct a map `Rᵣ →+* S`. -/
+noncomputable
+abbreviation away_lift (f : R →+* P) (r : R) (hr : is_unit (f r)) :
+  localization.away r →+* P :=
+is_localization.away.lift r hr
+
+/-- Given a map `f : R →+* S` and an element `r : R`, we may construct a map `Rᵣ →+* Sᵣ`. -/
+noncomputable
+abbreviation away_map (f : R →+* P) (r : R) :
+  localization.away r →+* localization.away (f r) :=
+is_localization.away.map _ _ f r
 
 end localization
 

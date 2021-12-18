@@ -47,6 +47,15 @@ fold_image_idem
   (s.map f).sup g = s.sup (g ∘ f) :=
 fold_map
 
+@[simp] lemma sup_map_multiset (s : finset α) {f : β → γ} (h : function.injective f)
+(g : α → multiset β) : multiset.map f (s.sup g) = s.sup (λ x,  multiset.map f (g x)) :=
+begin
+  apply finset.cons_induction_on s,
+  simp,
+  intros a s' h_a_s h_ind,
+  simp [finset.sup_cons, ← h_ind, multiset.map_union h],
+end
+
 @[simp] lemma sup_singleton {b : β} : ({b} : finset β).sup f = f b :=
 sup_singleton
 
@@ -290,6 +299,10 @@ fold_image_idem
 @[simp] lemma inf_map (s : finset γ) (f : γ ↪ β) (g : β → α) :
   (s.map f).inf g = s.inf (g ∘ f) :=
 fold_map
+
+@[simp] lemma inf_map_multiset (s : finset α) {f : β → γ} (h : function.injective f) (g : α → multiset β) :
+  multiset.map f (s.inf g) = s.inf (λ x,  multiset.map f (g x)) :=
+:= sorry
 
 @[simp] lemma inf_singleton {b : β} : ({b} : finset β).inf f = f b :=
 inf_singleton

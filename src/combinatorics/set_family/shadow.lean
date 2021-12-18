@@ -62,7 +62,7 @@ lemma mem_shadow_iff : s ∈ ∂ 𝒜 ↔ ∃ t ∈ 𝒜, ∃ a ∈ t, erase t a
 by simp only [shadow, mem_sup, mem_image]
 
 /-- The shadow of a family of `r`-sets is a family of `r - 1`-sets. -/
-lemma sized.shadow (h𝒜 : 𝒜.sized r) : (∂ 𝒜).sized (r - 1) :=
+lemma sized.shadow (h𝒜 : (𝒜 : set (finset α)).sized r) : (∂ 𝒜 : set (finset α)).sized (r - 1) :=
 begin
   intros A h,
   obtain ⟨A, hA, i, hi, rfl⟩ := mem_shadow_iff.1 h,

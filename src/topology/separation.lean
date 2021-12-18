@@ -261,8 +261,8 @@ begin
         or.inl ⟨h', not_not.mpr (subset_closure (set.mem_singleton b))⟩⟩ } }
 end
 
-lemma domain_t0_space {α β : Type u} [topological_space α] [topological_space β] {f : α → β}
-  (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
+lemma t0_space_of_injective_of_continuous {α β : Type u} [topological_space α] [topological_space β]
+  {f : α → β} (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
 begin
   constructor,
   intros x y h,

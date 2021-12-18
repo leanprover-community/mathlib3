@@ -74,7 +74,8 @@ multiset.card_product _ _
 
 lemma filter_product (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
   (s.product t).filter (λ (x : α × β), p x.1 ∧ q x.2) = (s.filter p).product (t.filter q) :=
-by { ext ⟨a, b⟩, simp only [mem_filter, mem_product], finish }
+by { ext ⟨a, b⟩, simp only [mem_filter, mem_product],
+     exact and_and_and_comm (a ∈ s) (b ∈ t) (p a) (q b) }
 
 lemma filter_product_card (s : finset α) (t : finset β)
   (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :

@@ -300,6 +300,8 @@ end
 
 omit H
 
+/-- If there is a forgetful functor into `Type` that preserves enough (co)limits, then `D.ι` will
+be jointly surjective. -/
 lemma ι_jointly_surjective (F : C ⥤ Type v) [preserves_colimit D.diagram.multispan F]
   [Π (i j k : D.J), preserves_limit (cospan (D.f i j) (D.f i k)) F] (x : F.obj (D.glued)) :
   ∃ i (y : F.obj (D.U i)), F.map (D.ι i) y = x :=

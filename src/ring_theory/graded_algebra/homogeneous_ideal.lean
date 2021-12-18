@@ -31,8 +31,7 @@ variables {ι R : Type*} [comm_ring R] [decidable_eq ι] [add_comm_monoid ι]
 variables (A : ι → submodule R R) [graded_algebra A]
 variable (I : ideal R)
 
-/--An `I : ideal R` is called homogeneous if for every `r ∈ I`, every homogeneous component of `r`
-  is in `I`.-/
+/--An `I : ideal R` is homogeneous if for every `r ∈ I`, all homogeneous components of `r` are in `I`.-/
 def is_homogeneous_ideal : Prop :=
 ∀ (i : ι) ⦃r : R⦄, r ∈ I → (graded_algebra.decompose A r i : R) ∈ I
 
@@ -264,9 +263,9 @@ variables {ι R : Type*} [comm_ring R]
 variables (A : ι → submodule R R)
 variable (I : ideal R)
 
-/--For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal asscoiated with
-`I` spaned by all homogeneous elements in `I`. This construction will be used when proving radical
-of homogeneous ideal is homogeneous-/
+/-- For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
+`I` spanned by all homogeneous elements in `I`. This construction is used when proving that the radical
+of a homogeneous ideal is homogeneous. -/
 def homogeneous_ideal_of_ideal : ideal R := ideal.span (set_of (is_homogeneous A) ∩ I)
 
 lemma homogeneous_ideal_of_ideal_le_ideal :

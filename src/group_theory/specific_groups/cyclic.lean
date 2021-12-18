@@ -30,7 +30,7 @@ For the concrete cyclic group of order `n`, see `data.zmod.basic`.
   the group's cardinality.
 * `is_cyclic.exponent_eq_zero_of_infinite`: Infinite cyclic groups have exponent zero.
 * `is_cyclic.iff_exponent_eq_card`: A finite commutative group is cyclic iff its exponent
-  is equal to its cardinality
+  is equal to its cardinality.
 
 ## Tags
 
@@ -56,7 +56,7 @@ class is_add_cyclic (α : Type u) [add_group α] : Prop :=
 @[to_additive is_add_cyclic] class is_cyclic (α : Type u) [group α] : Prop :=
 (exists_generator [] : ∃ g : α, ∀ x, x ∈ zpowers g)
 
-@[priority 100, to_additive  is_add_cyclic_of_subsingleton]
+@[priority 100, to_additive is_add_cyclic_of_subsingleton]
 instance is_cyclic_of_subsingleton [group α] [subsingleton α] : is_cyclic α :=
 ⟨⟨1, λ x, by { rw subsingleton.elim x 1, exact mem_zpowers 1 }⟩⟩
 
@@ -65,9 +65,10 @@ proof of `comm_group`. -/
 @[to_additive "A cyclic group is always commutative. This is not an `instance` because often we have
   a better proof of `add_comm_group`."]
 def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
-{ mul_comm := λ x y, show x * y = y * x,
-    from let ⟨g, hg⟩ := is_cyclic.exists_generator α in
-    let ⟨n, hn⟩ := hg x in let ⟨m, hm⟩ := hg y in
+{ mul_comm := λ x y,
+    let ⟨g, hg⟩ := is_cyclic.exists_generator α in
+    let ⟨n, hn⟩ := hg x in
+    let ⟨m, hm⟩ := hg y in
     hm ▸ hn ▸ zpow_mul_comm _ _ _,
   ..hg }
 
@@ -79,8 +80,7 @@ lemma monoid_hom.map_cyclic {G : Type*} [group G] [h : is_cyclic G] (σ : G →*
 begin
   obtain ⟨h, hG⟩ := is_cyclic.exists_generator G,
   obtain ⟨m, hm⟩ := hG (σ h),
-  use m,
-  intro g,
+  refine ⟨m, λ g, _⟩,
   obtain ⟨n, rfl⟩ := hG g,
   rw [monoid_hom.map_zpow, ←hm, ←zpow_mul, ←zpow_mul'],
 end
@@ -91,8 +91,7 @@ lemma is_cyclic_of_order_of_eq_card [fintype α]  (x : α)
 begin
   classical,
   use x,
-  simp_rw ← set_like.mem_coe,
-  rw ← set.eq_univ_iff_forall,
+  simp_rw [← set_like.mem_coe, ← set.eq_univ_iff_forall],
   apply set.eq_of_subset_of_card_le (set.subset_univ _),
   rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_zpowers],
 end
@@ -102,8 +101,7 @@ end
 lemma is_cyclic_of_prime_card {α : Type u} [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
   (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin
-  obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
-  from fintype.exists_ne_of_one_lt_card (by { rw h, exact hp.1.one_lt }) 1,
+  obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1 := fintype.exists_ne_of_one_lt_card (h.symm ▸ hp.1.one_lt) 1,
   classical, -- for fintype (subgroup.zpowers g)
   have : fintype.card (subgroup.zpowers g) ∣ p,
   { rw ←h,
@@ -128,8 +126,12 @@ end⟩
 @[to_additive add_order_of_eq_card_of_forall_mem_zmultiples]
 lemma order_of_eq_card_of_forall_mem_zpowers [fintype α]
   {g : α} (hx : ∀ x, x ∈ zpowers g) : order_of g = fintype.card α :=
-by { classical, rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_zpowers],
-  simp [hx], apply fintype.card_of_finset', simp, intro x, exact hx x}
+begin
+  classical,
+  simp_rw [order_eq_card_zpowers, set_like.coe_sort_coe],
+  apply fintype.card_of_finset',
+  simpa using hx
+end
 
 @[to_additive infinite.add_order_of_eq_zero_of_forall_mem_zmultiples]
 lemma infinite.order_of_eq_zero_of_forall_mem_zpowers [infinite α] {g : α}
@@ -524,17 +526,15 @@ section exponent
 
 open monoid
 
-@[to_additive] lemma is_cyclic.exponent_eq_card [group α] [fintype α] [is_cyclic α] :
+@[to_additive] lemma is_cyclic.exponent_eq_card [group α] [is_cyclic α] [fintype α] :
   exponent α = fintype.card α :=
 begin
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator α,
-  rw ←lcm_order_eq_exponent,
   apply nat.dvd_antisymm,
-  { rw finset.lcm_dvd_iff,
-    rintros b -,
-    exact order_of_dvd_card_univ },
+  { rw [←lcm_order_eq_exponent, finset.lcm_dvd_iff],
+    exact λ b _, order_of_dvd_card_univ },
   rw ←order_of_eq_card_of_forall_mem_zpowers hg,
-  exact finset.dvd_lcm (finset.mem_univ g)
+  exact order_dvd_exponent _
 end
 
 @[to_additive] lemma is_cyclic.of_exponent_eq_card [comm_group α] [fintype α]

@@ -512,25 +512,22 @@ def alg_hom_of_linear_map_tensor_product
   (w₁ : ∀ (a₁ a₂ : A) (b₁ b₂ : B), f ((a₁ * a₂) ⊗ₜ (b₁ * b₂)) = f (a₁ ⊗ₜ b₁) * f (a₂ ⊗ₜ b₂))
   (w₂ : ∀ r, f ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R C) r):
   A ⊗[R] B →ₐ[R] C :=
-{ map_one' := by simpa using w₂ 1,
-  map_zero' := by simp,
-  map_mul' := λ x y,
-  begin
+{ map_one' := by rw [←(algebra_map R C).map_one, ←w₂, (algebra_map R A).map_one]; refl,
+  map_zero' := by rw [linear_map.to_fun_eq_coe, map_zero],
+  map_mul' := λ x y, by
+  { rw linear_map.to_fun_eq_coe,
     apply tensor_product.induction_on x,
-    { simp, },
+    { rw [zero_mul, map_zero, zero_mul] },
     { intros a₁ b₁,
       apply tensor_product.induction_on y,
-      { simp, },
+      { rw [mul_zero, map_zero, mul_zero] },
       { intros a₂ b₂,
-        simp [w₁], },
+        rw [tmul_mul_tmul, w₁] },
       { intros x₁ x₂ h₁ h₂,
-        simp at h₁, simp at h₂,
-        simp [mul_add, add_mul, h₁, h₂], }, },
+        rw [mul_add, map_add, map_add, mul_add, h₁, h₂] } },
     { intros x₁ x₂ h₁ h₂,
-      simp at h₁, simp at h₂,
-      simp [mul_add, add_mul, h₁, h₂], }
-  end,
-  commutes' := λ r, by simp [w₂],
+      rw [add_mul, map_add, map_add, add_mul, h₁, h₂] } },
+  commutes' := λ r, by rw [linear_map.to_fun_eq_coe, algebra_map_apply, w₂],
   .. f }
 
 @[simp]

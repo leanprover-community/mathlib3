@@ -192,13 +192,9 @@ variable [left_cancel_monoid G]
 lemma lcm_order_eq_exponent [fintype G] : (finset.univ : finset G).lcm order_of = exponent G :=
 begin
   apply nat.dvd_antisymm (lcm_order_of_dvd_exponent G),
-  apply exponent_dvd_of_forall_pow_eq_one,
-  { intro g,
-    have h : (order_of g) ∣ (finset.univ : finset G).lcm order_of,
-    { apply finset.dvd_lcm,
-      exact finset.mem_univ g },
-    cases h with m hm,
-    rw [hm, pow_mul, pow_order_of_eq_one, one_pow] }
+  refine exponent_dvd_of_forall_pow_eq_one G _ (λ g, _),
+  obtain ⟨m, hm⟩ : order_of g ∣ finset.univ.lcm order_of := finset.dvd_lcm (finset.mem_univ g),
+  rw [hm, pow_mul, pow_order_of_eq_one, one_pow]
 end
 
 @[to_additive]

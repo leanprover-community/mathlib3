@@ -118,12 +118,12 @@ instance : category LocallyRingedSpace :=
   id_comp' := by { intros, ext1, simp, },
   assoc' := by { intros, ext1, simp, }, }.
 
-instance : faithful forget_to_SheafedSpace := {}
+/-- The forgetful functor from `LocallyRingedSpace` to `SheafedSpace CommRing`. -/
+def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
+{ obj := λ X, X.to_SheafedSpace,
+  map := λ X Y f, f.1, }
 
-/-- The forgetful functor from `LocallyRingedSpace` to `Top`. -/
-@[simps]
-def forget_to_Top : LocallyRingedSpace ⥤ Top :=
-  forget_to_SheafedSpace ⋙ SheafedSpace.forget _
+instance : faithful forget_to_SheafedSpace := {}
 
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_

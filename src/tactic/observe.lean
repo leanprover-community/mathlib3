@@ -22,7 +22,7 @@ In other words, this tactic is equivalent to `have hp : p, { library_search }`.
 
 If `hp` is omitted, then the placeholder `this` is used.
 
-The variant `observe? hp : p` will omit a trace message of the form `have hp : p := proof_term`.
+The variant `observe? hp : p` will emit a trace message of the form `have hp : p := proof_term`.
 This may be particularly useful to speed up proofs. -/
 meta def tactic.interactive.observe (trc : parse $ optional (tk "?"))
   (h : parse ident?) (t : parse (tk ":" *> texpr)) : tactic unit := do

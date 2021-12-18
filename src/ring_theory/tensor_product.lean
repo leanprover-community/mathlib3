@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import linear_algebra.tensor_product
 import algebra.algebra.tower
+import ring_theory.adjoin.basic
+import linear_algebra.finite_dimensional
+import linear_algebra.tensor_product_basis
 
 /-!
 # The tensor product of R-algebras
@@ -512,25 +514,22 @@ def alg_hom_of_linear_map_tensor_product
   (w₁ : ∀ (a₁ a₂ : A) (b₁ b₂ : B), f ((a₁ * a₂) ⊗ₜ (b₁ * b₂)) = f (a₁ ⊗ₜ b₁) * f (a₂ ⊗ₜ b₂))
   (w₂ : ∀ r, f ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R C) r):
   A ⊗[R] B →ₐ[R] C :=
-{ map_one' := by simpa using w₂ 1,
-  map_zero' := by simp,
-  map_mul' := λ x y,
-  begin
+{ map_one' := by rw [←(algebra_map R C).map_one, ←w₂, (algebra_map R A).map_one]; refl,
+  map_zero' := by rw [linear_map.to_fun_eq_coe, map_zero],
+  map_mul' := λ x y, by
+  { rw linear_map.to_fun_eq_coe,
     apply tensor_product.induction_on x,
-    { simp, },
+    { rw [zero_mul, map_zero, zero_mul] },
     { intros a₁ b₁,
       apply tensor_product.induction_on y,
-      { simp, },
+      { rw [mul_zero, map_zero, mul_zero] },
       { intros a₂ b₂,
-        simp [w₁], },
+        rw [tmul_mul_tmul, w₁] },
       { intros x₁ x₂ h₁ h₂,
-        simp at h₁, simp at h₂,
-        simp [mul_add, add_mul, h₁, h₂], }, },
+        rw [mul_add, map_add, map_add, mul_add, h₁, h₂] } },
     { intros x₁ x₂ h₁ h₂,
-      simp at h₁, simp at h₂,
-      simp [mul_add, add_mul, h₁, h₂], }
-  end,
-  commutes' := λ r, by simp [w₂],
+      rw [add_mul, map_add, map_add, add_mul, h₁, h₂] } },
+  commutes' := λ r, by  rw [linear_map.to_fun_eq_coe, algebra_map_apply, w₂],
   .. f }
 
 @[simp]
@@ -648,6 +647,9 @@ end)
 theorem comm_tmul (a : A) (b : B) :
   (tensor_product.comm R A B : (A ⊗[R] B → B ⊗[R] A)) (a ⊗ₜ b) = (b ⊗ₜ a) :=
 by simp [tensor_product.comm]
+
+lemma adjoin_tmul_eq_top : adjoin R {t : A ⊗[R] B | ∃ a b, a ⊗ₜ[R] b = t} = ⊤ :=
+top_le_iff.mp ((top_le_iff.mpr (span_tmul_eq_top R A B)).trans (span_le_adjoin R _))
 
 end
 
@@ -769,6 +771,25 @@ lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b 
 
 @[simp] lemma product_map_right : (product_map f g).comp include_right = g := alg_hom.ext $ by simp
 
+lemma product_map_range : (product_map f g).range = f.range ⊔ g.range :=
+begin
+  refine le_antisymm _ (sup_le (le_trans (ge_of_eq (congr_arg _ (product_map_left f g)))
+    (include_left.range_comp_le_range (product_map f g))) (le_trans (ge_of_eq (congr_arg _
+    (product_map_right f g))) (include_right.range_comp_le_range (product_map f g)))),
+  rw [←map_top, ←adjoin_tmul_eq_top, ←adjoin_image, adjoin_le_iff],
+  rintros _ ⟨_, ⟨a, b, rfl⟩, rfl⟩,
+  rw product_map_apply_tmul,
+  exact mul_mem_sup (f.mem_range_self a) (g.mem_range_self b),
+end
+
 end
 end tensor_product
 end algebra
+
+lemma subalgebra.finite_dimensional_sup {K L : Type*} [field K] [comm_ring L] [algebra K L]
+  (E1 E2 : subalgebra K L) [finite_dimensional K E1] [finite_dimensional K E2] :
+  finite_dimensional K ↥(E1 ⊔ E2) :=
+begin
+  rw [←E1.range_val, ←E2.range_val, ←algebra.tensor_product.product_map_range],
+  exact (algebra.tensor_product.product_map E1.val E2.val).to_linear_map.finite_dimensional_range,
+end

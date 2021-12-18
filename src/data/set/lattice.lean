@@ -1532,7 +1532,13 @@ by simpa using h.preimage f
 
 lemma preimage_eq_empty_iff {f : α → β} {s : set β} : disjoint s (range f) ↔ f ⁻¹' s = ∅ :=
 ⟨preimage_eq_empty,
-  λ h, by { simp [eq_empty_iff_forall_not_mem, set.disjoint_iff_inter_eq_empty] at h ⊢, finish }⟩
+  λ h, begin
+    simp only [eq_empty_iff_forall_not_mem, disjoint_iff_inter_eq_empty, not_exists,
+      mem_inter_eq, not_and, mem_range, mem_preimage] at h ⊢,
+    assume y hy x hx,
+    rw ← hx at hy,
+    exact h x hy,
+  end ⟩
 
 lemma disjoint_iff_subset_compl_right :
   disjoint s t ↔ s ⊆ tᶜ :=

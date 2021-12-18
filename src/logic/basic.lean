@@ -702,6 +702,13 @@ by rw [← decidable.not_and_distrib, decidable.not_not]
 
 theorem and_iff_not_or_not : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) := decidable.and_iff_not_or_not
 
+@[simp] theorem not_xor (P Q : Prop) : ¬ xor P Q ↔ (P ↔ Q) :=
+by simp only [not_and, xor, not_or_distrib, not_not, ← iff_iff_implies_and_implies]
+
+theorem xor_iff_not_iff (P Q : Prop) : xor P Q ↔ ¬ (P ↔ Q) :=
+by rw [iff_not_comm, not_xor]
+
+
 end propositional
 
 /-! ### Declarations about equality -/

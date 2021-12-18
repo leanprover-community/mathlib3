@@ -82,7 +82,7 @@ lemma pow_exponent_eq_one (g : G) : g ^ exponent G = 1 :=
 begin
   by_cases exponent_exists G,
   { simp_rw [exponent, dif_pos h],
-    exact (nat.find_spec h).2 g},
+    exact (nat.find_spec h).2 g },
   { simp_rw [exponent, dif_neg h, pow_zero] }
 end
 
@@ -136,9 +136,11 @@ order_of_dvd_of_pow_eq_one $ pow_exponent_eq_one g
 variable (G)
 
 @[to_additive exponent_dvd_of_forall_nsmul_eq_zero]
-lemma exponent_dvd_of_forall_pow_eq_one (G) [monoid G] (n : ℕ) (hpos : 0 < n)
-  (hG : ∀ g : G, g ^ n = 1) : exponent G ∣ n :=
+lemma exponent_dvd_of_forall_pow_eq_one (G) [monoid G] (n : ℕ) (hG : ∀ g : G, g ^ n = 1) :
+  exponent G ∣ n :=
 begin
+  rcases n.eq_zero_or_pos with rfl | hpos,
+  { exact dvd_zero _ },
   apply nat.dvd_of_mod_eq_zero,
   by_contradiction h,
   have h₁ := nat.pos_of_ne_zero h,
@@ -158,18 +160,17 @@ begin
   exact order_dvd_exponent g
 end
 
-@[to_additive]
-lemma exists_max_prime_pow_dvd_exponent {p : ℕ} (hp : p.prime) :
+@[to_additive exists_order_of_eq_pow_padic_val_nat_add_exponent]
+lemma _root_.nat.prime.exists_order_of_eq_pow_padic_val_nat_exponent {p : ℕ} (hp : p.prime) :
   ∃ g : G, order_of g = p ^ padic_val_nat p (exponent G) :=
 begin
   haveI := fact.mk hp,
   rcases (padic_val_nat p $ exponent G).eq_zero_or_pos with h | h,
   { refine ⟨1, by rw [h, pow_zero, order_of_one]⟩ },
-  have he : 0 < exponent G := ne.bot_lt (λ t, by {rw t at h, exact h.ne' (padic_val_nat_zero _) }),
-  have := nat.div_pos (nat.le_of_dvd he $ dvd_of_one_le_padic_val_nat h) hp.pos,
+  have he : 0 < exponent G := ne.bot_lt (λ ht, by {rw ht at h, exact h.ne' (padic_val_nat_zero _)}),
   obtain ⟨g, hg⟩ : ∃ (g : G), g ^ (exponent G / p) ≠ 1,
   { suffices key : ¬ exponent G ∣ exponent G / p,
-    { by simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p) this) key },
+    { by simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
     exact λ hd, hp.one_lt.not_le ((mul_le_iff_le_one_left he).mp $
                 nat.le_of_dvd he $ nat.mul_dvd_of_dvd_div (dvd_of_one_le_padic_val_nat h) hd) },
   obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := pow_padic_val_nat_dvd; try {apply_instance},
@@ -193,18 +194,12 @@ lemma lcm_order_eq_exponent [fintype G] : (finset.univ : finset G).lcm order_of 
 begin
   apply nat.dvd_antisymm (lcm_order_of_dvd_exponent G),
   apply exponent_dvd_of_forall_pow_eq_one,
-  { apply nat.pos_of_ne_zero,
-    by_contradiction,
-    rw finset.lcm_eq_zero_iff at h,
-    cases h with g hg,
-    simp only [true_and, set.mem_univ, finset.coe_univ] at hg,
-    exact ne_of_gt (order_of_pos g) hg },
   { intro g,
     have h : (order_of g) ∣ (finset.univ : finset G).lcm order_of,
     { apply finset.dvd_lcm,
       exact finset.mem_univ g },
     cases h with m hm,
-    rw [hm, pow_mul, pow_order_of_eq_one, one_pow] },
+    rw [hm, pow_mul, pow_order_of_eq_one, one_pow] }
 end
 
 @[to_additive]
@@ -235,7 +230,7 @@ begin
     { intro h,
       rw [h, zero_dvd_iff] at this,
       exact htpos.ne' this },
-    refine exponent_dvd_of_forall_pow_eq_one _ _ htpos (λ g, _),
+    refine exponent_dvd_of_forall_pow_eq_one _ _ (λ g, _),
     rw pow_eq_mod_order_of,
     convert pow_zero g,
     apply nat.mod_eq_zero_of_dvd,
@@ -261,7 +256,7 @@ begin
   haveI hp := fact.mk (nat.prime_of_mem_factors hp),
   simp only [←padic_val_nat_eq_factors_count p] at hpe,
   set k := padic_val_nat p (order_of t) with hk,
-  obtain ⟨g, hg⟩ := exists_max_prime_pow_dvd_exponent G hp.1,
+  obtain ⟨g, hg⟩ := hp.1.exists_order_of_eq_pow_padic_val_nat_exponent G,
   suffices : order_of t < order_of (t ^ (p ^ k) * g),
   { rw ht at this,
     exact this.not_le (le_cSup hfin.bdd_above $ by simp) },

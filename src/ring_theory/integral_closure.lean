@@ -3,6 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import linear_algebra.finite_dimensional
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
@@ -709,6 +710,35 @@ begin
   have : 1 ≤ p.nat_degree - i := le_tsub_of_add_le_left (finset.mem_range.mp hi),
   rw [mul_assoc, ← pow_succ', tsub_add_cancel_of_le this]
 end
+
+lemma is_field_of_is_integral_of_is_field'
+  {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S] [is_domain S]
+  [algebra R S] (H : algebra.is_integral R S) (hR : is_field R) :
+  is_field S :=
+begin
+  letI := hR.to_field R,
+  refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ x hx, _⟩,
+  let A := algebra.adjoin R ({x} : set S),
+  let f : A →ₗ[R] A :=
+  { to_fun := λ y, ⟨x, algebra.mem_adjoin_iff.mpr (subring.mem_closure.mpr (λ T hT,
+      show _, from set.singleton_subset_iff.mp (set.union_subset_iff.mp hT).2))⟩ * y,
+    map_add' := λ y z, mul_add ⟨x, _⟩ y z,
+    map_smul' := λ y z, mul_smul_comm y ⟨x, _⟩ z },
+  have hf : function.injective f :=
+  linear_map.ker_eq_bot.mp (le_bot_iff.mp (λ y hy,
+    (eq_zero_or_eq_zero_of_mul_eq_zero hy).resolve_left (hx ∘ subtype.ext_iff.mp))),
+  haveI : is_noetherian R A.to_submodule :=
+  is_noetherian_of_fg_of_noetherian A.to_submodule (fg_adjoin_singleton_of_integral x (H x)),
+  haveI : module.finite R A :=
+  show module.finite R A.to_submodule, from module.is_noetherian.finite R A,
+  obtain ⟨y, hy⟩ := linear_map.surjective_of_injective hf 1,
+  exact ⟨y, subtype.ext_iff.mp hy⟩,
+end
+
+lemma is_field_iff_is_field {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S] [is_domain S]
+  [algebra R S] (H : algebra.is_integral R S) (hRS : function.injective (algebra_map R S)) :
+  is_field R ↔ is_field S :=
+⟨is_field_of_is_integral_of_is_field' H, is_field_of_is_integral_of_is_field H hRS⟩
 
 end algebra
 

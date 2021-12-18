@@ -28,6 +28,21 @@ namespace algebraic_geometry
 
 variable (X : Scheme)
 
+-- TODO: add sober spaces, and show that schemes are sober
+instance : t0_space X.carrier :=
+begin
+  rw t0_space_iff_distinguishable,
+  intros x y h h',
+  obtain ⟨U, R, ⟨e⟩⟩ := X.local_affine x,
+  have hy := (h' _ U.1.2).mp U.2,
+  erw ← subtype_indistinguishable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h',
+  let e' : U.1 ≃ₜ prime_spectrum R :=
+    homeo_of_iso ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _).map_iso e),
+  have := t0_space_of_injective_of_continuous e'.injective e'.continuous,
+  rw t0_space_iff_distinguishable at this,
+  exact this ⟨x, U.2⟩ ⟨y, hy⟩ (by simpa using h) h'
+end
+
 /-- A scheme `X` is integral if its carrier is nonempty,
 and `𝒪ₓ(U)` is an integral domain for each `U ≠ ∅`. -/
 class is_integral : Prop :=

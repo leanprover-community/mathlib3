@@ -349,7 +349,7 @@ lemma eq_singleton_bot_of_Sup_eq_bot_of_nonempty {s : set α}
 by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Sup_eq_bot at h_sup, exact ⟨hne, h_sup⟩, }
 
 /--Introduction rule to prove that `b` is the supremum of `s`: it suffices to check that `b`
-is larger than all elements of `s`, and that this is not the case of any `w<b`.
+is larger than all elements of `s`, and that this is not the case of any `w < b`.
 See `cSup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in conditionally complete
 lattices. -/
 theorem Sup_eq_of_forall_le_of_forall_lt_exists_gt (_ : ∀a∈s, a ≤ b)
@@ -363,7 +363,7 @@ have ¬(Sup s < b) :=
 show Sup s = b, by { cases h, exact absurd h this, exact h }
 
 /--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
-is smaller than all elements of `s`, and that this is not the case of any `w>b`.
+is smaller than all elements of `s`, and that this is not the case of any `w > b`.
 See `cInf_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in conditionally complete
 lattices. -/
 theorem Inf_eq_of_forall_ge_of_forall_gt_exists_lt (_ : ∀a∈s, b ≤ a)

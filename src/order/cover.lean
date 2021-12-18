@@ -51,7 +51,8 @@ section preorder
 variables [preorder α] {a b : α}
 
 lemma covers.le (h : a ⋖ b) : a ≤ b := h.1.le
-lemma covers.ne (h : a ⋖ b) : a ≠ b := h.lt.ne
+protected lemma covers.ne (h : a ⋖ b) : a ≠ b := h.lt.ne
+lemma covers.ne' (h : a ⋖ b) : b ≠ a := h.lt.ne'
 
 lemma covers.Ioo_eq (h : a ⋖ b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h.2 hx.1 hx.2

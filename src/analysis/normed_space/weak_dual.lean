@@ -205,23 +205,32 @@ def _root_.weak_dual.to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] (x' : weak_dual 𝕜 E) :=
 x'.to_fun
 
+/-- For any `f : Π (j : ι), X j` in a product of metric spaces `X j`, a set of the
+form `{g | dist (f i) (g i) < ε}` with `ε > 0` and `i : ι` is a neighborhood of `f`. -/
+lemma _root_.mem_nhds_Pi' {ι : Type*} {X : ι → Type*} [∀ (i : ι), metric_space (X i)]
+  (f : (Π (j : ι), X j)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
+  {g : (Π (j : ι), X j) | dist (f i) (g i) < ε} ∈ 𝓝 f :=
+begin
+  have nhd : {z : X i | dist (f i) z < ε} ∈ 𝓝 (f i),
+  by { simp_rw dist_comm, exact ball_mem_nhds (f i) ε_pos, },
+  have whee : ∀ j ∈ {i}, {z : X j | dist (f j) z < ε} ∈ 𝓝 (f j),
+  by { intros j hj, rwa mem_singleton_iff.mp hj, },
+  have := set_pi_mem_nhds (finite_singleton i) whee,
+  simp at this,
+  exact this,
+end
+
 /-- In a product of copies of a normed field, sets of the form `{g | ∥ f(i) - g(i) ∥ < ε}` for
 `ε > 0` are neighborhoods of `f`. -/
 lemma _root_.mem_nhds_Pi_normed_field {ι : Type*}
   (f : (Π (_ : ι), 𝕜)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
   {g : (Π (_ : ι), 𝕜) | ∥ f i - g i ∥ < ε} ∈ 𝓝 f :=
 begin
-  have eq : { g : (Π (_ : ι), 𝕜) | ∥ f i - g i ∥ < ε} = set.pi ({i} : set ι) (λ _, ball (f i) ε),
-  { ext g,
-    simp only [mem_ball, singleton_pi, mem_set_of_eq, mem_preimage],
-    rw dist_comm,
-    exact mem_ball_iff_norm.symm, },
-  rw eq,
-  apply set_pi_mem_nhds (finite_singleton i),
-  intros j hj,
-  have eq₀ : j = i := hj,
-  rw eq₀,
-  exact ball_mem_nhds (f i) ε_pos,
+  have key := _root_.mem_nhds_Pi' f i ε_pos,
+  dsimp at key,
+  have eq : {g : ι → 𝕜 | ∥f i - g i∥ < ε} = {g : ι → 𝕜 | dist (f i) (g i) < ε},
+  by simp only [dist_eq_norm],
+  rwa eq,
 end
 
 /-- The function `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` is an embedding. -/

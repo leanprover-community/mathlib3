@@ -253,9 +253,20 @@ instance : bounded_order (subgraph G) :=
   le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
 
+-- TODO simp lemmas for the other lattice operations on subgraphs
+@[simp] lemma top_verts : (⊤ : subgraph G).verts = set.univ := rfl
+
+@[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
+
+@[simp] lemma bot_verts : (⊥ : subgraph G).verts = ∅ := rfl
+
+@[simp] lemma not_bot_adj {v w : V} : ¬(⊥ : subgraph G).adj v w := not_false
+
+@[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
+by { ext, refl }
+
 /-- Turn a subgraph of a `simple_graph` into a member of its subgraph type. -/
-@[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) :
-  G.subgraph :=
+@[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) : G.subgraph :=
 { verts := set.univ,
   adj := H.adj,
   adj_sub := h,
@@ -307,6 +318,15 @@ lemma map_top.injective {x : subgraph G} : function.injective x.map_top :=
 
 @[simp]
 lemma map_top_to_fun {x : subgraph G} (v : x.verts) : x.map_top v = v := rfl
+
+/-- There is an induced injective homomorphism of a subgraph of `G` as
+a spanning subgraph into `G`. -/
+@[simps] def map_spanning_top (x : subgraph G) : x.spanning_coe →g G :=
+{ to_fun := id,
+  map_rel' := λ v w hvw, x.adj_sub hvw }
+
+lemma map_spanning_top.injective {x : subgraph G} : function.injective x.map_spanning_top :=
+λ v w h, h
 
 lemma neighbor_set_subset_of_subgraph {x y : subgraph G} (h : x ≤ y) (v : V) :
   x.neighbor_set v ⊆ y.neighbor_set v :=

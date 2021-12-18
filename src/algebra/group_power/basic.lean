@@ -286,9 +286,9 @@ namespace ring_hom
 
 variables [semiring R] [semiring S]
 
-@[simp] lemma map_pow (f : R →+* S) (a) :
+protected lemma map_pow (f : R →+* S) (a) :
   ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
-f.to_monoid_hom.map_pow a
+map_pow f a
 
 end ring_hom
 

@@ -347,7 +347,7 @@ by rw [← count_pos, count_roots p, root_multiplicity_pos hp]
 theorem card_le_degree_of_finset_roots {p : polynomial R} (hp : p ≠ 0) {Z : finset R}
   (h : Z.val ⊆ p.roots) : Z.card ≤ p.nat_degree :=
 begin
-  apply trans _ (polynomial.card_roots' hp),
+  apply trans _ (polynomial.card_roots' p),
   rw finset.card,
   apply multiset.card_le_of_le (finset.val_le_iff_val_subset.2 _),
   rw multiset.subset_iff,

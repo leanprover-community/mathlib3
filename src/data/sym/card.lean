@@ -42,6 +42,103 @@ def multichoose2 (n k : ℕ) := (n + k - 1).choose k
 instance sym.has_zero {α : Type*} : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
 instance sym.has_emptyc {α : Type*} : has_emptyc (sym α 0) := ⟨0⟩
 
+instance sym.subsingleton {α : Type*} {n : ℕ} [g : subsingleton α] : subsingleton (sym α n) :=
+⟨begin
+  unfreezingI { cases g },
+  intros,
+  rcases a with ⟨c, d⟩,
+  rcases b with ⟨a, b⟩,
+  simp only [subtype.mk.inj_eq],
+  induction a using multiset.case_strong_induction_on with k hk wa generalizing n c,
+  { rw b.symm at d,
+    norm_num at d,
+    assumption },
+  { cases n,
+    { norm_num at b },
+    { classical,
+      exact if s : c = 0 then begin
+        rw s at d,
+        norm_num at d,
+      end else begin
+        have re := multiset.exists_mem_of_ne_zero s,
+        rcases re with ⟨re, we⟩,
+        cases multiset.exists_cons_of_mem we,
+        rw h,
+        have ob := @wa hk (by norm_num) n w begin
+          rw h at d,
+          norm_num at d,
+          refine nat.succ.inj d,
+        end begin
+          norm_num at b,
+          refine nat.succ.inj b,
+        end,
+        rw [ob, g re k],
+      end } },
+end⟩
+
+instance sym2.subsingleton {α : Type*} [g : subsingleton α] : subsingleton (sym2 α) := ⟨begin
+  have k := @sym.subsingleton α 2 g,
+  unfreezingI { cases g },
+  intros,
+  have z := equiv.injective (sym2.equiv_sym α),
+  rw function.injective at z,
+  exact @z a b begin
+    generalize_hyp c : sym2.equiv_sym α = o,
+    cases o,
+    rw equiv.coe_fn_mk,
+    unfreezingI { cases k },
+    apply k,
+  end,
+end⟩
+
+instance sym2.unique {α : Type*} [g : unique α] : unique (sym2 α) := unique.mk' _
+instance sym.unique {α : Type*} {n : ℕ} [g : unique α] : unique (sym α n) := unique.mk' _
+
+instance sym.is_empty {α : Type*} {n : ℕ} [g : is_empty α] : is_empty (sym α n.succ) := ⟨begin
+  intro h,
+  rw sym at h,
+  have w := @multiset.exists_mem_of_ne_zero _ h.val begin
+    intro y,
+    have z := h.property,
+    rw y at z,
+    norm_num at z,
+  end,
+  rcases w with ⟨w, q⟩,
+  unfreezingI {
+    cases g,
+    tauto,
+  },
+end⟩
+
+instance sym2.is_empty {α : Type*} [g : is_empty α] : is_empty (sym2 α) := ⟨begin
+  intro x,
+  have h := (@sym2.equiv_sym α).to_fun x,
+  rw sym at h,
+  have := @sym.is_empty α 1 g,
+  cases this,
+  tauto,
+end⟩
+
+instance sym2.nontrivial {α : Type*} [g : nontrivial α] : nontrivial (sym2 α) := ⟨begin
+  unfreezingI { rcases g with ⟨w, ⟨m, g⟩⟩ },
+  use [sym2.diag w, sym2.diag m],
+  intro h,
+  exact g (sym2.diag_injective h),
+end⟩
+
+instance sym.nontrivial {α : Type*} {n : ℕ} [g : nontrivial α] : nontrivial (sym α (n + 1)) :=
+⟨begin
+  unfreezingI { rcases g with ⟨w, ⟨m, g⟩⟩ },
+  induction n with n h,
+  { use [w::sym.nil, m::sym.nil],
+    norm_num,
+    assumption },
+  { rcases h with ⟨t, ⟨q, h⟩⟩,
+    use [w::t, m::t],
+    norm_num,
+    assumption }
+end⟩
+
 def sym.map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
   ⟨x.val.map f, by simpa [multiset.card_map] using x.property⟩
 
@@ -157,7 +254,6 @@ lemma multichoose1_eq_multichoose2 : ∀ (n k : ℕ), multichoose1 n k = multich
 | 0 0 := begin
   simp only [multichoose1, multichoose2],
   norm_num,
-  dec_trivial,
 end
 | 0 (k + 1) := begin
   simp only [multichoose1, multichoose2],

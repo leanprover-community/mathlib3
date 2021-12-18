@@ -1,25 +1,27 @@
 import algebra.algebra.basic
 import algebraic_geometry.elliptic_curve.EllipticCurve
 
--- TODO: move into `algebra.algebra.basic`
-instance algebra.has_coe {K L : Type*} [field K] [field L] [algebra K L] : has_coe K L :=
-  ⟨ algebra_map K L ⟩
-
 namespace EllipticCurve
 
--- let `K` be a field, `E` be an elliptic curve over `K`, and `L` be a field extension over `K`
+-- let `K` be a field
 variables {K : Type*} [field K]
+-- let `E` be an elliptic curve over `K`
 variables (E : EllipticCurve K)
-variables (L : Type*) [field L] [decidable_eq L] [algebra K L]
+-- let `L` be a field extension of `K`
+variables (L : Type*) [decidable_eq L] [field L] [algebra K L]
+
+-- algebra map from `K` to `L`
+notation K↑L := algebra_map K L
 
 /-- The group of `L`-rational points `E(L)` on an elliptic curve `E` over `K`,
 consisting of the point at infinity and the affine points satisfying the Weierstrass equation. -/
-inductive Point
+inductive point
   | Infinity
-  | Affine (x y : L) (w : y ^ 2 + E.a1 * x * y + E.a3 * y = x ^ 3 + E.a2 * x ^ 2 + E.a4 * x + E.a6)
-notation E/L := Point E L
+  | Affine (x y : L) (w : y ^ 2 + (K↑L)E.a1 * x * y + (K↑L)E.a3 * y
+                        = x ^ 3 + (K↑L)E.a2 * x ^ 2 + (K↑L)E.a4 * x + (K↑L)E.a6)
+notation E/L := point E L
 
-open Point
+open point
 
 /-- Zero in `E(L)`. -/
 def zero : E/L := Infinity
@@ -28,7 +30,7 @@ instance has_zero : has_zero (E/L) := ⟨ zero E L ⟩
 /-- Negation in `E(L)`. -/
 def neg : E/L → E/L
   | 0              := 0
-  | (Affine x y w) := Affine x (-y - E.a1 * x - E.a3) $ by rw [← w]; ring
+  | (Affine x y w) := Affine x (-y - (K↑L)E.a1 * x - (K↑L)E.a3) $ by rw [← w]; ring
 instance has_neg : has_neg (E/L) := ⟨ neg E L ⟩
 
 /-- Addition in `E(L)`. -/
@@ -40,35 +42,40 @@ def add : E/L → E/L → E/L
     if xNe : x₁ - x₂ ≠ 0 then
       let
         l  := (y₁ - y₂) * (x₁ - x₂)⁻¹,
-        x₃ := l ^ 2 + E.a1 * l - E.a2 - x₁ - x₂,
-        y₃ := -l * x₃ - E.a1 * x₃ - y₁ + l * x₁ - E.a3
+        x₃ := l ^ 2 + (K↑L)E.a1 * l - (K↑L)E.a2 - x₁ - x₂,
+        y₃ := -l * x₃ - (K↑L)E.a1 * x₃ - y₁ + l * x₁ - (K↑L)E.a3
       in Affine x₃ y₃ $ begin
         -- rewrite Weierstrass equations as w₁(x, y) = 0 and w₂(x, y) = 0
         rw [← sub_eq_zero] at w₁ w₂,
         -- substitute y
         have ySimp :
-            y₃ ^ 2 + E.a1 * x₃ * y₃ + E.a3 * y₃
-          = x₃ ^ 2 * (l ^ 2 + E.a1 * l)
-            + x₃ * (-2 * x₁ * l ^ 2 - E.a1 * x₁ * l + 2 * y₁ * l + E.a3 * l + E.a1 * y₁)
-            + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - E.a3 * x₁ * l + y₁ ^ 2 + E.a3 * y₁)
+            y₃ ^ 2 + (K↑L)E.a1 * x₃ * y₃ + (K↑L)E.a3 * y₃
+          = x₃ ^ 2 * (l ^ 2 + (K↑L)E.a1 * l)
+            + x₃ * (-2 * x₁ * l ^ 2 - (K↑L)E.a1 * x₁ * l + 2 * y₁ * l + (K↑L)E.a3 * l
+                    + (K↑L)E.a1 * y₁)
+            + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - (K↑L)E.a3 * x₁ * l + y₁ ^ 2 + (K↑L)E.a3 * y₁)
           := by dsimp [y₃]; ring,
         -- substitute x
         have xSimp :
-            x₃ ^ 2 * (l ^ 2 + E.a1 * l)
-            + x₃ * (-2 * x₁ * l ^ 2 - E.a1 * x₁ * l + 2 * y₁ * l + E.a3 * l + E.a1 * y₁)
-            + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - E.a3 * x₁ * l + y₁ ^ 2 + E.a3 * y₁)
-            - (x₃ ^ 3 + E.a2 * x₃ ^ 2 + E.a4 * x₃ + E.a6)
+            x₃ ^ 2 * (l ^ 2 + (K↑L)E.a1 * l)
+            + x₃ * (-2 * x₁ * l ^ 2 - (K↑L)E.a1 * x₁ * l + 2 * y₁ * l + (K↑L)E.a3 * l
+                    + (K↑L)E.a1 * y₁)
+            + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - (K↑L)E.a3 * x₁ * l + y₁ ^ 2 + (K↑L)E.a3 * y₁)
+            - (x₃ ^ 3 + (K↑L)E.a2 * x₃ ^ 2 + (K↑L)E.a4 * x₃ + (K↑L)E.a6)
           = l * (l * (l * (l * (x₁ - x₂) * (-1)
-                           + (-E.a1 * x₁ + 2 * E.a1 * x₂ + 2 * y₁ + E.a3))
-                      + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + E.a1 ^ 2 * x₂
-                         - 2 * E.a2 * x₂ + 3 * E.a1 * y₁ + E.a1 * E.a3 - E.a4))
-                 + (-E.a1 * x₁ ^ 2 - 3 * E.a1 * x₁ * x₂ - 4 * x₁ * y₁ - 2 * E.a1 * x₂ ^ 2
-                    - 2 * x₂ * y₁ - E.a1 * E.a2 * x₁ - 2 * E.a3 * x₁ - 2 * E.a1 * E.a2 * x₂
-                    - E.a3 * x₂ + E.a1 ^ 2 * y₁ - 2 * E.a2 * y₁ - E.a1 * E.a4 - E.a2 * E.a3))
-            + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3
-               + 2 * E.a2 * x₁ ^ 2 + 4 * E.a2 * x₁ * x₂ - E.a1 * x₁ * y₁
-               + 2 * E.a2 * x₂ ^ 2 - E.a1 * x₂ * y₁ + y₁ ^ 2 + E.a2 ^ 2 * x₁ + E.a4 * x₁
-               + E.a2 ^ 2 * x₂ + E.a4 * x₂ - E.a1 * E.a2 * y₁ + E.a3 * y₁ + E.a2 * E.a4 - E.a6)
+                           + (-(K↑L)E.a1 * x₁ + 2 * (K↑L)E.a1 * x₂ + 2 * y₁ + (K↑L)E.a3))
+                      + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + (K↑L)E.a1 ^ 2 * x₂ - 2 * (K↑L)E.a2 * x₂
+                         + 3 * (K↑L)E.a1 * y₁ + (K↑L)E.a1 * (K↑L)E.a3 - (K↑L)E.a4))
+                 + (-(K↑L)E.a1 * x₁ ^ 2 - 3 * (K↑L)E.a1 * x₁ * x₂ - 4 * x₁ * y₁
+                    - 2 * (K↑L)E.a1 * x₂ ^ 2 - 2 * x₂ * y₁ - (K↑L)E.a1 * (K↑L)E.a2 * x₁
+                    - 2 * (K↑L)E.a3 * x₁ - 2 * (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂
+                    + (K↑L)E.a1 ^ 2 * y₁ - 2 * (K↑L)E.a2 * y₁ - (K↑L)E.a1 * (K↑L)E.a4
+                    - (K↑L)E.a2 * (K↑L)E.a3))
+            + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3 + 2 * (K↑L)E.a2 * x₁ ^ 2
+               + 4 * (K↑L)E.a2 * x₁ * x₂ - (K↑L)E.a1 * x₁ * y₁ + 2 * (K↑L)E.a2 * x₂ ^ 2
+               - (K↑L)E.a1 * x₂ * y₁ + y₁ ^ 2 + (K↑L)E.a2 ^ 2 * x₁ + (K↑L)E.a4 * x₁
+               + (K↑L)E.a2 ^ 2 * x₂ + (K↑L)E.a4 * x₂ - (K↑L)E.a1 * (K↑L)E.a2 * y₁ + (K↑L)E.a3 * y₁
+               + (K↑L)E.a2 * (K↑L)E.a4 - (K↑L)E.a6)
           := by dsimp [x₃]; ring,
         -- substitute l auxiliary tactic
         have lSimp : ∀ {a b c : L},
@@ -85,51 +92,56 @@ def add : E/L → E/L → E/L
         -- substitute l step 1
         have lSimp1 :
             l * (x₁ - x₂) * (-1)
-            + (-E.a1 * x₁ + 2 * E.a1 * x₂ + 2 * y₁ + E.a3)
-          = -E.a1 * x₁ + 2 * E.a1 * x₂ + 2 * y₁ + E.a3 - y₁ + y₂
+            + (-(K↑L)E.a1 * x₁ + 2 * (K↑L)E.a1 * x₂ + 2 * y₁ + (K↑L)E.a3)
+          = -(K↑L)E.a1 * x₁ + 2 * (K↑L)E.a1 * x₂ + 2 * y₁ + (K↑L)E.a3 - y₁ + y₂
           := by rw [inv_mul_cancel_right₀ xNe]; ring,
         -- substitute l step 2
         have lSimp2 :
-            l * (-E.a1 * x₁ + 2 * E.a1 * x₂ + 2 * y₁ + E.a3 - y₁ + y₂)
-            + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + E.a1 ^ 2 * x₂
-               - 2 * E.a2 * x₂ + 3 * E.a1 * y₁ + E.a1 * E.a3 - E.a4)
-          = 2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + E.a2 * x₁ + E.a1 ^ 2 * x₂
-            + E.a2 * x₂ - 2 * E.a2 * x₂ + E.a1 * y₁ + E.a1 * y₂ + E.a1 * E.a3
+            l * (-(K↑L)E.a1 * x₁ + 2 * (K↑L)E.a1 * x₂ + 2 * y₁ + (K↑L)E.a3 - y₁ + y₂)
+            + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + (K↑L)E.a1 ^ 2 * x₂ - 2 * (K↑L)E.a2 * x₂
+               + 3 * (K↑L)E.a1 * y₁ + (K↑L)E.a1 * (K↑L)E.a3 - (K↑L)E.a4)
+          = 2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + (K↑L)E.a2 * x₁ + (K↑L)E.a1 ^ 2 * x₂ + (K↑L)E.a2 * x₂
+            - 2 * (K↑L)E.a2 * x₂ + (K↑L)E.a1 * y₁ + (K↑L)E.a1 * y₂ + (K↑L)E.a1 * (K↑L)E.a3
           := by rw [lSimp]; nth_rewrite_rhs 0 [← w₁]; nth_rewrite_lhs 0 [← w₂]; ring,
         -- substitute l step 3
         have lSimp3 :
-            l * (2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + E.a2 * x₁ + E.a1 ^ 2 * x₂
-                 + E.a2 * x₂ - 2 * E.a2 * x₂ + E.a1 * y₁ + E.a1 * y₂ + E.a1 * E.a3)
-            + (-E.a1 * x₁ ^ 2 - 3 * E.a1 * x₁ * x₂ - 4 * x₁ * y₁ - 2 * E.a1 * x₂ ^ 2
-               - 2 * x₂ * y₁ - E.a1 * E.a2 * x₁ - 2 * E.a3 * x₁ - 2 * E.a1 * E.a2 * x₂
-               - E.a3 * x₂ + E.a1 ^ 2 * y₁ - 2 * E.a2 * y₁ - E.a1 * E.a4 - E.a2 * E.a3)
-          = -2 * E.a1 * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂ - E.a1 * x₂ ^ 2 - x₂ * y₁ - x₂ * y₂
-            - 2 * E.a3 * x₁ - E.a1 * E.a2 * x₂ - E.a3 * x₂ - E.a2 * y₁ - E.a2 * y₂ - E.a2 * E.a3
-          := by apply_fun (λ x, x * E.a1) at w₁ w₂; rw [zero_mul] at w₁ w₂; rw [lSimp];
+            l * (2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + (K↑L)E.a2 * x₁ + (K↑L)E.a1 ^ 2 * x₂
+                 + (K↑L)E.a2 * x₂ - 2 * (K↑L)E.a2 * x₂ + (K↑L)E.a1 * y₁ + (K↑L)E.a1 * y₂
+                 + (K↑L)E.a1 * (K↑L)E.a3)
+            + (-(K↑L)E.a1 * x₁ ^ 2 - 3 * (K↑L)E.a1 * x₁ * x₂ - 4 * x₁ * y₁ - 2 * (K↑L)E.a1 * x₂ ^ 2
+               - 2 * x₂ * y₁ - (K↑L)E.a1 * (K↑L)E.a2 * x₁ - 2 * (K↑L)E.a3 * x₁
+               - 2 * (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂ + (K↑L)E.a1 ^ 2 * y₁
+               - 2 * (K↑L)E.a2 * y₁ - (K↑L)E.a1 * (K↑L)E.a4 - (K↑L)E.a2 * (K↑L)E.a3)
+          = -2 * (K↑L)E.a1 * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂ - (K↑L)E.a1 * x₂ ^ 2 - x₂ * y₁
+            - x₂ * y₂ - 2 * (K↑L)E.a3 * x₁ - (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂
+            - (K↑L)E.a2 * y₁ - (K↑L)E.a2 * y₂ - (K↑L)E.a2 * (K↑L)E.a3
+          := by apply_fun (λ x, x * (K↑L)E.a1) at w₁ w₂; rw [zero_mul] at w₁ w₂; rw [lSimp];
                 nth_rewrite_rhs 0 [← w₁]; nth_rewrite_lhs 0 [← w₂]; ring,
         -- substitute l step 4
         have lSimp4 :
-            l * (-2 * E.a1 * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂
-                 - E.a1 * x₂ ^ 2 - x₂ * y₁ - x₂ * y₂ - 2 * E.a3 * x₁
-                 - E.a1 * E.a2 * x₂ - E.a3 * x₂ - E.a2 * y₁ - E.a2 * y₂ - E.a2 * E.a3)
-            + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3
-               + 2 * E.a2 * x₁ ^ 2 + 4 * E.a2 * x₁ * x₂ - E.a1 * x₁ * y₁
-               + 2 * E.a2 * x₂ ^ 2 - E.a1 * x₂ * y₁ + y₁ ^ 2 + E.a2 ^ 2 * x₁ + E.a4 * x₁
-               + E.a2 ^ 2 * x₂ + E.a4 * x₂ - E.a1 * E.a2 * y₁ + E.a3 * y₁ + E.a2 * E.a4 - E.a6)
+            l * (-2 * (K↑L)E.a1 * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂ - (K↑L)E.a1 * x₂ ^ 2 - x₂ * y₁
+                 - x₂ * y₂ - 2 * (K↑L)E.a3 * x₁ - (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂
+                 - (K↑L)E.a2 * y₁ - (K↑L)E.a2 * y₂ - (K↑L)E.a2 * (K↑L)E.a3)
+            + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3 + 2 * (K↑L)E.a2 * x₁ ^ 2
+               + 4 * (K↑L)E.a2 * x₁ * x₂ - (K↑L)E.a1 * x₁ * y₁ + 2 * (K↑L)E.a2 * x₂ ^ 2
+               - (K↑L)E.a1 * x₂ * y₁ + y₁ ^ 2 + (K↑L)E.a2 ^ 2 * x₁ + (K↑L)E.a4 * x₁
+               + (K↑L)E.a2 ^ 2 * x₂ + (K↑L)E.a4 * x₂ - (K↑L)E.a1 * (K↑L)E.a2 * y₁ + (K↑L)E.a3 * y₁
+               + (K↑L)E.a2 * (K↑L)E.a4 - (K↑L)E.a6)
           = 0
-          := by apply_fun (λ x, x * (x₁ + 2 * x₂ + E.a2)) at w₁;
-                apply_fun (λ x, x * (2 * x₁ + x₂ + E.a2)) at w₂;
+          := by apply_fun (λ x, x * (x₁ + 2 * x₂ + (K↑L)E.a2)) at w₁;
+                apply_fun (λ x, x * (2 * x₁ + x₂ + (K↑L)E.a2)) at w₂;
                 rw [zero_mul] at w₁ w₂; rw [lSimp];
                 nth_rewrite_lhs 0 [← w₁]; nth_rewrite_rhs 1 [← w₂]; ring,
         -- rewrite Weierstrass equation as w₃(x, y) = 0 and sequence steps
         rw [← sub_eq_zero, ySimp, xSimp, lSimp1, lSimp2, lSimp3, lSimp4]
       end
     -- add points with the same x-coordinate and y-coordinate
-    else if yNe : y₁ + (y₂ + E.a1 * x₂ + E.a3) ≠ 0 then
+    else if yNe : y₁ + (y₂ + (K↑L)E.a1 * x₂ + (K↑L)E.a3) ≠ 0 then
       let
-        l  := (3 * x₁ ^ 2 + 2 * E.a2 * x₁ + E.a4 - E.a1 * y₁) * (y₁ + (y₁ + E.a1 * x₁ + E.a3))⁻¹,
-        x₃ := l ^ 2 + E.a1 * l - E.a2 - 2 * x₁,
-        y₃ := -l * x₃ - E.a1 * x₃ - y₁ + l * x₁ - E.a3
+        l  := (3 * x₁ ^ 2 + 2 * (K↑L)E.a2 * x₁ + (K↑L)E.a4 - (K↑L)E.a1 * y₁)
+              * (y₁ + (y₁ + (K↑L)E.a1 * x₁ + (K↑L)E.a3))⁻¹,
+        x₃ := l ^ 2 + (K↑L)E.a1 * l - (K↑L)E.a2 - 2 * x₁,
+        y₃ := -l * x₃ - (K↑L)E.a1 * x₃ - y₁ + l * x₁ - (K↑L)E.a3
       in Affine x₃ y₃ $ begin
         -- show x-coordinates are the same
         have xEq : x₁ = x₂
@@ -140,8 +152,9 @@ def add : E/L → E/L → E/L
           := begin
             rw [← w₂, ← sub_eq_zero] at w₁,
             have ySimp :
-                y₁ ^ 2 + E.a1 * x₁ * y₁ + E.a3 * y₁ - (y₂ ^ 2 + E.a1 * x₁ * y₂ + E.a3 * y₂)
-              = (y₁ - y₂) * (y₁ + (y₂ + E.a1 * x₁ + E.a3))
+                y₁ ^ 2 + (K↑L)E.a1 * x₁ * y₁ + (K↑L)E.a3 * y₁
+                - (y₂ ^ 2 + (K↑L)E.a1 * x₁ * y₂ + (K↑L)E.a3 * y₂)
+              = (y₁ - y₂) * (y₁ + (y₂ + (K↑L)E.a1 * x₁ + (K↑L)E.a3))
               := by ring,
             rw [ySimp, mul_eq_zero, sub_eq_zero] at w₁,
             cases w₁,
@@ -153,43 +166,50 @@ def add : E/L → E/L → E/L
         rw [← sub_eq_zero] at w₁,
         -- substitute y
         have ySimp :
-            y₃ ^ 2 + E.a1 * x₃ * y₃ + E.a3 * y₃
-          = x₃ ^ 2 * (l ^ 2 + E.a1 * l)
-            + x₃ * (-2 * x₁ * l ^ 2 - E.a1 * x₁ * l + 2 * y₁ * l + E.a3 * l + E.a1 * y₁)
-            + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - E.a3 * x₁ * l + y₁ ^ 2 + E.a3 * y₁)
+            y₃ ^ 2 + (K↑L)E.a1 * x₃ * y₃ + (K↑L)E.a3 * y₃
+          = x₃ ^ 2 * (l ^ 2 + (K↑L)E.a1 * l)
+            + x₃ * (-2 * x₁ * l ^ 2 - (K↑L)E.a1 * x₁ * l + 2 * y₁ * l + (K↑L)E.a3 * l
+                    + (K↑L)E.a1 * y₁)
+            + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - (K↑L)E.a3 * x₁ * l + y₁ ^ 2 + (K↑L)E.a3 * y₁)
           := by dsimp [y₃]; ring,
         -- substitute x
         have xSimp :
-            x₃ ^ 2 * (l ^ 2 + E.a1 * l)
-            + x₃ * (-2 * x₁ * l ^ 2 - E.a1 * x₁ * l + 2 * y₁ * l + E.a3 * l + E.a1 * y₁)
-            + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - E.a3 * x₁ * l + y₁ ^ 2 + E.a3 * y₁)
-            - (x₃ ^ 3 + E.a2 * x₃ ^ 2 + E.a4 * x₃ + E.a6)
-          = l * (l * (l * (y₁ + (y₁ + E.a1 * x₁ + E.a3))
-                      + (-3 * x₁ ^ 2 + E.a1 ^ 2 * x₁
-                         - 2 * E.a2 * x₁ + 3 * E.a1 * y₁ + E.a1 * E.a3 - E.a4))
-                 + (-6 * E.a1 * x₁ ^ 2 - 6 * x₁ * y₁ - 3 * E.a1 * E.a2 * x₁
-                    - 3 * E.a3 * x₁ + E.a1 ^ 2 * y₁ - 2 * E.a2 * y₁ - E.a1 * E.a4 - E.a2 * E.a3))
-            + (8 * x₁ ^ 3 + 8 * E.a2 * x₁ ^ 2 - 2 * E.a1 * x₁ * y₁ + y₁ ^ 2 + 2 * E.a2 ^ 2 * x₁
-               + 2 * E.a4 * x₁ - E.a1 * E.a2 * y₁ + E.a3 * y₁ + E.a2 * E.a4 - E.a6)
+            x₃ ^ 2 * (l ^ 2 + (K↑L)E.a1 * l)
+            + x₃ * (-2 * x₁ * l ^ 2 - (K↑L)E.a1 * x₁ * l + 2 * y₁ * l + (K↑L)E.a3 * l
+                    + (K↑L)E.a1 * y₁)
+            + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - (K↑L)E.a3 * x₁ * l + y₁ ^ 2 + (K↑L)E.a3 * y₁)
+            - (x₃ ^ 3 + (K↑L)E.a2 * x₃ ^ 2 + (K↑L)E.a4 * x₃ + (K↑L)E.a6)
+          = l * (l * (l * (y₁ + (y₁ + (K↑L)E.a1 * x₁ + (K↑L)E.a3))
+                      + (-3 * x₁ ^ 2 + (K↑L)E.a1 ^ 2 * x₁ - 2 * (K↑L)E.a2 * x₁ + 3 * (K↑L)E.a1 * y₁
+                         + (K↑L)E.a1 * (K↑L)E.a3 - (K↑L)E.a4))
+                 + (-6 * (K↑L)E.a1 * x₁ ^ 2 - 6 * x₁ * y₁ - 3 * (K↑L)E.a1 * (K↑L)E.a2 * x₁
+                    - 3 * (K↑L)E.a3 * x₁ + (K↑L)E.a1 ^ 2 * y₁ - 2 * (K↑L)E.a2 * y₁
+                    - (K↑L)E.a1 * (K↑L)E.a4 - (K↑L)E.a2 * (K↑L)E.a3))
+            + (8 * x₁ ^ 3 + 8 * (K↑L)E.a2 * x₁ ^ 2 - 2 * (K↑L)E.a1 * x₁ * y₁ + y₁ ^ 2
+               + 2 * (K↑L)E.a2 ^ 2 * x₁ + 2 * (K↑L)E.a4 * x₁ - (K↑L)E.a1 * (K↑L)E.a2 * y₁
+               + (K↑L)E.a3 * y₁ + (K↑L)E.a2 * (K↑L)E.a4 - (K↑L)E.a6)
           := by dsimp [x₃]; ring,
         -- substitute l step 1
         have lSimp1 :
-            l * (y₁ + (y₁ + E.a1 * x₁ + E.a3))
-            + (-3 * x₁ ^ 2 + E.a1 ^ 2 * x₁ - 2 * E.a2 * x₁ + 3 * E.a1 * y₁ + E.a1 * E.a3 - E.a4)
-          = (y₁ + (y₁ + E.a1 * x₁ + E.a3)) * E.a1
+            l * (y₁ + (y₁ + (K↑L)E.a1 * x₁ + (K↑L)E.a3))
+            + (-3 * x₁ ^ 2 + (K↑L)E.a1 ^ 2 * x₁ - 2 * (K↑L)E.a2 * x₁ + 3 * (K↑L)E.a1 * y₁
+               + (K↑L)E.a1 * (K↑L)E.a3 - (K↑L)E.a4)
+          = (y₁ + (y₁ + (K↑L)E.a1 * x₁ + (K↑L)E.a3)) * (K↑L)E.a1
           := by rw [inv_mul_cancel_right₀ yNe]; ring,
         -- substitute l step 2
         have lSimp2 :
-            l * ((y₁ + (y₁ + E.a1 * x₁ + E.a3)) * E.a1)
-            + (-6 * E.a1 * x₁ ^ 2 - 6 * x₁ * y₁ - 3 * E.a1 * E.a2 * x₁
-               - 3 * E.a3 * x₁ + E.a1 ^ 2 * y₁ - 2 * E.a2 * y₁ - E.a1 * E.a4 - E.a2 * E.a3)
-          = (y₁ + (y₁ + E.a1 * x₁ + E.a3)) * (-3 * x₁ - E.a2)
+            l * ((y₁ + (y₁ + (K↑L)E.a1 * x₁ + (K↑L)E.a3)) * (K↑L)E.a1)
+            + (-6 * (K↑L)E.a1 * x₁ ^ 2 - 6 * x₁ * y₁ - 3 * (K↑L)E.a1 * (K↑L)E.a2 * x₁
+               - 3 * (K↑L)E.a3 * x₁ + (K↑L)E.a1 ^ 2 * y₁ - 2 * (K↑L)E.a2 * y₁
+               - (K↑L)E.a1 * (K↑L)E.a4 - (K↑L)E.a2 * (K↑L)E.a3)
+          = (y₁ + (y₁ + (K↑L)E.a1 * x₁ + (K↑L)E.a3)) * (-3 * x₁ - (K↑L)E.a2)
           := by rw [← mul_assoc l, inv_mul_cancel_right₀ yNe]; ring,
         -- substitute l step 3
         have lSimp3 :
-            l * ((y₁ + (y₁ + E.a1 * x₁ + E.a3)) * (-3 * x₁ - E.a2))
-            + (8 * x₁ ^ 3 + 8 * E.a2 * x₁ ^ 2 - 2 * E.a1 * x₁ * y₁ + y₁ ^ 2 + 2 * E.a2 ^ 2 * x₁
-               + 2 * E.a4 * x₁ - E.a1 * E.a2 * y₁ + E.a3 * y₁ + E.a2 * E.a4 - E.a6)
+            l * ((y₁ + (y₁ + (K↑L)E.a1 * x₁ + (K↑L)E.a3)) * (-3 * x₁ - (K↑L)E.a2))
+            + (8 * x₁ ^ 3 + 8 * (K↑L)E.a2 * x₁ ^ 2 - 2 * (K↑L)E.a1 * x₁ * y₁ + y₁ ^ 2
+               + 2 * (K↑L)E.a2 ^ 2 * x₁ + 2 * (K↑L)E.a4 * x₁ - (K↑L)E.a1 * (K↑L)E.a2 * y₁
+               + (K↑L)E.a3 * y₁ + (K↑L)E.a2 * (K↑L)E.a4 - (K↑L)E.a6)
           = 0
           := by rw [← mul_assoc l, inv_mul_cancel_right₀ yNe, ← w₁]; ring,
         -- rewrite Weierstrass equation as w₃(x, y) = 0 and sequence steps

@@ -265,9 +265,15 @@ variables (A : ι → submodule R R)
 variable (I : ideal R)
 
 /-- For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
-`I` spanned by all homogeneous elements in `I`. This construction is used when proving that the radical
-of a homogeneous ideal is homogeneous. -/
+`I` spanned by all homogeneous elements in `I`. This construction is used when proving that the
+radical of a homogeneous ideal is homogeneous. -/
 def ideal.homogenisation : ideal R := ideal.span (set_of (is_homogeneous A) ∩ I)
+
+lemma ideal.homogenisation_is_mono : monotone (ideal.homogenisation A) := λ I J I_le_J,
+begin
+  apply ideal.span_mono, rintros r ⟨hr1, hr2⟩,
+  refine ⟨hr1, I_le_J hr2⟩,
+end
 
 lemma ideal.homgenisation_le_ideal :
   ideal.homogenisation A I ≤ I :=

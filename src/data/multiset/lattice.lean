@@ -11,7 +11,7 @@ import data.multiset.fold
 -/
 
 namespace multiset
-variables {α : Type*}
+variables {α β γ : Type*}
 
 /-! ### sup -/
 section sup
@@ -30,6 +30,15 @@ fold_cons_left _ _ _ _
 
 @[simp] lemma sup_singleton {a : α} : ({a} : multiset α).sup = a :=
 sup_bot_eq
+
+@[simp] lemma sup_map (s : finset α) {f : β → γ} (h : function.injective f) (g : α → multiset β) :
+  multiset.map f (s.sup g) = s.sup (λ x,  multiset.map f (g x)) :=
+begin
+  apply finset.cons_induction_on s,
+  simp,
+  intros a s' h_a_s h_ind,
+  simp [finset.sup_cons, ← h_ind, multiset.map_union h],
+end
 
 @[simp] lemma sup_add (s₁ s₂ : multiset α) : (s₁ + s₂).sup = s₁.sup ⊔ s₂.sup :=
 eq.trans (by simp [sup]) (fold_add _ _ _ _ _)
@@ -89,6 +98,10 @@ fold_cons_left _ _ _ _
 
 @[simp] lemma inf_singleton {a : α} : ({a} : multiset α).inf = a :=
 inf_top_eq
+
+@[simp] lemma sup_map (s : finset α) {f : β → γ} (h : function.injective f) (g : α → multiset β) :
+  multiset.map f (s.inf g) = s.inf (λ x,  multiset.map f (g x)) :=
+:= sorry
 
 @[simp] lemma inf_add (s₁ s₂ : multiset α) : (s₁ + s₂).inf = s₁.inf ⊓ s₂.inf :=
 eq.trans (by simp [inf]) (fold_add _ _ _ _ _)

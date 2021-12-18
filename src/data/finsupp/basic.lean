@@ -1597,6 +1597,9 @@ begin
   rwa [map_domain_apply hf, map_domain_apply hf] at this,
 end
 
+def map_domain_embedding_of_injective {α β : Type*} {f : α → β} (h : function.injective f) :
+ (α →₀ ℕ)  ↪ (β →₀ ℕ) := ⟨finsupp.map_domain f, finsupp.map_domain_injective h⟩
+
 lemma map_domain.add_monoid_hom_comp_map_range [add_comm_monoid N] (f : α → β) (g : M →+ N) :
   (map_domain.add_monoid_hom f).comp (map_range.add_monoid_hom g) =
     (map_range.add_monoid_hom g).comp (map_domain.add_monoid_hom f) :=

@@ -243,4 +243,45 @@ end
 
 end coeff
 
+section support
+
+lemma support_rename_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f) :
+  ((rename f p).support : finset (τ →₀ ℕ)) =
+  finset.map (map_domain_embedding_of_injective h) p.support :=
+begin
+  rw finset.ext_iff,
+  intro a,
+  simp only [exists_prop, finset.mem_map, mem_support_iff, ne.def],
+  apply iff.intro,
+  intro h1,
+  cases coeff_rename_ne_zero f p a h1 with d hd,
+  use d,
+  simpa only [map_domain_embedding_of_injective, function.embedding.coe_fn_mk] using hd.symm,
+  intro h,
+  cases h with b hb,
+  simpa only [← hb.2, map_domain_embedding_of_injective, function.embedding.coe_fn_mk,
+              coeff_rename_map_domain f h p b] using hb.1,
+end
+
+end support
+
+section degree
+
+lemma rename_degrees_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
+  {f : σ → τ} (h : function.injective f) : degrees (rename f p) = (degrees p).map f :=
+begin
+  have h1 : (λ (x : σ →₀ ℕ), multiset.map f (finsupp.to_multiset x))
+    = λ x, (x.map_domain f).to_multiset,
+  { ext,
+    rw finsupp.to_multiset_map, },
+  simp only [degrees, multiset.sup_map h, h1, support_rename_injective h, finset.sup_map],
+  congr,
+end
+
+lemma degree_of_rename_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
+{f : σ → τ} (h : function.injective f) (i : σ) : degree_of i p = degree_of (f i) (rename f p) :=
+by simp only [degree_of, rename_degrees_of_injective h, multiset.count_map_eq_count' f (p.degrees) h]
+
+end degree
+
 end mv_polynomial

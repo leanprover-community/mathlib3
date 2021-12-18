@@ -23,6 +23,7 @@ Note : I'm currently very unsure if this theorem should have it's own file, plea
 comment on this
 -/
 
+
 variables {ι ι' α β γ : Type*}
 
 section vary
@@ -53,8 +54,8 @@ begin
 end
 
 /-- Induction principle for `finset` based on an ordering induced by a pair of functions -/
-lemma finset.induction_on_max' [decidable_eq ι] [linear_order α] (f g : ι → α)
-  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
+lemma finset.induction_on_max' [decidable_eq ι] [linear_order α] [linear_order β] (f : ι → α)
+  (g : ι → β) {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x < f a ∨ (f x = f a ∧ g x ≤ g a)) → p s → p (insert a s)) :
   p s :=
 begin
@@ -89,21 +90,15 @@ open_locale big_operators
 
 /-- **Rearrangement Inequality** -/
 theorem rearrangement_inequality_smul {ι α β : Type*} [decidable_eq ι] [fintype ι]
-  [ordered_semiring α] [linear_ordered_add_comm_group β] [smul_with_zero α β]
+  [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β]
   [ordered_smul α β] (s : finset ι) (f : ι → α) (g : ι → β) (σ : perm ι) (hσ : σ.support ⊆ s)
   (hfg : monovary_on f g s) :
   ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
-sorry
-
-/-- **Rearrangement Inequality** -/
-theorem rearrangement_inequality {ι α : Type*} [decidable_eq ι] [fintype ι] [linear_ordered_ring α]
-  (s : finset ι) (f g : ι → α) (σ : perm ι) (hσ : σ.support ⊆ s) (hfg : monovary_on f g s) :
-  ∑ i in s, f i * g (σ i) ≤ ∑ i in s, f i * g i :=
 begin
-  revert hσ σ,
+  revert hσ σ hfg,
   apply finset.induction_on_max' g f s,
   { simp only [le_refl, finset.sum_empty, implies_true_iff] },
-  { intros a s has hamax hind σ hσ,
+  { intros a s has hamax hind σ hσ hfg,
     set k := σ a with hk,
     set j := σ⁻¹ a with hj,
     set p : ι → ι := λ x, if x = a then a else if x = j then k else σ x with hp,
@@ -144,8 +139,9 @@ begin
         specialize hσ hx,
         rw mem_insert at hσ,
         cases hσ; tauto } },
-    specialize hind τ hτs,
-    replace hind := add_le_add_left hind (f a * g a),
+    specialize hind τ hτs (monovary_on.subset _ hfg),
+    { simp only [coe_insert, set.subset_insert] },
+    replace hind := add_le_add_left hind (f a • g a),
     rw ← sum_insert has at hind,
     apply le_trans _ hind,
     by_cases hja : j = a,
@@ -179,10 +175,10 @@ begin
           split_ifs,
           refl },
         simp only [← hk, apply_inv_self, hpj],
-        suffices : 0 ≤ (f a - f j) * (g a - g k),
+        suffices : 0 ≤ (f a - f j) • (g a - g k),
         { rw ← sub_nonneg,
           convert this,
-          simp only [sub_mul, mul_sub],
+          simp only [smul_sub, sub_smul],
           abel },
         have hks : k ∈ s,
         { suffices : k ∈ σ.support,
@@ -199,11 +195,13 @@ begin
           intro hka,
           apply hja,
           rw [hka, hj] },
-        apply mul_nonneg,
+        apply smul_nonneg,
         { rw sub_nonneg,
           specialize hamax j hjs,
           cases hamax,
-          { exact hfg hamax },
+          { apply hfg _ _ hamax,
+            { simp only [hjs, coe_insert, set.mem_insert_iff, mem_coe, or_true] },
+            { simp only [coe_insert, set.mem_insert_iff, true_or, eq_self_iff_true] }},
           { exact hamax.2 } },
         { rw sub_nonneg,
           specialize hamax k hks,

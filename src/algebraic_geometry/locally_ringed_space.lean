@@ -125,6 +125,11 @@ def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 
 instance : faithful forget_to_SheafedSpace := {}
 
+/-- The forgetful functor from `LocallyRingedSpace` to `Top`. -/
+@[simps]
+def forget_to_Top : LocallyRingedSpace ⥤ Top :=
+  forget_to_SheafedSpace ⋙ SheafedSpace.forget _
+
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_
 spaces can be lifted to a morphism `X ⟶ Y` as locally ringed spaces.

@@ -118,11 +118,6 @@ instance : category LocallyRingedSpace :=
   id_comp' := by { intros, ext1, simp, },
   assoc' := by { intros, ext1, simp, }, }.
 
-/-- The forgetful functor from `LocallyRingedSpace` to `SheafedSpace CommRing`. -/
-def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
-{ obj := λ X, X.to_SheafedSpace,
-  map := λ X Y f, f.1, }
-
 instance : faithful forget_to_SheafedSpace := {}
 
 /-- The forgetful functor from `LocallyRingedSpace` to `Top`. -/

@@ -840,8 +840,7 @@ variables [group α]
 /-- A version of the global `continuous_mul` suitable for dot notation. -/
 @[to_additive]
 lemma continuous_mul' (g : group_topology α) :
-  @continuous _ _ (by haveI := g.to_topological_space; apply_instance)
-    g.to_topological_space (λ p : α × α, p.1 * p.2) :=
+  by haveI := g.to_topological_space; exact continuous (λ p : α × α, p.1 * p.2) :=
 begin
   letI := g.to_topological_space,
   haveI := g.to_topological_group,
@@ -851,8 +850,7 @@ end
 /-- A version of the global `continuous_inv` suitable for dot notation. -/
 @[to_additive]
 lemma continuous_inv' (g : group_topology α) :
-  @continuous _ _ (by haveI := g.to_topological_space; apply_instance)
-    g.to_topological_space (has_inv.inv) :=
+  by haveI := g.to_topological_space; exact continuous (has_inv.inv : α → α) :=
 begin
   letI := g.to_topological_space,
   haveI := g.to_topological_group,

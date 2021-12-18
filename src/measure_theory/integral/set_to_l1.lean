@@ -1541,10 +1541,8 @@ lemma set_to_fun_mono {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ
   {f g : α → G} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
   set_to_fun μ T hT f ≤ set_to_fun μ T hT g :=
 begin
-  rw ← sub_nonneg,
-  rw ← set_to_fun_sub hT hg hf,
-  refine set_to_fun_nonneg hT hT_nonneg _,
-  refine hfg.mono (λ a ha, _),
+  rw [← sub_nonneg, ← set_to_fun_sub hT hg hf],
+  refine set_to_fun_nonneg hT hT_nonneg (hfg.mono (λ a ha, _)),
   rw [pi.sub_apply, pi.zero_apply, sub_nonneg],
   exact ha,
 end

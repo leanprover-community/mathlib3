@@ -34,7 +34,6 @@ it is equal to the lowest common multiple of the order of all elements of the gr
 
 ## TODO
 * Refactor the characteristic of a ring to be the exponent of its underlying additive group.
-* `monoid.exponent_eq_Sup_order_of` can be generalised to infinite groups.
 -/
 
 universe u

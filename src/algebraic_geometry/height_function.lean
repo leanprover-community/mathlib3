@@ -28,14 +28,12 @@ variable (A : Ab.{u})
 /--definition of height function-/
 @[nolint has_inhabited_instance]
 structure height_function :=
-(to_fun : A → ℝ)
-(nonneg : ∀ P, 0 ≤ to_fun P)
+(to_fun : A → ℝ) (nonneg : ∀ P, 0 ≤ to_fun P)
 (C1 : A → ℝ) (C1_pos: ∀ a, 0 < C1 a)
 (height_add_le : ∀ (Q P : A), to_fun (P + Q) ≤ 2 * to_fun P + C1 Q)
-(m : ℕ)
-(hm : 2 ≤ m)
+(m : ℕ) (hm : 2 ≤ m)
 (C2 : ℝ) (C2_pos : 0 < C2)
-(height_nsmul_ge : ∀ (P : A), ↑m^2 * to_fun P - C2 ≤ to_fun (m • P))
+(height_nsmul_ge : ∀ (P : A), (m : ℝ)^2 * to_fun P - C2 ≤ to_fun (m • P))
 (finite : ∀ (C : ℝ), set.finite { P : A | to_fun P < C })
 
 lemma height_function.height_nsmul_ge' (f : height_function A) :
@@ -49,7 +47,7 @@ begin
 end
 
 lemma height_function.height_sub_le (f : height_function A) :
-  ∀ (Q P : A), f.to_fun (P - Q) ≤ 2 * f.to_fun P + f.C1 (- Q) := λ Q P,
+  ∀ (Q P : A), f.to_fun (P - Q) ≤ 2 * f.to_fun P + f.C1 (-Q) := λ Q P,
 have ineq1 : _ := f.height_add_le (-Q) P,
 begin
   rw [sub_eq_add_neg],
@@ -108,10 +106,11 @@ by simp only [coe_mem]
 variable (f : height_function A)
 omit fin_quot
 
-variables [fin_quot_f : fintype (A/f.m)] [non_empty_quot_f : nonempty (A/f.m)]
-include fin_quot_f non_empty_quot_f
+variables [fin_quot_f : fintype (A/f.m)]
+include fin_quot_f
 
 lemma nemp1 : (image (λ a, f.C1 (-a)) (represents A f.m)).nonempty :=
+have non_empty_quot_f : nonempty (A/f.m) := by apply_instance,
 begin
   apply non_empty_quot_f.elim, intro a,
   simp_rw [finset.nonempty, mem_image],
@@ -299,7 +298,6 @@ begin
   exact hM, refl,
 end
 
-omit non_empty_quot_f
 lemma eq_linear_combination (P : A) (n : ℕ) :
   P = (f.m) ^ n.succ • ((next f.m)^[n.succ] P) +
     ∑ i in range n.succ, (f.m) ^ i •  (next_rep f.m ((next f.m)^[i] P)) :=

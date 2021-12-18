@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import linear_algebra.tensor_product
 import algebra.algebra.tower
+import ring_theory.adjoin.basic
+import linear_algebra.tensor_product
 
 /-!
 # The tensor product of R-algebras
@@ -649,6 +650,9 @@ theorem comm_tmul (a : A) (b : B) :
   (tensor_product.comm R A B : (A ⊗[R] B → B ⊗[R] A)) (a ⊗ₜ b) = (b ⊗ₜ a) :=
 by simp [tensor_product.comm]
 
+lemma adjoin_tmul_eq_top : adjoin R {t : A ⊗[R] B | ∃ a b, a ⊗ₜ[R] b = t} = ⊤ :=
+top_le_iff.mp ((top_le_iff.mpr (span_tmul_eq_top R A B)).trans (span_le_adjoin R _))
+
 end
 
 section
@@ -768,6 +772,17 @@ lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a :=
 lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b := by simp
 
 @[simp] lemma product_map_right : (product_map f g).comp include_right = g := alg_hom.ext $ by simp
+
+lemma product_map_range : (product_map f g).range = f.range ⊔ g.range :=
+begin
+  refine le_antisymm _ (sup_le (le_trans (ge_of_eq (congr_arg _ (product_map_left f g)))
+    (include_left.range_comp_le_range (product_map f g))) (le_trans (ge_of_eq (congr_arg _
+    (product_map_right f g))) (include_right.range_comp_le_range (product_map f g)))),
+  rw [←map_top, ←adjoin_tmul_eq_top, ←adjoin_image, adjoin_le_iff],
+  rintros _ ⟨_, ⟨a, b, rfl⟩, rfl⟩,
+  rw product_map_apply_tmul,
+  exact mul_mem_sup (f.mem_range_self a) (g.mem_range_self b),
+end
 
 end
 end tensor_product

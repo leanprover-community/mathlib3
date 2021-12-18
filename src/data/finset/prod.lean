@@ -85,8 +85,12 @@ begin
   classical,
   rw [← card_product, ← card_product, ← filter_product, ← filter_product, ← card_union_eq],
   { apply congr_arg, ext ⟨a, b⟩, simp only [filter_union_right, mem_filter, mem_product],
-    split; intros; finish },
-  { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter, finish }
+    split; intros h; use h.1,
+    simp only [function.comp_app, and_self, h.2, em (q b)],
+    cases h.2; {try {simp at h_1}, simp [h_1]} },
+  { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter,
+    simp only [and_imp, mem_filter, not_and, not_not, function.comp_app, iff_false, mem_product,
+     not_mem_empty], intros, assumption }
 end
 
 lemma empty_product (t : finset β) : (∅ : finset α).product t = ∅ := rfl

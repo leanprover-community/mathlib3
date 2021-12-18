@@ -16,7 +16,7 @@ An `r`-set is a finset of size `r`. The `r`-th slice of a set family is the set 
 
 ## Main declarations
 
-* `finset.sized`: `A.sized r` means that `A` only contains `r`-sets.
+* `set.sized`: `A.sized r` means that `A` only contains `r`-sets.
 * `finset.slice`: `A.slice r` is the set of `r`-sets in `A`.
 
 ## Notation
@@ -28,32 +28,35 @@ open finset nat
 
 variables {α : Type*}
 
-namespace finset
-
-section sized
-variables {A B : finset (finset α)} {r : ℕ}
+namespace set
+variables {A B : set (finset α)} {r : ℕ}
 
 /-! ### Families of `r`-sets -/
 
 /-- `sized r A` means that every finset in `A` has size `r`. -/
-def sized (r : ℕ) (A : finset (finset α)) : Prop := ∀ ⦃x⦄, x ∈ A → card x = r
+def sized (r : ℕ) (A : set (finset α)) : Prop := ∀ ⦃x⦄, x ∈ A → card x = r
 
 lemma sized.mono (h : A ⊆ B) (hB : B.sized r) : A.sized r := λ x hx, hB $ h hx
 
 lemma sized_union [decidable_eq α] : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=
 ⟨λ hA, ⟨hA.mono $ subset_union_left _ _, hA.mono $ subset_union_right _ _⟩,
-  λ hA x hx, (mem_union.1 hx).elim (λ h, hA.1 h) $ λ h, hA.2 h⟩
+  λ hA x hx, hx.elim (λ h, hA.1 h) $ λ h, hA.2 h⟩
 
-alias sized_union ↔ _ sized.union
+alias sized_union ↔ _ set.sized.union
 
-variables [fintype α] {𝒜 : finset (finset α)} {s : finset α}
+end set
 
-lemma subset_powerset_len_univ_iff : 𝒜 ⊆ powerset_len r univ ↔ 𝒜.sized r :=
-forall_congr $ λ A, by rw mem_powerset_len_univ_iff
+namespace finset
+section sized
+variables [fintype α] {𝒜 : finset (finset α)} {s : finset α} {r : ℕ}
 
-alias subset_powerset_len_univ_iff  ↔ _ finset.sized.subset_powerset_len_univ
+lemma subset_powerset_len_univ_iff : 𝒜 ⊆ powerset_len r univ ↔ (𝒜 : set (finset α)).sized r :=
+forall_congr $ λ A, by rw [mem_powerset_len_univ_iff, mem_coe]
 
-lemma sized.card_le (h𝒜 : 𝒜.sized r) : card 𝒜 ≤ (fintype.card α).choose r :=
+alias subset_powerset_len_univ_iff  ↔ _ set.sized.subset_powerset_len_univ
+
+lemma _root_.set.sized.card_le (h𝒜 : (𝒜 : set (finset α)).sized r) :
+  card 𝒜 ≤ (fintype.card α).choose r :=
 begin
   rw [fintype.card, ←card_powerset_len],
   exact card_le_of_subset h𝒜.subset_powerset_len_univ,
@@ -62,6 +65,7 @@ end
 end sized
 
 /-! ### Slices -/
+
 section slice
 variables {𝒜 : finset (finset α)} {A A₁ A₂ : finset α} {r r₁ r₂ : ℕ}
 
@@ -77,7 +81,7 @@ lemma mem_slice : A ∈ 𝒜 # r ↔ A ∈ 𝒜 ∧ A.card = r := mem_filter
 lemma slice_subset : 𝒜 # r ⊆ 𝒜 := filter_subset _ _
 
 /-- Everything in the `r`-th slice of `𝒜` has size `r`. -/
-lemma sized_slice : (𝒜 # r).sized r := λ _, and.right ∘ mem_slice.mp
+lemma sized_slice : (𝒜 # r : set (finset α)).sized r := λ _, and.right ∘ mem_slice.mp
 
 lemma eq_of_mem_slice (h₁ : A ∈ 𝒜 # r₁) (h₂ : A ∈ 𝒜 # r₂) : r₁ = r₂ :=
 (sized_slice h₁).symm.trans $ sized_slice h₂

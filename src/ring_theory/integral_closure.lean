@@ -670,7 +670,7 @@ end
 
 /-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field. -/
 lemma is_field_of_is_integral_of_is_field
-  {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S] [is_domain S]
+  {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S]
   [algebra R S] (H : is_integral R S) (hRS : function.injective (algebra_map R S))
   (hS : is_field S) : is_field R :=
 begin
@@ -712,7 +712,7 @@ begin
 end
 
 lemma is_field_of_is_integral_of_is_field'
-  {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S] [is_domain S] [algebra R S]
+  {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S] [algebra R S]
   (H : algebra.is_integral R S) (hR : is_field R) :
   is_field S :=
 begin
@@ -728,7 +728,7 @@ begin
 end
 
 lemma is_integral.is_field_iff_is_field
-  {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S] [is_domain S] [algebra R S]
+  {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S] [algebra R S]
   (H : algebra.is_integral R S) (hRS : function.injective (algebra_map R S)) :
   is_field R ↔ is_field S :=
 ⟨is_field_of_is_integral_of_is_field' H, is_field_of_is_integral_of_is_field H hRS⟩

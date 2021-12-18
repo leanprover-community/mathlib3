@@ -89,6 +89,8 @@ lemma count_le_count_cons (a b : α) (l : list α) : count a l ≤ count a (b ::
 
 lemma count_singleton (a : α) : count a [a] = 1 := if_pos rfl
 
+lemma count_singleton' (a b : α) : count a [b] = ite (a = b) 1 0 := by refl
+
 @[simp] lemma count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂ :=
 countp_append _
 

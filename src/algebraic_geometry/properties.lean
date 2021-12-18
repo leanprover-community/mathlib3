@@ -28,6 +28,7 @@ namespace algebraic_geometry
 
 variable (X : Scheme)
 
+-- TODO: add sober spaces, and show that schemes are sober
 instance : t0_space X.carrier :=
 begin
   rw t0_space_iff_distinguishable,

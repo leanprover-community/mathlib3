@@ -38,7 +38,7 @@ begin
   erw ← subtype_indistinguishable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h',
   let e' : U.1 ≃ₜ prime_spectrum R :=
     homeo_of_iso ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _).map_iso e),
-  have := domain_t0_space e'.injective e'.continuous,
+  have := t0_space_of_injective_of_continuous e'.injective e'.continuous,
   rw t0_space_iff_distinguishable at this,
   exact this ⟨x, U.2⟩ ⟨y, hy⟩ (by simpa using h) h'
 end

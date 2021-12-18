@@ -7,6 +7,7 @@ Authors: Jujian Zhang
 import data.real.basic
 import algebra.category.Group.abelian
 import group_theory.finiteness
+import group_theory.coset
 import data.set.finite
 import algebra.geom_sum
 import analysis.specific_limits

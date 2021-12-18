@@ -1502,4 +1502,18 @@ begin
     { simpa using H } }
 end
 
+lemma closed_eq_top_iff_nonempty_open_subset {α : Type*} [topological_space α]
+  [preirreducible_space α]
+  {U Z : set α} (hU : is_open U) (hU' : nonempty U) (hZ : is_closed Z) :
+  Z = ⊤ ↔ U ≤ Z :=
+begin
+  split,
+  { exact λ h, h.symm ▸ le_top },
+  intro h,
+  have := mt (nonempty_preirreducible_inter hU (is_open_compl_iff.mpr hZ)
+    ((set.nonempty_coe_sort _).mp hU')),
+  rw [set.inter_compl_nonempty_iff, set.not_nonempty_iff_eq_empty, not_not] at this,
+  exact set.compl_empty_iff.mp (this h),
+end
+
 end preirreducible

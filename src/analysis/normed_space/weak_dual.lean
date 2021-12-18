@@ -216,19 +216,19 @@ begin
   have whee : ∀ j ∈ {i}, {z : X j | dist (f j) z < ε} ∈ 𝓝 (f j),
   by { intros j hj, rwa mem_singleton_iff.mp hj, },
   have := set_pi_mem_nhds (finite_singleton i) whee,
-  simp at this,
+  simp only [singleton_pi, preimage_set_of_eq, function.eval_apply] at this,
   exact this,
 end
 
-/-- In a product of copies of a normed field, sets of the form `{g | ∥ f(i) - g(i) ∥ < ε}` for
-`ε > 0` are neighborhoods of `f`. -/
-lemma _root_.mem_nhds_Pi_normed_field {ι : Type*}
-  (f : (Π (_ : ι), 𝕜)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
-  {g : (Π (_ : ι), 𝕜) | ∥ f i - g i ∥ < ε} ∈ 𝓝 f :=
+/-- For any `f : Π (j : ι), K j` in a product of normed groups `K j`, a set of the
+form `{g | dist (f i) (g i) < ε}` with `ε > 0` and `i : ι` is a neighborhood of `f`. -/
+lemma _root_.mem_nhds_Pi_normed_field {ι : Type*} {K : ι → Type*} [∀ (i : ι), normed_group (K i)]
+  (f : (Π (j : ι), K j)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
+  {g : (Π (j : ι), K j) | ∥ f i - g i ∥ < ε} ∈ 𝓝 f :=
 begin
   have key := _root_.mem_nhds_Pi' f i ε_pos,
-  dsimp at key,
-  have eq : {g : ι → 𝕜 | ∥f i - g i∥ < ε} = {g : ι → 𝕜 | dist (f i) (g i) < ε},
+  have eq :
+    {g : (Π (j : ι), K j) | ∥f i - g i∥ < ε} = {g : (Π (j : ι), K j) | dist (f i) (g i) < ε},
   by simp only [dist_eq_norm],
   rwa eq,
 end

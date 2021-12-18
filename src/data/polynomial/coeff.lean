@@ -125,7 +125,6 @@ lemma coeff_X_pow_self (n : ℕ) :
   coeff (X^n : polynomial R) n = 1 :=
 by simp [coeff_X_pow]
 
-@[simp]
 theorem coeff_mul_X_pow (p : polynomial R) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
 begin
@@ -135,7 +134,6 @@ begin
   { exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
 end
 
-@[simp]
 theorem coeff_X_pow_mul (p : polynomial R) (n d : ℕ) :
   coeff (polynomial.X ^ n * p) (d + n) = coeff p d :=
 by rw [(commute_X_pow p n).eq, coeff_mul_X_pow]

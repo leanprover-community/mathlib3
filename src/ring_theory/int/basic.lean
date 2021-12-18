@@ -316,6 +316,12 @@ begin
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
 
+lemma int.exists_prime_and_dvd {n : ℤ} (n2 : 2 ≤ n.nat_abs) : ∃ p, prime p ∧ p ∣ n :=
+begin
+  obtain ⟨p, pp, pd⟩ := nat.exists_prime_and_dvd n2,
+  exact ⟨p, nat.prime_iff_prime_int.mp pp, int.coe_nat_dvd_left.mpr pd⟩,
+end
+
 open unique_factorization_monoid
 
 theorem nat.factors_eq {n : ℕ} : normalized_factors n = n.factors :=

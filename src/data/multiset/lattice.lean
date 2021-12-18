@@ -11,7 +11,7 @@ import data.multiset.fold
 -/
 
 namespace multiset
-variables {α β γ : Type*}
+variables {α : Type*}
 
 /-! ### sup -/
 section sup

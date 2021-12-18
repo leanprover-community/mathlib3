@@ -7,6 +7,7 @@ import topology.metric_space.basic
 import set_theory.cardinal_ordinal
 import measure_theory.integral.lebesgue
 import measure_theory.covering.vitali_family
+import measure_theory.measure.regular
 
 /-!
 # Besicovitch covering theorems
@@ -902,5 +903,64 @@ protected def vitali_family [second_countable_topology α] [has_besicovitch_cove
         exists_disjoint_closed_ball_covering_ae μ g s A B C,
     exact ⟨t, λ x, closed_ball x (r x), ts, tdisj, λ x xt, (tg x xt).2, μt⟩,
   end }
+
+theorem exists_closed_ball_covering_sum_measure_le
+  [second_countable_topology α] [hb : has_besicovitch_covering α]
+  [measurable_space α] [opens_measurable_space α] (μ : measure α)
+  [sigma_finite μ] [measure.outer_regular μ]
+  {ε : ℝ≥0∞} (hε: ε ≠ 0) (f : α → set ℝ) (s : set α)
+  (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0) (hf'' : ∀ x ∈ s, Inf (f x) ≤ 0) :
+  ∃ (t : set α) (r : α → ℝ), countable t ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x)
+    ∧ s ⊆ (⋃ (x ∈ t), closed_ball x (r x))
+    ∧ ∑' (x : t), μ (closed_ball x (r x)) ≤ μ s + ε  :=
+begin
+  obtain ⟨u, su, u_open, μu⟩  : ∃ U ⊇ s, is_open U ∧ μ U ≤ μ s + ε / 2 :=
+    set.exists_is_open_le_add _ _ (by simpa only [or_false, ne.def, ennreal.div_zero_iff,
+      ennreal.one_ne_top, ennreal.bit0_eq_top_iff] using hε),
+  have : ∀ x ∈ s, ∃ R > 0, ball x R ⊆ u :=
+    λ x hx, metric.mem_nhds_iff.1 (u_open.mem_nhds (su hx)),
+  choose! R hR using this,
+  let g := λ x, f x ∩ Ioo 0 (R x),
+  have A : ∀ x ∈ s, ∀ δ > (0 : ℝ), ∃ z, z ∈ g x ∩ Ioo (0 : ℝ) δ,
+  { assume x hx δ δpos,
+    have : Inf (f x) < min (R x) δ := lt_of_le_of_lt (hf'' x hx) (lt_min (hR x hx).1 δpos),
+    obtain ⟨z, hz, zR⟩ : ∃ (z : ℝ) (H : z ∈ f x), z < min (R x) δ :=
+      exists_lt_of_cInf_lt (hf x hx) this,
+    exact ⟨z, ⟨hz, hf' x hx hz, zR.trans_le (min_le_left _ _)⟩,
+                hf' x hx hz, zR.trans_le (min_le_right _ _)⟩ },
+  have hg : ∀ x ∈ s, (g x).nonempty,
+  { assume x hx,
+    rcases A x hx 1 zero_lt_one with ⟨z, hz, h'z⟩,
+    exact ⟨z, hz⟩ },
+  have hg' : ∀ x ∈ s, g x ⊆ Ioi 0 :=
+    λ x hx, subset.trans (inter_subset_left _ _) (hf' x hx),
+  have hg'' : ∀ x ∈ s, Inf (g x) ≤ 0,
+  { assume x hx,
+    apply le_of_forall_lt' (λ δ δpos, _),
+    rcases A x hx δ δpos with ⟨z, zg, zδ⟩,
+    have : bdd_below (g x) := ⟨0, λ y hy, le_of_lt (hg' x hx hy)⟩,
+    exact (cInf_le this zg).trans_lt zδ.2 },
+  obtain ⟨t0, r0, t0_count, t0s, hr0, μt0, t0_disj⟩ :
+    ∃ (t0 : set α) (r0 : α → ℝ), countable t0 ∧ t0 ⊆ s ∧ (∀ x ∈ t0, r0 x ∈ g x)
+      ∧ μ (s \ (⋃ (x ∈ t0), closed_ball x (r0 x))) = 0
+      ∧ t0.pairwise_disjoint (λ x, closed_ball x (r0 x)) :=
+        exists_disjoint_closed_ball_covering_ae μ g s hg hg' hg'',
+  haveI : encodable t0 := t0_count.to_encodable,
+  have A : ∑' (x : t0), μ (closed_ball x (r0 x)) ≤ μ s + ε / 2 := calc
+    ∑' (x : t0), μ (closed_ball x (r0 x))
+    = μ (⋃ (x : t0), closed_ball x (r0 x)) :
+      begin
+        rw measure_Union,
+        { exact (pairwise_subtype_iff_pairwise_set _ _).2 t0_disj },
+        { exact λ i, measurable_set_closed_ball }
+      end
+    ... ≤ μ u : begin
+      apply measure_mono,
+      simp only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
+      assume x hx,
+      apply subset.trans (closed_ball_subset_ball (hr0 x hx).2.2) (hR x (t0s hx)).2,
+    end
+    ... ≤ μ s + ε / 2 : μu
+end
 
 end besicovitch

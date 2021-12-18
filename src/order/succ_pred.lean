@@ -105,11 +105,11 @@ lemma lt_succ_of_not_maximal {a b : α} (h : a < b) : a < succ a :=
 
 alias lt_succ_of_not_maximal ← has_lt.lt.lt_succ
 
-protected lemma has_lt.lt.covers_succ {a b : α} (h : a < b) : a ⋖ succ a :=
+protected lemma _root_.has_lt.lt.covers_succ {a b : α} (h : a < b) : a ⋖ succ a :=
 ⟨h.lt_succ, λ c hc, (succ_le_of_lt hc).not_lt⟩
 
-@[simp] lemma covers_succ_of_nonempty_Ioi {a : α} (h : (Ioi a).nonempty) : a ⋖ succ a :=
-h.some_mem.covers_succ
+@[simp] lemma covers_succ_of_nonempty_Ioi {a : α} (h : (set.Ioi a).nonempty) : a ⋖ succ a :=
+has_lt.lt.covers_succ h.some_mem
 
 section no_top_order
 variables [no_top_order α] {a b : α}
@@ -320,8 +320,8 @@ alias pred_lt_of_not_minimal ← has_lt.lt.pred_lt
 protected lemma _root_.has_lt.lt.pred_covers {a b : α} (h : b < a) : pred a ⋖ a :=
 ⟨h.pred_lt, λ c hc, (le_of_pred_lt hc).not_lt⟩
 
-@[simp] lemma pred_covers_of_nonempty_Iio {a : α} (h : (Iio a).nonempty) : pred a ⋖ a :=
-h.some_mem.pred_covers
+@[simp] lemma pred_covers_of_nonempty_Iio {a : α} (h : (set.Iio a).nonempty) : pred a ⋖ a :=
+has_lt.lt.pred_covers h.some_mem
 
 section no_bot_order
 variables [no_bot_order α] {a b : α}
@@ -489,11 +489,11 @@ variables [partial_order α] [succ_order α] [pred_order α] {a b : α}
 protected lemma _root_.has_lt.lt.succ_pred (h : b < a) : succ (pred a) = a := h.pred_covers.succ_eq
 protected lemma _root_.has_lt.lt.pred_succ (h : a < b) : pred (succ a) = a := h.covers_succ.pred_eq
 
-@[simp] lemma succ_pred_of_nonempty_Ioi {a : α} (h : (Ioi a).nonempty) : succ (pred a) = a :=
-h.some_mem.succ_pred
+@[simp] lemma succ_pred_of_nonempty_Iio {a : α} (h : (set.Iio a).nonempty) : succ (pred a) = a :=
+has_lt.lt.succ_pred h.some_mem
 
-@[simp] lemma pred_succ_of_nonempty_Iio {a : α} (h : (Iio a).nonempty) : pred (succ a) = a :=
-h.some_mem.pred_succ
+@[simp] lemma pred_succ_of_nonempty_Ioi {a : α} (h : (set.Ioi a).nonempty) : pred (succ a) = a :=
+has_lt.lt.pred_succ h.some_mem
 
 @[simp] lemma succ_pred [no_bot_order α] (a : α) : succ (pred a) = a := (pred_covers _).succ_eq
 @[simp] lemma pred_succ [no_top_order α] (a : α) : pred (succ a) = a := (covers_succ _).pred_eq

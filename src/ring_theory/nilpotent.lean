@@ -23,7 +23,7 @@ import ring_theory.ideal.operations
 
 universes u v
 
-variables {R : Type u} {x y : R}
+variables {R S : Type u} {x y : R}
 
 /-- An element is said to be nilpotent if some natural-number-power of it equals zero.
 
@@ -31,6 +31,9 @@ Note that we require only the bare minimum assumptions for the definition to mak
 `monoid_with_zero` is too strong since nilpotency is important in the study of rings that are only
 power-associative. -/
 def is_nilpotent [has_zero R] [has_pow R ℕ] (x : R) : Prop := ∃ (n : ℕ), x^n = 0
+
+lemma is_nilpotent.mk [has_zero R] [has_pow R ℕ] (x : R) (n : ℕ)
+  (e : x ^ n = 0) : is_nilpotent x := ⟨n, e⟩
 
 lemma is_nilpotent.zero [monoid_with_zero R] : is_nilpotent (0 : R) := ⟨1, pow_one 0⟩
 
@@ -43,6 +46,11 @@ end
 
 @[simp] lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
+
+lemma is_nilpotent.map [monoid_with_zero R] [monoid_with_zero S] {r : R}
+  {F : Type*} [monoid_with_zero_hom_class F R S] (hr : is_nilpotent r) (f : F) :
+    is_nilpotent (f r) :=
+by { use hr.some, rw [← map_pow, hr.some_spec, map_zero] }
 
 /-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
 class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=

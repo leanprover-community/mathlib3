@@ -76,8 +76,7 @@ begin
   rw ← neg_inf_eq_sup_neg,
   rw abs_eq_sup_neg,
   nth_rewrite 0 ← neg_neg b,
-  rw ← neg_inf_eq_sup_neg,
-  finish,
+  rwa [← neg_inf_eq_sup_neg, neg_le_neg_iff, @inf_comm _ _ _ b, @inf_comm _ _ _ a],
 end
 
 /--
@@ -201,6 +200,7 @@ begin
   exact is_closed.preimage (continuous_snd.sub continuous_fst) h,
 end
 
+@[priority 100]  -- See note [lower instance priority]
 instance normed_lattice_add_comm_group.order_closed_topology {E} [normed_lattice_add_comm_group E] :
   order_closed_topology E :=
 ⟨is_closed_le_of_is_closed_nonneg is_closed_nonneg⟩

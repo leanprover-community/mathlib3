@@ -15,23 +15,38 @@ integrable, see `interval_integral.not_integrable_has_deriv_at_of_tendsto_norm_a
 latter lemma to prove that the function `λ x, x⁻¹` is integrable on `a..b` if and only if `a = b` or
 `0 ∉ [a, b]`.
 
+## Main results
+
+* `not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_punctured`: if `f` tends to infinity
+  along `𝓝[≠] c` and `f' = O(g)` along the same filter, then `g` is not interval integrable on any
+  nontrivial integral `a..b,` c ∈ [a, b]`.
+
+* `not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter`: a version of
+  `not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_punctured` that works for one-sided
+  neighborhoods;
+
+* `not_interval_integrable_of_sub_inv_is_O_punctured`: if `1 / (x - c) = O(f)` as `x → c`, `x ≠ c`,
+  then `f` is not interval integrable on any nontrivial interval `a..b`, `c ∈ [a, b]`;
+
+* `interval_integrable_sub_inv_iff`, `interval_integrable_inv_iff`: integrability conditions for
+  `(x - c)⁻¹` and `x⁻¹`.
+
 ## Tags
 
 integrable function
 -/
 
 open_locale measure_theory topological_space interval nnreal ennreal
-open measure_theory topological_space set filter asymptotics
-
-namespace interval_integral
+open measure_theory topological_space set filter asymptotics interval_integral
 
 variables {E F : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E] [normed_group F] [normed_space ℝ F]
-  [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
+  [second_countable_topology E] [complete_space E] [normed_group F]
+  [measurable_space F] [borel_space F]
 
-/-- If `f` has derivative `f'` eventually along a nontrivial filter `l : filter ℝ` that is generated
-by convex sets, the norm of `f` tends to infinity along `l`, then `f'` is not integrable on any
-interval `a..b` such that `[a, b] ∈ l`. -/
+/-- If `f` is eventually differentiable along a nontrivial filter `l : filter ℝ` that is generated
+by convex sets, the norm of `f` tends to infinity along `l`, and `f' = O(g)` along `l`, where `f'`
+is the derivative of `f`, then `g` is not integrable on any interval `a..b` such that
+`[a, b] ∈ l`. -/
 lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter {f : ℝ → E} {g : ℝ → F}
   {a b : ℝ} (l : filter ℝ) [ne_bot l] [tendsto_Ixx_class Icc l l] (hl : [a, b] ∈ l)
   (hd : ∀ᶠ x in l, differentiable_at ℝ f x) (hf : tendsto (λ x, ∥f x∥) l at_top)
@@ -69,7 +84,7 @@ begin
   calc ∥f d∥ - ∥f c∥ ≤ ∥f d - f c∥ : norm_sub_norm_le _ _
   ... = ∥∫ x in c..d, deriv f x∥ : congr_arg _ (integral_deriv_eq_sub hfd hfi).symm
   ... = ∥∫ x in Ι c d, deriv f x∥ : norm_integral_eq_norm_integral_Ioc _
-  ... ≤ ∫ x in Ι c d, ∥deriv f x∥ : measure_theory.norm_integral_le_integral_norm _
+  ... ≤ ∫ x in Ι c d, ∥deriv f x∥ : norm_integral_le_integral_norm _
   ... ≤ ∫ x in Ι c d, C * ∥g x∥ :
     set_integral_mono_on hfi.norm.def (hgi.def.mono_set hsub') measurable_set_interval_oc hg
   ... ≤ ∫ x in Ι a b, C * ∥g x∥ :
@@ -77,27 +92,45 @@ begin
       hsub'.eventually_le
 end
 
-/-- If `∥f x∥ → ∞` as `x → c` (more formally, along the filter `𝓝[≠] c`) and `[a, b] ∋ c` is a
-nontrivial closed (unordered) interval, then the derivative `f'` of `f` is not interval integrable
-on `a..b`. -/
-lemma not_integrable_has_deriv_at_of_tendsto_norm_at_top_punctured {f f' : ℝ → E} {a b c : ℝ}
-  (hne : a ≠ b) (hc : c ∈ [a, b]) (h_deriv : ∀ᶠ x in 𝓝[≠] c, has_deriv_at f (f' x) x)
-  (h_infty : tendsto (λ x, ∥f x∥) (𝓝[≠] c) at_top) :
-  ¬interval_integrable f' volume a b :=
+/-- If `f` is differentiable in a punctured neighborhood of `c`, `∥f x∥ → ∞` as `x → c` (more
+formally, along the filter `𝓝[≠] c`), and `f' = O(g)` along `𝓝[≠] c`, where `f'` is the derivative
+of `f`, then `g` is not interval integrable on any nontrivial interval `a..b` such that
+`c ∈ [a, b]`. -/
+lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_punctured {f : ℝ → E} {g : ℝ → F}
+  {a b c : ℝ} (h_deriv : ∀ᶠ x in 𝓝[≠] c, differentiable_at ℝ f x)
+  (h_infty : tendsto (λ x, ∥f x∥) (𝓝[≠] c) at_top) (hg : is_O (deriv f) g (𝓝[≠] c))
+  (hne : a ≠ b) (hc : c ∈ [a, b]) :
+  ¬interval_integrable g volume a b :=
 begin
-  wlog hlt : a < b := hne.lt_or_lt using [a b, b a] tactic.skip,
-  { rw interval_of_le hlt.le at hc,
-    rcases hc.1.eq_or_lt with (rfl|hac),
-    { have : 𝓝[>] a ≤ 𝓝[≠] a, from nhds_within_mono _ (λ _, ne_of_gt),
-      exact not_integrable_has_deriv_at_of_tendsto_norm_at_top_filter _
-        (Icc_mem_nhds_within_Ioi ⟨min_le_left _ _, lt_max_iff.2 (or.inr hlt)⟩)
-        (h_deriv.filter_mono this) (h_infty.mono_left this) },
-    { have : 𝓝[<] c ≤ 𝓝[≠] c, from nhds_within_mono _ (λ _, ne_of_lt),
-      exact λ h, not_integrable_has_deriv_at_of_tendsto_norm_at_top_filter _
-        (Icc_mem_nhds_within_Iio ⟨min_lt_iff.2 (or.inl hac), le_max_right _ _⟩)
-        (h_deriv.filter_mono this) (h_infty.mono_left this)
-        (h.mono_set $ interval_subset_interval_left (Icc_subset_interval hc)) } },
-  { exact λ hab hc h, this hab.symm (interval_swap a b ▸ hc) h.symm }
+  have hlt : min a b < max a b := min_lt_max.2 hne,
+  rcases hc.1.eq_or_lt with rfl|lt_c,
+  { have : 𝓝[>] (min a b) ≤ 𝓝[≠] (min a b), from nhds_within_mono _ (λ _, ne_of_gt),
+    exact not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter _
+      (Icc_mem_nhds_within_Ioi $ left_mem_Ico.2 hlt) (h_deriv.filter_mono this)
+      (h_infty.mono_left this) (hg.mono this) },
+  { have : 𝓝[<] c ≤ 𝓝[≠] c, from nhds_within_mono _ (λ _, ne_of_lt),
+    exact not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter _
+      (Icc_mem_nhds_within_Iio ⟨lt_c, hc.2⟩) (h_deriv.filter_mono this) (h_infty.mono_left this)
+      (hg.mono this) }
+end
+
+/-- If `f` grows in the punctured neighborhood of `c : ℝ` at least as fast as `1 / (x - c)`,
+then it is not interval integrable on any nontrivial interval `a..b`, `c ∈ [a, b]`. -/
+lemma not_interval_integrable_of_sub_inv_is_O_punctured {f : ℝ → F} {a b c : ℝ}
+  (hf : is_O (λ x, (x - c)⁻¹) f (𝓝[≠] c)) (hne : a ≠ b) (hc : c ∈ [a, b]) :
+  ¬interval_integrable f volume a b :=
+begin
+  have A : ∀ᶠ x in 𝓝[≠] c, has_deriv_at (λ x, real.log (x - c)) (x - c)⁻¹ x,
+  { filter_upwards [self_mem_nhds_within],
+    intros x hx,
+    simpa using ((has_deriv_at_id x).sub_const c).log (sub_ne_zero.2 hx) },
+  have B : tendsto (λ x, ∥real.log (x - c)∥) (𝓝[≠] c) at_top,
+  { refine tendsto_abs_at_bot_at_top.comp (real.tendsto_log_nhds_within_zero.comp _),
+    rw ← sub_self c,
+    exact ((has_deriv_at_id c).sub_const c).tendsto_punctured_nhds one_ne_zero },
+  exact not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_punctured
+    (A.mono (λ x hx, hx.differentiable_at)) B
+    (hf.congr' (A.mono $ λ x hx, hx.deriv.symm) eventually_eq.rfl) hne hc
 end
 
 /-- The function `λ x, (x - c)⁻¹` is integrable on `a..b` if and only if `a = b` or `c ∉ [a, b]`. -/
@@ -105,14 +138,8 @@ end
   interval_integrable (λ x, (x - c)⁻¹) volume a b ↔ a = b ∨ c ∉ [a, b] :=
 begin
   split,
-  { refine λ h, or_iff_not_imp_left.2 (λ hne h₀, _),
-    have : ∀ᶠ x in 𝓝[≠] c, has_deriv_at (λ x, real.log (x - c)) (x - c)⁻¹ x,
-    { refine eventually_nhds_with_of_forall (λ x, _),
-      simpa only [sub_ne_zero, one_div] using ((has_deriv_at_id x).sub_const _).log },
-    refine not_integrable_has_deriv_at_of_tendsto_norm_at_top_punctured hne h₀ this _ h,
-    refine tendsto_abs_at_bot_at_top.comp (real.tendsto_log_nhds_within_zero.comp _),
-    rw ← sub_self c,
-    exact ((has_deriv_at_id c).sub_const c).tendsto_punctured_nhds one_ne_zero },
+  { refine λ h, or_iff_not_imp_left.2 (λ hne hc, _),
+    exact not_interval_integrable_of_sub_inv_is_O_punctured (is_O_refl _ _) hne hc h },
   { rintro (rfl|h₀),
     exacts [interval_integrable.refl,
       interval_integrable_inv (λ x hx, sub_ne_zero.2 $ ne_of_mem_of_not_mem hx h₀)
@@ -123,11 +150,3 @@ end
 @[simp] lemma interval_integrable_inv_iff {a b : ℝ} :
   interval_integrable (λ x, x⁻¹) volume a b ↔ a = b ∨ (0 : ℝ) ∉ [a, b] :=
 by simp only [← interval_integrable_sub_inv_iff, sub_zero]
-
-lemma not_integrable_of_sub_inv_is_O {a b c : ℝ} (hlt : a ≠ b) (hc : c ∈ [a, b]) {f : ℝ → E}
-  (hf : is_O (λ x, (x - c)⁻¹) f (𝓝[≠] c)) : ¬interval_integrable f volume a b :=
-begin
-  rcases hf.bound with ⟨C, hC⟩,
-end
-
-end interval_integral

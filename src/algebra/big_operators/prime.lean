@@ -27,19 +27,7 @@ variables {α M : Type*} [comm_monoid_with_zero M]
 
 lemma prime.dvd_finset_prod_iff {S : finset α} {p : M}  (pp : prime p) (g : α → M) :
   p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
-begin
-  classical,
-  split,
-  { apply @finset.induction_on α (λ S, p ∣ S.prod g → (∃ (a : α) (H : a ∈ S), p ∣ g a)),
-    { simp only [nat.dvd_one, finset.prod_empty],
-      exact λ h, absurd h (prime.not_dvd_one pp) },
-    { intros a S haS h1 h2,
-      rw prod_insert haS at h2,
-      cases (prime.dvd_or_dvd pp) h2,
-      { use a, simp [h] },
-      { rcases h1 h with ⟨a, ha1, ha2⟩, use a, simp [ha1, ha2] } } },
-  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (dvd_prod_of_mem g ha1) },
-end
+⟨pp.exists_mem_finset_dvd, λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (dvd_prod_of_mem g ha1)⟩
 
 lemma prime.dvd_finsupp_prod_iff  {f: α →₀ M} {g : α → M → ℕ} {p : ℕ} (pp : prime p) :
   p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=

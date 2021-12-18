@@ -7,6 +7,12 @@ namespace tactic
 namespace interactive
 setup_tactic_parser
 
+/-- `observe hp : p` asserts the proposition `p`, and tries to prove it using `library_search`.
+If no proof is found, the tactic fails.
+In other words, this tactic is equivalent to `have hp : p, { library_search }`.
+
+If `hp` is omitted, then the placeholder `this` is used.
+The variant `observe? hp : p` will omit a trace message of the form `have hp : p := proof_term`. -/
 meta def observe (trc : parse $ optional (tk "?"))
   (h : parse ident?) (t : parse (tk ":" *> texpr)) : tactic unit := do
   let h' := h.get_or_else `this,

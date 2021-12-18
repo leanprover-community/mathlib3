@@ -19,6 +19,12 @@ import data.nat.mul_ind
 open nat finset list finsupp
 open_locale big_operators
 
+section temporary
+-- This lemma is `data/list/count` in `PR #10880`.  When that branch is merged, this can be deleted.
+lemma list.count_singleton' {α : Type*} [decidable_eq α] {a b : α} :
+  list.count a [b] = ite (a=b) 1 0 := by refl
+end temporary
+
 namespace nat
 
 /-- `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
@@ -66,10 +72,6 @@ begin
   simp only [algebra.id.smul_eq_mul, finsupp.coe_smul, pi.smul_apply],
   simp only [factorization_eq_count, factors_count_pow],
 end
-
--- lemma count_singleton {α : Type*} [decidable_eq α] {a b : α} :
---   list.count a [b] = ite (a=b) 1 0 :=
--- by refl
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
 @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :

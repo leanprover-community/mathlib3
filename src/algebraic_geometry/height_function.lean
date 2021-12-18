@@ -54,8 +54,6 @@ begin
   exact ineq1,
 end
 
-
-
 variables (m : ℕ)
 local notation A`/`m := A⧸(m • (⊤ : add_subgroup A))
 
@@ -64,7 +62,7 @@ include fin_quot
 
 /--the $Q_i$ in Silverman's book-/
 def represents : finset A :=
-  image (λ (q : A/m), Exists.some (add_mk_surjective A _ q))
+  image (λ (q : A/m), Exists.some (quotient_add_group.mk_surjective q))
     (fin_quot.elems)
 
 variables {A}
@@ -72,10 +70,10 @@ lemma represents_represent_A_quot_mA :
   ∀ (a : A/m), ∃ (q : A), q ∈ represents A m ∧ quotient_add_group.mk q = a := λ a,
 begin
   have mem1 : a ∈ fin_quot.elems := fintype.complete a,
-    have mem2 : Exists.some (add_mk_surjective A _ a) ∈ represents A m,
+    have mem2 : Exists.some (quotient_add_group.mk_surjective a) ∈ represents A m,
       rw [represents, mem_image], use a, refine ⟨mem1, rfl⟩,
     refine ⟨_, mem2, _⟩,
-    exact Exists.some_spec (add_mk_surjective A _ a)
+    exact Exists.some_spec (quotient_add_group.mk_surjective a)
 end
 
 lemma new_aux (P : A) : ∃ (p : A × represents A m), P = m • p.1 + p.2 :=

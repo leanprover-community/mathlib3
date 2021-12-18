@@ -246,7 +246,7 @@ lemma powerset_len_card_add (s : finset α) {i : ℕ} (hi : 0 < i) :
   s.powerset_len (s.card + i) = ∅ :=
 finset.powerset_len_empty _ (lt_add_of_pos_right (finset.card s) hi)
 
-@[simp] theorem powerset_len_val (s : finset α) (i : ℕ) :
+@[simp] theorem map_val_val_powerset_len (s : finset α) (i : ℕ) :
   (s.powerset_len i).val.map finset.val = s.1.powerset_len i :=
 by simp [finset.powerset_len, map_pmap, pmap_eq_map, map_id']
 

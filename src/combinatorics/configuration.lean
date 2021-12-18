@@ -131,15 +131,21 @@ begin
   { exact hs₂.trans (nat.one_le_iff_ne_zero.mpr hs₃) },
 end
 
+variables {P} (L)
+
 /-- Number of points on a given line. -/
 def line_count (p : P) [fintype {l : L // p ∈ l}] : ℕ := fintype.card {l : L // p ∈ l}
+
+variables (P) {L}
 
 /-- Number of lines through a given point. -/
 def point_count (l : L) [fintype {p : P // p ∈ l}] : ℕ := fintype.card {p // p ∈ l}
 
+variables (P L)
+
 lemma sum_line_count_eq_sum_point_count [fintype P] [fintype L]
   [Π p, fintype {l : L // p ∈ l}] [Π l : L, fintype {p // p ∈ l}] :
-  ∑ p : P, line_count P L p = ∑ l : L, point_count P L l :=
+  ∑ p : P, line_count L p = ∑ l : L, point_count P l :=
 begin
   simp_rw [line_count, point_count, ←fintype.card_sigma],
   apply fintype.card_congr,
@@ -149,14 +155,18 @@ begin
   ... ≃ (Σ l, {p // p ∈ l}) : equiv.subtype_prod_equiv_sigma_subtype (λ (l : L) (p : P), p ∈ l),
 end
 
+variables {P L}
+
 lemma has_lines.point_count_le_line_count
-  [has_lines P L] (p : P) (l : L) (h : p ∉ l)
+  [has_lines P L] {p : P} {l : L} (h : p ∉ l)
   [fintype {p // p ∈ l}] [fintype {l : L // p ∈ l}] :
-  point_count P L l ≤ line_count P L p :=
+  point_count P l ≤ line_count L p :=
 fintype.card_le_of_injective (λ p', ⟨mk_line p p', (mk_line_ax p p').1⟩)
   (λ p₁ p₂ hp, subtype.ext ((eq_or_eq p₁.2 p₂.2 (mk_line_ax p p₁).2 (by
   { rw (show mk_line p p₁ = mk_line p p₂, from subtype.ext_iff.mp hp),
     exact (mk_line_ax p p₂).2 })).resolve_right (λ h', (congr_arg _ h').mp h (mk_line_ax p p₁).1)))
+
+variables (P L)
 
 /- If a nondegenerate configuration has a unique line through any two points,
   then there are at least as many lines as points. -/
@@ -166,11 +176,11 @@ begin
   classical,
   by_contradiction hc₂,
   obtain ⟨f, hf₁, hf₂⟩ := nondegenerate.exists_injective_of_card_le P L (le_of_not_le hc₂),
-  have := calc ∑ p, line_count P L p = ∑ l, point_count P L l : sum_line_count_eq_sum_point_count P L
-  ... ≤ ∑ l, line_count P L (f l) :
-    finset.sum_le_sum (λ l hl, has_lines.point_count_le_line_count P L (f l) l (hf₂ l))
-  ... = ∑ p in finset.univ.image f, line_count P L p : _
-  ... < ∑ p, line_count P L p : _,
+  have := calc ∑ p, line_count L p = ∑ l, point_count P l : sum_line_count_eq_sum_point_count P L
+  ... ≤ ∑ l, line_count L (f l) :
+    finset.sum_le_sum (λ l hl, has_lines.point_count_le_line_count (hf₂ l))
+  ... = ∑ p in finset.univ.image f, line_count L p : _
+  ... < ∑ p, line_count L p : _,
   { exact lt_irrefl _ this },
   { refine finset.sum_bij (λ l hl, f l) (λ l hl, finset.mem_image_of_mem f hl)
       (λ l hl, rfl) (λ l₁ l₂ hl₁ hl₂ hl₃, hf₁ hl₃) (λ p, _),
@@ -180,7 +190,7 @@ begin
     push_neg at key,
     obtain ⟨p, hp⟩ := key,
     refine finset.sum_lt_sum_of_subset ((finset.univ.image f).subset_univ) (finset.mem_univ p)
-      _ _ (λ p hp₁ hp₂, zero_le (line_count P L p)),
+      _ _ (λ p hp₁ hp₂, zero_le (line_count L p)),
     { rw [finset.mem_image],
       push_neg,
       exact λ l hl, hp l },

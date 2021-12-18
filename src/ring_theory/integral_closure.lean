@@ -719,19 +719,12 @@ begin
   letI := hR.to_field R,
   refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ x hx, _⟩,
   let A := algebra.adjoin R ({x} : set S),
-  let f : A →ₗ[R] A :=
-  { to_fun := λ y, ⟨x, algebra.mem_adjoin_iff.mpr (subring.mem_closure.mpr (λ T hT,
-      show _, from set.singleton_subset_iff.mp (set.union_subset_iff.mp hT).2))⟩ * y,
-    map_add' := λ y z, mul_add ⟨x, _⟩ y z,
-    map_smul' := λ y z, mul_smul_comm y ⟨x, _⟩ z },
-  have hf : function.injective f :=
-  linear_map.ker_eq_bot.mp (le_bot_iff.mp (λ y hy,
-    (eq_zero_or_eq_zero_of_mul_eq_zero hy).resolve_left (hx ∘ subtype.ext_iff.mp))),
   haveI : is_noetherian R A.to_submodule :=
   is_noetherian_of_fg_of_noetherian A.to_submodule (fg_adjoin_singleton_of_integral x (H x)),
   haveI : module.finite R A :=
   show module.finite R A.to_submodule, from module.is_noetherian.finite R A,
-  obtain ⟨y, hy⟩ := linear_map.surjective_of_injective hf 1,
+  obtain ⟨y, hy⟩ := linear_map.surjective_of_injective (@lmul_left_injective R A _ _ _ _
+    ⟨x, subset_adjoin (set.mem_singleton x)⟩ (λ h, hx (subtype.ext_iff.mp h))) 1,
   exact ⟨y, subtype.ext_iff.mp hy⟩,
 end
 

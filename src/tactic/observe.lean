@@ -28,12 +28,12 @@ meta def tactic.interactive.observe (trc : parse $ optional (tk "?"))
   (h : parse ident?) (t : parse (tk ":" *> texpr)) : tactic unit := do
   let h' := h.get_or_else `this,
   t ← to_expr ``(%%t : Prop),
-  ppt ← pp t,
   assert h' t,
   s ← focus1 (tactic.library_search { try_this := ff }) <|> fail "observe failed",
   s ← s.get_rest "Try this: exact ",
+  ppt ← pp t,
   let pph : string := (h.map (λ n : name, n.to_string ++ " ")).get_or_else "",
-  when trc.is_some $ trace! "Try this: have {pph}: {ppt.to_string} := {s}"
+  when trc.is_some $ trace! "Try this: have {pph}: {ppt} := {s}"
 
 add_tactic_doc
 { name       := "observe",

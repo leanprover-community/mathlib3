@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
-import ring_theory.noetherian
+import algebra.big_operators.associated
 import algebra.gcd_monoid.basic
+import ring_theory.noetherian
 import ring_theory.multiplicity
 
 /-!

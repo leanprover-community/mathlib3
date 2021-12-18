@@ -81,9 +81,7 @@ begin
   rw [factorization_eq_count, factors_prime hp],
   by_cases hqp : q = p,
   { rw hqp, simp },
-  { rw finsupp.single_eq_of_ne (ne.symm hqp),
-    -- rw [count_singleton, if_neg hqp],
-    exact count_eq_zero_of_not_mem ((not_iff_not_of_iff list.mem_singleton).mpr hqp) },
+  { rw [finsupp.single_eq_of_ne (ne.symm hqp), list.count_singleton', if_neg hqp] },
 end
 
 /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/

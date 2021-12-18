@@ -166,27 +166,75 @@ section closure
 
 variables [decidable_eq α]
 
-def zero : ε_NFA α (fin 1) := {
+def zero_NFA : ε_NFA α (fin 1) := {
   step    := λ s x, {0},
   start   := {0},
   accept  := ∅,
 }
 
-def one : ε_NFA α (fin 1) := {
-  step    := λ s x, {0},
+def one_NFA : ε_NFA α (fin 1) := {
+  step    := λ s x, if (x = none) then {1} else ∅,
   start   := {0},
   accept  := {0},
 }
 
-def char (a : α) : ε_NFA α (fin 2) := {
+def char_NFA (a : α) : ε_NFA α (fin 2) := {
   step    := λ s x, if (s=0) ∧ (x=a) then {1} else ∅,
   start   := {0},
   accept  := {1},
 }
 
-lemma matches_zero_def : (zero : ε_NFA α _).accepts = 0 := sorry
-lemma matches_one_def  : (one  : ε_NFA α _).accepts = 1 := sorry
-lemma matches_char_def (a : α) : (char a : ε_NFA α _).accepts = {[a]} := sorry
+lemma matches_zero_def : (zero_NFA : ε_NFA α _).accepts = 0 :=
+begin
+  ext b,
+  split,
+  { intros h, rcases h with ⟨i, hi1, hi2⟩, cases hi1 },
+  { intros h, cases h },
+  -- rw language.zero_def,
+  -- unfold accepts,
+
+  -- ext b,
+  -- simp,
+  -- tidy?,
+  -- suffices : b ∉ { x : list α | ∃ (S : fin 1), S ∈ zero_NFA.accept ∧ S ∈ zero_NFA.eval x},
+  -- { exact this },
+
+  -- intros H,
+  -- simp at H,
+  -- rcases H with ⟨i, hi1, hi2⟩,
+  -- exact hi1,
+end
+
+lemma matches_one_def  : (one_NFA  : ε_NFA α _).accepts = 1 :=
+begin
+  ext b, simp,
+  split,
+  {
+    intros h, rcases h with ⟨i, hi1, hi2⟩,
+    cases hi1,
+    simp at hi1 hi2,
+    clear hi1,  -- this is just true by definition, so no longer useful
+    unfold eval at hi2,
+    unfold eval_from at hi2,
+    sorry},
+  {
+    intros h,
+    rw h,
+    unfold accepts,
+    dsimp at *, simp at *, fsplit, work_on_goal 0 { fsplit, work_on_goal 1 { simp at * } }, fsplit, work_on_goal 0 { ext1, refl }, dsimp at *,
+    sorry},
+  -- rw language.one_def,
+  -- unfold accepts,
+end
+
+
+lemma matches_char_def (a : α) : (char_NFA a : ε_NFA α _).accepts = {[a]} :=
+begin
+
+  sorry,
+end
+
+
 
 
 end closure

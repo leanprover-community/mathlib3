@@ -63,6 +63,10 @@ begin
   exact ⟨_, hvw⟩,
 end
 
+lemma is_matching_iff {M : subgraph G} [Π (v : V), fintype (M.neighbor_set v)] :
+  M.is_matching ↔ ∀ (v : V), v ∈ M.verts → M.degree v = 1 :=
+by simpa [degree_eq_one_of_unique_adj]
+
 lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=
 begin
   refine ⟨_, λ hm, ⟨λ v hv, hm v, λ v, _⟩⟩,

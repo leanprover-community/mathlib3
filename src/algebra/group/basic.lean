@@ -215,11 +215,8 @@ theorem one_eq_inv : 1 = a⁻¹ ↔ a = 1 := eq_comm.trans inv_eq_one
 @[to_additive]
 theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 := not_congr inv_eq_one
 
-@[simp, to_additive] theorem div_eq_inv_iff : a / b = b⁻¹ ↔ a = 1 :=
+@[simp, to_additive] theorem div_eq_inv_self : a / b = b⁻¹ ↔ a = 1 :=
 by rw [div_eq_mul_inv, mul_left_eq_self]
-
-@[simp, to_additive] theorem div_eq_self_iff : a / b = a ↔ b = 1 :=
-by rw [div_eq_mul_inv, mul_right_eq_self, inv_eq_one]
 
 @[simp, to_additive]
 lemma mul_inv_cancel_left (a b : G) : a * (a⁻¹ * b) = b :=
@@ -334,12 +331,6 @@ by simpa only [div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
 lemma div_right_injective : function.injective (λ a, b / a) :=
 by simpa only [div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
 
--- The unprimed version is used by `group_with_zero`.  This is the preferred choice.
--- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60div_one'.60
-@[simp, to_additive sub_zero]
-lemma div_one' (a : G) : a / 1 = a :=
-div_eq_self_iff.2 rfl
-
 @[simp, to_additive neg_sub]
 lemma inv_div' (a b : G) : (a / b)⁻¹ = b / a :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, inv_inv]
@@ -433,6 +424,12 @@ not_congr div_eq_one
 @[simp, to_additive]
 theorem div_eq_self : a / b = a ↔ b = 1 :=
 by rw [div_eq_mul_inv, mul_right_eq_self, inv_eq_one]
+
+-- The unprimed version is used by `group_with_zero`.  This is the preferred choice.
+-- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60div_one'.60
+@[simp, to_additive sub_zero]
+lemma div_one' (a : G) : a / 1 = a :=
+div_eq_self.2 rfl
 
 @[to_additive eq_sub_iff_add_eq]
 theorem eq_div_iff_mul_eq' : a = b / c ↔ a * c = b :=

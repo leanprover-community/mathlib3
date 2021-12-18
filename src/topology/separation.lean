@@ -137,6 +137,41 @@ end separated
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
+lemma t0_space_def (α : Type u) [topological_space α] :
+  t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
+by { split, apply @t0_space.t0, apply t0_space.mk }
+
+/-- Two points are topologically indistinguishable if no open set separates them. -/
+def indistinguishable {α : Type u} [topological_space α] (x y : α) : Prop :=
+∀ (U : set α) (hU : is_open U), x ∈ U ↔ y ∈ U
+
+lemma t0_space_iff_distinguishable (α : Type u) [topological_space α] :
+  t0_space α ↔ ∀ (x y : α), x ≠ y → ¬ indistinguishable x y :=
+begin
+  delta indistinguishable,
+  rw t0_space_def,
+  push_neg,
+  simp_rw xor_iff_not_iff,
+end
+
+lemma indistinguishable_iff_closed {α : Type u} [topological_space α] (x y : α) :
+  indistinguishable x y ↔ ∀ (U : set α) (hU : is_closed U), x ∈ U ↔ y ∈ U :=
+⟨λ h U hU, not_iff_not.mp (h _ hU.1), λ h U hU, not_iff_not.mp (h _ (is_closed_compl_iff.mpr hU))⟩
+
+lemma indistinguishable_iff_closure {α : Type u} [topological_space α] (x y : α) :
+  indistinguishable x y ↔ x ∈ closure ({y} : set α) ∧ y ∈ closure ({x} : set α) :=
+begin
+  rw indistinguishable_iff_closed,
+  exact ⟨λ h, ⟨(h _ is_closed_closure).mpr (subset_closure $ set.mem_singleton y),
+      (h _ is_closed_closure).mp (subset_closure $ set.mem_singleton x)⟩,
+    λ h U hU, ⟨λ hx, (is_closed.closure_subset_iff hU).mpr (set.singleton_subset_iff.mpr hx) h.2,
+      λ hy, (is_closed.closure_subset_iff hU).mpr (set.singleton_subset_iff.mpr hy) h.1⟩⟩
+end
+
+lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : set α} (x y : U) :
+  indistinguishable x y ↔ indistinguishable (x : α) y :=
+by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
+
 /-- Given a closed set `S` in a compact T₀ space,
 there is some `x ∈ S` such that `{x}` is closed. -/
 theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
@@ -206,6 +241,34 @@ end
 instance subtype.t0_space [t0_space α] {p : α → Prop} : t0_space (subtype p) :=
 ⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.ext_iff_val).1 hxy) in
   ⟨(coe : subtype p → α) ⁻¹' U, is_open_induced hU, hxyU⟩⟩
+
+theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
+  t0_space α ↔ (∀ a b : α, (a ≠ b) → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
+begin
+  simp only [← not_and_distrib, t0_space_def, not_and],
+  apply forall_congr, intro a,
+  apply forall_congr, intro b,
+  apply forall_congr, intro _,
+  split,
+  { rintro ⟨s, h₁, (⟨h₂, h₃ : b ∈ sᶜ⟩|⟨h₂, h₃ : a ∈ sᶜ⟩)⟩ ha hb; rw ← is_closed_compl_iff at h₁,
+    { exact (is_closed.closure_subset_iff h₁).mpr (set.singleton_subset_iff.mpr h₃) ha h₂ },
+    { exact (is_closed.closure_subset_iff h₁).mpr (set.singleton_subset_iff.mpr h₃) hb h₂ } },
+  { intro h,
+    by_cases h' : a ∈ closure ({b} : set α),
+    { exact ⟨(closure {a})ᶜ, is_closed_closure.1,
+        or.inr ⟨h h', not_not.mpr (subset_closure (set.mem_singleton a))⟩⟩ },
+    { exact ⟨(closure {b})ᶜ, is_closed_closure.1,
+        or.inl ⟨h', not_not.mpr (subset_closure (set.mem_singleton b))⟩⟩ } }
+end
+
+lemma t0_space_of_injective_of_continuous {α β : Type u} [topological_space α] [topological_space β]
+  {f : α → β} (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
+begin
+  constructor,
+  intros x y h,
+  obtain ⟨U, hU, e⟩ := t0_space.t0 _ _ (hf.ne h),
+  exact ⟨f ⁻¹' U, hf'.1 U hU, e⟩
+end
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
   where every singleton set is closed. Equivalently, for every pair

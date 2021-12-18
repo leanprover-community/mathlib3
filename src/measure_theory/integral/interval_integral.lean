@@ -307,6 +307,16 @@ lemma mono_set_ae
   interval_integrable f μ c d :=
 interval_integrable_iff.mpr $ hf.def.mono_set_ae h
 
+lemma mono_fun {F : Type*} [normed_group F] [measurable_space F] {g : α → F}
+  (hf : interval_integrable f μ a b) (hgm : ae_measurable g (μ.restrict (Ι a b)))
+  (hle : (λ x, ∥g x∥) ≤ᵐ[μ.restrict (Ι a b)] (λ x, ∥f x∥)) : interval_integrable g μ a b :=
+interval_integrable_iff.2 $ hf.def.integrable.mono hgm hle
+
+lemma mono_fun' {g : α → ℝ} (hg : interval_integrable g μ a b)
+  (hfm : ae_measurable f (μ.restrict (Ι a b)))
+  (hle : (λ x, ∥f x∥) ≤ᵐ[μ.restrict (Ι a b)] g) : interval_integrable f μ a b :=
+interval_integrable_iff.2 $ hg.def.integrable.mono' hfm hle
+
 protected lemma ae_measurable (h : interval_integrable f μ a b) :
   ae_measurable f (μ.restrict (Ioc a b)):=
 h.1.ae_measurable
@@ -504,9 +514,13 @@ lemma integral_non_ae_measurable_of_le (h : a ≤ b)
   ∫ x in a..b, f x ∂μ = 0 :=
 integral_non_ae_measurable $ by rwa [interval_oc_of_le h]
 
+lemma norm_integral_min_max (f : α → E) :
+  ∥∫ x in min a b..max a b, f x ∂μ∥ = ∥∫ x in a..b, f x ∂μ∥ :=
+by cases le_total a b; simp [*, integral_symm a b]
+
 lemma norm_integral_eq_norm_integral_Ioc (f : α → E) :
   ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ι a b, f x ∂μ∥ :=
-(integral_cases f a b).elim (congr_arg _) (λ h, (congr_arg _ h).trans (norm_neg _))
+by rw [← norm_integral_min_max, integral_of_le min_le_max, interval_oc]
 
 lemma abs_integral_eq_abs_integral_interval_oc (f : α → ℝ) :
   |∫ x in a..b, f x ∂μ| = |∫ x in Ι a b, f x ∂μ| :=

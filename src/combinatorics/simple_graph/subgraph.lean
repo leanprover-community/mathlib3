@@ -356,7 +356,7 @@ fintype.of_equiv _ (coe_neighbor_set_equiv v).symm
 def degree (G' : subgraph G) (v : V) [fintype (G'.neighbor_set v)] : ℕ :=
 fintype.card (G'.neighbor_set v)
 
-lemma card_neighbor_finset_eq_degree {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
+lemma finset_card_neighbor_set_eq_degree {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
   (G'.neighbor_set v).to_finset.card = G'.degree v := by rw [degree, set.to_finset_card]
 
 lemma degree_le (G' : subgraph G) (v : V)
@@ -380,10 +380,10 @@ begin
   exact fintype.card_congr (coe_neighbor_set_equiv v),
 end
 
-lemma degree_eq_one_of_unique_adj {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
+lemma degree_eq_one_iff_unique_adj {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
   G'.degree v = 1 ↔ ∃! (w : V), G'.adj v w :=
 begin
-  rw [← card_neighbor_finset_eq_degree, finset.card_eq_one, finset.singleton_iff_unique_mem],
+  rw [← finset_card_neighbor_set_eq_degree, finset.card_eq_one, finset.singleton_iff_unique_mem],
   simp only [set.mem_to_finset, mem_neighbor_set],
 end
 

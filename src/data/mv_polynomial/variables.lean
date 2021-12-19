@@ -224,18 +224,6 @@ lemma degrees_map_of_injective [comm_semiring S] (p : mv_polynomial σ R)
   {f : R →+* S} (hf : injective f) : (map f p).degrees = p.degrees :=
 by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
 
-lemma sup_map_multiset {α β γ: Type*} [semilattice_sup α] [has_bot α] [decidable_eq α]
- [decidable_eq β] (s : finset γ) (f : γ → multiset β) (g : β ↪ α) :
-   multiset.map g (s.sup f) = s.sup (multiset.map g ∘ f) :=
-begin
-  apply finset.cons_induction_on s,
-  simp,
-  intros a s' h_a_s h_ind,
-  simp only [finset.sup_cons, ←h_ind, multiset.sup_eq_union, function.comp_app],
-  rw multiset.map_union,
-  exact g.inj',
-end
-
 local attribute [instance] classical.prop_decidable-- todo remove this
 
 lemma rename_degrees_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}

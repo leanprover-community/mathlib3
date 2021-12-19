@@ -216,6 +216,14 @@ lemma u_Inf {s : set β} : u (Inf s) = (⨅a ∈ s, u a) := gc.dual.l_Sup
 
 end complete_lattice
 
+section linear_order
+variables [linear_order α] [linear_order β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
+
+lemma lt_iff_lt {a : α} {b : β} : b < l a ↔ u b < a := lt_iff_lt_of_le_iff_le (gc a b)
+
+end linear_order
+
 /- Constructing Galois connections -/
 section constructions
 

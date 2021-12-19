@@ -1388,6 +1388,9 @@ class irreducible_space (α : Type u) [topological_space α] extends preirreduci
 -- see Note [lower instance priority]
 attribute [instance, priority 50] irreducible_space.to_nonempty
 
+lemma irreducible_space.is_irreducible_univ [irreducible_space α] : is_irreducible (⊤ : set α) :=
+⟨by simp, preirreducible_space.is_preirreducible_univ α⟩
+
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
   is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=
 by simpa only [univ_inter, univ_subset_iff] using
@@ -1533,6 +1536,56 @@ begin
       rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption },
     { simpa using H } }
+end
+
+/-- A nonemtpy open subset of a preirreducible subspace is dense in the subspace. -/
+lemma subset_closure_inter_of_is_preirreducible_of_is_open {S U : set α}
+  (hS : is_preirreducible S) (hU : is_open U) (h : (S ∩ U).nonempty) : S ⊆ closure (S ∩ U) :=
+begin
+  by_contra h',
+  obtain ⟨x, h₁, h₂, h₃⟩ := hS _ (closure (S ∩ U))ᶜ hU (is_open_compl_iff.mpr is_closed_closure) h
+    (set.inter_compl_nonempty_iff.mpr h'),
+  exact h₃ (subset_closure ⟨h₁, h₂⟩)
+end
+
+/-- If `∅ ≠ U ⊆ S ⊆ Z` such that `U` is open and `Z` is preirreducible, then `S` is irreducible. -/
+lemma is_preirreducible.subset_irreducible {S U Z : set α}
+  (hZ : is_preirreducible Z) (hU : U.nonempty) (hU' : is_open U)
+  (h₁ : U ⊆ S) (h₂ : S ⊆ Z) : is_irreducible S :=
+begin
+  classical,
+  obtain ⟨z, hz⟩ := hU,
+  replace hZ : is_irreducible Z := ⟨⟨z, h₂ (h₁ hz)⟩, hZ⟩,
+  refine ⟨⟨z, h₁ hz⟩, _⟩,
+  rintros u v hu hv ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩,
+  obtain ⟨a, -, ha'⟩ := is_irreducible_iff_sInter.mp hZ {U, u, v} (by tidy) _,
+  replace ha' : a ∈ U ∧ a ∈ u ∧ a ∈ v := by simpa using ha',
+  exact ⟨a, h₁ ha'.1, ha'.2⟩,
+  { intros U H,
+    simp only [finset.mem_insert, finset.mem_singleton] at H,
+    rcases H with (rfl|rfl|rfl),
+    exacts [⟨z, h₂ (h₁ hz), hz⟩, ⟨x, h₂ hx, hx'⟩, ⟨y, h₂ hy, hy'⟩] }
+end
+
+lemma is_preirreducible.open_subset {Z U : set α} (hZ : is_preirreducible Z)
+  (hU : is_open U) (hU' : U ⊆ Z) :
+  is_preirreducible U :=
+U.eq_empty_or_nonempty.elim (λ h, h.symm ▸ is_preirreducible_empty)
+  (λ h, (hZ.subset_irreducible h hU (λ _, id) hU').2)
+
+lemma is_preirreducible.interior {Z : set α} (hZ : is_preirreducible Z) :
+  is_preirreducible (interior Z) :=
+hZ.open_subset is_open_interior interior_subset
+
+lemma is_preirreducible.preimage [topological_space β] {Z : set α} (hZ : is_preirreducible Z)
+  {f : β → α} (hf : open_embedding f) :
+  is_preirreducible (f ⁻¹' Z) :=
+begin
+  rintros U V hU hV ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩,
+  obtain ⟨_, h₁, ⟨z, h₂, rfl⟩, ⟨z', h₃, h₄⟩⟩ := hZ _ _ (hf.is_open_map _ hU) (hf.is_open_map _ hV)
+    ⟨f x, hx, set.mem_image_of_mem f hx'⟩ ⟨f y, hy, set.mem_image_of_mem f hy'⟩,
+  cases hf.inj h₄,
+  exact ⟨z, h₁, h₂, h₃⟩
 end
 
 end preirreducible

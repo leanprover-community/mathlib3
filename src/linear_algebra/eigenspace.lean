@@ -89,21 +89,12 @@ lemma has_eigenvalue.exists_has_eigenvector {f : End R M} {μ : R} (hμ : f.has_
   ∃ v, f.has_eigenvector μ v :=
 submodule.exists_mem_ne_zero_of_ne_bot hμ
 
---move me
-def linear_equiv.of_unit (f : units (End R M)) : M ≃ₗ[R] M :=
-linear_equiv.of_linear f f.inv
-(show ((f * f.inv) : End R M) = 1, by rw [units.inv_eq_coe_inv, units.mul_inv])
-(show ((f.inv * f) : End R M) = 1, by rw [units.inv_eq_coe_inv, units.inv_mul])
-
-@[simp] lemma linear_equiv.of_unit_apply (f : units (End R M)) (x : M) :
-  (linear_equiv.of_unit f) x = f x := rfl
-
 lemma mem_spectrum_of_has_eigenvalue {f : End R M} {μ : R} (hμ : has_eigenvalue f μ) :
   μ ∈ spectrum R f :=
 begin
   rw [spectrum.mem_iff],
   intro h_unit,
-  set f' := linear_equiv.of_unit (h_unit.unit) with hf',
+  set f' := linear_equiv_of_unit (h_unit.unit) with hf',
   rcases hμ.exists_has_eigenvector with ⟨v, hv⟩,
   have h₁ : (f' v : M) = 0 := calc
     f' v = μ • v - f v      : rfl

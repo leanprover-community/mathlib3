@@ -85,14 +85,14 @@ dvd_of_mul_left_eq (H.relindex K) (relindex_mul_index h)
   (H.subgroup_of L).relindex (K.subgroup_of L) = H.relindex K :=
 ((index_comap (H.subgroup_of L) (inclusion hKL)).trans (congr_arg _ (inclusion_range hKL))).symm
 
+variables (H K L)
+
 @[to_additive] lemma relindex_mul_relindex (hHK : H ≤ K) (hKL : K ≤ L) :
   H.relindex K * K.relindex L = H.relindex L :=
 begin
   rw [←relindex_subgroup_of hKL],
   exact relindex_mul_index (λ x hx, hHK hx),
 end
-
-variables (H K L)
 
 lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
 begin
@@ -116,7 +116,7 @@ lemma relindex_dvd_of_le_left (hHK : H ≤ K) :
 begin
   apply dvd_of_mul_left_eq ((H ⊓ L).relindex (K ⊓ L)),
   rw [←inf_relindex_right H L, ←inf_relindex_right K L],
-  exact relindex_mul_relindex (inf_le_inf_right L hHK) inf_le_right,
+  exact relindex_mul_relindex (H ⊓ L) (K ⊓ L) L (inf_le_inf_right L hHK) inf_le_right,
 end
 
 variables (H K)
@@ -189,7 +189,33 @@ begin
   exact ⟨fintype.card H, H.index_mul_card.symm⟩,
 end
 
-variables {H}
+variables {H K L}
+
+def le_quot_map {α : Type*} [group α] (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
+  K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L) :=
+{ to_fun := quotient.map' (set.inclusion h) (λ a b, id),
+  inj' := by refine quotient.ind₂' (λ a b, _); exact quotient.eq'.mpr ∘ quotient.eq'.mp }
+
+lemma relindex_eq_zero_of_le_left (hHK : H ≤ K) (hKL : K.relindex L = 0) : H.relindex L = 0 :=
+by rw [←inf_relindex_right, ←relindex_mul_relindex (H ⊓ L) (K ⊓ L) L
+  (inf_le_inf_right L hHK) inf_le_right, inf_relindex_right, hKL, mul_zero]
+
+lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
+begin
+  refine cardinal.to_nat_apply_of_omega_le (le_trans _ (le_quot_map H hKL).cardinal_le),
+  contrapose! hHK,
+  rw [ne, ←cardinal.nat_cast_inj, relindex, index, nat.card, cardinal.cast_to_nat_of_lt_omega hHK],
+  exact cardinal.mk_ne_zero (K ⧸ H.subgroup_of K),
+end
+
+lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
+  H.relindex L ≠ 0 :=
+begin
+  apply mt (relindex_eq_zero_of_le_left (show H ⊓ K ≤ H, from inf_le_left)),
+  rw [←inf_relindex_right, inf_assoc, ←relindex_mul_relindex (H ⊓ (K ⊓ L)) (K ⊓ L) L
+      inf_le_right inf_le_right, inf_relindex_right, inf_relindex_right],
+  exact mul_ne_zero (mt (relindex_eq_zero_of_le_right inf_le_left) hHK) hKL,
+end
 
 @[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,

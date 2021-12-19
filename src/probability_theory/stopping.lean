@@ -336,8 +336,8 @@ include hβ
 
 lemma stopped_process_eq (n : ℕ) :
   stopped_process u τ n =
-  set.indicator (λ a, n ≤ τ a) (u n) +
-    ∑ i in finset.range n, set.indicator (λ a, i = τ a) (u i) :=
+  set.indicator {a | n ≤ τ a} (u n) +
+    ∑ i in finset.range n, set.indicator {a | i = τ a} (u i) :=
 begin
   ext x,
   rw [pi.add_apply, finset.sum_apply],
@@ -381,7 +381,7 @@ begin
     { rw finset.mem_range at hij,
       refine f.mono hij.le _ _,
       convert hτ.measurable_set_eq j,
-      simpa only [eq_comm] } }
+      simp only [eq_comm] } }
 end
 
 section

@@ -188,7 +188,7 @@ begin
   by_cases a = 0,
   { simp [h], },
   induction n,
-  { simp, },
+  { simp [count_eq_card_filter_range], },
   { rw ←n_ih,
     clear n_ih,
     simp only [succ_add],

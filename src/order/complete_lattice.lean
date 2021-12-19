@@ -290,7 +290,7 @@ theorem Sup_union {s t : set α} : Sup (s ∪ t) = Sup s ⊔ Sup t :=
 ((is_lub_Sup s).union (is_lub_Sup t)).Sup_eq
 
 theorem Sup_inter_le {s t : set α} : Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
-Sup_le (λ b hb, le_inf (le_Sup hb.1) (le_Sup hb.2))
+Sup_le $ λ b hb, le_inf (le_Sup hb.1) (le_Sup hb.2)
 /-
   Sup_le (assume a ⟨a_s, a_t⟩, le_inf (le_Sup a_s) (le_Sup a_t))
 -/
@@ -359,8 +359,8 @@ have ¬(Sup s < b) :=
   assume: Sup s < b,
   let ⟨a, _, _⟩ := (H (Sup s) ‹Sup s < b›) in  /- a ∈ s, Sup s < a-/
   have Sup s < Sup s := lt_of_lt_of_le ‹Sup s < a› (le_Sup ‹a ∈ s›),
-  show false, by exact lt_irrefl _ this,
-show Sup s = b, by { cases h, exact absurd h this, exact h }
+  show false, from lt_irrefl _ this,
+show Sup s = b, from or.resolve_left h this
 
 /--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
 is smaller than all elements of `s`, and that this is not the case of any `w > b`.

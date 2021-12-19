@@ -39,7 +39,7 @@ Our definition of `is_cyclotomic_extension` is very general, to allow rings of a
 and infinite extensions, but it will mainly be used in the case `S = {n}` with `(n : A) ≠ 0` (and
 for integral domains).
 All results are in the `is_cyclotomic_extension` namespace.
-Note the some results, `is_cyclotomic_extension.trans`, `is_cyclotomic_extension.finite` and
+Note that some results, `is_cyclotomic_extension.trans`, `is_cyclotomic_extension.finite` and
 `is_cyclotomic_extension.number_field` are lemmas, but they can be made local instances.
 
 -/

@@ -299,4 +299,32 @@ begin
   rw ←hy₂, refine hy₁,
 end
 
+lemma ideal.homogenisation.eq_Sup [Π (i : ι) (x : A i), decidable (x ≠ 0)] :
+  ideal.homogenisation A I = Sup { J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I } :=
+begin
+  ext, split; intros hx,
+  { rw [ideal.homogenisation, ideal.span, mem_span_set] at hx,
+    obtain ⟨c, hc1, hc2⟩ := hx,
+    rw ←hc2, refine ideal.sum_mem _ _,
+    intros r hc, dsimp only, rw [smul_eq_mul], refine ideal.mul_mem_left _ _ _,
+    have hr1 : is_homogeneous A r := (hc1 hc).1,
+    obtain ⟨i, hi⟩ := hr1,
+    have mem1 : ideal.span {r} ∈ {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I},
+    { split, rw ideal.is_homogeneous.iff_exists,
+      refine ⟨{(⟨r, ⟨i, hi⟩⟩ : homogeneous_submonoid A)}, _⟩,
+      congr, simp only [image_singleton, subtype.coe_mk], rw ideal.span_le,
+      simp only [mem_coe, singleton_subset_iff], exact (hc1 hc).2 },
+    apply ideal.mem_Sup_of_mem mem1, rw ideal.mem_span_singleton },
+  { have hom1 := ideal.is_homogeneous.homogenisation A I,
+    have hom2 : ideal.is_homogeneous A (Sup {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I}),
+    { apply ideal.is_homogeneous.Sup, rintros J ⟨HJ1, HJ2⟩, exact HJ1, },
+    rw [ideal.homogenisation, ideal.mem_span],
+    unfold has_Sup.Sup at hx, unfold conditionally_complete_lattice.Sup at hx,
+    unfold complete_lattice.Sup at hx, rw ideal.mem_Inf at hx,
+    intros J HJ, apply hx, rintro K ⟨HK1, HK2⟩, intros r hr,
+    rw ←graded_algebra.sum_support_decompose A r, refine ideal.sum_mem _ _,
+    intros i hi, apply HJ, refine ⟨⟨i, submodule.coe_mem _⟩, _⟩,  apply HK2,
+    apply HK1, exact hr }
+end
+
 end homogenisation

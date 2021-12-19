@@ -201,7 +201,7 @@ lemma number_field [h : number_field K] [fintype S] [is_cyclotomic_extension S K
   number_field L :=
 { to_char_zero := char_zero_of_injective_algebra_map (algebra_map K L).injective,
   to_finite_dimensional := @finite.trans _ K L _ _ _ _
-    (@rat.algebra_rat L _ (char_zero_of_injective_algebra_map (algebra_map K L).injective)) _ _
+    (@algebra_rat L _ (char_zero_of_injective_algebra_map (algebra_map K L).injective)) _ _
     h.to_finite_dimensional (finite S K L) }
 
 end fintype

@@ -8,7 +8,6 @@ import data.finset.option
 import data.finset.prod
 import data.multiset.lattice
 import order.complete_lattice
-import order.order_dual
 import order.lexicographic
 /-!
 # Lattice operations on finsets

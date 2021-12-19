@@ -11,7 +11,6 @@ import group_theory.coset
 import data.set.finite
 import algebra.geom_sum
 import analysis.specific_limits
-import some_lemmas
 
 /-!
 # definition of height function and descent theorem (about finite-generatedness of abelian group)
@@ -19,8 +18,8 @@ import some_lemmas
 
 noncomputable theory
 
-open_locale classical pointwise big_operators
-open finset
+open_locale pointwise big_operators
+open finset filter
 
 universe u
 
@@ -58,13 +57,16 @@ end
 variables (m : ℕ)
 local notation A`/`m := A⧸(m • (⊤ : add_subgroup A))
 
-variable [fin_quot : fintype (A/m)]
+variables [fin_quot : fintype (A/m)]
 include fin_quot
 
 /--the $Q_i$ in Silverman's book-/
 def represents : finset A :=
-  image (λ (q : A/m), Exists.some (quotient_add_group.mk_surjective q))
+begin
+  classical,
+  exact image (λ (q : A/m), Exists.some (quotient_add_group.mk_surjective q))
     (fin_quot.elems)
+end
 
 variables {A}
 lemma represents_represent_A_quot_mA :
@@ -91,9 +93,8 @@ end
 abbreviation next (P : A) : A := (Exists.some (new_aux m P)).1
 /--$Q_{i_n}$ in Silverman's book-/
 abbreviation next_rep (P : A) : represents A m := (Exists.some (new_aux m P)).2
-/--$P_n$ and $P_{n+1}$ and $Q_{i_n}$ satisfies this property-/
-@[nolint def_lemma]
-abbreviation next_prop (P : A) := Exists.some_spec (new_aux m P)
+
+lemma next_prop (P : A) : P = m • (next m P) + (next_rep m P) := Exists.some_spec (new_aux m P)
 
 lemma property_next (P : A) : m • (next m P) = P - (next_rep m P) :=
 suffices h : P = m • (next m P) + (next_rep m P), by rw [eq_sub_iff_add_eq, ←h],
@@ -102,11 +103,12 @@ by convert next_prop m P
 lemma property_next_rep (P : A) : (next_rep m P : A) ∈ represents A m :=
 by simp only [coe_mem]
 
+
 variable (f : height_function A)
-omit fin_quot
 
 variables [fin_quot_f : fintype (A/f.m)]
 include fin_quot_f
+omit fin_quot
 
 lemma nemp1 : (image (λ a, f.C1 (-a)) (represents A f.m)).nonempty :=
 have non_empty_quot_f : nonempty (A/f.m) := by apply_instance,
@@ -290,6 +292,42 @@ end
 
 lemma property_next_height_eventually (P : A) :
   ∃ (M : ℕ), ∀ (n : ℕ), M ≤ n → f.to_fun ((next f.m)^[n.succ] P) ≤ 1 + (2⁻¹ * C) :=
+have ineq3 : ∀ (n : ℕ), n < 2 ^ n,
+begin
+  intros n, induction n with n ih, norm_num,
+  rw nat.lt_iff_add_one_le at ih,
+  apply lt_of_le_of_lt, exact ih,
+  apply nat.pow_lt_pow_of_lt_right, norm_num,
+  exact lt_add_one n,
+end,
+have l1 : tendsto (λ (n : ℕ), (2 : ℝ)⁻¹^n) at_top (nhds 0), begin
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
+    (tendsto_const_div_at_top_nhds_0_nat 2);
+  rw [eventually_iff, mem_at_top_sets], use 0,
+  intros x hx, simp only [zero_le_one, inv_nonneg, zero_le_bit0, pow_nonneg],
+  use 1, intros x hx, dsimp only,
+  rw [set.mem_set_of_eq, inv_pow₀, inv_le, inv_div, div_le_iff],
+  norm_cast, transitivity 2^x, linarith [ineq3 x], rw mul_two, exact le_add_self,
+  norm_num, apply pow_pos, norm_num, apply div_pos, norm_num, norm_cast, linarith [hx],
+end,
+have eventually_le_one :
+  ∀(K : ℝ) (hk : 0 ≤ K), ∃ (M : ℕ), ∀ (n : ℕ), M ≤ n → ((2 : ℝ)⁻¹)^n * K ≤ 1 :=
+begin
+  intros K hk,
+  by_cases K = 0, rw h, use 0, intros, rw mul_zero, linarith,
+  have ev := @filter.tendsto.eventually ℕ ℝ (λ n, (2 : ℝ)⁻¹^n) at_top (nhds 0)
+    (λ r, r * K ≤ 1) l1,
+  rw [eventually_iff, eventually_iff] at ev,
+  simp only [mem_at_top_sets, ge_iff_le, inv_pow₀, set.mem_set_of_eq] at ev,
+  simp_rw inv_pow₀, refine ev _,
+  rw mem_nhds_iff,
+  refine ⟨set.Iio K⁻¹, _, _⟩,
+  intros x hx, rw ←set.Iio_def at hx, simp only [set.mem_set_of_eq] at hx ⊢,
+  rw show (1 : ℝ) = K⁻¹ * K, by rw inv_mul_cancel h,
+  apply mul_le_mul, linarith [hx], refl, exact hk, rw inv_nonneg, exact hk,
+  split, exact is_open_Iio, rw ←set.Iio_def, rw [set.mem_set_of_eq, inv_pos],
+  apply lt_of_le_of_ne, exact hk, symmetry, exact h,
+end,
 begin
   obtain ⟨M, hM⟩ := eventually_le_one (f.to_fun P) (f.nonneg P),
   use M, intros n hn, specialize hM n.succ _,transitivity n, exact hn, exact nat.le_succ n,

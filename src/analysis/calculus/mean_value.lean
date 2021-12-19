@@ -694,6 +694,13 @@ theorem lipschitz_on_with_of_nnnorm_deriv_le {C : ℝ≥0}
 hs.lipschitz_on_with_of_nnnorm_has_deriv_within_le
 (λ x hx, (hf x hx).has_deriv_at.has_deriv_within_at) bound
 
+/-- The mean value theorem set in dimension 1: if the derivative of a function is bounded by `C`,
+then the function is `C`-Lipschitz.  Version with `deriv` and `lipschitz_with`. -/
+theorem _root_.lipschitz_with_of_nnnorm_deriv_le {C : ℝ≥0} (hf : differentiable 𝕜 f)
+  (bound : ∀ x, ∥deriv f x∥₊ ≤ C) : lipschitz_with C f :=
+lipschitz_on_univ.1 $ convex_univ.lipschitz_on_with_of_nnnorm_deriv_le (λ x hx, hf x)
+  (λ x hx, bound x)
+
 end convex
 
 end

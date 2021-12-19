@@ -98,6 +98,34 @@ end
 lemma lt_of_count_lt_count {a b : ℕ} (h : count p a < count p b) : a < b :=
 (count_monotone p).reflect_lt h
 
+lemma count_strict_mono {m n : ℕ} (hm : p m) (hmn : m < n) : count p m < count p n :=
+begin
+  rw [count_eq_card_filter_range, count_eq_card_filter_range],
+  apply finset.card_lt_card,
+  refine ⟨λ a, _, _⟩,
+  { simp only [and_imp, mem_filter, mem_range],
+    exact λ ha hp, ⟨ha.trans hmn, hp⟩ },
+  { rw finset.not_subset,
+    exact ⟨m, by simp [hm, hmn]⟩ }
+end
+
+lemma count_injective {m n : ℕ} (hm : p m) (hn : p n) (heq : count p m = count p n) : m = n :=
+begin
+  by_contra,
+  wlog hmn : m < n,
+  { exact ne.lt_or_lt h },
+  { simpa [heq] using count_strict_mono hm hmn }
+end
+
+lemma count_lt_card {n : ℕ} (hp : (set_of p).finite) (hpn : p n) :
+  count p n < hp.to_finset.card :=
+begin
+  rw count_eq_card_filter_range,
+  refine finset.card_lt_card ⟨λ x hx, hp.mem_to_finset.2 (mem_filter.1 hx).2, _⟩,
+  rw finset.not_subset,
+  exact ⟨n, (set.finite.mem_to_finset _).2 hpn, λ h, not_mem_range_self (mem_filter.1 h).1⟩
+end
+
 variable {q : ℕ → Prop}
 variable [decidable_pred q]
 

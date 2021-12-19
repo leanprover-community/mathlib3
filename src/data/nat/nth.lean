@@ -12,8 +12,8 @@ import set_theory.fincard
 /-!
 # The `n`th Number Satisfying a Predicate
 
-This file defines a function and lemmas for "what is the `n`th number that satisifies this
-predicate".
+This file defines a function for "what is the `n`th number that satisifies a given predicate `p`",
+and provides lemmas that deal with this function and its connection to `nat.count`.
 
 ## Main definitions
 
@@ -257,42 +257,14 @@ begin
   { simp }
 end
 
-lemma count_strict_mono {m n : ℕ} (hm : p m) (hmn : m < n) : count p m < count p n :=
-begin
-  rw [count_eq_card_filter_range, count_eq_card_filter_range],
-  apply finset.card_lt_card,
-  refine ⟨λ a, _, _⟩,
-  { simp only [and_imp, mem_filter, mem_range],
-    exact λ ha hp, ⟨ha.trans hmn, hp⟩ },
-  { rw finset.not_subset,
-    exact ⟨m, by simp [hm, hmn]⟩ }
-end
-
-lemma count_injective {m n : ℕ} (hm : p m) (hn : p n) (heq : count p m = count p n) : m = n :=
-begin
-  by_contra,
-  wlog hmn : m < n,
-  { exact ne.lt_or_lt h },
-  { simpa [heq] using count_strict_mono _ hm hmn }
-end
-
-lemma count_lt_card {n : ℕ} (hp : (set_of p).finite) (hpn : p n) :
-  count p n < hp.to_finset.card :=
-begin
-  rw count_eq_card_filter_range,
-  refine finset.card_lt_card ⟨λ x hx, hp.mem_to_finset.2 (mem_filter.1 hx).2, _⟩,
-  rw finset.not_subset,
-  exact ⟨n, (set.finite.mem_to_finset _).2 hpn, λ h, not_mem_range_self (mem_filter.1 h).1⟩
-end
-
 lemma nth_count {n : ℕ} (hpn : p n) : nth p (count p n) = n :=
 begin
   obtain hp | hp := em (set_of p).finite,
-  { refine count_injective p _ hpn _,
+  { refine count_injective _ hpn _,
     { apply nth_mem_of_lt_card_finite p hp,
-      exact count_lt_card p hp hpn },
-    { exact count_nth_of_lt_card_finite _ _ (count_lt_card _ hp hpn) } },
-  { apply count_injective p (nth_mem_of_infinite _ hp _) hpn,
+      exact count_lt_card hp hpn },
+    { exact count_nth_of_lt_card_finite _ _ (count_lt_card hp hpn) } },
+  { apply count_injective (nth_mem_of_infinite _ hp _) hpn,
   apply count_nth_of_infinite p hp }
 end
 
@@ -306,13 +278,13 @@ begin
   refine ⟨λ h, _, λ hn k hk, lt_of_lt_of_le _ hn⟩,
   { by_contra ha,
     simp only [not_le] at ha,
-    have hn : nth p (count p a) < a := h _ (count_strict_mono p hpa ha),
+    have hn : nth p (count p a) < a := h _ (count_strict_mono hpa ha),
     rwa [nth_count p hpa, lt_self_iff_false] at hn },
   { apply (count_monotone p).reflect_lt,
     convert hk,
     obtain hp | hp : (set_of p).finite ∨ (set_of p).infinite := em (set_of p).finite,
     { rw count_nth_of_lt_card_finite _ hp,
-      exact hk.trans ((count_monotone _ hn).trans_lt (count_lt_card _ hp hpa)) },
+      exact hk.trans ((count_monotone _ hn).trans_lt (count_lt_card hp hpa)) },
     { apply count_nth_of_infinite p hp } }
 end
 

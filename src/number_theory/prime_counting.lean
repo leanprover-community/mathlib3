@@ -149,7 +149,7 @@ begin
   congr,
   { -- TODO add a tactic (or perhaps an add-on to `norm_num`) to brute force `π` and `π'`
     -- calculation.
-    simp [prime_counting'],
+    simp [prime_counting', count_succ],
     norm_num, },
   { -- TODO add a tactic (or perhaps an add-on to `norm_num`) to brute force totient calculation.
     have : 6 = 2 * 3 := by norm_num,

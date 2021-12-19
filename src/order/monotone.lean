@@ -442,6 +442,16 @@ lt_of_not_ge (λ h', h.not_le (hf h'))
 lemma antitone.reflect_lt (hf : antitone f) {a b : α} (h : f a < f b) : b < a :=
 lt_of_not_ge (λ h', h.not_le (hf h'))
 
+lemma monotone_on.reflect_lt (hf : monotone_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s)
+  (h : f a < f b) :
+  a < b :=
+lt_of_not_ge $ λ h', h.not_le $ hf hb ha h'
+
+lemma antitone_on.reflect_lt (hf : antitone_on f s) {a b : α}  (ha : a ∈ s) (hb : b ∈ s)
+  (h : f a < f b) :
+  b < a :=
+lt_of_not_ge $ λ h', h.not_le $ hf ha hb h'
+
 lemma strict_mono_on.le_iff_le (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ a ≤ b :=
 ⟨λ h, le_of_not_gt $ λ h', (hf hb ha h').not_le h,

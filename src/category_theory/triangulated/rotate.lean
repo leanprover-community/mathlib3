@@ -72,6 +72,7 @@ def triangle.inv_rotate (T : triangle C) : triangle C :=
 triangle.mk _ (-T.mor₃⟦(-1:ℤ)⟧' ≫ (shift_shift_neg _ _).hom) T.mor₁
   (T.mor₂ ≫ (shift_neg_shift _ _).inv)
 
+local attribute [reducible] shift_shift_neg shift_neg_shift discrete.add_monoidal
 
 namespace triangle_morphism
 variables {T₁ T₂ T₃ T₄: triangle C}
@@ -111,8 +112,6 @@ def rotate (f : triangle_morphism T₁ T₂) :
     simp only [rotate_mor₃, comp_neg, neg_comp, ← functor.map_comp, f.comm₁]
   end}
 
-local attribute [reducible] shift_shift_neg shift_neg_shift
-
 /--
 Given a triangle morphism of the form:
 ```
@@ -150,6 +149,13 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
       neg_inj, nat_trans.id_app, preadditive.neg_comp],
     rw [← functor.map_comp_assoc, ← f.comm₃, functor.map_comp_assoc],
     simp
+  end,
+  comm₃' := begin
+    dsimp,
+    simp only [discrete.functor_map_id, id_comp, opaque_eq_to_iso_inv, μ_inv_naturality,
+      category.assoc, nat_trans.id_app, unit_of_tensor_iso_unit_inv_app],
+    erw ε_naturality_assoc,
+    simp
   end }
 
 end triangle_morphism
@@ -173,16 +179,38 @@ def inv_rotate : (triangle C) ⥤ (triangle C) :=
 
 variables [∀ n : ℤ, functor.additive (shift_functor C n)]
 
+/-- There is a natural map from a triangle to the `inv_rotate` of its `rotate`. -/
+@[simps]
+def rot_comp_inv_rot_hom_app (T : triangle C) : T ⟶ inv_rotate.obj (rotate.obj T) :=
+{ hom₁ := (shift_shift_neg _ _).inv,
+    hom₂ := 𝟙 T.obj₂,
+    hom₃ := 𝟙 T.obj₃,
+    comm₃' := begin
+      dsimp,
+      simp only [ε_app_obj, eq_to_iso.hom, discrete.functor_map_id, id_comp, eq_to_iso.inv,
+        opaque_eq_to_iso_inv, category.assoc, obj_μ_inv_app, functor.map_comp, nat_trans.id_app,
+        obj_ε_app, unit_of_tensor_iso_unit_inv_app],
+      erw μ_inv_hom_app_assoc,
+      refl
+    end }
+
 /--
 There is a natural transformation between the identity functor on triangles in `C`,
 and the composition of a rotation with an inverse rotation.
 -/
 @[simps]
 def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ rotate ⋙ inv_rotate :=
-{ app := λ T,
-  { hom₁ := (shift_shift_neg _ _).inv,
-    hom₂ := 𝟙 T.obj₂,
-    hom₃ := 𝟙 T.obj₃ } }
+{ app := rot_comp_inv_rot_hom_app,
+  naturality' := begin
+    introv, ext,
+    { dsimp,
+      simp only [nat_iso.cancel_nat_iso_inv_right_assoc, discrete.functor_map_id, id_comp,
+        opaque_eq_to_iso_inv, μ_inv_naturality, assoc, nat_trans.id_app,
+        unit_of_tensor_iso_unit_inv_app],
+      erw ε_naturality },
+    { dsimp, simp },
+    { dsimp, simp }
+  end }
 
 /-- There is a natural map from the `inv_rotate` of the `rotate` of a triangle to itself. -/
 @[simps]

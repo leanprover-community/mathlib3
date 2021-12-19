@@ -526,13 +526,6 @@ begin
   exact gcd_eq_normalize h (gcd_monoid.dvd_gcd hda hdb),
 end
 
-lemma gcd_greatest {α : Type*} [comm_cancel_monoid_with_zero α] [normalized_gcd_monoid α]
-  {a b d : α} (hd : normalize d = d) (hda : d ∣ a) (hdb : d ∣ b)
-  (he : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : d = gcd_monoid.gcd a b :=
-begin
-  rw gcd_greatest' hda hdb he, rw hd,
-end
-
 lemma gcd_greatest'' {α : Type*} [comm_cancel_monoid_with_zero α] [gcd_monoid α]
   {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
   (he : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : associated d (gcd_monoid.gcd a b) :=

@@ -16,6 +16,8 @@ variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) {P Q : Prop} [d
 lemma exists_iff_of_forall {Q : P → Prop} (h : ∀ h, Q h) : (∃ h, Q h) ↔ P :=
 ⟨Exists.fst, λ H, ⟨H, h H⟩⟩
 
+lemma not_ne_iff : ¬ a ≠ b ↔ a = b := not_not
+
 lemma dite_eq_iff {a : P → α} {b : ¬ P → α} : dite P a b = c ↔ (∃ h, a h = c) ∨ ∃ h, b h = c :=
 by by_cases P; simp *
 
@@ -47,7 +49,7 @@ dite_ne_right_iff.trans $ exists_iff_of_forall h
 
 end dite
 
-variables {ι α : Type*}
+variables {ι α β : Type*}
 
 namespace finsupp
 variables [has_zero α] [decidable_eq α]
@@ -111,6 +113,17 @@ lemma not_mem_subset {s t :finset α} (h : s ⊆ t) {a : α} : a ∉ t → a ∉
 @[to_additive]
 lemma one_mem_one [has_one α] : (1 : α) ∈ (1 : finset α) := by simp [has_one.one]
 
+@[simp] lemma Icc_eq_singleton_iff [partial_order α] [locally_finite_order α] {a b c : α} :
+  Icc a b = {c} ↔ a = c ∧ b = c :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hab : a ≤ b := nonempty_Icc.1 (h.symm.subst $ singleton_nonempty c),
+    exact ⟨eq_of_mem_singleton $ h.subst $ left_mem_Icc.2 hab,
+      eq_of_mem_singleton $ h.subst $ right_mem_Icc.2 hab⟩ },
+  { rintro ⟨rfl, rfl⟩,
+    exact Icc_self _ }
+end
+
 variables [decidable_eq ι] [decidable_eq α] [has_zero α]
 
 /-- Finitely supported product of finsets. -/
@@ -154,19 +167,44 @@ end finset
 open finset
 
 namespace finsupp
+section bundled_intervals
+variables [decidable_eq ι] [has_zero α] [partial_order α] [locally_finite_order α]
+
+/-- `finset.Icc` bundled as a `finsupp`. -/
+@[simps] def Icc (f g : ι →₀ α) : ι →₀ finset α :=
+{ to_fun := λ i, Icc (f i) (g i),
+  support := f.support ∪ g.support,
+  mem_support_to_fun := λ i, begin
+    rw [mem_union, ←not_iff_not, not_or_distrib, not_mem_support_iff, not_mem_support_iff,
+      not_ne_iff],
+    exact Icc_eq_singleton_iff.symm,
+  end }
+
+def map_finset (f : ι →₀ α) : finset ι →₀ finset α :=
+{ support := _,
+  to_fun := _,
+  mem_support_to_fun := _ }
+
+end bundled_intervals
+
 section pi
 variables [decidable_eq ι] [decidable_eq α] [has_zero α]
 
 /-- Given a finitely supported function `f : ι →₀ finset α`, one can define the finset
 `f.pi` of all finitely supported functions whose value at `i` is in `f i` for all `i`. -/
 def pi (f : ι →₀ finset α) : finset (ι →₀ α) := f.support.finsupp f
--- `f.support.finsupp f`
 
 @[simp] lemma mem_pi {f : ι →₀ finset α} {g : ι →₀ α} : g ∈ f.pi ↔ ∀ i, g i ∈ f i :=
 mem_finsupp_iff_of_support_subset begin
 sorry
 end begin
 sorry
+end
+
+@[simp] lemma card_pi (f : ι →₀ finset α) : f.pi.card = f.prod (λ i, (f i).card) :=
+begin
+  convert card_finsupp _ _,
+  exact finset.prod_congr rfl (λ i _, (pi.nat_apply _ _).trans $ nat.cast_id _),
 end
 
 end pi
@@ -176,7 +214,7 @@ variables [decidable_eq ι] [decidable_eq α] [partial_order α] [has_zero α] [
 
 instance : locally_finite_order (ι →₀ α) :=
 locally_finite_order.of_Icc (ι →₀ α)
-  (λ f g, (f.support ∪ g.support).finsupp $ λ i, Icc (f i) (g i))
+  (λ f g, (f.support ∪ g.support).finsupp $ λ i, finset.Icc (f i) (g i))
   (λ f g x, begin
     convert (mem_finsupp_iff_of_support_subset _ _).trans _,
     -- y simp_rw [mem_finsupp_iff_of_support_subset _ _, mem_Icc, finsupp.le_def, ←forall_and_distrib]
@@ -184,16 +222,17 @@ locally_finite_order.of_Icc (ι →₀ α)
 
 variables (f g : ι →₀ α)
 
-lemma card_Icc : (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
+lemma card_Icc : (finset.Icc f g).card =
+  ∏ i in f.support ∪ g.support, (finset.Icc (f i) (g i)).card :=
 card_finsupp _ _
 
-lemma card_Ico : (Ico f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
+lemma card_Ico : (Ico f g).card = ∏ i in f.support ∪ g.support, (finset.Icc (f i) (g i)).card - 1 :=
 by rw [card_Ico_eq_card_Icc_sub_one, card_Icc]
 
-lemma card_Ioc : (Ioc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
+lemma card_Ioc : (Ioc f g).card = ∏ i in f.support ∪ g.support, (finset.Icc (f i) (g i)).card - 1 :=
 by rw [card_Ioc_eq_card_Icc_sub_one, card_Icc]
 
-lemma card_Ioo : (Ioo f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 2 :=
+lemma card_Ioo : (Ioo f g).card = ∏ i in f.support ∪ g.support, (finset.Icc (f i) (g i)).card - 2 :=
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
 end locally_finite

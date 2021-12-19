@@ -17,7 +17,7 @@ primitive roots of unity, for all `n ∈ S`.
 
 ## Main definition
 
-* `is_cyclotomic_extension S A B` : means that `B` is obtained by `A` by adding `n`-th primitive
+* `is_cyclotomic_extension S A B` : means that `B` is obtained from `A` by adding `n`-th primitive
 roots of unity, for all `n ∈ S`.
 
 ## Main results

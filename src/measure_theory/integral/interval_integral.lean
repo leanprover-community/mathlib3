@@ -1248,7 +1248,7 @@ begin
 end
 
 lemma abs_integral_mono_interval {c d } (h : Ι a b ⊆ Ι c d)
-  (hf : 0 ≤ᵐ[μ.restrict (Ι c d)] f) (hfi : interval_integrable f μ c d):
+  (hf : 0 ≤ᵐ[μ.restrict (Ι c d)] f) (hfi : interval_integrable f μ c d) :
   |∫ x in a..b, f x ∂μ| ≤ |∫ x in c..d, f x ∂μ| :=
 have hf' : 0 ≤ᵐ[μ.restrict (Ι a b)] f, from ae_mono (measure.restrict_mono h le_rfl) hf,
 calc |∫ x in a..b, f x ∂μ| = |∫ x in Ι a b, f x ∂μ| : abs_integral_eq_abs_integral_interval_oc f

@@ -20,21 +20,6 @@ open_locale classical pointwise
 
 section
 
-variables (G : Type*) [add_comm_group G]
-
-lemma mem_smul (m : ℕ) {a : G} :
- a ∈ m • (⊤ : add_subgroup G) ↔ ∃ a' : G, a = m • a' :=
-begin
-  split; intro ha,
-  rcases ha with ⟨a', h1, h2⟩,
-  use a', rw ←h2, refl,
-
-  obtain ⟨a', h⟩ := ha,
-  use a', split, simp only [add_subgroup.coe_top], rw h, refl,
-end
-
-section
-
 open filter
 open_locale filter
 
@@ -90,8 +75,6 @@ begin
   split, simp only [one_div], exact is_open_Iio, rw ←set.Iio_def,
   suffices : 0 < 1/K, exact this, apply div_pos, linarith,
   apply lt_of_le_of_ne, exact hk, symmetry, exact h,
-end
-
 end
 
 end

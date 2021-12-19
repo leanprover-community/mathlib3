@@ -81,8 +81,7 @@ lemma new_aux (P : A) : ∃ (p : A × represents A m), P = m • p.1 + p.2 :=
 have mem1 : quotient_add_group.mk P ∈ fin_quot.elems, from fintype.complete _,
 begin
   obtain ⟨a, ha1, ha2⟩ := represents_represent_A_quot_mA m (quotient_add_group.mk P),
-  -- type_check add_subgroup.mem_smul_pointwise_iff_exists,
-  rw [quotient_add_group.eq', mem_smul A m] at ha2,
+  rw [quotient_add_group.eq', add_subgroup.mem_smul_pointwise_iff_exists] at ha2,
   obtain ⟨q, hq⟩ := ha2,
   refine ⟨⟨q, ⟨a, ha1⟩⟩, _⟩, dsimp only,
   rw [←hq, add_assoc, add_comm P, ←add_assoc, ←subtype.val_eq_coe, neg_add_self, zero_add],

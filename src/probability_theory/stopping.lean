@@ -312,7 +312,7 @@ end is_stopping_time
 section linear_order
 
 /-- Given a map `u : ι → α → E`, the stopped process with respect to `τ` is `u i x` if
-`i < τ x`, and `u (τ x) x` otherwise.
+`i ≤ τ x`, and `u (τ x) x` otherwise.
 
 Intuitively, the stopped process stop evolving once the stopping time has occured. -/
 def stopped_process [linear_order ι] (u : ι → α → β) (τ : α → ι) : ι → α → β :=
@@ -322,6 +322,14 @@ def stopped_process [linear_order ι] (u : ι → α → β) (τ : α → ι) : 
 time `τ` is the map `x ↦ u (τ x) x`. -/
 def stopped_value (u : ι → α → β) (τ : α → ι) : α → β :=
 λ x, u (τ x) x
+
+lemma stopped_process_eq_of_le [linear_order ι] {u : ι → α → β} {τ : α → ι}
+  {i : ι} {x : α} (h : i ≤ τ x) : stopped_process u τ i x = u i x :=
+by simp [stopped_process, min_eq_left h]
+
+lemma stopped_process_eq_of_ge [linear_order ι] {u : ι → α → β} {τ : α → ι}
+  {i : ι} {x : α} (h : τ x ≤ i) : stopped_process u τ i x = u (τ x) x :=
+by simp [stopped_process, min_eq_right h]
 
 variable [linear_order ι]
 
@@ -342,14 +350,12 @@ begin
   ext x,
   rw [pi.add_apply, finset.sum_apply],
   cases le_or_lt n (τ x),
-  { simp only [stopped_process, min_eq_left h],
-    rw [set.indicator_of_mem, finset.sum_eq_zero, add_zero],
+  { rw [stopped_process_eq_of_le h, set.indicator_of_mem, finset.sum_eq_zero, add_zero],
     { intros m hm,
       rw finset.mem_range at hm,
       exact set.indicator_of_not_mem ((lt_of_lt_of_le hm h).ne) _ },
     { exact h } },
-  { simp only [stopped_process, min_eq_right (le_of_lt h)],
-    rw finset.sum_eq_single_of_mem (τ x),
+  { rw [stopped_process_eq_of_ge (le_of_lt h), finset.sum_eq_single_of_mem (τ x)],
     { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
       { exact rfl }, -- refl does not work
       { exact not_le.2 h } },

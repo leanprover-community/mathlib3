@@ -103,7 +103,7 @@ lemma ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.ob
   (h : ∀ ⦃Y : C⦄ (f : G.obj Y ⟶ X), ℱ.val.map f.op s = ℱ.val.map f.op t) :
   s = t :=
 begin
-  apply (ℱ.property (sieve.cover_by_image G X) (H.is_cover X)).is_separated_for.ext,
+  apply (ℱ.cond (sieve.cover_by_image G X) (H.is_cover X)).is_separated_for.ext,
   rintros Y _ ⟨Z, f₁, f₂, ⟨rfl⟩⟩,
   simp [h f₂]
 end
@@ -138,9 +138,8 @@ iso_whisker_right α (coyoneda.obj (op X))
 
 lemma sheaf_eq_amalgamation (ℱ : Sheaf K A) {X : A} {U : D} {T : sieve U} (hT)
   (x : family_of_elements _ T) (hx) (t) (h : x.is_amalgamation t) :
-  t = (ℱ.property X T hT).amalgamate x hx :=
-(ℱ.property X T hT).is_separated_for x t _ h ((ℱ.property X T hT).is_amalgamation hx)
-
+  t = (ℱ.cond X T hT).amalgamate x hx :=
+(ℱ.cond X T hT).is_separated_for x t _ h ((ℱ.cond X T hT).is_amalgamation hx)
 
 include H
 variable [full G]
@@ -179,7 +178,7 @@ end
 /-- (Implementation). The morphism `ℱ(X) ⟶ ℱ'(X)` given by gluing the `pushforward_family`. -/
 noncomputable
 def app_hom (X : D) : ℱ.obj (op X) ⟶ ℱ'.val.obj (op X) := λ x,
-  (ℱ'.property _ (H.is_cover X)).amalgamate
+  (ℱ'.cond _ (H.is_cover X)).amalgamate
     (pushforward_family H α x)
     (pushforward_family_compatible H α x)
 
@@ -198,7 +197,7 @@ end
 @[simp] lemma app_hom_restrict {X : D} {Y : C} (f : op X ⟶ op (G.obj Y)) (x) :
   ℱ'.val.map f (app_hom H α X x) = α.app (op Y) (ℱ.map f x) :=
 begin
-  refine ((ℱ'.property _ (H.is_cover X)).valid_glue
+  refine ((ℱ'.cond _ (H.is_cover X)).valid_glue
     (pushforward_family_compatible H α x) f.unop (presieve.in_cover_by_image G f.unop)).trans _,
   apply pushforward_family_apply
 end
@@ -248,9 +247,10 @@ cover-dense, and `ℱ, ℱ'` are sheaves, we may obtain a natural isomorphism be
 -/
 @[simps] noncomputable
 def sheaf_iso {ℱ ℱ' : SheafOfTypes.{v} K} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) : ℱ ≅ ℱ' :=
-{ hom := (presheaf_iso H i).hom, inv := (presheaf_iso H i).inv,
-  hom_inv_id' := (presheaf_iso H i).hom_inv_id, inv_hom_id' := (presheaf_iso H i).inv_hom_id }
-
+{ hom := ⟨(presheaf_iso H i).hom⟩,
+  inv := ⟨(presheaf_iso H i).inv⟩,
+  hom_inv_id' := by { ext1, apply (presheaf_iso H i).hom_inv_id },
+  inv_hom_id' := by { ext1, apply (presheaf_iso H i).inv_hom_id } }
 
 end types
 open types
@@ -272,6 +272,7 @@ def sheaf_coyoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
     apply H.is_cover,
     intros Y' f' hf',
     change unop X ⟶ ℱ.obj (op (unop _)) at x,
+    dsimp,
     simp only [pushforward_family, functor.comp_map,
       coyoneda_obj_map, hom_over_app, category.assoc],
     congr' 1,
@@ -341,10 +342,10 @@ we may obtain a natural isomorphism between presheaves.
 -/
 @[simps] noncomputable
 def sheaf_iso {ℱ ℱ' : Sheaf K A} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) : ℱ ≅ ℱ' :=
-{ hom := (presheaf_iso H i).hom,
-  inv := (presheaf_iso H i).inv,
-  hom_inv_id' := (presheaf_iso H i).hom_inv_id,
-  inv_hom_id' := (presheaf_iso H i).inv_hom_id }
+{ hom := ⟨(presheaf_iso H i).hom⟩,
+  inv := ⟨(presheaf_iso H i).inv⟩,
+  hom_inv_id' := by { ext1, apply (presheaf_iso H i).hom_inv_id },
+  inv_hom_id' := by { ext1, apply (presheaf_iso H i).inv_hom_id } }
 
 /--
 The constructed `sheaf_hom α` is equal to `α` when restricted onto `C`.
@@ -380,6 +381,7 @@ lemma sheaf_hom_eq (α : ℱ ⟶ ℱ'.val) : sheaf_hom H (whisker_left G.op α) 
 begin
   ext X,
   apply yoneda.map_injective,
+  swap, { apply_instance },
   ext U,
   erw yoneda.image_preimage,
   symmetry,
@@ -387,10 +389,8 @@ begin
   apply sheaf_eq_amalgamation ℱ' (H.is_cover _),
   intros Y f hf,
   conv_lhs { rw ← hf.some.fac },
-  simp [-presieve.cover_by_image_structure.fac],
-  erw α.naturality_assoc,
-  refl,
-  apply_instance
+  dsimp,
+  simp,
 end
 
 /--
@@ -409,11 +409,11 @@ Given a full and cover-dense functor `G` and a natural transformation of sheaves
 if the pullback of `α` along `G` is iso, then `α` is also iso.
 -/
 lemma iso_of_restrict_iso {ℱ ℱ' : Sheaf K A} (α : ℱ ⟶ ℱ')
-  (i : is_iso (whisker_left G.op α)) : is_iso α :=
+  (i : is_iso (whisker_left G.op α.val)) : is_iso α :=
 begin
-  convert is_iso.of_iso (sheaf_iso H (as_iso (whisker_left G.op α))),
-  symmetry,
-  apply sheaf_hom_eq
+  convert is_iso.of_iso (sheaf_iso H (as_iso (whisker_left G.op α.val))) using 1,
+  ext1,
+  apply (sheaf_hom_eq _ _).symm
 end
 
 /-- A fully faithful cover-dense functor preserves compatible families. -/
@@ -434,13 +434,18 @@ end
 noncomputable
 instance sites.pullback.full [faithful G] (Hp : cover_preserving J K G) :
   full (sites.pullback A H.compatible_preserving Hp) :=
-{ preimage := λ ℱ ℱ' α, H.sheaf_hom α,
-  witness' := λ ℱ ℱ' α, H.sheaf_hom_restrict_eq α }
+{ preimage := λ ℱ ℱ' α, ⟨H.sheaf_hom α.val⟩,
+  witness' := λ ℱ ℱ' α, Sheaf.hom.ext _ _ $ H.sheaf_hom_restrict_eq α.val }
 
 instance sites.pullback.faithful [faithful G] (Hp : cover_preserving J K G) :
   faithful (sites.pullback A H.compatible_preserving Hp) :=
-{ map_injective' := λ ℱ ℱ' α β (eq : whisker_left G.op α = whisker_left G.op β),
-  by rw [← H.sheaf_hom_eq α, ← H.sheaf_hom_eq β, eq] }
+{ map_injective' := begin
+    intros ℱ ℱ' α β e,
+    ext1,
+    apply_fun (λ e, e.val) at e,
+    dsimp at e,
+    rw [← H.sheaf_hom_eq α.val, ← H.sheaf_hom_eq β.val, e],
+  end }
 
 end cover_dense
 

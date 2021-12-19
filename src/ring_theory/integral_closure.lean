@@ -367,6 +367,11 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
+lemma le_integral_closure_iff_is_integral {S : subalgebra R A} :
+  S ≤ integral_closure R A ↔ algebra.is_integral R S :=
+set_like.forall.symm.trans (forall_congr (λ x, show is_integral R (algebra_map S A x)
+  ↔ is_integral R x, from is_integral_algebra_map_iff subtype.coe_injective))
+
 /-- Mapping an integral closure along an `alg_equiv` gives the integral closure. -/
 lemma integral_closure_map_alg_equiv (f : A ≃ₐ[R] B) :
   (integral_closure R A).map (f : A →ₐ[R] B) = integral_closure R B :=

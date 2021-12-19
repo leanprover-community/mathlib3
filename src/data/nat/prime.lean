@@ -16,14 +16,12 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
 
 ## Important declarations
 
-All the following declarations exist in the namespace `nat`.
-
-- `prime`: the predicate that expresses that a natural number `p` is prime
-- `primes`: the subtype of natural numbers that are prime
-- `min_fac n`: the minimal prime factor of a natural number `n ≠ 1`
-- `exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
-- `factors n`: the prime factorization of `n`
-- `factors_unique`: uniqueness of the prime factorisation
+- `nat.prime`: the predicate that expresses that a natural number `p` is prime
+- `nat.primes`: the subtype of natural numbers that are prime
+- `nat.min_fac n`: the minimal prime factor of a natural number `n ≠ 1`
+- `nat.exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
+- `nat.factors n`: the prime factorization of `n`
+- `nat.factors_unique`: uniqueness of the prime factorisation
 
 -/
 
@@ -607,6 +605,10 @@ begin
       exact pow_dvd_pow _ l } }
 end
 
+lemma prime.dvd_mul_of_dvd_ne {p1 p2 n : ℕ} (h_neq : p1 ≠ p2) (pp1 : prime p1) (pp2 : prime p2)
+  (h1 : p1 ∣ n) (h2 : p2 ∣ n) : (p1 * p2 ∣ n) :=
+coprime.mul_dvd_of_dvd_of_dvd ((coprime_primes pp1 pp2).mpr h_neq) h1 h2
+
 /--
 If `p` is prime,
 and `a` doesn't divide `p^k`, but `a` does divide `p^(k+1)`
@@ -766,6 +768,20 @@ begin
   { simp [zero_pow (succ_pos k), count_nil, factors_zero, mul_zero] },
   rw [pow_succ n k, perm_iff_count.mp (perm_factors_mul_of_pos hn (pow_pos hn k)) p],
   rw [list.count_append, IH, add_comm, mul_comm, ←mul_succ (count p n.factors) k, mul_comm],
+end
+
+lemma dvd_of_factors_subperm {a b : ℕ} (ha : a ≠ 0) (h : a.factors <+~ b.factors) : a ∣ b :=
+begin
+  rcases b.eq_zero_or_pos with rfl | hb,
+  { exact dvd_zero _ },
+  rcases a with (_|_|a),
+  { exact (ha rfl).elim },
+  { exact one_dvd _ },
+  use (b.factors.diff a.succ.succ.factors).prod,
+  nth_rewrite 0 ←nat.prod_factors ha.bot_lt,
+  rw [←list.prod_append,
+      list.perm.prod_eq $ list.subperm_append_diff_self_of_count_le $ list.subperm_ext_iff.mp h,
+      nat.prod_factors hb]
 end
 
 end

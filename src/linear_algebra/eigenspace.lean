@@ -5,11 +5,11 @@ Authors: Alexander Bentkamp
 -/
 
 import field_theory.is_alg_closed.basic
+import linear_algebra.charpoly.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
-import order.preorder_hom
-import linear_algebra.charpoly.basic
 import algebra.algebra.spectrum
+import order.hom.basic
 
 /-!
 # Eigenvectors and eigenvalues
@@ -81,40 +81,35 @@ lemma mem_eigenspace_iff {f : End R M} {μ : R} {x : M} : x ∈ eigenspace f μ 
 by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, algebra_map_End_apply,
   sub_eq_zero]
 
+lemma has_eigenvector.apply_eq_smul {f : End R M} {μ : R} {x : M} (hx : f.has_eigenvector μ x) :
+  f x = μ • x :=
+mem_eigenspace_iff.mp hx.1
+
 lemma has_eigenvalue.exists_has_eigenvector {f : End R M} {μ : R} (hμ : f.has_eigenvalue μ) :
   ∃ v, f.has_eigenvector μ v :=
 submodule.exists_mem_ne_zero_of_ne_bot hμ
 
 --move me
-lemma is_unit_iff_bijective {f : End R M} : is_unit f ↔ function.bijective f :=
-begin
-  split,
-  { intro h,
-    refine ⟨λ x y hxy, _, λ x, _⟩,
-    { rcases is_unit.exists_left_inv h with ⟨finv, hfinv⟩,
-      have hxy' := congr_arg finv hxy,
-      change (finv * f) x = (finv * f) y at hxy',
-      simpa [hfinv] using hxy' },
-    { rcases is_unit.exists_right_inv h with ⟨finv, hfinv⟩,
-      use finv x,
-      show (f * finv) x = x, by simp only [hfinv, linear_map.one_apply] } },
-  { intro h,
-    refine ⟨_,_⟩,
+def linear_equiv.of_unit (f : units (End R M)) : M ≃ₗ[R] M :=
+linear_equiv.of_linear f f.inv
+(show ((f * f.inv) : End R M) = 1, by rw [units.inv_eq_coe_inv, units.mul_inv])
+(show ((f.inv * f) : End R M) = 1, by rw [units.inv_eq_coe_inv, units.inv_mul])
 
-  }
-end
+@[simp] lemma linear_equiv.of_unit_apply (f : units (End R M)) (x : M) :
+  (linear_equiv.of_unit f) x = f x := rfl
 
-lemma has_eigenvalue_iff_mem_spectrum {f : End R M} {μ : R} :
-  has_eigenvalue f μ ↔ μ ∈ spectrum R f :=
+lemma mem_spectrum_of_has_eigenvalue {f : End R M} {μ : R} (hμ : has_eigenvalue f μ) :
+  μ ∈ spectrum R f :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  {
-    sorry,
-   },
-  {
-    simp [has_eigenvalue, eigenspace, linear_map.ker_eq_bot],
-    sorry,
-   }
+  rw [spectrum.mem_iff],
+  intro h_unit,
+  set f' := linear_equiv.of_unit (h_unit.unit) with hf',
+  rcases hμ.exists_has_eigenvector with ⟨v, hv⟩,
+  have h₁ : (f' v : M) = 0 := calc
+    f' v = μ • v - f v      : rfl
+     ... = μ • v - μ • v    : by rw [hv.apply_eq_smul]
+     ... = 0                : sub_self (μ • v),
+  exact hv.2 ((linear_map.ker_eq_bot'.mp f'.ker) v h₁),
 end
 
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
@@ -438,7 +433,7 @@ lemma has_generalized_eigenvalue_of_has_eigenvalue
   f.has_generalized_eigenvalue μ k :=
 begin
   apply has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le hk,
-  rw [has_generalized_eigenvalue, generalized_eigenspace, preorder_hom.coe_fun_mk, pow_one],
+  rw [has_generalized_eigenvalue, generalized_eigenspace, order_hom.coe_fun_mk, pow_one],
   exact hμ,
 end
 
@@ -478,7 +473,7 @@ lemma generalized_eigenspace_restrict
   generalized_eigenspace (linear_map.restrict f hfp) μ k =
     submodule.comap p.subtype (f.generalized_eigenspace μ k) :=
 begin
-  simp only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp],
+  simp only [generalized_eigenspace, order_hom.coe_fun_mk, ← linear_map.ker_comp],
   induction k with k ih,
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
@@ -506,7 +501,7 @@ begin
         (f.generalized_eigenspace μ (finrank K V))
       = ((f - algebra_map _ _ μ) ^ finrank K V *
           (f - algebra_map K (End K V) μ) ^ finrank K V).ker :
-        by { simpa only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp] }
+        by { simpa only [generalized_eigenspace, order_hom.coe_fun_mk, ← linear_map.ker_comp] }
   ... = f.generalized_eigenspace μ (finrank K V + finrank K V) :
         by { rw ←pow_add, refl }
   ... = f.generalized_eigenspace μ (finrank K V) :

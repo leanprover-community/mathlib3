@@ -192,6 +192,15 @@ def monoid_hom.to_opposite {R S : Type*} [mul_one_class R] [mul_one_class S] (f 
   map_one' := congr_arg op f.map_one,
   map_mul' := λ x y, by simp [(hf x y).eq] }
 
+/-- A monoid homomorphism `f : R →* S` such that `f x` commutes with `f y` for all `x, y` defines
+a monoid homomorphism from `Rᵐᵒᵖ`. -/
+@[simps {fully_applied := ff}]
+def monoid_hom.from_opposite {R S : Type*} [mul_one_class R] [mul_one_class S] (f : R →* S)
+  (hf : ∀ x y, commute (f x) (f y)) : Rᵐᵒᵖ →* S :=
+{ to_fun := f ∘ mul_opposite.unop,
+  map_one' := f.map_one,
+  map_mul' := λ x y, (f.map_mul _ _).trans (hf _ _).eq }
+
 /-- The units of the opposites are equivalent to the opposites of the units. -/
 def units.op_equiv {R} [monoid R] : units Rᵐᵒᵖ ≃* (units R)ᵐᵒᵖ :=
 { to_fun := λ u, op ⟨unop u, unop ↑(u⁻¹), op_injective u.4, op_injective u.3⟩,

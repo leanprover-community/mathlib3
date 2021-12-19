@@ -930,8 +930,33 @@ lemma span_union (s t : set M) : span R (s ∪ t) = span R s ⊔ span R t :=
 lemma span_Union {ι} (s : ι → set M) : span R (⋃ i, s i) = ⨆ i, span R (s i) :=
 (submodule.gi R M).gc.l_supr
 
+lemma span_attach_bUnion [decidable_eq M] {α : Type*} (s : finset α) (f : s → finset M) :
+  span R (s.attach.bUnion f : set M) = ⨆ x, span R (f x) :=
+by simpa [span_Union]
+
 lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
 by simp only [←span_Union, set.bUnion_of_singleton s]
+
+lemma span_smul_le (s : set M) (r : R) :
+  span R (r • s) ≤ span R s :=
+begin
+  rw span_le,
+  rintros _ ⟨x, hx, rfl⟩,
+  exact smul_mem (span R s) r (subset_span hx),
+end
+
+/-- See `submodule.span_smul_eq` (in `ring_theory.ideal.operations`) for
+`span R (r • s) = r • span R s` that holds for arbitrary `r` in a `comm_semiring`. -/
+lemma span_smul_eq_of_is_unit (s : set M) (r : R) (hr : is_unit r) :
+  span R (r • s) = span R s :=
+begin
+  apply le_antisymm,
+  { apply span_smul_le },
+  { convert span_smul_le (r • s) ((hr.unit ⁻¹ : _) : R),
+    rw smul_smul,
+    erw hr.unit.inv_val,
+    rw one_smul }
+end
 
 @[simp] theorem coe_supr_of_directed {ι} [hι : nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) :

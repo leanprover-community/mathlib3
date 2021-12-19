@@ -521,8 +521,8 @@ end
 
 end trunc
 
-section comm_semiring
-variable [comm_semiring R]
+section semiring
+variable [semiring R]
 
 lemma X_pow_dvd_iff {s : σ} {n : ℕ} {φ : mv_power_series σ R} :
   (X s : mv_power_series σ R)^n ∣ φ ↔ ∀ m : σ →₀ ℕ, m s < n → coeff R m φ = 0 :=
@@ -564,7 +564,7 @@ begin
   { exact h m (hm.symm ▸ zero_lt_one) },
   { exact h m (nat.eq_zero_of_le_zero $ nat.le_of_succ_le_succ hm) }
 end
-end comm_semiring
+end semiring
 
 section ring
 variables [ring R]
@@ -642,7 +642,7 @@ section comm_ring
 variable [comm_ring R]
 
 /-- Multivariate formal power series over a local ring form a local ring. -/
-instance is_local_ring [local_ring R] : local_ring (mv_power_series σ R) :=
+instance [local_ring R] : local_ring (mv_power_series σ R) :=
 { is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ R φ) with ⟨u,h⟩|⟨u,h⟩;
     [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
@@ -652,8 +652,8 @@ instance is_local_ring [local_ring R] : local_ring (mv_power_series σ R) :=
 
 end comm_ring
 
-section local_ring
-variables {S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
+section is_local_ring_hom
+variables {S : Type*} [comm_ring R] [semiring S] (f : R →+* S)
   [is_local_ring_hom f]
 
 -- Thanks to the linter for informing us that  this instance does
@@ -670,13 +670,7 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
   exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)
 end⟩
-
-variables [local_ring R] [local_ring S]
-
-instance : local_ring (mv_power_series σ R) :=
-{ is_local := local_ring.is_local }
-
-end local_ring
+end is_local_ring_hom
 
 section field
 variables {k : Type*} [field k]
@@ -1047,8 +1041,8 @@ end map
 
 end semiring
 
-section comm_semiring
-variables [comm_semiring R]
+section semiring
+variables [semiring R]
 
 lemma X_pow_dvd_iff {n : ℕ} {φ : power_series R} :
   (X : power_series R)^n ∣ φ ↔ ∀ m, m < n → coeff R m φ = 0 :=
@@ -1067,6 +1061,10 @@ begin
   { exact h 0 zero_lt_one },
   { intros m hm, rwa nat.eq_zero_of_le_zero (nat.le_of_succ_le_succ hm) }
 end
+end semiring
+
+section comm_semiring
+variables [comm_semiring R]
 
 open finset nat
 

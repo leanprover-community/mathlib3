@@ -1238,14 +1238,23 @@ open set
 --           end
 -- end
 
+example (a b c : ℝ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) : a / b ≤ 1 -> a ≤ b := (div_le_one hb).mp
+
 lemma real_false_inequality_is_false {x : ℝ} (n_large : (1003 : ℝ) < x)
   : (2 * x + 1) * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3 + 1) ≤ 4 ^ x :=
 begin
-  -- rw <-le_div_iff _,
   apply (log_le_log _ _).1,
-  rw [log_mul, log_mul, log_pow, log_pow, log_pow, log_mul],
-  rw div_rpow,
-  -- mul_le_of_le_div,
+  rw [log_mul, log_mul, log_rpow, log_rpow, log_rpow, log_mul],
+  rw <-div_le_one,
+  simp only [add_div, mul_add, add_mul, add_div, <-add_assoc],
+  simp,
+  {
+    sorry,
+    -- TODO bound the terms by, say, 1/8, 0.001, 1/8, 2/3, 0.001 respectively, then prove goal by norm_num.
+    -- Get the log x in the second term to be 2 log sqrt x. and split the 1/x i n that term to
+  },
+  repeat {sorry,},
+
 end
 
 
@@ -1402,7 +1411,7 @@ begin
   ... = (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n)
           (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))).card: congr_arg finset.card g
   ... ≤ (finset.Ico 2 (nat.sqrt (2 * n) + 1)).card: finset.card_le_of_subset h
-  ... = nat.sqrt (2 * n) + 1 - 2: finset.Ico.card 2 (nat.sqrt (2 * n) + 1)
+  ... = nat.sqrt (2 * n) + 1 - 2: nat.card_Ico 2 (nat.sqrt (2 * n) + 1)
   ... = nat.sqrt (2 * n) - 1: by ring
   ... ≤ nat.sqrt (2 * n): (nat.sqrt (2 * n)).sub_le 1,
 

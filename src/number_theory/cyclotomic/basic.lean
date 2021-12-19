@@ -36,7 +36,7 @@ roots of unity, for all `n ∈ S`.
 ## Implementation details
 
 Our definition of `is_cyclotomic_extension` is very general, to allow rings of any characteristic
-and infinite extension, but it will mainly be used in the case `S = {n}` with `(n : A) ≠ 0` (and
+and infinite extensions, but it will mainly be used in the case `S = {n}` with `(n : A) ≠ 0` (and
 for integral domains).
 All results are in the `is_cyclotomic_extension` namespace.
 Note the some results, `is_cyclotomic_extension.trans`, `is_cyclotomic_extension.finite` and

@@ -133,11 +133,14 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
 ... = ((filter (∣ n) (range n.succ)).bUnion (λ d, (range n).filter (λ m, gcd n m = d))).card :
   (card_bUnion (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
-  congr_arg card (finset.ext (λ m, ⟨by finish,
-    λ hm, have h : m < n, from mem_range.1 hm,
-      mem_bUnion.2 ⟨gcd n m, mem_filter.2
-        ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (zero_le _) h)
-          (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))
+  begin
+    congr,
+    ext m,
+    simp only [mem_bUnion, exists_prop, mem_filter, and_iff_right_iff_imp, mem_range,
+      exists_eq_right_right'],
+    intro h,
+    exact ⟨lt_of_le_of_lt (gcd_le_left m (pos_of_gt h)) (lt_add_one n), gcd_dvd_left n m⟩,
+  end
 ... = n : card_range _
 
 /-- When `p` is prime, then the totient of `p ^ (n + 1)` is `p ^ n * (p - 1)` -/
@@ -147,7 +150,8 @@ calc φ (p ^ (n + 1))
     = ((range (p ^ (n + 1))).filter (coprime (p ^ (n + 1)))).card :
   totient_eq_card_coprime _
 ... = (range (p ^ (n + 1)) \ ((range (p ^ n)).image (* p))).card :
-  congr_arg card begin
+  begin
+    congr,
     rw [sdiff_eq_filter],
     apply filter_congr,
     simp only [mem_range, mem_filter, coprime_pow_left_iff n.succ_pos,

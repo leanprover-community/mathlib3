@@ -141,6 +141,7 @@ def zero_default : total_function α β →
                    total_function α β
 | (with_default A y) := with_default A 0
 
+variables [sampleable α] [sampleable β]
 /-- The suppport of a zero default `total_function`. -/
 @[simp]
 def zero_default_supp : total_function α β → finset α

@@ -29,14 +29,14 @@ to mean "decreasing".
 
 ## Main theorems
 
-* `monotone_nat_of_le_succ`: If `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
-  monotone.
-* `antitone_nat_of_succ_le`: If `f : ℕ → α` and `f (n + 1) ≤ f n` for all `n`, then `f` is
-  antitone.
-* `strict_mono_nat_of_lt_succ`: If `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is
-  strictly monotone.
-* `strict_anti_nat_of_succ_lt`: If `f : ℕ → α` and `f (n + 1) < f n` for all `n`, then `f` is
-  strictly antitone.
+* `monotone_nat_of_le_succ`, `monotone_int_of_le_succ`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f n ≤ f (n + 1)` for all `n`, then `f` is monotone.
+* `antitone_nat_of_succ_le`, `antitone_int_of_succ_le`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f (n + 1) ≤ f n` for all `n`, then `f` is antitone.
+* `strict_mono_nat_of_lt_succ`, `strict_mono_int_of_lt_succ`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f n < f (n + 1)` for all `n`, then `f` is strictly monotone.
+* `strict_anti_nat_of_succ_lt`, `strict_anti_int_of_succ_lt`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f (n + 1) < f n` for all `n`, then `f` is strictly antitone.
 
 ## Implementation notes
 

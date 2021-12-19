@@ -1,0 +1,200 @@
+/-
+Copyright (c) 2021 Yaël Dillies. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies
+-/
+import data.finset.locally_finite
+import data.finsupp.basic
+
+open finset
+open_locale big_operators pointwise
+
+section dite
+variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) {P Q : Prop} [decidable P] [decidable Q]
+  {a b c : α}
+
+lemma exists_iff_of_forall {Q : P → Prop} (h : ∀ h, Q h) : (∃ h, Q h) ↔ P :=
+⟨Exists.fst, λ H, ⟨H, h H⟩⟩
+
+lemma dite_eq_iff {a : P → α} {b : ¬ P → α} : dite P a b = c ↔ (∃ h, a h = c) ∨ ∃ h, b h = c :=
+by by_cases P; simp *
+
+@[simp] lemma dite_eq_left_iff {b : ¬ P → α} : dite P (λ _, a) b = a ↔ ∀ h, b h = a :=
+by by_cases P; simp *
+
+@[simp] lemma dite_eq_right_iff {a : P → α} : dite P a (λ _, b) = b ↔ ∀ h, a h = b :=
+by by_cases P; simp *
+
+lemma dite_ne_left_iff {b : ¬ P → α} : dite P (λ _, a) b ≠ a ↔ ∃ h, a ≠ b h :=
+by { rw [ne.def, dite_eq_left_iff, not_forall], exact exists_congr (λ h, by rw ne_comm) }
+
+lemma dite_ne_right_iff {a : P → α} : dite P a (λ _, b) ≠ b ↔ ∃ h, a h ≠ b :=
+by simp_rw [ne.def, dite_eq_right_iff, not_forall]
+
+protected lemma ne.dite_eq_left_iff {b : ¬ P → α} (h' : ∀ h, a ≠ b h) : dite P (λ _, a) b = a ↔ P :=
+dite_eq_left_iff.trans $ ⟨λ H, of_not_not $ λ h, h' h (H h).symm, λ h H, (H h).elim⟩
+
+protected lemma ne.dite_eq_right_iff {a : P → α} (h : ∀ h', a h' ≠ b) :
+  dite P a (λ _, b) = b ↔ ¬ P :=
+dite_eq_right_iff.trans $ ⟨λ H h', h h' (H h'), λ h' H, (h' H).elim⟩
+
+protected lemma ne.dite_ne_left_iff {b : ¬ P → α} (h : ∀ h', a ≠ b h') :
+  dite P (λ _, a) b ≠ a ↔ ¬ P :=
+dite_ne_left_iff.trans $ exists_iff_of_forall h
+
+protected lemma ne.dite_ne_right_iff {a : P → α} (h : ∀ h', a h' ≠ b) : dite P a (λ _, b) ≠ b ↔ P :=
+dite_ne_right_iff.trans $ exists_iff_of_forall h
+
+end dite
+
+variables {ι α : Type*}
+
+namespace finsupp
+variables [has_zero α] [decidable_eq α]
+
+open function
+
+/-- Create an element of `ι →₀ α` from a finset `s` and a function `f` defined on this finset. -/
+def indicator (s : finset ι) [decidable_pred (∈ s)] (f : Π i ∈ s, α) : ι →₀ α :=
+{ to_fun := λ i, if H : i ∈ s then f i H else 0,
+  support := (s.attach.filter $ λ i : s, f i.1 i.2 ≠ 0).map $ embedding.subtype _,
+  mem_support_to_fun := λ i, begin
+    rw [mem_map, dite_ne_right_iff],
+    exact ⟨λ ⟨⟨j, hj⟩, hf, rfl⟩, ⟨hj, (mem_filter.1 hf).2⟩,
+      λ ⟨hi, hf⟩, ⟨⟨i, hi⟩, mem_filter.2 $ ⟨mem_attach _ _, hf⟩, rfl⟩⟩,
+  end }
+
+@[simp] lemma indicator_apply (s : finset ι) [decidable_pred (∈ s)] (f : Π i ∈ s, α) (i : ι) :
+  indicator s f i = if hi : i ∈ s then f i hi else 0 :=
+rfl
+
+@[simp] lemma indicator_of_mem {s : finset ι} [decidable_pred (∈ s)] {i : ι} (hi : i ∈ s)
+  (f : Π i ∈ s, α) :
+  indicator s f i = f i hi :=
+dif_pos hi
+
+@[simp] lemma indicator_of_not_mem {s : finset ι} [decidable_pred (∈ s)] {i : ι} (hi : i ∉ s)
+  (f : Π i ∈ s, α) :
+  indicator s f i = 0 :=
+dif_neg hi
+
+lemma indicator_injective (s : finset ι) [decidable_pred (∈ s)] :
+  injective (λ f : Π i ∈ s, α, indicator s f) :=
+begin
+  intros a b h,
+  ext i hi,
+  rw [←indicator_of_mem hi a, ←indicator_of_mem hi b],
+  exact congr_fun h i,
+end
+
+lemma support_indicator_subset (s : finset ι) [decidable_pred (∈ s)] (f : Π i ∈ s, α) :
+  ((indicator s f).support : set ι) ⊆ s :=
+begin
+  rintro i hi,
+  rw [mem_coe, mem_support_iff] at hi,
+  by_contra,
+  exact hi (indicator_of_not_mem h _),
+end
+
+-- lemma support_indicator (s : finset ι) [decidable_pred (∈ s)] (f : Π i ∈ s, α) :
+--   ((indicator s f).support : set ι) = s ∩ function.support f :=
+-- sorry
+
+end finsupp
+
+open finsupp
+
+namespace finset
+
+lemma not_mem_subset {s t :finset α} (h : s ⊆ t) {a : α} : a ∉ t → a ∉ s := λ ht hs, ht $ h hs
+
+@[to_additive]
+lemma one_mem_one [has_one α] : (1 : α) ∈ (1 : finset α) := by simp [has_one.one]
+
+variables [decidable_eq ι] [decidable_eq α] [has_zero α]
+
+/-- Finitely supported product of finsets. -/
+def finsupp (s : finset ι) (t : ι → finset α) : finset (ι →₀ α) :=
+(s.pi t).map ⟨indicator s, indicator_injective s⟩
+
+@[simp] lemma mem_finsupp_iff {s : finset ι} {t : ι → finset α} {f : ι →₀ α} :
+  f ∈ s.finsupp t ↔ f.support ⊆ s ∧ ∀ i ∈ s, f i ∈ t i :=
+begin
+  refine mem_map.trans ⟨_, _⟩,
+  { rintro ⟨f, hf, rfl⟩,
+    refine ⟨support_indicator_subset _ _, λ i hi, _⟩,
+    convert mem_pi.1 hf i hi,
+    exact indicator_of_mem hi _ },
+  { refine λ h, ⟨λ i _, f i, mem_pi.2 h.2, _⟩,
+    ext i,
+    dsimp,
+    exact ite_eq_left_iff.2 (λ hi, (not_mem_support_iff.1 $ λ H, hi $ h.1 H).symm) }
+end
+
+/-- -/
+@[simp] lemma mem_finsupp_iff_of_support_subset {s : finset ι} {t : ι →₀ finset α} {f : ι →₀ α}
+  (ht : t.support ⊆ f.support) (hf : f.support ⊆ s) :
+  f ∈ s.finsupp t ↔ ∀ i, f i ∈ t i :=
+begin
+  refine mem_finsupp_iff.trans (forall_and_distrib.symm.trans $ forall_congr $ λ i, ⟨λ h, _,
+    λ h, ⟨λ hi, ht.trans hf $ mem_support_iff.2 $ λ H, mem_support_iff.1 hi _, λ _, h⟩⟩),
+  { by_cases hi : i ∈ f.support,
+    { exact h.2 (h.1 hi) },
+    { rw [not_mem_support_iff.1 hi, not_mem_support_iff.1 (not_mem_subset ht hi)],
+      exact zero_mem_zero } },
+  { rwa [H, mem_zero] at h }
+end
+
+@[simp] lemma card_finsupp (s : finset ι) (t : ι → finset α) :
+  (s.finsupp t).card = ∏ i in s, (t i).card :=
+(card_map _).trans $ card_pi _ _
+
+end finset
+
+open finset
+
+namespace finsupp
+section pi
+variables [decidable_eq ι] [decidable_eq α] [has_zero α]
+
+/-- Given a finitely supported function `f : ι →₀ finset α`, one can define the finset
+`f.pi` of all finitely supported functions whose value at `i` is in `f i` for all `i`. -/
+def pi (f : ι →₀ finset α) : finset (ι →₀ α) := f.support.finsupp f
+-- `f.support.finsupp f`
+
+@[simp] lemma mem_pi {f : ι →₀ finset α} {g : ι →₀ α} : g ∈ f.pi ↔ ∀ i, g i ∈ f i :=
+mem_finsupp_iff_of_support_subset begin
+sorry
+end begin
+sorry
+end
+
+end pi
+
+section locally_finite
+variables [decidable_eq ι] [decidable_eq α] [partial_order α] [has_zero α] [locally_finite_order α]
+
+instance : locally_finite_order (ι →₀ α) :=
+locally_finite_order.of_Icc (ι →₀ α)
+  (λ f g, (f.support ∪ g.support).finsupp $ λ i, Icc (f i) (g i))
+  (λ f g x, begin
+    convert (mem_finsupp_iff_of_support_subset _ _).trans _,
+    -- y simp_rw [mem_finsupp_iff_of_support_subset _ _, mem_Icc, finsupp.le_def, ←forall_and_distrib]
+  end)
+
+variables (f g : ι →₀ α)
+
+lemma card_Icc : (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
+card_finsupp _ _
+
+lemma card_Ico : (Ico f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
+by rw [card_Ico_eq_card_Icc_sub_one, card_Icc]
+
+lemma card_Ioc : (Ioc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
+by rw [card_Ioc_eq_card_Icc_sub_one, card_Icc]
+
+lemma card_Ioo : (Ioo f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 2 :=
+by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
+
+end locally_finite
+end finsupp

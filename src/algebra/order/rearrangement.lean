@@ -32,9 +32,16 @@ open equiv
 
 end vary
 
+open order_dual
+
 namespace finset
 
-/-- Induction principle for `finset` based on the ordering induced by a function. -/
+/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
+ordered type : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
+  `f x ≤ f a`, `p s` implies `p (insert a s)`.  -/
 lemma induction_on_max_value [linear_order α] [decidable_eq ι] (f : ι → α)
   {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x ≤ f a) → p s → p (insert a s)) : p s :=
@@ -52,35 +59,49 @@ begin
     exact le_max' _ _ (mem_image_of_mem _ $  mem_of_mem_erase hx) }
 end
 
-/-- Induction principle for `finset` based on an ordering induced by a pair of functions -/
-lemma finset.induction_on_max' [decidable_eq ι] [linear_order α] [linear_order β] (f : ι → α)
+/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
+ordered type : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
+  `f a ≤ f x`, `p s` implies `p (insert a s)`.  -/
+lemma induction_on_min_value [linear_order α] [decidable_eq ι] (f : ι → α)
+  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
+  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a ≤ f x) → p s → p (insert a s)) : p s :=
+@induction_on_max_value ι (order_dual α) _ _ _ _ s h0 step
+
+/-- Induction principle for `finset`s in any type from which a given functions `f` and `g` map to a
+linearly ordered types : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that it is greater or equal than all elements of
+`s` in the lexicographical order, then `p s` implies `p (insert a s)`.  -/
+lemma induction_on_max_value' [decidable_eq ι] [linear_order α] [linear_order β] (f : ι → α)
   (g : ι → β) {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x < f a ∨ (f x = f a ∧ g x ≤ g a)) → p s → p (insert a s)) :
   p s :=
 begin
-  induction s using finset.strong_induction_on with s ihs,
-  rcases (s.image f).eq_empty_or_nonempty with hne|hne,
-  { simp only [image_eq_empty] at hne,
-    simp only [hne, h0] },
-  set t : finset ι := s.filter (λ x, f x = (s.image f).max' hne) with ht,
-  obtain ⟨b, hb, hfb⟩ := mem_image.1 (max'_mem _ hne),
-  have htmax : (t.image g).max' _ ∈ t.image g := max'_mem _
-    (nonempty.image ⟨b, mem_filter.2 ⟨hb, hfb⟩⟩ _),
-  simp only [mem_image, exists_prop, mem_filter] at htmax,
-  rcases htmax with ⟨a, ⟨has, hat⟩, hag⟩,
-  rw ← insert_erase has,
-  refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
-  rw or_iff_not_imp_left,
-  intro hfxa,
-  obtain hfxa | hfxa := (not_lt.1 hfxa).eq_or_lt,
-  { rw hag,
-    refine ⟨hfxa.symm, le_max' _ _ $ mem_image_of_mem _ $ mem_filter.2 ⟨mem_of_mem_erase hx, _⟩⟩,
-    rw [←hfxa, hat] },
-  { simp only [← not_le] at hfxa,
-    refine (hfxa _).elim,
-    simp only [hat],
-    exact le_max' _ _ (mem_image_of_mem _ $ mem_of_mem_erase hx) }
+  revert h0 step,
+  convert @induction_on_max_value ι (lex α β) _ _ (λ i, (prod.map f g) (i, i)) p s,
+  simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
 end
+
+/-- Induction principle for `finset`s in any type from which a given functions `f` and `g` map to a
+linearly ordered types : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that it is greater or equal than all elements of
+`s` in the lexicographical order, then `p s` implies `p (insert a s)`.  -/
+lemma induction_on_min_value' [decidable_eq ι] [linear_order α] [linear_order β] (f : ι → α)
+  (g : ι → β) {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
+  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a < f x ∨ (f a = f x ∧ g a ≤ g x)) → p s → p (insert a s)) :
+  p s :=
+begin
+  revert h0 step,
+  convert @induction_on_min_value ι (lex α β) _ _ (λ i, (prod.map f g) (i, i)) p s,
+  simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
+end
+
 
 end finset
 
@@ -95,7 +116,7 @@ theorem rearrangement_inequality_smul {ι α β : Type*} [decidable_eq ι] [fint
   ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
 begin
   revert hσ σ hfg,
-  apply finset.induction_on_max' g f s,
+  apply finset.induction_on_max_value' g f s,
   { simp only [le_refl, finset.sum_empty, implies_true_iff] },
   { intros a s has hamax hind σ hσ hfg,
     set k := σ a with hk,

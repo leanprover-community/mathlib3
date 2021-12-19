@@ -144,7 +144,9 @@ for `a, b ∈ s`. -/
 def off_diag := (s.product s).filter (λ (a : α × α), a.fst ≠ a.snd)
 
 @[simp] lemma mem_diag (x : α × α) : x ∈ s.diag ↔ x.1 ∈ s ∧ x.1 = x.2 :=
-by { simp only [diag, mem_filter, mem_product], split; intros; finish }
+by { simp only [diag, mem_filter, mem_product], split; intros h,
+     rcases h with ⟨⟨h1, h2⟩, h3⟩, use h1, use h3,
+     rcases h with ⟨h1, h2⟩, simp only [←h2, and_true, eq_self_iff_true, and_self, h1] }
 
 @[simp] lemma mem_off_diag (x : α × α) : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 :=
 by { simp only [off_diag, mem_filter, mem_product], split; intros; finish }

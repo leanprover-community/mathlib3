@@ -15,7 +15,6 @@ and `monoid_algebra`.
 -/
 
 noncomputable theory
-open_locale classical
 
 open finset
 
@@ -36,7 +35,7 @@ instance : has_mul (α →₀ β) := ⟨zip_with (*) (mul_zero 0)⟩
 @[simp] lemma mul_apply {g₁ g₂ : α →₀ β} {a : α} : (g₁ * g₂) a = g₁ a * g₂ a :=
 rfl
 
-lemma support_mul {g₁ g₂ : α →₀ β} : (g₁ * g₂).support ⊆ g₁.support ∩ g₂.support :=
+lemma support_mul [decidable_eq α] {g₁ g₂ : α →₀ β} : (g₁ * g₂).support ⊆ g₁.support ∩ g₂.support :=
 begin
   intros a h,
   simp only [mul_apply, mem_support_iff] at h,

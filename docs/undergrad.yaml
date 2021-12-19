@@ -43,7 +43,7 @@ Linear algebra:
     field-valued matrices: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
     change of basis: 'basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix'
-    rank of a matrix: 'https://en.wikipedia.org/wiki/Rank_(linear_algebra)'
+    rank of a matrix: 'matrix.rank'
     determinant: 'matrix.det'
     invertibility: 'matrix.has_inv'
     elementary row operations: 'https://en.wikipedia.org/wiki/Elementary_matrix#Operations'
@@ -92,7 +92,7 @@ Group Theory:
     conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
-    finite type abelian groups: ''
+    finite type abelian groups: 'https://en.wikipedia.org/wiki/Finitely_generated_abelian_group#Classification'
     complex roots of unity: 'complex.mem_roots_of_unity'
     primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:
@@ -105,19 +105,19 @@ Group Theory:
     general linear group: 'linear_map.general_linear_group'
     special linear group: 'matrix.special_linear_group'
     orthogonal group: 'matrix.orthogonal_group '
-    special orthogonal group: ''
+    special orthogonal group: 'https://en.wikipedia.org/wiki/Orthogonal_group#SO(n)'
     unitary group: 'matrix.unitary_group'
-    special unitary group: ''
+    special unitary group: 'https://en.wikipedia.org/wiki/Special_unitary_group'
   Representation theory of finite groups:
-    representations of abelian groups: ''
-    dual groups: ''
-    Maschke theorem: ''
-    orthogonality of irreducible characters: ''
-    Fourier transform for finite abelian groups: ''
-    convolution: ''
-    class function over a group: ''
-    characters of a finite dimensional representation: ''
-    orthonormal basis of irreducible characters: ''
+    representations of abelian groups: 'https://proofwiki.org/wiki/Irreducible_Representations_of_Abelian_Group'
+    dual groups: 'https://kconrad.math.uconn.edu/blurbs/grouptheory/charthy.pdf'
+    Maschke theorem: 'https://en.wikipedia.org/wiki/Maschke%27s_theorem'
+    orthogonality of irreducible characters: 'https://en.wikipedia.org/wiki/Schur_orthogonality_relations'
+    Fourier transform for finite abelian groups: 'https://en.wikipedia.org/wiki/Fourier_transform_on_finite_groups#Fourier_transform_for_finite_abelian_groups'
+    convolution: 'https://en.wikipedia.org/wiki/Fourier_transform_on_finite_groups#Transform_of_a_convolution'
+    class function over a group: 'https://en.wikipedia.org/wiki/Class_function'
+    characters of a finite dimensional representation: 'https://en.wikipedia.org/wiki/Character_theory'
+    orthonormal basis of irreducible characters: 'https://en.wikipedia.org/wiki/Character_theory#Orthogonality_relations'
     examples of groups with small cardinality: ''
 
 # 3.
@@ -135,7 +135,7 @@ Ring Theory:
     maximal ideals: 'ideal.is_maximal'
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'
   Algebra:
-    algebra over a commutative ring:
+    algebra over a commutative ring: 'https://en.wikipedia.org/wiki/Algebra_over_a_field#Generalization:_algebra_over_a_ring'
     associative algebra over a commutative ring: 'algebra'
   Divisibility in integral domains:
     irreducible elements: 'irreducible'
@@ -151,19 +151,19 @@ Ring Theory:
     $\Z$ is a euclidean ring: 'int.euclidean_domain'
     congruence in $\Z$: 'int.modeq'
     prime numbers: 'prime'
-    Bézout's identity: '' # todo: prove this for PIDs https://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity
+    Bézout's identity: 'exists_gcd_eq_mul_add_mul'
     $\Z/n\Z$ and its invertible elements: 'zmod.unit_of_coprime'
     Euler's totient function ($\varphi$): 'nat.totient'
   Polynomial rings:
     $K[X]$ is a euclidean ring when $K$ is a field: 'polynomial.euclidean_domain'
     irreducible polynomial: 'irreducible'
-    cyclotomic polynomials in $\Q[X]$: polynomial.cyclotomic'
+    cyclotomic polynomials in $\Q[X]$: 'polynomial.cyclotomic'
     Eisenstein's criterion: 'polynomial.irreducible_of_eisenstein_criterion'
     polynomial algebra in one or several indeterminates over a commutative ring: 'mv_polynomial'
     roots of a polynomial: 'polynomial.roots'
     multiplicity: 'polynomial.root_multiplicity'
-    relationship between the coefficients and the roots of a split polynomial:
-    Newton's identities:
+    relationship between the coefficients and the roots of a split polynomial: 'https://en.wikipedia.org/wiki/Vieta%27s_formulas'
+    Newton's identities: 'https://en.wikipedia.org/wiki/Newton%27s_identities'
     polynomial derivative: 'polynomial.derivative'
     decomposition into sums of homogeneous polynomials: 'mv_polynomial.sum_homogeneous_component'
     symmetric polynomials: 'mv_polynomial.is_symmetric'
@@ -187,8 +187,8 @@ Ring Theory:
     splitting fields: 'polynomial.splitting_field'
     finite fields: 'field_theory/finite.html'
     rational fraction fields with one indeterminate over a field: 'ratfunc'
-    $\R(X)$-partial fraction decomposition:
-    $\C(X)$-partial fraction decomposition:
+    $\R(X)$-partial fraction decomposition: 'https://en.wikipedia.org/wiki/Partial_fraction_decomposition#General_result'
+    $\C(X)$-partial fraction decomposition: 'https://en.wikipedia.org/wiki/Partial_fraction_decomposition#Statement'
 
 # 4.
 Bilinear and Quadratic Forms Over a Vector Space:
@@ -199,17 +199,17 @@ Bilinear and Quadratic Forms Over a Vector Space:
     nondegenerate forms: 'bilin_form.nondegenerate'
     matrix representation: 'bilin_form.to_matrix'
     change of coordinates: 'bilin_form.to_matrix_comp'
-    rank of a bilinear form:
+    rank of a bilinear form: ''
   Quadratic forms:
     quadratic form: 'quadratic_form'
     polar form of a quadratic: 'quadratic_form.polar'
   Orthogonality:
     orthogonal elements: 'bilin_form.is_ortho'
     adjoint endomorphism: 'bilin_form.left_adjoint_of_nondegenerate'
-    Sylvester's law of inertia: 'quadratic_form.equivalent_one_zero_neg_one_weighted_sum_squared'
-    real classification:
-    complex classification:
-    Gram-Schmidt orthogonalisation:
+    Sylvester's law of inertia: 'https://en.wikipedia.org/wiki/Sylvester%27s_law_of_inertia'
+    real classification: 'https://en.wikipedia.org/wiki/Sylvester%27s_law_of_inertia'
+    complex classification: ''
+    Gram-Schmidt orthogonalisation: 'https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process'
   Euclidean and Hermitian spaces:
     Euclidean vector spaces: 'inner_product_space'
     Hermitian vector spaces: 'inner_product_space'
@@ -219,23 +219,23 @@ Bilinear and Quadratic Forms Over a Vector Space:
     norm: 'inner_product_space.of_core.to_has_norm'
     orthonormal bases: 'maximal_orthonormal_iff_basis_of_finite_dimensional'
   Endomorphisms:
-    orthogonal group:
-    unitary group:
-    special orthogonal group:
-    special unitary group:
+    orthogonal group: ''
+    unitary group: ''
+    special orthogonal group: ''
+    special unitary group: ''
     self-adjoint endomorphism: 'is_self_adjoint'
-    normal endomorphism:
+    normal endomorphism: 'https://en.wikipedia.org/wiki/Normal_operator'
     diagonalization of a self-adjoint endomorphism: 'is_self_adjoint.diagonalization_basis_apply_self_apply'
-    diagonalization of normal endomorphisms:
-    simultaneous diagonalization of two real quadratic forms, with one positive-definite:
+    diagonalization of normal endomorphisms: 'https://en.wikipedia.org/wiki/Spectral_theorem#Normal_matrices'
+    simultaneous diagonalization of two real quadratic forms, with one positive-definite: 'https://fr.wikipedia.org/wiki/Th%C3%A9or%C3%A8me_spectral#Formalisation_alg%C3%A9brique'
     decomposition of an orthogonal transformation as a product of reflections: 'linear_isometry_equiv.reflections_generate'
-    polar decompositions in $\mathrm{GL}(n, \R)$:
-    polar decompositions in $\mathrm{GL}(n, \C)$:
+    polar decompositions in $\mathrm{GL}(n, \R)$: 'https://en.wikipedia.org/wiki/Polar_decomposition'
+    polar decompositions in $\mathrm{GL}(n, \C)$: 'https://en.wikipedia.org/wiki/Polar_decomposition'
   Low dimensions:
-    cross product:
-    triple product:
-    classification of elements of $\mathrm{O}(2, \R)$:
-    classification of elements of $\mathrm{O}(3, \R)$:
+    cross product: 'https://en.wikipedia.org/wiki/Cross_product'
+    triple product: 'https://en.wikipedia.org/wiki/Triple_product'
+    classification of elements of $\mathrm{O}(2, \R)$: ''
+    classification of elements of $\mathrm{O}(3, \R)$: ''
 
 # 5.
 Affine and Euclidean Geometry:
@@ -245,11 +245,11 @@ Affine and Euclidean Geometry:
     affine subspace: 'affine_subspace'
     barycenter: 'finset.affine_combination'
     affine span: 'span_points'
-    equations of affine subspace:
-    affine groups:
-    affine property:
-    group generated by homotheties and translations:
-    transformations fixing a basis of directions: # "affinité", no good English translation
+    equations of affine subspace: ''
+    affine groups: 'affine_equiv.group'
+    affine property: 'https://en.wikipedia.org/wiki/Affine_transformation#Properties'
+    group generated by homotheties and translations: 'https://en.wikipedia.org/wiki/Homothety'
+    transformations fixing a basis of directions: 'https://fr.wikipedia.org/wiki/Affinit%C3%A9_(math%C3%A9matiques)' # "affinité", no good English translation
   Convexity:
     convex subsets: 'convex'
     convex hull of a subset of an affine real space: 'convex_hull'
@@ -257,21 +257,21 @@ Affine and Euclidean Geometry:
   Euclidean affine spaces:
     isometries of a Euclidean affine space: 'affine_isometry_equiv'
     group of isometries of a Euclidean affine space: 'affine_isometry_equiv.group'
-    isometries that do and do not preserve orientation:
-    direct and opposite similarities of the plane:
-    classification of isometries in two and three dimensions:
+    isometries that do and do not preserve orientation: ''
+    direct and opposite similarities of the plane: ''
+    classification of isometries in two and three dimensions: ''
     angles between vectors: 'inner_product_geometry.angle'
-    angles between planes:
-    inscribed angle theorem:
-    cocyclicity:
-    group of isometries stabilizing a subset of the plane or of space:
-    regular polygons:
-    metric relations in the triangle:
-    using complex numbers in plane geometry:
+    angles between planes: ''
+    inscribed angle theorem: ''
+    cocyclicity: ''
+    group of isometries stabilizing a subset of the plane or of space: ''
+    regular polygons: ''
+    metric relations in the triangle: ''
+    using complex numbers in plane geometry: ''
   Application of quadratic forms to study proper conic sections of the affine euclidean plane:
-    focus:
-    eccentricity:
-    quadric surfaces in 3-dimensional Euclidean affine spaces:
+    focus: ''
+    eccentricity: ''
+    quadric surfaces in 3-dimensional Euclidean affine spaces: ''
 
 # 6.
 Single Variable Real Analysis:
@@ -293,16 +293,15 @@ Single Variable Real Analysis:
     connected subsets of $\R$: 'set_of_is_preconnected_eq_of_ordered'
     additive subgroups of $\R$: 'real.subgroup_dense_or_cyclic'
   Numerical series:
-    Convergence of real valued-series:
+    Convergence of real valued-series: 'https://en.wikipedia.org/wiki/Series_(mathematics)#Convergent_series'
     Geometric series: 'tsum_geometric_of_norm_lt_1'
     convergence of $p$-series for $p>1$: 'real.summable_one_div_nat_rpow'
-    positive valued series:
-    summation of comparison relations:
-    comparison of a series and an integral:
-    error estimation:
-    absolute convergence:
-    products of series:
-    alternating series:
+    summation of comparison relations: 'http://braise.univ-rennes1.fr/donnees/ParamHTML/S%E9ries%20num%E9riques/con/Sommation%20des%20relations%20de%20comparaison/cst.ps'
+    comparison of a series and an integral: 'https://en.wikipedia.org/wiki/Integral_test_for_convergence'
+    error estimation: 'https://en.wikipedia.org/wiki/Series_(mathematics)#Evaluation_of_truncation_errors'
+    absolute convergence: 'https://en.wikipedia.org/wiki/Absolute_convergence'
+    products of series: 'https://en.wikipedia.org/wiki/Cauchy_product'
+    alternating series: 'https://en.wikipedia.org/wiki/Alternating_series_test'
   Real-valued functions defined on a subset of $\R$:
     continuity: 'continuous'
     limits: 'filter.tendsto'
@@ -319,13 +318,13 @@ Single Variable Real Analysis:
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
     higher order derivatives of functions: 'iterated_deriv'
     $C^k$ functions: 'times_cont_diff'
-    piecewise $C^k$ functions:
+    piecewise $C^k$ functions: 'https://en.wikipedia.org/wiki/Piecewise#Continuity_and_differentiability_of_piecewise_functions'
     Leibniz formula: 'deriv_mul'
   Taylor-like theorems:
-    Taylor's theorem with little-o remainder:
-    Taylor's theorem with integral form for remainder:
-    Taylor's theorem with Lagrange form for remainder:
-    Taylor series expansions:
+    Taylor's theorem with little-o remainder: "https://en.wikipedia.org/wiki/Taylor%27s_theorem#Taylor's_theorem_in_one_real_variable"
+    Taylor's theorem with integral form for remainder: 'https://en.wikipedia.org/wiki/Taylor%27s_theorem#Explicit_formulas_for_the_remainder'
+    Taylor's theorem with Lagrange form for remainder: 'https://en.wikipedia.org/wiki/Taylor%27s_theorem#Explicit_formulas_for_the_remainder'
+    Taylor series expansions: 'https://en.wikipedia.org/wiki/Taylor_series'
   Elementary functions (trigonometric, rational, $\exp$, $\log$, etc):
     polynomial functions: 'polynomial.eval'
     rational functions: 'ratfunc.eval'
@@ -337,26 +336,26 @@ Single Variable Real Analysis:
     inverse trigonometric functions: 'real.arcsin'
     inverse hyperbolic trigonometric functions: 'real.arsinh'
   Integration:
-    integral over a segment of piecewise continuous functions:
-    antiderivatives:
-    Riemann sums:
+    integral over a segment of piecewise continuous functions: ''
+    antiderivatives: 'https://en.wikipedia.org/wiki/Antiderivative'
+    Riemann sums: 'https://en.wikipedia.org/wiki/Riemann_sum'
     antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
-    change of variable:
+    change of variable: ''
     integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'
-    improper integrals:
-    absolute vs conditional convergence of improper integrals:
-    comparison test for improper integrals:
+    improper integrals: 'https://en.wikipedia.org/wiki/Improper_integral'
+    absolute vs conditional convergence of improper integrals: 'https://en.wikipedia.org/wiki/Conditional_convergence'
+    comparison test for improper integrals: 'https://mathbooks.unl.edu/Calculus/sec-5-11-comparison.html'
   Sequences and series of functions:
-    pointwise convergence:
+    pointwise convergence: 'https://en.wikipedia.org/wiki/Pointwise_convergence'
     uniform convergence: 'tendsto_uniformly'
-    normal convergence:
+    normal convergence: 'https://en.wikipedia.org/wiki/Normal_convergence'
     continuity of the limit: 'continuous_of_uniform_approx_of_continuous'
-    differentiability of the limit:
+    differentiability of the limit: 'https://en.wikipedia.org/wiki/Uniform_convergence#To_differentiability'
     Weierstrass polynomial approximation theorem: 'polynomial_functions_closure_eq_top'
     Weierstrass trigonometric approximation theorem: 'span_fourier_closure_eq_top'
   Convexity:
     convex functions of a real variable: 'convex_on'
-    continuity and differentiability of convex functions:
+    continuity and differentiability of convex functions: 'https://en.wikipedia.org/wiki/Convex_function#Functions_of_one_variable'
     characterizations of convexity: 'convex_on_of_deriv2_nonneg'
     convexity inequalities: 'analysis/mean_inequalities.html'
 
@@ -367,29 +366,29 @@ Single Variable Complex Analysis:
 #    properties of sums of complex valued series on their disks of convergence: (this is a heading?)
     continuity: 'has_fpower_series_on_ball.continuous_on'
     differentiability with respect to the complex variable: 'has_fpower_series_on_ball.differentiable_on'
-    antiderivative:
+    antiderivative: ''
     complex exponential: 'complex.exp'
     extension of trigonometric functions to the complex plane: 'complex.sin'
-    power series expansion of elementary functions:
+    power series expansion of elementary functions: ''
   Functions on one complex variable:
-    holomorphic functions:
-    Cauchy-Riemann conditions:
-    contour integrals of continuous functions in $\C$:
-    antiderivatives of a holomorphic function:
-    representations of the $\log$ function on $\C$:
-    theorem of holomorphic functions under integral domains:
-    winding number of a closed curve in $\C$ with respect to a point:
-    Cauchy formulas:
-    analyticity of a holomorphic function:
-    principle of isolated zeros:
-    principle of analytic continuation:
-    maximum principle:
-    isolated singularities:
-    Laurent series:
-    meromorphic functions:
-    residue theorem:
-    sequences and series of holomorphic functions:
-    holomorphic stability under uniform convergence:
+    holomorphic functions: ''
+    Cauchy-Riemann conditions: ''
+    contour integrals of continuous functions in $\C$: ''
+    antiderivatives of a holomorphic function: ''
+    representations of the $\log$ function on $\C$: ''
+    theorem of holomorphic functions under integral domains: ''
+    winding number of a closed curve in $\C$ with respect to a point: ''
+    Cauchy formulas: ''
+    analyticity of a holomorphic function: ''
+    principle of isolated zeros: ''
+    principle of analytic continuation: ''
+    maximum principle: ''
+    isolated singularities: ''
+    Laurent series: ''
+    meromorphic functions: ''
+    residue theorem: ''
+    sequences and series of holomorphic functions: ''
+    holomorphic stability under uniform convergence: ''
 
 # 8.
 Topology:
@@ -413,7 +412,7 @@ Topology:
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
     topology on a normed vector space: 'semi_normed_space.has_bounded_smul'
-    equivalent norms:
+    equivalent norms: ''
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
     norms $\lVert\cdot\rVert_p$ on $\R^n$ and $\C^n$: 'pi_Lp.normed_space'
@@ -437,28 +436,28 @@ Topology:
     example, the Hilbert basis of trigonometric polynomials: 'fourier_Lp'
     its orthonormality: 'orthonormal_fourier'
     its completeness: 'span_fourier_Lp_closure_eq_top'
-    example, classical Hilbert bases of orthogonal polynomials, their orthonormality and completeness:
-    Lax-Milgram theorem:
-    $H^1_0([0,1])$ and its application to the one-dimensional Dirichlet problem:
+    example, classical Hilbert bases of orthogonal polynomials, their orthonormality and completeness: ''
+    Lax-Milgram theorem: ''
+    $H^1_0([0,1])$ and its application to the one-dimensional Dirichlet problem: ''
 
 # 9.
 Multivariable calculus:
   Differential calculus:
     differentiable functions on an open subset of $\R^n$: 'differentiable_on'
     differentials (linear tangent functions): 'fderiv'
-    directional derivative:
-    partial derivatives:
-    Jacobian matrix:
-    gradient vector:
-    Hessian matrix:
+    directional derivative: ''
+    partial derivatives: ''
+    Jacobian matrix: ''
+    gradient vector: ''
+    Hessian matrix: ''
     chain rule: 'fderiv.comp'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
     differentiable functions: 'differentiable'
     $k$-times continuously differentiable functions: 'times_cont_diff'
-    $k$-th order partial derivatives:
+    $k$-th order partial derivatives: ''
     partial derivatives commute: 'second_derivative_symmetric'
-    Taylor's theorem with little-o remainder:
-    Taylor's theorem with integral form for remainder:
+    Taylor's theorem with little-o remainder: ''
+    Taylor's theorem with integral form for remainder: ''
     local extrema: 'is_local_min.fderiv_eq_zero'
     convexity of functions on an open convex subset of $\R^n$: 'convex_on'
     diffeomorphisms: 'structomorph'
@@ -466,27 +465,27 @@ Multivariable calculus:
     implicit function theorem: 'implicit_function_data.implicit_function'
   Differential equations:
     Cauchy-Lipschitz Theorem: 'exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous'
-    maximal solutions:
+    maximal solutions: ''
     Grönwall lemma: 'norm_le_gronwall_bound_of_norm_deriv_right_le'
-    exit theorem of a compact subspace:
-    autonomous differential equations:
-    phase portraits:
-    qualitative behavior:
-    stability of equilibrium points (linearisation theorem):
-    linear differential systems:
-    method of constant variation (Duhamel’s formula):
-    constant coefficient case:
-    solving systems of differential equations of order $> 1$:
+    exit theorem of a compact subspace: ''
+    autonomous differential equations: ''
+    phase portraits: ''
+    qualitative behavior: ''
+    stability of equilibrium points (linearisation theorem): ''
+    linear differential systems: ''
+    method of constant variation (Duhamel’s formula): ''
+    constant coefficient case: ''
+    solving systems of differential equations of order $> 1$: ''
   Submanifolds of $\R^n$:
-    local graphs:
-    local parameterization:
-    local equation:
-    tangent space:
-    position with respect to the tangent plane:
-    gradient:
-    line integral:
-    curve length:
-    Lagrange multipliers:
+    local graphs: ''
+    local parameterization: ''
+    local equation: ''
+    tangent space: ''
+    position with respect to the tangent plane: ''
+    gradient: ''
+    line integral: ''
+    curve length: ''
+    Lagrange multipliers: ''
 
 # 10.
 Measures and integral Calculus:
@@ -509,156 +508,156 @@ Measures and integral Calculus:
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
     finite dimensional vector-valued integrable functions: 'measure_theory.integrable'
     continuity of integrals with respect to parameters: 'interval_integral.continuous_of_dominated_interval'
-    differentiability of integrals with respect to parameters:
+    differentiability of integrals with respect to parameters: ''
     $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$: 'measure_theory.Lp'
     Completeness of $\mathrm{L}^p$ spaces: 'measure_theory.Lp.complete_space'
     Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
-    change of variables for multiple integrals:
-    change of variables to polar co-ordinates:
-    change of variables to spherical co-ordinates:
-    convolution:
-    regularization and approximation by convolution:
+    change of variables for multiple integrals: ''
+    change of variables to polar co-ordinates: ''
+    change of variables to spherical co-ordinates: ''
+    convolution: ''
+    regularization and approximation by convolution: ''
   Fourier Analysis:
-    Fourier series of locally integrable periodic real-valued functions:
-    Riemann-Lebesgue lemma:
-    convolution product of periodic functions:
-    Dirichlet theorem:
-    Fejer theorem:
-    Parseval theorem:
-    Fourier transforms on $\mathrm{L}^1(\R^d)$ and $\mathrm{L}^2(\R^d)$:
-    Plancherel’s theorem:
+    Fourier series of locally integrable periodic real-valued functions: ''
+    Riemann-Lebesgue lemma: ''
+    convolution product of periodic functions: ''
+    Dirichlet theorem: ''
+    Fejer theorem: ''
+    Parseval theorem: ''
+    Fourier transforms on $\mathrm{L}^1(\R^d)$ and $\mathrm{L}^2(\R^d)$: ''
+    Plancherel’s theorem: ''
 
 # 11.
 Probability Theory:
   Definitions of a probability space:
     probability measure: 'measure_theory.is_probability_measure'
-    events:
+    events: ''
     independent events: 'probability_theory.Indep_set'
     sigma-algebra: 'measurable_space'
     independent sigma-algebra: 'probability_theory.Indep'
-    $0$-$1$ law:
+    $0$-$1$ law: ''
     Borel-Cantelli lemma (easy direction): 'measure_theory.measure_limsup_eq_zero'
-    Borel-Cantelli lemma (difficult direction):
-    conditional probability:
-    law of total probability:
+    Borel-Cantelli lemma (difficult direction): ''
+    conditional probability: ''
+    law of total probability: ''
   Random variables and their laws:
     discrete law: 'pmf'
-    absolute continuity of probability laws:
-    probability density function:
-    law of joint probability:
+    absolute continuity of probability laws: ''
+    probability density function: ''
+    law of joint probability: ''
     independence of random variables: 'probability_theory.Indep_fun'
-    mean and variance of a real-valued random variable:
-    transfer theorem:
-    moments:
+    mean and variance of a real-valued random variable: ''
+    transfer theorem: ''
+    moments: ''
     Bernoulli law: 'pmf.bernoulli'
-    binomial law:
-    geometric law:
-    Poisson law:
-    uniform law:
-    exponential law:
-    Gaussian law:
-    characteristic function:
-    probability generating functions:
-    applications of probability generating functions to sums of independent random variables:
+    binomial law: ''
+    geometric law: ''
+    Poisson law: ''
+    uniform law: ''
+    exponential law: ''
+    Gaussian law: ''
+    characteristic function: ''
+    probability generating functions: ''
+    applications of probability generating functions to sums of independent random variables: ''
   Convergence of series of random variables:
-    convergence in probability:
-    $\mathrm{L}^p$ convergence:
+    convergence in probability: ''
+    $\mathrm{L}^p$ convergence: ''
     almost surely convergence: 'measure_theory.measure.ae'
-    Markov inequality:
-    Tchebychev inequality:
-    Levy's theorem:
-    weak law of large numbers:
-    strong law of large numbers:
-    central limit theorem:
+    Markov inequality: ''
+    Tchebychev inequality: ''
+    Levy's theorem: ''
+    weak law of large numbers: ''
+    strong law of large numbers: ''
+    central limit theorem: ''
 
 # 12.
 Distribution calculus:
   Spaces $\mathcal{D}(\R^d)$:
-    smooth functions with compact support on $\R^d$:
-    stability by derivation:
-    stability by multiplication by a smooth function:
-    partitions of unity:
-    constructing approximations of probability density functions in spaces of common functions (trig, exp, rational, log, etc):
+    smooth functions with compact support on $\R^d$: ''
+    stability by derivation: ''
+    stability by multiplication by a smooth function: ''
+    partitions of unity: ''
+    constructing approximations of probability density functions in spaces of common functions (trig, exp, rational, log, etc): ''
   Distributions on $\R^d$:
-    definition of distributions:
-    locally integrable functions:
-    dirac measures:
-    Cauchy principal values:
-    multiplication by a smooth function:
-    probability distribution function from a dataset:
-    convergent distribution series:
-    support of a distribution:
+    definition of distributions: ''
+    locally integrable functions: ''
+    dirac measures: ''
+    Cauchy principal values: ''
+    multiplication by a smooth function: ''
+    probability distribution function from a dataset: ''
+    convergent distribution series: ''
+    support of a distribution: ''
   Spaces $\mathcal{S}(\R^d)$:
-    Schwartz space of rapidly decreasing functions:
-    stability by derivation:
-    stability by multiplication by a slowly growing smooth function:
-    gaussian functions:
-    Fourier transforms on $\mathcal{S}(\R^d)$:
-    convolution of two functions of $\mathcal{S}(\R^d)$:
+    Schwartz space of rapidly decreasing functions: ''
+    stability by derivation: ''
+    stability by multiplication by a slowly growing smooth function: ''
+    gaussian functions: ''
+    Fourier transforms on $\mathcal{S}(\R^d)$: ''
+    convolution of two functions of $\mathcal{S}(\R^d)$: ''
   Tempered distributions:
-    definition:
-    derivation of tempered distributions:
-    multiplication by a function $C^\infty$ of slow growth:
-    $L^2$ functions and Riesz representation:
-    $L^p$ functions:
-    periodic functions:
-    Dirac comb:
-    Fourier transforms:
-    inverse Fourier transform:
-    Fourier transform and derivation:
-    Fourier transform and convolution product:
+    definition: ''
+    derivation of tempered distributions: ''
+    multiplication by a function $C^\infty$ of slow growth: ''
+    $L^2$ functions and Riesz representation: ''
+    $L^p$ functions: ''
+    periodic functions: ''
+    Dirac comb: ''
+    Fourier transforms: ''
+    inverse Fourier transform: ''
+    Fourier transform and derivation: ''
+    Fourier transform and convolution product: ''
   Applications:
-    Poisson’s formula:
-    using convolution and Fourier-Laplace transform to solve one dimensional linear differential equations:
-    weak solution of partial derivative equation:
-    fundamental solution of the Laplacian:
-    solving the Laplace equations:
-    heat equations:
-    wave equations:
+    Poisson’s formula: ''
+    using convolution and Fourier-Laplace transform to solve one dimensional linear differential equations: ''
+    weak solution of partial derivative equation: ''
+    fundamental solution of the Laplacian: ''
+    solving the Laplace equations: ''
+    heat equations: ''
+    wave equations: ''
 
 # 13.
 Numerical Analysis:
   Solving systems of linear inequalities:
-    conditioning:
-    Gershgorin-Hadamard theorem:
-    Gauss’s pivot:
-    LU decomposition:
+    conditioning: ''
+    Gershgorin-Hadamard theorem: ''
+    Gauss’s pivot: ''
+    LU decomposition: ''
   Iterative methods:
-    Jacobian:
-    Gauss-Seidel:
-    convergence analysis:
-    spectral ray:
-    singular value decomposition:
-    example of discretisation matrix by finite differences of the laplacian in one dimension:
+    Jacobian: ''
+    Gauss-Seidel: ''
+    convergence analysis: ''
+    spectral ray: ''
+    singular value decomposition: ''
+    example of discretisation matrix by finite differences of the laplacian in one dimension: ''
   Iterative methods of solving systems of real and vector valued equations:
-    linear systems case:
-    proper element search:
-    brute force method:
-    optimization of convex function in finite dimension:
-    gradient descent square root:
-    nonlinear problems with real and vector values:
-    bisection method:
-    Picard method:
-    Newton’s method:
-    rate of convergence and estimation of error:
+    linear systems case: ''
+    proper element search: ''
+    brute force method: ''
+    optimization of convex function in finite dimension: ''
+    gradient descent square root: ''
+    nonlinear problems with real and vector values: ''
+    bisection method: ''
+    Picard method: ''
+    Newton’s method: ''
+    rate of convergence and estimation of error: ''
   Numerical integration:
-    Rectangle method:
-    error estimation:
-    Monte-Carlo method:
-    rate of convergence:
-    application to the calculation of multiple integrals:
+    Rectangle method: ''
+    error estimation: ''
+    Monte-Carlo method: ''
+    rate of convergence: ''
+    application to the calculation of multiple integrals: ''
   Approximation of numerical functions:
-    Lagrange interpolation:
-    Lagrange polynomial of a function at (n + 1) points:
-    estimation of the error:
+    Lagrange interpolation: ''
+    Lagrange polynomial of a function at (n + 1) points: ''
+    estimation of the error: ''
   Ordinary differential equations:
-    numerical aspects of Cauchy's problem:
-    explicit Euler method:
-    consistency:
-    stability:
-    convergence:
-    order:
+    numerical aspects of Cauchy's problem: ''
+    explicit Euler method: ''
+    consistency: ''
+    stability: ''
+    convergence: ''
+    order: ''
   Fourier transform:
-    discrete Fourier transform on a finite abelian group:
-    fast Fourier transform:
+    discrete Fourier transform on a finite abelian group: ''
+    fast Fourier transform: ''

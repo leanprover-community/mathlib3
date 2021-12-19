@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Oliver Nash
 -/
-import data.finset.basic
+import data.finset.card
 
 /-!
 # Finsets in product types
@@ -104,6 +104,18 @@ let ⟨xy, hxy⟩ := h in ⟨xy.2, (mem_product.1 hxy).2⟩
 
 @[simp] lemma nonempty_product : (s.product t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.product h.2⟩
+
+@[simp] lemma singleton_product {a : α} :
+  ({a} : finset α).product t = t.map ⟨prod.mk a, prod.mk.inj_left _⟩ :=
+by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
+
+@[simp] lemma product_singleton {b : β} :
+  s.product {b} = s.map ⟨λ i, (i, b), prod.mk.inj_right _⟩ :=
+by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
+
+lemma singleton_product_singleton {a : α} {b : β} :
+  ({a} : finset α).product ({b} : finset β) = {(a, b)} :=
+by simp only [product_singleton, function.embedding.coe_fn_mk, map_singleton]
 
 @[simp] lemma union_product [decidable_eq α] [decidable_eq β] :
   (s ∪ s').product t = s.product t ∪ s'.product t :=

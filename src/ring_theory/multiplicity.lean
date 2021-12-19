@@ -298,9 +298,9 @@ end
 
 end comm_ring
 
-section comm_cancel_monoid_with_zero
+section cancel_comm_monoid_with_zero
 
-variables [comm_cancel_monoid_with_zero α]
+variables [cancel_comm_monoid_with_zero α]
 
 lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
   ¬p ^ (n + 1) ∣ a → ¬p ^ (m + 1) ∣ b → ¬p ^ (n + m + 1) ∣ a * b
@@ -433,7 +433,7 @@ lemma multiplicity_pow_self_of_prime {p : α} (hp : prime p) (n : ℕ) :
 multiplicity_pow_self hp.ne_zero hp.not_unit n
 
 
-end comm_cancel_monoid_with_zero
+end cancel_comm_monoid_with_zero
 
 section valuation
 

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Mario Carneiro, Yaël Dillies
 -/
 import order.compare
 import order.order_dual
+import order.rel_classes
 
 /-!
 # Monotonicity
@@ -28,14 +29,14 @@ to mean "decreasing".
 
 ## Main theorems
 
-* `monotone_nat_of_le_succ`: If `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
-  monotone.
-* `antitone_nat_of_succ_le`: If `f : ℕ → α` and `f (n + 1) ≤ f n` for all `n`, then `f` is
-  antitone.
-* `strict_mono_nat_of_lt_succ`: If `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is
-  strictly monotone.
-* `strict_anti_nat_of_succ_lt`: If `f : ℕ → α` and `f (n + 1) < f n` for all `n`, then `f` is
-  strictly antitone.
+* `monotone_nat_of_le_succ`, `monotone_int_of_le_succ`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f n ≤ f (n + 1)` for all `n`, then `f` is monotone.
+* `antitone_nat_of_succ_le`, `antitone_int_of_succ_le`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f (n + 1) ≤ f n` for all `n`, then `f` is antitone.
+* `strict_mono_nat_of_lt_succ`, `strict_mono_int_of_lt_succ`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f n < f (n + 1)` for all `n`, then `f` is strictly monotone.
+* `strict_anti_nat_of_succ_lt`, `strict_anti_int_of_succ_lt`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f (n + 1) < f n` for all `n`, then `f` is strictly antitone.
 
 ## Implementation notes
 
@@ -46,7 +47,7 @@ https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Order.20dia
 
 ## TODO
 
-The above theorems are also true in `ℤ`, `ℕ+`, `fin n`... To make that work, we need `succ_order α`
+The above theorems are also true in `ℕ+`, `fin n`... To make that work, we need `succ_order α`
 along with another typeclass we don't yet have roughly stating "everything is reachable using
 finitely many `succ`".
 
@@ -539,38 +540,70 @@ end linear_order
 section preorder
 variables [preorder α]
 
-lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
-  monotone f | n m h :=
+lemma forall_nat_ge_lt_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_trans β r]
+  {f : ℕ → β} {a : ℕ} (h : ∀ n, a ≤ n → r (f n) (f (n + 1))) ⦃b c : ℕ⦄
+  (hab : a ≤ b) (hbc : b < c) :
+  r (f b) (f c) :=
 begin
-  induction h,
-  { refl },
-  { transitivity, assumption, exact hf _ }
+  induction hbc with k b_lt_k r_b_k,
+  exacts [h _ hab, trans r_b_k (h _ (hab.trans_lt b_lt_k).le)]
 end
+
+lemma forall_nat_ge_le_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_refl β r] [is_trans β r]
+  {f : ℕ → β} {a : ℕ} (h : ∀ n, a ≤ n → r (f n) (f (n + 1))) ⦃b c : ℕ⦄
+  (hab : a ≤ b) (hbc : b ≤ c) :
+  r (f b) (f c) :=
+hbc.eq_or_lt.elim (λ h, h ▸ refl _) (forall_nat_ge_lt_imp_rel_of_forall_rel_succ r h hab)
+
+lemma forall_nat_lt_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_trans β r]
+  {f : ℕ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℕ⦄ (hab : a < b) : r (f a) (f b) :=
+forall_nat_ge_lt_imp_rel_of_forall_rel_succ r (λ n _, h n) le_rfl hab
+
+lemma forall_nat_le_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_refl β r] [is_trans β r]
+  {f : ℕ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℕ⦄ (hab : a ≤ b) : r (f a) (f b) :=
+forall_nat_ge_le_imp_rel_of_forall_rel_succ r (λ n _, h n) le_rfl hab
+
+lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
+  monotone f :=
+forall_nat_le_imp_rel_of_forall_rel_succ (≤) hf
 
 lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
-  antitone f | n m h :=
-begin
-  induction h,
-  { refl },
-  { transitivity, exact hf _, assumption }
-end
+  antitone f :=
+@monotone_nat_of_le_succ (order_dual α) _ _ hf
 
-lemma strict_mono_nat_of_lt_succ [preorder β] {f : ℕ → β} (hf : ∀ n, f n < f (n + 1)) :
+lemma strict_mono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) :
   strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply hf, exact ih.trans (hf _) }
+forall_nat_lt_imp_rel_of_forall_rel_succ (<) hf
 
-lemma strict_anti_nat_of_succ_lt [preorder β] {f : ℕ → β} (hf : ∀ n, f (n + 1) < f n) :
+lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) :
   strict_anti f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply hf, exact (hf _).trans ih }
+@strict_mono_nat_of_lt_succ (order_dual α) _ f hf
 
-lemma forall_ge_le_of_forall_le_succ (f : ℕ → α) {a : ℕ} (h : ∀ n, a ≤ n → f n.succ ≤ f n) {b c : ℕ}
-  (hab : a ≤ b) (hbc : b ≤ c) :
-  f c ≤ f b :=
+lemma forall_int_lt_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_trans β r]
+  {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a < b) : r (f a) (f b) :=
 begin
-  induction hbc with k hbk hkb,
-  { exact le_rfl },
-  { exact (h _ $ hab.trans hbk).trans hkb }
+  rcases hab.dest with ⟨n, rfl⟩, clear hab,
+  induction n with n ihn,
+  { rw int.coe_nat_one, apply h },
+  { rw [int.coe_nat_succ, ← int.add_assoc],
+    exact trans ihn (h _) }
 end
+
+lemma forall_int_le_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_refl β r] [is_trans β r]
+  {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a ≤ b) : r (f a) (f b) :=
+hab.eq_or_lt.elim (λ h, h ▸ refl _) (λ h', forall_int_lt_imp_rel_of_forall_rel_succ r h h')
+
+lemma monotone_int_of_le_succ {f : ℤ → α} (hf : ∀ n, f n ≤ f (n + 1)) : monotone f :=
+forall_int_le_imp_rel_of_forall_rel_succ (≤) hf
+
+lemma antitone_int_of_succ_le {f : ℤ → α} (hf : ∀ n, f (n + 1) ≤ f n) : antitone f :=
+forall_int_le_imp_rel_of_forall_rel_succ (≥) hf
+
+lemma strict_mono_int_of_lt_succ {f : ℤ → α} (hf : ∀ n, f n < f (n + 1)) : strict_mono f :=
+forall_int_lt_imp_rel_of_forall_rel_succ (<) hf
+
+lemma strict_anti_int_of_succ_lt {f : ℤ → α} (hf : ∀ n, f (n + 1) < f n) : strict_anti f :=
+forall_int_lt_imp_rel_of_forall_rel_succ (>) hf
 
 -- TODO@Yael: Generalize the following four to succ orders
 /-- If `f` is a monotone function from `ℕ` to a preorder such that `x` lies between `f n` and

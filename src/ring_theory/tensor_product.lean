@@ -784,15 +784,8 @@ lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b 
 
 @[simp] lemma product_map_right : (product_map f g).comp include_right = g := alg_hom.ext $ by simp
 
-lemma alg_hom.map_sup {R A B : Type*} [comm_semiring R] [semiring A] [semiring B]
-  [algebra R A] [algebra R B] (f : A →ₐ[R] B) (S T : subalgebra R A) :
-  (S ⊔ T).map f = S.map f ⊔ T.map f :=
-le_antisymm (subalgebra.map_le.mpr (sup_le (subalgebra.map_le.mp le_sup_left)
-  (subalgebra.map_le.mp le_sup_right)))
-  (sup_le (subalgebra.map_mono le_sup_left) (subalgebra.map_mono le_sup_right))
-
 lemma product_map_range : (product_map f g).range = f.range ⊔ g.range :=
-by rw [product_map, alg_hom.range_comp, map_range, alg_hom.map_sup, ←alg_hom.range_comp,
+by rw [product_map, alg_hom.range_comp, map_range, map_sup, ←alg_hom.range_comp,
     ←alg_hom.range_comp, ←alg_hom.comp_assoc, ←alg_hom.comp_assoc, lmul'_comp_include_left,
     lmul'_comp_include_right, alg_hom.id_comp, alg_hom.id_comp]
 

@@ -19,7 +19,7 @@ latter lemma to prove that the function `λ x, x⁻¹` is integrable on `a..b` i
 
 * `not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_punctured`: if `f` tends to infinity
   along `𝓝[≠] c` and `f' = O(g)` along the same filter, then `g` is not interval integrable on any
-  nontrivial integral `a..b,` c ∈ [a, b]`.
+  nontrivial integral `a..b`, `c ∈ [a, b]`.
 
 * `not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter`: a version of
   `not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_punctured` that works for one-sided

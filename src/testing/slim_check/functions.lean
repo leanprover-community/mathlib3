@@ -177,10 +177,10 @@ def apply_finsupp (tf : total_function α β) : α →₀ β :=
 instance finsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (α →₀ β) :=
 { proxy_repr := total_function α β,
   interp := total_function.apply_finsupp,
-  sample := do {
+  sample := (do
     xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
     ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
-    pure $ total_function.with_default (list.to_finmap' xs) x },
+    pure $ total_function.with_default (list.to_finmap' xs) x),
   shrink := total_function.shrink }
 
 end finsupp

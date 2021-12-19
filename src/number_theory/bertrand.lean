@@ -19,7 +19,6 @@ import analysis.calculus.local_extr
 import data.real.sqrt
 import data.real.nnreal
 
-
 /-!
 # Bertrand's Postulate
 
@@ -67,7 +66,7 @@ begin
   simp [r, ←two_mul],
   apply trans (pow_le_pow (trans one_le_two hp.out.two_le) _) (_ : p ^ p.log (2 * n) ≤ 2 * n),
   { calc _  ≤ (finset.Ico 1 (nat.log p (2 * n) + 1)).card : finset.card_filter_le _ _
-        ... = (p.log (2 * n) + 1) - 1                     : finset.Ico.card _ _ },
+        ... = (p.log (2 * n) + 1) - 1                     : nat.card_Ico _ _ },
   { apply nat.pow_log_le_self,
     exact hp.out.one_lt,
     linarith, }
@@ -113,7 +112,7 @@ begin
 
   apply finset.filter_false_of_mem,
   intros i i_in_interval,
-  rw finset.Ico.mem at i_in_interval,
+  rw finset.mem_Ico at i_in_interval,
   have three_lt_p : 3 ≤ p ,
   { rcases le_or_lt 3 p with H|H,
     { exact H, },
@@ -177,7 +176,7 @@ begin
   clear r,
   rw finset.card_pos at multiplicity_pos,
   cases multiplicity_pos with m hm,
-  simp only [finset.Ico.mem, finset.mem_filter] at hm,
+  simp only [finset.mem_Ico, finset.mem_filter] at hm,
   calc p = p ^ 1 : (pow_one _).symm
   ...    ≤ p ^ m : nat.pow_le_pow_of_le_right
                     (show 0 < p, from trans zero_lt_one hp.out.one_lt) hm.left.left
@@ -800,443 +799,498 @@ begin
       72 x (by simp) (by simpa using x_big) x_big,
 end
 
-lemma deriv_nonneg {x : ℝ} (x_big : 72 ≤ x) : 0 ≤ fff' x :=
+-- lemma deriv_nonneg {x : ℝ} (x_big : 72 ≤ x) : 0 ≤ fff' x :=
+-- begin
+--   unfold fff',
+--   have r : 8 * x + 8 = 8 * (x + 1), by ring,
+--   rw r,
+--   simp only [zero_le_one, sqrt_mul, zero_le_bit0],
+--   have eight_not_zero : (8 : ℝ) ≠ 0 := by norm_num,
+--   have frac_simp: 8 / (8 * (x + 1)) = 1 / (x + 1), by rw div_mul_right _ eight_not_zero,
+--   rw frac_simp,
+--   rw mul_assoc (sqrt 8) (sqrt (x + 1)) (1 / (x + 1)),
+--   have g : sqrt 8 = 2 * sqrt 2,
+--     { have g : sqrt 8 = sqrt ((2 * 2) * 2), by norm_num,
+--       rw g,
+--       simp, },
+--   have eight_simp : 8 / (2 * (sqrt 8 * sqrt (x + 1))) = (2 / sqrt 2) * (1 / sqrt (x + 1)),
+--     { rw <- mul_assoc 2 (sqrt 8) (sqrt (x + 1)),
+--       rw div_mul_eq_div_mul_one_div,
+--       suffices : 8 / (2 * sqrt 8) = 2 / sqrt 2, by rw this,
+--       rw g,
+--       rw div_mul_eq_div_mul_one_div,
+--       norm_num,
+--       rw div_mul_eq_div_mul_one_div,
+--       rw <- mul_assoc,
+--       norm_num,
+--       rw mul_div_comm,
+--       norm_num, },
+
+--   rw eight_simp, clear eight_simp,
+--   rw g,
+--   rw @foobar (x + 1) (by linarith),
+
+--   have h132 : 0 ≤ 1 / sqrt (x + 1),
+--     {
+--       apply div_nonneg,
+--       linarith,
+--       apply sqrt_nonneg,
+--     },
+
+--   have h133 : sqrt (x + 1) ≠ 0,
+--     {
+--       apply ne_of_gt,
+--       apply sqrt_pos.2,
+--       linarith,
+--     },
+
+--   have h134 : 0 ≤ 1 / sqrt 2,
+--     apply div_nonneg,
+--     linarith,
+--     apply sqrt_nonneg,
+
+--   -- Multiply through by sqrt (x + 1)
+--   suffices: 0 ≤ sqrt (x + 1) * log 4 - (2 / sqrt 2 * log (8 * (x + 1)) + 2 * sqrt 2),
+--     { have h1322 := mul_nonneg h132 this ,
+--       rw mul_sub at h1322,
+--       convert h1322,
+--       simp only [one_div],
+--       rw <-mul_assoc,
+--       rw inv_mul_cancel h133,
+--       simp,
+--       rw mul_add (1 / sqrt (x+1)),
+--       ring,
+--     },
+
+--   -- Multiply through by sqrt 2
+--   suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * log 4 - (2 * log (8 * (x + 1)) + 4),
+--     {
+--       have h1342 := mul_nonneg h134 this ,
+--       convert h1342,
+--       rw mul_sub,
+--       apply congr_arg2,
+--       rw <-mul_assoc,
+--       rw <-mul_assoc,
+--       simp,
+--       rw mul_add (1 / sqrt 2),
+--       apply congr_arg2,
+--       rw <-mul_assoc,
+--       rw mul_comm,
+--       simp,
+--       rw mul_comm,
+--       simp,
+--       left,
+--       rw mul_comm,
+--       rw <-division_def,
+--       -- simp,
+--       exact (@div_sqrt 2).symm,
+--       have h21312 : (4 : ℝ) = 2 * 2,
+--         norm_num,
+--       rw h21312,
+--       conv
+--       begin
+--         to_rhs,
+--         rw mul_comm,
+--         rw mul_assoc,
+--         congr,
+--         skip,
+--         simp,
+--         rw <-division_def,
+--         rw (@div_sqrt 2),
+--       end,
+
+
+--     },
+
+--   suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * (2 * log 2) - 2 * (log (8 * (x + 1)) + 2),
+--     { convert this,
+--       rw <-log_rpow,
+--       congr,
+--       apply symm,
+--       calc (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ ((2 : ℕ) : ℝ) : by simp
+--       ... = (2 : ℝ) ^ (2 : ℕ) : by rw rpow_nat_cast _ 2
+--       ... = 4 : by norm_num,
+--       linarith,
+--       rw mul_add 2 (log (8 * (x + 1))) 2,
+--       norm_num,
+--     },
+
+--   suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2),
+--     { rw <-mul_assoc,
+--       rw mul_comm _ (2 : ℝ),
+--       rw mul_assoc,
+--       rw <-mul_sub,
+--       apply mul_nonneg,
+--       norm_num,
+--       exact this,
+--     },
+
+--   -- Then easy to show it's positive, by taking the derivative.
+--   exact aux_pos x x_big,
+-- end
+
+-- lemma fff_differentiable {i : ℝ} (pr : 0 < i) : differentiable_on ℝ fff (interior (Ici i)) :=
+-- begin
+--   have d : differentiable_on ℝ (λ (x : ℝ), 8 * x + 8) (interior (Ici i)),
+--     { refine differentiable_on.add_const _ _,
+--       refine differentiable_on.const_mul _ _,
+--       refine differentiable_on_id, },
+--   refine differentiable_on.sub _ _,
+--   { refine differentiable_on.mul_const _ _,
+--     refine differentiable_on_id, },
+--   { refine differentiable_on.mul _ _,
+--     { refine differentiable_on.comp _ _ _,
+--       { exact Ici i, },
+--       { refine differentiable_on.sqrt _ _,
+--         { refine differentiable_on_id, },
+--         { intros x,
+--           simp only [mem_Ici, ne.def],
+--           intros x_in,
+--           linarith, }, },
+--       { exact d, },
+--       { intro x,
+--         simp only [interior_Ici, mem_Ici, mem_Ioi, mem_preimage],
+--         intros x_big,
+--         calc i ≤ x : le_of_lt x_big
+--         ... ≤ 8 * x + 8 : by linarith,
+--       }, },
+--     { refine differentiable_on.log _ _,
+--       { exact d, },
+--       { intros x,
+--         simp only [interior_Ici, mem_Ioi, ne.def],
+--         intros x_big,
+--         linarith, }, }, },
+-- end
+
+-- lemma fff_continuous {i : ℝ} (pr : 0 < i) : continuous_on fff (Ici (i : ℝ)) :=
+-- begin
+--   have e := differentiable_on.continuous_on (@fff_differentiable (i / 2) (by linarith)),
+--   have s : Ici i ⊆ interior (Ici (i / 2)),
+--     { simp only [interior_Ici],
+--       intro a,
+--       simp,
+--       intro a_in,
+--       linarith, },
+--   exact continuous_on.mono e s,
+-- end
+
+-- lemma sqrt_four : sqrt 4 = 2 :=
+-- begin
+--   calc sqrt 4 = sqrt (2 * 2) : by norm_num
+--   ... = 2 : sqrt_mul_self (by linarith)
+-- end
+
+
+-- lemma pow_inequality_2008' : (2008 : ℝ) ^ (9 : ℝ) ≤ (4 : ℝ) ^ (50 : ℝ) :=
+-- begin
+--   calc  (2008 : ℝ) ^ (9 : ℝ)
+--       = (2008 : ℝ) ^ ((9 : ℕ) : ℝ) : by simp
+--   ... = (2008 : ℝ) ^ (9 : ℕ) : by rw rpow_nat_cast _ 9
+--   ... = (530729681093308751060012105728 : ℝ) :
+--         begin
+--           norm_num,
+--         end
+--   ... ≤ (1267650600228229401496703205376 : ℝ) : by norm_num
+--   ... = (4 : ℝ) ^ (50 : ℕ) : by norm_num
+--   ... = (4 : ℝ) ^ ((50 : ℕ) : ℝ) : by rw rpow_nat_cast _ 50
+--   ... = (4 : ℝ) ^ (50 : ℝ) : by simp,
+-- end
+
+
+
+-- lemma eleven_sqrt_five_hundred_two : (11 : ℝ) * sqrt 502 ≤ 250 :=
+-- begin
+--   have eleven_nonneg : (0 : ℝ) ≤ 11 := by norm_num,
+--   have t : (11 : ℝ) * sqrt 502 = sqrt (121 * 502),
+--     { calc (11 : ℝ) * sqrt 502 = sqrt (11 ^ 2) * sqrt 502 : by rw sqrt_sq eleven_nonneg
+--       ... = sqrt 121 * sqrt 502 : by norm_num
+--       ... = sqrt (121 * 502) : (sqrt_mul (by norm_num) _).symm, },
+--   have two_fifty_pos : (0 : ℝ) ≤ 250 := by norm_num,
+--   have u : 250 = sqrt 62500,
+--     calc 250 = sqrt (250 ^ 2) : by rw sqrt_sq two_fifty_pos
+--       ... = sqrt 62500 : by norm_num,
+--   rw [t, u],
+--   apply sqrt_le_sqrt,
+--   norm_num,
+-- end
+
+-- lemma fff_250 : 0 ≤ fff 250 :=
+-- begin
+--   unfold fff,
+--   norm_num,
+--   have r : 11 * sqrt 502 < 250,
+--     { have s : (11 * sqrt 502) ^ 2 < 250 ^ 2,
+--       { calc (11 * sqrt 502) ^ 2 = 11 ^ 2 * (sqrt 502) ^ 2 : by rw mul_pow
+--         ... = 121 * (sqrt 502) ^ 2 : by norm_num
+--         ... = 121 * (sqrt 502) ^ (2 : ℕ) : by simp
+--         ... = 121 * ((sqrt 502) * (sqrt 502)) : by ring_exp
+--         ... = 121 * 502 : by rw @mul_self_sqrt 502 (by norm_num)
+--         ... = 60742 : by norm_num
+--         ... < 250 ^ 2 : by norm_num, },
+--       have e := abs_lt_of_sq_lt_sq s (by norm_num),
+--       have u : 0 < 11 * sqrt 502, by norm_num,
+--       have v : abs (11 * sqrt 502) = 11 * sqrt 502 := abs_of_pos u,
+--       rw abs_of_pos u at e,
+--       exact e, },
+
+--   have eight_pow : (8 : ℝ) = 2 ^ 3 := by norm_num,
+--   have two_fifty_six_pow : (256 : ℝ) = 2 ^ 8 := by norm_num,
+
+--   have r : log 251 ≤ log 256 := (@log_le_log 251 256 (by norm_num) (by norm_num)).2 (by norm_num),
+
+--   have two_pos: 0 < (2 : ℝ) := by norm_num,
+
+--     calc sqrt 2008 * log 2008
+--       ≤ 45 * log 2008 :
+--             begin
+--               apply (mul_le_mul_right _).2,
+--               apply (sqrt_le_left _).2,
+--               norm_num,
+--               norm_num,
+--               apply log_pos,
+--               norm_num,
+--             end
+--   ... = log (2008 ^ (45 : ℝ)) :
+--             begin
+--               rw log_rpow,
+--               norm_num,
+--             end
+--   ... ≤ log (4 ^ (250 : ℝ)) :
+--             begin
+--               apply (log_le_log _ _).2,
+--               -- apply rpow_pos_of_pos,
+--               -- norm_num,
+--               apply (@rpow_le_rpow_iff _ _ (1/5) _ _ _).1,
+--               rw <-rpow_mul,
+--               rw <-rpow_mul,
+--               norm_num,
+--               -- norm_num,
+--               exact pow_inequality_2008',
+--               norm_num,
+--               norm_num,
+--               apply rpow_nonneg_of_nonneg,
+--               norm_num,
+--               apply rpow_nonneg_of_nonneg,
+--               norm_num,
+--               norm_num,
+--               apply rpow_pos_of_pos,
+--               norm_num,
+--               apply rpow_pos_of_pos,
+--               norm_num,
+--             end
+--   ... = 250 * log 4 :
+--             begin
+--               rw log_rpow,
+--               norm_num,
+--             end
+-- end
+
+-- lemma linear_dominates_sqrt_log (x : ℝ) (hx : 250 ≤ x)
+--   : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
+-- begin
+--   suffices: 0 ≤ fff x,
+--     { unfold fff at this,
+--       simpa using this, },
+--   have conv : convex (Ici (250 : ℝ)) := convex_Ici _,
+--   have t : ∀ (x : ℝ), x ∈ interior (Ici (250 : ℝ)) → 0 ≤ deriv fff x,
+--     { intros x x_in_interior,
+--       have x_big : 250 < x, by simpa using x_in_interior,
+--       rw @fff'_is_deriv x (by linarith),
+--       exact deriv_nonneg (by linarith), },
+--   calc 0 ≤ fff 250 : fff_250
+--   ... ≤ fff x :
+--     convex.mono_of_deriv_nonneg conv
+--       (fff_continuous (by linarith)) (fff_differentiable (by linarith))
+--       t
+--       250 x (by simp) (by simpa using hx)
+--       hx,
+-- end
+
+-- lemma pow_beats_pow_2 (n : ℕ) (n_large : 250 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
+-- begin
+--   apply (@nat.cast_le ℝ _ _ _ _).1,
+--   calc ↑((8 * n + 8) ^ nat.sqrt (8 * n + 8))
+--       ≤ (↑(8 * n + 8) ^ real.sqrt (↑(8 * n + 8))) :
+--           begin
+--             rw pow_coe,
+--             apply real.rpow_le_rpow_of_exponent_le,
+--               {
+--                 apply nat.one_le_cast.2,
+--                 linarith,
+--                 exact real.nontrivial,
+--               },
+--               {apply nat_sqrt_le_real_sqrt,},
+--           end
+--   ... ≤ ↑(4 ^ n) :
+--           begin
+--             apply (@real.log_le_log _ (↑(4 ^ n)) _ (by norm_num)).1,
+--             { rw real.log_rpow _,
+--               { rw pow_coe,
+--                 rw real.log_rpow,
+--                 { norm_cast,
+--                   norm_num,
+--                   apply linear_dominates_sqrt_log,
+--                   norm_cast,
+--                   exact n_large, },
+--                 { norm_num, },
+--               },
+--               { norm_cast,
+--                 linarith,},
+--             },
+--             { norm_num,
+--               refine rpow_pos_of_pos _ _,
+--               { norm_cast,
+--                 linarith,},
+--             },
+--           end,
+-- end
+
+-- lemma power_conversion_2 (n : ℕ) (n_large : 1003 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
+-- begin
+--   have : 250 ≤ n / 4,
+--     { cases le_or_gt 250 (n / 4),
+--       { exact h, },
+--       { have r : n < n :=
+--           calc n = 4 * (n / 4) + (n % 4) : (nat.div_add_mod n 4).symm
+--             ... < 4 * 250 + (n % 4) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 3)).2 h) _
+--             ... < 4 * 250 + 4 : add_lt_add_left (nat.mod_lt n (by linarith)) _
+--             ... = 1004 : by norm_num
+--             ... ≤ n : by linarith,
+--         exfalso,
+--         exact lt_irrefl _ r, }, },
+--   have rem_small : (n % 4) < 4 := nat.mod_lt n (nat.succ_pos 3),
+--   calc (2 * n) ^ nat.sqrt (2 * n) = (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (2 * (4 * (n / 4)
+--                                     + (n % 4))) : by rw nat.div_add_mod n 4
+--   ... ≤ (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (8 * (n / 4) + 8) :
+--               begin
+--                 apply pow_le_pow,
+--                 -- squeeze_simp,
+--                 rw mul_add,
+--                 rw ←mul_assoc,
+--                 norm_num,
+--                 suffices : 1 ≤ 8 * (n / 4),
+--                   exact le_add_right this,
+--                 linarith,
+--                 apply nat.sqrt_le_sqrt,
+--                 rw mul_add,
+--                 rw ←mul_assoc,
+--                 norm_num,
+--                 -- squeeze_simp,
+--                 linarith,
+--               end
+--   ... ≤ (8 * (n / 4) + 8) ^ nat.sqrt (8 * (n / 4) + 8) :
+--               begin
+--                 apply (nat.pow_le_iff_le_left _).2,
+--                 rw mul_add,
+--                 rw ←mul_assoc,
+--                 norm_num,
+--                 linarith,
+--                 apply nat.le_sqrt.2,
+--                 suffices : 1 * 1 ≤ 8,
+--                   exact le_add_left this,
+--                 norm_num,
+--               end
+--   ... ≤ 4 ^ (n / 4) : pow_beats_pow_2 (n / 4) (by linarith),
+-- end
+
+
+-- lemma fooo (n : ℕ) (n_pos : 1 ≤ n) : n / 15 + n / 4 + (2 * n / 3 + 1) ≤ n :=
+-- begin
+--   suffices: n / 15 + n / 4 + 2 * n / 3 < n, by linarith,
+--   have s1 : (n / 15) * 15 ≤ n := nat.div_mul_le_self n 15,
+--   have s2 : (n / 4) * 4 ≤ n := nat.div_mul_le_self n 4,
+--   have s3 : (2 * n / 3) * 3 ≤ 2 * n := nat.div_mul_le_self (2 * n) 3,
+--   suffices: (n / 15 + n / 4 + 2 * n / 3) * 60 < n * 60, by linarith,
+--   calc (n / 15 + n / 4 + 2 * n / 3) * 60
+--       = n / 15 * 15 * 4 + n / 4 * 4 * 15 + 2 * n / 3 * 3 * 20 : by ring
+--   ... ≤ n * 4 + n * 15 + 2 * n * 20 : by linarith [s1, s2, s3]
+--   ... < n * 60 : by linarith,
+-- end
+
+
+-- lemma false_inequality_is_false {n : ℕ} (n_large : 1003 < n)
+--   : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
+-- begin
+--   rw imp_false,
+--   rw not_lt,
+--   calc (2 * n + 1) * (2 * n) ^ nat.sqrt (2 * n) * 4 ^ (2 * n / 3 + 1)
+--        ≤ (4 ^ (n / 15)) * (2 * n) ^ nat.sqrt (2 * n) * 4 ^ (2 * n / 3 + 1) :
+--           begin
+--             apply (nat.mul_le_mul_right (4 ^ (2 * n / 3 + 1))),
+--             apply (nat.mul_le_mul_right ((2 * n) ^ nat.sqrt (2 * n))),
+--             apply power_conversion_1,
+--             linarith,
+--           end
+--   ...  ≤ (4 ^ (n / 15)) * (4 ^ (n / 4)) * 4 ^ (2 * n / 3 + 1) :
+--           begin
+--             apply (nat.mul_le_mul_right (4 ^ (2 * n / 3 + 1))),
+--             apply (nat.mul_le_mul_left (4 ^ (n / 15))),
+--             apply power_conversion_2,
+--             finish
+--           end
+--   ...  ≤ 4 ^ n :
+--           begin
+--             rw tactic.ring.pow_add_rev,
+--             rw tactic.ring.pow_add_rev,
+--             apply nat.pow_le_pow_of_le_right,
+--             dec_trivial,
+--             exact fooo n (by linarith),
+--           end
+-- end
+
+lemma real_false_inequality_is_false {x : ℝ} (n_large : (1003 : ℝ) < x)
+  : (2 * x + 1) * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3 + 1) ≤ 4 ^ x :=
 begin
-  unfold fff',
-  have r : 8 * x + 8 = 8 * (x + 1), by ring,
-  rw r,
-  simp only [zero_le_one, sqrt_mul, zero_le_bit0],
-  have eight_not_zero : (8 : ℝ) ≠ 0 := by norm_num,
-  have frac_simp: 8 / (8 * (x + 1)) = 1 / (x + 1), by rw div_mul_right _ eight_not_zero,
-  rw frac_simp,
-  rw mul_assoc (sqrt 8) (sqrt (x + 1)) (1 / (x + 1)),
-  have g : sqrt 8 = 2 * sqrt 2,
-    { have g : sqrt 8 = sqrt ((2 * 2) * 2), by norm_num,
-      rw g,
-      simp, },
-  have eight_simp : 8 / (2 * (sqrt 8 * sqrt (x + 1))) = (2 / sqrt 2) * (1 / sqrt (x + 1)),
-    { rw <- mul_assoc 2 (sqrt 8) (sqrt (x + 1)),
-      rw div_mul_eq_div_mul_one_div,
-      suffices : 8 / (2 * sqrt 8) = 2 / sqrt 2, by rw this,
-      rw g,
-      rw div_mul_eq_div_mul_one_div,
-      norm_num,
-      rw div_mul_eq_div_mul_one_div,
-      rw <- mul_assoc,
-      norm_num,
-      rw mul_div_comm,
-      norm_num, },
-
-  rw eight_simp, clear eight_simp,
-  rw g,
-  rw @foobar (x + 1) (by linarith),
-
-  have h132 : 0 ≤ 1 / sqrt (x + 1),
-    {
-      apply div_nonneg,
-      linarith,
-      apply sqrt_nonneg,
-    },
-
-  have h133 : sqrt (x + 1) ≠ 0,
-    {
-      apply ne_of_gt,
-      apply sqrt_pos.2,
-      linarith,
-    },
-
-  have h134 : 0 ≤ 1 / sqrt 2,
-    apply div_nonneg,
-    linarith,
-    apply sqrt_nonneg,
-
-  -- Multiply through by sqrt (x + 1)
-  suffices: 0 ≤ sqrt (x + 1) * log 4 - (2 / sqrt 2 * log (8 * (x + 1)) + 2 * sqrt 2),
-    { have h1322 := mul_nonneg h132 this ,
-      rw mul_sub at h1322,
-      convert h1322,
-      simp only [one_div],
-      rw <-mul_assoc,
-      rw inv_mul_cancel h133,
-      simp,
-      rw mul_add (1 / sqrt (x+1)),
-      ring,
-    },
-
-  -- Multiply through by sqrt 2
-  suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * log 4 - (2 * log (8 * (x + 1)) + 4),
-    {
-      have h1342 := mul_nonneg h134 this ,
-      convert h1342,
-      rw mul_sub,
-      apply congr_arg2,
-      rw <-mul_assoc,
-      rw <-mul_assoc,
-      simp,
-      rw mul_add (1 / sqrt 2),
-      apply congr_arg2,
-      rw <-mul_assoc,
-      rw mul_comm,
-      simp,
-      rw mul_comm,
-      simp,
-      left,
-      rw mul_comm,
-      rw <-division_def,
-      -- simp,
-      exact (@div_sqrt 2).symm,
-      have h21312 : (4 : ℝ) = 2 * 2,
-        norm_num,
-      rw h21312,
-      conv
-      begin
-        to_rhs,
-        rw mul_comm,
-        rw mul_assoc,
-        congr,
-        skip,
-        simp,
-        rw <-division_def,
-        rw (@div_sqrt 2),
-      end,
-
-
-    },
-
-  suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * (2 * log 2) - 2 * (log (8 * (x + 1)) + 2),
-    { convert this,
-      rw <-log_rpow,
-      congr,
-      apply symm,
-      calc (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ ((2 : ℕ) : ℝ) : by simp
-      ... = (2 : ℝ) ^ (2 : ℕ) : by rw rpow_nat_cast _ 2
-      ... = 4 : by norm_num,
-      linarith,
-      rw mul_add 2 (log (8 * (x + 1))) 2,
-      norm_num,
-    },
-
-  suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2),
-    { rw <-mul_assoc,
-      rw mul_comm _ (2 : ℝ),
-      rw mul_assoc,
-      rw <-mul_sub,
-      apply mul_nonneg,
-      norm_num,
-      exact this,
-    },
-
-  -- Then easy to show it's positive, by taking the derivative.
-  exact aux_pos x x_big,
+  -- rw <-le_div_iff _,
+  apply (log_le_log _ _).1,
+  rw [log_mul, log_mul, log_pow, log_pow, log_pow, log_mul],
+  rw div_rpow,
+  -- mul_le_of_le_div,
 end
 
-lemma fff_differentiable {i : ℝ} (pr : 0 < i) : differentiable_on ℝ fff (interior (Ici i)) :=
-begin
-  have d : differentiable_on ℝ (λ (x : ℝ), 8 * x + 8) (interior (Ici i)),
-    { refine differentiable_on.add_const _ _,
-      refine differentiable_on.const_mul _ _,
-      refine differentiable_on_id, },
-  refine differentiable_on.sub _ _,
-  { refine differentiable_on.mul_const _ _,
-    refine differentiable_on_id, },
-  { refine differentiable_on.mul _ _,
-    { refine differentiable_on.comp _ _ _,
-      { exact Ici i, },
-      { refine differentiable_on.sqrt _ _,
-        { refine differentiable_on_id, },
-        { intros x,
-          simp only [mem_Ici, ne.def],
-          intros x_in,
-          linarith, }, },
-      { exact d, },
-      { intro x,
-        simp only [interior_Ici, mem_Ici, mem_Ioi, mem_preimage],
-        intros x_big,
-        calc i ≤ x : le_of_lt x_big
-        ... ≤ 8 * x + 8 : by linarith,
-      }, },
-    { refine differentiable_on.log _ _,
-      { exact d, },
-      { intros x,
-        simp only [interior_Ici, mem_Ioi, ne.def],
-        intros x_big,
-        linarith, }, }, },
-end
 
-lemma fff_continuous {i : ℝ} (pr : 0 < i) : continuous_on fff (Ici (i : ℝ)) :=
-begin
-  have e := differentiable_on.continuous_on (@fff_differentiable (i / 2) (by linarith)),
-  have s : Ici i ⊆ interior (Ici (i / 2)),
-    { simp only [interior_Ici],
-      intro a,
-      simp,
-      intro a_in,
-      linarith, },
-  exact continuous_on.mono e s,
-end
-
-lemma sqrt_four : sqrt 4 = 2 :=
-begin
-  calc sqrt 4 = sqrt (2 * 2) : by norm_num
-  ... = 2 : sqrt_mul_self (by linarith)
-end
-
-
-lemma pow_inequality_2008' : (2008 : ℝ) ^ (9 : ℝ) ≤ (4 : ℝ) ^ (50 : ℝ) :=
-begin
-  calc  (2008 : ℝ) ^ (9 : ℝ)
-      = (2008 : ℝ) ^ ((9 : ℕ) : ℝ) : by simp
-  ... = (2008 : ℝ) ^ (9 : ℕ) : by rw rpow_nat_cast _ 9
-  ... = (530729681093308751060012105728 : ℝ) :
-        begin
-          norm_num,
-        end
-  ... ≤ (1267650600228229401496703205376 : ℝ) : by norm_num
-  ... = (4 : ℝ) ^ (50 : ℕ) : by norm_num
-  ... = (4 : ℝ) ^ ((50 : ℕ) : ℝ) : by rw rpow_nat_cast _ 50
-  ... = (4 : ℝ) ^ (50 : ℝ) : by simp,
-end
-
-
-
-lemma eleven_sqrt_five_hundred_two : (11 : ℝ) * sqrt 502 ≤ 250 :=
-begin
-  have eleven_nonneg : (0 : ℝ) ≤ 11 := by norm_num,
-  have t : (11 : ℝ) * sqrt 502 = sqrt (121 * 502),
-    { calc (11 : ℝ) * sqrt 502 = sqrt (11 ^ 2) * sqrt 502 : by rw sqrt_sq eleven_nonneg
-      ... = sqrt 121 * sqrt 502 : by norm_num
-      ... = sqrt (121 * 502) : (sqrt_mul (by norm_num) _).symm, },
-  have two_fifty_pos : (0 : ℝ) ≤ 250 := by norm_num,
-  have u : 250 = sqrt 62500,
-    calc 250 = sqrt (250 ^ 2) : by rw sqrt_sq two_fifty_pos
-      ... = sqrt 62500 : by norm_num,
-  rw [t, u],
-  apply sqrt_le_sqrt,
-  norm_num,
-end
-
-lemma fff_250 : 0 ≤ fff 250 :=
-begin
-  unfold fff,
-  norm_num,
-  have r : 11 * sqrt 502 < 250,
-    { have s : (11 * sqrt 502) ^ 2 < 250 ^ 2,
-      { calc (11 * sqrt 502) ^ 2 = 11 ^ 2 * (sqrt 502) ^ 2 : by rw mul_pow
-        ... = 121 * (sqrt 502) ^ 2 : by norm_num
-        ... = 121 * (sqrt 502) ^ (2 : ℕ) : by simp
-        ... = 121 * ((sqrt 502) * (sqrt 502)) : by ring_exp
-        ... = 121 * 502 : by rw @mul_self_sqrt 502 (by norm_num)
-        ... = 60742 : by norm_num
-        ... < 250 ^ 2 : by norm_num, },
-      have e := abs_lt_of_sq_lt_sq s (by norm_num),
-      have u : 0 < 11 * sqrt 502, by norm_num,
-      have v : abs (11 * sqrt 502) = 11 * sqrt 502 := abs_of_pos u,
-      rw abs_of_pos u at e,
-      exact e, },
-
-  have eight_pow : (8 : ℝ) = 2 ^ 3 := by norm_num,
-  have two_fifty_six_pow : (256 : ℝ) = 2 ^ 8 := by norm_num,
-
-  have r : log 251 ≤ log 256 := (@log_le_log 251 256 (by norm_num) (by norm_num)).2 (by norm_num),
-
-  have two_pos: 0 < (2 : ℝ) := by norm_num,
-
-    calc sqrt 2008 * log 2008
-      ≤ 45 * log 2008 :
-            begin
-              apply (mul_le_mul_right _).2,
-              apply (sqrt_le_left _).2,
-              norm_num,
-              norm_num,
-              apply log_pos,
-              norm_num,
-            end
-  ... = log (2008 ^ (45 : ℝ)) :
-            begin
-              rw log_rpow,
-              norm_num,
-            end
-  ... ≤ log (4 ^ (250 : ℝ)) :
-            begin
-              apply (log_le_log _ _).2,
-              -- apply rpow_pos_of_pos,
-              -- norm_num,
-              apply (@rpow_le_rpow_iff _ _ (1/5) _ _ _).1,
-              rw <-rpow_mul,
-              rw <-rpow_mul,
-              norm_num,
-              -- norm_num,
-              exact pow_inequality_2008',
-              norm_num,
-              norm_num,
-              apply rpow_nonneg_of_nonneg,
-              norm_num,
-              apply rpow_nonneg_of_nonneg,
-              norm_num,
-              norm_num,
-              apply rpow_pos_of_pos,
-              norm_num,
-              apply rpow_pos_of_pos,
-              norm_num,
-            end
-  ... = 250 * log 4 :
-            begin
-              rw log_rpow,
-              norm_num,
-            end
-end
-
-lemma linear_dominates_sqrt_log (x : ℝ) (hx : 250 ≤ x)
-  : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
-begin
-  suffices: 0 ≤ fff x,
-    { unfold fff at this,
-      simpa using this, },
-  have conv : convex (Ici (250 : ℝ)) := convex_Ici _,
-  have t : ∀ (x : ℝ), x ∈ interior (Ici (250 : ℝ)) → 0 ≤ deriv fff x,
-    { intros x x_in_interior,
-      have x_big : 250 < x, by simpa using x_in_interior,
-      rw @fff'_is_deriv x (by linarith),
-      exact deriv_nonneg (by linarith), },
-  calc 0 ≤ fff 250 : fff_250
-  ... ≤ fff x :
-    convex.mono_of_deriv_nonneg conv
-      (fff_continuous (by linarith)) (fff_differentiable (by linarith))
-      t
-      250 x (by simp) (by simpa using hx)
-      hx,
-end
-
-lemma pow_beats_pow_2 (n : ℕ) (n_large : 250 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
-begin
-  apply (@nat.cast_le ℝ _ _ _ _).1,
-  calc ↑((8 * n + 8) ^ nat.sqrt (8 * n + 8))
-      ≤ (↑(8 * n + 8) ^ real.sqrt (↑(8 * n + 8))) :
-          begin
-            rw pow_coe,
-            apply real.rpow_le_rpow_of_exponent_le,
-              {
-                apply nat.one_le_cast.2,
-                linarith,
-                exact real.nontrivial,
-              },
-              {apply nat_sqrt_le_real_sqrt,},
-          end
-  ... ≤ ↑(4 ^ n) :
-          begin
-            apply (@real.log_le_log _ (↑(4 ^ n)) _ (by norm_num)).1,
-            { rw real.log_rpow _,
-              { rw pow_coe,
-                rw real.log_rpow,
-                { norm_cast,
-                  norm_num,
-                  apply linear_dominates_sqrt_log,
-                  norm_cast,
-                  exact n_large, },
-                { norm_num, },
-              },
-              { norm_cast,
-                linarith,},
-            },
-            { norm_num,
-              refine rpow_pos_of_pos _ _,
-              { norm_cast,
-                linarith,},
-            },
-          end,
-end
-
-lemma power_conversion_2 (n : ℕ) (n_large : 1003 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
-begin
-  have : 250 ≤ n / 4,
-    { cases le_or_gt 250 (n / 4),
-      { exact h, },
-      { have r : n < n :=
-          calc n = 4 * (n / 4) + (n % 4) : (nat.div_add_mod n 4).symm
-            ... < 4 * 250 + (n % 4) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 3)).2 h) _
-            ... < 4 * 250 + 4 : add_lt_add_left (nat.mod_lt n (by linarith)) _
-            ... = 1004 : by norm_num
-            ... ≤ n : by linarith,
-        exfalso,
-        exact lt_irrefl _ r, }, },
-  have rem_small : (n % 4) < 4 := nat.mod_lt n (nat.succ_pos 3),
-  calc (2 * n) ^ nat.sqrt (2 * n) = (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (2 * (4 * (n / 4)
-                                    + (n % 4))) : by rw nat.div_add_mod n 4
-  ... ≤ (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (8 * (n / 4) + 8) :
-              begin
-                apply pow_le_pow,
-                -- squeeze_simp,
-                rw mul_add,
-                rw ←mul_assoc,
-                norm_num,
-                suffices : 1 ≤ 8 * (n / 4),
-                  exact le_add_right this,
-                linarith,
-                apply nat.sqrt_le_sqrt,
-                rw mul_add,
-                rw ←mul_assoc,
-                norm_num,
-                -- squeeze_simp,
-                linarith,
-              end
-  ... ≤ (8 * (n / 4) + 8) ^ nat.sqrt (8 * (n / 4) + 8) :
-              begin
-                apply (nat.pow_le_iff_le_left _).2,
-                rw mul_add,
-                rw ←mul_assoc,
-                norm_num,
-                linarith,
-                apply nat.le_sqrt.2,
-                suffices : 1 * 1 ≤ 8,
-                  exact le_add_left this,
-                norm_num,
-              end
-  ... ≤ 4 ^ (n / 4) : pow_beats_pow_2 (n / 4) (by linarith),
-end
-
-
-lemma fooo (n : ℕ) (n_pos : 1 ≤ n) : n / 15 + n / 4 + (2 * n / 3 + 1) ≤ n :=
-begin
-  suffices: n / 15 + n / 4 + 2 * n / 3 < n, by linarith,
-  have s1 : (n / 15) * 15 ≤ n := nat.div_mul_le_self n 15,
-  have s2 : (n / 4) * 4 ≤ n := nat.div_mul_le_self n 4,
-  have s3 : (2 * n / 3) * 3 ≤ 2 * n := nat.div_mul_le_self (2 * n) 3,
-  suffices: (n / 15 + n / 4 + 2 * n / 3) * 60 < n * 60, by linarith,
-  calc (n / 15 + n / 4 + 2 * n / 3) * 60
-      = n / 15 * 15 * 4 + n / 4 * 4 * 15 + 2 * n / 3 * 3 * 20 : by ring
-  ... ≤ n * 4 + n * 15 + 2 * n * 20 : by linarith [s1, s2, s3]
-  ... < n * 60 : by linarith,
-end
-
-
+-- Take the approach of immediately reifying
 lemma false_inequality_is_false {n : ℕ} (n_large : 1003 < n)
   : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
 begin
   rw imp_false,
   rw not_lt,
-  calc (2 * n + 1) * (2 * n) ^ nat.sqrt (2 * n) * 4 ^ (2 * n / 3 + 1)
-       ≤ (4 ^ (n / 15)) * (2 * n) ^ nat.sqrt (2 * n) * 4 ^ (2 * n / 3 + 1) :
+  rw <-@nat.cast_le ℝ,
+  rw <-@nat.cast_lt ℝ at n_large,
+  simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
+  simp only [<-rpow_nat_cast],
+  calc (2 * (n : ℝ) + 1) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3 + 1) : ℕ) : ℝ)
+        ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3 + 1) : ℕ) : ℝ) :
           begin
-            apply (nat.mul_le_mul_right (4 ^ (2 * n / 3 + 1))),
-            apply (nat.mul_le_mul_right ((2 * n) ^ nat.sqrt (2 * n))),
-            apply power_conversion_1,
+            rw mul_le_mul_right,
+            rw mul_le_mul_left,
+            apply rpow_le_rpow_of_exponent_le,
+            sorry,
+            sorry,
+            sorry,
+            sorry,
+          end
+     ... ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3 + 1) :
+          begin
+            -- sorry
+            rw mul_le_mul_left,
+            -- rw mul_le_mul_left,
+            apply rpow_le_rpow_of_exponent_le,
             linarith,
+            simp,
+            apply trans nat.cast_div_le,
+            apply le_of_eq,
+            congr,
+            simp,
+            simp,
+            exact is_trans.swap (λ (x y : ℝ), y ≤ x),
+            sorry,
           end
-  ...  ≤ (4 ^ (n / 15)) * (4 ^ (n / 4)) * 4 ^ (2 * n / 3 + 1) :
+    ... ≤ 4 ^ (n : ℝ) :
           begin
-            apply (nat.mul_le_mul_right (4 ^ (2 * n / 3 + 1))),
-            apply (nat.mul_le_mul_left (4 ^ (n / 15))),
-            apply power_conversion_2,
-            finish
-          end
-  ...  ≤ 4 ^ n :
-          begin
-            rw tactic.ring.pow_add_rev,
-            rw tactic.ring.pow_add_rev,
-            apply nat.pow_le_pow_of_le_right,
-            dec_trivial,
-            exact fooo n (by linarith),
-          end
+            apply real_false_inequality_is_false,
+            sorry,
+          end,
 end
 
 lemma more_restrictive_filter_means_smaller_subset {a : _} {S : finset a} {f : _} {g : _}

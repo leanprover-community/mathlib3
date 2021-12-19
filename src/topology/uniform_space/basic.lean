@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.lift
-import topology.separation
+import topology.subset_properties
 /-!
 # Uniform spaces
 
@@ -272,6 +272,16 @@ lemma uniform_space.of_core_eq_to_core
   uniform_space.of_core_eq u.to_core t h = u :=
 uniform_space_eq rfl
 
+/-- Replace topology in a `uniform_space` instance with a propositionally (but possibly not
+definitionally) equal one. -/
+def uniform_space.replace_topology {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : uniform_space α :=
+uniform_space.of_core_eq u.to_core i $ h.trans u.to_core_to_topological_space.symm
+
+lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : u.replace_topology h = u :=
+u.of_core_eq_to_core _ _
+
 section uniform_space
 variables [uniform_space α]
 
@@ -397,6 +407,7 @@ calc (𝓤 α).lift' (λd, d ○ (d ○ d)) =
       (assume s, monotone_comp_rel monotone_id monotone_const)
   ... ≤ (𝓤 α) : comp_le_uniformity
 
+/-- See also `comp_open_symm_mem_uniformity_sets`. -/
 lemma comp_symm_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
   ∃ t ∈ 𝓤 α, symmetric_rel t ∧ t ○ t ⊆ s :=
 begin
@@ -851,10 +862,24 @@ begin
     symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
 end
 
-lemma uniform_space.has_seq_basis (h : is_countably_generated $ 𝓤 α) :
-  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
-let ⟨U, hsym, hbasis⟩ := h.exists_antitone_subbasis uniform_space.has_basis_symmetric
+lemma comp_open_symm_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
+  ∃ t ∈ 𝓤 α, is_open t ∧ symmetric_rel t ∧ t ○ t ⊆ s :=
+begin
+  obtain ⟨t, ht₁, ht₂⟩ := comp_mem_uniformity_sets hs,
+  obtain ⟨u, ⟨hu₁, hu₂, hu₃⟩, hu₄ : u ⊆ t⟩ := uniformity_has_basis_open_symmetric.mem_iff.mp ht₁,
+  exact ⟨u, hu₁, hu₂, hu₃, (comp_rel_mono hu₄ hu₄).trans ht₂⟩,
+end
+
+section
+
+variable (α)
+
+lemma uniform_space.has_seq_basis [is_countably_generated $ 𝓤 α] :
+  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) V ∧ ∀ n, symmetric_rel (V n) :=
+let ⟨U, hsym, hbasis⟩ :=  uniform_space.has_basis_symmetric.exists_antitone_subbasis
 in ⟨U, hbasis, λ n, (hsym n).2⟩
+
+end
 
 lemma filter.has_basis.bInter_bUnion_ball {p : ι → Prop} {U : ι → set (α × α)}
   (h : has_basis (𝓤 α) p U) (s : set α) :
@@ -933,8 +958,8 @@ instance : partial_order (uniform_space α) :=
   le_trans    := assume a b c h₁ h₂, le_trans h₁ h₂ }
 
 instance : has_Inf (uniform_space α) :=
-⟨assume s, uniform_space.of_core {
-  uniformity := (⨅u∈s, @uniformity α u),
+⟨assume s, uniform_space.of_core
+{ uniformity := (⨅u∈s, @uniformity α u),
   refl       := le_infi $ assume u, le_infi $ assume hu, u.refl,
   symm       := le_infi $ assume u, le_infi $ assume hu,
     le_trans (map_mono $ infi_le_of_le _ $ infi_le _ hu) u.symm,

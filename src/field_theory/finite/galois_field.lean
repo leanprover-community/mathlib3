@@ -22,7 +22,9 @@ It is a finite field with `p ^ n` elements.
 
 ## Main Results
 
-- `galois_field.alg_equiv_galois_field`: Uniqueness of finite fields
+- `galois_field.alg_equiv_galois_field`: Any finite field is isomorphic to some Galois field
+- `finite_field.alg_equiv_of_card_eq`: Uniqueness of finite fields : algebra isomorphism
+- `finite_field.ring_equiv_of_card_eq`: Uniqueness of finite fields : ring isomorphism
 
 -/
 
@@ -91,7 +93,7 @@ begin
   apply subring.closure_induction hx; clear_dependent x; simp_rw mem_root_set aux,
   { rintros x (⟨r, rfl⟩ | hx),
     { simp only [aeval_X_pow, aeval_X, alg_hom.map_sub],
-      rw [← ring_hom.map_pow, zmod.pow_card_pow, sub_self], },
+      rw [← map_pow, zmod.pow_card_pow, sub_self], },
     { dsimp only [galois_field] at hx,
       rwa mem_root_set aux at hx, }, },
   { dsimp only [g_poly],
@@ -142,7 +144,7 @@ by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : polynomial (
 variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
 
 theorem splits_X_pow_card_sub_X : splits (algebra_map (zmod p) K) (X ^ fintype.card K - X) :=
-by rw [←splits_id_iff_splits, map_sub, map_pow, map_X, splits_iff_card_roots,
+by rw [←splits_id_iff_splits, polynomial.map_sub, polynomial.map_pow, map_X, splits_iff_card_roots,
   finite_field.roots_X_pow_card_sub_X, ←finset.card_def, finset.card_univ,
   finite_field.X_pow_card_sub_X_nat_degree_eq]; exact fintype.one_lt_card
 
@@ -155,14 +157,59 @@ lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
     { rintro rfl, rw [pow_zero, fintype.card_eq_one_iff_nonempty_unique] at h,
       cases h, resetI, exact false_of_nontrivial_of_subsingleton K },
     refine algebra.eq_top_iff.mpr (λ x, algebra.subset_adjoin _),
-    rw [map_sub, map_pow, map_X, finset.mem_coe, multiset.mem_to_finset, mem_roots,
-        is_root.def, eval_sub, eval_pow, eval_X, ← h, finite_field.pow_card, sub_self],
+    rw [polynomial.map_sub, polynomial.map_pow, map_X, finset.mem_coe, multiset.mem_to_finset,
+        mem_roots, is_root.def, eval_sub, eval_pow, eval_X, ← h, finite_field.pow_card, sub_self],
     exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out _)
   end }
 
-/-- Uniqueness of finite fields : Any finite field is isomorphic to some Galois field. -/
+/-- Any finite field is (possibly non canonically) isomorphic to some Galois field. -/
 def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
   K ≃ₐ[zmod p] galois_field p n :=
 by haveI := is_splitting_field_of_card_eq _ _ h; exact is_splitting_field.alg_equiv _ _
 
 end galois_field
+
+namespace finite_field
+
+variables {K : Type*} [field K] [fintype K] {K' : Type*} [field K'] [fintype K']
+
+/-- Uniqueness of finite fields:
+  Any two finite fields of the same cardinality are (possibly non canonically) isomorphic-/
+def alg_equiv_of_card_eq (p : ℕ) [fact p.prime] [algebra (zmod p) K] [algebra (zmod p) K']
+  (hKK' : fintype.card K = fintype.card K') :
+  K ≃ₐ[zmod p] K' :=
+begin
+  haveI : char_p K p,
+  { rw ← algebra.char_p_iff (zmod p) K p, exact zmod.char_p p, },
+  haveI : char_p K' p,
+  { rw ← algebra.char_p_iff (zmod p) K' p, exact zmod.char_p p, },
+  choose n a hK using finite_field.card K p,
+  choose n' a' hK' using finite_field.card K' p,
+  rw [hK,hK'] at hKK',
+  have hGalK := galois_field.alg_equiv_galois_field p n hK,
+  have hK'Gal := (galois_field.alg_equiv_galois_field p n' hK').symm,
+  rw (nat.pow_right_injective (fact.out (nat.prime p)).one_lt hKK') at *,
+  use alg_equiv.trans hGalK hK'Gal,
+end
+
+/-- Uniqueness of finite fields:
+  Any two finite fields of the same cardinality are (possibly non canonically) isomorphic-/
+def ring_equiv_of_card_eq (hKK' : fintype.card K = fintype.card K') : K ≃+* K' :=
+begin
+  choose p _char_p_K using char_p.exists K,
+  choose p' _char_p'_K' using char_p.exists K',
+  resetI,
+  choose n hp hK using finite_field.card K p,
+  choose n' hp' hK' using finite_field.card K' p',
+  have hpp' : p = p', -- := eq_prime_of_eq_prime_pow
+  { by_contra hne,
+    have h2 := nat.coprime_pow_primes n n' hp hp' hne,
+    rw [(eq.congr hK hK').mp hKK', nat.coprime_self, pow_eq_one_iff (pnat.ne_zero n')] at h2,
+    exact nat.prime.ne_one hp' h2,
+    all_goals {apply_instance}, },
+  rw ← hpp' at *,
+  haveI := fact_iff.2 hp,
+  exact alg_equiv_of_card_eq p hKK',
+end
+
+end finite_field

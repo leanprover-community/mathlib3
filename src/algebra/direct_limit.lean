@@ -19,6 +19,13 @@ It is constructed as a quotient of the free module (for the module case) or quot
 the free commutative ring (for the ring case) instead of a quotient of the disjoint union
 so as to make the operations (addition etc.) "computable".
 
+## Main definitions
+
+* `directed_system f`
+* `module.direct_limit G f`
+* `add_comm_group.direct_limit G f`
+* `ring.direct_limit G f`
+
 -/
 universes u v w u₁
 
@@ -29,31 +36,37 @@ variables {ι : Type v}
 variables [dec_ι : decidable_eq ι] [directed_order ι]
 variables (G : ι → Type w)
 
-/-- A directed system is a functor from the category (directed poset) to another category.
-This is used for abelian groups and rings and fields because their maps are not bundled.
-See module.directed_system -/
+/-- A directed system is a functor from a category (directed poset) to another category. -/
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
 (map_self [] : ∀ i x h, f i i h x = x)
-(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_map [] : ∀ {i j k} hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 namespace module
 
 variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
-/-- A directed system is a functor from the category (directed poset) to the category of
-`R`-modules. -/
-class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
-(map_self [] : ∀ i x h, f i i h x = x)
-(map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+variables {G} (f : Π i j, i ≤ j → G i →ₗ[R] G j)
 
-variables (f : Π i j, i ≤ j → G i →ₗ[R] G j)
+/-- A copy of `directed_system.map_self` specialized to linear maps, as otherwise the
+`λ i j h, f i j h` can confuse the simplifier. -/
+lemma directed_system.map_self [directed_system G (λ i j h, f i j h)] (i x h) :
+  f i i h x = x :=
+directed_system.map_self (λ i j h, f i j h) i x h
+
+/-- A copy of `directed_system.map_map` specialized to linear maps, as otherwise the
+`λ i j h, f i j h` can confuse the simplifier. -/
+lemma directed_system.map_map [directed_system G (λ i j h, f i j h)] {i j k} (hij hjk x) :
+  f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x :=
+directed_system.map_map (λ i j h, f i j h) hij hjk x
+
+variables (G)
 
 include dec_ι
 
 /-- The direct limit of a directed system is the modules glued together along the maps. -/
 def direct_limit : Type (max v w) :=
-(span R $ { a | ∃ (i j) (H : i ≤ j) x,
-  direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) = a }).quotient
+direct_sum ι G ⧸ (span R $ { a | ∃ (i j) (H : i ≤ j) x,
+  direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) = a })
 
 namespace direct_limit
 
@@ -117,18 +130,17 @@ omit dec_ι
 /-- `totalize G f i j` is a linear map from `G i` to `G j`, for *every* `i` and `j`.
 If `i ≤ j`, then it is the map `f i j` that comes with the directed system `G`,
 and otherwise it is the zero map. -/
-noncomputable def totalize : Π i j, G i →ₗ[R] G j :=
-λ i j, if h : i ≤ j then f i j h else 0
+noncomputable def totalize (i j) : G i →ₗ[R] G j :=
+if h : i ≤ j then f i j h else 0
 variables {G f}
 
-lemma totalize_apply (i j x) :
-  totalize G f i j x = if h : i ≤ j then f i j h x else 0 :=
-if h : i ≤ j
-  then by dsimp only [totalize]; rw [dif_pos h, dif_pos h]
-  else by dsimp only [totalize]; rw [dif_neg h, dif_neg h, linear_map.zero_apply]
+lemma totalize_of_le {i j} (h : i ≤ j) : totalize G f i j = f i j h := dif_pos h
+
+lemma totalize_of_not_le {i j} (h : ¬(i ≤ j)) : totalize G f i j = 0 := dif_neg h
+
 end totalize
 
-variables [directed_system G f]
+variables [directed_system G (λ i j h, f i j h)]
 open_locale classical
 
 lemma to_module_totalize_of_le {x : direct_sum ι G} {i j : ι}
@@ -140,8 +152,8 @@ begin
   unfold dfinsupp.sum,
   simp only [linear_map.map_sum],
   refine finset.sum_congr rfl (λ k hk, _),
-  rw direct_sum.single_eq_lof R k (x k),
-  simp [totalize_apply, hx k hk, le_trans (hx k hk) hij, directed_system.map_map f]
+  rw [direct_sum.single_eq_lof R k (x k), direct_sum.to_module_lof, direct_sum.to_module_lof,
+    totalize_of_le (hx k hk), totalize_of_le (le_trans (hx k hk) hij), directed_system.map_map],
 end
 
 lemma of.zero_exact_aux [nonempty ι] {x : direct_sum ι G}
@@ -160,8 +172,8 @@ span_induction ((quotient.mk_eq_zero _).1 H)
             ← direct_sum.single_eq_lof, dfinsupp.single_apply, dfinsupp.single_apply] at hi0,
         split_ifs at hi0 with hi hj hj, { rwa hi at hik }, { rwa hi at hik }, { rwa hj at hjk },
         exfalso, apply hi0, rw sub_zero },
-      simp [linear_map.map_sub, totalize_apply, hik, hjk,
-        directed_system.map_map f, direct_sum.apply_eq_component,
+      simp [linear_map.map_sub, totalize_of_le, hik, hjk,
+        directed_system.map_map, direct_sum.apply_eq_component,
         direct_sum.component.of],
     end⟩)
   ⟨ind, λ _ h, (finset.not_mem_empty _ h).elim, linear_map.map_zero _⟩
@@ -188,7 +200,7 @@ if hx0 : x = 0 then ⟨i, le_refl _, by simp [hx0]⟩
 else
   have hij : i ≤ j, from hj _ $
     by simp [direct_sum.apply_eq_component, hx0],
-  ⟨j, hij, by simpa [totalize_apply, hij] using hxj⟩
+  ⟨j, hij, by simpa [totalize_of_le hij] using hxj⟩
 
 end direct_limit
 
@@ -211,9 +223,9 @@ variables (f : Π i j, i ≤ j → G i →+ G j)
 
 omit dec_ι
 
-protected lemma directed_system [directed_system G (λ i j h, f i j h)] :
-  module.directed_system G (λ i j hij, (f i j hij).to_int_linear_map) :=
-⟨directed_system.map_self (λ i j h, f i j h), directed_system.map_map (λ i j h, f i j h)⟩
+protected lemma directed_system [h : directed_system G (λ i j h, f i j h)] :
+  directed_system G (λ i j hij, (f i j hij).to_int_linear_map) :=
+h
 
 include dec_ι
 
@@ -280,11 +292,11 @@ open free_comm_ring
 
 /-- The direct limit of a directed system is the rings glued together along the maps. -/
 def direct_limit : Type (max v w) :=
-(ideal.span { a |
+free_comm_ring (Σ i, G i) ⧸ (ideal.span { a |
   (∃ i j H x, of (⟨j, f i j H x⟩ : Σ i, G i) - of ⟨i, x⟩ = a) ∨
   (∃ i, of (⟨i, 1⟩ : Σ i, G i) - 1 = a) ∨
   (∃ i x y, of (⟨i, x + y⟩ : Σ i, G i) - (of ⟨i, x⟩ + of ⟨i, y⟩) = a) ∨
-  (∃ i x y, of (⟨i, x * y⟩ : Σ i, G i) - (of ⟨i, x⟩ * of ⟨i, y⟩) = a) }).quotient
+  (∃ i x y, of (⟨i, x * y⟩ : Σ i, G i) - (of ⟨i, x⟩ * of ⟨i, y⟩) = a) })
 
 namespace direct_limit
 

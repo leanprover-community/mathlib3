@@ -367,6 +367,11 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
+lemma le_integral_closure_iff_is_integral {S : subalgebra R A} :
+  S ≤ integral_closure R A ↔ algebra.is_integral R S :=
+set_like.forall.symm.trans (forall_congr (λ x, show is_integral R (algebra_map S A x)
+  ↔ is_integral R x, from is_integral_algebra_map_iff subtype.coe_injective))
+
 /-- Mapping an integral closure along an `alg_equiv` gives the integral closure. -/
 lemma integral_closure_map_alg_equiv (f : A ≃ₐ[R] B) :
   (integral_closure R A).map (f : A →ₐ[R] B) = integral_closure R B :=
@@ -414,8 +419,8 @@ lemma is_integral.pow {x : A} (h : is_integral R x) (n : ℕ) : is_integral R (x
 lemma is_integral.nsmul {x : A} (h : is_integral R x) (n : ℕ) : is_integral R (n • x) :=
 (integral_closure R A).nsmul_mem h n
 
-lemma is_integral.gsmul {x : A} (h : is_integral R x) (n : ℤ) : is_integral R (n • x) :=
-(integral_closure R A).gsmul_mem h n
+lemma is_integral.zsmul {x : A} (h : is_integral R x) (n : ℤ) : is_integral R (n • x) :=
+(integral_closure R A).zsmul_mem h n
 
 lemma is_integral.multiset_prod {s : multiset A} (h : ∀ x ∈ s, is_integral R x) :
   is_integral R s.prod :=
@@ -653,12 +658,12 @@ begin
 end
 
 lemma is_integral_quotient_of_is_integral {I : ideal A} (hRA : is_integral R A) :
-  is_integral (I.comap (algebra_map R A)).quotient I.quotient :=
+  is_integral (R ⧸ I.comap (algebra_map R A)) (A ⧸ I) :=
 (algebra_map R A).is_integral_quotient_of_is_integral hRA
 
 lemma is_integral_quotient_map_iff {I : ideal S} :
   (ideal.quotient_map I f le_rfl).is_integral ↔
-    ((ideal.quotient.mk I).comp f : R →+* I.quotient).is_integral :=
+    ((ideal.quotient.mk I).comp f : R →+* S ⧸ I).is_integral :=
 begin
   let g := ideal.quotient.mk (I.comap f),
   have := ideal.quotient_map_comp_mk le_rfl,
@@ -696,18 +701,18 @@ begin
     rw [ring_hom.map_mul, mul_assoc],
     congr,
     have : a_inv ^ p.nat_degree = a_inv ^ (p.nat_degree - i) * a_inv ^ i,
-    { rw [← pow_add a_inv, nat.sub_add_cancel (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
+    { rw [← pow_add a_inv, tsub_add_cancel_of_le (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
     rw [ring_hom.map_pow, this, ← mul_assoc, ← mul_pow, ha_inv, one_pow, one_mul] },
 
   -- Since `q(a) = 0` and `q(a) = q'(a) * a + 1`, we have `a * -q'(a) = 1`.
   -- TODO: we could use a lemma for `polynomial.div_X` here.
-  rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
+  rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, tsub_self, pow_zero,
       add_eq_zero_iff_eq_neg, eq_comm] at hq,
   rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
   convert hq using 2,
   refine finset.sum_congr rfl (λ i hi, _),
   have : 1 ≤ p.nat_degree - i := le_tsub_of_add_le_left (finset.mem_range.mp hi),
-  rw [mul_assoc, ← pow_succ', nat.sub_add_cancel this]
+  rw [mul_assoc, ← pow_succ', tsub_add_cancel_of_le this]
 end
 
 end algebra

@@ -3,10 +3,11 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic.monotonicity.basic
 import algebra.order.ring
+import data.nat.basic
 import data.set.lattice
-import order.bounds
+import order.directed
+import tactic.monotonicity.basic
 
 variables {α : Type*}
 
@@ -48,7 +49,7 @@ begin
   have : z ≤ y,
   { transitivity, assumption, apply le_of_lt h, },
   apply @nat.lt_of_add_lt_add_left z,
-  rw [nat.add_sub_of_le,nat.add_sub_of_le];
+  rw [add_tsub_cancel_of_le,add_tsub_cancel_of_le];
     solve_by_elim
 end
 
@@ -61,9 +62,9 @@ begin
   have h'' : y ≤ z,
   { transitivity, apply le_of_lt h, assumption },
   apply @nat.lt_of_add_lt_add_right _ x,
-  rw [nat.sub_add_cancel h'],
+  rw [tsub_add_cancel_of_le h'],
   apply @lt_of_le_of_lt _ _ _ (z - y + y),
-  rw [nat.sub_add_cancel h''],
+  rw [tsub_add_cancel_of_le h''],
   apply nat.add_lt_add_left h
 end
 

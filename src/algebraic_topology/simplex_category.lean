@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
-import order.category.NonemptyFinLinOrd
 import category_theory.skeletal
-import data.finset.sort
 import tactic.linarith
+import data.fintype.sort
+import order.category.NonemptyFinLinOrd
 
 /-! # The simplex category
 
@@ -25,7 +25,7 @@ We provide the following functions to work with these objects:
   Use the notation `[n]` in the `simplicial` locale.
 2. `simplex_category.len` gives the "length" of an object of `simplex_category`, as a natural.
 3. `simplex_category.hom.mk` makes a morphism out of a monotone map between `fin`'s.
-4. `simplex_category.hom.to_preorder_hom` gives the underlying monotone map associated to a
+4. `simplex_category.hom.to_order_hom` gives the underlying monotone map associated to a
   term of `simplex_category.hom`.
 
 -/
@@ -75,36 +75,36 @@ def mk {a b : simplex_category.{u}} (f : fin (a.len + 1) →ₘ fin (b.len + 1))
 ulift.up f
 
 /-- Recover the monotone map from a morphism in the simplex category. -/
-def to_preorder_hom {a b : simplex_category.{u}} (f : simplex_category.hom a b) :
+def to_order_hom {a b : simplex_category.{u}} (f : simplex_category.hom a b) :
   fin (a.len + 1) →ₘ fin (b.len + 1) :=
 ulift.down f
 
 @[ext] lemma ext {a b : simplex_category.{u}} (f g : simplex_category.hom a b) :
-  f.to_preorder_hom = g.to_preorder_hom → f = g := ulift.ext _ _
+  f.to_order_hom = g.to_order_hom → f = g := ulift.ext _ _
 
-@[simp] lemma mk_to_preorder_hom {a b : simplex_category.{u}}
-  (f : simplex_category.hom a b) : mk (f.to_preorder_hom) = f :=
+@[simp] lemma mk_to_order_hom {a b : simplex_category.{u}}
+  (f : simplex_category.hom a b) : mk (f.to_order_hom) = f :=
 by {cases f, refl}
 
-@[simp] lemma to_preorder_hom_mk {a b : simplex_category.{u}}
-  (f : fin (a.len + 1) →ₘ fin (b.len + 1)) : (mk f).to_preorder_hom = f :=
-by simp [to_preorder_hom, mk]
+@[simp] lemma to_order_hom_mk {a b : simplex_category.{u}}
+  (f : fin (a.len + 1) →ₘ fin (b.len + 1)) : (mk f).to_order_hom = f :=
+by simp [to_order_hom, mk]
 
-lemma mk_to_preorder_hom_apply {a b : simplex_category.{u}}
+lemma mk_to_order_hom_apply {a b : simplex_category.{u}}
   (f : fin (a.len + 1) →ₘ fin (b.len + 1)) (i : fin (a.len + 1)) :
-  (mk f).to_preorder_hom i = f i := rfl
+  (mk f).to_order_hom i = f i := rfl
 
 /-- Identity morphisms of `simplex_category`. -/
 @[simp]
 def id (a : simplex_category.{u}) :
   simplex_category.hom a a :=
-mk preorder_hom.id
+mk order_hom.id
 
 /-- Composition of morphisms of `simplex_category`. -/
 @[simp]
 def comp {a b c : simplex_category.{u}} (f : simplex_category.hom b c)
   (g : simplex_category.hom a b) : simplex_category.hom a c :=
-mk $ f.to_preorder_hom.comp g.to_preorder_hom
+mk $ f.to_order_hom.comp g.to_order_hom
 
 end hom
 
@@ -120,7 +120,7 @@ def const (x : simplex_category.{u}) (i : fin (x.len+1)) : [0] ⟶ x :=
 
 @[simp]
 lemma const_comp (x y : simplex_category.{u}) (i : fin (x.len + 1)) (f : x ⟶ y) :
-  const x i ≫ f = const y (f.to_preorder_hom i) := rfl
+  const x i ≫ f = const y (f.to_order_hom i) := rfl
 
 /--
 Make a morphism `[n] ⟶ [m]` from a monotone map between fin's.
@@ -148,7 +148,7 @@ one given by the following generators and relations.
 
 /-- The `i`-th face map from `[n]` to `[n+1]` -/
 def δ {n} (i : fin (n+2)) : [n] ⟶ [n+1] :=
-mk_hom (fin.succ_above i).to_preorder_hom
+mk_hom (fin.succ_above i).to_order_hom
 
 /-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
 def σ {n} (i : fin (n+1)) : [n+1] ⟶ [n] := mk_hom
@@ -161,11 +161,11 @@ lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
 begin
   ext k,
   dsimp [δ, fin.succ_above],
-  simp only [order_embedding.to_preorder_hom_coe,
+  simp only [order_embedding.to_order_hom_coe,
     order_embedding.coe_of_strict_mono,
     function.comp_app,
-    simplex_category.hom.to_preorder_hom_mk,
-    preorder_hom.comp_coe],
+    simplex_category.hom.to_order_hom_mk,
+    order_hom.comp_coe],
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
@@ -317,7 +317,7 @@ of `NonemptyFinLinOrd` -/
 def skeletal_functor : simplex_category.{u} ⥤ NonemptyFinLinOrd.{v} :=
 { obj := λ a, NonemptyFinLinOrd.of $ ulift (fin (a.len + 1)),
   map := λ a b f,
-    ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩,
+    ⟨λ i, ulift.up (f.to_order_hom i.down), λ i j h, f.to_order_hom.monotone h⟩,
   map_id' := λ a, by { ext, simp, },
   map_comp' := λ a b c f g, by { ext, simp, }, }
 
@@ -406,7 +406,7 @@ section concrete
 instance : concrete_category.{0} simplex_category.{u} :=
 { forget :=
   { obj := λ i, fin (i.len + 1),
-    map := λ i j f, f.to_preorder_hom },
+    map := λ i j f, f.to_order_hom },
   forget_faithful := {} }
 
 end concrete
@@ -416,13 +416,13 @@ section epi_mono
 /-- A morphism in `simplex_category` is a monomorphism precisely when it is an injective function
 -/
 theorem mono_iff_injective {n m : simplex_category.{u}} {f : n ⟶ m} :
-  mono f ↔ function.injective f.to_preorder_hom :=
+  mono f ↔ function.injective f.to_order_hom :=
 begin
   split,
   { introsI m x y h,
     have H : const n x ≫ f = const n y ≫ f,
     { dsimp, rw h },
-    change (n.const x).to_preorder_hom 0 = (n.const y).to_preorder_hom 0,
+    change (n.const x).to_order_hom 0 = (n.const y).to_order_hom 0,
     rw cancel_mono f at H,
     rw H },
   { exact concrete_category.mono_of_injective f }
@@ -431,7 +431,7 @@ end
 /-- A morphism in `simplex_category` is an epimorphism if and only if it is a surjective function
 -/
 lemma epi_iff_surjective {n m : simplex_category.{u}} {f: n ⟶ m} :
-  epi f ↔ function.surjective f.to_preorder_hom :=
+  epi f ↔ function.surjective f.to_order_hom :=
 begin
   split,
   { introsI hyp_f_epi x,
@@ -463,7 +463,7 @@ begin
       simp [le_iff_lt_or_eq, h_ab x_1] },
     -- We now just have to show the two auxiliary functions are not equal.
     rw category_theory.cancel_epi f at f_comp_chi_i, rename f_comp_chi_i eq_chi_i,
-    apply_fun (λ e, e.to_preorder_hom x) at eq_chi_i,
+    apply_fun (λ e, e.to_order_hom x) at eq_chi_i,
     suffices : (0 : fin 2) = 1, by exact bot_ne_top this,
     simpa using eq_chi_i },
   { exact concrete_category.epi_of_surjective f }
@@ -474,9 +474,9 @@ lemma len_le_of_mono {x y : simplex_category.{u}} {f : x ⟶ y} :
   mono f → (x.len ≤ y.len) :=
 begin
   intro hyp_f_mono,
-  have f_inj : function.injective f.to_preorder_hom.to_fun,
+  have f_inj : function.injective f.to_order_hom.to_fun,
   { exact mono_iff_injective.elim_left (hyp_f_mono) },
-  simpa using fintype.card_le_of_injective f.to_preorder_hom.to_fun f_inj,
+  simpa using fintype.card_le_of_injective f.to_order_hom.to_fun f_inj,
 end
 
 lemma le_of_mono {n m : ℕ} {f : [n] ⟶ [m]} : (category_theory.mono f) → (n ≤ m) :=
@@ -487,9 +487,9 @@ lemma len_le_of_epi {x y : simplex_category.{u}} {f : x ⟶ y} :
   epi f → y.len ≤ x.len :=
 begin
   intro hyp_f_epi,
-  have f_surj : function.surjective f.to_preorder_hom.to_fun,
+  have f_surj : function.surjective f.to_order_hom.to_fun,
   { exact epi_iff_surjective.elim_left (hyp_f_epi) },
-  simpa using fintype.card_le_of_surjective f.to_preorder_hom.to_fun f_surj,
+  simpa using fintype.card_le_of_surjective f.to_order_hom.to_fun f_surj,
 end
 
 lemma le_of_epi {n m : ℕ} {f : [n] ⟶ [m]} : epi f → (m ≤ n) :=

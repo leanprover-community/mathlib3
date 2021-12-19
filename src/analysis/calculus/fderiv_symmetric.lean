@@ -70,7 +70,7 @@ This is a technical statement used to show that the second derivative is symmetr
 lemma convex.taylor_approx_two_segment
   {v w : E} (hv : x + v ∈ interior s) (hw : x + v + w ∈ interior s) :
   is_o (λ (h : ℝ), f (x + h • v + h • w) - f (x + h • v) - h • f' x w
-    - h^2 • f'' v w - (h^2/2) • f'' w w) (λ h, h^2) (𝓝[Ioi (0 : ℝ)] 0) :=
+    - h^2 • f'' v w - (h^2/2) • f'' w w) (λ h, h^2) (𝓝[>] (0 : ℝ)) :=
 begin
   -- it suffices to check that the expression is bounded by `ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2` for
   -- small enough `h`, for any positive `ε`.
@@ -79,12 +79,12 @@ begin
   -- good up to `δ`.
   rw [has_fderiv_within_at, has_fderiv_at_filter, is_o_iff] at hx,
   rcases metric.mem_nhds_within_iff.1 (hx εpos) with ⟨δ, δpos, sδ⟩,
-  have E1 : ∀ᶠ h in 𝓝[Ioi (0:ℝ)] 0, h * (∥v∥ + ∥w∥) < δ,
-  { have : filter.tendsto (λ h, h * (∥v∥ + ∥w∥)) (𝓝[Ioi (0:ℝ)] 0) (𝓝 (0 * (∥v∥ + ∥w∥))) :=
+  have E1 : ∀ᶠ h in 𝓝[>] (0:ℝ), h * (∥v∥ + ∥w∥) < δ,
+  { have : filter.tendsto (λ h, h * (∥v∥ + ∥w∥)) (𝓝[>] (0:ℝ)) (𝓝 (0 * (∥v∥ + ∥w∥))) :=
       (continuous_id.mul continuous_const).continuous_within_at,
     apply (tendsto_order.1 this).2 δ,
     simpa only [zero_mul] using δpos },
-  have E2 : ∀ᶠ h in 𝓝[Ioi (0:ℝ)] 0, (h : ℝ) < 1 :=
+  have E2 : ∀ᶠ h in 𝓝[>] (0:ℝ), (h : ℝ) < 1 :=
     mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
       ⟨(1 : ℝ), by simp only [mem_Ioi, zero_lt_one], λ x hx, hx.2⟩,
   filter_upwards [E1, E2, self_mem_nhds_within],
@@ -115,24 +115,19 @@ begin
     apply_rules [has_deriv_within_at.sub, has_deriv_within_at.add],
     { refine (hf _ _).comp_has_deriv_within_at _ _,
       { exact xt_mem t ht },
-      apply has_deriv_at.has_deriv_within_at,
-      suffices : has_deriv_at (λ u, x + h • v + (u * h) • w) (0 + 0 + (1 * h) • w) t,
-        by simpa only [one_mul, zero_add],
-      apply_rules [has_deriv_at.add, has_deriv_at_const, has_deriv_at.smul_const,
-        has_deriv_at_id'] },
-    { suffices : has_deriv_within_at (λ u, (u * h) • f' x w) ((1 * h) • f' x w) (Icc 0 1) t,
-        by simpa only [one_mul],
-      apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id'] },
-    { suffices : has_deriv_within_at (λ u, (u * h ^ 2) • f'' v w) ((1 * h^2) • f'' v w) (Icc 0 1) t,
-        by simpa only [one_mul],
-      apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id'] },
+      apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.const_add,
+        has_deriv_at.smul_const, has_deriv_at_mul_const] },
+    { apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const,
+        has_deriv_at_mul_const] },
+    { apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const,
+        has_deriv_at_mul_const] },
     { suffices H : has_deriv_within_at (λ u, ((u * h) ^ 2 / 2) • f'' w w)
         (((((2 : ℕ) : ℝ) * (t * h) ^ (2  - 1) * (1 * h))/2) • f'' w w) (Icc 0 1) t,
       { convert H using 2,
         simp only [one_mul, nat.cast_bit0, pow_one, nat.cast_one],
         ring },
       apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id',
-        has_deriv_at.pow] } },
+        has_deriv_at.pow, has_deriv_at.mul_const] } },
   -- check that `g'` is uniformly bounded, with a suitable bound `ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2`.
   have g'_bound : ∀ t ∈ Ico (0 : ℝ) 1, ∥g' t∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2,
   { assume t ht,
@@ -199,7 +194,7 @@ lemma convex.is_o_alternate_sum_square
   {v w : E} (h4v : x + (4 : ℝ) • v ∈ interior s) (h4w : x + (4 : ℝ) • w ∈ interior s) :
   is_o (λ (h : ℝ), f (x + h • (2 • v + 2 • w)) + f (x + h • (v + w))
     - f (x + h • (2 • v + w)) - f (x + h • (v + 2 • w)) - h^2 • f'' v w)
-    (λ h, h^2) (𝓝[Ioi (0 : ℝ)] 0) :=
+    (λ h, h^2) (𝓝[>] (0 : ℝ)) :=
 begin
   have A : (1 : ℝ)/2 ∈ Ioc (0 : ℝ) 1 := ⟨by norm_num, by norm_num⟩,
   have B : (1 : ℝ)/2 ∈ Icc (0 : ℝ) 1 := ⟨by norm_num, by norm_num⟩,
@@ -257,14 +252,14 @@ lemma convex.second_derivative_within_at_symmetric_of_mem_interior
   {v w : E} (h4v : x + (4 : ℝ) • v ∈ interior s) (h4w : x + (4 : ℝ) • w ∈ interior s) :
   f'' w v = f'' v w :=
 begin
-  have A : is_o (λ (h : ℝ), h^2 • (f'' w v- f'' v w)) (λ h, h^2) (𝓝[Ioi (0 : ℝ)] 0),
+  have A : is_o (λ (h : ℝ), h^2 • (f'' w v- f'' v w)) (λ h, h^2) (𝓝[>] (0 : ℝ)),
   { convert (s_conv.is_o_alternate_sum_square hf xs hx h4v h4w).sub
             (s_conv.is_o_alternate_sum_square hf xs hx h4w h4v),
     ext h,
     simp only [add_comm, smul_add, smul_sub],
     abel },
-  have B : is_o (λ (h : ℝ), f'' w v - f'' v w) (λ h, (1 : ℝ)) (𝓝[Ioi (0 : ℝ)] 0),
-  { have : is_O (λ (h : ℝ), 1/h^2) (λ h, 1/h^2) (𝓝[Ioi (0 : ℝ)] 0) := is_O_refl _ _,
+  have B : is_o (λ (h : ℝ), f'' w v - f'' v w) (λ h, (1 : ℝ)) (𝓝[>] (0 : ℝ)),
+  { have : is_O (λ (h : ℝ), 1/h^2) (λ h, 1/h^2) (𝓝[>] (0 : ℝ)) := is_O_refl _ _,
     have C := this.smul_is_o A,
     apply C.congr' _ _,
     { filter_upwards [self_mem_nhds_within],
@@ -303,7 +298,7 @@ begin
     refine tendsto_const_nhds.smul _,
     refine tendsto_const_nhds.add _,
     exact continuous_at_id.smul continuous_at_const },
-  have B : ∀ (m : E), ∀ᶠ t in 𝓝[Ioi (0 : ℝ)] (0 : ℝ), x + (4 : ℝ) • (z + t • m) ∈ interior s,
+  have B : ∀ (m : E), ∀ᶠ t in 𝓝[>] (0 : ℝ), x + (4 : ℝ) • (z + t • m) ∈ interior s,
   { assume m,
     apply nhds_within_le_nhds,
     apply A m,
@@ -331,7 +326,7 @@ begin
     continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', C] at this,
   rw ← sub_eq_zero at this,
   abel at this,
-  simp only [one_gsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
+  simp only [one_zsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
   apply smul_right_injective F _ this,
   simp [(tpos v).ne', (tpos w).ne']
 end

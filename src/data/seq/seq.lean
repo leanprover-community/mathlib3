@@ -3,9 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.basic
-import data.stream
 import data.lazy_list
+import data.nat.basic
+import data.stream.init
 import data.seq.computation
 
 universes u v w
@@ -591,10 +591,7 @@ end
 
 @[simp] theorem of_list_cons (a : α) (l) :
   of_list (a :: l) = cons a (of_list l) :=
-begin
-  apply subtype.eq, simp [of_list, cons],
-  ext ⟨⟩; simp [list.nth, stream.cons]
-end
+by ext (_|n) : 2; simp [of_list, cons, stream.nth, stream.cons]
 
 @[simp] theorem of_stream_cons (a : α) (s) :
   of_stream (a :: s) = cons a (of_stream s) :=

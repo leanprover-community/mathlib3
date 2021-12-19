@@ -3,7 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.adjugate
 import linear_algebra.matrix.to_lin
 
 /-!
@@ -85,7 +85,7 @@ subtype.ext_iff.trans matrix.ext_iff.symm
 (special_linear_group.ext_iff A B).mpr
 
 instance has_inv : has_inv (special_linear_group n R) :=
-⟨λ A, ⟨adjugate A, det_adjugate_eq_one A.2⟩⟩
+⟨λ A, ⟨adjugate A, by rw [det_adjugate, A.prop, one_pow]⟩⟩
 
 instance has_mul : has_mul (special_linear_group n R) :=
 ⟨λ A B, ⟨A.1 ⬝ B.1, by erw [det_mul, A.2, B.2, one_mul]⟩⟩
@@ -98,6 +98,10 @@ instance : inhabited (special_linear_group n R) := ⟨1⟩
 section coe_lemmas
 
 variables (A B : special_linear_group n R)
+
+@[simp] lemma coe_mk (A : matrix n n R) (h : det A = 1) :
+  ↑(⟨A, h⟩ : special_linear_group n R) = A :=
+rfl
 
 @[simp] lemma coe_inv : ↑ₘ(A⁻¹) = adjugate A := rfl
 
@@ -156,6 +160,28 @@ def to_GL : special_linear_group n R →* general_linear_group R (n → R) :=
 
 lemma coe_to_GL (A : special_linear_group n R) : ↑A.to_GL = A.to_lin'.to_linear_map := rfl
 
+variables {S : Type*} [comm_ring S]
+
+/-- A ring homomorphism from `R` to `S` induces a group homomorphism from
+`special_linear_group n R` to `special_linear_group n S`. -/
+@[simps] def map (f : R →+* S) : special_linear_group n R →* special_linear_group n S :=
+{ to_fun := λ g, ⟨f.map_matrix ↑g, by { rw ← f.map_det, simp [g.2] }⟩,
+  map_one' := subtype.ext $ f.map_matrix.map_one,
+  map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul x y }
+
+section cast
+
+/-- Coercion of SL `n` `ℤ` to SL `n` `R` for a commutative ring `R`. -/
+instance : has_coe (special_linear_group n ℤ) (special_linear_group n R) :=
+⟨λ x, map (int.cast_ring_hom R) x⟩
+
+@[simp] lemma coe_matrix_coe (g : special_linear_group n ℤ) :
+  ↑(g : special_linear_group n R)
+  = (↑g : matrix n n ℤ).map (int.cast_ring_hom R) :=
+map_apply_coe (int.cast_ring_hom R) g
+
+end cast
+
 section has_neg
 
 variables [fact (even (fintype.card n))]
@@ -170,6 +196,10 @@ instance : has_neg (special_linear_group n R) :=
 @[simp] lemma coe_neg (g : special_linear_group n R) :
   ↑(- g) = - (↑g : matrix n n R) :=
 rfl
+
+@[simp] lemma coe_int_neg (g : (special_linear_group n ℤ)) :
+  ↑(-g) = (-↑g : special_linear_group n R) :=
+subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg ↑g
 
 end has_neg
 

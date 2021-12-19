@@ -304,8 +304,7 @@ end
 
 instance order_bot : order_bot (fractional_ideal S P) :=
 { bot := 0,
-  bot_le := zero_le,
-  ..set_like.partial_order }
+  bot_le := zero_le }
 
 @[simp] lemma bot_eq_zero : (⊥ : fractional_ideal S P) = 0 :=
 rfl
@@ -354,8 +353,8 @@ instance lattice : lattice (fractional_ideal S P) :=
   sup_le := λ I J K hIK hJK, show (I ⊔ J : submodule R P) ≤ K, from sup_le hIK hJK,
   ..set_like.partial_order }
 
-instance : semilattice_sup_bot (fractional_ideal S P) :=
-{ ..fractional_ideal.order_bot, ..fractional_ideal.lattice }
+instance : semilattice_sup (fractional_ideal S P) :=
+{ ..fractional_ideal.lattice }
 
 end lattice
 
@@ -686,7 +685,7 @@ submodule.mem_span_mul_finite_of_mem_mul (by simpa using mem_coe.mpr hx)
 variables (S)
 
 lemma coe_ideal_fg (inj : function.injective (algebra_map R P)) (I : ideal R) :
-  fg ((I : fractional_ideal S P) : submodule R P) ↔ fg I :=
+  fg ((I : fractional_ideal S P) : submodule R P) ↔ I.fg :=
 coe_submodule_fg _ inj _
 
 variables {S}
@@ -768,7 +767,8 @@ variables {I J : fractional_ideal R⁰ K} (h : K →ₐ[R] K')
 lemma exists_ne_zero_mem_is_integer [nontrivial R] (hI : I ≠ 0) :
   ∃ x ≠ (0 : R), algebra_map R K x ∈ I :=
 begin
-  obtain ⟨y, y_mem, y_not_mem⟩ := set_like.exists_of_lt (bot_lt_iff_ne_bot.mpr hI),
+  obtain ⟨y, y_mem, y_not_mem⟩ := set_like.exists_of_lt
+    (by simpa only using bot_lt_iff_ne_bot.mpr hI),
   have y_ne_zero : y ≠ 0 := by simpa using y_not_mem,
   obtain ⟨z, ⟨x, hx⟩⟩ := exists_integer_multiple R⁰ y,
   refine ⟨x, _, _⟩,
@@ -845,7 +845,8 @@ lemma fractional_div_of_nonzero {I J : fractional_ideal R₁⁰ K} (h : J ≠ 0)
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
   rcases J with ⟨J, aJ, haJ, hJ⟩,
-  obtain ⟨y, mem_J, not_mem_zero⟩ := set_like.exists_of_lt (bot_lt_iff_ne_bot.mpr h),
+  obtain ⟨y, mem_J, not_mem_zero⟩ := set_like.exists_of_lt
+    (by simpa only using bot_lt_iff_ne_bot.mpr h),
   obtain ⟨y', hy'⟩ := hJ y mem_J,
   use (aI * y'),
   split,
@@ -1012,7 +1013,7 @@ variables [algebra R₁ K] [is_fraction_ring R₁ K]
 
 open_locale classical
 
-open submodule submodule.is_principal
+open submodule.is_principal
 
 include loc
 
@@ -1279,7 +1280,7 @@ begin
   rw is_noetherian_iff,
   intros J hJ,
   obtain ⟨J, rfl⟩ := le_one_iff_exists_coe_ideal.mp (le_trans hJ coe_ideal_le_one),
-  exact fg_map (is_noetherian.noetherian J),
+  exact (is_noetherian.noetherian J).map _,
 end
 
 include frac

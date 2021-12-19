@@ -138,8 +138,8 @@ end
 protected lemma lt_def {p q : ℚ} : p < q ↔ p.num * q.denom < q.num * p.denom :=
 begin
   rw [lt_iff_le_and_ne, rat.le_def'],
-  suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by {
-    split; intro h,
+  suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by
+  { split; intro h,
     { exact lt_iff_le_and_ne.elim_right ⟨h.left, (this.elim_left h.right)⟩ },
     { have tmp := lt_iff_le_and_ne.elim_left h, exact ⟨tmp.left, this.elim_right tmp.right⟩ }},
   exact (not_iff_not.elim_right eq_iff_mul_eq_mul)
@@ -195,16 +195,7 @@ begin
 end
 
 lemma lt_one_iff_num_lt_denom {q : ℚ} : q < 1 ↔ q.num < q.denom :=
-begin
-  cases decidable.em (0 < q) with q_pos q_nonpos,
-  { simp [rat.lt_def] },
-  { replace q_nonpos : q ≤ 0, from not_lt.elim_left q_nonpos,
-    have : q.num < q.denom, by
-    { have : ¬0 < q.num ↔ ¬0 < q, from not_iff_not.elim_right num_pos_iff_pos,
-      simp only [not_lt] at this,
-      exact lt_of_le_of_lt (this.elim_right q_nonpos) (by exact_mod_cast q.pos) },
-    simp only [this, (lt_of_le_of_lt q_nonpos zero_lt_one)] }
-end
+by simp [rat.lt_def]
 
 theorem abs_def (q : ℚ) : |q| = q.num.nat_abs /. q.denom :=
 begin

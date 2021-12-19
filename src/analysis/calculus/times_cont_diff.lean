@@ -1564,7 +1564,7 @@ lemma continuous_linear_equiv.times_cont_diff {n : with_top ℕ} (f : E ≃L[�
   times_cont_diff 𝕜 n f :=
 (f : E →L[𝕜] F).times_cont_diff
 
-lemma linear_isometry_map.times_cont_diff {n : with_top ℕ} (f : E →ₗᵢ[𝕜] F) :
+lemma linear_isometry.times_cont_diff {n : with_top ℕ} (f : E →ₗᵢ[𝕜] F) :
   times_cont_diff 𝕜 n f :=
 f.to_continuous_linear_map.times_cont_diff
 
@@ -1625,6 +1625,24 @@ The second projection within a domain at a point in a product is `C^∞`.
 lemma times_cont_diff_within_at_snd {s : set (E × F)} {p : E × F} {n : with_top ℕ} :
   times_cont_diff_within_at 𝕜 n (prod.snd : E × F → F) s p :=
 times_cont_diff_snd.times_cont_diff_within_at
+
+/--
+The natural equivalence `(E × F) × G ≃ E × (F × G)` is smooth.
+
+Warning: if you think you need this lemma, it is likely that you can simplify your proof by
+reformulating the lemma that you're applying next using the tips in
+Note [continuity lemma statement]
+-/
+lemma times_cont_diff_prod_assoc : times_cont_diff 𝕜 ⊤ $ equiv.prod_assoc E F G :=
+(linear_isometry_equiv.prod_assoc 𝕜 E F G).times_cont_diff
+
+/--
+The natural equivalence `E × (F × G) ≃ (E × F) × G` is smooth.
+
+Warning: see remarks attached to `times_cont_diff_prod_assoc`
+-/
+lemma times_cont_diff_prod_assoc_symm : times_cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).symm :=
+(linear_isometry_equiv.prod_assoc 𝕜 E F G).symm.times_cont_diff
 
 /--
 The identity is `C^∞`.
@@ -1882,6 +1900,9 @@ begin
     exact (h i).zero_eq x hx },
   { intros m hm x hx,
     have := has_fderiv_within_at_pi.2 (λ i, (h i).fderiv_within m hm x hx),
+    -- TODO: lean can't find the instance without this: If we remove this `letI`, we have to add
+    -- `local attribute [-instance] punit.mul_action` instead!
+    letI : normed_space 𝕜 (E [×m]→L[𝕜] (Π i, F' i)) := infer_instance,
     convert (L m).has_fderiv_at.comp_has_fderiv_within_at x this },
   { intros m hm,
     have := continuous_on_pi.2 (λ i, (h i).cont m hm),
@@ -2484,7 +2505,7 @@ variables (𝕜) {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'
 
 lemma times_cont_diff_at_inv {x : 𝕜'} (hx : x ≠ 0) {n} :
   times_cont_diff_at 𝕜 n has_inv.inv x :=
-by simpa only [inverse_eq_has_inv] using times_cont_diff_at_ring_inverse 𝕜 (units.mk0 x hx)
+by simpa only [ring.inverse_eq_inv'] using times_cont_diff_at_ring_inverse 𝕜 (units.mk0 x hx)
 
 lemma times_cont_diff_on_inv {n} : times_cont_diff_on 𝕜 n (has_inv.inv : 𝕜' → 𝕜') {0}ᶜ :=
 λ x hx, (times_cont_diff_at_inv 𝕜 hx).times_cont_diff_within_at

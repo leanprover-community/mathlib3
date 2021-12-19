@@ -339,6 +339,89 @@ end is_unit
 @[simp] theorem not_is_unit_zero [nontrivial M₀] : ¬ is_unit (0 : M₀) :=
 mt is_unit_zero_iff.1 zero_ne_one
 
+namespace ring
+open_locale classical
+
+/-- Introduce a function `inverse` on a monoid with zero `M₀`, which sends `x` to `x⁻¹` if `x` is
+invertible and to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather
+than partially) defined inverse function for some purposes, including for calculus.
+
+Note that while this is in the `ring` namespace for brevity, it requires the weaker assumption
+`monoid_with_zero M₀` instead of `ring M₀`. -/
+noncomputable def inverse : M₀ → M₀ :=
+λ x, if h : is_unit x then ((h.unit⁻¹ : units M₀) : M₀) else 0
+
+/-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
+@[simp] lemma inverse_unit (u : units M₀) : inverse (u : M₀) = (u⁻¹ : units M₀) :=
+begin
+  simp only [units.is_unit, inverse, dif_pos],
+  exact units.inv_unique rfl
+end
+
+/-- By definition, if `x` is not invertible then `inverse x = 0`. -/
+@[simp] lemma inverse_non_unit (x : M₀) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
+
+lemma mul_inverse_cancel (x : M₀) (h : is_unit x) : x * inverse x = 1 :=
+by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.mul_inv], }
+
+lemma inverse_mul_cancel (x : M₀) (h : is_unit x) : inverse x * x = 1 :=
+by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.inv_mul], }
+
+lemma mul_inverse_cancel_right (x y : M₀) (h : is_unit x) : y * x * inverse x = y :=
+by rw [mul_assoc, mul_inverse_cancel x h, mul_one]
+
+lemma inverse_mul_cancel_right (x y : M₀) (h : is_unit x) : y * inverse x * x = y :=
+by rw [mul_assoc, inverse_mul_cancel x h, mul_one]
+
+lemma mul_inverse_cancel_left (x y : M₀) (h : is_unit x) : x * (inverse x * y) = y :=
+by rw [← mul_assoc, mul_inverse_cancel x h, one_mul]
+
+lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
+by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
+
+variables (M₀)
+
+@[simp] lemma inverse_one : inverse (1 : M₀) = 1 :=
+inverse_unit 1
+
+@[simp] lemma inverse_zero : inverse (0 : M₀) = 0 :=
+by { nontriviality, exact inverse_non_unit _ not_is_unit_zero }
+
+variables {M₀}
+
+lemma mul_inverse_rev' {a b : M₀} (h : commute a b) : inverse (a * b) = inverse b * inverse a :=
+begin
+  by_cases hab : is_unit (a * b),
+  { obtain ⟨⟨a, rfl⟩, b, rfl⟩ := h.is_unit_mul_iff.mp hab,
+    rw [←units.coe_mul, inverse_unit, inverse_unit, inverse_unit, ←units.coe_mul,
+      mul_inv_rev], },
+  obtain ha | hb := not_and_distrib.mp (mt h.is_unit_mul_iff.mpr hab),
+  { rw [inverse_non_unit _ hab, inverse_non_unit _ ha, mul_zero]},
+  { rw [inverse_non_unit _ hab, inverse_non_unit _ hb, zero_mul]},
+end
+
+lemma mul_inverse_rev {M₀} [comm_monoid_with_zero M₀] (a b : M₀) :
+  ring.inverse (a * b) = inverse b * inverse a :=
+mul_inverse_rev' (commute.all _ _)
+
+end ring
+
+lemma is_unit.ring_inverse {a : M₀} : is_unit a → is_unit (ring.inverse a)
+| ⟨u, hu⟩ := hu ▸ ⟨u⁻¹, (ring.inverse_unit u).symm⟩
+
+@[simp] lemma is_unit_ring_inverse {a : M₀} : is_unit (ring.inverse a) ↔ is_unit a :=
+⟨λ h, begin
+  casesI subsingleton_or_nontrivial M₀,
+  { convert h },
+  { contrapose h,
+    rw ring.inverse_non_unit _ h,
+    exact not_is_unit_zero, },
+end, is_unit.ring_inverse⟩
+
+lemma commute.ring_inverse_ring_inverse {a b : M₀} (h : commute a b) :
+  commute (ring.inverse a) (ring.inverse b) :=
+(ring.mul_inverse_rev' h.symm).symm.trans $ (congr_arg _ h.symm.eq).trans $ ring.mul_inverse_rev' h
+
 variable (M₀)
 
 end monoid_with_zero
@@ -387,22 +470,22 @@ classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel₀ ha $ h₂.symm �
 
 end cancel_monoid_with_zero
 
-section comm_cancel_monoid_with_zero
+section cancel_comm_monoid_with_zero
 
-variables [comm_cancel_monoid_with_zero M₀] {a b c : M₀}
+variables [cancel_comm_monoid_with_zero M₀] {a b c : M₀}
 
-/-- Pullback a `comm_cancel_monoid_with_zero` class along an injective function.
+/-- Pullback a `cancel_comm_monoid_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.comm_cancel_monoid_with_zero
+protected def function.injective.cancel_comm_monoid_with_zero
   [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
-  comm_cancel_monoid_with_zero M₀' :=
+  cancel_comm_monoid_with_zero M₀' :=
 { .. hf.comm_monoid_with_zero f zero one mul,
   .. hf.cancel_monoid_with_zero f zero one mul }
 
-end comm_cancel_monoid_with_zero
+end cancel_comm_monoid_with_zero
 
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
@@ -800,13 +883,55 @@ by simp only [div_eq_mul_inv, mul_inv_rev₀, mul_assoc, mul_inv_cancel_left₀ 
 lemma mul_mul_div (a : G₀) {b : G₀} (hb : b ≠ 0) : a = a * b * (1 / b) :=
 by simp [hb]
 
+lemma ring.inverse_eq_inv (a : G₀) : ring.inverse a = a⁻¹ :=
+begin
+  obtain rfl | ha := eq_or_ne a 0,
+  { simp },
+  { exact ring.inverse_unit (units.mk0 a ha) }
+end
+
+@[simp] lemma ring.inverse_eq_inv' : (ring.inverse : G₀ → G₀) = has_inv.inv :=
+funext ring.inverse_eq_inv
+
+@[field_simps] lemma div_div_eq_mul_div (a b c : G₀) :
+  a / (b / c) = (a * c) / b :=
+by rw [div_eq_mul_one_div, one_div_div, ← mul_div_assoc]
+
+/-- Dividing `a` by the result of dividing `a` by itself results in
+`a` (whether or not `a` is zero). -/
+@[simp] lemma div_div_self (a : G₀) : a / (a / a) = a :=
+begin
+  rw div_div_eq_mul_div,
+  exact mul_self_div_self a
+end
+
+lemma ne_zero_of_one_div_ne_zero {a : G₀} (h : 1 / a ≠ 0) : a ≠ 0 :=
+assume ha : a = 0, begin rw [ha, div_zero] at h, contradiction end
+
+lemma eq_zero_of_one_div_eq_zero {a : G₀} (h : 1 / a = 0) : a = 0 :=
+classical.by_cases
+  (assume ha, ha)
+  (assume ha, ((one_div_ne_zero ha) h).elim)
+
+lemma div_div_div_cancel_right (a : G₀) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
+by rw [div_div_eq_mul_div, div_mul_cancel _ hc]
+
+lemma div_mul_div_cancel (a : G₀) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
+by rw [← mul_div_assoc, div_mul_cancel _ hc]
+
+@[field_simps] lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
+eq_div_iff_mul_eq hb
+
+@[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
+(div_eq_iff_mul_eq hb).trans eq_comm
+
 end group_with_zero
 
 section comm_group_with_zero -- comm
 variables [comm_group_with_zero G₀] {a b c : G₀}
 
 @[priority 10] -- see Note [lower instance priority]
-instance comm_group_with_zero.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero G₀ :=
+instance comm_group_with_zero.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero G₀ :=
 { ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
 
 /-- Pullback a `comm_group_with_zero` class along an injective function.
@@ -870,10 +995,6 @@ lemma mul_eq_mul_of_div_eq_div (a : G₀) {b : G₀} (c : G₀) {d : G₀} (hb :
 by rw [← mul_one (a*d), mul_assoc, mul_comm d, ← mul_assoc, ← div_self hb,
        ← div_mul_eq_mul_div_comm, h, div_mul_eq_mul_div, div_mul_cancel _ hd]
 
-@[field_simps] lemma div_div_eq_mul_div (a b c : G₀) :
-      a / (b / c) = (a * c) / b :=
-by rw [div_eq_mul_one_div, one_div_div, ← mul_div_assoc]
-
 @[field_simps] lemma div_div_eq_div_mul (a b c : G₀) :
       (a / b) / c = a / (b * c) :=
 by rw [div_eq_mul_one_div, div_mul_div, mul_one]
@@ -885,22 +1006,6 @@ by rw [div_div_eq_mul_div, div_mul_eq_mul_div, div_div_eq_div_mul]
 lemma div_mul_eq_div_mul_one_div (a b c : G₀) :
       a / (b * c) = (a / b) * (1 / c) :=
 by rw [← div_div_eq_div_mul, ← div_eq_mul_one_div]
-
-/-- Dividing `a` by the result of dividing `a` by itself results in
-`a` (whether or not `a` is zero). -/
-@[simp] lemma div_div_self (a : G₀) : a / (a / a) = a :=
-begin
-  rw div_div_eq_mul_div,
-  exact mul_self_div_self a
-end
-
-lemma ne_zero_of_one_div_ne_zero {a : G₀} (h : 1 / a ≠ 0) : a ≠ 0 :=
-assume ha : a = 0, begin rw [ha, div_zero] at h, contradiction end
-
-lemma eq_zero_of_one_div_eq_zero {a : G₀} (h : 1 / a = 0) : a = 0 :=
-classical.by_cases
-  (assume ha, ha)
-  (assume ha, ((one_div_ne_zero ha) h).elim)
 
 lemma div_helper {a : G₀} (b : G₀) (h : a ≠ 0) : (1 / (a * b)) * a = 1 / b :=
 by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]
@@ -928,24 +1033,12 @@ by rw [← mul_div_assoc, mul_comm, mul_div_assoc]
 lemma div_right_comm (a : G₀) : (a / b) / c = (a / c) / b :=
 by rw [div_div_eq_div_mul, div_div_eq_div_mul, mul_comm]
 
-lemma div_div_div_cancel_right (a : G₀) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
-by rw [div_div_eq_mul_div, div_mul_cancel _ hc]
-
-lemma div_mul_div_cancel (a : G₀) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
-by rw [← mul_div_assoc, div_mul_cancel _ hc]
-
 @[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
 by rw [mul_left_inj' (mul_ne_zero hb hd)]
                ... ↔ a * d = c * b :
 by rw [← mul_assoc, div_mul_cancel _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
-
-@[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
-(div_eq_iff_mul_eq hb).trans eq_comm
-
-@[field_simps] lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
-eq_div_iff_mul_eq hb
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div, mul_div_cancel' _ ha]
@@ -1060,6 +1153,10 @@ end monoid_with_zero_hom
   (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
 by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', monoid_hom.map_inv]
 
+@[simp] lemma monoid_with_zero_hom.map_units_inv {M G₀ : Type*} [monoid_with_zero M]
+  [group_with_zero G₀] (f : monoid_with_zero_hom M G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+f.to_monoid_hom.map_units_inv u
+
 section noncomputable_defs
 
 variables {M : Type*} [nontrivial M]
@@ -1070,8 +1167,8 @@ noncomputable def group_with_zero_of_is_unit_or_eq_zero [hM : monoid_with_zero M
   (h : ∀ (a : M), is_unit a ∨ a = 0) : group_with_zero M :=
 { inv := λ a, if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹,
   inv_zero := dif_pos rfl,
-  mul_inv_cancel := λ a h0, by {
-    change a * (if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹) = 1,
+  mul_inv_cancel := λ a h0, by
+  { change a * (if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹) = 1,
     rw [dif_neg h0, units.mul_inv_eq_iff_eq_mul, one_mul, is_unit.unit_spec] },
   exists_pair_ne := nontrivial.exists_pair_ne,
 .. hM }

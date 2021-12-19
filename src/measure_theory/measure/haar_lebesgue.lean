@@ -36,10 +36,8 @@ universe u
 def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 ⟨set.pi set.univ (λ i, Icc 0 1), is_compact_univ_pi (λ i, is_compact_Icc),
-begin
-  rw interior_pi_set,
-  simp only [interior_Icc, univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one],
-end⟩
+by simp only [interior_pi_set, finite.of_fintype, interior_Icc, univ_pi_nonempty_iff, nonempty_Ioo,
+  implies_true_iff, zero_lt_one]⟩
 
 namespace measure_theory
 
@@ -73,7 +71,7 @@ lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
   add_haar_measure (pi_Icc01 ι) = volume :=
 begin
   convert (add_haar_measure_unique _ (pi_Icc01 ι)).symm,
-  { simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1) (λ (i : ι), measurable_set_Icc),
+  { simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1),
       finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul, sub_zero] },
   { apply_instance },
   { exact is_add_left_invariant_real_volume_pi ι }
@@ -218,16 +216,6 @@ begin
   rw [this, add_haar_preimage_add]
 end
 
-lemma add_haar_closed_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
-  μ (closed_ball x r) < ∞ :=
-(proper_space.is_compact_closed_ball x r).add_haar_lt_top μ
-
-lemma add_haar_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
-  μ (ball x r) < ∞ :=
-lt_of_le_of_lt (measure_mono ball_subset_closed_ball) (add_haar_closed_ball_lt_top μ x r)
-
 lemma add_haar_ball_pos {E : Type*} [normed_group E] [measurable_space E]
   (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
   0 < μ (ball x r) :=
@@ -270,7 +258,7 @@ lemma add_haar_closed_unit_ball_eq_add_haar_unit_ball :
 begin
   apply le_antisymm _ (measure_mono ball_subset_closed_ball),
   have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))
-    (𝓝[Iio 1] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
+    (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
   { refine ennreal.tendsto.mul _ (by simp) tendsto_const_nhds (by simp),
     exact ennreal.tendsto_of_real ((tendsto_id' nhds_within_le_nhds).pow _) },
   simp only [one_pow, one_mul, ennreal.of_real_one] at A,
@@ -293,8 +281,9 @@ begin
   { exact (hr rfl).elim },
   { rw [← closed_ball_diff_ball,
         measure_diff ball_subset_closed_ball measurable_set_closed_ball measurable_set_ball
-          ((add_haar_ball_lt_top μ x r).ne),
-        add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, tsub_self] }
+          measure_ball_lt_top.ne,
+        add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, tsub_self];
+    apply_instance }
 end
 
 lemma add_haar_sphere [nontrivial E] (x : E) (r : ℝ) :

@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 -/
+import logic.nonempty
 import tactic.lint
 import tactic.dependencies
 
@@ -95,10 +96,9 @@ Typically usage might look like:
 intros,
 simp,
 apply lemma_1,
-work_on_goal 2 {
-  dsimp,
-  simp
-},
+work_on_goal 2
+{ dsimp,
+  simp },
 refl
 ````
 
@@ -932,9 +932,9 @@ meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
   (n : parse ident?) (vs : parse (tk "with" *> ident*)?)
   : tactic unit :=
 do tgt ← target,
-   solve_aux tgt $ do {
-     ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do {
-         vs.mmap clear_except,
+   solve_aux tgt $ do
+   { ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do
+       { vs.mmap clear_except,
          ls ← local_context,
          ls ← ls.mfilter $ succeeds ∘ is_local_def,
          n ← revert_lst ls,
@@ -1066,8 +1066,8 @@ do let (p, x) := p,
    some h ← pure h | tactic.generalize' e x >> skip,
    -- `h` is given, the regular implementation of `generalize` works.
    tgt ← target,
-   tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
+   tgt' ← do
+   { ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
      to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1)) }
    <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',

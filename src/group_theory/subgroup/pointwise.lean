@@ -53,6 +53,10 @@ lemma pointwise_smul_def {a : α} (S : subgroup G) :
 lemma smul_mem_pointwise_smul (m : G) (a : α) (S : subgroup G) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set G))
 
+instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_central_scalar α G] :
+  is_central_scalar α (subgroup G) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
+
 end monoid
 
 section group
@@ -80,6 +84,10 @@ set_smul_subset_iff
 
 lemma subset_pointwise_smul_iff {a : α} {S T : subgroup G} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
 subset_set_smul_iff
+
+/-- Applying a `mul_distrib_mul_action` results in an isomorphic subgroup -/
+@[simps] def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
+(mul_distrib_mul_action.to_mul_equiv G a).subgroup_equiv_map H
 
 end group
 
@@ -138,6 +146,10 @@ open_locale pointwise
 
 lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_subgroup A) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set A))
+
+instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ A] [is_central_scalar α A] :
+  is_central_scalar α (add_subgroup A) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 

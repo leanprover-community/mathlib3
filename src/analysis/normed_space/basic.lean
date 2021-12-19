@@ -5,12 +5,11 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
+import analysis.normed.group.infinite_sum
 import data.matrix.basic
-import topology.algebra.group_completion
+import topology.algebra.module
 import topology.instances.ennreal
-import topology.metric_space.completion
 import topology.sequences
-import analysis.normed.group.basic
 
 /-!
 # Normed spaces
@@ -305,11 +304,11 @@ nnreal.eq $ norm_mul a b
 @[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
 nnreal.eq $ by simp
 
-@[simp] lemma norm_fpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_fpow
+@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
+(norm_hom : monoid_with_zero_hom α ℝ).map_zpow
 
-@[simp] lemma nnnorm_fpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
-(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_fpow
+@[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
+(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
 instance : has_continuous_inv₀ α :=
@@ -353,14 +352,14 @@ let ⟨n, hn⟩ := pow_unbounded_of_one_lt r hw in
 
 lemma exists_norm_lt {r : ℝ} (hr : 0 < r) : ∃ x : α, 0 < ∥x∥ ∧ ∥x∥ < r :=
 let ⟨w, hw⟩ := exists_one_lt_norm α in
-let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
-⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
-by rwa norm_fpow⟩
+let ⟨n, hle, hlt⟩ := exists_mem_Ioc_zpow hr hw in
+⟨w^n, by { rw norm_zpow; exact zpow_pos_of_pos (lt_trans zero_lt_one hw) _},
+by rwa norm_zpow⟩
 
 variable {α}
 
 @[instance]
-lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[{x}ᶜ] x) :=
+lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[≠] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -417,7 +416,7 @@ This is a particular case of `module.punctured_nhds_ne_bot`. -/
 instance punctured_nhds_module_ne_bot
   {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
   [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
-  ne_bot (𝓝[{x}ᶜ] x) :=
+  ne_bot (𝓝[≠] x) :=
 module.punctured_nhds_ne_bot ℝ E x
 
 end real
@@ -489,7 +488,7 @@ instance : nondiscrete_normed_field ℚ :=
 by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 -- Now that we've installed the norm on `ℤ`,
--- we can state some lemmas about `nsmul` and `gsmul`.
+-- we can state some lemmas about `nsmul` and `zsmul`.
 section
 variables [semi_normed_group α]
 
@@ -502,13 +501,13 @@ begin
   exact norm_add_le_of_le ih le_rfl
 end
 
-lemma norm_gsmul_le (n : ℤ) (a : α) : ∥n • a∥ ≤ ∥n∥ * ∥a∥ :=
+lemma norm_zsmul_le (n : ℤ) (a : α) : ∥n • a∥ ≤ ∥n∥ * ∥a∥ :=
 begin
   induction n with n n,
-  { simp only [int.of_nat_eq_coe, gsmul_coe_nat],
+  { simp only [int.of_nat_eq_coe, coe_nat_zsmul],
     convert norm_nsmul_le n a,
     exact nat.abs_cast n },
-  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, gsmul_coe_nat],
+  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, coe_nat_zsmul],
     convert norm_nsmul_le n.succ a,
     exact nat.abs_cast n.succ, }
 end
@@ -517,8 +516,8 @@ lemma nnnorm_nsmul_le (n : ℕ) (a : α) : ∥n • a∥₊ ≤ n * ∥a∥₊ :
 by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
   using norm_nsmul_le n a
 
-lemma nnnorm_gsmul_le (n : ℤ) (a : α) : ∥n • a∥₊ ≤ ∥n∥₊ * ∥a∥₊ :=
-by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul] using norm_gsmul_le n a
+lemma nnnorm_zsmul_le (n : ℤ) (a : α) : ∥n • a∥₊ ≤ ∥n∥₊ * ∥a∥₊ :=
+by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul] using norm_zsmul_le n a
 
 end
 
@@ -659,14 +658,41 @@ begin
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
-theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+theorem smul_sphere' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
 begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+  simp only [mem_sphere, dist_smul, normed_field.norm_inv, ← div_eq_inv_mul,
+    div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
 end
+
+/-- In a nontrivial real normed space, a sphere is nonempty if and only if its radius is
+nonnegative. -/
+@[simp] theorem normed_space.sphere_nonempty {E : Type*} [normed_group E]
+  [normed_space ℝ E] [nontrivial E] {x : E} {r : ℝ} :
+  (sphere x r).nonempty ↔ 0 ≤ r :=
+begin
+  refine ⟨λ h, nonempty_closed_ball.1 (h.mono sphere_subset_closed_ball), λ hr, _⟩,
+  rcases exists_ne x with ⟨y, hy⟩,
+  have : ∥y - x∥ ≠ 0, by simpa [sub_eq_zero],
+  use r • ∥y - x∥⁻¹ • (y - x) + x,
+  simp [norm_smul, this, real.norm_of_nonneg hr]
+end
+
+theorem smul_sphere {E : Type*} [normed_group E] [normed_space α E] [normed_space ℝ E]
+  [nontrivial E] (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { simp [zero_smul_set, set.singleton_zero, hr] },
+  { exact smul_sphere' hc x r }
+end
+
+theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+by simp only [← ball_union_sphere, set.smul_set_union, smul_ball hc, smul_sphere' hc]
 
 theorem smul_closed_ball {E : Type*} [normed_group E] [normed_space α E]
   (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
@@ -676,6 +702,37 @@ begin
   { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
   { exact smul_closed_ball' hc x r }
 end
+
+/-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.
+This homeomorphism sends `x : E` to `(1 + ∥x∥)⁻¹ • x`.
+
+In many cases the actual implementation is not important, so we don't mark the projection lemmas
+`homeomorph_unit_ball_apply_coe` and `homeomorph_unit_ball_symm_apply` as `@[simp]`. -/
+@[simps { attrs := [] }]
+def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E] :
+  E ≃ₜ ball (0 : E) 1 :=
+{ to_fun := λ x, ⟨(1 + ∥x∥)⁻¹ • x, begin
+    have : ∥x∥ < |1 + ∥x∥| := (lt_one_add _).trans_le (le_abs_self _),
+    rwa [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
+      div_lt_one ((norm_nonneg x).trans_lt this)],
+  end⟩,
+  inv_fun := λ x, (1 - ∥(x : E)∥)⁻¹ • (x : E),
+  left_inv := λ x,
+    begin
+      have : 0 < 1 + ∥x∥ := (norm_nonneg x).trans_lt (lt_one_add _),
+      field_simp [this.ne', abs_of_pos this, norm_smul, smul_smul, real.norm_eq_abs, abs_div]
+    end,
+  right_inv := λ x, subtype.ext
+    begin
+      have : 0 < 1 - ∥(x : E)∥ := sub_pos.2 (mem_ball_zero_iff.1 x.2),
+      field_simp [norm_smul, smul_smul, real.norm_eq_abs, abs_div, abs_of_pos this, this.ne']
+    end,
+  continuous_to_fun := continuous_subtype_mk _ $
+    ((continuous_const.add continuous_norm).inv₀
+      (λ x, ((norm_nonneg x).trans_lt (lt_one_add _)).ne')).smul continuous_id,
+  continuous_inv_fun := continuous.smul
+    ((continuous_const.sub continuous_subtype_coe.norm).inv₀ $
+      λ x, (sub_pos.2 $ mem_ball_zero_iff.1 x.2).ne') continuous_subtype_coe }
 
 variables (α)
 
@@ -717,23 +774,23 @@ lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos
   (hx : ∥x∥ ≠ 0) : ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 begin
   have xεpos : 0 < ∥x∥/ε := div_pos ((ne.symm hx).le_iff_lt.1 (norm_nonneg x)) εpos,
-  rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
+  rcases exists_mem_Ico_zpow xεpos hc with ⟨n, hn⟩,
   have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
-  have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_fpow, exact lt_trans xεpos hn.2 },
+  have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_zpow, exact lt_trans xεpos hn.2 },
   refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
   show (c ^ (n + 1))⁻¹  ≠ 0,
     by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
   show ∥(c ^ (n + 1))⁻¹ • x∥ < ε,
-  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_fpow],
+  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_zpow],
     exact (div_lt_iff εpos).1 (hn.2) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
-  { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
-        gpow_one, mul_inv_rev₀, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
-        one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
+  { rw [div_le_iff cpos, norm_smul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
+        zpow_one, mul_inv_rev₀, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        one_mul, ← div_eq_inv_mul, le_div_iff (zpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv₀, norm_fpow, fpow_add (ne_of_gt cpos), gpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv₀, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
@@ -949,129 +1006,6 @@ instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
 
 end restrict_scalars
 
-section summable
-open_locale classical
-open finset filter
-variables [semi_normed_group α] [semi_normed_group β]
-
-lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
-  cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔
-    ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
-begin
-  rw [cauchy_seq_finset_iff_vanishing, nhds_basis_ball.forall_iff],
-  { simp only [ball_zero_eq, set.mem_set_of_eq] },
-  { rintros s t hst ⟨s', hs'⟩,
-    exact ⟨s', λ t' ht', hst $ hs' _ ht'⟩ }
-end
-
-lemma summable_iff_vanishing_norm [complete_space α] {f : ι → α} :
-  summable f ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
-by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]
-
-lemma cauchy_seq_finset_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g)
-  (h : ∀i, ∥f i∥ ≤ g i) : cauchy_seq (λ s : finset ι, ∑ i in s, f i) :=
-cauchy_seq_finset_iff_vanishing_norm.2 $ assume ε hε,
-  let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hg ε hε in
-  ⟨s, assume t ht,
-    have ∥∑ i in t, g i∥ < ε := hs t ht,
-    have nn : 0 ≤ ∑ i in t, g i := finset.sum_nonneg (assume a _, le_trans (norm_nonneg _) (h a)),
-    lt_of_le_of_lt (norm_sum_le_of_le t (λ i _, h i)) $
-      by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
-
-lemma cauchy_seq_finset_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) :
-  cauchy_seq (λ s : finset ι, ∑ a in s, f a) :=
-cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_refl _)
-
-/-- If a function `f` is summable in norm, and along some sequence of finsets exhausting the space
-its sum is converging to a limit `a`, then this holds along all finsets, i.e., `f` is summable
-with sum `a`. -/
-lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a∥))
-  {s : γ → finset ι} {p : filter γ} [ne_bot p]
-  (hs : tendsto s p at_top) {a : α} (ha : tendsto (λ b, ∑ i in s b, f i) p (𝓝 a)) :
-  has_sum f a :=
-tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hs ha
-
-lemma has_sum_iff_tendsto_nat_of_summable_norm {f : ℕ → α} {a : α} (hf : summable (λi, ∥f i∥)) :
-  has_sum f a ↔ tendsto (λn:ℕ, ∑ i in range n, f i) at_top (𝓝 a) :=
-⟨λ h, h.tendsto_sum_nat,
-λ h, has_sum_of_subseq_of_summable hf tendsto_finset_range h⟩
-
-/-- The direct comparison test for series:  if the norm of `f` is bounded by a real function `g`
-which is summable, then `f` is summable. -/
-lemma summable_of_norm_bounded
-  [complete_space α] {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
-  summable f :=
-by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
-
-lemma has_sum.norm_le_of_bounded {f : ι → α} {g : ι → ℝ} {a : α} {b : ℝ}
-  (hf : has_sum f a) (hg : has_sum g b) (h : ∀ i, ∥f i∥ ≤ g i) :
-  ∥a∥ ≤ b :=
-le_of_tendsto_of_tendsto' hf.norm hg $ λ s, norm_sum_le_of_le _ $ λ i hi, h i
-
-/-- Quantitative result associated to the direct comparison test for series:  If `∑' i, g i` is
-summable, and for all `i`, `∥f i∥ ≤ g i`, then `∥∑' i, f i∥ ≤ ∑' i, g i`. Note that we do not
-assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
-lemma tsum_of_norm_bounded {f : ι → α} {g : ι → ℝ} {a : ℝ} (hg : has_sum g a)
-  (h : ∀ i, ∥f i∥ ≤ g i) :
-  ∥∑' i : ι, f i∥ ≤ a :=
-begin
-  by_cases hf : summable f,
-  { exact hf.has_sum.norm_le_of_bounded hg h },
-  { rw [tsum_eq_zero_of_not_summable hf, norm_zero],
-    exact ge_of_tendsto' hg (λ s, sum_nonneg $ λ i hi, (norm_nonneg _).trans (h i)) }
-end
-
-/-- If `∑' i, ∥f i∥` is summable, then `∥∑' i, f i∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume
-that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
-lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) :
-  ∥∑' i, f i∥ ≤ ∑' i, ∥f i∥ :=
-tsum_of_norm_bounded hf.has_sum $ λ i, le_rfl
-
-/-- Quantitative result associated to the direct comparison test for series: If `∑' i, g i` is
-summable, and for all `i`, `nnnorm (f i) ≤ g i`, then `nnnorm (∑' i, f i) ≤ ∑' i, g i`. Note that we
-do not assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete
-space. -/
-lemma tsum_of_nnnorm_bounded {f : ι → α} {g : ι → ℝ≥0} {a : ℝ≥0} (hg : has_sum g a)
-  (h : ∀ i, nnnorm (f i) ≤ g i) :
-  nnnorm (∑' i : ι, f i) ≤ a :=
-begin
-  simp only [← nnreal.coe_le_coe, ← nnreal.has_sum_coe, coe_nnnorm] at *,
-  exact tsum_of_norm_bounded hg h
-end
-
-/-- If `∑' i, nnnorm (f i)` is summable, then `nnnorm (∑' i, f i) ≤ ∑' i, nnnorm (f i)`. Note that
-we do not assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete
-space. -/
-lemma nnnorm_tsum_le {f : ι → α} (hf : summable (λi, nnnorm (f i))) :
-  nnnorm (∑' i, f i) ≤ ∑' i, nnnorm (f i) :=
-tsum_of_nnnorm_bounded hf.has_sum (λ i, le_rfl)
-
-variable [complete_space α]
-
-/-- Variant of the direct comparison test for series:  if the norm of `f` is eventually bounded by a
-real function `g` which is summable, then `f` is summable. -/
-lemma summable_of_norm_bounded_eventually {f : ι → α} (g : ι → ℝ) (hg : summable g)
-  (h : ∀ᶠ i in cofinite, ∥f i∥ ≤ g i) : summable f :=
-begin
-  replace h := mem_cofinite.1 h,
-  refine h.summable_compl_iff.mp _,
-  refine summable_of_norm_bounded _ (h.summable_compl_iff.mpr hg) _,
-  rintros ⟨a, h'⟩,
-  simpa using h'
-end
-
-lemma summable_of_nnnorm_bounded {f : ι → α} (g : ι → ℝ≥0) (hg : summable g)
-  (h : ∀i, ∥f i∥₊ ≤ g i) : summable f :=
-summable_of_norm_bounded (λ i, (g i : ℝ)) (nnreal.summable_coe.2 hg) (λ i, by exact_mod_cast h i)
-
-lemma summable_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) : summable f :=
-summable_of_norm_bounded _ hf (assume i, le_refl _)
-
-lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λ a, ∥f a∥₊)) : summable f :=
-summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
-
-end summable
-
 section cauchy_product
 
 /-! ## Multiplying two infinite sums in a normed ring
@@ -1193,31 +1127,21 @@ end nat
 
 end cauchy_product
 
-namespace uniform_space
-namespace completion
+section ring_hom_isometric
 
-variables (V : Type*)
+variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
 
-instance [uniform_space V] [has_norm V] :
-  has_norm (completion V) :=
-{ norm := completion.extension has_norm.norm }
+/-- This class states that a ring homomorphism is isometric. This is a sufficient assumption
+for a continuous semilinear map to be bounded and this is the main use for this typeclass. -/
+class ring_hom_isometric [semiring R₁] [semiring R₂] [has_norm R₁] [has_norm R₂]
+  (σ : R₁ →+* R₂) : Prop :=
+(is_iso : ∀ {x : R₁}, ∥σ x∥ = ∥x∥)
 
-@[simp] lemma norm_coe {V} [semi_normed_group V] (v : V) :
-  ∥(v : completion V)∥ = ∥v∥ :=
-completion.extension_coe uniform_continuous_norm v
+attribute [simp] ring_hom_isometric.is_iso
 
-instance [semi_normed_group V] : normed_group (completion V) :=
-{ dist_eq :=
-  begin
-    intros x y,
-    apply completion.induction_on₂ x y; clear x y,
-    { refine is_closed_eq (completion.uniform_continuous_extension₂ _).continuous _,
-      exact continuous.comp completion.continuous_extension continuous_sub },
-    { intros x y,
-      rw [← completion.coe_sub, norm_coe, metric.completion.dist_eq, dist_eq_norm] }
-  end,
-  .. (show add_comm_group (completion V), by apply_instance),
-  .. (show metric_space (completion V), by apply_instance) }
+variables [semi_normed_ring R₁] [semi_normed_ring R₂] [semi_normed_ring R₃]
 
-end completion
-end uniform_space
+instance ring_hom_isometric.ids : ring_hom_isometric (ring_hom.id R₁) :=
+⟨λ x, rfl⟩
+
+end ring_hom_isometric

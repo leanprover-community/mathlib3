@@ -637,12 +637,12 @@ lemma monotone_comap {f : M →[L] N} : monotone (comap f) :=
 
 @[simp]
 lemma map_comap_map {f : M →[L] N} : ((S.map f).comap f).map f = S.map f :=
-congr_fun ((gc_map_comap f).l_u_l_eq_l) _
+(gc_map_comap f).l_u_l_eq_l _
 
 @[simp]
 lemma comap_map_comap {S : L.substructure N} {f : M →[L] N} :
   ((S.comap f).map f).comap f = S.comap f :=
-congr_fun ((gc_map_comap f).u_l_u_eq_u) _
+(gc_map_comap f).u_l_u_eq_u _
 
 lemma map_sup (S T : L.substructure M) (f : M →[L] N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
 (gc_map_comap f).l_sup
@@ -791,8 +791,8 @@ open substructure
 /-- The substructure of elements `x : M` such that `f x = g x` -/
 def eq_locus (f g : M →[L] N) : substructure L M :=
 { carrier := {x : M | f x = g x},
-  fun_mem := λ n fn x hx, by {
-    have h : f ∘ x = g ∘ x := by { ext, repeat {rw function.comp_apply}, apply hx, },
+  fun_mem := λ n fn x hx, by
+  { have h : f ∘ x = g ∘ x := by { ext, repeat {rw function.comp_apply}, apply hx, },
     simp [h], } }
 
 /-- If two `L.hom`s are equal on a set, then they are equal on its substructure closure. -/

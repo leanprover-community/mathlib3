@@ -21,8 +21,15 @@ noncomputable theory
 open_locale real nnreal interval pointwise topological_space
 open complex measure_theory topological_space metric function set filter asymptotics
 
+/-!
+### `circle_map`, a parametrization of a circle
+-/
+
+/-- The exponential map $θ ↦ c + R e^{θi}$. The range of this map is the circle in `ℂ` with center
+`c` and radius `|R|`. -/
 def circle_map (c : ℂ) (R : ℝ) : ℝ → ℂ := λ θ, c + R * exp (θ * I)
 
+/-- `circle_map` is `2π`-periodic. -/
 lemma periodic_circle_map (c : ℂ) (R : ℝ) : periodic (circle_map c R) (2 * π) :=
 λ θ, by simp [circle_map, add_mul, exp_periodic _]
 
@@ -39,18 +46,20 @@ by simp
 lemma circle_map_mem_sphere (c : ℂ) {R : ℝ} (hR : 0 ≤ R) (θ : ℝ) : circle_map c R θ ∈ sphere c R :=
 by simpa only [_root_.abs_of_nonneg hR] using circle_map_mem_sphere' c R θ
 
+lemma circle_map_mem_closed_ball (c : ℂ) {R : ℝ} (hR : 0 ≤ R) (θ : ℝ) :
+  circle_map c R θ ∈ closed_ball c R :=
+sphere_subset_closed_ball (circle_map_mem_sphere c hR θ)
+
+/-- The range of `circle_map c R` is the circle with center `c` and radius `|R|`. -/
 @[simp] lemma range_circle_map (c : ℂ) (R : ℝ) : range (circle_map c R) = sphere c (|R|) :=
 calc range (circle_map c R) = c +ᵥ R • range (λ θ : ℝ, exp (θ * I)) :
   by simp only [← image_vadd, ← image_smul, ← range_comp, vadd_eq_add, circle_map, (∘), real_smul]
 ... = sphere c (|R|) : by simp [smul_sphere R (0 : ℂ) zero_le_one, real.norm_eq_abs]
 
+/-- The image of `(0, 2π]` under `circle_map c R` is the circle with center `c` and radius `|R|`. -/
 @[simp] lemma image_circle_map_Ioc (c : ℂ) (R : ℝ) :
   circle_map c R '' Ioc 0 (2 * π) = sphere c (|R|) :=
 by rw [← range_circle_map, ← (periodic_circle_map c R).image_Ioc real.two_pi_pos 0, zero_add]
-
-lemma circle_map_mem_closed_ball (c : ℂ) {R : ℝ} (hR : 0 ≤ R) (θ : ℝ) :
-  circle_map c R θ ∈ closed_ball c R :=
-sphere_subset_closed_ball (circle_map_mem_sphere c hR θ)
 
 @[simp] lemma circle_map_eq_center_iff {c : ℂ} {R : ℝ} {θ : ℝ} : circle_map c R θ = c ↔ R = 0 :=
 by simp [circle_map, exp_ne_zero]
@@ -93,6 +102,16 @@ lemma lipschitz_with_circle_map (c : ℂ) (R : ℝ) :
 lipschitz_with_of_nnnorm_deriv_le (differentiable_circle_map _ _) $ λ θ,
   nnreal.coe_le_coe.1 $ by simp
 
+/-!
+### Integrability of a function on a circle
+-/
+
+/-- We say that a function `f : ℂ → E` is integrable on the circle with center `c` and radius `R` if
+the function `f ∘ circle_map c R` is integrable on `[0, 2π]`.
+
+Note that the actual function used in the definition of `circle_integral` is
+`(deriv (circle_map c R) θ) • f (circle_map c R θ)`. Integrability of this function is equivalent
+to integrability of `f ∘ circle_map c R` whenever `R ≠ 0`. -/
 def circle_integrable (f : ℂ → E) (c : ℂ) (R : ℝ) : Prop :=
 interval_integrable (λ θ : ℝ, f (circle_map c R θ)) volume 0 (2 * π)
 
@@ -111,7 +130,8 @@ hf.add hg
 
 lemma neg [borel_space E] (hf : circle_integrable f c R) : circle_integrable (-f) c R := hf.neg
 
-/-- The function we actually integrate over `[0, 2π]` is integrable. -/
+/-- The function we actually integrate over `[0, 2π]` in the definition of `circle_integral` is
+integrable. -/
 lemma out [borel_space E] [normed_space ℂ E] [second_countable_topology E]
   (hf : circle_integrable f c R) :
   interval_integrable (λ θ : ℝ, deriv (circle_map c R) θ • f (circle_map c R θ)) volume 0 (2 * π) :=
@@ -151,6 +171,8 @@ lemma continuous_on.circle_integrable [borel_space E] {f : ℂ → E} {c : ℂ} 
   circle_integrable f c R :=
 continuous_on.circle_integrable' $ (_root_.abs_of_nonneg hR).symm ▸ hf
 
+/-- The function `λ z, (z - w) ^ n`, `n : ℤ`, is circle integrable on the circle with center `c` and
+radius `|R|` if and only if `R = 0` or `0 ≤ n`, or `w` does not belong to this circle. -/
 @[simp] lemma circle_integrable_sub_zpow_iff {c w : ℂ} {R : ℝ} {n : ℤ} :
   circle_integrable (λ z, (z - w) ^ n) c R ↔ R = 0 ∨ 0 ≤ n ∨ w ∉ sphere c (|R|) :=
 begin
@@ -188,7 +210,7 @@ by { simp only [← zpow_neg_one, circle_integrable_sub_zpow_iff], norm_num }
 
 variables [normed_space ℂ E] [complete_space E] [borel_space E] [second_countable_topology E]
 
-/-- Definition for $\int_{|w-c|=R} f(w)\,dw$. -/
+/-- Definition for $\oint_{|z-c|=R} f(z)\,dz$. -/
 def circle_integral (f : ℂ → E) (c : ℂ) (R : ℝ) : E :=
 ∫ (θ : ℝ) in 0..2 * π, deriv (circle_map c R) θ • f (circle_map c R θ)
 
@@ -273,7 +295,7 @@ lemma integral_eq_zero_of_has_deriv_within_at {f f' : ℂ → E} {c : ℂ} {R : 
   ∮ z in C(c, R), f' z = 0 :=
 integral_eq_zero_of_has_deriv_within_at' $ (_root_.abs_of_nonneg hR).symm.subst h
 
-/-- If  `n ≠ -1` is an integer number, then the integral of `(z - w) ^ n` over the circle equals
+/-- If `n ≠ -1` is an integer number, then the integral of `(z - w) ^ n` over the circle equals
 zero. -/
 lemma integral_sub_zpow_of_ne {n : ℤ} (hn : n ≠ -1) (c w : ℂ) (R : ℝ) :
   ∮ z in C(c, R), (z - w) ^ n = 0 :=
@@ -299,6 +321,10 @@ end
 
 end circle_integral
 
+/-- Formal multilinear series defined by the restriction of `f` to the circle `metric.sphere c R`
+that converges to `f` in `metric.ball c R` if `f` is complex differentiable on the corresponding
+closed ball. For any circle integrable function `f`, this power series converges to the Cauchy
+integral for `f`. -/
 def cauchy_power_series (f : ℂ → E) (c : ℂ) (R : ℝ) :
   formal_multilinear_series ℂ ℂ E :=
 λ n, continuous_multilinear_map.mk_pi_field ℂ _ $

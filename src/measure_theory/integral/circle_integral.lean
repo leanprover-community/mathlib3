@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import measure_theory.integral.interval_integral
 import analysis.special_functions.non_integrable
 import analysis.analytic.basic
@@ -10,7 +15,7 @@ variables {E : Type*} [measurable_space E] [normed_group E]
 noncomputable theory
 
 open_locale real nnreal interval pointwise topological_space
-open complex measure_theory topological_space metric function set filter
+open complex measure_theory topological_space metric function set filter asymptotics
 
 def circle_map (c : ℂ) (R : ℝ) : ℝ → ℂ := λ θ, c + R * exp (θ * I)
 
@@ -115,6 +120,9 @@ end
 
 end circle_integrable
 
+@[simp] lemma circle_integrable_zero_radius {f : ℂ → E} {c : ℂ} : circle_integrable f c 0 :=
+by simp [circle_integrable]
+
 lemma circle_integrable_iff [borel_space E] [normed_space ℂ E] [second_countable_topology E]
   {f : ℂ → E} {c : ℂ} {R : ℝ} (h₀ : R ≠ 0) : circle_integrable f c R ↔
   interval_integrable (λ θ : ℝ, deriv (circle_map c R) θ • f (circle_map c R θ)) volume 0 (2 * π) :=
@@ -139,21 +147,40 @@ lemma continuous_on.circle_integrable [borel_space E] {f : ℂ → E} {c : ℂ} 
   circle_integrable f c R :=
 continuous_on.circle_integrable' $ (_root_.abs_of_nonneg hR).symm ▸ hf
 
-/-
-TODO
-lemma circle_integrable_sub_zpow {c w : ℂ} {R : ℝ} {n : ℤ} :
+@[simp] lemma circle_integrable_sub_zpow_iff {c w : ℂ} {R : ℝ} {n : ℤ} :
   circle_integrable (λ z, (z - w) ^ n) c R ↔ R = 0 ∨ 0 ≤ n ∨ w ∉ sphere c (|R|) :=
 begin
   split,
   { intro h, contrapose! h, rcases h with ⟨hR, hn, hw⟩,
-    simp only [circle_integrable_iff hR],
+    simp only [circle_integrable_iff hR, deriv_circle_map],
     rw ← image_circle_map_Ioc at hw, rcases hw with ⟨θ, hθ, rfl⟩,
     replace hθ : θ ∈ [0, 2 * π], from Icc_subset_interval (Ioc_subset_Icc_self hθ),
-    rcases (int.le_sub_one_of_lt hn).eq_or_lt with rfl|hn,
-    {  },
-    }
+    refine not_interval_integrable_of_sub_inv_is_O_punctured _ real.two_pi_pos.ne hθ,
+    set f : ℝ → ℂ := λ θ', circle_map c R θ' - circle_map c R θ,
+    have : ∀ᶠ θ' in 𝓝[≠] θ, f θ' ∈ ball (0 : ℂ) 1 \ {0},
+    { suffices : ∀ᶠ z in 𝓝[≠] (circle_map c R θ), z - circle_map c R θ ∈ ball (0 : ℂ) 1 \ {0},
+        from ((differentiable_circle_map c R θ).has_deriv_at.tendsto_punctured_nhds
+          (deriv_circle_map_ne_zero hR)).eventually this,
+      filter_upwards [self_mem_nhds_within,
+        mem_nhds_within_of_mem_nhds (ball_mem_nhds _ zero_lt_one)],
+      simp [dist_eq, sub_eq_zero] { contextual := tt } },
+    refine ((((has_deriv_at_circle_map c R θ).is_O_sub).mono inf_le_left).inv_rev
+      (this.mono (λ θ', and.right))).trans _,
+    refine is_O.of_bound (|R|)⁻¹ (this.mono $ λ θ' hθ', _),
+    set x := abs (f θ'),
+    suffices : x⁻¹ ≤ x ^ n, by simpa [inv_mul_cancel_left₀, mt _root_.abs_eq_zero.1 hR],
+    have : x ∈ Ioo (0 : ℝ) 1, by simpa [and.comm, x] using hθ',
+    rw ← zpow_neg_one,
+    refine (zpow_strict_anti this.1 this.2).le_iff_le.2 (int.lt_add_one_iff.1 _), exact hn },
+  { rintro (rfl|H),
+    exacts [circle_integrable_zero_radius,
+      ((continuous_on_id.sub continuous_on_const).zpow _ $ λ z hz, H.symm.imp_left $
+        λ hw, sub_ne_zero.2 $ ne_of_mem_of_not_mem hz hw).circle_integrable'] },
 end
--/
+
+@[simp] lemma circle_integrable_sub_inv_iff {c w : ℂ} {R : ℝ} :
+  circle_integrable (λ z, (z - w)⁻¹) c R ↔ R = 0 ∨ w ∉ sphere c (|R|) :=
+by { simp only [← zpow_neg_one, circle_integrable_sub_zpow_iff], norm_num }
 
 variables [normed_space ℂ E] [complete_space E] [borel_space E] [second_countable_topology E]
 
@@ -255,30 +282,12 @@ begin
       ((has_deriv_at_id z).sub_const w)).div_const _ using 1,
     { simp [mul_assoc, mul_div_cancel_left _ hn'] },
     exacts [sub_ne_zero.2, neg_le_iff_add_nonneg.1] },
-  have hd' : ∀ θ, circle_map c R θ ≠ w →
-    has_deriv_at (λ θ, (circle_map c R θ - w) ^ (n + 1) / (n + 1))
-      (deriv (circle_map c R) θ • (circle_map c R θ - w) ^ n) θ,
-  { intros θ hne,
-    rw [smul_eq_mul, mul_comm],
-    exact (hd _ (or.inl hne)).comp θ (differentiable_circle_map c R θ).has_deriv_at },
   rcases em (w ∈ sphere c (|R|) ∧ n < -1) with ⟨hw, hn⟩|H,
   { -- In this case `(z - w) ^ n` is not circle integrable
     rcases eq_or_ne R 0 with rfl|h0, { apply integral_radius_zero },
-    apply interval_integral.integral_undef,
-    rw ← image_circle_map_Ioc at hw, rcases hw with ⟨θ, hθ, rfl⟩,
-    replace hθ : θ ∈ [0, 2 * π], from Icc_subset_interval (Ioc_subset_Icc_self hθ),
-    have hne : ∀ᶠ x in 𝓝[{θ}ᶜ] θ, circle_map c R x ≠ circle_map c R θ,
-      from (differentiable_circle_map _ _ _).has_deriv_at.eventually_ne
-        (deriv_circle_map_ne_zero h0),
-    refine interval_integral.not_integrable_has_deriv_at_of_tendsto_norm_at_top_punctured
-      real.two_pi_pos.ne hθ (hne.mono hd') _,
-    simp only [normed_field.norm_div],
-    refine tendsto.at_top_div_const (norm_pos_iff.2 hn') _,
-    refine (normed_field.tendsto_norm_zpow_nhds_within_0_at_top $ lt_neg_iff_add_neg.1 hn).comp _,
-    refine tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ _
-      (hne.mono $ λ _, sub_ne_zero.2),
-    exact (((differentiable_circle_map _ _).sub_const _).continuous.tendsto'
-      _ _ (sub_self _)).mono_left inf_le_left },
+    apply integral_undef,
+    have : n < 0 := hn.trans dec_trivial,
+    simp [circle_integrable_sub_zpow_iff, *] },
   { push_neg at H,
     refine integral_eq_zero_of_has_deriv_within_at' (λ z hz, (hd z _).has_deriv_within_at),
     exact (ne_or_eq z w).imp_right (λ h, H $ h ▸ hz) }

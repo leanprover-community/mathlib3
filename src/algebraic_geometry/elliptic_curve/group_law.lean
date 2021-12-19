@@ -1,6 +1,13 @@
+/-
+Copyright (c) 2021 David Kurniadi Angdinata. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: David Kurniadi Angdinata
+-/
+
 import algebra.algebra.basic
 import algebraic_geometry.elliptic_curve.EllipticCurve
 
+/-- Add semireducible attribute to `with_zero`. -/
 local attribute [semireducible] with_zero
 open_locale classical
 noncomputable theory
@@ -87,7 +94,7 @@ lemma dbl_some.weierstrass
                   = x ^ 3 + (K↑L)E.a2 * x ^ 2 + (K↑L)E.a4 * x + (K↑L)E.a6)
   (y_ne : 2 * y + (K↑L)E.a1 * x + (K↑L)E.a3 ≠ 0)
   {l x' y' : L} (l_def : l  = (3 * x ^ 2 + 2 * (K↑L)E.a2 * x + (K↑L)E.a4 - (K↑L)E.a1 * y)
-                               * (2 * y + (K↑L)E.a1 * x + (K↑L)E.a3)⁻¹)
+                              * (2 * y + (K↑L)E.a1 * x + (K↑L)E.a3)⁻¹)
                 (x_def : x' = l ^ 2 + (K↑L)E.a1 * l - (K↑L)E.a2 - 2 * x)
                 (y_def : y' = -l * x' - (K↑L)E.a1 * x' - y + l * x - (K↑L)E.a3) :
   y' ^ 2 + (K↑L)E.a1 * x' * y' + (K↑L)E.a3 * y'
@@ -95,55 +102,52 @@ lemma dbl_some.weierstrass
 begin
   -- rewrite Weierstrass equation as w(x, y) = 0
   rw [← sub_eq_zero] at w,
-  -- substitute y
+  -- rewrite y
   have y_rw :
     y' ^ 2 + (K↑L)E.a1 * x' * y' + (K↑L)E.a3 * y'
       = x' ^ 2 * (l ^ 2 + (K↑L)E.a1 * l)
-      + x' * (-2 * x * l ^ 2 - (K↑L)E.a1 * x * l + 2 * y * l + (K↑L)E.a3 * l
-              + (K↑L)E.a1 * y)
+      + x' * (-2 * x * l ^ 2 - (K↑L)E.a1 * x * l + 2 * y * l + (K↑L)E.a3 * l + (K↑L)E.a1 * y)
       + (x ^ 2 * l ^ 2 - 2 * x * y * l - (K↑L)E.a3 * x * l + y ^ 2 + (K↑L)E.a3 * y) :=
   by rw [y_def]; ring,
-  -- substitute x
+  -- rewrite x
   have x_rw :
     x' ^ 2 * (l ^ 2 + (K↑L)E.a1 * l)
-      + x' * (-2 * x * l ^ 2 - (K↑L)E.a1 * x * l + 2 * y * l + (K↑L)E.a3 * l
-              + (K↑L)E.a1 * y)
+      + x' * (-2 * x * l ^ 2 - (K↑L)E.a1 * x * l + 2 * y * l + (K↑L)E.a3 * l + (K↑L)E.a1 * y)
       + (x ^ 2 * l ^ 2 - 2 * x * y * l - (K↑L)E.a3 * x * l + y ^ 2 + (K↑L)E.a3 * y)
       - (x' ^ 3 + (K↑L)E.a2 * x' ^ 2 + (K↑L)E.a4 * x' + (K↑L)E.a6)
       = l * (l * (l * (2 * y + (K↑L)E.a1 * x + (K↑L)E.a3)
                   + (-3 * x ^ 2 + (K↑L)E.a1 ^ 2 * x - 2 * (K↑L)E.a2 * x + 3 * (K↑L)E.a1 * y
                      + (K↑L)E.a1 * (K↑L)E.a3 - (K↑L)E.a4))
              + (-6 * (K↑L)E.a1 * x ^ 2 - 6 * x * y - 3 * (K↑L)E.a1 * (K↑L)E.a2 * x
-                - 3 * (K↑L)E.a3 * x + (K↑L)E.a1 ^ 2 * y - 2 * (K↑L)E.a2 * y
-                - (K↑L)E.a1 * (K↑L)E.a4 - (K↑L)E.a2 * (K↑L)E.a3))
-        + (8 * x ^ 3 + 8 * (K↑L)E.a2 * x ^ 2 - 2 * (K↑L)E.a1 * x * y + y ^ 2
-           + 2 * (K↑L)E.a2 ^ 2 * x + 2 * (K↑L)E.a4 * x - (K↑L)E.a1 * (K↑L)E.a2 * y
-           + (K↑L)E.a3 * y + (K↑L)E.a2 * (K↑L)E.a4 - (K↑L)E.a6) :=
+                - 3 * (K↑L)E.a3 * x + (K↑L)E.a1 ^ 2 * y - 2 * (K↑L)E.a2 * y - (K↑L)E.a1 * (K↑L)E.a4
+                - (K↑L)E.a2 * (K↑L)E.a3))
+        + (8 * x ^ 3 + 8 * (K↑L)E.a2 * x ^ 2 - 2 * (K↑L)E.a1 * x * y + y ^ 2 + 2 * (K↑L)E.a2 ^ 2 * x
+           + 2 * (K↑L)E.a4 * x - (K↑L)E.a1 * (K↑L)E.a2 * y + (K↑L)E.a3 * y + (K↑L)E.a2 * (K↑L)E.a4
+           - (K↑L)E.a6) :=
   by rw [x_def]; ring,
-  -- substitute l step 1
+  -- rewrite l step 1
   have l_rw_1 :
     l * (2 * y + (K↑L)E.a1 * x + (K↑L)E.a3)
       + (-3 * x ^ 2 + (K↑L)E.a1 ^ 2 * x - 2 * (K↑L)E.a2 * x + 3 * (K↑L)E.a1 * y
          + (K↑L)E.a1 * (K↑L)E.a3 - (K↑L)E.a4)
       = (2 * y + (K↑L)E.a1 * x + (K↑L)E.a3) * (K↑L)E.a1 :=
   by rw [l_def, inv_mul_cancel_right₀ y_ne]; ring,
-  -- substitute l step 2
+  -- rewrite l step 2
   have l_rw_2 :
     l * ((2 * y + (K↑L)E.a1 * x + (K↑L)E.a3) * (K↑L)E.a1)
-      + (-6 * (K↑L)E.a1 * x ^ 2 - 6 * x * y - 3 * (K↑L)E.a1 * (K↑L)E.a2 * x
-         - 3 * (K↑L)E.a3 * x + (K↑L)E.a1 ^ 2 * y - 2 * (K↑L)E.a2 * y
-         - (K↑L)E.a1 * (K↑L)E.a4 - (K↑L)E.a2 * (K↑L)E.a3)
+      + (-6 * (K↑L)E.a1 * x ^ 2 - 6 * x * y - 3 * (K↑L)E.a1 * (K↑L)E.a2 * x - 3 * (K↑L)E.a3 * x
+         + (K↑L)E.a1 ^ 2 * y - 2 * (K↑L)E.a2 * y - (K↑L)E.a1 * (K↑L)E.a4 - (K↑L)E.a2 * (K↑L)E.a3)
       = (2 * y + (K↑L)E.a1 * x + (K↑L)E.a3) * (-3 * x - (K↑L)E.a2) :=
   by rw [← mul_assoc l, l_def, inv_mul_cancel_right₀ y_ne]; ring,
-  -- substitute l step 3
+  -- rewrite l step 3
   have l_rw_3 :
     l * ((2 * y + (K↑L)E.a1 * x + (K↑L)E.a3) * (-3 * x - (K↑L)E.a2))
-      + (8 * x ^ 3 + 8 * (K↑L)E.a2 * x ^ 2 - 2 * (K↑L)E.a1 * x * y + y ^ 2
-         + 2 * (K↑L)E.a2 ^ 2 * x + 2 * (K↑L)E.a4 * x - (K↑L)E.a1 * (K↑L)E.a2 * y
-         + (K↑L)E.a3 * y + (K↑L)E.a2 * (K↑L)E.a4 - (K↑L)E.a6)
+      + (8 * x ^ 3 + 8 * (K↑L)E.a2 * x ^ 2 - 2 * (K↑L)E.a1 * x * y + y ^ 2 + 2 * (K↑L)E.a2 ^ 2 * x
+         + 2 * (K↑L)E.a4 * x - (K↑L)E.a1 * (K↑L)E.a2 * y + (K↑L)E.a3 * y + (K↑L)E.a2 * (K↑L)E.a4
+         - (K↑L)E.a6)
       = 0 :=
   by rw [← mul_assoc l, l_def, inv_mul_cancel_right₀ y_ne, ← w]; ring,
-  -- rewrite Weierstrass equation as w₂(x₂, y₂) = 0 and sequence steps
+  -- rewrite Weierstrass equation as w'(x', y') = 0 and sequence steps
   rw [← sub_eq_zero, y_rw, x_rw, l_rw_1, l_rw_2, l_rw_3]
 end
 
@@ -153,7 +157,7 @@ def dbl_some.def
                = x ^ 3 + (K↑L)E.a2 * x ^ 2 + (K↑L)E.a4 * x + (K↑L)E.a6)
   (y_ne : 2 * y + (K↑L)E.a1 * x + (K↑L)E.a3 ≠ 0) : E/L :=
 let l  := (3 * x ^ 2 + 2 * (K↑L)E.a2 * x + (K↑L)E.a4 - (K↑L)E.a1 * y)
-           * (2 * y + (K↑L)E.a1 * x + (K↑L)E.a3)⁻¹,
+          * (2 * y + (K↑L)E.a1 * x + (K↑L)E.a3)⁻¹,
     x' := l ^ 2 + (K↑L)E.a1 * l - (K↑L)E.a2 - 2 * x,
     y' := -l * x' - (K↑L)E.a1 * x' - y + l * x - (K↑L)E.a3
 in  some ⟨⟨x', y'⟩, dbl_some.weierstrass E L w y_ne rfl rfl rfl⟩
@@ -204,37 +208,34 @@ lemma add_some_some.weierstrass
 begin
   -- rewrite Weierstrass equations as w₁(x₁, y₁) = 0 and w₂(x₂, y₂) = 0
   rw [← sub_eq_zero] at w₁ w₂,
-  -- substitute y
+  -- rewrite y
   have y_rw :
     y₃ ^ 2 + (K↑L)E.a1 * x₃ * y₃ + (K↑L)E.a3 * y₃
       = x₃ ^ 2 * (l ^ 2 + (K↑L)E.a1 * l)
-      + x₃ * (-2 * x₁ * l ^ 2 - (K↑L)E.a1 * x₁ * l + 2 * y₁ * l + (K↑L)E.a3 * l
-              + (K↑L)E.a1 * y₁)
+      + x₃ * (-2 * x₁ * l ^ 2 - (K↑L)E.a1 * x₁ * l + 2 * y₁ * l + (K↑L)E.a3 * l + (K↑L)E.a1 * y₁)
       + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - (K↑L)E.a3 * x₁ * l + y₁ ^ 2 + (K↑L)E.a3 * y₁) :=
   by rw [y_def]; ring,
-  -- substitute x
+  -- rewrite x
   have x_rw :
     x₃ ^ 2 * (l ^ 2 + (K↑L)E.a1 * l)
-      + x₃ * (-2 * x₁ * l ^ 2 - (K↑L)E.a1 * x₁ * l + 2 * y₁ * l + (K↑L)E.a3 * l
-              + (K↑L)E.a1 * y₁)
+      + x₃ * (-2 * x₁ * l ^ 2 - (K↑L)E.a1 * x₁ * l + 2 * y₁ * l + (K↑L)E.a3 * l + (K↑L)E.a1 * y₁)
       + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - (K↑L)E.a3 * x₁ * l + y₁ ^ 2 + (K↑L)E.a3 * y₁)
       - (x₃ ^ 3 + (K↑L)E.a2 * x₃ ^ 2 + (K↑L)E.a4 * x₃ + (K↑L)E.a6)
       = l * (l * (l * (l * (x₁ - x₂) * (-1)
                        + (-(K↑L)E.a1 * x₁ + 2 * (K↑L)E.a1 * x₂ + 2 * y₁ + (K↑L)E.a3))
                   + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + (K↑L)E.a1 ^ 2 * x₂ - 2 * (K↑L)E.a2 * x₂
                      + 3 * (K↑L)E.a1 * y₁ + (K↑L)E.a1 * (K↑L)E.a3 - (K↑L)E.a4))
-             + (-(K↑L)E.a1 * x₁ ^ 2 - 3 * (K↑L)E.a1 * x₁ * x₂ - 4 * x₁ * y₁
-                - 2 * (K↑L)E.a1 * x₂ ^ 2 - 2 * x₂ * y₁ - (K↑L)E.a1 * (K↑L)E.a2 * x₁
-                - 2 * (K↑L)E.a3 * x₁ - 2 * (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂
-                + (K↑L)E.a1 ^ 2 * y₁ - 2 * (K↑L)E.a2 * y₁ - (K↑L)E.a1 * (K↑L)E.a4
-                - (K↑L)E.a2 * (K↑L)E.a3))
+             + (-(K↑L)E.a1 * x₁ ^ 2 - 3 * (K↑L)E.a1 * x₁ * x₂ - 4 * x₁ * y₁ - 2 * (K↑L)E.a1 * x₂ ^ 2
+                - 2 * x₂ * y₁ - (K↑L)E.a1 * (K↑L)E.a2 * x₁ - 2 * (K↑L)E.a3 * x₁
+                - 2 * (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂ + (K↑L)E.a1 ^ 2 * y₁
+                - 2 * (K↑L)E.a2 * y₁ - (K↑L)E.a1 * (K↑L)E.a4 - (K↑L)E.a2 * (K↑L)E.a3))
         + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3 + 2 * (K↑L)E.a2 * x₁ ^ 2
            + 4 * (K↑L)E.a2 * x₁ * x₂ - (K↑L)E.a1 * x₁ * y₁ + 2 * (K↑L)E.a2 * x₂ ^ 2
-           - (K↑L)E.a1 * x₂ * y₁ + y₁ ^ 2 + (K↑L)E.a2 ^ 2 * x₁ + (K↑L)E.a4 * x₁
-           + (K↑L)E.a2 ^ 2 * x₂ + (K↑L)E.a4 * x₂ - (K↑L)E.a1 * (K↑L)E.a2 * y₁ + (K↑L)E.a3 * y₁
-           + (K↑L)E.a2 * (K↑L)E.a4 - (K↑L)E.a6) :=
+           - (K↑L)E.a1 * x₂ * y₁ + y₁ ^ 2 + (K↑L)E.a2 ^ 2 * x₁ + (K↑L)E.a4 * x₁ + (K↑L)E.a2 ^ 2 * x₂
+           + (K↑L)E.a4 * x₂ - (K↑L)E.a1 * (K↑L)E.a2 * y₁ + (K↑L)E.a3 * y₁ + (K↑L)E.a2 * (K↑L)E.a4
+           - (K↑L)E.a6) :=
   by rw [x_def]; ring,
-  -- substitute l auxiliary tactic
+  -- rewrite l auxiliary tactic
   have l_rw :
     ∀ {a b c : L}, l * a + b = c ↔ (y₁ - y₂) * a + (x₁ - x₂) * b + 0 = (x₁ - x₂) * c + 0 :=
   begin
@@ -247,13 +248,12 @@ begin
     rw [inv_mul_cancel_right₀ x_ne],
     rw [← add_left_inj (0 : L)]
   end,
-  -- substitute l step 1
+  -- rewrite l step 1
   have l_rw_1 :
-    l * (x₁ - x₂) * (-1)
-      + (-(K↑L)E.a1 * x₁ + 2 * (K↑L)E.a1 * x₂ + 2 * y₁ + (K↑L)E.a3)
+    l * (x₁ - x₂) * (-1) + (-(K↑L)E.a1 * x₁ + 2 * (K↑L)E.a1 * x₂ + 2 * y₁ + (K↑L)E.a3)
       = -(K↑L)E.a1 * x₁ + 2 * (K↑L)E.a1 * x₂ + 2 * y₁ + (K↑L)E.a3 - y₁ + y₂ :=
   by rw [l_def, inv_mul_cancel_right₀ x_ne]; ring,
-  -- substitute l step 2
+  -- rewrite l step 2
   have l_rw_2 :
     l * (-(K↑L)E.a1 * x₁ + 2 * (K↑L)E.a1 * x₂ + 2 * y₁ + (K↑L)E.a3 - y₁ + y₂)
       + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + (K↑L)E.a1 ^ 2 * x₂ - 2 * (K↑L)E.a2 * x₂
@@ -261,30 +261,29 @@ begin
       = 2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + (K↑L)E.a2 * x₁ + (K↑L)E.a1 ^ 2 * x₂ + (K↑L)E.a2 * x₂
       - 2 * (K↑L)E.a2 * x₂ + (K↑L)E.a1 * y₁ + (K↑L)E.a1 * y₂ + (K↑L)E.a1 * (K↑L)E.a3 :=
   by rw [l_rw]; nth_rewrite_rhs 0 [← w₁]; nth_rewrite_lhs 0 [← w₂]; ring,
-  -- substitute l step 3
+  -- rewrite l step 3
   have l_rw_3 :
-    l * (2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + (K↑L)E.a2 * x₁ + (K↑L)E.a1 ^ 2 * x₂
-         + (K↑L)E.a2 * x₂ - 2 * (K↑L)E.a2 * x₂ + (K↑L)E.a1 * y₁ + (K↑L)E.a1 * y₂
-         + (K↑L)E.a1 * (K↑L)E.a3)
+    l * (2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + (K↑L)E.a2 * x₁ + (K↑L)E.a1 ^ 2 * x₂ + (K↑L)E.a2 * x₂
+         - 2 * (K↑L)E.a2 * x₂ + (K↑L)E.a1 * y₁ + (K↑L)E.a1 * y₂ + (K↑L)E.a1 * (K↑L)E.a3)
       + (-(K↑L)E.a1 * x₁ ^ 2 - 3 * (K↑L)E.a1 * x₁ * x₂ - 4 * x₁ * y₁ - 2 * (K↑L)E.a1 * x₂ ^ 2
          - 2 * x₂ * y₁ - (K↑L)E.a1 * (K↑L)E.a2 * x₁ - 2 * (K↑L)E.a3 * x₁
-         - 2 * (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂ + (K↑L)E.a1 ^ 2 * y₁
-         - 2 * (K↑L)E.a2 * y₁ - (K↑L)E.a1 * (K↑L)E.a4 - (K↑L)E.a2 * (K↑L)E.a3)
+         - 2 * (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂ + (K↑L)E.a1 ^ 2 * y₁ - 2 * (K↑L)E.a2 * y₁
+         - (K↑L)E.a1 * (K↑L)E.a4 - (K↑L)E.a2 * (K↑L)E.a3)
       = -2 * (K↑L)E.a1 * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂ - (K↑L)E.a1 * x₂ ^ 2 - x₂ * y₁
         - x₂ * y₂ - 2 * (K↑L)E.a3 * x₁ - (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂
         - (K↑L)E.a2 * y₁ - (K↑L)E.a2 * y₂ - (K↑L)E.a2 * (K↑L)E.a3 :=
   by apply_fun (λ x, x * (K↑L)E.a1) at w₁ w₂; rw [zero_mul] at w₁ w₂; rw [l_rw];
      nth_rewrite_rhs 0 [← w₁]; nth_rewrite_lhs 0 [← w₂]; ring,
-  -- substitute l step 4
+  -- rewrite l step 4
   have l_rw_4 :
     l * (-2 * (K↑L)E.a1 * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂ - (K↑L)E.a1 * x₂ ^ 2 - x₂ * y₁
          - x₂ * y₂ - 2 * (K↑L)E.a3 * x₁ - (K↑L)E.a1 * (K↑L)E.a2 * x₂ - (K↑L)E.a3 * x₂
          - (K↑L)E.a2 * y₁ - (K↑L)E.a2 * y₂ - (K↑L)E.a2 * (K↑L)E.a3)
       + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3 + 2 * (K↑L)E.a2 * x₁ ^ 2
          + 4 * (K↑L)E.a2 * x₁ * x₂ - (K↑L)E.a1 * x₁ * y₁ + 2 * (K↑L)E.a2 * x₂ ^ 2
-         - (K↑L)E.a1 * x₂ * y₁ + y₁ ^ 2 + (K↑L)E.a2 ^ 2 * x₁ + (K↑L)E.a4 * x₁
-         + (K↑L)E.a2 ^ 2 * x₂ + (K↑L)E.a4 * x₂ - (K↑L)E.a1 * (K↑L)E.a2 * y₁ + (K↑L)E.a3 * y₁
-         + (K↑L)E.a2 * (K↑L)E.a4 - (K↑L)E.a6)
+         - (K↑L)E.a1 * x₂ * y₁ + y₁ ^ 2 + (K↑L)E.a2 ^ 2 * x₁ + (K↑L)E.a4 * x₁ + (K↑L)E.a2 ^ 2 * x₂
+         + (K↑L)E.a4 * x₂ - (K↑L)E.a1 * (K↑L)E.a2 * y₁ + (K↑L)E.a3 * y₁ + (K↑L)E.a2 * (K↑L)E.a4
+         - (K↑L)E.a6)
       = 0 :=
   by apply_fun (λ x, x * (x₁ + 2 * x₂ + (K↑L)E.a2)) at w₁;
      apply_fun (λ x, x * (2 * x₁ + x₂ + (K↑L)E.a2)) at w₂;
@@ -325,10 +324,8 @@ begin
   cases w₁,
     { subst w₁
     , rw [two_mul]
-    , exact y_ne
-    },
-    { contradiction
-    },
+    , exact y_ne },
+    { contradiction },
 end
 
 /-- Addition in `E(L)`. -/
@@ -419,7 +416,6 @@ instance point.add_comm_group : add_comm_group (E/L) :=
   , add_zero     := add_zero E L
   , add_left_neg := add_left_neg E L
   , add_comm     := add_comm E L
-  , add_assoc    := add_assoc E L
-  }
+  , add_assoc    := add_assoc E L }
 
 end EllipticCurve

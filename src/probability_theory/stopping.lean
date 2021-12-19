@@ -341,7 +341,13 @@ lemma stopped_process_eq (n : ℕ) :
 begin
   ext x,
   rw [pi.add_apply, finset.sum_apply],
-  by_cases h : τ x < n,
+  cases le_or_lt n (τ x),
+  { simp only [stopped_process, min_eq_left h],
+    rw [set.indicator_of_mem, finset.sum_eq_zero, add_zero],
+    { intros m hm,
+      rw finset.mem_range at hm,
+      exact set.indicator_of_not_mem ((lt_of_lt_of_le hm h).ne) _ },
+    { exact h } },
   { simp only [stopped_process, min_eq_right (le_of_lt h)],
     rw finset.sum_eq_single_of_mem (τ x),
     { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
@@ -351,13 +357,6 @@ begin
     { intros b hb hneq,
       rw set.indicator_of_not_mem,
       exact hneq } },
-  { rw not_lt at h,
-    simp only [stopped_process, min_eq_left h],
-    rw [set.indicator_of_mem, finset.sum_eq_zero, add_zero],
-    { intros m hm,
-      rw finset.mem_range at hm,
-      exact set.indicator_of_not_mem ((lt_of_lt_of_le hm h).ne) _ },
-    { exact h } }
 end
 
 lemma adapted.stopped_process_adapted

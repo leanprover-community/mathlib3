@@ -478,13 +478,11 @@ namespace End
 
 variables {R} {M}
 
-def linear_equiv_of_unit (f : units (End R M)) : M ≃ₗ[R] M :=
+/-- Construct a linear equivalence from a unit in `End R M`. -/
+@[simps] def linear_equiv_of_unit (f : units (End R M)) : M ≃ₗ[R] M :=
 linear_equiv.of_linear f f.inv
 (show ((f * f.inv) : End R M) = 1, by rw [units.inv_eq_coe_inv, units.mul_inv])
 (show ((f.inv * f) : End R M) = 1, by rw [units.inv_eq_coe_inv, units.inv_mul])
-
-@[simp] lemma linear_equiv_of_unit_apply (f : units (End R M)) (x : M) :
-  (linear_equiv_of_unit f) x = f x := rfl
 
 end End
 

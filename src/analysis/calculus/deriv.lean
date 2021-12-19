@@ -935,13 +935,6 @@ theorem has_deriv_at_filter.is_O_sub (h : has_deriv_at_filter f f' x L) :
   is_O (λ x', f x' - f x) (λ x', x' - x) L :=
 has_fderiv_at_filter.is_O_sub h
 
-theorem has_deriv_at.is_O_sub_rev (hf : has_deriv_at f f' x) (hf' : f' ≠ 0) :
-  is_O (λ x', x' - x) (λ x', f x' - f x) (𝓝 x) :=
-suffices antilipschitz_with ∥f'∥₊⁻¹ (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f'),
-  from hf.has_fderiv_at.is_O_sub_rev this,
-(smul_right (1 : 𝕜 →L[𝕜] 𝕜) f').to_linear_map.antilipschitz_of_bound $
-  λ x, by simp [norm_smul, ← div_eq_inv_mul, mul_div_cancel _ (mt norm_eq_zero.1 hf')]
-
 theorem has_deriv_at_filter.sub_const
   (hf : has_deriv_at_filter f f' x L) (c : F) :
   has_deriv_at_filter (λ x, f x - c) f' x L :=
@@ -1686,9 +1679,10 @@ theorem has_strict_deriv_at.has_strict_fderiv_at_equiv {f : 𝕜 → 𝕜} {f' x
     (continuous_linear_equiv.units_equiv_aut 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) x :=
 hf
 
-theorem has_deriv_at.has_fderiv_at_equiv {f : 𝕜 → 𝕜} {f' x : 𝕜} (hf : has_deriv_at f f' x)
-  (hf' : f' ≠ 0) :
-  has_fderiv_at f (continuous_linear_equiv.units_equiv_aut 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) x :=
+theorem has_deriv_at.has_fderiv_at_equiv {f : 𝕜 → 𝕜} {f' x : 𝕜}
+  (hf : has_deriv_at f f' x) (hf' : f' ≠ 0) :
+  has_fderiv_at f
+    (continuous_linear_equiv.units_equiv_aut 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) x :=
 hf
 
 /-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an

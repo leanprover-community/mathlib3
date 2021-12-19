@@ -90,8 +90,8 @@ by refine (integral_boundary_rect_of_has_fderiv_within_at_real_off_countable f
     simp [← continuous_linear_map.map_smul]
 
 /-- If `f : ℂ → E` is complex differentiable on the closed annulus `r ≤ ∥z - z₀∥ ≤ R`, `0 < r ≤ R`,
-then the integrals of `f z / (z - z₀)` (formally, `(z - z₀)⁻¹ • f z`) over the circles `∥z - z₀∥ = r`
-and `∥z - z₀∥ = R` are equal to each other.
+then the integrals of `f z / (z - z₀)` (formally, `(z - z₀)⁻¹ • f z`) over the circles
+`∥z - z₀∥ = r` and `∥z - z₀∥ = R` are equal to each other.
 
 Moreover, the same is true if `f` is differentiable at points of the annulus outside of a countable
 set `s` and is continuous at points of this set.  -/

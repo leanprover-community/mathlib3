@@ -57,7 +57,6 @@ lemma mem_smul_pointwise_iff_exists (m : G) (a : α) (S : subgroup G) :
   m ∈ a • S ↔ ∃ (s : G), s ∈ S ∧ a • s = m :=
 by { erw set.mem_smul_set, refl }
 
-
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_central_scalar α G] :
   is_central_scalar α (subgroup G) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩

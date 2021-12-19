@@ -441,363 +441,363 @@ le_sqrt_of_sq_le (by simpa using (nat.cast_le.mpr a.sqrt_le' : ((id nat.sqrt a ^
 
 open set
 
-/-- Auxiliary function -/
-noncomputable def fff (x : ℝ) := x * log 4 - sqrt (8 * x + 8) * log (8 * x + 8)
+-- /-- Auxiliary function -/
+-- noncomputable def fff (x : ℝ) := x * log 4 - sqrt (8 * x + 8) * log (8 * x + 8)
 
-/-- Auxiliary function, more complicated -/
-noncomputable def fff' (x : ℝ) := log 4 - (((8 / (2 * (sqrt (8 * x + 8)))) * log (8 * x + 8))
-+ (sqrt (8 * x + 8) * (8 / (8 * x + 8))))
+-- /-- Auxiliary function, more complicated -/
+-- noncomputable def fff' (x : ℝ) := log 4 - (((8 / (2 * (sqrt (8 * x + 8)))) * log (8 * x + 8))
+-- + (sqrt (8 * x + 8) * (8 / (8 * x + 8))))
 
-lemma derivative_fff {x : ℝ} (h : 0 < x) : has_deriv_at (λ x, fff x) (fff' x) x :=
-begin
-  have linear_deriv: has_deriv_at (λ (x : ℝ), 8 * x + 8) 8 x,
-    { refine has_deriv_at.add_const _ _,
-      simpa using has_deriv_at.const_mul (8 : ℝ) (has_deriv_at_id x), },
-  unfold fff,
-  refine has_deriv_at.sub _ _,
-  { suffices: has_deriv_at (λ x, x * log 4) (1 * log 4) x, by simpa using this,
-    refine has_deriv_at.mul_const _ _,
-    exact has_deriv_at_id _, },
-  { refine @has_deriv_at.mul _ _ x (λ x, sqrt (8 * x + 8)) (λ x, log (8 * x + 8)) _ _ _ _,
-    { refine has_deriv_at.sqrt _ _,
-      { exact linear_deriv, },
-      { linarith, }, },
-    { refine has_deriv_at.log _ _,
-      { exact linear_deriv, },
-      { linarith, }, }, },
-end
+-- lemma derivative_fff {x : ℝ} (h : 0 < x) : has_deriv_at (λ x, fff x) (fff' x) x :=
+-- begin
+--   have linear_deriv: has_deriv_at (λ (x : ℝ), 8 * x + 8) 8 x,
+--     { refine has_deriv_at.add_const _ _,
+--       simpa using has_deriv_at.const_mul (8 : ℝ) (has_deriv_at_id x), },
+--   unfold fff,
+--   refine has_deriv_at.sub _ _,
+--   { suffices: has_deriv_at (λ x, x * log 4) (1 * log 4) x, by simpa using this,
+--     refine has_deriv_at.mul_const _ _,
+--     exact has_deriv_at_id _, },
+--   { refine @has_deriv_at.mul _ _ x (λ x, sqrt (8 * x + 8)) (λ x, log (8 * x + 8)) _ _ _ _,
+--     { refine has_deriv_at.sqrt _ _,
+--       { exact linear_deriv, },
+--       { linarith, }, },
+--     { refine has_deriv_at.log _ _,
+--       { exact linear_deriv, },
+--       { linarith, }, }, },
+-- end
 
-lemma fff'_is_deriv {x : ℝ} (h : 0 < x) : deriv fff x = fff' x :=
-by refine has_deriv_at.deriv (derivative_fff h)
+-- lemma fff'_is_deriv {x : ℝ} (h : 0 < x) : deriv fff x = fff' x :=
+-- by refine has_deriv_at.deriv (derivative_fff h)
 
-lemma foobar {x : ℝ} (h : 0 < x) : sqrt x * (1 / x) = 1 / sqrt x :=
-begin
-  have g : x = sqrt x * sqrt x, by rw mul_self_sqrt (le_of_lt h),
-  calc sqrt x * (1 / x) = 1 * (sqrt x / x) : mul_div_comm _ _ _
-  ... = (sqrt x / x) : one_mul _
-  ... = sqrt x / (sqrt x * sqrt x) : by rw <- g
-  ... = 1 / sqrt x : div_mul_right _ (ne_of_gt (sqrt_pos.2 h)),
-end
+-- lemma foobar {x : ℝ} (h : 0 < x) : sqrt x * (1 / x) = 1 / sqrt x :=
+-- begin
+--   have g : x = sqrt x * sqrt x, by rw mul_self_sqrt (le_of_lt h),
+--   calc sqrt x * (1 / x) = 1 * (sqrt x / x) : mul_div_comm _ _ _
+--   ... = (sqrt x / x) : one_mul _
+--   ... = sqrt x / (sqrt x * sqrt x) : by rw <- g
+--   ... = 1 / sqrt x : div_mul_right _ (ne_of_gt (sqrt_pos.2 h)),
+-- end
 
-lemma foobar' {x : ℝ} (h : 0 < x) : sqrt x / x = 1 / sqrt x :=
-begin
-  calc sqrt x / x = sqrt x * (1 / x) : by ring
-  ... = 1 / sqrt x : foobar h
-end
+-- lemma foobar' {x : ℝ} (h : 0 < x) : sqrt x / x = 1 / sqrt x :=
+-- begin
+--   calc sqrt x / x = sqrt x * (1 / x) : by ring
+--   ... = 1 / sqrt x : foobar h
+-- end
 
-private noncomputable def aux (x : ℝ) :=
-  sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2)
+-- private noncomputable def aux (x : ℝ) :=
+--   sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2)
 
-private noncomputable def aux' (x : ℝ) :=
-  sqrt 2 * (1 / (2 * sqrt (x + 1))) * log 2 - 8 / (8 * (x + 1))
+-- private noncomputable def aux' (x : ℝ) :=
+--   sqrt 2 * (1 / (2 * sqrt (x + 1))) * log 2 - 8 / (8 * (x + 1))
 
-lemma derivative_aux {x : ℝ} (hyp : x ≠ -1) : has_deriv_at (λ x, aux x) (aux' x) x :=
-begin
-  unfold aux,
-  refine has_deriv_at.sub _ _,
-  { refine has_deriv_at.mul_const _ _,
-    refine has_deriv_at.const_mul _ _,
-    refine has_deriv_at.sqrt _ _,
-    { refine has_deriv_at.add_const _ _,
-      exact has_deriv_at_id x, },
-    { intro bad,
-      have t : x = -1, by linarith,
-      exact hyp t, }, },
-  { refine has_deriv_at.add_const _ _,
-    refine has_deriv_at.log _ _,
-    { ring_nf,
-      refine has_deriv_at.add_const _ _,
-      simpa using has_deriv_at.const_mul 8 (has_deriv_at_id x), },
-    { intros bad,
-      have t : x = -1, by linarith,
-      exact hyp t, }, },
-end
+-- lemma derivative_aux {x : ℝ} (hyp : x ≠ -1) : has_deriv_at (λ x, aux x) (aux' x) x :=
+-- begin
+--   unfold aux,
+--   refine has_deriv_at.sub _ _,
+--   { refine has_deriv_at.mul_const _ _,
+--     refine has_deriv_at.const_mul _ _,
+--     refine has_deriv_at.sqrt _ _,
+--     { refine has_deriv_at.add_const _ _,
+--       exact has_deriv_at_id x, },
+--     { intro bad,
+--       have t : x = -1, by linarith,
+--       exact hyp t, }, },
+--   { refine has_deriv_at.add_const _ _,
+--     refine has_deriv_at.log _ _,
+--     { ring_nf,
+--       refine has_deriv_at.add_const _ _,
+--       simpa using has_deriv_at.const_mul 8 (has_deriv_at_id x), },
+--     { intros bad,
+--       have t : x = -1, by linarith,
+--       exact hyp t, }, },
+-- end
 
-lemma sqrt_log_bound : 0 < sqrt 2 * log 2 / 2 :=
-begin
-  refine div_pos _ (by norm_num),
-    { refine mul_pos _ _,
-      { exact sqrt_pos.2 (by norm_num), },
-      { exact log_pos (by norm_num), },
-    },
-end
+-- lemma sqrt_log_bound : 0 < sqrt 2 * log 2 / 2 :=
+-- begin
+--   refine div_pos _ (by norm_num),
+--     { refine mul_pos _ _,
+--       { exact sqrt_pos.2 (by norm_num), },
+--       { exact log_pos (by norm_num), },
+--     },
+-- end
 
-lemma log_pos_eq_zero {x : ℝ} (h : 0 < x) (hyp : log x = 0) : x = 1 :=
-log_inj_on_pos h (mem_Ioi.mpr zero_lt_one) (trans hyp log_one.symm)
+-- lemma log_pos_eq_zero {x : ℝ} (h : 0 < x) (hyp : log x = 0) : x = 1 :=
+-- log_inj_on_pos h (mem_Ioi.mpr zero_lt_one) (trans hyp log_one.symm)
 
-lemma log_eq_zero {x : ℝ} (hyp : log x = 0) : x = 0 ∨ x = 1 ∨ x = -1 :=
-begin
-  rcases lt_trichotomy x 0 with h | rfl | h,
-  { refine or.inr (or.inr (eq_neg_iff_eq_neg.mp _)),
-    exact (log_pos_eq_zero (neg_pos.mpr h) (trans (log_neg_eq_log x) hyp)).symm },
-  { exact or.inl rfl },
-  { exact or.inr (or.inl (log_pos_eq_zero h hyp)) }
-end
+-- lemma log_eq_zero {x : ℝ} (hyp : log x = 0) : x = 0 ∨ x = 1 ∨ x = -1 :=
+-- begin
+--   rcases lt_trichotomy x 0 with h | rfl | h,
+--   { refine or.inr (or.inr (eq_neg_iff_eq_neg.mp _)),
+--     exact (log_pos_eq_zero (neg_pos.mpr h) (trans (log_neg_eq_log x) hyp)).symm },
+--   { exact or.inl rfl },
+--   { exact or.inr (or.inl (log_pos_eq_zero h hyp)) }
+-- end
 
-lemma zero_pow_complex {a : ℂ} {x : ℂ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
-begin
-  unfold pow at hyp,
-  unfold complex.cpow at hyp,
-  simp at hyp,
-  by_cases x = 0,
-  { right,
-    subst h,
-    simp at hyp,
-    cc, },
-  { left,
-    cc, },
-end
+-- lemma zero_pow_complex {a : ℂ} {x : ℂ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
+-- begin
+--   unfold pow at hyp,
+--   unfold complex.cpow at hyp,
+--   simp at hyp,
+--   by_cases x = 0,
+--   { right,
+--     subst h,
+--     simp at hyp,
+--     cc, },
+--   { left,
+--     cc, },
+-- end
 
-lemma zero_pow_real {a : ℝ} {x : ℝ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
-begin
-  unfold pow at hyp,
-  unfold rpow at hyp,
-  simp at hyp,
-  cases @zero_pow_complex _ x rfl with k_zero k_one,
-  { left,
-    simp [k_zero] at hyp,
-    exact hyp.symm, },
-  { cases k_one with x_zero a_one,
-    simp [a_one] at hyp,
-    right,
-    exact ⟨complex.of_real_eq_zero.1 x_zero, hyp.symm⟩, },
-end
+-- lemma zero_pow_real {a : ℝ} {x : ℝ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
+-- begin
+--   unfold pow at hyp,
+--   unfold rpow at hyp,
+--   simp at hyp,
+--   cases @zero_pow_complex _ x rfl with k_zero k_one,
+--   { left,
+--     simp [k_zero] at hyp,
+--     exact hyp.symm, },
+--   { cases k_one with x_zero a_one,
+--     simp [a_one] at hyp,
+--     right,
+--     exact ⟨complex.of_real_eq_zero.1 x_zero, hyp.symm⟩, },
+-- end
 
-lemma log_pow {x y : ℝ} (hyp : 0 < x) : log (x ^ y) = y * log x :=
-log_rpow hyp y
+-- lemma log_pow {x y : ℝ} (hyp : 0 < x) : log (x ^ y) = y * log x :=
+-- log_rpow hyp y
 
-lemma two_pow_three : (2 : ℝ) ^ (3 : ℝ) = 8 :=
-begin
-  calc (2 : ℝ) ^ (3 : ℝ) = (2 : ℝ) ^ ((3 : ℕ) : ℝ) : by simp
-  ... = (2 : ℝ) ^ (3 : ℕ) : by rw rpow_nat_cast _ 3
-  ... = 8 : by norm_num
-end
+-- lemma two_pow_three : (2 : ℝ) ^ (3 : ℝ) = 8 :=
+-- begin
+--   calc (2 : ℝ) ^ (3 : ℝ) = (2 : ℝ) ^ ((3 : ℕ) : ℝ) : by simp
+--   ... = (2 : ℝ) ^ (3 : ℕ) : by rw rpow_nat_cast _ 3
+--   ... = 8 : by norm_num
+-- end
 
-lemma two_div_three_lt_log_two : (2 : ℝ) / 3 ≤ log 2 :=
-begin
-  rw div_le_iff,
-  { suffices: 2 ≤ log 8,
-      { calc (2 : ℝ) ≤ log 8 : this
-        ... = log (2 ^ (3 : ℝ)) : congr_arg log two_pow_three.symm
-        ... = 3 * log 2 : log_pow (by norm_num)
-        ... = log 2 * 3 : mul_comm _ _, },
-    suffices: exp 2 ≤ 8,
-      { calc 2 = log (exp 2) : by rw log_exp
-             ... ≤ log 8 : (log_le_log (exp_pos _) (by norm_num)).2 this, },
-    calc exp (2 : ℝ) = exp ((1 : ℝ) * (2 : ℝ)) : by norm_num
-    ... = (exp 1) ^ (2 : ℝ) : exp_mul 1 2
-    ... = (exp 1) ^ (↑(2 : ℕ)) : congr_arg (λ i, (exp 1) ^ i) (by simp)
-    ... = (exp 1) ^ (2 : ℕ) : by rw rpow_nat_cast (exp 1) 2
-    ... ≤ (2.7182818286 : ℝ) ^ 2 : begin
-      refine sq_le_sq _,
-      have: 0 ≤ (13591409143 : ℝ) / 5000000000, by norm_num,
-      have t: abs ((13591409143 : ℝ) / 5000000000) = (13591409143 : ℝ) / 5000000000 :=
-        abs_of_nonneg this,
-      rw t,
-      norm_num,
-      exact le_of_lt exp_one_lt_d9,
-    end
-    ... ≤ 8 : by norm_num, },
-  { norm_num, }
-end
+-- lemma two_div_three_lt_log_two : (2 : ℝ) / 3 ≤ log 2 :=
+-- begin
+--   rw div_le_iff,
+--   { suffices: 2 ≤ log 8,
+--       { calc (2 : ℝ) ≤ log 8 : this
+--         ... = log (2 ^ (3 : ℝ)) : congr_arg log two_pow_three.symm
+--         ... = 3 * log 2 : log_pow (by norm_num)
+--         ... = log 2 * 3 : mul_comm _ _, },
+--     suffices: exp 2 ≤ 8,
+--       { calc 2 = log (exp 2) : by rw log_exp
+--              ... ≤ log 8 : (log_le_log (exp_pos _) (by norm_num)).2 this, },
+--     calc exp (2 : ℝ) = exp ((1 : ℝ) * (2 : ℝ)) : by norm_num
+--     ... = (exp 1) ^ (2 : ℝ) : exp_mul 1 2
+--     ... = (exp 1) ^ (↑(2 : ℕ)) : congr_arg (λ i, (exp 1) ^ i) (by simp)
+--     ... = (exp 1) ^ (2 : ℕ) : by rw rpow_nat_cast (exp 1) 2
+--     ... ≤ (2.7182818286 : ℝ) ^ 2 : begin
+--       refine sq_le_sq _,
+--       have: 0 ≤ (13591409143 : ℝ) / 5000000000, by norm_num,
+--       have t: abs ((13591409143 : ℝ) / 5000000000) = (13591409143 : ℝ) / 5000000000 :=
+--         abs_of_nonneg this,
+--       rw t,
+--       norm_num,
+--       exact le_of_lt exp_one_lt_d9,
+--     end
+--     ... ≤ 8 : by norm_num, },
+--   { norm_num, }
+-- end
 
-lemma blaaahh {n : ℝ} {m : ℝ} {x : ℝ} (g : 0 < n) (u : 0 < m) (h : n / m ≤ x) : 1 ≤ m / n * x :=
-begin
-  rw div_mul_eq_mul_div,
-  rw one_le_div g,
-  rw [div_le_iff u, mul_comm] at h,
-  exact h,
-end
+-- lemma blaaahh {n : ℝ} {m : ℝ} {x : ℝ} (g : 0 < n) (u : 0 < m) (h : n / m ≤ x) : 1 ≤ m / n * x :=
+-- begin
+--   rw div_mul_eq_mul_div,
+--   rw one_le_div g,
+--   rw [div_le_iff u, mul_comm] at h,
+--   exact h,
+-- end
 
-lemma aux_bound : 1 / (sqrt 2 * log 2 / 2) ^ 2 - 1 ≤ (4 : ℝ) :=
-begin
-  suffices : 1 / (sqrt 2 * log 2 / 2) ^ 2 ≤ 5, by linarith,
-  suffices : 1 ≤ (sqrt 2 * log 2 / 2) ^ 2 * 5,
-    { have pos : 0 < (sqrt 2 * log 2 / 2) ^ 2,
-      { refine sq_pos_of_ne_zero _ _,
-        linarith [sqrt_log_bound], },
-      rw div_le_iff' pos,
-      exact this, },
-  suffices : 1 ≤ (sqrt 2 * (log 2 / 2)) ^ 2 * 5,
-    { rw mul_div_assoc, exact this, },
-  suffices : 1 ≤ (sqrt 2) ^ 2 * (log 2 / 2) ^ 2 * 5,
-    { rw mul_pow, exact this, },
-  suffices : 1 ≤ 2 * (log 2 / 2) ^ 2 * 5,
-    { rw sq_sqrt, exact this, norm_num, },
-  suffices : 1 ≤ 5 / 2 * (log 2) ^ 2,
-    { ring_nf, exact this, },
-  suffices : 2 / 5 ≤ (log 2) ^ 2,
-    { exact blaaahh (by norm_num) (by norm_num) this, },
+-- lemma aux_bound : 1 / (sqrt 2 * log 2 / 2) ^ 2 - 1 ≤ (4 : ℝ) :=
+-- begin
+--   suffices : 1 / (sqrt 2 * log 2 / 2) ^ 2 ≤ 5, by linarith,
+--   suffices : 1 ≤ (sqrt 2 * log 2 / 2) ^ 2 * 5,
+--     { have pos : 0 < (sqrt 2 * log 2 / 2) ^ 2,
+--       { refine sq_pos_of_ne_zero _ _,
+--         linarith [sqrt_log_bound], },
+--       rw div_le_iff' pos,
+--       exact this, },
+--   suffices : 1 ≤ (sqrt 2 * (log 2 / 2)) ^ 2 * 5,
+--     { rw mul_div_assoc, exact this, },
+--   suffices : 1 ≤ (sqrt 2) ^ 2 * (log 2 / 2) ^ 2 * 5,
+--     { rw mul_pow, exact this, },
+--   suffices : 1 ≤ 2 * (log 2 / 2) ^ 2 * 5,
+--     { rw sq_sqrt, exact this, norm_num, },
+--   suffices : 1 ≤ 5 / 2 * (log 2) ^ 2,
+--     { ring_nf, exact this, },
+--   suffices : 2 / 5 ≤ (log 2) ^ 2,
+--     { exact blaaahh (by norm_num) (by norm_num) this, },
 
-  have: (2 : ℝ) / 3 ≤ log 2 := two_div_three_lt_log_two,
-  have t: ((2 : ℝ) / 3) ^ 2 ≤ (log 2) ^ 2,
-    { rw sq_le,
-      { split,
-        { linarith [sqrt_nonneg (log 2 ^ 2)], },
-        { rw sqrt_sq,
-          exact this,
-          exact log_nonneg (by norm_num), }, },
-      exact sq_nonneg _, },
+--   have: (2 : ℝ) / 3 ≤ log 2 := two_div_three_lt_log_two,
+--   have t: ((2 : ℝ) / 3) ^ 2 ≤ (log 2) ^ 2,
+--     { rw sq_le,
+--       { split,
+--         { linarith [sqrt_nonneg (log 2 ^ 2)], },
+--         { rw sqrt_sq,
+--           exact this,
+--           exact log_nonneg (by norm_num), }, },
+--       exact sq_nonneg _, },
 
-  calc (2 : ℝ) / 5 = 4 / 10 : by norm_num
-    ... ≤ 4 / 9 : div_le_div_of_le_left (by norm_num) (by norm_num) (by norm_num)
-    ... = (2 / 3) ^ 2 : by norm_num
-    ... ≤ (log 2) ^ 2 : t,
-end
+--   calc (2 : ℝ) / 5 = 4 / 10 : by norm_num
+--     ... ≤ 4 / 9 : div_le_div_of_le_left (by norm_num) (by norm_num) (by norm_num)
+--     ... = (2 / 3) ^ 2 : by norm_num
+--     ... ≤ (log 2) ^ 2 : t,
+-- end
 
-lemma aux_derivative_ge_zero (x : ℝ) (x_big : 4 ≤ x) : 0 ≤ aux' x :=
-begin
-  unfold aux',
+-- lemma aux_derivative_ge_zero (x : ℝ) (x_big : 4 ≤ x) : 0 ≤ aux' x :=
+-- begin
+--   unfold aux',
 
-  -- Multiply through by (x + 1)
-  suffices: 0 ≤ sqrt 2 * sqrt (x + 1) / 2 * log 2 - 1,
-    { have h : 0 / (x + 1) ≤ (sqrt 2 * sqrt (x + 1) / 2 * log 2 - 1) / (x + 1),
-      { have t : 0 < x + 1, by linarith,
-        rw (div_le_div_iff t t),
-        simpa using mul_nonneg this (le_of_lt t), },
-      rw [zero_div, sub_div] at h,
-      have eight_not_zero : (8 : ℝ) ≠ 0 := by norm_num,
-      rw (div_mul_right _ eight_not_zero),
-      rw mul_div_right_comm at h,
-      rw [div_div_eq_div_mul, mul_comm 2 (x + 1), ←div_div_eq_div_mul, mul_div_assoc] at h,
-      rw @foobar' (x + 1) (by linarith) at h,
-      rw [mul_div_assoc, div_div_eq_div_mul, mul_comm (sqrt (x + 1)) 2] at h,
-      exact h, },
+--   -- Multiply through by (x + 1)
+--   suffices: 0 ≤ sqrt 2 * sqrt (x + 1) / 2 * log 2 - 1,
+--     { have h : 0 / (x + 1) ≤ (sqrt 2 * sqrt (x + 1) / 2 * log 2 - 1) / (x + 1),
+--       { have t : 0 < x + 1, by linarith,
+--         rw (div_le_div_iff t t),
+--         simpa using mul_nonneg this (le_of_lt t), },
+--       rw [zero_div, sub_div] at h,
+--       have eight_not_zero : (8 : ℝ) ≠ 0 := by norm_num,
+--       rw (div_mul_right _ eight_not_zero),
+--       rw mul_div_right_comm at h,
+--       rw [div_div_eq_div_mul, mul_comm 2 (x + 1), ←div_div_eq_div_mul, mul_div_assoc] at h,
+--       rw @foobar' (x + 1) (by linarith) at h,
+--       rw [mul_div_assoc, div_div_eq_div_mul, mul_comm (sqrt (x + 1)) 2] at h,
+--       exact h, },
 
-  suffices: 1 ≤ sqrt 2 * log 2 / 2 * sqrt (x + 1), by linarith,
+--   suffices: 1 ≤ sqrt 2 * log 2 / 2 * sqrt (x + 1), by linarith,
 
-  suffices: 1 / (sqrt 2 * log 2 / 2) ≤ sqrt (x + 1),
-    { refine (div_le_iff' _).mp this,
-      exact sqrt_log_bound, },
+--   suffices: 1 / (sqrt 2 * log 2 / 2) ≤ sqrt (x + 1),
+--     { refine (div_le_iff' _).mp this,
+--       exact sqrt_log_bound, },
 
-  suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 ≤ x + 1,
-    { refine (le_sqrt _ (by linarith)).2 this,
-      exact one_div_nonneg.2 (le_of_lt sqrt_log_bound), },
+--   suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 ≤ x + 1,
+--     { refine (le_sqrt _ (by linarith)).2 this,
+--       exact one_div_nonneg.2 (le_of_lt sqrt_log_bound), },
 
-  suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1 ≤ x, by linarith,
+--   suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1 ≤ x, by linarith,
 
-  calc (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1
-      = (1 ^ 2) / (sqrt 2 * log 2 / 2) ^ 2 - 1 : by rw div_pow
-  ... = 1 / (sqrt 2 * log 2 / 2) ^ 2 - 1 : by norm_num
-  ... ≤ (4 : ℝ) : aux_bound
-  ... ≤ x : x_big,
-end
+--   calc (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1
+--       = (1 ^ 2) / (sqrt 2 * log 2 / 2) ^ 2 - 1 : by rw div_pow
+--   ... = 1 / (sqrt 2 * log 2 / 2) ^ 2 - 1 : by norm_num
+--   ... ≤ (4 : ℝ) : aux_bound
+--   ... ≤ x : x_big,
+-- end
 
-lemma pow_eq_rpow (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
-begin
-  apply rpow_nat_cast,
-end
+-- lemma pow_eq_rpow (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
+-- begin
+--   apply rpow_nat_cast,
+-- end
 
-lemma a_534_pow_100 : (584 : ℝ) ^ (100 : ℝ) = (584 : ℝ) ^ (100 : ℕ) :=
-begin
-  calc (584 : ℝ) ^ (100 : ℝ) = (584 : ℝ) ^ ((100 : ℕ) : ℝ) : by simp
-  ... = (584 : ℝ) ^ (100 : ℕ) : by rw rpow_nat_cast _ 100,
-end
+-- lemma a_534_pow_100 : (584 : ℝ) ^ (100 : ℝ) = (584 : ℝ) ^ (100 : ℕ) :=
+-- begin
+--   calc (584 : ℝ) ^ (100 : ℝ) = (584 : ℝ) ^ ((100 : ℕ) : ℝ) : by simp
+--   ... = (584 : ℝ) ^ (100 : ℕ) : by rw rpow_nat_cast _ 100,
+-- end
 
-lemma a_e_pow_637 : (2.71828 : ℝ) ^ (637 : ℝ) = (2.71828 : ℝ) ^ (637 : ℕ) :=
-begin
-  calc (2.71828) ^ (637 : ℝ) = (2.71828 : ℝ) ^ ((637 : ℕ) : ℝ) : by simp
-  ... = (2.71828) ^ (637 : ℕ) : by rw rpow_nat_cast _ 637,
-end
+-- lemma a_e_pow_637 : (2.71828 : ℝ) ^ (637 : ℝ) = (2.71828 : ℝ) ^ (637 : ℕ) :=
+-- begin
+--   calc (2.71828) ^ (637 : ℝ) = (2.71828 : ℝ) ^ ((637 : ℕ) : ℝ) : by simp
+--   ... = (2.71828) ^ (637 : ℕ) : by rw rpow_nat_cast _ 637,
+-- end
 
-lemma a_584_le_exp_6 : (584 : ℝ) ≤ exp (6.37 : ℝ) :=
-begin
-  apply trans _ (power_series_le_exp_of_nonneg 6.37 19 (by linarith)),
-  simp_rw [finset.sum_range_succ],
-  simp_rw [nat.factorial],
-  norm_num,
-end
+-- lemma a_584_le_exp_6 : (584 : ℝ) ≤ exp (6.37 : ℝ) :=
+-- begin
+--   apply trans _ (power_series_le_exp_of_nonneg 6.37 19 (by linarith)),
+--   simp_rw [finset.sum_range_succ],
+--   simp_rw [nat.factorial],
+--   norm_num,
+-- end
 
-lemma aux_zero : 0 ≤ aux 72 :=
-begin
-  unfold aux,
-  norm_num,
-  rw <-sqrt_mul,
-  norm_num,
-  -- apply le_of_lt,
-  calc log 584 + 2 ≤ 8.37 :
-        begin
-          apply le_sub_iff_add_le.1,
-          norm_num,
-          rw ←log_exp 6.37,
-          apply (log_le_log _ _).2,
-          exact a_584_le_exp_6,
-          linarith,
-          apply exp_pos,
-          exact covariant_swap_add_le_of_covariant_add_le ℝ,
-        end
-  ... ≤ sqrt 146 * 0.6931471803 :
-        begin
-          rw <-div_le_iff,
-          rw le_sqrt,
-          norm_num,
-          norm_num,
-          linarith,
-          linarith,
-        end
-  ... ≤ sqrt 146 * log 2 :
-        begin
-          apply mul_le_mul_of_nonneg_left,
-          apply le_of_lt,
-          exact log_two_gt_d9,
-          apply sqrt_nonneg,
-        end,
-  linarith,
-end
+-- lemma aux_zero : 0 ≤ aux 72 :=
+-- begin
+--   unfold aux,
+--   norm_num,
+--   rw <-sqrt_mul,
+--   norm_num,
+--   -- apply le_of_lt,
+--   calc log 584 + 2 ≤ 8.37 :
+--         begin
+--           apply le_sub_iff_add_le.1,
+--           norm_num,
+--           rw ←log_exp 6.37,
+--           apply (log_le_log _ _).2,
+--           exact a_584_le_exp_6,
+--           linarith,
+--           apply exp_pos,
+--           exact covariant_swap_add_le_of_covariant_add_le ℝ,
+--         end
+--   ... ≤ sqrt 146 * 0.6931471803 :
+--         begin
+--           rw <-div_le_iff,
+--           rw le_sqrt,
+--           norm_num,
+--           norm_num,
+--           linarith,
+--           linarith,
+--         end
+--   ... ≤ sqrt 146 * log 2 :
+--         begin
+--           apply mul_le_mul_of_nonneg_left,
+--           apply le_of_lt,
+--           exact log_two_gt_d9,
+--           apply sqrt_nonneg,
+--         end,
+--   linarith,
+-- end
 
-lemma aux_differentiable {i : ℝ} (pr : 0 < i) : differentiable_on ℝ aux (interior (Ici i)) :=
-begin
-  simp only [interior_Ici],
-  refine differentiable_on.sub _ _,
-  { refine differentiable_on.mul_const _ _,
-    refine differentiable_on.const_mul _ _,
-    refine differentiable_on.sqrt _ _,
-    { refine differentiable_on.add_const _ _,
-      refine differentiable_on_id, },
-    { intros x x_big,
-      simp at x_big,
-      linarith, },
-  },
-  { refine differentiable_on.add_const _ _,
-    refine differentiable_on.log _ _,
-    { refine differentiable_on.const_mul _ _,
-      refine differentiable_on.add_const _ _,
-      refine differentiable_on_id, },
-    { intros x x_big,
-      simp at x_big,
-      linarith, }, },
-end
+-- lemma aux_differentiable {i : ℝ} (pr : 0 < i) : differentiable_on ℝ aux (interior (Ici i)) :=
+-- begin
+--   simp only [interior_Ici],
+--   refine differentiable_on.sub _ _,
+--   { refine differentiable_on.mul_const _ _,
+--     refine differentiable_on.const_mul _ _,
+--     refine differentiable_on.sqrt _ _,
+--     { refine differentiable_on.add_const _ _,
+--       refine differentiable_on_id, },
+--     { intros x x_big,
+--       simp at x_big,
+--       linarith, },
+--   },
+--   { refine differentiable_on.add_const _ _,
+--     refine differentiable_on.log _ _,
+--     { refine differentiable_on.const_mul _ _,
+--       refine differentiable_on.add_const _ _,
+--       refine differentiable_on_id, },
+--     { intros x x_big,
+--       simp at x_big,
+--       linarith, }, },
+-- end
 
-lemma aux_continuous {i : ℝ} (pr : 0 < i) : continuous_on aux (Ici (i : ℝ)) :=
-begin
-  have e := differentiable_on.continuous_on (@aux_differentiable (i / 2) (by linarith)),
-  have s : Ici i ⊆ interior (Ici (i / 2)),
-    { simp only [interior_Ici],
-      intro a,
-      simp,
-      intro a_in,
-      linarith, },
-  exact continuous_on.mono e s,
-end
+-- lemma aux_continuous {i : ℝ} (pr : 0 < i) : continuous_on aux (Ici (i : ℝ)) :=
+-- begin
+--   have e := differentiable_on.continuous_on (@aux_differentiable (i / 2) (by linarith)),
+--   have s : Ici i ⊆ interior (Ici (i / 2)),
+--     { simp only [interior_Ici],
+--       intro a,
+--       simp,
+--       intro a_in,
+--       linarith, },
+--   exact continuous_on.mono e s,
+-- end
 
-lemma aux'_is_deriv (x : ℝ) (h : x ≠ -1) : deriv aux x = aux' x :=
-by refine has_deriv_at.deriv (derivative_aux h)
+-- lemma aux'_is_deriv (x : ℝ) (h : x ≠ -1) : deriv aux x = aux' x :=
+-- by refine has_deriv_at.deriv (derivative_aux h)
 
-lemma aux_pos (x : ℝ) (x_big : 72 ≤ x) : 0 ≤ aux x :=
-begin
-  have conv : convex (Ici (72 : ℝ)) := convex_Ici _,
-  have deriv_nonneg : ∀ (x : ℝ), x ∈ interior (Ici (72 : ℝ)) → 0 ≤ deriv aux x,
-    { intros x x_big,
-      simp at x_big,
-      rw aux'_is_deriv x (by linarith),
-      exact aux_derivative_ge_zero x (by linarith), },
-  calc 0 ≤ aux 72 : aux_zero
-  ... ≤ aux x :
-    convex.mono_of_deriv_nonneg conv
-      (aux_continuous (by norm_num)) (aux_differentiable (by norm_num))
-      deriv_nonneg
-      72 x (by simp) (by simpa using x_big) x_big,
-end
+-- lemma aux_pos (x : ℝ) (x_big : 72 ≤ x) : 0 ≤ aux x :=
+-- begin
+--   have conv : convex (Ici (72 : ℝ)) := convex_Ici _,
+--   have deriv_nonneg : ∀ (x : ℝ), x ∈ interior (Ici (72 : ℝ)) → 0 ≤ deriv aux x,
+--     { intros x x_big,
+--       simp at x_big,
+--       rw aux'_is_deriv x (by linarith),
+--       exact aux_derivative_ge_zero x (by linarith), },
+--   calc 0 ≤ aux 72 : aux_zero
+--   ... ≤ aux x :
+--     convex.mono_of_deriv_nonneg conv
+--       (aux_continuous (by norm_num)) (aux_differentiable (by norm_num))
+--       deriv_nonneg
+--       72 x (by simp) (by simpa using x_big) x_big,
+-- end
 
 -- lemma deriv_nonneg {x : ℝ} (x_big : 72 ≤ x) : 0 ≤ fff' x :=
 -- begin
@@ -1335,7 +1335,7 @@ begin
     finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1))) :=
     by {
       apply congr_arg (λ i, finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime i)),
-      exact finset.range_eq_Ico (2 * n / 3 + 1),
+      rw finset.range_eq_Ico,
     },
 
   have w : finset.filter (λ p, p ^ 2 ≤ 2 * n)
@@ -1345,12 +1345,12 @@ begin
       ext1,
       split,
       { intros hyp,
-        simp only [true_and, finset.Ico.mem, zero_le', finset.mem_filter] at hyp,
-        simp only [finset.Ico.mem, finset.mem_filter],
+        simp only [true_and, finset.mem_Ico, zero_le', finset.mem_filter] at hyp,
+        simp only [finset.mem_Ico, finset.mem_filter],
         exact ⟨⟨nat.prime.two_le hyp.2, hyp.1⟩, hyp.2⟩, },
       { intros hyp,
-        simp only [finset.Ico.mem, finset.mem_filter] at hyp,
-        simp only [true_and, finset.Ico.mem, zero_le', finset.mem_filter],
+        simp only [finset.mem_Ico, finset.mem_filter] at hyp,
+        simp only [true_and, finset.mem_Ico, zero_le', finset.mem_filter],
         exact ⟨hyp.1.2, hyp.2⟩, }, },
 
   have g : finset.filter (λ p, p ^ 2 ≤ 2 * n)
@@ -1360,16 +1360,16 @@ begin
     { ext1,
       split,
       { intros hyp,
-        simp only [finset.Ico.mem, finset.mem_filter] at hyp,
-        simp only [finset.Ico.mem, finset.mem_filter],
+        simp only [finset.mem_Ico, finset.mem_filter] at hyp,
+        simp only [finset.mem_Ico, finset.mem_filter],
         have r : 2 ≤ a ^ 2 :=
           by calc 2 ≤ a : nat.prime.two_le hyp.1.2
           ... ≤ a * a : nat.le_mul_self a
           ... = a ^ 2 : by ring,
         exact ⟨hyp.1, ⟨r, hyp.2⟩⟩, },
       { intros hyp,
-        simp only [finset.Ico.mem, finset.mem_filter] at hyp,
-        simp only [finset.Ico.mem, finset.mem_filter],
+        simp only [finset.mem_Ico, finset.mem_filter] at hyp,
+        simp only [finset.mem_Ico, finset.mem_filter],
         exact ⟨hyp.1, hyp.2.2⟩, }, },
 
   have h : (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n)

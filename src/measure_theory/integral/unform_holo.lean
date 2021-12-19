@@ -444,7 +444,16 @@ begin
  apply has_deriv_at.const_mul,
  have H: has_deriv_at (λ (y_1 : ℂ), (z + ↑R * exp (↑y * I) - y_1)) (-1 ) x,
  by {apply has_deriv_at.const_sub, apply has_deriv_at_id,},
- have  dnz : ((z + ↑R * exp (↑y * I) - x) ) ≠ 0, by {sorry},
+ have  dnz : ((z + ↑R * exp (↑y * I) - x) ) ≠ 0, by {
+   by_contradiction hc,
+    simp_rw dist_eq_norm at hx,
+    have hc' : (x : ℂ)-z = R * exp (↑y * I), by {rw sub_eq_zero at hc,
+    rw ← hc, simp only [add_sub_cancel'],},
+     simp_rw hc' at hx,
+     simp at hx,
+     rw abs_lt at hx,
+     simp at hx,
+     apply hx,},
  have := has_deriv_at.inv H dnz,
  simp at this,
  apply this,
@@ -602,6 +611,28 @@ simp,
 linarith [real.pi_pos],
 end
 
+lemma int_diff0_int_abs (R : ℝ) (hR: 0 < R) (F : ℂ → ℂ) (z : ℂ)
+  (F_cts :  continuous_on (F ) (closed_ball z R))
+  (w : ball z R): integrable (complex.abs ∘ (int_diff0 R hR (F) z w)) (volume.restrict (Ioc 0  (2*π))) :=
+
+begin
+apply integrable_on.integrable,
+rw ←  interval_integrable_iff_integrable_Ioc_of_le,
+apply continuous_on.interval_integrable,
+apply continuous_on.comp,
+have cabs: continuous_on abs ⊤, by {apply continuous_abs.continuous_on,},
+apply cabs,
+have hw:= w.property,
+simp at hw,
+have := int_diff0_cont_on_ICC R hR F z w F_cts,
+simp at this,
+have hc:= this hw,
+apply hc,
+simp,
+linarith [real.pi_pos],
+end
+
+
 lemma abs_aux (x : ℂ) (r : ℝ) (h : ∃ (b : ℂ), complex.abs (x-b)+ complex.abs(b) ≤  r) :
   complex.abs(x) ≤  r :=
 begin
@@ -706,6 +737,27 @@ begin
 simp only [le_add_iff_nonneg_right],
 end
 
+def bound2 (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (w : ball z R) (a : ℕ) : ℝ → ℝ :=
+λ θ, (∑ (i : finset.range (a+1) ),complex.abs ((int_diff0 R hR (F i) z w) θ))  +
+complex.abs ((int_diff0 R hR (λ x, 1) z w) θ)  + complex.abs ((int_diff0 R hR f z w) θ)
+
+lemma bound2_int (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (w : ball z R) (a : ℕ)
+   (F_cts : ∀ n, continuous_on (F n) (closed_ball z R)) (hf : continuous_on f (closed_ball z R)) :
+integrable (bound2 R hR F f z w a) (volume.restrict (Ioc 0  (2*π))) :=
+begin
+  rw bound2,
+  apply integrable.add,
+  apply integrable.add,
+  apply integrable_finset_sum,
+  simp,
+  intro i,
+  apply int_diff0_int_abs,
+  apply F_cts,
+  apply int_diff0_int_abs,
+  apply continuous_const.continuous_on,
+  apply int_diff0_int_abs,
+  apply hf,
+end
 
 lemma UNIF_CONV_INT (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ)
    (F_cts : ∀ n, continuous_on (F n) (closed_ball z R))
@@ -714,18 +766,15 @@ tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR (F n) z w) θ)
   at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR f z w) θ) :=
 
 begin
-have f_cont: continuous f, by {sorry,},
-
+have f_cont: continuous_on f (closed_ball z R) ,
+by {apply tendsto_uniformly_on.continuous_on hlim, apply F_cts,},
 have F_measurable : ∀ n, ae_measurable (int_diff0 R hR (F n) z w) (volume.restrict (Ioc 0  (2*π))),
  by {intro n,
      have:= int_diff0_int R hR  (F n) z (F_cts n) w,
      apply this.ae_measurable, },
-
-
 have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
   at_top (𝓝 (((int_diff0 R hR f z w)) a)),
  by {apply u1 R hR F f z F_cts hlim},
-
 have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
   at_top (𝓝 (((int_diff0 R hR f z w)) a)),
   by {simp [h_lim''],},
@@ -787,7 +836,12 @@ by {
   all_goals {simp only [measurable_set_Ioc]},},
 
 
-have bound_integrable : integrable bound (volume.restrict (Ioc 0  (2*π))), by {sorry,},
+have bound_integrable : integrable bound (volume.restrict (Ioc 0  (2*π))), by {
+  have := bound2_int R hR F f z w a F_cts f_cont,
+  simp_rw bound,
+  rw bound2 at this,
+  apply this,
+  },
 have := tendsto_integral_of_dominated_convergence bound F_measurable bound_integrable h_bound h_lim',
 have pi: 0 ≤ 2*π , by {apply real.two_pi_pos.le},
 simp_rw  integral_of_le pi,
@@ -810,6 +864,17 @@ lemma auxlefind4 {a b c d r s t u : ℝ} (ha :  a < r ) (hb : b < s) (hc : c < t
 begin
 linarith,
 end
+lemma auxff (a b r : ℝ) (hr : 0  < r) :   a < b*r →  r⁻¹ *a <  b :=
+begin
+exact (inv_mul_lt_iff' hr).mpr,
+end
+
+lemma auxfals (a : ℂ) : abs a < 0 → false :=
+begin
+have := abs_nonneg a,
+intro ha,
+linarith,
+end
 
 lemma aux2 (a b c d e f r: ℂ) (ε : ℝ) (hε: 0 < ε) (h1: abs (a- b) < 8⁻¹*abs(r)*ε)
 (h2 :abs (c- d) < 8⁻¹*abs(r)*ε ) (h3 :(abs r)⁻¹ * abs ((b- d)- (e-f)) < (2/3)*ε) :
@@ -826,13 +891,19 @@ begin
   apply this,},
   have h6 :(abs r)⁻¹ * abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤
   (abs r)⁻¹ *abs (a -b)+ (abs r)⁻¹* abs (c-d)+  (abs r)⁻¹ * abs ((b-d) - (e-f)),
-  by {sorry,},
-  have h11: (abs(r))⁻¹* abs (a-b) < (8⁻¹*ε ), by {sorry,},
-   have h22: (abs(r))⁻¹* abs (c-d) < (8⁻¹*ε), by {sorry,},
+  by {ring_nf, apply mul_mono_nonneg, rw inv_nonneg, apply abs_nonneg,
+   apply le_trans h4, simp_rw ← add_assoc, simp only [h5, add_le_add_iff_right],},
+   have hr : 0 < abs r,
+   by {by_contradiction h, simp at h,  rw h at h1,  simp at h1, apply auxfals (a-b) h1,},
+  have h11: (abs(r))⁻¹* abs (a-b) < (8⁻¹*ε ), by {have:= auxff (abs (a-b)) (8⁻¹*ε) (abs r) hr,
+   apply this, have e1: 8⁻¹* (abs r) *ε = 8⁻¹* ε* (abs r), by {ring,}, rw ← e1, apply h1,},
+   have h22: (abs(r))⁻¹* abs (c-d) < (8⁻¹*ε), by {
+     have:= auxff (abs (c-d)) (8⁻¹*ε) (abs r) hr,
+   apply this, have e1: 8⁻¹* (abs r) *ε = 8⁻¹* ε* (abs r), by {ring,}, rw ← e1, apply h2,},
   have h7:=  auxlefind h11 h22 h3,
   have h8:= lt_of_le_of_lt h6  h7,
   apply lt_trans h8,
-  ring_nf,
+  ring_exp,
   linarith,
 end
 
@@ -843,11 +914,16 @@ lemma aux3 (a b c d r: ℂ) (ε : ℝ) (hε : 0 < ε )
 
 begin
 obtain ⟨x, y , h1,h2, h3⟩:= h,
-have h33: (abs r)⁻¹ * abs ((c -d) - (y -x)) < 8⁻¹*ε, by {sorry,},
+ have hr : 0 < abs r,
+   by {by_contradiction h, simp at h,  rw h at h1,  simp at h1, apply auxfals (a-y) h1, },
+have h33: (abs r)⁻¹ * abs ((c -d) - (y -x)) < 8⁻¹*ε,
+by {have : abs ((c -d) - (y -x)) = abs ((y -x)- (c -d) ), by  { rw abs_sub_comm,},
+ rw this, apply h3,},
 have h5: abs ((a-b )- (c-d)) = abs (( (a-y) -(b-x) )- ((c-d)-(y-x))) , by {ring_nf,},
 rw h5,
 have h6: (abs r)⁻¹ *abs (( (a-y) -(b-x) )- ((c-d)-(y-x))) ≤ (abs r)⁻¹ * abs (a-y) +
 (abs r)⁻¹ * abs(b-x)+ (abs r)⁻¹ * abs ((c-d) -(y-x)), by {
+  ring_nf, apply mul_mono_nonneg, rw inv_nonneg, apply abs_nonneg,
   sorry,
 },
 have h11: (abs r)⁻¹ * abs ( a- y) < 8⁻¹*ε, by {sorry,},

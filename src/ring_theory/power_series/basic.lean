@@ -26,7 +26,7 @@ We provide the natural inclusion from polynomials to formal power series.
 The file starts with setting up the (semi)ring structure on multivariate power series.
 
 `trunc n φ` truncates a formal power series to the polynomial
-that has the same coefficients as `φ`, for all `m ≤ n`, and `0` otherwise.
+that has the same coefficients as `φ`, for all `m < n`, and `0` otherwise.
 
 If the constant coefficient of a formal power series is invertible,
 then this formal power series is invertible.
@@ -480,10 +480,10 @@ variables [comm_semiring R] (n : σ →₀ ℕ)
 
 /-- Auxiliary definition for the truncation function. -/
 def trunc_fun (φ : mv_power_series σ R) : mv_polynomial σ R :=
-∑ m in Iic_finset n, mv_polynomial.monomial m (coeff R m φ)
+∑ m in Iio_finset n, mv_polynomial.monomial m (coeff R m φ)
 
 lemma coeff_trunc_fun (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
-  (trunc_fun n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
+  (trunc_fun n φ).coeff m = if m < n then coeff R m φ else 0 :=
 by simp [trunc_fun, mv_polynomial.coeff_sum]
 
 variable (R)
@@ -497,10 +497,10 @@ def trunc : mv_power_series σ R →+ mv_polynomial σ R :=
 variable {R}
 
 lemma coeff_trunc (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
-  (trunc R n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
+  (trunc R n φ).coeff m = if m < n then coeff R m φ else 0 :=
 by simp [trunc, coeff_trunc_fun]
 
-@[simp] lemma trunc_one : trunc R n 1 = 1 :=
+@[simp] lemma trunc_one : trunc R (n + 1) 1 = 1 :=
 mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_one],
@@ -511,7 +511,7 @@ begin
     intro H', apply H, subst m, intro s, exact nat.zero_le _ }
 end
 
-@[simp] lemma trunc_C (a : R) : trunc R n (C σ R a) = mv_polynomial.C a :=
+@[simp] lemma trunc_C (a : R) : trunc R (n + 1) (C σ R a) = mv_polynomial.C a :=
 mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_C, mv_polynomial.coeff_C],

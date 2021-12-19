@@ -8,6 +8,10 @@ import analysis.special_functions.non_integrable
 import analysis.analytic.basic
 
 /-!
+# Integral over a circle in `ℂ`
+
+In this file we define `∮ z in C(c, R), f z` to be the integral $\oint_{|z-c|=|R|} f(z)\,dz$ and
+prove some properties of this integral.
 -/
 
 variables {E : Type*} [measurable_space E] [normed_group E]

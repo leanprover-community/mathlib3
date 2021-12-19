@@ -541,7 +541,7 @@ lemma mul_mem_sup {S T : subalgebra R A} {x y : A} (hx : x ∈ S) (hy : y ∈ T)
 (S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
 
 lemma map_sup (f : A →ₐ[R] B) (S T : subalgebra R A) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
-galois_connection.l_sup (subalgebra.gc_map_comap f)
+(subalgebra.gc_map_comap f).l_sup
 
 @[simp, norm_cast]
 lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = S ∩ T := rfl

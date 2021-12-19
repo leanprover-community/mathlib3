@@ -303,8 +303,8 @@ calc ∥∮ z in C(c, R), f z∥ ≤ 2 * π * |R| * C :
   norm_integral_le_of_norm_le_const' $ by rwa this
 ... = 2 * π * R * C : by rw this
 
-@[simp] lemma integral_smul {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [smul_comm_class 𝕜 ℝ E]
-  [smul_comm_class 𝕜 ℂ E] (a : 𝕜) (f : ℂ → E) (c : ℂ) (R : ℝ) :
+@[simp] lemma integral_smul {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [smul_comm_class 𝕜 ℂ E]
+  (a : 𝕜) (f : ℂ → E) (c : ℂ) (R : ℝ) :
   ∮ z in C(c, R), a • f z = a • ∮ z in C(c, R), f z :=
 by simp only [circle_integral, ← smul_comm a, interval_integral.integral_smul]
 

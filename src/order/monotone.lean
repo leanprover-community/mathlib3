@@ -98,7 +98,7 @@ def strict_anti_on (f : α → β) (s : set α) : Prop :=
 
 end monotone_def
 
-/-! #### Monotonicity on the dual order
+/-! ### Monotonicity on the dual order
 
 Strictly many of the `*_on.dual` lemmas in this section should use `of_dual ⁻¹' s` instead of `s`,
 but right now this is not possible as `set.preimage` is not defined yet, and importing it creates
@@ -189,7 +189,7 @@ protected lemma strict_anti_on.dual_right (hf : strict_anti_on f s) :
 
 end order_dual
 
-/-! #### Monotonicity in function spaces -/
+/-! ### Monotonicity in function spaces -/
 
 section preorder
 variables [preorder α]
@@ -219,7 +219,7 @@ lemma function.monotone_eval {ι : Type u} {α : ι → Type v} [∀ i, preorder
   monotone (function.eval i : (Π i, α i) → α i) :=
 λ f g H, H i
 
-/-! #### Monotonicity hierarchy -/
+/-! ### Monotonicity hierarchy -/
 
 section preorder
 variables [preorder α]
@@ -284,7 +284,29 @@ hf.dual_right.monotone.dual_right
 
 end partial_order
 
-/-! #### Miscellaneous monotonicity results -/
+/-! ### Monotonicity from and to subsingletons -/
+
+namespace subsingleton
+variables [preorder α] [preorder β]
+
+protected lemma monotone [subsingleton α] (f : α → β) : monotone f :=
+λ a b _, (congr_arg _ $ subsingleton.elim _ _).le
+
+protected lemma antitone [subsingleton α] (f : α → β) : antitone f :=
+λ a b _, (congr_arg _ $ subsingleton.elim _ _).le
+
+lemma monotone' [subsingleton β] (f : α → β) : monotone f := λ a b _, (subsingleton.elim _ _).le
+lemma antitone' [subsingleton β] (f : α → β) : antitone f := λ a b _, (subsingleton.elim _ _).le
+
+protected lemma strict_mono [subsingleton α] (f : α → β) : strict_mono f :=
+λ a b h, (h.ne $ subsingleton.elim _ _).elim
+
+protected lemma strict_anti [subsingleton α] (f : α → β) : strict_anti f :=
+λ a b h, (h.ne $ subsingleton.elim _ _).elim
+
+end subsingleton
+
+/-! ### Miscellaneous monotonicity results -/
 
 lemma monotone_id [preorder α] : monotone (id : α → α) := λ a b, id
 
@@ -348,7 +370,7 @@ hf.ite' hg hp $ λ x y hx hy h, (hfg y).trans_lt (hf h)
 
 end preorder
 
-/-! #### Monotonicity under composition -/
+/-! ### Monotonicity under composition -/
 
 section composition
 variables [preorder α] [preorder β] [preorder γ] {g : β → γ} {f : α → β} {s : set α}
@@ -426,7 +448,7 @@ lemma strict_anti.comp_strict_mono_on (hg : strict_anti g) (hf : strict_mono_on 
 
 end composition
 
-/-! #### Monotonicity in linear orders  -/
+/-! ### Monotonicity in linear orders  -/
 
 section linear_order
 variables [linear_order α]
@@ -534,7 +556,7 @@ lemma antitone.strict_anti_iff_injective (hf : antitone f) :
 end partial_order
 end linear_order
 
-/-! #### Monotonicity in `ℕ` and `ℤ` -/
+/-! ### Monotonicity in `ℕ` and `ℤ` -/
 
 section preorder
 variables [preorder α]

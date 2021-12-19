@@ -38,73 +38,6 @@ open_locale big_operators
 
 namespace finset
 
-/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
-ordered type : a predicate is true on all `s : finset α` provided that:
-
-* it is true on the empty `finset`,
-* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
-  `f x ≤ f a`, `p s` implies `p (insert a s)`.  -/
-lemma induction_on_max_value [linear_order α] [decidable_eq ι] (f : ι → α)
-  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
-  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x ≤ f a) → p s → p (insert a s)) : p s :=
-begin
-  induction s using finset.strong_induction_on with s ihs,
-  rcases (s.image f).eq_empty_or_nonempty with hne|hne,
-  { simp only [image_eq_empty] at hne,
-    simp only [hne, h0] },
-  { have H : (s.image f).max' hne ∈ (s.image f), from max'_mem (s.image f) hne,
-    simp only [mem_image, exists_prop] at H,
-    rcases H with ⟨a, has, hfa⟩,
-    rw ← insert_erase has,
-    refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
-    rw hfa,
-    exact le_max' _ _ (mem_image_of_mem _ $  mem_of_mem_erase hx) }
-end
-
-/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
-ordered type : a predicate is true on all `s : finset α` provided that:
-
-* it is true on the empty `finset`,
-* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
-  `f a ≤ f x`, `p s` implies `p (insert a s)`.  -/
-lemma induction_on_min_value [linear_order α] [decidable_eq ι] (f : ι → α)
-  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
-  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a ≤ f x) → p s → p (insert a s)) : p s :=
-@induction_on_max_value ι (order_dual α) _ _ _ _ s h0 step
-
-/-- Induction principle for `finset`s in any type from which a given functions `f` and `g` map to a
-linearly ordered types : a predicate is true on all `s : finset α` provided that:
-
-* it is true on the empty `finset`,
-* for every `s : finset α` and an element `a` such that it is greater or equal than all elements of
-`s` in the lexicographical order, then `p s` implies `p (insert a s)`.  -/
-lemma induction_on_max_value' [decidable_eq ι] [linear_order α] [linear_order β] (f : ι → α)
-  (g : ι → β) {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
-  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x < f a ∨ (f x = f a ∧ g x ≤ g a)) → p s → p (insert a s)) :
-  p s :=
-begin
-  revert h0 step,
-  convert @induction_on_max_value ι (lex α β) _ _ (λ i, (prod.map f g) (i, i)) p s,
-  simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
-end
-
-/-- Induction principle for `finset`s in any type from which a given functions `f` and `g` map to a
-linearly ordered types : a predicate is true on all `s : finset α` provided that:
-
-* it is true on the empty `finset`,
-* for every `s : finset α` and an element `a` such that it is greater or equal than all elements of
-`s` in the lexicographical order, then `p s` implies `p (insert a s)`.  -/
-lemma induction_on_min_value' [decidable_eq ι] [linear_order α] [linear_order β] (f : ι → α)
-  (g : ι → β) {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
-  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a < f x ∨ (f a = f x ∧ g a ≤ g x)) → p s → p (insert a s)) :
-  p s :=
-begin
-  revert h0 step,
-  convert @induction_on_min_value ι (lex α β) _ _ (λ i, (prod.map f g) (i, i)) p s,
-  simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
-end
-
-
 lemma sum_comp_perm_smul_eq_smul_comp_inv_perm [fintype ι] [decidable_eq ι] [add_comm_monoid α]
   [decidable_eq β] [add_comm_monoid β] [has_scalar α β] {σ : perm ι} {s : finset ι} {f : ι → α}
   {g : ι → β} (hσ : σ.support ⊆ s) :
@@ -126,7 +59,7 @@ theorem monovary_on.sum_smul_comp_perm_le_sum_smul [decidable_eq ι] [fintype ι
   ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
 begin
   revert hσ σ hfg,
-  apply finset.induction_on_max_value' g f s,
+  apply finset.induction_on_max_value₂ g f s,
   { simp only [le_refl, finset.sum_empty, implies_true_iff] },
   intros a s has hamax hind hfg σ hσ,
   set k := σ a with hk,
@@ -240,7 +173,8 @@ theorem monovary_on.sum_comp_perm_smul_le_sum_smul [decidable_eq ι] [fintype ι
   (hσ : σ.support ⊆ s) :
   ∑ i in s, f (σ i) • g i ≤ ∑ i in s, f i • g i :=
 begin
-  sorry,
+  convert (monovary_on.sum_smul_comp_perm_le_sum_smul hfg σ⁻¹ (support_inv σ⁻¹ ▸ hσ)) using 1,
+  exact sum_comp_perm_smul_eq_smul_comp_inv_perm hσ
 end
 
 /-- **Rearrangement Inequality** -/
@@ -251,13 +185,26 @@ theorem antivary_on.sum_smul_le_sum_smul_comp_perm [decidable_eq ι] [fintype ι
   ∑ i in s, f i • g i ≤ ∑ i in s, f i • g (σ i) :=
 hfg.dual_right.sum_smul_comp_perm_le_sum_smul _ hσ
 
+/-- **Rearrangement Inequality** -/
+theorem antivary_on.sum_smul_le_sum_comp_perm_smul [decidable_eq ι] [fintype ι]
+  [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
+  {s : finset ι} {f : ι → α} {g : ι → β} (hfg : antivary_on f g s) (σ : perm ι)
+  (hσ : σ.support ⊆ s) :
+  ∑ i in s, f i • g i ≤ ∑ i in s, f (σ i) • g i :=
+begin
+  convert (antivary_on.sum_smul_le_sum_smul_comp_perm hfg σ⁻¹ (support_inv σ⁻¹ ▸ hσ)) using 1,
+  exact sum_comp_perm_smul_eq_smul_comp_inv_perm hσ
+end
+
 /-- **Rearrangement Inequality** : statement over a `finset` of a `linear order` -/
-theorem rearrangement_inequality' [linear_order ι] [linear_ordered_ring α]
-  {f g : ι → α} (s : finset ι) (hf : monotone_on f s) (hg : monotone_on g s) (σ : perm ι)
-  (hσ : {x | σ x ≠ x} ⊆ s) : ∑ i in s, f i * g (σ i) ≤ ∑ i in s, f i * g i :=
+theorem sum_smul_comp_perm_le_sum_smul [linear_order ι] [linear_ordered_ring α]
+  [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β] {f : ι → α} {g : ι → β}
+  (s : finset ι) (hf : monotone_on f s) (hg : monotone_on g s) (σ : perm ι)
+  (hσ : {x | σ x ≠ x} ⊆ s) :
+  ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
 begin
   set f' : s → α := λ n, f n with hf',
-  set g' : s → α := λ n, g n with hg',
+  set g' : s → β := λ n, g n with hg',
   have hf'm : monotone f',
   { intros a b hab,
     simp only [hf'],
@@ -286,13 +233,14 @@ begin
     { simp only [not_not, set.mem_set_of_eq] at hy,
       rw hy } },
   set τ : perm s := perm.subtype_perm σ hσs with hτs,
-  convert (hfg.sum_smul_comp_perm_le_sum_smul τ (subset_univ _)) using 1,
+  convert (monovary_on.sum_smul_comp_perm_le_sum_smul hfg τ _) using 1,
   { rw @sum_subtype α ι _ (λ x, x ∈ s) _ s _,
     { congr },
     { simp only [iff_self, implies_true_iff] } },
   { rw @sum_subtype α ι _ (λ x, x ∈ s) _ s _,
     { congr },
     { simp only [iff_self, implies_true_iff] } }
+  { },
 end
 
 lemma swap_extend_domain_eq_self [decidable_eq ι] (s : finset ι) (x y : s) :

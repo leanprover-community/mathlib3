@@ -1,5 +1,15 @@
 import order.atoms
 
+variables {α : Type*}
+
+section order_dual
+open order_dual
+variables [has_lt α]
+
+lemma has_lt.lt.of_dual {a b : order_dual α} (h : a < b) : of_dual b < of_dual a := h
+
+end order_dual
+
 namespace nat
 
 /-- A point subdivides an interval into three. -/

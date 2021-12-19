@@ -135,7 +135,7 @@ basic open set of `π⋆x`.
 Since `f ⁻¹' V = Y.basic_open (f ≫ π)꙳ x = Y.basic_open (g ≫ π)꙳ x = g ⁻¹' V`, we have
 `π ⁻¹' (π '' V) = V` (as the underlying set map is merely the set-theoretic coequalizer).
 This shows that `π '' V` is indeed open, and `s` is invertible on `π '' V` as the components of `π꙳`
-are local ring homgs.
+are local ring homs.
 -/
 variable (U : opens ((coequalizer f.1 g.1).carrier))
 variable (s : (coequalizer f.1 g.1).presheaf.obj (op U))

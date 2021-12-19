@@ -1388,8 +1388,8 @@ class irreducible_space (α : Type u) [topological_space α] extends preirreduci
 -- see Note [lower instance priority]
 attribute [instance, priority 50] irreducible_space.to_nonempty
 
-lemma irreducible_space.is_irreducible_univ (α : Type u) [irreducible_space α] :
-  is_irreducible (⊤ : set α) :=
+lemma irreducible_space.is_irreducible_univ (α : Type u) [topological_space α]
+  [irreducible_space α] : is_irreducible (⊤ : set α) :=
 ⟨by simp, preirreducible_space.is_preirreducible_univ α⟩
 
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :

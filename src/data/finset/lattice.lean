@@ -947,8 +947,9 @@ begin
     exact step _ _ (λ x, s.lt_max'_of_mem_erase_max' hne) (ihs _ $ erase_ssubset H) }
 end
 
-/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
-ordered type : a predicate is true on all `s : finset α` provided that:
+/-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
+`s : finset α` provided that:
+
 * it is true on the empty `finset`,
 * for every `s : finset α` and an element `a` strictly less than all elements of `s`, `p s`
   implies `p (insert a s)`. -/
@@ -968,7 +969,7 @@ ordered type : a predicate is true on all `s : finset α` provided that:
 
 * it is true on the empty `finset`,
 * for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
-  `f x ≤ f a`, `p s` implies `p (insert a s)`.  -/
+  `f x ≤ f a`, `p s` implies `p (insert a s)`. -/
 @[elab_as_eliminator]
 lemma induction_on_max_value [decidable_eq ι] (f : ι → α)
   {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
@@ -992,7 +993,7 @@ ordered type : a predicate is true on all `s : finset α` provided that:
 
 * it is true on the empty `finset`,
 * for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
-  `f a ≤ f x`, `p s` implies `p (insert a s)`.  -/
+  `f a ≤ f x`, `p s` implies `p (insert a s)`. -/
 @[elab_as_eliminator]
 lemma induction_on_min_value [decidable_eq ι] (f : ι → α)
   {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
@@ -1003,8 +1004,8 @@ lemma induction_on_min_value [decidable_eq ι] (f : ι → α)
 linearly ordered types : a predicate is true on all `s : finset α` provided that:
 
 * it is true on the empty `finset`,
-* for every `s : finset α` and an element `a` such that it is greater or equal than all elements of
-`s` in the lexicographical order, then `p s` implies `p (insert a s)`.  -/
+* for every `s : finset α` and an element `a` such that it is greater than or equal to all
+elements of `s` in the lexicographical order, then `p s` implies `p (insert a s)`. -/
 @[elab_as_eliminator]
 lemma induction_on_max_value₂ [decidable_eq ι] (f : ι → α) (g : ι → β) {p : finset ι → Prop}
   (s : finset ι) (h0 : p ∅)
@@ -1020,8 +1021,8 @@ end
 linearly ordered types : a predicate is true on all `s : finset α` provided that:
 
 * it is true on the empty `finset`,
-* for every `s : finset α` and an element `a` such that it is greater or equal than all elements of
-`s` in the lexicographical order, then `p s` implies `p (insert a s)`.  -/
+* for every `s : finset α` and an element `a` such that it is less than or equal to all elements of
+`s` in the lexicographical order, then `p s` implies `p (insert a s)`. -/
 @[elab_as_eliminator]
 lemma induction_on_min_value₂ [decidable_eq ι] (f : ι → α)
   (g : ι → β) {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)

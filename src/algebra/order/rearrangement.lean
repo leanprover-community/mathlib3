@@ -7,6 +7,7 @@ import algebra.order.module
 import group_theory.perm.sign
 import order.monovary
 import tactic.abel
+import algebra.big_operators.basic
 
 /-!
 # Rearrangement inequality
@@ -32,7 +33,8 @@ open equiv
 
 end vary
 
-open order_dual
+open order_dual equiv
+open_locale big_operators
 
 namespace finset
 
@@ -102,6 +104,14 @@ begin
   simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
 end
 
+
+lemma sum_comp_perm_smul_eq_smul_comp_inv_perm [fintype ι] [decidable_eq ι] [add_comm_monoid α]
+  [decidable_eq β] [add_comm_monoid β] [has_scalar α β] {σ : perm ι} {s : finset ι} {f : ι → α}
+  {g : ι → β} (hσ : σ.support ⊆ s) :
+  ∑ i in s, f (σ i) • g i = ∑ i in s, f i • g (σ⁻¹ i) :=
+begin
+  sorry
+end
 
 end finset
 
@@ -221,6 +231,16 @@ begin
   { congr,
     simp only [hp],
     rw [if_neg (ne_of_mem_of_not_mem (mem_of_mem_erase hx) has), if_neg (ne_of_mem_erase hx)] }
+end
+
+/-- **Rearrangement Inequality** -/
+theorem monovary_on.sum_comp_perm_smul_le_sum_smul [decidable_eq ι] [fintype ι]
+  [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
+  {s : finset ι} {f : ι → α} {g : ι → β} (hfg : monovary_on f g s) (σ : perm ι)
+  (hσ : σ.support ⊆ s) :
+  ∑ i in s, f (σ i) • g i ≤ ∑ i in s, f i • g i :=
+begin
+  sorry,
 end
 
 /-- **Rearrangement Inequality** -/

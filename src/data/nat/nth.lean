@@ -228,9 +228,9 @@ lemma count_nth_of_lt_card_finite {n : ℕ} (hp : (set_of p).finite)
 begin
   induction n with k hk,
   { exact count_nth_zero _ },
-  rw [count_eq_card_filter_range, filter_range_nth_eq_insert_of_finite p hp hlt,
+  { rw [count_eq_card_filter_range, filter_range_nth_eq_insert_of_finite p hp hlt,
       finset.card_insert_of_not_mem, ←count_eq_card_filter_range, hk (lt_of_succ_lt hlt)],
-  { simp }
+    simp, },
 end
 
 lemma filter_range_nth_eq_insert_of_infinite (hp : (set_of p).infinite) (k : ℕ) :
@@ -252,9 +252,9 @@ lemma count_nth_of_infinite (hp : (set_of p).infinite) (n : ℕ) : count p (nth 
 begin
   induction n with k hk,
   { exact count_nth_zero _ },
-  rw [count_eq_card_filter_range, filter_range_nth_eq_insert_of_infinite p hp,
+  { rw [count_eq_card_filter_range, filter_range_nth_eq_insert_of_infinite p hp,
       finset.card_insert_of_not_mem, ←count_eq_card_filter_range, hk],
-  { simp }
+    simp, },
 end
 
 @[simp] lemma nth_count {n : ℕ} (hpn : p n) : nth p (count p n) = n :=

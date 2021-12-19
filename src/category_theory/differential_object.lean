@@ -98,7 +98,7 @@ def forget : (differential_object C) ⥤ C :=
 instance forget_faithful : faithful (forget C) :=
 { }
 
-instance has_zero_morphisms [is_equivalence (shift_functor C (0:ℤ))] :
+instance has_zero_morphisms :
   has_zero_morphisms (differential_object C) :=
 { has_zero := λ X Y,
   ⟨{ f := 0 }⟩}
@@ -106,7 +106,7 @@ instance has_zero_morphisms [is_equivalence (shift_functor C (0:ℤ))] :
 variables {C}
 
 @[simp]
-lemma zero_f [is_equivalence (shift_functor C (0:ℤ))] (P Q : differential_object C) :
+lemma zero_f (P Q : differential_object C) :
   (0 : P ⟶ Q).f = 0 := rfl
 
 /--
@@ -182,7 +182,7 @@ variables [has_zero_object C] [has_zero_morphisms C] [has_shift C ℤ]
 
 open_locale zero_object
 
-instance has_zero_object [is_equivalence (shift_functor C (0:ℤ))] :
+instance has_zero_object :
   has_zero_object (differential_object C) :=
 { zero :=
   { X := (0 : C),
@@ -239,22 +239,11 @@ local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal 
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    simp only [iso.app_inv, iso.symm_inv, monoidal_functor.μ_iso_hom, obj_μ_app, eq_to_iso.inv,
-      iso.symm_hom, iso.app_hom, category.assoc, obj_μ_inv_app, shift_add', eq_to_iso.hom,
-      eq_to_hom_trans_assoc, functor.map_comp, eq_to_hom_map, μ_inv_hom_app_assoc, eq_to_hom_app],
-    congr' 4,
-    erw eq_to_hom_μ_assoc,
-    simp only [eq_to_hom_trans_assoc, μ_inv_hom_app_assoc],
-    simp_rw ← category.assoc,
-    congr' 1,
-    rw [category.assoc, ← is_iso.inv_comp_eq, inv_eq_to_hom,
-      eq_to_hom_trans_assoc, ← μ_inv_eq_to_hom],
-    exacts [rfl, rfl, add_comm _ _, add_comm _ _, rfl] },
+    simp only [obj_μ_app, μ_naturality_assoc, μ_naturalityₗ_assoc, μ_inv_hom_app_assoc,
+      category.assoc, obj_μ_inv_app, functor.map_comp, μ_inv_naturalityᵣ_assoc],
+    simp [opaque_eq_to_iso] },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
-
-local attribute [instance] endofunctor_monoidal_category discrete.add_monoidal
-local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal shift_comm
 
 @[simps]
 def shift_ε : 𝟭 (differential_object C) ≅ shift_functor C 0 :=
@@ -263,7 +252,6 @@ begin
   { dsimp, simp, dsimp, simp },
   { introv, ext, dsimp, simp }
 end
-.
 
 instance : has_shift (differential_object C) ℤ :=
 has_shift_mk _ _

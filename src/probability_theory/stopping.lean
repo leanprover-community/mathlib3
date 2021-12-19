@@ -311,9 +311,9 @@ end is_stopping_time
 
 section linear_order
 
+/-- Given a map `u : ι → α → E`, the stopped process with respect to `τ` is `u i x` if
+`i < τ x`, and `u (τ x) x` otherwise.
 
-/-- Given a map `u : ι → α → E`, its stopped process with respect to the stopping
-time `τ` is the map `(i, x) ↦ u (min i (τ x)) x`.
 Intuitively, the stopped process stop evolving once the stopping time has occured. -/
 def stopped_process [linear_order ι] (u : ι → α → β) (τ : α → ι) : ι → α → β :=
 λ i x, u (linear_order.min i (τ x)) x

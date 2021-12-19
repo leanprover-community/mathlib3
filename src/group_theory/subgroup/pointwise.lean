@@ -147,6 +147,11 @@ open_locale pointwise
 lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_subgroup A) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set A))
 
+lemma mem_smul_pointwise_iff_exists (m : A) (a : α) (S : add_subgroup A) :
+  m ∈ a • S ↔ ∃ (s : S), m = a • s :=
+⟨λ ⟨s, hs1, hs2⟩, ⟨⟨s, hs1⟩, by { rw ←hs2, refl }⟩,
+ λ ⟨s, hs⟩, ⟨s.1, s.2, by { rw hs, refl } ⟩⟩
+
 instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ A] [is_central_scalar α A] :
   is_central_scalar α (add_subgroup A) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩

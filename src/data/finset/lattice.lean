@@ -947,6 +947,16 @@ begin
     exact step _ _ (λ x, s.lt_max'_of_mem_erase_max' hne) (ihs _ $ erase_ssubset H) }
 end
 
+/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
+ordered type : a predicate is true on all `s : finset α` provided that:
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` strictly less than all elements of `s`, `p s`
+  implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_min [decidable_eq α] {p : finset α → Prop} (s : finset α) (h0 : p ∅)
+  (step : ∀ a s, (∀ x ∈ s, a < x) → p s → p (insert a s)) : p s :=
+@induction_on_max (order_dual α) _ _ _ s h0 step
+
 end max_min
 
 section max_min_induction_value

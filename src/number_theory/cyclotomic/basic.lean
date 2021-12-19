@@ -22,7 +22,7 @@ roots of unity, for all `n ∈ S`.
 
 ## Main results
 
-* `is_cyclotomic_extension.trans` : is `is_cyclotomic_extension S A B` and
+* `is_cyclotomic_extension.trans`: if `is_cyclotomic_extension S A B` and
   `is_cyclotomic_extension T B C`, then `is_cyclotomic_extension (S ∪ T) A C`.
 * `is_cyclotomic_extension.union_right` : given `is_cyclotomic_extension (S ∪ T) A B`, then
   `is_cyclotomic_extension T (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 }) B`.

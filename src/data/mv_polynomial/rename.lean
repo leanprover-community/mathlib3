@@ -274,7 +274,8 @@ begin
     = λ x, (x.map_domain f).to_multiset,
   { ext,
     rw finsupp.to_multiset_map, },
-  simp only [degrees, finset.sup_map_multiset h, h1, support_rename_injective h, finset.sup_map],
+  simp only [degrees, finset.sup_map_multiset _ _ (map_domain_embedding_of_injective h),
+             h1, support_rename_injective h, finset.sup_map],
   congr,
 end
 

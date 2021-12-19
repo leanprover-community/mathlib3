@@ -92,15 +92,11 @@ submodule.exists_mem_ne_zero_of_ne_bot hμ
 lemma mem_spectrum_of_has_eigenvalue {f : End R M} {μ : R} (hμ : has_eigenvalue f μ) :
   μ ∈ spectrum R f :=
 begin
-  rw [spectrum.mem_iff],
-  intro h_unit,
-  set f' := linear_equiv_of_unit (h_unit.unit) with hf',
+  refine spectrum.mem_iff.mpr (λ h_unit, _),
+  set f' := linear_equiv_of_unit (h_unit.unit),
   rcases hμ.exists_has_eigenvector with ⟨v, hv⟩,
-  have h₁ : (f' v : M) = 0 := calc
-    f' v = μ • v - f v      : rfl
-     ... = μ • v - μ • v    : by rw [hv.apply_eq_smul]
-     ... = 0                : sub_self (μ • v),
-  exact hv.2 ((linear_map.ker_eq_bot'.mp f'.ker) v h₁),
+  refine hv.2 ((linear_map.ker_eq_bot'.mp f'.ker) v (_ : μ • v - f v = 0)),
+  rw [hv.apply_eq_smul, sub_self]
 end
 
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :

@@ -155,7 +155,9 @@ by { simp only [off_diag, mem_filter, mem_product], split; intros h;
 begin
   suffices : diag s = s.image (λ a, (a, a)),
   { rw this, apply card_image_of_inj_on, exact λ x1 h1 x2 h2 h3, (prod.mk.inj h3).1 },
-  ext ⟨a₁, a₂⟩, rw mem_diag, split; intros; finish,
+  ext ⟨a₁, a₂⟩, rw mem_diag, split; intros h; rw finset.mem_image at *,
+  { use [a₁, h.1, prod.mk.inj_iff.mpr ⟨rfl, h.2⟩] },
+  { rcases h with ⟨a, h1, h2⟩, have h := prod.mk.inj h2, rw [←h.1, ←h.2], use h1 },
 end
 
 @[simp] lemma off_diag_card : (off_diag s).card = s.card * s.card - s.card :=

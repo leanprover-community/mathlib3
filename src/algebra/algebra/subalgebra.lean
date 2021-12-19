@@ -960,6 +960,29 @@ lemma smul_mem_pointwise_smul (m : R') (r : A) (S : subalgebra R A) : r ∈ S �
 
 end pointwise
 
+section center
+
+variables (R A)
+
+/-- The center of an algebra is the set of elements which commute with every element. They form a
+subalgebra. -/
+def center : subalgebra R A :=
+{ algebra_map_mem' := by simp [algebra.commutes, subsemiring.mem_center_iff],
+  .. subsemiring.center A }
+
+lemma coe_center : (center R A : set A) = set.center A := rfl
+
+@[simp] lemma center_eq_top (A : Type*) [comm_semiring A] [algebra R A] : center R A = ⊤ :=
+set_like.coe_injective (set.center_eq_univ A)
+
+instance : comm_semiring (center R A) := subsemiring.center.comm_semiring
+
+variables {R A}
+
+lemma mem_center_iff {a : A} : a ∈ center R A ↔ ∀ (b : A), b*a = a*b := iff.rfl
+
+end center
+
 end subalgebra
 
 section nat

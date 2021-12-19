@@ -180,8 +180,9 @@ end
 -- Note that this does not hold for locally finitely ordered add_monoids in general,
 -- as we could have a (horizontally) periodic function on ℤ² which is different over different
 -- y-coordinates. It should hold over ℤ though.
-@[simp]
-lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
+/-- An interval of length `a` filtered over a periodic predicate of period `a` has the
+same cardinality as `range a` filtered over that predicate. -/
+@[simp] lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
  (pp : function.periodic p a) :
   (filter p (Ico n (n+a))).card = a.count p :=
 begin

@@ -974,7 +974,7 @@ end linear_equiv
 
 namespace linear_map
 
-lemma is_unit_iff [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
+lemma is_unit_iff_ker_eq_bot [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
 begin
   split,
   { rintro ⟨u, rfl⟩,
@@ -984,6 +984,9 @@ begin
       linear_equiv.of_injective_endo_right_inv f h_inj,
       linear_equiv.of_injective_endo_left_inv f h_inj⟩, rfl⟩ }
 end
+
+lemma is_unit_iff_range_eq_top [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.range = ⊤ :=
+by rw [is_unit_iff_ker_eq_bot, ker_eq_bot_iff_range_eq_top]
 
 end linear_map
 

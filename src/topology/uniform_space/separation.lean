@@ -222,15 +222,14 @@ begin
   rcases hx (inter_mem V₁_in V_in) with ⟨z, hz, hz'⟩,
   obtain rfl : z = y,
   { by_contra hzy,
-    exact hs z hz' y hy' hzy (h_comp $ mem_comp_of_mem_ball V₁_symm
-      (ball_inter_left x _ _ hz) hy) },
+    exact hs hz' hy' hzy (h_comp $ mem_comp_of_mem_ball V₁_symm (ball_inter_left x _ _ hz) hy) },
   exact ball_inter_right x _ _ hz
 end
 
 lemma is_closed_range_of_spaced_out {ι} [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {f : ι → α} (hf : pairwise (λ x y, (f x, f y) ∉ V₀)) : is_closed (range f) :=
 is_closed_of_spaced_out V₀_in $
-  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (mt (congr_arg f) h) }
+  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (ne_of_apply_ne f h) }
 
 /-!
 ### Separated sets

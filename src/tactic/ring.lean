@@ -610,7 +610,7 @@ setup_tactic_parser
   that is provable by the axioms of commutative (semi)rings. -/
 meta def ring1 (red : parse (tk "!")?) : tactic unit :=
 let transp := if red.is_some then semireducible else reducible in
-do `(%%e₁ = %%e₂) ← target,
+do `(%%e₁ = %%e₂) ← target >>= instantiate_mvars,
   ((e₁', p₁), (e₂', p₂)) ← ring_m.run transp e₁ $
     prod.mk <$> eval e₁ <*> eval e₂,
   is_def_eq e₁' e₂',

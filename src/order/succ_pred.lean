@@ -3,10 +3,11 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import order.bounded_order
 import order.complete_lattice
+import order.cover
 import order.iterate
 import tactic.monotonicity
-import order.bounded_order
 
 /-!
 # Successor and predecessor
@@ -49,8 +50,7 @@ Is `galois_connection pred succ` always true? If not, we should introduce
 class succ_pred_order (α : Type*) [preorder α] extends succ_order α, pred_order α :=
 (pred_succ_gc : galois_connection (pred : α → α) succ)
 ```
-This gives `succ (pred n) = n` and `pred (succ n)` for free when `no_bot_order α` and
-`no_top_order α` respectively.
+`covers` should help here.
 -/
 
 open function
@@ -103,6 +103,14 @@ lemma succ_mono : monotone (succ : α → α) := λ a b, succ_le_succ
 lemma lt_succ_of_not_maximal {a b : α} (h : a < b) : a < succ a :=
 (le_succ a).lt_of_not_le (λ ha, maximal_of_succ_le ha h)
 
+alias lt_succ_of_not_maximal ← has_lt.lt.lt_succ
+
+protected lemma _root_.has_lt.lt.covers_succ {a b : α} (h : a < b) : a ⋖ succ a :=
+⟨h.lt_succ, λ c hc, (succ_le_of_lt hc).not_lt⟩
+
+@[simp] lemma covers_succ_of_nonempty_Ioi {a : α} (h : (set.Ioi a).nonempty) : a ⋖ succ a :=
+has_lt.lt.covers_succ h.some_mem
+
 section no_top_order
 variables [no_top_order α] {a b : α}
 
@@ -126,6 +134,8 @@ by simp_rw [lt_iff_le_not_le, succ_le_succ_iff]
 alias succ_lt_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ
 
 lemma succ_strict_mono : strict_mono (succ : α → α) := λ a b, succ_lt_succ
+
+lemma covers_succ (a : α) : a ⋖ succ a := ⟨lt_succ a, λ c hc, (succ_le_of_lt hc).not_lt⟩
 
 end no_top_order
 
@@ -162,6 +172,9 @@ begin
   { exact ⟨le_succ a, le_rfl⟩ }
 end
 
+lemma _root_.covers.succ_eq {a b : α} (h : a ⋖ b) : succ a = b :=
+(succ_le_of_lt h.lt).eq_of_not_lt $ λ h', h.2 (lt_succ_of_not_maximal h.lt) h'
+
 section no_top_order
 variables [no_top_order α] {a b : α}
 
@@ -185,6 +198,9 @@ lt_succ_iff.trans le_iff_lt_or_eq
 
 lemma le_succ_iff_lt_or_eq : a ≤ succ b ↔ (a ≤ b ∨ a = succ b) :=
 by rw [←lt_succ_iff, ←lt_succ_iff, lt_succ_iff_lt_or_eq]
+
+lemma _root_.covers_iff_succ_eq : a ⋖ b ↔ succ a = b :=
+⟨covers.succ_eq, by { rintro rfl, exact covers_succ _ }⟩
 
 end no_top_order
 
@@ -299,6 +315,14 @@ lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
 lemma pred_lt_of_not_minimal {a b : α} (h : b < a) : pred a < a :=
 (pred_le a).lt_of_not_le (λ ha, minimal_of_le_pred ha h)
 
+alias pred_lt_of_not_minimal ← has_lt.lt.pred_lt
+
+protected lemma _root_.has_lt.lt.pred_covers {a b : α} (h : b < a) : pred a ⋖ a :=
+⟨h.pred_lt, λ c hc, (le_of_pred_lt hc).not_lt⟩
+
+@[simp] lemma pred_covers_of_nonempty_Iio {a : α} (h : (set.Iio a).nonempty) : pred a ⋖ a :=
+has_lt.lt.pred_covers h.some_mem
+
 section no_bot_order
 variables [no_bot_order α] {a b : α}
 
@@ -322,6 +346,8 @@ by simp_rw [lt_iff_le_not_le, pred_le_pred_iff]
 alias pred_lt_pred_iff ↔ lt_of_pred_lt_pred pred_lt_pred
 
 lemma pred_strict_mono : strict_mono (pred : α → α) := λ a b, pred_lt_pred
+
+lemma pred_covers (a : α) : pred a ⋖ a := ⟨pred_lt a, λ c hc, (le_of_pred_lt hc).not_lt⟩
 
 end no_bot_order
 
@@ -358,6 +384,9 @@ begin
   { exact ⟨le_rfl, pred_le a⟩ }
 end
 
+lemma _root_.covers.pred_eq {a b : α} (h : a ⋖ b) : pred b = a :=
+(le_pred_of_lt h.lt).eq_of_not_gt $ λ h', h.2 h' $ pred_lt_of_not_minimal h.lt
+
 section no_bot_order
 variables [no_bot_order α] {a b : α}
 
@@ -379,6 +408,9 @@ pred_lt_iff.trans le_iff_lt_or_eq
 
 lemma le_pred_iff_lt_or_eq : pred a ≤ b ↔ (a ≤ b ∨ pred a = b) :=
 by rw [←pred_lt_iff, ←pred_lt_iff, pred_lt_iff_lt_or_eq]
+
+lemma _root_.covers_iff_pred_eq : a ⋖ b ↔ pred b = a :=
+⟨covers.pred_eq, by { rintro rfl, exact pred_covers _ }⟩
 
 end no_bot_order
 
@@ -419,7 +451,7 @@ lemma pred_ne_top [nontrivial α] (a : α) : pred a ≠ ⊤ :=
 end order_top
 
 section linear_order
-variables [linear_order α]
+variables [linear_order α] {a b : α}
 
 /-- A constructor for `pred_order α` usable when `α` is a linear order with no maximal element. -/
 def of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b) :
@@ -448,6 +480,25 @@ end complete_lattice
 end pred_order
 
 open succ_order pred_order
+
+/-! ### Successor-predecessor orders -/
+
+section succ_pred_order
+variables [partial_order α] [succ_order α] [pred_order α] {a b : α}
+
+protected lemma _root_.has_lt.lt.succ_pred (h : b < a) : succ (pred a) = a := h.pred_covers.succ_eq
+protected lemma _root_.has_lt.lt.pred_succ (h : a < b) : pred (succ a) = a := h.covers_succ.pred_eq
+
+@[simp] lemma succ_pred_of_nonempty_Iio {a : α} (h : (set.Iio a).nonempty) : succ (pred a) = a :=
+has_lt.lt.succ_pred h.some_mem
+
+@[simp] lemma pred_succ_of_nonempty_Ioi {a : α} (h : (set.Ioi a).nonempty) : pred (succ a) = a :=
+has_lt.lt.pred_succ h.some_mem
+
+@[simp] lemma succ_pred [no_bot_order α] (a : α) : succ (pred a) = a := (pred_covers _).succ_eq
+@[simp] lemma pred_succ [no_top_order α] (a : α) : pred (succ a) = a := (covers_succ _).pred_eq
+
+end succ_pred_order
 
 /-! ### Dual order -/
 

@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import data.finset.lattice
 import data.set.pairwise
-import order.preorder_hom
+import order.hom.basic
 
 /-!
 # The monotone sequence of partial supremums of a sequence
@@ -95,10 +95,10 @@ def partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →�
   gc := λ f g, begin
     refine ⟨(le_partial_sups f).trans, λ h, _⟩,
     convert partial_sups_mono h,
-    exact preorder_hom.ext _ _ g.monotone.partial_sups_eq.symm,
+    exact order_hom.ext _ _ g.monotone.partial_sups_eq.symm,
   end,
   le_l_u := λ f, le_partial_sups f,
-  choice_eq := λ f h, preorder_hom.ext _ _ ((le_partial_sups f).antisymm h) }
+  choice_eq := λ f h, order_hom.ext _ _ ((le_partial_sups f).antisymm h) }
 
 lemma partial_sups_eq_sup'_range (f : ℕ → α) (n : ℕ) :
   partial_sups f n = (finset.range (n + 1)).sup' ⟨n, finset.self_mem_range_succ n⟩ f :=

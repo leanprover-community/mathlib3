@@ -61,7 +61,7 @@ begin
 end
 
 @[simp]
-lemma prime.squarefree [comm_cancel_monoid_with_zero R] {x : R} (h : prime x) :
+lemma prime.squarefree [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
   squarefree x :=
 h.irreducible.squarefree
 
@@ -86,7 +86,7 @@ end
 end multiplicity
 
 namespace unique_factorization_monoid
-variables [comm_cancel_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
+variables [cancel_comm_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
 variables [normalization_monoid R]
 
 lemma squarefree_iff_nodup_normalized_factors [decidable_eq R] {x : R} (x0 : x ≠ 0) :

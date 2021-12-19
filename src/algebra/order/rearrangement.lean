@@ -38,9 +38,18 @@ open_locale big_operators
 
 namespace finset
 
-lemma sum_comp_perm_smul_eq_smul_comp_inv_perm [fintype ι] [decidable_eq ι] [add_comm_monoid α]
+-- TODO
+lemma sum_comp_perm_smul_eq_smul_comp_inv_perm_support [fintype ι] [decidable_eq ι]
+  [add_comm_monoid α] [decidable_eq β] [add_comm_monoid β] [has_scalar α β] {σ : perm ι}
+  {s : finset ι} {f : ι → α} {g : ι → β} (hσ : σ.support ⊆ s) :
+  ∑ i in s, f (σ i) • g i = ∑ i in s, f i • g (σ⁻¹ i) :=
+begin
+  sorry
+end
+
+lemma sum_comp_perm_smul_eq_smul_comp_inv_perm [decidable_eq ι] [add_comm_monoid α]
   [decidable_eq β] [add_comm_monoid β] [has_scalar α β] {σ : perm ι} {s : finset ι} {f : ι → α}
-  {g : ι → β} (hσ : σ.support ⊆ s) :
+  {g : ι → β} (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) • g i = ∑ i in s, f i • g (σ⁻¹ i) :=
 begin
   sorry
@@ -51,7 +60,8 @@ end finset
 open finset equiv equiv.perm order_dual
 open_locale big_operators
 
-/-- **Rearrangement Inequality** -/
+/-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
+`movary_on f g s` holds with the permutation applied on the right.-/
 theorem monovary_on.sum_smul_comp_perm_le_sum_smul [decidable_eq ι] [fintype ι]
   [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
   {s : finset ι} {f : ι → α} {g : ι → β} (hfg : monovary_on f g s) (σ : perm ι)
@@ -166,18 +176,20 @@ begin
     rw [if_neg (ne_of_mem_of_not_mem (mem_of_mem_erase hx) has), if_neg (ne_of_mem_erase hx)] }
 end
 
-/-- **Rearrangement Inequality** -/
+/-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
+`monovary_on f g s` holds with the permutation applied on the left.-/
 theorem monovary_on.sum_comp_perm_smul_le_sum_smul [decidable_eq ι] [fintype ι]
   [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
   {s : finset ι} {f : ι → α} {g : ι → β} (hfg : monovary_on f g s) (σ : perm ι)
   (hσ : σ.support ⊆ s) :
   ∑ i in s, f (σ i) • g i ≤ ∑ i in s, f i • g i :=
 begin
-  convert (monovary_on.sum_smul_comp_perm_le_sum_smul hfg σ⁻¹ (support_inv σ⁻¹ ▸ hσ)) using 1,
-  exact sum_comp_perm_smul_eq_smul_comp_inv_perm hσ
+  convert (hfg.sum_smul_comp_perm_le_sum_smul σ⁻¹ (support_inv σ⁻¹ ▸ hσ)) using 1,
+  exact sum_comp_perm_smul_eq_smul_comp_inv_perm_support hσ
 end
 
-/-- **Rearrangement Inequality** -/
+/-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
+`antivary_on f g s` holds with the permutation applied on the right.-/
 theorem antivary_on.sum_smul_le_sum_smul_comp_perm [decidable_eq ι] [fintype ι]
   [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
   {s : finset ι} {f : ι → α} {g : ι → β} (hfg : antivary_on f g s) (σ : perm ι)
@@ -185,7 +197,8 @@ theorem antivary_on.sum_smul_le_sum_smul_comp_perm [decidable_eq ι] [fintype ι
   ∑ i in s, f i • g i ≤ ∑ i in s, f i • g (σ i) :=
 hfg.dual_right.sum_smul_comp_perm_le_sum_smul _ hσ
 
-/-- **Rearrangement Inequality** -/
+/-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
+`antivary_on f g s` holds with the permutation applied on the left. -/
 theorem antivary_on.sum_smul_le_sum_comp_perm_smul [decidable_eq ι] [fintype ι]
   [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
   {s : finset ι} {f : ι → α} {g : ι → β} (hfg : antivary_on f g s) (σ : perm ι)
@@ -193,11 +206,12 @@ theorem antivary_on.sum_smul_le_sum_comp_perm_smul [decidable_eq ι] [fintype ι
   ∑ i in s, f i • g i ≤ ∑ i in s, f (σ i) • g i :=
 begin
   convert (antivary_on.sum_smul_le_sum_smul_comp_perm hfg σ⁻¹ (support_inv σ⁻¹ ▸ hσ)) using 1,
-  exact sum_comp_perm_smul_eq_smul_comp_inv_perm hσ
+  exact sum_comp_perm_smul_eq_smul_comp_inv_perm_support hσ
 end
 
-/-- **Rearrangement Inequality** : statement over a `finset` of a `linear order` -/
-theorem sum_smul_comp_perm_le_sum_smul [linear_order ι] [linear_ordered_ring α]
+/-- **Rearrangement Inequality** : statement for a pair of `monotone` functions over a `finset` of a
+`linear order` with permutation applied on the right. -/
+theorem sum_smul_comp_perm_le_sum_smul_of_monotone [linear_order ι] [linear_ordered_ring α]
   [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β] {f : ι → α} {g : ι → β}
   (s : finset ι) (hf : monotone_on f s) (hg : monotone_on g s) (σ : perm ι)
   (hσ : {x | σ x ≠ x} ⊆ s) :
@@ -234,13 +248,29 @@ begin
       rw hy } },
   set τ : perm s := perm.subtype_perm σ hσs with hτs,
   convert (monovary_on.sum_smul_comp_perm_le_sum_smul hfg τ _) using 1,
-  { rw @sum_subtype α ι _ (λ x, x ∈ s) _ s _,
+  { rw @sum_subtype β ι _ (λ x, x ∈ s) _ s _,
     { congr },
     { simp only [iff_self, implies_true_iff] } },
-  { rw @sum_subtype α ι _ (λ x, x ∈ s) _ s _,
+  { rw @sum_subtype β ι _ (λ x, x ∈ s) _ s _,
     { congr },
-    { simp only [iff_self, implies_true_iff] } }
-  { },
+    { simp only [iff_self, implies_true_iff] } },
+  { exact (support τ).subset_univ }
+end
+
+/-- **Rearrangement Inequality** : statement for a pair of `monotone` functions over a `finset` of a
+`linear order` with permutation applied on the left. -/
+theorem sum_comp_perm_smul_le_sum_smul_of_monotone [linear_order ι] [linear_ordered_ring α]
+  [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β] {f : ι → α} {g : ι → β}
+  (s : finset ι) (hf : monotone_on f s) (hg : monotone_on g s) (σ : perm ι)
+  (hσ : {x | σ x ≠ x} ⊆ s) :
+  ∑ i in s, f (σ i) • g i ≤ ∑ i in s, f i • g i :=
+begin
+  convert sum_smul_comp_perm_le_sum_smul_of_monotone s hf hg σ⁻¹ _ using 1,
+  { exact sum_comp_perm_smul_eq_smul_comp_inv_perm hσ },
+  { convert hσ,
+    ext,
+    simp only [ne.def, inv_eq_iff_eq],
+    exact ne_comm }
 end
 
 lemma swap_extend_domain_eq_self [decidable_eq ι] (s : finset ι) (x y : s) :

@@ -61,11 +61,32 @@ instance quotient_group.has_measurable_smul : has_measurable_smul G (G ⧸ Γ) :
 include h𝓕
 variables [encodable Γ]
 
+lemma measure_theory.is_fundamental_domain.mk'' (s : set G) (hs : measurable_set s)
+  (h_ae_covers : ∀ᵐ x ∂μ, ∃ γ : Γ, γ • x ∈ s)
+  (h_ae_disjoint : ∀ γ ≠ (1 : Γ), μ ((has_mul.mul γ ⁻¹' s) ∩ s) = 0) :
+is_fundamental_domain ↥Γ s μ :=
+begin
+  sorry,
+end
+
 lemma measure_theory.is_fundamental_domain.smul (g : G) :
 is_fundamental_domain ↥Γ (has_mul.mul g ⁻¹' 𝓕) μ :=
 begin
+  apply measure_theory.is_fundamental_domain.mk'',
+  have :=  measurable_set_preimage _ h𝓕.measurable_set,
+
+  {
+    have : measurable_set 𝓕,
+    {
+
+      sorry,
+    },
+    sorry,
+  },
+  {
+    sorry,
+  },
   -- ALEX HOMEWORK
-  sorry,
 end
 
 /-- The pushforward to the coset space `G ⧸ Γ` of the restriction of Haar measure on `G` to a
@@ -111,10 +132,28 @@ begin
   rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA _,
 
   intros γ, -- ALEX Homework
+  ext,
+  split,
+  { intros x_in_preA,
+    rw mem_preimage at x_in_preA,
+    rw mem_preimage at x_in_preA,
+    rw mem_preimage,
+    convert x_in_preA using 1,
+    sorry,
+  },
+  { intros x_in_preA,
+    rw mem_preimage at x_in_preA,
+    rw mem_preimage,
+    rw mem_preimage,
+    convert x_in_preA using 1,
+    sorry,
+  },
+--  exact  measurable_quotient_mk,
   sorry,
-
-  repeat {sorry},
-
+  {
+    refine measurable_set_preimage _ hA,
+    sorry,
+  },
 end }
 
 /-- The pushforward to the quotient group `G ⧸ Γ` of the restriction of Haar measure on `G` to a

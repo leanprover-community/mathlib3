@@ -220,7 +220,8 @@ lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := P.pow_mem h i end
 
 /-- Exponentiation map from natural numbers to powers. -/
-def pow (n : M) (m : ℕ) : powers n := (powers_hom M n).mrange_restrict m
+def pow (n : M) (m : ℕ) : powers n :=
+(powers_hom M n).mrange_restrict (multiplicative.of_add m)
 
 /-- Logarithms from powers to natural numbers. -/
 def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=

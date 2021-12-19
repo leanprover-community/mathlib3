@@ -14,7 +14,7 @@ import group_theory.perm.basic
 Iterate of a monoid/ring homomorphism is a monoid/ring homomorphism but it has a wrong type, so Lean
 can't apply lemmas like `monoid_hom.map_one` to `f^[n] 1`. Though it is possible to define
 a monoid structure on the endomorphisms, quite often we do not want to convert from
-`M →* M` to (not yet defined) `monoid.End M` and from `f^[n]` to `f^n` just to apply a simple lemma.
+`M →* M` to `monoid.End M` and from `f^[n]` to `f^n` just to apply a simple lemma.
 
 So, we restate standard `*_hom.map_*` lemmas under names `*_hom.iterate_map_*`.
 

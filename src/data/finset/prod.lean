@@ -163,7 +163,7 @@ end
 @[simp] lemma off_diag_card : (off_diag s).card = s.card * s.card - s.card :=
 begin
   suffices : (diag s).card + (off_diag s).card = s.card * s.card,
-  { nth_rewrite 2 ← s.diag_card, finish },
+  { nth_rewrite 2 ← s.diag_card, simp only [diag_card] at *, rw tsub_eq_of_eq_add_rev, rw this },
   rw ← card_product,
   apply filter_card_add_filter_neg_card_eq_card,
 end

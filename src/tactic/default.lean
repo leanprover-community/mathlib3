@@ -22,7 +22,6 @@ import tactic.abel
 import tactic.ring_exp
 import tactic.noncomm_ring
 import tactic.linarith
-import tactic.omega
 import tactic.tfae
 import tactic.apply_fun
 import tactic.interval_cases

@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import data.finset.locally_finite
 import algebra.periodic
+import data.nat.count
 
 /-!
 # Finite intervals of naturals
@@ -182,7 +183,7 @@ end
 @[simp]
 lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
  (pp : function.periodic p a) :
-  (filter p (Ico n (n+a))).card = (filter p (range a)).card :=
+  (filter p (Ico n (n+a))).card = a.count p :=
 begin
   by_cases a = 0,
   { simp [h], },

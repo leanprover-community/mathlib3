@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import algebra.algebra.tower
-import ring_theory.adjoin.basic
 import linear_algebra.tensor_product
+import ring_theory.adjoin.basic
 
 /-!
 # The tensor product of R-algebras
@@ -651,7 +650,7 @@ theorem comm_tmul (a : A) (b : B) :
 by simp [tensor_product.comm]
 
 lemma adjoin_tmul_eq_top : adjoin R {t : A ⊗[R] B | ∃ a b, a ⊗ₜ[R] b = t} = ⊤ :=
-top_le_iff.mp ((top_le_iff.mpr (span_tmul_eq_top R A B)).trans (span_le_adjoin R _))
+top_le_iff.mp $ (top_le_iff.mpr $ span_tmul_eq_top R A B).trans (span_le_adjoin R _)
 
 end
 

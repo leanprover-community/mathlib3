@@ -132,9 +132,6 @@ end
 
 section finsupp
 
-variables [sampleable α] [sampleable β]
-
-variables [decidable_eq α] [decidable_eq β]
 
 variables [has_zero β]
 

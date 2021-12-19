@@ -153,7 +153,8 @@ by { simp only [off_diag, mem_filter, mem_product], split; intros h;
 
 @[simp] lemma diag_card : (diag s).card = s.card :=
 begin
-  suffices : diag s = s.image (λ a, (a, a)), { rw this, apply card_image_of_inj_on, finish },
+  suffices : diag s = s.image (λ a, (a, a)),
+  { rw this, apply card_image_of_inj_on, exact λ x1 h1 x2 h2 h3, (prod.mk.inj h3).1 },
   ext ⟨a₁, a₂⟩, rw mem_diag, split; intros; finish,
 end
 

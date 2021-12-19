@@ -540,7 +540,7 @@ end linear_order
 section preorder
 variables [preorder α]
 
-lemma forall_nat_ge_lt_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_trans β r]
+lemma nat.rel_of_forall_rel_succ_of_le_of_lt (r : β → β → Prop) [is_trans β r]
   {f : ℕ → β} {a : ℕ} (h : ∀ n, a ≤ n → r (f n) (f (n + 1))) ⦃b c : ℕ⦄
   (hab : a ≤ b) (hbc : b < c) :
   r (f b) (f c) :=
@@ -549,23 +549,23 @@ begin
   exacts [h _ hab, trans r_b_k (h _ (hab.trans_lt b_lt_k).le)]
 end
 
-lemma forall_nat_ge_le_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_refl β r] [is_trans β r]
+lemma nat.rel_of_forall_rel_succ_of_le_of_le (r : β → β → Prop) [is_refl β r] [is_trans β r]
   {f : ℕ → β} {a : ℕ} (h : ∀ n, a ≤ n → r (f n) (f (n + 1))) ⦃b c : ℕ⦄
   (hab : a ≤ b) (hbc : b ≤ c) :
   r (f b) (f c) :=
-hbc.eq_or_lt.elim (λ h, h ▸ refl _) (forall_nat_ge_lt_imp_rel_of_forall_rel_succ r h hab)
+hbc.eq_or_lt.elim (λ h, h ▸ refl _) (nat.rel_of_forall_rel_succ_of_le_of_lt r h hab)
 
-lemma forall_nat_lt_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_trans β r]
+lemma nat.rel_of_forall_rel_succ_of_lt (r : β → β → Prop) [is_trans β r]
   {f : ℕ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℕ⦄ (hab : a < b) : r (f a) (f b) :=
-forall_nat_ge_lt_imp_rel_of_forall_rel_succ r (λ n _, h n) le_rfl hab
+nat.rel_of_forall_rel_succ_of_le_of_lt r (λ n _, h n) le_rfl hab
 
-lemma forall_nat_le_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_refl β r] [is_trans β r]
+lemma nat.rel_of_forall_rel_succ_of_le (r : β → β → Prop) [is_refl β r] [is_trans β r]
   {f : ℕ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℕ⦄ (hab : a ≤ b) : r (f a) (f b) :=
-forall_nat_ge_le_imp_rel_of_forall_rel_succ r (λ n _, h n) le_rfl hab
+nat.rel_of_forall_rel_succ_of_le_of_le r (λ n _, h n) le_rfl hab
 
 lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
   monotone f :=
-forall_nat_le_imp_rel_of_forall_rel_succ (≤) hf
+nat.rel_of_forall_rel_succ_of_le (≤) hf
 
 lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
   antitone f :=
@@ -573,13 +573,13 @@ lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
 
 lemma strict_mono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) :
   strict_mono f :=
-forall_nat_lt_imp_rel_of_forall_rel_succ (<) hf
+nat.rel_of_forall_rel_succ_of_lt (<) hf
 
 lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) :
   strict_anti f :=
 @strict_mono_nat_of_lt_succ (order_dual α) _ f hf
 
-lemma forall_int_lt_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_trans β r]
+lemma int.rel_of_forall_rel_succ_of_lt (r : β → β → Prop) [is_trans β r]
   {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a < b) : r (f a) (f b) :=
 begin
   rcases hab.dest with ⟨n, rfl⟩, clear hab,
@@ -589,21 +589,21 @@ begin
     exact trans ihn (h _) }
 end
 
-lemma forall_int_le_imp_rel_of_forall_rel_succ (r : β → β → Prop) [is_refl β r] [is_trans β r]
+lemma int.rel_of_forall_rel_succ_of_le (r : β → β → Prop) [is_refl β r] [is_trans β r]
   {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a ≤ b) : r (f a) (f b) :=
-hab.eq_or_lt.elim (λ h, h ▸ refl _) (λ h', forall_int_lt_imp_rel_of_forall_rel_succ r h h')
+hab.eq_or_lt.elim (λ h, h ▸ refl _) (λ h', int.rel_of_forall_rel_succ_of_lt r h h')
 
 lemma monotone_int_of_le_succ {f : ℤ → α} (hf : ∀ n, f n ≤ f (n + 1)) : monotone f :=
-forall_int_le_imp_rel_of_forall_rel_succ (≤) hf
+int.rel_of_forall_rel_succ_of_le (≤) hf
 
 lemma antitone_int_of_succ_le {f : ℤ → α} (hf : ∀ n, f (n + 1) ≤ f n) : antitone f :=
-forall_int_le_imp_rel_of_forall_rel_succ (≥) hf
+int.rel_of_forall_rel_succ_of_le (≥) hf
 
 lemma strict_mono_int_of_lt_succ {f : ℤ → α} (hf : ∀ n, f n < f (n + 1)) : strict_mono f :=
-forall_int_lt_imp_rel_of_forall_rel_succ (<) hf
+int.rel_of_forall_rel_succ_of_lt (<) hf
 
 lemma strict_anti_int_of_succ_lt {f : ℤ → α} (hf : ∀ n, f (n + 1) < f n) : strict_anti f :=
-forall_int_lt_imp_rel_of_forall_rel_succ (>) hf
+int.rel_of_forall_rel_succ_of_lt (>) hf
 
 -- TODO@Yael: Generalize the following four to succ orders
 /-- If `f` is a monotone function from `ℕ` to a preorder such that `x` lies between `f n` and

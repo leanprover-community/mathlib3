@@ -65,8 +65,8 @@ def dgo_to_homological_complex :
     homological_complex V (complex_shape.up' b) :=
 { obj := λ X,
   { X := λ i, X.X i,
-    d := λ i j, if h : i + b = j then X.d i ≫
-      (by { delta shift_functor, exact X.X_eq_to_hom (show i + (1 : ℤ) • b = j, by simp [h]) }) else 0,
+    d := λ i j, if h : i + b = j then
+      X.d i ≫ X.X_eq_to_hom (show i + (1 : ℤ) • b = j, by simp [h]) else 0,
     shape' := λ i j w, by { dsimp at w, convert dif_neg w },
     d_comp_d' := λ i j k hij hjk, begin
       dsimp at hij hjk, substs hij hjk,

@@ -134,7 +134,7 @@ section finsupp
 
 
 variables [has_zero β]
-
+variables [decidable_eq α] [decidable_eq β]
 /-- Map a total_function to one whose default value is zero so that it represents a finsupp. -/
 @[simp]
 def zero_default : total_function α β →

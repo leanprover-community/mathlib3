@@ -257,7 +257,7 @@ begin
   { simp }
 end
 
-lemma nth_count {n : ℕ} (hpn : p n) : nth p (count p n) = n :=
+@[simp] lemma nth_count {n : ℕ} (hpn : p n) : nth p (count p n) = n :=
 begin
   obtain hp | hp := em (set_of p).finite,
   { refine count_injective _ hpn _,

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Johan Commelin, Andrew Yang
 -/
 import category_theory.limits.shapes.zero
 import category_theory.monoidal.End
@@ -260,10 +260,12 @@ end
 variables {C}
 
 /-- Shifting by `i` and then shifting by `-i` is the identity. -/
-abbreviation shift_shift_neg (i : A) : X⟦i⟧⟦-i⟧ ≅ X := (shift_functor_comp_shift_functor_neg C i).app _
+abbreviation shift_shift_neg (i : A) : X⟦i⟧⟦-i⟧ ≅ X :=
+(shift_functor_comp_shift_functor_neg C i).app _
 
 /-- Shifting by `-i` and then shifting by `i` is the identity. -/
-abbreviation shift_neg_shift (i : A) : X⟦-i⟧⟦i⟧ ≅ X := (shift_functor_neg_comp_shift_functor C i).app _
+abbreviation shift_neg_shift (i : A) : X⟦-i⟧⟦i⟧ ≅ X :=
+(shift_functor_neg_comp_shift_functor C i).app _
 
 variables {X Y}
 

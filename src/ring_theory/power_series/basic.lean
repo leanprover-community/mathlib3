@@ -10,6 +10,7 @@ import linear_algebra.std_basis
 import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
 import tactic.linarith
+import data.finset.locally_finite
 
 /-!
 # Formal power series
@@ -478,9 +479,13 @@ end algebra
 section trunc
 variables [comm_semiring R] (n : σ →₀ ℕ)
 
+-- TODO use Yael's version
+instance {α β : Type*} [preorder β] [has_zero β] [locally_finite_order β] :
+  locally_finite_order (α →₀ β) := sorry
+
 /-- Auxiliary definition for the truncation function. -/
 def trunc_fun (φ : mv_power_series σ R) : mv_polynomial σ R :=
-∑ m in Iio_finset n, mv_polynomial.monomial m (coeff R m φ)
+∑ m in finset.Iio n, mv_polynomial.monomial m (coeff R m φ)
 
 lemma coeff_trunc_fun (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
   (trunc_fun n φ).coeff m = if m < n then coeff R m φ else 0 :=
@@ -500,7 +505,7 @@ lemma coeff_trunc (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
   (trunc R n φ).coeff m = if m < n then coeff R m φ else 0 :=
 by simp [trunc, coeff_trunc_fun]
 
-@[simp] lemma trunc_one : trunc R (n + 1) 1 = 1 :=
+@[simp] lemma trunc_one (hnn : n ≠ 0) : trunc R n 1 = 1 :=
 mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_one],
@@ -508,15 +513,15 @@ begin
   { subst m, simp },
   { symmetry, rw mv_polynomial.coeff_one, exact if_neg (ne.symm H'), },
   { symmetry, rw mv_polynomial.coeff_one, refine if_neg _,
-    intro H', apply H, subst m, intro s, exact nat.zero_le _ }
+    intro H', apply H, subst m, exact ne.bot_lt hnn, }
 end
 
-@[simp] lemma trunc_C (a : R) : trunc R (n + 1) (C σ R a) = mv_polynomial.C a :=
+@[simp] lemma trunc_C (hnn : n ≠ 0) (a : R) : trunc R n (C σ R a) = mv_polynomial.C a :=
 mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_C, mv_polynomial.coeff_C],
   split_ifs with H; refl <|> try {simp * at *},
-  exfalso, apply H, subst m, intro s, exact nat.zero_le _
+  exfalso, apply H, subst m, exact ne.bot_lt hnn,
 end
 
 end trunc

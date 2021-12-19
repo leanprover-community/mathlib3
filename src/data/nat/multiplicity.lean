@@ -51,21 +51,23 @@ divides `n`. This set is expressed by filtering `Ico 1 b` where `b` is any bound
 lemma multiplicity_eq_card_pow_dvd {m n b : ℕ} (hm : m ≠ 1) (hn : 0 < n) (hb : log m n < b):
   multiplicity m n = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card :=
 calc
-  multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 ⟨hm, hn⟩) + 1)).card
-    : by simp
-... = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card
-    : congr_arg coe $ congr_arg card $ finset.ext $ λ i,
-      begin
-        rw [mem_filter, mem_Ico, mem_Ico, lt_succ_iff, ←@enat.coe_le_coe i, enat.coe_get,
-          ←pow_dvd_iff_le_multiplicity, and.right_comm],
-        refine (and_iff_left_of_imp (λ h, _)).symm,
-        cases m,
-        { rw [zero_pow, zero_dvd_iff] at h,
-          exact (hn.ne' h.2).elim,
-          { exact h.1 } },
-        exact ((pow_le_iff_le_log (succ_lt_succ $ nat.pos_of_ne_zero $ succ_ne_succ.1 hm) hn).1 $
-          le_of_dvd hn h.2).trans_lt hb,
-      end
+  multiplicity m n
+      = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 ⟨hm, hn⟩) + 1)).card :
+        by simp
+  ... = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card :
+    begin
+      congr,
+      ext i,
+      rw [mem_filter, mem_Ico, mem_Ico, lt_succ_iff, ←@enat.coe_le_coe i, enat.coe_get,
+        ←pow_dvd_iff_le_multiplicity, and.right_comm],
+      refine (and_iff_left_of_imp (λ h, _)).symm,
+      cases m,
+      { rw [zero_pow, zero_dvd_iff] at h,
+        exact (hn.ne' h.2).elim,
+        { exact h.1 } },
+      exact ((pow_le_iff_le_log (succ_lt_succ $ nat.pos_of_ne_zero $ succ_ne_succ.1 hm) hn).1 $
+        le_of_dvd hn h.2).trans_lt hb,
+    end
 
 namespace prime
 

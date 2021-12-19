@@ -1001,6 +1001,30 @@ lemma prod_map_mul [comm_monoid γ] {m : multiset α} {f g : α → γ} :
   prod (m.map $ λa, f a * g a) = prod (m.map f) * prod (m.map g) :=
 multiset.induction_on m (by simp) (assume a m ih, by simp [ih]; cc)
 
+@[simp, to_additive]
+lemma prod_map_inv' [comm_group γ] {m : multiset α} {f : α → γ} :
+  prod (m.map $ λ a, (f a)⁻¹) = (prod (m.map f))⁻¹ :=
+multiset.induction_on m (by simp_rw [map_zero, prod_zero, one_inv])
+  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, mul_inv])
+
+@[simp, to_additive]
+lemma prod_map_div [comm_group γ] {m : multiset α} {f g : α → γ} :
+  prod (m.map $ λ a, f a / g a) = prod (m.map f) / prod (m.map g) :=
+multiset.induction_on m (by simp_rw [map_zero, prod_zero, div_one'])
+  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, div_mul_comm])
+
+@[to_additive sum_map_nsmul]
+lemma prod_map_pow_right [comm_monoid γ] {m : multiset α} {f : α → γ} {n : ℕ} :
+  prod (m.map $ λ a, f a ^ n) = prod (m.map f) ^ n :=
+multiset.induction_on m (by simp_rw [map_zero, prod_zero, one_pow])
+  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, mul_pow])
+
+@[to_additive sum_map_zsmul]
+lemma prod_map_zpow_right [comm_group γ] {m : multiset α} {f : α → γ} {n : ℤ} :
+  prod (m.map $ λ a, f a ^ n) = prod (m.map f) ^ n :=
+multiset.induction_on m (by simp_rw [map_zero, prod_zero, one_zpow])
+  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, mul_zpow])
+
 @[to_additive]
 lemma prod_map_prod_map [comm_monoid γ] (m : multiset α) (n : multiset β) {f : α → β → γ} :
   prod (m.map $ λa, prod $ n.map $ λb, f a b) = prod (n.map $ λb, prod $ m.map $ λa, f a b) :=

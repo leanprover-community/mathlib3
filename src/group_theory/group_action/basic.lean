@@ -252,12 +252,12 @@ open quotient_group
 /-- Action on left cosets. -/
 @[to_additive "Action on left cosets."]
 def mul_left_cosets (H : subgroup α)
-  (x : α) (y : quotient H) : quotient H :=
+  (x : α) (y : α ⧸ H) : α ⧸ H :=
 quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
   (λ a b (hab : _ ∈ H), quotient_group.eq.2
     (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
 
-@[to_additive] instance quotient (H : subgroup α) : mul_action α (quotient H) :=
+@[to_additive] instance quotient (H : subgroup α) : mul_action α (α ⧸ H) :=
 { smul := mul_left_cosets H,
   one_smul := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
     (by simp [subgroup.one_mem])),
@@ -265,20 +265,20 @@ quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
     (by simp [mul_inv_rev, subgroup.one_mem, mul_assoc])) }
 
 @[simp, to_additive] lemma quotient.smul_mk (H : subgroup α) (a x : α) :
-  (a • quotient_group.mk x : quotient_group.quotient H) = quotient_group.mk (a * x) := rfl
+  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a * x) := rfl
 
 @[simp, to_additive] lemma quotient.smul_coe (H : subgroup α) (a x : α) :
-  (a • x : quotient_group.quotient H) = ↑(a * x) := rfl
+  (a • x : α ⧸ H) = ↑(a * x) := rfl
 
 @[to_additive] instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
-  mul_action I (quotient H) :=
-mul_action.comp_hom (quotient H) (subgroup.subtype I)
+  mul_action I (α ⧸ H) :=
+mul_action.comp_hom (α ⧸ H) (subgroup.subtype I)
 
 variables (α) {β} (x : β)
 
 /-- The canonical map from the quotient of the stabilizer to the set. -/
 @[to_additive "The canonical map from the quotient of the stabilizer to the set. "]
-def of_quotient_stabilizer (g : quotient (mul_action.stabilizer α x)) : β :=
+def of_quotient_stabilizer (g : α ⧸ (mul_action.stabilizer α x)) : β :=
 quotient.lift_on' g (•x) $ λ g1 g2 H,
 calc  g1 • x
     = g1 • (g1⁻¹ * g2) • x : congr_arg _ H.symm
@@ -293,7 +293,7 @@ rfl
 quotient.induction_on' g $ λ g, ⟨g, rfl⟩
 
 @[to_additive] theorem of_quotient_stabilizer_smul (g : α)
-  (g' : quotient (mul_action.stabilizer α x)) :
+  (g' : α ⧸ (mul_action.stabilizer α x)) :
   of_quotient_stabilizer α x (g • g') = g • of_quotient_stabilizer α x g' :=
 quotient.induction_on' g' $ λ _, mul_smul _ _ _
 
@@ -305,7 +305,7 @@ show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, inv_smul_smul]
 /-- Orbit-stabilizer theorem. -/
 @[to_additive "Orbit-stabilizer theorem."]
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
-  orbit α b ≃ quotient (stabilizer α b) :=
+  orbit α b ≃ α ⧸ (stabilizer α b) :=
 equiv.symm $ equiv.of_bijective
   (λ g, ⟨of_quotient_stabilizer α b g, of_quotient_stabilizer_mem_orbit α b g⟩)
   ⟨λ x y hxy, injective_of_quotient_stabilizer α b (by convert congr_arg subtype.val hxy),
@@ -330,7 +330,7 @@ by rw [← fintype.card_prod, fintype.card_congr (orbit_prod_stabilizer_equiv_gr
 rfl
 
 @[simp, to_additive] lemma stabilizer_quotient {G} [group G] (H : subgroup G) :
-  mul_action.stabilizer G ((1 : G) : quotient H) = H :=
+  mul_action.stabilizer G ((1 : G) : G ⧸ H) = H :=
 by { ext, simp [quotient_group.eq] }
 
 variable (β)
@@ -349,10 +349,10 @@ between `X` and the disjoint union of `G/Stab(φ(ω))` over all orbits `ω`. In 
 `φ` to be `quotient.out'`, so we provide `add_action.self_equiv_sigma_orbits_quotient_stabilizer`
 as a special case. "]
 noncomputable def self_equiv_sigma_orbits_quotient_stabilizer' {φ : Ω → β}
-  (hφ : left_inverse quotient.mk' φ) : β ≃ Σ (ω : Ω), quotient (stabilizer α (φ ω)) :=
+  (hφ : left_inverse quotient.mk' φ) : β ≃ Σ (ω : Ω), α ⧸ (stabilizer α (φ ω)) :=
 calc  β
     ≃ Σ (ω : Ω), orbit α (φ ω) : self_equiv_sigma_orbits' α β hφ
-... ≃ Σ (ω : Ω), quotient (stabilizer α (φ ω)) :
+... ≃ Σ (ω : Ω), α ⧸ (stabilizer α (φ ω)) :
         equiv.sigma_congr_right (λ ω, orbit_equiv_quotient_stabilizer α (φ ω))
 
 /-- **Class formula** for a finite group acting on a finite type. See
@@ -367,7 +367,7 @@ lemma card_eq_sum_card_group_div_card_stabilizer' [fintype α] [fintype β] [fin
 begin
   classical,
   have : ∀ ω : Ω, fintype.card α / fintype.card ↥(stabilizer α (φ ω)) =
-    fintype.card (quotient $ stabilizer α (φ ω)),
+    fintype.card (α ⧸ stabilizer α (φ ω)),
   { intro ω,
     rw [fintype.card_congr (@subgroup.group_equiv_quotient_times_subgroup α _ (stabilizer α $ φ ω)),
         fintype.card_prod, nat.mul_div_cancel],
@@ -381,7 +381,7 @@ end
 @[to_additive "**Class formula**. This is a special case of
 `add_action.self_equiv_sigma_orbits_quotient_stabilizer'` with `φ = quotient.out'`. "]
 noncomputable def self_equiv_sigma_orbits_quotient_stabilizer :
-  β ≃ Σ (ω : Ω), quotient (stabilizer α ω.out') :=
+  β ≃ Σ (ω : Ω), α ⧸ (stabilizer α ω.out') :=
 self_equiv_sigma_orbits_quotient_stabilizer' α β quotient.out_eq'
 
 /-- **Class formula** for a finite group acting on a finite type. -/
@@ -431,7 +431,7 @@ by rw [← fintype.card_prod, ← fintype.card_sigma,
         fintype.card_congr (sigma_fixed_by_equiv_orbits_prod_group α β)]
 
 @[to_additive] instance is_pretransitive_quotient (G) [group G] (H : subgroup G) :
-  is_pretransitive G (quotient_group.quotient H) :=
+  is_pretransitive G (G ⧸ H) :=
 { exists_smul_eq := begin
     rintros ⟨x⟩ ⟨y⟩,
     refine ⟨y * x⁻¹, quotient_group.eq.mpr _⟩,
@@ -501,7 +501,7 @@ namespace subgroup
 variables {G : Type*} [group G] (H : subgroup G)
 
 lemma normal_core_eq_ker :
-  H.normal_core = (mul_action.to_perm_hom G (quotient_group.quotient H)).ker :=
+  H.normal_core = (mul_action.to_perm_hom G (G ⧸ H)).ker :=
 begin
   refine le_antisymm (λ g hg, equiv.perm.ext (λ q, quotient_group.induction_on q
     (λ g', (mul_action.quotient.smul_mk H g g').trans (quotient_group.eq.mpr _))))
@@ -512,8 +512,8 @@ begin
     exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },
 end
 
-noncomputable instance fintype_quotient_normal_core [fintype (quotient_group.quotient H)] :
-  fintype (quotient_group.quotient H.normal_core) :=
+noncomputable instance fintype_quotient_normal_core [fintype (G ⧸ H)] :
+  fintype (G ⧸ H.normal_core) :=
 begin
   rw H.normal_core_eq_ker,
   classical,

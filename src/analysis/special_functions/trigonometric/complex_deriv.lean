@@ -34,20 +34,18 @@ lemma has_deriv_at_tan {x : ℂ} (h : cos x ≠ 0) :
 open_locale topological_space
 
 lemma tendsto_abs_tan_of_cos_eq_zero {x : ℂ} (hx : cos x = 0) :
-  tendsto (λ x, abs (tan x)) (𝓝[{x}ᶜ] x) at_top :=
+  tendsto (λ x, abs (tan x)) (𝓝[≠] x) at_top :=
 begin
   simp only [tan_eq_sin_div_cos, ← norm_eq_abs, normed_field.norm_div],
   have A : sin x ≠ 0 := λ h, by simpa [*, sq] using sin_sq_add_cos_sq x,
-  have B : tendsto cos (𝓝[{x}ᶜ] (x)) (𝓝[{0}ᶜ] 0),
-  { refine tendsto_inf.2 ⟨tendsto.mono_left _ inf_le_left, tendsto_principal.2 _⟩,
-    exacts [continuous_cos.tendsto' x 0 hx,
-      hx ▸ (has_deriv_at_cos _).eventually_ne (neg_ne_zero.2 A)] },
+  have B : tendsto cos (𝓝[≠] (x)) (𝓝[≠] 0),
+    from hx ▸ (has_deriv_at_cos x).tendsto_punctured_nhds (neg_ne_zero.2 A),
   exact continuous_sin.continuous_within_at.norm.mul_at_top (norm_pos_iff.2 A)
     (tendsto_norm_nhds_within_zero.comp B).inv_tendsto_zero,
 end
 
 lemma tendsto_abs_tan_at_top (k : ℤ) :
-  tendsto (λ x, abs (tan x)) (𝓝[{(2 * k + 1) * π / 2}ᶜ] ((2 * k + 1) * π / 2)) at_top :=
+  tendsto (λ x, abs (tan x)) (𝓝[≠] ((2 * k + 1) * π / 2)) at_top :=
 tendsto_abs_tan_of_cos_eq_zero $ cos_eq_zero_iff.2 ⟨k, rfl⟩
 
 @[simp] lemma continuous_at_tan {x : ℂ} : continuous_at tan x ↔ cos x ≠ 0 :=

@@ -51,7 +51,7 @@ lemma right_continuous (x : ℝ) : continuous_within_at f (Ici x) x := f.right_c
 it is indeed a left limit is asserted in `tendsto_left_lim` -/
 @[irreducible] def left_lim (x : ℝ) := Sup (f '' (Iio x))
 
-lemma tendsto_left_lim (x : ℝ) : tendsto f (𝓝[Iio x] x) (𝓝 (f.left_lim x)) :=
+lemma tendsto_left_lim (x : ℝ) : tendsto f (𝓝[<] x) (𝓝 (f.left_lim x)) :=
 by { rw left_lim, exact f.mono.tendsto_nhds_within_Iio x }
 
 lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=

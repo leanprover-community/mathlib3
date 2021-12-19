@@ -48,8 +48,7 @@ https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Order.20dia
 ## TODO
 
 The above theorems are also true in `ℕ+`, `fin n`... To make that work, we need `succ_order α`
-along with another typeclass we don't yet have roughly stating "everything is reachable using
-finitely many `succ`".
+and `succ_archimedean α`.
 
 ## Tags
 

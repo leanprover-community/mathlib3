@@ -36,7 +36,7 @@ open category_theory.category
 We work in a preadditive category `C` equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [has_zero_object C] [has_shift C ℤ] [preadditive C]
-  [∀ n : ℤ, functor.additive (shift_functor C n)] [is_equivalence (shift_functor C (0 : ℤ))]
+  [∀ n : ℤ, functor.additive (shift_functor C n)]
 
 /--
 A preadditive category `C` with an additive shift, and a class of "distinguished triangles"

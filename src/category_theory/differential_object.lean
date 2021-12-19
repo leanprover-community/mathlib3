@@ -106,8 +106,7 @@ instance has_zero_morphisms :
 variables {C}
 
 @[simp]
-lemma zero_f (P Q : differential_object C) :
-  (0 : P ⟶ Q).f = 0 := rfl
+lemma zero_f (P Q : differential_object C) : (0 : P ⟶ Q).f = 0 := rfl
 
 /--
 An isomorphism of differential objects gives an isomorphism of the underlying objects.
@@ -182,8 +181,7 @@ variables [has_zero_object C] [has_zero_morphisms C] [has_shift C ℤ]
 
 open_locale zero_object
 
-instance has_zero_object :
-  has_zero_object (differential_object C) :=
+instance has_zero_object : has_zero_object (differential_object C) :=
 { zero :=
   { X := (0 : C),
     d := 0, },
@@ -211,7 +209,6 @@ namespace differential_object
 
 variables (C : Type u) [category.{v} C]
 variables [has_zero_morphisms C] [has_shift C ℤ]
-
 
 noncomputable theory
 
@@ -245,6 +242,7 @@ begin
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
 
+/-- The shift by zero is naturally isomorphic to the identity. -/
 @[simps]
 def shift_ε : 𝟭 (differential_object C) ≅ shift_functor C 0 :=
 begin

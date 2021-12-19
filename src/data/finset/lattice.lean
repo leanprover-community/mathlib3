@@ -47,8 +47,9 @@ fold_image_idem
   (s.map f).sup g = s.sup (g ∘ f) :=
 fold_map
 
-lemma sup_map_multiset [decidable_eq α] [decidable_eq β] (s : finset γ) (f : γ → multiset β)
-  (g : β ↪ α) : multiset.map g (s.sup f) = s.sup (multiset.map g ∘ f) :=
+lemma sup_map_multiset {α : Type*} [decidable_eq α] [decidable_eq β]
+  (s : finset γ) (f : γ → multiset β) (g : β ↪ α) :
+  multiset.map g (s.sup f) = s.sup (multiset.map g ∘ f) :=
 begin
   apply finset.cons_induction_on s,
   simp,

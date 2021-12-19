@@ -265,25 +265,4 @@ end
 
 end support
 
-section degree
-
-lemma rename_degrees_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
-  {f : σ → τ} (h : function.injective f) : degrees (rename f p) = (degrees p).map f :=
-begin
-  have h1 : (λ (x : σ →₀ ℕ), multiset.map f (finsupp.to_multiset x))
-    = λ x, (x.map_domain f).to_multiset,
-  { ext,
-    rw finsupp.to_multiset_map, },
-  simp only [degrees, finset.sup_map_multiset _ _ (map_domain_embedding_of_injective h),
-             h1, support_rename_injective h, finset.sup_map],
-  congr,
-end
-
-lemma degree_of_rename_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
-  {f : σ → τ} (h : function.injective f) (i : σ) : degree_of i p = degree_of (f i) (rename f p) :=
-by simp only [degree_of, rename_degrees_of_injective h,
-              multiset.count_map_eq_count' f (p.degrees) h]
-
-end degree
-
 end mv_polynomial

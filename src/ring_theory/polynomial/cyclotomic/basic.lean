@@ -134,8 +134,8 @@ by { rw cyclotomic', exact roots_prod_X_sub_C (primitive_roots n R) }
 
 /-- If there is a primitive `n`th root of unity in `K`, then `X ^ n - 1 = ∏ (X - μ)`, where `μ`
 varies over the `n`-th roots of unity. -/
-lemma X_pow_sub_one_eq_prod {ζ : R} {n : ℕ} (hpos : 0 < n)
-  (h : is_primitive_root ζ n) : X ^ n - 1 = ∏ ζ in nth_roots_finset n R, (X - C ζ) :=
+lemma X_pow_sub_one_eq_prod {ζ : R} {n : ℕ} (hpos : 0 < n) (h : is_primitive_root ζ n) :
+  X ^ n - 1 = ∏ ζ in nth_roots_finset n R, (X - C ζ) :=
 begin
   rw [nth_roots_finset, ← multiset.to_finset_eq (is_primitive_root.nth_roots_nodup h)],
   simp only [finset.prod_mk, ring_hom.map_one],

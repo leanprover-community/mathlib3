@@ -97,6 +97,56 @@ notation M ` →ₛₗ[`:25 σ:25 `] `:0 M₂:0 := linear_map σ M M₂
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map (ring_hom.id R) M M₂
 notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (star_ring_end R) M M₂
 
+/-- `semilinear_map_class F σ M M₂` asserts `F` is a type of bundled `σ`-semilinear maps `M → M₂`.
+
+See also `linear_map_class F R M M₂` for the case where `σ` is the identity map on `R`.
+
+A map `f` between an `R`-module and an `S`-module over a ring homomorphism `σ : R →+* S`
+is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
+`f (c • x) = (σ c) • f x`. -/
+class semilinear_map_class (F : Type*) {R S : out_param Type*} {hR : semiring R} {hS : semiring S}
+  (σ : out_param $ R →+* S) (M M₂ : out_param Type*)
+  [out_param $ add_comm_monoid M] [out_param $ add_comm_monoid M₂] [out_param $ module R M] [out_param $ module S M₂]
+  extends add_hom_class F M M₂ :=
+(map_smulₛₗ : ∀ (f : F) (r : R) (x : M), f (r • x) = (σ r) • f x)
+
+-- `σ` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] semilinear_map_class.to_add_hom_class
+
+export semilinear_map_class (map_smulₛₗ)
+attribute [simp] map_smulₛₗ
+
+/-- `linear_map_class F R M M₂` asserts `F` is a type of bundled `R`-linear maps `M → M₂`.
+
+This is an abbreviation for `semilinear_map_class F (ring_hom.id R) M M₂`.
+-/
+abbreviation linear_map_class (F : Type*) (R M M₂ : out_param Type*)
+  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂] :=
+semilinear_map_class F (ring_hom.id R) M M₂
+
+namespace semilinear_map_class
+
+variables (F : Type*)
+variables [semiring R] [semiring S]
+variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
+variables [module R M] [module R M₂] [module S M₃]
+variables {σ : R →+* S}
+
+@[priority 100, nolint dangerous_instance] -- `σ` is an `out_param` so it's not dangerous
+instance [semilinear_map_class F σ M M₃] : add_monoid_hom_class F M M₃ :=
+{ coe := λ f, (f : M → M₃),
+  map_zero := λ f, show f 0 = 0, by { rw [← zero_smul R (0 : M), map_smulₛₗ], simp },
+  .. semilinear_map_class.to_add_hom_class _ _ }
+
+@[priority 100, nolint dangerous_instance] -- `R` is an `out_param` so it's not dangerous
+instance [linear_map_class F R M M₂] : distrib_mul_action_hom_class F R M M₂ :=
+{ coe := λ f, (f : M → M₂),
+  map_smul := λ f c x, by rw [map_smulₛₗ, ring_hom.id_apply],
+  .. semilinear_map_class.add_monoid_hom_class F }
+
+end semilinear_map_class
+
 namespace linear_map
 
 section add_comm_monoid
@@ -109,20 +159,20 @@ variables [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
 variables [module R M] [module R M₂] [module S M₃]
 variables {σ : R →+* S}
 
-instance : add_monoid_hom_class (M →ₛₗ[σ] M₃) M M₃ :=
-{ coe := linear_map.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_add := linear_map.map_add',
-  map_zero := λ f, show f.to_fun 0 = 0, by { rw [← zero_smul R (0 : M), f.map_smul'], simp } }
-
-/-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
-def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
-{ map_zero' := show f 0 = 0, from map_zero f, ..f }
-
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly.
 -/
 instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
+
+instance : semilinear_map_class (M →ₛₗ[σ] M₃) σ M M₃ :=
+{ coe := linear_map.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_add := linear_map.map_add',
+  map_smulₛₗ := linear_map.map_smul' }
+
+/-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
+def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
+{ map_zero' := show f 0 = 0, from map_zero f, ..f }
 
 @[simp] lemma to_fun_eq_coe {f : M →ₛₗ[σ] M₃} : f.to_fun = (f : M → M₃) := rfl
 
@@ -182,9 +232,16 @@ variables (fₗ gₗ f g)
 
 protected lemma map_add (x y : M) : f (x + y) = f x + f y := map_add f x y
 
-@[simp] lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := f.map_smul' c x
+section
 
-lemma map_smul (c : R) (x : M) : fₗ (c • x) = c • fₗ x := fₗ.map_smul' c x
+
+set_option trace.type_context.is_def_eq_detail true
+
+protected lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := map_smulₛₗ f c x
+
+end
+
+lemma map_smul (c : R) (x : M) : fₗ (c • x) = c • fₗ x := map_smul fₗ c x
 
 lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) :
   c • f x = f (σ' c • x) :=

@@ -6,6 +6,7 @@ Authors: Eric Wieser
 import algebra.quaternion_basis
 import data.complex.module
 import linear_algebra.clifford_algebra.conjugation
+import linear_algebra.quadratic_form.prod
 
 /-!
 # Other constructions isomorphic to Clifford Algebras

@@ -784,6 +784,21 @@ begin
   exact is_integral_sup.mpr ⟨h1, h2⟩,
 end
 
+lemma intermediate_field.finite_dimensional_sup {K L : Type*} [field K] [field L] [algebra K L]
+  (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
+  finite_dimensional K ↥(E1 ⊔ E2) :=
+begin
+  let g := algebra.tensor_product.product_map E1.val E2.val,
+  suffices : g.to_linear_map.range = (E1 ⊔ E2).to_subalgebra.to_submodule,
+  { have key := g.to_linear_map.finite_dimensional_range,
+    rwa this at key },
+  suffices : g.range = (E1 ⊔ E2).to_subalgebra,
+  { rw ← this,
+    refl },
+  rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val],
+  exact (intermediate_field.sup_to_subalgebra E1 E2).symm,
+end
+
 end finite_dimensional_sup
 
 end intermediate_field
@@ -827,113 +842,3 @@ by rw [equiv_adjoin_simple, equiv_of_minpoly_symm, equiv_of_minpoly_gen, adjoin.
 end power_basis
 
 end power_basis
-
-section
-
-open_locale tensor_product
-
-lemma algebra.tensor_product.product_map_range {R A B S : Type*} [comm_semiring R]
-  [semiring A] [semiring B] [comm_semiring S] [algebra R A] [algebra R B] [algebra R S]
-  (f : A →ₐ[R] S) (g : B →ₐ[R] S) :
-  (algebra.tensor_product.product_map f g).range = f.range ⊔ g.range :=
-begin
-  refine le_antisymm _ (sup_le _ _),
-  { have := tensor_product.span_tmul_eq_top R A B,
-    replace : algebra.adjoin R {t : A ⊗ B | ∃ (a : A) (b : B), a ⊗ₜ[R] b = t} = ⊤ :=
-    top_le_iff.mp ((eq_top_iff.mp this).trans (algebra.span_le_adjoin R _)),
-    rw [←algebra.map_top, ←this, ←algebra.adjoin_image, algebra.adjoin_le_iff],
-    rintros _ ⟨_, ⟨a, b, rfl⟩, rfl⟩,
-    rw algebra.tensor_product.product_map_apply_tmul,
-    exact algebra.mul_mem_sup (f.mem_range_self a) (g.mem_range_self b) },
-  { conv_lhs { rw ← algebra.tensor_product.product_map_left f g },
-    apply alg_hom.range_comp_le_range },
-  { conv_lhs { rw ← algebra.tensor_product.product_map_right f g },
-    apply alg_hom.range_comp_le_range },
-end
-
-lemma subalgebra.finite_dimensional_sup {K L : Type*} [field K] [comm_ring L] [algebra K L]
-  (E1 E2 : subalgebra K L) [finite_dimensional K E1] [finite_dimensional K E2] :
-  finite_dimensional K ↥(E1 ⊔ E2) :=
-begin
-  let g := algebra.tensor_product.product_map E1.val E2.val,
-  suffices : g.to_linear_map.range = (E1 ⊔ E2).to_submodule,
-  { have key := g.to_linear_map.finite_dimensional_range,
-    rwa this at key },
-  suffices : g.range = E1 ⊔ E2,
-  { rw ← this,
-    refl },
-  rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val],
-end
-
-lemma is_field_of_is_integral_of_is_field'
-  {R S : Type*} [field R] [comm_ring S] [is_domain S]
-  [algebra R S] (H : algebra.is_integral R S) (hRS : function.injective (algebra_map R S)) :
-  is_field S :=
-begin
-  refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ x hx, _⟩,
-  have key0 := fg_adjoin_singleton_of_integral x (H x),
-  let A := algebra.adjoin R ({x} : set S),
-  let f : A →ₗ[R] A :=
-  { to_fun := λ y, ⟨x, algebra.mem_adjoin_iff.mpr (subring.mem_closure.mpr (λ T hT,
-      show _, from set.singleton_subset_iff.mp (set.union_subset_iff.mp hT).2))⟩ * y,
-    map_add' := λ y z, mul_add _ y z,
-    map_smul' := λ y z, mul_smul_comm y _ z, },
-  have key : function.injective f,
-  { rw [←linear_map.ker_eq_bot, eq_bot_iff],
-    intros y hy,
-    exact (eq_zero_or_eq_zero_of_mul_eq_zero hy).resolve_left (λ h, hx (subtype.ext_iff.mp h)) },
-  haveI key' : is_noetherian R A.to_submodule := is_noetherian_of_fg_of_noetherian A.to_submodule
-    (fg_adjoin_singleton_of_integral x (H x)),
-  haveI this : module.finite R A.to_submodule := module.is_noetherian.finite R A,
-  tactic.unfreeze_local_instances,
-  change module.finite R A at this,
-  obtain ⟨y, hy⟩ := @linear_map.surjective_of_injective R A _ _ _ _ f key 1,
-  exact ⟨y, subtype.ext_iff.mp hy⟩,
-end
-
-lemma intermediate_field.sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
-  (E1 E2 : intermediate_field K L) [finite_dimensional K E1] [finite_dimensional K E2] :
-  (E1 ⊔ E2).to_subalgebra = E1.to_subalgebra ⊔ E2.to_subalgebra :=
-begin
-  have h1 : algebra.is_integral K E1 :=
-  (is_algebraic_iff_is_integral' K).mp algebra.is_algebraic_of_finite,
-  have h2 : algebra.is_integral K E2 :=
-  (is_algebraic_iff_is_integral' K).mp algebra.is_algebraic_of_finite,
-  have h3 : algebra.is_integral K ↥(E1.to_subalgebra ⊔ E2.to_subalgebra) :=
-  le_integral_closure_iff_is_integral.mp (sup_le
-    (le_integral_closure_iff_is_integral.mpr h1) (le_integral_closure_iff_is_integral.mpr h2)),
-  have h4 := is_field_of_is_integral_of_is_field' h3 (ring_hom.injective _),
-  let S : intermediate_field K L := (E1.to_subalgebra ⊔ E2.to_subalgebra).to_intermediate_field
-    (λ x hx, by
-    { by_cases hx' : x = 0,
-      { rw [hx', inv_zero],
-        exact (E1.to_subalgebra ⊔ E2.to_subalgebra).zero_mem },
-      { obtain ⟨y, hy⟩ := h4.mul_inv_cancel
-          (show (⟨x, hx⟩ : E1.to_subalgebra ⊔ E2.to_subalgebra) ≠ 0,
-            from (λ h, hx' (subtype.ext_iff.mp h))),
-        have key : ↑y = x⁻¹ := eq_inv_of_mul_right_eq_one (subtype.ext_iff.mp hy),
-        rw ← key,
-        exact y.2 } }),
-  exact le_antisymm (show E1 ⊔ E2 ≤ S, from sup_le
-    (show E1.to_subalgebra ≤ E1.to_subalgebra ⊔ E2.to_subalgebra, from le_sup_left)
-    (show E2.to_subalgebra ≤ E1.to_subalgebra ⊔ E2.to_subalgebra, from le_sup_right))
-    (sup_le (show E1 ≤ E1 ⊔ E2, from le_sup_left)
-    (show E2 ≤ E1 ⊔ E2, from le_sup_right)),
-end
-
-lemma intermediate_field.finite_dimensional_sup {K L : Type*} [field K] [field L] [algebra K L]
-  (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
-  finite_dimensional K ↥(E1 ⊔ E2) :=
-begin
-  let g := algebra.tensor_product.product_map E1.val E2.val,
-  suffices : g.to_linear_map.range = (E1 ⊔ E2).to_subalgebra.to_submodule,
-  { have key := g.to_linear_map.finite_dimensional_range,
-    rwa this at key },
-  suffices : g.range = (E1 ⊔ E2).to_subalgebra,
-  { rw ← this,
-    refl },
-  rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val],
-  exact (intermediate_field.sup_to_subalgebra E1 E2).symm,
-end
-
-end

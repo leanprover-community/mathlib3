@@ -92,8 +92,7 @@ begin
   { intro htx,
     rw nat.succ_sub_one at htx,
     have h1 := nat.le_of_lt_succ hx,
-    linarith,
-    },
+    linarith, },
 end
 
 lemma τ_inv (x : ℕ × ℕ) : τ (τ x) = x :=

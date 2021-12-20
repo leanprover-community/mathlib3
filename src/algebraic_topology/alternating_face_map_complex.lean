@@ -45,7 +45,7 @@ namespace alternating_face_map_complex
 the nth-object of the simplicial object -/
 @[simp]
 def obj_X {C : Type*} [category C] (X : simplicial_object C) (n : ℕ) :=
-X.obj(op(simplex_category.mk n))
+X.obj (op (simplex_category.mk n))
 
 variables {C : Type*} [category C] [preadditive C]
 variables (X : simplicial_object C)

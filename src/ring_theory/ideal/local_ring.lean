@@ -182,7 +182,7 @@ instance _root_.CommRing.is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S)
   [is_local_ring_hom g] [is_local_ring_hom f] :
   is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
 
-/-- If `f : R →+* S` is a local ring hom, then `R` i a local ring if `S` is. -/
+/-- If `f : R →+* S` is a local ring hom, then `R` is a local ring if `S` is. -/
 lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_ring R] [comm_ring S]
   [H : _root_.local_ring S] (f : R →+* S)
   [is_local_ring_hom f] : _root_.local_ring R :=

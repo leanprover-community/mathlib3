@@ -775,7 +775,9 @@ lemma UNIF_CONV_INT (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ →
   at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR f z w) θ) :=
 begin
   have f_cont: continuous_on f (closed_ball z R) ,
-  by {apply tendsto_uniformly_on.continuous_on hlim, apply F_cts,},
+  by {apply tendsto_uniformly_on.continuous_on hlim, simp only [ge_iff_le, eventually_at_top],
+  use 1,
+  intros b hb, apply F_cts,},
   have F_measurable : ∀ n,
   ae_measurable (int_diff0 R hR (F n) z w) (volume.restrict (Ioc 0  (2*π))),
   by {intro n,
@@ -1042,7 +1044,11 @@ begin
   rw differentiable_within_at,
   have h0 := int_diff R hR f z,
   have hf : continuous_on f (closed_ball z R),
-  by {apply tendsto_uniformly_on.continuous_on hlim, apply F_cts,},
+  by {apply tendsto_uniformly_on.continuous_on hlim,
+  simp only [ge_iff_le, eventually_at_top],
+  use 1,
+  intros b hb,
+  apply F_cts,},
   have HF := int_diff_has_fdrevi R hR z f hf,
   clear hf F_cts hdiff,
   rw differentiable_on at HF,

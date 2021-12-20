@@ -16,8 +16,8 @@ Note that we do not require the generic point to be unique.
 
 * `specializes` : `specializes x y` (`x ⤳ y`) means that `x` specializes to `y`, i.e.
   `y` is in the closure of `x`.
-* `specialization_preorder` : specialization gives a preorder on the topological space.
-* `specialization_order` : specialization gives a preorder on the topological space.
+* `specialization_preorder` : specialization gives a preorder on a topological space.
+* `specialization_order` : specialization gives a partial order on a T0 space.
 * `is_generic_point` : `x` is the generic point of `S` if `S` is the closure of `x`.
 * `sober_space` : A space is sober if every irreducible closed subset has a generic point.
 
@@ -61,7 +61,7 @@ begin
     λ h U hU, not_imp_not.mp (h _ (is_open_compl_iff.mpr hU))⟩,
 end
 
-lemma indistinguishable_iff_specialization_or (x y : α) :
+lemma indistinguishable_iff_specializes_and (x y : α) :
   indistinguishable x y ↔ x ⤳ y ∧ y ⤳ x :=
 (indistinguishable_iff_closure x y).trans (and_comm _ _)
 
@@ -81,7 +81,7 @@ lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
 (set.mem_singleton_iff.mp
   ((specializes_iff_forall_closed.mp h) _ (t1_space.t1 _) (set.mem_singleton _))).symm
 
-lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
+@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
 ⟨specializes.eq, λ h, h ▸ specializes_refl _⟩
 
 variable (α)
@@ -176,7 +176,7 @@ noncomputable
 def is_irreducible.generic_point [sober_space α] {S : set α} (hS : is_irreducible S) : α :=
 (sober_space.sober hS.closure is_closed_closure).some
 
-lemma is_irreducible.generic_point_prop [sober_space α] {S : set α} (hS : is_irreducible S) :
+lemma is_irreducible.generic_point_spec [sober_space α] {S : set α} (hS : is_irreducible S) :
   is_generic_point hS.generic_point (closure S) :=
 (sober_space.sober hS.closure is_closed_closure).some_spec
 

@@ -18,6 +18,8 @@ lemma periodic_gcd (a : ℕ) : periodic (gcd a) a := by simp
 
 lemma periodic_coprime (a : ℕ) : periodic (coprime a) a := by simp
 
+lemma periodic_mod (a : ℕ) : periodic (λ n, n % a) a := by simp
+
 -- TODO? Generalize from ℕ
 -- Note that this does not hold for locally finitely ordered add_monoids in general,
 -- as we could have a (horizontally) periodic function on ℤ² which is different over different

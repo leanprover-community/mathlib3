@@ -57,7 +57,7 @@ lemma smul_mem_pointwise_smul (m : M) (r : R) (S : subring R) : r ∈ S → m �
 
 lemma mem_smul_pointwise_iff_exists (m : M) (r : R) (S : subring R) :
   r ∈ m • S ↔ ∃ (s : R), s ∈ S ∧ m • s = r :=
-by { erw set.mem_smul_set, refl }
+(set.mem_smul_set : r ∈ m • (S : set R) ↔ _)
 
 instance pointwise_central_scalar [mul_semiring_action Mᵐᵒᵖ R] [is_central_scalar M R] :
   is_central_scalar M (subring R) :=

@@ -55,7 +55,7 @@ lemma smul_mem_pointwise_smul (m : G) (a : α) (S : subgroup G) : m ∈ S → a 
 
 lemma mem_smul_pointwise_iff_exists (m : G) (a : α) (S : subgroup G) :
   m ∈ a • S ↔ ∃ (s : G), s ∈ S ∧ a • s = m :=
-by { erw set.mem_smul_set, refl }
+(set.mem_smul_set : m ∈ a • (S : set G) ↔ _)
 
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_central_scalar α G] :
   is_central_scalar α (subgroup G) :=
@@ -153,7 +153,7 @@ lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_subgroup A) : m ∈ S �
 
 lemma mem_smul_pointwise_iff_exists (m : A) (a : α) (S : add_subgroup A) :
   m ∈ a • S ↔ ∃ (s : A), s ∈ S ∧ a • s = m :=
-by { erw set.mem_smul_set, refl }
+(set.mem_smul_set : m ∈ a • (S : set A) ↔ _)
 
 instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ A] [is_central_scalar α A] :
   is_central_scalar α (add_subgroup A) :=

@@ -88,8 +88,6 @@ structure linear_map {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R �
   extends add_hom M M₂ :=
 (map_smul' : ∀ (r : R) (x : M), to_fun (r • x) = (σ r) • to_fun x)
 
-end
-
 /-- The `add_hom` underlying a `linear_map`. -/
 add_decl_doc linear_map.to_add_hom
 
@@ -104,11 +102,13 @@ See also `linear_map_class F R M M₂` for the case where `σ` is the identity m
 A map `f` between an `R`-module and an `S`-module over a ring homomorphism `σ : R →+* S`
 is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
 `f (c • x) = (σ c) • f x`. -/
-class semilinear_map_class (F : Type*) {R S : out_param Type*} {hR : semiring R} {hS : semiring S}
+class semilinear_map_class (F : Type*) {R S : out_param Type*} {hR : out_param $ semiring R} {hS : out_param $ semiring S}
   (σ : out_param $ R →+* S) (M M₂ : out_param Type*)
   [out_param $ add_comm_monoid M] [out_param $ add_comm_monoid M₂] [out_param $ module R M] [out_param $ module S M₂]
   extends add_hom_class F M M₂ :=
 (map_smulₛₗ : ∀ (f : F) (r : R) (x : M), f (r • x) = (σ r) • f x)
+
+end
 
 -- `σ` becomes a metavariable but that's fine because it's an `out_param`
 attribute [nolint dangerous_instance] semilinear_map_class.to_add_hom_class
@@ -137,13 +137,20 @@ variables {σ : R →+* S}
 instance [semilinear_map_class F σ M M₃] : add_monoid_hom_class F M M₃ :=
 { coe := λ f, (f : M → M₃),
   map_zero := λ f, show f 0 = 0, by { rw [← zero_smul R (0 : M), map_smulₛₗ], simp },
-  .. semilinear_map_class.to_add_hom_class _ _ }
+  .. semilinear_map_class.to_add_hom_class F σ M M₃ }
 
 @[priority 100, nolint dangerous_instance] -- `R` is an `out_param` so it's not dangerous
 instance [linear_map_class F R M M₂] : distrib_mul_action_hom_class F R M M₂ :=
 { coe := λ f, (f : M → M₂),
   map_smul := λ f c x, by rw [map_smulₛₗ, ring_hom.id_apply],
   .. semilinear_map_class.add_monoid_hom_class F }
+
+variables {F} (f : F) [i : semilinear_map_class F σ M M₃]
+include i
+
+lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) :
+  c • f x = f (σ' c • x) :=
+by rw [map_smulₛₗ f]; simp
 
 end semilinear_map_class
 
@@ -159,16 +166,16 @@ variables [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
 variables [module R M] [module R M₂] [module S M₃]
 variables {σ : R →+* S}
 
-/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
-directly.
--/
-instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
-
 instance : semilinear_map_class (M →ₛₗ[σ] M₃) σ M M₃ :=
 { coe := linear_map.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_add := linear_map.map_add',
   map_smulₛₗ := linear_map.map_smul' }
+
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.
+-/
+instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨λ f, f⟩
 
 /-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
@@ -231,23 +238,12 @@ fun_like.ext_iff
 variables (fₗ gₗ f g)
 
 protected lemma map_add (x y : M) : f (x + y) = f x + f y := map_add f x y
-
-section
-
-
-set_option trace.type_context.is_def_eq_detail true
-
-protected lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := map_smulₛₗ f c x
-
-end
-
-lemma map_smul (c : R) (x : M) : fₗ (c • x) = c • fₗ x := map_smul fₗ c x
-
-lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) :
-  c • f x = f (σ' c • x) :=
-by simp
-
 protected lemma map_zero : f 0 = 0 := map_zero f
+protected lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := map_smulₛₗ f c x
+protected lemma map_smul (c : R) (x : M) : fₗ (c • x) = c • fₗ x := map_smul fₗ c x
+protected lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) :
+  c • f x = f (σ' c • x) :=
+semilinear_map_class.map_smul_inv f c x
 
 -- TODO: generalize to `zero_hom_class`
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
@@ -276,8 +272,8 @@ begin
   apply set.subset.antisymm,
   { rintros x ⟨y, ys, hy⟩,
     refine ⟨(hc.unit.inv : R) • x, _, _⟩,
-    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ, ← σ.map_mul,
-        is_unit.coe_inv_mul, one_smul, ring_hom.map_one, ys] },
+    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ f, ← map_mul,
+        is_unit.coe_inv_mul, one_smul, map_one, ys] },
     { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
   { rintros x ⟨y, hy, rfl⟩,
     refine ⟨f y, hy, by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]⟩ }

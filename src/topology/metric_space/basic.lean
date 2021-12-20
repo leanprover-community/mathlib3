@@ -1094,6 +1094,19 @@ lemma tendsto_iff_of_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter ι} {
   tendsto f₁ p (𝓝 a) ↔ tendsto f₂ p (𝓝 a) :=
 uniform.tendsto_congr $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
 
+/-- If `u` is a neighborhood of `x`, then for small enough `r`, the closed ball
+`closed_ball x r` is contained in `u`. -/
+lemma eventually_closed_ball_subset {x : α} {u : set α} (hu : u ∈ 𝓝 x) :
+  ∀ᶠ r in 𝓝 (0 : ℝ), closed_ball x r ⊆ u :=
+begin
+  obtain ⟨ε, εpos, hε⟩ : ∃ ε (hε : 0 < ε), closed_ball x ε ⊆ u :=
+    nhds_basis_closed_ball.mem_iff.1 hu,
+  have : Iic ε ∈ 𝓝 (0 : ℝ) := Iic_mem_nhds εpos,
+  filter_upwards [this],
+  assume r hr,
+  exact subset.trans (closed_ball_subset_closed_ball hr) hε,
+end
+
 end real
 
 section cauchy_seq
@@ -1783,6 +1796,23 @@ bounded_range_of_tendsto_cofinite_uniformity $
 /-- In a compact space, all sets are bounded -/
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
 compact_univ.bounded.mono (subset_univ _)
+
+lemma bounded_range_of_tendsto {α : Type*} [pseudo_metric_space α] (u : ℕ → α) {x : α}
+  (hu : tendsto u at_top (𝓝 x)) :
+  bounded (range u) :=
+begin
+  classical,
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), n ≥ N → dist (u n) x < 1 :=
+    metric.tendsto_at_top.1 hu 1 zero_lt_one,
+  have : range u ⊆ (finset.range N).image u ∪ ball x 1,
+  { refine range_subset_iff.2 (λ n, _),
+    rcases lt_or_le n N with h|h,
+    { left,
+      simp only [mem_image, finset.mem_range, finset.mem_coe, finset.coe_image],
+      exact ⟨n, h, rfl⟩ },
+    { exact or.inr (mem_ball.2 (hN n h)) } },
+  exact bounded.mono this ((finset.finite_to_set _).bounded.union bounded_ball)
+end
 
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
   is_compact s :=

@@ -25,19 +25,52 @@ Note : I'm currently very unsure if this theorem should have it's own file, plea
 comment on this
 -/
 
-variables {ι ι' α β γ : Type*}
-
-section vary
-variables [preorder α] [preorder β] {f : ι → α} {g : ι → β}
-
-open equiv
-
-end vary
-
 open order_dual equiv
 open_locale big_operators
 
+variables {ι ι' α β γ : Type*}
+
 namespace finset
+
+lemma map_perm (s : finset ι) {σ : perm ι} (hs : {x | σ x ≠ x} ⊆ s) : s.map (σ : ι ↪ ι) = s :=
+begin
+  ext i,
+  rw mem_map,
+  obtain hi | hi := eq_or_ne (σ i) i,
+  { refine ⟨_, λ h, ⟨i, h, hi⟩⟩,
+    rintro ⟨j, hj, h⟩,
+      rwa σ.injective (hi.trans h.symm) },
+  { refine iff_of_true ⟨σ⁻¹ i, hs $ λ h, hi _, perm.apply_inv_self _ _⟩ (hs hi),
+    convert congr_arg σ h; exact ( perm.apply_inv_self _ _).symm }
+end
+
+@[to_additive]
+lemma prod_reindex [comm_monoid α] (s : finset ι) (f : ι → α) {σ : perm ι}
+  (hs : {x | σ x ≠ x} ⊆ s) :
+  (∏ i in s, f (σ i)) = ∏ i in s, f i :=
+begin
+  convert (prod_map _ σ.to_embedding _).symm,
+  exact (s.map_perm hs).symm,
+end
+
+-- TODO: `to_additive` fails this one
+lemma prod_reindex' [comm_monoid α] (s : finset ι) (f : ι → ι → α) {σ : perm ι}
+  (hs : {x | σ x ≠ x} ⊆ s) :
+  (∏ i in s, f (σ i) i) = ∏ i in s, f i (σ⁻¹ i) :=
+begin
+  convert s.prod_reindex (λ i, f i (σ⁻¹ i)) hs,
+  ext,
+  rw perm.inv_apply_self,
+end
+
+lemma sum_reindex' [add_comm_monoid α] (s : finset ι) (f : ι → ι → α) {σ : perm ι}
+  (hs : {x | σ x ≠ x} ⊆ s) :
+  (∑ i in s, f (σ i) i) = ∑ i in s, f i (σ⁻¹ i) :=
+begin
+  convert s.sum_reindex (λ i, f i (σ⁻¹ i)) hs,
+  ext,
+  rw perm.inv_apply_self,
+end
 
 -- TODO
 lemma sum_comp_perm_smul_eq_smul_comp_inv_perm [decidable_eq ι] [add_comm_monoid α]
@@ -57,7 +90,7 @@ open_locale big_operators
 `movary_on f g s` holds with the permutation applied on the right.-/
 theorem monovary_on.sum_smul_comp_perm_le_sum_smul [decidable_eq ι] [linear_ordered_ring α]
   [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
-  {s : finset ι} {f : ι → α} {g : ι → β} (hfg : monovary_on f g s) (σ : perm ι)
+  {s : finset ι} {f : ι → α} {g : ι → β} (hfg : monovary_on f g s) {σ : perm ι}
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
 begin
@@ -114,7 +147,7 @@ begin
     { specialize hσ hx,
       simp only [mem_insert, mem_coe] at hσ,
       cases hσ; tauto } },
-  specialize hind (hfg.subset _ ) τ hτs,
+  specialize hind (hfg.subset _ ) hτs,
   { simp only [coe_insert, set.subset_insert] },
   replace hind := add_le_add_left hind (f a • g a),
   rw ← sum_insert has at hind,
@@ -176,6 +209,15 @@ begin
     simp only [hp],
     rw [if_neg (ne_of_mem_of_not_mem (mem_of_mem_erase hx) has), if_neg (ne_of_mem_erase hx)] }
 end
+
+/-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
+`antivary_on f g s` holds with the permutation applied on the right.-/
+theorem antivary_on.sum_smul_le_sum_smul_comp_perm [decidable_eq ι] [fintype ι]
+  [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
+  {s : finset ι} {f : ι → α} {g : ι → β} (hfg : antivary_on f g s) {σ : perm ι}
+  (hσ : {x | σ x ≠ x} ⊆ s) :
+  ∑ i in s, f i • g i ≤ ∑ i in s, f i • g (σ i) :=
+hfg.dual_right.sum_smul_comp_perm_le_sum_smul hσ
 
 lemma swap_extend_domain_eq_self [decidable_eq ι] (s : finset ι) (x y : s) :
   (@extend_domain s ι (swap x y) (λ x, x ∈ s) _ 1) = swap ↑x ↑y :=
@@ -259,8 +301,8 @@ begin
 end
 
 lemma equiv.perm.mul_swap_support_subset {ι : Type*} [decidable_eq ι] [fintype ι] (s : finset ι)
-  {x y : ι} (hx : x ∈ s) (hy : y ∈ s) (σ : perm ι) (hσ : (σ * swap x y).support ⊆ s) :
-  σ.support ⊆ s :=
+  {x y : ι} (hx : x ∈ s) (hy : y ∈ s) (σ : perm ι) :
+  (σ * swap x y).support ⊆ σ.support ∪ {x, y} :=
 begin
   contrapose hσ,
   rw subset_iff at hσ,

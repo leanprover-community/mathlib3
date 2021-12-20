@@ -445,6 +445,7 @@ end submodule
 
 namespace linear_equiv
 
+/-- Product of modules is commutative up to linear isomorphism. -/
 @[simps apply]
 def prod_comm (R M N : Type*) [semiring R] [add_comm_monoid M] [add_comm_monoid N]
   [module R M] [module R N] : (M × N) ≃ₗ[R] (N × M) :=

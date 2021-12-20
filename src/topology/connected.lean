@@ -528,8 +528,7 @@ begin
   { intros h,
     casesI is_empty_or_nonempty α with hα hα,
     { exact ⟨by { rw (univ_eq_empty_iff.mpr hα), exact is_preconnected_empty }⟩ },
-    { let x := classical.choice hα,
-      exact ⟨by { rw ← h x, exact is_preconnected_connected_component }⟩ } }
+    { exact ⟨by { rw ← h (classical.choice hα), exact is_preconnected_connected_component }⟩ } }
 end
 
 @[simp] lemma preconnected.connected_component_eq_univ {X : Type*} [topological_space X]

@@ -38,11 +38,11 @@ def antivary (f : ι → α) (g : ι → β) : Prop := ∀ ⦃i j⦄, g i < g j 
 
 /--  `f` monovaries with `g` on `s` if `g i < g j` implies `f i ≤ f j` for all `i, j ∈ s`. -/
 def monovary_on (f : ι → α) (g : ι → β) (s : set ι) : Prop :=
-∀ ⦃i j⦄, i ∈ s → j ∈ s → g i < g j → f i ≤ f j
+∀ ⦃i⦄ (hi : i ∈ s) ⦃j⦄ (hj : j ∈ s), g i < g j → f i ≤ f j
 
 /--  `f` antivaries with `g` on `s` if `g i < g j` implies `f j ≤ f i` for all `i, j ∈ s`. -/
 def antivary_on (f : ι → α) (g : ι → β) (s : set ι) : Prop :=
-∀ ⦃i j⦄, i ∈ s → j ∈ s → g i < g j → f j ≤ f i
+∀ ⦃i⦄ (hi : i ∈ s) ⦃j⦄ (hj : j ∈ s), g i < g j → f j ≤ f i
 
 protected lemma monovary.monovary_on (h : monovary f g) (s : set ι) : monovary_on f g s :=
 λ i j _ _ hij, h hij
@@ -50,22 +50,39 @@ protected lemma monovary.monovary_on (h : monovary f g) (s : set ι) : monovary_
 protected lemma antivary.antivary_on (h : antivary f g) (s : set ι) : antivary_on f g s :=
 λ i j _ _ hij, h hij
 
-lemma monovary_on_univ_iff : monovary_on f g univ ↔ monovary f g :=
+@[simp] lemma monovary_on_univ : monovary_on f g univ ↔ monovary f g :=
 ⟨λ h i j, h trivial trivial, λ h i j _ _ hij, h hij⟩
 
-lemma antivary_on_univ : antivary_on f g univ ↔ antivary f g :=
+@[simp] lemma antivary_on_univ : antivary_on f g univ ↔ antivary f g :=
 ⟨λ h i j, h trivial trivial, λ h i j _ _ hij, h hij⟩
 
 protected lemma monovary_on.subset (hst : s ⊆ t) (h : monovary_on f g t) : monovary_on f g s :=
-λ i j hi hj, h (hst hi) (hst hj)
+λ i hi j hj, h (hst hi) (hst hj)
 
 protected lemma antivary_on.subset (hst : s ⊆ t) (h : antivary_on f g t) : antivary_on f g s :=
-λ i j hi hj, h (hst hi) (hst hj)
+λ i hi j hj, h (hst hi) (hst hj)
 
 lemma monovary_const_left (g : ι → β) (a : α) : monovary (const ι a) g := λ i j _, le_rfl
 lemma antivary_const_left (g : ι → β) (a : α) : antivary (const ι a) g := λ i j _, le_rfl
 lemma monovary_const_right (f : ι → α) (b : β) : monovary f (const ι b) := λ i j h, (h.ne rfl).elim
 lemma antivary_const_right (f : ι → α) (b : β) : antivary f (const ι b) := λ i j h, (h.ne rfl).elim
+
+lemma monovary_self (f : ι → α) : monovary f f := λ i j, le_of_lt
+lemma monovary_on_self (f : ι → α) (s : set ι) : monovary_on f f s := λ i j _ _, le_of_lt
+
+lemma subsingleton.monovary [subsingleton ι] (f : ι → α) (g : ι → β) : monovary f g :=
+λ i j h, (ne_of_apply_ne _ h.ne $ subsingleton.elim _ _).elim
+
+lemma subsingleton.antivary [subsingleton ι] (f : ι → α) (g : ι → β) : antivary f g :=
+λ i j h, (ne_of_apply_ne _ h.ne $ subsingleton.elim _ _).elim
+
+lemma subsingleton.monovary_on [subsingleton ι] (f : ι → α) (g : ι → β) (s : set ι) :
+  monovary_on f g s :=
+λ i j _ _ h, (ne_of_apply_ne _ h.ne $ subsingleton.elim _ _).elim
+
+lemma subsingleton.antivary_on [subsingleton ι] (f : ι → α) (g : ι → β) (s : set ι) :
+  antivary_on f g s :=
+λ i j _ _ h, (ne_of_apply_ne _ h.ne $ subsingleton.elim _ _).elim
 
 lemma monovary_on_const_left (g : ι → β) (a : α) (s : set ι) : monovary_on (const ι a) g s :=
 λ i j _ _ _, le_rfl
@@ -96,24 +113,31 @@ lemma monovary.dual_right (h : monovary f g) : antivary f (to_dual ∘ g) := λ 
 lemma antivary.dual_right (h : antivary f g) : monovary f (to_dual ∘ g) := λ i j hij, h hij
 
 lemma monovary_on.dual (h : monovary_on f g s) : monovary_on (to_dual ∘ f) (to_dual ∘ g) s :=
-λ i j hi hj, h hj hi
+λ i hi j hj, h hj hi
 
 lemma antivary_on.dual (h : antivary_on f g s) : antivary_on (to_dual ∘ f) (to_dual ∘ g) s :=
-λ i j hi hj, h hj hi
+λ i hi j hj, h hj hi
 
-lemma monovary_on.dual_left (h : monovary_on f g s) : antivary_on (to_dual ∘ f) g s :=
-λ i j hi, h hi
-
-lemma antivary_on.dual_left (h : antivary_on f g s) : monovary_on (to_dual ∘ f) g s :=
-λ i j hi, h hi
-
-lemma monovary_on.dual_right (h : monovary_on f g s) : antivary_on f (to_dual ∘ g) s :=
-λ i j hi hj, h hj hi
-
-lemma antivary_on.dual_right (h : antivary_on f g s) : monovary_on f (to_dual ∘ g) s :=
-λ i j hi hj, h hj hi
+lemma monovary_on.dual_left (h : monovary_on f g s) : antivary_on (to_dual ∘ f) g s := h
+lemma antivary_on.dual_left (h : antivary_on f g s) : monovary_on (to_dual ∘ f) g s := h
+lemma monovary_on.dual_right (h : monovary_on f g s) : antivary_on f (to_dual ∘ g) s := h.dual
+lemma antivary_on.dual_right (h : antivary_on f g s) : monovary_on f (to_dual ∘ g) s := h.dual
 
 end order_dual
+
+section partial_order
+variables [partial_order ι]
+
+@[simp] lemma monovary_id_iff : monovary f id ↔ monotone f := monotone_iff_forall_lt.symm
+@[simp] lemma antivary_id_iff : antivary f id ↔ antitone f := antitone_iff_forall_lt.symm
+
+@[simp] lemma monovary_on_id_iff : monovary_on f id s ↔ monotone_on f s :=
+monotone_on_iff_forall_lt.symm
+
+@[simp] lemma antivary_on_id_iff : antivary_on f id s ↔ antitone_on f s :=
+antitone_on_iff_forall_lt.symm
+
+end partial_order
 
 variables [linear_order ι]
 
@@ -131,7 +155,7 @@ protected lemma antitone.antivary (hf : antitone f) (hg : monotone g) : antivary
 
 protected lemma monotone_on.monovary_on (hf : monotone_on f s) (hg : monotone_on g s) :
   monovary_on f g s :=
-λ i j hi hj hij, hf hi hj (hg.reflect_lt hi hj hij).le
+λ i hi j hj hij, hf hi hj (hg.reflect_lt hi hj hij).le
 
 protected lemma monotone_on.antivary_on (hf : monotone_on f s) (hg : antitone_on g s) :
   antivary_on f g s :=
@@ -157,10 +181,10 @@ protected lemma antivary.symm (h : antivary f g) : antivary g f :=
 λ i j hf, le_of_not_lt $ λ hg, hf.not_le $ h hg
 
 protected lemma monovary_on.symm (h : monovary_on f g s) : monovary_on g f s :=
-λ i j hi hj hf, le_of_not_lt $ λ hg, hf.not_le $ h hj hi hg
+λ i hi j hj hf, le_of_not_lt $ λ hg, hf.not_le $ h hj hi hg
 
 protected lemma antivary_on.symm (h : antivary_on f g s) : antivary_on g f s :=
-λ i j hi hj hf, le_of_not_lt $ λ hg, hf.not_le $ h hi hj hg
+λ i hi j hj hf, le_of_not_lt $ λ hg, hf.not_le $ h hi hj hg
 
 end linear_order
 
@@ -168,7 +192,6 @@ section linear_order
 variables [linear_order α] [linear_order β] {f : ι → α} {g : ι → β} {s : set ι}
 
 protected lemma monovary_comm : monovary f g ↔ monovary g f := ⟨monovary.symm, monovary.symm⟩
-
 protected lemma antivary_comm : antivary f g ↔ antivary g f := ⟨antivary.symm, antivary.symm⟩
 
 protected lemma monovary_on_comm : monovary_on f g s ↔ monovary_on g f s :=

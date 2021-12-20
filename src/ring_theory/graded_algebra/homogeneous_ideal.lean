@@ -256,7 +256,7 @@ instance : has_add (homogeneous_ideal A) := ⟨(⊔)⟩
 
 end operations
 
-section homogenisation
+section homogeneous_core
 
 open set_like direct_sum set
 
@@ -327,6 +327,18 @@ begin
     apply HK1, exact hr }
 end
 
+end homogeneous_core
+
+section homogeneous_hull
+
+variables {ι : Type*} [add_comm_monoid ι] [decidable_eq ι]
+variables {R : Type*} [comm_ring R]
+variables (A : ι → submodule R R) [graded_algebra A]
+variable (I : ideal R)
+
+open set_like
+
+
 /--For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
 `I` spanned by all homogeneous components of elements in `I`. -/
 def ideal.homogeneous_hull : ideal R :=
@@ -336,7 +348,7 @@ lemma ideal.is_homogeneous.homogeneous_hull [Π (i : ι) (x : A i), decidable (x
   ideal.is_homogeneous A (ideal.homogeneous_hull A I) :=
 begin
   rw ideal.is_homogeneous.iff_exists,
-  use {x : homogeneous_submonoid A | ∃ (i : ι) (r : I), (graded_algebra.decompose A r i : R) = ↑x},
+  use {x : homogeneous_submonoid A | ∃ (i : ι) (r : I), (graded_algebra.decompose A r i : R) = x},
   rw [ideal.homogeneous_hull], congr, ext r, split; intros h,
   { obtain ⟨i, ⟨x, hx1⟩, hx2⟩ := h,
     exact ⟨⟨(graded_algebra.decompose A x i),
@@ -354,10 +366,10 @@ begin
   apply ideal.subset_span, use j, use ⟨r, hr⟩, refl,
 end
 
-lemma ideal.homogeneous_hull_is_mono : monotone (λ I, ideal.homogeneous_hull A I) := λ I J I_le_J,
+lemma ideal.homogeneous_hull_is_mono : monotone (ideal.homogeneous_hull A) := λ I J I_le_J,
 begin
   apply ideal.span_mono, rintros r ⟨hr1, ⟨x, hx⟩, rfl⟩,
   refine ⟨hr1, ⟨⟨x, I_le_J hx⟩, rfl⟩⟩,
 end
 
-end homogenisation
+end homogeneous_hull

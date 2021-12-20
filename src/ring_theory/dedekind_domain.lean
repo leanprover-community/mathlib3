@@ -1167,7 +1167,7 @@ begin
   exact dvd_prime_pow (prime_of_is_prime hp' hp) n,
 end
 
-
+--other PR
 lemma not_unit_of_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
   (hp : dvd_not_unit p q) : ¬ is_unit q :=
 begin
@@ -1200,6 +1200,7 @@ begin
   exact h₁.monotone i.zero_le
 end
 
+--moved to other PR
 lemma not_prime_of_not_unit_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
   (hp : ¬is_unit p)(h : dvd_not_unit p q) : ¬ irreducible q :=
 begin
@@ -1208,12 +1209,15 @@ begin
   exact hp (or.resolve_right ((irreducible_iff.1 hcontra).right p x hx') hx),
 end
 
-lemma is_unit_of_mul_eq_of_ne_bot {M : Type*} [comm_cancel_monoid_with_zero M]
-  {p b : associates M} (h : p = p * b) (hp : p ≠ 0) : is_unit b :=
+--moved to other PR
+lemma is_unit_of_associated_mul {M : Type*} [comm_cancel_monoid_with_zero M]
+  {p b : M} (h : associated (p * b) p) (hp : p ≠ 0) : is_unit b :=
 begin
-  rw [associates.is_unit_iff_eq_one],
-  conv_lhs at h {rw ← mul_one p},
-  rw mul_left_cancel₀ hp h,
+  rw associated at h,
+  obtain ⟨a, ha⟩ := h,
+  conv_rhs at ha {rw ← mul_one p},
+  rw mul_assoc at ha,
+  apply is_unit_of_mul_eq_one b ↑a (mul_left_cancel₀ hp ha)
 end
 
 lemma associates.is_atom_iff {M : Type*} [comm_cancel_monoid_with_zero M]
@@ -1221,7 +1225,8 @@ lemma associates.is_atom_iff {M : Type*} [comm_cancel_monoid_with_zero M]
 ⟨λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one] using hp.1,
         λ a b h, (eq_bot_or_eq_of_le_atom hp ⟨_, h⟩).cases_on
           (λ ha, or.inl (a.is_unit_iff_eq_one.mpr ha))
-          (λ ha, or.inr (by {rw ha at h, exact is_unit_of_mul_eq_of_ne_bot h h₁} ))⟩,
+          (λ ha, or.inr (show is_unit b, by {rw ha at h, apply is_unit_of_associated_mul
+          (show associated (p * b) p, by conv_rhs {rw h}) h₁ }))⟩,
  λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one, associates.bot_eq_one] using hp.1,
         λ b ⟨⟨a, hab⟩, hb⟩, (hp.is_unit_or_is_unit hab).cases_on
           (λ hb, show b = ⊥, by rwa [associates.is_unit_iff_eq_one, ← associates.bot_eq_one] at hb)
@@ -1249,11 +1254,12 @@ begin
   simp_rw [nat.lt_one_iff.mp H, associates.bot_eq_one, ← associates.is_unit_iff_eq_one],
   exact pow_prime₁' n c h₁ @h₂,
 end
-
+--moved to other PR
 lemma is_unit_of_associated_is_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
   (h : associated p q) (hp : is_unit p) : is_unit q :=
 by { obtain ⟨a, rfl⟩:= h, exact is_unit.mul hp (units.is_unit a) }
 
+--moved to other PR
 lemma not_associated_of_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
   (h : dvd_not_unit p q) : ¬ associated p q :=
 begin
@@ -1267,6 +1273,7 @@ begin
   exact units.is_unit a,
 end
 
+--moved to other PR
 lemma dvd_not_unit_of_dvd_not_unit_associated {M : Type*} [comm_cancel_monoid_with_zero M]
 [nontrivial M] {p q r : M} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
 begin
@@ -1350,6 +1357,7 @@ begin
   exact hx' is_unit_one,
 end
 
+--other PR
 lemma pow_inj_of_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {q : M}
   (hq : ¬ is_unit q) (hq' : q ≠ 0): function.injective (λ (n : ℕ), q^n) :=
 begin
@@ -1633,9 +1641,34 @@ begin
   exact multiplicity.pow_multiplicity_dvd finite₂,
 end
 
+def factors_associates (I) :
+  {p : ideal T | p ∣ I} ≃ {p : associates (ideal T) | p ∣ (associates.mk I)} :=
+equiv.of_bijective (λ p, ⟨associates.mk ↑p, associates.mk_dvd_mk.2 (subtype.prop p)⟩)
+begin
+  split,
+  { intros p p' h,
+    rw [subtype.mk_eq_mk, associates.mk_eq_mk_iff_associated, associated_iff_eq] at h,
+    exact subtype.ext h },
+  { intro p,
+    obtain ⟨a, ha⟩ := associates.mk_surjective (p : associates (ideal T)),
+    use a,
+    apply associates.mk_dvd_mk.1,
+    rw ha,
+    exact (subtype.prop p),
+    simp only [ha, subtype.coe_eta, subtype.coe_mk] },
+end
+
+
+lemma factors_associates_mono :
+  strict_mono (factors_associates I) :=
+begin
+  sorry,
+end
+
 def associates_ideal_correspondence (f : I.quotient ≃+* J.quotient) :
   {p : associates (ideal T) | p ∣ (associates.mk I)} ≃
-  {p : associates (ideal S) | p ∣ (associates.mk J)} := sorry
+  {p : associates (ideal S) | p ∣ (associates.mk J)} :=
+(factors_associates I).symm.trans ((ideal_correspondence f).trans (factors_associates J))
 
 
 lemma preserves_multiplicityₐ (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)

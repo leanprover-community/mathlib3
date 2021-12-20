@@ -366,8 +366,6 @@ begin
   apply list.mem_to_finset',
 end
 
-.
-
 example (s : finset α) (g : perm α) : (g • s).card = s.card :=
 begin
   apply finset.card_image_of_injective,
@@ -432,6 +430,65 @@ begin
   dec_trivial, -/
 end
 
+lemma three_cycle_mk {a b c : α} -- (g : perm α)
+  (h12 : a ≠ b) (h13 : a ≠ c) (h23 : b ≠ c) :
+  ∃ (h : perm α), is_three_cycle h ∧
+    (h a = b) ∧ (h b = c) ∧ (h c = a) :=
+begin
+    let l := [a,b,c],
+    have l_notnil : l ≠ list.nil,
+    { suffices : l.length ≠ list.nil.length,
+        intro z, apply this, rw z, dec_trivial },
+    have l_nodup : l.nodup := by simp [h12, h13, h23],
+
+    let cl : cycle α := [a,b,c],
+
+    let h := cl.form_perm l_nodup,
+    use h,
+
+    have cl_is_nontrivial : cl.nontrivial,
+    { rw cycle.nontrivial_coe_nodup_iff, dec_trivial, exact l_nodup, },
+    have h_is_cycle : h.is_cycle :=
+      cycle.is_cycle_form_perm cl l_nodup cl_is_nontrivial,
+    have h_support_eq_l : h.support = l.to_finset :=
+      cycle.support_form_perm cl l_nodup cl_is_nontrivial,
+    have h_is_three_cycle : h.is_three_cycle,
+    { rw ← card_support_eq_three_iff ,
+      rw h_support_eq_l,
+      rw list.card_to_finset l, rw list.nodup.erase_dup l_nodup, dec_trivial, },
+
+    apply and.intro h_is_three_cycle,
+
+    apply and.intro _, swap,
+    { rw cycle.form_perm_apply_mem_eq_next cl l_nodup a _,
+      swap,
+      change a ∈ l,
+      simp only [list.mem_cons_iff, true_or, eq_self_iff_true],
+      change l.next a _ = b,
+      rw list.next_cons_cons_eq' , refl, },
+
+    apply and.intro _, swap,
+    { rw cycle.form_perm_apply_mem_eq_next cl l_nodup  b _,
+      swap,
+      change b ∈ l,
+      simp only [list.mem_cons_iff, true_or, eq_self_iff_true, or_true],
+      change l.next b _ = c,
+      rw list.next_ne_head_ne_last,
+        simp only [list.next_cons_cons_eq],
+        apply h12.symm,
+        { simp only [list.last, ne.def], apply h23 }, },
+
+    { rw cycle.form_perm_apply_mem_eq_next cl l_nodup c _,
+      swap,
+      change c ∈ l,
+      simp only [list.mem_cons_iff, eq_self_iff_true, or_true, list.mem_singleton, apply_eq_iff_eq],
+      change l.next c _ = a,
+      rw  list.next_last_cons ,
+        apply h13.symm,
+        simp only [list.last],
+        apply (list.nodup_cons.mp l_nodup).right,  },
+
+end
 
 lemma case_cycle5 (g : perm α) (hg : g.is_cycle) (hg' : order_of g ≥ 5) :
   ∃ (h : perm α), (is_three_cycle h) ∧
@@ -440,12 +497,14 @@ begin
     obtain ⟨n : ℕ, hg'' : order_of g = 5 + n⟩ :=
       nat.exists_eq_add_of_le hg', rw add_comm at hg'',
     obtain ⟨a, ha ⟩ := id hg,  -- trick to not destruct hg
+
     let l := [a, g a, (g ^ (n+4)) a], -- a b e
 
     have hn : n + 4 < g.support.card,
       { rw ← equiv.perm.order_of_is_cycle hg,
         rw hg'',
         simp only [nat.bit0_lt_bit1_iff, add_lt_add_iff_left], },
+
 
     have l_notnil : l ≠ list.nil,
     { suffices : l.length ≠ list.nil.length,
@@ -457,6 +516,11 @@ begin
     have h23 : g a ≠ (g ^ (n+4)) a,
     { refine nodup_of_fullcycle  hg ha.left 1 (n+4) _ hn, dec_trivial, },
     have l_nodup : l.nodup := by simp [h12, h13, h23],
+
+    obtain ⟨h, h_is_three_cycle, ha_eq_b, hb_eq_c, hc_eq_a⟩ :=
+      three_cycle_mk h12 h13 h23,
+
+      /-
 
     let c : cycle α := l,
     let h := (l : cycle α).form_perm l_nodup,
@@ -501,7 +565,9 @@ begin
         simp only [list.last],
         apply (list.nodup_cons.mp l_nodup).right,  },
 
-    have hb_neq_e : g (g a) ≠ (g ^ (n+4)) a,
+-/
+
+    have hb_neq_c : g (g a) ≠ (g ^ (n+4)) a,
     { refine nodup_of_fullcycle hg ha.left 2 (n+4) _ hn,
       dec_trivial, },
 
@@ -524,13 +590,12 @@ begin
       have hz' : g * h = h * g, { group, exact hz, },
       have : (g * h) a ≠ (h * g) a,
       { simp, -- only [perm.smul_mul, perm.mul_def],
-        rw ha_eq_b, rw hb_eq_c, exact hb_neq_e, },
+        rw ha_eq_b, rw hb_eq_c, exact hb_neq_c, },
       apply this,
       rw hz' },
 
     { -- son support est de cardinal < celui de g
-      let www := finset.card_le_of_subset (commutator_support_le g h),
-      refine nat.lt_of_le_of_lt www _,
+      refine nat.lt_of_le_of_lt (finset.card_le_of_subset (commutator_support_le g h)) _,
       refine nat.lt_of_add_lt_add_right _,
       swap, -- exact (h.support ∩ g • h.support).card,
       rw finset.card_union_add_card_inter,
@@ -539,24 +604,37 @@ begin
       { apply finset.card_image_of_injective,  exact mul_action.injective g, },
       rw this,
 
-      conv_lhs {
-        rw h_support_eq_l,
-        },
-      rw list.to_finset_card_of_nodup l_nodup,
+      rw equiv.perm.is_three_cycle.card_support h_is_three_cycle,
 
       suffices : 2 ≤ (h.support ∩ g • h.support).card,
-      {
-      apply nat.lt_of_lt_of_le _ le_rfl,
-      apply le_trans _ (nat.add_le_add (nat.lt_of_le_of_lt (le_add_self) hn) this),
-      dec_trivial },
+      { apply nat.lt_of_lt_of_le _ le_rfl,
+        apply le_trans _ (nat.add_le_add (nat.lt_of_le_of_lt (le_add_self) hn) this),
+        dec_trivial },
+
+      have gc_eq_a : g ((g ^ (n+4)) a) = a,
+      { suffices : (g ^ (n+5)) a = a,
+          conv_rhs { rw ← this,  }, refl,
+        rw [← hg'', pow_order_of_eq_one g, perm.coe_one, id.def], } ,
 
       -- h.suport = [a, g a, (g ^ (n+4)) a]
       -- g • h.support = [g a, (g ^ 2) a, g ^ (n+5) a] = [g a, a]
       have ha : a ∈ h.support ∩ g • h.support,
       { rw finset.mem_inter, split,
         rw equiv.perm.mem_support, rw ha_eq_b, exact h12.symm,
+
+        change a ∈ finset.image (λ x, g • x) h.support,
+        rw finset.mem_image,
+        use ((g ^ (n+4)) a),
+
+        split,
+        { rw equiv.perm.mem_support,
+          rw hc_eq_a, exact h13, },
+        exact gc_eq_a,  },
+
+/-
+
         suffices : g⁻¹ • a ∈ h.support,
-        {
+        { rw finset.mem_image,
           sorry, },
         rw equiv.perm.mem_support,
         have : g⁻¹ = g ^ (n+4),
@@ -568,10 +646,19 @@ begin
         rw this,
         simp,
         rw hc_eq_a,
-        exact h13, },
+        exact h13, }, -/
 
       have hga : g a ∈ h.support ∩ g • h.support,
-      { sorry, },
+      { rw finset.mem_inter, split,
+        -- rw equiv.perm.mem_support, rw ha_eq_b, exact h12.symm,
+
+        {
+
+
+          sorry, },
+
+         sorry, },
+
       suffices : ({a,g a} : finset α).card = 2,
         { rw ← this, apply finset.card_le_of_subset,
           rw finset.insert_subset,

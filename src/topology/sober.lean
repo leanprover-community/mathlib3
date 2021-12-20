@@ -38,7 +38,9 @@ lemma specializes_iff_closure_subset {x y : α} :
   x ⤳ y ↔ closure ({y} : set α) ⊆ closure ({x} : set α) :=
 is_closed_closure.mem_iff_closure_subset
 
-lemma specializes_refl (x : α) : x ⤳ x := subset_closure (set.mem_singleton x)
+lemma specializes_rfl {x : α} : x ⤳ x := subset_closure (set.mem_singleton x)
+
+lemma specializes_refl (x : α) : x ⤳ x := specializes_rfl
 
 lemma specializes.trans {x y z : α} : x ⤳ y → y ⤳ z → x ⤳ z :=
 by { simp_rw specializes_iff_closure_subset, exact λ a b, b.trans a }

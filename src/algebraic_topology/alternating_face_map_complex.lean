@@ -36,16 +36,18 @@ open opposite
 open_locale big_operators
 
 noncomputable theory
-namespace algebraic_topology
 
-variables {C : Type*} [category C] [preadditive C]
-variables (X : simplicial_object C)
-variables (Y : simplicial_object C)
+namespace algebraic_topology
 
 namespace alternating_face_map_complex
 
 @[simp]
-def obj_X (n : ℕ) := X.obj(op(simplex_category.mk n))
+def obj_X {C : Type*} [category C] (X : simplicial_object C) (n : ℕ) :=
+X.obj(op(simplex_category.mk n))
+
+variables {C : Type*} [category C] [preadditive C]
+variables (X : simplicial_object C)
+variables (Y : simplicial_object C)
 
 @[simp]
 def obj_d (n : ℕ) : (obj_X X (n+1)) ⟶ (obj_X X n) :=
@@ -135,12 +137,6 @@ end
 def indices (n : ℕ) : finset (ℕ × ℕ) := 
 finset.product (finset.range(n+1)) (finset.range(n+2))
 
-def τ' {n : ℕ} : Π (x : ℕ × ℕ), x ∈ indices n → ℕ × ℕ := 
-λ x hx, τ x
-
-@[simp] lemma τ'_eq_τ {n : ℕ} (x : ℕ × ℕ) (hx : x ∈ indices n) :
-τ' x hx = τ x := by refl
-
 /-- τ stabilises {0,...,n} × {0,...,n+1} -/
 lemma τ'_mem' {n : ℕ} (x : ℕ × ℕ) (hx : x ∈ indices n) : τ x ∈ indices n :=
 begin
@@ -156,18 +152,6 @@ begin
     simp only [indices, finset.mem_product, finset.mem_range],
     split; linarith, }
 end
-
-lemma τ'_mem {n : ℕ} (x : ℕ × ℕ) (hx : x ∈ indices n) : τ' x hx ∈ indices n :=
-by { rw τ'_eq_τ, exact τ'_mem' x hx, }
-
-/-- τ' has no fixed point -/
-lemma τ'_ne' {n : ℕ} (x : ℕ × ℕ) (hx : x ∈ indices n) : τ' x hx ≠ x :=
-by { rw τ'_eq_τ, exact τ_ne' x, }
-
-/-! τ' is an involution. -/
-lemma τ'_inv {n : ℕ} (x : ℕ × ℕ) (hx : x ∈ indices n) :
-  τ' (τ' x hx) (τ'_mem x hx) = x :=
-by { simp only [τ'_eq_τ], exact τ_inv x, }
 
 /-!
 ### Cancellation of "antisymmetric" sums indexed by {0,...,n} × {0,...,n+1}
@@ -196,13 +180,16 @@ begin
     have eq := hf_case2 (τ x) (τ_of_case1_is_case2 x h1x) (τ'_mem' x hx),
     rw τ_inv x at eq,
     exact eq, },
+  let τ' : ∀ (x : ℕ × ℕ), x ∈ indices n → ℕ × ℕ := λ x hx, τ x,
+  have τ'_eq_τ : ∀ (x : ℕ × ℕ) (hx : x ∈ indices n), τ' x hx = τ x := by { intros x hx, refl, },
   have hf : ∀ (x : ℕ × ℕ) (hx : x ∈ indices n), f x + f (τ' x hx) = 0,
   { intros x hx,
-    rw τ'_eq_τ,
+    rw τ'_eq_τ x hx,
     by_cases x.1<x.2,
     { exact hf_case1 x h hx, },
     { exact hf_case2 x h hx, }, },
-  exact finset.sum_involution τ' hf (λ x hx _, τ'_ne' x hx) τ'_mem τ'_inv,
+  exact finset.sum_involution τ' hf (λ x _ _, τ_ne' x)
+    τ'_mem' (λ x _, τ_inv x),
 end
 
 
@@ -289,7 +276,7 @@ chain_complex.of_hom _ _ _ _ _ _
 
 end alternating_face_map_complex
 
-variables (C)
+variables (C : Type*) [category C] [preadditive C]
 
 @[simps]
 def alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ :=
@@ -364,3 +351,4 @@ def inclusion_of_Moore_complex :
 { app := inclusion_of_Moore_complex_map, }
 
 end algebraic_topology
+

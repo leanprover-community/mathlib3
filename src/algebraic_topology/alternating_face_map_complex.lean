@@ -19,7 +19,7 @@ We construct the alternating face map complex, as a
 functor `alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ`
 for any preadditive category `C`. For any simplicial object `X` in `C`,
 this is the homological complex `... → X_2 → X_1 → X_0`
-where the differentials are alternate sums of faces.
+where the differentials are alternating sums of faces.
 
 We also construct the natural transformation `inclusion_of_Moore_complex :
 nat_trans (normalized_Moore_complex A) (alternating_face_map_complex A)`

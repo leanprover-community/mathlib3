@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
 import tactic.subtype_instance
+import tactic.noncomm_ring
 import ring_theory.noetherian
 import ring_theory.adjoin
 import data.matrix.basic
@@ -20,6 +21,8 @@ import tactic.omega
 ## References
 
 * https://ysharifi.wordpress.com/2010/09/17/dedekind-finite-rings/
+* The Factorization Theory of Power Monoids - Antoniou,
+  https://etd.ohiolink.edu/apexprod/rws_etd/send_file/send?accession=osu1586355818066608&disposition=inline
 
 -/
 namespace dedekind_finite
@@ -28,20 +31,24 @@ section
 
 variables (R : Type*)
 
-class is_dedekind_finite_ring [ring R] :=
+/-- A (noncommutative) monoid is Dedekind-finite if for any pair of elements `a b : R` with
+  `a * b = 1` we have `b * a = 1`, i.e. multiplication is commutative on inverse pairs.
+  This concept is often studied for rings, but can be defined more generally for monoids, and some
+  results hold for monoids without any additive structure.
+
+  This is implemented as a mixin for `monoid R`.  -/
+class is_dedekind_finite [monoid R] : Prop :=
 (inv_comm : ∀ a b : R, a * b = 1 → b * a = 1)
 
---class dedekind_finite extends ring R, right_inv_is_left_inv R
-
 @[priority 100]
-instance is_dedekind_finite_ring_of_comm_ring [comm_ring R] : is_dedekind_finite_ring R :=
+instance is_dedekind_finite_of_comm_ring [comm_monoid R] : is_dedekind_finite R :=
 ⟨λ a b h, h ▸ mul_comm b a⟩
 
 end
 section
 
-instance is_dedekind_finite_ring_pi {ι : Type*} {α : ι → Type*} [∀ i, ring $ α i]
-  [∀ i, is_dedekind_finite_ring $ α i] : is_dedekind_finite_ring (Π i, α i) :=
+instance is_dedekind_finite_pi {ι : Type*} {α : ι → Type*} [∀ i, monoid $ α i]
+  [∀ i, is_dedekind_finite $ α i] : is_dedekind_finite (Π i, α i) :=
 by pi_instance
 
 end
@@ -49,8 +56,8 @@ end
 section
 variables (R : Type*)
 
---instance subring.is_dedekind_finite_ring [ring R] [is_dedekind_finite_ring R] (S : set R)
--- [is_subring S] : is_dedekind_finite_ring S :=
+--instance subring.is_dedekind_finite [ring R] [is_dedekind_finite R] (S : set R)
+-- [is_subring S] : is_dedekind_finite S :=
 --by subtype_instance
 
 -- def is_nilpotent {R : Type*} [ring R] (a : R) := ∃ n : ℕ, a^n = 0
@@ -70,21 +77,21 @@ begin
     exact submonoid.mem_powers 0, }
 end
 
-class is_reversible_ring [ring R] :=
+class is_reversible [monoid_with_zero R] :=
 (zero_div_comm : ∀ a b : R, a * b = 0 → b * a = 0)
 
 @[priority 100]
-instance is_reversible_ring_of_domain [ring R] [is_domain R] : is_reversible_ring R :=
+instance is_reversible_of_domain [monoid_with_zero R] [no_zero_divisors R] : is_reversible R :=
 ⟨λ a b h,
   begin
-    rcases is_domain.eq_zero_or_eq_zero_of_mul_eq_zero h with rfl | rfl,
+    rcases eq_zero_or_eq_zero_of_mul_eq_zero h with rfl | rfl,
     { rw [mul_zero], },
     { rw [zero_mul], },
   end⟩
 
 
 @[priority 100]
-instance reversible_of_reduced [ring R] [is_reduced_ring R] : is_reversible_ring R :=
+instance reversible_of_reduced [ring R] [is_reduced_ring R] : is_reversible R :=
 ⟨λ a b h,
   begin
     apply is_reduced_ring.no_nilpotents (b * a),
@@ -93,18 +100,18 @@ instance reversible_of_reduced [ring R] [is_reduced_ring R] : is_reversible_ring
   end⟩
 
 @[priority 100]
-instance reversible_of_comm_ring [comm_ring R] : is_reversible_ring R :=
+instance reversible_of_comm_ring [comm_ring R] : is_reversible R :=
 ⟨λ a b h, h ▸ mul_comm b a⟩
 
 @[priority 100]
-instance is_dedekind_finite_ring_of_reversible [ring R] [is_reversible_ring R] :
-  is_dedekind_finite_ring R :=
+instance is_dedekind_finite_of_reversible [ring R] [is_reversible R] :
+  is_dedekind_finite R :=
 ⟨λ a b h,
   begin
     have :=
     calc (b * a - 1) * b = b * (a * b) - b : by rw [sub_mul, one_mul, mul_assoc]
                     ...  = 0               : by rw [h, mul_one, sub_self],
-    have : b * (b * a - 1) = 0 := is_reversible_ring.zero_div_comm _ _ this,
+    have : b * (b * a - 1) = 0 := is_reversible.zero_div_comm _ _ this,
     rw [mul_sub, mul_one, ← mul_assoc, ← pow_two, sub_eq_zero] at this,
     have abba_eq_one := congr_arg ((*) a) this,
     rw [h] at abba_eq_one,
@@ -115,8 +122,8 @@ instance is_dedekind_finite_ring_of_reversible [ring R] [is_reversible_ring R] :
   end⟩
 
 @[priority 100]
-instance is_dedekind_finite_ring_of_reduced [ring R] [is_reduced_ring R] :
-  is_dedekind_finite_ring R := by apply_instance
+instance is_dedekind_finite_of_reduced [ring R] [is_reduced_ring R] :
+  is_dedekind_finite R := by apply_instance
 
 
 variable [ring R]
@@ -203,7 +210,7 @@ end
 
 
 @[priority 100]
-instance is_dedekind_finite_ring_of_noetherian [is_noetherian_ring R] : is_dedekind_finite_ring R :=
+instance is_dedekind_finite_of_noetherian [is_noetherian_ring R] : is_dedekind_finite R :=
 ⟨λ a b h,
   begin
     have : is_linear_map R _ := is_linear_map.is_linear_map_smul' b,
@@ -253,15 +260,17 @@ instance is_dedekind_finite_ring_of_noetherian [is_noetherian_ring R] : is_dedek
 
 @[priority 80] -- see Note [lower instance priority]
 instance ring.is_noetherian_ring_of_fintype (R) [fintype R] [ring R] :
-  is_noetherian_ring R := by rw is_noetherian_ring_iff; apply_instance
+  is_noetherian_ring R := by rw is_noetherian_ring_iff; refine ring.is_noetherian_of_fintype R R
+-- TODO this should be global
 
 @[priority 100]
-instance is_dedekind_finite_ring_of_finite [fintype R] : is_dedekind_finite_ring R :=
+instance is_dedekind_finite_of_finite [fintype R] : is_dedekind_finite R :=
 begin
+  apply_instance,
   --TODO why is this needed?
-  haveI inst : is_noetherian R R := ring.is_noetherian_of_fintype R R,
-  haveI := is_noetherian_ring_iff.mpr inst,
-  exactI dedekind_finite.is_dedekind_finite_ring_of_noetherian R,
+  -- haveI inst : is_noetherian R R := ring.is_noetherian_of_fintype R R,
+  -- haveI := is_noetherian_ring_iff.mpr inst,
+  -- exact dedekind_finite.is_dedekind_finite_of_noetherian R,
 end
 end
 
@@ -271,23 +280,25 @@ private lemma aux1 {i j : ℕ} : j - i = j + 1 - (i + 1) := by simp
 
 variable {R : Type*}
 
-lemma mul_eq_one_pow_mul_pow_eq [ring R] {a b : R} (hab : a * b = 1) :
-  ∀ (i j : ℕ), a^i * b^j = if i ≤ j then b^(j - i) else a^(i - j)
-  -- ∀ (i j : ℕ), a^i * b^j = b^(j - i) * a^(i - j) -- TODO is this better?
+lemma pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one [monoid R] {a b : R} (hab : a * b = 1) :
+  -- ∀ (i j : ℕ), a ^ i * b ^ j = if i ≤ j then b ^ (j - i) else a ^ (i - j)
+  ∀ (i j : ℕ), a ^ i * b ^ j = b ^ (j - i) * a ^ (i - j) -- TODO is this better?
 | 0       0       := by simp
-| (i + 1) 0       := by simp only [mul_one, nat.zero_sub, nat.le_zero_iff,
+| (i + 1) 0       := by simp [mul_one, nat.zero_sub, nat.le_zero_iff,
                         add_eq_zero_iff, if_false, nat.sub_zero, one_ne_zero,
                         pow_zero, and_false]
-| 0       (j + 1) := by simp only [one_mul, if_true, nat.zero_sub, zero_le,
+| 0       (j + 1) := by simp [one_mul, if_true, nat.zero_sub, zero_le,
                         nat.sub_zero, pow_zero]
 | (i + 1) (j + 1) := begin
         rw pow_succ', rw pow_succ, assoc_rw hab,
-        rw mul_one, rw mul_eq_one_pow_mul_pow_eq i j,
-        apply' if_congr (iff.symm nat.lt_succ_iff),
-        apply' congr_arg ((^) b),
-        exact aux1,
-        apply' congr_arg ((^) a),
-        exact aux1,
+        rw mul_one, rw pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one i j,
+        rw [nat.succ_sub_succ_eq_sub],
+        rw [nat.succ_sub_succ_eq_sub],
+        -- apply' if_congr (iff.symm nat.lt_succ_iff),
+        -- apply' congr_arg ((^) b),
+        -- exact aux1,
+        -- apply' congr_arg ((^) a),
+        -- exact aux1,
     end
 
 private lemma aux3 {j k : ℕ} (H : k < j) (hjk : ¬j = k + 1) : ¬j ≤ k + 1 :=
@@ -297,31 +308,37 @@ private lemma aux4 {j k l : ℕ} (H : k < j) : j - (k + 1) + (l + 1) = j - k + l
 have k + 1 ≤ j := H,
 by omega
 
-private lemma aux5 {j k l : ℕ}
-  (H : k < j)  :
-  j + 1 - (k + 1) + (l + 1) = j + 1 - k + l :=
- have k + 1 < j + 1 := nat.succ_lt_succ H,
- have k ≤ j + 1 := by omega,
- by omega  --zify [this, H]; linarith
+private lemma aux5 {j k l : ℕ} (H : k < j) : j + 1 - (k + 1) + (l + 1) = j + 1 - k + l :=
+have k + 1 < j + 1 := nat.succ_lt_succ H,
+have k ≤ j + 1 := by omega,
+by omega  --zify [this, H]; linarith
 
-private def e (a b : R) [ring R] (i j : ℕ) : R := b^i * a^j - b^(i + 1) * a^(j + 1)
+private def e (a b : R) [ring R] (i j : ℕ) : R := b ^ i * a ^ j - b ^ (i + 1) * a ^ (j + 1)
 
 lemma e_orthogonal [ring R] {a b : R} (hab : a * b = 1) :
-∀ {i j k l : ℕ}, (e a b i j) * (e a b k l) = if j = k then e a b i l else (0 : R) :=
+  ∀ {i j k l : ℕ}, e a b i j * e a b k l = if j = k then e a b i l else (0 : R) :=
 begin
   intros,
   rw [e, e, e, mul_sub, sub_mul, sub_mul, sub_right_comm, mul_assoc, mul_assoc, mul_assoc,
     mul_assoc, ← sub_add, ← mul_sub (b ^ i), ← sub_sub_assoc_swap, ← mul_sub (b ^ (i + 1)),
-    ← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc, mul_eq_one_pow_mul_pow_eq hab j k,
-    mul_eq_one_pow_mul_pow_eq hab j (k + 1), mul_eq_one_pow_mul_pow_eq hab (j + 1) k,
-    mul_eq_one_pow_mul_pow_eq hab (j + 1) (k + 1)],
+    ← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc,
+    pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab j k,
+    pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab j (k + 1),
+    pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab (j + 1) k,
+    pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab (j + 1) (k + 1)],
   rcases lt_trichotomy j k with H | rfl | H,
   { conv_rhs {rw if_neg (ne_of_lt H),},
+    -- simp,
     -- TODO omega gets stuck on instances
-    rw if_pos (le_of_lt H),
-    rw if_pos (by linarith : j ≤ k + 1),
-    rw if_pos (nat.succ_le_iff.mpr H),
-    rw if_pos (le_add_right H : j + 1 ≤ k + 1),
+    rw (nat.sub_eq_zero_of_le ((le_of_lt H).trans k.le_succ) : j - (k + 1) = 0),
+    rw (nat.sub_eq_zero_of_le (nat.succ_le_of_lt H) : j + 1 - k = 0),
+    rw (nat.sub_eq_zero_of_le (le_of_lt (nat.succ_lt_succ_iff.mpr H)) : j + 1 - (k + 1) = 0),
+    rw (nat.sub_eq_zero_of_le H.le : j - k = 0),
+    simp,
+    -- rw if_pos (le_of_lt H),
+    -- rw if_pos (by linarith : j ≤ k + 1),
+    -- rw if_pos (nat.succ_le_iff.mpr H),
+    -- rw if_pos (le_add_right H : j + 1 ≤ k + 1),
     rw ← nat.succ_pred_eq_of_pos (tsub_pos_of_lt H),
     rw ← nat.succ_pred_eq_of_pos (_ : k + 1 - j > 0),
     rw pow_succ,
@@ -336,30 +353,30 @@ begin
     rw nat.pred_eq_sub_one,
     rw nat.pred_eq_sub_one,
     rw sub_sub_assoc_swap,
-    rw (nat.succ_sub_succ k j : k + 1 - j - 1 = k - j),
-    rw (_ : k + 1 - j - 1 = k - j),
-    swap,
-    exact nat.succ_sub_succ k j,
+    rw (show k + 1 - j - 1 = k - j, from nat.succ_sub_succ k j),
+    rw ← pow_succ,
+    rw (show k - j - 1 + 1 = k - j, from nat.succ_pred_eq_of_pos (tsub_pos_of_lt H)),
     rw nat.sub_sub,
     rw add_comm j 1,
     rw ← nat.sub_sub,
-    abel,
+    simp,
     { apply nat.sub_pos_of_lt,
       transitivity k,
       exact H,
       exact lt_add_one k,}, },
   { conv_rhs {rw if_pos,},
+    simp,
 
-    rw if_pos (le_refl j),
-    rw if_pos (nat.le_succ j),
-    rw if_neg (by exact nat.lt_irrefl j : ¬j + 1 ≤ j),
-    rw if_pos (le_refl (j + 1)),
+    -- rw if_pos (le_refl j),
+    -- rw if_pos (nat.le_succ j),
+    -- rw if_neg (by exact nat.lt_irrefl j : ¬j + 1 ≤ j),
+    -- rw if_pos (le_refl (j + 1)),
 
-    rw nat.sub_self,
-    rw pow_zero,
-    rw one_mul,
-    rw (add_tsub_cancel_left j 1),
-    rw ← pow_add,
+    -- rw nat.sub_self,
+    -- rw pow_zero,
+    -- rw one_mul,
+    -- rw (add_tsub_cancel_left j 1),
+    -- rw ← pow_add,
     -- rw pow_one,
     -- rw nat.sub_self,
     -- rw pow_zero,
@@ -370,10 +387,10 @@ begin
     -- rw sub_zero,
     -- rw mul_sub,
     -- rw ← mul_assoc,
-    simp [add_comm, mul_sub, mul_assoc, pow_succ'],
+    simp [add_comm, mul_sub, mul_assoc, pow_succ', ← pow_succ],
     -- rw ← pow_succ',
     },
-  { conv_rhs {rw if_neg (ne_of_gt H),},
+  sorry; { conv_rhs {rw if_neg (ne_of_gt H),},
     rw if_neg (not_le.mpr H),
     have : ite (j ≤ k + 1) (b ^ (k + 1 - j)) (a ^ (j - (k + 1))) = a ^ (j - (k + 1)),
     { by_cases hjk : j = k + 1,
@@ -391,15 +408,15 @@ begin
 end
 
 lemma e_ne_pow_two [ring R] {a b : R} (hab : a * b = 1) {i j : ℕ} (hij : i ≠ j) :
-  (e a b i j) ^ 2 = (0 : R) :=
+  e a b i j ^ 2 = 0 :=
 by rw [pow_two, e_orthogonal hab, if_neg (ne.symm hij)]
 
 open_locale classical
 
-lemma is_dedekind_finite_ring_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents R).finite)
-  : is_dedekind_finite_ring R :=
+lemma is_dedekind_finite_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents R).finite) :
+  is_dedekind_finite R :=
 begin
-  apply is_dedekind_finite_ring.mk,
+  apply is_dedekind_finite.mk,
   contrapose! h,
   rcases h with ⟨a, b, hab, hba⟩,
   haveI : infinite (nilpotents R),

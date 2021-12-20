@@ -113,11 +113,9 @@ unity in `R`. -/
 lemma nat_degree_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
   (cyclotomic' n R).nat_degree = nat.totient n :=
 begin
-  cases nat.eq_zero_or_pos n with hzero hpos,
-  { simp only [hzero, cyclotomic'_zero, nat.totient_zero, nat_degree_one] },
   rw [cyclotomic'],
   rw nat_degree_prod (primitive_roots n R) (λ (z : R), (X - C z)),
-  simp only [is_primitive_root.card_primitive_roots h hpos, mul_one,
+  simp only [is_primitive_root.card_primitive_roots h, mul_one,
   nat_degree_X_sub_C,
   nat.cast_id, finset.sum_const, nsmul_eq_mul],
   intros z hz,
@@ -134,26 +132,26 @@ lemma roots_of_cyclotomic (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] :
   (cyclotomic' n R).roots = (primitive_roots n R).val :=
 by { rw cyclotomic', exact roots_prod_X_sub_C (primitive_roots n R) }
 
+/-- If there is a primitive `n`th root of unity in `K`, then `X ^ n - 1 = ∏ (X - μ)`, where `μ`
+varies over the `n`-th roots of unity. -/
+lemma X_pow_sub_one_eq_prod {ζ : R} {n : ℕ} (hpos : 0 < n) (h : is_primitive_root ζ n) :
+  X ^ n - 1 = ∏ ζ in nth_roots_finset n R, (X - C ζ) :=
+begin
+  rw [nth_roots_finset, ← multiset.to_finset_eq (is_primitive_root.nth_roots_nodup h)],
+  simp only [finset.prod_mk, ring_hom.map_one],
+  rw [nth_roots],
+  have hmonic : (X ^ n - C (1 : R)).monic := monic_X_pow_sub_C (1 : R) (ne_of_lt hpos).symm,
+  symmetry,
+  apply prod_multiset_X_sub_C_of_monic_of_roots_card_eq hmonic,
+  rw [@nat_degree_X_pow_sub_C R _ _ n 1, ← nth_roots],
+  exact is_primitive_root.card_nth_roots h
+end
+
 end is_domain
 
 section field
 
 variables {K : Type*} [field K]
-
-/-- If there is a primitive `n`th root of unity in `K`, then `X ^ n - 1 = ∏ (X - μ)`, where `μ`
-varies over the `n`-th roots of unity. -/
-lemma X_pow_sub_one_eq_prod {ζ : K} {n : ℕ} (hpos : 0 < n) (h : is_primitive_root ζ n) :
-  X ^ n - 1 = ∏ ζ in nth_roots_finset n K, (X - C ζ) :=
-begin
-  rw [nth_roots_finset, ← multiset.to_finset_eq (is_primitive_root.nth_roots_nodup h)],
-  simp only [finset.prod_mk, ring_hom.map_one],
-  rw [nth_roots],
-  have hmonic : (X ^ n - C (1 : K)).monic := monic_X_pow_sub_C (1 : K) (ne_of_lt hpos).symm,
-  symmetry,
-  apply prod_multiset_X_sub_C_of_monic_of_roots_card_eq hmonic,
-  rw [@nat_degree_X_pow_sub_C K _ _ n 1, ← nth_roots],
-  exact is_primitive_root.card_nth_roots h
-end
 
 /-- `cyclotomic' n K` splits. -/
 lemma cyclotomic'_splits (n : ℕ) : splits (ring_hom.id K) (cyclotomic' n K) :=
@@ -171,8 +169,8 @@ by rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
 `∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1`. -/
-lemma prod_cyclotomic'_eq_X_pow_sub_one {ζ : K} {n : ℕ} (hpos : 0 < n) (h : is_primitive_root ζ n) :
-  ∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1 :=
+lemma prod_cyclotomic'_eq_X_pow_sub_one {K : Type*} [comm_ring K] [is_domain K] {ζ : K} {n : ℕ}
+  (hpos : 0 < n) (h : is_primitive_root ζ n) : ∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1 :=
 begin
   rw [X_pow_sub_one_eq_prod hpos h],
   have rwcyc : ∀ i ∈ nat.divisors n, cyclotomic' i K = ∏ μ in primitive_roots i K, (X - C μ),
@@ -182,15 +180,15 @@ begin
              skip,
              simp [rwcyc, H] },
   rw ← finset.prod_bUnion,
-  { simp only [is_primitive_root.nth_roots_one_eq_bUnion_primitive_roots hpos h] },
+  { simp only [is_primitive_root.nth_roots_one_eq_bUnion_primitive_roots h] },
   intros x hx y hy hdiff,
-  rw finset.mem_coe at hx hy,
-  exact is_primitive_root.disjoint (nat.pos_of_mem_divisors hx) (nat.pos_of_mem_divisors hy) hdiff,
+  exact is_primitive_root.disjoint hdiff,
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
 `cyclotomic' n K = (X ^ k - 1) /ₘ (∏ i in nat.proper_divisors k, cyclotomic' i K)`. -/
-lemma cyclotomic'_eq_X_pow_sub_one_div {ζ : K} {n : ℕ} (hpos: 0 < n) (h : is_primitive_root ζ n) :
+lemma cyclotomic'_eq_X_pow_sub_one_div {K : Type*} [comm_ring K] [is_domain K] {ζ : K} {n : ℕ}
+  (hpos : 0 < n) (h : is_primitive_root ζ n) :
   cyclotomic' n K = (X ^ n - 1) /ₘ (∏ i in nat.proper_divisors n, cyclotomic' i K) :=
 begin
   rw [←prod_cyclotomic'_eq_X_pow_sub_one hpos h,
@@ -210,9 +208,10 @@ end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then `cyclotomic' n K` comes from a
 monic polynomial with integer coefficients. -/
-lemma int_coeff_of_cyclotomic' {ζ : K} {n : ℕ} (h : is_primitive_root ζ n) :
+lemma int_coeff_of_cyclotomic' {K : Type*} [comm_ring K] [is_domain K] {ζ : K} {n : ℕ}
+  (h : is_primitive_root ζ n) :
   (∃ (P : polynomial ℤ), map (int.cast_ring_hom K) P = cyclotomic' n K ∧
-  P.degree = (cyclotomic' n K).degree ∧ P.monic) :=
+    P.degree = (cyclotomic' n K).degree ∧ P.monic) :=
 begin
   refine lifts_and_degree_eq_and_monic _ (cyclotomic'.monic n K),
   induction n using nat.strong_induction_on with k hk generalizing ζ h,
@@ -252,7 +251,8 @@ end
 
 /-- If `K` is of characteristic `0` and there is a primitive `n`-th root of unity in `K`,
 then `cyclotomic n K` comes from a unique polynomial with integer coefficients. -/
-lemma unique_int_coeff_of_cycl [char_zero K] {ζ : K} {n : ℕ+} (h : is_primitive_root ζ n) :
+lemma unique_int_coeff_of_cycl {K : Type*} [comm_ring K] [is_domain K] [char_zero K] {ζ : K}
+  {n : ℕ+} (h : is_primitive_root ζ n) :
   (∃! (P : polynomial ℤ), map (int.cast_ring_hom K) P = cyclotomic' n K) :=
 begin
   obtain ⟨P, hP⟩ := int_coeff_of_cyclotomic' h,
@@ -476,8 +476,8 @@ end
 /-- If there is a primitive `n`-th root of unity in `K`, then
 `cyclotomic n K = ∏ μ in primitive_roots n R, (X - C μ)`. In particular,
 `cyclotomic n K = cyclotomic' n K` -/
-lemma cyclotomic_eq_prod_X_sub_primitive_roots {K : Type*} [field K] {ζ : K} {n : ℕ}
-  (hz : is_primitive_root ζ n) :
+lemma cyclotomic_eq_prod_X_sub_primitive_roots {K : Type*} [comm_ring K] [is_domain K] {ζ : K}
+  {n : ℕ} (hz : is_primitive_root ζ n) :
   cyclotomic n K = ∏ μ in primitive_roots n K, (X - C μ) :=
 begin
   rw ←cyclotomic',
@@ -497,14 +497,9 @@ end
 lemma is_root_cyclotomic {n : ℕ} {K : Type*} [comm_ring K] [is_domain K] (hpos : 0 < n) {μ : K}
   (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
 begin
-  suffices : is_root (cyclotomic n (fraction_ring K)) (algebra_map K (fraction_ring K) μ),
-  { rw [←map_cyclotomic n (algebra_map K (fraction_ring K))] at this,
-    apply is_root.of_map this,
-    exact is_fraction_ring.injective K (fraction_ring K) },
-  replace h := h.map_of_injective (is_fraction_ring.injective K (fraction_ring K)),
-  rw [← mem_roots (cyclotomic_ne_zero n (fraction_ring K)),
+  rw [← mem_roots (cyclotomic_ne_zero n K),
       cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
-  rwa [← mem_primitive_roots hpos] at h
+  rwa [← mem_primitive_roots hpos] at h,
 end
 
 private lemma is_root_cyclotomic_iff' {n : ℕ} {K : Type*} [field K] {μ : K} (hn : (n : K) ≠ 0) :
@@ -697,7 +692,7 @@ lemma cyclotomic_eq_minpoly {n : ℕ} {K : Type*} [field K] {μ : K}
 begin
   refine eq_of_monic_of_dvd_of_nat_degree_le (minpoly.monic (is_integral h hpos))
     (cyclotomic.monic n ℤ) (minpoly_dvd_cyclotomic h hpos) _,
-  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h hpos
+  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h
 end
 
 /-- `cyclotomic n ℤ` is irreducible. -/

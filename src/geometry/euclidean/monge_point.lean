@@ -212,10 +212,12 @@ by simp_rw [monge_point_eq_affine_combination_of_points_with_circumcenter,
 n-dimensional face, is orthogonal to the difference of the two
 vertices not in that face. -/
 lemma inner_monge_point_vsub_face_centroid_vsub {n : ℕ} (s : simplex ℝ P (n + 2))
-  {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
+  {i₁ i₂ : fin (n + 3)} :
   ⟪s.monge_point -ᵥ ({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points,
         s.points i₁ -ᵥ s.points i₂⟫ = 0 :=
 begin
+  by_cases h : i₁ = i₂,
+  { simp [h], },
   simp_rw [monge_point_vsub_face_centroid_eq_weighted_vsub_of_points_with_circumcenter s h,
            point_eq_affine_combination_of_points_with_circumcenter,
            affine_combination_vsub],
@@ -237,7 +239,7 @@ begin
     { simp_rw [sum_insert (not_mem_singleton.2 h), sum_singleton],
       repeat { rw ←sum_subset fs.subset_univ _ },
       { simp_rw [sum_insert (not_mem_singleton.2 h), sum_singleton],
-        simp [h, h.symm, dist_comm (s.points i₁)] },
+        simp [h, ne.symm h, dist_comm (s.points i₁)] },
       all_goals { intros i hu hi, simp [hfs i hi] } },
     { intros i hu hi,
       simp [hfs i hi, point_weights_with_circumcenter] } },
@@ -279,25 +281,22 @@ begin
 end
 
 /-- The Monge point lies in the Monge planes. -/
-lemma monge_point_mem_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)}
-    (h : i₁ ≠ i₂) : s.monge_point ∈ s.monge_plane i₁ i₂ :=
+lemma monge_point_mem_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} :
+  s.monge_point ∈ s.monge_plane i₁ i₂ :=
 begin
   rw [monge_plane_def, mem_inf_iff, ←vsub_right_mem_direction_iff_mem (self_mem_mk' _ _),
       direction_mk', submodule.mem_orthogonal'],
   refine ⟨_, s.monge_point_mem_affine_span⟩,
   intros v hv,
   rcases submodule.mem_span_singleton.mp hv with ⟨r, rfl⟩,
-  rw [inner_smul_right, s.inner_monge_point_vsub_face_centroid_vsub h, mul_zero]
+  rw [inner_smul_right, s.inner_monge_point_vsub_face_centroid_vsub, mul_zero]
 end
 
--- This doesn't actually need the `i₁ ≠ i₂` hypothesis, but it's
--- convenient for the proof and `monge_plane` isn't intended to be
--- useful without that hypothesis.
 /-- The direction of a Monge plane. -/
-lemma direction_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
+lemma direction_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} :
   (s.monge_plane i₁ i₂).direction = (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
     vector_span ℝ (set.range s.points) :=
-by rw [monge_plane_def, direction_inf_of_mem_inf (s.monge_point_mem_monge_plane h), direction_mk',
+by rw [monge_plane_def, direction_inf_of_mem_inf s.monge_point_mem_monge_plane, direction_mk',
        direction_affine_span]
 
 /-- The Monge point is the only point in all the Monge planes from any
@@ -310,8 +309,8 @@ begin
   have h' : ∀ i₂, i₁ ≠ i₂ → p -ᵥ s.monge_point ∈
     (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓ vector_span ℝ (set.range s.points),
   { intros i₂ hne,
-    rw [←s.direction_monge_plane hne,
-        vsub_right_mem_direction_iff_mem (s.monge_point_mem_monge_plane hne)],
+    rw [←s.direction_monge_plane,
+        vsub_right_mem_direction_iff_mem s.monge_point_mem_monge_plane],
     exact h i₂ hne },
   have hi : p -ᵥ s.monge_point ∈ ⨅ (i₂ : {i // i₁ ≠ i}),
     (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ,
@@ -496,7 +495,7 @@ lemma orthocenter_mem_altitude (t : triangle ℝ P) {i₁ : fin 3} :
 begin
   obtain ⟨i₂, i₃, h₁₂, h₂₃, h₁₃⟩ : ∃ i₂ i₃, i₁ ≠ i₂ ∧ i₂ ≠ i₃ ∧ i₁ ≠ i₃, by dec_trivial!,
   rw [orthocenter_eq_monge_point, t.altitude_eq_monge_plane h₁₂ h₁₃ h₂₃],
-  exact t.monge_point_mem_monge_plane h₂₃
+  exact t.monge_point_mem_monge_plane
 end
 
 /-- The orthocenter is the only point lying in any two of the

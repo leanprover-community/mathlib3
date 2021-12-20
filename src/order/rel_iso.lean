@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import algebra.group.defs
 import data.equiv.set
+import data.fun_like
 import logic.embedding
 import order.rel_classes
 
@@ -46,13 +47,67 @@ structure rel_hom {α β : Type*} (r : α → α → Prop) (s : β → β → Pr
 
 infix ` →r `:25 := rel_hom
 
+/-- `rel_hom_class F r s` asserts that `F` is a type of functions such that all `f : F`
+satisfy `r a b → s (f a) (f b)`.
+
+The relations `r` and `s` are `out_param`s since figuring them out from a goal is a higher-order
+matching problem that Lean usually can't do unaided.
+-/
+class rel_hom_class (F : Type*) {α β : out_param $ Type*}
+  (r : out_param $ α → α → Prop) (s : out_param $ β → β → Prop)
+  extends fun_like F α (λ _, β) :=
+(map_rel : ∀ (f : F) {a b}, r a b → s (f a) (f b))
+export rel_hom_class (map_rel)
+
+-- The free parameters `r` and `s` are `out_param`s so this is not dangerous.
+attribute [nolint dangerous_instance] rel_hom_class.to_fun_like
+
+namespace rel_hom_class
+
+variables {F : Type*}
+
+lemma map_inf [semilattice_inf α] [linear_order β]
+  [rel_hom_class F ((<) : β → β → Prop) ((<) : α → α → Prop)]
+  (a : F) (m n : β) : a (m ⊓ n) = a m ⊓ a n :=
+(strict_mono.monotone $ λ x y, map_rel a).map_inf m n
+
+lemma map_sup [semilattice_sup α] [linear_order β]
+  [rel_hom_class F ((>) : β → β → Prop) ((>) : α → α → Prop)]
+  (a : F) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
+@map_inf (order_dual α) (order_dual β) _ _ _ _ _ _ _
+
+protected theorem is_irrefl [rel_hom_class F r s] (f : F) : ∀ [is_irrefl β s], is_irrefl α r
+| ⟨H⟩ := ⟨λ a h, H _ (map_rel f h)⟩
+
+protected theorem is_asymm [rel_hom_class F r s] (f : F) : ∀ [is_asymm β s], is_asymm α r
+| ⟨H⟩ := ⟨λ a b h₁ h₂, H _ _ (map_rel f h₁) (map_rel f h₂)⟩
+
+protected theorem acc [rel_hom_class F r s] (f : F) (a : α) : acc s (f a) → acc r a :=
+begin
+  generalize h : f a = b, intro ac,
+  induction ac with _ H IH generalizing a, subst h,
+  exact ⟨_, λ a' h, IH (f a') (map_rel f h) _ rfl⟩
+end
+
+protected theorem well_founded [rel_hom_class F r s] (f : F) :
+  ∀ (h : well_founded s), well_founded r
+| ⟨H⟩ := ⟨λ a, rel_hom_class.acc f _ (H _)⟩
+
+end rel_hom_class
+
 namespace rel_hom
 
+instance : rel_hom_class (r →r s) r s :=
+{ coe := λ o, o.to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  map_rel := map_rel' }
+
+/-- Auxiliary instance if `rel_hom_class.to_fun_like.to_has_coe_to_fun` isn't found -/
 instance : has_coe_to_fun (r →r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
 
 initialize_simps_projections rel_hom (to_fun → apply)
 
-theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel'
+protected theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel'
 
 @[simp] theorem coe_fn_mk (f : α → β) (o) :
   (@rel_hom.mk _ _ r s f o : α → β) = f := rfl
@@ -60,14 +115,14 @@ theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel
 @[simp] theorem coe_fn_to_fun (f : r →r s) : (f.to_fun : α → β) = f := rfl
 
 /-- The map `coe_fn : (r →r s) → (α → β)` is injective. -/
-theorem coe_fn_injective : @function.injective (r →r s) (α → β) coe_fn
-| ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ h := by { congr, exact h }
+theorem coe_fn_injective : @function.injective (r →r s) (α → β) coe_fn :=
+fun_like.coe_injective
 
 @[ext] theorem ext ⦃f g : r →r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext h)
+fun_like.ext f g h
 
 theorem ext_iff {f g : r →r s} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, ext h⟩
+fun_like.ext_iff
 
 /-- Identity map is a relation homomorphism. -/
 @[refl, simps] protected def id (r : α → α → Prop) : r →r r :=
@@ -83,30 +138,6 @@ protected def swap (f : r →r s) : swap r →r swap s :=
 
 /-- A function is a relation homomorphism from the preimage relation of `s` to `s`. -/
 def preimage (f : α → β) (s : β → β → Prop) : f ⁻¹'o s →r s := ⟨f, λ a b, id⟩
-
-protected theorem is_irrefl : ∀ (f : r →r s) [is_irrefl β s], is_irrefl α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a h, H _ (o h)⟩
-
-protected theorem is_asymm : ∀ (f : r →r s) [is_asymm β s], is_asymm α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b h₁ h₂, H _ _ (o h₁) (o h₂)⟩
-
-protected theorem acc (f : r →r s) (a : α) : acc s (f a) → acc r a :=
-begin
-  generalize h : f a = b, intro ac,
-  induction ac with _ H IH generalizing a, subst h,
-  exact ⟨_, λ a' h, IH (f a') (f.map_rel h) _ rfl⟩
-end
-
-protected theorem well_founded : ∀ (f : r →r s) (h : well_founded s), well_founded r
-| f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
-
-lemma map_inf {α β : Type*} [semilattice_inf α] [linear_order β]
-  (a : ((<) : β → β → Prop) →r ((<) : α → α → Prop)) (m n : β) : a (m ⊓ n) = a m ⊓ a n :=
-(strict_mono.monotone $ λ x y, a.map_rel).map_inf m n
-
-lemma map_sup {α β : Type*} [semilattice_sup α] [linear_order β]
-  (a : ((>) : β → β → Prop) →r ((>) : α → α → Prop)) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
-@rel_hom.map_inf (order_dual α) (order_dual β) _ _ _ _ _
 
 end rel_hom
 
@@ -126,15 +157,15 @@ lemma rel_hom.injective_of_increasing [is_trichotomous α r]
   [is_irrefl β s] (f : r →r s) : injective f :=
 injective_of_increasing r s f (λ x y, f.map_rel)
 
+-- TODO: define a `rel_iff_class` so we don't have to do all the `convert` trickery?
 theorem surjective.well_founded_iff {f : α → β} (hf : surjective f)
   (o : ∀ {a b}, r a b ↔ s (f a) (f b)) : well_founded r ↔ well_founded s :=
 iff.intro (begin
-  apply rel_hom.well_founded,
-  refine rel_hom.mk _ _,
-  {exact classical.some hf.has_right_inverse},
+  refine rel_hom_class.well_founded (rel_hom.mk _ _ : s →r r),
+  { exact classical.some hf.has_right_inverse },
   intros a b h, apply o.2, convert h,
   iterate 2 { apply classical.some_spec hf.has_right_inverse },
-end) (rel_hom.well_founded ⟨f, λ _ _, o.1⟩)
+end) (rel_hom_class.well_founded (⟨f, λ _ _, o.1⟩ : r →r s))
 
 /-- A relation embedding with respect to a given pair of relations `r` and `s`
 is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/
@@ -163,6 +194,12 @@ instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ↪r s) (λ _, α → β) := ⟨λ o, o.to_embedding⟩
 
+-- TODO: define and instantiate a `rel_embedding_class` when `embedding_like` is defined
+instance : rel_hom_class (r ↪r s) r s :=
+{ coe := coe_fn,
+  coe_injective' := λ f g h, by { rcases f with ⟨⟨⟩⟩, rcases g with ⟨⟨⟩⟩, congr' },
+  map_rel := λ f a b, iff.mpr (map_rel_iff' f) }
+
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
 because it is a composition of multiple projections. -/
 def simps.apply (h : r ↪r s) : α → β := h
@@ -183,14 +220,11 @@ theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map
 @[simp] theorem coe_fn_to_embedding (f : r ↪r s) : (f.to_embedding : α → β) = f := rfl
 
 /-- The map `coe_fn : (r ↪r s) → (α → β)` is injective. -/
-theorem coe_fn_injective : @function.injective (r ↪r s) (α → β) coe_fn
-| ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
+theorem coe_fn_injective : @function.injective (r ↪r s) (α → β) coe_fn := fun_like.coe_injective
 
-@[ext] theorem ext ⦃f g : r ↪r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext h)
+@[ext] theorem ext ⦃f g : r ↪r s⦄ (h : ∀ x, f x = g x) : f = g := fun_like.ext _ _ h
 
-theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, ext h⟩
+theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
 
 /-- Identity map is a relation embedding. -/
 @[refl, simps] protected def refl (r : α → α → Prop) : r ↪r r :=
@@ -319,9 +353,18 @@ in the target type. -/
 def to_rel_embedding (f : r ≃r s) : r ↪r s :=
 ⟨f.to_equiv.to_embedding, f.map_rel_iff'⟩
 
+theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
+| ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
+
 instance : has_coe (r ≃r s) (r ↪r s) := ⟨to_rel_embedding⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ≃r s) (λ _, α → β) := ⟨λ f, f⟩
+
+-- TODO: define and instantiate a `rel_iso_class` when `equiv_like` is defined
+instance : rel_hom_class (r ≃r s) r s :=
+{ coe := coe_fn,
+  coe_injective' := equiv.coe_fn_injective.comp to_equiv_injective,
+  map_rel := λ f a b, iff.mpr (map_rel_iff' f) }
 
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 
@@ -334,19 +377,13 @@ theorem map_rel_iff (f : r ≃r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃r s) : (f.to_equiv : α → β) = f := rfl
 
-theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
-| ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
-
 /-- The map `coe_fn : (r ≃r s) → (α → β)` is injective. Lean fails to parse
 `function.injective (λ e : r ≃r s, (e : α → β))`, so we use a trick to say the same. -/
-theorem coe_fn_injective : @function.injective (r ≃r s) (α → β) coe_fn :=
-equiv.coe_fn_injective.comp to_equiv_injective
+theorem coe_fn_injective : @function.injective (r ≃r s) (α → β) coe_fn := fun_like.coe_injective
 
-@[ext] theorem ext ⦃f g : r ≃r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext h)
+@[ext] theorem ext ⦃f g : r ≃r s⦄ (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
-theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, ext h⟩
+theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
 
 /-- Inverse map of a relation isomorphism is a relation isomorphism. -/
 @[symm] protected def symm (f : r ≃r s) : s ≃r r :=

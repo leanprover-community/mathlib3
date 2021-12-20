@@ -254,13 +254,13 @@ instance : bounded_order (subgraph G) :=
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
 
 -- TODO simp lemmas for the other lattice operations on subgraphs
-@[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
-
 @[simp] lemma top_verts : (⊤ : subgraph G).verts = set.univ := rfl
 
-@[simp] lemma bot_adj_iff : (⊥ : subgraph G).verts = ∅ := rfl
+@[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
 
-@[simp] lemma bot_verts {v w : V} : ¬(⊥ : subgraph G).adj v w := not_false
+@[simp] lemma bot_verts : (⊥ : subgraph G).verts = ∅ := rfl
+
+@[simp] lemma not_bot_adj {v w : V} : ¬(⊥ : subgraph G).adj v w := not_false
 
 @[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
 by { ext, refl }
@@ -352,9 +352,12 @@ instance coe_finite_at {G' : subgraph G} (v : G'.verts) [fintype (G'.neighbor_se
   fintype (G'.coe.neighbor_set v) :=
 fintype.of_equiv _ (coe_neighbor_set_equiv v).symm
 
-/-- The degree of a vertex in a subgraph.  Is zero for vertices outside the subgraph. -/
+/-- The degree of a vertex in a subgraph. It's zero for vertices outside the subgraph. -/
 def degree (G' : subgraph G) (v : V) [fintype (G'.neighbor_set v)] : ℕ :=
 fintype.card (G'.neighbor_set v)
+
+lemma finset_card_neighbor_set_eq_degree {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
+  (G'.neighbor_set v).to_finset.card = G'.degree v := by rw [degree, set.to_finset_card]
 
 lemma degree_le (G' : subgraph G) (v : V)
   [fintype (G'.neighbor_set v)] [fintype (G.neighbor_set v)] :
@@ -375,6 +378,13 @@ set.card_le_of_subset (neighbor_set_subset_of_subgraph h v)
 begin
   rw ←card_neighbor_set_eq_degree,
   exact fintype.card_congr (coe_neighbor_set_equiv v),
+end
+
+lemma degree_eq_one_iff_unique_adj {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
+  G'.degree v = 1 ↔ ∃! (w : V), G'.adj v w :=
+begin
+  rw [← finset_card_neighbor_set_eq_degree, finset.card_eq_one, finset.singleton_iff_unique_mem],
+  simp only [set.mem_to_finset, mem_neighbor_set],
 end
 
 end subgraph

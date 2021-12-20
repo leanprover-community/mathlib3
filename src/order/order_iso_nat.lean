@@ -28,12 +28,7 @@ variables {α : Type*} {r : α → α → Prop} [is_strict_order α r]
 /-- If `f` is a strictly `r`-increasing sequence, then this returns `f` as an order embedding. -/
 def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) :
   ((<) : ℕ → ℕ → Prop) ↪r r :=
-of_monotone f $ λ a b h, begin
-  induction b with b IH, {exact (nat.not_lt_zero _ h).elim},
-  cases nat.lt_succ_iff_lt_or_eq.1 h with h e,
-  { exact trans (IH h) (H _) },
-  { subst b, apply H }
-end
+of_monotone f $ nat.rel_of_forall_rel_succ_of_lt r H
 
 @[simp]
 lemma nat_lt_apply {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} {n : ℕ} :

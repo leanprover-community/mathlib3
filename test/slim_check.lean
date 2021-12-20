@@ -409,3 +409,20 @@ f := [0 ↦ 1, _ ↦ 0]
   admit,
   trivial,
 end
+
+example (f : Π₀ n : ℕ, ℕ) : true :=
+begin
+  have : f.update 0 0 = 0,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [1 ↦ 1, _ ↦ 0]
+(1 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end

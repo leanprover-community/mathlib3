@@ -6,6 +6,7 @@ Authors: Simon Hudon
 import data.list.sigma
 import data.int.range
 import data.finsupp.basic
+import data.finsupp.to_dfinsupp
 import tactic.pretty_cases
 import testing.slim_check.sampleable
 import testing.slim_check.testable
@@ -132,7 +133,6 @@ end
 
 section finsupp
 
-
 variables [has_zero β]
 /-- Map a total_function to one whose default value is zero so that it represents a finsupp. -/
 @[simp]
@@ -177,6 +177,15 @@ variables [sampleable α] [sampleable β]
 instance finsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (α →₀ β) :=
 { proxy_repr := total_function α β,
   interp := total_function.apply_finsupp,
+  sample := (do
+    xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
+    ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
+    pure $ total_function.with_default (list.to_finmap' xs) x),
+  shrink := total_function.shrink }
+
+instance dfinsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (Π₀ a : α, β) :=
+{ proxy_repr := total_function α β,
+  interp := finsupp.to_dfinsupp ∘ total_function.apply_finsupp,
   sample := (do
     xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
     ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),

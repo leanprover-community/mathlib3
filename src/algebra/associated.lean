@@ -834,12 +834,12 @@ begin
   intros n m h,
   apply ne_of_dvd_not_unit,
   split,
-  exact pow_ne_zero n hq',
-  use q^(m - n),
+  { exact pow_ne_zero n hq' },
+  { use q^(m - n),
   split,
-  exact not_is_unit_of_not_is_unit_dvd hq
-    (dvd_pow (dvd_refl _) (ne_of_lt (nat.sub_pos_of_lt h)).symm),
-  exact (pow_mul_pow_sub q (le_of_lt h)).symm,
+  { exact not_is_unit_of_not_is_unit_dvd hq
+      (dvd_pow (dvd_refl _) (ne_of_lt (nat.sub_pos_of_lt h)).symm) },
+  { exact (pow_mul_pow_sub q (le_of_lt h)).symm  } },
 end
 
 

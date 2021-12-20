@@ -241,7 +241,7 @@ def hol_submodule (D: open_subs) : submodule (ℂ)  (D.1 → ℂ) :=
 
 
 lemma diff_on_diff (f : D.1 → ℂ) (h : ∀ x : D.1, ∃ (ε: ℝ), 0 < ε ∧
-  differentiable_on ℂ (extend_by_zero f) metric.ball x ε) :
+  differentiable_on ℂ (extend_by_zero f) (metric.ball x ε)) :
   differentiable_on ℂ (extend_by_zero f) D.1 :=
 begin
 sorry,

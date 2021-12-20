@@ -49,15 +49,11 @@ by { rw [count, list.countp_eq_length_filter], refl, }
 lemma count_eq_card_fintype (n : ℕ) : count p n = fintype.card {k : ℕ // k < n ∧ p k} :=
 by { rw [count_eq_card_filter_range, ←fintype.card_of_finset, ←count_set.fintype], refl, }
 
-lemma count_monotone : monotone (count p) :=
-begin
-  intros a b h,
-  rw [count, list.countp_eq_length_filter, count, list.countp_eq_length_filter],
-  exact list.length_le_of_sublist (list.sublist.filter p (list.range_sublist.mpr h)),
-end
-
 lemma count_succ (n : ℕ) : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 by split_ifs; simp [count, list.range_succ, h]
+
+@[mono] lemma count_monotone : monotone (count p) :=
+monotone_nat_of_le_succ $ λ n, by by_cases h : p n; simp [count_succ, h]
 
 lemma count_add (a b : ℕ) : count p (a + b) = count p a + count (λ k, p (a + k)) b :=
 begin
@@ -80,6 +76,9 @@ by rw [count_add', count_one]
 
 variables {p}
 
+@[simp] lemma count_lt_count_succ_iff {n : ℕ} : count p n < count p (n + 1) ↔ p n :=
+by by_cases h : p n; simp [count_succ, h]
+
 lemma count_succ_eq_succ_count_iff {n : ℕ} : count p (n + 1) = count p n + 1 ↔ p n :=
 by by_cases h : p n; simp [h, count_succ]
 
@@ -99,15 +98,7 @@ lemma lt_of_count_lt_count {a b : ℕ} (h : count p a < count p b) : a < b :=
 (count_monotone p).reflect_lt h
 
 lemma count_strict_mono {m n : ℕ} (hm : p m) (hmn : m < n) : count p m < count p n :=
-begin
-  rw [count_eq_card_filter_range, count_eq_card_filter_range],
-  apply finset.card_lt_card,
-  refine ⟨λ a, _, _⟩,
-  { simp only [and_imp, mem_filter, mem_range],
-    exact λ ha hp, ⟨ha.trans hmn, hp⟩ },
-  { rw finset.not_subset,
-    exact ⟨m, by simp [hm, hmn]⟩ }
-end
+(count_lt_count_succ_iff.2 hm).trans_le $ count_monotone _ (nat.succ_le_iff.2 hmn)
 
 lemma count_injective {m n : ℕ} (hm : p m) (hn : p n) (heq : count p m = count p n) : m = n :=
 begin
@@ -117,14 +108,15 @@ begin
   { simpa [heq] using count_strict_mono hm hmn }
 end
 
-lemma count_lt_card {n : ℕ} (hp : (set_of p).finite) (hpn : p n) :
-  count p n < hp.to_finset.card :=
+lemma count_le_card (hp : (set_of p).finite) (n : ℕ) : count p n ≤ hp.to_finset.card :=
 begin
   rw count_eq_card_filter_range,
-  refine finset.card_lt_card ⟨λ x hx, hp.mem_to_finset.2 (mem_filter.1 hx).2, _⟩,
-  rw finset.not_subset,
-  exact ⟨n, (set.finite.mem_to_finset _).2 hpn, λ h, not_mem_range_self (mem_filter.1 h).1⟩
+  exact finset.card_mono (λ x hx, hp.mem_to_finset.2 (mem_filter.1 hx).2)
 end
+
+lemma count_lt_card {n : ℕ} (hp : (set_of p).finite) (hpn : p n) :
+  count p n < hp.to_finset.card :=
+(count_lt_count_succ_iff.2 hpn).trans_le (count_le_card hp _)
 
 variable {q : ℕ → Prop}
 variable [decidable_pred q]

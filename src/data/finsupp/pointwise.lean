@@ -69,5 +69,37 @@ instance [non_unital_non_assoc_semiring β] : non_unital_non_assoc_semiring (α 
 instance [non_unital_semiring β] : non_unital_semiring (α →₀ β) :=
 { ..(infer_instance : semigroup (α →₀ β)),
   ..(infer_instance : non_unital_non_assoc_semiring (α →₀ β)) }
+  import data.finsupp.basic
+
+-- TODO can/should this be generalized in the direction of pi.has_scalar' (i.e. dependent funcs)
+/-- The pointwise multiplicative action of functions on finitely supported functions -/
+instance finsupp.pointwise_distrib_mul_action {α β γ : Type*} [monoid β] [add_monoid γ]
+  [distrib_mul_action β γ] : distrib_mul_action (α → β) (α →₀ γ) :=
+{ smul := λ f g, finsupp.of_support_finite (λ a, f a • g a) begin
+    apply set.finite.subset g.finite_support,
+    simp only [function.support_subset_iff, finsupp.mem_support_iff, ne.def,
+      finsupp.fun_support_eq, finset.mem_coe],
+    intros x hx h,
+    apply hx,
+    rw [h, smul_zero],
+  end,
+  one_smul := λ b,
+    begin
+      ext a,
+      simp only [one_smul, pi.one_apply],
+      rw finsupp.of_support_finite_coe,
+    end,
+  mul_smul := λ x y b, by simp [finsupp.of_support_finite_coe, mul_smul],
+  smul_add := λ r x y, begin
+    simp [finsupp.of_support_finite_coe, smul_add],
+    refine finsupp.ext (congr_fun rfl)
+  end,
+  smul_zero := λ b, finsupp.ext (by simp [finsupp.of_support_finite_coe, smul_zero]) }
+-- TODO in theory this could be generalised, we only really need smul_zero for the definition
+
+lemma key_property {α β γ : Type*} [monoid β] [add_monoid γ] [distrib_mul_action β γ]
+  (f : α → β) (g : α →₀ γ) : ⇑(f • g) = f • g := rfl
+-- TODO instances for groups?
+example (F : ℕ → ℤ) (R : ℕ →₀ ℤ) : F • R = F • R := rfl
 
 end finsupp

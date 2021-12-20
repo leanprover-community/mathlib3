@@ -10,6 +10,7 @@ import ring_theory.adjoin
 import data.matrix.basic
 import data.polynomial.basic
 import ring_theory.nilpotent
+import data.polynomial.induction
 import order.filter.at_top_bot
 import tactic.omega
 
@@ -131,27 +132,27 @@ variable [ring R]
 open linear_map
 open function
 
-variables {γ : Type*} [preorder γ] [decidable_rel ((≤) : γ → γ → Prop)]
+-- variables {γ : Type*} [preorder γ] [decidable_rel ((≤) : γ → γ → Prop)]
 
-open filter
-def strict_monotone_inc_subseq {f : ℕ → γ} (h : ∀ n, ∃ m, f n < f (n + m)) :
-ℕ → ℕ
--- ∃ g : ℕ → ℕ, strict_mono g ∧ strict_mono (f ∘ g) :=
--- begin
---   have : tendsto f at_top at_top,
---   { rw tendsto_at_top_at_top,
---   sorry;
---     by_contra, },
---   sorry
---   -- have := strict_mono_subseq_of_tendsto_at_top this,
--- end
+-- open filter
+-- def strict_monotone_inc_subseq {f : ℕ → γ} (h : ∀ n, ∃ m, f n < f (n + m)) :
+-- ℕ → ℕ
+-- -- ∃ g : ℕ → ℕ, strict_mono g ∧ strict_mono (f ∘ g) :=
+-- -- begin
+-- --   have : tendsto f at_top at_top,
+-- --   { rw tendsto_at_top_at_top,
+-- --   sorry;
+-- --     by_contra, },
+-- --   sorry
+-- --   -- have := strict_mono_subseq_of_tendsto_at_top this,
+-- -- end
 
-| 0       := 0
-| (n + 1) := (strict_monotone_inc_subseq n) + nat.find (h (strict_monotone_inc_subseq n))
+-- | 0       := 0
+-- | (n + 1) := (strict_monotone_inc_subseq n) + nat.find (h (strict_monotone_inc_subseq n))
 
-lemma strict_monotone_inc_subseq_spec (f : ℕ → γ) (h : ∀ n, ∃ m, f n < f (n + m)) :
-  strict_mono (f ∘ strict_monotone_inc_subseq h) :=
-strict_mono_nat_of_lt_succ (λ n, nat.find_spec (h (strict_monotone_inc_subseq h n)))
+-- lemma strict_monotone_inc_subseq_spec (f : ℕ → γ) (h : ∀ n, ∃ m, f n < f (n + m)) :
+--   strict_mono (f ∘ strict_monotone_inc_subseq h) :=
+-- strict_mono_nat_of_lt_succ (λ n, nat.find_spec (h (strict_monotone_inc_subseq h n)))
 
 -- TODO artinian version of ring stuff?
 open_locale classical
@@ -159,55 +160,56 @@ open_locale classical
 @[simp] theorem ker_one {R : Type*} [ring R] {M : Type*} [add_comm_group M] [module R M] :
   ker (1 : M →ₗ[R] M) = ⊥ := rfl
 
-theorem noeth_mod_surj_inj {R : Type*} [ring R] {M : Type*} [add_comm_group M] [module R M]
-  [is_noetherian R M] {f : M →ₗ[R] M} (f_surj : function.surjective f) : function.injective f :=
-begin
-  have := well_founded_submodule_gt R M,
-  rw rel_embedding.well_founded_iff_no_descending_seq at this,
-  suffices : ∃ n, ∀ m : ℕ, (f ^ n).ker = (f ^ (n + m)).ker,
-  { obtain ⟨n, hn⟩ := this,
-    by_cases hne : n = 0,
-    { simpa [hne, ← ker_eq_bot] using (hn 1).symm, },
-    have pow_surj := iterate_surjective f_surj n,
-    have : (f ^ n).ker ⊓ linear_map.range (f ^ n) = ⊥,
-    { ext,
-      rw [submodule.mem_inf, mem_ker, mem_range, submodule.mem_bot],
-      split,
-      { rintro ⟨h₁, ⟨y, h₂⟩⟩,
-        rw ← h₂ at h₁, rw ← linear_map.comp_apply at h₁,
-        have : f * f = f.comp f := mul_eq_comp f f,
-        rw [← mul_eq_comp, ←pow_add] at h₁, rw ← mem_ker at h₁,
-        have : ker (f ^ n) = ker (f ^ (n + n)) := hn n,
-        rw ← this at h₁, rw mem_ker at h₁,
-        rw h₁ at h₂, exact h₂.symm, },
-      intro a,
-      rw [a, map_zero],
-      use 0,
-      rw map_zero, },
-    have range_eq_top : range (f ^ n) = ⊤ := range_eq_top.mpr pow_surj,
-    have : (f ^ n).ker = ⊥,
-    { simpa [range_eq_top] using this, },
-    have : function.injective ⇑(f ^ n) := ker_eq_bot.mp this,
-    exact injective_of_iterate_injective hne this, },
-  contrapose! this,
-  rw [not_is_empty_iff],
-  refine nonempty.intro _,
-  have h_ker_lt :
-    ∀ n, ∃ (m : ℕ), (λ (n : ℕ), (f ^ n).ker) n < (λ (n : ℕ), (f ^ n).ker) (n + m),
-  { intro n,
-    simp only,
-    have h_ker_le : ∀ n m : ℕ, (f ^ n).ker ≤ (f ^ (n + m)).ker,
-    { intros n m x hx,
-      rw add_comm,
-      rw [mem_ker, pow_apply] at hx,
-      simp [mem_ker, pow_add, hx, mul_apply, pow_apply, map_zero], },
-    cases this n with m hm,
-    exact ⟨m, lt_of_le_of_ne (h_ker_le n m) hm⟩, },
-  refine rel_embedding.of_monotone
-    ((λ (n : ℕ), (f ^ n).ker) ∘ strict_monotone_inc_subseq h_ker_lt) _,
-  intros a b hab,
-  exact strict_monotone_inc_subseq_spec (λ n, (f ^ n).ker) h_ker_lt hab,
-end
+-- Oops turns out this is already in mathlib now
+-- theorem noeth_mod_surj_inj {R : Type*} [ring R] {M : Type*} [add_comm_group M] [module R M]
+--   [is_noetherian R M] {f : M →ₗ[R] M} (f_surj : function.surjective f) : function.injective f :=
+-- begin
+--   have := well_founded_submodule_gt R M,
+--   rw rel_embedding.well_founded_iff_no_descending_seq at this,
+--   suffices : ∃ n, ∀ m : ℕ, (f ^ n).ker = (f ^ (n + m)).ker,
+--   { obtain ⟨n, hn⟩ := this,
+--     by_cases hne : n = 0,
+--     { simpa [hne, ← ker_eq_bot] using (hn 1).symm, },
+--     have pow_surj := iterate_surjective f_surj n,
+--     have : (f ^ n).ker ⊓ linear_map.range (f ^ n) = ⊥,
+--     { ext,
+--       rw [submodule.mem_inf, mem_ker, mem_range, submodule.mem_bot],
+--       split,
+--       { rintro ⟨h₁, ⟨y, h₂⟩⟩,
+--         rw ← h₂ at h₁, rw ← linear_map.comp_apply at h₁,
+--         have : f * f = f.comp f := mul_eq_comp f f,
+--         rw [← mul_eq_comp, ←pow_add] at h₁, rw ← mem_ker at h₁,
+--         have : ker (f ^ n) = ker (f ^ (n + n)) := hn n,
+--         rw ← this at h₁, rw mem_ker at h₁,
+--         rw h₁ at h₂, exact h₂.symm, },
+--       intro a,
+--       rw [a, map_zero],
+--       use 0,
+--       rw map_zero, },
+--     have range_eq_top : range (f ^ n) = ⊤ := range_eq_top.mpr pow_surj,
+--     have : (f ^ n).ker = ⊥,
+--     { simpa [range_eq_top] using this, },
+--     have : function.injective ⇑(f ^ n) := ker_eq_bot.mp this,
+--     exact injective_of_iterate_injective hne this, },
+--   contrapose! this,
+--   rw [not_is_empty_iff],
+--   refine nonempty.intro _,
+--   have h_ker_lt :
+--     ∀ n, ∃ (m : ℕ), (λ (n : ℕ), (f ^ n).ker) n < (λ (n : ℕ), (f ^ n).ker) (n + m),
+--   { intro n,
+--     simp only,
+--     have h_ker_le : ∀ n m : ℕ, (f ^ n).ker ≤ (f ^ (n + m)).ker,
+--     { intros n m x hx,
+--       rw add_comm,
+--       rw [mem_ker, pow_apply] at hx,
+--       simp [mem_ker, pow_add, hx, mul_apply, pow_apply, map_zero], },
+--     cases this n with m hm,
+--     exact ⟨m, lt_of_le_of_ne (h_ker_le n m) hm⟩, },
+--   refine rel_embedding.of_monotone
+--     ((λ (n : ℕ), (f ^ n).ker) ∘ strict_monotone_inc_subseq h_ker_lt) _,
+--   intros a b hab,
+--   exact strict_monotone_inc_subseq_spec (λ n, (f ^ n).ker) h_ker_lt hab,
+-- end
 
 
 @[priority 100]
@@ -217,7 +219,7 @@ instance is_dedekind_finite_of_noetherian [is_noetherian_ring R] : is_dedekind_f
     have : is_linear_map R _ := is_linear_map.is_linear_map_smul' b,
     set f : R →ₗ[R] R := is_linear_map.mk' _ this,
     have f_surj : function.surjective f := λ x, ⟨x * a, by simp [mul_assoc, h]⟩,
-    have f_inj := noeth_mod_surj_inj f_surj,
+    have f_inj := is_noetherian.injective_of_surjective_endomorphism f f_surj,
     exact sub_eq_zero.mp (f_inj (
         calc f (b * a - 1) = (b * a - 1) * b : by simp only [is_linear_map.mk'_apply,
                                                               smul_eq_mul, sub_eq_add_neg]
@@ -444,141 +446,147 @@ end
 end
 end dedekind_finite
 -- IIRC this was an attempt to p
--- section
--- variables  {R : Type*} [comm_ring R] [nontrivial R] {M : Type*} [add_comm_group M]
--- [module R M] (f : M →ₗ[R] M)
+section
+variables {R : Type*} [comm_ring R] [nontrivial R] {M : Type*} [add_comm_group M]
+  [module R M] (f : M →ₗ[R] M)
 
--- noncomputable theory
+noncomputable theory
 
 
 
--- -- if I dont have this some nat decidable instances crop up later and make some "same" finsets
--- -- different
+-- if I dont have this some nat decidable instances crop up later and make some "same" finsets
+-- different
 -- local attribute [instance, priority 1000] classical.prop_decidable
 
+-- instance : add_monoid_hom_class (dual 𝕜 E) E 𝕜 := linear_map.add_monoid_hom_class
 
--- set_option pp.all false
--- instance module_polynomial_ring_endo : module (polynomial R) M := { smul := λ r m,
--- r.support.sum (λ i, r.coeff i • (f ^ i) m),
---   one_smul := λ b, begin
---     simp,
---     have : (1 : polynomial R).support = {0} := by library_search,
---     simp only [this, finset.sum_singleton, eq_self_iff_true, if_true, pow_zero,
---         linear_map.one_apply, one_smul],
---     end,
---   mul_smul := λ x y b, begin simp, sorry, end,
---   smul_add := λ x m n, begin
---     simp only [linear_map.one_apply, if_true, eq_self_iff_true, one_smul, linear_map.pow_apply,
---       finset.sum_singleton, zero_ne_one, pow_zero],
---     rw ←finset.sum_add_distrib,
---     congr,
---     funext i,
---     rw [←linear_map.coe_pow, linear_map.map_add, smul_add]
---   end,
---   smul_zero := λ r, begin
---     simp only [linear_map.one_apply, if_true, eq_self_iff_true, one_smul, linear_map.pow_apply,
---         finset.sum_singleton, zero_ne_one, pow_zero],
---     apply finset.sum_eq_zero,
---     intros x hx,
---     rw [←linear_map.coe_pow, linear_map.map_zero, smul_zero]
---   end,
---   add_smul := λ x y m, begin
---     simp only [smul_add, linear_map.map_zero, linear_map.one_apply, if_true,
---                           polynomial.coeff_add,
---       eq_self_iff_true, one_smul, linear_map.pow_apply, finset.sum_singleton, zero_ne_one,
---       linear_map.map_add, smul_zero, pow_zero],
---     have := @finset.sum_subset _ _ (x + y).support (x.support ∪ y.support) _ _
---                 finsupp.support_add _,
---     rw this,
---     conv_lhs{congr,skip, funext,
---     rw add_smul,},
---     rw finset.sum_add_distrib,
---     rw finset.sum_subset (finset.subset_union_left x.support y.support),
---     rw finset.sum_subset (finset.subset_union_right x.support y.support),
+def module_polynomial_ring_endo : module (polynomial R) M := { smul := λ r m,
+r.sum (λ i c, c • ((f ^ i) m)),
+  one_smul := λ b, begin
+    convert polynomial.sum_monomial_index _ _ _ _;
+    simp,
+    end,
+  mul_smul := λ g h b, begin
+    induction g using polynomial.induction_on,
+    { rw ← polynomial.smul_eq_C_mul,
+      simp only [id.def, polynomial.sum_C_index, function.iterate_zero,
+        linear_map.pow_apply, zero_smul],
+      rw polynomial.sum_smul_index,
+      { rw polynomial.sum_def,
+        rw polynomial.sum_def,
+        rw finset.smul_sum,
+        simp [mul_smul], },
+      { simp, }, },
+    rw [add_mul],
+    simp [-linear_map.pow_apply, linear_map.map_sum],
+    rw polynomial.mul_eq_sum_sum,
+    rw polynomial.sum, rw polynomial.sum, rw polynomial.sum, simp [linear_map.map_sum, linear_map.map_smul, ← function.iterate_add_apply],
+    sorry, end,
+  smul_add := λ x m n, by simp [linear_map.map_add, polynomial.sum_add],
+  smul_zero := λ r, begin
+    simp only [linear_map.one_apply, if_true, eq_self_iff_true, one_smul, linear_map.pow_apply,
+        finset.sum_singleton, zero_ne_one, pow_zero],
+    apply finset.sum_eq_zero,
+    intros x hx,
+    rw [←linear_map.coe_pow, linear_map.map_zero, smul_zero]
+  end,
+  add_smul := λ x y m, begin
+    simp [smul_add, linear_map.map_zero, linear_map.one_apply, if_true,
+                          polynomial.coeff_add,
+      eq_self_iff_true, one_smul, linear_map.pow_apply, finset.sum_singleton, zero_ne_one,
+      linear_map.map_add, smul_zero, pow_zero],
+    have := @finset.sum_subset _ _ (x + y).support (x.support ∪ y.support) _ _
+                finsupp.support_add _,
+    rw this,
+    conv_lhs{congr,skip, funext,
+    rw add_smul,},
+    rw finset.sum_add_distrib,
+    rw finset.sum_subset (finset.subset_union_left x.support y.support),
+    rw finset.sum_subset (finset.subset_union_right x.support y.support),
 
---     rintros x_1 - a,
---     have : polynomial.coeff y x_1 = 0 := finsupp.not_mem_support_iff.mp a,
---     rw this,
---     rw zero_smul,
+    rintros x_1 - a,
+    have : polynomial.coeff y x_1 = 0 := finsupp.not_mem_support_iff.mp a,
+    rw this,
+    rw zero_smul,
 
---     rintros x_1 - a,
---     have : polynomial.coeff x x_1 = 0 := finsupp.not_mem_support_iff.mp a,
---     rw this,
---     rw zero_smul,
+    rintros x_1 - a,
+    have : polynomial.coeff x x_1 = 0 := finsupp.not_mem_support_iff.mp a,
+    rw this,
+    rw zero_smul,
 
---     rintros x_1 - a,
---     rw ← polynomial.coeff_add,
---     have : polynomial.coeff (x + y) x_1 = 0 := finsupp.not_mem_support_iff.mp a,
---     rw this,
---     rw zero_smul,
---    end,
---   zero_smul := λ m, begin simp, end }
+    rintros x_1 - a,
+    rw ← polynomial.coeff_add,
+    have : polynomial.coeff (x + y) x_1 = 0 := finsupp.not_mem_support_iff.mp a,
+    rw this,
+    rw zero_smul,
+   end,
+  zero_smul := λ m, begin simp, end }
 
 
+open polynomial
 
--- theorem fg_comm_mod_surj_inj (hfg : (⊤ : submodule R M).fg) (f_surj : function.surjective f)
--- : function.injective f :=
--- begin
---     letI := module_polynomial_ring_endo f,
---     let I : ideal (polynomial R) := ideal.span {polynomial.X},
---     have supp_X : (polynomial.X : polynomial R).support ⊆ {1} := finsupp.support_single_subset,
---     have X_mul : ∀ o, (polynomial.X : polynomial R) • o = f o := begin
---         intro,
---         simp only [(•)],
---         rw finset.sum_subset supp_X,
---         {simp only [polynomial.coeff_X_one, one_smul, finset.sum_singleton, pow_one]},
---         rintros x - a,
---         have : polynomial.coeff (polynomial.X : polynomial R) x = 0 :=
---                                      finsupp.not_mem_support_iff.mp a,
---         rw this,
---         rw zero_smul,
---     end,
---     have : (⊤ : submodule (polynomial R) M) ≤ I • (⊤ : submodule (polynomial R) M) := begin
---         intros a ha,
---         obtain ⟨y, rfl⟩ := f_surj a,
---         simp only [(X_mul y).symm, submodule.mem_coe],
---         have xmem : polynomial.X ∈ I := ideal.mem_span_singleton.mpr (dvd_refl _),
---         exact submodule.smul_mem_smul xmem trivial,
---     end,
---     have hfgpoly : (⊤ : submodule (polynomial R) M).fg :=
---     begin
---         obtain ⟨S, hS⟩ := hfg,
---         refine submodule.fg_def.mpr _,
---         use ↑ S,
---         split,
---         exact finset.finite_to_set S,
---         rw submodule.span_eq_of_le,
---         {simp},
---         intros a ha,
---         have : a ∈ submodule.span R ↑S := set.mem_of_eq_of_mem hS trivial,
---         rw submodule.mem_span at *,
---         intros p hp,
---         --have := this (begin suggest, end),
--- sorry
+theorem fg_comm_mod_surj_inj (hfg : (⊤ : submodule R M).fg) (f_surj : function.surjective f)
+: function.injective f :=
+begin
+  nontriviality R,
+  letI := module_polynomial_ring_endo f,
+  let I : ideal (polynomial R) := ideal.span {polynomial.X},
+  have supp_X : (polynomial.X : polynomial R).support = {1} := polynomial.support_X one_ne_zero,
+  have X_mul : ∀ o, (X : polynomial R) • o = f o,
+  { intro,
 
---     end,
---     obtain ⟨F, ⟨hFa,hFb⟩⟩ :=
--- submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul I
--- (⊤ : submodule (polynomial R) M) hfgpoly this,
---     rw  ← linear_map.ker_eq_bot,
---     rw linear_map.ker_eq_bot',
---     intros m hm,
---     have Fmzero := hFb m (by simp),
---     have : F = F - 1 + 1 := by simp only [neg_add_cancel_right, sub_eq_add_neg],
---     rw this at Fmzero,
---     rw add_smul at Fmzero,
---     simp only [add_comm, one_smul] at Fmzero,
---     suffices : (F - 1) • m = 0,
---         by rwa [this, add_zero] at Fmzero,
---     simp only [I] at hFa,
---     rw ideal.mem_span_singleton' at hFa,
---     obtain ⟨G, hG⟩ := hFa,
---     rw ← hG,
---     rw mul_smul,
+    rw finset.sum_subset supp_X,
+    {simp only [polynomial.coeff_X_one, one_smul, finset.sum_singleton, pow_one]},
+    rintros x - a,
+    have : polynomial.coeff (polynomial.X : polynomial R) x = 0 :=
+                                  finsupp.not_mem_support_iff.mp a,
+    rw [this, zero_smul], },
+  have : (⊤ : submodule (polynomial R) M) ≤ I • (⊤ : submodule (polynomial R) M) := begin
+      intros a ha,
+      obtain ⟨y, rfl⟩ := f_surj a,
+      simp only [(X_mul y).symm, submodule.mem_coe],
+      have xmem : polynomial.X ∈ I := ideal.mem_span_singleton.mpr (dvd_refl _),
+      exact submodule.smul_mem_smul xmem trivial,
+  end,
+  have hfgpoly : (⊤ : submodule (polynomial R) M).fg :=
+  begin
+      obtain ⟨S, hS⟩ := hfg,
+      refine submodule.fg_def.mpr _,
+      use ↑ S,
+      split,
+      exact finset.finite_to_set S,
+      rw submodule.span_eq_of_le,
+      {simp},
+      intros a ha,
+      have : a ∈ submodule.span R ↑S := set.mem_of_eq_of_mem hS trivial,
+      rw submodule.mem_span at *,
+      intros p hp,
+      --have := this (begin suggest, end),
+sorry
 
---     rw X_mul m,
---     rw hm,
---     rw smul_zero,
--- end
+    end,
+    obtain ⟨F, ⟨hFa,hFb⟩⟩ :=
+submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul I
+(⊤ : submodule (polynomial R) M) hfgpoly this,
+    rw  ← linear_map.ker_eq_bot,
+    rw linear_map.ker_eq_bot',
+    intros m hm,
+    have Fmzero := hFb m (by simp),
+    have : F = F - 1 + 1 := by simp only [neg_add_cancel_right, sub_eq_add_neg],
+    rw this at Fmzero,
+    rw add_smul at Fmzero,
+    simp only [add_comm, one_smul] at Fmzero,
+    suffices : (F - 1) • m = 0,
+        by rwa [this, add_zero] at Fmzero,
+    simp only [I] at hFa,
+    rw ideal.mem_span_singleton' at hFa,
+    obtain ⟨G, hG⟩ := hFa,
+    rw ← hG,
+    rw mul_smul,
+
+    rw X_mul m,
+    rw hm,
+    rw smul_zero,
+end
 
 #lint

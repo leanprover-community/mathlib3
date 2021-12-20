@@ -667,24 +667,6 @@ lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :
 ⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
  λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
 
-lemma factors_subset_right {n k : ℕ} (h : k ≠ 0) : n.factors ⊆ (n * k).factors :=
-begin
-  cases n,
-  { rw zero_mul, refl },
-  cases n,
-  { rw factors_one, apply list.nil_subset },
-  intros p hp,
-  rw mem_factors succ_pos' at hp,
-  rw mem_factors (nat.mul_pos succ_pos' (nat.pos_of_ne_zero h)),
-  exact ⟨hp.1, hp.2.mul_right k⟩,
-end
-
-lemma factors_subset_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors ⊆ k.factors :=
-begin
-  obtain ⟨a, rfl⟩ := h,
-  exact factors_subset_right (right_ne_zero_of_mul h'),
-end
-
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →
   (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → l₁ ~ l₂
 | []        []        _  _  _  := perm.nil
@@ -750,6 +732,21 @@ begin
   exact perm_factors_mul_of_pos ha hb,
 end
 
+lemma factors_sublist_right {n k : ℕ} (h : k ≠ 0) : n.factors <+ (n * k).factors :=
+begin
+  cases n,
+  { rw zero_mul },
+  apply sublist_of_subperm_of_sorted _ (factors_sorted _) (factors_sorted _),
+  rw (perm_factors_mul_of_pos succ_pos' (nat.pos_of_ne_zero h)).subperm_left,
+  exact (sublist_append_left _ _).subperm,
+end
+
+lemma factors_sublist_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors <+ k.factors :=
+begin
+  obtain ⟨a, rfl⟩ := h,
+  exact factors_sublist_right (right_ne_zero_of_mul h'),
+end
+
 /-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 lemma count_factors_mul_of_pos {p a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
@@ -782,6 +779,20 @@ begin
   rw [←list.prod_append,
       list.perm.prod_eq $ list.subperm_append_diff_self_of_count_le $ list.subperm_ext_iff.mp h,
       nat.prod_factors hb]
+end
+
+/-- For any `p`, `p` raised to its power in `n` divides `n`. -/
+lemma pow_factors_count_dvd {n p : ℕ} :
+  p ^ n.factors.count p ∣ n :=
+begin
+  by_cases hp : p.prime,
+  { apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
+    rw [hp.factors_pow, list.subperm_ext_iff],
+    intros q hq,
+    cases list.eq_of_mem_repeat hq,
+    simp },
+  rw [count_eq_zero_of_not_mem (mt prime_of_mem_factors hp), pow_zero],
+  apply one_dvd,
 end
 
 end

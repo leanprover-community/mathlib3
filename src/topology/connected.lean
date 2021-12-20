@@ -526,19 +526,15 @@ begin
     exactI (eq_univ_of_univ_subset $
       is_preconnected_univ.subset_connected_component (mem_univ x)) },
   { intros h,
-    by_cases hα : is_empty α,
+    casesI is_empty_or_nonempty α with hα hα,
     { exact ⟨by { rw (univ_eq_empty_iff.mpr hα), exact is_preconnected_empty }⟩ },
-    { rw not_is_empty_iff at hα,
-      rcases hα with ⟨x⟩,
+    { let x := classical.choice hα,
       exact ⟨by { rw ← h x, exact is_preconnected_connected_component }⟩ } }
 end
 
-lemma preconnected.connected_component_eq_univ {X : Type*} [topological_space X]
+@[simp] lemma preconnected.connected_component_eq_univ {X : Type*} [topological_space X]
   [h : preconnected_space X] (x : X) : connected_component x = univ :=
-begin
-  rw preconnected_space_iff_connected_component at h,
-  exact h x
-end
+preconnected_space_iff_connected_component.mp h x
 
 instance [topological_space β] [preconnected_space α] [preconnected_space β] :
   preconnected_space (α × β) :=

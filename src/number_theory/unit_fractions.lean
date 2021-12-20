@@ -6,6 +6,7 @@ Authors: Bhavik Mehta, Thomas Bloom
 
 import data.real.basic
 import analysis.special_functions.log
+import order.filter.at_top_bot
 
 /-!
 # Title
@@ -15,15 +16,15 @@ contains associated results useful for that paper.
 -/
 
 open_locale big_operators -- this lets me use ∑ and ∏ notation
-open real
+open filter real
 
 /-- The statement of Bloom's theorem. -/
 theorem bloom :
-  ∃ (C : ℝ), 0 < C ∧
-    ∀ (N : ℕ), ∀ A ⊆ finset.range (N+1),
-      C * log (log (log N)) * log N / log (log N) ≤ ∑ n in A, (1 / n : ℝ) →
-        ∃ S ⊆ A, ∑ n in S, (1 / n : ℝ) = 1 :=
+  ∀ᶠ (N : ℕ) in at_top, ∀ A ⊆ finset.range (N+1),
+    25 * log (log (log N)) * log N / log (log N) ≤ ∑ n in A, (1 / n : ℝ) →
+      ∃ S ⊆ A, ∑ n in S, (1 / n : ℝ) = 1 :=
 sorry
+
 -- * sorry is used as a placeholder for things we haven't filled in yet, a finished formal proof
 --   would be "sorry-free"
 -- * it's easier to write all inequalities as < or ≤ for essentially technical reasons, and it's

@@ -166,7 +166,7 @@ section bundled_Icc
 variables [decidable_eq ι] [has_zero α] [partial_order α] [locally_finite_order α] {f g : ι →₀ α}
   {i : ι} {a : α}
 
-/-- A pointwise `finset.Icc` bundled as a `finsupp`. -/
+/-- Pointwise `finset.Icc` bundled as a `finsupp`. -/
 @[simps] def Icc (f g : ι →₀ α) : ι →₀ finset α :=
 { to_fun := λ i, Icc (f i) (g i),
   support := f.support ∪ g.support,
@@ -177,6 +177,17 @@ variables [decidable_eq ι] [has_zero α] [partial_order α] [locally_finite_ord
   end }
 
 @[simp] lemma mem_Icc_apply_iff : a ∈ f.Icc g i ↔ f i ≤ a ∧ a ≤ g i := mem_Icc
+
+/-- Pointwise `finset.singleton` bundled as a `finsupp`. -/
+@[simps] def singleton (f : ι →₀ α) : ι →₀ finset α :=
+{ to_fun := λ i, {f i},
+  support := f.support,
+  mem_support_to_fun := λ i, begin
+    rw [←not_iff_not, not_mem_support_iff, not_ne_iff],
+    exact singleton_injective.eq_iff.symm,
+  end }
+
+@[simp] lemma mem_singleton_apply_iff : a ∈ f.singleton i ↔ a = f i := mem_singleton
 
 end bundled_Icc
 

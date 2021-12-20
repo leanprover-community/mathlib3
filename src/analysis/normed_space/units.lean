@@ -175,7 +175,6 @@ end
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
 lemma inverse_add_norm (x : units R) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
-  nontriviality R,
   simp only [is_O_iff, norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
   use C * ∥((x⁻¹:units R):R)∥,

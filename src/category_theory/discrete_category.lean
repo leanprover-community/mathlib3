@@ -137,7 +137,7 @@ We can promote a type-level `equiv` to
 an equivalence between the corresponding `discrete` categories.
 -/
 @[simps]
-def equivalence {I J : Type u₁} (e : I ≃ J) : discrete I ≌ discrete J :=
+def equivalence {I : Type u₁} {J : Type u₂} (e : I ≃ J) : discrete I ≌ discrete J :=
 { functor := discrete.functor (e : I → J),
   inverse := discrete.functor (e.symm : J → I),
   unit_iso := discrete.nat_iso (λ i, eq_to_iso (by simp)),
@@ -145,7 +145,7 @@ def equivalence {I J : Type u₁} (e : I ≃ J) : discrete I ≌ discrete J :=
 
 /-- We can convert an equivalence of `discrete` categories to a type-level `equiv`. -/
 @[simps]
-def equiv_of_equivalence {α β : Type u₁} (h : discrete α ≌ discrete β) : α ≃ β :=
+def equiv_of_equivalence {α : Type u₁} {β : Type u₂} (h : discrete α ≌ discrete β) : α ≃ β :=
 { to_fun := h.functor.obj,
   inv_fun := h.inverse.obj,
   left_inv := λ a, eq_of_hom (h.unit_iso.app a).2,

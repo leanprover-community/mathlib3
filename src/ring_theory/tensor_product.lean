@@ -5,8 +5,7 @@ Authors: Scott Morrison, Johan Commelin
 -/
 
 import linear_algebra.tensor_product.left_action
-import algebra.algebra.tower
-
+import ring_theory.adjoin.basic
 /-!
 # The tensor product of R-algebras
 
@@ -234,14 +233,14 @@ by { ext, simp [base_change_eq_ltensor], }
 variables [is_scalar_tower Rᵐᵒᵖ R A]
 
 @[simp] lemma base_change_smul : (r • f).base_change A = r • (f.base_change A) :=
-by { ext, simp [base_change_tmul],  }
+by { ext, simp [base_change_tmul], }
 
 variables (R A M N)
 /-- `base_change` as a linear map. -/
 @[simps] def base_change_hom : (M →ₗ[R] N) →ₗ[R] A ⊗[R] M →ₗ[A] A ⊗[R] N :=
 { to_fun := base_change A,
   map_add' := base_change_add,
-  map_smul' := λ r f, base_change_smul r f }
+  map_smul' := base_change_smul }
 
 end semiring
 
@@ -271,8 +270,8 @@ namespace tensor_product
 section semiring
 
 variables {R : Type u} [comm_semiring R]
-variables {A : Type v₁} [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
-variables {B : Type v₂} [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
+variables {A : Type v₁} [semiring A] [algebra R A]
+variables {B : Type v₂} [semiring B] [algebra R B]
 
 /-!
 ### The `R`-algebra structure on `A ⊗[R] B`
@@ -360,7 +359,6 @@ instance : semiring (A ⊗[R] B) :=
   left_distrib := by simp,
   right_distrib := by simp,
   .. (by apply_instance : add_comm_monoid (A ⊗[R] B)) }.
-
 
 lemma one_def : (1 : A ⊗[R] B) = (1 : A) ⊗ₜ (1 : B) := rfl
 
@@ -490,8 +488,8 @@ end semiring
 section ring
 
 variables {R : Type u} [comm_ring R]
-variables {A : Type v₁} [ring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
-variables {B : Type v₂} [ring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
+variables {A : Type v₁} [ring A] [algebra R A]
+variables {B : Type v₂} [ring B] [algebra R B]
 
 instance : ring (A ⊗[R] B) :=
 { .. (by apply_instance : add_comm_group (A ⊗[R] B)),
@@ -502,8 +500,8 @@ end ring
 section comm_ring
 
 variables {R : Type u} [comm_ring R]
-variables {A : Type v₁} [comm_ring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
-variables {B : Type v₂} [comm_ring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
+variables {A : Type v₁} [comm_ring A] [algebra R A]
+variables {B : Type v₂} [comm_ring B] [algebra R B]
 
 instance : comm_ring (A ⊗[R] B) :=
 { mul_comm := λ x y,
@@ -528,18 +526,14 @@ end comm_ring
 Verify that typeclass search finds the ring structure on `A ⊗[ℤ] B`
 when `A` and `B` are merely rings, by treating both as `ℤ`-algebras.
 -/
-example {A : Type v₁} [ring A] [algebra ℤᵐᵒᵖ A] [is_symmetric_smul ℤ A]
-  {B : Type v₂} [ring B] [algebra ℤᵐᵒᵖ B] [is_symmetric_smul ℤ B] :
-  ring (A ⊗[ℤ] B) :=
+example {A : Type v₁} [ring A] {B : Type v₂} [ring B] : ring (A ⊗[ℤ] B) :=
 by apply_instance
 
 /--
 Verify that typeclass search finds the comm_ring structure on `A ⊗[ℤ] B`
 when `A` and `B` are merely comm_rings, by treating both as `ℤ`-algebras.
 -/
-example {A : Type v₁} [comm_ring A] [algebra ℤᵐᵒᵖ A] [is_symmetric_smul ℤ A]
-  {B : Type v₂} [comm_ring B] [algebra ℤᵐᵒᵖ B] [is_symmetric_smul ℤ B] :
-  comm_ring (A ⊗[ℤ] B) :=
+example {A : Type v₁} [comm_ring A] {B : Type v₂} [comm_ring B] : comm_ring (A ⊗[ℤ] B) :=
 by apply_instance
 
 /-!
@@ -549,9 +543,9 @@ section monoidal
 
 section
 variables {R : Type u} [comm_semiring R]
-variables {A : Type v₁} [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
-variables {B : Type v₂} [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
-variables {C : Type v₃} [semiring C] [algebra R C] [algebra Rᵐᵒᵖ C] [is_symmetric_smul R C]
+variables {A : Type v₁} [semiring A] [algebra R A]
+variables {B : Type v₂} [semiring B] [algebra R B]
+variables {C : Type v₃} [semiring C] [algebra R C]
 variables {D : Type v₄} [semiring D] [algebra R D]
 
 /--
@@ -563,25 +557,22 @@ def alg_hom_of_linear_map_tensor_product
   (w₁ : ∀ (a₁ a₂ : A) (b₁ b₂ : B), f ((a₁ * a₂) ⊗ₜ (b₁ * b₂)) = f (a₁ ⊗ₜ b₁) * f (a₂ ⊗ₜ b₂))
   (w₂ : ∀ r, f ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R C) r):
   A ⊗[R] B →ₐ[R] C :=
-{ map_one' := by simpa using w₂ 1,
-  map_zero' := by simp,
-  map_mul' := λ x y,
-  begin
+{ map_one' := by rw [←(algebra_map R C).map_one, ←w₂, (algebra_map R A).map_one]; refl,
+  map_zero' := by rw [linear_map.to_fun_eq_coe, map_zero],
+  map_mul' := λ x y, by
+  { rw linear_map.to_fun_eq_coe,
     apply tensor_product.induction_on x,
-    { simp, },
+    { rw [zero_mul, map_zero, zero_mul] },
     { intros a₁ b₁,
       apply tensor_product.induction_on y,
-      { simp, },
+      { rw [mul_zero, map_zero, mul_zero] },
       { intros a₂ b₂,
-        simp [w₁], },
+        rw [tmul_mul_tmul, w₁] },
       { intros x₁ x₂ h₁ h₂,
-        simp at h₁, simp at h₂,
-        simp [mul_add, add_mul, h₁, h₂], }, },
+        rw [mul_add, map_add, map_add, mul_add, h₁, h₂] } },
     { intros x₁ x₂ h₁ h₂,
-      simp at h₁, simp at h₂,
-      simp [mul_add, add_mul, h₁, h₂], }
-  end,
-  commutes' := λ r, by simp [w₂],
+      rw [add_mul, map_add, map_add, add_mul, h₁, h₂] } },
+  commutes' := λ r, by rw [linear_map.to_fun_eq_coe, algebra_map_apply, w₂],
   .. f }
 
 @[simp]
@@ -618,29 +609,27 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
   map_mul' := λ x y,
   begin
     apply tensor_product.induction_on x,
-    { simp, },
+    { simp only [map_zero, zero_mul] },
     { intros ab₁ c₁,
       apply tensor_product.induction_on y,
-      { simp, },
+      { simp only [map_zero, mul_zero] },
       { intros ab₂ c₂,
         apply tensor_product.induction_on ab₁,
-        { simp, },
+        { simp only [zero_tmul, map_zero, zero_mul] },
         { intros a₁ b₁,
           apply tensor_product.induction_on ab₂,
-          { simp, },
-          { simp [w₁], },
+          { simp only [zero_tmul, map_zero, mul_zero] },
+          { intros, simp only [tmul_mul_tmul, w₁] },
           { intros x₁ x₂ h₁ h₂,
-            simp at h₁ h₂,
-            rw [add_tmul, mul_add, f.map_add, f.map_add, mul_add,
-                tmul_mul_tmul, tmul_mul_tmul, h₁, h₂], }, },
+            simp only [tmul_mul_tmul] at h₁ h₂,
+            simp only [tmul_mul_tmul, mul_add, add_tmul, map_add, h₁, h₂] } },
         { intros x₁ x₂ h₁ h₂,
-          rw [tmul_mul_tmul] at h₁ h₂,
-          rw [add_tmul, add_mul, f.map_add, f.map_add, add_mul,
-              tmul_mul_tmul, tmul_mul_tmul, h₁, h₂], }, },
+          simp only [tmul_mul_tmul] at h₁ h₂,
+          simp only [tmul_mul_tmul, add_mul, add_tmul, map_add, h₁, h₂] } },
       { intros x₁ x₂ h₁ h₂,
-        rw [mul_add, f.map_add, h₁, h₂, f.map_add, mul_add], }, },
+        simp only [tmul_mul_tmul, map_add, mul_add, add_mul, h₁, h₂], }, },
     { intros x₁ x₂ h₁ h₂,
-      rw [add_mul, f.map_add, h₁, h₂, f.map_add, add_mul], }
+      simp only [tmul_mul_tmul, map_add, mul_add, add_mul, h₁, h₂], }
   end,
   commutes' := λ r, by simp [w₂],
   .. f }
@@ -653,10 +642,10 @@ rfl
 end
 
 variables {R : Type u} [comm_semiring R]
-variables {A : Type v₁} [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
-variables {B : Type v₂} [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
-variables {C : Type v₃} [semiring C] [algebra R C] [algebra Rᵐᵒᵖ C] [is_symmetric_smul R C]
-variables {D : Type v₄} [semiring D] [algebra R D] [algebra Rᵐᵒᵖ D] [is_symmetric_smul R D]
+variables {A : Type v₁} [semiring A] [algebra R A]
+variables {B : Type v₂} [semiring B] [algebra R B]
+variables {C : Type v₃} [semiring C] [algebra R C]
+variables {D : Type v₄} [semiring D] [algebra R D]
 
 section
 variables (R A)
@@ -701,6 +690,9 @@ end)
 theorem comm_tmul (a : A) (b : B) :
   (tensor_product.comm R A B : (A ⊗[R] B → B ⊗[R] A)) (a ⊗ₜ b) = (b ⊗ₜ a) :=
 by simp [tensor_product.comm]
+
+lemma adjoin_tmul_eq_top : adjoin R {t : A ⊗[R] B | ∃ a b, a ⊗ₜ[R] b = t} = ⊤ :=
+top_le_iff.mp $ (top_le_iff.mpr $ span_tmul_eq_top R A B).trans (span_le_adjoin R _)
 
 end
 
@@ -782,9 +774,7 @@ end monoidal
 section
 
 variables {R A B S : Type*} [comm_semiring R] [semiring A] [semiring B] [comm_semiring S]
-variables [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
-variables [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
-variables [algebra R S] [algebra Rᵐᵒᵖ S] [is_symmetric_smul R S]
+variables [algebra R A] [algebra R B] [algebra R S]
 variables (f : A →ₐ[R] S) (g : B →ₐ[R] S)
 
 variables (R)

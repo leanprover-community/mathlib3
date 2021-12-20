@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
+import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
 
@@ -42,7 +43,25 @@ for every `x`. -/
 class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=
 (norm_star_mul_self : ∀ {x : E}, ∥x⋆ * x∥ = ∥x∥ * ∥x∥)
 
+noncomputable instance : cstar_ring ℝ :=
+{ norm_star_mul_self := λ x, by simp only [star, id.def, normed_field.norm_mul] }
+
 variables {𝕜 E : Type*}
+
+/-- The `star` map in a normed star group is a normed group homomorphism. -/
+def star_normed_group_hom [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
+  normed_group_hom E E :=
+{ bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
+  .. star_add_equiv }
+
+/-- The `star` map in a normed star group is an isometry -/
+lemma star_isometry [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
+  isometry (star : E → E) :=
+star_add_equiv.to_add_monoid_hom.isometry_of_norm (@normed_star_monoid.norm_star _ _ _ _)
+
+instance ring_hom_isometric.star_ring_aut [normed_comm_ring E] [star_ring E]
+   [normed_star_monoid E] : ring_hom_isometric ((star_ring_aut : ring_aut E) : E →+* E) :=
+⟨λ _, norm_star⟩
 
 open cstar_ring
 

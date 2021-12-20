@@ -90,6 +90,9 @@ PresheafedSpace.stalk_map f.1 x
 instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
   is_local_ring_hom (stalk_map f x) := f.2 x
 
+instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
+   is_local_ring_hom (PresheafedSpace.stalk_map f.1 x) := f.2 x
+
 /-- The identity morphism on a locally ringed space. -/
 @[simps]
 def id (X : LocallyRingedSpace) : hom X X :=
@@ -121,6 +124,9 @@ def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
   map := λ X Y f, f.1, }
 
 instance : faithful forget_to_SheafedSpace := {}
+
+@[simp] lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val = f.val ≫ g.val := rfl
 
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_
@@ -174,7 +180,12 @@ def restrict {U : Top} (X : LocallyRingedSpace) {f : U ⟶ X.to_Top}
     apply @ring_equiv.local_ring _ _ _ (X.local_ring (f x)),
     exact (X.to_PresheafedSpace.restrict_stalk_iso h x).symm.CommRing_iso_to_ring_equiv,
   end,
-  .. X.to_SheafedSpace.restrict h }
+  to_SheafedSpace := X.to_SheafedSpace.restrict h }
+
+/-- The canonical map from the restriction to the supspace. -/
+def of_restrict {U : Top} (X : LocallyRingedSpace) {f : U ⟶ X.to_Top}
+  (h : open_embedding f) : X.restrict h ⟶ X :=
+⟨X.to_PresheafedSpace.of_restrict h, λ x, infer_instance⟩
 
 /--
 The restriction of a locally ringed space `X` to the top subspace is isomorphic to `X` itself.
@@ -201,6 +212,27 @@ lemma Γ_obj_op (X : LocallyRingedSpace) : Γ.obj (op X) = X.presheaf.obj (op �
 
 lemma Γ_map_op {X Y : LocallyRingedSpace} (f : X ⟶ Y) :
   Γ.map f.op = f.1.c.app (op ⊤) := rfl
+
+lemma preimage_basic_open {X Y : LocallyRingedSpace} (f : X ⟶ Y) {U : opens Y}
+  (s : Y.presheaf.obj (op U)) :
+  (opens.map f.1.base).obj (Y.to_RingedSpace.basic_open s) =
+    @RingedSpace.basic_open X.to_RingedSpace ((opens.map f.1.base).obj U) (f.1.c.app _ s) :=
+begin
+  ext,
+  split,
+  { rintros ⟨⟨y, hyU⟩, (hy : is_unit _), (rfl : y = _)⟩,
+    erw RingedSpace.mem_basic_open _ _ ⟨x, show x ∈ (opens.map f.1.base).obj U, from hyU⟩,
+    rw ← PresheafedSpace.stalk_map_germ_apply,
+    exact (PresheafedSpace.stalk_map f.1 _).is_unit_map hy },
+  { rintros ⟨y, (hy : is_unit _), rfl⟩,
+    erw RingedSpace.mem_basic_open _ _ ⟨f.1.base y.1, y.2⟩,
+    rw ← PresheafedSpace.stalk_map_germ_apply at hy,
+    exact (is_unit_map_iff (PresheafedSpace.stalk_map f.1 _) _).mp hy }
+end
+
+instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)
+  [hU : nonempty U] : nontrivial (X.presheaf.obj $ op U) :=
+(X.presheaf.germ hU.some).domain_nontrivial
 
 end LocallyRingedSpace
 

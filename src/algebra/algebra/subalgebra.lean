@@ -14,7 +14,7 @@ In this file we define `subalgebra`s and the usual operations on them (`map`, `c
 
 More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
 -/
-universes u u' v w
+universes u u' v w w'
 
 open_locale tensor_product big_operators
 
@@ -32,7 +32,7 @@ add_decl_doc subalgebra.to_subsemiring
 
 namespace subalgebra
 
-variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w}
+variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w'}
 variables [comm_semiring R]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 include R
@@ -347,6 +347,10 @@ lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
+@[simp] lemma coe_map (S : subalgebra R A) (f : A →ₐ[R] B) :
+  (S.map f : set B) = f '' S :=
+rfl
+
 /-- Preimage of a subalgebra under an algebra homomorphism. -/
 def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
 { algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
@@ -380,8 +384,9 @@ end subalgebra
 
 namespace alg_hom
 
-variables {R : Type u} {A : Type v} {B : Type w}
-variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w'}
+variables [comm_semiring R]
+variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 variables (φ : A →ₐ[R] B)
 
 /-- Range of an `alg_hom` as a subalgebra. -/
@@ -396,6 +401,12 @@ theorem mem_range_self (φ : A →ₐ[R] B) (x : A) : φ x ∈ φ.range := φ.me
 
 @[simp] lemma coe_range (φ : A →ₐ[R] B) : (φ.range : set B) = set.range φ :=
 by { ext, rw [set_like.mem_coe, mem_range], refl }
+
+theorem range_comp (f : A →ₐ[R] B) (g : B →ₐ[R] C) : (g.comp f).range = f.range.map g :=
+set_like.coe_injective (set.range_comp g f)
+
+theorem range_comp_le_range (f : A →ₐ[R] B) (g : B →ₐ[R] C) : (g.comp f).range ≤ g.range :=
+set_like.coe_mono (set.range_comp_subset_range f g)
 
 /-- Restrict the codomain of an algebra homomorphism. -/
 def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₐ[R] S :=
@@ -422,19 +433,12 @@ f.cod_restrict f.range f.mem_range_self
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := {a | ϕ a = ψ a},
-  add_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x + y) = ψ (x + y),
-    rw [alg_hom.map_add, alg_hom.map_add, hx, hy] },
-  mul_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x * y) = ψ (x * y),
-    rw [alg_hom.map_mul, alg_hom.map_mul, hx, hy] },
-  algebra_map_mem' := λ x, by
-  { change ϕ (algebra_map R A x) = ψ (algebra_map R A x),
-    rw [alg_hom.commutes, alg_hom.commutes] } }
+  add_mem' := λ x y (hx : ϕ x = ψ x) (hy : ϕ y = ψ y),
+    by rw [set.mem_set_of_eq, ϕ.map_add, ψ.map_add, hx, hy],
+  mul_mem' := λ x y (hx : ϕ x = ψ x) (hy : ϕ y = ψ y),
+    by rw [set.mem_set_of_eq, ϕ.map_mul, ψ.map_mul, hx, hy],
+  algebra_map_mem' := λ x,
+    by rw [set.mem_set_of_eq, alg_hom.commutes, alg_hom.commutes] }
 
 @[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
   x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
@@ -525,6 +529,19 @@ set.mem_univ x
 
 @[simp] lemma top_to_subsemiring : (⊤ : subalgebra R A).to_subsemiring = ⊤ := rfl
 
+lemma mem_sup_left {S T : subalgebra R A} : ∀ {x : A}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : subalgebra R A} : ∀ {x : A}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mul_mem_sup {S T : subalgebra R A} {x y : A} (hx : x ∈ S) (hy : y ∈ T) :
+  x * y ∈ S ⊔ T :=
+(S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
+
+lemma map_sup (f : A →ₐ[R] B) (S T : subalgebra R A) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
+(subalgebra.gc_map_comap f).l_sup
+
 @[simp, norm_cast]
 lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = S ∩ T := rfl
 
@@ -579,13 +596,15 @@ theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
+@[simp] theorem range_id : (alg_hom.id R A).range = ⊤ :=
+set_like.coe_injective set.range_id
+
 @[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
-subalgebra.ext $ λ x,
-  ⟨λ ⟨y, _, hy⟩, ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨y, algebra.mem_top, hy⟩⟩
+set_like.coe_injective set.image_univ
 
 @[simp] theorem map_bot (f : A →ₐ[R] B) : subalgebra.map (⊥ : subalgebra R A) f = ⊥ :=
-eq_bot_iff.2 $ λ x ⟨y, hy, hfy⟩, let ⟨r, hr⟩ := mem_bot.1 hy in subalgebra.range_le _
-⟨r, by rwa [← f.commutes, hr]⟩
+set_like.coe_injective $
+  by simp only [← set.range_comp, (∘), algebra.coe_bot, subalgebra.coe_map, f.commutes]
 
 @[simp] theorem comap_top (f : A →ₐ[R] B) : subalgebra.comap' (⊤ : subalgebra R B) f = ⊤ :=
 eq_top_iff.2 $ λ x, mem_top

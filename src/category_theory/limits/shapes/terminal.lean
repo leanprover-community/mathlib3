@@ -127,12 +127,12 @@ variable (C)
 A category has a terminal object if it has a limit over the empty diagram.
 Use `has_terminal_of_unique` to construct instances.
 -/
-abbreviation has_terminal := has_limits_of_shape (discrete pempty) C
+abbreviation has_terminal := has_limits_of_shape (discrete pempty : Type v) C
 /--
 A category has an initial object if it has a colimit over the empty diagram.
 Use `has_initial_of_unique` to construct instances.
 -/
-abbreviation has_initial := has_colimits_of_shape (discrete pempty) C
+abbreviation has_initial := has_colimits_of_shape (discrete pempty : Type v) C
 
 /--
 An arbitrary choice of terminal object, if one exists.

@@ -138,7 +138,7 @@ begin
     apply' le_ωSup_of_le i.succ,
     dsimp [approx], refl', },
   { apply ωSup_le _ _ _,
-    simp only [fix.approx_chain, preorder_hom.coe_fun_mk],
+    simp only [fix.approx_chain, order_hom.coe_fun_mk],
     intros y x, apply approx_le_fix f },
 end
 
@@ -146,7 +146,7 @@ lemma fix_le {X : Π a, part $ β a} (hX : f X ≤ X) : part.fix f ≤ X :=
 begin
   rw fix_eq_ωSup f,
   apply ωSup_le _ _ _,
-  simp only [fix.approx_chain, preorder_hom.coe_fun_mk],
+  simp only [fix.approx_chain, order_hom.coe_fun_mk],
   intros i,
   induction i, dsimp [fix.approx], apply' bot_le,
   transitivity' f X, apply f.monotone i_ih,

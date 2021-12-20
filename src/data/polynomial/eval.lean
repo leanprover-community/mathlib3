@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.degree.definitions
+import algebra.geom_sum
 
 /-!
 # Theory of univariate polynomials
@@ -487,6 +488,7 @@ by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
 /-- `polynomial.map` as a `ring_hom` -/
+-- TODO: can't we make this the main definition of `polynomial.map`?
 def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 { to_fun := polynomial.map f,
   map_add' := λ _ _, map_add f,
@@ -592,7 +594,8 @@ ring_hom.ext $ map_map g f
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
 eq.symm $ list.prod_hom _ (map_ring_hom f).to_monoid_hom
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := (map_ring_hom f).map_pow _ _
+@[simp] protected lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n :=
+(map_ring_hom f).map_pow _ _
 
 lemma mem_map_srange {p : polynomial S} :
   p ∈ (map_ring_hom f).srange ↔ ∀ n, p.coeff n ∈ f.srange :=
@@ -604,7 +607,7 @@ begin
     intros i hi,
     rcases h i with ⟨c, hc⟩,
     use [C c * X^i],
-    rw [coe_map_ring_hom, map_mul, map_C, hc, map_pow, map_X] }
+    rw [coe_map_ring_hom, map_mul, map_C, hc, polynomial.map_pow, map_X] }
 end
 
 lemma mem_map_range {R S : Type*} [ring R] [ring S] (f : R →+* S)
@@ -682,17 +685,11 @@ Perhaps we can make the others irreducible too?
 attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
--- TODO: Here we need commutativity in both `S` and `T`?
-variables [comm_semiring S] [comm_semiring T]
-variables (f : R →+* S) (g : S →+* T) (p)
+
+variables [semiring S] [semiring T]  (f : R →+* S) (g : S →+* T) (p)
 
 lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g.comp f) (g x) :=
-begin
-  apply polynomial.induction_on p; clear p,
-  { simp only [forall_const, eq_self_iff_true, eval₂_C, ring_hom.coe_comp] },
-  { intros p q hp hq, simp only [hp, hq, eval₂_add, g.map_add] },
-  { intros n a ih, simpa only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow] }
-end
+by rw [←eval₂_map, eval₂_at_apply, eval_map]
 
 end hom_eval₂
 
@@ -761,6 +758,16 @@ lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
   (s : finset ι) (p : ι → polynomial R) (x : R) :
   is_root (∏ j in s, p j) x ↔ ∃ i ∈ s, is_root (p i) x :=
 by simp only [is_root, eval_prod, finset.prod_eq_zero_iff]
+
+lemma eval_dvd : p ∣ q → eval x p ∣ eval x q :=
+eval₂_dvd _ _
+
+lemma eval_eq_zero_of_dvd_of_eval_eq_zero : p ∣ q → eval x p = 0 → eval x q = 0 :=
+eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _
+
+@[simp]
+lemma eval_geom_sum {R} [comm_semiring R] {n : ℕ} {x : R} : eval x (geom_sum X n) = geom_sum x n :=
+by simp [geom_sum_def, eval_finset_sum]
 
 end eval
 

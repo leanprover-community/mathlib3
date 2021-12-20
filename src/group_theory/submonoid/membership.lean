@@ -220,7 +220,8 @@ lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := P.pow_mem h i end
 
 /-- Exponentiation map from natural numbers to powers. -/
-def pow (n : M) (m : ℕ) : powers n := (powers_hom M n).mrange_restrict m
+def pow (n : M) (m : ℕ) : powers n := (powers_hom M n).mrange_restrict (multiplicative.of_add m)
+
 
 /-- Logarithms from powers to natural numbers. -/
 def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=
@@ -238,11 +239,11 @@ when it is injective. The inverse is given by the logarithms. -/
 @[simps]
 def pow_log_equiv [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)):
   multiplicative ℕ ≃* powers n :=
-{ to_fun := pow n,
-  inv_fun := log,
+{ to_fun := λ m, pow n m.to_add,
+  inv_fun := λ m, multiplicative.of_add (log m),
   left_inv := λ _, pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _,
   right_inv := pow_log_eq_self,
-  map_mul' := λ x y, by { simp only [pow, map_mul] } }
+  map_mul' := λ _ _, by { simp only [pow, map_mul, of_add_add, to_add_mul] } }
 
 theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=
 (pow_log_equiv (int.pow_right_injective h)).symm_apply_apply _

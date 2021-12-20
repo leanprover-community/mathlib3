@@ -28,8 +28,6 @@ and provides lemmas that deal with this function and its connection to `nat.coun
 * `nat.nth_eq_order_iso_of_nat`: An infinite set of natural numbers is order-isomorphic to the
   natural numbers.
 
-## TODO
-
 There has been some discussion on the subject of whether both of `nth` and
 `nat.subtype.order_iso_of_nat` should exist. See discussion
 [here](https://github.com/leanprover-community/mathlib/pull/9457#pullrequestreview-767221180).

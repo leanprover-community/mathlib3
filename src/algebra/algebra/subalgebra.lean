@@ -962,12 +962,15 @@ end pointwise
 
 section center
 
+lemma algebra_map_mem_center (r : R) : algebra_map R A r ∈ subsemiring.center A :=
+by simp [algebra.commutes, subsemiring.mem_center_iff]
+
 variables (R A)
 
 /-- The center of an algebra is the set of elements which commute with every element. They form a
 subalgebra. -/
 def center : subalgebra R A :=
-{ algebra_map_mem' := by simp [algebra.commutes, subsemiring.mem_center_iff],
+{ algebra_map_mem' := algebra_map_mem_center,
   .. subsemiring.center A }
 
 lemma coe_center : (center R A : set A) = set.center A := rfl
@@ -975,9 +978,11 @@ lemma coe_center : (center R A : set A) = set.center A := rfl
 @[simp] lemma center_eq_top (A : Type*) [comm_semiring A] [algebra R A] : center R A = ⊤ :=
 set_like.coe_injective (set.center_eq_univ A)
 
+variables {R A}
+
 instance : comm_semiring (center R A) := subsemiring.center.comm_semiring
 
-variables {R A}
+instance {A : Type*} [ring A] [algebra R A] : comm_ring (center R A) := subring.center.comm_ring
 
 lemma mem_center_iff {a : A} : a ∈ center R A ↔ ∀ (b : A), b*a = a*b := iff.rfl
 

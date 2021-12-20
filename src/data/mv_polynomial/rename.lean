@@ -250,20 +250,15 @@ lemma support_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : 
 begin
   rw finset.ext_iff,
   intro a,
-  simp only [exists_prop, finset.mem_map, mem_support_iff, ne.def],
+  simp only [exists_prop, mem_support_iff, finset.mem_image, ne.def],
   apply iff.intro,
   intro h1,
   cases coeff_rename_ne_zero f p a h1 with d hd,
   rw ← hd.1,
-  simp only [map_domain_embedding, function.embedding.coe_fn_mk, exists_prop, mem_support_iff, finset.mem_image,
-  ne.def],
   exact ⟨d, ⟨hd.2, by refl⟩⟩,
   intro h,
-  simp only [map_domain_embedding, exists_prop, mem_support_iff, function.embedding.coe_fn_mk, finset.mem_image,
-  ne.def] at h,
   cases h with b hb,
-  simpa only [← hb.2, map_domain_embedding, function.embedding.coe_fn_mk,
-              coeff_rename_map_domain f h p b] using hb.1,
+  simpa only [←hb.right, coeff_rename_map_domain f h p b] using hb.left,
 end
 
 end support

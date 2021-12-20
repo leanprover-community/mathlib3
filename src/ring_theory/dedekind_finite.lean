@@ -150,22 +150,26 @@ def strict_monotone_inc_subseq {f : ℕ → γ} (h : ∀ n, ∃ m, f n < f (n + 
 | (n + 1) := (strict_monotone_inc_subseq n) + nat.find (h (strict_monotone_inc_subseq n))
 
 lemma strict_monotone_inc_subseq_spec (f : ℕ → γ) (h : ∀ n, ∃ m, f n < f (n + m)) :
-  strict_mono (f ∘ (strict_monotone_inc_subseq h)) :=
+  strict_mono (f ∘ strict_monotone_inc_subseq h) :=
 strict_mono_nat_of_lt_succ (λ n, nat.find_spec (h (strict_monotone_inc_subseq h n)))
 
 -- TODO artinian version of ring stuff?
 open_locale classical
+
+@[simp] theorem ker_one {R : Type*} [ring R] {M : Type*} [add_comm_group M] [module R M] :
+  ker (1 : M →ₗ[R] M) = ⊥ := rfl
 
 theorem noeth_mod_surj_inj {R : Type*} [ring R] {M : Type*} [add_comm_group M] [module R M]
   [is_noetherian R M] {f : M →ₗ[R] M} (f_surj : function.surjective f) : function.injective f :=
 begin
   have := well_founded_submodule_gt R M,
   rw rel_embedding.well_founded_iff_no_descending_seq at this,
-  set ordf : ℕ → submodule R M := λ n, linear_map.ker (f ^ n),
-  suffices : ∃ n (h : n ≠ 0), ∀ m, ordf n = ordf (n + m),
-  { obtain ⟨n, hne, hn⟩ := this,
+  suffices : ∃ n, ∀ m : ℕ, (f ^ n).ker = (f ^ (n + m)).ker,
+  { obtain ⟨n, hn⟩ := this,
+    by_cases hne : n = 0,
+    { simpa [hne, ← ker_eq_bot] using (hn 1).symm, },
     have pow_surj := iterate_surjective f_surj n,
-    have : ordf n ⊓ linear_map.range (f ^ n) = ⊥,
+    have : (f ^ n).ker ⊓ linear_map.range (f ^ n) = ⊥,
     { ext,
       rw [submodule.mem_inf, mem_ker, mem_range, submodule.mem_bot],
       split,
@@ -181,31 +185,28 @@ begin
       use 0,
       rw map_zero, },
     have range_eq_top : range (f ^ n) = ⊤ := range_eq_top.mpr pow_surj,
-    have : ordf n = ⊥,
+    have : (f ^ n).ker = ⊥,
     { simpa [range_eq_top] using this, },
     have : function.injective ⇑(f ^ n) := ker_eq_bot.mp this,
     exact injective_of_iterate_injective hne this, },
   contrapose! this,
-  simp,
+  rw [not_is_empty_iff],
   refine nonempty.intro _,
-  have bbbb : ∀ n, ∃ (m : ℕ), (λ (n : ℕ), ordf (n + 1)) n < (λ (n : ℕ), ordf (n + 1)) (n + m),
+  have h_ker_lt :
+    ∀ n, ∃ (m : ℕ), (λ (n : ℕ), (f ^ n).ker) n < (λ (n : ℕ), (f ^ n).ker) (n + m),
   { intro n,
-    have aaaaa : ∀ n m, ordf (n + 1) ≤ ordf (n + m + 1),
+    simp only,
+    have h_ker_le : ∀ n m : ℕ, (f ^ n).ker ≤ (f ^ (n + m)).ker,
     { intros n m x hx,
-      simp only [mem_ker, add_comm, add_left_comm, comp_app, linear_map.iterate_succ] at hx ⊢,
-      rw [add_comm m, ← add_assoc, add_comm, pow_add, mul_eq_comp, pow_add, mul_eq_comp,
-        pow_one, linear_map.comp_apply, hx, map_zero], },
-    have := this (n + 1) (nat.succ_ne_zero n),
-    cases this with m hm,
-    use m,
-    simp only [],
-    refine lt_of_le_of_ne _ _,
-    exact (aaaaa n m),
-    rw add_assoc, rw add_comm m, rw ← add_assoc,
-    exact hm, },
-  refine rel_embedding.of_monotone ((λ (n : ℕ), ordf (n + 1)) ∘ strict_monotone_inc_subseq bbbb) _,
+      rw add_comm,
+      rw [mem_ker, pow_apply] at hx,
+      simp [mem_ker, pow_add, hx, mul_apply, pow_apply, map_zero], },
+    cases this n with m hm,
+    exact ⟨m, lt_of_le_of_ne (h_ker_le n m) hm⟩, },
+  refine rel_embedding.of_monotone
+    ((λ (n : ℕ), (f ^ n).ker) ∘ strict_monotone_inc_subseq h_ker_lt) _,
   intros a b hab,
-  exact strict_monotone_inc_subseq_spec (λ n, ordf (n + 1)) bbbb hab,
+  exact strict_monotone_inc_subseq_spec (λ n, (f ^ n).ker) h_ker_lt hab,
 end
 
 

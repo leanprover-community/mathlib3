@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import ring_theory.polynomial.cyclotomic
+import ring_theory.polynomial.cyclotomic.basic
 import topology.algebra.polynomial
 import field_theory.finite.basic
 
@@ -61,7 +61,9 @@ begin
       (zmod.unit_of_coprime b (coprime_of_root_cyclotomic hpos hroot))),
     have : ¬p ∣ k := hprime.1.coprime_iff_not_dvd.1
       (coprime_of_root_cyclotomic hpos hroot).symm.coprime_mul_left_right.coprime_mul_right_right,
-    rw [order_of_root_cyclotomic_eq hpos this hroot] at hdiv,
+    have := (not_iff_not.mpr $ zmod.nat_coe_zmod_eq_zero_iff_dvd k p).mpr this,
+    have : k = order_of (b : zmod p) := ((is_root_cyclotomic_iff this).mp hroot).eq_order_of,
+    rw [←order_of_units, zmod.coe_unit_of_coprime, ←this] at hdiv,
     exact ((modeq_iff_dvd' hprime.1.pos).2 hdiv).symm }
 end
 

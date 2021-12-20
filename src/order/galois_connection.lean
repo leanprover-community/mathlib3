@@ -109,11 +109,15 @@ lemma is_lub_l_image {s : set α} {a : α} (h : is_lub s a) : is_lub (l '' s) (l
 lemma is_glb_u_image {s : set β} {b : β} (h : is_glb s b) : is_glb (u '' s) (u b) :=
 gc.dual.is_lub_l_image h
 
-lemma is_glb_l {a : α} : is_glb { b | a ≤ u b } (l a) :=
-⟨λ b, gc.l_le, λ b h, h $ gc.le_u_l _⟩
+lemma is_least_l {a : α} : is_least {b | a ≤ u b} (l a) :=
+⟨gc.le_u_l _, λ b hb, gc.l_le hb⟩
 
-lemma is_lub_u {b : β} : is_lub { a | l a ≤ b } (u b) :=
-⟨λ b, gc.le_u, λ b h, h $ gc.l_u_le _⟩
+lemma is_greatest_u {b : β} : is_greatest {a | l a ≤ b} (u b) :=
+gc.dual.is_least_l
+
+lemma is_glb_l {a : α} : is_glb {b | a ≤ u b} (l a) := gc.is_least_l.is_glb
+
+lemma is_lub_u {b : β} : is_lub { a | l a ≤ b } (u b) := gc.is_greatest_u.is_lub
 
 end
 
@@ -211,6 +215,14 @@ by simp only [Sup_eq_supr, gc.l_supr]
 lemma u_Inf {s : set β} : u (Inf s) = (⨅a ∈ s, u a) := gc.dual.l_Sup
 
 end complete_lattice
+
+section linear_order
+variables [linear_order α] [linear_order β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
+
+lemma lt_iff_lt {a : α} {b : β} : b < l a ↔ u b < a := lt_iff_lt_of_le_iff_le (gc a b)
+
+end linear_order
 
 /- Constructing Galois connections -/
 section constructions

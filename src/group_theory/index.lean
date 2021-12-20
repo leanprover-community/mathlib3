@@ -11,6 +11,7 @@ import set_theory.fincard
 # Index of a Subgroup
 
 In this file we define the index of a subgroup, and prove several divisibility properties.
+Several theorems proved in this file are known as Lagrange's theorem.
 
 ## Main definitions
 
@@ -21,6 +22,7 @@ In this file we define the index of a subgroup, and prove several divisibility p
 
 # Main results
 
+- `card_mul_index` : `nat.card H * H.index = nat.card G`
 - `index_mul_card` : `H.index * fintype.card H = fintype.card G`
 - `index_dvd_card` : `H.index ∣ fintype.card G`
 - `index_eq_mul_of_le` : If `H ≤ K`, then `H.index = K.index * (H.subgroup_of K).index`
@@ -39,7 +41,7 @@ variables {G : Type*} [group G] (H K L : subgroup G)
 @[to_additive "The index of a subgroup as a natural number,
 and returns 0 if the index is infinite."]
 noncomputable def index : ℕ :=
-nat.card (quotient_group.quotient H)
+nat.card (G ⧸ H)
 
 /-- The relative index of a subgroup as a natural number,
   and returns 0 if the relative index is infinite. -/
@@ -83,14 +85,14 @@ dvd_of_mul_left_eq (H.relindex K) (relindex_mul_index h)
   (H.subgroup_of L).relindex (K.subgroup_of L) = H.relindex K :=
 ((index_comap (H.subgroup_of L) (inclusion hKL)).trans (congr_arg _ (inclusion_range hKL))).symm
 
+variables (H K L)
+
 @[to_additive] lemma relindex_mul_relindex (hHK : H ≤ K) (hKL : K ≤ L) :
   H.relindex K * K.relindex L = H.relindex L :=
 begin
   rw [←relindex_subgroup_of hKL],
   exact relindex_mul_index (λ x hx, hHK hx),
 end
-
-variables (H K L)
 
 lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
 begin
@@ -114,7 +116,7 @@ lemma relindex_dvd_of_le_left (hHK : H ≤ K) :
 begin
   apply dvd_of_mul_left_eq ((H ⊓ L).relindex (K ⊓ L)),
   rw [←inf_relindex_right H L, ←inf_relindex_right K L],
-  exact relindex_mul_relindex (inf_le_inf_right L hHK) inf_le_right,
+  exact relindex_mul_relindex (H ⊓ L) (K ⊓ L) L (inf_le_inf_right L hHK) inf_le_right,
 end
 
 variables (H K)
@@ -173,11 +175,11 @@ end
   (hf1 : function.surjective f) (hf2 : f.ker ≤ H) : (H.map f).index = H.index :=
 nat.dvd_antisymm (H.index_map_dvd hf1) (H.dvd_index_map hf2)
 
-@[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
-  H.index = fintype.card (quotient_group.quotient H) :=
+@[to_additive] lemma index_eq_card [fintype (G ⧸ H)] :
+  H.index = fintype.card (G ⧸ H) :=
 nat.card_eq_fintype_card
 
-@[to_additive] lemma index_mul_card [fintype G] [hH : fintype H] :
+@[to_additive index_mul_card] lemma index_mul_card [fintype G] [hH : fintype H] :
   H.index * fintype.card H = fintype.card G :=
 by rw [←relindex_bot_left_eq_card, ←index_bot_eq_card, mul_comm]; exact relindex_mul_index bot_le
 
@@ -187,16 +189,20 @@ begin
   exact ⟨fintype.card H, H.index_mul_card.symm⟩,
 end
 
-variables {H}
+variables {H K L}
+
+lemma relindex_eq_zero_of_le_left (hHK : H ≤ K) (hKL : K.relindex L = 0) : H.relindex L = 0 :=
+by rw [←inf_relindex_right, ←relindex_mul_relindex (H ⊓ L) (K ⊓ L) L
+  (inf_le_inf_right L hHK) inf_le_right, inf_relindex_right, hKL, mul_zero]
 
 @[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩
 
-lemma index_ne_zero_of_fintype [hH : fintype (quotient_group.quotient H)] : H.index ≠ 0 :=
+lemma index_ne_zero_of_fintype [hH : fintype (G ⧸ H)] : H.index ≠ 0 :=
 by { rw index_eq_card, exact fintype.card_ne_zero }
 
-lemma one_lt_index_of_ne_top [fintype (quotient_group.quotient H)] (hH : H ≠ ⊤) : 1 < H.index :=
+lemma one_lt_index_of_ne_top [fintype (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
 nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_one.mp hH⟩
 
 end subgroup

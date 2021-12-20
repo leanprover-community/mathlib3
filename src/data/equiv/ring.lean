@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import data.equiv.mul_add
 import algebra.field.basic
-import algebra.opposites
+import algebra.ring.opposite
 import algebra.big_operators.basic
 
 /-!
@@ -143,6 +143,8 @@ variables {R}
 def simps.symm_apply (e : R ≃+* S) : S → R := e.symm
 
 initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_apply)
+
+@[simp] lemma inv_fun_eq_symm (f : R ≃+* S) : f.inv_fun = f.symm := rfl
 
 @[simp] lemma symm_symm (e : R ≃+* S) : e.symm.symm = e := ext $ λ x, rfl
 

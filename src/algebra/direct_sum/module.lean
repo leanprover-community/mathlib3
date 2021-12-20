@@ -210,6 +210,13 @@ def submodule_coe : (⨁ i, A i) →ₗ[R] M := to_module R ι M (λ i, (A i).su
 @[simp] lemma submodule_coe_of (i : ι) (x : A i) : submodule_coe A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
 
+lemma coe_of_submodule_apply (i j : ι) (x : A i) :
+  (direct_sum.of _ i x j : M) = if i = j then x else 0 :=
+begin
+  obtain rfl | h := decidable.eq_or_ne i j,
+  { rw [direct_sum.of_eq_same, if_pos rfl], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, submodule.coe_zero], },
+end
 
 /-- The `direct_sum` formed by a collection of `submodule`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →ₗ[R] M` is bijective.

@@ -26,6 +26,13 @@ Given a function `a : ℕ → M` from the naturals into an additive commutative 
 def summatory {M : Type*} [add_comm_monoid M] (a : ℕ → M) (x : ℝ) : M :=
 ∑ n in finset.Icc 1 ⌊x⌋₊, a n
 
+/-- A version of partial summation where the upper bound is a natural number, useful to prove the
+general case. -/
+theorem partial_summation_nat (a : ℕ → ℂ) (f : ℝ → ℂ) {x : ℕ} (hf : continuous (deriv f)) :
+  ∑ n in finset.Icc 1 x, a n * f n =
+    summatory a x * f x - ∫ t in 1..x, summatory a t * deriv f t :=
+sorry
+
 -- BM: I think this can be made stronger by taking a weaker assumption on `f`, maybe something like
 -- the derivative is integrable on intervals contained in [1,x]?
 -- (and then probably have a corollary where it's enough for the derivative to be integrable on

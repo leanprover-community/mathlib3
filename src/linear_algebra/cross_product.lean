@@ -1,71 +1,88 @@
-import data.matrix.basic    -- also imports `algebra.module.linear_map`
-import data.matrix.notation -- also imports `data.fin.vec_notation`
+/-
+Copyright (c) 2021 Martin Dvorak. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Martin Dvorak, Kyle Miller, Andrew Yang
+-/
+
+import data.matrix.basic
+import data.matrix.notation
 import linear_algebra.basic
 
--- TODO should it be inside a namespace?
 
-variables {R : Type*} [comm_ring R] -- [has_mul R] [add_comm_group R]
+namespace cross_product
+
+variables {R : Type*} [comm_ring R]
+
 
 
 /-- cross product of two 3D vectors -/
-def cross_product (a b : fin 3 → R) : (fin 3 → R) :=
-  ![ (a 1)*(b 2) - (a 2)*(b 1) , (a 2)*(b 0) - (a 0)*(b 2) , (a 0)*(b 1) - (a 1)*(b 0) ]
+def cross_product : (fin 3 → R) →ₗ[R] (fin 3 → R) →ₗ[R] (fin 3 → R) :=
+{
+  to_fun := λ (a : fin 3 → R),
 
-local infix `×₃`: 68 := cross_product
-local infix `⬝` : 67 := matrix.dot_product
+  {
+    to_fun := λ (b : fin 3 → R),
+
+      ![ (a 1)*(b 2) - (a 2)*(b 1) ,
+         (a 2)*(b 0) - (a 0)*(b 2) ,
+         (a 0)*(b 1) - (a 1)*(b 0) ],
+
+    map_add' := λ (b₁ b₂ : fin 3 → R),
+    begin
+      simp [mul_add],
+
+      have eq₀ : (a 1 * b₁ 2 + a 1 * b₂ 2) - (a 2 * b₁ 1 + a 2 * b₂ 1) =
+                 (a 1 * b₁ 2 - a 2 * b₁ 1) + (a 1 * b₂ 2 - a 2 * b₂ 1),
+      { ring },
+      rw eq₀,
+
+      have eq₁ : (a 2 * b₁ 0 + a 2 * b₂ 0) - (a 0 * b₁ 2 + a 0 * b₂ 2) =
+                 (a 2 * b₁ 0 - a 0 * b₁ 2) + (a 2 * b₂ 0 - a 0 * b₂ 2),
+      { ring },
+      rw eq₁,
+
+      have eq₂ : (a 0 * b₁ 1 + a 0 * b₂ 1) - (a 1 * b₁ 0 + a 1 * b₂ 0) =
+                 (a 0 * b₁ 1 - a 1 * b₁ 0) + (a 0 * b₂ 1 - a 1 * b₂ 0),
+      { ring },
+      rw eq₂,
+
+      have big : ![a 1 * b₁ 2 - a 2 * b₁ 1, a 2 * b₁ 0 - a 0 * b₁ 2, a 0 * b₁ 1 - a 1 * b₁ 0]
+               + ![a 1 * b₂ 2 - a 2 * b₂ 1, a 2 * b₂ 0 - a 0 * b₂ 2, a 0 * b₂ 1 - a 1 * b₂ 0]
+               = ![a 1 * b₁ 2 - a 2 * b₁ 1 + (a 1 * b₂ 2 - a 2 * b₂ 1),
+                   a 2 * b₁ 0 - a 0 * b₁ 2 + (a 2 * b₂ 0 - a 0 * b₂ 2),
+                   a 0 * b₁ 1 - a 1 * b₁ 0 + (a 0 * b₂ 1 - a 1 * b₂ 0)],
+      { simp },
+
+      rw ← big,
+    end,
+
+    map_smul' := λ (c : R) (b : fin 3 → R),
+      by simp [mul_sub, mul_left_comm]
+  },
+
+  map_add' := λ (a₁ a₂ : fin 3 → R),
+  begin
+    sorry
+  end,
+
+  map_smul' := λ (c : R) (a : fin 3 → R),
+  begin
+    sorry
+  end
+}
 
 
-section smalltest
-  -- TODO remove before pull request
-  def c : (fin 3 → ℤ) := ![1, 2, 3]
-  def d : (fin 3 → ℤ) := ![4, 5, 6]
-  #eval c ⬝ d
-  #eval d ⬝ c
-  #eval c ×₃ d
-  #eval d ×₃ c
-  #eval c ⬝ c
-  #eval d ⬝ d
-  #eval c ×₃ c
-  #eval d ×₃ d
-  #eval c ⬝ c ×₃ d
-  #eval d ⬝ c ×₃ d
-  #eval c ×₃ d ⬝ c
-  #eval c ×₃ d ⬝ d
-end smalltest
+local infix ` ×₃ `: 68 := cross_product
+local infix ` ⬝ ` : 67 := matrix.dot_product
 
 
-private lemma wtf : ∀ x : ℕ, x < 3 → x ≠ 0 → x ≠ 1 → x ≠ 2 → false :=
-begin
-  dec_trivial,
-end
-
-private lemma omfg (y : fin 3) (n₀ : y ≠ 0) (n₁ : y ≠ 1) (n₂ : y ≠ 2) : false :=
-begin
-  cases y,
-  apply wtf y_val; finish,
-end
-
-private meta def finish_cross_prod : tactic unit :=
-`[ rw cross_product, rw cross_product, finish ]
 
 /-- cross product is anti-commutative -/
 lemma cross_product_anticomm (v w : fin 3 → R) :
   v ×₃ w = - (w ×₃ v) :=
 begin
-  ext i,
-  by_cases h₀ : i = 0,
-  { rw h₀ at *,
-    finish_cross_prod },
-  by_cases h₁ : i = 1,
-  { rw h₁ at *,
-    finish_cross_prod },
-  by_cases h₂ : i = 2,
-  { rw h₂ at *,
-    finish_cross_prod },
-  -- TODO is there a better way how to do the decomposition into cases above?
-  exfalso,
-  exact omfg i h₀ h₁ h₂,
-  -- TODO can the lemmata `wtf` and `omfg` be removed?
+  dsimp [cross_product],
+  simp [mul_comm],
 end
 
 /-- vector sum of cross product with flipped cross product yields the zero vector -/
@@ -75,6 +92,7 @@ begin
   rw add_eq_zero_iff_eq_neg,
   apply cross_product_anticomm,
 end
+
 
 /-- cross product of a vector with itself yields the zero vector -/
 lemma cross_product_self_eq_zero_vector (v : fin 3 → R) :
@@ -86,23 +104,16 @@ begin
 end
 
 
-private lemma dot_product_unfold (a b c d e f : R) :
-  matrix.dot_product ![a, b, c] ![d, e, f] = a*d + b*e + c*f :=
-begin
-  simp [add_assoc],
-end
+private lemma dot_product_unfold (v w : fin 3 → R) :
+  v ⬝ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
+by simp [matrix.dot_product, add_assoc, fin.sum_univ_succ]
 
 /-- cross product of two vectors is perpendicular to the first vector -/
 lemma cross_product_perpendicular_first_arg (v w : fin 3 → R) :
   v ⬝ (v ×₃ w) = 0 :=
 begin
-  unfold cross_product,
-  calc v ⬝ ![v 1 * w 2 - v 2 * w 1, v 2 * w 0 - v 0 * w 2, v 0 * w 1 - v 1 * w 0]
-       = (v 0) * (v 1 * w 2 - v 2 * w 1)
-       + (v 1) * (v 2 * w 0 - v 0 * w 2)
-       + (v 2) * (v 0 * w 1 - v 1 * w 0)
-           : by apply dot_product_unfold
-  ...  = 0 : by ring,
+  simp [cross_product, dot_product_unfold],
+  simp [mul_sub, mul_assoc, mul_left_comm],
 end
 
 /-- cross product of two vectors is perpendicular to the second vector -/
@@ -115,15 +126,16 @@ begin
   exact neg_zero,
 end
 
-
-/-- TODO -/
-lemma triple_product_equality (u v w : fin 3 → R) :
+/-- triple-product permutation lemma (combination of dot product with cross product);
+    both terms express the determinant of [u|v|w] basically -/
+lemma triple_product_permutation (u v w : fin 3 → R) :
   u ⬝ (v ×₃ w) = v ⬝ (w ×₃ u) :=
 begin
-  unfold cross_product,
-  -- TODO how can I unpack `u` into `![u 1, u 2, u 3]` in order to call `dot_product_unfold` then?
-  sorry,
+  simp [cross_product, dot_product_unfold],
+  simp [mul_sub, mul_assoc, mul_left_comm, mul_comm],
+  ring,
 end
 
 
-#check (fin 3 → R) →ₗ[R] (fin 3 → R) →ₗ[R] (fin 3 → R) -- TODO prove multilinearity
+
+end cross_product

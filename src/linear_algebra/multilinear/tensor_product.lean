@@ -19,9 +19,9 @@ open_locale tensor_product
 variables {R ι₁ ι₂ ι₃ ι₄ : Type*}
 variables [comm_semiring R]
 variables [decidable_eq ι₁] [decidable_eq ι₂][decidable_eq ι₃] [decidable_eq ι₄]
-variables {N₁ : Type*} [add_comm_monoid N₁] [module R N₁] [module Rᵐᵒᵖ N₁] [is_symmetric_smul R N₁]
-variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂] [module Rᵐᵒᵖ N₂] [is_symmetric_smul R N₂]
-variables {N : Type*} [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+variables {N₁ : Type*} [add_comm_monoid N₁] [module R N₁] [module Rᵐᵒᵖ N₁] [is_central_scalar R N₁]
+variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂] [module Rᵐᵒᵖ N₂] [is_central_scalar R N₂]
+variables {N : Type*} [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 
 /-- Given two multilinear maps `(ι₁ → N) → N₁` and `(ι₂ → N) → N₂`, this produces the map
 `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂` by taking the coproduct of the domain and the tensor product

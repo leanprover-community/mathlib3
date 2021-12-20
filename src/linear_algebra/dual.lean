@@ -60,7 +60,7 @@ instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
 instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 
-instance [module Rᵐᵒᵖ M] [is_symmetric_smul R M] : is_symmetric_smul R (dual R M) :=
+instance [module Rᵐᵒᵖ M] [is_central_scalar R M] : is_central_scalar R (dual R M) :=
 ⟨λ r m, by { ext, simp [mul_comm] }⟩
 
 /-- Maps a module M to the dual of the dual of M. See `module.erange_coe` and

@@ -71,12 +71,12 @@ private lemma associator_naturality_aux
   [add_comm_monoid X₁] [add_comm_monoid X₂] [add_comm_monoid X₃]
   [module R X₁] [module R X₂] [module R X₃]
   [module Rᵐᵒᵖ X₁] [module Rᵐᵒᵖ X₂] [module Rᵐᵒᵖ X₃]
-  [is_symmetric_smul R X₁] [is_symmetric_smul R X₂] [is_symmetric_smul R X₃]
+  [is_central_scalar R X₁] [is_central_scalar R X₂] [is_central_scalar R X₃]
   {Y₁ Y₂ Y₃ : Type*}
   [add_comm_monoid Y₁] [add_comm_monoid Y₂] [add_comm_monoid Y₃]
   [module R Y₁] [module R Y₂] [module R Y₃]
   [module Rᵐᵒᵖ Y₁] [module Rᵐᵒᵖ Y₂] [module Rᵐᵒᵖ Y₃]
-  [is_symmetric_smul R Y₁] [is_symmetric_smul R Y₂] [is_symmetric_smul R Y₃]
+  [is_central_scalar R Y₁] [is_central_scalar R Y₂] [is_central_scalar R Y₃]
   (f₁ : X₁ →ₗ[R] Y₁) (f₂ : X₂ →ₗ[R] Y₂) (f₃ : X₃ →ₗ[R] Y₃) :
   (↑(assoc R Y₁ Y₂ Y₃) ∘ₗ (map (map f₁ f₂) f₃)) = ((map f₁ (map f₂ f₃)) ∘ₗ ↑(assoc R X₁ X₂ X₃)) :=
 begin
@@ -92,7 +92,7 @@ private lemma pentagon_aux
   [add_comm_monoid W] [add_comm_monoid X] [add_comm_monoid Y] [add_comm_monoid Z]
   [module R W] [module R X] [module R Y] [module R Z]
   [module Rᵐᵒᵖ W] [module Rᵐᵒᵖ X] [module Rᵐᵒᵖ Y] [module Rᵐᵒᵖ Z]
-  [is_symmetric_smul R W] [is_symmetric_smul R X] [is_symmetric_smul R Y] [is_symmetric_smul R Z] :
+  [is_central_scalar R W] [is_central_scalar R X] [is_central_scalar R Y] [is_central_scalar R Z] :
   ((map (1 : W →ₗ[R] W) (assoc R X Y Z).to_linear_map).comp (assoc R W (X ⊗[R] Y) Z).to_linear_map)
     .comp (map ↑(assoc R W X Y) (1 : Z →ₗ[R] Z)) =
   (assoc R W X (Y ⊗[R] Z)).to_linear_map.comp (assoc R (W ⊗[R] X) Y Z).to_linear_map :=

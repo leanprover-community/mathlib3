@@ -30,9 +30,6 @@ variables (R : Type u)
 section
 variables [comm_ring R]
 
-local attribute [instance] op_scalar_of_scalar
-local attribute [instance] is_symmetric_op_scalar_of_scalar
-
 /--
 The free functor `Type u ⥤ SymmetricBiModule R` sending a type `X` to the
 free `R`-module with generators `x : X`, implemented as the type `X →₀ R`.

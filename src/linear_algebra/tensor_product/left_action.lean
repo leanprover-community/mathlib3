@@ -111,7 +111,7 @@ instance left_distrib_mul_action : distrib_mul_action R' (M ⊗[R] N) :=
   one_smul := tensor_product.one_smul,
   smul_zero := tensor_product.smul_zero }
 
-@[simp] lemma tmul_smul [has_scalar R'ᵐᵒᵖ M] [is_symmetric_smul R' M]
+@[simp] lemma tmul_smul [has_scalar R'ᵐᵒᵖ M] [is_central_scalar R' M]
   [has_scalar R' N] [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
@@ -170,11 +170,11 @@ tensor_product.is_scalar_tower_left
 
 variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
-def mk [is_symmetric_smul R M] : M →ₗ[R] N →ₗ[R] M ⊗[R] N :=
+def mk [is_central_scalar R M] : M →ₗ[R] N →ₗ[R] M ⊗[R] N :=
 linear_map.mk₂ R (⊗ₜ) add_tmul (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
 variables {R M N}
 
-@[simp] lemma mk_apply [is_symmetric_smul R M] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+@[simp] lemma mk_apply [is_central_scalar R M] [module Rᵐᵒᵖ N] [is_central_scalar R N]
   (m : M) (n : N) : mk R M N m n = m ⊗ₜ n :=
 rfl
 
@@ -189,11 +189,11 @@ begin
   { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
 end
 
-variables [is_symmetric_smul R M]
+variables [is_central_scalar R M]
 
-instance : is_symmetric_smul R (M ⊗[R] N) :=
+instance : is_central_scalar R (M ⊗[R] N) :=
 ⟨λ r x, tensor_product.induction_on x rfl
-  (λ m n, by rw [smul_tmul' r, ←is_symmetric_smul.op_smul_eq_smul r m, smul_tmul'])
+  (λ m n, by rw [smul_tmul' r, ←is_central_scalar.op_smul_eq_smul r m, smul_tmul'])
   (λ x y hx hy, by rw [smul_add, hx, hy, smul_add])⟩
 
 section UMP
@@ -216,7 +216,7 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, (f m).map_add]
 | _, _, (eqv.of_smul r m n)        := (add_con.ker_rel _).2 $
     by rw [free_add_monoid.lift_eval_of, free_add_monoid.lift_eval_of,
-           is_symmetric_smul.op_smul_eq_smul, f.map_smul₂, (f m).map_smul]
+           is_central_scalar.op_smul_eq_smul, f.map_smul₂, (f m).map_smul]
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
@@ -295,7 +295,7 @@ variables {R M N P}
 by rw [uncurry, linear_map.flip_apply, lift.tmul]; refl
 
 variables (R M N P)
-variables [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+variables [module Rᵐᵒᵖ N] [is_central_scalar R N]
 /-- A linear equivalence constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
 with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
 the given bilinear map `M → N → P`. -/
@@ -377,7 +377,7 @@ end
 
 section comm
 variables (R M N)
-variables [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+variables [module Rᵐᵒᵖ N] [is_central_scalar R N]
 
 /--
 The tensor product of modules is commutative, up to linear equivalence.
@@ -418,8 +418,8 @@ end
 open linear_map
 
 section assoc
-variables [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
-variables [module Rᵐᵒᵖ P] [is_symmetric_smul R P]
+variables [module Rᵐᵒᵖ N] [is_central_scalar R N]
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
 
 variables (R M N P)
 /-- The associator for tensor product of R-modules, as a linear equivalence. -/
@@ -446,7 +446,7 @@ end assoc
 
 section map
 
-variables [module Rᵐᵒᵖ P] [is_symmetric_smul R P]
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
 
 /-- The tensor product of a pair of linear maps between modules. -/
 def map (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : M ⊗ N →ₗ[R] P ⊗ Q :=
@@ -468,13 +468,13 @@ begin
 end
 
 /-- Given submodules `p ⊆ P` and `q ⊆ Q`, this is the natural map: `p ⊗ q → P ⊗ Q`. -/
-@[simp] def map_incl (p : submodule R P) [module Rᵐᵒᵖ p] [is_symmetric_smul R p]
+@[simp] def map_incl (p : submodule R P) [module Rᵐᵒᵖ p] [is_central_scalar R p]
   (q : submodule R Q) : p ⊗[R] q →ₗ[R] P ⊗[R] Q :=
 map p.subtype q.subtype
 
 section map_comp
 variables {P' Q' : Type*}
-variables [add_comm_monoid P'] [module R P'] [module Rᵐᵒᵖ P'] [is_symmetric_smul R P']
+variables [add_comm_monoid P'] [module R P'] [module Rᵐᵒᵖ P'] [is_central_scalar R P']
 variables [add_comm_monoid Q'] [module R Q']
 
 lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
@@ -510,7 +510,7 @@ end map
 
 section congr
 
-variables [module Rᵐᵒᵖ P] [is_symmetric_smul R P]
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
 /-- If `M` and `P` are linearly equivalent and `N` and `Q` are linearly equivalent
 then `M ⊗ N` and `P ⊗ Q` are linearly equivalent. -/
 def congr (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) : M ⊗ N ≃ₗ[R] P ⊗ Q :=
@@ -529,8 +529,8 @@ rfl
 end congr
 
 variables (R M N P Q)
-variables [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
-variables [module Rᵐᵒᵖ P] [is_symmetric_smul R P]
+variables [module Rᵐᵒᵖ N] [is_central_scalar R N]
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
 
 /-- A tensor product analogue of `mul_left_comm`. -/
 def left_comm : M ⊗[R] (N ⊗[R] P) ≃ₗ[R] N ⊗[R] (M ⊗[R] P) :=
@@ -550,7 +550,7 @@ rfl
 rfl
 
 variables (M N P Q)
-variables [module Rᵐᵒᵖ Q] [is_symmetric_smul R Q]
+variables [module Rᵐᵒᵖ Q] [is_central_scalar R Q]
 
 /-- This special case is worth defining explicitly since it is useful for defining multiplication
 on tensor products of modules carrying multiplications (e.g., associative rings, Lie rings, ...).
@@ -587,12 +587,12 @@ namespace linear_map
 variables {R : Type*} [comm_semiring R]
 variables {R' : Type*} [monoid R']
 variables {R'' : Type*} [comm_semiring R''] --?
-variables (M : Type*) [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
-variables {N : Type*} [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+variables (M : Type*) [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables {N : Type*} [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 variables [distrib_mul_action R' M]
-variables {P : Type*} [add_comm_monoid P] [module R P] [module Rᵐᵒᵖ P] [is_symmetric_smul R P]
-variables {Q : Type*} [add_comm_monoid Q] [module R Q] [module Rᵐᵒᵖ Q] [is_symmetric_smul R Q]
-variables {S : Type*} [add_comm_monoid S] [module R S] [module Rᵐᵒᵖ S] [is_symmetric_smul R S]
+variables {P : Type*} [add_comm_monoid P] [module R P] [module Rᵐᵒᵖ P] [is_central_scalar R P]
+variables {Q : Type*} [add_comm_monoid Q] [module R Q] [module Rᵐᵒᵖ Q] [is_central_scalar R Q]
+variables {S : Type*} [add_comm_monoid S] [module R S] [module Rᵐᵒᵖ S] [is_central_scalar R S]
 
 
 variables (M)
@@ -601,7 +601,7 @@ def ltensor (f : N →ₗ[R] P) : M ⊗ N →ₗ[R] M ⊗ P :=
 tensor_product.map id f
 
 /-- `rtensor f M : N₁ ⊗ M →ₗ N₂ ⊗ M` is the natural linear map induced by `f : N₁ →ₗ N₂`. -/
-def rtensor [is_symmetric_smul R N] (f : N →ₗ[R] P) : N ⊗ M →ₗ[R] P ⊗ M :=
+def rtensor [is_central_scalar R N] (f : N →ₗ[R] P) : N ⊗ M →ₗ[R] P ⊗ M :=
 tensor_product.map f id
 
 variables (g : P →ₗ[R] Q) (f : N →ₗ[R] P)
@@ -716,7 +716,7 @@ variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
   [add_comm_group S]
-variables [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
+variables [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 variables [module R N] [module R P] [module R Q] [module R S]
 
 namespace tensor_product
@@ -799,7 +799,7 @@ When `R` is a `ring` we get the required `tensor_product.compatible_smul` instan
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
-instance compatible_smul.int [module ℤ M] [module ℤᵐᵒᵖ M] [is_symmetric_smul ℤ M]
+instance compatible_smul.int [module ℤ M] [module ℤᵐᵒᵖ M] [is_central_scalar ℤ M]
   [module ℤ N] : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)
@@ -816,12 +816,12 @@ end tensor_product
 namespace linear_map
 
 variables {R' : Type*} [comm_semiring R']
-variables [module R' M] [module R'ᵐᵒᵖ M] [is_symmetric_smul R' M]
+variables [module R' M] [module R'ᵐᵒᵖ M] [is_central_scalar R' M]
 variables [module R' N] [module R' P] [module R' Q] [module R' S]
-variables [module R'ᵐᵒᵖ N] [is_symmetric_smul R' N]
-variables [module R'ᵐᵒᵖ P] [is_symmetric_smul R' P]
-variables [module R'ᵐᵒᵖ Q] [is_symmetric_smul R' Q]
-variables [module R'ᵐᵒᵖ S] [is_symmetric_smul R' S]
+variables [module R'ᵐᵒᵖ N] [is_central_scalar R' N]
+variables [module R'ᵐᵒᵖ P] [is_central_scalar R' P]
+variables [module R'ᵐᵒᵖ Q] [is_central_scalar R' Q]
+variables [module R'ᵐᵒᵖ S] [is_central_scalar R' S]
 
 @[simp] lemma ltensor_sub (f g : N →ₗ[R'] P) : (f - g).ltensor M = f.ltensor M - g.ltensor M :=
 by simp only [← coe_ltensor_hom, map_sub]

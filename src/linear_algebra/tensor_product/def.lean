@@ -142,7 +142,7 @@ variables {R R' M N}
 
 @[priority 100]
 instance compatible_smul.is_scalar_tower
-  [has_scalar R' R] [has_scalar R'ᵐᵒᵖ R] [is_symmetric_smul R' R]
+  [has_scalar R' R] [has_scalar R'ᵐᵒᵖ R] [is_central_scalar R' R]
   [has_scalar R'ᵐᵒᵖ M] [is_scalar_tower R'ᵐᵒᵖ Rᵐᵒᵖ M]
   [has_scalar R' N] [is_scalar_tower R' R N] :
   compatible_smul R R' M N :=
@@ -163,10 +163,10 @@ compatible_smul.rsmul_tmul _ _ _
 
 /-- In the case of a symmetric action on `M`, we can move a `smul` vom the left to the
 right of the tensor product. -/
-lemma smul_tmul [has_scalar R' M] [has_scalar R'ᵐᵒᵖ M] [is_symmetric_smul R' M]
+lemma smul_tmul [has_scalar R' M] [has_scalar R'ᵐᵒᵖ M] [is_central_scalar R' M]
   [has_scalar R' N] [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
   (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
-by rw [←is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul]
+by rw [←is_central_scalar.op_smul_eq_smul, ←rsmul_tmul]
 
 lemma ite_tmul (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
   (if P then x₁ else 0) ⊗ₜ[R] x₂ = if P then x₁ ⊗ₜ x₂ else 0 :=

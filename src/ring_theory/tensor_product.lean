@@ -65,7 +65,7 @@ variables [smul_comm_class Rᵐᵒᵖ R A]
 variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ R M]
 variables [module A M] [module Aᵐᵒᵖ M] [smul_comm_class Aᵐᵒᵖ A M]
 variables [is_scalar_tower R A M] [is_scalar_tower Rᵐᵒᵖ A M]
-variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
@@ -98,11 +98,11 @@ end semiring
 
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A]
-variables [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
+variables [algebra R A] [algebra Rᵐᵒᵖ A] [is_central_scalar R A]
 variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ R M]
-variables [module A M] [module Aᵐᵒᵖ M] [is_symmetric_smul A M]
+variables [module A M] [module Aᵐᵒᵖ M] [is_central_scalar A M]
 variables [is_scalar_tower R A M] [is_scalar_tower Rᵐᵒᵖ A M]
-variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 /-- Heterobasic version of `tensor_product.lift`:
@@ -163,10 +163,10 @@ The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
 local attribute [ext] tensor_product.ext
 
 
-variables [module Rᵐᵒᵖ P] [is_symmetric_smul R P]
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
 variables [smul_comm_class Aᵐᵒᵖ Rᵐᵒᵖ M]
 variables [is_scalar_tower Rᵐᵒᵖ A P]
-variables [module Aᵐᵒᵖ P] [is_symmetric_smul A P]
+variables [module Aᵐᵒᵖ P] [is_central_scalar A P]
 variables [is_scalar_tower Rᵐᵒᵖ R P]
 variables [smul_comm_class Aᵐᵒᵖ R M]
 /-- Heterobasic version of `tensor_product.assoc`:
@@ -197,10 +197,10 @@ open tensor_product
 section semiring
 
 variables {R A B M N : Type*} [comm_semiring R]
-variables [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
-variables [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
-variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
-variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+variables [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_central_scalar R A]
+variables [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_central_scalar R B]
+variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 variables (r : R) (f g : M →ₗ[R] N)
 
 variables (A)
@@ -240,17 +240,17 @@ variables (R A M N)
 @[simps] def base_change_hom : (M →ₗ[R] N) →ₗ[R] A ⊗[R] M →ₗ[A] A ⊗[R] N :=
 { to_fun := base_change A,
   map_add' := base_change_add,
-  map_smul' := base_change_smul }
+  map_smul' := λ r f, base_change_smul r f }
 
 end semiring
 
 section ring
 
 variables {R A B M N : Type*} [comm_ring R]
-variables [ring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_symmetric_smul R A]
-variables [ring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_symmetric_smul R B]
-variables [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
-variables [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+variables [ring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_central_scalar R A]
+variables [ring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_central_scalar R B]
+variables [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 variables (f g : M →ₗ[R] N)
 
 @[simp] lemma base_change_sub :
@@ -419,7 +419,7 @@ tensor_algebra_map.from_opposite $ λ x y, by {
 @[simp]
 lemma algebra_map_op_apply (r : Rᵐᵒᵖ) : (algebra_map Rᵐᵒᵖ A) r = (algebra_map R A) r.unop :=
 by { rw [algebra_map_eq_smul_one, algebra_map_eq_smul_one],
-     conv_lhs { rw [←r.op_unop, is_symmetric_smul.op_smul_eq_smul] },  }
+     conv_lhs { rw [←r.op_unop, is_central_scalar.op_smul_eq_smul] },  }
 
 instance op_algebra : algebra Rᵐᵒᵖ (A ⊗[R] B) :=
 { commutes' := λ r x,

@@ -262,11 +262,11 @@ instance (M : Type u) [add_comm_group M] [module R M] : has_coe (submodule R M) 
 
 
 variables (R)
-/-- The category of symmetric of symmetric `R`-`R`-bimodules. Only these will form a monoidal
+/-- The category of symmetric `R`-`R`-bimodules. Only these will form a monoidal
 category since they admit a tensor product. -/
 structure SymmetricBiModule extends Module.{v} R :=
   [is_op_module : module Rᵐᵒᵖ carrier]
-  [is_symmetric : is_symmetric_smul R carrier]
+  [is_symmetric : is_central_scalar R carrier]
 
 attribute [instance] SymmetricBiModule.is_op_module SymmetricBiModule.is_symmetric
 
@@ -295,21 +295,21 @@ instance has_forget_to_AddCommGroup : has_forget₂ (SymmetricBiModule.{v} R) (M
 
 /-- The object in the category of symmetric R-modules associated to a symmetric R-module -/
 def of (X : Type v) [add_comm_group X] [module R X]
-  [iop : module Rᵐᵒᵖ X] [is : is_symmetric_smul R X] :
+  [iop : module Rᵐᵒᵖ X] [is : is_central_scalar R X] :
   SymmetricBiModule R :=
 { is_op_module := iop, is_symmetric := is, .. Module.of R X}
 
 /-- Typecheck a `linear_map` as a morphism in `Module R`. -/
 def of_hom {R : Type u} [ring R] {X Y : Type u}
-  [add_comm_group X] [module R X] [module Rᵐᵒᵖ X] [is_symmetric_smul R X]
-  [add_comm_group Y] [module R Y] [module Rᵐᵒᵖ Y] [is_symmetric_smul R Y]
+  [add_comm_group X] [module R X] [module Rᵐᵒᵖ X] [is_central_scalar R X]
+  [add_comm_group Y] [module R Y] [module Rᵐᵒᵖ Y] [is_central_scalar R Y]
   (f : X →ₗ[R] Y) : of R X ⟶ of R Y := f
 
 instance : has_zero (SymmetricBiModule R) := ⟨of R punit⟩
 instance : inhabited (SymmetricBiModule R) := ⟨0⟩
 
 @[simp]
-lemma coe_of (X : Type u) [add_comm_group X] [module R X] [module Rᵐᵒᵖ X] [is_symmetric_smul R X]:
+lemma coe_of (X : Type u) [add_comm_group X] [module R X] [module Rᵐᵒᵖ X] [is_central_scalar R X]:
   (of R X : Type u) = X := rfl
 
 end SymmetricBiModule
@@ -318,15 +318,15 @@ variables {R}
 
 /-- Reinterpreting a linear map in the category of symmetric `R`-modules. -/
 def SymmetricBiModule.as_hom
-  [add_comm_group X₁] [module R X₁] [module Rᵐᵒᵖ X₁] [is_symmetric_smul R X₁]
-  [add_comm_group X₂] [module R X₂] [module Rᵐᵒᵖ X₂] [is_symmetric_smul R X₂] :
+  [add_comm_group X₁] [module R X₁] [module Rᵐᵒᵖ X₁] [is_central_scalar R X₁]
+  [add_comm_group X₂] [module R X₂] [module Rᵐᵒᵖ X₂] [is_central_scalar R X₂] :
   (X₁ →ₗ[R] X₂) → (SymmetricBiModule.of R X₁ ⟶ SymmetricBiModule.of R X₂) := id
 
 localized "notation `↟` f : 1024 := Module.as_hom f" in Module
 
 /-- Reinterpreting a linear map in the category of `R`-modules. -/
 def SymmetricBiModule.as_hom_right
-  [add_comm_group X₁] [module R X₁] [module Rᵐᵒᵖ X₁] [is_symmetric_smul R X₁]
+  [add_comm_group X₁] [module R X₁] [module Rᵐᵒᵖ X₁] [is_central_scalar R X₁]
   {X₂ : SymmetricBiModule.{v} R} :
   (X₁ →ₗ[R] X₂) → (SymmetricBiModule.of R X₁ ⟶ X₂) := id
 
@@ -334,7 +334,7 @@ localized "notation `↾` f : 1024 := Module.as_hom_right f" in Module
 
 /-- Reinterpreting a linear map in the category of `R`-modules. -/
 def SymmetricBiModule.as_hom_left {X₁ : SymmetricBiModule.{v} R}
-  [add_comm_group X₂] [module R X₂] [module Rᵐᵒᵖ X₂] [is_symmetric_smul R X₂] :
+  [add_comm_group X₂] [module R X₂] [module Rᵐᵒᵖ X₂] [is_central_scalar R X₂] :
   (X₁ →ₗ[R] X₂) → (X₁ ⟶ SymmetricBiModule.of R X₂) := id
 
 localized "notation `↿` f : 1024 := Module.as_hom_left f" in Module
@@ -343,8 +343,8 @@ localized "notation `↿` f : 1024 := Module.as_hom_left f" in Module
 @[simps]
 def linear_equiv.to_SymmetricBiModule_iso
   {g₁ : add_comm_group X₁} {g₂ : add_comm_group X₂} {m₁ : module R X₁} {m₂ : module R X₂}
-  [module Rᵐᵒᵖ X₁] [is_symmetric_smul R X₁]
-  [module Rᵐᵒᵖ X₂] [is_symmetric_smul R X₂]
+  [module Rᵐᵒᵖ X₁] [is_central_scalar R X₁]
+  [module Rᵐᵒᵖ X₂] [is_central_scalar R X₂]
   (e : X₁ ≃ₗ[R] X₂) :
   SymmetricBiModule.of R X₁ ≅ SymmetricBiModule.of R X₂ :=
 { hom := (e : X₁ →ₗ[R] X₂),

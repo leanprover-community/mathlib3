@@ -21,8 +21,8 @@ open_locale direct_sum
 
 open set linear_map submodule
 variables {R : Type u} {M : Type v} {N : Type w} [semiring R] 
-  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
-  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 
 section tensor_product
 
@@ -31,8 +31,8 @@ open_locale tensor_product classical
 
 /-- The tensor product of ι →₀ M and κ →₀ N is linearly equivalent to (ι × κ) →₀ (M ⊗ N). -/
 def finsupp_tensor_finsupp (R M N ι κ : Type*) [comm_semiring R]
-  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
-  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N] :
+  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N] :
   (ι →₀ M) ⊗[R] (κ →₀ N) ≃ₗ[R] (ι × κ) →₀ (M ⊗[R] N) :=
 (tensor_product.congr (finsupp_lequiv_direct_sum R M ι) (finsupp_lequiv_direct_sum R N κ))
   ≪≫ₗ (by { haveI : smul_comm_class Rᵐᵒᵖ R M, apply_instance,
@@ -40,16 +40,16 @@ def finsupp_tensor_finsupp (R M N ι κ : Type*) [comm_semiring R]
   ≪≫ₗ (finsupp_lequiv_direct_sum R (M ⊗[R] N) (ι × κ)).symm)
 
 @[simp] theorem finsupp_tensor_finsupp_single (R M N ι κ : Sort*) [comm_semiring R]
-  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
-  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
   (i : ι) (m : M) (k : κ) (n : N) :
   finsupp_tensor_finsupp R M N ι κ (finsupp.single i m ⊗ₜ finsupp.single k n) =
   finsupp.single (i, k) (m ⊗ₜ n) :=
 by simp [finsupp_tensor_finsupp]
 
 @[simp] theorem finsupp_tensor_finsupp_apply (R M N ι κ : Sort*) [comm_semiring R]
-  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
-  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
   (f : ι →₀ M) (g : κ →₀ N) (i : ι) (k : κ) :
   finsupp_tensor_finsupp R M N ι κ (f ⊗ₜ g) (i, k) = f i ⊗ₜ g k :=
 begin
@@ -67,8 +67,8 @@ begin
 end
 
 @[simp] theorem finsupp_tensor_finsupp_symm_single (R M N ι κ : Sort*) [comm_semiring R]
-  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_symmetric_smul R M]
-  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_symmetric_smul R N]
+  [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
   (i : ι × κ) (m : M) (n : N) :
   (finsupp_tensor_finsupp R M N ι κ).symm (finsupp.single i (m ⊗ₜ n)) =
   (finsupp.single i.1 m ⊗ₜ finsupp.single i.2 n) :=

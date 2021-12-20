@@ -260,7 +260,7 @@ finsupp.smul_comm_class G k
 instance [monoid R] [semiring k] [distrib_mul_action R k] [distrib_mul_action Rᵐᵒᵖ k]
   [is_central_scalar R k] :
   is_central_scalar R (monoid_algebra k G) :=
-finsupp.is_central_scalar G k
+finsupp.is_central_scalar
 
 instance comap_distrib_mul_action_self [group G] [semiring k] :
   distrib_mul_action G (monoid_algebra k G) :=
@@ -992,7 +992,7 @@ finsupp.smul_comm_class G k
 instance [monoid R] [semiring k] [distrib_mul_action R k] [distrib_mul_action Rᵐᵒᵖ k]
   [is_central_scalar R k] :
   is_central_scalar R (add_monoid_algebra k G) :=
-finsupp.is_central_scalar G k
+finsupp.is_central_scalar
 
 /-! It is hard to state the equivalent of `distrib_mul_action G (add_monoid_algebra k G)`
 because we've never discussed actions of additive groups. -/

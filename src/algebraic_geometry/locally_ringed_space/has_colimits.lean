@@ -114,7 +114,7 @@ instance coequalizer_π_app_is_local_ring_hom
 begin
   have := ι_comp_coequalizer_comparison f.1 g.1 SheafedSpace.forget_to_PresheafedSpace,
   rw ← preserves_coequalizer.iso_hom at this,
-  erw PresheafedSpace.congr_app this.symm (op U),
+  erw SheafedSpace.congr_app this.symm (op U),
   rw [PresheafedSpace.comp_c_app,
     ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π],
   apply_instance
@@ -163,12 +163,8 @@ begin
     delta image_basic_open,
     rw [preimage_basic_open f, preimage_basic_open g],
     dsimp only [functor.op, unop_op],
-    rw ← comp_apply,
-    erw ← PresheafedSpace.comp_c_app,
-    rw ← comp_apply,
-    erw [← PresheafedSpace.comp_c_app,
-      PresheafedSpace.congr_app (coequalizer.condition f.1 g.1 : _) (op U)],
-    rw comp_apply,
+    rw [← comp_apply, ← SheafedSpace.comp_c_app', ← comp_apply, ← SheafedSpace.comp_c_app',
+      SheafedSpace.congr_app (coequalizer.condition f.1 g.1), comp_apply],
     erw X.to_RingedSpace.basic_open_res,
     apply inf_eq_right.mpr,
     refine (RingedSpace.basic_open_subset _ _).trans _,
@@ -183,7 +179,8 @@ begin
       .is_open_preimage, Top.coequalizer_is_open_iff, ← set.preimage_comp],
   erw ← coe_comp,
   rw [preserves_coequalizer.iso_hom, ι_comp_coequalizer_comparison],
-  erw image_basic_open_image_preimage,
+  dsimp only [SheafedSpace.forget],
+  rw image_basic_open_image_preimage,
   exact (image_basic_open f g U s).2
 end
 

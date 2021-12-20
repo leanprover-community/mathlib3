@@ -241,22 +241,22 @@ def hol_submodule (D: open_subs) : submodule (ℂ)  (D.1 → ℂ) :=
 
 lemma aux (s t d : set ℂ) (h :  s ⊆ t) : s ∩ d ⊆ t :=
 begin
-intros x hx,
-apply h,
-simp at *,
-apply hx.1,
+  intros x hx,
+  apply h,
+  simp at *,
+  apply hx.1,
 end
 
 lemma aux2 (x : ℂ) (a b : ℝ) : metric.ball x a ∩ metric.ball x b = metric.ball x (min a b) :=
 begin
-ext,
-split,
-simp only [and_imp, metric.mem_ball, set.mem_inter_eq, lt_min_iff],
-intros ha hb,
-simp only [ha, hb, and_self],
-simp only [and_imp, metric.mem_ball, set.mem_inter_eq, lt_min_iff],
-intros ha hb,
-simp only [ha, hb, and_self],
+  ext,
+  split,
+  simp only [and_imp, metric.mem_ball, set.mem_inter_eq, lt_min_iff],
+  intros ha hb,
+  simp only [ha, hb, and_self],
+  simp only [and_imp, metric.mem_ball, set.mem_inter_eq, lt_min_iff],
+  intros ha hb,
+  simp only [ha, hb, and_self],
 end
 
 
@@ -270,7 +270,7 @@ begin
   have hh := h ⟨x, hx⟩,
   obtain ⟨ε, hε, hb, H⟩:= hh,
   have HH:= H x,
-  simp at HH,
+  simp only [metric.mem_ball, subtype.coe_mk, dist_self] at HH,
   have HHH:= HH hε,
   obtain ⟨f', hf'⟩:= HHH,
   use f',
@@ -279,18 +279,41 @@ begin
   intros δ hδ,
   have hf2 := hf'  δ hδ,
   rw filter.eventually_iff_exists_mem at *,
-  simp at *,
+  simp only [exists_prop, metric.mem_ball, gt_iff_lt, topological_space.opens.mem_coe,
+  normed_field.norm_mul, dist_zero_right, continuous_linear_map.map_sub, set_coe.forall,
+  subtype.coe_mk, subtype.val_eq_coe, norm_eq_abs, normed_field.norm_inv] at *,
   obtain ⟨S, hS, HD⟩ := hf2,
-   simp_rw metric.mem_nhds_within_iff at *,
+  simp_rw metric.mem_nhds_within_iff at *,
   obtain ⟨e, he, HE⟩:= hS,
   use S,
   split,
   use min e ε,
   simp only [gt_iff_lt, topological_space.opens.mem_coe, lt_min_iff, subtype.val_eq_coe] at *,
-  split,
-  simp [he, hε],
+  simp only [he, hε, and_self],
+  simp only [true_and],
   have : metric.ball x e ∩ metric.ball x ε = metric.ball x (min e ε), by {apply aux2,},
   rw this at HE,
   apply aux _ _ _ HE,
   apply HD,
+end
+
+lemma tendsto_unif_extend_by_zero (F : ℕ → D.1 → ℂ) (f : D.1 → ℂ)
+(h: tendsto_uniformly F f filter.at_top ) :
+  tendsto_uniformly_on (λ (n : ℕ), extend_by_zero (F n)) (extend_by_zero f) filter.at_top D.1 :=
+begin
+  simp_rw metric.tendsto_uniformly_on_iff,
+  rw metric.tendsto_uniformly_iff at h,
+  intros ε hε,
+  have h2:= h ε hε,
+  simp only [gt_iff_lt, topological_space.opens.mem_coe, ge_iff_le, nonempty_of_inhabited,
+  set_coe.forall, eventually_at_top, subtype.val_eq_coe] at *,
+  obtain ⟨a, ha⟩:= h2,
+  use a,
+  intros b hb x hx,
+  have hf:= ext_by_zero_apply D f ⟨x, hx⟩,
+  have hFb:= ext_by_zero_apply D (F b) ⟨x, hx⟩,
+  simp only [topological_space.opens.mem_coe, subtype.coe_mk, subtype.val_eq_coe] at *,
+  rw hf,
+  rw hFb,
+  apply ha b hb x hx,
 end

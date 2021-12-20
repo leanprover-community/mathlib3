@@ -1993,9 +1993,11 @@ begin
   apply h,
 end
 
-
 lemma Eisenstein_is_holomorphic (k : ℤ): is_holomorphic_on (Eisenstein_series_of_weight_ k):=
 begin
+  rw ←  is_holomorphic_on_iff_differentiable_on,
+  apply diff_on_diff,
+  intro x,
 sorry,
 end
 

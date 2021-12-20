@@ -40,7 +40,7 @@ sorry
 -- I also think this might be necessary to make this change in order to apply this lemma to things
 -- like `f(x) = 1/x`, since that's not cont diff at 0.
 theorem partial_summation (a : ℕ → ℂ) (f : ℝ → ℂ) {x : ℝ} (hf : continuous (deriv f)) :
-  ∑ n in finset.range ⌊x⌋₊, a n * f n =
+  ∑ n in finset.Icc 1 ⌊x⌋₊, a n * f n =
     summatory a x * f x - ∫ t in 1..x, summatory a t * deriv f t :=
 sorry
 

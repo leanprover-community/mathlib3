@@ -25,7 +25,25 @@ set_option old_structure_cmd true
 class non_unital_non_assoc_ring (α : Type*) extends
   add_comm_group α, non_unital_non_assoc_semiring α
 
-variables {A : Type*} [non_unital_non_assoc_ring A]
+variables {A : Type*}
+
+instance ring.to_non_unital_non_assoc_semiring [ring A] : non_unital_non_assoc_ring(A) := {
+  add := (+),
+  add_assoc := add_assoc,
+  zero := (0),
+  zero_add := zero_add,
+  add_zero := add_zero,
+  neg := λ a, -a,
+  add_left_neg := add_left_neg,
+  add_comm := add_comm,
+  mul := (*),
+  left_distrib := left_distrib,
+  right_distrib := right_distrib,
+  zero_mul := zero_mul,
+  mul_zero :=mul_zero,
+}
+
+variables [non_unital_non_assoc_ring A]
 
 -- For some reason `def L : A→+add_monoid.End A := add_monoid_hom.mul` doesn't work here?
 /--
@@ -61,6 +79,49 @@ class jordan (A : Type*) [non_unital_non_assoc_ring A] :=
 (commL1R2: ∀ a : A, ⁅L a, R (a*a)⁆ = 0)
 (commL2R1: ∀ a : A, ⁅L (a*a), R a⁆ = 0)
 (commR1R2: ∀ a : A, ⁅R a, R (a*a)⁆ = 0)
+
+instance  ring_jordan {B : Type*} [ring B] : jordan B := {
+  commL1R1 := begin
+    intro,
+    ext b,
+    rw ring.lie_def,
+    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.coe_mul_left, add_monoid_hom.sub_apply,
+      function.comp_app, L_apply, R_apply, add_monoid.coe_mul],
+    rw [mul_assoc, sub_self],
+  end,
+  commL1L2 := begin
+    intro,
+    ext b,
+    rw ring.lie_def,
+    simp only [add_monoid_hom.zero_apply, comp_mul_left, add_monoid_hom.coe_mul_left, add_monoid_hom.sub_apply, L_apply,
+      add_monoid.coe_mul],
+    rw [← mul_assoc, sub_self],
+  end,
+  commL1R2 := begin
+    intro,
+    ext b,
+    rw ring.lie_def,
+    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.coe_mul_left, add_monoid_hom.sub_apply,
+      function.comp_app, L_apply, R_apply, add_monoid.coe_mul],
+    rw [mul_assoc, sub_self],
+  end,
+  commL2R1 := begin
+    intro,
+    ext b,
+    rw ring.lie_def,
+    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.coe_mul_left, add_monoid_hom.sub_apply,
+      function.comp_app, L_apply, R_apply, add_monoid.coe_mul],
+    rw [←mul_assoc, sub_self],
+  end,
+  commR1R2 := begin
+    intro,
+    ext b,
+    rw ring.lie_def,
+    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, comp_mul_right, add_monoid_hom.sub_apply, R_apply,
+      add_monoid.coe_mul],
+    rw [mul_assoc, sub_self],
+  end,
+}
 
 /--
 A non unital, non-associative ring with a commutative Jordan multipication

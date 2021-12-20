@@ -38,7 +38,7 @@ def sized (r : ℕ) (A : set (finset α)) : Prop := ∀ ⦃x⦄, x ∈ A → car
 
 lemma sized.mono (h : A ⊆ B) (hB : B.sized r) : A.sized r := λ x hx, hB $ h hx
 
-lemma sized_union [decidable_eq α] : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=
+lemma sized_union : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=
 ⟨λ hA, ⟨hA.mono $ subset_union_left _ _, hA.mono $ subset_union_right _ _⟩,
   λ hA x hx, hx.elim (λ h, hA.1 h) $ λ h, hA.2 h⟩
 

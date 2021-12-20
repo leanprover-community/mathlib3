@@ -355,7 +355,7 @@ limit.
 -/
 noncomputable def left_adjoint_preserves_terminal_of_reflective
   (R : D ⥤ C) [reflective R] [has_terminal C] :
-  preserves_limits_of_shape (discrete pempty) (left_adjoint R) :=
+  preserves_limits_of_shape (discrete.{v₁} pempty) (left_adjoint R) :=
 { preserves_limit := λ K,
   begin
     letI : has_terminal D := has_limits_of_shape_of_reflective R,
@@ -365,7 +365,7 @@ noncomputable def left_adjoint_preserves_terminal_of_reflective
     { apply preserves_terminal_of_iso,
       apply _ ≪≫ as_iso ((adjunction.of_right_adjoint R).counit.app (⊤_ D)),
       apply (left_adjoint R).map_iso (preserves_terminal.iso R).symm },
-    apply preserves_limit_of_iso_diagram (left_adjoint R) (functor.unique_from_empty _).symm,
+    apply preserves_limit_of_iso_diagram (left_adjoint R) (functor.unique_from_empty.{v₁} _).symm,
   end }
 
 end

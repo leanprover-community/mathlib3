@@ -76,22 +76,12 @@ theorem is_compact_element_iff_le_of_directed_Sup_le (k : α) :
 begin
   classical,
   split,
-  { by_cases hbot : k = ⊥,
-    -- Any nonempty directed set certainly has sup above ⊥
-    { rintros _ _ ⟨x, hx⟩ _ _, use x, by simp only [hx, hbot, bot_le, and_self], },
-    { intros hk s hne hdir hsup,
-      obtain ⟨t, ht⟩ := hk s hsup,
-      -- If t were empty, its sup would be ⊥, which is not above k ≠ ⊥.
-      have tne : t.nonempty,
-      { by_contradiction n,
-        rw [finset.nonempty_iff_ne_empty, not_not] at n,
-        simp only [n, true_and, set.empty_subset, finset.coe_empty,
-          finset.sup_empty, le_bot_iff] at ht,
-        exact absurd ht hbot, },
-      -- certainly every element of t is below something in s, since ↑t ⊆ s.
-      have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, by refl⟩,
-      obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
-      exact ⟨x, ⟨hxs, le_trans ht.right hsupx⟩⟩, }, },
+  { intros hk s hne hdir hsup,
+    obtain ⟨t, ht⟩ := hk s hsup,
+    -- certainly every element of t is below something in s, since ↑t ⊆ s.
+    have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, le_rfl⟩,
+    obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
+    exact ⟨x, ⟨hxs, le_trans ht.right hsupx⟩⟩, },
   { intros hk s hsup,
     -- Consider the set of finite joins of elements of the (plain) set s.
     let S : set α := { x | ∃ t : finset α, ↑t ⊆ s ∧ x = t.sup id },
@@ -188,7 +178,7 @@ begin
     apply lt_irrefl (a (n+1)), apply lt_of_le_of_lt _ h', apply le_Sup, apply set.mem_range_self, },
   apply h (set.range a),
   { use a 37, apply set.mem_range_self, },
-  { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply a.to_rel_hom.map_sup, },
+  { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply rel_hom_class.map_sup a, },
 end
 
 lemma is_Sup_finite_compact_iff_all_elements_compact :

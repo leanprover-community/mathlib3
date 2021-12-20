@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 import algebra.big_operators.order
 import data.mv_polynomial.monad
-import data.set.pairwise
 
 /-!
 # Degrees and variables of polynomials
@@ -168,11 +167,11 @@ begin
   rw multiset.disjoint_iff_ne at h,
   rw multiset.le_iff_count,
   intros i,
-  rw [degrees, multiset.count_sup],
+  rw [degrees, multiset.count_finset_sup],
   simp only [finsupp.count_to_multiset],
   by_cases h0 : d = 0,
   { simp only [h0, zero_le, finsupp.zero_apply], },
-  { refine @finset.le_sup _ _ _ (p + q).support _ d _,
+  { refine @finset.le_sup _ _ _ _ (p + q).support _ d _,
     rw [mem_support_iff, coeff_add],
     suffices : q.coeff d = 0,
     { rwa [this, add_zero, coeff, ← finsupp.mem_support_iff], },
@@ -416,6 +415,83 @@ section degree_of
 /-- `degree_of n p` gives the highest power of X_n that appears in `p` -/
 def degree_of (n : σ) (p : mv_polynomial σ R) : ℕ := p.degrees.count n
 
+lemma degree_of_eq_sup (n : σ) (f : mv_polynomial σ R) :
+  degree_of n f = f.support.sup (λ m, m n) :=
+begin
+  rw [degree_of, degrees, multiset.count_finset_sup],
+  congr,
+  ext,
+  simp,
+end
+
+lemma degree_of_lt_iff {n : σ} {f : mv_polynomial σ R} {d : ℕ} (h : 0 < d) :
+  degree_of n f < d ↔ ∀ m : σ →₀ ℕ, m ∈ f.support → m n < d :=
+by rwa [degree_of_eq_sup n f, finset.sup_lt_iff]
+
+@[simp] lemma degree_of_zero (n : σ) :
+  degree_of n (0 : mv_polynomial σ R) = 0 :=
+by simp only [degree_of, degrees_zero, multiset.count_zero]
+
+@[simp] lemma degree_of_C (a : R) (x : σ):
+  degree_of x (C a : mv_polynomial σ R) = 0 := by simp [degree_of, degrees_C]
+
+lemma degree_of_X (i j : σ) [nontrivial R] :
+  degree_of i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
+begin
+  by_cases c : i = j,
+  { simp only [c, if_true, eq_self_iff_true, degree_of, degrees_X, multiset.count_singleton] },
+  simp [c, if_false, degree_of, degrees_X],
+end
+
+lemma degree_of_add_le (n : σ) (f g : mv_polynomial σ R) :
+  degree_of n (f + g) ≤ max (degree_of n f) (degree_of n g) :=
+begin
+  repeat {rw degree_of},
+  apply (multiset.count_le_of_le n (degrees_add f g)).trans,
+  dsimp,
+  rw multiset.count_union,
+end
+
+lemma monomial_le_degree_of (i : σ) {f : mv_polynomial σ R} {m : σ →₀ ℕ}
+  (h_m : m ∈ f.support) : m i ≤ degree_of i f :=
+begin
+  rw degree_of_eq_sup i,
+  apply finset.le_sup h_m,
+end
+
+-- TODO we can prove equality here if R is a domain
+lemma degree_of_mul_le (i : σ) (f g: mv_polynomial σ R) :
+  degree_of i (f * g) ≤ degree_of i f + degree_of i g :=
+begin
+  repeat {rw degree_of},
+  convert multiset.count_le_of_le i (degrees_mul f g),
+  rw multiset.count_add,
+end
+
+lemma degree_of_mul_X_ne {i j : σ} (f : mv_polynomial σ R) (h : i ≠ j) :
+  degree_of i (f * X j) = degree_of i f :=
+begin
+  repeat {rw degree_of_eq_sup i},
+  rw support_mul_X,
+  simp only [finset.sup_map],
+  congr,
+  ext,
+  simp only [ single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
+              pi.add_apply, comp_app, ite_eq_right_iff, coe_add ],
+  cc,
+end
+
+/- TODO in the following we have equality iff f ≠ 0 -/
+lemma degree_of_mul_X_eq (j : σ) (f : mv_polynomial σ R) :
+  degree_of j (f * X j) ≤ degree_of j f + 1 :=
+begin
+  repeat {rw degree_of},
+  apply (multiset.count_le_of_le j (degrees_mul f (X j))).trans,
+  simp only [multiset.count_add, add_le_add_iff_left],
+  convert multiset.count_le_of_le j (degrees_X' j),
+  rw multiset.count_singleton_self,
+end
+
 end degree_of
 
 section total_degree
@@ -472,6 +548,33 @@ finset.sup_le $ assume n hn,
     { exact le_max_of_le_left (finset.le_sup this) },
     { exact le_max_of_le_right (finset.le_sup this) }
   end
+
+lemma total_degree_add_eq_left_of_total_degree_lt {p q : mv_polynomial σ R}
+  (h : q.total_degree < p.total_degree) : (p + q).total_degree = p.total_degree :=
+begin
+  classical,
+  apply le_antisymm,
+  { rw ← max_eq_left_of_lt h,
+    exact total_degree_add p q, },
+  by_cases hp : p = 0,
+  { simp [hp], },
+  obtain ⟨b, hb₁, hb₂⟩ := p.support.exists_mem_eq_sup (finsupp.support_nonempty_iff.mpr hp)
+    (λ (m : σ →₀ ℕ), m.to_multiset.card),
+  have hb : ¬ b ∈ q.support,
+  { contrapose! h,
+    rw [total_degree_eq p, hb₂, total_degree_eq],
+    apply finset.le_sup h, },
+  have hbb : b ∈ (p + q).support,
+  { apply support_sdiff_support_subset_support_add,
+    rw finset.mem_sdiff,
+    exact ⟨hb₁, hb⟩, },
+  rw [total_degree_eq, hb₂, total_degree_eq],
+  exact finset.le_sup hbb,
+end
+
+lemma total_degree_add_eq_right_of_total_degree_lt {p q : mv_polynomial σ R}
+  (h : q.total_degree < p.total_degree) : (q + p).total_degree = p.total_degree :=
+by rw [add_comm, total_degree_add_eq_left_of_total_degree_lt h]
 
 lemma total_degree_mul (a b : mv_polynomial σ R) :
   (a * b).total_degree ≤ a.total_degree + b.total_degree :=

@@ -593,21 +593,17 @@ begin
     exact sub (h i hi) },
 end
 
-variables {ι'' : Type*} [preorder ι''] (l) (p'' : ι'' → Prop) (s'' : ι'' → set α)
+variables {ι'' : Type*} [preorder ι''] (l) (s'' : ι'' → set α)
 
-/-- `is_antitone_basis p s` means the image of `s` bounded by `p` is a filter basis
-such that `s` is decreasing and `p` is increasing, ie `i ≤ j → p i → p j`. -/
-structure is_antitone_basis extends is_basis p'' s'' : Prop :=
-(decreasing : ∀ {i j}, p'' i → p'' j → i ≤ j → s'' j ⊆ s'' i)
-(mono : monotone p'')
+/-- `is_antitone_basis s` means the image of `s` is a filter basis such that `s` is decreasing. -/
+@[protect_proj] structure is_antitone_basis extends is_basis (λ _, true) s'' : Prop :=
+(antitone : antitone s'')
 
-/-- We say that a filter `l` has an antitone basis `s : ι → set α` bounded by `p : ι → Prop`,
-if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`,
-and `s` is decreasing and `p` is increasing, ie `i ≤ j → p i → p j`. -/
-structure has_antitone_basis (l : filter α) (p : ι'' → Prop) (s : ι'' → set α)
-  extends has_basis l p s : Prop :=
-(decreasing : ∀ {i j}, p i → p j → i ≤ j → s j ⊆ s i)
-(mono : monotone p)
+/-- We say that a filter `l` has an antitone basis `s : ι → set α`, if `t ∈ l` if and only if `t`
+includes `s i` for some `i`, and `s` is decreasing. -/
+@[protect_proj] structure has_antitone_basis (l : filter α) (s : ι'' → set α)
+  extends has_basis l (λ _, true) s : Prop :=
+(antitone : antitone s)
 
 end same_type
 
@@ -707,7 +703,7 @@ lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Pro
 ⟨⟨{t | ∃ i, p i ∧ s i = t}, h.countable.image s, h.to_has_basis.eq_generate⟩⟩
 
 lemma antitone_seq_of_seq (s : ℕ → set α) :
-  ∃ t : ℕ → set α, (∀ i j, i ≤ j → t j ⊆ t i) ∧ (⨅ i, 𝓟 $ s i) = ⨅ i, 𝓟 (t i) :=
+  ∃ t : ℕ → set α, antitone t ∧ (⨅ i, 𝓟 $ s i) = ⨅ i, 𝓟 (t i) :=
 begin
   use λ n, ⋂ m ≤ n, s m, split,
   { exact λ i j hij, bInter_mono' (Iic_subset_Iic.2 hij) (λ n hn, subset.refl _) },
@@ -752,7 +748,7 @@ sequence `i n` such that `p (i n)` for all `n` and `s (i n)` is a decreasing seq
 forms a basis of `f`-/
 lemma has_basis.exists_antitone_subbasis {f : filter α} [h : f.is_countably_generated]
   {p : ι → Prop} {s : ι → set α} (hs : f.has_basis p s) :
-  ∃ x : ℕ → ι, (∀ i, p (x i)) ∧ f.has_antitone_basis (λ _, true) (λ i, s (x i)) :=
+  ∃ x : ℕ → ι, (∀ i, p (x i)) ∧ f.has_antitone_basis (λ i, s (x i)) :=
 begin
   obtain ⟨x', hx'⟩ : ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i),
   { unfreezingI { rcases h with ⟨s, hsc, rfl⟩ },
@@ -768,8 +764,8 @@ begin
   { rintro (_|i),
     exacts [hs.set_index_subset _, subset.trans (hs.set_index_subset _) (inter_subset_left _ _)] },
   refine ⟨λ i, x i, λ i, (x i).2, _⟩,
-  have : (⨅ i, 𝓟 (s (x i))).has_antitone_basis (λ _, true) (λ i, s (x i)) :=
-    ⟨has_basis_infi_principal (directed_of_sup x_mono), λ i j _ _ hij, x_mono hij, monotone_const⟩,
+  have : (⨅ i, 𝓟 (s (x i))).has_antitone_basis (λ i, s (x i)) :=
+    ⟨has_basis_infi_principal (directed_of_sup x_mono), x_mono⟩,
   convert this,
   exact le_antisymm (le_infi $ λ i, le_principal_iff.2 $ by cases i; apply hs.set_index_mem)
     (hx'.symm ▸ le_infi (λ i, le_principal_iff.2 $
@@ -778,18 +774,13 @@ end
 
 /-- A countably generated filter admits a basis formed by an antitone sequence of sets. -/
 lemma exists_antitone_basis (f : filter α) [f.is_countably_generated] :
-  ∃ x : ℕ → set α, f.has_antitone_basis (λ _, true) x :=
+  ∃ x : ℕ → set α, f.has_antitone_basis x :=
 let ⟨x, hxf, hx⟩ := f.basis_sets.exists_antitone_subbasis in ⟨x, hx⟩
-
-lemma exists_antitone_eq_infi_principal (f : filter α) [f.is_countably_generated] :
-  ∃ x : ℕ → set α, antitone x ∧ f = ⨅ n, 𝓟 (x n) :=
-let ⟨x, hxf⟩ := f.exists_antitone_basis
-in ⟨x, λ i j, hxf.decreasing trivial trivial, hxf.to_has_basis.eq_infi⟩
 
 lemma exists_antitone_seq (f : filter α) [f.is_countably_generated] :
   ∃ x : ℕ → set α, antitone x ∧ ∀ {s}, (s ∈ f ↔ ∃ i, x i ⊆ s) :=
 let ⟨x, hx⟩ := f.exists_antitone_basis in
-⟨x, λ i j, hx.decreasing trivial trivial, λ s, by simp [hx.to_has_basis.mem_iff]⟩
+⟨x, hx.antitone, λ s, by simp [hx.to_has_basis.mem_iff]⟩
 
 instance inf.is_countably_generated (f g : filter α) [is_countably_generated f]
   [is_countably_generated g] :
@@ -834,7 +825,7 @@ lemma is_countably_generated_binfi_principal {B : set $ set α} (h : countable B
 is_countably_generated_of_seq (countable_binfi_principal_eq_seq_infi h)
 
 lemma is_countably_generated_iff_exists_antitone_basis {f : filter α} :
-  is_countably_generated f ↔ ∃ x : ℕ → set α, f.has_antitone_basis (λ _, true) x :=
+  is_countably_generated f ↔ ∃ x : ℕ → set α, f.has_antitone_basis x :=
 begin
   split,
   { introI h, exact f.exists_antitone_basis },

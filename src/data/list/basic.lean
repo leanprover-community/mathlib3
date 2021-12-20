@@ -2450,51 +2450,6 @@ begin
   split_ifs; simp [zip_with, join, *],
 end
 
-/-! ### all & any -/
-
-@[simp] theorem all_nil (p : α → bool) : all [] p = tt := rfl
-
-@[simp] theorem all_cons (p : α → bool) (a : α) (l : list α) :
-  all (a::l) p = (p a && all l p) := rfl
-
-theorem all_iff_forall {p : α → bool} {l : list α} : all l p ↔ ∀ a ∈ l, p a :=
-begin
-  induction l with a l ih,
-  { exact iff_of_true rfl (forall_mem_nil _) },
-  simp only [all_cons, band_coe_iff, ih, forall_mem_cons]
-end
-
-theorem all_iff_forall_prop {p : α → Prop} [decidable_pred p]
-  {l : list α} : all l (λ a, p a) ↔ ∀ a ∈ l, p a :=
-by simp only [all_iff_forall, bool.of_to_bool_iff]
-
-@[simp] theorem any_nil (p : α → bool) : any [] p = ff := rfl
-
-@[simp] theorem any_cons (p : α → bool) (a : α) (l : list α) :
-  any (a::l) p = (p a || any l p) := rfl
-
-theorem any_iff_exists {p : α → bool} {l : list α} : any l p ↔ ∃ a ∈ l, p a :=
-begin
-  induction l with a l ih,
-  { exact iff_of_false bool.not_ff (not_exists_mem_nil _) },
-  simp only [any_cons, bor_coe_iff, ih, exists_mem_cons_iff]
-end
-
-theorem any_iff_exists_prop {p : α → Prop} [decidable_pred p]
-  {l : list α} : any l (λ a, p a) ↔ ∃ a ∈ l, p a :=
-by simp [any_iff_exists]
-
-theorem any_of_mem {p : α → bool} {a : α} {l : list α} (h₁ : a ∈ l) (h₂ : p a) : any l p :=
-any_iff_exists.2 ⟨_, h₁, h₂⟩
-
-@[priority 500] instance decidable_forall_mem {p : α → Prop} [decidable_pred p] (l : list α) :
-  decidable (∀ x ∈ l, p x) :=
-decidable_of_iff _ all_iff_forall_prop
-
-instance decidable_exists_mem {p : α → Prop} [decidable_pred p] (l : list α) :
-  decidable (∃ x ∈ l, p x) :=
-decidable_of_iff _ any_iff_exists_prop
-
 /-! ### map for partial functions -/
 
 /-- Partial map. If `f : Π a, p a → β` is a partial function defined on

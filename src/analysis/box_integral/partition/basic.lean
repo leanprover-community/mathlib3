@@ -26,7 +26,7 @@ boxes of `π` actually cover the whole `I`. We also define some operations on pr
 * `box_integral.partition.bUnion`: split each box of a partition into smaller boxes;
 * `box_integral.partition.restrict`: restrict a partition to a smaller box.
 
-We also define a `semilattice_inf_top` structure on `box_integral.partition I` for all
+We also define a `semilattice_inf` structure on `box_integral.partition I` for all
 `I : box_integral.box ι`.
 
 ## Tags
@@ -60,7 +60,7 @@ instance : has_mem (box ι) (prepartition I) := ⟨λ J π, J ∈ π.boxes⟩
 
 lemma disjoint_coe_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (h : J₁ ≠ J₂) :
   disjoint (J₁ : set (ι → ℝ)) J₂ :=
-π.pairwise_disjoint J₁ h₁ J₂ h₂ h
+π.pairwise_disjoint h₁ h₂ h
 
 lemma eq_of_mem_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (hx₁ : x ∈ J₁) (hx₂ : x ∈ J₂) :
   J₁ = J₂ :=
@@ -320,7 +320,7 @@ def of_with_bot (boxes : finset (with_bot (box ι)))
   pairwise_disjoint := λ J₁ h₁ J₂ h₂ hne,
     begin
       simp only [mem_coe, mem_erase_none] at h₁ h₂,
-      exact box.disjoint_coe.1 (pairwise_disjoint _ h₁ _ h₂ (mt option.some_inj.1 hne))
+      exact box.disjoint_coe.1 (pairwise_disjoint h₁ h₂ (mt option.some_inj.1 hne))
     end }
 
 @[simp] lemma mem_of_with_bot {boxes : finset (with_bot (box ι))} {h₁ h₂} :
@@ -478,14 +478,12 @@ by simp only [inf_def, mem_bUnion, mem_restrict]
 @[simp] lemma Union_inf (π₁ π₂ : prepartition I) : (π₁ ⊓ π₂).Union = π₁.Union ∩ π₂.Union :=
 by simp only [inf_def, Union_bUnion, Union_restrict, ← Union_inter, ← Union_def]
 
-instance : semilattice_inf_top (prepartition I) :=
+instance : semilattice_inf (prepartition I) :=
 { inf_le_left := λ π₁ π₂, π₁.bUnion_le _,
   inf_le_right := λ π₁ π₂, (bUnion_le_iff _).2 (λ J hJ, le_rfl),
   le_inf := λ π π₁ π₂ h₁ h₂, π₁.le_bUnion_iff.2 ⟨h₁, λ J hJ, restrict_mono h₂⟩,
-  ..prepartition.partial_order, .. prepartition.order_top, .. prepartition.has_inf }
-
-instance : semilattice_inf_bot (prepartition I) :=
-{ .. prepartition.order_bot, .. prepartition.semilattice_inf_top }
+  .. prepartition.has_inf,
+  .. prepartition.partial_order }
 
 /-- The prepartition with boxes `{J ∈ π | p J}`. -/
 @[simps] def filter (π : prepartition I) (p : box ι → Prop) : prepartition I :=

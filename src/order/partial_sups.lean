@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import data.finset.lattice
 import data.set.pairwise
-import order.preorder_hom
+import order.hom.basic
 
 /-!
 # The monotone sequence of partial supremums of a sequence
@@ -95,10 +95,10 @@ def partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →�
   gc := λ f g, begin
     refine ⟨(le_partial_sups f).trans, λ h, _⟩,
     convert partial_sups_mono h,
-    exact preorder_hom.ext _ _ g.monotone.partial_sups_eq.symm,
+    exact order_hom.ext _ _ g.monotone.partial_sups_eq.symm,
   end,
   le_l_u := λ f, le_partial_sups f,
-  choice_eq := λ f h, preorder_hom.ext _ _ ((le_partial_sups f).antisymm h) }
+  choice_eq := λ f h, order_hom.ext _ _ ((le_partial_sups f).antisymm h) }
 
 lemma partial_sups_eq_sup'_range (f : ℕ → α) (n : ℕ) :
   partial_sups f n = (finset.range (n + 1)).sup' ⟨n, finset.self_mem_range_succ n⟩ f :=
@@ -112,7 +112,7 @@ end
 
 end semilattice_sup
 
-lemma partial_sups_eq_sup_range [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ) :
+lemma partial_sups_eq_sup_range [semilattice_sup α] [order_bot α] (f : ℕ → α) (n : ℕ) :
   partial_sups f n = (finset.range (n + 1)).sup f :=
 begin
   induction n with n ih,
@@ -123,7 +123,7 @@ end
 
 /- Note this lemma requires a distributive lattice, so is not useful (or true) in situations such as
 submodules. -/
-lemma partial_sups_disjoint_of_disjoint [distrib_lattice_bot α]
+lemma partial_sups_disjoint_of_disjoint [distrib_lattice α] [order_bot α]
   (f : ℕ → α) (h : pairwise (disjoint on f)) {m n : ℕ} (hmn : m < n) :
   disjoint (partial_sups f m) (f n) :=
 begin

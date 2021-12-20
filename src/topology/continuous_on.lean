@@ -211,7 +211,7 @@ lemma insert_mem_nhds_within_insert {a : α} {s t : set α} (h : t ∈ 𝓝[s] a
   insert a t ∈ 𝓝[insert a s] a :=
 by simp [mem_of_superset h]
 
-@[simp] theorem nhds_within_compl_singleton_sup_pure (a : α) : 𝓝[{a}ᶜ] a ⊔ pure a = 𝓝 a :=
+@[simp] theorem nhds_within_compl_singleton_sup_pure (a : α) : 𝓝[≠] a ⊔ pure a = 𝓝 a :=
 by rw [← nhds_within_singleton, ← nhds_within_union, compl_union_self, nhds_within_univ]
 
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
@@ -228,7 +228,7 @@ by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
 lemma nhds_within_pi_eq' {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
   {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi I s] x = ⨅ i, comap (λ x, x i) (𝓝 (x i) ⊓ ⨅ (hi : i ∈ I), 𝓟 (s i)) :=
-by simp only [nhds_within, nhds_pi, comap_inf, comap_infi, pi_def, comap_principal,
+by simp only [nhds_within, nhds_pi, filter.pi, comap_inf, comap_infi, pi_def, comap_principal,
   ← infi_principal_finite hI, ← infi_inf_eq]
 
 lemma nhds_within_pi_eq {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
@@ -236,8 +236,8 @@ lemma nhds_within_pi_eq {ι : Type*} {α : ι → Type*} [Π i, topological_spac
   𝓝[pi I s] x = (⨅ i ∈ I, comap (λ x, x i) (𝓝[s i] (x i))) ⊓
     ⨅ (i ∉ I), comap (λ x, x i) (𝓝 (x i)) :=
 begin
-  simp only [nhds_within, nhds_pi, pi_def, ← infi_principal_finite hI, comap_inf, comap_principal,
-    function.eval],
+  simp only [nhds_within, nhds_pi, filter.pi, pi_def, ← infi_principal_finite hI, comap_inf,
+    comap_principal, function.eval],
   rw [infi_split _ (λ i, i ∈ I), inf_right_comm],
   simp only [infi_inf_eq]
 end
@@ -247,41 +247,10 @@ lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [fintype ι] [Π i
   𝓝[pi univ s] x = ⨅ i, comap (λ x, x i) 𝓝[s i] (x i) :=
 by simpa [nhds_within] using nhds_within_pi_eq finite_univ s x
 
-lemma nhds_within_pi_univ_eq_bot {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {s : Π i, set (α i)} {x : Π i, α i} :
-  𝓝[pi univ s] x = ⊥ ↔ ∃ i, 𝓝[s i] (x i) = ⊥ :=
-begin
-  classical,
-  split,
-  { haveI : Π i, inhabited (α i) := λ i, ⟨x i⟩,
-    simp only [nhds_within, nhds_pi, inf_principal_eq_bot, mem_infi', mem_comap],
-    rintro ⟨I, hIf, V, hV, -, hVs, -⟩, choose! t htx htV using hV,
-    contrapose! hVs,
-    change ∀ i, ∃ᶠ y in 𝓝 (x i), y ∈ s i at hVs,
-    have : ∀ i, (s i ∩ t i).nonempty, from λ i, ((hVs i).and_eventually (htx i)).exists,
-    choose y hys hyt,
-    choose z hzs using λ i, (hVs i).exists,
-    suffices : I.piecewise y z ∈ (⋂ i ∈ I, V i) ∩ (pi univ s),
-    { intro H, simpa [← H] },
-    refine ⟨mem_bInter $ λ i hi, htV i _, λ i hi', _⟩,
-    { simp only [mem_preimage, piecewise_eq_of_mem _ _ _ hi, hyt i] },
-    { by_cases hi : i ∈ I; simp * } },
-  { rintro ⟨i, eq⟩,
-    rw [← @map_eq_bot_iff _ _ _ (λ x : Π i, α i, x i)],
-    refine eq_bot_mono _ eq,
-    exact ((continuous_apply i).tendsto x).inf
-      (tendsto_principal_principal.2 $ λ y hy, hy i trivial) }
-end
-
 lemma nhds_within_pi_eq_bot {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
   {I : set ι} {s : Π i, set (α i)} {x : Π i, α i} :
   𝓝[pi I s] x = ⊥ ↔ ∃ i ∈ I, 𝓝[s i] (x i) = ⊥ :=
-begin
-  classical,
-  rw [← univ_pi_piecewise I, nhds_within_pi_univ_eq_bot],
-  refine exists_congr (λ i, _),
-  by_cases hi : i ∈ I; simp [*, nhds_within_univ, nhds_ne_bot.ne]
-end
+by simp only [nhds_within, nhds_pi, pi_inf_principal_pi_eq_bot]
 
 lemma nhds_within_pi_ne_bot {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
   {I : set ι} {s : Π i, set (α i)} {x : Π i, α i} :
@@ -475,12 +444,12 @@ end
 lemma continuous_within_at_pi {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
   {f : α → Π i, π i} {s : set α} {x : α} :
   continuous_within_at f s x ↔ ∀ i, continuous_within_at (λ y, f y i) s x :=
-tendsto_pi
+tendsto_pi_nhds
 
 lemma continuous_on_pi {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
   {f : α → Π i, π i} {s : set α} :
   continuous_on f s ↔ ∀ i, continuous_on (λ y, f y i) s :=
-⟨λ h i x hx, tendsto_pi.1 (h x hx) i, λ h x hx, tendsto_pi.2 (λ i, h i x hx)⟩
+⟨λ h i x hx, tendsto_pi_nhds.1 (h x hx) i, λ h x hx, tendsto_pi_nhds.2 (λ i, h i x hx)⟩
 
 lemma continuous_within_at.fin_insert_nth {n} {π : fin (n + 1) → Type*}
   [Π i, topological_space (π i)] (i : fin (n + 1)) {f : α → π i} {a : α} {s : set α}

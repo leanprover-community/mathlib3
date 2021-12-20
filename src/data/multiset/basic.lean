@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.bool.all_any
 import data.list.perm
 import data.list.prod_monoid
 
@@ -483,6 +484,8 @@ theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = {a} :=
 
 theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
 le_induction_on h $ λ l₁ l₂, length_le_of_sublist
+
+@[mono] theorem card_mono : monotone (@card α) := λ a b, card_le_of_le
 
 theorem eq_of_le_of_card_le {s t : multiset α} (h : s ≤ t) : card t ≤ card s → s = t :=
 le_induction_on h $ λ l₁ l₂ s h₂, congr_arg coe $ eq_of_sublist_of_length_le s h₂
@@ -1632,9 +1635,6 @@ instance : lattice (multiset α) :=
 @[simp] theorem le_inter_iff : s ≤ t ∩ u ↔ s ≤ t ∧ s ≤ u := le_inf_iff
 @[simp] theorem union_le_iff : s ∪ t ≤ u ↔ s ≤ u ∧ t ≤ u := sup_le_iff
 
-instance : semilattice_inf_bot (multiset α) :=
-{ bot := 0, bot_le := zero_le, ..multiset.lattice }
-
 theorem union_comm (s t : multiset α) : s ∪ t = t ∪ s := sup_comm
 theorem inter_comm (s t : multiset α) : s ∩ t = t ∩ s := inf_comm
 
@@ -2035,6 +2035,9 @@ by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]
 
+theorem one_le_count_iff_mem {a : α} {s : multiset α} : 1 ≤ count a s ↔ a ∈ s :=
+by rw [succ_le_iff, count_pos]
+
 @[simp, priority 980]
 theorem count_eq_zero_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) : count a s = 0 :=
 by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
@@ -2112,6 +2115,14 @@ quot.induction_on s $ λ l, count_filter h
   {a} {s : multiset α} (h : ¬ p a) : count a (filter p s) = 0 :=
 multiset.count_eq_zero_of_not_mem (λ t, h (of_mem_filter t))
 
+theorem count_filter {p} [decidable_pred p] {a} {s : multiset α} :
+  count a (filter p s) = if p a then count a s else 0 :=
+begin
+  split_ifs with h,
+  { exact count_filter_of_pos h },
+  { exact count_filter_of_neg h },
+end
+
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
 
@@ -2133,11 +2144,6 @@ instance : distrib_lattice (multiset α) :=
       multiset.count_inter, multiset.sup_eq_union, multiset.count_union, multiset.inf_eq_inter],
   ..multiset.lattice }
 
-instance : semilattice_sup_bot (multiset α) :=
-{ bot := 0,
-  bot_le := zero_le,
-  ..multiset.lattice }
-
 theorem repeat_inf (s : multiset α) (a : α) (n : ℕ) :
   (repeat a n) ⊓ s = repeat a (min (s.count a) n) :=
 begin
@@ -2148,10 +2154,14 @@ begin
     simp only [h, if_false, zero_min],
 end
 
+theorem count_map {α β : Type*} (f : α → β) (s : multiset α) [decidable_eq β] (b : β) :
+  count b (map f s) = (s.filter (λ a, b = f a)).card :=
+countp_map _ _ _
+
 /-- `multiset.map f` preserves `count` if `f` is injective on the set of elements contained in
 the multiset -/
 theorem count_map_eq_count [decidable_eq β] (f : α → β) (s : multiset α)
- (hf : set.inj_on f {x : α | x ∈ s}) (x ∈ s) : (s.map f).count (f x) = s.count x :=
+  (hf : set.inj_on f {x : α | x ∈ s}) (x ∈ s) : (s.map f).count (f x) = s.count x :=
 begin
   suffices : (filter (λ (a : α), f x = f a) s).count x = card (filter (λ (a : α), f x = f a) s),
   { rw [count, countp_map, ← this],
@@ -2159,6 +2169,32 @@ begin
   { rw eq_repeat.2 ⟨rfl, λ b hb, eq_comm.1 ((hf H (mem_filter.1 hb).left) (mem_filter.1 hb).right)⟩,
     simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
 end
+
+/-- `multiset.map f` preserves `count` if `f` is injective -/
+theorem count_map_eq_count' [decidable_eq β] (f : α → β) (s : multiset α)
+  (hf : function.injective f) (x : α) : (s.map f).count (f x) = s.count x :=
+begin
+  by_cases H : x ∈ s,
+  { exact count_map_eq_count f _ (set.inj_on_of_injective hf _) _ H, },
+  { rw [count_eq_zero_of_not_mem H, count_eq_zero, mem_map],
+    rintro ⟨k, hks, hkx⟩,
+    rw hf hkx at *,
+    contradiction }
+end
+
+lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
+begin
+  ext a,
+  rw [count_repeat, count_filter],
+  exact if_ctx_congr iff.rfl (λ h, congr_arg _ h) (λ h, rfl),
+end
+
+lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
+by { simp_rw [←filter_eq', eq_comm], congr }
+
+lemma pow_count [comm_monoid α] {s : multiset α} (a : α) :
+  a ^ (count a s) = (filter (eq a) s).prod :=
+by rw [filter_eq, prod_repeat]
 
 end
 

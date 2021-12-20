@@ -30,7 +30,8 @@ product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_spac
 - We define the class `inner_product_space 𝕜 E` extending `normed_space 𝕜 E` with a number of basic
   properties, most notably the Cauchy-Schwarz inequality. Here `𝕜` is understood to be either `ℝ`
   or `ℂ`, through the `is_R_or_C` typeclass.
-- We show that the inner product is continuous, `continuous_inner`.
+- We show that the inner product is continuous, `continuous_inner`, and bundle it as the
+  the continuous sesquilinear map `innerSL` (see also `innerₛₗ` for the non-continuous version).
 - We define `orthonormal`, a predicate on a function `v : ι → E`, and prove the existence of a
   maximal orthonormal set, `exists_maximal_orthonormal`.  Bessel's inequality,
   `orthonormal.tsum_inner_products_le`, states that given an orthonormal set `v` and a vector `x`,
@@ -1382,20 +1383,41 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
             h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
             neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
-/-- The inner product with a fixed left element, as a continuous linear map.  This can be upgraded
-to a continuous map which is jointly conjugate-linear in the left argument and linear in the right
-argument, once (TODO) conjugate-linear maps have been defined. -/
-def inner_right (v : E) : E →L[𝕜] 𝕜 :=
-linear_map.mk_continuous
-  { to_fun := λ w, ⟪v, w⟫,
-    map_add' := λ x y, inner_add_right,
-    map_smul' := λ c x, inner_smul_right }
-  ∥v∥
-  (by simpa using norm_inner_le_norm v)
+/-- The inner product as a sesquilinear map. -/
+def innerₛₗ : E →ₗ⋆[𝕜] E →ₗ[𝕜] 𝕜 :=
+linear_map.mk₂'ₛₗ _ _ (λ v w, ⟪v, w⟫) (λ _ _ _, inner_add_left) (λ _ _ _, inner_smul_left)
+(λ _ _ _, inner_add_right) (λ _ _ _, inner_smul_right)
 
-@[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+@[simp] lemma innerₛₗ_apply_coe (v : E) : (innerₛₗ v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
 
-@[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
+@[simp] lemma innerₛₗ_apply (v w : E) : innerₛₗ v w = ⟪v, w⟫ := rfl
+
+/-- The inner product as a continuous sesquilinear map. Note that `to_dual_map` (resp. `to_dual`)
+in `inner_product_space.dual` is a version of this given as a linear isometry (resp. linear
+isometric equivalence). -/
+def innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+linear_map.mk_continuous₂ innerₛₗ 1
+(λ x y, by simp only [norm_inner_le_norm, one_mul, innerₛₗ_apply])
+
+@[simp] lemma innerSL_apply_coe (v : E) : (innerSL v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+
+@[simp] lemma innerSL_apply (v w : E) : innerSL v w = ⟪v, w⟫ := rfl
+
+/-- `innerSL` is an isometry. Note that the associated `linear_isometry` is defined in
+`inner_product_space.dual` as `to_dual_map`.  -/
+@[simp] lemma innerSL_apply_norm {x : E} : ∥(innerSL x : E →L[𝕜] 𝕜)∥ = ∥x∥ :=
+begin
+  refine le_antisymm ((innerSL x).op_norm_le_bound (norm_nonneg _) (λ y, norm_inner_le_norm _ _)) _,
+  cases eq_or_lt_of_le (norm_nonneg x) with h h,
+  { have : x = 0 := norm_eq_zero.mp (eq.symm h),
+    simp [this] },
+  { refine (mul_le_mul_right h).mp _,
+    calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : by ring
+    ... = re ⟪x, x⟫ : norm_sq_eq_inner _
+    ... ≤ abs ⟪x, x⟫ : re_le_abs _
+    ... = ∥innerSL x x∥ : by { rw [←is_R_or_C.norm_eq_abs], refl }
+    ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
+end
 
 /-- When an inner product space `E` over `𝕜` is considered as a real normed space, its inner
 product satisfies `is_bounded_bilinear_map`.
@@ -1403,10 +1425,9 @@ product satisfies `is_bounded_bilinear_map`.
 In order to state these results, we need a `normed_space ℝ E` instance. We will later establish
 such an instance by restriction-of-scalars, `inner_product_space.is_R_or_C_to_real 𝕜 E`, but this
 instance may be not definitionally equal to some other “natural” instance. So, we assume
-`[normed_space ℝ E]` and `[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ`
-we have these instances.
+`[normed_space ℝ E]`.
 -/
-lemma is_bounded_bilinear_map_inner [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] :
+lemma is_bounded_bilinear_map_inner [normed_space ℝ E] :
   is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
 { add_left := λ _ _ _, inner_add_left,
   smul_left := λ r x y,
@@ -1518,12 +1539,12 @@ lemma orthogonal_family.inner_right_dfinsupp (hV : orthogonal_family 𝕜 V)
 calc ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫
     = l.sum (λ j, λ w, ⟪(v:E), w⟫) :
 begin
-  let F : E →+ 𝕜 := (@inner_right 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
+  let F : E →+ 𝕜 := (@innerSL 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
   have hF := congr_arg add_monoid_hom.to_fun
     (dfinsupp.comp_sum_add_hom F (λ j, (V j).subtype.to_add_monoid_hom)),
   convert congr_fun hF l using 1,
   simp only [dfinsupp.sum_add_hom_apply, continuous_linear_map.to_linear_map_eq_coe,
-    add_monoid_hom.coe_comp, inner_right_coe, add_monoid_hom.to_fun_eq_coe,
+    add_monoid_hom.coe_comp, innerSL_apply_coe, add_monoid_hom.to_fun_eq_coe,
     linear_map.to_add_monoid_hom_coe, continuous_linear_map.coe_coe],
   congr
 end
@@ -1651,7 +1672,6 @@ section continuous
 lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   exact is_bounded_bilinear_map_inner.continuous
 end
 
@@ -1745,6 +1765,19 @@ submodule.inner_right_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 lemma inner_left_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪v, u⟫ = 0 :=
 submodule.inner_left_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_right (u : E) {v : E} (hv : ⟪u, v⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+begin
+  intros w hw,
+  rw submodule.mem_span_singleton at hw,
+  obtain ⟨c, rfl⟩ := hw,
+  simp [inner_smul_left, hv],
+end
+
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_left (u : E) {v : E} (hv : ⟪v, u⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
+
 variables (K)
 
 /-- `K` and `Kᗮ` have trivial intersection. -/
@@ -1762,7 +1795,7 @@ by simp [disjoint_iff, K.inf_orthogonal_eq_bot]
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
-lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (inner_right (v:E)).ker :=
+lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (innerSL (v:E)).ker :=
 begin
   apply le_antisymm,
   { rw le_infi_iff,
@@ -1777,7 +1810,7 @@ end
 lemma submodule.is_closed_orthogonal : is_closed (Kᗮ : set E) :=
 begin
   rw orthogonal_eq_inter K,
-  convert is_closed_Inter (λ v : K, (inner_right (v:E)).is_closed_ker),
+  convert is_closed_Inter (λ v : K, (innerSL (v:E)).is_closed_ker),
   simp
 end
 

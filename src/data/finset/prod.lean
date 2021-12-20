@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Oliver Nash
 -/
-import data.finset.basic
+import data.finset.card
 
 /-!
 # Finsets in product types
@@ -37,6 +37,10 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 
 @[simp] lemma mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
 
+@[simp, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
+  (s.product t : set (α × β)) = (s : set α).prod t :=
+set.ext $ λ x, finset.mem_product
+
 lemma subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
   s ⊆ (s.image prod.fst).product (s.image prod.snd) :=
 λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
@@ -55,6 +59,12 @@ lemma product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t :
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
 
+lemma product_eq_bUnion_right [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
+  s.product t = t.bUnion (λ b, s.image $ λ a, (a, b)) :=
+ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
+  and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
+
+/-- See also `finset.sup_product_left`. -/
 @[simp] lemma product_bUnion [decidable_eq γ] (s : finset α) (t : finset β) (f : α × β → finset γ) :
   (s.product t).bUnion f = s.bUnion (λ a, t.bUnion (λ b, f (a, b))) :=
 by { classical, simp_rw [product_eq_bUnion, bUnion_bUnion, image_bUnion] }
@@ -94,6 +104,18 @@ let ⟨xy, hxy⟩ := h in ⟨xy.2, (mem_product.1 hxy).2⟩
 
 @[simp] lemma nonempty_product : (s.product t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.product h.2⟩
+
+@[simp] lemma singleton_product {a : α} :
+  ({a} : finset α).product t = t.map ⟨prod.mk a, prod.mk.inj_left _⟩ :=
+by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
+
+@[simp] lemma product_singleton {b : β} :
+  s.product {b} = s.map ⟨λ i, (i, b), prod.mk.inj_right _⟩ :=
+by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
+
+lemma singleton_product_singleton {a : α} {b : β} :
+  ({a} : finset α).product ({b} : finset β) = {(a, b)} :=
+by simp only [product_singleton, function.embedding.coe_fn_mk, map_singleton]
 
 @[simp] lemma union_product [decidable_eq α] [decidable_eq β] :
   (s ∪ s').product t = s.product t ∪ s'.product t :=

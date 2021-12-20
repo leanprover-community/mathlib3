@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
 import algebra.order.group
-import data.set.basic
 import order.rel_iso
 import order.order_dual
 
@@ -1170,7 +1169,7 @@ by simp only [Ioi_inter_Iio.symm, Ioi_inter_Ioi.symm, Iio_inter_Iio.symm]; ac_re
 
 end both
 
-lemma Icc_bot_top {α} [bounded_lattice α] : Icc (⊥ : α) ⊤ = univ := by simp
+lemma Icc_bot_top {α} [partial_order α] [bounded_order α] : Icc (⊥ : α) ⊤ = univ := by simp
 
 end lattice
 

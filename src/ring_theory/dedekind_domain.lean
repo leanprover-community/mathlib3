@@ -1171,18 +1171,6 @@ begin
   exact dvd_prime_pow (prime_of_is_prime hp' hp) n,
 end
 
---other PR
-lemma not_unit_of_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
-  (hp : dvd_not_unit p q) : ¬ is_unit q :=
-begin
-  obtain ⟨h, x, hx⟩ := hp,
-  by_contra hcontra,
-  apply hx.left,
-  rw is_unit_iff_dvd_one at hcontra,
-  rw is_unit_iff_dvd_one,
-  exact dvd_trans (show x ∣ q, from by {use p, rw mul_comm, exact hx.right}) hcontra,
-end
-
 lemma pow_primeₐ' {M : Type*} [comm_cancel_monoid_with_zero M] (n i : ℕ)
   (hi : 1 ≤ i ∧ i ≤ n) (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c) :
   ¬ is_unit (c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le hi.right)⟩) :=
@@ -1202,26 +1190,6 @@ begin
   obtain ⟨i, hi, hr⟩ := h₂.mp associates.one_le,
   rw [associates.is_unit_iff_eq_one, ← associates.le_one_iff, hr],
   exact h₁.monotone i.zero_le
-end
-
---moved to other PR
-lemma not_prime_of_not_unit_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
-  (hp : ¬is_unit p)(h : dvd_not_unit p q) : ¬ irreducible q :=
-begin
-  by_contra hcontra,
-  obtain ⟨hp', x, hx, hx'⟩ := h,
-  exact hp (or.resolve_right ((irreducible_iff.1 hcontra).right p x hx') hx),
-end
-
---moved to other PR
-lemma is_unit_of_associated_mul {M : Type*} [comm_cancel_monoid_with_zero M]
-  {p b : M} (h : associated (p * b) p) (hp : p ≠ 0) : is_unit b :=
-begin
-  rw associated at h,
-  obtain ⟨a, ha⟩ := h,
-  conv_rhs at ha {rw ← mul_one p},
-  rw mul_assoc at ha,
-  apply is_unit_of_mul_eq_one b ↑a (mul_left_cancel₀ hp ha)
 end
 
 lemma associates.is_atom_iff {M : Type*} [comm_cancel_monoid_with_zero M]
@@ -1257,40 +1225,6 @@ begin
   have H : i < 1 := h₁.lt_iff_lt.mp hb,
   simp_rw [nat.lt_one_iff.mp H, associates.bot_eq_one, ← associates.is_unit_iff_eq_one],
   exact pow_prime₁' n c h₁ @h₂,
-end
---moved to other PR
-lemma is_unit_of_associated_is_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
-  (h : associated p q) (hp : is_unit p) : is_unit q :=
-by { obtain ⟨a, rfl⟩:= h, exact is_unit.mul hp (units.is_unit a) }
-
---moved to other PR
-lemma not_associated_of_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
-  (h : dvd_not_unit p q) : ¬ associated p q :=
-begin
-  by_contra hcontra,
-  rw dvd_not_unit at h,
-  obtain ⟨hp, x, hx, hx'⟩ := h,
-  apply hx,
-  obtain ⟨a, rfl⟩ := hcontra,
-  rw mul_eq_mul_left_iff at hx',
-  rw ← or.resolve_right hx' hp,
-  exact units.is_unit a,
-end
-
---moved to other PR
-lemma dvd_not_unit_of_dvd_not_unit_associated {M : Type*} [comm_cancel_monoid_with_zero M]
-[nontrivial M] {p q r : M} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
-begin
-  obtain ⟨hp, x, hx⟩:= h,
-  obtain ⟨u, rfl⟩ := associated.symm h',
-  split,
-  exact hp,
-  use x * ↑(u⁻¹),
-  split,
-  { suffices : dvd_not_unit ↑u⁻¹ (x * ↑u⁻¹),
-    { exact not_unit_of_dvd_not_unit this },
-    exact ⟨(units.is_unit u⁻¹).ne_zero, by { use x, exact ⟨hx.left, mul_comm x ↑u⁻¹⟩, } ⟩ },
-  { rw [← mul_assoc, ← hx.right, mul_assoc, units.mul_inv, mul_one] },
 end
 
 lemma pow_prime₃' {M : Type*} [comm_cancel_monoid_with_zero M] {p q r : associates M} (n : ℕ)
@@ -1349,39 +1283,6 @@ begin
      λ x hx, (sorry_1 x) (hm x hx),
   rw ← finset.card_range (n + 1),
   exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
-end
-
-lemma ne_of_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
-  (h : dvd_not_unit p q) : p ≠ q :=
-begin
-  by_contra hcontra,
-  obtain ⟨hp, x, hx', hx''⟩ := h,
-  conv_lhs at hx'' {rw [← hcontra,← mul_one p]},
-  rw (mul_left_cancel₀ hp hx'').symm at hx',
-  exact hx' is_unit_one,
-end
-
---other PR
-lemma pow_inj_of_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {q : M}
-  (hq : ¬ is_unit q) (hq' : q ≠ 0): function.injective (λ (n : ℕ), q^n) :=
-begin
-  suffices : ∀ {n m : ℕ}, n < m → q^n ≠ q^m,
-  { intros n m,
-    contrapose!,
-    intro h,
-    by_cases h' : m ≤ n,
-    { exact (this (lt_of_le_of_ne h' h.symm)).symm },
-    { exact this (lt_of_not_ge h') } },
-
-  intros n m h,
-  apply ne_of_dvd_not_unit,
-  split,
-  exact pow_ne_zero n hq',
-  use q^(m - n),
-  split,
-  exact not_is_unit_of_not_is_unit_dvd hq
-    (dvd_pow (dvd_refl _) (ne_of_lt (nat.sub_pos_of_lt h)).symm),
-  exact (pow_mul_pow_sub q (le_of_lt h)).symm,
 end
 
 lemma associated_prime_pow_of_unique_normalized_factor {M : Type*} [comm_cancel_monoid_with_zero M]

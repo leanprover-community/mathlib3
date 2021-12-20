@@ -49,13 +49,8 @@ instance decidable_pred_mem_set_of [h : decidable_pred p] : decidable_pred (∈ 
 
 lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } := by { rw nth, simp }
 
-@[simp]
-lemma nth_zero_of_zero (h : p 0) : nth p 0 = 0 :=
-begin
-  rw nth,
-  refine nat.eq_zero_of_le_zero (nat.Inf_le _),
-  simp [h],
-end
+@[simp] lemma nth_zero_of_zero (h : p 0) : nth p 0 = 0 :=
+by simp [nth_zero, h]
 
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h }

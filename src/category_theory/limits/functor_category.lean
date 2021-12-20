@@ -287,7 +287,7 @@ def preserves_limits_of_evaluation (F : D ⥤ K ⥤ C)
   (H : Π (k : K), preserves_limits (F ⋙ (evaluation K C).obj k)) :
   preserves_limits F :=
 ⟨λ L hL, by exactI preserves_limits_of_shape_of_evaluation
-    F L (λ k, preserves_limits.preserves_limits_of_shape)⟩
+    F L (λ k, preserves_limits_of_size.preserves_limits_of_shape)⟩
 
 instance evaluation_preserves_colimits [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
@@ -315,7 +315,7 @@ def preserves_colimits_of_evaluation (F : D ⥤ K ⥤ C)
   (H : Π (k : K), preserves_colimits (F ⋙ (evaluation K C).obj k)) :
   preserves_colimits F :=
 ⟨λ L hL, by exactI preserves_colimits_of_shape_of_evaluation
-    F L (λ k, preserves_colimits.preserves_colimits_of_shape)⟩
+    F L (λ k, preserves_colimits_of_size.preserves_colimits_of_shape)⟩
 open category_theory.prod
 
 /--

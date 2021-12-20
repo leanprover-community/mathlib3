@@ -975,6 +975,14 @@ def center : subalgebra R A :=
 
 lemma coe_center : (center R A : set A) = set.center A := rfl
 
+@[simp] lemma center_to_subsemiring :
+  (center R A).to_subsemiring = subsemiring.center A :=
+rfl
+
+@[simp] lemma center_to_subring (R A : Type*) [comm_ring R] [ring A] [algebra R A] :
+  (center R A).to_subring = subring.center A :=
+rfl
+
 @[simp] lemma center_eq_top (A : Type*) [comm_semiring A] [algebra R A] : center R A = ⊤ :=
 set_like.coe_injective (set.center_eq_univ A)
 

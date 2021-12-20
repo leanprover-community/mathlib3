@@ -134,7 +134,6 @@ lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
   m ∈ a • S ↔ ∃ (s : M), s ∈ S ∧ a • s = m :=
 (set.mem_smul_set : m ∈ a • (S : set M) ↔ _)
 
-
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ M] [is_central_scalar α M] :
   is_central_scalar α (submonoid M) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩

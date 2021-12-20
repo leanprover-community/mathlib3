@@ -21,7 +21,8 @@ Given a function `a : ℕ → M` from the naturals into an additive commutative 
 -- The version in the notes uses sums from 1, mathlib typically uses sums from zero - hopefully
 -- this difference shouldn't cause serious issues
 -- An alternative is to insist that `a` is an "arithmetic function", which according to mathlib
--- is just a function from ℕ which sends 0 to 0
+-- is just a function from ℕ which sends 0 to 0, essentially meaning that when dealing with
+-- arithmetic functions we can pretend 0 isn't a natural
 def summatory {M : Type*} [add_comm_monoid M] (a : ℕ → M) (x : ℝ) : M :=
 ∑ n in finset.Icc 1 ⌊x⌋₊, a n
 

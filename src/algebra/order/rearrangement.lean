@@ -72,15 +72,6 @@ begin
   rw perm.inv_apply_self,
 end
 
--- TODO
-lemma sum_comp_perm_smul_eq_smul_comp_inv_perm [decidable_eq ι] [add_comm_monoid α]
-  [decidable_eq β] [add_comm_monoid β] [has_scalar α β] {σ : perm ι} {s : finset ι} {f : ι → α}
-  {g : ι → β} (hσ : {x | σ x ≠ x} ⊆ s) :
-  ∑ i in s, f (σ i) • g i = ∑ i in s, f i • g (σ⁻¹ i) :=
-begin
-  sorry
-end
-
 end finset
 
 open finset equiv equiv.perm order_dual
@@ -211,13 +202,39 @@ begin
 end
 
 /-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
+`movary_on f g s` holds with the permutation applied on the left.-/
+theorem monovary_on.sum_comp_perm_smul_le_sum_smul [decidable_eq ι] [linear_ordered_ring α]
+  [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
+  {s : finset ι} {f : ι → α} {g : ι → β} (hfg : monovary_on f g s) {σ : perm ι}
+  (hσ : {x | σ x ≠ x} ⊆ s) :
+  ∑ i in s, f (σ i) • g i ≤ ∑ i in s, f i • g i :=
+begin
+  convert hfg.sum_smul_comp_perm_le_sum_smul
+    (show {x | σ⁻¹ x ≠ x} ⊆ s, by simp only [set_support_inv_eq, hσ]) using 1,
+  exact sum_reindex' s (λ i j, f i • g j) hσ
+end
+
+/-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
 `antivary_on f g s` holds with the permutation applied on the right.-/
-theorem antivary_on.sum_smul_le_sum_smul_comp_perm [decidable_eq ι] [fintype ι]
+theorem antivary_on.sum_smul_le_sum_smul_comp_perm [decidable_eq ι]
   [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
   {s : finset ι} {f : ι → α} {g : ι → β} (hfg : antivary_on f g s) {σ : perm ι}
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g i ≤ ∑ i in s, f i • g (σ i) :=
 hfg.dual_right.sum_smul_comp_perm_le_sum_smul hσ
+
+/-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
+`antivary_on f g s` holds with the permutation applied on the left.-/
+theorem antivary_on.sum_smul_le_sum_comp_perm_smul [decidable_eq ι] [linear_ordered_ring α]
+  [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
+  {s : finset ι} {f : ι → α} {g : ι → β} (hfg : antivary_on f g s) {σ : perm ι}
+  (hσ : {x | σ x ≠ x} ⊆ s) :
+  ∑ i in s, f i • g i ≤ ∑ i in s, f (σ i) • g i :=
+begin
+  convert hfg.sum_smul_le_sum_smul_comp_perm
+    (show {x | σ⁻¹ x ≠ x} ⊆ s, by simp only [set_support_inv_eq, hσ]) using 1,
+  exact sum_reindex' s (λ i j, f i • g j) hσ
+end
 
 lemma swap_extend_domain_eq_self [decidable_eq ι] (s : finset ι) (x y : s) :
   (@extend_domain s ι (swap x y) (λ x, x ∈ s) _ 1) = swap ↑x ↑y :=
@@ -298,28 +315,4 @@ begin
             exact coe_mem x},
           { subst z,
             exact coe_mem y} } } }
-end
-
-lemma equiv.perm.mul_swap_support_subset {ι : Type*} [decidable_eq ι] [fintype ι] (s : finset ι)
-  {x y : ι} (hx : x ∈ s) (hy : y ∈ s) (σ : perm ι) :
-  (σ * swap x y).support ⊆ σ.support ∪ {x, y} :=
-begin
-  contrapose hσ,
-  rw subset_iff at hσ,
-  push_neg at hσ,
-  cases hσ with z hz,
-  rw subset_iff,
-  push_neg,
-  use z,
-  refine ⟨_, hz.2⟩,
-  rw mem_support,
-  simp only [equiv.perm.coe_mul, function.comp_app],
-  rw swap_apply_of_ne_of_ne,
-  { simp only [← mem_support, hz.1] },
-  { intro hxz,
-    rw ← hxz at hx,
-    apply hz.2 hx },
-  { intro hyz,
-    rw ← hyz at hy,
-    apply hz.2 hy }
 end

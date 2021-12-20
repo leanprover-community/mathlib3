@@ -617,6 +617,22 @@ lemma pos_def.smul {R} [linear_ordered_comm_ring R] [module R M]
 
 variables {n : Type*}
 
+lemma pos_def.nonneg {Q : quadratic_form R₂ M} (hQ : pos_def Q) (x : M) :
+  0 ≤ Q x :=
+(eq_or_ne x 0).elim (λ h, h.symm ▸ (map_zero).symm.le) (λ h, (hQ _ h).le)
+
+lemma pos_def.eq_zero_iff {Q : quadratic_form R₂ M} (hQ : pos_def Q) {x : M} :
+  Q x = 0 ↔ x = 0 :=
+⟨λ hQx, classical.by_contradiction $ λ hx, lt_irrefl (0 : R₂) $ begin
+  have := hQ _ hx,
+  rw hQx at this,
+  exact this,
+end, λ h, h.symm ▸ map_zero⟩
+
+lemma pos_def_of_nonneg {Q : quadratic_form R₂ M} (h : ∀ x, 0 ≤ Q x) (h0 : ∀ x, Q x = 0 → x = 0) :
+  pos_def Q :=
+λ x hx, lt_of_le_of_ne (h x) (ne.symm $ λ hQx, hx $ h0 _ hQx)
+
 lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def Q') :
   pos_def (Q + Q') :=
 λ x hx, add_pos (hQ x hx) (hQ' x hx)

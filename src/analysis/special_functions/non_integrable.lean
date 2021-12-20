@@ -92,6 +92,33 @@ begin
       hsub'.eventually_le
 end
 
+/-- If `a ≠ b`, `c ∈ [a, b]`, `f` is differentiable in the neighborhood of `c` within
+`[a, b] \ {c}`, `∥f x∥ → ∞` as `x → c` within `[a, b] \ {c}`, and `f' = O(g)` along
+`𝓝[[a, b] \ {c}] c`, where `f'` is the derivative of `f`, then `g` is not interval integrable on
+`a..b`. -/
+lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_within_diff_singleton
+  {f : ℝ → E} {g : ℝ → F} {a b c : ℝ} (hne : a ≠ b) (hc : c ∈ [a, b])
+  (h_deriv : ∀ᶠ x in 𝓝[[a, b] \ {c}] c, differentiable_at ℝ f x)
+  (h_infty : tendsto (λ x, ∥f x∥) (𝓝[[a, b] \ {c}] c) at_top)
+  (hg : is_O (deriv f) g (𝓝[[a, b] \ {c}] c)) :
+  ¬interval_integrable g volume a b :=
+begin
+  obtain ⟨l, hl, hl', hle, hmem⟩ : ∃ l : filter ℝ, tendsto_Ixx_class Icc l l ∧ l.ne_bot ∧
+    l ≤ 𝓝 c ∧ [a, b] \ {c} ∈ l,
+  { cases (min_lt_max.2 hne).lt_or_lt c with hlt hlt,
+    { refine ⟨𝓝[<] c, infer_instance, infer_instance, inf_le_left, _⟩,
+      rw ← Iic_diff_right,
+      exact diff_mem_nhds_within_diff (Icc_mem_nhds_within_Iic ⟨hlt, hc.2⟩) _ },
+    { refine ⟨𝓝[>] c, infer_instance, infer_instance, inf_le_left, _⟩,
+      rw ← Ici_diff_left,
+      exact diff_mem_nhds_within_diff (Icc_mem_nhds_within_Ici ⟨hc.1, hlt⟩) _ } },
+  resetI,
+  have : l ≤ 𝓝[[a, b] \ {c}] c, from le_inf hle (le_principal_iff.2 hmem),
+  exact not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter l
+    (mem_of_superset hmem (diff_subset _ _))
+    (h_deriv.filter_mono this) (h_infty.mono_left this) (hg.mono this),
+end
+
 /-- If `f` is differentiable in a punctured neighborhood of `c`, `∥f x∥ → ∞` as `x → c` (more
 formally, along the filter `𝓝[≠] c`), and `f' = O(g)` along `𝓝[≠] c`, where `f'` is the derivative
 of `f`, then `g` is not interval integrable on any nontrivial interval `a..b` such that
@@ -101,18 +128,9 @@ lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_punctured {f 
   (h_infty : tendsto (λ x, ∥f x∥) (𝓝[≠] c) at_top) (hg : is_O (deriv f) g (𝓝[≠] c))
   (hne : a ≠ b) (hc : c ∈ [a, b]) :
   ¬interval_integrable g volume a b :=
-begin
-  have hlt : min a b < max a b := min_lt_max.2 hne,
-  rcases hc.1.eq_or_lt with rfl|lt_c,
-  { have : 𝓝[>] (min a b) ≤ 𝓝[≠] (min a b), from nhds_within_mono _ (λ _, ne_of_gt),
-    exact not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter _
-      (Icc_mem_nhds_within_Ioi $ left_mem_Ico.2 hlt) (h_deriv.filter_mono this)
-      (h_infty.mono_left this) (hg.mono this) },
-  { have : 𝓝[<] c ≤ 𝓝[≠] c, from nhds_within_mono _ (λ _, ne_of_lt),
-    exact not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter _
-      (Icc_mem_nhds_within_Iio ⟨lt_c, hc.2⟩) (h_deriv.filter_mono this) (h_infty.mono_left this)
-      (hg.mono this) }
-end
+have 𝓝[[a, b] \ {c}] c ≤ 𝓝[≠] c, from nhds_within_mono _ (inter_subset_right _ _),
+not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_within_diff_singleton hne hc
+  (h_deriv.filter_mono this) (h_infty.mono_left this) (hg.mono this)
 
 /-- If `f` grows in the punctured neighborhood of `c : ℝ` at least as fast as `1 / (x - c)`,
 then it is not interval integrable on any nontrivial interval `a..b`, `c ∈ [a, b]`. -/

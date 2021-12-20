@@ -344,7 +344,7 @@ open set_like
 def ideal.homogeneous_hull : ideal R :=
   ideal.span {r : R | ∃ (i : ι) (x : I), (graded_algebra.decompose A x i : R) = r}
 
-lemma ideal.is_homogeneous.homogeneous_hull [Π (i : ι) (x : A i), decidable (x ≠ 0)] :
+lemma ideal.is_homogeneous.homogeneous_hull :
   ideal.is_homogeneous A (ideal.homogeneous_hull A I) :=
 begin
   rw ideal.is_homogeneous.iff_exists,

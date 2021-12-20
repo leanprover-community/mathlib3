@@ -229,8 +229,7 @@ lemma rename_degrees_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_po
 begin
   have t :=multiset.map_finset_sup p.support finsupp.to_multiset ⟨f,h⟩,
   simp only [embedding.coe_fn_mk] at t,
-  simp only [degrees, t, support_rename_of_injective h, finset.sup_map,
-             map_domain_embedding, embedding.coe_fn_mk, finsupp.to_multiset_map],
+  simp only [degrees, t, support_rename_of_injective h, finset.sup_image],
   congr,
   ext,
   congr,

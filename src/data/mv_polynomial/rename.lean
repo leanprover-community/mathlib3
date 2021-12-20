@@ -246,7 +246,7 @@ end coeff
 section support
 
 lemma support_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f) :
-  (rename f p).support = finset.map (map_domain_embedding ⟨f,h⟩) p.support :=
+  (rename f p).support = finset.image (map_domain f) p.support :=
 begin
   rw finset.ext_iff,
   intro a,
@@ -254,9 +254,13 @@ begin
   apply iff.intro,
   intro h1,
   cases coeff_rename_ne_zero f p a h1 with d hd,
-  use d,
-  simpa only [map_domain_embedding, function.embedding.coe_fn_mk] using hd.symm,
+  rw ← hd.1,
+  simp only [map_domain_embedding, function.embedding.coe_fn_mk, exists_prop, mem_support_iff, finset.mem_image,
+  ne.def],
+  exact ⟨d, ⟨hd.2, by refl⟩⟩,
   intro h,
+  simp only [map_domain_embedding, exists_prop, mem_support_iff, function.embedding.coe_fn_mk, finset.mem_image,
+  ne.def] at h,
   cases h with b hb,
   simpa only [← hb.2, map_domain_embedding, function.embedding.coe_fn_mk,
               coeff_rename_map_domain f h p b] using hb.1,

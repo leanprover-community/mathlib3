@@ -5,6 +5,7 @@ Authors: Bolton Bailey
 -/
 import algebra.periodic
 import data.nat.interval
+import data.nat.count
 
 /-!
 # Periodic Functions on ℕ

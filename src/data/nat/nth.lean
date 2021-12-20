@@ -45,8 +45,6 @@ natural number satisfying `p`), or `0` if there is no such number. See also
 noncomputable def nth : ℕ → ℕ
 | n := Inf { i : ℕ | p i ∧ ∀ k < n, nth k < i }
 
-instance decidable_pred_mem_set_of [h : decidable_pred p] : decidable_pred (∈ set_of p) := h
-
 lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } := by { rw nth, simp }
 
 @[simp] lemma nth_zero_of_zero (h : p 0) : nth p 0 = 0 :=

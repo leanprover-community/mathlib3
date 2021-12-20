@@ -224,20 +224,17 @@ lemma degrees_map_of_injective [comm_semiring S] (p : mv_polynomial σ R)
   {f : R →+* S} (hf : injective f) : (map f p).degrees = p.degrees :=
 by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
 
-local attribute [instance] classical.prop_decidable-- todo remove this
-
 lemma rename_degrees_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
   {f : σ → τ} (h : function.injective f) : degrees (rename f p) = (degrees p).map f :=
 begin
-  have h1 : (λ (x : σ →₀ ℕ), multiset.map f (finsupp.to_multiset x))
-    = λ x, (x.map_domain f).to_multiset,
-  { ext,
-    rw finsupp.to_multiset_map, },
-  simp only [degrees],
   have t :=finset.sup_map_multiset p.support finsupp.to_multiset ⟨f,h⟩,
-  squeeze_simp at t,
-  simp only [t, h1, support_rename_injective h, finset.sup_map],
+  simp only [embedding.coe_fn_mk] at t,
+  simp only [degrees, t, support_rename_injective h, finset.sup_map,
+             map_domain_embedding_of_injective, embedding.coe_fn_mk, finsupp.to_multiset_map],
   congr,
+  ext,
+  congr,
+  simp only [comp_apply, finsupp.to_multiset_map],
 end
 
 end degrees

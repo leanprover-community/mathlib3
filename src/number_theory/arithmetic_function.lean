@@ -911,15 +911,14 @@ lemma is_prime.is_prime_power {p : ℕ} (hp : p.prime) : is_prime_power p :=
 ⟨p, 1, hp, zero_lt_one, by simp⟩
 
 lemma unique_prime_power {p₁ p₂ k₁ k₂ : ℕ}
-  (hp₁ : p₁.prime) (hp₂ : p₂.prime) (hk₁ : 0 < k₁) :
-  p₁ ^ k₁ = p₂ ^ k₂ → p₁ = p₂ :=
+  (hp₁ : p₁.prime) (hp₂ : p₂.prime) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ = p₂ ^ k₂):
+  p₁ = p₂ :=
 begin
-  intro h,
   have : p₁ ∣ p₂ ^ k₂,
   { rw ←h,
     apply dvd_pow_self _ hk₁.ne' },
   rw ←prime_dvd_prime_iff_eq hp₁ hp₂,
-  apply hp₁.dvd_of_dvd_pow this,
+  exact hp₁.dvd_of_dvd_pow this,
 end
 
 /-- In the case when `n` is a prime power, `min_fac` will give the appropriate prime. -/
@@ -952,19 +951,12 @@ begin
   simp
 end
 
-theorem sublist_of_subperm_of_sorted {α : Type*} {r : α → α → Prop} [is_antisymm α r]
-  {l₁ l₂ : list α} (p : l₁ <+~ l₂) (s₁ : l₁.sorted r) (s₂ : l₂.sorted r) : l₁ <+ l₂ :=
-begin
-  obtain ⟨l₃, hl, hl₃⟩ := p,
-  rwa ←list.eq_of_perm_of_sorted hl (list.pairwise_of_sublist hl₃ s₂) s₁,
-end
-
 lemma factors_sublist_right {n k : ℕ} (h : k ≠ 0) : n.factors <+ (n * k).factors :=
 begin
   cases n,
   { rw zero_mul },
-  apply sublist_of_subperm_of_sorted _ (factors_sorted n.succ) (factors_sorted _),
-  rw list.perm.subperm_left (perm_factors_mul_of_pos nat.succ_pos' (nat.pos_of_ne_zero h)),
+  apply list.sublist_of_subperm_of_sorted _ (factors_sorted _) (factors_sorted _),
+  rw (perm_factors_mul_of_pos nat.succ_pos' (nat.pos_of_ne_zero h)).subperm_left,
   exact (list.sublist_append_left _ _).subperm,
 end
 

@@ -128,6 +128,12 @@ begin
     mem_left_iff_eq_zero_of_disjoint h.disjoint]
 end
 
+@[simp]
+lemma prod_comm_trans_prod_equiv_of_is_compl (h : is_compl p q) :
+  linear_equiv.prod_comm R q p ≪≫ₗ prod_equiv_of_is_compl p q h =
+    prod_equiv_of_is_compl q p h.symm :=
+linear_equiv.ext $ λ _, add_comm _ _
+
 /-- Projection to a submodule along its complement. -/
 def linear_proj_of_is_compl (h : is_compl p q) :
   E →ₗ[R] p :=
@@ -178,12 +184,12 @@ lemma exists_unique_add_of_is_compl (hc : is_compl p q) (x : E) :
 let ⟨u, hu₁, hu₂⟩ := exists_unique_add_of_is_compl_prod hc x in
   ⟨u.1, u.2, hu₁, λ r s hrs, prod.eq_iff_fst_eq_snd_eq.1 (hu₂ ⟨r, s⟩ hrs)⟩
 
-lemma eq_linear_proj_add_linear_proj_of_is_compl (hpq : is_compl p q) (x : E) :
-  x = p.linear_proj_of_is_compl q hpq x + q.linear_proj_of_is_compl p hpq.symm x :=
+lemma linear_proj_add_linear_proj_of_is_compl_eq_self (hpq : is_compl p q) (x : E) :
+  (p.linear_proj_of_is_compl q hpq x + q.linear_proj_of_is_compl p hpq.symm x : E) = x :=
 begin
-  rcases exists_unique_add_of_is_compl hpq x with ⟨u, v, rfl, -⟩,
-  simp only [ map_add, add_zero, linear_proj_of_is_compl_apply_right,
-              zero_add, linear_proj_of_is_compl_apply_left ],
+  dunfold linear_proj_of_is_compl,
+  rw ←prod_comm_trans_prod_equiv_of_is_compl _ _ hpq,
+  exact (prod_equiv_of_is_compl _ _ hpq).apply_symm_apply x,
 end
 
 end submodule

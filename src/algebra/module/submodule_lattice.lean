@@ -226,10 +226,18 @@ lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
   (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
 show s ≤ Sup S, from le_Sup hs
 
-lemma eq_zero_of_coe_mem_of_is_compl (hpq : is_compl p q) {a : p} (ha : (a : M) ∈ q) :
+theorem disjoint_def {p p' : submodule R M} :
+  disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
+show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simp
+
+theorem disjoint_def' {p p' : submodule R M} :
+  disjoint p p' ↔ ∀ (x ∈ p) (y ∈ p'), x = y → x = (0:M) :=
+disjoint_def.trans ⟨λ h x hx y hy hxy, h x hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h _ hx x hx' rfl⟩
+
+lemma eq_zero_of_coe_mem_of_disjoint (hpq : disjoint p q) {a : p} (ha : (a : M) ∈ q) :
   a = 0 :=
-have this : (a : M) ∈ p ⊓ q, from mem_inf.mpr ⟨coe_mem a, ha⟩,
-by rwa [hpq.inf_eq_bot, mem_bot, coe_eq_zero] at this
+by exact_mod_cast disjoint_def.mp hpq a (coe_mem a) ha
 
 end submodule
 

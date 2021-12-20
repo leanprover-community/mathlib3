@@ -1499,6 +1499,62 @@ instance upper_half_space_slice_to_uhs (A B : ℝ) :
 @[simp]lemma slice_mem (A B : ℝ) (z: ℍ): z ∈ (upper_half_space_slice A B) ↔
 (complex.abs(z.1.1) ≤ A ∧ complex.abs(z.1.2) ≥ B) :=iff.rfl
 
+lemma closed_ball_in_slice (z : ℍ) : ∃ (A B ε : ℝ), 0 < ε ∧ 0 < B ∧
+  metric.closed_ball z ε ⊆ upper_half_space_slice A B :=
+begin
+  let e := 2⁻¹ * complex.abs(z.1.2),
+  let a := complex.abs(z.1.2) +  complex.abs(z),
+  let b := complex.abs(z.1.2) - e,
+  use a,
+  use b,
+  use e,
+  split,
+  simp_rw e,
+  simp,
+  apply upper_half_plane.im_ne_zero z,
+  split,
+  simp_rw b,
+  simp_rw e,
+  ring_nf,
+  simp,
+  apply upper_half_plane.im_ne_zero z,
+  intro x,
+  simp only [abs_of_real, tsub_le_iff_right, ge_iff_le, metric.mem_closed_ball, slice_mem,
+  upper_half_plane.coe_im, subtype.val_eq_coe, upper_half_plane.coe_re],
+  intro hxz,
+  have d1 : dist x z = dist (x : ℂ) (z :ℂ), by {exact subtype.dist_eq x z,},
+  rw d1 at  hxz,
+  rw dist_eq_norm at hxz,
+  simp only [norm_eq_abs] at hxz,
+  have:= abs_sub_le x.1 z.1 0,
+  simp only [sub_zero, subtype.val_eq_coe] at this,
+  split,
+  simp_rw a,
+  have hre := le_trans (abs_re_le_abs x.1) this,
+  rw upper_half_plane.re,
+  simp only [abs_of_real, upper_half_plane.coe_im, subtype.val_eq_coe, upper_half_plane.coe_re] at *,
+  apply le_trans hre,
+  simp only [add_le_add_iff_right],
+  apply le_trans hxz,
+  simp_rw e,
+  rw upper_half_plane.im,
+  simp only [abs_of_real, upper_half_plane.coe_im, subtype.val_eq_coe],
+  have hxim : 0 ≤ |z.im|, by {apply _root_.abs_nonneg,},
+  ring_nf,
+  linarith,
+  have ineq1:= _root_.abs_sub_le z.1.2 x.1.2 0,
+  simp only [sub_zero, upper_half_plane.coe_im, subtype.val_eq_coe] at ineq1,
+  apply le_trans ineq1,
+  rw add_comm,
+  simp,
+  have ki:= le_trans (abs_im_le_abs (x.1-z.1)) hxz,
+  rw sub_im at ki,
+  rw _root_.abs_sub_comm at ki,
+  convert ki,
+end
+
+
+
 def lbpoint (A B : ℝ) (h: 0 < B): ℍ:= ⟨⟨A,B⟩, by { simp, exact h,},⟩
 
 lemma aux55 (a b : ℝ ) (h : a ≠ 0 ) : a/(a+b)=1/(b/a+1) :=
@@ -1936,6 +1992,7 @@ begin
   simp only [metric.mem_ball, ne.def, subtype.coe_mk] at *,
   apply h,
 end
+
 
 lemma Eisenstein_is_holomorphic (k : ℤ): is_holomorphic_on (Eisenstein_series_of_weight_ k):=
 begin

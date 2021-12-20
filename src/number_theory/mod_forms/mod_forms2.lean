@@ -42,7 +42,7 @@ local notation `GL2P`:= (matrix.GL_pos (fin 2) ℝ)
 
 variable (M : GL2P)
 
-lemma aux (a b c : ℂ) : a*b⁻¹*c⁻¹=a*(b*c)⁻¹:=
+lemma auxmf2 (a b c : ℂ) : a*b⁻¹*c⁻¹=a*(b*c)⁻¹:=
 begin
 field_simp,
 end
@@ -87,7 +87,7 @@ begin
   have e3: (A * B) • x = A • B • x , by {convert e2,} ,
   rw e3,
   ring_nf,
-  simp_rw aux,
+  simp_rw auxmf2,
   ring_nf,
   simp_rw aux1,
 end

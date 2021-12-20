@@ -261,7 +261,7 @@ has_colimit_of_iso (D.diagram_iso F).symm
 
 local attribute [instance] has_colimit_map_glue_data_diagram
 
-/-- If `F` preserves the gluing, we obtain an iso between the glued object. -/
+/-- If `F` preserves the gluing, we obtain an iso between the glued objects. -/
 def glued_iso : F.obj D.glued ≅ (D.map_glue_data F).glued :=
 preserves_colimit_iso F D.diagram.multispan ≪≫
   (limits.has_colimit.iso_of_nat_iso (D.diagram_iso F))

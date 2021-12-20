@@ -191,22 +191,14 @@ end
 
 variables {H K L}
 
-def le_quot_map {α : Type*} [group α] (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
-  K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L) :=
-{ to_fun := quotient.map' (set.inclusion h) (λ a b, id),
-  inj' := by refine quotient.ind₂' (λ a b, _); exact quotient.eq'.mpr ∘ quotient.eq'.mp }
-
 lemma relindex_eq_zero_of_le_left (hHK : H ≤ K) (hKL : K.relindex L = 0) : H.relindex L = 0 :=
 by rw [←inf_relindex_right, ←relindex_mul_relindex (H ⊓ L) (K ⊓ L) L
   (inf_le_inf_right L hHK) inf_le_right, inf_relindex_right, hKL, mul_zero]
 
 lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
-begin
-  refine cardinal.to_nat_apply_of_omega_le (le_trans _ (le_quot_map H hKL).cardinal_le),
-  contrapose! hHK,
-  rw [ne, ←cardinal.nat_cast_inj, relindex, index, nat.card, cardinal.cast_to_nat_of_lt_omega hHK],
-  exact cardinal.mk_ne_zero (K ⧸ H.subgroup_of K),
-end
+cardinal.to_nat_apply_of_omega_le (le_trans (le_of_not_lt (λ h, cardinal.mk_ne_zero _
+  ((cardinal.cast_to_nat_of_lt_omega h).symm.trans (cardinal.nat_cast_inj.mpr hHK))))
+    (quotient_subgroup_of_embedding_of_le H hKL).cardinal_le)
 
 lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
   H.relindex L ≠ 0 :=

@@ -1025,6 +1025,27 @@ begin
   convert h.mul ihn; simp [pow_succ]
 end
 
+/-! ### Inverse -/
+
+theorem is_O_with.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O_with c f g l)
+  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_O_with c (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
+begin
+  refine is_O_with.of_bound (h.bound.mp (h₀.mono $ λ x h₀ hle, _)),
+  cases le_or_lt c 0 with hc hc,
+  { refine (h₀ $ norm_le_zero_iff.1 _).elim,
+    exact hle.trans (mul_nonpos_of_nonpos_of_nonneg hc $ norm_nonneg _) },
+  { replace hle := inv_le_inv_of_le (norm_pos_iff.2 h₀) hle,
+    simpa only [normed_field.norm_inv, mul_inv₀, ← div_eq_inv_mul, div_le_iff hc] using hle }
+end
+
+theorem is_O.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O f g l)
+  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_O (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
+let ⟨c, hc⟩ := h.is_O_with in (hc.inv_rev h₀).is_O
+
+theorem is_o.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_o f g l)
+  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_o (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
+is_o.of_is_O_with $ λ c hc, (h.def' hc).inv_rev h₀
+
 /-! ### Scalar multiplication -/
 
 section smul_const

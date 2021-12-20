@@ -22,6 +22,9 @@ and provides lemmas that deal with this function and its connection to `nat.coun
 
 ## Main results
 
+* `nat.nth_set_card`: For a fintely-often true `p`, gives the cardinality of the set of numbers
+  satisfying `p` above particular values of `nth p`
+* `nat.count_nth_gc`: Establishes a Galois connection between `nth p` and `count p`.
 * `nat.nth_eq_order_iso_of_nat`: An infinite set of natural numbers is order-isomorphic to the
   natural numbers.
 

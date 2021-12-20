@@ -49,7 +49,7 @@ begin
   rw [not_imp, not_lt] at hi,
   existsi i,
   assume j hj,
-  have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm hi.1 hj,
+  have hfij : f j ≤ f i := (nat.rel_of_forall_rel_succ_of_le_of_le (≥) hnm hi.1 hj).le,
   rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
   calc f i ≤ a - (nat.pred l) • ε : hi.2
     ... = a - l • ε + ε :

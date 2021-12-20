@@ -91,6 +91,14 @@ by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U)))
 := rfl
 
+lemma comp_c_app' {X Y Z : SheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
+  (α ≫ β).c.app (op U) = (β.c).app (op U) ≫ (α.c).app (op ((opens.map (β.base)).obj U))
+:= rfl
+
+lemma congr_app {X Y : SheafedSpace C} {α β : X ⟶ Y} (h : α = β) (U) :
+  α.c.app U = β.c.app U ≫ X.presheaf.map (eq_to_hom (by subst h)) :=
+PresheafedSpace.congr_app h U
+
 variables (C)
 
 /-- The forgetful functor from `SheafedSpace` to `Top`. -/

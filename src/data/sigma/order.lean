@@ -132,5 +132,13 @@ protected def order_top [partial_order ι] [order_top ι] [Π i, preorder (α i)
 
 localized "attribute [instance] sigma.lex.order_top" in lex
 
+/-- The lexicographical linear order on a sigma type. Turn this on by opening locale `lex`. -/
+protected def bounded_order [partial_order ι] [bounded_order ι] [Π i, preorder (α i)]
+  [order_bot (α ⊥)] [order_top (α ⊤)] :
+  bounded_order (Σ i, α i) :=
+{ .. lex.order_bot, .. lex.order_top }
+
+localized "attribute [instance] sigma.lex.bounded_order" in lex
+
 end lex
 end sigma

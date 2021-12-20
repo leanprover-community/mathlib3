@@ -122,8 +122,8 @@ begin
     rw ← finset.card_bUnion  ,
     -- cycles of l have disjoint support
     swap,
-    { exact λ x hx y hy hxy,
-        equiv.perm.disjoint.disjoint_support (cycle_factors_finset_pairwise_disjoint f x hx y hy hxy) },
+    { exact λ x hx y hy hxy, equiv.perm.disjoint.disjoint_support
+        (cycle_factors_finset_pairwise_disjoint f x hx y hy hxy) },
     -- support of g is union of supports of l
     apply congr_arg,
     ext a,
@@ -267,8 +267,8 @@ begin
   (λ i, (g ^ i) a) _ l _ hl hl',
   { intros i j hi hj hij,
     rw equiv.perm.order_of_is_cycle hg at hj,
-    apply nodup_of_fullcycle g hg a ha i j (zero_le') hij hj },
-  exact hl''
+    apply nodup_of_fullcycle hg ha i j hij hj },
+  exact hl'',
 end
 
 example (l : list α) (hl : l.nodup) (h2 : 2 ≤ l.length) :
@@ -366,6 +366,72 @@ begin
   apply list.mem_to_finset',
 end
 
+.
+
+example (s : finset α) (g : perm α) : (g • s).card = s.card :=
+begin
+  apply finset.card_image_of_injective,
+  apply mul_action.injective g,
+end
+
+example (s : finset α) (a b : α) (ha : a ∈ s) (hb : b ∈ s) (hab : a ≠ b) : 2 ≤ s.card :=
+begin
+  suffices : ({a,b} : finset α).card = 2,
+  { rw ← this, apply finset.card_le_of_subset,
+    rw finset.insert_subset,
+    exact ⟨ha, finset.singleton_subset_iff.mpr hb⟩ },
+  rw finset.card_insert_of_not_mem,
+  rw finset.card_singleton,
+  rw finset.mem_singleton, exact hab,
+end
+
+example (a b c d : ℕ) (h : c ≤ d) : a + d < b + c → a < b :=
+begin
+  intro k,
+  apply nat.lt_of_add_lt_add_right,
+  apply nat.lt_of_lt_of_le k,
+  exact add_le_add_left h b,
+end
+
+example (a b c n : ℕ) (ha : a = 3) (hb : n + 4 < b) (hc : 2 ≤ c) :
+  a + a < b + c :=
+begin
+  apply nat.lt_of_lt_of_le _ le_rfl,
+  apply le_trans _ (nat.add_le_add (nat.lt_of_le_of_lt (le_add_self) hb) hc),
+  rw ha,
+end
+
+example (a b c n : ℕ) (ha : a = 3) (hb : b = n + 5) (hc : 2 ≤ c) :
+  a + a < b + c :=
+begin
+  rw [ha, hb],
+  apply nat.le_trans le_rfl,
+  apply le_trans _ (nat.add_le_add (le_add_self) hc),
+  dec_trivial,
+
+  /-
+  suffices : 5 + 2 ≤ b + c,
+    apply nat.lt_of_lt_of_le _ this,
+    dec_trivial,
+  suffices : 5 + 2 ≤ 5 + c,
+    apply nat.le_trans this,
+    apply add_le_add_right _ c,
+    rw hb, exact le_add_self,
+  exact add_le_add_left hc 5,
+-/
+    /-
+  have hb' : 5 ≤ b,
+  { rw hb, exact le_add_self, },
+  have hb'c : 5 + c ≤ b + c,
+  { exact add_le_add_right hb' c, },
+  apply nat.lt_of_lt_of_le _ hb'c,
+  have hc' : 5 + 2 ≤ 5 + c,
+  { exact add_le_add_left hc 5, },
+  apply nat.lt_of_lt_of_le _ hc',
+  simp_rw ha,
+  dec_trivial, -/
+end
+
 
 lemma case_cycle5 (g : perm α) (hg : g.is_cycle) (hg' : order_of g ≥ 5) :
   ∃ (h : perm α), (is_three_cycle h) ∧
@@ -435,9 +501,9 @@ begin
         simp only [list.last],
         apply (list.nodup_cons.mp l_nodup).right,  },
 
-
-    have hb_eq_e : g (g a) ≠ (g ^ (n+4) a,
-    { sorry, },
+    have hb_neq_e : g (g a) ≠ (g ^ (n+4)) a,
+    { refine nodup_of_fullcycle hg ha.left 2 (n+4) _ hn,
+      dec_trivial, },
 
     use h,
     split,
@@ -450,17 +516,74 @@ begin
       -- Utiliser que g • b ≠ h • b
       -- g h g⁻¹ h⁻¹ b = g h g⁻¹ a = g h e = g a = b
       -- g h g⁻¹ h⁻¹ a = g h g⁻¹ e = g h d = g d = e ≠ a
-      -- g h g⁻¹ h⁻¹ e = g h g⁻¹ b = g h a = g b = c ≠ e
+      -- g h g⁻¹ h⁻¹ e = g h g⁻¹ b = g h a = g (g a) ≠ e
+      /- intro hz,
+      let ww := commutator_nontrivial g h (g a) _ hz,
+      sorry, -/
       intro hz,
+      have hz' : g * h = h * g, { group, exact hz, },
+      have : (g * h) a ≠ (h * g) a,
+      { simp, -- only [perm.smul_mul, perm.mul_def],
+        rw ha_eq_b, rw hb_eq_c, exact hb_neq_e, },
+      apply this,
+      rw hz' },
 
-      -- let ww := commutator_nontrivial g h (g a) _ hz,
+    { -- son support est de cardinal < celui de g
+      let www := finset.card_le_of_subset (commutator_support_le g h),
+      refine nat.lt_of_le_of_lt www _,
+      refine nat.lt_of_add_lt_add_right _,
+      swap, -- exact (h.support ∩ g • h.support).card,
+      rw finset.card_union_add_card_inter,
 
+      have : (g • h.support).card = h.support.card,
+      { apply finset.card_image_of_injective,  exact mul_action.injective g, },
+      rw this,
 
-    -- son support est de cardinal < celui de g
-    sorry,  },
-    { sorry, } ,
+      conv_lhs {
+        rw h_support_eq_l,
+        },
+      rw list.to_finset_card_of_nodup l_nodup,
 
+      suffices : 2 ≤ (h.support ∩ g • h.support).card,
+      {
+      apply nat.lt_of_lt_of_le _ le_rfl,
+      apply le_trans _ (nat.add_le_add (nat.lt_of_le_of_lt (le_add_self) hn) this),
+      dec_trivial },
+
+      -- h.suport = [a, g a, (g ^ (n+4)) a]
+      -- g • h.support = [g a, (g ^ 2) a, g ^ (n+5) a] = [g a, a]
+      have ha : a ∈ h.support ∩ g • h.support,
+      { rw finset.mem_inter, split,
+        rw equiv.perm.mem_support, rw ha_eq_b, exact h12.symm,
+        suffices : g⁻¹ • a ∈ h.support,
+        {
+          sorry, },
+        rw equiv.perm.mem_support,
+        have : g⁻¹ = g ^ (n+4),
+        { rw inv_eq_iff_mul_eq_one,
+          rw ← pow_succ,
+          change g ^ (n + 5) = 1,
+          rw ← hg'',
+          exact pow_order_of_eq_one g, },
+        rw this,
+        simp,
+        rw hc_eq_a,
+        exact h13, },
+
+      have hga : g a ∈ h.support ∩ g • h.support,
+      { sorry, },
+      suffices : ({a,g a} : finset α).card = 2,
+        { rw ← this, apply finset.card_le_of_subset,
+          rw finset.insert_subset,
+          exact ⟨ha, finset.singleton_subset_iff.mpr hga⟩ },
+        rw finset.card_insert_of_not_mem,
+        rw finset.card_singleton,
+        rw finset.mem_singleton,
+        exact h12 }
 end
+
+
+
 /-
     g = (a,b,c,d,…,e)
     h = (a,b,e)
@@ -662,7 +785,7 @@ begin
     exact ih (k' : perm α).support.card h3 ⟨k', commutator_mem' nN g h'⟩ h2 rfl, },
 
 
-      /- Trois groupes : H ≤ H ≤ G
+      /- Trois groupes : N ≤ H ≤ G
       * G = perm α,
       * H = alternating_group α: subgroup (perm α)
       * N : subgroup H, nN : normal N

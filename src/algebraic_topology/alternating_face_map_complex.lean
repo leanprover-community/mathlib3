@@ -54,8 +54,8 @@ variables (Y : simplicial_object C)
 /-- The differential on the alternating face map complex is the alternate
 sum of the face maps -/
 @[simp]
-def obj_d (n : ℕ) : (obj_X X (n+1)) ⟶ (obj_X X n) :=
-∑ i in finset.range(n+2), ((-1 : ℤ)^i • X.δ i)
+def obj_d (n : ℕ) : obj_X X (n+1) ⟶ obj_X X n :=
+∑ i in finset.range (n+2), (-1 : ℤ)^i • X.δ i
 
 /-!
 ## Proof of the chain complex relation `d ≫ d`

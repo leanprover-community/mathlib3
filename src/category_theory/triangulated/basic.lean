@@ -40,14 +40,14 @@ structure triangle := mk' ::
 (obj₃ : C)
 (mor₁ : obj₁ ⟶ obj₂)
 (mor₂ : obj₂ ⟶ obj₃)
-(mor₃ : obj₃ ⟶ obj₁⟦1⟧)
+(mor₃ : obj₃ ⟶ obj₁⟦(1:ℤ)⟧)
 
 /--
 A triangle `(X,Y,Z,f,g,h)` in `C` is defined by the morphisms `f : X ⟶ Y`, `g : Y ⟶ Z`
 and `h : Z ⟶ X⟦1⟧`.
 -/
 @[simps]
-def triangle.mk {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ X⟦1⟧) : triangle C :=
+def triangle.mk {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ X⟦(1:ℤ)⟧) : triangle C :=
 { obj₁ := X,
   obj₂ := Y,
   obj₃ := Z,

@@ -59,19 +59,8 @@ by simp only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_
 
 end is_domain
 
-section field
-variables [field R] {p q : polynomial R}
-
-lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
-⟨degree_eq_zero_of_is_unit,
-  λ h, have degree p ≤ 0, by simp [*, le_refl],
-    have hc : coeff p 0 ≠ 0, from λ hc,
-        by rw [eq_C_of_degree_le_zero this, hc] at h;
-        simpa using h,
-    is_unit_iff_dvd_one.2 ⟨C (coeff p 0)⁻¹, begin
-      conv in p { rw eq_C_of_degree_le_zero this },
-      rw [← C_mul, _root_.mul_inv_cancel hc, C_1]
-    end⟩⟩
+section division_ring
+variables [division_ring R] {p q : polynomial R}
 
 lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
   0 < degree p :=
@@ -91,6 +80,22 @@ lemma degree_mul_leading_coeff_inv (p : polynomial R) (h : q ≠ 0) :
 have h₁ : (leading_coeff q)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
 by rw [degree_mul, degree_C h₁, add_zero]
+
+end division_ring
+
+section field
+variables [field R] {p q : polynomial R}
+
+lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
+⟨degree_eq_zero_of_is_unit,
+  λ h, have degree p ≤ 0, by simp [*, le_refl],
+    have hc : coeff p 0 ≠ 0, from λ hc,
+        by rw [eq_C_of_degree_le_zero this, hc] at h;
+        simpa using h,
+    is_unit_iff_dvd_one.2 ⟨C (coeff p 0)⁻¹, begin
+      conv in p { rw eq_C_of_degree_le_zero this },
+      rw [← C_mul, _root_.mul_inv_cancel hc, C_1]
+    end⟩⟩
 
 theorem irreducible_of_monic {p : polynomial R} (hp1 : p.monic) (hp2 : p ≠ 1) :
   irreducible p ↔ (∀ f g : polynomial R, f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :=
@@ -427,18 +432,16 @@ begin
   rw [← C_inj, this, C_0],
 end
 
-lemma prod_multiset_root_eq_finset_root {p : polynomial R} (hzero : p ≠ 0) :
+lemma prod_multiset_root_eq_finset_root {R : Type*} [comm_ring R] [is_domain R] {p : polynomial R} :
   (multiset.map (λ (a : R), X - C a) p.roots).prod =
-  ∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
-by simp only [count_roots hzero, finset.prod_multiset_map_count]
+  ∏ a in p.roots.to_finset, (X - C a) ^ root_multiplicity a p :=
+by simp only [count_roots, finset.prod_multiset_map_count]
 
 /-- The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides `p`. -/
 lemma prod_multiset_X_sub_C_dvd (p : polynomial R) :
   (multiset.map (λ (a : R), X - C a) p.roots).prod ∣ p :=
 begin
-  by_cases hp0 : p = 0,
-  { simp only [hp0, roots_zero, is_unit_one, multiset.prod_zero, multiset.map_zero, is_unit.dvd] },
-  rw prod_multiset_root_eq_finset_root hp0,
+  rw prod_multiset_root_eq_finset_root,
   have hcoprime : pairwise (is_coprime on λ (a : R), polynomial.X - C (id a)) :=
     pairwise_coprime_X_sub function.injective_id,
   have H : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
@@ -449,7 +452,8 @@ begin
   exact pow_root_multiplicity_dvd p a
 end
 
-lemma roots_C_mul (p : polynomial R) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
+lemma roots_C_mul {R : Type*} [comm_ring R] [is_domain R] (p : polynomial R) {a : R}
+  (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
 begin
   by_cases hpzero : p = 0,
   { simp only [hpzero, mul_zero] },
@@ -457,21 +461,16 @@ begin
   intro b,
   have prodzero : C a * p ≠ 0,
   { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
-  rw [count_roots hpzero, count_roots prodzero, root_multiplicity_mul prodzero],
+  rw [count_roots, count_roots, root_multiplicity_mul prodzero],
   have mulzero : root_multiplicity b (C a) = 0,
   { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
   simp only [mulzero, zero_add]
 end
 
-lemma roots_normalize : (normalize p).roots = p.roots :=
-begin
-  by_cases hzero : p = 0,
-  { rw [hzero, normalize_zero], },
-  { have hcoeff : p.leading_coeff ≠ 0,
-    { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
-    rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
-      roots_C_mul _ (inv_ne_zero hcoeff)], },
-end
+lemma roots_normalize {R : Type*} [comm_ring R] [is_domain R] [normalization_monoid R]
+  {p : polynomial R} : (normalize p).roots = p.roots :=
+by rw [normalize_apply, mul_comm, coe_norm_unit,
+  roots_C_mul _ (norm_unit (leading_coeff p)).ne_zero]
 
 end field
 end polynomial

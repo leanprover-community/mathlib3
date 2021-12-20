@@ -59,6 +59,10 @@ lemma star_isometry [normed_group E] [star_add_monoid E] [normed_star_monoid E] 
   isometry (star : E → E) :=
 star_add_equiv.to_add_monoid_hom.isometry_of_norm (@normed_star_monoid.norm_star _ _ _ _)
 
+instance ring_hom_isometric.star_ring_aut [normed_comm_ring E] [star_ring E]
+   [normed_star_monoid E] : ring_hom_isometric ((star_ring_aut : ring_aut E) : E →+* E) :=
+⟨λ _, norm_star⟩
+
 open cstar_ring
 
 /-- In a C*-ring, star preserves the norm. -/

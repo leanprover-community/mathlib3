@@ -133,16 +133,16 @@ map_neg (left_comp R f) g
 by simp
 
 lemma nsmul_comp (n : ℕ) : (n • f) ≫ g = n • (f ≫ g) :=
-map_nsmul (right_comp _ _) _ _
+map_nsmul (right_comp P g) f n
 
 lemma comp_nsmul (n : ℕ) : f ≫ (n • g) = n • (f ≫ g) :=
-map_nsmul (left_comp _ _) _ _
+map_nsmul (left_comp R f) g n
 
 lemma zsmul_comp (n : ℤ) : (n • f) ≫ g = n • (f ≫ g) :=
-map_zsmul (right_comp _ _) _ _
+map_zsmul (right_comp P g) f n
 
 lemma comp_zsmul (n : ℤ) : f ≫ (n • g) = n • (f ≫ g) :=
-map_zsmul (left_comp _ _) _ _
+map_zsmul (left_comp R f) g n
 
 @[reassoc] lemma comp_sum {P Q R : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (Q ⟶ R)) :
   f ≫ ∑ j in s, g j = ∑ j in s, f ≫ g j :=

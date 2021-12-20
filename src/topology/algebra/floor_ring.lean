@@ -49,7 +49,7 @@ lemma continuous_on_ceil (n : ℤ) : continuous_on (λ x, ceil x : α → α) (I
 (continuous_on_congr $ ceil_eq_on_Ioc' n).mpr continuous_on_const
 
 lemma tendsto_floor_right' [order_closed_topology α] (n : ℤ) :
-  tendsto (λ x, floor x : α → α) (𝓝[Ici n] n) (𝓝 n) :=
+  tendsto (λ x, floor x : α → α) (𝓝[≥] n) (𝓝 n) :=
 begin
   rw ← nhds_within_Ico_eq_nhds_within_Ici (lt_add_one (n : α)),
   simpa only [floor_coe] using
@@ -57,7 +57,7 @@ begin
 end
 
 lemma tendsto_ceil_left' [order_closed_topology α] (n : ℤ) :
-  tendsto (λ x, ceil x : α → α) (𝓝[Iic n] n) (𝓝 n) :=
+  tendsto (λ x, ceil x : α → α) (𝓝[≤] n) (𝓝 n) :=
 begin
   rw ← nhds_within_Ioc_eq_nhds_within_Iic (sub_one_lt (n : α)),
   simpa only [ceil_coe] using
@@ -65,7 +65,7 @@ begin
 end
 
 lemma tendsto_floor_right [order_closed_topology α] (n : ℤ) :
-  tendsto (λ x, floor x : α → α) (𝓝[Ici n] n) (𝓝[Ici n] n) :=
+  tendsto (λ x, floor x : α → α) (𝓝[≥] n) (𝓝[≥] n) :=
 tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ (tendsto_floor_right' _)
 begin
   refine (eventually_nhds_with_of_forall $ λ x (hx : (n : α) ≤ x), _),
@@ -77,7 +77,7 @@ begin
 end
 
 lemma tendsto_ceil_left [order_closed_topology α] (n : ℤ) :
-  tendsto (λ x, ceil x : α → α) (𝓝[Iic n] n) (𝓝[Iic n] n) :=
+  tendsto (λ x, ceil x : α → α) (𝓝[≤] n) (𝓝[≤] n) :=
 tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ (tendsto_ceil_left' _)
 begin
   refine (eventually_nhds_with_of_forall $ λ x (hx : x ≤ (n : α)), _),
@@ -89,7 +89,7 @@ begin
 end
 
 lemma tendsto_floor_left [order_closed_topology α] (n : ℤ) :
-  tendsto (λ x, floor x : α → α) (𝓝[Iio n] n) (𝓝[Iic (n-1)] (n-1)) :=
+  tendsto (λ x, floor x : α → α) (𝓝[<] n) (𝓝[≤] (n-1)) :=
 begin
   rw ← nhds_within_Ico_eq_nhds_within_Iio (sub_one_lt (n : α)),
   convert (tendsto_nhds_within_congr $ (λ x hx, (floor_eq_on_Ico' (n-1) x hx).symm))
@@ -100,7 +100,7 @@ begin
 end
 
 lemma tendsto_ceil_right [order_closed_topology α] (n : ℤ) :
-  tendsto (λ x, ceil x : α → α) (𝓝[Ioi n] n) (𝓝[Ici (n+1)] (n+1)) :=
+  tendsto (λ x, ceil x : α → α) (𝓝[>] n) (𝓝[≥] (n+1)) :=
 begin
   rw ← nhds_within_Ioc_eq_nhds_within_Ioi (lt_add_one (n : α)),
   convert (tendsto_nhds_within_congr $ (λ x hx, (ceil_eq_on_Ioc' (n+1) x hx).symm))
@@ -111,14 +111,14 @@ begin
 end
 
 lemma tendsto_floor_left' [order_closed_topology α] (n : ℤ) :
-  tendsto (λ x, floor x : α → α) (𝓝[Iio n] n) (𝓝 (n-1)) :=
+  tendsto (λ x, floor x : α → α) (𝓝[<] n) (𝓝 (n-1)) :=
 begin
   rw ← nhds_within_univ,
   exact tendsto_nhds_within_mono_right (subset_univ _) (tendsto_floor_left n),
 end
 
 lemma tendsto_ceil_right' [order_closed_topology α] (n : ℤ) :
-  tendsto (λ x, ceil x : α → α) (𝓝[Ioi n] n) (𝓝 (n+1)) :=
+  tendsto (λ x, ceil x : α → α) (𝓝[>] n) (𝓝 (n+1)) :=
 begin
   rw ← nhds_within_univ,
   exact tendsto_nhds_within_mono_right (subset_univ _) (tendsto_ceil_right n),
@@ -129,26 +129,26 @@ lemma continuous_on_fract [topological_add_group α] (n : ℤ) :
 continuous_on_id.sub (continuous_on_floor n)
 
 lemma tendsto_fract_left' [order_closed_topology α] [topological_add_group α]
-  (n : ℤ) : tendsto (fract : α → α) (𝓝[Iio n] n) (𝓝 1) :=
+  (n : ℤ) : tendsto (fract : α → α) (𝓝[<] n) (𝓝 1) :=
 begin
   convert (tendsto_nhds_within_of_tendsto_nhds tendsto_id).sub (tendsto_floor_left' n);
   [{norm_cast, ring}, apply_instance, apply_instance]
 end
 
 lemma tendsto_fract_left [order_closed_topology α] [topological_add_group α]
-  (n : ℤ) : tendsto (fract : α → α) (𝓝[Iio n] n) (𝓝[Iio 1] 1) :=
+  (n : ℤ) : tendsto (fract : α → α) (𝓝[<] n) (𝓝[<] 1) :=
 tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
   (tendsto_fract_left' _) (eventually_of_forall fract_lt_one)
 
 lemma tendsto_fract_right' [order_closed_topology α] [topological_add_group α]
-  (n : ℤ) : tendsto (fract : α → α) (𝓝[Ici n] n) (𝓝 0) :=
+  (n : ℤ) : tendsto (fract : α → α) (𝓝[≥] n) (𝓝 0) :=
 begin
   convert (tendsto_nhds_within_of_tendsto_nhds tendsto_id).sub (tendsto_floor_right' n);
   [exact (sub_self _).symm, apply_instance, apply_instance]
 end
 
 lemma tendsto_fract_right [order_closed_topology α] [topological_add_group α]
-  (n : ℤ) : tendsto (fract : α → α) (𝓝[Ici n] n) (𝓝[Ici 0] 0) :=
+  (n : ℤ) : tendsto (fract : α → α) (𝓝[≥] n) (𝓝[≥] 0) :=
 tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
   (tendsto_fract_right' _) (eventually_of_forall fract_nonneg)
 

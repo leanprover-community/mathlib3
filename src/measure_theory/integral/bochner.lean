@@ -390,7 +390,7 @@ begin
   simp_rw [integral_def],
   refine set_to_simple_func_add_left' (weighted_smul μ) (weighted_smul ν) (weighted_smul (μ + ν))
     (λ s hs hμνs, _) hf,
-  rw [measure.coe_add, pi.add_apply, ennreal.add_ne_top] at hμνs,
+  rw [lt_top_iff_ne_top, measure.coe_add, pi.add_apply, ennreal.add_ne_top] at hμνs,
   rw weighted_smul_add_measure _ _ hμνs.1 hμνs.2,
 end
 
@@ -1103,6 +1103,17 @@ begin
     exact integral_nonneg_of_ae (hf.trans h) }
 end
 
+lemma integral_mono_measure {f : α → ℝ} {ν} (hle : μ ≤ ν) (hf : 0 ≤ᵐ[ν] f) (hfi : integrable f ν) :
+  ∫ a, f a ∂μ ≤ ∫ a, f a ∂ν :=
+begin
+  have hfi' : integrable f μ := hfi.mono_measure hle,
+  have hf' : 0 ≤ᵐ[μ] f := hle.absolutely_continuous hf,
+  rw [integral_eq_lintegral_of_nonneg_ae hf' hfi'.1, integral_eq_lintegral_of_nonneg_ae hf hfi.1,
+    ennreal.to_real_le_to_real],
+  exacts [lintegral_mono' hle le_rfl, ((has_finite_integral_iff_of_real hf').1 hfi'.2).ne,
+    ((has_finite_integral_iff_of_real hf).1 hfi.2).ne]
+end
+
 lemma norm_integral_le_integral_norm (f : α → E) : ∥(∫ a, f a ∂μ)∥ ≤ ∫ a, ∥f a∥ ∂μ :=
 have le_ae : ∀ᵐ a ∂μ, 0 ≤ ∥f a∥ := eventually_of_forall (λa, norm_nonneg _),
 classical.by_cases
@@ -1301,6 +1312,11 @@ lemma measure_preserving.integral_comp {β} {_ : measurable_space β} {f : α �
   (h₁ : measure_preserving f μ ν) (h₂ : measurable_embedding f) (g : β → E) :
   ∫ x, g (f x) ∂μ = ∫ y, g y ∂ν :=
 h₁.map_eq ▸ (h₂.integral_map g).symm
+
+lemma set_integral_eq_subtype {α} [measure_space α] {s : set α} (hs : measurable_set s)
+  (f : α → E) :
+  ∫ x in s, f x = ∫ x : s, f x :=
+by { rw ← map_comap_subtype_coe hs,  exact (measurable_embedding.subtype_coe hs).integral_map _ }
 
 @[simp] lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=

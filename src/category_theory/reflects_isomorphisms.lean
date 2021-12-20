@@ -19,12 +19,13 @@ open category_theory
 
 namespace category_theory
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
 variables {C : Type u₁} [category.{v₁} C]
 
 section reflects_iso
 variables {D : Type u₂} [category.{v₂} D]
+variables {E : Type u₃} [category.{v₃} E]
 
 /--
 Define what it means for a functor `F : C ⥤ D` to reflect isomorphisms: for any
@@ -44,6 +45,11 @@ reflects_isomorphisms.reflects F f
 instance of_full_and_faithful (F : C ⥤ D) [full F] [faithful F] : reflects_isomorphisms F :=
 { reflects := λ X Y f i, by exactI
   ⟨⟨F.preimage (inv (F.map f)), ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩⟩ }
+
+instance (F : C ⥤ D) (G : D ⥤ E) [reflects_isomorphisms F] [reflects_isomorphisms G] :
+  reflects_isomorphisms (F ⋙ G) :=
+⟨λ _ _ f (hf : is_iso (G.map _)),
+  by { resetI, haveI := is_iso_of_reflects_iso (F.map f) G, exact is_iso_of_reflects_iso f F }⟩
 
 end reflects_iso
 

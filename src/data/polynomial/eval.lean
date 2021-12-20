@@ -594,7 +594,8 @@ ring_hom.ext $ map_map g f
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
 eq.symm $ list.prod_hom _ (map_ring_hom f).to_monoid_hom
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := (map_ring_hom f).map_pow _ _
+@[simp] protected lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n :=
+(map_ring_hom f).map_pow _ _
 
 lemma mem_map_srange {p : polynomial S} :
   p ∈ (map_ring_hom f).srange ↔ ∀ n, p.coeff n ∈ f.srange :=
@@ -606,7 +607,7 @@ begin
     intros i hi,
     rcases h i with ⟨c, hc⟩,
     use [C c * X^i],
-    rw [coe_map_ring_hom, map_mul, map_C, hc, map_pow, map_X] }
+    rw [coe_map_ring_hom, map_mul, map_C, hc, polynomial.map_pow, map_X] }
 end
 
 lemma mem_map_range {R S : Type*} [ring R] [ring S] (f : R →+* S)
@@ -684,17 +685,11 @@ Perhaps we can make the others irreducible too?
 attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
--- TODO: Here we need commutativity in both `S` and `T`?
-variables [comm_semiring S] [comm_semiring T]
-variables (f : R →+* S) (g : S →+* T) (p)
+
+variables [semiring S] [semiring T]  (f : R →+* S) (g : S →+* T) (p)
 
 lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g.comp f) (g x) :=
-begin
-  apply polynomial.induction_on p; clear p,
-  { simp only [forall_const, eq_self_iff_true, eval₂_C, ring_hom.coe_comp] },
-  { intros p q hp hq, simp only [hp, hq, eval₂_add, g.map_add] },
-  { intros n a ih, simpa only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow] }
-end
+by rw [←eval₂_map, eval₂_at_apply, eval_map]
 
 end hom_eval₂
 

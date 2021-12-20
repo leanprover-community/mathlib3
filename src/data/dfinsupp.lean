@@ -254,6 +254,11 @@ instance {δ : Type*} [monoid γ] [monoid δ]
   is_scalar_tower γ δ (Π₀ i, β i) :=
 { smul_assoc := λ r s m, ext $ λ i, by simp only [smul_apply, smul_assoc r s (m i)] }
 
+instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
+  [Π i, distrib_mul_action γᵐᵒᵖ (β i)] [∀ i, is_central_scalar γ (β i)] :
+  is_central_scalar γ (Π₀ i, β i) :=
+{ op_smul_eq_smul := λ r m, ext $ λ i, by simp only [smul_apply, op_smul_eq_smul r (m i)] }
+
 /-- Dependent functions with finite support inherit a `distrib_mul_action` structure from such a
 structure on each coordinate. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
@@ -1003,7 +1008,7 @@ by { ext i; by_cases h2 : f i ≠ 0; try {simp at h2};
 
 @[simp] lemma support_subtype_domain {f : Π₀ i, β i} :
   (subtype_domain p f).support = f.support.subtype p :=
-by { ext i, by_cases h2 : f i ≠ 0; simp [h2], }
+by { ext i, simp, }
 
 end filter_and_subtype_domain
 

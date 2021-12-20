@@ -950,22 +950,9 @@ begin
       ∧ μ (s \ (⋃ (x ∈ t0), closed_ball x (r0 x))) = 0
       ∧ t0.pairwise_disjoint (λ x, closed_ball x (r0 x)) :=
         exists_disjoint_closed_ball_covering_ae μ f s hf R (λ x hx, (hR x hx).1),
-  haveI : encodable t0 := t0_count.to_encodable,
-  have A : ∑' (x : t0), μ (closed_ball x (r0 x)) ≤ μ s + ε / 2 := calc
-    ∑' (x : t0), μ (closed_ball x (r0 x))
-    = μ (⋃ (x : t0), closed_ball x (r0 x)) :
-      begin
-        rw measure_Union,
-        { exact (pairwise_subtype_iff_pairwise_set _ _).2 t0_disj },
-        { exact λ i, measurable_set_closed_ball }
-      end
-    ... ≤ μ u : begin
-      apply measure_mono,
-      simp only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
-      assume x hx,
-      apply subset.trans (closed_ball_subset_ball (hr0 x hx).2.2) (hR x (t0s hx)).2,
-    end
-    ... ≤ μ s + ε / 2 : μu,
+  /-
+
+  -/
   let s' := s \ (⋃ (x ∈ t0), closed_ball x (r0 x)),
   have s's : s' ⊆ s := diff_subset _ _,
   obtain ⟨N, τ, Npos, hτ, H⟩ :
@@ -992,12 +979,77 @@ begin
     (∀ (i : fin N), (S i).pairwise_disjoint (λ j, closed_ball (q.c j) (q.r j))) ∧
       (range q.c ⊆ ⋃ (i : fin N), ⋃ (j ∈ S i), ball (q.c j) (q.r j)) :=
     exist_disjoint_covering_families hτ H q,
-  have : s' ⊆ ⋃ (i : fin N), ⋃ (j ∈ S i), ball (q.c j) (q.r j),
-  { apply subset.trans _ hS,
-    assume x hx,
-    simpa only [not_exists, exists_prop, mem_Union, mem_closed_ball, not_and, not_le, mem_set_of_eq,
-      subtype.range_coe_subtype, mem_diff] using hx },
+  let r := λ x, if x ∈ s' then R' x else r0 x,
+  have r_t0 : ∀ x ∈ t0, r x = r0 x,
+  sorry; { assume x hx,
+    have : ¬ (x ∈ s'),
+    { simp only [not_exists, exists_prop, mem_Union, mem_closed_ball, not_and, not_lt,
+                  not_le, mem_diff, not_forall],
+      assume h'x,
+      refine ⟨x, hx, _⟩,
+      rw dist_self,
+      exact (hr0 x hx).2.1.le },
+    simp only [r, if_neg this] },
+  refine ⟨t0 ∪ (⋃ (i : fin N), (coe : s' → α) '' (S i)), r, _, _, _, _, _⟩,
+  sorry; { apply t0_count.union,
+    refine countable_Union (λ i, _),
+    apply countable.image,
+    apply (S_disj i).countable_of_nonempty_interior (λ j hj, _),
+    have : (ball (j : α) (R' j)).nonempty := nonempty_ball.2 (q.rpos _),
+    exact this.mono ball_subset_interior_closed_ball },
+  sorry; { simp only [t0s, true_and, union_subset_iff, image_subset_iff, Union_subset_iff],
+    assume i x hx,
+    exact s's x.2 },
+  { assume x hx,
+    cases hx,
+    { rw r_t0 x hx,
+      exact (hr0 _ hx).1 },
+    { have h'x : x ∈ s',
+      { simp only [mem_Union, mem_image] at hx,
+        rcases hx with ⟨i, y, ySi, rfl⟩,
+        exact y.2 },
+      simp only [r, if_pos h'x, (hR' x h'x).1.1] } },
+  sorry; { assume x hx,
+    by_cases h'x : x ∈ s',
+    { obtain ⟨i, y, ySi, xy⟩ : ∃ (i : fin N) (y : ↥s') (ySi : y ∈ S i), x ∈ ball (y : α) (R' y),
+      { have A : x ∈ range q.c, by simpa only [not_exists, exists_prop, mem_Union, mem_closed_ball,
+          not_and, not_le, mem_set_of_eq, subtype.range_coe_subtype, mem_diff] using h'x,
+        simpa only [mem_Union, mem_image] using hS A },
+      refine mem_bUnion_iff.2 ⟨y, or.inr _, _⟩,
+      { simp only [mem_Union, mem_image],
+        exact ⟨i, y, ySi, rfl⟩ },
+      { have : (y : α) ∈ s' := y.2,
+        simp only [r, if_pos this],
+        exact ball_subset_closed_ball xy } },
+    { obtain ⟨y, yt0, hxy⟩ : ∃ (y : α), y ∈ t0 ∧ x ∈ closed_ball y (r0 y),
+        by simpa [hx, -mem_closed_ball] using h'x,
+      refine mem_bUnion_iff.2 ⟨y, or.inl yt0, _⟩,
+      rwa r_t0 _ yt0 } },
+  { haveI : encodable t0 := t0_count.to_encodable,
+    have A : ∑' (x : t0), μ (closed_ball x (r0 x)) ≤ μ s + ε / 2 := calc
+      ∑' (x : t0), μ (closed_ball x (r0 x))
+      = μ (⋃ (x : t0), closed_ball x (r0 x)) :
+        begin
+          rw measure_Union,
+          { exact (pairwise_subtype_iff_pairwise_set _ _).2 t0_disj },
+          { exact λ i, measurable_set_closed_ball }
+        end
+      ... ≤ μ u : begin
+        apply measure_mono,
+        simp only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
+        assume x hx,
+        apply subset.trans (closed_ball_subset_ball (hr0 x hx).2.2) (hR x (t0s hx)).2,
+      end
+      ... ≤ μ s + ε / 2 : μu,
+    have A : disjoint t0 (⋃ (i : fin N), (coe : s' → α) '' (S i)) := sorry,
+    rw [@tsum_union_disjoint _ _ _ _ _ (λ x, μ (closed_ball x (r x))) _ _ _
+      A ennreal.summable ennreal.summable],
+    rw tsum_union_disjoint,
+
+  }
 
 end
 
 end besicovitch
+
+#exit

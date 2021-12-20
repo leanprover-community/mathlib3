@@ -23,7 +23,7 @@ where the differentials are alternating sums of faces.
 
 We also construct the natural transformation
 `inclusion_of_Moore_complex : normalized_Moore_complex A ⟶ alternating_face_map_complex A`
-when `A` is an abelian category
+when `A` is an abelian category.
 
 ## References
 * https://stacks.math.columbia.edu/tag/0194

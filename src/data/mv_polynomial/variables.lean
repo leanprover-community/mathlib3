@@ -227,10 +227,10 @@ by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
 lemma rename_degrees_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
   {f : σ → τ} (h : function.injective f) : degrees (rename f p) = (degrees p).map f :=
 begin
-  have t :=finset.sup_map_multiset p.support finsupp.to_multiset ⟨f,h⟩,
+  have t :=finset.multiset_map_sup p.support finsupp.to_multiset ⟨f,h⟩,
   simp only [embedding.coe_fn_mk] at t,
-  simp only [degrees, t, support_rename_injective h, finset.sup_map,
-             map_domain_embedding_of_injective, embedding.coe_fn_mk, finsupp.to_multiset_map],
+  simp only [degrees, t, support_rename_of_injective h, finset.sup_map,
+             map_domain_embedding, embedding.coe_fn_mk, finsupp.to_multiset_map],
   congr,
   ext,
   congr,
@@ -506,7 +506,7 @@ begin
 end
 
 lemma degree_of_rename_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
-  {f : σ → τ} (h : function.injective f) (i : σ) : degree_of i p = degree_of (f i) (rename f p) :=
+  {f : σ → τ} (h : function.injective f) (i : σ) : degree_of (f i) (rename f p) = degree_of i p :=
 by simp only [degree_of, rename_degrees_of_injective h,
               multiset.count_map_eq_count' f (p.degrees) h]
 

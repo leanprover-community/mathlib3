@@ -148,7 +148,7 @@ begin
   cases dvd_iff_is_root.2 h with p hp,
   rw [has_eigenvalue, eigenspace],
   intro con,
-  cases (linear_map.is_unit_iff _).2 con with u hu,
+  cases (linear_map.is_unit_iff_ker_eq_bot _).2 con with u hu,
   have p_ne_0 : p ≠ 0,
   { intro con,
     apply minpoly.ne_zero f.is_integral,

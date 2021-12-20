@@ -178,7 +178,7 @@ begin
     apply lt_irrefl (a (n+1)), apply lt_of_le_of_lt _ h', apply le_Sup, apply set.mem_range_self, },
   apply h (set.range a),
   { use a 37, apply set.mem_range_self, },
-  { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply a.to_rel_hom.map_sup, },
+  { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply rel_hom_class.map_sup a, },
 end
 
 lemma is_Sup_finite_compact_iff_all_elements_compact :

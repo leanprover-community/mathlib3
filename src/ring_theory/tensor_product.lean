@@ -529,7 +529,7 @@ def alg_hom_of_linear_map_tensor_product
         rw [mul_add, map_add, map_add, mul_add, h₁, h₂] } },
     { intros x₁ x₂ h₁ h₂,
       rw [add_mul, map_add, map_add, add_mul, h₁, h₂] } },
-  commutes' := λ r, by  rw [linear_map.to_fun_eq_coe, algebra_map_apply, w₂],
+  commutes' := λ r, by rw [linear_map.to_fun_eq_coe, algebra_map_apply, w₂],
   .. f }
 
 @[simp]
@@ -649,7 +649,7 @@ theorem comm_tmul (a : A) (b : B) :
 by simp [tensor_product.comm]
 
 lemma adjoin_tmul_eq_top : adjoin R {t : A ⊗[R] B | ∃ a b, a ⊗ₜ[R] b = t} = ⊤ :=
-top_le_iff.mp ((top_le_iff.mpr (span_tmul_eq_top R A B)).trans (span_le_adjoin R _))
+top_le_iff.mp $ (top_le_iff.mpr $ span_tmul_eq_top R A B).trans (span_le_adjoin R _)
 
 end
 

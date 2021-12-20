@@ -1597,6 +1597,7 @@ begin
   rwa [map_domain_apply hf, map_domain_apply hf] at this,
 end
 
+/-- When `f` is injective we have an embedding `(α →₀ ℕ)  ↪ (β →₀ ℕ)` given by `map_domain`. -/
 def map_domain_embedding_of_injective {α β : Type*} {f : α → β} (h : function.injective f) :
  (α →₀ ℕ)  ↪ (β →₀ ℕ) := ⟨finsupp.map_domain f, finsupp.map_domain_injective h⟩
 

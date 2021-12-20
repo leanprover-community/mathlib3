@@ -9,7 +9,8 @@ import topology.continuous_function.basic
 /-!
 # Sober spaces
 
-A quasi-sober space is a topological space where every irreducible closed subset has a generic point.
+A quasi-sober space is a topological space where every
+irreducible closed subset has a generic point.
 Sober spaces can be stated via `[quasi_sober α] [t0_space α]`.
 
 ## Main definition

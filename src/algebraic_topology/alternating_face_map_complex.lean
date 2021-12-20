@@ -21,8 +21,8 @@ for any preadditive category `C`. For any simplicial object `X` in `C`,
 this is the homological complex `... → X_2 → X_1 → X_0`
 where the differentials are alternating sums of faces.
 
-We also construct the natural transformation `inclusion_of_Moore_complex :
-nat_trans (normalized_Moore_complex A) (alternating_face_map_complex A)`
+We also construct the natural transformation
+`inclusion_of_Moore_complex : normalized_Moore_complex A ⟶ alternating_face_map_complex A`
 when `A` is an abelian category
 
 ## References

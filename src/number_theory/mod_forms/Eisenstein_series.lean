@@ -33,15 +33,15 @@ noncomputable theory
 namespace Eisenstein_series
 
 
-
-
 /- Note that here we are using that 1/0=0, so there is nothing wrong with this defn or the resulting sum-/
 
 def Eise (k: ℤ) (z : ℍ) : ℤ × ℤ →  ℂ:=
 λ x, 1/(x.1*z+x.2)^k
 
+/-
 def Eisen (k : ℤ) (x : ℤ × ℤ) : C(ℍ, ℂ) :=
 ⟨λ z, 1/(x.1*z+x.2)^k, by {simp,  sorry}⟩
+-/
 
 instance : topological_space C(ℍ, ℂ) :=infer_instance
 
@@ -1923,17 +1923,8 @@ simp at *,
 apply h,
 end
 
-
-
-
 lemma Eisenstein_is_holomorphic (k : ℤ): is_holomorphic_on (Eisenstein_series_of_weight_ k):=
 begin
-rw is_holomorphic_on, simp, intros z hz, use (Eisenstein_deriv_weight k ⟨z, hz⟩),
-rw has_deriv_within_at_iff_tendsto, simp, rw tendsto_zero_iff_norm_tendsto_zero,
-simp,rw metric.tendsto_nhds_within_nhds,
-intros ε hε, use ε, simp [hε],intros x hx hd, dsimp at *,
-rw extend_by_zero, simp [ ext_by_zero_apply], rw dif_pos hx,
-rw dif_pos hz,
 sorry,
 end
 

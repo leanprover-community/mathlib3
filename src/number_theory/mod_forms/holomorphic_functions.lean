@@ -238,3 +238,11 @@ def hol_submodule (D: open_subs) : submodule (ℂ)  (D.1 → ℂ) :=
   zero_mem' := zero_hol D,
   add_mem' := add_hol,
   smul_mem' := smul_hol}
+
+
+lemma diff_on_diff (f : D.1 → ℂ) (h : ∀ x : ℍ', ∃ (ε: ℝ), 0 < ε ∧
+  differentiable_on ℂ (extend_by_zero f) ball x ε) :
+  differentiable_on ℂ (extend_by_zero f) D.1 :=
+begin
+sorry,
+end

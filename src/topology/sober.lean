@@ -9,8 +9,8 @@ import topology.continuous_function.basic
 /-!
 # Sober spaces
 
-A sober space is a topological space where every irreducible closed subset has a generic point.
-Note that we do not require the generic point to be unique.
+A quasi-sober space is a topological space where every irreducible closed subset has a generic point.
+Sober spaces can be stated via `[quasi_sober α] [t0_space α]`.
 
 ## Main definition
 
@@ -19,7 +19,7 @@ Note that we do not require the generic point to be unique.
 * `specialization_preorder` : specialization gives a preorder on a topological space.
 * `specialization_order` : specialization gives a partial order on a T0 space.
 * `is_generic_point` : `x` is the generic point of `S` if `S` is the closure of `x`.
-* `sober_space` : A space is sober if every irreducible closed subset has a generic point.
+* `quasi_sober` : A space is quasi-sober if every irreducible closed subset has a generic point.
 
 -/
 
@@ -67,17 +67,17 @@ lemma indistinguishable_iff_specializes_and (x y : α) :
   indistinguishable x y ↔ x ⤳ y ∧ y ⤳ x :=
 (indistinguishable_iff_closure x y).trans (and_comm _ _)
 
-lemma indistinguishable.eq [hα : t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
-not_imp_not.mp ((t0_space_iff_distinguishable _).mp hα x y) h
-
 lemma specializes_antisymm [t0_space α] (x y : α) : x ⤳ y → y ⤳ x → x = y :=
-λ h₁ h₂, ((indistinguishable_iff_specialization_or _ _).mpr ⟨h₁, h₂⟩).eq
+λ h₁ h₂, ((indistinguishable_iff_specializes_and _ _).mpr ⟨h₁, h₂⟩).eq
 
-lemma specializes.map {x y : α} (h : x ⤳ y) (f : C(α, β)) : f x ⤳ f y :=
+lemma specializes.map {x y : α} (h : x ⤳ y) {f : α → β} (hf : continuous f) : f x ⤳ f y :=
 begin
   rw [specializes_def, ← set.image_singleton],
-  exact image_closure_subset_closure_image f.2 ⟨_, h, rfl⟩,
+  exact image_closure_subset_closure_image hf ⟨_, h, rfl⟩,
 end
+
+lemma continuous_map.map_specialization {x y : α} (h : x ⤳ y) (f : C(α, β)) : f x ⤳ f y :=
+h.map f.2
 
 lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
 (set.mem_singleton_iff.mp
@@ -104,7 +104,7 @@ def specialization_order [t0_space α] : partial_order α :=
 variable {α}
 
 lemma specialization_order.monotone_of_continuous (f : α → β) (hf : continuous f) : monotone f :=
-λ x y h, specializes.map h ⟨f, hf⟩
+λ x y h, specializes.map h hf
 
 end specialize_order
 
@@ -170,56 +170,64 @@ section sober
 
 /-- A space is sober if every irreducible closed subset has a generic point. -/
 @[mk_iff]
-class sober_space (α : Type*) [topological_space α] : Prop :=
+class quasi_sober (α : Type*) [topological_space α] : Prop :=
 (sober : ∀ {S : set α} (hS₁ : is_irreducible S) (hS₂ : is_closed S), ∃ x, is_generic_point x S)
 
 /-- A generic point of the closure of an irreducible space. -/
 noncomputable
-def is_irreducible.generic_point [sober_space α] {S : set α} (hS : is_irreducible S) : α :=
-(sober_space.sober hS.closure is_closed_closure).some
+def is_irreducible.generic_point [quasi_sober α] {S : set α} (hS : is_irreducible S) : α :=
+(quasi_sober.sober hS.closure is_closed_closure).some
 
-lemma is_irreducible.generic_point_spec [sober_space α] {S : set α} (hS : is_irreducible S) :
+lemma is_irreducible.generic_point_spec [quasi_sober α] {S : set α} (hS : is_irreducible S) :
   is_generic_point hS.generic_point (closure S) :=
-(sober_space.sober hS.closure is_closed_closure).some_spec
+(quasi_sober.sober hS.closure is_closed_closure).some_spec
 
-@[simp] lemma is_irreducible.generic_point_closure_eq [sober_space α] {S : set α}
+@[simp] lemma is_irreducible.generic_point_closure_eq [quasi_sober α] {S : set α}
   (hS : is_irreducible S) : closure ({hS.generic_point} : set α) = closure S :=
-hS.generic_point_prop
+hS.generic_point_spec
 
 variable (α)
 
 /-- A generic point of a sober irreducible space. -/
 noncomputable
-def generic_point [sober_space α] [irreducible_space α] : α :=
+def generic_point [quasi_sober α] [irreducible_space α] : α :=
 (irreducible_space.is_irreducible_univ α).generic_point
+
+lemma generic_point_spec [quasi_sober α] [irreducible_space α] :
+  is_generic_point (generic_point α) ⊤ :=
+by simpa using (irreducible_space.is_irreducible_univ α).generic_point_spec
+
+@[simp]
+lemma generic_point_closure [quasi_sober α] [irreducible_space α] :
+  closure ({generic_point α} : set α) = ⊤ := generic_point_spec α
 
 variable {α}
 
-lemma generic_point_specializes [sober_space α] [irreducible_space α] (x : α) :
-  generic_point α ⤳ x := (is_irreducible.generic_point_prop _).specializes (by simp)
+lemma generic_point_specializes [quasi_sober α] [irreducible_space α] (x : α) :
+  generic_point α ⤳ x := (is_irreducible.generic_point_spec _).specializes (by simp)
 
 local attribute [instance, priority 10] specialization_order
 
 /-- The closed irreducible subsets of a sober space bijects with the points of the space. -/
 noncomputable
-def irreducible_set_equiv_points [sober_space α] [t0_space α] :
+def irreducible_set_equiv_points [quasi_sober α] [t0_space α] :
   { s : set α | is_irreducible s ∧ is_closed s } ≃o α :=
 { to_fun := λ s, s.prop.1.generic_point,
   inv_fun := λ x, ⟨closure ({x} : set α), is_irreducible_singleton.closure, is_closed_closure⟩,
   left_inv := λ s,
-    subtype.eq $ eq.trans (s.prop.1.generic_point_prop) $ closure_eq_iff_is_closed.mpr s.2.2,
-  right_inv := λ x, is_irreducible_singleton.closure.generic_point_prop.eq
+    subtype.eq $ eq.trans (s.prop.1.generic_point_spec) $ closure_eq_iff_is_closed.mpr s.2.2,
+  right_inv := λ x, is_irreducible_singleton.closure.generic_point_spec.eq
       (by { convert is_generic_point_closure using 1, rw closure_closure }),
   map_rel_iff' := λ s t, by { change _ ⤳ _ ↔ _, rw specializes_iff_closure_subset,
     simp [s.prop.2.closure_eq, t.prop.2.closure_eq, ← subtype.coe_le_coe] } }
 
-lemma closed_embedding.sober {f : α → β} (hf : closed_embedding f) [sober_space β] :
-  sober_space α :=
+lemma closed_embedding.sober {f : α → β} (hf : closed_embedding f) [quasi_sober β] :
+  quasi_sober α :=
 begin
   constructor,
   intros S hS hS',
   have hS'' := hS.image f hf.continuous.continuous_on,
-  obtain ⟨x, hx⟩ := sober_space.sober hS'' (hf.is_closed_map _ hS'),
+  obtain ⟨x, hx⟩ := quasi_sober.sober hS'' (hf.is_closed_map _ hS'),
   obtain ⟨y, hy, rfl⟩ := hx.mem,
   use y,
   change _ = _ at hx,
@@ -227,13 +235,13 @@ begin
   rw [← hx, ← hf.closure_image_eq, set.image_singleton]
 end
 
-lemma open_embedding.sober {f : α → β} (hf : open_embedding f) [sober_space β] :
-  sober_space α :=
+lemma open_embedding.sober {f : α → β} (hf : open_embedding f) [quasi_sober β] :
+  quasi_sober α :=
 begin
   constructor,
   intros S hS hS',
   have hS'' := hS.image f hf.continuous.continuous_on,
-  obtain ⟨x, hx⟩ := sober_space.sober hS''.closure is_closed_closure,
+  obtain ⟨x, hx⟩ := quasi_sober.sober hS''.closure is_closed_closure,
   obtain ⟨T, hT, rfl⟩ := hf.to_inducing.is_closed_iff.mp hS',
   rw set.image_preimage_eq_inter_range at hx hS'',
   have hxT : x ∈ T,
@@ -256,25 +264,25 @@ end
 
 /-- A space is sober if it can be covered by open sober subsets. -/
 lemma sober_of_open_cover (S : set (set α)) (hS : ∀ s : S, is_open (s : set α))
-  [hS' : ∀ s : S, sober_space s] (hS'' : ⋃₀ S = ⊤) : sober_space α :=
+  [hS' : ∀ s : S, quasi_sober s] (hS'' : ⋃₀ S = ⊤) : quasi_sober α :=
 begin
-  rw sober_space_iff,
+  rw quasi_sober_iff,
   intros t h h',
   obtain ⟨x, hx⟩ := h.1,
   obtain ⟨U, hU, hU'⟩ : x ∈ ⋃₀S := by { rw hS'', trivial },
-  haveI : sober_space U := hS' ⟨U, hU⟩,
+  haveI : quasi_sober U := hS' ⟨U, hU⟩,
   have H : is_preirreducible (coe ⁻¹' t : set U) :=
     h.2.preimage (hS ⟨U, hU⟩).open_embedding_subtype_coe,
   replace H : is_irreducible (coe ⁻¹' t : set U) := ⟨⟨⟨x, hU'⟩, by simpa using hx⟩, H⟩,
   use H.generic_point,
-  have := continuous_subtype_coe.closure_preimage_subset _ H.generic_point_prop.mem,
+  have := continuous_subtype_coe.closure_preimage_subset _ H.generic_point_spec.mem,
   rw h'.closure_eq at this,
   apply le_antisymm,
   { apply h'.closure_subset_iff.mpr, simpa using this },
   rw [← set.image_singleton, ← closure_closure],
   have := closure_mono (image_closure_subset_closure_image (@continuous_subtype_coe α _ U)),
   refine set.subset.trans _ this,
-  rw H.generic_point_prop.def,
+  rw H.generic_point_spec.def,
   refine (subset_closure_inter_of_is_preirreducible_of_is_open
     h.2 (hS ⟨U, hU⟩) ⟨x, hx, hU'⟩).trans (closure_mono _),
   rw ← subtype.image_preimage_coe,

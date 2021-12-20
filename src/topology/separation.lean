@@ -172,6 +172,9 @@ lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : se
   indistinguishable x y ↔ indistinguishable (x : α) y :=
 by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
 
+lemma indistinguishable.eq [hα : t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
+not_imp_not.mp ((t0_space_iff_distinguishable _).mp hα x y) h
+
 /-- Given a closed set `S` in a compact T₀ space,
 there is some `x ∈ S` such that `{x}` is closed. -/
 theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]

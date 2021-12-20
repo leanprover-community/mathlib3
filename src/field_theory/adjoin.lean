@@ -783,7 +783,7 @@ begin
   exact is_integral_sup.mpr ⟨h1, h2⟩,
 end
 
-lemma intermediate_field.finite_dimensional_sup {K L : Type*} [field K] [field L] [algebra K L]
+lemma finite_dimensional_sup {K L : Type*} [field K] [field L] [algebra K L]
   (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
   finite_dimensional K ↥(E1 ⊔ E2) :=
 begin

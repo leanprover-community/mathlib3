@@ -962,7 +962,7 @@ end pointwise
 
 section center
 
-lemma algebra_map_mem_center (r : R) : algebra_map R A r ∈ subsemiring.center A :=
+lemma _root_.set.algebra_map_mem_center (r : R) : algebra_map R A r ∈ set.center A :=
 by simp [algebra.commutes, subsemiring.mem_center_iff]
 
 variables (R A)

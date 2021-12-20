@@ -134,20 +134,21 @@ section finsupp
 
 
 variables [has_zero β]
-variables [decidable_eq α] [decidable_eq β]
 /-- Map a total_function to one whose default value is zero so that it represents a finsupp. -/
 @[simp]
 def zero_default : total_function α β →
                    total_function α β
 | (with_default A y) := with_default A 0
 
-variables [sampleable α] [sampleable β]
+variables [decidable_eq α] [decidable_eq β]
 /-- The suppport of a zero default `total_function`. -/
 @[simp]
 def zero_default_supp : total_function α β → finset α
 | (with_default A y) :=
   list.to_finset $ (A.erase_dupkeys.filter (λ ab, sigma.snd ab ≠ 0)).map sigma.fst
 
+/-- Create a finitely supported function from a total function by taking the default value to
+zero. -/
 def apply_finsupp (tf : total_function α β) : α →₀ β :=
 { support := zero_default_supp tf,
   to_fun := tf.zero_default.apply,
@@ -172,6 +173,7 @@ def apply_finsupp (tf : total_function α β) : α →₀ β :=
       { simp, }, }
   end }
 
+variables [sampleable α] [sampleable β]
 instance finsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (α →₀ β) :=
 { proxy_repr := total_function α β,
   interp := total_function.apply_finsupp,

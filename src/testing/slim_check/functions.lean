@@ -183,6 +183,7 @@ instance finsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (α
     pure $ total_function.with_default (list.to_finmap' xs) x),
   shrink := total_function.shrink }
 
+-- TODO: support a non-constant codomain type
 instance dfinsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (Π₀ a : α, β) :=
 { proxy_repr := total_function α β,
   interp := finsupp.to_dfinsupp ∘ total_function.apply_finsupp,

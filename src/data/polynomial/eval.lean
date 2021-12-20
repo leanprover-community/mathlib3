@@ -685,7 +685,7 @@ Perhaps we can make the others irreducible too?
 attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
--- TODO: Here we need commutativity in both `S` and `T`?
+
 variables [semiring S] [semiring T]  (f : R →+* S) (g : S →+* T) (p)
 
 lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g.comp f) (g x) :=

@@ -500,18 +500,17 @@ theorem fg_comm_mod_surj_inj [hfg : finite R M] (f_surj : function.surjective f)
   function.injective f :=
 begin
   letI := module_polynomial_ring_endo f,
-  let I : ideal (polynomial R) := ideal.span {X},
   have X_mul : ∀ o, (X : polynomial R) • o = f o,
   { intro,
     simp, },
-  have : (⊤ : submodule (polynomial R) M) ≤ I • ⊤,
+  have : (⊤ : submodule (polynomial R) M) ≤ ideal.span {X} • ⊤,
   { intros a ha,
     obtain ⟨y, rfl⟩ := f_surj a,
     rw [← X_mul y],
     exact submodule.smul_mem_smul (ideal.mem_span_singleton.mpr (dvd_refl _)) trivial, },
   haveI : is_scalar_tower R (polynomial R) M := ⟨λ x y z, _⟩,
   have hfgpoly : finite (polynomial R) M, from finite.of_restrict_scalars_finite R _ _,
-  obtain ⟨F, ⟨hFa,hFb⟩⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul I
+  obtain ⟨F, hFa, hFb⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul _
     (⊤ : submodule (polynomial R) M) (finite_def.mp hfgpoly) this,
   rw ← linear_map.ker_eq_bot,
   rw linear_map.ker_eq_bot',
@@ -519,10 +518,9 @@ begin
   have Fmzero := hFb m (by simp),
   rw ← sub_add_cancel F 1 at Fmzero,
   rw add_smul at Fmzero,
-  simp only [add_comm, one_smul] at Fmzero,
+  rw [one_smul] at Fmzero,
   suffices : (F - 1) • m = 0,
-  { rwa [this, add_zero] at Fmzero, },
-  simp only [I] at hFa,
+  { rwa [this, zero_add] at Fmzero, },
   rw ideal.mem_span_singleton' at hFa,
   obtain ⟨G, hG⟩ := hFa,
   rw [← hG, mul_smul, X_mul m, hm, smul_zero],

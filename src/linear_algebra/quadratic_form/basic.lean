@@ -407,6 +407,11 @@ rfl
 
 variables {n : Type*}
 
+/-- `sq` is the quadratic form mapping the vector `x : R₁` to `x * x` -/
+@[simps]
+def sq : quadratic_form R₁ R₁ :=
+lin_mul_lin linear_map.id linear_map.id
+
 /-- `proj i j` is the quadratic form mapping the vector `x : n → R₁` to `x i * x j` -/
 def proj (i j : n) : quadratic_form R₁ (n → R₁) :=
 lin_mul_lin (@linear_map.proj _ _ _ (λ _, R₁) _ _ i) (@linear_map.proj _ _ _ (λ _, R₁) _ _ j)

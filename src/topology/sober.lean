@@ -292,6 +292,7 @@ begin
   exact set.image_subset _ subset_closure,
 end
 
+@[priority 100]
 instance t2_space.quasi_sober [t2_space α] : quasi_sober α :=
 begin
   constructor,

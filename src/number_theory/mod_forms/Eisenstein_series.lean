@@ -1730,12 +1730,12 @@ by {apply rfunctbound, exact h},
 apply le_trans (Real_Eisenstein_bound k z h) this,
 end
 
-def Eisen_square_slice (k : ℤ) (A B : ℝ) (hb : 0 < B) (n : ℕ) :
+def Eisen_square_slice (k : ℤ) (A B : ℝ)  (n : ℕ) :
   (upper_half_space_slice A B) → ℂ := λ x, (eisen_square k n x)
 
-def Eisen_par_sum_slice (k : ℤ)  (A B : ℝ) (hb : 0 < B) (n : ℕ) :
+def Eisen_par_sum_slice (k : ℤ)  (A B : ℝ) (n : ℕ) :
   (upper_half_space_slice A B) → ℂ :=
-  λ z, ∑ x in (finset.range n), (Eisen_square_slice k A B hb x z)
+  λ z, ∑ x in (finset.range n), (Eisen_square_slice k A B  x z)
 
 instance : has_coe ℍ ℍ' :=
 ⟨ λ z, ⟨ z.1, by {simp, cases z, assumption,}, ⟩ ⟩
@@ -1768,7 +1768,7 @@ end
 
 lemma Eisenstein_series_is_sum_eisen_squares_slice (k: ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
  (z: (upper_half_space_slice A B)) :
-  (Eisenstein_series_restrict k A B hb z) = ∑' (n : ℕ), (Eisen_square_slice k A B hb n z):=
+  (Eisenstein_series_restrict k A B hb z) = ∑' (n : ℕ), (Eisen_square_slice k A B n z):=
 begin
   rw Eisenstein_series_restrict, simp_rw Eisen_square_slice,
   have HI:=Squares_cover_all,
@@ -1788,10 +1788,10 @@ begin
 end
 
 lemma Eisen_partial_tends_to_uniformly (k: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
-tendsto_uniformly (Eisen_par_sum_slice k A B hb) (Eisenstein_series_restrict k A B hb) filter.at_top:=
+tendsto_uniformly (Eisen_par_sum_slice k A B ) (Eisenstein_series_restrict k A B hb) filter.at_top:=
 begin
   let M : ℕ → ℝ := λ x,   (8/(rfunct (lbpoint A B hb) )^k)* (rie  (k-1) x),
-  have:= M_test_uniform _ (Eisen_square_slice k A B hb) M,
+  have:= M_test_uniform _ (Eisen_square_slice k A B ) M,
   simp_rw  ← (Eisenstein_series_is_sum_eisen_squares_slice k h A B hb _) at this,
   apply this,
   simp_rw Eisen_square_slice,
@@ -1993,6 +1993,7 @@ begin
   apply h,
 end
 
+
 lemma Eisenstein_is_holomorphic (k : ℤ): is_holomorphic_on (Eisenstein_series_of_weight_ k):=
 begin
   rw ←  is_holomorphic_on_iff_differentiable_on,
@@ -2001,6 +2002,12 @@ begin
 sorry,
 end
 
+/-
+lemma Eisen_partial_tends_to_uniformly_on_ball (k: ℕ) (h : 3 ≤ k) (x : ℍ') : ∃ (A B ε : ℝ),
+  0 < ε ∧ metric.closed_ball x ε ⊆ (upper_half_space_slice A B)  ∧  0 < B ∧
+(tendsto_uniformly_on (Eisen_par_sum_slice k A B) (Eisenstein_series_restrict k A B)
+filter.at_top (metric.closed_ball x ε)   ) :=
+-/
 
 
 

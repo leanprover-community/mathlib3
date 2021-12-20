@@ -373,6 +373,10 @@ lemma le_integral_closure_iff_is_integral {S : subalgebra R A} :
 set_like.forall.symm.trans (forall_congr (λ x, show is_integral R (algebra_map S A x)
   ↔ is_integral R x, from is_integral_algebra_map_iff subtype.coe_injective))
 
+lemma is_integral_sup {S T : subalgebra R A} :
+  algebra.is_integral R ↥(S ⊔ T) ↔ algebra.is_integral R S ∧ algebra.is_integral R T :=
+by simp only [←le_integral_closure_iff_is_integral, sup_le_iff]
+
 /-- Mapping an integral closure along an `alg_equiv` gives the integral closure. -/
 lemma integral_closure_map_alg_equiv (f : A ≃ₐ[R] B) :
   (integral_closure R A).map (f : A →ₐ[R] B) = integral_closure R B :=

@@ -8,6 +8,13 @@ import order.locally_finite
 
 /-!
 # Finite intervals in a sigma type
+
+This file provides the `locally_finite_order` instance for the disjoint sum of orders `Σ i, α i` and
+calculates the cardinality of its finite intervals.
+
+## TODO
+
+Do the same for the lexicographical order
 -/
 
 open finset function

@@ -67,8 +67,7 @@ lemma prod_multiset_root_eq_finset_root {p : polynomial R} :
   ∏ a in p.roots.to_finset, (X - C a) ^ root_multiplicity a p :=
 by simp only [count_roots, finset.prod_multiset_map_count]
 
-lemma roots_C_mul (p : polynomial R) {a : R}
-  (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
+lemma roots_C_mul (p : polynomial R) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
 begin
   by_cases hpzero : p = 0,
   { simp only [hpzero, mul_zero] },

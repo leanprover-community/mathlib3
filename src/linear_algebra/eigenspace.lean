@@ -93,7 +93,7 @@ lemma mem_spectrum_of_has_eigenvalue {f : End R M} {μ : R} (hμ : has_eigenvalu
   μ ∈ spectrum R f :=
 begin
   refine spectrum.mem_iff.mpr (λ h_unit, _),
-  set f' := linear_equiv_of_unit (h_unit.unit),
+  set f' := linear_map.general_linear_group.to_linear_equiv h_unit.unit,
   rcases hμ.exists_has_eigenvector with ⟨v, hv⟩,
   refine hv.2 ((linear_map.ker_eq_bot'.mp f'.ker) v (_ : μ • v - f v = 0)),
   rw [hv.apply_eq_smul, sub_self]

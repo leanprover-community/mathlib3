@@ -474,18 +474,6 @@ lemma algebra_map_End_eq_smul_id (a : R) :
   ((algebra_map K (End K V)) a).ker = ⊥ :=
 linear_map.ker_smul _ _ ha
 
-namespace End
-
-variables {R} {M}
-
-/-- Construct a linear equivalence from a unit in `End R M`. -/
-@[simps] def linear_equiv_of_unit (f : units (End R M)) : M ≃ₗ[R] M :=
-linear_equiv.of_linear f f.inv
-(show ((f * f.inv) : End R M) = 1, by rw [units.inv_eq_coe_inv, units.mul_inv])
-(show ((f.inv * f) : End R M) = 1, by rw [units.inv_eq_coe_inv, units.inv_mul])
-
-end End
-
 end module
 
 set_option old_structure_cmd true

@@ -56,6 +56,3 @@ begin
   norm_cast,
   linarith,
 end
-
-
-#lint

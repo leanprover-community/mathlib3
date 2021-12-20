@@ -13,6 +13,7 @@ import order.filter.archimedean
 import .Weierstrass_M_test
 import analysis.complex.upper_half_plane
 import topology.compact_open
+import analysis.calculus.deriv
 
 
 universes u v w
@@ -1853,7 +1854,8 @@ begin
   have nz: (y.1 : ℂ)*z.1 + y.2 ≠ 0 , by {apply hy,},
   have hdd:= dd2 y.1 y.2 (-k) z nz,
   rw ein at hdd,
-  have H:= has_deriv_at.has_deriv_within_at' upper_half_space hdd, simp at H,
+  have H := has_deriv_at.has_deriv_within_at' upper_half_space hdd,
+  simp at H,
   let fx:=(-k*((y.1:ℂ)*z.1+y.2)^(-k-1)*(y.1) : ℂ),
   use fx,
   rw has_deriv_within_at_iff_tendsto at *, simp at *, rw metric.tendsto_nhds_within_nhds at *,

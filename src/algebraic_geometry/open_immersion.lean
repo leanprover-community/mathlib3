@@ -1215,4 +1215,3 @@ end Scheme
 end open_cover
 
 end algebraic_geometry
-#lint

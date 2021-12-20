@@ -9,21 +9,33 @@ import data.matrix.basic
 /-!
 # Incidence matrix of a simple graph
 
-This file defines the incidence matrix of a simple graph.
+This file defines the unoriented incidence matrix of a simple graph.
 
 ## Main definitions
 
-* `simple_graph.inc_matrix`: `G.inc_matrix R` is the incidence matrix of `G` in ring `R`.
+* `simple_graph.inc_matrix`: `G.inc_matrix R` is the incidence matrix of `G` over the ring `R`.
 
 ## Main results
 
 * `inc_matrix_element_power_id`: Every element from `M` is idempotent.
-* `degree_equals_sum_of_incidence_row`: The sum of elements from row `i` of `M` is equal to the
-`degree` of vertex `i`.
+* `degree_equals_sum_of_incidence_row`: The sum of elements from row `i` of `G.inc_matrix R`
+is equal to the `degree` of vertex `i`.
+* `simple_graph.inc_matrix_mul_transpose`: Gives a complete description of the product of
+`G.inc_matrix R` and its transpose; the diagonal is the degrees of each vertex, and the
+off-diagonals are 1 or 0 depending on whether or not the vertices are adjacent.
+
+## Implementation notes
+
+The usual definition of an incidence matrix has one row per vertex and one column per edge.
+However, this definition has columns indexed by all of `sym2 α`, where `α` is the vertex type.
+This appears not to change the theory, and for simple graphs it has the nice effect that every
+incidence matrix for each `simple_graph α` has the same type.
 
 ## TODO
 
-Define the incidence matrix of an oriented graph.
+* Define the oriented incidence matrices for oriented graphs.
+* Define the graph Laplacian of a simple graph using the oriented incidence matrix from an
+arbitrary orientation of a simple graph.
 -/
 
 open_locale big_operators matrix
@@ -40,7 +52,7 @@ namespace simple_graph
 variables [decidable_eq α] (G : simple_graph α) [decidable_rel G.adj] (R)
 
 /-- `G.inc_matrix R` is the `α × sym2 α` matrix whose `(a, e)`-entry is `1` if `e` is incident to
-`a` and `0` else. -/
+`a` and `0` otherwise. -/
 def inc_matrix [has_zero R] [has_one R] : matrix α (sym2 α) R :=
 λ a e, if e ∈ G.incidence_set a then 1 else 0
 

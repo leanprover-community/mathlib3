@@ -372,4 +372,17 @@ begin
   refine ⟨hr1, ⟨⟨x, I_le_J hx⟩, rfl⟩⟩,
 end
 
+lemma ideal.homogeneous_hull.eq_Inf [Π (i : ι) (x : A i), decidable (x ≠ 0)] :
+  ideal.homogeneous_hull A I = Inf { J : ideal R | ideal.is_homogeneous A J ∧ I ≤ J } :=
+begin
+  ext, split; intros hx,
+  { rw ideal.mem_Inf, rintros K ⟨HK1, HK2⟩,
+    rw [ideal.homogeneous_hull, ideal.mem_span] at hx,
+    apply hx K, rintros r ⟨i, ⟨⟨y, hy⟩, rfl⟩⟩,
+    apply HK1, apply HK2, exact hy, },
+  { rw ideal.mem_Inf at hx,
+    refine @hx (ideal.homogeneous_hull A I) _,
+    exact ⟨ideal.is_homogeneous.homogeneous_hull _ _, ideal.ideal_le_homogeneous_hull _ _⟩, }
+end
+
 end homogeneous_hull

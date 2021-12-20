@@ -266,7 +266,7 @@ variables {X} {Y}
 @[simp]
 def map (f : X ⟶ Y) : obj X ⟶ obj Y :=
 chain_complex.of_hom _ _ _ _ _ _
-  (λ n, f.app(op(simplex_category.mk n)))
+  (λ n, f.app (op (simplex_category.mk n)))
   (λ n,
     begin
       repeat { rw obj_d },

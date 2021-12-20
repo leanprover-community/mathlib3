@@ -531,7 +531,7 @@ begin
     { exact ⟨by { rw ← h (classical.choice hα), exact is_preconnected_connected_component }⟩ } }
 end
 
-@[simp] lemma preconnected.connected_component_eq_univ {X : Type*} [topological_space X]
+@[simp] lemma preconnected_space.connected_component_eq_univ {X : Type*} [topological_space X]
   [h : preconnected_space X] (x : X) : connected_component x = univ :=
 preconnected_space_iff_connected_component.mp h x
 

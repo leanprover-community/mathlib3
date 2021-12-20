@@ -239,8 +239,28 @@ def hol_submodule (D: open_subs) : submodule (ℂ)  (D.1 → ℂ) :=
   add_mem' := add_hol,
   smul_mem' := smul_hol}
 
+lemma aux (s t d : set ℂ) (h :  s ⊆ t) : s ∩ d ⊆ t :=
+begin
+intros x hx,
+apply h,
+simp at *,
+apply hx.1,
+end
 
-lemma diff_on_diff (f : D.1 → ℂ) (h : ∀ x : D.1, ∃ (ε: ℝ), 0 < ε ∧
+lemma aux2 (x : ℂ) (a b : ℝ) : metric.ball x a ∩ metric.ball x b = metric.ball x (min a b) :=
+begin
+ext,
+split,
+simp only [and_imp, metric.mem_ball, set.mem_inter_eq, lt_min_iff],
+intros ha hb,
+simp only [ha, hb, and_self],
+simp only [and_imp, metric.mem_ball, set.mem_inter_eq, lt_min_iff],
+intros ha hb,
+simp only [ha, hb, and_self],
+end
+
+
+lemma diff_on_diff (f : D.1 → ℂ) (h : ∀ x : D.1, ∃ (ε: ℝ), 0 < ε ∧ (metric.ball x.1 ε ⊆ D.val ) ∧
   differentiable_on ℂ (extend_by_zero f) (metric.ball x ε)) :
   differentiable_on ℂ (extend_by_zero f) D.1 :=
 begin
@@ -248,9 +268,29 @@ begin
   simp_rw differentiable_within_at at *,
   intros x hx,
   have hh := h ⟨x, hx⟩,
-  obtain ⟨ε, hε, H⟩:= hh,
+  obtain ⟨ε, hε, hb, H⟩:= hh,
   have HH:= H x,
   simp at HH,
-
-sorry,
+  have HHH:= HH hε,
+  obtain ⟨f', hf'⟩:= HHH,
+  use f',
+  simp_rw has_fderiv_within_at_iff_tendsto at *,
+  rw metric.tendsto_nhds at *,
+  intros δ hδ,
+  have hf2 := hf'  δ hδ,
+  rw filter.eventually_iff_exists_mem at *,
+  simp at *,
+  obtain ⟨S, hS, HD⟩ := hf2,
+   simp_rw metric.mem_nhds_within_iff at *,
+  obtain ⟨e, he, HE⟩:= hS,
+  use S,
+  split,
+  use min e ε,
+  simp only [gt_iff_lt, topological_space.opens.mem_coe, lt_min_iff, subtype.val_eq_coe] at *,
+  split,
+  simp [he, hε],
+  have : metric.ball x e ∩ metric.ball x ε = metric.ball x (min e ε), by {apply aux2,},
+  rw this at HE,
+  apply aux _ _ _ HE,
+  apply HD,
 end

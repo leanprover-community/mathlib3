@@ -45,116 +45,103 @@ class has_continuous_smul₂ (Γ : Type*) (T : Type*) [topological_space T] [has
 
 export has_continuous_smul₂ (continuous_smul₂)
 
-instance : has_continuous_smul₂ G (G⧸Γ) :=
-{ continuous_smul₂ := begin
-  sorry,
-end }
+instance quotient_group.has_continuous_smul₂ : has_continuous_smul₂ G (G ⧸ Γ) :=
+{ continuous_smul₂ := λ g₀, begin
+    apply continuous_coinduced_dom,
+    change continuous (λ g : G, quotient_group.mk (g₀ * g)),
+    exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
+  end }
+
+-- this is not strictly needed, but if it's true it would be the best route to
+-- `quotient_group.has_measurable_smul`
+instance quotient_group.has_continuous_smul : has_continuous_smul G (G ⧸ Γ) :=
+{ continuous_smul := begin
+    let F : G × G ⧸ Γ → G ⧸ Γ := λ p, p.1 • p.2,
+    change continuous F,
+    have : continuous (F ∘ (λ p : G × G, (p.1, quotient_group.mk p.2))),
+    { change continuous (λ p : G × G, quotient_group.mk (p.1 * p.2)),
+      refine continuous_coinduced_rng.comp continuous_mul },
+    sorry
+  end }
 
 instance quotient_group.has_measurable_smul : has_measurable_smul G (G ⧸ Γ) :=
 { measurable_const_smul := λ g, (continuous_smul₂ g).measurable,
   measurable_smul_const := begin
     intros x,
-    apply continuous.measurable,
-    sorry,
-  end}
+    obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
+    { exact @quotient.exists_rep _ (quotient_group.left_rel Γ) x },
+    change measurable (λ g, quotient_group.mk (g * g₀)),
+    exact (continuous_coinduced_rng.comp (continuous_mul_right g₀)).measurable,
+  end }
 
 include h𝓕
 variables [encodable Γ]
 
-lemma measure_theory.is_fundamental_domain.mk'' (s : set G) (hs : measurable_set s)
-  (h_ae_covers : ∀ᵐ x ∂μ, ∃ γ : Γ, γ • x ∈ s)
-  (h_ae_disjoint : ∀ γ ≠ (1 : Γ), μ ((has_mul.mul γ ⁻¹' s) ∩ s) = 0) :
-is_fundamental_domain ↥Γ s μ :=
-begin
-  sorry,
-end
-
 lemma measure_theory.is_fundamental_domain.smul (g : G) :
-is_fundamental_domain ↥Γ (has_mul.mul g ⁻¹' 𝓕) μ :=
-begin
-  apply measure_theory.is_fundamental_domain.mk'',
-  have :=  measurable_set_preimage _ h𝓕.measurable_set,
-
-  {
-    have : measurable_set 𝓕,
-    {
-
-      sorry,
-    },
-    sorry,
-  },
-  {
-    sorry,
-  },
-  -- ALEX HOMEWORK
-end
+  is_fundamental_domain ↥Γ (has_mul.mul g ⁻¹' 𝓕) μ :=
+{ measurable_set := _,
+  ae_covers := _,
+  ae_disjoint := _ }
 
 /-- The pushforward to the coset space `G ⧸ Γ` of the restriction of Haar measure on `G` to a
 fundamental domain `𝓕` is a `G`-invariant measure on `G ⧸ Γ`. -/
 lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map :
   smul_invariant_measure G (G ⧸ Γ) (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) :=
 { measure_preimage_smul :=
-begin
-  let π : G → G ⧸ Γ := @quotient_group.mk G _ Γ ,
-  have meas_π : measurable π :=
-    continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
-  have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
-  --rw ←measure_theory.smul_invariant_measure_tfae,
-  intros g A hA,
---  ext1 A hA,
-  have meas_πA : measurable_set (π ⁻¹' A) := measurable_set_preimage meas_π hA,
-  rw [measure.map_apply meas_π hA],
-  rw measure.map_apply,
-  rw measure.restrict_apply' 𝓕meas,
-  rw measure.restrict_apply' 𝓕meas,
-  --rw [measure.map_apply meas_π (measurable_set_preimage (measurable_const_mul _) hA)],
-  --rw [measure.restrict_apply' 𝓕meas, measure.restrict_apply' 𝓕meas],
-  -- step1: get x1 ∈ 𝓕 with π(x1)=x
-  set π_preA := π ⁻¹' A,
---  set π_pregA := π ⁻¹' (has_scalar.smul g ⁻¹' A),
-  rw (by ext1 y; simp :
-    (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A))
-    = has_mul.mul g ⁻¹' π_preA),
+  begin
+    let π : G → G ⧸ Γ := @quotient_group.mk G _ Γ ,
+    have meas_π : measurable π :=
+      continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
+    have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
+    intros g A hA,
+    have meas_πA : measurable_set (π ⁻¹' A) := measurable_set_preimage meas_π hA,
+    rw [measure.map_apply meas_π hA],
+    rw measure.map_apply meas_π (measurable_set_preimage (measurable_const_smul g) hA),
+    rw measure.restrict_apply' 𝓕meas,
+    rw measure.restrict_apply' 𝓕meas,
+    -- step1: get x1 ∈ 𝓕 with π(x1)=x
+    set π_preA := π ⁻¹' A,
+    rw (by ext1 y; simp :
+      (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A))
+      = has_mul.mul g ⁻¹' π_preA),
 
-  have : μ (has_mul.mul g ⁻¹' π_preA ∩ 𝓕) = μ (π_preA ∩ has_mul.mul (g⁻¹) ⁻¹' 𝓕),
-  { transitivity μ (has_mul.mul g ⁻¹' (π_preA ∩ has_mul.mul g⁻¹ ⁻¹' 𝓕)),
-    { rw preimage_inter,
-      congr,
-      rw [← preimage_comp, comp_mul_left, mul_left_inv],
-      ext,
-      simp, },
-    rw is_mul_left_invariant.measure_preimage_mul,
-    exact measure.is_mul_left_invariant_haar μ, },
-  rw this,
+    have : μ (has_mul.mul g ⁻¹' π_preA ∩ 𝓕) = μ (π_preA ∩ has_mul.mul (g⁻¹) ⁻¹' 𝓕),
+    { transitivity μ (has_mul.mul g ⁻¹' (π_preA ∩ has_mul.mul g⁻¹ ⁻¹' 𝓕)),
+      { rw preimage_inter,
+        congr,
+        rw [← preimage_comp, comp_mul_left, mul_left_inv],
+        ext,
+        simp, },
+      rw is_mul_left_invariant.measure_preimage_mul,
+      exact measure.is_mul_left_invariant_haar μ, },
+    rw this,
 
-  have h𝓕_translate_fundom : is_fundamental_domain Γ (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ := h𝓕.smul  (g⁻¹),
+    have h𝓕_translate_fundom : is_fundamental_domain Γ (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ := h𝓕.smul (g⁻¹),
 
-  rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA _,
+    rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA,
 
-  intros γ, -- ALEX Homework
-  ext,
-  split,
-  { intros x_in_preA,
-    rw mem_preimage at x_in_preA,
-    rw mem_preimage at x_in_preA,
-    rw mem_preimage,
-    convert x_in_preA using 1,
-    sorry,
-  },
-  { intros x_in_preA,
-    rw mem_preimage at x_in_preA,
-    rw mem_preimage,
-    rw mem_preimage,
-    convert x_in_preA using 1,
-    sorry,
-  },
---  exact  measurable_quotient_mk,
-  sorry,
-  {
-    refine measurable_set_preimage _ hA,
-    sorry,
-  },
-end }
+    intros γ, -- ALEX Homework
+    ext,
+    split,
+    { intros x_in_preA,
+      rw mem_preimage at x_in_preA,
+      rw mem_preimage at x_in_preA,
+      rw mem_preimage,
+      convert x_in_preA using 1,
+      rw quotient_group.eq',
+      -- seems to require `Γ` normal?
+      sorry,
+    },
+    { intros x_in_preA,
+      rw mem_preimage at x_in_preA,
+      rw mem_preimage,
+      rw mem_preimage,
+      convert x_in_preA using 1,
+      rw quotient_group.eq',
+      -- seems to require `Γ` normal?
+      sorry,
+    },
+  end }
 
 /-- The pushforward to the quotient group `G ⧸ Γ` of the restriction of Haar measure on `G` to a
 fundamental domain `𝓕` is a left-invariant measure on the group `G ⧸ Γ`. -/

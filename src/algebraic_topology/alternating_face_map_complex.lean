@@ -15,14 +15,14 @@ import tactic.ring_exp
 
 # The alternating face map complex of a simplicial object in a preadditive category
 
-We construct the alternating face map complex, as a 
+We construct the alternating face map complex, as a
 functor `alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ`
 for any preadditive category `C`. For any simplicial object `X` in `C`,
 this is the homological complex `... → X_2 → X_1 → X_0`
 where the differentials are alternate sums of faces.
 
 We also construct the natural transformation `inclusion_of_Moore_complex :
-nat_trans (normalized_Moore_complex A) (alternating_face_map_complex A)` 
+nat_trans (normalized_Moore_complex A) (alternating_face_map_complex A)`
 when `A` is an abelian category
 
 ## References
@@ -41,6 +41,8 @@ namespace algebraic_topology
 
 namespace alternating_face_map_complex
 
+/-- In degree n, the alternating face map complex is given by
+the nth-object of the simplicial object -/
 @[simp]
 def obj_X {C : Type*} [category C] (X : simplicial_object C) (n : ℕ) :=
 X.obj(op(simplex_category.mk n))
@@ -49,12 +51,14 @@ variables {C : Type*} [category C] [preadditive C]
 variables (X : simplicial_object C)
 variables (Y : simplicial_object C)
 
+/-- The differential on the alternating face map complex is the alternate
+sum of the face maps -/
 @[simp]
 def obj_d (n : ℕ) : (obj_X X (n+1)) ⟶ (obj_X X n) :=
 ∑ i in finset.range(n+2), ((-1 : ℤ)^i • X.δ i)
 
 /-!
-## Proof of the chain complex relation `d ≫ d` 
+## Proof of the chain complex relation `d ≫ d`
 
 The expansion of `d ≫ d` involves a double sum, or a sum of terms
 indexed by a set of the form {0,...,n} × {0,...,n+1}. We shall show
@@ -117,7 +121,7 @@ begin
   have case1 : ∀ (y : ℕ × ℕ), y.1<y.2 → τ y ≠ y,
   { intros y hy h1,
     rw τ_case1 y hy at h1,
-    have h2 := congr_arg prod.snd h1, 
+    have h2 := congr_arg prod.snd h1,
     simp only at h2,
     linarith, },
   have case2 : ∀ (y : ℕ × ℕ), ¬y.1<y.2 → τ y ≠ y,
@@ -130,11 +134,10 @@ end
 
 /-!
 ### Verification that τ induces an involution τ' on {0,...,n} × {0,...,n+1}
-
-`indices n` denotes `{0,...,n} × {0,...,n+1}` as a finite subset of `ℕ × ℕ`
 -/
 
-def indices (n : ℕ) : finset (ℕ × ℕ) := 
+/-- `indices n` denotes `{0,...,n} × {0,...,n+1}` as a finite subset of `ℕ × ℕ` -/
+def indices (n : ℕ) : finset (ℕ × ℕ) :=
 finset.product (finset.range(n+1)) (finset.range(n+2))
 
 /-- τ stabilises {0,...,n} × {0,...,n+1} -/
@@ -166,14 +169,14 @@ lemma antisymmetric_sum_cancels [add_comm_group α] {n : ℕ} (f : ℕ × ℕ �
   (antisymmetry_f : ∀ (i j : ℕ), i≤j → j≤n → f (i,j+1) = - f (j,i)) :
   ∑ x in (indices n), f x = 0 :=
 begin
-  have hf_case2 : ∀ (x : ℕ × ℕ) (h2x : ¬x.1<x.2) 
+  have hf_case2 : ∀ (x : ℕ × ℕ) (h2x : ¬x.1<x.2)
     (hx : x ∈ indices n), f x + f (τ x) = 0,
   { intros x h2x hx,
     rw τ_case2 x h2x,
     simp only [indices, finset.mem_product, finset.mem_range] at hx,
     rw antisymmetry_f x.2 x.1 (by linarith) (by linarith),
     simp only [prod.mk.eta, add_right_neg], },
-  have hf_case1 : ∀ (x : ℕ × ℕ) (h1x : x.1<x.2) 
+  have hf_case1 : ∀ (x : ℕ × ℕ) (h1x : x.1<x.2)
     (hx : x ∈ indices n), f x + f (τ x) = 0,
   { intros x h1x hx,
     rw add_comm,
@@ -197,13 +200,14 @@ end
 ### Antisymmetry property for the terms that appear in the expansion of `d ≫ d`
 -/
 
-def di_dj (n : ℕ) (x : ℕ × ℕ) : (obj_X X (n+2)) ⟶ (obj_X X n) :=
+/-- εdi_dj n (i,j) is the composite `(-1)^j d_j ≫ (-1)^i d_i` -/
+def εdi_dj (n : ℕ) (x : ℕ × ℕ) : (obj_X X (n+2)) ⟶ (obj_X X n) :=
 ((-1 : ℤ)^x.2 • X.δ x.2) ≫ ((-1 : ℤ)^x.1 • X.δ x.1)
 
-lemma di_dj_antisymm (n i j : ℕ) (hij : i≤j) (hjn : j≤n+1) :
-  (di_dj X n (i,j+1)) = - di_dj X n (j,i) :=
+lemma εdi_dj_antisymm (n i j : ℕ) (hij : i≤j) (hjn : j≤n+1) :
+  (εdi_dj X n (i,j+1)) = - εdi_dj X n (j,i) :=
 begin
-  repeat { rw di_dj },
+  repeat { rw εdi_dj },
   simp only,
   repeat { rw category_theory.preadditive.comp_zsmul },
   repeat { rw category_theory.preadditive.zsmul_comp },
@@ -242,21 +246,23 @@ begin
   let d_l := (λ (j:ℕ), (-1 : ℤ)^j • X.δ (j : fin(n+3))),
   let d_r := (λ (i:ℕ), (-1 : ℤ)^i • X.δ (i : fin(n+2))),
   rw [show (λ i, (∑ j in finset.range(n+3), d_l j) ≫ d_r i) =
-    (λ i, ∑ j in finset.range(n+3), di_dj X n (i,j)),
+    (λ i, ∑ j in finset.range(n+3), εdi_dj X n (i,j)),
     by { ext, rw preadditive.sum_comp, refl }],
   rw ← finset.sum_product',
   clear d_l d_r,
-  exact antisymmetric_sum_cancels (di_dj X n) (di_dj_antisymm X n),
+  exact antisymmetric_sum_cancels (εdi_dj X n) (εdi_dj_antisymm X n),
 end
 
 /-!
 ## Construction of the alternating face map complex functor
 -/
 
+/-- The alternating face map complex, on objects -/
 def obj : chain_complex C ℕ := chain_complex.of (obj_X X) (obj_d X) (d_squared X)
 
 variables {X} {Y}
 
+/-- The alternating face map complex, on morphisms -/
 @[simp]
 def map (f : X ⟶ Y) : obj X ⟶ obj Y :=
 chain_complex.of_hom _ _ _ _ _ _
@@ -278,6 +284,7 @@ end alternating_face_map_complex
 
 variables (C : Type*) [category C] [preadditive C]
 
+/-- The alternating face map complex, as a functor -/
 @[simps]
 def alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ :=
 { obj := alternating_face_map_complex.obj,
@@ -288,9 +295,11 @@ def alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ :
 -/
 
 variables {A : Type*} [category A] [abelian A]
-def inclusion_of_Moore_complex_map (X : simplicial_object A) :  
+
+/-- The inclusion map of the Moore complex in the alternating face map complex -/
+def inclusion_of_Moore_complex_map (X : simplicial_object A) :
   (normalized_Moore_complex A).obj X ⟶ (alternating_face_map_complex A).obj X :=
-chain_complex.of_hom _ _ _ _ _ _ 
+chain_complex.of_hom _ _ _ _ _ _
   (λ n, (normalized_Moore_complex.obj_X X n).arrow)
   (λ n,
     begin
@@ -345,6 +354,8 @@ chain_complex.of_hom_f _ _ _ _ _ _ _ _ n
 
 variables (A)
 
+/-- The inclusion map of the Moore complex in the alternating face map complex,
+as a natural transformation -/
 @[simps]
 def inclusion_of_Moore_complex :
   nat_trans (normalized_Moore_complex A) (alternating_face_map_complex A) :=

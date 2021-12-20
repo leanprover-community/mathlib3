@@ -181,7 +181,7 @@ variables [∀ n : ℤ, functor.additive (shift_functor C n)]
 
 /-- There is a natural map from a triangle to the `inv_rotate` of its `rotate`. -/
 @[simps]
-def rot_comp_inv_rot_hom_app (T : triangle C) : T ⟶ inv_rotate.obj (rotate.obj T) :=
+def to_inv_rotate_rotate (T : triangle C) : T ⟶ inv_rotate.obj (rotate.obj T) :=
 { hom₁ := (shift_shift_neg _ _).inv,
     hom₂ := 𝟙 T.obj₂,
     hom₃ := 𝟙 T.obj₃,
@@ -200,7 +200,7 @@ and the composition of a rotation with an inverse rotation.
 -/
 @[simps]
 def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ rotate ⋙ inv_rotate :=
-{ app := rot_comp_inv_rot_hom_app,
+{ app := to_inv_rotate_rotate,
   naturality' := begin
     introv, ext,
     { dsimp,
@@ -214,7 +214,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ rotate ⋙ inv_rotate :=
 
 /-- There is a natural map from the `inv_rotate` of the `rotate` of a triangle to itself. -/
 @[simps]
-def rot_comp_inv_rot_inv_app (T : triangle C) : inv_rotate.obj (rotate.obj T) ⟶ T :=
+def from_inv_rotate_rotate (T : triangle C) : inv_rotate.obj (rotate.obj T) ⟶ T :=
 { hom₁ := (shift_equiv C 1).unit_inv.app T.obj₁,
     hom₂ := 𝟙 T.obj₂,
     hom₃ := 𝟙 T.obj₃,
@@ -226,7 +226,7 @@ on triangles in `C`, and the identity functor.
 -/
 @[simps]
 def rot_comp_inv_rot_inv : rotate ⋙ inv_rotate ⟶ 𝟭 (triangle C) :=
-{ app := rot_comp_inv_rot_inv_app }
+{ app := from_inv_rotate_rotate }
 
 /--
 The natural transformations between the identity functor on triangles in `C` and the composition
@@ -240,19 +240,11 @@ def rot_comp_inv_rot : 𝟭 (triangle C) ≅ rotate ⋙ inv_rotate :=
 
 /-- There is a natural map from the `rotate` of the `inv_rotate` of a triangle to itself. -/
 @[simps]
-def inv_rot_comp_rot_hom_app (T : triangle C) : rotate.obj (inv_rotate.obj T) ⟶ T :=
+def from_rotate_inv_rotate (T : triangle C) : rotate.obj (inv_rotate.obj T) ⟶ T :=
 { hom₁ := 𝟙 T.obj₁,
     hom₂ := 𝟙 T.obj₂,
     hom₃ := (shift_equiv C 1).counit.app T.obj₃,
     comm₂' := by { dsimp, simp, exact category.comp_id _ },
-    comm₃' := by { dsimp, simp, erw [μ_inv_hom_app, category.comp_id, obj_zero_map_μ_app], simp } }
-
-/-- There is a natural map from a triangle to the `rotate` of its `inv_rotate`. -/
-@[simps]
-def inv_rot_comp_rot_inv_app (T : triangle C) : T ⟶ rotate.obj (inv_rotate.obj T) :=
-{ hom₁ := 𝟙 T.obj₁,
-    hom₂ := 𝟙 T.obj₂,
-    hom₃ := (shift_equiv C 1).counit_inv.app T.obj₃,
     comm₃' := by { dsimp, simp, erw [μ_inv_hom_app, category.comp_id, obj_zero_map_μ_app], simp } }
 
 /--
@@ -261,7 +253,15 @@ on triangles in `C`, and the identity functor.
 -/
 @[simps]
 def inv_rot_comp_rot_hom : inv_rotate ⋙ rotate ⟶ 𝟭 (triangle C) :=
-{ app := inv_rot_comp_rot_hom_app }
+{ app := from_rotate_inv_rotate }
+
+/-- There is a natural map from a triangle to the `rotate` of its `inv_rotate`. -/
+@[simps]
+def to_rotate_inv_rotate (T : triangle C) : T ⟶ rotate.obj (inv_rotate.obj T) :=
+{ hom₁ := 𝟙 T.obj₁,
+    hom₂ := 𝟙 T.obj₂,
+    hom₃ := (shift_equiv C 1).counit_inv.app T.obj₃,
+    comm₃' := by { dsimp, simp, erw [μ_inv_hom_app, category.comp_id, obj_zero_map_μ_app], simp } }
 
 /--
 There is a natural transformation between the identity functor on triangles in `C`,
@@ -269,7 +269,7 @@ and the composition of an inverse rotation with a rotation.
 -/
 @[simps]
 def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ inv_rotate ⋙ rotate :=
-{ app := inv_rot_comp_rot_inv_app,
+{ app := to_rotate_inv_rotate,
   naturality' := by { introv, ext, { dsimp, simp }, { dsimp, simp },
     { dsimp, simp, erw [μ_inv_naturality, ε_naturality_assoc] }, } }
 

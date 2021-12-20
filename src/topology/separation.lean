@@ -1001,6 +1001,34 @@ begin
   exact ⟨t, h2t, h3t, compact_closure_of_subset_compact hKc h1t⟩
 end
 
+lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
+  is_preirreducible S ↔ subsingleton S :=
+begin
+  split,
+  { intro h,
+    constructor,
+    intros x y,
+    ext,
+    by_contradiction e,
+    obtain ⟨U, V, hU, hV, hxU, hyV, h'⟩ := t2_separation e,
+    have := h U V hU hV ⟨x, x.prop, hxU⟩ ⟨y, y.prop, hyV⟩,
+    rw [h', inter_empty] at this,
+    exact this.some_spec },
+  { exact @@is_preirreducible_of_subsingleton _ _ }
+end
+
+lemma is_irreducible_iff_singleton [t2_space α] (S : set α) :
+  is_irreducible S ↔ ∃ x, S = {x} :=
+begin
+  split,
+  { intro h,
+    rw exists_eq_singleton_iff_nonempty_unique_mem,
+    use h.1,
+    intros a b ha hb,
+    injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },
+  { rintro ⟨x, rfl⟩, exact is_irreducible_singleton }
+end
+
 end separation
 
 section regularity

@@ -1334,6 +1334,15 @@ lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
   is_irreducible (closure s) :=
 ⟨h.nonempty.closure, h.is_preirreducible.closure⟩
 
+lemma is_preirreducible_of_subsingleton (s : set α) [hs : subsingleton s] : is_preirreducible s :=
+begin
+  cases s.eq_empty_or_nonempty,
+  { exact h.symm ▸ is_preirreducible_empty },
+  { obtain ⟨x, e⟩ := exists_eq_singleton_iff_nonempty_unique_mem.mpr
+      ⟨h, λ _ _ a b, by injection @@subsingleton.elim hs ⟨_, a⟩ ⟨_, b⟩⟩,
+    exact e.symm ▸ is_irreducible_singleton.2 }
+end
+
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
 let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset_nonempty {t : set α | is_preirreducible t}

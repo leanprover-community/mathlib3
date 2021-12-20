@@ -227,7 +227,7 @@ by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
 lemma rename_degrees_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
   {f : σ → τ} (h : function.injective f) : degrees (rename f p) = (degrees p).map f :=
 begin
-  have t :=finset.multiset_map_sup p.support finsupp.to_multiset ⟨f,h⟩,
+  have t :=multiset.map_finset_sup p.support finsupp.to_multiset ⟨f,h⟩,
   simp only [embedding.coe_fn_mk] at t,
   simp only [degrees, t, support_rename_of_injective h, finset.sup_map,
              map_domain_embedding, embedding.coe_fn_mk, finsupp.to_multiset_map],

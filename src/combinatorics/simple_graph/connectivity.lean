@@ -1348,7 +1348,7 @@ open fintype
 /-- Get the next edge after vertext `v` on a path `p` from `v` to vertex `w`. -/
 def next_edge (G : simple_graph V) : ∀ (v w : V) (h : v ≠ w) (p : G.walk v w), G.incidence_set v
 | v w h walk.nil := (h rfl).elim
-| v w h (@walk.cons _ _ _ u _ hvw _) := ⟨⟦(v, u)⟧, hvw, sym2.mk_has_mem _ _⟩
+| v w h (@walk.cons _ _ _ u _ hvw _) := ⟨⟦(v, u)⟧, hvw, sym2.mem_mk_left _ _⟩
 
 lemma nonempty_path_not_loop {v : V} {e : sym2 V} (p : G.path v v)
   (h : e ∈ walk.edges (p : G.walk v v)) : false :=

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
-import linear_algebra.tensor_product_basis
 import field_theory.intermediate_field
 import field_theory.splitting_field
 import field_theory.separable
@@ -789,14 +788,10 @@ lemma intermediate_field.finite_dimensional_sup {K L : Type*} [field K] [field L
   finite_dimensional K ↥(E1 ⊔ E2) :=
 begin
   let g := algebra.tensor_product.product_map E1.val E2.val,
-  suffices : g.to_linear_map.range = (E1 ⊔ E2).to_subalgebra.to_submodule,
-  { have key := g.to_linear_map.finite_dimensional_range,
-    rwa this at key },
   suffices : g.range = (E1 ⊔ E2).to_subalgebra,
-  { rw ← this,
-    refl },
-  rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val],
-  exact (intermediate_field.sup_to_subalgebra E1 E2).symm,
+  { have h : finite_dimensional K g.range.to_submodule := g.to_linear_map.finite_dimensional_range,
+    rwa this at h },
+  rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val, sup_to_subalgebra],
 end
 
 end finite_dimensional_sup

@@ -29,6 +29,13 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   open immersion is isomorphic to the restriction of the target onto the image.
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.lift`: Any morphism whose range is
   contained in an open immersion factors though the open immersion.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_SheafedSpace`: If `f : X ⟶ Y` is an
+  open immersion of presheafed spaces, and `Y` is a sheafed space, then `X` is also a sheafed
+  space. The morphism as morphisms of sheafed spaces is given by `to_SheafedSpace_hom`.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_LocallyRingedSpace`: If `f : X ⟶ Y` is
+  an open immersion of presheafed spaces, and `Y` is a locally ringed space, then `X` is also a
+  locally ringed space. The morphism as morphisms of locally ringed spaces is given by
+  `to_LocallyRingedSpace_hom`.
 
 ## Main results
 
@@ -43,6 +50,8 @@ Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Sc
   immersion, then the pullback `(f, g)` exists (and the forgetful functor to `Top` preserves it).
 * `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_snd_of_left`: Open immersions
   are stable under pullbacks.
+* `algebraic_geometry.SheafedSpace.is_open_immersion.of_stalk_iso` An (topological) open embedding
+  between two sheafed spaces is an open immersion if all the stalk maps are isomorphisms.
 
 -/
 
@@ -534,7 +543,7 @@ def to_SheafedSpace : SheafedSpace C :=
     apply Top.sheaf.pushforward_sheaf_of_sheaf,
     exact (Y.restrict H.base_open).is_sheaf
   end,
-to_PresheafedSpace := X }
+  to_PresheafedSpace := X }
 
 @[simp] lemma to_SheafedSpace_to_PresheafedSpace : (to_SheafedSpace Y f).to_PresheafedSpace = X :=
 rfl
@@ -672,7 +681,7 @@ instance SheafedSpace_forget_preserves_of_left :
   preserves_limit (cospan f g) (SheafedSpace.forget C) :=
 @@limits.comp_preserves_limit _ _ _ _ forget (PresheafedSpace.forget C) _
 begin
-  apply_with (preserves_limit_of_iso_diagram _ (diagram_iso_cospan _).symm) { instances := tt },
+  apply_with (preserves_limit_of_iso_diagram _ (diagram_iso_cospan.{v} _).symm) { instances := tt },
   dsimp,
   apply_instance
 end
@@ -734,9 +743,10 @@ variables [reflects_isomorphisms (forget C)] [preserves_limits (forget C)]
 variables [preserves_filtered_colimits (forget C)]
 
 /--
-Suppose `C` is a concrete category, whose forgetful functor reflects isomorphisms,
-preserves limits and filtered colimits. Then an (topological) open embedding is an open immersion
-iff every stalk map is an iso.
+Suppose `X Y : SheafedSpace C`, where `C` is a concrete category,
+whose forgetful functor reflects isomorphisms, preserves limits and filtered colimits.
+Then a morphism `X ⟶ Y` that is a topological open embedding
+is an open immersion iff every stalk map is an iso.
 -/
 lemma of_stalk_iso {X Y : SheafedSpace C} (f : X ⟶ Y)
   (hf : open_embedding f.base) [H : ∀ x : X, is_iso (PresheafedSpace.stalk_map f x)] :
@@ -918,7 +928,7 @@ end
 
 /-- Open immersions are stable under base-change. -/
 instance pullback_fst_of_right :
- LocallyRingedSpace.is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
+  LocallyRingedSpace.is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
 begin
   rw ← pullback_symmetry_hom_comp_snd,
   apply_instance
@@ -962,7 +972,7 @@ begin
       ⋙ PresheafedSpace.forget _),
   apply_with limits.comp_preserves_limit { instances := ff },
   apply_instance,
-  apply preserves_limit_of_iso_diagram _ (diagram_iso_cospan _).symm,
+  apply preserves_limit_of_iso_diagram _ (diagram_iso_cospan.{u} _).symm,
   dsimp,
   apply_instance,
 end
@@ -1008,6 +1018,12 @@ begin
   apply_instance
 end
 
+/--
+The universal property of open immersions:
+For an open immersion `f : X ⟶ Z`, given any morphism of schemes `g : Y ⟶ Z` whose topological
+image is contained in the image of `f`, we can lift this morphism to a unique `Y ⟶ X` that
+commutes with these maps.
+-/
 def lift (H' : set.range g.1.base ⊆ set.range f.1.base) : Y ⟶ X :=
 begin
   haveI := pullback_snd_is_iso_of_range_subset f g H',

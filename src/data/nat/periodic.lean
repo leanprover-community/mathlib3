@@ -9,7 +9,8 @@ import data.nat.interval
 /-!
 # Periodic Functions on ℕ
 
-This file identifies a few functions which are periodic, and also proves a lemma about periodic predicates which helps determine their cardinality when filtering intervals over them.
+This file identifies a few functions which are periodic, and also proves a lemma about periodic
+predicates which helps determine their cardinality when filtering intervals over them.
 -/
 
 open finset nat function

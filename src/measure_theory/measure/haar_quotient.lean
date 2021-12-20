@@ -6,6 +6,7 @@ Authors: Alex Kontorovich, Heather Macbeth
 
 import measure_theory.measure.haar
 import measure_theory.group.fundamental_domain
+import topology.compact_open
 
 /-!
 # Haar Quotient measure
@@ -36,7 +37,68 @@ variables [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
 instance subgroup.smul_invariant_measure : smul_invariant_measure Γ G μ :=
 { measure_preimage_smul := λ c s hs, μ.haar_preimage_mul c s }
 
+section
+/-! First method to get `has_measurable_smul G (G ⧸ Γ)`.
 
+More elegant but apparently requires local compactness of `G`?? -/
+
+-- move this to basic topology
+-- not clear if the `locally_compact_space` hypothesis here is really necessary
+lemma foo {X₀ X Y Z : Type*} [t₀ : topological_space X₀] [topological_space X]
+  [topological_space Y] [topological_space Z] [locally_compact_space Y] {f : X₀ → X}
+  (hf : quotient_map f) {g : X × Y → Z} (hg : continuous (λ p : X₀ × Y, g (f p.1, p.2))) :
+  continuous g :=
+begin
+  let Gf : C(X₀, C(Y, Z)) := continuous_map.curry ⟨_, hg⟩,
+  have h : ∀ x : X, continuous (λ y, g (x, y)),
+  { intros x,
+    obtain ⟨x₀, rfl⟩ := hf.surjective x,
+    exact (Gf x₀).continuous },
+  let G : X → C(Y, Z) := λ x, ⟨_, h x⟩,
+  have : continuous G,
+  { rw hf.continuous_iff,
+    exact Gf.continuous },
+  convert continuous_map.continuous_uncurry_of_continuous ⟨G, this⟩,
+  ext x,
+  cases x,
+  refl,
+end
+
+-- move this
+lemma foo' {X₀ X Y Z : Type*} [t₀ : topological_space X₀] [topological_space X]
+  [topological_space Y] [topological_space Z] [locally_compact_space Y] {f : X₀ → X}
+  (hf : quotient_map f) {g : Y × X → Z} (hg : continuous (λ p : Y × X₀, g (p.1, f p.2))) :
+  continuous g :=
+begin
+  have : continuous (λ p : X₀ × Y, g ((prod.swap p).1, f (prod.swap p).2)),
+  { exact hg.comp continuous_swap },
+  have : continuous (λ p : X₀ × Y, (g ∘ prod.swap) (f p.1, p.2)) := this,
+  convert (foo hf this).comp continuous_swap,
+  ext x,
+  simp,
+end
+
+-- move this
+lemma quotient_group.quotient_map : quotient_map (quotient_group.mk : G → G ⧸ Γ) :=
+⟨quotient.surjective_quotient_mk', by refl⟩
+
+instance quotient_group.has_continuous_smul [locally_compact_space G] :
+  has_continuous_smul G (G ⧸ Γ) :=
+{ continuous_smul := begin
+    let F : G × G ⧸ Γ → G ⧸ Γ := λ p, p.1 • p.2,
+    change continuous F,
+    have H : continuous (F ∘ (λ p : G × G, (p.1, quotient_group.mk p.2))),
+    { change continuous (λ p : G × G, quotient_group.mk (p.1 * p.2)),
+      refine continuous_coinduced_rng.comp continuous_mul },
+    exact foo' quotient_group.quotient_map H
+  end }
+
+-- `has_measurable_smul` follows for locally compact `G`
+
+end
+
+section
+/-! Second method to get `has_measurable_smul G (G ⧸ Γ)`. -/
 
 -- FROM OTHER PR'ed BRANCH
 class has_continuous_smul₂ (Γ : Type*) (T : Type*) [topological_space T] [has_scalar Γ T]
@@ -52,27 +114,20 @@ instance quotient_group.has_continuous_smul₂ : has_continuous_smul₂ G (G ⧸
     exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
   end }
 
--- this is not strictly needed, but if it's true it would be the best route to
--- `quotient_group.has_measurable_smul`
-instance quotient_group.has_continuous_smul : has_continuous_smul G (G ⧸ Γ) :=
-{ continuous_smul := begin
-    let F : G × G ⧸ Γ → G ⧸ Γ := λ p, p.1 • p.2,
-    change continuous F,
-    have : continuous (F ∘ (λ p : G × G, (p.1, quotient_group.mk p.2))),
-    { change continuous (λ p : G × G, quotient_group.mk (p.1 * p.2)),
-      refine continuous_coinduced_rng.comp continuous_mul },
-    sorry
-  end }
+-- stupid name, fix
+lemma quotient_group.continuous_smul₁ (x : G ⧸ Γ) : continuous (λ g : G, g • x) :=
+begin
+  obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
+  { exact @quotient.exists_rep _ (quotient_group.left_rel Γ) x },
+  change continuous (λ g, quotient_group.mk (g * g₀)),
+  exact continuous_coinduced_rng.comp (continuous_mul_right g₀)
+end
 
 instance quotient_group.has_measurable_smul : has_measurable_smul G (G ⧸ Γ) :=
 { measurable_const_smul := λ g, (continuous_smul₂ g).measurable,
-  measurable_smul_const := begin
-    intros x,
-    obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
-    { exact @quotient.exists_rep _ (quotient_group.left_rel Γ) x },
-    change measurable (λ g, quotient_group.mk (g * g₀)),
-    exact (continuous_coinduced_rng.comp (continuous_mul_right g₀)).measurable,
-  end }
+  measurable_smul_const := λ x, (quotient_group.continuous_smul₁ x).measurable }
+
+end
 
 include h𝓕
 variables [encodable Γ]

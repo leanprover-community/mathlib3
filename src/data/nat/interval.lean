@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.locally_finite
-import data.nat.count
 
 /-!
 # Finite intervals of naturals
@@ -174,7 +173,6 @@ begin
   rw [Ico_succ_left, mem_erase, mem_Ico, mem_Ioo, ←and_assoc, ne_comm, and_comm (a ≠ x),
     lt_iff_le_and_ne],
 end
-
 
 end nat
 

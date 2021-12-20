@@ -322,8 +322,8 @@ lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
   (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=
 begin
   rcases b with _|_|b,
-  { cases m, { refine absurd hm _, simp }, { simp } },
-  { cases m, { refine absurd hm _, simp },
+  { cases m, cases hm (rfl), simp },
+  { cases m, cases hm (rfl),
     simp_rw [digits_one, list.last_repeat_succ 1 m],
     norm_num },
   revert hm,
@@ -338,7 +338,7 @@ begin
     { rw ←pos_iff_ne_zero,
       exact nat.div_pos (le_of_not_lt hnb) dec_trivial } },
 end
-#exit
+
 /-- The digits in the base b+2 expansion of n are all less than b+2 -/
 lemma digits_lt_base' {b m : ℕ} : ∀ {d}, d ∈ digits (b+2) m → d < b+2 :=
 begin

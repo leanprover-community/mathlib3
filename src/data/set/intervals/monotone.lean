@@ -37,8 +37,6 @@ whole line. -/
 protected lemma strict_anti_on.Iic_union_Ici (h₁ : strict_anti_on f (Iic a))
   (h₂ : strict_anti_on f (Ici a)) : strict_anti f :=
 (h₁.dual_right.Iic_union_Ici h₂.dual_right).dual_right
-
-
 protected lemma monotone_on.Iic_union_Ici (h₁ : monotone_on f (Iic a))
   (h₂ : monotone_on f (Ici a)) : monotone f :=
 begin

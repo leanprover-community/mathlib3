@@ -12,7 +12,7 @@ import data.set.intervals.monotone
 # Tietze extension theorem
 
 In this file we prove a few version of the Tietze extension theorem. The theorem says that a
-continuous function `s → ℝ` defined on a closed set in a normap topological space `Y` can be
+continuous function `s → ℝ` defined on a closed set in a normal topological space `Y` can be
 extended to a continuous function on the whole space. Moreover, if all values of the original
 function belong to some (finite or infinite, open or closed) interval, then the extension can be
 chosen so that it takes values in the same interval. In particular, if the original function is a
@@ -43,7 +43,7 @@ namespace bounded_continuous_function
 /-- One step in the proof of the Tietze extension theorem. If `e : C(X, Y)` is a closed embedding
 of a topological space into a normal topological space and `f : X →ᵇ ℝ` is a bounded continuous
 function, then there exists a bounded continuous function `g : Y →ᵇ ℝ` of the norm `∥g∥ ≤ ∥f∥ / 3`
-such that the distance betwenn `g ∘ e` and `f` is at most `(2 / 3) * ∥f∥`. -/
+such that the distance between `g ∘ e` and `f` is at most `(2 / 3) * ∥f∥`. -/
 lemma tietze_extension_step (f : X →ᵇ ℝ) (e : C(X, Y)) (he : closed_embedding e) :
   ∃ g : Y →ᵇ ℝ, ∥g∥ ≤ ∥f∥ / 3 ∧ dist (g.comp_continuous e) f ≤ (2 / 3) * ∥f∥ :=
 begin

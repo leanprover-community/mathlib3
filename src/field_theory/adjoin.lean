@@ -757,7 +757,7 @@ end
 
 end alg_hom_mk_adjoin_splits
 
-section finite_dimensional_sup
+section supremum
 
 lemma le_sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
   (E1 E2 : intermediate_field K L) :

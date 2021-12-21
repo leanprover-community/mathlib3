@@ -448,51 +448,15 @@ end
 end dedekind_finite
 -- IIRC this was an attempt to p
 section
-variables {R : Type*} [comm_ring R] [nontrivial R] {M : Type*} [add_comm_group M]
-  [module R M] (f : M →ₗ[R] M)
+variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M] (f : M →ₗ[R] M)
 
 noncomputable theory
 
-
-
--- if I dont have this some nat decidable instances crop up later and make some "same" finsets
--- different
--- local attribute [instance, priority 1000] classical.prop_decidable
-
--- instance : add_monoid_hom_class (dual 𝕜 E) E 𝕜 := linear_map.add_monoid_hom_class
-
+/-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a choice
+  of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
 @[simps]
-def module_polynomial_ring_endo : module (polynomial R) M := { smul := λ r m,
-  r.sum (λ i c, c • ((f ^ i) m)),
-  one_smul := λ b, by convert polynomial.sum_monomial_index _ _ _ _; simp,
-  mul_smul := λ g h b, begin
-    induction g using polynomial.induction_on,
-    { rw ← polynomial.smul_eq_C_mul,
-      simp only [id.def, polynomial.sum_C_index, function.iterate_zero,
-        linear_map.pow_apply, zero_smul],
-      rw polynomial.sum_smul_index,
-      { rw polynomial.sum_def,
-        rw polynomial.sum_def,
-        rw finset.smul_sum,
-        simp [mul_smul], },
-      { simp, }, },
-    rw [add_mul],
-    simp [-linear_map.pow_apply, linear_map.map_sum],
-    rw polynomial.mul_eq_sum_sum,
-    rw polynomial.sum, rw polynomial.sum, rw polynomial.sum, simp [linear_map.map_sum, linear_map.map_smul, ← function.iterate_add_apply],
-    sorry,
-    sorry, end,
-  smul_add := λ x m n, by simp [linear_map.map_add, polynomial.sum_add],
-  smul_zero := λ r, by simp [linear_map.map_zero, polynomial.sum_def],
-  add_smul := λ x y m, begin
-    simp only [linear_map.pow_apply],
-    rw polynomial.sum_add_index,
-    { simp, },
-    { intros,
-      rw add_smul, },
-   end,
-  zero_smul := λ m, by simp }
-
+def module_polynomial_ring_endo : module (polynomial R) M :=
+module.comp_hom M (polynomial.aeval f).to_ring_hom
 
 open polynomial module
 
@@ -508,27 +472,18 @@ begin
     obtain ⟨y, rfl⟩ := f_surj a,
     rw [← X_mul y],
     exact submodule.smul_mem_smul (ideal.mem_span_singleton.mpr (dvd_refl _)) trivial, },
-  haveI : is_scalar_tower R (polynomial R) M := ⟨λ x y z, _⟩,
+  haveI : is_scalar_tower R (polynomial R) M := ⟨λ x y z, by simp⟩,
   have hfgpoly : finite (polynomial R) M, from finite.of_restrict_scalars_finite R _ _,
   obtain ⟨F, hFa, hFb⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul _
     (⊤ : submodule (polynomial R) M) (finite_def.mp hfgpoly) this,
-  rw ← linear_map.ker_eq_bot,
-  rw linear_map.ker_eq_bot',
+  rw [← linear_map.ker_eq_bot, linear_map.ker_eq_bot'],
   intros m hm,
-  have Fmzero := hFb m (by simp),
-  rw ← sub_add_cancel F 1 at Fmzero,
-  rw add_smul at Fmzero,
-  rw [one_smul] at Fmzero,
-  suffices : (F - 1) • m = 0,
-  { rwa [this, zero_add] at Fmzero, },
   rw ideal.mem_span_singleton' at hFa,
   obtain ⟨G, hG⟩ := hFa,
+  suffices : (F - 1) • m = 0,
+  { have Fmzero := hFb m (by simp),
+    rwa [← sub_add_cancel F 1, add_smul, one_smul, this, zero_add] at Fmzero, },
   rw [← hG, mul_smul, X_mul m, hm, smul_zero],
-  { simp only [module_polynomial_ring_endo_to_distrib_mul_action_to_mul_action_to_has_scalar_smul,
-      linear_map.pow_apply],
-    rw [polynomial.sum_smul_index, polynomial.sum_def, polynomial.sum_def, finset.smul_sum],
-    simp_rw mul_smul,
-    simp, },
 end
 end
 

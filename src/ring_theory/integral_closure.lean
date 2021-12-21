@@ -439,7 +439,8 @@ variables (p : polynomial R) (x : S)
 
 namespace is_integral_elem_leading_coeff_mul
 
-/-- (Implementation) The monic polynomial whoose root is `f p.leading_coeff * x`. -/
+/-- (Implementation) The monic polynomial whose roots are `p.leading_coeff * x`
+ for roots `x` of `p`. -/
 noncomputable
 def poly (p : polynomial R) : polynomial R :=
 ∑ i in p.support, monomial i
@@ -448,19 +449,15 @@ def poly (p : polynomial R) : polynomial R :=
 lemma poly_coeff_mul_leading_coeff_pow (i : ℕ) (hp : 1 ≤ nat_degree p) :
   (poly p).coeff i * p.leading_coeff ^ i = p.coeff i * p.leading_coeff ^ (p.nat_degree - 1) :=
 begin
-  delta poly,
-  rw finset_sum_coeff,
-  simp_rw coeff_monomial,
-  rw finset.sum_ite_eq',
+  simp only [poly, finset_sum_coeff, coeff_monomial, finset.sum_ite_eq', one_mul, zero_mul,
+    mem_support_iff, ite_mul, ne.def, ite_not],
   split_ifs with h₁ h₂,
-  { subst h₂,
-    rw [one_mul, polynomial.coeff_nat_degree, ← pow_succ,
-      tsub_add_cancel_of_le hp] },
+  { simp [h₁], },
+  { rw [h₂, leading_coeff, ← pow_succ, tsub_add_cancel_of_le hp], },
   { rw [mul_assoc, ← pow_add, tsub_add_cancel_of_le],
-    apply le_tsub_of_add_le_left,
-    rw [add_comm, nat.succ_le_iff],
-    exact lt_of_le_of_ne (le_nat_degree_of_mem_supp _ h₁) h₂ },
-  { rw not_mem_support_iff at h₁, rw [h₁, zero_mul, zero_mul] }
+    apply nat.le_pred_of_lt,
+    rw lt_iff_le_and_ne,
+    exact ⟨le_nat_degree_of_ne_zero h₁, h₂⟩, },
 end
 
 lemma leading_coeff_smul_poly (p : polynomial R) :
@@ -527,7 +524,7 @@ open is_integral_elem_leading_coeff_mul
 
 /-- Given a `p : polynomial R` and a `x : S` such that `p.eval₂ f x = 0`,
 `f p.leading_coeff * x` is integral. -/
-lemma is_integral_elem_leading_coeff_mul (h : p.eval₂ f x = 0) :
+lemma ring_hom.is_integral_elem_leading_coeff_mul (h : p.eval₂ f x = 0) :
   f.is_integral_elem (f p.leading_coeff * x) :=
 begin
   by_cases h' : 1 ≤ p.nat_degree,

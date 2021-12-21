@@ -143,9 +143,8 @@ instance : cstar_ring (E →L[𝕜] E) :=
   { rw [←sq, ←real.sqrt_le_sqrt_iff (norm_nonneg _), real.sqrt_sq (norm_nonneg _)],
     refine op_norm_le_bound _ (real.sqrt_nonneg _) (λ x, _),
     have := calc
-      re ⟪(A† * A) x, x⟫ ≤ abs ⟪(A† * A) x, x⟫  : re_le_abs _
-                  ...  ≤ ∥(A† * A) x∥ * ∥x∥     : abs_inner_le_norm _ _
-                  ...  ≤ ∥A† * A∥ * ∥x∥ * ∥x∥   : mul_le_mul_of_nonneg_right
+      re ⟪(A† * A) x, x⟫ ≤ ∥(A† * A) x∥ * ∥x∥     : re_inner_le_norm _ _
+                    ...  ≤ ∥A† * A∥ * ∥x∥ * ∥x∥   : mul_le_mul_of_nonneg_right
                                                     (le_op_norm _ _) (norm_nonneg _),
     calc ∥A x∥ = real.sqrt (re ⟪(A† * A) x, x⟫)     : by rw [apply_norm_eq_sqrt_inner_adjoint_left]
           ...  ≤ real.sqrt (∥A† * A∥ * ∥x∥ * ∥x∥)   : real.sqrt_le_sqrt this

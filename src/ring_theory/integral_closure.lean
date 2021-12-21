@@ -551,7 +551,7 @@ lemma is_integral_leading_coeff_smul [algebra R S] (h : aeval x p = 0) :
 begin
   rw aeval_def at h,
   rw algebra.smul_def,
-  exact is_integral_elem_leading_coeff_mul (algebra_map R S) p x h,
+  exact (algebra_map R S).is_integral_elem_leading_coeff_mul p x h,
 end
 
 end

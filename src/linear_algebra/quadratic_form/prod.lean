@@ -51,23 +51,55 @@ lemma equivalent.prod {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M�
   (e₁ : Q₁.equivalent Q₁') (e₂ : Q₂.equivalent Q₂') : (Q₁.prod Q₂).equivalent (Q₁'.prod Q₂'):=
 nonempty.map2 isometry.prod e₁ e₂
 
-example {R} [ordered_ring R] (r₁ r₂ : R) : r₁ + r₂ = 0 → 0 ≤ r₁ → 0 ≤ r₂ → r₁ = 0 ∧ r₂ = 0 :=
+/-- If a product is anisotropic then its components must be. The converse is not true. -/
+lemma anisotropic_of_prod {R} [ordered_ring R] [module R M₁] [module R M₂]
+  {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} (h : (Q₁.prod Q₂).anisotropic) :
+  Q₁.anisotropic ∧ Q₂.anisotropic :=
 begin
-  intros h₁₂ h₁ h₂,
-  refine (add_eq_zero_iff' h₁ h₂).mp h₁₂
+  simp_rw [anisotropic, prod_to_fun, prod.forall, prod.mk_eq_zero] at h,
+  split,
+  { intros x hx,
+    refine (h x 0 _).1,
+    rw [hx, zero_add, map_zero] },
+  { intros x hx,
+    refine (h 0 x _).2,
+    rw [hx, add_zero, map_zero] },
+end
+
+lemma nonneg_prod_iff {R} [ordered_ring R] [module R M₁] [module R M₂]
+  {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} :
+  (∀ x, 0 ≤ (Q₁.prod Q₂) x) ↔ (∀ x, 0 ≤ Q₁ x) ∧ (∀ x, 0 ≤ Q₂ x) :=
+begin
+  simp_rw [prod.forall, prod_to_fun],
+  split,
+  { intro h,
+    split,
+    { intro x, simpa only [add_zero, map_zero] using h x 0 },
+    { intro x, simpa only [zero_add, map_zero] using h 0 x } },
+  { rintros ⟨h₁, h₂⟩ x₁ x₂,
+    exact add_nonneg (h₁ x₁) (h₂ x₂), },
+end
+
+lemma pos_def_prod_iff {R} [ordered_ring R] [module R M₁] [module R M₂]
+  {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} :
+  (Q₁.prod Q₂).pos_def ↔ Q₁.pos_def ∧ Q₂.pos_def :=
+begin
+  simp_rw [pos_def_iff_nonneg, nonneg_prod_iff],
+  split,
+  { rintros ⟨⟨hle₁, hle₂⟩, ha⟩,
+    obtain ⟨ha₁, ha₂⟩ := anisotropic_of_prod ha,
+    refine ⟨⟨hle₁, ha₁⟩, ⟨hle₂, ha₂⟩⟩, },
+  { rintro ⟨⟨hle₁, ha₁⟩, ⟨hle₂, ha₂⟩⟩,
+    refine ⟨⟨hle₁, hle₂⟩, _⟩,
+    rintro ⟨x₁, x₂⟩ (hx : Q₁ x₁ + Q₂ x₂ = 0),
+    rw [add_eq_zero_iff' (hle₁ x₁) (hle₂ x₂), ha₁.eq_zero_iff, ha₂.eq_zero_iff] at hx,
+    rwa [prod.mk_eq_zero], }
 end
 
 lemma pos_def.prod {R} [ordered_ring R] [module R M₁] [module R M₂]
   {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂}
   (h₁ : Q₁.pos_def) (h₂ : Q₂.pos_def) : (Q₁.prod Q₂).pos_def :=
-begin
-  apply pos_def_of_nonneg,
-  { intro x,
-    exact add_nonneg (h₁.nonneg _) (h₂.nonneg _), },
-  { rintro ⟨x₁, x₂⟩ (hx : Q₁ x₁ + Q₂ x₂ = 0),
-    rw [add_eq_zero_iff' (h₁.nonneg x₁) (h₂.nonneg x₂), h₁.eq_zero_iff, h₂.eq_zero_iff] at hx,
-    rwa [prod.mk_eq_zero], }
-end
+pos_def_prod_iff.mpr ⟨h₁, h₂⟩
 
 open_locale big_operators
 
@@ -106,7 +138,7 @@ begin
     rw finset.sum_eq_zero_iff_of_nonneg (λ i hi, _) at hx,
     { ext i,
       have := hx i (finset.mem_univ _),
-      rw (h i).eq_zero_iff at this,
+      rw (h i).anisotropic.eq_zero_iff at this,
       exact this, },
     exact (h i).nonneg _, }
 end

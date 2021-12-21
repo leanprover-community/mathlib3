@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
-import ring_theory.noetherian
+import algebra.big_operators.associated
 import algebra.gcd_monoid.basic
+import ring_theory.noetherian
 import ring_theory.multiplicity
 
 /-!
@@ -256,7 +257,9 @@ include pf
 lemma wf_dvd_monoid.of_exists_prime_factors : wf_dvd_monoid α :=
 ⟨begin
   classical,
-  apply rel_hom.well_founded (rel_hom.mk _ _) (with_top.well_founded_lt nat.lt_wf),
+  refine rel_hom_class.well_founded
+    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : with_top ℕ → with_top ℕ → Prop))
+    (with_top.well_founded_lt nat.lt_wf),
   { intro a,
     by_cases h : a = 0, { exact ⊤ },
     exact (classical.some (pf a h)).card },
@@ -1208,32 +1211,36 @@ begin
     (irreducible_iff_prime.mp hp)⟩,
 end
 
-theorem count_mul_of_coprime [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
+theorem count_mul_of_coprime [nontrivial α] {a : associates α} {b : associates α}
   (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p a.factors = 0 ∨ count p a.factors = count p (a * b).factors :=
 begin
+  by_cases ha : a = 0,
+  { simp [ha], },
   cases count_of_coprime ha hb hab hp with hz hb0, { tauto },
   apply or.intro_right,
   rw [count_mul ha hb hp, hb0, add_zero]
 end
 
-theorem count_mul_of_coprime' [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
-  (hb : b ≠ 0)
+theorem count_mul_of_coprime' [nontrivial α] {a b : associates α}
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p (a * b).factors = count p a.factors
   ∨ count p (a * b).factors = count p b.factors :=
 begin
+  by_cases ha : a = 0, { simp [ha], },
+  by_cases hb : b = 0, { simp [hb], },
   rw [count_mul ha hb hp],
   cases count_of_coprime ha hb hab hp with ha0 hb0,
   { apply or.intro_right, rw [ha0, zero_add] },
   { apply or.intro_left, rw [hb0, add_zero] }
 end
 
-theorem dvd_count_of_dvd_count_mul [nontrivial α] {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem dvd_count_of_dvd_count_mul [nontrivial α] {a b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d)
   {k : ℕ} (habk : k ∣ count p (a * b).factors) : k ∣ count p a.factors :=
 begin
+  by_cases ha : a = 0, { simpa [*] using habk, },
   cases count_of_coprime ha hb hab hp with hz h,
   { rw hz, exact dvd_zero k },
   { rw [count_mul ha hb hp, h] at habk, exact habk }
@@ -1303,7 +1310,7 @@ begin
     apply (mul_eq_one_iff.1 h).1 },
   { refine is_pow_of_dvd_count ha _,
     intros p hp,
-    apply dvd_count_of_dvd_count_mul ha hb hp hab,
+    apply dvd_count_of_dvd_count_mul hb hp hab,
     rw h,
     apply dvd_count_pow _ hp,
     rintros rfl,

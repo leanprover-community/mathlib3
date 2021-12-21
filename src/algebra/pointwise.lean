@@ -668,6 +668,10 @@ lemma subsingleton_zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α 
   ((0 : α) • s).subsingleton :=
 subsingleton_singleton.mono (zero_smul_subset s)
 
+lemma smul_add_set [monoid α] [add_monoid β] [distrib_mul_action α β] (c : α) (s t : set β) :
+  c • (s + t) = c • s + c • t :=
+image_add (distrib_mul_action.to_add_monoid_hom β c).to_add_hom
+
 section group
 variables [group α] [mul_action α β] {A B : set β} {a : α} {x : β}
 

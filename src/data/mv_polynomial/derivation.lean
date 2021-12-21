@@ -12,7 +12,8 @@ import ring_theory.derivation
 In this file we prove that a variation of `mv_polynomial σ R` is defined by its values on all
 monomials `mv_polynomial.X i`. We also provide a constructor `mv_polynomial.mk_derivation` that
 builds a derivation from its values on `X i`s and a linear equivalence
-`mv_polynomial.equiv_derivation` between `σ → A` and `derivation (mv_polynomial σ R) A`. -/
+`mv_polynomial.equiv_derivation` between `σ → A` and `derivation (mv_polynomial σ R) A`.
+-/
 
 namespace mv_polynomial
 
@@ -27,6 +28,8 @@ section
 
 variable (R)
 
+/-- The derivation on `mv_polynomial σ R` that takes value `f i` on `X i`, as a linear map.
+Use `mv_polynomial.mk_derivation` instead. -/
 def mk_derivationₗ (f : σ → A) : mv_polynomial σ R →ₗ[R] A :=
 finsupp.lsum R $ λ xs : σ →₀ ℕ, (linear_map.ring_lmap_equiv_self R R A).symm $
   xs.sum $ λ i k, monomial (xs - finsupp.single i 1) (k : R) • f i
@@ -75,22 +78,23 @@ derivation.ext_of_adjoin_eq_top _ adjoin_range_X $ set.forall_range_iff.2 h
 
 variables (R)
 
+/-- The derivation on `mv_polynomial σ R` that takes value `f i` on `X i`. -/
 def mk_derivation (f : σ → A) : derivation R (mv_polynomial σ R) A :=
-begin
-  refine { .. mk_derivationₗ R f, .. },
-  refine (leibniz_iff_X (mk_derivationₗ R f)).2 ⟨_, λ s i, _⟩,
-  { rw [← C_1, C_apply, mk_derivationₗ_monomial, finsupp.sum_zero_index, smul_zero] },
-  { simp only [mk_derivationₗ_monomial, X, monomial_mul, one_smul, one_mul],
-    rw [finsupp.sum_add_index];
-      [skip, by simp, by { intros, simp only [nat.cast_add, (monomial _).map_add, add_smul] }],
-    rw [finsupp.sum_single_index, finsupp.sum_single_index];
-      [skip, by simp, by simp],
-    rw [tsub_self, add_tsub_cancel_right, nat.cast_one, ← C_apply, C_1, one_smul,
-      add_comm, add_right_inj, finsupp.smul_sum],
-    refine finset.sum_congr rfl (λ j hj, _), dsimp only,
-    rw [smul_smul, monomial_mul, one_mul, add_comm s, add_tsub_assoc_of_le],
-    rwa [finsupp.single_le_iff, nat.succ_le_iff, pos_iff_ne_zero, ← finsupp.mem_support_iff] }
-end
+{ to_linear_map := mk_derivationₗ R f,
+  leibniz' := (leibniz_iff_X (mk_derivationₗ R f)).2 $
+    begin
+      refine  ⟨_, λ s i, _⟩,
+      { rw [← C_1, C_apply, mk_derivationₗ_monomial, finsupp.sum_zero_index, smul_zero] },
+      { simp only [mk_derivationₗ_monomial, X, monomial_mul, one_smul, one_mul],
+        rw [finsupp.sum_add_index];
+          [skip, by simp, by { intros, simp only [nat.cast_add, (monomial _).map_add, add_smul] }],
+        rw [finsupp.sum_single_index, finsupp.sum_single_index]; [skip, by simp, by simp],
+        rw [tsub_self, add_tsub_cancel_right, nat.cast_one, ← C_apply, C_1, one_smul,
+          add_comm, add_right_inj, finsupp.smul_sum],
+        refine finset.sum_congr rfl (λ j hj, _), dsimp only,
+        rw [smul_smul, monomial_mul, one_mul, add_comm s, add_tsub_assoc_of_le],
+        rwa [finsupp.single_le_iff, nat.succ_le_iff, pos_iff_ne_zero, ← finsupp.mem_support_iff] }
+    end }
 
 variable {R}
 
@@ -102,7 +106,8 @@ end
 
 variable (R)
 
-def equiv_derivation : (σ → A) ≃ₗ[R] derivation R (mv_polynomial σ R) A :=
+/-- `mv_polynomial.mk_derivation` as a linear equivalence. -/
+def mk_derivation_equiv : (σ → A) ≃ₗ[R] derivation R (mv_polynomial σ R) A :=
 linear_equiv.symm $
 { inv_fun := mk_derivation R,
   to_fun := λ D i, D (X i),

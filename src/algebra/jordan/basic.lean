@@ -73,8 +73,10 @@ class jordan (A : Type*) [non_unital_non_assoc_ring A] :=
 (commL2R1: ∀ a : A, ⁅L (a*a), R a⁆ = 0)
 (commR1R2: ∀ a : A, ⁅R a, R (a*a)⁆ = 0)
 
+universe u
+
 @[priority 100] -- see Note [lower instance priority]
-instance  ring_jordan (B : Type*) [ring B] : jordan (B) :=
+instance  ring_jordan (B : Type u) [ring B] : jordan (B) :=
 {
   commL1R1 := begin
     intro,

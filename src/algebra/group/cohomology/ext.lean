@@ -1,7 +1,18 @@
+/-
+Copyright (c) 2021 Amelia Livingston. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Amelia Livingston
+-/
 import algebra.group.cohomology.std_resn
 import category_theory.abelian.ext
 import algebra.category.Module.projective
+/-!
 
+# Ext?
+
+What does this do?
+
+-/
 open group_cohomology
 universes u v
 variables (G : Type u) [group G] (M : Type u) [add_comm_group M]

@@ -1,5 +1,17 @@
+/-
+Copyright (c) 2021 Amelia Livingston. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Amelia Livingston
+-/
 import algebra.group.cohomology.cochain_succ
 import linear_algebra.basis
+/-!
+
+# group_ring
+
+What does this do?
+
+-/
 variables (G : Type*) [group G] (M : Type*) [add_comm_group M] [distrib_mul_action G M]
 (n : ℕ)
 noncomputable theory

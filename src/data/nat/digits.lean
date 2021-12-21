@@ -294,7 +294,7 @@ private lemma digits_last_aux {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
   digits b n = ((n % b) :: digits b (n / b)) :=
 begin
   rcases b with _|_|b,
-  { rw digits_zero_succ' w, simp },
+  { rw [digits_zero_succ' w, nat.mod_zero, nat.div_zero, nat.digits_zero_zero] },
   { norm_num at h },
   rcases n with _|n,
   { norm_num at w },

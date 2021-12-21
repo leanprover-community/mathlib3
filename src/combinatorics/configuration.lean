@@ -91,6 +91,6 @@ def line_count (p : P) : ℕ := nat.card {l : L // p ∈ l}
 variables (P) {L}
 
 /-- Number of lines through a given point. -/
-def point_count (l : L) [fintype {p : P // p ∈ l}] : ℕ := fintype.card {p // p ∈ l}
+def point_count (l : L) : ℕ := nat.card {p // p ∈ l}
 
 end configuration

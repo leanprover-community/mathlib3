@@ -518,9 +518,10 @@ lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v
 lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
 by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
 
-lemma degree_compl [fintype V] [decidable_eq V] [decidable_rel G.adj]
-  (v : V) : Gᶜ.degree v = fintype.card V - 1 - G.degree v :=
+lemma degree_compl [fintype (Gᶜ.neighbor_set v)] [fintype V] :
+  Gᶜ.degree v = fintype.card V - 1 - G.degree v :=
 begin
+  classical,
   rw [← card_neighbor_set_union_compl_neighbor_set G v, set.to_finset_union],
   simp [card_disjoint_union (set.to_finset_disjoint_iff.mpr (compl_neighbor_set_disjoint G v))],
 end

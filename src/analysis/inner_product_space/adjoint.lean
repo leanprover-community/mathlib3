@@ -136,7 +136,7 @@ variables [complete_space E'] [complete_space F']
 
 lemma is_adjoint_pair (A : E' →L[ℝ] F') :
   bilin_form.is_adjoint_pair (bilin_form_of_real_inner : bilin_form ℝ E')
-  (bilin_form_of_real_inner : bilin_form ℝ F') A.to_linear_map (A†).to_linear_map :=
+  (bilin_form_of_real_inner : bilin_form ℝ F') A (A†) :=
 λ x y, by simp only [adjoint_inner_right, to_linear_map_eq_coe,
                      bilin_form_of_real_inner_apply, coe_coe]
 

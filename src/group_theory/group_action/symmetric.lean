@@ -67,15 +67,6 @@ instance mul_action.of_is_central_scalar {R α} [comm_monoid R] [mul_action R α
  λ r s a, by rw [mul_comm, ←op_unop (s * r), op_smul_eq_smul, unop_mul, mul_smul,
                  unop_smul_eq_smul, unop_smul_eq_smul]⟩
 
--- TODO there might be a more general version of this
-instance smul_comm_class.of_is_central_scalar {R α} [has_scalar R α] [has_scalar Rᵐᵒᵖ α]
-  [is_central_scalar R α] [smul_comm_class R R α] : smul_comm_class Rᵐᵒᵖ R α :=
-⟨λ r' r a, by rw [←unop_smul_eq_smul r' (r • a), ←unop_smul_eq_smul r' a, smul_comm]⟩
-
-instance smul_comm_class.of_is_central_scalar' {R α} [has_scalar R α] [has_scalar Rᵐᵒᵖ α]
-  [is_central_scalar R α] [smul_comm_class R R α] : smul_comm_class R Rᵐᵒᵖ α :=
-⟨λ r' r a, by rw [←unop_smul_eq_smul r (r' • a), ←unop_smul_eq_smul r a, smul_comm]⟩
-
 /-- These are definitions (not instances) in order to easily make (local) instances of symmetric
 actions where the right action is derived from the left action. -/
 

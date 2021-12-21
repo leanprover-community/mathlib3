@@ -5,6 +5,7 @@ Authors: Andreas Swerdlow
 -/
 import algebra.module.linear_map
 import linear_algebra.bilinear_map
+import linear_algebra.matrix.basis
 
 /-!
 # Sesquilinear form
@@ -53,6 +54,14 @@ lemma is_ortho_zero_left (B : M →ₗ[R] M →ₛₗ[I] R) (x) : is_ortho B (0 
 lemma is_ortho_zero_right (B : M →ₗ[R] M →ₛₗ[I] R) (x) : is_ortho B x (0 : M) :=
   map_zero (B x)
 
+/-- A set of vectors `v` is orthogonal with respect to some bilinear form `B` if and only
+if for all `i ≠ j`, `B (v i) (v j) = 0`. For orthogonality between two elements, use
+`bilin_form.is_ortho` -/
+def is_Ortho {n : Type*} (B : M →ₗ[R] M →ₛₗ[I] R) (v : n → M) : Prop :=
+pairwise (B.is_ortho on v)
+
+lemma is_Ortho_def {n : Type*} {B : M →ₗ[R] M →ₛₗ[I] R} {v : n → M} :
+  B.is_Ortho v ↔ ∀ i j : n, i ≠ j → B (v i) (v j) = 0 := iff.rfl
 
 end comm_ring
 section is_domain
@@ -61,6 +70,8 @@ variables {R : Type*} {M : Type*} [comm_ring R] [is_domain R] [add_comm_group M]
   [module R M]
   {I : R ≃+* R}
   {B : M →ₗ[R] M →ₛₗ[I.to_ring_hom] R}
+variables {V : Type*} {K : Type*} [field K] [add_comm_group V] [module K V]
+  {J : K →+* K}
 
 
 lemma ortho_smul_left {x y} {a : R} (ha : a ≠ 0) : (is_ortho B x y) ↔ (is_ortho B (a • x) y) :=
@@ -85,6 +96,26 @@ begin
       exfalso,
       exact ha (I.map_eq_zero_iff.mp H) },
     { exact H }}
+end
+
+/-- A set of orthogonal vectors `v` with respect to some sesquilinear form `B` is linearly
+  independent if for all `i`, `B (v i) (v i) ≠ 0`. -/
+lemma linear_independent_of_is_Ortho
+  {n : Type*} {B : V →ₗ[K] V →ₛₗ[J] K} {v : n → V}
+  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) :
+  linear_independent K v :=
+begin
+  classical,
+  rw linear_independent_iff',
+  intros s w hs i hi,
+  have : B (s.sum $ λ (i : n), w i • v i) (v i) = 0,
+  { rw [hs, map_zero, zero_apply] },
+  have hsum : s.sum (λ (j : n), w j * B (v j) (v i)) = w i * B (v i) (v i),
+  { apply finset.sum_eq_single_of_mem i hi,
+    intros j hj hij,
+    rw [is_Ortho_def.1 hv₁ _ _ hij, mul_zero], },
+  simp_rw [B.map_sum₂, map_smul, smul_apply, smul_eq_mul, hsum] at this,
+  exact eq_zero_of_ne_zero_of_mul_right_eq_zero (hv₂ i) this,
 end
 
 end is_domain
@@ -152,5 +183,72 @@ end
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
 end is_alt
+
+
+section orthogonal
+
+/-- The orthogonal complement of a submodule `N` with respect to some bilinear form is the set of
+elements `x` which are orthogonal to all elements of `N`; i.e., for all `y` in `N`, `B x y = 0`.
+
+Note that for general (neither symmetric nor antisymmetric) bilinear forms this definition has a
+chirality; in addition to this "left" orthogonal complement one could define a "right" orthogonal
+complement for which, for all `y` in `N`, `B y x = 0`.  This variant definition is not currently
+provided in mathlib. -/
+def orthogonal (B : M →ₗ[R] M →ₛₗ[I] R) (N : submodule R M) : submodule R M :=
+{ carrier := { m | ∀ n ∈ N, is_ortho B n m },
+  zero_mem' := λ x _, B.is_ortho_zero_right x,
+  add_mem' := λ x y hx hy n hn,
+    by rw [is_ortho, map_add, show B n x = 0, by exact hx n hn,
+        show B n y = 0, by exact hy n hn, zero_add],
+  smul_mem' := λ c x hx n hn,
+    by rw [is_ortho, map_smulₛₗ, show B n x = 0, by exact hx n hn, smul_zero] }
+
+variables {N L : submodule R M}
+
+@[simp] lemma mem_orthogonal_iff {N : submodule R M} {m : M} :
+  m ∈ B.orthogonal N ↔ ∀ n ∈ N, is_ortho B n m := iff.rfl
+
+lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=
+λ _ hn l hl, hn l (h hl)
+
+lemma le_orthogonal_orthogonal (b : B.is_refl) :
+  N ≤ B.orthogonal (B.orthogonal N) :=
+λ n hn m hm, b _ _ (hm n hn)
+
+variables {V : Type*} {K : Type*} [field K] [add_comm_group V] [module K V]
+  {J : K ≃+* K}
+
+lemma ring_equiv_to_ring_hom_apply {J : K ≃+* K} {x : K} : J.to_ring_hom x = J x :=
+  by rw [J.to_ring_hom_eq_coe, J.coe_to_ring_hom]
+
+lemma ring_equiv_to_ring_hom_map_eq_zero_iff {J : K ≃+* K} {x : K} : J.to_ring_hom x = 0 ↔ x = 0 :=
+begin
+  rw J.to_ring_hom_eq_coe,
+  rw J.coe_to_ring_hom,
+  rw J.map_eq_zero_iff,
+end
+
+#check ring_equiv_to_ring_hom_apply
+
+-- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
+lemma span_singleton_inf_orthogonal_eq_bot
+  {B : V →ₗ[K] V →ₛₗ[J.to_ring_hom] K} {x : V} (hx : ¬ B.is_ortho x x) :
+  (K ∙ x) ⊓ B.orthogonal (K ∙ x) = ⊥ :=
+begin
+  rw ← finset.coe_singleton,
+  refine eq_bot_iff.2 (λ y h, _),
+  rcases mem_span_finset.1 h.1 with ⟨μ, rfl⟩,
+  have := h.2 x _,
+  { rw finset.sum_singleton at this ⊢,
+    suffices hμzero : μ x = 0,
+    { rw [hμzero, zero_smul, submodule.mem_bot] },
+    change B x (μ x • x) = 0 at this, rw [map_smulₛₗ, smul_eq_mul] at this,
+    exact or.elim (zero_eq_mul.mp this.symm) ring_equiv_to_ring_hom_map_eq_zero_iff.mp
+    (λ hfalse, false.elim $ hx hfalse) },
+  { rw submodule.mem_span; exact λ _ hp, hp $ finset.mem_singleton_self _ }
+end
+
+
+end orthogonal
 
 end linear_map

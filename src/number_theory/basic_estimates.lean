@@ -63,9 +63,11 @@ lemma summatory_eq_sub {M : Type*} [add_comm_group M] (a : ℕ → M) :
 
 /-- A version of partial summation where the upper bound is a natural number, useful to prove the
 general case. -/
-theorem partial_summation_nat (a : ℕ → ℂ) (f : ℝ → ℂ) {N : ℕ} (hf : continuous (deriv f)) :
+theorem partial_summation_nat (a : ℕ → ℂ) (f f' : ℝ → ℂ) {N : ℕ}
+  (hf : ∀ x, has_deriv_at f (f' x) x)
+  (hf' : ∀ x, continuous_at f' x) :
   ∑ n in finset.Icc 1 N, a n * f n =
-    summatory a N * f N - ∫ t in 1..N, summatory a t * deriv f t :=
+    summatory a N * f N - ∫ t in 1..N, summatory a t * f' t :=
 begin
   rw ←nat.Ico_succ_right,
   induction N,
@@ -79,7 +81,13 @@ begin
     rw sub_add_eq_add_sub,
     rw sub_eq_zero,
     rw add_comm,
-    rw add_sub_assoc,
+    rw ←add_sub_assoc,
+    rw ←sub_add_eq_add_sub,
+    rw ←eq_sub_iff_add_eq,
+    rw interval_integral.integral_interval_sub_left,
+    rw interval_integral.integral_of_le,
+    rw [measure_theory.measure.restrict_congr_set measure_theory.Ioo_ae_eq_Ioc.symm],
+
 
   -- induction N,
   -- { simp only [zero_sub, summatory_zero, finset.sum_empty, nat.cast_zero, zero_mul, nat.lt_one_iff,
@@ -100,8 +108,6 @@ begin
 
 
 end
-
-#exit
 
 -- BM: I think this can be made stronger by taking a weaker assumption on `f`, maybe something like
 -- the derivative is integrable on intervals contained in [1,x]?

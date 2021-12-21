@@ -941,8 +941,8 @@ https://math.stackexchange.com/a/239419/31917,
 https://www.ams.org/journals/tran/1969-138-00/S0002-9947-1969-0238839-5/.
 This is similar to `is_noetherian.injective_of_surjective_endomorphism` but only applies in the
 commutative case, but does not use a Noetherian hypothesis. -/
-theorem fg_comm_mod_surj_inj [hfg : finite R M] (f_surj : function.surjective f) :
-  function.injective f :=
+theorem module.finite.injective_of_surjective_endomorphism [hfg : finite R M]
+  (f_surj : function.surjective f) : function.injective f :=
 begin
   letI := module_polynomial_ring_endo f,
   have X_mul : ∀ o, (X : polynomial R) • o = f o,

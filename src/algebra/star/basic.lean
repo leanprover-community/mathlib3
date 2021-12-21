@@ -9,7 +9,6 @@ import algebra.field_power
 import data.equiv.ring_aut
 import group_theory.group_action.units
 import group_theory.group_action.opposite
-import group_theory.submonoid.basic
 import algebra.ring.comp_typeclasses
 
 /-!

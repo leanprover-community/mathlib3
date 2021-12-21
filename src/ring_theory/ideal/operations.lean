@@ -41,6 +41,24 @@ theorem mem_annihilator {r} : r ∈ N.annihilator ↔ ∀ n ∈ N, r • n = (0:
 theorem mem_annihilator' {r} : r ∈ N.annihilator ↔ N ≤ comap (r • linear_map.id) ⊥ :=
 mem_annihilator.trans ⟨λ H n hn, (mem_bot R).2 $ H n hn, λ H n hn, (mem_bot R).1 $ H hn⟩
 
+lemma mem_annihilator_span (s : set M) (r : R) :
+  r ∈ (submodule.span R s).annihilator ↔ ∀ n : s, r • (n : M) = 0 :=
+begin
+  rw submodule.mem_annihilator,
+  split,
+  { intros h n, exact h _ (submodule.subset_span n.prop) },
+  { intros h n hn,
+    apply submodule.span_induction hn,
+    { intros x hx, exact h ⟨x, hx⟩ },
+    { exact smul_zero _ },
+    { intros x y hx hy, rw [smul_add, hx, hy, zero_add] },
+    { intros a x hx, rw [smul_comm, hx, smul_zero] } }
+end
+
+lemma mem_annihilator_span_singleton (g : M) (r : R) :
+  r ∈ (submodule.span R ({g} : set M)).annihilator ↔ r • g = 0 :=
+by simp [mem_annihilator_span]
+
 theorem annihilator_bot : (⊥ : submodule R M).annihilator = ⊤ :=
 (ideal.eq_top_iff_one _).2 $ mem_annihilator'.2 bot_le
 
@@ -185,6 +203,24 @@ begin
   { rw top_smul at this, exact this (subset_span (set.mem_singleton x)) },
   rw [← hs, span_smul_span, span_le],
   simpa using H
+end
+
+/-- Given `s`, a generating set of `R`, to check that an `x : M` falls in a
+submodule `M'` of `x`, we only need to show that `r ^ n • x ∈ M'` for some `n` for each `r : s`. -/
+lemma mem_of_span_eq_top_of_smul_pow_mem (M' : submodule R M)
+  (s : set R) (hs : ideal.span s = ⊤) (x : M)
+  (H : ∀ r : s, ∃ (n : ℕ), (r ^ n : R) • x ∈ M') : x ∈ M' :=
+begin
+  obtain ⟨s', hs₁, hs₂⟩ := (ideal.span_eq_top_iff_finite _).mp hs,
+  replace H : ∀ r : s', ∃ (n : ℕ), (r ^ n : R) • x ∈ M' := λ r, H ⟨_, hs₁ r.prop⟩,
+  choose n₁ n₂ using H,
+  let N := s'.attach.sup n₁,
+  have hs' := ideal.span_pow_eq_top (s' : set R) hs₂ N,
+  apply M'.mem_of_span_top_of_smul_mem _ hs',
+  rintro ⟨_, r, hr, rfl⟩,
+  convert M'.smul_mem (r ^ (N - n₁ ⟨r, hr⟩)) (n₂ ⟨r, hr⟩) using 1,
+  simp only [subtype.coe_mk, smul_smul, ← pow_add],
+  rw tsub_add_cancel_of_le (finset.le_sup (s'.mem_attach _) : n₁ ⟨r, hr⟩ ≤ N),
 end
 
 variables {M' : Type w} [add_comm_monoid M'] [module R M']

@@ -315,8 +315,12 @@ begin
   exact (classical.some_spec (exists_multiset_roots hp0)).1
 end
 
-lemma card_roots' {p : polynomial R} (hp0 : p ≠ 0) : p.roots.card ≤ nat_degree p :=
-with_bot.coe_le_coe.1 (le_trans (card_roots hp0) (le_of_eq $ degree_eq_nat_degree hp0))
+lemma card_roots' (p : polynomial R) : p.roots.card ≤ nat_degree p :=
+begin
+  by_cases hp0 : p = 0,
+  { simp [hp0], },
+  exact with_bot.coe_le_coe.1 (le_trans (card_roots hp0) (le_of_eq $ degree_eq_nat_degree hp0))
+end
 
 lemma card_roots_sub_C {p : polynomial R} {a : R} (hp0 : 0 < degree p) :
   ((p - C a).roots.card : with_bot ℕ) ≤ degree p :=
@@ -329,11 +333,16 @@ lemma card_roots_sub_C' {p : polynomial R} {a : R} (hp0 : 0 < degree p) :
 with_bot.coe_le_coe.1 (le_trans (card_roots_sub_C hp0) (le_of_eq $ degree_eq_nat_degree
   (λ h, by simp [*, lt_irrefl] at *)))
 
-@[simp] lemma count_roots (hp : p ≠ 0) : p.roots.count a = root_multiplicity a p :=
-by { rw [roots, dif_neg hp], exact (classical.some_spec (exists_multiset_roots hp)).2 a }
+@[simp] lemma count_roots (p : polynomial R) : p.roots.count a = root_multiplicity a p :=
+begin
+  by_cases hp : p = 0,
+  { simp [hp], },
+  rw [roots, dif_neg hp],
+  exact (classical.some_spec (exists_multiset_roots hp)).2 a
+end
 
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
-by rw [← count_pos, count_roots hp, root_multiplicity_pos hp]
+by rw [← count_pos, count_roots p, root_multiplicity_pos hp]
 
 lemma eq_zero_of_infinite_is_root
   (p : polynomial R) (h : set.infinite {x | is_root p x}) : p = 0 :=
@@ -363,8 +372,8 @@ end
 
 lemma roots_mul {p q : polynomial R} (hpq : p * q ≠ 0) : (p * q).roots = p.roots + q.roots :=
 multiset.ext.mpr $ λ r,
-  by rw [count_add, count_roots hpq, count_roots (left_ne_zero_of_mul hpq),
-         count_roots (right_ne_zero_of_mul hpq), root_multiplicity_mul hpq]
+  by rw [count_add, count_roots, count_roots,
+         count_roots, root_multiplicity_mul hpq]
 
 @[simp] lemma mem_roots_sub_C {p : polynomial R} {a x : R} (hp0 : 0 < degree p) :
   x ∈ (p - C a).roots ↔ p.eval x = a :=
@@ -375,7 +384,7 @@ multiset.ext.mpr $ λ r,
 @[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = {r} :=
 begin
   ext s,
-  rw [count_roots (X_sub_C_ne_zero r), root_multiplicity_X_sub_C],
+  rw [count_roots, root_multiplicity_X_sub_C],
   split_ifs with h,
   { rw [h, count_singleton_self] },
   { rw [singleton_eq_cons, count_cons_of_ne h, count_zero] }
@@ -383,9 +392,8 @@ end
 
 @[simp] lemma roots_C (x : R) : (C x).roots = 0 :=
 if H : x = 0 then by rw [H, C_0, roots_zero] else multiset.ext.mpr $ λ r,
-have h : C x ≠ 0, from λ h, H $ C_inj.1 $ h.symm ▸ C_0.symm,
 have not_root : ¬ is_root (C x) r := mt (λ (h : eval r (C x) = 0), trans eval_C.symm h) H,
-by rw [count_roots h, count_zero, root_multiplicity_eq_zero not_root]
+by rw [count_roots, count_zero, root_multiplicity_eq_zero not_root]
 
 @[simp] lemma roots_one : (1 : polynomial R).roots = ∅ :=
 roots_C 1
@@ -422,6 +430,47 @@ calc ((roots ((X : polynomial R) ^ n - C a)).card : with_bot ℕ)
       ≤ degree ((X : polynomial R) ^ n - C a) : card_roots (X_pow_sub_C_ne_zero hn a)
   ... = n : degree_X_pow_sub_C hn a
 
+lemma le_root_multiplicity_map {K L : Type*} [comm_ring K]
+  [comm_ring L] {p : polynomial K} {f : K →+* L} (hf : function.injective f) (a : K) :
+  root_multiplicity a p ≤ root_multiplicity (f a) (map f p) :=
+begin
+  by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [map_zero] using (map_injective f hf).ne hp0, },
+  rw [root_multiplicity, root_multiplicity, dif_neg hp0, dif_neg hmap],
+  simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
+  intros m hm,
+  have := ring_hom.map_dvd (map_ring_hom f) (hm m le_rfl),
+  simpa only [coe_map_ring_hom, map_pow, map_sub, map_X, map_C],
+end
+
+lemma count_map_roots {K L : Type*} [comm_ring K] [is_domain K]
+  [comm_ring L] {p : polynomial K} {f : K →+* L} (hf : function.injective f)
+  (a : L) :
+  count a (multiset.map f p.roots) ≤ root_multiplicity a (map f p) :=
+begin
+  by_cases h : ∃ t, f t = a,
+  { rcases h with ⟨h_w, rfl⟩,
+    rw [multiset.count_map_eq_count' f _ hf, count_roots],
+    exact le_root_multiplicity_map hf h_w },
+  { suffices : multiset.count a (multiset.map f p.roots) = 0,
+    { rw this, exact zero_le _, },
+    rw [multiset.count_map, multiset.card_eq_zero, multiset.filter_eq_nil],
+    rintro k hk rfl,
+    exact h ⟨k, rfl⟩, },
+end
+
+lemma roots_map_of_injective_card_eq_total_degree {K L : Type*} [comm_ring K] [is_domain K]
+  [comm_ring L] [is_domain L] {p : polynomial K} {f : K →+* L} (hf : function.injective f)
+  (hroots : p.roots.card = p.nat_degree) :
+  multiset.map f p.roots = (map f p).roots :=
+begin
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [map_zero] using (map_injective f hf).ne hp0, },
+  apply multiset.eq_of_le_of_card_le,
+  { simpa only [multiset.le_iff_count, count_roots] using count_map_roots hf },
+  { simpa only [multiset.card_map, hroots] using (card_roots' _).trans (nat_degree_map_le f p) },
+end
+
 section nth_roots
 
 /-- `nth_roots n a` noncomputably returns the solutions to `x ^ n = a`-/
@@ -454,6 +503,8 @@ multiset.to_finset (nth_roots n (1 : R))
 @[simp] lemma mem_nth_roots_finset {n : ℕ} (h : 0 < n) {x : R} :
   x ∈ nth_roots_finset n R ↔ x ^ (n : ℕ) = 1 :=
 by rw [nth_roots_finset, mem_to_finset, mem_nth_roots h]
+
+@[simp] lemma nth_roots_finset_zero : nth_roots_finset 0 R = ∅ := by simp [nth_roots_finset]
 
 end nth_roots
 

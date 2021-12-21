@@ -105,18 +105,18 @@ variables (R M)
 /-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
 normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
 such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
-using `ne_bot (𝓝[{x}ᶜ] x)`.
+using `ne_bot (𝓝[≠] x)`.
 
 This lemma is not an instance because Lean would need to find `[has_continuous_smul ?m_1 M]` with
 unknown `?m_1`. We register this as an instance for `R = ℝ` in `real.punctured_nhds_module_ne_bot`.
 One can also use `haveI := module.punctured_nhds_ne_bot R M` in a proof.
 -/
-lemma module.punctured_nhds_ne_bot [nontrivial M] [ne_bot (𝓝[{0}ᶜ] (0 : R))]
+lemma module.punctured_nhds_ne_bot [nontrivial M] [ne_bot (𝓝[≠] (0 : R))]
   [no_zero_smul_divisors R M] (x : M) :
-  ne_bot (𝓝[{x}ᶜ] x) :=
+  ne_bot (𝓝[≠] x) :=
 begin
   rcases exists_ne (0 : M) with ⟨y, hy⟩,
-  suffices : tendsto (λ c : R, x + c • y) (𝓝[{0}ᶜ] 0) (𝓝[{x}ᶜ] x), from this.ne_bot,
+  suffices : tendsto (λ c : R, x + c • y) (𝓝[≠] 0) (𝓝[≠] x), from this.ne_bot,
   refine tendsto.inf _ (tendsto_principal_principal.2 $ _),
   { convert tendsto_const_nhds.add ((@tendsto_id R _).smul_const y),
     rw [zero_smul, add_zero] },
@@ -282,10 +282,11 @@ variables
 {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} [semiring R₁] [semiring R₂] [semiring R₃]
 {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃}
 {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
+{M'₁ : Type*} [topological_space M'₁] [add_comm_monoid M'₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
-[module R₁ M₁] [module R₂ M₂] [module R₃ M₃]
+[module R₁ M₁] [module R₁ M'₁] [module R₂ M₂] [module R₃ M₃]
 
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M₁ →SL[σ₁₂] M₂) (M₁ →ₛₗ[σ₁₂] M₂) := ⟨to_linear_map⟩
@@ -335,7 +336,7 @@ fun_like.ext f g h
 theorem ext_iff {f g : M₁ →SL[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 
-variables (f g : M₁ →SL[σ₁₂] M₂) (c : R₁) (h : M₂ →SL[σ₂₃] M₃) (x y z : M₁)
+variables (f g : M₁ →SL[σ₁₂] M₂) (c : R₁) (h : M₂ →SL[σ₂₃] M₃) (x y z : M₁) (fₗ : M₁ →L[R₁] M'₁)
 
 -- make some straightforward lemmas available to `simp`.
 protected lemma map_zero : f (0 : M₁) = 0 := map_zero f
@@ -743,6 +744,27 @@ lemma smul_right_apply {c : M₁ →L[R] S} {f : M₂} {x : M₁} :
 rfl
 
 end
+
+section pointwise
+open_locale pointwise
+
+@[simp] lemma image_smul_setₛₗ (c : R₁) (s : set M₁) :
+  f '' (c • s) = (σ₁₂ c) • f '' s :=
+f.to_linear_map.image_smul_setₛₗ c s
+
+lemma image_smul_set (c : R₁) (s : set M₁) :
+  fₗ '' (c • s) = c • fₗ '' s :=
+fₗ.to_linear_map.image_smul_set c s
+
+lemma preimage_smul_setₛₗ {c : R₁} (hc : is_unit c) (s : set M₂) :
+  f ⁻¹' (σ₁₂ c • s) = c • f ⁻¹' s :=
+f.to_linear_map.preimage_smul_setₛₗ hc s
+
+lemma preimage_smul_set {c : R₁} (hc : is_unit c) (s : set M'₁) :
+  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
+fₗ.to_linear_map.preimage_smul_set hc s
+
+end pointwise
 
 variables [module R₁ M₂] [topological_space R₁] [has_continuous_smul R₁ M₂]
 
@@ -1177,10 +1199,11 @@ variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} [semiring R₁] [semiring
 {σ₁₃ : R₁ →+* R₃} {σ₃₁ : R₃ →+* R₁} [ring_hom_inv_pair σ₁₃ σ₃₁] [ring_hom_inv_pair σ₃₁ σ₁₃]
 [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁]
 {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
+{M'₁ : Type*} [topological_space M'₁] [add_comm_monoid M'₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
-[module R₁ M₁] [module R₂ M₂] [module R₃ M₃]
+[module R₁ M₁] [module R₁ M'₁] [module R₂ M₂] [module R₃ M₃]
 
 include σ₂₁
 /-- A continuous linear equivalence induces a continuous linear map. -/
@@ -1463,6 +1486,29 @@ rfl
   (equiv_of_inverse f₁ f₂ h₁ h₂).symm = equiv_of_inverse f₂ f₁ h₂ h₁ :=
 rfl
 omit σ₂₁
+
+section pointwise
+open_locale pointwise
+include σ₂₁
+
+@[simp] lemma image_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₁) (s : set M₁) :
+  e '' (c • s) = (σ₁₂ c) • e '' s :=
+e.to_linear_equiv.image_smul_setₛₗ c s
+
+@[simp] lemma preimage_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₂) (s : set M₂) :
+  e ⁻¹' (c • s) = σ₂₁ c • e ⁻¹' s :=
+e.to_linear_equiv.preimage_smul_setₛₗ c s
+omit σ₂₁
+
+@[simp] lemma image_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M₁) :
+  e '' (c • s) = c • e '' s :=
+e.to_linear_equiv.image_smul_set c s
+
+@[simp] lemma preimage_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M'₁) :
+  e ⁻¹' (c • s) = c • e ⁻¹' s :=
+e.to_linear_equiv.preimage_smul_set c s
+
+end pointwise
 
 variable (M₁)
 

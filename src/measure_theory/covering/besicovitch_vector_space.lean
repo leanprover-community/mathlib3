@@ -172,7 +172,7 @@ begin
   have J : (s.card : ℝ≥0∞) * ennreal.of_real (δ ^ (finrank ℝ E))
     ≤ ennreal.of_real (ρ ^ (finrank ℝ E)) :=
       (ennreal.mul_le_mul_right (μ.add_haar_ball_pos _ zero_lt_one).ne'
-        (μ.add_haar_ball_lt_top _ _).ne).1 I,
+        measure_ball_lt_top.ne).1 I,
   have K : (s.card : ℝ) ≤ (5 : ℝ) ^ finrank ℝ E,
     by simpa [ennreal.to_real_mul, div_eq_mul_inv] using
       ennreal.to_real_le_of_le_of_real (pow_nonneg ρpos.le _) J,
@@ -339,7 +339,7 @@ close enough to `1`. The number of such configurations is bounded by `multiplici
 suitably small.
 
 To check that the points `c' i` are `1 - δ`-separated, one treats separately the cases where
-both `∥c i∥` and `∥c j∥` are `≤ 2`, where one of them is `≤ 2` and the other one is `` > 2`, and
+both `∥c i∥` and `∥c j∥` are `≤ 2`, where one of them is `≤ 2` and the other one is `> 2`, and
 where both of them are `> 2`.
 -/
 

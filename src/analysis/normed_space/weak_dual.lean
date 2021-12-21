@@ -213,24 +213,22 @@ lemma _root_.mem_nhds_Pi' {ι : Type*} {X : ι → Type*} [∀ (i : ι), metric_
 begin
   have nhd : {z : X i | dist (f i) z < ε} ∈ 𝓝 (f i),
   by { simp_rw dist_comm, exact ball_mem_nhds (f i) ε_pos, },
-  have whee : ∀ j ∈ {i}, {z : X j | dist (f j) z < ε} ∈ 𝓝 (f j),
-  by { intros j hj, rwa mem_singleton_iff.mp hj, },
-  have := set_pi_mem_nhds (finite_singleton i) whee,
-  simp only [singleton_pi, preimage_set_of_eq, function.eval_apply] at this,
-  exact this,
+  have key := set_pi_mem_nhds (finite_singleton i)
+    (by { intros j hj, rwa mem_singleton_iff.mp hj, } :
+    ∀ j ∈ {i}, {z : X j | dist (f j) z < ε} ∈ 𝓝 (f j)),
+  simp only [singleton_pi, preimage_set_of_eq, function.eval_apply] at key,
+  exact key,
 end
 
 /-- For any `f : Π (j : ι), K j` in a product of normed groups `K j`, a set of the
 form `{g | dist (f i) (g i) < ε}` with `ε > 0` and `i : ι` is a neighborhood of `f`. -/
 lemma _root_.mem_nhds_Pi_normed_field {ι : Type*} {K : ι → Type*} [∀ (i : ι), normed_group (K i)]
-  (f : (Π (j : ι), K j)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
-  {g : (Π (j : ι), K j) | ∥ f i - g i ∥ < ε} ∈ 𝓝 f :=
+  (f : (Π j, K j)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
+  {g : (Π j, K j) | ∥ f i - g i ∥ < ε} ∈ 𝓝 f :=
 begin
   have key := _root_.mem_nhds_Pi' f i ε_pos,
-  have eq :
-    {g : (Π (j : ι), K j) | ∥f i - g i∥ < ε} = {g : (Π (j : ι), K j) | dist (f i) (g i) < ε},
-  by simp only [dist_eq_norm],
-  rwa eq,
+  rwa (_ : {g : (Π j, K j) | ∥f i - g i∥ < ε} = {g : (Π j, K j) | dist (f i) (g i) < ε}),
+  simp only [dist_eq_norm],
 end
 
 /-- The function `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` is an embedding. -/
@@ -264,8 +262,7 @@ begin
   intros g hg,
   cases hg with g₀ hg₀,
   simp only [algebra.id.smul_eq_mul, mem_singleton_iff, norm_eq_zero, mem_preimage],
-  rw [hφ, ← hg₀],
-  dunfold weak_dual.to_Pi,
+  rw [hφ, ← hg₀, weak_dual.to_Pi],
   dsimp,
   simp only [algebra.id.smul_eq_mul, continuous_linear_map.map_add, add_sub_cancel,
              sub_self, continuous_linear_map.map_smul, add_sub_cancel', sub_self],
@@ -303,8 +300,7 @@ begin
   { exact le_of_forall_pos_le_add this, },
   intros ε ε_pos,
   have nhd := mem_nhds_Pi_normed_field f z ε_pos,
-  have clos := mem_closure_iff_nhds.mp hf _ nhd,
-  cases clos with g hg,
+  cases mem_closure_iff_nhds.mp hf _ nhd with g hg,
   simp only [mem_image, mem_inter_eq, mem_set_of_eq] at hg,
   rcases hg with ⟨tri, ⟨y', ⟨at_z_le, eq_g⟩⟩⟩,
   have eq : weak_dual.to_Pi 𝕜 E y' z = y' z := rfl,
@@ -320,7 +316,7 @@ lemma continuous_of_mem_closure_polar
   (hφ : φ ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s))) :
   continuous φ :=
 begin
-  cases @polar_bounded_of_nhds_zero 𝕜 _ E _ _ s s_nhd with c hc,
+  cases polar_bounded_of_nhds_zero 𝕜 s_nhd with c hc,
   have c_nn : 0 ≤ c := le_trans (norm_nonneg _) (hc 0 (zero_mem_polar 𝕜 s)),
   have hφ' : φ ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
   { apply mem_of_mem_of_subset hφ _,
@@ -337,9 +333,7 @@ begin
     exact continuous_apply z, },
   have sin_closed : is_closed (Icc (-c * ∥z∥) (c * ∥z∥) : set ℝ) := is_closed_Icc,
   have preim_cl := is_closed.preimage θ_cont sin_closed,
-  suffices :
-    (weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)
-    ⊆ θ⁻¹' (Icc (-c * ∥z∥) (c * ∥z∥)),
+  suffices : (weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s) ⊆ θ⁻¹' (Icc (-c * ∥z∥) (c * ∥z∥)),
   { exact ((is_closed.closure_subset_iff preim_cl).mpr this hφ).right, },
   intros ψ hψ,
   rcases hψ with ⟨x', ⟨polar_x', ψ_x'⟩⟩,
@@ -368,8 +362,7 @@ begin
   { apply closure_mono (image_subset_range _ _),
     exact mem_closure_iff_cluster_pt.mpr hf, },
   set f_lin := linear_of_mem_closure_range f f_in_closure₀ with h_f_lin,
-  have f_cont := continuous_of_mem_closure_polar
-    s_nhd f f_in_closure,
+  have f_cont := continuous_of_mem_closure_polar s_nhd f f_in_closure,
   set φ : weak_dual 𝕜 E :=
     { to_fun := f,
       map_add' := begin
@@ -387,10 +380,8 @@ begin
           f f_in_closure₀ _ at key, },
       end,
       cont := f_cont, } with hφ,
-  use φ,
-  refine ⟨_, rfl⟩,
-  dunfold weak_dual.polar,
-  dunfold polar,
+  refine ⟨φ, ⟨_, rfl⟩⟩,
+  rw [weak_dual.polar, polar],
   intros z hz,
   apply norm_eval_le_of_mem_closure_norm_eval_le z 1 f,
   have ss : weak_dual.polar 𝕜 s ⊆ {x' : weak_dual 𝕜 E | ∥x' z∥ ≤ 1},
@@ -420,7 +411,8 @@ begin
       have c_nn := hc 0 (zero_mem_polar 𝕜 s),
       rwa norm_zero at c_nn, },
     have eq : x' z = f z := congr_fun f_eq z,
-    rwa eq at bd, },
+    rwa eq at bd,
+    },
   apply compact_of_is_closed_subset _ _ ss,
   { apply is_compact_univ_pi,
     exact λ z, proper_space.is_compact_closed_ball 0 _, },

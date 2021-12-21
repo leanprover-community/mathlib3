@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2021 Martin Dvorak. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Martin Dvorak, Kyle Miller, Andrew Yang
+Authors: Martin Dvorak, Kyle Miller, Eric Wieser, Andrew Yang
 -/
 
 import data.matrix.basic
 import data.matrix.notation
-import linear_algebra.basic
+import tactic.fin_cases
 
 
 namespace cross_product
@@ -29,31 +29,8 @@ def cross_product : (fin 3 → R) →ₗ[R] (fin 3 → R) →ₗ[R] (fin 3 → R
 
     map_add' := λ (b₁ b₂ : fin 3 → R),
     begin
-      simp [mul_add],
-
-      have eq₀ : (a 1 * b₁ 2 + a 1 * b₂ 2) - (a 2 * b₁ 1 + a 2 * b₂ 1) =
-                 (a 1 * b₁ 2 - a 2 * b₁ 1) + (a 1 * b₂ 2 - a 2 * b₂ 1),
-      { ring },
-      rw eq₀,
-
-      have eq₁ : (a 2 * b₁ 0 + a 2 * b₂ 0) - (a 0 * b₁ 2 + a 0 * b₂ 2) =
-                 (a 2 * b₁ 0 - a 0 * b₁ 2) + (a 2 * b₂ 0 - a 0 * b₂ 2),
-      { ring },
-      rw eq₁,
-
-      have eq₂ : (a 0 * b₁ 1 + a 0 * b₂ 1) - (a 1 * b₁ 0 + a 1 * b₂ 0) =
-                 (a 0 * b₁ 1 - a 1 * b₁ 0) + (a 0 * b₂ 1 - a 1 * b₂ 0),
-      { ring },
-      rw eq₂,
-
-      have big : ![a 1 * b₁ 2 - a 2 * b₁ 1, a 2 * b₁ 0 - a 0 * b₁ 2, a 0 * b₁ 1 - a 1 * b₁ 0]
-               + ![a 1 * b₂ 2 - a 2 * b₂ 1, a 2 * b₂ 0 - a 0 * b₂ 2, a 0 * b₂ 1 - a 1 * b₂ 0]
-               = ![a 1 * b₁ 2 - a 2 * b₁ 1 + (a 1 * b₂ 2 - a 2 * b₂ 1),
-                   a 2 * b₁ 0 - a 0 * b₁ 2 + (a 2 * b₂ 0 - a 0 * b₂ 2),
-                   a 0 * b₁ 1 - a 1 * b₁ 0 + (a 0 * b₂ 1 - a 1 * b₂ 0)],
-      { simp },
-
-      rw ← big,
+      ext x,
+      fin_cases x; simp [mul_add]; ring,
     end,
 
     map_smul' := λ (c : R) (b : fin 3 → R),
@@ -62,12 +39,14 @@ def cross_product : (fin 3 → R) →ₗ[R] (fin 3 → R) →ₗ[R] (fin 3 → R
 
   map_add' := λ (a₁ a₂ : fin 3 → R),
   begin
-    sorry
+    ext b,
+    fin_cases x; simp [add_mul]; ring,
   end,
 
   map_smul' := λ (c : R) (a : fin 3 → R),
   begin
-    sorry
+    ext b,
+    fin_cases x; simp [mul_sub, mul_assoc],
   end
 }
 
@@ -80,19 +59,12 @@ local infix ` ⬝ ` : 67 := matrix.dot_product
 /-- cross product is anti-commutative -/
 lemma cross_product_anticomm (v w : fin 3 → R) :
   v ×₃ w = - (w ×₃ v) :=
-begin
-  dsimp [cross_product],
-  simp [mul_comm],
-end
+by simp [cross_product, mul_comm]
 
 /-- vector sum of cross product with flipped cross product yields the zero vector -/
 lemma cross_product_anticomm' (v w : fin 3 → R) :
   v ×₃ w + w ×₃ v = 0 :=
-begin
-  rw add_eq_zero_iff_eq_neg,
-  apply cross_product_anticomm,
-end
-
+by rw [add_eq_zero_iff_eq_neg, cross_product_anticomm]
 
 /-- cross product of a vector with itself yields the zero vector -/
 lemma cross_product_self_eq_zero_vector (v : fin 3 → R) :
@@ -111,28 +83,19 @@ by simp [matrix.dot_product, add_assoc, fin.sum_univ_succ]
 /-- cross product of two vectors is perpendicular to the first vector -/
 lemma cross_product_perpendicular_first_arg (v w : fin 3 → R) :
   v ⬝ (v ×₃ w) = 0 :=
-begin
-  simp [cross_product, dot_product_unfold],
-  simp [mul_sub, mul_assoc, mul_left_comm],
-end
+by simp [cross_product, dot_product_unfold, mul_sub, mul_assoc, mul_left_comm]
 
 /-- cross product of two vectors is perpendicular to the second vector -/
 lemma cross_product_perpendicular_second_arg (v w : fin 3 → R) :
   w ⬝ (v ×₃ w) = 0 :=
-begin
-  rw cross_product_anticomm,
-  rw matrix.dot_product_neg,
-  rw cross_product_perpendicular_first_arg,
-  exact neg_zero,
-end
+by rw [cross_product_anticomm, matrix.dot_product_neg, cross_product_perpendicular_first_arg, neg_zero]
 
 /-- triple-product permutation lemma (combination of dot product with cross product);
     both terms express the determinant of [u|v|w] basically -/
 lemma triple_product_permutation (u v w : fin 3 → R) :
   u ⬝ (v ×₃ w) = v ⬝ (w ×₃ u) :=
 begin
-  simp [cross_product, dot_product_unfold],
-  simp [mul_sub, mul_assoc, mul_left_comm, mul_comm],
+  simp [cross_product, dot_product_unfold, mul_sub, mul_assoc, mul_left_comm, mul_comm],
   ring,
 end
 

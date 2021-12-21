@@ -17,8 +17,6 @@ and linear orders.
 * `lex α β`: Synonym of `α × β` to equip it with lexicographic order without creating conflicting
   instances.
 * `lex_<pre/partial_/linear_>order`: Instances lifting the orders on `α` and `β` to `lex α β`
-* `dlex_<pre/partial_/linear_>order`: Instances lifting the orders on every `Z a` to the dependent
-  pair `Z`.
 
 ## See also
 

@@ -20,11 +20,16 @@ This file defines a few `finset` constructions on `Σ i, α i`.
 
 open function multiset
 
-variables {ι : Type*} {α : ι → Type*}
+variables {ι : Type*} {α β γ : ι → Type*}
 
 namespace finset
 section sigma
 variables (s s₁ s₂ : finset ι) (t t₁ t₂ : Π i, finset (α i))
+
+-- example {β : Type*} {f : Π i, α i → β} : sigma α → β :=
+-- begin
+--   -- refine sigma.curry _ α,
+-- end
 
 /-- `s.sigma t` is the finset of dependent pairs `⟨i, a⟩` such that `i ∈ s` and `a ∈ t i`. -/
 protected def sigma : finset (Σ i, α i) := ⟨_, nodup_sigma s.2 (λ i, (t i).2)⟩
@@ -51,23 +56,25 @@ end sigma
 section sigma_lift
 variables [decidable_eq ι]
 
-/-- Lifts maps `α i → α i → finset (α i)` to a map `Σ i, α i → Σ i, α i → finset (Σ i, α i)`. -/
-def sigma_lift (f : Π ⦃i⦄, α i → α i → finset (α i)) (a b : Σ i, α i) : finset (Σ i, α i) :=
+/-- Lifts maps `α i → β i → finset (γ i)` to a map `Σ i, α i → Σ i, β i → finset (Σ i, γ i)`. -/
+def sigma_lift₂ (f : Π ⦃i⦄, α i → β i → finset (γ i)) (a : sigma α) (b : sigma β) :
+  finset (sigma γ) :=
 dite (a.1 = b.1) (λ h, (f (h.rec a.2) b.2).map $ embedding.sigma_mk _) (λ _, ∅)
 
-lemma mem_sigma_lift (f : Π ⦃i⦄, α i → α i → finset (α i)) (a b x : Σ i, α i) :
-  x ∈ sigma_lift f a b ↔ ∃ (ha : a.1 = x.1) (hb : b.1 = x.1), x.2 ∈ f (ha.rec a.2) (hb.rec b.2) :=
+lemma mem_sigma_lift₂ (f : Π ⦃i⦄, α i → β i → finset (γ i))
+  (a : sigma α) (b : sigma β) (x : sigma γ) :
+  x ∈ sigma_lift₂ f a b ↔ ∃ (ha : a.1 = x.1) (hb : b.1 = x.1), x.2 ∈ f (ha.rec a.2) (hb.rec b.2) :=
 begin
   obtain ⟨⟨i, a⟩, j, b⟩ := ⟨a, b⟩,
   obtain rfl | h := decidable.eq_or_ne i j,
   { split,
-    { simp_rw [sigma_lift, dif_pos rfl, mem_map, embedding.sigma_mk_apply],
+    { simp_rw [sigma_lift₂, dif_pos rfl, mem_map, embedding.sigma_mk_apply],
       rintro ⟨x, hx, rfl⟩,
       exact ⟨rfl, rfl, hx⟩ },
     { rintro ⟨⟨⟩, ⟨⟩, hx⟩,
-      rw [sigma_lift, dif_pos rfl, mem_map],
+      rw [sigma_lift₂, dif_pos rfl, mem_map],
       exact ⟨_, hx, by simp [sigma.ext_iff]⟩ } },
-  { rw [sigma_lift, dif_neg h],
+  { rw [sigma_lift₂, dif_neg h],
     refine iff_of_false (not_mem_empty _) _,
     rintro ⟨⟨⟩, ⟨⟩, _⟩,
     exact h rfl }

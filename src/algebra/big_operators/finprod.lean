@@ -256,16 +256,17 @@ variables {α β ι M N : Type*} [comm_monoid M] [comm_monoid N]
 
 open_locale big_operators
 
-@[to_additive] lemma finprod_eq_mul_indicator_apply (s : set α)
+@[to_additive] lemma finprod_eq_mul_indicator_apply (s : set α) [decidable_pred (∈ s)]
   (f : α → M) (a : α) :
   ∏ᶠ (h : a ∈ s), f a = mul_indicator s f a :=
 by convert finprod_eq_if
 
 @[simp, to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α) :
   ∏ᶠ (h : f a ≠ 1), f a = f a :=
-by rw [← mem_mul_support, finprod_eq_mul_indicator_apply, mul_indicator_mul_support]
+by { haveI := classical.dec_eq M, rw [← mem_mul_support, finprod_eq_mul_indicator_apply,
+  mul_indicator_mul_support] }
 
-@[to_additive] lemma finprod_mem_def (s : set α) (f : α → M) :
+@[to_additive] lemma finprod_mem_def (s : set α) [decidable_pred (∈ s)] (f : α → M) :
   ∏ᶠ a ∈ s, f a = ∏ᶠ a, mul_indicator s f a :=
 finprod_congr $ finprod_eq_mul_indicator_apply s f
 
@@ -314,6 +315,7 @@ finprod_eq_prod_of_mul_support_to_finset_subset _ (finite.of_fintype _) $ finset
   ∏ᶠ i (hi : p i), f i = ∏ i in t, f i :=
 begin
   set s := {x | p x},
+  classical,
   have : mul_support (s.mul_indicator f) ⊆ t,
   { rw [set.mul_support_mul_indicator], intros x hx, exact (h hx.2).1 hx.1 },
   erw [finprod_mem_def, finprod_eq_prod_of_mul_support_subset _ this],
@@ -370,6 +372,7 @@ finprod_mem_eq_prod_of_inter_mul_support_eq _ rfl
 @[to_additive] lemma finprod_mem_eq_one_of_infinite {f : α → M} {s : set α}
   (hs : (s ∩ mul_support f).infinite) : ∏ᶠ i ∈ s, f i = 1 :=
 begin
+  classical,
   rw finprod_mem_def,
   apply finprod_of_infinite_mul_support,
   rwa [← mul_support_mul_indicator] at hs
@@ -377,7 +380,8 @@ end
 
 @[to_additive] lemma finprod_mem_inter_mul_support (f : α → M) (s : set α) :
   ∏ᶠ i ∈ (s ∩ mul_support f), f i = ∏ᶠ i ∈ s, f i :=
-by rw [finprod_mem_def, finprod_mem_def, mul_indicator_inter_mul_support]
+by { haveI := classical.dec_pred (∈ s), haveI := classical.dec_eq M,
+  rw [finprod_mem_def, finprod_mem_def, mul_indicator_inter_mul_support] }
 
 @[to_additive] lemma finprod_mem_inter_mul_support_eq (f : α → M) (s t : set α)
   (h : s ∩ mul_support f = t ∩ mul_support f) :
@@ -440,6 +444,7 @@ by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv₀ g).sym
   (hg : (s ∩ mul_support g).finite) :
   ∏ᶠ i ∈ s, (f i * g i) = (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ s, g i :=
 begin
+  classical,
   rw [← mul_support_mul_indicator] at hf hg,
   simp only [finprod_mem_def, mul_indicator_mul, finprod_mul_distrib hf hg]
 end
@@ -476,6 +481,7 @@ g.map_finprod_plift f $ hf.preimage $ equiv.plift.injective.inj_on _
   (h₀ : (s ∩ mul_support f).finite) :
   g (∏ᶠ j ∈ s, f j) = ∏ᶠ i ∈ s, (g (f i)) :=
 begin
+  classical,
   rw [g.map_finprod],
   { simp only [g.map_finprod_Prop] },
   { simpa only [finprod_eq_mul_indicator_apply, mul_support_mul_indicator] }

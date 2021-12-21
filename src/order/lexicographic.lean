@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Minchao Wu
 -/
 import tactic.basic
+import data.prod
 
 /-!
 # Lexicographic order
@@ -21,7 +22,9 @@ and linear orders.
 
 ## See also
 
-The lexicographic ordering on lists is provided in `data.list.basic`.
+The lexicographic order on lists is provided in `data.list.lex`.
+
+The lexicographic order on a sigma type is to be found in `data.sigma.lex`.
 -/
 
 universes u v
@@ -46,6 +49,12 @@ instance lex_has_le [has_lt α] [has_le β] : has_le (lex α β) :=
 
 instance lex_has_lt [has_lt α] [has_lt β] : has_lt (lex α β) :=
 { lt := prod.lex (<) (<) }
+
+lemma lex_le_iff [has_lt α] [has_le β] (a b : lex α β) :
+  a ≤ b ↔ a.1 < b.1 ∨ a.1 = b.1 ∧ a.2 ≤ b.2 := prod.lex_def (<) (≤)
+
+lemma lex_lt_iff [has_lt α] [has_lt β] (a b : lex α β) :
+  a < b ↔ a.1 < b.1 ∨ a.1 = b.1 ∧ a.2 < b.2 := prod.lex_def (<) (<)
 
 /-- Dictionary / lexicographic preorder for pairs. -/
 instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=

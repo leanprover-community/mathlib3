@@ -162,7 +162,7 @@ instance : faithful (total β C) :=
   begin
     classical,
     ext i,
-    replace w := sigma.ι (λ i : ulift β, X i.down) ⟨i⟩ ≫= w,
+    replace w := sigma.ι (λ i : ulift.{v} β, X i.down) ⟨i⟩ ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
     exact mono.right_cancellation _ _ w,
   end }

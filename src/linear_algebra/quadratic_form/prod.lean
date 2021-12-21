@@ -125,6 +125,25 @@ lemma equivalent.pi [fintype ι] {Q : Π i, quadratic_form R (Mᵢ i)}
   (pi Q).equivalent (pi Q') :=
 ⟨isometry.pi (λ i, classical.choice (e i))⟩
 
+/-- If a family is anisotropic then its components must be. The converse is not true. -/
+lemma anisotropic_of_pi [fintype ι] {R} [ordered_ring R] [Π i, module R (Mᵢ i)]
+  {Q : Π i, quadratic_form R (Mᵢ i)} (h : (pi Q).anisotropic) :
+  ∀ i, (Q i).anisotropic :=
+begin
+  simp_rw [anisotropic, pi, function.funext_iff, pi.zero_apply, sum_apply, comp_apply,
+    linear_map.proj_apply] at h,
+  intros i x hx,
+  classical,
+  have := h (pi.single i x) _ i,
+  { rw pi.single_eq_same at this,
+    exact this, },
+  apply finset.sum_eq_zero,
+  intros j _,
+  by_cases hij : j = i,
+  { subst hij, rw [pi.single_eq_same, hx] },
+  { rw [pi.single_eq_of_ne hij, map_zero] },
+end
+
 lemma pos_def.pi [fintype ι] {R} [ordered_ring R] [Π i, module R (Mᵢ i)]
   {Q : Π i, quadratic_form R (Mᵢ i)}
   (h : ∀ i, (Q i).pos_def) : (pi Q).pos_def :=

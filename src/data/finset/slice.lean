@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov, Yaël Dillies
 -/
 import data.fintype.basic
+import order.antichain
 
 /-!
 # `r`-sets and slice
@@ -43,6 +44,9 @@ lemma sized_union : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=
   λ hA x hx, hx.elim (λ h, hA.1 h) $ λ h, hA.2 h⟩
 
 alias sized_union ↔ _ set.sized.union
+
+protected lemma sized.is_antichain (hA : A.sized r) : is_antichain (⊆) A :=
+λ s hs t ht h hst, h $ eq_of_subset_of_card_le hst ((hA ht).trans (hA hs).symm).le
 
 end set
 

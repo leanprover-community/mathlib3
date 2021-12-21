@@ -1281,12 +1281,11 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
   multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
 (multiset.sum_add_monoid_hom : multiset N →+ N).map_sum _ f.support
 
-section disjoint_prod_add
-variables [add_comm_monoid M]
+
 /-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
 over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
-lemma prod_add_index_of_disjoint {f1 f2 : α →₀ M} (hd : disjoint f1.support f2.support)
-  {β : Type*} [comm_monoid β] (g : α → M → β) :
+lemma prod_add_index_of_disjoint [add_comm_monoid M] {f1 f2 : α →₀ M}
+  (hd : disjoint f1.support f2.support) {β : Type*} [comm_monoid β] (g : α → M → β) :
   (f1 + f2).prod g = f1.prod g * f2.prod g :=
 have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
   ∏ x in f1.support, g x (f1 x + f2 x) = f1.prod g :=
@@ -1296,8 +1295,7 @@ begin
   rw [←this hd, ←this hd.symm],
   simp only [add_comm, finsupp.prod, support_add_eq hd, prod_union hd, add_apply],
 end
-end disjoint_prod_add
-
+#exit
 section map_range
 
 section equiv

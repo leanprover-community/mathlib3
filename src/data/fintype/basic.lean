@@ -9,6 +9,7 @@ import data.finset.option
 import data.finset.pi
 import data.finset.powerset
 import data.finset.prod
+import data.finset.sigma
 import data.list.nodup_equiv_fin
 import data.sym.basic
 import data.ulift

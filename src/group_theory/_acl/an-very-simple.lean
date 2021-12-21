@@ -112,6 +112,10 @@ begin
     apply equiv.perm.is_cycle_cycle_of, exact hx }
 end
 
+
+#check equiv.perm.sum_cycle_type
+-- essentiellement : equiv.perm.sum_cycle_type
+/-
 /-- the cardinal of the support of a permutation is the sum of the lengths
 of its cycles  -/
 lemma support_card_eq_finset_sum_support_cycles_of
@@ -153,6 +157,7 @@ begin
         apply equiv.perm.same_cycle.cycle_of_apply,
         exact hb.left }  },
 end
+-/
 
 /-- The sign of cycle is 1 iff its length is odd  -/
 lemma sign_one_of_cycle_iff {f : perm α} (hf : f.is_cycle) :
@@ -236,6 +241,28 @@ begin
   exact hfix.symm,
 end
 
+
+lemma nodup_powers_of_cycle_of {f : perm α} {x : α}
+  (i j : ℕ) (hij : i < j) (hj : j < (f.cycle_of x).support.card) :
+  (f ^ i) x ≠ (f ^ j) x :=
+begin
+  have hx : f x ≠ x := equiv.perm.card_support_cycle_of_pos_iff.mp (lt_of_le_of_lt (zero_le j) hj),
+  have hf : (f.cycle_of x).is_cycle := f.is_cycle_cycle_of hx,
+
+  rw ← equiv.perm.order_of_is_cycle hf at hj,
+  obtain ⟨k, hk, rfl⟩ := lt_iff_exists_add.mp  hij,
+  rw pow_add f i k,
+  rw equiv.perm.mul_apply,
+
+  intro hfix,
+  let hfix' := equiv.injective (f ^ i) hfix,
+  rw ← equiv.perm.cycle_of_pow_apply_self  at  hfix',
+
+  refine perm.mem_support.mp _ hfix'.symm,
+  refine (equiv.perm.is_cycle.mem_support_pos_pow_iff_of_lt_order_of hf hk _).mpr _,
+    exact lt_of_le_of_lt (nat.le_add_left k i) hj,
+    rw perm.mem_support, rw equiv.perm.cycle_of_apply_self, exact hx,
+end
 
 lemma nodup_of_sorted_and_bounded (n : ℕ)
   (f : ℕ → α) (hf : ∀ (i j : ℕ), i < n → j < n → i < j → (f i ≠ f j))
@@ -372,63 +399,6 @@ begin
   apply mul_action.injective g,
 end
 
-example (s : finset α) (a b : α) (ha : a ∈ s) (hb : b ∈ s) (hab : a ≠ b) : 2 ≤ s.card :=
-begin
-  suffices : ({a,b} : finset α).card = 2,
-  { rw ← this, apply finset.card_le_of_subset,
-    rw finset.insert_subset,
-    exact ⟨ha, finset.singleton_subset_iff.mpr hb⟩ },
-  rw finset.card_insert_of_not_mem,
-  rw finset.card_singleton,
-  rw finset.mem_singleton, exact hab,
-end
-
-example (a b c d : ℕ) (h : c ≤ d) : a + d < b + c → a < b :=
-begin
-  intro k,
-  apply nat.lt_of_add_lt_add_right,
-  apply nat.lt_of_lt_of_le k,
-  exact add_le_add_left h b,
-end
-
-example (a b c n : ℕ) (ha : a = 3) (hb : n + 4 < b) (hc : 2 ≤ c) :
-  a + a < b + c :=
-begin
-  apply nat.lt_of_lt_of_le _ le_rfl,
-  apply le_trans _ (nat.add_le_add (nat.lt_of_le_of_lt (le_add_self) hb) hc),
-  rw ha,
-end
-
-example (a b c n : ℕ) (ha : a = 3) (hb : b = n + 5) (hc : 2 ≤ c) :
-  a + a < b + c :=
-begin
-  rw [ha, hb],
-  apply nat.le_trans le_rfl,
-  apply le_trans _ (nat.add_le_add (le_add_self) hc),
-  dec_trivial,
-
-  /-
-  suffices : 5 + 2 ≤ b + c,
-    apply nat.lt_of_lt_of_le _ this,
-    dec_trivial,
-  suffices : 5 + 2 ≤ 5 + c,
-    apply nat.le_trans this,
-    apply add_le_add_right _ c,
-    rw hb, exact le_add_self,
-  exact add_le_add_left hc 5,
--/
-    /-
-  have hb' : 5 ≤ b,
-  { rw hb, exact le_add_self, },
-  have hb'c : 5 + c ≤ b + c,
-  { exact add_le_add_right hb' c, },
-  apply nat.lt_of_lt_of_le _ hb'c,
-  have hc' : 5 + 2 ≤ 5 + c,
-  { exact add_le_add_left hc 5, },
-  apply nat.lt_of_lt_of_le _ hc',
-  simp_rw ha,
-  dec_trivial, -/
-end
 
 lemma three_cycle_mk {a b c : α} -- (g : perm α)
   (h12 : a ≠ b) (h13 : a ≠ c) (h23 : b ≠ c) :
@@ -490,13 +460,14 @@ begin
 
 end
 
+
 lemma case_cycle5 (g : perm α) (hg : g.is_cycle) (hg' : order_of g ≥ 5) :
   ∃ (h : perm α), (is_three_cycle h) ∧
     (g * h * g⁻¹ * h⁻¹) ≠ 1 ∧ (g * h * g⁻¹ * h⁻¹).support.card < g.support.card :=
 begin
     obtain ⟨n : ℕ, hg'' : order_of g = 5 + n⟩ :=
       nat.exists_eq_add_of_le hg', rw add_comm at hg'',
-    obtain ⟨a, ha ⟩ := id hg,  -- trick to not destruct hg
+    obtain ⟨a, ha⟩ := id hg,  -- trick to not destruct hg
 
     let l := [a, g a, (g ^ (n+4)) a], -- a b e
 
@@ -519,53 +490,6 @@ begin
 
     obtain ⟨h, h_is_three_cycle, ha_eq_b, hb_eq_c, hc_eq_a⟩ :=
       three_cycle_mk h12 h13 h23,
-
-      /-
-
-    let c : cycle α := l,
-    let h := (l : cycle α).form_perm l_nodup,
-    have c_is_nontrivial : c.nontrivial,
-    { rw cycle.nontrivial_coe_nodup_iff, dec_trivial, exact l_nodup, },
-    have h_is_cycle : h.is_cycle :=
-      cycle.is_cycle_form_perm c l_nodup c_is_nontrivial,
-    have h_support_eq_l : h.support = l.to_finset :=
-      cycle.support_form_perm c l_nodup c_is_nontrivial,
-    have h_is_three_cycle : h.is_three_cycle,
-    { rw ← card_support_eq_three_iff ,
-      rw h_support_eq_l,
-      rw list.card_to_finset l, rw list.nodup.erase_dup l_nodup, dec_trivial, },
-
-    have ha_eq_b : h a = g a,
-    { rw cycle.form_perm_apply_mem_eq_next c l_nodup a _,
-      swap,
-      change a ∈ l,
-      simp only [list.mem_cons_iff, true_or, eq_self_iff_true],
-      change l.next a _ = g a ,
-      rw list.next_cons_cons_eq' , refl, },
-
-    have hb_eq_c : h (g a) = (g ^ (n+4)) a,
-    { rw cycle.form_perm_apply_mem_eq_next c l_nodup (g a) _,
-      swap,
-      change g a ∈ l,
-      simp only [list.mem_cons_iff, true_or, eq_self_iff_true, or_true],
-      change l.next (g a) _ = (g ^ (n+4)) a,
-      rw list.next_ne_head_ne_last,
-        simp only [list.next_cons_cons_eq],
-        apply h12.symm,
-        { simp only [list.last, ne.def], apply h23 }, },
-
-    have hc_eq_a : h ((g ^ (n+4)) a) = a,
-    { rw cycle.form_perm_apply_mem_eq_next c l_nodup ((g ^ (n+4)) a) _,
-      swap,
-      change ((g ^ (n+4)) a) ∈ l,
-      simp only [list.mem_cons_iff, eq_self_iff_true, or_true, list.mem_singleton, apply_eq_iff_eq],
-      change l.next ((g ^ (n+4)) a) _ = a,
-      rw  list.next_last_cons ,
-        apply h13.symm,
-        simp only [list.last],
-        apply (list.nodup_cons.mp l_nodup).right,  },
-
--/
 
     have hb_neq_c : g (g a) ≠ (g ^ (n+4)) a,
     { refine nodup_of_fullcycle hg ha.left 2 (n+4) _ hn,
@@ -631,33 +555,145 @@ begin
           rw hc_eq_a, exact h13, },
         exact gc_eq_a,  },
 
-/-
+      have hga : g a ∈ h.support ∩ g • h.support,
+      { rw finset.mem_inter, split,
 
-        suffices : g⁻¹ • a ∈ h.support,
-        { rw finset.mem_image,
-          sorry, },
-        rw equiv.perm.mem_support,
-        have : g⁻¹ = g ^ (n+4),
-        { rw inv_eq_iff_mul_eq_one,
-          rw ← pow_succ,
-          change g ^ (n + 5) = 1,
-          rw ← hg'',
-          exact pow_order_of_eq_one g, },
-        rw this,
-        simp,
-        rw hc_eq_a,
-        exact h13, }, -/
+        { rw equiv.perm.mem_support,
+          rw hb_eq_c, exact h23.symm },
+
+        change g a ∈ finset.image (λ x, g x) h.support,
+        rw finset.mem_image,
+        use a,
+        split,
+          rw equiv.perm.mem_support,
+          rw ha_eq_b, exact h12.symm,
+          refl, },
+
+      suffices : ({a,g a} : finset α).card = 2,
+        { rw ← this, apply finset.card_le_of_subset,
+          rw finset.insert_subset,
+          exact ⟨ha, finset.singleton_subset_iff.mpr hga⟩ },
+        rw finset.card_insert_of_not_mem,
+        rw finset.card_singleton,
+        rw finset.mem_singleton,
+        exact h12 }
+end
+
+
+lemma case_cycle5' (g : perm α) (a : α) (hg' : (g.cycle_of a).support.card ≥ 5) :
+  ∃ (h : perm α), (is_three_cycle h) ∧
+    (g * h * g⁻¹ * h⁻¹) ≠ 1 ∧ (g * h * g⁻¹ * h⁻¹).support.card < g.support.card :=
+begin
+    let g' := g.cycle_of a,
+    have ha : g a ≠ a,
+    { rw ← equiv.perm.card_support_cycle_of_pos_iff ,
+      apply lt_of_lt_of_le _ hg', dec_trivial, },
+
+    obtain ⟨n : ℕ, hg'' : g'.support.card = 5 + n⟩ :=
+      nat.exists_eq_add_of_le hg', rw add_comm at hg'',
+--     obtain ⟨a, ha⟩ := id hg',  -- trick to not destruct hg
+
+    let l := [a, g a, (g ^ (n+4)) a], -- a b e
+
+    have hn' : n + 4 < g'.support.card,
+      { -- refine nat.lt_of_lt_of_le _
+        --   (finset.card_le_of_subset (equiv.perm.support_cycle_of_le g a)),
+        rw hg'',
+        simp only [nat.bit0_lt_bit1_iff, add_lt_add_iff_left], },
+
+    have l_notnil : l ≠ list.nil,
+    { suffices : l.length ≠ list.nil.length,
+        intro z, apply this, rw z, dec_trivial },
+
+    have h12 : a ≠ g a := ha.symm,
+    have h13 : a ≠ (g ^ (n+4)) a,
+    { refine nodup_powers_of_cycle_of 0 (n+4) _ hn', dec_trivial, },
+    have h23 : g a ≠ (g ^ (n+4)) a,
+    { refine nodup_powers_of_cycle_of 1 (n+4) _ hn', dec_trivial, },
+    have l_nodup : l.nodup := by simp [h12, h13, h23],
+
+    obtain ⟨h, h_is_three_cycle, ha_eq_b, hb_eq_c, hc_eq_a⟩ :=
+      three_cycle_mk h12 h13 h23,
+
+    have hb_neq_c : g (g a) ≠ (g ^ (n+4)) a,
+    { refine nodup_powers_of_cycle_of 2 (n+4) _ hn', dec_trivial, },
+
+    use h,
+    split,
+    -- h est un 3-cycle
+    exact h_is_three_cycle,
+    split,
+
+    { -- le commutateur est non trivial
+      -- h = [a, b, e] : b = g a, g e = a,
+      -- Utiliser que g • b ≠ h • b
+      -- g h g⁻¹ h⁻¹ b = g h g⁻¹ a = g h e = g a = b
+      -- g h g⁻¹ h⁻¹ a = g h g⁻¹ e = g h d = g d = e ≠ a
+      -- g h g⁻¹ h⁻¹ e = g h g⁻¹ b = g h a = g (g a) ≠ e
+      /- intro hz,
+      let ww := commutator_nontrivial g h (g a) _ hz,
+      sorry, -/
+      intro hz,
+      have hz' : g * h = h * g, { group, exact hz, },
+      have : (g * h) a ≠ (h * g) a,
+      { simp, -- only [perm.smul_mul, perm.mul_def],
+        rw ha_eq_b, rw hb_eq_c, exact hb_neq_c, },
+      apply this,
+      rw hz' },
+
+    { -- son support est de cardinal < celui de g
+      refine nat.lt_of_le_of_lt (finset.card_le_of_subset (commutator_support_le g h)) _,
+      refine nat.lt_of_add_lt_add_right _,
+      swap, -- exact (h.support ∩ g • h.support).card,
+      rw finset.card_union_add_card_inter,
+
+      have : (g • h.support).card = h.support.card,
+      { apply finset.card_image_of_injective,  exact mul_action.injective g, },
+      rw this,
+
+      rw equiv.perm.is_three_cycle.card_support h_is_three_cycle,
+
+      suffices hs2 : 2 ≤ (h.support ∩ g • h.support).card,
+      { apply nat.lt_of_lt_of_le _ le_rfl,
+        have hg : 5 ≤ g.support.card :=
+          le_trans hg' (finset.card_le_of_subset (equiv.perm.support_cycle_of_le g a)),
+        refine le_trans _ (nat.add_le_add hg hs2),
+        dec_trivial, },
+
+      have gc_eq_a : g ((g ^ (n+4)) a) = a,
+      { suffices : (g ^ (n+5)) a = a,
+          conv_rhs { rw ← this,  }, refl,
+        rw [← equiv.perm.pow_mod_card_support_cycle_of_self_apply, hg'',
+          nat.mod_self, pow_zero, perm.coe_one, id.def] } ,
+
+      -- h.suport = [a, g a, (g ^ (n+4)) a]
+      -- g • h.support = [g a, (g ^ 2) a, g ^ (n+5) a] = [g a, a]
+      have ha : a ∈ h.support ∩ g • h.support,
+      { rw finset.mem_inter, split,
+        rw equiv.perm.mem_support, rw ha_eq_b, exact h12.symm,
+
+        change a ∈ finset.image (λ x, g • x) h.support,
+        rw finset.mem_image,
+        use ((g ^ (n+4)) a),
+
+        split,
+        { rw equiv.perm.mem_support,
+          rw hc_eq_a, exact h13, },
+        exact gc_eq_a,  },
 
       have hga : g a ∈ h.support ∩ g • h.support,
       { rw finset.mem_inter, split,
-        -- rw equiv.perm.mem_support, rw ha_eq_b, exact h12.symm,
 
-        {
+        { rw equiv.perm.mem_support,
+          rw hb_eq_c, exact h23.symm },
 
-
-          sorry, },
-
-         sorry, },
+        change g a ∈ finset.image (λ x, g x) h.support,
+        rw finset.mem_image,
+        use a,
+        split,
+          rw equiv.perm.mem_support,
+          rw ha_eq_b, exact h12.symm,
+          refl, },
 
       suffices : ({a,g a} : finset α).card = 2,
         { rw ← this, apply finset.card_le_of_subset,
@@ -677,73 +713,27 @@ end
     g • a = b,
     g • b = c ≠ h • b -/
 
-  /-
 
-    obtain ⟨n_minus_5 : ℕ, hn_minus_5 : n = 5 + n_minus_5⟩ :=
-        nat.exists_eq_add_of_le hn', rw add_comm at hn_minus_5,
+/-
+Cas 2 : ∃ c ∈ l, c.support.card ≥ 3
+    l ≠ [c], donc il existe aussi c' ≠ c, c' ∈ l
+    cela donne trois éléments [a,b,c] dans c, deux éléments [d,e] dans c'
+    h = (a,b,d) (3-cycle)
+    g • a = b,
+    g • b = c ≠ d = h • b,
+-/
 
-    obtain ⟨a, ha⟩ := id is_cycle_g,
-    let hl := list.map (λ (i : ℕ), ((g : perm α) ^ i) a) [0, 1, order_of (g : perm α) - 1],
-    have hl_length_3 : hl.length = 3, dec_trivial,
-    have h2_le_hl_length : 2 ≤ hl.length := dec_trivial,
-    have hl_nodup : hl.nodup,
-    { have : ∃ (n_minus_5 : ℕ), n = n_minus_5 + 5,
-        obtain ⟨n_minus_5 : ℕ, rfl⟩ := nat.exists_eq_add_of_le hn',
-        rw add_comm, use n_minus_5,
-      obtain ⟨n_minus_5, rfl⟩ := this,
-      apply extract_cycle_of (g : perm α) is_cycle_g a ha.left [0, 1, order_of (g : perm α) - 1] ,
-      rw hgs',  dec_trivial,
-      rw hgs',  simp,
-      rw hgs',  simp,  change 3 ≤ n_minus_5 + 5, rw ← nat.zero_add 3, apply add_le_add,
-      apply nat.zero_le, dec_trivial,  },
-
-
-    let hc := (hl : cycle α).form_perm hl_nodup,
-    let hp := hl.form_perm,
-    have hp_eq_hc : hc = hp := cycle.form_perm_coe hl hl_nodup,
-
-    have hc_nt : (hl : cycle α).nontrivial,
-    { rw cycle.nontrivial_coe_nodup_iff, apply h2_le_hl_length, apply hl_nodup,},
-
-    have hp_is_cycle : hp.is_cycle :=
-      list.is_cycle_form_perm hl_nodup h2_le_hl_length,
-
-    have hc_is_cycle : hc.is_cycle :=
-      cycle.is_cycle_form_perm (hl : cycle α) hl_nodup hc_nt,
-
-    have hc_support_eq_hl : hc.support = hl.to_finset :=
-      cycle.support_form_perm (hl : cycle α) hl_nodup hc_nt,
-
-    have hp_is_three_cycle : hc.is_three_cycle,
-    {  rw ← card_support_eq_three_iff ,
-        rw hc_support_eq_hl,
-          rw list.card_to_finset hl,
-          rw list.nodup.erase_dup hl_nodup, dec_trivial, },
-
-
-    have hp_even : hp ∈ alternating_group α :=
-      is_three_cycle.mem_alternating_group hp_is_three_cycle,
-
-    let hp' : alternating_group α := ⟨hp, hp_even⟩,
-
-    let g' : N := ⟨hp' * g * hp'⁻¹, nN.conj_mem g (set_like.coe_mem g) hp'⟩,
-
-    have supp_comp : (g' * g⁻¹ : perm α).support ⊆ g • (hp' : perm α).support ∪ (hp' : perm α).support,
-
-    have hg'_ne_g :  g' ≠ g,
-    {  sorry, },
-
-
-
-
-  -/
-
+lemma case_cycle3' (g : perm α)  :
+  ∃ (h : perm α), (is_three_cycle h) ∧
+    (g * h * g⁻¹ * h⁻¹) ≠ 1 ∧ (g * h * g⁻¹ * h⁻¹).support.card < g.support.card :=
+begin
+  sorry
+end
 
 -- subgroup.map : (G →* N) → (subgroup G) → (subgroup N)
 -- H.inclusion (H ≤ K) : ↥H →* ↑K
 
 -- subgroup.subtype N : ↥N →* ↥H
-
 
 lemma commutator_mem {G : Type*} [group G] {H : subgroup G} {N: subgroup H}
   (nN : normal N) (g : N) (h : G) (h' : h ∈ H) :
@@ -775,6 +765,57 @@ begin
     apply nN.conj_mem, apply inv_mem,
     exact set_like.coe_mem g
 end
+
+
+lemma has_three_cycle_normal_rec'' (h5 : 5 ≤ fintype.card α)
+  (N : subgroup (alternating_group α)) (nN : N.normal) :
+  ∀ (n : ℕ) (g : N) (hg : (g : perm α) ≠ 1) (hsg : (support (g : perm α)).card = n),
+  ∃ (f : N), is_three_cycle (f : perm α) :=
+begin
+  intro n,
+  apply nat.strong_induction_on n,
+  clear n, intros n ih,
+
+  cases (nat.lt_or_ge n 2) with hn hn',
+  { -- n < 2 : trivial case
+    intros g hg hgs,
+    exfalso,
+    apply hg,
+    rw ← hgs at hn,
+    exact equiv.perm.card_support_le_one.mp (nat.le_of_lt_succ hn), },
+
+  cases (nat.lt_or_ge n 3) with hn hn',
+  { -- n = 2 : non swap
+    intros g hg hgs,
+    have hn2 : n = 2,
+      apply le_antisymm (nat.le_of_lt_succ hn),
+      rw ← hgs,
+      exact equiv.perm.two_le_card_support_of_ne_one hg,
+    rw hn2 at hgs,
+    exfalso,
+    apply  nat.even_iff_not_odd.mp (_ : even (g : perm α).support.card),
+    rw ← equiv.perm.mem_alternating_group_of_cycle_iff (equiv.perm.card_support_eq_two.mp hgs).is_cycle,
+    apply set_like.coe_mem,
+    rw hgs, exact even_bit0 1 },
+
+  -- have : hn' : 3 ≤ n
+  intros g hg hgs,
+  let l := (cycle_factors_finset (g : perm α)),
+
+  cases (nat.lt_or_ge n 4) with hn hn',
+  -- n = 3, g is a 3-cycle
+  { rw (nat.eq_of_le_of_lt_succ hn' hn) at hgs, -- n.succ = 3
+    rw card_support_eq_three_iff at hgs,  -- ↑g is a 3-cycle
+    use g, exact hgs,  },
+
+  -- Trivialities done, now the actual work starts
+  -- hn' : 4 ≤ n
+  have this := equiv.perm.sum_cycle_type (g : perm α),
+
+sorry,
+
+end
+
 
 
 lemma has_three_cycle_normal_rec' (h5 : 5 ≤ fintype.card α)
@@ -844,7 +885,7 @@ begin
   -- on pourrait perdre que ↑g = a et aussi rw at h,
   -- car on n'aura plus besoin de l = {a}
 
-  -- n.suc ≥ 5, car ≥ 4 et impair
+  -- n ≥ 5, car ≥ 4 et impair
     cases nat.lt_or_ge n 5 with hn hn',
     { let hn4 := nat.eq_of_le_of_lt_succ hn' hn,
       rw hn4 at hgs,
@@ -871,39 +912,6 @@ begin
     -- conclude by induction : commutator_mem' says that k' ∈ N
     exact ih (k' : perm α).support.card h3 ⟨k', commutator_mem' nN g h'⟩ h2 rfl, },
 
-
-      /- Trois groupes : N ≤ H ≤ G
-      * G = perm α,
-      * H = alternating_group α: subgroup (perm α)
-      * N : subgroup H, nN : normal N
-
-      g : ↥N
-      h : G
-      h1' : h ∈ H
-      k := (g : G) * h * g⁻¹ * h⁻¹ : G
-
-      Et trois conséquences concernant k  :
-      * h2
-      * h3
-      * commutator_mem nN g h h1' :
-
-      On veut :
-      * Prouver k ∈ N
-      *
-
-
-
-       -/
-
-/-
-subtype.coe_mk : ∀ (a : ?M_1) (h : ?M_2 a), ↑⟨a, h⟩ = a
-set_like.coe_mk : ∀ (x : ?M_2) (hx : x ∈ ?M_4), ↑⟨x, hx⟩ = x
-
-set_like.mem_coe : ?M_5 ∈ ↑?M_4 ↔ ?M_5 ∈ ?M_4
-set_like.coe_mem : ∀ (x : ↥?M_4), ↑x ∈ ?M_4
-
-set_like.eta : ∀ (x : ↥?M_4) (hx : ↑x ∈ ?M_4), ⟨↑x, hx⟩ = x
--/
 
   sorry,
 
@@ -971,8 +979,66 @@ set_like.eta : ∀ (x : ↥?M_4) (hx : ↑x ∈ ?M_4), ⟨↑x, hx⟩ = x
 
   -- Le mauvais cas est 2 :
 
+  h = (a, b, x),  a ∈ g.support, b = g a (donc a ≠ b),  x ≠ a, g a,
+  Hypothèses à assurer :
+    x ≠ g b
+
+  g' = h g h⁻¹
+
+  *Claim :* g' • x ≠ g : car g' • b = h g h⁻¹ b = h g a = h b = x ≠ g b
+
+  supp (g' g⁻¹) ⊆ g • supp(h) ∪ supp(h) = {g a, g b, g x} ∪ {a, b, x}
+
+  *Claim :* On gagne b, supp(g' g⁻¹) ⊆ {a, b, g b, x, g x} car g a = b
+
+  g.support.card ≥ 5
+  Si g a un cycle de longueur ≥ 4, prendre a dedans, x = g⁻¹ a
+  On trouve supp(g' g⁻¹) ⊆ {a, b, g b, x}
+
+  Sinon, g.support.card ≥ 6
+   * il y a au moins 2 cycles
+   * (3,2) est impair ; (2,2) est de support 4.
+
+  tous les cycles de g sont de longueur ≤ 3.
+  Nécessairement, g.support.card ≥ 6 et g a au moins 2 cycles
+
+  Prendre a dans un cycle, et x dans un autre.
 
 
+-/
+
+
+      /- Trois groupes : N ≤ H ≤ G
+      * G = perm α,
+      * H = alternating_group α: subgroup (perm α)
+      * N : subgroup H, nN : normal N
+
+      g : ↥N
+      h : G
+      h1' : h ∈ H
+      k := (g : G) * h * g⁻¹ * h⁻¹ : G
+
+      Et trois conséquences concernant k  :
+      * h2
+      * h3
+      * commutator_mem nN g h h1' :
+
+      On veut :
+      * Prouver k ∈ N
+      *
+
+
+
+       -/
+
+/-
+subtype.coe_mk : ∀ (a : ?M_1) (h : ?M_2 a), ↑⟨a, h⟩ = a
+set_like.coe_mk : ∀ (x : ?M_2) (hx : x ∈ ?M_4), ↑⟨x, hx⟩ = x
+
+set_like.mem_coe : ?M_5 ∈ ↑?M_4 ↔ ?M_5 ∈ ?M_4
+set_like.coe_mem : ∀ (x : ↥?M_4), ↑x ∈ ?M_4
+
+set_like.eta : ∀ (x : ↥?M_4) (hx : ↑x ∈ ?M_4), ⟨↑x, hx⟩ = x
 -/
 
 
@@ -1150,3 +1216,64 @@ begin
     sorry,
 
 sorry,   },
+
+
+
+
+example (s : finset α) (a b : α) (ha : a ∈ s) (hb : b ∈ s) (hab : a ≠ b) : 2 ≤ s.card :=
+begin
+  suffices : ({a,b} : finset α).card = 2,
+  { rw ← this, apply finset.card_le_of_subset,
+    rw finset.insert_subset,
+    exact ⟨ha, finset.singleton_subset_iff.mpr hb⟩ },
+  rw finset.card_insert_of_not_mem,
+  rw finset.card_singleton,
+  rw finset.mem_singleton, exact hab,
+end
+
+example (a b c d : ℕ) (h : c ≤ d) : a + d < b + c → a < b :=
+begin
+  intro k,
+  apply nat.lt_of_add_lt_add_right,
+  apply nat.lt_of_lt_of_le k,
+  exact add_le_add_left h b,
+end
+
+example (a b c n : ℕ) (ha : a = 3) (hb : n + 4 < b) (hc : 2 ≤ c) :
+  a + a < b + c :=
+begin
+  apply nat.lt_of_lt_of_le _ le_rfl,
+  apply le_trans _ (nat.add_le_add (nat.lt_of_le_of_lt (le_add_self) hb) hc),
+  rw ha,
+end
+
+example (a b c n : ℕ) (ha : a = 3) (hb : b = n + 5) (hc : 2 ≤ c) :
+  a + a < b + c :=
+begin
+  rw [ha, hb],
+  apply nat.le_trans le_rfl,
+  apply le_trans _ (nat.add_le_add (le_add_self) hc),
+  dec_trivial,
+
+  /-
+  suffices : 5 + 2 ≤ b + c,
+    apply nat.lt_of_lt_of_le _ this,
+    dec_trivial,
+  suffices : 5 + 2 ≤ 5 + c,
+    apply nat.le_trans this,
+    apply add_le_add_right _ c,
+    rw hb, exact le_add_self,
+  exact add_le_add_left hc 5,
+-/
+    /-
+  have hb' : 5 ≤ b,
+  { rw hb, exact le_add_self, },
+  have hb'c : 5 + c ≤ b + c,
+  { exact add_le_add_right hb' c, },
+  apply nat.lt_of_lt_of_le _ hb'c,
+  have hc' : 5 + 2 ≤ 5 + c,
+  { exact add_le_add_left hc 5, },
+  apply nat.lt_of_lt_of_le _ hc',
+  simp_rw ha,
+  dec_trivial, -/
+end

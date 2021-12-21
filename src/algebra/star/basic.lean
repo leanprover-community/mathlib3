@@ -9,6 +9,7 @@ import algebra.field_power
 import data.equiv.ring_aut
 import group_theory.group_action.units
 import group_theory.group_action.opposite
+import group_theory.submonoid.basic
 import algebra.ring.comp_typeclasses
 
 /-!
@@ -377,3 +378,51 @@ end mul_opposite
 `monoid.to_opposite_mul_action`. -/
 instance star_monoid.to_opposite_star_module [comm_monoid R] [star_monoid R] : star_module Rᵐᵒᵖ R :=
 ⟨λ r s, star_mul' s r.unop⟩
+
+section self_adjoint
+
+/-- An element `x` of a type with a star is self adjoint if `star x = x`. -/
+def is_self_adjoint [has_star R] (x : R) := star x = x
+
+variables (R)
+def self_adjoints [has_star R] := {x : R // star x = x}
+variables {R}
+
+def is_self_adjoint.self_adjoint [has_star R] {x : R} (h : is_self_adjoint x) : self_adjoints R :=
+⟨x, h⟩
+
+namespace self_adjoints
+
+instance [has_star R] : has_coe (self_adjoints R) R := ⟨subtype.val⟩
+instance [has_star R] : has_star (self_adjoints R) := ⟨id⟩
+instance [has_involutive_star R] : has_involutive_star (self_adjoints R) := ⟨λ _, rfl⟩
+
+@[simp] lemma star_eq [has_star R] {x : self_adjoints R} : star x = x := rfl
+@[simp] lemma star_coe_eq [has_star R] {x : self_adjoints R} : star (x : R) = x := x.prop
+
+instance [add_monoid R] [star_add_monoid R] : add_monoid (self_adjoints R) :=
+{ add := λ x y, ⟨x.1 + y.1, by rw [star_add, x.2, y.2]⟩,
+  zero := ⟨0, star_zero _⟩,
+  add_assoc := λ x y z, by { ext, exact add_assoc _ _ _ },
+  zero_add := λ x, by simp only [zero_add, subtype.coe_eta, subtype.val_eq_coe],
+  add_zero :=  λ x, by simp only [add_zero, subtype.coe_eta, subtype.val_eq_coe] }
+
+instance [add_monoid R] [star_add_monoid R] : star_add_monoid (self_adjoints R) := ⟨λ x y, star_eq⟩
+
+instance [add_group R] [star_add_monoid R] : add_group (self_adjoints R) :=
+{ neg := λ x, ⟨-x, by simp only [star_coe_eq, star_neg]⟩,
+  add_left_neg := λ x, by { ext, exact add_left_neg _ },
+  ..show add_monoid (self_adjoints R), by apply_instance }
+
+instance [add_comm_monoid R] [star_add_monoid R] : add_comm_monoid (self_adjoints R) :=
+{ add_comm := λ x y, by { ext, exact add_comm _ _ },
+  ..show add_monoid (self_adjoints R), by apply_instance }
+
+instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoints R) :=
+{ ..show add_comm_monoid (self_adjoints R), by apply_instance,
+   }
+
+
+end self_adjoints
+
+end self_adjoint

@@ -324,7 +324,7 @@ begin
   { cases m,
     { cases hm rfl },
     { simp } },
-  { cases m, cases hm rfl,
+  { cases m, { cases hm rfl },
     simp_rw [digits_one, list.last_repeat_succ 1 m],
     norm_num },
   revert hm,

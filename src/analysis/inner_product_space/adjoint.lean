@@ -129,4 +129,17 @@ instance : star_monoid (E →L[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
+section real
+
+variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
+variables [complete_space E'] [complete_space F']
+
+lemma is_adjoint_pair (A : E' →L[ℝ] F') :
+  bilin_form.is_adjoint_pair (bilin_form_of_real_inner : bilin_form ℝ E')
+  (bilin_form_of_real_inner : bilin_form ℝ F') A.to_linear_map (A†).to_linear_map :=
+λ x y, by simp only [adjoint_inner_right, to_linear_map_eq_coe,
+                     bilin_form_of_real_inner_apply, coe_coe]
+
+end real
+
 end continuous_linear_map

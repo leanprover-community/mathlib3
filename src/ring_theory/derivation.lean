@@ -213,7 +213,8 @@ section cancel
 variables {R : Type*} [comm_semiring R] {A : Type*} [comm_semiring A] [algebra R A]
   {M : Type*} [add_cancel_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 
-/-- Define `derivation R A M` from a linear map by verifying the Leibniz rule. -/
+/-- Define `derivation R A M` from a linear map when `M` is cancellative by verifying the Leibniz
+rule. -/
 def mk' (D : A →ₗ[R] M) (h : ∀ a b, D (a * b) = a • D b + b • D a) : derivation R A M :=
 { to_linear_map := D,
   map_one_eq_zero' := add_right_eq_self.1 $ by simpa only [one_smul, one_mul] using (h 1 1).symm,

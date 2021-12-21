@@ -91,37 +91,4 @@ noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : non_unital_non_
   end,
 }
 
-
-
-/-
-noncomputable instance (α : Type*) [semiring α] [algebra ℝ α] : non_unital_non_assoc_ring (αˢʸᵐ) := {
-  zero := sym 0,
-  add := λ a b, a+b,
-  add_assoc := λ a b c : α, add_assoc a b c,
-  add_comm := λ a b : α, add_comm a b,
-  zero_add := λ a, zero_add (unsym a),
-  add_zero := λ a, add_zero (unsym a),
-  --neg := λ a, sorry,
-  --add_left_neg := λ a, sorry,
-  mul := λ a b, (sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a)))),
-  zero_mul := λ _, by simp,
-  mul_zero :=  λ _, by simp,
-  left_distrib := λ a b c, begin
-    simp,
-    --rw ← unsym_add,
-    rw left_distrib,
-    rw right_distrib,
-    rw sym_add,
-    rw sym_add,
-    rw smul_add',
-    --rw [← smul_add, smul_add],
-    abel,
-     -- (2⁻¹:ℝ) ((unsym a) * (unsym b) + (unsym b) * (unsym a)) ((unsym a) * (unsym c) + (unsym c) * (unsym a)),
-
-  end,
-}
--/
-
-
-
 end sym_alg

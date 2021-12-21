@@ -63,10 +63,10 @@ def product_homotopy
   continuous_map.homotopy_rel (product f) (product g) S :=
 { to_fun := λ t i, (homotopies i).to_fun t,
   continuous_to_fun := by continuity,
-  to_fun_zero := by {
-    intro t, ext i, simpa only [(homotopies i).to_fun_zero], },
-  to_fun_one := by {
-    intro t, ext i, simpa only [(homotopies i).to_fun_one], },
+  to_fun_zero :=
+  by { intro t, ext i, simpa only [(homotopies i).to_fun_zero], },
+  to_fun_one :=
+  by { intro t, ext i, simpa only [(homotopies i).to_fun_one], },
 
   prop' :=
   begin

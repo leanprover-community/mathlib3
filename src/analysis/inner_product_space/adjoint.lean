@@ -115,9 +115,9 @@ end
 /-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
 for all `x` and `y`. -/
 lemma eq_adjoint_iff (A : E →L[𝕜] F) (B : F →L[𝕜] E) :
-  (∀ x y, ⟪A x, y⟫ = ⟪x, B y⟫) ↔ A = B† :=
+  A = B† ↔ (∀ x y, ⟪A x, y⟫ = ⟪x, B y⟫) :=
 begin
-  refine ⟨λ h, _, λ h x y, by rw [h, adjoint_inner_left]⟩,
+  refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
   ext x,
   exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
 end

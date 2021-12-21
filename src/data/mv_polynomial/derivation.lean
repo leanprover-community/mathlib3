@@ -59,13 +59,11 @@ begin
       { rw [add_mul, f.map_add, f.map_add, hp, hq, add_smul, smul_add, add_add_add_comm] } },
     intros p q,
     induction q using mv_polynomial.induction_on,
-    case h_C : c {
-      rw [mul_comm, C_mul', f.map_smul, C_eq_smul_one, f.map_smul, H.1, smul_one_smul, smul_zero,
-        smul_zero, zero_add] },
-    case h_add : q₁ q₂ h₁ h₂ {
-      simp only [mul_add, f.map_add, h₁, h₂, smul_add, add_smul], abel },
-    case h_X : q i hq {
-      simp only [this, ← mul_assoc, hq, mul_smul, smul_add, smul_comm (X i), add_assoc] } }
+    case h_C : c { rw [mul_comm, C_mul', f.map_smul, C_eq_smul_one, f.map_smul, H.1, smul_one_smul,
+      smul_zero, smul_zero, zero_add] },
+    case h_add : q₁ q₂ h₁ h₂ { simp only [mul_add, f.map_add, h₁, h₂, smul_add, add_smul], abel },
+    case h_X : q i hq { simp only [this, ← mul_assoc, hq, mul_smul, smul_add, smul_comm (X i),
+      add_assoc] } }
 end
 
 @[simp] lemma derivation_C (f : derivation R (mv_polynomial σ R) A) (a : R) : f (C a) = 0 :=

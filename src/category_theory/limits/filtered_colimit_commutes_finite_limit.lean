@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.colimit_limit
+import category_theory.limits.preserves.functor_category
+import category_theory.limits.preserves.finite
 import category_theory.limits.shapes.finite_limits
+import category_theory.limits.preserves.filtered
 
 /-!
 # Filtered colimits commute with finite limits.
@@ -299,5 +302,48 @@ instance colimit_limit_to_limit_colimit_is_iso :
   is_iso (colimit_limit_to_limit_colimit F) :=
 (is_iso_iff_bijective _).mpr
   ⟨colimit_limit_to_limit_colimit_injective F, colimit_limit_to_limit_colimit_surjective F⟩
+
+instance colimit_limit_to_limit_colimit_cone_iso (F : J ⥤ K ⥤ Type v) :
+  is_iso (colimit_limit_to_limit_colimit_cone F) :=
+begin
+  haveI : is_iso (colimit_limit_to_limit_colimit_cone F).hom,
+  { dsimp only [colimit_limit_to_limit_colimit_cone], apply_instance },
+  apply cones.cone_iso_of_hom_iso,
+end
+
+noncomputable
+instance filtered_colim_preserves_finite_limits_of_types :
+  preserves_finite_limits (colim : (K ⥤ Type v) ⥤ _) := ⟨λ J _ _, by exactI ⟨λ F, ⟨λ c hc,
+begin
+  apply is_limit.of_iso_limit (limit.is_limit _),
+  symmetry,
+  transitivity (colim.map_cone (limit.cone F)),
+  exact functor.map_iso _ (hc.unique_up_to_iso (limit.is_limit F)),
+  exact as_iso (colimit_limit_to_limit_colimit_cone F),
+end ⟩⟩⟩
+
+variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
+section
+variables [has_limits_of_shape J C] [has_colimits_of_shape K C]
+variables [reflects_limits_of_shape J (forget C)] [preserves_colimits_of_shape K (forget C)]
+variables [preserves_limits_of_shape J (forget C)]
+
+noncomputable
+instance filtered_colim_preserves_finite_limits :
+  preserves_limits_of_shape J (colim : (K ⥤ C) ⥤ _) :=
+begin
+  haveI : preserves_limits_of_shape J ((colim : (K ⥤ C) ⥤ _) ⋙ forget C) :=
+    preserves_limits_of_shape_of_nat_iso (preserves_colimit_nat_iso _).symm,
+  exactI preserves_limits_of_shape_of_reflects_of_preserves _ (forget C)
+end
+end
+
+local attribute [instance] reflects_limits_of_shape_of_reflects_isomorphisms
+
+noncomputable
+instance [preserves_finite_limits (forget C)] [preserves_filtered_colimits (forget C)]
+  [has_finite_limits C] [has_colimits_of_shape K C] [reflects_isomorphisms (forget C)] :
+    preserves_finite_limits (colim : (K ⥤ C) ⥤ _) :=
+⟨λ _ _ _, by exactI category_theory.limits.filtered_colim_preserves_finite_limits⟩
 
 end category_theory.limits

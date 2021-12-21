@@ -3,7 +3,7 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import algebra.category.Module.basic
+import algebra.category.Module.epi_mono
 
 /-!
 # The concrete (co)kernels in the category of modules are (co)kernels in the categorical sense.
@@ -48,7 +48,7 @@ cofork.is_colimit.mk _
   (λ s, f.range.liftq_mkq (cofork.π s) _)
   (λ s m h,
   begin
-    haveI : epi (as_hom f.range.mkq) := epi_of_range_eq_top _ (submodule.range_mkq _),
+    haveI : epi (as_hom f.range.mkq) := (epi_iff_range_eq_top _).mpr (submodule.range_mkq _),
     apply (cancel_epi (as_hom f.range.mkq)).1,
     convert h walking_parallel_pair.one,
     exact submodule.liftq_mkq _ _ _
@@ -93,7 +93,7 @@ The categorical cokernel of a morphism in `Module`
 agrees with the usual module-theoretical quotient.
 -/
 noncomputable def cokernel_iso_range_quotient {G H : Module.{v} R} (f : G ⟶ H) :
-  cokernel f ≅ Module.of R (f.range.quotient) :=
+  cokernel f ≅ Module.of R (H ⧸ f.range) :=
 colimit.iso_colimit_cocone ⟨_, cokernel_is_colimit f⟩
 
 -- We now show this isomorphism commutes with the projection of target to the cokernel.

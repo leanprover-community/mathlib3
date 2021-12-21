@@ -6,4 +6,4 @@ vscode:
     - jroesch.lean
 
 tasks:
-  - command: . /home/gitpod/.profile && leanproject get-mathlib-cache
+  - command: . /home/gitpod/.profile && leanproject get-cache --fallback=download-all

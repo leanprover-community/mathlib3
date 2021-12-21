@@ -45,3 +45,15 @@ begin
   elementwise! w,
   apply w,
 end
+
+example {α β : Type} (f g : α ⟶ β) (w : f = g) (a : α) : f a = g a :=
+begin
+  elementwise! w, -- make sure this works even when there is no simplification to do
+  rw w,
+end
+
+example {α β : Type} (f g : α ⟶ β) (w : f ≫ 𝟙 β = g) (a : α) : f a = g a :=
+begin
+  elementwise! w,
+  rw w,  -- this used to not work, because we produced `w : ⇑f a = ⇑g a`.
+end

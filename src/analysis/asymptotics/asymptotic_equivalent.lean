@@ -5,7 +5,6 @@ Authors: Anatole Dedecker
 -/
 import analysis.asymptotics.asymptotics
 import analysis.normed_space.ordered
-import analysis.normed_space.bounded_linear_maps
 
 /-!
 # Asymptotic equivalence
@@ -13,7 +12,7 @@ import analysis.normed_space.bounded_linear_maps
 In this file, we define the relation `is_equivalent u v l`, which means that `u-v` is little o of
 `v` along the filter `l`.
 
-Unlike `is_[oO]` relations, this one requires `u` and `v` to have the same codomaine `β`. While the
+Unlike `is_[oO]` relations, this one requires `u` and `v` to have the same codomain `β`. While the
 definition only requires `β` to be a `normed_group`, most interesting properties require it to be a
 `normed_field`.
 
@@ -103,6 +102,13 @@ lemma is_equivalent_zero_iff_eventually_zero : u ~[l] 0 ↔ u =ᶠ[l] 0 :=
 begin
   rw [is_equivalent, sub_zero],
   exact is_o_zero_right_iff
+end
+
+lemma is_equivalent_zero_iff_is_O_zero : u ~[l] 0 ↔ is_O u (0 : α → β) l :=
+begin
+  refine ⟨is_equivalent.is_O, λ h, _⟩,
+  rw [is_equivalent_zero_iff_eventually_zero, eventually_eq_iff_exists_mem],
+  exact ⟨{x : α | u x = 0}, is_O_zero_right_iff.mp h, λ x hx, hx⟩,
 end
 
 lemma is_equivalent_const_iff_tendsto {c : β} (h : c ≠ 0) : u ~[l] const _ c ↔ tendsto u l (𝓝 c) :=
@@ -258,10 +264,10 @@ begin
   rw is_equivalent_iff_exists_eq_mul at *,
   rcases huv with ⟨φ, hφ, h⟩,
   rw ← inv_one,
-  refine ⟨λ x, (φ x)⁻¹, tendsto.inv' hφ (by norm_num) , _⟩,
+  refine ⟨λ x, (φ x)⁻¹, tendsto.inv₀ hφ (by norm_num) , _⟩,
   convert h.inv,
   ext,
-  simp [mul_inv']
+  simp [mul_inv₀]
 end
 
 lemma is_equivalent.div (htu : t ~[l] u) (hvw : v ~[l] w) :

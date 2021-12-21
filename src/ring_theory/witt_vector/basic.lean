@@ -240,7 +240,7 @@ def ghost_map : 𝕎 R →+* ℕ → R :=
 
 /-- Evaluates the `n`th Witt polynomial on the first `n` coefficients of `x`,
 producing a value in `R`. -/
-def ghost_component (n : ℕ) : 𝕎 R →+* R := (ring_hom.apply _ n).comp ghost_map
+def ghost_component (n : ℕ) : 𝕎 R →+* R := (pi.eval_ring_hom _ n).comp ghost_map
 
 lemma ghost_component_apply (n : ℕ) (x : 𝕎 R) : ghost_component n x = aeval x.coeff (W_ ℤ n) := rfl
 

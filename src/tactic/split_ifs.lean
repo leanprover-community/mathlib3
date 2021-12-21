@@ -10,7 +10,7 @@ import tactic.hint
 open expr tactic
 
 namespace tactic
-open interactive
+setup_tactic_parser
 
 meta def find_if_cond : expr → option expr | e :=
 e.fold none $ λ e _ acc, acc <|> do
@@ -53,7 +53,8 @@ private meta def value_known (c : expr) : tactic bool := do
 lctx ← local_context, lctx ← lctx.mmap infer_type,
 return $ c ∈ lctx ∨ `(¬%%c) ∈ lctx
 
-private meta def split_ifs_core (at_ : loc) (names : ref (list name)) : list expr → tactic unit | done := do
+private meta def split_ifs_core (at_ : loc) (names : ref (list name)) :
+  list expr → tactic unit | done := do
 some cond ← find_if_cond_at at_ | fail "no if-then-else expressions to split",
 let cond := match cond with `(¬%%p) := p | p := p end,
 if cond ∈ done then skip else do

@@ -26,7 +26,7 @@ functor, applicative
 
 attribute [functor_norm] seq_assoc pure_seq_eq_map map_pure seq_map_assoc map_seq
 
-universe variables u v w
+universes u v w
 
 section functor
 
@@ -242,10 +242,3 @@ theorem of_mem_supp {α : Type u} {x : F α} {p : α → Prop} (h : liftp p x) :
 λ y hy, hy h
 
 end functor
-
-namespace ulift
-
-instance : functor ulift :=
-{ map := λ α β f, up ∘ f ∘ down }
-
-end ulift

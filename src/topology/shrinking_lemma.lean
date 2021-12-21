@@ -58,7 +58,7 @@ namespace partial_refinement
 
 variables {u : ι → set X} {s : set X}
 
-instance : has_coe_to_fun (partial_refinement u s) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (partial_refinement u s) (λ _, ι → set X) := ⟨to_fun⟩
 
 lemma subset_Union (v : partial_refinement u s) : s ⊆ ⋃ i, v i := v.subset_Union'
 
@@ -176,7 +176,7 @@ begin
     rcases mem_Union.1 (v.subset_Union hxs) with ⟨j, hj⟩,
     exact (em (j = i)).elim (λ h, h ▸ hj) (λ h, (H j h hj).elim) },
   have C : is_closed (s ∩ (⋂ j ≠ i, (v j)ᶜ)),
-    from is_closed_inter hs (is_closed_bInter $ λ _ _, is_closed_compl_iff.2 $ v.is_open _),
+    from is_closed.inter hs (is_closed_bInter $ λ _ _, is_closed_compl_iff.2 $ v.is_open _),
   rcases normal_exists_closure_subset C (v.is_open i) I with ⟨vi, ovi, hvi, cvi⟩,
   refine ⟨⟨update v i vi, insert i v.carrier, _, _, _, _⟩, _, _⟩,
   { intro j, by_cases h : j = i; simp [h, ovi, v.is_open] },

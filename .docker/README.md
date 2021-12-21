@@ -11,9 +11,10 @@ This will result in the creation of two containers:
 * `leanprovercommunity/lean` - contains elan, lean, and leanproject
 * `leanprovercommunity/mathlib` - additionally contains a copy of mathlib, with oleans
 
-In fact, for each container you'll get three different tags, `:debian`, `:alpine` and `:latest`.
-`:debian` and `:alpine` use those respective distributions, and `:latest` just points at `:debian`.
-Finally, there is also a `leanprovercommunity/mathlib:gitpod` for use at
+In fact, for each container you'll get two different tags, `:debian` and `:latest`,
+which are just synonyms.
+(We used to have an `alpine` distribution, but it wasn't robust enough to warrant maintenance.)
+There is also a `leanprovercommunity/mathlib:gitpod` for use at
 [https://gitpod.io/](https://gitpod.io/).
 
 ## Usage
@@ -56,11 +57,9 @@ docker run -it leanprovercommunity/mathlib
 These containers are deployed to the Docker registry, so anyone can just
 `docker run -it leanprovercommunity/mathlib` to get a local lean+mathlib environment.
 
-There is a local script in `scripts/docker_push.sh` for deployment,
-but I have also set up `hub.docker.com` to watch the `docker` branch for updates
-and automatically rebuild.
-
-If this PR is merged to master we should change that to watch `master`.
+There is a local script in `scripts/docker_push.sh` for deployment, which requires
+logging in to the leanprovercommunity account at hub.docker.com
+(credentials available to maintainers).
 
 ### Remote containers for VSCode
 

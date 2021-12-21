@@ -49,7 +49,7 @@ by simp [mul_sub, sub_sub_cancel]
 
 lemma map_inv_units_sub (f : R →+* S) (u : units R) :
   map f (inv_units_sub u) = inv_units_sub (units.map (f : R →* S) u) :=
-by { ext, simp [← monoid_hom.map_pow] }
+by { ext, simp [← map_pow] }
 
 end ring
 
@@ -74,7 +74,8 @@ variables {A A'} (n : ℕ) (f : A →+* A')
 
 @[simp] lemma coeff_exp : coeff A n (exp A) = algebra_map ℚ A (1 / n!) := coeff_mk _ _
 
-@[simp] lemma constant_coeff_exp : constant_coeff A (exp A) = 1 := ring_hom.map_one _
+@[simp] lemma constant_coeff_exp : constant_coeff A (exp A) = 1 :=
+by { rw [← coeff_zero_eq_constant_coeff_apply, coeff_exp], simp }
 
 @[simp] lemma map_exp : map (f : A →+* A') (exp A) = exp A' := by { ext, simp }
 

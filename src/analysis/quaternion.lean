@@ -3,8 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.quaternion
-import analysis.normed_space.inner_product
+import algebra.quaternion
+import analysis.inner_product_space.basic
 
 /-!
 # Quaternions as a normed algebra
@@ -48,8 +48,8 @@ inner_product_space.of_core
   add_left := λ x y z, by simp only [inner_def, add_mul, add_re],
   smul_left := λ x y r, by simp [inner_def] }
 
-lemma norm_sq_eq_norm_square (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
-by rw [← inner_self, real_inner_self_eq_norm_square]
+lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
+by rw [← inner_self, real_inner_self_eq_norm_mul_norm]
 
 instance : norm_one_class ℍ :=
 ⟨by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_one, real.sqrt_one]⟩
@@ -61,7 +61,7 @@ begin
 end
 
 @[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
-by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sqr_eq_abs, real.norm_eq_abs]
+by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
 noncomputable instance : normed_ring ℍ :=
 { dist_eq := λ _ _, rfl,

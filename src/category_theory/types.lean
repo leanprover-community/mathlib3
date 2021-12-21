@@ -34,6 +34,9 @@ namespace category_theory
 -- morphism levels before object levels. See note [category_theory universes].
 universes v v' w u u'
 
+/- The `@[to_additive]` attribute is just a hint that expressions involving this instance can
+  still be additivized. -/
+@[to_additive category_theory.types]
 instance types : large_category (Type u) :=
 { hom     := λ a b, (a → b),
   id      := λ a, id,
@@ -59,7 +62,8 @@ congr_fun f.inv_hom_id y
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
 abbreviation as_hom {α β : Type u} (f : α → β) : α ⟶ β := f
 -- If you don't mind some notation you can use fewer keystrokes:
-localized "notation  `↾` f : 200 := as_hom f" in category_theory.Type -- type as \upr in VScode
+localized "notation  `↾` f : 200 := category_theory.as_hom f"
+  in category_theory.Type -- type as \upr in VScode
 
 section -- We verify the expected type checking behaviour of `as_hom`.
 variables (α β γ : Type u) (f : α → β) (g : β → γ)
@@ -140,6 +144,12 @@ instance ulift_functor_faithful : faithful ulift_functor :=
 { map_injective' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
+/--
+The functor embedding `Type u` into `Type u` via `ulift` is isomorphic to the identity functor.
+ -/
+def ulift_functor_trivial : ulift_functor.{u u} ≅ 𝟭 _ :=
+nat_iso.of_components ulift_trivial (by tidy)
+
 /-- Any term `x` of a type `X` corresponds to a morphism `punit ⟶ X`. -/
 -- TODO We should connect this to a general story about concrete categories
 -- whose forgetful functor is representable.
@@ -161,10 +171,7 @@ begin
     resetI,
     rw ←hom_of_element_eq_iff at ⊢ h,
     exact (cancel_mono f).mp h },
-  { refine λ H, ⟨λ Z g h H₂, _⟩,
-    ext z,
-    replace H₂ := congr_fun H₂ z,
-    exact H H₂ }
+  { exact λ H, ⟨λ Z, H.comp_left⟩ }
 end
 
 /--
@@ -175,28 +182,13 @@ See https://stacks.math.columbia.edu/tag/003C.
 lemma epi_iff_surjective {X Y : Type u} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
 begin
   split,
-  { intros H,
-    let g : Y ⟶ ulift Prop := λ y, ⟨true⟩,
-    let h : Y ⟶ ulift Prop := λ y, ⟨∃ x, f x = y⟩,
-    suffices : f ≫ g = f ≫ h,
-    { resetI,
-      rw cancel_epi at this,
-      intro y,
-      replace this := congr_fun this y,
-      replace this : true = ∃ x, f x = y := congr_arg ulift.down this,
-      rw ←this,
-      trivial },
-    ext x,
-    change true ↔ ∃ x', f x' = f x,
-    rw true_iff,
-    exact ⟨x, rfl⟩ },
-  { intro H,
-    constructor,
-    intros Z g h H₂,
-    apply funext,
-    rw ←forall_iff_forall_surj H,
-    intro x,
-    exact (congr_fun H₂ x : _) }
+  { rintros ⟨H⟩,
+    refine function.surjective_of_right_cancellable_Prop (λ g₁ g₂ hg, _),
+    rw [← equiv.ulift.symm.injective.comp_left.eq_iff],
+    apply H,
+    change ulift.up ∘ (g₁ ∘ f) = ulift.up ∘ (g₂ ∘ f),
+    rw hg },
+  { exact λ H, ⟨λ Z, H.injective_comp_right⟩ }
 end
 
 section

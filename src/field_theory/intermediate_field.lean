@@ -42,27 +42,24 @@ open_locale big_operators
 
 variables (K L : Type*) [field K] [field L] [algebra K L]
 
-section
-set_option old_structure_cmd true
-
 /-- `S : intermediate_field K L` is a subset of `L` such that there is a field
 tower `L / S / K`. -/
-structure intermediate_field extends subalgebra K L, subfield L
+structure intermediate_field extends subalgebra K L :=
+(neg_mem' : ∀ x ∈ carrier, -x ∈ carrier)
+(inv_mem' : ∀ x ∈ carrier, x⁻¹ ∈ carrier)
 
 /-- Reinterpret an `intermediate_field` as a `subalgebra`. -/
 add_decl_doc intermediate_field.to_subalgebra
-
-/-- Reinterpret an `intermediate_field` as a `subfield`. -/
-add_decl_doc intermediate_field.to_subfield
-
-end
 
 variables {K L} (S : intermediate_field K L)
 
 namespace intermediate_field
 
+/-- Reinterpret an `intermediate_field` as a `subfield`. -/
+def to_subfield : subfield L := { ..S.to_subalgebra, ..S }
+
 instance : set_like (intermediate_field K L) L :=
-⟨intermediate_field.carrier, λ p q h, by cases p; cases q; congr'⟩
+⟨λ S, S.to_subalgebra.carrier, by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }⟩
 
 @[simp]
 lemma mem_carrier {s : intermediate_field K L} {x : L} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -77,7 +74,7 @@ set_like.ext h
 
 @[simp] lemma mem_mk (s : set L) (hK : ∀ x, algebra_map K L x ∈ s)
   (ho hm hz ha hn hi) (x : L) :
-  x ∈ intermediate_field.mk s ho hm hz ha hK hn hi ↔ x ∈ s := iff.rfl
+  x ∈ intermediate_field.mk (subalgebra.mk s ho hm hz ha hK) hn hi ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subalgebra (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subalgebra ↔ x ∈ s := iff.rfl
@@ -148,19 +145,16 @@ lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c 
   ∑ i in t, f i ∈ S :=
 S.to_subfield.sum_mem h
 
-lemma pow_mem {x : L} (hx : x ∈ S) (n : ℤ) : x^n ∈ S :=
-begin
-  cases n,
-  { exact @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx n, },
-  { have h := @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx _,
-    exact subfield.inv_mem S.to_subfield h, },
-end
+lemma pow_mem {x : L} (hx : x ∈ S) : ∀ (n : ℤ), x^n ∈ S
+| (n : ℕ) := by { rw zpow_coe_nat, exact S.to_subfield.pow_mem hx _, }
+| -[1+ n] := by { rw [zpow_neg_succ_of_nat],
+    exact S.to_subfield.inv_mem (S.to_subfield.pow_mem hx _) }
 
-lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
-  n •ℤ x ∈ S := S.to_subfield.gsmul_mem hx n
+lemma zsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
+  n • x ∈ S := S.to_subfield.zsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : L) ∈ S :=
-by simp only [← gsmul_one, gsmul_mem, one_mem]
+by simp only [← zsmul_one, zsmul_mem, one_mem]
 
 end intermediate_field
 
@@ -202,16 +196,48 @@ S.to_subfield.to_field
 @[simp, norm_cast] lemma coe_zero : ((0 : S) : L) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : S) : L) = 1 := rfl
 @[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n :=
-@nat.rec (λ n, (↑(x ^ n) : L) = ↑x ^ n) rfl (λ _ h, congr_arg (has_mul.mul ↑x) h) n
+begin
+  induction n with n ih,
+  { simp },
+  { simp [pow_succ, ih] }
+end
 
-instance algebra : algebra K S :=
-S.to_subalgebra.algebra
+/-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
 
-instance to_algebra : algebra S L :=
+instance module' {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L] :
+  module R S :=
+S.to_subalgebra.module'
+instance module : module K S := S.to_subalgebra.module
+
+instance is_scalar_tower {R} [semiring R] [has_scalar R K] [module R L]
+  [is_scalar_tower R K L] :
+  is_scalar_tower R K S :=
+S.to_subalgebra.is_scalar_tower
+
+@[simp] lemma coe_smul {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L]
+  (r : R) (x : S) :
+  ↑(r • x) = (r • x : L) := rfl
+
+instance algebra' {K'} [comm_semiring K'] [has_scalar K' K] [algebra K' L]
+  [is_scalar_tower K' K L] :
+  algebra K' S :=
+S.to_subalgebra.algebra'
+instance algebra : algebra K S := S.to_subalgebra.algebra
+
+instance to_algebra {R : Type*} [semiring R] [algebra L R] : algebra S R :=
 S.to_subalgebra.to_algebra
 
-instance : is_scalar_tower K S L :=
+instance is_scalar_tower_bot {R : Type*} [semiring R] [algebra L R] :
+  is_scalar_tower S L R :=
+is_scalar_tower.subalgebra _ _ _ S.to_subalgebra
+
+instance is_scalar_tower_mid {R : Type*} [semiring R] [algebra L R] [algebra K R]
+  [is_scalar_tower K L R] : is_scalar_tower K S R :=
 is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
+
+/-- Specialize `is_scalar_tower_mid` to the common case where the top field is `L` -/
+instance is_scalar_tower_mid' : is_scalar_tower K S L :=
+S.is_scalar_tower_mid
 
 variables {L' : Type*} [field L'] [algebra K L']
 
@@ -229,6 +255,9 @@ S.to_subalgebra.val
 @[simp] theorem coe_val : ⇑S.val = coe := rfl
 
 @[simp] lemma val_mk {x : L} (hx : x ∈ S) : S.val ⟨x, hx⟩ = x := rfl
+
+lemma range_val : S.val.range = S.to_subalgebra :=
+S.to_subalgebra.range_val
 
 variables {S}
 
@@ -278,30 +307,21 @@ instance has_lift2 {F : intermediate_field K L} :
 @[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
   x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
 
-instance lift2_alg {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
-{ to_fun := (algebra_map F E).comp (algebra_map K F),
-  map_zero' := ((algebra_map F E).comp (algebra_map K F)).map_zero,
-  map_one' := ((algebra_map F E).comp (algebra_map K F)).map_one,
-  map_add' := ((algebra_map F E).comp (algebra_map K F)).map_add,
-  map_mul' := ((algebra_map F E).comp (algebra_map K F)).map_mul,
-  smul := λ a b, (((algebra_map F E).comp (algebra_map K F)) a) * b,
-  smul_def' := λ _ _, rfl,
-  commutes' := λ a b, mul_comm (((algebra_map F E).comp (algebra_map K F)) a) b }
+/-- This was formerly an instance called `lift2_alg`, but an instance above already provides it. -/
+example {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
+by apply_instance
+
+lemma lift2_algebra_map {F : intermediate_field K L} {E : intermediate_field F L} :
+  algebra_map K E = (algebra_map F E).comp (algebra_map K F) := rfl
 
 instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
   is_scalar_tower K F E :=
-⟨λ a b c, by { simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc], refl }⟩
+E.is_scalar_tower
 
 /-- `lift2` is isomorphic to the original `intermediate_field`. -/
 def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
   (↑E : intermediate_field K L) ≃ₐ[K] E :=
-{ to_fun := λ x, x,
-  inv_fun := λ x, x,
-  left_inv := λ x, rfl,
-  right_inv := λ x, rfl,
-  map_add' := λ x y, rfl,
-  map_mul' := λ x y, rfl,
-  commutes' := λ x, rfl }
+alg_equiv.refl
 
 end tower
 
@@ -316,37 +336,37 @@ instance finite_dimensional_right [finite_dimensional K L] : finite_dimensional 
 right K F L
 
 @[simp] lemma dim_eq_dim_subalgebra :
-  vector_space.dim K F.to_subalgebra = vector_space.dim K F := rfl
+  module.rank K F.to_subalgebra = module.rank K F := rfl
 
-@[simp] lemma findim_eq_findim_subalgebra :
-  findim K F.to_subalgebra = findim K F := rfl
+@[simp] lemma finrank_eq_finrank_subalgebra :
+  finrank K F.to_subalgebra = finrank K F := rfl
 
 variables {F} {E}
 
 @[simp] lemma to_subalgebra_eq_iff : F.to_subalgebra = E.to_subalgebra ↔ F = E :=
 by { rw [set_like.ext_iff, set_like.ext'_iff, set.ext_iff], refl }
 
-lemma eq_of_le_of_findim_le [finite_dimensional K L] (h_le : F ≤ E)
-  (h_findim : findim K E ≤ findim K F) : F = E :=
-to_subalgebra_injective $ subalgebra.to_submodule_injective $ eq_of_le_of_findim_le h_le h_findim
+lemma eq_of_le_of_finrank_le [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank K E ≤ finrank K F) : F = E :=
+to_subalgebra_injective $ subalgebra.to_submodule_injective $ eq_of_le_of_finrank_le h_le h_finrank
 
-lemma eq_of_le_of_findim_eq [finite_dimensional K L] (h_le : F ≤ E)
-  (h_findim : findim K F = findim K E) : F = E :=
-eq_of_le_of_findim_le h_le h_findim.ge
+lemma eq_of_le_of_finrank_eq [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank K F = finrank K E) : F = E :=
+eq_of_le_of_finrank_le h_le h_finrank.ge
 
-lemma eq_of_le_of_findim_le' [finite_dimensional K L] (h_le : F ≤ E)
-  (h_findim : findim F L ≤ findim E L) : F = E :=
+lemma eq_of_le_of_finrank_le' [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank F L ≤ finrank E L) : F = E :=
 begin
-  apply eq_of_le_of_findim_le h_le,
-  have h1 := findim_mul_findim K F L,
-  have h2 := findim_mul_findim K E L,
-  have h3 : 0 < findim E L := findim_pos,
+  apply eq_of_le_of_finrank_le h_le,
+  have h1 := finrank_mul_finrank K F L,
+  have h2 := finrank_mul_finrank K E L,
+  have h3 : 0 < finrank E L := finrank_pos,
   nlinarith,
 end
 
-lemma eq_of_le_of_findim_eq' [finite_dimensional K L] (h_le : F ≤ E)
-  (h_findim : findim F L = findim E L) : F = E :=
-eq_of_le_of_findim_le' h_le h_findim.le
+lemma eq_of_le_of_finrank_eq' [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank F L = finrank E L) : F = E :=
+eq_of_le_of_finrank_le' h_le h_finrank.le
 
 end finite_dimensional
 

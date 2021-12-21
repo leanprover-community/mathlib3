@@ -35,7 +35,8 @@ We define the relation `Mcongr` and take its quotient as the definition of `cofi
 
 ## Reference
 
- * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
+ * Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
+   [*Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universe u
@@ -388,8 +389,7 @@ begin
   { simp only [←append_prod_append_fun, prod_map_id],
     apply eq_of_drop_last_eq,
     { dsimp, simp only [drop_fun_diag],
-      erw subtype_val_diag_sub,
-    },
+      erw subtype_val_diag_sub },
     ext1,
     simp only [cofix.abs, prod.mk.inj_iff, prod_map, function.comp_app, last_fun_append_fun,
                last_fun_subtype_val, last_fun_comp, last_fun_split_fun],
@@ -408,8 +408,8 @@ omit q
 /-- tactic for proof by bisimulation -/
 meta def mv_bisim (e : parse texpr) (ids : parse with_ident_list) : tactic unit :=
 do e ← to_expr e,
-   (expr.pi n bi d b) ← retrieve $ do {
-     generalize e,
+   (expr.pi n bi d b) ← retrieve $ do
+   { generalize e,
      target },
    `(@eq %%t %%l %%r) ← pure b,
    x ← mk_local_def `n d,
@@ -471,7 +471,6 @@ instance mvqpf_cofix : mvqpf (cofix F) :=
   abs       := λ α, quot.mk Mcongr,
   repr      := λ α, cofix.repr,
   abs_repr  := λ α, cofix.abs_repr,
-  abs_map   := λ α β g x, rfl
-}
+  abs_map   := λ α β g x, rfl }
 
 end mvqpf

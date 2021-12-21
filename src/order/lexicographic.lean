@@ -2,11 +2,30 @@
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Minchao Wu
-
-Lexicographic preorder / partial_order / linear_order / linear_order,
-for pairs and dependent pairs.
 -/
 import tactic.basic
+import data.prod
+
+/-!
+# Lexicographic order
+
+This file defines the lexicographic relation for pairs and dependent pairs of orders, partial orders
+and linear orders.
+
+## Main declarations
+
+* `lex α β`: Synonym of `α × β` to equip it with lexicographic order without creating conflicting
+  instances.
+* `lex_<pre/partial_/linear_>order`: Instances lifting the orders on `α` and `β` to `lex α β`
+* `dlex_<pre/partial_/linear_>order`: Instances lifting the orders on every `Z a` to the dependent
+  pair `Z`.
+
+## See also
+
+The lexicographic order on lists is provided in `data.list.lex`.
+
+The lexicographic order on a sigma type is to be found in `data.sigma.lex`.
+-/
 
 universes u v
 
@@ -15,6 +34,9 @@ def lex (α : Type u) (β : Type v) := α × β
 
 variables {α : Type u} {β : Type v}
 
+meta instance [has_to_format α] [has_to_format β] : has_to_format (lex α β) :=
+prod.has_to_format
+
 instance [decidable_eq α] [decidable_eq β] : decidable_eq (lex α β) :=
 prod.decidable_eq
 
@@ -22,11 +44,17 @@ instance [inhabited α] [inhabited β] : inhabited (lex α β) :=
 prod.inhabited
 
 /-- Dictionary / lexicographic ordering on pairs.  -/
-instance lex_has_le [preorder α] [preorder β] : has_le (lex α β) :=
+instance lex_has_le [has_lt α] [has_le β] : has_le (lex α β) :=
 { le := prod.lex (<) (≤) }
 
-instance lex_has_lt [preorder α] [preorder β] : has_lt (lex α β) :=
+instance lex_has_lt [has_lt α] [has_lt β] : has_lt (lex α β) :=
 { lt := prod.lex (<) (<) }
+
+lemma lex_le_iff [has_lt α] [has_le β] (a b : lex α β) :
+  a ≤ b ↔ a.1 < b.1 ∨ a.1 = b.1 ∧ a.2 ≤ b.2 := prod.lex_def (<) (≤)
+
+lemma lex_lt_iff [has_lt α] [has_lt β] (a b : lex α β) :
+  a < b ↔ a.1 < b.1 ∨ a.1 = b.1 ∧ a.2 < b.2 := prod.lex_def (<) (<)
 
 /-- Dictionary / lexicographic preorder for pairs. -/
 instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=
@@ -81,14 +109,14 @@ instance lex_linear_order [linear_order α] [linear_order β] : linear_order (le
 { le_total :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases le_total a₁ a₂ with ha | ha;
+    obtain ha | ha := le_total a₁ a₂;
       cases lt_or_eq_of_le ha with a_lt a_eq,
     -- Deal with the two goals with a₁ ≠ a₂
     { left, left, exact a_lt },
     swap,
     { right, left, exact a_lt },
     -- Now deal with the two goals with a₁ = a₂
-    all_goals { subst a_eq, rcases le_total b₁ b₂ with hb | hb },
+    all_goals { subst a_eq, obtain hb | hb := le_total b₁ b₂ },
     { left, right, exact hb },
     { right, right, exact hb },
     { left, right, exact hb },
@@ -97,7 +125,7 @@ instance lex_linear_order [linear_order α] [linear_order β] : linear_order (le
   decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases linear_order.decidable_le a₁ a₂ with a_lt | a_le,
+    obtain a_lt | a_le := linear_order.decidable_le a₁ a₂,
     { -- a₂ < a₁
       left, rw not_le at a_lt, rintro ⟨l, r⟩,
       { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
@@ -105,7 +133,7 @@ instance lex_linear_order [linear_order α] [linear_order β] : linear_order (le
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { rw h,
-        rcases linear_order.decidable_le b₁ b₂ with b_lt | b_le,
+        obtain b_lt | b_le := linear_order.decidable_le b₁ b₂,
         { -- b₂ < b₁
           left, rw not_le at b_lt, rintro ⟨l, r⟩,
           { apply lt_irrefl a₂, assumption },
@@ -185,14 +213,14 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linea
 { le_total :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases le_total a₁ a₂ with ha | ha;
+    obtain ha | ha := le_total a₁ a₂;
       cases lt_or_eq_of_le ha with a_lt a_eq,
     -- Deal with the two goals with a₁ ≠ a₂
     { left, left, exact a_lt },
     swap,
     { right, left, exact a_lt },
     -- Now deal with the two goals with a₁ = a₂
-    all_goals { subst a_eq, rcases le_total b₁ b₂ with hb | hb },
+    all_goals { subst a_eq, obtain hb | hb := le_total b₁ b₂ },
     { left, right, exact hb },
     { right, right, exact hb },
     { left, right, exact hb },
@@ -201,7 +229,7 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linea
   decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases linear_order.decidable_le a₁ a₂ with a_lt | a_le,
+    obtain a_lt | a_le := linear_order.decidable_le a₁ a₂,
     { -- a₂ < a₁
       left, rw not_le at a_lt, rintro ⟨l, r⟩,
       { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
@@ -209,7 +237,7 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linea
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { subst h,
-        rcases linear_order.decidable_le b₁ b₂ with b_lt | b_le,
+        obtain b_lt | b_le := linear_order.decidable_le b₁ b₂,
         { -- b₂ < b₁
           left, rw not_le at b_lt, rintro ⟨l, r⟩,
           { apply lt_irrefl a₁, assumption },

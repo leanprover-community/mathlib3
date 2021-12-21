@@ -97,7 +97,7 @@ begin
   dsimp [move_left],
   rw finset.card_erase_of_mem,
   { rw finset.card_erase_of_mem,
-    { exact nat.sub_add_cancel (card_of_mem_left h), },
+    { exact tsub_add_cancel_of_le (card_of_mem_left h), },
     { exact finset.mem_of_mem_inter_left h, } },
   { apply finset.mem_erase_of_ne_of_mem,
     { exact λ w, pred_ne_self m.2 (congr_arg prod.snd w), },
@@ -115,7 +115,7 @@ begin
   dsimp [move_right],
   rw finset.card_erase_of_mem,
   { rw finset.card_erase_of_mem,
-    { exact nat.sub_add_cancel (card_of_mem_right h), },
+    { exact tsub_add_cancel_of_le (card_of_mem_right h), },
     { exact finset.mem_of_mem_inter_left h, } },
   { apply finset.mem_erase_of_ne_of_mem,
     { exact λ w, pred_ne_self m.1 (congr_arg prod.fst w), },
@@ -175,17 +175,20 @@ instance short_L : short domineering.L := by { dsimp [domineering.L], apply_inst
 -- #eval to_bool (domineering.one ≈ 1)
 -- #eval to_bool (domineering.L + domineering.L ≈ 1)
 
+-- The following no longer works since Lean 3.29, since definitions by well-founded
+-- recursion no longer reduce definitionally.
+
 -- We can check that `decidable` instances reduce as expected,
 -- and so our implementation of domineering is computable.
 -- run_cmd tactic.whnf `(by apply_instance : decidable (domineering.one ≤ 1)) >>= tactic.trace
 
 -- dec_trivial can handle most of the dictionary of small games described in [conway2001]
-example : domineering.one ≈ 1 := dec_trivial
-example : domineering.L + domineering.L ≈ 1 := dec_trivial
-example : domineering.L ≈ pgame.of_lists [0] [1] := dec_trivial
-example : (domineering ([(0,0), (0,1), (0,2), (0,3)].to_finset) ≈ 2) := dec_trivial
-example : (domineering ([(0,0), (0,1), (1,0), (1,1)].to_finset) ≈ pgame.of_lists [1] [-1]) :=
-  dec_trivial.
+-- example : domineering.one ≈ 1 := dec_trivial
+-- example : domineering.L + domineering.L ≈ 1 := dec_trivial
+-- example : domineering.L ≈ pgame.of_lists [0] [1] := dec_trivial
+-- example : (domineering ([(0,0), (0,1), (0,2), (0,3)].to_finset) ≈ 2) := dec_trivial
+-- example : (domineering ([(0,0), (0,1), (1,0), (1,1)].to_finset) ≈ pgame.of_lists [1] [-1]) :=
+--   dec_trivial.
 
 -- The 3x3 grid is doable, but takes a minute...
 -- example :

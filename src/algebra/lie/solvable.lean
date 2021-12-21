@@ -3,9 +3,9 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.ideal_operations
 import algebra.lie.abelian
-import order.preorder_hom
+import algebra.lie.ideal_operations
+import order.hom.basic
 
 /-!
 # Solvable Lie algebras
@@ -74,7 +74,7 @@ begin
   { rw [nat.succ_add k l, derived_series_of_ideal_succ, derived_series_of_ideal_succ, ih], },
 end
 
-lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤ J) (h₂ : l ≤ k) :
+@[mono] lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤ J) (h₂ : l ≤ k) :
   D k I ≤ D l J :=
 begin
   revert l, induction k with k ih; intros l h₂,
@@ -95,7 +95,7 @@ derived_series_of_ideal_le (le_refl I) (zero_le k)
 lemma derived_series_of_ideal_mono {I J : lie_ideal R L} (h : I ≤ J) (k : ℕ) : D k I ≤ D k J :=
 derived_series_of_ideal_le h (le_refl k)
 
-lemma derived_series_of_ideal_antimono {k l : ℕ} (h : l ≤ k) : D k I ≤ D l I :=
+lemma derived_series_of_ideal_antitone {k l : ℕ} (h : l ≤ k) : D k I ≤ D l I :=
 derived_series_of_ideal_le (le_refl I) h
 
 lemma derived_series_of_ideal_add_le_add (J : lie_ideal R L) (k l : ℕ) :
@@ -105,7 +105,7 @@ begin
   { to_fun    := λ I, ⁅I, I⁆,
     monotone' := λ I J h, lie_submodule.mono_lie I J I J h h, },
   have h₁ : ∀ (I J : lie_ideal R L), D₁ (I ⊔ J) ≤ (D₁ I) ⊔ J,
-  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_right_of_le], },
+  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_of_le_right], },
   rw ← D₁.iterate_sup_le_sup_iff at h₁,
   exact h₁ k l I J,
 end
@@ -171,9 +171,10 @@ end
 lemma derived_series_map_eq (k : ℕ) (h : function.surjective f) :
   (derived_series R L' k).map f = derived_series R L k :=
 begin
-  have h' : (⊤ : lie_ideal R L').map f = ⊤, { exact f.ideal_range_eq_top_of_surjective h, },
   induction k with k ih,
-  { exact h', },
+  { change (⊤ : lie_ideal R L').map f = ⊤,
+    rw ←f.ideal_range_eq_map,
+    exact f.ideal_range_eq_top_of_surjective h, },
   { simp only [derived_series_def, map_bracket_eq f h, ih, derived_series_of_ideal_succ], },
 end
 
@@ -299,7 +300,7 @@ begin
   { intros k₁ k₂ h₁₂ h₁,
     suffices : derived_series_of_ideal R L k₂ I ≤ ⊥, { exact eq_bot_iff.mpr this, },
     change derived_series_of_ideal R L k₁ I = ⊥ at h₁, rw ← h₁,
-    exact derived_series_of_ideal_antimono I h₁₂, },
+    exact derived_series_of_ideal_antitone I h₁₂, },
   exact nat.Inf_upward_closed_eq_succ_iff hs k,
 end
 

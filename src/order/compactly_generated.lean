@@ -3,13 +3,11 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import data.set.finite
-import data.finset.order
-import order.well_founded
-import order.order_iso_nat
-import order.atoms
-import order.zorn
 import tactic.tfae
+import order.atoms
+import order.order_iso_nat
+import order.zorn
+import data.finset.order
 
 /-!
 # Compactness properties for complete lattices
@@ -78,22 +76,12 @@ theorem is_compact_element_iff_le_of_directed_Sup_le (k : α) :
 begin
   classical,
   split,
-  { by_cases hbot : k = ⊥,
-    -- Any nonempty directed set certainly has sup above ⊥
-    { rintros _ _ ⟨x, hx⟩ _ _, use x, by simp only [hx, hbot, bot_le, and_self], },
-    { intros hk s hne hdir hsup,
-      obtain ⟨t, ht⟩ := hk s hsup,
-      -- If t were empty, its sup would be ⊥, which is not above k ≠ ⊥.
-      have tne : t.nonempty,
-      { by_contradiction n,
-        rw [finset.nonempty_iff_ne_empty, not_not] at n,
-        simp only [n, true_and, set.empty_subset, finset.coe_empty,
-          finset.sup_empty, le_bot_iff] at ht,
-        exact absurd ht hbot, },
-      -- certainly every element of t is below something in s, since ↑t ⊆ s.
-      have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, by refl⟩,
-      obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
-      exact ⟨x, ⟨hxs, le_trans ht.right hsupx⟩⟩, }, },
+  { intros hk s hne hdir hsup,
+    obtain ⟨t, ht⟩ := hk s hsup,
+    -- certainly every element of t is below something in s, since ↑t ⊆ s.
+    have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, le_rfl⟩,
+    obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
+    exact ⟨x, ⟨hxs, le_trans ht.right hsupx⟩⟩, },
   { intros hk s hsup,
     -- Consider the set of finite joins of elements of the (plain) set s.
     let S : set α := { x | ∃ t : finset α, ↑t ⊆ s ∧ x = t.sup id },
@@ -167,7 +155,7 @@ begin
     { use insert y t, simp, rw set.insert_subset, exact ⟨hy, ht₁⟩, },
     have hm' : m ≤ (insert y t).sup id, { rw ← ht₂, exact finset.sup_mono (t.subset_insert y), },
     rw ← hm _ hy' hm', simp, },
-  { rw [← ht₂, finset.sup_eq_Sup], exact Sup_le_Sup ht₁, },
+  { rw [← ht₂, finset.sup_id_eq_Sup], exact Sup_le_Sup ht₁, },
 end
 
 lemma is_Sup_finite_compact.is_sup_closed_compact (h : is_Sup_finite_compact α) :
@@ -183,14 +171,14 @@ end
 lemma is_sup_closed_compact.well_founded (h : is_sup_closed_compact α) :
   well_founded ((>) : α → α → Prop) :=
 begin
-  rw rel_embedding.well_founded_iff_no_descending_seq, rintros ⟨a⟩,
+  refine rel_embedding.well_founded_iff_no_descending_seq.mpr ⟨λ a, _⟩,
   suffices : Sup (set.range a) ∈ set.range a,
   { obtain ⟨n, hn⟩ := set.mem_range.mp this,
     have h' : Sup (set.range a) < a (n+1), { change _ > _, simp [← hn, a.map_rel_iff], },
     apply lt_irrefl (a (n+1)), apply lt_of_le_of_lt _ h', apply le_Sup, apply set.mem_range_self, },
   apply h (set.range a),
   { use a 37, apply set.mem_range_self, },
-  { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply a.to_rel_hom.map_sup, },
+  { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply rel_hom_class.map_sup a, },
 end
 
 lemma is_Sup_finite_compact_iff_all_elements_compact :
@@ -298,15 +286,16 @@ le_antisymm (begin
   rw le_inf_iff at hcinf,
   rcases hc s hcinf.2 with ⟨t, ht1, ht2⟩,
   exact (le_inf hcinf.1 ht2).trans (le_bsupr t ht1),
-end) (supr_le $ λ t, supr_le $ λ h, inf_le_inf_left _ ((finset.sup_eq_Sup t).symm ▸ (Sup_le_Sup h)))
+end)
+  (supr_le $ λ t, supr_le $ λ h, inf_le_inf_left _ ((finset.sup_id_eq_Sup t).symm ▸ (Sup_le_Sup h)))
 
-theorem complete_lattice.independent_iff_finite {s : set α} :
-  complete_lattice.independent s ↔
-    ∀ t : finset α, ↑t ⊆ s → complete_lattice.independent (↑t : set α) :=
+theorem complete_lattice.set_independent_iff_finite {s : set α} :
+  complete_lattice.set_independent s ↔
+    ∀ t : finset α, ↑t ⊆ s → complete_lattice.set_independent (↑t : set α) :=
 ⟨λ hs t ht, hs.mono ht, λ h a ha, begin
   rw [disjoint_iff, inf_Sup_eq_supr_inf_sup_finset, supr_eq_bot],
   intro t,
-  rw [supr_eq_bot, finset.sup_eq_Sup],
+  rw [supr_eq_bot, finset.sup_id_eq_Sup],
   intro ht,
   classical,
   have h' := (h (insert a t) _ (t.mem_insert_self a)).eq_bot,
@@ -316,14 +305,14 @@ theorem complete_lattice.independent_iff_finite {s : set α} :
     exact ⟨ha, set.subset.trans ht (set.diff_subset _ _)⟩ }
 end⟩
 
-lemma complete_lattice.independent_Union_of_directed {η : Type*}
+lemma complete_lattice.set_independent_Union_of_directed {η : Type*}
   {s : η → set α} (hs : directed (⊆) s)
-  (h : ∀ i, complete_lattice.independent (s i)) :
-  complete_lattice.independent (⋃ i, s i) :=
+  (h : ∀ i, complete_lattice.set_independent (s i)) :
+  complete_lattice.set_independent (⋃ i, s i) :=
 begin
   by_cases hη : nonempty η,
   { resetI,
-    rw complete_lattice.independent_iff_finite,
+    rw complete_lattice.set_independent_iff_finite,
     intros t ht,
     obtain ⟨I, fi, hI⟩ := set.finite_subset_Union t.finite_to_set ht,
     obtain ⟨i, hi⟩ := hs.finset_le fi.to_finset,
@@ -335,10 +324,10 @@ end
 
 lemma complete_lattice.independent_sUnion_of_directed {s : set (set α)}
   (hs : directed_on (⊆) s)
-  (h : ∀ a ∈ s, complete_lattice.independent a) :
-  complete_lattice.independent (⋃₀ s) :=
+  (h : ∀ a ∈ s, complete_lattice.set_independent a) :
+  complete_lattice.set_independent (⋃₀ s) :=
 by rw set.sUnion_eq_Union; exact
-  complete_lattice.independent_Union_of_directed hs.directed_coe (by simpa using h)
+  complete_lattice.set_independent_Union_of_directed hs.directed_coe (by simpa using h)
 
 
 end
@@ -361,7 +350,8 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   by_cases htriv : b = k,
   { left, ext, simp only [htriv, set.Iic.coe_top, subtype.coe_mk], },
   right,
-  rcases zorn.zorn_partial_order₀ (set.Iio k) _ b (lt_of_le_of_ne hbk htriv) with ⟨a, a₀, ba, h⟩,
+  rcases zorn.zorn_nonempty_partial_order₀ (set.Iio k) _ b (lt_of_le_of_ne hbk htriv)
+    with ⟨a, a₀, ba, h⟩,
   { refine ⟨⟨a, le_of_lt a₀⟩, ⟨ne_of_lt a₀, λ c hck, by_contradiction $ λ c₀, _⟩, ba⟩,
     cases h c.1 (lt_of_le_of_ne c.2 (λ con, c₀ (subtype.ext con))) hck.le,
     exact lt_irrefl _ hck, },
@@ -373,7 +363,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
 end⟩
 
 lemma coatomic_of_top_compact (h : is_compact_element (⊤ : α)) : is_coatomic α :=
-(@order_iso.Iic_top α _).is_coatomic_iff.mp (Iic_coatomic_of_compact_element h)
+(@order_iso.Iic_top α _ _).is_coatomic_iff.mp (Iic_coatomic_of_compact_element h)
 
 end complete_lattice
 
@@ -422,7 +412,7 @@ end, λ _, and.left⟩⟩
 theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) : is_complemented α :=
 ⟨λ b, begin
   obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn.zorn_subset
-    {s : set α | complete_lattice.independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
+    {s : set α | complete_lattice.set_independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
   { refine ⟨Sup s, le_of_eq b_inf_Sup_s, _⟩,
     rw [← h, Sup_le_iff],
     intros a ha,

@@ -70,7 +70,7 @@ begin
   rw [adjoint_aux_inner_right, adjoint_aux_inner_left],
 end
 
-lemma adjoint_aux_norm (A : E →L[𝕜] F) : ∥adjoint_aux A∥ = ∥A∥ :=
+@[simp] lemma adjoint_aux_norm (A : E →L[𝕜] F) : ∥adjoint_aux A∥ = ∥A∥ :=
 begin
   refine le_antisymm _ _,
   { refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ x, _),

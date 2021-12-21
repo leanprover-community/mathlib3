@@ -786,7 +786,7 @@ begin
   exact is_integral_sup.mpr ⟨h1, h2⟩,
 end
 
-end finite_dimensional_sup
+end supremum
 
 end intermediate_field
 

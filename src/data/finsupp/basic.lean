@@ -1291,11 +1291,9 @@ have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
   ∏ x in f1.support, g x (f1 x + f2 x) = f1.prod g :=
   λ f1 f2 hd, finset.prod_congr rfl (λ x hx,
     by simp only [not_mem_support_iff.mp (disjoint_left.mp hd hx), add_zero]),
-begin
-  rw [←this hd, ←this hd.symm],
-  simp only [add_comm, finsupp.prod, support_add_eq hd, prod_union hd, add_apply],
-end
-#exit
+by simp_rw [← this hd, ← this hd.symm,
+  add_comm (f2 _), finsupp.prod, support_add_eq hd, prod_union hd, add_apply]
+
 section map_range
 
 section equiv

@@ -76,7 +76,7 @@ variables (k : Type*) [linear_ordered_field k]
 
 /-- In a linear ordered field, the whole field is order isomorphic to the open interval `(-1, 1)`.
 -/
-def order_iso_Ioo_neg_one_one : k ≃o Ioo (-1 : k) 1 :=
+@[irreducible] def order_iso_Ioo_neg_one_one : k ≃o Ioo (-1 : k) 1 :=
 begin
   refine strict_mono.order_iso_of_right_inverse _ _ (λ x, x / (1 - |x|)) _,
   { refine cod_restrict (λ x, x / (1 + |x|)) _ (λ x, abs_lt.1 _),

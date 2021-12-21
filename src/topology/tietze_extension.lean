@@ -49,8 +49,13 @@ lemma tietze_extension_step (f : X →ᵇ ℝ) (e : C(X, Y)) (he : closed_embedd
 begin
   have h3 : (0 : ℝ) < 3 := by norm_num1,
   have h23 : 0 < (2 / 3 : ℝ) := by norm_num1,
+  -- In the trivial case `f = 0`, we take `g = 0`
   rcases eq_or_ne f 0 with (rfl|hf), { use 0, simp },
   replace hf : 0 < ∥f∥ := norm_pos_iff.2 hf,
+  /- Otherwise, the closed sets `e '' (f ⁻¹' (Iic (-∥f∥ / 3)))` and `e '' (f ⁻¹' (Ici (∥f∥ / 3)))`
+  are disjoint, hence by Urysohn's lemma there exists a function `g` that is equal to `-∥f∥ / 3`
+  on the former set and is equal to `∥f∥ / 3` on the latter set. This function `g` satisfies the
+  assertions of the lemma. -/
   have hf3 : -∥f∥ / 3 < ∥f∥ / 3, from (div_lt_div_right h3).2 (left.neg_lt_self hf),
   have hc₁ : is_closed (e '' (f ⁻¹' (Iic (-∥f∥ / 3)))),
     from he.is_closed_map _ (is_closed_Iic.preimage f.continuous),
@@ -208,8 +213,12 @@ begin
   obtain ⟨g, hg_mem, hgf⟩ : ∃ g : Y →ᵇ ℝ, (∀ y, ∃ x, g y ∈ Icc (f x) b) ∧ g ∘ e = f,
   { rcases exists_extension_forall_mem_Icc_of_closed_embedding f hmem hle he
       with ⟨g, hg_mem, hgf⟩,
+    -- If `a ∈ range f`, then we are done.
     rcases em (∃ x, f x = a) with ⟨x, rfl⟩|ha',
     { exact ⟨g, λ y, ⟨x, hg_mem _⟩, hgf⟩ },
+    /- Otherwise, `g ⁻¹' {a}` is disjoint with `range e ∪ g ⁻¹' (Ici c)`, hence there exists a
+    function `dg : Y → ℝ` such that `dg ∘ e = 0`, `dg y = 0` whenever `c ≤ g y`, `dg y = c - a`
+    whenever `g y = a`, and `0 ≤ dg y ≤ c - a` for all `y`.  -/
     have hd : disjoint (range e ∪ g ⁻¹' (Ici c)) (g ⁻¹' {a}),
     { refine disjoint_union_left.2 ⟨_, disjoint_preimage _ _⟩,
       { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = a⟩,
@@ -234,7 +243,8 @@ begin
       { simp [dg0 (or.inr hc), (hg_mem y).2] },
       { calc g y + dg y ≤ c + (c - a) : add_le_add hc (dgmem _).2
                     ... = b           : by rw [hsub, add_sub_cancel'_right] } } },
-  /- Now we deal with the case `∀ x, f x ≠ b`. -/
+  /- Now we deal with the case `∀ x, f x ≠ b`. The proof is the same as in the first case, with
+  minor modifications that make it hard to deduplicate code. -/
   choose xl hxl hgb using hg_mem,
   rcases em (∃ x, f x = b) with ⟨x, rfl⟩|hb',
   { exact ⟨g, λ y, ⟨xl y, x, hxl y, hgb y⟩, hgf⟩ },
@@ -274,14 +284,14 @@ end
 
 /-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
 embedding. Let `e` be a closed embedding of a nonempty topological space `X` into a normal
-topological space `Y`. Let `f` be a bounded continuous real-valued function on `X`. Let `s` be
+topological space `Y`. Let `f` be a bounded continuous real-valued function on `X`. Let `t` be
 a nonempty convex set of real numbers (we use `ord_connected` instead of `convex` to automatically
-deduce this argument by typeclass search) such that `f x ∈ s` for all `x`. Then there exists
-a bounded continuous real-valued function `g : Y →ᵇ ℝ` such that `g y ∈ s` for all `y` and
+deduce this argument by typeclass search) such that `f x ∈ t` for all `x`. Then there exists
+a bounded continuous real-valued function `g : Y →ᵇ ℝ` such that `g y ∈ t` for all `y` and
 `g ∘ e = f`. -/
-lemma exists_extension_forall_mem_of_closed_embedding (f : X →ᵇ ℝ) {s : set ℝ} {e : X → Y}
-  [hs : ord_connected s] (hf : ∀ x, f x ∈ s) (hne : s.nonempty) (he : closed_embedding e) :
-  ∃ g : Y →ᵇ ℝ, (∀ y, g y ∈ s) ∧ g ∘ e = f :=
+lemma exists_extension_forall_mem_of_closed_embedding (f : X →ᵇ ℝ) {t : set ℝ} {e : X → Y}
+  [hs : ord_connected t] (hf : ∀ x, f x ∈ t) (hne : t.nonempty) (he : closed_embedding e) :
+  ∃ g : Y →ᵇ ℝ, (∀ y, g y ∈ t) ∧ g ∘ e = f :=
 begin
   casesI is_empty_or_nonempty X,
   { rcases hne with ⟨c, hc⟩,
@@ -313,13 +323,13 @@ namespace continuous_map
 
 /-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed
 embedding. Let `e` be a closed embedding of a nonempty topological space `X` into a normal
-topological space `Y`. Let `f` be a continuous real-valued function on `X`. Let `s` be a nonempty
+topological space `Y`. Let `f` be a continuous real-valued function on `X`. Let `t` be a nonempty
 convex set of real numbers (we use `ord_connected` instead of `convex` to automatically deduce this
-argument by typeclass search) such that `f x ∈ s` for all `x`. Then there exists a continuous
-real-valued function `g : C(Y, ℝ)` such that `g y ∈ s` for all `y` and `g ∘ e = f`. -/
-lemma exists_extension_forall_mem_of_closed_embedding (f : C(X, ℝ)) {s : set ℝ} {e : X → Y}
-  [hs : ord_connected s] (hf : ∀ x, f x ∈ s) (hne : s.nonempty) (he : closed_embedding e) :
-  ∃ g : C(Y, ℝ), (∀ y, g y ∈ s) ∧ g ∘ e = f :=
+argument by typeclass search) such that `f x ∈ t` for all `x`. Then there exists a continuous
+real-valued function `g : C(Y, ℝ)` such that `g y ∈ t` for all `y` and `g ∘ e = f`. -/
+lemma exists_extension_forall_mem_of_closed_embedding (f : C(X, ℝ)) {t : set ℝ} {e : X → Y}
+  [hs : ord_connected t] (hf : ∀ x, f x ∈ t) (hne : t.nonempty) (he : closed_embedding e) :
+  ∃ g : C(Y, ℝ), (∀ y, g y ∈ t) ∧ g ∘ e = f :=
 begin
   have h : ℝ ≃o Ioo (-1 : ℝ) 1 := order_iso_Ioo_neg_one_one ℝ,
   set F : X →ᵇ ℝ :=
@@ -327,15 +337,15 @@ begin
     continuous_to_fun := continuous_subtype_coe.comp (h.continuous.comp f.continuous),
     bounded' := bounded_range_iff.1 ((bounded_Ioo (-1 : ℝ) 1).mono $
       forall_range_iff.2 $ λ x, (h (f x)).2) },
-  set t : set ℝ := (coe ∘ h) '' s,
-  have ht_sub : t ⊆ Ioo (-1 : ℝ) 1 := image_subset_iff.2 (λ x hx, (h x).2),
-  haveI : ord_connected t,
+  set t' : set ℝ := (coe ∘ h) '' t,
+  have ht_sub : t' ⊆ Ioo (-1 : ℝ) 1 := image_subset_iff.2 (λ x hx, (h x).2),
+  haveI : ord_connected t',
   { constructor, rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ z hz,
     lift z to Ioo (-1 : ℝ) 1 using (Icc_subset_Ioo (h x).2.1 (h y).2.2 hz),
     change z ∈ Icc (h x) (h y) at hz, rw [← h.image_Icc] at hz,
     rcases hz with ⟨z, hz, rfl⟩,
     exact ⟨z, hs.out hx hy hz, rfl⟩ },
-  have hFt : ∀ x, F x ∈ t, from λ x, mem_image_of_mem _ (hf x),
+  have hFt : ∀ x, F x ∈ t', from λ x, mem_image_of_mem _ (hf x),
   rcases F.exists_extension_forall_mem_of_closed_embedding hFt (hne.image _) he
     with ⟨G, hG, hGF⟩,
   set g : C(Y, ℝ) := ⟨h.symm ∘ cod_restrict G _ (λ y, ht_sub (hG y)), h.symm.continuous.comp $

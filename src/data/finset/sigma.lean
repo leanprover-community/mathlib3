@@ -14,8 +14,8 @@ This file defines a few `finset` constructions on `Σ i, α i`.
 
 * `finset.sigma`: Given a finset `s` in `ι` and finsets `t i` in each `α i`, `s.sigma t` is the
   finset of the dependent sum `Σ i, α i`
-* `finset.sigma_lift`: Lifts maps `α i → α i → finset (α i)` to a map
-  `Σ i, α i → Σ i, α i → finset (Σ i, α i)`.
+* `finset.sigma_lift`: Lifts maps `α i → β i → finset (γ i)` to a map
+  `Σ i, α i → Σ i, β i → finset (Σ i, γ i)`.
 -/
 
 open function multiset
@@ -25,11 +25,6 @@ variables {ι : Type*} {α β γ : ι → Type*}
 namespace finset
 section sigma
 variables (s s₁ s₂ : finset ι) (t t₁ t₂ : Π i, finset (α i))
-
--- example {β : Type*} {f : Π i, α i → β} : sigma α → β :=
--- begin
---   -- refine sigma.curry _ α,
--- end
 
 /-- `s.sigma t` is the finset of dependent pairs `⟨i, a⟩` such that `i ∈ s` and `a ∈ t i`. -/
 protected def sigma : finset (Σ i, α i) := ⟨_, nodup_sigma s.2 (λ i, (t i).2)⟩

@@ -195,6 +195,32 @@ mul_opposite.rec (by exact λ m, (is_central_scalar.op_smul_eq_smul _ _).symm) m
 
 export is_central_scalar (op_smul_eq_smul unop_smul_eq_smul)
 
+-- these instances are very low priority, as there is usually a faster way to find these instances
+
+@[priority 50]
+instance smul_comm_class.op_left [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
+  [is_central_scalar M α] [has_scalar N α] [smul_comm_class M N α] : smul_comm_class Mᵐᵒᵖ N α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m a, smul_comm]⟩
+
+@[priority 50]
+instance smul_comm_class.op_right [has_scalar M α] [has_scalar N α] [has_scalar Nᵐᵒᵖ α]
+  [is_central_scalar N α] [smul_comm_class M N α] : smul_comm_class M Nᵐᵒᵖ α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul n (m • a), ←unop_smul_eq_smul n a, smul_comm]⟩
+
+@[priority 50]
+instance is_scalar_tower.op_left
+  [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [has_scalar M N] [has_scalar Mᵐᵒᵖ N] [is_central_scalar M N]
+  [has_scalar N α] [is_scalar_tower M N α] : is_scalar_tower Mᵐᵒᵖ N α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m n, smul_assoc]⟩
+
+@[priority 50]
+instance is_scalar_tower.op_right [has_scalar M α] [has_scalar M N]
+  [has_scalar N α] [has_scalar Nᵐᵒᵖ α] [is_central_scalar N α]
+  [is_scalar_tower M N α] : is_scalar_tower M Nᵐᵒᵖ α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul n a, ←unop_smul_eq_smul (m • n) a, mul_opposite.unop_smul,
+                 smul_assoc]⟩
+
 namespace has_scalar
 variables [has_scalar M α]
 

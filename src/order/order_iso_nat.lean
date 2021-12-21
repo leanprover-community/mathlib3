@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.equiv.denumerable
-import order.preorder_hom
 import data.nat.lattice
+import logic.function.iterate
+import order.hom.basic
 
 /-!
 # Relation embeddings from the naturals
@@ -27,12 +28,7 @@ variables {α : Type*} {r : α → α → Prop} [is_strict_order α r]
 /-- If `f` is a strictly `r`-increasing sequence, then this returns `f` as an order embedding. -/
 def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) :
   ((<) : ℕ → ℕ → Prop) ↪r r :=
-of_monotone f $ λ a b h, begin
-  induction b with b IH, {exact (nat.not_lt_zero _ h).elim},
-  cases nat.lt_succ_iff_lt_or_eq.1 h with h e,
-  { exact trans (IH h) (H _) },
-  { subst b, apply H }
-end
+of_monotone f $ nat.rel_of_forall_rel_succ_of_lt r H
 
 @[simp]
 lemma nat_lt_apply {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} {n : ℕ} :
@@ -166,8 +162,8 @@ begin
     use n, intros m hm, rw ← hn at range_bounded, symmetry,
     apply range_bounded (a m) (set.mem_range_self _) (a.monotone hm), },
   { rw rel_embedding.well_founded_iff_no_descending_seq, refine ⟨λ a, _⟩,
-    obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_preorder_hom,
-    exact n.succ_ne_self.symm (rel_embedding.to_preorder_hom_injective _ (hn _ n.le_succ)), },
+    obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_order_hom,
+    exact n.succ_ne_self.symm (rel_embedding.to_order_hom_injective _ (hn _ n.le_succ)), },
 end
 
 /-- Given an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered

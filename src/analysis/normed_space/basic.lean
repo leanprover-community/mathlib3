@@ -359,7 +359,7 @@ by rwa norm_zpow⟩
 variable {α}
 
 @[instance]
-lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[{x}ᶜ] x) :=
+lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[≠] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -416,7 +416,7 @@ This is a particular case of `module.punctured_nhds_ne_bot`. -/
 instance punctured_nhds_module_ne_bot
   {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
   [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
-  ne_bot (𝓝[{x}ᶜ] x) :=
+  ne_bot (𝓝[≠] x) :=
 module.punctured_nhds_ne_bot ℝ E x
 
 end real
@@ -658,14 +658,41 @@ begin
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
-theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+theorem smul_sphere' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
 begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+  simp only [mem_sphere, dist_smul, normed_field.norm_inv, ← div_eq_inv_mul,
+    div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
 end
+
+/-- In a nontrivial real normed space, a sphere is nonempty if and only if its radius is
+nonnegative. -/
+@[simp] theorem normed_space.sphere_nonempty {E : Type*} [normed_group E]
+  [normed_space ℝ E] [nontrivial E] {x : E} {r : ℝ} :
+  (sphere x r).nonempty ↔ 0 ≤ r :=
+begin
+  refine ⟨λ h, nonempty_closed_ball.1 (h.mono sphere_subset_closed_ball), λ hr, _⟩,
+  rcases exists_ne x with ⟨y, hy⟩,
+  have : ∥y - x∥ ≠ 0, by simpa [sub_eq_zero],
+  use r • ∥y - x∥⁻¹ • (y - x) + x,
+  simp [norm_smul, this, real.norm_of_nonneg hr]
+end
+
+theorem smul_sphere {E : Type*} [normed_group E] [normed_space α E] [normed_space ℝ E]
+  [nontrivial E] (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { simp [zero_smul_set, set.singleton_zero, hr] },
+  { exact smul_sphere' hc x r }
+end
+
+theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+by simp only [← ball_union_sphere, set.smul_set_union, smul_ball hc, smul_sphere' hc]
 
 theorem smul_closed_ball {E : Type*} [normed_group E] [normed_space α E]
   (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
@@ -675,6 +702,37 @@ begin
   { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
   { exact smul_closed_ball' hc x r }
 end
+
+/-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.
+This homeomorphism sends `x : E` to `(1 + ∥x∥)⁻¹ • x`.
+
+In many cases the actual implementation is not important, so we don't mark the projection lemmas
+`homeomorph_unit_ball_apply_coe` and `homeomorph_unit_ball_symm_apply` as `@[simp]`. -/
+@[simps { attrs := [] }]
+def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E] :
+  E ≃ₜ ball (0 : E) 1 :=
+{ to_fun := λ x, ⟨(1 + ∥x∥)⁻¹ • x, begin
+    have : ∥x∥ < |1 + ∥x∥| := (lt_one_add _).trans_le (le_abs_self _),
+    rwa [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
+      div_lt_one ((norm_nonneg x).trans_lt this)],
+  end⟩,
+  inv_fun := λ x, (1 - ∥(x : E)∥)⁻¹ • (x : E),
+  left_inv := λ x,
+    begin
+      have : 0 < 1 + ∥x∥ := (norm_nonneg x).trans_lt (lt_one_add _),
+      field_simp [this.ne', abs_of_pos this, norm_smul, smul_smul, real.norm_eq_abs, abs_div]
+    end,
+  right_inv := λ x, subtype.ext
+    begin
+      have : 0 < 1 - ∥(x : E)∥ := sub_pos.2 (mem_ball_zero_iff.1 x.2),
+      field_simp [norm_smul, smul_smul, real.norm_eq_abs, abs_div, abs_of_pos this, this.ne']
+    end,
+  continuous_to_fun := continuous_subtype_mk _ $
+    ((continuous_const.add continuous_norm).inv₀
+      (λ x, ((norm_nonneg x).trans_lt (lt_one_add _)).ne')).smul continuous_id,
+  continuous_inv_fun := continuous.smul
+    ((continuous_const.sub continuous_subtype_coe.norm).inv₀ $
+      λ x, (sub_pos.2 $ mem_ball_zero_iff.1 x.2).ne') continuous_subtype_coe }
 
 variables (α)
 
@@ -1068,3 +1126,22 @@ end
 end nat
 
 end cauchy_product
+
+section ring_hom_isometric
+
+variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
+
+/-- This class states that a ring homomorphism is isometric. This is a sufficient assumption
+for a continuous semilinear map to be bounded and this is the main use for this typeclass. -/
+class ring_hom_isometric [semiring R₁] [semiring R₂] [has_norm R₁] [has_norm R₂]
+  (σ : R₁ →+* R₂) : Prop :=
+(is_iso : ∀ {x : R₁}, ∥σ x∥ = ∥x∥)
+
+attribute [simp] ring_hom_isometric.is_iso
+
+variables [semi_normed_ring R₁] [semi_normed_ring R₂] [semi_normed_ring R₃]
+
+instance ring_hom_isometric.ids : ring_hom_isometric (ring_hom.id R₁) :=
+⟨λ x, rfl⟩
+
+end ring_hom_isometric

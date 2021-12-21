@@ -3,11 +3,12 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.affine_space.basic
-import linear_algebra.tensor_product
-import linear_algebra.prod
-import linear_algebra.pi
+import algebra.add_torsor
 import data.set.intervals.unordered_interval
+import linear_algebra.affine_space.basic
+import linear_algebra.bilinear_map
+import linear_algebra.pi
+import linear_algebra.prod
 import tactic.abel
 
 /-!
@@ -304,6 +305,12 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 
 @[simp] lemma coe_mul (f g : P1 →ᵃ[k] P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : P1 →ᵃ[k] P1) = _root_.id := rfl
+
+/-- `affine_map.linear` on endomorphisms is a `monoid_hom`. -/
+@[simps] def linear_hom : (P1 →ᵃ[k] P1) →* (V1 →ₗ[k] V1) :=
+{ to_fun := linear,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
 
 include V2
 

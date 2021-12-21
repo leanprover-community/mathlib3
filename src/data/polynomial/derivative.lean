@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import algebra.iterate_hom
 import data.polynomial.eval
 
 /-!
@@ -213,10 +214,10 @@ theorem derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) :
 polynomial.induction_on p
   (λ r, by rw [map_C, derivative_C, derivative_C, map_zero])
   (λ p q ihp ihq, by rw [map_add, derivative_add, ihp, ihq, derivative_add, map_add])
-  (λ n r ih, by rw [map_mul, map_C, map_pow, map_X,
+  (λ n r ih, by rw [map_mul, map_C, polynomial.map_pow, map_X,
       derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
       derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
-      map_mul, map_C, map_mul, map_pow, map_add, map_nat_cast, map_one, map_X])
+      map_mul, map_C, map_mul, polynomial.map_pow, map_add, map_nat_cast, map_one, map_X])
 
 @[simp]
 theorem iterate_derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) (k : ℕ):
@@ -236,6 +237,27 @@ polynomial.induction_on p
   (λ n r ih, by rw [pow_succ', ← mul_assoc, eval₂_mul, eval₂_X, derivative_mul, ih,
       @derivative_mul _ _ _ X, derivative_X, mul_one, eval₂_add, @eval₂_mul _ _ _ _ X, eval₂_X,
       add_mul, mul_right_comm])
+
+theorem derivative_prod {s : multiset ι} {f : ι → polynomial R} :
+  (multiset.map f s).prod.derivative =
+  (multiset.map (λ i, (multiset.map f (s.erase i)).prod * (f i).derivative) s).sum :=
+begin
+  refine multiset.induction_on s (by simp) (λ i s h, _),
+  rw [multiset.map_cons, multiset.prod_cons, derivative_mul, multiset.map_cons _ i s,
+    multiset.sum_cons, multiset.erase_cons_head, mul_comm (f i).derivative],
+  congr,
+  rw [h, ← add_monoid_hom.coe_mul_left, (add_monoid_hom.mul_left (f i)).map_multiset_sum _,
+    add_monoid_hom.coe_mul_left],
+  simp only [function.comp_app, multiset.map_map],
+  congr' 1,
+  refine multiset.map_congr (λ j hj, _),
+  simp only [function.comp_app],
+  rw [← mul_assoc, ← multiset.prod_cons, ← multiset.map_cons],
+  congr' 1,
+  by_cases hij : i = j,
+  { simp [hij, ← multiset.prod_cons, ← multiset.map_cons, multiset.cons_erase hj] },
+  { simp [hij] }
+end
 
 theorem of_mem_support_derivative {p : polynomial R} {n : ℕ} (h : n ∈ p.derivative.support) :
   n + 1 ∈ p.support :=
@@ -299,6 +321,14 @@ begin
   induction k with k ih generalizing p,
   { simp, },
   { simp [ih p.derivative, iterate_derivative_neg, derivative_comp, pow_succ], },
+end
+
+lemma eval_multiset_prod_X_sub_C_derivative {S : multiset R} {r : R} (hr : r ∈ S) :
+  eval r (multiset.map (λ a, X - C a) S).prod.derivative =
+  (multiset.map (λ a, r - a) (S.erase r)).prod :=
+begin
+  nth_rewrite 0 [← multiset.cons_erase hr],
+  simpa using (eval_ring_hom r).map_multiset_prod (multiset.map (λ a, X - C a) (S.erase r)),
 end
 
 end comm_ring

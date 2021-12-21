@@ -227,9 +227,9 @@ agrees with the quotient by the appropriate ideal.
 
 variables {B : Type u₁} [comm_ring B]
 
-/-- The universal ring homomorphism from `ring_quot r` to `(ideal.of_rel r).quotient`. -/
+/-- The universal ring homomorphism from `ring_quot r` to `B ⧸ ideal.of_rel r`. -/
 def ring_quot_to_ideal_quotient (r : B → B → Prop) :
-  ring_quot r →+* (ideal.of_rel r).quotient :=
+  ring_quot r →+* B ⧸ ideal.of_rel r :=
 lift
   ⟨ideal.quotient.mk (ideal.of_rel r),
    λ x y h, quot.sound (submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, sub_add_cancel x y⟩))⟩
@@ -237,9 +237,9 @@ lift
 @[simp] lemma ring_quot_to_ideal_quotient_apply (r : B → B → Prop) (x : B) :
   ring_quot_to_ideal_quotient r (mk_ring_hom r x) = ideal.quotient.mk _ x := rfl
 
-/-- The universal ring homomorphism from `(ideal.of_rel r).quotient` to `ring_quot r`. -/
+/-- The universal ring homomorphism from `B ⧸ ideal.of_rel r` to `ring_quot r`. -/
 def ideal_quotient_to_ring_quot (r : B → B → Prop) :
-  (ideal.of_rel r).quotient →+* ring_quot r :=
+  B ⧸ ideal.of_rel r →+* ring_quot r :=
 ideal.quotient.lift (ideal.of_rel r) (mk_ring_hom r)
 begin
   refine λ x h, submodule.span_induction h _ _ _ _,
@@ -259,7 +259,7 @@ end
 The ring equivalence between `ring_quot r` and `(ideal.of_rel r).quotient`
 -/
 def ring_quot_equiv_ideal_quotient (r : B → B → Prop) :
-  ring_quot r ≃+* (ideal.of_rel r).quotient :=
+  ring_quot r ≃+* B ⧸ ideal.of_rel r :=
 ring_equiv.of_hom_inv (ring_quot_to_ideal_quotient r) (ideal_quotient_to_ring_quot r)
   (by { ext, refl, }) (by { ext, refl, })
 

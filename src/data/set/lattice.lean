@@ -827,6 +827,9 @@ begin
   { intro h, cases x with i a, exact ⟨i, a, h, rfl⟩ }
 end
 
+lemma sigma.univ (X : α → Type*) : (set.univ : set (Σ a, X a)) = ⋃ a, range (sigma.mk a) :=
+set.ext $ λ x, iff_of_true trivial ⟨range (sigma.mk x.1), set.mem_range_self _, x.2, sigma.eta x⟩
+
 lemma sUnion_mono {s t : set (set α)} (h : s ⊆ t) : (⋃₀ s) ⊆ (⋃₀ t) :=
 sUnion_subset $ λ t' ht', subset_sUnion_of_mem $ h ht'
 
@@ -840,10 +843,14 @@ lemma Union_subset_Union2 {s : ι → set α} {t : ι₂ → set α} (h : ∀ i,
 lemma Union_subset_Union_const {s : set α} (h : ι → ι₂) : (⋃ i : ι, s) ⊆ (⋃ j : ι₂, s) :=
 @supr_le_supr_const (set α) ι ι₂ _ s h
 
-@[simp] lemma Union_of_singleton (α : Type*) : (⋃ x, {x} : set α) = univ :=
-Union_eq_univ_iff.2 $ λ x, ⟨x, rfl⟩
+@[simp] lemma Union_singleton_eq_range {α β : Type*} (f : α → β) :
+  (⋃ (x : α), {f x}) = range f :=
+by { ext x, simp [@eq_comm _ x] }
 
-@[simp] lemma Union_of_singleton_coe (s : set α) :
+lemma Union_of_singleton (α : Type*) : (⋃ x, {x} : set α) = univ :=
+by simp
+
+lemma Union_of_singleton_coe (s : set α) :
   (⋃ (i : s), {i} : set α) = s :=
 by simp
 
@@ -1428,6 +1435,12 @@ inf_right _ h
 lemma inter_right' (u : set α) (h : disjoint s t) : disjoint s (u ∩ t) :=
 inf_right' _ h
 
+lemma subset_left_of_subset_union (h : s ⊆ t ∪ u) (hac : disjoint s u) : s ⊆ t :=
+hac.left_le_of_le_sup_right h
+
+lemma subset_right_of_subset_union (h : s ⊆ t ∪ u) (hab : disjoint s t) : s ⊆ u :=
+hab.left_le_of_le_sup_left h
+
 lemma preimage {α β} (f : α → β) {s t : set β} (h : disjoint s t) : disjoint (f ⁻¹' s) (f ⁻¹' t) :=
 λ x hx, h hx
 
@@ -1519,7 +1532,13 @@ by simpa using h.preimage f
 
 lemma preimage_eq_empty_iff {f : α → β} {s : set β} : disjoint s (range f) ↔ f ⁻¹' s = ∅ :=
 ⟨preimage_eq_empty,
-  λ h, by { simp [eq_empty_iff_forall_not_mem, set.disjoint_iff_inter_eq_empty] at h ⊢, finish }⟩
+  λ h, begin
+    simp only [eq_empty_iff_forall_not_mem, disjoint_iff_inter_eq_empty, not_exists,
+      mem_inter_eq, not_and, mem_range, mem_preimage] at h ⊢,
+    assume y hy x hx,
+    rw ← hx at hy,
+    exact h x hy,
+  end ⟩
 
 lemma disjoint_iff_subset_compl_right :
   disjoint s t ↔ s ⊆ tᶜ :=

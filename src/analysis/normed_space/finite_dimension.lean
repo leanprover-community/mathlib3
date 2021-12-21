@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 import analysis.asymptotics.asymptotic_equivalent
-import linear_algebra.finite_dimensional
+import linear_algebra.matrix.to_lin
 
 /-!
 # Finite dimensional normed spaces over complete fields
@@ -122,6 +122,18 @@ begin
   exact (continuous_apply i).smul continuous_const
 end
 
+/-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional. -/
+instance {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜]
+  [topological_space E] [add_comm_group E] [module 𝕜 E] [finite_dimensional 𝕜 E]
+  [topological_space F] [add_comm_group F] [module 𝕜 F] [topological_add_group F]
+  [has_continuous_smul 𝕜 F] [finite_dimensional 𝕜 F] :
+  finite_dimensional 𝕜 (E →L[𝕜] F) :=
+begin
+  haveI : is_noetherian 𝕜 (E →ₗ[𝕜] F) := is_noetherian.iff_fg.mpr (by apply_instance),
+  let I : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F) := continuous_linear_map.coe_lm 𝕜,
+  exact module.finite.of_injective I continuous_linear_map.coe_injective
+end
+
 section complete_field
 
 variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
@@ -141,7 +153,7 @@ lemma continuous_equiv_fun_basis {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 
   continuous ξ.equiv_fun :=
 begin
   unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
-  { apply linear_map.continuous_of_bound _ 0 (λx, _),
+  { apply ξ.equiv_fun.to_linear_map.continuous_of_bound 0 (λx, _),
     have : ξ.equiv_fun x = 0,
       by { ext i, exact (fintype.card_eq_zero_iff.1 hn).elim i },
     change ∥ξ.equiv_fun x∥ ≤ 0 * ∥x∥,
@@ -157,7 +169,8 @@ begin
       { have : fintype.card (basis.of_vector_space_index 𝕜 s) = n,
           by { rw ← s_dim, exact (finrank_eq_card_basis b).symm },
         have : continuous b.equiv_fun := IH b this,
-        exact b.equiv_fun.symm.uniform_embedding (linear_map.continuous_on_pi _) this },
+        exact b.equiv_fun.symm.uniform_embedding b.equiv_fun.symm.to_linear_map.continuous_on_pi
+          this },
       have : is_complete (s : set E),
         from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (by apply_instance)),
       exact this.is_closed },
@@ -197,7 +210,7 @@ begin
     have C_nonneg : 0 ≤ C := finset.sum_nonneg (λi hi, (hC0 i).1),
     have C0_le : ∀i, C0 i ≤ C :=
       λi, finset.single_le_sum (λj hj, (hC0 j).1) (finset.mem_univ _),
-    apply linear_map.continuous_of_bound _ C (λx, _),
+    apply ξ.equiv_fun.to_linear_map.continuous_of_bound C (λx, _),
     rw pi_semi_norm_le_iff,
     { exact λi, le_trans ((hC0 i).2 x) (mul_le_mul_of_nonneg_right (C0_le i) (norm_nonneg _)) },
     { exact mul_nonneg C_nonneg (norm_nonneg _) } }
@@ -343,11 +356,11 @@ functions from its basis indexing type to `𝕜`. -/
 def basis.equiv_funL (v : basis ι 𝕜 E) : E ≃L[𝕜] (ι → 𝕜) :=
 { continuous_to_fun := begin
     haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v,
-    apply linear_map.continuous_of_finite_dimensional,
+    exact v.equiv_fun.to_linear_map.continuous_of_finite_dimensional,
   end,
   continuous_inv_fun := begin
     change continuous v.equiv_fun.symm.to_fun,
-    apply linear_map.continuous_of_finite_dimensional,
+    exact v.equiv_fun.symm.to_linear_map.continuous_of_finite_dimensional,
   end,
   ..v.equiv_fun }
 

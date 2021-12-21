@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.group.pi
+import algebra.ring.opposite
 import data.equiv.mul_add
 import data.finset.fold
 import data.fintype.basic
@@ -126,8 +127,8 @@ lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
 f.to_add_monoid_hom.map_list_sum l
 
 /-- A morphism into the opposite ring acts on the product by acting on the reversed elements -/
-lemma ring_hom.unop_map_list_prod [semiring β] [semiring γ] (f : β →+* γᵒᵖ) (l : list β) :
-  opposite.unop (f l.prod) = (l.map (opposite.unop ∘ f)).reverse.prod :=
+lemma ring_hom.unop_map_list_prod [semiring β] [semiring γ] (f : β →+* γᵐᵒᵖ) (l : list β) :
+  mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
 f.to_monoid_hom.unop_map_list_prod l
 
 lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β →+* γ)
@@ -250,6 +251,14 @@ begin
   rw [← prod_union (filter_inter_filter_neg_eq p s).le, filter_union_filter_neg_eq]
 end
 
+section to_list
+
+@[simp, to_additive]
+lemma prod_to_list (s : finset α) (f : α → β) : (s.to_list.map f).prod = s.prod f :=
+by rw [finset.prod, ← multiset.coe_prod, ← multiset.coe_map, finset.coe_to_list]
+
+end to_list
+
 end comm_monoid
 
 end finset
@@ -276,12 +285,12 @@ For a version expressed with subtypes, see `fintype.prod_subtype_mul_prod_subtyp
 For a version expressed with subtypes, see `fintype.sum_subtype_add_sum_subtype`. "]
 lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
   (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
-is_compl_compl.prod_mul_prod f
+is_compl.prod_mul_prod is_compl_compl f
 
 @[to_additive]
 lemma prod_compl_mul_prod [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
   (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
-is_compl_compl.symm.prod_mul_prod f
+(@is_compl_compl _ s _).symm.prod_mul_prod f
 
 @[to_additive]
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
@@ -394,6 +403,17 @@ begin
   { intros _ _ H ih,
     simp only [prod_insert H, prod_mul_distrib, ih] }
 end
+
+@[to_additive]
+lemma prod_product_right {s : finset γ} {t : finset α} {f : γ×α → β} :
+  (∏ x in s.product t, f x) = ∏ y in t, ∏ x in s, f (x, y) :=
+by rw [prod_product, prod_comm]
+
+/-- An uncurried version of `finset.prod_product_right`. -/
+@[to_additive "An uncurried version of `finset.prod_product_right`"]
+lemma prod_product_right' {s : finset γ} {t : finset α} {f : γ → α → β} :
+  (∏ x in s.product t, f x.1 x.2) = ∏ y in t, ∏ x in s, f x y :=
+prod_product_right
 
 @[to_additive]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
@@ -827,7 +847,7 @@ open multiset
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
 begin
   induction s using multiset.induction_on with a s ih,
-  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
+  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, multiset.map_zero] },
   simp only [multiset.prod_cons, map_cons, to_finset_cons, ih],
   by_cases has : a ∈ s.to_finset,
   { rw [insert_eq_of_mem has, ← insert_erase has, prod_insert (not_mem_erase _ _),
@@ -1205,16 +1225,16 @@ end
 
 section opposite
 
-open opposite
+open mul_opposite
 
 /-- Moving to the opposite additive commutative monoid commutes with summing. -/
 @[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
   op (∑ x in s, f x) = ∑ x in s, op (f x) :=
-(op_add_equiv : β ≃+ βᵒᵖ).map_sum _ _
+(op_add_equiv : β ≃+ βᵐᵒᵖ).map_sum _ _
 
-@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
+@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵐᵒᵖ) :
   unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
-(op_add_equiv : β ≃+ βᵒᵖ).symm.map_sum _ _
+(op_add_equiv : β ≃+ βᵐᵒᵖ).symm.map_sum _ _
 
 end opposite
 

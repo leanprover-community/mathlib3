@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set.lattice
+import data.set.basic
 
 /-!
 
@@ -29,7 +29,7 @@ then `g b` is `option.some a`.
 `pequiv` is canonically ordered by inclusion; that is, if a function `f` defined on a subset `s`
 is equal to `g` on that subset, but `g` is also defined on a larger set, then `f ≤ g`. We also have
 a definition of `⊥`, which is the empty `pequiv` (sends all to `none`), which in the end gives us a
-`semilattice_inf_bot` instance.
+`semilattice_inf` with an `order_bot` instance.
 
 ## Tags
 
@@ -162,8 +162,8 @@ variables (s : set α) [decidable_pred (∈ s)]
 def of_set (s : set α) [decidable_pred (∈ s)] : α ≃. α :=
 { to_fun := λ a, if a ∈ s then some a else none,
   inv_fun := λ a, if a ∈ s then some a else none,
-  inv := λ a b, by {
-    split_ifs with hb ha ha,
+  inv := λ a b, by
+  { split_ifs with hb ha ha,
     { simp [eq_comm] },
     { simp [ne_of_mem_of_not_mem hb ha] },
     { simp [ne_of_mem_of_not_mem ha hb] },
@@ -208,7 +208,7 @@ end of_set
 
 lemma symm_trans_rev (f : α ≃. β) (g : β ≃. γ) : (f.trans g).symm = g.symm.trans f.symm := rfl
 
-lemma trans_symm (f : α ≃. β) : f.trans f.symm = of_set {a | (f a).is_some} :=
+lemma self_trans_symm (f : α ≃. β) : f.trans f.symm = of_set {a | (f a).is_some} :=
 begin
   ext,
   dsimp [pequiv.trans],
@@ -220,12 +220,12 @@ begin
   { simp {contextual := tt} }
 end
 
-lemma symm_trans (f : α ≃. β) : f.symm.trans f = of_set {b | (f.symm b).is_some} :=
-symm_injective $ by simp [symm_trans_rev, trans_symm, -symm_symm]
+lemma symm_trans_self (f : α ≃. β) : f.symm.trans f = of_set {b | (f.symm b).is_some} :=
+symm_injective $ by simp [symm_trans_rev, self_trans_symm, -symm_symm]
 
 lemma trans_symm_eq_iff_forall_is_some {f : α ≃. β} :
   f.trans f.symm = pequiv.refl α ↔ ∀ a, is_some (f a) :=
-by rw [trans_symm, of_set_eq_refl, set.eq_univ_iff_forall]; refl
+by rw [self_trans_symm, of_set_eq_refl, set.eq_univ_iff_forall]; refl
 
 instance : has_bot (α ≃. β) :=
 ⟨{ to_fun := λ _, none,
@@ -331,10 +331,9 @@ lemma le_def {f g : α ≃. β} : f ≤ g ↔ (∀ (a : α) (b : β), b ∈ f a 
 
 instance : order_bot (α ≃. β) :=
 { bot_le := λ _ _  _ h, (not_mem_none _ h).elim,
-  ..pequiv.partial_order,
   ..pequiv.has_bot }
 
-instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) :=
+instance [decidable_eq α] [decidable_eq β] : semilattice_inf (α ≃. β) :=
 { inf := λ f g,
   { to_fun := λ a, if f a = g a then f a else none,
     inv_fun := λ b, if f.symm b = g.symm b then f.symm b else none,
@@ -351,7 +350,6 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) 
     simp [le_def],
     split_ifs; finish
   end,
-  ..pequiv.order_bot,
   ..pequiv.partial_order }
 
 end order

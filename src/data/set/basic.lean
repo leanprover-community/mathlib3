@@ -1179,7 +1179,15 @@ ite_same t (s ∩ s') ▸ ite_mono _ (inter_subset_left _ _) (inter_subset_right
 
 lemma ite_inter_inter (t s₁ s₂ s₁' s₂' : set α) :
   t.ite (s₁ ∩ s₂) (s₁' ∩ s₂') = t.ite s₁ s₁' ∩ t.ite s₂ s₂' :=
-by { ext x, finish [set.ite, iff_def] }
+by { ext x, -- `finish` can close this goal
+     simp only [set.ite, set.mem_inter_eq, set.mem_diff, set.mem_union_eq],
+      tidy,
+      { left, exact ⟨‹x ∈ s₁›, ‹x ∈ t›⟩ },
+      { left, exact ⟨‹x ∈ s₂›, ‹x ∈ t›⟩ },
+      { right, exact ⟨‹x ∈ s₁'›, ‹x ∉ t›⟩ },
+      { right, exact ⟨‹x ∈ s₂'›, ‹x ∉ t›⟩ },
+      { left, exact ⟨⟨‹x ∈ s₁›, ‹x ∈ s₂›⟩, ‹x ∈ t›⟩ },
+      { right, exact ⟨⟨‹x ∈ s₁'›, ‹x ∈ s₂'›⟩, ‹x ∉ t›⟩ } }
 
 lemma ite_inter (t s₁ s₂ s : set α) :
   t.ite (s₁ ∩ s) (s₂ ∩ s) = t.ite s₁ s₂ ∩ s :=

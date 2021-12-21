@@ -86,7 +86,7 @@ has_points.exists_unique_point (dual L) (dual P) p₁ p₂ hp
 variables {P} (L)
 
 /-- Number of points on a given line. -/
-def line_count (p : P) [fintype {l : L // p ∈ l}] : ℕ := fintype.card {l : L // p ∈ l}
+def line_count (p : P) : ℕ := nat.card {l : L // p ∈ l}
 
 variables (P) {L}
 

@@ -1,6 +1,7 @@
 import number_theory.mod_forms.Eisenstein_series
 import measure_theory.integral.uniform_lim_of_holo
 
+
 universes u v w
 
 open complex
@@ -143,23 +144,29 @@ begin
   split,
   ring_nf,
   nlinarith,
-
   split,
   have hb2 := complex.half_ball_sub ε hε x,
   intros w hw,
-  have hwa : w ∈ ℍ'.1, by { apply hball2, simp, simp at hw, apply le_trans hw.le, field_simp, linarith,},
-
+  have hwa : w ∈ ℍ'.1,
+  by { apply hball2, simp, simp at hw, apply le_trans hw.le, field_simp, linarith,},
   apply hwa,
   have hkn : (k : ℤ) ≠ 0, by {norm_cast, linarith,},
   let F: ℕ → ℂ → ℂ := λ n, extend_by_zero ( eisen_square' k n),
   have hdiff : ∀ (n : ℕ), differentiable_on ℂ (F n) (metric.closed_ball x ε),
   by {intro n,
-      have := eisen_square'_diff_on k hkn n,
-      rw ← is_holomorphic_on_iff_differentiable_on at this,
-      simp_rw F,
-      apply this.mono,
-      apply hball2,},
-apply unif_of_diff_is_diff F (extend_by_zero (Eisenstein_series_of_weight_ k)) x ε hε hdiff hunif,
+  have := eisen_square'_diff_on k hkn n,
+  rw ← is_holomorphic_on_iff_differentiable_on at this,
+  simp_rw F,
+  apply this.mono,
+  apply hball2,},
+  apply unif_of_diff_is_diff F (extend_by_zero (Eisenstein_series_of_weight_ k)) x ε hε hdiff hunif,
+end
+
+lemma Eisenstein_is_bounded (k: ℕ) (hk : 3 ≤ k) :
+  (λ z : ℍ, Eisenstein_series_of_weight_ k z) ∈ is_bound_at_infinity  :=
+begin
+simp,
+sorry,
 end
 
 

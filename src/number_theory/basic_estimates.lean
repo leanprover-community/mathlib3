@@ -20,18 +20,88 @@ Given a function `a : ℕ → M` from the naturals into an additive commutative 
 -- BM: Formally I wrote this as the sum over the naturals in the closed interval `[1, ⌊x⌋]`.
 -- The version in the notes uses sums from 1, mathlib typically uses sums from zero - hopefully
 -- this difference shouldn't cause serious issues
--- An alternative is to insist that `a` is an "arithmetic function", which according to mathlib
--- is just a function from ℕ which sends 0 to 0, essentially meaning that when dealing with
--- arithmetic functions we can pretend 0 isn't a natural
 def summatory {M : Type*} [add_comm_monoid M] (a : ℕ → M) (x : ℝ) : M :=
 ∑ n in finset.Icc 1 ⌊x⌋₊, a n
 
+lemma summatory_nat {M : Type*} [add_comm_monoid M] (a : ℕ → M) (n : ℕ) :
+  summatory a n = ∑ i in finset.Icc 1 n, a i :=
+by simp only [summatory, nat.floor_coe]
+
+lemma summatory_eq_floor {M : Type*} [add_comm_monoid M] (a : ℕ → M) (x : ℝ) :
+  summatory a x = summatory a ⌊x⌋₊ :=
+by rw [summatory, summatory, nat.floor_coe]
+
+lemma summatory_eq_of_lt_one {M : Type*} [add_comm_monoid M] (a : ℕ → M) {x : ℝ} (hx : x < 1) :
+  summatory a x = 0 :=
+begin
+  rw [summatory, finset.Icc_eq_empty_of_lt, finset.sum_empty],
+  rwa [nat.floor_lt' one_ne_zero, nat.cast_one],
+end
+
+@[simp] lemma summatory_zero {M : Type*} [add_comm_monoid M] (a : ℕ → M) : summatory a 0 = 0 :=
+summatory_eq_of_lt_one _ zero_lt_one
+
+lemma summatory_succ_sub {M : Type*} [add_comm_group M] (a : ℕ → M) (n : ℕ) :
+  a (n + 1) = summatory a (n + 1) - summatory a n :=
+begin
+  rw [←nat.cast_add_one, summatory_nat, summatory_nat, ←nat.Ico_succ_right,
+    finset.sum_Ico_succ_top, nat.Ico_succ_right, add_sub_cancel'],
+  simp,
+end
+
+lemma summatory_eq_sub {M : Type*} [add_comm_group M] (a : ℕ → M) :
+  ∀ n, n ≠ 0 → a n = summatory a n - summatory a (n - 1)
+| 0 h := (h rfl).elim
+| (n+1) _ := by simpa using summatory_succ_sub a n
+
+-- lemma integral_add_adjacent_intervals (hab : interval_integrable f μ a b)
+--   (hbc : interval_integrable f μ b c) :
+--   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ :=
+-- by rw [← add_neg_eq_zero, ← integral_symm, integral_add_adjacent_intervals_cancel hab hbc]
+
+-- lemma sum_integral_adjacent_intervals {a : ℕ → α} {n : ℕ}
+
 /-- A version of partial summation where the upper bound is a natural number, useful to prove the
 general case. -/
-theorem partial_summation_nat (a : ℕ → ℂ) (f : ℝ → ℂ) {x : ℕ} (hf : continuous (deriv f)) :
-  ∑ n in finset.Icc 1 x, a n * f n =
-    summatory a x * f x - ∫ t in 1..x, summatory a t * deriv f t :=
-sorry
+theorem partial_summation_nat (a : ℕ → ℂ) (f : ℝ → ℂ) {N : ℕ} (hf : continuous (deriv f)) :
+  ∑ n in finset.Icc 1 N, a n * f n =
+    summatory a N * f N - ∫ t in 1..N, summatory a t * deriv f t :=
+begin
+  rw ←nat.Ico_succ_right,
+  induction N,
+  { sorry },
+  rw [finset.sum_Ico_succ_top nat.succ_pos', N_ih, add_comm, nat.succ_eq_add_one,
+    summatory_succ_sub a, sub_mul, sub_add_eq_add_sub, eq_sub_iff_add_eq],
+    rw add_sub_assoc,
+    rw add_assoc,
+    rw nat.cast_add_one,
+    rw add_right_eq_self,
+    rw sub_add_eq_add_sub,
+    rw sub_eq_zero,
+    rw add_comm,
+    rw add_sub_assoc,
+
+  -- induction N,
+  -- { simp only [zero_sub, summatory_zero, finset.sum_empty, nat.cast_zero, zero_mul, nat.lt_one_iff,
+  --     zero_eq_neg, finset.Icc_eq_empty_of_lt],
+  --   simp only [interval_integral.integral_of_ge, zero_le_one, neg_eq_zero],
+  --   rw [measure_theory.measure.restrict_congr_set measure_theory.Ioo_ae_eq_Ioc.symm,
+  --     measure_theory.set_integral_congr, measure_theory.integral_zero],
+  --   { exact measurable_set_Ioo },
+  --   rintro x ⟨-, hx⟩,
+  --   dsimp,
+  --   rw [mul_eq_zero_of_left],
+  --   rw [summatory_eq_of_lt_one _ hx],
+  --   apply_instance },
+  -- rw ←nat.Ico_succ_right,
+  -- rw finset.sum_Ico_succ_top,
+  -- rw nat.Ico_succ_right,
+  -- rw N_ih,
+
+
+end
+
+#exit
 
 -- BM: I think this can be made stronger by taking a weaker assumption on `f`, maybe something like
 -- the derivative is integrable on intervals contained in [1,x]?

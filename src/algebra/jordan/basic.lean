@@ -5,6 +5,7 @@ Authors: Christopher Hoskin
 -/
 import algebra.ring.basic
 import algebra.lie.of_associative
+import data.real.basic
 
 /-!
 # Jordan algebras
@@ -27,21 +28,13 @@ class non_unital_non_assoc_ring (α : Type*) extends
 
 variables {A : Type*}
 
-instance ring.to_non_unital_non_assoc_semiring [ring A] : non_unital_non_assoc_ring(A) := {
-  add := (+),
-  add_assoc := add_assoc,
-  zero := (0),
-  zero_add := zero_add,
-  add_zero := add_zero,
-  neg := λ a, -a,
-  add_left_neg := add_left_neg,
-  add_comm := add_comm,
-  mul := (*),
-  left_distrib := left_distrib,
-  right_distrib := right_distrib,
-  zero_mul := zero_mul,
-  mul_zero :=mul_zero,
-}
+@[priority 100] -- see Note [lower instance priority]
+instance ring.to_non_unital_non_assoc_semiring (B :Type*) [_i : ring B] :
+  non_unital_non_assoc_ring B :=
+{ zero_mul := zero_mul,
+  mul_zero := mul_zero,
+  .. _i }
+
 
 variables [non_unital_non_assoc_ring A]
 
@@ -80,7 +73,9 @@ class jordan (A : Type*) [non_unital_non_assoc_ring A] :=
 (commL2R1: ∀ a : A, ⁅L (a*a), R a⁆ = 0)
 (commR1R2: ∀ a : A, ⁅R a, R (a*a)⁆ = 0)
 
-instance  ring_jordan {B : Type*} [ring B] : jordan B := {
+@[priority 100] -- see Note [lower instance priority]
+instance  ring_jordan (B : Type*) [ring B] : jordan (B) :=
+{
   commL1R1 := begin
     intro,
     ext b,
@@ -122,6 +117,7 @@ instance  ring_jordan {B : Type*} [ring B] : jordan B := {
     rw [mul_assoc, sub_self],
   end,
 }
+
 
 /--
 A non unital, non-associative ring with a commutative Jordan multipication

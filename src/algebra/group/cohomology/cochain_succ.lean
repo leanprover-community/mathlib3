@@ -58,8 +58,8 @@ variables (G : Type uG) [group G] (M : Type uM) [add_comm_group M]
 
 -- need the homogeneous cochains, cocycles and coboundaries
 /-- `cochain-succ G M n.succ` is homogeneous `n`-cochains, namely functions
-$$c:G^{n+1}\to M$$ which are homogeneous in the sense that $$c(s(g_i)_i)=s\bub c((g_i)_i)$$.
-
+$$c:G^{n+1}\to M$$ which are homogeneous in the sense that for s in G, we have
+$$c((s*g_i)_i)=s\bub c((g_i)_i)$$.
 -/
 @[ext] structure cochain_succ :=
 (to_fun : (fin n → G) → M)
@@ -91,7 +91,8 @@ instance : has_zero (cochain_succ G M n) := ⟨zero G M n⟩
 
 variables {G M n}
 
-@[simp] lemma smul_apply (c : cochain_succ G M n) (s : G) (g : fin n → G) : s • c g = c (λ i, s * g i) :=
+@[simp]
+lemma smul_apply (c : cochain_succ G M n) (s : G) (g : fin n → G) : s • c g = c (λ i, s * g i) :=
 c.smul_apply' s g
 
 def neg (c₁ : cochain_succ G M n): cochain_succ G M n :=
@@ -100,7 +101,8 @@ def neg (c₁ : cochain_succ G M n): cochain_succ G M n :=
 
 instance : has_neg (cochain_succ G M n) := ⟨neg⟩
 
-@[simp] lemma neg_apply (c : cochain_succ G M n) (g : fin n → G) : (-c : cochain_succ G M n) g = -(c g) := rfl
+@[simp] lemma neg_apply (c : cochain_succ G M n) (g : fin n → G) :
+  (-c : cochain_succ G M n) g = -(c g) := rfl
 
 def add (c₁ c₂ : cochain_succ G M n) : cochain_succ G M n :=
 { to_fun := λ g, c₁ g + c₂ g,
@@ -427,7 +429,9 @@ def group_ring_action :
 begin
   refine monoid_algebra.lift ℤ G (((fin i → G) →₀ ℤ) →+ ((fin i → G) →₀ ℤ))
     (_ : G →* (((fin i → G) →₀ ℤ) →+ ((fin i → G) →₀ ℤ))),
-  exact { to_fun := λ g, (add_equiv.of_finsupp_and_equiv ((equiv_comap_or_something _ (left_translation_equiv g)) : (fin i → G) ≃ (fin i → G))).to_add_monoid_hom,
+  exact { to_fun := λ g, (add_equiv.of_finsupp_and_equiv
+            ((equiv_comap_or_something _
+              (left_translation_equiv g)) : (fin i → G) ≃ (fin i → G))).to_add_monoid_hom,
           map_one' := by { ext φ ψ, simp },
           map_mul' := λ g₁ g₂, begin ext φ₁ φ₂, simp end,
   },

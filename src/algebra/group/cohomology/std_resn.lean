@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 Amelia Livingston. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Amelia Livingston
+-/
 import algebra.group.cohomology.group_ring
 import algebra.category.Module.projective
 import category_theory.preadditive.projective_resolution
@@ -5,7 +10,7 @@ import algebra.module.ulift
 import algebra.category.Group.abelian
 import algebra.homology.augment
 
-/- Showing `... → ℤ[G²] → ℤ[G]` is a projective resolution of the trivial `ℤ[G]`-module `ℤ`. -/
+/-! Showing `... → ℤ[G²] → ℤ[G]` is a projective resolution of the trivial `ℤ[G]`-module `ℤ`. -/
 
 universes u
 variables (G : Type u) [group G]

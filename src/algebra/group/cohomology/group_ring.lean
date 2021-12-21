@@ -1,10 +1,15 @@
+/-
+Copyright (c) 2021 Amelia Livingston. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Amelia Livingston
+-/
 import algebra.group_action_hom
 import data.fin_simplicial_complex
 import algebra.monoid_algebra.basic
 import algebra.group.cohomology.lemmas
 import linear_algebra.basis
 
-/- Setting up `ℤ[Gⁿ]`, defined as `monoid_algebra ℤ (fin n → G)`.
+/-! Setting up `ℤ[Gⁿ]`, defined as `monoid_algebra ℤ (fin n → G)`.
   Showing it's a free `ℤ[G]`-module for `n ≥ 1.` -/
 
 variables (G : Type*) [group G] (M : Type*) [add_comm_group M] [distrib_mul_action G M]

@@ -4,128 +4,29 @@ import category_theory.preadditive.projective_resolution
 import algebra.module.ulift
 import algebra.category.Group.abelian
 import algebra.homology.augment
+
+/- Showing `... → ℤ[G²] → ℤ[G]` is a projective resolution of the trivial `ℤ[G]`-module `ℤ`. -/
+
 universes u
 variables (G : Type u) [group G]
-open group_cohomology.cochain_succ
+
 noncomputable theory
 open_locale classical
 
-lemma finset.range_succ' (n : ℕ) :
-  finset.range (n + 1) = insert 0 ((finset.range n).image nat.succ) :=
-begin
-  ext i,
-  simp only [finset.mem_insert, finset.mem_image, finset.mem_range],
-  cases i with i,
-  { exact ⟨λ h, or.inl rfl, λ h, nat.succ_pos _⟩ },
-  { exact ⟨λ h, or.inr ⟨i, ⟨finset.mem_range.2 $ nat.succ_lt_succ_iff.1 h, rfl⟩⟩,
-    λ h, by obtain ⟨j, ⟨hj, hj'⟩⟩ := h.resolve_left (nat.succ_ne_zero i);
-      rwa [←hj', nat.succ_lt_succ_iff, ←finset.mem_range]⟩}
-end
-
-@[to_additive] lemma ulift.prod_down {α : Type*} {β : Type*} [comm_monoid β] {s : finset α}
-  (f : α → ulift β) :
-  (s.prod f).down = s.prod (ulift.down ∘ f) :=
-begin
-  refine s.induction_on _ _,
-  { simp only [ulift.one_down, finset.prod_empty] },
-  { intros a t ht hf,
-    simp only [*, finset.prod_insert, not_false_iff, ulift.mul_down] at *}
-end
-
---not sure where to find this
-def fin.dom_one_equiv (α : Type u) : (fin 1 → α) ≃ α :=
-{ to_fun := λ f, f 0,
-  inv_fun := λ x i, x,
-  left_inv := λ x, funext $ λ i, by rw subsingleton.elim i 0,
-  right_inv := λ x, rfl }
-
-lemma fin.injective_cons_zero {n : ℕ} {α : fin (n + 1) → Type*} (x : α 0) :
-  function.injective (fin.cons x) :=
-begin
-  intros y z hyz,
-  ext i,
-  have := congr_fun hyz i.succ,
-  dsimp at this,
-  rwa [fin.cons_succ, fin.cons_succ] at this,
-end
-
-lemma fin.injective_cons_tail {n : ℕ} {α : fin (n + 1) → Type*} (x : Π i : fin n, α i.succ) :
-  function.injective (λ y : α 0, fin.cons y x) :=
-begin
-  intros y z hyz,
-  replace hyz := congr_fun hyz 0,
-  dsimp at hyz,
-  rwa [fin.cons_zero, fin.cons_zero] at hyz,
-end
-
-lemma fin.delta_zero_succ (n : ℕ) :
-  fin.delta rfl 0 = @fin.succ n :=
-begin
-  ext,
-  unfold fin.delta,
-  dsimp,
-  rw [if_neg (nat.not_lt_zero _), fin.coe_succ],
-end
-
-lemma fin.cons_delta_zero {n : ℕ} {α : Type*} (x : fin n → α) (y : α) :
-  (fin.cons y x ∘ fin.delta rfl 0 : fin n → α) = x :=
-begin
-  ext j,
-  rw [function.comp_app, fin.delta_zero_succ, fin.cons_succ],
-end
-
-lemma fin.cons_delta_succ {n : ℕ} {α : Type*} (x : fin (n + 1) → α) (y : α) (m : ℕ) :
-  (fin.cons y x ∘ fin.delta rfl m.succ : fin (n + 1) → α) =
-  fin.cons y (x ∘ fin.delta rfl m : fin n → α) :=
-begin
-  ext j,
-  refine fin.cases _ (λ i, _) j,
-  { rw [fin.cons_zero, function.comp_app],
-    convert fin.cons_zero _ _,
-    refl },
-  { rw fin.cons_succ,
-    dsimp,
-    convert fin.cons_succ _ _ _,
-    { refl },
-    { ext,
-      unfold fin.delta,
-      dsimp,
-      by_cases h : (i : ℕ) < m,
-      { rw [if_pos h, if_pos, fin.coe_succ],
-        { rw fin.coe_succ,
-          exact nat.succ_lt_succ_iff.2 h }},
-      { rw [if_neg h, if_neg, fin.coe_succ],
-        exact (λ hn, h $ by rw fin.coe_succ at hn; exact nat.succ_lt_succ_iff.1 hn) }}},
-end
-
-@[to_additive] lemma mul_equiv.map_pow {M N : Type*} [monoid M] [monoid N]
-  (f : M ≃* N) (x : M) (n : ℕ) :
-  f (x ^ n) = (f x) ^ n :=
-f.to_monoid_hom.map_pow _ _
-
-lemma mul_equiv.map_gpow {M N : Type*} [group M] [group N]
-  (f : M ≃* N) (x : M) (n : ℤ) :
-  f (x ^ n) = (f x) ^ n :=
-f.to_monoid_hom.map_gpow _ _
-
-lemma add_equiv.map_gsmul {M N : Type*} [add_group M] [add_group N]
-  (f : M ≃+ N) (x : M) (n : ℤ) :
-  f (n • x) = n • f x :=
-f.to_add_monoid_hom.map_gsmul _ _
-
-attribute [to_additive add_equiv.map_gsmul] mul_equiv.map_gpow
-
 namespace group_ring
 
-def d_aux {i j : ℕ} (hj : i = j + 1) (c : fin i → G) : ℤ →+ (group_ring (fin j → G)) :=
+/-- Helper function; sends `g ∈ Gⁱ, n ∈ ℤ` to `∑ (-1)ᵏn • (g₁, ..., ĝₖ, ..., gⱼ)`. -/
+def d_aux {i j : ℕ} (hj : i = j + 1) (g : fin i → G) : ℤ →+ (group_ring (fin j → G)) :=
 { to_fun := λ n, (finset.range i).sum (λ p, finsupp.single
-    (λ k, c $ fin.delta hj p k) ((-1 : ℤ) ^ p * n)),
+    (λ k, g $ fin.delta hj p k) ((-1 : ℤ) ^ p * n)),
   map_zero' := by simp only [finsupp.single_zero, finset.sum_const_zero, mul_zero],
   map_add' := λ v w, by simp only [mul_add, finsupp.single_add, finset.sum_add_distrib] }
 
+/-- Sends `g ∈ Gⁱ` to `∑ (-1)ᵏ • (g₁, ..., ĝₖ, ..., gⱼ)`. -/
 def d_add_hom {i j : ℕ} (hj : i = j + 1) : group_ring (fin i → G) →+ group_ring (fin j → G) :=
 finsupp.lift_add_hom (d_aux G hj)
 
+/-- Sends `g ∈ Gⁱ` to `∑ (-1)ᵏ • (g₁, ..., ĝₖ, ..., gⱼ)`. -/
 def d {i j : ℕ} (hj : i = j + 1) : group_ring (fin i → G) →ₗ[group_ring G] group_ring (fin j → G) :=
 { map_smul' := λ g x,
   begin
@@ -160,6 +61,7 @@ def d {i j : ℕ} (hj : i = j + 1) : group_ring (fin i → G) →ₗ[group_ring 
   end,
   ..finsupp.lift_add_hom (d_aux G hj) }
 
+variables {G}
 
 lemma d_of {i j : ℕ} (hj : i = j + 1) (c : fin i → G) :
   d G hj (of _ c) = (finset.range i).sum (λ p, finsupp.single
@@ -171,6 +73,7 @@ begin
   rw mul_one,
 end
 
+/-- Sends `(j, k)` to `(k + 1, j)` if `j ≤ k` and `(k, j - 1)` otherwise. -/
 def invo : ℕ × ℕ → ℕ × ℕ :=
 λ j, if j.1 ≤ j.2 then (j.2 + 1, j.1) else (j.2, j.1 - 1)
 
@@ -195,7 +98,6 @@ theorem d_squared_of {i j k : ℕ} (hj : i = j + 1) (hk : j = k + 1) (c : fin i 
   (d G hk (d G hj $ of _ c)) = 0 :=
 begin
   ext g,
-  --show _ = (0 : ℤ),
   simp only [d_of],
   rw linear_map.map_sum,
   simp only [gsmul_single_one, linear_map.map_smul_of_tower, d_of],
@@ -244,7 +146,7 @@ theorem d_squared {i j k : ℕ} (hj : i = j + 1) (hk : j = k + 1) (c : group_rin
   (d G hk (d G hj c)) = 0 :=
 begin
   refine c.induction_on _ _ _,
-  { exact d_squared_of G hj hk },
+  { exact d_squared_of hj hk },
   { intros a b ha hb,
     simp only [linear_map.map_add, ha, hb, zero_add] },
   { intros r a ha,
@@ -254,6 +156,9 @@ end
 instance trivial_action : distrib_mul_action G ℤ :=
 by refine { smul := λ g n, n, .. }; {intros, refl}
 
+variables (G)
+/-- Don't want a `ℤ[G]`-module instance on `(ulift) ℤ` I don't think, so here's `ulift ℤ`
+  with the trivial action as a `Module`. -/
 def trivial : Module (group_ring G) :=
 { carrier := (ulift ℤ : Type u),
   is_add_comm_group := ulift.add_comm_group,
@@ -261,10 +166,12 @@ def trivial : Module (group_ring G) :=
 
 open category_theory
 
+/-- The chain complex `... → ℤ[Gⁿ] → ... → ℤ[G]`. -/
 def std_resn_complex : chain_complex (Module (group_ring G)) ℕ :=
 chain_complex.of (λ n, Module.of (group_ring G) (group_ring (fin (n + 1) → G)))
-(λ n, d G rfl) (λ n, by ext1; exact d_squared _ _ _ _)
+(λ n, d G rfl) (λ n, by ext1; exact d_squared _ _ _)
 
+/-- The hom `ℤ[G] → ℤ` sending `∑ nᵢgᵢ ↦ ∑ nᵢ`. -/
 def coeff_sum : group_ring G →ₗ[group_ring G] trivial G :=
 { map_smul' := λ g x, by
   { dsimp,
@@ -288,6 +195,8 @@ def coeff_sum : group_ring G →ₗ[group_ring G] trivial G :=
       rw [mul_smul_comm, linear_map.map_smul, ha, linear_map.map_smul, smul_algebra_smul_comm]}}
   .. (finsupp.total G (trivial G) ℤ (λ g, ulift.up 1))}
 
+variables {G}
+
 lemma coeff_sum_single {x : G} {n : ℤ} : coeff_sum G (finsupp.single x n) = ulift.up n :=
 begin
   erw finsupp.total_single,
@@ -306,37 +215,13 @@ begin
   exact mul_one _,
 end
 
-def group_ring_one_equiv : group_ring (fin 1 → G) ≃ₗ[group_ring G] group_ring G :=
-{ map_smul' := λ x y, by
-  { refine x.induction_on _ _ _,
-    { dsimp,
-      intro g,
-      ext,
-      rw [smul_def, finsupp.total_single, one_smul],
-      simp only [monoid_algebra.single_mul_apply, one_mul, finsupp.equiv_map_domain_apply,
-        finsupp.comap_smul_apply],
-      congr },
-    { intros a b ha hb,
-      simp only [add_smul, add_equiv.map_add', ha, hb]},
-    { intros r a ha,
-      simp only [add_equiv.to_fun_eq_coe, add_equiv.map_gsmul, smul_assoc] at ⊢ ha,
-      rw ha }},
-  ..finsupp.dom_congr (fin.dom_one_equiv G) }
-
-lemma group_ring_one_equiv_single {g : fin 1 → G} {m : ℤ} :
-  group_ring_one_equiv G (finsupp.single g m) = finsupp.single (g 0) m :=
-begin
-  erw [finsupp.dom_congr_apply, finsupp.equiv_map_domain_single],
-  refl,
-end
-
-lemma coeff_sum_group_ring_one_equiv_apply {g : group_ring (fin 1 → G)} :
-  coeff_sum G (group_ring_one_equiv G g) = finsupp.total (fin 1 → G)
+lemma coeff_sum_dom_one_equiv_apply {g : group_ring (fin 1 → G)} :
+  coeff_sum G (dom_one_equiv G g) = finsupp.total (fin 1 → G)
     (trivial G) ℤ (λ g, ulift.up 1) g :=
 begin
   refine g.induction_on _ _ _,
   { intros g,
-    rw [of_apply, group_ring_one_equiv_single, coeff_sum_single, finsupp.total_single, one_smul] },
+    rw [of_apply, dom_one_equiv_single, coeff_sum_single, finsupp.total_single, one_smul] },
   { intros a b ha hb,
     simp only [linear_equiv.map_add, linear_map.map_add, ha, hb], },
   { intros r a ha,
@@ -346,12 +231,12 @@ begin
 end
 
 lemma coeff_sum_d {x : group_ring (fin 2 → G)} :
-  coeff_sum G (group_ring_one_equiv G $ d G rfl x) = 0 :=
+  coeff_sum G (dom_one_equiv G $ d G rfl x) = 0 :=
 begin
   refine x.induction_on _ _ _,
   { intro g,
     rw [d_of, linear_equiv.map_sum, linear_map.map_sum],
-    unfold group_ring_one_equiv,
+    unfold dom_one_equiv,
     dsimp,
     simp only [finsupp.dom_congr_apply, finsupp.equiv_map_domain_single, coeff_sum_single],
     rw [finset.range_add_one, finset.sum_insert (@finset.not_mem_range_self 1)],
@@ -365,28 +250,24 @@ begin
     rw [ha, smul_zero] }
 end
 
+variables (G)
+/-- The hom `... → ℤ[G²] → ℤ[G]` → `... → 0 → ℤ → 0 → ...` which is `coeff_sum` at 0
+  and 0 everywhere else. -/
 def std_resn_π : std_resn_complex G ⟶ ((chain_complex.single₀
   (Module (group_ring G))).obj (trivial G)) :=
-{ f := λ n, nat.rec_on n ((coeff_sum G).comp (group_ring_one_equiv G).to_linear_map)
+{ f := λ n, nat.rec_on n ((coeff_sum G).comp (dom_one_equiv G).to_linear_map)
     (λ n hn, 0),
   comm' := λ i j hij, by
   { induction j with j hj,
     { ext1,
       cases hij,
-      exact (coeff_sum_d _).symm },
+      exact coeff_sum_d.symm },
     { simp only [limits.comp_zero, chain_complex.single₀_obj_X_d] at * }}}
 
-def cons (n : ℕ) (r : G) : group_ring (fin n → G) →+ group_ring (fin (n + 1) → G) :=
-finsupp.map_domain.add_monoid_hom (@fin.cons n (λ i, G) r)
-
-lemma cons_of (g : fin 1 → G) :
-  cons G 1 1 (of _ g) = of (fin 2 → G) (fin.cons (1 : G) g) :=
-finsupp.map_domain_single
-
-variables (g : group_ring (fin 1 → G))
+variables {G} --(g : group_ring (fin 1 → G))
 
 lemma delta_zero_cons (g : group_ring (fin 1 → G)) :
-  finsupp.map_domain (λ v : fin 2 → G, v ∘ fin.delta rfl 0) (cons G 1 1 g) = g :=
+  finsupp.map_domain (λ v : fin 2 → G, v ∘ fin.delta rfl 0) (cons 1 1 g) = g :=
 begin
   show finsupp.map_domain _ (finsupp.map_domain _ _) = _,
   dsimp,
@@ -398,18 +279,9 @@ begin
   convert @fin.cons_succ 1 (λ i, G) (1 : G) v 0,
 end
 
-lemma cons_delta_two {M : Type*} [monoid M] (f : fin 1 → M) :
-  (fin.cons 1 f : fin 2 → M) ∘ (fin.delta rfl 1) = 1 :=
-begin
-  ext,
-  rw [subsingleton.elim x 0, function.comp_app],
-  dunfold fin.delta,
-  convert @fin.cons_zero 1 (λ i, M) _ _,
-end
-
 lemma delta_one_cons (g : group_ring (fin 1 → G)) :
-  finsupp.map_domain (λ v : fin 2 → G, v ∘ fin.delta rfl 1) (cons G 1 1 g) =
-    finsupp.single 1 (coeff_sum G (group_ring_one_equiv G g)).down :=
+  finsupp.map_domain (λ v : fin 2 → G, v ∘ fin.delta rfl 1) (cons 1 1 g) =
+    finsupp.single 1 (coeff_sum G (dom_one_equiv G g)).down :=
 begin
   show finsupp.map_domain _ (finsupp.map_domain _ _) = _,
   dsimp,
@@ -422,7 +294,7 @@ begin
     rw subsingleton.elim k 0,
     dsimp,
     convert @fin.cons_zero 1 (λ i, G) (1 : G) _ },
-  { rw coeff_sum_group_ring_one_equiv_apply,
+  { rw coeff_sum_dom_one_equiv_apply,
     unfold finsupp.map_domain,
     dsimp,
     rw finsupp.total_apply,
@@ -436,10 +308,6 @@ begin
 end
 
 variables (n : ℕ)
-
-instance (M : submodule (group_ring G) (group_ring (fin n → G))) :
-  has_coe M (group_ring (fin n → G)) :=
-{ coe := λ m, m.1 }
 
 lemma d_two_apply (x : group_ring (fin 2 → G)) :
   d G (show 2 = 1 + 1, from rfl) x =
@@ -462,8 +330,8 @@ begin
 end
 
 lemma d_cons (x : group_ring (fin 1 → G)) (hx : x ∈ ((coeff_sum G).comp
-    (group_ring_one_equiv G).to_linear_map).ker) :
-  d G (show 2 = 1 + 1, from rfl) (cons G 1 1 x) = x :=
+    (dom_one_equiv G).to_linear_map).ker) :
+  d G (show 2 = 1 + 1, from rfl) (cons 1 1 x) = x :=
 begin
   cases x with x hx,
   rw [d_two_apply, delta_zero_cons, delta_one_cons],
@@ -474,16 +342,16 @@ begin
 end
 
 instance std_resn_exact₀ : exact (Module.as_hom $ d G (show 2 = 1 + 1, from rfl))
-  (Module.as_hom ((coeff_sum G).comp (group_ring_one_equiv G).to_linear_map)) :=
+  (Module.as_hom ((coeff_sum G).comp (dom_one_equiv G).to_linear_map)) :=
 (Module.exact_iff _ _).2 $
 begin
   ext,
   split,
   { rintros ⟨y, rfl⟩,
-    exact coeff_sum_d G },
+    exact coeff_sum_d },
   { intro hx,
-    use cons G 1 1 x,
-    exact d_cons G x hx }
+    use cons 1 1 x,
+    exact d_cons x hx }
 end
 
 -- idk where this is .
@@ -491,16 +359,23 @@ instance : functor.additive (forget₂ (Module (group_ring G)) AddCommGroup) :=
 { map_zero' := λ x y, rfl,
   map_add' := λ  x y f g, rfl }
 
+variables (G)
+
+/-- The exact sequence of `AddCommGroup`s `... → ℤ[G²] → ℤ[G] → ℤ → 0`.
+  We need this to show 1 is null-homotopic as a map of `AddCommGroup` complexes. -/
 abbreviation std_resn_aug_AddCommGroup :=
 ((forget₂ (Module (group_ring G)) AddCommGroup).map_homological_complex (complex_shape.down ℕ)).obj
-  ((std_resn_complex G).augment ((coeff_sum G).comp (group_ring_one_equiv G).to_linear_map)
-  (by ext1; exact coeff_sum_d G))
+  ((std_resn_complex G).augment ((coeff_sum G).comp (dom_one_equiv G).to_linear_map)
+  (by ext1; exact coeff_sum_d))
 
+/-- Basically the map `ℤ → ℤ[G]` sending `n ↦ n • 1` -/
 def std_resn_homotopy_aux : trivial G →+ group_ring (fin 1 → G) :=
 { to_fun := λ n, finsupp.single 1 n.down,
   map_zero' := finsupp.single_zero,
   map_add' := λ x y, finsupp.single_add }
 
+/-- Homotopy constructor for when you have a family `fₙ : Cₙ → Dₙ₊₁` (as opposed
+  to `Cᵢ → Dⱼ` with `j = i + 1`).-/
 def homotopy.of {C D : chain_complex AddCommGroup ℕ} (f g : C ⟶ D)
 (hom : Π n, C.X n ⟶ D.X (n + 1))
 (comm0 : f.f 0 = hom 0 ≫ D.d 1 0 + g.f 0)
@@ -519,8 +394,10 @@ def homotopy.of {C D : chain_complex AddCommGroup ℕ} (f g : C ⟶ D)
     { simpa using comm i},
   end }
 
+variables {G}
+
 lemma cons_d (g : G) (x : fin (n + 1) → G) :
-  d G rfl (of (fin (n + 2) → G) $ fin.cons g x) + cons G n g (d G rfl (of _ x)) = of _ x :=
+  d G rfl (of (fin (n + 2) → G) $ fin.cons g x) + cons n g (d G rfl (of _ x)) = of _ x :=
 begin
   show _ + finsupp.map_domain.add_monoid_hom _ _ = _,
   rw [d_of, finset.range_succ', finset.sum_insert, add_assoc],
@@ -543,12 +420,16 @@ begin
     exact nat.succ_ne_zero _ hi' }
 end
 
+variables (G)
+
+/-- The identity chain map on `... ℤ[G²] → ℤ[G] → ℤ` (as a complex of `AddCommGroup`s)
+  is homotopic to 0. -/
 def std_resn_homotopy :
   homotopy (𝟙 (std_resn_aug_AddCommGroup G)) 0 :=
-homotopy.of _ _ (λ n, nat.rec_on n (std_resn_homotopy_aux G) (λ m fm, cons G _ 1))
+homotopy.of _ _ (λ n, nat.rec_on n (std_resn_homotopy_aux G) (λ m fm, cons _ (1 : G)))
 (by { ext1,
-  show x = coeff_sum G (group_ring_one_equiv G (finsupp.single _ _)) + 0,
-  rw [coeff_sum_group_ring_one_equiv_apply, finsupp.total_single, add_zero],
+  show x = coeff_sum G (dom_one_equiv G (finsupp.single _ _)) + 0,
+  rw [coeff_sum_dom_one_equiv_apply, finsupp.total_single, add_zero],
   ext,
   simp only [mul_one, algebra.id.smul_eq_mul, ulift.smul_down']}) $
 λ i, nat.rec_on i
@@ -557,9 +438,9 @@ homotopy.of _ _ (λ n, nat.rec_on n (std_resn_homotopy_aux G) (λ m fm, cons G _
   refine x.induction_on _ _ _,
   { intro x,
     dsimp,
-    show finsupp.single _ _ = finsupp.single _ (coeff_sum G (group_ring_one_equiv _ _)).down
+    show finsupp.single _ _ = finsupp.single _ (coeff_sum G (dom_one_equiv _ _)).down
       + d _ _ _ + _,
-    simp only [coeff_sum_group_ring_one_equiv_apply, finsupp.total_single, add_zero],
+    simp only [coeff_sum_dom_one_equiv_apply, finsupp.total_single, add_zero],
     simp only [cons, finsupp.map_domain.add_monoid_hom_apply, one_gsmul,
       finsupp.map_domain_single, eq_to_hom_refl, Module.id_apply],
     erw d_two_apply,
@@ -580,7 +461,7 @@ begin
   refine x.induction_on _ _ _,
   { intro y,
     dsimp at *,
-    show finsupp.single _ _ = cons G _ _ _ + _ + 0,
+    show finsupp.single _ _ = cons _ (1 : G) _ + _ + 0,
     simp only [add_zero, comp_apply, finsupp.map_domain.add_monoid_hom_apply,
       chain_complex.augment_d_succ_succ, finsupp.map_domain_single],
     simp only [add_comm],
@@ -589,14 +470,13 @@ begin
     unfold cons,
     dsimp,
     rw finsupp.map_domain_single,
-    exact (cons_d _ _ _ _).symm },
+    exact (cons_d _ _ _).symm },
   { intros f g hf hg,
     rw [add_monoid_hom.map_add, add_monoid_hom.map_add, hf, hg]},
   { intros r f hf,
     rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, hf] }
 end)
 
---cba to work out what instances I need here
 def exact_of_homotopy_zero {ι : Type*}
   {c : complex_shape ι} {C : homological_complex AddCommGroup c}
   (h : homotopy (𝟙 C) 0) (j : ι) :
@@ -641,10 +521,10 @@ def std_resn : ProjectiveResolution (trivial G) :=
   π := std_resn_π G,
   projective := λ n, @Module.projective_of_free.{u u u} _ _
     (Module.of (group_ring G) (group_ring (fin (n + 1) → G))) _ (basis.{u} G n),
-  exact₀ := group_ring.std_resn_exact₀ G,
+  exact₀ := group_ring.std_resn_exact₀,
   exact := λ n, exact_to_from_iff.1 $ group_ring.exact_d_to_d_from G _,
-  epi := (Module.epi_iff_range_eq_top _).2 $ ((group_ring_one_equiv G).range_comp _).trans
-    (range_coeff_sum_eq_top G) }
+  epi := (Module.epi_iff_range_eq_top _).2 $ ((dom_one_equiv G).range_comp _).trans
+    range_coeff_sum_eq_top }
 
 
 end group_ring

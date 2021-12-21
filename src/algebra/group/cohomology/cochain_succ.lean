@@ -8,6 +8,7 @@ import data.fin_simplicial_complex
 import group_theory.free_abelian_group
 import algebra.big_operators.finsupp
 import algebra.monoid_algebra.basic
+import algebra.group.cohomology.lemmas
 
 /-!
 # Group cohomology
@@ -123,35 +124,20 @@ begin
   simp [sub_eq_add_neg],
 end
 
-lemma pred_smul {A : Type uA} [add_group A] (a : A) (n : ℤ) :
-  (n - 1) • a = n • a - a :=
-int.induction_on n
-  (by simp)
-  (λ _ _, by simp [add_gsmul, one_gsmul])
-  (λ _, by simp [sub_gsmul])
-
-lemma smul_gsmul {G : Type uG} [group G] {M : Type uM} [add_comm_group M] [distrib_mul_action G M]
-  (g : G) (n : ℤ) (m : M) : g • n • m = n • g • m :=
-int.induction_on n
-  ( by simp)
-  ( λ i h, by { simp only [add_smul, smul_add, add_left_inj, one_gsmul, h] })
-  ( λ i h, by { simp only [pred_smul, smul_sub, smul_neg, neg_inj, sub_left_inj, h] } )
-
-
 @[simp] lemma int_smul_apply (c : cochain_succ G M n) (z : ℤ) (g : fin n → G) :
   (z • c) g = z • (c g) :=
 begin
   apply int.induction_on z,
   { simp },
   { intros i this, simpa [add_gsmul] },
-  { intros i this, rw [pred_smul, pred_smul, sub_apply, this] },
+  { intros i this, rw [int.pred_smul, int.pred_smul, sub_apply, this] },
 end
 
 def d {i j : ℕ} (hj : j = i + 1) : cochain_succ G M i →+ cochain_succ G M j :=
 { to_fun := λ c,
   { to_fun := λ g, (finset.range j).sum (λ p, (-1 : ℤ)^p • c $ λ t, g (fin.delta hj p t)),
     smul_apply' := λ s g, begin
-      simp only [finset.smul_sum, int_smul_apply, ← c.smul_apply, smul_gsmul],
+      simp only [finset.smul_sum, int_smul_apply, ← c.smul_apply, distrib_mul_action.smul_gsmul],
     end },
   map_zero' := begin ext, simp end,
   map_add' := λ x y, by {ext, simp [finset.sum_add_distrib]} }
@@ -306,6 +292,11 @@ def equiv_fun {X Y : Sort*} (A : Sort*) (e : X ≃ Y) : (A → X) ≃ (A → Y) 
   inv_fun := λ g b, e.symm (g b),
   left_inv := λ h, by simp,
   right_inv := λ h, by simp }
+
+
+/- I think everything after here wasn't here when I wrote my files - Amelia -/
+
+
 
 -- The Lean `(fin i.succ → G) →₀ ℤ` is the Cassels-Froehlich `P i`, for `i : ℕ`.
 -- A lot of what they say works for what they would call $P_{-1}$.

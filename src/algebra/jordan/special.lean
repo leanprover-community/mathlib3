@@ -1,4 +1,26 @@
+/-
+Copyright (c) 2021 Christopher Hoskin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christopher Hoskin
+-/
 import algebra.jordan.basic
+
+/-!
+# Special Jordan algebras
+
+A commutative multiplication on a real or complex space can be constructed from any multiplicaion by
+"symmetrisation" i.e
+```
+a∘b = 1/2(ab+ba).
+```
+When the original multiplication is associative, the symmetrised algebra is a commutative Jordan
+algebra. A commutative Jordan algebra which can be constructed in this way from an associative
+multiplication is said to be a special Jordan algebra.
+
+## Implementation notes
+
+The approach taken here is inspired by algebra.opposites
+-/
 
 def sym_alg (α : Type*) : Type* := α
 
@@ -30,10 +52,8 @@ instance [has_add α] : has_add αˢʸᵐ :=
 instance [has_neg α] : has_neg αˢʸᵐ :=
 { neg := λ a, sym ( -(unsym a)) }
 
-instance {R : Type*} [has_scalar R α] : has_scalar R αˢʸᵐ := {
-  smul := λ r a, sym (r•(unsym a))
-}
-
+instance {R : Type*} [has_scalar R α] : has_scalar R αˢʸᵐ :=
+{ smul := λ r a, sym (r•(unsym a)) }
 
 @[simp] lemma sym_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : sym (c • a) = c • sym a := rfl
 
@@ -53,20 +73,19 @@ end
 --variables [semiring α] [algebra ℝ α]
 
 
-instance {α : Type*} [add_comm_group α] : add_comm_group (αˢʸᵐ) := {
-  zero := sym 0,
+instance {α : Type*} [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
+{ zero := sym 0,
   add := λ a b, a+b,
   add_assoc := λ a b c : α, add_assoc a b c,
   add_comm := λ a b : α, add_comm a b,
   zero_add := λ a, zero_add (unsym a),
   add_zero := λ a, add_zero (unsym a),
   neg := λ a, sym ( -(unsym a)),
-  add_left_neg := λ a, add_left_neg (unsym a),
-}
+  add_left_neg := λ a, add_left_neg (unsym a), }
 
 
-noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : non_unital_non_assoc_ring (αˢʸᵐ) := {
-  zero := sym 0,
+noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : non_unital_non_assoc_ring (αˢʸᵐ) :=
+{ zero := sym 0,
   add := λ a b, a+b,
   add_assoc := λ a b c : α, add_assoc a b c,
   add_comm := λ a b : α, add_comm a b,
@@ -88,7 +107,6 @@ noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : non_unital_non_
       (1/2:ℝ)•(unsym(a)*unsym(c)+unsym(c)*unsym(a))+(1/2:ℝ)•(unsym(b)*unsym(c)+unsym(c)*unsym(b)),
     rw [mul_add, add_mul, smul_add, smul_add, smul_add, smul_add, smul_add],
     abel,
-  end,
-}
+  end, }
 
 end sym_alg

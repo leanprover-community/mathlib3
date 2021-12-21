@@ -77,48 +77,46 @@ universe u
 
 @[priority 100] -- see Note [lower instance priority]
 instance  ring_jordan (B : Type u) [ring B] : jordan (B) :=
-{
-  commL1R1 := begin
+{ commL1R1 := begin
     intro,
     ext b,
     rw ring.lie_def,
-    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.coe_mul_left, add_monoid_hom.sub_apply,
-      function.comp_app, L_apply, R_apply, add_monoid.coe_mul],
+    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.coe_mul_left,
+      add_monoid_hom.sub_apply, function.comp_app, L_apply, R_apply, add_monoid.coe_mul],
     rw [mul_assoc, sub_self],
   end,
   commL1L2 := begin
     intro,
     ext b,
     rw ring.lie_def,
-    simp only [add_monoid_hom.zero_apply, comp_mul_left, add_monoid_hom.coe_mul_left, add_monoid_hom.sub_apply, L_apply,
-      add_monoid.coe_mul],
+    simp only [add_monoid_hom.zero_apply, comp_mul_left, add_monoid_hom.coe_mul_left,
+      add_monoid_hom.sub_apply, L_apply,      add_monoid.coe_mul],
     rw [← mul_assoc, sub_self],
   end,
   commL1R2 := begin
     intro,
     ext b,
     rw ring.lie_def,
-    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.coe_mul_left, add_monoid_hom.sub_apply,
-      function.comp_app, L_apply, R_apply, add_monoid.coe_mul],
+    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.coe_mul_left,
+      add_monoid_hom.sub_apply, function.comp_app, L_apply, R_apply, add_monoid.coe_mul],
     rw [mul_assoc, sub_self],
   end,
   commL2R1 := begin
     intro,
     ext b,
     rw ring.lie_def,
-    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.coe_mul_left, add_monoid_hom.sub_apply,
-      function.comp_app, L_apply, R_apply, add_monoid.coe_mul],
+    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.coe_mul_left,
+      add_monoid_hom.sub_apply, function.comp_app, L_apply, R_apply, add_monoid.coe_mul],
     rw [←mul_assoc, sub_self],
   end,
   commR1R2 := begin
     intro,
     ext b,
     rw ring.lie_def,
-    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, comp_mul_right, add_monoid_hom.sub_apply, R_apply,
-      add_monoid.coe_mul],
+    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, comp_mul_right,
+      add_monoid_hom.sub_apply, R_apply, add_monoid.coe_mul],
     rw [mul_assoc, sub_self],
-  end,
-}
+  end, }
 
 
 /--

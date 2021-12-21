@@ -28,7 +28,7 @@ open algebra
 
 /-- `D : derivation R A M` is an `R`-linear map from `A` to `M` that satisfies the `leibniz`
 equality. We also require that `D 1 = 0`. See `derivation.mk'` for a constructor that deduces this
-assumption from the Leibniz rule.
+assumption from the Leibniz rule when `M` is cancellative.
 
 TODO: update this when bimodules are defined. -/
 @[protect_proj]

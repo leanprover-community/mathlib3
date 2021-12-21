@@ -51,8 +51,8 @@ Given a commutative (semi)ring `R`, there are two ways to define an `R`-algebra 
 (possibly noncommutative) (semi)ring `A`:
 * By endowing `A` with a morphism of rings `R →+* A` denoted `algebra_map R A` which lands in the
   center of `A`.
-* By requiring `A` be an `R`-module such that the action associates and commutes with multiplication
-  as `r • (a₁ * a₂) = (r • a₁) * a₂ = a₁ * (r • a₂)`.
+* By requiring `A` be an `R`-`R`-bimodule such that the action associates and commutes with
+  multiplication as `r • (a₁ * a₂) = (r • a₁) * a₂ = a₁ * (r • a₂)`.
 
 We define `algebra R A` in a way that subsumes both definitions, by extending `has_scalar R A` and
 requiring that this scalar action `r • x` must agree with left multiplication by the image of the
@@ -65,15 +65,18 @@ As a result, there are two ways to talk about an `R`-algebra `A` when `A` is a s
    ```
 2. ```lean
    variables [comm_semiring R] [semiring A]
-   variables [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+   variables [module R A] [module Rᵐᵒᵖ A] [is_central_scalar R A]
+   variables [smul_comm_class R A A] [is_scalar_tower R A A]
    ```
 
 The first approach implies the second via typeclass search; so any lemma stated with the second set
 of arguments will automatically apply to the first set. Typeclass search does not know that the
 second approach implies the first, but this can be shown with:
 ```lean
-example {R A : Type*} [comm_semiring R] [semiring A]
-  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A] : algebra R A :=
+example {R A} [comm_semiring R] [semiring A]
+  [module R A] [module Rᵐᵒᵖ A] [is_central_scalar R A]
+  [smul_comm_class R A A] [is_scalar_tower R A A] :
+  algebra R A :=
 algebra.of_module smul_mul_assoc mul_smul_comm
 ```
 
@@ -1544,5 +1547,7 @@ variables [algebra R A] [algebra R B]
 end alg_hom
 
 example {R A} [comm_semiring R] [semiring A]
-  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A] : algebra R A :=
+  [module R A] [module Rᵐᵒᵖ A] [is_central_scalar R A]
+  [smul_comm_class R A A] [is_scalar_tower R A A] :
+  algebra R A :=
 algebra.of_module smul_mul_assoc mul_smul_comm

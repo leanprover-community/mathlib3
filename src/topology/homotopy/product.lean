@@ -14,7 +14,7 @@ homotopies. We show that the product of relative homotopies
 are still relative homotopies.
 
 ## Definitions
-- `product_homotopy f g S homotopies`: Let f and g be a family of functions
+- `homotopy.pi f g S homotopies`: Let f and g be a family of functions
   indexed on I, such that for each i ∈ I, fᵢ and gᵢ are maps from A to Xᵢ.
   Let `homotopies` be a family of homotopies from fᵢ to gᵢ for each i.
   Then `product_homotopy f g S homotopies` is the canonical homotopy
@@ -25,8 +25,7 @@ are still relative homotopies.
 noncomputable theory
 
 namespace continuous_map
-section
-parameters {I : Type*} {X : I → Type*}
+variables {I : Type*} {X : I → Type*}
            [∀i, topological_space (X i)]
            {A : Type*}
            [topological_space A]
@@ -43,7 +42,7 @@ lemma pi_eval (f : Π i, C(A, X i)) (a : A)  :
 namespace homotopy
 /-- The product homotopy of `homotopies` between functions `f`
       and `g` -/
-def product_homotopy
+def pi
   (f g : Π i, C(A, X i)) (S : set A)
   (homotopies : Π i : I, continuous_map.homotopy_rel (f i) (g i) S) :
   continuous_map.homotopy_rel (pi f) (pi g) S :=
@@ -69,5 +68,4 @@ def product_homotopy
   end, }
 
 end homotopy
-end
 end continuous_map

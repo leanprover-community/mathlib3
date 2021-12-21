@@ -399,6 +399,7 @@ instance [has_involutive_star R] : has_involutive_star (self_adjoints R) := ⟨�
 
 @[simp] lemma star_eq [has_star R] {x : self_adjoints R} : star x = x := rfl
 @[simp] lemma star_coe_eq [has_star R] {x : self_adjoints R} : star (x : R) = x := x.prop
+lemma is_self_adjoint [has_star R] (x : self_adjoints R) : is_self_adjoint (x : R) := x.prop
 
 instance [add_monoid R] [star_add_monoid R] : add_monoid (self_adjoints R) :=
 { add := λ x y, ⟨x.1 + y.1, by rw [star_add, x.2, y.2]⟩,
@@ -421,6 +422,37 @@ instance [add_comm_monoid R] [star_add_monoid R] : add_comm_monoid (self_adjoint
 instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoints R) :=
 { add_comm := λ x y, by {ext, exact add_comm _ _ },
   ..show add_group (self_adjoints R), by apply_instance }
+
+instance [comm_monoid R] [star_monoid R] : comm_monoid (self_adjoints R) :=
+{ mul := λ x y, ⟨x.val * y.val, by simp only [star_coe_eq, star_mul', subtype.val_eq_coe]⟩,
+  one := ⟨1, star_one _⟩,
+  mul_assoc := λ x y z, by { ext, exact mul_assoc _ _ _ },
+  one_mul := λ x, by simp only [one_mul, subtype.coe_eta, subtype.val_eq_coe],
+  mul_one := λ x, by simp only [mul_one, subtype.coe_eta, subtype.val_eq_coe],
+  mul_comm := λ x y, by { ext, exact mul_comm _ _ } }
+
+instance [comm_group R] [star_monoid R] : comm_group (self_adjoints R) :=
+{ inv := λ x, ⟨(x.val)⁻¹, by simp only [star_inv, star_coe_eq, subtype.val_eq_coe]⟩,
+  mul_left_inv := λ x, by { ext, exact mul_left_inv _ },
+  ..show comm_monoid (self_adjoints R), by apply_instance }
+
+instance [comm_ring R] [star_ring R] : distrib (self_adjoints R) :=
+{ left_distrib := λ x y z, by { ext, exact left_distrib _ _ _ },
+  right_distrib := λ x y z, by { ext, exact right_distrib _ _ _ },
+  ..show has_add (self_adjoints R), by apply_instance,
+  ..show has_mul (self_adjoints R), by apply_instance }
+
+instance [comm_ring R] [star_ring R] : comm_ring (self_adjoints R) :=
+{ ..self_adjoints.add_comm_group,
+  ..self_adjoints.comm_monoid,
+  ..self_adjoints.distrib }
+
+instance [field R] [star_ring R] : field (self_adjoints R) :=
+{ inv :=  λ x, ⟨(x.val)⁻¹, by simp only [star_inv', star_coe_eq, subtype.val_eq_coe]⟩,
+  exists_pair_ne := ⟨0, 1, subtype.ne_of_val_ne zero_ne_one⟩,
+  mul_inv_cancel := λ x hx, by { ext, exact mul_inv_cancel (λ H, hx $ subtype.eq H) },
+  inv_zero := by { ext, exact inv_zero },
+  ..self_adjoints.comm_ring }
 
 
 end self_adjoints

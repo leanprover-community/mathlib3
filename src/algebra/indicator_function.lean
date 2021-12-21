@@ -25,28 +25,31 @@ If the usual indicator function is needed, just set `f` to be the constant funct
 indicator, characteristic
 -/
 
-noncomputable theory
-open_locale classical big_operators
+open_locale big_operators
 open function
 
 variables {α β ι M N : Type*}
 
 namespace set
 
-section has_one
-variables [has_one M] [has_one N] {s t : set α} {f g : α → M} {a : α}
-
 /-- `indicator s f a` is `f a` if `a ∈ s`, `0` otherwise.  -/
-def indicator {M} [has_zero M] (s : set α) (f : α → M) : α → M := λ x, if x ∈ s then f x else 0
+def indicator [has_zero M] (s : set α) [decidable_pred (∈ s)] (f : α → M) : α → M :=
+λ x, if x ∈ s then f x else 0
+
+section has_one
+variables [has_one M] [has_one N] (s t : set α) [decidable_pred (∈ s)]  [decidable_pred (∈ t)]
+  (f g : α → M) {a : α}
 
 /-- `mul_indicator s f a` is `f a` if `a ∈ s`, `1` otherwise.  -/
 @[to_additive]
-def mul_indicator (s : set α) (f : α → M) : α → M := λ x, if x ∈ s then f x else 1
+def mul_indicator : α → M := λ x, if x ∈ s then f x else 1
 
 @[simp, to_additive] lemma piecewise_eq_mul_indicator : s.piecewise f 1 = s.mul_indicator f := rfl
 
-@[to_additive] lemma mul_indicator_apply (s : set α) (f : α → M) (a : α) :
-  mul_indicator s f a = if a ∈ s then f a else 1 := rfl
+@[to_additive] lemma mul_indicator_apply (a : α) : mul_indicator s f a = if a ∈ s then f a else 1 :=
+rfl
+
+variables {s}
 
 @[simp, to_additive] lemma mul_indicator_of_mem (h : a ∈ s) (f : α → M) :
   mul_indicator s f a = f a := if_pos h
@@ -54,9 +57,13 @@ def mul_indicator (s : set α) (f : α → M) : α → M := λ x, if x ∈ s the
 @[simp, to_additive] lemma mul_indicator_of_not_mem (h : a ∉ s) (f : α → M) :
   mul_indicator s f a = 1 := if_neg h
 
-@[to_additive] lemma mul_indicator_eq_one_or_self (s : set α) (f : α → M) (a : α) :
+variables (s)
+
+@[to_additive] lemma mul_indicator_eq_one_or_self (a : α) :
   mul_indicator s f a = 1 ∨ mul_indicator s f a = f a :=
-if h : a ∈ s then or.inr (mul_indicator_of_mem h f) else or.inl (mul_indicator_of_not_mem h f)
+(ite_eq_or_eq _ _ _).symm
+
+variables {s t f}
 
 @[simp, to_additive] lemma mul_indicator_apply_eq_self :
   s.mul_indicator f a = f a ↔ (a ∉ s → f a = 1) :=
@@ -85,16 +92,7 @@ mul_indicator_eq_one
 @[to_additive] lemma mul_indicator_eq_one_iff (a : α) :
   s.mul_indicator f a ≠ 1 ↔ a ∈ s ∩ mul_support f :=
 begin
-  split; intro h,
-  { by_contra hmem,
-    simp only [set.mem_inter_eq, not_and, not_not, function.mem_mul_support] at hmem,
-    refine h _,
-    by_cases a ∈ s,
-    { simp_rw [set.mul_indicator, if_pos h],
-      exact hmem h },
-    { simp_rw [set.mul_indicator, if_neg h] } },
-  { simp_rw [set.mul_indicator, if_pos h.1],
-    exact h.2 }
+  convert ite_ne_right_iff,
 end
 
 @[simp, to_additive] lemma mul_support_mul_indicator :

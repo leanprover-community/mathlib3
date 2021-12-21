@@ -4,18 +4,6 @@ import topology.homotopy.fundamental_groupoid
 import category_theory.full_subcategory
 import topology.maps
 
-section for_mathlib
-
-/-noncomputable def is_open_map.to_homeomorph
-  {α β : Type*} [topological_space α] [topological_space β] (f : α → β)
-  (hf : is_open_map f) (s : set α) (t : set β) (h : set.bij_on f s t) :
-s ≃ₜ t :=
-{ continuous_to_fun := sorry,
-  continuous_inv_fun := sorry,
-  .. h.equiv f }-/
-
-end for_mathlib
-
 variables {E X : Type*} [topological_space E] [topological_space X]
 
 section evenly_covered
@@ -55,25 +43,24 @@ def apply_symm_apply (p : f ⁻¹' U) : ι (ι.symm p) = p :=
 def symm_apply_apply (p : I × U) : ι.symm (ι p) = p :=
 ι.to_homeomorph.symm_apply_apply p
 
-def homeomorph_of_mem : f ⁻¹' {y} ≃ₜ I :=
+def fiber_homeomorph : f ⁻¹' {y} ≃ₜ I :=
 { to_fun := λ p, (ι.symm ⟨p, (congr_arg (∈ U) p.2).mpr hy⟩).1,
   inv_fun := λ p, ⟨ι ⟨p, y, hy⟩, ι.commutes ⟨p, y, hy⟩⟩,
-  left_inv := λ p, subtype.ext begin
-    have key := ι.commutes (ι.symm ⟨p, (congr_arg (∈ U) p.2).mpr hy⟩),
+  left_inv := λ p, subtype.ext (by
+  { have key := ι.commutes (ι.symm ⟨p, (congr_arg (∈ U) p.2).mpr hy⟩),
     rw [ι.apply_symm_apply, subtype.coe_mk, show f p = y, from p.2] at key,
     rw [subtype.coe_mk, show (⟨y, hy⟩ : U) = _, from subtype.ext key,
-      prod.mk.eta, ι.apply_symm_apply, subtype.coe_mk],
-  end,
-  right_inv := λ p, by simp only [ι.symm_apply_apply, subtype.coe_eta, subtype.coe_mk],
-  continuous_to_fun := sorry,
-  continuous_inv_fun := sorry }
+        prod.mk.eta, ι.apply_symm_apply, subtype.coe_mk] }),
+  right_inv := λ p, by simp_rw [subtype.coe_mk, subtype.coe_eta, ι.symm_apply_apply],
+  continuous_to_fun := by continuity,
+  continuous_inv_fun := by continuity! }
 
 def to_evenly_covered_point : evenly_covered_point f hy :=
-  { to_homeomorph := ((ι.homeomorph_of_mem hy).prod_congr (homeomorph.refl U)).trans ι.to_homeomorph,
-    commutes' := λ p, ι.commutes' _,
-    compatible' := λ p, subtype.ext (by
-    { have this := subtype.ext_iff.mp ((ι.homeomorph_of_mem hy).symm_apply_apply p),
-      exact this }) }
+{ to_homeomorph := ((ι.fiber_homeomorph hy).prod_congr (homeomorph.refl U)).trans ι.to_homeomorph,
+  commutes' := λ p, ι.commutes' _,
+  compatible' := λ p, subtype.ext (by
+  { have this := subtype.ext_iff.mp ((ι.fiber_homeomorph hy).symm_apply_apply p),
+    exact this }) }
 
 end evenly_covered
 
@@ -105,8 +92,8 @@ def to_evenly_covered : evenly_covered f U (f ⁻¹' {x}) :=
 def to_evenly_covered_point : evenly_covered_point f hy :=
 ι.to_evenly_covered.to_evenly_covered_point hy
 
-def homeomorph_of_mem : f ⁻¹' {y} ≃ₜ f ⁻¹' {x} :=
-ι.to_evenly_covered.homeomorph_of_mem hy
+def fiber_homeomorph : f ⁻¹' {y} ≃ₜ f ⁻¹' {x} :=
+ι.to_evenly_covered.fiber_homeomorph hy
 
 end evenly_covered_point
 

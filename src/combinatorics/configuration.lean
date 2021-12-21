@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import combinatorics.hall.basic
-import data.fintype.card
+import set_theory.fincard
 
 /-!
 # Configurations of Points and lines
@@ -86,11 +86,11 @@ has_points.exists_unique_point (dual L) (dual P) p₁ p₂ hp
 variables {P} (L)
 
 /-- Number of points on a given line. -/
-def line_count (p : P) : ℕ := nat.card {l : L // p ∈ l}
+noncomputable def line_count (p : P) : ℕ := nat.card {l : L // p ∈ l}
 
 variables (P) {L}
 
 /-- Number of lines through a given point. -/
-def point_count (l : L) : ℕ := nat.card {p // p ∈ l}
+noncomputable def point_count (l : L) : ℕ := nat.card {p : P // p ∈ l}
 
 end configuration

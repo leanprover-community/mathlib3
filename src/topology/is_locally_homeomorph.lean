@@ -1,6 +1,5 @@
-
 /-
-Copyright (c) 2019 Thomas Browning. All rights reserved.
+Copyright (c) 2021 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
@@ -20,6 +19,7 @@ locally a homeomorphism.
 variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
   (g : Y → Z) (f : X →  Y)
 
+/-- A function `f : X → Y` satisfies `is_locally_homeomorph` if it is locally a homeomorphism. -/
 def is_locally_homeomorph :=
 ∀ x : X, ∃ e : local_homeomorph X Y, f = e ∧ x ∈ e.source
 

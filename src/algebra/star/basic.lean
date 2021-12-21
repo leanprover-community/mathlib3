@@ -419,8 +419,8 @@ instance [add_comm_monoid R] [star_add_monoid R] : add_comm_monoid (self_adjoint
   ..show add_monoid (self_adjoints R), by apply_instance }
 
 instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoints R) :=
-{ ..show add_comm_monoid (self_adjoints R), by apply_instance,
-   }
+{ add_comm := λ x y, by {ext, exact add_comm _ _ },
+  ..show add_group (self_adjoints R), by apply_instance }
 
 
 end self_adjoints

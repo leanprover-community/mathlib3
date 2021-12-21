@@ -33,6 +33,15 @@ lemma extend_by_zero_add [add_group β] (f g : s → β) :
 extend_by_zero (f + g) = extend_by_zero f + extend_by_zero g :=
 by ext z; by_cases h : z ∈ s; simp [extend_by_zero, h]
 
+lemma extend_by_zero_sum [add_comm_monoid β] (ι  : finset α) (F : ι →  s → β) :
+extend_by_zero (λ (x : s), ∑ (i : ι ), F i x) = ∑ (i : ι), extend_by_zero (F i) :=
+begin
+ext z,
+by_cases h : z ∈ s,
+simp only [extend_by_zero, h, finset.sum_apply, dif_pos],
+simp only [extend_by_zero, h, finset.sum_apply, dif_neg, not_false_iff, finset.sum_const_zero],
+end
+
 lemma extend_by_zero_mul [semiring β] (f g : s → β) :
 extend_by_zero (f * g) = extend_by_zero f * extend_by_zero g :=
 by ext z; by_cases h : z ∈ s; simp [extend_by_zero, h]
@@ -59,6 +68,7 @@ lemma extend_by_zero_smul [ring β] (c : β) (f : s → β) :
   by ext z; by_cases h : z ∈ s; simp [extend_by_zero, h]
 
 end
+
 
 
 def open_subs:=topological_space.opens ℂ

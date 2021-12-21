@@ -1475,6 +1475,7 @@ end
 def eisen_square (k : ℤ) (n: ℕ): ℍ → ℂ:=
 λ z, ∑ x in Square n, Eise k z x
 
+
 lemma Eisenstein_series_is_sum_eisen_squares (k: ℕ) (z: ℍ) (h : 3 ≤ k) :
 (Eisenstein_series_of_weight_ k z) = ∑' (n : ℕ), eisen_square k n z:=
 begin
@@ -1499,10 +1500,72 @@ instance upper_half_space_slice_to_uhs (A B : ℝ) :
 @[simp]lemma slice_mem (A B : ℝ) (z: ℍ): z ∈ (upper_half_space_slice A B) ↔
 (complex.abs(z.1.1) ≤ A ∧ complex.abs(z.1.2) ≥ B) :=iff.rfl
 
-lemma closed_ball_in_slice (z : ℍ) : ∃ (A B ε : ℝ), 0 < ε ∧ 0 < B ∧
-  metric.closed_ball z ε ⊆ upper_half_space_slice A B :=
+lemma slice_in_upper_half (A B : ℝ) (x : (upper_half_space_slice A B) ) :
+  x.1.1 ∈ ℍ'.1:=
 begin
-  let e := 2⁻¹ * complex.abs(z.1.2),
+have hx : 0 < (x.1).im, by {apply upper_half_plane.im_pos,},
+simp at hx,
+simp,
+apply hx,
+end
+
+lemma ball_coe (z w : ℍ) (ε : ℝ) (hε : 0 < ε) :
+  w ∈ metric.closed_ball z ε ↔ w.1 ∈ metric.closed_ball z.1 ε :=
+begin
+simp,
+split,
+intro hzw,
+exact hzw,
+intro hzw,
+exact hzw,
+end
+
+lemma ball_in_upper_half (z : ℍ) (A B ε : ℝ)(hB : 0 < B) ( hε : 0 < ε) (hBε : ε < B)
+  (h : metric.closed_ball z ε ⊆ upper_half_space_slice A B) :
+    metric.closed_ball z.1 ε ⊆ ℍ'.1 :=
+begin
+intros x hx,
+simp at *,
+have hg : 0 < (x.2), by {
+  rw metric.closed_ball at h,
+    have hz : z ∈ upper_half_space_slice A B, by {apply h, simp [hε.le]},
+    simp at hz,
+    have hz2:= z.2,
+    have hzB: B ≤ complex.abs z.1.2, by {simp [hz.2],},
+    rw dist_eq_norm at hx,
+    simp at hx,
+    have h3:= le_trans (abs_im_le_abs (x-z.1)) hx,
+    have h4:= _root_.abs_sub_le z.1.2 x.2 0,
+    rw sub_im at h3,
+    rw _root_.abs_sub_comm at h3,
+    have h33: -ε ≤ - |z.im - x.im|, by {simp, apply h3, },
+    simp at h4,
+    have h5 : |z.im| - |z.im - x.im| ≤ |x.im|, by {linarith,},
+    simp at hzB,
+    have h6 : B - ε ≤ |z.im| - |z.im - x.im|, by {linarith, },
+    by_contradiction hc,
+    simp at hc,
+    have hcc: 0 ≤ -x.im, by {linarith, },
+    have hzc :|z.im - x.im| = z.im - x.im, by {apply _root_.abs_of_nonneg, apply add_nonneg,
+    apply z.2.le, apply hcc,},
+    have hzp : |z.im| = z.im, by {apply _root_.abs_of_nonneg z.2.le,},
+    simp_rw [hzc, hzp] at h6,
+    simp only [sub_sub_cancel] at h6,
+    linarith,},
+apply hg,
+end
+
+lemma sillyaux (r : ℝ) : 0 < r → 0 < (2/3)*r-(1/3)*r :=
+begin
+intro hr,
+ring_nf,
+nlinarith,
+end
+
+lemma closed_ball_in_slice (z : ℍ) : ∃ (A B ε : ℝ), 0 < ε ∧ 0 < B ∧
+  metric.closed_ball z ε ⊆ upper_half_space_slice A B ∧  0 ≤ A ∧ ε < B:=
+begin
+  let e := 3⁻¹ * complex.abs(z.1.2),
   let a := complex.abs(z.1.2) +  complex.abs(z),
   let b := complex.abs(z.1.2) - e,
   use a,
@@ -1511,13 +1574,21 @@ begin
   split,
   simp_rw e,
   simp,
+  apply mul_pos,
+  rw inv_pos,
+  linarith,
+  simp,
   apply upper_half_plane.im_ne_zero z,
   split,
   simp_rw b,
   simp_rw e,
   ring_nf,
+  simp only [abs_of_real, upper_half_plane.coe_im, subtype.val_eq_coe],
+  apply mul_pos,
+  nlinarith,
   simp,
   apply upper_half_plane.im_ne_zero z,
+  split,
   intro x,
   simp only [abs_of_real, tsub_le_iff_right, ge_iff_le, metric.mem_closed_ball, slice_mem,
   upper_half_plane.coe_im, subtype.val_eq_coe, upper_half_plane.coe_re],
@@ -1546,11 +1617,23 @@ begin
   simp only [sub_zero, upper_half_plane.coe_im, subtype.val_eq_coe] at ineq1,
   apply le_trans ineq1,
   rw add_comm,
-  simp,
+  simp only [add_le_add_iff_left],
   have ki:= le_trans (abs_im_le_abs (x.1-z.1)) hxz,
   rw sub_im at ki,
   rw _root_.abs_sub_comm at ki,
   convert ki,
+  simp_rw a,
+  split,
+  apply add_nonneg,
+  apply complex.abs_nonneg,
+  apply complex.abs_nonneg,
+  simp_rw b,
+  simp_rw e,
+  ring_nf,
+  rw ← sub_pos,
+  apply sillyaux,
+  simp,
+  apply upper_half_plane.im_ne_zero z,
 end
 
 
@@ -1742,6 +1825,7 @@ instance : has_coe ℍ ℍ' :=
 
 instance slice_coe (A B : ℝ) (hb : 0 < B) : has_coe (upper_half_space_slice A B) ℍ' :=
 ⟨λ (x : (upper_half_space_slice A B)), (x : ℍ')  ⟩
+
 
 def Eisenstein_series_restrict (k : ℤ) (A B : ℝ) (hb : 0 < B) : (upper_half_space_slice A B) → ℂ :=
 λ x, Eisenstein_series_of_weight_ k x
@@ -1992,23 +2076,5 @@ begin
   simp only [metric.mem_ball, ne.def, subtype.coe_mk] at *,
   apply h,
 end
-
-
-lemma Eisenstein_is_holomorphic (k : ℤ): is_holomorphic_on (Eisenstein_series_of_weight_ k):=
-begin
-  rw ←  is_holomorphic_on_iff_differentiable_on,
-  apply diff_on_diff,
-  intro x,
-sorry,
-end
-
-/-
-lemma Eisen_partial_tends_to_uniformly_on_ball (k: ℕ) (h : 3 ≤ k) (x : ℍ') : ∃ (A B ε : ℝ),
-  0 < ε ∧ metric.closed_ball x ε ⊆ (upper_half_space_slice A B)  ∧  0 < B ∧
-(tendsto_uniformly_on (Eisen_par_sum_slice k A B) (Eisenstein_series_restrict k A B)
-filter.at_top (metric.closed_ball x ε)   ) :=
--/
-
-
 
 end Eisenstein_series

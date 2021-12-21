@@ -19,12 +19,6 @@ import data.nat.mul_ind
 open nat finset list finsupp
 open_locale big_operators
 
-section temporary
--- This lemma is `data/list/count` in `PR #10880`.  When that branch is merged, this can be deleted.
-lemma list.count_singleton' {α : Type*} [decidable_eq α] {a b : α} :
-  list.count a [b] = ite (a=b) 1 0 := by refl
-end temporary
-
 namespace nat
 
 /-- `n.factorization` is the finitely supported function `ℕ →₀ ℕ`

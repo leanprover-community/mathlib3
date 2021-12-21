@@ -260,7 +260,7 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
       refine ⟨z₀, y₀, y₀_in, ⟨h.symm, _⟩⟩,
       intro hz,
       rw hz at h,
-      cases zero_eq_mul.mp h.symm ; finish },
+      cases zero_eq_mul.mp h.symm, { rw h_1 at y₀_in, exact zeroV' y₀_in }, { contradiction } },
     rcases this with ⟨z₀, y₀, y₀_in, hz₀, z₀_ne⟩,
     have vz₀_ne: v z₀ ≠ 0 := by rwa valuation.ne_zero_iff,
     refine ⟨v z₀, _⟩,

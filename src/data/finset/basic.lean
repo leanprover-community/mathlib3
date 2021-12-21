@@ -1250,6 +1250,8 @@ end
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
 sdiff_sdiff_right_self
 
+lemma sdiff_sdiff_eq_self (h : t ⊆ s) : s \ (s \ t) = t := sdiff_sdiff_eq_self h
+
 lemma sdiff_eq_sdiff_iff_inter_eq_inter {s t₁ t₂ : finset α} : s \ t₁ = s \ t₂ ↔ s ∩ t₁ = s ∩ t₂ :=
 sdiff_eq_sdiff_iff_inf_eq_inf
 

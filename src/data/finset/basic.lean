@@ -1952,11 +1952,13 @@ by simp only [insert_eq, map_union, map_singleton]
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_map_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
 
+@[simp] lemma map_nonempty : (s.map f).nonempty ↔ s.nonempty :=
+by rw [nonempty_iff_ne_empty, nonempty_iff_ne_empty, ne.def, map_eq_empty]
+
+alias map_nonempty ↔ _ finset.nonempty.map
+
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
-
-lemma nonempty.map (h : s.nonempty) (f : α ↪ β) : (s.map f).nonempty :=
-let ⟨a, ha⟩ := h in ⟨f a, (mem_map' f).mpr ha⟩
 
 end map
 

@@ -501,8 +501,8 @@ begin
   apply finset.sum_congr,
   { rw nat_degree_eq_of_degree_eq (normalize_scale_roots_degree p) },
   intros n hn,
-  rw [mul_pow, ← mul_assoc, ← f.map_pow, ← f.map_mul, normalize_scale_roots_coeff_mul_leading_coeff_pow _ _ h,
-    f.map_mul, f.map_pow],
+  rw [mul_pow, ← mul_assoc, ← f.map_pow, ← f.map_mul,
+    normalize_scale_roots_coeff_mul_leading_coeff_pow _ _ h, f.map_mul, f.map_pow],
   ring,
 end
 

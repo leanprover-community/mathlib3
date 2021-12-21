@@ -150,13 +150,7 @@ end
 
 lemma of_real_to_real_ae_eq [is_finite_measure ℙ] {X : α → E} :
   (λ x, ennreal.of_real (pdf X ℙ μ x).to_real) =ᵐ[μ] pdf X ℙ μ :=
-begin
-  by_cases hpdf : has_pdf X ℙ μ,
-  { exactI of_real_to_real_ae_eq ae_lt_top },
-  { convert ae_eq_refl _,
-    ext1 x,
-    rw [pdf, dif_neg hpdf, pi.zero_apply, ennreal.zero_to_real, ennreal.of_real_zero] }
-end
+of_real_to_real_ae_eq ae_lt_top
 
 lemma integrable_iff_integrable_mul_pdf [is_finite_measure ℙ] {X : α → E} [has_pdf X ℙ μ]
   {f : E → ℝ} (hf : measurable f) :

@@ -236,7 +236,7 @@ theorem map_map (g : β → γ) (h: γ → δ) (f : α →ₛ β) : (f.map g).ma
 
 @[simp] theorem range_map [decidable_eq γ] (g : β → γ) (f : α →ₛ β) :
   (f.map g).range = f.range.image g :=
-finset.coe_injective $ by simp [range_comp]
+finset.coe_injective $ by simp only [coe_range, coe_map, finset.coe_image, range_comp]
 
 @[simp] theorem map_const (g : β → γ) (b : β) : (const α b).map g = const α (g b) := rfl
 

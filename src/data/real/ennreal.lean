@@ -1001,10 +1001,9 @@ begin
   { simp only [lt_irrefl] },
   { exact inv_pos.trans lt_top_iff_ne_top.symm },
   { simp only [not_lt_zero, not_top_lt] },
-  { cases eq_or_lt_of_le (zero_le a) with ha ha;
-      cases eq_or_lt_of_le (zero_le b) with hb hb,
-    { subst a, subst b, simp },
+  { cases eq_or_lt_of_le (zero_le a) with ha ha,
     { subst a, simp },
+    cases eq_or_lt_of_le (zero_le b) with hb hb,
     { subst b, simp [pos_iff_ne_zero, lt_top_iff_ne_top, inv_ne_top] },
     { rw [← coe_inv (ne_of_gt ha), ← coe_inv (ne_of_gt hb), coe_lt_coe, coe_lt_coe],
       simp only [nnreal.coe_lt_coe.symm] at *,

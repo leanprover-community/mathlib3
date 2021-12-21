@@ -442,7 +442,7 @@ end
 are compact in the weak-star topology. -/
 theorem weak_dual.is_compact_closed_ball
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] (r : ℝ) (hr : 0 < r) :
-  is_compact ((weak_dual.to_normed_dual) ⁻¹' (closed_ball (0 : normed_space.dual 𝕜 E) r)) :=
+  is_compact (id (closed_ball 0 r : set (normed_space.dual 𝕜 E)) : set (weak_dual 𝕜 E)) :=
 begin
   have as_polar := @polar_closed_ball 𝕜 _ E _ _ r⁻¹ (inv_pos.mpr hr),
   simp only [one_div, inv_inv₀] at as_polar,

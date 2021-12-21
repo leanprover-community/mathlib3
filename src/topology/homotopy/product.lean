@@ -47,8 +47,7 @@ lemma product_eval (f : Π i, C(A, X i)) (a : A)  :
 /-- Abbreviation for composition with projection -/
 def projection (i : I) (f : C(A, Π i, X i)) : C(A, X i) :=
 { to_fun := λ (a : A), f a i,
-  continuous_to_fun := by
-  { apply continuous_proj, exact f.continuous_to_fun, }, }
+  continuous_to_fun := continuous_pi_iff.mp f.continuous_to_fun i, }
 
 @[simp]
 lemma projection_eval (i : I) (f : C(A, Π i, X i)) (a : A) :
@@ -92,7 +91,7 @@ def proj_homotopy
   continuous_map.homotopy_rel (projection i f) (projection i g) S
   :=
 { to_fun := λ ts, (homotopy ts i),
-  continuous_to_fun := by { apply continuous_proj, exact homotopy.continuous_to_fun, },
+  continuous_to_fun := continuous_pi_iff.mp homotopy.continuous_to_fun i,
   to_fun_zero := λ s, function.funext_iff.mp (homotopy.to_fun_zero s) i,
   to_fun_one := λ s, function.funext_iff.mp (homotopy.to_fun_one s) i,
   prop' :=

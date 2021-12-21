@@ -711,11 +711,6 @@ lemma continuous_pi_iff [topological_space α] [∀ i, topological_space (π i)]
   continuous f ↔ ∀ i, continuous (λ y, f y i) :=
 iff.intro (λ h i, (continuous_apply i).comp h) continuous_pi
 
-lemma continuous_proj {α : Type*} [topological_space α]
-  [∀ i, topological_space (π i)]
-  (f : α → Π i, π i) (i : ι) {fc : continuous f} :
-  continuous (λ x, f x i) := continuous_pi_iff.mp fc i
-
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   𝓝 a = pi (λ i, 𝓝 (a i)) :=
 calc 𝓝 a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi

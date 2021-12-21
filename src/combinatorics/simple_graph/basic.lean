@@ -403,9 +403,10 @@ begin
   tauto,
 end
 
+-- TODO find out why TC inference has `h` failing a defeq check for `to_finset`
 lemma card_neighbor_set_union_compl_neighbor_set [fintype V] (G : simple_graph V)
-  [decidable_eq V] [decidable_rel G.adj] (v : V) :
-  (G.neighbor_set v ∪ Gᶜ.neighbor_set v : set V).to_finset.card = fintype.card V - 1 :=
+  (v : V) [h : fintype (G.neighbor_set v ∪ Gᶜ.neighbor_set v : set V)]:
+  (@set.to_finset _ (G.neighbor_set v ∪ Gᶜ.neighbor_set v) h).card = fintype.card V - 1 :=
 begin
   classical,
   simp_rw [neighbor_set_union_compl_neighbor_set_eq, set.to_finset_compl, finset.card_compl,

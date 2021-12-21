@@ -5,10 +5,10 @@ Authors: Alexander Bentkamp
 -/
 
 import field_theory.is_alg_closed.basic
+import linear_algebra.charpoly.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
-import order.order_hom
-import linear_algebra.charpoly.basic
+import order.hom.basic
 
 /-!
 # Eigenvectors and eigenvalues
@@ -148,7 +148,7 @@ begin
   cases dvd_iff_is_root.2 h with p hp,
   rw [has_eigenvalue, eigenspace],
   intro con,
-  cases (linear_map.is_unit_iff _).2 con with u hu,
+  cases (linear_map.is_unit_iff_ker_eq_bot _).2 con with u hu,
   have p_ne_0 : p ≠ 0,
   { intro con,
     apply minpoly.ne_zero f.is_integral,
@@ -189,7 +189,7 @@ lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V
 begin
   obtain ⟨c, nu⟩ := exists_spectrum_of_is_alg_closed_of_finite_dimensional K f,
   use c,
-  rw linear_map.is_unit_iff at nu,
+  rw linear_map.is_unit_iff_ker_eq_bot at nu,
   exact has_eigenvalue_of_has_eigenvector (submodule.exists_mem_ne_zero_of_ne_bot nu).some_spec,
 end
 

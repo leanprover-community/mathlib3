@@ -27,8 +27,6 @@ one edge, and the edges of the subgraph represent the paired vertices.
 
 ## TODO
 
-* https://github.com/leanprover-community/mathlib/pull/10210#pullrequestreview-806303684
-
 * Lemma stating that the existence of a perfect matching on `G` implies that
   the cardinality of `V` is even (assuming it's finite)
 
@@ -62,6 +60,10 @@ begin
   obtain ⟨w, hvw, -⟩ := h hv,
   exact ⟨_, hvw⟩,
 end
+
+lemma is_matching_iff_forall_degree {M : subgraph G} [Π (v : V), fintype (M.neighbor_set v)] :
+  M.is_matching ↔ ∀ (v : V), v ∈ M.verts → M.degree v = 1 :=
+by simpa [degree_eq_one_iff_unique_adj]
 
 lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=
 begin

@@ -112,6 +112,16 @@ begin
   simp only [adjoint_inner_right, continuous_linear_map.coe_comp', function.comp_app],
 end
 
+/-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
+for all `x` and `y`. -/
+lemma eq_adjoint_iff (A : E →L[𝕜] F) (B : F →L[𝕜] E) :
+  (∀ x y, ⟪A x, y⟫ = ⟪x, B y⟫) ↔ A = B† :=
+begin
+  refine ⟨λ h, _, λ h x y, by rw [h, adjoint_inner_left]⟩,
+  ext x,
+  exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
+end
+
 /-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩

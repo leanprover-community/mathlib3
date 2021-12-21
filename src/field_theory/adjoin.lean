@@ -759,15 +759,19 @@ end alg_hom_mk_adjoin_splits
 
 section finite_dimensional_sup
 
+lemma le_sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
+  (E1 E2 : intermediate_field K L) :
+  E1.to_subalgebra ⊔ E2.to_subalgebra ≤ (E1 ⊔ E2).to_subalgebra :=
+sup_le (show E1 ≤ E1 ⊔ E2, from le_sup_left) (show E2 ≤ E1 ⊔ E2, from le_sup_right)
+
 lemma sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
   (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
   (E1 ⊔ E2).to_subalgebra = E1.to_subalgebra ⊔ E2.to_subalgebra :=
 begin
   let S1 := E1.to_subalgebra,
   let S2 := E2.to_subalgebra,
-  refine le_antisymm (show _ ≤ (S1 ⊔ S2).to_intermediate_field _, from
-    (sup_le (show S1 ≤ _, from le_sup_left) (show S2 ≤ _, from le_sup_right)))
-    (sup_le (show E1 ≤ _, from le_sup_left) (show E2 ≤ E1 ⊔ E2, from le_sup_right)),
+  refine le_antisymm (show _ ≤ (S1 ⊔ S2).to_intermediate_field _, from (sup_le (show S1 ≤ _,
+    from le_sup_left) (show S2 ≤ _, from le_sup_right))) (le_sup_to_subalgebra E1 E2),
   suffices : is_field ↥(S1 ⊔ S2),
   { intros x hx,
     by_cases hx' : (⟨x, hx⟩ : S1 ⊔ S2) = 0,

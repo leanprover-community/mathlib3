@@ -28,32 +28,30 @@ This module defines the cross product of vectors in $R^3$ for $R$ a commutive ri
 The locale `vectors` gives the following notations:
 
 * `×₃` for the cross product
-* `⬝` for dot products
+* `⬝`  for dot products
 
 ## Tags
 
-cross product
+crossproduct
 -/
 
 
 variables {R : Type*} [comm_ring R]
 
-private lemma vec3_eq {a b : fin 3 → R}
-  (h0 : a 0 = b 0) (h1 : a 1 = b 1) (h2 : a 2 = b 2) :
+private lemma vec3_eq {a b : fin 3 → R} (h₀ : a 0 = b 0) (h₁ : a 1 = b 1) (h₂ : a 2 = b 2) :
   a = b :=
 by { ext x, fin_cases x; assumption }
 
-private lemma vec3_eq' {a0 a1 a2 b0 b1 b2 : R}
-  (h0 : a0 = b0) (h1 : a1 = b1) (h2 : a2 = b2) :
-  ![a0, a1, a2] = ![b0, b1, b2] :=
-by rw [h0, h1, h2]
+private lemma vec3_eq' {a₀ a₁ a₂ b₀ b₁ b₂ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
+  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
+by rw [h₀, h₁, h₂]
 
 private lemma vec3_add {a b : fin 3 → R} :
   a + b = ![a 0 + b 0, a 1 + b 1, a 2 + b 2] :=
 by { apply vec3_eq; refl }
 
-private lemma vec3_add' {a0 a1 a2 b0 b1 b2 : R} :
-  ![a0, a1, a2] + ![b0, b1, b2] = ![a0 + b0, a1 + b1, a2 + b2] :=
+private lemma vec3_add' {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
+  ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
 by { rw vec3_add, refl }
 
 
@@ -66,19 +64,21 @@ begin
        (a 2)*(b 0) - (a 0)*(b 2) ,
        (a 0)*(b 1) - (a 1)*(b 0) ]);
   intros;
-  simp only [vec3_add', pi.add_apply, algebra.id.smul_eq_mul, matrix.smul_cons,
-    matrix.smul_empty, pi.smul_apply];
+  simp only [vec3_add',
+    pi.add_apply, algebra.id.smul_eq_mul, matrix.smul_cons, matrix.smul_empty, pi.smul_apply];
   apply vec3_eq';
-  ring
+  ring,
 end
 
-localized "infixl ` ×₃ `: 68 := cross_product" in vectors
-localized "infix ` ⬝ ` : 67 := matrix.dot_product" in vectors
+localized "infixl ` ×₃ `: 68 := cross_product"      in vectors
+localized "infix  ` ⬝ ` : 67 := matrix.dot_product" in vectors
 
 lemma cross_product_def (a b : fin 3 → R) :
-  a ×₃ b = ![ (a 1)*(b 2) - (a 2)*(b 1) ,
-              (a 2)*(b 0) - (a 0)*(b 2) ,
-              (a 0)*(b 1) - (a 1)*(b 0) ] := rfl
+  a ×₃ b =
+    ![ (a 1)*(b 2) - (a 2)*(b 1) ,
+       (a 2)*(b 0) - (a 0)*(b 2) ,
+       (a 0)*(b 1) - (a 1)*(b 0) ] :=
+rfl
 
 
 
@@ -108,8 +108,7 @@ lemma dot_cross_product_self_eq_zero (v w : fin 3 → R) :
 by rw [cross_product_anticomm, matrix.dot_product_neg, dot_self_cross_product_eq_zero, neg_zero]
 
 
-/-- Cyclic permutations preserve triple product.
-See also `triple_product_eq_det`. -/
+/-- Cyclic permutations preserve the triple product. See also `triple_product_eq_det`. -/
 lemma triple_product_permutation (u v w : fin 3 → R) :
   u ⬝ (v ×₃ w) = v ⬝ (w ×₃ u) :=
 begin

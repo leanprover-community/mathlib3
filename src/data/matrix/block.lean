@@ -265,7 +265,11 @@ by { ext, simp [block_diagonal_apply] }
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   simp only [block_diagonal_apply, diagonal],
-  split_ifs; finish
+  split_ifs; -- `finish` can close these goals
+  try { refl }; exfalso; rw prod.mk.inj_iff at *; try { subst h, subst h_1 },
+  { exact not_and.mp h_2 rfl rfl },
+  { exact not_and_of_not_left _ h_1 h_2 },
+  { exact not_and_of_not_right _ h h_1 },
 end
 
 @[simp] lemma block_diagonal_one [decidable_eq m] [has_one α] :
@@ -387,7 +391,11 @@ by { ext, simp [block_diagonal'_apply] }
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   simp only [block_diagonal'_apply, diagonal],
-  split_ifs; finish
+  split_ifs; -- `finish` can close these goals
+  try { refl }; exfalso,
+  { apply h_2, simp only at h, subst h, rw [cast_eq] at h_1, simp [h_1] },
+  { apply h_1, cases h_2, subst h_2_left, rw [heq_iff_eq.mp h_2_right, cast_eq] },
+  { simp_rw h_1.1 at h, exact h rfl },
 end
 
 @[simp] lemma block_diagonal'_one [∀ i, decidable_eq (m' i)] [has_one α] :

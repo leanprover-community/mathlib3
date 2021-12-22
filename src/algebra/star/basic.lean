@@ -419,7 +419,7 @@ instance [add_comm_monoid R] [star_add_monoid R] : add_comm_monoid (self_adjoint
   ..self_adjoints.add_monoid }
 
 instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoints R) :=
-{ add_comm := λ x y, by {ext, exact add_comm _ _ },
+{ ..self_adjoints.add_comm_monoid,
   ..self_adjoints.add_group }
 
 instance [comm_monoid R] [star_monoid R] : comm_monoid (self_adjoints R) :=
@@ -453,6 +453,9 @@ instance [field R] [star_ring R] : field (self_adjoints R) :=
   inv_zero := by { ext, exact inv_zero },
   ..self_adjoints.comm_ring }
 
+@[simp] lemma sub_val_eq_coe [add_group R] [star_add_monoid R] {x y : self_adjoints R} :
+  ((x - y).val) = (x : R) - y :=
+by { simp only [sub_eq_add_neg, subtype.val_eq_coe], refl }
 
 end self_adjoints
 

@@ -112,3 +112,28 @@ variables {𝕜}
 lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 end starₗᵢ
+
+namespace self_adjoints
+
+instance [has_dist E] [has_star E] : has_dist (self_adjoints E) := ⟨λ x y, dist (x : E) y⟩
+instance [pseudo_metric_space E] [has_star E] : pseudo_metric_space (self_adjoints E) :=
+{ dist_self := λ _, by exact dist_self _,
+  dist_comm := λ _ _, dist_comm _ _,
+  dist_triangle := λ _ _ _, dist_triangle _ _ _  }
+
+instance [metric_space E] [has_star E] : metric_space (self_adjoints E) :=
+⟨λ x y h, by { ext, exact eq_of_dist_eq_zero h }⟩
+
+instance [has_norm E] [has_star E] : has_norm (self_adjoints E) := ⟨λ x, ∥(x : E)∥⟩
+
+@[simp] lemma norm_coe [has_norm E] [has_star E] {x : self_adjoints E} : ∥x∥ = ∥(x : E)∥ := rfl
+@[simp] lemma norm_sub_coe [normed_group E] [star_add_monoid E] {x y : self_adjoints E} :
+  ∥x - y∥ = ∥(x : E) - y∥ :=
+show ∥(x - y).val∥ = ∥(x : E) - y∥, by simp only [sub_val_eq_coe]
+
+instance [normed_group E] [star_add_monoid E] : normed_group (self_adjoints E) :=
+⟨λ x y, by { rw [norm_sub_coe], exact dist_eq_norm _ _ }⟩
+
+instance [normed_group E] [star_add_monoid E] : normed_star_monoid (self_adjoints E) := ⟨λ _, rfl⟩
+
+end self_adjoints

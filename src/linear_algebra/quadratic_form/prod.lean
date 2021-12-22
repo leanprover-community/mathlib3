@@ -158,7 +158,7 @@ lemma nonneg_pi_iff [fintype ι] {R} [ordered_ring R] [Π i, module R (Mᵢ i)]
 begin
   simp_rw [pi, sum_apply, comp_apply, linear_map.proj_apply],
   dsimp only,
-  split,  -- TODO: does this generalize to a useful lemma indepenent of `quadratic_form`?
+  split,  -- TODO: does this generalize to a useful lemma independent of `quadratic_form`?
   { intros h i x,
     classical,
     convert h (pi.single i x) using 1,

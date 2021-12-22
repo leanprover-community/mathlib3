@@ -187,20 +187,16 @@ variable {G}
 @[to_additive] lemma exponent_ne_zero_iff_range_order_of_finite (h : ∀ g : G, 0 < order_of g) :
   exponent G ≠ 0 ↔ (set.range (order_of : G → ℕ)).finite :=
 begin
-  split,
-  { intro he,
-    by_contra h,
+  refine ⟨λ he, _, λ he, _⟩,
+  { by_contra h,
     obtain ⟨m, ⟨t, rfl⟩, het⟩ := set.infinite.exists_nat_lt h (exponent G),
-    apply pow_ne_one_of_lt_order_of' he het,
-    exact pow_exponent_eq_one t },
-  { intro he,
-    lift (set.range order_of) to finset ℕ using he with t ht,
+    exact pow_ne_one_of_lt_order_of' he het (pow_exponent_eq_one t) },
+  { lift (set.range order_of) to finset ℕ using he with t ht,
     have htpos : 0 < t.prod id,
-    { apply finset.prod_pos,
-      intros a ha,
+    { refine finset.prod_pos (λ a ha, _),
       rw [←finset.mem_coe, ht] at ha,
       obtain ⟨k, rfl⟩ := ha,
-      exact h _ },
+      exact h k },
     suffices : exponent G ∣ t.prod id,
     { intro h,
       rw [h, zero_dvd_iff] at this,
@@ -209,7 +205,7 @@ begin
     rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd, pow_zero g],
     apply finset.dvd_prod_of_mem,
     rw [←finset.mem_coe, ht],
-    exact set.mem_range_self _ },
+    exact set.mem_range_self g },
 end
 
 @[to_additive] lemma exponent_eq_zero_iff_range_order_of_infinite (h : ∀ g : G, 0 < order_of g) :

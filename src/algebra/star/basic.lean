@@ -457,16 +457,11 @@ instance [comm_monoid R] [star_monoid R] : comm_monoid (self_adjoints R) :=
 { mul_comm := λ x y, by { ext, exact mul_comm _ _ },
   ..self_adjoints.monoid }
 
-instance [group R] [star_monoid R] : has_inv (self_adjoints R) :=
-⟨λ x, ⟨(x : R)⁻¹, by simp only [star_inv, star_coe_eq]⟩⟩
+instance [division_ring R] [star_ring R] : has_inv (self_adjoints R) :=
+⟨λ x, ⟨(x : R)⁻¹, by simp only [star_inv', star_coe_eq]⟩⟩
 
-@[simp] lemma coe_inv [group R] [star_monoid R] (x : self_adjoints R) :
+@[simp] lemma coe_inv [division_ring R] [star_ring R] (x : self_adjoints R) :
   (coe : self_adjoints R → R) (x⁻¹) = (x : R)⁻¹ := rfl
-
-instance [comm_group R] [star_monoid R] : comm_group (self_adjoints R) :=
-{ mul_left_inv := λ x, by { ext, exact mul_left_inv _ },
-  ..self_adjoints.comm_monoid,
-  ..self_adjoints.has_inv }
 
 instance [comm_ring R] [star_ring R] : distrib (self_adjoints R) :=
 { left_distrib := λ x y z, by { ext, exact left_distrib _ _ _ },

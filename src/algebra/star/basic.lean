@@ -412,15 +412,15 @@ instance [add_monoid R] [star_add_monoid R] : star_add_monoid (self_adjoints R) 
 instance [add_group R] [star_add_monoid R] : add_group (self_adjoints R) :=
 { neg := λ x, ⟨-x, by simp only [star_coe_eq, star_neg]⟩,
   add_left_neg := λ x, by { ext, exact add_left_neg _ },
-  ..show add_monoid (self_adjoints R), by apply_instance }
+  ..self_adjoints.add_monoid }
 
 instance [add_comm_monoid R] [star_add_monoid R] : add_comm_monoid (self_adjoints R) :=
 { add_comm := λ x y, by { ext, exact add_comm _ _ },
-  ..show add_monoid (self_adjoints R), by apply_instance }
+  ..self_adjoints.add_monoid }
 
 instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoints R) :=
 { add_comm := λ x y, by {ext, exact add_comm _ _ },
-  ..show add_group (self_adjoints R), by apply_instance }
+  ..self_adjoints.add_group }
 
 instance [comm_monoid R] [star_monoid R] : comm_monoid (self_adjoints R) :=
 { mul := λ x y, ⟨x.val * y.val, by simp only [star_coe_eq, star_mul', subtype.val_eq_coe]⟩,
@@ -433,7 +433,7 @@ instance [comm_monoid R] [star_monoid R] : comm_monoid (self_adjoints R) :=
 instance [comm_group R] [star_monoid R] : comm_group (self_adjoints R) :=
 { inv := λ x, ⟨(x.val)⁻¹, by simp only [star_inv, star_coe_eq, subtype.val_eq_coe]⟩,
   mul_left_inv := λ x, by { ext, exact mul_left_inv _ },
-  ..show comm_monoid (self_adjoints R), by apply_instance }
+  ..self_adjoints.comm_monoid }
 
 instance [comm_ring R] [star_ring R] : distrib (self_adjoints R) :=
 { left_distrib := λ x y z, by { ext, exact left_distrib _ _ _ },

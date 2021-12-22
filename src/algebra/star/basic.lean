@@ -407,12 +407,25 @@ instance [add_monoid R] [star_add_monoid R] : add_monoid (self_adjoints R) :=
   zero_add := λ x, by simp only [zero_add, subtype.coe_eta, subtype.val_eq_coe],
   add_zero :=  λ x, by simp only [add_zero, subtype.coe_eta, subtype.val_eq_coe] }
 
+@[simp] lemma coe_add [add_monoid R] [star_add_monoid R] (x y : self_adjoints R) :
+  (coe : self_adjoints R → R) (x + y) = (x : R) + y := rfl
+
+@[simp] lemma coe_zero [add_monoid R] [star_add_monoid R] :
+  (coe : self_adjoints R → R) (0 : self_adjoints R) = (0 : R) := rfl
+
 instance [add_monoid R] [star_add_monoid R] : star_add_monoid (self_adjoints R) := ⟨λ x y, star_eq⟩
 
 instance [add_group R] [star_add_monoid R] : add_group (self_adjoints R) :=
 { neg := λ x, ⟨-x, by simp only [star_coe_eq, star_neg]⟩,
   add_left_neg := λ x, by { ext, exact add_left_neg _ },
   ..self_adjoints.add_monoid }
+
+@[simp] lemma coe_neg [add_group R] [star_add_monoid R] (x : self_adjoints R) :
+  (coe : self_adjoints R → R) (-x) = -(x : R) := rfl
+
+@[simp] lemma coe_sub [add_group R] [star_add_monoid R] (x y : self_adjoints R) :
+  (coe : self_adjoints R → R) (x - y) = (x : R) - y :=
+by { simp only [sub_eq_add_neg], refl }
 
 instance [add_comm_monoid R] [star_add_monoid R] : add_comm_monoid (self_adjoints R) :=
 { add_comm := λ x y, by { ext, exact add_comm _ _ },
@@ -430,10 +443,19 @@ instance [comm_monoid R] [star_monoid R] : comm_monoid (self_adjoints R) :=
   mul_one := λ x, by simp only [mul_one, subtype.coe_eta, subtype.val_eq_coe],
   mul_comm := λ x y, by { ext, exact mul_comm _ _ } }
 
+@[simp] lemma coe_mul [comm_monoid R] [star_monoid R] (x y : self_adjoints R) :
+  (coe : self_adjoints R → R) (x * y) = (x : R) * y := rfl
+
+@[simp] lemma coe_one [comm_monoid R] [star_monoid R] :
+  (coe : self_adjoints R → R) (1 : self_adjoints R) = (1 : R) := rfl
+
 instance [comm_group R] [star_monoid R] : comm_group (self_adjoints R) :=
 { inv := λ x, ⟨(x.val)⁻¹, by simp only [star_inv, star_coe_eq, subtype.val_eq_coe]⟩,
   mul_left_inv := λ x, by { ext, exact mul_left_inv _ },
   ..self_adjoints.comm_monoid }
+
+@[simp] lemma coe_inv [comm_group R] [star_monoid R] (x : self_adjoints R) :
+  (coe : self_adjoints R → R) (x⁻¹) = (x : R)⁻¹ := rfl
 
 instance [comm_ring R] [star_ring R] : distrib (self_adjoints R) :=
 { left_distrib := λ x y z, by { ext, exact left_distrib _ _ _ },
@@ -453,9 +475,9 @@ instance [field R] [star_ring R] : field (self_adjoints R) :=
   inv_zero := by { ext, exact inv_zero },
   ..self_adjoints.comm_ring }
 
-@[simp] lemma sub_val_eq_coe [add_group R] [star_add_monoid R] {x y : self_adjoints R} :
-  ((x - y).val) = (x : R) - y :=
-by { simp only [sub_eq_add_neg, subtype.val_eq_coe], refl }
+--@[simp] lemma sub_val_eq_coe [add_group R] [star_add_monoid R] {x y : self_adjoints R} :
+--  ((x - y).val) = (x : R) - y :=
+--by { simp only [sub_eq_add_neg, subtype.val_eq_coe], refl }
 
 end self_adjoints
 

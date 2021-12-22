@@ -1334,7 +1334,7 @@ lemma BigClaim (k : ℕ) (z : ℍ) (h : 3 ≤ k):
 begin
   intro n,
   rw real_Eise,
-  squeeze_simp,
+  simp only [one_div, complex.abs_pow, complex.abs_inv, zpow_coe_nat],
   have k0: 1 ≤ k, by {linarith,},
   have BO:=  Eise_on_square_is_bounded'' ( k : ℕ) (z : ℍ) (n : ℕ) k0,
   by_cases n0: n=0,

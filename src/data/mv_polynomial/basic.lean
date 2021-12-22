@@ -367,7 +367,7 @@ end
 @[ext] lemma linear_map_ext {M : Type*} [add_comm_monoid M] [module R M]
   {f g : mv_polynomial σ R →ₗ[R] M} (h : ∀ s, f ∘ₗ monomial s = g ∘ₗ monomial s) :
   f = g :=
-by { ext1, apply h }
+finsupp.lhom_ext' h
 
 section support
 

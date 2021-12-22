@@ -72,6 +72,10 @@ structure order_hom (α β : Type*) [preorder α] [preorder β] :=
 
 infixr ` →ₘ `:25 := order_hom
 
+/-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
+abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
+rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop).
+
 /-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`.
 This definition is an abbreviation of `rel_embedding (≤) (≤)`. -/
 abbreviation order_embedding (α β : Type*) [has_le α] [has_le β] :=
@@ -87,6 +91,15 @@ infix ` ≃o `:25 := order_iso
 
 variables {α β γ δ : Type*}
 
+namespace order_hom_class
+
+variables {F : Type*} [preorder α] [preorder β] [order_hom_class F α β]
+
+protected lemma monotone (f : F) : monotone (f : α → β) := λ _ _, map_rel f
+protected lemma mono (f : F) : monotone (f : α → β) := λ _ _, map_rel f
+
+end order_hom_class
+
 namespace order_hom
 variables [preorder α] [preorder β] [preorder γ] [preorder δ]
 
@@ -97,12 +110,16 @@ initialize_simps_projections order_hom (to_fun → coe)
 protected lemma monotone (f : α →ₘ β) : monotone f := f.monotone'
 protected lemma mono (f : α →ₘ β) : monotone f := f.monotone
 
+instance : order_hom_class (α →ₘ β) α β :=
+{ coe := to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  map_rel := λ f, f.monotone }
+
 @[simp] lemma to_fun_eq_coe {f : α →ₘ β} : f.to_fun = f := rfl
 @[simp] lemma coe_fun_mk {f : α → β} (hf : _root_.monotone f) : (mk f hf : α → β) = f := rfl
 
 @[ext] -- See library note [partially-applied ext lemmas]
-lemma ext (f g : α →ₘ β) (h : (f : α → β) = g) : f = g :=
-by { cases f, cases g, congr, exact h }
+lemma ext (f g : α →ₘ β) (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
 
 /-- One can lift an unbundled monotone function to a bundled one. -/
 instance : can_lift (α → β) (α →ₘ β) :=
@@ -315,7 +332,7 @@ f.lt_embedding.map_rel_iff
 
 @[simp] lemma eq_iff_eq {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
-protected theorem monotone : monotone f := λ x y, f.le_iff_le.2
+protected theorem monotone : monotone f := order_hom_class.monotone f
 
 protected theorem strict_mono : strict_mono f := λ x y, f.lt_iff_lt.2
 
@@ -569,6 +586,15 @@ protected noncomputable def strict_mono.order_iso {α β} [linear_order α] [pre
 noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] [preorder β]
   (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) : α ≃o β :=
 (h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
+
+/-- A strictly monotone function with a right inverse is an order isomorphism. -/
+def strict_mono.order_iso_of_right_inverse {α β} [linear_order α] [preorder β]
+  (f : α → β) (h_mono : strict_mono f) (g : β → α) (hg : function.right_inverse g f) : α ≃o β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ x, h_mono.injective $ hg _,
+  right_inv := hg,
+  .. order_embedding.of_strict_mono f h_mono }
 
 /-- An order isomorphism is also an order isomorphism between dual orders. -/
 protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) :

@@ -273,6 +273,9 @@ begin
   exacts [⟨a, b, (hb a).lt_of_ne hne⟩, ⟨b, H⟩]
 end
 
+lemma ite_le_sup (s s' : α) (P : Prop) [decidable P] : ite P s s' ≤ s ⊔ s' :=
+if h : P then (if_pos h).trans_le le_sup_left else (if_neg h).trans_le le_sup_right
+
 end semilattice_sup
 
 /-!
@@ -427,6 +430,9 @@ semilattice_inf.ext $ λ _ _, iff.rfl
 theorem exists_lt_of_inf (α : Type*) [semilattice_inf α] [nontrivial α] :
   ∃ a b : α, a < b :=
 let ⟨a, b, h⟩ := exists_lt_of_sup (order_dual α) in ⟨b, a, h⟩
+
+lemma inf_le_ite (s s' : α) (P : Prop) [decidable P] : s ⊓ s' ≤ ite P s s' :=
+if h : P then inf_le_left.trans_eq (if_pos h).symm else inf_le_right.trans_eq (if_neg h).symm
 
 end semilattice_inf
 

@@ -256,6 +256,9 @@ S.to_subalgebra.val
 
 @[simp] lemma val_mk {x : L} (hx : x ∈ S) : S.val ⟨x, hx⟩ = x := rfl
 
+lemma range_val : S.val.range = S.to_subalgebra :=
+S.to_subalgebra.range_val
+
 variables {S}
 
 lemma to_subalgebra_injective {S S' : intermediate_field K L}

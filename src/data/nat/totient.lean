@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import algebra.big_operators.basic
 import data.nat.prime
 import data.zmod.basic
+import ring_theory.multiplicity
 
 /-!
 # Euler's totient function
@@ -176,7 +177,7 @@ begin
     one_mul, mul_comm]
 end
 
-/-- When `p` is prime, then the totient of `p ^ ` is `p ^ (n - 1) * (p - 1)` -/
+/-- When `p` is prime, then the totient of `p ^ n` is `p ^ (n - 1) * (p - 1)` -/
 lemma totient_prime_pow {p : ℕ} (hp : p.prime) {n : ℕ} (hn : 0 < n) :
   φ (p ^ n) = p ^ (n - 1) * (p - 1) :=
 by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
@@ -184,6 +185,24 @@ by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
 
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
+
+lemma totient_mul_prime_div {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
+  (p * n).totient = p * n.totient :=
+begin
+  by_cases hzero : n = 0,
+  { simp [hzero] },
+  { have hfin := (multiplicity.finite_nat_iff.2 ⟨prime.ne_one hp, zero_lt_iff.2 hzero⟩),
+    have hpos : 0 < (multiplicity p n).get hfin := multiplicity.pos_of_dvd hfin h,
+    obtain ⟨m, hm, hnotdiv⟩ := multiplicity.eq_pow_mul_not_dvd hfin,
+    rw [hm, ← mul_assoc, ← pow_succ, mul_comm _ m, mul_comm _ m, nat.totient_mul
+      (prime.coprime_pow_of_not_dvd hp hnotdiv), nat.totient_mul
+      (prime.coprime_pow_of_not_dvd hp hnotdiv), ← mul_assoc p, mul_comm p, mul_assoc m.totient,
+      ← succ_pred_eq_of_pos hpos, totient_prime_pow_succ hp, totient_prime_pow_succ hp,
+      succ_pred_eq_of_pos hpos, mul_comm _ (p - 1), mul_comm _ (p - 1), ← mul_assoc p,
+      mul_comm _ (p - 1), ← mul_assoc m.totient, mul_assoc (p - 1), ← mul_assoc m.totient,
+      ← pow_succ, ← succ_pred_eq_of_pos hpos],
+    refl }
+end
 
 lemma totient_eq_iff_prime {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
 begin

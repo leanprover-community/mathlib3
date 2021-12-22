@@ -703,13 +703,13 @@ begin
   exact (is_primitive_root_exp n hpos.ne').is_integral hpos,
 end
 
-lemma cyclotomic_prime_mul_div {p n : ℕ} (hp : nat.prime p) (hdiv : p ∣ n) (R : Type*)
-  [comm_ring R] : expand R p (cyclotomic n R) = cyclotomic (p * n) R :=
+lemma cyclotomic_prime_mul_eq_expand {p n : ℕ} (hp : nat.prime p) (hdiv : p ∣ n)
+  (R : Type*) [comm_ring R] : cyclotomic (p * n) R = expand R p (cyclotomic n R) :=
 begin
   by_cases hzero : n = 0,
   { simp [hzero] },
   { suffices : expand ℤ p (cyclotomic n ℤ) = cyclotomic (p * n) ℤ,
-    { rw [← map_cyclotomic_int, ← map_expand, this, map_cyclotomic_int] },
+    { symmetry, rw [← map_cyclotomic_int, ← map_expand, this, map_cyclotomic_int] },
     refine eq_of_monic_of_dvd_of_nat_degree_le (cyclotomic.monic _ _)
       (expand_monic (zero_lt_iff.2 (nat.prime.ne_zero hp)) (cyclotomic.monic _ _)) _ _,
     { have hpos := nat.mul_pos (nat.prime.pos hp) (zero_lt_iff.mpr hzero),

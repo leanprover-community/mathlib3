@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
+Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Yaël Dillies
+Authors: Yaël Dillies, Scott Morrison
 -/
 import data.finset.lattice
 import data.multiset.functor

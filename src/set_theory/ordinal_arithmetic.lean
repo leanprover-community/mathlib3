@@ -1049,7 +1049,7 @@ begin
   exact bsup_succ_le_blsub f
 end
 
-theorem bsup_eq_blsub {o} (f : Π a < o, ordinal.{max u v}) :
+theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
 begin
   refine ⟨λ h, _, λ hf, le_antisymm (bsup_le_blsub f) _⟩,

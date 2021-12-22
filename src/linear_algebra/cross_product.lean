@@ -13,7 +13,7 @@ import tactic.fin_cases
 /-!
 # Cross products
 
-This module defines the cross product of vectors in $R^3$ for $R$ a commutive ring.
+This module defines the cross product of vectors in $R^3$ for $R$ a commutative ring.
 
 ## Main definitions
 

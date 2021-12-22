@@ -375,7 +375,7 @@ by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
 by rw [← to_subalgebra_eq_iff, ← finrank_eq_finrank_subalgebra,
   subalgebra.finrank_eq_one_iff, bot_to_subalgebra]
 
-@[simp] lemma dim_eq_one_bot : module.rank F (⊥ : intermediate_field F E) = 1 :=
+@[simp] lemma dim_bot : module.rank F (⊥ : intermediate_field F E) = 1 :=
 by rw dim_eq_one_iff
 
 @[simp] lemma finrank_bot : finrank F (⊥ : intermediate_field F E) = 1 :=

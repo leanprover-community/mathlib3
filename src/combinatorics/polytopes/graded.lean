@@ -334,37 +334,87 @@ bot_covers_top.grade.trans $ by rw [grade_bot, zero_add]
 
 end is_simple_order
 
-/-! #### Finset -/
-
-namespace finset
-
-instance (α : Type*) : grade_order (finset α) :=
-{ grade := card,
-  grade_bot := card_empty,
-  strict_mono := λ s t, card_lt_card,
-  grade_of_covers := λ s t hst, begin
-    sorry
-  end }
-
-@[simp] protected lemma grade (s : finset α) : grade s = s.card := rfl
-
-end finset
-
 /-! #### Multiset -/
 
 namespace multiset
+
+private lemma cons_lt_cons (a : α) {s t : multiset α} (hlt : s < t) : a ::ₘ s < a ::ₘ t :=
+⟨cons_le_cons _ hlt.1, hlt.2 ∘ (cons_le_cons_iff _).mp⟩
+
+private lemma lt_cons_of_le (a : α) {s t : multiset α} : s ≤ t → s < a ::ₘ t :=
+λ hle, lt_of_lt_of_le (lt_cons_self _ _) (cons_le_cons _ hle)
+
+lemma covers.exists_cons_multiset [decidable_eq α] {s t : multiset α} (hcovers : s ⋖ t) :
+  ∃ a, t = a ::ₘ s :=
+begin
+  cases hcovers with hlt no_intermediate,
+  rcases hdiff : (t - s) with ⟨diff⟩,
+  cases diff,
+  { exfalso,
+    simp at hdiff,
+    exact hlt.2 hdiff },
+  cases diff_tl,
+  { use diff_hd,
+    rw [←(eq_union_left hlt.1), union_def, hdiff],
+    refl },
+  { exfalso,
+    apply @no_intermediate (diff_hd ::ₘ s),
+    { apply lt_cons_self },
+    { rw [←(eq_union_left hlt.1), union_def, hdiff],
+      simp,
+      rw [←cons_coe, ←cons_coe, cons_add, cons_add],
+      apply cons_lt_cons,
+      apply lt_cons_of_le,
+      exact le_add_self } }
+end
 
 instance (α : Type*) : grade_order (multiset α) :=
 { grade := card,
   grade_bot := card_zero,
   strict_mono := λ a b, card_lt_of_lt,
   grade_of_covers := λ a b hab, begin
-    sorry
+    have ab_cons : ∃ x, b = x ::ₘ a := sorry,
+    -- `covers.exists_cons_multiset hab` doesn't work here because it requires `decidable_eq α`.
+    -- I don't know how to `include` ... `omit` an instance, please help me!
+    cases ab_cons with _ hcons,
+    have hcard := congr_arg card hcons,
+    rwa card_cons at hcard
   end }
 
 @[simp] protected lemma grade (m : multiset α) : grade m = m.card := rfl
 
 end multiset
+
+/-! #### Finset -/
+
+namespace finset
+
+@[simp] lemma finset.val_covers_iff {s t : finset α} : s.1 ⋖ t.1 ↔ s ⋖ t :=
+begin
+  split;
+  rintro ⟨hlt, no_intermediate⟩;
+  split;
+  simp at *;
+  rwa [←val_lt_iff] at *;
+  intros c hsc hct;
+  simp at *;
+  rw [←val_lt_iff] at *,
+  { apply @no_intermediate c.val; assumption },
+  { apply @no_intermediate ⟨c, multiset.nodup_of_le hct.1 t.nodup⟩;
+    rw ←val_lt_iff;
+    assumption }
+end
+
+instance (α : Type*) : grade_order (finset α) :=
+{ grade := card,
+  grade_bot := card_empty,
+  strict_mono := λ s t, card_lt_card,
+  grade_of_covers := λ s t hst,
+    grade_order.grade_of_covers s.val t.val (finset.val_covers_iff.mpr hst) }
+
+@[simp] protected lemma grade (s : finset α) : grade s = s.card := rfl
+
+end finset
 
 /-! #### Finitely supported functions to a graded order -/
 

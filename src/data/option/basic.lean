@@ -416,7 +416,7 @@ by cases o; refl
   get_or_else (o.map f) (f x) = f (get_or_else o x) :=
 by cases o; refl
 
-lemma option.orelse_eq_some (o o' : option α) (x : α) :
+lemma orelse_eq_some (o o' : option α) (x : α) :
   (o <|> o') = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
 begin
   cases o,
@@ -424,11 +424,11 @@ begin
   { simp only [some_orelse, or_false, false_and] }
 end
 
-lemma option.orelse_eq_some' (o o' : option α) (x : α) :
+lemma orelse_eq_some' (o o' : option α) (x : α) :
   o.orelse o' = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
 option.orelse_eq_some o o' x
 
-@[simp] lemma option.orelse_eq_none (o o' : option α) :
+@[simp] lemma orelse_eq_none (o o' : option α) :
   (o <|> o') = none ↔ (o = none ∧ o' = none) :=
 begin
   cases o,
@@ -436,7 +436,7 @@ begin
   { simp only [some_orelse, false_and], }
 end
 
-@[simp] lemma option.orelse_eq_none' (o o' : option α) :
+@[simp] lemma orelse_eq_none' (o o' : option α) :
   o.orelse o' = none ↔ (o = none ∧ o' = none) :=
 option.orelse_eq_none o o'
 

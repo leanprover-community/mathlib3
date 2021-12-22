@@ -232,6 +232,12 @@ lemma expand_injective {n : ℕ} (hn : 0 < n) :
   exact h',
 end
 
+lemma expand_eval (p : ℕ) (P : polynomial R) (r : R) : eval r (expand R p P) = eval (r ^ p) P :=
+begin
+  refine polynomial.induction_on P (λ a, by simp) (λ f g hf hg, _) (λ n a h, by simp),
+  rw [alg_hom.map_add, eval_add, eval_add, hf, hg]
+end
+
 lemma is_unit_of_self_mul_dvd_separable {p q : polynomial R}
   (hp : p.separable) (hq : q * q ∣ p) : is_unit q :=
 begin

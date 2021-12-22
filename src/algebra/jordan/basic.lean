@@ -38,6 +38,10 @@ instance ring.to_non_unital_non_assoc_semiring (B :Type*) [_i : ring B] :
 
 variables [non_unital_non_assoc_ring A]
 
+set_option trace.simps.verbose true
+
+initialize_simps_projections equiv (apply → csh as_prefix)
+
 -- For some reason `def L : A→+add_monoid.End A := add_monoid_hom.mul` doesn't work here?
 /--
 Left multiplication operator

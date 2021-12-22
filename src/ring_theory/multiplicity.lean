@@ -168,10 +168,10 @@ lemma lt_top_iff_finite {a b : α} : multiplicity a b < ⊤ ↔ finite a b :=
 by rw [lt_top_iff_ne_top, ne_top_iff_finite]
 
 lemma eq_pow_mul_not_dvd {a b : α} (hfin : finite a b) :
-  ∃ (n : ℕ) (c : α), b = a ^ n * c ∧ ¬ a ∣ c :=
+  ∃ (c : α), b = a ^ ((multiplicity a b).get hfin) * c ∧ ¬ a ∣ c :=
 begin
   obtain ⟨c, hc⟩ := multiplicity.pow_multiplicity_dvd hfin,
-  refine ⟨(multiplicity a b).get hfin, c, hc, _⟩,
+  refine ⟨c, hc, _⟩,
   rintro ⟨k, hk⟩,
   rw [hk, ← mul_assoc, ← pow_succ'] at hc,
   have h₁ : a ^ ((multiplicity a b).get hfin + 1) ∣ b := ⟨k, hc⟩,

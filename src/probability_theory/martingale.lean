@@ -5,7 +5,7 @@ Authors: Rémy Degenne, Kexing Ying
 -/
 
 import probability_theory.stopping
-import measure_theory.function.conditional_expectation
+import probability_theory.notation
 
 /-!
 # Martingales
@@ -37,7 +37,7 @@ The definitions of filtration and adapted can be found in `probability_theory.st
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory
+open_locale nnreal ennreal measure_theory probability_theory big_operators
 
 namespace measure_theory
 
@@ -306,5 +306,48 @@ end
 end
 
 end submartingale
+
+section nat
+
+namespace submartingale
+
+/-
+Optional stopping theorem: if `f` is a supermartingale and `τ, π` are bounded stopping times with
+`τ ≤ π` then `∫ f_τ ≤ ∫ f_π`
+-/
+
+variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
+  [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
+  [ordered_smul ℝ F]
+variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
+
+lemma stopped_value_le {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
+  (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
+  {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
+  μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
+begin
+  rw [← sub_nonneg, ← integral_sub', stopped_value_sub_eq_sum' hle hbdd],
+  { simp only [finset.sum_apply],
+    rw integral_finset_sum,
+    { refine finset.sum_nonneg (λ i hi, _),
+      have : measurable_set[𝒢 i] {x : α | τ x ≤ i ∧ i < π x},
+      { rw set.set_of_and,
+        refine @measurable_set.inter _ (𝒢 i) _ _ (hτ i) _,
+        convert @measurable_set.compl _ _ (𝒢 i) (hπ i),
+        ext x,
+        simpa },
+      rw [integral_indicator (𝒢.le _ _ this), integral_sub', sub_nonneg],
+      { refine hf.set_integral_le (nat.le_succ i) this },
+      { exact (hf.integrable _).integrable_on },
+      { exact (hf.integrable _).integrable_on } },
+    sorry
+  },
+  sorry,
+  sorry
+end
+
+end submartingale
+
+end nat
 
 end measure_theory

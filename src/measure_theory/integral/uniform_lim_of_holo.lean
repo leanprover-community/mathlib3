@@ -37,13 +37,13 @@ begin
   simp only [one_smul],
 end
 
-def int_diff0 (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ): (ℝ → E) :=
+def int_diff0 (R : ℝ) (f : ℂ → E) (z w : ℂ): (ℝ → E) :=
 λ θ, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w) : ℂ) • f (z + R * exp (θ * I))
 
 lemma int_diff0_cont_on_ICC (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ)
   (hf : continuous_on f (closed_ball z R)  )
   (hw : w ∈ ball z R):
-  continuous_on (int_diff0 R hR f z w) [0, 2*π] :=
+  continuous_on (int_diff0 R  f z w) [0, 2*π] :=
 begin
   rw int_diff0,
   have c1: continuous_on (coe : ℝ → ℂ) ⊤, by {apply continuous_of_real.continuous_on },
@@ -111,7 +111,7 @@ end
 
 lemma int_diff0_cont_on (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ) (hf : continuous_on f (closed_ball z R))
   (hw : w ∈ ball z R):
-  continuous_on (int_diff0 R hR f z w) (Ι 0 (2 * π)) :=
+  continuous_on (int_diff0 R f z w) (Ι 0 (2 * π)) :=
 begin
  have := int_diff0_cont_on_ICC R hR f z w hf hw,
  apply this.mono,
@@ -120,7 +120,7 @@ begin
  exact Ioc_subset_Icc_self,
 end
 
-def fbound (R : ℝ) (hR: 0 < R)  (z : ℂ) (θ : ℝ): (ℂ → ℂ) :=
+def fbound (R : ℝ) (z : ℂ) (θ : ℝ): (ℂ → ℂ) :=
 λ w, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + (R) * exp (θ * I) - w)^2 : ℂ)
 
 def fbound' (R : ℝ) (z : ℂ): (ℂ × ℝ → ℂ) :=
@@ -214,12 +214,12 @@ begin
   apply this,
 end
 
-def int_diff0' (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ): (ℝ → E) :=
+def int_diff0' (R : ℝ) (f : ℂ → E) (z w : ℂ): (ℝ → E) :=
 λ θ, (1/(2 • π • I)) • ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w)^2 : ℂ) • f (z + R * exp (θ * I))
 
 lemma int_diff0_cont'_ICC (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ)
   (hf : continuous_on f (closed_ball z R)  )  (hw : w ∈ ball z R):
-  continuous_on (int_diff0' R hR f z w) [0,2*π] :=
+  continuous_on (int_diff0' R f z w) [0,2*π] :=
   begin
     have c1: continuous_on (coe : ℝ → ℂ) ⊤, by {apply continuous_of_real.continuous_on },
     simp_rw int_diff0',
@@ -290,7 +290,7 @@ lemma int_diff0_cont'_ICC (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ)
 
 lemma int_diff0_cont'_on (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z w : ℂ)
   (hf : continuous_on f (closed_ball z R)  )  (hw : w ∈ ball z R):
-  continuous_on (int_diff0' R hR f z w) (Ι 0 (2*π)) :=
+  continuous_on (int_diff0' R f z w) (Ι 0 (2*π)) :=
 begin
  have := int_diff0_cont'_ICC R hR f z w hf hw,
  apply this.mono,
@@ -300,14 +300,14 @@ begin
 end
 
 
-def int_diff (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z : ℂ)
-   : (ℂ → E) := λ w,  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR f z w θ)
+def int_diff (R : ℝ) (f : ℂ → E) (z : ℂ)
+   : (ℂ → E) := λ w,  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R f z w θ)
 
-def int_diff' (R : ℝ) (hR: 0 < R)  (f : ℂ → E) (z : ℂ)
-   : (ℂ → E) := λ w,  ∫ (θ : ℝ) in 0..2 * π, (int_diff0' R hR f z w θ)
+def int_diff' (R : ℝ) (f : ℂ → E) (z : ℂ)
+   : (ℂ → E) := λ w,  ∫ (θ : ℝ) in 0..2 * π, (int_diff0' R f z w θ)
 
-def der1 (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) :
- ℂ → ℝ → ℂ := λ w, (λ θ, (int_diff0' R hR f z w θ))
+def der1 (R : ℝ) (z : ℂ) (f : ℂ → ℂ) :
+ ℂ → ℝ → ℂ := λ w, (λ θ, (int_diff0' R f z w θ))
 
 lemma auxle (r : ℝ) (hr : 0 ≤  r) : r ≤ 2*r :=
 begin
@@ -325,7 +325,7 @@ end
 
 lemma bound_cts (R : ℝ)  (hR: 0 < R) (z a: ℂ) (b : ℝ) (f : ℂ → ℂ)
   (hf : continuous_on f (closed_ball z R)) :
-  continuous_on (λ (r : ℝ), (complex.abs ( fbound (R) hR z b a))*complex.abs (f(z+R*exp(r*I))))
+  continuous_on (λ (r : ℝ), (complex.abs ( fbound R z b a))*complex.abs (f(z+R*exp(r*I))))
   [0, 2*π] :=
 begin
   apply continuous_on.mul,
@@ -366,7 +366,7 @@ end
 lemma der1bound' (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) (x : ℂ)
   (hx : x ∈ ball z (2⁻¹*R)) (hf : continuous_on f (closed_ball z R)):
   ∃ (boun : ℝ → ℝ) (ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
-  (∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε, ∥der1 R hR z f y t∥ ≤  boun t) ∧
+  (∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε, ∥der1 R z f y t∥ ≤  boun t) ∧
  continuous_on boun [0, 2*π]:=
  begin
   have h2R: 0 < 2*R, by {linarith,},
@@ -375,7 +375,7 @@ lemma der1bound' (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) (x : ℂ)
   obtain ⟨ε', hε', H⟩:= ball,
   simp at fbb,
   obtain ⟨ a, b, hab⟩ :=fbb,
-  set bound : ℝ → ℝ := λ r, (complex.abs ( fbound (R) hR z b a))*complex.abs (f(z+R*exp(r*I))) ,
+  set bound : ℝ → ℝ := λ r, (complex.abs ( fbound R z b a))*complex.abs (f(z+R*exp(r*I))) ,
   use bound,
   use ε',
   simp only [gt_iff_lt] at hε',
@@ -417,12 +417,12 @@ lemma der1bound' (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) (x : ℂ)
 
 
 
-def antider (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) :
- ℂ → ℝ → ℂ  := λ w, (λ θ, (int_diff0 R hR f z w θ))
+def antider (R : ℝ) (z : ℂ) (f : ℂ → ℂ) :
+ ℂ → ℝ → ℂ  := λ w, (λ θ, (int_diff0 R f z w θ))
 
-lemma der_deriv  (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ) :
+lemma der_deriv  (R : ℝ) (z : ℂ) (f : ℂ → ℂ) :
   ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball z R,
-  has_deriv_at (λ y, (antider R hR z f) y t) ((der1 R hR z f) y t) y :=
+  has_deriv_at (λ y, (antider R z f) y t) ((der1 R z f) y t) y :=
 begin
   rw filter.eventually_iff_exists_mem,
   use ⊤,
@@ -457,7 +457,7 @@ end
 
 lemma int_diff_has_fdrevi (R : ℝ)  (hR: 0 < R) (z : ℂ) (f : ℂ → ℂ)
   (hf : continuous_on f (closed_ball z R)  ) :
-  differentiable_on ℂ (int_diff R hR f z) (ball z (2⁻¹*R)) :=
+  differentiable_on ℂ (int_diff R f z) (ball z (2⁻¹*R)) :=
 begin
   rw int_diff,
   simp_rw int_diff0,
@@ -465,8 +465,8 @@ begin
   simp_rw differentiable_within_at,
   intros x hx,
   have h4R: 0 < (4⁻¹*R), by {apply mul_pos, rw inv_pos, linarith, apply hR,},
-  set F: ℂ → ℝ → ℂ  := λ w, (λ θ, (int_diff0 R hR f z w θ)),
-  set F': ℂ → ℝ → ℂ := der1 R hR z f,
+  set F: ℂ → ℝ → ℂ  := λ w, (λ θ, (int_diff0 R f z w θ)),
+  set F': ℂ → ℝ → ℂ := der1 R z f,
   have hF_meas : ∀ᶠ y in 𝓝 x, ae_measurable (F y) (volume.restrict (Ι 0 (2 * π))) ,
   by {simp_rw F,  rw filter.eventually_iff_exists_mem,
   have BALL:= exists_ball_subset_ball hx,
@@ -507,7 +507,7 @@ begin
   by {apply continuous_on.interval_integrable, apply hcts,},
   have h_diff : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε, has_deriv_at (λ y, F y t) (F' y t) y,
   by {simp_rw [F, F', int_diff0, der1, int_diff0'],
-  have := der_deriv R hR z f,
+  have := der_deriv R z f,
   simp_rw [der1, antider, int_diff0, int_diff0'] at this,
   rw filter.eventually_iff_exists_mem at *,
   obtain ⟨ S , hS, HH⟩ := this,
@@ -535,9 +535,9 @@ begin
   simp only [inf_le_left],
 end
 
-lemma int_diff0_sub  (R : ℝ) (hR: 0 < R)  (f g : ℂ → ℂ) (z w : ℂ) : ∀ θ : ℝ,
-   complex.abs (((int_diff0 R hR f z w ) θ)-((int_diff0 R hR g z w) θ)) =
-   complex.abs (int_diff0 R hR (f -g) z w θ) :=
+lemma int_diff0_sub  (R : ℝ) (f g : ℂ → ℂ) (z w : ℂ) : ∀ θ : ℝ,
+   complex.abs (((int_diff0 R f z w ) θ)-((int_diff0 R g z w) θ)) =
+   complex.abs (int_diff0 R (f -g) z w θ) :=
 begin
   intro θ,
   simp_rw int_diff0,
@@ -558,7 +558,7 @@ end
 
 lemma int_diff0_sub_bound  (R : ℝ) (hR: 0 < R)  (f : ℂ → ℂ) (z w : ℂ) (r : ℝ)
     (h:  ∀ (x : closed_ball z R), (complex.abs (f x) ≤ abs r)) : ∀ θ : ℝ,
-    complex.abs (int_diff0 R hR f z w θ) ≤ complex.abs (int_diff0 R hR (λ x, r) z w θ) :=
+    complex.abs (int_diff0 R f z w θ) ≤ complex.abs (int_diff0 R (λ x, r) z w θ) :=
 begin
   intro θ,
   simp_rw int_diff0,
@@ -584,7 +584,7 @@ end
 
 lemma int_diff0_int (R : ℝ) (hR: 0 < R) (F : ℂ → ℂ) (z : ℂ)
   (F_cts :  continuous_on (F ) (closed_ball z R))
-  (w : ball z R): integrable (int_diff0 R hR (F) z w) (volume.restrict (Ioc 0  (2*π))) :=
+  (w : ball z R): integrable (int_diff0 R (F) z w) (volume.restrict (Ioc 0  (2*π))) :=
 begin
   apply integrable_on.integrable,
   rw ← interval_integrable_iff_integrable_Ioc_of_le,
@@ -602,7 +602,7 @@ end
 lemma int_diff0_int_abs (R : ℝ) (hR: 0 < R) (F : ℂ → ℂ) (z : ℂ)
   (F_cts :  continuous_on (F ) (closed_ball z R))
   (w : ball z R) :
-  integrable (complex.abs ∘ (int_diff0 R hR (F) z w)) (volume.restrict (Ioc 0  (2*π))) :=
+  integrable (complex.abs ∘ (int_diff0 R (F) z w)) (volume.restrict (Ioc 0  (2*π))) :=
 begin
   apply integrable_on.integrable,
   rw ← interval_integrable_iff_integrable_Ioc_of_le,
@@ -640,10 +640,9 @@ begin
 end
 
 lemma u1 (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)  (z : ℂ)
-    (F_cts : ∀ n,  continuous_on (F n) (closed_ball z R))
    (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R))  (w : ball z R) :
-    ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
-  at_top (𝓝 (((int_diff0 R hR f z w)) a)) :=
+    ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R (F n) z w)) a)
+  at_top (𝓝 (((int_diff0 R f z w)) a)) :=
 begin
   rw metric.tendsto_uniformly_on_iff at hlim,
   simp_rw metric.tendsto_nhds,
@@ -746,13 +745,13 @@ begin
   apply this,
 end
 
-def bound2 (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (w : ball z R) (a : ℕ) :
-ℝ → ℝ := λ θ, (∑ (i : finset.range (a+1) ),complex.abs ((int_diff0 R hR (F i) z w) θ))  +
-complex.abs ((int_diff0 R hR (λ x, 1) z w) θ)  + complex.abs ((int_diff0 R hR f z w) θ)
+def bound2 (R : ℝ) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (w : ball z R) (a : ℕ) :
+ℝ → ℝ := λ θ, (∑ (i : finset.range (a+1) ),complex.abs ((int_diff0 R (F i) z w) θ))  +
+complex.abs ((int_diff0 R (λ x, 1) z w) θ)  + complex.abs ((int_diff0 R f z w) θ)
 
 lemma bound2_int (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (w : ball z R) (a : ℕ)
   (F_cts : ∀ n, continuous_on (F n) (closed_ball z R)) (hf : continuous_on f (closed_ball z R)) :
-  integrable (bound2 R hR F f z w a) (volume.restrict (Ioc 0  (2*π))) :=
+  integrable (bound2 R F f z w a) (volume.restrict (Ioc 0  (2*π))) :=
 begin
   rw bound2,
   apply integrable.add,
@@ -761,43 +760,46 @@ begin
   simp,
   intro i,
   apply int_diff0_int_abs,
+  apply hR,
   apply F_cts,
   apply int_diff0_int_abs,
+  apply hR,
   apply continuous_const.continuous_on,
   apply int_diff0_int_abs,
+  apply hR,
   apply hf,
 end
 
 lemma UNIF_CONV_INT (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ)
   (F_cts : ∀ n, continuous_on (F n) (closed_ball z R))
   (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R) ) (w : ball z R) :
-  tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR (F n) z w) θ)
-  at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R hR f z w) θ) :=
+  tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R (F n) z w) θ)
+  at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (int_diff0 R f z w) θ) :=
 begin
   have f_cont: continuous_on f (closed_ball z R) ,
   by {apply tendsto_uniformly_on.continuous_on hlim, simp only [ge_iff_le, eventually_at_top],
   use 1,
   intros b hb, apply F_cts,},
   have F_measurable : ∀ n,
-  ae_measurable (int_diff0 R hR (F n) z w) (volume.restrict (Ioc 0  (2*π))),
+  ae_measurable (int_diff0 R (F n) z w) (volume.restrict (Ioc 0  (2*π))),
   by {intro n,
   have:= int_diff0_int R hR  (F n) z (F_cts n) w,
   apply this.ae_measurable, },
-  have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
-  at_top (𝓝 (((int_diff0 R hR f z w)) a)),
-  by {apply u1 R hR F f z F_cts hlim},
+  have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((int_diff0 R (F n) z w)) a)
+  at_top (𝓝 (((int_diff0 R f z w)) a)),
+  by {apply u1 R hR F f z hlim},
   have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))),
-  tendsto (λ n, ((int_diff0 R hR (F n) z w)) a)
-  at_top (𝓝 (((int_diff0 R hR f z w)) a)),
+  tendsto (λ n, ((int_diff0 R (F n) z w)) a)
+  at_top (𝓝 (((int_diff0 R f z w)) a)),
   by {simp only [h_lim'', eventually_true],},
   rw metric.tendsto_uniformly_on_iff at hlim,
   simp only [gt_iff_lt, ge_iff_le, eventually_at_top] at hlim,
   have hlimb:= hlim 1 (zero_lt_one),
   obtain ⟨ a, ha⟩ :=hlimb,
-  set bound: ℝ → ℝ :=λ θ, (∑ (i : finset.range (a+1) ),complex.abs ((int_diff0 R hR (F i) z w) θ))
-  + complex.abs ((int_diff0 R hR (λ x, 1) z w) θ)  + complex.abs ((int_diff0 R hR f z w) θ),
+  set bound: ℝ → ℝ :=λ θ, (∑ (i : finset.range (a+1) ),complex.abs ((int_diff0 R (F i) z w) θ))
+  + complex.abs ((int_diff0 R (λ x, 1) z w) θ)  + complex.abs ((int_diff0 R f z w) θ),
   have h_bound : ∀ n, ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))),
-  ∥(int_diff0 R hR (F n) z w) a∥ ≤ bound a,
+  ∥(int_diff0 R (F n) z w) a∥ ≤ bound a,
   by {intro n,
   rw  ae_restrict_iff' at *,
   rw eventually_iff_exists_mem,
@@ -808,7 +810,7 @@ begin
   by_cases (n ≤ a),
   simp_rw bound,
   have:= sum_ite_eq_extract (finset.range (a+1)) ⟨n, by {simp [h],linarith}⟩
-  (λ (i : finset.range (a+1) ),complex.abs ((int_diff0 R hR (F i) z w) y)),
+  (λ (i : finset.range (a+1) ),complex.abs ((int_diff0 R (F i) z w) y)),
   simp only [and_imp, mem_Ioc,
   add_zero,
   mem_closed_ball,
@@ -837,8 +839,8 @@ begin
   apply abs_nonneg,
   simp only [add_nonneg, abs_nonneg],
   simp only [not_le] at h,
-  apply abs_aux ((int_diff0 R hR (F n) z w) y) (bound y),
-  use int_diff0 R hR f z ↑w y,
+  apply abs_aux ((int_diff0 R (F n) z w) y) (bound y),
+  use int_diff0 R f z ↑w y,
   rw int_diff0_sub,
   simp_rw bound,
   simp only [add_le_add_iff_right, finset.univ_eq_attach],
@@ -1019,7 +1021,7 @@ begin
   apply hxy,
 end
 
-lemma unif_lim_of_diff_is_cts (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
+lemma unif_lim_of_diff_is_cts (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)
   (hdiff : ∀ (n : ℕ), differentiable_on ℂ (F n) (closed_ball z R))
   (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R)) :
   continuous_on f (closed_ball z R) :=
@@ -1035,14 +1037,14 @@ end
 
 lemma unif_of_diff_has_fderiv (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
   (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R))
-  (F_alt : ∀ (n : ℕ) (c : ball z (2⁻¹*R) ), F n c = (int_diff R hR (F n) z) c)
+  (F_alt : ∀ (n : ℕ) (c : ball z (2⁻¹*R) ), F n c = (int_diff R (F n) z) c)
   (x : ℂ)
   (hx : x ∈  ball z (2⁻¹ *R))
   (keyb : ∀ (w : ↥(ball z R)),
-  tendsto (λ (n : ℕ), ∫ (θ : ℝ) in 0..2 * π, int_diff0 R hR (F n) z ↑w θ) at_top
-  (𝓝 (∫ (θ : ℝ) in 0..2 * π, int_diff0 R hR f z ↑w θ))  )
+  tendsto (λ (n : ℕ), ∫ (θ : ℝ) in 0..2 * π, int_diff0 R (F n) z ↑w θ) at_top
+  (𝓝 (∫ (θ : ℝ) in 0..2 * π, int_diff0 R f z ↑w θ))  )
   (D : ℂ →L[ℂ] ℂ )
-  (hD : has_fderiv_within_at (int_diff R hR f z) D (ball z (2⁻¹ * R)) x ) :
+  (hD : has_fderiv_within_at (int_diff R f z) D (ball z (2⁻¹ * R)) x ) :
   ∃ (f' : ℂ →L[ℂ] ℂ), has_fderiv_within_at f f' (ball z (2⁻¹ * R)) x :=
 begin
   have hxx : x ∈ ball z R, by {have :=half_ball_sub R hR z, apply this, apply hx},
@@ -1101,8 +1103,8 @@ begin
   simp_rw HH,
   apply' auxfin _ _ _ _ _ _ _ _ hε (ha A haA y hyz.le) (ha A haA x (mem_ball.1 hxx).le),
   clear keyb keyy keyy2 HH hε h8 h8',
-  use (int_diff R hR f z x),
-  use (int_diff R hR f z y),
+  use (int_diff R f z x),
+  use (int_diff R f z y),
   simp_rw int_diff,
   have hyy := mem_ball.2 hy.2,
   have hxz := mem_ball.2 hx,
@@ -1132,7 +1134,7 @@ lemma unif_of_diff_is_diff (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ)
   (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R)) :
   differentiable_on ℂ f (ball z (2⁻¹*R)) :=
 begin
-  have F_alt : ∀ (n : ℕ) (c : ball z (2⁻¹*R) ), F n c = (int_diff R hR (F n) z) c,
+  have F_alt : ∀ (n : ℕ) (c : ball z (2⁻¹*R) ), F n c = (int_diff R (F n) z) c,
   by {intros n c,
   have hc : c.1 ∈ ball z R, by {have := half_ball_sub R hR z, apply this, apply c.property,},
   have ht := holo_test hc (hdiff n),
@@ -1147,7 +1149,7 @@ begin
   intros x hx,
   have keyb := UNIF_CONV_INT R hR F f z F_cts hlim ,
   rw differentiable_within_at,
-  have hf := unif_lim_of_diff_is_cts F f z R hR hdiff hlim,
+  have hf := unif_lim_of_diff_is_cts F f z R  hdiff hlim,
   have HF := int_diff_has_fdrevi R hR z f hf,
   clear hf F_cts hdiff,
   rw differentiable_on at HF,

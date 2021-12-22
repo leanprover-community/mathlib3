@@ -1,5 +1,6 @@
 import number_theory.mod_forms.Eisenstein_series
 import measure_theory.integral.uniform_lim_of_holo
+import .modular_forms
 
 
 universes u v w
@@ -162,12 +163,238 @@ begin
   apply unif_of_diff_is_diff F (extend_by_zero (Eisenstein_series_of_weight_ k)) x ε hε hdiff hunif,
 end
 
+def my_vadd : ℤ → ℍ → ℍ :=
+λ n, λ (z : ℍ), ⟨z.1+n, by {simp, apply z.2},⟩
+
+instance : has_vadd ℤ ℍ := {
+vadd:= my_vadd
+}
+
+lemma my_add_im (n : ℤ) (z : ℍ) : (my_vadd n z).im = z.im :=
+begin
+simp_rw my_vadd,
+simp,
+simp_rw upper_half_plane.im,
+simp,
+end
+
+lemma my_add_re (n : ℤ) (z : ℍ) : (my_vadd n z).re = z.re + n :=
+begin
+simp_rw my_vadd,
+simp,
+simp_rw upper_half_plane.re,
+simp,
+end
+
+
+lemma zero_vadd' (z : ℍ) : my_vadd (0: ℤ) z = z :=
+begin
+simp_rw my_vadd,
+simp only [add_zero, int.cast_zero, subtype.coe_eta, subtype.val_eq_coe],
+end
+
+lemma add_vadd'  (n m : ℤ) (z : ℍ): my_vadd (n+m) z = my_vadd n (my_vadd m z)   :=
+begin
+simp_rw my_vadd,
+simp,
+abel,
+end
+
+instance : add_action ℤ ℍ :={
+  zero_vadd := by {apply zero_vadd',},
+  add_vadd := by {apply add_vadd',},
+}
+
+def Tn (n : ℤ) : matrix  (fin 2) (fin 2 ) ℤ := ![![1, n], ![0, 1]]
+
+lemma Tndet (n : ℤ) : matrix.det (Tn(n)) = 1 :=
+begin
+simp_rw Tn,
+rw det_of_22,
+simp,
+end
+
+lemma coe_aux (γ : SL2Z) :
+ ∀ i j, ((γ : matrix.GL_pos (fin 2) ℝ) i j : ℝ) = ((γ i j : ℤ) : ℝ) :=
+begin
+  intros i j,
+  have :=SL2Z.mat_vals  γ i j,
+  simp only [of_real_int_cast, subtype.val_eq_coe, matrix.general_linear_group.coe_fn_eq_coe, coe_coe] at *,
+  rw ← coe_coe,
+  assumption,
+end
+
+def TN (n : ℤ) : SL2Z := ⟨Tn (n), Tndet n⟩
+
+lemma TN00 (n : ℤ) : ((TN n) : matrix.GL_pos (fin 2) ℝ) 0 0 = 1 :=
+begin
+simp_rw TN,
+simp_rw Tn,
+simp,
+rw ← coe_coe,
+simp_rw coe_aux,
+dsimp at *, simp at *,
+end
+
+
+lemma TN01 (n : ℤ) : ((TN n) : matrix.GL_pos (fin 2) ℝ) 0 1 = n :=
+begin
+simp_rw TN,
+simp_rw Tn,
+simp,
+rw ← coe_coe,
+simp_rw coe_aux,
+dsimp at *, simp at *,
+end
+
+lemma TN10 (n : ℤ) : ((TN n) : matrix.GL_pos (fin 2) ℝ) 1 0 = 0 :=
+begin
+simp_rw TN,
+simp_rw Tn,
+simp,
+rw ← coe_coe,
+simp_rw coe_aux,
+dsimp at *, simp at *,
+end
+
+lemma TN11 (n : ℤ) : ((TN n) : matrix.GL_pos (fin 2) ℝ) 1 1 = 1 :=
+begin
+simp_rw TN,
+simp_rw Tn,
+simp,
+rw ← coe_coe,
+simp_rw coe_aux,
+dsimp at *, simp at *,
+end
+
+lemma mod_form_periodic (k : ℤ) (f : ℍ → ℂ)
+  (h: f ∈ is_modular_of_level_and_weight (⊤ : subgroup SL2Z) k ) : ∀ (z : ℍ) (n : ℤ),
+  f( ((TN n) : matrix.GL_pos (fin 2) ℝ)  • z ) = f(z) :=
+begin
+simp at h,
+intros z n,
+have htop : (TN n) ∈ (⊤ : subgroup SL2Z), by {simp,},
+have H:= h ⟨(TN n), htop⟩ z,
+simp at H,
+have hoo' : (⟨(TN n), htop⟩ : ( (⊤ : subgroup SL2Z)) )  1 0 = 0, by {refl,},
+have h11' : (⟨(TN n), htop⟩ : ( (⊤ : subgroup SL2Z)) )  1 1 = 1, by {refl,},
+simp_rw hoo' at H,
+simp_rw h11' at H,
+simp at H,
+rw ← coe_coe at H,
+apply H,
+end
+
+lemma smul_expl (n : ℤ) (z : ℍ) : (((TN n) : matrix.GL_pos (fin 2) ℝ)  • z ) = n +ᵥ z :=
+begin
+simp,
+rw ← coe_coe,
+have := upper_half_plane.coe_smul ((TN n) : matrix.GL_pos (fin 2) ℝ) z,
+have h1:= (TN00 n),
+have h2:= (TN01 n),
+have h3:= (TN10 n),
+have h4:= (TN11 n),
+ext,
+simp at *,
+simp_rw [h1, h2, h3,h4],
+simp,
+convert (my_add_re n z).symm,
+simp at *,
+simp_rw [h1, h2, h3,h4],
+simp,
+convert (my_add_im n z).symm,
+end
+
+lemma abs_floor_sub (r : ℝ) :  |(r - (int.floor r))| < 1 :=
+begin
+simp,
+rw _root_.abs_of_nonneg (int.fract_nonneg r),
+apply (int.fract_lt_one r),
+end
+
+
+lemma upp_half_translation (z : ℍ) : ∃ (n : ℤ),
+  (((TN n) : matrix.GL_pos (fin 2) ℝ)  • z) ∈ (upper_half_space_slice 1 z.1.2) :=
+begin
+let n:= (int.floor z.1.1),
+use -n,
+have:= smul_expl (-n) z,
+simp_rw this,
+simp,
+have him := my_add_im (-n) z,
+have hre := my_add_re (-n) z,
+split,
+have h1: (-n +ᵥ z).re = (my_vadd (-n) z).re, by {refl,},
+rw h1,
+rw hre,
+simp,
+apply (abs_floor_sub z.1.1).le,
+have h2: (-n +ᵥ z).im = (my_vadd (-n) z).im, by {refl,},
+rw h2,
+rw him,
+apply le_abs_self,
+end
+
+
+lemma eis_bound_by_real_eis (k : ℕ) (z : ℍ) (hk : 3 ≤ k) :
+  complex.abs (Eisenstein_series_of_weight_ k z) ≤ (real_Eisenstein_series_of_weight_ k z) :=
+begin
+simp_rw Eisenstein_series_of_weight_,
+simp_rw real_Eisenstein_series_of_weight_,
+simp_rw real_Eise,
+simp_rw Eise,
+apply abs_tsum',
+have := real_eise_is_summable k z hk,
+simp_rw real_Eise at this,
+simp at *,
+apply this,
+end
+
 lemma Eisenstein_is_bounded (k: ℕ) (hk : 3 ≤ k) :
   (λ z : ℍ, Eisenstein_series_of_weight_ k z) ∈ is_bound_at_infinity  :=
 begin
 simp,
-sorry,
+have h2: 0 < (2 : ℝ), by {linarith,},
+set M : ℝ :=(8/(rfunct (lbpoint 1 2 h2) )^k)*Riemann_zeta (k-1),
+use M,
+use 2,
+intros z hz hz2,
+have trans := upp_half_translation ⟨z,hz⟩,
+obtain ⟨n, hn⟩:= trans,
+have mod_period := mod_form_periodic k (λ z : ℍ, Eisenstein_series_of_weight_ k z)
+  (Eisenstein_is_modular (⊤ : subgroup SL2Z) k) ⟨z, hz⟩ n,
+simp at mod_period,
+simp_rw ← mod_period,
+set Z : ℍ := (((TN n) : matrix.GL_pos (fin 2) ℝ)  • ⟨z,hz⟩),
+have H := eis_bound_by_real_eis k Z hk,
+simp_rw  Z at H,
+rw ← coe_coe,
+apply le_trans H,
+simp_rw M,
+have HR:=Real_Eisenstein_bound_unifomly_on_stip k hk 1 2 h2,
+have hZ : Z ∈ upper_half_space_slice 1 2,
+by {have:= smul_expl n ⟨z, hz⟩,
+simp_rw Z at *,
+rw this,
+rw this at hn,
+simp at hn,
+simp,
+split,
+apply hn.1,
+have hadd: (n +ᵥ (⟨z,hz⟩ : ℍ) ).1.im = (my_vadd (n) ⟨z,hz⟩).im, by {refl,},
+simp at hadd,
+simp_rw hadd,
+rw my_add_im n ⟨z, hz⟩,
+apply le_trans hz2,
+apply le_abs_self,},
+apply HR ⟨Z, hZ⟩,
 end
 
+lemma Eisenstein_series_is_modular_form  (k: ℕ) (hk : 3 ≤ k) :
+ is_modular_form_of_lvl_and_weight (⊤ : subgroup SL2Z) k
+ (λ z : ℍ, Eisenstein_series_of_weight_ k z) :={
+ hol:= by {simp_rw hol_extn, apply Eisenstein_is_holomorphic k hk, },
+ transf := by {simp, apply Eisenstein_is_modular (⊤ : subgroup SL2Z) k, },
+ infinity := by {apply Eisenstein_is_bounded k hk,}}
 
 end Eisenstein_series

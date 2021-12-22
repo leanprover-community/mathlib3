@@ -50,7 +50,14 @@ begin
   exact h,
 end
 
-
+lemma abs_tsum' {f : α → ℂ} (h : summable (λ (i : α), ∥ f i ∥ )) :
+  complex.abs (∑'(i : α), f i ) ≤  (∑' (i : α), complex.abs (f i)) :=
+begin
+  rw ← complex.norm_eq_abs,
+  simp_rw ← complex.norm_eq_abs,
+  apply norm_tsum_le_tsum_norm,
+  exact h,
+end
 
 lemma M_test_uniform (h : nonempty α) (F : ℕ → α → ℂ) (M : ℕ → ℝ)
   (h1 : ∀ (n : ℕ), ∀ (a : α), (complex.abs (F n a)) ≤ (M n))

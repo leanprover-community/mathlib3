@@ -934,9 +934,8 @@ eq_of_forall_ge_iff $ λ o,
 by rw [bsup_le, sup_le]; exact
   ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
 
-theorem is_normal.bsup {f} (H : is_normal f)
-  {o : ordinal} : ∀ (g : Π a < o, ordinal) (h : o ≠ 0),
-  f (bsup o g) = bsup o (λ a h, f (g a h)) :=
+theorem is_normal.bsup {f} (H : is_normal f) {o} :
+  ∀ (g : Π a < o, ordinal) (h : o ≠ 0), f (bsup o g) = bsup o (λ a h, f (g a h)) :=
 induction_on o $ λ α r _ g h,
 by resetI; rw [bsup_type,
      H.sup (type_ne_zero_iff_nonempty.1 h), bsup_type]
@@ -1017,7 +1016,7 @@ end
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
 
-theorem blsub_le_iff_lt {o f a} : blsub.{u v} o f ≤ a ↔ ∀ i h, f i h < a :=
+theorem blsub_le_iff_lt {o f a} : blsub o f ≤ a ↔ ∀ i h, f i h < a :=
 by { convert bsup_le, apply propext, simp [succ_le] }
 
 theorem lt_blsub {o} (f : Π a < o, ordinal) (i h) : f i h < blsub o f :=
@@ -1074,7 +1073,7 @@ begin
   { rw blsub_le_iff_lt,
     exact λ _, id },
   by_contra' h,
-  exact (lt_irrefl _) (lt_blsub.{u u} _ _ h : _ < (blsub.{u u} o (λ x _, x))),
+  exact lt_irrefl (blsub.{u u} o (λ x _, x)) (lt_blsub _ _ h),
 end
 
 /-! ### Ordinal exponential -/

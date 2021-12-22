@@ -21,7 +21,7 @@ open_locale big_operators
 
 noncomputable theory
 
-variables {σ R A : Type*} [comm_ring R] [add_comm_group A]
+variables {σ R A : Type*} [comm_semiring R] [add_comm_monoid A]
   [module R A] [module (mv_polynomial σ R) A]
 
 section
@@ -41,68 +41,66 @@ lemma mk_derivationₗ_monomial (f : σ → A) (s : σ →₀ ℕ) (r : R) :
     r • (s.sum $ λ i k, monomial (s - finsupp.single i 1) (k : R) • f i) :=
 sum_monomial_eq $ linear_map.map_zero _
 
+lemma mk_derivationₗ_C (f : σ → A) (r : R) : mk_derivationₗ R f (C r) = 0 :=
+(mk_derivationₗ_monomial f _ _).trans (smul_zero _)
+
+lemma mk_derivationₗ_X (f : σ → A) (i : σ) : mk_derivationₗ R f (X i) = f i :=
+(mk_derivationₗ_monomial f _ _).trans $ by simp
+
 variables [is_scalar_tower R (mv_polynomial σ R) A]
 
-lemma leibniz_iff_X
-  (f : mv_polynomial σ R →ₗ[R] A) :
-  (∀ p q, f (p * q) = p • f q + q • f p) ↔ f 1 = 0 ∧
-    (∀ s i, f (monomial s 1 * X i) = (monomial s 1 : mv_polynomial σ R) • f (X i) +
-      (X i : mv_polynomial σ R) • f (monomial s 1)) :=
-begin
-  refine ⟨λ H, ⟨_, λ p i, H _ _⟩, λ H, _⟩,
-  { simpa using H 1 1 },
-  { have : ∀ p i, f (p * X i) = p • f (X i) + (X i : mv_polynomial σ R) • f p,
-    { intros p i,
-      induction p using mv_polynomial.induction_on' with s r p q hp hq,
-      { rw [← mul_one r, ← C_mul_monomial, mul_assoc, C_mul', f.map_smul, H.2, C_mul', smul_assoc,
-          smul_add, f.map_smul, smul_comm r (X i)], apply_instance },
-      { rw [add_mul, f.map_add, f.map_add, hp, hq, add_smul, smul_add, add_add_add_comm] } },
-    intros p q,
-    induction q using mv_polynomial.induction_on,
-    case h_C : c { rw [mul_comm, C_mul', f.map_smul, C_eq_smul_one, f.map_smul, H.1, smul_one_smul,
-      smul_zero, smul_zero, zero_add] },
-    case h_add : q₁ q₂ h₁ h₂ { simp only [mul_add, f.map_add, h₁, h₂, smul_add, add_smul], abel },
-    case h_X : q i hq { simp only [this, ← mul_assoc, hq, mul_smul, smul_add, smul_comm (X i),
-      add_assoc] } }
-end
+@[simp] lemma derivation_C (D : derivation R (mv_polynomial σ R) A) (a : R) : D (C a) = 0 :=
+D.map_algebra_map a
 
-@[simp] lemma derivation_C (f : derivation R (mv_polynomial σ R) A) (a : R) : f (C a) = 0 :=
-f.map_algebra_map a
-
-@[ext] lemma derivation_ext {f g : derivation R (mv_polynomial σ R) A}
-  (h : ∀ i, f (X i) = g (X i)) :
-  f = g :=
+@[ext] lemma derivation_ext {D₁ D₂ : derivation R (mv_polynomial σ R) A}
+  (h : ∀ i, D₁ (X i) = D₂ (X i)) :
+  D₁ = D₂ :=
 derivation.ext_of_adjoin_eq_top _ adjoin_range_X $ set.forall_range_iff.2 h
+
+lemma leibniz_iff_X (D : mv_polynomial σ R →ₗ[R] A) (h₁ : D 1 = 0) :
+  (∀ p q, D (p * q) = p • D q + q • D p) ↔
+    (∀ s i, D (monomial s 1 * X i) = (monomial s 1 : mv_polynomial σ R) • D (X i) +
+      (X i : mv_polynomial σ R) • D (monomial s 1)) :=
+begin
+  refine ⟨λ H p i, H _ _, λ H, _⟩,
+  have hC : ∀ r, D (C r) = 0,
+  { intro r, rw [C_eq_smul_one, D.map_smul, h₁, smul_zero] },
+  have : ∀ p i, D (p * X i) = p • D (X i) + (X i : mv_polynomial σ R) • D p,
+  { intros p i,
+    induction p using mv_polynomial.induction_on' with s r p q hp hq,
+    { rw [← mul_one r, ← C_mul_monomial, mul_assoc, C_mul', D.map_smul, H, C_mul', smul_assoc,
+        smul_add, D.map_smul, smul_comm r (X i)], apply_instance },
+    { rw [add_mul, map_add, map_add, hp, hq, add_smul, smul_add, add_add_add_comm] } },
+  intros p q,
+  induction q using mv_polynomial.induction_on,
+  case h_C : c { rw [mul_comm, C_mul', hC, smul_zero, zero_add, D.map_smul,
+    C_eq_smul_one, smul_one_smul] },
+  case h_add : q₁ q₂ h₁ h₂ { simp only [mul_add, map_add, h₁, h₂, smul_add, add_smul], abel },
+  case h_X : q i hq { simp only [this, ← mul_assoc, hq, mul_smul, smul_add, smul_comm (X i),
+      add_assoc] }
+end
 
 variables (R)
 
 /-- The derivation on `mv_polynomial σ R` that takes value `f i` on `X i`. -/
 def mk_derivation (f : σ → A) : derivation R (mv_polynomial σ R) A :=
 { to_linear_map := mk_derivationₗ R f,
-  leibniz' := (leibniz_iff_X (mk_derivationₗ R f)).2 $
+  map_one_eq_zero' := mk_derivationₗ_C _ 1,
+  leibniz' := (leibniz_iff_X (mk_derivationₗ R f) (mk_derivationₗ_C _ 1)).2 $ λ s i,
     begin
-      refine  ⟨_, λ s i, _⟩,
-      { rw [← C_1, C_apply, mk_derivationₗ_monomial, finsupp.sum_zero_index, smul_zero] },
-      { simp only [mk_derivationₗ_monomial, X, monomial_mul, one_smul, one_mul],
-        rw [finsupp.sum_add_index];
-          [skip, by simp, by { intros, simp only [nat.cast_add, (monomial _).map_add, add_smul] }],
-        rw [finsupp.sum_single_index, finsupp.sum_single_index]; [skip, by simp, by simp],
-        rw [tsub_self, add_tsub_cancel_right, nat.cast_one, ← C_apply, C_1, one_smul,
-          add_comm, add_right_inj, finsupp.smul_sum],
-        refine finset.sum_congr rfl (λ j hj, _), dsimp only,
-        rw [smul_smul, monomial_mul, one_mul, add_comm s, add_tsub_assoc_of_le],
-        rwa [finsupp.single_le_iff, nat.succ_le_iff, pos_iff_ne_zero, ← finsupp.mem_support_iff] }
+      simp only [mk_derivationₗ_monomial, X, monomial_mul, one_smul, one_mul],
+      rw [finsupp.sum_add_index];
+        [skip, by simp, by { intros, simp only [nat.cast_add, (monomial _).map_add, add_smul] }],
+      rw [finsupp.sum_single_index, finsupp.sum_single_index]; [skip, by simp, by simp],
+      rw [tsub_self, add_tsub_cancel_right, nat.cast_one, ← C_apply, C_1, one_smul,
+        add_comm, finsupp.smul_sum],
+      refine congr_arg2 (+) rfl (finset.sum_congr rfl (λ j hj, _)), dsimp only,
+      rw [smul_smul, monomial_mul, one_mul, add_comm s, add_tsub_assoc_of_le],
+      rwa [finsupp.single_le_iff, nat.succ_le_iff, pos_iff_ne_zero, ← finsupp.mem_support_iff]
     end }
 
-variable {R}
-
 @[simp] lemma mk_derivation_X (f : σ → A) (i : σ) : mk_derivation R f (X i) = f i :=
-begin
-  refine (mk_derivationₗ_monomial f _ _).trans _,
-  rw [one_smul, finsupp.sum_single_index]; simp
-end
-
-variable (R)
+mk_derivationₗ_X f i
 
 /-- `mv_polynomial.mk_derivation` as a linear equivalence. -/
 def mk_derivation_equiv : (σ → A) ≃ₗ[R] derivation R (mv_polynomial σ R) A :=
@@ -111,7 +109,7 @@ linear_equiv.symm $
   to_fun := λ D i, D (X i),
   map_add' := λ D₁ D₂, rfl,
   map_smul' := λ c D, rfl,
-  left_inv := λ D, derivation_ext $ mk_derivation_X _,
-  right_inv := λ f, funext $ mk_derivation_X _ }
+  left_inv := λ D, derivation_ext $ mk_derivation_X _ _,
+  right_inv := λ f, funext $ mk_derivation_X _ _ }
 
 end mv_polynomial

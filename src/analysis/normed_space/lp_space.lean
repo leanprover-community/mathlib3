@@ -425,8 +425,18 @@ normed_group.of_core _
       refine le_trans _ (add_mem_upper_bounds_add (Lp.is_lub_norm f).1 (Lp.is_lub_norm g).1
         ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
       exact norm_add_le (f i) (g i) },
-    { -- Minkowski's inequality
-      sorry },
+    { have hp'' : 0 < p.to_real := zero_lt_one.trans_le hp',
+      have hf₁ : ∀ i, 0 ≤ ∥f i∥ := λ i, norm_nonneg _,
+      have hg₁ : ∀ i, 0 ≤ ∥g i∥ := λ i, norm_nonneg _,
+      have hf₂ := Lp.has_sum_norm hp'' f,
+      have hg₂ := Lp.has_sum_norm hp'' g,
+      -- apply Minkowski's inequality
+      obtain ⟨C, hC₁, hC₂, hCfg⟩ := real.Lp_add_le''_of_nonneg hp' hf₁ hg₁ hf₂ hg₂,
+      refine le_trans _ hC₂,
+      rw ← real.rpow_le_rpow_iff (norm_nonneg' (f + g)) hC₁ hp'',
+      refine has_sum_le _ (Lp.has_sum_norm hp'' (f + g)) hCfg,
+      intros i,
+      exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
   norm_neg := by simp }
 
@@ -452,6 +462,15 @@ instance : module 𝕜 (Lp E p) :=
 { .. (Lp_submodule E p 𝕜).module }
 
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p) : ⇑(c • f) = c • f := rfl
+
+open_locale pointwise
+
+-- lemma foo {α β : Type*} [group_with_zero α] [partial_order β] [has_scalar α β]
+--   (h : ∀ a : α, ∀ b c : β, b ≤ c → a • b ≤ a • c) (s : set β) {c : α} (a : β) (hs : is_lub s a) :
+--   is_lub (({c} : set α) • s) (c • a) :=
+-- begin
+
+-- end
 
 lemma norm_const_smul (c : 𝕜) (f : Lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin

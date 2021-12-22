@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Martin Dvorak. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Martin Dvorak, Kyle Miller, Eric Wieser, Andrew Yang
+Authors: Martin Dvorak, Kyle Miller, Eric Wieser
 -/
 
 import data.matrix.basic
@@ -83,7 +83,7 @@ rfl
 
 
 lemma cross_product_anticomm (v w : fin 3 → R) :
-  v ×₃ w = - (w ×₃ v) :=
+  - (v ×₃ w) = w ×₃ v :=
 by simp [cross_product_def, mul_comm]
 
 lemma cross_product_anticomm' (v w : fin 3 → R) :
@@ -99,13 +99,15 @@ private lemma vec3_dot_product (v w : fin 3 → R) :
   v ⬝ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
 by simp [matrix.dot_product, add_assoc, fin.sum_univ_succ]
 
+/-- The cross product of two vectors is perpendicular to the first vector. -/
 lemma dot_self_cross_product_eq_zero (v w : fin 3 → R) :
   v ⬝ (v ×₃ w) = 0 :=
 by simp [cross_product_def, vec3_dot_product, mul_sub, mul_assoc, mul_left_comm]
 
+/-- The cross product of two vectors is perpendicular to the second vector. -/
 lemma dot_cross_product_self_eq_zero (v w : fin 3 → R) :
   w ⬝ (v ×₃ w) = 0 :=
-by rw [cross_product_anticomm, matrix.dot_product_neg, dot_self_cross_product_eq_zero, neg_zero]
+by rw [← cross_product_anticomm, matrix.dot_product_neg, dot_self_cross_product_eq_zero, neg_zero]
 
 
 /-- Cyclic permutations preserve the triple product. See also `triple_product_eq_det`. -/

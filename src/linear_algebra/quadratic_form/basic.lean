@@ -617,6 +617,42 @@ section pos_def
 
 variables {R₂ : Type u} [ordered_ring R₂] [module R₂ M] {Q₂ : quadratic_form R₂ M}
 
+@[simps]
+instance : has_le (quadratic_form R₂ M) :=
+{ le := λ Q₁ Q₂, ∀ x, Q₁ x ≤ Q₂ x}
+
+@[simps]
+instance : has_lt (quadratic_form R₂ M) :=
+{ lt := λ Q₁ Q₂, ∀ x ≠ 0, Q₁ x < Q₂ x}
+
+instance [nontrivial M] : preorder (quadratic_form R₂ M) :=
+{ le := (≤),
+  lt := (<),
+  le_refl := λ Q i, le_refl _,
+  le_trans := λ Q₁ Q₂ Q₃ h₁₂ h₂₃ i, le_trans (h₁₂ i) (h₂₃ i),
+  lt_iff_le_not_le := λ Q₁ Q₂, begin
+    split,
+    { intro h,
+      split,
+      { intro i,
+        obtain rfl | hi := eq_or_ne i 0,
+        simp [map_zero],
+        exact (h i hi).le, },
+      intro h_le,
+      obtain ⟨j, hj⟩ := exists_ne (0 : M),
+      exact (lt_iff_le_not_le.mp (h _ hj)).2 (h_le j) },
+    { simp_rw [has_le_le, not_forall],
+      rintros ⟨h, x, hx⟩ y hy,
+      apply lt_of_le_of_ne,
+      cases hn,
+      refine lt_iff_le_not_le.mpr ⟨h x, λ hnn, _⟩,
+      apply hn,
+      clear hn,
+      intro i,
+      have := h x,
+      }
+  end }
+
 /-- A positive definite quadratic form is positive on nonzero vectors. -/
 def pos_def (Q₂ : quadratic_form R₂ M) : Prop := ∀ x ≠ 0, 0 < Q₂ x
 

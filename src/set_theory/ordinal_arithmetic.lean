@@ -868,8 +868,6 @@ begin
   exact succ_ne_self _ hao',
 end
 
-
-
 -- A result that shows up twice for some reason.
 private lemma lt_sup_of_ne_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f) → ∀ i, f i < sup f :=
 λ hf _, lt_of_le_of_ne (le_sup _ _) (hf _)
@@ -878,13 +876,11 @@ theorem sup_not_succ_of_ne_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i ≠ su
   ∀ a < sup f, succ a < sup f :=
 λ _, sup_not_succ_of_lt_sup (lt_sup_of_ne_sup hf) _
 
-
 theorem is_normal.sup {f} (H : is_normal f)
   {ι} {g : ι → ordinal} (h : nonempty ι) : f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
   intros; simp only [sup_le, true_implies_iff]
-
 
 theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
 eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]
@@ -918,10 +914,8 @@ end
 theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
 bsup_le.1 (le_refl _) _ _
 
-
 theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
 by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
-
 
 theorem bsup_not_succ_of_lt_bsup {o} {f : Π a < o, ordinal}
   (hf : ∀ i (h : i < o), f i h < bsup o f) (a) :
@@ -935,7 +929,6 @@ begin
   exact succ_ne_self _ hao',
 end
 
-
 theorem bsup_type (r : α → α → Prop) [is_well_order α r] (f) :
   bsup (type r) f = sup (λ a, f (typein r a) (typein_lt_type _ _)) :=
 eq_of_forall_ge_iff $ λ o,
@@ -948,8 +941,6 @@ theorem is_normal.bsup {f} (H : is_normal f)
 induction_on o $ λ α r _ g h,
 by resetI; rw [bsup_type,
      H.sup (type_ne_zero_iff_nonempty.1 h), bsup_type]
-
-
 
 -- A result that shows up twice for some reason.
 private lemma lt_bsup_of_ne_bsup {o : ordinal} {f : Π a < o, ordinal} :

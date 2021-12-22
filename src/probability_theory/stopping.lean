@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.constructions.borel_space
+import measure_theory.function.l1_space
 
 /-!
 # Filtration and stopping time
@@ -31,7 +32,7 @@ filtration, stopping time, stochastic process
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space
+open_locale classical measure_theory nnreal ennreal topological_space big_operators
 
 namespace measure_theory
 
@@ -42,7 +43,7 @@ structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_spa
 (mono : monotone seq)
 (le : ∀ i : ι, seq i ≤ m)
 
-variables {α β ι : Type*} {m : measurable_space α} [measurable_space β]
+variables {α β ι : Type*} {m : measurable_space α}
 
 open topological_space
 
@@ -73,6 +74,8 @@ instance sigma_finite_of_sigma_finite_filtration (μ : measure α) (f : filtrati
   [hf : sigma_finite_filtration μ f] (i : ι) :
   sigma_finite (μ.trim (f.le i)) :=
 by apply hf.sigma_finite -- can't exact here
+
+variable [measurable_space β]
 
 /-- A sequence of functions `u` is adapted to a filtration `f` if for all `i`,
 `u i` is `f i`-measurable. -/
@@ -305,5 +308,160 @@ end
 end linear_order
 
 end is_stopping_time
+
+section linear_order
+
+/-- Given a map `u : ι → α → E`, the stopped process with respect to `τ` is `u i x` if
+`i ≤ τ x`, and `u (τ x) x` otherwise.
+
+Intuitively, the stopped process stop evolving once the stopping time has occured. -/
+def stopped_process [linear_order ι] (u : ι → α → β) (τ : α → ι) : ι → α → β :=
+λ i x, u (linear_order.min i (τ x)) x
+
+/-- Given a map `u : ι → α → E`, its stopped value with respect to the stopping
+time `τ` is the map `x ↦ u (τ x) x`. -/
+def stopped_value (u : ι → α → β) (τ : α → ι) : α → β :=
+λ x, u (τ x) x
+
+lemma stopped_process_eq_of_le [linear_order ι] {u : ι → α → β} {τ : α → ι}
+  {i : ι} {x : α} (h : i ≤ τ x) : stopped_process u τ i x = u i x :=
+by simp [stopped_process, min_eq_left h]
+
+lemma stopped_process_eq_of_ge [linear_order ι] {u : ι → α → β} {τ : α → ι}
+  {i : ι} {x : α} (h : τ x ≤ i) : stopped_process u τ i x = u (τ x) x :=
+by simp [stopped_process, min_eq_right h]
+
+variable [linear_order ι]
+
+-- We will need cadlag to generalize the following to continuous processes
+section nat
+
+open filtration
+
+variables [hβ : add_comm_monoid β] {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
+
+include hβ
+
+lemma stopped_process_eq (n : ℕ) :
+  stopped_process u τ n =
+  set.indicator {a | n ≤ τ a} (u n) +
+    ∑ i in finset.range n, set.indicator {a | i = τ a} (u i) :=
+begin
+  ext x,
+  rw [pi.add_apply, finset.sum_apply],
+  cases le_or_lt n (τ x),
+  { rw [stopped_process_eq_of_le h, set.indicator_of_mem, finset.sum_eq_zero, add_zero],
+    { intros m hm,
+      rw finset.mem_range at hm,
+      exact set.indicator_of_not_mem ((lt_of_lt_of_le hm h).ne) _ },
+    { exact h } },
+  { rw [stopped_process_eq_of_ge (le_of_lt h), finset.sum_eq_single_of_mem (τ x)],
+    { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
+      { exact rfl }, -- refl does not work
+      { exact not_le.2 h } },
+    { rwa [finset.mem_range] },
+    { intros b hb hneq,
+      rw set.indicator_of_not_mem,
+      exact hneq } },
+end
+
+lemma adapted.stopped_process_adapted
+  [measurable_space β] [has_measurable_add₂ β]
+  (hu : adapted f u) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+begin
+  intro i,
+  rw stopped_process_eq,
+  refine @measurable.add _ _ _ _ (f i) _ _ _ _ _,
+  { refine @measurable.indicator _ _ (f i) _ _ _ _ (hu i) _,
+    convert @measurable_set.union _ (f i) _ _
+      (@measurable_set.compl _ _ (f i) (hτ i)) (hτ.measurable_set_eq i),
+    ext x,
+    change i ≤ τ x ↔ ¬ τ x ≤ i ∨ τ x = i,
+    rw [not_le, le_iff_lt_or_eq, eq_comm] },
+  { refine @finset.measurable_sum' _ _ _ _ _ _ (f i) _ _ _,
+    refine λ j hij, @measurable.indicator _ _ (f i) _ _ _ _ _ _,
+    { rw finset.mem_range at hij,
+      exact measurable.le (f.mono hij.le) (hu j) },
+    { rw finset.mem_range at hij,
+      refine f.mono hij.le _ _,
+      convert hτ.measurable_set_eq j,
+      simp only [eq_comm] } }
+end
+
+section
+
+omit hβ
+
+lemma stopped_process_has_finite_integral
+  [measurable_space β] [normed_group β] [borel_space β]
+  {μ : measure α} (hτ : is_stopping_time f τ)
+  (hu₁ : adapted f u) (hu₂ : ∀ n, has_finite_integral (u n) μ) (n : ℕ) :
+  has_finite_integral (stopped_process u τ n) μ :=
+begin
+  rw [has_finite_integral, stopped_process_eq],
+  have : ∀ x, (∥(set.indicator {x | n ≤ τ x} (u n) +
+    ∑ i in finset.range n, set.indicator {x | i = τ x} (u i)) x∥₊ : ℝ≥0∞) ≤
+    ∥set.indicator (λ a, n ≤ τ a) (u n) x∥₊ +
+    ∑ i in finset.range n, ∥set.indicator {x | i = τ x} (u i) x∥₊,
+  { intro x,
+    rw [pi.add_apply, finset.sum_apply, ← ennreal.coe_of_nnreal_hom,
+        ← ennreal.of_nnreal_hom.map_sum, ← ring_hom.map_add, ennreal.coe_of_nnreal_hom,
+        ennreal.coe_le_coe],
+    exact le_trans (nnnorm_add_le _ _) (add_le_add_left (nnnorm_sum_le _ _) _) },
+  refine lt_of_le_of_lt (lintegral_mono this) _,
+  rw [lintegral_add],
+  { rw ennreal.add_lt_top,
+    refine ⟨lt_of_le_of_lt (lintegral_mono _) (hu₂ n), _⟩,
+    { intro x,
+      by_cases hx : x ∈ {x | n ≤ τ x},
+      { simp only [ennreal.coe_le_coe],
+        erw [set.indicator_of_mem hx] },
+      { simp only [ennreal.coe_le_coe],
+        erw [set.indicator_of_not_mem hx],
+        simp only [nnnorm_zero, zero_le'] } },
+    { rw lintegral_finset_sum,
+      { refine ennreal.sum_lt_top (λ i hi, (lt_of_le_of_lt (lintegral_mono _) (hu₂ i)).ne),
+        intro x,
+        by_cases hx : x ∈ {x | i = τ x},
+        { simp only [ennreal.coe_le_coe],
+          erw [set.indicator_of_mem hx] },
+        { simp only [ennreal.coe_le_coe],
+          erw [set.indicator_of_not_mem hx],
+          simp only [nnnorm_zero, zero_le'] } },
+      { intros i hi,
+        refine (measurable.indicator ((hu₁ i).le (f.le _)) _).nnnorm.coe_nnreal_ennreal,
+        convert f.le _ _ (hτ.measurable_set_eq i),
+        simp [eq_comm] } } },
+  { refine (measurable_nnnorm.comp (((hu₁ n).le (f.le _)).indicator _)).coe_nnreal_ennreal,
+    erw [← measurable_set.compl_iff, set.compl_set_of],
+    simp_rw not_le,
+    rw (by { ext x, simp [lt_iff_le_and_ne] } : {x | τ x < n} = {x | τ x ≤ n} \ {x | τ x = n}),
+    exact measurable_set.diff (f.le _ _ (hτ n)) (f.le _ _ (hτ.measurable_set_eq n)) },
+  { refine (finset.range n).measurable_sum
+      (λ n h, (measurable.indicator ((hu₁ n).le (f.le _))
+        (f.le n _ _)).nnnorm.coe_nnreal_ennreal),
+    convert hτ.measurable_set_eq n,
+    simp [eq_comm] }
+end
+
+lemma stopped_process_measurable [measurable_space β] [normed_group β] [has_measurable_add₂ β]
+  (hτ : is_stopping_time f τ) (hu₁ : adapted f u) (n : ℕ) :
+  measurable (stopped_process u τ n) :=
+(hu₁.stopped_process_adapted hτ n).le (f.le _)
+
+lemma stopped_process_integrable
+  [measurable_space β] [normed_group β] [borel_space β] [has_measurable_add₂ β]
+  {μ : measure α} (hτ : is_stopping_time f τ)
+  (hu₁ : adapted f u) (hu₂ : ∀ n, has_finite_integral (u n) μ) (n : ℕ) :
+  integrable (stopped_process u τ n) μ :=
+⟨(stopped_process_measurable hτ hu₁ n).ae_measurable,
+    stopped_process_has_finite_integral hτ hu₁ hu₂ n⟩
+
+end
+
+end nat
+
+end linear_order
 
 end measure_theory

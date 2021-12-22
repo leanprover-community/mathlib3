@@ -1005,7 +1005,7 @@ noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijectiv
 @[simp] lemma coe_of_bijective {f : A₁ →ₐ[R] A₂} {hf : function.bijective f} :
   (alg_equiv.of_bijective f hf : A₁ → A₂) = f := rfl
 
-@[simp] lemma of_bijective_apply {f : A₁ →ₐ[R] A₂} {hf : function.bijective f} (a : A₁) :
+lemma of_bijective_apply {f : A₁ →ₐ[R] A₂} {hf : function.bijective f} (a : A₁) :
   (alg_equiv.of_bijective f hf) a = f a := rfl
 
 /-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/

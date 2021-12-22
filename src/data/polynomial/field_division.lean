@@ -25,7 +25,10 @@ universes u v w y z
 variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ}
 
 section is_domain
-variables [comm_ring R] [is_domain R] [normalization_monoid R]
+variables [comm_ring R] [is_domain R]
+
+section normalization_monoid
+variables [normalization_monoid R]
 
 instance : normalization_monoid (polynomial R) :=
 { norm_unit := λ p, ⟨C ↑(norm_unit (p.leading_coeff)), C ↑(norm_unit (p.leading_coeff))⁻¹,
@@ -56,6 +59,31 @@ lemma monic.normalize_eq_self {p : polynomial R} (hp : p.monic) :
   normalize p = p :=
 by simp only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_unit_one,
   units.coe_one, polynomial.C.map_one, mul_one]
+
+end normalization_monoid
+
+lemma prod_multiset_root_eq_finset_root {p : polynomial R} :
+  (multiset.map (λ (a : R), X - C a) p.roots).prod =
+  ∏ a in p.roots.to_finset, (X - C a) ^ root_multiplicity a p :=
+by simp only [count_roots, finset.prod_multiset_map_count]
+
+lemma roots_C_mul (p : polynomial R) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
+begin
+  by_cases hpzero : p = 0,
+  { simp only [hpzero, mul_zero] },
+  rw multiset.ext,
+  intro b,
+  have prodzero : C a * p ≠ 0,
+  { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
+  rw [count_roots, count_roots, root_multiplicity_mul prodzero],
+  have mulzero : root_multiplicity b (C a) = 0,
+  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
+  simp only [mulzero, zero_add]
+end
+
+lemma roots_normalize [normalization_monoid R] {p : polynomial R} : (normalize p).roots = p.roots :=
+by rw [normalize_apply, mul_comm, coe_norm_unit,
+  roots_C_mul _ (norm_unit (leading_coeff p)).ne_zero]
 
 end is_domain
 
@@ -432,11 +460,6 @@ begin
   rw [← C_inj, this, C_0],
 end
 
-lemma prod_multiset_root_eq_finset_root {R : Type*} [comm_ring R] [is_domain R] {p : polynomial R} :
-  (multiset.map (λ (a : R), X - C a) p.roots).prod =
-  ∏ a in p.roots.to_finset, (X - C a) ^ root_multiplicity a p :=
-by simp only [count_roots, finset.prod_multiset_map_count]
-
 /-- The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides `p`. -/
 lemma prod_multiset_X_sub_C_dvd (p : polynomial R) :
   (multiset.map (λ (a : R), X - C a) p.roots).prod ∣ p :=
@@ -451,26 +474,6 @@ begin
   rw multiset.mem_to_finset at h,
   exact pow_root_multiplicity_dvd p a
 end
-
-lemma roots_C_mul {R : Type*} [comm_ring R] [is_domain R] (p : polynomial R) {a : R}
-  (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
-begin
-  by_cases hpzero : p = 0,
-  { simp only [hpzero, mul_zero] },
-  rw multiset.ext,
-  intro b,
-  have prodzero : C a * p ≠ 0,
-  { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
-  rw [count_roots, count_roots, root_multiplicity_mul prodzero],
-  have mulzero : root_multiplicity b (C a) = 0,
-  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
-  simp only [mulzero, zero_add]
-end
-
-lemma roots_normalize {R : Type*} [comm_ring R] [is_domain R] [normalization_monoid R]
-  {p : polynomial R} : (normalize p).roots = p.roots :=
-by rw [normalize_apply, mul_comm, coe_norm_unit,
-  roots_C_mul _ (norm_unit (leading_coeff p)).ne_zero]
 
 end field
 end polynomial

@@ -490,6 +490,28 @@ theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
   (Hm : ¬ p ∣ m) (Hn : ¬ p ∣ n) : ¬ p ∣ m * n :=
 mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 
+/-- Prime `p` divides the product of `L : list ℕ` iff it divides some `a ∈ L` -/
+lemma prime.dvd_prod_iff {p : ℕ} {L : list ℕ} (pp : p.prime) :
+  p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
+begin
+  split,
+  { intros h,
+    induction L,
+    { simp only [list.prod_nil] at h, exact absurd h (prime.not_dvd_one pp) },
+    { rw list.prod_cons at h,
+      cases (prime.dvd_mul pp).mp h,
+      { use L_hd, simp [h_1] },
+      { rcases L_ih h_1 with ⟨x, hx1, hx2⟩, use x, simp [list.mem_cons_iff, hx1, hx2] } } },
+  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
+end
+-- TODO: This proof duplicates a more general proof in `algebra/associated`.
+-- The two proofs should be integrated after the merger of `nat.prime` and `prime`
+-- that's about to occur. (2021-12-17)
+
+lemma prime.not_dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) (hL : ∀ a ∈ L, ¬ p ∣ a) :
+  ¬ p ∣ L.prod :=
+mt (prime.dvd_prod_iff pp).mp (not_bex.mpr hL)
+
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 begin
   induction n with n IH,
@@ -641,16 +663,12 @@ section
 open list
 
 lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) :
-  ∀ {l : list ℕ}, (∀ p ∈ l, prime p) → p ∣ prod l → p ∈ l
-| []       := λ h₁ h₂, absurd h₂ (prime.not_dvd_one hp)
-| (q :: l) := λ h₁ h₂,
-  have h₃ : p ∣ q * prod l := @prod_cons _ _ l q ▸ h₂,
-  have hq : prime q := h₁ q (mem_cons_self _ _),
-  or.cases_on ((prime.dvd_mul hp).1 h₃)
-    (λ h, by rw [prime.dvd_iff_not_coprime hp, coprime_primes hp hq, ne.def, not_not] at h;
-      exact h ▸ mem_cons_self _ _)
-    (λ h, have hl : ∀ p ∈ l, prime p := λ p hlp, h₁ p ((mem_cons_iff _ _ _).2 (or.inr hlp)),
-    (mem_cons_iff _ _ _).2 (or.inr (mem_list_primes_of_dvd_prod hl h)))
+  ∀ {l : list ℕ}, (∀ p ∈ l, prime p) → p ∣ prod l → p ∈ l :=
+begin
+  intros L hL hpL,
+  rcases (prime.dvd_prod_iff hp).mp hpL with ⟨x, hx1, hx2⟩,
+  rwa ((prime_dvd_prime_iff_eq hp (hL x hx1)).mp hx2)
+end
 
 lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factors n ↔ p ∣ n :=
 ⟨λ h, prod_factors hn ▸ list.dvd_prod h,

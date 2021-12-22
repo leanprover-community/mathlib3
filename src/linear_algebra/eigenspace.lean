@@ -189,7 +189,7 @@ lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V
 begin
   obtain ⟨c, nu⟩ := spectrum.nonempty_of_is_alg_closed_of_finite_dimensional K f,
   use c,
-  rw [spectrum.mem_iff, is_unit.sub_iff, linear_map.is_unit_iff] at nu,
+  rw [spectrum.mem_iff, is_unit.sub_iff, linear_map.is_unit_iff_ker_eq_bot] at nu,
   exact has_eigenvalue_of_has_eigenvector (submodule.exists_mem_ne_zero_of_ne_bot nu).some_spec,
 end
 

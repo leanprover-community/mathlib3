@@ -299,6 +299,18 @@ begin
   rw ←hy₂, refine hy₁,
 end
 
+lemma ideal.is_homogeneous.homogeneous_core_eq_self [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+  (h : ideal.is_homogeneous A I) :
+  ideal.homogeneous_core A I = I :=
+begin
+  ext x, split; intros hx,
+  { apply ideal.homogeneous_core_le_ideal, exact hx, },
+  { rw ←graded_algebra.sum_support_decompose A x,
+    refine ideal.sum_mem _ _,
+    intros i hi, apply ideal.subset_span, split,
+    use i, exact submodule.coe_mem _, apply h, exact hx },
+end
+
 lemma ideal.homogeneous_core.eq_Sup [Π (i : ι) (x : A i), decidable (x ≠ 0)] :
   ideal.homogeneous_core A I = Sup { J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I } :=
 begin
@@ -385,4 +397,58 @@ begin
     exact ⟨ideal.is_homogeneous.homogeneous_hull _ _, ideal.ideal_le_homogeneous_hull _ _⟩, }
 end
 
+lemma ideal.is_homogeneous.homogeneous_hull_eq_self [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+  (h : ideal.is_homogeneous A I) :
+  ideal.homogeneous_hull A I = I :=
+begin
+  rw ideal.homogeneous_hull.eq_Inf, ext x, split; intros hx,
+  rw ideal.mem_Inf at hx, apply hx, refine ⟨h, le_refl I⟩,
+  rw ideal.mem_Inf, rintros J ⟨HJ1, HJ2⟩, apply HJ2, exact hx,
+end
+
 end homogeneous_hull
+
+
+section galois_connection
+
+variables {ι : Type*} [add_comm_monoid ι] [decidable_eq ι]
+variables {R : Type*} [comm_ring R]
+variables (A : ι → ideal R) [graded_algebra A]
+variable [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+
+lemma ideal.homgeneous_hull.gc :
+  galois_connection
+    (λ I, ⟨ideal.homogeneous_hull A I, ideal.is_homogeneous.homogeneous_hull A I⟩ :
+      ideal R → homogeneous_ideal A)
+    (λ I, I.1 : homogeneous_ideal A → ideal R)
+   := λ I J,
+⟨ λ H, begin
+    dsimp only at H,
+    refine le_trans _ H,
+    apply ideal.ideal_le_homogeneous_hull,
+  end,
+  λ H, begin
+    suffices : ideal.homogeneous_hull A I ≤ J.val,
+    exact this,
+    rw ←ideal.is_homogeneous.homogeneous_hull_eq_self A J.1 J.2,
+    exact ideal.homogeneous_hull_is_mono A H,
+  end ⟩
+
+lemma ideal.homogemoues_core.gc :
+  galois_connection
+    (λ I, I.1 : homogeneous_ideal A → ideal R)
+    (λ I, ⟨ideal.homogeneous_core A I, ideal.is_homogeneous.homogeneous_core A I⟩ :
+      ideal R → homogeneous_ideal A)
+     := λ I J,
+⟨ λ H, begin
+    dsimp only at H,
+    suffices : I.1 ≤ ideal.homogeneous_core A J,
+    exact this,
+    rw ←ideal.is_homogeneous.homogeneous_core_eq_self A I.1 I.2,
+    exact ideal.homogeneous_core_is_mono A H,
+  end, λ H, begin
+    refine le_trans H _,
+    apply ideal.homogeneous_core_le_ideal,
+  end⟩
+
+end galois_connection

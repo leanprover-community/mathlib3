@@ -176,7 +176,7 @@ begin
     one_mul, mul_comm]
 end
 
-/-- When `p` is prime, then the totient of `p ^ ` is `p ^ (n - 1) * (p - 1)` -/
+/-- When `p` is prime, then the totient of `p ^ n` is `p ^ (n - 1) * (p - 1)` -/
 lemma totient_prime_pow {p : ℕ} (hp : p.prime) {n : ℕ} (hn : 0 < n) :
   φ (p ^ n) = p ^ (n - 1) * (p - 1) :=
 by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;

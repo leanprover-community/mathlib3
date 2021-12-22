@@ -232,6 +232,7 @@ lemma expand_injective {n : ℕ} (hn : 0 < n) :
   exact h',
 end
 
+@[simp]
 lemma expand_eval (p : ℕ) (P : polynomial R) (r : R) : eval r (expand R p P) = eval (r ^ p) P :=
 begin
   refine polynomial.induction_on P (λ a, by simp) (λ f g hf hg, _) (λ n a h, by simp),

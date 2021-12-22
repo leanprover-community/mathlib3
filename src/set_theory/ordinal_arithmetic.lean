@@ -1076,6 +1076,97 @@ begin
   exact lt_irrefl (blsub.{u u} o (λ x _, x)) (lt_blsub _ _ h),
 end
 
+/-! ### Enumerating unbounded sets of ordinals with ordinals -/
+
+section
+variables {S : set ordinal.{u}} (hS : ∀ a, ∃ b, S b ∧ a ≤ b)
+
+/-- Enumerator function for an unbounded set of ordinals. For the subtype variant, see `enum_ord'`.
+-/
+noncomputable def enum_ord : ordinal.{u} → ordinal.{u} :=
+wf.fix (λ a f, omin _ (hS (blsub.{u u} a f)))
+
+/-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
+work with, so consider using `enum_ord_def` instead. -/
+theorem enum_ord_def' (o) :
+  enum_ord hS o = omin (λ b, S b ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) (hS _) :=
+wf.fix_eq _ _
+
+private theorem enum_ord_mem_aux (o) :
+  S (enum_ord hS o) ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ (enum_ord hS o) :=
+by { rw enum_ord_def', exact omin_mem (λ _, _ ∧ _) _ }
+
+theorem enum_ord_mem (o) : enum_ord hS o ∈ S := (enum_ord_mem_aux hS o).left
+
+theorem blsub_le_enum_ord (a) : blsub.{u u} a (λ c _, enum_ord hS c) ≤ enum_ord hS a :=
+(enum_ord_mem_aux hS a).right
+
+theorem enum_ord.strict_mono {hS : ∀ a, ∃ b, S b ∧ a ≤ b} : strict_mono (enum_ord hS) :=
+λ _ _ h, lt_of_lt_of_le (lt_blsub.{u u} _ _ h) (blsub_le_enum_ord hS _)
+
+-- Explicitly specifying hS' screws up `rw` for whatever reason.
+private theorem enum_ord_def_aux (a) {hS'} :
+  enum_ord hS a = omin (λ b, S b ∧ ∀ c, c < a → enum_ord hS c < b) (hS') :=
+begin
+  suffices : (λ b, S b ∧ blsub.{u u} a (λ c _, enum_ord hS c) ≤ b) =
+    (λ b, S b ∧ ∀ c, c < a → enum_ord hS c < b),
+  { rw enum_ord_def',
+    simp_rw this },
+  apply funext (λ _, propext _),
+  exact ⟨ λ ⟨hl, hr⟩, ⟨hl, λ _ h, lt_of_lt_of_le (lt_blsub.{u u} _ _ h) hr⟩,
+    λ ⟨hl, hr⟩, ⟨hl, blsub_le_iff_lt.2 hr⟩ ⟩,
+end
+
+/-- A more workable definition for `enum_ord`. -/
+theorem enum_ord_def (o) :
+  enum_ord hS o = omin (λ b, S b ∧ ∀ c, c < o → enum_ord hS c < b)
+  (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono b⟩) :=
+enum_ord_def_aux hS o
+
+-- rewrite in terms of enum_ord hS
+theorem enum_ord.surjective : ∀ s ∈ S, ∃ a, enum_ord hS a = s :=
+begin
+  by_contra' H,
+  let a := omin _ H,
+  cases omin_mem _ H with hal har,
+  let c : ordinal.{u} := omin (λ b, a ≤ enum_ord hS b)
+    ⟨_, well_founded.self_le_of_strict_mono wf enum_ord.strict_mono _⟩,
+  suffices : enum_ord hS c = a,
+  { exact har c this },
+  rw enum_ord_def,
+  apply le_antisymm,
+  { refine omin_le ⟨hal, λ b hb, _⟩,
+    by_contra' h,
+    exact not_lt_of_le (omin_le h : c ≤ b) hb },
+  rw le_omin,
+  rintros b ⟨hbl, hbr⟩,
+  by_contra' hab,
+  suffices : ∀ d, enum_ord hS d ≠ b,
+  { exact @not_lt_omin _ H _ ⟨hbl, this⟩ hab, },
+  by_contra' h,
+  cases h with d hdb,
+  refine ne_of_lt (hbr d _) hdb,
+  by_contra' hcd,
+  apply not_le_of_lt hab,
+  rw ←hdb,
+  refine le_trans _ (enum_ord.strict_mono.monotone hcd),
+  exact omin_mem (λ _, a ≤ _) _
+end
+
+/-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/
+noncomputable def enum_ord'.order_iso : ordinal.{u} ≃o S :=
+strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) enum_ord.strict_mono
+begin
+  convert enum_ord.surjective hS,
+  refine propext ⟨λ h s hs, _, λ h a, _⟩,
+  { cases h ⟨s, hs⟩ with a ha,
+    exact ⟨a, subtype.mk.inj ha⟩ },
+  cases h a.val a.prop with s hs,
+  exact ⟨s, subtype.eq hs⟩,
+end
+
+end
+
 /-! ### Ordinal exponential -/
 
 /-- The ordinal exponential, defined by transfinite recursion. -/

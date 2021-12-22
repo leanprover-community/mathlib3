@@ -52,30 +52,30 @@ section sigma_lift
 variables [decidable_eq ι]
 
 /-- Lifts maps `α i → β i → finset (γ i)` to a map `Σ i, α i → Σ i, β i → finset (Σ i, γ i)`. -/
-def sigma_lift₂ (f : Π ⦃i⦄, α i → β i → finset (γ i)) (a : sigma α) (b : sigma β) :
+def sigma_lift (f : Π ⦃i⦄, α i → β i → finset (γ i)) (a : sigma α) (b : sigma β) :
   finset (sigma γ) :=
 dite (a.1 = b.1) (λ h, (f (h.rec a.2) b.2).map $ embedding.sigma_mk _) (λ _, ∅)
 
-lemma mem_sigma_lift₂ (f : Π ⦃i⦄, α i → β i → finset (γ i))
+lemma mem_sigma_lift (f : Π ⦃i⦄, α i → β i → finset (γ i))
   (a : sigma α) (b : sigma β) (x : sigma γ) :
-  x ∈ sigma_lift₂ f a b ↔ ∃ (ha : a.1 = x.1) (hb : b.1 = x.1), x.2 ∈ f (ha.rec a.2) (hb.rec b.2) :=
+  x ∈ sigma_lift f a b ↔ ∃ (ha : a.1 = x.1) (hb : b.1 = x.1), x.2 ∈ f (ha.rec a.2) (hb.rec b.2) :=
 begin
   obtain ⟨⟨i, a⟩, j, b⟩ := ⟨a, b⟩,
   obtain rfl | h := decidable.eq_or_ne i j,
   { split,
-    { simp_rw [sigma_lift₂, dif_pos rfl, mem_map, embedding.sigma_mk_apply],
+    { simp_rw [sigma_lift, dif_pos rfl, mem_map, embedding.sigma_mk_apply],
       rintro ⟨x, hx, rfl⟩,
       exact ⟨rfl, rfl, hx⟩ },
     { rintro ⟨⟨⟩, ⟨⟩, hx⟩,
-      rw [sigma_lift₂, dif_pos rfl, mem_map],
+      rw [sigma_lift, dif_pos rfl, mem_map],
       exact ⟨_, hx, by simp [sigma.ext_iff]⟩ } },
-  { rw [sigma_lift₂, dif_neg h],
+  { rw [sigma_lift, dif_neg h],
     refine iff_of_false (not_mem_empty _) _,
     rintro ⟨⟨⟩, ⟨⟩, _⟩,
     exact h rfl }
 end
 
-variables {f g : Π ⦃i⦄, α i → α i → finset (α i)} {a b : Σ i, α i}
+variables {f g : Π ⦃i⦄, α i → β i → finset (γ i)} {a : Σ i, α i} {b : Σ i, β i}
 
 lemma sigma_lift_nonempty :
   (sigma_lift f a b).nonempty ↔ ∃ h : a.1 = b.1, (f (h.rec a.2) b.2).nonempty :=
@@ -93,7 +93,7 @@ begin
   exact forall_congr_eq (λ h, propext map_eq_empty.symm),
 end
 
-lemma sigma_lift_mono (h : ∀ ⦃i⦄ ⦃a b : α i⦄, f a b ⊆ g a b) (a b : Σ i, α i) :
+lemma sigma_lift_mono (h : ∀ ⦃i⦄ ⦃a : α i⦄ ⦃b : β i⦄, f a b ⊆ g a b) (a : Σ i, α i) (b : Σ i, β i) :
   sigma_lift f a b ⊆ sigma_lift g a b :=
 begin
   rintro x hx,

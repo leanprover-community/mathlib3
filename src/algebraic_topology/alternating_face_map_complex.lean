@@ -51,8 +51,7 @@ namespace alternating_face_map_complex
 /-- In degree n, the alternating face map complex is given by
 the nth-object of the simplicial object -/
 @[simp]
-def obj_X {C : Type*} [category C] (X : simplicial_object C) (n : ℕ) :=
-X.obj (op [n])
+def obj_X {C : Type*} [category C] (X : simplicial_object C) (n : ℕ) := X _[n]
 
 variables {C : Type*} [category C] [preadditive C]
 variables (X : simplicial_object C)
@@ -61,7 +60,7 @@ variables (Y : simplicial_object C)
 /-- The differential on the alternating face map complex is the alternate
 sum of the face maps -/
 @[simp]
-def obj_d (n : ℕ) : obj_X X (n+1) ⟶ obj_X X n :=
+def obj_d (n : ℕ) : X _[n+1] ⟶ X _[n] :=
 ∑ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i
 
 /--

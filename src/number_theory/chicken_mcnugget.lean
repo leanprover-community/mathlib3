@@ -11,12 +11,12 @@ import group_theory.submonoid.membership
 # Chicken McNugget Theorem
 
 In this file we prove the Chicken McNugget Theorem, first using natural multiplication,
-then using addative submonoid closures.
+then using additive submonoid closures.
 
 ## Theorem Statement:
 The Chicken McNugget Theorem states,
 for two relatively prime integers larger than 1,
-the largest integer not expressible as a sum of nonnegative multiples of these two
+the greatest integer not expressible as a sum of nonnegative multiples of these two
 is m * n - m - n.
 
 ## Implementation Notes
@@ -25,6 +25,8 @@ For the upper bound, we begin with an auxiliary lemma showing m * n is not attai
 m * n - m - n is not attainable. Then for the construction, we create a k_1 which is k mod n and
 0 mod m, then show it is at most k. Then k_1 is a multiple of m, and (k-k_1) is a multiple of n,
 and we're done.
+
+Afterwards, we rewrite this with add_submonoid.closure and is_greatest.
 
 ## Tags
 
@@ -73,10 +75,28 @@ begin
   exact ⟨a, b, by rw [mul_comm, ←ha, mul_comm, ←hb, nat.add_sub_of_le key]⟩,
 end
 
-/-- This theorem combines both sublemmas in a single claim. -/
-theorem chicken_mcnugget (m n : ℕ) (hm : 1 < m) (hn: 1 < n) (cop: coprime m n) :
+/-- Combines both sublemmas in a single claim. -/
+theorem chicken_mcnugget_split (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn: 1 < n) :
   (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, m * n - m - n < k → ∃ a b, a * m + b * n = k :=
 ⟨chicken_mcnugget_upper_bound m n cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩
+
+/-- Rewrites the above with is_greatest. -/
+theorem chicken_mcnugget (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn: 1 < n) :
+  is_greatest {k | ∀ a b, a * m + b * n ≠ k} (m * n - m - n) :=
+begin
+  split,
+  have statement := chicken_mcnugget_upper_bound m n cop hm hn,
+  push_neg at statement,
+  exact statement,
+  rw upper_bounds,
+  have statement2 := chicken_mcnugget_construction m n cop hm hn,
+  have statement3 : ∀ (k : ℕ), (∀ (a b : ℕ), a * m + b * n ≠ k) → k <= m * n - m - n,
+  intro k,
+  contrapose,
+  push_neg,
+  exact statement2 k,
+  exact statement3,
+end
 
 /-- Auxiliary lemma for add_submonoid statement. -/
 lemma mult_add_subm_clos (m n k: ℕ):
@@ -95,10 +115,26 @@ begin
 end
 
 /-- Restates the original theorem with add_submonoid.closure. -/
-theorem chicken_mcnugget_add_submonoid (m n : ℕ) (hm: 1 < m) (hn: 1 < n) (cop: coprime m n) :
+lemma chicken_mcnugget_add_submonoid_split (m n : ℕ) (cop: coprime m n) (hm: 1 < m) (hn: 1 < n) :
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
   ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
 begin
   simp_rw ← mult_add_subm_clos,
-  exact chicken_mcnugget m n hm hn cop,
+  exact chicken_mcnugget_split m n cop hm hn,
+end
+
+/-- Rewrites the above with is_greatest. -/
+theorem chicken_mcnugget_add_submonoid (m n : ℕ) (cop: coprime m n) (hm: 1 < m) (hn: 1 < n) :
+  is_greatest {k | k ∉ add_submonoid.closure ({m, n} : set ℕ)} (m * n - m - n) :=
+begin
+  split,
+  exact (chicken_mcnugget_add_submonoid_split m n cop hm hn).1,
+  rw upper_bounds,
+  have statement := (chicken_mcnugget_add_submonoid_split m n cop hm hn).2,
+  have contra : ∀ (k : ℕ), (k ∉ add_submonoid.closure {m, n}) → k ≤ m * n - m - n,
+  intro k,
+  contrapose,
+  push_neg,
+  exact statement k,
+  exact contra,
 end

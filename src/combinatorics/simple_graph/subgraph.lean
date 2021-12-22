@@ -48,6 +48,8 @@ universe u
 
 namespace simple_graph
 
+open graph
+
 /-- A subgraph of a `simple_graph` is a subset of vertices along with a restriction of the adjacency
 relation that is symmetric and is supported by the vertex subset.  They also form a bounded lattice.
 
@@ -56,19 +58,19 @@ Thinking of `V → V → Prop` as `set (V × V)`, a set of darts (i.e., half-edg
 @[ext]
 structure subgraph {V : Type u} (G : simple_graph V) :=
 (verts : set V)
-(adj : V → V → Prop)
-(adj_sub : ∀ {v w : V}, adj v w → G.adj v w)
-(edge_vert : ∀ {v w : V}, adj v w → v ∈ verts)
-(symm : symmetric adj . obviously)
+(adj' : V → V → Prop)
+(adj_sub : ∀ {v w : V}, adj' v w → adj G v w)
+(edge_vert : ∀ {v w : V}, adj' v w → v ∈ verts)
+(symm : symmetric adj' . obviously)
 
 namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
-lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
+lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj' v w ↔ G'.adj' w v :=
 ⟨λ x, G'.symm x, λ x, G'.symm x⟩
 
-@[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.symm h
+@[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj' u v) : G'.adj' v u := G'.symm h
 
 /-- Coercion from `G' : subgraph G` to a `simple_graph ↥G'.verts`. -/
 @[simps] def coe (G' : subgraph G) : simple_graph G'.verts :=

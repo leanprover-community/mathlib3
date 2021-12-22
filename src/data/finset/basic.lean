@@ -2154,17 +2154,7 @@ ext $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   (s.erase a).map f = (s.map f).erase (f a) :=
 by { simp_rw map_eq_image, exact s.image_erase f.2 a }
 
-/--
-Because `finset.image` requires a `decidable_eq` instances for the target type,
-we can only construct a `functor finset` when working classically.
--/
-instance [Π P, decidable P] : functor finset :=
-{ map := λ α β f s, s.image f, }
-
-instance [Π P, decidable P] : is_lawful_functor finset :=
-{ id_map := λ α x, image_id,
-  comp_map := λ α β γ f g s, image_image.symm, }
-
+/-! ### Subtype -/
 
 /-- Given a finset `s` and a predicate `p`, `s.subtype p` is the finset of `subtype p` whose
 elements belong to `s`. -/

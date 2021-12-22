@@ -1319,7 +1319,7 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
 
 end classical
 
-section ite.
+section ite
 variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) {P Q : Prop} [decidable P] [decidable Q]
   {a b c : α} {A : P → α} {B : ¬ P → α}
 

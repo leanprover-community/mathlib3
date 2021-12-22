@@ -1240,6 +1240,35 @@ open set
 
 example (a b c : ℝ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) : a / b ≤ 1 -> a ≤ b := (div_le_one hb).mp
 
+lemma inequality1 {x : ℝ} (n_large : 1003 < x) : log (2 * x + 1) / (x * log 4) ≤ 1/8 :=
+begin
+  sorry
+end
+
+
+lemma inequality2 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.01 :=
+begin
+  sorry
+end
+
+lemma inequality3 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/8 :=
+begin
+  -- Get the log x in the second term to be 2 log sqrt x. and split the 1/x i n that term to
+  sorry
+end
+
+lemma equality4 {x : ℝ} (n_large : 1003 < x) : 2 * x / 3 * log 4 / (x * log 4) = 2/3 :=
+begin
+  ring_nf,
+  rw mul_inv, -- lol wut this doesn't exist for reals?
+end
+
+lemma inequality5 {x : ℝ} (n_large : 1003 < x) : log 4 / (x * log 4) ≤ 0.001 :=
+begin
+  sorry
+end
+
+
 lemma real_false_inequality_is_false {x : ℝ} (n_large : (1003 : ℝ) < x)
   : (2 * x + 1) * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3 + 1) ≤ 4 ^ x :=
 begin
@@ -1249,9 +1278,8 @@ begin
   simp only [add_div, mul_add, add_mul, add_div, <-add_assoc],
   simp,
   {
-    sorry,
-    -- TODO bound the terms by, say, 1/8, 0.001, 1/8, 2/3, 0.001 respectively, then prove goal by norm_num.
-    -- Get the log x in the second term to be 2 log sqrt x. and split the 1/x i n that term to
+    rw [equality4 n_large],
+    linarith only [inequality1 n_large, inequality2 n_large, inequality3 n_large, inequality5 n_large],
   },
   repeat {sorry,},
 
@@ -1672,20 +1700,25 @@ begin
 end
 
 
-
+/-- Bertrand's Postulate: For any positive natural number, there is a prime which is greater than it, but no more than twice as large. -/
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   cases lt_or_le 1003 n,
   { exact bertrand_eventually n h },
   have h' := nat.lt_succ_of_le h,
-  apply bertrand_initial n n_pos [1009, 751, 547, 277, 139, 73, 37, 19, 11, 7, 5, 3],
-  { intros p hp,
+  -- Supply a list of primes to cover the initial cases
+  apply bertrand_initial n n_pos [1009, 547, 277, 139, 73, 37, 19, 11, 7, 5, 3],
+  -- Prove the list has the properties needed:
+  { -- Prove the list consists of primes
+    intros p hp,
     simp at hp,
     iterate {cases hp <|> rw hp <|> norm_num}, },
-  { intros a b hab,
+  { -- Prove each element of the list is at least half the previous.
+    intros a b hab,
     simp at hab,
     iterate {cases hab <|> rw [hab.left, hab.right] <|> linarith}, },
-  { simp,
+  { -- Prove the first element of the list is large enough.
+    simp,
     linarith, },
 
 -- cases le_or_lt 505 n,

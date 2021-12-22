@@ -633,14 +633,23 @@ alg_equiv.symm $ alg_equiv.of_bijective (algebra.of_id R _)
  λ ⟨y, hy⟩, let ⟨x, hx⟩ := algebra.mem_bot.1 hy in ⟨x, subtype.eq hx⟩⟩
 
 /-- The bottom subalgebra is isomorphic to the field. -/
+@[simps symm_apply]
 noncomputable def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] [algebra F R] :
   (⊥ : subalgebra F R) ≃ₐ[F] F :=
 bot_equiv_of_injective (ring_hom.injective _)
 
 /-- The top subalgebra is isomorphic to the field. -/
-noncomputable def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
+@[simps symm_apply] noncomputable def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
 (alg_equiv.of_bijective to_top ⟨λ _ _, subtype.mk.inj,
   λ x, ⟨x.val, by { ext, refl }⟩⟩ : A ≃ₐ[R] (⊤ : subalgebra R A)).symm
+
+@[simp] lemma top_equiv_apply (a : (⊤ : subalgebra R A)) : top_equiv a = a :=
+begin
+  apply_fun (top_equiv.symm : A ≃ₐ[R] (⊤ : subalgebra R A)),
+  rw [alg_equiv.symm_apply_apply, top_equiv, alg_equiv.symm_symm, alg_equiv.of_bijective_apply],
+  ext,
+  refl
+end
 
 end algebra
 

@@ -146,4 +146,9 @@ def dgo_equiv_homological_complex :
   unit_iso := dgo_equiv_homological_complex_unit_iso b V,
   counit_iso := dgo_equiv_homological_complex_counit_iso b V, }
 
+local attribute [instance] endofunctor_monoidal_category
+
+instance : has_shift (homological_complex V (complex_shape.up' b)) ℤ :=
+⟨(shift_monoidal_functor _ _).comp (comp_equiv_monoidal (dgo_equiv_homological_complex b V))⟩
+
 end homological_complex

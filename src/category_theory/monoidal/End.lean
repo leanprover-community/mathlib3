@@ -17,11 +17,11 @@ Can we use this to show coherence results, e.g. a cheap proof that `λ_ (𝟙_ C
 I suspect this is harder than is usually made out.
 -/
 
-universes v u
+universes v v' u u'
 
 namespace category_theory
 
-variables (C : Type u) [category.{v} C]
+variables (C : Type u) [category.{v} C] {D : Type u'} [category.{v'} D]
 
 /--
 The category of endofunctors of any category is a monoidal category,
@@ -298,5 +298,22 @@ def equiv_of_tensor_iso_unit (m n : M) (h₁ : m ⊗ n ≅ 𝟙_M) (h₂ : n ⊗
       unit_of_tensor_iso_unit_inv_app],
     simp [← nat_trans.comp_app, ← F.to_functor.map_comp, ← H, - functor.map_comp]
   end }
+.
+
+/-- A equivalence of categories `C ≌ D` induces a monoidal functor between `C ⥤ C` and `D ⥤ D`
+(which is actully an equivalence of monoidal categories). -/
+@[simps]
+def comp_equiv_monoidal (e : C ≌ D) : monoidal_functor (C ⥤ C) (D ⥤ D) :=
+{ ε := e.counit_iso.inv,
+  μ := λ X Y, (iso_whisker_right
+    (iso_whisker_left (e.inverse ⋙ X) e.unit_iso.symm) (Y ⋙ e.functor)).hom,
+  μ_natural' := by { introv, ext, dsimp, simp only [equivalence.inv_fun_map, category.assoc,
+    ← functor.map_comp, iso.hom_inv_id_app, nat_trans.naturality_assoc], dsimp, simp },
+  associativity' := by { introv, ext, dsimp, simp only [category.comp_id, category.id_comp,
+    equivalence.inv_fun_map, category.assoc, ← functor.map_comp, functor.map_id,
+    iso.hom_inv_id_app], dsimp, simp },
+  left_unitality' := by { introv, ext, dsimp, simp [← functor.map_comp] },
+  right_unitality' := by tidy,
+..((whiskering_right _ _ _).obj e.functor ⋙ (whiskering_left _ _ _).obj e.inverse) }
 
 end category_theory

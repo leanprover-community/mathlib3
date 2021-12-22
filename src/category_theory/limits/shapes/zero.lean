@@ -120,16 +120,24 @@ end
 
 section
 universes v' u'
-variables (D : Type u') [category.{v'} D]
+variables (C) (D : Type u') [category.{v'} D]
 
 variables [has_zero_morphisms D]
 
 instance : has_zero_morphisms (C ⥤ D) :=
 { has_zero := λ F G, ⟨{ app := λ X, 0, }⟩ }
 
+variables {C D}
+
 @[simp] lemma zero_app (F G : C ⥤ D) (j : C) : (0 : F ⟶ G).app j = 0 := rfl
 
 variables [has_zero_morphisms C]
+
+/-- A functor `F` preserves zero morphisms if `F.map (0 : X ⟶ Y) = 0` for each `X, Y`. -/
+class preserves_zero_morphisms (F : C ⥤ D) :=
+(preserves : ∀ (X Y : C), F.map (0 : X ⟶ Y) = 0)
+
+attribute [simp] preserves_zero_morphisms.preserves
 
 lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
   F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
@@ -146,6 +154,10 @@ end
 @[simp] lemma is_equivalence_preserves_zero_morphisms (F : C ⥤ D) [is_equivalence F] (X Y : C) :
   F.map (0 : X ⟶ Y) = 0 :=
 by rw [←functor.as_equivalence_functor F, equivalence_preserves_zero_morphisms]
+
+instance preserves_zero_morphisms_of_is_equivalence (F : C ⥤ D) [is_equivalence F] :
+  preserves_zero_morphisms F :=
+⟨equivalence_preserves_zero_morphisms F.as_equivalence⟩
 
 end
 

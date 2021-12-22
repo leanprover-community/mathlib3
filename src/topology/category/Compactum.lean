@@ -368,7 +368,7 @@ noncomputable def of_topological_space (X : Type*) [topological_space X]
   [compact_space X] [t2_space X] : Compactum :=
 { A := X,
   a := ultrafilter.Lim,
-  unit' := by {ext x, exact Lim_eq (by finish [le_nhds_iff]) },
+  unit' := by {ext x, apply Lim_eq, exact le_nhds_iff.mpr (λ _ h _, h) },
   assoc' := begin
     ext FF,
     change ultrafilter (ultrafilter X) at FF,

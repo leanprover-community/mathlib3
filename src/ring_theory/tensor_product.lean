@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import ring_theory.adjoin.basic
 import linear_algebra.tensor_product_basis
+import ring_theory.adjoin.basic
 
 /-!
 # The tensor product of R-algebras

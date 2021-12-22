@@ -13,8 +13,8 @@ import ring_theory.graded_algebra.basic
 
 # Homogeneous ideal of a graded algebra
 
-This file defines homogeneous ideals of `graded_algebra A` where `A : ι → submodule R R`and
-operations on them:
+This file defines homogeneous ideals of `graded_algebra A` where `A : ι → ideal R`and operations on
+them:
 * `mul`, `inf`, `Inf` of homogeneous ideals are homogeneous;
 * `⊤`, `⊥`, i.e. the trivial ring and `R` are homogeneous;
 * `radical` of a homogeneous ideal is homogeneous.
@@ -28,7 +28,7 @@ open set_like direct_sum set
 open_locale big_operators
 
 variables {ι R : Type*} [comm_ring R] [decidable_eq ι] [add_comm_monoid ι]
-variables (A : ι → submodule R R) [graded_algebra A]
+variables (A : ι → ideal R) [graded_algebra A]
 variable (I : ideal R)
 
 /--An `I : ideal R` is homogeneous if for every `r ∈ I`, all homogeneous components
@@ -117,7 +117,7 @@ open set_like direct_sum set
 open_locale big_operators pointwise
 
 variables {ι R : Type*} [comm_ring R] [decidable_eq ι] [add_comm_monoid ι]
-variables (A : ι → submodule R R) [graded_algebra A]
+variables (A : ι → ideal R) [graded_algebra A]
 variable (I : ideal R)
 
 /--For any `comm_ring R`, we collect the homogeneous ideals of `R` into a type.-/
@@ -261,7 +261,7 @@ section homogeneous_core
 open set_like direct_sum set
 
 variables {ι R : Type*} [comm_ring R]
-variables (A : ι → submodule R R)
+variables (A : ι → ideal R)
 variable (I : ideal R)
 
 /-- For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
@@ -333,7 +333,7 @@ section homogeneous_hull
 
 variables {ι : Type*} [add_comm_monoid ι] [decidable_eq ι]
 variables {R : Type*} [comm_ring R]
-variables (A : ι → submodule R R) [graded_algebra A]
+variables (A : ι → ideal R) [graded_algebra A]
 variable (I : ideal R)
 
 open set_like

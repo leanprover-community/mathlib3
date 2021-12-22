@@ -44,15 +44,15 @@ by { ext x, fin_cases x; assumption }
 
 private lemma vec3_eq' {a₀ a₁ a₂ b₀ b₁ b₂ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
   ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
-by rw [h₀, h₁, h₂]
+vec3_eq h₀ h₁ h₂
 
 private lemma vec3_add {a b : fin 3 → R} :
   a + b = ![a 0 + b 0, a 1 + b 1, a 2 + b 2] :=
-by { apply vec3_eq; refl }
+vec3_eq rfl rfl rfl
 
 private lemma vec3_add' {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
   ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
-by { rw vec3_add, refl }
+vec3_add
 
 
 

@@ -149,8 +149,7 @@ begin
     contradiction },
   { intros h1 F h2,
     specialize h1 F,
-    cases F.mem_or_compl_mem S;
-    finish }
+    cases F.mem_or_compl_mem S, { exact absurd (h1 h) h2 }, { exact h } }
 end
 
 instance {X : Compactum} : compact_space X :=

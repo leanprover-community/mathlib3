@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.finset.basic
+import data.finset.lattice
 
 /-!
 # Finite sets in a sigma type
@@ -19,7 +19,7 @@ This file defines a `finset` construction on `Σ i, α i`.
 open function multiset
 
 namespace finset
-variables {ι : Type*} {α : ι → Type*} (s s₁ s₂ : finset ι) (t t₁ t₂ : Π i, finset (α i))
+variables {ι β : Type*} {α : ι → Type*} (s s₁ s₂ : finset ι) (t t₁ t₂ : Π i, finset (α i))
 
 /-- `s.sigma t` is the finset of dependent pairs `⟨i, a⟩` such that `i ∈ s` and `a ∈ t i`. -/
 protected def sigma : finset (Σ i, α i) := ⟨_, nodup_sigma s.2 (λ i, (t i).2)⟩
@@ -40,5 +40,21 @@ by simp only [← not_nonempty_iff_eq_empty, sigma_nonempty, not_exists]
 lemma sigma_eq_bUnion [decidable_eq (Σ i, α i)] (s : finset ι) (t : Π i, finset (α i)) :
   s.sigma t = s.bUnion (λ i, (t i).map $ embedding.sigma_mk i) :=
 by { ext ⟨x, y⟩, simp [and.left_comm] }
+
+variables (s t) (f : (Σ i, α i) → β)
+
+lemma sup_sigma [semilattice_sup β] [order_bot β] :
+  (s.sigma t).sup f = s.sup (λ i, (t i).sup $ λ b, f ⟨i, b⟩) :=
+begin
+  refine (sup_le _).antisymm (sup_le $ λ i hi, sup_le $ λ b hb, le_sup $ mem_sigma.2 ⟨hi, hb⟩),
+  rintro ⟨i, b⟩ hb,
+  rw mem_sigma at hb,
+  refine le_trans _ (le_sup hb.1),
+  convert le_sup hb.2,
+end
+
+lemma inf_sigma [semilattice_inf β] [order_top β] :
+  (s.sigma t).inf f = s.inf (λ i, (t i).inf $ λ b, f ⟨i, b⟩) :=
+@sup_sigma _ (order_dual β) _ _ _ _ _ _
 
 end finset

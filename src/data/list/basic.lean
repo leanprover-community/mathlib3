@@ -3573,7 +3573,7 @@ by rcases exists_of_erasep h rfl with ⟨_, l₁, l₂, h₁, rfl, h₂, h₃⟩
   length (l.erase a) = pred (length l) :=
 by rw erase_eq_erasep; exact length_erasep_of_mem h rfl
 
-@[simp] lemma length_erase_add_one [decidable_eq α] {a : α} {l : list α} (h : a ∈ l) :
+@[simp] lemma length_erase_add_one {a : α} {l : list α} (h : a ∈ l) :
   (l.erase a).length + 1 = l.length :=
 by rw [erase_eq_erasep, length_erasep_add_one h rfl]
 

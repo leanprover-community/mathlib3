@@ -640,7 +640,7 @@ bot_equiv_of_injective (ring_hom.injective _)
 
 /-- The top subalgebra is isomorphic to the field. -/
 @[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
-alg_equiv.of_alg_hom (subalgebra.val ⊤) (to_top) rfl $ alg_hom.ext $ λ x, subtype.ext rfl
+alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ x, subtype.ext rfl
 
 end algebra
 

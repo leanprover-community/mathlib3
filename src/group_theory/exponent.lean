@@ -182,30 +182,7 @@ begin
     exact pow_exponent_eq_one g },
 end
 
-end monoid
-
-section left_cancel_monoid
-
-variable [left_cancel_monoid G]
-
-@[to_additive lcm_add_order_eq_exponent]
-lemma lcm_order_eq_exponent [fintype G] : (finset.univ : finset G).lcm order_of = exponent G :=
-begin
-  apply nat.dvd_antisymm (lcm_order_of_dvd_exponent G),
-  refine exponent_dvd_of_forall_pow_eq_one G _ (λ g, _),
-  obtain ⟨m, hm⟩ : order_of g ∣ finset.univ.lcm order_of := finset.dvd_lcm (finset.mem_univ g),
-  rw [hm, pow_mul, pow_order_of_eq_one, one_pow]
-end
-
-@[to_additive]
-lemma exponent_ne_zero_of_fintype [fintype G] : exponent G ≠ 0 :=
-by simpa [←lcm_order_eq_exponent, finset.lcm_eq_zero_iff] using λ x, (order_of_pos x).ne'
-
-end left_cancel_monoid
-
-section comm_monoid
-
-variable [cancel_comm_monoid G]
+variable {G}
 
 @[to_additive] lemma exponent_ne_zero_iff_range_order_of_finite (h : ∀ g : G, 0 < order_of g) :
   exponent G ≠ 0 ↔ (set.range (order_of : G → ℕ)).finite :=
@@ -240,13 +217,37 @@ end
 have _ := exponent_ne_zero_iff_range_order_of_finite h,
 by rwa [ne.def, not_iff_comm, iff.comm] at this
 
+end monoid
+
+section left_cancel_monoid
+
+variable [left_cancel_monoid G]
+
+@[to_additive lcm_add_order_eq_exponent]
+lemma lcm_order_eq_exponent [fintype G] : (finset.univ : finset G).lcm order_of = exponent G :=
+begin
+  apply nat.dvd_antisymm (lcm_order_of_dvd_exponent G),
+  refine exponent_dvd_of_forall_pow_eq_one G _ (λ g, _),
+  obtain ⟨m, hm⟩ : order_of g ∣ finset.univ.lcm order_of := finset.dvd_lcm (finset.mem_univ g),
+  rw [hm, pow_mul, pow_order_of_eq_one, one_pow]
+end
+
+@[to_additive]
+lemma exponent_ne_zero_of_fintype [fintype G] : exponent G ≠ 0 :=
+by simpa [←lcm_order_eq_exponent, finset.lcm_eq_zero_iff] using λ x, (order_of_pos x).ne'
+
+end left_cancel_monoid
+
+section comm_monoid
+
+variable [cancel_comm_monoid G]
+
 @[to_additive] lemma exponent_eq_Sup_order_of (h : ∀ g : G, 0 < order_of g) :
   exponent G = Sup (set.range (order_of : G → ℕ)) :=
 begin
   rcases eq_or_ne (exponent G) 0 with he | he,
-  { rw [he, set.infinite.nat.Sup_eq_zero],
-    rwa [← exponent_eq_zero_iff_range_order_of_infinite h], },
-  have hne : (set.range (order_of : G → ℕ)).nonempty := ⟨1, by simp⟩,
+  { rw [he, set.infinite.nat.Sup_eq_zero $ (exponent_eq_zero_iff_range_order_of_infinite h).1 he] },
+  have hne : (set.range (order_of : G → ℕ)).nonempty := ⟨1, 1, order_of_one⟩,
   have hfin : (set.range (order_of : G → ℕ)).finite,
   { rwa [← exponent_ne_zero_iff_range_order_of_finite h] },
   obtain ⟨t, ht⟩ := hne.cSup_mem hfin,
@@ -263,25 +264,23 @@ begin
   obtain ⟨g, hg⟩ := hp.1.exists_order_of_eq_pow_padic_val_nat_exponent G,
   suffices : order_of t < order_of (t ^ (p ^ k) * g),
   { rw ht at this,
-    exact this.not_le (le_cSup hfin.bdd_above $ by simp) },
+    exact this.not_le (le_cSup hfin.bdd_above $ set.mem_range_self _) },
   have hpk  : p ^ k ∣ order_of t := pow_padic_val_nat_dvd,
   have hpk' : order_of (t ^ p ^ k) = order_of t / p ^ k,
   { rw [order_of_pow' t (pow_ne_zero k hp.1.ne_zero), nat.gcd_eq_right hpk] },
   obtain ⟨a, ha⟩ := nat.exists_eq_add_of_lt hpe,
   have hcoprime : (order_of (t ^ p ^ k)).coprime (order_of g),
-  { rw [hg, nat.coprime_pow_right_iff, nat.coprime_comm],
+  { rw [hg, nat.coprime_pow_right_iff (pos_of_gt hpe), nat.coprime_comm],
     apply or.resolve_right (nat.coprime_or_dvd_of_prime hp.1 _),
     nth_rewrite 0 ←pow_one p,
     convert pow_succ_padic_val_nat_not_dvd (h $ t ^ p ^ k),
     rw [hpk', padic_val_nat.div_pow hpk, hk, nat.sub_self],
-    { apply_instance },
-    rw ha,
-    exact nat.succ_pos _ },
-  rw [(commute.all _ g).order_of_mul_eq_mul_order_of_of_coprime hcoprime,
-      hpk', hg, ha, ←ht, ←hk, pow_add, pow_add, pow_one],
-  convert_to order_of t < (order_of t / p ^ k * p ^ k) * p ^ a * p, ac_refl,
-  rw [nat.div_mul_cancel hpk, mul_assoc, lt_mul_iff_one_lt_right $ h t, ←pow_succ'],
-  exact one_lt_pow hp.1.one_lt a.succ_ne_zero
+    apply_instance },
+  rw [(commute.all _ g).order_of_mul_eq_mul_order_of_of_coprime hcoprime, hpk', hg, ha, ←ht, ←hk,
+      pow_add, pow_add, pow_one, ←mul_assoc, ←mul_assoc, nat.div_mul_cancel, mul_assoc,
+      lt_mul_iff_one_lt_right $ h t, ←pow_succ'],
+  exact one_lt_pow hp.1.one_lt a.succ_ne_zero,
+  exact hpk
 end
 
 @[to_additive] lemma exponent_eq_Sup_order_of' :

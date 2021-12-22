@@ -1977,7 +1977,7 @@ def image (f : α → β) (s : finset α) : finset β := (s.1.map f).to_finset
 
 @[simp] theorem image_empty (f : α → β) : (∅ : finset α).image f = ∅ := rfl
 
-variables {f : α → β} {s : finset α}
+variables {f g : α → β} {s : finset α}
 
 @[simp] theorem mem_image {b : β} : b ∈ s.image f ↔ ∃ a ∈ s, f a = b :=
 by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
@@ -1995,6 +1995,9 @@ instance [can_lift β α] : can_lift (finset β) (finset α) :=
       refine ⟨⟨l, list.nodup_of_nodup_map _ hd⟩, ext $ λ a, _⟩,
       simp
     end }
+
+lemma image_congr (h : (s : set α).eq_on f g) : finset.image f s = finset.image g s :=
+by { ext, simp_rw mem_image, exact bex_congr (λ x hx, by rw h hx) }
 
 lemma _root_.function.injective.mem_finset_image {f : α → β} (hf : function.injective f)
   {s : finset α} {x : α} :

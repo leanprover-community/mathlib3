@@ -518,6 +518,23 @@ begin
     exact ⟨⟨x⟩⟩ }
 end
 
+lemma preconnected_space_iff_connected_component :
+  preconnected_space α ↔ ∀ x : α, connected_component x = univ :=
+begin
+  split,
+  { intros h x,
+    exactI (eq_univ_of_univ_subset $
+      is_preconnected_univ.subset_connected_component (mem_univ x)) },
+  { intros h,
+    casesI is_empty_or_nonempty α with hα hα,
+    { exact ⟨by { rw (univ_eq_empty_iff.mpr hα), exact is_preconnected_empty }⟩ },
+    { exact ⟨by { rw ← h (classical.choice hα), exact is_preconnected_connected_component }⟩ } }
+end
+
+@[simp] lemma preconnected_space.connected_component_eq_univ {X : Type*} [topological_space X]
+  [h : preconnected_space X] (x : X) : connected_component x = univ :=
+preconnected_space_iff_connected_component.mp h x
+
 instance [topological_space β] [preconnected_space α] [preconnected_space β] :
   preconnected_space (α × β) :=
 ⟨by { rw ← univ_prod_univ, exact is_preconnected_univ.prod is_preconnected_univ }⟩

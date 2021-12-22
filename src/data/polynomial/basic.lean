@@ -333,6 +333,8 @@ by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 
 lemma commute_X (p : polynomial R) : commute X p := X_mul
 
+lemma commute_X_pow (p : polynomial R) (n : ℕ) : commute (X ^ n) p := X_pow_mul
+
 @[simp]
 lemma monomial_mul_X (n : ℕ) (r : R) : monomial n r * X = monomial (n+1) r :=
 by erw [monomial_mul_monomial, mul_one]

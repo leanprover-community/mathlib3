@@ -1068,7 +1068,7 @@ eq_of_forall_ge_iff $ λ o,
 by rw [blsub_le_iff_lt, lsub_le_iff_lt]; exact
   ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
 
-theorem blsub_id {o} (ho : is_limit o) : blsub.{u u} o (λ x _, x) = o :=
+theorem blsub_id {o} : blsub.{u u} o (λ x _, x) = o :=
 begin
   apply le_antisymm,
   { rw blsub_le_iff_lt,

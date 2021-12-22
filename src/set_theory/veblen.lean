@@ -92,6 +92,7 @@ noncomputable def enum_ord : ordinal.{u} → S := λ o, ⟨_, enum_ord'_mem hS o
 theorem enum_ord.strict_mono : strict_mono (enum_ord hS) :=
 enum_ord'.strict_mono
 
+-- rewrite in terms of enum_ord' hS
 theorem enum_ord.surjective : function.surjective (enum_ord hS) :=
 begin
   have Swf : well_founded ((<) : S → S → Prop) := inv_image.wf _ wf,

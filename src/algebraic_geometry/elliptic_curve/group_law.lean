@@ -213,7 +213,7 @@ lemma add_some_some.weierstrass
                 (x_def : x₃ = l ^ 2 + (K↑L)E.a1 * l - (K↑L)E.a2 - x₁ - x₂)
                 (y_def : y₃ = -l * x₃ - (K↑L)E.a1 * x₃ - y₁ + l * x₁ - (K↑L)E.a3) :
   y₃ ^ 2 + (K↑L)E.a1 * x₃ * y₃ + (K↑L)E.a3 * y₃
-    = x₃ ^ 3 + (K↑L)E.a2 * x₃ ^ 2 + (K↑L)E.a4 * x₃ + (K↑L)E.a6 := sorry
+    = x₃ ^ 3 + (K↑L)E.a2 * x₃ ^ 2 + (K↑L)E.a4 * x₃ + (K↑L)E.a6 :=
 -- begin
 --   -- rewrite Weierstrass equations as w₁(x₁, y₁) = 0 and w₂(x₂, y₂) = 0
 --   rw [← sub_eq_zero] at w₁ w₂,
@@ -245,9 +245,9 @@ lemma add_some_some.weierstrass
 --            - (K↑L)E.a6) :=
 --   by rw [x_def]; ring,
 --   -- rewrite l auxiliary tactic
---   have l_rw {a b c : L} :
---     l * a + b = c ↔ (y₁ - y₂) * a + (x₁ - x₂) * b + 0 = (x₁ - x₂) * c + 0 :=
---   by rw [← mul_right_inj' x_ne, mul_add (x₁ - x₂), ← mul_assoc (x₁ - x₂) l];
+--   have l_rw :
+--     ∀ (a b c : L), l * a + b = c ↔ (y₁ - y₂) * a + (x₁ - x₂) * b + 0 = (x₁ - x₂) * c + 0 :=
+--   by intros a b c; rw [← mul_right_inj' x_ne, mul_add (x₁ - x₂), ← mul_assoc (x₁ - x₂) l];
 --      rw [mul_comm (x₁ - x₂) l, l_def, inv_mul_cancel_right₀ x_ne, ← add_left_inj (0 : L)],
 --   -- rewrite l step 1
 --   have l_rw_1 :

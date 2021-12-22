@@ -112,14 +112,12 @@ begin
   cases P₁,
   { cases P₂,
     { refl },
-    { contradiction },
-  },
+    { contradiction }, },
   { cases P₂,
     { contradiction },
     { simp only [tor_2_y E L hP₁, tor_2_y E L hP₂],
       simp only [tor_2_to_ψ_2_x] at hP,
-      subst hP }
-  }
+      subst hP } }
 end
 
 /-- `E(L)[2]` is finite. -/

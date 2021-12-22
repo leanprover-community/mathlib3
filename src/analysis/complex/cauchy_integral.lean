@@ -6,7 +6,7 @@ Authors: Yury Kudryashov
 import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
 import measure_theory.integral.circle_integral
-import analysis.analytic.basic
+import analysis.calculus.fderiv_analytic
 
 /-!
 # Cauchy integral formula
@@ -19,7 +19,7 @@ open_locale interval real nnreal ennreal topological_space big_operators
 
 noncomputable theory
 
-universes u v
+universes u
 
 variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E] [borel_space E]
   [second_countable_topology E] [complete_space E]
@@ -300,5 +300,91 @@ protected lemma differentiable.analytic_at {f : ℂ → E} (hf : differentiable 
   analytic_at ℂ f z :=
 hf.differentiable_on.analytic_at univ_mem
 
-end complex
+/-- If `f` is complex differentiable on a closed disc with center `c` and radius `R > 0`, then
+`f' c` can be represented as an integral over the corresponding circle.
 
+TODO: add a version for `w ∈ metric.ball c R`.
+
+TODO: add a version for higher derivatives. -/
+lemma deriv_eq_smul_circle_integral {R : ℝ} {c : ℂ} {f : ℂ → E} (hR : 0 < R)
+  (hd : differentiable_on ℂ f (closed_ball c R)) :
+  deriv f c = (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z :=
+begin
+  lift R to ℝ≥0 using hR.le,
+  refine (hd.has_fpower_series_on_ball hR).has_fpower_series_at.deriv.trans _,
+  simp only [cauchy_power_series_apply, one_div, zpow_neg₀, pow_one, smul_smul,
+    zpow_two, mul_inv₀]
+end
+
+/-- If `f` is complex differentiable on a closed disc of radius `R`, and its values on the boundary
+circle of this disc are bounded from above by `C`, then the norm of its derivative at the center
+is at most `C / R`. -/
+lemma norm_deriv_le_of_forall_mem_sphere_norm_le {c : ℂ} {R C : ℝ} {f : ℂ → E} (hR : 0 < R)
+  (hd : differentiable_on ℂ f (closed_ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
+  ∥deriv f c∥ ≤ C / R :=
+have ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
+  from λ z (hz : abs (z - c) = R), by simpa [norm_smul, hz, zpow_two, ← div_eq_inv_mul]
+    using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),
+calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z∥ :
+  congr_arg norm (deriv_eq_smul_circle_integral hR hd)
+... ≤ R * (C / (R * R)) :
+  circle_integral.norm_two_pi_I_inv_smul_integral_le_of_norm_le_const hR.le this
+... = C / R : by rw [mul_div_comm, div_self_mul_self', div_eq_mul_inv]
+
+/-- A complex differentiable bounded function is a constant. -/
+lemma apply_eq_apply_of_differentiable_of_bounded {f : ℂ → E} (hf : differentiable ℂ f)
+  (hb : bounded (range f)) (z w : ℂ) : f z = f w :=
+begin
+  suffices : ∀ c, deriv f c = 0, from is_const_of_deriv_eq_zero hf this z w,
+  clear z w, intro c,
+  obtain ⟨C, C₀, hC⟩ : ∃ C > (0 : ℝ), ∀ z, ∥f z∥ ≤ C,
+  { rcases bounded_iff_forall_norm_le.1 hb with ⟨C, hC⟩,
+    exact ⟨max C 1, lt_max_iff.2 (or.inr zero_lt_one),
+      λ z, (hC (f z) (mem_range_self _)).trans (le_max_left _ _)⟩ },
+  refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε ε₀, _),
+  calc ∥deriv f c∥ ≤ C / (C / ε) :
+    norm_deriv_le_of_forall_mem_sphere_norm_le (div_pos C₀ ε₀) hf.differentiable_on (λ z _, hC z)
+  ... = ε : div_div_cancel' C₀.lt.ne'
+end
+
+/-- A complex differentiable bounded function is a constant. -/
+lemma exists_const_forall_eq_of_differentiable_of_bounded {f : ℂ → E} (hf : differentiable ℂ f)
+  (hb : bounded (range f)) : ∃ c, ∀ z, f z = c :=
+⟨f 0, λ z, apply_eq_apply_of_differentiable_of_bounded hf hb _ _⟩
+
+/-- A complex differentiable bounded function is a constant. -/
+lemma exists_eq_const_of_differentiable_of_bounded {f : ℂ → E} (hf : differentiable ℂ f)
+  (hb : bounded (range f)) : ∃ c, f = const ℂ c :=
+(exists_const_forall_eq_of_differentiable_of_bounded hf hb).imp $ λ c, funext
+
+lemma norm_eq_norm_of_differentiable_on_of_is_max_on_closed_ball_of_mem_ball {f : ℂ → E}
+  {c w : ℂ} {R : ℝ} (hd : differentiable_on ℂ f (closed_ball c R))
+  (hn : is_max_on (norm ∘ f) (closed_ball c R) c) (hw : w ∈ ball c R) :
+  ∥f w∥ = ∥f c∥ :=
+begin
+  refine (is_max_on_iff.1 hn _ (ball_subset_closed_ball hw)).antisymm (not_lt.1 _),
+  rintro hw : ∥f w∥ < ∥f c∥,
+  sorry
+end
+
+lemma norm_eventually_eq_of_eventually_differentiable_at_of_is_local_max {f : ℂ → E} {c : ℂ}
+  (hd : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f z) (hc : is_local_max (norm ∘ f) c) :
+  ∀ᶠ y in 𝓝 c, ∥f y∥ = ∥f c∥ :=
+begin
+  rcases nhds_basis_closed_ball.eventually_iff.1 (hd.and hc) with ⟨r, hr₀, hr⟩,
+  exact nhds_basis_ball.eventually_iff.2 ⟨r, hr₀, λ w hw,
+    norm_eq_norm_of_differentiable_on_of_is_max_on_closed_ball_of_mem_ball
+      (λ z hz, (hr hz).1.differentiable_within_at) (λ z hz, (hr hz).2) hw⟩
+end
+
+lemma is_open_set_of_mem_nhds_and_is_max_on_norm {f : ℂ → E} {s : set ℂ}
+  (hd : differentiable_on ℂ f s) :
+  is_open {z | s ∈ 𝓝 z ∧ is_max_on (norm ∘ f) s z} :=
+begin
+  refine is_open_iff_mem_nhds.2 (λ z hz, (eventually_eventually_nhds.2 hz.1).and _),
+  replace hd : ∀ᶠ w in 𝓝 z, differentiable_at ℂ f w, from hd.eventually_differentiable_at hz.1,
+  exact (norm_eventually_eq_of_eventually_differentiable_at_of_is_local_max hd $
+    (hz.2.is_local_max hz.1)).mono (λ x hx y hy, le_trans (hz.2 hy) hx.ge)
+end
+
+end complex

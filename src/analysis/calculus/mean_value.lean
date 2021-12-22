@@ -701,6 +701,13 @@ theorem _root_.lipschitz_with_of_nnnorm_deriv_le {C : ℝ≥0} (hf : differentia
 lipschitz_on_univ.1 $ convex_univ.lipschitz_on_with_of_nnnorm_deriv_le (λ x hx, hf x)
   (λ x hx, bound x)
 
+/-- If `f : 𝕜 → G`, `𝕜 = R` or `𝕜 = ℂ`, is differentiable everywhere and its derivative equal zero,
+then it is a constant function. -/
+theorem _root_.is_const_of_deriv_eq_zero (hf : differentiable 𝕜 f) (hf' : ∀ x, deriv f x = 0)
+  (x y : 𝕜) :
+  f x = f y :=
+is_const_of_fderiv_eq_zero hf (λ z, by { ext, simp [← deriv_fderiv, hf'] }) _ _
+
 end convex
 
 end

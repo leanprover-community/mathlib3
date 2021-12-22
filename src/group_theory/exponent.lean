@@ -207,13 +207,16 @@ section comm_monoid
 
 variable [cancel_comm_monoid G]
 
-@[to_additive] lemma exponent_eq_Sup_order_of (h : ∀ g : G, 0 < order_of g) :
-  exponent G = Sup (set.range (order_of : G → ℕ)) :=
+@[to_additive] lemma exponent_ne_zero_iff_range_order_of_finite (h : ∀ g : G, 0 < order_of g) :
+  exponent G ≠ 0 ↔ (set.range (order_of : G → ℕ)).finite :=
 begin
-  rcases eq_or_ne (exponent G) 0 with he | he,
-  { rw [he, set.infinite.nat.Sup_eq_zero],
-    contrapose! he,
-    replace he := not_not.mp he,
+  split,
+  { intro he,
+    by_contra h,
+    obtain ⟨m, ⟨t, rfl⟩, het⟩ := set.infinite.exists_nat_lt h (exponent G),
+    apply pow_ne_one_of_lt_order_of' he het,
+    exact pow_exponent_eq_one t },
+  { intro he,
     lift (set.range order_of) to finset ℕ using he with t ht,
     have htpos : 0 < t.prod id,
     { apply finset.prod_pos,
@@ -226,21 +229,28 @@ begin
       rw [h, zero_dvd_iff] at this,
       exact htpos.ne' this },
     refine exponent_dvd_of_forall_pow_eq_one _ _ (λ g, _),
-    rw pow_eq_mod_order_of,
-    convert pow_zero g,
-    apply nat.mod_eq_zero_of_dvd,
+    rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd, pow_zero g],
     apply finset.dvd_prod_of_mem,
     rw [←finset.mem_coe, ht],
     exact set.mem_range_self _ },
+end
+
+@[to_additive] lemma exponent_eq_zero_iff_range_order_of_infinite (h : ∀ g : G, 0 < order_of g) :
+  exponent G = 0 ↔ (set.range (order_of : G → ℕ)).infinite :=
+have _ := exponent_ne_zero_iff_range_order_of_finite h,
+by rwa [ne.def, not_iff_comm, iff.comm] at this
+
+@[to_additive] lemma exponent_eq_Sup_order_of (h : ∀ g : G, 0 < order_of g) :
+  exponent G = Sup (set.range (order_of : G → ℕ)) :=
+begin
+  rcases eq_or_ne (exponent G) 0 with he | he,
+  { rw [he, set.infinite.nat.Sup_eq_zero],
+    rwa [← exponent_eq_zero_iff_range_order_of_infinite h], },
   have hne : (set.range (order_of : G → ℕ)).nonempty := ⟨1, by simp⟩,
   have hfin : (set.range (order_of : G → ℕ)).finite,
-  { by_contra h,
-    obtain ⟨m, ⟨t, rfl⟩, het⟩ := set.infinite.exists_nat_lt h (exponent G),
-    apply pow_ne_one_of_lt_order_of' he het,
-    exact pow_exponent_eq_one t },
+  { rwa [← exponent_ne_zero_iff_range_order_of_finite h] },
   obtain ⟨t, ht⟩ := hne.cSup_mem hfin,
-  symmetry,
-  apply nat.dvd_antisymm,
+  apply nat.dvd_antisymm _,
   { rw ←ht,
     apply order_dvd_exponent },
   refine nat.dvd_of_factors_subperm he _,

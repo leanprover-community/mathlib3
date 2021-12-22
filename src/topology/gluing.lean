@@ -146,10 +146,6 @@ begin
   apply_instance
 end
 
-lemma inv_image.equivalence {α : Sort u} {β : Sort v} (r : β → β → Prop) (f : α → β)
-  (h : equivalence r) : equivalence (inv_image r f) :=
-⟨λ _, h.1 _, λ _ _ x, h.2.1 x, inv_image.trans r f h.2.2⟩
-
 lemma ι_eq_iff_rel (i j : D.J) (x : D.U i) (y : D.U j) :
   𝖣 .ι i x = 𝖣 .ι j y ↔ D.rel ⟨i, x⟩ ⟨j, y⟩ :=
 begin

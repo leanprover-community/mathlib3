@@ -1333,7 +1333,8 @@ lemma BigClaim (k : ℕ) (z : ℍ) (h : 3 ≤ k):
   ∀ (n: ℕ), ∑ (y: ℤ × ℤ) in (Square n), ((real_Eise k z) y)  ≤(8/((rfunct z)^k))*(n^((k: ℤ)-1))⁻¹:=
 begin
   intro n,
-  rw real_Eise, simp,
+  rw real_Eise,
+  squeeze_simp,
   have k0: 1 ≤ k, by {linarith,},
   have BO:=  Eise_on_square_is_bounded'' ( k : ℕ) (z : ℍ) (n : ℕ) k0,
   by_cases n0: n=0,

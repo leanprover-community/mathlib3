@@ -1,8 +1,6 @@
-import topology.connected
-import topology.continuous_function.basic
-import topology.homotopy.fundamental_groupoid
 import category_theory.full_subcategory
-import topology.maps
+import topology.is_locally_homeomorph
+import topology.homotopy.fundamental_groupoid
 
 variables {E X : Type*} [topological_space E] [topological_space X]
 
@@ -129,13 +127,17 @@ instance : has_coe_to_fun (E ↠ X) (λ _, E → X) := ⟨λ q, q.to_fun⟩
 
 @[continuity] lemma continuous (q : E ↠ X) : continuous q := q.continuous_to_fun
 
-lemma covering_map_open (q : E ↠ X) : is_open_map q :=
+lemma is_locally_homeomorph (q : E ↠ X) : is_locally_homeomorph q :=
 begin
-  intros U hU,
+  intro x,
+  obtain ⟨U, h_open, ⟨h_mem, ⟨h_covered⟩⟩⟩ := q.evenly_covered (q x),
   sorry,
 end
 
-lemma covering_map_quotient (q : E ↠ X) : quotient_map q :=
-q.covering_map_open.to_quotient_map q.continuous q.surjective
+lemma is_open_map (q : E ↠ X) : is_open_map q :=
+q.is_locally_homeomorph.is_open_map
+
+lemma covering_map_quotient_map (q : E ↠ X) : quotient_map q :=
+q.is_open_map.to_quotient_map q.continuous q.surjective
 
 end covering_map

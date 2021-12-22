@@ -2176,10 +2176,10 @@ theorem count_map_eq_count' [decidable_eq β] (f : α → β) (s : multiset α)
 begin
   by_cases H : x ∈ s,
   { exact count_map_eq_count f _ (set.inj_on_of_injective hf _) _ H, },
-  { simp [H, not_exists, count_eq_zero, count_eq_zero_of_not_mem H, hf],
-    intros y hy hh,
-    apply H,
-    rwa [← hf hh], }
+  { rw [count_eq_zero_of_not_mem H, count_eq_zero, mem_map],
+    rintro ⟨k, hks, hkx⟩,
+    rw hf hkx at *,
+    contradiction }
 end
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=

@@ -90,11 +90,8 @@ theorem spectral_radius_le_nnnorm (a : A) :
 begin
   suffices h : ∀ k ∈ σ a, (∥k∥₊ : ℝ≥0∞) ≤ ∥a∥₊,
   { exact bsupr_le h, },
-  { by_cases ha : (σ a).nonempty,
-    { intros _ hk,
-      exact_mod_cast norm_le_norm_of_mem hk },
-    { rw set.not_nonempty_iff_eq_empty at ha,
-      simp [ha, set.ball_empty_iff] } }
+  { intros _ hk,
+    exact_mod_cast norm_le_norm_of_mem hk },
 end
 
 end spectrum_compact

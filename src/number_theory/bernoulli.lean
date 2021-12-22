@@ -282,7 +282,7 @@ begin
     apply sum_congr rfl,
     simp_intros m h only [finset.mem_range],
     simp only [f, exp_pow_eq_rescale_exp, rescale, one_div, coeff_mk, ring_hom.coe_mk, coeff_exp,
-              ring_hom.id_apply, cast_mul, rat.algebra_map_rat_rat],
+              ring_hom.id_apply, cast_mul, algebra_map_rat_rat],
     -- manipulate factorials and binomial coefficients
     rw [choose_eq_factorial_div_factorial h.le, eq_comm, div_eq_iff (hne q.succ), succ_eq_add_one,
         mul_assoc _ _ ↑q.succ!, mul_comm _ ↑q.succ!, ← mul_assoc, div_mul_eq_mul_div,

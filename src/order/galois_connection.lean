@@ -119,6 +119,18 @@ lemma is_glb_l {a : α} : is_glb {b | a ≤ u b} (l a) := gc.is_least_l.is_glb
 
 lemma is_lub_u {b : β} : is_lub { a | l a ≤ b } (u b) := gc.is_greatest_u.is_lub
 
+/-- If `(l, u)` is a Galois connection, then the relation `x ≤ u (l y)` is a transitive relation.
+If `l` is a closure operator (`submodule.span`, `subgroup.closure`, ...) and `u` is the coercion to
+`set`, this reads as "if `U` is in the closure of `V` and `V` is in the closure of `W` then `U` is
+in the closure of `W`". -/
+lemma le_u_l_trans {x y z : α} (hxy : x ≤ u (l y)) (hyz : y ≤ u (l z)) :
+  x ≤ u (l z) :=
+hxy.trans (gc.monotone_u $ gc.l_le hyz)
+
+lemma l_u_le_trans {x y z : β} (hxy : l (u x) ≤ y) (hyz : l (u y) ≤ z) :
+  l (u x) ≤ z :=
+(gc.monotone_l $ gc.le_u hxy).trans hyz
+
 end
 
 section partial_order

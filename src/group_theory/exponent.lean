@@ -113,13 +113,15 @@ lemma order_dvd_exponent (g : G) : (order_of g) ∣ exponent G :=
 order_of_dvd_of_pow_eq_one (pow_exponent_eq_one G g)
 
 @[to_additive]
-lemma exponent_dvd_of_forall_pow_eq_one (n : ℕ) (hpos : 0 < n) (hG : ∀ g : G, g ^ n = 1) :
+lemma exponent_dvd_of_forall_pow_eq_one (n : ℕ) (hG : ∀ g : G, g ^ n = 1) :
   exponent G ∣ n :=
 begin
+  by_cases hpos : n = 0, { simp [hpos], },
   apply nat.dvd_of_mod_eq_zero,
   by_contradiction h,
   have h₁ := nat.pos_of_ne_zero h,
-  have h₂ : n % exponent G < exponent G := nat.mod_lt _ (exponent_pos_of_exists _ n hpos hG),
+  have h₂ : n % exponent G < exponent G :=
+    nat.mod_lt _ (exponent_pos_of_exists _ n (nat.pos_of_ne_zero hpos) hG),
   have h₃ : exponent G ≤ n % exponent G,
   { apply exponent_min' _ _ h₁,
     simp_rw ←pow_eq_mod_exponent,
@@ -143,18 +145,12 @@ lemma lcm_order_eq_exponent {H : Type u} [fintype H] [left_cancel_monoid H] :
 begin
   apply nat.dvd_antisymm (lcm_order_of_dvd_exponent H),
   apply exponent_dvd_of_forall_pow_eq_one,
-  { apply nat.pos_of_ne_zero,
-    by_contradiction,
-    rw finset.lcm_eq_zero_iff at h,
-    cases h with g hg,
-    simp only [true_and, set.mem_univ, finset.coe_univ] at hg,
-    exact ne_of_gt (order_of_pos g) hg },
-  { intro g,
-    have h : (order_of g) ∣ (finset.univ : finset H).lcm order_of,
-    { apply finset.dvd_lcm,
-      exact finset.mem_univ g },
-    cases h with m hm,
-    rw [hm, pow_mul, pow_order_of_eq_one, one_pow] },
+  intro g,
+  have h : (order_of g) ∣ (finset.univ : finset H).lcm order_of,
+  { apply finset.dvd_lcm,
+    exact finset.mem_univ g },
+  cases h with m hm,
+  rw [hm, pow_mul, pow_order_of_eq_one, one_pow]
 end
 
 end monoid

@@ -28,6 +28,21 @@ namespace algebraic_geometry
 
 variable (X : Scheme)
 
+-- TODO: add sober spaces, and show that schemes are sober
+instance : t0_space X.carrier :=
+begin
+  rw t0_space_iff_distinguishable,
+  intros x y h h',
+  obtain ⟨U, R, ⟨e⟩⟩ := X.local_affine x,
+  have hy := (h' _ U.1.2).mp U.2,
+  erw ← subtype_indistinguishable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h',
+  let e' : U.1 ≃ₜ prime_spectrum R :=
+    homeo_of_iso ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _).map_iso e),
+  have := t0_space_of_injective_of_continuous e'.injective e'.continuous,
+  rw t0_space_iff_distinguishable at this,
+  exact this ⟨x, U.2⟩ ⟨y, hy⟩ (by simpa using h) h'
+end
+
 /-- A scheme `X` is integral if its carrier is nonempty,
 and `𝒪ₓ(U)` is an integral domain for each `U ≠ ∅`. -/
 class is_integral : Prop :=
@@ -42,6 +57,31 @@ class is_reduced : Prop :=
 (component_reduced : ∀ U, _root_.is_reduced (X.presheaf.obj (op U)) . tactic.apply_instance)
 
 attribute [instance] is_reduced.component_reduced
+
+lemma is_reduced_of_stalk_is_reduced [∀ x : X.carrier, _root_.is_reduced (X.presheaf.stalk x)] :
+  is_reduced X :=
+begin
+  refine ⟨λ U, ⟨λ s hs, _⟩⟩,
+  apply presheaf.section_ext X.sheaf U s 0,
+  intro x,
+  rw ring_hom.map_zero,
+  change X.presheaf.germ x s = 0,
+  exact (hs.map _).eq_zero
+end
+
+instance stalk_is_reduced_of_reduced [is_reduced X] (x : X.carrier) :
+  _root_.is_reduced (X.presheaf.stalk x) :=
+begin
+  constructor,
+  rintros g ⟨n, e⟩,
+  obtain ⟨U, hxU, s, rfl⟩ := X.presheaf.germ_exist x g,
+  rw [← map_pow, ← map_zero (X.presheaf.germ ⟨x, hxU⟩)] at e,
+  obtain ⟨V, hxV, iU, iV, e'⟩ := X.presheaf.germ_eq x hxU hxU _ 0 e,
+  rw [map_pow, map_zero] at e',
+  replace e' := (is_nilpotent.mk _ _ e').eq_zero,
+  erw ← concrete_category.congr_hom (X.presheaf.germ_res iU ⟨x, hxV⟩) s,
+  rw [comp_apply, e', map_zero]
+end
 
 @[priority 900]
 instance is_reduced_of_is_integral [is_integral X] : is_reduced X :=

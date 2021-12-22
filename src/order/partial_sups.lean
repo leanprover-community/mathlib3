@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import data.finset.lattice
 import data.set.pairwise
-import order.order_hom
+import order.hom.basic
 
 /-!
 # The monotone sequence of partial supremums of a sequence

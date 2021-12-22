@@ -145,7 +145,7 @@ begin
     rintros V f ⟨Z, f', g', h, rfl⟩,
     erw family_of_elements.comp_of_compatible (S.functor_pushforward G)
       hx' (image_mem_functor_pushforward G S h) g',
-    dsimp at ⊢ hy,
+    dsimp,
     simp [hG₁.apply_map (sheaf_over ℱ X) hx h, ←hy f' h] }
 end
 
@@ -163,8 +163,8 @@ if `G` is cover-preserving and compatible-preserving.
 @[simps] def sites.pullback {G : C ⥤ D} (hG₁ : compatible_preserving K G)
   (hG₂ : cover_preserving J K G) : Sheaf K A ⥤ Sheaf J A :=
 { obj := λ ℱ, pullback_sheaf hG₁ hG₂ ℱ,
-  map := λ _ _ f, (((whiskering_left _ _ _).obj G.op)).map f,
-  map_id' := λ ℱ, (((whiskering_left _ _ _).obj G.op)).map_id ℱ.val,
-  map_comp' := λ _ _ _ f g, (((whiskering_left _ _ _).obj G.op)).map_comp f g }
+  map := λ _ _ f, ⟨(((whiskering_left _ _ _).obj G.op)).map f.val⟩,
+  map_id' := λ ℱ, by { ext1, apply (((whiskering_left _ _ _).obj G.op)).map_id },
+  map_comp' := λ _ _ _ f g, by { ext1, apply (((whiskering_left _ _ _).obj G.op)).map_comp } }
 
 end category_theory

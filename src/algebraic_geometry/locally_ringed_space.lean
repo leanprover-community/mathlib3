@@ -53,6 +53,8 @@ def to_Top : Top := X.1.carrier
 instance : has_coe_to_sort LocallyRingedSpace (Type u) :=
 ⟨λ X : LocallyRingedSpace, (X.to_Top : Type u)⟩
 
+instance (x : X) : _root_.local_ring (X.to_PresheafedSpace.stalk x) := X.local_ring x
+
 -- PROJECT: how about a typeclass "has_structure_sheaf" to mediate the 𝒪 notation, rather
 -- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.
 
@@ -125,6 +127,9 @@ def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 
 instance : faithful forget_to_SheafedSpace := {}
 
+@[simp] lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val = f.val ≫ g.val := rfl
+
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_
 spaces can be lifted to a morphism `X ⟶ Y` as locally ringed spaces.
@@ -177,7 +182,12 @@ def restrict {U : Top} (X : LocallyRingedSpace) {f : U ⟶ X.to_Top}
     apply @ring_equiv.local_ring _ _ _ (X.local_ring (f x)),
     exact (X.to_PresheafedSpace.restrict_stalk_iso h x).symm.CommRing_iso_to_ring_equiv,
   end,
-  .. X.to_SheafedSpace.restrict h }
+  to_SheafedSpace := X.to_SheafedSpace.restrict h }
+
+/-- The canonical map from the restriction to the supspace. -/
+def of_restrict {U : Top} (X : LocallyRingedSpace) {f : U ⟶ X.to_Top}
+  (h : open_embedding f) : X.restrict h ⟶ X :=
+⟨X.to_PresheafedSpace.of_restrict h, λ x, infer_instance⟩
 
 /--
 The restriction of a locally ringed space `X` to the top subspace is isomorphic to `X` itself.
@@ -224,7 +234,7 @@ end
 
 instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)
   [hU : nonempty U] : nontrivial (X.presheaf.obj $ op U) :=
-(X.presheaf.germ hU.some).domain_nontrivial
+(X.to_PresheafedSpace.presheaf.germ hU.some).domain_nontrivial
 
 end LocallyRingedSpace
 

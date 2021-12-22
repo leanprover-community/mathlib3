@@ -703,6 +703,30 @@ begin
   exact (is_primitive_root_exp n hpos.ne').is_integral hpos,
 end
 
+lemma cyclotomic_prime_mul_div {p n : ℕ} (hp : nat.prime p) (hdiv : p ∣ n) (R : Type*)
+  [comm_ring R] : expand R p (cyclotomic n R) = cyclotomic (p * n) R :=
+begin
+  by_cases hzero : n = 0,
+  { simp [hzero] },
+  { suffices : expand ℤ p (cyclotomic n ℤ) = cyclotomic (p * n) ℤ,
+    { rw [← map_cyclotomic_int, ← map_expand, this, map_cyclotomic_int] },
+    refine eq_of_monic_of_dvd_of_nat_degree_le (cyclotomic.monic _ _)
+      (expand_monic (zero_lt_iff.2 (nat.prime.ne_zero hp)) (cyclotomic.monic _ _)) _ _,
+    { have hpos := nat.mul_pos (nat.prime.pos hp) (zero_lt_iff.mpr hzero),
+      have hprim := complex.is_primitive_root_exp _ hpos.ne.symm,
+      rw [cyclotomic_eq_minpoly hprim hpos],
+      refine @minpoly.gcd_domain_dvd ℤ ℂ ℚ _ _ _ _ _ _ _ _ complex.algebra (algebra_int ℂ) _ _
+        (is_primitive_root.is_integral hprim hpos) _ (expand_monic (nat.prime.pos hp)
+        (cyclotomic.monic n ℤ)).is_primitive _,
+      rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval, ← is_root.def,
+        is_root_cyclotomic_iff],
+      { convert pow_of_div hprim (nat.prime.ne_zero hp) (dvd.intro n rfl),
+        rw [mul_comm, nat.mul_div_cancel _ (nat.prime.pos hp)] },
+      { exact_mod_cast hzero } },
+    { rw [nat_degree_expand, nat_degree_cyclotomic, nat_degree_cyclotomic,
+        nat.totient_mul_prime_div hp hdiv, mul_comm] } }
+end
+
 end minpoly
 
 end polynomial

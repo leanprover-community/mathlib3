@@ -929,54 +929,6 @@ protected def vitali_family [second_countable_topology α] [has_besicovitch_cove
     exact ⟨t, λ x, closed_ball x (r x), ts, tdisj, λ x xt, (tg x xt).1.2, μt⟩,
   end }
 
-lemma tsum_congr_subtype (f : α → ℝ≥0∞) {s t : set α} (h : s = t) :
-  ∑' (x : s), f x = ∑' (x : t), f x :=
-by rw h
-
-lemma tsum_mono_subtype (f : α → ℝ≥0∞) {s t : set α} (h : s ⊆ t) :
-  ∑' (x : s), f x ≤ ∑' (x : t), f x :=
-begin
-  simp only [tsum_subtype],
-  apply ennreal.tsum_le_tsum,
-  assume x,
-  split_ifs,
-  { exact le_rfl },
-  { exact (h_2 (h h_1)).elim },
-  { exact zero_le _ },
-  { exact le_rfl }
-end
-
-lemma tsum_union_le (f : α → ℝ≥0∞) (s t : set α) :
-  ∑' (x : s ∪ t), f x ≤ ∑' (x : s), f x + ∑' (x : t), f x :=
-calc ∑' (x : s ∪ t), f x = ∑' (x : s ∪ (t \ s)), f x :
-  by { apply tsum_congr_subtype, rw union_diff_self }
-... = ∑' (x : s), f x + ∑' (x : t \ s), f x :
-  tsum_union_disjoint disjoint_diff ennreal.summable ennreal.summable
-... ≤ ∑' (x : s), f x + ∑' (x : t), f x :
-  add_le_add le_rfl (tsum_mono_subtype _ (diff_subset _ _))
-
-lemma tsum_bUnion_le {ι : Type*} (f : α → ℝ≥0∞) (s : finset ι) (t : ι → set α) :
-  ∑' (x : ⋃ (i ∈ s), t i), f x ≤ ∑ i in s, ∑' (x : t i), f x :=
-begin
-  classical,
-  induction s using finset.induction_on with i s hi ihs h, { simp },
-  have : (⋃ (j ∈ insert i s), t j) = t i ∪ (⋃ (j ∈ s), t j), by simp,
-  rw tsum_congr_subtype _ this,
-  calc ∑' (x : (t i ∪ (⋃ (j ∈ s), t j))), f x ≤
-  ∑' (x : t i), f x + ∑' (x : ⋃ (j ∈ s), t j), f x : tsum_union_le _ _ _
-  ... ≤ ∑' (x : t i), f x + ∑ i in s, ∑' (x : t i), f x : add_le_add le_rfl ihs
-  ... = ∑ j in insert i s, ∑' (x : t j), f x : (finset.sum_insert hi).symm
-end
-
-lemma tsum_Union_le {ι : Type*} [fintype ι] (f : α → ℝ≥0∞) (t : ι → set α) :
-  ∑' (x : ⋃ i, t i), f x ≤ ∑ i, ∑' (x : t i), f x :=
-begin
-  classical,
-  have : (⋃ i, t i) = (⋃ (i ∈ (finset.univ : finset ι)), t i), by simp,
-  rw tsum_congr_subtype _ this,
-  exact tsum_bUnion_le _ _ _
-end
-
 theorem exists_closed_ball_covering_tsum_measure_le
   [second_countable_topology α] [hb : has_besicovitch_covering α]
   [measurable_space α] [opens_measurable_space α] (μ : measure α)
@@ -1042,10 +994,10 @@ begin
     simp only [r, if_neg this] },
   refine ⟨t0 ∪ (⋃ (i : fin N), (coe : s' → α) '' (S i)), r, _, _, _, _, _⟩,
   { exact t0_count.union (countable_Union (λ i, (S_count i).image _)) },
-  sorry; { simp only [t0s, true_and, union_subset_iff, image_subset_iff, Union_subset_iff],
+  { simp only [t0s, true_and, union_subset_iff, image_subset_iff, Union_subset_iff],
     assume i x hx,
     exact s's x.2 },
-  sorry; { assume x hx,
+  { assume x hx,
     cases hx,
     { rw r_t0 x hx,
       exact (hr0 _ hx).1 },
@@ -1054,9 +1006,9 @@ begin
         rcases hx with ⟨i, y, ySi, rfl⟩,
         exact y.2 },
       simp only [r, if_pos h'x, (hr1 x h'x).1.1] } },
-  sorry; { assume x hx,
+  { assume x hx,
     by_cases h'x : x ∈ s',
-    { obtain ⟨i, y, ySi, xy⟩ : ∃ (i : fin N) (y : ↥s') (ySi : y ∈ S i), x ∈ ball (y : α) (R' y),
+    { obtain ⟨i, y, ySi, xy⟩ : ∃ (i : fin N) (y : ↥s') (ySi : y ∈ S i), x ∈ ball (y : α) (r1 y),
       { have A : x ∈ range q.c, by simpa only [not_exists, exists_prop, mem_Union, mem_closed_ball,
           not_and, not_le, mem_set_of_eq, subtype.range_coe_subtype, mem_diff] using h'x,
         simpa only [mem_Union, mem_image] using hS A },
@@ -1089,9 +1041,16 @@ begin
           apply subset.trans (closed_ball_subset_ball (hr0 x hx).2.2) (hR x (t0s hx)).2,
         end
       ... ≤ μ s + ε / 2 : μu,
-    have B : ∀ (i : fin N), ∑' (x : S i), μ (closed_ball x (r x)) ≤ (ε / 2) / N := λ i, calc
-      ∑' (x : S i), μ (closed_ball x (r x))
-      = ∑' (x : S i), μ (closed_ball x (r1 x)) :
+    have B : ∀ (i : fin N),
+      ∑' (x : (coe : s' → α) '' (S i)), μ (closed_ball x (r x)) ≤ (ε / 2) / N := λ i, calc
+      ∑' (x : (coe : s' → α) '' (S i)), μ (closed_ball x (r x)) =
+            ∑' (x : S i), μ (closed_ball x (r x)) :
+        begin
+          have : inj_on (coe : s' → α) (S i) := subtype.coe_injective.inj_on _,
+          let F : S i ≃ (coe : s' → α) '' (S i) := this.bij_on_image.equiv _,
+          exact (F.tsum_eq (λ x, μ (closed_ball x (r x)))).symm,
+        end
+      ... = ∑' (x : S i), μ (closed_ball x (r1 x)) :
         by { congr' 1, ext x, have : (x : α) ∈ s' := x.1.2, simp only [r, if_pos this] }
       ... = μ (⋃ (x : S i), closed_ball x (r1 x)) :
         begin
@@ -1108,12 +1067,27 @@ begin
           exact (hr1 x xs').2,
         end
       ... ≤ (ε / 2) / N : by { have : μ s' = 0 := μt0, rwa [this, zero_add] at μv },
-
-
-  }
+    calc ∑' (x : (t0 ∪ ⋃ (i : fin N), (coe : s' → α) '' S i)), μ (closed_ball x (r x))
+        ≤ ∑' (x : t0), μ (closed_ball x (r x))
+          + ∑' (x : ⋃ (i : fin N), (coe : s' → α) '' S i), μ (closed_ball x (r x)) :
+            tsum_union_le (λ x, μ (closed_ball x (r x))) _ _
+    ... ≤ ∑' (x : t0), μ (closed_ball x (r x))
+          + ∑ (i : fin N), ∑' (x : (coe : s' → α) '' S i), μ (closed_ball x (r x)) :
+            add_le_add le_rfl (tsum_Union_le (λ x, μ (closed_ball x (r x))) _)
+    ... ≤ (μ s + ε / 2) + ∑ (i : fin N), (ε / 2) / N :
+      begin
+        refine add_le_add A _,
+        refine finset.sum_le_sum _,
+        assume i hi,
+        exact B i
+      end
+    ... ≤ (μ s + ε / 2) + ε / 2 :
+      begin
+        refine add_le_add le_rfl _,
+        simp only [finset.card_fin, finset.sum_const, nsmul_eq_mul, ennreal.mul_div_le],
+      end
+    ... = μ s + ε : by rw [add_assoc, ennreal.add_halves] }
 
 end
 
 end besicovitch
-
-#exit

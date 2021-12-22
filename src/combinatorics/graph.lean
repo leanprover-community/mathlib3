@@ -1,6 +1,20 @@
+/-
+Copyright (c) 2021 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
+-/
 import data.rel
 import data.set.finite
 import data.sym.sym2
+
+/-!
+# Graph interfaces
+
+This module defines typeclasses for creating custom graph-like objects. For example,
+the `has_adj` class provides a vertex adjacency relation, and it can be given properties
+by further implementing classes such as `is_adj_symmetric` and `is_adj_loopless`.
+
+-/
 
 open finset
 

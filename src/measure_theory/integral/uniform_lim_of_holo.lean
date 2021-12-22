@@ -1024,45 +1024,28 @@ lemma unif_lim_of_diff_is_cts (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : �
   (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R)) :
   continuous_on f (closed_ball z R) :=
 begin
-have F_cts : ∀ n, continuous_on (F n) (closed_ball z R),
-by {intro n, apply (hdiff n).continuous_on,},
-apply tendsto_uniformly_on.continuous_on hlim,
-simp only [ge_iff_le, eventually_at_top],
-use 1,
-intros b hb,
-apply F_cts,
-end
-
-lemma unif_of_diff_is_diff (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
-  (hdiff : ∀ (n : ℕ), differentiable_on ℂ (F n) (closed_ball z R))
-  (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R)) :
-  differentiable_on ℂ f (ball z (2⁻¹*R)) :=
-begin
-  have F_alt : ∀ (n : ℕ) (c : ball z (2⁻¹*R) ), F n c = (int_diff R hR (F n) z) c,
-  by {intros n c,
-  have hc : c.1 ∈ ball z R, by {have := half_ball_sub R hR z, apply this, apply c.property,},
-  have ht := holo_test hc (hdiff n),
-  simp only [one_div, mem_ball, algebra.id.smul_eq_mul,
-  nat.cast_bit0, real_smul, nsmul_eq_mul, nat.cast_one, subtype.val_eq_coe] at *,
-  rw ht,
-  simp only [int_diff, int_diff0,  one_div, algebra.id.smul_eq_mul, nat.cast_bit0, real_smul,
-  integral_const_mul, nsmul_eq_mul, nat.cast_one],},
   have F_cts : ∀ n, continuous_on (F n) (closed_ball z R),
   by {intro n, apply (hdiff n).continuous_on,},
-  rw differentiable_on,
-  intros x hx,
+  apply tendsto_uniformly_on.continuous_on hlim,
+  simp only [ge_iff_le, eventually_at_top],
+  use 1,
+  intros b hb,
+  apply F_cts,
+end
+
+lemma unif_of_diff_has_fderiv (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
+  (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R))
+  (F_alt : ∀ (n : ℕ) (c : ball z (2⁻¹*R) ), F n c = (int_diff R hR (F n) z) c)
+  (x : ℂ)
+  (hx : x ∈  ball z (2⁻¹ *R))
+  (keyb : ∀ (w : ↥(ball z R)),
+  tendsto (λ (n : ℕ), ∫ (θ : ℝ) in 0..2 * π, int_diff0 R hR (F n) z ↑w θ) at_top
+  (𝓝 (∫ (θ : ℝ) in 0..2 * π, int_diff0 R hR f z ↑w θ))  )
+  (D : ℂ →L[ℂ] ℂ )
+  (hD : has_fderiv_within_at (int_diff R hR f z) D (ball z (2⁻¹ * R)) x ) :
+  ∃ (f' : ℂ →L[ℂ] ℂ), has_fderiv_within_at f f' (ball z (2⁻¹ * R)) x :=
+begin
   have hxx : x ∈ ball z R, by {have :=half_ball_sub R hR z, apply this, apply hx},
-  have keyb := UNIF_CONV_INT R hR F f z F_cts hlim ,
-  rw differentiable_within_at,
-  have h0 := int_diff R hR f z,
-  have hf := unif_lim_of_diff_is_cts F f z R hR hdiff hlim,
-  have HF := int_diff_has_fdrevi R hR z f hf,
-  clear hf F_cts hdiff,
-  rw differentiable_on at HF,
-  have HF2 := HF x,
-  clear HF,
-  simp only [hx, forall_true_left, differentiable_within_at] at HF2,
-  obtain ⟨D, hD⟩:= HF2,
   use D,
   simp_rw [has_fderiv_within_at_iff_tendsto, metric.tendsto_nhds, tendsto_uniformly_on_iff,
   dist_eq_norm]  at *,
@@ -1140,6 +1123,39 @@ begin
   rw ht,
   simp only [norm_zero, zero_mul, abs_zero, inv_zero],
   apply hε,
+end
+
+
+
+lemma unif_of_diff_is_diff (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R : ℝ)  (hR: 0 < R)
+  (hdiff : ∀ (n : ℕ), differentiable_on ℂ (F n) (closed_ball z R))
+  (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R)) :
+  differentiable_on ℂ f (ball z (2⁻¹*R)) :=
+begin
+  have F_alt : ∀ (n : ℕ) (c : ball z (2⁻¹*R) ), F n c = (int_diff R hR (F n) z) c,
+  by {intros n c,
+  have hc : c.1 ∈ ball z R, by {have := half_ball_sub R hR z, apply this, apply c.property,},
+  have ht := holo_test hc (hdiff n),
+  simp only [one_div, mem_ball, algebra.id.smul_eq_mul,
+  nat.cast_bit0, real_smul, nsmul_eq_mul, nat.cast_one, subtype.val_eq_coe] at *,
+  rw ht,
+  simp only [int_diff, int_diff0,  one_div, algebra.id.smul_eq_mul, nat.cast_bit0, real_smul,
+  integral_const_mul, nsmul_eq_mul, nat.cast_one],},
+  have F_cts : ∀ n, continuous_on (F n) (closed_ball z R),
+  by {intro n, apply (hdiff n).continuous_on,},
+  rw differentiable_on,
+  intros x hx,
+  have keyb := UNIF_CONV_INT R hR F f z F_cts hlim ,
+  rw differentiable_within_at,
+  have hf := unif_lim_of_diff_is_cts F f z R hR hdiff hlim,
+  have HF := int_diff_has_fdrevi R hR z f hf,
+  clear hf F_cts hdiff,
+  rw differentiable_on at HF,
+  have HF2 := HF x,
+  clear HF,
+  simp only [hx, forall_true_left, differentiable_within_at] at HF2,
+  obtain ⟨D, hD⟩:= HF2,
+  apply unif_of_diff_has_fderiv F f z R hR hlim F_alt x hx keyb D hD,
 end
 
 end complex

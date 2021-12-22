@@ -6,6 +6,7 @@ Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 import category_theory.category.basic
 import data.finsupp.basic
 import data.dfinsupp
+import data.set.intervals.ord_connected
 import data.sigma.order
 import .cover
 
@@ -334,38 +335,88 @@ bot_covers_top.grade.trans $ by rw [grade_bot, zero_add]
 
 end is_simple_order
 
+/-! #### Lifting a graded order -/
+
+section lift
+variables [preorder α] [order_bot α] [preorder β] [order_bot β] [grade_order β] {a b : α}
+  {f : α ↪o β}
+
+lemma covers.of_image (h : f a ⋖ f b) : a ⋖ b :=
+begin
+  -- hint: `monotone.reflect_lt`
+  sorry
+end
+
+lemma covers.image_covers_of_ord_connected (h : (set.range f).ord_connected) (hab : a ⋖ b) :
+  f a ⋖ f b :=
+begin
+  sorry
+end
+
+lemma image_covers_iff (h : (set.range f).ord_connected) : f a ⋖ f b ↔ a ⋖ b :=
+⟨covers.of_image, covers.image_covers_of_ord_connected h⟩
+
+/-- Lifts a graded order along an order embedding. -/
+def grade_order.lift (hbot : f ⊥ = ⊥) (h : (set.range f).ord_connected) : grade_order α :=
+{ grade := λ a, grade (f a),
+  grade_bot := by rw [hbot, grade_bot],
+  strict_mono := grade_strict_mono.comp f.strict_mono,
+  grade_of_covers := λ a b h, begin
+    sorry
+  end }
+
+end lift
+
 /-! #### Multiset -/
 
 namespace multiset
+variables {s t : multiset α} {a : α}
 
-private lemma cons_lt_cons (a : α) {s t : multiset α} (hlt : s < t) : a ::ₘ s < a ::ₘ t :=
-⟨cons_le_cons _ hlt.1, hlt.2 ∘ (cons_le_cons_iff _).mp⟩
+lemma cons_lt_cons_iff : a ::ₘ s < a ::ₘ t ↔ s < t :=
+lt_iff_lt_of_le_iff_le' (cons_le_cons_iff _) (cons_le_cons_iff _)
 
-private lemma lt_cons_of_le (a : α) {s t : multiset α} : s ≤ t → s < a ::ₘ t :=
-λ hle, lt_of_lt_of_le (lt_cons_self _ _) (cons_le_cons _ hle)
+lemma cons_lt_cons (a : α) (h : s < t) : a ::ₘ s < a ::ₘ t := cons_lt_cons_iff.2 h
 
-lemma covers.exists_cons_multiset [decidable_eq α] {s t : multiset α} (hcovers : s ⋖ t) :
-  ∃ a, t = a ::ₘ s :=
+lemma covers_cons (m : multiset α) (a : α) : m ⋖ a ::ₘ m := ⟨lt_cons_self _ _, begin
+  sorry
+end⟩
+
+lemma exists_cons_le_of_lt (h : s < t) : ∃ a, a ::ₘ s ≤ t :=
 begin
-  cases hcovers with hlt no_intermediate,
-  rcases hdiff : (t - s) with ⟨diff⟩,
-  cases diff,
-  { exfalso,
-    simp at hdiff,
-    exact hlt.2 hdiff },
-  cases diff_tl,
-  { use diff_hd,
-    rw [←(eq_union_left hlt.1), union_def, hdiff],
-    refl },
-  { exfalso,
-    apply @no_intermediate (diff_hd ::ₘ s),
-    { apply lt_cons_self },
-    { rw [←(eq_union_left hlt.1), union_def, hdiff],
-      simp,
-      rw [←cons_coe, ←cons_coe, cons_add, cons_add],
-      apply cons_lt_cons,
-      apply lt_cons_of_le,
-      exact le_add_self } }
+  sorry
+end
+
+lemma _root_.covers.exists_cons_multiset (h : s ⋖ t) : ∃ a, t = a ::ₘ s :=
+begin
+  obtain ⟨a, ha⟩ := exists_cons_le_of_lt h.lt,
+  refine ⟨a, ha.eq_of_not_gt _⟩,
+  sorry
+  -- cases hcovers with hlt no_intermediate,
+  -- rcases hdiff : (t - s) with ⟨diff⟩,
+  -- cases diff,
+  -- { exfalso,
+  --   simp at hdiff,
+  --   exact hlt.2 hdiff },
+  -- cases diff_tl,
+  -- { use diff_hd,
+  --   rw [←(eq_union_left hlt.1), union_def, hdiff],
+  --   refl },
+  -- { exfalso,
+  --   apply @no_intermediate (diff_hd ::ₘ s),
+  --   { apply lt_cons_self },
+  --   { rw [←(eq_union_left hlt.1), union_def, hdiff],
+  --     simp,
+  --     rw [←cons_coe, ←cons_coe, cons_add, cons_add],
+  --     apply cons_lt_cons,
+  --     apply lt_cons_of_le,
+  --     exact le_add_self } }
+end
+
+lemma covers_iff_exists_cons : s ⋖ t ↔ ∃ a, t = a ::ₘ s :=
+begin
+  refine ⟨covers.exists_cons_multiset, _⟩,
+  rintro ⟨a, rfl⟩,
+  exact covers_cons _ _,
 end
 
 instance (α : Type*) : grade_order (multiset α) :=
@@ -373,12 +424,10 @@ instance (α : Type*) : grade_order (multiset α) :=
   grade_bot := card_zero,
   strict_mono := λ a b, card_lt_of_lt,
   grade_of_covers := λ a b hab, begin
-    have ab_cons : ∃ x, b = x ::ₘ a := sorry,
-    -- `covers.exists_cons_multiset hab` doesn't work here because it requires `decidable_eq α`.
-    -- I don't know how to `include` ... `omit` an instance, please help me!
+    have ab_cons : ∃ x, b = x ::ₘ a := hab.exists_cons_multiset,
     cases ab_cons with _ hcons,
     have hcard := congr_arg card hcons,
-    rwa card_cons at hcard
+    rwa card_cons at hcard,
   end }
 
 @[simp] protected lemma grade (m : multiset α) : grade m = m.card := rfl
@@ -389,6 +438,7 @@ end multiset
 
 namespace finset
 
+-- golf using `image_covers_iff`
 @[simp] lemma finset.val_covers_iff {s t : finset α} : s.1 ⋖ t.1 ↔ s ⋖ t :=
 begin
   split;

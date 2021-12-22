@@ -205,6 +205,12 @@ begin
     rw [coeff_expand_mul hp, ← leading_coeff], exact mt leading_coeff_eq_zero.1 hf }
 end
 
+lemma expand_monic {p : ℕ} {f : polynomial R} (hp : 0 < p) (h : f.monic) : (expand R p f).monic :=
+begin
+  rw [monic.def, leading_coeff, nat_degree_expand, coeff_expand hp],
+  simp [hp, h],
+end
+
 theorem map_expand {p : ℕ} {f : R →+* S} {q : polynomial R} :
   map f (expand R p q) = expand S p (map f q) :=
 begin

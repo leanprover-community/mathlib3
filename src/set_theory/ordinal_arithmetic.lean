@@ -1123,7 +1123,6 @@ theorem enum_ord_def (o) :
   (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono b⟩) :=
 enum_ord_def_aux hS o
 
--- rewrite in terms of enum_ord hS
 theorem enum_ord.surjective : ∀ s ∈ S, ∃ a, enum_ord hS a = s :=
 begin
   by_contra' H,
@@ -1154,7 +1153,7 @@ begin
 end
 
 /-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/
-noncomputable def enum_ord'.order_iso : ordinal.{u} ≃o S :=
+noncomputable def enum_ord.order_iso : ordinal.{u} ≃o S :=
 strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) enum_ord.strict_mono
 begin
   convert enum_ord.surjective hS,

@@ -88,13 +88,13 @@ protected def reverse_aux : Π {u v w : V}, G.walk u v → G.walk u w → G.walk
 | _ _ _ nil q := q
 | _ _ _ (cons h p) q := reverse_aux p (cons (G.symm h) q)
 
-/-- Reverse the orientation of a walk. -/
+/-- The walk in reverse. -/
 @[symm]
 def reverse {u v : V} (w : G.walk u v) : G.walk v u := w.reverse_aux nil
 
-/-- Get the `n`th vertex from a path, where `n` is generally expected to be
+/-- Get the `n`th vertex from a walk, where `n` is generally expected to be
 between `0` and `p.length`, inclusive.
-If `n` is greater than the length of the path, the result is the path's endpoint. -/
+If `n` is greater than or equal to `p.length`, the result is the path's endpoint. -/
 def get_vert : Π {u v : V} (p : G.walk u v) (n : ℕ), V
 | u v nil _ := u
 | u v (cons _ _) 0 := u
@@ -128,12 +128,12 @@ protected lemma reverse_aux_eq_reverse_append {u v w : V} (p : G.walk u v) (q : 
 begin
   induction p generalizing q w,
   { refl },
-  { dsimp [walk.reverse_aux, walk.reverse],
+  { dunfold walk.reverse_aux walk.reverse,
     rw [p_ih, p_ih, ←append_assoc],
     refl, }
 end
 
-@[simp] lemma append_reverse {u v w : V} (p : G.walk u v) (q : G.walk v w) :
+@[simp] lemma reverse_append {u v w : V} (p : G.walk u v) (q : G.walk v w) :
   (p.append q).reverse = q.reverse.append p.reverse :=
 begin
   induction p generalizing q w,
@@ -143,7 +143,7 @@ begin
     rw append_assoc, }
 end
 
-@[simp] lemma cons_reverse {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+@[simp] lemma reverse_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).reverse = p.reverse.append (cons (G.symm h) nil) :=
 begin
   dsimp [reverse, walk.reverse_aux],
@@ -164,7 +164,7 @@ end
 | _ _ _ nil _ := by simp
 | _ _ _ (cons _ p') _ := by simp [append_length, add_left_comm, add_comm]
 
-protected lemma reverse_aux_length {u v w : V} (p : G.walk u v) (q : G.walk u w) :
+protected lemma length_reverse_aux {u v w : V} (p : G.walk u v) (q : G.walk u w) :
   (p.reverse_aux q).length = p.length + q.length :=
 begin
   induction p,
@@ -173,8 +173,8 @@ begin
     ring, },
 end
 
-@[simp] lemma reverse_length {u v : V} (p : G.walk u v) : p.reverse.length = p.length :=
-by convert walk.reverse_aux_length p nil
+@[simp] lemma length_reverse {u v : V} (p : G.walk u v) : p.reverse.length = p.length :=
+by convert walk.length_reverse_aux p nil
 
 /-- The `support` of a walk is the list of vertices it visits in order. -/
 def support : Π {u v : V}, G.walk u v → list V
@@ -186,9 +186,9 @@ def edges : Π {u v : V}, G.walk u v → list (sym2 V)
 | u v nil := []
 | u v (@cons _ _ _ x _ h p) := ⟦(u, x)⟧ :: p.edges
 
-@[simp] lemma nil_support {u : V} : (nil : G.walk u u).support = [u] := rfl
+@[simp] lemma support_nil {u : V} : (nil : G.walk u u).support = [u] := rfl
 
-@[simp] lemma cons_support {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+@[simp] lemma support_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).support = u :: p.support := rfl
 
 lemma support_ne_nil {u v : V} (p : G.walk u v) : p.support ≠ [] :=
@@ -203,14 +203,14 @@ by cases p; simp
 @[simp] lemma end_mem_support {u v : V} (p : G.walk u v) : v ∈ p.support :=
 by induction p; simp *
 
-lemma support_chain_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
+lemma chain_adj_support_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
   list.chain G.adj u p.support
 | _ _ _ h nil := list.chain.cons h list.chain.nil
-| _ _ _ h (cons h' p) := list.chain.cons h (support_chain_aux h' p)
+| _ _ _ h (cons h' p) := list.chain.cons h (chain_adj_support_aux h' p)
 
-lemma support_chain : Π {u v : V} (p : G.walk u v), list.chain' G.adj p.support
+lemma chain_adj_support : Π {u v : V} (p : G.walk u v), list.chain' G.adj p.support
 | _ _ nil := list.chain.nil
-| _ _ (cons h p) := support_chain_aux h p
+| _ _ (cons h p) := chain_adj_support_aux h p
 
 /-- Every edge in a walk's edge list is an edge of the graph.
 It is written in this form to avoid unsightly coercions. -/
@@ -223,16 +223,6 @@ begin
     rcases h with ⟨rfl, h⟩,
     { exact p_h },
     { exact p_ih h }, },
-end
-
-lemma mem_support_of_mem_tsupport {u v w : V} (p : G.walk v w) (h : u ∈ p.support.tail) :
-  u ∈ p.support :=
-begin
-  cases p,
-  { simpa using h },
-  { rw [cons_support, list.mem_cons_iff],
-    right,
-    exact h, },
 end
 
 @[simp] lemma nil_edges {u : V} : (nil : G.walk u u).edges = [] := rfl
@@ -252,7 +242,7 @@ lemma mem_support_of_mem_edges {t u v w : V} (p : G.walk v w)
 begin
   induction p,
   { exact false.elim he, },
-  { simp only [cons_support, list.mem_cons_iff],
+  { simp only [support_cons, list.mem_cons_iff],
     simp only [cons_edges, list.mem_cons_iff, quotient.eq] at he,
     cases he,
     { cases he,
@@ -313,7 +303,7 @@ begin
   cases h with ht hd,
   split,
   { exact is_trail_of_cons_is_trail ht, },
-  { rw [cons_support, list.nodup_cons] at hd,
+  { rw [support_cons, list.nodup_cons] at hd,
     exact hd.2, },
 end
 
@@ -324,7 +314,7 @@ by simp [is_trail, and_comm]
 @[simp] lemma cons_is_path_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 begin
-  simp only [is_path_def, cons_is_trail_iff, cons_support, list.nodup_cons],
+  simp only [is_path_def, cons_is_trail_iff, support_cons, list.nodup_cons],
   split,
   { rintro ⟨⟨ht, hne⟩, hns, hsn⟩,
     exact ⟨⟨ht, hsn⟩, hns⟩, },
@@ -453,14 +443,14 @@ begin
   { rintro (h|h),
     { exact or.inl h, },
     { right,
-      exact mem_support_of_mem_tsupport _ h, } },
+      exact list.mem_of_mem_tail h, } },
   { rintro (h|h),
     { exact or.inl h },
     { cases p',
-      { simp only [nil_support, list.mem_singleton] at h,
+      { simp only [support_nil, list.mem_singleton] at h,
         subst t,
         simp, },
-      { simp only [list.mem_cons_iff, cons_support] at h,
+      { simp only [list.mem_cons_iff, support_cons] at h,
         rcases h with (rfl|h),
         { simp, },
         { simp [h], } } } },
@@ -481,9 +471,9 @@ lemma append_support' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk
 begin
   rw append_support,
   cases p',
-  { rw [nil_support, list.tail_cons, list.append_nil],
+  { rw [support_nil, list.tail_cons, list.append_nil],
     exact (add_tsub_cancel_right _ _).symm },
-  { simp_rw cons_support,
+  { simp_rw support_cons,
     rw [list.tail_cons, ←multiset.cons_coe, ←multiset.singleton_add, add_comm, add_assoc,
       add_tsub_cancel_left, add_comm, ←multiset.coe_add] }
 end
@@ -493,7 +483,7 @@ lemma reverse_support {u v : V} (p : G.walk u v) : p.reverse.support = p.support
 begin
   induction p,
   { trivial, },
-  { simp only [list.reverse_cons, cons_reverse, cons_support, append_support, p_ih],
+  { simp only [list.reverse_cons, reverse_cons, support_cons, append_support, p_ih],
     refl, },
 end
 
@@ -554,7 +544,7 @@ lemma is_path_of_append_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
   (h : (p.append q).is_path) : q.is_path :=
 begin
   rw ←reverse_path_iff at h ⊢,
-  rw append_reverse at h,
+  rw reverse_append at h,
   exact is_path_of_append_left _ _ h,
 end
 
@@ -563,7 +553,7 @@ variables [decidable_eq V]
 /-- Given a vertex in the support of a path, give the path up until that vertex. -/
 def take_until : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.walk v u
 | v w nil u h := begin
-  simp only [nil_support, list.mem_singleton] at h,
+  simp only [support_nil, list.mem_singleton] at h,
   subst h,
 end
 | v w (cons r p) u h :=
@@ -571,7 +561,7 @@ end
     by subst u
   else
   begin
-    simp only [list.mem_cons_iff, cons_support] at h,
+    simp only [list.mem_cons_iff, support_cons] at h,
     have : u ∈ p.support := h.cases_on (λ h', (hx h'.symm).elim) id,
     exact cons r (take_until p _ this),
   end
@@ -579,7 +569,7 @@ end
 /-- Given a vertex in the support of a path, give the path from that vertex to the end. -/
 def take_from : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.walk u w
 | v w nil u h := begin
-  simp only [nil_support, list.mem_singleton] at h,
+  simp only [support_nil, list.mem_singleton] at h,
   subst h,
 end
 | v w (cons r p) u h :=
@@ -587,7 +577,7 @@ end
     by { subst u, exact cons r p }
   else
   begin
-    simp only [list.mem_cons_iff, cons_support] at h,
+    simp only [list.mem_cons_iff, support_cons] at h,
     have : u ∈ p.support := h.cases_on (λ h', (hx h'.symm).elim) id,
     exact take_from p _ this,
   end
@@ -638,7 +628,7 @@ begin
     { simp at h,
       cases h,
       { exact (h_1 h_2.symm).elim, },
-      { rw [cons_support, list.count_cons, p_ih h_2],
+      { rw [support_cons, list.count_cons, p_ih h_2],
         simp,
         intro h,
         exact h_1 h.symm, }, }, },
@@ -659,7 +649,7 @@ begin
   { simp at h,
     subst u,
     simp [take_until], },
-  { rw [cons_support, list.mem_cons_iff] at h,
+  { rw [support_cons, list.mem_cons_iff] at h,
     rcases h with (rfl|h),
     { simp [take_until], },
     { specialize p_ih h,
@@ -821,7 +811,7 @@ begin
     split_ifs,
     { apply list.subset.trans (take_from_support_subset _ _),
       apply list.subset_cons_of_subset _ p_ih, },
-    { rw cons_support,
+    { rw support_cons,
       exact list.cons_subset_cons _ p_ih, }, },
 end
 
@@ -1348,7 +1338,7 @@ open fintype
 /-- Get the next edge after vertext `v` on a path `p` from `v` to vertex `w`. -/
 def next_edge (G : simple_graph V) : ∀ (v w : V) (h : v ≠ w) (p : G.walk v w), G.incidence_set v
 | v w h walk.nil := (h rfl).elim
-| v w h (@walk.cons _ _ _ u _ hvw _) := ⟨⟦(v, u)⟧, hvw, sym2.mk_has_mem _ _⟩
+| v w h (@walk.cons _ _ _ u _ hvw _) := ⟨⟦(v, u)⟧, hvw, sym2.mem_mk_left _ _⟩
 
 lemma nonempty_path_not_loop {v : V} {e : sym2 V} (p : G.path v v)
   (h : e ∈ walk.edges (p : G.walk v v)) : false :=

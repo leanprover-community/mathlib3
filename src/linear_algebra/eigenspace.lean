@@ -98,6 +98,11 @@ begin
   rw [hv.apply_eq_smul, sub_self]
 end
 
+lemma has_eigenvalue_iff_mem_spectrum [finite_dimensional K V] {f : End K V} {μ : K} :
+  f.has_eigenvalue μ ↔ μ ∈ spectrum K f :=
+iff.intro mem_spectrum_of_has_eigenvalue
+  (λ h, by rwa [spectrum.mem_iff, is_unit.sub_iff, linear_map.is_unit_iff_ker_eq_bot] at h)
+
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=
 calc

@@ -136,3 +136,25 @@ int.induction_on n
   ( by simp)
   ( λ i h, by { simp only [add_smul, smul_add, add_left_inj, one_gsmul, h] })
   ( λ i h, by { simp only [int.pred_smul, smul_sub, smul_neg, neg_inj, sub_left_inj, h] } )
+
+-- used in the two proofs of `d² = 0`.
+/-- Sends `(j, k)` to `(k + 1, j)` if `j ≤ k` and `(k, j - 1)` otherwise. -/
+def invo : ℕ × ℕ → ℕ × ℕ :=
+λ j, if j.1 ≤ j.2 then (j.2 + 1, j.1) else (j.2, j.1 - 1)
+
+lemma invo_pos {j : ℕ × ℕ} (h : j.1 ≤ j.2) :
+  invo j = (j.2 + 1, j.1) := if_pos h
+
+lemma invo_neg {j : ℕ × ℕ} (h : ¬j.1 ≤ j.2) :
+  invo j = (j.2, j.1 - 1) := if_neg h
+
+lemma invo_invo (j : ℕ × ℕ) : invo (invo j) = j :=
+begin
+  by_cases h : j.1 ≤ j.2,
+  { rw [invo_pos h, invo_neg],
+    { exact prod.ext rfl rfl },
+    { linarith }},
+  { rw [invo_neg h, invo_pos],
+    { exact prod.ext (nat.sub_add_cancel (by linarith)) rfl },
+    { exact (nat.le_pred_of_lt (not_le.1 h)) }},
+end

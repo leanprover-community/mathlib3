@@ -9,6 +9,7 @@ import group_theory.free_abelian_group
 import algebra.big_operators.finsupp
 import algebra.monoid_algebra.basic
 import algebra.group.cohomology.lemmas
+import algebra.group.cohomology.std_resn
 
 /-!
 # Group cohomology
@@ -146,7 +147,17 @@ def d {i j : ℕ} (hj : j = i + 1) : cochain_succ G M i →+ cochain_succ G M j 
 
 lemma d_eval {i j : ℕ} (hj : j = i + 1) (c : cochain_succ G M i) (g : fin j → G) :
   d hj c g = (finset.range j).sum (λ p, (-1 : ℤ)^p • c $ λ t, g $ fin.delta hj p t) := rfl
+variables {i j : ℕ} (hj : j = i + 1) (c : cochain_succ G M i) (g : fin j → G)
 
+theorem total_d_eq_d :
+  finsupp.total (fin i → G) M ℤ c (group_ring.d G hj (group_ring.of _ g)) = d hj c g :=
+begin
+  rw [d_eval, group_ring.d_of],
+  simp only [int_smul_apply, finsupp.total_single, linear_map.map_sum],
+end
+
+/- a very similar proof to group_ring.d_squared_of, hope to find a more general statement
+that works for both... -/
 theorem d_squared_eq_zero {i j k : ℕ} (hj : j = i + 1) (hk : k = j + 1) (c : cochain_succ G M i) :
   (d hk (d hj c)) = 0 :=
 begin
@@ -162,10 +173,9 @@ begin
   end,
   simp_rw finset.smul_sum,
   rw ← finset.sum_product',
-  apply finset.sum_involution (λ (pq : ℕ × ℕ) (hpq),
-    if pq.fst ≤ pq.2 then (pq.2.succ, pq.1) else (pq.2, pq.1.pred)),
+  refine finset.sum_involution (λ (pq : ℕ × ℕ) (hpq), invo pq) _ _ _ _,
   { intros,
-    simp,
+    unfold invo,
     split_ifs,
     { simp [fin.delta_comm_apply hj hk h, pow_succ, smul_smul, mul_comm ((-1 : ℤ) ^ a.fst)] },
     { -- kill the pred.
@@ -183,31 +193,22 @@ begin
     rw prod.ext_iff at hfalse,
     rcases hfalse with ⟨h1, h2⟩,
     dsimp at *,
+    unfold invo at *,
     split_ifs at *,
     { subst h1,revert h_1,
       apply nat.not_succ_le_self },
     { exact h_1 (h1 ▸ le_refl _) } },
   { rintro ⟨p, q⟩ hpqrange,
-    simp [nat.succ_eq_add_one],
+    unfold invo,
+    simp only [hk, hj, finset.mem_product, finset.mem_range] at ⊢ hpqrange,
     split_ifs,
-      exfalso, linarith,
-      refl,
-      cases p, {exfalso, exact h (zero_le _)}, refl,
-      exfalso, cases p, exact h (zero_le _), rw nat.pred_succ at h_1,
-        rw nat.succ_eq_add_one at h,linarith },
-  { rintros ⟨p, q⟩ hpqbounds,
-    rw finset.mem_product at hpqbounds,
-    rcases hpqbounds with ⟨hpk : p ∈ _, hqj : q ∈ _⟩,
-    rw finset.mem_range at hpk hqj,
-    simp,
-    split_ifs,
-    { rw nat.succ_eq_add_one,
-      split; linarith },
-    { push_neg at h,
-      cases p, cases h,
-      rw nat.pred_succ,
-      rw nat.succ_eq_add_one at *,
-      split; linarith } },
+      { exact ⟨nat.add_lt_add_right hpqrange.2 _, lt_of_le_of_lt h hpqrange.2⟩ },
+      { cases p,
+        { exact false.elim (h (zero_le _))},
+        { exact ⟨lt_trans hpqrange.2 (nat.lt_succ_self _),
+          (add_lt_add_iff_right 1).1 hpqrange.1⟩}}},
+  { intros,
+    exact invo_invo _, },
 end
 
 end cochain_succ

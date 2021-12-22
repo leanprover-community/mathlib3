@@ -19,10 +19,19 @@ noncomputable theory
 /-- The quotient of `Gⁿ⁺¹` by the left action of `G` -/
 abbreviation orbit_quot := quotient (mul_action.orbit_rel G (fin (n + 1) → G))
 
+/- Thank you to this def for solving all my instance clashes -/
+def group_ring := monoid_algebra ℤ G
+
+instance : add_comm_group (group_ring G) :=
+finsupp.add_comm_group
+
+instance : ring (group_ring G) :=
+{ ..monoid_algebra.semiring, ..group_ring.add_comm_group G }
+
 /-- `ℤ[G]`-module instance on an `add_comm_group` `M` with a `distrib_mul_action` of `G`.
   Deliberately not an instance. -/
 def distrib_mul_action.to_module {G : Type*} [group G] {M : Type*} [add_comm_group M]
-  [h : distrib_mul_action G M] : module (monoid_algebra ℤ G) M :=
+  [h : distrib_mul_action G M] : module (group_ring G) M :=
 { smul := λ g m, finsupp.total G M ℤ (λ h, h • m) g,
     one_smul := λ b, by
     { dsimp,
@@ -54,16 +63,7 @@ def distrib_mul_action.to_module {G : Type*} [group G] {M : Type*} [add_comm_gro
     add_smul := λ r s x, linear_map.map_add _ _ _,
     zero_smul := λ x, linear_map.map_zero _ }
 
-/- Thank you to this def for solving all my instance clashes -/
-def group_ring := monoid_algebra ℤ G
-
 namespace group_ring
-
-instance : add_comm_group (group_ring G) :=
-finsupp.add_comm_group
-
-instance : ring (group_ring G) :=
-{ ..monoid_algebra.semiring, ..group_ring.add_comm_group G }
 
 instance {H : Type*} [group H] [mul_action G H] :
   distrib_mul_action G (group_ring H) :=

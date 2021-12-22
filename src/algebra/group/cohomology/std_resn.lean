@@ -78,27 +78,6 @@ begin
   rw mul_one,
 end
 
-/-- Sends `(j, k)` to `(k + 1, j)` if `j ≤ k` and `(k, j - 1)` otherwise. -/
-def invo : ℕ × ℕ → ℕ × ℕ :=
-λ j, if j.1 ≤ j.2 then (j.2 + 1, j.1) else (j.2, j.1 - 1)
-
-lemma invo_pos {j : ℕ × ℕ} (h : j.1 ≤ j.2) :
-  invo j = (j.2 + 1, j.1) := if_pos h
-
-lemma invo_neg {j : ℕ × ℕ} (h : ¬j.1 ≤ j.2) :
-  invo j = (j.2, j.1 - 1) := if_neg h
-
-lemma invo_invo (j : ℕ × ℕ) : invo (invo j) = j :=
-begin
-  by_cases h : j.1 ≤ j.2,
-  { rw [invo_pos h, invo_neg],
-    { exact prod.ext rfl rfl },
-    { linarith }},
-  { rw [invo_neg h, invo_pos],
-    { exact prod.ext (nat.sub_add_cancel (by linarith)) rfl },
-    { exact (nat.le_pred_of_lt (not_le.1 h)) }},
-end
-
 theorem d_squared_of {i j k : ℕ} (hj : i = j + 1) (hk : j = k + 1) (c : fin i → G) :
   (d G hk (d G hj $ of _ c)) = 0 :=
 begin
@@ -269,7 +248,7 @@ def std_resn_π : std_resn_complex G ⟶ ((chain_complex.single₀
       exact coeff_sum_d.symm },
     { simp only [limits.comp_zero, chain_complex.single₀_obj_X_d] at * }}}
 
-variables {G} --(g : group_ring (fin 1 → G))
+variables {G}
 
 lemma delta_zero_cons (g : group_ring (fin 1 → G)) :
   finsupp.map_domain (λ v : fin 2 → G, v ∘ fin.delta rfl 0) (cons 1 1 g) = g :=
@@ -369,9 +348,8 @@ variables (G)
 /-- The exact sequence of `AddCommGroup`s `... → ℤ[G²] → ℤ[G] → ℤ → 0`.
   We need this to show 1 is null-homotopic as a map of `AddCommGroup` complexes. -/
 abbreviation std_resn_aug_AddCommGroup :=
-((forget₂ (Module (group_ring G)) AddCommGroup).map_homological_complex (complex_shape.down ℕ)).obj
-  ((std_resn_complex G).augment ((coeff_sum G).comp (dom_one_equiv G).to_linear_map)
-  (by ext1; exact coeff_sum_d))
+((forget₂ _ AddCommGroup).map_homological_complex _).obj ((std_resn_complex G).augment
+((coeff_sum G).comp (dom_one_equiv G).to_linear_map) (by ext1; exact coeff_sum_d))
 
 /-- Basically the map `ℤ → ℤ[G]` sending `n ↦ n • 1` -/
 def std_resn_homotopy_aux : trivial G →+ group_ring (fin 1 → G) :=
@@ -482,20 +460,23 @@ begin
     rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, hf] }
 end)
 
+/- Don't know what assumptions on the category I need to make this compile & be
+  maximally general so it will just be AddCommGroup for now -/
+/-- A complex on which 1 is nullhomotopic is homotopy equivalent to the zero complex. -/
+def homotopy_equiv_of_null_homotopic {ι : Type*}
+  (c : complex_shape ι) (C : homological_complex AddCommGroup c)
+  (H : homotopy (𝟙 C) 0) : homotopy_equiv C limits.has_zero_object.zero :=
+⟨0, 0, H.symm, homotopy.of_eq (limits.has_zero_object.to_zero_ext _ _)⟩
+
+/-- A chain complex (of `AddCommGroup`s) on which the identity is null-homotopic is exact. -/
 def exact_of_homotopy_zero {ι : Type*}
   {c : complex_shape ι} {C : homological_complex AddCommGroup c}
   (h : homotopy (𝟙 C) 0) (j : ι) :
   exact (C.d_to j) (C.d_from j) :=
 (preadditive.exact_iff_homology_zero (C.d_to j) (C.d_from j)).2 $
-⟨homological_complex.d_to_comp_d_from _ _, ⟨@limits.iso_zero_of_epi_zero _ _ _ _
-  ((homology_functor _ c j).obj C) _ $
-begin
-  have := homology_map_eq_of_homotopy h j,
-  rw (homology_functor _ _ _).map_zero at this,
-  { rw [← this, functor.map_id'],
-    exact category_struct.id.epi _},
-  { exact homological_complex.homology_additive _ },
-end⟩⟩
+⟨homological_complex.d_to_comp_d_from _ _, ⟨
+  (homology_obj_iso_of_homotopy_equiv (homotopy_equiv_of_null_homotopic c C h) _).trans
+  (functor.map_zero_object (homology_functor AddCommGroup c j))⟩⟩
 
 lemma exact_to_from_iff {V : Type*} [category V] [limits.has_images V] [limits.has_zero_morphisms V]
   [limits.has_zero_object V] [limits.has_equalizers V] {C : chain_complex V ℕ} {j : ℕ} :
@@ -504,7 +485,8 @@ begin
   rw [C.d_to_eq rfl, C.d_from_eq rfl, exact_iso_comp, exact_comp_iso],
 end
 
--- idk how to do this stupid obvious thing
+-- idk how to do this stupid obvious thing (update: I still can't do this, christ)
+-- there's no major issue I just get a bit lost in the category theory library
 instance exact_of_AddCommGroup_exact {R : Type*} [ring R]
   {A B C : Module R} (f : A ⟶ B) (g : B ⟶ C)
   [h : exact ((forget₂ (Module R) AddCommGroup).map f) ((forget₂ (Module R) AddCommGroup).map g)] :
@@ -521,6 +503,8 @@ begin
   exact exact_to_from_iff.1 (exact_of_homotopy_zero (std_resn_homotopy G) (n + 2)),
 end
 
+/-- The resolution `... → ℤ[G²] → ℤ[G]` of the trivial `ℤ[G]`-module `ℤ` as
+a projective resolution. -/
 def std_resn : ProjectiveResolution (trivial G) :=
 { complex := std_resn_complex G,
   π := std_resn_π G,

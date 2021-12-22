@@ -24,7 +24,7 @@ noncomputable theory
 
 namespace homological_complex
 
-variables {β : Type*} [add_comm_group β] {b : β}
+variables {β : Type*} [add_monoid β] {b : β}
 variables {V : Type*} [category V] [has_zero_morphisms V]
 
 /-- Since `eq_to_hom` only preserves the fact that `X.X i = X.X j` but not `i = j`, this definition

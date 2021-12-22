@@ -311,7 +311,7 @@ variables [has_zero_morphisms C]
 
 @[simp]
 lemma shift_zero_eq_zero (X Y : C) (n : A) : (0 : X ⟶ Y)⟦n⟧' = (0 : X⟦n⟧ ⟶ Y⟦n⟧) :=
-by apply is_equivalence_preserves_zero_morphisms _ (shift_functor C n)
+by apply is_equivalence_preserves_zero_morphisms (shift_functor C n)
 
 end add_group
 

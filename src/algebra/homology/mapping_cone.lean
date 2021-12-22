@@ -1,5 +1,6 @@
 import algebra.homology.homological_complex
 import category_theory.abelian.basic
+import algebra.homology.differential_object
 
 noncomputable theory
 
@@ -76,5 +77,15 @@ def cone.in [decidable_rel c.rel] : B ⟶ cone f :=
   end }
 
 /- TODO: `cone.out : cone f ⟶ A⟦1⟧ `-/
+
+def cone.out [decidable_rel c.rel] : cone f ⟶ A⟦(1 : ℤ)⟧ :=
+{ f := λ i, biprod.inr,
+  comm' := λ i j hij,
+  begin
+    dsimp [cone_d, cone.d], rw [dif_pos hij],
+    ext;
+    simp only [comp_zero, category.assoc, category.comp_id,
+      biprod.inr_desc, biprod.inr_fst, biprod.lift_fst, biprod.inr_snd, biprod.lift_snd],
+  end }
 
 end homological_complex

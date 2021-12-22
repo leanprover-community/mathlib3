@@ -27,10 +27,8 @@ mul_aut, add_aut
 variables {A : Type*} {M : Type*} {G : Type*}
 
 /-- The group of multiplicative automorphisms. -/
-@[to_additive "The group of additive automorphisms."]
+@[reducible, to_additive "The group of additive automorphisms."]
 def mul_aut (M : Type*) [has_mul M] := M ≃* M
-
-attribute [reducible] mul_aut add_aut
 
 namespace mul_aut
 
@@ -48,7 +46,7 @@ by refine_struct
   inv := mul_equiv.symm,
   div := _,
   npow := @npow_rec _ ⟨mul_equiv.refl M⟩ ⟨λ g h, mul_equiv.trans h g⟩,
-  gpow := @gpow_rec _ ⟨mul_equiv.refl M⟩ ⟨λ g h, mul_equiv.trans h g⟩ ⟨mul_equiv.symm⟩ };
+  zpow := @zpow_rec _ ⟨mul_equiv.refl M⟩ ⟨λ g h, mul_equiv.trans h g⟩ ⟨mul_equiv.symm⟩ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (mul_aut M) := ⟨1⟩
@@ -74,14 +72,13 @@ by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
 
 /-- The tautological action by `mul_aut M` on `M`.
 
-Note this also satisfies the axioms of `mul_semiring_action` that aren't inherited from
-`distrib_mul_action`.
-
 This generalizes `function.End.apply_mul_action`. -/
-instance apply_mul_action {M} [monoid M] : mul_action (mul_aut M) M :=
+instance apply_mul_distrib_mul_action {M} [monoid M] : mul_distrib_mul_action (mul_aut M) M :=
 { smul := ($),
   one_smul := λ _, rfl,
-  mul_smul := λ _ _ _, rfl }
+  mul_smul := λ _ _ _, rfl,
+  smul_one := mul_equiv.map_one,
+  smul_mul := mul_equiv.map_mul }
 
 @[simp] protected lemma smul_def {M} [monoid M] (f : mul_aut M) (a : M) : f • a = f a := rfl
 
@@ -90,7 +87,9 @@ instance apply_has_faithful_scalar {M} [monoid M] : has_faithful_scalar (mul_aut
 ⟨λ _ _, mul_equiv.ext⟩
 
 /-- Group conjugation, `mul_aut.conj g h = g * h * g⁻¹`, as a monoid homomorphism
-mapping multiplication in `G` into multiplication in the automorphism group `mul_aut G`. -/
+mapping multiplication in `G` into multiplication in the automorphism group `mul_aut G`.
+See also the type `conj_act G` for any group `G`, which has a `mul_action (conj_act G) G` instance
+where `conj G` acts on `G` by conjugation. -/
 def conj [group G] : G →* mul_aut G :=
 { to_fun := λ g,
   { to_fun := λ h, g * h * g⁻¹,
@@ -123,7 +122,7 @@ by refine_struct
   inv := add_equiv.symm,
   div := _,
   npow := @npow_rec _ ⟨add_equiv.refl A⟩ ⟨λ g h, add_equiv.trans h g⟩,
-  gpow := @gpow_rec _ ⟨add_equiv.refl A⟩ ⟨λ g h, add_equiv.trans h g⟩ ⟨add_equiv.symm⟩ };
+  zpow := @zpow_rec _ ⟨add_equiv.refl A⟩ ⟨λ g h, add_equiv.trans h g⟩ ⟨add_equiv.symm⟩ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (add_aut A) := ⟨1⟩
@@ -168,15 +167,15 @@ homomorphism mapping addition in `G` into multiplication in the automorphism gro
 (written additively in order to define the map). -/
 def conj [add_group G] : G →+ additive (add_aut G) :=
 { to_fun := λ g, @additive.of_mul (add_aut G)
-  { to_fun := λ h, g + h - g,
+  { to_fun := λ h, g + h + -g, -- this definition is chosen to match `mul_aut.conj`
     inv_fun := λ h, -g + h + g,
     left_inv := λ _, by simp [add_assoc],
     right_inv := λ _, by simp [add_assoc],
-    map_add' := by simp [add_assoc, sub_eq_add_neg] },
-  map_add' := λ _ _, by apply additive.to_mul.injective; ext; simp [add_assoc, sub_eq_add_neg],
+    map_add' := by simp [add_assoc] },
+  map_add' := λ _ _, by apply additive.to_mul.injective; ext; simp [add_assoc],
   map_zero' := by ext; simpa }
 
-@[simp] lemma conj_apply [add_group G] (g h : G) : conj g h = g + h - g := rfl
+@[simp] lemma conj_apply [add_group G] (g h : G) : conj g h = g + h + -g := rfl
 @[simp] lemma conj_symm_apply [add_group G] (g h : G) : (conj g).symm h = -g + h + g := rfl
 @[simp] lemma conj_inv_apply [add_group G] (g h : G) : (-(conj g)) h = -g + h + g := rfl
 

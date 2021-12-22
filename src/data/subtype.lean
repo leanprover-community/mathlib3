@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import logic.function.basic
 import tactic.ext
 import tactic.lint
 import tactic.simps
@@ -51,6 +52,12 @@ protected theorem forall' {q : ∀ x, p x → Prop} :
 @[simp] protected theorem «exists» {q : {a // p a} → Prop} :
   (∃ x, q x) ↔ (∃ a b, q ⟨a, b⟩) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
+
+/-- An alternative version of `subtype.exists`. This one is useful if Lean cannot figure out `q`
+  when using `subtype.exists` from right to left. -/
+protected theorem exists' {q : ∀x, p x → Prop} :
+  (∃ x h, q x h) ↔ (∃ x : {a // p a}, q x x.2) :=
+(@subtype.exists _ _ (λ x, q x.1 x.2)).symm
 
 @[ext] protected lemma ext : ∀ {a1 a2 : {x // p x}}, (a1 : α) = (a2 : α) → a1 = a2
 | ⟨x, h1⟩ ⟨.(x), h2⟩ rfl := rfl
@@ -104,6 +111,15 @@ by refl
 lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injective f) :
   injective (restrict f p) :=
 h.comp coe_injective
+
+lemma surjective_restrict {α} {β : α → Type*} [ne : Π a, nonempty (β a)] (p : α → Prop) :
+  surjective (λ f : Π x, β x, restrict f p) :=
+begin
+  letI := classical.dec_pred p,
+  refine λ f, ⟨λ x, if h : p x then f ⟨x, h⟩ else nonempty.some (ne x), funext $ _⟩,
+  rintro ⟨x, hx⟩,
+  exact dif_pos hx
+end
 
 /-- Defining a map into a subtype, this can be seen as an "coinduction principle" of `subtype`-/
 @[simps] def coind {α β} (f : α → β) {p : β → Prop} (h : ∀ a, p (f a)) : α → subtype p :=

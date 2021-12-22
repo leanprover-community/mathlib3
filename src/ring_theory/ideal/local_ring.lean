@@ -3,8 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
+
+import algebra.algebra.basic
 import algebra.category.CommRing.basic
-import ring_theory.ideal.basic
+import ring_theory.ideal.operations
 
 /-!
 
@@ -176,6 +178,26 @@ instance is_local_ring_hom_comp [semiring R] [semiring S] [semiring T]
   is_local_ring_hom (g.comp f) :=
 { map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
 
+instance _root_.CommRing.is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T)
+  [is_local_ring_hom g] [is_local_ring_hom f] :
+  is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
+
+/-- If `f : R →+* S` is a local ring hom, then `R` is a local ring if `S` is. -/
+lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_ring R] [comm_ring S]
+  [H : _root_.local_ring S] (f : R →+* S)
+  [is_local_ring_hom f] : _root_.local_ring R :=
+begin
+  haveI : nontrivial R := pullback_nonzero f f.map_zero f.map_one,
+  constructor,
+  intro x,
+  rw [← is_unit_map_iff f, ← is_unit_map_iff f, f.map_sub, f.map_one],
+  exact _root_.local_ring.is_local (f x)
+end
+
+lemma is_local_ring_hom_of_comp {R S T: Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  (f : R →+* S) (g : S →+* T) [is_local_ring_hom (g.comp f)] : is_local_ring_hom f :=
+⟨λ a ha, (is_unit_map_iff (g.comp f) _).mp (g.is_unit_map ha)⟩
+
 instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
   is_local_ring_hom f.to_ring_hom :=
 { map_nonunit := λ a ha,
@@ -223,9 +245,31 @@ end
 namespace local_ring
 variables [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
 
+/--
+A ring homomorphism between local rings is a local ring hom iff it reflects units,
+i.e. any preimage of a unit is still a unit. https://stacks.math.columbia.edu/tag/07BJ
+-/
+theorem local_hom_tfae (f : R →+* S) :
+  tfae [is_local_ring_hom f,
+        f '' (maximal_ideal R).1 ⊆ maximal_ideal S,
+        (maximal_ideal R).map f ≤ maximal_ideal S,
+        maximal_ideal R ≤ (maximal_ideal S).comap f,
+        (maximal_ideal S).comap f = maximal_ideal R] :=
+begin
+  tfae_have : 1 → 2, rintros _ _ ⟨a,ha,rfl⟩,
+    resetI, exact map_nonunit f a ha,
+  tfae_have : 2 → 4, exact set.image_subset_iff.1,
+  tfae_have : 3 ↔ 4, exact ideal.map_le_iff_le_comap,
+  tfae_have : 4 → 1, intro h, fsplit, exact λ x, not_imp_not.1 (@h x),
+  tfae_have : 1 → 5, intro, resetI, ext,
+    exact not_iff_not.2 (is_unit_map_iff f x),
+  tfae_have : 5 → 4, exact λ h, le_of_eq h.symm,
+  tfae_finish,
+end
+
 variable (R)
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
-def residue_field := (maximal_ideal R).quotient
+def residue_field := R ⧸ maximal_ideal R
 
 noncomputable instance residue_field.field : field (residue_field R) :=
 ideal.quotient.field (maximal_ideal R)
@@ -236,7 +280,10 @@ noncomputable instance : inhabited (residue_field R) := ⟨37⟩
 def residue : R →+* (residue_field R) :=
 ideal.quotient.mk _
 
+noncomputable instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
+
 namespace residue_field
+
 
 variables {R S}
 /-- The map on residue fields induced by a local homomorphism between local rings -/
@@ -250,6 +297,12 @@ begin
 end
 
 end residue_field
+
+variables {R}
+
+lemma ker_eq_maximal_ideal {K : Type*} [field K]
+  (φ : R →+* K) (hφ : function.surjective φ) : φ.ker = maximal_ideal R :=
+local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ
 
 end local_ring
 

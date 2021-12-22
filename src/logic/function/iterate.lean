@@ -18,7 +18,7 @@ In this file we prove simple properties of `nat.iterate f n` a.k.a. `f^[n]`:
 * `injective.iterate`, `surjective.iterate`, `bijective.iterate` :
   iterates of an injective/surjective/bijective function belong to the same class;
 
-* `left_inverse.iterate`, `right_inverse.iterate`, `commute.iterate_left`, `comute.iterate_right`,
+* `left_inverse.iterate`, `right_inverse.iterate`, `commute.iterate_left`, `commute.iterate_right`,
   `commute.iterate_iterate`:
   some properties of pairs of functions survive under iterations
 
@@ -138,6 +138,15 @@ by rw [← iterate_succ, nat.succ_pred_eq_of_pos hn]
 
 theorem comp_iterate_pred_of_pos {n : ℕ} (hn : 0 < n) : f ∘ (f^[n.pred]) = (f^[n]) :=
 by rw [← iterate_succ', nat.succ_pred_eq_of_pos hn]
+
+/-- A recursor for the iterate of a function. -/
+def iterate.rec (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) (n : ℕ) :
+  p (f^[n] a) :=
+nat.rec ha (λ m, by { rw iterate_succ', exact h _ }) n
+
+lemma iterate.rec_zero (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) :
+  iterate.rec p h ha 0 = ha :=
+rfl
 
 variable {f}
 

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.group_power.basic
-import algebra.opposites
+import algebra.ring.opposite
+import group_theory.group_action.opposite
 
 /-!
 # Introduce `smul_with_zero`
@@ -45,7 +46,8 @@ instance mul_zero_class.to_smul_with_zero [mul_zero_class R] : smul_with_zero R 
   smul_zero := mul_zero,
   zero_smul := zero_mul }
 
-instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] : smul_with_zero Rᵒᵖ R :=
+/-- Like `mul_zero_class.to_smul_with_zero`, but multiplies on the right. -/
+instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] : smul_with_zero Rᵐᵒᵖ R :=
 { smul := (•),
   smul_zero := λ r, zero_mul _,
   zero_smul := mul_zero }
@@ -117,8 +119,9 @@ instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
 { ..mul_zero_class.to_smul_with_zero R,
   ..monoid.to_mul_action R }
 
-/-- See also `semiring.to_opposite_module` -/
-instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zero Rᵒᵖ R :=
+/-- Like `monoid_with_zero.to_mul_action_with_zero`, but multiplies on the right. See also
+`semiring.to_opposite_module` -/
+instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zero Rᵐᵒᵖ R :=
 { ..mul_zero_class.to_opposite_smul_with_zero R,
   ..monoid.to_opposite_mul_action R }
 

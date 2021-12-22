@@ -167,7 +167,7 @@ hf.fin_strongly_measurable_of_set_sigma_finite measurable_set.univ (by simp)
 protected lemma measurable [measurable_space α] [metric_space β] [measurable_space β]
   [borel_space β] (hf : strongly_measurable f) :
   measurable f :=
-measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi.mpr hf.tendsto_approx)
+measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi_nhds.mpr hf.tendsto_approx)
 
 section arithmetic
 variables [measurable_space α] [topological_space β]
@@ -258,26 +258,19 @@ begin
     refine λ x hxt, tendsto_nhds_unique (h_approx x) _,
     rw funext (λ n, h_fs_zero n x hxt),
     exact tendsto_const_nhds, },
-  { refine measure.finite_spanning_sets_in.sigma_finite _ _,
-    { exact set.range (λ n, tᶜ ∪ T n), },
-    { refine ⟨λ n, tᶜ ∪ T n, λ n, set.mem_range_self _, λ n, _, _⟩,
-      { rw [measure.restrict_apply' (measurable_set.Union hT_meas), set.union_inter_distrib_right,
-          set.compl_inter_self t, set.empty_union],
-        exact (measure_mono (set.inter_subset_left _ _)).trans_lt (hT_lt_top n), },
-      rw ← set.union_Union tᶜ T,
-      exact set.compl_union_self _, },
-    { intros s hs,
-      rw set.mem_range at hs,
-      cases hs with n hsn,
-      rw ← hsn,
-      exact (measurable_set.compl (measurable_set.Union hT_meas)).union (hT_meas n), }, },
+  { refine ⟨⟨⟨λ n, tᶜ ∪ T n, λ n, trivial, λ n, _, _⟩⟩⟩,
+    { rw [measure.restrict_apply' (measurable_set.Union hT_meas), set.union_inter_distrib_right,
+        set.compl_inter_self t, set.empty_union],
+      exact (measure_mono (set.inter_subset_left _ _)).trans_lt (hT_lt_top n), },
+    { rw ← set.union_Union tᶜ T,
+      exact set.compl_union_self _ } }
 end
 
 /-- A finitely strongly measurable function is measurable. -/
 protected lemma measurable [metric_space β] [measurable_space β] [borel_space β]
   (hf : fin_strongly_measurable f μ) :
   measurable f :=
-measurable_of_tendsto_metric (λ n, (hf.some n).measurable) (tendsto_pi.mpr hf.some_spec.2)
+measurable_of_tendsto_metric (λ n, (hf.some n).measurable) (tendsto_pi_nhds.mpr hf.some_spec.2)
 
 protected lemma add {β} [topological_space β] [add_monoid β] [has_continuous_add β] {f g : α → β}
   (hf : fin_strongly_measurable f μ) (hg : fin_strongly_measurable g μ) :

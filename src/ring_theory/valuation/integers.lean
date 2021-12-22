@@ -102,7 +102,7 @@ classical.by_cases (λ hy : algebra_map O F y = 0, have hx : x = 0,
 have v ((algebra_map O F y)⁻¹ * algebra_map O F x) ≤ 1,
   by { rw [← v.map_one, ← inv_mul_cancel hy, v.map_mul, v.map_mul], exact mul_le_mul_left' h _ },
 let ⟨z, hz⟩ := hv.3 this in
-⟨z, hv.1 $ ((algebra_map O F).map_mul y z).symm ▸ hz.symm ▸ (mul_inv_cancel_left' hy _).symm⟩
+⟨z, hv.1 $ ((algebra_map O F).map_mul y z).symm ▸ hz.symm ▸ (mul_inv_cancel_left₀ hy _).symm⟩
 
 lemma dvd_iff_le {x y : O} : x ∣ y ↔ v (algebra_map O F y) ≤ v (algebra_map O F x) :=
 ⟨hv.le_of_dvd, hv.dvd_of_le⟩

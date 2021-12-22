@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Jesse Michael Han
 -/
 import tactic.rcases
-import data.sum
 import logic.function.basic
 
 universes u₁ u₂
@@ -190,8 +189,8 @@ private meta def hacky_name_reflect : has_reflect name :=
 private meta def ext_attr_core : user_attribute (name_map name) name :=
 { name := `_ext_core,
   descr := "(internal attribute used by ext)",
-  cache_cfg := {
-    dependencies := [],
+  cache_cfg :=
+  { dependencies := [],
     mk_cache := λ ns, ns.mfoldl (λ m n, do
       ext_l ← ext_attr_core.get_param_untyped n,
       pure (m.insert n ext_l.app_arg.const_name)) mk_name_map },
@@ -460,7 +459,7 @@ named automatically, as per `intro`. Placing a `?` after `ext1`
 applications that can replace the call to `ext1`.
 -/
 meta def interactive.ext1 (trace : parse (tk "?")?)
-  (xs : parse (rcases_patt_parse tt)*) : tactic unit :=
+  (xs : parse rcases_patt_parse_hi*) : tactic unit :=
 ext1 xs {} trace.is_some $> ()
 
 /--
@@ -524,7 +523,7 @@ Try this: apply funext, rintro ⟨a, b⟩
 A maximum depth can be provided with `ext x y z : 3`.
 -/
 meta def interactive.ext :
-  (parse $ (tk "?")?) → parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → tactic unit
+  (parse $ (tk "?")?) → parse rcases_patt_parse_hi* → parse (tk ":" *> small_nat)? → tactic unit
  | trace [] (some n)  := iterate_range 1 n (ext1 [] {} trace.is_some $> ())
  | trace [] none      := repeat1 (ext1 [] {} trace.is_some $> ())
  | trace xs n         := ext xs n {} trace.is_some $> ()

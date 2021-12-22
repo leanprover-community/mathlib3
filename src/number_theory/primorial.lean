@@ -37,7 +37,7 @@ begin
     { exfalso,
       rw ←not_even_iff at n_even r,
       have e : even (n + 1 - n) := (even_sub (lt_add_one n).le).2 (iff_of_false n_even r),
-      simp only [nat.add_sub_cancel_left, not_even_one] at e,
+      simp only [add_tsub_cancel_left, not_even_one] at e,
       exact e, }, },
   apply finset.prod_congr,
   { rw [@range_succ (n + 1), filter_insert, if_neg not_prime], },
@@ -48,11 +48,6 @@ lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : prime p) (m : ℕ)
   (p_big : m + 1 < p) (p_small : p ≤ 2 * m + 1) : p ∣ choose (2 * m + 1) (m + 1) :=
 begin
   have m_size : m + 1 ≤ 2 * m + 1 := le_of_lt (lt_of_lt_of_le p_big p_small),
-  have expanded :
-    choose (2 * m + 1) (m + 1) * (m + 1)! * (2 * m + 1 - (m + 1))! = (2 * m + 1)! :=
-    @choose_mul_factorial_mul_factorial (2 * m + 1) (m + 1) m_size,
-  have p_div_big_fact : p ∣ (2 * m + 1)! := (prime.dvd_factorial is_prime).mpr p_small,
-  rw [←expanded, mul_assoc] at p_div_big_fact,
   have s : ¬(p ∣ (m + 1)!),
   { intros p_div_fact,
     have p_le_succ_m : p ≤ m + 1 := (prime.dvd_factorial is_prime).mp p_div_fact,
@@ -60,12 +55,12 @@ begin
   have t : ¬(p ∣ (2 * m + 1 - (m + 1))!),
   { intros p_div_fact,
     have p_small : p ≤ 2 * m + 1 - (m + 1) := (prime.dvd_factorial is_prime).mp p_div_fact,
-    have t : 2 * m + 1 - (m + 1) = m, by { norm_num, rw two_mul m, exact nat.add_sub_cancel m m, },
-    rw t at p_small,
-    obtain p_lt_m | rfl | m_lt_p : _ := lt_trichotomy p m,
-    { have r : m < m + 1 := lt_add_one m, linarith, },
-    { linarith, },
-    { linarith, }, },
+    linarith, },
+  have expanded :
+    choose (2 * m + 1) (m + 1) * (m + 1)! * (2 * m + 1 - (m + 1))! = (2 * m + 1)! :=
+    @choose_mul_factorial_mul_factorial (2 * m + 1) (m + 1) m_size,
+  have p_div_big_fact : p ∣ (2 * m + 1)! := (prime.dvd_factorial is_prime).mpr p_small,
+  rw [←expanded, mul_assoc] at p_div_big_fact,
   obtain p_div_choose | p_div_facts : p ∣ choose (2 * m + 1) (m + 1) ∨ p ∣ _! * _! :=
     (prime.dvd_mul is_prime).1 p_div_big_fact,
   { exact p_div_choose, },
@@ -115,7 +110,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
             = ∏ i in filter prime (range (2 * m + 2)), i : by simpa [←twice_m]
         ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
               begin
-                rw [range_eq_Ico, range_eq_Ico, finset.union_comm, finset.Ico.union_consecutive],
+                rw [range_eq_Ico, finset.union_comm, finset.Ico_union_Ico_eq_Ico],
                 exact bot_le,
                 simp only [add_le_add_iff_right],
                 linarith,
@@ -128,7 +123,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
               begin
                 apply finset.prod_union,
                 have disj : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
-                { simp only [finset.disjoint_left, and_imp, finset.Ico.mem, not_lt,
+                { simp only [finset.disjoint_left, and_imp, finset.mem_Ico, not_lt,
                     finset.mem_range],
                   intros _ pr _, exact pr, },
                 exact finset.disjoint_filter_filter disj,
@@ -144,7 +139,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                   { intros a, rw finset.mem_filter,
                     intros pr,
                     rcases pr with ⟨ size, is_prime ⟩,
-                    simp only [finset.Ico.mem] at size,
+                    simp only [finset.mem_Ico] at size,
                     rcases size with ⟨ a_big , a_small ⟩,
                     exact dvd_choose_of_middling_prime a is_prime m a_big
                       (nat.lt_succ_iff.mp a_small), }, },

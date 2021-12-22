@@ -35,7 +35,8 @@ We define the relation `Mcongr` and take its quotient as the definition of `cofi
 
 ## Reference
 
- * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
+ * Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
+   [*Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universe u
@@ -407,8 +408,8 @@ omit q
 /-- tactic for proof by bisimulation -/
 meta def mv_bisim (e : parse texpr) (ids : parse with_ident_list) : tactic unit :=
 do e ← to_expr e,
-   (expr.pi n bi d b) ← retrieve $ do {
-     generalize e,
+   (expr.pi n bi d b) ← retrieve $ do
+   { generalize e,
      target },
    `(@eq %%t %%l %%r) ← pure b,
    x ← mk_local_def `n d,
@@ -470,7 +471,6 @@ instance mvqpf_cofix : mvqpf (cofix F) :=
   abs       := λ α, quot.mk Mcongr,
   repr      := λ α, cofix.repr,
   abs_repr  := λ α, cofix.abs_repr,
-  abs_map   := λ α β g x, rfl
-}
+  abs_map   := λ α β g x, rfl }
 
 end mvqpf

@@ -442,9 +442,8 @@ lemma degree_le_zero_iff : degree p ≤ 0 ↔ p = C (coeff p 0) :=
 
 lemma degree_add_le (p q : polynomial R) : degree (p + q) ≤ max (degree p) (degree q) :=
 calc degree (p + q) = ((p + q).support).sup some : rfl
-  ... ≤ (p.support ∪ q.support).sup some : by convert sup_mono support_add
-  ... = p.support.sup some ⊔ q.support.sup some : by convert sup_union
-  ... = _ : with_bot.sup_eq_max _ _
+  ... ≤ (p.support ∪ q.support).sup some : sup_mono support_add
+  ... = p.support.sup some ⊔ q.support.sup some : sup_union
 
 lemma nat_degree_add_le (p q : polynomial R) :
   nat_degree (p + q) ≤ max (nat_degree p) (nat_degree q) :=
@@ -519,13 +518,24 @@ begin
   exact λ h, not_mem_erase _ _ (mem_of_max h),
 end
 
+lemma degree_update_le (p : polynomial R) (n : ℕ) (a : R) :
+  degree (p.update n a) ≤ max (degree p) n :=
+begin
+  simp only [degree, coeff_update_apply, le_max_iff, finset.sup_le_iff, mem_support_iff],
+  intros b hb,
+  split_ifs at hb with h,
+  { subst b,
+    exact or.inr le_rfl },
+  { exact or.inl (le_degree_of_ne_zero hb) }
+end
+
 lemma degree_sum_le (s : finset ι) (f : ι → polynomial R) :
   degree (∑ i in s, f i) ≤ s.sup (λ b, degree (f b)) :=
 finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]) $
   assume a s has ih,
   calc degree (∑ i in insert a s, f i) ≤ max (degree (f a)) (degree (∑ i in s, f i)) :
     by rw sum_insert has; exact degree_add_le _ _
-  ... ≤ _ : by rw [sup_insert, with_bot.sup_eq_max]; exact max_le_max (le_refl _) ih
+  ... ≤ _ : by rw [sup_insert, sup_eq_max]; exact max_le_max le_rfl ih
 
 lemma degree_mul_le (p q : polynomial R) : degree (p * q) ≤ degree p + degree q :=
 calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i * a) * X ^ (i + j)))) :
@@ -726,6 +736,36 @@ begin
   refine add_le_add _ _; apply degree_le_nat_degree,
 end
 
+lemma nat_degree_pow_le {p : polynomial R} {n : ℕ} : (p ^ n).nat_degree ≤ n * p.nat_degree :=
+begin
+  induction n with i hi,
+  { simp },
+  { rw [pow_succ, nat.succ_mul, add_comm],
+    apply le_trans nat_degree_mul_le,
+    exact add_le_add_left hi _ }
+end
+
+@[simp] lemma coeff_pow_mul_nat_degree (p : polynomial R) (n : ℕ) :
+  (p ^ n).coeff (n * p.nat_degree) = p.leading_coeff ^ n :=
+begin
+  induction n with i hi,
+  { simp },
+  { rw [pow_succ', pow_succ', nat.succ_mul],
+    by_cases hp1 : p.leading_coeff ^ i = 0,
+    { rw [hp1, zero_mul],
+      by_cases hp2 : p ^ i = 0,
+      { rw [hp2, zero_mul, coeff_zero] },
+      { apply coeff_eq_zero_of_nat_degree_lt,
+        have h1 : (p ^ i).nat_degree < i * p.nat_degree,
+        { apply lt_of_le_of_ne nat_degree_pow_le (λ h, hp2 _),
+          rw [←h, hp1] at hi,
+          exact leading_coeff_eq_zero.mp hi },
+        calc (p ^ i * p).nat_degree ≤ (p ^ i).nat_degree + p.nat_degree : nat_degree_mul_le
+                                ... < i * p.nat_degree + p.nat_degree : add_lt_add_right h1 _ } },
+    { rw [←nat_degree_pow' hp1, ←leading_coeff_pow' hp1],
+      exact coeff_mul_degree_add_degree _ _ } }
+end
+
 lemma subsingleton_of_monic_zero (h : monic (0 : polynomial R)) :
   (∀ p q : polynomial R, p = q) ∧ (∀ a b : R, a = b) :=
 by rw [monic.def, leading_coeff_zero] at h;
@@ -851,9 +891,8 @@ begin
   haveI : is_associative (with_bot ℕ) max := ⟨max_assoc⟩,
   calc  (∑ i, C (f i) * X ^ (i : ℕ)).degree
       ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le _ _
-  ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) :
-    (@finset.fold_hom _ _ _ (⊔) _ _ _ ⊥ finset.univ _ _ _ id (with_bot.sup_eq_max)).symm
-  ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.bot_lt_some _, _⟩,
+  ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : rfl
+  ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.bot_lt_coe _, _⟩,
 
   rintros ⟨i, hi⟩ -,
   calc (C (f ⟨i, hi⟩) * X ^ i).degree
@@ -872,7 +911,16 @@ by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_right_of_degree
 end ring
 
 section nonzero_ring
-variables [nontrivial R] [ring R]
+variables [nontrivial R]
+
+@[simp] lemma degree_X_add_C [semiring R] (a : R) : degree (X + C a) = 1 :=
+have degree (C a) < degree (X : polynomial R),
+from calc degree (C a) ≤ 0 : degree_C_le
+                   ... < 1 : with_bot.some_lt_some.mpr zero_lt_one
+                   ... = degree X : degree_X.symm,
+by rw [degree_add_eq_left_of_degree_lt this, degree_X]
+
+variables [ring R]
 
 @[simp] lemma degree_X_sub_C (a : R) : degree (X - C a) = 1 :=
 have degree (C a) < degree (X : polynomial R),
@@ -880,13 +928,6 @@ from calc degree (C a) ≤ 0 : degree_C_le
                    ... < 1 : with_bot.some_lt_some.mpr zero_lt_one
                    ... = degree X : degree_X.symm,
 by rw [degree_sub_eq_left_of_degree_lt this, degree_X]
-
-@[simp] lemma degree_X_add_C (a : R) : degree (X + C a) = 1 :=
-have degree (C a) < degree (X : polynomial R),
-from calc degree (C a) ≤ 0 : degree_C_le
-                   ... < 1 : with_bot.some_lt_some.mpr zero_lt_one
-                   ... = degree X : degree_X.symm,
-by rw [degree_add_eq_left_of_degree_lt this, degree_X]
 
 @[simp] lemma nat_degree_X_sub_C (x : R) : (X - C x).nat_degree = 1 :=
 nat_degree_eq_of_degree_eq_some $ degree_X_sub_C x

@@ -52,7 +52,7 @@ vectors.
 In many cases we additionally provide dot-style operations (e.g., `linear_independent.union`) to
 make the linear independence tests usable as `hv.insert ha` etc.
 
-We also prove that, when working over a field,
+We also prove that, when working over a division ring,
 any family of vectors includes a linear independent subfamily spanning the same subspace.
 
 ## Implementation notes
@@ -73,7 +73,7 @@ linearly dependent, linear dependence, linearly independent, linear independence
 noncomputable theory
 
 open function set submodule
-open_locale classical big_operators
+open_locale classical big_operators cardinal
 
 universes u
 
@@ -122,7 +122,7 @@ linear_independent_iff'.trans ⟨λ H s g hg hv i, if his : i ∈ s then H s g h
     (by simp_rw [ite_smul, zero_smul, finset.sum_extend_by_zero, hg]) i,
   exact (if_pos hi).symm }⟩
 
-theorem linear_dependent_iff : ¬ linear_independent R v ↔
+theorem not_linear_independent_iff : ¬ linear_independent R v ↔
   ∃ s : finset ι, ∃ g : ι → R, (∑ i in s, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
 begin
   rw linear_independent_iff',
@@ -145,6 +145,10 @@ theorem fintype.linear_independent_iff' [fintype ι] :
   linear_independent R v ↔
     (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
 by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
+
+lemma fintype.not_linear_independent_iff [fintype ι] :
+  ¬linear_independent R v ↔ ∃ g : ι → R, (∑ i, g i • v i) = 0 ∧ (∃ i, g i ≠ 0) :=
+by simpa using (not_iff_not.2 fintype.linear_independent_iff)
 
 lemma linear_independent_empty_type [is_empty ι] : linear_independent R v :=
 linear_independent_iff.mpr $ λ v hv, subsingleton.elim v 0
@@ -305,7 +309,7 @@ then the same is true for arbitrary sets of linearly independent vectors.
 -/
 lemma linear_independent_bounded_of_finset_linear_independent_bounded {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
-  ∀ s : set M, linear_independent R (coe : s → M) → cardinal.mk s ≤ n :=
+  ∀ s : set M, linear_independent R (coe : s → M) → #s ≤ n :=
 begin
   intros s li,
   apply cardinal.card_le_of,
@@ -703,10 +707,10 @@ variables (hv : linear_independent R v)
 begin
 apply linear_equiv.of_bijective
   (linear_map.cod_restrict (span R (range v)) (finsupp.total ι M R v) _),
-{ rw linear_map.ker_cod_restrict,
+{ rw [← linear_map.ker_eq_bot, linear_map.ker_cod_restrict],
   apply hv },
-{ rw [linear_map.range_eq_map, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
-    range_subtype, map_top],
+{ rw [← linear_map.range_eq_top, linear_map.range_eq_map, linear_map.map_cod_restrict,
+    ← linear_map.range_le_iff_comap, range_subtype, map_top],
   rw finsupp.range_total,
   apply le_refl (span R (range v)) },
 { intro l,
@@ -1164,10 +1168,10 @@ by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
   mem_span_singleton, not_exists,
   show fin.tail f (default (fin 1)) = f 1, by rw ← fin.succ_zero_eq_one; refl]
 
-lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
-  ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (λ x, x : b → V) :=
+lemma exists_linear_independent_extension (hs : linear_independent K (coe : s → V)) (hst : s ⊆ t) :
+  ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (coe : b → V) :=
 begin
-  rcases zorn.zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (λ x, x : b → V)} _ _
+  rcases zorn.zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (coe : b → V)} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
     by_contra hn,
@@ -1180,27 +1184,39 @@ begin
     { exact subset_sUnion_of_mem } }
 end
 
+variables (K t)
+
+lemma exists_linear_independent :
+  ∃ b ⊆ t, span K b = span K t ∧ linear_independent K (coe : b → V) :=
+begin
+  obtain ⟨b, hb₁, -, hb₂, hb₃⟩ :=
+    exists_linear_independent_extension (linear_independent_empty K V) (set.empty_subset t),
+  exact ⟨b, hb₁, (span_eq_of_le _ hb₂ (submodule.span_mono hb₁)).symm, hb₃⟩,
+end
+
+variables {K t}
+
 /-- `linear_independent.extend` adds vectors to a linear independent set `s ⊆ t` until it spans
 all elements of `t`. -/
 noncomputable def linear_independent.extend (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : set V :=
-classical.some (exists_linear_independent hs hst)
+classical.some (exists_linear_independent_extension hs hst)
 
 lemma linear_independent.extend_subset (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : hs.extend hst ⊆ t :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hbt
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in hbt
 
 lemma linear_independent.subset_extend (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : s ⊆ hs.extend hst :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hsb
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in hsb
 
 lemma linear_independent.subset_span_extend (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : t ⊆ span K (hs.extend hst) :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in htb
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in htb
 
 lemma linear_independent.linear_independent_extend (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : linear_independent K (coe : hs.extend hst → V) :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hli
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in hli
 
 variables {K V}
 

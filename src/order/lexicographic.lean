@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Minchao Wu
 -/
 import tactic.basic
+import data.prod
 
 /-!
 # Lexicographic order
@@ -18,6 +19,12 @@ and linear orders.
 * `lex_<pre/partial_/linear_>order`: Instances lifting the orders on `α` and `β` to `lex α β`
 * `dlex_<pre/partial_/linear_>order`: Instances lifting the orders on every `Z a` to the dependent
   pair `Z`.
+
+## See also
+
+The lexicographic order on lists is provided in `data.list.lex`.
+
+The lexicographic order on a sigma type is to be found in `data.sigma.lex`.
 -/
 
 universes u v
@@ -27,6 +34,9 @@ def lex (α : Type u) (β : Type v) := α × β
 
 variables {α : Type u} {β : Type v}
 
+meta instance [has_to_format α] [has_to_format β] : has_to_format (lex α β) :=
+prod.has_to_format
+
 instance [decidable_eq α] [decidable_eq β] : decidable_eq (lex α β) :=
 prod.decidable_eq
 
@@ -34,11 +44,17 @@ instance [inhabited α] [inhabited β] : inhabited (lex α β) :=
 prod.inhabited
 
 /-- Dictionary / lexicographic ordering on pairs.  -/
-instance lex_has_le [preorder α] [preorder β] : has_le (lex α β) :=
+instance lex_has_le [has_lt α] [has_le β] : has_le (lex α β) :=
 { le := prod.lex (<) (≤) }
 
-instance lex_has_lt [preorder α] [preorder β] : has_lt (lex α β) :=
+instance lex_has_lt [has_lt α] [has_lt β] : has_lt (lex α β) :=
 { lt := prod.lex (<) (<) }
+
+lemma lex_le_iff [has_lt α] [has_le β] (a b : lex α β) :
+  a ≤ b ↔ a.1 < b.1 ∨ a.1 = b.1 ∧ a.2 ≤ b.2 := prod.lex_def (<) (≤)
+
+lemma lex_lt_iff [has_lt α] [has_lt β] (a b : lex α β) :
+  a < b ↔ a.1 < b.1 ∨ a.1 = b.1 ∧ a.2 < b.2 := prod.lex_def (<) (<)
 
 /-- Dictionary / lexicographic preorder for pairs. -/
 instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=

@@ -917,8 +917,7 @@ bsup_le.1 (le_refl _) _ _
 theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
 by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
 
-theorem bsup_not_succ_of_lt_bsup {o} {f : Π a < o, ordinal}
-  (hf : ∀ i (h : i < o), f i h < bsup o f) (a) :
+theorem bsup_not_succ_of_lt_bsup {o} {f : Π a < o, ordinal} (hf : ∀ i h, f i h < bsup o f) (a) :
   a < o.bsup f → succ a < o.bsup f :=
 begin
   intro hao,
@@ -953,7 +952,7 @@ theorem bsup_not_succ_of_ne_bsup {o} {f : Π a < o, ordinal}
 λ _, bsup_not_succ_of_lt_bsup (lt_bsup_of_ne_bsup hf) _
 
 theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
-  (hf : ∀{a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
+  (hf : ∀ {a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
   (ho : o.is_limit) (i h) : f i h < bsup o f :=
 lt_of_lt_of_le (hf _ _ $ lt_succ_self i) (le_bsup f i.succ $ ho.2 _ h)
 

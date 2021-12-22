@@ -38,21 +38,13 @@ crossproduct
 
 variables {R : Type*} [comm_ring R]
 
-private lemma vec3_eq {a b : fin 3 → R} (h₀ : a 0 = b 0) (h₁ : a 1 = b 1) (h₂ : a 2 = b 2) :
-  a = b :=
+private lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
+  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
 by { ext x, fin_cases x; assumption }
 
-private lemma vec3_eq' {a₀ a₁ a₂ b₀ b₁ b₂ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
-  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
-vec3_eq h₀ h₁ h₂
-
-private lemma vec3_add {a b : fin 3 → R} :
-  a + b = ![a 0 + b 0, a 1 + b 1, a 2 + b 2] :=
-vec3_eq rfl rfl rfl
-
-private lemma vec3_add' {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
+private lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
   ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
-vec3_add
+by { ext x, fin_cases x; refl }
 
 
 
@@ -64,9 +56,9 @@ begin
        (a 2)*(b 0) - (a 0)*(b 2) ,
        (a 0)*(b 1) - (a 1)*(b 0) ]);
   intros;
-  simp only [vec3_add',
+  simp only [vec3_add,
     pi.add_apply, algebra.id.smul_eq_mul, matrix.smul_cons, matrix.smul_empty, pi.smul_apply];
-  apply vec3_eq';
+  apply vec3_eq;
   ring,
 end
 

@@ -9,7 +9,11 @@ import order.basic
 /-!
 # Lexicographic order on a sigma type
 
-This file defines the lexicographic order on `Σ' i, α i`.
+This file defines the lexicographic order on `Σ' i, α i` as the default order.
+
+We mark these as instances because the 'pointwise' partial order `prod.has_le` doesn't make sense
+for dependent pairs. However in the future we will want to make the disjoint order the default
+instead, where `x ≤ y` only if `x.fst = y.fst`.
 
 ## See also
 

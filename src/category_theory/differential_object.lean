@@ -26,7 +26,7 @@ namespace category_theory
 variables (C : Type u) [category.{v} C]
 
 -- TODO: generaize to `has_shift C A` for an arbitrary `[add_monoid A]` `[has_one A]`.
-variables [has_zero_morphisms C] [has_shift C ℤ]
+variables [has_zero_morphisms C] (A : Type*) [add_monoid A] [has_one A] [has_shift C A]
 
 /--
 A differential object in a category with zero morphisms and a shift is
@@ -37,12 +37,12 @@ a morphism `d : X ⟶ X⟦1⟧`, such that `d^2 = 0`.
 structure differential_object :=
 (X : C)
 (d : X ⟶ X⟦1⟧)
-(d_squared' : d ≫ d⟦(1:ℤ)⟧' = 0 . obviously)
+(d_squared' : d ≫ d⟦(1:A)⟧' = 0 . obviously)
 
 restate_axiom differential_object.d_squared'
 attribute [simp] differential_object.d_squared
 
-variables {C}
+variables {C A}
 
 namespace differential_object
 
@@ -50,7 +50,7 @@ namespace differential_object
 A morphism of differential objects is a morphism commuting with the differentials.
 -/
 @[ext, nolint has_inhabited_instance]
-structure hom (X Y : differential_object C) :=
+structure hom (X Y : differential_object C A) :=
 (f : X.X ⟶ Y.X)
 (comm' : X.d ≫ f⟦1⟧' = f ≫ Y.d . obviously)
 
@@ -61,70 +61,72 @@ namespace hom
 
 /-- The identity morphism of a differential object. -/
 @[simps]
-def id (X : differential_object C) : hom X X :=
+def id (X : differential_object C A) : hom X X :=
 { f := 𝟙 X.X }
 
 /-- The composition of morphisms of differential objects. -/
 @[simps]
-def comp {X Y Z : differential_object C} (f : hom X Y) (g : hom Y Z) : hom X Z :=
+def comp {X Y Z : differential_object C A} (f : hom X Y) (g : hom Y Z) : hom X Z :=
 { f := f.f ≫ g.f, }
 
 end hom
 
-instance category_of_differential_objects : category (differential_object C) :=
+instance category_of_differential_objects : category (differential_object C A) :=
 { hom := hom,
   id := hom.id,
   comp := λ X Y Z f g, hom.comp f g, }
 
 @[simp]
-lemma id_f (X : differential_object C) : ((𝟙 X) : X ⟶ X).f = 𝟙 (X.X) := rfl
+lemma id_f (X : differential_object C A) : ((𝟙 X) : X ⟶ X).f = 𝟙 (X.X) := rfl
 
 @[simp]
-lemma comp_f {X Y Z : differential_object C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+lemma comp_f {X Y Z : differential_object C A} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).f = f.f ≫ g.f :=
 rfl
 
 @[simp]
-lemma eq_to_hom_f {X Y : differential_object C} (h : X = Y) :
+lemma eq_to_hom_f {X Y : differential_object C A} (h : X = Y) :
   hom.f (eq_to_hom h) = eq_to_hom (congr_arg _ h) :=
 by { subst h, rw [eq_to_hom_refl, eq_to_hom_refl], refl }
 
-variables (C)
+variables (C A)
 
 /-- The forgetful functor taking a differential object to its underlying object. -/
-def forget : (differential_object C) ⥤ C :=
+def forget : (differential_object C A) ⥤ C :=
 { obj := λ X, X.X,
   map := λ X Y f, f.f, }
 
-instance forget_faithful : faithful (forget C) :=
+instance forget_faithful : faithful (forget C A) :=
 { }
 
-instance has_zero_morphisms :
-  has_zero_morphisms (differential_object C) :=
+instance has_zero_morphisms [preserves_zero_morphisms (shift_functor C (1 : A))] :
+  has_zero_morphisms (differential_object C A) :=
 { has_zero := λ X Y,
   ⟨{ f := 0 }⟩}
 
-variables {C}
+variables {C A}
 
 @[simp]
-lemma zero_f (P Q : differential_object C) : (0 : P ⟶ Q).f = 0 := rfl
+lemma zero_f [preserves_zero_morphisms (shift_functor C (1 : A))]
+  (P Q : differential_object C A) : (0 : P ⟶ Q).f = 0 := rfl
 
 /--
 An isomorphism of differential objects gives an isomorphism of the underlying objects.
 -/
-@[simps] def iso_app {X Y : differential_object C} (f : X ≅ Y) : X.X ≅ Y.X :=
+@[simps] def iso_app {X Y : differential_object C A} (f : X ≅ Y) : X.X ≅ Y.X :=
 ⟨f.hom.f, f.inv.f, by { dsimp, rw [← comp_f, iso.hom_inv_id, id_f] },
   by { dsimp, rw [← comp_f, iso.inv_hom_id, id_f] }⟩
 
-@[simp] lemma iso_app_refl (X : differential_object C) : iso_app (iso.refl X) = iso.refl X.X := rfl
-@[simp] lemma iso_app_symm {X Y : differential_object C} (f : X ≅ Y) :
+@[simp] lemma iso_app_refl (X : differential_object C A) :
+  iso_app (iso.refl X) = iso.refl X.X := rfl
+@[simp] lemma iso_app_symm {X Y : differential_object C A} (f : X ≅ Y) :
   iso_app f.symm = (iso_app f).symm := rfl
-@[simp] lemma iso_app_trans {X Y Z : differential_object C} (f : X ≅ Y) (g : Y ≅ Z) :
+@[simp] lemma iso_app_trans {X Y Z : differential_object C A} (f : X ≅ Y) (g : Y ≅ Z) :
   iso_app (f ≪≫ g) = iso_app f ≪≫ iso_app g := rfl
 
 /-- An isomorphism of differential objects can be constructed
 from an isomorphism of the underlying objects that commutes with the differentials. -/
-@[simps] def mk_iso {X Y : differential_object C}
+@[simps] def mk_iso {X Y : differential_object C A}
   (f : X.X ≅ Y.X) (hf : X.d ≫ f.hom⟦1⟧' = f.hom ≫ Y.d) : X ≅ Y :=
 { hom := ⟨f.hom, hf⟩,
   inv := ⟨f.inv, by { dsimp, rw [← functor.map_iso_inv, iso.comp_inv_eq, category.assoc,
@@ -138,7 +140,7 @@ namespace functor
 
 universes v' u'
 variables (D : Type u') [category.{v'} D]
-variables [has_zero_morphisms D] [has_shift D ℤ]
+variables [has_zero_morphisms D] [has_shift D A]
 
 /--
 A functor `F : C ⥤ D` which commutes with shift functors on `C` and `D` and preserves zero morphisms
@@ -146,13 +148,13 @@ can be lifted to a functor `differential_object C ⥤ differential_object D`.
 -/
 @[simps]
 def map_differential_object (F : C ⥤ D)
-  (η : (shift_functor C (1:ℤ)).comp F ⟶ F.comp (shift_functor D (1:ℤ)))
+  (η : (shift_functor C (1:A)).comp F ⟶ F.comp (shift_functor D (1:A)))
   (hF : ∀ c c', F.map (0 : c ⟶ c') = 0) :
-  differential_object C ⥤ differential_object D :=
+  differential_object C A ⥤ differential_object D A :=
 { obj := λ X, { X := F.obj X.X,
     d := F.map X.d ≫ η.app X.X,
     d_squared' := begin
-      rw [functor.map_comp, ← functor.comp_map F (shift_functor D (1:ℤ))],
+      rw [functor.map_comp, ← functor.comp_map F (shift_functor D (1:A))],
       slice_lhs 2 3 { rw [← η.naturality X.d] },
       rw [functor.comp_map],
       slice_lhs 1 2 { rw [← F.map_comp, X.d_squared, hF] },
@@ -161,7 +163,7 @@ def map_differential_object (F : C ⥤ D)
   map := λ X Y f, { f := F.map f.f,
     comm' := begin
       dsimp,
-      slice_lhs 2 3 { rw [← functor.comp_map F (shift_functor D (1:ℤ)), ← η.naturality f.f] },
+      slice_lhs 2 3 { rw [← functor.comp_map F (shift_functor D (1:A)), ← η.naturality f.f] },
       slice_lhs 1 2 { rw [functor.comp_map, ← F.map_comp, f.comm, F.map_comp] },
       rw [category.assoc]
     end },
@@ -178,11 +180,12 @@ namespace differential_object
 
 variables (C : Type u) [category.{v} C]
 
-variables [has_zero_object C] [has_zero_morphisms C] [has_shift C ℤ]
-
+variables [has_zero_object C] [has_zero_morphisms C]
+variables (A : Type*) [add_monoid A] [has_one A] [has_shift C A]
 open_locale zero_object
 
-instance has_zero_object : has_zero_object (differential_object C) :=
+instance has_zero_object [preserves_zero_morphisms (shift_functor C (1 : A))] :
+  has_zero_object (differential_object C A) :=
 { zero :=
   { X := (0 : C),
     d := 0, },
@@ -194,14 +197,15 @@ end differential_object
 namespace differential_object
 
 variables (C : Type (u+1)) [large_category C] [concrete_category C]
-  [has_zero_morphisms C] [has_shift C ℤ]
+  [has_zero_morphisms C]
+variables (A : Type*) [add_monoid A] [has_one A] [has_shift C A]
 
 instance concrete_category_of_differential_objects :
-  concrete_category (differential_object C) :=
-{ forget := forget C ⋙ category_theory.forget C }
+  concrete_category (differential_object C A) :=
+{ forget := forget C A ⋙ category_theory.forget C }
 
-instance : has_forget₂ (differential_object C) C :=
-{ forget₂ := forget C }
+instance : has_forget₂ (differential_object C A) C :=
+{ forget₂ := forget C A }
 
 end differential_object
 
@@ -209,18 +213,20 @@ end differential_object
 namespace differential_object
 
 variables (C : Type u) [category.{v} C]
-variables [has_zero_morphisms C] [has_shift C ℤ]
+variables [has_zero_morphisms C]
+variables {A : Type*} [add_comm_monoid A] [has_one A] [has_shift C A]
+variables [∀ n : A, preserves_zero_morphisms (shift_functor C n)]
 
 noncomputable theory
 
 /-- The shift functor on `differential_object C`. -/
 @[simps]
-def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
+def shift_functor (n : A) : differential_object C A ⥤ differential_object C A :=
 { obj := λ X,
   { X := X.X⟦n⟧,
     d := X.d⟦n⟧' ≫ (shift_comm _ _ _).hom,
     d_squared' := by rw [functor.map_comp, category.assoc, shift_comm_hom_comp_assoc,
-        ←functor.map_comp_assoc, X.d_squared, is_equivalence_preserves_zero_morphisms, zero_comp] },
+        ←functor.map_comp_assoc, X.d_squared, preserves_zero_morphisms.preserves, zero_comp] },
   map := λ X Y f,
   { f := f.f⟦n⟧',
     comm' := by { dsimp, rw [category.assoc, shift_comm_hom_comp, ← functor.map_comp_assoc,
@@ -232,7 +238,7 @@ local attribute [instance] endofunctor_monoidal_category discrete.add_monoidal
 local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/
-@[simps] def shift_functor_add (m n : ℤ) :
+@[simps] def shift_functor_add (m n : A) :
   shift_functor C (m + n) ≅ shift_functor C m ⋙ shift_functor C n :=
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
@@ -245,14 +251,14 @@ end
 
 /-- The shift by zero is naturally isomorphic to the identity. -/
 @[simps]
-def shift_ε : 𝟭 (differential_object C) ≅ shift_functor C 0 :=
+def shift_ε : 𝟭 (differential_object C A) ≅ shift_functor C (0 : A) :=
 begin
-  refine nat_iso.of_components (λ X, mk_iso ((shift_monoidal_functor C ℤ).ε_iso.app X.X) _) _,
-  { dsimp, simp, dsimp, simp },
+  refine nat_iso.of_components (λ X, mk_iso ((shift_monoidal_functor C A).ε_iso.app X.X) _) _,
+  { dsimp, simp, dsimp, simp [opaque_eq_to_iso] },
   { introv, ext, dsimp, simp }
 end
 
-instance : has_shift (differential_object C) ℤ :=
+instance : has_shift (differential_object C A) A :=
 has_shift_mk _ _
 { F := shift_functor C,
   ε := shift_ε C,

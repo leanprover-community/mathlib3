@@ -44,7 +44,8 @@ A type synonym for `β → C`, used for `β`-graded objects in a category `C`
 with a shift functor given by translation by `s`.
 -/
 @[nolint unused_arguments] -- `s` is here to distinguish type synonyms asking for different shifts
-abbreviation graded_object_with_shift {β : Type w} [add_monoid β] (s : β) (C : Type u) :
+abbreviation graded_object_with_shift {β : Type w} {γ : Type*} [add_monoid β]
+  [add_monoid γ] (f : γ →+ β) (C : Type u) :
   Type (max w u) := graded_object β C
 
 namespace graded_object
@@ -104,8 +105,8 @@ end
 local attribute [reducible, instance] endofunctor_monoidal_category discrete.add_monoidal
 
 @[simps]
-def has_shift_of_add_monoid_hom {β γ: Type*} [add_monoid β] [add_comm_monoid γ] (f : γ →+ β) :
-  has_shift (graded_object β C) γ :=
+instance has_shift_of_add_monoid_hom {β γ: Type*} [add_monoid β] [add_comm_monoid γ] (f : γ →+ β) :
+  has_shift (graded_object_with_shift f C) γ :=
 has_shift_mk _ _
 { F := λ n, comap (λ _, C) $ λ (b : β), b + f n,
   ε := (comap_id β (λ _, C)).symm ≪≫ (comap_eq C (by { ext, simp, })),
@@ -114,28 +115,16 @@ has_shift_mk _ _
   right_unitality := by { introv, ext, dsimp, simpa },
   associativity := by { introv, ext, dsimp, simp } }
 
-instance has_shift_nat {β : Type*} [add_monoid β] (s : β) :
-  has_shift (graded_object_with_shift s C) ℕ :=
-has_shift_of_add_monoid_hom (multiples_hom _ s)
+-- attribute [reducible] shift_monoidal_functor
 
-instance has_shift_int {β : Type*} [add_group β] (s : β) :
-  has_shift (graded_object_with_shift s C) ℤ :=
-has_shift_of_add_monoid_hom (zmultiples_hom _ s)
-
-instance has_shift {β : Type*} [add_comm_group β] (s : β) :
-  has_shift (graded_object_with_shift s C) β :=
-has_shift_of_add_monoid_hom (add_monoid_hom.id _)
-
-attribute [reducible] shift_monoidal_functor
-
-@[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β]
-  (s : β) (X : β → C) (t : β) (n : ℤ) :
-  (shift_functor (graded_object_with_shift s C) n).obj X t = X (t + n • s) :=
+@[simp] lemma shift_functor_obj_apply {β γ: Type*} [add_monoid β] [add_comm_monoid γ] (f : γ →+ β)
+  (X : β → C) (t : β) (n : γ) :
+  (shift_functor (graded_object_with_shift f C) n).obj X t = X (t + f n) :=
 rfl
 
-@[simp] lemma shift_functor_map_apply {β : Type*} [add_comm_group β] (s : β)
-  {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) (n : ℤ) :
-  (shift_functor (graded_object_with_shift s C) n).map f t = f (t + n • s) :=
+@[simp] lemma shift_functor_map_apply {β γ: Type*} [add_monoid β] [add_comm_monoid γ] (f : γ →+ β)
+  {X Y : β → C} (t : β) (n : γ) (g : X ⟶ Y) :
+  (shift_functor (graded_object_with_shift f C) n).map g t = g (t + f n) :=
 rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :
@@ -146,6 +135,11 @@ instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :
 @[simp]
 lemma zero_apply [has_zero_morphisms C] (β : Type w) (X Y : graded_object β C) (b : β) :
   (0 : X ⟶ Y) b = 0 := rfl
+
+instance [has_zero_morphisms C] {β γ: Type*} [add_monoid β] [add_comm_monoid γ] (f : γ →+ β)
+  (n : γ) :
+  preserves_zero_morphisms (shift_functor (graded_object_with_shift f C) n) :=
+⟨λ X Y, by tidy⟩
 
 section
 open_locale zero_object

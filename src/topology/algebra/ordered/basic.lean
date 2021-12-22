@@ -481,22 +481,6 @@ lemma continuous_within_at_Ioc_iff_Iic [topological_space β] {a b : α} {f : α
   continuous_within_at f (Ioc a b) b ↔ continuous_within_at f (Iic b) b :=
 by simp only [continuous_within_at, nhds_within_Ioc_eq_nhds_within_Iic h]
 
-/-!
-#### Neighborhoods within a closed interval
--/
-
-lemma Icc_mem_nhds_left_or_nhds_right {a b c : α} (h : a < b) (hc : c ∈ Icc a b) :
-  Icc a b ∈ 𝓝[≤] c ∨ Icc a b ∈ 𝓝[≥] c :=
-(h.lt_or_lt c).imp (λ hac, Icc_mem_nhds_within_Iic ⟨hac, hc.2⟩)
-  (λ hcb, Icc_mem_nhds_within_Ici ⟨hc.1, hcb⟩)
-
-lemma Icc_diff_pt_mem_nhds_left'_or_nhds_right' {a b c : α} (h : a < b) (hc : c ∈ Icc a b) :
-  Icc a b \ {c} ∈ 𝓝[<] c ∨ Icc a b \ {c} ∈ 𝓝[>] c :=
-begin
-  rw [← Iic_diff_right, ← Ici_diff_left],
-  exact (Icc_mem_nhds_left_or_nhds_right h hc).imp (λ h, diff_mem_nhds_within_diff _) _
-end
-
 end linear_order
 
 section linear_order

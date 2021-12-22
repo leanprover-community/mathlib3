@@ -1196,26 +1196,30 @@ begin
   exacts [hle.mono (λ x, sub_nonneg.2), hgi.1.sub hfi.1]
 end
 
+/-- If `f` and `g` are continuous on `[a, b]`, `a < b`, `f x ≤ g x` on this interval, and
+`f c < g c` at some point `c ∈ [a, b]`, then `∫ x in a..b, f x < ∫ x in a..b, g x`. -/
 lemma integral_lt_integral_of_continuous_on_of_le_of_exists_lt {f g : ℝ → ℝ} {a b : ℝ}
-  (hab : a < b) (hfi : continuous_on f (Icc a b)) (hgi : continuous_on g (Icc a b))
+  (hab : a < b) (hfc : continuous_on f (Icc a b)) (hgc : continuous_on g (Icc a b))
   (hle : ∀ x ∈ Icc a b, f x ≤ g x) (hlt : ∃ c ∈ Icc a b, f c < g c) :
   ∫ x in a..b, f x < ∫ x in a..b, g x :=
 begin
   refine integral_lt_integral_of_ae_le_of_measure_set_of_lt_ne_zero hab.le
-    (hfi.interval_integrable_of_Icc hab.le) (hgi.interval_integrable_of_Icc hab.le)
+    (hfc.interval_integrable_of_Icc hab.le) (hgc.interval_integrable_of_Icc hab.le)
     ((ae_restrict_mem measurable_set_Ioc).mono $ λ x hx, hle x (Ioc_subset_Icc_self hx)) _,
   simp only [measure.restrict_apply' measurable_set_Ioc],
-  suffices : ∃ c d, a ≤ c ∧ c < d ∧ d ≤ b ∧ ∀ x ∈ Ioc c d, f x < g x,
-  { clear hlt, rcases this with ⟨c, d, hac, hcd, hdb, hlt⟩,
-    refine ne_of_gt _,
-    calc (0 : ℝ≥0∞) < volume (Ioc c d) : by simp [hcd]
-    ... ≤ volume ({x | f x < g x} ∩ Ioc a b) :
-      measure_mono (subset_inter hlt $ Ioc_subset_Ioc hac hdb) },
-  rcases hlt with ⟨c, hmem, hlt⟩,
+  rcases hlt with ⟨c, ⟨hac, hcb⟩, hlt⟩,
   have : ∀ᶠ x in 𝓝[Icc a b] c, f x < g x,
-    from ((hfi c hmem).prod (hgi c hmem)).eventually (is_open_lt_prod.mem_nhds hlt),
-  cases hab.lt_or_lt c with hac hcb,
-  {  }
+    from ((hfc c ⟨hac, hcb⟩).prod (hgc c ⟨hac, hcb⟩)).eventually (is_open_lt_prod.mem_nhds hlt),
+  rcases (eventually_nhds_within_iff.1 this).exists_Ioo_subset with ⟨l, u, ⟨hlc, hcu⟩, hsub⟩,
+  have A : Ioo (max a l) (min b u) ⊆ Ioc a b,
+    from Ioo_subset_Ioc_self.trans (Ioc_subset_Ioc (le_max_left _ _) (min_le_left _ _)),
+  have B : Ioo (max a l) (min b u) ⊆ Ioo l u,
+    from Ioo_subset_Ioo (le_max_right _ _) (min_le_right _ _),
+  refine ne_of_gt _,
+  calc (0 : ℝ≥0∞) < volume (Ioo (max a l) (min b u)) :
+    by simp [hab, hlc.trans_le hcb, hac.trans_lt hcu, hlc.trans hcu]
+  ... ≤ volume ({x | f x < g x} ∩ Ioc a b) :
+    measure_mono (λ x hx, ⟨hsub (B hx) (Ioc_subset_Icc_self $ A hx), A hx⟩)
 end
 
 lemma integral_nonneg_of_ae_restrict (hab : a ≤ b) (hf : 0 ≤ᵐ[μ.restrict (Icc a b)] f) :

@@ -303,6 +303,29 @@ calc ∥∮ z in C(c, R), f z∥ ≤ 2 * π * |R| * C :
   norm_integral_le_of_norm_le_const' $ by rwa this
 ... = 2 * π * R * C : by rw this
 
+lemma norm_integral_lt_of_norm_le_const_of_lt {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 < R)
+  (hc : continuous_on f (sphere c R)) (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C)
+  (hlt : ∃ z ∈ sphere c R, ∥f z∥ < C) :
+  ∥∮ z in C(c, R), f z∥ < 2 * π * R * C :=
+begin
+  rw [← _root_.abs_of_pos hR, ← image_circle_map_Ioc] at hlt,
+  rcases hlt with ⟨_, ⟨θ₀, hmem, rfl⟩, hlt⟩,
+  calc ∥∮ z in C(c, R), f z∥ ≤ ∫ θ in 0..2 * π, ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ :
+    interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le
+  ... < ∫ θ in 0..2 * π, R * C :
+    begin
+      simp only [norm_smul, deriv_circle_map, norm_eq_abs, complex.abs_mul, abs_I, mul_one,
+        abs_circle_map_zero, abs_of_pos hR],
+      refine interval_integral.integral_lt_integral_of_continuous_on_of_le_of_exists_lt
+        real.two_pi_pos _ continuous_on_const (λ θ hθ, _) ⟨θ₀, Ioc_subset_Icc_self hmem, _⟩,
+      { exact continuous_on_const.mul (hc.comp (continuous_circle_map _ _).continuous_on
+          (λ θ hθ, circle_map_mem_sphere _ hR.le _)).norm },
+      { exact mul_le_mul_of_nonneg_left (hf _ $ circle_map_mem_sphere _ hR.le _) hR.le },
+      { exact (mul_lt_mul_left hR).2 hlt }
+    end
+  ... = 2 * π * R * C : by simp [mul_assoc]
+end
+
 lemma norm_two_pi_I_inv_smul_integral_le_of_norm_le_const {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 ≤ R)
   (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), f z∥ ≤ R * C :=

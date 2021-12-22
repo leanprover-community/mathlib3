@@ -357,14 +357,33 @@ lemma exists_eq_const_of_differentiable_of_bounded {f : ℂ → E} (hf : differe
   (hb : bounded (range f)) : ∃ c, f = const ℂ c :=
 (exists_const_forall_eq_of_differentiable_of_bounded hf hb).imp $ λ c, funext
 
-lemma norm_eq_norm_of_differentiable_on_of_is_max_on_closed_ball_of_mem_ball {f : ℂ → E}
+lemma norm_eq_norm_of_differentiable_on_of_is_max_on_closed_ball_of_mem_closed_ball {f : ℂ → E}
   {c w : ℂ} {R : ℝ} (hd : differentiable_on ℂ f (closed_ball c R))
-  (hn : is_max_on (norm ∘ f) (closed_ball c R) c) (hw : w ∈ ball c R) :
+  (hn : is_max_on (norm ∘ f) (closed_ball c R) c) (hw : w ∈ closed_ball c R) :
   ∥f w∥ = ∥f c∥ :=
 begin
-  refine (is_max_on_iff.1 hn _ (ball_subset_closed_ball hw)).antisymm (not_lt.1 _),
-  rintro hw : ∥f w∥ < ∥f c∥,
-  sorry
+  refine (is_max_on_iff.1 hn _ hw).antisymm (not_lt.1 _),
+  rintro hw_lt : ∥f w∥ < ∥f c∥,
+  set r := dist w c,
+  have hr : 0 < r, from dist_pos.2 (λ h, hw_lt.ne $ h ▸ rfl),
+  have hsub' : closed_ball c r ⊆ closed_ball c R, from closed_ball_subset_closed_ball hw,
+  have hsub : sphere c r ⊆ closed_ball c R, from sphere_subset_closed_ball.trans hsub',
+  have hne : ∀ z ∈ sphere c r, z ≠ c,
+    from λ z hz, ne_of_mem_of_not_mem hz (ne_of_lt $ (dist_self c).symm ▸ hr),
+  have hcont : continuous_on (λ z, (z - c)⁻¹ • f z) (sphere c r),
+    from ((continuous_on_id.sub continuous_on_const).inv₀ $
+      λ z hz, sub_ne_zero.2 (hne z hz)).smul (hd.continuous_on.mono hsub),
+  have hle : ∀ z ∈ sphere c r, ∥(z - c)⁻¹ • f z∥ ≤ ∥f c∥ / r,
+  { rintros z (hz : abs (z - c) = r),
+    simpa [norm_smul, hz, ← div_eq_inv_mul] using (div_le_div_right hr).2 (hn (hsub hz)) },
+  have hlt : ∥(w - c)⁻¹ • f w∥ < ∥f c∥ / r,
+    by simpa [norm_smul, ← div_eq_inv_mul] using (div_lt_div_right hr).2 hw_lt,
+  have : ∥∮ z in C(c, r), (z - c)⁻¹ • f z∥ < 2 * π * r * (∥f c∥ / r),
+    from circle_integral.norm_integral_lt_of_norm_le_const_of_lt hr hcont hle ⟨w, rfl, hlt⟩,
+  refine this.ne _,
+  rw circle_integral_sub_inv_smul_of_differentiable_on (mem_ball_self hr) (hd.mono hsub'),
+  field_simp [norm_smul, hr.ne', abs_of_pos real.pi_pos],
+  ac_refl
 end
 
 lemma norm_eventually_eq_of_eventually_differentiable_at_of_is_local_max {f : ℂ → E} {c : ℂ}
@@ -372,8 +391,8 @@ lemma norm_eventually_eq_of_eventually_differentiable_at_of_is_local_max {f : �
   ∀ᶠ y in 𝓝 c, ∥f y∥ = ∥f c∥ :=
 begin
   rcases nhds_basis_closed_ball.eventually_iff.1 (hd.and hc) with ⟨r, hr₀, hr⟩,
-  exact nhds_basis_ball.eventually_iff.2 ⟨r, hr₀, λ w hw,
-    norm_eq_norm_of_differentiable_on_of_is_max_on_closed_ball_of_mem_ball
+  exact nhds_basis_closed_ball.eventually_iff.2 ⟨r, hr₀, λ w hw,
+    norm_eq_norm_of_differentiable_on_of_is_max_on_closed_ball_of_mem_closed_ball
       (λ z hz, (hr hz).1.differentiable_within_at) (λ z hz, (hr hz).2) hw⟩
 end
 

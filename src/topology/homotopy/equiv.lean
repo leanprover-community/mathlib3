@@ -93,10 +93,12 @@ def symm (h : X ~ₕ Y) : Y ~ₕ X :=
 @[simp]
 lemma coe_inv_fun (h : homotopy_equiv X Y) : (⇑h.inv_fun : Y → X) = ⇑h.symm := rfl
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+because it is a composition of multiple projections. -/
 def simps.apply (h : X ~ₕ Y) : X → Y := h
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+because it is a composition of multiple projections. -/
 def simps.symm_apply (h : X ~ₕ Y) : Y → X := h.symm
-
--- #check continuous_map.homotopy_equiv.refl_apply
 
 initialize_simps_projections homotopy_equiv (to_fun_to_fun -> apply,
   inv_fun_to_fun -> symm_apply, -to_fun, -inv_fun)
@@ -109,9 +111,6 @@ def refl (X : Type u) [topological_space X] : X ~ₕ X :=
 (homeomorph.refl X).to_homotopy_equiv
 
 instance : inhabited (homotopy_equiv unit unit) := ⟨refl unit⟩
-
-@[simp]
-lemma refl_symm (X : Type u) [topological_space X] : (refl X).symm = refl X := rfl
 
 /--
 If `X` is homotopy equivalent to `Y`, and `Y` is homotopy equivalent to `Z`, then `X` is homotopy

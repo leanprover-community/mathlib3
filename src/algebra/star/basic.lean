@@ -378,17 +378,9 @@ end mul_opposite
 instance star_monoid.to_opposite_star_module [comm_monoid R] [star_monoid R] : star_module Rᵐᵒᵖ R :=
 ⟨λ r s, star_mul' s r.unop⟩
 
-section self_adjoint
-
-/-- An element `x` of a type with a star is self adjoint if `star x = x`. -/
-def is_self_adjoint [has_star R] (x : R) := star x = x
-
 variables (R)
 def self_adjoints [has_star R] := {x : R // star x = x}
 variables {R}
-
-def is_self_adjoint.self_adjoint [has_star R] {x : R} (h : is_self_adjoint x) : self_adjoints R :=
-⟨x, h⟩
 
 namespace self_adjoints
 
@@ -398,7 +390,6 @@ instance [has_involutive_star R] : has_involutive_star (self_adjoints R) := ⟨�
 
 @[simp] lemma star_eq [has_star R] {x : self_adjoints R} : star x = x := rfl
 @[simp] lemma star_coe_eq [has_star R] {x : self_adjoints R} : star (x : R) = x := x.prop
-lemma is_self_adjoint [has_star R] (x : self_adjoints R) : is_self_adjoint (x : R) := x.prop
 
 instance [add_monoid R] [star_add_monoid R] : add_monoid (self_adjoints R) :=
 { add := λ x y, ⟨x.1 + y.1, by rw [star_add, x.2, y.2]⟩,
@@ -437,7 +428,7 @@ instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoints 
 
 instance [monoid R] [star_monoid R] : has_one (self_adjoints R) := ⟨⟨1, star_one _⟩⟩
 
-@[simp] lemma coe_one [comm_monoid R] [star_monoid R] :
+@[simp] lemma coe_one [monoid R] [star_monoid R] :
   (coe : self_adjoints R → R) (1 : self_adjoints R) = (1 : R) := rfl
 
 instance [comm_monoid R] [star_monoid R] : has_mul (self_adjoints R) :=
@@ -481,6 +472,32 @@ instance [field R] [star_ring R] : field (self_adjoints R) :=
   inv_zero := by { ext, exact inv_zero },
   ..self_adjoints.comm_ring }
 
-end self_adjoints
+-- Conjugation of a self-adjoint by an element of the original type
 
-end self_adjoint
+instance [monoid R] [star_monoid R] : has_scalar R (self_adjoints R) :=
+⟨λ r x, ⟨r * x * star r, by simp only [mul_assoc, star_coe_eq, star_star, star_mul]⟩⟩
+
+@[simp] lemma conj_eq_smul [monoid R] [star_monoid R] (r : R) (x : self_adjoints R) :
+  (coe : self_adjoints R → R) (r • x) = r * x * star r := rfl
+
+@[simp] lemma conj_eq_smul' [monoid R] [star_monoid R] (r : R) (x : self_adjoints R) :
+  (coe : self_adjoints R → R) (star r • x) = star r * x * r :=
+by simp only [conj_eq_smul, star_star]
+
+@[simp] lemma mul_self_star_eq_smul_one [monoid R] [star_monoid R] (r : R) :
+  (coe : self_adjoints R → R) (r • 1) = r * star r :=
+by simp only [conj_eq_smul, mul_one, coe_one]
+
+@[simp] lemma star_mul_self_eq_smul_one [monoid R] [star_monoid R] (r : R) :
+  (coe : self_adjoints R → R) (star r • 1) = star r * r :=
+by simp only [conj_eq_smul, mul_one, coe_one, star_star]
+
+instance [monoid R] [star_monoid R] : mul_action R (self_adjoints R) :=
+{ one_smul := λ x, by { ext, simp only [mul_one, one_mul, conj_eq_smul, star_one] },
+  mul_smul := λ r s x, by { ext, simp only [mul_assoc, conj_eq_smul, star_mul] } }
+
+instance [ring R] [star_ring R] : distrib_mul_action R (self_adjoints R) :=
+{ smul_add := λ r x y, by { ext, simp only [mul_add, add_mul, conj_eq_smul, coe_add] },
+  smul_zero := λ r, by { ext, simp only [coe_zero, zero_mul, conj_eq_smul, mul_zero] } }
+
+end self_adjoints

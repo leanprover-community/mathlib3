@@ -75,18 +75,6 @@ open finset
 universes u v w
 
 /--
-A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
-The relation describes which pairs of vertices are adjacent.
-There is exactly one edge for every pair of adjacent edges;
-see `simple_graph.edge_set` for the corresponding edge set.
--/
-@[ext]
-structure simple_graph (V : Type u) :=
-(adj : V → V → Prop)
-(symm : symmetric adj . obviously)
-(loopless : irreflexive adj . obviously)
-
-/--
 Construct the simple graph induced by the given relation. It
 symmetrizes the relation and makes it irreflexive.
 -/

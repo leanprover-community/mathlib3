@@ -74,6 +74,7 @@ instance : inhabited ℚ := ⟨0⟩
 
 lemma ext_iff {p q : ℚ} : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
 by { cases p, cases q, simp }
+
 @[ext] lemma ext {p q : ℚ} (hn : p.num = q.num) (hd : p.denom = q.denom) : p = q :=
 rat.ext_iff.mpr ⟨hn, hd⟩
 
@@ -574,12 +575,11 @@ theorem mk_pnat_denom (n : ℤ) (d : ℕ+) :
 by cases d; refl
 
 lemma num_mk (n d : ℤ) :
-  (n /. d).num = if d = 0 then 0 else d.sign * n / n.gcd d :=
+  (n /. d).num = d.sign * n / n.gcd d :=
 begin
-  cases d,
-  { cases d,
-    { simp },
-    { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] } },
+  rcases d with ((_ | _) | _),
+  { simp },
+  { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] },
   { rw rat.mk,
     simpa [rat.mk_pnat_num, int.neg_succ_of_nat_eq, ←int.coe_nat_succ,
            int.sign_coe_nat_of_nonzero] }
@@ -588,10 +588,9 @@ end
 lemma denom_mk (n d : ℤ) :
   (n /. d).denom = if d = 0 then 1 else d.nat_abs / n.gcd d :=
 begin
-  cases d,
-  { cases d,
-    { simp },
-    { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] } },
+  rcases d with ((_ | _) | _),
+  { simp },
+  { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] },
   { rw rat.mk,
     simpa [rat.mk_pnat_denom, int.neg_succ_of_nat_eq, ←int.coe_nat_succ,
            int.sign_coe_nat_of_nonzero] }

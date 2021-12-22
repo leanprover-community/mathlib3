@@ -101,7 +101,6 @@ called `top` with `⊤ = univ`.
 * `finset.sdiff`: Defines the set difference `s \ t` for finsets `s` and `t`.
 * `finset.product`: Given finsets of `α` and `β`, defines finsets of `α × β`.
   For arbitrary dependent products, see `data.finset.pi`.
-* `finset.sigma`: Given finsets of `α` and `β`, defines finsets of the dependent sum type `Σ α, β`
 * `finset.bUnion`: Finite unions of finsets; given an indexing function `f : α → finset β` and a
   `s : finset α`, `s.bUnion f` is the union of all finsets of the form `f a` for `a ∈ s`.
 * `finset.bInter`: TODO: Implemement finite intersections.
@@ -2434,33 +2433,6 @@ lemma nonempty.bUnion (hs : s.nonempty) (ht : ∀ x ∈ s, (t x).nonempty) :
 bUnion_nonempty.2 $ hs.imp $ λ x hx, ⟨hx, ht x hx⟩
 
 end bUnion
-
-/-! ### sigma -/
-section sigma
-variables {σ : α → Type*} {s : finset α} {t : Πa, finset (σ a)}
-
-/-- `sigma s t` is the set of dependent pairs `⟨a, b⟩` such that `a ∈ s` and `b ∈ t a`. -/
-protected def sigma (s : finset α) (t : Πa, finset (σ a)) : finset (Σa, σ a) :=
-⟨_, nodup_sigma s.2 (λ a, (t a).2)⟩
-
-@[simp] theorem mem_sigma {p : sigma σ} : p ∈ s.sigma t ↔ p.1 ∈ s ∧ p.2 ∈ t (p.1) := mem_sigma
-
-@[simp] theorem sigma_nonempty : (s.sigma t).nonempty ↔ ∃ x ∈ s, (t x).nonempty :=
-by simp [finset.nonempty]
-
-@[simp] theorem sigma_eq_empty : s.sigma t = ∅ ↔ ∀ x ∈ s, t x = ∅ :=
-by simp only [← not_nonempty_iff_eq_empty, sigma_nonempty, not_exists]
-
-@[mono] theorem sigma_mono {s₁ s₂ : finset α} {t₁ t₂ : Πa, finset (σ a)}
-  (H1 : s₁ ⊆ s₂) (H2 : ∀a, t₁ a ⊆ t₂ a) : s₁.sigma t₁ ⊆ s₂.sigma t₂ :=
-λ ⟨x, sx⟩ H, let ⟨H3, H4⟩ := mem_sigma.1 H in mem_sigma.2 ⟨H1 H3, H2 x H4⟩
-
-theorem sigma_eq_bUnion [decidable_eq (Σ a, σ a)] (s : finset α)
-  (t : Πa, finset (σ a)) :
-  s.sigma t = s.bUnion (λa, (t a).map $ embedding.sigma_mk a) :=
-by { ext ⟨x, y⟩, simp [and.left_comm] }
-
-end sigma
 
 /-! ### disjoint -/
 section disjoint

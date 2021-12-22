@@ -244,8 +244,7 @@ variables {I A : Type*} {X : I → Type*}
 
 /-- Abbreviation for product of continuous maps, which is continuous -/
 def pi (f : Π i, C(A, X i)) : C(A, Π i, X i) :=
-{ to_fun := λ (a : A) (i : I), f i a,
-  continuous_to_fun := by continuity, }
+  { to_fun := λ (a : A) (i : I), f i a, }
 
 @[simp]
 lemma pi_eval (f : Π i, C(A, X i)) (a : A)  :

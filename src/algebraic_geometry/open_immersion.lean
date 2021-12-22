@@ -9,6 +9,7 @@ import category_theory.limits.preserves.shapes.pullbacks
 import topology.sheaves.functors
 import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
+import algebra.category.CommRing.instances
 
 /-!
 # Open immersions of structured spaces
@@ -1080,7 +1081,7 @@ immersions, it is quite hard to glue them, reason about finite covers, etc.
 -/
 -- TODO: provide API to and from a preseive.
 structure open_cover (X : Scheme.{u}) :=
-(J : Type u)
+(J : Type v)
 (obj : Π (j : J), Scheme)
 (map : Π (j : J), obj j ⟶ X)
 (f : X.carrier → J)
@@ -1118,17 +1119,9 @@ def affine_cover (X : Scheme) : open_cover X :=
 
 instance : inhabited X.open_cover := ⟨X.affine_cover⟩
 
-instance localization_unit_is_iso (R : CommRing) :
-  is_iso (CommRing.of_hom $ algebra_map R (localization.away (1 : R))) :=
-is_iso.of_iso (is_localization.at_one R (localization.away (1 : R))).to_ring_equiv.to_CommRing_iso
-
-instance localization_unit_is_iso' (R : CommRing) :
-  @is_iso CommRing _ R _ (CommRing.of_hom $ algebra_map R (localization.away (1 : R))) :=
-by { cases R, exact algebraic_geometry.Scheme.localization_unit_is_iso _ }
-
 /-- Given an open cover `{ Uᵢ }` of `X`, and for each `Uᵢ` an open cover, we may combine these
 open covers to form an open cover of `X`.  -/
-def open_cover.bind_covers (f : Π (x : 𝒰.J), open_cover (𝒰.obj x)) : open_cover X :=
+def open_cover.bind (f : Π (x : 𝒰.J), open_cover (𝒰.obj x)) : open_cover X :=
 { J := Σ (i : 𝒰.J), (f i).J,
   obj := λ x, (f x.1).obj x.2,
   map := λ x, (f x.1).map x.2 ≫ 𝒰.map x.1,
@@ -1178,7 +1171,7 @@ def affine_basis_cover_of_affine (R : CommRing) : open_cover (Spec.obj (opposite
 /-- We may bind the basic open sets of an open affine cover to form a affine cover that is also
 a basis. -/
 def affine_basis_cover (X : Scheme) : open_cover X :=
-X.affine_cover.bind_covers (λ x, affine_basis_cover_of_affine _)
+X.affine_cover.bind (λ x, affine_basis_cover_of_affine _)
 
 lemma affine_basis_cover_map_range (X : Scheme)
   (x : X.carrier) (r : (X.local_affine x).some_spec.some) :

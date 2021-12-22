@@ -44,11 +44,19 @@ instance : mul_action ℝ (self_adjoints E) :=
   ..show has_scalar ℝ (self_adjoints E), by apply_instance }
 
 instance : distrib_mul_action ℝ (self_adjoints E) :=
-{ smul_add := λ r x y, sorry,
-  smul_zero := λ r, sorry }
+{ smul_add := λ r x y, by { ext, simp only [smul_add, coe_smul, coe_add] },
+  smul_zero := λ r, by { ext, simp only [coe_zero, coe_smul, smul_zero] } }
 
 instance : module ℝ (self_adjoints E) :=
-{ add_smul := sorry,
-  zero_smul := sorry }
+{ add_smul := λ r s x, by { ext, simp only [add_smul, of_real_add, coe_smul, coe_add] },
+  zero_smul := λ x, by { ext, simp only [of_real_zero, coe_zero, coe_smul, zero_smul] } }
+
+instance : normed_space ℝ (self_adjoints E) :=
+⟨λ r x, le_of_eq $ by simp only [coe_smul, norm_coe, norm_smul, norm_of_real]⟩
+
+instance : star_module ℝ (self_adjoints E) :=
+⟨λ r x, by simp only [star, id.def]⟩
+
+omit 𝕜
 
 end self_adjoints

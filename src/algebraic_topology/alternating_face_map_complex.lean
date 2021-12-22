@@ -10,6 +10,7 @@ import algebraic_topology.Moore_complex
 import category_theory.abelian.basic
 import algebra.big_operators.basic
 import tactic.ring_exp
+import data.fintype.card
 
 /-!
 
@@ -33,7 +34,9 @@ when `A` is an abelian category.
 
 open category_theory category_theory.limits category_theory.subobject
 open opposite
+
 open_locale big_operators
+open_locale simplicial
 
 noncomputable theory
 
@@ -41,11 +44,15 @@ namespace algebraic_topology
 
 namespace alternating_face_map_complex
 
+/-!
+## Construction of the alternating face map complex
+-/
+
 /-- In degree n, the alternating face map complex is given by
 the nth-object of the simplicial object -/
 @[simp]
 def obj_X {C : Type*} [category C] (X : simplicial_object C) (n : ℕ) :=
-X.obj (op (simplex_category.mk n))
+X.obj (op [n])
 
 variables {C : Type*} [category C] [preadditive C]
 variables (X : simplicial_object C)
@@ -55,202 +62,82 @@ variables (Y : simplicial_object C)
 sum of the face maps -/
 @[simp]
 def obj_d (n : ℕ) : obj_X X (n+1) ⟶ obj_X X n :=
-∑ i in finset.range (n+2), (-1 : ℤ)^i • X.δ i
-
-/-!
-## Proof of the chain complex relation `d ≫ d`
-
-The expansion of `d ≫ d` involves a double sum, or a sum of terms
-indexed by a set of the form {0,...,n} × {0,...,n+1}. We shall show
-a general cancellation lemma `antisymmetric_sum_cancels` of such sums when
-the terms f_{i,j} satisfy an "antisymmetry" relation f_{i,j+1} = -f_{j,i}
-for i≤j, The cancellation lemma follows from the study of a certain
-involution `τ` on `ℕ × ℕ`.
-
-### Definition of an involution `τ : ℕ × ℕ → ℕ × ℕ`
-
--/
+∑ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i
 
 /--
-We split elements `ℕ × ℕ` into two cases. "Case 1" is the situation of
-tuples `(i,j)` such that `i<j`, and "Case 2" is the other situation. These
-two subsets are exchanged by τ
--/
-def τ (x : ℕ × ℕ ) : ℕ × ℕ :=
-if x.1 < x.2
-  then (x.2-1,x.1)
-  else (x.2,x.1+1)
-
-lemma τ_case1 (x : ℕ × ℕ) (hx : (x.1<x.2)) : τ x = (x.2-1,x.1) :=
-by { rw τ, split_ifs, refl }
-
-lemma τ_case2 (x : ℕ × ℕ) (hx : ¬x.1<x.2) : τ x = (x.2,x.1+1) :=
-by { rw τ, split_ifs, refl }
-
-lemma τ_of_case2_is_case1 (x : ℕ × ℕ) (hx : ¬x.1<x.2) : (τ x).1<(τ x).2 :=
-by { rw τ_case2 x hx, linarith, }
-
-lemma τ_of_case1_is_case2 (x : ℕ × ℕ) (hx : x.1<x.2) : ¬(τ x).1<(τ x).2 :=
-begin
-  rw τ_case1 x hx,
-  cases x.2,
-  { exfalso, linarith, },
-  { intro htx,
-    rw nat.succ_sub_one at htx,
-    have h1 := nat.le_of_lt_succ hx,
-    linarith, },
-end
-
-lemma τ_inv (x : ℕ × ℕ) : τ (τ x) = x :=
-begin
-  by_cases x.1<x.2,
-  { rw τ_case2 (τ x) (τ_of_case1_is_case2 x h),
-    rw τ_case1 x h,
-    ext; simp only,
-      cases x.2 with m,
-      { linarith, },
-      { exact nat.succ_sub_one m.succ, }, },
-  { rw τ_case1 (τ x) (τ_of_case2_is_case1 x h),
-    rw τ_case2 x h,
-    simp only [nat.add_succ_sub_one, add_zero, prod.mk.eta], },
-end
-
-/-- τ has no fixed point -/
-lemma τ_ne' (x : ℕ × ℕ) : τ x ≠ x :=
-begin
-  have case1 : ∀ (y : ℕ × ℕ), y.1<y.2 → τ y ≠ y,
-  { intros y hy h1,
-    rw τ_case1 y hy at h1,
-    have h2 := congr_arg prod.snd h1,
-    simp only at h2,
-    linarith, },
-  have case2 : ∀ (y : ℕ × ℕ), ¬y.1<y.2 → τ y ≠ y,
-  { intros y hy h1,
-    exact case1 (τ y) (τ_of_case2_is_case1 y hy) (congr_arg τ h1), },
-  by_cases x.1<x.2,
-  { exact case1 x h, },
-  { exact case2 x h, },
-end
-
-/-!
-### Verification that τ induces an involution τ' on {0,...,n} × {0,...,n+1}
--/
-
-/-- `indices n` denotes `{0,...,n} × {0,...,n+1}` as a finite subset of `ℕ × ℕ` -/
-def indices (n : ℕ) : finset (ℕ × ℕ) :=
-finset.product (finset.range(n+1)) (finset.range(n+2))
-
-/-- τ stabilises {0,...,n} × {0,...,n+1} -/
-lemma τ'_mem' {n : ℕ} (x : ℕ × ℕ) (hx : x ∈ indices n) : τ x ∈ indices n :=
-begin
-  simp only [indices, finset.mem_product, finset.mem_range] at hx,
-  cases hx with hx1 hx2,
-  by_cases x.1<x.2,
-  { rw τ_case1 x h,
-    simp only [indices, finset.mem_product, finset.mem_range],
-    split,
-      { exact nat.pred_lt_pred (show x.2 ≠ 0, by linarith) hx2, },
-      { linarith, }, },
-  { rw τ_case2 x h,
-    simp only [indices, finset.mem_product, finset.mem_range],
-    split; linarith, }
-end
-
-/-!
-### Cancellation of "antisymmetric" sums indexed by {0,...,n} × {0,...,n+1}
--/
-
-variables {α : Type*}
-
-/-- The proof uses finset.sum_involution. Then, from the assumption, we need
-to show that for all x in {0,...,n} × {0,...,n+1}, we have `f x + f (τ x) = 0`.
--/
-lemma antisymmetric_sum_cancels [add_comm_group α] {n : ℕ} (f : ℕ × ℕ → α)
-  (antisymmetry_f : ∀ (i j : ℕ), i≤j → j≤n → f (i,j+1) = - f (j,i)) :
-  ∑ x in (indices n), f x = 0 :=
-begin
-  have hf_case2 : ∀ (x : ℕ × ℕ) (h2x : ¬x.1<x.2)
-    (hx : x ∈ indices n), f x + f (τ x) = 0,
-  { intros x h2x hx,
-    rw τ_case2 x h2x,
-    simp only [indices, finset.mem_product, finset.mem_range] at hx,
-    rw antisymmetry_f x.2 x.1 (by linarith) (by linarith),
-    simp only [prod.mk.eta, add_right_neg], },
-  have hf_case1 : ∀ (x : ℕ × ℕ) (h1x : x.1<x.2)
-    (hx : x ∈ indices n), f x + f (τ x) = 0,
-  { intros x h1x hx,
-    rw add_comm,
-    have eq := hf_case2 (τ x) (τ_of_case1_is_case2 x h1x) (τ'_mem' x hx),
-    rw τ_inv x at eq,
-    exact eq, },
-  let τ' : ∀ (x : ℕ × ℕ), x ∈ indices n → ℕ × ℕ := λ x hx, τ x,
-  have τ'_eq_τ : ∀ (x : ℕ × ℕ) (hx : x ∈ indices n), τ' x hx = τ x := by { intros x hx, refl, },
-  have hf : ∀ (x : ℕ × ℕ) (hx : x ∈ indices n), f x + f (τ' x hx) = 0,
-  { intros x hx,
-    rw τ'_eq_τ x hx,
-    by_cases x.1<x.2,
-    { exact hf_case1 x h hx, },
-    { exact hf_case2 x h hx, }, },
-  exact finset.sum_involution τ' hf (λ x _ _, τ_ne' x)
-    τ'_mem' (λ x _, τ_inv x),
-end
-
-
-/-!
-### Antisymmetry property for the terms that appear in the expansion of `d ≫ d`
--/
-
-/-- εdi_dj n (i,j) is the composite `(-1)^j d_j ≫ (-1)^i d_i` -/
-def εdi_dj (n : ℕ) (x : ℕ × ℕ) : (obj_X X (n+2)) ⟶ (obj_X X n) :=
-((-1 : ℤ)^x.2 • X.δ x.2) ≫ ((-1 : ℤ)^x.1 • X.δ x.1)
-
-lemma εdi_dj_antisymm (n i j : ℕ) (hij : i≤j) (hjn : j≤n+1) :
-  (εdi_dj X n (i,j+1)) = - εdi_dj X n (j,i) :=
-begin
-  repeat { rw εdi_dj },
-  simp only,
-  repeat { rw category_theory.preadditive.comp_zsmul },
-  repeat { rw category_theory.preadditive.zsmul_comp },
-  repeat { rw ← mul_smul },
-  have eq : -((-1)^i * (-1)^j : ℤ) = (-1)^i * (-1)^(j+1) := by ring_exp,
-  rw [← eq, mul_comm, ← neg_smul],
-  apply congr_arg,
-  /- the equality shall follow from simplicial identities -/
-  have ineq : (i : fin(n+2)) ≤ j,
-  { rw ← fin.coe_fin_le,
-    rw fin.coe_coe_of_lt (show i<n+2, by linarith),
-    rw fin.coe_coe_of_lt (show j<n+2, by linarith),
-    exact hij, },
-  have hi : fin.cast_succ (i : fin(n+2)) = (i : fin(n+3)),
-  { ext,
-    rw fin.coe_cast_succ,
-    rw fin.coe_coe_of_lt (show i<n+2, by linarith),
-    rw fin.coe_coe_of_lt (show i<n+3, by linarith), },
-  have hj : (j : fin(n+2)).succ = ((j+1) : ℕ),
-  { ext,
-    rw fin.coe_succ,
-    rw fin.coe_coe_of_lt (show j+1<n+3, by linarith),
-    rw fin.coe_coe_of_lt (show j<n+2, by linarith), },
-  have seq := category_theory.simplicial_object.δ_comp_δ X ineq,
-  rw [hi, hj] at seq,
-  exact seq,
-end
-
-/-!
-### End of the proof of `d ≫ d = 0`
+## The chain complex relation `d ≫ d`
 -/
 lemma d_squared (n : ℕ) : obj_d X (n+1) ≫ obj_d X n = 0 :=
 begin
+  /- we start by expanding d ≫ d as a double sum -/
   repeat { rw obj_d },
   rw preadditive.comp_sum,
-  let d_l := (λ (j:ℕ), (-1 : ℤ)^j • X.δ (j : fin(n+3))),
-  let d_r := (λ (i:ℕ), (-1 : ℤ)^i • X.δ (i : fin(n+2))),
-  rw [show (λ i, (∑ j in finset.range(n+3), d_l j) ≫ d_r i) =
-    (λ i, ∑ j in finset.range(n+3), εdi_dj X n (i,j)),
-    by { ext, rw preadditive.sum_comp, refl }],
+  let d_l := λ (j : fin (n+3)), (-1 : ℤ)^(j : ℕ) • X.δ j,
+  let d_r := λ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i,
+  rw [show (λ i , (∑ j : fin (n+3), d_l j) ≫ d_r i) =
+    (λ i, ∑ j : fin (n+3), (d_l j ≫ d_r i)), by { ext i, rw preadditive.sum_comp, }],
   rw ← finset.sum_product',
-  clear d_l d_r,
-  exact antisymmetric_sum_cancels (εdi_dj X n) (εdi_dj_antisymm X n),
+  /- then, we decompose the index set P into a subet S and its complement Sᶜ -/ 
+  let P := fin (n+2) × fin (n+3),
+  let S := finset.univ.filter (λ (ij : P), (ij.2 : ℕ) ≤ (ij.1 : ℕ)),
+  let term := λ (ij : P), d_l ij.2 ≫ d_r ij.1,
+  erw [show ∑ (ij : P), term ij =
+    (∑ ij in S, term ij) + (∑ ij in Sᶜ, term ij), by rw finset.sum_add_sum_compl],
+  rw [← eq_neg_iff_add_eq_zero, ← finset.sum_neg_distrib],
+  /- we are reduced to showing that two sums are equal, and this is obtained
+  by constructing a bijection φ : S -> Sᶜ, which maps (i,j) to (j,i+1),
+  and by comparing the terms -/ 
+  let φ : Π (ij : P), ij ∈ S → P := λ ij hij,
+    (fin.cast_lt ij.2
+      (lt_of_le_of_lt (finset.mem_filter.mp hij).right (fin.is_lt ij.1)), ij.1.succ),
+  apply finset.sum_bij φ,
+  { -- φ(S) is contained in Sᶜ
+    intros ij hij,
+    simp only [finset.mem_univ, finset.compl_filter, finset.mem_filter, true_and,
+      fin.coe_succ, fin.coe_cast_lt] at hij ⊢,
+    linarith, },
+  { /- identification of corresponding terms in both sums -/
+    rintro ⟨i, j⟩ hij,
+    let jj : fin (n+2) := (φ (i,j) hij).1,
+    simp only [finset.mem_filter, finset.mem_univ, true_and] at hij,
+    simp only [term, d_l, d_r, φ],
+    simp only,
+    clear term d_l d_r,
+    repeat { rw [category_theory.preadditive.comp_zsmul,
+      category_theory.preadditive.zsmul_comp], },
+    rw [← neg_smul, ← mul_smul, ← mul_smul],
+    rw [← show (-1 : ℤ)^(i : ℕ) * (-1 : ℤ)^(j : ℕ) =
+        - (-1 : ℤ)^(jj : ℕ) * (-1 : ℤ)^(i.succ : ℕ), by
+      { simp only [fin.coe_succ, fin.coe_cast_lt], ring_exp, }],
+    apply congr_arg,
+    have ineq : jj ≤ i, { rw ← fin.coe_fin_le, exact hij, },
+    rw category_theory.simplicial_object.δ_comp_δ X ineq,
+    simp only [fin.cast_succ_cast_lt], },
+  { -- φ : S → Sᶜ is injective
+    rintro ⟨i, j⟩ ⟨i', j'⟩ hij hij' h,
+    rw [prod.mk.inj_iff],
+    split,
+    { have h1 := congr_arg prod.snd h,
+      simp only [fin.succ_inj] at h1,
+      exact congr_arg _ h1 },
+    { have h1 := congr_arg fin.cast_succ (congr_arg prod.fst h),
+      simp only [fin.cast_succ_cast_lt] at h1,
+      exact h1, }, },
+  { -- φ : S → Sᶜ is surjective
+    clear term d_l d_r,
+    rintro ⟨i', j'⟩ hij',
+    simp only [true_and, finset.mem_univ, finset.compl_filter, not_le,
+      finset.mem_filter] at hij',
+    refine ⟨(j'.pred _,fin.cast_succ i'),_,_⟩,
+    { intro H,
+      rw [H] at hij',
+      simp only [nat.not_lt_zero, fin.coe_zero] at hij',
+      exact hij', },
+    { simp only [true_and, finset.mem_univ, fin.coe_cast_succ, fin.coe_pred,
+        finset.mem_filter],
+      exact nat.le_pred_of_lt hij', },
+    { simp only [prod.mk.inj_iff, fin.succ_pred, fin.cast_lt_cast_succ],
+      split; refl, }, },
 end
 
 /-!
@@ -266,12 +153,12 @@ variables {X} {Y}
 @[simp]
 def map (f : X ⟶ Y) : obj X ⟶ obj Y :=
 chain_complex.of_hom _ _ _ _ _ _
-  (λ n, f.app (op (simplex_category.mk n)))
+  (λ n, f.app (op [n]))
   (λ n,
     begin
       repeat { rw obj_d },
       rw [preadditive.comp_sum, preadditive.sum_comp],
-      apply congr_arg (finset.range(n+2)).sum,
+      apply congr_arg,
       ext,
       rw category_theory.preadditive.comp_zsmul,
       rw category_theory.preadditive.zsmul_comp,
@@ -309,41 +196,30 @@ chain_complex.of_hom _ _ _ _ _ _
          zero on the normalized_Moore_complex -/
       simp only [alternating_face_map_complex.obj_d],
       rw preadditive.comp_sum,
-      let t := λ (j : ℕ), (normalized_Moore_complex.obj_X X (n+1)).arrow ≫
-        ((-1 : ℤ)^j • X.δ j),
-      have def_t : (∀ j, t j = (normalized_Moore_complex.obj_X X (n+1)).arrow ≫
-        ((-1 : ℤ)^j • X.δ j)) := by { intro j, refl, },
-      have h := finset.sum_range_add t 1 (n+1),
-      rw finset.sum_range_one at h,
-      have null : (∀ j, j ∈ finset.range(n+1) → t (1+j) = 0),
-      { intros j hj,
-        simp only [finset.mem_range] at hj,
+      let t := λ (j : fin (n+2)), (normalized_Moore_complex.obj_X X (n+1)).arrow ≫
+        ((-1 : ℤ)^(j : ℕ) • X.δ j),
+      have def_t : (∀ j : fin (n+2), t j = (normalized_Moore_complex.obj_X X (n+1)).arrow ≫
+        ((-1 : ℤ)^(j : ℕ) • X.δ j)) := by { intro j, refl, },
+      rw [fin.sum_univ_succ t],
+      have null : ∀ j : fin (n+1), t j.succ = 0,
+      { intro j,
         rw def_t,
         rw preadditive.comp_zsmul,
-        rw ← zsmul_zero ((-1 : ℤ)^(1+j)),
+        rw ← zsmul_zero ((-1 : ℤ)^(j.succ : ℕ)),
         apply congr_arg,
         rw normalized_Moore_complex.obj_X,
-        rw [show ((1+j : ℕ) : (fin(n+2))) = (j : fin(n+1)).succ, by
-          { ext,
-            rw fin.coe_succ,
-            rw fin.coe_coe_of_lt (show j<n+1, by linarith),
-            rw fin.coe_coe_of_lt (show 1+j<n+2, by linarith),
-            rw add_comm, }],
         rw ← factor_thru_arrow _ _
-          (finset_inf_arrow_factors finset.univ _ (j : fin(n+1)) (by simp)),
-        slice_lhs 2 3 { erw kernel_subobject_arrow_comp (X.δ (j:fin(n+1)).succ), },
-        simp, },
-      rw finset.sum_eq_zero null at h,
-      rw [show 1+(n+1)=n+2, by linarith] at h,
-      rw h,
+          (finset_inf_arrow_factors finset.univ _ j (by simp only [finset.mem_univ])),
+        slice_lhs 2 3 { erw kernel_subobject_arrow_comp (X.δ j.succ), },
+        simp only [comp_zero], },
+      rw [fintype.sum_eq_zero _ null],
       simp only [add_zero],
-
       /- finally, we study the remaining term which is induced by X.δ 0 -/
       let eq := def_t 0,
-      rw [show (-1 : ℤ)^0 = 1, by ring] at eq,
+      rw [show (-1 : ℤ)^((0 : fin (n+2)) : ℕ) = 1, by ring] at eq,
       rw one_smul at eq,
       rw eq,
-      clear eq null def_t h t,
+      clear eq null def_t t,
       cases n; dsimp; simp,
     end)
 

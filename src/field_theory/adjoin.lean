@@ -128,8 +128,7 @@ end
 (subalgebra.equiv_of_eq _ _ top_to_subalgebra).trans algebra.top_equiv
 
 @[simp] lemma top_equiv_symm_apply_coe (a : E) :
-  ↑((top_equiv.symm) a : (⊤ : intermediate_field F E)) = a :=
-by simp [top_equiv]
+  ↑((top_equiv.symm) a : (⊤ : intermediate_field F E)) = a := rfl
 
 @[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
 by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }

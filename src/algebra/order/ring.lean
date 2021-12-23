@@ -760,6 +760,16 @@ def function.injective.linear_ordered_semiring {β : Type*}
   .. pullback_nonzero f zero one,
   .. hf.ordered_semiring f zero one add mul }
 
+@[simp] lemma units.inv_pos {u : units α} : (0 : α) < ↑u⁻¹ ↔ (0 : α) < u :=
+have ∀ {u : units α}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
+  (zero_lt_mul_left h).mp $ u.mul_inv.symm ▸ zero_lt_one,
+⟨this, this⟩
+
+@[simp] lemma units.inv_neg {u : units α} : ↑u⁻¹ < (0 : α) ↔ ↑u < (0 : α) :=
+have ∀ {u : units α}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
+  neg_of_mul_pos_left (by exact (u.mul_inv.symm ▸ zero_lt_one)) h.le,
+⟨this, this⟩
+
 end linear_ordered_semiring
 
 section mono

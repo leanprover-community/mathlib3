@@ -33,6 +33,7 @@ when `A` is an abelian category.
 -/
 
 open category_theory category_theory.limits category_theory.subobject
+open category_theory.preadditive
 open opposite
 
 open_locale big_operators
@@ -47,11 +48,6 @@ namespace alternating_face_map_complex
 /-!
 ## Construction of the alternating face map complex
 -/
-
-/-- In degree n, the alternating face map complex is given by
-the nth-object of the simplicial object -/
-@[simp]
-def obj_X {C : Type*} [category C] (X : simplicial_object C) (n : ℕ) := X _[n]
 
 variables {C : Type*} [category C] [preadditive C]
 variables (X : simplicial_object C)
@@ -70,13 +66,13 @@ lemma d_squared (n : ℕ) : obj_d X (n+1) ≫ obj_d X n = 0 :=
 begin
   /- we start by expanding d ≫ d as a double sum -/
   repeat { rw obj_d },
-  rw preadditive.comp_sum,
+  rw comp_sum,
   let d_l := λ (j : fin (n+3)), (-1 : ℤ)^(j : ℕ) • X.δ j,
   let d_r := λ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i,
   rw [show (λ i , (∑ j : fin (n+3), d_l j) ≫ d_r i) =
-    (λ i, ∑ j : fin (n+3), (d_l j ≫ d_r i)), by { ext i, rw preadditive.sum_comp, }],
+    (λ i, ∑ j : fin (n+3), (d_l j ≫ d_r i)), by { ext i, rw sum_comp, }],
   rw ← finset.sum_product',
-  /- then, we decompose the index set P into a subet S and its complement Sᶜ -/ 
+  /- then, we decompose the index set P into a subet S and its complement Sᶜ -/
   let P := fin (n+2) × fin (n+3),
   let S := finset.univ.filter (λ (ij : P), (ij.2 : ℕ) ≤ (ij.1 : ℕ)),
   let term := λ (ij : P), d_l ij.2 ≫ d_r ij.1,
@@ -85,7 +81,7 @@ begin
   rw [← eq_neg_iff_add_eq_zero, ← finset.sum_neg_distrib],
   /- we are reduced to showing that two sums are equal, and this is obtained
   by constructing a bijection φ : S -> Sᶜ, which maps (i,j) to (j,i+1),
-  and by comparing the terms -/ 
+  and by comparing the terms -/
   let φ : Π (ij : P), ij ∈ S → P := λ ij hij,
     (fin.cast_lt ij.2
       (lt_of_le_of_lt (finset.mem_filter.mp hij).right (fin.is_lt ij.1)), ij.1.succ),
@@ -102,8 +98,7 @@ begin
     simp only [term, d_l, d_r, φ],
     simp only,
     clear term d_l d_r,
-    repeat { rw [category_theory.preadditive.comp_zsmul,
-      category_theory.preadditive.zsmul_comp], },
+    repeat { rw [comp_zsmul, zsmul_comp], },
     rw [← neg_smul, ← mul_smul, ← mul_smul],
     rw [← show (-1 : ℤ)^(i : ℕ) * (-1 : ℤ)^(j : ℕ) =
         - (-1 : ℤ)^(jj : ℕ) * (-1 : ℤ)^(i.succ : ℕ), by
@@ -144,7 +139,7 @@ end
 -/
 
 /-- The alternating face map complex, on objects -/
-def obj : chain_complex C ℕ := chain_complex.of (obj_X X) (obj_d X) (d_squared X)
+def obj : chain_complex C ℕ := chain_complex.of (λ n, X _[n]) (obj_d X) (d_squared X)
 
 variables {X} {Y}
 
@@ -156,11 +151,10 @@ chain_complex.of_hom _ _ _ _ _ _
   (λ n,
     begin
       repeat { rw obj_d },
-      rw [preadditive.comp_sum, preadditive.sum_comp],
+      rw [comp_sum, sum_comp],
       apply congr_arg,
       ext,
-      rw category_theory.preadditive.comp_zsmul,
-      rw category_theory.preadditive.zsmul_comp,
+      rw [comp_zsmul, zsmul_comp],
       apply congr_arg,
       erw f.naturality,
       refl,
@@ -194,7 +188,7 @@ chain_complex.of_hom _ _ _ _ _ _
          we first get rid of the terms of the alternating sum that are obviously
          zero on the normalized_Moore_complex -/
       simp only [alternating_face_map_complex.obj_d],
-      rw preadditive.comp_sum,
+      rw comp_sum,
       let t := λ (j : fin (n+2)), (normalized_Moore_complex.obj_X X (n+1)).arrow ≫
         ((-1 : ℤ)^(j : ℕ) • X.δ j),
       have def_t : (∀ j : fin (n+2), t j = (normalized_Moore_complex.obj_X X (n+1)).arrow ≫
@@ -203,7 +197,7 @@ chain_complex.of_hom _ _ _ _ _ _
       have null : ∀ j : fin (n+1), t j.succ = 0,
       { intro j,
         rw def_t,
-        rw preadditive.comp_zsmul,
+        rw comp_zsmul,
         rw ← zsmul_zero ((-1 : ℤ)^(j.succ : ℕ)),
         apply congr_arg,
         rw normalized_Moore_complex.obj_X,
@@ -237,4 +231,3 @@ def inclusion_of_Moore_complex :
 { app := inclusion_of_Moore_complex_map, }
 
 end algebraic_topology
-

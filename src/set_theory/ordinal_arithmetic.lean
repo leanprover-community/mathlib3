@@ -1076,6 +1076,126 @@ begin
   exact lt_irrefl (blsub.{u u} o (λ x _, x)) (lt_blsub _ _ h),
 end
 
+/-! ### Enumerating unbounded sets of ordinals with ordinals -/
+
+section
+variables {S : set ordinal.{u}} (hS : ∀ a, ∃ b, S b ∧ a ≤ b)
+
+/-- Enumerator function for an unbounded set of ordinals. For the subtype variant, see `enum_ord'`.
+-/
+noncomputable def enum_ord : ordinal.{u} → ordinal.{u} :=
+wf.fix (λ a f, omin _ (hS (blsub.{u u} a f)))
+
+/-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
+work with, so consider using `enum_ord_def` instead. -/
+theorem enum_ord_def' (o) :
+  enum_ord hS o = omin (λ b, S b ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) (hS _) :=
+wf.fix_eq _ _
+
+private theorem enum_ord_mem_aux (o) :
+  S (enum_ord hS o) ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ (enum_ord hS o) :=
+by { rw enum_ord_def', exact omin_mem (λ _, _ ∧ _) _ }
+
+theorem enum_ord_mem (o) : enum_ord hS o ∈ S := (enum_ord_mem_aux hS o).left
+
+theorem blsub_le_enum_ord (a) : blsub.{u u} a (λ c _, enum_ord hS c) ≤ enum_ord hS a :=
+(enum_ord_mem_aux hS a).right
+
+theorem enum_ord.strict_mono {hS : ∀ a, ∃ b, S b ∧ a ≤ b} : strict_mono (enum_ord hS) :=
+λ _ _ h, lt_of_lt_of_le (lt_blsub.{u u} _ _ h) (blsub_le_enum_ord hS _)
+
+-- Explicitly specifying hS' screws up `rw` for whatever reason.
+private theorem enum_ord_def_aux (a) {hS'} :
+  enum_ord hS a = omin (λ b, S b ∧ ∀ c, c < a → enum_ord hS c < b) (hS') :=
+begin
+  suffices : (λ b, S b ∧ blsub.{u u} a (λ c _, enum_ord hS c) ≤ b) =
+    (λ b, S b ∧ ∀ c, c < a → enum_ord hS c < b),
+  { rw enum_ord_def',
+    simp_rw this },
+  apply funext (λ _, propext _),
+  exact ⟨ λ ⟨hl, hr⟩, ⟨hl, λ _ h, lt_of_lt_of_le (lt_blsub.{u u} _ _ h) hr⟩,
+    λ ⟨hl, hr⟩, ⟨hl, blsub_le_iff_lt.2 hr⟩ ⟩,
+end
+
+/-- The hypothesis that asserts that the `omin` from `enum_ord_def` exists. -/
+lemma enum_ord_def_H {hS : ∀ a, ∃ b, S b ∧ a ≤ b} {o} :
+  ∃ x, (λ b, S b ∧ ∀ c, c < o → enum_ord hS c < b) x :=
+(⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono b⟩)
+
+/-- A more workable definition for `enum_ord`. -/
+theorem enum_ord_def (o) :
+  enum_ord hS o = omin (λ b, S b ∧ ∀ c, c < o → enum_ord hS c < b) enum_ord_def_H :=
+enum_ord_def_aux hS o
+
+theorem enum_ord.surjective {hS : ∀ a, ∃ b, S b ∧ a ≤ b} : ∀ s ∈ S, ∃ a, enum_ord hS a = s :=
+begin
+  by_contra' H,
+  let a := omin _ H,
+  cases omin_mem _ H with hal har,
+  let c : ordinal.{u} := omin (λ b, a ≤ enum_ord hS b)
+    ⟨_, well_founded.self_le_of_strict_mono wf enum_ord.strict_mono _⟩,
+  suffices : enum_ord hS c = a,
+  { exact har c this },
+  rw enum_ord_def,
+  apply le_antisymm,
+  { refine omin_le ⟨hal, λ b hb, _⟩,
+    by_contra' h,
+    exact not_lt_of_le (omin_le h : c ≤ b) hb },
+  rw le_omin,
+  rintros b ⟨hbl, hbr⟩,
+  by_contra' hab,
+  suffices : ∀ d, enum_ord hS d ≠ b,
+  { exact @not_lt_omin _ H _ ⟨hbl, this⟩ hab, },
+  by_contra' h,
+  cases h with d hdb,
+  refine ne_of_lt (hbr d _) hdb,
+  by_contra' hcd,
+  apply not_le_of_lt hab,
+  rw ←hdb,
+  refine le_trans _ (enum_ord.strict_mono.monotone hcd),
+  exact omin_mem (λ _, a ≤ _) _
+end
+
+/-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/
+noncomputable def enum_ord.order_iso : ordinal.{u} ≃o S :=
+strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) enum_ord.strict_mono
+begin
+  convert @enum_ord.surjective _ hS,
+  refine propext ⟨λ h s hs, _, λ h a, _⟩,
+  { cases h ⟨s, hs⟩ with a ha,
+    exact ⟨a, subtype.mk.inj ha⟩ },
+  cases h a.val a.prop with s hs,
+  exact ⟨s, subtype.eq hs⟩,
+end
+
+/-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
+theorem eq_enum_ord (f : ordinal.{u} → ordinal.{u}) :
+  strict_mono f ∧ range f = S ↔ f = enum_ord hS :=
+begin
+  rw range_eq_iff,
+  split, swap,
+  { rintro ⟨h⟩,
+    exact ⟨enum_ord.strict_mono, enum_ord_mem hS, enum_ord.surjective⟩ },
+  rintro ⟨h, hl, hr⟩,
+  refine funext (λ a, _),
+  apply wf.induction a,
+  intros b H,
+  apply le_antisymm,
+  { cases hr _ (enum_ord_mem hS b) with d hd,
+    rw ←hd,
+    apply h.monotone,
+    by_contra' hbd,
+    have := enum_ord.strict_mono hbd,
+    rw ←(H d hbd) at this,
+    exact (ne_of_lt this) hd },
+  rw enum_ord_def,
+  refine omin_le ⟨hl b, λ c hc, _⟩,
+  rw ←(H c hc),
+  exact h hc,
+end
+
+end
+
 /-! ### Ordinal exponential -/
 
 /-- The ordinal exponential, defined by transfinite recursion. -/
@@ -1801,8 +1921,11 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
-/-- The derivative of a normal function `f` is
-  the sequence of fixed points of `f`. -/
+/-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
+theorem is_normal.nfp_unbounded {f} (H : is_normal f) : ∀ a, ∃ b, f b = b ∧ a ≤ b :=
+λ a, ⟨_, H.nfp_fp a, le_nfp_self f a⟩
+
+/-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=
 limit_rec_on o (nfp f 0)
   (λ a IH, nfp f (succ IH))
@@ -1832,24 +1955,36 @@ begin
   simp only [bsup_le, IH] {contextual:=tt}
 end
 
-theorem is_normal.fp_iff_deriv {f} (H : is_normal f)
-  {a} : f a ≤ a ↔ ∃ o, a = deriv f o :=
+theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
-  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, a = deriv f o,
+  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
   from this a ((deriv_is_normal _).le_self _),
   intro o, apply limit_rec_on o,
-  { refine λ h₁, ⟨0, le_antisymm h₁ _⟩,
+  { refine λ h₁, ⟨0, le_antisymm _ h₁⟩,
     rw deriv_zero,
     exact H.nfp_le_fp (ordinal.zero_le _) ha },
   { intros o IH h₁,
     cases le_or_lt a (deriv f o), {exact IH h},
-    refine ⟨succ o, le_antisymm h₁ _⟩,
+    refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_succ,
     exact H.nfp_le_fp (succ_le.2 h) ha },
   { intros o l IH h₁,
-    cases eq_or_lt_of_le h₁, {exact ⟨_, h⟩},
+    cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_limit _ l, ← not_le, bsup_le, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
-end, λ ⟨o, e⟩, e.symm ▸ le_of_eq (H.deriv_fp _)⟩
+end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
+
+theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
+by { rw ←H.fp_iff_deriv, exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_self _)⟩ }
+
+/-- `deriv f` is the fixed point enumerator of `f`. -/
+theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord H.nfp_unbounded :=
+begin
+  rw ←eq_enum_ord,
+  use (deriv_is_normal f).strict_mono,
+  rw range_eq_iff,
+  refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
+  rwa ←H.fp_iff_deriv',
+end
 
 end ordinal

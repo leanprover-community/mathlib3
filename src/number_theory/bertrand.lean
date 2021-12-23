@@ -1238,7 +1238,36 @@ open set
 --           end
 -- end
 
-example (a b c : ℝ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) : a / b ≤ 1 -> a ≤ b := (div_le_one hb).mp
+lemma log_le_sub_one_of_nonneg (x : ℝ) (hx : 0 < x) : log x ≤ x - 1 :=
+begin
+  have foo := add_one_le_exp (log x),
+  rw exp_log hx at foo,
+  rw le_sub_iff_add_le,
+  exact foo,
+end
+
+lemma log_div_self_decreasing (x y : ℝ) (hex : real.exp 1 ≤ x) (hxy : x ≤ y) : log y / y ≤ log x / x :=
+begin
+  have x_pos : 0 < x := lt_of_lt_of_le (exp_pos 1) hex,
+  have y_pos : 0 < y := lt_of_lt_of_le x_pos hxy,
+  have x_ne_zero : x ≠ 0 := ne_of_gt x_pos,
+  have y_ne_zero : y ≠ 0 := ne_of_gt y_pos,
+  rw div_le_iff y_pos,
+  rw ←sub_le_sub_iff_right (log x),
+  rw ←log_div y_ne_zero x_ne_zero,
+  rw ←mul_div_right_comm,
+  rw mul_div_assoc,
+  have : log x * (y / x) - log x = log x * (y / x - 1), ring,
+  rw this,
+  transitivity y / x - 1,
+  { exact log_le_sub_one_of_nonneg (y / x) (div_pos y_pos x_pos), },
+  { have hlogx : 1 ≤ log x,
+    { rwa le_log_iff_exp_le, exact x_pos, },
+    have hyx : 0 ≤ y / x - 1,
+    { rw le_sub_iff_add_le, rw le_div_iff,
+      simp [hxy], assumption, },
+    exact le_mul_of_one_le_left hyx hlogx, },
+end
 
 lemma inequality1 {x : ℝ} (n_large : 1003 < x) : log (2 * x + 1) / (x * log 4) ≤ 1/8 :=
 begin

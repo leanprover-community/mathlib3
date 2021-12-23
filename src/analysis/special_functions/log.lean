@@ -172,7 +172,7 @@ begin
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
 end
 
-lemma log_le_sub_one_of_nonneg (x : ℝ) (hx : 0 < x) : log x ≤ x - 1 :=
+lemma log_le_sub_one_of_nonneg {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
 begin
   have h := add_one_le_exp (log x),
   rw exp_log hx at h,
@@ -180,7 +180,7 @@ begin
   exact h,
 end
 
-lemma log_div_self_decreasing (x y : ℝ) (hex : exp 1 ≤ x) (hxy : x ≤ y) :
+lemma log_div_self_decreasing {x y : ℝ} (hex : exp 1 ≤ x) (hxy : x ≤ y) :
   log y / y ≤ log x / x :=
 begin
   have x_pos : 0 < x := lt_of_lt_of_le (exp_pos 1) hex,
@@ -190,7 +190,7 @@ begin
   have : log x * (y / x) - log x = log x * (y / x - 1), ring,
   rw this,
   transitivity y / x - 1,
-  { exact log_le_sub_one_of_nonneg (y / x) (div_pos y_pos x_pos), },
+  { exact log_le_sub_one_of_nonneg (div_pos y_pos x_pos), },
   { have hlogx : 1 ≤ log x,
     { rwa le_log_iff_exp_le x_pos, },
     have hyx : 0 ≤ y / x - 1,

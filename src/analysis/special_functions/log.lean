@@ -180,11 +180,12 @@ begin
   exact h,
 end
 
-lemma log_div_self_decreasing {x y : ℝ} (hex : exp 1 ≤ x) (hxy : x ≤ y) :
-  log y / y ≤ log x / x :=
+lemma log_div_self_antitone_on : antitone_on (λ x : ℝ, log x / x) {x | exp 1 ≤ x} :=
 begin
+  rw antitone_on,
+  intros x hex y hey hxy,
   have x_pos : 0 < x := (exp_pos 1).trans_le hex,
-  have y_pos : 0 < y := x_pos.trans_le hxy,
+  have y_pos : 0 < y := (exp_pos 1).trans_le hey,
   rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x), ←log_div (y_pos.ne') (x_pos.ne'),
     ←mul_div_right_comm, mul_div_assoc],
   have : log x * (y / x) - log x = log x * (y / x - 1), ring,

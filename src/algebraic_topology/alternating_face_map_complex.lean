@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Joël Riou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Joël Riou
+Authors: Joël Riou, Adam Topaz, Johan Commelin
 -/
 
 import algebra.homology.homological_complex
@@ -93,45 +93,29 @@ begin
     linarith, },
   { /- identification of corresponding terms in both sums -/
     rintro ⟨i, j⟩ hij,
+    simp only [term, d_l, d_r, φ, comp_zsmul, zsmul_comp, ← neg_smul, ← mul_smul,
+      pow_add, neg_mul_eq_neg_mul_symm, mul_one, fin.coe_cast_lt,
+      fin.coe_succ, pow_one, mul_neg_eq_neg_mul_symm, neg_neg],
     let jj : fin (n+2) := (φ (i,j) hij).1,
-    simp only [finset.mem_filter, finset.mem_univ, true_and] at hij,
-    simp only [term, d_l, d_r, φ],
-    simp only,
-    clear term d_l d_r,
-    repeat { rw [comp_zsmul, zsmul_comp], },
-    rw [← neg_smul, ← mul_smul, ← mul_smul],
-    rw [← show (-1 : ℤ)^(i : ℕ) * (-1 : ℤ)^(j : ℕ) =
-        - (-1 : ℤ)^(jj : ℕ) * (-1 : ℤ)^(i.succ : ℕ), by
-      { simp only [fin.coe_succ, fin.coe_cast_lt], ring_exp, }],
-    apply congr_arg,
-    have ineq : jj ≤ i, { rw ← fin.coe_fin_le, exact hij, },
-    rw category_theory.simplicial_object.δ_comp_δ X ineq,
-    simp only [fin.cast_succ_cast_lt], },
+    have ineq : jj ≤ i, { rw ← fin.coe_fin_le, simpa using hij, },
+    rw [category_theory.simplicial_object.δ_comp_δ X ineq, fin.cast_succ_cast_lt, mul_comm] },
   { -- φ : S → Sᶜ is injective
     rintro ⟨i, j⟩ ⟨i', j'⟩ hij hij' h,
     rw [prod.mk.inj_iff],
-    split,
-    { have h1 := congr_arg prod.snd h,
-      simp only [fin.succ_inj] at h1,
-      exact congr_arg _ h1 },
-    { have h1 := congr_arg fin.cast_succ (congr_arg prod.fst h),
-      simp only [fin.cast_succ_cast_lt] at h1,
-      exact h1, }, },
+    refine ⟨by simpa using congr_arg prod.snd h, _⟩,
+    have h1 := congr_arg fin.cast_succ (congr_arg prod.fst h),
+    simpa [fin.cast_succ_cast_lt] using h1 },
   { -- φ : S → Sᶜ is surjective
-    clear term d_l d_r,
     rintro ⟨i', j'⟩ hij',
     simp only [true_and, finset.mem_univ, finset.compl_filter, not_le,
       finset.mem_filter] at hij',
-    refine ⟨(j'.pred _,fin.cast_succ i'),_,_⟩,
+    refine ⟨(j'.pred _, fin.cast_succ i'), _, _⟩,
     { intro H,
-      rw [H] at hij',
-      simp only [nat.not_lt_zero, fin.coe_zero] at hij',
-      exact hij', },
-    { simp only [true_and, finset.mem_univ, fin.coe_cast_succ, fin.coe_pred,
-        finset.mem_filter],
-      exact nat.le_pred_of_lt hij', },
+      simpa only [H, nat.not_lt_zero, fin.coe_zero] using hij' },
+    { simpa only [true_and, finset.mem_univ, fin.coe_cast_succ, fin.coe_pred,
+        finset.mem_filter] using nat.le_pred_of_lt hij', },
     { simp only [prod.mk.inj_iff, fin.succ_pred, fin.cast_lt_cast_succ],
-      split; refl, }, },
+      split; refl }, },
 end
 
 /-!
@@ -150,10 +134,9 @@ chain_complex.of_hom _ _ _ _ _ _
   (λ n, f.app (op [n]))
   (λ n,
     begin
-      repeat { rw obj_d },
+      dsimp,
       rw [comp_sum, sum_comp],
-      apply congr_arg,
-      ext,
+      apply finset.sum_congr rfl (λ x h, _),
       rw [comp_zsmul, zsmul_comp],
       apply congr_arg,
       erw f.naturality,

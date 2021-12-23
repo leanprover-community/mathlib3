@@ -481,7 +481,7 @@ have h : ∀ {x : α ⧸ s} {a : α}, x ∈ t → a ∈ s →
 
 /-- If `K ≤ L`, then there is an embedding `K/(H ⊓ K) ↪ L/(H ⊓ L)` -/
 def le_quot_map (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
-  quotient (H.subgroup_of K) ↪ quotient (H.subgroup_of L) :=
+ K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L) :=
 { to_fun := quotient.map' (set.inclusion h) (λ a b, id),
   inj' := by
   { refine quotient.ind₂' (λ a b, _),

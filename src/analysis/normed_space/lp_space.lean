@@ -33,6 +33,16 @@ The space `Lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
 Since `Lp` is defined as an `add_subgroup`, dot notation does not work. Use `Lp.norm_neg f` to
 say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 
+## TODO
+
+* Hölder's inequality
+* Completeness of `Lp`
+* Equivalence with `pi_Lp`, for `α` finite
+* Equivalence with `measure_theory.Lp`, for `f : α → E` (i.e., functions rather than pi-types) and
+  the counting measure on `α`
+* Equivalence with `bounded_continuous_function`, for `f : α → E` (i.e., functions rather than
+  pi-types) and `p = ∞`, and the discrete topology on `α`
+
 -/
 
 noncomputable theory
@@ -85,8 +95,6 @@ begin
   exact (if_neg hp.2).mp ((if_neg hp.1.ne').mp hf)
 end
 
-section zero
-
 lemma zero_mem_ℓp : mem_ℓp (0 : Π i, E i) p :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
@@ -104,8 +112,6 @@ begin
 end
 
 lemma zero_mem_ℓp' : mem_ℓp (λ i : α, (0 : E i)) p := zero_mem_ℓp
-
-end zero
 
 lemma mem_ℓp.neg {f : Π i, E i} (hf : mem_ℓp f p) : mem_ℓp (-f) p :=
 begin
@@ -160,14 +166,6 @@ begin
       exact real.rpow_le_rpow_of_exponent_ge' (norm_nonneg _) hi.le hq.le hpq' } }
 end
 
--- lemma foo {f g : Π i, E i} {A B : ℝ} (hA : A ∈ upper_bounds (set.range (λ i, ∥f i∥)))
---   (hB : B ∈ upper_bounds (set.range (λ i, ∥g i∥))) :
---   A + B ∈ upper_bounds (set.range (λ i, ∥(f + g) i∥)) :=
--- begin
---   rintros a ⟨i, rfl⟩,
---   exact le_trans (norm_add_le _ _) (add_le_add (hA ⟨i, rfl⟩) (hB ⟨i, rfl⟩))
--- end
-
 lemma mem_ℓp.add {f g : Π i, E i} (hf : mem_ℓp f p) (hg : mem_ℓp g p) : mem_ℓp (f + g) p :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
@@ -176,7 +174,7 @@ begin
   { apply mem_ℓp_infty,
     obtain ⟨A, hA⟩ := hf.bdd_above,
     obtain ⟨B, hB⟩ := hg.bdd_above,
-    refine ⟨A + B, _⟩, -- or use `foo`
+    refine ⟨A + B, _⟩,
     rintros a ⟨i, rfl⟩,
     exact le_trans (norm_add_le _ _) (add_le_add (hA ⟨i, rfl⟩) (hB ⟨i, rfl⟩)) },
   apply mem_ℓp_gen hp,
@@ -292,7 +290,7 @@ instance : has_norm (Lp E p) :=
 
 lemma norm_eq_zero (f : Lp E 0) : ∥f∥ = 0 := if_pos rfl
 
-lemma norm_eq_supr (f : Lp E ∞) : ∥f∥ = ⨆ i, ∥f i∥ :=
+lemma norm_eq_csupr (f : Lp E ∞) : ∥f∥ = ⨆ i, ∥f i∥ :=
 begin
   dsimp [norm],
   rw [if_neg ennreal.top_ne_zero, if_pos rfl]
@@ -300,7 +298,7 @@ end
 
 lemma is_lub_norm [nonempty α] (f : Lp E ∞) : is_lub (set.range (λ i, ∥f i∥)) ∥f∥ :=
 begin
-  rw Lp.norm_eq_supr,
+  rw Lp.norm_eq_csupr,
   exact is_lub_csupr (Lp.mem_ℓp f)
 end
 
@@ -331,7 +329,7 @@ begin
 end
 
 -- move this
-lemma real.supr_empty {α : Type*} [is_empty α] (f : α → ℝ) : (⨆ i, f i) = 0 :=
+lemma real.csupr_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨆ i, f i) = 0 :=
 begin
   dsimp [supr],
   convert real.Sup_empty,
@@ -339,13 +337,21 @@ begin
   apply_instance
 end
 
+-- move this
+@[simp] lemma real.csupr_const_zero {α : Sort*} : (⨆ i : α, (0:ℝ)) = 0 :=
+begin
+  cases is_empty_or_nonempty α; resetI,
+  { exact real.csupr_empty _ },
+  { exact csupr_const },
+end
+
 lemma norm_nonneg' (f : Lp E p) : 0 ≤ ∥f∥ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { simp [Lp.norm_eq_zero f] },
   { cases is_empty_or_nonempty α with _i _i; resetI,
-    { rw Lp.norm_eq_supr,
-      simp [real.supr_empty] },
+    { rw Lp.norm_eq_csupr,
+      simp [real.csupr_empty] },
     inhabit α,
     exact (norm_nonneg (f (default α))).trans ((Lp.is_lub_norm f).1 ⟨default α, rfl⟩) },
   { rw Lp.norm_eq_tsum_rpow hp f,
@@ -357,10 +363,7 @@ end
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { exact Lp.norm_eq_zero 0 },
-  { rw Lp.norm_eq_supr,
-    cases is_empty_or_nonempty α; resetI,
-    { exact real.supr_empty _ },
-    { simp } },
+  { simp [Lp.norm_eq_csupr] },
   { rw Lp.norm_eq_tsum_rpow hp,
     have hp' : 1 / p.to_real ≠ 0 := one_div_ne_zero hp.ne',
     simpa [real.zero_rpow hp.ne'] using real.zero_rpow hp' }
@@ -476,14 +479,25 @@ instance : module 𝕜 (Lp E p) :=
 
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p) : ⇑(c • f) = c • f := rfl
 
-open_locale pointwise
-
--- lemma foo {α β : Type*} [group_with_zero α] [partial_order β] [has_scalar α β]
---   (h : ∀ a : α, ∀ b c : β, b ≤ c → a • b ≤ a • c) (s : set β) {c : α} (a : β) (hs : is_lub s a) :
---   is_lub (({c} : set α) • s) (c • a) :=
--- begin
-
--- end
+-- move
+lemma real.is_lub_mul {s : set ℝ} {c : ℝ} (hc : 0 ≤ c) {A : ℝ} (hs : is_lub s A) :
+  is_lub {x | ∃ a ∈ s, c * a = x} (c * A) :=
+begin
+  rcases lt_or_eq_of_le hc with hc | rfl, rotate,
+  { convert is_lub_singleton using 1,
+    ext x,
+    have : s.nonempty ∧ 0 = x ↔ x = 0 := by rw [and_iff_right hs.nonempty, eq_comm],
+    simpa using this },
+  split,
+  { rintros a ⟨a, ha, rfl⟩,
+    exact mul_le_mul_of_nonneg_left (hs.1 ha) hc.le },
+  { intros B hB,
+    rw ← le_div_iff' hc,
+    apply hs.2,
+    intros a ha,
+    rw le_div_iff' hc,
+    exact hB ⟨a, ha, rfl⟩ }
+end
 
 lemma norm_const_smul (c : 𝕜) (f : Lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin
@@ -492,9 +506,9 @@ begin
   { cases is_empty_or_nonempty α; resetI,
     { simp [Lp.eq_zero' f], },
     apply (Lp.is_lub_norm (c • f)).unique,
-    have := Lp.is_lub_norm f,
-    simp [coe_fn_smul, norm_smul],
-    sorry },
+    convert real.is_lub_mul (norm_nonneg c) (Lp.is_lub_norm f),
+    ext a,
+    simp [coe_fn_smul, norm_smul] },
   { suffices : ∥c • f∥ ^ p.to_real = (∥c∥ * ∥f∥) ^ p.to_real,
     { refine real.rpow_left_inj_on hp.ne' _ _ this,
       { exact norm_nonneg' _ },

@@ -296,12 +296,6 @@ subtype.ext h
 lemma ext_iff {f g : Lp E p} : f = g ↔ (f : Π i, E i) = g :=
 subtype.ext_iff
 
--- move to `group_theory.subgroup.basic`
-@[to_additive]
-instance _root_.subgroup.subsingleton {G : Type*} [group G] [subsingleton G] (H : set G) :
-  subsingleton H :=
-⟨ λ a b, subtype.ext (subsingleton.elim (a:G) b)⟩
-
 lemma eq_zero' [is_empty α] (f : Lp E p) : f = 0 := subsingleton.elim f 0
 
 protected lemma monotone {p q : ℝ≥0∞} (hpq : q ≤ p) : Lp E q ≤ Lp E p :=
@@ -364,23 +358,6 @@ begin
   exact ((Lp.mem_ℓp f).summable hp).has_sum
 end
 
--- move this
-lemma real.csupr_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨆ i, f i) = 0 :=
-begin
-  dsimp [supr],
-  convert real.Sup_empty,
-  rw set.range_eq_empty_iff,
-  apply_instance
-end
-
--- move this
-@[simp] lemma real.csupr_const_zero {α : Sort*} : (⨆ i : α, (0:ℝ)) = 0 :=
-begin
-  cases is_empty_or_nonempty α; resetI,
-  { exact real.csupr_empty _ },
-  { exact csupr_const },
-end
-
 lemma norm_nonneg' (f : Lp E p) : 0 ≤ ∥f∥ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
@@ -403,22 +380,6 @@ begin
   { rw Lp.norm_eq_tsum_rpow hp,
     have hp' : 1 / p.to_real ≠ 0 := one_div_ne_zero hp.ne',
     simpa [real.zero_rpow hp.ne'] using real.zero_rpow hp' }
-end
-
--- move to `topology.algebra.infinite_sum`
-lemma _root_.has_sum_zero_iff_of_nonneg {ι α : Type*} [ordered_add_comm_group α]
-  [topological_space α] [topological_add_group α] [order_closed_topology α]
-  {f : ι → α} (hf : ∀ i, 0 ≤ f i) :
-  has_sum f 0 ↔ f = 0 :=
-begin
-  split,
-  { intros hf',
-    ext i,
-    by_contra hi',
-    have hi : 0 < f i := lt_of_le_of_ne (hf i) (ne.symm hi'),
-    simpa using has_sum_lt hf hi has_sum_zero hf' },
-  { rintros rfl,
-    exact has_sum_zero },
 end
 
 lemma norm_eq_zero_iff {f : Lp E p} (hp : 0 < p) : ∥f∥ = 0 ↔ f = 0 :=
@@ -517,22 +478,6 @@ instance : module 𝕜 (Lp E p) :=
 { .. (Lp_submodule E p 𝕜).module }
 
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p) : ⇑(c • f) = c • f := rfl
-
--- move
-lemma is_lub_mul {K : Type*} [linear_ordered_field K] {s : set K} {c : K} (hc : 0 ≤ c) {A : K}
-  (hs : is_lub s A) :
-  is_lub {x | ∃ a ∈ s, c * a = x} (c * A) :=
-begin
-  rcases lt_or_eq_of_le hc with hc | rfl,
-  { rw ← (order_iso.mul_left₀ _ hc).is_lub_image' at hs,
-    convert hs using 1,
-    ext x,
-    simp },
-  { convert is_lub_singleton using 1,
-    ext x,
-    have : s.nonempty ∧ 0 = x ↔ x = 0 := by rw [and_iff_right hs.nonempty, eq_comm],
-    simpa using this },
-end
 
 lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : Lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin

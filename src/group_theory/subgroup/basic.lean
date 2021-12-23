@@ -595,6 +595,10 @@ instance [subsingleton G] : unique (subgroup G) :=
 @[to_additive]
 instance [nontrivial G] : nontrivial (subgroup G) := nontrivial_iff.mpr ‹_›
 
+@[to_additive]
+instance [subsingleton G] (H : set G) : subsingleton H :=
+⟨ λ a b, subtype.ext (subsingleton.elim (a:G) b)⟩
+
 @[to_additive] lemma eq_top_iff' : H = ⊤ ↔ ∀ x : G, x ∈ H :=
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
 

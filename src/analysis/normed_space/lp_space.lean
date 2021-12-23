@@ -121,12 +121,17 @@ end
 lemma mem_ℓp_neg_iff {f : Π i, E i} : mem_ℓp (-f) p ↔ mem_ℓp f p :=
 ⟨λ h, neg_neg f ▸ h.neg, mem_ℓp.neg⟩
 
+lemma eventually_lt_of_tendsto_lt  {α : Type*} {γ : Type*} [topological_space α] [linear_order α]
+  [order_closed_topology α] {l : filter γ} {f : γ → α} {u v : α} (hv : v < u)
+  (h : filter.tendsto f l (nhds v)) : ∀ᶠ a in l, f a < u :=
+tendsto_nhds.1 h (< u) is_open_Iio hv
+
 lemma mem_ℓp.mem_ℓp_of_exponent_ge {p q : ℝ≥0∞} {f : Π i, E i}
   (hfq : mem_ℓp f q) (hpq : q ≤ p) :
   mem_ℓp f p :=
 begin
   rcases ennreal.trichotomy₂ hpq with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, hp⟩ | ⟨rfl, rfl⟩ | ⟨hq, rfl⟩
-    | ⟨hp, hq, hpq'⟩,
+    | ⟨hq, hp, hpq'⟩,
   { exact mem_ℓp_zero hfq.eq_zero },
   { rw hfq.eq_zero,
     exact zero_mem_ℓp },
@@ -140,11 +145,19 @@ begin
     have : 0 ≤ ∥f i∥ ^ q.to_real := real.rpow_nonneg_of_nonneg (norm_nonneg _) _,
     simpa [← real.rpow_mul, mul_inv_cancel hq.ne'] using
       real.rpow_le_rpow this (hA ⟨i, rfl⟩) (inv_nonneg.mpr hq.le) },
-  { apply mem_ℓp_gen hq,
-    -- rw finset.summable_compl_iff,
-    have := hfq.summable hp,
-    sorry
-  }
+  { apply mem_ℓp_gen hp,
+    have hf' := hfq.summable hq,
+    refine summable_of_norm_bounded_eventually _ hf' (@set.finite.subset _ {i | 1 ≤ ∥f i∥} _ _ _),
+    { have H : {x : α | 1 ≤ ∥f x∥ ^ q.to_real}.finite,
+      { simpa using eventually_lt_of_tendsto_lt (by norm_num : (0:ℝ) < 1)
+          hf'.tendsto_cofinite_zero },
+      exact H.subset (λ i hi, real.one_le_rpow hi hq.le) },
+    { show ∀ i, ¬ (|∥f i∥ ^ p.to_real| ≤ ∥f i∥ ^ q.to_real) → 1 ≤ ∥f i∥,
+      intros i hi,
+      have : 0 ≤ ∥f i∥ ^ p.to_real := real.rpow_nonneg_of_nonneg (norm_nonneg _) p.to_real,
+      simp only [abs_of_nonneg, this] at hi,
+      contrapose! hi,
+      exact real.rpow_le_rpow_of_exponent_ge' (norm_nonneg _) hi.le hq.le hpq' } }
 end
 
 -- lemma foo {f g : Π i, E i} {A B : ℝ} (hA : A ∈ upper_bounds (set.range (λ i, ∥f i∥)))

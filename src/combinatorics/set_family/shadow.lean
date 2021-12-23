@@ -16,7 +16,7 @@ to projecting each finset down once in all available directions.
 
 ## Main definitions
 
-* `finset.shadow`: The shadow of a set family. Everything we can get by removing an element from
+* `finset.shadow`: The shadow of a set family. Everything we can get by removing a new element from
   some set.
 * `finset.up_shadow`: The upper shadow of a set family. Everything we can get by adding an element
   to some set.
@@ -135,7 +135,8 @@ section up_shadow
 variables [decidable_eq α] [fintype α] {𝒜 : finset (finset α)} {s t : finset α} {a : α} {k : ℕ}
 
 /-- The upper shadow of a set family `𝒜` is all sets we can get by adding one element to any set in
-`𝒜`, and the (`k` times) iterated up_shadow (`up_shadow^[k]`) is all sets we can get by removing `k`
+`𝒜`, and the (`k` times) iterated upper shadow (`up_shadow^[k]`) is all sets we can get by adding
+`k`
 elements from any set in `𝒜`. -/
 def up_shadow (𝒜 : finset (finset α)) : finset (finset α) :=
 𝒜.sup $ λ s, sᶜ.image $ λ a, insert a s

@@ -172,7 +172,7 @@ begin
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
 end
 
-lemma log_le_sub_one_of_nonneg {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
+lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
 begin
   have h := add_one_le_exp (log x),
   rw exp_log hx at h,

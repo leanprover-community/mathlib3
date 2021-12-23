@@ -1,7 +1,108 @@
 import ring_theory.power_series.basic
 import ring_theory.polynomial.basic
 import topology.algebra.ordered.basic
+import topology.algebra.valuation
+import topology.algebra.nonarchimedean.adic_topology
+import topology.metric_space.algebra
+import topology.metric_space.hausdorff_distance
+import data.real.nnreal
 
+section adic_metric
+variables {R : Type*} [comm_ring R] (I : ideal R)
+.
+noncomputable theory
+def adic_valuation (x : R) : ℕ := Sup {n : ℕ | x ∈ I ^ n}
+@[simp]
+lemma adic_valuation_neg (x : R) : adic_valuation I (-x) = adic_valuation I x := by simp [adic_valuation]
+open_locale classical
+
+theorem Sup_of_not_bdd_above {s : set ℕ} (hs : ¬ bdd_above s) : Sup s = 0 := -- these are copied from lemmas about real should be generalized
+dif_neg $ assume h, hs h
+theorem nat.Sup_univ : Sup (@set.univ ℕ) = 0 :=
+Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
+@[simp]
+lemma adic_valuation_zero : adic_valuation I 0 = 0 := by simp [adic_valuation]; exact nat.Sup_univ
+@[simp]
+lemma adic_valuation_one : adic_valuation I 1 = 0 := by simp [adic_valuation]; sorry --need I ≠ ⊤
+@[simp]
+lemma adic_valuation_mul (x y : R) : adic_valuation I (x * y) = adic_valuation I x + adic_valuation I y := sorry --needs some serious assumptions
+lemma adic_valuation_add (x y : R) : adic_valuation I (x + y) ≤ adic_valuation I x + adic_valuation I y :=
+sorry
+-- instance : has_pow ℝ enat := ⟨λ r e, if h : e = ⊤ then 0 else r ^ (e.get (by {cases e, simp at *, }))⟩
+open_locale nnreal
+def adic_norm (x : R) : ℝ≥0 := if ∀ n : ℕ, x ∈ I ^ n then 0 else (1 / 2) ^ adic_valuation I x
+@[simp]
+lemma adic_norm_neg (x : R) : adic_norm I (-x) = adic_norm I x := by simp [adic_norm]
+@[simp]
+lemma adic_norm_zero : adic_norm I 0 = 0 := by simp [adic_norm]
+@[simp]
+lemma adic_norm_one (h : I ≠ ⊤) : adic_norm I 1 = 1 :=
+begin
+  simp only [adic_norm, adic_valuation_one, ite_eq_right_iff, zero_ne_one, pow_zero],
+  intro hh,
+  simpa [← ideal.eq_top_iff_one] using hh 1,
+end
+lemma adic_norm_add (x y : R) : adic_norm I (x + y) ≤ max (adic_norm I x) (adic_norm I y) :=
+sorry
+@[simp]
+lemma adic_norm_mul (hI : I.is_prime) (x y : R) : adic_norm I (x * y) = adic_norm I x * adic_norm I y :=
+begin
+  simp [adic_norm, adic_valuation_mul, pow_add],
+  -- simp_rw [hI.mul_mem_iff_mem_or_mem],
+  by_cases h : ∀ (n : ℕ), x ∈ I ^ n,
+  { rw [if_pos (λ n, ideal.mul_mem_right _ _ (h n)), if_pos h], },
+  rw if_neg h,
+  by_cases hy : ∀ (n : ℕ), y ∈ I ^ n,
+  { rw [if_pos (λ n, ideal.mul_mem_left _ _ (hy n)), if_pos hy], },
+  rw if_neg hy,
+  rw if_neg,
+  intro hh,
+  specialize hh 1,
+  simp [hI.mul_mem_iff_mem_or_mem] at hh,
+  cases hh,
+  -- split_ifs; simp [*] at *,
+end
+def adic.valuation [is_domain R] (hI : I.is_prime) : valuation R ℝ≥0 :=
+{ to_fun := adic_norm I,
+  map_zero' := adic_norm_zero I,
+  map_one' := adic_norm_one I hI.ne_top,
+  map_mul' := adic_norm_mul I hI,
+  map_add' := adic_norm_add I }
+--   synthesized type class instance is not definitionally equal to expression inferred by typing rules, synthesized
+--   conditionally_complete_linear_order.to_linear_order ℝ≥0
+-- inferred
+--   linear_ordered_comm_monoid.to_linear_order ℝ≥0
+-- state:
+#check (by apply_instance : valued R)
+-- TODO krull intersection
+/--
+Being an actual metric space means Krull's intersection theorem holds?
+-/
+def valuation_metric (v : valuation R ℝ≥0) : pseudo_metric_space R :=
+{ dist := λ x y, v (x - y),
+  dist_self := λ x, by simp,
+  dist_comm := λ x y, by simp [← neg_sub x y, -neg_sub],
+  dist_triangle := λ x y z, begin
+    dsimp,
+    rw (by abel : x - z = x - y + (y - z)),
+    refine le_trans (v.map_add (x - y) (y - z)) _,
+    dsimp,
+    norm_cast,
+    convert max_le_add_of_nonneg _ _,
+    apply_instance,
+    apply_instance,
+    exact zero_le (v (x - y)),
+    exact zero_le (v (y - z)),
+  end,
+  -- TODO make the uniform space structure agree with existing
+  -- eq_of_dist_eq_zero := λ x y, by simp,
+  -- uniformity_dist := sorry,
+  -- ..valued.uniform_space
+  }
+-- lemma adic_basis (I : ideal R) : submodules_ring_basis (λ n : ℕ, (I^n • ⊤ : ideal R)) :=
+-- (adic_basis I).topology
+
+end adic_metric
 variables {R : Type*} [comm_ring R]
 #check ideal.leading_coeff_nth
 
@@ -107,6 +208,12 @@ end ideal
 
 namespace power_series
 open_locale big_operators
+
+#check metric_space
+#check (by apply_instance: has_dist (set ℝ))
+#check emetric.mem_iff_inf_edist_zero_of_closed
+#check ideal.adic_topology
+
 /-- Hilbert basis theoremish: a power series ring over a noetherian ring is a noetherian ring. -/
 protected theorem power_series.is_noetherian_ring [is_noetherian_ring R] :
   is_noetherian_ring (power_series R) :=
@@ -158,6 +265,8 @@ begin
   intros p hp,
   let f₀ : power_series R := sorry,
   let f : ℕ → power_series R := λ n, @nat.rec_on (λ _, power_series R) n f₀ (λ d fd, _),
+  letI := valuation_metric (adic.valuation I),
+  rw emetric.mem_iff_inf_edist_zero_of_closed,
   by_contra hf,
   let T := {n | ∃ f ∈ ideal.span (↑s : set (power_series R)), p - f ∈ I ∧ order (p - f) = n},
   have : T.nonempty,

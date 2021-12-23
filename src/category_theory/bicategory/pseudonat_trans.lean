@@ -88,13 +88,13 @@ section
 variables {F G H : pseudofunctor B C}
 (φ : pseudonat_trans F G) (ψ : pseudonat_trans G H) {a b c : B} {a' : C}
 
-@[reassoc]
+@[simp, reassoc]
 lemma whisker_left_naturality_naturality (f : a' ⟶ G.map₀ a) {g h : a ⟶ b} (η : g ⟶ h) :
   (f ◃ (G.map₂ η ▹ ψ.app b)) ≫ (f ◃ (ψ.naturality h).hom)
   = (f ◃ (ψ.naturality g).hom) ≫ (f ◃ (ψ.app a ◃ H.map₂ η)) :=
 by { simp only [←whisker_left_comp], rw naturality_naturality }
 
-@[reassoc]
+@[simp, reassoc]
 lemma whisker_right_naturality_naturality {f g : a ⟶ b} (η : f ⟶ g) (h : G.map₀ b ⟶ a') :
   ((F.map₂ η ▹ φ.app b) ▹ h) ≫ ((φ.naturality g).hom ▹ h)
   = ((φ.naturality f).hom ▹ h) ≫ ((φ.app a ◃ G.map₂ η) ▹ h) :=

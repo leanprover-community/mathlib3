@@ -776,7 +776,6 @@ variables [decidable_eq α]
 protected def has_mul [has_mul α] : has_mul (finset α) :=
 ⟨λ s t, (s.product t).image (λ p : α × α, p.1 * p.2)⟩
 
-
 localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 
 section has_mul
@@ -871,23 +870,12 @@ lemma image_mul_prod [decidable_eq α] [has_mul α] :
 @[simp, to_additive]
 lemma image_mul_left [decidable_eq α] [group α] :
   image (λ b, a * b) t = preimage t (λ b, a⁻¹ * b) (assume x hx y hy, (mul_right_inj a⁻¹).mp) :=
-begin
-  have := @set.image_mul_left _ (t : set α) a _,
-  rw ← finset.coe_preimage _ (assume x hx y hy, (mul_right_inj a⁻¹).mp) at this,
-  exact_mod_cast this,
-end
+coe_injective $ by simp
 
 @[simp, to_additive]
 lemma image_mul_right [decidable_eq α] [group α] :
   image (λ a, a * b) t = preimage t (λ a, a * b⁻¹) (assume x hx y hy, (mul_left_inj b⁻¹).mp) :=
-begin
-  have := @set.image_mul_right _ (t : set α) b _,
-  rw ← finset.coe_preimage at this,
-  swap,
-  intros x hx y hy,
-  simp,
-  exact_mod_cast this,
-end
+coe_injective $ by simp
 
 @[to_additive]
 lemma image_mul_left' [decidable_eq α] [group α] :

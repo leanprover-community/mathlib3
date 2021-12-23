@@ -166,6 +166,26 @@ begin
   dec_trivial, dec_trivial,
 end
 
+/-- Get an element distinct from those of a given list -/
+lemma out_of_list {s : finset α} {l : list α} (h : l.length < s.card ) :
+  ∃ (a : α), a ∈ s ∧ a ∉ l :=
+begin
+  let t := list.to_finset l,
+  have : (s \ t).card > 0,
+  { apply nat.lt_of_add_lt_add_right,
+    rw [finset.card_sdiff_add_card  , zero_add],
+    refine lt_of_lt_of_le
+      (lt_of_le_of_lt (list.to_finset_card_le l) h)
+      (finset.card_le_of_subset (finset.subset_union_left s t)),
+  },
+  obtain ⟨a : α, ha : a ∈ s \ t⟩ := finset.card_pos.mp this,
+  use a,
+  apply and.intro,
+  exact (finset.mem_sdiff.mp ha).left,
+  intro ha', apply (finset.mem_sdiff.mp ha).right,
+  exact list.mem_to_finset.mpr ha'
+end
+
 lemma multiset_is_5_or_32 (m : multiset ℕ) (hm : ∀ (n : ℕ), n ∈ m → 2 ≤ n) (hs : m.sum = 5) :
   m = {5} ∨ m = {3,2} :=
 begin
@@ -322,11 +342,178 @@ begin
   sorry,
 end
 
+lemma getof5 {m : multiset ℕ} (hm : ∀ {n : ℕ}, n ∈ m → 2 ≤ n) (hm0 : m ≠ 0) (hs : m.sum ≤ 5) :
+  m = {5} ∨ m = {4} ∨ m = {3} ∨ m = {2} ∨ m = {3,2} ∨ m = {2,2} :=
+begin
+  -- a is the smallest member of m
+  let Hm := multiset.exists_mem_of_ne_zero hm0,
+  let a := nat.find Hm,
+  let a_in_m := nat.find_spec Hm,
+  have a_is_inf_m : ∀ {n : ℕ} (h : n ∈ m), a ≤ n := λ n h, nat.find_min' Hm h,
+  have a_ge_2 : 2 ≤ a := hm a_in_m,
 
+  -- nat.find_spec _ a : a ∈ m
+  -- nat.find_min _ : b < a → b ∉ m
+
+  let m' := m.erase a,
+  have hm_cons : a ::ₘ (m.erase a) = m := multiset.cons_erase a_in_m,
+  cases dec_em (m.erase a = 0) with hm'0 hm'0,
+  { -- m = {a} : prove a = 2, 3, 4, 5
+
+    have m_is_a : m = {a},
+    { rw [← hm_cons, hm'0],  exact rfl, },
+    rw [m_is_a, multiset.sum_singleton] at hs,
+
+    have eq_or_le_pred : ∀ {a n : ℕ} (h : a ≤ n), a = n ∨ a ≤ n.pred,
+    { intros a n h,
+      cases nat.lt_or_ge n a.succ with h1 h2,
+      exact or.intro_left _ (nat.eq_of_le_of_lt_succ h h1).symm,
+      apply or.intro_right, rw ← nat.pred_succ a, exact nat.pred_le_pred h2 },
+
+    iterate {
+      cases eq_or_le_pred hs with h hs,
+      { apply or.intro_left, rw [m_is_a, h], },
+      apply or.intro_right, rw nat.pred_succ at hs, },
+    exfalso, refine nat.not_succ_le_self _ (le_trans a_ge_2 hs), },
+
+  { -- m = {a, … }
+    apply or.intro_right _, apply or.intro_right, apply or.intro_right, apply or.intro_right,
+
+    let Hm' := multiset.exists_mem_of_ne_zero hm'0,
+    let b := nat.find Hm',
+    let b_in_m' : b ∈ m.erase a := nat.find_spec Hm',
+    let b_in_m : b ∈ m := multiset.mem_of_mem_erase b_in_m',
+    let b_is_inf_m' : ∀ {n : ℕ} (h: n ∈ m'), b ≤ n := λ n h, nat.find_min' Hm' h,
+    let b_ge_2 : 2 ≤ b := hm b_in_m,
+    have hm'cons : b ::ₘ ((m.erase a).erase b) = m.erase a := multiset.cons_erase b_in_m',
+
+    have : m = {b,a},
+    { change m = b ::ₘ a ::ₘ 0,
+      rw multiset.cons_swap ,
+      rw ← hm_cons, rw ← hm'cons,
+      apply (multiset.cons_inj_right  _).mpr,
+      apply (multiset.cons_inj_right  _).mpr,
+      by_contradiction hm''0,
+      obtain ⟨c, hc''⟩ := multiset.exists_mem_of_ne_zero hm''0,
+      obtain ⟨m₃ , h₃⟩ := multiset.exists_cons_of_mem hc'',
+      let c_ge_2 : 2 ≤ c := hm (multiset.mem_of_mem_erase (multiset.mem_of_mem_erase hc'')),
+      apply nat.not_succ_le_self 5,
+      apply le_trans _ hs,
+      rw [← hm_cons, multiset.sum_cons],
+      rw [← multiset.cons_erase b_in_m', multiset.sum_cons],
+      rw [← multiset.cons_erase hc'', multiset.sum_cons],
+      simp only [← add_assoc],
+      refine le_trans _ (nat.le_add_right _ _),
+
+      refine le_trans _ (add_le_add_left c_ge_2 _),
+      rw add_comm, rw ← add_assoc,
+      refine le_trans _ (add_le_add_left b_ge_2 _),
+      rw add_comm, rw ← add_assoc,
+      refine le_trans _ (add_le_add_left a_ge_2 _),
+      by norm_num, },
+
+  rw [this,multiset.insert_eq_cons, multiset.sum_cons, multiset.sum_singleton] at hs,
+  rw this,
+
+  have ha : a = 2,
+  { refine le_antisymm _ a_ge_2,
+    apply nat.lt_succ_iff.mp,
+    refine not_le.mp _, intro ha',
+    apply nat.not_succ_le_self 5,
+    refine le_trans _ hs,
+    refine le_trans _ (nat.add_le_add (le_trans ha' (a_is_inf_m b_in_m)) ha'),
+    by norm_num },
+  rw ha,
+
+  cases nat.lt_or_ge b 3 with h h',
+    apply or.intro_right _, rw nat.eq_of_le_of_lt_succ b_ge_2 h,
+    apply or.intro_left _, rw nat.le_antisymm _ h',
+      apply  nat.le_of_add_le_add_right, refine le_trans hs _, rw ha }
+end
+
+def P5 := λ (m : multiset ℕ), (∀ (n : ℕ), n ∈ m → n ≥ 2) ∧ (m ≠ 0) ∧ (m.sum ≤ 5)
+
+
+def types_of_5 := set_of P5
+
+example : types_of_5 = { {5}, {4}, {3}, {2}, {3,2}, {2,2} } :=
+begin
+  ext m, unfold types_of_5, -- unfold P5,
+  simp only [set.mem_insert_iff, set.mem_singleton_iff],
+
+  split,
+
+  intro hm,
+  simp only [set.mem_set_of_eq] at hm,
+  unfold P5 at hm,
+  apply getof5,
+  exact hm.left,
+  exact hm.right.left,
+  exact hm.right.right,
+
+  intro hm, unfold P5, rw set.mem_set_of_eq,
+  iterate { cases hm with hm hm, rw hm, dec_trivial, },
+end
+
+
+example : ∀ (h : 2 ≤ 1),  false := λ h, nat.not_succ_le_self 1 h
+
+example {a b c : ℕ} (h : c * a < c * b.succ) (hc : 0 < c) :
+a ≤ b
+
+example (n : ℕ) : n ≤ 2 ∨ n ≥ 3 := by library_search
+example (m n : ℕ) : m ≤ n ↔ m < n.succ := nat.lt_succ_iff.symm
 example (m : ℕ) (h : 2 ≤ m + 1) : 1 ≤ m := nat.succ_le_succ_iff.mp h
+example (a b c : ℕ) (h : b ≤ c) : a + b ≤ a + c := add_le_add_left h a
 
 
-def is_partition_of (n : ℕ) (l : list ℕ) := (∀ (n : ℕ), n ∈ l → 1 ≤ n) ∧ (l.sum = n)
+def is_partition_of_with_higher (a n : ℕ) (m : multiset ℕ) :=
+  (∀ (n : ℕ), n ∈ m → a ≤ n) ∧ (m.sum = n)
+
+def is_partition_of := is_partition_of_with_higher 1
+
+lemma reduce_partition (a n : ℕ) (m : multiset ℕ) [ha : a ≥ 1]:
+  is_partition_of_with_higher a n m ↔
+  ite (n < a)
+    (n = 0 ∧ m = 0)
+    (∃ (k n' : ℕ) (m' : multiset ℕ),
+      (k * a + n' = n) ∧
+      (is_partition_of_with_higher (a+1) n' m') ∧ m = multiset.repeat k a + m') :=
+begin
+  split,
+  { intro P,
+    by_cases (n<a),
+    rw ite_eq_left_iff.mpr _, swap, intro h', exfalso, exact h' h,
+    have : m = 0,
+    { by_contradiction hm,
+      obtain ⟨a, ha⟩ := multiset.exists_mem_of_ne_zero hm,
+
+      sorry,
+      },
+    rw this at P ⊢,
+    split, rw ← P.right, rw multiset.sum_zero, refl, },
+    { apply or.intro_left _,
+    sorry, },
+sorry,
+
+end
+
+#exit
+      let hn := nat.eq_of_le_of_lt_succ (nat.zero_le n) hn,
+      rw hn at P,
+      split, exact hn,
+      apply multiset.zero_eq_
+      let w := P.right,
+        sorry, },
+    sorry,
+  intro P,
+  sorry,
+end
+
+
+
+
+def is_partition_of' (n : ℕ) (l : list ℕ) := (∀ (n : ℕ), n ∈ l → 1 ≤ n) ∧ (l.sum = n)
 
 lemma partition_length_le_sum' {l : list ℕ} (h : ∀ (n : ℕ), n ∈ l → 1 ≤ n) :
   l.length ≤ l.sum :=

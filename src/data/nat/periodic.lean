@@ -28,12 +28,12 @@ by simp only [forall_const, eq_self_iff_true, add_mod_right, periodic]
 /-- An interval of length `a` filtered over a periodic predicate of period `a` has the
 same cardinality as `range a` filtered over that predicate. -/
 @[simp] lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
- (pp : periodic p a) :
+  (pp : periodic p a) :
   (filter p (Ico n (n+a))).card = a.count p :=
 begin
   by_cases a = 0,
   { simp [h], },
-  induction n,
+  induction n with n ih,
   { simp [count_eq_card_filter_range], },
   { rw ←n_ih,
     clear n_ih,

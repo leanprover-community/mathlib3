@@ -70,13 +70,12 @@ by simp only [← ball_union_sphere, set.smul_set_union, smul_ball hc, smul_sphe
 lemma metric.bounded.smul {s : set E} (hs : bounded s) (c : 𝕜) :
   bounded (c • s) :=
 begin
-  obtain ⟨R, Rpos, hR⟩ : ∃ (R : ℝ), 0 < R ∧ s ⊆ closed_ball 0 R := hs.subset_ball_lt 0 0,
-  refine (bounded_iff_subset_ball 0).2 ⟨∥c∥ * R, _⟩,
+  obtain ⟨R, hR⟩ : ∃ (R : ℝ), ∀ x ∈ s, ∥x∥ ≤ R := hs.exists_norm_le,
+  refine (bounded_iff_exists_norm_le).2 ⟨∥c∥ * R, _⟩,
   assume z hz,
   obtain ⟨y, ys, rfl⟩ : ∃ (y : E), y ∈ s ∧ c • y = z := mem_smul_set.1 hz,
-  simp only [mem_closed_ball_zero_iff],
   calc ∥c • y∥ = ∥c∥ * ∥y∥ : norm_smul _ _
-  ... ≤ ∥c∥ * R : mul_le_mul_of_nonneg_left (mem_closed_ball_zero_iff.1 (hR ys)) (norm_nonneg _)
+  ... ≤ ∥c∥ * R : mul_le_mul_of_nonneg_left (hR y ys) (norm_nonneg _)
 end
 
 /-- If `s` is a bounded set, then for small enough `r`, the set `{x} + r • s` is contained in any

@@ -24,17 +24,18 @@ lemma bounded_iff_exists_norm_le {s : set E} :
   bounded s ↔ ∃ R, ∀ x ∈ s, ∥x∥ ≤ R :=
 by simp [subset_def, bounded_iff_subset_ball (0 : E)]
 
+alias bounded_iff_exists_norm_le ↔ metric.bounded.exists_norm_le _
+
 lemma metric.bounded.add
   {s t : set E} (hs : bounded s) (ht : bounded t) :
   bounded (s + t) :=
 begin
-  obtain ⟨Rs, hRs⟩ : ∃ (R : ℝ), s ⊆ closed_ball 0 R := hs.subset_ball 0,
-  obtain ⟨Rt, hRt⟩ : ∃ (R : ℝ), t ⊆ closed_ball 0 R := ht.subset_ball 0,
+  obtain ⟨Rs, hRs⟩ : ∃ (R : ℝ), ∀ x ∈ s, ∥x∥ ≤ R := hs.exists_norm_le,
+  obtain ⟨Rt, hRt⟩ : ∃ (R : ℝ), ∀ x ∈ t, ∥x∥ ≤ R := ht.exists_norm_le,
   refine (bounded_iff_exists_norm_le).2 ⟨Rs + Rt, _⟩,
   rintros z ⟨x, y, hx, hy, rfl⟩,
   calc ∥x + y∥ ≤ ∥x∥ + ∥y∥ : norm_add_le _ _
-  ... ≤ Rs + Rt :
-    add_le_add (mem_closed_ball_zero_iff.1 (hRs hx)) (mem_closed_ball_zero_iff.1 (hRt hy))
+  ... ≤ Rs + Rt : add_le_add (hRs x hx) (hRt y hy)
 end
 
 @[simp] lemma singleton_add_ball (x y : E) (r : ℝ) :

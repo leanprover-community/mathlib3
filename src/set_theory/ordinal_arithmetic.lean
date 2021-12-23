@@ -2048,7 +2048,7 @@ theorem mul_omega_unbounded (o) : ∀ a, ∃ b, (o * ordinal.omega ≤ b) ∧ a 
 theorem add_mul_omega {a} : a + a * omega = a * omega :=
 by { nth_rewrite 0 ←(mul_one a), rw [←mul_add, one_add_omega] }
 
-lemma mul_omega_nfp {a} : a * omega.{u} = nfp (has_add.add a) 0 :=
+lemma mul_omega_nfp {a} : a * omega.{u} = nfp ((+) a) 0 :=
 begin
   by_cases ha : 0 = a,
   { rw [←ha, zero_mul],
@@ -2063,7 +2063,7 @@ begin
   have hmul := @is_normal.sup.{0 u u} _
     (mul_is_normal.{u} (lt_of_le_of_ne (ordinal.zero_le a) ha)) ℕ (λ n, ↑n) ⟨0⟩,
   rw ←omega_eq_sup_nat at hmul,
-  suffices : (λ n, (has_add.add a)^[n] 0) = has_mul.mul a ∘ λ n, ↑n,
+  suffices : (λ n, ((+) a)^[n] 0) = (*) a ∘ λ n, ↑n,
   { rwa ←this at hmul },
   refine funext (λ n, _),
   induction n with n hn,

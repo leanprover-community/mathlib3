@@ -1054,7 +1054,7 @@ begin
   rw dif_pos at h0,
   have h4:= lt_omega.1 h3,
   have h5:=classical.some_spec h4,
-  have h6: classical.some h4 =0, by {simp only [h0],},
+  have h6: classical.some h4 = 0, by {simp only [h0],},
   rw h6 at h5,
   simp only [nat.cast_zero] at h5,
   rw mk_eq_zero_iff at h5,

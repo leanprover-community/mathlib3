@@ -1044,7 +1044,6 @@ begin
     exact not_lt.mp (mt (mul_lt_omega_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hx2 h.1)) },
 end
 
-<<<<<<< HEAD
 lemma nonempty_to_nat_eq_zero_infinite {α : Type u} [nonempty α] :  (#α).to_nat = 0 → ω ≤ (#α) :=
 begin
   intro h0,
@@ -1072,7 +1071,6 @@ begin
   have ha : ω ≤ #α , by {apply nonempty_to_nat_eq_zero_infinite h,},
   have hab:=mk_le_of_injective hf,
   apply le_trans ha hab,
-=======
 @[simp] lemma to_nat_add_of_lt_omega {a : cardinal.{u}} {b : cardinal.{v}}
   (ha : a < ω) (hb : b < ω) : ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=
 begin
@@ -1081,7 +1079,6 @@ begin
   replace hb : (lift.{u v} b) < ω := by { rw [← lift_omega], exact lift_lt.2 hb },
   rw [nat.cast_add, ← to_nat_lift.{v u} a, ← to_nat_lift.{u v} b, cast_to_nat_of_lt_omega ha,
     cast_to_nat_of_lt_omega hb, cast_to_nat_of_lt_omega (add_lt_omega ha hb)]
->>>>>>> origin/master
 end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals

@@ -120,7 +120,7 @@ lemma relindex_dvd_of_le_left (hHK : H ≤ K) :
 begin
   apply dvd_of_mul_left_eq ((H ⊓ L).relindex (K ⊓ L)),
   rw [←inf_relindex_right H L, ←inf_relindex_right K L],
-  exact relindex_mul_relindex (H ⊓ L) (K ⊓ L) L (inf_le_inf_right L hHK) inf_le_right,
+  exact relindex_mul_relindex _ _ _ (inf_le_inf_right L hHK) inf_le_right,
 end
 
 variables (H K)
@@ -193,21 +193,55 @@ begin
   exact ⟨fintype.card H, H.index_mul_card.symm⟩,
 end
 
-variables {H K L}
+lemma relindex_eq_zero_of_le  (h : K ≤ L) (h2 : H.relindex K = 0) : H.relindex L = 0 :=
+cardinal.to_nat_eq_zero_of_injective (quotient_group.le_quot_map H h ).injective h2
 
-lemma relindex_eq_zero_of_le_left (hHK : H ≤ K) (hKL : K.relindex L = 0) : H.relindex L = 0 :=
-by rw [←inf_relindex_right, ←relindex_mul_relindex (H ⊓ L) (K ⊓ L) L
-  (inf_le_inf_right L hHK) inf_le_right, inf_relindex_right, hKL, mul_zero]
+lemma index_eq_zero_of_le {H K : subgroup G} (h : H ≤ K) (h1 : K.index = 0) : H.index = 0 :=
+by rw [←subgroup.relindex_mul_index h, h1, mul_zero]
 
-lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
-cardinal.to_nat_apply_of_omega_le (le_trans (le_of_not_lt (λ h, cardinal.mk_ne_zero _
-  ((cardinal.cast_to_nat_of_lt_omega h).symm.trans (cardinal.nat_cast_inj.mpr hHK))))
-    (quotient_subgroup_of_embedding_of_le H hKL).cardinal_le)
+lemma inf_relindex_inf : (H ⊓ K).relindex (K ⊓ L) = H.relindex (K ⊓ L) :=
+begin
+  rw [← inf_relindex_right H (K ⊓ L), ←  inf_relindex_left (K ⊓ L) (H ⊓ K)],
+  have : K ⊓ L ⊓ (H ⊓ K) = H ⊓ (K ⊓ L),
+  by {rw inf_comm, simp_rw ← inf_assoc, simp only [inf_right_idem], },
+  simp_rw this,
+end
+
+lemma inf_relindex_subgroup_of :
+  ((H ⊓ K).subgroup_of L).relindex (K.subgroup_of L) = H.relindex (K ⊓ L) :=
+begin
+  have h0: K ⊓ L ≤ L, by {simp only [inf_le_right],},
+  rw [← subgroup.inf_subgroup_of_right K L, ← inf_relindex_inf],
+  apply subgroup.relindex_subgroup_of h0,
+end
+
+lemma inf_ind_prod  (h : (H ⊓ K).relindex L = 0)  :  H.relindex L = 0 ∨ K.relindex (L ⊓ H) = 0 :=
+begin
+  have h1 : (subgroup.subgroup_of (H ⊓ K)  L) ≤ (subgroup.subgroup_of H  L),
+    by {apply subgroup.subgroup_of_mono_left, simp only [inf_le_left],},
+  have h2 := subgroup.relindex_mul_index h1,
+  simp_rw subgroup.relindex at h,
+  rw h at h2,
+  simp only [nat.mul_eq_zero] at h2,
+  cases h2,
+  rw [inf_comm, ← inf_relindex_subgroup_of K H L, inf_comm],
+  simp only [h2, eq_self_iff_true, or_true],
+  simp_rw subgroup.relindex,
+  simp only [h2, true_or, eq_self_iff_true],
+ end
 
 lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
   H.relindex L ≠ 0 :=
-λ h, mul_ne_zero (mt (relindex_eq_zero_of_le_right (show K ⊓ L ≤ K, from inf_le_left)) hHK) hKL
-  ((relindex_inf_mul_relindex H K L).trans (relindex_eq_zero_of_le_left inf_le_left h))
+begin
+  have key := mt (relindex_eq_zero_of_le H (K ⊓ L) K inf_le_left) hHK,
+  rw ← inf_relindex_right at hKL key,
+  replace key := mul_ne_zero key hKL,
+  rw [relindex_mul_relindex (H ⊓ (K ⊓ L)) (K ⊓ L) L inf_le_right inf_le_right, ←inf_assoc,
+      inf_comm, ←inf_assoc, ←relindex_mul_relindex (L ⊓ H ⊓ K) (L ⊓ H) L inf_le_left inf_le_left,
+      inf_relindex_left, inf_relindex_left, mul_ne_zero_iff] at key,
+  exact key.2,
+end
+variables {H}
 
 @[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,

@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product.left_action
 import ring_theory.adjoin.basic
-
 /-!
 # The tensor product of R-algebras
 
@@ -61,9 +60,12 @@ open algebra (lsmul)
 namespace algebra_tensor_module
 
 section semiring
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [module R N]
+variables [comm_semiring R] [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A]
+variables [smul_comm_class Rᵐᵒᵖ R A]
+variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ R M]
+variables [module A M] [module Aᵐᵒᵖ M] [smul_comm_class Aᵐᵒᵖ A M]
+variables [is_scalar_tower R A M] [is_scalar_tower Rᵐᵒᵖ A M]
+variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
@@ -77,8 +79,7 @@ bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N �
   .. curry (f.restrict_scalars R) }
 
 lemma restrict_scalars_curry (f : (M ⊗[R] N) →ₗ[A] P) :
-  restrict_scalars R (curry f) = curry (f.restrict_scalars R) :=
-rfl
+  restrict_scalars R (curry f) = curry (f.restrict_scalars R) := rfl
 
 /-- Just as `tensor_product.ext` is marked `ext` instead of `tensor_product.ext'`, this is
 a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` below.
@@ -96,9 +97,12 @@ curry_injective $ linear_map.ext₂ H
 end semiring
 
 section comm_semiring
-variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [module R N]
+variables [comm_semiring R] [comm_semiring A]
+variables [algebra R A] [algebra Rᵐᵒᵖ A] [is_central_scalar R A]
+variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ R M]
+variables [module A M] [module Aᵐᵒᵖ M] [is_central_scalar A M]
+variables [is_scalar_tower R A M] [is_scalar_tower Rᵐᵒᵖ A M]
+variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 /-- Heterobasic version of `tensor_product.lift`:
@@ -158,6 +162,13 @@ The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
 
 local attribute [ext] tensor_product.ext
 
+
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
+variables [smul_comm_class Aᵐᵒᵖ Rᵐᵒᵖ M]
+variables [is_scalar_tower Rᵐᵒᵖ A P]
+variables [module Aᵐᵒᵖ P] [is_central_scalar A P]
+variables [is_scalar_tower Rᵐᵒᵖ R P]
+variables [smul_comm_class Aᵐᵒᵖ R M]
 /-- Heterobasic version of `tensor_product.assoc`:
 
 Linear equivalence between `(M ⊗[A] N) ⊗[R] P` and `M ⊗[A] (N ⊗[R] P)`. -/
@@ -166,12 +177,9 @@ linear_equiv.of_linear
   (lift $ tensor_product.uncurry A _ _ _ $ comp (lcurry R A _ _ _) $
     tensor_product.mk A M (P ⊗[R] N))
   (tensor_product.uncurry A _ _ _ $ comp (uncurry R A _ _ _) $
-    by { apply tensor_product.curry, exact (mk R A _ _) })
+    by apply tensor_product.curry; exact (mk R A _ _))
   (by { ext, refl, })
-  (by { ext, simp only [curry_apply, tensor_product.curry_apply, mk_apply, tensor_product.mk_apply,
-              uncurry_apply, tensor_product.uncurry_apply, id_apply, lift_tmul, compr₂_apply,
-              restrict_scalars_apply, function.comp_app, to_fun_eq_coe, lcurry_apply,
-              linear_map.comp_apply] })
+  (by { ext, refl, })
 
 end comm_semiring
 
@@ -189,8 +197,10 @@ open tensor_product
 section semiring
 
 variables {R A B M N : Type*} [comm_semiring R]
-variables [semiring A] [algebra R A] [semiring B] [algebra R B]
-variables [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
+variables [semiring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_central_scalar R A]
+variables [semiring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_central_scalar R B]
+variables [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 variables (r : R) (f g : M →ₗ[R] N)
 
 variables (A)
@@ -220,6 +230,8 @@ by { ext, simp [base_change_eq_ltensor], }
 @[simp] lemma base_change_zero : base_change A (0 : M →ₗ[R] N) = 0 :=
 by { ext, simp [base_change_eq_ltensor], }
 
+variables [is_scalar_tower Rᵐᵒᵖ R A]
+
 @[simp] lemma base_change_smul : (r • f).base_change A = r • (f.base_change A) :=
 by { ext, simp [base_change_tmul], }
 
@@ -228,15 +240,17 @@ variables (R A M N)
 @[simps] def base_change_hom : (M →ₗ[R] N) →ₗ[R] A ⊗[R] M →ₗ[A] A ⊗[R] N :=
 { to_fun := base_change A,
   map_add' := base_change_add,
-  map_smul' := base_change_smul }
+  map_smul' := λ r f, base_change_smul r f }
 
 end semiring
 
 section ring
 
 variables {R A B M N : Type*} [comm_ring R]
-variables [ring A] [algebra R A] [ring B] [algebra R B]
-variables [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables [ring A] [algebra R A] [algebra Rᵐᵒᵖ A] [is_central_scalar R A]
+variables [ring B] [algebra R B] [algebra Rᵐᵒᵖ B] [is_central_scalar R B]
+variables [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 variables (f g : M →ₗ[R] N)
 
 @[simp] lemma base_change_sub :
@@ -397,7 +411,38 @@ instance : algebra R (A ⊗[R] B) :=
 lemma algebra_map_apply (r : R) :
   (algebra_map R (A ⊗[R] B)) r = ((algebra_map R A) r) ⊗ₜ[R] 1 := rfl
 
+def tensor_algebra_op_map : Rᵐᵒᵖ →+* (A ⊗[R] B) :=
+tensor_algebra_map.from_opposite $ λ x y, by { 
+  simp only [tensor_algebra_map, commute, semiconj_by, ring_hom.coe_mk],
+  rw [tmul_mul_tmul, tmul_mul_tmul, algebra.commutes] }
+
+@[simp]
+lemma algebra_map_op_apply (r : Rᵐᵒᵖ) : (algebra_map Rᵐᵒᵖ A) r = (algebra_map R A) r.unop :=
+by { rw [algebra_map_eq_smul_one, algebra_map_eq_smul_one],
+     conv_lhs { rw [←r.op_unop, is_central_scalar.op_smul_eq_smul] },  }
+
+instance op_algebra : algebra Rᵐᵒᵖ (A ⊗[R] B) :=
+{ commutes' := λ r x,
+  begin
+    apply tensor_product.induction_on x,
+    { simp, },
+    { intros a b, simp [tensor_algebra_op_map, tensor_algebra_map, algebra.commutes], },
+    { intros y y' h h', simp at h h', simp [mul_add, add_mul, h, h'], }
+  end,
+  smul_def' := λ r x,
+  begin
+    apply tensor_product.induction_on x,
+    { simp [smul_zero],  },
+    { intros a b,
+      rw [tensor_algebra_op_map, smul_tmul', algebra.smul_def r a],
+      simp [tensor_algebra_map, algebra_map_op_apply], },
+    { intros y y' h h', simp at h h', simp [mul_add, add_mul, h, h'], },
+  end,
+  .. tensor_algebra_op_map,
+  .. (by apply_instance : module Rᵐᵒᵖ (A ⊗[R] B)) }.
+
 variables {C : Type v₃} [semiring C] [algebra R C]
+variables [is_scalar_tower Rᵐᵒᵖ R A]
 
 @[ext]
 theorem ext {g h : (A ⊗[R] B) →ₐ[R] C}
@@ -697,6 +742,8 @@ alg_hom_of_linear_map_tensor_product
   map f g (a ⊗ₜ c) = f a ⊗ₜ g c :=
 rfl
 
+variables [is_scalar_tower Rᵐᵒᵖ R A] [is_scalar_tower Rᵐᵒᵖ R B]
+
 @[simp] lemma map_comp_include_left (f : A →ₐ[R] B) (g : C →ₐ[R] D) :
   (map f g).comp include_left = include_left.comp f := alg_hom.ext $ by simp
 
@@ -756,6 +803,8 @@ lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = algebra.lm
 
 @[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := lmul'_apply
 
+variables [is_scalar_tower Rᵐᵒᵖ R S]
+
 @[simp]
 lemma lmul'_comp_include_left : (lmul' R : _ →ₐ[R] S).comp include_left = alg_hom.id R S :=
 alg_hom.ext $ λ _, (lmul'_apply_tmul _ _).trans (_root_.mul_one _)
@@ -772,6 +821,8 @@ def product_map : A ⊗[R] B →ₐ[R] S := (lmul' R).comp (tensor_product.map f
 
 @[simp] lemma product_map_apply_tmul (a : A) (b : B) : product_map f g (a ⊗ₜ b) = f a * g b :=
 by { unfold product_map lmul', simp }
+
+variables [is_scalar_tower Rᵐᵒᵖ R A] [is_scalar_tower Rᵐᵒᵖ R B]
 
 lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a := by simp
 

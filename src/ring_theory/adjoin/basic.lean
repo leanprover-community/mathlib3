@@ -214,8 +214,8 @@ le_antisymm
 lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
 eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ set_like.mem_coe.2 $ one_mem _
 
-theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
-  (adjoin R s).to_submodule * (adjoin R t).to_submodule :=
+theorem adjoin_union_coe_submodule :
+  (adjoin R (s ∪ t)).to_submodule = (adjoin R s).to_submodule * (adjoin R t).to_submodule :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]

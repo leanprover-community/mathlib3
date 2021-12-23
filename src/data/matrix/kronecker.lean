@@ -5,7 +5,7 @@ Authors: Filippo A. E. Nuccio, Eric Wieser
 -/
 
 import data.matrix.basic
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product.def
 import ring_theory.tensor_product
 
 /-!
@@ -268,7 +268,8 @@ open_locale matrix tensor_product
 section module
 
 variables [comm_semiring R] [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
-variables [module R α] [module R β] [module R γ]
+variables [module R α] [module Rᵐᵒᵖ α] [is_symmetric_smul R α]
+variables [module R β]
 
 /-- The Kronecker tensor product. This is just a shorthand for `kronecker_map (⊗ₜ)`.
 Prefer the notation `⊗ₖₜ` rather than this definition. -/
@@ -323,7 +324,9 @@ lemma diagonal_kronecker_tmul_diagonal
   (diagonal a) ⊗ₖₜ[R] (diagonal b) = diagonal (λ mn, a mn.1 ⊗ₜ b mn.2) :=
 kronecker_map_diagonal_diagonal _ (zero_tmul _) (tmul_zero _) _ _
 
-@[simp] lemma kronecker_tmul_assoc (A : matrix l m α) (B : matrix n p β) (C : matrix q r γ) :
+@[simp] lemma kronecker_tmul_assoc [module Rᵐᵒᵖ β] [is_symmetric_smul R β]
+  [module R γ] [module Rᵐᵒᵖ γ] [is_symmetric_smul R γ]
+  (A : matrix l m α) (B : matrix n p β) (C : matrix q r γ) :
   reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)
     (((A ⊗ₖₜ[R] B) ⊗ₖₜ[R] C).map (tensor_product.assoc _ _ _ _)) = A ⊗ₖₜ[R] (B ⊗ₖₜ[R] C) :=
 ext $ λ i j, assoc_tmul _ _ _
@@ -331,7 +334,9 @@ ext $ λ i j, assoc_tmul _ _ _
 end module
 
 section algebra
-variables [comm_semiring R] [semiring α] [semiring β] [algebra R α] [algebra R β]
+variables [comm_semiring R] [semiring α] [semiring β]
+variables [algebra R α] [algebra Rᵐᵒᵖ α] [is_symmetric_smul R α]
+variables [algebra R β]
 
 open_locale kronecker
 open algebra.tensor_product
@@ -340,7 +345,8 @@ open algebra.tensor_product
   (1 : matrix m m α) ⊗ₖₜ[R] (1 : matrix n n α) = 1 :=
 kronecker_map_one_one _ (zero_tmul _) (tmul_zero _) rfl
 
-lemma mul_kronecker_tmul_mul [fintype m] [fintype m']
+lemma mul_kronecker_tmul_mul [algebra Rᵐᵒᵖ β] [is_symmetric_smul R β]
+  [fintype m] [fintype m']
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
   (A ⬝ B) ⊗ₖₜ[R] (A' ⬝ B') = (A ⊗ₖₜ A') ⬝ (B ⊗ₖₜ B') :=
 kronecker_map_bilinear_mul_mul (tensor_product.mk R α β) tmul_mul_tmul A B A' B'

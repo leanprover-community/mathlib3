@@ -1,185 +1,51 @@
 /-
-Copyright (c) 2018 Kenny Lau. All rights reserved.
+Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau, Mario Carneiro
+Authors: Kenny Lau, Mario Carneiro, Jakob von Raumer
 -/
-
 import group_theory.congruence
 import linear_algebra.bilinear_map
+import linear_algebra.tensor_product.def
 
 /-!
-# Tensor product of modules over commutative semirings.
+# The canonical left action on a tensor product of modules
 
-This file constructs the tensor product of modules over commutative semirings. Given a semiring
-`R` and modules over it `M` and `N`, the standard construction of the tensor product is
-`tensor_product R M N`. It is also a module over `R`.
-
-It comes with a canonical bilinear map `M → N → tensor_product R M N`.
-
-Given any bilinear map `M → N → P`, there is a unique linear map `tensor_product R M N → P` whose
-composition with the canonical bilinear map `M → N → tensor_product R M N` is the given bilinear
-map `M → N → P`.
-
-We start by proving basic lemmas about bilinear maps.
-
-## Notations
-
-This file uses the localized notation `M ⊗ N` and `M ⊗[R] N` for `tensor_product R M N`, as well
-as `m ⊗ₜ n` and `m ⊗ₜ[R] n` for `tensor_product.tmul R m n`.
+This file describes left actions of various algebraic structures on the left of the
+tensor product of modules, based on the fact that if `M` is an `R'`-`R` bimodule,
+`R'` acts on `M ⊗[R] N` by `r • (m ⊗ n) := (r • m ⊗ n)`.
 
 ## Tags
 
-bilinear, tensor, tensor product
+group action, tensor product
 -/
+namespace tensor_product
+
+open_locale tensor_product
 
 section semiring
-variables {R : Type*} [comm_semiring R]
+
+variables {R : Type*} [semiring R]
 variables {R' : Type*} [monoid R']
 variables {R'' : Type*} [semiring R'']
-variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
-
-variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
-  [add_comm_monoid S]
-variables [module R M] [module R N] [module R P] [module R Q] [module R S]
+variables {M N : Type*}
+variables [add_comm_monoid M] [add_comm_monoid N]
+variables [module Rᵐᵒᵖ M] [module R N]
 variables [distrib_mul_action R' M]
 variables [module R'' M]
-include R
 
-variables (M N)
 
-namespace tensor_product
-
-section
--- open free_add_monoid
-variables (R)
-
-/-- The relation on `free_add_monoid (M × N)` that generates a congruence whose quotient is
-the tensor product. -/
-inductive eqv : free_add_monoid (M × N) → free_add_monoid (M × N) → Prop
-| of_zero_left : ∀ n : N, eqv (free_add_monoid.of (0, n)) 0
-| of_zero_right : ∀ m : M, eqv (free_add_monoid.of (m, 0)) 0
-| of_add_left : ∀ (m₁ m₂ : M) (n : N), eqv
-    (free_add_monoid.of (m₁, n) + free_add_monoid.of (m₂, n)) (free_add_monoid.of (m₁ + m₂, n))
-| of_add_right : ∀ (m : M) (n₁ n₂ : N), eqv
-    (free_add_monoid.of (m, n₁) + free_add_monoid.of (m, n₂)) (free_add_monoid.of (m, n₁ + n₂))
-| of_smul : ∀ (r : R) (m : M) (n : N), eqv
-    (free_add_monoid.of (r • m, n)) (free_add_monoid.of (m, r • n))
-| add_comm : ∀ x y, eqv (x + y) (y + x)
-end
-
-end tensor_product
-
-variables (R)
-
-/-- The tensor product of two modules `M` and `N` over the same commutative semiring `R`.
-The localized notations are `M ⊗ N` and `M ⊗[R] N`, accessed by `open_locale tensor_product`. -/
-def tensor_product : Type* :=
-(add_con_gen (tensor_product.eqv R M N)).quotient
-
-variables {R}
-
-localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
-localized "notation M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
-
-namespace tensor_product
-
-section module
-
-instance : add_zero_class (M ⊗[R] N) :=
-{ .. (add_con_gen (tensor_product.eqv R M N)).add_monoid }
-
-instance : add_comm_semigroup (M ⊗[R] N) :=
-{ add_comm := λ x y, add_con.induction_on₂ x y $ λ x y, quotient.sound' $
-    add_con_gen.rel.of _ _ $ eqv.add_comm _ _,
-  .. (add_con_gen (tensor_product.eqv R M N)).add_monoid }
-
-instance : inhabited (M ⊗[R] N) := ⟨0⟩
-
-variables (R) {M N}
-/-- The canonical function `M → N → M ⊗ N`. The localized notations are `m ⊗ₜ n` and `m ⊗ₜ[R] n`,
-accessed by `open_locale tensor_product`. -/
-def tmul (m : M) (n : N) : M ⊗[R] N := add_con.mk' _ $ free_add_monoid.of (m, n)
-variables {R}
-
-infix ` ⊗ₜ `:100 := tmul _
-notation x ` ⊗ₜ[`:100 R `] `:0 y:100 := tmul R x y
-
-@[elab_as_eliminator]
-protected theorem induction_on
-  {C : (M ⊗[R] N) → Prop}
-  (z : M ⊗[R] N)
-  (C0 : C 0)
-  (C1 : ∀ {x y}, C $ x ⊗ₜ[R] y)
-  (Cp : ∀ {x y}, C x → C y → C (x + y)) : C z :=
-add_con.induction_on z $ λ x, free_add_monoid.rec_on x C0 $ λ ⟨m, n⟩ y ih,
-by { rw add_con.coe_add, exact Cp C1 ih }
-
-variables (M)
-@[simp] lemma zero_tmul (n : N) : (0 : M) ⊗ₜ[R] n = 0 :=
-quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero_left _
-variables {M}
-
-lemma add_tmul (m₁ m₂ : M) (n : N) : (m₁ + m₂) ⊗ₜ n = m₁ ⊗ₜ n + m₂ ⊗ₜ[R] n :=
-eq.symm $ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_add_left _ _ _
-
-variables (N)
-@[simp] lemma tmul_zero (m : M) : m ⊗ₜ[R] (0 : N) = 0 :=
-quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero_right _
-variables {N}
-
-lemma tmul_add (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ + n₂) = m ⊗ₜ n₁ + m ⊗ₜ[R] n₂ :=
-eq.symm $ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_add_right _ _ _
-
-section
-
-variables (R R' M N)
-
-/--
-A typeclass for `has_scalar` structures which can be moved across a tensor product.
-
-This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
-we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
-`R` does not support negation.
-
-Note that `module R' (M ⊗[R] N)` is available even without this typeclass on `R'`; it's only
-needed if `tensor_product.smul_tmul`, `tensor_product.smul_tmul'`, or `tensor_product.tmul_smul` is
-used.
--/
-class compatible_smul [distrib_mul_action R' N] :=
-(smul_tmul : ∀ (r : R') (m : M) (n : N), (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n))
-
-end
-
-/-- Note that this provides the default `compatible_smul R R M N` instance through
-`mul_action.is_scalar_tower.left`. -/
-@[priority 100]
-instance compatible_smul.is_scalar_tower
-  [has_scalar R' R] [is_scalar_tower R' R M] [distrib_mul_action R' N] [is_scalar_tower R' R N] :
-  compatible_smul R R' M N :=
-⟨λ r m n, begin
-  conv_lhs {rw ← one_smul R m},
-  conv_rhs {rw ← one_smul R n},
-  rw [←smul_assoc, ←smul_assoc],
-  exact (quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _),
-end⟩
-
-/-- `smul` can be moved from one side of the product to the other .-/
-lemma smul_tmul [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
-  (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
-compatible_smul.smul_tmul _ _ _
-
-/-- Auxiliary function to defining scalar multiplication on tensor product. -/
-def smul.aux {R' : Type*} [has_scalar R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
+def rsmul.aux {R' : Type*} [has_scalar R' M] (r : R') :
+  free_add_monoid (M × N) →+ M ⊗[R] N :=
 free_add_monoid.lift $ λ p : M × N, (r • p.1) ⊗ₜ p.2
 
-theorem smul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
-  smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
+theorem rsmul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
+  rsmul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
 rfl
 
-variables [smul_comm_class R R' M]
-variables [smul_comm_class R R'' M]
+variables [smul_comm_class Rᵐᵒᵖ R' M]
+variables [smul_comm_class Rᵐᵒᵖ R'' M]
 
-/-- Given two modules over a commutative semiring `R`, if one of the factors carries a
+/-- Given two modules over a semiring `R`, if one of the factors carries a
 (distributive) action of a second type of scalars `R'`, which commutes with the action of `R`, then
 the tensor product (over `R`) carries an action of `R'`.
 
@@ -187,48 +53,45 @@ This instance defines this `R'` action in the case that it is the left module wh
 action. Two natural ways in which this situation arises are:
  * Extension of scalars
  * A tensor product of a group representation with a module not carrying an action
-
-Note that in the special case that `R = R'`, since `R` is commutative, we just get the usual scalar
-action on a tensor product of two modules. This special case is important enough that, for
-performance reasons, we define it explicitly below. -/
+-/
 instance left_has_scalar : has_scalar R' (M ⊗[R] N) :=
-⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
+⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (rsmul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
-    by simp_rw [add_monoid_hom.map_zero, smul.aux_of, smul_zero, zero_tmul]
+    by rw [add_monoid_hom.map_zero, rsmul.aux_of, smul_zero, zero_tmul]
 | _, _, (eqv.of_zero_right m)      := (add_con.ker_rel _).2 $
-    by simp_rw [add_monoid_hom.map_zero, smul.aux_of, tmul_zero]
+    by simp_rw [add_monoid_hom.map_zero, rsmul.aux_of, tmul_zero]
 | _, _, (eqv.of_add_left m₁ m₂ n)  := (add_con.ker_rel _).2 $
-    by simp_rw [add_monoid_hom.map_add, smul.aux_of, smul_add, add_tmul]
+    by simp_rw [add_monoid_hom.map_add, rsmul.aux_of, smul_add, add_tmul]
 | _, _, (eqv.of_add_right m n₁ n₂) := (add_con.ker_rel _).2 $
-    by simp_rw [add_monoid_hom.map_add, smul.aux_of, tmul_add]
+    by simp_rw [add_monoid_hom.map_add, rsmul.aux_of, tmul_add]
 | _, _, (eqv.of_smul s m n)        := (add_con.ker_rel _).2 $
-    by rw [smul.aux_of, smul.aux_of, ←smul_comm, smul_tmul]
+    by rw [rsmul.aux_of, rsmul.aux_of, ←smul_comm, rsmul_tmul]
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
 
-instance : has_scalar R (M ⊗[R] N) := tensor_product.left_has_scalar
+theorem smul_tmul' (r : R') (m : M) (n : N) :
+  r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
+rfl
 
 protected theorem smul_zero (r : R') : (r • 0 : M ⊗[R] N) = 0 :=
 add_monoid_hom.map_zero _
 
-protected theorem smul_add (r : R') (x y : M ⊗[R] N) :
+protected theorem smul_add  (r : R') (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
 add_monoid_hom.map_add _ _ _
 
 protected theorem zero_smul (x : M ⊗[R] N) : (0 : R'') • x = 0 :=
-have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 tensor_product.induction_on x
   (by rw tensor_product.smul_zero)
-  (λ m n, by rw [this, zero_smul, zero_tmul])
+  (λ m n, by rw [smul_tmul', zero_smul, zero_tmul])
   (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy, add_zero])
 
 protected theorem one_smul (x : M ⊗[R] N) : (1 : R') • x = x :=
-have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 tensor_product.induction_on x
   (by rw tensor_product.smul_zero)
-  (λ m n, by rw [this, one_smul])
+  (λ m n, by rw [smul_tmul', one_smul])
   (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy])
 
 protected theorem add_smul (r s : R'') (x : M ⊗[R] N) : (r + s) • x = r • x + s • x :=
@@ -238,31 +101,18 @@ tensor_product.induction_on x
   (λ m n, by simp_rw [this, add_smul, add_tmul])
   (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy, add_add_add_comm] })
 
-instance : add_comm_monoid (M ⊗[R] N) :=
-{ nsmul := λ n v, n • v,
-  nsmul_zero' := by simp [tensor_product.zero_smul],
-  nsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
-  .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
-
 instance left_distrib_mul_action : distrib_mul_action R' (M ⊗[R] N) :=
-have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
   mul_smul := λ r s x, tensor_product.induction_on x
     (by simp_rw tensor_product.smul_zero)
-    (λ m n, by simp_rw [this, mul_smul])
+    (λ m n, by simp_rw [smul_tmul', mul_smul])
     (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy] }),
   one_smul := tensor_product.one_smul,
   smul_zero := tensor_product.smul_zero }
 
-instance : distrib_mul_action R (M ⊗[R] N) := tensor_product.left_distrib_mul_action
-
-theorem smul_tmul' (r : R') (m : M) (n : N) :
-  r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
-rfl
-
-@[simp] lemma tmul_smul
-  [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
+@[simp] lemma tmul_smul [has_scalar R'ᵐᵒᵖ M] [is_central_scalar R' M]
+  [has_scalar R' N] [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 
@@ -272,13 +122,10 @@ instance left_module : module R'' (M ⊗[R] N) :=
   zero_smul := tensor_product.zero_smul,
   ..tensor_product.left_distrib_mul_action }
 
-instance : module R (M ⊗[R] N) := tensor_product.left_module
-
 section
-
 -- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗[R] N)`
 variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M]
-variables [smul_comm_class R R'₂ M] [has_scalar R'₂ R']
+variables [smul_comm_class Rᵐᵒᵖ R'₂ M] [has_scalar R'₂ R']
 
 /-- `is_scalar_tower R'₂ R' M` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
 instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
@@ -288,64 +135,48 @@ instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
   (λ m n, by rw [smul_tmul', smul_tmul', smul_tmul', smul_assoc])
   (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
 
-variables [distrib_mul_action R'₂ N] [distrib_mul_action R' N]
-variables [compatible_smul R R'₂ M N] [compatible_smul R R' M N]
-
-/-- `is_scalar_tower R'₂ R' N` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
-instance is_scalar_tower_right [is_scalar_tower R'₂ R' N] :
-    is_scalar_tower R'₂ R' (M ⊗[R] N) :=
-⟨λ s r x, tensor_product.induction_on x
-  (by simp)
-  (λ m n, by rw [←tmul_smul, ←tmul_smul, ←tmul_smul, smul_assoc])
-  (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
-
 end
 
-/-- A short-cut instance for the common case, where the requirements for the `compatible_smul`
-instances are sufficient. -/
-instance is_scalar_tower [has_scalar R' R] [is_scalar_tower R' R M] :
-  is_scalar_tower R' R (M ⊗[R] N) :=
-tensor_product.is_scalar_tower_left  -- or right
+end semiring
+
+section comm_semiring
+
+variables {R : Type*} [comm_semiring R]
+variables {R' : Type*} [monoid R']
+variables {R'' : Type*} [comm_semiring R''] --?
+variables {M N : Type*}
+variables [add_comm_monoid M] [add_comm_monoid N]
+variables [module R M] [module Rᵐᵒᵖ M] [smul_comm_class Rᵐᵒᵖ R M]
+variables [module R N]
+variables [distrib_mul_action R' M]
+variables {P Q : Type*}
+variables [add_comm_monoid P] [module R P]
+variables [add_comm_monoid Q] [module R Q]
+
+/-- The instance `tensor_product.left_has_scalar` induces this special case of `R` acting
+on the left of the tensor product `M ⊗[R] N`. -/
+instance right_has_scalar_comm : has_scalar R (M ⊗[R] N) := infer_instance
+
+instance : distrib_mul_action R (M ⊗[R] N) := tensor_product.left_distrib_mul_action
+
+instance : module R (M ⊗[R] N) := tensor_product.left_module
+
+--set_option trace.class_instances true
+/-- A short-cut instance of `is_scalar_tower_left` for the common case, where the requirements
+for the `compatible_smul` instances are sufficient. -/
+instance is_scalar_tower [smul_comm_class Rᵐᵒᵖ R' M] [has_scalar R' R] [is_scalar_tower R' Rᵐᵒᵖ M] :
+  is_scalar_tower R' Rᵐᵒᵖ (M ⊗[R] N) :=
+tensor_product.is_scalar_tower_left
 
 variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
-def mk : M →ₗ[R] N →ₗ[R] M ⊗[R] N :=
+def mk [is_central_scalar R M] : M →ₗ[R] N →ₗ[R] M ⊗[R] N :=
 linear_map.mk₂ R (⊗ₜ) add_tmul (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
 variables {R M N}
 
-@[simp] lemma mk_apply (m : M) (n : N) : mk R M N m n = m ⊗ₜ n := rfl
-
-lemma ite_tmul (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
-  (if P then x₁ else 0) ⊗ₜ[R] x₂ = if P then x₁ ⊗ₜ x₂ else 0 :=
-by { split_ifs; simp }
-
-lemma tmul_ite (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
-  x₁ ⊗ₜ[R] (if P then x₂ else 0) = if P then x₁ ⊗ₜ x₂ else 0 :=
-by { split_ifs; simp }
-
-section
-open_locale big_operators
-
-lemma sum_tmul {α : Type*} (s : finset α) (m : α → M) (n : N) :
-  (∑ a in s, m a) ⊗ₜ[R] n = ∑ a in s, m a ⊗ₜ[R] n :=
-begin
-  classical,
-  induction s using finset.induction with a s has ih h,
-  { simp, },
-  { simp [finset.sum_insert has, add_tmul, ih], },
-end
-
-lemma tmul_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
-  m ⊗ₜ[R] (∑ a in s, n a) = ∑ a in s, m ⊗ₜ[R] n a :=
-begin
-  classical,
-  induction s using finset.induction with a s has ih h,
-  { simp, },
-  { simp [finset.sum_insert has, tmul_add, ih], },
-end
-end
-
-variables (R M N)
+@[simp] lemma mk_apply [is_central_scalar R M] [module Rᵐᵒᵖ N] [is_central_scalar R N]
+  (m : M) (n : N) : mk R M N m n = m ⊗ₜ n :=
+rfl
 
 /-- The simple (aka pure) elements span the tensor product. -/
 lemma span_tmul_eq_top :
@@ -358,11 +189,15 @@ begin
   { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
 end
 
-end module
+variables [is_central_scalar R M]
+
+instance : is_central_scalar R (M ⊗[R] N) :=
+⟨λ r x, tensor_product.induction_on x rfl
+  (λ m n, by rw [smul_tmul' r, ←is_central_scalar.op_smul_eq_smul r m, smul_tmul'])
+  (λ x y hx hy, by rw [smul_add, hx, hy, smul_add])⟩
 
 section UMP
 
-variables {M N P Q}
 variables (f : M →ₗ[R] N →ₗ[R] P)
 
 /-- Auxiliary function to constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
@@ -380,7 +215,8 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_add_right m n₁ n₂) := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, (f m).map_add]
 | _, _, (eqv.of_smul r m n)        := (add_con.ker_rel _).2 $
-    by simp_rw [free_add_monoid.lift_eval_of, f.map_smul₂, (f m).map_smul]
+    by rw [free_add_monoid.lift_eval_of, free_add_monoid.lift_eval_of,
+           is_central_scalar.op_smul_eq_smul, f.map_smul₂, (f m).map_smul]
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
@@ -392,7 +228,7 @@ variable {f}
 
 @[simp] lemma lift_aux.smul (r : R) (x) : lift_aux f (r • x) = r • lift_aux f x :=
 tensor_product.induction_on x (smul_zero _).symm
-  (λ p q, by rw [← tmul_smul, lift_aux_tmul, lift_aux_tmul, (f p).map_smul])
+  (λ p q, by rw [lift_aux_tmul,smul_tmul', lift_aux_tmul, f.map_smul₂] )
   (λ p q ih1 ih2, by rw [smul_add, (lift_aux f).map_add, ih1, ih2, (lift_aux f).map_add, smul_add])
 
 variable (f)
@@ -419,23 +255,25 @@ theorem lift.unique {g : (M ⊗[R] N) →ₗ[R] P} (H : ∀ x y, g (x ⊗ₜ y) 
   g = lift f :=
 ext' $ λ m n, by rw [H, lift.tmul]
 
+example : has_scalar Rᵐᵒᵖ (M ⊗[R] N) := tensor_product.left_has_scalar
+
 theorem lift_mk : lift (mk R M N) = linear_map.id :=
 eq.symm $ lift.unique $ λ x y, rfl
 
 theorem lift_compr₂ (g : P →ₗ[R] Q) : lift (f.compr₂ g) = g.comp (lift f) :=
 eq.symm $ lift.unique $ λ x y, by simp
 
-theorem lift_mk_compr₂ (f : M ⊗ N →ₗ[R] P) : lift ((mk R M N).compr₂ f) = f :=
-by rw [lift_compr₂ f, lift_mk, linear_map.comp_id]
+theorem lift_mk_compr₂
+  (f : M ⊗ N →ₗ[R] P) : lift ((mk R M N).compr₂ f) = f :=
+by { rw [lift_compr₂ f, lift_mk, linear_map.comp_id], repeat { apply_instance } }
 
 /--
 This used to be an `@[ext]` lemma, but it fails very slowly when the `ext` tactic tries to apply
 it in some cases, notably when one wants to show equality of two linear maps. The `@[ext]`
 attribute is now added locally where it is needed. Using this as the `@[ext]` lemma instead of
 `tensor_product.ext'` allows `ext` to apply lemmas specific to `M →ₗ _` and `N →ₗ _`.
-
 See note [partially-applied ext lemmas]. -/
-theorem ext {g h : M ⊗ N →ₗ[R] P}
+theorem ext {g h : M ⊗[R] N →ₗ[R] P}
   (H : (mk R M N).compr₂ g = (mk R M N).compr₂ h) : g = h :=
 by rw [← lift_mk_compr₂ g, H, lift_mk_compr₂]
 
@@ -457,10 +295,12 @@ variables {R M N P}
 by rw [uncurry, linear_map.flip_apply, lift.tmul]; refl
 
 variables (R M N P)
+variables [module Rᵐᵒᵖ N] [is_central_scalar R N]
 /-- A linear equivalence constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
 with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
 the given bilinear map `M → N → P`. -/
-def lift.equiv : (M →ₗ[R] N →ₗ[R] P) ≃ₗ[R] (M ⊗ N →ₗ[R] P) :=
+def lift.equiv :
+  (M →ₗ[R] N →ₗ[R] P) ≃ₗ[R] (M ⊗ N →ₗ[R] P) :=
 { inv_fun := λ f, (mk R M N).compr₂ f,
   left_inv := λ f, linear_map.ext₂ $ λ m n, lift.tmul _ _,
   right_inv := λ f, ext' $ λ m n, lift.tmul _ _,
@@ -489,6 +329,8 @@ def curry (f : M ⊗ N →ₗ[R] P) : M →ₗ[R] N →ₗ[R] P := lcurry R M N 
 
 @[simp] theorem curry_apply (f : M ⊗ N →ₗ[R] P) (m : M) (n : N) :
   curry f m n = f (m ⊗ₜ n) := rfl
+
+variables {S : Type*} [add_comm_monoid S] [module R S]
 
 lemma curry_injective : function.injective (curry : (M ⊗[R] N →ₗ[R] P) → (M →ₗ[R] N →ₗ[R] P)) :=
 λ g h H, ext H
@@ -533,8 +375,9 @@ end
 @[simp] lemma lid_symm_apply (m : M) :
   (tensor_product.lid R M).symm m = 1 ⊗ₜ m := rfl
 
-section
+section comm
 variables (R M N)
+variables [module Rᵐᵒᵖ N] [is_central_scalar R N]
 
 /--
 The tensor product of modules is commutative, up to linear equivalence.
@@ -550,9 +393,9 @@ linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
 @[simp] theorem comm_symm_tmul (m : M) (n : N) :
   (tensor_product.comm R M N).symm (n ⊗ₜ m) = m ⊗ₜ n := rfl
 
-end
+end comm
 
-section
+section rid
 variables (R M)
 
 /--
@@ -560,7 +403,7 @@ The base ring is a right identity for the tensor product of modules, up to linea
 -/
 protected def rid : M ⊗[R] R ≃ₗ[R] M :=
 linear_equiv.trans (tensor_product.comm R M R) (tensor_product.lid R M)
-end
+end rid
 
 @[simp] theorem rid_tmul (m : M) (r : R) :
   (tensor_product.rid R M) (m ⊗ₜ r) = r • m :=
@@ -573,9 +416,12 @@ end
   (tensor_product.rid R M).symm m = m ⊗ₜ 1 := rfl
 
 open linear_map
-section
-variables (R M N P)
 
+section assoc
+variables [module Rᵐᵒᵖ N] [is_central_scalar R N]
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
+
+variables (R M N P)
 /-- The associator for tensor product of R-modules, as a linear equivalence. -/
 protected def assoc : (M ⊗[R] N) ⊗[R] P ≃ₗ[R] M ⊗[R] (N ⊗[R] P) :=
 begin
@@ -588,13 +434,19 @@ begin
     rw mk_apply <|> rw flip_apply <|> rw lcurry_apply <|>
     rw uncurry_apply <|> rw curry_apply <|> rw id_apply }
 end
-end
+variables {R M N P}
 
 @[simp] theorem assoc_tmul (m : M) (n : N) (p : P) :
   (tensor_product.assoc R M N P) ((m ⊗ₜ n) ⊗ₜ p) = m ⊗ₜ (n ⊗ₜ p) := rfl
 
 @[simp] theorem assoc_symm_tmul (m : M) (n : N) (p : P) :
   (tensor_product.assoc R M N P).symm (m ⊗ₜ (n ⊗ₜ p)) = (m ⊗ₜ n) ⊗ₜ p := rfl
+
+end assoc
+
+section map
+
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
 
 /-- The tensor product of a pair of linear maps between modules. -/
 def map (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : M ⊗ N →ₗ[R] P ⊗ Q :=
@@ -616,12 +468,13 @@ begin
 end
 
 /-- Given submodules `p ⊆ P` and `q ⊆ Q`, this is the natural map: `p ⊗ q → P ⊗ Q`. -/
-@[simp] def map_incl (p : submodule R P) (q : submodule R Q) : p ⊗[R] q →ₗ[R] P ⊗[R] Q :=
+@[simp] def map_incl (p : submodule R P) [module Rᵐᵒᵖ p] [is_central_scalar R p]
+  (q : submodule R Q) : p ⊗[R] q →ₗ[R] P ⊗[R] Q :=
 map p.subtype q.subtype
 
-section
+section map_comp
 variables {P' Q' : Type*}
-variables [add_comm_monoid P'] [module R P']
+variables [add_comm_monoid P'] [module R P'] [module Rᵐᵒᵖ P'] [is_central_scalar R P']
 variables [add_comm_monoid Q'] [module R Q']
 
 lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
@@ -635,7 +488,7 @@ ext' $ λ _ _, by simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, lin
 local attribute [ext] ext
 
 @[simp] lemma map_id : map (id : M →ₗ[R] M) (id : N →ₗ[R] N) = id :=
-by { ext, simp only [mk_apply, id_coe, compr₂_apply, id.def, map_tmul], }
+by { ext, simp only [mk_apply, id_coe, compr₂_apply, id.def, map_tmul], refl }
 
 @[simp] lemma map_one : map (1 : M →ₗ[R] M) (1 : N →ₗ[R] N) = 1 := map_id
 
@@ -651,8 +504,13 @@ begin
   { simp only [pow_succ', ih, map_mul], },
 end
 
-end
+end map_comp
 
+end map
+
+section congr
+
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
 /-- If `M` and `P` are linearly equivalent and `N` and `Q` are linearly equivalent
 then `M ⊗ N` and `P ⊗ Q` are linearly equivalent. -/
 def congr (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) : M ⊗ N ≃ₗ[R] P ⊗ Q :=
@@ -668,7 +526,11 @@ rfl
   (congr f g).symm (p ⊗ₜ q) = f.symm p ⊗ₜ g.symm q :=
 rfl
 
+end congr
+
 variables (R M N P Q)
+variables [module Rᵐᵒᵖ N] [is_central_scalar R N]
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P]
 
 /-- A tensor product analogue of `mul_left_comm`. -/
 def left_comm : M ⊗[R] (N ⊗[R] P) ≃ₗ[R] N ⊗[R] (M ⊗[R] P) :=
@@ -688,16 +550,15 @@ rfl
 rfl
 
 variables (M N P Q)
+variables [module Rᵐᵒᵖ Q] [is_central_scalar R Q]
 
 /-- This special case is worth defining explicitly since it is useful for defining multiplication
 on tensor products of modules carrying multiplications (e.g., associative rings, Lie rings, ...).
-
 E.g., suppose `M = P` and `N = Q` and that `M` and `N` carry bilinear multiplications:
 `M ⊗ M → M` and `N ⊗ N → N`. Using `map`, we can define `(M ⊗ M) ⊗ (N ⊗ N) → M ⊗ N` which, when
 combined with this definition, yields a bilinear multiplication on `M ⊗ N`:
 `(M ⊗ N) ⊗ (M ⊗ N) → M ⊗ N`. In particular we could use this to define the multiplication in
 the `tensor_product.semiring` instance (currently defined "by hand" using `tensor_product.mul`).
-
 See also `mul_mul_mul_comm`. -/
 def tensor_tensor_tensor_comm : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] (M ⊗[R] P) ⊗[R] (N ⊗[R] Q) :=
 let e₁ := tensor_product.assoc R M N (P ⊗[R] Q),
@@ -715,18 +576,32 @@ rfl
   (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
 rfl
 
+end comm_semiring
+
 end tensor_product
+
+open_locale tensor_product
 
 namespace linear_map
 
-variables {R} (M) {N P Q}
+variables {R : Type*} [comm_semiring R]
+variables {R' : Type*} [monoid R']
+variables {R'' : Type*} [comm_semiring R''] --?
+variables (M : Type*) [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables {N : Type*} [add_comm_monoid N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
+variables [distrib_mul_action R' M]
+variables {P : Type*} [add_comm_monoid P] [module R P] [module Rᵐᵒᵖ P] [is_central_scalar R P]
+variables {Q : Type*} [add_comm_monoid Q] [module R Q] [module Rᵐᵒᵖ Q] [is_central_scalar R Q]
+variables {S : Type*} [add_comm_monoid S] [module R S] [module Rᵐᵒᵖ S] [is_central_scalar R S]
 
+
+variables (M)
 /-- `ltensor M f : M ⊗ N →ₗ M ⊗ P` is the natural linear map induced by `f : N →ₗ P`. -/
 def ltensor (f : N →ₗ[R] P) : M ⊗ N →ₗ[R] M ⊗ P :=
 tensor_product.map id f
 
 /-- `rtensor f M : N₁ ⊗ M →ₗ N₂ ⊗ M` is the natural linear map induced by `f : N₁ →ₗ N₂`. -/
-def rtensor (f : N →ₗ[R] P) : N ⊗ M →ₗ[R] P ⊗ M :=
+def rtensor [is_central_scalar R N] (f : N →ₗ[R] P) : N ⊗ M →ₗ[R] P ⊗ M :=
 tensor_product.map f id
 
 variables (g : P →ₗ[R] Q) (f : N →ₗ[R] P)
@@ -742,18 +617,18 @@ local attribute [ext] tensor_product.ext
 /-- `ltensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def ltensor_hom : (N →ₗ[R] P) →ₗ[R] (M ⊗[R] N →ₗ[R] M ⊗[R] P) :=
 { to_fun := ltensor M,
-  map_add' := λ f g, by
-  { ext x y, simp only [compr₂_apply, mk_apply, add_apply, ltensor_tmul, tmul_add] },
-  map_smul' := λ r f, by
-  { dsimp, ext x y, simp only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
+  map_add' := λ f g, by {
+    ext x y, simp only [compr₂_apply, mk_apply, add_apply, ltensor_tmul, tmul_add] },
+  map_smul' := λ r f, by {
+    dsimp, ext x y, simp only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
 
 /-- `rtensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
 { to_fun := λ f, f.rtensor M,
-  map_add' := λ f g, by
-  { ext x y, simp only [compr₂_apply, mk_apply, add_apply, rtensor_tmul, add_tmul] },
-  map_smul' := λ r f, by
-  { dsimp, ext x y, simp only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply,
+  map_add' := λ f g, by {
+    ext x y, simp only [compr₂_apply, mk_apply, add_apply, rtensor_tmul, add_tmul] },
+  map_smul' := λ r f, by {
+    dsimp, ext x y, simp only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply,
     rtensor_tmul] } }
 
 @[simp] lemma coe_ltensor_hom :
@@ -834,16 +709,15 @@ by { have h := tensor_product.map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h,
 
 end linear_map
 
-end semiring
+section add_comm_group
 
-section ring
-
-variables {R : Type*} [comm_semiring R]
+variables {R : Type*} [semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
   [add_comm_group S]
-variables [module R M] [module R N] [module R P] [module R Q] [module R S]
+variables [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [module R N] [module R P] [module R Q] [module R S]
 
 namespace tensor_product
 
@@ -874,17 +748,17 @@ instance : has_neg (M ⊗[R] N) :=
     | _, _, (eqv.of_add_right m n₁ n₂) := (add_con.ker_rel _).2 $
         by simp_rw [add_monoid_hom.map_add, neg.aux_of, tmul_add]
     | _, _, (eqv.of_smul s m n)        := (add_con.ker_rel _).2 $
-        by simp_rw [neg.aux_of, tmul_smul s, smul_tmul', smul_neg]
+        by rw [neg.aux_of, neg.aux_of, ←smul_neg, rsmul_tmul]
     | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
         by simp_rw [add_monoid_hom.map_add, add_comm]
     end }
 
 protected theorem add_left_neg (x : M ⊗[R] N) : -x + x = 0 :=
 tensor_product.induction_on x
-  (by { rw [add_zero], apply (neg.aux R).map_zero, })
+  (by { rw [add_zero], apply (@neg.aux R _ M N _ _ _ _ _ _).map_zero })
   (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
-  (λ x y hx hy, by
-  { unfold has_neg.neg sub_neg_monoid.neg,
+  (λ x y hx hy, by {
+    unfold has_neg.neg sub_neg_monoid.neg,
     rw add_monoid_hom.map_add,
     ac_change (-x + x) + (-y + y) = 0,
     rw [hx, hy, add_zero], })
@@ -907,50 +781,60 @@ instance : add_comm_group (M ⊗[R] N) :=
 
 lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := rfl
 
-lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) := (mk R M N _).map_neg _
+lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) :=
+by { apply eq_neg_of_add_eq_zero, rw [←tmul_add], simp }
 
 lemma tmul_sub (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ - n₂) = (m ⊗ₜ[R] n₁) - (m ⊗ₜ[R] n₂) :=
-(mk R M N _).map_sub _ _
+by { apply eq_sub_of_add_eq, rw [←tmul_add], simp }
 
 lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R] n) - (m₂ ⊗ₜ[R] n) :=
-(mk R M N).map_sub₂ _ _ _
+by { apply eq_sub_of_add_eq, rw [←add_tmul], simp }
 
+open mul_opposite
 /--
 While the tensor product will automatically inherit a ℤ-module structure from
 `add_comm_group.int_module`, that structure won't be compatible with lemmas like `tmul_smul` unless
 we use a `ℤ-module` instance provided by `tensor_product.left_module`.
-
 When `R` is a `ring` we get the required `tensor_product.compatible_smul` instance through
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
-instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R ℤ M N :=
+instance compatible_smul.int [module ℤ M] [module ℤᵐᵒᵖ M] [is_central_scalar ℤ M]
+  [module ℤ N] : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)
-  (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
-  (λ r ih, by simpa [sub_smul, tmul_sub, sub_tmul] using ih)⟩
+  (λ r ih, by rw [op_add, add_smul, add_tmul, ih, op_one, one_smul, ←tmul_add, add_self_zsmul])
+  (λ r ih, by rw [op_sub, sub_smul, sub_tmul, op_one, one_smul, ih, ←tmul_sub,
+                  sub_zsmul, one_zsmul, sub_eq_add_neg])⟩
 
-instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
-  [compatible_smul R S M N] :
-  compatible_smul R (units S) M N :=
-⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
+instance compatible_smul.unit {S} [monoid S] [has_scalar Sᵐᵒᵖ M] [has_scalar S N]
+  [compatible_smul R S M N] : compatible_smul R (units S) M N :=
+⟨λ s m n, (compatible_smul.rsmul_tmul (s : S) m n : _)⟩
 
 end tensor_product
 
 namespace linear_map
 
-@[simp] lemma ltensor_sub (f g : N →ₗ[R] P) : (f - g).ltensor M = f.ltensor M - g.ltensor M :=
+variables {R' : Type*} [comm_semiring R']
+variables [module R' M] [module R'ᵐᵒᵖ M] [is_central_scalar R' M]
+variables [module R' N] [module R' P] [module R' Q] [module R' S]
+variables [module R'ᵐᵒᵖ N] [is_central_scalar R' N]
+variables [module R'ᵐᵒᵖ P] [is_central_scalar R' P]
+variables [module R'ᵐᵒᵖ Q] [is_central_scalar R' Q]
+variables [module R'ᵐᵒᵖ S] [is_central_scalar R' S]
+
+@[simp] lemma ltensor_sub (f g : N →ₗ[R'] P) : (f - g).ltensor M = f.ltensor M - g.ltensor M :=
 by simp only [← coe_ltensor_hom, map_sub]
 
-@[simp] lemma rtensor_sub (f g : N →ₗ[R] P) : (f - g).rtensor M = f.rtensor M - g.rtensor M :=
+@[simp] lemma rtensor_sub (f g : N →ₗ[R'] P) : (f - g).rtensor M = f.rtensor M - g.rtensor M :=
 by simp only [← coe_rtensor_hom, map_sub]
 
-@[simp] lemma ltensor_neg (f : N →ₗ[R] P) : (-f).ltensor M = -(f.ltensor M) :=
+@[simp] lemma ltensor_neg (f : N →ₗ[R'] P) : (-f).ltensor M = -(f.ltensor M) :=
 by simp only [← coe_ltensor_hom, map_neg]
 
-@[simp] lemma rtensor_neg (f : N →ₗ[R] P) : (-f).rtensor M = -(f.rtensor M) :=
+@[simp] lemma rtensor_neg (f : N →ₗ[R'] P) : (-f).rtensor M = -(f.rtensor M) :=
 by simp only [← coe_rtensor_hom, map_neg]
 
 end linear_map
 
-end ring
+end add_comm_group

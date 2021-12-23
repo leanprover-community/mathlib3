@@ -19,7 +19,7 @@ noncomputable theory
 
 open category_theory
 
-namespace Module
+namespace SymmetricBiModule
 
 universe u
 
@@ -28,15 +28,15 @@ open_locale classical
 variables (R : Type u)
 
 section
-variables [ring R]
+variables [comm_ring R]
 
 /--
-The free functor `Type u ⥤ Module R` sending a type `X` to the
+The free functor `Type u ⥤ SymmetricBiModule R` sending a type `X` to the
 free `R`-module with generators `x : X`, implemented as the type `X →₀ R`.
 -/
 @[simps]
-def free : Type u ⥤ Module R :=
-{ obj := λ X, Module.of R (X →₀ R),
+def free : Type u ⥤ SymmetricBiModule R :=
+{ obj := λ X, SymmetricBiModule.of R (X →₀ R),
   map := λ X Y f, finsupp.lmap_domain _ _ f,
   map_id' := by { intros, exact finsupp.lmap_domain_id _ _ },
   map_comp' := by { intros, exact finsupp.lmap_domain_comp _ _ _ _, } }
@@ -44,14 +44,14 @@ def free : Type u ⥤ Module R :=
 /--
 The free-forgetful adjunction for R-modules.
 -/
-def adj : free R ⊣ forget (Module.{u} R) :=
+def adj : free R ⊣ forget (SymmetricBiModule.{u} R) :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X M, (finsupp.lift M R X).to_equiv.symm,
   hom_equiv_naturality_left_symm' := λ _ _ M f g,
   finsupp.lhom_ext' (λ x, linear_map.ext_ring
     (finsupp.sum_map_domain_index_add_monoid_hom (λ y, ((smul_add_hom R M).flip) (g y))).symm) }
 
-instance : is_right_adjoint (forget (Module.{u} R)) := ⟨_, adj R⟩
+instance : is_right_adjoint (forget (SymmetricBiModule.{u} R)) := ⟨_, adj R⟩
 
 end
 
@@ -60,7 +60,7 @@ variables [comm_ring R]
 local attribute [ext] tensor_product.ext
 
 /-- (Implementation detail) The unitor for `free R`. -/
-def ε : 𝟙_ (Module.{u} R) ⟶ (free R).obj (𝟙_ (Type u)) :=
+def ε : 𝟙_ (SymmetricBiModule.{u} R) ⟶ (free R).obj (𝟙_ (Type u)) :=
 finsupp.lsingle punit.star
 
 /-- (Implementation detail) The tensorator for `free R`. -/
@@ -73,9 +73,7 @@ lemma μ_natural {X Y X' Y' : Type u} (f : X ⟶ Y) (g : X' ⟶ Y') :
 begin
   intros,
   ext x x' ⟨y, y'⟩,
-  dsimp [μ],
-  simp_rw [finsupp.map_domain_single, finsupp_tensor_finsupp'_single_tmul_single, mul_one,
-    finsupp.map_domain_single, category_theory.tensor_apply],
+  simp [μ]
 end
 
 lemma left_unitality (X : Type u) :
@@ -84,10 +82,7 @@ lemma left_unitality (X : Type u) :
 begin
   intros,
   ext,
-  dsimp [ε, μ],
-  simp_rw [finsupp_tensor_finsupp'_single_tmul_single,
-    Module.monoidal_category.left_unitor_hom_apply, finsupp.smul_single', mul_one,
-    finsupp.map_domain_single, category_theory.left_unitor_hom_apply],
+  simp [ε, μ],
 end
 
 lemma right_unitality (X : Type u) :
@@ -96,10 +91,7 @@ lemma right_unitality (X : Type u) :
 begin
   intros,
   ext,
-  dsimp [ε, μ],
-  simp_rw [finsupp_tensor_finsupp'_single_tmul_single,
-    Module.monoidal_category.right_unitor_hom_apply, finsupp.smul_single', mul_one,
-    finsupp.map_domain_single, category_theory.right_unitor_hom_apply],
+  simp [ε, μ],
 end
 
 lemma associativity (X Y Z : Type u) :
@@ -109,9 +101,7 @@ lemma associativity (X Y Z : Type u) :
 begin
   intros,
   ext,
-  dsimp [μ],
-  simp_rw [finsupp_tensor_finsupp'_single_tmul_single, finsupp.map_domain_single, mul_one,
-    category_theory.associator_hom_apply],
+  simp [μ],
 end
 
 /-- The free R-module functor is lax monoidal. -/
@@ -128,7 +118,7 @@ instance : lax_monoidal.{u} (free R).obj :=
 
 end free
 
-end Module
+end SymmetricBiModule
 
 namespace category_theory
 

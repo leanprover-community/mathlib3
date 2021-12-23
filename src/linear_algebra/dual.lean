@@ -44,7 +44,9 @@ variables (R : Type*) (M : Type*)
 variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
-@[derive [add_comm_monoid, module R]] def dual := M →ₗ[R] R
+@[derive [add_comm_monoid, module R, module Rᵐᵒᵖ]] def dual := M →ₗ[R] R
+
+example : module Rᵐᵒᵖ (dual R M) := infer_instance
 
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
   add_comm_group (dual S N) := by {unfold dual, apply_instance}
@@ -57,6 +59,9 @@ namespace dual
 instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
 instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
+
+instance [module Rᵐᵒᵖ M] [is_central_scalar R M] : is_central_scalar R (dual R M) :=
+⟨λ r m, by { ext, simp [mul_comm] }⟩
 
 /-- Maps a module M to the dual of the dual of M. See `module.erange_coe` and
 `module.eval_equiv`. -/

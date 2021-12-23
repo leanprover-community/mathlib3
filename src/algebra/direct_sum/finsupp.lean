@@ -19,7 +19,7 @@ noncomputable theory
 open_locale direct_sum
 
 open linear_map submodule
-variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
+variables {R : Type u} {M : Type v} [semiring R] [add_comm_group M] [module R M]
 
 section finsupp_lequiv_direct_sum
 

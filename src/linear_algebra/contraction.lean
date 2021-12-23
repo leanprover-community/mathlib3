@@ -25,7 +25,9 @@ open tensor_product
 open_locale tensor_product
 
 variables (R : Type u) (M N : Type v)
-variables [comm_ring R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
+variables [comm_ring R] [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [module Rᵐᵒᵖ (module.dual R M)] [is_central_scalar R (module.dual R M)]
+  [add_comm_group N] [module R N]
 
 /-- The natural left-handed pairing between a module and its dual. -/
 def contract_left : (module.dual R M) ⊗ M →ₗ[R] R := (uncurry _ _ _ _).to_fun linear_map.id

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
 import data.finset.preimage
+import group_theory.group_action.symmetric
 import algebra.indicator_function
 import algebra.group_action_hom
 
@@ -2324,6 +2325,7 @@ lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :
 end
 
 section
+
 instance [monoid R] [add_monoid M] [distrib_mul_action R M] : has_scalar R (α →₀ M) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 

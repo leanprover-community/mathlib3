@@ -9,6 +9,8 @@ import linear_algebra.affine_space.basic
 import linear_algebra.bilinear_map
 import linear_algebra.pi
 import linear_algebra.prod
+import linear_algebra.pi
+import data.set.intervals.unordered_interval
 import tactic.abel
 
 /-!

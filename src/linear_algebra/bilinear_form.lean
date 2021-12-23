@@ -9,7 +9,7 @@ import linear_algebra.matrix.basis
 import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_linear_equiv
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product.def
 
 /-!
 # Bilinear form
@@ -999,6 +999,12 @@ begin
     conv_lhs { rw ← h },
     simp }
 end
+
+end sym_bilin_form
+
+namespace alt_bilin_form
+
+open alt_bilin_form bilin_form
 
 /-- The proposition that a bilinear form is alternating -/
 def is_alt (B : bilin_form R M) : Prop := ∀ (x : M), B x x = 0

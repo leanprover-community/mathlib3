@@ -18,7 +18,8 @@ open set linear_map submodule
 
 section comm_ring
 variables {R : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
-variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables [comm_ring R] [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [add_comm_group N] [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 
 /-- If b : ι → M and c : κ → N are bases then so is λ i, b i.1 ⊗ₜ c i.2 : ι × κ → M ⊗ N. -/
 def basis.tensor_product (b : basis ι R M) (c : basis κ R N) :
@@ -32,7 +33,8 @@ end comm_ring
 
 section field
 variables {K : Type*} (V W : Type*)
-variables [field K] [add_comm_group V] [module K V] [add_comm_group W] [module K W]
+variables [field K] [add_comm_group V] [module K V] [module Kᵐᵒᵖ V] [is_central_scalar K V]
+  [add_comm_group W] [module K W] [module Kᵐᵒᵖ W] [is_central_scalar K W]
 
 /-- If `V` and `W` are finite dimensional `K` vector spaces, so is `V ⊗ W`. -/
 instance finite_dimensional_tensor_product [finite_dimensional K V] [finite_dimensional K W] :

@@ -73,13 +73,15 @@ reversed.
 
 open mul_opposite
 
+notation m` <• `:73 g:72 := op g • m
+
 /-- Like `has_mul.to_has_scalar`, but multiplies on the right.
 
 See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action_with_zero`. -/
 instance has_mul.to_has_opposite_scalar [has_mul α] : has_scalar αᵐᵒᵖ α :=
 { smul := λ c x, x * c.unop }
 
-@[simp] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
+@[simp] lemma op_smul_eq_mul [has_mul α] {a a' : α} : a' <• a  = a' * a := rfl
 
 -- TODO: add an additive version once we have additive opposites
 /-- The right regular action of a group on itself is transitive. -/

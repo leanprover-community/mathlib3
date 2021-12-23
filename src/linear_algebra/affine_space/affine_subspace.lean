@@ -5,6 +5,7 @@ Authors: Joseph Myers
 -/
 import data.set.intervals.unordered_interval
 import linear_algebra.affine_space.affine_equiv
+import linear_algebra.tensor_product.left_action
 
 /-!
 # Affine spaces

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
 import category_theory.monoidal.rigid
-import linear_algebra.tensor_product_basis
+import linear_algebra.tensor_product.basis
 import linear_algebra.coevaluation
 import algebra.category.Module.monoidal
 
@@ -23,24 +23,25 @@ category.
 -/
 noncomputable theory
 
-open category_theory Module.monoidal_category
+open category_theory SymmetricBiModule.monoidal_category
 open_locale classical big_operators
 
 universes u
 
 variables (K : Type u) [field K]
 
-/-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
+/-- Define `FinVect` as the subtype of `SymmetricBiModule.{u} K` of finite dimensional vector spaces. -/
 @[derive [category, λ α, has_coe_to_sort α (Sort*)]]
-def FinVect := { V : Module.{u} K // finite_dimensional K V }
+def FinVect := { V : SymmetricBiModule.{u} K // finite_dimensional K V }
 
 namespace FinVect
 
 instance finite_dimensional (V : FinVect K): finite_dimensional K V := V.prop
 
-instance : inhabited (FinVect K) := ⟨⟨Module.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
+instance : inhabited (FinVect K) :=
+⟨⟨SymmetricBiModule.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
 
-instance : has_coe (FinVect.{u} K) (Module.{u} K) := { coe := λ V, V.1, }
+instance : has_coe (FinVect.{u} K) (SymmetricBiModule.{u} K) := { coe := λ V, V.1, }
 
 protected lemma coe_comp {U V W : FinVect K} (f : U ⟶ V) (g : V ⟶ W) :
   ((f ≫ g) : U → W) = (g : V → W) ∘ (f : U → V) := rfl
@@ -55,7 +56,7 @@ variables (V : FinVect K)
 
 /-- The dual module is the dual in the rigid monoidal category `FinVect K`. -/
 def FinVect_dual : FinVect K :=
-⟨Module.of K (module.dual K V), subspace.module.dual.finite_dimensional⟩
+⟨SymmetricBiModule.of K (module.dual K V), subspace.module.dual.finite_dimensional⟩
 
 instance : has_coe_to_fun (FinVect_dual K V) (λ _, V → K) :=
 { coe := λ v, by { change V →ₗ[K] K at v, exact v, } }

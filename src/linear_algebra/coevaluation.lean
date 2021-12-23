@@ -6,6 +6,7 @@ Authors: Jakob von Raumer
 import linear_algebra.contraction
 import linear_algebra.finite_dimensional
 import linear_algebra.dual
+import linear_algebra.tensor_product.basis
 
 /-!
 # The coevaluation map on finite dimensional vector spaces
@@ -30,7 +31,8 @@ open_locale tensor_product big_operators
 universes u v
 
 variables (K : Type u) [field K]
-variables (V : Type v) [add_comm_group V] [module K V] [finite_dimensional K V]
+variables (V : Type v) [add_comm_group V] 
+variables [module K V] [module Kᵐᵒᵖ V] [is_central_scalar K V] [finite_dimensional K V]
 
 /-- The coevaluation map is a linear map from a field `K` to a finite dimensional
   vector space `V`. -/
@@ -51,6 +53,8 @@ begin
 end
 
 open tensor_product
+
+variables [module Kᵐᵒᵖ (module.dual K V)] [is_central_scalar K (module.dual K V)]
 
 /-- This lemma corresponds to one of the coherence laws for duals in rigid categories, see
   `category_theory.monoidal.rigid`. -/

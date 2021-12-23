@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro
 -/
 
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product.left_action
 import algebra.direct_sum.module
 
 /-!
@@ -22,18 +22,31 @@ open_locale direct_sum
 open linear_map
 local attribute [ext] tensor_product.ext
 
-variables (R : Type*) [comm_ring R]
+instance {R : Type*} [comm_semiring R] {ι : Type*} [decidable_eq ι]
+  (M : ι → Type*)
+  [Π i, add_comm_group (M i)] [Π i, module R (M i)] 
+  [Π i, module Rᵐᵒᵖ (M i)] [Π i, is_central_scalar R (M i)] :
+  is_central_scalar R (⨁ (i : ι), M i) :=
+dfinsupp.is_central_scalar
+
+variables (R : Type*) [comm_semiring R]
 variables (ι₁ : Type*) (ι₂ : Type*)
 variables [decidable_eq ι₁] [decidable_eq ι₂]
 variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
 variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
 variables [Π i₁, module R (M₁ i₁)] [Π i₂, module R (M₂ i₂)]
+variables [Π i₁, module Rᵐᵒᵖ (M₁ i₁)] [Π i₂, module Rᵐᵒᵖ (M₂ i₂)]
+variables [Π i₁, is_central_scalar R (M₁ i₁)]
+variables [Π i₂, is_central_scalar R (M₂ i₂)]
+variables [Π i₁, smul_comm_class Rᵐᵒᵖ R (M₁ i₁)]
 
 /-- The linear equivalence `(⨁ i₁, M₁ i₁) ⊗ (⨁ i₂, M₂ i₂) ≃ (⨁ i₁, ⨁ i₂, M₁ i₁ ⊗ M₂ i₂)`, i.e.
 "tensor product distributes over direct sum". -/
 def direct_sum :
   (⨁ i₁, M₁ i₁) ⊗[R] (⨁ i₂, M₂ i₂) ≃ₗ[R] (⨁ (i : ι₁ × ι₂), M₁ i.1 ⊗[R] M₂ i.2) :=
 begin
+  --letI : is_central_scalar R (⨁ (i₁ : ι₁), M₁ i₁) := dfinsupp.is_central_scalar,
+  --letI : is_central_scalar R (⨁ (i₂ : ι₂), M₂ i₂) := dfinsupp.is_central_scalar,
   refine linear_equiv.of_linear
     (lift $ direct_sum.to_module R _ _ $ λ i₁, flip $ direct_sum.to_module R _ _ $ λ i₂,
       flip $ curry $ direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂))
@@ -41,13 +54,13 @@ begin
     _ _; [ext ⟨i₁, i₂⟩ x₁ x₂ : 4, ext i₁ i₂ x₁ x₂ : 5],
   repeat { rw compr₂_apply <|> rw comp_apply <|> rw id_apply <|> rw mk_apply <|>
     rw direct_sum.to_module_lof <|> rw map_tmul <|> rw lift.tmul <|> rw flip_apply <|>
-    rw curry_apply },
+    rw curry_apply }  
 end
 
 @[simp] theorem direct_sum_lof_tmul_lof (i₁ : ι₁) (m₁ : M₁ i₁) (i₂ : ι₂) (m₂ : M₂ i₂) :
   direct_sum R ι₁ ι₂ M₁ M₂ (direct_sum.lof R ι₁ M₁ i₁ m₁ ⊗ₜ direct_sum.lof R ι₂ M₂ i₂ m₂) =
   direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂) (m₁ ⊗ₜ m₂) :=
-by simp [direct_sum]
+by { simp [direct_sum], }
 
 end tensor_product
 

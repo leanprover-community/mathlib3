@@ -306,7 +306,6 @@ rfl
   [algebra R A] (S : subalgebra R A) : S.to_subring.subtype = (S.val : S →+* A) :=
 rfl
 
-
 /-- As submodules, subalgebras are idempotent. -/
 @[simp] theorem mul_self : S.to_submodule * S.to_submodule = S.to_submodule :=
 begin

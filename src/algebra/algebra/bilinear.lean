@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.basic
-import linear_algebra.tensor_product
 import algebra.iterate_hom
+import linear_algebra.tensor_product.left_action
 
 /-!
 # Facts about algebras involving bilinear maps and tensor products
@@ -24,7 +24,8 @@ open module
 
 section
 
-variables (R A : Type*) [comm_semiring R] [semiring A] [algebra R A]
+variables (R A : Type*) [comm_semiring R] [semiring A]
+  [algebra R A]
 
 /-- The multiplication in an algebra is a bilinear map.
 
@@ -64,12 +65,13 @@ lemma commute_lmul_left_right (a b : A) :
 by { ext c, exact (mul_assoc a c b).symm, }
 
 /-- The multiplication map on an algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
-def lmul' : A ⊗[R] A →ₗ[R] A :=
+def lmul' [algebra Rᵐᵒᵖ A] [is_central_scalar R A] : A ⊗[R] A →ₗ[R] A :=
 tensor_product.lift (lmul R A).to_linear_map
 
 variables {R A}
 
-@[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
+@[simp] lemma lmul'_apply [algebra Rᵐᵒᵖ A] [is_central_scalar R A] {x y : A} :
+  lmul' R (x ⊗ₜ y) = x * y :=
 by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]
 
 @[simp] lemma lmul_left_apply (p q : A) : lmul_left R p q = p * q := rfl
@@ -127,7 +129,8 @@ end
 
 section
 
-variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
+variables {R A : Type*} [comm_semiring R] [ring A]
+  [algebra R A] [algebra Rᵐᵒᵖ A] [is_central_scalar R A]
 
 lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (lmul_left R x) :=

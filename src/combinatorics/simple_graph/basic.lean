@@ -3,7 +3,6 @@ Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
-import data.fintype.basic
 import data.rel
 import data.set.finite
 import data.sym.sym2
@@ -86,7 +85,7 @@ structure simple_graph (V : Type u) :=
 (loopless : irreflexive adj . obviously)
 
 /--
-Construct the simple graph induced by the given relation.  It
+Construct the simple graph induced by the given relation. It
 symmetrizes the relation and makes it irreflexive.
 -/
 def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
@@ -165,7 +164,7 @@ instance : has_sup (simple_graph V) := ⟨λ x y,
 @[simp] lemma sup_adj (x y : simple_graph V) (v w : V) : (x ⊔ y).adj v w ↔ x.adj v w ∨ y.adj v w :=
 iff.rfl
 
-/-- The infinum of two graphs `x ⊓ y` has edges where both `x` and `y` have edges. -/
+/-- The infimum of two graphs `x ⊓ y` has edges where both `x` and `y` have edges. -/
 instance : has_inf (simple_graph V) := ⟨λ x y,
   { adj := x.adj ⊓ y.adj,
     symm := λ v w h, by rwa [pi.inf_apply, pi.inf_apply, x.adj_comm, y.adj_comm] }⟩
@@ -185,7 +184,7 @@ instance : has_compl (simple_graph V) := ⟨λ G,
 
 @[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
 
-/-- The difference of two graphs `x / y` has the edges of `x` with the edges of `y` removed. -/
+/-- The difference of two graphs `x \ y` has the edges of `x` with the edges of `y` removed. -/
 instance : has_sdiff (simple_graph V) := ⟨λ x y,
   { adj := x.adj \ y.adj,
     symm := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩
@@ -414,10 +413,10 @@ lemma common_neighbors_eq (v w : V) :
   G.common_neighbors v w = G.neighbor_set v ∩ G.neighbor_set w := rfl
 
 lemma mem_common_neighbors {u v w : V} : u ∈ G.common_neighbors v w ↔ G.adj v u ∧ G.adj w u :=
-by simp [common_neighbors]
+iff.rfl
 
 lemma common_neighbors_symm (v w : V) : G.common_neighbors v w = G.common_neighbors w v :=
-by { rw [common_neighbors, set.inter_comm], refl }
+set.inter_comm _ _
 
 lemma not_mem_common_neighbors_left (v w : V) : v ∉ G.common_neighbors v w :=
 λ h, ne_of_adj G h.1 rfl
@@ -425,8 +424,13 @@ lemma not_mem_common_neighbors_left (v w : V) : v ∉ G.common_neighbors v w :=
 lemma not_mem_common_neighbors_right (v w : V) : w ∉ G.common_neighbors v w :=
 λ h, ne_of_adj G h.2 rfl
 
-lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
-by simp [common_neighbors]
+lemma common_neighbors_subset_neighbor_set_left (v w : V) :
+  G.common_neighbors v w ⊆ G.neighbor_set v :=
+set.inter_subset_left _ _
+
+lemma common_neighbors_subset_neighbor_set_right (v w : V) :
+  G.common_neighbors v w ⊆ G.neighbor_set w :=
+set.inter_subset_right _ _
 
 instance decidable_mem_common_neighbors [decidable_rel G.adj] (v w : V) :
   decidable_pred (∈ G.common_neighbors v w) :=
@@ -715,7 +719,7 @@ begin
     split,
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
-      apply common_neighbors_subset_neighbor_set } },
+      exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
 end finite

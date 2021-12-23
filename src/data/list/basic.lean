@@ -3478,6 +3478,11 @@ end
 by rcases exists_of_erasep al pa with ⟨_, l₁, l₂, _, _, e₁, e₂⟩;
    rw e₂; simp [-add_comm, e₁]; refl
 
+@[simp] lemma length_erasep_add_one {l : list α} {a} (al : a ∈ l) (pa : p a) :
+  (l.erasep p).length + 1 = l.length :=
+let ⟨_, l₁, l₂, _, _, h₁, h₂⟩ := exists_of_erasep al pa in
+by { rw [h₂, h₁, length_append, length_append], refl }
+
 theorem erasep_append_left {a : α} (pa : p a) :
   ∀ {l₁ : list α} (l₂), a ∈ l₁ → (l₁++l₂).erasep p = l₁.erasep p ++ l₂
 | (x::xs) l₂ h := begin
@@ -3567,6 +3572,10 @@ by rcases exists_of_erasep h rfl with ⟨_, l₁, l₂, h₁, rfl, h₂, h₃⟩
 @[simp] theorem length_erase_of_mem {a : α} {l : list α} (h : a ∈ l) :
   length (l.erase a) = pred (length l) :=
 by rw erase_eq_erasep; exact length_erasep_of_mem h rfl
+
+@[simp] lemma length_erase_add_one {a : α} {l : list α} (h : a ∈ l) :
+  (l.erase a).length + 1 = l.length :=
+by rw [erase_eq_erasep, length_erasep_add_one h rfl]
 
 theorem erase_append_left {a : α} {l₁ : list α} (l₂) (h : a ∈ l₁) :
   (l₁++l₂).erase a = l₁.erase a ++ l₂ :=

@@ -856,7 +856,8 @@ section minpoly
 
 open minpoly
 
-variables {n : ℕ} {K : Type*} [field K] {μ : K} (h : is_primitive_root μ n) (hpos : 0 < n)
+section comm_ring
+variables {n : ℕ} {K : Type*} [comm_ring K] {μ : K} (h : is_primitive_root μ n) (hpos : 0 < n)
 
 include n μ h hpos
 
@@ -869,6 +870,11 @@ begin
   { simp only [((is_primitive_root.iff_def μ n).mp h).left, eval₂_one, eval₂_X_pow, eval₂_sub,
       sub_self] }
 end
+end comm_ring
+
+variables {n : ℕ} {K : Type*} [field K] {μ : K} (h : is_primitive_root μ n) (hpos : 0 < n)
+
+include n μ h hpos
 
 variables [char_zero K]
 

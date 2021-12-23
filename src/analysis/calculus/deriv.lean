@@ -935,6 +935,12 @@ theorem has_deriv_at_filter.is_O_sub (h : has_deriv_at_filter f f' x L) :
   is_O (λ x', f x' - f x) (λ x', x' - x) L :=
 has_fderiv_at_filter.is_O_sub h
 
+theorem has_deriv_at_filter.is_O_sub_rev (hf : has_deriv_at_filter f f' x L) (hf' : f' ≠ 0) :
+  is_O (λ x', x' - x) (λ x', f x' - f x) L :=
+suffices antilipschitz_with ∥f'∥₊⁻¹ (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f'), from hf.is_O_sub_rev this,
+(smul_right (1 : 𝕜 →L[𝕜] 𝕜) f').to_linear_map.antilipschitz_of_bound $
+  λ x, by simp [norm_smul, ← div_eq_inv_mul, mul_div_cancel _ (mt norm_eq_zero.1 hf')]
+
 theorem has_deriv_at_filter.sub_const
   (hf : has_deriv_at_filter f f' x L) (c : F) :
   has_deriv_at_filter (λ x, f x - c) f' x L :=
@@ -1053,6 +1059,12 @@ theorem has_deriv_at_filter.scomp
   (hh : has_deriv_at_filter h h' x L) (hL : tendsto h L L'):
   has_deriv_at_filter (g₁ ∘ h) (h' • g₁') x L :=
 by simpa using ((hg.restrict_scalars 𝕜).comp x hh hL).has_deriv_at_filter
+
+theorem has_deriv_within_at.scomp_has_deriv_at
+  (hg : has_deriv_within_at g₁ g₁' s' (h x))
+  (hh : has_deriv_at h h' x) (hs : ∀ x, h x ∈ s') :
+  has_deriv_at (g₁ ∘ h) (h' • g₁') x :=
+hg.scomp x hh $ tendsto_inf.2 ⟨hh.continuous_at, tendsto_principal.2 $ eventually_of_forall hs⟩
 
 theorem has_deriv_within_at.scomp
   (hg : has_deriv_within_at g₁ g₁' t' (h x))
@@ -1673,10 +1685,9 @@ theorem has_strict_deriv_at.has_strict_fderiv_at_equiv {f : 𝕜 → 𝕜} {f' x
     (continuous_linear_equiv.units_equiv_aut 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) x :=
 hf
 
-theorem has_deriv_at.has_fderiv_at_equiv {f : 𝕜 → 𝕜} {f' x : 𝕜}
-  (hf : has_deriv_at f f' x) (hf' : f' ≠ 0) :
-  has_fderiv_at f
-    (continuous_linear_equiv.units_equiv_aut 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) x :=
+theorem has_deriv_at.has_fderiv_at_equiv {f : 𝕜 → 𝕜} {f' x : 𝕜} (hf : has_deriv_at f f' x)
+  (hf' : f' ≠ 0) :
+  has_fderiv_at f (continuous_linear_equiv.units_equiv_aut 𝕜 (units.mk0 f' hf') : 𝕜 →L[𝕜] 𝕜) x :=
 hf
 
 /-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
@@ -1727,6 +1738,11 @@ lemma has_deriv_at.eventually_ne (h : has_deriv_at f f' x) (hf' : f' ≠ 0) :
   ∀ᶠ z in 𝓝[≠] x, f z ≠ f x :=
 (has_deriv_at_iff_has_fderiv_at.1 h).eventually_ne
   ⟨∥f'∥⁻¹, λ z, by field_simp [norm_smul, mt norm_eq_zero.1 hf']⟩
+
+lemma has_deriv_at.tendsto_punctured_nhds (h : has_deriv_at f f' x) (hf' : f' ≠ 0) :
+  tendsto f (𝓝[≠] x) (𝓝[≠] (f x)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  h.continuous_at.continuous_within_at (h.eventually_ne hf')
 
 theorem not_differentiable_within_at_of_local_left_inverse_has_deriv_within_at_zero
   {f g : 𝕜 → 𝕜} {a : 𝕜} {s t : set 𝕜} (ha : a ∈ s) (hsu : unique_diff_within_at 𝕜 s a)
@@ -1990,7 +2006,7 @@ funext $ λ x, iter_deriv_pow n x k
 
 lemma iter_deriv_inv (k : ℕ) (x : 𝕜) :
   deriv^[k] has_inv.inv x = (∏ i in finset.range k, (-1 - i)) * x ^ (-1 - k : ℤ) :=
-by simpa only [zpow_neg_one₀, int.cast_neg, int.cast_one] using iter_deriv_zpow (-1) x k
+by simpa only [zpow_neg_one, int.cast_neg, int.cast_one] using iter_deriv_zpow (-1) x k
 
 @[simp] lemma iter_deriv_inv' (k : ℕ) :
   deriv^[k] has_inv.inv = λ x : 𝕜, (∏ i in finset.range k, (-1 - i)) * x ^ (-1 - k : ℤ) :=

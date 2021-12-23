@@ -12,8 +12,12 @@ This file defines local homeomorphisms.
 
 ## Main definitions
 
-* `is_locally_homeomorph`: A function `f : X → Y` satisfies `is_locally_homeomorph` if
-  each `x : x` is contained in the source of some `e : local_homeomorph X Y`.
+* `is_locally_homeomorph`: A function `f : X → Y` satisfies `is_locally_homeomorph` if for each
+  point `x : X`, the restriction of `f` to some open neighborhood `U` of `x` gives a homeomorphism
+  between `U` and an open subset of `Y`.
+
+  Note that `is_locally_homeomorph` is a global condition. This is in contrast to
+  `local_homeomorph`, which is a homeomorphism between specific open subsets.
 -/
 
 variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]

@@ -298,7 +298,10 @@ begin
   have := h x,
   set a := f x,
   set b := g x,
-  fin_cases a; fin_cases b; finish
+  fin_cases a; fin_cases b;
+  rw [h_1, h_2] at *,
+  exact (this.mp rfl).symm,
+  exact (this.mpr rfl),
 end
 
 lemma range_finite [compact_space X] (f : locally_constant X Y) :

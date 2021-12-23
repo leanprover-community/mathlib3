@@ -25,7 +25,7 @@ lemma periodic_mod (a : ℕ) : periodic (λ n, n % a) a := by simp
 /-- An interval of length `a` filtered over a periodic predicate of period `a` has the
 same cardinality as `range a` filtered over that predicate. -/
 @[simp] lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
- (pp : periodic p a) :
+  (pp : periodic p a) :
   (filter p (Ico n (n+a))).card = a.count p :=
 begin
   by_cases a = 0,

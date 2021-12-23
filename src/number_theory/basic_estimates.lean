@@ -41,6 +41,9 @@ end
 @[simp] lemma summatory_zero {M : Type*} [add_comm_monoid M] (a : ℕ → M) : summatory a 0 = 0 :=
 summatory_eq_of_lt_one _ zero_lt_one
 
+@[simp] lemma summatory_one {M : Type*} [add_comm_monoid M] (a : ℕ → M) : summatory a 1 = a 1 :=
+by simp [summatory]
+
 lemma summatory_succ_sub {M : Type*} [add_comm_group M] (a : ℕ → M) (n : ℕ) :
   a (n + 1) = summatory a (n + 1) - summatory a n :=
 begin
@@ -54,14 +57,35 @@ lemma summatory_eq_sub {M : Type*} [add_comm_group M] (a : ℕ → M) :
 | 0 h := (h rfl).elim
 | (n+1) _ := by simpa using summatory_succ_sub a n
 
+lemma abs_summatory_le_sum {M : Type*} [semi_normed_group M] (a : ℕ → M) {x : ℝ} :
+  ∥summatory a x∥ ≤ ∑ i in finset.Icc 1 ⌊x⌋₊, ∥a i∥ :=
+norm_sum_le _ _
+
 -- BM note to self, this might be useful
 -- lemma sum_integral_adjacent_intervals {a : ℕ → α} {n : ℕ}
+
+-- lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
+
+example (a : ℕ → ℂ) (f : ℝ → ℂ) (N : ℕ)
+  (hf' : interval_integrable f measure_theory.measure_space.volume 1 (N + 1))
+  (hN : 0 < N) :
+  interval_integrable (λ x, summatory a x * f x) measure_theory.measure_space.volume 1 (N + 1) :=
+begin
+  suffices : ∀ k < N,
+    interval_integrable (summatory a * f) measure_theory.measure_space.volume (k+1) ((k+1)+1),
+  { convert interval_integrable.trans_iterate this using 1,
+    simp },
+  intros i hi,
+  rw interval_integrable_iff_integrable_Ioc_of_le ((le_add_iff_nonneg_right (i+1:ℝ)).2 zero_le_one),
+  apply measure_theory.integrable_on.congr_set_ae _ measure_theory.Ico_ae_eq_Ioc.symm,
+  sorry
+end
 
 /-- A version of partial summation where the upper bound is a natural number, useful to prove the
 general case. -/
 theorem partial_summation_nat (a : ℕ → ℂ) (f f' : ℝ → ℂ) {N : ℕ}
   (hf : ∀ i ∈ Icc (1:ℝ) N, has_deriv_at f (f' i) i)
-  (hf' : interval_integrable f measure_theory.measure_space.volume 1 N) :
+  (hf' : interval_integrable f' measure_theory.measure_space.volume 1 N) :
   ∑ n in finset.Icc 1 N, a n * f n =
     summatory a N * f N - ∫ t in 1..N, summatory a t * f' t :=
 begin
@@ -72,13 +96,14 @@ begin
     rw [interval_oc_of_lt (show (0 : ℝ) < 1, from zero_lt_one)],
     refine (measure_theory.Ioo_ae_eq_Ioc : Ioo _ _ =ᵐ[_] Ioc 0 1).symm.mem_iff.mono _,
     exact λ x hx' hx, mul_eq_zero_of_left (summatory_eq_of_lt_one _ (hx'.1 hx).2) _ },
+  rcases N.eq_zero_or_pos with rfl | hN,
+  { simp },
   rw [finset.sum_Ico_succ_top nat.succ_pos', ih, add_comm, nat.succ_eq_add_one,
     summatory_succ_sub a, sub_mul, sub_add_eq_add_sub, eq_sub_iff_add_eq, add_sub_assoc, add_assoc,
     nat.cast_add_one, add_right_eq_self, sub_add_eq_add_sub, sub_eq_zero, add_comm, ←add_sub_assoc,
     ←sub_add_eq_add_sub, ←eq_sub_iff_add_eq, interval_integral.integral_interval_sub_left,
     ←mul_sub],
-  {
-    have : ∀ᵐ (x : ℝ), x ∈ interval_oc (N:ℝ) (N+1) → summatory a x * f' x = summatory a N * f' x,
+  { have : ∀ᵐ (x : ℝ), x ∈ interval_oc (N:ℝ) (N+1) → summatory a x * f' x = summatory a N * f' x,
     { rw [interval_oc_of_le ((le_add_iff_nonneg_right (N:ℝ)).2 zero_le_one)],
       refine (measure_theory.Ico_ae_eq_Ioc : Ico (N:ℝ) (N+1) =ᵐ[_] Ioc _ _).symm.mem_iff.mono _,
       intros x hx' hx,
@@ -88,32 +113,12 @@ begin
     { intros x hx,
       apply hf,
       rw [interval_of_le ((le_add_iff_nonneg_right (N:ℝ)).2 zero_le_one), ←nat.cast_add_one] at hx,
-
-    }
-    -- have : ∀ᵐ (x : ℝ), x ∈ interval_oc (N:ℝ) (N+1) → summatory a x * f' x = summatory a N * f' x,
-    -- { rw [interval_oc_of_le],
-    --   refine (measure_theory.Ico_ae_eq_Ioc : Ico (N:ℝ) (N+1) =ᵐ[_] Ioc _ _).symm.mem_iff.mono _,
-    --   intros x hx' hx,
-    --   rw [summatory_eq_floor, nat.floor_eq_on_Ico' _ _ (hx'.1 hx)],
-    --   simp },
-    -- rw [interval_integral.integral_congr_ae this, interval_integral.integral_const_mul],
-    -- rw interval_integral.integral_eq_sub_of_has_deriv_at,
-    -- sorry,
-
-    -- have : ∀ᵐ (x : ?m_1) ∂?m_9, x ∈ interval_oc ?m_3 ?m_4 → ?m_6 x = ?m_7 x,
-
-  },
-
-  --   interval_integral.integral_of_le,
-  --   measure_theory.measure.restrict_congr_set measure_theory.Ico_ae_eq_Ioc.symm],
-  -- have : eq_on (λ x, summatory a x * f' x) (λ x, summatory a N * f' x) (Ico N (N + 1)),
-  -- { intros x hx,
-  --   dsimp,
-  --   rw [summatory_eq_floor, nat.floor_eq_on_Ico' _ _ hx] },
-  -- rw [measure_theory.set_integral_congr _ this],
-  -- dsimp,
-  -- rw [measure_theory.integral_mul_left],
-
+      refine ⟨le_trans _ hx.1, hx.2⟩,
+      rw nat.one_le_cast,
+      exact hN },
+    refine hf'.mono_set (interval_subset_interval_right _),
+    simpa using hN },
+  sorry
 end
 
 -- BM: I think this can be made stronger by taking a weaker assumption on `f`, maybe something like
@@ -124,7 +129,7 @@ end
 -- like `f(x) = 1/x`, since that's not cont diff at 0.
 theorem partial_summation (a : ℕ → ℂ) (f f' : ℝ → ℂ) {x : ℝ}
   (hf : ∀ i ∈ Ioo (1:ℝ) x, has_deriv_at f (f' i) i)
-  (hf' : interval_integrable f measure_theory.measure_space.volume 1 x):
+  (hf' : interval_integrable f' measure_theory.measure_space.volume 1 x):
   ∑ n in finset.Icc 1 ⌊x⌋₊, a n * f n =
     summatory a x * f x - ∫ t in 1..x, summatory a t * deriv f t :=
 begin

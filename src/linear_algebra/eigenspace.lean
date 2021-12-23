@@ -8,6 +8,7 @@ import field_theory.is_alg_closed.basic
 import linear_algebra.charpoly.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
+import algebra.algebra.spectrum
 import order.hom.basic
 
 /-!
@@ -80,9 +81,23 @@ lemma mem_eigenspace_iff {f : End R M} {μ : R} {x : M} : x ∈ eigenspace f μ 
 by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, algebra_map_End_apply,
   sub_eq_zero]
 
+lemma has_eigenvector.apply_eq_smul {f : End R M} {μ : R} {x : M} (hx : f.has_eigenvector μ x) :
+  f x = μ • x :=
+mem_eigenspace_iff.mp hx.1
+
 lemma has_eigenvalue.exists_has_eigenvector {f : End R M} {μ : R} (hμ : f.has_eigenvalue μ) :
   ∃ v, f.has_eigenvector μ v :=
 submodule.exists_mem_ne_zero_of_ne_bot hμ
+
+lemma mem_spectrum_of_has_eigenvalue {f : End R M} {μ : R} (hμ : has_eigenvalue f μ) :
+  μ ∈ spectrum R f :=
+begin
+  refine spectrum.mem_iff.mpr (λ h_unit, _),
+  set f' := linear_map.general_linear_group.to_linear_equiv h_unit.unit,
+  rcases hμ.exists_has_eigenvector with ⟨v, hv⟩,
+  refine hv.2 ((linear_map.ker_eq_bot'.mp f'.ker) v (_ : μ • v - f v = 0)),
+  rw [hv.apply_eq_smul, sub_self]
+end
 
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=

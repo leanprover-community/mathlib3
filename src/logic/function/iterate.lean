@@ -18,7 +18,7 @@ In this file we prove simple properties of `nat.iterate f n` a.k.a. `f^[n]`:
 * `injective.iterate`, `surjective.iterate`, `bijective.iterate` :
   iterates of an injective/surjective/bijective function belong to the same class;
 
-* `left_inverse.iterate`, `right_inverse.iterate`, `commute.iterate_left`, `comute.iterate_right`,
+* `left_inverse.iterate`, `right_inverse.iterate`, `commute.iterate_left`, `commute.iterate_right`,
   `commute.iterate_iterate`:
   some properties of pairs of functions survive under iterations
 

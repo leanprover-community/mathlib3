@@ -210,7 +210,6 @@ chain_complex.of_hom _ _ _ _ _ _
       rw [show (-1 : ℤ)^((0 : fin (n+2)) : ℕ) = 1, by ring] at eq,
       rw one_smul at eq,
       rw eq,
-      clear eq null def_t t,
       cases n; dsimp; simp,
     end)
 

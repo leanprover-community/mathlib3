@@ -1921,8 +1921,11 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
-/-- The derivative of a normal function `f` is
-  the sequence of fixed points of `f`. -/
+/-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
+theorem is_normal.nfp_unbounded {f} (H : is_normal f) : ∀ a, ∃ b, f b = b ∧ a ≤ b :=
+λ a, ⟨_, H.nfp_fp a, le_nfp_self f a⟩
+
+/-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=
 limit_rec_on o (nfp f 0)
   (λ a IH, nfp f (succ IH))
@@ -1952,25 +1955,37 @@ begin
   simp only [bsup_le, IH] {contextual:=tt}
 end
 
-theorem is_normal.fp_iff_deriv {f} (H : is_normal f)
-  {a} : f a ≤ a ↔ ∃ o, a = deriv f o :=
+theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
-  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, a = deriv f o,
+  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
   from this a ((deriv_is_normal _).le_self _),
   intro o, apply limit_rec_on o,
   { intros h₁,
-    refine ⟨0, le_antisymm h₁ _⟩,
+    refine ⟨0, le_antisymm _ h₁⟩,
     rw deriv_zero,
     exact H.nfp_le_fp (ordinal.zero_le _) ha },
   { intros o IH h₁,
     cases le_or_lt a (deriv f o), {exact IH h},
-    refine ⟨succ o, le_antisymm h₁ _⟩,
+    refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_succ,
     exact H.nfp_le_fp (succ_le.2 h) ha },
   { intros o l IH h₁,
-    cases eq_or_lt_of_le h₁, {exact ⟨_, h⟩},
+    cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_limit _ l, ← not_le, bsup_le, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
-end, λ ⟨o, e⟩, e.symm ▸ le_of_eq (H.deriv_fp _)⟩
+end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
+
+theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
+by { rw ←H.fp_iff_deriv, exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_self _)⟩ }
+
+/-- `deriv f` is the fixed point enumerator of `f`. -/
+theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord H.nfp_unbounded :=
+begin
+  rw ←eq_enum_ord,
+  use (deriv_is_normal f).strict_mono,
+  rw range_eq_iff,
+  refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
+  rwa ←H.fp_iff_deriv',
+end
 
 end ordinal

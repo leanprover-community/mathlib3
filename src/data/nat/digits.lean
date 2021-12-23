@@ -294,16 +294,21 @@ private lemma digits_last_aux {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
   digits b n = ((n % b) :: digits b (n / b)) :=
 begin
   rcases b with _|_|b,
-  { finish },
+  { rw [digits_zero_succ' w, nat.mod_zero, nat.div_zero, nat.digits_zero_zero] },
   { norm_num at h },
   rcases n with _|n,
   { norm_num at w },
   simp,
 end
 
-lemma digits_last {b m : ℕ} (h : 2 ≤ b) (hm : 0 < m) (p q) :
+lemma digits_last {b : ℕ} (m : ℕ) (h : 2 ≤ b) (p q) :
   (digits b m).last p = (digits b (m/b)).last q :=
-by { simp only [digits_last_aux h hm], rw list.last_cons }
+begin
+  by_cases hm : m = 0,
+  { simp [hm], },
+  simp only [digits_last_aux h (nat.pos_of_ne_zero hm)],
+  rw list.last_cons,
+end
 
 lemma digits.injective (b : ℕ) : function.injective b.digits :=
 function.left_inverse.injective (of_digits_digits b)
@@ -316,8 +321,10 @@ lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
   (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=
 begin
   rcases b with _|_|b,
-  { cases m; finish },
-  { cases m, { finish },
+  { cases m,
+    { cases hm rfl },
+    { simp } },
+  { cases m, { cases hm rfl },
     simp_rw [digits_one, list.last_repeat_succ 1 m],
     norm_num },
   revert hm,
@@ -327,7 +334,7 @@ begin
   by_cases hnb : n < b + 2,
   { simp_rw [digits_of_lt b.succ.succ n hnpos hnb],
     exact pos_iff_ne_zero.mp hnpos },
-  { rw digits_last (show 2 ≤ b + 2, from dec_trivial) hnpos,
+  { rw digits_last n (show 2 ≤ b + 2, from dec_trivial),
     refine IH _ (nat.div_lt_self hnpos dec_trivial) _,
     { rw ←pos_iff_ne_zero,
       exact nat.div_pos (le_of_not_lt hnb) dec_trivial } },

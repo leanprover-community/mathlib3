@@ -470,22 +470,22 @@ classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel₀ ha $ h₂.symm �
 
 end cancel_monoid_with_zero
 
-section comm_cancel_monoid_with_zero
+section cancel_comm_monoid_with_zero
 
-variables [comm_cancel_monoid_with_zero M₀] {a b c : M₀}
+variables [cancel_comm_monoid_with_zero M₀] {a b c : M₀}
 
-/-- Pullback a `comm_cancel_monoid_with_zero` class along an injective function.
+/-- Pullback a `cancel_comm_monoid_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.comm_cancel_monoid_with_zero
+protected def function.injective.cancel_comm_monoid_with_zero
   [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
-  comm_cancel_monoid_with_zero M₀' :=
+  cancel_comm_monoid_with_zero M₀' :=
 { .. hf.comm_monoid_with_zero f zero one mul,
   .. hf.cancel_monoid_with_zero f zero one mul }
 
-end comm_cancel_monoid_with_zero
+end cancel_comm_monoid_with_zero
 
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
@@ -931,7 +931,7 @@ section comm_group_with_zero -- comm
 variables [comm_group_with_zero G₀] {a b c : G₀}
 
 @[priority 10] -- see Note [lower instance priority]
-instance comm_group_with_zero.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero G₀ :=
+instance comm_group_with_zero.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero G₀ :=
 { ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
 
 /-- Pullback a `comm_group_with_zero` class along an injective function.
@@ -1167,8 +1167,8 @@ noncomputable def group_with_zero_of_is_unit_or_eq_zero [hM : monoid_with_zero M
   (h : ∀ (a : M), is_unit a ∨ a = 0) : group_with_zero M :=
 { inv := λ a, if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹,
   inv_zero := dif_pos rfl,
-  mul_inv_cancel := λ a h0, by {
-    change a * (if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹) = 1,
+  mul_inv_cancel := λ a h0, by
+  { change a * (if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹) = 1,
     rw [dif_neg h0, units.mul_inv_eq_iff_eq_mul, one_mul, is_unit.unit_spec] },
   exists_pair_ne := nontrivial.exists_pair_ne,
 .. hM }

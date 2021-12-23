@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group_power
+import algebra.group_power.lemmas
 
 /-!
 # Powers of elements of groups with an adjoined zero element
@@ -85,9 +85,6 @@ end
 | (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv₀, ← zpow_coe_nat], refl }
-
-theorem zpow_neg_one₀ (x : G₀) : x ^ (-1:ℤ) = x⁻¹ :=
-by { rw [← congr_arg has_inv.inv (pow_one x), zpow_neg₀, ← zpow_coe_nat], refl }
 
 theorem inv_zpow₀ (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, inv_pow₀]
@@ -225,7 +222,7 @@ by simp only [one_div, inv_zpow₀]
 
 @[simp] lemma inv_zpow' {a : G₀} (n : ℤ) :
   (a ⁻¹) ^ n = a ^ (-n) :=
-by { rw [inv_zpow₀, ← zpow_neg_one₀, ← zpow_mul₀], simp }
+by { rw [inv_zpow₀, ← zpow_neg_one, ← zpow_mul₀], simp }
 
 end zpow
 
@@ -240,8 +237,12 @@ by simp only [div_eq_mul_inv, mul_pow, inv_pow₀]
   (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_zpow₀, inv_zpow₀]
 
-lemma div_sq_cancel {a : G₀} (ha : a ≠ 0) (b : G₀) : a ^ 2 * b / a = a * b :=
-by rw [sq, mul_assoc, mul_div_cancel_left _ ha]
+lemma div_sq_cancel (a b : G₀) : a ^ 2 * b / a = a * b :=
+begin
+  by_cases ha : a = 0,
+  { simp [ha] },
+  rw [sq, mul_assoc, mul_div_cancel_left _ ha]
+end
 
 end
 

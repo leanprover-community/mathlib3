@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.continuous_on
+import topology.separation
 import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
@@ -159,6 +160,41 @@ end
 
 end has_continuous_mul
 
+section pointwise_limits
+
+variables {M₁ M₂ : Type*} [topological_space M₂] [t2_space M₂] {l : filter α} {f : M₁ → M₂}
+
+/-- Construct a bundled monoid homomorphism from a pointwise limit of
+monoid homomorphisms -/
+@[to_additive "Construct a bundled additive monoid homomorphism from
+a pointwise limit of monoid homomorphisms", simps]
+def monoid_hom_of_tendsto [monoid M₁] [monoid M₂]
+  [has_continuous_mul M₂] (g : α → M₁ →* M₂) [l.ne_bot]
+  (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=
+{ to_fun := f,
+  map_one' := by
+    { refine tendsto_nhds_unique (tendsto_pi_nhds.mp h 1) _,
+      simpa only [monoid_hom.map_one] using tendsto_const_nhds },
+  map_mul' := λ x y, by
+    { rw tendsto_pi_nhds at h,
+      refine tendsto_nhds_unique (h (x * y)) _,
+      simpa only [monoid_hom.map_mul] using (h x).mul (h y) } }
+
+end pointwise_limits
+
+namespace submonoid
+
+@[to_additive] instance [topological_space α] [monoid α] [has_continuous_mul α] (S : submonoid α) :
+  has_continuous_mul S :=
+{ continuous_mul :=
+  begin
+    rw embedding_subtype_coe.to_inducing.continuous_iff,
+    exact (continuous_subtype_coe.comp continuous_fst).mul
+      (continuous_subtype_coe.comp continuous_snd)
+  end }
+
+end submonoid
+
 section has_continuous_mul
 
 variables [topological_space M] [monoid M] [has_continuous_mul M]
@@ -306,21 +342,21 @@ end has_continuous_mul
 
 section op
 
-open opposite
+open mul_opposite
 
 /-- Put the same topological space structure on the opposite monoid as on the original space. -/
-instance [_i : topological_space α] : topological_space αᵒᵖ :=
-topological_space.induced (unop : αᵒᵖ → α) _i
+instance [_i : topological_space α] : topological_space αᵐᵒᵖ :=
+topological_space.induced (unop : αᵐᵒᵖ → α) _i
 
 variables [topological_space α]
 
-lemma continuous_unop : continuous (unop : αᵒᵖ → α) := continuous_induced_dom
-lemma continuous_op : continuous (op : α → αᵒᵖ) := continuous_induced_rng continuous_id
+lemma continuous_unop : continuous (unop : αᵐᵒᵖ → α) := continuous_induced_dom
+lemma continuous_op : continuous (op : α → αᵐᵒᵖ) := continuous_induced_rng continuous_id
 
 variables [monoid α] [has_continuous_mul α]
 
-/-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵒᵖ`. -/
-instance : has_continuous_mul αᵒᵖ :=
+/-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵐᵒᵖ`. -/
+instance : has_continuous_mul αᵐᵒᵖ :=
 ⟨ let h₁ := @continuous_mul α _ _ _ in
   let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
   continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
@@ -329,7 +365,7 @@ end op
 
 namespace units
 
-open opposite
+open mul_opposite
 
 variables [topological_space α] [monoid α]
 
@@ -351,7 +387,7 @@ with respect to the induced topology, is continuous.
 Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
 because the predicate `has_continuous_inv` has not yet been defined. -/
 instance : has_continuous_mul (units α) :=
-⟨ let h := @continuous_mul (α × αᵒᵖ) _ _ _ in
+⟨ let h := @continuous_mul (α × αᵐᵒᵖ) _ _ _ in
   continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
 
 end units

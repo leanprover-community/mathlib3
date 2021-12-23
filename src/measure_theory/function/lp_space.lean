@@ -477,7 +477,7 @@ begin
       push_cast,
       rw real.norm_rpow_of_nonneg (norm_nonneg _), },
     rw h_rpow,
-    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hq_pos,
+    have h_rpow_mono := ennreal.strict_mono_rpow_of_pos hq_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hq_pos.ne.symm).2,
     let iso := h_rpow_mono.order_iso_of_surjective _ h_rpow_surj,
     exact (iso.ess_sup_apply (λ x, ((nnnorm (f x)) : ℝ≥0∞)) μ).symm, },
@@ -600,6 +600,19 @@ end
 lemma snorm_one_smul_measure {f : α → F} (c : ℝ≥0∞) :
   snorm f 1 (c • μ) = c * snorm f 1 μ :=
 by { rw @snorm_smul_measure_of_ne_top _ _ _ μ _ 1 (@ennreal.coe_ne_top 1) f c, simp, }
+
+lemma mem_ℒp.of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
+  (hμ'_le : μ' ≤ c • μ) {f : α → E} (hf : mem_ℒp f p μ) :
+  mem_ℒp f p μ' :=
+begin
+  refine ⟨hf.1.mono' (measure.absolutely_continuous_of_le_smul hμ'_le), _⟩,
+  refine (snorm_mono_measure f hμ'_le).trans_lt _,
+  by_cases hc0 : c = 0,
+  { simp [hc0], },
+  rw [snorm_smul_measure_of_ne_zero hc0, smul_eq_mul],
+  refine ennreal.mul_lt_top _ hf.2.ne,
+  simp [hc, hc0],
+end
 
 section opens_measurable_space
 variable [opens_measurable_space E]
@@ -1118,7 +1131,7 @@ end
 end monotonicity
 
 section is_R_or_C
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜] {f : α → 𝕜}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
 
 lemma mem_ℒp.re (hf : mem_ℒp f p μ) : mem_ℒp (λ x, is_R_or_C.re (f x)) p μ :=
 begin
@@ -1137,8 +1150,7 @@ end
 end is_R_or_C
 
 section inner_product
-variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
-  [inner_product_space 𝕜 E']
+variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E']
   [measurable_space E'] [opens_measurable_space E'] [second_countable_topology E']
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
@@ -1452,18 +1464,6 @@ instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p μ) :=
 instance normed_space_L1 : normed_space 𝕜 (Lp E 1 μ) := by apply_instance
 instance normed_space_L2 : normed_space 𝕜 (Lp E 2 μ) := by apply_instance
 instance normed_space_Ltop : normed_space 𝕜 (Lp E ∞ μ) := by apply_instance
-
-instance [normed_space ℝ E] [has_scalar ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E] :
-  is_scalar_tower ℝ 𝕜 (Lp E p μ) :=
-begin
-  refine ⟨λ r c f, _⟩,
-  ext1,
-  refine (Lp.coe_fn_smul _ _).trans _,
-  rw smul_assoc,
-  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
-  refine (Lp.coe_fn_smul c f).mono (λ x hx, _),
-  rw [pi.smul_apply, pi.smul_apply, pi.smul_apply, hx, pi.smul_apply],
-end
 
 end normed_space
 
@@ -1822,7 +1822,7 @@ lemma comp_mem_ℒp' (L : E →L[𝕜] F) {f : α → E} (hf : mem_ℒp f p μ) 
 
 section is_R_or_C
 
-variables {K : Type*} [is_R_or_C K] [measurable_space K] [borel_space K]
+variables {K : Type*} [is_R_or_C K]
 
 lemma _root_.measure_theory.mem_ℒp.of_real
   {f : α → ℝ} (hf : mem_ℒp f p μ) : mem_ℒp (λ x, (f x : K)) p μ :=
@@ -2034,7 +2034,7 @@ begin
   refine (lintegral_liminf_le' (λ m, ((hf m).ennnorm.pow_const _))).trans_eq _,
   have h_pow_liminf : at_top.liminf (λ n, snorm' (f n) p μ) ^ p
     = at_top.liminf (λ n, (snorm' (f n) p μ) ^ p),
-  { have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hp_pos,
+  { have h_rpow_mono := ennreal.strict_mono_rpow_of_pos hp_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
     all_goals { is_bounded_default }, },
@@ -2232,7 +2232,7 @@ begin
       (nnnorm (f (i + 1) a - f i a)))^p ∂μ
     = ∫⁻ a, at_top.liminf (λ n, (∑ i in finset.range (n + 1), (nnnorm (f (i + 1) a - f i a)))^p) ∂μ,
   { refine lintegral_congr (λ x, _),
-    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos (zero_lt_one.trans_le hp1),
+    have h_rpow_mono := ennreal.strict_mono_rpow_of_pos (zero_lt_one.trans_le hp1),
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
     all_goals { is_bounded_default }, },
@@ -2417,7 +2417,7 @@ variables (E p μ)
 bounded continuous representative. -/
 def measure_theory.Lp.bounded_continuous_function : add_subgroup (Lp E p μ) :=
 add_subgroup.add_subgroup_of
-  ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E)).range
+  ((continuous_map.to_ae_eq_fun_add_hom μ).comp (to_continuous_map_add_hom α E)).range
   (Lp E p μ)
 
 variables {E p μ}
@@ -2463,7 +2463,7 @@ space as an element of `Lp`. -/
 def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
 { bound' := ⟨_, Lp_norm_le⟩,
   .. add_monoid_hom.cod_restrict
-      ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
+      ((continuous_map.to_ae_eq_fun_add_hom μ).comp (to_continuous_map_add_hom α E))
       (Lp E p μ)
       mem_Lp }
 
@@ -2473,7 +2473,7 @@ lemma range_to_Lp_hom [fact (1 ≤ p)] :
 begin
   symmetry,
   convert add_monoid_hom.add_subgroup_of_range_eq_of_le
-    ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
+    ((continuous_map.to_ae_eq_fun_add_hom μ).comp (to_continuous_map_add_hom α E))
     (by { rintros - ⟨f, rfl⟩, exact mem_Lp f } : _ ≤ Lp E p μ),
 end
 
@@ -2486,7 +2486,7 @@ def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E
 linear_map.mk_continuous
   (linear_map.cod_restrict
     (Lp.Lp_submodule E p μ 𝕜)
-    ((continuous_map.to_ae_eq_fun_linear_map μ).comp (forget_boundedness_linear_map α E 𝕜))
+    ((continuous_map.to_ae_eq_fun_linear_map μ).comp (to_continuous_map_linear_map α E 𝕜))
     mem_Lp)
   _
   Lp_norm_le
@@ -2550,9 +2550,9 @@ lemma to_Lp_def [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 
   = bounded_continuous_function.to_Lp p μ 𝕜 (linear_isometry_bounded_of_compact α E 𝕜 f) :=
 rfl
 
-@[simp] lemma to_Lp_comp_forget_boundedness [normed_field 𝕜] [opens_measurable_space 𝕜]
+@[simp] lemma to_Lp_comp_to_continuous_map [normed_field 𝕜] [opens_measurable_space 𝕜]
   [normed_space 𝕜 E] (f : α →ᵇ E) :
-  to_Lp p μ 𝕜 (bounded_continuous_function.forget_boundedness α E f)
+  to_Lp p μ 𝕜 f.to_continuous_map
   = bounded_continuous_function.to_Lp p μ 𝕜 f :=
 rfl
 

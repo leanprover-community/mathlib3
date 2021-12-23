@@ -375,6 +375,12 @@ by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
 by rw [← to_subalgebra_eq_iff, ← finrank_eq_finrank_subalgebra,
   subalgebra.finrank_eq_one_iff, bot_to_subalgebra]
 
+@[simp] lemma dim_bot : module.rank F (⊥ : intermediate_field F E) = 1 :=
+by rw dim_eq_one_iff
+
+@[simp] lemma finrank_bot : finrank F (⊥ : intermediate_field F E) = 1 :=
+by rw finrank_eq_one_iff
+
 lemma dim_adjoin_eq_one_iff : module.rank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
 iff.trans dim_eq_one_iff adjoin_eq_bot_iff
 
@@ -715,8 +721,8 @@ let key : (minpoly x.1 s).splits x.2.to_ring_hom :=
 ⟨↑x.1⟮s⟯, (@alg_hom_equiv_sigma F x.1 (↑x.1⟮s⟯ : intermediate_field F E) K _ _ _ _ _ _ _
   (intermediate_field.algebra x.1⟮s⟯) (is_scalar_tower.of_algebra_map_eq (λ _, rfl))).inv_fun
   ⟨x.2, (@alg_hom_adjoin_integral_equiv x.1 _ E _ _ s K _ x.2.to_ring_hom.to_algebra
-  h3).inv_fun ⟨root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)), by {
-  simp_rw [mem_roots (map_ne_zero (minpoly.ne_zero h3)), is_root, ←eval₂_eq_eval_map],
+  h3).inv_fun ⟨root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)), by
+{ simp_rw [mem_roots (map_ne_zero (minpoly.ne_zero h3)), is_root, ←eval₂_eq_eval_map],
   exact map_root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)) }⟩⟩⟩
 
 lemma lifts.le_lifts_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)

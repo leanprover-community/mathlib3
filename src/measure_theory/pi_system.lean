@@ -318,11 +318,16 @@ begin
   exact d.has_union (d.has_compl h₁) h₂ (λ x ⟨h₁, h₂⟩, h₁ (h h₂)),
 end
 
+instance : has_le (dynkin_system α) :=
+{ le          := λ m₁ m₂, m₁.has ≤ m₂.has }
+
+lemma le_def {α} {a b : dynkin_system α} : a ≤ b ↔ a.has ≤ b.has := iff.rfl
+
 instance : partial_order (dynkin_system α) :=
-{ le          := λ m₁ m₂, m₁.has ≤ m₂.has,
-  le_refl     := assume a b, le_refl _,
-  le_trans    := assume a b c, le_trans,
-  le_antisymm := assume a b h₁ h₂, ext $ assume s, ⟨h₁ s, h₂ s⟩ }
+{ le_refl     := assume a b, le_refl _,
+  le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
+  le_antisymm := assume a b h₁ h₂, ext $ assume s, ⟨h₁ s, h₂ s⟩,
+  ..dynkin_system.has_le }
 
 /-- Every measurable space (σ-algebra) forms a Dynkin system -/
 def of_measurable_space (m : measurable_space α) : dynkin_system α :=

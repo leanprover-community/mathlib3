@@ -3,11 +3,12 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import order.conditionally_complete_lattice
-import data.real.cau_seq_completion
+import algebra.module.basic
 import algebra.bounds
 import algebra.order.archimedean
 import algebra.star.basic
+import data.real.cau_seq_completion
+import order.conditionally_complete_lattice
 
 /-!
 # Real numbers from Cauchy sequences

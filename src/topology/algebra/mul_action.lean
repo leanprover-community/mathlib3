@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import topology.algebra.monoid
-import algebra.module.prod
-import topology.homeomorph
+import group_theory.group_action.prod
 import group_theory.group_action.basic
+import topology.homeomorph
 
 /-!
 # Continuous monoid action
@@ -122,6 +122,13 @@ continuous_smul.comp (hf.prod_mk hg)
 lemma continuous.const_smul (hg : continuous g) (c : M) :
   continuous (λ x, c • g x) :=
 continuous_smul.comp (continuous_const.prod_mk hg)
+
+/-- If a scalar is central, then its right action is continuous when its left action is. -/
+instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
+  has_continuous_smul Mᵐᵒᵖ α :=
+⟨ suffices continuous (λ p : M × α, mul_opposite.op p.fst • p.snd),
+  from this.comp (continuous_unop.prod_map continuous_id),
+  by simpa only [op_smul_eq_smul] using (continuous_smul : continuous (λ p : M × α, _)) ⟩
 
 end has_scalar
 

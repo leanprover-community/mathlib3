@@ -1329,8 +1329,8 @@ protected meta def attr : user_attribute (expr → tactic (expr × expr)) unit :
 { name      := `norm_num,
   descr     := "Add norm_num derivers",
   cache_cfg :=
-  { mk_cache := λ ns, do {
-      t ← ns.mfoldl
+  { mk_cache := λ ns, do
+    { t ← ns.mfoldl
         (λ (t : expr → tactic (expr × expr)) n, do
           t' ← eval_expr (expr → tactic (expr × expr)) (expr.const n []),
           pure (λ e, t' e <|> t e))

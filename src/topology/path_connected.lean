@@ -307,6 +307,20 @@ def map (γ : path x y) {Y : Type*} [topological_space Y]
   (γ.map h : I → Y) = f ∘ γ :=
 by { ext t, refl }
 
+@[simp] lemma map_symm (γ : path x y) {Y : Type*} [topological_space Y]
+  {f : X → Y} (h : continuous f) :
+  (γ.map h).symm = γ.symm.map h := rfl
+
+@[simp] lemma map_trans (γ : path x y) (γ' : path y z) {Y : Type*} [topological_space Y]
+  {f : X → Y} (h : continuous f) : (γ.trans γ').map h = (γ.map h).trans (γ'.map h) :=
+by { ext t, rw [trans_apply, map_coe, comp_app, trans_apply], split_ifs; refl }
+
+@[simp] lemma map_id (γ : path x y) : γ.map continuous_id = γ := by { ext, refl }
+
+@[simp] lemma map_map (γ : path x y) {Y : Type*} [topological_space Y] {Z : Type*}
+  [topological_space Z] {f : X → Y} (hf : continuous f) {g : Y → Z} (hg : continuous g) :
+  (γ.map hf).map hg = γ.map (hg.comp hf) := by { ext, refl }
+
 /-- Casting a path from `x` to `y` to a path from `x'` to `y'` when `x' = x` and `y' = y` -/
 def cast (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) : path x' y' :=
 { to_fun := γ,
@@ -357,6 +371,28 @@ begin
   { rintros st hst,
     simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
+
+/-! #### Product of two paths -/
+
+/-- Given a path in `X` and a path in `Y`, we can take their pointwise product to get a path in
+`X × Y`. -/
+protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) :
+  path (a₁, a₂) (b₁, b₂) :=
+{ to_continuous_map := continuous_map.prod_mk γ₁.to_continuous_map γ₂.to_continuous_map,
+  source' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.source, γ₂.source],
+  target' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.target, γ₂.target] }
+
+/-! #### Pointwise multiplication/addition of two paths in a topological (additive) group -/
+
+/-- Pointwise multiplication of paths in a topological group. The additive version is probably more
+useful. -/
+@[to_additive "Pointwise addition of paths in a topological additive group. -/"]
+protected def mul [has_mul X] [has_continuous_mul X] {a₁ b₁ a₂ b₂ : X}
+  (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) : path (a₁ * a₂) (b₁ * b₂) :=
+(γ₁.prod γ₂).map continuous_mul
+
+@[to_additive] protected lemma mul_apply [has_mul X] [has_continuous_mul X] {a₁ b₁ a₂ b₂ : X}
+  (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) (t : unit_interval) : (γ₁.mul γ₂) t = γ₁ t * γ₂ t := rfl
 
 /-! #### Truncating a path -/
 
@@ -846,6 +882,13 @@ begin
   use x,
   rw ← univ_subset_iff,
   exact (by simpa using hx : path_component x = univ) ▸ path_component_subset_component x
+end
+
+lemma is_path_connected.is_connected (hF : is_path_connected F) : is_connected F :=
+begin
+  rw is_connected_iff_connected_space,
+  rw is_path_connected_iff_path_connected_space at hF,
+  exact @path_connected_space.connected_space _ _ hF
 end
 
 namespace path_connected_space

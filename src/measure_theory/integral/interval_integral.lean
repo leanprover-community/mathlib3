@@ -791,29 +791,11 @@ by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_i
 
 lemma integral_Icc_eq_integral_Ioc' {f : α → E} {a b : α} (ha : μ {a} = 0) :
   ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
-begin
-  cases le_or_lt a b with hab hab,
-  { have : μ.restrict (Icc a b) = μ.restrict (Ioc a b),
-    { rw [← Ioc_union_left hab,
-          measure_theory.measure.restrict_union _ measurable_set_Ioc (measurable_set_singleton a)],
-      { simp [measure_theory.measure.restrict_zero_set ha] },
-      { simp } },
-    rw this },
-  { simp [hab, hab.le] }
-end
+set_integral_congr_set_ae (Ioc_ae_eq_Icc' ha)
 
 lemma integral_Ioc_eq_integral_Ioo' {f : α → E} {a b : α} (hb : μ {b} = 0) :
   ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
-begin
-  cases lt_or_le a b with hab hab,
-  { have : μ.restrict (Ioc a b) = μ.restrict (Ioo a b),
-    { rw [←Ioo_union_right hab,
-        measure_theory.measure.restrict_union _ measurable_set_Ioo (measurable_set_singleton b),
-        measure_theory.measure.restrict_zero_set hb, add_zero ],
-      simp only [right_mem_Ioo, not_false_iff, disjoint_singleton_right] },
-    rw this },
-  simp [hab],
-end
+set_integral_congr_set_ae (Ioo_ae_eq_Ioc' hb)
 
 lemma integral_Icc_eq_integral_Ioc {f : α → E} {a b : α} [has_no_atoms μ] :
   ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=

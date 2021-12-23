@@ -386,7 +386,7 @@ theorem Lp_add_le_tsum {f g : ι → ℝ≥0} {p : ℝ} (hp : 1 ≤ p) (hf : sum
   (∑' i, (f i + g i) ^ p) ^ (1 / p) ≤ (∑' i, (f i) ^ p) ^ (1 / p) + (∑' i, (g i) ^ p) ^ (1 / p) :=
 begin
   have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
-  have H₀ : ∀ s : finset ι, ∑ i in s, (f i + g i) ^ p
+  have H₁ : ∀ s : finset ι, ∑ i in s, (f i + g i) ^ p
     ≤ ((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p,
   { intros s,
     rw ← nnreal.rpow_one_div_le_iff pos,
@@ -397,11 +397,11 @@ begin
   have bdd : bdd_above (set.range (λ s, ∑ i in s, (f i + g i) ^ p)),
   { refine ⟨((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p, _⟩,
     rintros a ⟨s, rfl⟩,
-    exact H₀ s },
+    exact H₁ s },
   have H₂ : summable _ := (has_sum_of_is_lub _ (is_lub_csupr bdd)).summable,
   refine ⟨H₂, _⟩,
   rw nnreal.rpow_one_div_le_iff pos,
-  refine tsum_le_of_sum_le H₂ H₀,
+  refine tsum_le_of_sum_le H₂ H₁,
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or

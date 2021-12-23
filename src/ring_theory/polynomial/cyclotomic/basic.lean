@@ -551,7 +551,7 @@ begin
       ←is_root_cyclotomic_iff' $ by simpa only [f.map_nat_cast, hn] using f.injective_iff.mp hf n]
 end
 
-lemma cyclotomic_injective {R : Type*} [comm_ring R] [is_domain R] [char_zero R] :
+lemma cyclotomic_injective {R : Type*} [comm_ring R] [char_zero R] :
   function.injective (λ n, cyclotomic n R) :=
 begin
   intros n m hnm,

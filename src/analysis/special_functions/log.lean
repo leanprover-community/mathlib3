@@ -186,17 +186,15 @@ begin
   intros x hex y hey hxy,
   have x_pos : 0 < x := (exp_pos 1).trans_le hex,
   have y_pos : 0 < y := (exp_pos 1).trans_le hey,
-  rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x), ←log_div (y_pos.ne') (x_pos.ne'),
-    ←mul_div_right_comm, mul_div_assoc],
-  have : log x * (y / x) - log x = log x * (y / x - 1), ring,
-  rw this,
-  transitivity y / x - 1,
-  { exact log_le_sub_one_of_nonneg (div_pos y_pos x_pos), },
-  { have hlogx : 1 ≤ log x,
+  have hlogx : 1 ≤ log x,
     { rwa le_log_iff_exp_le x_pos, },
-    have hyx : 0 ≤ y / x - 1,
-    { rwa [le_sub_iff_add_le, le_div_iff x_pos, zero_add, one_mul], },
-    exact le_mul_of_one_le_left hyx hlogx, },
+  have hyx : 0 ≤ y / x - 1,
+  { rwa [le_sub_iff_add_le, le_div_iff x_pos, zero_add, one_mul], },
+  rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x)],
+  calc log y - log x = log (y / x)           : by rw [log_div (y_pos.ne') (x_pos.ne')]
+       ...           ≤ (y / x) - 1           : log_le_sub_one_of_nonneg (div_pos y_pos x_pos)
+       ...           ≤ log x * (y / x - 1)   : le_mul_of_one_le_left hyx hlogx
+       ...           = log x / x * y - log x : by ring,
 end
 
 /-- The real logarithm function tends to `+∞` at `+∞`. -/

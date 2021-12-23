@@ -234,6 +234,10 @@ lemma pow_right_injective_iff_pow_injective {n : M} :
   function.injective (λ m : ℕ, n ^ m) ↔ function.injective (pow n) :=
 subtype.coe_injective.of_comp_iff (pow n)
 
+theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
+  log (pow n m) = m :=
+pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _
+
 /-- The exponentiation map is an isomorphism from the additive monoid on natural numbers to powers
 when it is injective. The inverse is given by the logarithms. -/
 @[simps]
@@ -241,7 +245,7 @@ def pow_log_equiv [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, 
   multiplicative ℕ ≃* powers n :=
 { to_fun := λ m, pow n m.to_add,
   inv_fun := λ m, multiplicative.of_add (log m),
-  left_inv := λ _, pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _,
+  left_inv := log_pow_eq_self h,
   right_inv := pow_log_eq_self,
   map_mul' := λ _ _, by { simp only [pow, map_mul, of_add_add, to_add_mul] } }
 

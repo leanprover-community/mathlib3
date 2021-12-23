@@ -2061,9 +2061,9 @@ begin
     rw [iterate_succ_apply, zero_add],
     exact hn },
   have hmul := @is_normal.sup.{0 u u} _
-    (mul_is_normal.{u} (lt_of_le_of_ne (ordinal.zero_le a) ha)) ℕ (λ n, n) ⟨0⟩,
+    (mul_is_normal.{u} (lt_of_le_of_ne (ordinal.zero_le a) ha)) ℕ (λ n, ↑n) ⟨0⟩,
   rw ←omega_eq_sup_nat at hmul,
-  suffices : (λ n : ℕ, (has_add.add a)^[n] 0) = (has_mul.mul a ∘ λ (n : ℕ), ↑n),
+  suffices : (λ n, (has_add.add a)^[n] 0) = has_mul.mul a ∘ λ n, ↑n,
   { rwa ←this at hmul },
   refine funext (λ n, _),
   induction n with n hn,
@@ -2091,7 +2091,7 @@ begin
   rw [←add_assoc, add_mul_omega, this],
 end
 
-/-- `deriv ((+) a)` enumerates the ordinals larger than `a * ω`. -/
+/-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
 theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord (mul_omega_unbounded a) :=
 begin
   rw ←eq_enum_ord,

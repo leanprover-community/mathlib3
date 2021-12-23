@@ -480,23 +480,19 @@ instance : module 𝕜 (Lp E p) :=
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p) : ⇑(c • f) = c • f := rfl
 
 -- move
-lemma real.is_lub_mul {s : set ℝ} {c : ℝ} (hc : 0 ≤ c) {A : ℝ} (hs : is_lub s A) :
+lemma is_lub_mul {K : Type*} [linear_ordered_field K] {s : set K} {c : K} (hc : 0 ≤ c) {A : K}
+  (hs : is_lub s A) :
   is_lub {x | ∃ a ∈ s, c * a = x} (c * A) :=
 begin
-  rcases lt_or_eq_of_le hc with hc | rfl, rotate,
+  rcases lt_or_eq_of_le hc with hc | rfl,
+  { rw ← (order_iso.mul_left₀ _ hc).is_lub_image' at hs,
+    convert hs using 1,
+    ext x,
+    simp },
   { convert is_lub_singleton using 1,
     ext x,
     have : s.nonempty ∧ 0 = x ↔ x = 0 := by rw [and_iff_right hs.nonempty, eq_comm],
     simpa using this },
-  split,
-  { rintros a ⟨a, ha, rfl⟩,
-    exact mul_le_mul_of_nonneg_left (hs.1 ha) hc.le },
-  { intros B hB,
-    rw ← le_div_iff' hc,
-    apply hs.2,
-    intros a ha,
-    rw le_div_iff' hc,
-    exact hB ⟨a, ha, rfl⟩ }
 end
 
 lemma norm_const_smul (c : 𝕜) (f : Lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
@@ -506,7 +502,7 @@ begin
   { cases is_empty_or_nonempty α; resetI,
     { simp [Lp.eq_zero' f], },
     apply (Lp.is_lub_norm (c • f)).unique,
-    convert real.is_lub_mul (norm_nonneg c) (Lp.is_lub_norm f),
+    convert is_lub_mul (norm_nonneg c) (Lp.is_lub_norm f),
     ext a,
     simp [coe_fn_smul, norm_smul] },
   { suffices : ∥c • f∥ ^ p.to_real = (∥c∥ * ∥f∥) ^ p.to_real,

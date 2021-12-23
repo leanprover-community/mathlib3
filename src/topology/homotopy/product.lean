@@ -45,21 +45,15 @@ def pi (homotopies : Π i : I, homotopy_rel (f i) (g i) S) :
 { to_fun := λ t i, (homotopies i).to_fun t,
   continuous_to_fun := by continuity,
   to_fun_zero :=
-  by { intro t, ext i, simp [(homotopies i).to_fun_zero], },
-  to_fun_one :=
-  by { intro t, ext i, simp [(homotopies i).to_fun_one], },
+  to_fun_zero := by { intro t, ext i, simp only [(homotopies i).to_fun_zero, pi_eval], },
+  to_fun_one := by { intro t, ext i, simp only [(homotopies i).to_fun_one, pi_eval], },
   prop' :=
   begin
     intros t x hx,
-    have := λ i, (homotopies i).prop' t x hx,
-    -- finish, -- this works, but it's slow
-    change (λ (i : I), (homotopies i) (t, x)) = (λ i, f i x) ∧
-          (λ (i : I), (homotopies i) (t, x)) = (λ i, g i x),
-    change ∀ i, (homotopies i) (t, x) = (f i) x ∧ (homotopies i) (t, x) = (g i) x at this,
-    split;
-      ext i;
-      have := this i;
-      tauto,
+    dsimp only [coe_mk, pi_eval, to_fun_eq_coe, homotopy_with.coe_to_continuous_map],
+    simp only [function.funext_iff, ← forall_and_distrib],
+    intro i,
+    exact (homotopies i).prop' t x hx,
   end, }
 
 end pi
@@ -70,23 +64,20 @@ variables {α β : Type*} [topological_space α] [topological_space β]
   {f₀ f₁ : C(A, α)} {g₀ g₁ : C(A, β)} {S : set A}
 
 /-- The product of homotopies `F` and `G`,
-    where `F` takes `f₀` to `f₁`
-    and `G` takes `g₀` to `g₁`
-  -/
+  where `F` takes `f₀` to `f₁`  and `G` takes `g₀` to `g₁` -/
 def prod (F : homotopy_rel f₀ f₁ S) (G : homotopy_rel g₀ g₁ S) :
   homotopy_rel (prod_mk f₀ g₀) (prod_mk f₁ g₁) S :=
 { to_fun := λ t, (F t, G t),
   continuous_to_fun := by continuity,
-  to_fun_zero := by { intro, simp [homotopy_with.apply_zero], },
-  to_fun_one := by { intro, simp [homotopy_with.apply_one], },
+  to_fun_zero := by { intro, simp only [homotopy_with.apply_zero, prod_eval], },
+  to_fun_one := by { intro, simp only [homotopy_with.apply_one, prod_eval], },
   prop' :=
   begin
     intros t x hx,
-    have t₁ := F.prop' t x hx,
-    have t₂ := G.prop' t x hx,
-    dsimp only [prod_eval],
-    rw [← t₁.1, ← t₁.2, ← t₂.1, ← t₂.2],
-    split; refl,
+    have hF := F.prop' t x hx,
+    have hG := G.prop' t x hx,
+    simp only [coe_mk, prod_eval, prod.mk.inj_iff] at hF hG ⊢,
+    exact ⟨⟨hF.1, hG.1⟩, ⟨hF.2, hG.2⟩⟩,
   end }
 
 end prod

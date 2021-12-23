@@ -117,11 +117,10 @@ lemma nhds_mk_of_nhds_filter_basis (B : α → filter_basis α) (a : α) (h₀ :
   @nhds α (topological_space.mk_of_nhds (λ x, (B x).filter)) a = (B a).filter :=
 begin
   rw topological_space.nhds_mk_of_nhds;
-  intros x n hn,
-  { obtain ⟨m, hm₁, hm₂⟩ := (B x).mem_filter_iff.mp hn,
-    exact hm₂ (h₀ _ _ hm₁), },
-  { obtain ⟨m, hm₁, hm₂⟩ := (B x).mem_filter_iff.mp hn,
-    obtain ⟨n₁, hn₁, hn₂, hn₃⟩ := h₁ x m hm₁,
+  intros x n hn;
+  obtain ⟨m, hm₁, hm₂⟩ := (B x).mem_filter_iff.mp hn,
+  { exact hm₂ (h₀ _ _ hm₁), },
+  { obtain ⟨n₁, hn₁, hn₂, hn₃⟩ := h₁ x m hm₁,
     refine ⟨n₁, (B x).mem_filter_of_mem hn₁, hn₂.trans hm₂, λ x' hx', (B x').mem_filter_iff.mp _⟩,
     obtain ⟨n₂, hn₄, hn₅⟩ := hn₃ x' hx',
     exact ⟨n₂, hn₄, hn₅.trans hm₂⟩, },

@@ -28,8 +28,8 @@ continuous functions `α → β` which are `V`-close on `K`:
 $$
   E(K, V) = \{ (f, g) | ∀ (x ∈ K), (f x, g x) ∈ V \}.
 $$
-Fixing some `f ∈ C(α, β)`, let `N(K, V, f) ⊆ C(α, β)` be the set continuous functions `α → β` which
-are `V`-close to `f` on `K`:
+Fixing some `f ∈ C(α, β)`, let `N(K, V, f) ⊆ C(α, β)` be the set of continuous functions `α → β`
+which are `V`-close to `f` on `K`:
 $$
   N(K, V, f) = \{ g | ∀ (x ∈ K), (f x, g x) ∈ V \}.
 $$
@@ -67,7 +67,6 @@ of the uniform space structure on `C(α, β)` definitionally equal to the compac
    the compact-open topology) is metrisable.
  * Results about uniformly continuous functions `γ → C(α, β)` and uniform limits of sequences
    `ι → γ → C(α, β)`.
-
 -/
 
 universes u₁ u₂ u₃

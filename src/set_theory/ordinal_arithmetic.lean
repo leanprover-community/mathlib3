@@ -1117,13 +1117,17 @@ begin
     λ ⟨hl, hr⟩, ⟨hl, blsub_le_iff_lt.2 hr⟩ ⟩,
 end
 
+/-- The hypothesis that asserts that the `omin` from `enum_ord_def` exists. -/
+lemma enum_ord_def_H {hS : ∀ a, ∃ b, S b ∧ a ≤ b} {o} :
+  ∃ x, (λ b, S b ∧ ∀ c, c < o → enum_ord hS c < b) x :=
+(⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono b⟩)
+
 /-- A more workable definition for `enum_ord`. -/
 theorem enum_ord_def (o) :
-  enum_ord hS o = omin (λ b, S b ∧ ∀ c, c < o → enum_ord hS c < b)
-  (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono b⟩) :=
+  enum_ord hS o = omin (λ b, S b ∧ ∀ c, c < o → enum_ord hS c < b) enum_ord_def_H :=
 enum_ord_def_aux hS o
 
-theorem enum_ord.surjective : ∀ s ∈ S, ∃ a, enum_ord hS a = s :=
+theorem enum_ord.surjective {hS : ∀ a, ∃ b, S b ∧ a ≤ b} : ∀ s ∈ S, ∃ a, enum_ord hS a = s :=
 begin
   by_contra' H,
   let a := omin _ H,
@@ -1156,12 +1160,40 @@ end
 noncomputable def enum_ord.order_iso : ordinal.{u} ≃o S :=
 strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) enum_ord.strict_mono
 begin
-  convert enum_ord.surjective hS,
+  convert @enum_ord.surjective _ hS,
   refine propext ⟨λ h s hs, _, λ h a, _⟩,
   { cases h ⟨s, hs⟩ with a ha,
     exact ⟨a, subtype.mk.inj ha⟩ },
   cases h a.val a.prop with s hs,
   exact ⟨s, subtype.eq hs⟩,
+end
+
+/-- A convenient characterization of `enum_ord`. -/
+theorem eq_enum_ord (f : ordinal.{u} → ordinal.{u}) :
+  ((∀ a, f a ∈ S) ∧ strict_mono f ∧ ∀ s ∈ S, ∃ a, f a = s) ↔ f = enum_ord hS :=
+begin
+  split, swap,
+  { rintro ⟨h⟩,
+    exact ⟨enum_ord_mem hS, enum_ord.strict_mono, enum_ord.surjective⟩ },
+  rintro ⟨h, hl, hr⟩,
+  refine funext (λ a, _),
+  apply wf.induction a,
+  intros b H,
+  rw enum_ord_def,
+  apply le_antisymm,
+  { let c := omin (λ x, S x ∧ ∀ (c : ordinal), c < b → enum_ord hS c < x) enum_ord_def_H,
+    cases (omin_mem _ _ : c ∈ _) with hcl hcr,
+    cases hr c hcl with d hd,
+    suffices : f b ≤ c, { exact this },
+    rw ←hd,
+    apply hl.monotone,
+    by_contra' hbd,
+    suffices : f d < c, {exact (ne_of_lt this) hd},
+    have := hcr d hbd,
+    rwa ← (H d hbd) at this },
+  refine omin_le ⟨h b, λ c hc, _⟩,
+  rw ←(H c hc),
+  exact hl hc,
 end
 
 end

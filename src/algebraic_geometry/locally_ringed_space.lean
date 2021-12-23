@@ -53,6 +53,8 @@ def to_Top : Top := X.1.carrier
 instance : has_coe_to_sort LocallyRingedSpace (Type u) :=
 ⟨λ X : LocallyRingedSpace, (X.to_Top : Type u)⟩
 
+instance (x : X) : _root_.local_ring (X.to_PresheafedSpace.stalk x) := X.local_ring x
+
 -- PROJECT: how about a typeclass "has_structure_sheaf" to mediate the 𝒪 notation, rather
 -- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.
 
@@ -232,7 +234,7 @@ end
 
 instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)
   [hU : nonempty U] : nontrivial (X.presheaf.obj $ op U) :=
-(X.presheaf.germ hU.some).domain_nontrivial
+(X.to_PresheafedSpace.presheaf.germ hU.some).domain_nontrivial
 
 end LocallyRingedSpace
 

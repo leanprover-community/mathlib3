@@ -310,6 +310,12 @@ instance decidable_mem_edge_set [decidable_rel G.adj] :
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := subtype.fintype _
 
+lemma top_edge_set : (⊤ : simple_graph V).edge_set = {x | ¬ x.is_diag} :=
+by { ext e, apply sym2.induction_on e, simp }
+
+lemma bot_edge_set : (⊥ : simple_graph V).edge_set = ∅ :=
+by { ext e, apply sym2.induction_on e, simp }
+
 /-! ### Incidence set -/
 
 /-- Set of edges incident to a given vertex, aka incidence set. -/

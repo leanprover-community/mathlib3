@@ -177,10 +177,22 @@ def edges : Π {u v : V}, G.walk u v → list (sym2 V)
 @[simp] lemma support_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).support = u :: p.support := rfl
 
+lemma support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  (p.append p').support = p.support ++ p'.support.tail :=
+by induction p; cases p'; simp [*]
+
+@[simp]
+lemma support_reverse {u v : V} (p : G.walk u v) : p.reverse.support = p.support.reverse :=
+by induction p; simp [support_append, *]
+
 lemma support_ne_nil {u v : V} (p : G.walk u v) : p.support ≠ [] :=
 by cases p; simp
 
-lemma support_eq {u v : V} (p : G.walk u v) : p.support = u :: p.support.tail :=
+lemma tail_support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  (p.append p').support.tail = p.support.tail ++ p'.support.tail :=
+by rw [support_append, list.tail_append_of_ne_nil _ _ (support_ne_nil _)]
+
+lemma support_eq_cons {u v : V} (p : G.walk u v) : p.support = u :: p.support.tail :=
 by cases p; simp
 
 @[simp] lemma start_mem_support {u v : V} (p : G.walk u v) : u ∈ p.support :=
@@ -188,6 +200,53 @@ by cases p; simp
 
 @[simp] lemma end_mem_support {u v : V} (p : G.walk u v) : v ∈ p.support :=
 by induction p; simp [*]
+
+lemma mem_support_iff {u v w : V} (p : G.walk u v) :
+  w ∈ p.support ↔ w = u ∨ w ∈ p.support.tail :=
+by cases p; simp
+
+@[simp]
+lemma mem_tail_support_append_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  t ∈ (p.append p').support.tail ↔ t ∈ p.support.tail ∨ t ∈ p'.support.tail :=
+by rw [tail_support_append, list.mem_append]
+
+@[simp] lemma end_mem_tail_support_of_ne {u v : V} (h : u ≠ v) (p : G.walk u v) :
+  v ∈ p.support.tail :=
+begin
+  cases p,
+  { exact (h rfl).elim },
+  { simp },
+end
+
+@[simp]
+lemma mem_support_append_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  t ∈ (p.append p').support ↔ t ∈ p.support ∨ t ∈ p'.support :=
+begin
+  simp only [mem_support_iff, mem_tail_support_append_iff],
+  split,
+  { rintro (rfl|h|h); simp [*], },
+  { rintro ((rfl|h) | (rfl|h)); try { simp [*] },
+    rw or_iff_not_imp_left,
+    intro h,
+    simp [ne.symm h], },
+end
+
+lemma coe_support {u v : V} (p : G.walk u v) :
+  (p.support : multiset V) = {u} + p.support.tail :=
+by cases p; refl
+
+lemma coe_support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  ((p.append p').support : multiset V) = {u} + p.support.tail + p'.support.tail :=
+by rw [support_append, ←multiset.coe_add, coe_support]
+
+lemma coe_support_append' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  ((p.append p').support : multiset V) = p.support + p'.support - {v} :=
+begin
+  rw [support_append, ←multiset.coe_add],
+  simp only [coe_support],
+  rw add_comm {v},
+  simp only [← add_assoc, add_tsub_cancel_right],
+end
 
 lemma chain_adj_support_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
   list.chain G.adj u p.support
@@ -208,6 +267,13 @@ lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) {e : sym2 V}
 
 @[simp] lemma edges_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).edges = ⟦(u, v)⟧ :: p.edges := rfl
+
+@[simp] lemma edges_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  (p.append p').edges = p.edges ++ p'.edges :=
+by induction p; simp [*]
+
+@[simp] lemma edges_reverse {u v : V} (p : G.walk u v) : p.reverse.edges = p.edges.reverse :=
+by induction p; simp [*, sym2.eq_swap]
 
 @[simp] lemma length_support {u v : V} (p : G.walk u v) : p.support.length = p.length + 1 :=
 by induction p; simp *
@@ -297,6 +363,44 @@ begin
     simp only [ht, hsn, hns, and_true, not_false_iff, true_and],
     intro he,
     exact hns (mem_support_of_mem_edges p he), },
+end
+
+lemma reverse_trail {u v : V} (p : G.walk u v) (h : p.is_trail) : p.reverse.is_trail :=
+by simpa [is_trail] using h
+
+@[simp] lemma is_trail_reverse_iff {u v : V} (p : G.walk u v) : p.reverse.is_trail ↔ p.is_trail :=
+by split; { intro h, convert reverse_trail _ h, try { rw reverse_reverse } }
+
+lemma is_trail_of_append_left {u v w : V} (p : G.walk u v) (q : G.walk v w)
+  (h : (p.append q).is_trail) : p.is_trail :=
+by { rw [is_trail, edges_append, list.nodup_append] at h, exact h.1 }
+
+lemma is_trail_of_append_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
+  (h : (p.append q).is_trail) : q.is_trail :=
+by { rw [is_trail, edges_append, list.nodup_append] at h, exact h.2.1 }
+
+lemma reverse_path {u v : V} (p : G.walk u v) (h : p.is_path) : p.reverse.is_path :=
+by simpa [is_path_def] using h
+
+@[simp] lemma is_path_reverse_iff {u v : V} (p : G.walk u v) : p.reverse.is_path ↔ p.is_path :=
+by split; intro h; convert reverse_path _ h; simp
+
+lemma is_path_of_append_left {u v w : V} (p : G.walk u v) (q : G.walk v w)
+  (h : (p.append q).is_path) : p.is_path :=
+begin
+  fsplit,
+  { apply is_trail_of_append_left _ _ h.to_trail, },
+  { have h' := h.support_nodup,
+    rw support_append at h',
+    exact list.nodup_of_nodup_append_left h', },
+end
+
+lemma is_path_of_append_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
+  (h : (p.append q).is_path) : q.is_path :=
+begin
+  rw ←is_path_reverse_iff at h ⊢,
+  rw reverse_append at h,
+  exact is_path_of_append_left _ _ h,
 end
 
 end walk

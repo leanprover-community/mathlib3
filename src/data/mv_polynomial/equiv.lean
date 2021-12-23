@@ -321,7 +321,6 @@ begin
   simp only [mv_polynomial.fin_succ_equiv_apply, mv_polynomial.eval₂_hom_C],
 end
 
-
 variables {n} {R}
 
 lemma fin_succ_equiv_X_zero {n : ℕ} :
@@ -415,10 +414,10 @@ end
 begin
   revert i m,
   apply induction_on f,
-  apply fin_succ_equiv_coeff_coeff_C,
-  intros p q hp hq i m,
-  simp only [(fin_succ_equiv R n).map_add, polynomial.coeff_add, coeff_add, hp, hq],
-  apply fin_succ_equiv_coeff_coeff_case_p_X,
+  { apply fin_succ_equiv_coeff_coeff_C },
+  { intros p q hp hq i m,
+    simp only [(fin_succ_equiv R n).map_add, polynomial.coeff_add, coeff_add, hp, hq] },
+  { apply fin_succ_equiv_coeff_coeff_case_p_X },
 end
 
 lemma eval_eq_eval_mv_eval' {n : ℕ} (s : fin n → R) (y : R) (f : mv_polynomial (fin (n + 1)) R) :
@@ -426,27 +425,27 @@ lemma eval_eq_eval_mv_eval' {n : ℕ} (s : fin n → R) (y : R) (f : mv_polynomi
   = polynomial.eval y (polynomial.map (eval s) ((fin_succ_equiv R n) f)) :=
 begin
   apply induction_on f,
-  intro a,
-  simp,
-  intros p q hp hq,
-  simp only [(fin_succ_equiv R n).map_add, ring_hom.map_add, polynomial.map_add,
-             polynomial.eval_add],
-  congr,
-  exact hp,
-  exact hq,
-  intros p j h,
-  simp only [(fin_succ_equiv R n).map_mul, eval_X, polynomial.map_mul, ring_hom.map_mul,
-             polynomial.eval_mul],
-  congr,
-  exact h,
-  clear h f,
-  simp only [fin_succ_equiv_apply, eval₂_hom_X'],
-  by_cases c : j = 0,
-  { rw c,
-    simp [fin.cons_zero] },
-  have c' : j ≠ 0 := by simpa only [ne.def],
-  rw [←fin.succ_pred j c', fin.cons_succ],
-  simp,
+  { intro a,
+    simp },
+  { intros p q hp hq,
+    simp only [(fin_succ_equiv R n).map_add, ring_hom.map_add, polynomial.map_add,
+              polynomial.eval_add],
+    congr,
+    { exact hp },
+    { exact hq } },
+  { intros p j h,
+    simp only [(fin_succ_equiv R n).map_mul, eval_X, polynomial.map_mul, ring_hom.map_mul,
+              polynomial.eval_mul],
+    congr,
+    { exact h },
+    { clear h f,
+      simp only [fin_succ_equiv_apply, eval₂_hom_X'],
+      by_cases c : j = 0,
+      { rw c,
+        simp [fin.cons_zero] },
+      { have c' : j ≠ 0 := by simpa only [ne.def],
+        rw [←fin.succ_pred j c', fin.cons_succ],
+        simp } } },
 end
 
 lemma coeff_eval_eq_eval_coeff {n : ℕ} (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R))
@@ -479,34 +478,33 @@ lemma support_coeff_fin_succ_equiv {n : ℕ} {f : mv_polynomial (fin (n + 1)) R}
    ↔ (finsupp.cons i m) ∈ f.support :=
 begin
   apply iff.intro,
-  intro h,
-  simpa [←fin_succ_equiv_coeff_coeff] using h,
-  intro h,
-  simpa [mem_support_iff, ←fin_succ_equiv_coeff_coeff m f i] using h,
+  { intro h,
+    simpa [←fin_succ_equiv_coeff_coeff] using h },
+  { intro h,
+    simpa [mem_support_iff, ←fin_succ_equiv_coeff_coeff m f i] using h },
 end
 
 lemma fin_succ_equiv_support {n : ℕ} (f : mv_polynomial (fin (n + 1)) R) :
   (fin_succ_equiv R n f).support = finset.image (λ m : fin (n + 1)→₀ ℕ, m 0) f.support :=
 begin
   apply finset.subset.antisymm,
-  intros i hi,
-  rw finset.mem_image,
-  rw polynomial.mem_support_iff at hi,
-  rw nonzero_iff_exists at hi,
-  cases hi with m hm,
-  use cons i m,
-  apply and.intro,
-  rw ← support_coeff_fin_succ_equiv,
-  simpa using hm,
-  rw cons_zero,
-  intros i hi,
-  rw polynomial.mem_support_iff,
-  rw finset.mem_image at hi,
-  cases hi with m hm,
-  cases hm with h hm,
-  rw nonzero_iff_exists,
-  use tail m,
-  rwa [← coeff, ← mem_support_iff, support_coeff_fin_succ_equiv, ← hm, cons_tail],
+  { intros i hi,
+    rw finset.mem_image,
+    rw [polynomial.mem_support_iff, nonzero_iff_exists] at hi,
+    cases hi with m hm,
+    use cons i m,
+    apply and.intro,
+    { rw ← support_coeff_fin_succ_equiv,
+      simpa using hm },
+    { rw cons_zero } },
+  { intros i hi,
+    rw polynomial.mem_support_iff,
+    rw finset.mem_image at hi,
+    cases hi with m hm,
+    cases hm with h hm,
+    rw nonzero_iff_exists,
+    use tail m,
+    rwa [← coeff, ← mem_support_iff, support_coeff_fin_succ_equiv, ← hm, cons_tail] },
 end
 
 lemma fin_succ_equiv_support' {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :
@@ -515,21 +513,21 @@ lemma fin_succ_equiv_support' {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i :
 begin
   ext m,
   apply iff.intro,
-  intro hm,
-  rw finset.mem_image at hm,
-  cases hm with m' hm',
-  cases hm' with h hm',
-  rw [mem_support_iff, fin_succ_equiv_coeff_coeff m' f i] at h,
-  simp only [←hm', mem_support_iff, ne.def, finset.mem_filter],
-  exact ⟨h, by rw cons_zero⟩,
-  intro h,
-  simp only [mem_support_iff, finset.mem_image, ne.def],
-  simp only [mem_support_iff, ne.def, finset.mem_filter] at h,
-  use tail m,
-  apply and.intro,
-  rw [mem_support_iff, fin_succ_equiv_coeff_coeff (tail m) f i, ← h.2, cons_tail],
-  exact h.1,
-  rw [← h.2, cons_tail],
+  { intro hm,
+    rw finset.mem_image at hm,
+    cases hm with m' hm',
+    cases hm' with h hm',
+    rw [mem_support_iff, fin_succ_equiv_coeff_coeff m' f i] at h,
+    simp only [←hm', mem_support_iff, ne.def, finset.mem_filter],
+    exact ⟨h, by rw cons_zero⟩ },
+  { intro h,
+    simp only [mem_support_iff, finset.mem_image, ne.def],
+    simp only [mem_support_iff, ne.def, finset.mem_filter] at h,
+    use tail m,
+    apply and.intro,
+    { rw [mem_support_iff, fin_succ_equiv_coeff_coeff (tail m) f i, ← h.2, cons_tail],
+      exact h.1 },
+    { rw [← h.2, cons_tail] } },
 end
 
 lemma support_fin_succ_equiv_nonempty  {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
@@ -544,8 +542,8 @@ begin
                                                 using ((fin_succ_equiv R n).left_inv f).symm
       ...    =  ii 0 : by rw c
       ...    = 0 : by simp,
-    cc },
-  cc,
+    simpa [h'] using h },
+  simpa [c] using h,
 end
 
 lemma degree_fin_succ_equiv {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :

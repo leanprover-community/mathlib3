@@ -357,31 +357,31 @@ lemma exists_eq_const_of_differentiable_of_bounded {f : ℂ → E} (hf : differe
   (hb : bounded (range f)) : ∃ c, f = const ℂ c :=
 (exists_const_forall_eq_of_differentiable_of_bounded hf hb).imp $ λ c, funext
 
-lemma norm_eq_norm_of_differentiable_on_of_is_max_on_closed_ball_of_mem_closed_ball {f : ℂ → E}
-  {c w : ℂ} {R : ℝ} (hd : differentiable_on ℂ f (closed_ball c R))
-  (hn : is_max_on (norm ∘ f) (closed_ball c R) c) (hw : w ∈ closed_ball c R) :
-  ∥f w∥ = ∥f c∥ :=
+lemma norm_eq_norm_of_differentiable_on_of_is_max_on_of_closed_ball_subset {f : ℂ → E} {s : set ℂ}
+  {z w : ℂ} (hd : differentiable_on ℂ f s) (hz : is_max_on (norm ∘ f) s z)
+  (hsub : closed_ball z (dist w z) ⊆ s) :
+  ∥f w∥ = ∥f z∥ :=
 begin
-  refine (is_max_on_iff.1 hn _ hw).antisymm (not_lt.1 _),
-  rintro hw_lt : ∥f w∥ < ∥f c∥,
-  set r := dist w c,
+  set r := dist w z,
+  have hw_mem : w ∈ closed_ball z r, from mem_closed_ball.2 le_rfl,
+  refine (is_max_on_iff.1 hz _ (hsub hw_mem)).antisymm (not_lt.1 _),
+  rintro hw_lt : ∥f w∥ < ∥f z∥,
   have hr : 0 < r, from dist_pos.2 (λ h, hw_lt.ne $ h ▸ rfl),
-  have hsub' : closed_ball c r ⊆ closed_ball c R, from closed_ball_subset_closed_ball hw,
-  have hsub : sphere c r ⊆ closed_ball c R, from sphere_subset_closed_ball.trans hsub',
-  have hne : ∀ z ∈ sphere c r, z ≠ c,
-    from λ z hz, ne_of_mem_of_not_mem hz (ne_of_lt $ (dist_self c).symm ▸ hr),
-  have hcont : continuous_on (λ z, (z - c)⁻¹ • f z) (sphere c r),
+  have hsub' : sphere z r ⊆ s, from sphere_subset_closed_ball.trans hsub,
+  have hne : ∀ ζ ∈ sphere z r, ζ ≠ z,
+    from λ ζ hζ, ne_of_mem_of_not_mem hζ (ne_of_lt $ (dist_self z).symm ▸ hr),
+  have hcont : continuous_on (λ ζ, (ζ - z)⁻¹ • f ζ) (sphere z r),
     from ((continuous_on_id.sub continuous_on_const).inv₀ $
-      λ z hz, sub_ne_zero.2 (hne z hz)).smul (hd.continuous_on.mono hsub),
-  have hle : ∀ z ∈ sphere c r, ∥(z - c)⁻¹ • f z∥ ≤ ∥f c∥ / r,
-  { rintros z (hz : abs (z - c) = r),
-    simpa [norm_smul, hz, ← div_eq_inv_mul] using (div_le_div_right hr).2 (hn (hsub hz)) },
-  have hlt : ∥(w - c)⁻¹ • f w∥ < ∥f c∥ / r,
+      λ ζ hζ, sub_ne_zero.2 (hne ζ hζ)).smul (hd.continuous_on.mono hsub'),
+  have hle : ∀ ζ ∈ sphere z r, ∥(ζ - z)⁻¹ • f ζ∥ ≤ ∥f z∥ / r,
+  { rintros ζ (hζ : abs (ζ - z) = r),
+    simpa [norm_smul, hζ, ← div_eq_inv_mul] using (div_le_div_right hr).2 (hz (hsub' hζ)) },
+  have hlt : ∥(w - z)⁻¹ • f w∥ < ∥f z∥ / r,
     by simpa [norm_smul, ← div_eq_inv_mul] using (div_lt_div_right hr).2 hw_lt,
-  have : ∥∮ z in C(c, r), (z - c)⁻¹ • f z∥ < 2 * π * r * (∥f c∥ / r),
+  have : ∥∮ ζ in C(z, r), (ζ - z)⁻¹ • f ζ∥ < 2 * π * r * (∥f z∥ / r),
     from circle_integral.norm_integral_lt_of_norm_le_const_of_lt hr hcont hle ⟨w, rfl, hlt⟩,
   refine this.ne _,
-  rw circle_integral_sub_inv_smul_of_differentiable_on (mem_ball_self hr) (hd.mono hsub'),
+  rw circle_integral_sub_inv_smul_of_differentiable_on (mem_ball_self hr) (hd.mono hsub),
   field_simp [norm_smul, hr.ne', abs_of_pos real.pi_pos],
   ac_refl
 end
@@ -392,8 +392,9 @@ lemma norm_eventually_eq_of_eventually_differentiable_at_of_is_local_max {f : �
 begin
   rcases nhds_basis_closed_ball.eventually_iff.1 (hd.and hc) with ⟨r, hr₀, hr⟩,
   exact nhds_basis_closed_ball.eventually_iff.2 ⟨r, hr₀, λ w hw,
-    norm_eq_norm_of_differentiable_on_of_is_max_on_closed_ball_of_mem_closed_ball
-      (λ z hz, (hr hz).1.differentiable_within_at) (λ z hz, (hr hz).2) hw⟩
+    norm_eq_norm_of_differentiable_on_of_is_max_on_of_closed_ball_subset
+      (λ z hz, (hr hz).1.differentiable_within_at) (λ z hz, (hr hz).2)
+      (closed_ball_subset_closed_ball hw)⟩
 end
 
 lemma is_open_set_of_mem_nhds_and_is_max_on_norm {f : ℂ → E} {s : set ℂ}
@@ -405,5 +406,29 @@ begin
   exact (norm_eventually_eq_of_eventually_differentiable_at_of_is_local_max hd $
     (hz.2.is_local_max hz.1)).mono (λ x hx y hy, le_trans (hz.2 hy) hx.ge)
 end
+
+/-- **Maximum principle**: if `f : ℂ → E` is complex differentiable on a nonempty compact set `s`,
+then there exists a point `z ∈ frontier s` such that `λ z, ∥f z∥` takes it maximum value on `s` at
+`z`. -/
+lemma exists_mem_frontier_is_max_on_norm {f : ℂ → E} {s : set ℂ} (hs : is_compact s)
+  (hne : s.nonempty) (hd : differentiable_on ℂ f s) :
+  ∃ z ∈ frontier s, is_max_on (norm ∘ f) s z :=
+begin
+  rcases hs.exists_forall_ge hne hd.continuous_on.norm with ⟨w, hws, hle⟩,
+  rcases exists_mem_frontier_inf_dist_compl_eq_dist hws hs.ne_univ with ⟨z, hzs, hzw⟩,
+  refine ⟨z, hzs, λ x hx, (hle x hx).trans_eq _⟩,
+  refine (norm_eq_norm_of_differentiable_on_of_is_max_on_of_closed_ball_subset hd hle _).symm,
+  calc closed_ball w (dist z w) ⊆ closed_ball w (inf_dist w sᶜ) :
+    closed_ball_subset_closed_ball (by rw [hzw, dist_comm])
+  ... ⊆ closure s : closed_ball_inf_dist_compl_subset_closure hws hs.ne_univ
+  ... = s : hs.is_closed.closure_eq
+end
+
+/-- **Maximum principle**: if `f : ℂ → E` is complex differentiable on a compact set `s` and
+`∥f z∥ ≤ C` for any `z ∈ frontier s`, then the same is true for any `z ∈ s`. -/
+lemma norm_le_of_forall_mem_frontier_norm_le {f : ℂ → E} {s : set ℂ} (hs : is_compact s)
+  (hd : differentiable_on ℂ f s) {C : ℝ} (hC : ∀ z ∈ frontier s, ∥f z∥ ≤ C) {z : ℂ} (hz : z ∈ s) :
+  ∥f z∥ ≤ C :=
+let ⟨w, hws, hw⟩ := exists_mem_frontier_is_max_on_norm hs ⟨z, hz⟩ hd in le_trans (hw hz) (hC w hws)
 
 end complex

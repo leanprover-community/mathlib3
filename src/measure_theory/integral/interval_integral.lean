@@ -1246,9 +1246,9 @@ by simpa only [← real.norm_eq_abs] using norm_integral_le_integral_norm hab
 
 section mono
 
-variables (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
+variables (hab : a ≤ b) (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
 
-include hf hg
+include hab hf hg
 
 lemma integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict (Icc a b)] g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=

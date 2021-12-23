@@ -591,6 +591,16 @@ begin
   { exact (closed_embedding_smul_left hc).is_closed_map }
 end
 
+variables (𝕜 E)
+
+lemma normed_space.noncompact_space [nontrivial E] : noncompact_space E :=
+let ⟨c, hc⟩ := exists_ne (0 : E) in (@closed_embedding_smul_left 𝕜 _ _ _ _ _ _ hc).noncompact_space
+
+@[priority 100]
+instance real_normed_space.noncompact_space (E : Type*) [nontrivial E] [normed_group E]
+  [normed_space ℝ E] : noncompact_space E :=
+normed_space.noncompact_space ℝ E
+
 end complete_field
 
 section proper_field
@@ -620,7 +630,7 @@ finite_dimensional.proper ℝ E
 `x` that is not equal to the whole space, then there exists a point `y ∈ frontier s` at distance
 `metric.inf_dist x sᶜ` from `x`. -/
 lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_group E]
-  [normed_space ℝ E] [finite_dimensional ℝ E] {x : E} {s : set E} (hx : s ∈ 𝓝 x) (hs : s ≠ univ) :
+  [normed_space ℝ E] [finite_dimensional ℝ E] {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
   ∃ y ∈ frontier s, metric.inf_dist x sᶜ = dist x y :=
 begin
   rcases metric.exists_mem_closure_inf_dist_eq_dist (nonempty_compl.2 hs) x with ⟨y, hys, hyd⟩,

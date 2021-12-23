@@ -180,7 +180,8 @@ begin
   exact h,
 end
 
-lemma log_div_self_decreasing (x y : ℝ) (hex : real.exp 1 ≤ x) (hxy : x ≤ y) : log y / y ≤ log x / x :=
+lemma log_div_self_decreasing (x y : ℝ) (hex : real.exp 1 ≤ x) (hxy : x ≤ y) :
+  log y / y ≤ log x / x :=
 begin
   have x_pos : 0 < x := lt_of_lt_of_le (exp_pos 1) hex,
   have y_pos : 0 < y := lt_of_lt_of_le x_pos hxy,

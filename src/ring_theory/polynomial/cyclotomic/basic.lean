@@ -753,16 +753,14 @@ end
 /-- If `n ≠ m`, then `(cyclotomic n ℚ)` and `(cyclotomic m ℚ)` are coprime. -/
 lemma cyclotomic.is_coprime {n m : ℕ} (h : n ≠ m) : is_coprime (cyclotomic n ℚ) (cyclotomic m ℚ) :=
 begin
-  by_cases hnzero : n = 0,
-  { rw [hnzero, cyclotomic_zero],
-    exact is_coprime_one_left },
-  by_cases hmzero : m = 0,
-  { rw [hmzero, cyclotomic_zero],
-    exact is_coprime_one_right },
-  exact (irreducible.coprime_iff_not_dvd $ cyclotomic.irreducible_rat $ zero_lt_iff.2 hnzero).2
-    (λ hdiv, h $ cyclotomic_injective $ eq_of_monic_of_associated (cyclotomic.monic n ℚ)
+  rcases n.eq_zero_or_pos with rfl | hnzero,
+  { exact is_coprime_one_left },
+  rcases m.eq_zero_or_pos with rfl | hmzero,
+  { exact is_coprime_one_right },
+  rw (irreducible.coprime_iff_not_dvd $ cyclotomic.irreducible_rat $ hnzero),
+  exact (λ hdiv, h $ cyclotomic_injective $ eq_of_monic_of_associated (cyclotomic.monic n ℚ)
     (cyclotomic.monic m ℚ) $ irreducible.associated_of_dvd (cyclotomic.irreducible_rat
-    (zero_lt_iff.2 hnzero)) (cyclotomic.irreducible_rat (zero_lt_iff.2 hmzero)) hdiv),
+    hnzero) (cyclotomic.irreducible_rat hmzero) hdiv),
 end
 
 end minpoly

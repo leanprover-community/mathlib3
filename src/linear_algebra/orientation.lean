@@ -404,7 +404,7 @@ begin
 end
 
 /-- Scaling by an inverse unit is the same as scaling by itself. -/
-lemma units_inv_smul (u : units R) (v : module.ray R M) :
+@[simp] lemma units_inv_smul (u : units R) (v : module.ray R M) :
   u⁻¹ • v = u • v :=
 begin
   induction v using module.ray.ind with v hv,

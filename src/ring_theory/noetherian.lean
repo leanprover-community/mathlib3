@@ -516,7 +516,7 @@ by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
 /-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_noetherian :
-  (∀ (f : ℕ →ₘ submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
+  (∀ (f : ℕ →o submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
     ↔ is_noetherian R M :=
 by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
 

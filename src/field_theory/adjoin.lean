@@ -124,17 +124,11 @@ begin
 end
 
 /-- The top intermediate_field is isomorphic to the field. -/
-noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
+@[simps apply] def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
 (subalgebra.equiv_of_eq _ _ top_to_subalgebra).trans algebra.top_equiv
 
-@[simp] lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
-begin
-  suffices : algebra.to_top (top_equiv x) = algebra.to_top (x : E),
-  { rwa subtype.ext_iff at this },
-  exact alg_equiv.apply_symm_apply (alg_equiv.of_bijective algebra.to_top
-    ⟨λ _ _, subtype.mk.inj, λ x, ⟨x.val, by { ext, refl }⟩⟩ : E ≃ₐ[F] (⊤ : subalgebra F E))
-    (subalgebra.equiv_of_eq _ _ top_to_subalgebra x),
-end
+@[simp] lemma top_equiv_symm_apply_coe (a : E) :
+  ↑((top_equiv.symm) a : (⊤ : intermediate_field F E)) = a := rfl
 
 @[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
 by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
@@ -374,6 +368,12 @@ by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
 @[simp] lemma finrank_eq_one_iff : finrank F K = 1 ↔ K = ⊥ :=
 by rw [← to_subalgebra_eq_iff, ← finrank_eq_finrank_subalgebra,
   subalgebra.finrank_eq_one_iff, bot_to_subalgebra]
+
+@[simp] lemma dim_bot : module.rank F (⊥ : intermediate_field F E) = 1 :=
+by rw dim_eq_one_iff
+
+@[simp] lemma finrank_bot : finrank F (⊥ : intermediate_field F E) = 1 :=
+by rw finrank_eq_one_iff
 
 lemma dim_adjoin_eq_one_iff : module.rank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
 iff.trans dim_eq_one_iff adjoin_eq_bot_iff

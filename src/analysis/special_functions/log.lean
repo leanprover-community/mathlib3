@@ -194,7 +194,7 @@ begin
   transitivity y / x - 1,
   { exact log_le_sub_one_of_nonneg (y / x) (div_pos y_pos x_pos), },
   { have hlogx : 1 ≤ log x,
-    { rwa le_log_iff_exp_le, exact x_pos, },
+    { rwa le_log_iff_exp_le x_pos, },
     have hyx : 0 ≤ y / x - 1,
     { rw le_sub_iff_add_le, rw le_div_iff,
       simp [hxy], assumption, },

@@ -71,7 +71,8 @@ lemma erase_mem_shadow (hs : s ∈ 𝒜) (ha : a ∈ s) : erase s a ∈ ∂ 𝒜
 mem_shadow_iff.2 ⟨s, hs, a, ha, rfl⟩
 
 /-- The shadow of a family of `r`-sets is a family of `r - 1`-sets. -/
-lemma sized.shadow (h𝒜 : (𝒜 : set (finset α)).sized r) : (∂ 𝒜 : set (finset α)).sized (r - 1) :=
+protected lemma sized.shadow (h𝒜 : (𝒜 : set (finset α)).sized r) :
+  (∂ 𝒜 : set (finset α)).sized (r - 1) :=
 begin
   intros A h,
   obtain ⟨A, hA, i, hi, rfl⟩ := mem_shadow_iff.1 h,
@@ -167,7 +168,8 @@ lemma insert_mem_up_shadow (hs : s ∈ 𝒜) (ha : a ∉ s) : insert a s ∈ ∂
 mem_up_shadow_iff.2 ⟨s, hs, a, ha, rfl⟩
 
 /-- The upper shadow of a family of `r`-sets is a family of `r + 1`-sets. -/
-lemma sized.up_shadow (h𝒜 : (𝒜 : set (finset α)).sized r) : (∂⁺ 𝒜 : set (finset α)).sized (r + 1) :=
+protected lemma sized.up_shadow (h𝒜 : (𝒜 : set (finset α)).sized r) :
+  (∂⁺ 𝒜 : set (finset α)).sized (r + 1) :=
 begin
   intros A h,
   obtain ⟨A, hA, i, hi, rfl⟩ := mem_up_shadow_iff.1 h,

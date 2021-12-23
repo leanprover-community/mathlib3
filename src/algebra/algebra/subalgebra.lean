@@ -540,6 +540,9 @@ lemma mul_mem_sup {S T : subalgebra R A} {x y : A} (hx : x ∈ S) (hy : y ∈ T)
   x * y ∈ S ⊔ T :=
 (S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
 
+lemma map_sup (f : A →ₐ[R] B) (S T : subalgebra R A) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
+(subalgebra.gc_map_comap f).l_sup
+
 @[simp, norm_cast]
 lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = S ∩ T := rfl
 
@@ -959,6 +962,42 @@ lemma smul_mem_pointwise_smul (m : R') (r : A) (S : subalgebra R A) : r ∈ S �
 (set.smul_mem_smul_set : _ → _ ∈ m • (S : set A))
 
 end pointwise
+
+section center
+
+lemma _root_.set.algebra_map_mem_center (r : R) : algebra_map R A r ∈ set.center A :=
+by simp [algebra.commutes, set.mem_center_iff]
+
+variables (R A)
+
+/-- The center of an algebra is the set of elements which commute with every element. They form a
+subalgebra. -/
+def center : subalgebra R A :=
+{ algebra_map_mem' := set.algebra_map_mem_center,
+  .. subsemiring.center A }
+
+lemma coe_center : (center R A : set A) = set.center A := rfl
+
+@[simp] lemma center_to_subsemiring :
+  (center R A).to_subsemiring = subsemiring.center A :=
+rfl
+
+@[simp] lemma center_to_subring (R A : Type*) [comm_ring R] [ring A] [algebra R A] :
+  (center R A).to_subring = subring.center A :=
+rfl
+
+@[simp] lemma center_eq_top (A : Type*) [comm_semiring A] [algebra R A] : center R A = ⊤ :=
+set_like.coe_injective (set.center_eq_univ A)
+
+variables {R A}
+
+instance : comm_semiring (center R A) := subsemiring.center.comm_semiring
+
+instance {A : Type*} [ring A] [algebra R A] : comm_ring (center R A) := subring.center.comm_ring
+
+lemma mem_center_iff {a : A} : a ∈ center R A ↔ ∀ (b : A), b*a = a*b := iff.rfl
+
+end center
 
 end subalgebra
 

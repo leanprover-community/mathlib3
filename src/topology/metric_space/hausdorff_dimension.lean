@@ -155,7 +155,12 @@ begin
 end
 
 lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
-by simp [dimH, h.measure_zero]
+begin
+  letI := borel X, haveI : borel_space X := ⟨rfl⟩,
+  apply le_antisymm _ (zero_le _),
+  refine dimH_le_of_hausdorff_measure_ne_top _,
+  exact ((hausdorff_measure_le_one_of_subsingleton h le_rfl).trans_lt ennreal.one_lt_top).ne,
+end
 
 alias dimH_subsingleton ← set.subsingleton.dimH_zero
 

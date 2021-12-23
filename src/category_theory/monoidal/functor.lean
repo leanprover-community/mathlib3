@@ -179,12 +179,13 @@ namespace monoidal_functor
 section
 variables {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
+variable (F : monoidal_functor.{v₁ v₂} C D)
 
-lemma map_tensor (F : monoidal_functor.{v₁ v₂} C D) {X Y X' Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y') :
+lemma map_tensor {X Y X' Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y') :
   F.map (f ⊗ g) = inv (F.μ X X') ≫ ((F.map f) ⊗ (F.map g)) ≫ F.μ Y Y' :=
 by simp
 
-lemma map_left_unitor (F : monoidal_functor.{v₁ v₂} C D) (X : C) :
+lemma map_left_unitor (X : C) :
   F.map (λ_ X).hom = inv (F.μ (𝟙_ C) X) ≫ (inv F.ε ⊗ 𝟙 (F.obj X)) ≫ (λ_ (F.obj X)).hom :=
 begin
   simp only [lax_monoidal_functor.left_unitality],
@@ -192,7 +193,7 @@ begin
   simp,
 end
 
-lemma map_right_unitor (F : monoidal_functor.{v₁ v₂} C D) (X : C) :
+lemma map_right_unitor (X : C) :
   F.map (ρ_ X).hom = inv (F.μ X (𝟙_ C)) ≫ (𝟙 (F.obj X) ⊗ inv F.ε) ≫ (ρ_ (F.obj X)).hom :=
 begin
   simp only [lax_monoidal_functor.right_unitality],
@@ -202,11 +203,22 @@ end
 
 /-- The tensorator as a natural isomorphism. -/
 noncomputable
-def μ_nat_iso (F : monoidal_functor.{v₁ v₂} C D) :
+def μ_nat_iso :
   (functor.prod F.to_functor F.to_functor) ⋙ (tensor D) ≅ (tensor C) ⋙ F.to_functor :=
 nat_iso.of_components
   (by { intros, apply F.μ_iso })
   (by { intros, apply F.to_lax_monoidal_functor.μ_natural })
+
+@[simp] lemma μ_iso_hom (X Y : C) : (F.μ_iso X Y).hom = F.μ X Y := rfl
+@[simp, reassoc] lemma μ_inv_hom_id (X Y : C) : (F.μ_iso X Y).inv ≫ F.μ X Y = 𝟙 _ :=
+(F.μ_iso X Y).inv_hom_id
+@[simp] lemma μ_hom_inv_id (X Y : C) : F.μ X Y ≫ (F.μ_iso X Y).inv = 𝟙 _ :=
+(F.μ_iso X Y).hom_inv_id
+
+@[simp] lemma ε_iso_hom : F.ε_iso.hom = F.ε := rfl
+@[simp, reassoc] lemma ε_inv_hom_id : F.ε_iso.inv ≫ F.ε = 𝟙 _ := F.ε_iso.inv_hom_id
+@[simp] lemma ε_hom_inv_id : F.ε ≫ F.ε_iso.inv = 𝟙 _ := F.ε_iso.hom_inv_id
+
 end
 
 section

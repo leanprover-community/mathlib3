@@ -11,20 +11,21 @@ import topology.algebra.ordered.liminf_limsup
 # ℓp space
 
 This file describes properties of elements `f` of a pi-type `Π i, E i` with finite seminorm,
-defined for `p:ℝ≥0∞` as `if (f = 0) then 0 else ∞` if `p=0`, `(∑' a, ∥f a∥^p) ^ (1/p)` for
+defined for `p:ℝ≥0∞` as the size of the support of `f` if `p=0`, `(∑' a, ∥f a∥^p) ^ (1/p)` for
 `0 < p < ∞` and `⨆ a, ∥f a∥` for `p=∞`.
 
 The Prop-valued `mem_ℓp f p` states that a function `f : Π i, E i` has finite seminorm according
-to the above definition; that is, `f = 0` if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and
-`bdd_above (norm '' (set.range f))` if `p = ∞`.
+to the above definition; that is, `f` has finite support if `p = 0`, `summable (λ a, ∥f a∥^p)` if
+`0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if `p = ∞`.
 
 The space `Lp E p` is the subtype of elements of `Π i : α, E i` which satisfy `mem_ℓp f p`. For
 `1 ≤ p`, the seminorm is genuinely a norm and `Lp` is a complete metric space.
 
 ## Main definitions
 
-* `mem_ℓp f p` : property that the function `f` satisfies, as appropriate, `f = 0` if `p = 0`,
-  `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if `p = ∞`
+* `mem_ℓp f p` : property that the function `f` satisfies, as appropriate, `f` finitely supported
+  if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
+  `p = ∞`
 * `Lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
   `Π i : α, E i`.
 
@@ -60,7 +61,7 @@ section ℓp
 section ℓp_space_definition
 
 /-- The property that `f : Π i : α, E i`
-* is `0`, if `p = 0`, or
+* is finitely supported, if `p = 0`, or
 * admits an upper bound for `set.range (λ i, ∥f i∥)`, if `p = ∞`, or
 * has the series `∑' i, ∥f i∥ ^ p` be summable, if `0 < p < ∞`. -/
 def mem_ℓp (f : Π i, E i) (p : ℝ≥0∞) : Prop :=
@@ -318,8 +319,6 @@ variables {E p}
 
 @[simp] lemma coe_fn_sub (f g : Lp E p) : ⇑(f - g) = f - g := rfl
 
--- @[simp] lemma eq_zero (f : Lp E 0) : f = 0 := ext (Lp.mem_ℓp f).eq_zero
-
 instance : has_norm (Lp E p) :=
 { norm := λ f, if hp : p = 0 then by subst hp; exact (Lp.mem_ℓp f).finite_dsupport.to_finset.card
    else (if p = ∞ then ⨆ i, ∥f i∥ else (∑' i, ∥f i∥ ^ p.to_real) ^ (1/p.to_real)) }
@@ -427,9 +426,10 @@ begin
   classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
   rcases p.trichotomy with rfl | rfl | hp,
-  { have : {i : α | ¬f i = 0} = ∅ := by simpa [Lp.norm_eq_card_dsupport f] using h,
-    ext i,
-    sorry },
+  { ext i,
+    have : {i : α | ¬f i = 0} = ∅ := by simpa [Lp.norm_eq_card_dsupport f] using h,
+    have : (¬ (f i = 0)) = false := congr_fun this i,
+    tauto },
   { cases is_empty_or_nonempty α with _i _i; resetI,
     { simp },
     have H : is_lub (set.range (λ i, ∥f i∥)) 0,
@@ -534,10 +534,10 @@ begin
     simpa using this },
 end
 
-lemma norm_const_smul (c : 𝕜) (f : Lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
+lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : Lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
-  { sorry },
+  { exact absurd rfl hp },
   { cases is_empty_or_nonempty α; resetI,
     { simp [Lp.eq_zero' f], },
     apply (Lp.is_lub_norm (c • f)).unique,
@@ -556,7 +556,10 @@ begin
 end
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p) :=
-{ norm_smul_le := λ _ _, by simp [norm_const_smul] }
+{ norm_smul_le := λ c f, begin
+    have hp : 0 < p := ennreal.zero_lt_one.trans_le (fact.out _),
+    simp [norm_const_smul hp.ne']
+  end }
 
 instance [Π i, normed_space ℝ (E i)] [has_scalar ℝ 𝕜] [Π i, is_scalar_tower ℝ 𝕜 (E i)] :
   is_scalar_tower ℝ 𝕜 (Lp E p) :=

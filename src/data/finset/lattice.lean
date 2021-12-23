@@ -47,18 +47,6 @@ fold_image_idem
   (s.map f).sup g = s.sup (g ∘ f) :=
 fold_map
 
-lemma _root_.multiset.map_finset_sup {α : Type*} [decidable_eq α] [decidable_eq β]
-  (s : finset γ) (f : γ → multiset β) (g : β ↪ α) :
-  multiset.map g (s.sup f) = s.sup (multiset.map g ∘ f) :=
-begin
-  apply finset.cons_induction_on s,
-  { simp },
-  { intros a s' h_a_s h_ind,
-    simp only [sup_cons, ←h_ind, multiset.sup_eq_union, function.comp_app],
-    rw multiset.map_union,
-    exact g.inj' },
-end
-
 @[simp] lemma sup_singleton {b : β} : ({b} : finset β).sup f = f b :=
 sup_singleton
 
@@ -991,6 +979,11 @@ end exists_max_min
 end finset
 
 namespace multiset
+
+lemma map_finset_sup [decidable_eq α] [decidable_eq β]
+  (s : finset γ) (f : γ → multiset β) (g : β → α) (hg : function.injective g) :
+  multiset.map g (s.sup f) = s.sup (multiset.map g ∘ f) :=
+finset.comp_sup_eq_sup_comp _ (λ _ _, multiset.map_union hg) (multiset.map_zero _)
 
 lemma count_finset_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
   count b (s.sup f) = s.sup (λa, count b (f a)) :=

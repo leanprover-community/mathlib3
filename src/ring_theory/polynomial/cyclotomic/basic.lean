@@ -751,7 +751,8 @@ begin
 end
 
 /-- If `n ≠ m`, then `(cyclotomic n ℚ)` and `(cyclotomic m ℚ)` are coprime. -/
-lemma cyclotomic.is_coprime {n m : ℕ} (h : n ≠ m) : is_coprime (cyclotomic n ℚ) (cyclotomic m ℚ) :=
+lemma cyclotomic.is_coprime_rat {n m : ℕ} (h : n ≠ m) :
+  is_coprime (cyclotomic n ℚ) (cyclotomic m ℚ) :=
 begin
   rcases n.eq_zero_or_pos with rfl | hnzero,
   { exact is_coprime_one_left },
@@ -782,7 +783,7 @@ begin
       (cyclotomic.is_primitive (n * p) ℤ) (cyclotomic.is_primitive n ℤ))
       ((cyclotomic.monic n ℤ).expand hp.pos).is_primitive).2 _,
     rw [map_mul, map_cyclotomic_int, map_cyclotomic_int, map_expand, map_cyclotomic_int],
-    refine is_coprime.mul_dvd (cyclotomic.is_coprime (λ h, _)) _ _,
+    refine is_coprime.mul_dvd (cyclotomic.is_coprime_rat (λ h, _)) _ _,
     { replace h : n * p = n * 1 := by simp [h],
       exact nat.prime.ne_one hp (nat.eq_of_mul_eq_mul_left hnpos h) },
     { have hpos : 0 < n * p := mul_pos hnpos hp.pos,

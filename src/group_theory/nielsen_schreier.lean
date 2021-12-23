@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import category_theory.action
-import combinatorics.quiver
+import combinatorics.quiver.arborescence
 import group_theory.is_free_group
 /-!
 # The Nielsen-Schreier theorem
@@ -240,7 +240,7 @@ lemma path_nonempty_of_hom {G} [groupoid.{u u} G] [is_free_groupoid G] {a b : G}
 begin
   rintro ⟨p⟩,
   rw [←weakly_connected_component.eq, eq_comm, ←free_group.of_injective.eq_iff, ←mul_inv_eq_one],
-  let X := free_group (weakly_connected_component $ symmetrify $ generators G),
+  let X := free_group (weakly_connected_component $ generators G),
   let f : G → X := λ g, free_group.of ↑(symgen g),
   let F : G ⥤ single_obj X := single_obj.difference_functor f,
   change F.map p = ((category_theory.functor.const G).obj ()).map p,

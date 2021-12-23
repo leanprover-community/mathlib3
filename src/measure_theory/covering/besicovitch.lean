@@ -131,39 +131,6 @@ instance {α : Type*} {τ : ℝ} [inhabited α] [metric_space α] :
   hlast := λ i hi, by { rw subsingleton.elim i (last 0) at hi, exact (lt_irrefl _ hi).elim },
   inter := λ i hi, by { rw subsingleton.elim i (last 0) at hi, exact (lt_irrefl _ hi).elim } }⟩
 
-/-- In a metric space with the Besicovitch property, one can find a positive `N` for which there
-is no satellite configuration of cardinality `N + 1`. This can be handy when one wants to be able
-to divide by `N`. -/
-lemma exists_pos_of_has_besicovitch_covering
-  (α : Type*) [metric_space α] [hb : has_besicovitch_covering α] :
-  ∃ N τ, 0 < N ∧ 1 < τ ∧ is_empty (besicovitch.satellite_config α N τ) :=
-begin
-  unfreezingI { rcases hb with ⟨N, τ, hτ, h⟩, },
-  refine ⟨N+1, τ, nat.succ_pos _, hτ, ⟨λ a, _⟩⟩,
-  -- we construct a satellite configuration of cardinality `N`, just by forgetting the first point.
-  let b : besicovitch.satellite_config α N τ :=
-  { c := λ i, a.c (fin.succ i),
-    r := λ i, a.r (fin.succ i),
-    rpos := λ i, a.rpos _,
-    h := λ i j hij, begin
-      have : i.succ ≠ j.succ, by simpa only [ne.def, succ_inj] using hij,
-      exact a.h (fin.succ i) (fin.succ j) this,
-    end,
-    hlast := begin
-      assume i hi,
-      apply a.hlast i.succ,
-      rcases i with ⟨i, _⟩,
-      simpa only [last, subtype.mk_lt_mk, add_lt_add_iff_right, succ_mk] using hi,
-    end,
-    inter := begin
-      assume i hi,
-      apply a.inter i.succ,
-      rcases i with ⟨i, _⟩,
-      simpa only [last, subtype.mk_lt_mk, add_lt_add_iff_right, succ_mk] using hi,
-    end },
-  exact is_empty.false b,
-end
-
 namespace besicovitch
 
 namespace satellite_config
@@ -952,9 +919,8 @@ begin
         exists_disjoint_closed_ball_covering_ae μ f s hf R (λ x hx, (hR x hx).1),
   let s' := s \ (⋃ (x ∈ t0), closed_ball x (r0 x)),
   have s's : s' ⊆ s := diff_subset _ _,
-  obtain ⟨N, τ, Npos, hτ, H⟩ :
-    ∃ N τ, 0 < N ∧ 1 < τ ∧ is_empty (besicovitch.satellite_config α N τ) :=
-      exists_pos_of_has_besicovitch_covering α,
+  obtain ⟨N, τ, hτ, H⟩ : ∃ N τ, 1 < τ ∧ is_empty (besicovitch.satellite_config α N τ) :=
+    has_besicovitch_covering.no_satellite_config,
   obtain ⟨v, s'v, v_open, μv⟩ : ∃ v ⊇ s', is_open v ∧ μ v ≤ μ s' + (ε / 2) / N :=
     set.exists_is_open_le_add _ _
       (by simp only [hε, ennreal.nat_ne_top, with_top.mul_eq_top_iff, ne.def, ennreal.div_zero_iff,
@@ -1070,10 +1036,10 @@ begin
     calc ∑' (x : (t0 ∪ ⋃ (i : fin N), (coe : s' → α) '' S i)), μ (closed_ball x (r x))
         ≤ ∑' (x : t0), μ (closed_ball x (r x))
           + ∑' (x : ⋃ (i : fin N), (coe : s' → α) '' S i), μ (closed_ball x (r x)) :
-            tsum_union_le (λ x, μ (closed_ball x (r x))) _ _
+            ennreal.tsum_union_le (λ x, μ (closed_ball x (r x))) _ _
     ... ≤ ∑' (x : t0), μ (closed_ball x (r x))
           + ∑ (i : fin N), ∑' (x : (coe : s' → α) '' S i), μ (closed_ball x (r x)) :
-            add_le_add le_rfl (tsum_Union_le (λ x, μ (closed_ball x (r x))) _)
+            add_le_add le_rfl (ennreal.tsum_Union_le (λ x, μ (closed_ball x (r x))) _)
     ... ≤ (μ s + ε / 2) + ∑ (i : fin N), (ε / 2) / N :
       begin
         refine add_le_add A _,
@@ -1087,7 +1053,6 @@ begin
         simp only [finset.card_fin, finset.sum_const, nsmul_eq_mul, ennreal.mul_div_le],
       end
     ... = μ s + ε : by rw [add_assoc, ennreal.add_halves] }
-
 end
 
 end besicovitch

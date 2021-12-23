@@ -91,4 +91,12 @@ def hom.unop {V} [quiver V] {X Y : Vᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X :=
 
 attribute [irreducible] quiver.opposite
 
+/-- A type synonym for a quiver with no arrows. -/
+@[nolint has_inhabited_instance]
+def empty (V) : Type u := V
+
+instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty⟩
+
+@[simp] lemma empty_arrow {V : Type u} (a b : empty V) : (a ⟶ b) = pempty := rfl
+
 end quiver

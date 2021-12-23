@@ -38,14 +38,6 @@ instance wide_subquiver.quiver {V} [quiver V] (H : wide_subquiver V) : quiver H 
 
 namespace quiver
 
-/-- A type synonym for a quiver with no arrows. -/
-@[nolint has_inhabited_instance]
-def empty (V) : Type u := V
-
-instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty⟩
-
-@[simp] lemma empty_arrow {V : Type u} (a b : empty V) : (a ⟶ b) = pempty := rfl
-
 instance {V} [quiver V] : has_bot (wide_subquiver V) := ⟨λ a b, ∅⟩
 instance {V} [quiver V] : has_top (wide_subquiver V) := ⟨λ a b, set.univ⟩
 instance {V} [quiver V] : inhabited (wide_subquiver V) := ⟨⊤⟩

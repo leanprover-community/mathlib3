@@ -167,6 +167,19 @@ begin
     rw set.image_singleton }
 end
 
+omit h
+
+lemma is_generic_point_iff_forall_closed {x : α} {S : set α} (hS : is_closed S) (hxS : x ∈ S) :
+  is_generic_point x S ↔ ∀ (Z : set α) (hZ : is_closed Z) (hxZ : x ∈ Z), S ⊆ Z :=
+begin
+  split,
+  { intros h Z hZ hxZ, exact (h.mem_closed_set_iff hZ).mp hxZ },
+  { intro h,
+    apply le_antisymm,
+    { rwa [set.le_eq_subset, hS.closure_subset_iff, set.singleton_subset_iff] },
+    { exact h _ is_closed_closure (subset_closure $ set.mem_singleton x) } }
+end
+
 end generic_point
 
 section sober

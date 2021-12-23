@@ -717,13 +717,13 @@ begin
   suffices : expand ℤ p (cyclotomic n ℤ) = cyclotomic (n * p) ℤ,
   { rw [← map_cyclotomic_int, ← map_expand, this, map_cyclotomic_int] },
   refine eq_of_monic_of_dvd_of_nat_degree_le (cyclotomic.monic _ _)
-    (expand_monic (zero_lt_iff.2 (nat.prime.ne_zero hp)) (cyclotomic.monic _ _)) _ _,
+    ((cyclotomic.monic n ℤ).expand (zero_lt_iff.2 (nat.prime.ne_zero hp))) _ _,
   { have hpos := nat.mul_pos (zero_lt_iff.mpr hzero) (nat.prime.pos hp),
     have hprim := complex.is_primitive_root_exp _ hpos.ne.symm,
     rw [cyclotomic_eq_minpoly hprim hpos],
     refine @minpoly.gcd_domain_dvd ℤ ℂ ℚ _ _ _ _ _ _ _ _ complex.algebra (algebra_int ℂ) _ _
-      (is_primitive_root.is_integral hprim hpos) _ (expand_monic (nat.prime.pos hp)
-      (cyclotomic.monic n ℤ)).is_primitive _,
+      (is_primitive_root.is_integral hprim hpos) _ ((cyclotomic.monic n ℤ).expand
+      (nat.prime.pos hp)).is_primitive _,
     rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval, ← is_root.def,
       is_root_cyclotomic_iff],
     { convert is_primitive_root.pow_of_div hprim (nat.prime.ne_zero hp) (dvd_mul_left p n),

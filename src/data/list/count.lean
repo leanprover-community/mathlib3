@@ -41,6 +41,9 @@ by induction l with x l ih; [refl, by_cases (p x)];
   [simp only [filter_cons_of_pos _ h, countp, ih, if_pos h],
    simp only [countp_cons_of_neg _ _ h, ih, filter_cons_of_neg _ h]]; refl
 
+lemma countp_le_length : countp p l ≤ l.length :=
+by simpa only [countp_eq_length_filter] using length_le_of_sublist (filter_sublist _)
+
 @[simp] lemma countp_append (l₁ l₂) : countp p (l₁ ++ l₂) = countp p l₁ + countp p l₂ :=
 by simp only [countp_eq_length_filter, filter_append, length_append]
 
@@ -83,14 +86,7 @@ lemma count_tail : Π (l : list α) (a : α) (h : 0 < l.length),
 | (_ :: _) a h := by { rw [count_cons], split_ifs; simp }
 
 lemma count_le_length (a : α) (l : list α) : count a l ≤ l.length :=
-begin
-  induction l,
-  { rw [count_nil, length] },
-  { simp only [count_cons, length],
-    split_ifs,
-    { rwa [nat.succ_eq_add_one, add_le_add_iff_right] },
-    { exact le_add_right l_ih } },
-end
+countp_le_length _
 
 lemma sublist.count_le (h : l₁ <+ l₂) (a : α) : count a l₁ ≤ count a l₂ := h.countp_le _
 

@@ -772,9 +772,8 @@ section expand
 lemma cyclotomic_expand_eq_cyclotomic_mul {p n : ℕ} (hp : nat.prime p) (hdiv : ¬p ∣ n) (R : Type*)
   [comm_ring R] : expand R p (cyclotomic n R) = (cyclotomic (n * p) R) * (cyclotomic n R) :=
 begin
-  by_cases hzero : n = 0,
+  cases nat.eq_zero_or_pos n with hzero hnpos,
   { simp [hzero] },
-  have hnpos : 0 < n := zero_lt_iff.2 hzero,
   suffices : expand ℤ p (cyclotomic n ℤ) = (cyclotomic (n * p) ℤ) * (cyclotomic n ℤ),
   { rw [← map_cyclotomic_int, ← map_expand, this, map_mul, map_cyclotomic_int] },
   refine eq_of_monic_of_dvd_of_nat_degree_le (monic_mul (cyclotomic.monic _ _)
@@ -787,21 +786,21 @@ begin
     { replace h : n * p = n * 1 := by simp [h],
       exact nat.prime.ne_one hp (nat.eq_of_mul_eq_mul_left hnpos h) },
     { have hpos : 0 < n * p := mul_pos hnpos hp.pos,
-      have hprim := complex.is_primitive_root_exp _ hpos.ne.symm,
+      have hprim := complex.is_primitive_root_exp _ hpos.ne',
       rw [cyclotomic_eq_minpoly_rat hprim hpos],
       refine @minpoly.dvd ℚ ℂ _ _ algebra_rat _ _ _,
       rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval, ← is_root.def,
         is_root_cyclotomic_iff],
       { convert is_primitive_root.pow_of_div hprim hp.ne_zero (dvd_mul_left p n),
         rw [nat.mul_div_cancel _ (nat.prime.pos hp)] },
-      { exact_mod_cast hzero } },
+      { exact_mod_cast hnpos.ne' } },
     { have hprim := complex.is_primitive_root_exp _ hnpos.ne.symm,
       rw [cyclotomic_eq_minpoly_rat hprim hnpos],
       refine @minpoly.dvd ℚ ℂ _ _ algebra_rat _ _ _,
       rw [aeval_def, ← eval_map, map_expand, expand_eval, ← is_root.def,
         ← cyclotomic_eq_minpoly_rat hprim hnpos, map_cyclotomic, is_root_cyclotomic_iff],
       { exact is_primitive_root.pow_of_prime hprim hp hdiv },
-      { exact_mod_cast hzero } } },
+      { exact_mod_cast hnpos.ne' } } },
   { rw [nat_degree_expand, nat_degree_cyclotomic, nat_degree_mul (cyclotomic_ne_zero _ ℤ)
       (cyclotomic_ne_zero _ ℤ), nat_degree_cyclotomic, nat_degree_cyclotomic, mul_comm n,
       nat.totient_mul ((nat.prime.coprime_iff_not_dvd hp).2 hdiv),

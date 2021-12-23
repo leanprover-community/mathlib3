@@ -16,11 +16,14 @@ periodic predicates which helps determine their cardinality when filtering inter
 
 open finset nat function
 
-lemma periodic_gcd (a : ℕ) : periodic (gcd a) a := by simp
+lemma periodic_gcd (a : ℕ) : periodic (gcd a) a :=
+by simp only [forall_const, gcd_add_self_right, eq_self_iff_true, periodic]
 
-lemma periodic_coprime (a : ℕ) : periodic (coprime a) a := by simp
+lemma periodic_coprime (a : ℕ) : periodic (coprime a) a :=
+by simp only [coprime_add_self_right, forall_const, iff_self, eq_iff_iff, periodic]
 
-lemma periodic_mod (a : ℕ) : periodic (λ n, n % a) a := by simp
+lemma periodic_mod (a : ℕ) : periodic (λ n, n % a) a :=
+by simp only [forall_const, eq_self_iff_true, add_mod_right, periodic]
 
 /-- An interval of length `a` filtered over a periodic predicate of period `a` has the
 same cardinality as `range a` filtered over that predicate. -/

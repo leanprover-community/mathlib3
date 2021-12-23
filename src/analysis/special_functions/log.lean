@@ -196,8 +196,7 @@ begin
   { have hlogx : 1 ≤ log x,
     { rwa le_log_iff_exp_le x_pos, },
     have hyx : 0 ≤ y / x - 1,
-    { rw le_sub_iff_add_le, rw le_div_iff,
-      simp [hxy], assumption, },
+    { rwa [le_sub_iff_add_le, le_div_iff x_pos, zero_add, one_mul], },
     exact le_mul_of_one_le_left hyx hlogx, },
 end
 

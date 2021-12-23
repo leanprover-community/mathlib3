@@ -192,7 +192,7 @@ begin
   { rwa [le_sub_iff_add_le, le_div_iff x_pos, zero_add, one_mul], },
   rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x)],
   calc log y - log x = log (y / x)           : by rw [log_div (y_pos.ne') (x_pos.ne')]
-       ...           ≤ (y / x) - 1           : log_le_sub_one_of_nonneg (div_pos y_pos x_pos)
+       ...           ≤ (y / x) - 1           : log_le_sub_one_of_pos (div_pos y_pos x_pos)
        ...           ≤ log x * (y / x - 1)   : le_mul_of_one_le_left hyx hlogx
        ...           = log x / x * y - log x : by ring,
 end

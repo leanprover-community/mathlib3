@@ -765,7 +765,7 @@ begin
   classical,
   induction s using finset.induction_on with i s hi ihs h, { simp },
   have : (⋃ (j ∈ insert i s), t j) = t i ∪ (⋃ (j ∈ s), t j), by simp,
-  rw tsum_congr_subtype _ this,
+  rw tsum_congr_subtype f this,
   calc ∑' (x : (t i ∪ (⋃ (j ∈ s), t j))), f x ≤
   ∑' (x : t i), f x + ∑' (x : ⋃ (j ∈ s), t j), f x : tsum_union_le _ _ _
   ... ≤ ∑' (x : t i), f x + ∑ i in s, ∑' (x : t i), f x : add_le_add le_rfl ihs
@@ -777,7 +777,7 @@ lemma tsum_Union_le {ι : Type*} [fintype ι] (f : α → ℝ≥0∞) (t : ι �
 begin
   classical,
   have : (⋃ i, t i) = (⋃ (i ∈ (finset.univ : finset ι)), t i), by simp,
-  rw tsum_congr_subtype _ this,
+  rw tsum_congr_subtype f this,
   exact tsum_bUnion_le _ _ _
 end
 

@@ -252,13 +252,13 @@ begin
   intro a,
   simp only [exists_prop, mem_support_iff, finset.mem_image, ne.def],
   apply iff.intro,
-  intro h1,
-  cases coeff_rename_ne_zero f p a h1 with d hd,
-  rw ← hd.1,
-  exact ⟨d, ⟨hd.2, by refl⟩⟩,
-  intro h,
-  cases h with b hb,
-  simpa only [←hb.right, coeff_rename_map_domain f h p b] using hb.left,
+  { intro h1,
+    cases coeff_rename_ne_zero f p a h1 with d hd,
+    rw ← hd.1,
+    exact ⟨d, ⟨hd.2, by refl⟩⟩ },
+  { intro h,
+    cases h with b hb,
+    simpa only [←hb.right, coeff_rename_map_domain f h p b] using hb.left },
 end
 
 end support

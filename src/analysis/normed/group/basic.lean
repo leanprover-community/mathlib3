@@ -262,6 +262,9 @@ lemma mem_closed_ball_iff_norm {g h : E} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
 
+@[simp] lemma mem_closed_ball_zero_iff {ε : ℝ} {x : E} : x ∈ closed_ball (0 : E) ε ↔ ∥x∥ ≤ ε :=
+by rw [mem_closed_ball, dist_zero_right]
+
 lemma add_mem_closed_ball_iff_norm {g h : E} {r : ℝ} :
   g + h ∈ closed_ball g r ↔ ∥h∥ ≤ r :=
 by rw [mem_closed_ball_iff_norm, add_sub_cancel']
@@ -296,14 +299,14 @@ lemma bounded_iff_forall_norm_le {s : set E} : bounded s ↔ ∃ C, ∀ x ∈ s,
 by simpa only [set.subset_def, mem_closed_ball_iff_norm, sub_zero]
   using bounded_iff_subset_ball (0 : E)
 
-lemma preimage_add_ball (x y : E) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
+@[simp] lemma preimage_add_ball (x y : E) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
 begin
   ext z,
   simp only [dist_eq_norm, set.mem_preimage, mem_ball],
   abel
 end
 
-lemma preimage_add_closed_ball (x y : E) (r : ℝ) :
+@[simp] lemma preimage_add_closed_ball (x y : E) (r : ℝ) :
   ((+) y) ⁻¹' (closed_ball x r) = closed_ball (x - y) r :=
 begin
   ext z,
@@ -1014,7 +1017,7 @@ by simpa only [← dist_zero_right] using dist_pi_const a 0
   ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
 nnreal.eq $ pi_norm_const a
 
-lemma tendsto_norm_nhds_within_zero : tendsto (norm : E → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
+lemma tendsto_norm_nhds_within_zero : tendsto (norm : E → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
 (continuous_norm.tendsto' (0 : E) 0 norm_zero).inf $ tendsto_principal_principal.2 $
   λ x, norm_pos_iff.2
 

@@ -82,6 +82,16 @@ lemma count_tail : Π (l : list α) (a : α) (h : 0 < l.length),
   l.tail.count a = l.count a - ite (a = list.nth_le l 0 h) 1 0
 | (_ :: _) a h := by { rw [count_cons], split_ifs; simp }
 
+lemma count_le_length (a : α) (l : list α) : count a l ≤ l.length :=
+begin
+  induction l,
+  { rw [count_nil, length] },
+  { simp only [count_cons, length],
+    split_ifs,
+    { rwa [nat.succ_eq_add_one, add_le_add_iff_right] },
+    { exact le_add_right l_ih } },
+end
+
 lemma sublist.count_le (h : l₁ <+ l₂) (a : α) : count a l₁ ≤ count a l₂ := h.countp_le _
 
 lemma count_le_count_cons (a b : α) (l : list α) : count a l ≤ count a (b :: l) :=

@@ -237,7 +237,7 @@ subtype.coe_injective.of_comp_iff (pow n)
 /-- The exponentiation map is an isomorphism from the additive monoid on natural numbers to powers
 when it is injective. The inverse is given by the logarithms. -/
 @[simps]
-def pow_log_equiv [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)):
+def pow_log_equiv [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) :
   multiplicative ℕ ≃* powers n :=
 { to_fun := λ m, pow n m.to_add,
   inv_fun := λ m, multiplicative.of_add (log m),

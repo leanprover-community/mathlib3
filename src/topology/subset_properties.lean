@@ -1401,6 +1401,11 @@ lemma irreducible_space.is_irreducible_univ (α : Type u) [topological_space α]
   [irreducible_space α] : is_irreducible (⊤ : set α) :=
 ⟨by simp, preirreducible_space.is_preirreducible_univ α⟩
 
+lemma irreducible_space_def (α : Type u) [topological_space α] :
+  irreducible_space α ↔ is_irreducible (⊤ : set α) :=
+⟨@@irreducible_space.is_irreducible_univ α _,
+  λ h, by { haveI : preirreducible_space α := ⟨h.2⟩, exact ⟨⟨h.1.some⟩⟩ }⟩
+
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
   is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=
 by simpa only [univ_inter, univ_subset_iff] using

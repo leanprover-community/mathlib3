@@ -888,11 +888,8 @@ begin
   rw [finprod_eq_prod_of_mul_support_subset _
     (s.mul_support_of_fiberwise_prod_subset_image f prod.fst),
     ← finset.prod_fiberwise_of_maps_to _ f],  -- `finish` could close the goal here
-  intros x hx,
-  simp only [exists_eq_right, finset.mem_image, prod.exists],
-  use [x.1, x.2],
-  simp only [prod.mk.eta, and_true, eq_self_iff_true],
-  exact hx,
+  simp only [finset.mem_image, prod.mk.eta],
+  exact λ x hx, ⟨x, hx, rfl⟩,
 end
 
 /-- See also `finprod_mem_finset_product'`. -/

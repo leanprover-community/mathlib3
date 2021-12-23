@@ -350,8 +350,8 @@ lemma l_bsupr_u [complete_lattice α] [complete_lattice β] (gi : galois_inserti
   l (⨆ i hi, u (f i hi)) = ⨆ i hi, f i hi :=
 by simp only [supr_subtype', gi.l_supr_u]
 
-lemma l_Sup_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u) (s : set β) :
-  l (Sup (u '' s)) = Sup s :=
+lemma l_Sup_u_image [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  (s : set β) : l (Sup (u '' s)) = Sup s :=
 by rw [Sup_image, gi.l_bsupr_u, Sup_eq_supr]
 
 lemma l_inf_u [semilattice_inf α] [semilattice_inf β] (gi : galois_insertion l u) (a b : β) :
@@ -370,8 +370,8 @@ lemma l_binfi_u [complete_lattice α] [complete_lattice β] (gi : galois_inserti
   l (⨅ i hi, u (f i hi)) = ⨅ i hi, f i hi :=
 by simp only [infi_subtype', gi.l_infi_u]
 
-lemma l_Inf_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u) (s : set β) :
-  l (Inf (u '' s)) = Inf s :=
+lemma l_Inf_u_image [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  (s : set β) : l (Inf (u '' s)) = Inf s :=
 by rw [Inf_image, gi.l_binfi_u, Inf_eq_infi]
 
 lemma l_infi_of_ul_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
@@ -548,9 +548,9 @@ lemma u_infi_l [complete_lattice α] [complete_lattice β] (gi : galois_coinsert
   u (⨅ i, l (f i)) = ⨅ i, (f i) :=
 gi.dual.l_supr_u _
 
-lemma u_Inf_l [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u) (s : set α) :
-  u (Inf (l '' s)) = Inf s :=
-gi.dual.l_Sup_u _
+lemma u_Inf_l_image [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  (s : set α) : u (Inf (l '' s)) = Inf s :=
+gi.dual.l_Sup_u_image _
 
 lemma u_sup_l [semilattice_sup α] [semilattice_sup β] (gi : galois_coinsertion l u) (a b : α) :
   u (l a ⊔ l b) = a ⊔ b :=
@@ -566,9 +566,9 @@ lemma u_bsupr_l [complete_lattice α] [complete_lattice β] (gi : galois_coinser
   u (⨆ i hi, l (f i hi)) = ⨆ i hi, f i hi :=
 gi.dual.l_binfi_u _
 
-lemma u_Sup_l [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u) (s : set α) :
-  u (Sup (l '' s)) = Sup s :=
-gi.dual.l_Inf_u _
+lemma u_Sup_l_image [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  (s : set α) : u (Sup (l '' s)) = Sup s :=
+gi.dual.l_Inf_u_image _
 
 lemma u_supr_of_lu_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
   {ι : Sort x} (f : ι → β) (hf : ∀ i, l (u (f i)) = f i) :

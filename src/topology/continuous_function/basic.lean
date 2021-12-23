@@ -229,11 +229,9 @@ def prod_map {α₁ α₂ β₁ β₂ : Type*} [topological_space α₁] [topolo
 { to_fun := prod.map f g,
   continuous_to_fun := continuous.prod_map f.continuous g.continuous }
 
-@[simp]
-lemma prod_eval {α β₁ β₂ : Type*}
-                [topological_space α] [topological_space β₁] [topological_space β₂]
-                (f : C(α, β₁)) (g : C(α, β₂)) (a : α) :
-                (prod_mk f g) a = (f a, g a) := rfl
+@[simp] lemma prod_eval [topological_space α] [topological_space β₁] [topological_space β₂]
+  (f : C(α, β₁)) (g : C(α, β₂)) (a : α) :
+  (prod_mk f g) a = (f a, g a) := rfl
 
 end prod
 
@@ -244,10 +242,9 @@ variables {I A : Type*} {X : I → Type*}
 
 /-- Abbreviation for product of continuous maps, which is continuous -/
 def pi (f : Π i, C(A, X i)) : C(A, Π i, X i) :=
-  { to_fun := λ (a : A) (i : I), f i a, }
+{ to_fun := λ (a : A) (i : I), f i a, }
 
-@[simp]
-lemma pi_eval (f : Π i, C(A, X i)) (a : A)  :
+@[simp] lemma pi_eval (f : Π i, C(A, X i)) (a : A) :
   (pi f) a  = λ i : I, (f i) a := rfl
 
 end pi

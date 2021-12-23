@@ -34,15 +34,12 @@ open continuous_map
 
 section pi
 
-variables {I : Type*} {X : I → Type*}
-           [∀i, topological_space (X i)]
-           {A : Type*}
-           [topological_space A]
-           {f g : Π i, C(A, X i)} {S : set A}
+variables {I : Type*} {X : I → Type*} [∀i, topological_space (X i)]
+  {A : Type*} [topological_space A]
+  {f g : Π i, C(A, X i)} {S : set A}
 
 
-/-- The product homotopy of `homotopies` between functions `f`
-      and `g` -/
+/-- The product homotopy of `homotopies` between functions `f` and `g` -/
 def pi (homotopies : Π i : I, homotopy_rel (f i) (g i) S) :
   homotopy_rel (pi f) (pi g) S :=
 { to_fun := λ t i, (homotopies i).to_fun t,
@@ -69,8 +66,8 @@ end pi
 
 section prod
 variables {α β : Type*} [topological_space α] [topological_space β]
-          {A : Type*} [topological_space A]
-          {f₀ f₁ : C(A, α)} {g₀ g₁ : C(A, β)} {S : set A}
+  {A : Type*} [topological_space A]
+  {f₀ f₁ : C(A, α)} {g₀ g₁ : C(A, β)} {S : set A}
 
 /-- The product of homotopies `F` and `G`,
     where `F` takes `f₀` to `f₁`

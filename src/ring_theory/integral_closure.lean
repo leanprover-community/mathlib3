@@ -443,6 +443,122 @@ lemma is_integral.sum {α : Type*} {s : finset α} (f : α → A) (h : ∀ x ∈
   is_integral R (∑ x in s, f x) :=
 (integral_closure R A).sum_mem h
 
+section
+
+variables (p : polynomial R) (x : S)
+
+/--  The monic polynomial whose roots are `p.leading_coeff * x` for roots `x` of `p`. -/
+noncomputable
+def normalize_scale_roots (p : polynomial R) : polynomial R :=
+∑ i in p.support, monomial i
+  (if i = p.nat_degree then 1 else p.coeff i * p.leading_coeff ^ (p.nat_degree - 1 - i))
+
+lemma normalize_scale_roots_coeff_mul_leading_coeff_pow (i : ℕ) (hp : 1 ≤ nat_degree p) :
+  (normalize_scale_roots p).coeff i * p.leading_coeff ^ i =
+    p.coeff i * p.leading_coeff ^ (p.nat_degree - 1) :=
+begin
+  simp only [normalize_scale_roots, finset_sum_coeff, coeff_monomial, finset.sum_ite_eq', one_mul,
+    zero_mul, mem_support_iff, ite_mul, ne.def, ite_not],
+  split_ifs with h₁ h₂,
+  { simp [h₁], },
+  { rw [h₂, leading_coeff, ← pow_succ, tsub_add_cancel_of_le hp], },
+  { rw [mul_assoc, ← pow_add, tsub_add_cancel_of_le],
+    apply nat.le_pred_of_lt,
+    rw lt_iff_le_and_ne,
+    exact ⟨le_nat_degree_of_ne_zero h₁, h₂⟩, },
+end
+
+lemma leading_coeff_smul_normalize_scale_roots (p : polynomial R) :
+  p.leading_coeff • normalize_scale_roots p = scale_roots p p.leading_coeff :=
+begin
+  ext,
+  simp only [coeff_scale_roots, normalize_scale_roots, coeff_monomial, coeff_smul, finset.smul_sum,
+    ne.def, finset.sum_ite_eq', finset_sum_coeff, smul_ite, smul_zero, mem_support_iff],
+  split_ifs with h₁ h₂,
+  { simp [*] },
+  { simp [*] },
+  { rw [algebra.id.smul_eq_mul, mul_comm, mul_assoc, ← pow_succ', tsub_right_comm,
+      tsub_add_cancel_of_le],
+    rw nat.succ_le_iff,
+    exact tsub_pos_of_lt (lt_of_le_of_ne (le_nat_degree_of_ne_zero h₁) h₂) },
+end
+
+lemma normalize_scale_roots_support :
+  (normalize_scale_roots p).support ≤ p.support :=
+begin
+  intro x,
+  contrapose,
+  simp only [not_mem_support_iff, normalize_scale_roots, finset_sum_coeff, coeff_monomial,
+    finset.sum_ite_eq', mem_support_iff, ne.def, not_not, ite_eq_right_iff],
+  intros h₁ h₂,
+  exact (h₂ h₁).rec _,
+end
+
+lemma normalize_scale_roots_degree :
+  (normalize_scale_roots p).degree = p.degree :=
+begin
+  apply le_antisymm,
+  { exact finset.sup_mono (normalize_scale_roots_support p) },
+  { rw [← degree_scale_roots, ← leading_coeff_smul_normalize_scale_roots],
+    exact degree_smul_le _ _ }
+end
+
+lemma normalize_scale_roots_eval₂_leading_coeff_mul (h : 1 ≤ p.nat_degree) (f : R →+* S) (x : S) :
+  (normalize_scale_roots p).eval₂ f (f p.leading_coeff * x) =
+    f p.leading_coeff ^ (p.nat_degree - 1) * (p.eval₂ f x) :=
+begin
+  rw [eval₂_eq_sum_range, eval₂_eq_sum_range, finset.mul_sum],
+  apply finset.sum_congr,
+  { rw nat_degree_eq_of_degree_eq (normalize_scale_roots_degree p) },
+  intros n hn,
+  rw [mul_pow, ← mul_assoc, ← f.map_pow, ← f.map_mul,
+    normalize_scale_roots_coeff_mul_leading_coeff_pow _ _ h, f.map_mul, f.map_pow],
+  ring,
+end
+
+lemma normalize_scale_roots_monic (h : p ≠ 0) : (normalize_scale_roots p).monic :=
+begin
+  delta monic leading_coeff,
+  rw nat_degree_eq_of_degree_eq (normalize_scale_roots_degree p),
+  suffices : p = 0 → (0 : R) = 1,
+  { simpa [normalize_scale_roots, coeff_monomial] },
+  exact λ h', (h h').rec _,
+end
+
+/-- Given a `p : polynomial R` and a `x : S` such that `p.eval₂ f x = 0`,
+`f p.leading_coeff * x` is integral. -/
+lemma ring_hom.is_integral_elem_leading_coeff_mul (h : p.eval₂ f x = 0) :
+  f.is_integral_elem (f p.leading_coeff * x) :=
+begin
+  by_cases h' : 1 ≤ p.nat_degree,
+  { use normalize_scale_roots p,
+    have : p ≠ 0 := λ h'', by { rw [h'', nat_degree_zero] at h', exact nat.not_succ_le_zero 0 h' },
+    use normalize_scale_roots_monic p this,
+    rw [normalize_scale_roots_eval₂_leading_coeff_mul p h' f x, h, mul_zero] },
+  { by_cases hp : p.map f = 0,
+    { apply_fun (λ q, coeff q p.nat_degree) at hp,
+      rw [coeff_map, coeff_zero, coeff_nat_degree] at hp,
+      rw [hp, zero_mul],
+      exact f.is_integral_zero },
+    { rw [nat.one_le_iff_ne_zero, not_not] at h',
+      rw [eq_C_of_nat_degree_eq_zero h', eval₂_C] at h,
+      suffices : p.map f = 0,
+      { exact (hp this).rec _ },
+      rw [eq_C_of_nat_degree_eq_zero h', map_C, h, C_eq_zero] } }
+end
+
+/-- Given a `p : polynomial R` and a root `x : S`,
+then `p.leading_coeff • x : S` is integral over `R`. -/
+lemma is_integral_leading_coeff_smul [algebra R S] (h : aeval x p = 0) :
+  is_integral R (p.leading_coeff • x) :=
+begin
+  rw aeval_def at h,
+  rw algebra.smul_def,
+  exact (algebra_map R S).is_integral_elem_leading_coeff_mul p x h,
+end
+
+end
+
 end
 
 section is_integral_closure

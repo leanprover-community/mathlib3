@@ -183,9 +183,9 @@ end
 lemma log_div_self_decreasing {x y : ℝ} (hex : exp 1 ≤ x) (hxy : x ≤ y) :
   log y / y ≤ log x / x :=
 begin
-  have x_pos : 0 < x := lt_of_lt_of_le (exp_pos 1) hex,
-  have y_pos : 0 < y := lt_of_lt_of_le x_pos hxy,
-  rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x), ←log_div (ne_of_gt y_pos) (ne_of_gt x_pos),
+  have x_pos : 0 < x := (exp_pos 1).trans_le hex,
+  have y_pos : 0 < y := x_pos.trans_le hxy,
+  rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x), ←log_div (y_pos.ne') (x_pos.ne'),
     ←mul_div_right_comm, mul_div_assoc],
   have : log x * (y / x) - log x = log x * (y / x - 1), ring,
   rw this,

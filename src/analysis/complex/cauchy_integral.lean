@@ -230,7 +230,7 @@ begin
       (λ z hz, (differentiable_within_at_id.sub_const _).smul (hd z hz))
   ... = 0 : by rw [sub_self, zero_smul, smul_zero]
 end
-    
+
 lemma circle_integral_sub_inv_smul_of_differentiable_on {R : ℝ} {c w : ℂ} (hw : w ∈ ball c R)
   {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball c R)) :
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=

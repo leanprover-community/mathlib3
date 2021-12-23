@@ -83,6 +83,7 @@ lemma condexp_ae_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
   μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i :=
 hf.2 i j hij
 
+@[protected]
 lemma integrable (hf : martingale f ℱ μ) (i : ι) : integrable (f i) μ :=
 integrable_condexp.congr (hf.condexp_ae_eq (le_refl i))
 
@@ -142,6 +143,7 @@ lemma adapted [has_le E] (hf : supermartingale f ℱ μ) : adapted ℱ f := hf.1
 lemma measurable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
 hf.adapted i
 
+@[protected]
 lemma integrable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
 lemma condexp_ae_le [has_le E] (hf : supermartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
@@ -192,6 +194,7 @@ lemma adapted [has_le E] (hf : submartingale f ℱ μ) : adapted ℱ f := hf.1
 lemma measurable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
 hf.adapted i
 
+@[protected]
 lemma integrable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
 lemma ae_le_condexp [has_le E] (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
@@ -311,16 +314,19 @@ section nat
 
 namespace submartingale
 
-/-
-Optional stopping theorem: if `f` is a supermartingale and `τ, π` are bounded stopping times with
-`τ ≤ π` then `∫ f_τ ≤ ∫ f_π`
--/
-
 variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
   [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
   [ordered_smul ℝ F]
 variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
 
+lemma stopped_value_integrable {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ : α → ℕ}
+  (hτ : is_stopping_time 𝒢 τ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
+  integrable (stopped_value f τ) μ :=
+stopped_value_integrable hf.integrable hτ hbdd
+
+/-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
+expectation of `stopped_value f τ` is less or equal to the expectation of `stopped_value f π`.
+This is sometimes known as the optional stopping theorem. -/
 lemma stopped_value_le {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
   {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
@@ -328,22 +334,24 @@ lemma stopped_value_le {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {
 begin
   rw [← sub_nonneg, ← integral_sub', stopped_value_sub_eq_sum' hle hbdd],
   { simp only [finset.sum_apply],
+    have : ∀ i, measurable_set[𝒢 i] {x : α | τ x ≤ i ∧ i < π x},
+    { intro i,
+      rw set.set_of_and,
+      refine @measurable_set.inter _ (𝒢 i) _ _ (hτ i) _,
+      convert @measurable_set.compl _ _ (𝒢 i) (hπ i),
+      ext x,
+      simpa },
     rw integral_finset_sum,
     { refine finset.sum_nonneg (λ i hi, _),
-      have : measurable_set[𝒢 i] {x : α | τ x ≤ i ∧ i < π x},
-      { rw set.set_of_and,
-        refine @measurable_set.inter _ (𝒢 i) _ _ (hτ i) _,
-        convert @measurable_set.compl _ _ (𝒢 i) (hπ i),
-        ext x,
-        simpa },
-      rw [integral_indicator (𝒢.le _ _ this), integral_sub', sub_nonneg],
-      { refine hf.set_integral_le (nat.le_succ i) this },
+      rw [integral_indicator (𝒢.le _ _ (this _)), integral_sub', sub_nonneg],
+      { exact hf.set_integral_le (nat.le_succ i) (this _) },
       { exact (hf.integrable _).integrable_on },
       { exact (hf.integrable _).integrable_on } },
-    sorry
-  },
-  sorry,
-  sorry
+    intros i hi,
+    exact integrable.indicator (integrable.sub (hf.integrable _) (hf.integrable _))
+      (𝒢.le _ _ (this _)) },
+  { exact hf.stopped_value_integrable hπ hbdd },
+  { exact hf.stopped_value_integrable hτ (λ x, le_trans (hle x) (hbdd x)) }
 end
 
 end submartingale

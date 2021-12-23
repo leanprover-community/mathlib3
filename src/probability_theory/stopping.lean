@@ -3,8 +3,7 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.constructions.borel_space
-import measure_theory.function.l1_space
+import measure_theory.integral.integrable_on
 
 /-!
 # Filtration and stopping time
@@ -384,6 +383,39 @@ end
 
 variables [hβ : add_comm_monoid β] {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
 
+include hβ
+
+lemma stopped_value_eq {τ : α → ℕ} {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
+  stopped_value u τ =
+  λ x, (∑ i in finset.range (N + 1), set.indicator {x | τ x = i} (u i)) x :=
+begin
+  ext y,
+  rw [stopped_value, finset.sum_apply, finset.sum_eq_single (τ y)],
+  { rw set.indicator_of_mem,
+    exact rfl },
+  { intros i hi hneq,
+    exact set.indicator_of_not_mem hneq.symm _ },
+  { intro hy,
+    rw set.indicator_of_not_mem,
+    exact λ _, hy (finset.mem_range.2 $ lt_of_le_of_lt (hbdd _) (nat.lt_succ_self _)) }
+end
+
+omit hβ
+include m
+
+lemma stopped_value_integrable
+  [measurable_space β] [normed_group β] [borel_space β] [second_countable_topology β]
+  {μ : measure α} (hu : ∀ n, integrable (u n) μ)
+  {τ : α → ℕ} (hτ : is_stopping_time f τ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
+  integrable (stopped_value u τ) μ :=
+begin
+  rw stopped_value_eq hbdd,
+  simp_rw finset.sum_apply,
+  exact integrable_finset_sum _
+    (λ i hi, (hu i).indicator (f.le _ _ (hτ.measurable_set_eq i))),
+end
+
+omit m
 include hβ
 
 lemma stopped_process_eq (n : ℕ) :

@@ -2,6 +2,7 @@ import data.finset.basic
 import algebra.group.ulift
 import algebra.big_operators.finprod
 import data.fin_simplicial_complex
+import data.fin.tuple
 
 universes u
 noncomputable theory
@@ -110,31 +111,31 @@ end
   f (x ^ n) = (f x) ^ n :=
 f.to_monoid_hom.map_pow _ _
 
-lemma mul_equiv.map_gpow {M N : Type*} [group M] [group N]
+lemma mul_equiv.map_zpow {M N : Type*} [group M] [group N]
   (f : M ≃* N) (x : M) (n : ℤ) :
   f (x ^ n) = (f x) ^ n :=
-f.to_monoid_hom.map_gpow _ _
+f.to_monoid_hom.map_zpow _ _
 
-lemma add_equiv.map_gsmul {M N : Type*} [add_group M] [add_group N]
+lemma add_equiv.map_zsmul {M N : Type*} [add_group M] [add_group N]
   (f : M ≃+ N) (x : M) (n : ℤ) :
   f (n • x) = n • f x :=
-f.to_add_monoid_hom.map_gsmul _ _
+f.to_add_monoid_hom.map_zsmul _ _
 
-attribute [to_additive add_equiv.map_gsmul] mul_equiv.map_gpow
+attribute [to_additive add_equiv.map_zsmul] mul_equiv.map_zpow
 
 lemma int.pred_smul {A : Type*} [add_group A] (a : A) (n : ℤ) :
   (n - 1) • a = n • a - a :=
 int.induction_on n
   (by simp)
-  (λ _ _, by simp [add_gsmul, one_gsmul])
-  (λ _, by simp [sub_gsmul])
+  (λ _ _, by simp [add_zsmul, one_zsmul])
+  (λ x, by {simp [sub_zsmul, ←sub_eq_add_neg] })
 
-lemma distrib_mul_action.smul_gsmul {G : Type*} [group G] {M : Type*}
+lemma distrib_mul_action.smul_zsmul {G : Type*} [group G] {M : Type*}
   [add_comm_group M] [distrib_mul_action G M]
   (g : G) (n : ℤ) (m : M) : g • n • m = n • g • m :=
 int.induction_on n
   ( by simp)
-  ( λ i h, by { simp only [add_smul, smul_add, add_left_inj, one_gsmul, h] })
+  ( λ i h, by { simp only [add_smul, smul_add, add_left_inj, one_zsmul, h] })
   ( λ i h, by { simp only [int.pred_smul, smul_sub, smul_neg, neg_inj, sub_left_inj, h] } )
 
 -- used in the two proofs of `d² = 0`.

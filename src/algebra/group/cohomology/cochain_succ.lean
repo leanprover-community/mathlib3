@@ -69,9 +69,8 @@ $$c((s*g_i)_i)=s\bub c((g_i)_i)$$.
 
 namespace cochain_succ
 
-instance : has_coe_to_fun (cochain_succ G M n) :=
-{ F := _,
-  coe := to_fun }
+instance : has_coe_to_fun (cochain_succ G M n) (λ _, (fin n → G) → M) :=
+{ coe := to_fun }
 
 @[simp] lemma coe_eval (c : (fin n → G) → M)
   (hc : ∀ (s : G) (g : fin n → G), s • c g = c (λ i, s * g i)) (g : fin n → G) :
@@ -132,7 +131,7 @@ end
 begin
   apply int.induction_on z,
   { simp },
-  { intros i this, simpa [add_gsmul] },
+  { intros i this, simpa [add_zsmul] },
   { intros i this, rw [int.pred_smul, int.pred_smul, sub_apply, this] },
 end
 
@@ -140,7 +139,7 @@ def d {i j : ℕ} (hj : j = i + 1) : cochain_succ G M i →+ cochain_succ G M j 
 { to_fun := λ c,
   { to_fun := λ g, (finset.range j).sum (λ p, (-1 : ℤ)^p • c $ λ t, g (fin.delta hj p t)),
     smul_apply' := λ s g, begin
-      simp only [finset.smul_sum, int_smul_apply, ← c.smul_apply, distrib_mul_action.smul_gsmul],
+      simp only [finset.smul_sum, int_smul_apply, ← c.smul_apply, distrib_mul_action.smul_zsmul],
     end },
   map_zero' := begin ext, simp end,
   map_add' := λ x y, by {ext, simp [finset.sum_add_distrib]} }
@@ -422,7 +421,8 @@ end
 
 noncomputable example (R : Type) [comm_ring R] (c : G →* R) : monoid_algebra ℤ G →+* R :=
 monoid_algebra.lift ℤ G R c
-
+-- timing out at the moment and I don't use it anywhere
+#exit
 noncomputable
 def group_ring_action :
 (monoid_algebra ℤ G) →+* (((fin i → G) →₀ ℤ) →+ ((fin i → G) →₀ ℤ)) :=

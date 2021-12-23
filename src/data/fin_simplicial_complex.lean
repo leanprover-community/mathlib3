@@ -1,5 +1,5 @@
 -- Do we have this stuff?
-import data.fin -- yes all 1800 lines of it
+import data.fin.basic
 import tactic
 
 namespace fin

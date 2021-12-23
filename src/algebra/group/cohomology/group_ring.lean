@@ -10,7 +10,11 @@ import algebra.group.cohomology.lemmas
 import linear_algebra.basis
 
 /-! Setting up `ℤ[Gⁿ]`, defined as `monoid_algebra ℤ (fin n → G)`.
-  Showing it's a free `ℤ[G]`-module for `n ≥ 1.` -/
+  Showing it's a free `ℤ[G]`-module for `n ≥ 1.`
+
+
+Lots of long proofs of map_smul in this whole folder. TODO: see if I can factor out common
+lemmas -/
 
 variables (G : Type*) [group G] (M : Type*) [add_comm_group M] [distrib_mul_action G M]
 (n : ℕ)
@@ -41,13 +45,13 @@ def distrib_mul_action.to_module {G : Type*} [group G] {M : Type*} [add_comm_gro
     { refine g.induction_on _ _ _,
       intros g,
       { dsimp,
-        simp only [one_gsmul, finsupp.total_single, monoid_algebra.mul_def, one_mul,
+        simp only [one_zsmul, finsupp.total_single, monoid_algebra.mul_def, one_mul,
           zero_mul, finsupp.single_zero, finsupp.sum_zero, finsupp.sum_single_index,
           linear_map.map_finsupp_sum],
         rw [finsupp.total_apply, finsupp.smul_sum],
         congr,
         ext f n,
-        rw [mul_smul, distrib_mul_action.smul_gsmul] },
+        rw [mul_smul, distrib_mul_action.smul_zsmul] },
       { intros g1 g2 hg1 hg2,
         rw add_mul,
         simp only [linear_map.map_add] at *,
@@ -89,9 +93,9 @@ lemma smul_def
   g • h = finsupp.total G (group_ring (fin n → G)) ℤ (λ x, x • h) g :=
 rfl
 
-lemma gsmul_single_one (g : G) (r : ℤ) :
+lemma zsmul_single_one (g : G) (r : ℤ) :
   (finsupp.single g r : group_ring G) = r • (of G g) :=
-by simp only [mul_one, finsupp.smul_single', gsmul_eq_smul, of_apply]
+by simp only [mul_one, finsupp.smul_single', zsmul_eq_smul, of_apply]
 
 lemma of_smul_of (g : G) (x : fin n → G) :
   of G g • of (fin n → G) x = of (fin n → G) (g • x) :=
@@ -108,7 +112,7 @@ begin
   refine finsupp.induction_linear f _ (λ f g hf hg, hadd f g hf hg) (λ g r, _),
   { simpa using hsmul 0 (of G 1) (hM 1) },
   { convert hsmul r (of G g) (hM g),
-    rw gsmul_single_one, },
+    rw zsmul_single_one, },
 end
 
 variables (G)
@@ -123,10 +127,11 @@ def dom_one_equiv : group_ring (fin 1 → G) ≃ₗ[group_ring G] group_ring G :
         finsupp.comap_smul_apply],
       congr },
     { intros a b ha hb,
-      simp only [add_smul, add_equiv.map_add', ha, hb]},
+      simp [*, add_smul, add_equiv.map_add, add_mul] at *},
     { intros r a ha,
-      simp only [add_equiv.to_fun_eq_coe, add_equiv.map_gsmul, smul_assoc] at ⊢ ha,
-      rw ha }},
+      simp only [add_equiv.to_fun_eq_coe, smul_assoc, add_equiv.map_zsmul] at ha ⊢,
+      rw [ha, ←smul_assoc],
+      refl }},
   ..finsupp.dom_congr (fin.dom_one_equiv G) }
 
 variables {G}
@@ -188,21 +193,22 @@ noncomputable def to_basis :
         dsimp,
         erw [to_basis_add_hom_of, to_basis_add_hom_of, ←of_apply],
         simp only [smul_eq_mul, smul_def, finsupp.smul_single, of_apply, pi.smul_apply,
-          one_mul, int.cast_one, finsupp.total_single, finsupp.comap_smul_single, gsmul_eq_mul],
+          one_mul, int.cast_one, finsupp.total_single, finsupp.comap_smul_single, zsmul_eq_mul],
         congr' 1,
         { exact quotient.sound' (set.mem_range_self _) },
         { erw [monoid_algebra.single_mul_single, one_mul] }},
       { intros a b ha hb,
-        simp only [add_smul, *, add_monoid_hom.map_add, add_monoid_hom.to_fun_eq_coe] at * },
+        simp only [*, add_smul, map_add, add_monoid_hom.to_fun_eq_coe] at * },
       { intros r y hy,
         simp only [add_monoid_hom.to_fun_eq_coe] at *,
-        rw [smul_assoc, add_monoid_hom.map_gsmul, hy, smul_assoc] }},
+        rw [smul_assoc, add_monoid_hom.map_zsmul, hy, ←smul_assoc],
+        refl }},
     { intros a b ha hb,
       simp only [*, smul_add, add_monoid_hom.map_add, add_monoid_hom.to_fun_eq_coe] at * },
     { intros r y hy,
       dsimp at ⊢ hy,
-      rw [smul_algebra_smul_comm, add_monoid_hom.map_gsmul, hy,
-        ←smul_algebra_smul_comm, add_monoid_hom.map_gsmul] }
+      rw [smul_algebra_smul_comm, add_monoid_hom.map_zsmul, hy,
+        ←smul_algebra_smul_comm, add_monoid_hom.map_zsmul] }
   end, .. to_basis_add_hom G n }
 
 variables {G n}

@@ -47,21 +47,22 @@ def d {i j : ℕ} (hj : i = j + 1) : group_ring (fin i → G) →ₗ[group_ring 
           finset.sum_const_zero, of_apply, pi.smul_apply, mul_zero, finsupp.sum_single_index],
         congr,
         ext1 p,
-        simp only [gsmul_single_one, gsmul_single_one],
+        simp only [zsmul_single_one, zsmul_single_one],
         rw [smul_algebra_smul_comm, one_smul, of_smul_of],
         congr },
       { intros a b ha hb,
-        simp only [add_smul, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_add] at ⊢ ha hb,
+        simp only [add_smul, add_monoid_hom.to_fun_eq_coe, map_add] at ⊢ ha hb,
         rw [ha, hb] },
       { intros r a ha,
-        simp only [smul_assoc, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_gsmul] at ⊢ ha,
-        rw ha }},
+        simp only [smul_assoc, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_zsmul] at ⊢ ha,
+        rw [ha, ←smul_assoc],
+        refl }},
     { intros a b ha hb,
       simp only [smul_add, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_add] at ⊢ ha hb,
       rw [ha, hb] },
     { intros r a ha,
       simp only [smul_algebra_smul_comm, add_monoid_hom.to_fun_eq_coe,
-        add_monoid_hom.map_gsmul] at ⊢ ha,
+        add_monoid_hom.map_zsmul] at ⊢ ha,
       rw ha }
   end,
   ..finsupp.lift_add_hom (d_aux G hj) }
@@ -84,7 +85,7 @@ begin
   ext g,
   simp only [d_of],
   rw linear_map.map_sum,
-  simp only [gsmul_single_one, linear_map.map_smul_of_tower, d_of],
+  simp only [zsmul_single_one, linear_map.map_smul_of_tower, d_of],
   simp_rw finset.smul_sum,
   rw ← finset.sum_product',
   congr,
@@ -164,7 +165,7 @@ def coeff_sum : group_ring G →ₗ[group_ring G] trivial G :=
       refine g.induction_on _ _ _,
       { intro z,
         erw monoid_algebra.single_mul_single,
-        simp only [mul_one, one_gsmul, finsupp.total_single, of_apply],
+        simp only [mul_one, one_zsmul, finsupp.total_single, of_apply],
         ext,
         show _ = finsupp.total _ _ _ _ _,
         rw [finsupp.total_single, one_smul],
@@ -340,8 +341,7 @@ end
 
 -- idk where this is .
 instance : functor.additive (forget₂ (Module (group_ring G)) AddCommGroup) :=
-{ map_zero' := λ x y, rfl,
-  map_add' := λ  x y f g, rfl }
+{ map_add' := λ x y f g, rfl }
 
 variables (G)
 
@@ -424,7 +424,7 @@ homotopy.of _ _ (λ n, nat.rec_on n (std_resn_homotopy_aux G) (λ m fm, cons _ (
     show finsupp.single _ _ = finsupp.single _ (coeff_sum G (dom_one_equiv _ _)).down
       + d _ _ _ + _,
     simp only [coeff_sum_dom_one_equiv_apply, finsupp.total_single, add_zero],
-    simp only [cons, finsupp.map_domain.add_monoid_hom_apply, one_gsmul,
+    simp only [cons, finsupp.map_domain.add_monoid_hom_apply, one_zsmul,
       finsupp.map_domain_single, eq_to_hom_refl, Module.id_apply],
     erw d_two_apply,
     simp only [cons_delta_two, add_sub_cancel'_right, finsupp.map_domain_single],
@@ -435,7 +435,7 @@ homotopy.of _ _ (λ n, nat.rec_on n (std_resn_homotopy_aux G) (λ m fm, cons _ (
   { intros f g hf hg,
     rw [add_monoid_hom.map_add, add_monoid_hom.map_add, hf, hg]},
   { intros r f hf,
-    rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, hf]}
+    rw [add_monoid_hom.map_zsmul, add_monoid_hom.map_zsmul, hf]}
 end)
 (λ j hj,
 begin
@@ -457,7 +457,7 @@ begin
   { intros f g hf hg,
     rw [add_monoid_hom.map_add, add_monoid_hom.map_add, hf, hg]},
   { intros r f hf,
-    rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, hf] }
+    rw [add_monoid_hom.map_zsmul, add_monoid_hom.map_zsmul, hf] }
 end)
 
 /- Don't know what assumptions on the category I need to make this compile & be

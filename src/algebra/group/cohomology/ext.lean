@@ -39,12 +39,13 @@ def cochain_succ_add_equiv : cochain_succ G M n ≃+ (group_ring (fin n → G) �
     { intro g,
       refine x.induction_on _ _ _,
       { intro x,
-        simp only [finsupp.lift_add_hom_apply_single, finsupp.lift_add_hom_apply, one_gsmul,
-          add_monoid_hom.to_fun_eq_coe, gmultiples_hom_apply, group_ring.of_apply],
+        simp only [finsupp.lift_add_hom_apply_single, finsupp.lift_add_hom_apply, one_zsmul,
+          add_monoid_hom.to_fun_eq_coe, zmultiples_hom_apply, group_ring.of_apply],
         erw [group_ring.of_smul_of, finsupp.sum_single_index],
         { rw finsupp.sum_single_index,
           { show _ = finsupp.total _ _ _ _ _,
-            simp only [f.smul_apply,gmultiples_hom_apply, finsupp.total_single, one_smul],
+            simp only [zmultiples_hom_apply, one_smul, f.smul_apply,
+              finsupp.total_single, ring_hom.id_apply],
             refl,},
           { exact add_monoid_hom.map_zero _}},
         { exact add_monoid_hom.map_zero _}},
@@ -53,16 +54,17 @@ def cochain_succ_add_equiv : cochain_succ G M n ≃+ (group_ring (fin n → G) �
         rw [hf, hg] },
       { intros r f hf,
         rw smul_comm,
-        simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_gsmul] at hf ⊢,
+        simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_zsmul] at hf ⊢,
         rw [hf, smul_comm] }},
     { intros f g hf hg,
-      simp only [add_smul, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_add] at hf hg ⊢,
+      simp only [add_smul, add_monoid_hom.to_fun_eq_coe, map_add] at hf hg ⊢,
       rw [hf, hg] },
     { intros r f hf,
       rw smul_assoc,
-      simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_gsmul] at hf ⊢,
-      rw [hf, smul_assoc]}
-    }, ..finsupp.lift_add_hom (λ v, gmultiples_hom M (f v)) },
+      simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_zsmul] at hf ⊢,
+      rw [hf, ←smul_assoc],
+      refl }
+    }, ..finsupp.lift_add_hom (λ v, zmultiples_hom M (f v)) },
   inv_fun := λ f,
   { to_fun := f ∘ group_ring.of (fin n → G),
     smul_apply' := λ s g, by
@@ -74,23 +76,23 @@ def cochain_succ_add_equiv : cochain_succ G M n ≃+ (group_ring (fin n → G) �
       rw [finsupp.total_single, one_smul] }},
   left_inv := λ x, by
   { ext w,
-    show finsupp.lift_add_hom (λ v, gmultiples_hom M (x v)) (finsupp.single w 1) = x w,
-    rw [finsupp.lift_add_hom_apply_single, gmultiples_hom_apply, one_smul]
+    show finsupp.lift_add_hom (λ v, zmultiples_hom M (x v)) (finsupp.single w 1) = x w,
+    rw [finsupp.lift_add_hom_apply_single, zmultiples_hom_apply, one_smul]
    },
   right_inv := λ f, by
   { ext x,
     refine x.induction_on _ _ _,
     { intro x,
-      show finsupp.lift_add_hom (λ v, gmultiples_hom M (f _)) _ = _,
+      show finsupp.lift_add_hom (λ v, zmultiples_hom M (f _)) _ = _,
       rw [group_ring.of_apply, finsupp.lift_add_hom_apply_single,
-        gmultiples_hom_apply, one_smul],
+        zmultiples_hom_apply, one_smul],
       refl },
     { intros v w hv hw,
       erw add_monoid_hom.map_add,
       rw [linear_map.map_add, ←hv, ←hw],
       refl },
     { intros r v hv,
-      erw add_monoid_hom.map_gsmul,
+      erw add_monoid_hom.map_zsmul,
       rw [linear_map.map_smul_of_tower, ←hv],
       refl }},
   map_add' := λ x y, by
@@ -103,7 +105,7 @@ def cochain_succ_add_equiv : cochain_succ G M n ≃+ (group_ring (fin n → G) �
     simp only [one_smul] } }
 
 @[simp] lemma cochain_succ_add_equiv_apply {f : cochain_succ G M n} {x} :
-  cochain_succ_add_equiv G M n f x = finsupp.lift_add_hom (λ v, gmultiples_hom M (f v)) x := rfl
+  cochain_succ_add_equiv G M n f x = finsupp.lift_add_hom (λ v, zmultiples_hom M (f v)) x := rfl
 
 @[simp] lemma cochain_succ_add_equiv_symm_apply {f : group_ring (fin n → G) →ₗ[group_ring G] M} {x} :
   (cochain_succ_add_equiv G M n).symm f x = f (group_ring.of (fin n → G) x) :=
@@ -206,14 +208,14 @@ begin
   refine g.induction_on _ _ _,
   { intro v,
     rw [finsupp.lift_add_hom_apply, group_ring.of_apply, finsupp.sum_single_index],
-    { simp only [←cochain_succ.total_d_eq_d, finsupp.total_apply, gmultiples_hom_apply,
+    { simp only [←cochain_succ.total_d_eq_d, finsupp.total_apply, zmultiples_hom_apply,
       one_smul, finsupp.lift_add_hom_apply],
       refl },
     { rw add_monoid_hom.map_zero }},
   { intros f g hf hg,
     simp only [add_monoid_hom.map_add, linear_map.map_add, hf, hg] },
   { intros r f hf,
-    simp only [add_monoid_hom.map_gsmul, linear_map.map_smul_of_tower, hf]}
+    simp only [add_monoid_hom.map_zsmul, linear_map.map_smul_of_tower, hf]}
 end
 
 lemma cochain_succ_comm (x : cochain_succ G M (n + 1)) :

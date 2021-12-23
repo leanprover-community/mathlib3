@@ -876,6 +876,15 @@ theorem sup_not_succ_of_ne_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i ≠ su
   ∀ a < sup f, succ a < sup f :=
 λ _, sup_not_succ_of_lt_sup (lt_sup_of_ne_sup hf) _
 
+theorem sup_eq_zero_iff {ι} {f : ι → ordinal} : sup f = 0 ↔ ∀ i, f i = 0 :=
+begin
+  refine ⟨λ h i, _, λ h, le_antisymm
+    (sup_le.2 (λ i, ordinal.le_zero.2 (h i))) (ordinal.zero_le _)⟩,
+  have := le_sup f i,
+  rw h at this,
+  exact ordinal.le_zero.1 this
+end
+
 theorem is_normal.sup {f} (H : is_normal f)
   {ι} {g : ι → ordinal} (h : nonempty ι) : f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
@@ -926,6 +935,15 @@ begin
   rw ←hao' at hf,
   rw le_antisymm (le_of_lt hao) (bsup_le.2 (λ i h, lt_succ.1 (hf i h))) at hao',
   exact succ_ne_self _ hao',
+end
+
+theorem bsup_eq_zero_iff {o} {f : Π a < o, ordinal} : bsup o f = 0 ↔ ∀ i hi, f i hi = 0 :=
+begin
+  refine ⟨λ h i hi, _, λ h, le_antisymm
+    (bsup_le.2 (λ i hi, ordinal.le_zero.2 (h i hi))) (ordinal.zero_le _)⟩,
+  have := le_bsup f i hi,
+  rw h at this,
+  exact ordinal.le_zero.1 this,
 end
 
 theorem bsup_type (r : α → α → Prop) [is_well_order α r] (f) :
@@ -1012,6 +1030,18 @@ begin
   exact lt_irrefl _ this,
 end
 
+theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
+begin
+  refine ⟨λ h, _, λ hi, _⟩,
+  { split,
+    intro i,
+    have := lt_of_le_of_lt (ordinal.zero_le _) (lt_lsub _ i),
+    rw h at this,
+    exact lt_irrefl 0 this },
+  rw [←ordinal.le_zero, lsub_le_iff_lt],
+  exact hi.elim,
+end
+
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
@@ -1076,13 +1106,26 @@ begin
   exact lt_irrefl (blsub.{u u} o (λ x _, x)) (lt_blsub _ _ h),
 end
 
+theorem blsub_eq_zero_iff {o} (f : Π a < o, ordinal) : blsub o f = 0 ↔ o = 0 :=
+begin
+  refine ⟨λ h, _, λ hi, _⟩,
+  { by_contra ho,
+    have := lt_of_le_of_lt (ordinal.zero_le _)
+      (lt_blsub _ 0 (lt_of_le_of_ne (ordinal.zero_le o) (λ h, (ho h.symm)))),
+    rw h at this,
+    exact lt_irrefl 0 this },
+  rw [←ordinal.le_zero, blsub_le_iff_lt],
+  intros i hio,
+  rw hi at hio,
+  exact (not_lt_of_le (ordinal.zero_le _) hio).elim,
+end
+
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
 
 section
 variables {S : set ordinal.{u}} (hS : ∀ a, ∃ b, S b ∧ a ≤ b)
 
-/-- Enumerator function for an unbounded set of ordinals. For the subtype variant, see `enum_ord'`.
--/
+/-- Enumerator function for an unbounded set of ordinals. -/
 noncomputable def enum_ord : ordinal.{u} → ordinal.{u} :=
 wf.fix (λ a f, omin _ (hS (blsub.{u u} a f)))
 
@@ -1696,6 +1739,15 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
+theorem omega_eq_sup_nat : ordinal.omega.{u} = sup (λ n : ℕ, n) :=
+begin
+  apply le_antisymm,
+  { rw omega_le,
+    exact le_sup _ },
+  rw sup_le,
+  exact λ n, le_of_lt (nat_lt_omega n),
+end
+
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
 | (n+1) := h.2 _ (nat_lt_limit n)
@@ -1986,6 +2038,71 @@ begin
   rw range_eq_iff,
   refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
   rwa ←H.fp_iff_deriv',
+end
+
+/-! ### Fixed points of sums -/
+
+theorem mul_omega_unbounded (o) : ∀ a, ∃ b, (o * ordinal.omega ≤ b) ∧ a ≤ b :=
+λ a, ⟨_, le_sup_left, le_sup_right⟩
+
+theorem add_mul_omega {a} : a + a * omega = a * omega :=
+by { nth_rewrite 0 ←(mul_one a), rw [←mul_add, one_add_omega] }
+
+lemma mul_omega_nfp {a} : a * omega.{u} = nfp (has_add.add a) 0 :=
+begin
+  by_cases ha : 0 = a,
+  { rw [←ha, zero_mul],
+    unfold nfp,
+    apply eq.symm,
+    rw sup_eq_zero_iff,
+    intro n,
+    induction n with n hn,
+    { refl },
+    rw [iterate_succ_apply, zero_add],
+    exact hn },
+  have hmul := @is_normal.sup.{0 u u} _
+    (mul_is_normal.{u} (lt_of_le_of_ne (ordinal.zero_le a) ha)) ℕ (λ n, n) ⟨0⟩,
+  rw ←omega_eq_sup_nat at hmul,
+  suffices : (λ n : ℕ, (has_add.add a)^[n] 0) = (has_mul.mul a ∘ λ (n : ℕ), ↑n),
+  { rwa ←this at hmul },
+  refine funext (λ n, _),
+  induction n with n hn,
+  { rw iterate_zero,
+    exact (mul_zero _).symm },
+  rw [iterate_succ_apply', hn],
+  nth_rewrite 0 ←(mul_one a),
+  rw [←ordinal.mul_add, (by simp : (1 : ordinal) + ↑n = ↑(1 + n)), add_comm]
+end
+
+theorem add_absorp_iff' {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=
+begin
+  split;
+  intro h,
+  { have : deriv ((+) a) 0 ≤ b := begin
+      cases (add_is_normal a).fp_iff_deriv'.1 h with c hc,
+      rw ←hc,
+      exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _),
+    end,
+    refine le_trans _ this,
+    rw deriv_zero,
+    exact le_of_eq mul_omega_nfp },
+  have := ordinal.add_sub_cancel_of_le h,
+  nth_rewrite 0 ←this,
+  rw [←add_assoc, add_mul_omega, this],
+end
+
+/-- `deriv ((+) a)` enumerates the ordinals larger than `a * ω`. -/
+theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord (mul_omega_unbounded a) :=
+begin
+  rw ←eq_enum_ord,
+  use (deriv_is_normal _).strict_mono,
+  rw range_eq_iff,
+  refine ⟨λ b, le_trans (le_of_eq _)
+    ((deriv_is_normal _).strict_mono.monotone (ordinal.zero_le b)), λ b hb, _⟩,
+  { rw deriv_zero,
+    exact mul_omega_nfp },
+  rw ←(add_is_normal a).fp_iff_deriv',
+  exact add_absorp_iff'.2 hb,
 end
 
 end ordinal

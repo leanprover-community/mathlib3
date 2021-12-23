@@ -1071,6 +1071,8 @@ begin
   have ha : ω ≤ #α , by {apply nonempty_to_nat_eq_zero_infinite h,},
   have hab:=mk_le_of_injective hf,
   apply le_trans ha hab,
+end
+
 @[simp] lemma to_nat_add_of_lt_omega {a : cardinal.{u}} {b : cardinal.{v}}
   (ha : a < ω) (hb : b < ω) : ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=
 begin

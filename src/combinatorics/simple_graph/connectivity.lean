@@ -108,64 +108,59 @@ lemma append_assoc : Π {u v w x : V} (p : G.walk u v) (q : G.walk v w) (r : G.w
 | _ _ _ _ nil _ _ := rfl
 | _ _ _ _ (cons h p') q r := by { dsimp only [append], rw append_assoc, }
 
-@[simp] lemma nil_reverse {u : V} : (nil : G.walk u u).reverse = nil := rfl
+@[simp] lemma reverse_nil {u : V} : (nil : G.walk u u).reverse = nil := rfl
 
-lemma singleton_reverse {u v : V} (h : G.adj u v) :
+lemma reverse_singleton {u v : V} (h : G.adj u v) :
   (cons h nil).reverse = cons (G.symm h) nil := rfl
 
-@[simp]
+@[simp] lemma cons_reverse_aux {u v w x : V} (p : G.walk u v) (q : G.walk w x) (h : G.adj w u) :
+  (cons h p).reverse_aux q = p.reverse_aux (cons (G.symm h) q) := rfl
+
+@[simp] protected lemma append_reverse_aux : Π {u v w x : V}
+  (p : G.walk u v) (q : G.walk v w) (r : G.walk u x),
+  (p.append q).reverse_aux r = q.reverse_aux (p.reverse_aux r)
+| _ _ _ _ nil _ _ := rfl
+| _ _ _ _ (cons h p') q r := append_reverse_aux p' q (cons (G.symm h) r)
+
+@[simp] protected lemma reverse_aux_append : Π {u v w x : V}
+  (p : G.walk u v) (q : G.walk u w) (r : G.walk w x),
+  (p.reverse_aux q).append r = p.reverse_aux (q.append r)
+| _ _ _ _ nil _ _ := rfl
+| _ _ _ _ (cons h p') q r := by simp! [reverse_aux_append p' (cons (G.symm h) q) r]
+
 protected lemma reverse_aux_eq_reverse_append {u v w : V} (p : G.walk u v) (q : G.walk u w) :
   p.reverse_aux q = p.reverse.append q :=
-begin
-  induction p generalizing q w,
-  { refl },
-  { dunfold walk.reverse_aux walk.reverse,
-    rw [p_ih, p_ih, ←append_assoc],
-    refl, }
-end
-
-@[simp] lemma reverse_append {u v w : V} (p : G.walk u v) (q : G.walk v w) :
-  (p.append q).reverse = q.reverse.append p.reverse :=
-begin
-  induction p generalizing q w,
-  { simp },
-  { dsimp only [cons_append, reverse, walk.reverse_aux],
-    simp only [p_ih, walk.reverse_aux_eq_reverse_append, append_nil],
-    rw append_assoc, }
-end
+by simp [reverse]
 
 @[simp] lemma reverse_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).reverse = p.reverse.append (cons (G.symm h) nil) :=
-begin
-  dsimp [reverse, walk.reverse_aux],
-  simp only [walk.reverse_aux_eq_reverse_append, append_nil],
-end
+by simp! [reverse]
+
+@[simp] lemma reverse_append {u v w : V} (p : G.walk u v) (q : G.walk v w) :
+  (p.append q).reverse = q.reverse.append p.reverse :=
+by simp [reverse]
 
 @[simp] lemma reverse_reverse : Π {u v : V} (p : G.walk u v), p.reverse.reverse = p
 | _ _ nil := rfl
 | _ _ (cons h p) := by simp [reverse_reverse]
 
-@[simp] lemma nil_length {u : V} : (nil : G.walk u u).length = 0 := rfl
+@[simp] lemma length_nil {u : V} : (nil : G.walk u u).length = 0 := rfl
 
-@[simp] lemma cons_length {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+@[simp] lemma length_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).length = p.length + 1 := rfl
 
-@[simp] lemma append_length : Π {u v w : V} (p : G.walk u v) (q : G.walk v w),
+@[simp] lemma length_append : Π {u v w : V} (p : G.walk u v) (q : G.walk v w),
   (p.append q).length = p.length + q.length
 | _ _ _ nil _ := by simp
-| _ _ _ (cons _ p') _ := by simp [append_length, add_left_comm, add_comm]
+| _ _ _ (cons _ p') _ := by simp [length_append, add_left_comm, add_comm]
 
-protected lemma length_reverse_aux {u v w : V} (p : G.walk u v) (q : G.walk u w) :
-  (p.reverse_aux q).length = p.length + q.length :=
-begin
-  induction p,
-  { simp [walk.reverse_aux], },
-  { simp only [walk.reverse_aux, p_ih, cons_length],
-    ring, },
-end
+@[simp] protected lemma length_reverse_aux : Π {u v w : V} (p : G.walk u v) (q : G.walk u w),
+  (p.reverse_aux q).length = p.length + q.length
+| _ _ _ nil _ := by simp!
+| _ _ _ (cons _ p') _ := by simp [walk.reverse_aux, length_reverse_aux, nat.add_succ, nat.succ_add]
 
 @[simp] lemma length_reverse {u v : V} (p : G.walk u v) : p.reverse.length = p.length :=
-by convert walk.length_reverse_aux p nil
+by simp [reverse]
 
 /-- The `support` of a walk is the list of vertices it visits in order. -/
 def support : Π {u v : V}, G.walk u v → list V
@@ -211,9 +206,7 @@ begin
   induction p generalizing e,
   { exact false.elim h, },
   { rw [edges, list.mem_cons_iff] at h,
-    rcases h with ⟨rfl, h⟩,
-    { exact p_h },
-    { exact p_ih h }, },
+    rcases h with ⟨rfl, h⟩; solve_by_elim, },
 end
 
 @[simp] lemma edges_nil {u : V} : (nil : G.walk u u).edges = [] := rfl

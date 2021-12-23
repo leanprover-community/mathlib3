@@ -196,9 +196,7 @@ chain_complex.of_hom _ _ _ _ _ _
       rw [fin.sum_univ_succ t],
       have null : ∀ j : fin (n+1), t j.succ = 0,
       { intro j,
-        rw def_t,
-        rw comp_zsmul,
-        rw ← zsmul_zero ((-1 : ℤ)^(j.succ : ℕ)),
+        rw [def_t, comp_zsmul, ← zsmul_zero ((-1 : ℤ)^(j.succ : ℕ))],
         apply congr_arg,
         rw normalized_Moore_complex.obj_X,
         rw ← factor_thru_arrow _ _

@@ -141,7 +141,7 @@ theorem inl_injective : function.injective (inl R M M₂) :=
 theorem inr_injective : function.injective (inr R M M₂) :=
 λ _, by simp
 
-/-- The coprod function `λ x : M × M₂, f.1 x.1 + f.2 x.2` is a linear map. -/
+/-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
 def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
 f.comp (fst _ _ _) + g.comp (snd _ _ _)
 
@@ -444,6 +444,15 @@ lemma fst_inf_snd : submodule.fst R M M₂ ⊓ submodule.snd R M M₂ = ⊥ := b
 end submodule
 
 namespace linear_equiv
+
+/-- Product of modules is commutative up to linear isomorphism. -/
+@[simps apply]
+def prod_comm (R M N : Type*) [semiring R] [add_comm_monoid M] [add_comm_monoid N]
+  [module R M] [module R N] : (M × N) ≃ₗ[R] (N × M) :=
+{ to_fun := prod.swap,
+  map_smul' := λ r ⟨m, n⟩, rfl,
+  ..add_equiv.prod_comm }
+
 section
 
 variables [semiring R]

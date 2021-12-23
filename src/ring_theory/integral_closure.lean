@@ -3,6 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import linear_algebra.finite_dimensional
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
@@ -367,6 +368,15 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
+lemma le_integral_closure_iff_is_integral {S : subalgebra R A} :
+  S ≤ integral_closure R A ↔ algebra.is_integral R S :=
+set_like.forall.symm.trans (forall_congr (λ x, show is_integral R (algebra_map S A x)
+  ↔ is_integral R x, from is_integral_algebra_map_iff subtype.coe_injective))
+
+lemma is_integral_sup {S T : subalgebra R A} :
+  algebra.is_integral R ↥(S ⊔ T) ↔ algebra.is_integral R S ∧ algebra.is_integral R T :=
+by simp only [←le_integral_closure_iff_is_integral, sup_le_iff]
+
 /-- Mapping an integral closure along an `alg_equiv` gives the integral closure. -/
 lemma integral_closure_map_alg_equiv (f : A ≃ₐ[R] B) :
   (integral_closure R A).map (f : A →ₐ[R] B) = integral_closure R B :=
@@ -414,8 +424,8 @@ lemma is_integral.pow {x : A} (h : is_integral R x) (n : ℕ) : is_integral R (x
 lemma is_integral.nsmul {x : A} (h : is_integral R x) (n : ℕ) : is_integral R (n • x) :=
 (integral_closure R A).nsmul_mem h n
 
-lemma is_integral.gsmul {x : A} (h : is_integral R x) (n : ℤ) : is_integral R (n • x) :=
-(integral_closure R A).gsmul_mem h n
+lemma is_integral.zsmul {x : A} (h : is_integral R x) (n : ℤ) : is_integral R (n • x) :=
+(integral_closure R A).zsmul_mem h n
 
 lemma is_integral.multiset_prod {s : multiset A} (h : ∀ x ∈ s, is_integral R x) :
   is_integral R s.prod :=
@@ -653,12 +663,12 @@ begin
 end
 
 lemma is_integral_quotient_of_is_integral {I : ideal A} (hRA : is_integral R A) :
-  is_integral (I.comap (algebra_map R A)).quotient I.quotient :=
+  is_integral (R ⧸ I.comap (algebra_map R A)) (A ⧸ I) :=
 (algebra_map R A).is_integral_quotient_of_is_integral hRA
 
 lemma is_integral_quotient_map_iff {I : ideal S} :
   (ideal.quotient_map I f le_rfl).is_integral ↔
-    ((ideal.quotient.mk I).comp f : R →+* I.quotient).is_integral :=
+    ((ideal.quotient.mk I).comp f : R →+* S ⧸ I).is_integral :=
 begin
   let g := ideal.quotient.mk (I.comap f),
   have := ideal.quotient_map_comp_mk le_rfl,
@@ -668,7 +678,8 @@ begin
 end
 
 /-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field. -/
-lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]
+lemma is_field_of_is_integral_of_is_field
+  {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S]
   [algebra R S] (H : is_integral R S) (hRS : function.injective (algebra_map R S))
   (hS : is_field S) : is_field R :=
 begin
@@ -695,19 +706,41 @@ begin
     rw [ring_hom.map_mul, mul_assoc],
     congr,
     have : a_inv ^ p.nat_degree = a_inv ^ (p.nat_degree - i) * a_inv ^ i,
-    { rw [← pow_add a_inv, nat.sub_add_cancel (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
+    { rw [← pow_add a_inv, tsub_add_cancel_of_le (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
     rw [ring_hom.map_pow, this, ← mul_assoc, ← mul_pow, ha_inv, one_pow, one_mul] },
 
   -- Since `q(a) = 0` and `q(a) = q'(a) * a + 1`, we have `a * -q'(a) = 1`.
   -- TODO: we could use a lemma for `polynomial.div_X` here.
-  rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
+  rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, tsub_self, pow_zero,
       add_eq_zero_iff_eq_neg, eq_comm] at hq,
   rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
   convert hq using 2,
   refine finset.sum_congr rfl (λ i hi, _),
-  have : 1 ≤ p.nat_degree - i := le_sub_of_add_le_left' (finset.mem_range.mp hi),
-  rw [mul_assoc, ← pow_succ', nat.sub_add_cancel this]
+  have : 1 ≤ p.nat_degree - i := le_tsub_of_add_le_left (finset.mem_range.mp hi),
+  rw [mul_assoc, ← pow_succ', tsub_add_cancel_of_le this]
 end
+
+lemma is_field_of_is_integral_of_is_field'
+  {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S] [algebra R S]
+  (H : algebra.is_integral R S) (hR : is_field R) :
+  is_field S :=
+begin
+  letI := hR.to_field R,
+  refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ x hx, _⟩,
+  let A := algebra.adjoin R ({x} : set S),
+  haveI : is_noetherian R A :=
+  is_noetherian_of_fg_of_noetherian A.to_submodule (fg_adjoin_singleton_of_integral x (H x)),
+  haveI : module.finite R A := module.is_noetherian.finite R A,
+  obtain ⟨y, hy⟩ := linear_map.surjective_of_injective (@lmul_left_injective R A _ _ _ _
+    ⟨x, subset_adjoin (set.mem_singleton x)⟩ (λ h, hx (subtype.ext_iff.mp h))) 1,
+  exact ⟨y, subtype.ext_iff.mp hy⟩,
+end
+
+lemma is_integral.is_field_iff_is_field
+  {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S] [algebra R S]
+  (H : algebra.is_integral R S) (hRS : function.injective (algebra_map R S)) :
+  is_field R ↔ is_field S :=
+⟨is_field_of_is_integral_of_is_field' H, is_field_of_is_integral_of_is_field H hRS⟩
 
 end algebra
 
@@ -717,10 +750,10 @@ eq_bot_iff.2 $ λ x hx, algebra.mem_bot.2
 ⟨⟨x, @is_integral_trans _ _ _ _ _ _ _ _ (integral_closure R A).algebra
      _ integral_closure.is_integral x hx⟩, rfl⟩
 
-section integral_domain
-variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]
+section is_domain
+variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S] [algebra R S]
 
-instance : integral_domain (integral_closure R S) :=
+instance : is_domain (integral_closure R S) :=
 infer_instance
 
-end integral_domain
+end is_domain

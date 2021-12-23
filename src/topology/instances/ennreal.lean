@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
-import topology.algebra.ordered.liminf_limsup
+import order.liminf_limsup
 import topology.metric_space.lipschitz
 /-!
 # Extended non-negative reals
@@ -186,10 +186,10 @@ lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 
 
 lemma nhds_zero_basis_Iic : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) Iic := nhds_bot_basis_Iic
 
-@[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
-nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
+@[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[>] (r : ℝ≥0∞)).ne_bot :=
+nhds_within_Ioi_self_ne_bot' ⟨⊤, ennreal.coe_lt_top⟩
 
-@[instance] lemma nhds_within_Ioi_zero_ne_bot : (𝓝[Ioi 0] (0 : ℝ≥0∞)).ne_bot :=
+@[instance] lemma nhds_within_Ioi_zero_ne_bot : (𝓝[>] (0 : ℝ≥0∞)).ne_bot :=
 nhds_within_Ioi_coe_ne_bot
 
 -- using Icc because
@@ -215,14 +215,14 @@ begin
   rw nhds_generate_from, refine le_infi (assume s, le_infi $ assume hs, _),
   rcases hs with ⟨xs, ⟨a, (rfl : s = Ioi a)|(rfl : s = Iio a)⟩⟩,
   { rcases exists_between xs with ⟨b, ab, bx⟩,
-    have xb_pos : 0 < x - b := ennreal.sub_pos.2 bx,
+    have xb_pos : 0 < x - b := tsub_pos_iff_lt.2 bx,
     have xxb : x - (x - b) = b := sub_sub_cancel xt bx.le,
     refine infi_le_of_le (x - b) (infi_le_of_le xb_pos _),
     simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xxb at h₁, calc a < b : ab ... ≤ y : h₁ },
   { rcases exists_between xs with ⟨b, xb, ba⟩,
-    have bx_pos : 0 < b - x := ennreal.sub_pos.2 xb,
-    have xbx : x + (b - x) = b := add_sub_cancel_of_le xb.le,
+    have bx_pos : 0 < b - x := tsub_pos_iff_lt.2 xb,
+    have xbx : x + (b - x) = b := add_tsub_cancel_of_le xb.le,
     refine infi_le_of_le (b - x) (infi_le_of_le bx_pos _),
     simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xbx at h₂, calc y ≤ b : h₂ ... < a : ba },
@@ -253,7 +253,7 @@ protected lemma tendsto_at_top_zero [hβ : nonempty β] [semilattice_sup β] {f 
   filter.at_top.tendsto f (𝓝 0) ↔ ∀ ε > 0, ∃ N, ∀ n ≥ N, f n ≤ ε :=
 begin
   rw ennreal.tendsto_at_top zero_ne_top,
-  { simp_rw [set.mem_Icc, zero_add, zero_sub, zero_le _, true_and], },
+  { simp_rw [set.mem_Icc, zero_add, zero_tsub, zero_le _, true_and], },
   { exact hβ, },
 end
 
@@ -272,8 +272,8 @@ begin
 end,
 begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
-  cases b, {
-    simp [none_eq_top] at ha,
+  cases b,
+  { simp [none_eq_top] at ha,
     simp [*, nhds_swap (a : ℝ≥0∞) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘),
       mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
@@ -324,12 +324,33 @@ continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl h
 protected lemma continuous_mul_const {a : ℝ≥0∞} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
 
+@[continuity]
+lemma continuous_pow (n : ℕ) : continuous (λ a : ℝ≥0∞, a ^ n) :=
+begin
+  induction n with n IH,
+  { simp [continuous_const] },
+  simp_rw [nat.succ_eq_add_one, pow_add, pow_one, continuous_iff_continuous_at],
+  assume x,
+  refine ennreal.tendsto.mul (IH.tendsto _) _ tendsto_id _;
+  by_cases H : x = 0,
+  { simp only [H, zero_ne_top, ne.def, or_true, not_false_iff]},
+  { exact or.inl (λ h, H (pow_eq_zero h)) },
+  { simp only [H, pow_eq_top_iff, zero_ne_top, false_or, eq_self_iff_true,
+               not_true, ne.def, not_false_iff, false_and], },
+  { simp only [H, true_or, ne.def, not_false_iff] }
+end
+
+protected lemma tendsto.pow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} {n : ℕ}
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ n) f (𝓝 (a ^ n)) :=
+((continuous_pow n).tendsto a).comp hm
+
 lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0∞} (h : ∀ a < 1, a * x ≤ y) : x ≤ y :=
 begin
-  have : tendsto (* x) (𝓝[Iio 1] 1) (𝓝 (1 * x)) :=
+  have : tendsto (* x) (𝓝[<] 1) (𝓝 (1 * x)) :=
     (ennreal.continuous_at_mul_const (or.inr one_ne_zero)).mono_left inf_le_left,
   rw one_mul at this,
-  haveI : (𝓝[Iio 1] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ennreal.zero_lt_one,
+  haveI : (𝓝[<] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ⟨0, ennreal.zero_lt_one⟩,
   exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
 end
 
@@ -495,10 +516,18 @@ lemma sub_supr {ι : Sort*} [nonempty ι] {b : ι → ℝ≥0∞} (hr : a < ⊤)
 let ⟨r, eq, _⟩ := lt_iff_exists_coe.mp hr in
 have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
   from is_glb.Inf_eq $ is_lub_supr.is_glb_of_tendsto
-    (assume x _ y _, sub_le_sub (le_refl _))
+    (assume x _ y _, tsub_le_tsub (le_refl (r : ℝ≥0∞)))
     (range_nonempty _)
     (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
-by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
+by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_rfl
+
+lemma exists_countable_dense_no_zero_top :
+  ∃ (s : set ℝ≥0∞), countable s ∧ dense s ∧ 0 ∉ s ∧ ∞ ∉ s :=
+begin
+  obtain ⟨s, s_count, s_dense, hs⟩ : ∃ s : set ℝ≥0∞, countable s ∧ dense s ∧
+    (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) := exists_countable_dense_no_bot_top ℝ≥0∞,
+  exact ⟨s, s_count, s_dense, λ h, hs.1 0 (by simp) h, λ h, hs.2 ∞ (by simp) h⟩,
+end
 
 end topological_space
 
@@ -593,6 +622,9 @@ end
 
 protected lemma le_tsum (a : α) : f a ≤ ∑'a, f a :=
 le_tsum' ennreal.summable a
+
+@[simp] protected lemma tsum_eq_zero : ∑' i, f i = 0 ↔ ∀ i, f i = 0 :=
+⟨λ h i, nonpos_iff_eq_zero.1 $ h ▸ ennreal.le_tsum i, λ h, by simp [h]⟩
 
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
@@ -701,7 +733,7 @@ begin
   have h₃: ∑' i, (f i - g i) = ∑' i, (f i - g i + g i) - ∑' i, g i,
   { rw [ennreal.tsum_add, add_sub_self h₁]},
   have h₄:(λ i, (f i - g i) + (g i)) = f,
-  { ext n, rw ennreal.sub_add_cancel_of_le (h₂ n)},
+  { ext n, rw tsub_add_cancel_of_le (h₂ n)},
   rw h₄ at h₃, apply h₃,
 end
 
@@ -1067,7 +1099,7 @@ begin
     { refine (ennreal.tendsto_nhds hx).2 (λ ε (ε0 : 0 < ε), _),
       filter_upwards [emetric.closed_ball_mem_nhds x (ennreal.div_pos_iff.2 ⟨ε0.ne', hC⟩)],
       have hεC : C * (ε / C) = ε := ennreal.mul_div_cancel' C0 hC,
-      refine λ y (hy : edist y x ≤ ε / C), ⟨sub_le_iff_right.2 _, _⟩,
+      refine λ y (hy : edist y x ≤ ε / C), ⟨tsub_le_iff_right.2 _, _⟩,
       { rw edist_comm at hy,
         calc f x ≤ f y + C * edist x y : h x y
         ... ≤ f y + C * (ε / C) : add_le_add_left (mul_le_mul_left' hy C) (f y)

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import algebra.group.pi
-import algebra.group_power
+import algebra.group_power.lemmas
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -26,7 +26,7 @@ instance perm_group : group (perm α) :=
   mul_assoc := λ f g h, (trans_assoc _ _ _).symm,
   one_mul := trans_refl,
   mul_one := refl_trans,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 theorem mul_apply (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
@@ -51,9 +51,9 @@ lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
 
-lemma gpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
+lemma zpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
   (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
-by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, gpow_mul_comm]
+by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, zpow_mul_comm]
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -74,13 +74,13 @@ equiv.refl_trans e
 
 @[simp] lemma refl_mul (e : perm α) : equiv.refl α * e = e := equiv.refl_trans e
 
-@[simp] lemma inv_trans (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans e
+@[simp] lemma inv_trans_self (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans_self e
 
-@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans e
+@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans_self e
 
-@[simp] lemma trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.trans_symm e
+@[simp] lemma self_trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.self_trans_symm e
 
-@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.trans_symm e
+@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.self_trans_symm e
 
 /-! Lemmas about `equiv.perm.sum_congr` re-expressed via the group structure. -/
 

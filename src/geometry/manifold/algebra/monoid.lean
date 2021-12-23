@@ -205,7 +205,7 @@ instance : has_one (smooth_monoid_morphism I I' G G') :=
 instance : inhabited (smooth_monoid_morphism I I' G G') := ⟨1⟩
 
 @[to_additive]
-instance : has_coe_to_fun (smooth_monoid_morphism I I' G G') := ⟨_, λ a, a.to_fun⟩
+instance : has_coe_to_fun (smooth_monoid_morphism I I' G G') (λ _, G → G') := ⟨λ a, a.to_fun⟩
 
 end monoid
 

@@ -342,14 +342,16 @@ theorem is_normal.limit_lt {f} (H : is_normal f) {o} (h : is_limit o) {a} :
   a < f o ↔ ∃ b < o, a < f b :=
 not_iff_not.1 $ by simpa only [exists_prop, not_exists, not_and, not_lt] using H.2 _ h a
 
-theorem is_normal.lt_iff {f} (H : is_normal f) {a b} : f a < f b ↔ a < b :=
-strict_mono.lt_iff_lt $ λ a b,
-limit_rec_on b (not.elim (not_lt_of_le $ ordinal.zero_le _))
+theorem is_normal.strict_mono {f} (H : is_normal f) : strict_mono f :=
+λ a b, limit_rec_on b (not.elim (not_lt_of_le $ ordinal.zero_le _))
   (λ b IH h, (lt_or_eq_of_le (lt_succ.1 h)).elim
     (λ h, lt_trans (IH h) (H.1 _))
     (λ e, e ▸ H.1 _))
   (λ b l IH h, lt_of_lt_of_le (H.1 a)
     ((H.2 _ l _).1 (le_refl _) _ (l.2 _ h)))
+
+theorem is_normal.lt_iff {f} (H : is_normal f) {a b} : f a < f b ↔ a < b :=
+strict_mono.lt_iff_lt $ H.strict_mono
 
 theorem is_normal.le_iff {f} (H : is_normal f) {a b} : f a ≤ f b ↔ a ≤ b :=
 le_iff_le_iff_lt_iff_lt.2 H.lt_iff
@@ -358,10 +360,7 @@ theorem is_normal.inj {f} (H : is_normal f) {a b} : f a = f b ↔ a = b :=
 by simp only [le_antisymm_iff, H.le_iff]
 
 theorem is_normal.le_self {f} (H : is_normal f) (a) : a ≤ f a :=
-limit_rec_on a (ordinal.zero_le _)
-  (λ a IH, succ_le.2 $ lt_of_le_of_lt IH (H.1 _))
-  (λ a l IH, (limit_le l).2 $ λ b h,
-    le_trans (IH b h) $ H.le_iff.2 $ le_of_lt h)
+well_founded.self_le_of_strict_mono wf H.strict_mono a
 
 theorem is_normal.le_set {f} (H : is_normal f) (p : ordinal → Prop)
   (p0 : ∃ x, p x) (S)
@@ -1332,9 +1331,9 @@ not_congr nat_cast_eq_zero
 
 @[simp] theorem nat_cast_sub {m n : ℕ} : ((m - n : ℕ) : ordinal) = m - n :=
 (_root_.le_total m n).elim
-  (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
+  (λ h, by rw [tsub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
   (λ h, (add_left_cancel n).1 $ by rw [← nat.cast_add,
-     add_sub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
+     add_tsub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
 
 @[simp] theorem nat_cast_div {m n : ℕ} : ((m / n : ℕ) : ordinal) = m / n :=
 if n0 : n = 0 then by simp only [n0, nat.div_zero, nat.cast_zero, div_zero] else
@@ -1376,8 +1375,8 @@ by induction n with n ih; [simp only [nat.cast_zero, lift_zero],
 theorem lift_type_fin (n : ℕ) : lift (@type (fin n) (<) _) = n :=
 by simp only [type_fin, lift_nat_cast]
 
-theorem fintype_card (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
-by rw [← card_eq_nat, card_type, fintype_card]
+theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
+by rw [← card_eq_nat, card_type, mk_fintype]
 
 end ordinal
 
@@ -1556,7 +1555,7 @@ le_antisymm
 
 theorem mul_lt_omega_power {a b c : ordinal}
   (c0 : 0 < c) (ha : a < omega ^ c) (hb : b < omega) : a * b < omega ^ c :=
-if b0 : b = 0 then by simp only [b0, mul_zero, power_pos _ omega_pos] else begin
+begin
   rcases zero_or_succ_or_limit c with rfl|⟨c,rfl⟩|l,
   { exact (lt_irrefl _).elim c0 },
   { rw power_succ at ha,

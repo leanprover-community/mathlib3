@@ -21,6 +21,9 @@ variables {α : Type*} {β : Type*} {γ : Type*}
           [uniform_space α] [uniform_space β] [uniform_space γ]
 universe u
 
+/-- A map `f : α → β` between uniform spaces is called *uniform inducing* if the uniformity filter
+on `α` is the pullback of the uniformity filter on `β` under `prod.map f f`. If `α` is a separated
+space, then this implies that `f` is injective, hence it is a `uniform_embedding`. -/
 structure uniform_inducing (f : α → β) : Prop :=
 (comap_uniformity : comap (λx:α×α, (f x.1, f x.2)) (𝓤 β) = 𝓤 α)
 
@@ -39,6 +42,8 @@ lemma uniform_inducing.basis_uniformity {f : α → β} (hf : uniform_inducing f
   (𝓤 α).has_basis p (λ i, prod.map f f ⁻¹' s i) :=
 hf.1 ▸ H.comap _
 
+/-- A map `f : α → β` between uniform spaces is a *uniform embedding* if it is uniform inducing and
+injective. If `α` is a separated space, then the latter assumption follows from the former. -/
 structure uniform_embedding (f : α → β) extends uniform_inducing f : Prop :=
 (inj : function.injective f)
 
@@ -87,7 +92,7 @@ by simp only [uniform_embedding_def, uniform_continuous_def]; exact
 
 /-- If the domain of a `uniform_inducing` map `f` is a `separated_space`, then `f` is injective,
 hence it is a `uniform_embedding`. -/
-theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
+protected theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
   (hf : uniform_inducing f) :
   uniform_embedding f :=
 ⟨hf, λ x y h, eq_of_uniformity_basis (hf.basis_uniformity (𝓤 β).basis_sets) $
@@ -411,29 +416,11 @@ begin
     end⟩
 end
 
-variables [separated_space γ]
-
-lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
-dense_inducing.extend_eq_at _ b h_f.continuous.continuous_at
-
-lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
-  (hc : continuous g) :
-  ψ = g :=
-dense_inducing.extend_unique _ hg hc
-
 include h_f
 
 lemma uniformly_extend_spec [complete_space γ] (a : α) :
   tendsto f (comap e (𝓝 a)) (𝓝 (ψ a)) :=
-let de := (h_e.dense_inducing h_dense) in
-begin
-  by_cases ha : a ∈ range e,
-  { rcases ha with ⟨b, rfl⟩,
-    rw [uniformly_extend_of_ind _ _ h_f, ← de.nhds_eq_comap],
-    exact h_f.continuous.tendsto _ },
-  { simp only [dense_inducing.extend, dif_neg ha],
-    exact tendsto_nhds_lim (uniformly_extend_exists h_e h_dense h_f _) }
-end
+by simpa only [dense_inducing.extend] using tendsto_nhds_lim (uniformly_extend_exists h_e ‹_› h_f _)
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=
 assume d hd,
@@ -476,4 +463,17 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,
   hs_comp $ show (ψ x₁, ψ x₂) ∈ comp_rel s (comp_rel s s),
     from ⟨a, ha₂, ⟨b, this, hb₂⟩⟩
+
+omit h_f
+
+variables [separated_space γ]
+
+lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
+dense_inducing.extend_eq_at _ h_f.continuous.continuous_at
+
+lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
+  (hc : continuous g) :
+  ψ = g :=
+dense_inducing.extend_unique _ hg hc
+
 end uniform_extension

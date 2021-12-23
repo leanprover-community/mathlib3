@@ -3,7 +3,7 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
-import algebra.field
+import algebra.field.basic
 import algebra.group_power.order
 import algebra.order.ring
 import tactic.monotonicity.basic
@@ -582,6 +582,10 @@ begin
     ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
 end
 
+lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simp [lt_div_iff, mul_two]
+
+lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simp [div_lt_iff, mul_two]
+
 /--  An inequality involving `2`. -/
 lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) :
   (1 - 1 / a)⁻¹ ≤ 2 :=
@@ -605,7 +609,6 @@ See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_field {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_inv β] [has_div β]
-  [nontrivial β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -642,6 +645,14 @@ end
 
 lemma exists_add_lt_and_pos_of_lt (h : b < a) : ∃ c : α, b + c < a ∧ 0 < c :=
 ⟨(a - b) / 2, add_sub_div_two_lt h, div_pos (sub_pos_of_lt h) zero_lt_two⟩
+
+lemma exists_pos_mul_lt {a : α} (h : 0 < a) (b : α) : ∃ c : α, 0 < c ∧ b * c < a :=
+begin
+  have : 0 < a / max (b + 1) 1, from div_pos h (lt_max_iff.2 (or.inr zero_lt_one)),
+  refine ⟨a / max (b + 1) 1, this, _⟩,
+  rw [← lt_div_iff this, div_div_cancel' h.ne'],
+  exact lt_max_iff.2 (or.inl $ lt_add_one _)
+end
 
 lemma le_of_forall_sub_le (h : ∀ ε > 0, b - ε ≤ a) : b ≤ a :=
 begin

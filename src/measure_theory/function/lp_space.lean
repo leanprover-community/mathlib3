@@ -477,7 +477,7 @@ begin
       push_cast,
       rw real.norm_rpow_of_nonneg (norm_nonneg _), },
     rw h_rpow,
-    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hq_pos,
+    have h_rpow_mono := ennreal.strict_mono_rpow_of_pos hq_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hq_pos.ne.symm).2,
     let iso := h_rpow_mono.order_iso_of_surjective _ h_rpow_surj,
     exact (iso.ess_sup_apply (λ x, ((nnnorm (f x)) : ℝ≥0∞)) μ).symm, },
@@ -600,6 +600,19 @@ end
 lemma snorm_one_smul_measure {f : α → F} (c : ℝ≥0∞) :
   snorm f 1 (c • μ) = c * snorm f 1 μ :=
 by { rw @snorm_smul_measure_of_ne_top _ _ _ μ _ 1 (@ennreal.coe_ne_top 1) f c, simp, }
+
+lemma mem_ℒp.of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
+  (hμ'_le : μ' ≤ c • μ) {f : α → E} (hf : mem_ℒp f p μ) :
+  mem_ℒp f p μ' :=
+begin
+  refine ⟨hf.1.mono' (measure.absolutely_continuous_of_le_smul hμ'_le), _⟩,
+  refine (snorm_mono_measure f hμ'_le).trans_lt _,
+  by_cases hc0 : c = 0,
+  { simp [hc0], },
+  rw [snorm_smul_measure_of_ne_zero hc0, smul_eq_mul],
+  refine ennreal.mul_lt_top _ hf.2.ne,
+  simp [hc, hc0],
+end
 
 section opens_measurable_space
 variable [opens_measurable_space E]
@@ -962,7 +975,6 @@ begin
     exact (ennreal.rpow_lt_top_of_nonneg (by simp [hp_pos.le]) (measure_ne_top μ set.univ)).ne },
   have hq0 : q ≠ 0,
   { by_contra hq_eq_zero,
-    push_neg at hq_eq_zero,
     have hp_eq_zero : p = 0, from le_antisymm (by rwa hq_eq_zero at hpq) (zero_le _),
     rw [hp_eq_zero, ennreal.zero_to_real] at hp_pos,
     exact (lt_irrefl _) hp_pos, },
@@ -1119,7 +1131,7 @@ end
 end monotonicity
 
 section is_R_or_C
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜] {f : α → 𝕜}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
 
 lemma mem_ℒp.re (hf : mem_ℒp f p μ) : mem_ℒp (λ x, is_R_or_C.re (f x)) p μ :=
 begin
@@ -1138,8 +1150,7 @@ end
 end is_R_or_C
 
 section inner_product
-variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
-  [inner_product_space 𝕜 E']
+variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E']
   [measurable_space E'] [opens_measurable_space E'] [second_countable_topology E']
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
@@ -1219,7 +1230,7 @@ namespace Lp
 
 variables [borel_space E] [second_countable_topology E]
 
-instance : has_coe_to_fun (Lp E p μ) := ⟨λ _, α → E, λ f, ((f : α →ₘ[μ] E) : α → E)⟩
+instance : has_coe_to_fun (Lp E p μ) (λ _, α → E) := ⟨λ f, ((f : α →ₘ[μ] E) : α → E)⟩
 
 @[ext] lemma ext {f g : Lp E p μ} (h : f =ᵐ[μ] g) : f = g :=
 begin
@@ -1453,18 +1464,6 @@ instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p μ) :=
 instance normed_space_L1 : normed_space 𝕜 (Lp E 1 μ) := by apply_instance
 instance normed_space_L2 : normed_space 𝕜 (Lp E 2 μ) := by apply_instance
 instance normed_space_Ltop : normed_space 𝕜 (Lp E ∞ μ) := by apply_instance
-
-instance [normed_space ℝ E] [has_scalar ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E] :
-  is_scalar_tower ℝ 𝕜 (Lp E p μ) :=
-begin
-  refine ⟨λ r c f, _⟩,
-  ext1,
-  refine (Lp.coe_fn_smul _ _).trans _,
-  rw smul_assoc,
-  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
-  refine (Lp.coe_fn_smul c f).mono (λ x hx, _),
-  rw [pi.smul_apply, pi.smul_apply, pi.smul_apply, hx, pi.smul_apply],
-end
 
 end normed_space
 
@@ -1712,6 +1711,32 @@ variables [second_countable_topology E] [borel_space E]
   [second_countable_topology F] [measurable_space F] [borel_space F]
   {g : E → F} {c : ℝ≥0}
 
+lemma lipschitz_with.comp_mem_ℒp {α E F} {K} [measurable_space α] {μ : measure α}
+  [measurable_space E] [measurable_space F] [normed_group E] [normed_group F] [borel_space E]
+  [borel_space F] {f : α → E} {g : E → F} (hg : lipschitz_with K g)
+  (g0 : g 0 = 0) (hL : mem_ℒp f p μ) : mem_ℒp (g ∘ f) p μ  :=
+begin
+  have : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
+  { apply filter.eventually_of_forall (λ x, _),
+    rw [← dist_zero_right, ← dist_zero_right, ← g0],
+    apply hg.dist_le_mul },
+  exact hL.of_le_mul (hg.continuous.measurable.comp_ae_measurable hL.1) this,
+end
+
+lemma measure_theory.mem_ℒp.of_comp_antilipschitz_with {α E F} {K'}
+  [measurable_space α] {μ : measure α} [measurable_space E] [measurable_space F] [normed_group E]
+  [normed_group F] [borel_space E] [borel_space F] [complete_space E]
+  {f : α → E} {g : E → F} (hL : mem_ℒp (g ∘ f) p μ)
+  (hg : uniform_continuous g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) : mem_ℒp f p μ :=
+begin
+  have : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
+  { apply filter.eventually_of_forall (λ x, _),
+    rw [← dist_zero_right, ← dist_zero_right, ← g0],
+    apply hg'.le_mul_dist },
+  exact hL.of_le_mul ((hg'.closed_embedding hg).measurable_embedding.ae_measurable_comp_iff.1
+    hL.1) this,
+end
+
 namespace lipschitz_with
 
 lemma mem_ℒp_comp_iff_of_antilipschitz {α E F} {K K'} [measurable_space α] {μ : measure α}
@@ -1719,22 +1744,7 @@ lemma mem_ℒp_comp_iff_of_antilipschitz {α E F} {K K'} [measurable_space α] {
   [borel_space F] [complete_space E]
   {f : α → E} {g : E → F} (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
   mem_ℒp (g ∘ f) p μ ↔ mem_ℒp f p μ :=
-begin
-  have := ae_measurable_comp_iff_of_closed_embedding g (hg'.closed_embedding hg.uniform_continuous),
-  split,
-  { assume H,
-    have A : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
-    { apply filter.eventually_of_forall (λ x, _),
-      rw [← dist_zero_right, ← dist_zero_right, ← g0],
-      apply hg'.le_mul_dist },
-    exact H.of_le_mul (this.1 H.ae_measurable) A },
-  { assume H,
-    have A : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
-    { apply filter.eventually_of_forall (λ x, _),
-      rw [← dist_zero_right, ← dist_zero_right, ← g0],
-      apply hg.dist_le_mul },
-    exact H.of_le_mul (this.2 H.ae_measurable) A }
-end
+⟨λ h, h.of_comp_antilipschitz_with hg.uniform_continuous hg' g0, λ h, hg.comp_mem_ℒp g0 h⟩
 
 /-- When `g` is a Lipschitz function sending `0` to `0` and `f` is in `Lp`, then `g ∘ f` is well
 defined as an element of `Lp`. -/
@@ -1742,7 +1752,7 @@ def comp_Lp (hg : lipschitz_with c g) (g0 : g 0 = 0) (f : Lp E p μ) : Lp F p μ
 ⟨ae_eq_fun.comp g hg.continuous.measurable (f : α →ₘ[μ] E),
 begin
   suffices : ∀ᵐ x ∂μ, ∥ae_eq_fun.comp g hg.continuous.measurable (f : α →ₘ[μ] E) x∥ ≤ c * ∥f x∥,
-    { exact Lp.mem_Lp_of_ae_le_mul this },
+  { exact Lp.mem_Lp_of_ae_le_mul this },
   filter_upwards [ae_eq_fun.coe_fn_comp g hg.continuous.measurable (f : α →ₘ[μ] E)],
   assume a ha,
   simp only [ha],
@@ -1803,6 +1813,34 @@ lipschitz_with.coe_fn_comp_Lp _ _ _
 lemma coe_fn_comp_Lp' (L : E →L[𝕜] F) (f : Lp E p μ) :
   L.comp_Lp f =ᵐ[μ] λ a, L (f a) :=
 L.coe_fn_comp_Lp f
+
+lemma comp_mem_ℒp (L : E →L[𝕜] F) (f : Lp E p μ) : mem_ℒp (L ∘ f) p μ :=
+(Lp.mem_ℒp (L.comp_Lp f)).ae_eq (L.coe_fn_comp_Lp' f)
+
+lemma comp_mem_ℒp' (L : E →L[𝕜] F) {f : α → E} (hf : mem_ℒp f p μ) : mem_ℒp (L ∘ f) p μ :=
+(L.comp_mem_ℒp (hf.to_Lp f)).ae_eq (eventually_eq.fun_comp (hf.coe_fn_to_Lp) _)
+
+section is_R_or_C
+
+variables {K : Type*} [is_R_or_C K]
+
+lemma _root_.measure_theory.mem_ℒp.of_real
+  {f : α → ℝ} (hf : mem_ℒp f p μ) : mem_ℒp (λ x, (f x : K)) p μ :=
+(@is_R_or_C.of_real_clm K _).comp_mem_ℒp' hf
+
+lemma _root_.measure_theory.mem_ℒp_re_im_iff {f : α → K} :
+  mem_ℒp (λ x, is_R_or_C.re (f x)) p μ ∧ mem_ℒp (λ x, is_R_or_C.im (f x)) p μ ↔
+  mem_ℒp f p μ :=
+begin
+  refine ⟨_, λ hf, ⟨hf.re, hf.im⟩⟩,
+  rintro ⟨hre, him⟩,
+  convert hre.of_real.add (him.of_real.const_mul is_R_or_C.I),
+  { ext1 x,
+    rw [pi.add_apply, mul_comm, is_R_or_C.re_add_im] },
+  all_goals { apply_instance }
+end
+
+end is_R_or_C
 
 lemma add_comp_Lp (L L' : E →L[𝕜] F) (f : Lp E p μ) :
   (L + L').comp_Lp f = L.comp_Lp f + L'.comp_Lp f :=
@@ -1996,7 +2034,7 @@ begin
   refine (lintegral_liminf_le' (λ m, ((hf m).ennnorm.pow_const _))).trans_eq _,
   have h_pow_liminf : at_top.liminf (λ n, snorm' (f n) p μ) ^ p
     = at_top.liminf (λ n, (snorm' (f n) p μ) ^ p),
-  { have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hp_pos,
+  { have h_rpow_mono := ennreal.strict_mono_rpow_of_pos hp_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
     all_goals { is_bounded_default }, },
@@ -2194,7 +2232,7 @@ begin
       (nnnorm (f (i + 1) a - f i a)))^p ∂μ
     = ∫⁻ a, at_top.liminf (λ n, (∑ i in finset.range (n + 1), (nnnorm (f (i + 1) a - f i a)))^p) ∂μ,
   { refine lintegral_congr (λ x, _),
-    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos (zero_lt_one.trans_le hp1),
+    have h_rpow_mono := ennreal.strict_mono_rpow_of_pos (zero_lt_one.trans_le hp1),
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
     all_goals { is_bounded_default }, },
@@ -2379,7 +2417,7 @@ variables (E p μ)
 bounded continuous representative. -/
 def measure_theory.Lp.bounded_continuous_function : add_subgroup (Lp E p μ) :=
 add_subgroup.add_subgroup_of
-  ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E)).range
+  ((continuous_map.to_ae_eq_fun_add_hom μ).comp (to_continuous_map_add_hom α E)).range
   (Lp E p μ)
 
 variables {E p μ}
@@ -2425,7 +2463,7 @@ space as an element of `Lp`. -/
 def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
 { bound' := ⟨_, Lp_norm_le⟩,
   .. add_monoid_hom.cod_restrict
-      ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
+      ((continuous_map.to_ae_eq_fun_add_hom μ).comp (to_continuous_map_add_hom α E))
       (Lp E p μ)
       mem_Lp }
 
@@ -2435,7 +2473,7 @@ lemma range_to_Lp_hom [fact (1 ≤ p)] :
 begin
   symmetry,
   convert add_monoid_hom.add_subgroup_of_range_eq_of_le
-    ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
+    ((continuous_map.to_ae_eq_fun_add_hom μ).comp (to_continuous_map_add_hom α E))
     (by { rintros - ⟨f, rfl⟩, exact mem_Lp f } : _ ≤ Lp E p μ),
 end
 
@@ -2448,7 +2486,7 @@ def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E
 linear_map.mk_continuous
   (linear_map.cod_restrict
     (Lp.Lp_submodule E p μ 𝕜)
-    ((continuous_map.to_ae_eq_fun_linear_map μ).comp (forget_boundedness_linear_map α E 𝕜))
+    ((continuous_map.to_ae_eq_fun_linear_map μ).comp (to_continuous_map_linear_map α E 𝕜))
     mem_Lp)
   _
   Lp_norm_le
@@ -2512,9 +2550,9 @@ lemma to_Lp_def [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 
   = bounded_continuous_function.to_Lp p μ 𝕜 (linear_isometry_bounded_of_compact α E 𝕜 f) :=
 rfl
 
-@[simp] lemma to_Lp_comp_forget_boundedness [normed_field 𝕜] [opens_measurable_space 𝕜]
+@[simp] lemma to_Lp_comp_to_continuous_map [normed_field 𝕜] [opens_measurable_space 𝕜]
   [normed_space 𝕜 E] (f : α →ᵇ E) :
-  to_Lp p μ 𝕜 (bounded_continuous_function.forget_boundedness α E f)
+  to_Lp p μ 𝕜 f.to_continuous_map
   = bounded_continuous_function.to_Lp p μ 𝕜 f :=
 rfl
 

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import ring_theory.ideal.basic
 import data.polynomial.eval
+import ring_theory.ideal.quotient
 
 /-!
 # modular equivalence for submodule
@@ -20,14 +20,14 @@ variables {N : Type*} [add_comm_group N] [module R N] (V V₁ V₂ : submodule R
 
 /-- A predicate saying two elements of a module are equivalent modulo a submodule. -/
 def smodeq (x y : M) : Prop :=
-(submodule.quotient.mk x : U.quotient) = submodule.quotient.mk y
+(submodule.quotient.mk x : M ⧸ U) = submodule.quotient.mk y
 
 notation x ` ≡ `:50 y ` [SMOD `:50 N `]`:0 := smodeq N x y
 
 variables {U U₁ U₂}
 
 protected lemma smodeq.def : x ≡ y [SMOD U] ↔
-  (submodule.quotient.mk x : U.quotient) = submodule.quotient.mk y := iff.rfl
+  (submodule.quotient.mk x : M ⧸ U) = submodule.quotient.mk y := iff.rfl
 
 namespace smodeq
 

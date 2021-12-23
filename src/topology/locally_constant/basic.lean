@@ -197,7 +197,7 @@ namespace locally_constant
 instance [inhabited Y] : inhabited (locally_constant X Y) :=
 ⟨⟨_, is_locally_constant.const (default Y)⟩⟩
 
-instance : has_coe_to_fun (locally_constant X Y) := ⟨_, locally_constant.to_fun⟩
+instance : has_coe_to_fun (locally_constant X Y) (λ _, X → Y) := ⟨locally_constant.to_fun⟩
 
 initialize_simps_projections locally_constant (to_fun → apply)
 

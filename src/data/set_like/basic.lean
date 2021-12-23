@@ -98,11 +98,11 @@ instance : has_mem B A := ⟨λ x p, x ∈ (p : set B)⟩
 
 -- `dangerous_instance` does not know that `B` is used only as an `out_param`
 @[nolint dangerous_instance, priority 100]
-instance : has_coe_to_sort A := ⟨_, λ p, {x : B // x ∈ p}⟩
+instance : has_coe_to_sort A Type* := ⟨λ p, {x : B // x ∈ p}⟩
 
 variables (p q : A)
 
-@[simp, norm_cast] theorem coe_sort_coe : ↥(p : set B) = p := rfl
+@[simp, norm_cast] theorem coe_sort_coe : ((p : set B) : Type*) = p := rfl
 
 variables {p q}
 

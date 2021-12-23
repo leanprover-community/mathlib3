@@ -141,6 +141,10 @@ uniform_continuous_of_tendsto_zero $
   suffices tendsto f (𝓝 0) (𝓝 (f 0)), by rwa f.map_zero at this,
   h.tendsto 0
 
+lemma cauchy_seq.add {ι : Type*} [semilattice_sup ι] {u v : ι → α} (hu : cauchy_seq u)
+  (hv : cauchy_seq v) : cauchy_seq (u + v) :=
+uniform_continuous_add.comp_cauchy_seq (hu.prod hv)
+
 end uniform_add_group
 
 section topological_add_comm_group
@@ -189,7 +193,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
     show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
     rw [is_open_iff_mem_nhds],
     refine forall_congr (assume a, forall_congr (assume ha, _)),
-    rw [← nhds_translation a, mem_comap, mem_comap],
+    rw [← nhds_translation_sub, mem_comap, mem_comap],
     refine exists_congr (assume t, exists_congr (assume ht, _)),
     show (λ (y : G), y - a) ⁻¹' t ⊆ S ↔ (λ (p : G × G), p.snd - p.fst) ⁻¹' t ⊆ S' a,
     split,

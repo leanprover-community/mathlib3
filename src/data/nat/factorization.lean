@@ -61,26 +61,20 @@ by { ext p, simp only [add_apply, factorization_eq_count,
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 lemma factorization_pow {n k : ℕ} :
   factorization (n^k) = k • n.factorization :=
-begin
-  ext p,
-  simp only [algebra.id.smul_eq_mul, finsupp.coe_smul, pi.smul_apply],
-  simp only [factorization_eq_count, factors_count_pow],
-end
+by { ext p, simp [factorization_eq_count, factors_count_pow] }
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
 @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :
   p.factorization = single p 1 :=
 begin
   ext q,
-  rw [factorization_eq_count, factors_prime hp],
-  by_cases hqp : q = p,
-  { rw hqp, simp },
-  { rw [finsupp.single_eq_of_ne (ne.symm hqp), list.count_singleton', if_neg hqp] },
+  rw [factorization_eq_count, factors_prime hp, single_apply, count_singleton', if_congr eq_comm];
+  refl,
 end
 
 /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
 @[simp] lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
   factorization (p^k) = single p k :=
-by simp [factorization_pow, prime.factorization hp]
+by simp [factorization_pow, hp.factorization]
 
 end nat

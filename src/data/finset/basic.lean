@@ -1111,14 +1111,15 @@ lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
 
 /-! ### sdiff -/
 
+variables {s t : finset α} {a : α}
+
 /-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/
 instance : has_sdiff (finset α) :=
 ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le tsub_le_self s₁.2⟩⟩
 
 @[simp] lemma sdiff_val (s₁ s₂ : finset α) : (s₁ \ s₂).val = s₁.val - s₂.val := rfl
 
-@[simp] theorem mem_sdiff {a : α} {s₁ s₂ : finset α} :
-  a ∈ s₁ \ s₂ ↔ a ∈ s₁ ∧ a ∉ s₂ := mem_sub_of_nodup s₁.2
+@[simp] theorem mem_sdiff : a ∈ s \ t ↔ a ∈ s ∧ a ∉ t := mem_sub_of_nodup s.2
 
 @[simp] theorem inter_sdiff_self (s₁ s₂ : finset α) : s₁ ∩ (s₂ \ s₁) = ∅ :=
 eq_empty_of_forall_not_mem $
@@ -1133,7 +1134,7 @@ instance : generalized_boolean_algebra (finset α) :=
   ..finset.distrib_lattice,
   ..finset.order_bot }
 
-lemma not_mem_sdiff_of_mem_right {a : α} {s t : finset α} (h : a ∈ t) : a ∉ s \ t :=
+lemma not_mem_sdiff_of_mem_right (h : a ∈ t) : a ∉ s \ t :=
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
 
 theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ∪ (s₂ \ s₁) = s₂ :=
@@ -1171,14 +1172,11 @@ sdiff_le_sdiff ‹t₁ ≤ t₂› ‹s₂ ≤ s₁›
 @[simp, norm_cast] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (s₁ \ s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
 
-@[simp] theorem union_sdiff_self_eq_union {s t : finset α} : s ∪ (t \ s) = s ∪ t :=
-sup_sdiff_self_right
+@[simp] theorem union_sdiff_self_eq_union : s ∪ (t \ s) = s ∪ t := sup_sdiff_self_right
 
-@[simp] theorem sdiff_union_self_eq_union {s t : finset α} : (s \ t) ∪ t = s ∪ t :=
-sup_sdiff_self_left
+@[simp] theorem sdiff_union_self_eq_union : (s \ t) ∪ t = s ∪ t := sup_sdiff_self_left
 
-lemma union_sdiff_symm {s t : finset α} : s ∪ (t \ s) = t ∪ (s \ t) :=
-sup_sdiff_symm
+lemma union_sdiff_symm : s ∪ (t \ s) = t ∪ (s \ t) := sup_sdiff_symm
 
 lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s :=
 by { rw union_comm, exact sup_inf_sdiff _ _ }
@@ -1186,8 +1184,7 @@ by { rw union_comm, exact sup_inf_sdiff _ _ }
 @[simp] lemma sdiff_idem (s t : finset α) : s \ t \ t = s \ t :=
 sdiff_idem
 
-lemma sdiff_eq_empty_iff_subset {s t : finset α} : s \ t = ∅ ↔ s ⊆ t :=
-sdiff_eq_bot_iff
+lemma sdiff_eq_empty_iff_subset : s \ t = ∅ ↔ s ⊆ t := sdiff_eq_bot_iff
 
 @[simp] lemma empty_sdiff (s : finset α) : ∅ \ s = ∅ :=
 bot_sdiff
@@ -1221,8 +1218,7 @@ end
 @[simp] lemma sdiff_subset (s t : finset α) : s \ t ⊆ s :=
 show s \ t ≤ s, from sdiff_le
 
-lemma sdiff_ssubset {s t : finset α} (h : t ⊆ s) (ht : t.nonempty) :
-  s \ t ⊂ s :=
+lemma sdiff_ssubset (h : t ⊆ s) (ht : t.nonempty) : s \ t ⊂ s :=
 sdiff_lt (le_iff_subset.2 h) ht.ne_empty
 
 lemma union_sdiff_distrib (s₁ s₂ t : finset α) : (s₁ ∪ s₂) \ t = s₁ \ t ∪ s₂ \ t :=
@@ -1248,6 +1244,8 @@ end
 
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
 sdiff_sdiff_right_self
+
+lemma sdiff_sdiff_eq_self (h : t ⊆ s) : s \ (s \ t) = t := sdiff_sdiff_eq_self h
 
 lemma sdiff_eq_sdiff_iff_inter_eq_inter {s t₁ t₂ : finset α} : s \ t₁ = s \ t₂ ↔ s ∩ t₁ = s ∩ t₂ :=
 sdiff_eq_sdiff_iff_inf_eq_inf
@@ -1953,11 +1951,13 @@ by simp only [insert_eq, map_union, map_singleton]
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_map_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
 
+@[simp] lemma map_nonempty : (s.map f).nonempty ↔ s.nonempty :=
+by rw [nonempty_iff_ne_empty, nonempty_iff_ne_empty, ne.def, map_eq_empty]
+
+alias map_nonempty ↔ _ finset.nonempty.map
+
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
-
-lemma nonempty.map (h : s.nonempty) (f : α ↪ β) : (s.map f).nonempty :=
-let ⟨a, ha⟩ := h in ⟨f a, (mem_map' f).mpr ha⟩
 
 end map
 

@@ -587,6 +587,15 @@ noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] 
   (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) : α ≃o β :=
 (h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
 
+/-- A strictly monotone function with a right inverse is an order isomorphism. -/
+def strict_mono.order_iso_of_right_inverse {α β} [linear_order α] [preorder β]
+  (f : α → β) (h_mono : strict_mono f) (g : β → α) (hg : function.right_inverse g f) : α ≃o β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ x, h_mono.injective $ hg _,
+  right_inv := hg,
+  .. order_embedding.of_strict_mono f h_mono }
+
 /-- An order isomorphism is also an order isomorphism between dual orders. -/
 protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) :
   order_dual α ≃o order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩

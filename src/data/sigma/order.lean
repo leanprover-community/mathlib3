@@ -18,11 +18,6 @@ This file defines two orders on a sigma type:
 
 We declare the disjoint sum of orders as the default instances. The lexicographical order can
 override it in local by opening locale `lex`.
-
-## TODO
-
-The lexicographic order on `psigma` currently lives in `order.lexicographic`. Should we bring it
-here?
 -/
 
 namespace sigma

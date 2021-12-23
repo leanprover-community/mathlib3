@@ -29,8 +29,8 @@ it is equal to the lowest common multiple of the order of all elements of the gr
 
 * `monoid.lcm_order_eq_exponent`: For a finite left cancel monoid `G`, the exponent is equal to the
   `finset.lcm` of the order of its elements.
-* `monoid.exponent_eq_Sup_order_of(')`: For a commutative cancel monoid, the exponent is
-  equal to the supremum of the order of its elements (or zero if it has any order-zero elements).
+* `monoid.exponent_eq_supr_order_of(')`: For a commutative cancel monoid, the exponent is
+  equal to `⨆ g : G, order_of g` (or zero if it has any order-zero elements).
 
 ## TODO
 * Refactor the characteristic of a ring to be the exponent of its underlying additive group.
@@ -238,7 +238,7 @@ section comm_monoid
 
 variable [cancel_comm_monoid G]
 
-@[to_additive] lemma exponent_eq_Sup_order_of (h : ∀ g : G, 0 < order_of g) :
+@[to_additive] lemma exponent_eq_supr_order_of (h : ∀ g : G, 0 < order_of g) :
   exponent G = ⨆ g : G, order_of g :=
 begin
   rw supr,
@@ -280,21 +280,21 @@ begin
   exact hpk
 end
 
-@[to_additive] lemma exponent_eq_Sup_order_of' :
+@[to_additive] lemma exponent_eq_supr_order_of' :
   exponent G = if ∃ g : G, order_of g = 0 then 0 else ⨆ g : G, order_of g :=
 begin
   split_ifs,
   { obtain ⟨g, hg⟩ := h,
     exact exponent_eq_zero_of_order_zero hg },
   { have := not_exists.mp h,
-    exact exponent_eq_Sup_order_of (λ g, ne.bot_lt $ this g) }
+    exact exponent_eq_supr_order_of (λ g, ne.bot_lt $ this g) }
 end
 
 @[to_additive] lemma exponent_eq_max'_order_of [fintype G] :
   exponent G = ((@finset.univ G _).image order_of).max' ⟨1, by simp⟩ :=
 begin
   rw [←finset.nonempty.cSup_eq_max', finset.coe_image, finset.coe_univ, set.image_univ, ← supr],
-  exact exponent_eq_Sup_order_of order_of_pos
+  exact exponent_eq_supr_order_of order_of_pos
 end
 
 end comm_monoid

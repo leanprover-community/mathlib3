@@ -31,8 +31,7 @@ noncomputable theory
 
 namespace Eisenstein_series
 
-
-/- Note that here we are using that 1/0=0, so there is nothing wrong with this defn or the resulting sum-/
+/-- The function on `ℤ × ℤ` whose sum defines an Eisenstein series.-/
 
 def Eise (k: ℤ) (z : ℍ) : ℤ × ℤ →  ℂ:=
 λ x, 1/(x.1*z+x.2)^k
@@ -57,13 +56,9 @@ def Eise_deriv (k: ℤ) (z : ℂ) : ℤ × ℤ →  ℂ:=
 λ x, (-k*x.1)/(x.1*z+x.2)^(k+1)
 
 
-
-/--This defines the Eisenstein series of weight k and level one. At the moment there is no restriction on the weight,
-but in order to make it an actual modular form some constraints will be needed -/
+/--The Eisenstein series of weight `k : ℤ` -/
 def Eisenstein_series_of_weight_ (k: ℤ) : ℍ' → ℂ:=
  λ z, ∑' (x : ℤ × ℤ), (Eise k z x)
-
-
 
 def real_Eisenstein_series_of_weight_ (k: ℤ) : ℍ' → ℝ:=
  λ z, ∑' (x : ℤ × ℤ), (real_Eise k z x)
@@ -188,8 +183,9 @@ end
 
 
 /- How the Eise function changes under the Moebius action-/
-lemma Eise_moeb (k: ℤ) (z : ℍ) (A : SL2Z) (i : ℤ × ℤ ):
-Eise k ( (A : matrix.GL_pos (fin 2) ℝ) • z) i=  ((A.1 1 0*z+A.1 1 1)^k)*(Eise k z (Ind_equiv A i ) ):=
+lemma Eise_moeb (k: ℤ) (z : ℍ) (A : SL2Z) (i : ℤ × ℤ ) :
+  Eise k ( (A : matrix.GL_pos (fin 2) ℝ) • z) i =
+  ((A.1 1 0*z+A.1 1 1)^k)*(Eise k z (Ind_equiv A i ) ) :=
 begin
   rw Eise,
   rw Eise,
@@ -253,62 +249,35 @@ begin
 rw ← h, split, exact le_max_left a b, exact le_max_right a b,
 end
 
-
-
-
 def Square (m: ℕ): finset (ℤ × ℤ):=
-((finset.Ico (-m : ℤ) (m+1)).product (finset.Ico (-m : ℤ) (m+1))).filter (λ x, max (x.1).nat_abs (x.2).nat_abs = m)
+((finset.Ico (-m : ℤ) (m+1)).product (finset.Ico (-m : ℤ) (m+1))).filter
+(λ x, max (x.1).nat_abs (x.2).nat_abs = m)
+
+def Square2 (m: ℕ) : finset (ℤ × ℤ):=
+  (finset.Ico (-m : ℤ) (m+1)).product {m } ∪ (finset.Ico (-m : ℤ) (m+1)).product {-(m: ℤ)} ∪
+  ({m} : finset (ℤ)).product (finset.Ico (-m+1) (m)) ∪
+  ({-m} : finset (ℤ)).product (finset.Ico (-m+1) (m))
 
 
-
-def Square2 (m: ℕ): finset (ℤ × ℤ):=
-(finset.Ico (-m : ℤ) (m+1)).product {m } ∪ (finset.Ico (-m : ℤ) (m+1)).product {-(m: ℤ)} ∪
-({m} : finset (ℤ)).product (finset.Ico (-m+1) (m)) ∪   ({-m} : finset (ℤ)).product (finset.Ico (-m+1) (m))
-
-
-lemma square2_card (n: ℕ) (h: 1 ≤ n): finset.card (Square2 n)=8*n:=
+lemma square2_card (n: ℕ) (h: 1 ≤ n) : (finset.card (Square2 n) : ℤ) = 8 * n  :=
 begin
-  rw Square2,
-  rw finset.card_union_eq,
-  rw finset.card_union_eq,
-  rw finset.card_union_eq,
-  rw finset.card_product,
-  rw finset.card_product,
-  rw finset.card_product,
-  rw finset.card_product,
-  simp [mul_one, one_mul,
-  sub_neg_eq_add, finset.card_singleton],
-  ring_nf,
-  have N1:(n: ℤ)+1+(n : ℤ)=2*(n:ℤ)+1, by {ring,},
-  have N2:(n: ℤ)-(-(n: ℤ)+1)=2*(n: ℤ)-1, by {ring,},
-  rw [N1,N2], norm_cast, rw int.to_nat_coe_nat,
-  have M1: (((2*n): ℤ)-1).to_nat=2*n-1,
-  by {simp only [int.pred_to_nat] at *, refl, },
-    norm_cast at M1,
-    rw M1,
-  have M2: 2 * (2 * n + 1) + 2 * (2 * n - 1)=8*n+2-2,
-  by {ring_nf, dsimp at *,
-  simp only [nat.add_sub_cancel,
-  int.pred_to_nat, zero_add] at *,
-  injections_and_clear,
-  have M3: 2*(2*n-1)=4*n-2,
-  by {rw nat.mul_sub_left_distrib,ring_nf,},
-  rw M3,
-  rw nat.sub_add_cancel,
-  ring,
-  linarith,
- },
-
-  rw M2,
-  simp only [nat.add_sub_cancel],
-  rw finset.disjoint_iff_ne,
-  intros a ha,
-  intros b hb,
-  simp [ne.def, finset.mem_singleton,
-    finset.mem_product] at *,
+    rw Square2,
+    rw [finset.card_union_eq, finset.card_union_eq, finset.card_union_eq],
+    rw [finset.card_product, finset.card_product, finset.card_product, finset.card_product],
+    simp only [finset.card_singleton, mul_one, one_mul],
+    have hn : -(n : ℤ) ≤ n+1, by {linarith,},
+    have hn2 : -(n : ℤ) +1 ≤ n, by {linarith,},
+    have r1 := int.card_Ico_of_le (-(n : ℤ)) (n+1) hn,
+    have r2 := int.card_Ico_of_le (-(n : ℤ)+1) (n) hn2,
+    simp only [int.coe_nat_add, int.card_Ico, sub_neg_eq_add, neg_add_le_iff_le_add] at *,
+    rw [r1,r2],
+    ring_nf,
+    rw finset.disjoint_iff_ne,
+    intros a ha b hb,
+    simp only [ne.def, finset.mem_singleton, finset.mem_product, finset.mem_Ico] at *,
     by_contra H,
-    have haa:=ha.2,
-    have hbb:=hb.2,
+    have haa := ha.2,
+    have hbb := hb.2,
     rw H at haa,
     rw hbb at haa,
     have hv:=eq_zero_of_neg_eq haa,
@@ -317,54 +286,54 @@ begin
     simp only [nat.one_ne_zero,
     le_zero_iff] at h,
     exact h,
-  rw finset.disjoint_iff_ne,
-  intros a ha,
-  intros b hb,
-  simp  [ne.def, finset.mem_union, finset.mem_singleton,
-  neg_add_le_iff_le_add, finset.mem_product] at *,
-  cases ha, have hbb:=hb.2, have haa:=ha.2, by_contra H,
-  rw ← H at hbb,
-  rw haa at hbb,
-  simp only [lt_self_iff_false, and_false] at hbb,
-  exact hbb,
-  have hbb:=hb.2,
-  have haa:=ha.2,
-  by_contra H,
-  rw ← H at hbb,
-  rw haa at hbb,
-  simp at hbb,
-  have hk:=hbb.1,
-  linarith,
-
-  rw finset.disjoint_iff_ne,
-  intros a ha, intros b hb,
-  simp [ne.def, finset.mem_union, finset.union_assoc,
-  finset.mem_singleton, neg_add_le_iff_le_add,
+    rw finset.disjoint_iff_ne,
+    intros a ha b hb,
+    simp only [ne.def, finset.mem_union, finset.mem_singleton, neg_add_le_iff_le_add,
+    finset.mem_product, finset.mem_Ico] at *,
+    cases ha,
+    have hbb:=hb.2,
+    have haa:=ha.2,
+    by_contra H,
+    rw ← H at hbb,
+    rw haa at hbb,
+    simp only [lt_self_iff_false, and_false] at hbb,
+    exact hbb,
+    have hbb:=hb.2,
+    have haa:=ha.2,
+    by_contra H,
+    rw ← H at hbb,
+    rw haa at hbb,
+    simp at hbb,
+    have hk:=hbb.1,
+    linarith,
+    rw finset.disjoint_iff_ne,
+    intros a ha, intros b hb,
+    simp [ne.def, finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
     finset.mem_product] at *,
-  by_contra H,
-  cases ha,
-  have hbb:=hb.2,
-  have haa:=ha.2,
-  rw ← H at hbb,
-  rw haa at hbb,
-  simp only [lt_self_iff_false, and_false] at hbb,
-  exact hbb,
-  cases ha,
-  have hbb:=hb.2,
-  have haa:=ha.2,
-  rw ← H at hbb,
-  rw haa at hbb,
-  simp only [int.coe_nat_pos, neg_lt_self_iff, add_right_neg] at hbb,
-  linarith,
-  have hbb:=hb.1,
-  have haa:=ha.1,
-  rw H at haa,
-  rw hbb at haa,
-  have hv:=eq_zero_of_neg_eq haa,
-  simp only [int.coe_nat_eq_zero] at hv,
-  rw hv at h,
-  simp only [nat.one_ne_zero, le_zero_iff] at h,
-  exact h,
+    by_contra H,
+    cases ha,
+    have hbb:=hb.2,
+    have haa:=ha.2,
+    rw ← H at hbb,
+    rw haa at hbb,
+    simp only [lt_self_iff_false, and_false] at hbb,
+    exact hbb,
+    cases ha,
+    have hbb:=hb.2,
+    have haa:=ha.2,
+    rw ← H at hbb,
+    rw haa at hbb,
+    simp only [int.coe_nat_pos, neg_lt_self_iff, add_right_neg] at hbb,
+    linarith,
+    have hbb:=hb.1,
+    have haa:=ha.1,
+    rw H at haa,
+    rw hbb at haa,
+    have hv:=eq_zero_of_neg_eq haa,
+    simp only [int.coe_nat_eq_zero] at hv,
+    rw hv at h,
+    simp only [nat.one_ne_zero, le_zero_iff] at h,
+    exact h,
 end
 
 lemma nat_abs_inter (a: ℤ) (n: ℕ) (h: a.nat_abs < n): a < (n: ℤ) ∧  0 <(n: ℤ)+ a:=
@@ -562,9 +531,12 @@ begin
   end
 
 
-lemma Square_size (n : ℕ) (h: 1 ≤ n) : finset.card (Square (n))=8*(n):=
+lemma Square_size (n : ℕ) (h: 1 ≤ n) : finset.card (Square (n)) = 8 * n :=
 begin
-rw sqr_eq_sqr2, apply square2_card, exact h,
+  rw sqr_eq_sqr2,
+  have := square2_card n h,
+  norm_cast at this,
+  apply this,
 end
 
 lemma Squares_are_disjoint: ∀ (i j : ℕ), i ≠ j → disjoint (Square i) (Square j):=

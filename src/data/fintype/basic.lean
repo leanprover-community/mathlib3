@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.array.lemmas
+import data.finset.fin
 import data.finset.option
 import data.finset.pi
 import data.finset.powerset
 import data.finset.prod
+import data.finset.sigma
 import data.list.nodup_equiv_fin
 import data.sym.basic
 import data.ulift
@@ -92,6 +94,8 @@ fintype.complete x
 
 @[simp] theorem mem_univ_val : ∀ x, x ∈ (univ : finset α).1 := mem_univ
 
+lemma eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s := by simp [ext_iff]
+
 @[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
 
@@ -115,7 +119,10 @@ instance : order_top (finset α) :=
 { top := univ,
   le_top := subset_univ }
 
-instance [decidable_eq α] : boolean_algebra (finset α) :=
+section boolean_algebra
+variables [decidable_eq α] {s : finset α} {a : α}
+
+instance : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,
   inf_compl_le_bot := λ s x hx, by simpa using hx,
   top_le_sup_compl := λ s x hx, by simp,
@@ -124,33 +131,39 @@ instance [decidable_eq α] : boolean_algebra (finset α) :=
   ..finset.order_bot,
   ..finset.generalized_boolean_algebra }
 
-lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
+lemma compl_eq_univ_sdiff (s : finset α) : sᶜ = univ \ s := rfl
 
-@[simp] lemma mem_compl [decidable_eq α] {s : finset α} {x : α} : x ∈ sᶜ ↔ x ∉ s :=
-by simp [compl_eq_univ_sdiff]
+@[simp] lemma mem_compl : a ∈ sᶜ ↔ a ∉ s := by simp [compl_eq_univ_sdiff]
 
-@[simp, norm_cast] lemma coe_compl [decidable_eq α] (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
+lemma not_mem_compl : a ∉ sᶜ ↔ a ∈ s := by rw [mem_compl, not_not]
+
+@[simp, norm_cast] lemma coe_compl (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
 
-@[simp] theorem union_compl [decidable_eq α] (s : finset α) : s ∪ sᶜ = finset.univ :=
-sup_compl_eq_top
+@[simp] lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
 
-@[simp] theorem insert_compl_self [decidable_eq α] (x : α) : insert x ({x}ᶜ : finset α) = univ :=
-by { ext y, simp [eq_or_ne] }
+@[simp] lemma union_compl (s : finset α) : s ∪ sᶜ = finset.univ := sup_compl_eq_top
 
-@[simp] lemma compl_filter [decidable_eq α] (p : α → Prop) [decidable_pred p]
-  [Π x, decidable (¬p x)] :
+@[simp] lemma compl_erase : (s.erase a)ᶜ = insert a sᶜ :=
+by { ext, simp only [or_iff_not_imp_left, mem_insert, not_and, mem_compl, mem_erase] }
+
+@[simp] lemma compl_insert : (insert a s)ᶜ = sᶜ.erase a :=
+by { ext, simp only [not_or_distrib, mem_insert, iff_self, mem_compl, mem_erase] }
+
+@[simp] lemma insert_compl_self (x : α) : insert x ({x}ᶜ : finset α) = univ :=
+by rw [←compl_erase, erase_singleton, compl_empty]
+
+@[simp] lemma compl_filter (p : α → Prop) [decidable_pred p] [Π x, decidable (¬p x)] :
   (univ.filter p)ᶜ = univ.filter (λ x, ¬p x) :=
 (filter_not _ _).symm
 
-theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
-by simp [ext_iff]
-
-lemma compl_ne_univ_iff_nonempty [decidable_eq α] (s : finset α) : sᶜ ≠ univ ↔ s.nonempty :=
+lemma compl_ne_univ_iff_nonempty (s : finset α) : sᶜ ≠ univ ↔ s.nonempty :=
 by simp [eq_univ_iff_forall, finset.nonempty]
 
-lemma compl_singleton [decidable_eq α] (a : α) : ({a} : finset α)ᶜ = univ.erase a :=
+lemma compl_singleton (a : α) : ({a} : finset α)ᶜ = univ.erase a :=
 by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
+
+end boolean_algebra
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
   univ ∩ s = s := ext $ λ a, by simp

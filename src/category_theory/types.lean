@@ -62,7 +62,8 @@ congr_fun f.inv_hom_id y
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
 abbreviation as_hom {α β : Type u} (f : α → β) : α ⟶ β := f
 -- If you don't mind some notation you can use fewer keystrokes:
-localized "notation  `↾` f : 200 := as_hom f" in category_theory.Type -- type as \upr in VScode
+localized "notation  `↾` f : 200 := category_theory.as_hom f"
+  in category_theory.Type -- type as \upr in VScode
 
 section -- We verify the expected type checking behaviour of `as_hom`.
 variables (α β γ : Type u) (f : α → β) (g : β → γ)

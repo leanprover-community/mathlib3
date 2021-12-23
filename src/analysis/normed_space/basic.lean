@@ -356,6 +356,11 @@ let ⟨n, hle, hlt⟩ := exists_mem_Ioc_zpow hr hw in
 ⟨w^n, by { rw norm_zpow; exact zpow_pos_of_pos (lt_trans zero_lt_one hw) _},
 by rwa norm_zpow⟩
 
+@[priority 100]
+instance nondiscrete_normed_field.noncompact_space : noncompact_space α :=
+⟨λ h, let ⟨R, hR⟩ := bounded_iff_forall_norm_le.1 h.bounded, ⟨x, hx⟩ := exists_lt_norm α R
+  in hx.not_le $ hR _ trivial⟩
+
 variable {α}
 
 @[instance]

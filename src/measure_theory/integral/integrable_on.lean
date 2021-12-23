@@ -110,6 +110,10 @@ lemma integrable_on.congr_set_ae (h : integrable_on f t μ) (hst : s =ᵐ[μ] t)
   integrable_on f s μ :=
 h.mono_set_ae hst.le
 
+lemma integrable_on.congr_fun' (h : integrable_on f s μ) (hst : f =ᵐ[μ.restrict s] g) :
+  integrable_on g s μ :=
+integrable.congr h hst
+
 lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
 h.mono_measure $ measure.restrict_le_self
 

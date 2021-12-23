@@ -802,9 +802,26 @@ begin
   { simp [hab, hab.le] }
 end
 
+lemma integral_Ioc_eq_integral_Ioo' {f : α → E} {a b : α} (hb : μ {b} = 0) :
+  ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+begin
+  cases lt_or_le a b with hab hab,
+  { have : μ.restrict (Ioc a b) = μ.restrict (Ioo a b),
+    { rw [←Ioo_union_right hab,
+        measure_theory.measure.restrict_union _ measurable_set_Ioo (measurable_set_singleton b),
+        measure_theory.measure.restrict_zero_set hb, add_zero ],
+      simp only [right_mem_Ioo, not_false_iff, disjoint_singleton_right] },
+    rw this },
+  simp [hab],
+end
+
 lemma integral_Icc_eq_integral_Ioc {f : α → E} {a b : α} [has_no_atoms μ] :
   ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
 integral_Icc_eq_integral_Ioc' $ measure_singleton a
+
+lemma integral_Ioc_eq_integral_Ioo {f : α → E} {a b : α} [has_no_atoms μ] :
+  ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+integral_Ioc_eq_integral_Ioo' $ measure_singleton b
 
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
 lemma integral_congr {a b : α} (h : eq_on f g (interval a b)) :

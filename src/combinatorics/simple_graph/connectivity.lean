@@ -106,7 +106,7 @@ def get_vert : Π {u v : V} (p : G.walk u v) (n : ℕ), V
 lemma append_assoc : Π {u v w x : V} (p : G.walk u v) (q : G.walk v w) (r : G.walk w x),
   p.append (q.append r) = (p.append q).append r
 | _ _ _ _ nil _ _ := rfl
-| _ _ _ _ (cons h p') q r := by { dsimp only [append], rw append_assoc, }
+| _ _ _ _ (cons h p') q r := by { dunfold append, rw append_assoc, }
 
 @[simp] lemma reverse_nil {u : V} : (nil : G.walk u u).reverse = nil := rfl
 
@@ -126,7 +126,7 @@ lemma reverse_singleton {u v : V} (h : G.adj u v) :
   (p : G.walk u v) (q : G.walk u w) (r : G.walk w x),
   (p.reverse_aux q).append r = p.reverse_aux (q.append r)
 | _ _ _ _ nil _ _ := rfl
-| _ _ _ _ (cons h p') q r := by simp! [reverse_aux_append p' (cons (G.symm h) q) r]
+| _ _ _ _ (cons h p') q r := by simp [reverse_aux_append p' (cons (G.symm h) q) r]
 
 protected lemma reverse_aux_eq_reverse_append {u v w : V} (p : G.walk u v) (q : G.walk u w) :
   p.reverse_aux q = p.reverse.append q :=
@@ -134,7 +134,7 @@ by simp [reverse]
 
 @[simp] lemma reverse_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).reverse = p.reverse.append (cons (G.symm h) nil) :=
-by simp! [reverse]
+by simp [reverse]
 
 @[simp] lemma reverse_append {u v w : V} (p : G.walk u v) (q : G.walk v w) :
   (p.append q).reverse = q.reverse.append p.reverse :=
@@ -152,12 +152,12 @@ by simp [reverse]
 @[simp] lemma length_append : Π {u v w : V} (p : G.walk u v) (q : G.walk v w),
   (p.append q).length = p.length + q.length
 | _ _ _ nil _ := by simp
-| _ _ _ (cons _ p') _ := by simp [length_append, add_left_comm, add_comm]
+| _ _ _ (cons _ _) _ := by simp [length_append, add_left_comm, add_comm]
 
 @[simp] protected lemma length_reverse_aux : Π {u v w : V} (p : G.walk u v) (q : G.walk u w),
   (p.reverse_aux q).length = p.length + q.length
 | _ _ _ nil _ := by simp!
-| _ _ _ (cons _ p') _ := by simp [walk.reverse_aux, length_reverse_aux, nat.add_succ, nat.succ_add]
+| _ _ _ (cons _ _) _ := by simp [length_reverse_aux, nat.add_succ, nat.succ_add]
 
 @[simp] lemma length_reverse {u v : V} (p : G.walk u v) : p.reverse.length = p.length :=
 by simp [reverse]

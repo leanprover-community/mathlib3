@@ -103,8 +103,7 @@ begin
     simp [real.zero_rpow hp.ne'] }
 end
 
-lemma zero_mem_ℓp' : mem_ℓp (λ i : α, (0 : E i)) p :=
-by convert zero_mem_ℓp
+lemma zero_mem_ℓp' : mem_ℓp (λ i : α, (0 : E i)) p := zero_mem_ℓp
 
 end zero
 

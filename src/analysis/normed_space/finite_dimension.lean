@@ -591,16 +591,6 @@ begin
   { exact (closed_embedding_smul_left hc).is_closed_map }
 end
 
-variables (𝕜 E)
-
-lemma normed_space.noncompact_space [nontrivial E] : noncompact_space E :=
-let ⟨c, hc⟩ := exists_ne (0 : E) in (@closed_embedding_smul_left 𝕜 _ _ _ _ _ _ hc).noncompact_space
-
-@[priority 100]
-instance real_normed_space.noncompact_space (E : Type*) [nontrivial E] [normed_group E]
-  [normed_space ℝ E] : noncompact_space E :=
-normed_space.noncompact_space ℝ E
-
 end complete_field
 
 section proper_field

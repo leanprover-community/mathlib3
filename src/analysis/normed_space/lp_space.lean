@@ -64,12 +64,13 @@ section ℓp_space_definition
 * admits an upper bound for `set.range (λ i, ∥f i∥)`, if `p = ∞`, or
 * has the series `∑' i, ∥f i∥ ^ p` be summable, if `0 < p < ∞`. -/
 def mem_ℓp (f : Π i, E i) (p : ℝ≥0∞) : Prop :=
-if p = 0 then (f = 0) else
+if p = 0 then (set.finite {i | f i ≠ 0}) else
   (if p = ∞ then bdd_above (set.range (λ i, ∥f i∥)) else summable (λ i, ∥f i∥ ^ p.to_real))
 
 end ℓp_space_definition
 
-lemma mem_ℓp_zero {f : Π i, E i} (hf : f = 0) : mem_ℓp f 0 := (if_pos rfl).mpr hf
+lemma mem_ℓp_zero {f : Π i, E i} (hf : set.finite {i | f i ≠ 0}) : mem_ℓp f 0 :=
+(if_pos rfl).mpr hf
 
 lemma mem_ℓp_infty {f : Π i, E i} (hf : bdd_above (set.range (λ i, ∥f i∥))) : mem_ℓp f ∞ :=
 (if_neg ennreal.top_ne_zero).mpr ((if_pos rfl).mpr hf)
@@ -83,7 +84,8 @@ begin
   exact hf,
 end
 
-lemma mem_ℓp.eq_zero {f : Π i, E i} (hf : mem_ℓp f 0) : f = 0 := (if_pos rfl).mp hf
+lemma mem_ℓp.finite_dsupport {f : Π i, E i} (hf : mem_ℓp f 0) : set.finite {i | f i ≠ 0} :=
+(if_pos rfl).mp hf
 
 lemma mem_ℓp.bdd_above {f : Π i, E i} (hf : mem_ℓp f ∞) : bdd_above (set.range (λ i, ∥f i∥)) :=
 (if_pos rfl).mp ((if_neg ennreal.top_ne_zero).mp hf)
@@ -98,7 +100,8 @@ end
 lemma zero_mem_ℓp : mem_ℓp (0 : Π i, E i) p :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
-  { exact mem_ℓp_zero rfl },
+  { apply mem_ℓp_zero,
+    simp },
   { apply mem_ℓp_infty,
     cases is_empty_or_nonempty α with _i _i; resetI,
     { convert bdd_above_empty,
@@ -117,7 +120,7 @@ lemma mem_ℓp.neg {f : Π i, E i} (hf : mem_ℓp f p) : mem_ℓp (-f) p :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
-    simp [hf.eq_zero] },
+    simp [hf.finite_dsupport] },
   { apply mem_ℓp_infty,
     simpa using hf.bdd_above },
   { apply mem_ℓp_gen hp,
@@ -132,17 +135,40 @@ lemma eventually_lt_of_tendsto_lt  {α : Type*} {γ : Type*} [topological_space 
   (h : filter.tendsto f l (nhds v)) : ∀ᶠ a in l, f a < u :=
 tendsto_nhds.1 h (< u) is_open_Iio hv
 
+lemma set.finite.bdd_above_image {α : Type*} {β : Type*} [hβ : nonempty β] [linear_order β]
+  {s : set α} (f : α → β) (h : s.finite) :
+  bdd_above (f '' s) :=
+begin
+  rcases is_empty_or_nonempty α with _i | _i; resetI,
+  { inhabit β,
+    use default β,
+    rintros b ⟨a, ha, rfl⟩,
+    revert ha a,
+    exact _i.elim },
+  exact (h.image f).bdd_above,
+end
+
 lemma mem_ℓp.mem_ℓp_of_exponent_ge {p q : ℝ≥0∞} {f : Π i, E i}
   (hfq : mem_ℓp f q) (hpq : q ≤ p) :
   mem_ℓp f p :=
 begin
   rcases ennreal.trichotomy₂ hpq with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, hp⟩ | ⟨rfl, rfl⟩ | ⟨hq, rfl⟩
     | ⟨hq, hp, hpq'⟩,
-  { exact mem_ℓp_zero hfq.eq_zero },
-  { rw hfq.eq_zero,
-    exact zero_mem_ℓp },
-  { rw hfq.eq_zero,
-    exact zero_mem_ℓp },
+  { apply mem_ℓp_zero,
+    exact hfq.finite_dsupport },
+  { apply mem_ℓp_infty,
+    obtain ⟨C, hC⟩ := hfq.finite_dsupport.bdd_above_image (λ i, ∥f i∥),
+    use max 0 C,
+    rintros x ⟨i, rfl⟩,
+    by_cases hi : f i = 0,
+    { simp [hi] },
+    { exact (hC ⟨i, hi, rfl⟩).trans (le_max_right _ _) } },
+  { apply mem_ℓp_gen hp,
+    have : ∀ i ∉ hfq.finite_dsupport.to_finset, ∥f i∥ ^ p.to_real = 0,
+    { intros i hi,
+      have : f i = 0 := by simpa using hi,
+      simp [this, real.zero_rpow hp.ne'] },
+    exact summable_of_ne_finset_zero this },
   { exact hfq },
   { apply mem_ℓp_infty,
     obtain ⟨A, hA⟩ := (hfq.summable hq).tendsto_cofinite_zero.bdd_above_range_of_cofinite,
@@ -170,7 +196,12 @@ lemma mem_ℓp.add {f g : Π i, E i} (hf : mem_ℓp f p) (hg : mem_ℓp g p) : m
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
-    simp [hf.eq_zero, hg.eq_zero] },
+    refine (hf.finite_dsupport.union hg.finite_dsupport).subset _,
+    intros i,
+    simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+    contrapose!,
+    rintros ⟨hf', hg'⟩,
+    simp [hf', hg'] },
   { apply mem_ℓp_infty,
     obtain ⟨A, hA⟩ := hf.bdd_above,
     obtain ⟨B, hB⟩ := hg.bdd_above,
@@ -217,7 +248,12 @@ lemma mem_ℓp.const_smul {f : Π i, E i} (hf : mem_ℓp f p) (c : 𝕜) : mem_�
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
-    simp [hf.eq_zero] },
+    refine hf.finite_dsupport.subset _,
+    intros i,
+    simp only [ne.def, set.mem_set_of_eq, pi.smul_apply],
+    contrapose!,
+    intros hf',
+    simp [hf'] },
   { obtain ⟨A, hA⟩ := hf.bdd_above,
     refine mem_ℓp_infty ⟨∥c∥ * A, _⟩,
     rintros a ⟨i, rfl⟩,
@@ -282,18 +318,19 @@ variables {E p}
 
 @[simp] lemma coe_fn_sub (f g : Lp E p) : ⇑(f - g) = f - g := rfl
 
-@[simp] lemma eq_zero (f : Lp E 0) : f = 0 := ext (Lp.mem_ℓp f).eq_zero
+-- @[simp] lemma eq_zero (f : Lp E 0) : f = 0 := ext (Lp.mem_ℓp f).eq_zero
 
 instance : has_norm (Lp E p) :=
-{ norm := λ f, if p = 0 then 0 else
-    (if p = ∞ then ⨆ i, ∥f i∥ else (∑' i, ∥f i∥ ^ p.to_real) ^ (1/p.to_real)) }
+{ norm := λ f, if hp : p = 0 then by subst hp; exact (Lp.mem_ℓp f).finite_dsupport.to_finset.card
+   else (if p = ∞ then ⨆ i, ∥f i∥ else (∑' i, ∥f i∥ ^ p.to_real) ^ (1/p.to_real)) }
 
-lemma norm_eq_zero (f : Lp E 0) : ∥f∥ = 0 := if_pos rfl
+lemma norm_eq_card_dsupport (f : Lp E 0) : ∥f∥ = (Lp.mem_ℓp f).finite_dsupport.to_finset.card :=
+dif_pos rfl
 
 lemma norm_eq_csupr (f : Lp E ∞) : ∥f∥ = ⨆ i, ∥f i∥ :=
 begin
   dsimp [norm],
-  rw [if_neg ennreal.top_ne_zero, if_pos rfl]
+  rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
 end
 
 lemma is_lub_norm [nonempty α] (f : Lp E ∞) : is_lub (set.range (λ i, ∥f i∥)) ∥f∥ :=
@@ -307,7 +344,7 @@ lemma norm_eq_tsum_rpow (hp : 0 < p.to_real) (f : Lp E p) :
 begin
   dsimp [norm],
   rw ennreal.to_real_pos_iff at hp,
-  rw [if_neg hp.1.ne', if_neg hp.2],
+  rw [dif_neg hp.1.ne', if_neg hp.2],
 end
 
 lemma norm_rpow_eq_tsum (hp : 0 < p.to_real) (f : Lp E p) :
@@ -348,7 +385,7 @@ end
 lemma norm_nonneg' (f : Lp E p) : 0 ≤ ∥f∥ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
-  { simp [Lp.norm_eq_zero f] },
+  { simp [Lp.norm_eq_card_dsupport f] },
   { cases is_empty_or_nonempty α with _i _i; resetI,
     { rw Lp.norm_eq_csupr,
       simp [real.csupr_empty] },
@@ -362,7 +399,7 @@ end
 @[simp] lemma norm_zero : ∥(0 : Lp E p)∥ = 0 :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
-  { exact Lp.norm_eq_zero 0 },
+  { simp [Lp.norm_eq_card_dsupport] },
   { simp [Lp.norm_eq_csupr] },
   { rw Lp.norm_eq_tsum_rpow hp,
     have hp' : 1 / p.to_real ≠ 0 := one_div_ne_zero hp.ne',
@@ -390,7 +427,9 @@ begin
   classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
   rcases p.trichotomy with rfl | rfl | hp,
-  { exact Lp.eq_zero f },
+  { have : {i : α | ¬f i = 0} = ∅ := by simpa [Lp.norm_eq_card_dsupport f] using h,
+    ext i,
+    sorry },
   { cases is_empty_or_nonempty α with _i _i; resetI,
     { simp },
     have H : is_lub (set.range (λ i, ∥f i∥)) 0,
@@ -416,7 +455,7 @@ by rw [ext_iff, coe_fn_zero]
 @[simp] lemma norm_neg {f : Lp E p} : ∥-f∥ = ∥f∥ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
-  { simp [Lp.norm_eq_zero] },
+  { simp [Lp.norm_eq_card_dsupport] },
   { cases is_empty_or_nonempty α; resetI,
     { simp [Lp.eq_zero' f], },
     apply (Lp.is_lub_norm (-f)).unique,
@@ -498,7 +537,7 @@ end
 lemma norm_const_smul (c : 𝕜) (f : Lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
-  { simp [Lp.norm_eq_zero] },
+  { sorry },
   { cases is_empty_or_nonempty α; resetI,
     { simp [Lp.eq_zero' f], },
     apply (Lp.is_lub_norm (c • f)).unique,

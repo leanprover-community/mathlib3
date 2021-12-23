@@ -8,6 +8,7 @@ import ring_theory.ideal.prod
 import ring_theory.ideal.over
 import linear_algebra.finsupp
 import algebra.punit_instances
+import ring_theory.nilpotent
 
 /-!
 # Prime spectrum of a commutative ring
@@ -603,6 +604,15 @@ begin
   apply zero_locus_anti_mono,
   rw set.singleton_subset_iff,
   exact ⟨n, hs⟩
+end
+
+lemma basic_open_empty_iff (f : R) :
+  basic_open f = ∅ ↔ is_nilpotent f :=
+begin
+  rw [← subtype.coe_injective.eq_iff, basic_open_eq_zero_locus_compl],
+  simp only [set.eq_univ_iff_forall, topological_space.opens.empty_eq, set.singleton_subset_iff,
+    opens.coe_bot, nilpotent_iff_mem_prime, set.compl_empty_iff, mem_zero_locus, set_like.mem_coe],
+  exact subtype.forall,
 end
 
 lemma localization_away_comap_range (S : Type v) [comm_ring S] [algebra R S] (r : R)

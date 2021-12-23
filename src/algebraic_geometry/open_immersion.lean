@@ -1173,6 +1173,13 @@ a basis. -/
 def affine_basis_cover (X : Scheme) : open_cover X :=
 X.affine_cover.bind (λ x, affine_basis_cover_of_affine _)
 
+/-- The coordinate ring of a component in the `affine_basis_cover`. -/
+def affine_basis_cover_ring (X : Scheme) (i : X.affine_basis_cover.J) : CommRing :=
+CommRing.of $ @localization.away (X.local_affine i.1).some_spec.some _ i.2
+
+lemma affine_basis_cover_obj (X : Scheme) (i : X.affine_basis_cover.J) :
+  X.affine_basis_cover.obj i = Spec.obj (op $ X.affine_basis_cover_ring i) := rfl
+
 lemma affine_basis_cover_map_range (X : Scheme)
   (x : X.carrier) (r : (X.local_affine x).some_spec.some) :
   set.range (X.affine_basis_cover.map ⟨x, r⟩).1.base =

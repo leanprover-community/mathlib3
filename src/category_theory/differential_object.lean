@@ -99,8 +99,7 @@ def forget : (differential_object C) ⥤ C :=
 instance forget_faithful : faithful (forget C) :=
 { }
 
-instance has_zero_morphisms :
-  has_zero_morphisms (differential_object C) :=
+instance has_zero_morphisms : has_zero_morphisms (differential_object C) :=
 { has_zero := λ X Y,
   ⟨{ f := 0 }⟩}
 

@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.mv_polynomial.basic
+import data.mv_polynomial.supported
 import ring_theory.derivation
 
 /-!
@@ -47,15 +47,36 @@ lemma mk_derivationₗ_C (f : σ → A) (r : R) : mk_derivationₗ R f (C r) = 0
 lemma mk_derivationₗ_X (f : σ → A) (i : σ) : mk_derivationₗ R f (X i) = f i :=
 (mk_derivationₗ_monomial f _ _).trans $ by simp
 
-variables [is_scalar_tower R (mv_polynomial σ R) A]
-
 @[simp] lemma derivation_C (D : derivation R (mv_polynomial σ R) A) (a : R) : D (C a) = 0 :=
 D.map_algebra_map a
+
+@[simp] lemma derivation_C_mul (D : derivation R (mv_polynomial σ R) A) (a : R)
+  (f : mv_polynomial σ R) : D (C a * f) = a • D f :=
+by rw [C_mul', D.map_smul]
+
+/-- If two derivations agree on `X i`, `i ∈ s`, then they agree on all polynomials from
+`mv_polynomial.supported R s`. -/
+lemma derivation_eq_on_supported {D₁ D₂ : derivation R (mv_polynomial σ R) A} {s : set σ}
+  (h : set.eq_on (D₁ ∘ X) (D₂ ∘ X) s) {f : mv_polynomial σ R} (hf : f ∈ supported R s) :
+  D₁ f = D₂ f :=
+derivation.eq_on_adjoin (set.ball_image_iff.2 h) hf
+
+lemma derivation_eq_of_forall_mem_vars {D₁ D₂ : derivation R (mv_polynomial σ R) A}
+  {f : mv_polynomial σ R} (h : ∀ i ∈ f.vars, D₁ (X i) = D₂ (X i)) :
+  D₁ f = D₂ f :=
+derivation_eq_on_supported h f.mem_supported_vars
+
+lemma derivation_eq_zero_of_forall_mem_vars {D : derivation R (mv_polynomial σ R) A}
+  {f : mv_polynomial σ R} (h : ∀ i ∈ f.vars, D (X i) = 0) : D f = 0 :=
+show D f = (0 : derivation R (mv_polynomial σ R) A) f,
+from derivation_eq_of_forall_mem_vars h
 
 @[ext] lemma derivation_ext {D₁ D₂ : derivation R (mv_polynomial σ R) A}
   (h : ∀ i, D₁ (X i) = D₂ (X i)) :
   D₁ = D₂ :=
-derivation.ext_of_adjoin_eq_top _ adjoin_range_X $ set.forall_range_iff.2 h
+derivation.ext $ λ f, derivation_eq_of_forall_mem_vars (λ i _, h i)
+
+variables [is_scalar_tower R (mv_polynomial σ R) A]
 
 lemma leibniz_iff_X (D : mv_polynomial σ R →ₗ[R] A) (h₁ : D 1 = 0) :
   (∀ p q, D (p * q) = p • D q + q • D p) ↔
@@ -101,6 +122,11 @@ def mk_derivation (f : σ → A) : derivation R (mv_polynomial σ R) A :=
 
 @[simp] lemma mk_derivation_X (f : σ → A) (i : σ) : mk_derivation R f (X i) = f i :=
 mk_derivationₗ_X f i
+
+lemma mk_derivation_monomial (f : σ → A) (s : σ →₀ ℕ) (r : R) :
+  mk_derivation R f (monomial s r) =
+    r • (s.sum $ λ i k, monomial (s - finsupp.single i 1) (k : R) • f i) :=
+mk_derivationₗ_monomial f s r
 
 /-- `mv_polynomial.mk_derivation` as a linear equivalence. -/
 def mk_derivation_equiv : (σ → A) ≃ₗ[R] derivation R (mv_polynomial σ R) A :=

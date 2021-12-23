@@ -264,12 +264,9 @@ by { ext, simp [block_diagonal_apply] }
   block_diagonal (λ k, diagonal (d k)) = diagonal (λ ik, d ik.2 ik.1) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal_apply, diagonal],
-  split_ifs; -- `finish` can close these goals
-  try { refl }; exfalso; rw prod.mk.inj_iff at *; try { subst h, subst h_1 },
-  { exact not_and.mp h_2 rfl rfl },
-  { exact not_and_of_not_left _ h_1 h_2 },
-  { exact not_and_of_not_right _ h h_1 },
+  simp only [block_diagonal_apply, diagonal, prod.mk.inj_iff, ← ite_and],
+  congr' 1,
+  rw and_comm,
 end
 
 @[simp] lemma block_diagonal_one [decidable_eq m] [has_one α] :

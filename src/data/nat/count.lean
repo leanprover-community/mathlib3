@@ -40,7 +40,7 @@ begin
   refl,
 end
 
-localized "attribute [instance] count_set.fintype" in count
+localized "attribute [instance] nat.count_set.fintype" in count
 
 lemma count_eq_card_filter_range (n : ℕ) : count p n = ((range n).filter p).card :=
 by { rw [count, list.countp_eq_length_filter], refl, }

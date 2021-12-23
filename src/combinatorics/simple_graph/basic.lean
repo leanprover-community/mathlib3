@@ -3,8 +3,6 @@ Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
-import combinatorics.quantum.hierarchy
-import data.fintype.basic
 import data.rel
 import data.set.finite
 import data.sym.sym2
@@ -73,6 +71,18 @@ finitely many vertices.
 -/
 open finset
 universes u v w
+
+/--
+A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
+The relation describes which pairs of vertices are adjacent.
+There is exactly one edge for every pair of adjacent edges;
+see `simple_graph.edge_set` for the corresponding edge set.
+-/
+@[ext]
+structure simple_graph (V : Type u) :=
+(adj : V → V → Prop)
+(symm : symmetric adj . obviously)
+(loopless : irreflexive adj . obviously)
 
 /--
 Construct the simple graph induced by the given relation. It

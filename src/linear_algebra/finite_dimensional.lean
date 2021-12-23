@@ -77,9 +77,8 @@ open_locale classical cardinal
 
 open cardinal submodule module function
 
-/-- `finite_dimensional` vector spaces are defined to be noetherian modules.
-Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
-from another definition. -/
+/-- `finite_dimensional` vector spaces are defined to be finite modules.
+Use `finite_dimensional.of_fintype_basis` to prove finite dimension from another definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [division_ring K]
   [add_comm_group V] [module K V] := module.finite K V
 
@@ -94,8 +93,6 @@ variables (K : Type u) (V : Type v) [division_ring K] [add_comm_group V] [module
 
 variables (K V)
 
--- Without this apparently redundant instance we get typeclass search errors
--- in `analysis.normed_space.finite_dimension`.
 instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → K) :=
 iff_fg.1 is_noetherian_pi
 
@@ -977,7 +974,7 @@ end linear_equiv
 
 namespace linear_map
 
-lemma is_unit_iff [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
+lemma is_unit_iff_ker_eq_bot [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
 begin
   split,
   { rintro ⟨u, rfl⟩,
@@ -987,6 +984,9 @@ begin
       linear_equiv.of_injective_endo_right_inv f h_inj,
       linear_equiv.of_injective_endo_left_inv f h_inj⟩, rfl⟩ }
 end
+
+lemma is_unit_iff_range_eq_top [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.range = ⊤ :=
+by rw [is_unit_iff_ker_eq_bot, ker_eq_bot_iff_range_eq_top]
 
 end linear_map
 

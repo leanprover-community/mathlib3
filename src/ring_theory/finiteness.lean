@@ -112,6 +112,13 @@ instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
   exact submodule.fg_prod hM.1 hN.1
 end⟩
 
+instance pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
+  [Π i, module R (M i)] [h : ∀ i, finite R (M i)] : finite R (Π i, M i) :=
+⟨begin
+  rw ← submodule.pi_top,
+  exact submodule.fg_pi (λ i, (h i).1),
+end⟩
+
 lemma equiv [hM : finite R M] (e : M ≃ₗ[R] N) : finite R N :=
 of_surjective (e : M →ₗ[R] N) e.surjective
 

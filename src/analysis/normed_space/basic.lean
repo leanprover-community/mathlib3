@@ -359,7 +359,7 @@ by rwa norm_zpow⟩
 variable {α}
 
 @[instance]
-lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[{x}ᶜ] x) :=
+lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[≠] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -416,7 +416,7 @@ This is a particular case of `module.punctured_nhds_ne_bot`. -/
 instance punctured_nhds_module_ne_bot
   {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
   [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
-  ne_bot (𝓝[{x}ᶜ] x) :=
+  ne_bot (𝓝[≠] x) :=
 module.punctured_nhds_ne_bot ℝ E x
 
 end real
@@ -648,33 +648,6 @@ theorem frontier_closed_ball [semi_normed_space ℝ E] (x : E) {r : ℝ} (hr : 0
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
-
-theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • ball x r = ball (c • x) (∥c∥ * r) :=
-begin
-  ext y,
-  rw mem_smul_set_iff_inv_smul_mem₀ hc,
-  conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
-end
-
-theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
-begin
-  ext y,
-  rw mem_smul_set_iff_inv_smul_mem₀ hc,
-  conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
-end
-
-theorem smul_closed_ball {E : Type*} [normed_group E] [normed_space α E]
-  (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
-begin
-  rcases eq_or_ne c 0 with rfl|hc,
-  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
-  { exact smul_closed_ball' hc x r }
-end
 
 /-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.
 This homeomorphism sends `x : E` to `(1 + ∥x∥)⁻¹ • x`.

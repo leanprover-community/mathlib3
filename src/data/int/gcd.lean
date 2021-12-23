@@ -302,9 +302,9 @@ begin
   exact int.nat_abs_dvd_iff_dvd.mpr h
 end
 
-lemma gcd_greatest {a b d : ℤ} (hd : 0 ≤ d) (hda : d ∣ a) (hdb : d ∣ b)
+lemma gcd_greatest {a b d : ℤ} (hd_pos : 0 ≤ d) (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : ℤ, e ∣ a → e ∣ b → e ∣ d) : d = gcd a b :=
-(nat_abs_inj_of_nonneg_of_nonneg hd (coe_zero_le (gcd a b))).mp
+(nat_abs_inj_of_nonneg_of_nonneg hd_pos (coe_zero_le (gcd a b))).mp
   (nat_abs_eq_of_dvd_dvd (dvd_gcd hda hdb) (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)))
 
 /-- Euclid's lemma: if `a ∣ b * c` and `gcd a c = 1` then `a ∣ b`.

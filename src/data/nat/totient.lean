@@ -191,17 +191,14 @@ lemma totient_mul_prime_div {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
 begin
   by_cases hzero : n = 0,
   { simp [hzero] },
-  { have hfin := (multiplicity.finite_nat_iff.2 ⟨prime.ne_one hp, zero_lt_iff.2 hzero⟩),
-    have hpos : 0 < (multiplicity p n).get hfin := multiplicity.pos_of_dvd hfin h,
-    obtain ⟨m, hm, hnotdiv⟩ := multiplicity.eq_pow_mul_not_dvd hfin,
-    rw [hm, ← mul_assoc, ← pow_succ, mul_comm _ m, mul_comm _ m, nat.totient_mul
-      (prime.coprime_pow_of_not_dvd hp hnotdiv), nat.totient_mul
-      (prime.coprime_pow_of_not_dvd hp hnotdiv), ← mul_assoc p, mul_comm p, mul_assoc m.totient,
-      ← succ_pred_eq_of_pos hpos, totient_prime_pow_succ hp, totient_prime_pow_succ hp,
-      succ_pred_eq_of_pos hpos, mul_comm _ (p - 1), mul_comm _ (p - 1), ← mul_assoc p,
-      mul_comm _ (p - 1), ← mul_assoc m.totient, mul_assoc (p - 1), ← mul_assoc m.totient,
-      ← pow_succ, ← succ_pred_eq_of_pos hpos],
-    refl }
+  { have hfin := (multiplicity.finite_nat_iff.2 ⟨hp.ne_one, zero_lt_iff.2 hzero⟩),
+    have h0 : 0 < (multiplicity p n).get hfin := multiplicity.pos_of_dvd hfin h,
+    obtain ⟨m, hm, hndiv⟩ := multiplicity.eq_pow_mul_not_dvd hfin,
+    rw [hm, ← mul_assoc, ← pow_succ, nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd
+      hndiv)), nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd hndiv)), ← mul_assoc],
+    congr,
+    rw [ ← succ_pred_eq_of_pos h0, totient_prime_pow_succ hp, totient_prime_pow_succ hp,
+      succ_pred_eq_of_pos h0, ← mul_assoc p, ← pow_succ, ← succ_pred_eq_of_pos h0, nat.pred_succ] }
 end
 
 lemma totient_eq_iff_prime {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=

@@ -70,7 +70,7 @@ derivative, measurable function, Borel σ-algebra
 noncomputable theory
 
 open set metric asymptotics filter continuous_linear_map
-open topological_space (second_countable_topology)
+open topological_space (second_countable_topology) measure_theory
 open_locale topological_space
 
 namespace continuous_linear_map
@@ -409,3 +409,7 @@ variable {𝕜}
 lemma measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
   [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
 by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1
+
+lemma ae_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
+  [borel_space F] (f : 𝕜 → F) (μ : measure 𝕜) : ae_measurable (deriv f) μ :=
+(measurable_deriv f).ae_measurable

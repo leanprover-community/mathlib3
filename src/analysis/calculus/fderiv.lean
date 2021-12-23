@@ -643,11 +643,12 @@ lemma has_strict_fderiv_at.is_O_sub_rev {f' : E ≃L[𝕜] F}
 ((f'.is_O_comp_rev _ _).trans (hf.trans_is_O (f'.is_O_comp_rev _ _)).right_is_O_add).congr
 (λ _, rfl) (λ _, sub_add_cancel _ _)
 
-lemma has_fderiv_at_filter.is_O_sub_rev {f' : E ≃L[𝕜] F}
-  (hf : has_fderiv_at_filter f (f' : E →L[𝕜] F) x L) :
+lemma has_fderiv_at_filter.is_O_sub_rev (hf : has_fderiv_at_filter f f' x L) {C}
+  (hf' : antilipschitz_with C f') :
   is_O (λ x', x' - x) (λ x', f x' - f x) L :=
-((f'.is_O_sub_rev _ _).trans (hf.trans_is_O (f'.is_O_sub_rev _ _)).right_is_O_add).congr
-(λ _, rfl) (λ _, sub_add_cancel _ _)
+have is_O (λ x', x' - x) (λ x', f' (x' - x)) L,
+  from is_O_iff.2 ⟨C, eventually_of_forall $ λ x', f'.to_linear_map.bound_of_antilipschitz hf' _⟩,
+(this.trans (hf.trans_is_O this).right_is_O_add).congr (λ _, rfl) (λ _, sub_add_cancel _ _)
 
 end continuous
 
@@ -2741,7 +2742,7 @@ begin
     (eventually_of_forall $ λ _, rfl)).trans_is_O _,
   { rintros p hp,
     simp [hp, hfg.self_of_nhds] },
-  { refine (hf.is_O_sub_rev.comp_tendsto hg).congr'
+  { refine ((hf.is_O_sub_rev f'.antilipschitz).comp_tendsto hg).congr'
       (eventually_of_forall $ λ _, rfl) (hfg.mono _),
     rintros p hp,
     simp only [(∘), hp, hfg.self_of_nhds] }

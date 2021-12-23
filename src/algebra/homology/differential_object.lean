@@ -35,7 +35,7 @@ abbreviation _root_.category_theory.differential_object.X_eq_to_hom
 
 @[simp] lemma _root_.category_theory.differential_object.X_eq_to_hom_refl
   (X : differential_object (graded_object_with_shift b V)) (i : β) :
-    X.X_eq_to_hom (refl i) = 𝟙 _ := rfl
+  X.X_eq_to_hom (refl i) = 𝟙 _ := rfl
 
 @[simp, reassoc] lemma eq_to_hom_d (X : differential_object (graded_object_with_shift b V))
   {x y : β} (h : x = y) :

@@ -506,4 +506,9 @@ lemma closed_embedding.comp {g : β → γ} {f : α → β}
 ⟨hg.to_embedding.comp hf.to_embedding, show is_closed (range (g ∘ f)),
  by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.closed_range⟩
 
+lemma closed_embedding.closure_image_eq {f : α → β} (hf : closed_embedding f) (s : set α) :
+  closure (f '' s) = f '' closure s :=
+le_antisymm (is_closed_map_iff_closure_image.mp hf.is_closed_map _)
+  (image_closure_subset_closure_image hf.continuous)
+
 end closed_embedding

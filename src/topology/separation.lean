@@ -172,6 +172,9 @@ lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : se
   indistinguishable x y ↔ indistinguishable (x : α) y :=
 by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
 
+lemma indistinguishable.eq [hα : t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
+not_imp_not.mp ((t0_space_iff_distinguishable _).mp hα x y) h
+
 /-- Given a closed set `S` in a compact T₀ space,
 there is some `x ∈ S` such that `{x}` is closed. -/
 theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
@@ -996,6 +999,34 @@ begin
   rcases exists_compact_mem_nhds x with ⟨K, hKc, hxK⟩,
   rcases mem_nhds_iff.1 hxK with ⟨t, h1t, h2t, h3t⟩,
   exact ⟨t, h2t, h3t, compact_closure_of_subset_compact hKc h1t⟩
+end
+
+lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
+  is_preirreducible S ↔ subsingleton S :=
+begin
+  split,
+  { intro h,
+    constructor,
+    intros x y,
+    ext,
+    by_contradiction e,
+    obtain ⟨U, V, hU, hV, hxU, hyV, h'⟩ := t2_separation e,
+    have := h U V hU hV ⟨x, x.prop, hxU⟩ ⟨y, y.prop, hyV⟩,
+    rw [h', inter_empty] at this,
+    exact this.some_spec },
+  { exact @@is_preirreducible_of_subsingleton _ _ }
+end
+
+lemma is_irreducible_iff_singleton [t2_space α] (S : set α) :
+  is_irreducible S ↔ ∃ x, S = {x} :=
+begin
+  split,
+  { intro h,
+    rw exists_eq_singleton_iff_nonempty_unique_mem,
+    use h.1,
+    intros a b ha hb,
+    injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },
+  { rintro ⟨x, rfl⟩, exact is_irreducible_singleton }
 end
 
 end separation

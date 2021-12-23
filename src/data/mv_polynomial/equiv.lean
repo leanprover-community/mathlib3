@@ -321,14 +321,16 @@ begin
   simp only [mv_polynomial.fin_succ_equiv_apply, mv_polynomial.eval₂_hom_C],
 end
 
-lemma fin_succ_equiv_X_eq_zero {n : ℕ} {R : Type u} [comm_semiring R] :
+
+variables {n} {R}
+
+lemma fin_succ_equiv_X_zero {n : ℕ} :
   fin_succ_equiv R n (X 0) = polynomial.X := by simp
 
-lemma fin_succ_equiv_X_ne_zero {n : ℕ} {R : Type u} [comm_semiring R] {j : fin n} :
+lemma fin_succ_equiv_X_succ {n : ℕ} {j : fin n} :
   fin_succ_equiv R n (X j.succ) = polynomial.C (X j) := by simp
 
-private lemma fin_succ_equiv_coeff_coeff_C {n : ℕ } {R : Type u} [comm_semiring R]
-  (a : R) (i : ℕ) (m : fin n →₀ ℕ) :
+private lemma fin_succ_equiv_coeff_coeff_C {n : ℕ } (a : R) (i : ℕ) (m : fin n →₀ ℕ) :
   coeff m (((fin_succ_equiv R n) (C a)).coeff i) = coeff (finsupp.cons i m) (C a) :=
 begin
   by_cases c_i : i = 0,
@@ -337,22 +339,22 @@ begin
     by_cases c_m : 0 = m,
     { simp only [← c_m, if_true, eq_self_iff_true, finsupp.cons_zero_zero] },
     { have x : ¬ finsupp.cons 0 m = 0,
-      { apply finsupp.cons_any_nonzero,
+      { apply finsupp.cons_ne_zero_of_right,
         symmetry,
         simpa using c_m },
       have x' : ¬ 0 = finsupp.cons 0 m := by cc,
       simp only [c_m, if_false, x', if_false] } },
   { have x : ¬ finsupp.cons i m = 0,
-    { apply finsupp.cons_nonzero_any,
+    { apply finsupp.cons_ne_zero_of_left,
       simpa using c_i },
     have x' :  ¬ 0 = finsupp.cons i m := by cc,
     simp only [fin_succ_equiv_apply, coeff_C, function.comp_app, ring_hom.coe_comp, eval₂_hom_C,
                polynomial.coeff_C, c_i, if_false, coeff_zero, x', if_false] },
 end
 
-private lemma fin_succ_equiv_coeff_coeff_case_p_X  {n : ℕ } {R : Type u} [comm_semiring R]
-  (p : mv_polynomial (fin (n + 1)) R) (j : fin (n + 1)) (hp : ∀ (i : ℕ) (m : fin n →₀ ℕ),
-  coeff m (((fin_succ_equiv R n) p).coeff i) = coeff (finsupp.cons i m) p) (i : ℕ)
+private lemma fin_succ_equiv_coeff_coeff_case_p_X  {n : ℕ } (p : mv_polynomial (fin (n + 1)) R)
+  (j : fin (n + 1))
+  (hp : ∀ (i : ℕ) (m : fin n →₀ ℕ), coeff m (((fin_succ_equiv R n) p).coeff i) = coeff (finsupp.cons i m) p) (i : ℕ)
   (m : fin n →₀ ℕ) : coeff m (((fin_succ_equiv R n) (p * X j)).coeff i)
   = coeff (finsupp.cons i m) (p * X j) :=
 begin
@@ -366,7 +368,7 @@ begin
                   mul_zero, coeff_zero ],
       have t : ¬¬(finsupp.cons 0 m) 0 = 0 := by simp only [ not_not, finsupp.cons_zero],
       simp only [t, if_false] },
-    { rw fin_succ_equiv_X_eq_zero,
+    { rw fin_succ_equiv_X_zero,
       let i' := nat.pred i,
       have r : i = i'.succ,
       { rw nat.succ_pred_eq_of_pos _,
@@ -389,7 +391,7 @@ begin
         simp [c_a'', if_false] } } },
   { let j' := fin.pred j c_j,
     have r : j = j'.succ := by simp,
-    rw [r, fin_succ_equiv_X_ne_zero, polynomial.coeff_mul_C, coeff_mul_X', hp i],
+    rw [r, fin_succ_equiv_X_succ, polynomial.coeff_mul_C, coeff_mul_X', hp i],
     simp only [fin.succ_pred, finsupp.mem_support_iff, ne.def],
     by_cases c_mj' : m j' = 0,
     { simp only [r, finsupp.cons_succ, c_mj', if_false, eq_self_iff_true, not_true] },
@@ -407,8 +409,8 @@ end
 
 /-- This gives the relation between the coefficients of the coefficients of `fin_succ_equiv R n f`
     and the coefficients of `f`. -/
-lemma fin_succ_equiv_coeff_coeff {n : ℕ} {R : Type u} [comm_semiring R]
-  (m : fin n →₀  ℕ) (f : mv_polynomial (fin (n + 1)) R ) (i : ℕ) :
+@[simp] lemma fin_succ_equiv_coeff_coeff {n : ℕ} (m : fin n →₀  ℕ)
+  (f : mv_polynomial (fin (n + 1)) R) (i : ℕ) :
   coeff m (polynomial.coeff (fin_succ_equiv R n f) i) = coeff (finsupp.cons i m) f :=
 begin
   revert i m,
@@ -419,8 +421,8 @@ begin
   apply fin_succ_equiv_coeff_coeff_case_p_X,
 end
 
-lemma eval_eq_eval_mv_eval' {n : ℕ} {R : Type u} [comm_semiring R] (s : fin n → R) (y : R)
-  (f : mv_polynomial (fin (n + 1)) R) : eval (fin.cons y s : fin (n + 1) → R) f
+lemma eval_eq_eval_mv_eval' {n : ℕ} (s : fin n → R) (y : R) (f : mv_polynomial (fin (n + 1)) R) :
+  eval (fin.cons y s : fin (n + 1) → R) f
   = polynomial.eval y (polynomial.map (eval s) ((fin_succ_equiv R n) f)) :=
 begin
   apply induction_on f,
@@ -447,13 +449,12 @@ begin
   simp,
 end
 
-lemma coeff_eval_eq_eval_coeff {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
-  (f : polynomial (mv_polynomial (fin n) R)) (i : ℕ) :
-  polynomial.coeff (polynomial.map (eval s') f) i =  eval s' (polynomial.coeff f i) :=
+lemma coeff_eval_eq_eval_coeff {n : ℕ} (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R))
+  (i : ℕ) : polynomial.coeff (polynomial.map (eval s') f) i =  eval s' (polynomial.coeff f i) :=
 by simp only [polynomial.coeff_map]
 
 /- TODO: what is a good name for this one? -/
-lemma support_eval {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
+lemma support_eval {n : ℕ} (s' : fin n → R)
   (f : polynomial (mv_polynomial (fin n) R)) : (polynomial.map (eval s') f).support ⊆ f.support :=
 begin
   intros i hi,
@@ -464,19 +465,18 @@ begin
   simpa using hi,
 end
 
-lemma degree_eval_le_degree {n : ℕ} {R : Type u} [comm_semiring R] (s' : fin n → R)
-  (f : polynomial (mv_polynomial (fin n) R)) :
+lemma degree_eval_le_degree {n : ℕ} (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R)) :
   polynomial.degree (polynomial.map (eval s') f) ≤ polynomial.degree f :=
 polynomial.degree_mono (support_eval s' f)
 
-lemma nat_degree_eval_le_nat_degree {n : ℕ} {R : Type u} [comm_semiring R] (s : fin n → R)
+lemma nat_degree_eval_le_nat_degree {n : ℕ} (s : fin n → R)
   (f : polynomial (mv_polynomial (fin n) R)) :
   polynomial.nat_degree (polynomial.map (eval s) f) ≤ polynomial.nat_degree f :=
 polynomial.nat_degree_le_nat_degree (degree_eval_le_degree s f)
 
-lemma support_coeff_fin_succ_equiv {n : ℕ} {R : Type u} [comm_semiring R]
-  {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} {m : fin n →₀ ℕ } :
-  m ∈ (polynomial.coeff ((fin_succ_equiv R n) f) i).support ↔ (finsupp.cons i m) ∈ f.support :=
+lemma support_coeff_fin_succ_equiv {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i : ℕ}
+  {m : fin n →₀ ℕ } : m ∈ (polynomial.coeff ((fin_succ_equiv R n) f) i).support
+   ↔ (finsupp.cons i m) ∈ f.support :=
 begin
   apply iff.intro,
   intro h,
@@ -485,8 +485,7 @@ begin
   simpa [mem_support_iff, ←fin_succ_equiv_coeff_coeff m f i] using h,
 end
 
-lemma fin_succ_equiv_support {R : Type u} [comm_semiring R] {n : ℕ}
-  (f : mv_polynomial (fin (n + 1)) R) :
+lemma fin_succ_equiv_support {n : ℕ} (f : mv_polynomial (fin (n + 1)) R) :
   (fin_succ_equiv R n f).support = finset.image (λ m : fin (n + 1)→₀ ℕ, m 0) f.support :=
 begin
   apply finset.subset.antisymm,
@@ -510,8 +509,7 @@ begin
   rwa [← coeff, ← mem_support_iff, support_coeff_fin_succ_equiv, ← hm, cons_tail],
 end
 
-lemma fin_succ_equiv_support' {n : ℕ} {R : Type u} [comm_semiring R]
-  {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :
+lemma fin_succ_equiv_support' {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :
   finset.image (finsupp.cons i) (polynomial.coeff ((fin_succ_equiv R n) f) i).support
    = f.support.filter(λ m, m 0 = i) :=
 begin
@@ -534,8 +532,8 @@ begin
   rw [← h.2, cons_tail],
 end
 
-lemma support_fin_succ_equiv_nonempty  {n : ℕ} {R : Type u} [comm_semiring R]
-  {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) : (fin_succ_equiv R n f).support.nonempty :=
+lemma support_fin_succ_equiv_nonempty  {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
+  (fin_succ_equiv R n f).support.nonempty :=
 begin
   by_contradiction c,
   simp only [finset.not_nonempty_iff_eq_empty, polynomial.support_eq_empty] at c,
@@ -550,8 +548,7 @@ begin
   cc,
 end
 
-lemma degree_fin_succ_equiv {n : ℕ} {R : Type u} [comm_semiring R]
-  {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
+lemma degree_fin_succ_equiv {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
   (fin_succ_equiv R n f).degree = degree_of 0 f :=
 begin
   have h' : (fin_succ_equiv R n f).support.sup (λ x , x)  = degree_of 0 f,
@@ -560,8 +557,8 @@ begin
   congr,
 end
 
-lemma nat_degree_fin_succ_equiv {n : ℕ} {R : Type u} [comm_semiring R]
-  (f : mv_polynomial (fin (n + 1)) R) : (fin_succ_equiv R n f).nat_degree = degree_of 0 f :=
+lemma nat_degree_fin_succ_equiv {n : ℕ} (f : mv_polynomial (fin (n + 1)) R) :
+  (fin_succ_equiv R n f).nat_degree = degree_of 0 f :=
 begin
   by_cases c : f = 0,
   { rw [c, (fin_succ_equiv R n).map_zero, polynomial.nat_degree_zero, degree_of_zero] },
@@ -569,9 +566,8 @@ begin
     simp },
 end
 
-lemma degree_of_coeff_fin_succ_equiv {n : ℕ} {R : Type u} [comm_semiring R]
-  (p : mv_polynomial (fin (n + 1)) R) (j : fin n) (i : ℕ) :
-  degree_of j (polynomial.coeff (fin_succ_equiv R n p) i) ≤ degree_of j.succ p :=
+lemma degree_of_coeff_fin_succ_equiv {n : ℕ} (p : mv_polynomial (fin (n + 1)) R) (j : fin n)
+  (i : ℕ) : degree_of j (polynomial.coeff (fin_succ_equiv R n p) i) ≤ degree_of j.succ p :=
 begin
   rw [degree_of_eq_sup, degree_of_eq_sup, finset.sup_le_iff],
   intros m hm,

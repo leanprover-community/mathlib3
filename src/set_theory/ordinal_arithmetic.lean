@@ -1081,8 +1081,7 @@ end
 section
 variables {S : set ordinal.{u}} (hS : ∀ a, ∃ b, S b ∧ a ≤ b)
 
-/-- Enumerator function for an unbounded set of ordinals. For the subtype variant, see `enum_ord'`.
--/
+/-- Enumerator function for an unbounded set of ordinals. -/
 noncomputable def enum_ord : ordinal.{u} → ordinal.{u} :=
 wf.fix (λ a f, omin _ (hS (blsub.{u u} a f)))
 

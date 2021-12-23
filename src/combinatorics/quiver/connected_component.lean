@@ -78,6 +78,8 @@ quotient.eq'
 
 end weakly_connected_component
 
+variable {V}
+
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
 -- Without the explicit universe level in `quiver.{v+1}` Lean comes up with

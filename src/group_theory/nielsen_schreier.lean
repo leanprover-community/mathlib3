@@ -240,15 +240,16 @@ lemma path_nonempty_of_hom {G} [groupoid.{u u} G] [is_free_groupoid G] {a b : G}
   nonempty (a ⟶ b) → nonempty (path (symgen a) (symgen b)) :=
 begin
   rintro ⟨p⟩,
-  rw [←weakly_connected_component.eq, eq_comm, ←free_group.of_injective.eq_iff, ←mul_inv_eq_one],
+  rw [←@weakly_connected_component.eq (generators G), eq_comm,
+    ←free_group.of_injective.eq_iff, ←mul_inv_eq_one],
   let X := free_group (weakly_connected_component $ generators G),
-  let f : G → X := λ g, free_group.of ↑(symgen g),
+  let f : G → X := λ g, free_group.of (weakly_connected_component.mk g),
   let F : G ⥤ single_obj X := single_obj.difference_functor f,
   change F.map p = ((category_theory.functor.const G).obj ()).map p,
   congr, ext,
   rw [functor.const.obj_map, id_as_one, difference_functor_map, mul_inv_eq_one],
   apply congr_arg free_group.of,
-  rw weakly_connected_component.eq,
+  apply (weakly_connected_component.eq _ _).mpr,
   exact ⟨hom.to_path (sum.inr e)⟩,
 end
 

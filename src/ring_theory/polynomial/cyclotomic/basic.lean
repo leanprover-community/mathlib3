@@ -703,6 +703,10 @@ begin
   exact (is_primitive_root_exp n hpos.ne').is_integral hpos,
 end
 
+end minpoly
+
+section computations
+
 lemma cyclotomic_prime_mul_eq_expand {p n : ℕ} (hp : nat.prime p) (hdiv : p ∣ n)
   (R : Type*) [comm_ring R] : cyclotomic (p * n) R = expand R p (cyclotomic n R) :=
 begin
@@ -727,6 +731,6 @@ begin
         nat.totient_mul_prime_div hp hdiv, mul_comm] } }
 end
 
-end minpoly
+end computations
 
 end polynomial

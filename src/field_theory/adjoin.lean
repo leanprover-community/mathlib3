@@ -55,32 +55,45 @@ lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe :
 
 /-- Galois insertion between `adjoin` and `coe`. -/
 def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
-{ choice := λ S _, adjoin F S,
+{ choice := λ s hs, (adjoin F s).copy s $ le_antisymm (gc.le_u_l s) hs,
   gc := intermediate_field.gc,
   le_l_u := λ S, (intermediate_field.gc (S : set E) (adjoin F S)).1 $ le_refl _,
-  choice_eq := λ _ _, rfl }
+  choice_eq := λ _ _, copy_eq _ _ _ }
 
 instance : complete_lattice (intermediate_field F E) :=
 galois_insertion.lift_complete_lattice intermediate_field.gi
 
 instance : inhabited (intermediate_field F E) := ⟨⊤⟩
 
-lemma mem_bot {x : E} : x ∈ (⊥ : intermediate_field F E) ↔ x ∈ set.range (algebra_map F E) :=
+lemma coe_bot : ↑(⊥ : intermediate_field F E) = set.range (algebra_map F E) :=
 begin
-  suffices : set.range (algebra_map F E) = (⊥ : intermediate_field F E),
-  { rw this, refl },
-  { change set.range (algebra_map F E) = subfield.closure (set.range (algebra_map F E) ∪ ∅),
-    simp [←set.image_univ, ←ring_hom.map_field_closure] }
+  change ↑(subfield.closure (set.range (algebra_map F E) ∪ ∅)) = set.range (algebra_map F E),
+  simp [←set.image_univ, ←ring_hom.map_field_closure]
 end
 
-lemma mem_top {x : E} : x ∈ (⊤ : intermediate_field F E) :=
-subfield.subset_closure $ or.inr trivial
+lemma mem_bot {x : E} : x ∈ (⊥ : intermediate_field F E) ↔ x ∈ set.range (algebra_map F E) :=
+set.ext_iff.mp coe_bot x
 
 @[simp] lemma bot_to_subalgebra : (⊥ : intermediate_field F E).to_subalgebra = ⊥ :=
 by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 
+@[simp] lemma coe_top : ↑(⊤ : intermediate_field F E) = (set.univ : set E) := rfl
+
+@[simp] lemma mem_top {x : E} : x ∈ (⊤ : intermediate_field F E) :=
+trivial
+
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
-by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
+rfl
+
+@[simp, norm_cast]
+lemma coe_inf (S T : intermediate_field F E) : (↑(S ⊓ T) : set E) = S ∩ T := rfl
+
+@[simp]
+lemma mem_inf {S T : intermediate_field F E} {x : E} : x ∈ S ⊓ T ↔ x ∈ S ∧ x ∈ T := iff.rfl
+
+@[simp] lemma inf_to_subalgebra (S T : intermediate_field F E) :
+  (S ⊓ T).to_subalgebra = S.to_subalgebra ⊓ T.to_subalgebra :=
+rfl
 
 /--  Construct an algebra isomorphism from an equality of intermediate fields -/
 @[simps apply]

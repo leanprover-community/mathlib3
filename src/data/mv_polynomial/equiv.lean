@@ -352,10 +352,9 @@ begin
 end
 
 private lemma fin_succ_equiv_coeff_coeff_case_p_X  {n : ℕ } (p : mv_polynomial (fin (n + 1)) R)
-  (j : fin (n + 1))
-  (hp : ∀ (i : ℕ) (m : fin n →₀ ℕ), coeff m (((fin_succ_equiv R n) p).coeff i) = coeff (finsupp.cons i m) p) (i : ℕ)
-  (m : fin n →₀ ℕ) : coeff m (((fin_succ_equiv R n) (p * X j)).coeff i)
-  = coeff (finsupp.cons i m) (p * X j) :=
+  (j : fin (n + 1)) (hp : ∀ (i : ℕ) (m : fin n →₀ ℕ), coeff m (((fin_succ_equiv R n) p).coeff i)
+   = coeff (finsupp.cons i m) p) (i : ℕ) (m : fin n →₀ ℕ) :
+  coeff m (((fin_succ_equiv R n) (p * X j)).coeff i) = coeff (finsupp.cons i m) (p * X j) :=
 begin
   rw [coeff_mul_X' (finsupp.cons i m) j p, (fin_succ_equiv R n).map_mul],
   by_cases c_j : j = 0,

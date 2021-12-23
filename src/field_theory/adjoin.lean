@@ -85,6 +85,9 @@ trivial
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
 rfl
 
+@[simp] lemma top_to_subfield : (⊤ : intermediate_field F E).to_subfield = ⊤ :=
+rfl
+
 @[simp, norm_cast]
 lemma coe_inf (S T : intermediate_field F E) : (↑(S ⊓ T) : set E) = S ∩ T := rfl
 
@@ -94,6 +97,33 @@ lemma mem_inf {S T : intermediate_field F E} {x : E} : x ∈ S ⊓ T ↔ x ∈ S
 @[simp] lemma inf_to_subalgebra (S T : intermediate_field F E) :
   (S ⊓ T).to_subalgebra = S.to_subalgebra ⊓ T.to_subalgebra :=
 rfl
+
+@[simp] lemma inf_to_subfield (S T : intermediate_field F E) :
+  (S ⊓ T).to_subfield = S.to_subfield ⊓ T.to_subfield :=
+rfl
+
+@[simp, norm_cast]
+lemma coe_Inf (S : set (intermediate_field F E)) : (↑(Inf S) : set E) = Inf (coe '' S) := rfl
+
+@[simp] lemma Inf_to_subalgebra (S : set (intermediate_field F E)) :
+  (Inf S).to_subalgebra = Inf (to_subalgebra '' S) :=
+set_like.coe_injective $ by simp [set.sUnion_image]
+
+@[simp] lemma Inf_to_subfield (S : set (intermediate_field F E)) :
+  (Inf S).to_subfield = Inf (to_subfield '' S) :=
+set_like.coe_injective $ by simp [set.sUnion_image]
+
+@[simp, norm_cast]
+lemma coe_infi {ι : Sort*} (S : ι → intermediate_field F E) : (↑(infi S) : set E) = ⋂ i, (S i) :=
+by simp [infi]
+
+@[simp] lemma infi_to_subalgebra {ι : Sort*} (S : ι → intermediate_field F E) :
+  (infi S).to_subalgebra = ⨅ i, (S i).to_subalgebra :=
+set_like.coe_injective $ by simp [infi]
+
+@[simp] lemma infi_to_subfield {ι : Sort*} (S : ι → intermediate_field F E) :
+  (infi S).to_subfield = ⨅ i, (S i).to_subfield :=
+set_like.coe_injective $ by simp [infi]
 
 /--  Construct an algebra isomorphism from an equality of intermediate fields -/
 @[simps apply]

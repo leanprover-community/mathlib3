@@ -78,23 +78,23 @@ lemma ortho_smul_left {x y} {a : R} (ha : a ≠ 0) : (is_ortho B x y) ↔ (is_or
 begin
   dunfold is_ortho,
   split; intro H,
-  { rw [map_smul, smul_apply, H, smul_zero] },
-  { rw [map_smul, smul_apply, smul_eq_zero] at H,
+  { rw [map_smul₂, H, smul_zero]},
+  { rw [map_smul₂, smul_eq_zero] at H,
     cases H,
     { trivial },
     { exact H }}
 end
 
-lemma ortho_smul_right {x y} {a : R} {ha : a ≠ 0} : (is_ortho B x y) ↔ (is_ortho B x (a • y)) :=
+lemma ortho_smul_right (B : M →ₗ[R] M →ₛₗ[I.to_ring_hom] R) {x y} {a : R} {ha : a ≠ 0} : (is_ortho B x y) ↔ (is_ortho B x (a • y)) :=
 begin
   dunfold is_ortho,
   split; intro H,
   { rw [map_smulₛₗ, H, smul_zero] },
   { rw [map_smulₛₗ, smul_eq_zero] at H,
     cases H,
-    { rw [ring_equiv.to_ring_hom_eq_coe, ring_equiv.coe_to_ring_hom] at H,
+    { simp at H,
       exfalso,
-      exact ha (I.map_eq_zero_iff.mp H) },
+      exact ha H },
     { exact H }}
 end
 
@@ -114,7 +114,7 @@ begin
   { apply finset.sum_eq_single_of_mem i hi,
     intros j hj hij,
     rw [is_Ortho_def.1 hv₁ _ _ hij, mul_zero], },
-  simp_rw [B.map_sum₂, map_smul, smul_apply, smul_eq_mul, hsum] at this,
+  simp_rw [B.map_sum₂, map_smul₂, smul_eq_mul, hsum] at this,
   exact eq_zero_of_ne_zero_of_mul_right_eq_zero (hv₂ i) this,
 end
 
@@ -216,19 +216,8 @@ lemma le_orthogonal_orthogonal (b : B.is_refl) :
 λ n hn m hm, b _ _ (hm n hn)
 
 variables {V : Type*} {K : Type*} [field K] [add_comm_group V] [module K V]
-  {J : K ≃+* K}
+  {J : K ≃+* K} {J₁ : K →+* K}
 
-lemma ring_equiv_to_ring_hom_apply {J : K ≃+* K} {x : K} : J.to_ring_hom x = J x :=
-  by rw [J.to_ring_hom_eq_coe, J.coe_to_ring_hom]
-
-lemma ring_equiv_to_ring_hom_map_eq_zero_iff {J : K ≃+* K} {x : K} : J.to_ring_hom x = 0 ↔ x = 0 :=
-begin
-  rw J.to_ring_hom_eq_coe,
-  rw J.coe_to_ring_hom,
-  rw J.map_eq_zero_iff,
-end
-
-#check ring_equiv_to_ring_hom_apply
 
 -- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
 lemma span_singleton_inf_orthogonal_eq_bot
@@ -243,11 +232,45 @@ begin
     suffices hμzero : μ x = 0,
     { rw [hμzero, zero_smul, submodule.mem_bot] },
     change B x (μ x • x) = 0 at this, rw [map_smulₛₗ, smul_eq_mul] at this,
-    exact or.elim (zero_eq_mul.mp this.symm) ring_equiv_to_ring_hom_map_eq_zero_iff.mp
+    exact or.elim (zero_eq_mul.mp this.symm) J.to_ring_hom_map_eq_zero_iff.mp
     (λ hfalse, false.elim $ hx hfalse) },
   { rw submodule.mem_span; exact λ _ hp, hp $ finset.mem_singleton_self _ }
 end
 
+-- ↓ This lemma only applies in fields since we use the `mul_eq_zero`
+lemma orthogonal_span_singleton_eq_to_lin_ker {B : V →ₗ[K] V →ₛₗ[J₁] K} (x : V) :
+  B.orthogonal (K ∙ x) = (B x).ker :=
+begin
+  ext y,
+  simp_rw [mem_orthogonal_iff, linear_map.mem_ker,
+           submodule.mem_span_singleton ],
+  split,
+  { exact λ h, h x ⟨1, one_smul _ _⟩ },
+  { rintro h _ ⟨z, rfl⟩,
+    rw [is_ortho, map_smulₛₗ₂, smul_eq_zero],
+    exact or.intro_right _ h,
+    }
+end
+
+
+-- todo: Generalize this to sesquilinear maps
+lemma span_singleton_sup_orthogonal_eq_top {B : V →ₗ[K] V →ₗ[K] K}
+  {x : V} (hx : ¬ B.is_ortho x x) :
+  (K ∙ x) ⊔ B.orthogonal (K ∙ x) = ⊤ :=
+begin
+  rw orthogonal_span_singleton_eq_to_lin_ker,
+  exact (B x).span_singleton_sup_ker_eq_top hx,
+end
+
+
+-- todo: Generalize this to sesquilinear maps
+/-- Given a bilinear form `B` and some `x` such that `B x x ≠ 0`, the span of the singleton of `x`
+  is complement to its orthogonal complement. -/
+lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
+  {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
+{ inf_le_bot := eq_bot_iff.1 $
+    (@span_singleton_inf_orthogonal_eq_bot _ _ _ _ _ (ring_equiv.refl K) B x hx),
+  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 

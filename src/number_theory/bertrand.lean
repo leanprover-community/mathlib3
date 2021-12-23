@@ -16,6 +16,7 @@ import number_theory.primorial
 import analysis.special_functions.pow
 import analysis.special_functions.sqrt
 import analysis.calculus.local_extr
+import data.real.basic
 import data.real.sqrt
 import data.real.nnreal
 
@@ -1275,26 +1276,59 @@ begin
 end
 
 
-lemma inequality2 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.01 :=
+lemma inequality2 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
 begin
   sorry
+end
+
+lemma inequality3' {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
+begin
+  have h : x ≠ 0,
+  { apply ne_of_gt,
+    linarith, },
+  have h4 : 0 < x,
+    linarith,
+  have h1: log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
+  have h2: log 4 * sqrt x ≠ 0, apply mul_ne_zero h1, exact sqrt_ne_zero'.mpr h4,
+  field_simp,
+  ring_nf,
+  apply eq.symm,
+  rw @sq_sqrt x,
+  ring,
+  linarith,
 end
 
 lemma inequality3 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/8 :=
 begin
+  rw [inequality3'],
   -- Get the log x in the second term to be 2 log sqrt x. and split the 1/x i n that term to
   sorry
 end
 
-lemma equality4 {x : ℝ} (n_large : 1003 < x) : 2 * x / 3 * log 4 / (x * log 4) = 2/3 :=
+lemma equality4 {x : ℝ} (n_large : 1003 < x) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
 begin
-  ring_nf,
-  rw mul_inv, -- lol wut this doesn't exist for reals?
+  have h : x ≠ 0,
+  { apply ne_of_gt,
+    linarith, },
+  have : log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
+  field_simp,
+  ring,
 end
 
 lemma inequality5 {x : ℝ} (n_large : 1003 < x) : log 4 / (x * log 4) ≤ 0.001 :=
 begin
-  sorry
+  have h : x ≠ 0,
+  { apply ne_of_gt,
+    linarith, },
+  have : log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
+  have : log 4 / (x * log 4) = 1 / x,
+  {field_simp,
+  ring,},
+  rw this,
+  rw one_div,
+  rw one_div,
+  rw inv_le_inv;
+  linarith,
 end
 
 

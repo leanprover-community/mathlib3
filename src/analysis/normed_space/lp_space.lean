@@ -430,7 +430,8 @@ normed_group.of_core _
       have hf₂ := Lp.has_sum_norm hp'' f,
       have hg₂ := Lp.has_sum_norm hp'' g,
       -- apply Minkowski's inequality
-      obtain ⟨C, hC₁, hC₂, hCfg⟩ := real.Lp_add_le''_of_nonneg hp' hf₁ hg₁ hf₂ hg₂,
+      obtain ⟨C, hC₁, hC₂, hCfg⟩ :=
+        real.Lp_add_le_has_sum_of_nonneg hp' hf₁ hg₁ (norm_nonneg' _) (norm_nonneg' _) hf₂ hg₂,
       refine le_trans _ hC₂,
       rw ← real.rpow_le_rpow_iff (norm_nonneg' (f + g)) hC₁ hp'',
       refine has_sum_le _ (Lp.has_sum_norm hp'' (f + g)) hCfg,

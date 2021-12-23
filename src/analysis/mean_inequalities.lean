@@ -380,7 +380,7 @@ end
 /-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
 equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
 exist. A version for `nnreal`-valued functions. -/
-theorem Lp_add_le' {f g : ι → ℝ≥0} {p : ℝ} (hp : 1 ≤ p) (hf : summable (λ i, (f i) ^ p))
+theorem Lp_add_le_tsum {f g : ι → ℝ≥0} {p : ℝ} (hp : 1 ≤ p) (hf : summable (λ i, (f i) ^ p))
   (hg : summable (λ i, (g i) ^ p)) :
   summable (λ i, (f i + g i) ^ p) ∧
   (∑' i, (f i + g i) ^ p) ^ (1 / p) ≤ (∑' i, (f i) ^ p) ^ (1 / p) + (∑' i, (g i) ^ p) ^ (1 / p) :=
@@ -408,12 +408,12 @@ end
 equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
 exist. An alternative version for `nnreal`-valued functions, convenient if the infinite sums are
 already expressed as `p`-th powers. -/
-theorem Lp_add_le'' {f g : ι → ℝ≥0} {A B : ℝ≥0} {p : ℝ} (hp : 1 ≤ p)
+theorem Lp_add_le_has_sum {f g : ι → ℝ≥0} {A B : ℝ≥0} {p : ℝ} (hp : 1 ≤ p)
   (hf : has_sum (λ i, (f i) ^ p) (A ^ p)) (hg : has_sum (λ i, (g i) ^ p) (B ^ p)) :
   ∃ C, C ≤ A + B ∧ has_sum (λ i, (f i + g i) ^ p) (C ^ p) :=
 begin
   have hp' : p ≠ 0 := (lt_of_lt_of_le zero_lt_one hp).ne',
-  obtain ⟨H₁, H₂⟩ := Lp_add_le' hp hf.summable hg.summable,
+  obtain ⟨H₁, H₂⟩ := Lp_add_le_tsum hp hf.summable hg.summable,
   have hA : A = (∑' (i : ι), f i ^ p) ^ (1 / p) := by rw [hf.tsum_eq, rpow_inv_rpow_self hp'],
   have hB : B = (∑' (i : ι), g i ^ p) ^ (1 / p) := by rw [hg.tsum_eq, rpow_inv_rpow_self hp'],
   refine ⟨(∑' i, (f i + g i) ^ p) ^ (1 / p), _, _⟩,
@@ -496,7 +496,7 @@ by convert Lp_add_le s f g hp using 2 ; [skip, congr' 1, congr' 1];
 /-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
 equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
 exist. A version for `ℝ`-valued functions. -/
-theorem Lp_add_le'_of_nonneg (hp : 1 ≤ p) (hf : ∀ i, 0 ≤ f i) (hg : ∀ i, 0 ≤ g i)
+theorem Lp_add_le_tsum_of_nonneg (hp : 1 ≤ p) (hf : ∀ i, 0 ≤ f i) (hg : ∀ i, 0 ≤ g i)
   (hf_sum : summable (λ i, (f i) ^ p)) (hg_sum : summable (λ i, (g i) ^ p)) :
   summable (λ i, (f i + g i) ^ p) ∧
   (∑' i, (f i + g i) ^ p) ^ (1 / p) ≤ (∑' i, (f i) ^ p) ^ (1 / p) + (∑' i, (g i) ^ p) ^ (1 / p) :=
@@ -504,16 +504,16 @@ begin
   lift f to (ι → ℝ≥0) using hf,
   lift g to (ι → ℝ≥0) using hg,
   norm_cast at *,
-  exact nnreal.Lp_add_le' hp hf_sum hg_sum,
+  exact nnreal.Lp_add_le_tsum hp hf_sum hg_sum,
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
 equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
 exist. An alternative version for `ℝ`-valued functions, convenient if the infinite sums are
 already expressed as `p`-th powers. -/
-theorem Lp_add_le''_of_nonneg (hp : 1 ≤ p) (hf : ∀ i, 0 ≤ f i) (hg : ∀ i, 0 ≤ g i) {A B : ℝ}
-  (hA : 0 ≤ A) (hB : 0 ≤ B)
-  (hfA : has_sum (λ i, (f i) ^ p) (A ^ p)) (hgB : has_sum (λ i, (g i) ^ p) (B ^ p)) :
+theorem Lp_add_le_has_sum_of_nonneg (hp : 1 ≤ p) (hf : ∀ i, 0 ≤ f i) (hg : ∀ i, 0 ≤ g i) {A B : ℝ}
+  (hA : 0 ≤ A) (hB : 0 ≤ B) (hfA : has_sum (λ i, (f i) ^ p) (A ^ p))
+  (hgB : has_sum (λ i, (g i) ^ p) (B ^ p)) :
   ∃ C, 0 ≤ C ∧ C ≤ A + B ∧ has_sum (λ i, (f i + g i) ^ p) (C ^ p) :=
 begin
   lift f to (ι → ℝ≥0) using hf,
@@ -521,7 +521,7 @@ begin
   lift A to ℝ≥0 using hA,
   lift B to ℝ≥0 using hB,
   norm_cast at hfA hgB,
-  obtain ⟨C, hC₁, hC₂⟩ := nnreal.Lp_add_le'' hp hfA hgB,
+  obtain ⟨C, hC₁, hC₂⟩ := nnreal.Lp_add_le_has_sum hp hfA hgB,
   use C,
   norm_cast,
   exact ⟨zero_le _, hC₁, hC₂⟩,
@@ -601,31 +601,6 @@ begin
   convert this using 2;
   [skip, congr' 1, congr' 1];
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] }
-end
-
-/-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
-equal to the infinite sum of the `L_p`-seminorms of the summands. A version for `ℝ≥0∞` valued
-nonnegative functions. -/
-theorem Lp_add_le' (hp : 1 ≤ p) :
-  (∑' i, (f i + g i) ^ p)^(1/p) ≤ (∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p) :=
-begin
-  have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
-  have pos' : 0 < (1/p) := one_div_pos.mpr pos,
-  suffices : ∀ s : finset ι,
-    (∑ i in s, (f i + g i) ^ p)^(1/p) ≤ (∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p),
-  { rw ← ennreal.rpow_le_rpow_iff pos,
-    rw ← ennreal.rpow_mul,
-    field_simp [pos.ne'],
-    refine tsum_le_of_sum_le ennreal.summable (λ s, _),
-    rw ← ennreal.rpow_le_rpow_iff pos',
-    rw ← ennreal.rpow_mul,
-    field_simp [pos.ne'],
-    exact this s },
-  intros s,
-  refine le_trans (Lp_add_le s f g hp) _,
-  refine add_le_add _ _;
-  { rw ennreal.rpow_le_rpow_iff pos',
-    exact sum_le_tsum _ (λ _ _, zero_le _) ennreal.summable }
 end
 
 end ennreal

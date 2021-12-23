@@ -200,14 +200,9 @@ lemma chain_adj_support : Π {u v : V} (p : G.walk u v), list.chain' G.adj p.sup
 
 /-- Every edge in a walk's edge list is an edge of the graph.
 It is written in this form to avoid unsightly coercions. -/
-lemma edges_subset_edge_set {u v : V} (p : G.walk u v) {e : sym2 V}
-  (h : e ∈ p.edges) : e ∈ G.edge_set :=
-begin
-  induction p generalizing e,
-  { exact false.elim h, },
-  { rw [edges, list.mem_cons_iff] at h,
-    rcases h with ⟨rfl, h⟩; solve_by_elim, },
-end
+lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) {e : sym2 V}
+  (h : e ∈ p.edges), e ∈ G.edge_set
+| _ _ (cons h' p') e h := by rcases h with ⟨rfl, h⟩; solve_by_elim
 
 @[simp] lemma edges_nil {u : V} : (nil : G.walk u u).edges = [] := rfl
 
@@ -220,19 +215,15 @@ by induction p; simp *
 @[simp] lemma length_edges {u v : V} (p : G.walk u v) : p.edges.length = p.length :=
 by induction p; simp *
 
-lemma mem_support_of_mem_edges {t u v w : V} (p : G.walk v w)
-  (he : ⟦(t, u)⟧ ∈ p.edges) :
-  t ∈ p.support :=
-begin
-  induction p,
-  { exact false.elim he, },
-  { simp only [support_cons, list.mem_cons_iff],
-    simp only [edges_cons, list.mem_cons_iff, quotient.eq] at he,
-    cases he,
-    { cases he,
-      { exact or.inl rfl, },
-      { cases p_p; simp, }, },
-    { exact or.inr (p_ih he), } },
+lemma mem_support_of_mem_edges : Π {t u v w : V} (p : G.walk v w)
+  (he : ⟦(t, u)⟧ ∈ p.edges),
+  t ∈ p.support
+| t u v w (cons h p') he := begin
+  simp only [support_cons, edges_cons, list.mem_cons_iff, quotient.eq] at he ⊢,
+  rcases he with ((he|he)|he),
+  { exact or.inl rfl },
+  { exact or.inr (start_mem_support _) },
+  { exact or.inr (mem_support_of_mem_edges _ he), }
 end
 
 /-- A *trail* is a walk with no repeating edges. -/

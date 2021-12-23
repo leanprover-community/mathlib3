@@ -951,18 +951,20 @@ begin
       rw [← hc2, hc0, finset.card_empty] },
     obtain ⟨a, h⟩ := this,
     use a,
-    -- let ww :=  equiv.perm.mem_cycle_factors_finset_iff.mp  (finset.mem_def.mpr hc1),
     rw ← equiv.perm.cycle_is_cycle_of h (finset.mem_def.mpr hc1),
     exact hc2 },
 
-  obtain ⟨a : α, ha⟩ := this,
+  obtain ⟨a : α, h_of_a⟩ := this,
 
-  let ww := case_cycle' (g : perm α) a _,
-  swap,
-  { -- a ≠ g a
-    apply ne.symm,
+  have ha : a ∈ (g : perm α).support,
+  { rw equiv.perm.mem_support,
     refine equiv.perm.card_support_cycle_of_pos_iff.mp _,
-    rw ha, exact one_le_ct_sup },
+    rw h_of_a, exact one_le_ct_sup },
+  have h'a : ((g : perm α).cycle_of a).is_cycle :=
+    equiv.perm.is_cycle_cycle_of (g : perm α) (equiv.perm.mem_support.mp ha),
+
+  -- La fonction qu'on va appeler
+  let conclude_from := case_cycle' (g : perm α) a (ne.symm (equiv.perm.mem_support.mp ha)),
 
  --  obtain ⟨h, h1, h2, h3⟩ := ww _ _ _ _,
   -- On conclut !
@@ -979,31 +981,114 @@ begin
 
 --   let cm := commutator_mem' nN g h',
 
-  -- a, g a, g g a, x, g x
-  cases lt_or_ge n 6 with Hn6 Hn6,
-  { -- n < 6 (donc n = 4 ou 5)
-    cases nat.lt_or_ge ct.sup 4 with Hctsup4 Hctsup4,
+/- Plusieurs cas  pour {a, g a, g (g a), x, g x}
+  * n ≥ 6 : on prend x ≠ a, g a et on majore par 5
+  * n = 5 et ct.sup ≥ 4, on prend x = g⁻¹ a et on majore par 4
+  * n = 5 et ct.sup = 2, on prend pour x un point fixe et on majore par 3
+  * n = 4 et ct.sup ≥ 4, impossible, car g serait un 4-cycle, donc impair
+  * n = 3 : g est un 3-cycle
+
+  * n ≥ 6
+  * n ≤ 5, ct.sup ≥ 4
+  * n ≤ 5, ct.sup = 2
+  -/
+  cases nat.lt_or_ge n 6 with Hn6 Hn6,
+  { -- n < 6
+    cases nat.lt_or_ge ct.sup 5 with Hct5 Hct5,
     { -- ct.sup < 4
-      have : ct.sup = 2 := sorry,
-      -- a, g a, x, g x :
-      -- si n > 4, OK.
-      -- si n = 4 : prendre x fixe
+      -- prouver que g est (2,2), donc n = 4, prendre pour x un point fixe
+      have Hn4 : n = 4 := sorry,
+      have Hc2 : ct.sup = 2 := sorry,
+      have Hct: ct = {2,2} := sorry,
 
-      sorry, },
+      have : (g : perm α).supportᶜ.card > 0,
+      { rw finset.card_compl,
+        apply nat.sub_pos_of_lt,
+        refine lt_of_le_of_lt _ h5,
+        rw ← equiv.perm.sum_cycle_type,
+        change ct.sum ≤ 4,
+        rw Hct, dec_trivial, },
 
+      obtain ⟨x, h'x⟩ := finset.card_pos.mp this,
+      rw finset.mem_compl at h'x,
 
+      have hx : a ≠ x,  { intro h, rw ← h at h'x, exact h'x ha, },
+      have hx' : g a ≠ x,
+      { intro h, rw ← h at h'x, exact h'x (equiv.perm.apply_mem_support.mpr ha), },
+      have hx'' : g (g a) ≠ x,
+      { intro h, rw ← h at h'x, apply h'x,
+        apply equiv.perm.apply_mem_support.mpr,
+        apply equiv.perm.apply_mem_support.mpr,
+        exact ha, },
 
-    -- ct.sup ≥ 4
-    sorry, },
+      obtain ⟨h, h1, h2, h3⟩ := conclude_from x hx hx' hx'',
+      refine ih _ _ ⟨_, commutator_mem' nN g ⟨h,is_three_cycle.mem_alternating_group h1⟩⟩ h2 rfl,
+      apply lt_of_le_of_lt (finset.card_le_of_subset h3),
+      rw Hn4,
+
+      -- g x = x
+      rw equiv.perm.not_mem_support.mp h'x,
+
+      have : ((g : perm α) ^ 2) a = a,
+      { rw  equiv.perm.pow_apply_eq_pow_mod_order_of_cycle_of_apply,
+        rw ← equiv.perm.order_of_is_cycle h'a at h_of_a,
+        rw h_of_a, rw Hc2,
+        simp only [nat.bit0_mod_two, id.def, pow_zero, perm.coe_one], },
+      rw this,
+
+      simp,
+      apply nat.lt_succ_of_le,
+      iterate { apply le_trans (finset.card_insert_le _ _), apply nat.add_le_add_right _ 1},
+      rw finset.card_singleton },
+
+    -- ct.sup ≥ 4, n ≤ 5
+    -- prouver que g est (5), prendre x = g⁻¹ a
+    have Hnc : n = ct.sup := sorry,
+    have Hn5 : n = 5 := sorry,
+
+    let x := g⁻¹ a,
+    have hgx : (g : perm α) x = a := perm.eq_inv_iff_eq.mp rfl, -- g x = a
+    have hx : a ≠ x,
+    { intro h, rw ← h at hgx, exact (equiv.perm.mem_support.mp ha) hgx, },
+    have hx' : (g : perm α) a ≠ x,
+    { intro h, rw [← h, ← equiv.perm.mul_apply, ← sq] at hgx,
+      refine (nodup_powers_of_cycle_of 0 2 _ _) hgx.symm,
+      dec_trivial,
+      rw h_of_a, refine lt_of_lt_of_le _ Hct5, dec_trivial },
+    have hx'' : (g : perm α) ((g : perm α) a) ≠ x,
+    { intro h,
+      simp only [← h, ← equiv.perm.mul_apply, ← mul_assoc] at hgx,
+      rw [ ← pow_one (g : perm α)] at hgx,
+      simp only [← pow_add] at hgx,
+      refine (nodup_powers_of_cycle_of 0 3 _ _) hgx.symm,
+      dec_trivial,
+      rw h_of_a, refine lt_of_lt_of_le _ Hct5, dec_trivial, },
+
+    obtain ⟨h, h1, h2, h3⟩ := conclude_from x hx hx' hx'',
+    refine ih _ _ ⟨_, commutator_mem' nN g ⟨h,is_three_cycle.mem_alternating_group h1⟩⟩ h2 rfl,
+    apply lt_of_le_of_lt (finset.card_le_of_subset h3),
+    rw Hn5,
+
+    rw hgx, simp,
+
+    apply nat.lt_succ_of_le,
+    iterate { apply le_trans (finset.card_insert_le _ _), apply nat.add_le_add_right _ 1},
+    rw finset.card_singleton, },
 
   -- n ≥ 6
   have : ∃ (x : α), x ≠ a ∧ x ≠ g a ∧ x ≠ g (g a),
-  { obtain ⟨x, hx : x ∉ [a, g a, g (g a)]⟩ := out_of_list _,
+  { have : [a, g a, g (g a)].length < finset.univ.card,
+    { refine lt_of_lt_of_le _ (finset.card_le_univ (g : perm α).support),
+      rw hgs,
+      refine lt_of_lt_of_le _ Hn6,
+      dec_trivial },
+    obtain ⟨x, hx, hx'⟩ := out_of_list this,
+    use x,
+    repeat { apply and.intro },
+    all_goals { intro h, apply hx', rw h, simp, } },
 
-    sorry,
-   },
   obtain ⟨x, hx, hx', hx''⟩ := this,
-  obtain ⟨h, h1, h2, h3⟩ := ww x (ne.symm hx) (ne.symm hx') (ne.symm hx''),
+  obtain ⟨h, h1, h2, h3⟩ := conclude_from x (ne.symm hx) (ne.symm hx') (ne.symm hx''),
   refine ih _ _ ⟨_, commutator_mem' nN g ⟨h,is_three_cycle.mem_alternating_group h1⟩⟩ h2 rfl,
   apply lt_of_le_of_lt (finset.card_le_of_subset h3),
   refine lt_of_lt_of_le _ Hn6,
@@ -1012,49 +1097,24 @@ begin
     iterate { apply le_trans (finset.card_insert_le _ _), apply nat.add_le_add_right _ 1},
     rw finset.card_singleton,
 end
-/-
-cases lt_or_ge ct.sup 4 with H H,
-  { -- H : ct.sup < 4
-    sorry,
-     },
-  { -- H : ct.sup ≥ 4
-    refine ih _ _ ⟨_, commutator_mem' nN g ⟨h,is_three_cycle.mem_alternating_group h1⟩⟩ h2 rfl,
-    apply lt_of_le_of_lt (finset.card_le_of_subset h3),
-    swap,
-    apply g⁻¹ a,
 
 
 
-    sorry,
-    },
-
-
-  cases lt_or_ge ct.sup 4 with H H,
-  { -- H : ct.sup < 4
-    sorry,
-     },
-  { -- H : ct.sup ≥ 4
-    sorry,
-    }
-
- simp,
-
---   apply lt_of_le_of_lt (finset.card_le_of_subset h3),
---  swap,
-
-
-
-
-    sorry,
-  sorry,
-  sorry,
-  sorry,
-
-sorry,
-
+example (g : perm α) (a : α): g (g a) = (g ^ 2) a :=
+begin
 
 end
--/
+
+example (g : perm α) (a : α): g (g⁻¹ a) = a :=
+begin
+  exact perm.eq_inv_iff_eq.mp rfl
+end
+
+example (s : finset α) (a b : α) (h : a ∈ s) (h' : b ∉ s) : a ≠ b :=
+begin
+  intro hab,
+  rw hab at h, exact h' h,
+end
 
 example (s t : finset α) (hst : disjoint s t) (a : α) (ha : a ∈ s) : a ∉ t :=
 finset.disjoint_left.mp hst ha
@@ -1077,6 +1137,8 @@ begin
     iterate { apply le_trans (finset.card_insert_le _ _), apply nat.add_le_add_right _ 1},
     rw finset.card_singleton,
 end
+
+#exit
 
 
 lemma has_three_cycle_normal_rec' (h5 : 5 ≤ fintype.card α)

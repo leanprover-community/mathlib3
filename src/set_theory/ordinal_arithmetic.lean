@@ -1168,13 +1168,20 @@ begin
   exact ⟨s, subtype.eq hs⟩,
 end
 
-/-- A convenient characterization of `enum_ord`. -/
+-- Todo: move elsewhere
+lemma eq_range {α β : Type*} (f : α → β) (S : set β) :
+  set.range f = S ↔ (∀ a, f a ∈ S) ∧ ∀ s ∈ S, ∃ a, f a = s :=
+by { rw ←range_subset_iff, exact le_antisymm_iff }
+
+/-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
 theorem eq_enum_ord (f : ordinal.{u} → ordinal.{u}) :
-  ((∀ a, f a ∈ S) ∧ strict_mono f ∧ ∀ s ∈ S, ∃ a, f a = s) ↔ f = enum_ord hS :=
+  (strict_mono f ∧ range f = S) ↔ f = enum_ord hS :=
 begin
+  rw eq_range,
   split, swap,
   { rintro ⟨h⟩,
-    exact ⟨enum_ord_mem hS, enum_ord.strict_mono, enum_ord.surjective⟩ },
+    use enum_ord.strict_mono,
+    exact ⟨enum_ord_mem hS, enum_ord.surjective⟩ },
   rintro ⟨h, hl, hr⟩,
   refine funext (λ a, _),
   apply wf.induction a,
@@ -1182,15 +1189,15 @@ begin
   apply le_antisymm,
   { cases hr _ (enum_ord_mem hS b) with d hd,
     rw ←hd,
-    apply hl.monotone,
+    apply h.monotone,
     by_contra' hbd,
     have := enum_ord.strict_mono hbd,
     rw ←(H d hbd) at this,
     exact (ne_of_lt this) hd },
   rw enum_ord_def,
-  refine omin_le ⟨h b, λ c hc, _⟩,
+  refine omin_le ⟨hl b, λ c hc, _⟩,
   rw ←(H c hc),
-  exact hl hc,
+  exact h hc,
 end
 
 end

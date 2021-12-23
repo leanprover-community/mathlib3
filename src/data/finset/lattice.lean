@@ -52,11 +52,11 @@ lemma _root_.multiset.map_finset_sup {α : Type*} [decidable_eq α] [decidable_e
   multiset.map g (s.sup f) = s.sup (multiset.map g ∘ f) :=
 begin
   apply finset.cons_induction_on s,
-  simp,
-  intros a s' h_a_s h_ind,
-  simp only [sup_cons, ←h_ind, multiset.sup_eq_union, function.comp_app],
-  rw multiset.map_union,
-  exact g.inj',
+  { simp },
+  { intros a s' h_a_s h_ind,
+    simp only [sup_cons, ←h_ind, multiset.sup_eq_union, function.comp_app],
+    rw multiset.map_union,
+    exact g.inj' },
 end
 
 @[simp] lemma sup_singleton {b : β} : ({b} : finset β).sup f = f b :=

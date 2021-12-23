@@ -251,7 +251,7 @@ begin
   rw finset.ext_iff,
   intro a,
   simp only [exists_prop, mem_support_iff, finset.mem_image, ne.def],
-  apply iff.intro,
+  split,
   { intro h1,
     cases coeff_rename_ne_zero f p a h1 with d hd,
     rw ← hd.1,

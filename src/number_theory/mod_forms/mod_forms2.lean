@@ -122,8 +122,8 @@ end
 
 /--The  space of functions that are modular-/
 def modular_submodule (k : ℤ)  (Γ : subgroup SL2Z): submodule (ℂ) (ℍ  → ℂ) := {
-  carrier:={f : (ℍ → ℂ) | ∀ (γ : Γ),  (f ∣ₖ[k] (γ : GL2P)) = f },
-  zero_mem':= by {simp only [set.mem_set_of_eq, coe_coe],
+  carrier := {f : (ℍ → ℂ) | ∀ (γ : Γ),  (f ∣ₖ[k] (γ : GL2P)) = f },
+  zero_mem' := by {simp only [set.mem_set_of_eq, coe_coe],
   simp_rw slash_k,
   simp only [forall_const, zero_mul, pi.zero_apply],
   refl, },
@@ -140,7 +140,7 @@ def modular_submodule (k : ℤ)  (Γ : subgroup SL2Z): submodule (ℂ) (ℍ  →
   simp only [set.mem_set_of_eq, coe_coe] at *,
   intro γ,
   have hff:= hf γ,
-  have: (c • f)  ∣ₖ[k] γ = c • (f  ∣ₖ[k] γ ),
+  have : (c • f)  ∣ₖ[k] γ = c • (f  ∣ₖ[k] γ ),
   by {apply smul_slash_k},
   rw ←  coe_coe at *,
   rw ←  coe_coe at *,
@@ -339,7 +339,7 @@ begin
   simp only [ zero_at_inf_mem, gt_iff_lt, ge_iff_le,
   set_coe.forall, subtype.coe_mk],
   intros ε he,
-  use (0:ℝ),
+  use (0 : ℝ),
   intros x  h1,
   rw zero_form,
   simp only [complex.abs_zero, pi.zero_apply],
@@ -471,12 +471,12 @@ def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ) )
 structure is_modular_form_of_lvl_and_weight (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ) : Prop :=
   (hol      : is_holomorphic_on (hol_extn f))
   (transf   :  f ∈ modular_submodule k Γ )
-  (infinity : ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_bound_at_infinity )
+  (infinity : ∀ (A : (⊤ : subgroup SL2Z)), (f ∣ₖ[k] A) ∈ is_bound_at_infinity )
 
 lemma mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
   (h :is_holomorphic_on (hol_extn f) )
   (h2: f ∈ modular_submodule k Γ )
-  (h3 : ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_bound_at_infinity ) :
+  (h3 : ∀ (A : (⊤ : subgroup SL2Z)), (f ∣ₖ[k] A) ∈ is_bound_at_infinity ) :
   is_modular_form_of_lvl_and_weight Γ k f :={
   hol := h,
   transf := h2,
@@ -486,7 +486,7 @@ lemma mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
 lemma mod_mem (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ) : is_modular_form_of_lvl_and_weight Γ k f ↔
   is_holomorphic_on (hol_extn f) ∧
   f ∈ modular_submodule k Γ  ∧
-  (∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_bound_at_infinity) :=
+  (∀ (A : (⊤ : subgroup SL2Z)), (f ∣ₖ[k] A) ∈ is_bound_at_infinity) :=
 begin
   split,
   intro hf,
@@ -517,12 +517,12 @@ lemma zero_mod_form :  (is_modular_form_of_lvl_and_weight Γ   (k : ℤ) ) (zero
 structure is_cusp_form_of_lvl_and_weight (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ) : Prop :=
   (hol      : is_holomorphic_on (hol_extn f))
   (transf   : f ∈ modular_submodule k Γ)
-  (infinity : ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_zero_at_infinity )
+  (infinity : ∀ (A : (⊤ : subgroup SL2Z)), (f ∣ₖ[k] A) ∈ is_zero_at_infinity )
 
 lemma is_cuspform_mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
   (h : is_holomorphic_on (hol_extn f) )
   (h2 : f ∈ modular_submodule k Γ)
-  (h3 :  ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_zero_at_infinity ) :
+  (h3 :  ∀ (A : (⊤ : subgroup SL2Z)), (f ∣ₖ[k] A) ∈ is_zero_at_infinity ) :
   is_cusp_form_of_lvl_and_weight Γ k f :={
   hol := h,
   transf := h2,
@@ -532,7 +532,7 @@ lemma is_cuspform_mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
 lemma cusp_mem (Γ : subgroup SL2Z) (k : ℤ) (f: ℍ → ℂ): is_cusp_form_of_lvl_and_weight Γ k f ↔
   is_holomorphic_on (hol_extn f) ∧
   f ∈ modular_submodule k Γ ∧
-  ( ∀ (A : SL2Z), (f ∣ₖ[k] A) ∈ is_zero_at_infinity) :=
+  ( ∀ (A : (⊤ : subgroup SL2Z)), (f ∣ₖ[k] A) ∈ is_zero_at_infinity) :=
 begin
   split,
   intro hf,
@@ -594,7 +594,6 @@ def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL2Z) (k : ℤ): submo
   apply this, },}
 
 localized "notation `Mₖ[`k`](`Γ`)`:= space_of_mod_forms_of_level_and_weight Γ k" in modular_forms
-
 
 /-- This is the space of cuspforms of level `Γ` and weigth `k`-/
 def space_of_cusp_forms_of_level_and_weight (Γ : subgroup SL2Z) (k : ℤ): submodule ℂ (ℍ → ℂ):={

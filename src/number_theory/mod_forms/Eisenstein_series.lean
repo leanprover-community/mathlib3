@@ -1,8 +1,7 @@
-
 import tactic.pi_instances
 import .modular_group
 import linear_algebra.general_linear_group
-import .modular_forms
+import .mod_forms2
 import data.matrix.notation
 import data.setoid.partition
 import topology.instances.ennreal
@@ -95,14 +94,9 @@ begin
 ring_nf, rw h, rw one_mul,
 end
 
-
-
-
 /- This is the permutation of the summation index coming from the moebius action-/
 def Ind_perm (A : SL2Z ): ℤ × ℤ →  ℤ × ℤ:=
 λ z, (z.1* (A.1 0 0) +z.2* (A.1 1 0), z.1*(A.1 0 1)+z.2* (A.1 1 1))
-
-
 
 def Ind_equiv (A : SL2Z): ℤ × ℤ ≃ ℤ × ℤ:={
   to_fun:=Ind_perm A,
@@ -133,22 +127,13 @@ def Ind_equiv (A : SL2Z): ℤ × ℤ ≃ ℤ × ℤ:={
   simp only, ring_nf, simp only [ha, hb, hc, hd], ring_nf,
   have hz1:= ridic2 (A.val 0 0) (A.val 1 0) (A.val 0 1) (A.val 1 1) z.fst hdet, simp only [hz1],
   have hz2:= ridic2 (A.val 0 0) (A.val 1 0) (A.val 0 1) (A.val 1 1) z.snd hdet,
-  simp only [hz2], simp only [prod.mk.eta],} ,
-}
-
-
+  simp only [hz2], simp only [prod.mk.eta],} ,}
 
 @[simp]lemma ind_simp (A: SL2Z) (z : ℤ × ℤ):
   Ind_equiv A z = (z.1* (A.1 0 0) +z.2* (A.1 1 0), z.1*(A.1 0 1)+z.2* (A.1 1 1)) :=
 begin
 refl,
 end
-
-
-
-
-
-
 
 lemma wa (a b c: ℂ) (h: a ≠ 0) :  b=c → a*b⁻¹=a*c⁻¹ :=
 begin
@@ -160,24 +145,24 @@ begin
  apply complex.abs_nonneg,
 end
 
-
 lemma calc_lem (k: ℤ) (a b c d i1 i2: ℂ) (z : ℍ) (h: c*z+d ≠ 0) :
-((i1* ((a*z+b)/(c*z+d))+i2)^k)⁻¹=(c*z+d)^k* (  ((i1 * a + i2 * c) * z + (i1 * b + i2 * d))^k   )⁻¹:=
+((i1* ((a*z+b)/(c*z+d))+i2)^k)⁻¹=(c*z+d)^k* (((i1 * a + i2 * c) * z + (i1 * b + i2 * d))^k)⁻¹:=
 begin
-have h1: i1*((a*z+b)/(c*z+d))+i2=(i1*(a*z+b)/(c*z+d)+i2), by {ring  }, rw h1,
-have h2:  (i1*(a*z+b)/(c*z+d)+i2)=((i1*(a*z+b))/(c*z+d)+i2), by {ring}, rw h2,
-have h3:=div_add' (i1*(a*z+b)) i2 (c*z+d) h, rw h3, simp [inv_pow], rw div_eq_inv_mul,
-have h4 :
-  (((c * ↑z + d) ^ k)⁻¹ * (i1 * (a * ↑z + b) + i2 * (c * ↑z + d)) ^ k)⁻¹ =
+  have h1: i1*((a*z+b)/(c*z+d))+i2=(i1*(a*z+b)/(c*z+d)+i2), by {ring  }, rw h1,
+  have h2:  (i1*(a*z+b)/(c*z+d)+i2)=((i1*(a*z+b))/(c*z+d)+i2), by {ring}, rw h2,
+  have h3:=div_add' (i1*(a*z+b)) i2 (c*z+d) h, rw h3, simp [inv_pow], rw div_eq_inv_mul,
+  have h4 : (((c * ↑z + d) ^ k)⁻¹ * (i1 * (a * ↑z + b) + i2 * (c * ↑z + d)) ^ k)⁻¹ =
   (c * ↑z + d) ^ k * ((i1 * (a * ↑z + b) + i2 * (c * ↑z + d)) ^ k)⁻¹,
   by {rw ← div_eq_inv_mul, rw inv_div, rw div_eq_inv_mul, ring,},
-rw h4, have h5: (c*z+d)^k ≠ 0, by {apply zpow_ne_zero _ h,  },
-have:= mul_left_cancel₀  h5 ,apply wa _ _ _ h5, ring_nf, tauto, tauto,
+  rw h4,
+  have h5: (c*z+d)^k ≠ 0,
+  by {apply zpow_ne_zero _ h,  },
+  have:= mul_left_cancel₀  h5 ,
+  apply wa _ _ _ h5,
+  ring_nf,
+  tauto,
+  tauto,
 end
-
-
-
-
 
 lemma coe_chain (A: SL2Z) (i j : fin (2)):
   (A.1 i j : ℂ)= ((A.1 : (matrix (fin 2) (fin 2) ℝ) ) i j : ℂ):=
@@ -205,7 +190,6 @@ end
 /- How the Eise function changes under the Moebius action-/
 lemma Eise_moeb (k: ℤ) (z : ℍ) (A : SL2Z) (i : ℤ × ℤ ):
 Eise k ( (A : matrix.GL_pos (fin 2) ℝ) • z) i=  ((A.1 1 0*z+A.1 1 1)^k)*(Eise k z (Ind_equiv A i ) ):=
-
 begin
   rw Eise,
   rw Eise,
@@ -228,16 +212,10 @@ begin
   apply upper_half_plane.denom_ne_zero A,
 end
 
-
-
-
-
-
 lemma Eisenstein_is_modular (Γ : subgroup SL2Z) (k: ℤ)  :
- (Eisenstein_series_of_weight_ k) ∈ is_modular_of_level_and_weight Γ k :=
-
+ (Eisenstein_series_of_weight_ k) ∈ (modular_forms.modular_submodule k Γ) :=
 begin
-rw is_modular_of_level_and_weight,
+rw modular_forms.modular_mem',
 rw Eisenstein_series_of_weight_,
 simp only [set.mem_set_of_eq],
 intros A z,
@@ -250,19 +228,6 @@ rw tsum_mul_left,
 rw h3,
 refl,
 end
-
-
-
-/-
-lemma Eisenstein_is_modular (Γ : subgroup SL2Z) (k: ℤ)  :
- (Eisenstein_series_of_weight_ k) ∈ (modular_forms.modular_submodule k Γ) :=
-begin
-rw modular_forms.modular_mem,
-rw slash_k,
-end
--/
-
-
 
 lemma max_aux' (a b : ℕ): max a b = a ∨ max a b =b:=
 begin
@@ -971,44 +936,41 @@ begin
   nlinarith,
 end
 
-lemma lowbound (z : ℍ) (δ : ℝ): ((z.1.2)^4 + (z.1.1*z.1.2)^2)/(z.1.1^2+z.1.2^2)^2 ≤ (δ*z.1.1+1)^2+(δ*z.1.2)^2:=
+lemma lowbound (z : ℍ) (δ : ℝ): ((z.1.2)^4 + (z.1.1*z.1.2)^2)/(z.1.1^2+z.1.2^2)^2 ≤
+  (δ*z.1.1+1)^2+(δ*z.1.2)^2:=
 begin
-  simp,
+  simp only [upper_half_plane.coe_im, subtype.val_eq_coe, upper_half_plane.coe_re],
   have H1: (δ*z.1.1+1)^2+(δ*z.1.2)^2=δ^2*(z.1.1^2+z.1.2^2)+2*δ*z.1.1+1, by {ring,},
-  simp at H1,
+  simp only [upper_half_plane.coe_im, subtype.val_eq_coe, upper_half_plane.coe_re] at H1,
   rw H1,
   rw div_le_iff,
-  simp,
+  simp only,
   have H2: (δ ^ 2 * ( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2) + 2 * δ *  (z: ℂ).re + 1) *
-    ( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2) ^ 2=δ ^ 2 * ( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2)^3 + 2 * δ *
-    (z: ℂ).re* ( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2) ^ 2+   ( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2) ^ 2,
-    by {ring,},
-    simp at H2,
-    rw H2,
-    rw ← sub_nonneg,
+  ( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2) ^ 2=δ ^ 2 * ( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2)^3 + 2 * δ *
+  (z: ℂ).re* ( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2) ^ 2+   ( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2) ^ 2,
+  by {ring,},
+  simp only [upper_half_plane.coe_im, upper_half_plane.coe_re] at H2,
+  rw H2,
+  rw ← sub_nonneg,
   have H3:( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2) ^ 2-((z: ℂ).im ^ 4 + ((z: ℂ).re * (z: ℂ).im) ^ 2)=
-    ((z: ℂ).re)^2*( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2), by {ring,},
+  ((z: ℂ).re)^2*( (z: ℂ).re ^ 2 +  (z: ℂ).im ^ 2), by {ring,},
   have H4: δ ^ 2 * ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2) ^ 3 + 2 * δ *
-    (z: ℂ).re * ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2) ^ 2 + ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2) ^ 2 -
-    ((z: ℂ).im ^ 4 + ((z: ℂ).re * (z: ℂ).im) ^ 2)=
-    (((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2))*(δ ^ 2 * ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2)^2 + 2 * δ *
-    (z: ℂ).re * ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2) +(z: ℂ).re ^ 2), by {ring,},
-  simp at H4,
+  (z: ℂ).re * ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2) ^ 2 + ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2) ^ 2 -
+  ((z: ℂ).im ^ 4 + ((z: ℂ).re * (z: ℂ).im) ^ 2)=
+  (((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2))*(δ ^ 2 * ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2)^2 + 2 * δ *
+  (z: ℂ).re * ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2) +(z: ℂ).re ^ 2), by {ring,},
+  simp only [upper_half_plane.coe_im, upper_half_plane.coe_re] at H4,
   rw H4,
   have H5: 0 ≤ (δ ^ 2 * ((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2)^2 + 2 * δ * (z: ℂ).re * ((z: ℂ).re ^ 2 +
-    (z: ℂ).im ^ 2) +(z: ℂ).re ^ 2), by {apply ineq1,},
+  (z: ℂ).im ^ 2) +(z: ℂ).re ^ 2), by {apply ineq1,},
   have H6: 0 ≤ (((z: ℂ).re ^ 2 + (z: ℂ).im ^ 2)), by {nlinarith,},
   apply mul_nonneg H6 H5,
   have H7:= z.property, simp at H7,
-  have H8:0 < (z: ℂ).im ^ 2, by {simp [H7], },
+  have H8:0 < (z: ℂ).im ^ 2, by {simp only [H7, pow_pos, upper_half_plane.coe_im], },
   have H9: 0 <((z: ℂ).im ^ 2+(z: ℂ).re ^ 2), by {nlinarith,},
   apply pow_two_pos_of_ne_zero,
   nlinarith,
 end
-
-
-
-
 
 lemma auxlem (z : ℍ) (δ : ℝ) :
   (rfunct z) ≤ complex.abs ( (z: ℂ)+δ ) ∧ (rfunct z) ≤ complex.abs ( δ*(z: ℂ) +1):=
@@ -1018,47 +980,32 @@ begin
   rw complex.abs,
   rw norm_sq,
   simp only [add_zero, of_real_im, monoid_with_zero_hom.coe_mk, of_real_re, add_re,
-    add_im, min_le_iff, subtype.val_eq_coe],
+  add_im, min_le_iff, subtype.val_eq_coe],
   have H1: real.sqrt (((z: ℂ).im)^2) ≤
-    real.sqrt (((z: ℂ).re + δ) * ((z: ℂ).re + δ) + (z: ℂ).im * (z: ℂ).im),
-    by {rw real.sqrt_le_sqrt_iff,
-    nlinarith,nlinarith,},
+  real.sqrt (((z: ℂ).re + δ) * ((z: ℂ).re + δ) + (z: ℂ).im * (z: ℂ).im),
+  by {rw real.sqrt_le_sqrt_iff,
+  nlinarith,nlinarith,},
   simp_rw H1,
-  simp,},
+  simp only [true_or],},
   {rw rfunct,
   rw complex.abs,
   rw norm_sq,
-  simp,
+  simp only [one_im, add_zero, of_real_im, monoid_with_zero_hom.coe_mk, zero_mul, of_real_re,
+  sub_zero, add_re, add_im, one_re, min_le_iff, mul_im, upper_half_plane.coe_im, mul_re,
+  subtype.val_eq_coe, upper_half_plane.coe_re],
   have H1:  real.sqrt (lb z) ≤
-    real.sqrt ((δ*(z: ℂ).re  + 1) * (δ*(z: ℂ).re  + 1) + δ*(z: ℂ).im *  (δ*(z: ℂ).im )),
-    by { rw lb,
-    rw real.sqrt_le_sqrt_iff,
-    have:= lowbound z δ,
-    rw ← pow_two,
-    rw ← pow_two,
-    simp at *,
-    apply this,
-    nlinarith,},
-    simp at H1,
-    simp_rw H1,
-    simp,},
-end
-
-lemma complex_abs_pow' (k : ℕ) (a : ℂ): complex.abs (a^k)= (complex.abs (a))^k:=
-begin
-  induction k with n hd,
-  simp,
-  rw [pow_succ, pow_succ],
-  have h1:= complex.abs_mul (a) (a^n),
-  rw hd at h1,
-  apply h1,
-end
-
-lemma complex_abs_pow (k : ℤ) (a : ℂ): complex.abs (a^k)= (complex.abs (a))^k:=
-begin
-  induction k with n hd,
-  apply complex_abs_pow',
-  simp ,
+  real.sqrt ((δ*(z: ℂ).re  + 1) * (δ*(z: ℂ).re  + 1) + δ*(z: ℂ).im *  (δ*(z: ℂ).im )),
+  by { rw lb,
+  rw real.sqrt_le_sqrt_iff,
+  have:= lowbound z δ,
+  rw ← pow_two,
+  rw ← pow_two,
+  simp only [upper_half_plane.coe_im, subtype.val_eq_coe, upper_half_plane.coe_re] at *,
+  apply this,
+  nlinarith,},
+  simp only [upper_half_plane.coe_im, upper_half_plane.coe_re] at H1,
+  simp_rw H1,
+  simp only [or_true],},
 end
 
 lemma le_of_pow' (a b : ℝ) (k: ℕ)(h : 0 ≤ a) (h2: 0 ≤ b) (h3: a ≤ b): a^k ≤ b^k:=
@@ -1068,10 +1015,9 @@ end
 
 lemma baux (a : ℝ) (k : ℕ) (b : ℂ) (h: 0 ≤ a) (h2: a ≤ complex.abs b): a^k ≤ complex.abs (b^k):=
 begin
-  rw complex_abs_pow',
-  apply le_of_pow',
+  rw complex.abs_pow,
+  apply pow_le_pow_of_le_left,
   exact h,
-  apply complex.abs_nonneg,
   exact h2,
 end
 
@@ -1151,7 +1097,7 @@ begin
   rw h1,
   rw complex.abs_mul,
   rw complex.abs_mul,
-  have h3: complex.abs (↑(x.fst) ^ k)= (complex.abs (↑(x.fst)))^k , by {apply complex_abs_pow', },
+  have h3: complex.abs (↑(x.fst) ^ k)= (complex.abs (↑(x.fst)))^k , by {apply complex.abs_pow, },
   rw h3,
   rw C1,
   have h4: complex.abs (↑n ^ k)=↑n ^ k, by {norm_cast, },
@@ -1228,7 +1174,7 @@ begin
   rw complex.abs_mul,
   rw complex.abs_mul,
   have h3: complex.abs (↑(x.2) ^ k)= (complex.abs (↑(x.2)))^k ,
-  by {apply complex_abs_pow', },
+  by {apply complex.abs_pow,},
   rw h3,
   rw C2,
   have h4: complex.abs (↑n ^ k)=↑n ^ k, by {norm_cast, },
@@ -1353,7 +1299,7 @@ begin
   norm_cast at this,
   have ne:( (8 * n) * (complex.abs (rfunct z ^ k) * ((n ^ k): ℝ))⁻¹ : ℝ)=
     (8/((rfunct z)^k))*(n^((k: ℤ)-1))⁻¹,
-  by {rw complex_abs_pow',
+  by {rw complex.abs_pow,
   rw complex.abs_of_nonneg,
   rw ← mul_pow,
   rw div_eq_inv_mul,
@@ -1675,7 +1621,7 @@ begin
   have h2: (b^4+(a*b)^2)=b^2*(a^2+b^2) , by {ring},
   rw h2,
   rw mul_div_assoc,
-  simp,
+  simp only [one_div, div_pow, div_self_mul_self'],
   field_simp,
   have hb : b^2 ≠ 0 , by {simp [h], intro h3, linarith,},
   have:= (aux55  (b^2) (a^2) hb),
@@ -1696,7 +1642,7 @@ begin
 end
 
 lemma rfunct_lower_bound_on_slice (A B : ℝ) (h: 0 < B) (z : upper_half_space_slice A B) :
-rfunct (lbpoint A B h) ≤   rfunct(z.1) :=
+rfunct (lbpoint A B h) ≤  rfunct(z.1) :=
 begin
   simp at *,
   simp_rw rfunct,
@@ -1771,7 +1717,7 @@ begin
   have he : even (4 : ℤ), by {simp,},
   have := even.zpow_nonneg he (z_val_val.im) ,
   apply this,
-  simp,
+  simp only,
   nlinarith,
   nlinarith,
 end
@@ -1780,49 +1726,46 @@ end
 lemma rfunctbound (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upper_half_space_slice A B) :
 (8/(rfunct z)^k)*Riemann_zeta (k-1)  ≤ (8/(rfunct (lbpoint A B hb) )^k)*Riemann_zeta (k-1) :=
 begin
-have h1:= rfunct_lower_bound_on_slice A B hb z,
-    simp at h1,
-    have v1: 0 ≤ rfunct z, by {have:= rfunct_pos z, linarith, },
-    have v2: 0 ≤ rfunct (lbpoint A B hb), by {have:= rfunct_pos (lbpoint A B hb), linarith, },
-    have h2:= le_of_pow'  (rfunct (lbpoint A B hb) ) (rfunct z) k v2 v1 h1,
-    ring_nf,
-    rw ← inv_le_inv at h2,
-    have h3: 0 ≤  Riemann_zeta (k-1), by {have hk: 1 < (k-1 : ℤ), by { linarith,},
-             have hkk: 1 < ((k-1 : ℤ) : ℝ), by {norm_cast, exact hk,},
-             simp at hkk,
-             have:= Riemann_zeta_pos (k-1) hkk, linarith,},
-    nlinarith,
-    apply pow_pos,
-    apply rfunct_pos,
-     apply pow_pos,
-    apply rfunct_pos,
+  have h1:= rfunct_lower_bound_on_slice A B hb z,
+  simp only [subtype.val_eq_coe] at h1,
+  have v1: 0 ≤ rfunct z, by {have:= rfunct_pos z, linarith, },
+  have v2: 0 ≤ rfunct (lbpoint A B hb), by {have:= rfunct_pos (lbpoint A B hb), linarith, },
+  have h2 := pow_le_pow_of_le_left v2 h1 k,
+  ring_nf,
+  rw ← inv_le_inv at h2,
+  have h3: 0 ≤  Riemann_zeta (k-1), by {have hk: 1 < (k-1 : ℤ), by { linarith,},
+  have hkk: 1 < ((k-1 : ℤ) : ℝ), by {norm_cast, exact hk,},
+  simp only [int.cast_coe_nat, int.cast_one, int.cast_sub] at hkk,
+  have:= Riemann_zeta_pos (k-1) hkk, linarith,},
+  nlinarith,
+  apply pow_pos,
+  apply rfunct_pos,
+  apply pow_pos,
+  apply rfunct_pos,
 end
 
 
 lemma rfunctbound' (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upper_half_space_slice A B) (n : ℕ) :
 (8/(rfunct z)^k)* (rie (k-1) n)  ≤ (8/(rfunct (lbpoint A B hb) )^k)* (rie  (k-1) n) :=
 begin
-have h1:= rfunct_lower_bound_on_slice A B hb z,
-    simp at h1,
-    have v1: 0 ≤ rfunct z, by {have:= rfunct_pos z, linarith, },
-    have v2: 0 ≤ rfunct (lbpoint A B hb), by {have:= rfunct_pos (lbpoint A B hb), linarith, },
-    have h2:= le_of_pow'  (rfunct (lbpoint A B hb) ) (rfunct z) k v2 v1 h1,
-    ring_nf,
-    rw ← inv_le_inv at h2,
-    have h3: 0 ≤  rie (k-1) n, by {
-             rw rie,
-             simp,
-             apply real.rpow_nonneg_of_nonneg,
-             simp,
-             },
-    nlinarith,
-    apply pow_pos,
-    apply rfunct_pos,
-     apply pow_pos,
-    apply rfunct_pos,
+  have h1:= rfunct_lower_bound_on_slice A B hb z,
+  simp only [subtype.val_eq_coe] at h1,
+  have v1: 0 ≤ rfunct z, by {have:= rfunct_pos z, linarith, },
+  have v2: 0 ≤ rfunct (lbpoint A B hb), by {have:= rfunct_pos (lbpoint A B hb), linarith, },
+  have h2 := pow_le_pow_of_le_left v2 h1 k,
+  ring_nf,
+  rw ← inv_le_inv at h2,
+  have h3: 0 ≤  rie (k-1) n,
+  by {rw rie,
+  simp only [one_div, inv_nonneg],
+  apply real.rpow_nonneg_of_nonneg,
+  simp only [nat.cast_nonneg],},
+  nlinarith,
+  apply pow_pos,
+  apply rfunct_pos,
+  apply pow_pos,
+  apply rfunct_pos,
 end
-
-
 
 lemma Real_Eisenstein_bound_unifomly_on_stip (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
   (z : upper_half_space_slice A B) :

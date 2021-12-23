@@ -17,10 +17,8 @@ namespace complex
 
 lemma holo_test {R : ℝ} {z w : ℂ} (hw : w ∈ ball z R)
   {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball z R)) :
-
   f w  = (1/(2 • π • I)) • ∫ (θ : ℝ) in 0..2 * π,
-    ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w) : ℂ) • f (z + R * exp (θ * I)) :=
-
+  ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w) : ℂ) • f (z + R * exp (θ * I)) :=
 begin
   have := integral_circle_div_sub_of_differentiable_on hw hd,
   simp only [this, one_div, nat.cast_bit0, real_smul, nsmul_eq_mul, nat.cast_one],

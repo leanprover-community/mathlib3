@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import combinatorics.hall.basic
+import data.fintype.card
 import set_theory.fincard
 
 /-!
@@ -134,24 +135,20 @@ end
 variables {P} (L)
 
 /-- Number of points on a given line. -/
-def line_count (p : P) [fintype {l : L // p ∈ l}] : ℕ := fintype.card {l : L // p ∈ l}
-variables {P} (L)
-
-/-- Number of points on a given line. -/
 noncomputable def line_count (p : P) : ℕ := nat.card {l : L // p ∈ l}
 
 variables (P) {L}
 
 /-- Number of lines through a given point. -/
-def point_count (l : L) [fintype {p : P // p ∈ l}] : ℕ := fintype.card {p // p ∈ l}
+noncomputable def point_count (l : L) : ℕ := nat.card {p : P // p ∈ l}
 
 variables (P L)
 
-lemma sum_line_count_eq_sum_point_count [fintype P] [fintype L]
-  [Π p, fintype {l : L // p ∈ l}] [Π l : L, fintype {p // p ∈ l}] :
+lemma sum_line_count_eq_sum_point_count [fintype P] [fintype L] :
   ∑ p : P, line_count L p = ∑ l : L, point_count P l :=
 begin
-  simp_rw [line_count, point_count, ←fintype.card_sigma],
+  classical,
+  simp only [line_count, point_count, nat.card_eq_fintype_card, ←fintype.card_sigma],
   apply fintype.card_congr,
   calc (Σ p, {l : L // p ∈ l}) ≃ {x : P × L // x.1 ∈ x.2} :
     (equiv.subtype_prod_equiv_sigma_subtype (∈)).symm
@@ -161,14 +158,22 @@ end
 
 variables {P L}
 
-lemma has_lines.point_count_le_line_count
-  [has_lines P L] {p : P} {l : L} (h : p ∉ l)
-  [fintype {p // p ∈ l}] [fintype {l : L // p ∈ l}] :
-  point_count P l ≤ line_count L p :=
-fintype.card_le_of_injective (λ p', ⟨mk_line p p', (mk_line_ax p p').1⟩)
-  (λ p₁ p₂ hp, subtype.ext ((eq_or_eq p₁.2 p₂.2 (mk_line_ax p p₁).2 (by
-  { rw (show mk_line p p₁ = mk_line p p₂, from subtype.ext_iff.mp hp),
-    exact (mk_line_ax p p₂).2 })).resolve_right (λ h', (congr_arg _ h').mp h (mk_line_ax p p₁).1)))
+lemma has_lines.point_count_le_line_count [has_lines P L] {p : P} {l : L} (h : p ∉ l)
+  [fintype {l : L // p ∈ l}] : point_count P l ≤ line_count L p :=
+begin
+  by_cases hf : infinite {p : P // p ∈ l},
+  { exactI le_trans (le_of_eq nat.card_eq_zero_of_infinite) (zero_le (line_count L p)) },
+  haveI := fintype_of_not_infinite hf,
+  rw [line_count, point_count, nat.card_eq_fintype_card, nat.card_eq_fintype_card],
+  exact fintype.card_le_of_injective (λ p', ⟨mk_line p p', (mk_line_ax p p').1⟩)
+    (λ p₁ p₂ hp, subtype.ext ((eq_or_eq p₁.2 p₂.2 (mk_line_ax p p₁).2
+      ((congr_arg _ (subtype.ext_iff.mp hp)).mpr (mk_line_ax p p₂).2)).resolve_right
+        (λ h', (congr_arg _ h').mp h (mk_line_ax p p₁).1))),
+end
+
+lemma has_points.line_count_le_point_count [has_points P L] {p : P} {l : L} (h : p ∉ l)
+  [hf : fintype {p : P // p ∈ l}] : line_count L p ≤ point_count P l :=
+@has_lines.point_count_le_line_count (dual L) (dual P) _ _ l p h hf
 
 variables (P L)
 
@@ -198,7 +203,8 @@ begin
     { rw [finset.mem_image],
       push_neg,
       exact λ l hl, hp l },
-    { exact fintype.card_pos_iff.mpr ⟨⟨mk_line p p, (mk_line_ax p p).1⟩⟩ } },
+    { rw [line_count, nat.card_eq_fintype_card, fintype.card_pos_iff],
+      exact ⟨⟨mk_line p p, (mk_line_ax p p).1⟩⟩ } },
 end
 
 /- If a nondegenerate configuration has a unique point on any two lines,
@@ -206,6 +212,5 @@ end
 lemma has_points.card_le [has_points P L] [fintype P] [fintype L] :
   fintype.card L ≤ fintype.card P :=
 @has_lines.card_le (dual L) (dual P) _ _ _ _
-noncomputable def point_count (l : L) : ℕ := nat.card {p : P // p ∈ l}
 
 end configuration

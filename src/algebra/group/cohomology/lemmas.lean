@@ -8,7 +8,7 @@ universes u
 noncomputable theory
 open_locale classical
 
-/- These might be duplicates or expressed non-mathlib-y, I just couldn't find them. -/
+/- Todo: delete or move each lemma in here, as appropriate. -/
 
 lemma finset.range_succ' (n : ℕ) :
   finset.range (n + 1) = insert 0 ((finset.range n).image nat.succ) :=

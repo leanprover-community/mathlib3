@@ -1718,6 +1718,13 @@ end
 lemma bounded.subset_ball (h : bounded s) (c : α) : ∃ r, s ⊆ closed_ball c r :=
 (bounded_iff_subset_ball c).1 h
 
+lemma bounded.subset_ball_lt (h : bounded s) (a : ℝ) (c : α) : ∃ r, a < r ∧ s ⊆ closed_ball c r :=
+begin
+  rcases h.subset_ball c with ⟨r, hr⟩,
+  refine ⟨max r (a+1), lt_of_lt_of_le (by linarith) (le_max_right _ _), _⟩,
+  exact subset.trans hr (closed_ball_subset_closed_ball (le_max_left _ _))
+end
+
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
 let ⟨C, h⟩ := h in
 ⟨C, λ a b ha hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb h⟩

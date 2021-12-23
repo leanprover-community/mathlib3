@@ -239,8 +239,9 @@ section comm_monoid
 variable [cancel_comm_monoid G]
 
 @[to_additive] lemma exponent_eq_Sup_order_of (h : ∀ g : G, 0 < order_of g) :
-  exponent G = Sup (set.range (order_of : G → ℕ)) :=
+  exponent G = ⨆ g : G, order_of g :=
 begin
+  rw supr,
   rcases eq_or_ne (exponent G) 0 with he | he,
   { rw [he, set.infinite.nat.Sup_eq_zero $ (exponent_eq_zero_iff_range_order_of_infinite h).1 he] },
   have hne : (set.range (order_of : G → ℕ)).nonempty := ⟨1, 1, order_of_one⟩,
@@ -280,7 +281,7 @@ begin
 end
 
 @[to_additive] lemma exponent_eq_Sup_order_of' :
-  exponent G = if ∃ g : G, order_of g = 0 then 0 else Sup (set.range (order_of : G → ℕ)) :=
+  exponent G = if ∃ g : G, order_of g = 0 then 0 else ⨆ g : G, order_of g :=
 begin
   split_ifs,
   { obtain ⟨g, hg⟩ := h,
@@ -292,7 +293,7 @@ end
 @[to_additive] lemma exponent_eq_max'_order_of [fintype G] :
   exponent G = ((@finset.univ G _).image order_of).max' ⟨1, by simp⟩ :=
 begin
-  rw [←finset.nonempty.cSup_eq_max', finset.coe_image, finset.coe_univ, set.image_univ],
+  rw [←finset.nonempty.cSup_eq_max', finset.coe_image, finset.coe_univ, set.image_univ, ← supr],
   exact exponent_eq_Sup_order_of order_of_pos
 end
 

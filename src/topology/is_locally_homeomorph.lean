@@ -26,6 +26,9 @@ def is_locally_homeomorph :=
 
 namespace is_locally_homeomorph
 
+/-- Proves that `f` satisfies `is_locally_homeomorph`. The condition `h` is weaker than definition
+of `is_locally_homeomorph`, since it only requires `e : local_homeomorph X Y` to agree with `f` on
+its source `e.source`, as opposed to on the whole space `X`. -/
 def mk (h : ∀ x : X, ∃ e : local_homeomorph X Y, x ∈ e.source ∧ ∀ x, x ∈ e.source → f x = e x) :
   is_locally_homeomorph f :=
 begin
@@ -41,27 +44,25 @@ end
 
 variables {g f}
 
-lemma continuous (hf : is_locally_homeomorph f) : continuous f :=
+lemma map_nhds_eq (hf : is_locally_homeomorph f) (x : X) : (nhds x).map f = nhds (f x) :=
 begin
-  refine continuous_iff_continuous_at.mpr (λ x, _),
   obtain ⟨e, hx, rfl⟩ := hf x,
-  exact e.continuous_at hx,
+  exact e.map_nhds_eq hx,
 end
 
-lemma comp (hg : is_locally_homeomorph g) (hf : is_locally_homeomorph f) :
+protected lemma continuous (hf : is_locally_homeomorph f) : continuous f :=
+continuous_iff_continuous_at.mpr (λ x, le_of_eq (hf.map_nhds_eq x))
+
+lemma is_open_map (hf : is_locally_homeomorph f) : is_open_map f :=
+is_open_map.of_nhds_le (λ x, ge_of_eq (hf.map_nhds_eq x))
+
+protected lemma comp (hg : is_locally_homeomorph g) (hf : is_locally_homeomorph f) :
   is_locally_homeomorph (g ∘ f) :=
 begin
   intro x,
   obtain ⟨eg, hxg, rfl⟩ := hg (f x),
   obtain ⟨ef, hxf, rfl⟩ := hf x,
   exact ⟨ef.trans eg, ⟨hxf, hxg⟩, rfl⟩,
-end
-
-lemma is_open_map (hf : is_locally_homeomorph f) : is_open_map f :=
-begin
-  refine is_open_map.of_nhds_le (forall_imp _ hf),
-  rintros x ⟨e, hx, rfl⟩,
-  exact ge_of_eq (e.map_nhds_eq hx),
 end
 
 end is_locally_homeomorph

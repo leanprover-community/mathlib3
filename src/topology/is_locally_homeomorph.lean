@@ -20,11 +20,13 @@ This file defines local homeomorphisms.
   `local_homeomorph`, which is a homeomorphism between specific open subsets.
 -/
 
+open_locale topological_space
+
 variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
   (g : Y → Z) (f : X →  Y)
 
 /-- A function `f : X → Y` satisfies `is_locally_homeomorph` if
-  each `x : x` is contained in the source of some `e : local_homeomorph X Y`. -/
+  each `x : x` is contained in the source of some `e : local_homeomorph X Y` with `f = e`. -/
 def is_locally_homeomorph :=
 ∀ x : X, ∃ e : local_homeomorph X Y, x ∈ e.source ∧ f = e
 
@@ -48,7 +50,7 @@ end
 
 variables {g f}
 
-lemma map_nhds_eq (hf : is_locally_homeomorph f) (x : X) : (nhds x).map f = nhds (f x) :=
+lemma map_nhds_eq (hf : is_locally_homeomorph f) (x : X) : (𝓝 x).map f = 𝓝 (f x) :=
 begin
   obtain ⟨e, hx, rfl⟩ := hf x,
   exact e.map_nhds_eq hx,

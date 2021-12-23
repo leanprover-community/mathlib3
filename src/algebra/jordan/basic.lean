@@ -35,14 +35,7 @@ instance ring.to_non_unital_non_assoc_semiring (B :Type*) [_i : ring B] :
   mul_zero := mul_zero,
   .. _i }
 
-
 variables [non_unital_non_assoc_ring A]
-
-set_option trace.simps.verbose true
-initialize_simps_projections add_monoid_hom (coe_fn → jordan as_prefix)
-
---initialize_simps_projections add_monoid_hom (L_apply → applyX)
---initialize_simps_projections monoid_hom (to_fun → csh as_prefix)
 
 -- For some reason `def T : A→+add_monoid.End A := add_monoid_hom.mul` doesn't work here?
 /--

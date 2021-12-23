@@ -39,16 +39,15 @@ lemma comm {H K : subgroup G} : commensurable H K ↔ commensurable K H := and.c
 
 @[trans] lemma trans {H K L : subgroup G} (hhk : commensurable H K ) (hkl : commensurable K L) :
   commensurable H L :=
-⟨subgroup.relindex_ne_zero_trans H K L hhk.1 hkl.1,
-  subgroup.relindex_ne_zero_trans L K H hkl.2 hhk.2⟩
+⟨subgroup.relindex_ne_zero_trans hhk.1 hkl.1,
+  subgroup.relindex_ne_zero_trans hkl.2 hhk.2⟩
 
 lemma equivalence : equivalence (@commensurable G _) :=
 ⟨commensurable.refl, λ _ _, commensurable.symm, λ _ _ _, commensurable.trans⟩
 
 /--Equivalence of `K/H ⊓ K` with `gKg⁻¹/gHg⁻¹ ⊓ gKg⁻¹`-/
 def  quot_conj_equiv (H K : subgroup G) (g : conj_act G) :
-  quotient_group.quotient (H.subgroup_of K) ≃
-  quotient_group.quotient ((g • H).subgroup_of (g • K)) :=
+  K ⧸  (H.subgroup_of K) ≃ (g • K).1 ⧸  ((g • H).subgroup_of (g • K)) :=
 quotient.congr (K.equiv_smul g).to_equiv (λ a b, by rw [←quotient.eq', ←quotient.eq',
   quotient_group.eq', quotient_group.eq', subgroup.mem_subgroup_of, subgroup.mem_subgroup_of,
   mul_equiv.coe_to_equiv, ←mul_equiv.map_inv, ←mul_equiv.map_mul,

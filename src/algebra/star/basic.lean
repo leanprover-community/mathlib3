@@ -10,6 +10,7 @@ import data.equiv.ring_aut
 import group_theory.group_action.units
 import group_theory.group_action.opposite
 import algebra.ring.comp_typeclasses
+import algebra.smul_with_zero
 
 /-!
 # Star monoids, rings, and modules
@@ -379,12 +380,19 @@ instance star_monoid.to_opposite_star_module [comm_monoid R] [star_monoid R] : s
 ⟨λ r s, star_mul' s r.unop⟩
 
 variables (R)
+/-- The self-adjoint elements of a type with star, as a subtype. -/
 def self_adjoints [has_star R] := {x : R // star x = x}
 variables {R}
+
+/-- An element `x` of a type with star is self-adjoint if `star x = x`. -/
+abbreviation is_self_adjoint [has_star R] (x : R) : Prop := star x = x
 
 namespace self_adjoints
 
 instance [has_star R] : has_coe (self_adjoints R) R := ⟨subtype.val⟩
+
+lemma is_self_adjoint [has_star R] (x : self_adjoints R) : is_self_adjoint (x : R) := x.prop
+
 instance [has_star R] : has_star (self_adjoints R) := ⟨id⟩
 instance [has_involutive_star R] : has_involutive_star (self_adjoints R) := ⟨λ _, rfl⟩
 
@@ -472,8 +480,8 @@ instance [field R] [star_ring R] : field (self_adjoints R) :=
   inv_zero := by { ext, exact inv_zero },
   ..self_adjoints.comm_ring }
 
--- Conjugation of a self-adjoint by an element of the original type
-
+/-- Conjugation of a self-adjoint by an element of the original type: given `r : R` and
+`x : self_adjoints R`, we define `r • x` as `r * x * star r`. -/
 instance [monoid R] [star_monoid R] : has_scalar R (self_adjoints R) :=
 ⟨λ r x, ⟨r * x * star r, by simp only [mul_assoc, star_coe_eq, star_star, star_mul]⟩⟩
 
@@ -500,4 +508,59 @@ instance [ring R] [star_ring R] : distrib_mul_action R (self_adjoints R) :=
 { smul_add := λ r x y, by { ext, simp only [mul_add, add_mul, conj_eq_smul, coe_add] },
   smul_zero := λ r, by { ext, simp only [coe_zero, zero_mul, conj_eq_smul, mul_zero] } }
 
+instance [ring R] [star_ring R] : smul_with_zero R (self_adjoints R) :=
+{ smul_zero := λ r, by { ext, simp only [smul_zero] },
+  zero_smul := λ r,  by { ext, simp only [coe_zero, conj_eq_smul, star_zero, mul_zero] } }
+
 end self_adjoints
+
+
+namespace is_self_adjoint
+
+/-- Construct a self-adjoint element from the assumption `is_self_adjoint x`.  -/
+def to_self_adjoints [has_star R] {x : R} (h : is_self_adjoint x) : self_adjoints R := ⟨x, h⟩
+
+lemma star_eq [has_star R] {x : R} (h : is_self_adjoint x) : star x = x := h
+lemma star_eq_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := ⟨id, id⟩
+
+section add_monoid
+
+variables [add_monoid R] [star_add_monoid R]
+variables {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y)
+
+lemma zero : is_self_adjoint (0 : R) := star_zero R
+
+lemma add : is_self_adjoint (x + y) :=
+(hx.to_self_adjoints + hy.to_self_adjoints).is_self_adjoint
+
+end add_monoid
+
+section add_group
+
+variables [add_group R] [star_add_monoid R]
+variables {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y)
+
+lemma neg : is_self_adjoint (-x) := (-hx.to_self_adjoints).is_self_adjoint
+
+include hx hy
+lemma sub : is_self_adjoint (x - y) := by rw [star_eq_iff, star_sub, star_eq hx, star_eq hy]
+
+end add_group
+
+section monoid
+
+variables [monoid R] [star_monoid R]
+variables {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y)
+
+lemma one : is_self_adjoint (1 : R) := star_one R
+
+include hx
+lemma conjugate {z : R} : is_self_adjoint (z * x * star z) :=
+by simp only [star_eq_iff, mul_assoc, hx.star_eq, star_star, star_mul]
+
+lemma conjugate' {z : R} : is_self_adjoint (star z * x * z) :=
+by simp only [star_eq_iff, mul_assoc, hx.star_eq, star_star, star_mul]
+
+end monoid
+
+end is_self_adjoint

@@ -188,7 +188,7 @@ quot.induction_on s $ assume l hl,
   | (a :: l) := assume _, ⟨a, by simp⟩
   end
 
-lemma multiset.empty_or_exists_mem {α} (s : multiset α) : s = 0 ∨ ∃ a, a ∈ s :=
+lemma multiset.empty_or_exists_mem (s : multiset α) : s = 0 ∨ ∃ a, a ∈ s :=
 or_iff_not_imp_left.mpr multiset.exists_mem_of_ne_zero
 
 @[simp] lemma zero_ne_cons {a : α} {m : multiset α} : 0 ≠ a ::ₘ m :=

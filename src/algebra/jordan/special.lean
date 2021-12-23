@@ -22,6 +22,9 @@ multiplication is said to be a special Jordan algebra.
 The approach taken here is inspired by algebra.opposites
 -/
 
+/--
+The symmetrised algebra has the same underlying space as the original algebra.
+-/
 def sym_alg (α : Type*) : Type* := α
 
 postfix `ˢʸᵐ`:std.prec.max_plus := sym_alg
@@ -37,6 +40,8 @@ def sym : α → αˢʸᵐ := id
 /-- The element of `α` represented by `x : αᵐᵒᵖ`. -/
 @[pp_nodot]
 def unsym : αˢʸᵐ → α := id
+
+instance [inhabited α] : inhabited αˢʸᵐ := ⟨sym (default α)⟩
 
 @[simp] lemma unsym_sym (x : α) : unsym (sym x) = x := rfl
 @[simp] lemma sym_unsym (x : α) : sym (unsym x) = x := rfl

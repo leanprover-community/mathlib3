@@ -567,6 +567,9 @@ end⟩⟩
 @[simp] theorem mul_add_one (a b : ordinal) : a * (b + 1) = a * b + a :=
 by simp only [mul_add, mul_one]
 
+@[simp] theorem mul_one_add (a b : ordinal) : a * (1 + b) = a + a * b :=
+by simp only [mul_add, mul_one]
+
 @[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
 
 theorem mul_le_mul_left {a b} (c : ordinal) : a ≤ b → c * a ≤ c * b :=
@@ -2046,7 +2049,7 @@ theorem mul_omega_unbounded (o) : ∀ a, ∃ b, (o * ordinal.omega ≤ b) ∧ a 
 λ a, ⟨_, le_sup_left, le_sup_right⟩
 
 theorem add_mul_omega {a} : a + a * omega = a * omega :=
-by { nth_rewrite 0 ←(mul_one a), rw [←mul_add, one_add_omega] }
+by { rw [←mul_one_add, one_add_omega] }
 
 lemma mul_omega_nfp {a} : a * omega.{u} = nfp ((+) a) 0 :=
 begin
@@ -2069,9 +2072,7 @@ begin
   induction n with n hn,
   { rw iterate_zero,
     exact (mul_zero _).symm },
-  rw [iterate_succ_apply', hn],
-  nth_rewrite 0 ←(mul_one a),
-  rw [←ordinal.mul_add, (by simp : (1 : ordinal) + ↑n = ↑(1 + n)), add_comm]
+  rw [iterate_succ_apply', hn, ←mul_one_add, (by simp : (1 : ordinal) + ↑n = ↑(1 + n)), add_comm]
 end
 
 theorem add_absorp_iff' {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=

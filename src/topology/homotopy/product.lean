@@ -10,7 +10,7 @@ import topology.constructions
 # Product of homotopies
 
 In this file, we introduce definitions for the product of
-homotopies. We show that the product of relative homotopies
+homotopies. We show that the products of relative homotopies
 are still relative homotopies.
 
 ## Definitions
@@ -44,7 +44,6 @@ def pi (homotopies : Π i : I, homotopy_rel (f i) (g i) S) :
   homotopy_rel (pi f) (pi g) S :=
 { to_fun := λ t i, (homotopies i).to_fun t,
   continuous_to_fun := by continuity,
-  to_fun_zero :=
   to_fun_zero := by { intro t, ext i, simp only [(homotopies i).to_fun_zero, pi_eval], },
   to_fun_one := by { intro t, ext i, simp only [(homotopies i).to_fun_one, pi_eval], },
   prop' :=

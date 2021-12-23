@@ -620,7 +620,7 @@ finite_dimensional.proper ℝ E
 `x` that is not equal to the whole space, then there exists a point `y ∈ frontier s` at distance
 `metric.inf_dist x sᶜ` from `x`. -/
 lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_group E]
-  [normed_space ℝ E] [finite_dimensional ℝ E] {x : E} {s : set E} (hx : s ∈ 𝓝 x) (hs : s ≠ univ) :
+  [normed_space ℝ E] [finite_dimensional ℝ E] {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
   ∃ y ∈ frontier s, metric.inf_dist x sᶜ = dist x y :=
 begin
   rcases metric.exists_mem_closure_inf_dist_eq_dist (nonempty_compl.2 hs) x with ⟨y, hys, hyd⟩,

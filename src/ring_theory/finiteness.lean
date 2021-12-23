@@ -930,8 +930,18 @@ noncomputable theory
 /-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
 choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
 @[simps]
-def module_polynomial_ring_endo : module (polynomial R) M :=
+def module_polynomial_of_endo : module (polynomial R) M :=
 module.comp_hom M (polynomial.aeval f).to_ring_hom
+
+include f
+lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R (polynomial R) M _
+  (by { letI := module_polynomial_of_endo f, apply_instance }) _ :=
+begin
+  letI := module_polynomial_of_endo f,
+  constructor,
+  intros x y z,
+  simp,
+end
 
 open polynomial module
 
@@ -944,7 +954,9 @@ commutative case, but does not use a Noetherian hypothesis. -/
 theorem module.finite.injective_of_surjective_endomorphism [hfg : finite R M]
   (f_surj : function.surjective f) : function.injective f :=
 begin
-  letI := module_polynomial_ring_endo f,
+  letI := module_polynomial_of_endo f,
+  haveI : is_scalar_tower R (polynomial R) M := module_polynomial_of_endo.is_scalar_tower f,
+  have hfgpoly : finite (polynomial R) M, from finite.of_restrict_scalars_finite R _ _,
   have X_mul : ∀ o, (X : polynomial R) • o = f o,
   { intro,
     simp, },
@@ -953,8 +965,6 @@ begin
     obtain ⟨y, rfl⟩ := f_surj a,
     rw [← X_mul y],
     exact submodule.smul_mem_smul (ideal.mem_span_singleton.mpr (dvd_refl _)) trivial, },
-  haveI : is_scalar_tower R (polynomial R) M := ⟨λ x y z, by simp⟩,
-  have hfgpoly : finite (polynomial R) M, from finite.of_restrict_scalars_finite R _ _,
   obtain ⟨F, hFa, hFb⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul _
     (⊤ : submodule (polynomial R) M) (finite_def.mp hfgpoly) this,
   rw [← linear_map.ker_eq_bot, linear_map.ker_eq_bot'],
@@ -966,4 +976,5 @@ begin
     rwa [← sub_add_cancel F 1, add_smul, one_smul, this, zero_add] at Fmzero, },
   rw [← hG, mul_smul, X_mul m, hm, smul_zero],
 end
+
 end vasconcelos

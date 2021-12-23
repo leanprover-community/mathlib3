@@ -363,6 +363,7 @@ Pseudofunctors between bicategories form a bicategory. The 1-morphisms in this b
 the pseudonatural transformations, and the composition of 1-morphisms is the vertical composition
 of pseudonatural transformations.
 -/
+@[simps]
 instance : bicategory (pseudofunctor B C) :=
 { hom := pseudonat_trans,
   id := pseudonat_trans.id,

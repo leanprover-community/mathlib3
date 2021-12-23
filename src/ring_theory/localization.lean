@@ -752,6 +752,7 @@ lemma image_invertible : M.map (algebra_map R S : R →* S) ≤ is_unit.submonoi
 by { rintros _ ⟨a, ha, rfl⟩, exact is_localization.map_units S ⟨_, ha⟩ }
 
 /-- The submonoid of `S = M⁻¹R` consisting of `{ 1 / x | x ∈ M }`. -/
+@[nolint unused_arguments] -- This should only be defined when `S` is indeed the localization.
 def inv_submonoid : submonoid S := (M.map (algebra_map R S : R →* S)).left_inv
 
 /-- There is a equivalence of monoids between the image of `M` and `inv_submonoid`. -/
@@ -811,7 +812,7 @@ begin
   exact submodule.smul_mem _ _ (submodule.subset_span (to_inv_submonoid M S m).prop),
 end
 
-instance finite_type_of_monoid_fg [monoid.fg M] : algebra.finite_type R S :=
+lemma finite_type_of_monoid_fg [monoid.fg M] : algebra.finite_type R S :=
 begin
   have := monoid.fg_of_surjective _ (to_inv_submonoid_surjective M S),
   rw monoid.fg_iff_submonoid_fg at this,
@@ -823,8 +824,6 @@ begin
   rw [algebra.adjoin_eq_span, hs, inv_generates],
   trivial
 end
-
-instance (r : R) [is_localization.away r S] : algebra.finite_type R S := infer_instance
 
 end inv_submonoid
 

@@ -6,6 +6,7 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 import algebra.field.basic
 import algebra.group_power.order
 import algebra.order.ring
+import order.bounds
 import tactic.monotonicity.basic
 
 /-!
@@ -724,5 +725,35 @@ lemma one_div_pow_mono (a1 : 1 ≤ a) : monotone (λ n : ℕ, order_dual.to_dual
 
 lemma one_div_pow_strict_mono (a1 : 1 < a) : strict_mono (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
 λ m n, one_div_pow_lt_one_div_pow_of_lt a1
+
+/-! ### Results about `has_lub` and `has_glb` -/
+
+lemma is_lub_mul {s : set α} (hc : 0 ≤ a) (hs : is_lub s b) :
+  is_lub {x | ∃ y ∈ s, a * y = x} (a * b) :=
+begin
+  rcases lt_or_eq_of_le hc with hc | rfl,
+  { rw ← (order_iso.mul_left₀ _ hc).is_lub_image' at hs,
+    convert hs using 1,
+    ext x,
+    simp },
+  { convert is_lub_singleton using 1,
+    ext x,
+    have : s.nonempty ∧ 0 = x ↔ x = 0 := by rw [and_iff_right hs.nonempty, eq_comm],
+    simpa using this },
+end
+
+lemma is_glb_mul {s : set α} (hc : 0 ≤ a) (hs : is_glb s b) :
+  is_glb {x | ∃ y ∈ s, a * y = x} (a * b) :=
+begin
+  rcases lt_or_eq_of_le hc with hc | rfl,
+  { rw ← (order_iso.mul_left₀ _ hc).is_glb_image' at hs,
+    convert hs using 1,
+    ext x,
+    simp },
+  { convert is_glb_singleton using 1,
+    ext y,
+    have : s.nonempty ∧ 0 = y ↔ y = 0 := by rw [and_iff_right hs.nonempty, eq_comm],
+    simpa using this },
+end
 
 end linear_ordered_field

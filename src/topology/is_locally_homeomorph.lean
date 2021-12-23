@@ -25,8 +25,8 @@ open_locale topological_space
 variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
   (g : Y → Z) (f : X →  Y)
 
-/-- A function `f : X → Y` satisfies `is_locally_homeomorph` if
-  each `x : x` is contained in the source of some `e : local_homeomorph X Y` with `f = e`. -/
+/-- A function `f : X → Y` satisfies `is_locally_homeomorph` if each `x : x` is contained in
+  the source of some `e : local_homeomorph X Y` with `f = e`. -/
 def is_locally_homeomorph :=
 ∀ x : X, ∃ e : local_homeomorph X Y, x ∈ e.source ∧ f = e
 

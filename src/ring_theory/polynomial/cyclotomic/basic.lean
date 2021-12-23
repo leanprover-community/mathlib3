@@ -705,15 +705,16 @@ end
 
 end minpoly
 
-section computations
+section expand
 
-lemma cyclotomic_prime_mul_eq_expand {p n : ℕ} (hp : nat.prime p) (hdiv : p ∣ n)
-  (R : Type*) [comm_ring R] : cyclotomic (p * n) R = expand R p (cyclotomic n R) :=
+@[simp]
+lemma cyclotomic_epand_eq_cyclotomic {p n : ℕ} (hp : nat.prime p) (hdiv : p ∣ n)
+  (R : Type*) [comm_ring R] : expand R p (cyclotomic n R) = cyclotomic (p * n) R :=
 begin
   by_cases hzero : n = 0,
   { simp [hzero] },
   { suffices : expand ℤ p (cyclotomic n ℤ) = cyclotomic (p * n) ℤ,
-    { symmetry, rw [← map_cyclotomic_int, ← map_expand, this, map_cyclotomic_int] },
+    { rw [← map_cyclotomic_int, ← map_expand, this, map_cyclotomic_int] },
     refine eq_of_monic_of_dvd_of_nat_degree_le (cyclotomic.monic _ _)
       (expand_monic (zero_lt_iff.2 (nat.prime.ne_zero hp)) (cyclotomic.monic _ _)) _ _,
     { have hpos := nat.mul_pos (nat.prime.pos hp) (zero_lt_iff.mpr hzero),
@@ -731,6 +732,6 @@ begin
         nat.totient_mul_prime_div hp hdiv, mul_comm] } }
 end
 
-end computations
+end expand
 
 end polynomial

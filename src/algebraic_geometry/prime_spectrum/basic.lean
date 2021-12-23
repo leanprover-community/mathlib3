@@ -657,6 +657,10 @@ lemma le_iff_mem_closure (x y : prime_spectrum R) :
 by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
     mem_zero_locus, vanishing_ideal_singleton, set_like.coe_subset_coe]
 
+instance : t0_space (prime_spectrum R) :=
+by { simp [t0_space_iff_or_not_mem_closure, ← le_iff_mem_closure,
+  ← not_and_distrib, ← le_antisymm_iff, eq_comm] }
+
 end order
 
 end prime_spectrum

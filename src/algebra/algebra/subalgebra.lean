@@ -14,7 +14,7 @@ In this file we define `subalgebra`s and the usual operations on them (`map`, `c
 
 More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
 -/
-universes u u' v w
+universes u u' v w w'
 
 open_locale tensor_product big_operators
 
@@ -32,7 +32,7 @@ add_decl_doc subalgebra.to_subsemiring
 
 namespace subalgebra
 
-variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w}
+variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w'}
 variables [comm_semiring R]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 include R
@@ -385,8 +385,9 @@ end subalgebra
 
 namespace alg_hom
 
-variables {R : Type u} {A : Type v} {B : Type w}
-variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w'}
+variables [comm_semiring R]
+variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 variables (φ : A →ₐ[R] B)
 
 /-- Range of an `alg_hom` as a subalgebra. -/
@@ -401,6 +402,12 @@ theorem mem_range_self (φ : A →ₐ[R] B) (x : A) : φ x ∈ φ.range := φ.me
 
 @[simp] lemma coe_range (φ : A →ₐ[R] B) : (φ.range : set B) = set.range φ :=
 by { ext, rw [set_like.mem_coe, mem_range], refl }
+
+theorem range_comp (f : A →ₐ[R] B) (g : B →ₐ[R] C) : (g.comp f).range = f.range.map g :=
+set_like.coe_injective (set.range_comp g f)
+
+theorem range_comp_le_range (f : A →ₐ[R] B) (g : B →ₐ[R] C) : (g.comp f).range ≤ g.range :=
+set_like.coe_mono (set.range_comp_subset_range f g)
 
 /-- Restrict the codomain of an algebra homomorphism. -/
 def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₐ[R] S :=
@@ -523,6 +530,16 @@ set.mem_univ x
 
 @[simp] lemma top_to_subsemiring : (⊤ : subalgebra R A).to_subsemiring = ⊤ := rfl
 
+lemma mem_sup_left {S T : subalgebra R A} : ∀ {x : A}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : subalgebra R A} : ∀ {x : A}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mul_mem_sup {S T : subalgebra R A} {x y : A} (hx : x ∈ S) (hy : y ∈ T) :
+  x * y ∈ S ⊔ T :=
+(S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
+
 @[simp, norm_cast]
 lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = S ∩ T := rfl
 
@@ -576,6 +593,9 @@ by simp [set.ext_iff, algebra.mem_bot]
 theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
+
+@[simp] theorem range_id : (alg_hom.id R A).range = ⊤ :=
+set_like.coe_injective set.range_id
 
 @[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
 set_like.coe_injective set.image_univ

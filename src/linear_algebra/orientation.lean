@@ -192,6 +192,22 @@ equiv.ext $ module.ray.ind R $ λ _ _, rfl
 @[simp] lemma module.ray.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
   (module.ray.map e).symm = module.ray.map e.symm := rfl
 
+/-- An equivalence between modules implies an equivalence between orientations. -/
+def orientation.map [nontrivial R] (e : M ≃ₗ[R] N) : orientation R M ι ≃ orientation R N ι :=
+module.ray.map $ alternating_map.dom_lcongr R R ι R e
+
+@[simp] lemma orientation.map_apply [nontrivial R] (e : M ≃ₗ[R] N) (v : alternating_map R M R ι)
+  (hv : v ≠ 0) :
+  orientation.map ι e (ray_of_ne_zero _ v hv) = ray_of_ne_zero _ (v.comp_linear_map e.symm)
+      (mt (v.comp_linear_equiv_eq_zero_iff e.symm).mp hv) := rfl
+
+@[simp] lemma orientation.map_refl [nontrivial R] :
+  (orientation.map ι $ linear_equiv.refl R M) = equiv.refl _ :=
+by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
+
+@[simp] lemma orientation.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
+  (orientation.map ι e).symm = orientation.map ι e.symm := rfl
+
 section action
 variables {G : Type*} [group G] [nontrivial R] [distrib_mul_action G M] [smul_comm_class R G M]
 

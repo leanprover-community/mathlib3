@@ -348,6 +348,10 @@ lemma is_closed.closure_subset_iff {s t : set α} (h₁ : is_closed t) :
   closure s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_closure, assume h, closure_minimal h h₁⟩
 
+lemma is_closed.mem_iff_closure_subset {α : Type*} [topological_space α] {U : set α}
+  (hU : is_closed U) {x : α} : x ∈ U ↔ closure ({x} : set α) ⊆ U :=
+(hU.closure_subset_iff.trans set.singleton_subset_iff).symm
+
 @[mono] lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
 

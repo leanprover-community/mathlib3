@@ -775,6 +775,34 @@ lemma on_finset_prod {s : finset α} {f : α → M} {g : α → M → N}
   (on_finset s f hf).prod g = ∏ a in s, g a (f a) :=
 finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
 
+/-- Taking a product over `f : α →₀ M` is the same as multiplying the value on a single element
+`y ∈ f.support` by the product over `erase y f`. -/
+@[to_additive /-" Taking a sum over over `f : α →₀ M` is the same as adding the value on a
+single element `y ∈ f.support` to the sum over `erase y f`. "-/]
+lemma mul_prod_erase (f : α →₀ M) (y : α) (g : α → M → N) (hyf : y ∈ f.support) :
+  g y (f y) * (erase y f).prod g = f.prod g :=
+begin
+  rw [finsupp.prod, finsupp.prod, ←finset.mul_prod_erase _ _ hyf, finsupp.support_erase,
+    finset.prod_congr rfl],
+  intros h hx,
+  rw finsupp.erase_ne (ne_of_mem_erase hx),
+end
+
+/-- Generalization of `finsupp.mul_prod_erase`: if `g` maps a second argument of 0 to 1,
+then its product over `f : α →₀ M` is the same as multiplying the value on any element
+`y : α` by the product over `erase y f`. -/
+@[to_additive /-" Generalization of `finsupp.add_sum_erase`: if `g` maps a second argument of 0
+to 0, then its sum over `f : α →₀ M` is the same as adding the value on any element
+`y : α` to the sum over `erase y f`. "-/]
+lemma mul_prod_erase' (f : α →₀ M) (y : α) (g : α → M → N) (hg : ∀ (i : α), g i 0 = 1) :
+  g y (f y) * (erase y f).prod g = f.prod g :=
+begin
+  classical,
+  by_cases hyf : y ∈ f.support,
+  { exact finsupp.mul_prod_erase f y g hyf },
+  { rw [not_mem_support_iff.mp hyf, hg y, erase_of_not_mem_support hyf, one_mul] },
+end
+
 @[to_additive]
 lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g : α → M → N)
   (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
@@ -1287,6 +1315,19 @@ lemma multiset_map_sum [has_zero M] {f : α →₀ M} {m : β → γ} {h : α �
 lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : α → M → multiset N} :
   multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
 (multiset.sum_add_monoid_hom : multiset N →+ N).map_sum _ f.support
+
+
+/-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
+over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
+lemma prod_add_index_of_disjoint [add_comm_monoid M] {f1 f2 : α →₀ M}
+  (hd : disjoint f1.support f2.support) {β : Type*} [comm_monoid β] (g : α → M → β) :
+  (f1 + f2).prod g = f1.prod g * f2.prod g :=
+have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
+  ∏ x in f1.support, g x (f1 x + f2 x) = f1.prod g :=
+  λ f1 f2 hd, finset.prod_congr rfl (λ x hx,
+    by simp only [not_mem_support_iff.mp (disjoint_left.mp hd hx), add_zero]),
+by simp_rw [← this hd, ← this hd.symm,
+  add_comm (f2 _), finsupp.prod, support_add_eq hd, prod_union hd, add_apply]
 
 section map_range
 

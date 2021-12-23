@@ -32,6 +32,9 @@ Note that we require only the bare minimum assumptions for the definition to mak
 power-associative. -/
 def is_nilpotent [has_zero R] [has_pow R ℕ] (x : R) : Prop := ∃ (n : ℕ), x^n = 0
 
+lemma is_nilpotent.mk [has_zero R] [has_pow R ℕ] (x : R) (n : ℕ)
+  (e : x ^ n = 0) : is_nilpotent x := ⟨n, e⟩
+
 lemma is_nilpotent.zero [monoid_with_zero R] : is_nilpotent (0 : R) := ⟨1, pow_one 0⟩
 
 lemma is_nilpotent.neg [ring R] (h : is_nilpotent x) : is_nilpotent (-x) :=

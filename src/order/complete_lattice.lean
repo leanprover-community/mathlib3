@@ -290,7 +290,7 @@ theorem Sup_union {s t : set α} : Sup (s ∪ t) = Sup s ⊔ Sup t :=
 ((is_lub_Sup s).union (is_lub_Sup t)).Sup_eq
 
 theorem Sup_inter_le {s t : set α} : Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
-by finish
+Sup_le $ λ b hb, le_inf (le_Sup hb.1) (le_Sup hb.2)
 /-
   Sup_le (assume a ⟨a_s, a_t⟩, le_inf (le_Sup a_s) (le_Sup a_t))
 -/
@@ -349,21 +349,21 @@ lemma eq_singleton_bot_of_Sup_eq_bot_of_nonempty {s : set α}
 by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Sup_eq_bot at h_sup, exact ⟨hne, h_sup⟩, }
 
 /--Introduction rule to prove that `b` is the supremum of `s`: it suffices to check that `b`
-is larger than all elements of `s`, and that this is not the case of any `w<b`.
+is larger than all elements of `s`, and that this is not the case of any `w < b`.
 See `cSup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in conditionally complete
 lattices. -/
 theorem Sup_eq_of_forall_le_of_forall_lt_exists_gt (_ : ∀a∈s, a ≤ b)
   (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
-have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (Sup_le ‹∀a∈s, a ≤ b›),
+have h : (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (Sup_le ‹∀a∈s, a ≤ b›),
 have ¬(Sup s < b) :=
   assume: Sup s < b,
   let ⟨a, _, _⟩ := (H (Sup s) ‹Sup s < b›) in  /- a ∈ s, Sup s < a-/
   have Sup s < Sup s := lt_of_lt_of_le ‹Sup s < a› (le_Sup ‹a ∈ s›),
-  show false, by finish [lt_irrefl (Sup s)],
-show Sup s = b, by finish
+  show false, from lt_irrefl _ this,
+show Sup s = b, from or.resolve_left h this
 
 /--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
-is smaller than all elements of `s`, and that this is not the case of any `w>b`.
+is smaller than all elements of `s`, and that this is not the case of any `w > b`.
 See `cInf_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in conditionally complete
 lattices. -/
 theorem Inf_eq_of_forall_ge_of_forall_gt_exists_lt (_ : ∀a∈s, b ≤ a)

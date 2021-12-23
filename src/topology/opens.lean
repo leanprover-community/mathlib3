@@ -172,7 +172,7 @@ begin
 end
 
 /-- The preimage of an open set, as an open set. -/
-def comap (f : C(α, β)) : opens β →ₘ opens α :=
+def comap (f : C(α, β)) : opens β →o opens α :=
 { to_fun := λ V, ⟨f ⁻¹' V, V.2.preimage f.continuous⟩,
   monotone' := λ V₁ V₂ hle, monotone_preimage hle }
 

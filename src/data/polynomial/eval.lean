@@ -685,17 +685,11 @@ Perhaps we can make the others irreducible too?
 attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
--- TODO: Here we need commutativity in both `S` and `T`?
-variables [comm_semiring S] [comm_semiring T]
-variables (f : R →+* S) (g : S →+* T) (p)
+
+variables [semiring S] [semiring T]  (f : R →+* S) (g : S →+* T) (p)
 
 lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g.comp f) (g x) :=
-begin
-  apply polynomial.induction_on p; clear p,
-  { simp only [forall_const, eq_self_iff_true, eval₂_C, ring_hom.coe_comp] },
-  { intros p q hp hq, simp only [hp, hq, eval₂_add, g.map_add] },
-  { intros n a ih, simpa only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow] }
-end
+by rw [←eval₂_map, eval₂_at_apply, eval_map]
 
 end hom_eval₂
 

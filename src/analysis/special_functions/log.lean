@@ -187,7 +187,7 @@ begin
   have x_pos : 0 < x := (exp_pos 1).trans_le hex,
   have y_pos : 0 < y := (exp_pos 1).trans_le hey,
   have hlogx : 1 ≤ log x,
-    { rwa le_log_iff_exp_le x_pos, },
+  { rwa le_log_iff_exp_le x_pos, },
   have hyx : 0 ≤ y / x - 1,
   { rwa [le_sub_iff_add_le, le_div_iff x_pos, zero_add, one_mul], },
   rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x)],

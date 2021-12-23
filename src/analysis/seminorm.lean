@@ -70,8 +70,8 @@ open_locale pointwise topological_space
 
 variables {𝕜 E : Type*}
 
-section normed_field
-variables (𝕜) [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+section normed_ring
+variables (𝕜) [normed_ring 𝕜] [add_comm_monoid E] [module 𝕜 E]
 
 /-- A set `A` absorbs another set `B` if `B` is contained in all scalings of
 `A` by elements of sufficiently large norms. -/
@@ -86,38 +86,22 @@ def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
 
 variables {𝕜} (a : 𝕜) {A B : set E}
 
-/-- A balanced set absorbs itself. -/
-lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
-begin
-  use [1, zero_lt_one],
-  intros a ha x hx,
-  rw mem_smul_set_iff_inv_smul_mem₀,
-  { apply hA a⁻¹,
-    { rw norm_inv, exact inv_le_one ha },
-    { rw mem_smul_set, use [x, hx] }},
-  { rw ←norm_pos_iff, calc 0 < 1 : zero_lt_one ... ≤ ∥a∥ : ha, }
-end
+lemma balanced.univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
 
-lemma balanced.univ : balanced 𝕜 (univ : set E) :=
-λ a ha, subset_univ _
-
-lemma balanced.union {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
-  balanced 𝕜 (A₁ ∪ A₂) :=
+lemma balanced.union (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∪ B) :=
 begin
   intros a ha t ht,
   rw [smul_set_union] at ht,
-  exact ht.imp (λ x, hA₁ _ ha x) (λ x, hA₂ _ ha x),
+  exact ht.imp (λ x, hA _ ha x) (λ x, hB _ ha x),
 end
 
-lemma balanced.inter {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
-  balanced 𝕜 (A₁ ∩ A₂) :=
+lemma balanced.inter (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∩ B) :=
 begin
   rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
-  exact ⟨hA₁ _ ha ⟨_, hx₁, rfl⟩, hA₂ _ ha ⟨_, hx₂, rfl⟩⟩,
+  exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
 end
 
-lemma balanced.add {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
-  balanced 𝕜 (A₁ + A₂) :=
+lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=
 begin
   rintro a ha _ ⟨_, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
   rw smul_add,
@@ -128,6 +112,18 @@ lemma balanced.smul (hA : balanced 𝕜 A) : balanced 𝕜 (a • A) :=
 begin
   rintro b hb _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩,
   exact ⟨b • x, hA _ hb ⟨_, hx, rfl⟩, smul_comm _ _ _⟩,
+end
+
+/-- A balanced set absorbs itself. -/
+lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
+begin
+  use [1, zero_lt_one],
+  intros a ha x hx,
+  rw mem_smul_set_iff_inv_smul_mem₀,
+  { apply hA a⁻¹,
+    { rw norm_inv, exact inv_le_one ha },
+    { rw mem_smul_set, use [x, hx] }},
+  { rw ←norm_pos_iff, calc 0 < 1 : zero_lt_one ... ≤ ∥a∥ : ha, }
 end
 
 lemma balanced.subset_smul (hA : balanced 𝕜 A) {a : 𝕜} (ha : 1 ≤ ∥a∥) : A ⊆ a • A :=

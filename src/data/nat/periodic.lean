@@ -30,7 +30,7 @@ same cardinality as `range a` filtered over that predicate. -/
 begin
   by_cases a = 0,
   { simp [h], },
-  induction n,
+  induction n with n ih,
   { simp [count_eq_card_filter_range], },
   { rw ←n_ih,
     clear n_ih,

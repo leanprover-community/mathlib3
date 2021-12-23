@@ -65,7 +65,7 @@ def obj_d (n : ℕ) : X _[n+1] ⟶ X _[n] :=
 lemma d_squared (n : ℕ) : obj_d X (n+1) ≫ obj_d X n = 0 :=
 begin
   /- we start by expanding d ≫ d as a double sum -/
-  repeat { rw obj_d },
+  dsimp,
   rw comp_sum,
   let d_l := λ (j : fin (n+3)), (-1 : ℤ)^(j : ℕ) • X.δ j,
   let d_r := λ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i,

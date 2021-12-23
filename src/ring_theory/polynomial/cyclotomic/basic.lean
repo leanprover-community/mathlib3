@@ -768,9 +768,11 @@ end minpoly
 
 section expand
 
-@[simp]
-lemma cyclotomic_expand_eq_cyclotomic_mul {p n : ℕ} (hp : nat.prime p) (hdiv : ¬p ∣ n) (R : Type*)
-  [comm_ring R] : expand R p (cyclotomic n R) = (cyclotomic (n * p) R) * (cyclotomic n R) :=
+/-- If `p` is a prime such that `¬ p ∣ n`, then
+`expand R p (cyclotomic n R) = (cyclotomic (n * p) R) * (cyclotomic n R)`. -/
+@[simp] lemma cyclotomic_expand_eq_cyclotomic_mul {p n : ℕ} (hp : nat.prime p) (hdiv : ¬p ∣ n)
+  (R : Type*) [comm_ring R] :
+  expand R p (cyclotomic n R) = (cyclotomic (n * p) R) * (cyclotomic n R) :=
 begin
   cases nat.eq_zero_or_pos n with hzero hnpos,
   { simp [hzero] },

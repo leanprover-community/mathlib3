@@ -57,6 +57,12 @@ by simpa only [countp_eq_length_filter] using length_le_of_sublist (s.filter p)
   countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
 by simp only [countp_eq_length_filter, filter_filter]
 
+@[simp] lemma countp_true : l.countp (λ _, true) = l.length :=
+by simp [countp_eq_length_filter]
+
+@[simp] lemma countp_false : l.countp (λ _, false) = 0 :=
+by simp [countp_eq_length_filter]
+
 end countp
 
 /-! ### count -/

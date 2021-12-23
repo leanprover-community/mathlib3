@@ -225,7 +225,7 @@ variables (A)
 as a natural transformation -/
 @[simps]
 def inclusion_of_Moore_complex :
-  nat_trans (normalized_Moore_complex A) (alternating_face_map_complex A) :=
+  (normalized_Moore_complex A) ⟶ (alternating_face_map_complex A) :=
 { app := inclusion_of_Moore_complex_map, }
 
 end algebraic_topology

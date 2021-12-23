@@ -200,6 +200,26 @@ coe_nat_dvd_left.symm
 @[simp] theorem nat_abs_odd : odd n.nat_abs ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]
 
+lemma four_dvd_add_or_sub_of_odd {a b : ℤ} (ha : odd a) (hb : odd b) : 4 ∣ a + b ∨ 4 ∣ a - b :=
+begin
+  obtain ⟨m, rfl⟩ := ha,
+  obtain ⟨n, rfl⟩ := hb,
+  obtain h|h := int.even_or_odd (m + n),
+  { right,
+    rw [int.even_add, ←int.even_sub] at h,
+    obtain ⟨k, hk⟩ := h,
+    convert dvd_mul_right 4 k,
+    rw [eq_add_of_sub_eq hk, mul_add, add_assoc, add_sub_cancel, ←mul_assoc],
+    norm_num },
+  { left,
+    obtain ⟨k, hk⟩ := h,
+    convert dvd_mul_right 4 (k + 1),
+    rw [eq_sub_of_add_eq hk, add_right_comm, ←add_sub, mul_add, mul_sub, add_assoc, add_assoc,
+      sub_add, add_assoc, ←sub_sub (2 * n), sub_self, zero_sub, sub_neg_eq_add, ←mul_assoc,
+      mul_add],
+    norm_num },
+end
+
 -- Here are examples of how `parity_simps` can be used with `int`.
 
 example (m n : ℤ) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=

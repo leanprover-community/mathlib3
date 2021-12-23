@@ -199,7 +199,12 @@ begin
       { subst hf,
         apply coeq_condition, },
       { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
-    { rw @w' _ _ mX' mY' f' (by finish), }, },
+    { rw @w' _ _ mX' mY' f' _,
+      apply finset.mem_of_mem_insert_of_ne mf',
+      contrapose! h,
+      obtain ⟨rfl, h⟩ := h,
+      rw [heq_iff_eq, psigma.mk.inj_iff] at h,
+      exact ⟨rfl, h.1.symm⟩ }, },
 end
 
 /--
@@ -572,7 +577,12 @@ begin
       { subst hf,
         apply eq_condition, },
       { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
-    { rw @w' _ _ mX' mY' f' (by finish), }, },
+    { rw @w' _ _ mX' mY' f' _,
+      apply finset.mem_of_mem_insert_of_ne mf',
+      contrapose! h,
+      obtain ⟨rfl, h⟩ := h,
+      rw [heq_iff_eq, psigma.mk.inj_iff] at h,
+      exact ⟨rfl, h.1.symm⟩ }, },
 end
 
 /--

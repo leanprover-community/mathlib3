@@ -759,11 +759,10 @@ begin
   by_cases hmzero : m = 0,
   { rw [hmzero, cyclotomic_zero],
     exact is_coprime_one_right },
-  refine (irreducible.coprime_iff_not_dvd (cyclotomic.irreducible_rat (zero_lt_iff.2 hnzero))).2
-    (λ hdiv, _),
-  exact h (cyclotomic_injective (eq_of_monic_of_associated (cyclotomic.monic n ℚ)
-    (cyclotomic.monic m ℚ) (irreducible.associated_of_dvd (cyclotomic.irreducible_rat
-    (zero_lt_iff.2 hnzero)) (cyclotomic.irreducible_rat (zero_lt_iff.2 hmzero)) hdiv)))
+  exact (irreducible.coprime_iff_not_dvd $ cyclotomic.irreducible_rat $ zero_lt_iff.2 hnzero).2
+    (λ hdiv, h $ cyclotomic_injective $ eq_of_monic_of_associated (cyclotomic.monic n ℚ)
+    (cyclotomic.monic m ℚ) $ irreducible.associated_of_dvd (cyclotomic.irreducible_rat
+    (zero_lt_iff.2 hnzero)) (cyclotomic.irreducible_rat (zero_lt_iff.2 hmzero)) hdiv),
 end
 
 end minpoly

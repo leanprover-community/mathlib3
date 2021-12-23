@@ -312,12 +312,12 @@ end submartingale
 
 section nat
 
-namespace submartingale
-
 variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
   [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
   [ordered_smul ℝ F]
 variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
+
+namespace submartingale
 
 lemma stopped_value_integrable {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
@@ -326,7 +326,7 @@ stopped_value_integrable hf.integrable hτ hbdd
 
 /-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 expectation of `stopped_value f τ` is less or equal to the expectation of `stopped_value f π`.
-This is sometimes known as the optional stopping theorem. -/
+This is the forward direction of the optional stopping theorem. -/
 lemma stopped_value_le {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
   {N : ℕ} (hbdd : ∀ x, π x ≤ N) :

@@ -1168,20 +1168,14 @@ begin
   exact ⟨s, subtype.eq hs⟩,
 end
 
--- Todo: move elsewhere
-lemma eq_range {α β : Type*} (f : α → β) (S : set β) :
-  set.range f = S ↔ (∀ a, f a ∈ S) ∧ ∀ s ∈ S, ∃ a, f a = s :=
-by { rw ←range_subset_iff, exact le_antisymm_iff }
-
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
 theorem eq_enum_ord (f : ordinal.{u} → ordinal.{u}) :
-  (strict_mono f ∧ range f = S) ↔ f = enum_ord hS :=
+  strict_mono f ∧ range f = S ↔ f = enum_ord hS :=
 begin
-  rw eq_range,
+  rw range_eq_iff,
   split, swap,
   { rintro ⟨h⟩,
-    use enum_ord.strict_mono,
-    exact ⟨enum_ord_mem hS, enum_ord.surjective⟩ },
+    exact ⟨enum_ord.strict_mono, enum_ord_mem hS, enum_ord.surjective⟩ },
   rintro ⟨h, hl, hr⟩,
   refine funext (λ a, _),
   apply wf.induction a,

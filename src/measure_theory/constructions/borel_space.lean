@@ -1357,6 +1357,12 @@ begin
   exact h's.closure_eq.symm
 end
 
+lemma tendsto_measure_cthickening_of_is_compact [proper_space α] {μ : measure α}
+  [is_finite_measure_on_compacts μ] {s : set α} (hs : is_compact s) :
+  tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ s)) :=
+tendsto_measure_cthickening_of_is_closed
+  ⟨1, zero_lt_one, (bounded.measure_lt_top hs.bounded.cthickening).ne⟩ hs.is_closed
+
 end metric_space
 
 section emetric_space

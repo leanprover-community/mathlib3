@@ -193,7 +193,7 @@ begin
   { simp [hzero] },
   { have hfin := (multiplicity.finite_nat_iff.2 ⟨hp.ne_one, zero_lt_iff.2 hzero⟩),
     have h0 : 0 < (multiplicity p n).get hfin := multiplicity.pos_of_dvd hfin h,
-    obtain ⟨m, hm, hndiv⟩ := multiplicity.eq_pow_mul_not_dvd hfin,
+    obtain ⟨m, hm, hndiv⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
     rw [hm, ← mul_assoc, ← pow_succ, nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd
       hndiv)), nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd hndiv)), ← mul_assoc],
     congr,

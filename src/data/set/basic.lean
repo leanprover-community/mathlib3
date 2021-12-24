@@ -1264,6 +1264,10 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
 ⟨assume s_eq x h, by { rw [s_eq], simp },
  assume h, ext $ λ ⟨x, hx⟩, by simp [h]⟩
 
+lemma nonempty_of_nonempty_preimage {s : set β} {f : α → β} (hf : (f ⁻¹' s).nonempty) :
+  s.nonempty :=
+let ⟨x, hx⟩ := hf in ⟨f x, hx⟩
+
 end preimage
 
 /-! ### Image of a set under a function -/

@@ -43,7 +43,7 @@ Linear algebra:
     field-valued matrices: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
     change of basis: 'basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix'
-    rank of a matrix: 'https://en.wikipedia.org/wiki/Rank_(linear_algebra)'
+    rank of a matrix: 'matrix.rank'
     determinant: 'matrix.det'
     invertibility: 'matrix.has_inv'
     elementary row operations: 'https://en.wikipedia.org/wiki/Elementary_matrix#Operations'
@@ -151,7 +151,7 @@ Ring Theory:
     $\Z$ is a euclidean ring: 'int.euclidean_domain'
     congruence in $\Z$: 'int.modeq'
     prime numbers: 'prime'
-    Bézout's identity: 'https://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity' # todo: prove this for PIDs https://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity
+    Bézout's identity: 'exists_gcd_eq_mul_add_mul'
     $\Z/n\Z$ and its invertible elements: 'zmod.unit_of_coprime'
     Euler's totient function ($\varphi$): 'nat.totient'
   Polynomial rings:

@@ -379,14 +379,15 @@ end
 
 /-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
 equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
-exist. A version for `nnreal`-valued functions. -/
+exist. A version for `nnreal`-valued functions. For an alternative version, convenient if the
+infinite sums are already expressed as `p`-th powers, see `Lp_add_le_has_sum_of_nonneg`. -/
 theorem Lp_add_le_tsum {f g : ι → ℝ≥0} {p : ℝ} (hp : 1 ≤ p) (hf : summable (λ i, (f i) ^ p))
   (hg : summable (λ i, (g i) ^ p)) :
   summable (λ i, (f i + g i) ^ p) ∧
   (∑' i, (f i + g i) ^ p) ^ (1 / p) ≤ (∑' i, (f i) ^ p) ^ (1 / p) + (∑' i, (g i) ^ p) ^ (1 / p) :=
 begin
   have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
-  have H₀ : ∀ s : finset ι, ∑ i in s, (f i + g i) ^ p
+  have H₁ : ∀ s : finset ι, ∑ i in s, (f i + g i) ^ p
     ≤ ((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p,
   { intros s,
     rw ← nnreal.rpow_one_div_le_iff pos,
@@ -397,17 +398,17 @@ begin
   have bdd : bdd_above (set.range (λ s, ∑ i in s, (f i + g i) ^ p)),
   { refine ⟨((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p, _⟩,
     rintros a ⟨s, rfl⟩,
-    exact H₀ s },
+    exact H₁ s },
   have H₂ : summable _ := (has_sum_of_is_lub _ (is_lub_csupr bdd)).summable,
   refine ⟨H₂, _⟩,
   rw nnreal.rpow_one_div_le_iff pos,
-  refine tsum_le_of_sum_le H₂ H₀,
+  refine tsum_le_of_sum_le H₂ H₁,
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
 equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
-exist. An alternative version for `nnreal`-valued functions, convenient if the infinite sums are
-already expressed as `p`-th powers. -/
+exist. A version for `nnreal`-valued functions. For an alternative version, convenient if the
+infinite sums are not already expressed as `p`-th powers, see `Lp_add_le_tsum_of_nonneg`.  -/
 theorem Lp_add_le_has_sum {f g : ι → ℝ≥0} {A B : ℝ≥0} {p : ℝ} (hp : 1 ≤ p)
   (hf : has_sum (λ i, (f i) ^ p) (A ^ p)) (hg : has_sum (λ i, (g i) ^ p) (B ^ p)) :
   ∃ C, C ≤ A + B ∧ has_sum (λ i, (f i + g i) ^ p) (C ^ p) :=
@@ -495,7 +496,8 @@ by convert Lp_add_le s f g hp using 2 ; [skip, congr' 1, congr' 1];
 
 /-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
 equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
-exist. A version for `ℝ`-valued functions. -/
+exist. A version for `ℝ`-valued functions. For an alternative version, convenient if the infinite
+sums are already expressed as `p`-th powers, see `Lp_add_le_has_sum_of_nonneg`. -/
 theorem Lp_add_le_tsum_of_nonneg (hp : 1 ≤ p) (hf : ∀ i, 0 ≤ f i) (hg : ∀ i, 0 ≤ g i)
   (hf_sum : summable (λ i, (f i) ^ p)) (hg_sum : summable (λ i, (g i) ^ p)) :
   summable (λ i, (f i + g i) ^ p) ∧
@@ -509,8 +511,8 @@ end
 
 /-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
 equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
-exist. An alternative version for `ℝ`-valued functions, convenient if the infinite sums are
-already expressed as `p`-th powers. -/
+exist. A version for `ℝ`-valued functions. For an alternative version, convenient if the infinite
+sums are not already expressed as `p`-th powers, see `Lp_add_le_tsum_of_nonneg`. -/
 theorem Lp_add_le_has_sum_of_nonneg (hp : 1 ≤ p) (hf : ∀ i, 0 ≤ f i) (hg : ∀ i, 0 ≤ g i) {A B : ℝ}
   (hA : 0 ≤ A) (hB : 0 ≤ B) (hfA : has_sum (λ i, (f i) ^ p) (A ^ p))
   (hgB : has_sum (λ i, (g i) ^ p) (B ^ p)) :

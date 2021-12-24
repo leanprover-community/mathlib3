@@ -14,7 +14,7 @@ In this file we define `subalgebra`s and the usual operations on them (`map`, `c
 
 More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
 -/
-universes u u' v w
+universes u u' v w w'
 
 open_locale tensor_product big_operators
 
@@ -32,7 +32,7 @@ add_decl_doc subalgebra.to_subsemiring
 
 namespace subalgebra
 
-variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w}
+variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w'}
 variables [comm_semiring R]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 include R
@@ -385,8 +385,9 @@ end subalgebra
 
 namespace alg_hom
 
-variables {R : Type u} {A : Type v} {B : Type w}
-variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w'}
+variables [comm_semiring R]
+variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 variables (φ : A →ₐ[R] B)
 
 /-- Range of an `alg_hom` as a subalgebra. -/
@@ -401,6 +402,12 @@ theorem mem_range_self (φ : A →ₐ[R] B) (x : A) : φ x ∈ φ.range := φ.me
 
 @[simp] lemma coe_range (φ : A →ₐ[R] B) : (φ.range : set B) = set.range φ :=
 by { ext, rw [set_like.mem_coe, mem_range], refl }
+
+theorem range_comp (f : A →ₐ[R] B) (g : B →ₐ[R] C) : (g.comp f).range = f.range.map g :=
+set_like.coe_injective (set.range_comp g f)
+
+theorem range_comp_le_range (f : A →ₐ[R] B) (g : B →ₐ[R] C) : (g.comp f).range ≤ g.range :=
+set_like.coe_mono (set.range_comp_subset_range f g)
 
 /-- Restrict the codomain of an algebra homomorphism. -/
 def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₐ[R] S :=
@@ -523,6 +530,19 @@ set.mem_univ x
 
 @[simp] lemma top_to_subsemiring : (⊤ : subalgebra R A).to_subsemiring = ⊤ := rfl
 
+lemma mem_sup_left {S T : subalgebra R A} : ∀ {x : A}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : subalgebra R A} : ∀ {x : A}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mul_mem_sup {S T : subalgebra R A} {x y : A} (hx : x ∈ S) (hy : y ∈ T) :
+  x * y ∈ S ⊔ T :=
+(S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
+
+lemma map_sup (f : A →ₐ[R] B) (S T : subalgebra R A) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
+(subalgebra.gc_map_comap f).l_sup
+
 @[simp, norm_cast]
 lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = S ∩ T := rfl
 
@@ -577,6 +597,9 @@ theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
+@[simp] theorem range_id : (alg_hom.id R A).range = ⊤ :=
+set_like.coe_injective set.range_id
+
 @[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
 set_like.coe_injective set.image_univ
 
@@ -610,14 +633,14 @@ alg_equiv.symm $ alg_equiv.of_bijective (algebra.of_id R _)
  λ ⟨y, hy⟩, let ⟨x, hx⟩ := algebra.mem_bot.1 hy in ⟨x, subtype.eq hx⟩⟩
 
 /-- The bottom subalgebra is isomorphic to the field. -/
+@[simps symm_apply]
 noncomputable def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] [algebra F R] :
   (⊥ : subalgebra F R) ≃ₐ[F] F :=
 bot_equiv_of_injective (ring_hom.injective _)
 
 /-- The top subalgebra is isomorphic to the field. -/
-noncomputable def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
-(alg_equiv.of_bijective to_top ⟨λ _ _, subtype.mk.inj,
-  λ x, ⟨x.val, by { ext, refl }⟩⟩ : A ≃ₐ[R] (⊤ : subalgebra R A)).symm
+@[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
+alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ x, subtype.ext rfl
 
 end algebra
 
@@ -939,6 +962,42 @@ lemma smul_mem_pointwise_smul (m : R') (r : A) (S : subalgebra R A) : r ∈ S �
 (set.smul_mem_smul_set : _ → _ ∈ m • (S : set A))
 
 end pointwise
+
+section center
+
+lemma _root_.set.algebra_map_mem_center (r : R) : algebra_map R A r ∈ set.center A :=
+by simp [algebra.commutes, set.mem_center_iff]
+
+variables (R A)
+
+/-- The center of an algebra is the set of elements which commute with every element. They form a
+subalgebra. -/
+def center : subalgebra R A :=
+{ algebra_map_mem' := set.algebra_map_mem_center,
+  .. subsemiring.center A }
+
+lemma coe_center : (center R A : set A) = set.center A := rfl
+
+@[simp] lemma center_to_subsemiring :
+  (center R A).to_subsemiring = subsemiring.center A :=
+rfl
+
+@[simp] lemma center_to_subring (R A : Type*) [comm_ring R] [ring A] [algebra R A] :
+  (center R A).to_subring = subring.center A :=
+rfl
+
+@[simp] lemma center_eq_top (A : Type*) [comm_semiring A] [algebra R A] : center R A = ⊤ :=
+set_like.coe_injective (set.center_eq_univ A)
+
+variables {R A}
+
+instance : comm_semiring (center R A) := subsemiring.center.comm_semiring
+
+instance {A : Type*} [ring A] [algebra R A] : comm_ring (center R A) := subring.center.comm_ring
+
+lemma mem_center_iff {a : A} : a ∈ center R A ↔ ∀ (b : A), b*a = a*b := iff.rfl
+
+end center
 
 end subalgebra
 

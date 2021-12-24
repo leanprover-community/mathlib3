@@ -739,7 +739,7 @@ begin
 end
 
 lemma is_lub.mul_right {s : set α} (hc : 0 ≤ a) (hs : is_lub s b) :
-  is_lub (((λ b, b * a)) '' s) (b * a) :=
+  is_lub ((λ b, b * a) '' s) (b * a) :=
 by simpa [mul_comm] using hs.mul_left hc
 
 lemma is_glb.mul_left {s : set α} (hc : 0 ≤ a) (hs : is_glb s b) :

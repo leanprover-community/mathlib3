@@ -119,6 +119,18 @@ lemma is_glb_l {a : α} : is_glb {b | a ≤ u b} (l a) := gc.is_least_l.is_glb
 
 lemma is_lub_u {b : β} : is_lub { a | l a ≤ b } (u b) := gc.is_greatest_u.is_lub
 
+/-- If `(l, u)` is a Galois connection, then the relation `x ≤ u (l y)` is a transitive relation.
+If `l` is a closure operator (`submodule.span`, `subgroup.closure`, ...) and `u` is the coercion to
+`set`, this reads as "if `U` is in the closure of `V` and `V` is in the closure of `W` then `U` is
+in the closure of `W`". -/
+lemma le_u_l_trans {x y z : α} (hxy : x ≤ u (l y)) (hyz : y ≤ u (l z)) :
+  x ≤ u (l z) :=
+hxy.trans (gc.monotone_u $ gc.l_le hyz)
+
+lemma l_u_le_trans {x y z : β} (hxy : l (u x) ≤ y) (hyz : l (u y) ≤ z) :
+  l (u x) ≤ z :=
+(gc.monotone_l $ gc.le_u hxy).trans hyz
+
 end
 
 section partial_order
@@ -345,6 +357,15 @@ lemma l_supr_u [complete_lattice α] [complete_lattice β] (gi : galois_insertio
 calc l (⨆ (i : ι), u (f i)) = ⨆ (i : ι), l (u (f i)) : gi.gc.l_supr
                         ... = ⨆ (i : ι), f i : congr_arg _ $ funext $ λ i, gi.l_u_eq (f i)
 
+lemma l_bsupr_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), β) :
+  l (⨆ i hi, u (f i hi)) = ⨆ i hi, f i hi :=
+by simp only [supr_subtype', gi.l_supr_u]
+
+lemma l_Sup_u_image [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  (s : set β) : l (Sup (u '' s)) = Sup s :=
+by rw [Sup_image, gi.l_bsupr_u, Sup_eq_supr]
+
 lemma l_inf_u [semilattice_inf α] [semilattice_inf β] (gi : galois_insertion l u) (a b : β) :
   l (u a ⊓ u b) = a ⊓ b :=
 calc l (u a ⊓ u b) = l (u (a ⊓ b)) : congr_arg l gi.gc.u_inf.symm
@@ -352,15 +373,29 @@ calc l (u a ⊓ u b) = l (u (a ⊓ b)) : congr_arg l gi.gc.u_inf.symm
 
 lemma l_infi_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
   {ι : Sort x} (f : ι → β) :
-  l (⨅ i, u (f i)) = ⨅ i, (f i) :=
+  l (⨅ i, u (f i)) = ⨅ i, f i :=
 calc l (⨅ (i : ι), u (f i)) = l (u (⨅ (i : ι), (f i))) : congr_arg l gi.gc.u_infi.symm
                         ... = ⨅ (i : ι), f i : gi.l_u_eq _
 
+lemma l_binfi_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), β) :
+  l (⨅ i hi, u (f i hi)) = ⨅ i hi, f i hi :=
+by simp only [infi_subtype', gi.l_infi_u]
+
+lemma l_Inf_u_image [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  (s : set β) : l (Inf (u '' s)) = Inf s :=
+by rw [Inf_image, gi.l_binfi_u, Inf_eq_infi]
+
 lemma l_infi_of_ul_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
   {ι : Sort x} (f : ι → α) (hf : ∀ i, u (l (f i)) = f i) :
-  l (⨅ i, (f i)) = ⨅ i, l (f i) :=
+  l (⨅ i, f i) = ⨅ i, l (f i) :=
 calc l (⨅ i, (f i)) =  l ⨅ (i : ι), (u (l (f i))) : by simp [hf]
                 ... = ⨅ i, l (f i) : gi.l_infi_u _
+
+lemma l_binfi_of_ul_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), α) (hf : ∀ i hi, u (l (f i hi)) = f i hi) :
+  l (⨅ i hi, f i hi) = ⨅ i hi, l (f i hi) :=
+by { rw [infi_subtype', infi_subtype'], exact gi.l_infi_of_ul_eq_self _ (λ _, hf _ _) }
 
 lemma u_le_u_iff [preorder α] [preorder β] (gi : galois_insertion l u) {a b} :
   u a ≤ u b ↔ a ≤ b :=
@@ -525,6 +560,10 @@ lemma u_infi_l [complete_lattice α] [complete_lattice β] (gi : galois_coinsert
   u (⨅ i, l (f i)) = ⨅ i, (f i) :=
 gi.dual.l_supr_u _
 
+lemma u_Inf_l_image [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  (s : set α) : u (Inf (l '' s)) = Inf s :=
+gi.dual.l_Sup_u_image _
+
 lemma u_sup_l [semilattice_sup α] [semilattice_sup β] (gi : galois_coinsertion l u) (a b : α) :
   u (l a ⊔ l b) = a ⊔ b :=
 gi.dual.l_inf_u _ _
@@ -534,10 +573,24 @@ lemma u_supr_l [complete_lattice α] [complete_lattice β] (gi : galois_coinsert
   u (⨆ i, l (f i)) = ⨆ i, (f i) :=
 gi.dual.l_infi_u _
 
+lemma u_bsupr_l [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), α) :
+  u (⨆ i hi, l (f i hi)) = ⨆ i hi, f i hi :=
+gi.dual.l_binfi_u _
+
+lemma u_Sup_l_image [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  (s : set α) : u (Sup (l '' s)) = Sup s :=
+gi.dual.l_Inf_u_image _
+
 lemma u_supr_of_lu_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
   {ι : Sort x} (f : ι → β) (hf : ∀ i, l (u (f i)) = f i) :
   u (⨆ i, (f i)) = ⨆ i, u (f i) :=
 gi.dual.l_infi_of_ul_eq_self _ hf
+
+lemma u_bsupr_of_lu_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), β) (hf : ∀ i hi, l (u (f i hi)) = f i hi) :
+  u (⨆ i hi, f i hi) = ⨆ i hi, u (f i hi) :=
+gi.dual.l_binfi_of_ul_eq_self _ hf
 
 lemma l_le_l_iff [preorder α] [preorder β] (gi : galois_coinsertion l u) {a b} :
   l a ≤ l b ↔ a ≤ b :=

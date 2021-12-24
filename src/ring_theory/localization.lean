@@ -755,7 +755,7 @@ by { rintros _ ⟨a, ha, rfl⟩, exact is_localization.map_units S ⟨_, ha⟩ }
 @[nolint unused_arguments] -- This should only be defined when `S` is indeed the localization.
 def inv_submonoid : submonoid S := (M.map (algebra_map R S : R →* S)).left_inv
 
-/-- There is a equivalence of monoids between the image of `M` and `inv_submonoid`. -/
+/-- There is an equivalence of monoids between the image of `M` and `inv_submonoid`. -/
 noncomputable
 abbreviation equiv_inv_submonoid : M.map (algebra_map R S : R →* S) ≃* inv_submonoid M S :=
 ((M.map (algebra_map R S : R →* S)).left_inv_equiv (image_invertible M S)).symm
@@ -804,7 +804,7 @@ end
 
 variables (S)
 
-lemma inv_generates : submodule.span R (inv_submonoid M S : set S) = ⊤ :=
+lemma span_inv_submonoid : submodule.span R (inv_submonoid M S : set S) = ⊤ :=
 begin
   rw eq_top_iff,
   rintros x -,

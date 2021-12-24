@@ -24,14 +24,35 @@ import group_theory.perm.cycle_type
 
 import .ad_sub_mul_actions
 import .multiset_pigeonhole
+import .basic_lemma
 
 variables {α : Type*} [decidable_eq α] [fintype α]
 
 open subgroup equiv.perm equiv alternating_group
 open_locale big_operators
 
-/- Boring lemmas for powers of (-1 : units ℤ) -/
 
+/-- Get an element distinct from those of a given list -/
+lemma out_of_list {s : finset α} {l : list α} (h : l.length < s.card ) :
+  ∃ (a : α), a ∈ s ∧ a ∉ l :=
+begin
+  let t := list.to_finset l,
+  have : (s \ t).card > 0,
+  { apply nat.lt_of_add_lt_add_right,
+    rw [finset.card_sdiff_add_card  , zero_add],
+    refine lt_of_lt_of_le
+      (lt_of_le_of_lt (list.to_finset_card_le l) h)
+      (finset.card_le_of_subset (finset.subset_union_left s t)),
+  },
+  obtain ⟨a : α, ha : a ∈ s \ t⟩ := finset.card_pos.mp this,
+  use a,
+  apply and.intro,
+  exact (finset.mem_sdiff.mp ha).left,
+  intro ha', apply (finset.mem_sdiff.mp ha).right,
+  exact list.mem_to_finset.mpr ha'
+end
+
+/- Boring lemmas for powers of (-1 : units ℤ) -/
 namespace int.units
 
 lemma neg_one_ne_one : (-1 : units ℤ) ≠ 1 :=
@@ -83,29 +104,14 @@ begin
   apply neg_one_ne_one,
   exact h.symm,
  end
-end int.units
 
-
-/-- Get an element distinct from those of a given list -/
-lemma out_of_list {s : finset α} {l : list α} (h : l.length < s.card ) :
-  ∃ (a : α), a ∈ s ∧ a ∉ l :=
+lemma neq_one_is_neg_one (u : units ℤ) (hu : u ≠ 1) : u = -1 :=
 begin
-  let t := list.to_finset l,
-  have : (s \ t).card > 0,
-  { apply nat.lt_of_add_lt_add_right,
-    rw [finset.card_sdiff_add_card  , zero_add],
-    refine lt_of_lt_of_le
-      (lt_of_le_of_lt (list.to_finset_card_le l) h)
-      (finset.card_le_of_subset (finset.subset_union_left s t)),
-  },
-  obtain ⟨a : α, ha : a ∈ s \ t⟩ := finset.card_pos.mp this,
-  use a,
-  apply and.intro,
-  exact (finset.mem_sdiff.mp ha).left,
-  intro ha', apply (finset.mem_sdiff.mp ha).right,
-  exact list.mem_to_finset.mpr ha'
+    rw ← finset.mem_singleton,
+    exact finset.mem_of_mem_insert_of_ne (finset.mem_univ u) hu,
 end
 
+end int.units
 
 
 /-! Additions to equiv.perm
@@ -113,16 +119,7 @@ end
 * `is_cycle_cycle_of_iff` proves that `x` is in the support of `f : perm α`
 iff `cycle_of f x` is a cycle.
 
-* `support_card_eq_finset_sum_support_cycles_of` proves
-that the cardinal of the support of a permutation is the sum of the lengths
-of its cycles.
-
-TODO ? : Add for list and trunc_list ?
-
 -/
-
-
-
 
 namespace equiv.perm
 
@@ -156,8 +153,6 @@ begin
     (finset.disjoint_left.mp (equiv.perm.disjoint.disjoint_support  hfc) ha),
 end
 
-
-
 /-- The sign of cycle is 1 iff its length is odd  -/
 lemma sign_one_of_cycle_iff {f : perm α} (hf : f.is_cycle) :
   f.sign = 1 ↔ odd f.support.card :=
@@ -171,13 +166,59 @@ begin
     intro h, rw h, rw units.neg_neg,
 end
 
-/-- A cycle belongs to the alternating group iff its length is odd -/
+/-- Read the sign of a permutation on its cycle type, without powers of -1 -/
+-- It might be simpler to prove it using equiv.perm.sign_of_cycle_type
+lemma is_cycle_type_of_even {f : perm α} :
+  f.sign = 1 ↔ even (f.cycle_type.sum + f.cycle_type.card) :=
+begin
+  refine equiv.perm.cycle_induction_on _ f _ _ _,
+  -- base_one
+  { split,
+    intro _,
+    rw [equiv.perm.cycle_type_one], simp,
+    intro _, exact equiv.perm.sign_one, },
+
+  -- base_cycles
+  { intros f hf,
+    rw equiv.perm.is_cycle.cycle_type hf, simp,
+    rw ← nat.succ_eq_add_one ,
+    rw nat.even_succ, rw ← nat.odd_iff_not_even,
+    exact sign_one_of_cycle_iff hf, },
+  -- induction_disjoint
+  { intros f g hfg hf Pf Pg,
+    rw equiv.perm.disjoint.cycle_type hfg,
+    rw multiset.sum_add, rw multiset.card_add,
+    rw ← add_assoc,
+    rw add_comm f.cycle_type.sum g.cycle_type.sum,
+    rw add_assoc g.cycle_type.sum _ _,
+    rw add_comm g.cycle_type.sum _,
+    rw add_assoc,
+    rw nat.even_add, rw ← Pf, rw ← Pg,
+    simp,
+
+    split,
+    intro hsfg,
+    split,
+      intro hsf, rw ← hsfg, rw hsf, simp,
+      intro hsg, rw ← hsfg, rw hsg, simp,
+    intro hsfsg,
+
+    cases dec_em (f.sign = 1) with hsf hsf,
+    { rw [hsf,  hsfsg.mp hsf], simp, },
+    rw int.units.neq_one_is_neg_one _ hsf,
+    rw int.units.neq_one_is_neg_one _ ((not_iff_not.mpr hsfsg).mp hsf),
+    simp, }
+end
+
+
+
 lemma mem_alternating_group_of_cycle_iff {f : perm α} (hf : f.is_cycle) :
   f ∈ alternating_group α ↔ odd f.support.card :=
 begin
   rw ← sign_one_of_cycle_iff hf,
   exact equiv.perm.mem_alternating_group ,
 end
+
 
 
 lemma nodup_powers_of_cycle_of {f : perm α} {x : α}
@@ -480,9 +521,6 @@ begin
   have h'a : ((g : perm α).cycle_of a).is_cycle :=
     equiv.perm.is_cycle_cycle_of (g : perm α) (equiv.perm.mem_support.mp ha),
 
-  -- La fonction qu'on va appeler
-  let conclude_from := case_cycle' (g : perm α) a (ne.symm (equiv.perm.mem_support.mp ha)),
-
 /- Trois cas  pour {a, g a, g (g a), x, g x}
   * n ≥ 6 : on prend x ≠ a, g a et on majore par 5
   * n ≤ 5 et ct.sup ≥ 4.
@@ -493,14 +531,34 @@ begin
     prendre pour x un point fixe et on majore par 3
   -/
 
+  suffices : ∃ (x : α) (hx : a ≠ x) (hx' : g a ≠ x) (hx'' : g (g a) ≠ x),
+    finset.card {a, (g : perm α) a, ((g : perm α) ^ 2) a, x, (g : perm α) x} < n,
+  -- ∃ (h : perm α), (is_three_cycle h) ∧ ((g : perm α) * h * g⁻¹ * h⁻¹ ≠ 1) ∧
+  --   ((g : perm α) * h * g⁻¹ * h⁻¹).support.card < n,
+    { obtain ⟨x, hx, hx', hx'', hsupport⟩ := this,
+      obtain ⟨h, h1, h2, h3⟩ :=
+        case_cycle' (g : perm α) a (ne.symm (equiv.perm.mem_support.mp ha)) x hx hx' hx'',
+      refine ih _ _ ⟨_, commutator_mem' nN g ⟨h,is_three_cycle.mem_alternating_group h1⟩⟩ h2 rfl,
+      exact lt_of_le_of_lt (finset.card_le_of_subset h3) hsupport },
+
+  -- let conclude_from := case_cycle' (g : perm α) a (ne.symm (equiv.perm.mem_support.mp ha)),
+
   cases nat.lt_or_ge n 6 with Hn6 Hn6,
   { -- n < 6
-    cases nat.lt_or_ge ct.sup 5 with Hct5 Hct5,
+    cases nat.lt_or_ge ct.sup 4 with Hct5 Hct5,
     { -- ct.sup < 4
       -- prouver que g est (2,2), donc n = 4, prendre pour x un point fixe
-      have Hn4 : n = 4 := sorry,
-      have Hc2 : ct.sup = 2 := sorry,
-      have Hct: ct = {2,2} := sorry,
+
+      have Hct: ct = {2,2} := basic_22 _ ct_ne_zero _ _ Hct5 _,
+      swap, exact λ i hi, equiv.perm.two_le_of_mem_cycle_type hi,
+      swap, rw ← ct_sum_eq_n at hn', exact hn',
+      swap, rw ← ct_sum_eq_n at Hn6, exact nat.le_of_lt_succ Hn6,
+      swap, { refine equiv.perm.is_cycle_type_of_even.mp _,
+        apply equiv.perm.mem_alternating_group.mp,
+        apply set_like.coe_mem, },
+
+      -- have Hn4 : n = 4, { rw ← ct_sum_eq_n, rw Hct, dec_trivial },
+      -- have Hc2 : ct.sup = 2 := sorry,
 
       have : (g : perm α).supportᶜ.card > 0,
       { rw finset.card_compl,
@@ -522,30 +580,35 @@ begin
         apply equiv.perm.apply_mem_support.mpr,
         exact ha, },
 
-      obtain ⟨h, h1, h2, h3⟩ := conclude_from x hx hx' hx'',
-      refine ih _ _ ⟨_, commutator_mem' nN g ⟨h,is_three_cycle.mem_alternating_group h1⟩⟩ h2 rfl,
-      apply lt_of_le_of_lt (finset.card_le_of_subset h3),
-      rw Hn4,
+      use [x, hx, hx', hx''],
+      rw ← ct_sum_eq_n, rw Hct,
 
       -- g x = x
-      rw equiv.perm.not_mem_support.mp h'x,
+      rw equiv.perm.not_mem_support.mp h'x, -- squeeze_simp at h'x,
 
       have : ((g : perm α) ^ 2) a = a,
       { rw  equiv.perm.pow_apply_eq_pow_mod_order_of_cycle_of_apply,
         rw ← equiv.perm.order_of_is_cycle h'a at h_of_a,
-        rw h_of_a, rw Hc2,
-        simp only [nat.bit0_mod_two, id.def, pow_zero, perm.coe_one], },
+        rw h_of_a, rw Hct, simp, },
       rw this,
 
       simp,
       apply nat.lt_succ_of_le,
       iterate { apply le_trans (finset.card_insert_le _ _), apply nat.add_le_add_right _ 1},
-      rw finset.card_singleton },
+      rw finset.card_singleton, },
 
     -- ct.sup ≥ 4, n ≤ 5
     -- prouver que g est (5), prendre x = g⁻¹ a
-    have Hnc : n = ct.sup := sorry,
-    have Hn5 : n = 5 := sorry,
+
+    have Hct : ct = {5} := basic_5 _ ct_ne_zero _ Hct5 _,
+    swap, exact λ i hi, equiv.perm.two_le_of_mem_cycle_type hi,
+    swap, rw ← ct_sum_eq_n at Hn6, exact nat.le_of_lt_succ Hn6,
+    swap, { refine equiv.perm.is_cycle_type_of_even.mp _,
+        apply equiv.perm.mem_alternating_group.mp,
+        apply set_like.coe_mem, },
+
+--    have Hnc : n = ct.sup := sorry,
+--    have Hn5 : n = 5, { rw ← ct_sum_eq_n, rw Hct, simp },
 
     let x := g⁻¹ a,
     have hgx : (g : perm α) x = a := perm.eq_inv_iff_eq.mp rfl, -- g x = a
@@ -564,12 +627,9 @@ begin
       refine (equiv.perm.nodup_powers_of_cycle_of 0 3 _ _) hgx.symm,
       dec_trivial,
       rw h_of_a, refine lt_of_lt_of_le _ Hct5, dec_trivial, },
+    use [x, hx, hx', hx''],
 
-    obtain ⟨h, h1, h2, h3⟩ := conclude_from x hx hx' hx'',
-    refine ih _ _ ⟨_, commutator_mem' nN g ⟨h,is_three_cycle.mem_alternating_group h1⟩⟩ h2 rfl,
-    apply lt_of_le_of_lt (finset.card_le_of_subset h3),
-    rw Hn5,
-
+    rw ← ct_sum_eq_n, rw Hct,
     rw hgx, simp,
 
     apply nat.lt_succ_of_le,
@@ -577,7 +637,7 @@ begin
     rw finset.card_singleton, },
 
   -- n ≥ 6
-  have : ∃ (x : α), x ≠ a ∧ x ≠ g a ∧ x ≠ g (g a),
+  have : ∃ (x : α), a ≠ x ∧ g a ≠ x ∧ g (g a) ≠ x,
   { have : [a, g a, g (g a)].length < finset.univ.card,
     { refine lt_of_lt_of_le _ (finset.card_le_univ (g : perm α).support),
       rw hgs,
@@ -589,9 +649,7 @@ begin
     all_goals { intro h, apply hx', rw h, simp, } },
 
   obtain ⟨x, hx, hx', hx''⟩ := this,
-  obtain ⟨h, h1, h2, h3⟩ := conclude_from x (ne.symm hx) (ne.symm hx') (ne.symm hx''),
-  refine ih _ _ ⟨_, commutator_mem' nN g ⟨h,is_three_cycle.mem_alternating_group h1⟩⟩ h2 rfl,
-  apply lt_of_le_of_lt (finset.card_le_of_subset h3),
+  use [x, hx, hx', hx''],
   refine lt_of_lt_of_le _ Hn6,
 
   apply nat.lt_succ_of_le,
@@ -599,7 +657,11 @@ begin
     rw finset.card_singleton,
 end
 
-
+example : ∀ (N : subgroup (perm α)) (g : N) (x : α), g x = (g : perm α) x :=
+begin
+  intros N g x,
+  rw coe_fn_coe_base',
+end
 
 /-
 subtype.coe_mk : ∀ (a : ?M_1) (h : ?M_2 a), ↑⟨a, h⟩ = a
@@ -646,158 +708,4 @@ end,
   eq_bot_or_eq_top_of_normal := λ N nN, eq_bot_or_eq_top_of_normal h5 N nN
 }
 
-
-
-
-#exit
-
-
-lemma has_three_cycle_normal_rec (h5 : 5 ≤ fintype.card α)
-  (N : subgroup (alternating_group α)) (nN : N.normal) :
-  ∀ (n : ℕ), n ≥ 1 →
-  ∀ (g : N) (hsg : (support (g : perm α)).card = n),
-  ∃ (f : N), is_three_cycle (f : perm α) :=
-begin
-  intro n,
-  induction n with n ih,
-  { -- n = 0 : trivial
-    intros hn,
-    exfalso,
-    simpa only [ge_iff_le, le_zero_iff] using hn, },
-
-  -- induction case
-  intros hn g hsg,
-
-  have hg' : (g : perm α) ≠ 1,
-  { intro hg,
-    rw [hg, perm.support_one, finset.card_empty] at hsg,
-    simpa only using hsg, },
-
-  have hg : g ≠ 1,
-  { intro h, rw h at hg',
-    simpa only [subgroup.coe_one, coe_coe] using hg', },
-
-  have hn' : n.succ ≥ 2,
-  { rw ← hsg,
-    exact equiv.perm.two_le_card_support_of_ne_one hg' },
-
-  cases (nat.lt_or_ge n.succ 3) with hn hn',
-  { -- hn : n.succ < 3
-    -- exfalso : g ≠ 1, g ≠ swap
-    have H2 : n.succ = 2,
-      apply le_antisymm (nat.le_of_lt_succ hn),
-      rw ← hsg,
-      exact equiv.perm.two_le_card_support_of_ne_one hg',
-    rw H2 at hsg,
-    exfalso,
-    apply  nat.even_iff_not_odd.mp (_ : even (g : perm α).support.card),
-    rw ← equiv.perm.mem_alternating_group_of_cycle_iff (equiv.perm.card_support_eq_two.mp hsg).is_cycle,
-    apply set_like.coe_mem,
-    rw hsg, exact even_bit0 1 },
-
-  -- have : hn' : 3 ≤ n.succ
-  let l := (cycle_factors_finset (g : perm α)),
-
-  cases (nat.lt_or_ge n.succ 4) with hn hn',
-  -- H' : n.succ ≥ 3, H : n.succ < 4,
-  { rw (nat.eq_of_le_of_lt_succ hn' hn) at hsg, -- n.succ = 3
-    rw card_support_eq_three_iff at hsg,  -- ↑g is a 3-cycle
-    use g, exact hsg,  },
-
-  -- Trivialities done, now the actual work starts
-  -- hn' : 4 ≤ n.succ
-  have : n.succ = finset.sum  l  (λ c, (support c).card),
-  { rw ← hsg,
-    exact equiv.perm.support_card_eq_finset_sum_support_cycles_of (g : perm α), },
-
-  -- Induction on the cardinality of l
-  cases (nat.eq_zero_or_pos l.card) with Hl0 Hl0,
-
-  { --  Case 0, l = [] :  exfalso from g ≠ 1
-    rw finset.card_eq_zero at Hl0,
-    rw equiv.perm.cycle_factors_finset_eq_empty_iff at Hl0,
-    exfalso, exact hg' Hl0 },
-
-  cases (nat.lt_or_ge l.card 2) with Hl1 Hl1,
-  { -- Case 1, l = [↑g]
-    let Hl1 := nat.eq_of_le_of_lt_succ Hl0 Hl1,
-    obtain ⟨a, h⟩ := finset.card_eq_one.mp Hl1,
-    let h' := (equiv.perm.cycle_factors_finset_eq_singleton_iff.mp h).left,
-  -- on pourrait perdre que ↑g = a et aussi rw at h,
-  -- car on n'aura plus besoin de l = {a}
-
-  -- n.suc ≥ 5, car ≥ 4 et impair
-    cases nat.lt_or_ge n.succ 5 with h4 h4',
-    { let h4 := nat.eq_of_le_of_lt_succ hn' h4,
-      rw h4 at hsg,
-      exfalso,
-      apply  nat.even_iff_not_odd.mp (_ : even (g : perm α).support.card),
-      rw ← equiv.perm.mem_alternating_group_of_cycle_iff h',
-      apply set_like.coe_mem,
-      rw hsg, exact even_bit0 2 },
-
-
-    sorry,
-
-sorry,   },
-
-
-
-
-example (s : finset α) (a b : α) (ha : a ∈ s) (hb : b ∈ s) (hab : a ≠ b) : 2 ≤ s.card :=
-begin
-  suffices : ({a,b} : finset α).card = 2,
-  { rw ← this, apply finset.card_le_of_subset,
-    rw finset.insert_subset,
-    exact ⟨ha, finset.singleton_subset_iff.mpr hb⟩ },
-  rw finset.card_insert_of_not_mem,
-  rw finset.card_singleton,
-  rw finset.mem_singleton, exact hab,
-end
-
-example (a b c d : ℕ) (h : c ≤ d) : a + d < b + c → a < b :=
-begin
-  intro k,
-  apply nat.lt_of_add_lt_add_right,
-  apply nat.lt_of_lt_of_le k,
-  exact add_le_add_left h b,
-end
-
-example (a b c n : ℕ) (ha : a = 3) (hb : n + 4 < b) (hc : 2 ≤ c) :
-  a + a < b + c :=
-begin
-  apply nat.lt_of_lt_of_le _ le_rfl,
-  apply le_trans _ (nat.add_le_add (nat.lt_of_le_of_lt (le_add_self) hb) hc),
-  rw ha,
-end
-
-example (a b c n : ℕ) (ha : a = 3) (hb : b = n + 5) (hc : 2 ≤ c) :
-  a + a < b + c :=
-begin
-  rw [ha, hb],
-  apply nat.le_trans le_rfl,
-  apply le_trans _ (nat.add_le_add (le_add_self) hc),
-  dec_trivial,
-
-  /-
-  suffices : 5 + 2 ≤ b + c,
-    apply nat.lt_of_lt_of_le _ this,
-    dec_trivial,
-  suffices : 5 + 2 ≤ 5 + c,
-    apply nat.le_trans this,
-    apply add_le_add_right _ c,
-    rw hb, exact le_add_self,
-  exact add_le_add_left hc 5,
--/
-    /-
-  have hb' : 5 ≤ b,
-  { rw hb, exact le_add_self, },
-  have hb'c : 5 + c ≤ b + c,
-  { exact add_le_add_right hb' c, },
-  apply nat.lt_of_lt_of_le _ hb'c,
-  have hc' : 5 + 2 ≤ 5 + c,
-  { exact add_le_add_left hc 5, },
-  apply nat.lt_of_lt_of_le _ hc',
-  simp_rw ha,
-  dec_trivial, -/
-end
+end  alternating_group

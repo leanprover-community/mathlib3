@@ -6,60 +6,38 @@ Authors: Eric Rodriguez
 import algebra.algebra.basic
 
 /-!
-# Name Of Class (tba)
+# `ne_zero` typeclass
 
-We create a typeclass `foo R n` which carries around the fact that `(n : R) ≠ 0`.
-This fact can be really annoying to carry and deduce automatically.
+We create a typeclass `ne_zero n` which carries around the fact that `(n : R) ≠ 0`.
 
 ## Main declarations
 
-* `foo R n`: `(n : R) ≠ 0` as a typeclass.
-
-## Implementation details
-
-Does the argument order matter? I would prefer `foo n R`, but not sure what TC prefers.
+* `ne_zero`: `n ≠ 0` as a typeclass.
 
 -/
 
-class foo (R) [has_zero R] [has_one R] [has_add R] (n : ℕ) : Prop := (out : (n : R) ≠ 0)
+/- A type-class version of `n ≠ 0`.  -/
+class ne_zero {R} [has_zero R] (n : R) : Prop := (out : n ≠ 0)
 
-lemma foo.ne (R) [has_zero R] [has_one R] [has_add R] (n : ℕ) [h : foo R n] : (n : R) ≠ 0 := h.out
+lemma ne_zero.ne {R} [has_zero R] (n : R) [h : ne_zero n] : n ≠ 0 := h.out
 
-namespace foo
+lemma ne_zero.ne' (n : ℕ) (R) [has_zero R] [has_one R] [has_add R] [h : ne_zero (n : R)] :
+  (n : R) ≠ 0 := h.out
 
-universe variables u v w
-variables {R : Type u} {S : Type v} {M : Type w} {n m : ℕ} {a b : ℕ+}
+namespace ne_zero
 
-section add_monoid_with_one
+variables {K R S M : Type*} {n : ℕ} {a : ℕ+}
 
-variables [add_monoid R] [has_one R]
+instance pnat : ne_zero (a : ℕ) := ⟨a.ne_zero⟩
 
-instance pnat [char_zero R] : foo R a := ⟨by exact_mod_cast a.ne_zero⟩
+instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zero (n : M) :=
+⟨nat.cast_ne_zero.mpr $ ne_zero.ne n⟩
 
-instance succ [char_zero R] : foo R (n.succ) := ⟨by exact_mod_cast n.succ_ne_zero⟩
+lemma of_no_zero_smul_divisors [comm_ring R] [ne_zero (n : R)] (S) [ring S] [nontrivial S]
+  [algebra R S] [no_zero_smul_divisors R S] : ne_zero (n : S) :=
+⟨λ h, (ne_zero.ne' n R) $ no_zero_smul_divisors.algebra_map_injective R S $ by simpa⟩
 
-end add_monoid_with_one
+-- easy todo: turn the above into an instance for fields in some way
+-- (forget what the hypotheses of `ring_hom.injective` are)
 
-section semiring
-
-variables [non_assoc_semiring R] [non_assoc_semiring S]
-
-instance one [nontrivial R] : foo R 1 := ⟨ne_of_eq_of_ne nat.cast_one one_ne_zero⟩
-
--- will this instance cause loops/issues with `foo.pnat` and `foo.succ`?
-instance char_zero [char_zero R] [foo S n] : foo R n :=
-⟨by exact_mod_cast (show n ≠ 0, from λ h, let t := ne S n in by { rw h at t, exact t rfl })⟩
-
-end semiring
-
-section comm_ring
-
-variables [comm_ring R] [ring S] [algebra R S]
-
-instance no_zero_smul_divisors [foo R n] [nontrivial S] [no_zero_smul_divisors R S] : foo S n :=
-⟨by { refine mt (λ h, no_zero_smul_divisors.algebra_map_injective R S _) (ne R n),
-      rwa [ring_hom.map_nat_cast, ring_hom.map_zero] }⟩
-
-end comm_ring
-
-end foo
+end ne_zero

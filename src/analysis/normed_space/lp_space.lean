@@ -10,16 +10,16 @@ import topology.algebra.ordered.liminf_limsup
 /-!
 # ℓp space
 
-This file describes properties of elements `f` of a pi-type `Π i, E i` with finite seminorm,
+This file describes properties of elements `f` of a pi-type `Π i, E i` with finite "norm",
 defined for `p:ℝ≥0∞` as the size of the support of `f` if `p=0`, `(∑' a, ∥f a∥^p) ^ (1/p)` for
 `0 < p < ∞` and `⨆ a, ∥f a∥` for `p=∞`.
 
-The Prop-valued `mem_ℓp f p` states that a function `f : Π i, E i` has finite seminorm according
+The Prop-valued `mem_ℓp f p` states that a function `f : Π i, E i` has finite norm according
 to the above definition; that is, `f` has finite support if `p = 0`, `summable (λ a, ∥f a∥^p)` if
 `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if `p = ∞`.
 
 The space `Lp E p` is the subtype of elements of `Π i : α, E i` which satisfy `mem_ℓp f p`. For
-`1 ≤ p`, the seminorm is genuinely a norm and `Lp` is a complete metric space.
+`1 ≤ p`, the "norm" is genuinely a norm and `Lp` is a complete metric space.
 
 ## Main definitions
 

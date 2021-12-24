@@ -840,6 +840,50 @@ by simp only [mod_def, div_self a0, mul_one, sub_self]
 @[simp] theorem mod_one (a : ordinal) : a % 1 = 0 :=
 by simp only [mod_def, div_one, one_mul, sub_self]
 
+/-! ### Families of ordinals -/
+
+/-- Converts a family of functions suited for `bsup` or `blsub` into one suited for `sup` or
+`lsub`. These describe the same ordinals. -/
+def family_of_bfamily {o : ordinal.{u}} (f : Π a < o, ordinal.{max u v}) : o.out.α → ordinal :=
+λ a, f (typein o.out.r a) typein_lt_self
+
+/-- For `f` a bounded family of functions, `f` and `family_of_bfamily f` describe the same
+ordinals. The intended purpose of this theorem is to transfer the hypotheses of theorems about
+`bsup` and `blsub` to theorems about `sup` and `lsub`, with the help of `bsup_eq_sup`. -/
+theorem bfamily_iff_family {o} {f : Π a < o, ordinal} (P : ordinal → Prop) :
+  (∀ i h, P (f i h)) ↔ ∀ a, P (family_of_bfamily f a) :=
+begin
+  refine ⟨λ h a, h _ typein_lt_self, λ h i hi, _⟩,
+  have : ∃ a, typein o.out.r a = i := begin
+    apply typein_surj,
+    rwa type_out,
+  end,
+  cases this with a ha,
+  simp_rw ←ha,
+  exact h _,
+end
+
+/-- Converts a family of functions suited for `sup` or `lsub` into one suited for `bsup` or
+`blsub`. -/
+def bfamily_of_family {ι : Type u} (f : ι → ordinal.{max u v}) :
+  Π a < type well_ordering_rel, ordinal :=
+λ a ha, f (classical.some (typein_surj well_ordering_rel ha))
+
+/-- For `f` a family of functions, `f` and `family_iff_bfamily f` describe the same ordinals. The
+intended purpose of this theorem is to transfer the hypotheses of theorems about `sup` and `lsub`
+to theorems about `bsup` and `blsub`, with the help of `bsup_eq_sup`. -/
+theorem family_iff_bfamily {ι : Type u} {f : ι → ordinal.{max u v}} (P : ordinal → Prop) :
+  (∀ i, P (f i)) ↔ ∀ a ha, P (bfamily_of_family f a ha) :=
+begin
+  refine ⟨λ h _ _, h _, λ h i, _⟩,
+  convert h _ (typein_lt_type well_ordering_rel i),
+  exact classical.some_spec2 _ begin
+    intro a,
+    rw typein_inj,
+    exact eq.symm
+  end,
+end
+
 /-! ### Supremum of a family of ordinals -/
 
 /-- The supremum of a family of ordinals -/
@@ -897,7 +941,8 @@ end
   of ordinals less than some `o : ordinal.{u}`.
   (This is not a special case of `sup` over the subtype,
   because `{a // a < o} : Type (u+1)` and `sup` only works over
-  families in `Type u`.) -/
+  families in `Type u`.)
+  That said, `bsup` and `sup` may be related via `bsup_eq_sup` and `sup_eq_bsup`. -/
 def bsup (o : ordinal.{u}) : (Π a < o, ordinal.{max u v}) → ordinal.{max u v} :=
 match o, o.out, o.out_eq with
 | _, ⟨α, r, _⟩, rfl, f := by exactI sup (λ a, f (typein r a) (typein_lt_type _ _))
@@ -914,18 +959,33 @@ end
 theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
 bsup_le.1 (le_refl _) _ _
 
+theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (family_of_bfamily f) :=
+begin
+  apply le_antisymm,
+  { rw bsup_le,
+    exact (bfamily_iff_family (λ x, x ≤ sup (family_of_bfamily f))).2 (le_sup _) },
+  rw sup_le,
+  exact λ _, le_bsup _ _ _,
+end
+
+theorem sup_eq_bsup {ι} (f : ι → ordinal) : sup f = bsup _ (bfamily_of_family f) :=
+begin
+  apply le_antisymm,
+  { rw sup_le,
+    exact (family_iff_bfamily (λ x, x ≤ bsup _ (bfamily_of_family f))).2 (le_bsup _) },
+  rw bsup_le,
+  exact λ _ _, le_sup _ _,
+end
+
 theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
 by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
 
 theorem bsup_not_succ_of_lt_bsup {o} {f : Π a < o, ordinal} (hf : ∀ i h, f i h < bsup o f) (a) :
   a < o.bsup f → succ a < o.bsup f :=
 begin
-  intro hao,
-  by_contra' hoa,
-  have hao' := le_antisymm (succ_le.2 hao) hoa,
-  rw ←hao' at hf,
-  rw le_antisymm (le_of_lt hao) (bsup_le.2 (λ i h, lt_succ.1 (hf i h))) at hao',
-  exact succ_ne_self _ hao',
+  rw bsup_eq_sup f at *,
+  apply sup_not_succ_of_lt_sup,
+  rwa ←bfamily_iff_family (λ x, x < sup (family_of_bfamily f)),
 end
 
 theorem bsup_type (r : α → α → Prop) [is_well_order α r] (f) :
@@ -1015,6 +1075,12 @@ end
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
+
+theorem blsub_eq_lsub {o} (f : Π a < o, ordinal) : blsub o f = lsub (family_of_bfamily f) :=
+bsup_eq_sup _
+
+theorem lsub_eq_blsub {ι} (f : ι → ordinal) : lsub f = blsub _ (bfamily_of_family f) :=
+sup_eq_bsup _
 
 theorem blsub_le_iff_lt {o f a} : blsub o f ≤ a ↔ ∀ i h, f i h < a :=
 by { convert bsup_le, apply propext, simp [succ_le] }

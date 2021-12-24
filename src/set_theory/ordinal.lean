@@ -630,6 +630,9 @@ theorem typein_inj (r : α → α → Prop) [is_well_order α r]
   {a b} : typein r a = typein r b ↔ a = b :=
 injective.eq_iff (typein_injective r)
 
+theorem typein_lt_self {o : ordinal} {a} : typein (quotient.out o).r a < o :=
+by { simp_rw ←(type_out o), exact typein_lt_type _ _ }
+
 /-! ### Enumerating elements in a well-order with ordinals. -/
 
 /-- `enum r o h` is the `o`-th element of `α` ordered by `r`.

@@ -384,6 +384,14 @@ lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm 
   ∫ x in s, f x ∂μ = ∫ x in s, f x ∂(μ.trim hm) :=
 by rwa [integral_trim hm hf_meas, restrict_trim hm μ]
 
+lemma integral_Icc_eq_integral_Ioc' [partial_order α] {f : α → E} {a b : α} (ha : μ {a} = 0) :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
+set_integral_congr_set_ae (Ioc_ae_eq_Icc' ha).symm
+
+lemma integral_Ioc_eq_integral_Ioo' [partial_order α] {f : α → E} {a b : α} (hb : μ {b} = 0) :
+  ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+set_integral_congr_set_ae (Ioo_ae_eq_Ioc' hb).symm
+
 end normed_group
 
 section mono

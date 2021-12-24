@@ -193,14 +193,10 @@ begin
       (λ l₁ l₂ hl₁ hl₂ hl₃, hf₁ hl₃) (λ p, by simp_rw [finset.mem_image, eq_comm, imp_self])
   ... < ∑ p, line_count L p : _,
   { exact lt_irrefl _ this },
-  { have key := mt (fintype.card_le_of_surjective f) hc₂,
-    push_neg at key,
-    obtain ⟨p, hp⟩ := key,
+  { obtain ⟨p, hp⟩ := not_forall.mp (mt (fintype.card_le_of_surjective f) hc₂),
     refine finset.sum_lt_sum_of_subset ((finset.univ.image f).subset_univ) (finset.mem_univ p)
       _ _ (λ p hp₁ hp₂, zero_le (line_count L p)),
-    { rw [finset.mem_image],
-      push_neg,
-      exact λ l hl, hp l },
+    { simpa only [finset.mem_image, exists_prop, finset.mem_univ, true_and] },
     { rw [line_count, nat.card_eq_fintype_card, fintype.card_pos_iff],
       exact ⟨⟨mk_line p p, (mk_line_ax p p).1⟩⟩ } },
 end

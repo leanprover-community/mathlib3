@@ -63,11 +63,10 @@ open_locale classical
 
 theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
 begin
-  fsplit,
-  { rintro ⟨S, ⟨f⟩⟩,
-    exact small.mk' (e.symm.trans f), },
-  { rintro ⟨S, ⟨f⟩⟩,
-    exact small.mk' (e.trans f), },
+  split;
+  rintro ⟨S, ⟨f⟩⟩,
+  { exact small.mk' (e.symm.trans f) },
+  { exact small.mk' (e.trans f) }
 end
 
 instance small_subtype (α : Type v) [small.{w} α] (P : α → Prop) : small.{w} { x // P x } :=

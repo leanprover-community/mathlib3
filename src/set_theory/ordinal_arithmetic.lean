@@ -843,8 +843,8 @@ by simp only [mod_def, div_one, one_mul, sub_self]
 
 /-! ### Families of ordinals -/
 
-/-- A family indexed by ordinals less than some `ordinal.{u}` forms a small set. -/
-theorem small_of_bfamily {β : Type w} {o : ordinal.{u}} (f : Π a < o, β) :
+/-- A family indexed by ordinals, bounded by some `ordinal.{u}`, forms a `small.{u}` set. -/
+theorem small_of_bidx {β : Type v} {o : ordinal.{u}} (f : Π a < o, β) :
   small.{u} {b // ∃ a ha, f a ha = b} :=
 begin
   refine small_of_surjective (λ a, ⟨f (typein o.out.r a) typein_lt_self, _, _, rfl⟩) (λ b, _),
@@ -857,6 +857,16 @@ begin
   use c,
   simp_rw hc,
   rwa subtype.ext_iff,
+end
+
+/-- A `small.{u}` set can be indexed by some `Type u`. -/
+def idx_of_small {α : Type v} (S : set α) [hS : small.{u} S] : (_ : Type u) → α :=
+subtype.val ∘ (classical.choice (classical.some_spec hS.1 : nonempty (S ≃ _))).inv_fun
+
+theorem range_of_idx_of_small {α : Type v} (S : set α) [hS : small.{u} S] :
+  range (idx_of_small S) = S :=
+begin
+  rw range_eq_iff,
 end
 
 /-- Converts a family of functions suited for `bsup` or `blsub` into one suited for `sup` or
@@ -912,15 +922,18 @@ omin {c | ∀ i, f i ≤ c}
 -- If all goes well, both `bsup` and `sup` will be replaced with just this.
 -- Working name.
 def sup_real (S : set ordinal.{max u v}) [hS : small.{u} S] : ordinal.{max u v} :=
-sup.{u v} (subtype.val ∘ (classical.choice (classical.some_spec hS.1 : nonempty (_ ≃ _))).inv_fun)
+sup.{u v} (subtype.val ∘ (classical.choice (classical.some_spec hS.1 : nonempty (S ≃ _))).inv_fun)
 
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
 omin_mem {c | ∀ i, f i ≤ c} _
 
+/-
 theorem le_sup_real (S : set ordinal.{max u v}) [hS : small.{u} S] : ∀ i ∈ S, i ≤ sup_real S :=
 begin
+  apply le_sup (subtype.val ∘ (classical.choice (classical.some_spec hS.1 : nonempty (_ ≃ _))).inv_fun),
   sorry
 end
+-/
 
 theorem sup_le {ι} {f : ι → ordinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
 ⟨λ h i, le_trans (le_sup _ _) h, λ h, omin_le h⟩

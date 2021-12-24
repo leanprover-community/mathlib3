@@ -124,9 +124,6 @@ theorem map_sub₂ (f : M' →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P') (x y z)
 theorem map_add₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y :=
 (flip f y).map_add _ _
 
---theorem map_smul₂ (f : M →ₗ[R] N →ₗ[S] Pₗ) (r : R) (x y) : f (r • x) y = r • f x y :=
---(flip f y).map_smul _ _
-
 theorem map_smul₂ (f : M₂ →ₗ[R] N₂ →ₛₗ[σ₁₂] P₂) (r : R) (x y) : f (r • x) y = r • f x y :=
 (flip f y).map_smul _ _
 

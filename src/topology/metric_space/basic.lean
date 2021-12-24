@@ -1094,6 +1094,19 @@ lemma tendsto_iff_of_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter ι} {
   tendsto f₁ p (𝓝 a) ↔ tendsto f₂ p (𝓝 a) :=
 uniform.tendsto_congr $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
 
+/-- If `u` is a neighborhood of `x`, then for small enough `r`, the closed ball
+`closed_ball x r` is contained in `u`. -/
+lemma eventually_closed_ball_subset {x : α} {u : set α} (hu : u ∈ 𝓝 x) :
+  ∀ᶠ r in 𝓝 (0 : ℝ), closed_ball x r ⊆ u :=
+begin
+  obtain ⟨ε, εpos, hε⟩ : ∃ ε (hε : 0 < ε), closed_ball x ε ⊆ u :=
+    nhds_basis_closed_ball.mem_iff.1 hu,
+  have : Iic ε ∈ 𝓝 (0 : ℝ) := Iic_mem_nhds εpos,
+  filter_upwards [this],
+  assume r hr,
+  exact subset.trans (closed_ball_subset_closed_ball hr) hε,
+end
+
 end real
 
 section cauchy_seq
@@ -1492,11 +1505,12 @@ open metric
 class proper_space (α : Type u) [pseudo_metric_space α] : Prop :=
 (is_compact_closed_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
+export proper_space (is_compact_closed_ball)
+
 /-- In a proper pseudometric space, all spheres are compact. -/
 lemma is_compact_sphere {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
   is_compact (sphere x r) :=
-compact_of_is_closed_subset (proper_space.is_compact_closed_ball x r) is_closed_sphere
-  sphere_subset_closed_ball
+compact_of_is_closed_subset (is_compact_closed_ball x r) is_closed_sphere sphere_subset_closed_ball
 
 /-- In a proper pseudometric space, any sphere is a `compact_space` when considered as a subtype. -/
 instance {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
@@ -1512,16 +1526,14 @@ begin
   -- add an instance for `sigma_compact_space`.
   suffices : sigma_compact_space α, by exactI emetric.second_countable_of_sigma_compact α,
   rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
-  { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.is_compact_closed_ball _ _,
-      Union_closed_ball_nat _⟩⟩ },
+  { exact ⟨⟨λ n, closed_ball x n, λ n, is_compact_closed_ball _ _, Union_closed_ball_nat _⟩⟩ },
   { exact ⟨⟨λ n, ∅, λ n, is_compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
 end
 
 lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
   tendsto (λ y, dist y x) (cocompact α) at_top :=
 (has_basis_cocompact.tendsto_iff at_top_basis).2 $ λ r hr,
-  ⟨closed_ball x r, proper_space.is_compact_closed_ball x r,
-    λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
+  ⟨closed_ball x r, is_compact_closed_ball x r, λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
 
 lemma tendsto_dist_left_cocompact_at_top [proper_space α] (x : α) :
   tendsto (dist x) (cocompact α) at_top :=
@@ -1554,7 +1566,7 @@ instance proper_of_compact [compact_space α] : proper_space α :=
 instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
 locally_compact_space_of_has_basis (λ x, nhds_basis_closed_ball) $
-  λ x ε ε0, proper_space.is_compact_closed_ball _ _
+  λ x ε ε0, is_compact_closed_ball _ _
 
 /-- A proper space is complete -/
 @[priority 100] -- see Note [lower instance priority]
@@ -1567,7 +1579,7 @@ instance complete_of_proper [proper_space α] : complete_space α :=
     (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases hf.1.nonempty_of_mem t_fset with ⟨x, xt⟩,
   have : closed_ball x 1 ∈ f := mem_of_superset t_fset (λ y yt, (ht y x yt xt).le),
-  rcases (compact_iff_totally_bounded_complete.1 (proper_space.is_compact_closed_ball x 1)).2 f hf
+  rcases (compact_iff_totally_bounded_complete.1 (is_compact_closed_ball x 1)).2 f hf
     (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩
 end⟩
@@ -1592,7 +1604,7 @@ begin
   unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
   { exact ⟨r / 2, ⟨half_pos hr, half_lt_self hr⟩, empty_subset _⟩ },
   have : is_compact s,
-    from compact_of_is_closed_subset (proper_space.is_compact_closed_ball x r) hs
+    from compact_of_is_closed_subset (is_compact_closed_ball x r) hs
       (subset.trans h ball_subset_closed_ball),
   obtain ⟨y, hys, hy⟩ : ∃ y ∈ s, s ⊆ closed_ball x (dist y x),
     from this.exists_forall_ge hne (continuous_id.dist continuous_const).continuous_on,
@@ -1701,6 +1713,13 @@ end
 lemma bounded.subset_ball (h : bounded s) (c : α) : ∃ r, s ⊆ closed_ball c r :=
 (bounded_iff_subset_ball c).1 h
 
+lemma bounded.subset_ball_lt (h : bounded s) (a : ℝ) (c : α) : ∃ r, a < r ∧ s ⊆ closed_ball c r :=
+begin
+  rcases h.subset_ball c with ⟨r, hr⟩,
+  refine ⟨max r (a+1), lt_of_lt_of_le (by linarith) (le_max_right _ _), _⟩,
+  exact subset.trans hr (closed_ball_subset_closed_ball (le_max_left _ _))
+end
+
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
 let ⟨C, h⟩ := h in
 ⟨C, λ a b ha hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb h⟩
@@ -1784,13 +1803,30 @@ bounded_range_of_tendsto_cofinite_uniformity $
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
 compact_univ.bounded.mono (subset_univ _)
 
+lemma bounded_range_of_tendsto {α : Type*} [pseudo_metric_space α] (u : ℕ → α) {x : α}
+  (hu : tendsto u at_top (𝓝 x)) :
+  bounded (range u) :=
+begin
+  classical,
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), n ≥ N → dist (u n) x < 1 :=
+    metric.tendsto_at_top.1 hu 1 zero_lt_one,
+  have : range u ⊆ (finset.range N).image u ∪ ball x 1,
+  { refine range_subset_iff.2 (λ n, _),
+    rcases lt_or_le n N with h|h,
+    { left,
+      simp only [mem_image, finset.mem_range, finset.mem_coe, finset.coe_image],
+      exact ⟨n, h, rfl⟩ },
+    { exact or.inr (mem_ball.2 (hN n h)) } },
+  exact bounded.mono this ((finset.finite_to_set _).bounded.union bounded_ball)
+end
+
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
   is_compact s :=
 begin
   unfreezingI { rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩) },
   { exact is_compact_empty },
   { rcases hb.subset_ball x with ⟨r, hr⟩,
-    exact compact_of_is_closed_subset (proper_space.is_compact_closed_ball x r) hc hr }
+    exact compact_of_is_closed_subset (is_compact_closed_ball x r) hc hr }
 end
 
 /-- The Heine–Borel theorem:
@@ -2067,6 +2103,9 @@ variables {x : γ} {s : set γ}
 
 @[simp] lemma closed_ball_zero : closed_ball x 0 = {x} :=
 set.ext $ λ y, dist_le_zero
+
+@[simp] lemma sphere_zero : sphere x 0 = {x} :=
+set.ext $ λ y, dist_eq_zero
 
 /-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/

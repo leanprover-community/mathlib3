@@ -81,10 +81,14 @@ lemma inducing.map_nhds_of_mem {f : α → β} (hf : inducing f) (a : α) (h : r
   (𝓝 a).map f = 𝓝 (f a) :=
 hf.induced.symm ▸ map_nhds_induced_of_mem h
 
+lemma inducing.image_mem_nhds_within {f : α → β} (hf : inducing f) {a : α} {s : set α}
+  (hs : s ∈ 𝓝 a) : f '' s ∈ 𝓝[range f] (f a) :=
+hf.map_nhds_eq a ▸ image_mem_map hs
+
 lemma inducing.tendsto_nhds_iff {ι : Type*}
   {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : inducing g) :
   tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
-by rw [tendsto, tendsto, hg.induced, nhds_induced, ← map_le_iff_le_comap, filter.map_map]
+by rw [hg.nhds_eq_comap, tendsto_comap_iff]
 
 lemma inducing.continuous_at_iff {f : α → β} {g : β → γ} (hg : inducing g) {x : α} :
   continuous_at f x ↔ continuous_at (g ∘ f) x :=
@@ -375,7 +379,7 @@ hf.to_embedding.to_inducing.is_open_map hf.open_range
 
 lemma open_embedding.map_nhds_eq {f : α → β} (hf : open_embedding f) (a : α) :
   map f (𝓝 a) = 𝓝 (f a) :=
-hf.to_embedding.map_nhds_of_mem _ $ is_open.mem_nhds hf.open_range $ mem_range_self _
+hf.to_embedding.map_nhds_of_mem _ $ hf.open_range.mem_nhds $ mem_range_self _
 
 lemma open_embedding.open_iff_image_open {f : α → β} (hf : open_embedding f)
   {s : set α} : is_open s ↔ is_open (f '' s) :=
@@ -501,5 +505,10 @@ lemma closed_embedding.comp {g : β → γ} {f : α → β}
   (hg : closed_embedding g) (hf : closed_embedding f) : closed_embedding (g ∘ f) :=
 ⟨hg.to_embedding.comp hf.to_embedding, show is_closed (range (g ∘ f)),
  by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.closed_range⟩
+
+lemma closed_embedding.closure_image_eq {f : α → β} (hf : closed_embedding f) (s : set α) :
+  closure (f '' s) = f '' closure s :=
+le_antisymm (is_closed_map_iff_closure_image.mp hf.is_closed_map _)
+  (image_closure_subset_closure_image hf.continuous)
 
 end closed_embedding

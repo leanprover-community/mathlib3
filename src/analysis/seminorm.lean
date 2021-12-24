@@ -70,8 +70,11 @@ open_locale pointwise topological_space
 
 variables {𝕜 E : Type*}
 
-section normed_field
-variables (𝕜) [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+section semi_normed_ring
+variables [semi_normed_ring 𝕜]
+
+section has_scalar
+variables (𝕜) [has_scalar 𝕜 E]
 
 /-- A set `A` absorbs another set `B` if `B` is contained in all scalings of
 `A` by elements of sufficiently large norms. -/
@@ -84,77 +87,44 @@ def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥
 has norm less than or equal to one. -/
 def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
 
-variables {𝕜} (a : 𝕜) {A B : set E}
+variables {𝕜} {A B : set E}
 
-/-- A balanced set absorbs itself. -/
-lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
-begin
-  use [1, zero_lt_one],
-  intros a ha x hx,
-  rw mem_smul_set_iff_inv_smul_mem₀,
-  { apply hA a⁻¹,
-    { rw norm_inv, exact inv_le_one ha },
-    { rw mem_smul_set, use [x, hx] }},
-  { rw ←norm_pos_iff, calc 0 < 1 : zero_lt_one ... ≤ ∥a∥ : ha, }
-end
+lemma balanced.univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
 
-lemma balanced.univ : balanced 𝕜 (univ : set E) :=
-λ a ha, subset_univ _
-
-lemma balanced.union {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
-  balanced 𝕜 (A₁ ∪ A₂) :=
+lemma balanced.union (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∪ B) :=
 begin
   intros a ha t ht,
   rw [smul_set_union] at ht,
-  exact ht.imp (λ x, hA₁ _ ha x) (λ x, hA₂ _ ha x),
+  exact ht.imp (λ x, hA _ ha x) (λ x, hB _ ha x),
 end
 
-lemma balanced.inter {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
-  balanced 𝕜 (A₁ ∩ A₂) :=
+end has_scalar
+
+section add_comm_group
+variables [add_comm_group E] [module 𝕜 E] {A B : set E}
+
+lemma balanced.inter (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∩ B) :=
 begin
   rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
-  exact ⟨hA₁ _ ha ⟨_, hx₁, rfl⟩, hA₂ _ ha ⟨_, hx₂, rfl⟩⟩,
+  exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
 end
 
-lemma balanced.add {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
-  balanced 𝕜 (A₁ + A₂) :=
+lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=
 begin
   rintro a ha _ ⟨_, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
   rw smul_add,
   exact ⟨_, _, hA₁ _ ha ⟨_, hx, rfl⟩, hA₂ _ ha ⟨_, hy, rfl⟩, rfl⟩,
 end
 
-lemma balanced.smul (hA : balanced 𝕜 A) : balanced 𝕜 (a • A) :=
-begin
-  rintro b hb _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩,
-  exact ⟨b • x, hA _ hb ⟨_, hx, rfl⟩, smul_comm _ _ _⟩,
-end
-
-lemma balanced.subset_smul (hA : balanced 𝕜 A) {a : 𝕜} (ha : 1 ≤ ∥a∥) : A ⊆ a • A :=
-begin
-  refine (subset_set_smul_iff₀ _).2 (hA (a⁻¹) _),
-  { rintro rfl,
-    rw norm_zero at ha,
-    exact zero_lt_one.not_le ha },
-  { rw norm_inv,
-    exact inv_le_one ha }
-end
-
-lemma balanced.smul_eq (hA : balanced 𝕜 A) {a : 𝕜} (ha : ∥a∥ = 1) : a • A = A :=
-(hA _ ha.le).antisymm $ hA.subset_smul ha.ge
-
 lemma absorbent.subset (hA : absorbent 𝕜 A) (hAB : A ⊆ B) : absorbent 𝕜 B :=
 begin
   rintro x,
   obtain ⟨r, hr, hx⟩ := hA x,
-  refine ⟨r, hr, λ a ha, (set_smul_subset_set_smul_iff₀ _).2 hAB $ hx a ha⟩,
-  rintro rfl,
-  rw norm_zero at ha,
-  exact hr.not_le ha,
+  exact ⟨r, hr, λ a ha, set.smul_set_mono hAB $ hx a ha⟩,
 end
 
 lemma absorbent_iff_forall_absorbs_singleton : absorbent 𝕜 A ↔ ∀ x, absorbs 𝕜 A {x} :=
-by simp [absorbs, absorbent]
+by simp_rw [absorbs, absorbent, singleton_subset_iff]
 
 lemma absorbent_iff_nonneg_lt : absorbent 𝕜 A ↔ ∀ x, ∃ r, 0 ≤ r ∧ ∀ a : 𝕜, r < ∥a∥ → x ∈ a • A :=
 begin
@@ -168,9 +138,50 @@ begin
       λ a ha, hx a ((lt_add_of_pos_right r zero_lt_one).trans_le ha)⟩ }
 end
 
-/-!
-Properties of balanced and absorbent sets in a topological vector space:
--/
+end add_comm_group
+end semi_normed_ring
+
+section normed_comm_ring
+variables [normed_comm_ring 𝕜] [add_comm_monoid E] [module 𝕜 E] {A B : set E} (a : 𝕜)
+
+lemma balanced.smul (hA : balanced 𝕜 A) : balanced 𝕜 (a • A) :=
+begin
+  rintro b hb _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩,
+  exact ⟨b • x, hA _ hb ⟨_, hx, rfl⟩, smul_comm _ _ _⟩,
+end
+
+end normed_comm_ring
+
+section normed_field
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {A B : set E} {a : 𝕜}
+
+/-- A balanced set absorbs itself. -/
+lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
+begin
+  use [1, zero_lt_one],
+  intros a ha x hx,
+  rw mem_smul_set_iff_inv_smul_mem₀,
+  { apply hA a⁻¹,
+    { rw norm_inv, exact inv_le_one ha },
+    { rw mem_smul_set, use [x, hx] }},
+  { rw ←norm_pos_iff, calc 0 < 1 : zero_lt_one ... ≤ ∥a∥ : ha, }
+end
+
+lemma balanced.subset_smul (hA : balanced 𝕜 A) (ha : 1 ≤ ∥a∥) : A ⊆ a • A :=
+begin
+  refine (subset_set_smul_iff₀ _).2 (hA (a⁻¹) _),
+  { rintro rfl,
+    rw norm_zero at ha,
+    exact zero_lt_one.not_le ha },
+  { rw norm_inv,
+    exact inv_le_one ha }
+end
+
+lemma balanced.smul_eq (hA : balanced 𝕜 A) (ha : ∥a∥ = 1) : a • A = A :=
+(hA _ ha.le).antisymm $ hA.subset_smul ha.ge
+
+/-! #### Topological vector space -/
+
 variables [topological_space E] [has_continuous_smul 𝕜 E]
 
 /-- Every neighbourhood of the origin is absorbent. -/
@@ -185,19 +196,15 @@ begin
   use [(r/2)⁻¹, hr₃],
   intros a ha₁,
   have ha₂ : 0 < ∥a∥ := hr₃.trans_le ha₁,
-  have ha₃ : a ⁻¹ • x ∈ w,
-  { apply hr₂,
-    rw [metric.mem_ball, dist_zero_right, norm_inv],
-    calc ∥a∥⁻¹ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).mp ha₁
-    ...       < r : half_lt_self hr₁ },
   rw [mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.mp ha₂)],
-  exact hw₁ ha₃,
+  refine hw₁ (hr₂ _),
+  rw [metric.mem_ball, dist_zero_right, norm_inv],
+  calc ∥a∥⁻¹ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).mp ha₁
+  ...       < r : half_lt_self hr₁,
 end
 
-/-- The union of `{0}` with the interior of a balanced set
-    is balanced. -/
-lemma balanced_zero_union_interior (hA : balanced 𝕜 A) :
-  balanced 𝕜 ({(0 : E)} ∪ interior A) :=
+/-- The union of `{0}` with the interior of a balanced set is balanced. -/
+lemma balanced_zero_union_interior (hA : balanced 𝕜 A) : balanced 𝕜 ({(0 : E)} ∪ interior A) :=
 begin
   intros a ha, by_cases a = 0,
   { rw [h, zero_smul_set],
@@ -233,18 +240,23 @@ end normed_field
 /-- A seminorm on a vector space over a normed field is a function to
 the reals that is positive semidefinite, positive homogeneous, and
 subadditive. -/
-structure seminorm (𝕜 : Type*) (E : Type*)
-  [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] :=
+structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E] :=
 (to_fun    : E → ℝ)
 (smul'     : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
 (triangle' : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
 
 namespace seminorm
-section normed_field
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+section semi_normed_ring
+variables [semi_normed_ring 𝕜]
+
+section add_monoid
+variables [add_monoid E]
+
+section has_scalar
+variables [has_scalar 𝕜 E]
 
 instance : inhabited (seminorm 𝕜 E) :=
-⟨{ to_fun     := λ _, 0,
+⟨{ to_fun    := λ _, 0,
    smul'     := λ _ _, (mul_zero _).symm,
    triangle' := λ x y, by rw add_zero }⟩
 
@@ -262,22 +274,34 @@ variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
-protected lemma sub_le : p (x - y) ≤ p x + p y :=
-calc
-  p (x - y)
-      = p (x + -y) : by rw sub_eq_add_neg
-  ... ≤ p x + p (-y) : p.triangle x (-y)
-  ... = p x + p y : by rw [←neg_one_smul 𝕜 y, p.smul, norm_neg, norm_one, one_mul]
+
+end has_scalar
+
+section smul_with_zero
+variables [smul_with_zero 𝕜 E] (p : seminorm 𝕜 E)
 
 @[simp]
 protected lemma zero : p 0 = 0 :=
 calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
 ...      = 0 : by rw [p.smul, norm_zero, zero_mul]
 
+end smul_with_zero
+end add_monoid
+
+section norm_one_class
+variables [norm_one_class 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
+
 @[simp]
 protected lemma neg : p (-x) = p x :=
 calc p (-x) = p ((-1 : 𝕜) • x) : by rw neg_one_smul
 ...         = p x : by rw [p.smul, norm_neg, norm_one, one_mul]
+
+protected lemma sub_le : p (x - y) ≤ p x + p y :=
+calc
+  p (x - y)
+      = p (x + -y) : by rw sub_eq_add_neg
+  ... ≤ p x + p (-y) : p.triangle x (-y)
+  ... = p x + p y : by rw p.neg
 
 lemma nonneg : 0 ≤ p x :=
 have h: 0 ≤ 2 * p x, from
@@ -286,24 +310,37 @@ calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
 ...    = 2 * p x : by rw [p.neg, two_mul],
 nonneg_of_mul_nonneg_left h zero_lt_two
 
-lemma sub_rev : p (x - y) = p (y - x) :=
-by rw [←neg_sub, p.neg]
+lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
-/-- The ball of radius `r` at `x` with respect to seminorm `p`
-    is the set of elements `y` with `p (y - x) < `r`. -/
-def ball (p : seminorm 𝕜 E) (x : E) (r : ℝ) := { y : E | p (y - x) < r }
+end norm_one_class
 
-lemma mem_ball : y ∈ ball p x r ↔ p (y - x) < r :=
-iff.rfl
+/-! ### Seminorm ball -/
 
-lemma mem_ball_zero : y ∈ ball p 0 r ↔ p y < r :=
-by rw [mem_ball, sub_zero]
+section add_comm_group
+variables [add_comm_group E]
 
-lemma ball_zero_eq : ball p 0 r = { y : E | p y < r } :=
-set.ext $ λ x,by { rw mem_ball_zero, exact iff.rfl }
+section has_scalar
+variables [has_scalar 𝕜 E] (p : seminorm 𝕜 E)
+
+/-- The ball of radius `r` at `x` with respect to seminorm `p` is the set of elements `y` with
+`p (y - x) < `r`. -/
+def ball (x : E) (r : ℝ) := { y : E | p (y - x) < r }
+
+variables {x y : E} {r : ℝ}
+
+lemma mem_ball : y ∈ ball p x r ↔ p (y - x) < r := iff.rfl
+
+lemma mem_ball_zero : y ∈ ball p 0 r ↔ p y < r := by rw [mem_ball, sub_zero]
+
+lemma ball_zero_eq : ball p 0 r = { y : E | p y < r } := set.ext $ λ x, p.mem_ball_zero
+
+end has_scalar
+
+section module
+variables [norm_one_class 𝕜] [module 𝕜 E] (p : seminorm 𝕜 E)
 
 /-- Seminorm-balls at the origin are balanced. -/
-lemma balanced_ball_zero : balanced 𝕜 (ball p 0 r) :=
+lemma balanced_ball_zero (r : ℝ): balanced 𝕜 (ball p 0 r) :=
 begin
   rintro a ha x ⟨y, hy, hx⟩,
   rw [mem_ball_zero, ←hx, p.smul],
@@ -311,8 +348,16 @@ begin
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
+end module
+end add_comm_group
+end semi_normed_ring
+
+section normed_field
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
+  {a : 𝕜} {r : ℝ} {x : E}
+
 /-- Seminorm-balls at the origin are absorbent. -/
-lemma absorbent_ball_zero {r : ℝ} (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
+lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
 begin
   rw absorbent_iff_nonneg_lt,
   rintro x,
@@ -328,10 +373,10 @@ lemma absorbent_ball (hpr : p x < r) : absorbent 𝕜 (ball p x r) :=
 begin
   refine (p.absorbent_ball_zero $ sub_pos.2 hpr).subset (λ y hy, _),
   rw p.mem_ball_zero at hy,
-  exact (p.mem_ball _ _ _).2 ((p.sub_le _ _).trans_lt $ add_lt_of_lt_sub_right hy),
+  exact p.mem_ball.2 ((p.sub_le _ _).trans_lt $ add_lt_of_lt_sub_right hy),
 end
 
-lemma symmetric_ball_zero {x : E} (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r :=
+lemma symmetric_ball_zero (r : ℝ) (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r :=
 balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_smul, one_smul]⟩
 
 end normed_field
@@ -364,7 +409,7 @@ lemma convex_ball : convex ℝ (ball p x r) :=
 begin
   convert (p.convex_on.translate_left (-x)).convex_lt r,
   ext y,
-  rw [preimage_univ, sep_univ, p.mem_ball x y r, sub_eq_add_neg],
+  rw [preimage_univ, sep_univ, p.mem_ball, sub_eq_add_neg],
   refl,
 end
 

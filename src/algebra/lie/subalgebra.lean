@@ -366,13 +366,11 @@ variables (R L)
 
 lemma well_founded_of_noetherian [is_noetherian R L] :
   well_founded ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) :=
-begin
   let f : ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) →r
           ((>) : submodule R L → submodule R L → Prop) :=
   { to_fun       := coe,
-    map_rel' := λ N N' h, h, },
-  apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
-end
+    map_rel' := λ N N' h, h, }
+in rel_hom_class.well_founded f (is_noetherian_iff_well_founded.mp infer_instance)
 
 variables {R L K K' f}
 

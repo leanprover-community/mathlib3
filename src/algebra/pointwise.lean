@@ -922,27 +922,22 @@ by exact_mod_cast @set.mul_comm _ (s : set α) t _
 /-- `finset α` is a `mul_one_class` under pointwise operations if `α` is. -/
 @[to_additive /-"`finset α` is an `add_zero_class` under pointwise operations if `α` is."-/]
 protected def mul_one_class [decidable_eq α] [mul_one_class α] : mul_one_class (finset α) :=
-{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
-  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul_eq_id, image_id], },
-  ..finset.has_one, ..finset.has_mul }
+function.injective.mul_one_class _ coe_injective (coe_singleton 1) (by simp)
 
 /-- `finset α` is a `semigroup` under pointwise operations if `α` is. -/
 @[to_additive /-"`finset α` is an `add_semigroup` under pointwise operations if `α` is. "-/]
 protected def semigroup [decidable_eq α] [semigroup α] : semigroup (finset α) :=
-{ mul_assoc := λ a b c,
-    by exact_mod_cast (set.semigroup.mul_assoc : ∀ (a b c : set α), a * b * c = a * (b * c)) a b c,
-  ..finset.has_mul }
+function.injective.semigroup _ coe_injective (by simp)
 
 /-- `finset α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive /-"`finset α` is an `add_monoid` under pointwise operations if `α` is. "-/]
 protected def monoid [decidable_eq α] [monoid α] : monoid (finset α) :=
-{ ..finset.semigroup,
-  ..finset.mul_one_class }
+function.injective.monoid _ coe_injective (coe_singleton 1) (by simp)
 
 /-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
 @[to_additive /-"`finset α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
 protected def comm_monoid [decidable_eq α] [comm_monoid α] : comm_monoid (finset α) :=
-{ mul_comm := λ _ _, finset.mul_comm, ..finset.monoid }
+function.injective.comm_monoid _ coe_injective (coe_singleton 1) (by simp)
 
 localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
   finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid"

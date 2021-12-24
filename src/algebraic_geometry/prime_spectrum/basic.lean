@@ -675,7 +675,8 @@ lemma basic_open_empty_iff (f : R) :
 begin
   rw [← subtype.coe_injective.eq_iff, basic_open_eq_zero_locus_compl],
   simp only [set.eq_univ_iff_forall, topological_space.opens.empty_eq, set.singleton_subset_iff,
-    opens.coe_bot, nilpotent_iff_mem_prime, set.compl_empty_iff, mem_zero_locus, set_like.mem_coe],
+    topological_space.opens.coe_bot, nilpotent_iff_mem_prime, set.compl_empty_iff, mem_zero_locus,
+    set_like.mem_coe],
   exact subtype.forall,
 end
 

@@ -752,8 +752,8 @@ begin
     exact is_glb_singleton },
 end
 
-lemma is_glb.mul_right {s : set α} (hc : 0 ≤ a) (hs : is_lub s b) :
-  is_lub ((λ b, b * a) '' s) (b * a) :=
+lemma is_glb.mul_right {s : set α} (hc : 0 ≤ a) (hs : is_glb s b) :
+  is_glb ((λ b, b * a) '' s) (b * a) :=
 by simpa [mul_comm] using hs.mul_left hc
 
 end linear_ordered_field

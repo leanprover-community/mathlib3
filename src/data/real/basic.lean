@@ -468,7 +468,7 @@ end
 
 @[simp] lemma csupr_const_zero {α : Sort*} : (⨆ i : α, (0:ℝ)) = 0 :=
 begin
-  cases is_empty_or_nonempty α; resetI,
+  casesI is_empty_or_nonempty α,
   { exact real.csupr_empty _ },
   { exact csupr_const },
 end
@@ -492,7 +492,7 @@ end
 
 @[simp] lemma cinfi_const_zero {α : Sort*} : (⨅ i : α, (0:ℝ)) = 0 :=
 begin
-  cases is_empty_or_nonempty α; resetI,
+  casesI is_empty_or_nonempty α,
   { exact real.cinfi_empty _ },
   { exact cinfi_const },
 end

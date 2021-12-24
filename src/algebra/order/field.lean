@@ -729,31 +729,23 @@ lemma one_div_pow_strict_mono (a1 : 1 < a) : strict_mono (λ n : ℕ, order_dual
 /-! ### Results about `has_lub` and `has_glb` -/
 
 lemma is_lub_mul {s : set α} (hc : 0 ≤ a) (hs : is_lub s b) :
-  is_lub {x | ∃ y ∈ s, a * y = x} (a * b) :=
+  is_lub ((λ b, a * b) '' s) (a * b) :=
 begin
   rcases lt_or_eq_of_le hc with hc | rfl,
-  { rw ← (order_iso.mul_left₀ _ hc).is_lub_image' at hs,
-    convert hs using 1,
-    ext x,
-    simp },
-  { convert is_lub_singleton using 1,
-    ext x,
-    have : s.nonempty ∧ 0 = x ↔ x = 0 := by rw [and_iff_right hs.nonempty, eq_comm],
-    simpa using this },
+  { exact (order_iso.mul_left₀ _ hc).is_lub_image'.2 hs, },
+  { simp_rw zero_mul,
+    rw hs.nonempty.image_const,
+    exact is_lub_singleton },
 end
 
 lemma is_glb_mul {s : set α} (hc : 0 ≤ a) (hs : is_glb s b) :
-  is_glb {x | ∃ y ∈ s, a * y = x} (a * b) :=
+  is_glb ((λ b, a * b) '' s) (a * b) :=
 begin
   rcases lt_or_eq_of_le hc with hc | rfl,
-  { rw ← (order_iso.mul_left₀ _ hc).is_glb_image' at hs,
-    convert hs using 1,
-    ext x,
-    simp },
-  { convert is_glb_singleton using 1,
-    ext y,
-    have : s.nonempty ∧ 0 = y ↔ y = 0 := by rw [and_iff_right hs.nonempty, eq_comm],
-    simpa using this },
+  { exact (order_iso.mul_left₀ _ hc).is_glb_image'.2 hs, },
+  { simp_rw zero_mul,
+    rw hs.nonempty.image_const,
+    exact is_glb_singleton },
 end
 
 end linear_ordered_field

@@ -122,9 +122,12 @@ let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in by { classical, exact ⟨set.fin
 end preorder
 
 section partial_order
-variables [partial_order α] [locally_finite_order α] {a b : α}
+variables [partial_order α] [locally_finite_order α] {a b c : α}
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} := by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
+
+@[simp] lemma Icc_eq_singleton_iff : Icc a b = {c} ↔ a = c ∧ b = c :=
+by rw [←coe_eq_singleton, coe_Icc, set.Icc_eq_singleton_iff]
 
 section decidable_eq
 variables [decidable_eq α]

@@ -198,7 +198,7 @@ end
 -- like `f(x) = 1/x`, since that's not cont diff at 0.
 theorem partial_summation {𝕜 : Type*} [is_R_or_C 𝕜] (a : ℕ → 𝕜) (f f' : ℝ → 𝕜) {x : ℝ}
   (hf : ∀ i ∈ Icc (1:ℝ) x, has_deriv_at f (f' i) i)
-  (hf' : interval_integrable f' measure_theory.measure_space.volume 1 x):
+  (hf' : interval_integrable f' measure_theory.measure_space.volume 1 x) :
   summatory (λ n, a n * f n) x = summatory a x * f x - ∫ t in 1..x, summatory a t * f' t :=
 begin
   cases lt_or_le x 1,
@@ -257,15 +257,9 @@ def vinogradov (f : ℝ → ℝ) (g : ℝ → ℝ) : Prop := asymptotics.is_O f 
 
 open filter asymptotics
 
--- infix ` ≪ `:50 := vinogradov
+infix ` ≪ `:50 := vinogradov
 -- BM: might want to localise this notation
 -- in the measure_theory locale it's used for absolute continuity of measures
-
-example {f : ℝ → ℝ} {a b : ℝ} (hf : interval_integrable f measure_theory.measure_space.volume a b) :
-  interval_integrable (-f) measure_theory.measure_space.volume a b :=
-begin
-  exact hf.neg,
-end
 
 -- lemma harmonic_series_estimate :
 --   ∃ (g : ℝ → ℝ), is_O g (λ x, x⁻¹) at_top ∧
@@ -298,19 +292,19 @@ end
 -- begin
 -- end
 
-lemma harmonic_series_vinogradov :
-  is_O (λ x, summatory (λ i, (1 : ℝ) / i) x - log x - euler_mascheroni) (λ x, 1 / x) at_top :=
-begin
-  have : ∀ x, summatory (λ _, 1) x = ⌊x⌋₊,
-  { intro x,
-    rw [summatory, ←finset.card_eq_sum_ones, nat.card_Icc],
-    refl },
-  have : (∀ (i : ℝ), 0 < i → has_deriv_at (λ x, x ^ (-1:ℤ)) (-i ^ (-2:ℤ)) i),
-  { intros i hi,
-    simpa only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, int.cast_neg]
-      using has_deriv_at_zpow (-1) i (or.inl hi.ne') },
-  have := partial_summation (λ _, 1) (λ x, x ^ (-1 : ℤ)) (λ x, - x ^ (-2 : ℤ)),
-end
+-- lemma harmonic_series_vinogradov :
+--   is_O (λ x, summatory (λ i, (1 : ℝ) / i) x - log x - euler_mascheroni) (λ x, 1 / x) at_top :=
+-- begin
+--   have : ∀ x, summatory (λ _, 1) x = ⌊x⌋₊,
+--   { intro x,
+--     rw [summatory, ←finset.card_eq_sum_ones, nat.card_Icc],
+--     refl },
+--   have : (∀ (i : ℝ), 0 < i → has_deriv_at (λ x, x ^ (-1:ℤ)) (-i ^ (-2:ℤ)) i),
+--   { intros i hi,
+--     simpa only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, int.cast_neg]
+--       using has_deriv_at_zpow (-1) i (or.inl hi.ne') },
+--   have := partial_summation (λ _, 1) (λ x, x ^ (-1 : ℤ)) (λ x, - x ^ (-2 : ℤ)),
+-- end
 
 lemma summatory_log :
   (λ x, summatory (λ i, log i) x - x * log x) ≪ log :=

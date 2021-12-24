@@ -150,4 +150,23 @@ begin
   ... ≃ (Σ l, {p // p ∈ l}) : equiv.subtype_prod_equiv_sigma_subtype (λ (l : L) (p : P), p ∈ l),
 end
 
+variables {P L}
+
+lemma has_lines.point_count_le_line_count [has_lines P L] {p : P} {l : L} (h : p ∉ l)
+  [fintype {l : L // p ∈ l}] : point_count P l ≤ line_count L p :=
+begin
+  by_cases hf : infinite {p : P // p ∈ l},
+  { exactI (le_of_eq nat.card_eq_zero_of_infinite).trans (zero_le (line_count L p)) },
+  haveI := fintype_of_not_infinite hf,
+  rw [line_count, point_count, nat.card_eq_fintype_card, nat.card_eq_fintype_card],
+  exact fintype.card_le_of_injective (λ p', ⟨mk_line p p', (mk_line_ax p p').1⟩)
+    (λ p₁ p₂ hp, subtype.ext ((eq_or_eq p₁.2 p₂.2 (mk_line_ax p p₁).2
+      ((congr_arg _ (subtype.ext_iff.mp hp)).mpr (mk_line_ax p p₂).2)).resolve_right
+        (λ h', (congr_arg _ h').mp h (mk_line_ax p p₁).1))),
+end
+
+lemma has_points.line_count_le_point_count [has_points P L] {p : P} {l : L} (h : p ∉ l)
+  [hf : fintype {p : P // p ∈ l}] : line_count L p ≤ point_count P l :=
+@has_lines.point_count_le_line_count (dual L) (dual P) _ _ l p h hf
+
 end configuration

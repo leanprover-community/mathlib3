@@ -1,11 +1,21 @@
+/-
+Copyright (c) 2021 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Aaron Anderson
+-/
 import data.finsupp.basic
-
 
 /-!
 # Pointwise order on finitely supported functions
 
 This file lifts order structures on `α` to `ι →₀ α`.
 
+## Main declarations
+
+* `finsupp.order_embedding_to_fun`: The order embedding from finitely supported functions to
+  functions.
+* `finsupp.order_iso_multiset`: The order isomorphism between `ℕ`-valued finitely supported
+  functions and multisets.
 -/
 
 

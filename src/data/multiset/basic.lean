@@ -586,6 +586,13 @@ by simp only [repeat_succ, singleton_eq_cons, eq_self_iff_true, repeat_zero, con
 
 theorem eq_of_mem_repeat {a b : α} {n} : b ∈ repeat a n → b = a := eq_of_mem_repeat
 
+lemma repeat_inj (a b : α) (n : ℕ) : repeat a n.succ = repeat b n.succ → a = b := begin
+  intro x,
+  apply @eq_of_mem_repeat _ b a n.succ,
+  rw [x.symm, repeat_succ],
+  exact mem_cons_self a (repeat a n),
+end
+
 theorem eq_repeat' {a : α} {s : multiset α} : s = repeat a s.card ↔ ∀ b ∈ s, b = a :=
 quot.induction_on s $ λ l, iff.trans ⟨λ h,
   (perm_repeat.1 $ (quotient.exact h)), congr_arg coe⟩ eq_repeat'

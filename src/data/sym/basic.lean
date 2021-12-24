@@ -150,4 +150,102 @@ instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
 
 end inhabited
 
+instance has_zero {α : Type*} : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
+instance has_emptyc {α : Type*} : has_emptyc (sym α 0) := ⟨0⟩
+
+instance subsingleton {α : Type*} {n : ℕ} [g : subsingleton α] : subsingleton (sym α n) :=
+⟨begin
+  unfreezingI { cases g },
+  intros,
+  rcases a with ⟨c, d⟩,
+  rcases b with ⟨a, b⟩,
+  simp only [subtype.mk.inj_eq],
+  induction a using multiset.case_strong_induction_on with k hk wa generalizing n c,
+  { rw [b.symm, multiset.card_zero] at d, exact multiset.card_eq_zero.mp d },
+  { cases n,
+    { exact false.elim (multiset.cons_ne_zero (multiset.card_eq_zero.mp b)) },
+    { classical,
+      exact if s : c = 0 then begin
+        rw [s, multiset.card_zero] at d,
+        exact false.elim (nat.succ_ne_zero n d.symm),
+      end else begin
+        have re := multiset.exists_mem_of_ne_zero s,
+        rcases re with ⟨re, we⟩,
+        cases multiset.exists_cons_of_mem we,
+        rw h,
+        have ob := @wa hk rfl.ge n w begin
+          rw [h, multiset.card_cons] at d,
+          refine nat.succ.inj d,
+        end begin
+          rw multiset.card_cons at b,
+          refine nat.succ.inj b,
+        end,
+        rw [ob, g re k],
+      end } }
+end⟩
+
+instance unique {α : Type*} {n : ℕ} [g : unique α] : unique (sym α n) := unique.mk' _
+
+instance is_empty {α : Type*} {n : ℕ} [g : is_empty α] : is_empty (sym α n.succ) := ⟨begin
+  intro h,
+  rw sym at h,
+  have w := @multiset.exists_mem_of_ne_zero _ h.val begin
+    intro y,
+    have z := h.property,
+    rw [y, multiset.card_zero] at z,
+    exact false.elim (nat.succ_ne_zero n z.symm),
+  end,
+  rcases w with ⟨w, q⟩,
+  unfreezingI {
+    cases g,
+    tauto,
+  },
+end⟩
+
+def repeat (a : α) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
+
+lemma repeat_inj (a b : α) : @repeat _ n.succ a = repeat b → a = b := begin
+  intro x,
+  simp only [repeat, subtype.mk.inj_eq] at x,
+  exact multiset.repeat_inj a b n x,
+end
+
+instance nontrivial {α : Type*} {n : ℕ} [g : nontrivial α] : nontrivial (sym α (n + 1)) :=
+⟨begin
+  unfreezingI { rcases g with ⟨w, ⟨m, g⟩⟩ },
+  use [@repeat _ (n + 1) w, @repeat _ (n + 1) m],
+  intro x,
+  exact g (repeat_inj _ _ x),
+end⟩
+
+def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
+⟨x.val.map f, by simpa [multiset.card_map] using x.property⟩
+
+@[simp] lemma mem_map {α β : Type*} {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
+  b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
+
+@[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map id s = s :=
+by simp [sym.map, subtype.mk.inj_eq]
+
+@[simp] lemma map_map {α β γ : Type*} {n : ℕ} (g : β → γ) (f : α → β) (s : sym α n) :
+  sym.map g (sym.map f s) = sym.map (g ∘ f) s :=
+by simp [sym.map, subtype.mk.inj_eq]
+
+@[simp] lemma map_zero {α β : Type*} (f : α → β) :
+  sym.map f (0 : sym α 0) = (0 : sym β 0) :=
+begin
+  rw sym.has_zero,
+  simp only [sym.map, multiset.map_zero],
+  rw sym.has_zero,
+  simp only [subtype.mk_eq_mk],
+end
+
+@[simp] lemma map_cons {α β : Type*} {n : ℕ} (f : α → β) (a : α) (s : sym α n) : sym.map f (a::s) = (f a)::sym.map f s :=
+begin
+  simp only [map, subtype.mk.inj_eq, cons],
+  convert multiset.map_cons f a s.val,
+  cases s,
+  rw sym.cons,
+end
+
 end sym

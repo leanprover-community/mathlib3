@@ -124,17 +124,11 @@ begin
 end
 
 /-- The top intermediate_field is isomorphic to the field. -/
-noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
+@[simps apply] def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
 (subalgebra.equiv_of_eq _ _ top_to_subalgebra).trans algebra.top_equiv
 
-@[simp] lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
-begin
-  suffices : algebra.to_top (top_equiv x) = algebra.to_top (x : E),
-  { rwa subtype.ext_iff at this },
-  exact alg_equiv.apply_symm_apply (alg_equiv.of_bijective algebra.to_top
-    ⟨λ _ _, subtype.mk.inj, λ x, ⟨x.val, by { ext, refl }⟩⟩ : E ≃ₐ[F] (⊤ : subalgebra F E))
-    (subalgebra.equiv_of_eq _ _ top_to_subalgebra x),
-end
+@[simp] lemma top_equiv_symm_apply_coe (a : E) :
+  ↑((top_equiv.symm) a : (⊤ : intermediate_field F E)) = a := rfl
 
 @[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
 by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
@@ -762,6 +756,37 @@ begin
 end
 
 end alg_hom_mk_adjoin_splits
+
+section supremum
+
+lemma le_sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
+  (E1 E2 : intermediate_field K L) :
+  E1.to_subalgebra ⊔ E2.to_subalgebra ≤ (E1 ⊔ E2).to_subalgebra :=
+sup_le (show E1 ≤ E1 ⊔ E2, from le_sup_left) (show E2 ≤ E1 ⊔ E2, from le_sup_right)
+
+lemma sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
+  (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
+  (E1 ⊔ E2).to_subalgebra = E1.to_subalgebra ⊔ E2.to_subalgebra :=
+begin
+  let S1 := E1.to_subalgebra,
+  let S2 := E2.to_subalgebra,
+  refine le_antisymm (show _ ≤ (S1 ⊔ S2).to_intermediate_field _, from (sup_le (show S1 ≤ _,
+    from le_sup_left) (show S2 ≤ _, from le_sup_right))) (le_sup_to_subalgebra E1 E2),
+  suffices : is_field ↥(S1 ⊔ S2),
+  { intros x hx,
+    by_cases hx' : (⟨x, hx⟩ : S1 ⊔ S2) = 0,
+    { rw [←subtype.coe_mk x hx, hx', subalgebra.coe_zero, inv_zero],
+      exact (S1 ⊔ S2).zero_mem },
+    { obtain ⟨y, h⟩ := this.mul_inv_cancel hx',
+      exact (congr_arg (∈ S1 ⊔ S2) (eq_inv_of_mul_right_eq_one (subtype.ext_iff.mp h))).mp y.2 } },
+  refine is_field_of_is_integral_of_is_field' _ (field.to_is_field K),
+  have h1 : algebra.is_algebraic K E1 := algebra.is_algebraic_of_finite,
+  have h2 : algebra.is_algebraic K E2 := algebra.is_algebraic_of_finite,
+  rw is_algebraic_iff_is_integral' at h1 h2,
+  exact is_integral_sup.mpr ⟨h1, h2⟩,
+end
+
+end supremum
 
 end intermediate_field
 

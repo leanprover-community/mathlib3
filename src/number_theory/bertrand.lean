@@ -1270,9 +1270,37 @@ begin
     exact le_mul_of_one_le_left hyx hlogx, },
 end
 
+example (a b c : ℝ) (hc : 0 < c) : a ≤ b ↔ a / c ≤ b / c := (div_le_div_right hc).symm
+
+lemma one_lt_four : (1 : ℝ) < 4 := by linarith
+
+
 lemma inequality1 {x : ℝ} (n_large : 1003 < x) : log (2 * x + 1) / (x * log 4) ≤ 1/8 :=
 begin
-  sorry
+  suffices : log (4 * x) / (x * log 4) ≤ 1 / 8,
+  apply trans _ this,
+  rw div_le_div_right,
+  rw log_le_log,
+  repeat {linarith,},
+  apply mul_pos,
+  linarith,
+  apply log_pos,
+  exact one_lt_four,
+  rw log_mul,
+  rw add_div,
+  have h4 : 0 < x,
+    linarith,
+  have x_ne_zero : x ≠ 0, exact ne_of_gt h4,
+  have h1: log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
+  have h2: log 4 * sqrt x ≠ 0, apply mul_ne_zero h1, exact sqrt_ne_zero'.mpr h4,
+
+  have h3 : log 4 / (x * log 4) + log x / (x * log 4) = 1 / x + (log x / x) / log 4,
+    field_simp,
+  ring,
+  rw h3,
+  sorry,
+
+  -- field_simp,
 end
 
 

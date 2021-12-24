@@ -66,9 +66,9 @@ proof of `comm_group`. -/
   a better proof of `add_comm_group`."]
 def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
 { mul_comm := λ x y,
-    let ⟨g, hg⟩ := is_cyclic.exists_generator α in
-    let ⟨n, hn⟩ := hg x in
-    let ⟨m, hm⟩ := hg y in
+    let ⟨g, hg⟩ := is_cyclic.exists_generator α,
+        ⟨n, hn⟩ := hg x,
+        ⟨m, hm⟩ := hg y in
     hm ▸ hn ▸ zpow_mul_comm _ _ _,
   ..hg }
 

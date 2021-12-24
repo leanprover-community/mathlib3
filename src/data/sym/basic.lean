@@ -116,6 +116,15 @@ begin
   exact h,
 end
 
+def erase [decidable_eq α] (s : sym α (n + 1)) (a : α) (h : a ∈ s) : sym α n :=
+⟨s.val.erase a, begin
+  cases s with s t,
+  simp only,
+  have := multiset.card_erase_of_mem h,
+  simp only [t, nat.pred] at this,
+  assumption,
+end⟩
+
 /--
 Another definition of the nth symmetric power, using vectors modulo permutations. (See `sym`.)
 -/

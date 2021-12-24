@@ -99,7 +99,7 @@ begin
   /- apply easy direction of the spectral mapping theorem for polynomials -/
   have pow_mem : k ^ (n + 1) ∈ σ (a ^ (n + 1)),
     by simpa only [one_mul, algebra.algebra_map_eq_smul_one, one_smul, aeval_monomial, one_mul,
-      eval_monomial] using polynomial_subset a (monomial (n + 1) (1 : 𝕜)) ⟨k, hk, rfl⟩,
+      eval_monomial] using subset_polynomial_aeval a (monomial (n + 1) (1 : 𝕜)) ⟨k, hk, rfl⟩,
   /- power of the norm is bounded by norm of the power -/
   have nnnorm_pow_le : ↑(∥k∥₊ ^ (n + 1)) ≤ ↑∥a ^ (n + 1)∥₊,
     by simpa only [norm_to_nnreal, normed_field.nnnorm_pow k (n+1)]

@@ -175,7 +175,7 @@ lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 
 lemma compact_symm_image_closed_ball :
   is_compact ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
-(is_compact_closed_ball.inter_right I.closed_range).image_of_continuous_on $
+(euclidean.is_compact_closed_ball.inter_right I.closed_range).image_of_continuous_on $
   (ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset
 
 /-- Given a smooth bump function `f : smooth_bump_function I c`, the closed ball of radius `f.R` is

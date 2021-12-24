@@ -91,7 +91,7 @@ theorem le_max_ideal : span_eval k ≤ max_ideal k :=
 
 /-- The first step of constructing `algebraic_closure`: adjoin a root of all monic polynomials -/
 def adjoin_monic : Type u :=
-(max_ideal k).quotient
+mv_polynomial (monic_irreducible k) k ⧸ max_ideal k
 
 instance adjoin_monic.field : field (adjoin_monic k) :=
 ideal.quotient.field _

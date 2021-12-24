@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 import ring_theory.coprime.basic
-import ring_theory.unique_factorization_domain
+import ring_theory.principal_ideal_domain
 
 /-!
 # Divisibility over ℕ and ℤ
@@ -67,13 +67,14 @@ namespace nat
 
 instance : wf_dvd_monoid ℕ :=
 ⟨begin
-  apply rel_hom.well_founded _ (with_top.well_founded_lt nat.lt_wf),
-  refine ⟨λ x, if x = 0 then ⊤ else x, _⟩,
+  refine rel_hom_class.well_founded
+    (⟨λ (x : ℕ), if x = 0 then (⊤ : with_top ℕ) else x, _⟩ : dvd_not_unit →r (<))
+    (with_top.well_founded_lt nat.lt_wf),
   intros a b h,
   cases a,
   { exfalso, revert h, simp [dvd_not_unit] },
   cases b,
-  {simp [succ_ne_zero, with_top.coe_lt_top]},
+  { simp [succ_ne_zero, with_top.coe_lt_top] },
   cases dvd_and_not_dvd_iff.2 h with h1 h2,
   simp only [succ_ne_zero, with_top.coe_lt_coe, if_false],
   apply lt_of_le_of_ne (nat.le_of_dvd (nat.succ_pos _) h1) (λ con, h2 _),
@@ -270,8 +271,9 @@ begin
       associates.mk_eq_mk_iff_associated.2 $ associated.symm $ ⟨norm_unit a, _⟩),
     show normalize a = int.nat_abs (normalize a),
     rw [int.coe_nat_abs_eq_normalize, normalize_idem] },
-  { intro n, dsimp, rw [associates.out_mk ↑n,
-    ← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
+  { intro n,
+    dsimp,
+    rw [←normalize_apply, ← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
 end
 
 lemma int.prime.dvd_mul {m n : ℤ} {p : ℕ}
@@ -315,6 +317,12 @@ begin
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
 
+lemma int.exists_prime_and_dvd {n : ℤ} (n2 : 2 ≤ n.nat_abs) : ∃ p, prime p ∧ p ∣ n :=
+begin
+  obtain ⟨p, pp, pd⟩ := nat.exists_prime_and_dvd n2,
+  exact ⟨p, nat.prime_iff_prime_int.mp pp, int.coe_nat_dvd_left.mpr pd⟩,
+end
+
 open unique_factorization_monoid
 
 theorem nat.factors_eq {n : ℕ} : normalized_factors n = n.factors :=
@@ -345,7 +353,7 @@ end
 namespace multiplicity
 
 lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_abs b.nat_abs :=
-by simp only [finite_def, ← int.nat_abs_dvd_abs_iff, int.nat_abs_pow]
+by simp only [finite_def, ← int.nat_abs_dvd_iff_dvd, int.nat_abs_pow]
 
 lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
 by rw [finite_int_iff_nat_abs_finite, finite_nat_iff, pos_iff_ne_zero, int.nat_abs_ne_zero]
@@ -378,8 +386,8 @@ lemma int.prime_iff_nat_abs_prime {k : ℤ} : prime k ↔ nat.prime k.nat_abs :=
 
 theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=
 begin
-  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_abs_iff, ←int.nat_abs_dvd_abs_iff,
-    dvd_dvd_iff_associated],
+  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_iff_dvd,
+      ←int.nat_abs_dvd_iff_dvd, dvd_dvd_iff_associated],
   exact associated_iff_eq,
 end
 
@@ -399,5 +407,23 @@ le_antisymm
 
 lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
 by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }
+
+theorem eq_pow_of_mul_eq_pow_bit1_left {a b c : ℤ}
+  (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) : ∃ d, a = d ^ (bit1 k) :=
+begin
+  obtain ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow' hab h,
+  replace hd := hd.symm,
+  rw [associated_iff_nat_abs, nat_abs_eq_nat_abs_iff, ←neg_pow_bit1] at hd,
+  obtain rfl|rfl := hd; exact ⟨_, rfl⟩,
+end
+
+theorem eq_pow_of_mul_eq_pow_bit1_right {a b c : ℤ}
+  (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) : ∃ d, b = d ^ (bit1 k) :=
+eq_pow_of_mul_eq_pow_bit1_left hab.symm (by rwa mul_comm at h)
+
+theorem eq_pow_of_mul_eq_pow_bit1 {a b c : ℤ}
+  (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ (bit1 k)) :
+  (∃ d, a = d ^ (bit1 k)) ∧ (∃ e, b = e ^ (bit1 k)) :=
+⟨eq_pow_of_mul_eq_pow_bit1_left hab h, eq_pow_of_mul_eq_pow_bit1_right hab h⟩
 
 end int

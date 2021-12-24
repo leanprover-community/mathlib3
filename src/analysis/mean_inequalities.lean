@@ -142,25 +142,20 @@ theorem geom_mean_le_arith_mean2_weighted (w₁ w₂ p₁ p₂ : ℝ≥0) :
   w₁ + w₂ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) ≤ w₁ * p₁ + w₂ * p₂ :=
 by simpa only [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
   fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one]
-using geom_mean_le_arith_mean_weighted (univ : finset (fin 2))
-  (fin.cons w₁ $ fin.cons w₂ fin_zero_elim) (fin.cons p₁ $ fin.cons p₂ $ fin_zero_elim)
+using geom_mean_le_arith_mean_weighted univ ![w₁, w₂] ![p₁, p₂]
 
 theorem geom_mean_le_arith_mean3_weighted (w₁ w₂ w₃ p₁ p₂ p₃ : ℝ≥0) :
   w₁ + w₂ + w₃ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) * p₃ ^ (w₃:ℝ) ≤ w₁ * p₁ + w₂ * p₂ + w₃ * p₃ :=
 by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
   fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
-using geom_mean_le_arith_mean_weighted (univ : finset (fin 3))
-  (fin.cons w₁ $ fin.cons w₂ $ fin.cons w₃ fin_zero_elim)
-  (fin.cons p₁ $ fin.cons p₂ $ fin.cons p₃ fin_zero_elim)
+using geom_mean_le_arith_mean_weighted univ ![w₁, w₂, w₃] ![p₁, p₂, p₃]
 
 theorem geom_mean_le_arith_mean4_weighted (w₁ w₂ w₃ w₄ p₁ p₂ p₃ p₄ : ℝ≥0) :
   w₁ + w₂ + w₃ + w₄ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) * p₃ ^ (w₃:ℝ)* p₄ ^ (w₄:ℝ) ≤
     w₁ * p₁ + w₂ * p₂ + w₃ * p₃ + w₄ * p₄ :=
 by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
   fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
-using geom_mean_le_arith_mean_weighted (univ : finset (fin 4))
-  (fin.cons w₁ $ fin.cons w₂ $ fin.cons w₃ $ fin.cons w₄ fin_zero_elim)
-  (fin.cons p₁ $ fin.cons p₂ $ fin.cons p₃ $ fin.cons p₄ fin_zero_elim)
+using geom_mean_le_arith_mean_weighted univ ![w₁, w₂, w₃, w₄] ![p₁, p₂, p₃, p₄]
 
 end nnreal
 
@@ -320,6 +315,26 @@ begin
     rpow_one, div_self hG_zero], },
 end
 
+/-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
+sum of the `p`-th powers of `f i`. Version for sums over finite sets, with `ℝ≥0`-valued functions.
+-/
+theorem rpow_sum_le_const_mul_sum_rpow (f : ι → ℝ≥0) {p : ℝ} (hp : 1 ≤ p) :
+  (∑ i in s, f i) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, (f i) ^ p :=
+begin
+  cases eq_or_lt_of_le hp with hp hp,
+  { simp [← hp] },
+  let q : ℝ := p / (p - 1),
+  have hpq : p.is_conjugate_exponent q,
+  { rw real.is_conjugate_exponent_iff hp },
+  have hp₁ : 1 / p * p = 1 := one_div_mul_cancel hpq.ne_zero,
+  have hq : 1 / q * p = (p - 1),
+  { rw [← hpq.div_conj_eq_sub_one],
+    ring },
+  simpa only [nnreal.mul_rpow, ← nnreal.rpow_mul, hp₁, hq, one_mul, one_rpow, rpow_one,
+    pi.one_apply, sum_const, nat.smul_one_eq_coe]
+    using nnreal.rpow_le_rpow (inner_le_Lp_mul_Lq s 1 f hpq.symm) hpq.nonneg,
+end
+
 /-- The `L_p` seminorm of a vector `f` is the greatest value of the inner product
 `∑ i in s, f i * g i` over functions `g` of `L_q` seminorm less than or equal to one. -/
 theorem is_greatest_Lp (f : ι → ℝ≥0) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
@@ -362,6 +377,51 @@ begin
     ((is_greatest_Lp s g hpq).2 ⟨φ, hφ, rfl⟩)
 end
 
+/-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
+equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
+exist. A version for `nnreal`-valued functions. For an alternative version, convenient if the
+infinite sums are already expressed as `p`-th powers, see `Lp_add_le_has_sum_of_nonneg`. -/
+theorem Lp_add_le_tsum {f g : ι → ℝ≥0} {p : ℝ} (hp : 1 ≤ p) (hf : summable (λ i, (f i) ^ p))
+  (hg : summable (λ i, (g i) ^ p)) :
+  summable (λ i, (f i + g i) ^ p) ∧
+  (∑' i, (f i + g i) ^ p) ^ (1 / p) ≤ (∑' i, (f i) ^ p) ^ (1 / p) + (∑' i, (g i) ^ p) ^ (1 / p) :=
+begin
+  have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  have H₁ : ∀ s : finset ι, ∑ i in s, (f i + g i) ^ p
+    ≤ ((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p,
+  { intros s,
+    rw ← nnreal.rpow_one_div_le_iff pos,
+    refine le_trans (Lp_add_le s f g hp) (add_le_add _ _);
+    rw nnreal.rpow_le_rpow_iff (one_div_pos.mpr pos);
+    refine sum_le_tsum _ (λ _ _, zero_le _) _,
+    exacts [hf, hg] },
+  have bdd : bdd_above (set.range (λ s, ∑ i in s, (f i + g i) ^ p)),
+  { refine ⟨((∑' i, (f i)^p) ^ (1/p) + (∑' i, (g i)^p) ^ (1/p)) ^ p, _⟩,
+    rintros a ⟨s, rfl⟩,
+    exact H₁ s },
+  have H₂ : summable _ := (has_sum_of_is_lub _ (is_lub_csupr bdd)).summable,
+  refine ⟨H₂, _⟩,
+  rw nnreal.rpow_one_div_le_iff pos,
+  refine tsum_le_of_sum_le H₂ H₁,
+end
+
+/-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
+equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
+exist. A version for `nnreal`-valued functions. For an alternative version, convenient if the
+infinite sums are not already expressed as `p`-th powers, see `Lp_add_le_tsum_of_nonneg`.  -/
+theorem Lp_add_le_has_sum {f g : ι → ℝ≥0} {A B : ℝ≥0} {p : ℝ} (hp : 1 ≤ p)
+  (hf : has_sum (λ i, (f i) ^ p) (A ^ p)) (hg : has_sum (λ i, (g i) ^ p) (B ^ p)) :
+  ∃ C, C ≤ A + B ∧ has_sum (λ i, (f i + g i) ^ p) (C ^ p) :=
+begin
+  have hp' : p ≠ 0 := (lt_of_lt_of_le zero_lt_one hp).ne',
+  obtain ⟨H₁, H₂⟩ := Lp_add_le_tsum hp hf.summable hg.summable,
+  have hA : A = (∑' (i : ι), f i ^ p) ^ (1 / p) := by rw [hf.tsum_eq, rpow_inv_rpow_self hp'],
+  have hB : B = (∑' (i : ι), g i ^ p) ^ (1 / p) := by rw [hg.tsum_eq, rpow_inv_rpow_self hp'],
+  refine ⟨(∑' i, (f i + g i) ^ p) ^ (1 / p), _, _⟩,
+  { simpa [hA, hB] using H₂ },
+  { simpa only [rpow_self_rpow_inv hp'] using H₁.has_sum }
+end
+
 end nnreal
 
 namespace real
@@ -372,8 +432,7 @@ variables (f g : ι → ℝ)  {p q : ℝ}
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
 with real-valued functions. -/
 theorem inner_le_Lp_mul_Lq (hpq : is_conjugate_exponent p q) :
-  ∑ i in s, f i * g i ≤ (∑ i in s, (abs $ f i)^p) ^ (1 / p) *
-  (∑ i in s, (abs $ g i)^q) ^ (1 / q) :=
+  ∑ i in s, f i * g i ≤ (∑ i in s, |f i| ^ p) ^ (1 / p) * (∑ i in s, |g i| ^ q) ^ (1 / q) :=
 begin
   have := nnreal.coe_le_coe.2 (nnreal.inner_le_Lp_mul_Lq s (λ i, ⟨_, abs_nonneg (f i)⟩)
     (λ i, ⟨_, abs_nonneg (g i)⟩) hpq),
@@ -382,11 +441,22 @@ begin
   simp only [← abs_mul, le_abs_self]
 end
 
+/-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
+sum of the `p`-th powers of `f i`. Version for sums over finite sets, with `ℝ`-valued functions. -/
+theorem rpow_sum_le_const_mul_sum_rpow (hp : 1 ≤ p) :
+  (∑ i in s, |f i|) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, |f i| ^ p :=
+begin
+  have := nnreal.coe_le_coe.2
+    (nnreal.rpow_sum_le_const_mul_sum_rpow s (λ i, ⟨_, abs_nonneg (f i)⟩) hp),
+  push_cast at this,
+  exact this, -- for some reason `exact_mod_cast` can't replace this argument
+end
+
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal
 to the sum of the `L_p`-seminorms of the summands. A version for `real`-valued functions. -/
 theorem Lp_add_le (hp : 1 ≤ p) :
-  (∑ i in s, (abs $ f i + g i) ^ p) ^ (1 / p) ≤
-    (∑ i in s, (abs $ f i) ^ p) ^ (1 / p) + (∑ i in s, (abs $ g i) ^ p) ^ (1 / p) :=
+  (∑ i in s, |f i + g i| ^ p) ^ (1 / p) ≤
+    (∑ i in s, |f i| ^ p) ^ (1 / p) + (∑ i in s, |g i| ^ p) ^ (1 / p) :=
 begin
   have := nnreal.coe_le_coe.2 (nnreal.Lp_add_le s (λ i, ⟨_, abs_nonneg (f i)⟩)
     (λ i, ⟨_, abs_nonneg (g i)⟩) hp),
@@ -407,14 +477,57 @@ theorem inner_le_Lp_mul_Lq_of_nonneg (hpq : is_conjugate_exponent p q)
 by convert inner_le_Lp_mul_Lq s f g hpq using 3; apply sum_congr rfl; intros i hi;
   simp only [abs_of_nonneg, hf i hi, hg i hi]
 
+/-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
+sum of the `p`-th powers of `f i`. Version for sums over finite sets, with nonnegative `ℝ`-valued
+functions. -/
+theorem rpow_sum_le_const_mul_sum_rpow_of_nonneg (hp : 1 ≤ p) (hf : ∀ i ∈ s, 0 ≤ f i) :
+  (∑ i in s, f i) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, f i ^ p :=
+by convert rpow_sum_le_const_mul_sum_rpow s f hp using 2; apply sum_congr rfl; intros i hi;
+  simp only [abs_of_nonneg, hf i hi]
+
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal
-to the sum of the `L_p`-seminorms of the summands. A version for `real`-valued nonnegative
+to the sum of the `L_p`-seminorms of the summands. A version for `ℝ`-valued nonnegative
 functions. -/
 theorem Lp_add_le_of_nonneg (hp : 1 ≤ p) (hf : ∀ i ∈ s, 0 ≤ f i) (hg : ∀ i ∈ s, 0 ≤ g i) :
   (∑ i in s, (f i + g i) ^ p) ^ (1 / p) ≤
     (∑ i in s, (f i) ^ p) ^ (1 / p) + (∑ i in s, (g i) ^ p) ^ (1 / p) :=
 by convert Lp_add_le s f g hp using 2 ; [skip, congr' 1, congr' 1];
   apply sum_congr rfl; intros i hi; simp only [abs_of_nonneg, hf i hi, hg i hi, add_nonneg]
+
+/-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
+equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
+exist. A version for `ℝ`-valued functions. For an alternative version, convenient if the infinite
+sums are already expressed as `p`-th powers, see `Lp_add_le_has_sum_of_nonneg`. -/
+theorem Lp_add_le_tsum_of_nonneg (hp : 1 ≤ p) (hf : ∀ i, 0 ≤ f i) (hg : ∀ i, 0 ≤ g i)
+  (hf_sum : summable (λ i, (f i) ^ p)) (hg_sum : summable (λ i, (g i) ^ p)) :
+  summable (λ i, (f i + g i) ^ p) ∧
+  (∑' i, (f i + g i) ^ p) ^ (1 / p) ≤ (∑' i, (f i) ^ p) ^ (1 / p) + (∑' i, (g i) ^ p) ^ (1 / p) :=
+begin
+  lift f to (ι → ℝ≥0) using hf,
+  lift g to (ι → ℝ≥0) using hg,
+  norm_cast at *,
+  exact nnreal.Lp_add_le_tsum hp hf_sum hg_sum,
+end
+
+/-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
+equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
+exist. A version for `ℝ`-valued functions. For an alternative version, convenient if the infinite
+sums are not already expressed as `p`-th powers, see `Lp_add_le_tsum_of_nonneg`. -/
+theorem Lp_add_le_has_sum_of_nonneg (hp : 1 ≤ p) (hf : ∀ i, 0 ≤ f i) (hg : ∀ i, 0 ≤ g i) {A B : ℝ}
+  (hA : 0 ≤ A) (hB : 0 ≤ B) (hfA : has_sum (λ i, (f i) ^ p) (A ^ p))
+  (hgB : has_sum (λ i, (g i) ^ p) (B ^ p)) :
+  ∃ C, 0 ≤ C ∧ C ≤ A + B ∧ has_sum (λ i, (f i + g i) ^ p) (C ^ p) :=
+begin
+  lift f to (ι → ℝ≥0) using hf,
+  lift g to (ι → ℝ≥0) using hg,
+  lift A to ℝ≥0 using hA,
+  lift B to ℝ≥0 using hB,
+  norm_cast at hfA hgB,
+  obtain ⟨C, hC₁, hC₂⟩ := nnreal.Lp_add_le_has_sum hp hfA hgB,
+  use C,
+  norm_cast,
+  exact ⟨zero_le _, hC₁, hC₂⟩,
+end
 
 end real
 
@@ -450,6 +563,26 @@ begin
   [skip, skip, simp, skip, simp];
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi, -with_zero.coe_mul,
     with_top.coe_mul.symm] },
+end
+
+/-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
+sum of the `p`-th powers of `f i`. Version for sums over finite sets, with `ℝ≥0∞`-valued functions.
+-/
+theorem rpow_sum_le_const_mul_sum_rpow (hp : 1 ≤ p) :
+  (∑ i in s, f i) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, (f i) ^ p :=
+begin
+  cases eq_or_lt_of_le hp with hp hp,
+  { simp [← hp] },
+  let q : ℝ := p / (p - 1),
+  have hpq : p.is_conjugate_exponent q,
+  { rw real.is_conjugate_exponent_iff hp },
+  have hp₁ : 1 / p * p = 1 := one_div_mul_cancel hpq.ne_zero,
+  have hq : 1 / q * p = (p - 1),
+  { rw [← hpq.div_conj_eq_sub_one],
+    ring },
+  simpa only [ennreal.mul_rpow_of_nonneg _ _ hpq.nonneg, ← ennreal.rpow_mul, hp₁, hq, coe_one,
+    one_mul, one_rpow, rpow_one, pi.one_apply, sum_const, nat.smul_one_eq_coe]
+    using ennreal.rpow_le_rpow (inner_le_Lp_mul_Lq s 1 f hpq.symm) hpq.nonneg,
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal

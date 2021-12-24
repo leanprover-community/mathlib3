@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 -/
 
+import data.fintype.basic
+import data.set.finite
 import data.setoid.basic
-import data.set.pairwise
 
 /-!
 # Equivalence relations: partitions
@@ -51,6 +52,22 @@ def classes (r : setoid α) : set (set α) :=
 {s | ∃ y, s = {x | r.rel x y}}
 
 lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, rfl⟩
+
+lemma classes_ker_subset_fiber_set {β : Type*} (f : α → β) :
+  (setoid.ker f).classes ⊆ set.range (λ y, {x | f x = y}) :=
+by { rintro s ⟨x, rfl⟩, rw set.mem_range, exact ⟨f x, rfl⟩ }
+
+lemma nonempty_fintype_classes_ker {α β : Type*} [fintype β] (f : α → β) :
+  nonempty (fintype (setoid.ker f).classes) :=
+by { classical, exact ⟨set.fintype_subset _ (classes_ker_subset_fiber_set f)⟩ }
+
+lemma card_classes_ker_le {α β : Type*} [fintype β]
+  (f : α → β) [fintype (setoid.ker f).classes] :
+  fintype.card (setoid.ker f).classes ≤ fintype.card β :=
+begin
+  classical,
+  exact le_trans (set.card_le_of_subset (classes_ker_subset_fiber_set f)) (fintype.card_range_le _)
+end
 
 /-- Two equivalence relations are equal iff all their equivalence classes are equal. -/
 lemma eq_iff_classes_eq {r₁ r₂ : setoid α} :

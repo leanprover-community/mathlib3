@@ -354,7 +354,7 @@ open set_like
 /--For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
 `I` spanned by all homogeneous components of elements in `I`. -/
 def ideal.homogeneous_hull : ideal R :=
-  ideal.span {r : R | ∃ (i : ι) (x : I), (graded_algebra.decompose A x i : R) = r}
+ideal.span {r : R | ∃ (i : ι) (x : I), (graded_algebra.decompose A x i : R) = r}
 
 lemma ideal.is_homogeneous.homogeneous_hull :
   ideal.is_homogeneous A (ideal.homogeneous_hull A I) :=
@@ -416,7 +416,7 @@ variables {R : Type*} [comm_ring R]
 variables (A : ι → ideal R) [graded_algebra A]
 variable [Π (i : ι) (x : A i), decidable (x ≠ 0)]
 
-lemma ideal.homgeneous_hull.gc :
+lemma ideal.homogeneous_hull.gc :
   galois_connection
     (λ I, ⟨ideal.homogeneous_hull A I, ideal.is_homogeneous.homogeneous_hull A I⟩ :
       ideal R → homogeneous_ideal A)

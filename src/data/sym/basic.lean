@@ -249,7 +249,8 @@ begin
   simp only [subtype.mk_eq_mk],
 end
 
-@[simp] lemma map_cons {α β : Type*} {n : ℕ} (f : α → β) (a : α) (s : sym α n) : sym.map f (a::s) = (f a)::sym.map f s :=
+@[simp] lemma map_cons {α β : Type*} {n : ℕ} (f : α → β) (a : α) (s : sym α n) :
+  sym.map f (a::s) = (f a)::sym.map f s :=
 begin
   simp only [map, subtype.mk.inj_eq, cons],
   convert multiset.map_cons f a s.val,
@@ -260,11 +261,11 @@ end
 lemma equiv_congr (β : Type u) (h : α ≃ β) : sym α n ≃ sym β n :=
 ⟨ λ x, x.map h.to_fun,
   λ x, x.map h.inv_fun,
-  by simp only [function.left_inverse, function.comp, map, equiv.to_fun_as_coe, multiset.map_id', equiv.symm_apply_apply,
-  implies_true_iff, eq_self_iff_true, multiset.map_map, subtype.coe_eta, subtype.coe_mk, subtype.val_eq_coe,
-  equiv.inv_fun_as_coe],
-  by simp only [function.left_inverse, function.right_inverse, function.comp, map, equiv.to_fun_as_coe, multiset.map_id',
-  implies_true_iff, eq_self_iff_true, equiv.apply_symm_apply, multiset.map_map, subtype.coe_eta, subtype.coe_mk,
-  subtype.val_eq_coe, equiv.inv_fun_as_coe] ⟩
+  by simp only [function.left_inverse, function.comp, map, equiv.to_fun_as_coe, multiset.map_id',
+  equiv.symm_apply_apply, implies_true_iff, eq_self_iff_true, multiset.map_map, subtype.coe_eta,
+  subtype.coe_mk, subtype.val_eq_coe, equiv.inv_fun_as_coe],
+  by simp only [function.left_inverse, function.right_inverse, function.comp, map,
+  equiv.to_fun_as_coe, multiset.map_id', implies_true_iff, eq_self_iff_true, equiv.apply_symm_apply,
+  multiset.map_map, subtype.coe_eta, subtype.coe_mk, subtype.val_eq_coe, equiv.inv_fun_as_coe] ⟩
 
 end sym

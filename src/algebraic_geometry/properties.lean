@@ -49,7 +49,7 @@ begin
     { instances := ff },
   { rintro ⟨_,i,rfl⟩, exact (X.affine_cover.is_open i).base_open.open_range },
   { rintro ⟨_,i,rfl⟩,
-    exact @@open_embedding.sober _ _ _
+    exact @@open_embedding.quasi_sober _ _ _
       (homeomorph.of_embedding _ (X.affine_cover.is_open i).base_open.to_embedding)
       .symm.open_embedding prime_spectrum.quasi_sober },
   { rw [set.top_eq_univ, set.sUnion_range, set.eq_univ_iff_forall],

@@ -248,17 +248,8 @@ section support
 lemma support_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f) :
   (rename f p).support = finset.image (map_domain f) p.support :=
 begin
-  rw finset.ext_iff,
-  intro a,
-  simp only [exists_prop, mem_support_iff, finset.mem_image, ne.def],
-  split,
-  { intro h1,
-    cases coeff_rename_ne_zero f p a h1 with d hd,
-    rw ← hd.1,
-    exact ⟨d, ⟨hd.2, by refl⟩⟩ },
-  { intro h,
-    cases h with b hb,
-    simpa only [←hb.right, coeff_rename_map_domain f h p b] using hb.left },
+  rw rename_eq,
+  exact finsupp.map_domain_support_of_injective (map_domain_injective h) _,
 end
 
 end support

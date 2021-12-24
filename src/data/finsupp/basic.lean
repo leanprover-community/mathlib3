@@ -1552,6 +1552,14 @@ finset.subset.trans support_sum $
   finset.subset.trans (finset.bUnion_mono $ assume a ha, support_single_subset) $
   by rw [finset.bUnion_singleton]; exact subset.refl _
 
+lemma map_domain_support_of_injective [decidable_eq β] {f : α → β} (hf : function.injective f)
+  (s : α →₀ M) : (map_domain f s).support = finset.image f s.support :=
+finset.subset.antisymm finsupp.map_domain_support $ begin
+  rw finset.image_subset_iff_subset_preimage (hf.inj_on _),
+  intros x hx,
+  simp[map_domain_apply hf, finsupp.mem_support_iff.mp hx],
+end
+
 @[to_additive]
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
   {h : β → M → N} (h_zero : ∀b, h b 0 = 1) (h_add : ∀b m₁ m₂, h b (m₁ + m₂) = h b m₁ * h b m₂) :

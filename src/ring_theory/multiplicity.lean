@@ -167,7 +167,7 @@ by rw [ne.def, eq_top_iff_not_finite, not_not]
 lemma lt_top_iff_finite {a b : α} : multiplicity a b < ⊤ ↔ finite a b :=
 by rw [lt_top_iff_ne_top, ne_top_iff_finite]
 
-lemma eq_pow_mul_not_dvd {a b : α} (hfin : finite a b) :
+lemma exists_eq_pow_mul_and_not_dvd {a b : α} (hfin : finite a b) :
   ∃ (c : α), b = a ^ ((multiplicity a b).get hfin) * c ∧ ¬ a ∣ c :=
 begin
   obtain ⟨c, hc⟩ := multiplicity.pow_multiplicity_dvd hfin,

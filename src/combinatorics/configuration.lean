@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import combinatorics.hall.basic
+import data.fintype.card
 import set_theory.fincard
 
 /-!
@@ -23,6 +24,8 @@ This file introduces abstract configurations of points and lines, and proves som
 ## Todo
 * Abstract projective planes.
 -/
+
+open_locale big_operators
 
 namespace configuration
 
@@ -132,5 +135,19 @@ variables (P) {L}
 
 /-- Number of lines through a given point. -/
 noncomputable def point_count (l : L) : ℕ := nat.card {p : P // p ∈ l}
+
+variables (P L)
+
+lemma sum_line_count_eq_sum_point_count [fintype P] [fintype L] :
+  ∑ p : P, line_count L p = ∑ l : L, point_count P l :=
+begin
+  classical,
+  simp only [line_count, point_count, nat.card_eq_fintype_card, ←fintype.card_sigma],
+  apply fintype.card_congr,
+  calc (Σ p, {l : L // p ∈ l}) ≃ {x : P × L // x.1 ∈ x.2} :
+    (equiv.subtype_prod_equiv_sigma_subtype (∈)).symm
+  ... ≃ {x : L × P // x.2 ∈ x.1} : (equiv.prod_comm P L).subtype_equiv (λ x, iff.rfl)
+  ... ≃ (Σ l, {p // p ∈ l}) : equiv.subtype_prod_equiv_sigma_subtype (λ (l : L) (p : P), p ∈ l),
+end
 
 end configuration

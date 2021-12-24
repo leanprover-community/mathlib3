@@ -92,7 +92,7 @@ begin
   { ext1, exact (set.preimage_image_eq _ H.base_open.inj).symm },
   rw this,
   exact is_reduced_of_injective (inv $ f.1.c.app (op $ H.base_open.is_open_map.functor.obj U))
-    (as_iso $ f.1.c.app (op $ H.base_open.is_open_map.functor.obj U)).symm
+    (as_iso $ f.1.c.app (op $ H.base_open.is_open_map.functor.obj U) : Y.presheaf.obj _ ≅ _).symm
       .CommRing_iso_to_ring_equiv.injective
 end
 

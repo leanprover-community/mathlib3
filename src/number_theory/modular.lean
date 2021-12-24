@@ -53,23 +53,94 @@ section upper_half_plane_action
 
 /-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
 the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
-instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
-mul_action.comp_hom ℍ (map (algebra_map R ℝ))
+
+instance {R : Type*} [comm_ring R] [algebra R ℝ] :mul_action SL(2, R) ℍ :=
+ mul_action.comp_hom ℍ  (monoid_hom.comp (special_linear_group.to_GL_pos)
+ (map (algebra_map R ℝ)) )
+
+@[simp]
+lemma smul_eq_smul (g : SL(2,ℤ)) (z : ℍ) : g • z = ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ)) • z :=rfl
+
+@[simp]
+lemma coe2 (g : SL(2,ℤ)) : ∀ i j,  ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ)) i j = (↑ₘg i j  : ℝ)  :=
+begin
+intros i j,
+sorry,
+end
+
+@[simp]
+lemma coe3 (g : SL(2,ℤ)) : ∀ i j, (((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ)) i j : ℂ) = (↑ₘg i j : ℂ) :=
+begin
+intros i j,
+simp,
+end
+
+@[simp]
+lemma coe4 (g : SL(2,ℤ)) : ∀ i j, (g : SL(2, ℝ)) i j = (↑ₘg i j : ℝ) :=
+begin
+intros i j,
+simp,
+sorry,
+end
+
+
+@[simp]
+lemma coe5 (g : SL(2,ℤ)) : ∀ i j,  (↑ₘg i j : ℝ) =
+( (coe : SL(2,ℝ) → matrix (fin 2) (fin 2) ℝ)  (g : SL(2,ℝ))) i j:=
+begin
+intros i j,
+
+sorry,
+end
+
+
+
+@[simp]
+lemma coe6 (g : SL(2,ℤ)) : ∀ i j,  (↑ₘg i j : ℂ) =
+( (coe : SL(2,ℝ) → matrix (fin 2) (fin 2) ℝ)  (g : SL(2,ℝ))) i j :=
+begin
+intros i j,
+
+sorry,
+end
+
+
 
 lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 lemma re_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
 @[simp] lemma smul_coe (g : SL(2, ℤ)) (z : ℍ) : (g : SL(2,ℝ)) • z = g • z := rfl
 
 @[simp] lemma neg_smul (g : SL(2, ℤ)) (z : ℍ) : -g • z = g • z :=
-show ↑(-g) • _ = _, by simp [neg_smul g z]
+begin
+have := neg_smul g z,
+dsimp at *,
+rw ← this,
+congr,
+ext i j,
+rw SL2Z.has_neg,
+have := coe2 g i j,
+simp at this,
+sorry,
+end
 
 lemma im_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
 lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
-im_smul_eq_div_norm_sq g z
+begin
+have := im_smul_eq_div_norm_sq g z,
+have de: det ( g : GL_pos (fin 2) ℝ) = 1, by {have := g.2,   sorry,},
+simp_rw de at this,
+dsimp at *,
+simp at *,
+apply this,
+end
 
-@[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
+@[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
+begin
+rw denom,
+simp,
+end
 
 end upper_half_plane_action
 
@@ -219,7 +290,7 @@ begin
   fin_cases j,
   { ext i,
     fin_cases i,
-    { simp [mB, f₁, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ] },
+    { simp [mB, f₁, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ], },
     { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
       simp [f₁, ← hg, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ, matrix.det_fin_two,
         -special_linear_group.det_coe],
@@ -243,7 +314,7 @@ begin
   field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -denom_apply],
   rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
-  simp only [int.coe_cast_ring_hom, coe_matrix_coe, coe_fn_eq_coe,
+  simp [int.coe_cast_ring_hom, coe_matrix_coe, coe_fn_eq_coe,
     int.cast_mul, of_real_int_cast, map_apply, denom, int.cast_sub],
   ring,
 end

@@ -101,16 +101,13 @@ begin
     by simpa only [one_mul, algebra.algebra_map_eq_smul_one, one_smul, aeval_monomial, one_mul,
       eval_monomial] using subset_polynomial_aeval a (monomial (n + 1) (1 : 𝕜)) ⟨k, hk, rfl⟩,
   /- power of the norm is bounded by norm of the power -/
-  have nnnorm_pow_le : ↑(∥k∥₊ ^ (n + 1)) ≤ ↑∥a ^ (n + 1)∥₊,
+  have nnnorm_pow_le : (↑(∥k∥₊ ^ (n + 1)) : ℝ≥0∞) ≤ ↑∥a ^ (n + 1)∥₊,
     by simpa only [norm_to_nnreal, normed_field.nnnorm_pow k (n+1)]
       using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
   /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
   have hn : 0 < ((n + 1) : ℝ), by exact_mod_cast nat.succ_pos',
-  have pow_one_div_le := monotone_rpow_of_nonneg (one_div_pos.mpr hn).le nnnorm_pow_le,
-  dsimp only [] at pow_one_div_le,
-  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne.symm, rpow_one]
-    at pow_one_div_le,
-  exact pow_one_div_le,
+  convert monotone_rpow_of_nonneg (one_div_pos.mpr hn).le nnnorm_pow_le,
+  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one],
 end
 
 end spectrum_compact

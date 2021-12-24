@@ -982,8 +982,8 @@ namespace multiset
 
 lemma map_finset_sup [decidable_eq α] [decidable_eq β]
   (s : finset γ) (f : γ → multiset β) (g : β → α) (hg : function.injective g) :
-  multiset.map g (s.sup f) = s.sup (multiset.map g ∘ f) :=
-finset.comp_sup_eq_sup_comp _ (λ _ _, multiset.map_union hg) (multiset.map_zero _)
+  map g (s.sup f) = s.sup (map g ∘ f) :=
+finset.comp_sup_eq_sup_comp _ (λ _ _, map_union hg) (map_zero _)
 
 lemma count_finset_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
   count b (s.sup f) = s.sup (λa, count b (f a)) :=

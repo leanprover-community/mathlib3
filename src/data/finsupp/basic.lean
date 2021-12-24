@@ -1554,10 +1554,10 @@ finset.subset.trans support_sum $
 
 lemma map_domain_support_of_injective [decidable_eq β] {f : α → β} (hf : function.injective f)
   (s : α →₀ M) : (map_domain f s).support = finset.image f s.support :=
-finset.subset.antisymm finsupp.map_domain_support $ begin
+finset.subset.antisymm map_domain_support $ begin
   rw finset.image_subset_iff_subset_preimage (hf.inj_on _),
   intros x hx,
-  simp[map_domain_apply hf, finsupp.mem_support_iff.mp hx],
+  simp [map_domain_apply hf, mem_support_iff.mp hx],
 end
 
 @[to_additive]
@@ -1606,8 +1606,8 @@ begin
 end
 
 /-- When `f` is an embedding we have an embedding `(α →₀ ℕ)  ↪ (β →₀ ℕ)` given by `map_domain`. -/
-def map_domain_embedding {α β : Type*} (f : α ↪ β) : (α →₀ ℕ) ↪ (β →₀ ℕ) :=
-⟨finsupp.map_domain f.to_fun, finsupp.map_domain_injective f.inj'⟩
+@[simps] def map_domain_embedding {α β : Type*} (f : α ↪ β) : (α →₀ ℕ) ↪ (β →₀ ℕ) :=
+⟨finsupp.map_domain f, finsupp.map_domain_injective f.injective⟩
 
 lemma map_domain.add_monoid_hom_comp_map_range [add_comm_monoid N] (f : α → β) (g : M →+ N) :
   (map_domain.add_monoid_hom f).comp (map_range.add_monoid_hom g) =

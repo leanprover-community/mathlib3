@@ -117,7 +117,8 @@ instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β)
 instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 ⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
 
-theorem small_range {ι : Type v} {α : Type w} (f : ι → α) [small.{u} ι] : small.{u} (set.range f) :=
+theorem small_range {α : Type v} {β : Type w} (f : α → β) [small.{u} α] :
+  small.{u} (set.range f) :=
 small_of_surjective _ set.surjective_onto_range
 
 theorem not_small_type : ¬ small.{u} (Type (max u v))

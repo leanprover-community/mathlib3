@@ -283,9 +283,13 @@ begin
   set ppconts := g.continuants_aux n with ppconts_eq,
   -- use the recurrence of continuants_aux and the fact that gp_n.a = 1
   suffices : gp_n.b * pconts.b ≤ ppconts.b + gp_n.b * pconts.b, by
-  { have : gp_n.a = 1, from of_part_num_eq_one (part_num_eq_s_a nth_s_eq),
-    finish
-      [generalized_continued_fraction.continuants_aux_recurrence nth_s_eq ppconts_eq pconts_eq] },
+  { simp only
+      [this, one_mul, ←pconts_eq, ←ppconts_eq, of_part_num_eq_one (part_num_eq_s_a nth_s_eq),
+      generalized_continued_fraction.continuants_aux_recurrence nth_s_eq ppconts_eq pconts_eq],
+    induction gpnb_eq_b,
+    simp only [le_add_iff_nonneg_right],
+    simp only [le_add_iff_nonneg_left] at this,
+    assumption },
   have : 0 ≤ ppconts.b, from zero_le_of_continuants_aux_b,
   solve_by_elim [le_add_of_nonneg_of_le, le_refl]
 end

@@ -1440,6 +1440,30 @@ end
 lemma to_real_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_real < b.to_real :=
 (to_real_lt_to_real (h.trans (lt_top_iff_ne_top.2 hb)).ne hb).2 h
 
+lemma to_nnreal_mono (hb : b ≠ ∞) (h : a ≤ b) : a.to_nnreal ≤ b.to_nnreal :=
+by simpa [←ennreal.coe_le_coe, hb, (h.trans_lt hb.lt_top).ne]
+
+@[simp] lemma to_nnreal_le_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
+  a.to_nnreal ≤ b.to_nnreal ↔ a ≤ b :=
+begin
+  refine ⟨_, to_nnreal_mono hb⟩,
+  { intro h,
+    have key := ennreal.coe_le_coe.mpr h,
+    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
+end
+
+lemma to_nnreal_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_nnreal < b.to_nnreal :=
+by simpa [←ennreal.coe_lt_coe, hb, (h.trans hb.lt_top).ne]
+
+@[simp] lemma to_nnreal_lt_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
+  a.to_nnreal < b.to_nnreal ↔ a < b :=
+begin
+  refine ⟨_, to_nnreal_strict_mono hb⟩,
+  { intro h,
+    have key := ennreal.coe_lt_coe.mpr h,
+    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
+end
+
 lemma to_real_max (hr : a ≠ ∞) (hp : b ≠ ∞) :
   ennreal.to_real (max a b) = max (ennreal.to_real a) (ennreal.to_real b) :=
 (le_total a b).elim
@@ -1580,6 +1604,37 @@ begin
     simp only [ennreal.to_real_mul_top, ennreal.top_to_real, smul_zero] },
   { rw [← coe_smul, ennreal.coe_to_real, ennreal.coe_to_real],
     refl }
+end
+
+protected lemma trichotomy (p : ℝ≥0∞) : p = 0 ∨ p = ∞ ∨ 0 < p.to_real :=
+begin
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simp },
+  rcases eq_or_lt_of_le (le_top : p ≤ ⊤) with rfl | hp',
+  { simp },
+  simp [ennreal.to_real_pos_iff, hp, hp'.ne],
+end
+
+protected lemma trichotomy₂ {p q : ℝ≥0∞} (hpq : p ≤ q) :
+  (p = 0 ∧ q = 0) ∨ (p = 0 ∧ q = ∞) ∨ (p = 0 ∧ 0 < q.to_real) ∨ (p = ∞ ∧ q = ∞)
+  ∨ (0 < p.to_real ∧ q = ∞) ∨ (0 < p.to_real ∧ 0 < q.to_real ∧ p.to_real ≤ q.to_real) :=
+begin
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simpa using q.trichotomy },
+  rcases eq_or_lt_of_le (le_top : q ≤ ⊤) with rfl | hq,
+  { simpa using p.trichotomy },
+  repeat { right },
+  have hq' : 0 < q := lt_of_lt_of_le hp hpq,
+  have hp' : p < ⊤ := lt_of_le_of_lt hpq hq,
+  simp [ennreal.to_real_le_to_real, ennreal.to_real_pos_iff, hpq, hp, hp'.ne, hq', hq.ne],
+end
+
+protected lemma dichotomy (p : ℝ≥0∞) [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
+begin
+  tactic.unfreeze_local_instances,
+  have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
+  { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
+  exact this.imp_right (λ h, h.2)
 end
 
 /-- `ennreal.to_nnreal` as a `monoid_hom`. -/

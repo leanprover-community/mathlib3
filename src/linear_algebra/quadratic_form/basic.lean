@@ -430,6 +430,11 @@ rfl
 
 variables {n : Type*}
 
+/-- `sq` is the quadratic form mapping the vector `x : R₁` to `x * x` -/
+@[simps]
+def sq : quadratic_form R₁ R₁ :=
+lin_mul_lin linear_map.id linear_map.id
+
 /-- `proj i j` is the quadratic form mapping the vector `x : n → R₁` to `x i * x j` -/
 def proj (i j : n) : quadratic_form R₁ (n → R₁) :=
 lin_mul_lin (@linear_map.proj _ _ _ (λ _, R₁) _ _ i) (@linear_map.proj _ _ _ (λ _, R₁) _ _ j)
@@ -615,6 +620,10 @@ lemma not_anisotropic_iff_exists (Q : quadratic_form R M) :
   ¬anisotropic Q ↔ ∃ x ≠ 0, Q x = 0 :=
 by simp only [anisotropic, not_forall, exists_prop, and_comm]
 
+lemma anisotropic.eq_zero_iff {Q : quadratic_form R M} (h : anisotropic Q) {x : M} :
+  Q x = 0 ↔ x = 0 :=
+⟨h x, λ h, h.symm ▸ map_zero⟩
+
 /-- The associated bilinear form of an anisotropic quadratic form is nondegenerate. -/
 lemma nondegenerate_of_anisotropic [invertible (2 : R)] (Q : quadratic_form R M)
   (hB : Q.anisotropic) : Q.associated'.nondegenerate :=
@@ -639,6 +648,25 @@ lemma pos_def.smul {R} [linear_ordered_comm_ring R] [module R M]
 λ x hx, mul_pos a_pos (h x hx)
 
 variables {n : Type*}
+
+lemma pos_def.nonneg {Q : quadratic_form R₂ M} (hQ : pos_def Q) (x : M) :
+  0 ≤ Q x :=
+(eq_or_ne x 0).elim (λ h, h.symm ▸ (map_zero).symm.le) (λ h, (hQ _ h).le)
+
+lemma pos_def.anisotropic {Q : quadratic_form R₂ M} (hQ : Q.pos_def) : Q.anisotropic :=
+λ x hQx, classical.by_contradiction $ λ hx, lt_irrefl (0 : R₂) $ begin
+  have := hQ _ hx,
+  rw hQx at this,
+  exact this,
+end
+
+lemma pos_def_of_nonneg {Q : quadratic_form R₂ M} (h : ∀ x, 0 ≤ Q x) (h0 : Q.anisotropic) :
+  pos_def Q :=
+λ x hx, lt_of_le_of_ne (h x) (ne.symm $ λ hQx, hx $ h0 _ hQx)
+
+lemma pos_def_iff_nonneg {Q : quadratic_form R₂ M} :
+  pos_def Q ↔ (∀ x, 0 ≤ Q x) ∧ Q.anisotropic  :=
+⟨λ h, ⟨h.nonneg, h.anisotropic⟩, λ ⟨n, a⟩, pos_def_of_nonneg n a⟩
 
 lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def Q') :
   pos_def (Q + Q') :=

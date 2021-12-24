@@ -332,7 +332,7 @@ complete_lattice.independent.linear_independent _
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
 kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015]). Furthermore, a generalized eigenspace for
 some exponent `k` is contained in the generalized eigenspace for exponents larger than `k`. -/
-def generalized_eigenspace (f : End R M) (μ : R) : ℕ →ₘ submodule R M :=
+def generalized_eigenspace (f : End R M) (μ : R) : ℕ →o submodule R M :=
 { to_fun    := λ k, ((f - algebra_map R (End R M) μ) ^ k).ker,
   monotone' := λ k m hm,
   begin

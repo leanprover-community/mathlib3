@@ -748,7 +748,7 @@ section inv_submonoid
 
 variables (M S) [is_localization M S]
 
-lemma image_invertible : M.map (algebra_map R S : R →* S) ≤ is_unit.submonoid S :=
+lemma submonoid_map_le_is_unit : M.map (algebra_map R S : R →* S) ≤ is_unit.submonoid S :=
 by { rintros _ ⟨a, ha, rfl⟩, exact is_localization.map_units S ⟨_, ha⟩ }
 
 /-- The submonoid of `S = M⁻¹R` consisting of `{ 1 / x | x ∈ M }`. -/
@@ -758,7 +758,7 @@ def inv_submonoid : submonoid S := (M.map (algebra_map R S : R →* S)).left_inv
 /-- There is an equivalence of monoids between the image of `M` and `inv_submonoid`. -/
 noncomputable
 abbreviation equiv_inv_submonoid : M.map (algebra_map R S : R →* S) ≃* inv_submonoid M S :=
-((M.map (algebra_map R S : R →* S)).left_inv_equiv (image_invertible M S)).symm
+((M.map (algebra_map R S : R →* S)).left_inv_equiv (submonoid_map_le_is_unit M S)).symm
 
 /-- There is a canonical map from `M` to `inv_submonoid` sending `x` to `1 / x`. -/
 noncomputable

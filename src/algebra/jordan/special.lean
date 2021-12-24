@@ -46,6 +46,11 @@ instance [inhabited α] : inhabited αˢʸᵐ := ⟨sym (default α)⟩
 @[simp] lemma unsym_sym (x : α) : unsym (sym x) = x := rfl
 @[simp] lemma sym_unsym (x : α) : sym (unsym x) = x := rfl
 
+instance [has_zero α] : has_zero (αˢʸᵐ) := { zero := sym 0 }
+--instance [has_add α] : has_add αˢʸᵐ := { add := λ a b, sym (unsym a + unsym b) }
+instance [has_sub α] : has_sub αˢʸᵐ := { sub := λ a b, sym (unsym a - unsym b) }
+--instance [has_neg α] : has_neg αˢʸᵐ := { neg := λ a, sym (-unsym a) }
+--instance [has_scalar R α] : has_scalar R αˢʸᵐ := { smul := λ r a, sym (r•(unsym a)) }
 
 instance [has_add α] : has_add αˢʸᵐ :=
 { add := λ a b, sym (unsym a + unsym b) }
@@ -62,45 +67,59 @@ instance {R : Type*} [has_scalar R α] : has_scalar R αˢʸᵐ :=
 
 @[simp] lemma sym_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : sym (c • a) = c • sym a := rfl
 
-lemma add_smul (α : Type*) [ring α] [algebra ℝ α] (a:α) (r s : ℝ): (r+s)•a = (r•a +s•a)   :=
+lemma unsym_injective : function.injective (@unsym α) := λ _ _, id
+
+instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
+unsym_injective.add_comm_semigroup _ (λ _ _, rfl)
+
+instance [add_monoid α] : add_monoid (αˢʸᵐ) :=
+unsym_injective.add_monoid_smul _ rfl (λ _ _, rfl) (λ _ _, rfl)
+
+instance [add_group α] : add_group (αˢʸᵐ) :=
+unsym_injective.add_group_smul _ rfl
+  (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance [add_comm_monoid α] : add_comm_monoid (αˢʸᵐ) :=
+{ ..sym_alg.add_comm_semigroup, ..sym_alg.add_monoid }
+
+instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
+{ ..sym_alg.add_comm_monoid, ..sym_alg.add_group }
+
+@[simp] lemma sym_zero [has_zero α] : sym (0 : α) = 0 := rfl
+@[simp] lemma unsym_zero [has_zero α] : unsym (0 : αˢʸᵐ) = 0 := rfl
+
+@[simp] lemma unsym_eq_zero_iff {α} [has_zero α] (a : αˢʸᵐ) : a.unsym = (0 : α) ↔ a = (0 : αˢʸᵐ) :=
+unsym_injective.eq_iff' rfl
+
+--@[simp] lemma sym_eq_zero_iff {α} [has_zero α] (a : α) : sym a = (0 : αˢʸᵐ) ↔ a = (0 : α) :=
+--sym_injective.eq_iff' rfl
+
+lemma zero_zero [ring α] [algebra ℝ α] : unsym add_comm_group.zero = (0:α) :=
 begin
-  unfold algebra.smul_def',
-  rw ← add_mul,
-  simp only [map_add, ring_hom.to_fun_eq_coe],
+  exact rfl,
 end
 
-lemma smul_add' (α : Type*) [ring α] [algebra ℝ α] (a b:α) (r : ℝ): r•(a+b) = r•a + r•b   :=
-begin
-  unfold algebra.smul_def',
-  rw ← mul_add,
-end
+instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
+function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
 
---variables [semiring α] [algebra ℝ α]
-
-
-instance {α : Type*} [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
-{ zero := sym 0,
-  add := λ a b, a+b,
-  add_assoc := λ a b c : α, add_assoc a b c,
-  add_comm := λ a b : α, add_comm a b,
-  zero_add := λ a, zero_add (unsym a),
-  add_zero := λ a, add_zero (unsym a),
-  neg := λ a, sym ( -(unsym a)),
-  add_left_neg := λ a, add_left_neg (unsym a), }
-
-
-noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : non_unital_non_assoc_ring (αˢʸᵐ) :=
-{ zero := sym 0,
-  add := λ a b, a+b,
-  add_assoc := λ a b c : α, add_assoc a b c,
-  add_comm := λ a b : α, add_comm a b,
-  zero_add := λ a, zero_add (unsym a),
-  add_zero := λ a, add_zero (unsym a),
-  neg := λ a, -a,
-  add_left_neg := λ a, add_left_neg (unsym a),
+noncomputable instance [ring α] [algebra ℝ α] : has_mul(αˢʸᵐ) := {
   mul := λ a b, (sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a)))),
-  zero_mul := λ _, by simp,
-  mul_zero :=  λ _, by simp,
+}
+
+lemma mul_def [ring α] [algebra ℝ α] (a b: αˢʸᵐ) : a*b = sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))) := by refl
+
+noncomputable instance [ring α] [algebra ℝ α] : non_unital_non_assoc_ring (αˢʸᵐ) :=
+{
+  zero_mul := λ _,
+  begin
+    simp only [mul_def,zero_zero, add_zero, sym_zero, zero_mul, mul_zero, smul_zero],
+    exact rfl,
+  end,
+  mul_zero :=  λ _,
+  begin
+    simp only [mul_def,zero_zero, add_zero, sym_zero, zero_mul, mul_zero, smul_zero],
+    exact rfl,
+  end,
   left_distrib := λ a b c, begin
     change (1/2:ℝ)•(unsym(a)*(unsym(b)+unsym(c))+(unsym(b)+unsym(c))*unsym(a)) =
       (1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))+(1/2:ℝ)•(unsym(a)*unsym(c)+unsym(c)*unsym(a)),
@@ -112,6 +131,69 @@ noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : non_unital_non_
       (1/2:ℝ)•(unsym(a)*unsym(c)+unsym(c)*unsym(a))+(1/2:ℝ)•(unsym(b)*unsym(c)+unsym(c)*unsym(b)),
     rw [mul_add, add_mul, smul_add, smul_add, smul_add, smul_add, smul_add],
     abel,
-  end, }
+  end,
+  ..sym_alg.has_mul,
+  ..sym_alg.add_comm_group, }
+
+
+theorem two_rmul [ring α] [algebra ℝ α]  (x:α) : (2 : ℝ) • x = x + x :=
+begin
+   rw [bit0, add_smul, one_smul],
+end
+
+lemma sym_squares [ring α] [algebra ℝ α] (a: αˢʸᵐ) : unsym(a*a) = unsym a * unsym a :=
+begin
+  rw mul_def,
+  rw unsym_sym,
+  rw ← two_rmul,
+  rw ← smul_assoc,
+  simp,
+end
+
+noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : comm_jordan (αˢʸᵐ) := {
+  comm := λ a,
+  begin
+    ext b,
+    change (1/2:ℝ)•(unsym(b)*unsym(a)+unsym(a)*unsym(b)) =
+     (1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a)),
+    rw add_comm,
+  end,
+  jordan := λ a,
+  begin
+    ext b,
+    simp,
+    change (1/2:ℝ)•(unsym(a)*(1/2:ℝ)•(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a))+(1/2:ℝ)•(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a))*unsym(a))
+    - (1/2:ℝ)•(unsym(a*a)*(1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))+(1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))*unsym(a*a)) = 0,
+    rw sym_squares,
+    rw ← smul_sub,
+    rw mul_smul_comm,
+    rw mul_smul_comm,
+    rw ←mul_assoc,
+    rw mul_add,
+    rw smul_mul_assoc,
+    rw ← smul_add,
+    rw add_mul,
+    rw smul_mul_assoc,
+    rw ← smul_add,
+    rw ← smul_sub,
+    rw mul_add,
+    rw add_mul,
+    rw smul_smul,
+    convert (smul_zero ((1 / 2:ℝ) * (1 / 2:ℝ))),
+    rw ← add_assoc,
+    rw ← mul_assoc (unsym(a) * unsym(a)) (unsym(a)) (unsym(b)),
+    rw ← mul_assoc (unsym(a) * unsym(a)) (unsym(b)) (unsym(a)),
+    rw ← mul_assoc (unsym(a) * unsym(b)) (unsym(a)) (unsym(a)),
+    rw ← mul_assoc (unsym(b) * unsym(a)) (unsym(a)) (unsym(a)),
+    rw ← mul_assoc, -- (unsym(a))  (unsym(a)*unsym(a)) (unsym(b)),
+    rw ← mul_assoc,
+    rw ← mul_assoc,
+    rw ← mul_assoc,
+    rw ← add_assoc,
+    abel,
+    rw ← add_assoc,
+    abel,
+  end
+}
 
 end sym_alg

@@ -306,7 +306,8 @@ end
 structure is_trail {u v : V} (p : G.walk u v) : Prop :=
 (edges_nodup : p.edges.nodup)
 
-/-- A *path* is a walk with no repeating vertices. -/
+/-- A *path* is a walk with no repeating vertices.
+Use `simple_graph.walk.is_path.mk'` for a simpler constructor. -/
 structure is_path {u v : V} (p : G.walk u v) extends to_trail : is_trail p : Prop :=
 (support_nodup : p.support.nodup)
 

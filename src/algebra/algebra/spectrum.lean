@@ -244,7 +244,7 @@ begin
 end
 
 open polynomial
-/-- This is half of the spectral mapping theorem for polynomials. We prove it separately
+/-- Half of the spectral mapping theorem for polynomials. We prove it separately
 because it holds over any field, whereas `spectrum.map_polynomial_aeval_of_degree_pos` and
 `spectrum.map_polynomial_aeval_of_nonempty` need the field to be algebraically closed. -/
 theorem subset_polynomial_aeval (a : A) (p : polynomial 𝕜) :
@@ -263,8 +263,8 @@ begin
 end
 
 lemma exists_mem_of_not_is_unit_aeval_prod {p : polynomial 𝕜} {a : A} (hp : p ≠ 0)
-  (h : ¬is_unit (aeval a (multiset.map (λ (x : 𝕜), X - C x) p.roots).prod))
-  : ∃ k : 𝕜, k ∈ σ a ∧ eval k p = 0 :=
+  (h : ¬is_unit (aeval a (multiset.map (λ (x : 𝕜), X - C x) p.roots).prod)) :
+  ∃ k : 𝕜, k ∈ σ a ∧ eval k p = 0 :=
 begin
   rw [←multiset.prod_to_list, alg_hom.map_list_prod] at h,
   replace h := mt list.prod_is_unit h,
@@ -274,7 +274,7 @@ begin
   exact ⟨r, by rwa [mem_iff, ←is_unit.sub_iff], by rwa [←is_root.def, ←mem_roots hp]⟩
 end
 
-/-- This is the *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
+/-- The *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
 is necessary in case `σ a = ∅`, for then the left-hand side is `∅` and the right-hand side,
 assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
 theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : polynomial 𝕜)

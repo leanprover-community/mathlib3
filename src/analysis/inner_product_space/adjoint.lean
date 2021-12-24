@@ -124,7 +124,6 @@ lemma apply_norm_eq_sqrt_inner_adjoint_right (A : E →L[𝕜] E) (x : E) :
   ∥A x∥ = real.sqrt (re ⟪x, (A† * A) x⟫) :=
 by rw [←apply_norm_sq_eq_inner_adjoint_right, real.sqrt_sq (norm_nonneg _)]
 
-/-- `E →L[𝕜] E` is a C⋆-algebra with the adjoint as the star operation. -/
 /-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
 for all `x` and `y`. -/
 lemma eq_adjoint_iff (A : E →L[𝕜] F) (B : F →L[𝕜] E) :

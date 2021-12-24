@@ -311,33 +311,33 @@ begin
     use i, exact submodule.coe_mem _, apply h, exact hx },
 end
 
-lemma ideal.homogeneous_core.eq_Sup [Π (i : ι) (x : A i), decidable (x ≠ 0)] :
-  ideal.homogeneous_core A I = Sup { J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I } :=
-begin
-  ext, split; intros hx,
-  { rw [ideal.homogeneous_core, ideal.span, mem_span_set] at hx,
-    obtain ⟨c, hc1, hc2⟩ := hx,
-    rw ←hc2, refine ideal.sum_mem _ _,
-    intros r hc, dsimp only, rw [smul_eq_mul], refine ideal.mul_mem_left _ _ _,
-    have hr1 : is_homogeneous A r := (hc1 hc).1,
-    obtain ⟨i, hi⟩ := hr1,
-    have mem1 : ideal.span {r} ∈ {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I},
-    { split, rw ideal.is_homogeneous.iff_exists,
-      refine ⟨{(⟨r, ⟨i, hi⟩⟩ : homogeneous_submonoid A)}, _⟩,
-      congr, simp only [image_singleton, subtype.coe_mk], rw ideal.span_le,
-      simp only [mem_coe, singleton_subset_iff], exact (hc1 hc).2 },
-    apply ideal.mem_Sup_of_mem mem1, rw ideal.mem_span_singleton },
-  { have hom1 := ideal.is_homogeneous.homogeneous_core A I,
-    have hom2 : ideal.is_homogeneous A (Sup {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I}),
-    { apply ideal.is_homogeneous.Sup, rintros J ⟨HJ1, HJ2⟩, exact HJ1, },
-    rw [ideal.homogeneous_core, ideal.mem_span],
-    unfold has_Sup.Sup at hx, unfold conditionally_complete_lattice.Sup at hx,
-    unfold complete_lattice.Sup at hx, rw ideal.mem_Inf at hx,
-    intros J HJ, apply hx, rintro K ⟨HK1, HK2⟩, intros r hr,
-    rw ←graded_algebra.sum_support_decompose A r, refine ideal.sum_mem _ _,
-    intros i hi, apply HJ, refine ⟨⟨i, submodule.coe_mem _⟩, _⟩,  apply HK2,
-    apply HK1, exact hr }
-end
+-- lemma ideal.homogeneous_core.eq_Sup [Π (i : ι) (x : A i), decidable (x ≠ 0)] :
+--   ideal.homogeneous_core A I = Sup { J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I } :=
+-- begin
+--   ext, split; intros hx,
+--   { rw [ideal.homogeneous_core, ideal.span, mem_span_set] at hx,
+--     obtain ⟨c, hc1, hc2⟩ := hx,
+--     rw ←hc2, refine ideal.sum_mem _ _,
+--     intros r hc, dsimp only, rw [smul_eq_mul], refine ideal.mul_mem_left _ _ _,
+--     have hr1 : is_homogeneous A r := (hc1 hc).1,
+--     obtain ⟨i, hi⟩ := hr1,
+--     have mem1 : ideal.span {r} ∈ {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I},
+--     { split, rw ideal.is_homogeneous.iff_exists,
+--       refine ⟨{(⟨r, ⟨i, hi⟩⟩ : homogeneous_submonoid A)}, _⟩,
+--       congr, simp only [image_singleton, subtype.coe_mk], rw ideal.span_le,
+--       simp only [mem_coe, singleton_subset_iff], exact (hc1 hc).2 },
+--     apply ideal.mem_Sup_of_mem mem1, rw ideal.mem_span_singleton },
+--   { have hom1 := ideal.is_homogeneous.homogeneous_core A I,
+--     have hom2 : ideal.is_homogeneous A (Sup {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I}),
+--     { apply ideal.is_homogeneous.Sup, rintros J ⟨HJ1, HJ2⟩, exact HJ1, },
+--     rw [ideal.homogeneous_core, ideal.mem_span],
+--     unfold has_Sup.Sup at hx, unfold conditionally_complete_lattice.Sup at hx,
+--     unfold complete_lattice.Sup at hx, rw ideal.mem_Inf at hx,
+--     intros J HJ, apply hx, rintro K ⟨HK1, HK2⟩, intros r hr,
+--     rw ←graded_algebra.sum_support_decompose A r, refine ideal.sum_mem _ _,
+--     intros i hi, apply HJ, refine ⟨⟨i, submodule.coe_mem _⟩, _⟩,  apply HK2,
+--     apply HK1, exact hr }
+-- end
 
 end homogeneous_core
 
@@ -354,7 +354,7 @@ open set_like
 /--For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
 `I` spanned by all homogeneous components of elements in `I`. -/
 def ideal.homogeneous_hull : ideal R :=
-ideal.span {r : R | ∃ (i : ι) (x : I), (graded_algebra.decompose A x i : R) = r}
+  ideal.span {r : R | ∃ (i : ι) (x : I), (graded_algebra.decompose A x i : R) = r}
 
 lemma ideal.is_homogeneous.homogeneous_hull :
   ideal.is_homogeneous A (ideal.homogeneous_hull A I) :=
@@ -416,7 +416,7 @@ variables {R : Type*} [comm_ring R]
 variables (A : ι → ideal R) [graded_algebra A]
 variable [Π (i : ι) (x : A i), decidable (x ≠ 0)]
 
-lemma ideal.homogeneous_hull.gc :
+lemma ideal.homgeneous_hull.gc :
   galois_connection
     (λ I, ⟨ideal.homogeneous_hull A I, ideal.is_homogeneous.homogeneous_hull A I⟩ :
       ideal R → homogeneous_ideal A)
@@ -451,25 +451,25 @@ lemma ideal.homogemoues_core.gc :
     apply ideal.homogeneous_core_le_ideal,
   end⟩
 
--- lemma ideal.homogeneous_hull.gi :
---   galois_insertion
---     (λ I, ⟨ideal.homogeneous_hull A I, ideal.is_homogeneous.homogeneous_hull A I⟩ :
---       ideal R → homogeneous_ideal A)
---     (λ I, I.1 : homogeneous_ideal A → ideal R) :=
--- { choice := λ I H, ⟨I, begin
---     have eq : I = ideal.homogeneous_hull A I,
---     have ineq1 : I ≤ ideal.homogeneous_hull A I := ideal.ideal_le_homogeneous_hull A I,
---     exact le_antisymm ineq1 H,
---     rw eq, apply ideal.is_homogeneous.homogeneous_hull,
---   end⟩,
---   gc := ideal.homgeneous_hull.gc A,
---   le_l_u := λ ⟨I, HI⟩, by { apply ideal.ideal_le_homogeneous_hull },
---   choice_eq := λ I H, begin
---     refine le_antisymm _ H, apply ideal.ideal_le_homogeneous_hull,
---   end }
+lemma ideal.homogeneous_hull.gi :
+  galois_insertion
+    (λ I, ⟨ideal.homogeneous_hull A I, ideal.is_homogeneous.homogeneous_hull A I⟩ :
+      ideal R → homogeneous_ideal A)
+    (λ I, I.1 : homogeneous_ideal A → ideal R) :=
+{ choice := λ I H, ⟨I, begin
+    have eq : I = ideal.homogeneous_hull A I,
+    have ineq1 : I ≤ ideal.homogeneous_hull A I := ideal.ideal_le_homogeneous_hull A I,
+    exact le_antisymm ineq1 H,
+    rw eq, apply ideal.is_homogeneous.homogeneous_hull,
+  end⟩,
+  gc := ideal.homgeneous_hull.gc A,
+  le_l_u := λ ⟨I, HI⟩, by { apply ideal.ideal_le_homogeneous_hull },
+  choice_eq := λ I H, begin
+    refine le_antisymm _ H, apply ideal.ideal_le_homogeneous_hull,
+  end }
 
--- example : complete_lattice (homogeneous_ideal A) :=
--- galois_insertion.lift_complete_lattice (ideal.homogeneous_hull.gi A)
+example : complete_lattice (homogeneous_ideal A) :=
+galois_insertion.lift_complete_lattice (ideal.homogeneous_hull.gi A)
 
 lemma ideal.homogeneous_core.gi :
   galois_coinsertion

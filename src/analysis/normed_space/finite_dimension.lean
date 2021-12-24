@@ -266,6 +266,7 @@ end linear_map
 
 /-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
 space. -/
+@[simps]
 def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin

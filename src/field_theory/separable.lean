@@ -205,6 +205,12 @@ begin
     rw [coeff_expand_mul hp, ← leading_coeff], exact mt leading_coeff_eq_zero.1 hf }
 end
 
+lemma monic.expand {p : ℕ} {f : polynomial R} (hp : 0 < p) (h : f.monic) : (expand R p f).monic :=
+begin
+  rw [monic.def, leading_coeff, nat_degree_expand, coeff_expand hp],
+  simp [hp, h],
+end
+
 theorem map_expand {p : ℕ} {f : R →+* S} {q : polynomial R} :
   map f (expand R p q) = expand S p (map f q) :=
 begin
@@ -230,6 +236,13 @@ lemma expand_injective {n : ℕ} (hn : 0 < n) :
   simp only [if_true, dvd_mul_right] at h',
   rw (nat.mul_div_right n_1 hn) at h',
   exact h',
+end
+
+@[simp]
+lemma expand_eval (p : ℕ) (P : polynomial R) (r : R) : eval r (expand R p P) = eval (r ^ p) P :=
+begin
+  refine polynomial.induction_on P (λ a, by simp) (λ f g hf hg, _) (λ n a h, by simp),
+  rw [alg_hom.map_add, eval_add, eval_add, hf, hg]
 end
 
 lemma is_unit_of_self_mul_dvd_separable {p q : polynomial R}

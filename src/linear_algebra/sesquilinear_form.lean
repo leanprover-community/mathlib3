@@ -92,7 +92,7 @@ begin
   { rw [map_smulₛₗ, H, smul_zero] },
   { rw [map_smulₛₗ, smul_eq_zero] at H,
     cases H,
-    { simp at H,
+    { simp[ring_equiv.to_ring_hom_eq_coe] at H,
       exfalso,
       exact ha H },
     { exact H }}
@@ -233,7 +233,7 @@ begin
     { rw [hμzero, zero_smul, submodule.mem_bot] },
     change B x (μ x • x) = 0 at this, rw [map_smulₛₗ, smul_eq_mul] at this,
     exact or.elim (zero_eq_mul.mp this.symm)
-    (λ y, by { simp at y, exact y })
+    (λ y, by { simp[ring_equiv.to_ring_hom_eq_coe] at y, exact y })
     (λ hfalse, false.elim $ hx hfalse) },
   { rw submodule.mem_span; exact λ _ hp, hp $ finset.mem_singleton_self _ }
 end

@@ -1,9 +1,22 @@
+/-
+Copyright (c) 2017 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro
+-/
+
 import algebra.big_operators.multiset
 
 /-!
 # Bind operation for multisets
 
+This file defines a few basic operations on `multiset`, notably the monadic bind.
 
+## Main declarations
+
+* `multiset.join`: The join, aka union or sum, of multisets.
+* `multiset.bind`: The bind of a multiset-indexed family of multisets.
+* `multiset.product`: Cartesian product of two multisets.
+* `multiset.sigma`: Disjoint sum of multisets in a sigma type.
 -/
 
 variables {α β γ δ : Type*}
@@ -159,7 +172,7 @@ by simp [product, repeat, (∘), mul_comm]
 
 end product
 
-/-! ### Sigma of multisets -/
+/-! ### Disjoint sum of multisets -/
 
 section sigma
 variables {σ : α → Type*} (a : α) (s : multiset α) (t : Π a, multiset (σ a))

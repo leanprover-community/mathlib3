@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import data.bool.all_any
 import data.list.perm
-import data.list.prod_monoid
 
 /-!
 # Multisets

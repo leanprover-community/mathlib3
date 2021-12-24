@@ -1,4 +1,23 @@
+/-
+Copyright (c) 2015 Microsoft Corporation. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro
+-/
+import data.list.prod_monoid
 import data.multiset.basic
+
+/-!
+# Sums and products over multisets
+
+In this file we define products and sums indexed by multisets. This is later used to define products
+and sums indexed by finite sets.
+
+## Main declarations
+
+* `multiset.prod`: `s.prod f` is the product of `f i` over all `i ∈ s`. Not to be mistaken with
+  the cartesian product `multiset.product`.
+* `multiset.sum`: `s.sum f` is the sum of `f i` over all `i ∈ s`.
+-/
 
 variables {ι α β γ : Type*}
 
@@ -179,6 +198,8 @@ multiset.induction_on s (λ _, dvd_zero _)
     (h _ (mem_cons_self _ _)) (ih $ λ y hy, h _ $ mem_cons.2 $ or.inr hy) })
 
 end comm_semiring
+
+/-! ### Order -/
 
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {s t : multiset α} {a : α}

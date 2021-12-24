@@ -186,7 +186,7 @@ by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
 
-lemma totient_mul_prime_div {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
+lemma totient_mul_of_prime_of_dvd {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
   (p * n).totient = p * n.totient :=
 begin
   by_cases hzero : n = 0,

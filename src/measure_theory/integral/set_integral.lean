@@ -392,6 +392,14 @@ lemma integral_Ioc_eq_integral_Ioo' [partial_order α] {f : α → E} {a b : α}
   ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
 set_integral_congr_set_ae (Ioo_ae_eq_Ioc' hb).symm
 
+lemma integral_Icc_eq_integral_Ioc [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
+integral_Icc_eq_integral_Ioc' $ measure_singleton a
+
+lemma integral_Ioc_eq_integral_Ioo [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
+  ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+integral_Ioc_eq_integral_Ioo' $ measure_singleton b
+
 end normed_group
 
 section mono

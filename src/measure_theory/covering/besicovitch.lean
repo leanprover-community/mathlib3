@@ -896,6 +896,9 @@ protected def vitali_family [second_countable_topology α] [has_besicovitch_cove
     exact ⟨t, λ x, closed_ball x (r x), ts, tdisj, λ x xt, (tg x xt).1.2, μt⟩,
   end }
 
+/-- In a space with the Besicovitch property, any set `s` can be covered with balls whose measures
+add up to at most `μ s + ε`, for any positive `ε`. This works even if one restricts the set of
+allowed radii around a point `x` to a set `f x` which accumulates at `0`. -/
 theorem exists_closed_ball_covering_tsum_measure_le
   [second_countable_topology α] [hb : has_besicovitch_covering α]
   [measurable_space α] [opens_measurable_space α] (μ : measure α)
@@ -906,6 +909,12 @@ theorem exists_closed_ball_covering_tsum_measure_le
     ∧ s ⊆ (⋃ (x ∈ t), closed_ball x (r x))
     ∧ ∑' (x : t), μ (closed_ball x (r x)) ≤ μ s + ε  :=
 begin
+  /- For the proof, first cover almost all `s` with disjoint balls thanks to the usual Besicovitch
+  theorem. Taking the balls included in a well-chosen open neighborhood `u` of `s`, one may
+  ensure that their measures add at most to `μ s + ε / 2`. Let `s'` be the remaining set, of measure
+  `0`. Applying the other version of Besicovitch, one may cover it with at most `N` disjoint
+  subfamilies. Making sure that they are all included in a neighborhood `v` of `s'` of measure at
+  most `ε / (2 N)`, the sum of their measures is at most `ε / 2`, completing the proof. -/
   obtain ⟨u, su, u_open, μu⟩  : ∃ U ⊇ s, is_open U ∧ μ U ≤ μ s + ε / 2 :=
     set.exists_is_open_le_add _ _ (by simpa only [or_false, ne.def, ennreal.div_zero_iff,
       ennreal.one_ne_top, ennreal.bit0_eq_top_iff] using hε),
@@ -917,6 +926,8 @@ begin
       ∧ μ (s \ (⋃ (x ∈ t0), closed_ball x (r0 x))) = 0
       ∧ t0.pairwise_disjoint (λ x, closed_ball x (r0 x)) :=
         exists_disjoint_closed_ball_covering_ae μ f s hf R (λ x hx, (hR x hx).1),
+  -- we have constructed an almost everywhere covering of `s` by disjoint balls. Let `s'` be the
+  -- remaining set.
   let s' := s \ (⋃ (x ∈ t0), closed_ball x (r0 x)),
   have s's : s' ⊆ s := diff_subset _ _,
   obtain ⟨N, τ, hτ, H⟩ : ∃ N τ, 1 < τ ∧ is_empty (besicovitch.satellite_config α N τ) :=
@@ -938,6 +949,8 @@ begin
     rpos := λ x, (hr1 x.1 x.2).1.2.1,
     r_bound := 1,
     r_le := λ x, (hr1 x.1 x.2).1.2.2.le },
+  -- by Besicovitch, we cover `s'` with at most `N` families of disjoint balls, all included in
+  -- a suitable neighborhood `v` of `s'`.
   obtain ⟨S, S_disj, hS⟩ : ∃ S : fin N → set s',
     (∀ (i : fin N), (S i).pairwise_disjoint (λ j, closed_ball (q.c j) (q.r j))) ∧
       (range q.c ⊆ ⋃ (i : fin N), ⋃ (j ∈ S i), ball (q.c j) (q.r j)) :=
@@ -958,7 +971,10 @@ begin
       rw dist_self,
       exact (hr0 x hx).2.1.le },
     simp only [r, if_neg this] },
+  -- the desired covering set is given by the union of the families constructed in the first and
+  -- second steps.
   refine ⟨t0 ∪ (⋃ (i : fin N), (coe : s' → α) '' (S i)), r, _, _, _, _, _⟩,
+  -- it remains to check that they have the desired properties
   { exact t0_count.union (countable_Union (λ i, (S_count i).image _)) },
   { simp only [t0s, true_and, union_subset_iff, image_subset_iff, Union_subset_iff],
     assume i x hx,
@@ -988,7 +1004,9 @@ begin
         by simpa [hx, -mem_closed_ball] using h'x,
       refine mem_bUnion_iff.2 ⟨y, or.inl yt0, _⟩,
       rwa r_t0 _ yt0 } },
-  { have A : ∑' (x : t0), μ (closed_ball x (r x)) ≤ μ s + ε / 2 := calc
+  -- the only nontrivial property is the measure control, which we check now
+  { -- the sets in the first step have measure at most `μ s + ε / 2`
+    have A : ∑' (x : t0), μ (closed_ball x (r x)) ≤ μ s + ε / 2 := calc
       ∑' (x : t0), μ (closed_ball x (r x))
       = ∑' (x : t0), μ (closed_ball x (r0 x)) :
         by { congr' 1, ext x, rw r_t0 x x.2 }
@@ -1007,6 +1025,7 @@ begin
           apply subset.trans (closed_ball_subset_ball (hr0 x hx).2.2) (hR x (t0s hx)).2,
         end
       ... ≤ μ s + ε / 2 : μu,
+    -- each subfamily in the second step has measure at most `ε / (2 N)`.
     have B : ∀ (i : fin N),
       ∑' (x : (coe : s' → α) '' (S i)), μ (closed_ball x (r x)) ≤ (ε / 2) / N := λ i, calc
       ∑' (x : (coe : s' → α) '' (S i)), μ (closed_ball x (r x)) =
@@ -1033,6 +1052,7 @@ begin
           exact (hr1 x xs').2,
         end
       ... ≤ (ε / 2) / N : by { have : μ s' = 0 := μt0, rwa [this, zero_add] at μv },
+    -- add up all these to prove the desired estimate
     calc ∑' (x : (t0 ∪ ⋃ (i : fin N), (coe : s' → α) '' S i)), μ (closed_ball x (r x))
         ≤ ∑' (x : t0), μ (closed_ball x (r x))
           + ∑' (x : ⋃ (i : fin N), (coe : s' → α) '' S i), μ (closed_ball x (r x)) :

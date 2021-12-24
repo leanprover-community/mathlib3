@@ -37,6 +37,7 @@ instance ring.to_non_unital_non_assoc_semiring (B :Type*) [_i : ring B] :
 
 variables [non_unital_non_assoc_ring A]
 
+namespace non_unital_non_assoc_ring
 -- For some reason `def L : A→+add_monoid.End A := add_monoid_hom.mul` doesn't work here?
 /--
 Left multiplication operator
@@ -62,6 +63,9 @@ lemma L_def (a b : A) : L a b = a*b := rfl
 
 lemma R_def (a b : A) : R a b = b*a := rfl
 
+end non_unital_non_assoc_ring
+
+open non_unital_non_assoc_ring
 /--
 A non unital, non-associative ring with a (non-commutative) Jordan multipication
 -/

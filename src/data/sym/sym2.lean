@@ -496,4 +496,37 @@ end
 
 end decidable
 
+instance subsingleton {α : Type*} [g : subsingleton α] : subsingleton (sym2 α) := ⟨begin
+  have k := @sym.subsingleton α 2 g,
+  unfreezingI { cases g },
+  intros,
+  have z := equiv.injective (equiv_sym α),
+  rw function.injective at z,
+  exact @z a b begin
+    generalize_hyp c : equiv_sym α = o,
+    cases o,
+    rw equiv.coe_fn_mk,
+    unfreezingI { cases k },
+    apply k,
+  end,
+end⟩
+
+instance unique {α : Type*} [g : unique α] : unique (sym2 α) := unique.mk' _
+
+instance is_empty {α : Type*} [g : is_empty α] : is_empty (sym2 α) := ⟨begin
+  intro x,
+  have h := (@equiv_sym α).to_fun x,
+  rw sym at h,
+  have := @sym.is_empty α 1 g,
+  cases this,
+  tauto,
+end⟩
+
+instance nontrivial {α : Type*} [g : nontrivial α] : nontrivial (sym2 α) := ⟨begin
+  unfreezingI { rcases g with ⟨w, ⟨m, g⟩⟩ },
+  use [diag w, diag m],
+  intro h,
+  exact g (diag_injective h),
+end⟩
+
 end sym2

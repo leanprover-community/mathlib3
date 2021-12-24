@@ -501,8 +501,8 @@ begin
   rw multiset.count_singleton_self,
 end
 
-lemma degree_of_rename_of_injective {R σ τ : Type*} [comm_semiring R] {p : mv_polynomial σ R}
-  {f : σ → τ} (h : function.injective f) (i : σ) : degree_of (f i) (rename f p) = degree_of i p :=
+lemma degree_of_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f)
+  (i : σ) : degree_of (f i) (rename f p) = degree_of i p :=
 by simp only [degree_of, degrees_rename_of_injective h,
               multiset.count_map_eq_count' f (p.degrees) h]
 

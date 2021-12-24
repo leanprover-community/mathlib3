@@ -5,10 +5,8 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.intermediate_field
-import field_theory.splitting_field
 import field_theory.separable
-import ring_theory.adjoin_root
-import ring_theory.power_basis
+import ring_theory.tensor_product
 
 /-!
 # Adjoining Elements to Fields
@@ -784,6 +782,17 @@ begin
   have h2 : algebra.is_algebraic K E2 := algebra.is_algebraic_of_finite,
   rw is_algebraic_iff_is_integral' at h1 h2,
   exact is_integral_sup.mpr ⟨h1, h2⟩,
+end
+
+lemma finite_dimensional_sup {K L : Type*} [field K] [field L] [algebra K L]
+  (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
+  finite_dimensional K ↥(E1 ⊔ E2) :=
+begin
+  let g := algebra.tensor_product.product_map E1.val E2.val,
+  suffices : g.range = (E1 ⊔ E2).to_subalgebra,
+  { have h : finite_dimensional K g.range.to_submodule := g.to_linear_map.finite_dimensional_range,
+    rwa this at h },
+  rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val, sup_to_subalgebra],
 end
 
 end supremum

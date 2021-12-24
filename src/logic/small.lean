@@ -76,21 +76,20 @@ begin
   apply_instance,
 end
 
-theorem small_of_injective {α : Type*} {β : Type*} [small.{w} β]
-  (f : α → β) (hf : function.injective f) : small.{w} α :=
+theorem small_of_injective {α : Type v} {β : Type w} [small.{u} β]
+  (f : α → β) (hf : function.injective f) : small.{u} α :=
 begin
   rw small_congr (equiv.of_injective f hf),
   apply_instance,
 end
 
+theorem small_of_surjective {α : Type v} {β : Type w} [small.{u} α] (f : α → β)
+  (hf : function.surjective f) : small.{u} β :=
+small_of_injective _ (function.injective_surj_inv hf)
+
 @[priority 100]
 instance small_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
-begin
-  rcases is_empty_or_nonempty α; resetI,
-  { rw small_congr (equiv.equiv_pempty α), apply small_self, },
-  { rw small_congr equiv.punit_of_nonempty_of_subsingleton,
-    apply small_self, assumption, assumption, },
-end
+small_of_injective (λ _, tt) $ λ x y _, subsingleton.elim x y
 
 /-!
 We don't define `small_of_fintype` or `small_of_encodable` in this file,
@@ -117,6 +116,10 @@ instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β)
 
 instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 ⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
+
+theorem small_range {α : Type v} {β : Type w} (f : α → β) [small.{u} α] :
+  small.{u} (set.range f) :=
+small_of_surjective _ set.surjective_onto_range
 
 theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)

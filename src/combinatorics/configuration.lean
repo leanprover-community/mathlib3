@@ -188,13 +188,11 @@ begin
   have := calc ∑ p, line_count L p = ∑ l, point_count P l : sum_line_count_eq_sum_point_count P L
   ... ≤ ∑ l, line_count L (f l) :
     finset.sum_le_sum (λ l hl, has_lines.point_count_le_line_count (hf₂ l))
-  ... = ∑ p in finset.univ.image f, line_count L p : _
+  ... = ∑ p in finset.univ.image f, line_count L p :
+    finset.sum_bij (λ l hl, f l) (λ l hl, finset.mem_image_of_mem f hl) (λ l hl, rfl)
+      (λ l₁ l₂ hl₁ hl₂ hl₃, hf₁ hl₃) (λ p, by simp_rw [finset.mem_image, eq_comm, imp_self])
   ... < ∑ p, line_count L p : _,
   { exact lt_irrefl _ this },
-  { refine finset.sum_bij (λ l hl, f l) (λ l hl, finset.mem_image_of_mem f hl)
-      (λ l hl, rfl) (λ l₁ l₂ hl₁ hl₂ hl₃, hf₁ hl₃) (λ p, _),
-    convert finset.mem_image.mp,
-    simp_rw [eq_comm] },
   { have key := mt (fintype.card_le_of_surjective f) hc₂,
     push_neg at key,
     obtain ⟨p, hp⟩ := key,

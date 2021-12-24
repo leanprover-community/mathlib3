@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import combinatorics.hall.basic
-import data.fintype.card
+import set_theory.fincard
 
 /-!
 # Configurations of Points and lines
@@ -17,6 +17,8 @@ This file introduces abstract configurations of points and lines, and proves som
   every pair of lines has an intersection point.
 * `configuration.has_lines`:  A nondegenerate configuration in which
   every pair of points has a line through them.
+* `configuration.line_count`: The number of lines through a given point.
+* `configuration.point_count`: The number of lines through a given line.
 
 ## Todo
 * Abstract projective planes.
@@ -80,5 +82,15 @@ lemma has_points.exists_unique_point [has_points P L] (l₁ l₂ : L) (hl : l₁
 lemma has_lines.exists_unique_line [has_lines P L] (p₁ p₂ : P) (hp : p₁ ≠ p₂) :
   ∃! l : L, p₁ ∈ l ∧ p₂ ∈ l :=
 has_points.exists_unique_point (dual L) (dual P) p₁ p₂ hp
+
+variables {P} (L)
+
+/-- Number of points on a given line. -/
+noncomputable def line_count (p : P) : ℕ := nat.card {l : L // p ∈ l}
+
+variables (P) {L}
+
+/-- Number of lines through a given point. -/
+noncomputable def point_count (l : L) : ℕ := nat.card {p : P // p ∈ l}
 
 end configuration

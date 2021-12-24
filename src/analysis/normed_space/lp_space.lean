@@ -382,7 +382,7 @@ begin
     simpa [real.zero_rpow hp.ne'] using real.zero_rpow hp' }
 end
 
-lemma norm_eq_zero_iff {f : Lp E p} (hp : 0 < p) : ∥f∥ = 0 ↔ f = 0 :=
+lemma norm_eq_zero_iff ⦃f : Lp E p⦄ : ∥f∥ = 0 ↔ f = 0 :=
 begin
   classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
@@ -413,7 +413,7 @@ end
 lemma eq_zero_iff_ae_eq_zero {f : Lp E p} : f = 0 ↔ ⇑f = 0 :=
 by rw [ext_iff, coe_fn_zero]
 
-@[simp] lemma norm_neg {f : Lp E p} : ∥-f∥ = ∥f∥ :=
+@[simp] lemma norm_neg ⦃f : Lp E p⦄ : ∥-f∥ = ∥f∥ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { simp [Lp.norm_eq_card_dsupport] },
@@ -429,7 +429,7 @@ end
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p) :=
 normed_group.of_core _
-{ norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
+{ norm_eq_zero_iff := norm_eq_zero_iff,
   triangle := λ f g, begin
     tactic.unfreeze_local_instances,
     rcases p.dichotomy with rfl | hp',
@@ -454,7 +454,7 @@ normed_group.of_core _
       intros i,
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
-  norm_neg := by simp }
+  norm_neg := norm_neg }
 
 section normed_space
 
@@ -486,7 +486,7 @@ begin
   { cases is_empty_or_nonempty α; resetI,
     { simp [Lp.eq_zero' f], },
     apply (Lp.is_lub_norm (c • f)).unique,
-    convert is_lub_mul (norm_nonneg c) (Lp.is_lub_norm f),
+    convert (Lp.is_lub_norm f).mul_left (norm_nonneg c),
     ext a,
     simp [coe_fn_smul, norm_smul] },
   { suffices : ∥c • f∥ ^ p.to_real = (∥c∥ * ∥f∥) ^ p.to_real,

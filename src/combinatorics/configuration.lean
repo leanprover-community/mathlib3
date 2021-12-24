@@ -100,23 +100,23 @@ lemma nondegenerate.exists_injective_of_card_le [nondegenerate P L]
 begin
   classical,
   let t : L → finset P := λ l, (set.to_finset {p | p ∉ l}),
-  suffices : ∀ s : finset L, s.card ≤ (s.bUnion t).card,
+  suffices : ∀ s : finset L, s.card ≤ (s.bUnion t).card, -- Hall's marriage theorem
   { obtain ⟨f, hf1, hf2⟩ := (finset.all_card_le_bUnion_card_iff_exists_injective t).mp this,
     exact ⟨f, hf1, λ l, set.mem_to_finset.mp (hf2 l)⟩ },
   intro s,
-  by_cases hs₀ : s.card = 0,
+  by_cases hs₀ : s.card = 0, -- If `s = ∅`, then `s.card = 0 ≤ (s.bUnion t).card`
   { simp_rw [hs₀, zero_le] },
-  by_cases hs₁ : s.card = 1,
+  by_cases hs₁ : s.card = 1, -- If `s = {l}`, then pick a point `p ∉ l`
   { obtain ⟨l, rfl⟩ := finset.card_eq_one.mp hs₁,
     obtain ⟨p, hl⟩ := exists_point l,
     rw [finset.card_singleton, finset.singleton_bUnion, nat.one_le_iff_ne_zero],
     exact finset.card_ne_zero_of_mem (set.mem_to_finset.mpr hl) },
-  suffices : (s.bUnion t)ᶜ.card ≤ sᶜ.card,
+  suffices : (s.bUnion t)ᶜ.card ≤ sᶜ.card, -- Rephrase in terms of complements (uses `h`)
   { rw [finset.card_compl, finset.card_compl, tsub_le_iff_left] at this,
     replace := h.trans this,
     rwa [←add_tsub_assoc_of_le s.card_le_univ, le_tsub_iff_left
       (le_add_left s.card_le_univ), add_le_add_iff_right] at this },
-  have hs₂ : (s.bUnion t)ᶜ.card ≤ 1,
+  have hs₂ : (s.bUnion t)ᶜ.card ≤ 1, -- At most one line through two points of `s`
   { refine finset.card_le_one_iff.mpr (λ p₁ p₂ hp₁ hp₂, _),
     simp_rw [finset.mem_compl, finset.mem_bUnion, exists_prop, not_exists, not_and,
       set.mem_to_finset, set.mem_set_of_eq, not_not] at hp₁ hp₂,
@@ -127,9 +127,9 @@ begin
   { rw [hs₃, nat.le_zero_iff],
     rw [finset.card_compl, tsub_eq_zero_iff_le, has_le.le.le_iff_eq (finset.card_le_univ _),
         eq_comm, finset.card_eq_iff_eq_univ, hs₃, finset.eq_univ_iff_forall] at hs₃ ⊢,
-    exact λ p, exists.elim (exists_line p)
+    exact λ p, exists.elim (exists_line p) -- If `s = univ`, then show `s.bUnion t = univ`
       (λ l hl, finset.mem_bUnion.mpr ⟨l, finset.mem_univ l, set.mem_to_finset.mpr hl⟩) },
-  { exact hs₂.trans (nat.one_le_iff_ne_zero.mpr hs₃) },
+  { exact hs₂.trans (nat.one_le_iff_ne_zero.mpr hs₃) }, -- If `s < univ`, then consequence of `hs₂`
 end
 
 variables {P} (L)

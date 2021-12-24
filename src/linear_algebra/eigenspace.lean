@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import algebra.algebra.spectrum
 import linear_algebra.charpoly.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin

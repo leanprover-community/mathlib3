@@ -432,39 +432,39 @@ of_left_inverse f (λ _, f_inv) (λ _, hf)
 
 /-- If `f : α → β` is an injective function, then domain `α` is equivalent to the range of `f`. -/
 @[simps apply]
-noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ set.range f :=
+noncomputable def of_injective {α β} {f : α → β} (hf : injective f) : α ≃ set.range f :=
 equiv.of_left_inverse f
   (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
 
-theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : set.range f) :
-  f ((of_injective f hf).symm b) = b :=
-subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
+theorem apply_of_injective_symm {α β} {f : α → β} (hf : injective f) (b : set.range f) :
+  f ((of_injective hf).symm b) = b :=
+subtype.ext_iff.1 $ (of_injective hf).apply_symm_apply b
 
-@[simp] theorem of_injective_symm_apply {α β} (f : α → β) (hf : injective f) (a : α) :
-  (of_injective f hf).symm ⟨f a, ⟨a, rfl⟩⟩ = a :=
+@[simp] theorem of_injective_symm_apply {α β} {f : α → β} (hf : injective f) (a : α) :
+  (of_injective hf).symm ⟨f a, ⟨a, rfl⟩⟩ = a :=
 begin
-  apply (of_injective f hf).injective,
-  simp [apply_of_injective_symm f hf],
+  apply (of_injective hf).injective,
+  simp [apply_of_injective_symm hf],
 end
 
-lemma coe_of_injective_symm {α β} (f : α → β) (hf : injective f) :
-  ((of_injective f hf).symm : range f → α) = range_splitting f :=
+lemma coe_of_injective_symm {α β} {f : α → β} (hf : injective f) :
+  ((of_injective hf).symm : range f → α) = range_splitting f :=
 by { ext ⟨y, x, rfl⟩, apply hf, simp [apply_range_splitting f] }
 
-@[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
-  f ∘ ((of_injective f hf).symm) = coe :=
-funext (λ x, apply_of_injective_symm f hf x)
+@[simp] lemma self_comp_of_injective_symm {α β} {f : α → β} (hf : injective f) :
+  f ∘ ((of_injective hf).symm) = coe :=
+funext (λ x, apply_of_injective_symm hf x)
 
 lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
-  of_left_inverse f f_inv hf = of_injective f
+  of_left_inverse f f_inv hf = of_injective
     ((em (nonempty α)).elim (λ h, (hf h).injective) (λ h _ _ _, by
     { haveI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
 by { ext, simp }
 
 lemma of_left_inverse'_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
-  of_left_inverse' f f_inv hf = of_injective f hf.injective :=
+  of_left_inverse' f f_inv hf = of_injective hf.injective :=
 by { ext, simp }
 
 protected lemma set_forall_iff {α β} (e : α ≃ β) {p : set α → Prop} :

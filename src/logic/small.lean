@@ -75,12 +75,12 @@ instance small_subtype (α : Type v) [small.{w} α] (P : α → Prop) : small.{w
 small_map (equiv_shrink α).subtype_equiv_of_subtype'
 
 theorem small_of_injective {α : Type*} {β : Type*} [small.{w} β]
-  (f : α → β) (hf : function.injective f) : small.{w} α :=
+  {f : α → β} (hf : function.injective f) : small.{w} α :=
 small_map (equiv.of_injective f hf)
 
-theorem small_of_surjective {α : Type v} {β : Type w} [small.{u} α] (f : α → β)
+theorem small_of_surjective {α : Type v} {β : Type w} [small.{u} α] {f : α → β}
   (hf : function.surjective f) : small.{u} β :=
-small_of_injective _ (function.injective_surj_inv hf)
+small_of_injective (function.injective_surj_inv hf)
 
 @[priority 100]
 instance small_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
@@ -118,7 +118,7 @@ instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 
 theorem small_range {α : Type v} {β : Type w} (f : α → β) [small.{u} α] :
   small.{u} (set.range f) :=
-small_of_surjective _ set.surjective_onto_range
+small_of_surjective set.surjective_onto_range
 
 theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)

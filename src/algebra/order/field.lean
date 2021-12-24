@@ -726,7 +726,7 @@ lemma one_div_pow_mono (a1 : 1 ≤ a) : monotone (λ n : ℕ, order_dual.to_dual
 lemma one_div_pow_strict_mono (a1 : 1 < a) : strict_mono (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
 λ m n, one_div_pow_lt_one_div_pow_of_lt a1
 
-/-! ### Results about `has_lub` and `has_glb` -/
+/-! ### Results about `is_lub` and `is_glb` -/
 
 lemma is_lub.mul_left {s : set α} (hc : 0 ≤ a) (hs : is_lub s b) :
   is_lub ((λ b, a * b) '' s) (a * b) :=

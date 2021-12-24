@@ -61,9 +61,6 @@ structure power_basis (R S : Type*) [comm_ring R] [ring S] [algebra R S] :=
 (basis : basis (fin dim) R S)
 (basis_eq_pow : ∀ i, basis i = gen ^ (i : ℕ))
 
--- not needed, since `basis_eq_pow` covers it
-initialize_simps_projections power_basis (-basis)
-
 namespace power_basis
 
 @[simp] lemma coe_basis (pb : power_basis R S) :

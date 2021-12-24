@@ -119,7 +119,7 @@ instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β)
 instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 ⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
 
-def small_range {ι : Type u} {α} (f : ι → α) : small.{u} (set.range f) :=
+theorem small_range {ι : Type u} {α} (f : ι → α) : small.{u} (set.range f) :=
 begin
   let S := setoid.ker f,
   refine ⟨⟨quotient _, ⟨⟨λ a, @quotient.mk _ S (classical.some a.prop),
@@ -130,7 +130,7 @@ begin
   exact classical.some_spec (⟨_, rfl⟩ : ∃ x, f x = f (@quotient.out ι S a)),
 end
 
-def small_range' {ι : Type v} [hι : small.{u} ι] {α} (f : ι → α) : small.{u} (set.range f) :=
+theorem small_range' {ι : Type v} [hι : small.{u} ι] {α} (f : ι → α) : small.{u} (set.range f) :=
 begin
   tactic.unfreeze_local_instances,
   rcases hι with ⟨⟨w, ⟨hw⟩⟩⟩,

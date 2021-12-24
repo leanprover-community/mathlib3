@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.ordinal
 import tactic.by_contra
+import logic.small
 
 /-!
 # Ordinal arithmetic
@@ -841,6 +842,30 @@ by simp only [mod_def, div_self a0, mul_one, sub_self]
 by simp only [mod_def, div_one, one_mul, sub_self]
 
 /-! ### Families of ordinals -/
+
+/-- A family indexed by ordinals less than some `ordinal.{u}` forms a small set. -/
+theorem small_of_bfamily {β : Type w} {o : ordinal.{u}} (f : Π a < o, β) :
+  small.{u} {b // ∃ a ha, f a ha = b} :=
+begin
+  let g : o.out.α → {b // ∃ a ha, f a ha = b} := λ a, ⟨f (typein o.out.r a) typein_lt_self, _, _, rfl⟩,
+  refine small_of_surjective g _,
+  intro b,
+  have : ∃ a, f (typein o.out.r a) typein_lt_self = b.val := begin
+    rcases b.prop with ⟨a, ha, ha'⟩,
+    have : ∃ c, typein o.out.r c = a := begin
+      apply typein_surj,
+      rwa type_out,
+    end,
+    cases this with c hc,
+    use c,
+    simp_rw hc,
+    exact ha',
+  end,
+  cases this with a ha,
+  use a,
+  apply subtype.eq,
+  exact ha,
+end
 
 /-- Converts a family of functions suited for `bsup` or `blsub` into one suited for `sup` or
 `lsub`. These describe the same ordinals. -/

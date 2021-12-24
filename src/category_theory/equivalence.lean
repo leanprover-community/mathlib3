@@ -392,6 +392,8 @@ mk' ::
 
 restate_axiom is_equivalence.functor_unit_iso_comp'
 
+attribute [simp, reassoc] is_equivalence.functor_unit_iso_comp
+
 namespace is_equivalence
 
 instance of_equivalence (F : C ≌ D) : is_equivalence F.functor :=
@@ -432,6 +434,12 @@ is_equivalence.of_equivalence F.as_equivalence.symm
 
 @[simp] lemma as_equivalence_inverse (F : C ⥤ D) [is_equivalence F] :
   F.as_equivalence.inverse = inv F := rfl
+
+@[simp] lemma as_equivalence_unit {F : C ⥤ D} [h : is_equivalence F] :
+  F.as_equivalence.unit_iso = @@is_equivalence.unit_iso _ _ h := rfl
+
+@[simp] lemma as_equivalence_counit {F : C ⥤ D} [is_equivalence F] :
+  F.as_equivalence.counit_iso = is_equivalence.counit_iso := rfl
 
 @[simp] lemma inv_inv (F : C ⥤ D) [is_equivalence F] :
   inv (inv F) = F := rfl

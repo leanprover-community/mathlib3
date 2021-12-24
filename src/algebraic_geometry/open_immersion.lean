@@ -1107,7 +1107,7 @@ grothendieck topologies uses `Prop`s, so that the actual open sets and immersion
 obtain. Also, since such a coverage in the pretopology usually contains a proper class of
 immersions, it is quite hard to glue them, reason about finite covers, etc.
 -/
--- TODO: provide API to and from a preseive.
+-- TODO: provide API to and from a presieve.
 structure open_cover (X : Scheme.{u}) :=
 (J : Type v)
 (obj : Π (j : J), Scheme)

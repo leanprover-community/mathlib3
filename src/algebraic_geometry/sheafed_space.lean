@@ -158,8 +158,8 @@ instance [has_limits C] : has_colimits (SheafedSpace C) :=
 has_colimits_of_has_colimits_creates_colimits forget_to_PresheafedSpace
 
 noncomputable
- instance [has_limits C] : preserves_colimits (forget C) :=
- limits.comp_preserves_colimits forget_to_PresheafedSpace (PresheafedSpace.forget C)
+instance [has_limits C] : preserves_colimits (forget C) :=
+limits.comp_preserves_colimits forget_to_PresheafedSpace (PresheafedSpace.forget C)
 
 end SheafedSpace
 

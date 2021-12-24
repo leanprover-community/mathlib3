@@ -162,7 +162,7 @@ lemma has_lines.point_count_le_line_count [has_lines P L] {p : P} {l : L} (h : p
   [fintype {l : L // p ∈ l}] : point_count P l ≤ line_count L p :=
 begin
   by_cases hf : infinite {p : P // p ∈ l},
-  { exactI le_trans (le_of_eq nat.card_eq_zero_of_infinite) (zero_le (line_count L p)) },
+  { exactI (le_of_eq nat.card_eq_zero_of_infinite).trans (zero_le (line_count L p)) },
   haveI := fintype_of_not_infinite hf,
   rw [line_count, point_count, nat.card_eq_fintype_card, nat.card_eq_fintype_card],
   exact fintype.card_le_of_injective (λ p', ⟨mk_line p p', (mk_line_ax p p').1⟩)

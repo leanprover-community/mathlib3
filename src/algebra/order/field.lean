@@ -728,7 +728,7 @@ lemma one_div_pow_strict_mono (a1 : 1 < a) : strict_mono (λ n : ℕ, order_dual
 
 /-! ### Results about `has_lub` and `has_glb` -/
 
-lemma is_lub_mul {s : set α} (hc : 0 ≤ a) (hs : is_lub s b) :
+lemma is_lub.mul_left {s : set α} (hc : 0 ≤ a) (hs : is_lub s b) :
   is_lub ((λ b, a * b) '' s) (a * b) :=
 begin
   rcases lt_or_eq_of_le hc with hc | rfl,
@@ -738,7 +738,11 @@ begin
     exact is_lub_singleton },
 end
 
-lemma is_glb_mul {s : set α} (hc : 0 ≤ a) (hs : is_glb s b) :
+lemma is_lub.mul_right {s : set α} (hc : 0 ≤ a) (hs : is_lub s b) :
+  is_lub (((λ b, b * a)) '' s) (b * a) :=
+by simpa [mul_comm] using hs.mul_left hc
+
+lemma is_glb.mul_left {s : set α} (hc : 0 ≤ a) (hs : is_glb s b) :
   is_glb ((λ b, a * b) '' s) (a * b) :=
 begin
   rcases lt_or_eq_of_le hc with hc | rfl,
@@ -747,5 +751,9 @@ begin
     rw hs.nonempty.image_const,
     exact is_glb_singleton },
 end
+
+lemma is_glb.mul_right {s : set α} (hc : 0 ≤ a) (hs : is_lub s b) :
+  is_lub ((λ b, b * a) '' s) (b * a) :=
+by simpa [mul_comm] using hs.mul_left hc
 
 end linear_ordered_field

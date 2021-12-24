@@ -351,6 +351,45 @@ begin
   exact tendsto_at_top_infi (assume n m hnm, measure_mono $ hm hnm),
 end
 
+/-- The measure of the intersection of a decreasing sequence of measurable
+sets indexed by positive reals is the limit of the measures. -/
+lemma tendsto_measure_bInter_pos {s : ℝ → set α}
+  (hs : ∀ r > 0, measurable_set (s r)) (hm : ∀ i j, 0 < i → i ≤ j → s i ⊆ s j)
+  (hf : ∃ r > 0, μ (s r) ≠ ∞) :
+  tendsto (μ ∘ s) (𝓝[Ioi 0] 0) (𝓝 (μ (⋂ r > 0, s r))) :=
+begin
+  refine tendsto_order.2 ⟨λ l hl, _, λ L hL, _⟩,
+  { filter_upwards [self_mem_nhds_within],
+    assume r hr,
+    exact hl.trans_le (measure_mono (bInter_subset_of_mem hr)) },
+  obtain ⟨u, u_anti, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n)
+    ∧ tendsto u at_top (𝓝 0) := exists_seq_strict_anti_tendsto (0 : ℝ),
+  have A : tendsto (μ ∘ (s ∘ u)) at_top (𝓝(μ (⋂ n, s (u n)))),
+  { refine tendsto_measure_Inter (λ n, hs _ (u_pos n)) _ _,
+    { assume m n hmn,
+      exact hm _ _ (u_pos n) (u_anti.antitone hmn) },
+    { rcases hf with ⟨r, rpos, hr⟩,
+      obtain ⟨n, hn⟩ : ∃ (n : ℕ), u n < r := ((tendsto_order.1 u_lim).2 r rpos).exists,
+      refine ⟨n, ne_of_lt (lt_of_le_of_lt _ hr.lt_top)⟩,
+      exact measure_mono (hm _ _ (u_pos n) hn.le) } },
+  have B : (⋂ n, s (u n)) = (⋂ r > 0, s r),
+  { apply subset.antisymm,
+    { simp only [subset_Inter_iff, gt_iff_lt],
+      assume r rpos,
+      obtain ⟨n, hn⟩ : ∃ n, u n < r := ((tendsto_order.1 u_lim).2 _ rpos).exists,
+      exact subset.trans (Inter_subset _ n) (hm (u n) r (u_pos n) hn.le) },
+    { simp only [subset_Inter_iff, gt_iff_lt],
+      assume n,
+      apply bInter_subset_of_mem,
+      exact u_pos n } },
+  rw B at A,
+  obtain ⟨n, hn⟩ : ∃ n, μ (s (u n)) < L := ((tendsto_order.1 A).2 _ hL).exists,
+  have : Ioc 0 (u n) ∈ 𝓝[Ioi (0 : ℝ)] 0 := Ioc_mem_nhds_within_Ioi ⟨le_rfl, u_pos n⟩,
+  filter_upwards [this],
+  assume r hr,
+  exact lt_of_le_of_lt (measure_mono (hm _ _ hr.1 hr.2)) hn,
+end
+
 /-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of sets such
 that `∑ μ sᵢ` is finite, then the limit superior of the `sᵢ` is a null set. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=

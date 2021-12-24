@@ -87,7 +87,8 @@ protected lemma map_zero : D 0 = 0 := map_zero D
 @[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
 
 @[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_scalar S A] [has_scalar S M]
-  [linear_map.compatible_smul A M S R] (r : S) : D (r • a) = r • D a :=
+  [linear_map.compatible_smul A M S R] (D : derivation R A M) (r : S) (a : A) :
+  D (r • a) = r • D a :=
 D.to_linear_map.map_smul_of_tower r a
 
 @[simp] lemma map_one_eq_zero : D 1 = 0 := D.map_one_eq_zero'

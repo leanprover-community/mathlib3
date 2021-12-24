@@ -344,9 +344,6 @@ lemma symm_to_ring_hom_comp_to_ring_hom (e : R ≃+* S) :
   e.symm.to_ring_hom.comp e.to_ring_hom = ring_hom.id _ :=
 by { ext, simp }
 
-lemma to_ring_hom_map_eq_zero_iff (e : R ≃+* R) {x : R} : e.to_ring_hom x = 0 ↔ x = 0 :=
-  by simp
-
 /--
 Construct an equivalence of rings from homomorphisms in both directions, which are inverses.
 -/

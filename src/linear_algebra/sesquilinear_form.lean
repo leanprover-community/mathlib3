@@ -232,7 +232,8 @@ begin
     suffices hμzero : μ x = 0,
     { rw [hμzero, zero_smul, submodule.mem_bot] },
     change B x (μ x • x) = 0 at this, rw [map_smulₛₗ, smul_eq_mul] at this,
-    exact or.elim (zero_eq_mul.mp this.symm) J.to_ring_hom_map_eq_zero_iff.mp
+    exact or.elim (zero_eq_mul.mp this.symm)
+    (λ y, by { simp at y, exact y })
     (λ hfalse, false.elim $ hx hfalse) },
   { rw submodule.mem_span; exact λ _ hp, hp $ finset.mem_singleton_self _ }
 end

@@ -847,24 +847,16 @@ by simp only [mod_def, div_one, one_mul, sub_self]
 theorem small_of_bfamily {β : Type w} {o : ordinal.{u}} (f : Π a < o, β) :
   small.{u} {b // ∃ a ha, f a ha = b} :=
 begin
-  let g : o.out.α → {b // ∃ a ha, f a ha = b} := λ a, ⟨f (typein o.out.r a) typein_lt_self, _, _, rfl⟩,
-  refine small_of_surjective g _,
-  intro b,
-  have : ∃ a, f (typein o.out.r a) typein_lt_self = b.val := begin
-    rcases b.prop with ⟨a, ha, ha'⟩,
-    have : ∃ c, typein o.out.r c = a := begin
-      apply typein_surj,
-      rwa type_out,
-    end,
-    cases this with c hc,
-    use c,
-    simp_rw hc,
-    exact ha',
+  refine small_of_surjective (λ a, ⟨f (typein o.out.r a) typein_lt_self, _, _, rfl⟩) (λ b, _),
+  rcases b.prop with ⟨a, ha, ha'⟩,
+  have : ∃ c, typein o.out.r c = a := begin
+    apply typein_surj,
+    rwa type_out,
   end,
-  cases this with a ha,
-  use a,
-  apply subtype.eq,
-  exact ha,
+  cases this with c hc,
+  use c,
+  simp_rw hc,
+  rwa subtype.ext_iff,
 end
 
 /-- Converts a family of functions suited for `bsup` or `blsub` into one suited for `sup` or
@@ -911,14 +903,24 @@ end
 
 /-! ### Supremum of a family of ordinals -/
 
-/-- The supremum of a family of ordinals -/
-def sup {ι} (f : ι → ordinal) : ordinal :=
+-- `f` could be weakened to `ι → ordinal.{v}`
+def sup {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal.{max u v} :=
 omin {c | ∀ i, f i ≤ c}
   ⟨(sup (cardinal.succ ∘ card ∘ f)).ord, λ i, le_of_lt $
     cardinal.lt_ord.2 (lt_of_lt_of_le (cardinal.lt_succ_self _) (le_sup _ _))⟩
 
+-- If all goes well, both `bsup` and `sup` will be replaced with just this.
+-- Working name.
+def sup_real (S : set ordinal.{max u v}) [hS : small.{u} S] : ordinal.{max u v} :=
+sup.{u v} (subtype.val ∘ (classical.choice (classical.some_spec hS.1 : nonempty (_ ≃ _))).inv_fun)
+
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
 omin_mem {c | ∀ i, f i ≤ c} _
+
+theorem le_sup_real (S : set ordinal.{max u v}) [hS : small.{u} S] : ∀ i ∈ S, i ≤ sup_real S :=
+begin
+  sorry
+end
 
 theorem sup_le {ι} {f : ι → ordinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
 ⟨λ h i, le_trans (le_sup _ _) h, λ h, omin_le h⟩

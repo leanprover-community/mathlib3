@@ -245,7 +245,7 @@ lemma powerset_len_card_add (s : multiset α) {i : ℕ} (hi : 0 < i) :
   s.powerset_len (s.card + i) = 0 :=
 powerset_len_empty _ (lt_add_of_pos_right (card s) hi)
 
-@[simp] theorem powerset_len_map {β : Type*} (f : α → β) (n : ℕ) (s : multiset α) :
+theorem powerset_len_map {β : Type*} (f : α → β) (n : ℕ) (s : multiset α) :
   powerset_len n (s.map f) = (powerset_len n s).map (map f) :=
 begin
   induction s using multiset.induction with t s ih generalizing n,

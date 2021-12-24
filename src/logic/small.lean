@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.equiv.set
+import data.setoid.basic
 
 /-!
 # Small types
@@ -117,6 +118,17 @@ instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β)
 
 instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 ⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
+
+def small_range {ι : Type u} {α} (f : ι → α) : small.{u} (set.range f) :=
+begin
+  let S := setoid.ker f,
+  refine ⟨⟨quotient _, ⟨⟨λ a, @quotient.mk _ S (classical.some a.prop),
+    λ a, ⟨f (@quotient.out ι S a), _, rfl⟩, λ a, subtype.eq _, λ a, _⟩⟩⟩⟩,
+  { simp_rw @setoid.ker_apply_mk_out _ _ f (classical.some a.prop),
+    exact classical.some_spec a.prop },
+  rw quotient.mk_eq_iff_out,
+  exact classical.some_spec (⟨_, rfl⟩ : ∃ x, f x = f (@quotient.out ι S a)),
+end
 
 theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)

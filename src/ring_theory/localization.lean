@@ -822,7 +822,7 @@ begin
   rw eq_top_iff,
   rintro x -,
   change x ∈ ((algebra.adjoin R _ : subalgebra R S).to_submodule : set S),
-  rw [algebra.adjoin_eq_span, hs, inv_generates],
+  rw [algebra.adjoin_eq_span, hs, span_inv_submonoid],
   trivial
 end
 

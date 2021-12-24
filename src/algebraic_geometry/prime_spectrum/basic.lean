@@ -605,7 +605,7 @@ set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_s
 topological_space.opens.ext $ by {simp, refl}
 
 @[simp] lemma basic_open_zero : basic_open (0 : R) = ⊥ :=
-topological_space.opens.ext $ by {simp, refl}
+topological_space.opens.ext $ by simp
 
 lemma basic_open_le_basic_open_iff (f g : R) :
   basic_open f ≤ basic_open g ↔ f ∈ (ideal.span ({g} : set R)).radical :=

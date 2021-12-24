@@ -130,6 +130,23 @@ begin
   exact classical.some_spec (⟨_, rfl⟩ : ∃ x, f x = f (@quotient.out ι S a)),
 end
 
+def small_range' {ι : Type v} [hι : small.{u} ι] {α} (f : ι → α) : small.{u} (set.range f) :=
+begin
+  tactic.unfreeze_local_instances,
+  rcases hι with ⟨⟨w, ⟨hw⟩⟩⟩,
+  suffices : set.range f = set.range (f ∘ hw.inv_fun),
+  { rw this,
+    exact small_range _ },
+  ext,
+  split;
+  rintro ⟨a, ha⟩,
+  { use hw.to_fun a,
+    change f _ = x,
+    rwa hw.left_inv },
+  rw ←ha,
+  exact ⟨hw.inv_fun a, rfl⟩,
+end
+
 theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)
   (λ a, ⟨_, cast (e.3 _).symm a⟩)

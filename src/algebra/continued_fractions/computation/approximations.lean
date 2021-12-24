@@ -157,7 +157,7 @@ begin
       nth_of_eq_some_of_succ_nth_int_fract_pair_stream stream_succ_nth_eq,
     have : some gp = some ⟨1, ifp.b⟩, by rwa nth_s_eq at this,
     injection this },
-  finish
+    simp [this],
 end
 
 /-- Shows that the partial numerators `aᵢ` are equal to one. -/

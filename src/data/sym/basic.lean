@@ -205,10 +205,8 @@ instance is_empty {α : Type*} {n : ℕ} [g : is_empty α] : is_empty (sym α n.
     exact false.elim (nat.succ_ne_zero n z.symm),
   end,
   rcases w with ⟨w, q⟩,
-  unfreezingI {
-    cases g,
-    tauto,
-  },
+  unfreezingI { cases g },
+  tauto,
 end⟩
 
 def repeat (a : α) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩

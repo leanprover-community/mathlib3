@@ -248,7 +248,7 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
 
-lemma intermediate_field.map_map {K L1 L2 L3 : Type*} [field K] [field L1] [algebra K L1]
+lemma map_map {K L1 L2 L3 : Type*} [field K] [field L1] [algebra K L1]
 [field L2] [algebra K L2] [field L3] [algebra K L3]
 (E : intermediate_field K L1) (f : L1 →ₐ[K] L2) (g : L2 →ₐ[K] L3) :
 (E.map f).map g = E.map (g.comp f) :=

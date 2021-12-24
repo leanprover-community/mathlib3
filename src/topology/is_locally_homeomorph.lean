@@ -35,7 +35,7 @@ namespace is_locally_homeomorph
 /-- Proves that `f` satisfies `is_locally_homeomorph`. The condition `h` is weaker than definition
 of `is_locally_homeomorph`, since it only requires `e : local_homeomorph X Y` to agree with `f` on
 its source `e.source`, as opposed to on the whole space `X`. -/
-def mk (h : ∀ x : X, ∃ e : local_homeomorph X Y, x ∈ e.source ∧ ∀ x, x ∈ e.source → f x = e x) :
+lemma mk (h : ∀ x : X, ∃ e : local_homeomorph X Y, x ∈ e.source ∧ ∀ x, x ∈ e.source → f x = e x) :
   is_locally_homeomorph f :=
 begin
   intro x,

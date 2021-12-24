@@ -85,7 +85,7 @@ begin
     { exact H }}
 end
 
-lemma ortho_smul_right (B : M →ₗ[R] M →ₛₗ[I.to_ring_hom] R) {x y} {a : R} {ha : a ≠ 0} : (is_ortho B x y) ↔ (is_ortho B x (a • y)) :=
+lemma ortho_smul_right {x y} {a : R} {ha : a ≠ 0} : (is_ortho B x y) ↔ (is_ortho B x (a • y)) :=
 begin
   dunfold is_ortho,
   split; intro H,
@@ -248,8 +248,7 @@ begin
   { exact λ h, h x ⟨1, one_smul _ _⟩ },
   { rintro h _ ⟨z, rfl⟩,
     rw [is_ortho, map_smulₛₗ₂, smul_eq_zero],
-    exact or.intro_right _ h,
-    }
+    exact or.intro_right _ h }
 end
 
 

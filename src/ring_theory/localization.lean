@@ -746,14 +746,15 @@ end away
 
 section inv_submonoid
 
-variables (M S) [is_localization M S]
+variables (M S) 
+
+/-- The submonoid of `S = M⁻¹R` consisting of `{ 1 / x | x ∈ M }`. -/
+def inv_submonoid : submonoid S := (M.map (algebra_map R S : R →* S)).left_inv
+
+variable [is_localization M S]
 
 lemma submonoid_map_le_is_unit : M.map (algebra_map R S : R →* S) ≤ is_unit.submonoid S :=
 by { rintros _ ⟨a, ha, rfl⟩, exact is_localization.map_units S ⟨_, ha⟩ }
-
-/-- The submonoid of `S = M⁻¹R` consisting of `{ 1 / x | x ∈ M }`. -/
-@[nolint unused_arguments] -- This should only be defined when `S` is indeed the localization.
-def inv_submonoid : submonoid S := (M.map (algebra_map R S : R →* S)).left_inv
 
 /-- There is an equivalence of monoids between the image of `M` and `inv_submonoid`. -/
 noncomputable

@@ -98,7 +98,7 @@ by rw [←mul_one r, ring_hom.map_mul, ring_hom.map_one, ←smul_def, map_smul, 
   smul_zero]
 
 @[simp] lemma map_coe_nat (n : ℕ) : D (n : A) = 0 :=
-by rw [← nsmul_one, D.map_smul_of_tower, map_one_eq_zero, smul_zero]
+by rw [← nsmul_one, D.map_smul_of_tower n, map_one_eq_zero, smul_zero]
 
 @[simp] lemma leibniz_pow (n : ℕ) : D (a ^ n) = n • a ^ (n - 1) • D a :=
 begin
@@ -246,7 +246,7 @@ protected lemma map_neg : D (-a) = -D a := map_neg D a
 protected lemma map_sub : D (a - b) = D a - D b := map_sub D a b
 
 @[simp] lemma map_coe_int (n : ℤ) : D (n : A) = 0 :=
-by rw [← zsmul_one, D.map_smul_of_tower, map_one_eq_zero, smul_zero]
+by rw [← zsmul_one, D.map_smul_of_tower n, map_one_eq_zero, smul_zero]
 
 lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
 begin

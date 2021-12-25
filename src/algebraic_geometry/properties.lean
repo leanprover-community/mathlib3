@@ -3,7 +3,7 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebraic_geometry.Scheme
+import algebraic_geometry.open_immersion
 import ring_theory.nilpotent
 import topology.sheaves.sheaf_condition.sites
 import category_theory.limits.constructions.binary_products
@@ -28,7 +28,6 @@ namespace algebraic_geometry
 
 variable (X : Scheme)
 
--- TODO: add sober spaces, and show that schemes are sober
 instance : t0_space X.carrier :=
 begin
   rw t0_space_iff_distinguishable,
@@ -41,6 +40,20 @@ begin
   have := t0_space_of_injective_of_continuous e'.injective e'.continuous,
   rw t0_space_iff_distinguishable at this,
   exact this ⟨x, U.2⟩ ⟨y, hy⟩ (by simpa using h) h'
+end
+
+instance : quasi_sober X.carrier :=
+begin
+  apply_with (quasi_sober_of_open_cover
+    (set.range (λ x, set.range $ (X.affine_cover.map x).1.base)))
+    { instances := ff },
+  { rintro ⟨_,i,rfl⟩, exact (X.affine_cover.is_open i).base_open.open_range },
+  { rintro ⟨_,i,rfl⟩,
+    exact @@open_embedding.quasi_sober _ _ _
+      (homeomorph.of_embedding _ (X.affine_cover.is_open i).base_open.to_embedding)
+      .symm.open_embedding prime_spectrum.quasi_sober },
+  { rw [set.top_eq_univ, set.sUnion_range, set.eq_univ_iff_forall],
+    intro x, exact ⟨_, ⟨_, rfl⟩, X.affine_cover.covers x⟩ }
 end
 
 /-- A scheme `X` is integral if its carrier is nonempty,

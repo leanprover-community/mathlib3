@@ -834,9 +834,9 @@ begin
   { exact h u hu },
   { simp only [preimage_univ, inter_univ], exact hs },
   { have : s ∩ f ⁻¹' (u ∩ v) = (s ∩ f ⁻¹' u) ∩ (s ∩ f ⁻¹' v),
-      by { ext x, simp, split, finish, finish },
+      by rw [preimage_inter, inter_assoc, inter_left_comm _ s, ← inter_assoc s s, inter_self],
     rw this,
-    exact is_open.inter hu hv },
+    exact hu.inter hv },
   { rw [preimage_sUnion, inter_bUnion],
     exact is_open_bUnion hU' },
   { exact hs }

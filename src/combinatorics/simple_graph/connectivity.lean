@@ -63,6 +63,11 @@ instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨by refl⟩
 namespace walk
 variables {G}
 
+lemma exists_eq_cons_of_ne : Π {u v : V} (hne : u ≠ v) (p : G.walk u v),
+  ∃ (w : V) (h : G.adj u w) (p' : G.walk w v), p = cons h p'
+| _ _ hne nil := (hne rfl).elim
+| _ _ _ (cons h p') := ⟨_, h, p', rfl⟩
+
 /-- The length of a walk is the number of edges along it. -/
 def length : Π {u v : V}, G.walk u v → ℕ
 | _ _ nil := 0
@@ -212,11 +217,7 @@ by rw [tail_support_append, list.mem_append]
 
 @[simp] lemma end_mem_tail_support_of_ne {u v : V} (h : u ≠ v) (p : G.walk u v) :
   v ∈ p.support.tail :=
-begin
-  cases p,
-  { exact (h rfl).elim },
-  { simp },
-end
+by { obtain ⟨_, _, _, rfl⟩ := exists_eq_cons_of_ne h p, simp }
 
 @[simp]
 lemma mem_support_append_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
@@ -297,8 +298,7 @@ lemma edges_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nod
 begin
   induction p,
   { simp, },
-  { simp only [edges_cons, list.nodup_cons],
-    simp only [support_cons, list.nodup_cons] at h,
+  { simp only [edges_cons, support_cons, list.nodup_cons] at h ⊢,
     exact ⟨λ h', h.1 (mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
 end
 
@@ -387,10 +387,7 @@ by split; intro h; convert reverse_path _ h; simp
 
 lemma is_path_of_append_left {u v w : V} (p : G.walk u v) (q : G.walk v w) :
   (p.append q).is_path → p.is_path :=
-begin
-  simp only [is_path_def, support_append],
-  exact list.nodup_of_nodup_append_left,
-end
+by { simp only [is_path_def, support_append], exact list.nodup_of_nodup_append_left }
 
 lemma is_path_of_append_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
   (h : (p.append q).is_path) : q.is_path :=

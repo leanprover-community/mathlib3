@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Martin Dvorak, Kyle Miller, Eric Wieser
 -/
 
-import data.matrix.basic
-import data.matrix.notation
 import linear_algebra.bilinear_map
 import linear_algebra.matrix.determinant
-import tactic.fin_cases
+import linear_algebra.vectors
+open_locale vectors
 
 /-!
 # Cross products
@@ -25,10 +24,9 @@ This module defines the cross product of vectors in $R^3$ for $R$ a commutative 
 
 ## Notation
 
-The locale `vectors` gives the following notations:
+The locale `vectors` gives the following notation:
 
 * `×₃` for the cross product
-* `⬝`  for dot products
 
 ## Tags
 
@@ -36,17 +34,8 @@ crossproduct
 -/
 
 
+
 variables {R : Type*} [comm_ring R]
-
-private lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
-  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
-by { ext x, fin_cases x; assumption }
-
-private lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
-  ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
-by { ext x, fin_cases x; refl }
-
-
 
 /-- The cross product of two vectors in $R^3$ for $R$ a commutative ring. -/
 def cross_product : (fin 3 → R) →ₗ[R] (fin 3 → R) →ₗ[R] (fin 3 → R) :=
@@ -62,8 +51,7 @@ begin
   ring,
 end
 
-localized "infixl ` ×₃ `: 68 := cross_product"      in vectors
-localized "infix  ` ⬝ ` : 67 := matrix.dot_product" in vectors
+localized "infixl ` ×₃ `: 68 := cross_product" in vectors
 
 lemma cross_product_def (a b : fin 3 → R) :
   a ×₃ b =

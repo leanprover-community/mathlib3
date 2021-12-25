@@ -750,7 +750,7 @@ begin
   exact hp (or.resolve_right ((irreducible_iff.1 hcontra).right p x hx') hx),
 end
 
-lemma not_unit_of_dvd_not_unit [cancel_comm_monoid_with_zero α] {p q : α}
+lemma dvd_not_unit.not_unit [cancel_comm_monoid_with_zero α] {p q : α}
   (hp : dvd_not_unit p q) : ¬ is_unit q :=
 begin
   obtain ⟨h, x, hx⟩ := hp,

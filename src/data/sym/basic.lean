@@ -117,13 +117,7 @@ begin
 end
 
 def erase [decidable_eq α] (s : sym α (n + 1)) (a : α) (h : a ∈ s) : sym α n :=
-⟨s.val.erase a, begin
-  cases s with s t,
-  simp only,
-  have := multiset.card_erase_of_mem h,
-  simp only [t, nat.pred] at this,
-  assumption,
-end⟩
+⟨s.val.erase a, (multiset.card_erase_of_mem h).trans $ s.property.symm ▸ n.pred_succ⟩
 
 /--
 Another definition of the nth symmetric power, using vectors modulo permutations. (See `sym`.)
@@ -159,43 +153,38 @@ instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
 
 end inhabited
 
-instance has_zero {α : Type*} : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
-instance has_emptyc {α : Type*} : has_emptyc (sym α 0) := ⟨0⟩
+instance has_zero : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
+instance has_emptyc : has_emptyc (sym α 0) := ⟨0⟩
 
-instance subsingleton {α : Type*} {n : ℕ} [g : subsingleton α] : subsingleton (sym α n) :=
+instance subsingleton {n : ℕ} [subsingleton α] : subsingleton (sym α n) :=
 ⟨begin
-  unfreezingI { cases g },
-  intros,
-  rcases a with ⟨c, d⟩,
-  rcases b with ⟨a, b⟩,
+  rintros ⟨a, ha⟩ ⟨b, hb⟩,
   simp only [subtype.mk.inj_eq],
-  induction a using multiset.case_strong_induction_on with k hk wa generalizing n c,
-  { rw [b.symm, multiset.card_zero] at d, exact multiset.card_eq_zero.mp d },
+  induction a using multiset.case_strong_induction_on with k hk ih generalizing n b,
+  { rw [ha.symm, multiset.card_zero] at hb, exact (multiset.card_eq_zero.mp hb).symm, },
   { cases n,
-    { exact false.elim (multiset.cons_ne_zero (multiset.card_eq_zero.mp b)) },
-    { classical,
-      exact if s : c = 0 then begin
-        rw [s, multiset.card_zero] at d,
-        exact false.elim (nat.succ_ne_zero n d.symm),
-      end else begin
-        have re := multiset.exists_mem_of_ne_zero s,
-        rcases re with ⟨re, we⟩,
-        cases multiset.exists_cons_of_mem we,
+    { exact false.elim (multiset.cons_ne_zero (multiset.card_eq_zero.mp ha)) },
+    { by_cases hzero : b = 0,
+      { rw [hzero, multiset.card_zero] at hb,
+        exact false.elim (nat.succ_ne_zero n hb.symm) },
+      { have hmem := multiset.exists_mem_of_ne_zero hzero,
+        rcases hmem with ⟨r, hr⟩,
+        cases multiset.exists_cons_of_mem hr,
         rw h,
-        have ob := @wa hk rfl.ge n w begin
-          rw [h, multiset.card_cons] at d,
-          refine nat.succ.inj d,
+        have ob := @ih hk rfl.ge n w begin
+          rw multiset.card_cons at ha,
+          refine nat.succ.inj ha,
         end begin
-          rw multiset.card_cons at b,
-          refine nat.succ.inj b,
+          rw [h, multiset.card_cons] at hb,
+          refine nat.succ.inj hb,
         end,
-        rw [ob, g re k],
-      end } }
+        rw [ob, subsingleton.elim k r] } } }
 end⟩
 
-instance unique {α : Type*} {n : ℕ} [g : unique α] : unique (sym α n) := unique.mk' _
+instance unique (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _
 
-instance is_empty {α : Type*} {n : ℕ} [g : is_empty α] : is_empty (sym α n.succ) := ⟨begin
+instance is_empty (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
+⟨begin
   intro h,
   rw sym at h,
   have w := @multiset.exists_mem_of_ne_zero _ h.val begin
@@ -204,26 +193,23 @@ instance is_empty {α : Type*} {n : ℕ} [g : is_empty α] : is_empty (sym α n.
     rw [y, multiset.card_zero] at z,
     exact false.elim (nat.succ_ne_zero n z.symm),
   end,
-  rcases w with ⟨w, q⟩,
-  unfreezingI { cases g },
-  tauto,
+  exact is_empty.exists_iff.mp w,
 end⟩
 
-def repeat (a : α) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
+def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
 
-lemma repeat_inj (a b : α) : @repeat _ n.succ a = repeat b → a = b := begin
-  intro x,
+lemma repeat_left_injective (n : ℕ) : function.injective (λ x : α, repeat x n.succ) :=
+begin
+  intros a b x,
   simp only [repeat, subtype.mk.inj_eq] at x,
-  exact multiset.repeat_inj a b n x,
+  exact (multiset.repeat_left_inj a b n).mp x,
 end
 
-instance nontrivial {α : Type*} {n : ℕ} [g : nontrivial α] : nontrivial (sym α (n + 1)) :=
-⟨begin
-  unfreezingI { rcases g with ⟨w, ⟨m, g⟩⟩ },
-  use [@repeat _ (n + 1) w, @repeat _ (n + 1) m],
-  intro x,
-  exact g (repeat_inj _ _ x),
-end⟩
+lemma repeat_left_inj (a b : α) (n : ℕ) : repeat a n.succ = repeat b n.succ ↔ a = b :=
+(repeat_left_injective n).eq_iff
+
+instance nontrivial (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
+(repeat_left_injective n).nontrivial
 
 def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 ⟨x.val.map f, by simpa [multiset.card_map] using x.property⟩
@@ -256,14 +242,10 @@ begin
   rw sym.cons,
 end
 
-lemma equiv_congr (β : Type u) (h : α ≃ β) : sym α n ≃ sym β n :=
-⟨ λ x, x.map h.to_fun,
-  λ x, x.map h.inv_fun,
-  by simp only [function.left_inverse, function.comp, map, equiv.to_fun_as_coe, multiset.map_id',
-  equiv.symm_apply_apply, implies_true_iff, eq_self_iff_true, multiset.map_map, subtype.coe_eta,
-  subtype.coe_mk, subtype.val_eq_coe, equiv.inv_fun_as_coe],
-  by simp only [function.left_inverse, function.right_inverse, function.comp, map,
-  equiv.to_fun_as_coe, multiset.map_id', implies_true_iff, eq_self_iff_true, equiv.apply_symm_apply,
-  multiset.map_map, subtype.coe_eta, subtype.coe_mk, subtype.val_eq_coe, equiv.inv_fun_as_coe] ⟩
+def equiv_congr (β : Type u) (h : α ≃ β) : sym α n ≃ sym β n :=
+{ to_fun := sym.map h,
+  inv_fun := sym.map h.symm,
+  left_inv := λ x, by simp only [equiv.symm_comp_self, map_id, map_map],
+  right_inv := λ x, by simp only [equiv.self_comp_symm, map_id, map_map] }
 
 end sym

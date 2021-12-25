@@ -808,7 +808,7 @@ begin
   simp only [hcontra, hu, zero_mul],
 end
 
-lemma ne_of_dvd_not_unit [cancel_comm_monoid_with_zero α] {p q : α}
+lemma dvd_not_unit.ne [cancel_comm_monoid_with_zero α] {p q : α}
   (h : dvd_not_unit p q) : p ≠ q :=
 begin
   by_contra hcontra,

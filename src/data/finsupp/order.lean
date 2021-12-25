@@ -18,7 +18,6 @@ This file lifts order structures on `α` to `ι →₀ α`.
   functions and multisets.
 -/
 
-
 noncomputable theory
 open_locale classical big_operators
 
@@ -205,7 +204,7 @@ def order_iso_multiset : (ι →₀ ℕ) ≃o multiset ι :=
 @[simp] lemma coe_order_iso_multiset_symm : ⇑(@order_iso_multiset ι).symm = multiset.to_finsupp :=
 rfl
 
-lemma to_multiset_strict_mono : strict_mono (@to_multiset ι) := order_iso_multiset.strict_mono
+lemma to_multiset_strict_mono : strict_mono (@to_multiset ι) := (@order_iso_multiset ι).strict_mono
 
 lemma sum_id_lt_of_lt (m n : ι →₀ ℕ) (h : m < n) : m.sum (λ _, id) < n.sum (λ _, id) :=
 begin
@@ -240,6 +239,6 @@ end finsupp
 namespace multiset
 
 lemma to_finsupp_strict_mono : strict_mono (@to_finsupp ι) :=
-finsupp.order_iso_multiset.symm.strict_mono
+(@finsupp.order_iso_multiset ι).symm.strict_mono
 
 end multiset

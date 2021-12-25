@@ -8,7 +8,7 @@ import linear_algebra.special_linear_group
 import analysis.complex.basic
 import group_theory.group_action.defs
 import linear_algebra.general_linear_group
-import number_theory.mod_forms.modular_group
+
 
 /-!
 # The upper half plane and its automorphisms
@@ -77,6 +77,15 @@ begin
   ext i,
   fin_cases i; assumption,
 end
+
+lemma det_of_22   {R : Type*} [comm_ring R] (M: matrix (fin 2) (fin 2) R):
+  M.det= (M 0 0) * (M 1 1) - (M 0 1) * (M 1 0):=
+begin
+rw  matrix.det_succ_row_zero,
+simp [fin.sum_univ_succ],
+ring,
+end
+
 
 lemma denom_ne_zero (g : GL_pos (fin 2) ℝ) (z : ℍ) : denom g z ≠ 0 :=
 begin

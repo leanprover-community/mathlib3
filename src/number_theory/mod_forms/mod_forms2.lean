@@ -4,6 +4,7 @@ import analysis.complex.upper_half_plane
 import linear_algebra.general_linear_group
 import linear_algebra.special_linear_group
 import algebra.direct_sum.ring
+import number_theory.modular
 universes u v
 
 open complex
@@ -81,15 +82,17 @@ begin
   rw e1,
   simp_rw [upper_half_plane.smul_aux,
   upper_half_plane.smul_aux',upper_half_plane.num,upper_half_plane.denom],
-  simp only [coe_fn_coe_base, subtype.coe_mk, matrix.general_linear_group.coe_fn_eq_coe],
+  simp  [coe_fn_coe_base, subtype.coe_mk, matrix.general_linear_group.coe_fn_eq_coe],
   dsimp only,
   have e2:= upper_half_plane.mul_smul' A B x,
   have e3: (A * B) • x = A • B • x , by {convert e2,} ,
   rw e3,
   ring_nf,
-  simp_rw auxmf2,
-  ring_nf,
-  simp_rw aux1,
+  field_simp,
+  sorry,
+  --simp_rw auxmf2,
+  --ring_nf,
+  --simp_rw aux1,
 end
 
 lemma slash_k_add (k : ℤ) (A : GL2P) (f g : ℍ → ℂ ) : (f +g )  ∣ₖ[k] A = (f ∣ₖ[k] A) + (g ∣ₖ[k] A) :=
@@ -157,7 +160,8 @@ begin
   simp only [int.cast_one, units.val_eq_coe, coe_coe],
   rw ← coe_coe,
   rw ← coe_coe,
-  simp only [matrix.special_linear_group.det_coe, coe_coe],
+  simp [matrix.special_linear_group.det_coe, coe_coe],
+  sorry,
 end
 
 lemma det_coe_g (Γ : subgroup SL2Z) (γ : Γ): (((γ : SL2Z ) : GL2P) :
@@ -175,13 +179,17 @@ begin
    rw ←  coe_coe,
   cases γ, cases γ_val,
   dsimp at *,
-  simp only [matrix.special_linear_group.det_coe] at *,
+  sorry,
+ -- simp only [matrix.special_linear_group.det_coe] at *,
 end
 
 lemma coe_aux (Γ : subgroup SL2Z) (γ : Γ) :
  ∀ i j, ((γ : matrix.GL_pos (fin 2) ℝ) i j : ℂ) = ((γ i j : ℤ) : ℝ) :=
 begin
   intros i j,
+  simp,
+  sorry,
+  /-
   have :=SL2Z.mat_vals  γ.1 i j,
   simp only [of_real_int_cast, subtype.val_eq_coe, matrix.general_linear_group.coe_fn_eq_coe, coe_coe] at *,
   rw ← coe_coe,
@@ -192,7 +200,7 @@ begin
   simp only [int_cast_re] at *,
   assumption },
   dsimp at *,
-  simp only [int_cast_im] at *,
+  simp only [int_cast_im] at *,-/
 end
 
 /--A function `f:ℍ → ℂ` is modular, of level `Γ` and weight `k ∈ ℤ`, if for every matrix in

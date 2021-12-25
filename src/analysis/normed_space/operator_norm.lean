@@ -396,6 +396,11 @@ end
 
 section
 
+lemma op_norm_ext [ring_hom_isometric σ₁₃] (f : E →SL[σ₁₂] F) (g : E →SL[σ₁₃] G)
+  (h : ∀ x, ∥f x∥ = ∥g x∥) : ∥f∥ = ∥g∥ :=
+op_norm_eq_of_bounds (norm_nonneg _) (λ x, by { rw h x, exact le_op_norm _ _ })
+  (λ c hc h₂, op_norm_le_bound _ hc (λ z, by { rw ←h z, exact h₂ z }))
+
 variables [ring_hom_isometric σ₂₃]
 
 theorem op_norm_le_bound₂ (f : E →SL[σ₁₃] F →SL[σ₂₃] G) {C : ℝ} (h0 : 0 ≤ C)
@@ -1198,20 +1203,7 @@ begin
   -- into a function which we call `G`.
   choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
   -- Next, we show that this `G` is linear,
-  let Glin : E →ₛₗ[σ₁₂] F :=
-  { to_fun := G,
-    map_add' := λ v w, begin
-      have A := hG (v + w),
-      have B := (hG v).add (hG w),
-      simp only [map_add] at A B,
-      exact tendsto_nhds_unique A B,
-    end,
-    map_smul' := λ c v, begin
-      have A := hG (c • v),
-      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ (σ₁₂ c) _) (hG v),
-      simp only [map_smulₛₗ] at A B,
-      exact tendsto_nhds_unique A B
-    end },
+  let Glin : E →ₛₗ[σ₁₂] F := linear_map_of_tendsto _ (tendsto_pi_nhds.mpr hG),
   -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
   have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
   { assume v,
@@ -1330,6 +1322,17 @@ namespace linear_isometry
 @[simp] lemma norm_to_continuous_linear_map [nontrivial E] (f : E →ₛₗᵢ[σ₁₂] F) :
   ∥f.to_continuous_linear_map∥ = 1 :=
 f.to_continuous_linear_map.homothety_norm $ by simp
+
+variables {σ₁₃ : 𝕜 →+* 𝕜₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+
+include σ₁₃
+/-- Postcomposition of a continuous linear map with a linear isometry preserves
+the operator norm. -/
+lemma norm_to_continuous_linear_map_comp (f : F →ₛₗᵢ[σ₂₃] G) {g : E →SL[σ₁₂] F} :
+  ∥f.to_continuous_linear_map.comp g∥ = ∥g∥ :=
+op_norm_ext (f.to_continuous_linear_map.comp g) g
+  (λ x, by simp only [norm_map, coe_to_continuous_linear_map, coe_comp'])
+omit σ₁₃
 
 end linear_isometry
 

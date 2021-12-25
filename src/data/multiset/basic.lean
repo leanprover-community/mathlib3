@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.bool.all_any
 import data.list.perm
 import data.list.prod_monoid
 
@@ -186,6 +187,9 @@ quot.induction_on s $ assume l hl,
   | [] := assume h, false.elim $ h rfl
   | (a :: l) := assume _, ⟨a, by simp⟩
   end
+
+lemma empty_or_exists_mem (s : multiset α) : s = 0 ∨ ∃ a, a ∈ s :=
+or_iff_not_imp_left.mpr multiset.exists_mem_of_ne_zero
 
 @[simp] lemma zero_ne_cons {a : α} {m : multiset α} : 0 ≠ a ::ₘ m :=
 assume h, have a ∈ (0:multiset α), from h.symm ▸ mem_cons_self _ _, not_mem_zero _ this
@@ -484,6 +488,8 @@ theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = {a} :=
 theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
 le_induction_on h $ λ l₁ l₂, length_le_of_sublist
 
+@[mono] theorem card_mono : monotone (@card α) := λ a b, card_le_of_le
+
 theorem eq_of_le_of_card_le {s t : multiset α} (h : s ≤ t) : card t ≤ card s → s = t :=
 le_induction_on h $ λ l₁ l₂ s h₂, congr_arg coe $ eq_of_sublist_of_length_le s h₂
 
@@ -697,6 +703,10 @@ theorem erase_le_iff_le_cons {s t : multiset α} {a : α} : s.erase a ≤ t ↔ 
 @[simp] theorem card_erase_of_mem {a : α} {s : multiset α} :
   a ∈ s → card (s.erase a) = pred (card s) :=
 quot.induction_on s $ λ l, length_erase_of_mem
+
+@[simp] lemma card_erase_add_one {a : α} {s : multiset α} :
+  a ∈ s → (s.erase a).card + 1 = s.card :=
+quot.induction_on s $ λ l, length_erase_add_one
 
 theorem card_erase_lt_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.erase a) < card s :=
 λ h, card_lt_of_lt (erase_lt.mpr h)
@@ -2151,16 +2161,32 @@ begin
     simp only [h, if_false, zero_min],
 end
 
+theorem count_map {α β : Type*} (f : α → β) (s : multiset α) [decidable_eq β] (b : β) :
+  count b (map f s) = (s.filter (λ a, b = f a)).card :=
+countp_map _ _ _
+
 /-- `multiset.map f` preserves `count` if `f` is injective on the set of elements contained in
 the multiset -/
 theorem count_map_eq_count [decidable_eq β] (f : α → β) (s : multiset α)
- (hf : set.inj_on f {x : α | x ∈ s}) (x ∈ s) : (s.map f).count (f x) = s.count x :=
+  (hf : set.inj_on f {x : α | x ∈ s}) (x ∈ s) : (s.map f).count (f x) = s.count x :=
 begin
   suffices : (filter (λ (a : α), f x = f a) s).count x = card (filter (λ (a : α), f x = f a) s),
   { rw [count, countp_map, ← this],
     exact count_filter_of_pos rfl },
   { rw eq_repeat.2 ⟨rfl, λ b hb, eq_comm.1 ((hf H (mem_filter.1 hb).left) (mem_filter.1 hb).right)⟩,
     simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
+end
+
+/-- `multiset.map f` preserves `count` if `f` is injective -/
+theorem count_map_eq_count' [decidable_eq β] (f : α → β) (s : multiset α)
+  (hf : function.injective f) (x : α) : (s.map f).count (f x) = s.count x :=
+begin
+  by_cases H : x ∈ s,
+  { exact count_map_eq_count f _ (set.inj_on_of_injective hf _) _ H, },
+  { rw [count_eq_zero_of_not_mem H, count_eq_zero, mem_map],
+    rintro ⟨k, hks, hkx⟩,
+    rw hf hkx at *,
+    contradiction }
 end
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=

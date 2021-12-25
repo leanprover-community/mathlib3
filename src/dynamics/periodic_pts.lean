@@ -295,7 +295,7 @@ by simp_rw [is_periodic_pt_iff_minimal_period_dvd, dvd_right_iff_eq]
 
 lemma minimal_period_eq_prime {p : ℕ} [hp : fact p.prime] (hper : is_periodic_pt f p x)
   (hfix : ¬ is_fixed_pt f x) : minimal_period f x = p :=
-(hp.out.2 _ (hper.minimal_period_dvd)).resolve_left
+(hp.out.eq_one_or_self_of_dvd _ (hper.minimal_period_dvd)).resolve_left
   (mt is_fixed_point_iff_minimal_period_eq_one.1 hfix)
 
 lemma minimal_period_eq_prime_pow {p k : ℕ} [hp : fact p.prime] (hk : ¬ is_periodic_pt f (p ^ k) x)

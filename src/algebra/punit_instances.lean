@@ -44,7 +44,7 @@ by refine
   .. };
 intros; exact subsingleton.elim _ _
 
-instance : comm_cancel_monoid_with_zero punit :=
+instance : cancel_comm_monoid_with_zero punit :=
 by refine
 { .. punit.comm_ring,
   .. };

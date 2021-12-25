@@ -3,9 +3,14 @@ Copyright (c) 2021 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
+
 import data.vector.basic
 
--- universe u
+/-!
+# μ-recursive Functions
+
+This file defines μ-recursive functions.
+-/
 
 /-- μ-recursive algorithms for functions from ℕ^k to ℕ -/
 inductive μ_recursive : ℕ -> Type

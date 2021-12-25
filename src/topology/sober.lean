@@ -237,7 +237,7 @@ def irreducible_set_equiv_points [quasi_sober α] [t0_space α] :
   map_rel_iff' := λ s t, by { change _ ⤳ _ ↔ _, rw specializes_iff_closure_subset,
     simp [s.prop.2.closure_eq, t.prop.2.closure_eq, ← subtype.coe_le_coe] } }
 
-lemma closed_embedding.sober {f : α → β} (hf : closed_embedding f) [quasi_sober β] :
+lemma closed_embedding.quasi_sober {f : α → β} (hf : closed_embedding f) [quasi_sober β] :
   quasi_sober α :=
 begin
   constructor,
@@ -251,7 +251,7 @@ begin
   rw [← hx, ← hf.closure_image_eq, set.image_singleton]
 end
 
-lemma open_embedding.sober {f : α → β} (hf : open_embedding f) [quasi_sober β] :
+lemma open_embedding.quasi_sober {f : α → β} (hf : open_embedding f) [quasi_sober β] :
   quasi_sober α :=
 begin
   constructor,
@@ -278,8 +278,8 @@ begin
     λ h, subset_closure ⟨h, hy⟩⟩
 end
 
-/-- A space is sober if it can be covered by open sober subsets. -/
-lemma sober_of_open_cover (S : set (set α)) (hS : ∀ s : S, is_open (s : set α))
+/-- A space is quasi sober if it can be covered by open quasi sober subsets. -/
+lemma quasi_sober_of_open_cover (S : set (set α)) (hS : ∀ s : S, is_open (s : set α))
   [hS' : ∀ s : S, quasi_sober s] (hS'' : ⋃₀ S = ⊤) : quasi_sober α :=
 begin
   rw quasi_sober_iff,

@@ -81,7 +81,7 @@ lemma mem_ℓp_gen (hp : 0 < p.to_real) {f : Π i, E i} (hf : summable (λ i, �
 begin
   rw ennreal.to_real_pos_iff at hp,
   dsimp [mem_ℓp],
-  rw [if_neg hp.1.ne', if_neg hp.2],
+  rw [if_neg hp.1.ne', if_neg hp.2.ne],
   exact hf,
 end
 
@@ -95,7 +95,7 @@ lemma mem_ℓp.summable (hp : 0 < p.to_real) {f : Π i, E i} (hf : mem_ℓp f p)
   summable (λ i, ∥f i∥ ^ p.to_real) :=
 begin
   rw ennreal.to_real_pos_iff at hp,
-  exact (if_neg hp.2).mp ((if_neg hp.1.ne').mp hf)
+  exact (if_neg hp.2.ne).mp ((if_neg hp.1.ne').mp hf)
 end
 
 lemma zero_mem_ℓp : mem_ℓp (0 : Π i, E i) p :=
@@ -337,7 +337,7 @@ lemma norm_eq_tsum_rpow (hp : 0 < p.to_real) (f : Lp E p) :
 begin
   dsimp [norm],
   rw ennreal.to_real_pos_iff at hp,
-  rw [dif_neg hp.1.ne', if_neg hp.2],
+  rw [dif_neg hp.1.ne', if_neg hp.2.ne],
 end
 
 lemma norm_rpow_eq_tsum (hp : 0 < p.to_real) (f : Lp E p) :

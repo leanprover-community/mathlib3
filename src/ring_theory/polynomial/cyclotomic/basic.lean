@@ -730,7 +730,7 @@ begin
       rw [nat.mul_div_cancel _ (nat.prime.pos hp)] },
     { exact_mod_cast hzero } },
   { rw [nat_degree_expand, nat_degree_cyclotomic, nat_degree_cyclotomic, mul_comm n,
-      nat.totient_mul_prime_div hp hdiv, mul_comm] }
+      nat.totient_mul_of_prime_of_dvd hp hdiv, mul_comm] }
 end
 
 end expand

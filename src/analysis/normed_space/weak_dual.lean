@@ -205,32 +205,6 @@ def _root_.weak_dual.to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] (x' : weak_dual 𝕜 E) :=
 x'.to_fun
 
-/-- For any `f : Π (j : ι), X j` in a product of metric spaces `X j`, a set of the
-form `{g | dist (f i) (g i) < ε}` with `ε > 0` and `i : ι` is a neighborhood of `f`. -/
-lemma _root_.mem_nhds_Pi' {ι : Type*} {X : ι → Type*} [∀ (i : ι), metric_space (X i)]
-  (f : (Π (j : ι), X j)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
-  {g : (Π (j : ι), X j) | dist (f i) (g i) < ε} ∈ 𝓝 f :=
-begin
-  have nhd : {z : X i | dist (f i) z < ε} ∈ 𝓝 (f i),
-  by { simp_rw dist_comm, exact ball_mem_nhds (f i) ε_pos, },
-  have key := set_pi_mem_nhds (finite_singleton i)
-    (by { intros j hj, rwa mem_singleton_iff.mp hj, } :
-    ∀ j ∈ {i}, {z : X j | dist (f j) z < ε} ∈ 𝓝 (f j)),
-  simp only [singleton_pi, preimage_set_of_eq, function.eval_apply] at key,
-  exact key,
-end
-
-/-- For any `f : Π (j : ι), K j` in a product of normed groups `K j`, a set of the
-form `{g | dist (f i) (g i) < ε}` with `ε > 0` and `i : ι` is a neighborhood of `f`. -/
-lemma _root_.mem_nhds_Pi_normed_field {ι : Type*} {K : ι → Type*} [∀ (i : ι), normed_group (K i)]
-  (f : (Π j, K j)) (i : ι) {ε : ℝ} (ε_pos : 0 < ε) :
-  {g : (Π j, K j) | ∥ f i - g i ∥ < ε} ∈ 𝓝 f :=
-begin
-  have key := _root_.mem_nhds_Pi' f i ε_pos,
-  rwa (_ : {g : (Π j, K j) | ∥f i - g i∥ < ε} = {g : (Π j, K j) | dist (f i) (g i) < ε}),
-  simp only [dist_eq_norm],
-end
-
 /-- The function `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` is an embedding. -/
 lemma weak_dual.to_Pi_embedding (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
@@ -299,7 +273,12 @@ begin
   suffices : ∀ (ε : ℝ), 0 < ε → ∥ f (z) ∥ ≤ c + ε,
   { exact le_of_forall_pos_le_add this, },
   intros ε ε_pos,
-  have nhd := mem_nhds_Pi_normed_field f z ε_pos,
+  have nhd : {g : E → 𝕜 | ∥f z - g z∥ < ε} ∈ 𝓝 f,
+  { have nhd' := continuous_at_apply z f (ball_mem_nhds (f z) ε_pos),
+    rwa [mem_map, (_ : (λ (g : E → 𝕜), g z) ⁻¹' (ball (f z) ε) = {g : E → 𝕜 | ∥f z - g z∥ < ε})] at nhd',
+    ext g,
+    simp only [ball, dist_comm, mem_set_of_eq, preimage_set_of_eq],
+    exact mem_ball_iff_norm, },
   cases mem_closure_iff_nhds.mp hf _ nhd with g hg,
   simp only [mem_image, mem_inter_eq, mem_set_of_eq] at hg,
   rcases hg with ⟨tri, ⟨y', ⟨at_z_le, eq_g⟩⟩⟩,
@@ -327,7 +306,8 @@ begin
   intros z,
   set θ := λ (ψ : E → 𝕜), ∥ ψ z ∥ with hθ,
   have θ_cont : continuous θ,
-  from (continuous_apply z).norm,
+  { apply continuous.comp continuous_norm,
+    exact continuous_apply z, },
   have sin_closed : is_closed (Icc (-c * ∥z∥) (c * ∥z∥) : set ℝ) := is_closed_Icc,
   have preim_cl := is_closed.preimage θ_cont sin_closed,
   suffices : (weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s) ⊆ θ⁻¹' (Icc (-c * ∥z∥) (c * ∥z∥)),
@@ -412,7 +392,7 @@ begin
   apply compact_of_is_closed_subset _ _ ss,
   { apply is_compact_univ_pi,
     exact λ z, proper_space.is_compact_closed_ball 0 _, },
-  exact image_polar_closed s_nhd,
+  exact is_closed_image_polar s_nhd,
 end
 
 end weak_dual.to_Pi_embedding

@@ -435,9 +435,6 @@ theorem one_eq_mk_one [monoid α] : (1 : associates α) = associates.mk 1 := rfl
 
 instance [monoid α] : has_bot (associates α) := ⟨1⟩
 
-lemma bot_eq_one [monoid_with_zero α] :
-  (⊥ : associates α) = 1 := rfl
-
 lemma exists_rep [monoid α] (a : associates α) : ∃ a0 : α, associates.mk a0 = a :=
 quot.exists_rep a
 

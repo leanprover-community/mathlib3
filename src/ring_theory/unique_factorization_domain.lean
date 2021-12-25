@@ -1463,7 +1463,7 @@ end
 
 lemma pow_prime₁' {q : associates M} (n : ℕ) (c : finset.range (n + 1) → associates M)
   (h₁ : strict_mono c)
-  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩) :
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩):
   is_unit (c ⟨0, finset.mem_range.2 (nat.zero_lt_succ n) ⟩) :=
 begin
   obtain ⟨i, hi, hr⟩ := h₂.mp associates.one_le,
@@ -1714,8 +1714,7 @@ begin
       exact hy' } }
 end
 
--- For somewhere near the start of `unique_factorization_domain.lean` (this was taken from the code
--- you wrote earlier when we were still trying the `quotient_multiplicity` approach)
+-- For somewhere near the start of this file
 lemma multiplicity.finite_prime_left {R : Type*} [comm_cancel_monoid_with_zero R]
   [wf_dvd_monoid R] {a b : R} (ha : prime a) (hb : b ≠ 0) :
   multiplicity.finite a b :=
@@ -1773,8 +1772,8 @@ begin
           apply hd',
           simpa [hc₁, hr, subtype.coe_le_coe] using hr,
         obtain ⟨i, hi, hi'⟩ := hc₁''.1 temp_r,
-        exact exists.intro i (exists.intro hi
-          (by simp only [c₂.def, ← hi',equiv.apply_symm_apply, subtype.coe_eta, subtype.coe_mk] ))},
+        exact exists.intro i (exists.intro hi (by simp only [c₂.def, ← hi', equiv.apply_symm_apply,
+          subtype.coe_eta, subtype.coe_mk] )) },
       { intro H,
         obtain ⟨i, hi, hr⟩ := H,
         rw [hr, c₂.def, subtype.coe_le_coe],

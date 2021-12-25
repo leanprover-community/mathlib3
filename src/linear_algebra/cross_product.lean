@@ -7,7 +7,6 @@ Authors: Martin Dvorak, Kyle Miller, Eric Wieser
 import linear_algebra.bilinear_map
 import linear_algebra.matrix.determinant
 import linear_algebra.vectors
-open_locale vectors
 
 /-!
 # Cross products
@@ -33,7 +32,7 @@ The locale `vectors` gives the following notation:
 crossproduct
 -/
 
-
+open_locale vectors
 
 variables {R : Type*} [comm_ring R]
 
@@ -60,8 +59,6 @@ lemma cross_product_def (a b : fin 3 → R) :
        (a 0)*(b 1) - (a 1)*(b 0) ] :=
 rfl
 
-
-
 lemma cross_product_anticomm (v w : fin 3 → R) :
   - (v ×₃ w) = w ×₃ v :=
 by simp [cross_product_def, mul_comm]
@@ -74,7 +71,6 @@ lemma cross_product_self_eq_zero_vector (v : fin 3 → R) :
   v ×₃ v = 0 :=
 by simp [cross_product_def, mul_comm]
 
-
 /-- The cross product of two vectors is perpendicular to the first vector. -/
 lemma dot_self_cross_product_eq_zero (v w : fin 3 → R) :
   v ⬝ (v ×₃ w) = 0 :=
@@ -84,7 +80,6 @@ by simp [cross_product_def, vec3_dot_product, mul_sub, mul_assoc, mul_left_comm]
 lemma dot_cross_product_self_eq_zero (v w : fin 3 → R) :
   w ⬝ (v ×₃ w) = 0 :=
 by rw [← cross_product_anticomm, matrix.dot_product_neg, dot_self_cross_product_eq_zero, neg_zero]
-
 
 /-- Cyclic permutations preserve the triple product. See also `triple_product_eq_det`. -/
 lemma triple_product_permutation (u v w : fin 3 → R) :

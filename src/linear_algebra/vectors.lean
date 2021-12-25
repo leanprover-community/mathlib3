@@ -11,7 +11,8 @@ import tactic.fin_cases
 /-!
 # Vectors
 
-This module provides lemmata to more easily manipulate explicit vectors in $R^2$ and $R^3$ for $R$ a commutative ring.
+This module provides lemmata to more easily manipulate explicit vectors in $R^2$ and $R^3$
+for $R$ a commutative ring.
 
 ## Notation
 
@@ -23,8 +24,6 @@ The locale `vectors` gives the following notation:
 
 vectors
 -/
-
-
 
 variables {R : Type*} [comm_ring R]
 
@@ -43,7 +42,6 @@ by { ext x, fin_cases x; refl }
 lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
   ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
 by { ext x, fin_cases x; refl }
-
 
 localized "infix  ` ⬝ ` : 67 := matrix.dot_product" in vectors
 

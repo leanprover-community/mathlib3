@@ -58,53 +58,41 @@ instance {R : Type*} [comm_ring R] [algebra R ℝ] :mul_action SL(2, R) ℍ :=
  mul_action.comp_hom ℍ  (monoid_hom.comp (special_linear_group.to_GL_pos)
  (map (algebra_map R ℝ)) )
 
+instance : has_coe SL(2,ℤ) (GL_pos (fin 2) ℝ) :=
+⟨λ g , ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ))⟩
+
 @[simp]
 lemma smul_eq_smul (g : SL(2,ℤ)) (z : ℍ) : g • z = ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ)) • z :=rfl
+
+lemma coetest {R : Type*} [linear_ordered_comm_ring R] (g : SL(2, R)) : ∀ i j, g i j =
+(g : (GL_pos (fin 2) R)) i j :=
+begin
+intros i j,
+rw coe,
+rw lift_t,
+dsimp,
+refl,
+end
+
+lemma coetest2 {R : Type*} [linear_ordered_comm_ring R] (g : SL(2, R)) : ∀ i j, -g i j =
+(-g : (GL_pos (fin 2) R)) i j :=
+begin
+simp,
+intros i j,
+rw coe,
+rw lift_t,
+dsimp,
+refl,
+end
 
 @[simp]
 lemma coe2 (g : SL(2,ℤ)) : ∀ i j,  ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ)) i j = (↑ₘg i j  : ℝ)  :=
 begin
 intros i j,
-sorry,
-end
-
-@[simp]
-lemma coe3 (g : SL(2,ℤ)) : ∀ i j, (((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ)) i j : ℂ) = (↑ₘg i j : ℂ) :=
-begin
-intros i j,
+have := coetest (g : SL(2, ℝ)) i j,
+rw ← this,
 simp,
 end
-
-@[simp]
-lemma coe4 (g : SL(2,ℤ)) : ∀ i j, (g : SL(2, ℝ)) i j = (↑ₘg i j : ℝ) :=
-begin
-intros i j,
-simp,
-sorry,
-end
-
-
-@[simp]
-lemma coe5 (g : SL(2,ℤ)) : ∀ i j,  (↑ₘg i j : ℝ) =
-( (coe : SL(2,ℝ) → matrix (fin 2) (fin 2) ℝ)  (g : SL(2,ℝ))) i j:=
-begin
-intros i j,
-
-sorry,
-end
-
-
-
-@[simp]
-lemma coe6 (g : SL(2,ℤ)) : ∀ i j,  (↑ₘg i j : ℂ) =
-( (coe : SL(2,ℝ) → matrix (fin 2) (fin 2) ℝ)  (g : SL(2,ℝ))) i j :=
-begin
-intros i j,
-
-sorry,
-end
-
-
 
 lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 lemma re_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
@@ -116,10 +104,14 @@ have := neg_smul g z,
 dsimp at *,
 rw ← this,
 congr,
+have gf:= coetest2 g,
 ext i j,
-rw SL2Z.has_neg,
-have := coe2 g i j,
-simp at this,
+dsimp,
+simp at *,
+simp_rw ← coe_coe,
+have h1:= coetest2 g i j,
+dsimp at h1,
+
 sorry,
 end
 

@@ -489,12 +489,12 @@ namespace SL2Z
 
 variables (C D B : SL2Z)
 
-
+/-
 instance  : has_neg (SL2Z) :=
 begin
 simp_rw SL2Z, have:= special_linear_group.has_neg, apply this, simp, fsplit, tauto,
 end
-
+-/
 
 --
 
@@ -549,10 +549,11 @@ simp only [matrix.head_cons, matrix.cons_val_one],
 
 end
 
+/-
 instance SLZ_to_GLZ: has_coe SL2Z (matrix.special_linear_group (fin 2 ) ℝ):=
 ⟨λ A, ⟨mat_Z_to_R A.1, by {rw mat_Z_to_R, rw det_of_22, have:= det_onne' A, simp,simp at this,
  norm_cast, exact this,}, ⟩⟩
-
+-/
 
 @[simp]lemma mat_vals (A: SL2Z) (i j : fin 2): ( A : (GL (fin 2) ℝ)) i j = (A.1 i j : ℝ):=
 

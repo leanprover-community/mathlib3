@@ -8,21 +8,115 @@ import topology.metric_space.hausdorff_distance
 import linear_algebra.adic_completion
 import data.real.nnreal
 
+
+section power_series_coeff_lemmas
+-- duplicate the api of data/polynomial/coeff.lean
+open power_series finset
+noncomputable theory
+
+namespace power_series
+variables {R : Type*} [ring R]
+lemma coeff_C_mul_X (x : R) (k n : ℕ) :
+  coeff R n (C R x * X ^ k : power_series R) = if n = k then x else 0 :=
+by simp [X_pow_eq, coeff_monomial]
+
+@[simp]
+theorem coeff_mul_X_pow (p : power_series R) (n d : ℕ) :
+  coeff R (d + n) (p * X ^ n) = coeff R d p :=
+begin
+  rw [coeff_mul, sum_eq_single (d,n), coeff_X_pow, if_pos rfl, mul_one],
+  { rintros ⟨i,j⟩ h1 h2, rw [coeff_X_pow, if_neg, mul_zero], rintro rfl, apply h2,
+    rw [nat.mem_antidiagonal, add_right_cancel_iff] at h1, subst h1 },
+  { exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
+end
+
+@[simp]
+theorem coeff_X_pow_mul (p : power_series R) (n d : ℕ) :
+  coeff R (d + n) (X ^ n * p) = coeff R d p :=
+begin
+  rw [coeff_mul, sum_eq_single (n,d), coeff_X_pow, if_pos rfl, one_mul],
+  { rintros ⟨i,j⟩ h1 h2, rw [coeff_X_pow, if_neg, zero_mul], rintro rfl, apply h2,
+    rw [nat.mem_antidiagonal, add_comm, add_right_cancel_iff] at h1, subst h1 },
+  { rw add_comm,
+    exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
+end
+
+lemma coeff_mul_X_pow' (p : power_series R) (n d : ℕ) :
+  coeff R d (p * X ^ n) = ite (n ≤ d) (coeff R (d - n) p) 0 :=
+begin
+  split_ifs,
+  { rw [← tsub_add_cancel_of_le h, coeff_mul_X_pow, add_tsub_cancel_right] },
+  { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
+    rw [coeff_X_pow, if_neg, mul_zero],
+    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
+      (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
+end
+
+lemma coeff_X_pow_mul' (p : power_series R) (n d : ℕ) :
+  coeff R d (X ^ n * p) = ite (n ≤ d) (coeff R (d - n) p) 0 :=
+begin
+  split_ifs,
+  { rw [← tsub_add_cancel_of_le h, coeff_X_pow_mul], simp, },
+  { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
+    rw [coeff_X_pow, if_neg, zero_mul],
+    have := finset.nat.mem_antidiagonal.mp hx,
+    rw add_comm at this,
+    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
+      (le_of_eq this)) (not_le.mp h)) },
+end
+
+@[simp] theorem coeff_mul_X (p : power_series R) (n : ℕ) :
+  coeff R (n + 1) (p * X) = coeff R n p :=
+by simpa only [pow_one] using coeff_mul_X_pow p 1 n
+
+@[simp] theorem coeff_X_mul (p : power_series R) (n : ℕ) :
+  coeff R (n + 1) (X * p) = coeff R n p :=
+by simpa only [pow_one] using coeff_X_pow_mul p 1 n
+
+end power_series
+end power_series_coeff_lemmas
 section adic_metric
+
+namespace submodule
+open submodule
+open_locale pointwise
+variables {R M : Type*} [comm_semiring R] [add_comm_group M] [module R M] (I : ideal R)
+
+lemma mem_span_singleton_smul {y : R} {x : M} (N : submodule R M) :
+  x ∈ ideal.span ({y} : set R) • N ↔ ∃ (n : M) (hn : n ∈ N), y • n = x :=
+⟨λ hx, smul_induction_on hx
+  (λ r hri n hnm,
+    let ⟨s, hs⟩ := mem_span_singleton.1 hri in
+ ⟨s • n, smul_mem N s hnm, by simp [← hs, mul_smul]; exact smul_comm _ _ _⟩)
+  ⟨0, by simp, smul_zero _⟩
+  (λ m1 m2 ⟨y1, hyi1, hy1⟩ ⟨y2, hyi2, hy2⟩,
+    ⟨y1 + y2, add_mem N hyi1 hyi2, by rw [smul_add, hy1, hy2]⟩)
+  (λ c r ⟨y, hyi, hy⟩, ⟨c • y, smul_mem N c hyi, by simp [← hy, mul_smul]; exact smul_comm _ _ _⟩),
+λ ⟨y, hyi, hy⟩, hy ▸ smul_mem_smul (ideal.mem_span_singleton'.mpr ⟨1, by simp⟩) hyi⟩
+
+end submodule
 variables (R : Type*) [comm_ring R] (J : ideal (power_series R))
 open power_series
--- TODO could be generalized to other ideals?
-instance : is_Hausdorff (ideal.span ({X} : set (power_series R))) (power_series R) :=
+-- TODO is there some generalization, ideals over Hausdorff rings are all haus etc
+-- TODO restore original version for R
+instance power_series.ideal.is_Hausdorff :
+  is_Hausdorff (ideal.span ({X} : set (power_series R))) J :=
 { haus' := begin
   intros x h,
   ext n,
   specialize h (n + 1),
+  rw [ideal.span_singleton_pow, smodeq.sub_mem] at h,
   simp at h,
-  rw [ideal.span_singleton_pow, smodeq.sub_mem,
-    ideal.mem_span_singleton, power_series.X_pow_dvd_iff, sub_zero] at h,
-  simp [h],
+  rw submodule.mem_span_singleton_smul at h,
+  rcases h with ⟨⟨h_w_val, h_w_property⟩, ⟨⟩, rfl⟩,
+  -- dsimp,
+      -- ideal.mem_span_singleton, power_series.X_pow_dvd_iff, sub_zero] at h,
+  simp,
+  rw add_comm,
+  rw coeff_X_pow_mul',
+  simp,
 end }
-instance : is_precomplete (ideal.span ({X} : set (power_series R))) (power_series R) :=
+instance : is_precomplete (ideal.span ({X} : set (power_series R))) J :=
 { prec' := begin
   intros f h,
   use power_series.mk (λ n, coeff R n (f (n + 1))),

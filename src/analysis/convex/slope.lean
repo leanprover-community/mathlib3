@@ -53,6 +53,32 @@ begin
   exact convex_on.slope_mono_adjacent hf.neg hx hz hxy hyz,
 end
 
+/-- If `f : 𝕜 → 𝕜` is convex, then for any four points `w < x ≤ y < z` the slope of the secant line of
+`f` on `[w, x]` is less than the slope of the secant line of `f` on `[y, z]`. -/
+lemma convex_on.slope_mono (hf : convex_on 𝕜 s f)
+  {w x y z: 𝕜} (hw : w ∈ s) (hz : z ∈ s) (hwx: w < x) (hxy : x ≤ y) (hyz : y < z):
+  (f x - f w) / (x - w) ≤ (f z - f y) / (z - y) :=
+begin
+  rcases hxy.eq_or_lt with rfl | hxy,
+  { apply hf.slope_mono_adjacent hw hz hwx hyz },
+  have := hf.1.ord_connected.out hw hz,
+  have hx : x ∈ s :=
+  begin
+    apply this,
+    rw set.mem_Icc,
+    exact and.intro hwx.le (hxy.trans hyz).le,
+  end,
+  have hy : y ∈ s :=
+  begin
+    apply this,
+    rw set.mem_Icc,
+    exact and.intro (hwx.trans hxy).le hyz.le,
+  end,
+  have h₁ := hf.slope_mono_adjacent hw hy hwx hxy,
+  have h₂ := hf.slope_mono_adjacent hx hz hxy hyz,
+  exact h₁.trans h₂,
+end
+
 /-- If `f : 𝕜 → 𝕜` is strictly convex, then for any three points `x < y < z` the slope of the
 secant line of `f` on `[x, y]` is strictly less than the slope of the secant line of `f` on
 `[x, z]`. -/

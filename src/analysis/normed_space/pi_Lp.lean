@@ -27,7 +27,7 @@ functions, for instance.
 ## Implementation notes
 
 We only deal with the `L^p` distance on a product of finitely many metric spaces, which may be
-distinct. A closely related construction is `Lp`, the `L^p` norm on a product of (possibly
+distinct. A closely related construction is `lp`, the `L^p` norm on a product of (possibly
 infinitely many) normed spaces, where the norm is
 $$
 \left(\sum ∥f (x)∥^p \right)^{1/p}.
@@ -41,7 +41,7 @@ a measure space to a normed space, where the norm is
 $$
 \left(\int ∥f (x)∥^p dμ\right)^{1/p}.
 $$
-This has all the same subtleties as `Lp`, and the further subtlety that this only
+This has all the same subtleties as `lp`, and the further subtlety that this only
 defines a seminorm (as almost everywhere zero functions have zero `L^p` norm).
 The construction `pi_Lp` corresponds to the special case of `measure_theory.Lp` in which the basis
 is a finite space equipped with the counting measure.

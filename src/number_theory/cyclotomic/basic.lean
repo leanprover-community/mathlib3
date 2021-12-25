@@ -61,7 +61,7 @@ that `cyclotomic a A` has a root in `B` for all `a ∈ S` and that `B` is genera
 roots of `X ^ n - 1`. -/
 @[mk_iff] class is_cyclotomic_extension : Prop :=
 (exists_root {a : ℕ+} (ha : a ∈ S) : ∃ r : B, aeval r (cyclotomic a A) = 0)
-(adjoint_roots : ∀ (x : B), x ∈ adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 })
+(adjoin_roots : ∀ (x : B), x ∈ adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 })
 
 namespace is_cyclotomic_extension
 

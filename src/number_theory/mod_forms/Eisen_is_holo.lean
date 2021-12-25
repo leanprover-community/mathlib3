@@ -218,8 +218,7 @@ begin
   intros i j,
   have :=SL2Z.mat_vals  γ i j,
   simp only [of_real_int_cast, subtype.val_eq_coe, matrix.general_linear_group.coe_fn_eq_coe, coe_coe] at *,
-  rw ← coe_coe,
-  assumption,
+  simp,
 end
 
 def TN (n : ℤ) : SL2Z := ⟨Tn (n), Tndet n⟩
@@ -274,15 +273,14 @@ begin
   have h11' : (⟨(TN n), htop⟩ : ( (⊤ : subgroup SL2Z)) )  1 1 = 1, by {refl,},
   simp_rw hoo' at H,
   simp_rw h11' at H,
-  simp only [int.cast_zero, one_mul, zero_mul, int.cast_one, zero_add, one_zpow₀] at H,
-  rw ← coe_coe at H,
+  simp [int.cast_zero, one_mul, zero_mul, int.cast_one, zero_add, one_zpow₀] at H,
+  simp,
   apply H,
 end
 
 lemma smul_expl (n : ℤ) (z : ℍ) : (((TN n) : matrix.GL_pos (fin 2) ℝ)  • z ) = n +ᵥ z :=
 begin
-  simp only [coe_coe],
-  rw ← coe_coe,
+  simp [coe_coe],
   have := upper_half_plane.coe_smul ((TN n) : matrix.GL_pos (fin 2) ℝ) z,
   have h1:= (TN00 n),
   have h2:= (TN01 n),
@@ -365,7 +363,6 @@ simp_rw ← mod_period,
 set Z : ℍ := (((TN n) : matrix.GL_pos (fin 2) ℝ)  • ⟨z,hz⟩),
 have H := eis_bound_by_real_eis k Z hk,
 simp_rw  Z at H,
-rw ← coe_coe,
 apply le_trans H,
 simp_rw M,
 have HR:=Real_Eisenstein_bound_unifomly_on_stip k hk 1 2 h2,

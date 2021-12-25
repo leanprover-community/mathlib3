@@ -11,7 +11,7 @@ import tactic.fin_cases
 /-!
 # Vectors
 
-This module privates some trivial lemmata for easier work with explicit vectors in R^2 and R^3.
+This module provides lemmata to more easily manipulate explicit vectors in $R^2$ and $R^3$ for $R$ a commutative ring.
 
 ## Notation
 

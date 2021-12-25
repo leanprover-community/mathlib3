@@ -156,7 +156,7 @@ end inhabited
 instance has_zero : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
 instance has_emptyc : has_emptyc (sym α 0) := ⟨0⟩
 
-instance subsingleton {n : ℕ} [subsingleton α] : subsingleton (sym α n) :=
+instance subsingleton (n : ℕ) [subsingleton α] : subsingleton (sym α n) :=
 ⟨begin
   rintros ⟨a, ha⟩ ⟨b, hb⟩,
   simp only [subtype.mk.inj_eq],

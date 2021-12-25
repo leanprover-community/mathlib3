@@ -742,7 +742,7 @@ end associates
 
 section cancel_comm_monoid_with_zero
 
-lemma not_prime_of_not_unit_dvd_not_unit [cancel_comm_monoid_with_zero α] {p q : α}
+lemma not_irreducible_of_not_unit_dvd_not_unit [cancel_comm_monoid_with_zero α] {p q : α}
   (hp : ¬is_unit p) (h : dvd_not_unit p q) : ¬ irreducible q :=
 begin
   by_contra hcontra,
@@ -794,18 +794,9 @@ begin
   { use x * ↑(u⁻¹),
     split,
     { suffices : dvd_not_unit ↑u⁻¹ (x * ↑u⁻¹),
-      { exact not_unit_of_dvd_not_unit this },
+      { exact dvd_not_unit.not_unit this },
       exact ⟨(units.is_unit u⁻¹).ne_zero, by { use x, exact ⟨hx.left, mul_comm x ↑u⁻¹⟩, } ⟩ },
     { rw [← mul_assoc, ← hx.right, mul_assoc, units.mul_inv, mul_one] } },
-end
-
-theorem ne_zero_of_dvd_ne_zero [cancel_comm_monoid_with_zero α] {p q : α} (h₁ : q ≠ 0)
-  (h₂ : p ∣ q) : p ≠ 0 :=
-begin
-  by_contra hcontra,
-  obtain ⟨u, hu⟩ := h₂,
-  apply h₁,
-  simp only [hcontra, hu, zero_mul],
 end
 
 lemma dvd_not_unit.ne [cancel_comm_monoid_with_zero α] {p q : α}
@@ -830,7 +821,7 @@ begin
     { exact this (lt_of_not_ge h') } },
 
   intros n m h,
-  apply ne_of_dvd_not_unit,
+  apply dvd_not_unit.ne,
   split,
   { exact pow_ne_zero n hq' },
   { use q^(m - n),

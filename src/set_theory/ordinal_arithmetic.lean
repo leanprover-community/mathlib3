@@ -857,9 +857,14 @@ theorem sup_le {ι} {f : ι → ordinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a 
 theorem lt_sup {ι} {f : ι → ordinal} {a} : a < sup f ↔ ∃ i, a < f i :=
 by simpa only [not_forall, not_le] using not_congr (@sup_le _ f a)
 
-theorem sup_not_succ_of_lt_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i < sup f) :
+-- A result that shows up twice for some reason.
+private lemma lt_sup_of_ne_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f) → ∀ i, f i < sup f :=
+λ hf _, lt_of_le_of_ne (le_sup _ _) (hf _)
+
+theorem sup_not_succ_of_ne_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i ≠ sup f) :
   ∀ a < sup f, succ a < sup f :=
 begin
+  replace hf := lt_sup_of_ne_sup hf,
   intros a hao,
   by_contra' hoa,
   have hao' := le_antisymm (succ_le.2 hao) hoa,
@@ -867,14 +872,6 @@ begin
   rw le_antisymm (le_of_lt hao) (sup_le.2 (λ i, lt_succ.1 (hf i))) at hao',
   exact succ_ne_self _ hao',
 end
-
--- A result that shows up twice for some reason.
-private lemma lt_sup_of_ne_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f) → ∀ i, f i < sup f :=
-λ hf _, lt_of_le_of_ne (le_sup _ _) (hf _)
-
-theorem sup_not_succ_of_ne_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i ≠ sup f) :
-  ∀ a < sup f, succ a < sup f :=
-λ _, sup_not_succ_of_lt_sup (lt_sup_of_ne_sup hf) _
 
 theorem is_normal.sup {f} (H : is_normal f)
   {ι} {g : ι → ordinal} (h : nonempty ι) : f (sup g) = sup (f ∘ g) :=
@@ -917,17 +914,6 @@ bsup_le.1 (le_refl _) _ _
 theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
 by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
 
-theorem bsup_not_succ_of_lt_bsup {o} {f : Π a < o, ordinal} (hf : ∀ i h, f i h < bsup o f) (a) :
-  a < o.bsup f → succ a < o.bsup f :=
-begin
-  intro hao,
-  by_contra' hoa,
-  have hao' := le_antisymm (succ_le.2 hao) hoa,
-  rw ←hao' at hf,
-  rw le_antisymm (le_of_lt hao) (bsup_le.2 (λ i h, lt_succ.1 (hf i h))) at hao',
-  exact succ_ne_self _ hao',
-end
-
 theorem bsup_type (r : α → α → Prop) [is_well_order α r] (f) :
   bsup (type r) f = sup (λ a, f (typein r a) (typein_lt_type _ _)) :=
 eq_of_forall_ge_iff $ λ o,
@@ -950,9 +936,17 @@ private lemma lt_bsup_of_ne_bsup {o : ordinal} {f : Π a < o, ordinal} :
 λ hf _ _, lt_of_le_of_ne (le_bsup _ _ _) (hf _ _)
 
 theorem bsup_not_succ_of_ne_bsup {o} {f : Π a < o, ordinal}
-  (hf : ∀ (i : ordinal) (h : i < o), f i h ≠ o.bsup f) :
-  ∀ a < o.bsup f, succ a < o.bsup f :=
-λ _, bsup_not_succ_of_lt_bsup (lt_bsup_of_ne_bsup hf) _
+  (hf : ∀ (i : ordinal) (h : i < o), f i h ≠ o.bsup f) (a) :
+  a < bsup o f → succ a < bsup o f :=
+begin
+  replace hf := lt_bsup_of_ne_bsup hf,
+  intro hao,
+  by_contra' hoa,
+  have hao' := le_antisymm (succ_le.2 hao) hoa,
+  rw ←hao' at hf,
+  rw le_antisymm (le_of_lt hao) (bsup_le.2 (λ i h, lt_succ.1 (hf i h))) at hao',
+  exact succ_ne_self _ hao',
+end
 
 theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (hf : ∀ {a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
@@ -1006,7 +1000,8 @@ end
 theorem sup_eq_lsub {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ a < lsub f, succ a < lsub f :=
 begin
   refine ⟨λ h, _, λ hf, le_antisymm (sup_le_lsub f) _⟩,
-  { rw ←h, exact sup_not_succ_of_lt_sup (lsub_le_iff_lt.1 (le_of_eq h.symm)) },
+  { rw ←h,
+    exact sup_not_succ_of_ne_sup (λ i, ne_of_lt (lsub_le_iff_lt.1 (le_of_eq h.symm) i)) },
   rw lsub_le_iff_lt,
   intros i,
   by_contra' hle,
@@ -1055,7 +1050,8 @@ theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
 begin
   refine ⟨λ h, _, λ hf, le_antisymm (bsup_le_blsub f) _⟩,
-  { rw ←h, exact bsup_not_succ_of_lt_bsup (blsub_le_iff_lt.1 (le_of_eq h.symm)) },
+  { rw ←h,
+    exact bsup_not_succ_of_ne_bsup (λ i hi, ne_of_lt (blsub_le_iff_lt.1 (le_of_eq h.symm) i hi)) },
   rw blsub_le_iff_lt,
   intros i hi,
   by_contra' hle,

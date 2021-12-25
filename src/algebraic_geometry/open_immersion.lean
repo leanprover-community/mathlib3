@@ -1251,7 +1251,7 @@ variables (f : X ⟶ Y.to_PresheafedSpace) [H : PresheafedSpace.is_open_immersio
 
 include H
 
-/-- If `X ⟶ Y` is an open immersion, and `Y` is a LocallyRingedSpace, then so is `X`. -/
+/-- If `X ⟶ Y` is an open immersion, and `Y` is a scheme, then so is `X`. -/
 def to_Scheme : Scheme :=
 begin
   apply LocallyRingedSpace.is_open_immersion.Scheme (to_LocallyRingedSpace _ f),

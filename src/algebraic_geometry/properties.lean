@@ -22,7 +22,52 @@ We provide some basic properties of schemes
   is reduced.
 -/
 
+namespace topological_space
+
+lemma _root_.topological_space.opens.not_nonempty_iff_eq_empty {α : Type*} [topological_space α] (U : opens α) :
+  ¬ set.nonempty (U : set α) ↔ U = ∅ :=
+by rw [← subtype.coe_injective.eq_iff, opens.empty_eq, opens.coe_bot,
+    ← set.not_nonempty_iff_eq_empty]
+
+lemma _root_.topological_space.opens.ne_empty_iff_nonempty {α : Type*} [topological_space α] (U : opens α) :
+  U ≠ ∅ ↔ set.nonempty (U : set α) :=
+by rw [ne.def, ← opens.not_nonempty_iff_eq_empty, not_not]
+
+end topological_space
+
 open topological_space opposite category_theory category_theory.limits Top
+
+namespace Top.presheaf
+
+noncomputable
+def stalk_map_specializes {C : Type*} [category C] [has_colimits C] {X : Top} (F : X.presheaf C)
+  {x y : X} (h : x ⤳ y) : F.stalk y ⟶ F.stalk x :=
+begin
+  refine colimit.desc _ ⟨_,λ U, _,_⟩,
+  { exact colimit.ι ((open_nhds.inclusion x).op ⋙ F)
+      (op ⟨(unop U).1, (specializes_iff_forall_open.mp h _ (unop U).1.2 (unop U).2 : _)⟩) },
+  { intros U V i,
+    dsimp,
+    rw category.comp_id,
+    let U' : open_nhds x := ⟨_, (specializes_iff_forall_open.mp h _ (unop U).1.2 (unop U).2 : _)⟩,
+    let V' : open_nhds x := ⟨_, (specializes_iff_forall_open.mp h _ (unop V).1.2 (unop V).2 : _)⟩,
+    exact colimit.w ((open_nhds.inclusion x).op ⋙ F) (show V' ⟶ U', from i.unop).op }
+end
+
+@[simp, reassoc, elementwise]
+lemma germ_stalk_map_specializes {C : Type*} [category C] [has_colimits C] {X : Top}
+  (F : X.presheaf C) {U : opens X} {y : U} {x : X} (h : x ⤳ y) :
+  F.germ y ≫ F.stalk_map_specializes h =
+    F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 y.prop⟩ := colimit.ι_desc _ _
+
+@[simp, reassoc, elementwise]
+lemma germ_stalk_map_specializes' {C : Type*} [category C] [has_colimits C] {X : Top}
+  (F : X.presheaf C) {U : opens X} {x y : X} (h : x ⤳ y) (hy : y ∈ U) :
+  F.germ ⟨y, hy⟩ ≫ F.stalk_map_specializes h =
+    F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 hy⟩ := colimit.ι_desc _ _
+
+end Top.presheaf
+
 
 namespace algebraic_geometry
 
@@ -43,14 +88,19 @@ begin
   exact this ⟨x, U.2⟩ ⟨y, hy⟩ (by simpa using h) h'
 end
 
-/-- A scheme `X` is integral if its carrier is nonempty,
-and `𝒪ₓ(U)` is an integral domain for each `U ≠ ∅`. -/
-class is_integral : Prop :=
-(nonempty : nonempty X.carrier . tactic.apply_instance)
-(component_integral : ∀ (U : opens X.carrier) [_root_.nonempty U],
-  is_domain (X.presheaf.obj (op U)) . tactic.apply_instance)
-
-attribute [instance] is_integral.component_integral is_integral.nonempty
+instance : quasi_sober X.carrier :=
+ begin
+   apply_with (sober_of_open_cover
+     (set.range (λ x, set.range $ (X.affine_cover.map x).1.base)))
+     { instances := ff },
+   { rintro ⟨_,i,rfl⟩, exact (X.affine_cover.is_open i).base_open.open_range },
+   { rintro ⟨_,i,rfl⟩,
+     exact @@open_embedding.sober _ _ _
+       (homeomorph.of_embedding _ (X.affine_cover.is_open i).base_open.to_embedding)
+       .symm.open_embedding prime_spectrum.quasi_sober },
+   { rw [set.top_eq_univ, set.sUnion_range, set.eq_univ_iff_forall],
+     intro x, exact ⟨_, ⟨_, rfl⟩, X.affine_cover.covers x⟩ }
+ end
 
 /-- A scheme `X` is reduced if all `𝒪ₓ(U)` are reduced. -/
 class is_reduced : Prop :=
@@ -174,6 +224,15 @@ begin
   simp,
 end
 
+/-- A scheme `X` is integral if its carrier is nonempty,
+and `𝒪ₓ(U)` is an integral domain for each `U ≠ ∅`. -/
+class is_integral : Prop :=
+(nonempty : nonempty X.carrier . tactic.apply_instance)
+(component_integral : ∀ (U : opens X.carrier) [_root_.nonempty U],
+  is_domain (X.presheaf.obj (op U)) . tactic.apply_instance)
+
+attribute [instance] is_integral.component_integral is_integral.nonempty
+
 @[priority 900]
 instance is_reduced_of_is_integral [is_integral X] : is_reduced X :=
 begin
@@ -213,5 +272,105 @@ begin
       exacts [hS h, hT h] },
     { intro x, exact x.rec _ } }
 end
+
+lemma is_integral_of_is_irreducible_is_reduced [is_reduced X] [H : irreducible_space X.carrier] :
+  is_integral X :=
+begin
+  split,
+  intros U hU,
+  split,
+  { intros a b e,
+    simp_rw [← basic_open_empty_iff, ← opens.not_nonempty_iff_eq_empty],
+    by_contra h,
+    push_neg at h,
+    exfalso,
+    obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
+      (X.to_LocallyRingedSpace.to_RingedSpace.basic_open a).2
+      (X.to_LocallyRingedSpace.to_RingedSpace.basic_open b).2
+      h.1 h.2,
+    replace e' := subtype.eq e',
+    subst e',
+    replace e := congr_arg (X.presheaf.germ x) e,
+    rw [ring_hom.map_mul, ring_hom.map_zero] at e,
+    apply @zero_ne_one (X.presheaf.stalk x.1),
+    rw ← is_unit_zero_iff,
+    convert hx₁.mul hx₂,
+    exact e.symm },
+  exact (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1,
+end
+
+universes u v
+
+/-- The function field of an integral scheme is the local ring at its generic point. -/
+noncomputable
+abbreviation Scheme.function_field [is_integral X] : CommRing :=
+X.presheaf.stalk (generic_point X.carrier)
+
+noncomputable
+abbreviation Scheme.germ_to_function_field [is_integral X] (U : opens X.carrier) [h : nonempty U] :
+  X.presheaf.obj (op U) ⟶ X.function_field :=
+X.presheaf.germ ⟨generic_point X.carrier,
+  ((generic_point_spec X.carrier).mem_open_set_iff U.prop).mpr (by simpa using h)⟩
+
+noncomputable
+instance [is_integral X] : field X.function_field :=
+begin
+  apply field_of_is_unit_or_eq_zero,
+  intro a,
+  obtain ⟨U, m, s, rfl⟩ := Top.presheaf.germ_exist _ _ a,
+  rw [or_iff_not_imp_right, ← (X.presheaf.germ ⟨_, m⟩).map_zero],
+  intro ha,
+  replace ha := ne_of_apply_ne _ ha,
+  have hs : generic_point X.carrier ∈ RingedSpace.basic_open _ s,
+  { rw [← opens.mem_coe, (generic_point_spec X.carrier).mem_open_set_iff, set.top_eq_univ,
+      set.univ_inter, ← set.ne_empty_iff_nonempty, ne.def, ← opens.coe_bot,
+      subtype.coe_injective.eq_iff, ← opens.empty_eq],
+    erw basic_open_empty_iff,
+    exacts [ha, (RingedSpace.basic_open _ _).prop] },
+  have := (X.presheaf.germ ⟨_, hs⟩).is_unit_map (RingedSpace.is_unit_res_basic_open _ s),
+  rwa Top.presheaf.germ_res_apply at this
+end
+
+lemma map_injective_of_is_integral [is_integral X] {U V : opens X.carrier} (i : U ⟶ V)
+  [H : nonempty U] :
+  function.injective (X.presheaf.map i.op) :=
+begin
+  rw ring_hom.injective_iff,
+  intros x hx,
+  rw ← basic_open_empty_iff at ⊢ hx,
+  erw RingedSpace.basic_open_res at hx,
+  revert hx,
+  contrapose!,
+  simp_rw [← opens.not_nonempty_iff_eq_empty, not_not, unop_op],
+  apply nonempty_preirreducible_inter U.prop (RingedSpace.basic_open _ _).prop,
+  simpa using H
+end
+
+lemma germ_injective_of_is_integral [is_integral X] {U : opens X.carrier} (x : U) :
+  function.injective (X.presheaf.germ x) :=
+begin
+  rw ring_hom.injective_iff,
+  intros y hy,
+  rw ← (X.presheaf.germ x).map_zero at hy,
+  obtain ⟨W, hW, iU, iV, e⟩ := X.presheaf.germ_eq _ x.prop x.prop _ _ hy,
+  cases (show iU = iV, from subsingleton.elim _ _),
+  haveI : nonempty W := ⟨⟨_, hW⟩⟩,
+  exact map_injective_of_is_integral X iU e
+end
+
+lemma Scheme.germ_to_function_field_injective [is_integral X] (U : opens X.carrier)
+  [nonempty U] : function.injective (X.germ_to_function_field U) :=
+germ_injective_of_is_integral _ _
+
+noncomputable
+instance [is_integral X] (x : X.X) : algebra (X.presheaf.stalk x) X.function_field :=
+begin
+  apply ring_hom.to_algebra,
+  exact X.presheaf.stalk_map_specializes ((generic_point_spec X.carrier).specializes trivial)
+end
+
+noncomputable
+instance [is_integral X] (x : X.X) : is_fraction_ring (X.presheaf.stalk x) X.function_field :=
+sorry
 
 end algebraic_geometry

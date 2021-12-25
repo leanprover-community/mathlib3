@@ -176,7 +176,7 @@ end
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
 tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id
 
-lemma tendsto_log_nhds_within_zero : tendsto log (𝓝[{0}ᶜ] 0) at_bot :=
+lemma tendsto_log_nhds_within_zero : tendsto log (𝓝[≠] 0) at_bot :=
 begin
   rw [← (show _ = log, from funext log_abs)],
   refine tendsto.comp _ tendsto_abs_nhds_within_zero,

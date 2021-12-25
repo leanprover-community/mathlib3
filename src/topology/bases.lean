@@ -3,9 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-
-import topology.continuous_on
 import topology.constructions
+import topology.continuous_on
 
 /-!
 # Bases of topologies. Countability axioms.
@@ -309,7 +308,7 @@ begin
       rw hij,
       exact (hf j hj).1 },
     contrapose! this,
-    exact h i hi j hj this },
+    exact h hi hj this },
   apply countable_of_injective_of_countable_image f_inj,
   apply u_count.mono _,
   exact image_subset_iff.2 (λ i hi, (hf i hi).2)

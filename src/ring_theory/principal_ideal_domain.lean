@@ -316,6 +316,14 @@ begin
     exacts [gcd_dvd_left x y, gcd_dvd_right x y] },
 end
 
+theorem gcd_dvd_iff_exists (a b : R) {z} : gcd a b ∣ z ↔ ∃ x y, z = a * x + b * y :=
+by simp_rw [mul_comm a, mul_comm b, @eq_comm _ z, ←mem_span_pair, ←span_gcd,
+  ideal.mem_span_singleton]
+
+/-- **Bézout's lemma** -/
+theorem exists_gcd_eq_mul_add_mul (a b : R) : ∃ x y, gcd a b = a * x + b * y :=
+by rw [←gcd_dvd_iff_exists]
+
 theorem gcd_is_unit_iff (x y : R) : is_unit (gcd x y) ↔ is_coprime x y :=
 by rw [is_coprime, ←mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]
 

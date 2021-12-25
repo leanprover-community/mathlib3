@@ -195,15 +195,16 @@ ne_of_gt (nat.zpow_pos_of_pos h n)
 
 lemma zpow_strict_mono {x : K} (hx : 1 < x) :
   strict_mono (λ n:ℤ, x ^ n) :=
-λ m n h, show x ^ m < x ^ n,
-begin
-  have xpos : 0 < x := zero_lt_one.trans hx,
-  have h₀ : x ≠ 0 := xpos.ne',
-  have hxm : 0 < x^m := zpow_pos_of_pos xpos m,
-  have h : 1 < x ^ (n - m) := one_lt_zpow hx _ (sub_pos_of_lt h),
-  replace h := mul_lt_mul_of_pos_right h hxm,
-  rwa [sub_eq_add_neg, zpow_add₀ h₀, mul_assoc, zpow_neg_mul_zpow_self _ h₀, one_mul, mul_one] at h,
-end
+strict_mono_int_of_lt_succ $ λ n,
+have xpos : 0 < x, from zero_lt_one.trans hx,
+calc x ^ n < x ^ n * x : lt_mul_of_one_lt_right (zpow_pos_of_pos xpos _) hx
+... = x ^ (n + 1) : (zpow_add_one₀ xpos.ne' _).symm
+
+lemma zpow_strict_anti {x : K} (h₀ : 0 < x) (h₁ : x < 1) : strict_anti (λ n : ℤ, x ^ n) :=
+strict_anti_int_of_succ_lt $ λ n,
+calc x ^ (n + 1) = x ^ n * x : zpow_add_one₀ h₀.ne' _
+... < x ^ n * 1 : (mul_lt_mul_left $ zpow_pos_of_pos h₀ _).2 h₁
+... = x ^ n : mul_one _
 
 @[simp] lemma zpow_lt_iff_lt {x : K} (hx : 1 < x) {m n : ℤ} :
   x ^ m < x ^ n ↔ m < n :=
@@ -228,7 +229,7 @@ begin
   rcases h₁.lt_or_lt with H|H,
   { apply (zpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
-    rw [← zpow_neg_one₀, ← zpow_mul₀, ← zpow_mul₀, mul_comm _ m, mul_comm _ n, zpow_mul₀, zpow_mul₀,
+    rw [← zpow_neg_one, ← zpow_mul₀, ← zpow_mul₀, mul_comm _ m, mul_comm _ n, zpow_mul₀, zpow_mul₀,
       h], },
   { exact (zpow_strict_mono H).injective h, },
 end

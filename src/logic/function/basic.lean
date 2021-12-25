@@ -3,8 +3,8 @@ Copyright (c) 2016 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import logic.basic
 import data.option.defs
+import logic.nonempty
 
 /-!
 # Miscellaneous function constructions and lemmas

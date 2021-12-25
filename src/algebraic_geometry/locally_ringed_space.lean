@@ -238,7 +238,7 @@ begin
 end
 
 -- This actually holds for all ringed spaces with nontrivial stalks.
-@[simp] lemma LocallyRingedSpace.basic_open_zero (X : LocallyRingedSpace) (U : opens X.carrier) :
+@[simp] lemma basic_open_zero (X : LocallyRingedSpace) (U : opens X.carrier) :
   X.to_RingedSpace.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
 begin
   ext,

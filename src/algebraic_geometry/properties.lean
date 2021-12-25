@@ -96,7 +96,7 @@ begin
       .CommRing_iso_to_ring_equiv.injective
 end
 
-local attribute [elementwise] category_theory.is_iso.hom_inv_id category_theory.iso.hom_inv_id
+local attribute [elementwise] category_theory.is_iso.hom_inv_id
 
 lemma basic_open_eq_of_affine {R : CommRing}
   (f : R) :
@@ -121,7 +121,7 @@ lemma basic_open_eq_of_affine' {R : CommRing}
     prime_spectrum.basic_open ((Spec_Γ_identity.app R).hom f) :=
 begin
   convert basic_open_eq_of_affine ((Spec_Γ_identity.app R).hom f),
-  exact (category_theory.iso.hom_inv_id_apply _ _).symm
+  exact (coe_hom_inv_id _ _).symm
 end
 
 lemma eq_zero_of_basic_open_empty {X : Scheme} [is_reduced X] {U : opens X.carrier}

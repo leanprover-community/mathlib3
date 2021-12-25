@@ -379,6 +379,12 @@ multiset.ext.mpr $ λ r,
   by rw [count_add, count_roots, count_roots,
          count_roots, root_multiplicity_mul hpq]
 
+lemma roots.le_of_dvd (h : q ≠ 0) : p ∣ q → roots p ≤ roots q :=
+begin
+  rintro ⟨k, rfl⟩,
+  exact multiset.le_iff_exists_add.mpr ⟨k.roots, roots_mul h⟩
+end
+
 @[simp] lemma mem_roots_sub_C {p : polynomial R} {a x : R} (hp0 : 0 < degree p) :
   x ∈ (p - C a).roots ↔ p.eval x = a :=
 (mem_roots (show p - C a ≠ 0, from mt sub_eq_zero.1 $ λ h,

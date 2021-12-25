@@ -265,3 +265,18 @@ begin
 end
 
 end comm_monoid_with_zero
+
+section monoid_with_zero
+
+variable [monoid_with_zero α]
+
+theorem ne_zero_of_dvd_ne_zero {p q : α} (h₁ : q ≠ 0)
+  (h₂ : p ∣ q) : p ≠ 0 :=
+begin
+  by_contra hcontra,
+  obtain ⟨u, hu⟩ := h₂,
+  apply h₁,
+  simp only [hcontra, hu, zero_mul],
+end
+
+end monoid_with_zero

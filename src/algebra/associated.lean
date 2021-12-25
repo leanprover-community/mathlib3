@@ -470,8 +470,7 @@ instance : preorder (associates α) :=
   le_refl := dvd_refl,
   le_trans := λ a b c, dvd_trans}
 
-lemma bot_eq_one :
-  (⊥ : associates α) = 1 := rfl
+lemma bot_eq_one : (⊥ : associates α) = 1 := rfl
 
 @[simp] lemma mk_one : associates.mk (1 : α) = 1 := rfl
 

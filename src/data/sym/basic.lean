@@ -171,14 +171,14 @@ instance subsingleton {n : ℕ} [subsingleton α] : subsingleton (sym α n) :=
         rcases hmem with ⟨r, hr⟩,
         cases multiset.exists_cons_of_mem hr,
         rw h,
-        have ob := @ih hk rfl.ge n w begin
+        have heq := @ih hk rfl.ge n w begin
           rw multiset.card_cons at ha,
           refine nat.succ.inj ha,
         end begin
           rw [h, multiset.card_cons] at hb,
           refine nat.succ.inj hb,
         end,
-        rw [ob, subsingleton.elim k r] } } }
+        rw [heq, subsingleton.elim k r] } } }
 end⟩
 
 instance unique (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _

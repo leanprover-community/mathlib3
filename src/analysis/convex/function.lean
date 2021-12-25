@@ -239,7 +239,7 @@ begin
     λ h x y hx hy a b ha hb hab, _⟩,
   obtain rfl | hxy := eq_or_ne x y,
   { rw [convex.combo_self hab, convex.combo_self hab] },
-  exact h x hx y hy hxy ha hb hab,
+  exact h hx hy hxy ha hb hab,
 end
 
 lemma concave_on_iff_pairwise_pos {s : set E} {f : E → β} :

@@ -124,7 +124,7 @@ This is the converse of `preserves_binary_products_of_exponential_ideal`.
 -/
 @[priority 10]
 instance exponential_ideal_of_preserves_binary_products
-  [preserves_limits_of_shape (discrete walking_pair) (left_adjoint i)] :
+  [preserves_limits_of_shape (discrete.{v₁} walking_pair) (left_adjoint i)] :
   exponential_ideal i :=
 begin
   let ir := adjunction.of_right_adjoint i,

@@ -115,6 +115,24 @@ theorem inv_mem : ∀ {x : L}, x ∈ S → x⁻¹ ∈ S := S.inv_mem'
 theorem div_mem {x y : L} (hx : x ∈ S) (hy : y ∈ S) : x / y ∈ S :=
 S.to_subfield.div_mem hx hy
 
+/-- Copy of an intermediate field with a new `carrier` equal to the old one. Useful to fix
+definitional equalities. -/
+protected def copy (S : intermediate_field K L) (s : set L) (hs : s = ↑S) :
+  intermediate_field K L :=
+{ to_subalgebra := S.to_subalgebra.copy s (hs : s = (S.to_subalgebra).carrier),
+  neg_mem' :=
+    have hs' : (S.to_subalgebra.copy s hs).carrier = (S.to_subalgebra).carrier := hs,
+    hs'.symm ▸ S.neg_mem',
+  inv_mem' :=
+    have hs' : (S.to_subalgebra.copy s hs).carrier = (S.to_subalgebra).carrier := hs,
+    hs'.symm ▸ S.inv_mem' }
+
+@[simp] lemma coe_copy (S : intermediate_field K L) (s : set L) (hs : s = ↑S) :
+  (S.copy s hs : set L) = s := rfl
+
+lemma copy_eq (S : intermediate_field K L) (s : set L) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 /-- Product of a list of elements in an intermediate_field is in the intermediate_field. -/
 lemma list_prod_mem {l : list L} : (∀ x ∈ l, x ∈ S) → l.prod ∈ S :=
 S.to_subfield.list_prod_mem
@@ -255,6 +273,9 @@ S.to_subalgebra.val
 @[simp] theorem coe_val : ⇑S.val = coe := rfl
 
 @[simp] lemma val_mk {x : L} (hx : x ∈ S) : S.val ⟨x, hx⟩ = x := rfl
+
+lemma range_val : S.val.range = S.to_subalgebra :=
+S.to_subalgebra.range_val
 
 variables {S}
 

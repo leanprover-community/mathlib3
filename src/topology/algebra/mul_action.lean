@@ -123,6 +123,13 @@ lemma continuous.const_smul (hg : continuous g) (c : M) :
   continuous (λ x, c • g x) :=
 continuous_smul.comp (continuous_const.prod_mk hg)
 
+/-- If a scalar is central, then its right action is continuous when its left action is. -/
+instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
+  has_continuous_smul Mᵐᵒᵖ α :=
+⟨ suffices continuous (λ p : M × α, mul_opposite.op p.fst • p.snd),
+  from this.comp (continuous_unop.prod_map continuous_id),
+  by simpa only [op_smul_eq_smul] using (continuous_smul : continuous (λ p : M × α, _)) ⟩
+
 end has_scalar
 
 section monoid

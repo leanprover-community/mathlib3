@@ -196,18 +196,18 @@ end⟩
 
 def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
 
-lemma repeat_left_injective (n : ℕ) : function.injective (λ x : α, repeat x n.succ) :=
+lemma repeat_left_injective (n : ℕ) (h : n ≠ 0) : function.injective (λ x : α, repeat x n) :=
 begin
   intros a b x,
   simp only [repeat, subtype.mk.inj_eq] at x,
-  exact (multiset.repeat_left_inj a b n).mp x,
+  exact (multiset.repeat_left_inj a b n h).mp x,
 end
 
-lemma repeat_left_inj (a b : α) (n : ℕ) : repeat a n.succ = repeat b n.succ ↔ a = b :=
-(repeat_left_injective n).eq_iff
+lemma repeat_left_inj (a b : α) (n : ℕ) (h : n ≠ 0) : repeat a n = repeat b n ↔ a = b :=
+(repeat_left_injective n h).eq_iff
 
 instance nontrivial (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
-(repeat_left_injective n).nontrivial
+(repeat_left_injective n.succ n.succ_ne_zero).nontrivial
 
 def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 ⟨x.val.map f, by simpa [multiset.card_map] using x.property⟩

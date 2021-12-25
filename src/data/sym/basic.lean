@@ -163,10 +163,10 @@ instance subsingleton {n : ℕ} [subsingleton α] : subsingleton (sym α n) :=
   induction a using multiset.case_strong_induction_on with k hk ih generalizing n b,
   { rw [ha.symm, multiset.card_zero] at hb, exact (multiset.card_eq_zero.mp hb).symm, },
   { cases n,
-    { exact false.elim (multiset.cons_ne_zero (multiset.card_eq_zero.mp ha)) },
+    { exact (multiset.cons_ne_zero (multiset.card_eq_zero.mp ha)).elim },
     { by_cases hzero : b = 0,
       { rw [hzero, multiset.card_zero] at hb,
-        exact false.elim (nat.succ_ne_zero n hb.symm) },
+        exact (n.succ_ne_zero hb.symm).elim },
       { have hmem := multiset.exists_mem_of_ne_zero hzero,
         rcases hmem with ⟨r, hr⟩,
         cases multiset.exists_cons_of_mem hr,
@@ -191,7 +191,7 @@ instance is_empty (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
   intro y,
   have z := h.property,
   rw [y, multiset.card_zero] at z,
-  exact false.elim (nat.succ_ne_zero n z.symm),
+  exact (nat.succ_ne_zero n z.symm).elim,
 end⟩
 
 def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩

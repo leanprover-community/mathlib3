@@ -592,7 +592,7 @@ begin
   simp only at x,
   apply @eq_of_mem_repeat _ b a n,
   cases n,
-  { exact false.elim (h rfl) },
+  { exact (h rfl).elim },
   { rw [x.symm, repeat_succ],
     exact mem_cons_self a (repeat a n) },
 end

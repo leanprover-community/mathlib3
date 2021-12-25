@@ -71,7 +71,7 @@ section basic
 lemma iff_adjoin_eq_top : is_cyclotomic_extension S A B ↔
  (∀ (a : ℕ+), a ∈ S → ∃ r : B, aeval r (cyclotomic a A) = 0) ∧
  (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 } = ⊤) :=
-⟨λ h, ⟨h.ex_root, algebra.eq_top_iff.2 h.adjoint_roots⟩, λ h, ⟨h.1, algebra.eq_top_iff.1 h.2⟩⟩
+⟨λ h, ⟨h.exists_root, algebra.eq_top_iff.2 h.adjoin_roots⟩, λ h, ⟨h.1, algebra.eq_top_iff.1 h.2⟩⟩
 
 /-- A reformulation of `is_cyclotomic_extension` in the case `S` is a singleton. -/
 lemma iff_singleton : is_cyclotomic_extension {n} A B ↔

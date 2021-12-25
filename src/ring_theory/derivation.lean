@@ -34,7 +34,6 @@ TODO: update this when bimodules are defined. -/
 @[protect_proj]
 structure derivation (R : Type*) (A : Type*) [comm_semiring R] [comm_semiring A]
   [algebra R A] (M : Type*) [add_comm_monoid M] [module A M] [module R M]
-  [is_scalar_tower R A M]
   extends A →ₗ[R] M :=
 (map_one_eq_zero' : to_linear_map 1 = 0)
 (leibniz' (a b : A) : to_linear_map (a * b) = a • to_linear_map b + b • to_linear_map a)
@@ -49,7 +48,6 @@ section
 variables {R : Type*} [comm_semiring R]
 variables {A : Type*} [comm_semiring A] [algebra R A]
 variables {M : Type*} [add_comm_monoid M] [module A M] [module R M]
-variables [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : add_monoid_hom_class (derivation R A M) A M :=
@@ -177,12 +175,13 @@ instance {S : Type*} [semiring S] [module S M] [smul_comm_class R S M] [smul_com
   module S (derivation R A M) :=
 function.injective.module S coe_fn_add_monoid_hom coe_injective coe_smul
 
-instance : is_scalar_tower R A (derivation R A M) :=
+instance [is_scalar_tower R A M] : is_scalar_tower R A (derivation R A M) :=
 ⟨λ x y z, ext (λ a, smul_assoc _ _ _)⟩
 
 section push_forward
 
-variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A N]
+variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A M]
+  [is_scalar_tower R A N]
 variables (f : M →ₗ[A] N)
 
 /-- We can push forward derivations using linear maps, i.e., the composition of a derivation with a
@@ -211,7 +210,7 @@ end
 section cancel
 
 variables {R : Type*} [comm_semiring R] {A : Type*} [comm_semiring A] [algebra R A]
-  {M : Type*} [add_cancel_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+  {M : Type*} [add_cancel_comm_monoid M] [module R M] [module A M]
 
 /-- Define `derivation R A M` from a linear map when `M` is cancellative by verifying the Leibniz
 rule. -/
@@ -232,7 +231,7 @@ variables {A : Type*} [comm_ring A] [algebra R A]
 
 section
 
-variables {M : Type*} [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
+variables {M : Type*} [add_comm_group M] [module A M] [module R M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 protected lemma map_neg : D (-a) = -D a := map_neg D a
@@ -250,8 +249,8 @@ end
 lemma leibniz_inv_of [invertible a] : D (⅟a) = -⅟a^2 • D a :=
 D.leibniz_of_mul_eq_one $ inv_of_mul_self a
 
-lemma leibniz_inv {K : Type*} [field K] [module K M] [algebra R K] [is_scalar_tower R K M]
-  (D : derivation R K M) (a : K) : D (a⁻¹) = -a⁻¹ ^ 2 • D a :=
+lemma leibniz_inv {K : Type*} [field K] [module K M] [algebra R K] (D : derivation R K M) (a : K) :
+  D (a⁻¹) = -a⁻¹ ^ 2 • D a :=
 begin
   rcases eq_or_ne a 0 with (rfl|ha),
   { simp },

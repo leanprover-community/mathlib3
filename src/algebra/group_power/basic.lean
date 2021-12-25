@@ -186,6 +186,10 @@ by { convert pow_one a using 1, exact zpow_coe_nat a 1 }
 theorem zpow_two (a : G) : a ^ (2 : ℤ) = a * a :=
 by { convert pow_two a using 1, exact zpow_coe_nat a 2 }
 
+@[to_additive neg_one_zsmul]
+theorem zpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ :=
+(zpow_neg_succ_of_nat x 0).trans $ congr_arg has_inv.inv (pow_one x)
+
 end div_inv_monoid
 
 section group
@@ -232,10 +236,6 @@ theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 @[to_additive neg_one_zsmul_add] lemma mul_zpow_neg_one (a b : G) :
   (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
 by simp only [mul_inv_rev, zpow_one, zpow_neg]
-
-@[to_additive neg_one_zsmul]
-lemma zpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ :=
-by { rw [← congr_arg has_inv.inv (pow_one x), zpow_neg, ← zpow_coe_nat], refl }
 
 @[to_additive zsmul_neg]
 theorem inv_zpow (a : G) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
@@ -370,6 +370,7 @@ rfl
 | -[1+n] := by simp [(h.pow_right n.succ).inv_right]
 
 namespace commute
+
 variables [group G] {a b : G}
 
 @[simp] lemma zpow_right (h : commute a b) (m : ℤ) : commute a (b^m) :=
@@ -385,4 +386,5 @@ variables (a) (m n : ℤ)
 @[simp] theorem self_zpow : commute a (a ^ n) := (commute.refl a).zpow_right n
 @[simp] theorem zpow_self : commute (a ^ n) a := (commute.refl a).zpow_left n
 @[simp] theorem zpow_zpow_self : commute (a ^ m) (a ^ n) := (commute.refl a).zpow_zpow m n
+
 end commute

@@ -15,17 +15,17 @@ This generalises the integer power function on a division ring.
 section monoid_with_zero
 variables {M : Type*} [monoid_with_zero M]
 
-lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
+lemma zero_pow : ∀ {n : ℕ}, 0 < n → (0 : M) ^ n = 0
 | (n+1) _ := by rw [pow_succ, zero_mul]
 
-lemma zero_pow_eq [monoid_with_zero R] (n : ℕ) : (0 : R)^n = if n = 0 then 1 else 0 :=
+lemma zero_pow_eq (n : ℕ) : (0 : M) ^ n = if n = 0 then 1 else 0 :=
 begin
   split_ifs with h,
   { rw [h, pow_zero], },
   { rw [zero_pow (nat.pos_of_ne_zero h)] },
 end
 
-lemma pow_eq_zero_of_le [monoid_with_zero M] {x : M} {n m : ℕ}
+lemma pow_eq_zero_of_le {x : M} {n m : ℕ}
   (hn : n ≤ m) (hx : x^n = 0) : x^m = 0 :=
 by rw [← tsub_add_cancel_of_le hn, pow_add, hx, mul_zero]
 
@@ -285,7 +285,7 @@ variables {G₀ : Type*} [comm_group_with_zero G₀]
   (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_pow, inv_pow₀]
 
-lemma mul_zpow₀ {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ):
+lemma mul_zpow₀ {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ) :
   (a * b) ^ m = (a ^ m) * (b ^ m) :=
 (commute.all a b).mul_zpow₀ m
 

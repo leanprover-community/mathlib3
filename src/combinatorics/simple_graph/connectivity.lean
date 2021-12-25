@@ -116,11 +116,11 @@ lemma reverse_singleton {u v : V} (h : G.adj u v) :
 @[simp] lemma cons_reverse_aux {u v w x : V} (p : G.walk u v) (q : G.walk w x) (h : G.adj w u) :
   (cons h p).reverse_aux q = p.reverse_aux (cons (G.symm h) q) := rfl
 
-@[simp] protected lemma append_reverse_aux : Π {u v w x : V}
+@[simp] protected lemma reverse_append_aux : Π {u v w x : V}
   (p : G.walk u v) (q : G.walk v w) (r : G.walk u x),
   (p.append q).reverse_aux r = q.reverse_aux (p.reverse_aux r)
 | _ _ _ _ nil _ _ := rfl
-| _ _ _ _ (cons h p') q r := append_reverse_aux p' q (cons (G.symm h) r)
+| _ _ _ _ (cons h p') q r := reverse_append_aux p' q (cons (G.symm h) r)
 
 @[simp] protected lemma reverse_aux_append : Π {u v w x : V}
   (p : G.walk u v) (q : G.walk u w) (r : G.walk w x),
@@ -422,10 +422,10 @@ begin
   { rintro (h|h),
     { exact or.inl h },
     { cases p',
-      { simp only [nil_support, list.mem_singleton] at h,
+      { simp only [support_nil, list.mem_singleton] at h,
         subst t,
         simp, },
-      { simp only [list.mem_cons_iff, cons_support] at h,
+      { simp only [list.mem_cons_iff, support_cons] at h,
         rcases h with (rfl|h),
         { simp, },
         { simp [h], } } } },
@@ -446,9 +446,9 @@ lemma append_support' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk
 begin
   rw append_support,
   cases p',
-  { rw [nil_support, list.tail_cons, list.append_nil],
+  { rw [support_nil, list.tail_cons, list.append_nil],
     exact (add_tsub_cancel_right _ _).symm },
-  { simp_rw cons_support,
+  { simp_rw support_cons,
     rw [list.tail_cons, ←multiset.cons_coe, ←multiset.singleton_add, add_comm, add_assoc,
       add_tsub_cancel_left, add_comm, ←multiset.coe_add] }
 end
@@ -458,7 +458,7 @@ lemma reverse_support {u v : V} (p : G.walk u v) : p.reverse.support = p.support
 begin
   induction p,
   { trivial, },
-  { simp only [list.reverse_cons, cons_reverse, cons_support, append_support, p_ih],
+  { simp only [list.reverse_cons, reverse_cons, support_cons, append_support, p_ih],
     refl, },
 end
 
@@ -519,7 +519,7 @@ lemma is_path_of_append_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
   (h : (p.append q).is_path) : q.is_path :=
 begin
   rw ←reverse_path_iff at h ⊢,
-  rw append_reverse at h,
+  rw reverse_append at h,
   exact is_path_of_append_left _ _ h,
 end
 
@@ -528,7 +528,7 @@ variables [decidable_eq V]
 /-- Given a vertex in the support of a path, give the path up until that vertex. -/
 def take_until : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.walk v u
 | v w nil u h := begin
-  simp only [nil_support, list.mem_singleton] at h,
+  simp only [support_nil, list.mem_singleton] at h,
   subst h,
 end
 | v w (cons r p) u h :=
@@ -536,7 +536,7 @@ end
     by subst u
   else
   begin
-    simp only [list.mem_cons_iff, cons_support] at h,
+    simp only [list.mem_cons_iff, support_cons] at h,
     have : u ∈ p.support := h.cases_on (λ h', (hx h'.symm).elim) id,
     exact cons r (take_until p _ this),
   end
@@ -544,7 +544,7 @@ end
 /-- Given a vertex in the support of a path, give the path from that vertex to the end. -/
 def take_from : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.walk u w
 | v w nil u h := begin
-  simp only [nil_support, list.mem_singleton] at h,
+  simp only [support_nil, list.mem_singleton] at h,
   subst h,
 end
 | v w (cons r p) u h :=
@@ -552,7 +552,7 @@ end
     by { subst u, exact cons r p }
   else
   begin
-    simp only [list.mem_cons_iff, cons_support] at h,
+    simp only [list.mem_cons_iff, support_cons] at h,
     have : u ∈ p.support := h.cases_on (λ h', (hx h'.symm).elim) id,
     exact take_from p _ this,
   end
@@ -603,7 +603,7 @@ begin
     { simp at h,
       cases h,
       { exact (h_1 h_2.symm).elim, },
-      { rw [cons_support, list.count_cons, p_ih h_2],
+      { rw [support_cons, list.count_cons, p_ih h_2],
         simp,
         intro h,
         exact h_1 h.symm, }, }, },
@@ -624,7 +624,7 @@ begin
   { simp at h,
     subst u,
     simp [take_until], },
-  { rw [cons_support, list.mem_cons_iff] at h,
+  { rw [support_cons, list.mem_cons_iff] at h,
     rcases h with (rfl|h),
     { simp [take_until], },
     { specialize p_ih h,
@@ -786,7 +786,7 @@ begin
     split_ifs,
     { apply list.subset.trans (take_from_support_subset _ _),
       apply list.subset_cons_of_subset _ p_ih, },
-    { rw cons_support,
+    { rw support_cons,
       exact list.cons_subset_cons _ p_ih, }, },
 end
 

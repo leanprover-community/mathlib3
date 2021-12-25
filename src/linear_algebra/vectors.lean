@@ -17,7 +17,7 @@ This module privates some trivial lemmata for easier work with explicit vectors 
 
 The locale `vectors` gives the following notation:
 
-* `⬝`  for dot products
+* `⬝` for dot products
 
 ## Tags
 
@@ -32,13 +32,13 @@ lemma vec2_eq {a₀ a₁ b₀ b₁ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁
   ![a₀, a₁] = ![b₀, b₁] :=
 by { ext x, fin_cases x; assumption }
 
-lemma vec2_add {a₀ a₁ b₀ b₁ : R} :
-  ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
-by { ext x, fin_cases x; refl }
-
 lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
   ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
 by { ext x, fin_cases x; assumption }
+
+lemma vec2_add {a₀ a₁ b₀ b₁ : R} :
+  ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
+by { ext x, fin_cases x; refl }
 
 lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
   ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=

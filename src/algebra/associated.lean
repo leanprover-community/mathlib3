@@ -477,14 +477,6 @@ lemma bot_eq_one : (⊥ : associates α) = 1 := rfl
 /-- `associates.mk` as a `monoid_hom`. -/
 protected def mk_monoid_hom : α →* (associates α) := ⟨associates.mk, mk_one, λ x y, mk_mul_mk⟩
 
-/-- `associates.mk` as a `monoid_hom` if `α` has a unique unit. -/
-lemma mk_injective [unique (units α)] : function.injective (@associates.mk α _) :=
-begin
-  intros a b h,
-  rw [associates.mk_eq_mk_iff_associated, associated_iff_eq] at h,
-  exact h
-end
-
 @[simp] lemma mk_monoid_hom_apply (a : α) : associates.mk_monoid_hom a = associates.mk a := rfl
 
 lemma associated_map_mk {f : associates α →* α}
@@ -684,10 +676,6 @@ instance : partial_order (associates α) :=
 { le_antisymm := λ a' b', quotient.induction_on₂ a' b' (λ a b hab hba,
   quot.sound $ associated_of_dvd_dvd (dvd_of_mk_le_mk hab) (dvd_of_mk_le_mk hba))
   .. associates.preorder }
-
-lemma le_one_iff [comm_cancel_monoid_with_zero α]
-  {p : associates α} : p ≤ 1 ↔ p = 1 :=
-by rw [← associates.bot_eq_one, le_bot_iff]
 
 instance : no_zero_divisors (associates α) :=
 ⟨λ x y,

@@ -13,6 +13,7 @@ This file defines μ-recursive functions.
 -/
 
 /-- μ-recursive algorithms for functions from ℕ^k to ℕ -/
+@[derive inhabited]
 inductive μ_recursive : ℕ -> Type
 | const {k : ℕ} {n : ℕ} : μ_recursive k
 | succ : μ_recursive 1

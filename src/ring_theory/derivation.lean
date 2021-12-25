@@ -87,7 +87,8 @@ protected lemma map_zero : D 0 = 0 := map_zero D
 @[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
 
 @[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_scalar S A] [has_scalar S M]
-  [linear_map.compatible_smul A M S R] (r : S) : D (r • a) = r • D a :=
+  [linear_map.compatible_smul A M S R] (D : derivation R A M) (r : S) (a : A) :
+  D (r • a) = r • D a :=
 D.to_linear_map.map_smul_of_tower r a
 
 @[simp] lemma map_one_eq_zero : D 1 = 0 := D.map_one_eq_zero'
@@ -97,7 +98,7 @@ by rw [←mul_one r, ring_hom.map_mul, ring_hom.map_one, ←smul_def, map_smul, 
   smul_zero]
 
 @[simp] lemma map_coe_nat (n : ℕ) : D (n : A) = 0 :=
-by rw [← nsmul_one, D.map_smul_of_tower, map_one_eq_zero, smul_zero]
+by rw [← nsmul_one, D.map_smul_of_tower n, map_one_eq_zero, smul_zero]
 
 @[simp] lemma leibniz_pow (n : ℕ) : D (a ^ n) = n • a ^ (n - 1) • D a :=
 begin
@@ -245,7 +246,7 @@ protected lemma map_neg : D (-a) = -D a := map_neg D a
 protected lemma map_sub : D (a - b) = D a - D b := map_sub D a b
 
 @[simp] lemma map_coe_int (n : ℤ) : D (n : A) = 0 :=
-by rw [← zsmul_one, D.map_smul_of_tower, map_one_eq_zero, smul_zero]
+by rw [← zsmul_one, D.map_smul_of_tower n, map_one_eq_zero, smul_zero]
 
 lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
 begin

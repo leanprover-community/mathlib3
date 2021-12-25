@@ -35,6 +35,9 @@ lemma Sup_def {s : set ℕ} (h : ∃n, ∀a∈s, a ≤ n) :
   Sup s = @nat.find (λn, ∀a∈s, a ≤ n) _ h :=
 dif_pos _
 
+lemma _root_.set.infinite.nat.Sup_eq_zero {s : set ℕ} (h : s.infinite) : Sup s = 0 :=
+dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_nat_lt n in (hn k hks).not_lt hk
+
 @[simp] lemma Inf_eq_zero {s : set ℕ} : Inf s = 0 ↔ 0 ∈ s ∨ s = ∅ :=
 begin
   cases eq_empty_or_nonempty s,

@@ -15,7 +15,7 @@ monotone functions.
 
 ## Main definitions
 
- * `order_hom.complete_lattice`: if `β` is a complete lattice, so is `α →ₘ β`
+ * `order_hom.complete_lattice`: if `β` is a complete lattice, so is `α →o β`
 
 ## Tags
 
@@ -31,85 +31,85 @@ section preorder
 variables [preorder α]
 
 @[simps]
-instance [semilattice_sup β] : has_sup (α →ₘ β) :=
+instance [semilattice_sup β] : has_sup (α →o β) :=
 { sup := λ f g, ⟨λ a, f a ⊔ g a, f.mono.sup g.mono⟩ }
 
-instance [semilattice_sup β] : semilattice_sup (α →ₘ β) :=
+instance [semilattice_sup β] : semilattice_sup (α →o β) :=
 { sup := has_sup.sup,
   le_sup_left := λ a b x, le_sup_left,
   le_sup_right := λ a b x, le_sup_right,
   sup_le := λ a b c h₀ h₁ x, sup_le (h₀ x) (h₁ x),
-  .. (_ : partial_order (α →ₘ β)) }
+  .. (_ : partial_order (α →o β)) }
 
 @[simps]
-instance [semilattice_inf β] : has_inf (α →ₘ β) :=
+instance [semilattice_inf β] : has_inf (α →o β) :=
 { inf := λ f g, ⟨λ a, f a ⊓ g a, f.mono.inf g.mono⟩ }
 
-instance [semilattice_inf β] : semilattice_inf (α →ₘ β) :=
+instance [semilattice_inf β] : semilattice_inf (α →o β) :=
 { inf := (⊓),
-  .. (_ : partial_order (α →ₘ β)),
+  .. (_ : partial_order (α →o β)),
   .. (dual_iso α β).symm.to_galois_insertion.lift_semilattice_inf }
 
-instance [lattice β] : lattice (α →ₘ β) :=
-{ .. (_ : semilattice_sup (α →ₘ β)),
-  .. (_ : semilattice_inf (α →ₘ β)) }
+instance [lattice β] : lattice (α →o β) :=
+{ .. (_ : semilattice_sup (α →o β)),
+  .. (_ : semilattice_inf (α →o β)) }
 
 @[simps]
-instance [preorder β] [order_bot β] : has_bot (α →ₘ β) :=
+instance [preorder β] [order_bot β] : has_bot (α →o β) :=
 { bot := const α ⊥ }
 
-instance [preorder β] [order_bot β] : order_bot (α →ₘ β) :=
+instance [preorder β] [order_bot β] : order_bot (α →o β) :=
 { bot := ⊥,
   bot_le := λ a x, bot_le }
 
 @[simps]
-instance [preorder β] [order_top β] : has_top (α →ₘ β) :=
+instance [preorder β] [order_top β] : has_top (α →o β) :=
 { top := const α ⊤ }
 
-instance [preorder β] [order_top β] : order_top (α →ₘ β) :=
+instance [preorder β] [order_top β] : order_top (α →o β) :=
 { top := ⊤,
   le_top := λ a x, le_top }
 
-instance [complete_lattice β] : has_Inf (α →ₘ β) :=
+instance [complete_lattice β] : has_Inf (α →o β) :=
 { Inf := λ s, ⟨λ x, ⨅ f ∈ s, (f : _) x, λ x y h, binfi_le_binfi (λ f _, f.mono h)⟩ }
 
-@[simp] lemma Inf_apply [complete_lattice β] (s : set (α →ₘ β)) (x : α) :
+@[simp] lemma Inf_apply [complete_lattice β] (s : set (α →o β)) (x : α) :
   Inf s x = ⨅ f ∈ s, (f : _) x := rfl
 
-lemma infi_apply {ι : Sort*} [complete_lattice β] (f : ι → α →ₘ β) (x : α) :
+lemma infi_apply {ι : Sort*} [complete_lattice β] (f : ι → α →o β) (x : α) :
   (⨅ i, f i) x = ⨅ i, f i x :=
 (Inf_apply _ _).trans infi_range
 
-@[simp, norm_cast] lemma coe_infi {ι : Sort*} [complete_lattice β] (f : ι → α →ₘ β) :
-  ((⨅ i, f i : α →ₘ β) : α → β) = ⨅ i, f i :=
+@[simp, norm_cast] lemma coe_infi {ι : Sort*} [complete_lattice β] (f : ι → α →o β) :
+  ((⨅ i, f i : α →o β) : α → β) = ⨅ i, f i :=
 funext $ λ x, (infi_apply f x).trans (@_root_.infi_apply _ _ _ _ (λ i, f i) _).symm
 
-instance [complete_lattice β] : has_Sup (α →ₘ β) :=
+instance [complete_lattice β] : has_Sup (α →o β) :=
 { Sup := λ s, ⟨λ x, ⨆ f ∈ s, (f : _) x, λ x y h, bsupr_le_bsupr (λ f _, f.mono h)⟩ }
 
-@[simp] lemma Sup_apply [complete_lattice β] (s : set (α →ₘ β)) (x : α) :
+@[simp] lemma Sup_apply [complete_lattice β] (s : set (α →o β)) (x : α) :
   Sup s x = ⨆ f ∈ s, (f : _) x := rfl
 
-lemma supr_apply {ι : Sort*} [complete_lattice β] (f : ι → α →ₘ β) (x : α) :
+lemma supr_apply {ι : Sort*} [complete_lattice β] (f : ι → α →o β) (x : α) :
   (⨆ i, f i) x = ⨆ i, f i x :=
 (Sup_apply _ _).trans supr_range
 
-@[simp, norm_cast] lemma coe_supr {ι : Sort*} [complete_lattice β] (f : ι → α →ₘ β) :
-  ((⨆ i, f i : α →ₘ β) : α → β) = ⨆ i, f i :=
+@[simp, norm_cast] lemma coe_supr {ι : Sort*} [complete_lattice β] (f : ι → α →o β) :
+  ((⨆ i, f i : α →o β) : α → β) = ⨆ i, f i :=
 funext $ λ x, (supr_apply f x).trans (@_root_.supr_apply _ _ _ _ (λ i, f i) _).symm
 
-instance [complete_lattice β] : complete_lattice (α →ₘ β) :=
+instance [complete_lattice β] : complete_lattice (α →o β) :=
 { Sup := Sup,
   le_Sup := λ s f hf x, le_supr_of_le f (le_supr _ hf),
   Sup_le := λ s f hf x, bsupr_le (λ g hg, hf g hg x),
   Inf := Inf,
   le_Inf := λ s f hf x, le_binfi (λ g hg, hf g hg x),
   Inf_le := λ s f hf x, infi_le_of_le f (infi_le _ hf),
-  .. (_ : lattice (α →ₘ β)),
+  .. (_ : lattice (α →o β)),
   .. order_hom.order_top,
   .. order_hom.order_bot }
 
-lemma iterate_sup_le_sup_iff {α : Type*} [semilattice_sup α] (f : α →ₘ α) :
+lemma iterate_sup_le_sup_iff {α : Type*} [semilattice_sup α] (f : α →o α) :
   (∀ n₁ n₂ a₁ a₂, f^[n₁ + n₂] (a₁ ⊔ a₂) ≤ (f^[n₁] a₁) ⊔ (f^[n₂] a₂)) ↔
   (∀ a₁ a₂, f (a₁ ⊔ a₂) ≤ (f a₁) ⊔ a₂) :=
 begin

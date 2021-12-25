@@ -151,19 +151,20 @@ def sum_add_monoid_hom : multiset α →+ α :=
 end add_comm_monoid
 
 section comm_monoid_with_zero
-variables [comm_monoid_with_zero α] {s : multiset α}
+variables [comm_monoid_with_zero α]
 
-lemma prod_eq_zero (h : (0 : α) ∈ s) : s.prod = 0 :=
+lemma prod_eq_zero {s : multiset α} (h : (0 : α) ∈ s) : s.prod = 0 :=
 begin
   rcases multiset.exists_cons_of_mem h with ⟨s', hs'⟩,
   simp [hs', multiset.prod_cons]
 end
 
-lemma prod_eq_zero_iff [no_zero_divisors α] [nontrivial α] : s.prod = 0 ↔ (0 : α) ∈ s :=
-by { rcases s with ⟨l⟩, simp }
+variables [no_zero_divisors α] [nontrivial α] {s : multiset α}
 
-lemma prod_ne_zero [no_zero_divisors α] [nontrivial α] (h : (0 : α) ∉ s) : s.prod ≠ 0 :=
-mt prod_eq_zero_iff.1 h
+lemma prod_eq_zero_iff : s.prod = 0 ↔ (0 : α) ∈ s :=
+quotient.induction_on s $ λ l, by { rw [quot_mk_to_coe, coe_prod], exact list.prod_eq_zero_iff }
+
+lemma prod_ne_zero (h : (0 : α) ∉ s) : s.prod ≠ 0 := mt prod_eq_zero_iff.1 h
 
 end comm_monoid_with_zero
 

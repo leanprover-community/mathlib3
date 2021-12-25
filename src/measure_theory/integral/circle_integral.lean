@@ -12,7 +12,9 @@ import analysis.analytic.basic
 # Integral over a circle in `ℂ`
 
 In this file we define `∮ z in C(c, R), f z` to be the integral $\oint_{|z-c|=|R|} f(z)\,dz$ and
-prove some properties of this integral.
+prove some properties of this integral. We give definition and prove most lemmas for a function
+`f : ℂ → E`, where `E` is a complex Banach space with second countable topology. For this reason,
+some lemmas use, e.g., `(z - c)⁻¹ • f z` instead of `f z / (z - c)`.
 
 ## Main definitions
 
@@ -24,8 +26,10 @@ prove some properties of this integral.
 * `circle_integral f c R`: the integral $\oint_{|z-c|=|R|} f(z)\,dz$, defined as
   $\int_{0}^{2π}(c + Re^{θ i})' f(c+Re^{θ i})\,dθ$;
 
-* `cauchy_power_series f c R`: the power series that depends only on `f ∘ circle_map c R` and
-  converges to `f w` if `f` is differentiable on the closed ball `metric.closed_ball c R`
+* `cauchy_power_series f c R`: the power series that is equal to
+  $\sum_{n=0}^{\infty} \oint_{|z-c|=R} \left(\frac{w-c}{z - c}\right)^n \frac{1}{z-c}f(z)\,dz$ at
+  `w - c`. The coefficients of this power series depend only on `f ∘ circle_map c R`, and the power
+  series converges to `f w` if `f` is differentiable on the closed ball `metric.closed_ball c R`
   and `w` belongs to the corresponding open ball.
 
 ## Main statements

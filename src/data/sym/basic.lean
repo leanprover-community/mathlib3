@@ -187,13 +187,11 @@ instance is_empty (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
 ⟨begin
   intro h,
   rw sym at h,
-  have w := @multiset.exists_mem_of_ne_zero _ h.val begin
-    intro y,
-    have z := h.property,
-    rw [y, multiset.card_zero] at z,
-    exact false.elim (nat.succ_ne_zero n z.symm),
-  end,
-  exact is_empty.exists_iff.mp w,
+  refine is_empty.exists_iff.mp (@multiset.exists_mem_of_ne_zero _ h.val _),
+  intro y,
+  have z := h.property,
+  rw [y, multiset.card_zero] at z,
+  exact false.elim (nat.succ_ne_zero n z.symm),
 end⟩
 
 def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩

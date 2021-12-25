@@ -421,20 +421,18 @@ section comm_group_with_zero
 variables [comm_group_with_zero G] [add_comm_group A]
 
 @[to_additive zsmul_add]
-theorem mul_zpow₀ (a b : G) (n : ℤ) : (a * b) ^ n = a ^ n * b ^ n := (commute.all a b).mul_zpow n
+lemma mul_zpow₀ (a b : G) (n : ℤ) : (a * b) ^ n = a ^ n * b ^ n := (commute.all a b).mul_zpow₀ n
 
 @[to_additive zsmul_sub]
-theorem div_zpow (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, mul_zpow, inv_zpow]
+lemma div_zpow₀ (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_zpow₀, inv_zpow₀]
 
-/-- The `n`th power map (`n` an integer) on a commutative group, considered as a group
+/-- The `n`th power map (`n` an integer) on a commutative group with zero, considered as a group
 homomorphism. -/
-@[to_additive "Multiplication by an integer `n` on a commutative additive group, considered as an
-additive group homomorphism.", simps]
-def zpow_group_hom (n : ℤ) : G →* G :=
+def zpow_group_hom₀ (n : ℤ) : G →* G :=
 { to_fun := (^ n),
-  map_one' := one_zpow n,
-  map_mul' := λ a b, mul_zpow a b n }
+  map_one' := one_zpow₀ n,
+  map_mul' := λ a b, mul_zpow₀ a b n }
 
 end comm_group_with_zero
 

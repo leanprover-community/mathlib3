@@ -863,11 +863,13 @@ end
 def idx_of_small {α : Type v} (S : set α) [hS : small.{u} S] : (_ : Type u) → α :=
 subtype.val ∘ (classical.choice (classical.some_spec hS.1 : nonempty (S ≃ _))).inv_fun
 
+/-
 theorem range_of_idx_of_small {α : Type v} (S : set α) [hS : small.{u} S] :
   range (idx_of_small S) = S :=
 begin
   rw range_eq_iff,
 end
+-/
 
 /-- Converts a family of functions suited for `bsup` or `blsub` into one suited for `sup` or
 `lsub`. These describe the same ordinals. -/

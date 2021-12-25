@@ -48,11 +48,11 @@ begin
 field_simp,
 end
 
-lemma aux1 (a b c d e: ℂ) (k : ℤ) : e*(a * b^k * (c * d^k) )⁻¹ = (a * c * (b * d)^k)⁻¹*e :=
+lemma aux1 (a b c d e: ℂ) (k : ℤ) : e*(a * b^k * (c * d^k) )⁻¹ = ((d * b)^k * a * c)⁻¹*e :=
 begin
-have : a * b^k * (c * d^k) = a * c * (b * d)^k , by  {simp_rw mul_zpow₀ b d k, ring,},
+have : a * b^k * (c * d^k) = (d * b)^k * a * c , by  {simp_rw mul_zpow₀ d b k, ring,},
 rw this,
-sorry,
+apply mul_comm,
 end
 
 variables (G : Type*) (α  : Type*) (β : Type*) [group G] [mul_action G α] [mul_action G β]
@@ -91,8 +91,7 @@ begin
   ring_nf,
   simp_rw auxmf2,
   ring_nf,
-  ring_exp,
-  sorry,
+  simp_rw aux1,
 end
 
 lemma slash_k_add (k : ℤ) (A : GL2P) (f g : ℍ → ℂ ) : (f +g )  ∣ₖ[k] A = (f ∣ₖ[k] A) + (g ∣ₖ[k] A) :=
@@ -160,8 +159,8 @@ begin
   simp only [int.cast_one, units.val_eq_coe, coe_coe],
   rw ← coe_coe,
   rw ← coe_coe,
-  simp [matrix.special_linear_group.det_coe, coe_coe],
-  sorry,
+  rw ← coe_coe,
+  apply matrix.special_linear_group.det_coe,
 end
 
 lemma det_coe_g (Γ : subgroup SL2Z) (γ : Γ): (((γ : SL2Z ) : GL2P) :
@@ -169,16 +168,18 @@ lemma det_coe_g (Γ : subgroup SL2Z) (γ : Γ): (((γ : SL2Z ) : GL2P) :
 begin
   simp only [int.cast_one, units.val_eq_coe, matrix.special_linear_group.det_coe,
   subtype.val_eq_coe, coe_coe],
+   rw ← coe_coe,
+  rw ←  coe_coe,
+  rw ←  coe_coe,
+
+
   have h:= γ.1.property,
   simp only [ subtype.val_eq_coe] at h,
+
   have h2:= det_coe_sl γ.1,
   simp only [ subtype.val_eq_coe] at h2,
   rw ← coe_coe,
-  rw ←  coe_coe,
-  rw ←  coe_coe,
-   rw ←  coe_coe,
-  cases γ, cases γ_val,
-  dsimp at *,
+
   sorry,
  -- simp only [matrix.special_linear_group.det_coe] at *,
 end

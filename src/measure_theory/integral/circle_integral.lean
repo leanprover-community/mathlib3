@@ -381,10 +381,12 @@ end
 
 end circle_integral
 
-/-- Formal multilinear series defined by the restriction of `f` to the circle `metric.sphere c R`
-that converges to `f` in `metric.ball c R` if `f` is complex differentiable on the corresponding
-closed ball. For any circle integrable function `f`, this power series converges to the Cauchy
-integral for `f`. -/
+/-- The power series that is equal to
+$\sum_{n=0}^{\infty} \oint_{|z-c|=R} \left(\frac{w-c}{z - c}\right)^n \frac{1}{z-c}f(z)\,dz$ at
+`w - c`. The coefficients of this power series depend only on `f ∘ circle_map c R`, and the power
+series converges to `f w` if `f` is differentiable on the closed ball `metric.closed_ball c R` and
+`w` belongs to the corresponding open ball. For any circle integrable function `f`, this power
+series converges to the Cauchy integral for `f`. -/
 def cauchy_power_series (f : ℂ → E) (c : ℂ) (R : ℝ) :
   formal_multilinear_series ℂ ℂ E :=
 λ n, continuous_multilinear_map.mk_pi_field ℂ _ $

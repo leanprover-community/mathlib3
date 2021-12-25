@@ -21,6 +21,10 @@ This file introduces abstract configurations of points and lines, and proves som
 * `configuration.line_count`: The number of lines through a given point.
 * `configuration.point_count`: The number of lines through a given line.
 
+## Main statements
+* `configuration.has_lines.card_le`: `has_lines` implies `card points ≤ card lines`.
+* `configuration.has_points.card_le`: `has_points` implies `card lines ≤ card points`.
+
 ## Todo
 * Abstract projective planes.
 -/
@@ -37,6 +41,8 @@ variables (P L : Type u) [has_mem P L]
 def dual := P
 
 instance [this : inhabited P] : inhabited (dual P) := this
+
+instance [this : fintype P] : fintype (dual P) := this
 
 instance : has_mem (dual L) (dual P) :=
 ⟨function.swap (has_mem.mem : P → L → Prop)⟩
@@ -168,5 +174,37 @@ end
 lemma has_points.line_count_le_point_count [has_points P L] {p : P} {l : L} (h : p ∉ l)
   [hf : fintype {p : P // p ∈ l}] : line_count L p ≤ point_count P l :=
 @has_lines.point_count_le_line_count (dual L) (dual P) _ _ l p h hf
+
+variables (P L)
+
+/- If a nondegenerate configuration has a unique line through any two points,
+  then there are at least as many lines as points. -/
+lemma has_lines.card_le [has_lines P L] [fintype P] [fintype L] :
+  fintype.card P ≤ fintype.card L :=
+begin
+  classical,
+  by_contradiction hc₂,
+  obtain ⟨f, hf₁, hf₂⟩ := nondegenerate.exists_injective_of_card_le P L (le_of_not_le hc₂),
+  have := calc ∑ p, line_count L p = ∑ l, point_count P l : sum_line_count_eq_sum_point_count P L
+  ... ≤ ∑ l, line_count L (f l) :
+    finset.sum_le_sum (λ l hl, has_lines.point_count_le_line_count (hf₂ l))
+  ... = ∑ p in finset.univ.image f, line_count L p :
+    finset.sum_bij (λ l hl, f l) (λ l hl, finset.mem_image_of_mem f hl) (λ l hl, rfl)
+      (λ l₁ l₂ hl₁ hl₂ hl₃, hf₁ hl₃) (λ p, by simp_rw [finset.mem_image, eq_comm, imp_self])
+  ... < ∑ p, line_count L p : _,
+  { exact lt_irrefl _ this },
+  { obtain ⟨p, hp⟩ := not_forall.mp (mt (fintype.card_le_of_surjective f) hc₂),
+    refine finset.sum_lt_sum_of_subset ((finset.univ.image f).subset_univ) (finset.mem_univ p)
+      _ _ (λ p hp₁ hp₂, zero_le (line_count L p)),
+    { simpa only [finset.mem_image, exists_prop, finset.mem_univ, true_and] },
+    { rw [line_count, nat.card_eq_fintype_card, fintype.card_pos_iff],
+      exact ⟨⟨mk_line p p, (mk_line_ax p p).1⟩⟩ } },
+end
+
+/- If a nondegenerate configuration has a unique point on any two lines,
+  then there are at least as many points as lines. -/
+lemma has_points.card_le [has_points P L] [fintype P] [fintype L] :
+  fintype.card L ≤ fintype.card P :=
+@has_lines.card_le (dual L) (dual P) _ _ _ _
 
 end configuration

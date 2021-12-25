@@ -818,7 +818,7 @@ begin
   exact hx' is_unit_one,
 end
 
-lemma pow_inj_of_not_unit [cancel_comm_monoid_with_zero α] {q : α}
+lemma pow_injective_of_not_unit [cancel_comm_monoid_with_zero α] {q : α}
   (hq : ¬ is_unit q) (hq' : q ≠ 0): function.injective (λ (n : ℕ), q^n) :=
 begin
   suffices : ∀ {n m : ℕ}, n < m → q^n ≠ q^m,

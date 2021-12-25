@@ -20,7 +20,8 @@ to `id`.
 
 ## Notation
 
-We introduce the notation `X ~ₕ Y` for `continuous_map.homotopy_equiv X Y`.
+We introduce the notation `X ≃ₕ Y` for `continuous_map.homotopy_equiv X Y` in the `continuous_map`
+locale.
 
 -/
 
@@ -43,7 +44,7 @@ structure homotopy_equiv (X : Type u) (Y : Type v) [topological_space X] [topolo
 (left_inv : (inv_fun.comp to_fun).homotopic id)
 (right_inv : (to_fun.comp inv_fun).homotopic id)
 
-localized "infix ` ~ₕ `:25 := continuous_map.homotopy_equiv" in continuous_map
+localized "infix ` ≃ₕ `:25 := continuous_map.homotopy_equiv" in continuous_map
 
 namespace homotopy_equiv
 
@@ -66,7 +67,7 @@ namespace homeomorph
 /--
 Any homeomorphism is a homotopy equivalence.
 -/
-def to_homotopy_equiv (h : X ≃ₜ Y) : X ~ₕ Y :=
+def to_homotopy_equiv (h : X ≃ₜ Y) : X ≃ₕ Y :=
 { to_fun := ⟨h⟩,
   inv_fun := ⟨h.symm⟩,
   left_inv := by { convert continuous_map.homotopic.refl _, ext, simp },
@@ -84,7 +85,7 @@ namespace homotopy_equiv
 /--
 If `X` is homotopy equivalent to `Y`, then `Y` is homotopy equivalent to `X`.
 -/
-def symm (h : X ~ₕ Y) : Y ~ₕ X :=
+def symm (h : X ≃ₕ Y) : Y ≃ₕ X :=
 { to_fun := h.inv_fun,
   inv_fun := h.to_fun,
   left_inv := h.right_inv,
@@ -95,10 +96,10 @@ lemma coe_inv_fun (h : homotopy_equiv X Y) : (⇑h.inv_fun : Y → X) = ⇑h.sym
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
 because it is a composition of multiple projections. -/
-def simps.apply (h : X ~ₕ Y) : X → Y := h
+def simps.apply (h : X ≃ₕ Y) : X → Y := h
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
 because it is a composition of multiple projections. -/
-def simps.symm_apply (h : X ~ₕ Y) : Y → X := h.symm
+def simps.symm_apply (h : X ≃ₕ Y) : Y → X := h.symm
 
 initialize_simps_projections homotopy_equiv (to_fun_to_fun -> apply,
   inv_fun_to_fun -> symm_apply, -to_fun, -inv_fun)
@@ -107,7 +108,7 @@ initialize_simps_projections homotopy_equiv (to_fun_to_fun -> apply,
 Any topological space is homotopy equivalent to itself.
 -/
 @[simps]
-def refl (X : Type u) [topological_space X] : X ~ₕ X :=
+def refl (X : Type u) [topological_space X] : X ≃ₕ X :=
 (homeomorph.refl X).to_homotopy_equiv
 
 instance : inhabited (homotopy_equiv unit unit) := ⟨refl unit⟩
@@ -117,7 +118,7 @@ If `X` is homotopy equivalent to `Y`, and `Y` is homotopy equivalent to `Z`, the
 equivalent to `Z`.
 -/
 @[simps]
-def trans (h₁ : X ~ₕ Y) (h₂ : Y ~ₕ Z) : X ~ₕ Z :=
+def trans (h₁ : X ≃ₕ Y) (h₂ : Y ≃ₕ Z) : X ≃ₕ Z :=
 { to_fun := h₂.to_fun.comp h₁.to_fun,
   inv_fun := h₁.inv_fun.comp h₂.inv_fun,
   left_inv := begin
@@ -126,7 +127,8 @@ def trans (h₁ : X ~ₕ Y) (h₂ : Y ~ₕ Z) : X ~ₕ Z :=
       h₁.inv_fun.comp ((h₂.inv_fun.comp h₂.to_fun).comp h₁.to_fun),
     refine homotopic.hcomp _ (homotopic.refl _),
     refine homotopic.trans ((homotopic.refl _).hcomp h₂.left_inv) _,
-    rw id_comp,
+    -- simp,
+    rw continuous_map.id_comp,
   end,
   right_inv := begin
     refine homotopic.trans _ h₂.right_inv,
@@ -137,7 +139,7 @@ def trans (h₁ : X ~ₕ Y) (h₂ : Y ~ₕ Z) : X ~ₕ Z :=
     rw id_comp,
   end }
 
-lemma symm_trans (h₁ : X ~ₕ Y) (h₂ : Y ~ₕ Z) :
+lemma symm_trans (h₁ : X ≃ₕ Y) (h₂ : Y ≃ₕ Z) :
   (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := by ext; refl
 
 end homotopy_equiv

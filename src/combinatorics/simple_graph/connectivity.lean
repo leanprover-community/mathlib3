@@ -224,12 +224,10 @@ lemma mem_support_append_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   t ∈ (p.append p').support ↔ t ∈ p.support ∨ t ∈ p'.support :=
 begin
   simp only [mem_support_iff, mem_tail_support_append_iff],
-  split,
-  { rintro (rfl|h|h); simp [*], },
-  { rintro ((rfl|h) | (rfl|h)); try { simp [*] },
-    rw or_iff_not_imp_left,
-    intro h,
-    simp [ne.symm h], },
+  by_cases h : t = v; by_cases h' : t = u;
+  { subst_vars,
+    try { have := ne.symm h' },
+    simp [*], },
 end
 
 lemma coe_support {u v : V} (p : G.walk u v) :

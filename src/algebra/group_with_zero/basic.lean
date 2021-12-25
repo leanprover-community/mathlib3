@@ -705,11 +705,6 @@ begin
     simpa only [eq_comm] using units.exists_iff_ne_zero.mpr h }
 end
 
-instance : can_lift G₀ (units G₀) :=
-{ coe := coe,
-  cond := (≠ 0),
-  prf := λ x, exists_iff_ne_zero.mpr }
-
 end units
 
 section group_with_zero

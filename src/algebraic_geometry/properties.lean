@@ -159,7 +159,7 @@ begin
   intros s' hs,
   erw [basic_open_eq_of_affine', prime_spectrum.basic_open_empty_iff] at hs,
   replace hs := hs.map (Spec_Γ_identity.app (X.affine_basis_cover_ring j)).inv,
-  erw category_theory.iso.hom_inv_id_apply at hs,
+  erw coe_hom_inv_id at hs,
   haveI := is_reduced_of_open_immersion (X.affine_basis_cover.map j),
   apply is_nilpotent.eq_zero,
   exact hs,

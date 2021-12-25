@@ -244,10 +244,11 @@ begin
 end
 
 /-- If α ≃ β then sym α n ≃ sym β n. -/
+@[simps]
 def equiv_congr (β : Type u) (h : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := sym.map h,
   inv_fun := sym.map h.symm,
-  left_inv := λ x, by simp only [equiv.symm_comp_self, map_id, map_map],
-  right_inv := λ x, by simp only [equiv.self_comp_symm, map_id, map_map] }
+  left_inv := λ x, by rw [map_map, equiv.symm_comp_self, map_id],
+  right_inv := λ x, by rw [map_map, equiv.self_comp_symm, map_id] }
 
 end sym

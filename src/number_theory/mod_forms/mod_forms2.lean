@@ -43,15 +43,16 @@ local notation `GL2P`:= (matrix.GL_pos (fin 2) ℝ)
 
 variable (M : GL2P)
 
-lemma auxmf2 (a b c : ℂ) : a*b⁻¹*c⁻¹=a*(b*c)⁻¹:=
+lemma auxmf2 (a b c : ℂ) : b⁻¹*c⁻¹*a=(b*c)⁻¹*a:=
 begin
 field_simp,
 end
 
-lemma aux1 (a b c d e: ℂ) (k : ℤ) : (a * b^k * (c * d^k) )⁻¹*e = (a * c * (b * d)^k)⁻¹*e :=
+lemma aux1 (a b c d e: ℂ) (k : ℤ) : e*(a * b^k * (c * d^k) )⁻¹ = (a * c * (b * d)^k)⁻¹*e :=
 begin
 have : a * b^k * (c * d^k) = a * c * (b * d)^k , by  {simp_rw mul_zpow₀ b d k, ring,},
 rw this,
+sorry,
 end
 
 variables (G : Type*) (α  : Type*) (β : Type*) [group G] [mul_action G α] [mul_action G β]
@@ -88,11 +89,10 @@ begin
   have e3: (A * B) • x = A • B • x , by {convert e2,} ,
   rw e3,
   ring_nf,
-  field_simp,
+  simp_rw auxmf2,
+  ring_nf,
+  ring_exp,
   sorry,
-  --simp_rw auxmf2,
-  --ring_nf,
-  --simp_rw aux1,
 end
 
 lemma slash_k_add (k : ℤ) (A : GL2P) (f g : ℍ → ℂ ) : (f +g )  ∣ₖ[k] A = (f ∣ₖ[k] A) + (g ∣ₖ[k] A) :=

@@ -16,18 +16,17 @@ section monoid_with_zero
 variables {M : Type*} [monoid_with_zero M]
 
 lemma zero_pow : ∀ {n : ℕ}, 0 < n → (0 : M) ^ n = 0
-| (n+1) _ := by rw [pow_succ, zero_mul]
+| (n + 1) _ := by rw [pow_succ, zero_mul]
 
 lemma zero_pow_eq (n : ℕ) : (0 : M) ^ n = if n = 0 then 1 else 0 :=
 begin
   split_ifs with h,
-  { rw [h, pow_zero], },
-  { rw [zero_pow (nat.pos_of_ne_zero h)] },
+  { rw [h, pow_zero] },
+  { rw [zero_pow (nat.pos_of_ne_zero h)] }
 end
 
-lemma pow_eq_zero_of_le {x : M} {n m : ℕ}
-  (hn : n ≤ m) (hx : x^n = 0) : x^m = 0 :=
-by rw [← tsub_add_cancel_of_le hn, pow_add, hx, mul_zero]
+lemma pow_eq_zero_of_le {a : M} {n m : ℕ} (hn : n ≤ m) (ha : a ^ n = 0) : a ^ m = 0 :=
+by rw [←tsub_add_cancel_of_le hn, pow_add, ha, mul_zero]
 
 @[simp] lemma zero_pow' : ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
 | 0     h := absurd rfl h
@@ -285,8 +284,7 @@ variables {G₀ : Type*} [comm_group_with_zero G₀]
   (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_pow, inv_pow₀]
 
-lemma mul_zpow₀ {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ) :
-  (a * b) ^ m = (a ^ m) * (b ^ m) :=
+lemma mul_zpow₀ (a b : G₀) (m : ℤ) : (a * b) ^ m = (a ^ m) * (b ^ m) :=
 (commute.all a b).mul_zpow₀ m
 
 @[simp] theorem div_zpow₀ (a : G₀) {b : G₀} (n : ℤ) :
@@ -300,7 +298,7 @@ begin
   rw [sq, mul_assoc, mul_div_cancel_left _ ha]
 end
 
-/-- The `n`th power map (`n` an integer) on a commutative group with zero, considered as a group
+/-- The `n`-th power map (`n` an integer) on a commutative group with zero, considered as a group
 homomorphism. -/
 def zpow_group_hom₀ (n : ℤ) : G₀ →* G₀ :=
 { to_fun := (^ n),

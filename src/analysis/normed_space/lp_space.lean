@@ -56,24 +56,6 @@ variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_group
 
 -/
 
-lemma eventually_lt_of_tendsto_lt  {α : Type*} {γ : Type*} [topological_space α] [linear_order α]
-  [order_closed_topology α] {l : filter γ} {f : γ → α} {u v : α} (hv : v < u)
-  (h : filter.tendsto f l (nhds v)) : ∀ᶠ a in l, f a < u :=
-tendsto_nhds.1 h (< u) is_open_Iio hv
-
-lemma set.finite.bdd_above_image {α : Type*} {β : Type*} [hβ : nonempty β] [linear_order β]
-  {s : set α} (f : α → β) (h : s.finite) :
-  bdd_above (f '' s) :=
-begin
-  rcases is_empty_or_nonempty α with _i | _i; resetI,
-  { inhabit β,
-    use default β,
-    rintros b ⟨a, ha, rfl⟩,
-    revert ha a,
-    exact _i.elim },
-  exact (h.image f).bdd_above,
-end
-
 /-- The property that `f : Π i : α, E i`
 * is finitely supported, if `p = 0`, or
 * admits an upper bound for `set.range (λ i, ∥f i∥)`, if `p = ∞`, or

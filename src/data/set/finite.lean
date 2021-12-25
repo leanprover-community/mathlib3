@@ -785,6 +785,18 @@ finite.induction_on H
   (by simp only [bUnion_empty, bdd_above_empty, ball_empty_iff])
   (λ a s ha _ hs, by simp only [bUnion_insert, ball_insert_iff, bdd_above_union, hs])
 
+protected lemma finite.bdd_above_image {s : set β} (f : β → α) (h : s.finite) :
+  bdd_above (f '' s) :=
+begin
+  rcases is_empty_or_nonempty β with _i | _i; resetI,
+  { inhabit α,
+    use default α,
+    rintros a ⟨b, hb, rfl⟩,
+    revert hb b,
+    exact _i.elim },
+  exact (h.image f).bdd_above,
+end
+
 end
 
 section
@@ -799,6 +811,10 @@ protected lemma finite.bdd_below (hs : finite s) : bdd_below s :=
 lemma finite.bdd_below_bUnion {I : set β} {S : β → set α} (H : finite I) :
   (bdd_below (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_below (S i)) :=
 @finite.bdd_above_bUnion (order_dual α) _ _ _ _ _ H
+
+protected lemma finite.bdd_below_image {s : set β} (f : β → α) (h : s.finite) :
+  bdd_below (f '' s) :=
+@finite.bdd_above_image (order_dual α) _ _ _ _ f h
 
 end
 

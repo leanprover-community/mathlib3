@@ -209,8 +209,8 @@ x'.to_fun
 lemma weak_dual.to_Pi_embedding (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
   embedding (weak_dual.to_Pi 𝕜 E) :=
-{ induced := eq_of_nhds_eq_nhds (congr_fun rfl),
-  inj := by { intros φ₁ φ₂ h, ext z, exact congr_fun h z, }, }
+{ induced := rfl,
+  inj := continuous_linear_map.coe_fn_injective, }
 
 namespace weak_dual.to_Pi_embedding
 

@@ -116,6 +116,8 @@ begin
   exact h,
 end
 
+/-- `erase s a h` is the sym that subtracts 1 from the
+  multiplicity of `a` if a is present in the sym. -/
 def erase [decidable_eq α] (s : sym α (n + 1)) (a : α) (h : a ∈ s) : sym α n :=
 ⟨s.val.erase a, (multiset.card_erase_of_mem h).trans $ s.property.symm ▸ n.pred_succ⟩
 
@@ -194,6 +196,7 @@ instance is_empty (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
   exact (nat.succ_ne_zero n z.symm).elim,
 end⟩
 
+/-- `repeat a n` is the sym containing only `a` with multiplicity `n`. -/
 def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
 
 lemma repeat_left_injective (n : ℕ) (h : n ≠ 0) : function.injective (λ x : α, repeat x n) :=
@@ -240,6 +243,7 @@ begin
   rw sym.cons,
 end
 
+/-- If α ≃ β then sym α n ≃ sym β n. -/
 def equiv_congr (β : Type u) (h : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := sym.map h,
   inv_fun := sym.map h.symm,

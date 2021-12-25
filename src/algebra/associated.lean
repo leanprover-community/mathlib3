@@ -771,7 +771,7 @@ begin
   apply is_unit_of_mul_eq_one b ↑a (mul_left_cancel₀ hp ha)
 end
 
-lemma not_associated_of_dvd_not_unit [cancel_comm_monoid_with_zero α] {p q : α}
+lemma dvd_not_unit.not_associated [cancel_comm_monoid_with_zero α] {p q : α}
   (h : dvd_not_unit p q) : ¬ associated p q :=
 begin
   by_contra hcontra,

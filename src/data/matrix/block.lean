@@ -390,9 +390,9 @@ begin
   simp only [block_diagonal'_apply, diagonal],
   split_ifs; -- `finish` can close these goals
   try { refl }; exfalso,
-  { apply h_2, simp only at h, subst h, rw [cast_eq] at h_1, simp [h_1] },
-  { apply h_1, cases h_2, subst h_2_left, rw [heq_iff_eq.mp h_2_right, cast_eq] },
-  { simp_rw h_1.1 at h, exact h rfl },
+  { exact h_2 ⟨h, (cast_eq_iff_heq.mp h_1.symm).symm⟩ },
+  { exact h_1 (cast_eq_iff_heq.mpr h_2.right.symm).symm },
+  { tauto },
 end
 
 @[simp] lemma block_diagonal'_one [∀ i, decidable_eq (m' i)] [has_one α] :

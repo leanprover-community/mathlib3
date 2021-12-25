@@ -279,7 +279,7 @@ rel.dom_mono h.2
 lemma _root_.simple_graph.to_subgraph.is_spanning (H : simple_graph V) (h : H ≤ G) :
   (H.to_subgraph h).is_spanning := set.mem_univ
 
-lemma spanning_coe.is_subgraph_of_is_subgraph {H H' : subgraph G} (h : H ≤ H') :
+lemma spanning_coe_le_of_le {H H' : subgraph G} (h : H ≤ H') :
   H.spanning_coe ≤ H'.spanning_coe := h.2
 
 /-- The top of the `subgraph G` lattice is equivalent to the graph itself. -/
@@ -386,6 +386,46 @@ begin
   rw [← finset_card_neighbor_set_eq_degree, finset.card_eq_one, finset.singleton_iff_unique_mem],
   simp only [set.mem_to_finset, mem_neighbor_set],
 end
+
+/-- Given a subgraph `G'`and a set pairs, remove all of those pairs from the edge set
+of `G'` (if they were present). -/
+@[simps]
+def delete_edges (G' : G.subgraph) (s : set (sym2 V)) : G.subgraph :=
+{ verts := G'.verts,
+  adj := λ a b, G'.adj a b ∧ ¬ ⟦(a, b)⟧ ∈ s,
+  adj_sub := λ a b h', G'.adj_sub h'.1,
+  edge_vert := λ a b h', G'.edge_vert h'.1,
+  symm := λ a b h, by rwa [G'.adj_comm, sym2.eq_swap] }
+
+@[simp] lemma delete_edges_delete_edges (G' : G.subgraph) (s s' : set (sym2 V)) :
+  (G'.delete_edges s).delete_edges s' = G'.delete_edges (s ∪ s') :=
+begin
+  ext v,
+  { simp, },
+  { ext v w,
+    simp [and_assoc, not_or_distrib], },
+end
+
+@[simp] lemma delete_edges_empty_eq (G' : G.subgraph) : G'.delete_edges ∅ = G' :=
+by ext; simp
+
+lemma delete_edges_le (G' : G.subgraph) (s : set (sym2 V)) : G'.delete_edges s ≤ G' :=
+⟨by simp, by simp { contextual := tt }⟩
+
+lemma delete_edges_le_of_le (G' : G.subgraph) {s s' : set (sym2 V)} (h : s ⊆ s') :
+  G'.delete_edges s' ≤ G'.delete_edges s :=
+⟨by simp, λ v w, begin
+  simp only [delete_edges_adj, and_imp, true_and] { contextual := tt },
+  exact λ ha hn hs, hn (h hs),
+end⟩
+
+lemma coe_delete_edges_le (G' : G.subgraph) (s : set (sym2 V)) :
+  (G'.delete_edges s).coe ≤ (G'.coe : simple_graph G'.verts) :=
+λ v w, by simp { contextual := tt }
+
+lemma spanning_coe_delete_edges_le (G' : G.subgraph) (s : set (sym2 V)) :
+  (G'.delete_edges s).spanning_coe ≤ G'.spanning_coe :=
+spanning_coe_le_of_le (delete_edges_le G' s)
 
 end subgraph
 

@@ -387,7 +387,7 @@ begin
   simp only [set.mem_to_finset, mem_neighbor_set],
 end
 
-/-- Given a subgraph `G'`and a set pairs, remove all of those pairs from the edge set
+/-- Given a subgraph `G'` and a set of pairs, remove all of those pairs from the edge set
 of `G'` (if they were present). -/
 @[simps]
 def delete_edges (G' : G.subgraph) (s : set (sym2 V)) : G.subgraph :=

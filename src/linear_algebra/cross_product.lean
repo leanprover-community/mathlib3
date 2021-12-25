@@ -75,10 +75,6 @@ lemma cross_product_self_eq_zero_vector (v : fin 3 → R) :
 by simp [cross_product_def, mul_comm]
 
 
-private lemma vec3_dot_product (v w : fin 3 → R) :
-  v ⬝ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
-by simp [matrix.dot_product, add_assoc, fin.sum_univ_succ]
-
 /-- The cross product of two vectors is perpendicular to the first vector. -/
 lemma dot_self_cross_product_eq_zero (v w : fin 3 → R) :
   v ⬝ (v ×₃ w) = 0 :=

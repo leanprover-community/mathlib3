@@ -5,11 +5,45 @@ import topology.algebra.valuation
 import topology.algebra.nonarchimedean.adic_topology
 import topology.metric_space.algebra
 import topology.metric_space.hausdorff_distance
+import linear_algebra.adic_completion
 import data.real.nnreal
 
 section adic_metric
-variables {R : Type*} [comm_ring R] (I : ideal R)
-.
+variables (R : Type*) [comm_ring R] (J : ideal (power_series R))
+open power_series
+-- TODO could be generalized to other ideals?
+instance : is_Hausdorff (ideal.span ({X} : set (power_series R))) (power_series R) :=
+{ haus' := begin
+  intros x h,
+  ext n,
+  specialize h (n + 1),
+  simp at h,
+  rw [ideal.span_singleton_pow, smodeq.sub_mem,
+    ideal.mem_span_singleton, power_series.X_pow_dvd_iff, sub_zero] at h,
+  simp [h],
+end }
+instance : is_precomplete (ideal.span ({X} : set (power_series R))) (power_series R) :=
+{ prec' := begin
+  intros f h,
+  use power_series.mk (λ n, coeff R n (f (n + 1))),
+  intro n,
+  rw [algebra.id.smul_eq_mul, ideal.mul_top, ideal.span_singleton_pow, smodeq.sub_mem,
+    ideal.mem_span_singleton, power_series.X_pow_dvd_iff],
+  simp only [coeff_mk, map_sub],
+  intros m hmn,
+  specialize h hmn,
+  rw [algebra.id.smul_eq_mul, ideal.mul_top, ideal.span_singleton_pow, smodeq.sub_mem,
+    ideal.mem_span_singleton, power_series.X_pow_dvd_iff] at h,
+  specialize h m (nat.lt_succ_self _),
+  rw [map_sub] at h,
+  rw sub_eq_zero at h ⊢,
+  symmetry,
+  assumption,
+end }
+instance : is_adic_complete (ideal.span ({X} : set (power_series R))) (power_series R) :=
+{ ..power_series.is_Hausdorff R,
+  ..power_series.is_precomplete R }
+variables {R} (I : ideal R)
 noncomputable theory
 def adic_valuation (x : R) : ℕ := Sup {n : ℕ | x ∈ I ^ n}
 @[simp]
@@ -49,9 +83,9 @@ lemma adic_norm_mul (hI : I.is_prime) (x y : R) : adic_norm I (x * y) = adic_nor
 begin
   simp [adic_norm, adic_valuation_mul, pow_add],
   -- simp_rw [hI.mul_mem_iff_mem_or_mem],
-  by_cases h : ∀ (n : ℕ), x ∈ I ^ n,
-  { rw [if_pos (λ n, ideal.mul_mem_right _ _ (h n)), if_pos h], },
-  rw if_neg h,
+  by_cases hx : ∀ (n : ℕ), x ∈ I ^ n,
+  { rw [if_pos (λ n, ideal.mul_mem_right _ _ (hx n)), if_pos hx], },
+  rw if_neg hx,
   by_cases hy : ∀ (n : ℕ), y ∈ I ^ n,
   { rw [if_pos (λ n, ideal.mul_mem_left _ _ (hy n)), if_pos hy], },
   rw if_neg hy,
@@ -59,7 +93,11 @@ begin
   intro hh,
   specialize hh 1,
   simp [hI.mul_mem_iff_mem_or_mem] at hh,
+  classical,
+  simp at *,
   cases hh,
+  { obtain ⟨n, hn⟩ := hx, },
+  obtain ⟨m, hm⟩ := hy,
   -- split_ifs; simp [*] at *,
 end
 def adic.valuation [is_domain R] (hI : I.is_prime) : valuation R ℝ≥0 :=
@@ -73,7 +111,6 @@ def adic.valuation [is_domain R] (hI : I.is_prime) : valuation R ℝ≥0 :=
 -- inferred
 --   linear_ordered_comm_monoid.to_linear_order ℝ≥0
 -- state:
-#check (by apply_instance : valued R)
 -- TODO krull intersection
 /--
 Being an actual metric space means Krull's intersection theorem holds?
@@ -118,15 +155,18 @@ def of_power_series (I : ideal (power_series R)) : submodule R (power_series R) 
   exact submodule.smul_of_tower_mem I c H, } }
 
 noncomputable theory
+open_locale classical
+namespace power_series
 /-- The `R`-submodule of `R[[X]]` consisting of power series of order ≥ `n`. -/
 def submodule_le_order (R : Type*) [comm_ring R] (n : with_bot ℕ) : submodule R (power_series R) :=
 ⨅ k : ℕ, ⨅ h : ↑k < n, (coeff R k).ker
 
-open_locale classical
 def order_coeff (p : power_series R) : R := coeff R ((order p).get_or_else 0) p
 lemma order_coeff_mul_X_pow (p : power_series R) (n : ℕ) :
   order_coeff (p * X ^ n) = order_coeff p := by sorry; simp [order_coeff]
+end power_series
 namespace ideal
+open power_series
 
 variables (I : ideal (power_series R))
 /-- Given an ideal `I` of `R[[X]]`, make the `R`-submodule of `I`
@@ -210,7 +250,6 @@ namespace power_series
 open_locale big_operators
 
 #check metric_space
-#check (by apply_instance: has_dist (set ℝ))
 #check emetric.mem_iff_inf_edist_zero_of_closed
 #check ideal.adic_topology
 
@@ -263,38 +302,48 @@ begin
   have : submodule.span (power_series R) ↑s = ideal.span ↑s, by refl,
   rw this,
   intros p hp,
-  let f₀ : power_series R := sorry,
-  let f : ℕ → power_series R := λ n, @nat.rec_on (λ _, power_series R) n f₀ (λ d fd, _),
-  letI := valuation_metric (adic.valuation I),
-  rw emetric.mem_iff_inf_edist_zero_of_closed,
-  by_contra hf,
-  let T := {n | ∃ f ∈ ideal.span (↑s : set (power_series R)), p - f ∈ I ∧ order (p - f) = n},
-  have : T.nonempty,
-  { simp only [T, set.nonempty, exists_prop, finset.coe_bUnion,
-      set.mem_set_of_eq, finset.mem_range, finset.mem_coe, finset.coe_image],
-    refine ⟨_, 0, by simp, by simp [hp], rfl⟩, },
+  have : ∀ (g : I), ∃ (t : power_series R)
+    (ht : t ∈ ideal.span (↑s : set (power_series R))),
+    t.order_coeff = g.val.order_coeff ∧ t.order = g.val.order,
+  sorry,
+  let f₀ : I := 0,
+  -- recursively define the element of I
+  let f : ℕ → I := λ n, @nat.rec_on
+    (λ _, I) n f₀
+    (λ d fd, ⟨classical.some (this fd), _⟩),
+  -- take the limit
+  obtain ⟨(L : power_series R), hL⟩ :=
+    (infer_instance : is_precomplete (ideal.span ({X} : set (power_series R))) _).prec _,
+  -- letI := valuation_metric (adic.valuation I),
+  -- rw emetric.mem_iff_inf_edist_zero_of_closed,
+  -- by_contra hf,
+  -- let T := {n | ∃ f ∈ ideal.span (↑s : set (power_series R)), p - f ∈ I ∧ order (p - f) = n},
+  -- have : T.nonempty,
+  -- { simp only [T, set.nonempty, exists_prop, finset.coe_bUnion,
+  --     set.mem_set_of_eq, finset.mem_range, finset.mem_coe, finset.coe_image],
+  --   refine ⟨_, 0, by simp, by simp [hp], rfl⟩, },
 
-  have Sup_mem : Sup T ∈ T,
-  { letI : topological_space enat := preorder.topology _,
-    -- haveI : discrete_topology enat := ⟨rfl⟩,
-    haveI : order_topology enat := ⟨rfl⟩,
-    have := cSup_mem_closure this ⟨⊤, λ a ha, le_top⟩,
-    rwa closure_eq_iff_is_closed.mpr _ at this,
-    haveI : discrete_topology enat := singletons_open_iff_discrete.mp (λ a, _),
-    -- TODO I-adic topology as a metric?
-     },
-  have sup_top : Sup T = ⊤,
-  { apply (eq_top_or_lt_top (Sup T)).resolve_right,
-    intro htt,
-    have := enat.ne_top_of_lt htt,
-    rw enat.ne_top_iff at this,
-    rcases this with ⟨this_w, this_h⟩,
-    simp only [exists_prop, finset.coe_bUnion, set.mem_set_of_eq,
-      finset.mem_range, finset.mem_coe, finset.coe_image],
-    intros b hb,
-    rw [lt_top_iff_ne_top, enat.ne_top_iff] at hb,
-    rcases hb with ⟨n, rfl⟩,
-    sorry, },
+  -- have Sup_mem : Sup T ∈ T,
+  -- { letI : topological_space enat := preorder.topology _,
+  --   -- haveI : discrete_topology enat := ⟨rfl⟩,
+  --   haveI : order_topology enat := ⟨rfl⟩,
+  --   have := cSup_mem_closure this ⟨⊤, λ a ha, le_top⟩,
+  --   rwa closure_eq_iff_is_closed.mpr _ at this,
+  --   haveI : discrete_topology enat := singletons_open_iff_discrete.mp (λ a, _),
+  --   -- TODO I-adic topology as a metric?
+  --    },
+  -- have sup_top : Sup T = ⊤,
+  -- { apply (eq_top_or_lt_top (Sup T)).resolve_right,
+  --   intro htt,
+  --   have := enat.ne_top_of_lt htt,
+  --   rw enat.ne_top_iff at this,
+  --   rcases this with ⟨this_w, this_h⟩,
+  --   simp only [exists_prop, finset.coe_bUnion, set.mem_set_of_eq,
+  --     finset.mem_range, finset.mem_coe, finset.coe_image],
+  --   intros b hb,
+  --   rw [lt_top_iff_ne_top, enat.ne_top_iff] at hb,
+  --   rcases hb with ⟨n, rfl⟩,
+  --   sorry, },
   rw [sup_top, set.mem_def] at this,
   rcases this with ⟨f, hps, hpf, opf⟩,
   simp only [sub_eq_zero, order_eq_top] at opf,
@@ -304,3 +353,5 @@ end⟩
 
 attribute [instance] power_series.is_noetherian_ring
 end power_series
+
+#lint

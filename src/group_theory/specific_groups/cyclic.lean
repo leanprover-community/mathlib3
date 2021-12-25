@@ -487,6 +487,7 @@ theorem prime_card [fintype α] : (fintype.card α).prime :=
 begin
   have h0 : 0 < fintype.card α := fintype.card_pos_iff.2 (by apply_instance),
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator α,
+  rw nat.prime_def_lt'',
   refine ⟨fintype.one_lt_card_iff_nontrivial.2 infer_instance, λ n hn, _⟩,
   refine (is_simple_order.eq_bot_or_eq_top (subgroup.zpowers (g ^ n))).symm.imp _ _,
   { intro h,

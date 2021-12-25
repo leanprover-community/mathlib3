@@ -232,7 +232,7 @@ theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 by simp only [mul_inv_rev, zpow_one, zpow_neg]
 
 @[to_additive neg_one_zsmul]
-theorem zpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ :=
+lemma zpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ :=
 by { rw [← congr_arg has_inv.inv (pow_one x), zpow_neg, ← zpow_coe_nat], refl }
 
 @[to_additive zsmul_neg]
@@ -521,9 +521,9 @@ lemma zpow_zpow₀ (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) := (h.zpo
 
 variables (a) (m n : ℤ)
 
-@[simp] theorem self_zpow₀ : commute a (a ^ n) := (commute.refl a).zpow_right₀ n
-@[simp] theorem zpow_self₀ : commute (a ^ n) a := (commute.refl a).zpow_left₀ n
-@[simp] theorem zpow_zpow_self₀ : commute (a ^ m) (a ^ n) := (commute.refl a).zpow_zpow₀ m n
+@[simp] lemma self_zpow₀ : commute a (a ^ n) := (commute.refl a).zpow_right₀ n
+@[simp] lemma zpow_self₀ : commute (a ^ n) a := (commute.refl a).zpow_left₀ n
+@[simp] lemma zpow_zpow_self₀ : commute (a ^ m) (a ^ n) := (commute.refl a).zpow_zpow₀ m n
 
 end group_with_zero
 end commute

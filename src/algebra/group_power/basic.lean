@@ -517,7 +517,7 @@ variables [group_with_zero G] {a b : G}
 
 @[simp] lemma zpow_left₀ (h : commute a b) (m : ℤ) : commute (a^m) b := (h.symm.zpow_right₀ m).symm
 
-lemma zpow_zpow₀ (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) := (h.zpow_left₀ m).zpow_right n
+lemma zpow_zpow₀ (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) := (h.zpow_left₀ m).zpow_right₀ n
 
 variables (a) (m n : ℤ)
 

@@ -12,8 +12,22 @@ In this file we define integer power functions for groups with an adjoined zero 
 This generalises the integer power function on a division ring.
 -/
 
-section zero
+section monoid_with_zero
 variables {M : Type*} [monoid_with_zero M]
+
+lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
+| (n+1) _ := by rw [pow_succ, zero_mul]
+
+lemma zero_pow_eq [monoid_with_zero R] (n : ℕ) : (0 : R)^n = if n = 0 then 1 else 0 :=
+begin
+  split_ifs with h,
+  { rw [h, pow_zero], },
+  { rw [zero_pow (nat.pos_of_ne_zero h)] },
+end
+
+lemma pow_eq_zero_of_le [monoid_with_zero M] {x : M} {n m : ℕ}
+  (hn : n ≤ m) (hx : x^n = 0) : x^m = 0 :=
+by rw [← tsub_add_cancel_of_le hn, pow_add, hx, mul_zero]
 
 @[simp] lemma zero_pow' : ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
 | 0     h := absurd rfl h
@@ -34,10 +48,33 @@ lemma ring.inverse_pow (r : M) : ∀ (n : ℕ), ring.inverse r ^ n = ring.invers
 | (n + 1) := by rw [pow_succ, pow_succ', ring.mul_inverse_rev' ((commute.refl r).pow_left n),
                     ring.inverse_pow]
 
-end zero
+variables [no_zero_divisors M] {a : M} {n : ℕ}
+
+lemma pow_eq_zero (h : a ^ n = 0) : a = 0 :=
+begin
+  induction n with n ih,
+  { rw pow_zero at h,
+    rw [←mul_one a, h, mul_zero] },
+  { rw pow_succ at h,
+    exact or.cases_on (mul_eq_zero.1 h) id ih }
+end
+
+@[simp] lemma pow_eq_zero_iff (hn : 0 < n) : a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨pow_eq_zero, _⟩,
+  rintro rfl,
+  exact zero_pow hn,
+end
+
+lemma pow_ne_zero_iff (hn : 0 < n) : a ^ n ≠ 0 ↔ a ≠ 0 :=
+by rwa [not_iff_not, pow_eq_zero_iff]
+
+@[field_simps] lemma pow_ne_zero (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 := mt pow_eq_zero h
+
+end monoid_with_zero
 
 section group_with_zero
-variables {G₀ : Type*} [group_with_zero G₀]
+variables {G₀ : Type*} [group_with_zero G₀] {a : G₀} {m n : ℕ}
 
 section nat_pow
 
@@ -53,8 +90,21 @@ have h1 : m - n + n = m, from tsub_add_cancel_of_le h,
 have h2 : a ^ (m - n) * a ^ n = a ^ m, by rw [←pow_add, h1],
 by simpa only [div_eq_mul_inv] using eq_div_of_mul_eq (pow_ne_zero _ ha) h2
 
+lemma pow_sub_of_lt (a : G₀) {m n : ℕ} (h : n < m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
+begin
+  obtain rfl | ha := eq_or_ne a 0,
+  { rw [zero_pow (tsub_pos_of_lt h), zero_pow (n.zero_le.trans_lt h), zero_mul] },
+  { exact pow_sub₀ _ ha h.le }
+end
+
 theorem pow_inv_comm₀ (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
 (commute.refl a).inv_left₀.pow_pow m n
+
+lemma inv_pow_sub₀ (ha : a ≠ 0) (h : n ≤ m) : a⁻¹ ^ (m - n) = (a ^ m)⁻¹ * a ^ n :=
+by rw [pow_sub₀ _ (inv_ne_zero ha) h, inv_pow₀, inv_pow₀, inv_inv₀]
+
+lemma inv_pow_sub_of_lt (a : G₀) (h : n < m) : a⁻¹ ^ (m - n) = (a ^ m)⁻¹ * a ^ n :=
+by rw [pow_sub_of_lt a⁻¹ h, inv_pow₀, inv_pow₀, inv_inv₀]
 
 end nat_pow
 
@@ -74,7 +124,7 @@ lemma zero_zpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 | (n : ℕ) h := by { rw [zpow_coe_nat, zero_pow'], simpa using h }
 | -[1+n]  h := by simp
 
-lemma fzero_pow_eq (n : ℤ) : (0 : G₀) ^ n = if n = 0 then 1 else 0 :=
+lemma zero_zpow_eq (n : ℤ) : (0 : G₀) ^ n = if n = 0 then 1 else 0 :=
 begin
   split_ifs with h,
   { rw [h, zpow_zero] },
@@ -85,6 +135,12 @@ end
 | (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv₀, ← zpow_coe_nat], refl }
+
+lemma mul_zpow_neg_one₀ (a b : G₀) : (a * b) ^ (-1 : ℤ) = b ^ (-1 : ℤ) * a ^ (-1 : ℤ) :=
+by simp only [mul_inv_rev₀, zpow_one, zpow_neg₀]
+
+lemma zpow_neg_one₀ (x : G₀) : x ^ (-1 : ℤ) = x⁻¹ :=
+by { rw [← congr_arg has_inv.inv (pow_one x), zpow_neg₀, ← zpow_coe_nat], refl }
 
 theorem inv_zpow₀ (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, inv_pow₀]
@@ -189,10 +245,6 @@ lemma commute.mul_zpow₀ {a b : G₀} (h : commute a b) :
 | (n : ℕ) := by simp [h.mul_pow n]
 | -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev₀]
 
-lemma mul_zpow₀ {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ):
-  (a * b) ^ m = (a ^ m) * (b ^ m) :=
-(commute.all a b).mul_zpow₀ m
-
 theorem zpow_bit0' (a : G₀) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
 (zpow_bit0₀ a n).trans ((commute.refl a).mul_zpow₀ n).symm
 
@@ -233,6 +285,10 @@ variables {G₀ : Type*} [comm_group_with_zero G₀]
   (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_pow, inv_pow₀]
 
+lemma mul_zpow₀ {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ):
+  (a * b) ^ m = (a ^ m) * (b ^ m) :=
+(commute.all a b).mul_zpow₀ m
+
 @[simp] theorem div_zpow₀ (a : G₀) {b : G₀} (n : ℤ) :
   (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_zpow₀, inv_zpow₀]
@@ -243,6 +299,13 @@ begin
   { simp [ha] },
   rw [sq, mul_assoc, mul_div_cancel_left _ ha]
 end
+
+/-- The `n`th power map (`n` an integer) on a commutative group with zero, considered as a group
+homomorphism. -/
+def zpow_group_hom₀ (n : ℤ) : G₀ →* G₀ :=
+{ to_fun := (^ n),
+  map_one' := one_zpow₀ n,
+  map_mul' := λ a b, mul_zpow₀ a b n }
 
 end
 

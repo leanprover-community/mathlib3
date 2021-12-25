@@ -32,10 +32,6 @@ mt (is_unit_of_dvd_unit hb) ha
 lemma is_unit_of_dvd_one [comm_monoid α] : ∀a ∣ 1, is_unit (a:α)
 | a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
 
-lemma not_is_unit_of_not_is_unit_dvd [comm_monoid α] {a b : α} (ha : ¬is_unit a) (hb : a ∣ b) :
-  ¬ is_unit b :=
-mt (is_unit_of_dvd_unit hb) ha
-
 lemma dvd_and_not_dvd_iff [cancel_comm_monoid_with_zero α] {x y : α} :
   x ∣ y ∧ ¬y ∣ x ↔ dvd_not_unit x y :=
 ⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,

@@ -82,6 +82,10 @@ begin
   simp,
 end
 
+@[simp] lemma eq_to_hom_apply {β : Type w} {X Y : Π b : β, C} (h : X = Y) (b : β) :
+   (eq_to_hom h : X ⟶ Y) b = eq_to_hom (by subst h) :=
+ by { subst h, refl }
+
 /--
 The equivalence between β-graded objects and γ-graded objects,
 given an equivalence between β and γ.

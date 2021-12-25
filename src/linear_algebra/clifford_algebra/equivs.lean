@@ -6,6 +6,7 @@ Authors: Eric Wieser
 import algebra.quaternion_basis
 import data.complex.module
 import linear_algebra.clifford_algebra.conjugation
+import linear_algebra.quadratic_form.prod
 
 /-!
 # Other constructions isomorphic to Clifford Algebras
@@ -105,7 +106,7 @@ namespace clifford_algebra_complex
 open_locale complex_conjugate
 
 /-- The quadratic form sending elements to the negation of their square. -/
-def Q : quadratic_form ℝ ℝ := -quadratic_form.lin_mul_lin linear_map.id linear_map.id
+def Q : quadratic_form ℝ ℝ := -quadratic_form.sq
 
 @[simp]
 lemma Q_apply (r : ℝ) : Q r = - (r * r) := rfl
@@ -218,8 +219,7 @@ variables {R : Type*} [comm_ring R] (c₁ c₂ : R)
 /-- `Q c₁ c₂` is a quadratic form over `R × R` such that `clifford_algebra (Q c₁ c₂)` is isomorphic
 as an `R`-algebra to `ℍ[R,c₁,c₂]`. -/
 def Q : quadratic_form R (R × R) :=
-c₁ • quadratic_form.lin_mul_lin (linear_map.fst _ _ _) (linear_map.fst _ _ _) +
-c₂ • quadratic_form.lin_mul_lin (linear_map.snd _ _ _) (linear_map.snd _ _ _)
+(c₁ • quadratic_form.sq).prod (c₂ • quadratic_form.sq)
 
 @[simp]
 lemma Q_apply (v : R × R) : Q c₁ c₂ v = c₁ * (v.1 * v.1) + c₂ * (v.2 * v.2) := rfl

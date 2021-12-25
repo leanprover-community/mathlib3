@@ -2450,51 +2450,6 @@ begin
   split_ifs; simp [zip_with, join, *],
 end
 
-/-! ### all & any -/
-
-@[simp] theorem all_nil (p : α → bool) : all [] p = tt := rfl
-
-@[simp] theorem all_cons (p : α → bool) (a : α) (l : list α) :
-  all (a::l) p = (p a && all l p) := rfl
-
-theorem all_iff_forall {p : α → bool} {l : list α} : all l p ↔ ∀ a ∈ l, p a :=
-begin
-  induction l with a l ih,
-  { exact iff_of_true rfl (forall_mem_nil _) },
-  simp only [all_cons, band_coe_iff, ih, forall_mem_cons]
-end
-
-theorem all_iff_forall_prop {p : α → Prop} [decidable_pred p]
-  {l : list α} : all l (λ a, p a) ↔ ∀ a ∈ l, p a :=
-by simp only [all_iff_forall, bool.of_to_bool_iff]
-
-@[simp] theorem any_nil (p : α → bool) : any [] p = ff := rfl
-
-@[simp] theorem any_cons (p : α → bool) (a : α) (l : list α) :
-  any (a::l) p = (p a || any l p) := rfl
-
-theorem any_iff_exists {p : α → bool} {l : list α} : any l p ↔ ∃ a ∈ l, p a :=
-begin
-  induction l with a l ih,
-  { exact iff_of_false bool.not_ff (not_exists_mem_nil _) },
-  simp only [any_cons, bor_coe_iff, ih, exists_mem_cons_iff]
-end
-
-theorem any_iff_exists_prop {p : α → Prop} [decidable_pred p]
-  {l : list α} : any l (λ a, p a) ↔ ∃ a ∈ l, p a :=
-by simp [any_iff_exists]
-
-theorem any_of_mem {p : α → bool} {a : α} {l : list α} (h₁ : a ∈ l) (h₂ : p a) : any l p :=
-any_iff_exists.2 ⟨_, h₁, h₂⟩
-
-@[priority 500] instance decidable_forall_mem {p : α → Prop} [decidable_pred p] (l : list α) :
-  decidable (∀ x ∈ l, p x) :=
-decidable_of_iff _ all_iff_forall_prop
-
-instance decidable_exists_mem {p : α → Prop} [decidable_pred p] (l : list α) :
-  decidable (∃ x ∈ l, p x) :=
-decidable_of_iff _ any_iff_exists_prop
-
 /-! ### map for partial functions -/
 
 /-- Partial map. If `f : Π a, p a → β` is a partial function defined on
@@ -3523,6 +3478,11 @@ end
 by rcases exists_of_erasep al pa with ⟨_, l₁, l₂, _, _, e₁, e₂⟩;
    rw e₂; simp [-add_comm, e₁]; refl
 
+@[simp] lemma length_erasep_add_one {l : list α} {a} (al : a ∈ l) (pa : p a) :
+  (l.erasep p).length + 1 = l.length :=
+let ⟨_, l₁, l₂, _, _, h₁, h₂⟩ := exists_of_erasep al pa in
+by { rw [h₂, h₁, length_append, length_append], refl }
+
 theorem erasep_append_left {a : α} (pa : p a) :
   ∀ {l₁ : list α} (l₂), a ∈ l₁ → (l₁++l₂).erasep p = l₁.erasep p ++ l₂
 | (x::xs) l₂ h := begin
@@ -3612,6 +3572,10 @@ by rcases exists_of_erasep h rfl with ⟨_, l₁, l₂, h₁, rfl, h₂, h₃⟩
 @[simp] theorem length_erase_of_mem {a : α} {l : list α} (h : a ∈ l) :
   length (l.erase a) = pred (length l) :=
 by rw erase_eq_erasep; exact length_erasep_of_mem h rfl
+
+@[simp] lemma length_erase_add_one {a : α} {l : list α} (h : a ∈ l) :
+  (l.erase a).length + 1 = l.length :=
+by rw [erase_eq_erasep, length_erasep_add_one h rfl]
 
 theorem erase_append_left {a : α} {l₁ : list α} (l₂) (h : a ∈ l₁) :
   (l₁++l₂).erase a = l₁.erase a ++ l₂ :=

@@ -6,6 +6,7 @@ Authors: Chris Hughes, Yury Kudryashov
 import algebra.group.defs
 import algebra.group.hom
 import algebra.group.type_tags
+import algebra.opposites
 import logic.embedding
 
 /-!
@@ -27,6 +28,7 @@ interaction of different group actions,
 
 * `smul_comm_class M N α` and its additive version `vadd_comm_class M N α`;
 * `is_scalar_tower M N α` (no additive version).
+* `is_central_scalar M α` (no additive version).
 
 ## Notation
 
@@ -180,6 +182,18 @@ class is_scalar_tower (M N α : Type*) [has_scalar M N] [has_scalar N α] [has_s
 is_scalar_tower.smul_assoc x y z
 
 instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
+
+/-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
+equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
+for `•`. -/
+class is_central_scalar (M α : Type*) [has_scalar M α] [has_scalar Mᵐᵒᵖ α] : Prop :=
+(op_smul_eq_smul : ∀ (m : M) (a : α), mul_opposite.op m • a = m • a)
+
+lemma is_central_scalar.unop_smul_eq_smul {M α : Type*} [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
+  [is_central_scalar M α] (m : Mᵐᵒᵖ) (a : α) : (mul_opposite.unop m) • a = m • a :=
+mul_opposite.rec (by exact λ m, (is_central_scalar.op_smul_eq_smul _ _).symm) m
+
+export is_central_scalar (op_smul_eq_smul unop_smul_eq_smul)
 
 namespace has_scalar
 variables [has_scalar M α]

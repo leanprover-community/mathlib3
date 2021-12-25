@@ -319,9 +319,7 @@ begin
   cases polar_bounded_of_nhds_zero 𝕜 s_nhd with c hc,
   have c_nn : 0 ≤ c := le_trans (norm_nonneg _) (hc 0 (zero_mem_polar 𝕜 s)),
   have hφ' : φ ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
-  { apply mem_of_mem_of_subset hφ _,
-    apply closure_mono,
-    simp only [preimage_univ, preimage_range, subset_univ, image_subset_iff], },
+  from closure_mono (image_subset_range _ _) hφ,
   set flin := linear_of_mem_closure_range φ hφ' with hflin,
   suffices : continuous flin,
   { assumption, },
@@ -329,8 +327,7 @@ begin
   intros z,
   set θ := λ (ψ : E → 𝕜), ∥ ψ z ∥ with hθ,
   have θ_cont : continuous θ,
-  { apply continuous.comp continuous_norm,
-    exact continuous_apply z, },
+  from (continuous_apply z).norm,
   have sin_closed : is_closed (Icc (-c * ∥z∥) (c * ∥z∥) : set ℝ) := is_closed_Icc,
   have preim_cl := is_closed.preimage θ_cont sin_closed,
   suffices : (weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s) ⊆ θ⁻¹' (Icc (-c * ∥z∥) (c * ∥z∥)),
@@ -349,7 +346,7 @@ end
 
 /-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` of a polar `polar 𝕜 s` of a
 neighborhood `s` of the origin is a closed set. -/
-lemma image_polar_closed
+lemma is_closed_image_polar
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_closed ((weak_dual.to_Pi 𝕜 E) '' (weak_dual.polar 𝕜 s)) :=
 begin

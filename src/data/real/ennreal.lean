@@ -939,7 +939,7 @@ le_antisymm
     by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
   (Inf_le $ by simp; rw [← coe_mul, mul_inv_cancel hr]; exact le_refl 1)
 
-lemma coe_inv_le :  (↑r⁻¹ : ℝ≥0∞) ≤ (↑r)⁻¹ :=
+lemma coe_inv_le : (↑r⁻¹ : ℝ≥0∞) ≤ (↑r)⁻¹ :=
 if hr : r = 0 then by simp only [hr, inv_zero, coe_zero, le_top]
 else by simp only [coe_inv hr, le_refl]
 
@@ -1074,7 +1074,7 @@ begin
   by_cases hb : b ≠ 0,
   { have : (b : ℝ≥0∞) ≠ 0, by simp [hb],
     rw [← ennreal.mul_le_mul_left this coe_ne_top],
-    suffices : ↑b * a ≤ (↑b  * ↑b⁻¹) * c ↔ a * ↑b ≤ c,
+    suffices : ↑b * a ≤ (↑b * ↑b⁻¹) * c ↔ a * ↑b ≤ c,
     { simpa [some_eq_coe, div_eq_mul_inv, hb, mul_left_comm, mul_comm, mul_assoc] },
     rw [← coe_mul, mul_inv_cancel hb, coe_one, one_mul, mul_comm] },
   { simp at hb,
@@ -1309,7 +1309,7 @@ begin
   lift y to ℝ≥0 using h'y,
   have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1),
-  { refine nnreal.exists_mem_Ico_zpow _  (one_lt_coe_iff.1 hy),
+  { refine nnreal.exists_mem_Ico_zpow _ (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
   refine ⟨n, _, _⟩,
   { rwa [← ennreal.coe_zpow A, ennreal.coe_le_coe] },
@@ -1324,7 +1324,7 @@ begin
   lift y to ℝ≥0 using h'y,
   have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1),
-  { refine nnreal.exists_mem_Ioc_zpow _  (one_lt_coe_iff.1 hy),
+  { refine nnreal.exists_mem_Ioc_zpow _ (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
   refine ⟨n, _, _⟩,
   { rwa [← ennreal.coe_zpow A, ennreal.coe_lt_coe] },
@@ -1484,7 +1484,7 @@ lemma to_real_pos_iff : 0 < a.to_real ↔ (0 < a ∧ a < ∞):=
 (nnreal.coe_pos).trans to_nnreal_pos_iff
 
 lemma to_real_pos {a : ℝ≥0∞} (ha₀ : a ≠ 0) (ha_top : a ≠ ∞) : 0 < a.to_real :=
-to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr ha₀, lt_top_iff_ne_top.mpr  ha_top⟩
+to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr ha₀, lt_top_iff_ne_top.mpr ha_top⟩
 
 lemma of_real_le_of_real {p q : ℝ} (h : p ≤ q) : ennreal.of_real p ≤ ennreal.of_real q :=
 by simp [ennreal.of_real, real.to_nnreal_le_to_nnreal h]

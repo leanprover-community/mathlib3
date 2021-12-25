@@ -16,6 +16,12 @@ This file defines a few `finset` constructions on `Σ i, α i`.
   finset of the dependent sum `Σ i, α i`
 * `finset.sigma_lift`: Lifts maps `α i → β i → finset (γ i)` to a map
   `Σ i, α i → Σ i, β i → finset (Σ i, γ i)`.
+
+## TODO
+
+`finset.sigma_lift` can be generalized to any alternative functor. But to make the generalization
+worth it, we must first refactor the functor library so that the `alternative` instance for `finset`
+is computable.
 -/
 
 open function multiset

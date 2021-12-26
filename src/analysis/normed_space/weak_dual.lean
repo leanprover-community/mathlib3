@@ -214,6 +214,80 @@ lemma weak_dual.to_Pi_embedding (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 
 namespace weak_dual.to_Pi_embedding
 
+
+
+
+/-- Construct a linear map from a map satisfying the hypothesis of
+respecting linear combinations. -/
+def linear_map_of_forall_apply_linear_combination_eq
+  {R S : Type*} [semiring R] [semiring S] {σ : R →+* S} {M₁ M₂ : Type*}
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂] {f : M₁ → M₂}
+  (hf : ∀ (u v : M₁) (a b : R), f (a • u + b • v) = (σ a) • (f u) + (σ b) • (f v)) :
+  M₁ →ₛₗ[σ] M₂ :=
+{ to_fun := f,
+  map_add' := begin
+    intros u v,
+    have key := hf u v 1 1,
+    rwa [map_one σ, one_smul, one_smul, one_smul, one_smul] at key,
+  end,
+  map_smul' := begin
+    intros a u,
+    have key := hf u 0 a 0,
+    rwa [map_zero σ, zero_smul, zero_smul, add_zero, add_zero] at key,
+  end, }
+
+lemma _root_.linear_map.mem_range_to_fun_iff
+  {R S : Type*} [semiring R] [semiring S] {σ : R →+* S} {M₁ M₂ : Type*}
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂] (f : M₁ → M₂) :
+  f ∈ range (λ (ψ : M₁ →ₛₗ[σ] M₂), ψ.to_fun) ↔
+  ∀ (u v : M₁) (a b : R), f (a • u + b • v) = (σ a) • (f u) + (σ b) • (f v) :=
+begin
+  split,
+  { intros hf u v a b,
+    cases mem_range.mp hf with φ hφf,
+    rw [← hφf, linear_map.to_fun_eq_coe],
+    simp only [map_add, linear_map.map_smulₛₗ], },
+  { intros hf,
+    use linear_map_of_forall_apply_linear_combination_eq hf,
+    refl, },
+end
+
+lemma _root_.linear_map.mem_range_to_fun_eq_Inter
+  {R S : Type*} [semiring R] [semiring S] {σ : R →+* S} {M₁ M₂ : Type*}
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂] :
+  range (λ (ψ : M₁ →ₛₗ[σ] M₂), ψ.to_fun) =
+    ⋂ (u v : M₁) (a b : R), { f : M₁ → M₂ | f (a • u + b • v) = (σ a) • (f u) + (σ b) • (f v) } :=
+begin
+  ext f,
+  rw linear_map.mem_range_to_fun_iff,
+  simp only [mem_Inter, mem_set_of_eq],
+end
+
+lemma _root_.linear_map.is_closed_range_coe {M₁ M₂ R S : Type*}
+  [topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
+  [topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂] {σ : R →+* S} :
+  is_closed (range (λ (ψ : M₁ →ₛₗ[σ] M₂), ψ.to_fun)) :=
+begin
+  rw linear_map.mem_range_to_fun_eq_Inter,
+  apply is_closed_Inter, intros u,
+  apply is_closed_Inter, intros v,
+  apply is_closed_Inter, intros a,
+  apply is_closed_Inter, intros b,
+  have cont₂ : continuous (λ (g : M₁ → M₂), (σ a) • g u + (σ b) • g v),
+  { have cnt_add : continuous (λ (μ : M₂ × M₂), μ.fst + μ.snd) := continuous_add,
+    have cnt₁ : continuous (λ (g : M₁ → M₂), (σ a) • g u),
+    from continuous.comp (continuous_uncurry_left (σ a) continuous_smul) (continuous_apply u),
+    have cnt₂ : continuous (λ (g : M₁ → M₂), (σ b) • g v),
+    from continuous.comp (continuous_uncurry_left (σ b) continuous_smul) (continuous_apply v),
+    exact continuous.add cnt₁ cnt₂, },
+  exact is_closed_eq (continuous_apply (a • u + b • v)) cont₂,
+end
+
+
+
+
+
 /-- Elements of the closure of the range of the embedding
 `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` are linear. Here it is stated as the elements
 respecting linear combinations. -/

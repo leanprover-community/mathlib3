@@ -1297,6 +1297,10 @@ by simp [fintype.subtype_card, finset.card_univ]
   (set.univ : set α).to_finset = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 
+lemma set.card_to_finset_univ [fintype α] :
+  (set.univ : set α).to_finset.card = fintype.card α :=
+by rw [set.to_finset_univ, finset.card_univ]
+
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :
   s.to_finset = ∅ ↔ s = ∅ :=
 by simp [ext_iff, set.ext_iff]

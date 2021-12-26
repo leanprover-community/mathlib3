@@ -215,6 +215,8 @@ fintype.card_of_subsingleton _
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : finite s :=
 h.induction_on finite_empty finite_singleton
 
+lemma to_finset_singleton (a : α) : ({a} : set α).to_finset = {a} := rfl
+
 lemma finite_is_top (α : Type*) [partial_order α] : finite {x : α | is_top x} :=
 (subsingleton_is_top α).finite
 
@@ -756,12 +758,13 @@ lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s 
   [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by ext; simp
 
-instance fintype_to_finset_diff  {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t] :
+instance fintype_sdiff  {α : Type*} [decidable_eq α]
+  (s t : set α) [fintype s] [fintype t] :
   fintype (s \ t : set α) :=
 fintype.of_finset (s.to_finset \ t.to_finset) $ by simp
 
-lemma to_finset_diff {α : Type*} [decidable_eq α] (s t : set α) [fintype (s \ t : set α)]
-  [fintype s] [fintype t] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
+lemma to_finset_sdiff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
+  [fintype (s \ t : set α)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
 by ext; simp
 
 lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)

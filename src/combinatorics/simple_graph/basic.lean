@@ -503,6 +503,8 @@ locally finite at `v`.
 -/
 def neighbor_finset : finset V := (G.neighbor_set v).to_finset
 
+lemma neighbor_finset_def : G.neighbor_finset v = (G.neighbor_set v).to_finset := rfl
+
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
@@ -545,14 +547,6 @@ lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
   e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
 set.mem_to_finset
 
-variables (w : V) [fintype (G.neighbor_set w)]
-
-def common_neighbor_finset [decidable_eq V] : finset V := G.neighbor_finset v ∩ G.neighbor_finset w
-
-@[simp] lemma mem_common_neighbor_finset [decidable_eq V] {u : V} :
-  u ∈ G.common_neighbor_finset v w ↔ G.adj v u ∧ G.adj w u :=
-by simp [common_neighbor_finset]
-
 end finite_at
 
 section locally_finite
@@ -591,6 +585,11 @@ lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=
 by { ext, simp }
 
+lemma neighbor_finset_compl [fintype V] [decidable_eq V] [decidable_rel G.adj] (v : V) :
+  Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
+by simp [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
+    set.to_finset_singleton]
+
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :
   (⊤ : simple_graph V).degree v = fintype.card V - 1 :=
@@ -599,8 +598,8 @@ begin
   erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
-lemma empty_graph_degree [decidable_eq V] (v : V) :
-  (empty_graph V).degree v = 0 :=
+lemma bot_degree [decidable_eq V] (v : V) :
+  (⊥ : simple_graph V).degree v = 0 :=
 begin
   erw [degree, neighbor_finset_eq_filter, filter_false],
   exact finset.card_empty,
@@ -731,24 +730,6 @@ begin
   exact set.card_le_of_subset (set.inter_subset_left _ _),
 end
 
-lemma card_common_neighbors_le_degree_left' [decidable_rel G.adj] (v w : V) :
-  finset.card (G.common_neighbors v w).to_finset ≤ G.degree v :=
-begin
-  apply finset.card_le_of_subset,
-  unfold common_neighbors,
-  rw neighbor_finset,
-  simp,
-end
-
-lemma card_common_neighbors_le_degree_left'' [decidable_eq V] [decidable_rel G.adj] (v w : V)
-  [fintype (G.neighbor_set v)] [fintype (G.neighbor_set w)] :
-  finset.card (G.common_neighbor_finset v w) ≤ G.degree v :=
-begin
-  apply finset.card_le_of_subset,
-  unfold common_neighbor_finset,
-  exact inter_subset_left _ _,
-end
-
 lemma card_common_neighbors_le_degree_right [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree w :=
 begin
@@ -781,6 +762,21 @@ begin
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
+end
+
+lemma common_neighbors_top_eq {v w : V} :
+  (⊤ : simple_graph V).common_neighbors v w = set.univ \ {v, w} :=
+by { ext u, simp [common_neighbors, eq_comm, not_or_distrib.symm] }
+
+lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
+  fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=
+begin
+  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
+  rw finset.card_sdiff,
+  { congr' 1,
+    { convert set.card_to_finset_univ, },
+    { simp [h], } },
+  { simp only [←set.subset_iff_to_finset_subset, set.subset_univ] },
 end
 
 end finite
@@ -849,66 +845,6 @@ begin
   apply sym2.map.injective hinj,
 end
 
-/-lemma finset.compl_to_finset (α : Type u) [decidable_eq α] [fintype α] (s : set α) :
-  sᶜ.to_finset = (s.to_finset)ᶜ :=
-by ext; simp-/
-
-variables [decidable_eq V]
-
-lemma neighbor_set_union_compl_neighbor_set_card [fintype V] (G : simple_graph V)
-  [decidable_rel G.adj] [decidable_rel Gᶜ.adj] (v : V) :
-  fintype.card ((G.neighbor_set v ∪ Gᶜ.neighbor_set v) : set V) = fintype.card V - 1 :=
-begin
-  -- i don't love the `fintype.subtype_of_fintype situation` i have here
-  classical,
-  simp_rw neighbor_set_union_compl_neighbor_set_eq,
-  rw ← set.to_finset_card,
-  simp,
-  rw fintype.card_of_finset' {v}ᶜ,
-  rw card_compl,
-  rw ← card_singleton v,
-  simp,
-end
-
-lemma compl_neighbor_set (G : simple_graph V) [decidable_rel G.adj] (v : V) :
-  Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
-begin
-  ext w,
-  simp,
-  exact ⟨λ ⟨hne, hnadj⟩, ⟨hnadj, ne.symm hne⟩, λ ⟨hnadj, hne⟩, ⟨ne.symm hne, hnadj⟩⟩,
-end
-
-lemma compl_neighbor_finset (G : simple_graph V) [decidable_rel G.adj] (v : V) [fintype V] :
-  Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
-begin
-  ext w,
-  simp,
-  exact ⟨λ ⟨hne, hnadj⟩, ⟨hnadj, ne.symm hne⟩, λ ⟨hnadj, hne⟩, ⟨ne.symm hne, hnadj⟩⟩,
-end
-
-lemma card_compl_neighbor_set [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) :
-  Gᶜ.degree v = fintype.card V - G.degree v - 1 :=
-begin
-  rw [nat.sub_sub, add_comm, ← nat.sub_sub, ← neighbor_set_union_compl_neighbor_set_card G v,
-    fintype.card_of_finset],
-  rw card_disjoint_union (set.to_finset_disjoint_iff.2 (compl_neighbor_set_disjoint G v)),
-  simp only [degree, neighbor_finset, nat.add_sub_cancel_left],
-end
-
-lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [decidable_rel G.adj]
-  [decidable_rel Gᶜ.adj] (k : ℕ) (h : G.is_regular_of_degree k) :
-  Gᶜ.is_regular_of_degree (fintype.card V - k - 1) :=
-begin
-  rw is_regular_of_degree,
-  intros v,
-  specialize h v,
-  rw [nat.sub_sub, add_comm, ← nat.sub_sub, ← neighbor_set_union_compl_neighbor_set_card G v, ← h,
-      fintype.card_of_finset],
-  rw card_disjoint_union (set.to_finset_disjoint_iff.2 (compl_neighbor_set_disjoint G v)),
-  simp only [degree, neighbor_finset, nat.add_sub_cancel_left],
-end
-
-end complement
 variable {G'' : simple_graph X}
 
 /-- Composition of graph homomorphisms. -/

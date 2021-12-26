@@ -587,7 +587,7 @@ by { ext, simp }
 
 lemma neighbor_finset_compl [fintype V] [decidable_eq V] [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
-by simp [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
+by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
     set.to_finset_singleton]
 
 @[simp]

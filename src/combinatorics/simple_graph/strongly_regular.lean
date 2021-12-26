@@ -18,8 +18,6 @@ import data.set.finite
   * The number of common neighbors between any two nonadjacent vertices in `G` is `m`
 
 ## TODO
-- Prove that the complement of a strongly regular graph is strongly regular with parameters
-  `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (n - 2k + l)`
 - Prove that the parameters of a strongly regular graph
   obey the relation `(n - k - 1) * m = k * (k - l - 1)`
 - Prove that if `I` is the identity matrix and `J` is the all-one matrix,
@@ -78,13 +76,12 @@ lemma card_neighbor_set_union_eq {n k l m : ℕ} (h : G.is_SRG_of n k l m) (v w 
     2 * k - fintype.card (G.common_neighbors v w) :=
 begin
   apply @nat.add_right_cancel _ (fintype.card (G.common_neighbors v w)),
-  rw nat.sub_add_cancel,
-  simp only [←set.to_finset_card, neighbor_finset, common_neighbors, set.to_finset_inter],
-  rw finset.card_union_add_card_inter,
-  simp [G.is_regular_of_degree_eq h.regular, two_mul],
-  apply le_trans,
-  apply card_common_neighbors_le_degree_left,
-  simp [G.is_regular_of_degree_eq h.regular, two_mul],
+  rw [nat.sub_add_cancel, ←set.to_finset_card],
+  { simp [neighbor_finset, common_neighbors, set.to_finset_inter,
+    finset.card_union_add_card_inter, G.is_regular_of_degree_eq h.regular, two_mul], },
+  { apply le_trans,
+    apply card_common_neighbors_le_degree_left,
+    simp [G.is_regular_of_degree_eq h.regular, two_mul], },
 end
 
 -- first of all, what is `2*(k + 1) - m` in `G`? what does it count?
@@ -132,8 +129,6 @@ begin
   { apply hnw, rwa adj_comm, },
 end
 
--- Prove that the complement of a strongly regular graph is strongly regular with parameters
-  -- `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (n - 2k + l)`
 lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
   Gᶜ.is_SRG_of n (n - k - 1) (n - (2 * k - m) - 2) (n - (2 * k - l)) :=
 { card := h.card,

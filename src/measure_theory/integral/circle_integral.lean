@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import measure_theory.integral.interval_integral
+import analysis.normed_space.pointwise
 import analysis.special_functions.non_integrable
 import analysis.analytic.basic
 
@@ -11,7 +12,9 @@ import analysis.analytic.basic
 # Integral over a circle in `ℂ`
 
 In this file we define `∮ z in C(c, R), f z` to be the integral $\oint_{|z-c|=|R|} f(z)\,dz$ and
-prove some properties of this integral.
+prove some properties of this integral. We give definition and prove most lemmas for a function
+`f : ℂ → E`, where `E` is a complex Banach space with second countable topology. For this reason,
+some lemmas use, e.g., `(z - c)⁻¹ • f z` instead of `f z / (z - c)`.
 
 ## Main definitions
 
@@ -23,8 +26,10 @@ prove some properties of this integral.
 * `circle_integral f c R`: the integral $\oint_{|z-c|=|R|} f(z)\,dz$, defined as
   $\int_{0}^{2π}(c + Re^{θ i})' f(c+Re^{θ i})\,dθ$;
 
-* `cauchy_power_series f c R`: the power series that depends only on `f ∘ circle_map c R` and
-  converges to `f w` if `f` is differentiable on the closed ball `metric.closed_ball c R`
+* `cauchy_power_series f c R`: the power series that is equal to
+  $\sum_{n=0}^{\infty} \oint_{|z-c|=R} \left(\frac{w-c}{z - c}\right)^n \frac{1}{z-c}f(z)\,dz$ at
+  `w - c`. The coefficients of this power series depend only on `f ∘ circle_map c R`, and the power
+  series converges to `f w` if `f` is differentiable on the closed ball `metric.closed_ball c R`
   and `w` belongs to the corresponding open ball.
 
 ## Main statements
@@ -120,6 +125,9 @@ lemma has_deriv_at_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
   has_deriv_at (circle_map c R) (circle_map 0 R θ * I) θ :=
 by simpa only [mul_assoc, one_mul, of_real_clm_apply, circle_map, of_real_one, zero_add]
  using ((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul (R : ℂ)).const_add c
+
+/- TODO: prove `times_cont_diff ℝ (circle_map c R)`. This needs a version of `times_cont_diff.mul`
+for multiplication in a normed algebra over the base field. -/
 
 lemma differentiable_circle_map (c : ℂ) (R : ℝ) :
   differentiable ℝ (circle_map c R) :=
@@ -405,10 +413,12 @@ end
 
 end circle_integral
 
-/-- Formal multilinear series defined by the restriction of `f` to the circle `metric.sphere c R`
-that converges to `f` in `metric.ball c R` if `f` is complex differentiable on the corresponding
-closed ball. For any circle integrable function `f`, this power series converges to the Cauchy
-integral for `f`. -/
+/-- The power series that is equal to
+$\sum_{n=0}^{\infty} \oint_{|z-c|=R} \left(\frac{w-c}{z - c}\right)^n \frac{1}{z-c}f(z)\,dz$ at
+`w - c`. The coefficients of this power series depend only on `f ∘ circle_map c R`, and the power
+series converges to `f w` if `f` is differentiable on the closed ball `metric.closed_ball c R` and
+`w` belongs to the corresponding open ball. For any circle integrable function `f`, this power
+series converges to the Cauchy integral for `f`. -/
 def cauchy_power_series (f : ℂ → E) (c : ℂ) (R : ℝ) :
   formal_multilinear_series ℂ ℂ E :=
 λ n, continuous_multilinear_map.mk_pi_field ℂ _ $

@@ -166,42 +166,20 @@ end
 lemma det_coe_g (Γ : subgroup SL2Z) (γ : Γ): (((γ : SL2Z ) : GL2P) :
   GL (fin 2) ℝ).1.det= (γ.1.1.det: ℝ):=
 begin
-  simp only [int.cast_one, units.val_eq_coe, matrix.special_linear_group.det_coe,
-  subtype.val_eq_coe, coe_coe],
-   rw ← coe_coe,
-  rw ←  coe_coe,
-  rw ←  coe_coe,
-
-
-  have h:= γ.1.property,
-  simp only [ subtype.val_eq_coe] at h,
-
   have h2:= det_coe_sl γ.1,
   simp only [ subtype.val_eq_coe] at h2,
   rw ← coe_coe,
-
-  sorry,
- -- simp only [matrix.special_linear_group.det_coe] at *,
+  simp only [int.cast_one, units.val_eq_coe, matrix.special_linear_group.det_coe,
+  subtype.val_eq_coe, coe_coe] at *,
+  apply h2,
 end
 
 lemma coe_aux (Γ : subgroup SL2Z) (γ : Γ) :
  ∀ i j, ((γ : matrix.GL_pos (fin 2) ℝ) i j : ℂ) = ((γ i j : ℤ) : ℝ) :=
 begin
   intros i j,
-  simp,
-  sorry,
-  /-
-  have :=SL2Z.mat_vals  γ.1 i j,
-  simp only [of_real_int_cast, subtype.val_eq_coe, matrix.general_linear_group.coe_fn_eq_coe, coe_coe] at *,
-  rw ← coe_coe,
-  cases j, cases i, cases γ, cases γ_val,
-  dsimp only at *,
-  tactic.ext1 [] {new_goals := tactic.new_goals.all},
-  work_on_goal 0 { dsimp at *,
-  simp only [int_cast_re] at *,
-  assumption },
-  dsimp at *,
-  simp only [int_cast_im] at *,-/
+  simp only [int.cast_inj, modular_group.coe2, of_real_int_cast, coe_coe],
+  refl,
 end
 
 /--A function `f:ℍ → ℂ` is modular, of level `Γ` and weight `k ∈ ℤ`, if for every matrix in

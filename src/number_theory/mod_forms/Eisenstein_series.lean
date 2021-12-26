@@ -13,6 +13,7 @@ import .Weierstrass_M_test
 import analysis.complex.upper_half_plane
 import topology.compact_open
 import analysis.calculus.deriv
+import number_theory.modular
 
 
 universes u v w
@@ -203,8 +204,8 @@ begin
   rw ← coe_coe,
   simp,
   rw ← coe_coe,
-  sorry,
-
+  simp only [forall_const, mul_eq_mul_left_iff, true_or, eq_self_iff_true, inv_inj₀, h1,
+  coe_coe] at *,
   apply upper_half_plane.denom_ne_zero A,
 end
 
@@ -356,21 +357,61 @@ end
 begin
 split,
 intro x,
-rw Square at x, simp at x, simp_rw x,
-intro hx, rw Square, simp, simp [hx],
-have h2:=max_aux3 _ _ _ hx, have h21:= nat_abs_inter2 _ _ h2.1, have h22:= nat_abs_inter2 _ _ h2.2,
-split, split,rw  neg_le_iff_add_nonneg',exact h21.2, have:= h21.1,linarith,
-split,rw  neg_le_iff_add_nonneg',exact h22.2, have:= h22.1,linarith,
-
+rw Square at x,
+simp at x,
+simp_rw x,
+intro hx,
+rw Square,
+simp,
+simp [hx],
+have h2:=max_aux3 _ _ _ hx,
+have h21:= nat_abs_inter2 _ _ h2.1,
+have h22:= nat_abs_inter2 _ _ h2.2,
+split,
+split,
+rw  neg_le_iff_add_nonneg',
+exact h21.2,
+have:= h21.1,
+linarith,
+split,
+rw  neg_le_iff_add_nonneg',
+exact h22.2,
+have:= h22.1,linarith,
 end
 
-lemma square_mem' (n : ℕ) (x : ℤ × ℤ ) : x ∈ (Square n) ↔  ((x.1).nat_abs=n ∧ (x.2).nat_abs <  n) ∨ ((x.2).nat_abs=n ∧ (x.1).nat_abs < n) ∨ ((x.1).nat_abs=n ∧ (x.2).nat_abs=n) :=
+lemma square_mem' (n : ℕ) (x : ℤ × ℤ ) : x ∈ (Square n) ↔
+((x.1).nat_abs=n ∧ (x.2).nat_abs <  n) ∨ ((x.2).nat_abs=n ∧ (x.1).nat_abs < n) ∨ ((x.1).nat_abs=n ∧
+ (x.2).nat_abs=n) :=
 begin
-simp, split, intro c1, have:= max_aux3 _ _ _ c1,  have H:= max_aux'' _ _ _ c1, have h1:= this.1, have h2:=this.2,
-rw le_iff_lt_or_eq at h2, rw le_iff_lt_or_eq at h1, cases H, simp_rw H, simp,exact h2, simp_rw H, simp,
+simp,
+split,
+intro c1,
+have:= max_aux3 _ _ _ c1,
+have H:= max_aux'' _ _ _ c1,
+have h1:= this.1,
+have h2:=this.2,
+rw le_iff_lt_or_eq at h2,
+rw le_iff_lt_or_eq at h1,
+cases H,
+simp_rw H,
+simp,
+exact h2,
+simp_rw H,
+simp,
 exact h1,
-intro c2, cases c2, rw c2.1,simp, have :=c2.2, linarith,
-cases c2, rw c2.1, simp,have:=c2.2, linarith,rw [c2.1,c2.2], simp,
+intro c2,
+cases c2,
+rw c2.1,
+simp,
+have :=c2.2,
+linarith,
+cases c2,
+rw c2.1,
+simp,
+have:=c2.2,
+linarith,
+rw [c2.1,c2.2],
+simp,
 end
 
 
@@ -431,7 +472,8 @@ begin
  exact lt_or_eq_of_le h22,
 end
 
-lemma dog (a b : ℤ) (n: ℕ)  (h1: a=(n:ℤ)) (h2: 1 ≤ (n: ℤ)+ b ∧ b < (n:ℤ) ): a.nat_abs= n ∧ b.nat_abs < n :=
+lemma dog (a b : ℤ) (n: ℕ)  (h1: a=(n:ℤ)) (h2: 1 ≤ (n: ℤ)+ b ∧ b < (n:ℤ) ):
+  a.nat_abs= n ∧ b.nat_abs < n :=
 begin
  rw h1, simp,  have:=int.nat_abs_eq b, cases this, rw this at h2, norm_cast at h2,exact h2.2,
  rw this at h2, have h22:= h2.1, linarith,
@@ -451,10 +493,12 @@ begin
   intro ha,
   rw Square2,
   simp_rw int.nat_abs_eq_iff at ha,
-  cases ha,
+  sorry,
+  sorry,
+
+  /-cases ha,
   cases ha.1,
-  simp only [
-  finset.mem_union, finset.union_assoc, finset.mem_product,  finset.mem_Ico, finset.product_singleton,
+  simp only [finset.mem_union, finset.union_assoc, finset.mem_product,  finset.mem_Ico,
   neg_add_le_iff_le_add],
   have h1:= nat_abs_inter _ _ ha.2,
    have h2:= auxin _ _ h1.2,
@@ -464,25 +508,22 @@ begin
     finset.mem_product,  finset.mem_Ico],
   simp,
   simp only [
-  finset.mem_union, finset.union_assoc, finset.mem_product,  finset.mem_Ico, finset.product_singleton,
+  finset.mem_union, finset.union_assoc, finset.mem_product,  finset.mem_Ico,
   neg_add_le_iff_le_add],
   have h1:= nat_abs_inter _ _ ha.2,
   have h2:= auxin _ _ h1.2,
   simp_rw [h,h1,h2],
   simp only [true_or, eq_self_iff_true, or_true, and_self],
-  cases ha,
-  cases ha_left,
-  simp  [finset.mem_union, finset.union_assoc, finset.mem_product,  finset.mem_Ico,
-  finset.product_singleton, neg_add_le_iff_le_add],
-  sorry,
-  /-have h1:= nat_abs_inter _ _ ha.2,
+  cases ha.1,
+  simp [eq_self_iff_true, or_true, and_self, finset.mem_singleton],
+  have h1:= nat_abs_inter _ _ ha.2,
   have h2:= auxin2 _ _ h1.2,
   simp_rw [h,h2],
   simp only [true_and, lt_self_iff_false, and_true, eq_self_iff_true, or_false, and_false],
   have h3:=h1.1,
   have Hk: a.1 < (n: ℤ)+1, by {linarith, },
   simp only [Hk, true_or],
-  simp [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
+  simp only [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
     finset.mem_product],
   have h1:= nat_abs_inter _ _ ha.2,
   have h2:= auxin2 _ _ h1.2,
@@ -491,7 +532,7 @@ begin
   have h3:=h1.1,
   have Hk: a.1 < (n: ℤ)+1, by {linarith, },
   simp only [Hk, true_or, or_true],
-  simp [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
+  simp only [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
     finset.mem_product],
   cases  ha.1,
   cases  ha.2,
@@ -512,13 +553,13 @@ begin
   simp only [true_or],
   have hg: -(n: ℤ) < n+1, by {linarith,},
   simp_rw [h,h_1, hg],
-  simp only [le_refl, true_or, eq_self_iff_true, or_true, and_self],-/
+  simp only [le_refl, true_or, eq_self_iff_true, or_true, and_self],
   sorry,
   intro ha,
   rw Square2 at ha,
   sorry,
 
-  /-simp [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
+  simp [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
     finset.mem_product, finset.mem_Ico] at ha,
     rw square_mem',
     cases ha,
@@ -537,7 +578,8 @@ begin
   simp only [true_or, eq_self_iff_true, and_self],
   have:= dog1 _ _ _ ha.1 ha.2,
   simp_rw this,
-  simp only [true_or, eq_self_iff_true, and_self],-/
+  simp only [true_or, eq_self_iff_true, and_self],
+  -/
   end
 
 

@@ -16,7 +16,7 @@ that for every `b : V` there is a unique path from `root` to `b`.
 
 ## Main definitions
 
-- `arborescence V`: a typeclass asserting that `V` is an arborescence
+- `quiver.arborescence V`: a typeclass asserting that `V` is an arborescence
 - `arborescence_mk`: a convenient way of proving that a quiver is an arborescence
 - `rooted_connected r`: a typeclass asserting that there is at least one path from `r` to `b` for
 every `b`.

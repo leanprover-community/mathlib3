@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 import algebra.algebra.basic
+import algebra.char_p.basic
 
 /-!
 # `ne_zero` typeclass
@@ -26,13 +27,16 @@ lemma ne_zero.ne' (n : ℕ) (R) [has_zero R] [has_one R] [has_add R] [h : ne_zer
 
 namespace ne_zero
 
-variables {K R S M : Type*} {n : ℕ} {a : ℕ+}
+variables {R M : Type*} {n p : ℕ} {a : ℕ+}
 
 instance pnat : ne_zero (a : ℕ) := ⟨a.ne_zero⟩
 instance succ : ne_zero (n + 1) := ⟨n.succ_ne_zero⟩
 
 instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zero (n : M) :=
 ⟨nat.cast_ne_zero.mpr $ ne_zero.ne n⟩
+
+lemma of_not_dvd [add_monoid M] [has_one M] [char_p M p] (h : ¬ p ∣ n) : ne_zero (n : M) :=
+⟨(not_iff_not.mpr $ char_p.cast_eq_zero_iff M p n).mpr h⟩
 
 lemma of_no_zero_smul_divisors [comm_ring R] [ne_zero (n : R)] (S) [ring S] [nontrivial S]
   [algebra R S] [no_zero_smul_divisors R S] : ne_zero (n : S) :=

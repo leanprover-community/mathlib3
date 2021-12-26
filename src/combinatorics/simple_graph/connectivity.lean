@@ -225,9 +225,9 @@ lemma mem_support_append_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
 begin
   simp only [mem_support_iff, mem_tail_support_append_iff],
   by_cases h : t = v; by_cases h' : t = u;
-  { subst_vars,
-    try { have := ne.symm h' },
-    simp [*], },
+  subst_vars;
+  try { have := ne.symm h' };
+  simp [*],
 end
 
 lemma coe_support {u v : V} (p : G.walk u v) :
@@ -280,8 +280,7 @@ by induction p; simp *
 @[simp] lemma length_edges {u v : V} (p : G.walk u v) : p.edges.length = p.length :=
 by induction p; simp *
 
-lemma mem_support_of_mem_edges : Π {t u v w : V} (p : G.walk v w)
-  (he : ⟦(t, u)⟧ ∈ p.edges),
+lemma mem_support_of_mem_edges : Π {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges),
   t ∈ p.support
 | t u v w (cons h p') he := begin
   simp only [support_cons, edges_cons, list.mem_cons_iff, quotient.eq] at he ⊢,
@@ -332,10 +331,10 @@ lemma is_cycle_def [decidable_eq V] {u : V} (p : G.walk u u) :
   p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ p.support.tail.nodup :=
 iff.intro (λ h, ⟨h.1.1, h.1.2, h.2⟩) (λ h, ⟨⟨h.1, h.2.1⟩, h.2.2⟩)
 
-@[simp] lemma nil_is_trail {u : V} : (nil : G.walk u u).is_trail :=
+@[simp] lemma is_trail.nil {u : V} : (nil : G.walk u u).is_trail :=
 ⟨by simp [edges]⟩
 
-lemma is_trail_of_cons_is_trail {u v w : V} {h : G.adj u v} {p : G.walk v w} :
+lemma is_trail.of_cons {u v w : V} {h : G.adj u v} {p : G.walk v w} :
   (cons h p).is_trail → p.is_trail :=
 by simp [is_trail_def]
 
@@ -343,33 +342,33 @@ by simp [is_trail_def]
   (cons h p).is_trail ↔ p.is_trail ∧ ⟦(u, v)⟧ ∉ p.edges :=
 by simp [is_trail_def, and_comm]
 
-lemma reverse_trail {u v : V} (p : G.walk u v) (h : p.is_trail) : p.reverse.is_trail :=
+lemma is_trail.reverse {u v : V} (p : G.walk u v) (h : p.is_trail) : p.reverse.is_trail :=
 by simpa [is_trail_def] using h
 
-@[simp] lemma is_trail_reverse_iff {u v : V} (p : G.walk u v) : p.reverse.is_trail ↔ p.is_trail :=
-by split; { intro h, convert reverse_trail _ h, try { rw reverse_reverse } }
+@[simp] lemma reverse_is_trail_iff {u v : V} (p : G.walk u v) : p.reverse.is_trail ↔ p.is_trail :=
+by split; { intro h, convert h.reverse _, try { rw reverse_reverse } }
 
-lemma is_trail_of_append_left {u v w : V} (p : G.walk u v) (q : G.walk v w)
+lemma is_trail.of_append_left {u v w : V} {p : G.walk u v} {q : G.walk v w}
   (h : (p.append q).is_trail) : p.is_trail :=
 by { rw [is_trail_def, edges_append, list.nodup_append] at h, exact ⟨h.1⟩ }
 
-lemma is_trail_of_append_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
+lemma is_trail.of_append_right {u v w : V} {p : G.walk u v} {q : G.walk v w}
   (h : (p.append q).is_trail) : q.is_trail :=
 by { rw [is_trail_def, edges_append, list.nodup_append] at h, exact ⟨h.2.1⟩ }
 
-lemma count_edges_le_one_of_trail [decidable_eq V] {u v : V}
-  (p : G.walk u v) (h : p.is_trail) (e : sym2 V) : p.edges.count e ≤ 1 :=
+lemma is_trail.count_edges_le_one [decidable_eq V] {u v : V}
+  {p : G.walk u v} (h : p.is_trail) (e : sym2 V) : p.edges.count e ≤ 1 :=
 list.nodup_iff_count_le_one.mp h.edges_nodup e
 
-lemma count_edges_eq_one_of_trail [decidable_eq V] {u v : V}
-  (p : G.walk u v) (h : p.is_trail) {e : sym2 V}
-  (he : e ∈ p.edges) : p.edges.count e = 1 :=
+lemma is_trail.count_edges_eq_one [decidable_eq V] {u v : V}
+  {p : G.walk u v} (h : p.is_trail) {e : sym2 V} (he : e ∈ p.edges) :
+  p.edges.count e = 1 :=
 list.count_eq_one_of_mem h.edges_nodup he
 
-@[simp] lemma nil_is_path {u : V} : (nil : G.walk u u).is_path :=
+@[simp] lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
 by { fsplit; simp }
 
-lemma is_path_of_cons_is_path {u v w : V} {h : G.adj u v} {p : G.walk v w} :
+lemma is_path.of_cons {u v w : V} {h : G.adj u v} {p : G.walk v w} :
   (cons h p).is_path → p.is_path :=
 by simp [is_path_def]
 
@@ -377,22 +376,22 @@ by simp [is_path_def]
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 by split; simp [is_path_def] { contextual := tt }
 
-lemma reverse_path {u v : V} (p : G.walk u v) (h : p.is_path) : p.reverse.is_path :=
+lemma is_path.reverse {u v : V} {p : G.walk u v} (h : p.is_path) : p.reverse.is_path :=
 by simpa [is_path_def] using h
 
 @[simp] lemma is_path_reverse_iff {u v : V} (p : G.walk u v) : p.reverse.is_path ↔ p.is_path :=
-by split; intro h; convert reverse_path _ h; simp
+by split; intro h; convert h.reverse; simp
 
-lemma is_path_of_append_left {u v w : V} (p : G.walk u v) (q : G.walk v w) :
+lemma is_path.of_append_left {u v w : V} {p : G.walk u v} {q : G.walk v w} :
   (p.append q).is_path → p.is_path :=
 by { simp only [is_path_def, support_append], exact list.nodup_of_nodup_append_left }
 
-lemma is_path_of_append_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
+lemma is_path.of_append_right {u v w : V} {p : G.walk u v} {q : G.walk v w}
   (h : (p.append q).is_path) : q.is_path :=
 begin
   rw ←is_path_reverse_iff at h ⊢,
   rw reverse_append at h,
-  exact is_path_of_append_left _ _ h,
+  apply h.of_append_left,
 end
 
 end walk

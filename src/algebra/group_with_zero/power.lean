@@ -244,6 +244,13 @@ begin
   rw [sq, mul_assoc, mul_div_cancel_left _ ha]
 end
 
+/-- The `n`-th power map (`n` an integer) on a commutative group with zero, considered as a group
+homomorphism. -/
+def zpow_group_hom₀ (n : ℤ) : G₀ →* G₀ :=
+{ to_fun := (^ n),
+  map_one' := one_zpow₀ n,
+  map_mul' := λ a b, mul_zpow₀ a b n }
+
 end
 
 /-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,

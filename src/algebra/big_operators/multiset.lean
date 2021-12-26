@@ -24,7 +24,7 @@ variables {ι α β γ : Type*}
 
 namespace multiset
 section comm_monoid
-variables [comm_monoid α] {s t : multiset α} {a : α}
+variables [comm_monoid α] {s t : multiset α} {a : α} {m : multiset ι} {f g : ι → α}
 
 /-- Product of a multiset given a commutative monoid structure on `α`.
   `prod {a, b, c} = a * b * c` -/
@@ -75,43 +75,26 @@ lemma pow_count [decidable_eq α] (a : α) : a ^ (s.count a) = (s.filter (eq a))
 by rw [filter_eq, prod_repeat]
 
 @[to_additive]
-lemma prod_map_one {m : multiset ι} : prod (m.map (λ a, (1 : α))) = 1 :=
-by rw [map_const, prod_repeat, one_pow]
+lemma prod_hom [comm_monoid β] (s : multiset α) (f : α →* β) : (s.map f).prod = f s.prod :=
+quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
+
+@[to_additive]
+lemma prod_hom_rel [comm_monoid β] (s : multiset ι) {r : α → β → Prop} {f : ι → α} {g : ι → β}
+  (h₁ : r 1 1) (h₂ : ∀ ⦃a b c⦄, r b c → r (f a * b) (g a * c)) :
+  r (s.map f).prod (s.map g).prod :=
+quotient.induction_on s $ λ l,
+  by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
+
+@[to_additive]
+lemma prod_map_one : prod (m.map (λ i, (1 : α))) = 1 := by rw [map_const, prod_repeat, one_pow]
 
 @[simp, to_additive]
-lemma prod_map_mul {m : multiset ι} {f g : ι → α} :
-  prod (m.map $ λ a, f a * g a) = prod (m.map f) * prod (m.map g) :=
+lemma prod_map_mul : (m.map $ λ i, f i * g i).prod = (m.map f).prod * (m.map g).prod :=
 multiset.induction_on m (by simp) (λ a m ih, by simp [ih]; cc)
 
-@[simp, to_additive]
-lemma prod_map_inv' [comm_group γ] {m : multiset α} {f : α → γ} :
-  prod (m.map $ λ a, (f a)⁻¹) = (prod (m.map f))⁻¹ :=
-multiset.induction_on m (by simp_rw [map_zero, prod_zero, one_inv])
-  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, mul_inv])
-
-@[simp, to_additive]
-lemma prod_map_div [comm_group γ] {m : multiset α} {f g : α → γ} :
-  prod (m.map $ λ a, f a / g a) = prod (m.map f) / prod (m.map g) :=
-multiset.induction_on m (by simp_rw [map_zero, prod_zero, div_one'])
-  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, div_mul_comm])
-
 @[to_additive sum_map_nsmul]
-lemma prod_map_pow [comm_monoid γ] {m : multiset α} {f : α → γ} {n : ℕ} :
-  prod (m.map $ λ a, f a ^ n) = prod (m.map f) ^ n :=
-multiset.induction_on m (by simp_rw [map_zero, prod_zero, one_pow])
-  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, mul_pow])
-
-@[to_additive]
-lemma prod_map_zpow [comm_group γ] {m : multiset α} {f : α → γ} {n : ℤ} :
-  prod (m.map $ λ a, f a ^ n) = prod (m.map f) ^ n :=
-multiset.induction_on m (by simp_rw [map_zero, prod_zero, one_zpow])
-  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, mul_zpow])
-
-@[to_additive]
-lemma prod_map_zpow₀ [comm_group_with_zero γ] {m : multiset α} {f : α → γ} {n : ℤ} :
-  prod (m.map $ λ a, f a ^ n) = prod (m.map f) ^ n :=
-multiset.induction_on m (by simp_rw [map_zero, prod_zero, one_zpow₀])
-  (λ a m ih, by simp_rw [map_cons, prod_cons, ih, mul_zpow₀])
+lemma prod_map_pow {n : ℕ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
+by { convert (m.map f).prod_hom (pow_monoid_hom n), rw map_map, refl }
 
 @[to_additive]
 lemma prod_map_prod_map (m : multiset β) (n : multiset γ) {f : β → γ → α} :
@@ -144,17 +127,6 @@ begin
   have hps : ∀ x, x ∈ s → p x, from λ x hxs, hpsa x (mem_cons_of_mem hxs),
   exact p_mul a s.prod (hpsa a (mem_cons_self a s)) (hs hs_empty hps),
 end
-
-@[to_additive]
-lemma prod_hom [comm_monoid β] (s : multiset α) (f : α →* β) : (s.map f).prod = f s.prod :=
-quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
-
-@[to_additive]
-lemma prod_hom_rel [comm_monoid β] (s : multiset ι) {r : α → β → Prop} {f : ι → α} {g : ι → β}
-  (h₁ : r 1 1) (h₂ : ∀ ⦃a b c⦄, r b c → r (f a * b) (g a * c)) :
-  r (s.map f).prod (s.map g).prod :=
-quotient.induction_on s $ λ l,
-  by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
 
 lemma dvd_prod : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
@@ -200,7 +172,20 @@ lemma prod_ne_zero (h : (0 : α) ∉ s) : s.prod ≠ 0 := mt prod_eq_zero_iff.1 
 end comm_monoid_with_zero
 
 section comm_group
-variables [comm_group α]
+variables [comm_group α] {m : multiset ι} {f g : ι → α}
+
+@[simp, to_additive]
+lemma prod_map_inv' : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
+by { convert (m.map f).prod_hom comm_group.inv_monoid_hom, rw map_map, refl }
+
+@[simp, to_additive]
+lemma prod_map_div : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
+multiset.induction_on m (by simp_rw [map_zero, prod_zero, div_one'])
+  (λ i m ih, by simp_rw [map_cons, prod_cons, ih, div_mul_comm])
+
+@[to_additive]
+lemma prod_map_zpow {n : ℤ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
+by { convert (m.map f).prod_hom (zpow_group_hom _), rw map_map, refl }
 
 @[simp] lemma coe_inv_monoid_hom : (comm_group.inv_monoid_hom : α → α) = has_inv.inv := rfl
 
@@ -209,6 +194,23 @@ lemma prod_map_inv (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
 m.prod_hom comm_group.inv_monoid_hom
 
 end comm_group
+
+section comm_group_with_zero
+variables [comm_group_with_zero α] {m : multiset ι} {f g : ι → α}
+
+@[simp]
+lemma prod_map_inv₀ : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
+by { convert (m.map f).prod_hom inv_monoid_with_zero_hom, rw map_map, refl }
+
+@[simp]
+lemma prod_map_div₀ : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
+multiset.induction_on m (by simp_rw [map_zero, prod_zero, div_one])
+  (λ i m ih, by simp_rw [map_cons, prod_cons, ih, div_mul_div])
+
+lemma prod_map_zpow₀ {n : ℤ} : prod (m.map $ λ i, f i ^ n) = (m.map f).prod ^ n :=
+by { convert (m.map f).prod_hom (zpow_group_hom₀ _), rw map_map, refl }
+
+end comm_group_with_zero
 
 section semiring
 variables [semiring α] {a : α} {s : multiset ι} {f : ι → α}

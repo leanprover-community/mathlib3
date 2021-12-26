@@ -27,10 +27,14 @@ lemma ne_zero.ne' (n : ℕ) (R) [has_zero R] [has_one R] [has_add R] [h : ne_zer
 
 namespace ne_zero
 
-variables {R M : Type*} {n p : ℕ} {a : ℕ+}
+variables {R M : Type*} {n m p : ℕ} {a : ℕ+}
 
 instance pnat : ne_zero (a : ℕ) := ⟨a.ne_zero⟩
 instance succ : ne_zero (n + 1) := ⟨n.succ_ne_zero⟩
+
+lemma of_pos [preorder M] [has_zero M] {m : M} (h : 0 < m) : ne_zero m := ⟨h.ne'⟩
+lemma of_gt  [canonically_ordered_add_monoid M] {x y : M} (h : x < y) : ne_zero y :=
+of_pos $ pos_of_gt h
 
 instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zero (n : M) :=
 ⟨nat.cast_ne_zero.mpr $ ne_zero.ne n⟩

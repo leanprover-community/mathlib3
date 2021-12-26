@@ -12,21 +12,8 @@ In this file we define integer power functions for groups with an adjoined zero 
 This generalises the integer power function on a division ring.
 -/
 
-section monoid_with_zero
+section zero
 variables {M : Type*} [monoid_with_zero M]
-
-lemma zero_pow : ∀ {n : ℕ}, 0 < n → (0 : M) ^ n = 0
-| (n + 1) _ := by rw [pow_succ, zero_mul]
-
-lemma zero_pow_eq (n : ℕ) : (0 : M) ^ n = if n = 0 then 1 else 0 :=
-begin
-  split_ifs with h,
-  { rw [h, pow_zero] },
-  { rw [zero_pow (nat.pos_of_ne_zero h)] }
-end
-
-lemma pow_eq_zero_of_le {a : M} {n m : ℕ} (hn : n ≤ m) (ha : a ^ n = 0) : a ^ m = 0 :=
-by rw [←tsub_add_cancel_of_le hn, pow_add, ha, mul_zero]
 
 @[simp] lemma zero_pow' : ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
 | 0     h := absurd rfl h
@@ -47,30 +34,7 @@ lemma ring.inverse_pow (r : M) : ∀ (n : ℕ), ring.inverse r ^ n = ring.invers
 | (n + 1) := by rw [pow_succ, pow_succ', ring.mul_inverse_rev' ((commute.refl r).pow_left n),
                     ring.inverse_pow]
 
-variables [no_zero_divisors M] {a : M} {n : ℕ}
-
-lemma pow_eq_zero (h : a ^ n = 0) : a = 0 :=
-begin
-  induction n with n ih,
-  { rw pow_zero at h,
-    rw [←mul_one a, h, mul_zero] },
-  { rw pow_succ at h,
-    exact or.cases_on (mul_eq_zero.1 h) id ih }
-end
-
-@[simp] lemma pow_eq_zero_iff (hn : 0 < n) : a ^ n = 0 ↔ a = 0 :=
-begin
-  refine ⟨pow_eq_zero, _⟩,
-  rintro rfl,
-  exact zero_pow hn,
-end
-
-lemma pow_ne_zero_iff (hn : 0 < n) : a ^ n ≠ 0 ↔ a ≠ 0 :=
-by rwa [not_iff_not, pow_eq_zero_iff]
-
-@[field_simps] lemma pow_ne_zero (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 := mt pow_eq_zero h
-
-end monoid_with_zero
+end zero
 
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀] {a : G₀} {m n : ℕ}

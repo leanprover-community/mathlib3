@@ -270,6 +270,20 @@ def zpow_group_hom (n : ℤ) : G →* G :=
 
 end comm_group
 
+lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
+| (n+1) _ := by rw [pow_succ, zero_mul]
+
+lemma zero_pow_eq [monoid_with_zero R] (n : ℕ) : (0 : R)^n = if n = 0 then 1 else 0 :=
+begin
+  split_ifs with h,
+  { rw [h, pow_zero], },
+  { rw [zero_pow (nat.pos_of_ne_zero h)] },
+end
+
+lemma pow_eq_zero_of_le [monoid_with_zero M] {x : M} {n m : ℕ}
+  (hn : n ≤ m) (hx : x^n = 0) : x^m = 0 :=
+by rw [← tsub_add_cancel_of_le hn, pow_add, hx, mul_zero]
+
 namespace ring_hom
 
 variables [semiring R] [semiring S]
@@ -316,6 +330,33 @@ lemma eq_or_eq_neg_of_sq_eq_sq [comm_ring R] [is_domain R] (a b : R) (h : a ^ 2 
   a = b ∨ a = -b :=
 by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
         ← sq_sub_sq a b, sub_eq_zero]
+
+theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) :
+  x = 0 :=
+begin
+  induction n with n ih,
+  { rw pow_zero at H,
+    rw [← mul_one x, H, mul_zero] },
+  { rw pow_succ at H,
+    exact or.cases_on (mul_eq_zero.1 H) id ih }
+end
+
+@[simp] lemma pow_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R]
+  {a : R} {n : ℕ} (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨pow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_pow hn,
+end
+
+lemma pow_ne_zero_iff [monoid_with_zero R] [no_zero_divisors R] {a : R} {n : ℕ} (hn : 0 < n) :
+  a ^ n ≠ 0 ↔ a ≠ 0 :=
+by rwa [not_iff_not, pow_eq_zero_iff]
+
+@[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]
+  {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+mt pow_eq_zero h
 
 section semiring
 

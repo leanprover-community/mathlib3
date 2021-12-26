@@ -344,6 +344,10 @@ end
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by rw [← count_pos, count_roots p, root_multiplicity_pos hp]
 
+theorem card_le_degree_of_subset_roots {p : polynomial R} {Z : finset R} (h : Z.val ⊆ p.roots) :
+  Z.card ≤ p.nat_degree :=
+(multiset.card_le_of_le (finset.val_le_iff_val_subset.2 h)).trans (polynomial.card_roots' p)
+
 lemma eq_zero_of_infinite_is_root
   (p : polynomial R) (h : set.infinite {x | is_root p x}) : p = 0 :=
 begin
@@ -374,6 +378,12 @@ lemma roots_mul {p q : polynomial R} (hpq : p * q ≠ 0) : (p * q).roots = p.roo
 multiset.ext.mpr $ λ r,
   by rw [count_add, count_roots, count_roots,
          count_roots, root_multiplicity_mul hpq]
+
+lemma roots.le_of_dvd (h : q ≠ 0) : p ∣ q → roots p ≤ roots q :=
+begin
+  rintro ⟨k, rfl⟩,
+  exact multiset.le_iff_exists_add.mpr ⟨k.roots, roots_mul h⟩
+end
 
 @[simp] lemma mem_roots_sub_C {p : polynomial R} {a x : R} (hp0 : 0 < degree p) :
   x ∈ (p - C a).roots ↔ p.eval x = a :=

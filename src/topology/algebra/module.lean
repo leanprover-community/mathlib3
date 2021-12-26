@@ -1016,6 +1016,14 @@ lemma smul_apply : (c • f) x = c • (f x) := rfl
   hₗ.comp (c • fₗ) = c • (hₗ.comp fₗ) :=
 by { ext x, exact hₗ.map_smul_of_tower c (fₗ x) }
 
+include σ₁₃
+@[simp] lemma comp_smulₛₗ (c : R₂) [smul_comm_class R₂ R₂ M₂] [smul_comm_class R₃ R₃ M₃]
+  [topological_space R₂] [has_continuous_smul R₂ M₂] [topological_space R₃]
+  [has_continuous_smul R₃ M₃] :
+  h.comp (c • f) = (σ₂₃ c) • (h.comp f) :=
+by { ext x, simp only [coe_smul', coe_comp', function.comp_app, pi.smul_apply, map_smulₛₗ] }
+omit σ₁₃
+
 instance {T : Type*} [monoid T] [topological_space T] [distrib_mul_action T M₂]
   [has_continuous_smul T M₂] [smul_comm_class R₂ T M₂] [has_scalar S₃ T]
   [is_scalar_tower S₃ T M₂] : is_scalar_tower S₃ T (M →SL[σ₁₂] M₂) :=

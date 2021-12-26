@@ -201,7 +201,7 @@ begin
     congr, },
 end
 
-instance (n : ℕ) [subsingleton α] : subsingleton (sym α n) :=
+instance [subsingleton α] (n : ℕ) : subsingleton (sym α n) :=
 ⟨begin
   cases n,
   { simp, },

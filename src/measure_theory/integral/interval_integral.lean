@@ -1165,6 +1165,9 @@ begin
   { rw [integral_symm, neg_eq_zero, integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi.symm] }
 end
 
+/-- If `f` is nonnegative and integrable on the unordered interval `set.interval_oc a b`, then its
+integral over `a..b` is positive if and only if `a < b` and the measure of
+`function.support f ∩ set.Ioc a b` is positive. -/
 lemma integral_pos_iff_support_of_nonneg_ae'
   (hf : 0 ≤ᵐ[μ.restrict (Ι a b)] f) (hfi : interval_integrable f μ a b) :
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
@@ -1179,11 +1182,16 @@ begin
     exact integral_nonneg_of_ae hf }
 end
 
-lemma integral_pos_iff_support_of_nonneg_ae
-  (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
+/-- If `f` is nonnegative a.e.-everywhere and it is integrable on the unordered interval
+`set.interval_oc a b`, then its integral over `a..b` is positive if and only if `a < b` and the
+measure of `function.support f ∩ set.Ioc a b` is positive. -/
+lemma integral_pos_iff_support_of_nonneg_ae (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
+/-- If `f` and `g` are two functions that are interval integrable on `a..b`, `a ≤ b`,
+`f x ≤ g x` for a.e. `x ∈ set.Ioc a b`, and `f x < g x` on a subset of `set.Ioc a b`
+of nonzero measure, then `∫ x in a..b, f x ∂μ < ∫ x in a..b, g x ∂μ`. -/
 lemma integral_lt_integral_of_ae_le_of_measure_set_of_lt_ne_zero (hab : a ≤ b)
   (hfi : interval_integrable f μ a b) (hgi : interval_integrable g μ a b)
   (hle : f ≤ᵐ[μ.restrict (Ioc a b)] g) (hlt : μ.restrict (Ioc a b) {x | f x < g x} ≠ 0) :

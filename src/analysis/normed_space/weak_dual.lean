@@ -214,12 +214,22 @@ lemma weak_dual.to_Pi_embedding (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 
 namespace weak_dual.to_Pi_embedding
 
-
-
+-- The following lemmas prove the desired `linear_map.is_closed_range_coe`,
+-- which was proposed in the PR review.
+--
+-- I think it is natural to reduce the proof of this desired result to
+-- `linear_map.mem_range_to_fun_eq_Inter` using `is_closed_Inter`.
+-- However, to prove `linear_map.mem_range_to_fun_eq_Inter` I had to resort to a
+-- bit lengthy (but in my opinion still natural and perhaps worthwhile) approach, via
+-- `linear_map.mem_range_to_fun_iff` and `linear_map_of_forall_apply_linear_combination_eq`.
+-- Or is there a better way?
+--
+-- In any case, these lemmas or their improved versions should be placed in some
+-- appropriate files.
 
 /-- Construct a linear map from a map satisfying the hypothesis of
 respecting linear combinations. -/
-def linear_map_of_forall_apply_linear_combination_eq
+def _root_.linear_map_of_forall_apply_linear_combination_eq
   {R S : Type*} [semiring R] [semiring S] {σ : R →+* S} {M₁ M₂ : Type*}
   [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂] {f : M₁ → M₂}
   (hf : ∀ (u v : M₁) (a b : R), f (a • u + b • v) = (σ a) • (f u) + (σ b) • (f v)) :
@@ -283,10 +293,6 @@ begin
     exact continuous.add cnt₁ cnt₂, },
   exact is_closed_eq (continuous_apply (a • u + b • v)) cont₂,
 end
-
-
-
-
 
 /-- Elements of the closure of the range of the embedding
 `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` are linear. Here it is stated as the elements

@@ -483,8 +483,6 @@ vertex and the set of vertices adjacent to the vertex.
 
 end incidence
 
-section finite_at
-
 /-! ## Edge deletion -/
 
 /-- Given a set of vertex pairs, remove all of the corresponding edges from the edge set.
@@ -519,6 +517,8 @@ end
 lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
 by { ext, simp [imp_false] { contextual := tt } }
+
+section finite_at
 
 /-!
 ## Finiteness at a vertex

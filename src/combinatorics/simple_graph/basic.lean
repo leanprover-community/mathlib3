@@ -494,6 +494,10 @@ def delete_edges (s : set (sym2 V)) : simple_graph V :=
 @[simp] lemma delete_edges_adj (s : set (sym2 V)) (v w : V) :
   (G.delete_edges s).adj v w ↔ G.adj v w ∧ ¬ ⟦(v, w)⟧ ∈ s := iff.rfl
 
+lemma sdiff_eq_delete_edges (G G' : simple_graph V) :
+  G \ G' = G.delete_edges G'.edge_set :=
+by { ext, simp }
+
 @[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
   (G.delete_edges s).delete_edges s' = G.delete_edges (s ∪ s') :=
 by { ext, simp [and_assoc, not_or_distrib] }

@@ -229,6 +229,9 @@ namespace weak_dual.to_Pi_embedding
 -- `linear_map.mem_range_to_fun_iff` and `linear_map_of_forall_apply_linear_combination_eq`.
 -- Or is there a better way?
 --
+-- (For convenience of applying later in this file, I now stated special cases for linear
+-- maps instead of semilinear maps, but this should not be necessary.)
+--
 -- In any case, these lemmas or their improved versions should be placed in some
 -- appropriate files.
 

@@ -10,11 +10,11 @@ import ring_theory.unique_factorization_domain
 /-!
 # Prime factorizations
 
- `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
+ `factorization n` is the finitely supported function `α →₀ ℕ`
  mapping each prime factor of `n` to its multiplicity in `n`.  For example, since 2000 = 2^4 * 5^3,
   * `factorization 2000 2` is 4
   * `factorization 2000 5` is 3
-  * `factorization 2000 k` is 0 for all other `k : ℕ`.
+  * `factorization 2000 k` is 0 for all other `k : α`.
 -/
 
 -- open nat finset list finsupp
@@ -41,6 +41,20 @@ by simp [factorization]
 
 @[simp] lemma factorization_one : factorization 1 = 0 := by simp [factorization]
 
+/-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+@[simp] lemma factorization_mul {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+  factorization (a * b) = factorization a + factorization b :=
+by simp [factorization, normalized_factors_mul ha hb]
+
+/-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
+@[simp] lemma support_factorization {n : α} :
+  (factorization n).support = (normalized_factors n).to_finset :=
+by simp [factorization, multiset.to_finsupp_support]
+
+lemma factor_iff_mem_factorization {n p : α} :
+  (p ∈ (factorization n ).support) ↔ (p ∈ n.factors) :=
+by simp only [support_factorization, list.mem_to_finset]
+
 
 lemma factorization_inj : set.inj_on factorization { x : α | x ≠ 0 } :=
 begin
@@ -60,32 +74,25 @@ end
 end UFM
 
 -- TODO: GENERALISE ALL THIS
--- /-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
--- @[simp] lemma support_factorization {n : ℕ} :
---   n.factorization.support = n.factors.to_finset :=
--- by simpa [factorization, multiset.to_finsupp_support]
 
--- lemma factor_iff_mem_factorization {n p : ℕ} :
---   (p ∈ n.factorization.support) ↔ (p ∈ n.factors) :=
--- by simp only [support_factorization, list.mem_to_finset]
 
 -- /-- The only numbers with empty prime factorization are `0` and `1` -/
--- lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
+-- lemma factorization_eq_zero_iff (n : α) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 -- by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
 -- /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
--- @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+-- @[simp] lemma factorization_mul {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
 --   (a * b).factorization = a.factorization + b.factorization :=
 -- by { ext p, simp only [add_apply, factorization_eq_count,
 --   count_factors_mul_of_pos (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb)] }
 
 -- /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
--- lemma factorization_pow {n k : ℕ} :
+-- lemma factorization_pow {n k : α} :
 --   factorization (n^k) = k • n.factorization :=
 -- by { ext p, simp [factorization_eq_count, factors_count_pow] }
 
 -- /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
--- @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :
+-- @[simp] lemma prime.factorization {p : α} (hp : prime p) :
 --   p.factorization = single p 1 :=
 -- begin
 --   ext q,
@@ -94,6 +101,6 @@ end UFM
 -- end
 
 -- /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
--- @[simp] lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
+-- @[simp] lemma prime.factorization_pow {p k : α} (hp : prime p) :
 --   factorization (p^k) = single p k :=
 -- by simp [factorization_pow, hp.factorization]

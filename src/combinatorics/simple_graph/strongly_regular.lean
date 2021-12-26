@@ -44,7 +44,7 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 (card : fintype.card V = n)
 (regular : G.is_regular_of_degree k)
 (adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
-(nadj_common : ∀ (v w : V), v ≠ w ∧ ¬ G.adj v w →
+(nadj_common : ∀ (v w : V), v ≠ w ∧ ¬G.adj v w →
   fintype.card (G.common_neighbors v w) = m)
 
 /-- Empty graphs are strongly regular. Note that the parameter `l` can take any value
@@ -76,7 +76,7 @@ lemma card_neighbor_set_union_eq {n k l m : ℕ} (h : G.is_SRG_of n k l m) (v w 
     2 * k - fintype.card (G.common_neighbors v w) :=
 begin
   apply @nat.add_right_cancel _ (fintype.card (G.common_neighbors v w)),
-  rw [nat.sub_add_cancel, ←set.to_finset_card],
+  rw [nat.sub_add_cancel, ← set.to_finset_card],
   { simp [neighbor_finset, common_neighbors, set.to_finset_inter,
     finset.card_union_add_card_inter, G.is_regular_of_degree_eq h.regular, two_mul], },
   { apply le_trans,
@@ -85,10 +85,10 @@ begin
 end
 
 -- first of all, what is `2*(k + 1) - m` in `G`? what does it count?
--- it counts the number of vertices that are adjacent to either `v` or `w` when `¬ G.adj v w`
+-- it counts the number of vertices that are adjacent to either `v` or `w` when `¬G.adj v w`
 -- so it's the cardinality of `G.neighbor_set v ∪ G.neighbor_set w`
 lemma card_neighbor_set_union_nadj {n k l m : ℕ} (h : G.is_SRG_of n k l m)
-  {v w : V} (hne : v ≠ w) (ha : ¬ G.adj v w) :
+  {v w : V} (hne : v ≠ w) (ha : ¬G.adj v w) :
   finset.card (G.neighbor_finset v ∪ G.neighbor_finset w) = 2 * k - m :=
 begin
   rw ← h.nadj_common v w ⟨hne, ha⟩,
@@ -101,13 +101,6 @@ lemma card_neighbor_set_union_adj {n k l m : ℕ} (h : G.is_SRG_of n k l m)
 begin
   rw ← h.adj_common v w ha,
   apply G.card_neighbor_set_union_eq h,
-end
-
-lemma adj_nadj_ne (v w x : V) (hwx: ¬G.adj w x) (hwv: G.adj w v) : x ≠ v :=
-begin
-  by_contra,
-  subst x,
-  exact hwx hwv,
 end
 
 @[simp] theorem finset_compl_union (s t : finset V) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup

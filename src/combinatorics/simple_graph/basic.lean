@@ -145,6 +145,9 @@ protected lemma adj.ne {G : simple_graph V} {a b : V} (h : G.adj a b) : a ≠ b 
 
 protected lemma adj.ne' {G : simple_graph V} {a b : V} (h : G.adj a b) : b ≠ a := h.ne.symm
 
+lemma ne_of_adj_nadj (v w x : V) (hwx: ¬G.adj w x) (hwv: G.adj w v) : x ≠ v :=
+by { by_contra, subst x, exact hwx hwv, }
+
 section order
 
 /-- The relation that one `simple_graph` is a subgraph of another.
@@ -278,7 +281,7 @@ def edge_set : set (sym2 V) := sym2.from_rel G.symm
 @[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
 
 /--
-Two vertices are adjacent iff there is an edge between them.  The
+Two vertices are adjacent iff there is an edge between them. The
 condition `v ≠ w` ensures they are different endpoints of the edge,
 which is necessary since when `v = w` the existential
 `∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge

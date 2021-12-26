@@ -72,7 +72,7 @@ of the uniform space structure on `C(α, β)` definitionally equal to the compac
 universes u₁ u₂ u₃
 
 open_locale filter uniformity topological_space
-open uniform_space set
+open uniform_space set filter
 
 variables {α : Type u₁} {β : Type u₂} [topological_space α] [uniform_space β]
 variables (K : set α) (V : set (β × β)) (f : C(α, β))
@@ -160,6 +160,11 @@ begin
       λ g' hg', ⟨compact_conv_nhd K V' g', ⟨⟨K, V'⟩, ⟨hK, hV'⟩, rfl⟩, h₂ g' hg'⟩⟩, },
 end
 
+lemma has_basis_nhds_compact_convergence :
+  has_basis (@nhds _ compact_convergence_topology f)
+  (λ (p : set α × set (β × β)), is_compact p.1 ∧ p.2 ∈ 𝓤 β) (λ p, compact_conv_nhd p.1 p.2 f) :=
+(nhds_compact_convergence f).symm ▸ (compact_conv_nhd_filter_is_basis f).has_basis
+
 /-- This is an auxiliary lemma and is unlikely to be of direct use outside of this file. See
 `tendsto_iff_forall_compact_tendsto_uniformly_on` below for the useful version where the topology
 is picked up via typeclass inference. -/
@@ -168,9 +173,8 @@ lemma tendsto_iff_forall_compact_tendsto_uniformly_on'
   filter.tendsto F p (@nhds _ compact_convergence_topology f) ↔
   ∀ K, is_compact K → tendsto_uniformly_on (λ i a, F i a) f p K :=
 begin
-  erw [nhds_compact_convergence,
-    (compact_conv_nhd_filter_is_basis f).has_basis.tendsto_right_iff],
-  simp only [tendsto_uniformly_on, and_imp, prod.forall],
+  simp only [(has_basis_nhds_compact_convergence f).tendsto_right_iff, tendsto_uniformly_on,
+    and_imp, prod.forall],
   refine forall_congr (λ K, _),
   rw forall_swap,
   exact forall_congr (λ hK, forall_congr (λ V, forall_congr (λ hV, iff.rfl))),
@@ -333,6 +337,11 @@ lemma mem_compact_convergence_entourage_iff (X : set (C(α, β) × C(α, β))) :
   X ∈ 𝓤 C(α, β) ↔ ∃ (K : set α) (V : set (β × β)) (hK : is_compact K) (hV : V ∈ 𝓤 β),
     { fg : C(α, β) × C(α, β) | ∀ x ∈ K, (fg.1 x, fg.2 x) ∈ V } ⊆ X :=
 mem_compact_convergence_uniformity X
+
+lemma has_basis_compact_convergence_uniformity :
+  has_basis (𝓤 C(α, β)) (λ p : set α × set (β × β), is_compact p.1 ∧ p.2 ∈ 𝓤 β)
+            (λ p, { fg : C(α, β) × C(α, β) | ∀ x ∈ p.1, (fg.1 x, fg.2 x) ∈ p.2 }) :=
+⟨λ t, by { simp only [mem_compact_convergence_entourage_iff, prod.exists], tauto, }⟩
 
 lemma tendsto_iff_forall_compact_tendsto_uniformly_on
   {ι : Type u₃} {p : filter ι} {F : ι → C(α, β)} :

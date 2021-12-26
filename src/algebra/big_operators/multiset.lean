@@ -200,7 +200,7 @@ variables [comm_group_with_zero α] {m : multiset ι} {f g : ι → α}
 
 @[simp]
 lemma prod_map_inv₀ : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
-by { convert (m.map f).prod_hom inv_monoid_with_zero_hom, rw map_map, refl }
+by { convert (m.map f).prod_hom inv_monoid_with_zero_hom.to_monoid_hom, rw map_map, refl }
 
 @[simp]
 lemma prod_map_div₀ : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=

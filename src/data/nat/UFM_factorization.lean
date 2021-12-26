@@ -58,3 +58,42 @@ end
 
 
 end UFM
+
+-- TODO: GENERALISE ALL THIS
+-- /-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
+-- @[simp] lemma support_factorization {n : ℕ} :
+--   n.factorization.support = n.factors.to_finset :=
+-- by simpa [factorization, multiset.to_finsupp_support]
+
+-- lemma factor_iff_mem_factorization {n p : ℕ} :
+--   (p ∈ n.factorization.support) ↔ (p ∈ n.factors) :=
+-- by simp only [support_factorization, list.mem_to_finset]
+
+-- /-- The only numbers with empty prime factorization are `0` and `1` -/
+-- lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
+-- by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
+
+-- /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+-- @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+--   (a * b).factorization = a.factorization + b.factorization :=
+-- by { ext p, simp only [add_apply, factorization_eq_count,
+--   count_factors_mul_of_pos (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb)] }
+
+-- /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
+-- lemma factorization_pow {n k : ℕ} :
+--   factorization (n^k) = k • n.factorization :=
+-- by { ext p, simp [factorization_eq_count, factors_count_pow] }
+
+-- /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
+-- @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :
+--   p.factorization = single p 1 :=
+-- begin
+--   ext q,
+--   rw [factorization_eq_count, factors_prime hp, single_apply, count_singleton', if_congr eq_comm];
+--   refl,
+-- end
+
+-- /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
+-- @[simp] lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
+--   factorization (p^k) = single p k :=
+-- by simp [factorization_pow, hp.factorization]

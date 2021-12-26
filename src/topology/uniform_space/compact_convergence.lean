@@ -14,8 +14,9 @@ the space of continuous maps `C(α, β)` carries a natural uniform space structu
 uniform space structure in this file and also prove the following properties of the topology it
 induces on `C(α, β)`:
 
- 1. The limit of a sequence of functions `Fₙ` in `C(α, β)` converges to some `f` iff `Fₙ` converges
-    to `f` uniformly on each compact subset `K` of `α`.
+ 1. Given a sequence of continuous functions `Fₙ : α → β` together with some continuous `f : α → β`,
+    then `Fₙ` converges to `f` as a sequence in `C(α, β)` iff `Fₙ` converges to `f` uniformly on
+    each compact subset `K` of `α`.
  2. The topology coincides with the compact-open topology.
 
 Property 1 is essentially true by definition but 2 requires a little work and uses the Lebesgue
@@ -79,8 +80,8 @@ variables (K : set α) (V : set (β × β)) (f : C(α, β))
 
 namespace continuous_map
 
-/-- For fixed `f`, the sets `compact_conv_nhd K V f` are a neighbourhood basis for the
-compact-convergence topology, as `K` runs over compact sets and `V` runs over entourages. -/
+/-- Given `K ⊆ α`, `V ⊆ β × β`, and `f : C(α, β)`, we define `compact_conv_nhd K V f` to be the set
+of `g : C(α, β)` that are `V`-close to `f` on `K`. -/
 def compact_conv_nhd : set C(α, β) := { g | ∀ (x ∈ K), (f x, g x) ∈ V }
 
 variables {K V}
@@ -97,7 +98,8 @@ lemma compact_conv_nhd_mem_comp {g₁ g₂ : C(α, β)} {V' : set (β × β)}
   g₂ ∈ compact_conv_nhd K (V ○ V') f :=
 λ x hx, ⟨g₁ x, hg₁ x hx, hg₂ x hx⟩
 
-/-- A key property of `compact_conv_nhd`: they form a neighbourhood basis. -/
+/-- A key property of `compact_conv_nhd`. It allows us to apply
+`topological_space.nhds_mk_of_nhds_filter_basis` below. -/
 lemma compact_conv_nhd_nhd_basis (hV : V ∈ 𝓤 β) :
   ∃ (V' ∈ 𝓤 β), V' ⊆ V ∧ ∀ (g ∈ compact_conv_nhd K V' f),
     compact_conv_nhd K V' g ⊆ compact_conv_nhd K V f :=

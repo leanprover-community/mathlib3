@@ -485,6 +485,39 @@ end incidence
 
 section finite_at
 
+/-! ## Edge deletion -/
+
+/-- Given a set of vertex pairs, remove all of the corresponding edges from the edge set.
+It is fine to delete edges outside the edge set. -/
+@[simps]
+def delete_edges (s : set (sym2 V)) : simple_graph V :=
+{ adj := λ a b, G.adj a b ∧ ¬ ⟦(a, b)⟧ ∈ s,
+  symm := λ a b h, by rwa [adj_comm, sym2.eq_swap] }
+
+@[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
+  (G.delete_edges s).delete_edges s' = G.delete_edges (s ∪ s') :=
+by { ext v w, simp [and_assoc, not_or_distrib] }
+
+@[simp] lemma delete_edges_empty_eq : G.delete_edges ∅ = G :=
+by ext; simp
+
+@[simp] lemma delete_edges_univ_eq : G.delete_edges set.univ = ⊥ :=
+by ext; simp
+
+lemma delete_edges_le (s : set (sym2 V)) : G.delete_edges s ≤ G :=
+by { intro, simp { contextual := tt } }
+
+lemma delete_edges_le_of_le {s s' : set (sym2 V)} (h : s ⊆ s') :
+  G.delete_edges s' ≤ G.delete_edges s :=
+λ v w, begin
+  simp only [delete_edges_adj, and_imp, true_and] { contextual := tt },
+  exact λ ha hn hs, hn (h hs),
+end
+
+lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
+  G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
+by { ext v w, simp [imp_false] { contextual := tt } }
+
 /-!
 ## Finiteness at a vertex
 

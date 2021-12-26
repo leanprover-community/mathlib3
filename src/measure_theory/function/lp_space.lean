@@ -174,7 +174,7 @@ lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → F} (hp_ne_zero : 
   ∫⁻ a, ∥f a∥₊ ^ p.to_real ∂μ < ∞ :=
 begin
   apply lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top,
-  { exact ennreal.to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_ne_zero, hp_ne_top⟩ },
+  { exact ennreal.to_real_pos hp_ne_zero hp_ne_top },
   { simpa [snorm_eq_snorm' hp_ne_zero hp_ne_top] using hfp }
 end
 
@@ -184,7 +184,7 @@ lemma snorm_lt_top_iff_lintegral_rpow_nnnorm_lt_top {f : α → F} (hp_ne_zero :
 ⟨lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_ne_zero hp_ne_top,
   begin
     intros h,
-    have hp' := ennreal.to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_ne_zero, hp_ne_top⟩,
+    have hp' := ennreal.to_real_pos hp_ne_zero hp_ne_top,
     have : 0 < 1 / p.to_real := div_pos zero_lt_one hp',
     simpa [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top] using
       ennreal.rpow_lt_top_of_nonneg (le_of_lt this) (ne_of_lt h)
@@ -226,8 +226,7 @@ begin
   by_cases h_top : p = ∞,
   { simp only [h_top, snorm_exponent_top, snorm_ess_sup_zero], },
   rw ←ne.def at h0,
-  simp [snorm_eq_snorm' h0 h_top,
-    ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩],
+  simp [snorm_eq_snorm' h0 h_top, ennreal.to_real_pos h0 h_top],
 end
 
 @[simp] lemma snorm_zero' : snorm (λ x : α, (0 : F)) p μ = 0 :=
@@ -261,8 +260,7 @@ begin
   by_cases h_top : p = ∞,
   { simp [h_top], },
   rw ←ne.def at h0,
-  simp [snorm_eq_snorm' h0 h_top, snorm',
-    ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩],
+  simp [snorm_eq_snorm' h0 h_top, snorm', ennreal.to_real_pos h0 h_top],
 end
 
 end zero
@@ -307,21 +305,19 @@ lemma snorm_const (c : F) (h0 : p ≠ 0) (hμ : μ ≠ 0) :
 begin
   by_cases h_top : p = ∞,
   { simp [h_top, snorm_ess_sup_const c hμ], },
-  simp [snorm_eq_snorm' h0 h_top, snorm'_const,
-    ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩],
+  simp [snorm_eq_snorm' h0 h_top, snorm'_const, ennreal.to_real_pos h0 h_top],
 end
 
 lemma snorm_const' (c : F) (h0 : p ≠ 0) (h_top: p ≠ ∞) :
   snorm (λ x : α , c) p μ = (∥c∥₊ : ℝ≥0∞) * (μ set.univ) ^ (1/(ennreal.to_real p)) :=
 begin
-  simp [snorm_eq_snorm' h0 h_top, snorm'_const,
-    ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩],
+  simp [snorm_eq_snorm' h0 h_top, snorm'_const, ennreal.to_real_pos h0 h_top],
 end
 
 lemma snorm_const_lt_top_iff {p : ℝ≥0∞} {c : F} (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   snorm (λ x : α, c) p μ < ∞ ↔ c = 0 ∨ μ set.univ < ∞ :=
 begin
-  have hp : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp_ne_zero.bot_lt, hp_ne_top⟩,
+  have hp : 0 < p.to_real, from ennreal.to_real_pos hp_ne_zero hp_ne_top,
   by_cases hμ : μ = 0,
   { simp only [hμ, measure.coe_zero, pi.zero_apply, or_true, with_top.zero_lt_top,
       snorm_measure_zero], },
@@ -666,8 +662,7 @@ begin
   by_cases h_top : p = ∞,
   { rw [h_top, snorm_exponent_top, snorm_ess_sup_eq_zero_iff], },
   rw snorm_eq_snorm' h0 h_top,
-  exact snorm'_eq_zero_iff
-    (ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩) hf,
+  exact snorm'_eq_zero_iff (ennreal.to_real_pos h0 h_top) hf,
 end
 
 lemma snorm'_add_le {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) (hq1 : 1 ≤ q) :
@@ -904,12 +899,12 @@ begin
         snorm_exponent_top],
       exact le_rfl, },
     rw snorm_eq_snorm' hp0 hp_top,
-    have hp_pos : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp0_lt, hp_top⟩,
+    have hp_pos : 0 < p.to_real, from ennreal.to_real_pos hp0_lt.ne' hp_top,
     refine (snorm'_le_snorm_ess_sup_mul_rpow_measure_univ hp_pos).trans (le_of_eq _),
     congr,
     exact one_div _, },
   have hp_lt_top : p < ∞, from hpq.trans_lt (lt_top_iff_ne_top.mpr hq_top),
-  have hp_pos : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp0_lt, hp_lt_top.ne⟩,
+  have hp_pos : 0 < p.to_real, from ennreal.to_real_pos hp0_lt.ne' hp_lt_top.ne,
   rw [snorm_eq_snorm' hp0_lt.ne.symm hp_lt_top.ne, snorm_eq_snorm' hq0_lt.ne.symm hq_top],
   have hpq_real : p.to_real ≤ q.to_real, by rwa ennreal.to_real_le_to_real hp_lt_top.ne hq_top,
   exact snorm'_le_snorm'_mul_rpow_measure_univ hp_pos hpq_real hf,
@@ -965,8 +960,7 @@ begin
       by rwa [hp_top, top_le_iff] at hpq,
     rw [hp_top],
     rwa hq_top at hfq_lt_top, },
-  have hp_pos : 0 < p.to_real,
-    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp0.symm, hp_top⟩,
+  have hp_pos : 0 < p.to_real, from ennreal.to_real_pos hp0 hp_top,
   by_cases hq_top : q = ∞,
   { rw snorm_eq_snorm' hp0 hp_top,
     rw [hq_top, snorm_exponent_top] at hfq_lt_top,
@@ -1057,8 +1051,7 @@ begin
   { simp [h_top, snorm_ess_sup_const_smul], },
   repeat { rw snorm_eq_snorm' h0 h_top, },
   rw ←ne.def at h0,
-  exact snorm'_const_smul c
-    (ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩),
+  exact snorm'_const_smul c (ennreal.to_real_pos h0 h_top),
 end
 
 lemma mem_ℒp.const_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] [borel_space E] {f : α → E}
@@ -1537,8 +1530,7 @@ variables {hs}
 lemma snorm_indicator_const {c : G} (hs : measurable_set s) (hp : p ≠ 0) (hp_top : p ≠ ∞) :
   snorm (s.indicator (λ x, c)) p μ = ∥c∥₊ * (μ s) ^ (1 / p.to_real) :=
 begin
-  have hp_pos : 0 < p.to_real,
-    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp.symm, hp_top⟩,
+  have hp_pos : 0 < p.to_real, from ennreal.to_real_pos hp hp_top,
   rw snorm_eq_lintegral_rpow_nnnorm hp hp_top,
   simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
   have h_indicator_pow : (λ a : α, s.indicator (λ (x : α), (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
@@ -1593,7 +1585,7 @@ begin
   congr,
   simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
   have h_zero : (λ x, x ^ p.to_real) (0 : ℝ≥0∞) = 0,
-    by simp [ennreal.to_real_pos_iff.mpr ⟨ne.bot_lt hp_zero, hp_top⟩],
+    by simp [ennreal.to_real_pos hp_zero hp_top],
   exact (set.indicator_comp_of_zero h_zero).symm,
 end
 
@@ -2076,8 +2068,7 @@ begin
   { simp_rw [hp_top],
     exact snorm_exponent_top_lim_le_liminf_snorm_exponent_top h_lim, },
   simp_rw snorm_eq_snorm' hp0 hp_top,
-  have hp_pos : 0 < p.to_real,
-    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp0.symm, hp_top⟩,
+  have hp_pos : 0 < p.to_real, from ennreal.to_real_pos hp0 hp_top,
   exact snorm'_lim_le_liminf_snorm' hp_pos hf h_lim,
 end
 

@@ -449,12 +449,10 @@ end contravariant_mul_lt_left_le_right
   {a b c d : α} (hac : a ≤ c) (hbd : b ≤ d) : a * b = c * d ↔ a = c ∧ b = d :=
 begin
   refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
-  cases eq_or_lt_of_le hac with hac hac,
-  { rw hac at h,
-    exact ⟨hac, mul_left_cancel'' h⟩ },
-  cases eq_or_lt_of_le hbd with hbd hbd,
-  { rw hbd at h,
-    exact ⟨mul_right_cancel'' h, hbd⟩ },
+  rcases hac.eq_or_lt with rfl | hac,
+  { exact ⟨rfl, mul_left_cancel'' h⟩ },
+  rcases eq_or_lt_of_le hbd with rfl | hbd,
+  { exact ⟨mul_right_cancel'' h, rfl⟩ },
   exact ((mul_lt_mul''' hac hbd).ne h).elim,
 end
 

@@ -3,7 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.associated
+import algebra.big_operators.associated
 import data.list.sort
 import data.nat.gcd
 import data.nat.sqrt
@@ -541,20 +541,7 @@ by rw [←prime_iff, prime]
 /-- Prime `p` divides the product of `L : list ℕ` iff it divides some `a ∈ L` -/
 lemma prime.dvd_prod_iff {p : ℕ} {L : list ℕ} (pp : p.prime) :
   p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
-begin
-  split,
-  { intros h,
-    induction L,
-    { simp only [list.prod_nil] at h, exact absurd h (prime.not_dvd_one pp) },
-    { rw list.prod_cons at h,
-      cases (prime.dvd_mul pp).mp h,
-      { use L_hd, simp [h_1] },
-      { rcases L_ih h_1 with ⟨x, hx1, hx2⟩, use x, simp [list.mem_cons_iff, hx1, hx2] } } },
-  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
-end
--- TODO: This proof duplicates a more general proof in `algebra/associated`.
--- The two proofs should be integrated after the merger of `nat.prime` and `prime`
--- that's about to occur. (2021-12-17)
+_root_.prime.dvd_prod_iff $ prime_iff.mp pp
 
 lemma prime.not_dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) (hL : ∀ a ∈ L, ¬ p ∣ a) :
   ¬ p ∣ L.prod :=

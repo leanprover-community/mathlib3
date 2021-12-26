@@ -228,7 +228,8 @@ lemma repeat_left_inj (a b : α) (n : ℕ) (h : n ≠ 0) : repeat a n = repeat b
 instance (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
 (repeat_left_injective n.succ n.succ_ne_zero).nontrivial
 
-/-- A map `f : α → β` induces the pointwise map `sym.map h : sym α n → sym β n`. -/
+/-- A function `α → β` induces a function `sym α n → sym β n` by applying it to every element of
+the underlying `n`-tuple. -/
 def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 ⟨x.val.map f, by simpa [multiset.card_map] using x.property⟩
 

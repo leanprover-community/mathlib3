@@ -17,9 +17,18 @@ When the original multiplication is associative, the symmetrised algebra is a co
 algebra. A commutative Jordan algebra which can be constructed in this way from an associative
 multiplication is said to be a special Jordan algebra.
 
+## Main results
+
+- comm_jordan : The symmeterised algebra arising from an associative algebra is a commutative Jordan
+  algebra.
+
 ## Implementation notes
 
-The approach taken here is inspired by algebra.opposites
+The approach taken here is inspired by algebra.opposites.
+
+## References
+
+* [Hanche-Olsen and Størmer, Jordan Operator Algebras][hancheolsenstormer1984]
 -/
 
 /--
@@ -143,10 +152,7 @@ end
 
 lemma sym_squares [ring α] [algebra ℝ α] (a: αˢʸᵐ) : unsym(a*a) = unsym a * unsym a :=
 begin
-  rw mul_def,
-  rw unsym_sym,
-  rw ← two_rmul,
-  rw ← smul_assoc,
+  rw [mul_def, unsym_sym, ← two_rmul, ← smul_assoc],
   simp,
 end
 
@@ -185,7 +191,7 @@ noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : comm_jordan (α
     rw ← mul_assoc (unsym(a) * unsym(a)) (unsym(b)) (unsym(a)),
     rw ← mul_assoc (unsym(a) * unsym(b)) (unsym(a)) (unsym(a)),
     rw ← mul_assoc (unsym(b) * unsym(a)) (unsym(a)) (unsym(a)),
-    rw ← mul_assoc, -- (unsym(a))  (unsym(a)*unsym(a)) (unsym(b)),
+    rw ← mul_assoc,
     rw ← mul_assoc,
     rw ← mul_assoc,
     rw ← mul_assoc,

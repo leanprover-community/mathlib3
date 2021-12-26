@@ -6,6 +6,7 @@ Authors: Christopher Hoskin
 import algebra.ring.basic
 import algebra.lie.of_associative
 import data.real.basic
+import linear_algebra.basic
 
 /-!
 # Jordan algebras
@@ -14,9 +15,26 @@ We define a set of conditions, formulated in terms of commuting multiplication o
 multiplication on a non-unital, non-associative semiring to be a Jordan multiplication. When the
 multiplication is commutative, these take a particularly simple form.
 
+A real Jordan algebra `A` can be introduced by
+```
+variables {A : Type*} [non_unital_non_assoc_ring A] [module ℝ A] [smul_comm_class ℝ A A]
+  [is_scalar_tower ℝ A A] [comm_jordan A]
+```
+
 ## Main results
 
 - lin_jordan : Liniarisation of the commutative Jordan axiom
+
+## Implementation notes
+
+We shall primarily be interested in linear Jordan algebras (i.e. over rings of characteristic not
+two) leaving quadratic algebras to those better versed in that theory.
+
+## References
+
+* [Hanche-Olsen and Størmer, Jordan Operator Algebras][hancheolsenstormer1984]
+* [Cabrera García and Rodríguez Palacios, Non-associative normed algebras. Volume 1]
+  [cabreragarciarodriguezpalacios2014]
 -/
 
 set_option old_structure_cmd true

@@ -589,12 +589,11 @@ theorem eq_of_mem_repeat {a b : α} {n} : b ∈ repeat a n → b = a := eq_of_me
 lemma repeat_left_injective (n : ℕ) (h : n ≠ 0) : function.injective (λ a : α, repeat a n) :=
 begin
   intros a b x,
-  simp only at x,
-  apply @eq_of_mem_repeat _ b a n,
-  cases n,
-  { exact (h rfl).elim },
-  { rw [x.symm, repeat_succ],
-    exact mem_cons_self a (repeat a n) },
+  dsimp only at x,
+  obtain ⟨m, rfl⟩ := exists_eq_succ_of_ne_zero h,
+  apply eq_of_mem_repeat,
+  rw [x.symm, repeat_succ],
+  apply mem_cons_self,
 end
 
 @[simp] lemma repeat_left_inj (a b : α) (n : ℕ) (h : n ≠ 0) : repeat a n = repeat b n ↔ a = b :=

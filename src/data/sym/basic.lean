@@ -158,46 +158,62 @@ end inhabited
 instance has_zero : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
 instance has_emptyc : has_emptyc (sym α 0) := ⟨0⟩
 
-instance subsingleton (n : ℕ) [subsingleton α] : subsingleton (sym α n) :=
-⟨begin
-  rintros ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [subtype.mk.inj_eq],
-  induction a using multiset.case_strong_induction_on with k hk ih generalizing n b,
-  { rw [ha.symm, multiset.card_zero] at hb, exact (multiset.card_eq_zero.mp hb).symm, },
-  { cases n,
-    { exact (multiset.cons_ne_zero (multiset.card_eq_zero.mp ha)).elim },
-    { by_cases hzero : b = 0,
-      { rw [hzero, multiset.card_zero] at hb,
-        exact (n.succ_ne_zero hb.symm).elim },
-      { have hmem := multiset.exists_mem_of_ne_zero hzero,
-        rcases hmem with ⟨r, hr⟩,
-        cases multiset.exists_cons_of_mem hr,
-        rw h,
-        have heq := @ih hk rfl.ge n w begin
-          rw multiset.card_cons at ha,
-          refine nat.succ.inj ha,
-        end begin
-          rw [h, multiset.card_cons] at hb,
-          refine nat.succ.inj hb,
-        end,
-        rw [heq, subsingleton.elim k r] } } }
-end⟩
+lemma eq_nil_of_card_zero (s : sym α 0) : s = nil :=
+begin
+  obtain ⟨a, h⟩ := s,
+  rw multiset.card_eq_zero at h,
+  subst h,
+  refl,
+end
 
-instance unique (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _
-
-instance is_empty (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
-⟨begin
-  intro h,
-  rw sym at h,
-  refine is_empty.exists_iff.mp (@multiset.exists_mem_of_ne_zero _ h.val _),
-  intro y,
-  have z := h.property,
-  rw [y, multiset.card_zero] at z,
-  exact (nat.succ_ne_zero n z.symm).elim,
-end⟩
+instance unique_zero : unique (sym α 0) :=
+⟨⟨nil⟩, eq_nil_of_card_zero⟩
 
 /-- `repeat a n` is the sym containing only `a` with multiplicity `n`. -/
 def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
+
+lemma repeat_succ {a : α} {n : ℕ} : repeat a n.succ = a :: repeat a n := rfl
+
+lemma exists_eq_cons_of_succ (s : sym α n.succ) : ∃ (a : α) (s' : sym α n), s = a :: s' :=
+begin
+  classical,
+  obtain ⟨m, h⟩ := s,
+  have : 0 < multiset.card m,
+  { rw h,
+    exact nat.succ_pos n, },
+  rw multiset.card_pos_iff_exists_mem at this,
+  obtain ⟨a, ha⟩ := this,
+  use [a, m.erase a],
+  { rw [multiset.card_erase_of_mem ha, h],
+    refl, },
+  { rw cons,
+    congr,
+    rw multiset.cons_erase ha, },
+end
+
+lemma eq_repeat_of_subsingleton [subsingleton α] (a : α) {n : ℕ} (s : sym α n) : s = repeat a n :=
+begin
+  induction n with n ih,
+  { rw eq_nil_of_card_zero s,
+    refl, },
+  { obtain ⟨b, s', rfl⟩ := exists_eq_cons_of_succ s,
+    rw [repeat_succ, ih s'],
+    congr, },
+end
+
+instance subsingleton (n : ℕ) [subsingleton α] : subsingleton (sym α n) :=
+⟨begin
+  cases n,
+  { simp, },
+  { intros s s',
+    obtain ⟨b, s, rfl⟩ := exists_eq_cons_of_succ s,
+    rw [eq_repeat_of_subsingleton b s', eq_repeat_of_subsingleton b s, repeat_succ], },
+end⟩
+
+instance is_empty (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
+⟨λ s, by { obtain ⟨a, s, rfl⟩ := exists_eq_cons_of_succ s, exact is_empty_elim a }⟩
+
+instance unique (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _
 
 lemma repeat_left_injective (n : ℕ) (h : n ≠ 0) : function.injective (λ x : α, repeat x n) :=
 begin
@@ -226,24 +242,13 @@ by simp [sym.map, subtype.mk.inj_eq]
 by simp [sym.map, subtype.mk.inj_eq]
 
 @[simp] lemma map_zero {α β : Type*} (f : α → β) :
-  sym.map f (0 : sym α 0) = (0 : sym β 0) :=
-begin
-  rw sym.has_zero,
-  simp only [sym.map, multiset.map_zero],
-  rw sym.has_zero,
-  simp only [subtype.mk_eq_mk],
-end
+  sym.map f (0 : sym α 0) = (0 : sym β 0) := rfl
 
 @[simp] lemma map_cons {α β : Type*} {n : ℕ} (f : α → β) (a : α) (s : sym α n) :
-  sym.map f (a::s) = (f a)::sym.map f s :=
-begin
-  simp only [map, subtype.mk.inj_eq, cons],
-  convert multiset.map_cons f a s.val,
-  cases s,
-  rw sym.cons,
-end
+  (a :: s).map f = (f a) :: s.map f :=
+by { cases s, simp [map, cons] }
 
-/-- If α ≃ β then sym α n ≃ sym β n. -/
+/-- If `α` is equivalent to `β`, then `sym α n` is equivalent to `sym β n`. -/
 @[simps]
 def equiv_congr {β : Type u} (e : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := map e,

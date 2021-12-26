@@ -496,7 +496,7 @@ end
 
 end decidable
 
-instance subsingleton [g : subsingleton α] : subsingleton (sym2 α) :=
+instance subsingleton [subsingleton α] : subsingleton (sym2 α) :=
 (equiv_sym α).injective.subsingleton
 
 instance unique [unique α] : unique (sym2 α) := unique.mk' _

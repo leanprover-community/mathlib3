@@ -205,6 +205,11 @@ def _root_.weak_dual.to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] (x' : weak_dual 𝕜 E) :=
 x'.to_fun
 
+lemma _root_.weak_dual.to_Pi_def (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
+  weak_dual.to_Pi 𝕜 E = λ x', x'.to_fun :=
+rfl
+
 /-- The function `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` is an embedding. -/
 lemma weak_dual.to_Pi_embedding (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
@@ -273,7 +278,7 @@ begin
   simp only [mem_Inter, mem_set_of_eq],
 end
 
-lemma _root_.linear_map.is_closed_range_coe {M₁ M₂ R S : Type*}
+lemma _root_.linear_map.is_closed_range_coe' {M₁ M₂ R S : Type*}
   [topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
   [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
   [topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂] {σ : R →+* S} :
@@ -294,32 +299,42 @@ begin
   exact is_closed_eq (continuous_apply (a • u + b • v)) cont₂,
 end
 
+lemma _root_.continuous_linear_map.range_coe_subset_linear_map_range_coe' {M₁ M₂ R S : Type*}
+  [topological_space M₂] [topological_space M₁] [semiring R] [semiring S]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂] {σ : R →+* S} :
+  (range (λ (ψ : M₁ →SL[σ] M₂), ψ.to_fun)) ⊆ (range (λ (ψ : M₁ →ₛₗ[σ] M₂), ψ.to_fun)) :=
+begin
+  intros f hf,
+  cases mem_range.mp hf with φ hφf,
+  use [φ, hφf],
+end
+
+lemma _root_.linear_map.is_closed_range_coe (M₁ M₂ R : Type*)
+  [topological_space M₂] [t2_space M₂] [semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module R M₂]
+  [topological_space R] [has_continuous_smul R M₂] [has_continuous_add M₂] :
+  is_closed (range (λ (ψ : M₁ →ₗ[R] M₂), ψ.to_fun)) :=
+linear_map.is_closed_range_coe'
+
+lemma _root_.continuous_linear_map.range_coe_subset_linear_map_range_coe (M₁ M₂ R : Type*)
+  [topological_space M₂] [topological_space M₁] [semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module R M₂] :
+  (range (λ (ψ : M₁ →L[R] M₂), ψ.to_fun)) ⊆ (range (λ (ψ : M₁ →ₗ[R] M₂), ψ.to_fun)) :=
+continuous_linear_map.range_coe_subset_linear_map_range_coe'
+
 /-- Elements of the closure of the range of the embedding
 `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` are linear. Here it is stated as the elements
 respecting linear combinations. -/
 lemma linear_of_mem_closure_range'
   (f : E → 𝕜) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E)))
-  (c₁ c₂ : 𝕜) (z₁ z₂ : E) : f (c₁ • z₁ + c₂ • z₂) = c₁ • f(z₁) + c₂ • f(z₂) :=
+  (z₁ z₂ : E) (c₁ c₂ : 𝕜)  : f (c₁ • z₁ + c₂ • z₂) = c₁ • f(z₁) + c₂ • f(z₂) :=
 begin
-  set φ : (E → 𝕜) → 𝕜 := (λ g, g (c₁ • z₁ + c₂ • z₂) - c₁ • g(z₁) - c₂ • g(z₂)) with hφ,
-  have φ_cont : continuous φ,
-  { apply continuous.sub,
-    { apply continuous.sub,
-      { exact continuous_apply (c₁ • z₁ + c₂ • z₂), },
-      exact continuous.smul continuous_const (continuous_apply _), },
-    exact continuous.smul continuous_const (continuous_apply _), },
-  have sin_closed : is_closed ({0} : set 𝕜) := t1_space.t1 0,
-  have preim_cl : is_closed (φ⁻¹' ({0} : set 𝕜)) := is_closed.preimage φ_cont sin_closed,
-  suffices : range (weak_dual.to_Pi 𝕜 E) ⊆ φ⁻¹' ({0} : set 𝕜),
-  { have key := (is_closed.closure_subset_iff preim_cl).mpr this hf,
-    exact sub_eq_iff_eq_add'.mp (sub_eq_zero.mp key), },
-  intros g hg,
-  cases hg with g₀ hg₀,
-  simp only [algebra.id.smul_eq_mul, mem_singleton_iff, norm_eq_zero, mem_preimage],
-  rw [hφ, ← hg₀, weak_dual.to_Pi],
-  dsimp,
-  simp only [algebra.id.smul_eq_mul, continuous_linear_map.map_add, add_sub_cancel,
-             sub_self, continuous_linear_map.map_smul, add_sub_cancel', sub_self],
+  have hf' : f ∈ closure (range (λ (ψ : E →ₗ[𝕜] 𝕜), ψ.to_fun)),
+  { apply closure_mono (continuous_linear_map.range_coe_subset_linear_map_range_coe E 𝕜 𝕜),
+    exact hf, },
+  rw is_closed.closure_eq (linear_map.is_closed_range_coe E 𝕜 𝕜) at hf',
+  rw _root_.linear_map.mem_range_to_fun_iff at hf',
+  exact hf' z₁ z₂ c₁ c₂,
 end
 
 /-- Elements of the closure of the range of the embedding
@@ -327,17 +342,7 @@ end
 def linear_of_mem_closure_range
   (f : (E → 𝕜)) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E))) :
   E →ₗ[𝕜] 𝕜 :=
-{ to_fun := f,
-  map_add' := begin
-    intros z₁ z₂,
-    have key := linear_of_mem_closure_range' f hf (1 : 𝕜) (1 : 𝕜) z₁ z₂,
-    rwa [one_smul, one_smul, one_smul 𝕜 _, one_smul 𝕜 _] at key,
-  end,
-  map_smul' := begin
-    intros c z,
-    have key := linear_of_mem_closure_range' f hf c (0 : 𝕜) z (0 : E),
-    rwa [zero_smul, zero_smul, add_zero, add_zero] at key,
-  end, }
+linear_map_of_forall_apply_linear_combination_eq (linear_of_mem_closure_range' f hf)
 
 lemma linear_of_mem_closure_range_apply
   (f : E → 𝕜) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E))) (z : E) :

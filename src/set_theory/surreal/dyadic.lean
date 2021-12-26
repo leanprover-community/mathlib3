@@ -179,7 +179,7 @@ begin
 end
 
 /-- The additive monoid morphism `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
-def dyadic_map : add_monoid_hom (localization.away (2 : ℤ)) surreal :=
+def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
 { to_fun :=
   λ x, localization.lift_on x (λ x y, x • pow_half (submonoid.log y)) $
   begin
@@ -212,7 +212,7 @@ def dyadic_map : add_monoid_hom (localization.away (2 : ℤ)) surreal :=
     subst hd,
     have h₂ : 1 < (2 : ℤ).nat_abs, from dec_trivial,
     have hpow₂ := submonoid.log_pow_int_eq_self h₂,
-    simp_rw submonoid.pow_mk at hpow₂,
+    simp_rw submonoid.pow_apply at hpow₂,
     simp_rw [localization.add_mk, localization.lift_on_mk, subtype.coe_mk,
       submonoid.log_mul (int.pow_right_injective h₂), hpow₂],
     calc (2 ^ b' * c + 2 ^ d' * a) • pow_half (b' + d')

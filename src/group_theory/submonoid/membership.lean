@@ -223,7 +223,7 @@ lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 @[simps] def pow (n : M) (m : ℕ) : powers n :=
 (powers_hom M n).mrange_restrict (multiplicative.of_add m)
 
-lemma pow_mk (n : M) (m : ℕ) : submonoid.pow n m = ⟨n ^ m, m, rfl⟩ := rfl
+lemma pow_apply (n : M) (m : ℕ) : submonoid.pow n m = ⟨n ^ m, m, rfl⟩ := rfl
 
 /-- Logarithms from powers to natural numbers. -/
 def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=

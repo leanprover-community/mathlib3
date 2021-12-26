@@ -496,13 +496,13 @@ end
 
 end decidable
 
-instance subsingleton [subsingleton α] : subsingleton (sym2 α) :=
+instance [subsingleton α] : subsingleton (sym2 α) :=
 (equiv_sym α).injective.subsingleton
 
-instance unique [unique α] : unique (sym2 α) := unique.mk' _
+instance [unique α] : unique (sym2 α) := unique.mk' _
 
-instance is_empty [is_empty α] : is_empty (sym2 α) := (equiv_sym α).is_empty
+instance [is_empty α] : is_empty (sym2 α) := (equiv_sym α).is_empty
 
-instance nontrivial [nontrivial α] : nontrivial (sym2 α) := diag_injective.nontrivial
+instance [nontrivial α] : nontrivial (sym2 α) := diag_injective.nontrivial
 
 end sym2

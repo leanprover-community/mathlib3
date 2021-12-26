@@ -155,8 +155,8 @@ instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
 
 end inhabited
 
-instance has_zero : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
-instance has_emptyc : has_emptyc (sym α 0) := ⟨0⟩
+instance : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
+instance : has_emptyc (sym α 0) := ⟨0⟩
 
 lemma eq_nil_of_card_zero (s : sym α 0) : s = nil :=
 begin
@@ -201,7 +201,7 @@ begin
     congr, },
 end
 
-instance subsingleton (n : ℕ) [subsingleton α] : subsingleton (sym α n) :=
+instance (n : ℕ) [subsingleton α] : subsingleton (sym α n) :=
 ⟨begin
   cases n,
   { simp, },
@@ -210,10 +210,10 @@ instance subsingleton (n : ℕ) [subsingleton α] : subsingleton (sym α n) :=
     rw [eq_repeat_of_subsingleton b s', eq_repeat_of_subsingleton b s, repeat_succ], },
 end⟩
 
-instance is_empty (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
+instance (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
 ⟨λ s, by { obtain ⟨a, s, rfl⟩ := exists_eq_cons_of_succ s, exact is_empty_elim a }⟩
 
-instance unique (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _
+instance (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _
 
 lemma repeat_left_injective (n : ℕ) (h : n ≠ 0) : function.injective (λ x : α, repeat x n) :=
 begin
@@ -225,7 +225,7 @@ end
 lemma repeat_left_inj (a b : α) (n : ℕ) (h : n ≠ 0) : repeat a n = repeat b n ↔ a = b :=
 (repeat_left_injective n h).eq_iff
 
-instance nontrivial (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
+instance (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
 (repeat_left_injective n.succ n.succ_ne_zero).nontrivial
 
 def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=

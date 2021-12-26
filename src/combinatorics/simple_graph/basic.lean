@@ -496,13 +496,13 @@ def delete_edges (s : set (sym2 V)) : simple_graph V :=
 
 @[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
   (G.delete_edges s).delete_edges s' = G.delete_edges (s ∪ s') :=
-by { ext v w, simp [and_assoc, not_or_distrib] }
+by { ext, simp [and_assoc, not_or_distrib] }
 
 @[simp] lemma delete_edges_empty_eq : G.delete_edges ∅ = G :=
-by ext; simp
+by { ext, simp }
 
 @[simp] lemma delete_edges_univ_eq : G.delete_edges set.univ = ⊥ :=
-by ext; simp
+by { ext, simp }
 
 lemma delete_edges_le (s : set (sym2 V)) : G.delete_edges s ≤ G :=
 by { intro, simp { contextual := tt } }
@@ -516,7 +516,7 @@ end
 
 lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
-by { ext v w, simp [imp_false] { contextual := tt } }
+by { ext, simp [imp_false] { contextual := tt } }
 
 /-!
 ## Finiteness at a vertex

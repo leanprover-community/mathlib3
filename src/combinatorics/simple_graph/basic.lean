@@ -489,10 +489,12 @@ section finite_at
 
 /-- Given a set of vertex pairs, remove all of the corresponding edges from the edge set.
 It is fine to delete edges outside the edge set. -/
-@[simps]
 def delete_edges (s : set (sym2 V)) : simple_graph V :=
-{ adj := λ a b, G.adj a b ∧ ¬ ⟦(a, b)⟧ ∈ s,
-  symm := λ a b h, by rwa [adj_comm, sym2.eq_swap] }
+{ adj := G.adj \ sym2.to_rel s,
+  symm := λ a b, by simp [adj_comm, sym2.eq_swap] }
+
+@[simp] lemma delete_edges_adj (s : set (sym2 V)) (v w : V) :
+  (G.delete_edges s).adj v w ↔ G.adj v w ∧ ¬ ⟦(v, w)⟧ ∈ s := iff.rfl
 
 @[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
   (G.delete_edges s).delete_edges s' = G.delete_edges (s ∪ s') :=

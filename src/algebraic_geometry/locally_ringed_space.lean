@@ -121,11 +121,16 @@ instance : category LocallyRingedSpace :=
   assoc' := by { intros, ext1, simp, }, }.
 
 /-- The forgetful functor from `LocallyRingedSpace` to `SheafedSpace CommRing`. -/
-def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
+@[simps] def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 { obj := λ X, X.to_SheafedSpace,
   map := λ X Y f, f.1, }
 
 instance : faithful forget_to_SheafedSpace := {}
+
+/-- The forgetful functor from `LocallyRingedSpace` to `Top`. -/
+@[simps]
+def forget_to_Top : LocallyRingedSpace ⥤ Top :=
+forget_to_SheafedSpace ⋙ SheafedSpace.forget _
 
 @[simp] lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val = f.val ≫ g.val := rfl

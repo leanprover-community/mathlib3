@@ -38,15 +38,17 @@ def fiber_inclusion (b : B) : p.fiber b ⥤ E :=
 
 variables {e : E} {b : B} (f : p.obj e ⟶ b)
 
+@[derive category]
 def hom_fiber := (under.post p).fiber (under.mk f)
 
-instance : category (p.hom_fiber f) :=
-by { unfold hom_fiber, apply_instance }
+--instance : category (p.hom_fiber f) :=
+--by { unfold hom_fiber, apply_instance }
 
+@[derive category]
 def structured_under := structured_arrow (under.mk f) (under.post p)
 
-instance : category (p.structured_under f) :=
-by { unfold structured_under, apply_instance }
+--instance : category (p.structured_under f) :=
+--by { unfold structured_under, apply_instance }
 
 end functor
 

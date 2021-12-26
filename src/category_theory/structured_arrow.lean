@@ -138,7 +138,7 @@ comma.pre_right _ F G
 @[simps] def of_cone (F : C ⥤ D) (S : D) (c : (functor.cones F).obj (opposite.op S)) :
   C ⥤ structured_arrow S F :=
 { obj := λ S, structured_arrow.mk (c.app S),
-  map := λ S₁ S₂ f, structured_arrow.hom_mk f (by {erw [← c.naturality, category.id_comp], refl}) }
+  map := λ _ _ f, structured_arrow.hom_mk f (by {erw [← c.naturality, category.id_comp], refl}) }
 
 end structured_arrow
 
@@ -252,7 +252,7 @@ comma.pre_left F G _
 @[simps] def of_cocone (F : C ⥤ D) (T : D) (c : (functor.cocones F).obj T) :
   C ⥤ costructured_arrow F T :=
 { obj := λ S, costructured_arrow.mk (c.app S),
-  map := λ S₁ S₂ f, costructured_arrow.hom_mk f (by {erw [c.naturality, category.comp_id], refl}) }
+  map := λ _ _ f, costructured_arrow.hom_mk f (by {erw [c.naturality, category.comp_id], refl}) }
 
 end costructured_arrow
 

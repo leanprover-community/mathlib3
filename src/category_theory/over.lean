@@ -221,6 +221,16 @@ def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
   { left := F.map f.left,
     w' := by tidy; erw [← F.map_comp, w] } }
 
+/-- -/
+@[simps]
+def to_costructured_arrow (F : T ⥤ D) : over X ⥤ costructured_arrow F (F.obj X) :=
+{ obj := λ Y, costructured_arrow.mk (F.map Y.hom),
+  map := λ _ _ f, costructured_arrow.hom_mk f.left (by {erw [←F.map_comp, over.w f], refl}) }
+
+def of_costructured_arrow (F : T ⥤ D) (X : D) : costructured_arrow F X ⥤ over X :=
+{ obj := λ Y, over.mk Y.hom,
+  map := λ _ _ f, over.hom_mk (F.map f.left) }
+
 end
 
 end over
@@ -326,6 +336,18 @@ def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
   map := λ Y₁ Y₂ f,
   { right := F.map f.right,
     w' := by tidy; erw [← F.map_comp, w] } }
+
+/-- Not an example of structured_arrow.post because the composition of a functor with
+    the identity functor is not defeq to the functor itself. -/
+@[simps]
+def to_structured_arrow (F : T ⥤ D) : under X ⥤ structured_arrow (F.obj X) F :=
+{ obj := λ Y, structured_arrow.mk (F.map Y.hom),
+  map := λ _ _ f, structured_arrow.hom_mk f.right (by {erw [←F.map_comp, under.w f], refl}) }
+
+@[simps]
+def of_structured_arrow (X : D) (F : T ⥤ D) : structured_arrow X F ⥤ under X :=
+{ obj := λ Y, under.mk Y.hom,
+  map := λ _ _ f, under.hom_mk (F.map f.right) }
 
 end
 

@@ -302,6 +302,29 @@ begin
   exact int.nat_abs_dvd_iff_dvd.mpr h
 end
 
+lemma gcd_greatest {a b d : ℤ} (hd_pos : 0 ≤ d) (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : ℤ, e ∣ a → e ∣ b → e ∣ d) : d = gcd a b :=
+(nat_abs_inj_of_nonneg_of_nonneg hd_pos (coe_zero_le (gcd a b))).mp
+  (nat_abs_eq_of_dvd_dvd (dvd_gcd hda hdb) (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)))
+
+/-- Euclid's lemma: if `a ∣ b * c` and `gcd a c = 1` then `a ∣ b`.
+Compare with `is_coprime.dvd_of_dvd_mul_left` and
+`unique_factorization_monoid.dvd_of_dvd_mul_left_of_no_prime_factors` -/
+lemma dvd_of_dvd_mul_left_of_gcd_one {a b c : ℤ} (habc : a ∣ b * c) (hab : gcd a c = 1) : a ∣ b :=
+begin
+  have := gcd_eq_gcd_ab a c,
+  simp only [hab, int.coe_nat_zero, int.coe_nat_succ, zero_add] at this,
+  have : b * a * gcd_a a c + b * c * gcd_b a c = b, { simp [mul_assoc, ←mul_add, ←this] },
+  rw ←this,
+  exact dvd_add (dvd_mul_of_dvd_left (dvd_mul_left a b) _) (dvd_mul_of_dvd_left habc _),
+end
+
+/-- Euclid's lemma: if `a ∣ b * c` and `gcd a b = 1` then `a ∣ c`.
+Compare with `is_coprime.dvd_of_dvd_mul_right` and
+`unique_factorization_monoid.dvd_of_dvd_mul_right_of_no_prime_factors` -/
+lemma dvd_of_dvd_mul_right_of_gcd_one {a b c : ℤ} (habc : a ∣ b * c) (hab : gcd a b = 1) : a ∣ c :=
+by { rw mul_comm at habc, exact dvd_of_dvd_mul_left_of_gcd_one habc hab }
+
 /-! ### lcm -/
 
 theorem lcm_comm (i j : ℤ) : lcm i j = lcm j i :=

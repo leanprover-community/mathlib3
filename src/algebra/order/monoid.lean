@@ -9,7 +9,7 @@ import algebra.group.prod
 import algebra.order.monoid_lemmas
 import order.bounded_order
 import order.min_max
-import order.rel_iso
+import order.hom.basic
 
 /-!
 # Ordered monoids

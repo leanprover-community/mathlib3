@@ -35,6 +35,10 @@ instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   smul_comm_class M N (α × β) :=
 { smul_comm := λ r s x, mk.inj_iff.mpr ⟨smul_comm _ _ _, smul_comm _ _ _⟩ }
 
+instance [has_scalar Mᵐᵒᵖ α] [has_scalar Mᵐᵒᵖ β] [is_central_scalar M α] [is_central_scalar M β] :
+  is_central_scalar M (α × β) :=
+⟨λ r m, prod.ext (op_smul_eq_smul _ _) (op_smul_eq_smul _ _)⟩
+
 @[to_additive has_faithful_vadd_left]
 instance has_faithful_scalar_left [has_faithful_scalar M α] [nonempty β] :
   has_faithful_scalar M (α × β) :=

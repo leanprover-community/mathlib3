@@ -635,6 +635,16 @@ tendsto_at_top_mono le_abs_self tendsto_id
 lemma tendsto_abs_at_bot_at_top : tendsto (abs : α → α) at_bot at_top :=
 tendsto_at_top_mono neg_le_abs_self tendsto_neg_at_bot_at_top
 
+@[simp] lemma comap_abs_at_top : comap (abs : α → α) at_top = at_bot ⊔ at_top :=
+begin
+  refine le_antisymm (((at_top_basis.comap _).le_basis_iff (at_bot_basis.sup at_top_basis)).2 _)
+    (sup_le tendsto_abs_at_bot_at_top.le_comap tendsto_abs_at_top_at_top.le_comap),
+  rintro ⟨a, b⟩ -,
+  refine ⟨max (-a) b, trivial, λ x hx, _⟩,
+  rw [mem_preimage, mem_Ici, le_abs', max_le_iff, ← min_neg_neg, le_min_iff, neg_neg] at hx,
+  exact hx.imp and.left and.right
+end
+
 end linear_ordered_add_comm_group
 
 section linear_ordered_semiring
@@ -828,15 +838,23 @@ alias tendsto_at_bot_at_bot_of_monotone ← monotone.tendsto_at_bot_at_bot
 alias tendsto_at_top_at_top_iff_of_monotone ← monotone.tendsto_at_top_at_top_iff
 alias tendsto_at_bot_at_bot_iff_of_monotone ← monotone.tendsto_at_bot_at_bot_iff
 
+lemma comap_embedding_at_top [preorder β] [preorder γ] {e : β → γ}
+  (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
+  comap e at_top = at_top :=
+le_antisymm
+  (le_infi $ λ b, le_principal_iff.2 $ mem_comap.2 ⟨Ici (e b), mem_at_top _, λ x, (hm _ _).1⟩)
+  (tendsto_at_top_at_top_of_monotone (λ _ _, (hm _ _).2) hu).le_comap
+
+lemma comap_embedding_at_bot [preorder β] [preorder γ] {e : β → γ}
+  (hm : ∀ b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, e b ≤ c) :
+  comap e at_bot = at_bot :=
+@comap_embedding_at_top (order_dual β) (order_dual γ) _ _ e (function.swap hm) hu
+
 lemma tendsto_at_top_embedding [preorder β] [preorder γ]
   {f : α → β} {e : β → γ} {l : filter α}
   (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
   tendsto (e ∘ f) l at_top ↔ tendsto f l at_top :=
-begin
-  refine ⟨_, (tendsto_at_top_at_top_of_monotone (λ b₁ b₂, (hm b₁ b₂).2) hu).comp⟩,
-  rw [tendsto_at_top, tendsto_at_top],
-  exact λ hc b, (hc (e b)).mono (λ a, (hm b (f a)).1)
-end
+by rw [← comap_embedding_at_top hm hu, tendsto_comap_iff]
 
 /-- A function `f` goes to `-∞` independent of an order-preserving embedding `e`. -/
 lemma tendsto_at_bot_embedding [preorder β] [preorder γ]

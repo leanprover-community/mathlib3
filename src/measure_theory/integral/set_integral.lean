@@ -384,6 +384,22 @@ lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm 
   ∫ x in s, f x ∂μ = ∫ x in s, f x ∂(μ.trim hm) :=
 by rwa [integral_trim hm hf_meas, restrict_trim hm μ]
 
+lemma integral_Icc_eq_integral_Ioc' [partial_order α] {f : α → E} {a b : α} (ha : μ {a} = 0) :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
+set_integral_congr_set_ae (Ioc_ae_eq_Icc' ha).symm
+
+lemma integral_Ioc_eq_integral_Ioo' [partial_order α] {f : α → E} {a b : α} (hb : μ {b} = 0) :
+  ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+set_integral_congr_set_ae (Ioo_ae_eq_Ioc' hb).symm
+
+lemma integral_Icc_eq_integral_Ioc [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
+integral_Icc_eq_integral_Ioc' $ measure_singleton a
+
+lemma integral_Ioc_eq_integral_Ioo [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
+  ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+integral_Ioc_eq_integral_Ioo' $ measure_singleton b
+
 end normed_group
 
 section mono
@@ -414,16 +430,10 @@ lemma set_integral_mono (h : f ≤ g) :
   ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 integral_mono hf hg h
 
-lemma set_integral_mono_set (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
+lemma set_integral_mono_set (hfi : integrable_on f t μ) (hf : 0 ≤ᵐ[μ.restrict t] f)
+  (hst : s ≤ᵐ[μ] t) :
   ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
-begin
-  repeat { rw integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf)
-            (hfi.1.mono_measure measure.restrict_le_self) },
-  rw ennreal.to_real_le_to_real
-    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2)
-    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2),
-  exact (lintegral_mono_set' hst),
-end
+integral_mono_measure (measure.restrict_mono_ae hst) hf hfi
 
 end mono
 
@@ -765,7 +775,7 @@ lemma continuous_integral_comp_L1 (L : E →L[𝕜] F) :
   continuous (λ (φ : α →₁[μ] E), ∫ (a : α), L (φ a) ∂μ) :=
 by { rw ← funext L.integral_comp_Lp, exact continuous_integral.comp (L.comp_LpL 1 μ).continuous, }
 
-variables [complete_space E] [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [is_scalar_tower ℝ 𝕜 F]
+variables [complete_space E] [normed_space ℝ E]
 
 lemma integral_comp_comm (L : E →L[𝕜] F) {φ : α → E} (φ_int : integrable φ μ) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
@@ -811,9 +821,8 @@ end continuous_linear_map
 namespace linear_isometry
 
 variables [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
-  [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
+  [normed_space ℝ F]
   [borel_space E] [second_countable_topology E] [complete_space E] [normed_space ℝ E]
-  [is_scalar_tower ℝ 𝕜 E]
 
 lemma integral_comp_comm (L : E →ₗᵢ[𝕜] F) (φ : α → E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
@@ -871,8 +880,7 @@ lemma integral_pair {f : α → E} {g : α → F} (hf : integrable f μ) (hg : i
   ∫ x, (f x, g x) ∂μ = (∫ x, f x ∂μ, ∫ x, g x ∂μ) :=
 have _ := hf.prod_mk hg, prod.ext (fst_integral this) (snd_integral this)
 
-lemma integral_smul_const {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
-  [measurable_space 𝕜] [borel_space 𝕜] (f : α → 𝕜) (c : E) :
+lemma integral_smul_const {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] (f : α → 𝕜) (c : E) :
   ∫ x, f x • c ∂μ = (∫ x, f x ∂μ) • c :=
 begin
   by_cases hf : integrable f μ,
@@ -886,13 +894,13 @@ end
 section inner
 
 variables {E' : Type*} [inner_product_space 𝕜 E'] [measurable_space E'] [borel_space E']
-  [second_countable_topology E'] [complete_space E'] [normed_space ℝ E'] [is_scalar_tower ℝ 𝕜 E']
+  [second_countable_topology E'] [complete_space E'] [normed_space ℝ E']
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
 
 lemma integral_inner {f : α → E'} (hf : integrable f μ) (c : E') :
   ∫ x, ⟪c, f x⟫ ∂μ = ⟪c, ∫ x, f x ∂μ⟫ :=
-((@inner_right 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
+((@innerSL 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
 
 lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : integrable f μ)
   (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫ ∂μ = 0) :

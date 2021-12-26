@@ -819,10 +819,10 @@ lemma tan_int_mul_pi_sub (x : ℝ) (n : ℤ) : tan (n * π - x) = -tan x :=
 tan_neg x ▸ tan_periodic.int_mul_sub_eq n
 
 
-lemma tendsto_sin_pi_div_two : tendsto sin (𝓝[Iio (π/2)] (π/2)) (𝓝 1) :=
+lemma tendsto_sin_pi_div_two : tendsto sin (𝓝[<] (π/2)) (𝓝 1) :=
 by { convert continuous_sin.continuous_within_at, simp }
 
-lemma tendsto_cos_pi_div_two : tendsto cos (𝓝[Iio (π/2)] (π/2)) (𝓝[Ioi 0] 0) :=
+lemma tendsto_cos_pi_div_two : tendsto cos (𝓝[<] (π/2)) (𝓝[>] 0) :=
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
@@ -830,17 +830,17 @@ begin
       _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx },
 end
 
-lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[Iio (π/2)] (π/2)) at_top :=
+lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[<] (π/2)) at_top :=
 begin
   convert tendsto_cos_pi_div_two.inv_tendsto_zero.at_top_mul zero_lt_one
             tendsto_sin_pi_div_two,
   simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
 
-lemma tendsto_sin_neg_pi_div_two : tendsto sin (𝓝[Ioi (-(π/2))] (-(π/2))) (𝓝 (-1)) :=
+lemma tendsto_sin_neg_pi_div_two : tendsto sin (𝓝[>] (-(π/2))) (𝓝 (-1)) :=
 by { convert continuous_sin.continuous_within_at, simp }
 
-lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[Ioi (-(π/2))] (-(π/2))) (𝓝[Ioi 0] 0) :=
+lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[>] (-(π/2))) (𝓝[>] 0) :=
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
@@ -848,7 +848,7 @@ begin
       _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx },
 end
 
-lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
+lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[>] (-(π/2))) at_bot :=
 begin
   convert tendsto_cos_neg_pi_div_two.inv_tendsto_zero.at_top_mul_neg (by norm_num)
             tendsto_sin_neg_pi_div_two,

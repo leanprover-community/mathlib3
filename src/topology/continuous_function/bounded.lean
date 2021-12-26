@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.operator_norm
+import analysis.normed_space.star
 import topology.continuous_function.algebra
+import data.real.sqrt
 import analysis.normed_space.lattice_ordered_group
 
 /-!
@@ -713,7 +715,7 @@ of_normed_group f continuous_of_discrete_topology C H
 /-- Taking the pointwise norm of a bounded continuous function with values in a `normed_group`,
 yields a bounded continuous function with values in ℝ. -/
 def norm_comp : α →ᵇ ℝ :=
-of_normed_group (norm ∘ f) (by continuity) ∥f∥ (λ x, by simp only [f.norm_coe_le_norm, norm_norm])
+f.comp norm lipschitz_with_one_norm
 
 @[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
 
@@ -769,6 +771,11 @@ by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
 
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
+
+lemma norm_comp_continuous_le [topological_space γ] (f : α →ᵇ β) (g : C(γ, α)) :
+  ∥f.comp_continuous g∥ ≤ ∥f∥ :=
+((lipschitz_comp_continuous g).dist_le_mul f 0).trans $
+  by rw [nnreal.coe_one, one_mul, dist_zero_right]
 
 end normed_group
 
@@ -1017,6 +1024,80 @@ show that the space of bounded continuous functions from `α` to `β` is natural
 module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
+
+/-!
+### Star structures
+
+In this section, if `β` is a normed ⋆-group, then so is the space of bounded
+continuous functions from `α` to `β`, by using the star operation pointwise.
+
+If `𝕜` is normed field and a ⋆-ring over which `β` is a normed algebra and a
+star module, then the space of bounded continuous functions from `α` to `β`
+is a star module.
+
+If `β` is a ⋆-ring in addition to being a normed ⋆-group, then `α →ᵇ β`
+inherits a ⋆-ring structure.
+
+In summary, if `β` is a C⋆-algebra over `𝕜`, then so is  `α →ᵇ β`; note that
+completeness is guaranteed when `β` is complete (see
+`bounded_continuous_function.complete`). -/
+
+section normed_group
+
+variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
+variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_monoid β]
+variables [normed_space 𝕜 β] [star_module 𝕜 β]
+
+instance : star_add_monoid (α →ᵇ β) :=
+{ star            := λ f, f.comp star star_normed_group_hom.lipschitz,
+  star_involutive := λ f, ext $ λ x, star_star (f x),
+  star_add        := λ f g, ext $ λ x, star_add (f x) (g x) }
+
+/-- The right-hand side of this equality can be parsed `star ∘ ⇑f` because of the
+instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = star ⇑f`.-/
+@[simp] lemma coe_star (f : α →ᵇ β) : ⇑(star f) = star f := rfl
+
+@[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
+
+instance : normed_star_monoid (α →ᵇ β) :=
+{ norm_star := λ f, by
+  { simp only [norm_eq], congr, ext, conv_lhs { find (∥_∥) { erw (@norm_star β _ _ _ (f x)) } } } }
+
+instance : star_module 𝕜 (α →ᵇ β) :=
+{ star_smul := λ k f, ext $ λ x, star_smul k (f x) }
+
+end normed_group
+
+section cstar_ring
+
+variables [topological_space α]
+variables [normed_ring β] [star_ring β]
+
+instance [normed_star_monoid β] : star_ring (α →ᵇ β) :=
+{ star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
+  ..bounded_continuous_function.star_add_monoid }
+
+variable [cstar_ring β]
+
+instance : cstar_ring (α →ᵇ β) :=
+{ norm_star_mul_self :=
+  begin
+    intro f,
+    refine le_antisymm _ _,
+    { rw [←sq, norm_le (sq_nonneg _)],
+      dsimp [star_apply],
+      intro x,
+      rw [cstar_ring.norm_star_mul_self, ←sq],
+      refine sq_le_sq' _ _,
+      { linarith [norm_nonneg (f x), norm_nonneg f] },
+      { exact norm_coe_le_norm f x }, },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _), norm_le (real.sqrt_nonneg _)],
+      intro x,
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact norm_coe_le_norm (star f * f) x }
+  end }
+
+end cstar_ring
 
 section normed_lattice_ordered_group
 

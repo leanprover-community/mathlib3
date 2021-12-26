@@ -248,7 +248,8 @@ by simp [sym.map, subtype.mk.inj_eq]
   (a :: s).map f = (f a) :: s.map f :=
 by { cases s, simp [map, cons] }
 
-/-- If `α` is equivalent to `β`, then `sym α n` is equivalent to `sym β n`. -/
+/-- Mapping an equivalence `α ≃ β` using `sym.map` gives an equivalence between `sym α n` and
+`sym β n`. -/
 @[simps]
 def equiv_congr {β : Type u} (e : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := map e,

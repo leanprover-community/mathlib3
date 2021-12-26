@@ -228,8 +228,7 @@ lemma repeat_left_inj (a b : α) (n : ℕ) (h : n ≠ 0) : repeat a n = repeat b
 instance (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
 (repeat_left_injective n.succ n.succ_ne_zero).nontrivial
 
-/-- The multiplicity of `b` in `map f s` is the number of `a ∈ s` (counting multiplicity)
-  such that `f a = b`. -/
+/-- A map `f : α → β` induces the pointwise map `sym.map h : sym α n → sym β n`. -/
 def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 ⟨x.val.map f, by simpa [multiset.card_map] using x.property⟩
 

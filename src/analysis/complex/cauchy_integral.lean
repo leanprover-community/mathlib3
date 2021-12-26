@@ -50,7 +50,7 @@ second countable topology.
 
 * `differentiable_on.analytic_at`, `differentiable.analytic_at`: If `f : ℂ → E` is differentiable
   on a neighborhood of a point, then it is analytic at this point. In particular, if `f : ℂ → E`
-  in differentiable on the whole `ℂ`, then it is analytic at every point `z : ℂ`.
+  is differentiable on the whole `ℂ`, then it is analytic at every point `z : ℂ`.
 
 ## Tags
 
@@ -69,7 +69,7 @@ variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E
 
 namespace complex
 
-/-- Suppose that a function `f : ℂ → E` be is real differentiable on a rectangle with vertices
+/-- Suppose that a function `f : ℂ → E` is real differentiable on a rectangle with vertices
 `z w : ℂ` and $\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then
 the integral of `f` over the boundary of the rectangle is equal to the integral of
 $2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$

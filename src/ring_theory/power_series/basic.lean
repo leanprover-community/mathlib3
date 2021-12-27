@@ -1052,13 +1052,6 @@ begin
       (le_of_eq this)) (not_le.mp h)) },
 end
 
-@[simp] theorem coeff_mul_X (p : power_series R) (n : ℕ) :
-  coeff R (n + 1) (p * X) = coeff R n p :=
-by simpa only [pow_one] using coeff_mul_X_pow p 1 n
-
-@[simp] theorem coeff_X_mul (p : power_series R) (n : ℕ) :
-  coeff R (n + 1) (X * p) = coeff R n p :=
-by simpa only [pow_one] using coeff_X_pow_mul p 1 n
 end
 
 /-- If a formal power series is invertible, then so is its constant coefficient.-/

@@ -38,18 +38,18 @@ lemma of_gt  [canonically_ordered_add_monoid M] (h : x < y) : ne_zero y := of_po
 instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zero (n : M) :=
 ⟨nat.cast_ne_zero.mpr $ ne_zero.ne n⟩
 
+lemma of_injective [semiring R] [ne_zero (n : R)] [semiring M] {f : R →+* M}
+  (hf : function.injective f) : ne_zero (n : M) :=
+⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa⟩
+
 variables (R M)
 
 lemma of_not_dvd [add_monoid M] [has_one M] [char_p M p] (h : ¬ p ∣ n) : ne_zero (n : M) :=
 ⟨(not_iff_not.mpr $ char_p.cast_eq_zero_iff M p n).mpr h⟩
 
-lemma of_injective [semiring R] [ne_zero (n : R)] [semiring M] {f : R →+* M}
-  (hf : function.injective f) : ne_zero (n : M) :=
-⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa⟩
-
 lemma of_no_zero_smul_divisors [comm_ring R] [ne_zero (n : R)] [ring M] [nontrivial M]
   [algebra R M] [no_zero_smul_divisors R M] : ne_zero (n : M) :=
-of_injective _ _ $ no_zero_smul_divisors.algebra_map_injective R M
+of_injective $ no_zero_smul_divisors.algebra_map_injective R M
 
 lemma nat_of_ne [has_zero R] [has_one R] [has_add R] [h : ne_zero (n : R)] : ne_zero n :=
 ⟨by {casesI h, rintro rfl, contradiction}⟩

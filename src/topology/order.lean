@@ -487,7 +487,7 @@ def nhds_adjoint (a : α) (f : filter α) : topological_space α :=
     (subset_sUnion_of_mem hu) }
 
 lemma gc_nhds (a : α) :
-  galois_connection  (nhds_adjoint a) (λt, @nhds α t a) :=
+  galois_connection (nhds_adjoint a) (λt, @nhds α t a) :=
 assume f t, by { rw le_nhds_iff, exact ⟨λ H s hs has, H _ has hs, λ H s has hs, H _ hs has⟩ }
 
 lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) :
@@ -498,7 +498,7 @@ lemma le_iff_nhds {α : Type*} (t t' : topological_space α) :
 ⟨λ h x, nhds_mono h, le_of_nhds_le_nhds⟩
 
 lemma nhds_adjoint_nhds {α : Type*} (a : α) (f : filter α) :
-  @nhds α (nhds_adjoint a f)  a = pure a ⊔ f :=
+  @nhds α (nhds_adjoint a f) a = pure a ⊔ f :=
 begin
   ext U,
   rw mem_nhds_iff,

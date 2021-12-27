@@ -39,16 +39,6 @@ by simp [factorization]
 
 @[simp] lemma factorization_one : factorization (1 : α) = 0 := by simp [factorization]
 
-/-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-@[simp] lemma factorization_mul {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
-  factorization (a * b) = factorization a + factorization b :=
-by simp [factorization, normalized_factors_mul ha hb]
-
-/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
-lemma factorization_pow {x : α} {n : ℕ} :
-  factorization (x^n) = n • (factorization x) :=
-by { ext, simp [factorization] }
-
 /-- The support of `factorization n` is exactly `n.factors.to_finset` -/
 @[simp] lemma support_factorization {n : α} :
   (factorization n).support = (normalized_factors n).to_finset :=
@@ -61,24 +51,34 @@ lemma norm_factor_iff_mem_factorization {n p : α} :
   p ∈ (factorization n).support ↔ p ∈ normalized_factors n :=
 by simp [support_factorization]
 
-/-- The only numbers with empty prime factorization are `0` and `1` -/
-lemma factorization_eq_zero_iff (n : α) : factorization n = 0 ↔ n = 0 ∨ n = 1 :=
-begin
-  split,
-    { simp only [add_equiv.map_eq_zero_iff, factorization],
-      intros h,
-      -- suggest,
-      -- have := normalized_factors,
-  --     -- rw h at this,
-      sorry},
-    { rintro (rfl | rfl), exact factorization_zero, exact factorization_one },
-end
+/-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+@[simp] lemma factorization_mul {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+  factorization (a * b) = factorization a + factorization b :=
+by simp [factorization, normalized_factors_mul ha hb]
+
+/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
+lemma factorization_pow {x : α} {n : ℕ} :
+  factorization (x^n) = n • (factorization x) :=
+by { ext, simp [factorization] }
+
+-- /-- The only numbers with empty prime factorization are `0` and `1` -/
+-- lemma factorization_eq_zero_iff (n : α) : factorization n = 0 ↔ n = 0 ∨ n = 1 :=
+-- begin
+--   split,
+--     { simp only [add_equiv.map_eq_zero_iff, factorization],
+--       intros h,
+--       -- suggest,
+--       -- have := normalized_factors,
+--   --     -- rw h at this,
+--       sorry},
+--     { rintro (rfl | rfl), exact factorization_zero, exact factorization_one },
+-- end
 
 
 lemma factorization_inj' (a b: α) (ha: a ≠ 0) (hb: b ≠ 0) (h: factorization a = factorization b) :
    associated a b :=
 begin
-  simp [factorization] at h,   -- TODO: Fix this NTS
+  simp only [factorization, add_equiv.apply_eq_iff_eq] at h,
   have ha' := normalized_factors_prod ha,
   rw h at ha',
   exact associated.trans ha'.symm (normalized_factors_prod hb),

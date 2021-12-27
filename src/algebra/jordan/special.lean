@@ -97,7 +97,7 @@ instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
 @[simp] lemma unsym_eq_zero_iff {α} [has_zero α] (a : αˢʸᵐ) : a.unsym = (0 : α) ↔ a = (0 : αˢʸᵐ) :=
 unsym_injective.eq_iff' rfl
 
-lemma zero_zero [ring α] [algebra ℝ α] : unsym add_comm_group.zero = (0:α) := rfl
+lemma zero_zero [ring α] : unsym add_comm_group.zero = (0:α) := rfl
 
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
 function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
@@ -149,9 +149,11 @@ begin
   simp,
 end
 
+universe u
+
 /- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
 Jordan non-associative ring -/
-noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : comm_jordan (αˢʸᵐ) :=
+noncomputable instance (α : Type u) [ring α] [algebra ℝ α] : comm_jordan (αˢʸᵐ) :=
 { comm := λ a,
   begin
     ext b,

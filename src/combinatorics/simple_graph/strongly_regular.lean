@@ -96,7 +96,7 @@ begin
 end
 
 lemma card_neighbor_set_union_adj {n k l m : ℕ} (h : G.is_SRG_of n k l m)
-  {v w : V} (hne : v ≠ w) (ha : G.adj v w) :
+  {v w : V} (ha : G.adj v w) :
   finset.card (G.neighbor_finset v ∪ G.neighbor_finset w) = 2 * k - l :=
 begin
   rw ← h.adj_common v w ha,
@@ -153,7 +153,7 @@ lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
     simp only [not_and, not_not, compl_adj, ne.def] at h2,
     have h2' := h2.2 h2.1,
     simp_rw [compl_neighbor_finset_sdiff_inter_eq, G.sdiff_compl_neighbor_finset_inter_eq h2'],
-    rwa [← finset_compl_union, card_compl, G.card_neighbor_set_union_adj h h2.1, ← h.card],
+    rwa [← finset_compl_union, card_compl, G.card_neighbor_set_union_adj h, ← h.card],
   end }
 
 end simple_graph

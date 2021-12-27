@@ -453,6 +453,10 @@ instance decidable_mem_common_neighbors [decidable_rel G.adj] (v w : V) :
   decidable_pred (∈ G.common_neighbors v w) :=
 λ a, and.decidable
 
+lemma common_neighbors_top_eq {v w : V} :
+  (⊤ : simple_graph V).common_neighbors v w = set.univ \ {v, w} :=
+by { ext u, simp [common_neighbors, eq_comm, not_or_distrib.symm] }
+
 section incidence
 variable [decidable_eq V]
 
@@ -588,7 +592,7 @@ lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=
 by { ext, simp }
 
-lemma neighbor_finset_compl [fintype V] [decidable_eq V] [decidable_rel G.adj] (v : V) :
+lemma neighbor_finset_compl [decidable_eq V] [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
 by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
     set.to_finset_singleton]
@@ -601,8 +605,7 @@ begin
   erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
-lemma bot_degree [decidable_eq V] (v : V) :
-  (⊥ : simple_graph V).degree v = 0 :=
+lemma bot_degree (v : V) : (⊥ : simple_graph V).degree v = 0 :=
 begin
   erw [degree, neighbor_finset_eq_filter, filter_false],
   exact finset.card_empty,
@@ -766,10 +769,6 @@ begin
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
-
-lemma common_neighbors_top_eq {v w : V} :
-  (⊤ : simple_graph V).common_neighbors v w = set.univ \ {v, w} :=
-by { ext u, simp [common_neighbors, eq_comm, not_or_distrib.symm] }
 
 lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
   fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=

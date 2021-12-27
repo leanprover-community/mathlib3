@@ -340,7 +340,8 @@ def mul_equiv.op {α β} [has_mul α] [has_mul β] :
   right_inv := λ f, by { ext, simp } }
 
 /-- The 'unopposite' of an iso `αᵐᵒᵖ ≃* βᵐᵒᵖ`. Inverse to `mul_equiv.op`. -/
-@[simp, to_additive] def mul_equiv.unop {α β} [has_mul α] [has_mul β] :
+@[simp, to_additive "The 'unopposite' of an iso `αᵃᵒᵖ ≃+ βᵃᵒᵖ`. Inverse to `add_equiv.op`]
+def mul_equiv.unop {α β} [has_mul α] [has_mul β] :
   (αᵐᵒᵖ ≃* βᵐᵒᵖ) ≃ (α ≃* β) := mul_equiv.op.symm
 
 section ext

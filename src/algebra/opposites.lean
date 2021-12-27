@@ -47,10 +47,12 @@ variables {α : Type u}
 namespace mul_opposite
 
 /-- The element of `mul_opposite α` that represents `x : α`. -/
-@[pp_nodot, to_additive] def op : α → αᵐᵒᵖ := id
+@[pp_nodot, to_additive "The element of `αᵃᵒᵖ` that represents `x : α`."]
+def op : α → αᵐᵒᵖ := id
 
 /-- The element of `α` represented by `x : αᵐᵒᵖ`. -/
-@[pp_nodot, to_additive] def unop : αᵐᵒᵖ → α := id
+@[pp_nodot, to_additive "The element of `α` represented by `x : αᵃᵒᵖ`."]
+def unop : αᵐᵒᵖ → α := id
 
 attribute [pp_nodot] add_opposite.op add_opposite.unop
 
@@ -61,8 +63,8 @@ attribute [pp_nodot] add_opposite.op add_opposite.unop
 
 attribute [irreducible] mul_opposite
 
-/-- A recursor for `opposite`. Use as `induction x using mul_opposite.rec`. -/
-@[simp, to_additive]
+/-- A recursor for `mul_opposite`. Use as `induction x using mul_opposite.rec`. -/
+@[simp, to_additive "A recursor for `add_opposite`. Use as `induction x using add_opposite.rec`."]
 protected def rec {F : Π (X : αᵐᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
 λ X, h (unop X)
 

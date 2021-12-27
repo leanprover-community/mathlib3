@@ -1894,6 +1894,7 @@ theorem is_normal.nfp_le {f} (H : is_normal f) {a b} :
   nfp f a ≤ f b ↔ nfp f a ≤ b :=
 le_iff_le_iff_lt_iff_lt.2 H.lt_nfp
 
+/-- `nfp f a` is the next fixed point after `a`. -/
 theorem is_normal.nfp_le_fp {f} (H : is_normal f) {a b}
   (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
 sup_le.2 $ λ i, begin
@@ -1929,7 +1930,7 @@ theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
 /-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
-theorem is_normal.nfp_unbounded {f} (H : is_normal f) : ∀ a, ∃ b, f b = b ∧ a ≤ b :=
+theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (is_fixed_point f) :=
 λ a, ⟨_, H.nfp_fp a, le_nfp_self f a⟩
 
 /-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/

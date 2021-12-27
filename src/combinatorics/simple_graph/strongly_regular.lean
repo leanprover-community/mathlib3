@@ -124,17 +124,15 @@ end
 
 variables {n k l m : ℕ}
 
-lemma compl_regular_of_strongly_regular [fintype V] [decidable_eq V] (G : simple_graph V)
-  [decidable_rel G.adj] (h : G.is_strongly_regular_of n k l m) :
-    Gᶜ.is_regular_of_degree (n - k - 1) :=
+lemma compl_regular_of_strongly_regular (h : G.is_strongly_regular_of n k l m) :
+  Gᶜ.is_regular_of_degree (n - k - 1) :=
 begin
   rw [← h.card, nat.sub_sub, add_comm, ←nat.sub_sub],
   exact G.is_regular_compl_of_is_regular k h.regular,
 end
 
-lemma compl_adj_common_of_strongly_regular [fintype V] [decidable_eq V] (G : simple_graph V)
-  [decidable_rel G.adj] (h : G.is_strongly_regular_of n k l m) :
-    ∀ (v w : V), Gᶜ.adj v w → fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - m) - 2 :=
+lemma compl_adj_common_of_strongly_regular (h : G.is_strongly_regular_of n k l m) :
+  ∀ (v w : V), Gᶜ.adj v w → fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - m) - 2 :=
 begin
   intros v w h2,
   simp only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,
@@ -153,9 +151,8 @@ begin
     simpa [adj_comm] using h2', },
 end
 
-lemma compl_nadj_common_of_strongly_regular [fintype V] [decidable_eq V] (G : simple_graph V)
-  [decidable_rel G.adj] (h : G.is_strongly_regular_of n k l m) :
-    ∀ (v w : V), v ≠ w ∧ ¬Gᶜ.adj v w → fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - l) :=
+lemma compl_nadj_common_of_strongly_regular (h : G.is_strongly_regular_of n k l m) :
+  ∀ (v w : V), v ≠ w ∧ ¬Gᶜ.adj v w → fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - l) :=
 begin
   intros v w h2,
   simp only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,

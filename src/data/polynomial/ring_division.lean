@@ -407,7 +407,7 @@ by rw [count_roots, count_zero, root_multiplicity_eq_zero (not_is_root_C _ _ H)]
 @[simp] lemma roots_one : (1 : polynomial R).roots = ∅ :=
 roots_C 1
 
-lemma roots_smul_nonzero [is_domain R] (p : polynomial R) {r : R} (hr : r ≠ 0) :
+lemma roots_smul_nonzero (p : polynomial R) {r : R} (hr : r ≠ 0) :
   (r • p).roots = p.roots :=
 begin
   by_cases hp : p = 0;

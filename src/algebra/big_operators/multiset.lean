@@ -43,10 +43,7 @@ lemma prod_eq_foldl (s : multiset α) : prod s = foldl (*) (λ x y z, by simp [m
 
 @[simp, to_additive]
 lemma prod_to_list (s : multiset α) : s.to_list.prod = s.prod :=
-begin
-  conv_rhs { rw ←coe_to_list s },
-  rw coe_prod,
-end
+by rw [← coe_prod, coe_to_list]
 
 @[simp, to_additive] lemma prod_zero : @prod α _ 0 = 1 := rfl
 
@@ -116,7 +113,7 @@ end
 
 @[to_additive]
 lemma prod_hom [comm_monoid β] (s : multiset α) (f : α →* β) : (s.map f).prod = f s.prod :=
-quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
+quotient.induction_on s $ λ l, by simp only [map_list_prod, quot_mk_to_coe, coe_map, coe_prod]
 
 @[to_additive]
 lemma prod_hom_rel [comm_monoid β] (s : multiset ι) {r : α → β → Prop} {f : ι → α} {g : ι → β}

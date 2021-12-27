@@ -12,13 +12,13 @@ This file provides basic results about `list.prod` and `list.sum`, which calcula
 sum of elements of a list. These are defined in [`data.list.defs`](./data/list/defs).
 -/
 
-variables {α M N P R G M₀ : Type*}
+variables {α M N R G M₀ : Type*}
 
 namespace list
 
 section monoid
 
-variables [monoid M] [monoid N] [monoid P] [monoid_with_zero M₀] {l l₁ l₂ : list M} {a : M}
+variables [monoid M] [monoid N] [monoid_with_zero M₀] {l l₁ l₂ : list M} {a : M}
 
 @[simp, to_additive]
 lemma prod_nil : ([] : list M).prod = 1 := rfl
@@ -76,7 +76,7 @@ lemma prod_eq_foldr : l.prod = foldr (*) 1 l :=
 list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]
 
 @[to_additive]
-lemma prod_hom_rel (l : list M) {r : N → P → Prop} {f : M → N} {g : M → P} (h₁ : r 1 1)
+lemma prod_hom_rel (l : list α) {r : M → N → Prop} {f : α → M} {g : α → N} (h₁ : r 1 1)
   (h₂ : ∀ ⦃a b c⦄, r b c → r (f a * b) (g a * c)) :
   r (l.map f).prod (l.map g).prod :=
 list.rec_on l h₁ (λ a l hl, by simp only [map_cons, prod_cons, h₂ hl])
@@ -132,13 +132,13 @@ by { cases L, { contrapose h, simp }, { simp } }
 
 /-- A list with product greater than one must have positive length. -/
 @[to_additive "A list with positive sum must have positive length."]
-lemma length_pos_of_one_lt_prod [monoid M] [preorder M] (L : list M) (h : 1 < L.prod) :
+lemma length_pos_of_one_lt_prod [preorder M] (L : list M) (h : 1 < L.prod) :
   0 < L.length :=
 length_pos_of_prod_ne_one L h.ne'
 
 /-- A list with product less than one must have positive length. -/
 @[to_additive "A list with negative sum must have positive length."]
-lemma length_pos_of_prod_lt_one [monoid M] [preorder M] (L : list M) (h : L.prod < 1) :
+lemma length_pos_of_prod_lt_one [preorder M] (L : list M) (h : L.prod < 1) :
   0 < L.length :=
 length_pos_of_prod_ne_one L h.ne
 

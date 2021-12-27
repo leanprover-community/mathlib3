@@ -52,6 +52,10 @@ instance has_mul [∀ i, has_mul $ f i] :
 @[simp, to_additive] lemma const_mul [has_mul β] (a b : β) :
   const α a * const α b = const α (a * b) := rfl
 
+@[simp] lemma bit0_apply [Π i, has_add $ f i] : (bit0 x) i = bit0 (x i) := rfl
+
+@[simp] lemma bit1_apply [Π i, has_add $ f i] [Π i, has_one $ f i] : (bit1 x) i = bit1 (x i) := rfl
+
 @[to_additive] lemma mul_comp [has_mul γ] (x y : β → γ) (z : α → β) :
   (x * y) ∘ z = x ∘ z * y ∘ z := rfl
 

@@ -58,6 +58,7 @@ begin
     { intros k' n,
       simp only [finsupp_tensor_finsupp_single],
       simp only [finsupp.single, finsupp.coe_mk],
+      -- split_ifs; finish can close the goal from here
       by_cases h1 : (i', k') = (i, k),
       { simp only [prod.mk.inj_iff] at h1, simp [h1] },
       { simp only [h1, if_false],

@@ -72,6 +72,11 @@ instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨by refl⟩
 namespace walk
 variables {G}
 
+lemma exists_eq_cons_of_ne : Π {u v : V} (hne : u ≠ v) (p : G.walk u v),
+  ∃ (w : V) (h : G.adj u w) (p' : G.walk w v), p = cons h p'
+| _ _ hne nil := (hne rfl).elim
+| _ _ _ (cons h p') := ⟨_, h, p', rfl⟩
+
 /-- The length of a walk is the number of edges along it. -/
 def length : Π {u v : V}, G.walk u v → ℕ
 | _ _ nil := 0
@@ -186,8 +191,20 @@ def edges : Π {u v : V}, G.walk u v → list (sym2 V)
 @[simp] lemma support_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).support = u :: p.support := rfl
 
+lemma support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  (p.append p').support = p.support ++ p'.support.tail :=
+by induction p; cases p'; simp [*]
+
+@[simp]
+lemma support_reverse {u v : V} (p : G.walk u v) : p.reverse.support = p.support.reverse :=
+by induction p; simp [support_append, *]
+
 lemma support_ne_nil {u v : V} (p : G.walk u v) : p.support ≠ [] :=
 by cases p; simp
+
+lemma tail_support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  (p.append p').support.tail = p.support.tail ++ p'.support.tail :=
+by rw [support_append, list.tail_append_of_ne_nil _ _ (support_ne_nil _)]
 
 lemma support_eq_cons {u v : V} (p : G.walk u v) : p.support = u :: p.support.tail :=
 by cases p; simp
@@ -197,6 +214,47 @@ by cases p; simp
 
 @[simp] lemma end_mem_support {u v : V} (p : G.walk u v) : v ∈ p.support :=
 by induction p; simp [*]
+
+lemma mem_support_iff {u v w : V} (p : G.walk u v) :
+  w ∈ p.support ↔ w = u ∨ w ∈ p.support.tail :=
+by cases p; simp
+
+@[simp]
+lemma mem_tail_support_append_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  t ∈ (p.append p').support.tail ↔ t ∈ p.support.tail ∨ t ∈ p'.support.tail :=
+by rw [tail_support_append, list.mem_append]
+
+@[simp] lemma end_mem_tail_support_of_ne {u v : V} (h : u ≠ v) (p : G.walk u v) :
+  v ∈ p.support.tail :=
+by { obtain ⟨_, _, _, rfl⟩ := exists_eq_cons_of_ne h p, simp }
+
+@[simp]
+lemma mem_support_append_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  t ∈ (p.append p').support ↔ t ∈ p.support ∨ t ∈ p'.support :=
+begin
+  simp only [mem_support_iff, mem_tail_support_append_iff],
+  by_cases h : t = v; by_cases h' : t = u;
+  subst_vars;
+  try { have := ne.symm h' };
+  simp [*],
+end
+
+lemma coe_support {u v : V} (p : G.walk u v) :
+  (p.support : multiset V) = {u} + p.support.tail :=
+by cases p; refl
+
+lemma coe_support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  ((p.append p').support : multiset V) = {u} + p.support.tail + p'.support.tail :=
+by rw [support_append, ←multiset.coe_add, coe_support]
+
+lemma coe_support_append' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  ((p.append p').support : multiset V) = p.support + p'.support - {v} :=
+begin
+  rw [support_append, ←multiset.coe_add],
+  simp only [coe_support],
+  rw add_comm {v},
+  simp only [← add_assoc, add_tsub_cancel_right],
+end
 
 lemma chain_adj_support_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
   list.chain G.adj u p.support
@@ -218,6 +276,13 @@ lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) {e : sym2 V}
 @[simp] lemma edges_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).edges = ⟦(u, v)⟧ :: p.edges := rfl
 
+@[simp] lemma edges_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  (p.append p').edges = p.edges ++ p'.edges :=
+by induction p; simp [*]
+
+@[simp] lemma edges_reverse {u v : V} (p : G.walk u v) : p.reverse.edges = p.edges.reverse :=
+by induction p; simp [*, sym2.eq_swap]
+
 @[simp] lemma length_support {u v : V} (p : G.walk u v) : p.support.length = p.length + 1 :=
 by induction p; simp *
 
@@ -234,11 +299,21 @@ lemma mem_support_of_mem_edges : Π {t u v w : V} (p : G.walk v w) (he : ⟦(t, 
   { exact or.inr (mem_support_of_mem_edges _ he), }
 end
 
+lemma edges_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nodup) :
+  p.edges.nodup :=
+begin
+  induction p,
+  { simp, },
+  { simp only [edges_cons, support_cons, list.nodup_cons] at h ⊢,
+    exact ⟨λ h', h.1 (mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
+end
+
 /-- A *trail* is a walk with no repeating edges. -/
 structure is_trail {u v : V} (p : G.walk u v) : Prop :=
 (edges_nodup : p.edges.nodup)
 
-/-- A *path* is a walk with no repeating vertices. -/
+/-- A *path* is a walk with no repeating vertices.
+Use `simple_graph.walk.is_path.mk'` for a simpler constructor. -/
 structure is_path {u v : V} (p : G.walk u v) extends to_trail : is_trail p : Prop :=
 (support_nodup : p.support.nodup)
 
@@ -255,16 +330,6 @@ structure is_cycle [decidable_eq V] {u : V} (p : G.walk u u)
 lemma is_trail_def {u v : V} (p : G.walk u v) : p.is_trail ↔ p.edges.nodup :=
 ⟨is_trail.edges_nodup, λ h, ⟨h⟩⟩
 
-lemma edges_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nodup) :
-  p.edges.nodup :=
-begin
-  induction p,
-  { simp, },
-  { simp only [edges_cons, list.nodup_cons],
-    simp only [support_cons, list.nodup_cons] at h,
-    exact ⟨λ h', h.1 (mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
-end
-
 lemma is_path.mk' {u v : V} {p : G.walk u v} (h : p.support.nodup) : is_path p :=
 ⟨⟨edges_nodup_of_support_nodup h⟩, h⟩
 
@@ -275,145 +340,72 @@ lemma is_cycle_def [decidable_eq V] {u : V} (p : G.walk u u) :
   p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ p.support.tail.nodup :=
 iff.intro (λ h, ⟨h.1.1, h.1.2, h.2⟩) (λ h, ⟨⟨h.1, h.2.1⟩, h.2.2⟩)
 
-@[simp] lemma nil_is_trail {u : V} : (nil : G.walk u u).is_trail :=
+@[simp] lemma is_trail.nil {u : V} : (nil : G.walk u u).is_trail :=
 ⟨by simp [edges]⟩
 
-lemma count_edges_le_one_of_trail [decidable_eq V] {u v : V}
-  (p : G.walk u v) (h : p.is_trail) (e : sym2 V) : p.edges.count e ≤ 1 :=
-list.nodup_iff_count_le_one.mp h.edges_nodup e
-
-lemma count_edges_eq_one_of_trail [decidable_eq V] {u v : V}
-  (p : G.walk u v) (h : p.is_trail) {e : sym2 V}
-  (he : e ∈ p.edges) : p.edges.count e = 1 :=
-list.count_eq_one_of_mem h.edges_nodup he
-
-@[simp] lemma nil_is_path {u : V} : (nil : G.walk u u).is_path :=
-by { fsplit; simp }
-
-lemma is_trail_of_cons_is_trail {u v w : V} {h : G.adj u v} {p : G.walk v w} :
+lemma is_trail.of_cons {u v w : V} {h : G.adj u v} {p : G.walk v w} :
   (cons h p).is_trail → p.is_trail :=
 by simp [is_trail_def]
-
-lemma is_path_of_cons_is_path {u v w : V} {h : G.adj u v} {p : G.walk v w} :
-  (cons h p).is_path → p.is_path :=
-by simp [is_path_def]
 
 @[simp] lemma cons_is_trail_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).is_trail ↔ p.is_trail ∧ ⟦(u, v)⟧ ∉ p.edges :=
 by simp [is_trail_def, and_comm]
 
+lemma is_trail.reverse {u v : V} (p : G.walk u v) (h : p.is_trail) : p.reverse.is_trail :=
+by simpa [is_trail_def] using h
+
+@[simp] lemma reverse_is_trail_iff {u v : V} (p : G.walk u v) : p.reverse.is_trail ↔ p.is_trail :=
+by split; { intro h, convert h.reverse _, try { rw reverse_reverse } }
+
+lemma is_trail.of_append_left {u v w : V} {p : G.walk u v} {q : G.walk v w}
+  (h : (p.append q).is_trail) : p.is_trail :=
+by { rw [is_trail_def, edges_append, list.nodup_append] at h, exact ⟨h.1⟩ }
+
+lemma is_trail.of_append_right {u v w : V} {p : G.walk u v} {q : G.walk v w}
+  (h : (p.append q).is_trail) : q.is_trail :=
+by { rw [is_trail_def, edges_append, list.nodup_append] at h, exact ⟨h.2.1⟩ }
+
+lemma is_trail.count_edges_le_one [decidable_eq V] {u v : V}
+  {p : G.walk u v} (h : p.is_trail) (e : sym2 V) : p.edges.count e ≤ 1 :=
+list.nodup_iff_count_le_one.mp h.edges_nodup e
+
+lemma is_trail.count_edges_eq_one [decidable_eq V] {u v : V}
+  {p : G.walk u v} (h : p.is_trail) {e : sym2 V} (he : e ∈ p.edges) :
+  p.edges.count e = 1 :=
+list.count_eq_one_of_mem h.edges_nodup he
+
+@[simp] lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
+by { fsplit; simp }
+
+lemma is_path.of_cons {u v w : V} {h : G.adj u v} {p : G.walk v w} :
+  (cons h p).is_path → p.is_path :=
+by simp [is_path_def]
+
 @[simp] lemma cons_is_path_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 by split; simp [is_path_def] { contextual := tt }
 
-lemma support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
-  (p.append p').support = p.support ++ p'.support.tail :=
-by induction p; cases p'; simp [*]
-
-lemma tail_support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
-  (p.append p').support.tail = p.support.tail ++ p'.support.tail :=
-by rw [support_append, list.tail_append_of_ne_nil _ _ (support_ne_nil _)]
-
-@[simp]
-lemma mem_tail_support_append_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
-  t ∈ (p.append p').support.tail ↔ t ∈ p.support.tail ∨ t ∈ p'.support.tail :=
-by rw [tail_support_append, list.mem_append]
-
-lemma mem_support_iff {u v w : V} (p : G.walk u v) :
-  w ∈ p.support ↔ w = u ∨ w ∈ p.support.tail :=
-by cases p; simp
-
-@[simp] lemma end_mem_tail_support_of_ne {u v : V} (h : u ≠ v) (p : G.walk u v) :
-  v ∈ p.support.tail :=
-begin
-  cases p,
-  { exact (h rfl).elim },
-  { simp },
-end
-
-@[simp]
-lemma mem_support_append_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
-  t ∈ (p.append p').support ↔ t ∈ p.support ∨ t ∈ p'.support :=
-begin
-  simp only [mem_support_iff, mem_tail_support_append_iff],
-  split,
-  { rintro (rfl|h|h); simp [*], },
-  { rintro ((rfl|h) | (rfl|h)); try { simp [*] },
-    rw or_iff_not_imp_left,
-    intro h,
-    simp [ne.symm h], },
-end
-
-lemma coe_support {u v : V} (p : G.walk u v) :
-  (p.support : multiset V) = {u} + p.support.tail :=
-by cases p; refl
-
-lemma coe_support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
-  ((p.append p').support : multiset V) = {u} + p.support.tail + p'.support.tail :=
-by rw [support_append, ←multiset.coe_add, coe_support]
-
-lemma coe_support_append' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
-  ((p.append p').support : multiset V) = p.support + p'.support - {v} :=
-begin
-  rw [support_append, ←multiset.coe_add],
-  simp only [coe_support],
-  rw add_comm {v},
-  simp only [← add_assoc, add_tsub_cancel_right],
-end
-
-@[simp]
-lemma support_reverse {u v : V} (p : G.walk u v) : p.reverse.support = p.support.reverse :=
-by induction p; simp [support_append, *]
-
-@[simp]
-lemma edges_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
-  (p.append p').edges = p.edges ++ p'.edges :=
-by induction p; simp [*]
-
-@[simp]
-lemma edges_reverse {u v : V} (p : G.walk u v) : p.reverse.edges = p.edges.reverse :=
-by induction p; simp [*, sym2.eq_swap]
-
-
-
-lemma reverse_trail {u v : V} (p : G.walk u v) (h : p.is_trail) : p.reverse.is_trail :=
-by simpa [is_trail_def] using h
-
-@[simp] lemma is_trail_reverse_iff {u v : V} (p : G.walk u v) : p.reverse.is_trail ↔ p.is_trail :=
-by split; { intro h, convert reverse_trail _ h, try { rw reverse_reverse } }
-
-lemma is_trail_of_append_left {u v w : V} (p : G.walk u v) (q : G.walk v w)
-  (h : (p.append q).is_trail) : p.is_trail :=
-by { rw [is_trail_def, edges_append, list.nodup_append] at h, exact ⟨h.1⟩ }
-
-lemma is_trail_of_append_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
-  (h : (p.append q).is_trail) : q.is_trail :=
-by { rw [is_trail_def, edges_append, list.nodup_append] at h, exact ⟨h.2.1⟩ }
-
-lemma reverse_path {u v : V} (p : G.walk u v) (h : p.is_path) : p.reverse.is_path :=
+lemma is_path.reverse {u v : V} {p : G.walk u v} (h : p.is_path) : p.reverse.is_path :=
 by simpa [is_path_def] using h
 
 @[simp] lemma is_path_reverse_iff {u v : V} (p : G.walk u v) : p.reverse.is_path ↔ p.is_path :=
-by split; intro h; convert reverse_path _ h; simp
+by split; intro h; convert h.reverse; simp
 
-lemma is_path_of_append_left {u v w : V} (p : G.walk u v) (q : G.walk v w)
-  (h : (p.append q).is_path) : p.is_path :=
-begin
-  refine ⟨is_trail_of_append_left _ _ h.to_trail, _⟩,
-  have h' := h.support_nodup,
-  rw support_append at h',
-  exact list.nodup_of_nodup_append_left h',
-end
+lemma is_path.of_append_left {u v w : V} {p : G.walk u v} {q : G.walk v w} :
+  (p.append q).is_path → p.is_path :=
+by { simp only [is_path_def, support_append], exact list.nodup_of_nodup_append_left }
 
-lemma is_path_of_append_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
+lemma is_path.of_append_right {u v w : V} {p : G.walk u v} {q : G.walk v w}
   (h : (p.append q).is_path) : q.is_path :=
 begin
   rw ←is_path_reverse_iff at h ⊢,
   rw reverse_append at h,
-  exact is_path_of_append_left _ _ h,
+  apply h.of_append_left,
 end
 
 end walk
+
+-- ^^^ in a PR ^^^
 
 /-- Two vertices are *reachable* if there is a walk between them.
 
@@ -487,8 +479,7 @@ abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := 
 /-- A graph is *k-edge-connected* if it remains connected whenever
 fewer than k edges are removed. -/
 def edge_connected (k : ℕ) : Prop :=
-∀ (s : finset (sym2 V)), ↑s ⊆ G.edge_set → s.card < k →
-  ((⊤ : G.subgraph).delete_edges ↑s).spanning_coe.connected
+∀ (s : finset (sym2 V)), ↑s ⊆ G.edge_set → s.card < k → (G.delete_edges ↑s).connected
 
 section walk_to_path
 
@@ -595,21 +586,21 @@ lemma edges_drop_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support)
   (p.drop_until u h).edges ⊆ p.edges :=
 λ x hx, by { rw [← take_spec p h, edges_append, list.mem_append], exact or.inr hx }
 
-lemma take_until_is_trail {u v w : V} (p : G.walk v w) (hc : p.is_trail) (h : u ∈ p.support) :
+lemma is_trail.take_until {u v w : V} {p : G.walk v w} (hc : p.is_trail) (h : u ∈ p.support) :
   (p.take_until u h).is_trail :=
-is_trail_of_append_left _ _ (by rwa ← take_spec _ h at hc)
+is_trail.of_append_left (by rwa ← take_spec _ h at hc)
 
-lemma drop_until_is_trail {u v w : V} (p : G.walk v w) (hc : p.is_trail) (h : u ∈ p.support) :
+lemma is_trail.drop_until {u v w : V} {p : G.walk v w} (hc : p.is_trail) (h : u ∈ p.support) :
   (p.drop_until u h).is_trail :=
-is_trail_of_append_right _ _ (by rwa ← take_spec _ h at hc)
+is_trail.of_append_right (by rwa ← take_spec _ h at hc)
 
-lemma take_until_is_path {u v w : V} (p : G.walk v w) (hc : p.is_path) (h : u ∈ p.support) :
+lemma is_path.take_until {u v w : V} {p : G.walk v w} (hc : p.is_path) (h : u ∈ p.support) :
   (p.take_until u h).is_path :=
-is_path_of_append_left _ _ (by rwa ← take_spec _ h at hc)
+is_path.of_append_left (by rwa ← take_spec _ h at hc)
 
-lemma drop_until_is_path {u v w : V} (p : G.walk v w) (hc : p.is_path) (h : u ∈ p.support) :
+lemma is_path.drop_until {u v w : V} (p : G.walk v w) (hc : p.is_path) (h : u ∈ p.support) :
   (p.drop_until u h).is_path :=
-is_path_of_append_right _ _ (by rwa ← take_spec _ h at hc)
+is_path.of_append_right (by rwa ← take_spec _ h at hc)
 
 /-- Given a vertex in the tail support of a path, give the path up until that vertex.
 Useful for when `u` might equal `v`. -/
@@ -652,17 +643,17 @@ begin
   rw [←edges_append, take_spec],
 end
 
-lemma rotate_trail {u v : V} (c : G.walk v v) (hc : c.is_trail) (h : u ∈ c.support) :
+lemma is_trail.rotate {u v : V} {c : G.walk v v} (hc : c.is_trail) (h : u ∈ c.support) :
   (c.rotate h).is_trail :=
 begin
   rw [is_trail_def, (c.rotate_edges h).perm.nodup_iff],
   exact hc.edges_nodup,
 end
 
-lemma rotate_circuit {u v : V} (c : G.walk v v) (hc : c.is_circuit) (h : u ∈ c.support) :
+lemma is_circuit.rotate {u v : V} {c : G.walk v v} (hc : c.is_circuit) (h : u ∈ c.support) :
   (c.rotate h).is_circuit :=
 begin
-  refine ⟨rotate_trail _ hc.to_trail _, _⟩,
+  refine ⟨hc.to_trail.rotate _, _⟩,
   cases c,
   { exact (hc.ne_nil rfl).elim, },
   { intro hn,
@@ -671,10 +662,10 @@ begin
     simpa using hn', },
 end
 
-lemma rotate_cycle {u v : V} (c : G.walk v v) (hc : c.is_cycle) (h : u ∈ c.support) :
+lemma is_cycle.rotate {u v : V} {c : G.walk v v} (hc : c.is_cycle) (h : u ∈ c.support) :
   (c.rotate h).is_cycle :=
 begin
-  refine ⟨rotate_circuit _ hc.to_circuit _, _⟩,
+  refine ⟨hc.to_circuit.rotate _, _⟩,
   rw list.is_rotated.nodup_iff (rotate_support _ _),
   exact hc.support_nodup,
 end
@@ -694,7 +685,7 @@ begin
   { simp!, },
   { simp! only,
     split_ifs,
-    { apply drop_until_is_path,
+    { apply is_path.drop_until,
       assumption, },
     { simp [*, cons_is_path_iff], } },
 end
@@ -741,20 +732,17 @@ end walk
 namespace walk
 variables {G}
 
-/-- Given a walk that avoids an edge, create a walk in the subgraph with that deleted. -/
+/-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted. -/
 def walk_of_avoiding_walk {v w : V} (e : sym2 V)
   (p : G.walk v w) (hp : e ∉ p.edges) :
-  ((⊤ : G.subgraph).delete_edges {e}).spanning_coe.walk v w :=
+  (G.delete_edges {e}).walk v w :=
 begin
   induction p,
   { refl, },
   { simp only [edges, list.mem_cons_iff] at hp,
     push_neg at hp,
-    apply walk.cons _ (p_ih _),
-    use p_h,
-    simp only [set.mem_singleton_iff, subtype.coe_mk],
-    exact hp.1.symm,
-    exact hp.2, },
+    apply walk.cons _ (p_ih hp.2),
+    simp [*, hp.1.symm], },
 end
 
 /-- Helpful for replacing walks in an expression with paths. -/
@@ -783,7 +771,7 @@ by simp [singleton]
 /-- The reverse of a path is another path.  See `simple_graph.walk.reverse`. -/
 @[symm] def reverse {u v : V} (p : G.path u v) : G.path v u :=
 by { classical,
-     exact ⟨walk.reverse p, walk.reverse_path p p.property⟩ }
+     exact ⟨walk.reverse p, p.property.reverse⟩ }
 
 lemma support_count_eq_one [decidable_eq V] {u v w : V} {p : G.path u v}
   (hw : w ∈ (p : G.walk u v).support) : (p : G.walk u v).support.count w = 1 :=
@@ -849,17 +837,16 @@ def path.map (f : G →g G') (hinj : function.injective f) {u v : V} (p : G.path
     exact hp.2 hx, },
 end⟩
 
-lemma preconnected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) :
+lemma edge_connected.to_preconnected {k : ℕ} (h : G.edge_connected k) (hk : 0 < k) :
   G.preconnected :=
 begin
   intros v w,
   have h' := (h ∅ (by simp) (by simp [hk])).preconnected v w,
-  simp only [finset.coe_empty, subgraph.delete_edges_of_empty] at h',
-  cases h',
-  exact ⟨h'.map (subgraph.map_spanning_top _)⟩,
+  simp only [finset.coe_empty, delete_edges_empty_eq] at h',
+  exact h',
 end
 
-lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) : G.connected :=
+lemma edge_connected.to_connected {k : ℕ} (h : G.edge_connected k) (hk : 0 < k) : G.connected :=
 let C' := h ∅ (by simp) (by simp [hk]) in
 { preconnected := by simpa using C'.preconnected,
   nonempty := C'.nonempty }
@@ -901,6 +888,8 @@ variables {G} (H : subgraph G)
 /-- An edge of a subgraph is a bridge edge if, after removing it, its incident vertices
 are no longer reachable.  The vertices are meant to be adjacent.
 
+Since this is for simple graphs, we use the endpoints of the vertices as the edge itself.
+
 Implementation note: this uses `simple_graph.subgraph.spanning_coe` since adding
 vertices to a subgraph does not change reachability, and it is simpler than
 dealing with the dependent types from `simple_graph.subgraph.coe`. -/
@@ -915,7 +904,7 @@ are no longer reachable.
 Characterizations of bridges:
 `simple_graph.is_bridge_iff_walks_contain`
 `is_bridge_iff_no_cycle_contains` -/
-def is_bridge (v w : V) : Prop := (⊤ : G.subgraph).is_bridge v w
+def is_bridge (v w : V) : Prop := ¬ (G.delete_edges {⟦(v, w)⟧}).reachable v w
 
 lemma is_bridge_iff_walks_contain {v w : V} :
   G.is_bridge v w ↔ ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges :=
@@ -927,14 +916,15 @@ begin
     exact ⟨p.walk_of_avoiding_walk _ he⟩, },
   { intro hpe,
     rintro ⟨p'⟩,
-    specialize hpe (p'.map (subgraph.map_spanning_top _)),
+    specialize hpe (p'.map (hom.map_spanning_subgraphs (G.delete_edges_le _))),
     simp only [set_coe.exists, walk.map_edges_eq, list.mem_map] at hpe,
     obtain ⟨z, he, hd⟩ := hpe,
-    simp only [subgraph.map_spanning_top, hom.map_edge_set, rel_hom.coe_fn_mk,
-      id.def, subtype.coe_mk, sym2.map_id] at hd,
+    simp only [hom.map_spanning_subgraphs, rel_hom.coe_fn_mk] at hd,
+    change sym2.map id z = _ at hd,
+    simp only [id.def, sym2.map_id] at hd,
     subst z,
     have := p'.edges_subset_edge_set he,
-    simpa [subgraph.spanning_coe] using this, },
+    simpa using this, },
 end
 
 variables [decidable_eq V]
@@ -965,7 +955,7 @@ begin
     rw [add_assoc ↑p11.edges, add_comm ↑p12.edges, ←add_assoc],
     congr' 1,
     rw add_comm,
-    apply c.count_edges_eq_one_of_trail hc he, },
+    exact hc.count_edges_eq_one he, },
   have this'' : multiset.count ⟦(v, w)⟧ (p2.append p11).edges
                   + multiset.count ⟦(v, w)⟧ p12.edges = 1,
   { convert this',
@@ -973,20 +963,20 @@ begin
     symmetry,
     apply multiset.count_add, },
   have hA : multiset.count ⟦(v, w)⟧ (p2.append p11).edges = 1,
-  { apply walk.count_edges_eq_one_of_trail,
-    have hr := c.rotate_trail hc hv,
+  { apply walk.is_trail.count_edges_eq_one,
+    have hr := hc.rotate hv,
     have : c.rotate hv = (p2.append p11).append p12,
     { simp [walk.rotate],
       rw ←walk.append_assoc,
       congr' 1,
       simp, },
     rw this at hr,
-    apply walk.is_trail_of_append_left _ _ hr,
+    apply walk.is_trail.of_append_left hr,
     assumption, },
   have hB : multiset.count ⟦(v, w)⟧ p12.edges = 1,
-  { apply walk.count_edges_eq_one_of_trail,
-    apply walk.is_trail_of_append_right,
-    apply walk.is_trail_of_append_left,
+  { apply walk.is_trail.count_edges_eq_one,
+    apply walk.is_trail.of_append_right,
+    apply walk.is_trail.of_append_left,
     rw this,
     exact hc,
     simpa using hpq', },
@@ -1018,7 +1008,7 @@ begin
                   ←list.mem_append, ←walk.edges_append, walk.take_spec,
                   sym2.eq_swap],
               exact he })
-        _ (walk.rotate_trail _ hc.to_trail hv),
+        _ (hc.to_trail.rotate hv),
       swap,
       { rw walk.mem_support_append_iff,
         exact or.inl hw', },
@@ -1189,7 +1179,7 @@ begin
   rw is_acyclic_iff at h',
   specialize h' _ _
     (G.tree_path h v root)
-    ⟨walk.drop_until _ _ hv, walk.drop_until_is_path _ (path.path_is_path _) _⟩,
+    ⟨walk.drop_until _ _ hv, walk.is_path.drop_until _ (path.path_is_path _) _⟩,
   have hs := congr_arg (λ p, multiset.count w ↑(walk.support p)) (walk.take_spec _ hv),
   dsimp only at hs,
   rw h' at hvw,
@@ -1203,9 +1193,9 @@ begin
   rw [path.support_count_eq_one] at hs,
   swap, { simp, },
   rw walk.coe_path (walk.take_until _ _ _) at hs,
-  swap, { apply walk.take_until_is_path, apply path.path_is_path, },
+  swap, { apply walk.is_path.take_until, apply path.path_is_path, },
   rw walk.coe_path (walk.drop_until _ _ _) at hs,
-  swap, { apply walk.drop_until_is_path, apply path.path_is_path, },
+  swap, { apply walk.is_path.drop_until, apply path.path_is_path, },
   rw [path.support_count_eq_one, path.support_count_eq_one] at hs,
   simpa using hs,
   apply walk.mem_support_of_mem_edges _ (by { rw [sym2.eq_swap], exact hvw }),

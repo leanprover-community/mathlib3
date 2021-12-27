@@ -1151,15 +1151,15 @@ def transpose_add_equiv [has_add α] : matrix m n α ≃+ matrix n m α :=
 
 lemma transpose_list_sum [add_monoid α] (l : list (matrix m n α)) :
   l.sumᵀ = (l.map transpose).sum :=
-(transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_list_sum l
+l.map_sum (transpose_add_equiv : matrix m n α ≃+ matrix n m α)
 
 lemma transpose_multiset_sum [add_comm_monoid α] (s : multiset (matrix m n α)) :
   s.sumᵀ = (s.map transpose).sum :=
-(transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_multiset_sum s
+s.map_sum (transpose_add_equiv : matrix m n α ≃+ matrix n m α)
 
 lemma transpose_sum [add_comm_monoid α] {ι : Type*} (s : finset ι) (M : ι → matrix m n α) :
   (∑ i in s, M i)ᵀ = ∑ i in s, (M i)ᵀ :=
-(transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_sum _ s
+s.map_sum (transpose_add_equiv : matrix m n α ≃+ matrix n m α)
 
 /-- `matrix.transpose` as a `ring_equiv` to the opposite ring -/
 @[simps]
@@ -1172,7 +1172,7 @@ def transpose_ring_equiv [comm_semiring α] [fintype m] : matrix m m α ≃+* (m
 
 lemma transpose_list_prod [comm_semiring α] [fintype m] [decidable_eq m] (l : list (matrix m m α)) :
   l.prodᵀ = (l.map transpose).reverse.prod :=
-(transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ).unop_map_list_prod l
+l.unop_map_prod (transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ)
 
 end transpose
 
@@ -1229,17 +1229,17 @@ def conj_transpose_add_equiv [add_monoid α] [star_add_monoid α] : matrix m n �
 
 lemma conj_transpose_list_sum [add_monoid α] [star_add_monoid α] (l : list (matrix m n α)) :
   l.sumᴴ = (l.map conj_transpose).sum :=
-(conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_list_sum l
+l.map_sum (conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α)
 
 lemma conj_transpose_multiset_sum [add_comm_monoid α] [star_add_monoid α]
   (s : multiset (matrix m n α)) :
   s.sumᴴ = (s.map conj_transpose).sum :=
-(conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_multiset_sum s
+s.map_sum (conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α)
 
 lemma conj_transpose_sum [add_comm_monoid α] [star_add_monoid α] {ι : Type*} (s : finset ι)
   (M : ι → matrix m n α) :
   (∑ i in s, M i)ᴴ = ∑ i in s, (M i)ᴴ :=
-(conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_sum _ s
+s.map_sum (conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α) M
 
 /-- `matrix.conj_transpose` as a `ring_equiv` to the opposite ring -/
 @[simps]
@@ -1254,7 +1254,7 @@ def conj_transpose_ring_equiv [comm_semiring α] [star_ring α] [fintype m] :
 lemma conj_transpose_list_prod [comm_semiring α] [star_ring α] [fintype m] [decidable_eq m]
   (l : list (matrix m m α)) :
   l.prodᴴ = (l.map conj_transpose).reverse.prod :=
-(conj_transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ).unop_map_list_prod l
+l.unop_map_prod (conj_transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ)
 
 end conj_transpose
 

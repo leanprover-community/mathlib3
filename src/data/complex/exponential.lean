@@ -438,18 +438,21 @@ by rw lim_mul_lim;
 
 attribute [irreducible] complex.exp
 
+/-- `complex.exp` as a monoid homomorphism. -/
+def exp_hom : multiplicative ℂ →* ℂ :=
+⟨exp ∘ multiplicative.to_add, exp_zero, exp_add⟩
+
 lemma exp_list_sum (l : list ℂ) : exp l.sum = (l.map exp).prod :=
-@monoid_hom.map_list_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ l
+@list.map_prod (multiplicative ℂ) ℂ _ _ _ _ exp_hom l
 
 lemma exp_multiset_sum (s : multiset ℂ) : exp s.sum = (s.map exp).prod :=
-@monoid_hom.map_multiset_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ s
+@multiset.map_prod (multiplicative ℂ) ℂ _ _ _ _ s exp_hom
 
 lemma exp_sum {α : Type*} (s : finset α) (f : α → ℂ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
-@monoid_hom.map_prod (multiplicative ℂ) α ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+finset.map_prod exp_hom (multiplicative.of_add ∘ f) s
 
-lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
-| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
-| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
+lemma exp_nat_mul (x : ℂ) (n : ℕ) : exp (n * x) = (exp x)^n :=
+by { rw ← nsmul_eq_mul, exact exp_hom.map_pow x n }
 
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, zero_ne_one $ by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
@@ -475,7 +478,7 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw star_ring_aut.map_sum,
+  rw map_sum,
   refine sum_congr rfl (λ n hn, _),
   rw [ring_equiv.map_div, ring_equiv.map_pow, ← of_real_nat_cast, conj_of_real]
 end
@@ -909,14 +912,17 @@ by simp [real.exp]
 lemma exp_add : exp (x + y) = exp x * exp y :=
 by simp [exp_add, exp]
 
+def exp_hom : multiplicative ℝ →* ℝ :=
+⟨exp ∘ multiplicative.to_add, exp_zero, exp_add⟩
+
 lemma exp_list_sum (l : list ℝ) : exp l.sum = (l.map exp).prod :=
-@monoid_hom.map_list_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ l
+@list.map_prod (multiplicative ℝ) ℝ _ _ _ _ exp_hom l
 
 lemma exp_multiset_sum (s : multiset ℝ) : exp s.sum = (s.map exp).prod :=
-@monoid_hom.map_multiset_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ s
+@multiset.map_prod (multiplicative ℝ) ℝ _ _ _ _ s exp_hom
 
 lemma exp_sum {α : Type*} (s : finset α) (f : α → ℝ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
-@monoid_hom.map_prod (multiplicative ℝ) α ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+s.map_prod exp_hom (multiplicative.of_add ∘ f)
 
 lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]

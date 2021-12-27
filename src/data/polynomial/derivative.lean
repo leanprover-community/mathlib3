@@ -246,7 +246,7 @@ begin
   rw [multiset.map_cons, multiset.prod_cons, derivative_mul, multiset.map_cons _ i s,
     multiset.sum_cons, multiset.erase_cons_head, mul_comm (f i).derivative],
   congr,
-  rw [h, ← add_monoid_hom.coe_mul_left, (add_monoid_hom.mul_left (f i)).map_multiset_sum _,
+  rw [h, ← add_monoid_hom.coe_mul_left, multiset.map_sum _ (add_monoid_hom.mul_left (f i)),
     add_monoid_hom.coe_mul_left],
   simp only [function.comp_app, multiset.map_map],
   congr' 1,
@@ -328,7 +328,7 @@ lemma eval_multiset_prod_X_sub_C_derivative {S : multiset R} {r : R} (hr : r ∈
   (multiset.map (λ a, r - a) (S.erase r)).prod :=
 begin
   nth_rewrite 0 [← multiset.cons_erase hr],
-  simpa using (eval_ring_hom r).map_multiset_prod (multiset.map (λ a, X - C a) (S.erase r)),
+  simpa using eval_multiset_prod (multiset.map (λ a, X - C a) (S.erase r)) r,
 end
 
 end comm_ring

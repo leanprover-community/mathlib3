@@ -1405,11 +1405,11 @@ zero_hom.ext $ λ _, rfl
 
 lemma map_range_multiset_sum (f : M →+ N) (m : multiset (α →₀ M)) :
   map_range f f.map_zero m.sum = (m.map $ λx, map_range f f.map_zero x).sum :=
-map_multiset_sum (map_range.add_monoid_hom f : (α →₀ _) →+ _) m
+m.map_sum (map_range.add_monoid_hom f : (α →₀ _) →+ _)
 
 lemma map_range_finset_sum (f : M →+ N) (s : finset ι) (g : ι → (α →₀ M))  :
   map_range f f.map_zero (∑ x in s, g x) = ∑ x in s, map_range f f.map_zero (g x) :=
-map_sum (map_range.add_monoid_hom f : (α →₀ _) →+ _) g s
+s.map_sum (map_range.add_monoid_hom f : (α →₀ _) →+ _) g
 
 /-- `finsupp.map_range.add_monoid_hom` as an equiv. -/
 @[simps apply]

@@ -445,7 +445,7 @@ variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
-map_list_sum (distrib_mul_action.to_add_monoid_hom β r) l
+l.map_sum (distrib_mul_action.to_add_monoid_hom β r)
 
 /-- `smul` by a `k : M` over a ring is injective, if `k` is not a zero divisor.
 The general theory of such `k` is elaborated by `is_smul_regular`.
@@ -466,7 +466,7 @@ variables [monoid α] [monoid β] [mul_distrib_mul_action α β]
 
 lemma list.smul_prod {r : α} {l : list β} :
   r • l.prod = (l.map ((•) r)).prod :=
-map_list_prod (mul_distrib_mul_action.to_monoid_hom β r) l
+l.map_prod (mul_distrib_mul_action.to_monoid_hom β r)
 
 end
 
@@ -475,11 +475,11 @@ variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
 
 lemma multiset.smul_sum {r : α} {s : multiset β} :
   r • s.sum = (s.map ((•) r)).sum :=
-map_multiset_sum (distrib_mul_action.to_add_monoid_hom β r) s
+s.map_sum (distrib_mul_action.to_add_monoid_hom β r)
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • ∑ x in s, f x = ∑ x in s, r • f x :=
-map_sum (distrib_mul_action.to_add_monoid_hom β r) f s
+s.map_sum (distrib_mul_action.to_add_monoid_hom β r) f
 
 end
 
@@ -488,11 +488,11 @@ variables [monoid α] [comm_monoid β] [mul_distrib_mul_action α β]
 
 lemma multiset.smul_prod {r : α} {s : multiset β} :
   r • s.prod = (s.map ((•) r)).prod :=
-map_multiset_prod (mul_distrib_mul_action.to_monoid_hom β r) s
+s.map_prod (mul_distrib_mul_action.to_monoid_hom β r)
 
 lemma finset.smul_prod {r : α} {f : γ → β} {s : finset γ} :
   r • ∏ x in s, f x = ∏ x in s, r • f x :=
-map_prod (mul_distrib_mul_action.to_monoid_hom β r) f s
+s.map_prod (mul_distrib_mul_action.to_monoid_hom β r) f
 
 end
 

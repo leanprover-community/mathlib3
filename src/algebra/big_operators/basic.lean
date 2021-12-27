@@ -104,25 +104,25 @@ rfl
   s.sum (λ x, {x}) = s.val :=
 by simp only [sum_eq_multiset_sum, multiset.sum_map_singleton]
 
-end finset
-
 @[to_additive]
 lemma map_prod {F} [comm_monoid β] [comm_monoid γ] [monoid_hom_class F β γ]
   (g : F) (f : α → β) (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-by simp only [finset.prod_eq_multiset_prod, map_multiset_prod, multiset.map_map]
+by simp only [finset.prod_eq_multiset_prod, multiset.map_prod, multiset.map_map]
+
+end finset
 
 @[to_additive]
 lemma monoid_hom.coe_prod [mul_one_class β] [comm_monoid γ] (f : α → β →* γ) (s : finset α) :
   ⇑(∏ x in s, f x) = ∏ x in s, f x :=
-map_prod (monoid_hom.coe_fn β γ) f s
+s.map_prod (monoid_hom.coe_fn β γ) f
 
 -- See also `finset.prod_apply`, with the same conclusion
 -- but with the weaker hypothesis `f : α → β → γ`.
 @[simp, to_additive]
 lemma monoid_hom.finset_prod_apply [mul_one_class β] [comm_monoid γ] (f : α → β →* γ)
   (s : finset α) (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
-map_prod (monoid_hom.eval b : (β →* γ) →* γ) f s
+s.map_prod (monoid_hom.eval b : (β →* γ) →* γ) f
 
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 

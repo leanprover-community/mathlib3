@@ -641,7 +641,7 @@ begin
   { apply eq_top_iff.mpr,
     intros b _,
     exact list.mem_to_finset.mpr (mem_l b) },
-  rw [← prod_prod_extend_right σ hl mem_l, sign.map_list_prod,
+  rw [← prod_prod_extend_right σ hl mem_l, list.map_prod sign,
       list.map_map, ← l_to_finset, list.prod_to_finset _ hl],
   simp_rw ← λ a, sign_prod_extend_right a (σ a)
 end

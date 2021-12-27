@@ -284,14 +284,14 @@ open_locale big_operators
 variables {R}
 
 lemma list_sum_pow_char (l : list R) : l.sum ^ p = (l.map (^ p)).sum :=
-(frobenius R p).map_list_sum _
+l.map_sum (frobenius R p)
 
 lemma multiset_sum_pow_char (s : multiset R) : s.sum ^ p = (s.map (^ p)).sum :=
-(frobenius R p).map_multiset_sum _
+s.map_sum (frobenius R p)
 
 lemma sum_pow_char {ι : Type*} (s : finset ι) (f : ι → R) :
   (∑ i in s, f i) ^ p = ∑ i in s, f i ^ p :=
-(frobenius R p).map_sum _ _
+s.map_sum (frobenius R p) f
 
 end comm_semiring
 

@@ -673,10 +673,6 @@ by { ext, refl }
   of_linear_map linear_map.id map_one map_mul = alg_hom.id R A :=
 ext $ λ _, rfl
 
-lemma map_list_prod (s : list A) :
-  φ s.prod = (s.map φ).prod :=
-φ.to_ring_hom.map_list_prod s
-
 section prod
 
 /-- First projection as `alg_hom`. -/

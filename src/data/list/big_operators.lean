@@ -97,7 +97,7 @@ end
   (L.map (g ∘ f)).prod = g ((L.map f).prod) :=
 by rw [← prod_hom, map_map]
 
-@[to_additive] lemma _root_.map_list_prod (f : F) (l : list M) :
+@[to_additive] lemma map_prod (f : F) (l : list M) :
   f l.prod = (l.map f).prod :=
 (l.prod_hom f).symm
 
@@ -105,7 +105,7 @@ end hom
 
 @[to_additive]
 lemma coe_prod_units (l : list (units M)) : (l.prod : M) = (l.map coe).prod :=
-map_list_prod (units.coe_hom M) l
+l.map_prod (units.coe_hom M)
 
 @[to_additive]
 lemma prod_is_unit {l : list M} (u : ∀ u ∈ l, is_unit u) : is_unit l.prod :=
@@ -163,9 +163,9 @@ by rw [← op_inj, op_unop, mul_opposite.op_list_prod, map_reverse, map_map, rev
   op_comp_unop, map_id]
 
 /-- A morphism into the opposite monoid acts on the product by acting on the reversed elements. -/
-lemma _root_.unop_map_list_prod {F : Type*} [monoid_hom_class F M Nᵐᵒᵖ] (f : F) (l : list M) :
+lemma unop_map_prod {F : Type*} [monoid_hom_class F M Nᵐᵒᵖ] (f : F) (l : list M) :
   unop (f l.prod) = (l.map (unop ∘ f)).reverse.prod :=
-by rw [map_list_prod f l, mul_opposite.unop_list_prod, map_map]
+by rw [l.map_prod f, mul_opposite.unop_list_prod, map_map]
 
 end monoid
 

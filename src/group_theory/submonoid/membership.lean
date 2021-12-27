@@ -46,16 +46,16 @@ S.subtype.map_pow x n
 
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
   (l.prod : M) = (l.map coe).prod :=
-map_list_prod S.subtype l
+l.map_prod S.subtype
 
 @[simp, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
   (m : multiset S) : (m.prod : M) = (m.map coe).prod :=
-map_multiset_prod S.subtype m
+m.map_prod S.subtype
 
 @[simp, norm_cast, to_additive] theorem coe_finset_prod {ι M} [comm_monoid M] (S : submonoid M)
   (f : ι → S) (s : finset ι) :
   ↑(∏ i in s, f i) = (∏ i in s, f i : M) :=
-map_prod S.subtype f s
+s.map_prod S.subtype f
 
 /-- Product of a list of elements in a submonoid is in the submonoid. -/
 @[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]

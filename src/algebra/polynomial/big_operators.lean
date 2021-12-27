@@ -310,7 +310,7 @@ where additionally, the product of the leading coefficients must be nonzero.
 -/
 lemma leading_coeff_multiset_prod :
   t.prod.leading_coeff = (t.map (λ f, leading_coeff f)).prod :=
-by { rw [← leading_coeff_hom_apply, monoid_hom.map_multiset_prod], refl }
+by { rw [← leading_coeff_hom_apply, multiset.map_prod], refl }
 
 /--
 The leading coefficient of a product of polynomials is equal to

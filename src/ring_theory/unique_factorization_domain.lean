@@ -572,8 +572,7 @@ normalization_monoid_of_monoid_hom_right_inverse
     rw [function.comp_apply, mk_monoid_hom_apply,
       classical.some_spec mk_surjective.has_right_inverse x],
     refl },
-  rw [if_neg hx, ← mk_monoid_hom_apply, monoid_hom.map_multiset_prod, map_map, h, map_id,
-      ← associated_iff_eq],
+  rw [if_neg hx, ← mk_monoid_hom_apply, multiset.map_prod, map_map, h, map_id, ← associated_iff_eq],
   apply normalized_factors_prod hx
 end
 

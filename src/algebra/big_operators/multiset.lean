@@ -112,9 +112,9 @@ begin
 end
 
 @[to_additive]
-lemma prod_hom {F : Type*} [comm_monoid β] [monoid_hom_class F α β] (s : multiset α) (f : F) :
-  (s.map f).prod = f s.prod :=
-quotient.induction_on s $ λ l, by simp only [map_list_prod, quot_mk_to_coe, coe_map, coe_prod]
+lemma map_prod {F : Type*} [comm_monoid β] [monoid_hom_class F α β] (s : multiset α) (f : F) :
+  f s.prod = (s.map f).prod :=
+quotient.induction_on s $ λ l, by simp only [list.map_prod, quot_mk_to_coe, coe_map, coe_prod]
 
 @[to_additive]
 lemma prod_hom_rel [comm_monoid β] (s : multiset ι) {r : α → β → Prop} {f : ι → α} {g : ι → β}
@@ -171,7 +171,7 @@ variables [comm_group α]
 
 @[simp, to_additive]
 lemma prod_map_inv (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
-m.prod_hom (@comm_group.inv_monoid_hom α _)
+(m.map_prod (@comm_group.inv_monoid_hom α _)).symm
 
 end comm_group
 
@@ -339,9 +339,3 @@ lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
 le_sum_of_subadditive _ abs_zero abs_add s
 
 end multiset
-
-@[to_additive]
-lemma map_multiset_prod {F} [comm_monoid α] [comm_monoid β] [monoid_hom_class F α β]
-  (f : F) (s : multiset α) :
-  f s.prod = (s.map f).prod :=
-(s.prod_hom f).symm

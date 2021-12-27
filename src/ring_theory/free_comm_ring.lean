@@ -102,7 +102,7 @@ private def lift_to_multiset : (α → R) ≃ (multiplicative (multiset α) →*
   right_inv := λ F, monoid_hom.ext $ λ x,
     let F' := F.to_additive'', x' := x.to_add in show (multiset.map (λ a, F' {a}) x').sum = F' x',
     begin
-      rw [←multiset.map_map, ←add_monoid_hom.map_multiset_sum],
+      rw [←multiset.map_map, ←multiset.map_sum],
       exact F.congr_arg (multiset.sum_map_singleton x'),
     end }
 

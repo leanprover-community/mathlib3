@@ -266,7 +266,7 @@ lemma exists_mem_of_not_is_unit_aeval_prod {p : polynomial 𝕜} {a : A} (hp : p
   (h : ¬is_unit (aeval a (multiset.map (λ (x : 𝕜), X - C x) p.roots).prod)) :
   ∃ k : 𝕜, k ∈ σ a ∧ eval k p = 0 :=
 begin
-  rw [←multiset.prod_to_list, alg_hom.map_list_prod] at h,
+  rw [← multiset.prod_to_list, list.map_prod] at h,
   replace h := mt list.prod_is_unit h,
   simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
     list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at h,

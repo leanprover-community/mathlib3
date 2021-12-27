@@ -195,23 +195,23 @@ by cases n; simp
 
 @[norm_cast] lemma coe_list_sum (l : list ℝ≥0) :
   ((l.sum : ℝ≥0) : ℝ) = (l.map coe).sum :=
-to_real_hom.map_list_sum l
+l.map_sum to_real_hom
 
 @[norm_cast] lemma coe_list_prod (l : list ℝ≥0) :
   ((l.prod : ℝ≥0) : ℝ) = (l.map coe).prod :=
-to_real_hom.map_list_prod l
+l.map_prod to_real_hom
 
 @[norm_cast] lemma coe_multiset_sum (s : multiset ℝ≥0) :
   ((s.sum : ℝ≥0) : ℝ) = (s.map coe).sum :=
-to_real_hom.map_multiset_sum s
+s.map_sum to_real_hom
 
 @[norm_cast] lemma coe_multiset_prod (s : multiset ℝ≥0) :
   ((s.prod : ℝ≥0) : ℝ) = (s.map coe).prod :=
-to_real_hom.map_multiset_prod s
+s.map_prod to_real_hom
 
 @[norm_cast] lemma coe_sum {α} {s : finset α} {f : α → ℝ≥0} :
   ↑(∑ a in s, f a) = ∑ a in s, (f a : ℝ) :=
-to_real_hom.map_sum _ _
+s.map_sum to_real_hom f
 
 lemma _root_.real.to_nnreal_sum_of_nonneg {α} {s : finset α} {f : α → ℝ}
   (hf : ∀ a, a ∈ s → 0 ≤ f a) :

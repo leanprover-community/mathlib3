@@ -72,20 +72,22 @@ begin
     exact M.edge_vert hw }
 end
 
+-- TODO: prove and move
+instance {G' : subgraph G} [fintype V] : fintype G'.verts := sorry
+
 lemma even_card_vertices_of_perfect_matching {M : subgraph G}
   [fintype V] [decidable_eq V] [decidable_rel G.adj]
     (h : M.is_perfect_matching) : even (fintype.card V) :=
 begin
   let G' := M.coe,
-  have hdec : decidable_rel G'.adj,
-  { sorry, },
-  have hfin : fintype M.verts,
-  { sorry, },
+  have hdec : decidable_rel G'.adj, by { exact classical.dec_rel G'.adj },
+  have hfin : fintype M.verts, by { exact verts.fintype },
   tactic.unfreeze_local_instances,
   use G'.edge_finset.card,
   rw ← sum_degrees_eq_twice_card_edges,
   have hv : ∀ (v : M.verts), G'.degree v = 1,
-  { sorry, },
+  { -- use is_matching_iff_forall_degree here somehow
+    sorry, },
   simpa [hv, fintype.card],
   /-
   simpa failed

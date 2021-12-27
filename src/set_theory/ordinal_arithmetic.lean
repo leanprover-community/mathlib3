@@ -1930,8 +1930,8 @@ theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
 /-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
-theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (is_fixed_point f) :=
-λ a, ⟨_, H.nfp_fp a, le_nfp_self f a⟩
+theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (fixed_points f) :=
+λ a, ⟨_, H.nfp_fp a, not_lt_of_ge (le_nfp_self f a)⟩
 
 /-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=

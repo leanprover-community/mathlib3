@@ -586,6 +586,8 @@ by simp only [repeat_succ, singleton_eq_cons, eq_self_iff_true, repeat_zero, con
 
 @[simp] lemma card_repeat : ∀ (a : α) n, card (repeat a n) = n := length_repeat
 
+lemma mem_repeat {a b : α} {n : ℕ} : b ∈ repeat a n ↔ n ≠ 0 ∧ b = a := mem_repeat
+
 theorem eq_of_mem_repeat {a b : α} {n} : b ∈ repeat a n → b = a := eq_of_mem_repeat
 
 theorem eq_repeat' {a : α} {s : multiset α} : s = repeat a s.card ↔ ∀ b ∈ s, b = a :=
@@ -598,6 +600,12 @@ eq_repeat'.2
 theorem eq_repeat {a : α} {n} {s : multiset α} : s = repeat a n ↔ card s = n ∧ ∀ b ∈ s, b = a :=
 ⟨λ h, h.symm ▸ ⟨card_repeat _ _, λ b, eq_of_mem_repeat⟩,
  λ ⟨e, al⟩, e ▸ eq_repeat_of_mem al⟩
+
+lemma repeat_left_injective {n : ℕ} (hn : n ≠ 0) : function.injective (λ a : α, repeat a n) :=
+λ a b h, (eq_repeat.1 h).2 _ $ mem_repeat.2 ⟨hn, rfl⟩
+
+@[simp] lemma repeat_left_inj {a b : α} {n : ℕ} (h : n ≠ 0) : repeat a n = repeat b n ↔ a = b :=
+(repeat_left_injective h).eq_iff
 
 theorem repeat_injective (a : α) : function.injective (repeat a) :=
 λ m n h, by rw [← (eq_repeat.1 h).1, card_repeat]

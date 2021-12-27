@@ -279,7 +279,7 @@ rel.dom_mono h.2
 lemma _root_.simple_graph.to_subgraph.is_spanning (H : simple_graph V) (h : H ≤ G) :
   (H.to_subgraph h).is_spanning := set.mem_univ
 
-lemma spanning_coe.is_subgraph_of_is_subgraph {H H' : subgraph G} (h : H ≤ H') :
+lemma spanning_coe_le_of_le {H H' : subgraph G} (h : H ≤ H') :
   H.spanning_coe ≤ H'.spanning_coe := h.2
 
 /-- The top of the `subgraph G` lattice is equivalent to the graph itself. -/

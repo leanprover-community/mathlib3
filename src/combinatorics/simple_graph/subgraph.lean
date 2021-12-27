@@ -65,6 +65,9 @@ namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
+lemma adj_irrefl {v : V} (G' : subgraph G) : ¬G'.adj v v :=
+by { by_contra h, exact G.loopless v (G'.adj_sub h) }
+
 lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 ⟨λ x, G'.symm x, λ x, G'.symm x⟩
 

@@ -28,6 +28,8 @@ one edge, and the edges of the subgraph represent the paired vertices.
 
 ## TODO
 
+* Provide a bicoloring for matchings (https://leanprover.zulipchat.com/#narrow/stream/252551-graph-theory/topic/matchings/near/265495120)
+
 * Tutte's Theorem
 
 * Hall's Marriage Theorem (see combinatorics.hall)
@@ -45,6 +47,32 @@ The subgraph `M` of `G` is a matching if every vertex of `M` is incident to exac
 We say that the vertices in `M.support` are *matched* or *saturated*.
 -/
 def is_matching : Prop := ∀ ⦃v⦄, v ∈ M.verts → ∃! w, M.adj v w
+
+/-- Given a vertex, returns the unique edge of the matching it is incident to. -/
+noncomputable def is_matching.to_edge {M : subgraph G} (h : M.is_matching)
+  (v : M.verts) : M.edge_set :=
+⟨⟦(v, (h v.property).some)⟧, (h v.property).some_spec.1⟩
+
+lemma is_matching.to_edge.surjective {M : subgraph G} (h : M.is_matching) :
+  function.surjective h.to_edge :=
+begin
+  rintro ⟨e, he⟩,
+  refine sym2.ind (λ x y he, _) e he,
+  use ⟨x, M.edge_vert he⟩,
+  simp only [is_matching.to_edge, subtype.mk_eq_mk, subtype.coe_mk, sym2.congr_right],
+  exact ((h (M.edge_vert he)).some_spec.2 y he).symm,
+end
+
+lemma is_matching.eq_to_edge_of_adj {M : subgraph G} {v w : V}
+  (h : M.is_matching) (hv : v ∈ M.verts) (hw : w ∈ M.verts) (ha : M.adj v w) :
+  h.to_edge ⟨v, hv⟩ = h.to_edge ⟨w, hw⟩ :=
+begin
+  simp only [is_matching.to_edge, subtype.mk_eq_mk],
+  rw sym2.eq_swap,
+  congr,
+  { exact ((h (M.edge_vert ha)).some_spec.2 w ha).symm, },
+  { exact ((h (M.edge_vert (M.symm ha))).some_spec.2 v (M.symm ha)), },
+end
 
 /--
 The subgraph `M` of `G` is a perfect matching on `G` if it's a matching and every vertex `G` is

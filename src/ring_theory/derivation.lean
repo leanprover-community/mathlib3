@@ -34,7 +34,6 @@ TODO: update this when bimodules are defined. -/
 @[protect_proj]
 structure derivation (R : Type*) (A : Type*) [comm_semiring R] [comm_semiring A]
   [algebra R A] (M : Type*) [add_comm_monoid M] [module A M] [module R M]
-  [is_scalar_tower R A M]
   extends A →ₗ[R] M :=
 (map_one_eq_zero' : to_linear_map 1 = 0)
 (leibniz' (a b : A) : to_linear_map (a * b) = a • to_linear_map b + b • to_linear_map a)
@@ -49,7 +48,6 @@ section
 variables {R : Type*} [comm_semiring R]
 variables {A : Type*} [comm_semiring A] [algebra R A]
 variables {M : Type*} [add_comm_monoid M] [module A M] [module R M]
-variables [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : add_monoid_hom_class (derivation R A M) A M :=
@@ -88,11 +86,19 @@ protected lemma map_zero : D 0 = 0 := map_zero D
 @[simp] lemma map_smul : D (r • a) = r • D a := D.to_linear_map.map_smul r a
 @[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
 
+@[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_scalar S A] [has_scalar S M]
+  [linear_map.compatible_smul A M S R] (D : derivation R A M) (r : S) (a : A) :
+  D (r • a) = r • D a :=
+D.to_linear_map.map_smul_of_tower r a
+
 @[simp] lemma map_one_eq_zero : D 1 = 0 := D.map_one_eq_zero'
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
 by rw [←mul_one r, ring_hom.map_mul, ring_hom.map_one, ←smul_def, map_smul, map_one_eq_zero,
   smul_zero]
+
+@[simp] lemma map_coe_nat (n : ℕ) : D (n : A) = 0 :=
+by rw [← nsmul_one, D.map_smul_of_tower n, map_one_eq_zero, smul_zero]
 
 @[simp] lemma leibniz_pow (n : ℕ) : D (a ^ n) = n • a ^ (n - 1) • D a :=
 begin
@@ -177,12 +183,13 @@ instance {S : Type*} [semiring S] [module S M] [smul_comm_class R S M] [smul_com
   module S (derivation R A M) :=
 function.injective.module S coe_fn_add_monoid_hom coe_injective coe_smul
 
-instance : is_scalar_tower R A (derivation R A M) :=
+instance [is_scalar_tower R A M] : is_scalar_tower R A (derivation R A M) :=
 ⟨λ x y z, ext (λ a, smul_assoc _ _ _)⟩
 
 section push_forward
 
-variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A N]
+variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A M]
+  [is_scalar_tower R A N]
 variables (f : M →ₗ[A] N)
 
 /-- We can push forward derivations using linear maps, i.e., the composition of a derivation with a
@@ -211,7 +218,7 @@ end
 section cancel
 
 variables {R : Type*} [comm_semiring R] {A : Type*} [comm_semiring A] [algebra R A]
-  {M : Type*} [add_cancel_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+  {M : Type*} [add_cancel_comm_monoid M] [module R M] [module A M]
 
 /-- Define `derivation R A M` from a linear map when `M` is cancellative by verifying the Leibniz
 rule. -/
@@ -232,11 +239,14 @@ variables {A : Type*} [comm_ring A] [algebra R A]
 
 section
 
-variables {M : Type*} [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
+variables {M : Type*} [add_comm_group M] [module A M] [module R M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 protected lemma map_neg : D (-a) = -D a := map_neg D a
 protected lemma map_sub : D (a - b) = D a - D b := map_sub D a b
+
+@[simp] lemma map_coe_int (n : ℤ) : D (n : A) = 0 :=
+by rw [← zsmul_one, D.map_smul_of_tower n, map_one_eq_zero, smul_zero]
 
 lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
 begin
@@ -250,8 +260,8 @@ end
 lemma leibniz_inv_of [invertible a] : D (⅟a) = -⅟a^2 • D a :=
 D.leibniz_of_mul_eq_one $ inv_of_mul_self a
 
-lemma leibniz_inv {K : Type*} [field K] [module K M] [algebra R K] [is_scalar_tower R K M]
-  (D : derivation R K M) (a : K) : D (a⁻¹) = -a⁻¹ ^ 2 • D a :=
+lemma leibniz_inv {K : Type*} [field K] [module K M] [algebra R K] (D : derivation R K M) (a : K) :
+  D (a⁻¹) = -a⁻¹ ^ 2 • D a :=
 begin
   rcases eq_or_ne a 0 with (rfl|ha),
   { simp },

@@ -185,56 +185,30 @@ lemma lin_jordan (a b c : A) : (2:ℤ)•(⁅L a, L (b*c)⁆ + ⁅L b, L (a*c)�
 begin
   symmetry,
   calc 0 = ⁅L (a+b+c), L ((a+b+c)*(a+b+c))⁆ : by rw comm_jordan.jordan
-  ... = ⁅L (a+b+c), L (a*(a+b+c)+b*(a+b+c)+c*(a+b+c))⁆ : by rw [add_mul, add_mul]
-  ... = ⁅L (a+b+c), L (a*a+a*b+a*c+(b*a+b*b+b*c)+(c*a+c*b+c*c))⁆ :
-    by rw [mul_add, mul_add, mul_add, mul_add, mul_add, mul_add]
-  ... = ⁅L a + L b + L c, L (a*a+a*b+a*c+(b*a+b*b+b*c)+(c*a+c*b+c*c))⁆ : by rw [map_add, map_add]
-  ... = ⁅L a + L b + L c, L (a*a) + L(a*b) + L (a*c) + L(b*a+b*b+b*c) + L(c*a+c*b+c*c)⁆ :
-    by rw [map_add, map_add, map_add, map_add]
   ... = ⁅L a + L b + L c,
     L (a*a) + L(a*b) + L (a*c) + (L(b*a) + L(b*b) + L(b*c)) + (L(c*a) + L(c*b) + L(c*c))⁆ :
-    by rw [map_add, map_add, map_add, map_add]
+    by rw [add_mul, add_mul, mul_add, mul_add, mul_add, mul_add, mul_add, mul_add,
+      map_add, map_add, map_add, map_add, map_add, map_add, map_add, map_add, map_add, map_add]
   ... = ⁅L a + L b + L c,
     L (a*a) + L(a*b) + L (a*c) + (L(a*b) + L(b*b) + L(b*c)) + (L(a*c) + L(b*c) + L(c*c))⁆ :
     by rw [jordan_mul_comm b a, jordan_mul_comm c a, jordan_mul_comm c b]
   ... = ⁅L a + L b + L c, L (a*a) + L(b*b) + L(c*c) + (2:ℤ)•L(a*b) + (2:ℤ)•L(a*c) + (2:ℤ)•L(b*c) ⁆ :
     by abel
-  ... = ⁅L a, L (a*a) + L(b*b) + L(c*c) + (2:ℤ)•L(a*b) + (2:ℤ)•L(a*c) + (2:ℤ)•L(b*c) ⁆
-        + ⁅L b, L (a*a) + L(b*b) + L(c*c) + (2:ℤ)•L(a*b) + (2:ℤ)•L(a*c) + (2:ℤ)•L(b*c)⁆
-        + ⁅L c, L (a*a) + L(b*b) + L(c*c) + (2:ℤ)•L(a*b) + (2:ℤ)•L(a*c) + (2:ℤ)•L(b*c)⁆ :
-    by rw [add_lie, add_lie]
-  ... = ⁅L a, L (a*a)⁆ + ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, (2:ℤ)•L(a*c)⁆
-    + ⁅L a, (2:ℤ)•L(b*c)⁆
-        + ⁅L b, L (a*a) + L(b*b) + L(c*c) + (2:ℤ)•L(a*b) + (2:ℤ)•L(a*c) + (2:ℤ)•L(b*c)⁆
-        + ⁅L c, L (a*a) + L(b*b) + L(c*c) + (2:ℤ)•L(a*b) + (2:ℤ)•L(a*c) + (2:ℤ)•L(b*c)⁆ :
-    by rw [lie_add, lie_add, lie_add, lie_add, lie_add]
-  ... = ⁅L a, L (a*a)⁆ + ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, (2:ℤ)•L(a*c)⁆
-          + ⁅L a, (2:ℤ)•L(b*c)⁆
-        + (⁅L b, L (a*a)⁆ + ⁅L b, L(b*b)⁆ + ⁅L b, L(c*c)⁆ + ⁅L b, (2:ℤ)•L(a*b)⁆
-          + ⁅L b, (2:ℤ)•L(a*c)⁆ + ⁅L b, (2:ℤ)•L(b*c)⁆)
-        + ⁅L c, L (a*a) + L(b*b) + L(c*c) + (2:ℤ)•L(a*b) + (2:ℤ)•L(a*c) + (2:ℤ)•L(b*c)⁆ :
-          by rw [lie_add, lie_add, lie_add, lie_add, lie_add]
   ... = ⁅L a, L (a*a)⁆ + ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, (2:ℤ)•L(a*c)⁆
           + ⁅L a, (2:ℤ)•L(b*c)⁆
         + (⁅L b, L (a*a)⁆ + ⁅L b, L(b*b)⁆ + ⁅L b, L(c*c)⁆ + ⁅L b, (2:ℤ)•L(a*b)⁆
           + ⁅L b, (2:ℤ)•L(a*c)⁆ + ⁅L b, (2:ℤ)•L(b*c)⁆)
         + (⁅L c, L (a*a)⁆ + ⁅L c, L(b*b)⁆ + ⁅L c, L(c*c)⁆ + ⁅L c, (2:ℤ)•L(a*b)⁆
           + ⁅L c, (2:ℤ)•L(a*c)⁆ + ⁅L c, (2:ℤ)•L(b*c)⁆) :
-    by rw [lie_add, lie_add, lie_add, lie_add, lie_add]
-  ... = 0 + ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, (2:ℤ)•L(a*c)⁆
-          + ⁅L a, (2:ℤ)•L(b*c)⁆
-        + (⁅L b, L (a*a)⁆ + 0 + ⁅L b, L(c*c)⁆ + ⁅L b, (2:ℤ)•L(a*b)⁆ + ⁅L b, (2:ℤ)•L(a*c)⁆
-          + ⁅L b, (2:ℤ)•L(b*c)⁆)
-        + (⁅L c, L (a*a)⁆ + ⁅L c, L(b*b)⁆ + 0 + ⁅L c, (2:ℤ)•L(a*b)⁆ + ⁅L c, (2:ℤ)•L(a*c)⁆
-          + ⁅L c, (2:ℤ)•L(b*c)⁆) :
-    by rw [comm_jordan.jordan, comm_jordan.jordan, comm_jordan.jordan]
+    by rw [add_lie, add_lie, lie_add, lie_add, lie_add, lie_add, lie_add, lie_add, lie_add, lie_add,
+     lie_add, lie_add, lie_add, lie_add, lie_add, lie_add, lie_add]
   ... = ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, (2:ℤ)•L(a*c)⁆
           + ⁅L a, (2:ℤ)•L(b*c)⁆
         + (⁅L b, L (a*a)⁆ + ⁅L b, L(c*c)⁆ + ⁅L b, (2:ℤ)•L(a*b)⁆ + ⁅L b, (2:ℤ)•L(a*c)⁆
           + ⁅L b, (2:ℤ)•L(b*c)⁆)
         + (⁅L c, L (a*a)⁆ + ⁅L c, L(b*b)⁆ + ⁅L c, (2:ℤ)•L(a*b)⁆ + ⁅L c, (2:ℤ)•L(a*c)⁆
           + ⁅L c, (2:ℤ)•L(b*c)⁆) :
-    by rw [zero_add, add_zero, add_zero]
+    by rw [comm_jordan.jordan, comm_jordan.jordan, comm_jordan.jordan, zero_add, add_zero, add_zero]
   ... = ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + (2:ℤ)•⁅L a, L(a*b)⁆ + (2:ℤ)•⁅L a, L(a*c)⁆
           + (2:ℤ)•⁅L a, L(b*c)⁆
         + (⁅L b, L (a*a)⁆ + ⁅L b, L(c*c)⁆ + (2:ℤ)•⁅L b, L(a*b)⁆ + (2:ℤ)•⁅L b, L(a*c)⁆
@@ -246,14 +220,7 @@ begin
         + (⁅L a, L(c*c)⁆ + ⁅L c, L (a*a)⁆ + (2:ℤ)•⁅L a, L(a*c)⁆ + (2:ℤ)•⁅L c, L(a*c)⁆)
         + (⁅L b, L(c*c)⁆ + ⁅L c, L(b*b)⁆ + (2:ℤ)•⁅L b, L(b*c)⁆ + (2:ℤ)•⁅L c, L(b*c)⁆)
         + ((2:ℤ)•⁅L a, L(b*c)⁆ + (2:ℤ)•⁅L b, L(a*c)⁆ + (2:ℤ)•⁅L c, L(a*b)⁆) : by abel
-  ... = 0
-         + (⁅L a, L(c*c)⁆ + ⁅L c, L (a*a)⁆ + (2:ℤ)•⁅L a, L(a*c)⁆ + (2:ℤ)•⁅L c, L(a*c)⁆)
-        + (⁅L b, L(c*c)⁆ + ⁅L c, L(b*b)⁆ + (2:ℤ)•⁅L b, L(b*c)⁆ + (2:ℤ)•⁅L c, L(b*c)⁆)
-        + ((2:ℤ)•⁅L a, L(b*c)⁆ + (2:ℤ)•⁅L b, L(a*c)⁆ + (2:ℤ)•⁅L c, L(a*b)⁆) : by rw mul_op_com1
-  ... = 0 + 0 + 0
-        + ((2:ℤ)•⁅L a, L(b*c)⁆ + (2:ℤ)•⁅L b, L(a*c)⁆ + (2:ℤ)•⁅L c, L(a*b)⁆) :
-    by rw [mul_op_com1, mul_op_com1]
   ... = (2:ℤ)•⁅L a, L(b*c)⁆ + (2:ℤ)•⁅L b, L(a*c)⁆ + (2:ℤ)•⁅L c, L(a*b)⁆ :
-    by rw [zero_add, zero_add, zero_add]
+    by rw [mul_op_com1,mul_op_com1, mul_op_com1, zero_add, zero_add, zero_add]
   ... = (2:ℤ)•(⁅L a, L (b*c)⁆ + ⁅L b, L (a*c)⁆ + ⁅L c, L (a*b)⁆) : by rw [smul_add, smul_add]
 end

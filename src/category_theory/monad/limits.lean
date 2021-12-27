@@ -304,8 +304,7 @@ def monadic_creates_colimits_of_shape_of_preserves_colimits_of_shape (R : D ⥤ 
 begin
   have : preserves_colimits_of_shape J (left_adjoint R ⋙ R),
   { apply category_theory.limits.comp_preserves_colimits_of_shape _ _,
-    { haveI := adjunction.left_adjoint_preserves_colimits (adjunction.of_right_adjoint R),
-      apply_instance },
+    apply (adjunction.left_adjoint_preserves_colimits (adjunction.of_right_adjoint R)).1,
     apply_instance },
   exactI ⟨λ K, monadic_creates_colimit_of_preserves_colimit _ _⟩,
 end
@@ -338,7 +337,8 @@ lemma has_colimits_of_shape_of_reflective (R : D ⥤ C)
 { has_colimit := λ F,
 begin
   let c := (left_adjoint R).map_cocone (colimit.cocone (F ⋙ R)),
-  letI := (adjunction.of_right_adjoint R).left_adjoint_preserves_colimits,
+  let h := (adjunction.of_right_adjoint R).left_adjoint_preserves_colimits.1,
+  letI := @h J _,
   let t : is_colimit c := is_colimit_of_preserves (left_adjoint R) (colimit.is_colimit _),
   apply has_colimit.mk ⟨_, (is_colimit.precompose_inv_equiv _ _).symm t⟩,
   apply (iso_whisker_left F (as_iso (adjunction.of_right_adjoint R).counit) : _) ≪≫ F.right_unitor,

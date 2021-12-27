@@ -91,6 +91,8 @@ end
 @[simp]
 lemma card_erase_of_mem : a ∈ s → (s.erase a).card = pred s.card := card_erase_of_mem
 
+@[simp] lemma card_erase_add_one : a ∈ s → (s.erase a).card + 1 = s.card := card_erase_add_one
+
 lemma card_erase_lt_of_mem : a ∈ s → (s.erase a).card < s.card := card_erase_lt_of_mem
 
 lemma card_erase_le : (s.erase a).card ≤ s.card := card_erase_le

@@ -68,6 +68,7 @@ lemma abs_summatory_le_sum {M : Type*} [semi_normed_group M] (a : ℕ → M) {x 
   ∥summatory a x∥ ≤ ∑ i in finset.Icc 1 ⌊x⌋₊, ∥a i∥ :=
 norm_sum_le _ _
 
+-- TODO (BM): Put this in mathlib
 lemma finset.Icc_subset_Icc {α : Type*} [preorder α] [locally_finite_order α]
   {a₁ a₂ b₁ b₂ : α} (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) :
   finset.Icc a₁ b₁ ⊆ finset.Icc a₂ b₂ :=
@@ -77,6 +78,7 @@ begin
   exact ⟨ha.trans hx.1, hx.2.trans hb⟩,
 end
 
+-- TODO (BM): Put this in mathlib
 lemma le_floor_of_le {α : Type*} [linear_ordered_semiring α] [floor_semiring α] {n : ℕ} {a : α}
   (h : a ≤ n) : ⌊a⌋₊ ≤ n :=
 (le_total a 0).elim
@@ -89,9 +91,11 @@ lemma abs_summatory_bound {M : Type*} [semi_normed_group M] (a : ℕ → M) (k :
   {x : ℝ} (hx : x ≤ k) :
   ∥summatory a x∥ ≤ ∑ i in finset.Icc 1 k, ∥a i∥ :=
 (abs_summatory_le_sum a).trans
-  (finset.sum_le_sum_of_subset_of_nonneg (finset.Icc_subset_Icc le_rfl (le_floor_of_le hx)) (by simp))
+  (finset.sum_le_sum_of_subset_of_nonneg
+    (finset.Icc_subset_Icc le_rfl (le_floor_of_le hx)) (by simp))
 
-@[measurability] lemma measurable_summatory {M : Type*} [add_comm_monoid M] [measurable_space M] {a : ℕ → M} :
+@[measurability] lemma measurable_summatory {M : Type*} [add_comm_monoid M] [measurable_space M]
+  {a : ℕ → M} :
   measurable (summatory a) :=
 begin
   change measurable ((λ y, ∑ i in finset.Icc 1 y, a i) ∘ _),
@@ -226,6 +230,7 @@ def euler_mascheroni : ℝ := 1 - ∫ t in Ici 1, int.fract t / t^2
 
 open filter asymptotics
 
+-- TODO (BM): Put this in mathlib
 lemma Ici_diff_Icc {a b : ℝ} (hab : a ≤ b) : Ici a \ Icc a b = Ioi b :=
 begin
   rw [←Icc_union_Ioi_eq_Ici hab, union_diff_left, diff_eq_self],
@@ -404,6 +409,8 @@ begin
   dsimp at this,
   simp only [one_mul, floor_eq] at this,
   simp only [this],
+  sorry
+  -- BM: I think there's a more efficient path rather than what I did
   -- have := partial_summation (λ _, 1) (λ x, x ^ (-1 : ℤ)) (λ x, - x ^ (-2 : ℤ)),
 end
 

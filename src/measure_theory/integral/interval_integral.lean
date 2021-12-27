@@ -789,22 +789,6 @@ lemma interval_integrable_iff_integrable_Icc_of_le
   interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
 by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
 
-lemma integral_Icc_eq_integral_Ioc' {f : α → E} {a b : α} (ha : μ {a} = 0) :
-  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
-set_integral_congr_set_ae (Ioc_ae_eq_Icc' ha).symm
-
-lemma integral_Ioc_eq_integral_Ioo' {f : α → E} {a b : α} (hb : μ {b} = 0) :
-  ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
-set_integral_congr_set_ae (Ioo_ae_eq_Ioc' hb).symm
-
-lemma integral_Icc_eq_integral_Ioc {f : α → E} {a b : α} [has_no_atoms μ] :
-  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
-integral_Icc_eq_integral_Ioc' $ measure_singleton a
-
-lemma integral_Ioc_eq_integral_Ioo {f : α → E} {a b : α} [has_no_atoms μ] :
-  ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
-integral_Ioc_eq_integral_Ioo' $ measure_singleton b
-
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
 lemma integral_congr {a b : α} (h : eq_on f g (interval a b)) :
   ∫ x in a..b, f x ∂μ = ∫ x in a..b, g x ∂μ :=

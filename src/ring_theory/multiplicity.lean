@@ -87,6 +87,12 @@ lemma is_greatest' {a b : α} {m : ℕ} (h : finite a b) (hm : get (multiplicity
   ¬a ^ m ∣ b :=
 is_greatest (by rwa [← enat.coe_lt_coe, enat.coe_get] at hm)
 
+lemma pos_of_dvd {a b : α} (hfin : finite a b) (hdiv : a ∣ b) : 0 < (multiplicity a b).get hfin :=
+begin
+  refine zero_lt_iff.2 (λ h, _),
+  simpa [hdiv] using (is_greatest' hfin (lt_one_iff.mpr h)),
+end
+
 lemma unique {a b : α} {k : ℕ} (hk : a ^ k ∣ b) (hsucc : ¬a ^ (k + 1) ∣ b) :
   (k : enat) = multiplicity a b :=
 le_antisymm (le_of_not_gt (λ hk', is_greatest hk' hk)) $
@@ -160,6 +166,17 @@ by rw [ne.def, eq_top_iff_not_finite, not_not]
 
 lemma lt_top_iff_finite {a b : α} : multiplicity a b < ⊤ ↔ finite a b :=
 by rw [lt_top_iff_ne_top, ne_top_iff_finite]
+
+lemma exists_eq_pow_mul_and_not_dvd {a b : α} (hfin : finite a b) :
+  ∃ (c : α), b = a ^ ((multiplicity a b).get hfin) * c ∧ ¬ a ∣ c :=
+begin
+  obtain ⟨c, hc⟩ := multiplicity.pow_multiplicity_dvd hfin,
+  refine ⟨c, hc, _⟩,
+  rintro ⟨k, hk⟩,
+  rw [hk, ← mul_assoc, ← pow_succ'] at hc,
+  have h₁ : a ^ ((multiplicity a b).get hfin + 1) ∣ b := ⟨k, hc⟩,
+  exact (multiplicity.eq_coe_iff.1 (by simp)).2 h₁,
+end
 
 open_locale classical
 

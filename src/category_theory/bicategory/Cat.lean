@@ -1,17 +1,9 @@
 import category_theory.category.Cat
 import category_theory.bicategory.basic
 
-universes v u
-
 namespace category_theory
 
-open category_theory
-
-end category_theory
-
-namespace Cat
-
-open category_theory
+universes v u
 
 @[simps]
 instance : bicategory (Cat.{v u}) :=
@@ -30,4 +22,4 @@ instance : bicategory (Cat.{v u}) :=
   pentagon' := by { intros, apply functor.pentagon },
   triangle' := by { intros, apply functor.triangle } }
 
-end Cat
+end category_theory

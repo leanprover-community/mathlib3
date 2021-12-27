@@ -7,7 +7,7 @@ open category_theory
 
 universes w v u
 
-open category_theory.bicategory opposite
+open opposite
 
 namespace category_theory
 
@@ -95,7 +95,6 @@ end
 end bicategory
 
 section
-
 open bicategory
 
 variables {B : Type u} [bicategory.{w v} B]

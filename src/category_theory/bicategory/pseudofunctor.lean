@@ -22,13 +22,11 @@ The direction of isomorphisms `map₁_comp` and `map₁_id` here is the lax dire
 * Lax and oplax functors.
 -/
 
-open category_theory
+namespace category_theory
 
 universes w₁ w₂ w₃ v₁ v₂ v₃ u₁ u₂ u₃
 
-open category_theory.bicategory
-
-namespace category_theory
+open bicategory
 
 section
 

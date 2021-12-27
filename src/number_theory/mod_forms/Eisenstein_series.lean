@@ -493,54 +493,40 @@ begin
   intro ha,
   rw Square2,
   simp_rw int.nat_abs_eq_iff at ha,
-  sorry,
-  sorry,
-
-  /-cases ha,
-  cases ha.1,
   simp only [finset.mem_union, finset.union_assoc, finset.mem_product,  finset.mem_Ico,
-  neg_add_le_iff_le_add],
-  have h1:= nat_abs_inter _ _ ha.2,
-   have h2:= auxin _ _ h1.2,
-   simp_rw [h,h1,h2],
-  simp only [true_or, eq_self_iff_true, or_true, and_self],
-  simp only [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
-    finset.mem_product,  finset.mem_Ico],
-  simp,
-  simp only [
-  finset.mem_union, finset.union_assoc, finset.mem_product,  finset.mem_Ico,
-  neg_add_le_iff_le_add],
+  neg_add_le_iff_le_add, finset.mem_singleton],
+  cases ha,
+  cases ha.1,
   have h1:= nat_abs_inter _ _ ha.2,
   have h2:= auxin _ _ h1.2,
   simp_rw [h,h1,h2],
-  simp only [true_or, eq_self_iff_true, or_true, and_self],
+  simp,
+  have h1:= nat_abs_inter _ _ ha.2,
+  have h2:= auxin _ _ h1.2,
+  simp_rw [h,h1,h2],
+  simp,
+  cases ha,
   cases ha.1,
-  simp [eq_self_iff_true, or_true, and_self, finset.mem_singleton],
   have h1:= nat_abs_inter _ _ ha.2,
   have h2:= auxin2 _ _ h1.2,
   simp_rw [h,h2],
-  simp only [true_and, lt_self_iff_false, and_true, eq_self_iff_true, or_false, and_false],
+  simp,
   have h3:=h1.1,
   have Hk: a.1 < (n: ℤ)+1, by {linarith, },
   simp only [Hk, true_or],
-  simp only [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
-    finset.mem_product],
   have h1:= nat_abs_inter _ _ ha.2,
   have h2:= auxin2 _ _ h1.2,
   simp_rw [h,h2],
-  simp only [true_and, and_true, int.coe_nat_pos, eq_self_iff_true, neg_lt_self_iff, add_right_neg],
+  simp,
   have h3:=h1.1,
   have Hk: a.1 < (n: ℤ)+1, by {linarith, },
   simp only [Hk, true_or, or_true],
-  simp only [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
-    finset.mem_product],
   cases  ha.1,
   cases  ha.2,
   simp_rw [h,h_1],
   have n1: -(n: ℤ) ≤ (n: ℤ), by {linarith,},
   simp_rw [n1],
   simp only [lt_add_iff_pos_right, true_or, eq_self_iff_true, and_self, zero_lt_one],
-
   simp_rw [h,h_1],
   have n1: -(n: ℤ) ≤ (n: ℤ), by {linarith,},
   simp_rw [n1],
@@ -553,18 +539,15 @@ begin
   simp only [true_or],
   have hg: -(n: ℤ) < n+1, by {linarith,},
   simp_rw [h,h_1, hg],
-  simp only [le_refl, true_or, eq_self_iff_true, or_true, and_self],
-  sorry,
+  simp,
   intro ha,
   rw Square2 at ha,
-  sorry,
-
-  simp [finset.mem_union, finset.union_assoc, finset.mem_singleton, neg_add_le_iff_le_add,
-    finset.mem_product, finset.mem_Ico] at ha,
-    rw square_mem',
-    cases ha,
-    have:= cat _ _ _ ha.2 ha.1,
-    simp_rw this,
+  simp only [finset.mem_union, finset.union_assoc, finset.mem_product,  finset.mem_Ico,
+  neg_add_le_iff_le_add, finset.mem_singleton] at ha,
+  rw square_mem',
+  cases ha,
+  have:= cat _ _ _ ha.2 ha.1,
+  simp_rw this,
   simp only [true_and, lt_self_iff_false, and_true, false_or, eq_self_iff_true, and_false],
   exact this.2,
   cases ha,
@@ -579,7 +562,6 @@ begin
   have:= dog1 _ _ _ ha.1 ha.2,
   simp_rw this,
   simp only [true_or, eq_self_iff_true, and_self],
-  -/
   end
 
 
@@ -619,8 +601,6 @@ use max y.1.nat_abs y.2.nat_abs,
 simp only [square_mem, and_self, forall_eq'],
 end
 
-
-
 lemma Square_zero : Square (0: ℕ)={(0,0)}:=
 begin
 refl,
@@ -631,9 +611,6 @@ begin
 rw Square_zero,
 refl,
 end
-
-
-
 
 /- Some summable lemmas-/
 
@@ -893,22 +870,23 @@ def lb (z: ℍ): ℝ:=((z.1.2)^4 + (z.1.1*z.1.2)^2)/(z.1.1^2+z.1.2^2)^2
 
 lemma lb_pos (z : ℍ): 0 < lb z :=
 begin
-  rw lb, simp,
+  rw lb,
+  simp only [upper_half_plane.coe_im, subtype.val_eq_coe, upper_half_plane.coe_re],
   have H1: 0 < ((z.1.2)^4 + (z.1.1*z.1.2)^2),
   by {rw add_comm,
   apply add_pos_of_nonneg_of_pos,
   nlinarith,
   have h1: z.1.2^4=z.1.2^2*z.1.2^2,
-  ring,
+  ring_nf,
   rw h1,
   apply mul_pos,
-  simp,
+  simp only [upper_half_plane.coe_im, subtype.val_eq_coe],
   have:=upper_gt_zero z,
   rw pow_two,
   apply mul_pos,
   exact this,
   exact this,
-  simp,
+  simp only [upper_half_plane.coe_im, subtype.val_eq_coe],
   have:=upper_gt_zero z,
   rw pow_two,
   apply mul_pos,
@@ -931,7 +909,7 @@ lemma rfunct_pos (z : ℍ): 0 < (rfunct z):=
 begin
   have H:= z.property, simp at H,
   rw rfunct,
-  simp,
+  simp only [lt_min_iff, real.sqrt_pos, upper_half_plane.coe_im, subtype.val_eq_coe],
   split,
   rw pow_two,
   apply mul_pos,

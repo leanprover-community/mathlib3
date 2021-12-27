@@ -63,6 +63,24 @@ lemma is_matching_iff_forall_degree {M : subgraph G} [Π (v : V), fintype (M.nei
   M.is_matching ↔ ∀ (v : V), v ∈ M.verts → M.degree v = 1 :=
 by simpa [degree_eq_one_iff_unique_adj]
 
+noncomputable instance (G' : subgraph G) [fintype G'.support] (a : V) :
+  fintype (G'.neighbor_set a) :=
+fintype.of_injective (λ b, ⟨b.1, a, G'.adj_symm b.2⟩ : G'.neighbor_set a → G'.support)
+  (λ b c h, by { ext, convert congr_arg subtype.val h })
+
+lemma is_matching.even_card {M : subgraph G} [hM : fintype M.support] [decidable_eq V]
+  [decidable_rel G.adj] (h : M.is_matching) :
+  even (M.support.to_finset.card) :=
+begin
+  classical,
+  unfreezingI { rw h.support_eq_verts at hM },
+  rw is_matching_iff_forall_degree at h,
+  have := M.coe.sum_degrees_eq_twice_card_edges,
+  simp [h] at this,
+  sorry
+  -- exact ⟨_, this⟩,
+end
+
 lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=
 begin
   refine ⟨_, λ hm, ⟨λ v hv, hm v, λ v, _⟩⟩,
@@ -72,17 +90,17 @@ begin
     exact M.edge_vert hw }
 end
 
-lemma is_perfect_matching_iff_forall_degree {M : subgraph G}
-  [Π (v : V), fintype (M.neighbor_set v)] :
-  M.is_perfect_matching ↔ ∀ (v : V), M.degree v = 1 :=
+lemma is_perfect_matching_iff_forall_degree {M : subgraph G} [Π v, fintype (M.neighbor_set v)] :
+  M.is_perfect_matching ↔ ∀ v, M.degree v = 1 :=
 by simp [degree_eq_one_iff_unique_adj, is_perfect_matching_iff]
 
-lemma even_card_vertices_of_perfect_matching {M : subgraph G}
-  [fintype V] [decidable_eq V] [decidable_rel G.adj]
-    (h : M.is_perfect_matching) : even (fintype.card V) :=
+lemma is_perfect_matching.even_card {M : subgraph G} [fintype V] [decidable_eq V]
+  [decidable_rel G.adj] (h : M.is_perfect_matching) :
+  even (fintype.card V) :=
 begin
   classical,
   rw is_perfect_matching_iff_forall_degree at h,
+  have := sum_degrees_eq_twice_card_edges,
   have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
   simp [h] at this,
   exact ⟨_, this⟩,

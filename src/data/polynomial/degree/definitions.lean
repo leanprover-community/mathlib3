@@ -712,6 +712,15 @@ option.some_inj.1 $ show (nat_degree (p ^ n) : with_bot ℕ) = (n * nat_degree p
   by rw [← degree_eq_nat_degree hpn, degree_pow' h, degree_eq_nat_degree hp0,
     ← with_bot.coe_nsmul]; simp
 
+theorem leading_coeff_monic_mul {p q : polynomial R} (hp : monic p) :
+  leading_coeff (p * q) = leading_coeff q :=
+begin
+  rcases eq_or_ne q 0 with rfl|H,
+  { simp },
+  { rw [leading_coeff_mul', hp.leading_coeff, one_mul],
+    rwa [hp.leading_coeff, one_mul, ne.def, leading_coeff_eq_zero] }
+end
+
 theorem leading_coeff_mul_monic {p q : polynomial R} (hq : monic q) :
   leading_coeff (p * q) = leading_coeff p :=
 decidable.by_cases

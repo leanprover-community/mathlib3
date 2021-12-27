@@ -41,6 +41,9 @@ by induction l with x l ih; [refl, by_cases (p x)];
   [simp only [filter_cons_of_pos _ h, countp, ih, if_pos h],
    simp only [countp_cons_of_neg _ _ h, ih, filter_cons_of_neg _ h]]; refl
 
+lemma countp_le_length : countp p l ≤ l.length :=
+by simpa only [countp_eq_length_filter] using length_le_of_sublist (filter_sublist _)
+
 @[simp] lemma countp_append (l₁ l₂) : countp p (l₁ ++ l₂) = countp p l₁ + countp p l₂ :=
 by simp only [countp_eq_length_filter, filter_append, length_append]
 
@@ -56,6 +59,12 @@ by simpa only [countp_eq_length_filter] using length_le_of_sublist (s.filter p)
 @[simp] lemma countp_filter {q} [decidable_pred q] (l : list α) :
   countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
 by simp only [countp_eq_length_filter, filter_filter]
+
+@[simp] lemma countp_true : l.countp (λ _, true) = l.length :=
+by simp [countp_eq_length_filter]
+
+@[simp] lemma countp_false : l.countp (λ _, false) = 0 :=
+by simp [countp_eq_length_filter]
 
 end countp
 
@@ -82,12 +91,17 @@ lemma count_tail : Π (l : list α) (a : α) (h : 0 < l.length),
   l.tail.count a = l.count a - ite (a = list.nth_le l 0 h) 1 0
 | (_ :: _) a h := by { rw [count_cons], split_ifs; simp }
 
+lemma count_le_length (a : α) (l : list α) : count a l ≤ l.length :=
+countp_le_length _
+
 lemma sublist.count_le (h : l₁ <+ l₂) (a : α) : count a l₁ ≤ count a l₂ := h.countp_le _
 
 lemma count_le_count_cons (a b : α) (l : list α) : count a l ≤ count a (b :: l) :=
 (sublist_cons _ _).count_le _
 
 lemma count_singleton (a : α) : count a [a] = 1 := if_pos rfl
+
+lemma count_singleton' (a b : α) : count a [b] = ite (a = b) 1 0 := rfl
 
 @[simp] lemma count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂ :=
 countp_append _

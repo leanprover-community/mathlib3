@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
 import algebra.big_operators.nat_antidiagonal
+import data.finsupp.interval
 import data.mv_polynomial.basic
 import data.polynomial.coeff
 import linear_algebra.std_basis
@@ -478,10 +479,6 @@ end algebra
 
 section trunc
 variables [comm_semiring R] (n : σ →₀ ℕ)
-
--- TODO use Yael's version
-instance {α β : Type*} [preorder β] [has_zero β] [locally_finite_order β] :
-  locally_finite_order (α →₀ β) := sorry
 
 /-- Auxiliary definition for the truncation function. -/
 def trunc_fun (φ : mv_power_series σ R) : mv_polynomial σ R :=

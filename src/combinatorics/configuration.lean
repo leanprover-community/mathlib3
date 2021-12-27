@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import combinatorics.hall.basic
-import data.fintype.card
+import set_theory.fincard
 
 /-!
 # Configurations of Points and lines
@@ -17,6 +17,8 @@ This file introduces abstract configurations of points and lines, and proves som
   every pair of lines has an intersection point.
 * `configuration.has_lines`:  A nondegenerate configuration in which
   every pair of points has a line through them.
+* `configuration.line_count`: The number of lines through a given point.
+* `configuration.point_count`: The number of lines through a given line.
 
 ## Todo
 * Abstract projective planes.
@@ -45,7 +47,7 @@ instance : has_mem (dual L) (dual P) :=
 class nondegenerate : Prop :=
 (exists_point : ∀ l : L, ∃ p, p ∉ l)
 (exists_line : ∀ p, ∃ l : L, p ∉ l)
-(eq_or_eq : ∀ p₁ p₂ : P, ∀ l₁ l₂ : L, p₁ ∈ l₁ → p₂ ∈ l₁ → p₁ ∈ l₂ → p₂ ∈ l₂ → p₁ = p₂ ∨ l₁ = l₂)
+(eq_or_eq : ∀ {p₁ p₂ : P} {l₁ l₂ : L}, p₁ ∈ l₁ → p₂ ∈ l₁ → p₁ ∈ l₂ → p₂ ∈ l₂ → p₁ = p₂ ∨ l₁ = l₂)
 
 /-- A nondegenerate configuration in which every pair of lines has an intersection point. -/
 class has_points extends nondegenerate P L : Type u :=
@@ -74,11 +76,21 @@ instance [has_lines P L] : has_points (dual L) (dual P) :=
 
 lemma has_points.exists_unique_point [has_points P L] (l₁ l₂ : L) (hl : l₁ ≠ l₂) :
   ∃! p, p ∈ l₁ ∧ p ∈ l₂ :=
-⟨mk_point l₁ l₂, mk_point_ax l₁ l₂, λ p hp, (eq_or_eq p (mk_point l₁ l₂) l₁ l₂
-  hp.1 (mk_point_ax l₁ l₂).1 hp.2 (mk_point_ax l₁ l₂).2).resolve_right hl⟩
+⟨mk_point l₁ l₂, mk_point_ax l₁ l₂,
+  λ p hp, (eq_or_eq hp.1 (mk_point_ax l₁ l₂).1 hp.2 (mk_point_ax l₁ l₂).2).resolve_right hl⟩
 
 lemma has_lines.exists_unique_line [has_lines P L] (p₁ p₂ : P) (hp : p₁ ≠ p₂) :
   ∃! l : L, p₁ ∈ l ∧ p₂ ∈ l :=
 has_points.exists_unique_point (dual L) (dual P) p₁ p₂ hp
+
+variables {P} (L)
+
+/-- Number of points on a given line. -/
+noncomputable def line_count (p : P) : ℕ := nat.card {l : L // p ∈ l}
+
+variables (P) {L}
+
+/-- Number of lines through a given point. -/
+noncomputable def point_count (l : L) : ℕ := nat.card {p : P // p ∈ l}
 
 end configuration

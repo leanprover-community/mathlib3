@@ -95,6 +95,7 @@ by refl
   (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl
 @[simp,norm_cast] lemma coe_inf {U V : opens α} :
   ((U ⊓ V : opens α) : set α) = (U : set α) ⊓ (V : set α) := rfl
+@[simp] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
 
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩

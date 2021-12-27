@@ -46,6 +46,8 @@ structure is_strongly_regular_of (n k l m : ℕ) : Prop :=
 (adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
 (nadj_common : ∀ (v w : V), v ≠ w ∧ ¬G.adj v w → fintype.card (G.common_neighbors v w) = m)
 
+variables {n k l m : ℕ}
+
 /-- Empty graphs are strongly regular. Note that the parameter `l` can take any value
   for empty graphs, since there are no pairs of adjacent vertices. -/
 lemma bot_strongly_regular (l : ℕ) :
@@ -72,7 +74,7 @@ lemma top_strongly_regular (m : ℕ) :
   end,
   nadj_common := λ v w h, false.elim $ by simpa using h }
 
-lemma card_neighbor_finset_union_eq {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m) (v w : V) :
+lemma card_neighbor_finset_union_eq (h : G.is_strongly_regular_of n k l m) (v w : V) :
   (G.neighbor_finset v ∪ G.neighbor_finset w).card =
     2 * k - fintype.card (G.common_neighbors v w) :=
 begin
@@ -87,7 +89,7 @@ end
 /-- Assuming `G` is strongly regular, `2*(k + 1) - m` in `G` is the number of vertices that are
   adjacent to either `v` or `w` when `¬G.adj v w`. So it's the cardinality of
   `G.neighbor_set v ∪ G.neighbor_set w`. -/
-lemma card_neighbor_finset_union_nadj {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m)
+lemma card_neighbor_finset_union_nadj (h : G.is_strongly_regular_of n k l m)
   {v w : V} (hne : v ≠ w) (ha : ¬G.adj v w) :
   (G.neighbor_finset v ∪ G.neighbor_finset w).card = 2 * k - m :=
 begin
@@ -95,7 +97,7 @@ begin
   apply G.card_neighbor_finset_union_eq h,
 end
 
-lemma card_neighbor_finset_union_adj {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m)
+lemma card_neighbor_finset_union_adj (h : G.is_strongly_regular_of n k l m)
   {v w : V} (ha : G.adj v w) :
   (G.neighbor_finset v ∪ G.neighbor_finset w).card = 2 * k - l :=
 begin
@@ -121,8 +123,6 @@ begin
   { exact hnv h, },
   { apply hnw, rwa adj_comm, },
 end
-
-variables {n k l m : ℕ}
 
 lemma compl_regular_of_strongly_regular (h : G.is_strongly_regular_of n k l m) :
   Gᶜ.is_regular_of_degree (n - k - 1) :=

@@ -589,9 +589,6 @@ theorem typein_lt_type (r : α → α → Prop) [is_well_order α r]
   (a : α) : typein r a < type r :=
 ⟨principal_seg.of_element _ _⟩
 
-theorem typein_out_lt_self {o : ordinal} (a) : typein o.out.r a < o :=
-by { simp_rw ←(type_out o), exact typein_lt_type o.out.r a }
-
 @[simp] theorem typein_top {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≺i s) :
   typein s f.top = type r :=
@@ -656,8 +653,8 @@ theorem enum_type {α β} {r : α → α → Prop} {s : β → β → Prop}
   {h : type s < type r} : enum r (type s) h = f.top :=
 principal_seg.top_eq (rel_iso.refl _) _ _
 
-@[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α) :
-  enum r (typein r a) (typein_lt_type r a) = a :=
+@[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α)
+  {h : typein r a < type r} : enum r (typein r a) h = a :=
 enum_type (principal_seg.of_element r a)
 
 @[simp] theorem typein_enum (r : α → α → Prop) [is_well_order α r]
@@ -1112,9 +1109,6 @@ le_min.trans set_coe.forall
 
 theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
 le_omin.1 (le_refl _) _ h
-
-theorem not_lt_omin {S H i} (h : i ∈ S) : ¬ i < omin S H :=
-not_lt_of_le (omin_le h)
 
 @[simp] theorem lift_min {ι} (I) (f : ι → ordinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $

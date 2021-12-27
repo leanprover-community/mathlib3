@@ -299,6 +299,7 @@ lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h
 
+@[priority 100] -- see Note [lower instance priority]
 instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
 begin
   letI := cofinite_topology α,

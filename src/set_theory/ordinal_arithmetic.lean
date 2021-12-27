@@ -1871,8 +1871,7 @@ le_antisymm
 
 /-! ### Fixed points of normal functions -/
 
-/-- The next fixed point function, the least fixed point of the
-  normal function `f` above `a`. -/
+/-- The next fixed point function, the least fixed point of the normal function `f` above `a`. -/
 def nfp (f : ordinal → ordinal) (a : ordinal) :=
 sup (λ n : ℕ, f^[n] a)
 
@@ -1882,8 +1881,7 @@ le_sup _ n
 theorem le_nfp_self (f a) : a ≤ nfp f a :=
 iterate_le_nfp f a 0
 
-theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} :
-  f b < nfp f a ↔ b < nfp f a :=
+theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} : f b < nfp f a ↔ b < nfp f a :=
 lt_sup.trans $ iff.trans
   (by exact
    ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.le_self _) h⟩,
@@ -1921,8 +1919,7 @@ begin
   { exact (H.2 _ l _).2 (λ b h, le_of_lt (H.lt_nfp.2 h)) }
 end
 
-theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
-  f b ≤ nfp f a ↔ b ≤ nfp f a :=
+theorem is_normal.le_nfp {f} (H : is_normal f) {a b} : f b ≤ nfp f a ↔ b ≤ nfp f a :=
 ⟨le_trans (H.le_self _), λ h,
   by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
@@ -1944,8 +1941,7 @@ limit_rec_on o (nfp f 0)
 @[simp] theorem deriv_succ (f o) : deriv f (succ o) = nfp f (succ (deriv f o)) :=
 limit_rec_on_succ _ _ _ _
 
-theorem deriv_limit (f) {o} : is_limit o →
-  deriv f o = bsup.{u u} o (λ a _, deriv f a) :=
+theorem deriv_limit (f) {o} : is_limit o → deriv f o = bsup.{u u} o (λ a _, deriv f a) :=
 limit_rec_on_limit _ _ _ _
 
 theorem deriv_is_normal (f) : is_normal (deriv f) :=
@@ -1993,7 +1989,7 @@ begin
   use (deriv_is_normal f).strict_mono,
   rw range_eq_iff,
   refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
-  rwa ←H.fp_iff_deriv',
+  rwa ←H.fp_iff_deriv'
 end
 
 end ordinal

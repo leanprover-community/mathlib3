@@ -700,17 +700,9 @@ section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
-lemma map_multiset_prod (s : multiset A) :
-  φ s.prod = (s.map φ).prod :=
-φ.to_ring_hom.map_multiset_prod s
-
-lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
-  φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=
-φ.to_ring_hom.map_prod f s
-
 lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
   φ (f.prod g) = f.prod (λ i a, φ (g i a)) :=
-φ.map_prod _ _
+map_prod φ _ _
 
 end comm_semiring
 

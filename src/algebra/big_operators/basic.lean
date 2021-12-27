@@ -106,62 +106,23 @@ by simp only [sum_eq_multiset_sum, multiset.sum_map_singleton]
 
 end finset
 
-
 @[to_additive]
-lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f : α → β) (s : finset α) :
+lemma map_prod {F} [comm_monoid β] [comm_monoid γ] [monoid_hom_class F β γ]
+  (g : F) (f : α → β) (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-by simp only [finset.prod_eq_multiset_prod, g.map_multiset_prod, multiset.map_map]
-
-@[to_additive]
-lemma mul_equiv.map_prod [comm_monoid β] [comm_monoid γ] (g : β ≃* γ) (f : α → β) (s : finset α) :
-  g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-g.to_monoid_hom.map_prod f s
-
-lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
-  f l.prod = (l.map f).prod :=
-f.to_monoid_hom.map_list_prod l
-
-lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
-  (f : β →+* γ) (l : list β) :
-  f l.sum = (l.map f).sum :=
-f.to_add_monoid_hom.map_list_sum l
-
-/-- A morphism into the opposite ring acts on the product by acting on the reversed elements -/
-lemma ring_hom.unop_map_list_prod [semiring β] [semiring γ] (f : β →+* γᵐᵒᵖ) (l : list β) :
-  mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-f.to_monoid_hom.unop_map_list_prod l
-
-lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β →+* γ)
-  (s : multiset β) :
-  f s.prod = (s.map f).prod :=
-f.to_monoid_hom.map_multiset_prod s
-
-lemma ring_hom.map_multiset_sum [non_assoc_semiring β] [non_assoc_semiring γ]
-  (f : β →+* γ) (s : multiset β) :
-  f s.sum = (s.map f).sum :=
-f.to_add_monoid_hom.map_multiset_sum s
-
-lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β)
-  (s : finset α) :
-  g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-g.to_monoid_hom.map_prod f s
-
-lemma ring_hom.map_sum [non_assoc_semiring β] [non_assoc_semiring γ]
-  (g : β →+* γ) (f : α → β) (s : finset α) :
-  g (∑ x in s, f x) = ∑ x in s, g (f x) :=
-g.to_add_monoid_hom.map_sum f s
+by simp only [finset.prod_eq_multiset_prod, map_multiset_prod, multiset.map_map]
 
 @[to_additive]
 lemma monoid_hom.coe_prod [mul_one_class β] [comm_monoid γ] (f : α → β →* γ) (s : finset α) :
   ⇑(∏ x in s, f x) = ∏ x in s, f x :=
-(monoid_hom.coe_fn β γ).map_prod _ _
+map_prod (monoid_hom.coe_fn β γ) f s
 
 -- See also `finset.prod_apply`, with the same conclusion
 -- but with the weaker hypothesis `f : α → β → γ`.
 @[simp, to_additive]
 lemma monoid_hom.finset_prod_apply [mul_one_class β] [comm_monoid γ] (f : α → β →* γ)
   (s : finset α) (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
-(monoid_hom.eval b).map_prod _ _
+map_prod (monoid_hom.eval b : (β →* γ) →* γ) f s
 
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
@@ -1233,11 +1194,11 @@ open mul_opposite
 /-- Moving to the opposite additive commutative monoid commutes with summing. -/
 @[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
   op (∑ x in s, f x) = ∑ x in s, op (f x) :=
-(op_add_equiv : β ≃+ βᵐᵒᵖ).map_sum _ _
+ map_sum (op_add_equiv : β ≃+ βᵐᵒᵖ) f s
 
 @[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵐᵒᵖ) :
   unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
-(op_add_equiv : β ≃+ βᵐᵒᵖ).symm.map_sum _ _
+map_sum (op_add_equiv : β ≃+ βᵐᵒᵖ).symm f s
 
 end opposite
 
@@ -1246,12 +1207,12 @@ variables [comm_group β]
 
 @[simp, to_additive]
 lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
-(monoid_hom.map_prod (comm_group.inv_monoid_hom : β →* β) f s).symm
+(map_prod (comm_group.inv_monoid_hom : β →* β) f s).symm
 
 @[to_additive zsmul_sum]
 lemma prod_zpow (f : α → β) (s : finset α) (n : ℤ) :
   (∏ a in s, f a) ^ n = ∏ a in s, (f a) ^ n :=
-(zpow_group_hom n : β →* β).map_prod f s
+map_prod (zpow_group_hom n : β →* β) f s
 
 end comm_group
 
@@ -1500,23 +1461,23 @@ end multiset
 
 @[simp, norm_cast] lemma nat.cast_sum [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
   ↑(∑ x in s, f x : ℕ) = (∑ x in s, (f x : β)) :=
-(nat.cast_add_monoid_hom β).map_sum f s
+map_sum (nat.cast_add_monoid_hom β) f s
 
 @[simp, norm_cast] lemma int.cast_sum [add_comm_group β] [has_one β] (s : finset α) (f : α → ℤ) :
   ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
-(int.cast_add_hom β).map_sum f s
+map_sum (int.cast_add_hom β) f s
 
 @[simp, norm_cast] lemma nat.cast_prod {R : Type*} [comm_semiring R] (f : α → ℕ) (s : finset α) :
   (↑∏ i in s, f i : R) = ∏ i in s, f i :=
-(nat.cast_ring_hom R).map_prod _ _
+map_prod (nat.cast_ring_hom R) f s
 
 @[simp, norm_cast] lemma int.cast_prod {R : Type*} [comm_ring R] (f : α → ℤ) (s : finset α) :
   (↑∏ i in s, f i : R) = ∏ i in s, f i :=
-(int.cast_ring_hom R).map_prod _ _
+map_prod (int.cast_ring_hom R) f s
 
 @[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M] (f : α → units M)
   (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
-(units.coe_hom M).map_prod _ _
+map_prod (units.coe_hom M) f s
 
 lemma nat_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℤ) :
   (∑ i in s, f i).nat_abs ≤ ∑ i in s, (f i).nat_abs :=

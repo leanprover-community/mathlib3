@@ -29,15 +29,15 @@ section semiring
 variables [non_unital_non_assoc_semiring β]
 
 lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
-add_monoid_hom.map_sum (add_monoid_hom.mul_right b) _ s
+map_sum (add_monoid_hom.mul_right b) f s
 
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
-add_monoid_hom.map_sum (add_monoid_hom.mul_left b) _ s
+map_sum (add_monoid_hom.mul_left b) f s
 
 lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
   (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
   (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
-by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
+by simp only [sum_product, mul_sum, sum_mul]
 
 end semiring
 
@@ -196,7 +196,7 @@ multiset.dvd_sum (λ y hy, by rcases multiset.mem_map.1 hy with ⟨x, hx, rfl⟩
 @[norm_cast]
 lemma prod_nat_cast (s : finset α) (f : α → ℕ) :
   ↑(∏ x in s, f x : ℕ) = (∏ x in s, (f x : β)) :=
-(nat.cast_ring_hom β).map_prod f s
+map_prod (nat.cast_ring_hom β) f s
 
 end comm_semiring
 

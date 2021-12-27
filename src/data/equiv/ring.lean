@@ -284,10 +284,12 @@ lemma to_ring_hom_eq_coe (f : R ≃+* S) : f.to_ring_hom = ↑f := rfl
 
 @[simp, norm_cast] lemma coe_to_ring_hom (f : R ≃+* S) : ⇑(f : R →+* S) = f := rfl
 
-lemma coe_ring_hom_inj_iff {R S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
-  (f g : R ≃+* S) :
+lemma coe_ring_hom_inj_iff (f g : R ≃+* S) :
   f = g ↔ (f : R →+* S) = g :=
 ⟨congr_arg _, λ h, ext $ ring_hom.ext_iff.mp h⟩
+
+instance : ring_hom_class (R ≃+* S) R S :=
+⟨coe_fn, λ f g h, ext $ congr_fun h, map_mul, map_one, map_add, map_zero⟩
 
 /-- Reinterpret a ring equivalence as a monoid homomorphism. -/
 abbreviation to_monoid_hom (e : R ≃+* S) : R →* S := e.to_ring_hom.to_monoid_hom
@@ -363,35 +365,6 @@ lemma of_hom_inv_symm_apply (hom : R →+* S) (inv : S →+* R) (hom_inv_id inv_
   (of_hom_inv hom inv hom_inv_id inv_hom_id).symm s = inv s := rfl
 
 end semiring_hom
-
-section big_operators
-
-lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
-  f l.prod = (l.map f).prod := f.to_ring_hom.map_list_prod l
-
-lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
-  f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
-
-/-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
-lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
-  mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-f.to_ring_hom.unop_map_list_prod l
-
-lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
-  f s.prod = (s.map f).prod := f.to_ring_hom.map_multiset_prod s
-
-lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
-  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := f.to_ring_hom.map_multiset_sum s
-
-lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
-  (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-g.to_ring_hom.map_prod f s
-
-lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
-  (g : R ≃+* S) (f : α → R) (s : finset α) : g (∑ x in s, f x) = ∑ x in s, g (f x) :=
-g.to_ring_hom.map_sum f s
-
-end big_operators
 
 section division_ring
 

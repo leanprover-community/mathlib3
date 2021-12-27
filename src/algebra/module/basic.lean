@@ -150,14 +150,14 @@ lemma module.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
 
 lemma list.sum_smul {l : list R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-((smul_add_hom R M).flip x).map_list_sum l
+map_list_sum ((smul_add_hom R M).flip x) l
 
 lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-((smul_add_hom R M).flip x).map_multiset_sum l
+map_multiset_sum ((smul_add_hom R M).flip x) l
 
 lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
   (∑ i in s, f i) • x = (∑ i in s, (f i) • x) :=
-((smul_add_hom R M).flip x).map_sum f s
+map_sum ((smul_add_hom R M).flip x) f s
 
 end add_comm_monoid
 

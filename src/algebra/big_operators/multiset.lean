@@ -112,7 +112,8 @@ begin
 end
 
 @[to_additive]
-lemma prod_hom [comm_monoid β] (s : multiset α) (f : α →* β) : (s.map f).prod = f s.prod :=
+lemma prod_hom {F : Type*} [comm_monoid β] [monoid_hom_class F α β] (s : multiset α) (f : F) :
+  (s.map f).prod = f s.prod :=
 quotient.induction_on s $ λ l, by simp only [map_list_prod, quot_mk_to_coe, coe_map, coe_prod]
 
 @[to_additive]
@@ -168,11 +169,9 @@ end comm_monoid_with_zero
 section comm_group
 variables [comm_group α]
 
-@[simp] lemma coe_inv_monoid_hom : (comm_group.inv_monoid_hom : α → α) = has_inv.inv := rfl
-
 @[simp, to_additive]
 lemma prod_map_inv (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
-m.prod_hom comm_group.inv_monoid_hom
+m.prod_hom (@comm_group.inv_monoid_hom α _)
 
 end comm_group
 
@@ -342,6 +341,7 @@ le_sum_of_subadditive _ abs_zero abs_add s
 end multiset
 
 @[to_additive]
-lemma monoid_hom.map_multiset_prod [comm_monoid α] [comm_monoid β] (f : α →* β) (s : multiset α) :
+lemma map_multiset_prod {F} [comm_monoid α] [comm_monoid β] [monoid_hom_class F α β]
+  (f : F) (s : multiset α) :
   f s.prod = (s.map f).prod :=
 (s.prod_hom f).symm

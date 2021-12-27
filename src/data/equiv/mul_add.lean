@@ -274,6 +274,10 @@ lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x
   h x ≠ 1 ↔ x ≠ 1 :=
 ⟨mt h.map_eq_one_iff.2, mt h.map_eq_one_iff.1⟩
 
+@[to_additive]
+instance {M N} [mul_one_class M] [mul_one_class N] : monoid_hom_class (M ≃* N) M N :=
+⟨coe_fn, λ e₁ e₂ h, ext $ congr_fun h, map_mul, map_one⟩
+
 /-- A bijective `monoid` homomorphism is an isomorphism -/
 @[to_additive "A bijective `add_monoid` homomorphism is an isomorphism"]
 noncomputable def of_bijective {M N} [mul_one_class M] [mul_one_class N] (f : M →* N)

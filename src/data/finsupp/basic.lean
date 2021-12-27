@@ -253,7 +253,7 @@ by rwa [single_eq_same, single_eq_same] at this
 lemma single_apply_eq_zero {a x : α} {b : M} : single a b x = 0 ↔ (x = a → b = 0) :=
 by simp [single_eq_indicator]
 
-lemma mem_support_single (a a' : α) (b : M) :
+@[simp] lemma mem_support_single {a a' : α} {b : M} :
   a ∈ (single a' b).support ↔ a = a' ∧ b ≠ 0 :=
 by simp [single_apply_eq_zero, not_or_distrib]
 
@@ -1025,22 +1025,9 @@ end add_monoid
 end finsupp
 
 @[to_additive]
-lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
-  (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
-
-@[to_additive]
-lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
-  (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
-
-lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
-  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
-h.map_sum _ _
-
-lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
-  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+lemma map_finsupp_prod {F} [has_zero M] [comm_monoid N] [comm_monoid P] [monoid_hom_class F N P]
+  (h : F) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_prod h _ _
 
 @[to_additive]
 lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
@@ -1137,7 +1124,7 @@ by rw [update_eq_erase_add_single, erase_eq_sub_single]
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(apply_add_hom a₂ : (β →₀ N) →+ _).map_sum _ _
+map_finsupp_sum (apply_add_hom a₂ : (β →₀ N) →+ N) f g
 
 lemma support_sum [decidable_eq β] [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :
@@ -1170,7 +1157,7 @@ finset.prod_mul_distrib
 @[simp, to_additive]
 lemma prod_inv [has_zero M] [comm_group G] {f : α →₀ M}
   {h : α → M → G} : f.prod (λa b, (h a b)⁻¹) = (f.prod h)⁻¹ :=
-(((monoid_hom.id G)⁻¹).map_prod _ _).symm
+finset.prod_inv_distrib
 
 @[simp] lemma sum_sub [has_zero M] [add_comm_group G] {f : α →₀ M}
   {h₁ h₂ : α → M → G} :
@@ -1310,12 +1297,11 @@ end
 
 lemma multiset_map_sum [has_zero M] {f : α →₀ M} {m : β → γ} {h : α → M → multiset β} :
   multiset.map m (f.sum h) = f.sum (λa b, (h a b).map m) :=
-(multiset.map_add_monoid_hom m).map_sum _ f.support
+map_finsupp_sum (multiset.map_add_monoid_hom m) f h
 
 lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : α → M → multiset N} :
   multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
-(multiset.sum_add_monoid_hom : multiset N →+ N).map_sum _ f.support
-
+map_finsupp_sum (multiset.sum_add_monoid_hom : multiset N →+ N) f h
 
 /-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
 over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
@@ -1419,12 +1405,11 @@ zero_hom.ext $ λ _, rfl
 
 lemma map_range_multiset_sum (f : M →+ N) (m : multiset (α →₀ M)) :
   map_range f f.map_zero m.sum = (m.map $ λx, map_range f f.map_zero x).sum :=
-(map_range.add_monoid_hom f : (α →₀ _) →+ _).map_multiset_sum _
+map_multiset_sum (map_range.add_monoid_hom f : (α →₀ _) →+ _) m
 
 lemma map_range_finset_sum (f : M →+ N) (s : finset ι) (g : ι → (α →₀ M))  :
   map_range f f.map_zero (∑ x in s, g x) = ∑ x in s, map_range f f.map_zero (g x) :=
-(map_range.add_monoid_hom f : (α →₀ _) →+ _).map_sum _ _
-
+map_sum (map_range.add_monoid_hom f : (α →₀ _) →+ _) g s
 
 /-- `finsupp.map_range.add_monoid_hom` as an equiv. -/
 @[simps apply]
@@ -1553,11 +1538,11 @@ add_monoid_hom.ext $ λ _, map_domain_comp
 
 lemma map_domain_finset_sum {f : α → β} {s : finset ι} {v : ι → α →₀ M} :
   map_domain f (∑ i in s, v i) = ∑ i in s, map_domain f (v i) :=
-(map_domain.add_monoid_hom f : (α →₀ M) →+ β →₀ M).map_sum _ _
+map_sum (map_domain.add_monoid_hom f : (α →₀ M) →+ β →₀ M) v s
 
 lemma map_domain_sum [has_zero N] {f : α → β} {s : α →₀ N} {v : α → N → α →₀ M} :
   map_domain f (s.sum v) = s.sum (λa b, map_domain f (v a b)) :=
-(map_domain.add_monoid_hom f : (α →₀ M) →+ β →₀ M).map_finsupp_sum _ _
+map_domain_finset_sum
 
 lemma map_domain_support [decidable_eq β] {f : α → β} {s : α →₀ M} :
   (s.map_domain f).support ⊆ s.support.image f :=
@@ -1654,7 +1639,15 @@ def comap_domain [has_zero M] (f : α → β) (l : β →₀ M) (hf : set.inj_on
       exact l.mem_support_to_fun (f a),
     end }
 
-@[simp]
+@[simp] lemma comap_domain_support [has_zero M] (f : α → β) (l : β →₀ M)
+  (hf : set.inj_on f (f ⁻¹' l.support)) : (comap_domain f l hf).support = l.support.preimage f hf :=
+rfl
+
+@[simp] lemma coe_comap_domain [has_zero M] (f : α → β) (l : β →₀ M)
+  (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
+  ⇑(comap_domain f l hf) = l ∘ f :=
+rfl
+
 lemma comap_domain_apply [has_zero M] (f : α → β) (l : β →₀ M)
   (hf : set.inj_on f (f ⁻¹' ↑l.support)) (a : α) :
   comap_domain f l hf a = l (f a) :=
@@ -1671,7 +1664,7 @@ end
 
 lemma eq_zero_of_comap_domain_eq_zero [add_comm_monoid M]
   (f : α → β) (l : β →₀ M) (hf : set.bij_on f (f ⁻¹' ↑l.support) ↑l.support) :
-   comap_domain f l hf.inj_on = 0 → l = 0 :=
+  comap_domain f l hf.inj_on = 0 → l = 0 :=
 begin
   rw [← support_eq_empty, ← support_eq_empty, comap_domain],
   simp only [finset.ext_iff, finset.not_mem_empty, iff_false, mem_preimage],
@@ -1691,6 +1684,15 @@ begin
   { rw map_domain_notin_range _ _ h_cases,
     by_contra h_contr,
     apply h_cases (hl $ finset.mem_coe.2 $ mem_support_iff.2 $ λ h, h_contr h.symm) }
+end
+
+@[simp] lemma comap_domain_single [has_zero M] (f : α → β) (a : α) (c : M)
+  (hf : set.inj_on f (f ⁻¹' (single (f a) c).support)) :
+  comap_domain f (single (f a) c) hf = single a c :=
+begin
+  refine eq_single_iff.2 ⟨λ b hb, mem_singleton.2 _, by simp⟩,
+  rw [comap_domain_support, mem_preimage] at hb,
+  exact hf hb (mem_support_single.2 ⟨rfl, (mem_support_single.1 hb).2⟩) (mem_support_single.1 hb).1
 end
 
 end comap_domain
@@ -1942,7 +1944,7 @@ variables [add_comm_monoid M] {p : α → Prop}
 
 lemma subtype_domain_sum {s : finset ι} {h : ι → α →₀ M} :
   (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
-(subtype_domain_add_monoid_hom : _ →+ subtype p →₀ M).map_sum _ s
+map_sum (subtype_domain_add_monoid_hom : _ →+ subtype p →₀ M) h s
 
 lemma subtype_domain_finsupp_sum [has_zero N] {s : β →₀ N} {h : β → N → α →₀ M} :
   (s.sum h).subtype_domain p = s.sum (λc d, (h c d).subtype_domain p) :=
@@ -1950,7 +1952,7 @@ subtype_domain_sum
 
 lemma filter_sum (s : finset ι) (f : ι → α →₀ M) :
   (∑ a in s, f a).filter p = ∑ a in s, filter p (f a) :=
-(filter_add_hom p : (α →₀ M) →+ _).map_sum f s
+map_sum (filter_add_hom p : (α →₀ M) →+ _) f s
 
 lemma filter_eq_sum (p : α → Prop) [D : decidable_pred p] (f : α →₀ M) :
   f.filter p = ∑ i in f.support.filter p, single i (f i) :=
@@ -2028,14 +2030,14 @@ by rw [to_multiset_apply, sum_single_index]; apply zero_nsmul
 
 lemma to_multiset_sum {ι : Type*} {f : ι → α →₀ ℕ} (s : finset ι) :
   finsupp.to_multiset (∑ i in s, f i) = ∑ i in s, finsupp.to_multiset (f i) :=
-add_equiv.map_sum _ _ _
+map_sum _ _ _
 
 lemma to_multiset_sum_single {ι : Type*} (s : finset ι) (n : ℕ) :
   finsupp.to_multiset (∑ i in s, single i n) = n • s.val :=
 by simp_rw [to_multiset_sum, finsupp.to_multiset_single, sum_nsmul, sum_multiset_singleton]
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λa, id) :=
-by simp [to_multiset_apply, add_monoid_hom.map_finsupp_sum, function.id_def]
+by simp [to_multiset_apply, map_finsupp_sum, function.id_def]
 
 lemma to_multiset_map (f : α →₀ ℕ) (g : α → β) :
   f.to_multiset.map g = (f.map_domain g).to_multiset :=
@@ -2077,7 +2079,7 @@ end
 @[simp] lemma count_to_multiset [decidable_eq α] (f : α →₀ ℕ) (a : α) :
   f.to_multiset.count a = f a :=
 calc f.to_multiset.count a = f.sum (λx n, (n • {x} : multiset α).count a) :
-  (multiset.count_add_monoid_hom a).map_sum _ f.support
+  map_finsupp_sum (multiset.count_add_monoid_hom a) f (λ x n, (n • {x} : multiset α))
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_nsmul]
   ... = f a * ({a} : multiset α).count a : sum_eq_single _
     (λ a' _ H, by simp only [multiset.count_singleton, if_false, H.symm, mul_zero])
@@ -2320,14 +2322,8 @@ def comap_distrib_mul_action_self :
 @[simp]
 lemma comap_smul_single (g : G) (a : α) (b : M) :
   g • single a b = single (g • a) b :=
-begin
-  ext a',
-  dsimp [(•)],
-  by_cases h : g • a = a',
-  { subst h, simp [←mul_smul], },
-  { simp [single_eq_of_ne h], rw [single_eq_of_ne],
-    rintro rfl, simpa [←mul_smul] using h, }
-end
+calc g • single a b = g • single (g⁻¹ • g • a) b : by rw inv_smul_smul
+... = single (g • a) b : comap_domain_single _ _ _ _
 
 @[simp]
 lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :

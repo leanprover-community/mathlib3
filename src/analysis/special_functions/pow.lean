@@ -450,6 +450,12 @@ lemma rpow_sub' {x : ℝ} (hx : 0 ≤ x) {y z : ℝ} (h : y - z ≠ 0) :
   x ^ (y - z) = x ^ y / x ^ z :=
 by { simp only [sub_eq_add_neg] at h ⊢, simp only [rpow_add' hx h, rpow_neg hx, div_eq_mul_inv] }
 
+lemma rpow_inv_rpow_self {y : ℝ} (hy : y ≠ 0) {x : ℝ} (hx : 0 ≤ x) : (x ^ y) ^ (1 / y) = x :=
+by field_simp [← rpow_mul hx]
+
+lemma rpow_self_rpow_inv {y : ℝ} (hy : y ≠ 0) {x : ℝ} (hx : 0 ≤ x) : (x ^ (1 / y)) ^ y = x :=
+by field_simp [← rpow_mul hx]
+
 lemma rpow_add_int {x : ℝ} (hx : x ≠ 0) (y : ℝ) (n : ℤ) : x ^ (y + n) = x ^ y * x ^ n :=
 by rw [rpow_def, complex.of_real_add, complex.cpow_add _ _ (complex.of_real_ne_zero.mpr hx),
   complex.of_real_int_cast, complex.cpow_int_cast, ← complex.of_real_zpow, mul_comm,
@@ -528,8 +534,36 @@ end
 lemma rpow_lt_rpow_iff (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z < y ^ z ↔ x < y :=
 ⟨lt_imp_lt_of_le_imp_le $ λ h, rpow_le_rpow hy h (le_of_lt hz), λ h, rpow_lt_rpow hx h hz⟩
 
+lemma lt_rpow_one_div_iff (hx : 0 ≤ x) (hy : 0 ≤ y) {z : ℝ} (hz : 0 < z) :
+  x < y ^ (1 / z) ↔ x ^ z < y :=
+begin
+  rwa [← rpow_lt_rpow_iff hx _ hz, rpow_self_rpow_inv hz.ne'],
+  exact rpow_nonneg_of_nonneg hy _,
+end
+
+lemma rpow_one_div_lt_iff (hx : 0 ≤ x) (hy : 0 ≤ y) {z : ℝ} (hz : 0 < z) :
+  x ^ (1 / z) < y ↔ x < y ^ z :=
+begin
+  rwa [← rpow_lt_rpow_iff _ hy hz, rpow_self_rpow_inv hz.ne'],
+  exact rpow_nonneg_of_nonneg hx _
+end
+
 lemma rpow_le_rpow_iff (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=
 le_iff_le_iff_lt_iff_lt.2 $ rpow_lt_rpow_iff hy hx hz
+
+lemma le_rpow_one_div_iff (hx : 0 ≤ x) (hy : 0 ≤ y) {z : ℝ} (hz : 0 < z) :
+  x ≤ y ^ (1 / z) ↔ x ^ z ≤ y :=
+begin
+  rwa [← rpow_le_rpow_iff hx _ hz, rpow_self_rpow_inv hz.ne'],
+  exact rpow_nonneg_of_nonneg hy _,
+end
+
+lemma rpow_one_div_le_iff (hx : 0 ≤ x) (hy : 0 ≤ y) {z : ℝ} (hz : 0 < z) :
+  x ^ (1 / z) ≤ y ↔ x ≤ y ^ z :=
+begin
+  rwa [← rpow_le_rpow_iff _ hy hz, rpow_self_rpow_inv hz.ne'],
+  exact rpow_nonneg_of_nonneg hx _
+end
 
 lemma rpow_lt_rpow_of_exponent_lt (hx : 1 < x) (hyz : y < z) : x^y < x^z :=
 begin

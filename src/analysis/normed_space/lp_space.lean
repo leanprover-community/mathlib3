@@ -86,7 +86,8 @@ begin
   apply mem_ℓp_gen hp,
   use ⨆ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real,
   apply has_sum_of_is_lub_of_nonneg,
-  { sorry }, -- nonnegativity
+  { intros b,
+    exact real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
   apply is_lub_csupr,
   use C,
   rintros - ⟨s, rfl⟩,
@@ -390,6 +391,19 @@ lemma norm_le_of_tsum_le' (hp : 0 < p.to_real) {C : ℝ} (hC : 0 ≤ C) {f : lp 
   ∥f∥ ≤ C :=
 norm_le_of_tsum_le hp hC (tsum_le_of_sum_le ((lp.mem_ℓp f).summable hp) hf)
 
+lemma sum_rpow_le_norm (hp : 0 < p.to_real) (f : lp E p) (s : finset α) :
+  (∑ i in s, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real) ≤ ∥f∥ :=
+begin
+  rw lp.norm_eq_tsum_rpow hp f,
+  have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real,
+  { exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
+  refine real.rpow_le_rpow _ _ (one_div_nonneg.mpr hp.le),
+  { apply finset.sum_nonneg,
+    exact λ i hi, this i },
+  { refine sum_le_tsum _ (λ i hi, this i) _,
+    exact (lp.mem_ℓp f).summable hp },
+end
+
 @[simp] lemma norm_zero : ∥(0 : lp E p)∥ = 0 :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
@@ -543,9 +557,9 @@ section completeness
 variables {F : ℕ → lp E p}
 
 open filter
-open_locale topological_space
-open_locale uniformity
+open_locale topological_space uniformity
 
+-- move this
 lemma normed_group.uniformity_basis_dist {α : Type*} [normed_group α] :
   (𝓤 α).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), {p : α × α | ∥p.fst - p.snd∥ < ε}) :=
 begin
@@ -568,10 +582,10 @@ begin
   have : ∑' a, ∥(F k - F l) a∥ ^ p.to_real < ε ^ p.to_real,
   { rw ← lp.norm_rpow_eq_tsum hp,
     apply real.rpow_lt_rpow (norm_nonneg _) this hp },
-  { refine lt_of_le_of_lt _ this,
-    refine sum_le_tsum _ _ ((lp.mem_ℓp (F k - F l)).summable hp),
-    intros b hb,
-    sorry } -- nonneg
+  refine lt_of_le_of_lt _ this,
+  refine sum_le_tsum _ _ ((lp.mem_ℓp (F k - F l)).summable hp),
+  intros b hb,
+  sorry -- nonneg
 end
 
 lemma foo₀' [fact (1 ≤ p)] (hF : cauchy_seq F) {ε : ℝ} (hε : 0 < ε) :
@@ -590,6 +604,7 @@ end
 
 variables [Π a, complete_space (E a)]
 
+/-- A Cauchy sequence in `lp E p` is pointwise convergent. -/
 lemma foo₁ [fact (1 ≤ p)] (hF : cauchy_seq F) :
   ∃ f, tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f) :=
 begin
@@ -612,13 +627,13 @@ begin
   { apply_instance }
 end
 
+/-- If `f` is the pointwise limit of a Cauchy sequence in `Lp E p`, then `f` is in `Lp E p`. -/
 lemma foo₂ [fact (1 ≤ p)] (hF : cauchy_seq F) {f : Π a, E a}
   (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
   mem_ℓp f p :=
 begin
   have hp : 0 < p.to_real := sorry,
   have hp' : 1 ≤ p.to_real := sorry,
-  have hp'' : 0 < 1 / p.to_real := sorry,
   obtain ⟨N, hN⟩ := foo₀' hF zero_lt_one,
   have hC : 0 ≤ (1 + ∥F N∥) ^ p.to_real := sorry,
   apply mem_ℓp_gen' hp hC,
@@ -635,49 +650,46 @@ begin
         exact finset.sum_finset_coe (λ a, ∥F i a∥ ^ p.to_real) s },
       symmetry,
       exact finset.sum_finset_coe (λ a, ∥f a∥ ^ p.to_real) s },
-    refine tendsto.comp hG.continuous_at.tendsto _,
+    refine hG.continuous_at.tendsto.comp _,
     rw tendsto_pi_nhds at ⊢ hf,
     rintros ⟨i, hi⟩,
     exact hf i },
   refine (hN s N rfl.le).mono _,
   intros k hk,
-  have H₂ : (∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real) ^ (1 / p.to_real) < 1 + ∥F N∥,
-  { refine lt_of_le_of_lt (real.Lp_add_le_of_nonneg s hp' _ _) _,
-    { sorry }, -- nonneg
-    { sorry }, -- nonneg
-    refine add_lt_add_of_lt_of_le _ _,
-    { rw ← real.rpow_lt_rpow_iff _ _ hp,
-      { convert hk,
-        { sorry } }, -- power juggling
-      { sorry }, -- nonneg
-      { sorry } }, -- nonneg
-    rw lp.norm_eq_tsum_rpow hp,
-    apply real.rpow_le_rpow _ _ hp''.le,
-    { sorry }, -- nonneg
-    { apply sum_le_tsum,
-      { sorry }, -- nonneg
-      { exact (lp.mem_ℓp (F N)).summable hp } } },
-  have H₃ : (∑ a in s, ∥F k a∥ ^ p.to_real) ^ (1 / p.to_real) < 1 + ∥F N∥,
-  { refine lt_of_le_of_lt _ H₂,
-    rw real.rpow_le_rpow_iff _ _ hp'',
-    { apply finset.sum_le_sum,
-      intros a ha,
-      rw real.rpow_le_rpow_iff _ _ hp,
-      { convert norm_add_le (F k a - F N a) (F N a),
-        abel },
-      { sorry }, -- nonneg
-      { sorry } }, -- nonneg
+  have hk' : (∑ a in s, ∥(F k - F N) a∥ ^ p.to_real) ^ (1 / p.to_real) < 1,
+  { rw real.rpow_one_div_lt_iff _ zero_le_one hp,
+    convert hk,
+    { ext a,
+      rw ← _root_.norm_neg ((F k - F N) a),
+      simp },
+    { sorry } }, -- nonneg
+  have triang : ∀ a, ∥F k a - F N a + F N a∥ ^ p.to_real ≤ (∥(F k - F N) a∥ + ∥F N a∥) ^ p.to_real,
+  { intros a,
+    rw real.rpow_le_rpow_iff _ _ hp,
+    { exact norm_add_le (F k a - F N a) (F N a) },
     { sorry }, -- nonneg
     { sorry } }, -- nonneg
-  have H₄ : ∑ a in s, ∥F k a∥ ^ p.to_real < (1 + ∥F N∥) ^ p.to_real,
-  { rw ← real.rpow_lt_rpow_iff _ _ hp at H₃,
-    convert H₃,
-    { sorry }, -- power juggling
+  suffices H : ∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real < (1 + ∥F N∥) ^ p.to_real,
+  calc ∑ a in s, ∥F k a∥ ^ p.to_real
+      = ∑ a in s, ∥(F k a - F N a) + F N a∥ ^ p.to_real : by { congr, abel }
+  ... ≤ ∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real : finset.sum_le_sum (λ i hi, triang i)
+  ... < (1 + ∥F N∥) ^ p.to_real : H,
+  suffices : (∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real) ^ (1 / p.to_real) < 1 + ∥F N∥,
+  { rw ← real.rpow_one_div_lt_iff _ _ hp,
+    { exact this },
     { sorry }, -- nonneg
     { sorry } }, -- nonneg
-  exact H₄
+  have h_sum_le_tsum : (∑ a in s, ∥F N a∥ ^ p.to_real) ^ (1 / p.to_real) ≤ ∥F N∥
+    := lp.sum_rpow_le_norm hp (F N) s,
+  calc (∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real) ^ (1 / p.to_real)
+      ≤ (∑ a in s, ∥(F k - F N) a∥ ^ p.to_real) ^ (1 / p.to_real)
+        + (∑ a in s, ∥F N a∥ ^ p.to_real) ^ (1 / p.to_real) :
+          real.Lp_add_le_of_nonneg s hp' sorry sorry -- nonneg
+  ... < 1 + ∥F N∥ : by linarith,
 end
 
+/-- If a sequence is Cauchy in the `lp E p` topology and pointwise convergent to a element `f` of
+`lp E p`, then it converges to `f` in the `lp E p` topology. -/
 lemma foo₃ [fact (1 ≤ p)] (hF : cauchy_seq F) (f : lp E p)
   (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
   tendsto F at_top (𝓝 f) :=
@@ -707,7 +719,7 @@ begin
       exact finset.sum_finset_coe (λ a, ∥F n a - F i a∥ ^ p.to_real) s },
     symmetry,
     exact finset.sum_finset_coe (λ a, ∥F n a - f a∥ ^ p.to_real) s },
-  refine tendsto.comp hG.continuous_at.tendsto _,
+  refine hG.continuous_at.tendsto.comp _,
   rw tendsto_pi_nhds at ⊢ hf,
   rintros ⟨i, hi⟩,
   exact hf i

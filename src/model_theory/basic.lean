@@ -822,15 +822,18 @@ eq_of_eq_on_top $ hs ▸ eq_on_closure h
 
 end hom
 
+variable (L)
 /-- A term on `α` is either a variable indexed by an element of `α`
   or a function symbol applied to simpler terms. -/
-variable (L)
 inductive term (α : Type) : Type u
 | var {} : ∀ (a : α), term
 | func {} : ∀ {l : ℕ} (f : L.functions l) (ts : fin l → term), term
 export term
 
 variable {L}
+
+instance {α : Type} [inhabited α] : inhabited (L.term α) :=
+⟨var (default α)⟩
 
 instance {α} : has_coe L.const (L.term α) :=
 ⟨λ c, func c fin_zero_elim⟩
@@ -852,6 +855,9 @@ inductive bounded_formula (α : Type) : ℕ → Type (max u v)
 | bd_all {n} (f : bounded_formula (n+1)) : bounded_formula n
 
 export bounded_formula
+
+instance {α : Type} {n : ℕ} : inhabited (L.bounded_formula α n) :=
+⟨bd_falsum⟩
 
 /-- `formula α` is the type of formulas with all free variables indexed by `α`. -/
 @[reducible] def formula (α : Type) := L.bounded_formula α 0
@@ -929,8 +935,8 @@ lemma is_definable_univ : L.is_definable (set.univ : set (α → M)) :=
 ⟨⟨⊤, by {ext, simp} ⟩⟩
 
 @[simp]
-lemma is_definable_inf {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
-  L.is_definable (f ⊓ g) :=
+lemma is_definable_inter {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
+  L.is_definable (f ∩ g) :=
 ⟨begin
   rcases hf.exists_formula with ⟨φ, hφ⟩,
   rcases hg.exists_formula with ⟨θ, hθ⟩,
@@ -940,8 +946,8 @@ lemma is_definable_inf {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is
 end⟩
 
 @[simp]
-lemma is_definable_sup {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
-  L.is_definable (f ⊔ g) :=
+lemma is_definable_union {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
+  L.is_definable (f ∪ g) :=
 ⟨begin
   rcases hf.exists_formula with ⟨φ, hφ⟩,
   rcases hg.exists_formula with ⟨θ, hθ⟩,
@@ -966,7 +972,7 @@ end⟩
 lemma is_definable_sdiff {s t : set (α → M)} (hs : L.is_definable s)
   (ht : L.is_definable t) :
   L.is_definable (s \ t) :=
-L.is_definable_inf hs (L.is_definable_compl ht)
+L.is_definable_inter hs (L.is_definable_compl ht)
 
 variables (M) (α)
 
@@ -980,6 +986,8 @@ variables {M} {α}
 instance : has_top (L.definable_set M α) := ⟨⟨⊤, L.is_definable_univ⟩⟩
 
 instance : has_bot (L.definable_set M α) := ⟨⟨⊥, L.is_definable_empty⟩⟩
+
+instance : inhabited (L.definable_set M α) := ⟨⊥⟩
 
 instance : set_like (L.definable_set M α) (α → M) :=
 { coe := subtype.val,
@@ -998,9 +1006,8 @@ lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : L.definable_set M α) := set.
 lemma coe_bot : ((⊥ : L.definable_set M α) : set (α → M)) = ⊥ := rfl
 
 instance : lattice (L.definable_set M α) :=
-subtype.lattice (λ _ _, L.is_definable_sup) (λ _ _, L.is_definable_inf)
+subtype.lattice (λ _ _, L.is_definable_union) (λ _ _, L.is_definable_inter)
 
-@[simp]
 lemma le_iff {s t : L.definable_set M α} : s ≤ t ↔ (s : set (α → M)) ≤ (t : set (α → M)) := iff.rfl
 
 @[simp]
@@ -1057,7 +1064,7 @@ instance : boolean_algebra (L.definable_set M α) :=
   sup_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩,
   begin
     apply le_antisymm;
-    simp,
+    simp [le_iff],
   end,
   inf_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩, begin
     rw eq_bot_iff,
@@ -1067,8 +1074,8 @@ instance : boolean_algebra (L.definable_set M α) :=
     simp only [set.mem_inter_eq, set.mem_compl_eq] at hx,
     tauto,
   end,
-  inf_compl_le_bot := λ ⟨s, hs⟩, by simp,
-  top_le_sup_compl := λ ⟨s, hs⟩, by simp,
+  inf_compl_le_bot := λ ⟨s, hs⟩, by simp [le_iff],
+  top_le_sup_compl := λ ⟨s, hs⟩, by simp [le_iff],
   .. definable_set.has_compl L,
   .. definable_set.bounded_distrib_lattice L }
 

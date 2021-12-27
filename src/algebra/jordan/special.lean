@@ -111,15 +111,14 @@ end
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
 function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
 
-noncomputable instance [ring α] [algebra ℝ α] : has_mul(αˢʸᵐ) := {
-  mul := λ a b, (sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a)))),
-}
+noncomputable instance [ring α] [algebra ℝ α] : has_mul(αˢʸᵐ) :=
+{ mul := λ a b, (sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a)))), }
 
-lemma mul_def [ring α] [algebra ℝ α] (a b: αˢʸᵐ) : a*b = sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))) := by refl
+lemma mul_def [ring α] [algebra ℝ α] (a b: αˢʸᵐ) :
+  a*b = sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))) := by refl
 
 noncomputable instance [ring α] [algebra ℝ α] : non_unital_non_assoc_ring (αˢʸᵐ) :=
-{
-  zero_mul := λ _,
+{ zero_mul := λ _,
   begin
     simp only [mul_def,zero_zero, add_zero, sym_zero, zero_mul, mul_zero, smul_zero],
     exact rfl,
@@ -156,8 +155,8 @@ begin
   simp,
 end
 
-noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : comm_jordan (αˢʸᵐ) := {
-  comm := λ a,
+noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : comm_jordan (αˢʸᵐ) :=
+{ comm := λ a,
   begin
     ext b,
     change (1/2:ℝ)•(unsym(b)*unsym(a)+unsym(a)*unsym(b)) =
@@ -168,8 +167,10 @@ noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : comm_jordan (α
   begin
     ext b,
     simp,
-    change (1/2:ℝ)•(unsym(a)*(1/2:ℝ)•(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a))+(1/2:ℝ)•(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a))*unsym(a))
-    - (1/2:ℝ)•(unsym(a*a)*(1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))+(1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))*unsym(a*a)) = 0,
+    change (1/2:ℝ)•(unsym(a)*(1/2:ℝ)•(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a))
+      +(1/2:ℝ)•(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a))*unsym(a))
+      - (1/2:ℝ)•(unsym(a*a)*(1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))
+      +(1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))*unsym(a*a)) = 0,
     rw sym_squares,
     rw ← smul_sub,
     rw mul_smul_comm,
@@ -199,7 +200,6 @@ noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : comm_jordan (α
     abel,
     rw ← add_assoc,
     abel,
-  end
-}
+  end }
 
 end sym_alg

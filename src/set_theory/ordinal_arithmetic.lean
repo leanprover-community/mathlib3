@@ -1079,16 +1079,24 @@ end
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
 
 section
-variables {S : set ordinal.{u}} (hS : ∀ a, ∃ b, S b ∧ a ≤ b)
+variables {S : set ordinal.{u}} (hS : unbounded (<) S)
+
+-- A more convenient characterization of unboundedness.
+private lemma unbounded_aux (hS : unbounded (<) S) : ∀ a, ∃ b, S b ∧ a ≤ b :=
+begin
+  intro a,
+  rcases hS a with ⟨b, hb, hb'⟩,
+  exact ⟨b, hb, le_of_not_gt hb'⟩,
+end
 
 /-- Enumerator function for an unbounded set of ordinals. -/
 noncomputable def enum_ord : ordinal.{u} → ordinal.{u} :=
-wf.fix (λ a f, omin _ (hS (blsub.{u u} a f)))
+wf.fix (λ o f, omin _ (unbounded_aux hS (blsub.{u u} o f)))
 
 /-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
 work with, so consider using `enum_ord_def` instead. -/
 theorem enum_ord_def' (o) :
-  enum_ord hS o = omin (λ b, S b ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) (hS _) :=
+  enum_ord hS o = omin (λ b, S b ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) (unbounded_aux hS _) :=
 wf.fix_eq _ _
 
 private theorem enum_ord_mem_aux (o) :
@@ -1100,7 +1108,7 @@ theorem enum_ord_mem (o) : enum_ord hS o ∈ S := (enum_ord_mem_aux hS o).left
 theorem blsub_le_enum_ord (a) : blsub.{u u} a (λ c _, enum_ord hS c) ≤ enum_ord hS a :=
 (enum_ord_mem_aux hS a).right
 
-theorem enum_ord.strict_mono {hS : ∀ a, ∃ b, S b ∧ a ≤ b} : strict_mono (enum_ord hS) :=
+theorem enum_ord.strict_mono {hS : unbounded (<) S} : strict_mono (enum_ord hS) :=
 λ _ _ h, lt_of_lt_of_le (lt_blsub.{u u} _ _ h) (blsub_le_enum_ord hS _)
 
 -- Explicitly specifying hS' screws up `rw` for whatever reason.
@@ -1117,7 +1125,7 @@ begin
 end
 
 /-- The hypothesis that asserts that the `omin` from `enum_ord_def` exists. -/
-lemma enum_ord_def_H {hS : ∀ a, ∃ b, S b ∧ a ≤ b} {o} :
+lemma enum_ord_def_H {hS : unbounded (<) S} {o} :
   ∃ x, (λ b, S b ∧ ∀ c, c < o → enum_ord hS c < b) x :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono b⟩)
 
@@ -1126,7 +1134,7 @@ theorem enum_ord_def (o) :
   enum_ord hS o = omin (λ b, S b ∧ ∀ c, c < o → enum_ord hS c < b) enum_ord_def_H :=
 enum_ord_def_aux hS o
 
-theorem enum_ord.surjective {hS : ∀ a, ∃ b, S b ∧ a ≤ b} : ∀ s ∈ S, ∃ a, enum_ord hS a = s :=
+theorem enum_ord.surjective {hS : unbounded (<) S} : ∀ s ∈ S, ∃ a, enum_ord hS a = s :=
 begin
   by_contra' H,
   let a := omin _ H,

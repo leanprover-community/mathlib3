@@ -256,9 +256,20 @@ end mem_ℓp
 The space of elements of `Π i, E i` satisfying the predicate `mem_ℓp`.
 -/
 
+/-- We define `pre_lp E` to be a type synonym for `Π i, E i` which, importantly, does not inherit
+the `pi` topology on `Π i, E i` (otherwise this topology would descent to `lp E p` and conflict
+with the normed group topology we will later equip it with.)
+
+We choose to deal with this issue by making a type synonym for `Π i, E i` rather than for the `lp`
+subgroup itself, because this allows all the spaces `lp E p` (for varying `p`) to be subgroups of
+the same ambient group, which permits lemma statements like `lp.monotone` (below). -/
+@[derive add_comm_group] def pre_lp (E : α → Type*) [Π i, normed_group (E i)] : Type* := Π i, E i
+
+instance pre_lp.unique [is_empty α] : unique (pre_lp E) := pi.unique_of_is_empty E
+
 /-- lp space -/
 def lp (E : α → Type*) [Π i, normed_group (E i)]
-  (p : ℝ≥0∞) : add_subgroup (Π i, E i) :=
+  (p : ℝ≥0∞) : add_subgroup (pre_lp E) :=
 { carrier := {f | mem_ℓp f p},
   zero_mem' := zero_mem_ℓp,
   add_mem' := λ f g, mem_ℓp.add,
@@ -266,12 +277,13 @@ def lp (E : α → Type*) [Π i, normed_group (E i)]
 
 namespace lp
 
+instance : has_coe (lp E p) (Π i, E i) := coe_subtype
 instance : has_coe_to_fun (lp E p) (λ _, Π i, E i) := ⟨λ f, ((f : Π i, E i) : Π i, E i)⟩
 
 @[ext] lemma ext {f g : lp E p} (h : (f : Π i, E i) = g) : f = g :=
 subtype.ext h
 
-lemma ext_iff {f g : lp E p} : f = g ↔ (f : Π i, E i) = g :=
+protected lemma ext_iff {f g : lp E p} : f = g ↔ (f : Π i, E i) = g :=
 subtype.ext_iff
 
 lemma eq_zero' [is_empty α] (f : lp E p) : f = 0 := subsingleton.elim f 0
@@ -389,7 +401,7 @@ begin
 end
 
 lemma eq_zero_iff_ae_eq_zero {f : lp E p} : f = 0 ↔ ⇑f = 0 :=
-by rw [ext_iff, coe_fn_zero]
+by rw [lp.ext_iff, coe_fn_zero]
 
 @[simp] lemma norm_neg ⦃f : lp E p⦄ : ∥-f∥ = ∥f∥ :=
 begin
@@ -438,13 +450,16 @@ section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
-lemma mem_lp_const_smul (c : 𝕜) (f : lp E p) : c • ↑f ∈ lp E p := (lp.mem_ℓp f).const_smul c
+instance : module 𝕜 (pre_lp E) := pi.module α E 𝕜
+
+lemma mem_lp_const_smul (c : 𝕜) (f : lp E p) : c • (f : pre_lp E) ∈ lp E p :=
+(lp.mem_ℓp f).const_smul c
 
 variables (E p 𝕜)
 
 /-- The `𝕜`-submodule of elements of `Π i : α, E i` whose `lp` norm is finite.  This is `lp E p`,
 with extra structure. -/
-def lp_submodule : submodule 𝕜 (Π i, E i) :=
+def lp_submodule : submodule 𝕜 (pre_lp E) :=
 { smul_mem' := λ c f hf, by simpa using mem_lp_const_smul c ⟨f, hf⟩,
   .. lp E p }
 
@@ -484,8 +499,10 @@ instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
     simp [norm_const_smul hp.ne']
   end }
 
-instance [Π i, normed_space ℝ (E i)] [has_scalar ℝ 𝕜] [Π i, is_scalar_tower ℝ 𝕜 (E i)] :
-  is_scalar_tower ℝ 𝕜 (lp E p) :=
+variables {𝕜' : Type*} [normed_field 𝕜']
+
+instance [Π i, normed_space 𝕜' (E i)] [has_scalar 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
+  is_scalar_tower 𝕜' 𝕜 (lp E p) :=
 begin
   refine ⟨λ r c f, _⟩,
   ext1,

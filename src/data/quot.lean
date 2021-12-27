@@ -163,6 +163,9 @@ protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f
   quotient sa → quotient sb → quotient sc :=
 quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.sound $ h h₁ h₂)
 
+@[simp] lemma map₂_mk (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) (x : α) (y : β) :
+  quotient.map₂ f h (⟦x⟧ : quotient sa) (⟦y⟧ : quotient sb) = (⟦f x y⟧ : quotient sc) := rfl
+
 end quotient
 
 lemma quot.eq {α : Type*} {r : α → α → Prop} {x y : α} :
@@ -179,6 +182,12 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
 @[simp] lemma quotient.lift_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift f h (quotient.mk x) = f x := rfl
+
+@[simp] lemma quotient.lift₂_mk {α : Sort*} {β : Sort*} {γ : Sort*} [setoid α] [setoid β]
+  (f : α → β → γ)
+  (h : ∀ (a₁ : α) (a₂ : β) (b₁ : α) (b₂ : β), a₁ ≈ b₁ → a₂ ≈ b₂ → f a₁ a₂ = f b₁ b₂)
+  (a : α) (b : β) :
+  quotient.lift₂ f h (quotient.mk a) (quotient.mk b) = f a b := rfl
 
 @[simp] lemma quotient.lift_on_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
@@ -231,6 +240,14 @@ begin
   refine iff.trans _ quotient.eq,
   rw quotient.out_eq x,
 end
+
+@[simp] lemma quotient.out_equiv_out [s : setoid α] {x y : quotient s} :
+  x.out ≈ y.out ↔ x = y :=
+by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
+
+@[simp] lemma quotient.out_inj [s : setoid α] {x y : quotient s} :
+  x.out = y.out ↔ x = y :=
+⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
 
 instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
 { r := λ a b, ∀ i, a i ≈ b i,

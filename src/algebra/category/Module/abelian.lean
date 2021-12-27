@@ -3,6 +3,7 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
+import linear_algebra.isomorphisms
 import algebra.category.Module.kernels
 import algebra.category.Module.limits
 import category_theory.abelian.exact
@@ -25,7 +26,7 @@ variables {R : Type u} [ring R] {M N : Module.{v} R} (f : M ⟶ N)
 
 /-- In the category of modules, every monomorphism is normal. -/
 def normal_mono (hf : mono f) : normal_mono f :=
-{ Z := of R f.range.quotient,
+{ Z := of R (N ⧸ f.range),
   g := f.range.mkq,
   w := linear_map.range_mkq_comp _,
   is_limit :=

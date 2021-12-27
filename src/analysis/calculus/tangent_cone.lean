@@ -197,7 +197,7 @@ begin
     exact ⟨z - x j, by simpa using hzs, by simpa using hz⟩ },
   choose! d' hd's hcd',
   refine ⟨c, λ n, function.update (d' n) i (d n), hd.mono (λ n hn j hj', _), hc,
-    tendsto_pi.2 $ λ j, _⟩,
+    tendsto_pi_nhds.2 $ λ j, _⟩,
   { rcases em (j = i) with rfl|hj; simp * },
   { rcases em (j = i) with rfl|hj,
     { simp [hy] },
@@ -368,7 +368,7 @@ unique_diff_on.pi _ _ _ _ $ λ i _, h i
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/
-theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).nonempty) :
+theorem unique_diff_on_convex {s : set G} (conv : convex ℝ s) (hs : (interior s).nonempty) :
   unique_diff_on ℝ s :=
 begin
   assume x xs,

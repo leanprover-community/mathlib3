@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import data.zmod.basic
 import group_theory.index
+import group_theory.group_action.conj_act
 import group_theory.perm.cycle_type
 import group_theory.quotient_group
 
@@ -57,42 +59,41 @@ begin
   exact (hq1.pow_eq_iff.mp (hg.symm.trans hk).symm).1.symm,
 end
 
-lemma to_le {H K : subgroup G} (hK : is_p_group p K) (hHK : H ≤ K) : is_p_group p H :=
-begin
-  simp_rw [is_p_group, subtype.ext_iff, subgroup.coe_pow] at hK ⊢,
-  exact λ h, hK ⟨h, hHK h.2⟩,
-end
-
-lemma to_inf_left {H : subgroup G} (hH : is_p_group p H) (K : subgroup G) :
-  is_p_group p (H ⊓ K : subgroup G) :=
-hH.to_le inf_le_left
-
-lemma to_inf_right {K : subgroup G} (hK : is_p_group p K) (H : subgroup G) :
-  is_p_group p (H ⊓ K : subgroup G) :=
-hK.to_le inf_le_right
+section G_is_p_group
 
 variables (hG : is_p_group p G)
 
 include hG
 
-lemma to_subgroup (H : subgroup G) : is_p_group p H :=
+lemma of_injective {H : Type*} [group H] (ϕ : H →* G) (hϕ : function.injective ϕ) :
+  is_p_group p H :=
 begin
-  simp_rw [is_p_group, subtype.ext_iff, subgroup.coe_pow],
-  exact λ h, hG h,
+  simp_rw [is_p_group, ←hϕ.eq_iff, ϕ.map_pow, ϕ.map_one],
+  exact λ h, hG (ϕ h),
+end
+
+lemma to_subgroup (H : subgroup G) : is_p_group p H :=
+hG.of_injective H.subtype subtype.coe_injective
+
+lemma of_surjective {H : Type*} [group H] (ϕ : G →* H) (hϕ : function.surjective ϕ) :
+  is_p_group p H :=
+begin
+  refine λ h, exists.elim (hϕ h) (λ g hg, exists_imp_exists (λ k hk, _) (hG g)),
+  rw [←hg, ←ϕ.map_pow, hk, ϕ.map_one],
 end
 
 lemma to_quotient (H : subgroup G) [H.normal] :
-  is_p_group p (quotient_group.quotient H) :=
-begin
-  refine quotient.ind' (forall_imp (λ g, _) hG),
-  exact exists_imp_exists (λ k h, (quotient_group.coe_pow H g _).symm.trans (congr_arg coe h)),
-end
+  is_p_group p (G ⧸ H) :=
+hG.of_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
+
+lemma of_equiv {H : Type*} [group H] (ϕ : G ≃* H) : is_p_group p H :=
+hG.of_surjective ϕ.to_monoid_hom ϕ.surjective
 
 variables [hp : fact p.prime]
 
 include hp
 
-lemma index (H : subgroup G) [fintype (quotient_group.quotient H)] :
+lemma index (H : subgroup G) [fintype (G ⧸ H)] :
   ∃ n : ℕ, H.index = p ^ n :=
 begin
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
@@ -107,7 +108,7 @@ lemma card_orbit (a : α) [fintype (orbit G a)] :
   ∃ n : ℕ, card (orbit G a) = p ^ n :=
 begin
   let ϕ := orbit_equiv_quotient_stabilizer G a,
-  haveI := of_equiv (orbit G a) ϕ,
+  haveI := fintype.of_equiv (orbit G a) ϕ,
   rw [card_congr ϕ, ←subgroup.index_eq_card],
   exact hG.index (stabilizer G a),
 end
@@ -160,5 +161,87 @@ have hα : 1 < card (fixed_points G α) :=
   (fact.out p.prime).one_lt.trans_le (nat.le_of_dvd (card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
 let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
 ⟨b, hb, λ hab, hba (by simp_rw [hab])⟩
+
+lemma center_nontrivial [nontrivial G] [fintype G] : nontrivial (subgroup.center G) :=
+begin
+  classical,
+  have := (hG.of_equiv conj_act.to_conj_act).exists_fixed_point_of_prime_dvd_card_of_fixed_point G,
+  rw conj_act.fixed_points_eq_center at this,
+  obtain ⟨g, hg⟩ := this _ (subgroup.center G).one_mem,
+  { exact ⟨⟨1, ⟨g, hg.1⟩, mt subtype.ext_iff.mp hg.2⟩⟩ },
+  { obtain ⟨n, hn⟩ := is_p_group.iff_card.mp hG,
+    rw hn,
+    apply dvd_pow_self,
+    rintro rfl,
+    exact (fintype.one_lt_card).ne' hn },
+end
+
+lemma bot_lt_center [nontrivial G] [fintype G] : ⊥ < subgroup.center G :=
+begin
+  haveI := center_nontrivial hG,
+  classical,
+  exact bot_lt_iff_ne_bot.mpr ((subgroup.center G).one_lt_card_iff_ne_bot.mp fintype.one_lt_card),
+end
+
+end G_is_p_group
+
+lemma to_le {H K : subgroup G} (hK : is_p_group p K) (hHK : H ≤ K) : is_p_group p H :=
+hK.of_injective (subgroup.inclusion hHK) (λ a b h, subtype.ext (show _, from subtype.ext_iff.mp h))
+
+lemma to_inf_left {H K : subgroup G} (hH : is_p_group p H) : is_p_group p (H ⊓ K : subgroup G) :=
+hH.to_le inf_le_left
+
+lemma to_inf_right {H K : subgroup G} (hK : is_p_group p K) : is_p_group p (H ⊓ K : subgroup G) :=
+hK.to_le inf_le_right
+
+lemma map {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+  (ϕ : G →* K) : is_p_group p (H.map ϕ) :=
+begin
+  rw [←H.subtype_range, monoid_hom.map_range],
+  exact hH.of_surjective (ϕ.restrict H).range_restrict (ϕ.restrict H).range_restrict_surjective,
+end
+
+lemma comap_of_ker_is_p_group {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+  (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) : is_p_group p (H.comap ϕ) :=
+begin
+  intro g,
+  obtain ⟨j, hj⟩ := hH ⟨ϕ g.1, g.2⟩,
+  rw [subtype.ext_iff, H.coe_pow, subtype.coe_mk, ←ϕ.map_pow] at hj,
+  obtain ⟨k, hk⟩ := hϕ ⟨g.1 ^ p ^ j, hj⟩,
+  rwa [subtype.ext_iff, ϕ.ker.coe_pow, subtype.coe_mk, ←pow_mul, ←pow_add] at hk,
+  exact ⟨j + k, by rwa [subtype.ext_iff, (H.comap ϕ).coe_pow]⟩,
+end
+
+lemma comap_of_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+  (ϕ : K →* G) (hϕ : function.injective ϕ) : is_p_group p (H.comap ϕ) :=
+begin
+  apply hH.comap_of_ker_is_p_group ϕ,
+  rw ϕ.ker_eq_bot_iff.mpr hϕ,
+  exact is_p_group.of_bot,
+end
+
+lemma to_sup_of_normal_right {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
+  [K.normal] : is_p_group p (H ⊔ K : subgroup G) :=
+begin
+  rw [←quotient_group.ker_mk K, ←subgroup.comap_map_eq],
+  apply (hH.map (quotient_group.mk' K)).comap_of_ker_is_p_group,
+  rwa quotient_group.ker_mk,
+end
+
+lemma to_sup_of_normal_left {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
+  [H.normal] : is_p_group p (H ⊔ K : subgroup G) :=
+(congr_arg (λ H : subgroup G, is_p_group p H) sup_comm).mp (to_sup_of_normal_right hK hH)
+
+lemma to_sup_of_normal_right' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
+  (hHK : H ≤ K.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
+let hHK' := to_sup_of_normal_right (hH.of_equiv (subgroup.comap_subtype_equiv_of_le hHK).symm)
+  (hK.of_equiv (subgroup.comap_subtype_equiv_of_le subgroup.le_normalizer).symm) in
+((congr_arg (λ H : subgroup K.normalizer, is_p_group p H)
+  (subgroup.sup_subgroup_of_eq hHK subgroup.le_normalizer)).mp hHK').of_equiv
+  (subgroup.comap_subtype_equiv_of_le (sup_le hHK subgroup.le_normalizer))
+
+lemma to_sup_of_normal_left' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
+  (hHK : K ≤ H.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
+(congr_arg (λ H : subgroup G, is_p_group p H) sup_comm).mp (to_sup_of_normal_right' hK hH hHK)
 
 end is_p_group

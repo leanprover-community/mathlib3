@@ -3,11 +3,10 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
-import number_theory.pell
+import data.fin.fin2
 import data.pfun
-import data.fin2
 import data.vector3
+import number_theory.pell
 
 /-!
 # Diophantine functions and Matiyasevic's theorem
@@ -118,7 +117,7 @@ namespace poly
 section
 parameter {α : Type u}
 
-instance : has_coe_to_fun (poly α) := ⟨_, λ f, f.1⟩
+instance : has_coe_to_fun (poly α) (λ _, (α → ℕ) → ℤ) := ⟨λ f, f.1⟩
 
 /-- The underlying function of a `poly` is a polynomial -/
 lemma isp (f : poly α) : is_poly f := f.2
@@ -179,15 +178,15 @@ instance : has_mul (poly α) := ⟨poly.mul⟩
 | ⟨f, pf⟩ ⟨g, pg⟩ x := rfl
 
 instance : comm_ring (poly α) := by refine_struct
-{ add   := (+),
-  zero  := (0 : poly α),
-  neg   := has_neg.neg,
-  mul   := (*),
+{ add   := ((+) : poly α → poly α → poly α),
+  zero  := 0,
+  neg   := (has_neg.neg : poly α → poly α),
+  mul   := ((*)),
   one   := 1,
-  sub   := has_sub.sub,
-  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨neg⟩ };
+  sub   := (has_sub.sub),
+  npow  := @npow_rec _ ⟨(1 : poly α)⟩ ⟨(*)⟩,
+  nsmul := @nsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩,
+  zsmul := @zsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨neg⟩ };
 intros; try { refl }; refine ext (λ _, _);
 simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 
@@ -328,8 +327,8 @@ begin
       ⟨⟨t ∘ inl, by rwa [
         show (v ⊗ t) ∘ (inl ⊗ inr ∘ inl) = v ⊗ t ∘ inl,
         from funext $ λs, by cases s with a b; refl] at hl⟩,
-      ⟨t ∘ inr, by {
-        refine list_all.imp (λq hq, _) hr, dsimp [(∘)] at hq,
+      ⟨t ∘ inr, by
+      { refine list_all.imp (λq hq, _) hr, dsimp [(∘)] at hq,
         rwa [show (λ (x : α ⊕ γ), (v ⊗ t) ((inl ⊗ λ (x : γ), inr (inr x)) x)) = v ⊗ t ∘ inr,
              from funext $ λs, by cases s with a b; refl] at hq }⟩⟩⟩⟩
 end
@@ -461,7 +460,7 @@ localized "notation x ` D∨ `:35 y := dioph.or_dioph x y" in dioph
 
 localized "notation `D∃`:30 := dioph.vec_ex1_dioph" in dioph
 
-localized "prefix `&`:max := of_nat'" in dioph
+localized "prefix `&`:max := fin2.of_nat'" in dioph
 theorem proj_dioph_of_nat {n : ℕ} (m : ℕ) [is_lt m n] : dioph_fn (λv : vector3 ℕ n, v &m) :=
 proj_dioph &m
 localized "prefix `D&`:100 := dioph.proj_dioph_of_nat" in dioph
@@ -512,13 +511,13 @@ ext (D&1 D= D&0 D+ D&2 D∨ D&1 D≤ D&2 D∧ D&0 D= D.0) $ (vector_all_iff_fora
 show (y = x + z ∨ y ≤ z ∧ x = 0) ↔ y - z = x, from
 ⟨λo, begin
   rcases o with ae | ⟨yz, x0⟩,
-  { rw [ae, nat.add_sub_cancel] },
-  { rw [x0, nat.sub_eq_zero_of_le yz] }
+  { rw [ae, add_tsub_cancel_right] },
+  { rw [x0, tsub_eq_zero_iff_le.mpr yz] }
 end, λh, begin
   subst x,
   cases le_total y z with yz zy,
-  { exact or.inr ⟨yz, nat.sub_eq_zero_of_le yz⟩ },
-  { exact or.inl (nat.sub_add_cancel zy).symm },
+  { exact or.inr ⟨yz, tsub_eq_zero_iff_le.mpr yz⟩ },
+  { exact or.inl (tsub_add_cancel_of_le zy).symm },
 end⟩
 localized "infix ` D- `:80 := dioph.sub_dioph" in dioph
 

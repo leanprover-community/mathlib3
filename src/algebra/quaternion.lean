@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import tactic.ring_exp
 import algebra.algebra.basic
-import algebra.opposites
+import algebra.ring.opposite
 import data.equiv.ring
 
 /-!
@@ -133,9 +133,9 @@ by refine_struct
     sub := has_sub.sub,
     mul := (*),
     one := 1,
-    nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-    gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
-    npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
+    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩,
+    zsmul := @zsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+    npow := @npow_rec _ ⟨(1 : ℍ[R, c₁, c₂])⟩ ⟨(*)⟩ };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=
@@ -298,10 +298,10 @@ instance : star_ring ℍ[R, c₁, c₂] :=
 
 @[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
 
-open opposite
+open mul_opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵒᵖ) :=
+def conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵐᵒᵖ) :=
 { to_fun := op ∘ conj,
   inv_fun := conj ∘ unop,
   map_mul' := λ x y, by simp,
@@ -478,12 +478,12 @@ lemma mul_conj_eq_coe : a * conj a = (a * conj a).re := a.mul_conj_eq_coe
 
 @[simp] lemma conj_sub : (a - b).conj = a.conj - b.conj := a.conj_sub b
 
-open opposite
+open mul_opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_ae : ℍ[R] ≃ₐ[R] (ℍ[R]ᵒᵖ) := quaternion_algebra.conj_ae
+def conj_ae : ℍ[R] ≃ₐ[R] (ℍ[R]ᵐᵒᵖ) := quaternion_algebra.conj_ae
 
-@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R] ≃ₐ[R] ℍ[R]ᵒᵖ) = op ∘ conj := rfl
+@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R] ≃ₐ[R] ℍ[R]ᵐᵒᵖ) = op ∘ conj := rfl
 
 /-- Square of the norm. -/
 def norm_sq : monoid_with_zero_hom ℍ[R] R :=
@@ -539,12 +539,14 @@ by { rw norm_sq_def', apply_rules [sq_nonneg, add_nonneg] }
 @[simp] lemma norm_sq_le_zero : norm_sq a ≤ 0 ↔ a = 0 :=
 by simpa only [le_antisymm_iff, norm_sq_nonneg, and_true] using @norm_sq_eq_zero _ _ a
 
-instance : domain ℍ[R] :=
-{ exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ a b hab,
+instance : nontrivial ℍ[R] :=
+{ exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩, }
+
+instance : is_domain ℍ[R] :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b hab,
     have norm_sq a * norm_sq b = 0, by rwa [← norm_sq.map_mul, norm_sq_eq_zero],
     (eq_zero_or_eq_zero_of_mul_eq_zero this).imp norm_sq_eq_zero.1 norm_sq_eq_zero.1,
-  .. quaternion.ring }
+  ..quaternion.nontrivial, }
 
 end linear_ordered_comm_ring
 
@@ -559,10 +561,11 @@ instance : division_ring ℍ[R] :=
   inv_zero := by rw [has_inv_inv, conj_zero, smul_zero],
   mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_conj, smul_coe,
     inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
-  .. quaternion.domain }
+  .. quaternion.nontrivial,
+  .. quaternion.ring }
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ :=
-monoid_with_zero_hom.map_inv' norm_sq _
+monoid_with_zero_hom.map_inv norm_sq _
 
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b :=
 monoid_with_zero_hom.map_div norm_sq a b

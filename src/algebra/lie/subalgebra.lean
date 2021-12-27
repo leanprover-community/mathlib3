@@ -34,7 +34,6 @@ section lie_subalgebra
 
 variables (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-set_option old_structure_cmd true
 /-- A Lie subalgebra of a Lie algebra is submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie algebra. -/
 structure lie_subalgebra extends submodule R L :=
@@ -83,7 +82,7 @@ lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L
 @[simp] lemma mem_carrier {x : L} : x ∈ L'.carrier ↔ x ∈ (L' : set L) := iff.rfl
 
 @[simp] lemma mem_mk_iff (S : set L) (h₁ h₂ h₃ h₄) {x : L} :
-  x ∈ (⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) ↔ x ∈ S :=
+  x ∈ (⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) ↔ x ∈ S :=
 iff.rfl
 
 @[simp] lemma mem_coe_submodule {x : L} : x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
@@ -104,14 +103,14 @@ lemma ext_iff' (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x �
 ⟨λ h x, by rw h, ext L₁' L₂'⟩
 
 @[simp] lemma mk_coe (S : set L) (h₁ h₂ h₃ h₄) :
-  ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
+  ((⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
 
 @[simp] lemma coe_to_submodule_mk (p : submodule R L) (h) :
   (({lie_mem' := h, ..p} : lie_subalgebra R L) : submodule R L) = p :=
 by { cases p, refl, }
 
 lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
-λ L₁' L₂' h, by cases L₁'; cases L₂'; congr'
+by { rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ h, congr' }
 
 @[norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : set L) = L₂' ↔ L₁' = L₂' := coe_injective.eq_iff
@@ -234,8 +233,8 @@ by { rw ← coe_to_submodule_eq_iff, exact (K : submodule R L).range_subtype, }
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
 def map : lie_subalgebra R L₂ :=
-{ lie_mem' := λ x y hx hy, by {
-    erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
+{ lie_mem' := λ x y hx hy, by
+  { erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
     erw submodule.mem_map,
     exact ⟨⁅x', y'⁆, K.lie_mem hx' hy', f.map_lie x' y'⟩, },
@@ -367,13 +366,11 @@ variables (R L)
 
 lemma well_founded_of_noetherian [is_noetherian R L] :
   well_founded ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) :=
-begin
   let f : ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) →r
           ((>) : submodule R L → submodule R L → Prop) :=
   { to_fun       := coe,
-    map_rel' := λ N N' h, h, },
-  apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
-end
+    map_rel' := λ N N' h, h, }
+in rel_hom_class.well_founded f (is_noetherian_iff_well_founded.mp infer_instance)
 
 variables {R L K K' f}
 

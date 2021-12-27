@@ -3,8 +3,9 @@ Copyright (c) 2021 Apurva Nakade. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Apurva Nakade
 -/
+import algebra.algebra.basic
+import group_theory.monoid_localization
 import set_theory.surreal.basic
-import ring_theory.localization
 
 /-!
 # Dyadic numbers
@@ -151,13 +152,13 @@ begin
                surreal.pow_half_zero] },
   { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k,
         smul_algebra_smul_comm] at hk,
-    rwa ← (gsmul_eq_gsmul_iff' two_ne_zero) }
+    rwa ← (zsmul_eq_zsmul_iff' two_ne_zero) }
 end
 
-lemma nsmul_int_pow_two_pow_half (m : ℤ) (n k : ℕ) :
+lemma zsmul_pow_two_pow_half (m : ℤ) (n k : ℕ) :
   (m * 2 ^ n) • pow_half (n + k) = m • pow_half k :=
 begin
-  rw mul_gsmul,
+  rw mul_zsmul,
   congr,
   norm_cast,
   exact nsmul_pow_two_pow_half' n k,
@@ -172,16 +173,16 @@ begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp h,
   rw [add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
   cases h₂,
-  { rw [h₂, add_comm, nsmul_int_pow_two_pow_half m₂ c y₁] },
+  { rw [h₂, add_comm, zsmul_pow_two_pow_half m₂ c y₁] },
   { have := nat.one_le_pow y₁ 2 nat.succ_pos',
     linarith },
 end
 
 /-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
 def dyadic_map (x : localization (submonoid.powers (2 : ℤ))) : surreal :=
-quotient.lift_on' x (λ x : _ × _, x.1 • pow_half (submonoid.log x.2)) $
+localization.lift_on x (λ x y, x • pow_half (submonoid.log y)) $
 begin
-  rintros ⟨m₁, n₁⟩ ⟨m₂, n₂⟩ h₁,
+  intros m₁ m₂ n₁ n₂ h₁,
   obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.mp h₁,
   simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
   cases h₂,

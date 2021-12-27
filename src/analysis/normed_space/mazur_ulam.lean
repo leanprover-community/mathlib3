@@ -72,11 +72,11 @@ begin
   { rintros e ⟨hx, hy⟩,
     split; simp [hx, hy, e.symm_apply_eq.2 hx.symm, e.symm_apply_eq.2 hy.symm], },
   -- Therefore, `dist (e z) z = 0` for all `e ∈ s`.
-  set c := ⨆ e : s, dist (e z) z,
+  set c := ⨆ e : s, dist ((e : PE ≃ᵢ PE) z) z,
   have : c ≤ c / 2,
   { apply csupr_le,
     rintros ⟨e, he⟩,
-    simp only [coe_fn_coe_base, subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _ _), ← hf_dist],
+    simp only [subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _ _), ← hf_dist],
     exact le_csupr h_bdd ⟨f e, hf_maps_to he⟩ },
   replace : c ≤ 0, { linarith },
   refine λ e hx hy, dist_le_zero.1 (le_trans _ this),
@@ -135,8 +135,8 @@ def to_real_linear_isometry_equiv (f : E ≃ᵢ F) : E ≃ₗᵢ[ℝ] F :=
 normed vector spaces over `ℝ`, then `f` is an affine isometry equivalence. -/
 def to_real_affine_isometry_equiv (f : PE ≃ᵢ PF) : PE ≃ᵃⁱ[ℝ] PF :=
 affine_isometry_equiv.mk' f
-  (((vadd_const ℝ (classical.arbitrary PE)).to_isometric.trans $ f.trans
-    (vadd_const ℝ (f $ classical.arbitrary PE)).to_isometric.symm).to_real_linear_isometry_equiv)
+  (((vadd_const (classical.arbitrary PE)).trans $ f.trans
+    (vadd_const (f $ classical.arbitrary PE)).symm).to_real_linear_isometry_equiv)
   (classical.arbitrary PE) (λ p, by simp)
 
 @[simp] lemma coe_fn_to_real_affine_isometry_equiv (f : PE ≃ᵢ PF) :

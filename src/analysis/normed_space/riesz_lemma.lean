@@ -35,7 +35,7 @@ begin
   have hFn : (F : set E).nonempty, from ⟨_, F.zero_mem⟩,
   have hdp : 0 < d,
     from lt_of_le_of_ne metric.inf_dist_nonneg (λ heq, hx
-    ((metric.mem_iff_inf_dist_zero_of_closed hFc hFn).2 heq.symm)),
+    ((hFc.mem_iff_inf_dist_zero hFn).2 heq.symm)),
   let r' := max r 2⁻¹,
   have hr' : r' < 1, by { simp [r', hr], norm_num },
   have hlt : 0 < r' := lt_of_lt_of_le (by norm_num) (le_max_right r 2⁻¹),

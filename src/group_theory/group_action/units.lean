@@ -32,6 +32,10 @@ instance [monoid M] [has_scalar M α] : has_scalar (units M) α :=
 lemma smul_def [monoid M] [has_scalar M α] (m : units M) (a : α) :
   m • a = (m : M) • a := rfl
 
+lemma _root_.is_unit.inv_smul [monoid α] {a : α} (h : is_unit a) :
+  (h.unit)⁻¹ • a = 1 :=
+h.coe_inv_mul
+
 @[to_additive]
 instance [monoid M] [has_scalar M α] [has_faithful_scalar M α] : has_faithful_scalar (units M) α :=
 { eq_of_smul_eq_smul := λ u₁ u₂ h, units.ext $ eq_of_smul_eq_smul h, }
@@ -109,4 +113,17 @@ instance is_scalar_tower'_left [group G] [monoid M] [mul_action G M] [has_scalar
 example [monoid M] [monoid N] [mul_action M N] [smul_comm_class M N N]
   [is_scalar_tower M N N] : mul_action (units M) (units N) := units.mul_action'
 
+/-- A stronger form of `units.mul_action'`. -/
+instance mul_distrib_mul_action' [group G] [monoid M] [mul_distrib_mul_action G M]
+  [smul_comm_class G M M] [is_scalar_tower G M M] : mul_distrib_mul_action G (units M) :=
+{ smul := (•),
+  smul_one := λ m, units.ext $ smul_one _,
+  smul_mul := λ g m₁ m₂, units.ext $ smul_mul' _ _ _,
+  .. units.mul_action' }
+
 end units
+
+lemma is_unit.smul [group G] [monoid M] [mul_action G M]
+  [smul_comm_class G M M] [is_scalar_tower G M M] {m : M} (g : G) (h : is_unit m) :
+  is_unit (g • m) :=
+let ⟨u, hu⟩ := h in hu ▸ ⟨g • u, units.coe_smul _ _⟩

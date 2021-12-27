@@ -2,12 +2,8 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-The Kleisli construction on the Type category
-
-TODO: generalise this to work with category_theory.monad
 -/
-import category_theory.category
+import category_theory.category.basic
 
 /-!
 # The Kleisli construction on the Type category
@@ -15,6 +11,10 @@ import category_theory.category
 Define the Kleisli category for (control) monads.
 `category_theory/monad/kleisli` defines the general version for a monad on `C`, and demonstrates
 the equivalence between the two.
+
+## TODO
+
+Generalise this to work with category_theory.monad
 -/
 
 universes u v

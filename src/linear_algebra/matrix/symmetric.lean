@@ -47,7 +47,7 @@ lemma is_symm_mul_transpose_self [fintype n] [comm_semiring α] (A : matrix n n 
 transpose_mul _ _
 
 lemma is_symm_transpose_mul_self [fintype n] [comm_semiring α] (A : matrix n n α) :
-  (A ⬝ Aᵀ).is_symm :=
+  (Aᵀ ⬝ A).is_symm :=
 transpose_mul _ _
 
 lemma is_symm_add_transpose_self [add_comm_semigroup α] (A : matrix n n α) :

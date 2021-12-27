@@ -24,9 +24,13 @@ open_locale classical
 universes u
 namespace Scott
 
-/--  -/
+/-- `x` is an `ω`-Sup of a chain `c` if it is the least upper bound of the range of `c`. -/
 def is_ωSup {α : Type u} [preorder α] (c : chain α) (x : α) : Prop :=
 (∀ i, c i ≤ x) ∧ (∀ y, (∀ i, c i ≤ y) → x ≤ y)
+
+lemma is_ωSup_iff_is_lub {α : Type u} [preorder α] {c : chain α} {x : α} :
+  is_ωSup c x ↔ is_lub (set.range c) x :=
+by simp [is_ωSup, is_lub, is_least, upper_bounds, lower_bounds]
 
 variables (α : Type u) [omega_complete_partial_order α]
 local attribute [irreducible] set
@@ -45,8 +49,8 @@ begin
   simp only [is_open, exists_imp_distrib, continuous'],
   intros h₀ h₁ h₂ h₃,
   rw ← set.inf_eq_inter,
-  let s' : α →ₘ Prop := ⟨λ x, x ∈ s, h₀⟩,
-  let t' : α →ₘ Prop := ⟨λ x, x ∈ t, h₂⟩,
+  let s' : α →o Prop := ⟨λ x, x ∈ s, h₀⟩,
+  let t' : α →o Prop := ⟨λ x, x ∈ t, h₂⟩,
   split,
   { change omega_complete_partial_order.continuous (s' ⊓ t'),
     haveI : is_total Prop (≤) := ⟨ @le_total Prop _ ⟩,
@@ -67,7 +71,7 @@ begin
     tauto, },
   dsimp [is_open] at *,
   apply complete_lattice.Sup_continuous' _,
-  introv ht, specialize h₀ { x | t x } _,
+  introv ht, specialize h₀ { x | f x } _,
   { simp only [flip, set.mem_image] at *,
     rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
     simpa, },
@@ -105,7 +109,7 @@ begin
   existsi h, rintros c,
   apply eq_of_forall_ge_iff, intro z,
   rw ωSup_le_iff,
-  simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_Prop_eq, preorder_hom.coe_fun_mk,
+  simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_Prop_eq, order_hom.coe_fun_mk,
              chain.map_coe, function.comp_app, exists_imp_distrib, not_forall],
 end
 
@@ -138,10 +142,10 @@ begin
   apply eq_of_forall_ge_iff, intro z,
   specialize (hf _ (not_below_is_open z)),
   cases hf, specialize hf_h c,
-  simp only [not_below, preorder_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq] at hf_h,
+  simp only [not_below, order_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq] at hf_h,
   rw [← not_iff_not],
   simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, complete_semilattice_Sup.Sup,
-    exists_prop, set.mem_range, preorder_hom.coe_fun_mk, chain.map_coe, function.comp_app,
+    exists_prop, set.mem_range, order_hom.coe_fun_mk, chain.map_coe, function.comp_app,
     eq_iff_iff, not_forall],
   tauto,
 end

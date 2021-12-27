@@ -3,9 +3,8 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
+import data.list.join
 import data.set.lattice
-import data.list.basic
-import algebra.group_power.order
 
 /-!
 # Languages

@@ -85,7 +85,10 @@ list.reverse_rec_on l (by simp [eq_comm])
     cases hf : foldl (argmax₂ f) (some a) tl,
     { simp {contextual := tt} },
     { dsimp only, split_ifs,
-      { finish [ih _ _ hf] },
+      { intro H,
+        have := ih a m (by rwa hf),
+        simp only [list.mem_cons_iff, list.mem_append] at *,
+        tauto },
       { simp {contextual := tt} } }
   end
 

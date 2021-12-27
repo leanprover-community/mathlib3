@@ -68,6 +68,10 @@ lemma eq_of_homotopy {C D : homological_complex V c} (f g : C ⟶ D) (h : homoto
   (quotient V c).map f = (quotient V c).map g :=
 category_theory.quotient.sound _ ⟨h⟩
 
+lemma eq_of_homotopy' {C D : homotopy_category V c} (f g : C ⟶ D) (h : homotopy f.out g.out) :
+  f = g :=
+by simpa using eq_of_homotopy _ _ h
+
 /-- If two chain maps become equal in the homotopy category, then they are homotopic. -/
 def homotopy_of_eq {C D : homological_complex V c} (f g : C ⟶ D)
   (w : (quotient V c).map f = (quotient V c).map g) : homotopy f g :=

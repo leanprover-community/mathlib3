@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alena Gusakov, Arthur Paulino, Kyle Miller
 -/
 import combinatorics.simple_graph.subgraph
+import combinatorics.simple_graph.degree_sum
 
 /-!
 # Matchings
@@ -26,9 +27,6 @@ one edge, and the edges of the subgraph represent the paired vertices.
   perfect matching, denoted `M.is_perfect_matching`.
 
 ## TODO
-
-* Lemma stating that the existence of a perfect matching on `G` implies that
-  the cardinality of `V` is even (assuming it's finite)
 
 * Tutte's Theorem
 
@@ -72,6 +70,39 @@ begin
     exact hm (hs v) },
   { obtain ⟨w, hw, -⟩ := hm v,
     exact M.edge_vert hw }
+end
+
+lemma even_card_vertices_of_perfect_matching {M : subgraph G}
+  [fintype V] [decidable_eq V] [decidable_rel G.adj]
+    (h : M.is_perfect_matching) : even (fintype.card V) :=
+begin
+  let G' := M.coe,
+  have hdec : decidable_rel G'.adj,
+  { sorry, },
+  have hfin : fintype M.verts,
+  { sorry, },
+  tactic.unfreeze_local_instances,
+  use G'.edge_finset.card,
+  rw ← sum_degrees_eq_twice_card_edges,
+  have hv : ∀ (v : M.verts), G'.degree v = 1,
+  { sorry, },
+  simpa [hv, fintype.card],
+  /-
+  simpa failed
+  state:
+  V : Type u,
+  G : simple_graph V,
+  M : G.subgraph,
+  _inst_1 : fintype V,
+  _inst_2 : decidable_eq V,
+  _inst_3 : decidable_rel G.adj,
+  h : M.is_perfect_matching,
+  G' : simple_graph ↥(M.verts) := M.coe,
+  hdec : decidable_rel G'.adj,
+  hfin : fintype ↥(M.verts),
+  hv : ∀ (v : ↥(M.verts)), G'.degree v = 1
+  ⊢ finset.univ.card = finset.univ.card
+  -/
 end
 
 end subgraph

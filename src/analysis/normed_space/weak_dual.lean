@@ -229,9 +229,6 @@ namespace weak_dual.to_Pi_embedding
 -- `linear_map.mem_range_to_fun_iff` and `linear_map_of_forall_apply_linear_combination_eq`.
 -- Or is there a better way?
 --
--- (For convenience of applying later in this file, I now stated special cases for linear
--- maps instead of semilinear maps, but this should not be necessary.)
---
 -- In any case, these lemmas or their improved versions should be placed in some
 -- appropriate files.
 
@@ -281,7 +278,7 @@ begin
   simp only [mem_Inter, mem_set_of_eq],
 end
 
-lemma _root_.linear_map.is_closed_range_coe' {M₁ M₂ R S : Type*}
+lemma _root_.linear_map.is_closed_range_coe {M₁ M₂ R S : Type*}
   [topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
   [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
   [topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂] {σ : R →+* S} :
@@ -302,7 +299,7 @@ begin
   exact is_closed_eq (continuous_apply (a • u + b • v)) cont₂,
 end
 
-lemma _root_.continuous_linear_map.range_coe_subset_linear_map_range_coe' {M₁ M₂ R S : Type*}
+lemma _root_.continuous_linear_map.range_coe_subset_linear_map_range_coe {M₁ M₂ R S : Type*}
   [topological_space M₂] [topological_space M₁] [semiring R] [semiring S]
   [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂] {σ : R →+* S} :
   (range (λ (ψ : M₁ →SL[σ] M₂), ψ.to_fun)) ⊆ (range (λ (ψ : M₁ →ₛₗ[σ] M₂), ψ.to_fun)) :=
@@ -312,44 +309,32 @@ begin
   use [φ, hφf],
 end
 
-lemma _root_.linear_map.is_closed_range_coe (M₁ M₂ R : Type*)
-  [topological_space M₂] [t2_space M₂] [semiring R]
-  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module R M₂]
-  [topological_space R] [has_continuous_smul R M₂] [has_continuous_add M₂] :
-  is_closed (range (λ (ψ : M₁ →ₗ[R] M₂), ψ.to_fun)) :=
-linear_map.is_closed_range_coe'
-
-lemma _root_.continuous_linear_map.range_coe_subset_linear_map_range_coe (M₁ M₂ R : Type*)
-  [topological_space M₂] [topological_space M₁] [semiring R]
-  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module R M₂] :
-  (range (λ (ψ : M₁ →L[R] M₂), ψ.to_fun)) ⊆ (range (λ (ψ : M₁ →ₗ[R] M₂), ψ.to_fun)) :=
-continuous_linear_map.range_coe_subset_linear_map_range_coe'
-
 /-- Elements of the closure of the range of the embedding
 `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` are linear. Here it is stated as the elements
 respecting linear combinations. -/
-lemma linear_of_mem_closure_range'
+lemma linear_of_mem_closure_range
   (f : E → 𝕜) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E)))
-  (z₁ z₂ : E) (c₁ c₂ : 𝕜)  : f (c₁ • z₁ + c₂ • z₂) = c₁ • f(z₁) + c₂ • f(z₂) :=
+  (z₁ z₂ : E) (c₁ c₂ : 𝕜) : f (c₁ • z₁ + c₂ • z₂) = c₁ • f(z₁) + c₂ • f(z₂) :=
 begin
   have hf' : f ∈ closure (range (λ (ψ : E →ₗ[𝕜] 𝕜), ψ.to_fun)),
-  { apply closure_mono (continuous_linear_map.range_coe_subset_linear_map_range_coe E 𝕜 𝕜),
+  { apply closure_mono (continuous_linear_map.range_coe_subset_linear_map_range_coe),
     exact hf, },
-  rw is_closed.closure_eq (linear_map.is_closed_range_coe E 𝕜 𝕜) at hf',
+  rw is_closed.closure_eq
+    (linear_map.is_closed_range_coe : is_closed (range (λ (ψ : E →ₗ[𝕜] 𝕜), ψ.to_fun))) at hf',
   rw _root_.linear_map.mem_range_to_fun_iff at hf',
   exact hf' z₁ z₂ c₁ c₂,
 end
 
 /-- Elements of the closure of the range of the embedding
 `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` can be viewed as linear maps `E → 𝕜`. -/
-def linear_of_mem_closure_range
+def linear_map_of_mem_closure_range
   (f : (E → 𝕜)) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E))) :
   E →ₗ[𝕜] 𝕜 :=
-linear_map_of_forall_apply_linear_combination_eq (linear_of_mem_closure_range' f hf)
+linear_map_of_forall_apply_linear_combination_eq (linear_of_mem_closure_range f hf)
 
 lemma linear_of_mem_closure_range_apply
   (f : E → 𝕜) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E))) (z : E) :
-  linear_of_mem_closure_range f hf z = f z := rfl
+  linear_map_of_mem_closure_range f hf z = f z := rfl
 
 /-- Elements of the closure of the image under `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` of
 a subset defined by a non-strict bound on the norm still satisfy the same bound. -/
@@ -388,7 +373,7 @@ begin
   have c_nn : 0 ≤ c := le_trans (norm_nonneg _) (hc 0 (zero_mem_polar 𝕜 s)),
   have hφ' : φ ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
   from closure_mono (image_subset_range _ _) hφ,
-  set flin := linear_of_mem_closure_range φ hφ' with hflin,
+  set flin := linear_map_of_mem_closure_range φ hφ' with hflin,
   suffices : continuous flin,
   { assumption, },
   apply linear_map.continuous_of_bound flin c,
@@ -427,7 +412,7 @@ begin
   have f_in_closure₀ : f ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
   { apply closure_mono (image_subset_range _ _),
     exact mem_closure_iff_cluster_pt.mpr hf, },
-  set f_lin := linear_of_mem_closure_range f f_in_closure₀ with h_f_lin,
+  set f_lin := linear_map_of_mem_closure_range f f_in_closure₀ with h_f_lin,
   have f_cont := continuous_of_mem_closure_polar s_nhd f f_in_closure,
   set φ : weak_dual 𝕜 E :=
     { to_fun := f,

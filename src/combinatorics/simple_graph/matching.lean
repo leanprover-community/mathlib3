@@ -122,7 +122,18 @@ lemma is_perfect_matching_iff_forall_degree {M : subgraph G} [Π v, fintype (M.n
   M.is_perfect_matching ↔ ∀ v, M.degree v = 1 :=
 by simp [degree_eq_one_iff_unique_adj, is_perfect_matching_iff]
 
-lemma is_perfect_matching.even_card {M : subgraph G} [fintype V] [decidable_eq V]
+lemma is_perfect_matching.even_card {M : subgraph G}
+  [fintype V] [decidable_eq V] [decidable_rel G.adj]
+    (h : M.is_perfect_matching) : even (fintype.card V) :=
+begin
+  classical,
+  rw is_perfect_matching_iff_forall_degree at h,
+  have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
+  simp [h] at this,
+  exact ⟨_, this⟩,
+end
+
+lemma is_perfect_matching.even_card' {M : subgraph G} [fintype V] [decidable_eq V]
   [decidable_rel G.adj] (h : M.is_perfect_matching) :
   even (fintype.card V) :=
 begin
@@ -132,6 +143,7 @@ begin
   have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
   simp [h] at this,
   exact ⟨_, this⟩,
+  sorry,
 end
 
 end subgraph

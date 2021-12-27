@@ -1291,7 +1291,7 @@ mem_powerset_len.trans $ and_iff_right $ subset_univ _
 
 @[simp] lemma finset.univ_filter_card_eq (α : Type*) [fintype α] (k : ℕ) :
   (finset.univ : finset (finset α)).filter (λ s, s.card = k) = finset.univ.powerset_len k :=
-by { ext, simp [finset.mem_powerset_len_univ_iff] }
+by { ext, simp [finset.mem_powerset_len] }
 
 @[simp] lemma fintype.card_finset_len [fintype α] (k : ℕ) :
   fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=

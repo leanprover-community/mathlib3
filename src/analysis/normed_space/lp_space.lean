@@ -3,6 +3,7 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
+import analysis.normed.group.pointwise
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
 import topology.algebra.ordered.liminf_limsup
@@ -404,6 +405,18 @@ begin
     exact (lp.mem_ℓp f).summable hp },
 end
 
+lemma norm_apply_le_norm (hp : p ≠ 0) (f : lp E p) (i : α) : ∥f i∥ ≤ ∥f∥ :=
+begin
+  rcases eq_or_ne p ∞ with rfl | hp',
+  { haveI : nonempty α := ⟨i⟩,
+    exact (is_lub_norm f).1 ⟨i, rfl⟩ },
+  have hp'' : 0 < p.to_real := ennreal.to_real_pos hp hp',
+  have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real,
+  { exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
+  rw ← real.rpow_le_rpow_iff (norm_nonneg _) (norm_nonneg' _) hp'',
+  convert le_has_sum (has_sum_norm hp'' f) i (λ i hi, this i),
+end
+
 @[simp] lemma norm_zero : ∥(0 : lp E p)∥ = 0 :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
@@ -567,6 +580,21 @@ begin
   simp [dist_eq_norm]
 end
 
+/-- The coercion from `lp E p` to `Π i, E i` is uniformly continuous. -/
+lemma uniform_continuous_coe [fact (1 ≤ p)] : uniform_continuous (coe : lp E p → Π i, E i) :=
+begin
+  have hp : p ≠ 0 := sorry,
+  rw uniform_continuous_pi,
+  intros i,
+  rw normed_group.uniformity_basis_dist.uniform_continuous_iff normed_group.uniformity_basis_dist,
+  intros ε hε,
+  refine ⟨ε, hε, _⟩,
+  rintros f g (hfg : ∥f - g∥ < ε),
+  have : ∥f i - g i∥ ≤ ∥f - g∥ := norm_apply_le_norm hp (f - g) i,
+  exact this.trans_lt hfg,
+end
+
+
 lemma foo₀ [fact (1 ≤ p)] (hF : cauchy_seq F) {ε : ℝ} (hε : 0 < ε) :
   ∃ N, ∀ s : finset α, ∀ k ≥ N, ∀ l ≥ N,
     ∑ a in s, ∥(F k a - F l a : E a)∥ ^ p.to_real < ε ^ p.to_real :=
@@ -604,36 +632,36 @@ end
 
 variables [Π a, complete_space (E a)]
 
-/-- A Cauchy sequence in `lp E p` is pointwise convergent. -/
-lemma foo₁ [fact (1 ≤ p)] (hF : cauchy_seq F) :
-  ∃ f, tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f) :=
+-- move
+lemma _root_.cauchy_seq.cauchy_map_cofinite {α : Type*} [uniform_space α] {u : ℕ → α} (hu : cauchy_seq u) :
+  cauchy (filter.map u cofinite) :=
 begin
-  have hp : 0 < p.to_real := sorry,
-  suffices : ∀ a, ∃ c, tendsto (λ i, F i a) at_top (𝓝 c),
-  { choose f hf using this,
-    refine ⟨f, _⟩,
-    rw tendsto_pi_nhds,
-    exact hf },
-  intros a,
-  apply cauchy_seq_tendsto_of_complete,
-  rw normed_group.uniformity_basis_dist.cauchy_seq_iff,
-  { intros ε hε,
-    dsimp,
-    obtain ⟨N, hN⟩ := foo₀ hF hε,
-    refine ⟨N, _⟩,
-    intros k l hk hl,
-    rw ← real.rpow_lt_rpow_iff (norm_nonneg _) hε.le hp,
-    simpa using hN {a} k hk l hl },
-  { apply_instance }
+  rw nat.cofinite_eq_at_top,
+  exact hu,
 end
+
+-- move
+lemma _root_.cauchy_seq.bounded {α : Type*} [pseudo_metric_space α] {u : ℕ → α} (hu : cauchy_seq u) :
+  metric.bounded (set.range u) :=
+metric.bounded_range_of_cauchy_map_cofinite hu.cauchy_map_cofinite
 
 /-- If `f` is the pointwise limit of a Cauchy sequence in `Lp E p`, then `f` is in `Lp E p`. -/
 lemma foo₂ [fact (1 ≤ p)] (hF : cauchy_seq F) {f : Π a, E a}
   (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
   mem_ℓp f p :=
 begin
+  tactic.unfreeze_local_instances,
+  rcases p.dichotomy with rfl | hp',
+  { apply mem_ℓp_infty,
+    obtain ⟨C, hC⟩ := hF.bounded.exists_norm_le, -- can the main proof be made to work with this?
+    use C,
+    rintros _ ⟨a, rfl⟩,
+    have : tendsto (λ k, ∥F k a∥) at_top (𝓝 ∥f a∥) :=
+      (tendsto.comp (continuous_apply a).continuous_at hf).norm,
+    refine le_of_tendsto' this _,
+    intros k,
+    exact (norm_apply_le_norm ennreal.top_ne_zero _ a).trans (hC _ ⟨k, rfl⟩) },
   have hp : 0 < p.to_real := sorry,
-  have hp' : 1 ≤ p.to_real := sorry,
   obtain ⟨N, hN⟩ := foo₀' hF zero_lt_one,
   have hC : 0 ≤ (1 + ∥F N∥) ^ p.to_real := sorry,
   apply mem_ℓp_gen' hp hC,
@@ -671,7 +699,7 @@ begin
     { sorry } }, -- nonneg
   suffices H : ∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real < (1 + ∥F N∥) ^ p.to_real,
   calc ∑ a in s, ∥F k a∥ ^ p.to_real
-      = ∑ a in s, ∥(F k a - F N a) + F N a∥ ^ p.to_real : by { congr, abel }
+      = ∑ a in s, ∥(F k a - F N a) + F N a∥ ^ p.to_real : by { congr' 1, ext a, congr' 2, abel }
   ... ≤ ∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real : finset.sum_le_sum (λ i hi, triang i)
   ... < (1 + ∥F N∥) ^ p.to_real : H,
   suffices : (∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real) ^ (1 / p.to_real) < 1 + ∥F N∥,
@@ -729,7 +757,8 @@ instance [fact (1 ≤ p)] : complete_space (lp E p) :=
 metric.complete_of_cauchy_seq_tendsto
 begin
   intros F hF,
-  obtain ⟨f, hf⟩ := foo₁ hF,
+  -- A Cauchy sequence in `lp E p` is pointwise convergent; let `f` be the pointwise limit.
+  obtain ⟨f, hf⟩ := cauchy_seq_tendsto_of_complete (uniform_continuous_coe.comp_cauchy_seq hF),
   have hf' : mem_ℓp f p := foo₂ hF hf,
   exact ⟨⟨f, hf'⟩, foo₃ hF ⟨f, hf'⟩ hf⟩
 end

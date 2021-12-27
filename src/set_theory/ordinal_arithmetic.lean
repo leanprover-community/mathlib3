@@ -1096,7 +1096,7 @@ wf.fix (λ o f, omin _ (unbounded_aux hS (blsub.{u u} o f)))
 /-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
 work with, so consider using `enum_ord_def` instead. -/
 theorem enum_ord_def' (o) :
-  enum_ord hS o = omin (λ b, S b ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) (unbounded_aux hS _) :=
+  enum_ord hS o = omin _ (unbounded_aux hS (blsub.{u u} o (λ c _, enum_ord hS c))) :=
 wf.fix_eq _ _
 
 private theorem enum_ord_mem_aux (o) :

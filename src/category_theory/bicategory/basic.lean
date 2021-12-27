@@ -54,6 +54,7 @@ These associators and unitors satisfy the pentagon and triangle equations.
 
 See https://ncatlab.org/nlab/show/bicategory.
 -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 class bicategory (B : Type u) extends category_struct.{v} B :=
 -- category structure on the collection of 1-morphisms:
 (hom_category : ∀ (a b : B), category.{w} (a ⟶ b) . tactic.apply_instance)

@@ -36,7 +36,7 @@ a morphism `d : X ⟶ X⟦1⟧`, such that `d^2 = 0`.
 structure differential_object :=
 (X : C)
 (d : X ⟶ X⟦1⟧)
-(d_squared' : d ≫ d⟦1⟧' = 0 . obviously)
+(d_squared' : d ≫ d⟦(1:ℤ)⟧' = 0 . obviously)
 
 restate_axiom differential_object.d_squared'
 attribute [simp] differential_object.d_squared
@@ -83,6 +83,11 @@ lemma comp_f {X Y Z : differential_object C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).f = f.f ≫ g.f :=
 rfl
 
+@[simp]
+lemma eq_to_hom_f {X Y : differential_object C} (h : X = Y) :
+  hom.f (eq_to_hom h) = eq_to_hom (congr_arg _ h) :=
+by { subst h, rw [eq_to_hom_refl, eq_to_hom_refl], refl }
+
 variables (C)
 
 /-- The forgetful functor taking a differential object to its underlying object. -/
@@ -95,7 +100,7 @@ instance forget_faithful : faithful (forget C) :=
 
 instance has_zero_morphisms : has_zero_morphisms (differential_object C) :=
 { has_zero := λ X Y,
-  ⟨{ f := 0, }⟩}
+  ⟨{ f := 0 }⟩}
 
 variables {C}
 
@@ -114,6 +119,16 @@ An isomorphism of differential objects gives an isomorphism of the underlying ob
   iso_app f.symm = (iso_app f).symm := rfl
 @[simp] lemma iso_app_trans {X Y Z : differential_object C} (f : X ≅ Y) (g : Y ≅ Z) :
   iso_app (f ≪≫ g) = iso_app f ≪≫ iso_app g := rfl
+
+/-- An isomorphism of differential objects can be constructed
+from an isomorphism of the underlying objects that commutes with the differentials. -/
+@[simps] def mk_iso {X Y : differential_object C}
+  (f : X.X ≅ Y.X) (hf : X.d ≫ f.hom⟦1⟧' = f.hom ≫ Y.d) : X ≅ Y :=
+{ hom := ⟨f.hom, hf⟩,
+  inv := ⟨f.inv, by { dsimp, rw [← functor.map_iso_inv, iso.comp_inv_eq, category.assoc,
+    iso.eq_inv_comp, functor.map_iso_hom, ← hf], congr }⟩,
+  hom_inv_id' := by { ext1, dsimp, exact f.hom_inv_id },
+  inv_hom_id' := by { ext1, dsimp, exact f.inv_hom_id } }
 
 end differential_object
 

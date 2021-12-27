@@ -3,8 +3,8 @@ Copyright (c) 2021 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import algebra.algebra.basic
 import tactic.noncomm_ring
+import field_theory.is_alg_closed.basic
 /-!
 # Spectrum of an element in an algebra
 This file develops the basic theory of the spectrum of an element of an algebra.
@@ -28,14 +28,12 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
   units (of `R`) in `σ (a*b)` coincide with those in `σ (b*a)`.
 * `spectrum.scalar_eq`: in a nontrivial algebra over a field, the spectrum of a scalar is
   a singleton.
+* `spectrum.subset_polynomial_aeval`, `spectrum.map_polynomial_aeval_of_degree_pos`,
+  `spectrum.map_polynomial_aeval_of_nonempty`: variations on the spectral mapping theorem.
 
 ## Notations
 
 * `σ a` : `spectrum R a` of `a : A`
-
-## TODO
-
-* Prove the *spectral mapping theorem* for the polynomial functional calculus
 -/
 
 universes u v
@@ -44,7 +42,7 @@ universes u v
 section defs
 
 variables (R : Type u) {A : Type v}
-variables [comm_ring R] [ring A] [algebra R A]
+variables [comm_semiring R] [ring A] [algebra R A]
 
 -- definition and basic properties
 
@@ -243,6 +241,73 @@ begin
   { rintros _ _ k ⟨k_mem, k_neq⟩,
     change k with ↑(units.mk0 k k_neq) at k_mem,
     exact ⟨unit_mem_mul_iff_mem_swap_mul.mp k_mem, k_neq⟩ },
+end
+
+open polynomial
+/-- Half of the spectral mapping theorem for polynomials. We prove it separately
+because it holds over any field, whereas `spectrum.map_polynomial_aeval_of_degree_pos` and
+`spectrum.map_polynomial_aeval_of_nonempty` need the field to be algebraically closed. -/
+theorem subset_polynomial_aeval (a : A) (p : polynomial 𝕜) :
+  (λ k, eval k p) '' (σ a) ⊆ σ (aeval a p) :=
+begin
+  rintros _ ⟨k, hk, rfl⟩,
+  let q := C (eval k p) - p,
+  have hroot : is_root q k, by simp only [eval_C, eval_sub, sub_self, is_root.def],
+  rw [←mul_div_eq_iff_is_root, ←neg_mul_neg, neg_sub] at hroot,
+  have aeval_q_eq : ↑ₐ(eval k p) - aeval a p = aeval a q,
+    by simp only [aeval_C, alg_hom.map_sub, sub_left_inj],
+  rw [mem_iff, aeval_q_eq, ←hroot, aeval_mul],
+  have hcomm := (commute.all (C k - X) (- (q / (X - C k)))).map (aeval a),
+  apply mt (λ h, (hcomm.is_unit_mul_iff.mp h).1),
+  simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
+end
+
+lemma exists_mem_of_not_is_unit_aeval_prod {p : polynomial 𝕜} {a : A} (hp : p ≠ 0)
+  (h : ¬is_unit (aeval a (multiset.map (λ (x : 𝕜), X - C x) p.roots).prod)) :
+  ∃ k : 𝕜, k ∈ σ a ∧ eval k p = 0 :=
+begin
+  rw [←multiset.prod_to_list, alg_hom.map_list_prod] at h,
+  replace h := mt list.prod_is_unit h,
+  simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
+    list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at h,
+  rcases h with ⟨r, r_mem, r_nu⟩,
+  exact ⟨r, by rwa [mem_iff, ←is_unit.sub_iff], by rwa [←is_root.def, ←mem_roots hp]⟩
+end
+
+/-- The *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
+is necessary in case `σ a = ∅`, for then the left-hand side is `∅` and the right-hand side,
+assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
+theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : polynomial 𝕜)
+  (hdeg : 0 < degree p) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
+begin
+  /- handle the easy direction via `spectrum.subset_polynomial_aeval` -/
+  refine set.eq_of_subset_of_subset (λ k hk, _) (subset_polynomial_aeval a p),
+  /- write `C k - p` product of linear factors and a constant; show `C k - p ≠ 0`. -/
+  have hprod := eq_prod_roots_of_splits_id (is_alg_closed.splits (C k - p)),
+  have h_ne : C k - p ≠ 0, from ne_zero_of_degree_gt
+    (by rwa [degree_sub_eq_right_of_degree_lt (lt_of_le_of_lt degree_C_le hdeg)]),
+  have lead_ne := leading_coeff_ne_zero.mpr h_ne,
+  have lead_unit := (units.map (↑ₐ).to_monoid_hom (units.mk0 _ lead_ne)).is_unit,
+  /- leading coefficient is a unit so product of linear factors is not a unit;
+  apply `exists_mem_of_not_is_unit_aeval_prod`. -/
+  have p_a_eq : aeval a (C k - p) = ↑ₐk - aeval a p,
+    by simp only [aeval_C, alg_hom.map_sub, sub_left_inj],
+  rw [mem_iff, ←p_a_eq, hprod, aeval_mul,
+    ((commute.all _ _).map (aeval a)).is_unit_mul_iff, aeval_C] at hk,
+  replace hk := exists_mem_of_not_is_unit_aeval_prod h_ne (not_and.mp hk lead_unit),
+  rcases hk with ⟨r, r_mem, r_ev⟩,
+  exact ⟨r, r_mem, symm (by simpa [eval_sub, eval_C, sub_eq_zero] using r_ev)⟩,
+end
+
+/-- In this version of the spectral mapping theorem, we assume the spectrum
+is nonempty instead of assuming the degree of the polynomial is positive. Note: the
+assumption `[nontrivial A]` is necessary for the same reason as in `spectrum.zero_eq`. -/
+theorem map_polynomial_aeval_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : polynomial 𝕜)
+  (hnon : (σ a).nonempty) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
+begin
+  refine or.elim (le_or_gt (degree p) 0) (λ h, _) (map_polynomial_aeval_of_degree_pos a p),
+  { rw eq_C_of_degree_le_zero h,
+    simp only [set.image_congr, eval_C, aeval_C, scalar_eq, set.nonempty.image_const hnon] },
 end
 
 end scalar_field

@@ -14,13 +14,10 @@ transformations is replaced by an specified isomorphism
 `F.map₁ f ≫ app b ≅ app a ≫ G.map₁ f`
 in the case of pseudonatural transformations.
 
-The pseudonatural transformation between pseudofunctors form a category. Morphisms
-in this category are called modifications.
-
-We define the vertical composition of pseudofunctors. We show that pseudofunctors between
-bicategories form a bicategory. The 1-morphisms in this bicategory are the pseudonatural
-transformations, and the composition of 1-morphisms is the vertical composition of
-pseudonatural transformations.
+We give a bicategory structure on the pseudofunctors between bicategories. In this bicategory,
+* 1-morphisms are are the pseudonatural transformations, given by `pseudonat_trans F G`,
+* the composition of 1-morphisms is the vertical composition, given by `η.vcomp θ`,
+* 2-morphisms are the modifications, given by `modification η θ`.
 -/
 
 open category_theory
@@ -45,15 +42,15 @@ structure pseudonat_trans (F G : pseudofunctor B C) :=
 (app (a : B) : F.map₀ a ⟶ G.map₀ a)
 (naturality {a b} (f : a ⟶ b) : F.map₁ f ≫ app b ≅ app a ≫ G.map₁ f)
 (naturality_naturality' : ∀ {a b : B} {f g : a ⟶ b} (η : f ⟶ g),
-  (F.map₂ η ▹ _) ≫ (naturality g).hom = (naturality f).hom ≫ (_ ◃ G.map₂ η) . obviously)
+  (F.map₂ η ▷ _) ≫ (naturality g).hom = (naturality f).hom ≫ (_ ◁ G.map₂ η) . obviously)
 (naturality_id' : ∀ (a),
-  ((F.map₁_id a).hom ▹ _) ≫ (naturality (𝟙 a)).hom
-  = (λ_ _).hom  ≫ (ρ_ _).inv ≫ (_ ◃ (G.map₁_id a).hom) . obviously)
+  ((F.map₁_id a).hom ▷ _) ≫ (naturality (𝟙 a)).hom
+  = (λ_ _).hom  ≫ (ρ_ _).inv ≫ (_ ◁ (G.map₁_id a).hom) . obviously)
 (naturality_comp' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c),
-  ((F.map₁_comp f g).hom ▹ _) ≫ (naturality (f ≫ g)).hom
-  = (α_ _ _ _).hom ≫ (_ ◃ (naturality g).hom)
-  ≫ (α_ _ _ _).inv ≫ ((naturality f).hom ▹ G.map₁ g)
-  ≫ (α_ _ _ _).hom ≫ (_ ◃ (G.map₁_comp f g).hom) . obviously)
+  ((F.map₁_comp f g).hom ▷ _) ≫ (naturality (f ≫ g)).hom
+  = (α_ _ _ _).hom ≫ (_ ◁ (naturality g).hom)
+  ≫ (α_ _ _ _).inv ≫ ((naturality f).hom ▷ G.map₁ g)
+  ≫ (α_ _ _ _).hom ≫ (_ ◁ (G.map₁_comp f g).hom) . obviously)
 
 restate_axiom pseudonat_trans.naturality_naturality'
 attribute [simp, reassoc] pseudonat_trans.naturality_naturality
@@ -90,42 +87,42 @@ variables {F G H : pseudofunctor B C}
 
 @[simp, reassoc]
 lemma whisker_left_naturality_naturality (f : a' ⟶ G.map₀ a) {g h : a ⟶ b} (η : g ⟶ h) :
-  (f ◃ (G.map₂ η ▹ ψ.app b)) ≫ (f ◃ (ψ.naturality h).hom)
-  = (f ◃ (ψ.naturality g).hom) ≫ (f ◃ (ψ.app a ◃ H.map₂ η)) :=
+  (f ◁ (G.map₂ η ▷ ψ.app b)) ≫ (f ◁ (ψ.naturality h).hom)
+  = (f ◁ (ψ.naturality g).hom) ≫ (f ◁ (ψ.app a ◁ H.map₂ η)) :=
 by { simp only [←whisker_left_comp], rw naturality_naturality }
 
 @[simp, reassoc]
 lemma whisker_right_naturality_naturality {f g : a ⟶ b} (η : f ⟶ g) (h : G.map₀ b ⟶ a') :
-  ((F.map₂ η ▹ φ.app b) ▹ h) ≫ ((φ.naturality g).hom ▹ h)
-  = ((φ.naturality f).hom ▹ h) ≫ ((φ.app a ◃ G.map₂ η) ▹ h) :=
+  ((F.map₂ η ▷ φ.app b) ▷ h) ≫ ((φ.naturality g).hom ▷ h)
+  = ((φ.naturality f).hom ▷ h) ≫ ((φ.app a ◁ G.map₂ η) ▷ h) :=
 by { simp only [←whisker_right_comp], rw naturality_naturality }
 
 @[simp, reassoc]
 lemma whisker_left_naturality_comp (f : a' ⟶ G.map₀ a) (g : a ⟶ b) (h : b ⟶ c) :
-  (f ◃ ((G.map₁_comp g h).hom ▹ _)) ≫ (f ◃ (ψ.naturality (g ≫ h)).hom)
-  = (f ◃ (α_ _ _ _).hom) ≫ (f ◃ (_ ◃ (ψ.naturality h).hom))
-  ≫ (f ◃ (α_ _ _ _).inv) ≫ (f ◃ ((ψ.naturality g).hom ▹ H.map₁ h))
-  ≫ (f ◃ (α_ _ _ _).hom) ≫ (f ◃ (_ ◃ (H.map₁_comp g h).hom)) :=
+  (f ◁ ((G.map₁_comp g h).hom ▷ _)) ≫ (f ◁ (ψ.naturality (g ≫ h)).hom)
+  = (f ◁ (α_ _ _ _).hom) ≫ (f ◁ (_ ◁ (ψ.naturality h).hom))
+  ≫ (f ◁ (α_ _ _ _).inv) ≫ (f ◁ ((ψ.naturality g).hom ▷ H.map₁ h))
+  ≫ (f ◁ (α_ _ _ _).hom) ≫ (f ◁ (_ ◁ (H.map₁_comp g h).hom)) :=
 by { simp only [←whisker_left_comp], rw naturality_comp }
 
 @[simp, reassoc]
 lemma whisker_right_naturality_comp (f : a ⟶ b) (g : b ⟶ c) (h : G.map₀ c ⟶ a')  :
-  (((F.map₁_comp f g).hom ▹ _) ▹ h) ≫ ((φ.naturality (f ≫ g)).hom ▹ h)
-  = ((α_ _ _ _).hom ▹ h) ≫ ((_ ◃ (φ.naturality g).hom) ▹ h)
-  ≫ ((α_ _ _ _).inv ▹ h) ≫ (((φ.naturality f).hom ▹ G.map₁ g) ▹ h)
-  ≫ ((α_ _ _ _).hom ▹ h) ≫ ((_ ◃ (G.map₁_comp f g).hom) ▹ h) :=
+  (((F.map₁_comp f g).hom ▷ _) ▷ h) ≫ ((φ.naturality (f ≫ g)).hom ▷ h)
+  = ((α_ _ _ _).hom ▷ h) ≫ ((_ ◁ (φ.naturality g).hom) ▷ h)
+  ≫ ((α_ _ _ _).inv ▷ h) ≫ (((φ.naturality f).hom ▷ G.map₁ g) ▷ h)
+  ≫ ((α_ _ _ _).hom ▷ h) ≫ ((_ ◁ (G.map₁_comp f g).hom) ▷ h) :=
 by { simp only [←whisker_right_comp], rw naturality_comp }
 
 @[simp, reassoc]
 lemma whisker_left_naturality_id (f : a' ⟶ G.map₀ a) :
-  (f ◃ ((G.map₁_id a).hom ▹ _)) ≫ (f ◃ (ψ.naturality (𝟙 a)).hom)
-  = (f ◃ (λ_ _).hom)  ≫ (f ◃ (ρ_ _).inv) ≫ (f ◃ (_ ◃ (H.map₁_id a).hom)) :=
+  (f ◁ ((G.map₁_id a).hom ▷ _)) ≫ (f ◁ (ψ.naturality (𝟙 a)).hom)
+  = (f ◁ (λ_ _).hom) ≫ (f ◁ (ρ_ _).inv) ≫ (f ◁ (_ ◁ (H.map₁_id a).hom)) :=
 by { simp only [←whisker_left_comp], rw naturality_id }
 
 @[simp, reassoc]
 lemma whisker_right_naturality_id (f : G.map₀ a ⟶ a') :
-  (((F.map₁_id a).hom ▹ _) ▹ f) ≫ ((φ.naturality (𝟙 a)).hom ▹ f)
-  = ((λ_ _).hom ▹ f)  ≫ ((ρ_ _).inv ▹ f) ≫ ((_ ◃ (G.map₁_id a).hom) ▹ f) :=
+  (((F.map₁_id a).hom ▷ _) ▷ f) ≫ ((φ.naturality (𝟙 a)).hom ▷ f)
+  = ((λ_ _).hom ▷ f) ≫ ((ρ_ _).inv ▷ f) ≫ ((_ ◁ (G.map₁_id a).hom) ▷ f) :=
 by { simp only [←whisker_right_comp], rw naturality_id }
 
 end
@@ -143,17 +140,14 @@ def vcomp {F G H : pseudofunctor B C} (η : pseudonat_trans F G) (θ : pseudonat
     ≪≫ (α_ _ _ _)
     ≪≫ whisker_left_iso (η.app a) (θ.naturality f)
     ≪≫ (α_ _ _ _).symm,
-  naturality_naturality' := λ a b f g ι,
-  begin
-    dsimp,
+  naturality_naturality' := λ a b f g ι, by
+  { dsimp,
     rw [associator_inv_naturality_left_assoc, whisker_right_naturality_naturality_assoc,
         associator_naturality_middle_assoc, whisker_left_naturality_naturality_assoc,
         associator_inv_naturality_right],
-    simp
-  end,
-  naturality_comp' := λ a b c f g,
-  begin
-    dsimp,
+    simp },
+  naturality_comp' := λ a b c f g, by
+  { dsimp,
     rw [associator_inv_naturality_left_assoc, whisker_right_naturality_comp_assoc,
         associator_naturality_middle_assoc, whisker_left_naturality_comp_assoc,
         associator_inv_naturality_right],
@@ -166,16 +160,13 @@ def vcomp {F G H : pseudofunctor B C} (η : pseudonat_trans F G) (θ : pseudonat
           pentagon_inv_inv_hom_hom_inv_assoc, inv_hom_whisker_left_assoc, iso.hom_inv_id_assoc,
           whisker_exchange_assoc, associator_naturality_right_assoc,
           ←associator_naturality_left_assoc, ←pentagon_assoc] },
-    simp only [category.assoc]
-  end,
-  naturality_id' := λ a,
-  begin
-    dsimp,
+    simp only [category.assoc] },
+  naturality_id' := λ a, by
+  { dsimp,
     rw [associator_inv_naturality_left_assoc, whisker_right_naturality_id_assoc,
         associator_naturality_middle_assoc, whisker_left_naturality_id_assoc,
         associator_inv_naturality_right],
-    simp
-  end }
+    simp } }
 
 
 end pseudonat_trans
@@ -184,13 +175,17 @@ section
 variables {F G H : pseudofunctor B C}
 
 /--
-A modification between pseudonatural transformations.
+A modification `Γ` between pseudonatural transformations `η` and `θ` consists of a family of
+2-morphisms `Γ.app a : η.app a ⟶ θ.app a`, which satisfies the equation
+`(F.map₁ f ◁ app b) ≫ (θ.naturality f).hom = (η.naturality f).hom ≫ (app a ▷ G.map₁ f)`
+for each 1-morphism `f : a ⟶ b`.
 -/
 @[ext]
 structure modification (η θ : pseudonat_trans F G) :=
 (app (a : B) : η.app a ⟶ θ.app a)
 (naturality' : ∀ {a b : B} (f : a ⟶ b),
-  (_ ◃ app b) ≫ (θ.naturality f).hom = (η.naturality f).hom ≫ (app a ▹ _) . obviously)
+  (F.map₁ f ◁ app b) ≫ (θ.naturality f).hom
+  = (η.naturality f).hom ≫ (app a ▷ G.map₁ f) . obviously)
 
 restate_axiom modification.naturality'
 attribute [reassoc] modification.naturality
@@ -221,14 +216,14 @@ variables {η θ : pseudonat_trans F G} (Γ : modification η θ) {a b c : B} {a
 
 @[reassoc]
 lemma whisker_left_naturality (f : a' ⟶ F.map₀ b) (g : b ⟶ c) :
-  (f ◃ (_ ◃ Γ.app c)) ≫ (f ◃ (θ.naturality g).hom)
-  = (f ◃ (η.naturality g).hom) ≫ (f ◃ (Γ.app b ▹ _)) :=
+  (f ◁ (_ ◁ Γ.app c)) ≫ (f ◁ (θ.naturality g).hom)
+  = (f ◁ (η.naturality g).hom) ≫ (f ◁ (Γ.app b ▷ _)) :=
 by { simp only [←whisker_left_comp], rw modification.naturality }
 
 @[reassoc]
 lemma whisker_right_naturality (f : a ⟶ b) (g : G.map₀ b ⟶ a') :
-  ((_ ◃ Γ.app b) ▹ g) ≫ ((θ.naturality f).hom ▹ g)
-  = ((η.naturality f).hom ▹ g) ≫ ((Γ.app a ▹ _) ▹ g) :=
+  ((_ ◁ Γ.app b) ▷ g) ≫ ((θ.naturality f).hom ▷ g)
+  = ((η.naturality f).hom ▷ g) ≫ ((Γ.app a ▷ _) ▷ g) :=
 by { simp only [←whisker_right_comp], rw modification.naturality }
 
 end
@@ -238,7 +233,7 @@ end modification
 variables (F G)
 
 /--
-Pseudonatural transformations between pseudofunctors form a category.
+A category structure on the pseudonatural transformations between pseudofunctors.
 -/
 @[simps]
 instance : category (pseudonat_trans F G) :=
@@ -256,18 +251,16 @@ by giving object level isomorphisms, and checking naturality only in the forward
 def modification_iso.of_components {F G : pseudofunctor B C} {η θ : pseudonat_trans F G}
   (app : ∀ a, η.app a ≅ θ.app a)
   (naturality : ∀ {a b} (f : a ⟶ b),
-    (_ ◃ (app b).hom) ≫ (θ.naturality f).hom = (η.naturality f).hom ≫ ((app a).hom ▹ _)) :
+    (_ ◁ (app b).hom) ≫ (θ.naturality f).hom = (η.naturality f).hom ≫ ((app a).hom ▷ _)) :
       η ≅ θ :=
 { hom := { app := λ a, (app a).hom },
   inv :=
   { app := λ a, (app a).inv,
-    naturality' := λ a b f,
-    begin
-      have h := congr_arg (λ f, (_ ◃ (app b).inv) ≫ f ≫ ((app a).inv ▹ _)) (naturality f).symm,
+    naturality' := λ a b f, by
+    { have h := congr_arg (λ f, (_ ◁ (app b).inv) ≫ f ≫ ((app a).inv ▷ _)) (naturality f).symm,
       simp only [category.comp_id, inv_hom_whisker_left_assoc, category.assoc,
         hom_inv_whisker_right] at h,
-      exact h
-    end } }
+      exact h } } }
 
 namespace pseudonat_trans
 
@@ -280,15 +273,13 @@ Left whiskering of a pseudonatural transformation and a modification.
 @[simps] def whisker_left
   (η : pseudonat_trans F G) {θ ι : pseudonat_trans G H} (Γ : modification θ ι) :
     modification (η.vcomp θ) (η.vcomp ι) :=
-{ app := λ a, η.app a ◃ Γ.app a,
-  naturality' := λ a b f,
-  begin
-    dsimp,
+{ app := λ a, η.app a ◁ Γ.app a,
+  naturality' := λ a b f, by
+  { dsimp,
     simp only [category.assoc],
     rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc,
         associator_naturality_right_assoc, Γ.whisker_left_naturality_assoc,
-        associator_inv_naturality_middle]
-  end }
+        associator_inv_naturality_middle] } }
 
 /--
 Right whiskering of a pseudonatural transformation and a modification.
@@ -296,22 +287,20 @@ Right whiskering of a pseudonatural transformation and a modification.
 @[simps] def whisker_right
   {η θ : pseudonat_trans F G} (Γ : modification η θ) (ι : pseudonat_trans G H) :
     modification (η.vcomp ι) (θ.vcomp ι) :=
-{ app := λ a, Γ.app a ▹ ι.app a,
-  naturality' := λ a b f,
-  begin
-    dsimp,
+{ app := λ a, Γ.app a ▷ ι.app a,
+  naturality' := λ a b f, by
+  { dsimp,
     simp only [category.assoc],
     rw [associator_inv_naturality_middle_assoc, Γ.whisker_right_naturality_assoc,
         associator_naturality_left_assoc, ←whisker_exchange_assoc,
-        associator_inv_naturality_left]
-  end }
+        associator_inv_naturality_left] } }
 
 /--
 Associator for the vertical composition between pseudonatural transformations.
 -/
 @[simps] def associator
-    (η : pseudonat_trans F G) (θ : pseudonat_trans G H) (ι : pseudonat_trans H I) :
-  (η.vcomp θ).vcomp ι ≅ η.vcomp (θ.vcomp ι) :=
+  (η : pseudonat_trans F G) (θ : pseudonat_trans G H) (ι : pseudonat_trans H I) :
+    (η.vcomp θ).vcomp ι ≅ η.vcomp (θ.vcomp ι) :=
 modification_iso.of_components (λ a, α_ (η.app a) (θ.app a) (ι.app a))
 begin
   intros a b f,
@@ -359,15 +348,15 @@ section
 variables (B C)
 
 /--
-Pseudofunctors between bicategories form a bicategory. The 1-morphisms in this bicategory are
+A bicategory structure on the pseudofunctors between bicategories. The 1-morphisms in this bicategory are
 the pseudonatural transformations, and the composition of 1-morphisms is the vertical composition
-of pseudonatural transformations.
+of pseudonatural transformations. The 2-morphisms are the modifications.
 -/
 @[simps]
 instance : bicategory (pseudofunctor B C) :=
 { hom := pseudonat_trans,
   id := pseudonat_trans.id,
-  category_hom := pseudonat_trans.category,
+  hom_category := pseudonat_trans.category,
   comp := λ F G H, pseudonat_trans.vcomp,
   whisker_left  := λ F G H η _ _ Γ, pseudonat_trans.whisker_left η Γ,
   whisker_right := λ F G H _ _ Γ η, pseudonat_trans.whisker_right Γ η,

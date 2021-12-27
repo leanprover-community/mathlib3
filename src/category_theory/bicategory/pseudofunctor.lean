@@ -52,26 +52,26 @@ structure pseudofunctor :=
 (map₂ {a b : B} {f g : a ⟶ b} : (f ⟶ g) → (map₁ f ⟶ map₁ g))
 (map₁_id (a : B) : 𝟙 (map₀ a) ≅ map₁ (𝟙 a))
 (map₁_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) :
-   map₁ f ≫ map₁ g ≅ map₁ (f ≫ g))
+  map₁ f ≫ map₁ g ≅ map₁ (f ≫ g))
 (map₁_comp_naturality_left' : ∀ {a b c} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
-  (map₂ η ▹ map₁ g) ≫ (map₁_comp f' g).hom
-  = (map₁_comp f g).hom ≫ map₂ (η ▹ g) . obviously)
+  (map₂ η ▷ map₁ g) ≫ (map₁_comp f' g).hom
+  = (map₁_comp f g).hom ≫ map₂ (η ▷ g) . obviously)
 (map₁_comp_naturality_right' : ∀ {a b c} (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g'),
- (map₁ f ◃ map₂ η) ≫ (map₁_comp f g').hom
-  = (map₁_comp f g).hom ≫ map₂ (f ◃ η) . obviously)
+  (map₁ f ◁ map₂ η) ≫ (map₁_comp f g').hom
+  = (map₁_comp f g).hom ≫ map₂ (f ◁ η) . obviously)
 (map₂_id' : ∀ {a b} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map₁ f) . obviously)
-(map₂_comp' : ∀ {a b} {f g h : a ⟶ b}
-  (η : f ⟶ g) (θ : g ⟶ h), map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
+(map₂_comp' : ∀ {a b} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
+  map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
 (map₂_associator' : ∀ {a b c d} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
-  ((map₁_comp f g).hom ▹ map₁ h) ≫ (map₁_comp (f ≫ g) h).hom ≫ map₂ (α_ f g h).hom
-  = (α_ (map₁ f) (map₁ g) (map₁ h)).hom ≫ (map₁ f ◃ (map₁_comp g h).hom)
+  ((map₁_comp f g).hom ▷ map₁ h) ≫ (map₁_comp (f ≫ g) h).hom ≫ map₂ (α_ f g h).hom
+  = (α_ (map₁ f) (map₁ g) (map₁ h)).hom ≫ (map₁ f ◁ (map₁_comp g h).hom)
   ≫ (map₁_comp f (g ≫ h)).hom . obviously)
 (map₂_left_unitor' : ∀ {a b} (f : a ⟶ b),
-  ((map₁_id a).hom ▹ map₁ f) ≫ (map₁_comp (𝟙 a) f).hom ≫ map₂ (λ_ _).hom
-  =  (λ_ _).hom . obviously)
+  ((map₁_id a).hom ▷ map₁ f) ≫ (map₁_comp (𝟙 a) f).hom ≫ map₂ (λ_ f).hom
+  = (λ_ (map₁ f)).hom . obviously)
 (map₂_right_unitor' : ∀ {a b} (f : a ⟶ b),
-  (map₁ f ◃ (map₁_id b).hom) ≫ (map₁_comp f (𝟙 b)).hom ≫ map₂ (ρ_ _).hom
-  =  (ρ_ _).hom . obviously)
+  (map₁ f ◁ (map₁_id b).hom) ≫ (map₁_comp f (𝟙 b)).hom ≫ map₂ (ρ_ f).hom
+  = (ρ_ (map₁ f)).hom . obviously)
 
 restate_axiom pseudofunctor.map₁_comp_naturality_left'
 attribute [simp, reassoc] pseudofunctor.map₁_comp_naturality_left
@@ -114,6 +114,9 @@ variables
 {C : Type u₂} [bicategory.{w₂ v₂} C]
 (F : pseudofunctor B C) {a b c d : B}
 
+/--
+Function on 1-morphisms as a functor.
+-/
 @[simps]
 def map₁_functor (a b : B) :
   (a ⟶ b) ⥤ (F.map₀ a ⟶ F.map₀ b) :=
@@ -124,8 +127,8 @@ def map₁_functor (a b : B) :
 
 @[reassoc]
 lemma map₂_associator_inv (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) :
-  ((F.map₁ f) ◃ (F.map₁_comp g h).hom) ≫ (F.map₁_comp f (g ≫ h)).hom ≫ F.map₂ (α_ f g h).inv
-  = (α_ (F.map₁ f) (F.map₁ g) (F.map₁ h)).inv ≫ ((F.map₁_comp f g).hom ▹ (F.map₁ h))
+  ((F.map₁ f) ◁ (F.map₁_comp g h).hom) ≫ (F.map₁_comp f (g ≫ h)).hom ≫ F.map₂ (α_ f g h).inv
+  = (α_ (F.map₁ f) (F.map₁ g) (F.map₁ h)).inv ≫ ((F.map₁_comp f g).hom ▷ (F.map₁ h))
   ≫ (F.map₁_comp (f ≫ g) h).hom :=
 begin
   rw [iso.eq_inv_comp, ←map₂_associator_assoc,
@@ -135,12 +138,12 @@ end
 @[reassoc, simp]
 lemma map₂_associator_eq (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) :
   F.map₂ (α_ f g h).hom
-  = (F.map₁_comp (f ≫ g) h).inv ≫ ((F.map₁_comp f g).inv ▹ F.map₁ h)
-  ≫ (α_ (F.map₁ f) (F.map₁ g) (F.map₁ h)).hom ≫ (F.map₁ f ◃ (F.map₁_comp g h).hom)
+  = (F.map₁_comp (f ≫ g) h).inv ≫ ((F.map₁_comp f g).inv ▷ F.map₁ h)
+  ≫ (α_ (F.map₁ f) (F.map₁ g) (F.map₁ h)).hom ≫ (F.map₁ f ◁ (F.map₁_comp g h).hom)
   ≫ (F.map₁_comp f (g ≫ h)).hom :=
 begin
   apply (cancel_epi (F.map₁_comp (f ≫ g) h).hom).1,
-  apply (cancel_epi ((F.map₁_comp f g).hom ▹ F.map₁ h)).1,
+  apply (cancel_epi ((F.map₁_comp f g).hom ▷ F.map₁ h)).1,
   rw map₂_associator,
   simp
 end
@@ -148,12 +151,12 @@ end
 @[reassoc, simp]
 lemma map₂_associator_inv_eq (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) :
   F.map₂ (α_ f g h).inv
-  = (F.map₁_comp f (g ≫ h)).inv ≫ (F.map₁ f ◃ (F.map₁_comp g h).inv)
-  ≫ (α_ (F.map₁ f) (F.map₁ g) (F.map₁ h)).inv ≫ ((F.map₁_comp f g).hom ▹ F.map₁ h)
+  = (F.map₁_comp f (g ≫ h)).inv ≫ (F.map₁ f ◁ (F.map₁_comp g h).inv)
+  ≫ (α_ (F.map₁ f) (F.map₁ g) (F.map₁ h)).inv ≫ ((F.map₁_comp f g).hom ▷ F.map₁ h)
   ≫ (F.map₁_comp (f ≫ g) h).hom :=
 begin
   apply (cancel_epi (F.map₁_comp f (g ≫ h)).hom).1,
-  apply (cancel_epi ((F.map₁ f) ◃ (F.map₁_comp g h).hom)).1,
+  apply (cancel_epi ((F.map₁ f) ◁ (F.map₁_comp g h).hom)).1,
   rw map₂_associator_inv,
   simp
 end
@@ -161,7 +164,7 @@ end
 @[reassoc, simp]
 lemma map₂_left_unitor_eq (f : a ⟶ b) :
   F.map₂ (λ_ f).hom
-  = (F.map₁_comp (𝟙 a) f).inv ≫ ((F.map₁_id a).inv ▹ F.map₁ f) ≫ (λ_ (F.map₁ f)).hom :=
+  = (F.map₁_comp (𝟙 a) f).inv ≫ ((F.map₁_id a).inv ▷ F.map₁ f) ≫ (λ_ (F.map₁ f)).hom :=
 begin
   rw [iso.eq_inv_comp, ←map₂_left_unitor, inv_hom_whisker_right_assoc]
 end
@@ -169,7 +172,7 @@ end
 @[reassoc, simp]
 lemma map₂_left_unitor_inv_eq (f : a ⟶ b) :
   F.map₂ (λ_ f).inv
-  = (λ_ (F.map₁ f)).inv ≫ ((F.map₁_id a).hom ▹ F.map₁ f) ≫ (F.map₁_comp (𝟙 a) f).hom :=
+  = (λ_ (F.map₁ f)).inv ≫ ((F.map₁_id a).hom ▷ F.map₁ f) ≫ (F.map₁_comp (𝟙 a) f).hom :=
 begin
   rw [iso.eq_inv_comp, ←map₂_left_unitor, category.assoc, category.assoc,
       ←map₂_comp, iso.hom_inv_id, F.map₂_id, category.comp_id]
@@ -178,7 +181,7 @@ end
 @[reassoc, simp]
 lemma map₂_right_unitor_eq (f : a ⟶ b) :
   F.map₂ (ρ_ f).hom
-  = (F.map₁_comp f (𝟙 b)).inv ≫ (F.map₁ f ◃ (F.map₁_id b).inv) ≫ (ρ_ (F.map₁ f)).hom :=
+  = (F.map₁_comp f (𝟙 b)).inv ≫ (F.map₁ f ◁ (F.map₁_id b).inv) ≫ (ρ_ (F.map₁ f)).hom :=
 begin
   rw [iso.eq_inv_comp, ←map₂_right_unitor, inv_hom_whisker_left_assoc]
 end
@@ -186,7 +189,7 @@ end
 @[reassoc, simp]
 lemma map₂_right_unitor_inv_eq (f : a ⟶ b) :
   F.map₂ (ρ_ f).inv
-  = (ρ_ (F.map₁ f)).inv ≫ (F.map₁ f ◃ (F.map₁_id b).hom) ≫ (F.map₁_comp f (𝟙 b)).hom :=
+  = (ρ_ (F.map₁ f)).inv ≫ (F.map₁ f ◁ (F.map₁_id b).hom) ≫ (F.map₁_comp f (𝟙 b)).hom :=
 begin
   rw [iso.eq_inv_comp, ←map₂_right_unitor, category.assoc, category.assoc,
       ←map₂_comp, iso.hom_inv_id, F.map₂_id, category.comp_id]
@@ -194,14 +197,14 @@ end
 
 @[simp, reassoc]
 lemma map₁_comp_inv_naturality_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) :
-  (F.map₂ (η ▹ g)) ≫ (F.map₁_comp f' g).inv
-  = (F.map₁_comp f g).inv ≫ (F.map₂ η ▹ F.map₁ g) :=
+  (F.map₂ (η ▷ g)) ≫ (F.map₁_comp f' g).inv
+  = (F.map₁_comp f g).inv ≫ (F.map₂ η ▷ F.map₁ g) :=
 by rw [iso.comp_inv_eq, category.assoc, map₁_comp_naturality_left, iso.inv_hom_id_assoc]
 
 @[simp, reassoc]
 lemma map₁_comp_inv_naturality_right (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') :
-  (F.map₂ (f ◃ η)) ≫ (F.map₁_comp f g').inv
-  = (F.map₁_comp f g).inv ≫ (F.map₁ f ◃ F.map₂ η) :=
+  (F.map₂ (f ◁ η)) ≫ (F.map₁_comp f g').inv
+  = (F.map₁_comp f g).inv ≫ (F.map₁ f ◁ F.map₂ η) :=
 by rw [iso.comp_inv_eq, category.assoc, map₁_comp_naturality_right, iso.inv_hom_id_assoc]
 
 end
@@ -235,7 +238,7 @@ If `F` is a pseudofunctor from `A` to `B` and `G` is a pseudofunctor from `B` to
     rw [map₁_comp_naturality_right_assoc, ←map₂_comp, map₁_comp_naturality_right],
     simp },
   map₂_id'    := by { intros, simp only [map₂_id] },
-  map₂_comp'  := by { intros, simp only [map₂_comp]},
+  map₂_comp'  := by { intros, simp only [map₂_comp] },
   map₂_associator' := λ a b c d f g h, by
   { dsimp,
     simp only [whisker_right_comp, whisker_left_comp, category.assoc],

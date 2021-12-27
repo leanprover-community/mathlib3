@@ -25,9 +25,15 @@ lemma ne_zero.ne {R} [has_zero R] (n : R) [h : ne_zero n] : n ≠ 0 := h.out
 lemma ne_zero.ne' (n : ℕ) (R) [has_zero R] [has_one R] [has_add R] [h : ne_zero (n : R)] :
   (n : R) ≠ 0 := h.out
 
+lemma ne_zero_iff {R : Type*} [has_zero R] {n : R} : ne_zero n ↔ n ≠ 0 :=
+⟨λ h, h.out, ne_zero.mk⟩
+
+lemma not_ne_zero {R : Type*} [has_zero R] {n : R} : ¬ ne_zero n ↔ n = 0 :=
+by simp [ne_zero_iff]
+
 namespace ne_zero
 
-variables {R M : Type*} {x y : M} {n p : ℕ} {a : ℕ+}
+variables {R M F : Type*} {r : R} {x y : M} {n p : ℕ} {a : ℕ+}
 
 instance pnat : ne_zero (a : ℕ) := ⟨a.ne_zero⟩
 instance succ : ne_zero (n + 1) := ⟨n.succ_ne_zero⟩
@@ -41,6 +47,9 @@ instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zer
 lemma of_injective [semiring R] [ne_zero (n : R)] [semiring M] {f : R →+* M}
   (hf : function.injective f) : ne_zero (n : M) :=
 ⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa⟩
+
+lemma of_map [add_monoid R] [add_monoid M] [zero_hom_class F R M] (f : F) [ne_zero (f r)] :
+  ne_zero r := ⟨λ h, ne_zero.ne (f r) $ by convert map_zero f⟩
 
 variables (R M)
 

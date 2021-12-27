@@ -53,8 +53,8 @@ end
 lemma ne_zero_of_prime_mersenne (k : ℕ) (pr : (mersenne (k + 1)).prime) :
   k ≠ 0 :=
 begin
-  rintro rfl,
-  simpa [mersenne, not_prime_one] using pr,
+  intro H,
+  simpa [H, mersenne, not_prime_one] using pr,
 end
 
 theorem even_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :

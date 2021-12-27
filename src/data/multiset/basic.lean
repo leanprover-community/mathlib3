@@ -188,6 +188,9 @@ quot.induction_on s $ assume l hl,
   | (a :: l) := assume _, ⟨a, by simp⟩
   end
 
+lemma empty_or_exists_mem (s : multiset α) : s = 0 ∨ ∃ a, a ∈ s :=
+or_iff_not_imp_left.mpr multiset.exists_mem_of_ne_zero
+
 @[simp] lemma zero_ne_cons {a : α} {m : multiset α} : 0 ≠ a ::ₘ m :=
 assume h, have a ∈ (0:multiset α), from h.symm ▸ mem_cons_self _ _, not_mem_zero _ this
 
@@ -713,6 +716,10 @@ theorem erase_le_iff_le_cons {s t : multiset α} {a : α} : s.erase a ≤ t ↔ 
 @[simp] theorem card_erase_of_mem {a : α} {s : multiset α} :
   a ∈ s → card (s.erase a) = pred (card s) :=
 quot.induction_on s $ λ l, length_erase_of_mem
+
+@[simp] lemma card_erase_add_one {a : α} {s : multiset α} :
+  a ∈ s → (s.erase a).card + 1 = s.card :=
+quot.induction_on s $ λ l, length_erase_add_one
 
 theorem card_erase_lt_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.erase a) < card s :=
 λ h, card_lt_of_lt (erase_lt.mpr h)
@@ -2189,10 +2196,10 @@ theorem count_map_eq_count' [decidable_eq β] (f : α → β) (s : multiset α)
 begin
   by_cases H : x ∈ s,
   { exact count_map_eq_count f _ (set.inj_on_of_injective hf _) _ H, },
-  { simp [H, not_exists, count_eq_zero, count_eq_zero_of_not_mem H, hf],
-    intros y hy hh,
-    apply H,
-    rwa [← hf hh], }
+  { rw [count_eq_zero_of_not_mem H, count_eq_zero, mem_map],
+    rintro ⟨k, hks, hkx⟩,
+    rw hf hkx at *,
+    contradiction }
 end
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=

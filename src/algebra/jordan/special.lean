@@ -102,12 +102,14 @@ lemma zero_zero [ring α] [algebra ℝ α] : unsym add_comm_group.zero = (0:α) 
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
 function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
 
+/- Introduce the symmetrised multiplication-/
 noncomputable instance [ring α] [algebra ℝ α] : has_mul(αˢʸᵐ) :=
 { mul := λ a b, (sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a)))), }
 
 lemma mul_def [ring α] [algebra ℝ α] (a b: αˢʸᵐ) :
   a*b = sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))) := by refl
 
+/- The symmetrisation of a real (unital, associative) algebra is a non-associative ring -/
 noncomputable instance [ring α] [algebra ℝ α] : non_unital_non_assoc_ring (αˢʸᵐ) :=
 { zero_mul := λ _,
   begin
@@ -140,12 +142,15 @@ begin
    rw [bit0, add_smul, one_smul],
 end
 
+/- The squaring operation coincides for both multiplications -/
 lemma sym_squares [ring α] [algebra ℝ α] (a: αˢʸᵐ) : unsym(a*a) = unsym a * unsym a :=
 begin
   rw [mul_def, unsym_sym, ← two_rmul, ← smul_assoc],
   simp,
 end
 
+/- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
+Jordan non-associative ring -/
 noncomputable instance (α : Type*) [ring α] [algebra ℝ α] : comm_jordan (αˢʸᵐ) :=
 { comm := λ a,
   begin

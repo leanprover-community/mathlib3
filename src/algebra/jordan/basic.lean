@@ -50,6 +50,7 @@ class non_unital_non_assoc_ring (α : Type*) extends
 
 variables {A : Type*}
 
+/- A (unital, associative) ring is a not-necessarily-unital, not-necessarily-associative ring -/
 @[priority 100] -- see Note [lower instance priority]
 instance ring.to_non_unital_non_assoc_semiring (B :Type*) [_i : ring B] :
   non_unital_non_assoc_ring B :=
@@ -98,10 +99,9 @@ class jordan (A : Type*) [non_unital_non_assoc_ring A] :=
 (commL2R1: ∀ a : A, ⁅L (a*a), R a⁆ = 0)
 (commR1R2: ∀ a : A, ⁅R a, R (a*a)⁆ = 0)
 
-universe u
-
+/- A (unital, associative) ring satisfies the (non-commutative) Jordan axioms-/
 @[priority 100] -- see Note [lower instance priority]
-instance  ring_jordan (B : Type u) [ring B] : jordan (B) :=
+instance  ring_jordan (B : Type*) [ring B] : jordan (B) :=
 { commL1R1 := begin
     intro,
     ext b,
@@ -164,6 +164,7 @@ variable [comm_jordan A]
 
 lemma jordan_mul_comm (a b :A) : a*b = b*a := by rw [← L_def, ← R_def, comm_jordan.comm]
 
+/- Linearise the Jordan axiom with two variables-/
 lemma mul_op_com1 (a b : A) :
   ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆  = 0 :=
 begin
@@ -181,6 +182,7 @@ begin
     ... = ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆: by abel
 end
 
+/- Linearise the Jordan axiom with three variables-/
 lemma lin_jordan (a b c : A) : (2:ℤ)•(⁅L a, L (b*c)⁆ + ⁅L b, L (a*c)⁆ + ⁅L c, L (a*b)⁆) = 0 :=
 begin
   symmetry,

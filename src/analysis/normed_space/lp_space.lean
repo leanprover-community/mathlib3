@@ -540,7 +540,7 @@ end
 end normed_space
 
 section completeness
-variables {F : ℕ → lp E p}
+variables {ι : Type*} [nonempty ι] [semilattice_sup ι] {F : ι → lp E p}
 
 open filter
 open_locale topological_space
@@ -591,7 +591,7 @@ end
 variables [Π a, complete_space (E a)]
 
 lemma foo₁ [fact (1 ≤ p)] (hF : cauchy_seq F) :
-  ∃ f, tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f) :=
+  ∃ f, tendsto (id (λ i, F i) : ι → Π a, E a) at_top (𝓝 f) :=
 begin
   have hp : 0 < p.to_real := sorry,
   suffices : ∀ a, ∃ c, tendsto (λ i, F i a) at_top (𝓝 c),
@@ -613,7 +613,7 @@ begin
 end
 
 lemma foo₂ [fact (1 ≤ p)] (hF : cauchy_seq F) {f : Π a, E a}
-  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
+  (hf : tendsto (id (λ i, F i) : ι → Π a, E a) at_top (𝓝 f)) :
   mem_ℓp f p :=
 begin
   have hp : 0 < p.to_real := sorry,
@@ -623,7 +623,7 @@ begin
   have hC : 0 ≤ (1 + ∥F N∥) ^ p.to_real := sorry,
   apply mem_ℓp_gen' hp hC,
   intros s,
-  suffices : ∀ᶠ (k : ℕ) in at_top, ∑ a in s, ∥F k a∥ ^ p.to_real < (1 + ∥F N∥) ^ p.to_real,
+  suffices : ∀ᶠ k in at_top, ∑ a in s, ∥F k a∥ ^ p.to_real < (1 + ∥F N∥) ^ p.to_real,
   { refine le_of_tendsto _ (this.mono (λ _, le_of_lt)),
     let G : (Π i : s, E i) → ℝ := λ f, ∑ a : s, ∥f a∥ ^ p.to_real,
     have hG : continuous G,
@@ -679,7 +679,7 @@ begin
 end
 
 lemma foo₃ [fact (1 ≤ p)] (hF : cauchy_seq F) (f : lp E p)
-  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
+  (hf : tendsto (id (λ i, F i) : ι → Π a, E a) at_top (𝓝 f)) :
   tendsto F at_top (𝓝 f) :=
 begin
   have hp : 0 < p.to_real := sorry,

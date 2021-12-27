@@ -239,9 +239,56 @@ end
 --   interval_integrable (λ x, x ^ n) μ a b :=
 -- (continuous_on_id.zpow n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
 
-example : tendsto (λ (x:ℝ), x) at_top at_top :=
+-- lemma integral_rpow {r : ℝ} (h : 0 ≤ r ∨ r ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
+--   ∫ x in a..b, x ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
+
+open filter
+open_locale nnreal
+
+example {a : ℝ} : tendsto (λ (x : ℝ≥0), a + x) at_top at_top :=
 begin
+  apply tendsto_at_top_add_const_left,
+  rw nnreal.tendsto_coe_at_top,
   apply tendsto_id,
+  -- have := tendsto_coe_nat_at_top_at_top,
+  -- exact filter.tendsto_comp_coe_Ici_at_top.2 _,
+  -- suggest,
+end
+
+-- #exit
+-- tendsto_at_top_add_const_right _ _ tendsto_id
+
+lemma integrable_on_rpow {a r : ℝ} (hr : r < -1) (ha : 0 < a) :
+  integrable_on (λ x, x ^ r) (Ioi a) :=
+begin
+  have : tendsto (λ (x : ℝ≥0), a + x) at_top at_top,
+  { apply tendsto_at_top_add_const_left,
+    rw nnreal.tendsto_coe_at_top,
+    apply tendsto_id },
+  refine integrable_on_Ioi_of_interval_integral_norm_tendsto (- a ^ (r + 1) / (r + 1)) _
+    (λ i, _) this _,
+  { rw ←interval_integrable_iff_integrable_Ioc_of_le,
+    { apply interval_integral.interval_integrable_rpow,
+      right,
+      simp only [interval_of_le, le_add_iff_nonneg_right, nnreal.zero_le_coe, mem_Icc, not_and',
+        not_le, ha, implies_true_iff] },
+    simp only [le_add_iff_nonneg_right, nnreal.zero_le_coe] },
+  -- suffices : tendsto
+  -- refine continuous_on_id.zpow _ (λ x hx, or.inl (zero_lt_one.trans_le hx.1).ne'),
+  -- have := integral_zpow,
+end
+
+#exit
+  -- ∫ x in Ioi a, x ^ r = - a ^ (r + 1) / (r + 1) :=
+
+lemma integral_rpow_Ioi {a r : ℝ} (hr : r < -1) (ha : 0 < a) :
+  ∫ x in Ioi a, x ^ r = - a ^ (r + 1) / (r + 1) :=
+begin
+
+  -- have h' := λ x hx, ne_of_mem_of_not_mem hx h,
+  -- rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
+  --       (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h),
+  --     log_div (h' b right_mem_interval) (h' a left_mem_interval)],
 end
 
 -- lemma euler_mascheroni_tail (x : ℝ) (hx : 1 ≤ x) :

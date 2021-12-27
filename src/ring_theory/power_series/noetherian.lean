@@ -405,6 +405,7 @@ begin
   let f : ℕ → I := λ n, @nat.rec_on
     (λ _, I) n f₀
     (λ d fd, ⟨classical.some (this fd), _⟩),
+
   -- take the limit
   obtain ⟨(L : power_series R), hL⟩ :=
     (infer_instance : is_precomplete (ideal.span ({X} : set (power_series R))) _).prec _,

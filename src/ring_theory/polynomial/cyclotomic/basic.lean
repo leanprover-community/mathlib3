@@ -12,6 +12,7 @@ import field_theory.splitting_field
 import number_theory.arithmetic_function
 import ring_theory.roots_of_unity
 import field_theory.ratfunc
+import algebra.ne_zero
 
 /-!
 # Cyclotomic polynomials.
@@ -502,11 +503,11 @@ begin
   rwa [← mem_primitive_roots hpos] at h,
 end
 
-private lemma is_root_cyclotomic_iff' {n : ℕ} {K : Type*} [field K] {μ : K} (hn : (n : K) ≠ 0) :
+private lemma is_root_cyclotomic_iff' {n : ℕ} {K : Type*} [field K] {μ : K} [ne_zero (n : K)] :
   is_root (cyclotomic n K) μ ↔ is_primitive_root μ n :=
 begin
   -- in this proof, `o` stands for `order_of μ`
-  have hnpos : 0 < n := (show n ≠ 0, by { rintro rfl, contradiction }).bot_lt,
+  have hnpos : 0 < n := (ne_zero.nat_of_ne K).out.bot_lt,
   refine ⟨λ hμ, _, is_root_cyclotomic hnpos⟩,
   have hμn : μ ^ n = 1,
   { rw is_root_of_unity_iff hnpos,
@@ -531,20 +532,20 @@ begin
   obtain ⟨j, hj⟩ := hμ,
   have := prod_cyclotomic_eq_X_pow_sub_one hnpos K,
   rw [←finset.prod_sdiff hni, finset.prod_pair key.ne, hk, hj] at this,
-  replace hn := (X_pow_sub_one_separable_iff.mpr hn).squarefree,
+  have hn := (X_pow_sub_one_separable_iff.mpr $ ne_zero.ne' n K).squarefree,
   rw [←this, squarefree] at hn,
   contrapose! hn,
   refine ⟨X - C μ, ⟨(∏ x in n.divisors \ {i, n}, cyclotomic x K) * k * j, by ring⟩, _⟩,
   simp [polynomial.is_unit_iff_degree_eq_zero]
 end
 
-lemma is_root_cyclotomic_iff {n : ℕ} {R : Type*} [comm_ring R] [is_domain R]
-  {μ : R} (hn : (n : R) ≠ 0) : is_root (cyclotomic n R) μ ↔ is_primitive_root μ n  :=
+lemma is_root_cyclotomic_iff {n : ℕ} {R : Type*} [comm_ring R] [is_domain R] [ne_zero (n : R)]
+  {μ : R} : is_root (cyclotomic n R) μ ↔ is_primitive_root μ n :=
 begin
-  let f := algebra_map R (fraction_ring R),
-  have hf : function.injective f := is_localization.injective _ le_rfl,
+  have hf : function.injective _ := is_fraction_ring.injective R (fraction_ring R),
+  haveI : ne_zero (n : fraction_ring R) := ne_zero.of_injective R _ hf,
   rw [←is_root_map_iff hf, ←is_primitive_root.map_iff_of_injective hf, map_cyclotomic,
-      ←is_root_cyclotomic_iff' $ by simpa only [f.map_nat_cast, hn] using f.injective_iff.mp hf n]
+      ←is_root_cyclotomic_iff']
 end
 
 lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] {n : ℕ} (hpos: 0 < n)

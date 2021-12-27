@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Jeremy Avigad
 import control.traversable.instances
 import data.set.finite
 import order.copy
+import order.pfilter
 import tactic.monotonicity
 
 /-!
@@ -88,11 +89,16 @@ open_locale classical
 /-- A filter `F` on a type `α` is a collection of sets of `α` which contains the whole `α`,
 is upwards-closed, and is stable under intersection. We do not forbid this collection to be
 all sets of `α`. -/
-structure filter (α : Type*) :=
-(sets                   : set (set α))
-(univ_sets              : set.univ ∈ sets)
-(sets_of_superset {x y} : x ∈ sets → x ⊆ y → y ∈ sets)
-(inter_sets {x y}       : x ∈ sets → y ∈ sets → x ∩ y ∈ sets)
+--structure filter (α : Type*) :=
+--(sets                   : set (set α))
+--(univ_sets              : set.univ ∈ sets)
+--(sets_of_superset {x y} : x ∈ sets → x ⊆ y → y ∈ sets)
+--(inter_sets {x y}       : x ∈ sets → y ∈ sets → x ∩ y ∈ sets)
+
+/-- A filter `F` on a type `α` is a collection of sets of `α` which contains the whole `α`,
+is upwards-closed, and is stable under intersection. We do not forbid this collection to be
+all sets of `α`. -/
+def filter (α : Type*) := pfilter (set α)
 
 /-- If `F` is a filter on `α`, and `U` a subset of `α` then we can write `U ∈ F` as on paper. -/
 instance {α : Type*}: has_mem (set α) (filter α) := ⟨λ U F, U ∈ F.sets⟩

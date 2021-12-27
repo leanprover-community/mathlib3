@@ -14,11 +14,11 @@ sum of elements of a list. These are defined in [`data.list.defs`](./data/list/d
 
 variables {α M N P R G M₀ : Type*}
 
-variables [monoid M] [monoid N] [monoid P] [monoid_with_zero M₀] {l l₁ l₂ : list M} {a : M}
-
 namespace list
 
 section monoid
+
+variables [monoid M] [monoid N] [monoid P] [monoid_with_zero M₀] {l l₁ l₂ : list M} {a : M}
 
 @[simp, to_additive]
 lemma prod_nil : ([] : list M).prod = 1 := rfl
@@ -225,7 +225,7 @@ begin
   apply ext_le h (λ i h₁ h₂, _),
   have : (L.take (i + 1)).prod = (L'.take (i + 1)).prod := h' _ (nat.succ_le_of_lt h₁),
   rw [prod_take_succ L i h₁, prod_take_succ L' i h₂, h' i (le_of_lt h₁)] at this,
-  exact mul_left_cancel this
+  convert mul_left_cancel this
 end
 
 @[to_additive]
@@ -233,11 +233,10 @@ lemma monotone_prod_take [canonically_ordered_monoid M] (L : list M) :
   monotone (λ i, (L.take i).prod) :=
 begin
   apply monotone_nat_of_le_succ (λ n, _),
-  by_cases h : n < L.length,
+  cases lt_or_le n L.length with h h,
   { rw prod_take_succ _ _ h,
     exact le_self_mul },
-  { push_neg at h,
-    simp [take_all_of_le h, take_all_of_le (le_trans h (nat.le_succ _))] }
+  { simp [take_all_of_le h, take_all_of_le (le_trans h (nat.le_succ _))] }
 end
 
 @[to_additive sum_nonneg]
@@ -366,23 +365,22 @@ end
 
 /-- We'd like to state this as `L.head * L.tail.prod = L.prod`, but because `L.head` relies on an
 inhabited instance to return a garbage value on the empty list, this is not possible.
-Instead, we write the statement in terms of `(L.nth 0).get_or_else 1` and state the lemma for `ℕ` as
- -/
+Instead, we write the statement in terms of `(L.nth 0).get_or_else 1`. -/
 @[to_additive]
-lemma nth_zero_mul_tail_prod [monoid α] (l : list α) :
+lemma nth_zero_mul_tail_prod [monoid M] (l : list M) :
   (l.nth 0).get_or_else 1 * l.tail.prod = l.prod :=
 by cases l; simp
 
 /-- Same as `nth_zero_mul_tail_prod`, but avoiding the `list.head` garbage complication by requiring
 the list to be nonempty. -/
 @[to_additive]
-lemma head_mul_tail_prod_of_ne_nil [monoid α] [inhabited α] (l : list α) (h : l ≠ []) :
+lemma head_mul_tail_prod_of_ne_nil [monoid M] [inhabited M] (l : list M) (h : l ≠ []) :
   l.head * l.tail.prod = l.prod :=
 by cases l; [contradiction, simp]
 
 /-- The product of a list of positive natural numbers is positive,
 and likewise for any nontrivial ordered semiring. -/
-lemma prod_pos [ordered_semiring α] [nontrivial α] (l : list α) (h : ∀ a ∈ l, (0 : α) < a) :
+lemma prod_pos [ordered_semiring R] [nontrivial R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) :
   0 < l.prod :=
 begin
   induction l with a l ih,

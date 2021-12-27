@@ -40,7 +40,7 @@ A graph is strongly regular with parameters `n k l m` if
  * every pair of adjacent vertices has `l` common neighbors
  * every pair of nonadjacent vertices has `m` common neighbors
 -/
-structure is_SRG_of (n k l m : ℕ) : Prop :=
+structure is_strongly_regular_of (n k l m : ℕ) : Prop :=
 (card : fintype.card V = n)
 (regular : G.is_regular_of_degree k)
 (adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
@@ -49,7 +49,8 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 
 /-- Empty graphs are strongly regular. Note that the parameter `l` can take any value
   for empty graphs, since there are no pairs of adjacent vertices. -/
-lemma bot_strongly_regular (l : ℕ) : (⊥ : simple_graph V).is_SRG_of (fintype.card V) 0 l 0 :=
+lemma bot_strongly_regular (l : ℕ) :
+  (⊥ : simple_graph V).is_strongly_regular_of (fintype.card V) 0 l 0 :=
 { card := rfl,
   regular := bot_degree,
   adj_common := λ v w h, h.elim,
@@ -62,7 +63,8 @@ lemma bot_strongly_regular (l : ℕ) : (⊥ : simple_graph V).is_SRG_of (fintype
 /- Complete graphs are strongly regular. Note that the parameter `m` can take any value
 for complete graphs, since there are no distinct pairs of nonadjacent vertices. -/
 lemma top_strongly_regular (m : ℕ) :
-  (⊤ : simple_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) m :=
+  (⊤ : simple_graph V).is_strongly_regular_of
+  (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) m :=
 { card := rfl,
   regular := complete_graph_is_regular,
   adj_common := λ v w h, begin
@@ -71,7 +73,7 @@ lemma top_strongly_regular (m : ℕ) :
   end,
   nadj_common := λ v w h, false.elim $ by simpa using h }
 
-lemma card_neighbor_set_union_eq {n k l m : ℕ} (h : G.is_SRG_of n k l m) (v w : V) :
+lemma card_neighbor_set_union_eq {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m) (v w : V) :
   finset.card (G.neighbor_finset v ∪ G.neighbor_finset w) =
     2 * k - fintype.card (G.common_neighbors v w) :=
 begin
@@ -87,7 +89,7 @@ end
 -- first of all, what is `2*(k + 1) - m` in `G`? what does it count?
 -- it counts the number of vertices that are adjacent to either `v` or `w` when `¬G.adj v w`
 -- so it's the cardinality of `G.neighbor_set v ∪ G.neighbor_set w`
-lemma card_neighbor_set_union_nadj {n k l m : ℕ} (h : G.is_SRG_of n k l m)
+lemma card_neighbor_set_union_nadj {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m)
   {v w : V} (hne : v ≠ w) (ha : ¬G.adj v w) :
   finset.card (G.neighbor_finset v ∪ G.neighbor_finset w) = 2 * k - m :=
 begin
@@ -95,7 +97,7 @@ begin
   apply G.card_neighbor_set_union_eq h,
 end
 
-lemma card_neighbor_set_union_adj {n k l m : ℕ} (h : G.is_SRG_of n k l m)
+lemma card_neighbor_set_union_adj {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m)
   {v w : V} (ha : G.adj v w) :
   finset.card (G.neighbor_finset v ∪ G.neighbor_finset w) = 2 * k - l :=
 begin
@@ -122,8 +124,8 @@ begin
   { apply hnw, rwa adj_comm, },
 end
 
-lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
-  Gᶜ.is_SRG_of n (n - k - 1) (n - (2 * k - m) - 2) (n - (2 * k - l)) :=
+lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_strongly_regular_of n k l m) :
+  Gᶜ.is_strongly_regular_of n (n - k - 1) (n - (2 * k - m) - 2) (n - (2 * k - l)) :=
 { card := h.card,
   regular := begin
     rw [← h.card, nat.sub_sub, add_comm, ←nat.sub_sub],

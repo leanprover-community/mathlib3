@@ -67,10 +67,10 @@ structure pseudofunctor :=
   ((map₁_comp f g).hom ▹ map₁ h) ≫ (map₁_comp (f ≫ g) h).hom ≫ map₂ (α_ f g h).hom
   = (α_ (map₁ f) (map₁ g) (map₁ h)).hom ≫ (map₁ f ◃ (map₁_comp g h).hom)
   ≫ (map₁_comp f (g ≫ h)).hom . obviously)
-(map₂_left_unit' : ∀ {a b} (f : a ⟶ b),
+(map₂_left_unitor' : ∀ {a b} (f : a ⟶ b),
   ((map₁_id a).hom ▹ map₁ f) ≫ (map₁_comp (𝟙 a) f).hom ≫ map₂ (λ_ _).hom
   =  (λ_ _).hom . obviously)
-(map₂_right_unit' : ∀ {a b} (f : a ⟶ b),
+(map₂_right_unitor' : ∀ {a b} (f : a ⟶ b),
   (map₁ f ◃ (map₁_id b).hom) ≫ (map₁_comp f (𝟙 b)).hom ≫ map₂ (ρ_ _).hom
   =  (ρ_ _).hom . obviously)
 
@@ -84,10 +84,10 @@ restate_axiom pseudofunctor.map₂_comp'
 attribute [reassoc, simp] pseudofunctor.map₂_comp
 restate_axiom pseudofunctor.map₂_associator'
 attribute [simp, reassoc] pseudofunctor.map₂_associator
-restate_axiom pseudofunctor.map₂_left_unit'
-attribute [reassoc, simp] pseudofunctor.map₂_left_unit
-restate_axiom pseudofunctor.map₂_right_unit'
-attribute [reassoc, simp] pseudofunctor.map₂_right_unit
+restate_axiom pseudofunctor.map₂_left_unitor'
+attribute [reassoc, simp] pseudofunctor.map₂_left_unitor
+restate_axiom pseudofunctor.map₂_right_unitor'
+attribute [reassoc, simp] pseudofunctor.map₂_right_unitor
 
 end
 

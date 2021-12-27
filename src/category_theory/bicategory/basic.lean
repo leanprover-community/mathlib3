@@ -20,8 +20,9 @@ We use `u`, `v`, and `w` as the universe variables for objects, 1-morphisms, and
 respectively.
 
 A typeclass for bicategories extends `category_theory.category_struct` typeclass. This means that
-we have a composition `f ≫ g : a ⟶ c` for each 1-morphisms `f : a ⟶ b` and `g : b ⟶ c`, and
-have a identity `𝟙 a : a ⟶ a` for each object `a : B`.
+we have
+* a composition `f ≫ g : a ⟶ c` for each 1-morphisms `f : a ⟶ b` and `g : b ⟶ c`, and
+* a identity `𝟙 a : a ⟶ a` for each object `a : B`.
 
 For each object `a b : B`, the collection of 1-morphisms `a ⟶ b` has a category structure. The
 2-morphisms in the bicategory are implemented as the morphisms in this family of categories.
@@ -373,7 +374,6 @@ lemma pentagon_hom_hom_inv_hom_hom (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i 
   (α_ (f ≫ g) h i).hom ≫ (α_ f g (h ≫ i)).hom ≫ (f ◃ (α_ g h i).inv) =
     ((α_ f g h).hom ▹ i) ≫ (α_ f (g ≫ h) i).hom :=
 eq_of_inv_eq_inv (by simp [pentagon_hom_inv_inv_inv_inv])
-
 
 @[reassoc]
 lemma pentagon_hom_inv_inv_inv_hom (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :

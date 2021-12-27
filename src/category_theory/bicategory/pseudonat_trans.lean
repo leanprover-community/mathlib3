@@ -46,7 +46,7 @@ structure pseudonat_trans (F G : pseudofunctor B C) :=
 (naturality {a b} (f : a ⟶ b) : F.map₁ f ≫ app b ≅ app a ≫ G.map₁ f)
 (naturality_naturality' : ∀ {a b : B} {f g : a ⟶ b} (η : f ⟶ g),
   (F.map₂ η ▹ _) ≫ (naturality g).hom = (naturality f).hom ≫ (_ ◃ G.map₂ η) . obviously)
-(naturality_id' : ∀ {a},
+(naturality_id' : ∀ (a),
   ((F.map₁_id a).hom ▹ _) ≫ (naturality (𝟙 a)).hom
   = (λ_ _).hom  ≫ (ρ_ _).inv ≫ (_ ◃ (G.map₁_id a).hom) . obviously)
 (naturality_comp' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c),

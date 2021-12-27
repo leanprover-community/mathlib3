@@ -2964,7 +2964,51 @@ by convert filter_eq_nil.2 (λ _ _, id)
       take_while_append_drop l]
     else by rw [take_while, drop_while, if_neg pa, if_neg pa, nil_append]
 
+@[simp] theorem length_filter_le (l : list α) : (filter p l).length ≤ l.length :=
+begin
+  induction l;
+  rw list.filter;
+  simp,
+  cases classical.em (p l_hd);
+  simp [h],
+  { exact l_ih },
+  { exact le_add_right l_ih }
+end
+
+@[simp] theorem length_filter_lt_of_mem {a : α} (l : list α) (ha : a ∈ l) (hpa : ¬p a) :
+   (filter p l).length < l.length :=
+begin
+  induction l;
+  simp at ha;
+  simp [ha],
+  rw list.filter,
+  cases classical.em (p l_hd);
+  simp [h],
+  { cases ha,
+    { rw ←ha at h,
+      contradiction },
+    { apply l_ih ha } },
+  { have leq : (list.filter p l_tl).length ≤ l_tl.length := by apply length_filter_le,
+    exact nat.lt_succ_iff.mpr leq },
+end
 end filter
+
+/-! ### remove_all -/
+
+section remove_all
+@[simp] theorem length_remove_all_le [decidable_eq α] (l r : list α) : 
+  (l.remove_all r).length ≤ l.length := 
+by apply length_filter_le
+
+@[simp] theorem length_remove_all_lt_of_mem_of_mem [decidable_eq α] {a : α} (l r : list α) :
+  a ∈ l → a ∈ r → (l.remove_all r).length < l.length := 
+begin
+  intros a_in_l a_in_r,
+  apply length_filter_lt_of_mem _ _ a_in_l,
+  simp,
+  apply a_in_r,
+end
+end remove_all
 
 /-! ### prefix, suffix, infix -/
 

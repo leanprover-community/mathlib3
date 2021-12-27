@@ -358,6 +358,9 @@ lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial R} (hp : p.coeff 0 = 0)
   is_root p 0 :=
 by rwa coeff_zero_eq_eval_zero at hp
 
+lemma not_is_root_C (r a : R) (hr : r ≠ 0) : ¬ is_root (C r) a :=
+by simpa using hr
+
 end eval
 
 section comp

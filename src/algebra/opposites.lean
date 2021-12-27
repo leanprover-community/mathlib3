@@ -68,8 +68,9 @@ attribute [irreducible] mul_opposite
 protected def rec {F : Π (X : αᵐᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
 λ X, h (unop X)
 
-/-- The canonical bijection between `αᵐᵒᵖ` and `α`. -/
-@[to_additive, simps apply symm_apply { fully_applied := ff }]
+/-- The canonical bijection between `α` and `αᵐᵒᵖ`. -/
+@[to_additive "The canonical bijection between `α` and `αᵃᵒᵖ`.",
+  simps apply symm_apply { fully_applied := ff }]
 def op_equiv : α ≃ αᵐᵒᵖ := ⟨op, unop, unop_op, op_unop⟩
 
 @[to_additive] lemma op_bijective : bijective (op : α → αᵐᵒᵖ) := op_equiv.bijective

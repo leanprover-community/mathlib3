@@ -58,7 +58,11 @@ begin
     { intros k' n,
       simp only [finsupp_tensor_finsupp_single],
       simp only [finsupp.single, finsupp.coe_mk],
-      split_ifs; finish, } }
+      by_cases h1 : (i', k') = (i, k),
+      { simp only [prod.mk.inj_iff] at h1, simp [h1] },
+      { simp only [h1, if_false],
+        simp only [prod.mk.inj_iff, not_and_distrib] at h1,
+        cases h1; simp [h1] } } }
 end
 
 @[simp] theorem finsupp_tensor_finsupp_symm_single (R M N ι κ : Sort*) [comm_ring R]

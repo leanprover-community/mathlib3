@@ -13,7 +13,7 @@ open function nat
 
 namespace list
 universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 attribute [inline] list.head
 
@@ -2137,6 +2137,16 @@ eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }
 
 theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : γ → β → β) (a : α)
   (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
+by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
+
+lemma foldl_hom₂ (l : list ι) (f : α → β → γ) (op₁ : α → ι → α) (op₂ : β → ι → β) (op₃ : γ → ι → γ)
+  (a : α) (b : β) (h : ∀ a b i, f (op₁ a i) (op₂ b i) = op₃ (f a b) i) :
+  foldl op₃ (f a b) l = f (foldl op₁ a l) (foldl op₂ b l) :=
+eq.symm $ by { revert a b, induction l; intros; [refl, simp only [*, foldl]] }
+
+lemma foldr_hom₂ (l : list ι) (f : α → β → γ) (op₁ : ι → α → α) (op₂ : ι → β → β) (op₃ : ι → γ → γ)
+  (a : α) (b : β) (h : ∀ a b i, f (op₁ i a) (op₂ i b) = op₃ i (f a b)) :
+  foldr op₃ (f a b) l = f (foldr op₁ a l) (foldr op₂ b l) :=
 by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
 
 lemma injective_foldl_comp {α : Type*} {l : list (α → α)} {f : α → α}

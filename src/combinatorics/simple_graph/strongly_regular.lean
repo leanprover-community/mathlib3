@@ -73,36 +73,35 @@ lemma top_strongly_regular (m : ℕ) :
   end,
   nadj_common := λ v w h, false.elim $ by simpa using h }
 
-lemma card_neighbor_set_union_eq {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m) (v w : V) :
-  finset.card (G.neighbor_finset v ∪ G.neighbor_finset w) =
+lemma card_neighbor_finset_union_eq {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m) (v w : V) :
+  (G.neighbor_finset v ∪ G.neighbor_finset w).card =
     2 * k - fintype.card (G.common_neighbors v w) :=
 begin
   apply @nat.add_right_cancel _ (fintype.card (G.common_neighbors v w)),
   rw [nat.sub_add_cancel, ← set.to_finset_card],
-  { simp [neighbor_finset, common_neighbors, set.to_finset_inter,
-    finset.card_union_add_card_inter, G.is_regular_of_degree_eq h.regular, two_mul], },
-  { apply le_trans,
-    apply card_common_neighbors_le_degree_left,
+  { simp [neighbor_finset, common_neighbors, set.to_finset_inter, finset.card_union_add_card_inter,
+      G.is_regular_of_degree_eq h.regular, two_mul], },
+  { apply le_trans (card_common_neighbors_le_degree_left _ _ _),
     simp [G.is_regular_of_degree_eq h.regular, two_mul], },
 end
 
 -- first of all, what is `2*(k + 1) - m` in `G`? what does it count?
 -- it counts the number of vertices that are adjacent to either `v` or `w` when `¬G.adj v w`
 -- so it's the cardinality of `G.neighbor_set v ∪ G.neighbor_set w`
-lemma card_neighbor_set_union_nadj {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m)
+lemma card_neighbor_finset_union_nadj {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m)
   {v w : V} (hne : v ≠ w) (ha : ¬G.adj v w) :
-  finset.card (G.neighbor_finset v ∪ G.neighbor_finset w) = 2 * k - m :=
+  (G.neighbor_finset v ∪ G.neighbor_finset w).card = 2 * k - m :=
 begin
   rw ← h.nadj_common v w ⟨hne, ha⟩,
-  apply G.card_neighbor_set_union_eq h,
+  apply G.card_neighbor_finset_union_eq h,
 end
 
-lemma card_neighbor_set_union_adj {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m)
+lemma card_neighbor_finset_union_adj {n k l m : ℕ} (h : G.is_strongly_regular_of n k l m)
   {v w : V} (ha : G.adj v w) :
-  finset.card (G.neighbor_finset v ∪ G.neighbor_finset w) = 2 * k - l :=
+  (G.neighbor_finset v ∪ G.neighbor_finset w).card = 2 * k - l :=
 begin
   rw ← h.adj_common v w ha,
-  apply G.card_neighbor_set_union_eq h,
+  apply G.card_neighbor_finset_union_eq h,
 end
 
 @[simp] theorem finset_compl_union (s t : finset V) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup
@@ -140,7 +139,7 @@ lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_strongly_regular_of 
     rw compl_adj at h2,
     rw [card_sdiff, ← insert_eq, card_insert_of_not_mem, card_singleton, ← finset_compl_union],
     { change (1 + 1) with 2,
-      rw [card_compl, G.card_neighbor_set_union_nadj h hne h2.2, ← h.card], },
+      rw [card_compl, G.card_neighbor_finset_union_nadj h hne h2.2, ← h.card], },
     { simp only [hne.symm, not_false_iff, mem_singleton], },
     { intro u,
       cases h2 with h2 h2',
@@ -155,7 +154,7 @@ lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_strongly_regular_of 
     simp only [not_and, not_not, compl_adj, ne.def] at h2,
     have h2' := h2.2 h2.1,
     simp_rw [compl_neighbor_finset_sdiff_inter_eq, G.sdiff_compl_neighbor_finset_inter_eq h2'],
-    rwa [← finset_compl_union, card_compl, G.card_neighbor_set_union_adj h, ← h.card],
+    rwa [← finset_compl_union, card_compl, G.card_neighbor_finset_union_adj h, ← h.card],
   end }
 
 end simple_graph

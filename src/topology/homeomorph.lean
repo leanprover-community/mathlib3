@@ -173,11 +173,11 @@ h.embedding.is_compact_iff_is_compact_image.symm
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
-lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
+protected lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
 { compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
     apply compact_space.compact_univ } }
 
-lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
+protected lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
 { t2 :=
   begin
     intros x y hxy,
@@ -425,3 +425,38 @@ def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
   ..e.to_equiv.image s, }
 
 end homeomorph
+
+namespace continuous
+variables [topological_space α] [topological_space β]
+
+lemma continuous_symm_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
+  {f : α ≃ β} (hf : continuous f) : continuous f.symm :=
+begin
+  rw continuous_iff_is_closed,
+  intros C hC,
+  have hC' : is_closed (f '' C) := (hC.is_compact.image hf).is_closed,
+  rwa equiv.image_eq_preimage at hC',
+end
+
+/-- Continuous equivalences from a compact space to a T2 space are homeomorphisms.
+This is not true when T2 is weakened to T1. -/
+@[simps]
+def homeo_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
+  {f : α ≃ β} (hf : continuous f) : α ≃ₜ β :=
+{ continuous_to_fun := hf,
+  continuous_inv_fun := hf.continuous_symm_of_equiv_compact_to_t2,
+  ..f }
+
+lemma fo : ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI
+  ∃ (hα : compact_space α) (hβ : t1_space β) (f : α ≃ β) (hf : continuous f),
+  ∀ (f' : α ≃ₜ β), f'.to_equiv ≠ f :=
+begin
+  use [ℕ, ℕ],
+  fsplit,
+  fsplit,
+  exact λ s, set.finite s ∨ (0 ∈ s ∧ set.infinite s),
+  simp [set.finite_or_infinite],
+  rintros s t (h1|h1) (h2|h2),-- try { simp [*, set.finite.inter_of_left, set.finite.inter_of_right] },
+end
+
+end continuous

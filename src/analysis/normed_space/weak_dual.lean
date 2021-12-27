@@ -260,11 +260,9 @@ begin
   split,
   { intros hf u v a b,
     cases mem_range.mp hf with φ hφf,
-    rw [← hφf, linear_map.to_fun_eq_coe],
-    simp only [map_add, linear_map.map_smulₛₗ], },
+    simp only [hφf.symm, linear_map.to_fun_eq_coe, map_add, linear_map.map_smulₛₗ], },
   { intros hf,
-    use linear_map_of_forall_apply_linear_combination_eq hf,
-    refl, },
+    use [linear_map_of_forall_apply_linear_combination_eq hf, rfl], },
 end
 
 lemma _root_.linear_map.mem_range_to_fun_eq_Inter
@@ -272,11 +270,7 @@ lemma _root_.linear_map.mem_range_to_fun_eq_Inter
   [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂] :
   range (λ (ψ : M₁ →ₛₗ[σ] M₂), ψ.to_fun) =
     ⋂ (u v : M₁) (a b : R), { f : M₁ → M₂ | f (a • u + b • v) = (σ a) • (f u) + (σ b) • (f v) } :=
-begin
-  ext f,
-  rw linear_map.mem_range_to_fun_iff,
-  simp only [mem_Inter, mem_set_of_eq],
-end
+by { ext f, simp only [linear_map.mem_range_to_fun_iff, mem_Inter, mem_set_of_eq], }
 
 lemma _root_.linear_map.is_closed_range_coe {M₁ M₂ R S : Type*}
   [topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
@@ -285,18 +279,11 @@ lemma _root_.linear_map.is_closed_range_coe {M₁ M₂ R S : Type*}
   is_closed (range (λ (ψ : M₁ →ₛₗ[σ] M₂), ψ.to_fun)) :=
 begin
   rw linear_map.mem_range_to_fun_eq_Inter,
-  apply is_closed_Inter, intros u,
-  apply is_closed_Inter, intros v,
-  apply is_closed_Inter, intros a,
-  apply is_closed_Inter, intros b,
-  have cont₂ : continuous (λ (g : M₁ → M₂), (σ a) • g u + (σ b) • g v),
-  { have cnt_add : continuous (λ (μ : M₂ × M₂), μ.fst + μ.snd) := continuous_add,
-    have cnt₁ : continuous (λ (g : M₁ → M₂), (σ a) • g u),
-    from continuous.comp (continuous_uncurry_left (σ a) continuous_smul) (continuous_apply u),
-    have cnt₂ : continuous (λ (g : M₁ → M₂), (σ b) • g v),
-    from continuous.comp (continuous_uncurry_left (σ b) continuous_smul) (continuous_apply v),
-    exact continuous.add cnt₁ cnt₂, },
-  exact is_closed_eq (continuous_apply (a • u + b • v)) cont₂,
+  repeat { apply is_closed_Inter, intros _, },
+  exact is_closed_eq (continuous_apply _)
+    (continuous.add
+      (continuous.comp (continuous_uncurry_left (σ _) continuous_smul) (continuous_apply _))
+      (continuous.comp (continuous_uncurry_left (σ _) continuous_smul) (continuous_apply _))),
 end
 
 lemma _root_.continuous_linear_map.range_coe_subset_linear_map_range_coe {M₁ M₂ R S : Type*}
@@ -317,8 +304,7 @@ lemma linear_of_mem_closure_range
   (z₁ z₂ : E) (c₁ c₂ : 𝕜) : f (c₁ • z₁ + c₂ • z₂) = c₁ • f(z₁) + c₂ • f(z₂) :=
 begin
   have hf' : f ∈ closure (range (λ (ψ : E →ₗ[𝕜] 𝕜), ψ.to_fun)),
-  { apply closure_mono (continuous_linear_map.range_coe_subset_linear_map_range_coe),
-    exact hf, },
+  from closure_mono (continuous_linear_map.range_coe_subset_linear_map_range_coe) hf,
   rw is_closed.closure_eq
     (linear_map.is_closed_range_coe : is_closed (range (λ (ψ : E →ₗ[𝕜] 𝕜), ψ.to_fun))) at hf',
   rw _root_.linear_map.mem_range_to_fun_iff at hf',

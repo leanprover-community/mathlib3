@@ -42,6 +42,7 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite :=
 by simp [infinite]
 
+/-- See also `fintype_or_infinite`. -/
 lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite :=
 by simp [infinite, em]
 

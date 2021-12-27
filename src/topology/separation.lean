@@ -299,9 +299,9 @@ lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h
 
-instance t1_space_cofinite {α : Type*} : @t1_space α (topological_space.cofinite α) :=
+instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
 begin
-  letI := topological_space.cofinite α,
+  letI := cofinite_topology α,
   constructor,
   intros x,
   rw ← is_open_compl_iff,
@@ -320,7 +320,7 @@ begin
 end
 
 lemma t1_space_iff_le_cofinite {α : Type*} [t : topological_space α] :
-  t1_space α ↔ t ≤ topological_space.cofinite α :=
+  t1_space α ↔ t ≤ cofinite_topology α :=
 begin
   split,
   { introsI h U U_op,

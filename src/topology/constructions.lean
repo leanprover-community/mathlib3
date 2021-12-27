@@ -111,7 +111,7 @@ nhds_induced coe a
 
 end topα
 
-def topological_space.cofinite (α : Type*) : topological_space α :=
+def cofinite_topology (α : Type*) : topological_space α :=
 { is_open := λ s, s.nonempty → set.finite sᶜ,
   is_open_univ := by simp,
   is_open_inter := λ s t, begin
@@ -130,7 +130,7 @@ def topological_space.cofinite (α : Type*) : topological_space α :=
     end }
 
 lemma nhds_cofinite {α : Type*} (a : α) :
-  @nhds α (topological_space.cofinite α) a = pure a ⊔ cofinite :=
+  @nhds α (cofinite_topology α) a = pure a ⊔ cofinite :=
 begin
   ext U,
   rw mem_nhds_iff,
@@ -142,7 +142,7 @@ begin
 end
 
 lemma mem_nhds_cofinite {α : Type*} {a : α} {s : set α} :
-  s ∈ @nhds α (topological_space.cofinite α) a ↔ a ∈ s ∧ sᶜ.finite :=
+  s ∈ @nhds α (cofinite_topology α) a ↔ a ∈ s ∧ sᶜ.finite :=
 by simp [nhds_cofinite]
 
 end constructions

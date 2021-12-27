@@ -44,6 +44,11 @@ by simp [factorization]
   factorization (a * b) = factorization a + factorization b :=
 by simp [factorization, normalized_factors_mul ha hb]
 
+/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
+lemma factorization_pow {x : α} {n : ℕ} :
+  factorization (x^n) = n • (factorization x) :=
+by { ext, simp [factorization] }
+
 /-- The support of `factorization n` is exactly `n.factors.to_finset` -/
 @[simp] lemma support_factorization {n : α} :
   (factorization n).support = (normalized_factors n).to_finset :=
@@ -102,22 +107,14 @@ end
 -- end
 
 
+
 end UFM
 
 -- TODO: GENERALISE ALL THIS
 
 
 
--- /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
--- @[simp] lemma factorization_mul {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
---   (a * b).factorization = a.factorization + b.factorization :=
--- by { ext p, simp only [add_apply, factorization_eq_count,
---   count_factors_mul_of_pos (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb)] }
 
--- /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
--- lemma factorization_pow {n k : α} :
---   factorization (n^k) = k • (factorization n) :=
--- by { ext p, simp [factorization_eq_count, factors_count_pow] }
 
 -- /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
 -- @[simp] lemma prime.factorization {p : α} (hp : prime p) :

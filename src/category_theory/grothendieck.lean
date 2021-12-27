@@ -8,6 +8,7 @@ import category_theory.lax_functor
 import category_theory.elements
 import category_theory.over
 import category_theory.limits.preserves.basic
+import category_theory.adjunction.limits
 
 /-!
 # The Grothendieck construction for lax functors
@@ -261,18 +262,7 @@ lemma fiber_push_total_cocone (j : J) :
   (fiber_trans c lb).app j ≫ (F.map (desc_base c lb)).map (cf.ι.app j) :=
 by { dsimp [fiber_trans], simpa }
 
-/-noncomputable def fiber_cocone' : cocone (fiber_diagram cb ⋙ F.map (desc_base c lb)) :=
-(cocones.precompose (inv (fiber_trans c lb))).obj (fiber_cocone c)
-
-lemma fiber_cocone'_spec (j : J) (φ) :
-  (F.map (desc_base c lb)).map (cf.ι.app j) ≫ φ = (fiber_cocone' c lb).ι.app j ↔
-  eq_to_hom (by {erw lb.fac, refl}) ≫
-    fiber_push_map ((total_cocone cb cf).ι.app j) (desc_base c lb) ≫ φ = (c.ι.app j).fiber :=
-by { dsimp [fiber_cocone', fiber_trans], simp, }-/
-
-
-variable (lf : ∀ {c : C} (f : cb.X ⟶ c), is_colimit (functor.map_cocone (F.map f) cf))
---variable [∀ c, preserves_colimit (fiber_diagram 𝒟 cb) (F.map (desc_base 𝒟 cb lb c))]
+variables {cf} (lf : ∀ {c : C} (f : cb.X ⟶ c), is_colimit (functor.map_cocone (F.map f) cf))
 
 noncomputable def total_cocone_is_colimit : is_colimit (total_cocone cb cf) :=
 let cf' := λ c, (cocones.precompose (inv (fiber_trans c lb))).obj (fiber_cocone c) in
@@ -288,10 +278,35 @@ let cf' := λ c, (cocones.precompose (inv (fiber_trans c lb))).obj (fiber_cocone
       change _ = _ ≫ (c.ι.app j).fiber, rw congr (h j).symm, dsimp,
       rw eq_to_hom.family_congr (fiber_push_map _) this, erw fiber_push_total_cocone, simpa } } }
 
+/-- forgetful functor preserves colimit .. whenever colimit exist?
+    or whenever both the base and fiber categories has colimits ...
+    whenever Hb Hf Hp all holds .. -/
+
 variables [Hb : has_colimits_of_shape J C]
 [Hf : ∀ X : C, has_colimits_of_shape J (F.obj X).1]
+(Hp : ∀ {X Y : C} (f : X ⟶ Y), preserves_colimits_of_shape J (F.map f))
+
+include Hb Hf Hp
+lemma has_colimits_of_shape : has_colimits_of_shape J (grothendieck F) :=
+{ has_colimit := λ 𝒟, { exists_colimit := ⟨ { cocone := _, is_colimit :=
+  let base := get_colimit_cocone (𝒟 ⋙ forget F) in
+  total_cocone_is_colimit base.is_colimit (λ _ f,
+    is_colimit_of_preserves _ (get_colimit_cocone (fiber_diagram base.cocone)).is_colimit ) } ⟩ } }
+omit Hp
+
+open adjunction
+
+lemma has_colimits_of_shape_of_left_adjoint
+  (H : ∀ {X Y : C} (f : X ⟶ Y), is_left_adjoint (F.map f)) :
+  limits.has_colimits_of_shape J (grothendieck F) :=
+has_colimits_of_shape
+  (λ _ _ f, by apply (left_adjoint_preserves_colimits (of_left_adjoint (F.map f))).1)
 
 end colimit
+
+#set_option pp.universes true
+
+#check has_colimits_of_shape_of_left_adjoint
 
 /-
 section
@@ -358,7 +373,7 @@ def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat).to_lax ≌ G.ele
   unit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
     (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, ext, simp, }),
   counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
-    (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, ext, simp }),
+    (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, ext, simp, }),
   functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
 
 end grothendieck

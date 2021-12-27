@@ -149,7 +149,8 @@ end
 produces three goals with hypotheses
 `ha : a = 0`, `ha : a = 1`, and `ha : a = 2`.
 -/
-meta def fin_cases : parse hyp → parse (tk "with" *> texpr)? → parse (tk "using" *> ident)? → tactic unit
+meta def fin_cases :
+  parse hyp → parse (tk "with" *> texpr)? → parse (tk "using" *> ident)? → tactic unit
 | none none nm := focus1 $ do
     ctx ← local_context,
     ctx.mfirst (fin_cases_at nm none) <|>

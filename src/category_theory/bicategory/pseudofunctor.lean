@@ -51,8 +51,7 @@ structure pseudofunctor :=
 (map₁ {a b : B} : (a ⟶ b) → (map₀ a ⟶ map₀ b))
 (map₂ {a b : B} {f g : a ⟶ b} : (f ⟶ g) → (map₁ f ⟶ map₁ g))
 (map₁_id (a : B) : 𝟙 (map₀ a) ≅ map₁ (𝟙 a))
-(map₁_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) :
-  map₁ f ≫ map₁ g ≅ map₁ (f ≫ g))
+(map₁_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map₁ f ≫ map₁ g ≅ map₁ (f ≫ g))
 (map₁_comp_naturality_left' : ∀ {a b c} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
   (map₂ η ▷ map₁ g) ≫ (map₁_comp f' g).hom
   = (map₁_comp f g).hom ≫ map₂ (η ▷ g) . obviously)

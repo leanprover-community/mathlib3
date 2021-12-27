@@ -88,6 +88,6 @@ by simp [finsupp_tensor_finsupp']
 @[simp] lemma finsupp_tensor_finsupp'_single_tmul_single (a : α) (b : β) (r₁ r₂ : S) :
   finsupp_tensor_finsupp' S α β (finsupp.single a r₁ ⊗ₜ[S] finsupp.single b r₂) =
     finsupp.single (a, b) (r₁ * r₂) :=
-by { ext ⟨a', b'⟩, simp [finsupp.single], split_ifs; finish }
+by { ext ⟨a', b'⟩, simp [finsupp.single, ite_and] }
 
 end tensor_product

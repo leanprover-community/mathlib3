@@ -1942,6 +1942,7 @@ theorem is_normal.nfp_le {f} (H : is_normal f) {a b} :
   nfp f a ≤ f b ↔ nfp f a ≤ b :=
 le_iff_le_iff_lt_iff_lt.2 H.lt_nfp
 
+/-- `nfp f a` is actually the next fixed point after `a`. -/
 theorem is_normal.nfp_le_fp {f} (H : is_normal f) {a b}
   (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
 sup_le.2 $ λ i, begin

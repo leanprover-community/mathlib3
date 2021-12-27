@@ -56,7 +56,8 @@ theorem nfp_family_unbounded {f : ι → ordinal.{max u v} → ordinal} (Hf : �
 λ a, ⟨nfp_family f a, nfp_family_fp Hf a, le_nfp_family_self f a⟩
 
 /-- The next common fixed point above `a` for a family of normal functions indexed by ordinals. -/
-def nfp_bfamily (a o : ordinal.{u}) (f : Π b < o, ordinal.{max u v} → ordinal.{max u v}) : ordinal :=
+def nfp_bfamily (a o : ordinal.{u}) (f : Π b < o, ordinal.{max u v} → ordinal.{max u v}) :
+  ordinal.{max u v} :=
 sorry
 
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
@@ -71,5 +72,5 @@ begin
   obtain ⟨b, hb₁, hb₂⟩ := nfp_family_unbounded (λ i, Hf _ (typein_lt_type r i)) a,
   refine ⟨b, λ i hi, _, hb₂⟩,
   convert hb₁ (ordinal.enum r i hi),
-  simp,
+  simp
 end

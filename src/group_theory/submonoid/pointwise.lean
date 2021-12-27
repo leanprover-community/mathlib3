@@ -130,6 +130,10 @@ open_locale pointwise
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submonoid M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
 
+lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
+  m ∈ a • S ↔ ∃ (s : M), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set M) ↔ _)
+
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ M] [is_central_scalar α M] :
   is_central_scalar α (submonoid M) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
@@ -242,6 +246,10 @@ smul_mem_smul_set_iff
 lemma mem_pointwise_smul_iff_inv_smul_mem {a : α} {S : add_submonoid A} {x : A} :
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
 mem_smul_set_iff_inv_smul_mem
+
+lemma mem_smul_pointwise_iff_exists (m : A) (a : α) (S : add_submonoid A) :
+  m ∈ a • S ↔ ∃ (s : A), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set A) ↔ _)
 
 lemma mem_inv_pointwise_smul_iff {a : α} {S : add_submonoid A} {x : A} : x ∈ a⁻¹ • S ↔ a • x ∈ S :=
 mem_inv_smul_set_iff

@@ -106,7 +106,7 @@ private meta def hyp := tk "*" *> return none <|> some <$> ident
 /--
 `fin_cases h` performs case analysis on a hypothesis of the form
 `h : A`, where `[fintype A]` is available, or
-`h ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
+`h : a ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
 
 `fin_cases *` performs case analysis on all suitable hypotheses.
 
@@ -119,6 +119,19 @@ begin
 end
 ```
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
+
+`fin_cases h with l` takes a list of descriptions for the cases of `h`.
+These should be definitionally equal to and in the same order as the
+default enumeration of the cases.
+
+For example,
+```
+example (x y : ℕ) (h : x ∈ [1, 2]) : x = y :=
+begin
+  fin_cases h with [1, 1+1],
+end
+```
+produces two cases: `1 = y` and `1 + 1 = y`.
 -/
 meta def fin_cases : parse hyp → parse (tk "with" *> texpr)? → tactic unit
 | none none := focus1 $ do

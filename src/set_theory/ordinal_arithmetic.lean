@@ -1143,7 +1143,7 @@ wf.fix (λ o f, omin _ (unbounded_aux hS (blsub.{u u} o f)))
 /-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
 work with, so consider using `enum_ord_def` instead. -/
 theorem enum_ord_def' (o) :
-  enum_ord hS o = omin (λ b, S b ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) (unbounded_aux hS _) :=
+  enum_ord hS o = omin _ (unbounded_aux hS (blsub.{u u} o (λ c _, enum_ord hS c))) :=
 wf.fix_eq _ _
 
 private theorem enum_ord_mem_aux (o) :
@@ -1950,6 +1950,7 @@ theorem is_normal.nfp_le {f} (H : is_normal f) {a b} :
   nfp f a ≤ f b ↔ nfp f a ≤ b :=
 le_iff_le_iff_lt_iff_lt.2 H.lt_nfp
 
+/-- `nfp f a` is the next fixed point after `a`. -/
 theorem is_normal.nfp_le_fp {f} (H : is_normal f) {a b}
   (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
 sup_le.2 $ λ i, begin
@@ -1985,8 +1986,8 @@ theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
 /-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
-theorem is_normal.nfp_unbounded {f} (H : is_normal f) : ∀ a, ∃ b, f b = b ∧ a ≤ b :=
-λ a, ⟨_, H.nfp_fp a, le_nfp_self f a⟩
+theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (fixed_points f) :=
+λ a, ⟨_, H.nfp_fp a, not_lt_of_ge (le_nfp_self f a)⟩
 
 /-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=

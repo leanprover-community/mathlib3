@@ -7,6 +7,8 @@ Authors: Thomas Bloom, Alex Kontorovich, Bhavik Mehta
 import analysis.special_functions.integrals
 import analysis.special_functions.pow
 import number_theory.arithmetic_function
+import measure_theory.function.floor
+import measure_theory.integral.integral_eq_improper
 
 noncomputable theory
 
@@ -30,6 +32,11 @@ by simp only [summatory, nat.floor_coe]
 lemma summatory_eq_floor {M : Type*} [add_comm_monoid M] (a : ℕ → M) (x : ℝ) :
   summatory a x = summatory a ⌊x⌋₊ :=
 by rw [summatory, summatory, nat.floor_coe]
+
+lemma summatory_eq_of_Ico {M : Type*} [add_comm_monoid M] (a : ℕ → M) {n : ℕ} {x : ℝ}
+  (hx : x ∈ Ico (n : ℝ) (n + 1)) :
+  summatory a x = summatory a n :=
+by rw [summatory_eq_floor, nat.floor_eq_on_Ico' _ _ hx]
 
 lemma summatory_eq_of_lt_one {M : Type*} [add_comm_monoid M] (a : ℕ → M) {x : ℝ} (hx : x < 1) :
   summatory a x = 0 :=
@@ -61,78 +68,157 @@ lemma abs_summatory_le_sum {M : Type*} [semi_normed_group M] (a : ℕ → M) {x 
   ∥summatory a x∥ ≤ ∑ i in finset.Icc 1 ⌊x⌋₊, ∥a i∥ :=
 norm_sum_le _ _
 
--- BM note to self, this might be useful
--- lemma sum_integral_adjacent_intervals {a : ℕ → α} {n : ℕ}
-
--- lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
-
-example (a : ℕ → ℂ) (f : ℝ → ℂ) (N : ℕ)
-  (hf' : interval_integrable f measure_theory.measure_space.volume 1 (N + 1))
-  (hN : 0 < N) :
-  interval_integrable (λ x, summatory a x * f x) measure_theory.measure_space.volume 1 (N + 1) :=
+-- TODO (BM): Put this in mathlib
+lemma finset.Icc_subset_Icc {α : Type*} [preorder α] [locally_finite_order α]
+  {a₁ a₂ b₁ b₂ : α} (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) :
+  finset.Icc a₁ b₁ ⊆ finset.Icc a₂ b₂ :=
 begin
-  suffices : ∀ k < N,
-    interval_integrable (summatory a * f) measure_theory.measure_space.volume (k+1) ((k+1)+1),
-  { convert interval_integrable.trans_iterate this using 1,
-    simp },
-  intros i hi,
-  rw interval_integrable_iff_integrable_Ioc_of_le ((le_add_iff_nonneg_right (i+1:ℝ)).2 zero_le_one),
-  apply measure_theory.integrable_on.congr_set_ae _ measure_theory.Ico_ae_eq_Ioc.symm,
-  sorry
+  intros x hx,
+  simp only [finset.mem_Icc] at ⊢ hx,
+  exact ⟨ha.trans hx.1, hx.2.trans hb⟩,
+end
+
+-- TODO (BM): Put this in mathlib
+lemma le_floor_of_le {α : Type*} [linear_ordered_semiring α] [floor_semiring α] {n : ℕ} {a : α}
+  (h : a ≤ n) : ⌊a⌋₊ ≤ n :=
+(le_total a 0).elim
+  (λ h', (nat.floor_of_nonpos h').le.trans (nat.zero_le _))
+  (λ h', nat.cast_le.1 ((nat.floor_le h').trans h))
+
+open measure_theory
+
+lemma abs_summatory_bound {M : Type*} [semi_normed_group M] (a : ℕ → M) (k : ℕ)
+  {x : ℝ} (hx : x ≤ k) :
+  ∥summatory a x∥ ≤ ∑ i in finset.Icc 1 k, ∥a i∥ :=
+(abs_summatory_le_sum a).trans
+  (finset.sum_le_sum_of_subset_of_nonneg
+    (finset.Icc_subset_Icc le_rfl (le_floor_of_le hx)) (by simp))
+
+@[measurability] lemma measurable_summatory {M : Type*} [add_comm_monoid M] [measurable_space M]
+  {a : ℕ → M} :
+  measurable (summatory a) :=
+begin
+  change measurable ((λ y, ∑ i in finset.Icc 1 y, a i) ∘ _),
+  exact measurable_from_nat.comp nat.measurable_floor,
+end
+
+lemma partial_summation_integrable {𝕜 : Type*} [is_R_or_C 𝕜] (a : ℕ → 𝕜) {f : ℝ → 𝕜} {x y : ℝ}
+  (hf' : measure_theory.integrable_on f (Icc x y)) :
+  measure_theory.integrable_on (summatory a * f) (Icc x y) :=
+begin
+  let b := ∑ i in finset.Icc 1 ⌈y⌉₊, ∥a i∥,
+  have : integrable_on (b • f) (Icc x y) := integrable.smul b hf',
+  refine this.integrable.mono (measurable_summatory.ae_measurable.mul' hf'.1) _,
+  rw measure_theory.ae_restrict_iff' (measurable_set_Icc : measurable_set (Icc x _)),
+  refine filter.eventually_of_forall (λ z hz, _),
+  rw [pi.mul_apply, normed_field.norm_mul, pi.smul_apply, norm_smul],
+  refine mul_le_mul_of_nonneg_right ((abs_summatory_bound _ ⌈y⌉₊ _).trans _) (norm_nonneg _),
+  { exact hz.2.trans (nat.le_ceil y) },
+  rw real.norm_eq_abs,
+  exact le_abs_self b,
 end
 
 /-- A version of partial summation where the upper bound is a natural number, useful to prove the
 general case. -/
-theorem partial_summation_nat (a : ℕ → ℂ) (f f' : ℝ → ℂ) {N : ℕ}
-  (hf : ∀ i ∈ Icc (1:ℝ) N, has_deriv_at f (f' i) i)
-  (hf' : interval_integrable f' measure_theory.measure_space.volume 1 N) :
+theorem partial_summation_nat {𝕜 : Type*} [is_R_or_C 𝕜] (a : ℕ → 𝕜) (f f' : ℝ → 𝕜)
+  {N : ℕ} (hN : 1 ≤ N)
+  (hf : ∀ i ∈ Icc (1:ℝ) N, has_deriv_at f (f' i) i) (hf' : integrable_on f' (Icc 1 N)) :
   ∑ n in finset.Icc 1 N, a n * f n =
-    summatory a N * f N - ∫ t in 1..N, summatory a t * f' t :=
+    summatory a N * f N - ∫ t in Icc (1:ℝ) N, summatory a t * f' t :=
 begin
   rw ←nat.Ico_succ_right,
   induction N with N ih,
-  { rw [finset.Ico_self, finset.sum_empty, nat.cast_zero, summatory_zero, zero_mul, zero_sub,
-      zero_eq_neg, interval_integral.integral_zero_ae],
-    rw [interval_oc_of_lt (show (0 : ℝ) < 1, from zero_lt_one)],
-    refine (measure_theory.Ioo_ae_eq_Ioc : Ioo _ _ =ᵐ[_] Ioc 0 1).symm.mem_iff.mono _,
-    exact λ x hx' hx, mul_eq_zero_of_left (summatory_eq_of_lt_one _ (hx'.1 hx).2) _ },
-  rcases N.eq_zero_or_pos with rfl | hN,
+  { simpa only [le_zero_iff] using hN },
+  rcases N.eq_zero_or_pos with rfl | hN',
   { simp },
-  rw [finset.sum_Ico_succ_top nat.succ_pos', ih, add_comm, nat.succ_eq_add_one,
+  have hN'' : (N:ℝ) ≤ N + 1 := by simp only [zero_le_one, le_add_iff_nonneg_right],
+  have : Icc (1:ℝ) (N+1) = Icc 1 N ∪ Icc N (N+1),
+  { refine (Icc_union_Icc_eq_Icc _ hN'').symm,
+    exact nat.one_le_cast.2 hN' },
+  simp only [nat.cast_succ, this, mem_union_eq, or_imp_distrib, forall_and_distrib,
+    integrable_on_union] at ih hf hf' ⊢,
+  rw [finset.sum_Ico_succ_top nat.succ_pos', ih hN' hf.1 hf'.1, add_comm, nat.succ_eq_add_one,
     summatory_succ_sub a, sub_mul, sub_add_eq_add_sub, eq_sub_iff_add_eq, add_sub_assoc, add_assoc,
     nat.cast_add_one, add_right_eq_self, sub_add_eq_add_sub, sub_eq_zero, add_comm, ←add_sub_assoc,
-    ←sub_add_eq_add_sub, ←eq_sub_iff_add_eq, interval_integral.integral_interval_sub_left,
-    ←mul_sub],
-  { have : ∀ᵐ (x : ℝ), x ∈ interval_oc (N:ℝ) (N+1) → summatory a x * f' x = summatory a N * f' x,
-    { rw [interval_oc_of_le ((le_add_iff_nonneg_right (N:ℝ)).2 zero_le_one)],
-      refine (measure_theory.Ico_ae_eq_Ioc : Ico (N:ℝ) (N+1) =ᵐ[_] Ioc _ _).symm.mem_iff.mono _,
-      intros x hx' hx,
-      rw [summatory_eq_floor, nat.floor_eq_on_Ico' _ _ (hx'.1 hx)] },
-    rw [interval_integral.integral_congr_ae this, interval_integral.integral_const_mul,
-      interval_integral.integral_eq_sub_of_has_deriv_at],
-    { intros x hx,
-      apply hf,
-      rw [interval_of_le ((le_add_iff_nonneg_right (N:ℝ)).2 zero_le_one), ←nat.cast_add_one] at hx,
-      refine ⟨le_trans _ hx.1, hx.2⟩,
-      rw nat.one_le_cast,
-      exact hN },
-    refine hf'.mono_set (interval_subset_interval_right _),
-    simpa using hN },
-  sorry
+    ←sub_add_eq_add_sub, ←eq_sub_iff_add_eq, ←mul_sub,
+    integral_union_ae _ (measurable_set_Icc : measurable_set (Icc (_:ℝ) _)) measurable_set_Icc,
+    add_sub_cancel', ←set_integral_congr_set_ae (Ico_ae_eq_Icc' volume_singleton)],
+  { have : eq_on (λ x, summatory a x * f' x) (λ x, summatory a N • f' x) (Ico N (N+1)) :=
+      λ x hx, congr_arg2 (*) (summatory_eq_of_Ico _ hx) rfl,
+    rw [set_integral_congr measurable_set_Ico this, integral_smul, algebra.id.smul_eq_mul,
+      set_integral_congr_set_ae (Ico_ae_eq_Ioc' volume_singleton volume_singleton),
+      ←interval_integral.integral_of_le hN'', interval_integral.integral_eq_sub_of_has_deriv_at],
+    { rw interval_of_le hN'',
+      exact hf.2 },
+    { exact (interval_integral.interval_integrable_iff_integrable_Icc_of_le hN'').2 hf'.2 } },
+  { exact partial_summation_integrable a hf'.1 },
+  { exact partial_summation_integrable a hf'.2 },
+  { rw [Icc_inter_Icc_eq_singleton _ hN'', ae_eq_empty, volume_singleton],
+    exact nat.one_le_cast.2 hN' },
 end
 
--- BM: I think this can be made stronger by taking a weaker assumption on `f`, maybe something like
--- the derivative is integrable on intervals contained in [1,x]?
--- (and then probably have a corollary where it's enough for the derivative to be integrable on
--- [1, +inf) for convenience's sake)
--- I also think this might be necessary to make this change in order to apply this lemma to things
--- like `f(x) = 1/x`, since that's not cont diff at 0.
-theorem partial_summation (a : ℕ → ℂ) (f f' : ℝ → ℂ) {x : ℝ}
-  (hf : ∀ i ∈ Ioo (1:ℝ) x, has_deriv_at f (f' i) i)
-  (hf' : interval_integrable f' measure_theory.measure_space.volume 1 x):
-  ∑ n in finset.Icc 1 ⌊x⌋₊, a n * f n =
-    summatory a x * f x - ∫ t in 1..x, summatory a t * deriv f t :=
-sorry
+/--
+Right now this works for functions taking values in R or C, I think it should work for more target
+spaces.
+-/
+theorem partial_summation {𝕜 : Type*} [is_R_or_C 𝕜] (a : ℕ → 𝕜) (f f' : ℝ → 𝕜) {x : ℝ}
+  (hf : ∀ i ∈ Icc (1:ℝ) x, has_deriv_at f (f' i) i) (hf' : integrable_on f' (Icc 1 x)) :
+  summatory (λ n, a n * f n) x = summatory a x * f x - ∫ t in Icc 1 x, summatory a t * f' t :=
+begin
+  cases lt_or_le x 1,
+  { simp only [h, summatory_eq_of_lt_one _ h, zero_mul, sub_zero, Icc_eq_empty_of_lt,
+      integral_zero_measure, measure.restrict_empty] },
+  have hx : (1:ℝ) ≤ ⌊x⌋₊,
+    by rwa [nat.one_le_cast, nat.le_floor_iff (zero_le_one.trans h), nat.cast_one],
+  have hx' : (⌊x⌋₊:ℝ) ≤ x := nat.floor_le (zero_le_one.trans h),
+  have : Icc (1:ℝ) x = Icc 1 ⌊x⌋₊ ∪ Icc ⌊x⌋₊ x :=
+    (Icc_union_Icc_eq_Icc hx hx').symm,
+  simp only [this, integrable_on_union, mem_union, or_imp_distrib, forall_and_distrib] at hf hf' ⊢,
+  rw [summatory, partial_summation_nat a f f' (nat.one_le_cast.1 hx) hf.1 hf'.1, eq_comm,
+    sub_eq_sub_iff_sub_eq_sub, summatory_eq_floor, ←mul_sub,
+    integral_union_ae _ measurable_set_Icc (measurable_set_Icc : measurable_set (Icc _ x)),
+    add_sub_cancel'],
+  { have : eq_on (λ y, summatory a y * f' y) (λ y, summatory a ⌊x⌋₊ • f' y) (Icc ⌊x⌋₊ x),
+    { intros y hy,
+      dsimp,
+      rw summatory_eq_floor,
+      congr' 3,
+      exact nat.floor_eq_on_Ico _ _ ⟨hy.1, hy.2.trans_lt (nat.lt_floor_add_one _)⟩ },
+    rw [set_integral_congr measurable_set_Icc this, integral_smul, algebra.id.smul_eq_mul,
+      ←set_integral_congr_set_ae (Ioc_ae_eq_Icc' volume_singleton),
+      ←interval_integral.integral_of_le hx',
+      interval_integral.integral_eq_sub_of_has_deriv_at],
+    { rw interval_of_le hx',
+      exact hf.2 },
+    { exact (interval_integral.interval_integrable_iff_integrable_Icc_of_le hx').2 hf'.2 } },
+  apply partial_summation_integrable _ hf'.1,
+  apply partial_summation_integrable _ hf'.2,
+  { rw [Icc_inter_Icc_eq_singleton hx (nat.floor_le (zero_le_one.trans h)), ae_eq_empty,
+      volume_singleton] },
+end
+
+theorem partial_summation_cont {𝕜 : Type*} [is_R_or_C 𝕜] (a : ℕ → 𝕜) (f f' : ℝ → 𝕜) {x : ℝ}
+  (hf : ∀ i ∈ Icc (1:ℝ) x, has_deriv_at f (f' i) i) (hf' : continuous_on f' (Icc 1 x)) :
+  summatory (λ n, a n * f n) x = summatory a x * f x - ∫ t in Icc 1 x, summatory a t * f' t :=
+partial_summation _ _ _ hf hf'.integrable_on_Icc
+
+/--
+A variant of partial summation where we assume differentiability of `f` and integrability of `f'` on
+`[1, ∞)` and derive the partial summation equation for all `x`.
+-/
+theorem partial_summation' {𝕜 : Type*} [is_R_or_C 𝕜] (a : ℕ → 𝕜) (f f' : ℝ → 𝕜)
+  (hf : ∀ i ∈ Ici (1:ℝ), has_deriv_at f (f' i) i) (hf' : integrable_on f' (Ici 1)) {x : ℝ} :
+  summatory (λ n, a n * f n) x = summatory a x * f x - ∫ t in Icc 1 x, summatory a t * f' t :=
+partial_summation _ _ _ (λ i hi, hf _ hi.1) (hf'.mono_set Icc_subset_Ici_self)
+
+/--
+A variant of partial summation where we assume differentiability of `f` and continuity of `f'` on
+`[1, ∞)` and derive the partial summation equation for all `x`.
+-/
+theorem partial_summation_cont' {𝕜 : Type*} [is_R_or_C 𝕜] (a : ℕ → 𝕜) (f f' : ℝ → 𝕜)
+  (hf : ∀ i ∈ Ici (1:ℝ), has_deriv_at f (f' i) i) (hf' : continuous_on f' (Ici 1)) (x : ℝ) :
+  summatory (λ n, a n * f n) x = summatory a x * f x - ∫ t in Icc 1 x, summatory a t * f' t :=
+partial_summation_cont _ _ _ (λ i hi, hf _ hi.1) (hf'.mono Icc_subset_Ici_self)
 
 -- BM: A definition of the Euler-Mascheroni constant
 -- Maybe a different form is a better definition, and in any case it would be nice to show the
@@ -140,22 +226,54 @@ sorry
 -- This version uses an integral over an infinite interval, which in mathlib is *not* defined
 -- as the limit of integrals over finite intervals, but there is a result saying they are equal:
 -- see measure_theory.integral.integral_eq_improper: `interval_integral_tendsto_integral_Ioi`
-def euler_mascheroni : ℝ := 1 - ∫ t in Ioi 1, int.fract t / t^2
+def euler_mascheroni : ℝ := 1 - ∫ t in Ici 1, int.fract t / t^2
+
+open filter asymptotics
+
+-- TODO (BM): Put this in mathlib
+lemma Ici_diff_Icc {a b : ℝ} (hab : a ≤ b) : Ici a \ Icc a b = Ioi b :=
+begin
+  rw [←Icc_union_Ioi_eq_Ici hab, union_diff_left, diff_eq_self],
+  rintro x ⟨⟨_, hx⟩, hx'⟩,
+  exact not_le_of_lt hx' hx,
+end
 
 -- vinogradov notation to state things more nicely
 -- probably this should be generalised to not be just for ℝ, but I think this works for now
-def vinogradov (f : ℝ → ℝ) (g : ℝ → ℝ) : Prop := asymptotics.is_O f g filter.at_top
+def vinogradov (f : ℝ → ℝ) (g : ℝ → ℝ) : Prop := is_O f g at_top
 
 infix ` ≪ `:50 := vinogradov
 -- BM: might want to localise this notation
 -- in the measure_theory locale it's used for absolute continuity of measures
 
 lemma harmonic_series_vinogradov :
-  (λ x, summatory (λ i, 1 / i) x - log x - euler_mascheroni) ≪ (λ x, 1 / x) :=
-sorry
+  is_O (λ x, summatory (λ i, (i : ℝ)⁻¹) x - log x - euler_mascheroni) (λ x, x⁻¹) at_top :=
+begin
+  -- suffices :
+  --   ∀ᶠ x in at_top, summatory (λ i, (i : ℝ)⁻¹) x - log x - euler_mascheroni = _,
+
+  have floor_eq : ∀ x, summatory (λ _, (1 : ℝ)) x = ⌊x⌋₊,
+  { intro x,
+    rw [summatory, finset.sum_const, nat.card_Icc, nat.smul_one_eq_coe],
+    refl },
+  have diff : (∀ (i ∈ Ici (1:ℝ)), has_deriv_at (λ x, x⁻¹) (-(i ^ (2:ℤ))⁻¹) i),
+  { rintro i (hi : (1:ℝ) ≤ _),
+    apply has_deriv_at_inv (zero_lt_one.trans_le hi).ne' },
+  have cont : continuous_on (λ (i : ℝ), -(i ^ 2)⁻¹) (Ici 1),
+  { refine ((continuous_pow 2).continuous_on.inv₀ _).neg,
+    rintro i (hi : _ ≤ _),
+    exact (pow_ne_zero_iff nat.succ_pos').2 (zero_lt_one.trans_le hi).ne' },
+  have := partial_summation_cont' (λ _, (1 : ℝ)) _ _ diff cont,
+  dsimp at this,
+  simp only [one_mul, floor_eq] at this,
+  simp only [this],
+  sorry
+  -- BM: I think there's a more efficient path rather than what I did
+  -- have := partial_summation (λ _, 1) (λ x, x ^ (-1 : ℤ)) (λ x, - x ^ (-2 : ℤ)),
+end
 
 lemma summatory_log :
-  (λ x, summatory (λ i, log i) x - x * log x) ≪ log :=
+  (λ x, summatory (λ i, log i) x - x * log x) ≪ (λ x, log x) :=
 sorry
 
 namespace nat.arithmetic_function

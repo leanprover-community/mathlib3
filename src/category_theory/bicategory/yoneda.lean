@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 Yuma Mizuno. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuma Mizuno
+-/
 import category_theory.bicategory.equivalence
 import category_theory.bicategory.opposites
 import category_theory.bicategory.pseudonat_trans
@@ -301,7 +306,8 @@ end
 lemma yoneda_lemma_inv_aux₂ (f : unop b ⟶ unop a) (u : F.map₀ a)
   {s t : Bᵒᵖ} (p : unop t ⟶ unop s) (g : unop s ⟶ unop b) :
 (F.map₁_comp f (g ≫ p)).hom.app u ≫
-  ((((yoneda.op.comp (yoneda_map₀ F)).map₁ f).obj ((yoneda_lemma_inv_functor a).obj u)).naturality p).hom.app g
+  ((((yoneda.op.comp (yoneda_map₀ F)).map₁ f).obj
+    ((yoneda_lemma_inv_functor a).obj u)).naturality p).hom.app g
   = (((yoneda_lemma_inv_functor b).obj ((F.map₁ f).obj u)).naturality p).hom.app g ≫
       (F.map₁ p).map ((F.map₁_comp f g).hom.app u) :=
 begin

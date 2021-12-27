@@ -70,27 +70,36 @@ begin
 end
 
 
-
-lemma factorization_inj : set.inj_on factorization { x : α | x ≠ 0 } :=
+lemma factorization_inj' (a b: α) (ha: a ≠ 0) (hb: b ≠ 0) (h: factorization a = factorization b) :
+   associated a b :=
 begin
-  -- simp [factorization],
-
-  intros a ha b hb h,
-  simp at ha hb,
-  simp [factorization] at h,
-  -- library_search,
-
+  simp [factorization] at h,   -- TODO: Fix this NTS
   have ha' := normalized_factors_prod ha,
-  have hb' := normalized_factors_prod hb,
-  -- rw h at this,
-
-  have := irreducible_of_normalized_factor a,
-  have := @factors_unique α _ _ (normalized_factors a) (normalized_factors b),
-  --  eq_of_count_factors_eq (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb) _,
-  -- intros p,
-  -- have := (λ p, by simp [←factorization_eq_count, h]),
-  sorry,
+  rw h at ha',
+  exact associated.trans ha'.symm (normalized_factors_prod hb),
 end
+
+
+-- lemma factorization_inj : set.inj_on factorization { x : α | x ≠ 0 } :=
+-- begin
+--   -- simp [factorization],
+
+--   intros a ha b hb h,
+--   simp at ha hb,
+--   simp [factorization] at h,
+--   -- library_search,
+
+--   have ha' := normalized_factors_prod ha,
+--   have hb' := normalized_factors_prod hb,
+--   -- rw h at this,
+
+--   have := irreducible_of_normalized_factor a,
+--   have := @factors_unique α _ _ (normalized_factors a) (normalized_factors b),
+--   --  eq_of_count_factors_eq (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb) _,
+--   -- intros p,
+--   -- have := (λ p, by simp [←factorization_eq_count, h]),
+--   sorry,
+-- end
 
 
 end UFM

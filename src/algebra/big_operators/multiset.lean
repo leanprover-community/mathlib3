@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group_with_zero.power
+import algebra.smul_with_zero
 import data.list.prod_monoid
 import data.multiset.basic
 
@@ -21,6 +22,58 @@ and sums indexed by finite sets.
 -/
 
 variables {ι α β γ : Type*}
+
+/-- Multiplication as a multiplicative homomorphism. -/
+@[to_additive "Addition as an additive homomorphism.", simps]
+def mul_mul_hom [comm_semigroup α] : mul_hom (α × α) α :=
+{ to_fun := λ a, a.1 * a.2,
+  map_mul' := λ a b, mul_mul_mul_comm _ _ _ _ }
+
+/-- Multiplication as a monoid homomorphism. -/
+@[to_additive "Addition as an additive monoid homomorphism.", simps]
+def mul_monoid_hom [comm_monoid α] : α × α →* α :=
+{ map_one' := mul_one _,
+  .. mul_mul_hom }
+
+/-- Multiplication as a multiplicative homomorphism with zero. -/
+def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : monoid_with_zero_hom (α × α) α :=
+{ map_zero' := mul_zero _,
+  .. mul_monoid_hom }
+
+/-- Multiplication as a monoid homomorphism. -/
+@[to_additive "Addition as an additive monoid homomorphism.", simps]
+def div_group_hom [comm_group α] : α × α →* α :=
+{ to_fun := λ a, a.1 / a.2,
+  map_one' := div_one' _,
+  map_mul' := λ a b, mul_div_comm' _ _ _ _ }
+
+/-- Multiplication as a multiplicative homomorphism with zero. -/
+def div_group_with_zero_hom [comm_group_with_zero α] : monoid_with_zero_hom (α × α) α :=
+{ to_fun := λ a, a.1 / a.2,
+  map_zero' := zero_div _,
+  map_one' := div_one _,
+  map_mul' := λ a b, (div_mul_div _ _ _ _).symm }
+
+/-- Scalar multiplication as a multiplicative homomorphism. -/
+def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [is_scalar_tower α β β]
+  [smul_comm_class α β β] :
+  mul_hom (α × β) β :=
+{ to_fun := λ a, a.1 • a.2,
+  map_mul' := λ a b, (smul_mul_smul _ _ _ _).symm }
+
+/-- Scalar multiplication as a monoid homomorphism. -/
+def smul_monoid_hom [monoid α] [mul_one_class β] [mul_action α β] [is_scalar_tower α β β]
+  [smul_comm_class α β β] :
+  α × β →* β :=
+{ map_one' := one_smul _ _,
+  .. smul_mul_hom }
+
+/-- Scalar multiplication as a monoid homomorphism with zero. -/
+def smul_monoid_with_zero_hom [monoid_with_zero α] [mul_zero_one_class β] [mul_action_with_zero α β]
+  [is_scalar_tower α β β] [smul_comm_class α β β] :
+  monoid_with_zero_hom (α × β) β :=
+{ map_zero' := smul_zero' _ _,
+  .. smul_monoid_hom }
 
 namespace multiset
 section comm_monoid
@@ -79,6 +132,11 @@ lemma prod_hom [comm_monoid β] (s : multiset α) (f : α →* β) : (s.map f).p
 quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
 
 @[to_additive]
+lemma prod_hom' [comm_monoid β] (s : multiset ι) (f : α →* β) (g : ι → α) :
+  (s.map $ λ i, f $ g i).prod = f (s.map g).prod :=
+by { convert (s.map g).prod_hom f, exact (map_map _ _ _).symm }
+
+@[to_additive]
 lemma prod_hom₂ [comm_monoid β] [comm_monoid γ] (s : multiset ι) (f : α → β → γ)
   (hf : ∀ a b c d, f (a * b) (c * d) = f a c * f b d) (hf' : f 1 1 = 1) (f₁ : ι → α) (f₂ : ι → β) :
   (s.map $ λ i, f (f₁ i) (f₂ i)).prod = f (s.map f₁).prod (s.map f₂).prod :=
@@ -101,7 +159,7 @@ m.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 
 @[to_additive sum_map_nsmul]
 lemma prod_map_pow {n : ℕ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
-by { convert (m.map f).prod_hom (pow_monoid_hom n), rw map_map, refl }
+m.prod_hom' (pow_monoid_hom n) _
 
 @[to_additive]
 lemma prod_map_prod_map (m : multiset β) (n : multiset γ) {f : β → γ → α} :

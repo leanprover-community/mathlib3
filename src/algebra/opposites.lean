@@ -185,7 +185,7 @@ instance [has_mul α] : has_mul αᵃᵒᵖ := { mul := λ a b, op (unop a * uno
 
 instance [has_inv α] : has_inv αᵃᵒᵖ := { inv := λ a, op (unop a)⁻¹ }
 
-@[simp] lemma op_inv [has_inv α] (a : α) : op a⁻¹ := (op a)⁻¹ := rfl
+@[simp] lemma op_inv [has_inv α] (a : α) : op a⁻¹ = (op a)⁻¹ := rfl
 @[simp] lemma unop_inv [has_inv α] (a : αᵃᵒᵖ) : unop a⁻¹ = (unop a)⁻¹ := rfl
 
 instance [has_div α] : has_div αᵃᵒᵖ := { div := λ a b, op (unop a / unop b) }

@@ -380,6 +380,11 @@ begin
   exact fintype.card_congr (coe_neighbor_set_equiv v),
 end
 
+@[simp] lemma spanning_coe_degree {G' : G.subgraph} (v : V)
+  [fintype (G'.neighbor_set v)] [fintype (G'.spanning_coe.neighbor_set v)] :
+  G'.spanning_coe.degree v = G'.degree v :=
+by { rw [← card_neighbor_set_eq_degree, subgraph.degree], congr }
+
 lemma degree_eq_one_iff_unique_adj {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
   G'.degree v = 1 ↔ ∃! (w : V), G'.adj v w :=
 begin

@@ -72,39 +72,20 @@ begin
     exact M.edge_vert hw }
 end
 
--- TODO: prove and move
-instance {G' : subgraph G} [fintype V] : fintype G'.verts := sorry
+lemma is_perfect_matching_iff_forall_degree {M : subgraph G}
+  [Π (v : V), fintype (M.neighbor_set v)] :
+  M.is_perfect_matching ↔ ∀ (v : V), M.degree v = 1 :=
+by simp [degree_eq_one_iff_unique_adj, is_perfect_matching_iff]
 
 lemma even_card_vertices_of_perfect_matching {M : subgraph G}
   [fintype V] [decidable_eq V] [decidable_rel G.adj]
     (h : M.is_perfect_matching) : even (fintype.card V) :=
 begin
-  let G' := M.coe,
-  have hdec : decidable_rel G'.adj, by { exact classical.dec_rel G'.adj },
-  have hfin : fintype M.verts, by { exact verts.fintype },
-  tactic.unfreeze_local_instances,
-  use G'.edge_finset.card,
-  rw ← sum_degrees_eq_twice_card_edges,
-  have hv : ∀ (v : M.verts), G'.degree v = 1,
-  { -- use is_matching_iff_forall_degree here somehow
-    sorry, },
-  simpa [hv, fintype.card],
-  /-
-  simpa failed
-  state:
-  V : Type u,
-  G : simple_graph V,
-  M : G.subgraph,
-  _inst_1 : fintype V,
-  _inst_2 : decidable_eq V,
-  _inst_3 : decidable_rel G.adj,
-  h : M.is_perfect_matching,
-  G' : simple_graph ↥(M.verts) := M.coe,
-  hdec : decidable_rel G'.adj,
-  hfin : fintype ↥(M.verts),
-  hv : ∀ (v : ↥(M.verts)), G'.degree v = 1
-  ⊢ finset.univ.card = finset.univ.card
-  -/
+  classical,
+  rw is_perfect_matching_iff_forall_degree at h,
+  have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
+  simp [h] at this,
+  exact ⟨_, this⟩,
 end
 
 end subgraph

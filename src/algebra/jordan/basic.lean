@@ -30,6 +30,10 @@ variables {A : Type*} [non_unital_non_assoc_ring A] [module ℝ A] [smul_comm_cl
 We shall primarily be interested in linear Jordan algebras (i.e. over rings of characteristic not
 two) leaving quadratic algebras to those better versed in that theory.
 
+The conventional way to linearise the Jordan axiom is to equate coefficients (more formally, assume
+that the axiom holds in all field extensions). For simplicity we use brute force algebraic expansion
+and substitution instead.
+
 ## References
 
 * [Hanche-Olsen and Størmer, Jordan Operator Algebras][hancheolsenstormer1984]
@@ -165,25 +169,15 @@ lemma mul_op_com1 (a b : A) :
 begin
   symmetry,
   calc 0 = ⁅L (a+b), L ((a+b)*(a+b))⁆ : by rw comm_jordan.jordan
-    ... = ⁅L (a+b), L (a*(a+b)+b*(a+b))⁆ : by rw add_mul
-    ... = ⁅L (a+b), L (a*a+a*b+(b*a+b*b))⁆ : by rw [mul_add, mul_add]
-    ... = ⁅L a + L b, L (a*a+a*b+(b*a+b*b))⁆ : by rw map_add
-    ... = ⁅L a + L b, L (a*a) + L(a*b) + L(b*a+b*b)⁆ : by rw [map_add, map_add]
-    ... = ⁅L a + L b, L (a*a) + L(a*b) + (L(b*a) + L(b*b))⁆ : by rw map_add
-    ... = ⁅L a + L b, L (a*a) + L(a*b) + (L(a*b) + L(b*b))⁆ : by rw jordan_mul_comm b a
+    ... = ⁅L a + L b, L (a*a+a*b+(b*a+b*b))⁆ : by rw [add_mul, mul_add, mul_add, map_add]
+    ... = ⁅L a + L b, L (a*a) + L(a*b) + (L(a*b) + L(b*b))⁆ :
+      by rw [map_add, map_add, map_add, jordan_mul_comm b a]
     ... = ⁅L a + L b, L (a*a) + (2:ℤ)•L(a*b) + L(b*b)⁆ : by abel
-    ... = ⁅L a, L (a*a) + (2:ℤ)•L(a*b) + L(b*b)⁆ + ⁅L b, L (a*a) + (2:ℤ)•L(a*b) + L(b*b)⁆ :
-      by rw add_lie
-    ... = ⁅L a, L(a*a)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, L(b*b)⁆
-      + ⁅L b, L(a*a) + (2:ℤ)•L(a*b) + L(b*b)⁆ : by rw [lie_add, lie_add]
     ... = ⁅L a, L (a*a)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, L(b*b)⁆
-      + (⁅L b, L (a*a)⁆ + ⁅L b,(2:ℤ)•L(a*b)⁆ + ⁅L b,L(b*b)⁆) : by rw [lie_add, lie_add]
-    ... = 0 + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, L(b*b)⁆ + (⁅L b, L (a*a)⁆ + ⁅L b,(2:ℤ)•L(a*b)⁆ + 0) :
-      by rw [comm_jordan.jordan, comm_jordan.jordan]
-    ... = 0 + (2:ℤ)•⁅L a, L(a*b)⁆ + ⁅L a, L(b*b)⁆ + (⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L b,L(a*b)⁆ + 0) :
-      by rw [lie_smul, lie_smul]
+      + (⁅L b, L (a*a)⁆ + ⁅L b,(2:ℤ)•L(a*b)⁆ + ⁅L b,L(b*b)⁆) :
+        by rw [add_lie, lie_add, lie_add, lie_add, lie_add]
     ... = (2:ℤ)•⁅L a, L(a*b)⁆ + ⁅L a, L(b*b)⁆ + (⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L b,L(a*b)⁆) :
-      by rw [zero_add, add_zero]
+      by rw [comm_jordan.jordan, comm_jordan.jordan, lie_smul, lie_smul, zero_add, add_zero]
     ... = ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆: by abel
 end
 

@@ -46,7 +46,7 @@ variables {α : Type*}
 @[pp_nodot]
 def sym : α → αˢʸᵐ := id
 
-/-- The element of `α` represented by `x : αᵐᵒᵖ`. -/
+/-- The element of `α` represented by `x : αˢʸᵐ`. -/
 @[pp_nodot]
 def unsym : αˢʸᵐ → α := id
 
@@ -56,10 +56,7 @@ instance [inhabited α] : inhabited αˢʸᵐ := ⟨sym (default α)⟩
 @[simp] lemma sym_unsym (x : α) : sym (unsym x) = x := rfl
 
 instance [has_zero α] : has_zero (αˢʸᵐ) := { zero := sym 0 }
---instance [has_add α] : has_add αˢʸᵐ := { add := λ a b, sym (unsym a + unsym b) }
 instance [has_sub α] : has_sub αˢʸᵐ := { sub := λ a b, sym (unsym a - unsym b) }
---instance [has_neg α] : has_neg αˢʸᵐ := { neg := λ a, sym (-unsym a) }
---instance [has_scalar R α] : has_scalar R αˢʸᵐ := { smul := λ r a, sym (r•(unsym a)) }
 
 instance [has_add α] : has_add αˢʸᵐ :=
 { add := λ a b, sym (unsym a + unsym b) }
@@ -100,13 +97,7 @@ instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
 @[simp] lemma unsym_eq_zero_iff {α} [has_zero α] (a : αˢʸᵐ) : a.unsym = (0 : α) ↔ a = (0 : αˢʸᵐ) :=
 unsym_injective.eq_iff' rfl
 
---@[simp] lemma sym_eq_zero_iff {α} [has_zero α] (a : α) : sym a = (0 : αˢʸᵐ) ↔ a = (0 : α) :=
---sym_injective.eq_iff' rfl
-
-lemma zero_zero [ring α] [algebra ℝ α] : unsym add_comm_group.zero = (0:α) :=
-begin
-  exact rfl,
-end
+lemma zero_zero [ring α] [algebra ℝ α] : unsym add_comm_group.zero = (0:α) := rfl
 
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
 function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)

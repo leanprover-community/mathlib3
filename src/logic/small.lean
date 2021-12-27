@@ -61,35 +61,29 @@ theorem small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _
 section
 open_locale classical
 
-theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
+theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
 begin
-  fsplit,
-  { rintro ⟨S, ⟨f⟩⟩,
-    exact small.mk' (e.symm.trans f), },
-  { rintro ⟨S, ⟨f⟩⟩,
-    exact small.mk' (e.trans f), },
+  tactic.unfreeze_local_instances,
+  rcases hβ with ⟨γ, ⟨f⟩⟩,
+  exact small.mk' (e.trans f)
 end
 
+theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
+⟨λ h, @small_map _ _ h e.symm, λ h, @small_map _ _ h e⟩
+
 instance small_subtype (α : Type v) [small.{w} α] (P : α → Prop) : small.{w} { x // P x } :=
-begin
-  rw small_congr (equiv_shrink α).subtype_equiv_of_subtype',
-  apply_instance,
-end
+small_map (equiv_shrink α).subtype_equiv_of_subtype'
 
 theorem small_of_injective {α : Type*} {β : Type*} [small.{w} β]
   (f : α → β) (hf : function.injective f) : small.{w} α :=
-begin
-  rw small_congr (equiv.of_injective f hf),
-  apply_instance,
-end
+small_map (equiv.of_injective f hf)
 
 @[priority 100]
 instance small_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
 begin
   rcases is_empty_or_nonempty α; resetI,
-  { rw small_congr (equiv.equiv_pempty α), apply small_self, },
-  { rw small_congr equiv.punit_of_nonempty_of_subsingleton,
-    apply small_self, assumption, assumption, },
+  { apply small_map (equiv.equiv_pempty α) },
+  { apply small_map equiv.punit_of_nonempty_of_subsingleton, assumption' },
 end
 
 /-!

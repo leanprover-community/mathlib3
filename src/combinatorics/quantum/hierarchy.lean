@@ -217,7 +217,7 @@ lemma graph.weight_comm [weight_graph_class F α W] (f : F) (a b : α) :
 weight_graph_class.weight_comm f a b
 
 /-- Two vertices of a weighted digraph are adjacent if their weight is not `none`. -/
-@[priority 100] -- see Note [lower instance priority]
+@[priority 100, nolint dangerous_instance] -- see Note [lower instance priority]
 instance weight_graph_class.to_symm_rel_class (F α W : Type*)
   [weight_graph_class F α W] :
   symm_rel_class F α :=
@@ -292,13 +292,15 @@ instance weight_simple_graph_class.to_weight_graph_class [weight_simple_graph_cl
   weight_graph_class F α W :=
 { .. ‹weight_simple_graph_class F α W› }
 
-instance weight_simple_graph.weight_simple_graph_class : weight_simple_graph_class (weight_simple_graph α W) α W :=
+instance weight_simple_graph.weight_simple_graph_class :
+  weight_simple_graph_class (weight_simple_graph α W) α W :=
 { weight := λ G, G.weight,
   weight_self := λ G, G.weight_self,
   weight_comm := weight_simple_graph.weight_comm }
 
-@[priority 100] -- see Note [lower instance priority]
-instance weight_simple_graph_class.to_simple_graph_class (F α W : Type*) [weight_simple_graph_class F α W] :
+@[priority 100, nolint dangerous_instance] -- see Note [lower instance priority]
+instance weight_simple_graph_class.to_simple_graph_class (F α W : Type*)
+  [weight_simple_graph_class F α W] :
   simple_graph_class F α :=
 { ..weight_simple_digraph_class.to_simple_digraph_class F α W  }
 
@@ -476,6 +478,8 @@ Extend this class when you extend `weight_quiver`. -/
 class weight_quiver_class (F : Type*) (α W : out_param $ Type*) extends quiver_class F α :=
 (hom_weight (f : F) (a b : α) : (a ⟶[f] b) → W)
 
+attribute [nolint dangerous_instance] weight_quiver_class.to_quiver_class
+
 instance weight_quiver.weight_quiver_class : weight_quiver_class (weight_quiver α W) α W :=
 { hom := λ G, G.hom,
   hom_weight := λ G, G.hom_weight }
@@ -509,6 +513,8 @@ class weight_multigraph_class (F : Type u₁) (α : out_param $ Type u₂) (W : 
 (hom_weight_comm (f : F) (a b : α) (e : a ⟶[f] b) :
   hom_weight _ _ _ (hom_fun _ _ _ e) = hom_weight _ _ _ e)
 
+attribute [nolint dangerous_instance] weight_multigraph_class.to_multigraph_class
+
 @[priority 100] -- see Note [lower instance priority]
 instance weight_multigraph_class.to_weight_quiver_class [weight_multigraph_class F α W] :
   weight_quiver_class F α W :=
@@ -523,10 +529,10 @@ instance weight_multigraph.weight_multigraph_class :
   hom_weight_comm := λ G, G.hom_weight_comm }
 
 -- Universe problem. I think I need to universe-ascript `hom_fun` and `hom_weight`
-@[simp] lemma graph.hom.weight_symm {F α W : Type*} [weight_multigraph_class F α W] {f : F}
-  {a b : α} (e : a ⟶[f] b) :
-  e.symm.weight = e.weight :=
-weight_quiver_class.hom_weight _ _ _
+-- @[simp] lemma graph.hom.weight_symm {F α W : Type*} [weight_multigraph_class F α W] {f : F}
+--   {a b : α} (e : a ⟶[f] b) :
+--   e.symm.weight = e.weight :=
+-- weight_quiver_class.hom_weight _ _ _
 
 instance : has_bot (weight_multigraph α W) :=
 ⟨{ hom := λ _ _, pempty,
@@ -553,6 +559,8 @@ Extend this class when you extend `weight_simple_quiver`. -/
 class weight_simple_quiver_class (F : Type u₁) (α : out_param $ Type u₂) (W : out_param $ Type u₄)
   extends simple_quiver_class.{u₁ u₂ u₃} F α : Type (max u₁ u₂ u₃ u₄) :=
 (hom_weight (f : F) (a b : α) : (a ⟶[f] b) → W)
+
+attribute [nolint dangerous_instance] weight_simple_quiver_class.to_simple_quiver_class
 
 @[priority 100] -- see Note [lower instance priority]
 instance weight_simple_quiver_class.to_weight_quiver_class [weight_multigraph_class F α W] :
@@ -595,6 +603,8 @@ class weight_simple_multigraph_class (F : Type u₁) (α : out_param $ Type u₂
 (hom_weight_comm (f : F) (a b : α) (e : a ⟶[f] b) :
   hom_weight _ _ _ (hom_fun _ _ _ e) = hom_weight _ _ _ e)
 
+attribute [nolint dangerous_instance] weight_simple_multigraph_class.to_multigraph_class
+
 @[priority 100] -- see Note [lower instance priority]
 instance weight_simple_multigraph_class.to_weight_multigraph_class
   [weight_simple_multigraph_class F α W] :
@@ -618,4 +628,3 @@ instance : has_bot (weight_simple_multigraph α W) :=
   hom_weight_comm := λ _ _ e, e.elim }⟩
 
 instance : inhabited (weight_simple_multigraph α W) := ⟨⊥⟩
-#lint

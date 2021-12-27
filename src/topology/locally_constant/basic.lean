@@ -295,10 +295,7 @@ lemma locally_constant_eq_of_fiber_zero_eq {X : Type*} [topological_space X]
 begin
   simp only [set.ext_iff, mem_singleton_iff, mem_preimage] at h,
   ext1 x,
-  have := h x,
-  set a := f x,
-  set b := g x,
-  fin_cases a; fin_cases b; finish
+  exact fin.fin_two_eq_of_eq_zero_iff (h x)
 end
 
 lemma range_finite [compact_space X] (f : locally_constant X Y) :

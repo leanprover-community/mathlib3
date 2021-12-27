@@ -445,6 +445,14 @@ by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
 @[simp] lemma mul_eq_mul_left_iff : a * b = a * c ↔ b = c ∨ a = 0 :=
 by by_cases ha : a = 0; [simp [ha], simp [mul_right_inj', ha]]
 
+lemma mul_right_eq_self₀ : a * b = a ↔ b = 1 ∨ a = 0 :=
+calc a * b = a ↔ a * b = a * 1 : by rw mul_one
+     ...       ↔ b = 1 ∨ a = 0 : mul_eq_mul_left_iff
+
+lemma mul_left_eq_self₀ : a * b = b ↔ a = 1 ∨ b = 0 :=
+calc a * b = b ↔ a * b = 1 * b : by rw one_mul
+     ...       ↔ a = 1 ∨ b = 0 : mul_eq_mul_right_iff
+
 /-- Pullback a `monoid_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]

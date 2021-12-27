@@ -263,7 +263,8 @@ with the normed group topology we will later equip it with.)
 We choose to deal with this issue by making a type synonym for `Π i, E i` rather than for the `lp`
 subgroup itself, because this allows all the spaces `lp E p` (for varying `p`) to be subgroups of
 the same ambient group, which permits lemma statements like `lp.monotone` (below). -/
-@[derive add_comm_group] def pre_lp (E : α → Type*) [Π i, normed_group (E i)] : Type* := Π i, E i
+@[derive add_comm_group, nolint unused_arguments]
+def pre_lp (E : α → Type*) [Π i, normed_group (E i)] : Type* := Π i, E i
 
 instance pre_lp.unique [is_empty α] : unique (pre_lp E) := pi.unique_of_is_empty E
 

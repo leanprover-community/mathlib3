@@ -159,12 +159,7 @@ instance : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
 instance : has_emptyc (sym α 0) := ⟨0⟩
 
 lemma eq_nil_of_card_zero (s : sym α 0) : s = nil :=
-begin
-  obtain ⟨a, h⟩ := s,
-  rw multiset.card_eq_zero at h,
-  subst h,
-  refl,
-end
+subtype.ext $ multiset.card_eq_zero.1 s.2
 
 instance unique_zero : unique (sym α 0) :=
 ⟨⟨nil⟩, eq_nil_of_card_zero⟩
@@ -181,25 +176,16 @@ begin
   have : 0 < multiset.card m,
   { rw h,
     exact nat.succ_pos n, },
-  rw multiset.card_pos_iff_exists_mem at this,
-  obtain ⟨a, ha⟩ := this,
+  rcases multiset.card_pos_iff_exists_mem.1 this with ⟨a, ha⟩,
   use [a, m.erase a],
-  { rw [multiset.card_erase_of_mem ha, h],
-    refl, },
+  { rw [multiset.card_erase_of_mem ha, h, nat.pred_succ] },
   { rw cons,
     congr,
     rw multiset.cons_erase ha, },
 end
 
 lemma eq_repeat_of_subsingleton [subsingleton α] (a : α) {n : ℕ} (s : sym α n) : s = repeat a n :=
-begin
-  induction n with n ih,
-  { rw eq_nil_of_card_zero s,
-    refl, },
-  { obtain ⟨b, s', rfl⟩ := exists_eq_cons_of_succ s,
-    rw [repeat_succ, ih s'],
-    congr, },
-end
+subtype.ext $ multiset.eq_repeat.2 ⟨s.2, λ b hb, subsingleton.elim _ _⟩
 
 instance [subsingleton α] (n : ℕ) : subsingleton (sym α n) :=
 ⟨begin
@@ -215,18 +201,14 @@ instance (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
 
 instance (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _
 
-lemma repeat_left_injective (n : ℕ) (h : n ≠ 0) : function.injective (λ x : α, repeat x n) :=
-begin
-  intros a b x,
-  simp only [repeat, subtype.mk.inj_eq] at x,
-  exact (multiset.repeat_left_inj a b n h).mp x,
-end
+lemma repeat_left_inj {a b : α} {n : ℕ} (h : n ≠ 0) : repeat a n = repeat b n ↔ a = b :=
+subtype.ext_iff.trans (multiset.repeat_left_inj h)
 
-lemma repeat_left_inj (a b : α) (n : ℕ) (h : n ≠ 0) : repeat a n = repeat b n ↔ a = b :=
-(repeat_left_injective n h).eq_iff
+lemma repeat_left_injective {n : ℕ} (h : n ≠ 0) : function.injective (λ x : α, repeat x n) :=
+λ a b, (repeat_left_inj h).1
 
 instance (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
-(repeat_left_injective n.succ n.succ_ne_zero).nontrivial
+(repeat_left_injective n.succ_ne_zero).nontrivial
 
 /-- A function `α → β` induces a function `sym α n → sym β n` by applying it to every element of
 the underlying `n`-tuple. -/

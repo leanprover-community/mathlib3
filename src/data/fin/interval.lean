@@ -160,7 +160,7 @@ variable {n}
 lemma filter_eq_Ico_zero (a : fin (n + 1)) : finset.univ.filter (λ j, j < a) = Ico 0 a :=
 by { ext, simp [zero_le] }
 
-lemma filter_eq_Ioo_zero (a : fin (n + 1)) : finset.univ.filter (λ j, j ≤ a) = Icc 0 a :=
+lemma filter_eq_Icc_zero (a : fin (n + 1)) : finset.univ.filter (λ j, j ≤ a) = Icc 0 a :=
 by { ext, simp [zero_le] }
 
 lemma filter_eq_Ioc_last (a : fin (n + 1)) : finset.univ.filter (λ j, a < j) = Ioc a (last n) :=

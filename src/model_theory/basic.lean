@@ -863,7 +863,7 @@ begin
   { simp [ih] }
 end
 
-@[simp] lemma realize_term_hom {α : Type} [L.Structure N] (v : α → M)
+@[simp] lemma realize_term_hom {α : Type} (v : α → M)
   (t : L.term α) (g : M →[L] N) :
   realize_term (g ∘ v) t = g (realize_term v t) :=
 begin
@@ -875,12 +875,12 @@ begin
     simp [t_ih x], },
 end
 
-@[simp] lemma realize_term_embedding {α : Type} [L.Structure N] (v : α → M)
+@[simp] lemma realize_term_embedding {α : Type}  (v : α → M)
   (t : L.term α) (g : M ↪[L] N) :
   realize_term (g ∘ v) t = g (realize_term v t) :=
 realize_term_hom v t g.to_hom
 
-@[simp] lemma realize_term_equiv {α : Type} [L.Structure N] (v : α → M)
+@[simp] lemma realize_term_equiv {α : Type}  (v : α → M)
   (t : L.term α) (g : M ≃[L] N) :
   realize_term (g ∘ v) t = g (realize_term v t) :=
 realize_term_hom v t g.to_hom
@@ -998,7 +998,7 @@ begin
   { simp [ih3] }
 end
 
-@[simp] lemma realize_bounded_formula_equiv {α : Type} {n : ℕ} [L.Structure N] (v : α → M)
+@[simp] lemma realize_bounded_formula_equiv {α : Type} {n : ℕ}  (v : α → M)
   (xs : fin n → M) (φ : L.bounded_formula α n) (g : M ≃[L] N) :
   realize_bounded_formula N φ (g ∘ v) (g ∘ xs) ↔ realize_bounded_formula M φ v xs :=
 begin
@@ -1046,7 +1046,7 @@ rfl
   realize_formula M (φ.relabel g) v ↔ realize_formula M φ (v ∘ g) :=
 by rw [realize_formula, realize_formula, realize_bounded_formula_relabel]
 
-@[simp] lemma realize_formula_equiv {α : Type} [L.Structure N] (v : α → M) (φ : L.formula α)
+@[simp] lemma realize_formula_equiv {α : Type}  (v : α → M) (φ : L.formula α)
   (g : M ≃[L] N) :
   realize_formula N φ (g ∘ v) ↔ realize_formula M φ v :=
 begin
@@ -1424,3 +1424,4 @@ end elementary_substructure
 
 end language
 end first_order
+#lint

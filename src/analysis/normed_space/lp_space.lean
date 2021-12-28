@@ -620,7 +620,7 @@ begin
 end
 
 -- rework and move
-lemma foo₀'' [fact (1 ≤ p)] (hF : cauchy_seq F) {ε : ℝ} (hε : 0 < ε) :
+lemma foo [fact (1 ≤ p)] (hF : cauchy_seq F) {ε : ℝ} (hε : 0 < ε) :
   ∀ᶠ k in at_top, ∀ᶠ l in at_top, ∥F l - F k∥ < ε :=
 begin
   rw normed_group.uniformity_basis_dist.cauchy_seq_iff at hF, rotate,
@@ -653,7 +653,7 @@ begin
   exact this.trans_lt hfg,
 end
 
-lemma foo₁' {C : ℝ} (hC : 0 ≤ C) {F : ℕ → lp E ∞} (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C)
+lemma norm_apply_le_of_tendsto {C : ℝ} {F : ℕ → lp E ∞} (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C)
   {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) (a : α) :
   ∥f a∥ ≤ C :=
 begin
@@ -668,7 +668,8 @@ variables [_i : fact (1 ≤ p)]
 
 include _i
 
-lemma foo₁ (hp : p ≠ ⊤) {C : ℝ} (hC : 0 ≤ C) (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C)
+lemma sum_rpow_le_of_tendsto (hp : p ≠ ⊤) {C : ℝ} (hC : 0 ≤ C)
+  (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C)
   {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) (s : finset α) :
   ∑ (i : α) in s, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real :=
 begin
@@ -690,52 +691,52 @@ end
 
 /-- "Semicontinuity of the `lp` norm": If all sufficiently large elements of a sequence in `lp E p`
  have `lp` norm `≤ C`, then the pointwise limit, if it exists, also has `lp` norm `≤ C`. -/
-lemma foo₂' {C : ℝ} (hC : 0 ≤ C) (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C) {f : lp E p}
+lemma norm_le_of_tendsto {C : ℝ} (hC : 0 ≤ C) (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C) {f : lp E p}
   (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
   ∥f∥ ≤ C :=
 begin
   tactic.unfreeze_local_instances,
-  rcases p.dichotomy with rfl | hp,
+  rcases eq_top_or_lt_top p with rfl | hp,
   { apply norm_le_of_forall_le hC,
-    exact foo₁' hC hCF hf, },
-  { have hp : 0 < p.to_real := by linarith,
-    have hp' : p ≠ ∞ := sorry,
-    apply norm_le_of_forall_sum_le hp hC,
-    exact foo₁ hp' hC hCF hf, }
+    exact norm_apply_le_of_tendsto hCF hf, },
+  { have : 0 < p := ennreal.zero_lt_one.trans_le _i.elim,
+    have hp' : 0 < p.to_real := ennreal.to_real_pos this.ne' hp.ne,
+    apply norm_le_of_forall_sum_le hp' hC,
+    exact sum_rpow_le_of_tendsto hp.ne hC hCF hf, }
 end
 
 /-- If `f` is the pointwise limit of a bounded sequence in `lp E p`, then `f` is in `lp E p`. -/
-lemma foo₂'' (hF : metric.bounded (set.range F)) {f : Π a, E a}
+lemma mem_ℓp_of_tendsto (hF : metric.bounded (set.range F)) {f : Π a, E a}
   (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
   mem_ℓp f p :=
 begin
   obtain ⟨C, hC, hCF'⟩ := hF.exists_norm_le',
   have hCF : ∀ k, ∥F k∥ ≤ C := λ k, hCF' _ ⟨k, rfl⟩,
   tactic.unfreeze_local_instances,
-  rcases p.dichotomy with rfl | hp',
+  rcases eq_top_or_lt_top p with rfl | hp,
   { apply mem_ℓp_infty,
     use C,
     rintros _ ⟨a, rfl⟩,
-    refine foo₁' hC (eventually_of_forall hCF) hf a, },
-  { have hp : 0 < p.to_real := by linarith,
-    have hp' : p ≠ ∞ := sorry,
+    refine norm_apply_le_of_tendsto (eventually_of_forall hCF) hf a, },
+  { have : 0 < p := ennreal.zero_lt_one.trans_le _i.elim,
+    have hp' : 0 < p.to_real := ennreal.to_real_pos this.ne' hp.ne,
     have hC' : 0 ≤ C ^ p.to_real := real.rpow_nonneg_of_nonneg hC _,
-    apply mem_ℓp_gen' hp hC',
-    exact foo₁ hp' hC (eventually_of_forall hCF) hf },
+    apply mem_ℓp_gen' hp' hC',
+    exact sum_rpow_le_of_tendsto hp.ne hC (eventually_of_forall hCF) hf },
 end
 
 /-- If a sequence is Cauchy in the `lp E p` topology and pointwise convergent to a element `f` of
 `lp E p`, then it converges to `f` in the `lp E p` topology. -/
-lemma foo₃ (hF : cauchy_seq F) (f : lp E p)
+lemma tendsto_lp_of_tendsto_pi (hF : cauchy_seq F) {f : lp E p}
   (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
   tendsto F at_top (𝓝 f) :=
 begin
   rw metric.nhds_basis_closed_ball.tendsto_right_iff,
   intros ε hε,
-  refine (foo₀'' hF hε).mono _,
+  refine (foo hF hε).mono _,
   rintros n (hn : ∀ᶠ l in at_top, ∥(λ f, f - F n) (F l)∥ < ε),
   simp only [dist_eq_norm, norm_sub_rev, metric.mem_closed_ball],
-  refine foo₂' hε.le (hn.mono (λ k hk, hk.le)) _,
+  refine norm_le_of_tendsto hε.le (hn.mono (λ k hk, hk.le)) _,
   rw tendsto_pi_nhds,
   intros a,
   exact (hf.apply a).sub_const (F n a),
@@ -743,16 +744,16 @@ end
 
 variables [Π a, complete_space (E a)]
 
-instance [fact (1 ≤ p)] : complete_space (lp E p) :=
+instance : complete_space (lp E p) :=
 metric.complete_of_cauchy_seq_tendsto
 begin
   intros F hF,
   -- A Cauchy sequence in `lp E p` is pointwise convergent; let `f` be the pointwise limit.
   obtain ⟨f, hf⟩ := cauchy_seq_tendsto_of_complete (uniform_continuous_coe.comp_cauchy_seq hF),
   -- Since the Cauchy sequence is bounded, its pointwise limit `f` is in `lp E p`.
-  have hf' : mem_ℓp f p := foo₂'' hF.bounded hf,
+  have hf' : mem_ℓp f p := mem_ℓp_of_tendsto hF.bounded hf,
   -- And therefore `f` is its limit in the `lp E p` topology as well as pointwise.
-  exact ⟨⟨f, hf'⟩, foo₃ hF ⟨f, hf'⟩ hf⟩
+  exact ⟨⟨f, hf'⟩, tendsto_lp_of_tendsto_pi hF hf⟩
 end
 
 end topology

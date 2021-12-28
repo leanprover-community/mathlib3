@@ -207,7 +207,7 @@ end
 lemma cauchy_seq.eventually_eventually [semilattice_sup β] [nonempty β] {u : β → α}
   (hu : cauchy_seq u) {V : set (α × α)} (hV : V ∈ 𝓤 α) :
   ∀ᶠ k in at_top, ∀ᶠ l in at_top, (u k, u l) ∈ V :=
-eventually_eventually_at_top $ hu.tendsto_uniformity hV
+eventually_at_top_curry $ hu.tendsto_uniformity hV
 
 lemma uniform_continuous.comp_cauchy_seq {γ} [uniform_space β] [semilattice_sup γ]
   {f : α → β} (hf : uniform_continuous f) {u : γ → α} (hu : cauchy_seq u) :

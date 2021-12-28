@@ -346,4 +346,19 @@ instance [preserves_finite_limits (forget C)] [preserves_filtered_colimits (forg
     preserves_finite_limits (colim : (K ⥤ C) ⥤ _) :=
 ⟨λ _ _ _, by exactI category_theory.limits.filtered_colim_preserves_finite_limits⟩
 
+section
+variables [has_limits_of_shape J C] [has_colimits_of_shape K C]
+variables [reflects_limits_of_shape J (forget C)] [preserves_colimits_of_shape K (forget C)]
+variables [preserves_limits_of_shape J (forget C)]
+
+/-- Filtered colimits commute with finite limits. -/
+noncomputable def colimit_limit_iso (F : J ⥤ K ⥤ C) :
+  colimit (limit F) ≅ limit (colimit F.flip) :=
+begin
+  refine _ ≪≫ (has_limit.iso_of_nat_iso (colimit_flip_iso_comp_colim _).symm),
+  exact (is_limit_of_preserves (colim : (K ⥤ C) ⥤ _)
+    (limit.is_limit _)).cone_point_unique_up_to_iso (limit.is_limit _),
+end
+
+end
 end category_theory.limits

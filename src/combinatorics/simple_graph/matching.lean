@@ -100,8 +100,7 @@ begin
   rw is_matching_iff_forall_degree at h,
   have := M.coe.sum_degrees_eq_twice_card_edges, simp [h] at this,
   use M.coe.edge_finset.card,
-  rw [← this, set.to_finset_card],
-  refl,
+  simpa only [← this, set.to_finset_card],
 end
 
 lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=

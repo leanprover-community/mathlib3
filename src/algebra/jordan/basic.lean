@@ -117,7 +117,7 @@ instance ring_jordan (B : Type u) [ring B] : jordan (B) :=
     ext b,
     rw ring.lie_def,
     simp only [add_monoid_hom.zero_apply, comp_mul_left, add_monoid_hom.coe_mul_left,
-      add_monoid_hom.sub_apply, L_apply,      add_monoid.coe_mul],
+      add_monoid_hom.sub_apply, L_apply, add_monoid.coe_mul],
     rw [← mul_assoc, sub_self],
   end,
   commL1R2 := begin

@@ -91,11 +91,6 @@ lemma is_matching_iff_forall_degree {M : subgraph G} [Π (v : V), fintype (M.nei
   M.is_matching ↔ ∀ (v : V), v ∈ M.verts → M.degree v = 1 :=
 by simpa [degree_eq_one_iff_unique_adj]
 
-noncomputable instance (G' : subgraph G) [fintype G'.support] (a : V) :
-  fintype (G'.neighbor_set a) :=
-fintype.of_injective (λ b, ⟨b.1, a, G'.adj_symm b.2⟩ : G'.neighbor_set a → G'.support)
-  (λ b c h, by { ext, convert congr_arg subtype.val h })
-
 lemma is_matching.even_card {M : subgraph G} [hM : fintype M.support] [decidable_eq V]
   [decidable_rel G.adj] (h : M.is_matching) :
   even (M.support.to_finset.card) :=
@@ -128,22 +123,11 @@ lemma is_perfect_matching.even_card {M : subgraph G}
 begin
   classical,
   rw is_perfect_matching_iff_forall_degree at h,
-  have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
-  simp [h] at this,
-  exact ⟨_, this⟩,
-end
-
-lemma is_perfect_matching.even_card' {M : subgraph G} [fintype V] [decidable_eq V]
-  [decidable_rel G.adj] (h : M.is_perfect_matching) :
-  even (fintype.card V) :=
-begin
-  classical,
-  rw is_perfect_matching_iff_forall_degree at h,
   have := sum_degrees_eq_twice_card_edges,
-  have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
-  simp [h] at this,
-  exact ⟨_, this⟩,
-  sorry,
+  { have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
+    simp [h] at this,
+    exact ⟨_, this⟩, },
+  { exact V, },
 end
 
 end subgraph

@@ -102,13 +102,13 @@ by { dsimp [colimit_limit_to_limit_colimit], simp, }
   w' := λ j,
   begin
     ext1 k,
-    simp only [limit_obj_iso_limit_comp_evaluation_hom_π_assoc, iso.app_inv,
-      ι_colimit_limit_to_limit_colimit_π_assoc, whisker_right_app,
+    dsimp,
+    simp only [iso.app_inv, ι_colimit_limit_to_limit_colimit_π_assoc, whisker_right_app,
       colimit.ι_map, functor.map_cone_π_app, category.id_comp,
       eq_to_hom_refl, eq_to_hom_app, colimit.ι_map_assoc, limit.cone_π,
       lim_map_π_assoc, lim_map_π, category.assoc, currying_unit_iso_inv_app_app_app,
       limit_iso_swap_comp_lim_hom_app, lim_map_eq_lim_map],
-    erw category.id_comp,
+    erw [category.id_comp, category.id_comp, limit_obj_iso_limit_comp_evaluation_hom_π_assoc],
   end }
 
 end category_theory.limits

@@ -207,6 +207,18 @@ begin
     (h.tendsto.mono_left inf_le_left)
 end
 
+open_locale big_operators
+
+lemma sum_log_eq_log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
+  ∑ i in s, log (f i) = log (∏ i in s, f i) :=
+begin
+  classical,
+  induction s using finset.induction_on with a s ha ih,
+  { simp },
+  simp only [finset.mem_insert, forall_eq_or_imp] at hf,
+  simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
+end
+
 end real
 
 section continuity

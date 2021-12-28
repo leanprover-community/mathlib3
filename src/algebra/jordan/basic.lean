@@ -103,7 +103,7 @@ universe u
 
 /- A (unital, associative) ring satisfies the (non-commutative) Jordan axioms-/
 @[priority 100] -- see Note [lower instance priority]
-instance  ring_jordan (B : Type u) [ring B] : jordan (B) :=
+instance ring_jordan (B : Type u) [ring B] : jordan (B) :=
 { commL1R1 := begin
     intro,
     ext b,

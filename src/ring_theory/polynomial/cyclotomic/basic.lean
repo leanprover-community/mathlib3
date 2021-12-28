@@ -398,6 +398,17 @@ begin
                                                     (λ i, cyclotomic i ℤ), integer]
 end
 
+lemma cyclotomic.dvd_X_pow_sub_one (n : ℕ) (R : Type*) [comm_ring R] :
+  (cyclotomic n R) ∣ X ^ n - 1 :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  refine ⟨∏ i in n.proper_divisors, cyclotomic i R, _⟩,
+  rw [←prod_cyclotomic_eq_X_pow_sub_one hn,
+      nat.divisors_eq_proper_divisors_insert_self_of_pos hn, finset.prod_insert],
+  exact nat.proper_divisors.not_self_mem
+end
+
 lemma prod_cyclotomic_eq_geom_sum {n : ℕ} (h : 0 < n) (R) [comm_ring R] [is_domain R] :
   ∏ i in n.divisors \ {1}, cyclotomic i R = geom_sum X n :=
 begin

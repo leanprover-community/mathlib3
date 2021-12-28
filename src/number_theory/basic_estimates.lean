@@ -278,6 +278,10 @@ begin
       simp only [interval_of_le, le_add_iff_nonneg_right, nnreal.zero_le_coe, mem_Icc, not_and',
         not_le, ha, implies_true_iff] },
     simp only [le_add_iff_nonneg_right, nnreal.zero_le_coe] },
+  have : ∀ (i : ℝ≥0),  ∫ (x : ℝ) in a..a + ↑i, ∥x ^ r∥ =
+    (a + i) ^ (r + 1) / (r + 1) - a ^ (r + 1) / (r + 1),
+  { sorry },
+  rw tendsto_congr this,
   -- suffices : tendsto
   -- refine continuous_on_id.zpow _ (λ x hx, or.inl (zero_lt_one.trans_le hx.1).ne'),
   -- have := integral_zpow,

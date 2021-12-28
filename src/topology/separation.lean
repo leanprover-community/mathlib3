@@ -172,6 +172,9 @@ lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : se
   indistinguishable x y ↔ indistinguishable (x : α) y :=
 by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
 
+lemma indistinguishable.eq [hα : t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
+not_imp_not.mp ((t0_space_iff_distinguishable _).mp hα x y) h
+
 /-- Given a closed set `S` in a compact T₀ space,
 there is some `x ∈ S` such that `{x}` is closed. -/
 theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
@@ -279,6 +282,13 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
+  is_closed s :=
+begin
+  rw ← bUnion_of_singleton s,
+  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
 lemma is_open_compl_singleton [t1_space α] {x : α} : is_open ({x}ᶜ : set α) :=
 is_closed_singleton.is_open_compl
 
@@ -288,6 +298,38 @@ is_open_compl_singleton
 lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h
+
+@[priority 100] -- see Note [lower instance priority]
+instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
+begin
+  letI := cofinite_topology α,
+  constructor,
+  intros x,
+  rw ← is_open_compl_iff,
+  intro h,
+  simp,
+end
+
+lemma t1_space_antimono {α : Type*} : antitone (@t1_space α) :=
+begin
+  rintros t t' h ⟨ht⟩,
+  constructor,
+  intros x,
+  specialize ht x,
+  rw ← is_open_compl_iff at *,
+  exact h _ ht
+end
+
+lemma t1_space_iff_le_cofinite {α : Type*} [t : topological_space α] :
+  t1_space α ↔ t ≤ cofinite_topology α :=
+begin
+  split,
+  { introsI h U U_op,
+    rcases U.eq_empty_or_nonempty with rfl | hU,
+    { exact is_open_empty },
+    { exact (@is_closed_compl_iff α t U).mp (finite.is_closed $ U_op hU) } },
+  { exact λ h, t1_space_antimono h t1_space_cofinite }
+end
 
 lemma continuous_within_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
   {f : α → β} {s : set α} {x y : α} {z : β} (hne : y ≠ x) :
@@ -365,13 +407,6 @@ lemma is_closed_map_const {α β} [topological_space α] [topological_space β] 
   is_closed_map (function.const α y) :=
 begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
-end
-
-lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
-  is_closed s :=
-begin
-  rw ← bUnion_of_singleton s,
-  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
 end
 
 lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
@@ -996,6 +1031,34 @@ begin
   rcases exists_compact_mem_nhds x with ⟨K, hKc, hxK⟩,
   rcases mem_nhds_iff.1 hxK with ⟨t, h1t, h2t, h3t⟩,
   exact ⟨t, h2t, h3t, compact_closure_of_subset_compact hKc h1t⟩
+end
+
+lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
+  is_preirreducible S ↔ subsingleton S :=
+begin
+  split,
+  { intro h,
+    constructor,
+    intros x y,
+    ext,
+    by_contradiction e,
+    obtain ⟨U, V, hU, hV, hxU, hyV, h'⟩ := t2_separation e,
+    have := h U V hU hV ⟨x, x.prop, hxU⟩ ⟨y, y.prop, hyV⟩,
+    rw [h', inter_empty] at this,
+    exact this.some_spec },
+  { exact @@is_preirreducible_of_subsingleton _ _ }
+end
+
+lemma is_irreducible_iff_singleton [t2_space α] (S : set α) :
+  is_irreducible S ↔ ∃ x, S = {x} :=
+begin
+  split,
+  { intro h,
+    rw exists_eq_singleton_iff_nonempty_unique_mem,
+    use h.1,
+    intros a b ha hb,
+    injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },
+  { rintro ⟨x, rfl⟩, exact is_irreducible_singleton }
 end
 
 end separation

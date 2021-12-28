@@ -1316,6 +1316,19 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
   multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
 (multiset.sum_add_monoid_hom : multiset N →+ N).map_sum _ f.support
 
+
+/-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
+over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
+lemma prod_add_index_of_disjoint [add_comm_monoid M] {f1 f2 : α →₀ M}
+  (hd : disjoint f1.support f2.support) {β : Type*} [comm_monoid β] (g : α → M → β) :
+  (f1 + f2).prod g = f1.prod g * f2.prod g :=
+have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
+  ∏ x in f1.support, g x (f1 x + f2 x) = f1.prod g :=
+  λ f1 f2 hd, finset.prod_congr rfl (λ x hx,
+    by simp only [not_mem_support_iff.mp (disjoint_left.mp hd hx), add_zero]),
+by simp_rw [← this hd, ← this hd.symm,
+  add_comm (f2 _), finsupp.prod, support_add_eq hd, prod_union hd, add_apply]
+
 section map_range
 
 section equiv
@@ -1552,6 +1565,14 @@ finset.subset.trans support_sum $
   finset.subset.trans (finset.bUnion_mono $ assume a ha, support_single_subset) $
   by rw [finset.bUnion_singleton]; exact subset.refl _
 
+lemma map_domain_support_of_injective [decidable_eq β] {f : α → β} (hf : function.injective f)
+  (s : α →₀ M) : (map_domain f s).support = finset.image f s.support :=
+finset.subset.antisymm map_domain_support $ begin
+  rw finset.image_subset_iff_subset_preimage (hf.inj_on _),
+  intros x hx,
+  simp [map_domain_apply hf, mem_support_iff.mp hx],
+end
+
 @[to_additive]
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
   {h : β → M → N} (h_zero : ∀b, h b 0 = 1) (h_add : ∀b m₁ m₂, h b (m₁ + m₂) = h b m₁ * h b m₂) :
@@ -1596,6 +1617,10 @@ begin
   have : map_domain f v₁ (f a) = map_domain f v₂ (f a), { rw eq },
   rwa [map_domain_apply hf, map_domain_apply hf] at this,
 end
+
+/-- When `f` is an embedding we have an embedding `(α →₀ ℕ)  ↪ (β →₀ ℕ)` given by `map_domain`. -/
+@[simps] def map_domain_embedding {α β : Type*} (f : α ↪ β) : (α →₀ ℕ) ↪ (β →₀ ℕ) :=
+⟨finsupp.map_domain f, finsupp.map_domain_injective f.injective⟩
 
 lemma map_domain.add_monoid_hom_comp_map_range [add_comm_monoid N] (f : α → β) (g : M →+ N) :
   (map_domain.add_monoid_hom f).comp (map_range.add_monoid_hom g) =
@@ -2672,159 +2697,6 @@ end multiset
 @[simp] lemma finsupp.to_multiset_to_finsupp (f : α →₀ ℕ) :
   f.to_multiset.to_finsupp = f :=
 finsupp.to_multiset.symm_apply_apply f
-
-/-! ### Declarations about order(ed) instances on `finsupp` -/
-
-namespace finsupp
-
-instance [preorder M] [has_zero M] : preorder (α →₀ M) :=
-{ le := λ f g, ∀ s, f s ≤ g s,
-  le_refl := λ f s, le_refl _,
-  le_trans := λ f g h Hfg Hgh s, le_trans (Hfg s) (Hgh s) }
-
-instance [partial_order M] [has_zero M] : partial_order (α →₀ M) :=
-{ le_antisymm := λ f g hfg hgf, ext $ λ s, le_antisymm (hfg s) (hgf s),
-  .. finsupp.preorder }
-
-instance [ordered_add_comm_monoid M] : ordered_add_comm_monoid (α →₀ M) :=
-{ add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
-  .. finsupp.add_comm_monoid, .. finsupp.partial_order }
-
-instance [ordered_cancel_add_comm_monoid M] : ordered_cancel_add_comm_monoid (α →₀ M) :=
-{ add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
-  le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
-  add_left_cancel := λ a b c h, ext $ λ s, add_left_cancel (ext_iff.1 h s),
-  .. finsupp.add_comm_monoid, .. finsupp.partial_order }
-
-instance [ordered_add_comm_monoid M] [contravariant_class M M (+) (≤)] :
-  contravariant_class (α →₀ M) (α →₀ M) (+) (≤) :=
-⟨λ f g h H x, le_of_add_le_add_left $ H x⟩
-
-lemma le_def [preorder M] [has_zero M] {f g : α →₀ M} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
-
-lemma le_iff' [canonically_ordered_add_monoid M] (f g : α →₀ M)
-  {t : finset α} (hf : f.support ⊆ t) :
-  f ≤ g ↔ ∀ s ∈ t, f s ≤ g s :=
-⟨λ h s hs, h s,
-λ h s, if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
-
-lemma le_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
-  f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
-le_iff' f g (subset.refl _)
-
-instance decidable_le [canonically_ordered_add_monoid M] [decidable_rel (@has_le.le M _)] :
-  decidable_rel (@has_le.le (α →₀ M) _) :=
-λ f g, decidable_of_iff _ (le_iff f g).symm
-
-@[simp] lemma single_le_iff [canonically_ordered_add_monoid M] {i : α} {x : M} {f : α →₀ M} :
-  single i x ≤ f ↔ x ≤ f i :=
-(le_iff' _ _ support_single_subset).trans $ by simp
-
-@[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
-  f + g = 0 ↔ f = 0 ∧ g = 0 :=
-by simp [ext_iff, forall_and_distrib]
-
-/-- `finsupp.to_multiset` as an order isomorphism. -/
-def order_iso_multiset : (α →₀ ℕ) ≃o multiset α :=
-{ to_equiv := to_multiset.to_equiv,
-  map_rel_iff' := λ f g, by simp [multiset.le_iff_count, le_def] }
-
-@[simp] lemma coe_order_iso_multiset : ⇑(@order_iso_multiset α) = to_multiset := rfl
-
-@[simp] lemma coe_order_iso_multiset_symm :
-  ⇑(@order_iso_multiset α).symm = multiset.to_finsupp := rfl
-
-lemma to_multiset_strict_mono : strict_mono (@to_multiset α) :=
-order_iso_multiset.strict_mono
-
-lemma sum_id_lt_of_lt (m n : α →₀ ℕ) (h : m < n) :
-  m.sum (λ _, id) < n.sum (λ _, id) :=
-begin
-  rw [← card_to_multiset, ← card_to_multiset],
-  apply multiset.card_lt_of_lt,
-  exact to_multiset_strict_mono h
-end
-
-variable (α)
-
-/-- The order on `σ →₀ ℕ` is well-founded.-/
-lemma lt_wf : well_founded (@has_lt.lt (α →₀ ℕ) _) :=
-subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
-
-variable {α}
-
-/-! Declarations about subtraction on `finsupp` with codomain a `canonically_ordered_add_monoid`.
-
-Some of these lemmas are used to develop the partial derivative on `mv_polynomial`. -/
-section nat_sub
-section canonically_ordered_monoid
-
-instance [canonically_ordered_add_monoid M] : order_bot (α →₀ M) :=
-{ bot := 0,
-  bot_le := by simp [finsupp.le_def] }
-
-variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
-
-/-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
-additive group. -/
-instance tsub : has_sub (α →₀ M) :=
-⟨zip_with (λ m n, m - n) (tsub_self 0)⟩
-
-@[simp] lemma coe_tsub (g₁ g₂ : α →₀ M) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
-
-lemma tsub_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
-
-instance : canonically_ordered_add_monoid (α →₀ M) :=
-{ le_iff_exists_add := begin
-      intros f g,
-      split,
-      { intro H, use g - f, ext x, symmetry, exact add_tsub_cancel_of_le (H x) },
-      { rintro ⟨g, rfl⟩ x, exact self_le_add_right (f x) (g x) }
-    end,
- ..finsupp.order_bot,
- ..(by apply_instance : ordered_add_comm_monoid (α →₀ M)) }
-
-instance : has_ordered_sub (α →₀ M) :=
-⟨λ n m k, forall_congr $ λ x, tsub_le_iff_right⟩
-
-@[simp] lemma single_tsub {a : α} {n₁ n₂ : M} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
-begin
-  ext f,
-  by_cases h : (a = f),
-  { rw [h, tsub_apply, single_eq_same, single_eq_same, single_eq_same] },
-  rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, tsub_self]
-end
-
-lemma support_tsub {f1 f2 : α →₀ M} : (f1 - f2).support ⊆ f1.support :=
-by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
-    not_imp_not, zero_le, implies_true_iff] {contextual := tt}
-
-lemma subset_support_tsub {f1 f2 : α →₀ M} : f1.support \ f2.support ⊆ (f1 - f2).support :=
-by simp [subset_iff] {contextual := tt}
-
-end canonically_ordered_monoid
-
-/-! Some lemmas specifically about `ℕ`. -/
-
-lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
-  u - single a 1 + u' = u + u' - single a 1 :=
-tsub_add_eq_add_tsub $ single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h
-
-lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
-  u + (u' - single a 1) = u + u' - single a 1 :=
-(add_tsub_assoc_of_le (single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h) _).symm
-
-end nat_sub
-
-end finsupp
-
-namespace multiset
-
-lemma to_finsuppstrict_mono : strict_mono (@to_finsupp α) :=
-finsupp.order_iso_multiset.symm.strict_mono
-
-end multiset
-
 section cast_finsupp
 variables [has_zero M] (f : α →₀ M)
 

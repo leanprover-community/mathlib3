@@ -262,6 +262,9 @@ lemma mem_closed_ball_iff_norm {g h : E} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
 
+@[simp] lemma mem_closed_ball_zero_iff {ε : ℝ} {x : E} : x ∈ closed_ball (0 : E) ε ↔ ∥x∥ ≤ ε :=
+by rw [mem_closed_ball, dist_zero_right]
+
 lemma add_mem_closed_ball_iff_norm {g h : E} {r : ℝ} :
   g + h ∈ closed_ball g r ↔ ∥h∥ ≤ r :=
 by rw [mem_closed_ball_iff_norm, add_sub_cancel']
@@ -296,14 +299,14 @@ lemma bounded_iff_forall_norm_le {s : set E} : bounded s ↔ ∃ C, ∀ x ∈ s,
 by simpa only [set.subset_def, mem_closed_ball_iff_norm, sub_zero]
   using bounded_iff_subset_ball (0 : E)
 
-lemma preimage_add_ball (x y : E) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
+@[simp] lemma preimage_add_ball (x y : E) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
 begin
   ext z,
   simp only [dist_eq_norm, set.mem_preimage, mem_ball],
   abel
 end
 
-lemma preimage_add_closed_ball (x y : E) (r : ℝ) :
+@[simp] lemma preimage_add_closed_ball (x y : E) (r : ℝ) :
   ((+) y) ⁻¹' (closed_ball x r) = closed_ball (x - y) r :=
 begin
   ext z,
@@ -539,6 +542,9 @@ notation `∥`e`∥₊` := nnnorm e
 instance semi_normed_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨norm a, norm_nonneg a⟩⟩
 
 @[simp, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
+
+lemma norm_to_nnreal {a : E} : ∥a∥.to_nnreal = ∥a∥₊ :=
+@real.to_nnreal_coe ∥a∥₊
 
 lemma nndist_eq_nnnorm (a b : E) : nndist a b = ∥a - b∥₊ := nnreal.eq $ dist_eq_norm _ _
 

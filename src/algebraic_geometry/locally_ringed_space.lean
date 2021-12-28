@@ -53,6 +53,8 @@ def to_Top : Top := X.1.carrier
 instance : has_coe_to_sort LocallyRingedSpace (Type u) :=
 ⟨λ X : LocallyRingedSpace, (X.to_Top : Type u)⟩
 
+instance (x : X) : _root_.local_ring (X.to_PresheafedSpace.stalk x) := X.local_ring x
+
 -- PROJECT: how about a typeclass "has_structure_sheaf" to mediate the 𝒪 notation, rather
 -- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.
 
@@ -119,11 +121,16 @@ instance : category LocallyRingedSpace :=
   assoc' := by { intros, ext1, simp, }, }.
 
 /-- The forgetful functor from `LocallyRingedSpace` to `SheafedSpace CommRing`. -/
-def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
+@[simps] def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 { obj := λ X, X.to_SheafedSpace,
   map := λ X Y f, f.1, }
 
 instance : faithful forget_to_SheafedSpace := {}
+
+/-- The forgetful functor from `LocallyRingedSpace` to `Top`. -/
+@[simps]
+def forget_to_Top : LocallyRingedSpace ⥤ Top :=
+forget_to_SheafedSpace ⋙ SheafedSpace.forget _
 
 @[simp] lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val = f.val ≫ g.val := rfl
@@ -230,9 +237,21 @@ begin
     exact (is_unit_map_iff (PresheafedSpace.stalk_map f.1 _) _).mp hy }
 end
 
+-- This actually holds for all ringed spaces with nontrivial stalks.
+@[simp] lemma basic_open_zero (X : LocallyRingedSpace) (U : opens X.carrier) :
+  X.to_RingedSpace.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
+begin
+  ext,
+  simp only [set.mem_empty_eq, topological_space.opens.empty_eq, topological_space.opens.mem_coe,
+    opens.coe_bot, iff_false, RingedSpace.basic_open, is_unit_zero_iff, set.mem_set_of_eq,
+    map_zero],
+  rintro ⟨⟨y, _⟩, h, e⟩,
+  exact @zero_ne_one (X.presheaf.stalk y) _ _ h,
+end
+
 instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)
   [hU : nonempty U] : nontrivial (X.presheaf.obj $ op U) :=
-(X.presheaf.germ hU.some).domain_nontrivial
+(X.to_PresheafedSpace.presheaf.germ hU.some).domain_nontrivial
 
 end LocallyRingedSpace
 

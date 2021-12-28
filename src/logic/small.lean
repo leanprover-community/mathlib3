@@ -76,10 +76,7 @@ small_map (equiv_shrink α).subtype_equiv_of_subtype'
 
 theorem small_of_injective {α : Type v} {β : Type w} [small.{u} β]
   (f : α → β) (hf : function.injective f) : small.{u} α :=
-begin
-  rw small_congr (equiv.of_injective f hf),
-  apply_instance,
-end
+small_map (equiv.of_injective f hf)
 
 theorem small_of_surjective {α : Type v} {β : Type w} [small.{u} α] (f : α → β)
   (hf : function.surjective f) : small.{u} β :=
@@ -119,7 +116,7 @@ instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β)
 instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 ⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
 
-theorem small_range {α : Type v} {β : Type w} (f : α → β) [small.{u} α] :
+instance small_range {α : Type v} {β : Type w} (f : α → β) [small.{u} α] :
   small.{u} (set.range f) :=
 small_of_surjective _ set.surjective_onto_range
 

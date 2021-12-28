@@ -174,7 +174,8 @@ lemma filter_lt_card (a : fin n) : (finset.univ.filter (λ j, a < j)).card = n -
 begin
   cases n,
   { simp },
-  { rw [filter_lt_eq_Ioi, card_Ioi, nat.sub.right_comm, nat.succ_sub_succ_eq_sub, nat.sub_zero] }
+  { rw [filter_lt_eq_Ioi, card_Ioi, tsub_tsub],
+    exact (add_tsub_add_eq_tsub_right _ 1 _).symm }
 end
 
 @[simp]

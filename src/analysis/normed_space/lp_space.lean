@@ -20,7 +20,7 @@ to the above definition; that is, `f` has finite support if `p = 0`, `summable (
 `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if `p = ∞`.
 
 The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy `mem_ℓp f p`. For
-`1 ≤ p`, the "norm" is genuinely a norm and (TODO) `lp` is a complete metric space.
+`1 ≤ p`, the "norm" is genuinely a norm and `lp` is a complete metric space.
 
 ## Main definitions
 
@@ -28,7 +28,15 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
   if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
   `p = ∞`
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
-  `Π i : α, E i`.
+  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure; also
+  equipped with `normed_space 𝕜` and `complete_space` instances under appropriate conditions
+
+## Main results
+
+* `mem_ℓp.of_exponent_ge`: For `q ≤ p`, a function which is `mem_ℓp` for `q` is also `mem_ℓp` for
+  `p`
+* `lp.mem_ℓp_of_tendsto`, `lp.norm_le_of_tendsto`: A pointwise limit of functions in `lp`, all with
+  `lp` norm `≤ C`, is itself in `lp` and has `lp` norm `≤ C`.
 
 ## Implementation
 
@@ -38,7 +46,6 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 ## TODO
 
 * Hölder's inequality
-* Completeness of `lp`
 * Equivalence with `pi_Lp`, for `α` finite
 * Equivalence with `measure_theory.Lp`, for `f : α → E` (i.e., functions rather than pi-types) and
   the counting measure on `α`
@@ -80,7 +87,7 @@ begin
   exact hf,
 end
 
-lemma mem_ℓp_gen' (hp : 0 < p.to_real) {C : ℝ} (hC : 0 ≤ C) {f : Π i, E i}
+lemma mem_ℓp_gen' (hp : 0 < p.to_real) {C : ℝ} {f : Π i, E i}
   (hf : ∀ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real ≤ C) :
   mem_ℓp f p :=
 begin
@@ -670,8 +677,7 @@ begin
     refine norm_apply_le_of_tendsto (eventually_of_forall hCF) hf a, },
   { have : 0 < p := ennreal.zero_lt_one.trans_le _i.elim,
     have hp' : 0 < p.to_real := ennreal.to_real_pos this.ne' hp.ne,
-    have hC' : 0 ≤ C ^ p.to_real := real.rpow_nonneg_of_nonneg hC _,
-    apply mem_ℓp_gen' hp' hC',
+    apply mem_ℓp_gen' hp',
     exact sum_rpow_le_of_tendsto hp.ne hC (eventually_of_forall hCF) hf },
 end
 

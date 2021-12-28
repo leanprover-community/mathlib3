@@ -260,6 +260,10 @@ by simp [lt_iff_coe_lt_coe]
 lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ (i : ℕ) < n) : i = last n :=
 le_antisymm (le_last i) (not_lt.1 h)
 
+lemma last_eq_top (n : ℕ) : fin.last n = ⊤ := rfl
+
+lemma zero_eq_bot (n : ℕ) : (0 : fin (n + 1)) = ⊥ := rfl
+
 section
 
 variables {α : Type*} [preorder α]

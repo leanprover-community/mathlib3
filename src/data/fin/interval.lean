@@ -20,10 +20,6 @@ instance : locally_finite_order (fin n) := subtype.locally_finite_order _
 
 namespace fin
 
-lemma last_eq_top (n : ℕ) : fin.last n = ⊤ := rfl
-
-lemma zero_eq_bot (n : ℕ) : (0 : fin (n + 1)) = ⊥ := rfl
-
 section bounded
 variables {n} (a b : fin n)
 

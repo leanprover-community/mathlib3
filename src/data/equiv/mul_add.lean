@@ -243,6 +243,10 @@ protected lemma congr_arg {f : mul_equiv M N} : Π {x x' : M}, x = x' → f x = 
 @[to_additive]
 protected lemma congr_fun {f g : mul_equiv M N} (h : f = g) (x : M) : f x = g x := h ▸ rfl
 
+@[to_additive]
+instance : mul_hom_class (M ≃* N) M N :=
+⟨coe_fn, λ e₁ e₂ h, ext $ congr_fun h, map_mul⟩
+
 /-- The `mul_equiv` between two monoids with a unique element. -/
 @[to_additive "The `add_equiv` between two add_monoids with a unique element."]
 def mul_equiv_of_unique_of_unique {M N}
@@ -276,7 +280,7 @@ lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x
 
 @[to_additive]
 instance {M N} [mul_one_class M] [mul_one_class N] : monoid_hom_class (M ≃* N) M N :=
-⟨coe_fn, λ e₁ e₂ h, ext $ congr_fun h, map_mul, map_one⟩
+{ map_one := map_one, .. mul_equiv.mul_hom_class }
 
 /-- A bijective `monoid` homomorphism is an isomorphism -/
 @[to_additive "A bijective `add_monoid` homomorphism is an isomorphism"]

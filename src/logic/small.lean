@@ -79,10 +79,7 @@ small_map (equiv_shrink α).subtype_equiv_of_subtype'
 
 theorem small_of_injective {α : Type v} {β : Type w} [small.{u} β]
   (f : α → β) (hf : function.injective f) : small.{u} α :=
-begin
-  rw small_congr (equiv.of_injective f hf),
-  apply_instance,
-end
+small_map (equiv.of_injective f hf)
 
 theorem small_of_surjective {α : Type v} {β : Type w} [small.{u} α] (f : α → β)
   (hf : function.surjective f) : small.{u} β :=

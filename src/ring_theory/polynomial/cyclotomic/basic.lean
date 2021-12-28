@@ -587,7 +587,11 @@ begin
   simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
 end
 
-/-- If `p ^ k` is prime power, then `cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p`. -/
+lemma cyclotomic_prime_mul_X_sub_one (R : Type*) [comm_ring R] (p : ℕ) [hn : fact (nat.prime p)] :
+  (cyclotomic p R) * (X - 1) = X ^ p - 1 :=
+by rw [cyclotomic_eq_geom_sum hn.out, geom_sum_mul]
+
+/-- If `p ^ k` is a prime power, then `cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p`. -/
 lemma cyclotomic_prime_pow_eq_geom_sum {R : Type*} [comm_ring R] {p n : ℕ} (hp : nat.prime p) :
   cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p :=
 begin

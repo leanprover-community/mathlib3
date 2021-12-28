@@ -123,28 +123,28 @@ section filter
 
 variables (a b) [fintype α]
 
-lemma filter_eq_Ioo [decidable_pred (λ (j : α), a < j ∧ j < b)] :
+lemma filter_lt_lt_eq_Ioo [decidable_pred (λ (j : α), a < j ∧ j < b)] :
   finset.univ.filter (λ j, a < j ∧ j < b) = Ioo a b := by { ext, simp }
 
-lemma filter_eq_Ioc [decidable_pred (λ (j : α), a < j ∧ j ≤ b)] :
+lemma filter_lt_le_eq_Ioc [decidable_pred (λ (j : α), a < j ∧ j ≤ b)] :
   finset.univ.filter (λ j, a < j ∧ j ≤ b) = Ioc a b := by { ext, simp }
 
-lemma filter_eq_Ico [decidable_pred (λ (j : α), a ≤ j ∧ j < b)] :
+lemma filter_le_lt_eq_Ico [decidable_pred (λ (j : α), a ≤ j ∧ j < b)] :
   finset.univ.filter (λ j, a ≤ j ∧ j < b) = Ico a b := by { ext, simp }
 
-lemma filter_eq_Icc [decidable_pred (λ (j : α), a ≤ j ∧ j ≤ b)] :
+lemma filter_le_le_eq_Icc [decidable_pred (λ (j : α), a ≤ j ∧ j ≤ b)] :
   finset.univ.filter (λ j, a ≤ j ∧ j ≤ b) = Icc a b := by { ext, simp }
 
 lemma filter_lt_eq_Ioi [order_top α] [decidable_pred ((<) a)] :
   finset.univ.filter (λ j, a < j) = Ioi a := by { ext, simp }
 
-lemma filter_eq_Ici [order_top α] [decidable_pred ((≤) a)] :
+lemma filter_le_eq_Ici [order_top α] [decidable_pred ((≤) a)] :
   finset.univ.filter (λ j, a ≤ j) = Ici a := by { ext, simp }
 
-lemma filter_eq_Iio [order_bot α] [decidable_pred (λ (j : α), j < a)] :
+lemma filter_gt_eq_Iio [order_bot α] [decidable_pred (λ (j : α), j < a)] :
   finset.univ.filter (λ j, j < a) = Iio a := by { ext, simp }
 
-lemma filter_eq_Iic [order_bot α] [decidable_pred (λ (j : α), j ≤ a)] :
+lemma filter_ge_eq_Iic [order_bot α] [decidable_pred (λ (j : α), j ≤ a)] :
   finset.univ.filter (λ j, j ≤ a) = Iic a := by { ext, simp }
 
 end filter

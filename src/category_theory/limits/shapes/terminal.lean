@@ -17,23 +17,23 @@ import category_theory.category.preorder
 
 noncomputable theory
 
-universes v u u₂
+universes w w' v v₁ v₂ u u₁ u₂
 
 open category_theory
 
 namespace category_theory.limits
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C]
 
 /-- Construct a cone for the empty diagram given an object. -/
-@[simps] def as_empty_cone (X : C) : cone (functor.empty C) := { X := X, π := by tidy }
+@[simps] def as_empty_cone (X : C) : cone (functor.empty.{w} C) := { X := X, π := by tidy }
 /-- Construct a cocone for the empty diagram given an object. -/
-@[simps] def as_empty_cocone (X : C) : cocone (functor.empty C) := { X := X, ι := by tidy }
+@[simps] def as_empty_cocone (X : C) : cocone (functor.empty.{w} C) := { X := X, ι := by tidy }
 
 /-- `X` is terminal if the cone it induces on the empty diagram is limiting. -/
-abbreviation is_terminal (X : C) := is_limit (as_empty_cone X)
+abbreviation is_terminal (X : C) := is_limit (as_empty_cone.{w} X)
 /-- `X` is initial if the cocone it induces on the empty diagram is colimiting. -/
-abbreviation is_initial (X : C) := is_colimit (as_empty_cocone X)
+abbreviation is_initial (X : C) := is_colimit (as_empty_cocone.{w} X)
 
 /-- An object `Y` is terminal if for every `X` there is a unique morphism `X ⟶ Y`. -/
 def is_terminal.of_unique (Y : C) [h : Π X : C, unique (X ⟶ Y)] : is_terminal Y :=
@@ -127,25 +127,61 @@ variable (C)
 A category has a terminal object if it has a limit over the empty diagram.
 Use `has_terminal_of_unique` to construct instances.
 -/
-abbreviation has_terminal := has_limits_of_shape (discrete pempty : Type v) C
+abbreviation has_terminal := has_limits_of_shape (discrete.{w} pempty) C
 /--
 A category has an initial object if it has a colimit over the empty diagram.
 Use `has_initial_of_unique` to construct instances.
 -/
-abbreviation has_initial := has_colimits_of_shape (discrete pempty : Type v) C
+abbreviation has_initial := has_colimits_of_shape (discrete.{w} pempty) C
+
+/-- Being terminal is independent of the universe of the (empty) indexing category:
+    if an object is terminal with the (empty) indexing category in some universe,
+    it is also terminal with the indexing category in any universe. -/
+def is_terminal_universes (X : C) (h : is_terminal.{w} X) : is_terminal.{w'} X :=
+{ lift := λ c, h.lift (as_empty_cone c.X),
+  fac' := λ _ j, j.elim,
+  uniq' := λ c _ _, h.uniq (as_empty_cone c.X) _ (λ j, j.elim) }
+
+/-- Independence of universe as an equivalence. -/
+def is_terminal_universes_equiv (X : C) : is_terminal.{w} X ≃ is_terminal.{w'} X :=
+{ to_fun := is_terminal_universes C X,
+  inv_fun := is_terminal_universes C X,
+  left_inv := by tidy,
+  right_inv := by tidy }
+
+instance has_terminal_universes [has_terminal.{w} C] : has_terminal.{w'} C :=
+by { apply @has_limits_of_shape_of_equivalence (discrete.{w} pempty),
+  apply functor.empty_equivalence }
+
+/-- Being initial is independent of the universe of the (empty) indexing category. -/
+def is_initial_universes (X : C) (h : is_initial.{w} X) : is_initial.{w'} X :=
+{ desc := λ c, h.desc (as_empty_cocone c.X),
+  fac' := λ _ j, j.elim,
+  uniq' := λ c _ _, h.uniq (as_empty_cocone c.X) _ (λ j, j.elim) }
+
+/-- Independence of universe as an equivalence. -/
+def is_initial_universes_equiv (X : C) : is_initial.{w} X ≃ is_initial.{w'} X :=
+{ to_fun := is_initial_universes C X,
+  inv_fun := is_initial_universes C X,
+  left_inv := by tidy,
+  right_inv := by tidy }
+
+instance has_initial_universes [has_initial.{w} C] : has_initial.{w'} C :=
+by { apply @has_colimits_of_shape_of_equivalence (discrete.{w} pempty),
+  apply functor.empty_equivalence }
 
 /--
 An arbitrary choice of terminal object, if one exists.
 You can use the notation `⊤_ C`.
 This object is characterized by having a unique morphism from any object.
 -/
-abbreviation terminal [has_terminal C] : C := limit (functor.empty C)
+abbreviation terminal [has_terminal C] : C := limit (functor.empty.{v₁} C)
 /--
 An arbitrary choice of initial object, if one exists.
 You can use the notation `⊥_ C`.
 This object is characterized by having a unique morphism to any object.
 -/
-abbreviation initial [has_initial C] : C := colimit (functor.empty C)
+abbreviation initial [has_initial C] : C := colimit (functor.empty.{v₁} C)
 
 notation `⊤_ ` C:20 := terminal C
 notation `⊥_ ` C:20 := initial C
@@ -233,13 +269,13 @@ to terminal is a monomorphism, which is the second of Freyd's axioms for an AT c
 
 TODO: This is a condition satisfied by categories with zero objects and morphisms.
 -/
-class initial_mono_class (C : Type u) [category.{v} C] : Prop :=
+class initial_mono_class (C : Type u₁) [category.{v₁} C] : Prop :=
 (is_initial_mono_from : ∀ {I} (X : C) (hI : is_initial I), mono (hI.to X))
 
 lemma is_initial.mono_from [initial_mono_class C] {I} {X : C} (hI : is_initial I) (f : I ⟶ X) :
   mono f :=
 begin
-  rw hI.hom_ext f (hI.to X),
+  rw hI.hom_ext f ((is_initial_universes _ _ hI).to X),
   apply initial_mono_class.is_initial_mono_from,
 end
 
@@ -279,7 +315,7 @@ lemma initial_mono_class.of_terminal [has_initial C] [has_terminal C]
 initial_mono_class.of_is_terminal initial_is_initial terminal_is_terminal h
 
 section comparison
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v₂} D] (G : C ⥤ D)
 
 /--
 The comparison morphism from the image of a terminal object to the terminal object in the target
@@ -302,7 +338,7 @@ initial.to _
 
 end comparison
 
-variables {J : Type v} [small_category J]
+variables {J : Type u} [category.{v} J]
 
 /-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
 In `limit_of_diagram_initial` we show it is a limit cone. -/

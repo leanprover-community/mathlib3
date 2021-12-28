@@ -32,7 +32,7 @@ open category_theory
 open category_theory.functor
 open category_theory.limits
 
-universes u₁ u₂ v₁ v₂ v v₀
+universes v₁ v₂ v v₀ u₁ u₂ u
 
 section arbitrary_universe
 
@@ -42,7 +42,7 @@ variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
 include adj
 
 section preservation_colimits
-variables {J : Type v} [category J] (K : J ⥤ C)
+variables {J : Type u} [category.{v} J] (K : J ⥤ C)
 
 /--
 The right adjoint of `cocones.functoriality K F : cocone K ⥤ cocone (K ⋙ F)`.
@@ -143,6 +143,11 @@ lemma has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_coli
 lemma has_colimits_of_shape_of_equivalence (E : C ⥤ D) [is_equivalence E]
   [has_colimits_of_shape J D] : has_colimits_of_shape J C :=
 ⟨λ F, by exactI has_colimit_of_comp_equivalence F E⟩
+
+/-- Transport a `has_colimits` instance across an equivalence. -/
+lemma has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits_of_size.{v u} D] :
+  has_colimits_of_size.{v u} C :=
+⟨λ J hJ, by { exactI has_colimits_of_shape_of_equivalence E }⟩
 
 end preservation_colimits
 
@@ -249,6 +254,11 @@ lemma has_limits_of_shape_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_l
   has_limits_of_shape J D :=
 ⟨λ F, by exactI has_limit_of_comp_equivalence F E⟩
 
+/-- Transport a `has_limits` instance across an equivalence. -/
+lemma has_limits_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits_of_size.{v u} C] :
+  has_limits_of_size.{v u} D :=
+⟨λ J hJ, by exactI has_limits_of_shape_of_equivalence E⟩
+
 end preservation_limits
 
 /-- auxiliary construction for `cocones_iso` -/
@@ -306,7 +316,7 @@ is naturally isomorphic to
 the functor associating to each `Y` the cocones over `K` with cone point `G.obj Y`.
 -/
 -- Note: this is natural in K, but we do not yet have the tools to formulate that.
-def cocones_iso {J : Type v} [category J] {K : J ⥤ C} :
+def cocones_iso {J : Type u} [category.{v} J] {K : J ⥤ C} :
   (cocones J D).obj (op (K ⋙ F)) ≅ G ⋙ (cocones J C).obj (op K) :=
 nat_iso.of_components (λ Y,
 { hom := cocones_iso_component_hom adj Y,
@@ -320,21 +330,11 @@ the functor associating to each `X` the cones over `K` with cone point `F.op.obj
 is naturally isomorphic to
 the functor associating to each `X` the cones over `K ⋙ G` with cone point `X`.
 -/
-def cones_iso {J : Type v} [category J] {K : J ⥤ D} :
+def cones_iso {J : Type u} [category.{v} J] {K : J ⥤ D} :
   F.op ⋙ (cones J D).obj K ≅ (cones J C).obj (K ⋙ G) :=
 nat_iso.of_components (λ X,
 { hom := cones_iso_component_hom adj X,
   inv := cones_iso_component_inv adj X, } )
 (by tidy)
-
-/-- Transport a `has_colimits` instance across an equivalence. -/
-lemma has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits D] :
-  has_colimits C :=
-⟨λ J hJ, by { exactI has_colimits_of_shape_of_equivalence E }⟩
-
-/-- Transport a `has_limits` instance across an equivalence. -/
-lemma has_limits_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits C] :
-  has_limits D :=
-⟨λ J hJ, by exactI has_limits_of_shape_of_equivalence E⟩
 
 end category_theory.adjunction

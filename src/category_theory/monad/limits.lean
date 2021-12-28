@@ -25,14 +25,14 @@ namespace category_theory
 open category
 open category_theory.limits
 
-universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v u₁ u₂ u -- morphism levels before object levels. See note [category_theory universes].
 
 namespace monad
 
 variables {C : Type u₁} [category.{v₁} C]
 variables {T : monad C}
 
-variables {J : Type v₁} [small_category J]
+variables {J : Type u} [category.{v} J]
 
 namespace forget_creates_limits
 
@@ -95,7 +95,7 @@ end forget_creates_limits
 -- Theorem 5.6.5 from [Riehl][riehl2017]
 /-- The forgetful functor from the Eilenberg-Moore category creates limits. -/
 noncomputable
-instance forget_creates_limits : creates_limits (forget T) :=
+instance forget_creates_limits : creates_limits_of_size (forget T) :=
 { creates_limits_of_shape := λ J 𝒥, by exactI
   { creates_limit := λ D,
     creates_limit_of_reflects_iso (λ c t,
@@ -238,8 +238,8 @@ instance forget_creates_colimits_of_shape
 
 noncomputable
 instance forget_creates_colimits
-  [preserves_colimits (T : C ⥤ C)] :
-  creates_colimits (forget T) :=
+  [preserves_colimits_of_size.{v u} (T : C ⥤ C)] :
+  creates_colimits_of_size.{v u} (forget T) :=
 { creates_colimits_of_shape := λ J 𝒥₁, by apply_instance }
 
 /--
@@ -253,8 +253,8 @@ has_colimit_of_created D (forget T)
 
 end monad
 
-variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
-variables {J : Type v₁} [small_category J]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+variables {J : Type u} [category.{v} J]
 
 instance comp_comparison_forget_has_limit
   (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit (F ⋙ R)] :
@@ -270,7 +270,7 @@ monad.has_limit_of_comp_forget_has_limit (F ⋙ monad.comparison (adjunction.of_
 /-- Any monadic functor creates limits. -/
 noncomputable
 def monadic_creates_limits (R : D ⥤ C) [monadic_right_adjoint R] :
-  creates_limits R :=
+  creates_limits_of_size.{v u} R :=
 creates_limits_of_nat_iso (monad.comparison_forget (adjunction.of_right_adjoint R))
 
 /--
@@ -312,7 +312,7 @@ end
 /-- A monadic functor creates colimits if it preserves colimits. -/
 noncomputable
 def monadic_creates_colimits_of_preserves_colimits (R : D ⥤ C) [monadic_right_adjoint R]
-  [preserves_colimits R] : creates_colimits R :=
+  [preserves_colimits_of_size.{v u} R] : creates_colimits_of_size.{v u} R :=
 { creates_colimits_of_shape := λ J 𝒥₁,
     by exactI monadic_creates_colimits_of_shape_of_preserves_colimits_of_shape _ }
 
@@ -320,7 +320,7 @@ section
 
 lemma has_limit_of_reflective (F : J ⥤ D) (R : D ⥤ C) [has_limit (F ⋙ R)] [reflective R] :
   has_limit F :=
-by { haveI := monadic_creates_limits R, exact has_limit_of_created F R }
+by { haveI := monadic_creates_limits.{_ _ v _ _ u} R, exact has_limit_of_created F R }
 
 /-- If `C` has limits of shape `J` then any reflective subcategory has limits of shape `J`. -/
 lemma has_limits_of_shape_of_reflective [has_limits_of_shape J C] (R : D ⥤ C) [reflective R] :
@@ -328,7 +328,8 @@ lemma has_limits_of_shape_of_reflective [has_limits_of_shape J C] (R : D ⥤ C) 
 { has_limit := λ F, has_limit_of_reflective F R }
 
 /-- If `C` has limits then any reflective subcategory has limits. -/
-lemma has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
+lemma has_limits_of_reflective (R : D ⥤ C) [has_limits_of_size.{v u} C] [reflective R] :
+  has_limits_of_size.{v u} D :=
 { has_limits_of_shape := λ J 𝒥₁, by exactI has_limits_of_shape_of_reflective R }
 
 /-- If `C` has colimits of shape `J` then any reflective subcategory has colimits of shape `J`. -/
@@ -345,9 +346,12 @@ begin
 end }
 
 /-- If `C` has colimits then any reflective subcategory has colimits. -/
-lemma has_colimits_of_reflective (R : D ⥤ C) [reflective R] [has_colimits C] :
-  has_colimits D :=
+lemma has_colimits_of_reflective (R : D ⥤ C) [reflective R] [has_colimits_of_size.{v u} C] :
+  has_colimits_of_size.{v u} D :=
 { has_colimits_of_shape := λ J 𝒥, by exactI has_colimits_of_shape_of_reflective R }
+
+
+#set_option pp.universes true
 
 /--
 The reflector always preserves terminal objects. Note this in general doesn't apply to any other
@@ -358,14 +362,16 @@ noncomputable def left_adjoint_preserves_terminal_of_reflective
   preserves_limits_of_shape (discrete.{v₁} pempty) (left_adjoint R) :=
 { preserves_limit := λ K,
   begin
-    letI : has_terminal D := has_limits_of_shape_of_reflective R,
-    letI := monadic_creates_limits R,
+    --haveI : has_limits_of_shape (discrete.{v₂} pempty) C,
+    --{ apply (has_terminal_iff_has_limits_of_shape_empty _).1, apply_instance },
+    haveI : has_limits_of_shape (discrete.{v₁} pempty) D := has_limits_of_shape_of_reflective R,
+    letI := monadic_creates_limits.{_ _ v₁ _ _ v₁} R,
     letI := category_theory.preserves_limit_of_creates_limit_and_has_limit (functor.empty _) R,
-    letI : preserves_limit (functor.empty _) (left_adjoint R),
+    letI : preserves_limit (functor.empty _) (left_adjoint R), swap,
+    apply preserves_limit_of_iso_diagram (left_adjoint R) (functor.unique_from_empty _).symm,
     { apply preserves_terminal_of_iso,
       apply _ ≪≫ as_iso ((adjunction.of_right_adjoint R).counit.app (⊤_ D)),
       apply (left_adjoint R).map_iso (preserves_terminal.iso R).symm },
-    apply preserves_limit_of_iso_diagram (left_adjoint R) (functor.unique_from_empty.{v₁} _).symm,
   end }
 
 end

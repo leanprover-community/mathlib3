@@ -16,14 +16,14 @@ In particular, we show that `terminal_comparison G` is an isomorphism iff `G` pr
 objects.
 -/
 
-universes v u₁ u₂
+universes v v₁ v₂ u u₁ u₂
 
 noncomputable theory
 
 open category_theory category_theory.category category_theory.limits
 
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
 
 namespace category_theory.limits
@@ -37,26 +37,26 @@ The map of an empty cone is a limit iff the mapped object is terminal.
 -/
 def is_limit_map_cone_empty_cone_equiv :
   is_limit (G.map_cone (as_empty_cone X)) ≃ is_terminal (G.obj X) :=
-(is_limit.postcompose_hom_equiv (functor.empty_ext.{v} _ _) _).symm.trans
+(is_limit.postcompose_hom_equiv (functor.empty_ext _ _) _).symm.trans
   (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by tidy)))
 
 /-- The property of preserving terminal objects expressed in terms of `is_terminal`. -/
-def is_terminal.is_terminal_obj [preserves_limit (functor.empty C) G]
+def is_terminal.is_terminal_obj [preserves_limit (functor.empty.{v} C) G]
   (l : is_terminal X) : is_terminal (G.obj X) :=
-is_limit_map_cone_empty_cone_equiv G X (preserves_limit.preserves l)
+is_limit_map_cone_empty_cone_equiv G X (preserves_limit.preserves.{v} l)
 
 /-- The property of reflecting terminal objects expressed in terms of `is_terminal`. -/
-def is_terminal.is_terminal_of_obj [reflects_limit (functor.empty C) G]
+def is_terminal.is_terminal_of_obj [reflects_limit (functor.empty.{v} C) G]
   (l : is_terminal (G.obj X)) : is_terminal X :=
-reflects_limit.reflects ((is_limit_map_cone_empty_cone_equiv G X).symm l)
+reflects_limit.reflects.{v} ((is_limit_map_cone_empty_cone_equiv G X).symm l)
 
 variables [has_terminal C]
 /--
 If `G` preserves the terminal object and `C` has a terminal object, then the image of the terminal
 object is terminal.
 -/
-def is_limit_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty C) G] :
-  is_terminal (G.obj (⊤_ C)) :=
+def is_limit_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty.{v₁} C) G] :
+  is_terminal.{v₁} (G.obj (⊤_ C)) :=
 terminal_is_terminal.is_terminal_obj G (⊤_ C)
 
 /--

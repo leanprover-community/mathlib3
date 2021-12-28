@@ -766,14 +766,10 @@ end
 lemma dvd_not_unit.not_associated [cancel_comm_monoid_with_zero α] {p q : α}
   (h : dvd_not_unit p q) : ¬ associated p q :=
 begin
-  by_contra hcontra,
-  rw dvd_not_unit at h,
+  rintro ⟨a, rfl⟩,
   obtain ⟨hp, x, hx, hx'⟩ := h,
-  apply hx,
-  obtain ⟨a, rfl⟩ := hcontra,
-  rw mul_eq_mul_left_iff at hx',
-  rw ← or.resolve_right hx' hp,
-  exact units.is_unit a,
+  rcases (mul_right_inj' hp).mp hx' with rfl,
+  exact hx a.is_unit,
 end
 
 lemma dvd_not_unit_of_dvd_not_unit_associated [cancel_comm_monoid_with_zero α]

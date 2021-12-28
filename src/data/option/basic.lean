@@ -72,7 +72,7 @@ theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a 
 option.some.inj $ ha.symm.trans hb
 
 theorem eq_of_mem_of_mem {a : α} {o1 o2 : option α} (h1 : a ∈ o1) (h2 : a ∈ o2) : o1 = o2 :=
-by { rw option.mem_def at *, exact eq.trans h1 h2.symm }
+h1.trans h2.symm
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
 λ a o b, mem_unique

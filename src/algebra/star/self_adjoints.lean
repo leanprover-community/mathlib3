@@ -10,7 +10,17 @@ import group_theory.subgroup.basic
 /-!
 # Self-adjoint elements of a star additive group
 
-FIXME
+This file defines `self_adjoints R`, where `R` is a star additive monoid, as the additive subgroup
+containing the elements that satisfy `star x = x`. This includes, for instance, Hermitian
+operators on Hilbert spaces.
+
+## TODO
+
+* If `R` is a `star_module R₂ R`, put a module structure on `self_adjoints R`. This would naturally
+be a `module (self_adjoints R₂) (self_adjoints R)`, but doing this literally would be undesirable
+since in the main case of interest (`R₂ = ℂ`) we want `module ℝ (self_adjoints R)` and not
+`module (self_adjoints ℂ) (self_adjoints R)`.
+
 -/
 
 variables {R : Type*}

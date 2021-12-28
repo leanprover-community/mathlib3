@@ -10,6 +10,7 @@ import algebra.invertible
 import data.nat.factorization
 import analysis.special_functions.log
 import analysis.special_functions.pow
+import data.nat.mul_ind
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution
@@ -885,6 +886,34 @@ begin
       units.coe_hom_apply, units.coe_zpow₀, units.coe_mk0] }
 end
 
+example {α : Type*} [decidable_eq α] {l₁ l₂ : list α} (h : l₁ ~ l₂) :
+  l₁.to_finset = l₂.to_finset :=
+begin
+  apply list.to_finset_eq_of_perm _ _ h,
+end
+
+lemma is_multiplicative.eq_prod_prime_powers
+  {n : ℕ} [comm_monoid_with_zero R] {f : arithmetic_function R} (hf : f.is_multiplicative) :
+  n ≠ 0 → f n = ∏ p in n.factors.to_finset, f (p ^ n.factors.count p) :=
+begin
+  refine nat.rec_on_pos_prime_coprime _ _ _ _ n,
+  { intros p k hp hk hpk,
+    rw [nat.prime_pow_prime_divisor hk hp, prod_singleton, hp.factors_pow, list.count_repeat] },
+  { simp },
+  { simp [hf] },
+  { intros a b hab ha hb hab',
+    simp only [nat.mul_eq_zero, ne.def, not_or_distrib] at hab',
+    rw [hf.map_mul_of_coprime hab, ha hab'.1, hb hab'.2,
+      list.to_finset_eq_of_perm _ _ (perm_factors_mul_of_coprime hab), list.to_finset_append,
+      finset.prod_union (list.disjoint_to_finset_iff_disjoint.2 (coprime_factors_disjoint hab))],
+    congr' 1;
+    { apply prod_congr rfl,
+      intros p hp,
+      simp only [list.mem_to_finset] at hp,
+      simp only [factors_count_eq_of_coprime_left hab hp] <|>
+        simp only [factors_count_eq_of_coprime_right hab hp] } }
+end
+
 end special_functions
 
 def is_prime_power (n : ℕ) : Prop :=
@@ -925,7 +954,7 @@ end
 noncomputable def von_mangoldt : arithmetic_function ℝ :=
 ⟨λ n, if is_prime_power n then real.log (min_fac n) else 0, if_neg not_is_prime_power_zero⟩
 
-localized "notation `Λ` := von_mangoldt" in arithmetic_function
+localized "notation `Λ` := nat.arithmetic_function.von_mangoldt" in arithmetic_function
 
 lemma von_mangoldt_apply {n : ℕ} :
   Λ n = if is_prime_power n then real.log (min_fac n) else 0 := rfl
@@ -993,14 +1022,19 @@ begin
   apply prime.dvd_of_dvd_pow (min_fac_prime pk) (p^k).min_fac_dvd,
 end
 
-lemma prod_powers {n : ℕ} (hn : 0 < n) :
+lemma multiset.sum_eq {α β : Type*} [decidable_eq α] [add_comm_monoid β]
+  (m : finset α) (f : α → multiset β) :
+  ∑ i in m, f i = m.val.bind f :=
+rfl
+
+lemma prod_powers {n : ℕ} (hn : n ≠ 0) :
   ∏ p in n.factors.to_finset, p ^ n.factors.count p = n :=
 begin
-  have := congr_arg multiset.prod (n.factors : multiset ℕ).to_finset_sum_count_nsmul_eq,
-  change (multiset.bind _ _).prod = _ at this,
-  simp only [prod_factors hn, multiset.coe_count, multiset.prod_bind, multiset.coe_erase_dup,
-    multiset.coe_prod, multiset.nsmul_singleton, multiset.prod_repeat] at this,
-  exact this,
+  conv_rhs {rw ←prod_factors (nat.pos_of_ne_zero hn)},
+  rw [←multiset.coe_prod, ←(n.factors : multiset ℕ).to_finset_sum_count_nsmul_eq, multiset.sum_eq,
+    multiset.prod_bind],
+  simp only [multiset.coe_count, multiset.nsmul_singleton, multiset.prod_repeat],
+  refl
 end
 
 lemma log_prod_eq_sum_log {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
@@ -1018,20 +1052,17 @@ lemma thing {n : ℕ} :
 begin
   rcases n.eq_zero_or_pos with rfl | hn,
   { simp },
-  have : ∑ p in n.factors.to_finset, n.factors.count p • real.log p =
-    ∑ p in n.factors.to_finset, real.log (p ^ n.factors.count p),
-  { rw sum_congr rfl,
+  conv_rhs { rw ←prod_powers hn.ne' },
+  rw [nat.cast_prod, ←log_prod_eq_sum_log],
+  { apply sum_congr rfl,
     intros p hp,
-    simp only [_root_.nsmul_eq_mul],
-    rw [←real.log_rpow, real.rpow_nat_cast],
+    rw [nat.cast_pow, ←real.rpow_nat_cast, real.log_rpow, _root_.nsmul_eq_mul],
     rw nat.cast_pos,
     apply (prime_of_mem_factors (list.mem_to_finset.1 hp)).pos },
-  rw [this, log_prod_eq_sum_log],
-  { simp only [←nat.cast_pow, ←nat.cast_prod, prod_powers hn] },
   intros p hp,
-  apply pow_ne_zero,
   rw nat.cast_ne_zero,
-  apply (prime_of_mem_factors (list.mem_to_finset.1 hp)).pos.ne',
+  apply pow_ne_zero,
+  exact (prime_of_mem_factors (list.mem_to_finset.1 hp)).pos.ne',
 end
 
 lemma von_mangoldt_mul_zeta {n : ℕ} :
@@ -1059,7 +1090,7 @@ begin
       ∑ p in n.factors.to_finset, n.factors.count p • real.log p,
     { rw [sum_congr rfl (λ p hp, _)],
       rw [card_image_of_injective, card_Ioc, tsub_zero],
-      apply pow_right_injective (prime_of_mem_factors (list.mem_to_finset.1 hp)).1 },
+      apply pow_right_injective (prime_of_mem_factors (list.mem_to_finset.1 hp)).two_le },
     rw this,
     rw thing },
   simp only [set.pairwise_disjoint, set.pairwise, mem_coe, list.mem_to_finset, ne.def,

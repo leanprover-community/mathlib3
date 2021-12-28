@@ -7,6 +7,7 @@ Authors: Bhavik Mehta, Thomas Bloom
 import data.real.basic
 import analysis.special_functions.log
 import order.filter.at_top_bot
+import number_theory.arithmetic_function
 
 /-!
 # Title
@@ -17,6 +18,15 @@ contains associated results useful for that paper.
 
 open_locale big_operators -- this lets me use ∑ and ∏ notation
 open filter real
+
+open_locale arithmetic_function
+
+lemma anyk_divisor_exact (n : ℕ) (K : ℝ) : (σ 0 n : ℝ) = ((n : ℝ) ^ (1 / K)) *
+  ∏ p in n.factors.to_finset,
+    (n.factors.count p + 1) / (p ^ ((n.factors.count p : ℝ) / K)) :=
+begin
+
+end
 
 /-- The statement of Bloom's theorem. -/
 theorem bloom :

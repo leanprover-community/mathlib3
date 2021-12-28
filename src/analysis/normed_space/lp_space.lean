@@ -279,7 +279,8 @@ with the normed group topology we will later equip it with.)
 We choose to deal with this issue by making a type synonym for `Π i, E i` rather than for the `lp`
 subgroup itself, because this allows all the spaces `lp E p` (for varying `p`) to be subgroups of
 the same ambient group, which permits lemma statements like `lp.monotone` (below). -/
-@[derive add_comm_group] def pre_lp (E : α → Type*) [Π i, normed_group (E i)] : Type* := Π i, E i
+@[derive add_comm_group, nolint unused_arguments]
+def pre_lp (E : α → Type*) [Π i, normed_group (E i)] : Type* := Π i, E i
 
 instance pre_lp.unique [is_empty α] : unique (pre_lp E) := pi.unique_of_is_empty E
 
@@ -582,10 +583,9 @@ end
 end normed_space
 
 section topology
-variables {F : ℕ → lp E p}
 
 open filter
-open_locale topological_space uniformity
+open_locale topological_space
 
 -- rework and move
 lemma foo [fact (1 ≤ p)] (hF : cauchy_seq F) {ε : ℝ} (hε : 0 < ε) :
@@ -620,6 +620,8 @@ begin
   have : ∥f i - g i∥ ≤ ∥f - g∥ := norm_apply_le_norm hp (f - g) i,
   exact this.trans_lt hfg,
 end
+
+variables {F : ℕ → lp E p}
 
 lemma norm_apply_le_of_tendsto {C : ℝ} {F : ℕ → lp E ∞} (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C)
   {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) (a : α) :

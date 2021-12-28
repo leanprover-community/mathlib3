@@ -756,11 +756,9 @@ end
 lemma is_unit_of_associated_mul [cancel_comm_monoid_with_zero α]
   {p b : α} (h : associated (p * b) p) (hp : p ≠ 0) : is_unit b :=
 begin
-  rw associated at h,
-  obtain ⟨a, ha⟩ := h,
-  conv_rhs at ha {rw ← mul_one p},
-  rw mul_assoc at ha,
-  apply is_unit_of_mul_eq_one b ↑a (mul_left_cancel₀ hp ha)
+  cases h with a ha,
+  refine is_unit_of_mul_eq_one b a ((mul_right_inj' hp).mp _),
+  rwa [← mul_assoc, mul_one],
 end
 
 lemma dvd_not_unit.not_associated [cancel_comm_monoid_with_zero α] {p q : α}

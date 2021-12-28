@@ -587,38 +587,6 @@ variables {F : ℕ → lp E p}
 open filter
 open_locale topological_space uniformity
 
--- move this
-lemma normed_group.uniformity_basis_dist {α : Type*} [normed_group α] :
-  (𝓤 α).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), {p : α × α | ∥p.fst - p.snd∥ < ε}) :=
-begin
-  convert metric.uniformity_basis_dist,
-  simp [dist_eq_norm]
-end
-
--- move this
-lemma _root_.cauchy_seq.cauchy_map_cofinite {α : Type*} [uniform_space α] {u : ℕ → α} (hu : cauchy_seq u) :
-  cauchy (filter.map u cofinite) :=
-begin
-  rw nat.cofinite_eq_at_top,
-  exact hu,
-end
-
--- move this
-lemma _root_.cauchy_seq.bounded {α : Type*} [pseudo_metric_space α] {u : ℕ → α} (hu : cauchy_seq u) :
-  metric.bounded (set.range u) :=
-metric.bounded_range_of_cauchy_map_cofinite hu.cauchy_map_cofinite
-
--- move this
-lemma _root_.metric.bounded.exists_norm_le' {E : Type*} [semi_normed_group E] {s : set E}
-  (hs : metric.bounded s) :
-  ∃ R ≥ 0, ∀ x ∈ s, ∥x∥ ≤ R :=
-begin
-  obtain ⟨R₀, hR₀⟩ := hs.exists_norm_le,
-  refine ⟨max R₀ 0, le_max_right _ _, _⟩,
-  intros x hx,
-  exact (hR₀ x hx).trans (le_max_left _ _),
-end
-
 -- rework and move
 lemma foo [fact (1 ≤ p)] (hF : cauchy_seq F) {ε : ℝ} (hε : 0 < ε) :
   ∀ᶠ k in at_top, ∀ᶠ l in at_top, ∥F l - F k∥ < ε :=

@@ -1803,6 +1803,9 @@ lemma bounded_range_of_tendsto_cofinite {f : β → α} {a : α} (hf : tendsto f
 bounded_range_of_tendsto_cofinite_uniformity $
   (hf.prod_map hf).mono_right $ nhds_prod_eq.symm.trans_le (nhds_le_uniformity a)
 
+lemma _root_.cauchy_seq.bounded {u : ℕ → α} (hu : cauchy_seq u) : metric.bounded (set.range u) :=
+metric.bounded_range_of_cauchy_map_cofinite hu.cauchy_map_cofinite
+
 /-- In a compact space, all sets are bounded -/
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
 compact_univ.bounded.mono (subset_univ _)

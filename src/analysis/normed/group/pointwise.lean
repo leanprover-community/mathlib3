@@ -26,6 +26,15 @@ by simp [subset_def, bounded_iff_subset_ball (0 : E)]
 
 alias bounded_iff_exists_norm_le ↔ metric.bounded.exists_norm_le _
 
+lemma metric.bounded.exists_norm_le' {s : set E} (hs : metric.bounded s) :
+  ∃ R ≥ 0, ∀ x ∈ s, ∥x∥ ≤ R :=
+begin
+  obtain ⟨R₀, hR₀⟩ := hs.exists_norm_le,
+  refine ⟨max R₀ 0, le_max_right _ _, _⟩,
+  intros x hx,
+  exact (hR₀ x hx).trans (le_max_left _ _),
+end
+
 lemma metric.bounded.add
   {s t : set E} (hs : bounded s) (ht : bounded t) :
   bounded (s + t) :=

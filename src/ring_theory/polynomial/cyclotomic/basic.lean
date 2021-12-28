@@ -398,6 +398,17 @@ begin
                                                     (λ i, cyclotomic i ℤ), integer]
 end
 
+lemma cyclotomic.dvd_X_pow_sub_one (n : ℕ) (R : Type*) [comm_ring R] :
+  (cyclotomic n R) ∣ X ^ n - 1 :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  refine ⟨∏ i in n.proper_divisors, cyclotomic i R, _⟩,
+  rw [←prod_cyclotomic_eq_X_pow_sub_one hn,
+      nat.divisors_eq_proper_divisors_insert_self_of_pos hn, finset.prod_insert],
+  exact nat.proper_divisors.not_self_mem
+end
+
 lemma prod_cyclotomic_eq_geom_sum {n : ℕ} (h : 0 < n) (R) [comm_ring R] [is_domain R] :
   ∏ i in n.divisors \ {1}, cyclotomic i R = geom_sum X n :=
 begin
@@ -576,7 +587,11 @@ begin
   simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
 end
 
-/-- If `p ^ k` is prime power, then `cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p`. -/
+lemma cyclotomic_prime_mul_X_sub_one (R : Type*) [comm_ring R] (p : ℕ) [hn : fact (nat.prime p)] :
+  (cyclotomic p R) * (X - 1) = X ^ p - 1 :=
+by rw [cyclotomic_eq_geom_sum hn.out, geom_sum_mul]
+
+/-- If `p ^ k` is a prime power, then `cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p`. -/
 lemma cyclotomic_prime_pow_eq_geom_sum {R : Type*} [comm_ring R] {p n : ℕ} (hp : nat.prime p) :
   cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p :=
 begin

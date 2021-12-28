@@ -381,6 +381,18 @@ lt_of_le_of_lt (by rw prod_const_one) $ prod_lt_prod_of_nonempty' hs h
   (∏ i in s, f i) < 1 :=
 (prod_lt_prod_of_nonempty' hs h).trans_le (by rw prod_const_one)
 
+@[to_additive] lemma prod_eq_prod_iff_of_le {f g : ι → M} (h : ∀ i ∈ s, f i ≤ g i) :
+  ∏ i in s, f i = ∏ i in s, g i ↔ ∀ i ∈ s, f i = g i :=
+begin
+  classical,
+  revert h,
+  refine finset.induction_on s (λ _, ⟨λ _ _, false.elim, λ _, rfl⟩) (λ a s ha ih H, _),
+  specialize ih (λ i, H i ∘ finset.mem_insert_of_mem),
+  rw [finset.prod_insert ha, finset.prod_insert ha, finset.forall_mem_insert, ←ih],
+  exact mul_eq_mul_iff_eq_and_eq (H a (s.mem_insert_self a)) (finset.prod_le_prod''
+    (λ i, H i ∘ finset.mem_insert_of_mem)),
+end
+
 end ordered_cancel_comm_monoid
 
 section linear_ordered_cancel_comm_monoid

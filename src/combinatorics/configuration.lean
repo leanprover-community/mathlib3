@@ -92,6 +92,8 @@ lemma has_lines.exists_unique_line [has_lines P L] (p₁ p₂ : P) (hp : p₁ �
   ∃! l : L, p₁ ∈ l ∧ p₂ ∈ l :=
 has_points.exists_unique_point (dual L) (dual P) p₁ p₂ hp
 
+variables {P L}
+
 /-- If a nondegenerate configuration has at least as many points as lines, then there exists
   an injective function `f` from lines to points, such that `f l` does not lie on `l`. -/
 lemma nondegenerate.exists_injective_of_card_le [nondegenerate P L]
@@ -185,7 +187,7 @@ lemma has_lines.card_le [has_lines P L] [fintype P] [fintype L] :
 begin
   classical,
   by_contradiction hc₂,
-  obtain ⟨f, hf₁, hf₂⟩ := nondegenerate.exists_injective_of_card_le P L (le_of_not_le hc₂),
+  obtain ⟨f, hf₁, hf₂⟩ := nondegenerate.exists_injective_of_card_le (le_of_not_le hc₂),
   have := calc ∑ p, line_count L p = ∑ l, point_count P l : sum_line_count_eq_sum_point_count P L
   ... ≤ ∑ l, line_count L (f l) :
     finset.sum_le_sum (λ l hl, has_lines.point_count_le_line_count (hf₂ l))
@@ -208,5 +210,23 @@ end
 lemma has_points.card_le [has_points P L] [fintype P] [fintype L] :
   fintype.card L ≤ fintype.card P :=
 @has_lines.card_le (dual L) (dual P) _ _ _ _
+
+variables {P L}
+
+lemma has_lines.exists_bijective_of_card_eq [has_lines P L]
+  [fintype P] [fintype L] (h : fintype.card P = fintype.card L) :
+  ∃ f : L → P, function.bijective f ∧ ∀ l, point_count P l = line_count L (f l) :=
+begin
+  classical,
+  obtain ⟨f, hf1, hf2⟩ := nondegenerate.exists_injective_of_card_le (ge_of_eq h),
+  have hf3 := (fintype.bijective_iff_injective_and_card f).mpr ⟨hf1, h.symm⟩,
+  refine ⟨f, hf3, λ l, (finset.sum_eq_sum_iff_of_le
+    (by exact λ l hl, has_lines.point_count_le_line_count (hf2 l))).mp
+      ((sum_line_count_eq_sum_point_count P L).symm.trans ((finset.sum_bij (λ l hl, f l)
+        (λ l hl, finset.mem_univ (f l)) (λ l hl, refl (line_count L (f l)))
+          (λ l₁ l₂ hl₁ hl₂ hl, hf1 hl) (λ p hp, _)).symm)) l (finset.mem_univ l)⟩,
+  obtain ⟨l, rfl⟩ := hf3.2 p,
+  exact ⟨l, finset.mem_univ l, rfl⟩,
+end
 
 end configuration

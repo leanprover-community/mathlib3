@@ -909,7 +909,7 @@ begin
   exact ⟨⟨b, hb⟩, hb'⟩
 end
 
-instance small_ordinal (o : ordinal.{u}) : small.{u} {x // x < o} :=
+instance small_lt_ordinal (o : ordinal.{u}) : small.{u} {x // x < o} :=
 small_of_injective (λ a, (enum o.out.r a)
   (by { rw type_out, exact a.prop }))
   (λ a ha H, (by { apply subtype.ext, rwa enum_eq at H }))

@@ -65,7 +65,7 @@ namespace non_unital_non_assoc_ring
 /--
 Left multiplication operator
 -/
-@[simps] def L : A→+add_monoid.End A :=
+@[simps] def L : A →+ add_monoid.End A :=
 { to_fun := add_monoid_hom.mul_left,
   map_zero' := add_monoid_hom.ext $ zero_mul,
   map_add' := λ a b, add_monoid_hom.ext $ add_mul a b }

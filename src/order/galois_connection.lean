@@ -151,6 +151,16 @@ le_antisymm (gc'.le_u $ hl (u b) ▸ gc.l_u_le _)
 lemma exists_eq_u (a : α) : (∃ b : β, a = u b) ↔ a = u (l a) :=
 ⟨λ ⟨S, hS⟩, hS.symm ▸ (gc.u_l_u_eq_u _).symm, λ HI, ⟨_, HI⟩ ⟩
 
+lemma u_eq {z : α} {y : β} :
+  u y  = z ↔ ∀ x, x ≤ z ↔ l x ≤ y :=
+begin
+  split,
+  { rintros rfl x,
+    exact (gc x y).symm },
+  { intros H,
+    exact ((H $ u y).mpr (gc.l_u_le y)).antisymm ((gc _ _).mp $ (H z).mp le_rfl) }
+end
+
 end partial_order
 
 section partial_order
@@ -171,7 +181,36 @@ le_antisymm (gc.l_le $ (hu (l' a)).symm ▸ gc'.le_u_l _)
 lemma exists_eq_l (b : β) : (∃ a : α, b = l a) ↔ b = l (u b) :=
 ⟨λ ⟨S, hS⟩, hS.symm ▸ (gc.l_u_l_eq_l _).symm, λ HI, ⟨_, HI⟩ ⟩
 
+lemma l_eq  {x : α} {z : β} :
+  l x = z ↔ ∀ y, z ≤ y ↔ x ≤ u y :=
+begin
+  split,
+  { rintros rfl y,
+    exact gc x y },
+  { intros H,
+    exact ((gc _ _).mpr $ (H z).mp le_rfl).antisymm ((H $ l x).mpr (gc.le_u_l x)) }
+end
+
 end partial_order
+
+lemma l_comm_of_u_comm
+  {X : Type*} [partial_order X] {Y : Type*} [partial_order Y]
+  {Z : Type*} [partial_order Z] {W : Type*} [partial_order W]
+  {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
+  {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
+  {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
+  {lZX : X → Z} {uXZ : Z → X} (hXZ : galois_connection lZX uXZ)
+  (h : uXY ∘ uYW = uXZ ∘ uZW) : lWZ ∘ lZX = lWY ∘ lYX :=
+begin
+  ext x,
+  rw hZW.l_eq,
+  intros w,
+  calc
+  lWY (lYX x) ≤ w ↔ lYX x ≤ uYW w   : by rw hWY
+              ... ↔ x ≤ uXY (uYW w) : by rw ← hXY
+              ... ↔ x ≤ uXZ (uZW w) : by rw show uXY (uYW w) = uXZ (uZW w), from congr_fun h w
+              ... ↔ lZX x ≤ uZW w   : by rw hXZ
+end
 
 section order_top
 variables [partial_order α] [preorder β] [order_top α] [order_top β] {l : α → β} {u : β → α}

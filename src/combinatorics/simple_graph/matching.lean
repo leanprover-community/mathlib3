@@ -99,11 +99,14 @@ lemma is_matching.even_card {M : subgraph G} [hM : fintype M.support] [decidable
 begin
   classical,
   unfreezingI { rw h.support_eq_verts at hM },
-  rw is_matching_iff_forall_degree at h,
+  have h' := h,
+  rw is_matching_iff_forall_degree at h',
   have := M.coe.sum_degrees_eq_twice_card_edges,
-  simp [h] at this,
-  sorry,
-  -- exact ⟨_, this⟩,
+  simp [h'] at this,
+  use M.coe.edge_finset.card,
+  rw ← this,
+  simp only [finset.univ, h.support_eq_verts, set.to_finset_card],
+  congr,
 end
 
 lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=

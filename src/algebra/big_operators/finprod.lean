@@ -197,7 +197,7 @@ finprod_induction _ le_rfl (λ _ _, one_le_mul) hf
   f (∏ᶠ x, g x) = ∏ᶠ x, f (g x) :=
 begin
   rw [finprod_eq_prod_plift_of_mul_support_subset h.coe_to_finset.ge,
-    finprod_eq_prod_plift_of_mul_support_subset, f.map_prod],
+    finprod_eq_prod_plift_of_mul_support_subset, finset.map_prod f],
   rw [h.coe_to_finset],
   exact mul_support_comp_subset f.map_one (g ∘ plift.down)
 end

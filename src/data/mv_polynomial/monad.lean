@@ -278,12 +278,12 @@ lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bin
 lemma bind₁_monomial (f : σ → mv_polynomial τ R) (d : σ →₀ ℕ) (r : R) :
   bind₁ f (monomial d r) = C r * ∏ i in d.support, f i ^ d i :=
 by simp only [monomial_eq, alg_hom.map_mul, bind₁_C_right, finsupp.prod,
-  alg_hom.map_prod, alg_hom.map_pow, bind₁_X_right]
+  finset.map_prod, alg_hom.map_pow, bind₁_X_right]
 
 lemma bind₂_monomial (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) (r : R) :
   bind₂ f (monomial d r) = f r * monomial d 1 :=
 by simp only [monomial_eq, ring_hom.map_mul, bind₂_C_right, finsupp.prod,
-  ring_hom.map_prod, ring_hom.map_pow, bind₂_X_right, C_1, one_mul]
+  finset.map_prod, ring_hom.map_pow, bind₂_X_right, C_1, one_mul]
 
 @[simp]
 lemma bind₂_monomial_one (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) :

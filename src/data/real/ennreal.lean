@@ -400,11 +400,11 @@ by simpa only [lt_top_iff_ne_top] using pow_ne_top
 
 @[simp, norm_cast] lemma coe_finset_sum {s : finset α} {f : α → ℝ≥0} :
   ↑(∑ a in s, f a) = (∑ a in s, f a : ℝ≥0∞) :=
-of_nnreal_hom.map_sum f s
+s.map_sum of_nnreal_hom f
 
 @[simp, norm_cast] lemma coe_finset_prod {s : finset α} {f : α → ℝ≥0} :
   ↑(∏ a in s, f a) = ((∏ a in s, f a) : ℝ≥0∞) :=
-of_nnreal_hom.map_prod f s
+s.map_prod of_nnreal_hom f
 
 section order
 
@@ -1658,7 +1658,7 @@ to_nnreal_hom.map_pow a n
 
 lemma to_nnreal_prod {ι : Type*} {s : finset ι} {f : ι → ℝ≥0∞} :
   (∏ i in s, f i).to_nnreal = ∏ i in s, (f i).to_nnreal :=
-to_nnreal_hom.map_prod _ _
+s.map_prod to_nnreal_hom f
 
 lemma to_nnreal_inv (a : ℝ≥0∞) : (a⁻¹).to_nnreal = (a.to_nnreal)⁻¹ :=
 begin
@@ -1683,7 +1683,7 @@ to_real_hom.map_pow a n
 
 lemma to_real_prod {ι : Type*} {s : finset ι} {f : ι → ℝ≥0∞} :
   (∏ i in s, f i).to_real = ∏ i in s, (f i).to_real :=
-to_real_hom.map_prod _ _
+s.map_prod to_real_hom f
 
 lemma to_real_inv (a : ℝ≥0∞) : (a⁻¹).to_real = (a.to_real)⁻¹ :=
 by { simp_rw ennreal.to_real, norm_cast, exact to_nnreal_inv a, }

@@ -208,7 +208,7 @@ lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
 
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
-p.subtype.map_sum
+s.map_sum p.subtype x
 
 section restrict_scalars
 variables (S) [semiring S] [module S M] [module R M] [has_scalar S R] [is_scalar_tower S R M]

@@ -180,7 +180,7 @@ variable {R}
 
 lemma sum_to_finsupp {ι : Type*} (s : finset ι) (f : ι → add_monoid_algebra R ℕ) :
   ∑ i in s, (⟨f i⟩ : polynomial R) = ⟨∑ i in s, f i⟩ :=
-((to_finsupp_iso R).symm.to_add_monoid_hom.map_sum f s).symm
+(s.map_sum (to_finsupp_iso R).symm f).symm
 
 /--
 The set of all `n` such that `X^n` has a non-zero coefficient.

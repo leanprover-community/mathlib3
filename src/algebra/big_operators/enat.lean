@@ -14,9 +14,6 @@ A simple lemma about sums in `enat`.
 open_locale big_operators
 variables {α : Type*}
 
-namespace finset
-lemma sum_nat_coe_enat (s : finset α) (f : α → ℕ) :
-  (∑ x in s, (f x : enat)) = (∑ x  in s, f x : ℕ) :=
-(enat.coe_hom.map_sum _ _).symm
-
-end finset
+lemma nat.coe_enat_sum (s : finset α) (f : α → ℕ) :
+  ↑(∑ x in s, f x : ℕ) = (∑ x in s, f x : enat) :=
+s.map_sum enat.coe_hom f

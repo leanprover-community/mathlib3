@@ -85,7 +85,7 @@ begin
   dsimp,
   simp_rw [to_fun, matrix.mul_mul_left, pi.smul_apply, smul_eq_mul, matrix.mul_apply,
     ←_root_.mul_assoc _ a₂ _, algebra.commutes, _root_.mul_assoc a₂ _ _, ←finset.mul_sum,
-    ring_hom.map_sum, ring_hom.map_mul, _root_.mul_assoc],
+    finset.map_sum, ring_hom.map_mul, _root_.mul_assoc],
 end
 begin
   intros, ext,
@@ -133,7 +133,7 @@ end
 
 lemma right_inv (M : matrix n n A) : (to_fun_alg_hom R A n) (inv_fun R A n M) = M :=
 begin
-  simp only [inv_fun, alg_hom.map_sum, std_basis_matrix, apply_ite ⇑(algebra_map R A),
+  simp only [inv_fun, finset.map_sum, std_basis_matrix, apply_ite ⇑(algebra_map R A),
     mul_boole, to_fun_alg_hom_apply, ring_hom.map_zero, ring_hom.map_one],
   convert finset.sum_product, apply matrix_eq_sum_std_basis,
 end
@@ -143,7 +143,7 @@ begin
   apply tensor_product.induction_on M,
   { simp, },
   { intros a m, simp, },
-  { intros x y hx hy, simp [alg_hom.map_sum, hx, hy], },
+  { intros x y hx hy, simp [hx, hy], },
 end
 
 /--

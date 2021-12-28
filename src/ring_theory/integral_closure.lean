@@ -817,7 +817,7 @@ begin
     have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
     refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
     rw [eval₂_eq_sum_range] at hp,
-    rw [ring_hom.map_sum, finset.sum_mul],
+    rw [finset.map_sum, finset.sum_mul],
     refine (finset.sum_congr rfl (λ i hi, _)).trans hp,
     rw [ring_hom.map_mul, mul_assoc],
     congr,

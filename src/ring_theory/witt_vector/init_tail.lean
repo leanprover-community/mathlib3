@@ -118,7 +118,7 @@ begin
              (bind₁ (select_poly (λ i, ¬P i))) (witt_polynomial p ℤ n) = witt_polynomial p ℤ n,
   { apply_fun (aeval x.coeff) at this,
     simpa only [alg_hom.map_add, aeval_bind₁, ← coeff_select] },
-  simp only [witt_polynomial_eq_sum_C_mul_X_pow, select_poly, alg_hom.map_sum, alg_hom.map_pow,
+  simp only [witt_polynomial_eq_sum_C_mul_X_pow, select_poly, finset.map_sum, alg_hom.map_pow,
     alg_hom.map_mul, bind₁_X_right, bind₁_C_right, ← finset.sum_add_distrib, ← mul_add],
   apply finset.sum_congr rfl,
   refine λ m hm, mul_eq_mul_left_iff.mpr (or.inl _),

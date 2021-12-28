@@ -146,11 +146,11 @@ map_zsmul (left_comp R f) g n
 
 @[reassoc] lemma comp_sum {P Q R : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (Q ⟶ R)) :
   f ≫ ∑ j in s, g j = ∑ j in s, f ≫ g j :=
-map_sum (left_comp R f) _ _
+s.map_sum (left_comp R f) g
 
 @[reassoc] lemma sum_comp {P Q R : C} {J : Type*} (s : finset J) (f : J → (P ⟶ Q)) (g : Q ⟶ R) :
   (∑ j in s, f j) ≫ g  = ∑ j in s, f j ≫ g :=
-map_sum (right_comp P g) _ _
+s.map_sum (right_comp P g) f
 
 instance {P Q : C} {f : P ⟶ Q} [epi f] : epi (-f) :=
 ⟨λ R g g' H, by rwa [neg_comp, neg_comp, ←comp_neg, ←comp_neg, cancel_epi, neg_inj] at H⟩

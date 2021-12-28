@@ -131,7 +131,7 @@ lemma length_pos_of_prod_ne_one (L : list M) (h : L.prod ≠ 1) : 0 < L.length :
 by { cases L, { contrapose h, simp }, { simp } }
 
 /-- A list with product greater than one must have positive length. -/
-@[to_additive "A list with positive sum must have positive length."]
+@[to_additive length_pos_of_sum_pos  "A list with positive sum must have positive length."]
 lemma length_pos_of_one_lt_prod [preorder M] (L : list M) (h : 1 < L.prod) :
   0 < L.length :=
 length_pos_of_prod_ne_one L h.ne'

@@ -125,10 +125,8 @@ by rw [repr_self, finsupp.single_apply]
 
 @[simp] lemma repr_symm_apply (v) : b.repr.symm v = finsupp.total ι M R b v :=
 calc b.repr.symm v = b.repr.symm (v.sum finsupp.single) : by simp
-... = ∑ i in v.support, b.repr.symm (finsupp.single i (v i)) :
-  by rw [finsupp.sum, linear_equiv.map_sum]
-... = finsupp.total ι M R b v :
-  by simp [repr_symm_single, finsupp.total_apply, finsupp.sum]
+... = ∑ i in v.support, b.repr.symm (finsupp.single i (v i)) : map_finsupp_sum _ v _
+... = ∑ i in v.support, v i • b i : by simp only [repr_symm_single]
 
 @[simp] lemma coe_repr_symm : ↑b.repr.symm = finsupp.total ι M R b :=
 linear_map.ext (λ v, b.repr_symm_apply v)

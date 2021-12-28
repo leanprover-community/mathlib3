@@ -1362,7 +1362,7 @@ begin
   ext g,
   simp only [hsum_coeff, coe_of_finsupp, finsupp.sum, ne.def],
   simp_rw [← coeff.add_monoid_hom_apply, id.def],
-  rw [add_monoid_hom.map_sum, finsum_eq_sum_of_support_subset],
+  rw [finset.map_sum, finsum_eq_sum_of_support_subset],
   intros x h,
   simp only [coeff.add_monoid_hom_apply, mem_coe, finsupp.mem_support_iff, ne.def],
   contrapose! h,

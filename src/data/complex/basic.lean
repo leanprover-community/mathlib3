@@ -675,10 +675,10 @@ let ⟨i, hi⟩ := equiv_lim f ε ε0 in
 
 @[simp, norm_cast] lemma of_real_prod {α : Type*} (s : finset α) (f : α → ℝ) :
   ((∏ i in s, f i : ℝ) : ℂ) = ∏ i in s, (f i : ℂ) :=
-ring_hom.map_prod of_real _ _
+s.map_prod of_real f
 
 @[simp, norm_cast] lemma of_real_sum {α : Type*} (s : finset α) (f : α → ℝ) :
   ((∑ i in s, f i : ℝ) : ℂ) = ∑ i in s, (f i : ℂ) :=
-ring_hom.map_sum of_real _ _
+s.map_sum of_real f
 
 end complex

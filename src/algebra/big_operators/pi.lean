@@ -32,7 +32,7 @@ end pi
 @[simp, to_additive]
 lemma finset.prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
   (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) a = ∏ c in s, g c a :=
-map_prod (pi.eval_monoid_hom β a) _ _
+s.map_prod (pi.eval_monoid_hom β a) g
 
 /-- An 'unapplied' analogue of `finset.prod_apply`. -/
 @[to_additive "An 'unapplied' analogue of `finset.sum_apply`."]
@@ -65,7 +65,7 @@ lemma add_monoid_hom.functions_ext [fintype I] (G : Type*)
   (w : ∀ (i : I) (x : Z i), g (pi.single i x) = h (pi.single i x)) : g = h :=
 begin
   ext k,
-  rw [← finset.univ_sum_single k, g.map_sum, h.map_sum],
+  rw [← finset.univ_sum_single k, finset.map_sum, finset.map_sum],
   simp only [w]
 end
 
@@ -99,10 +99,10 @@ variables {α β γ : Type*} [comm_monoid α] [comm_monoid β] {s : finset γ} {
 
 @[to_additive]
 lemma fst_prod : (∏ c in s, f c).1 = ∏ c in s, (f c).1 :=
-(monoid_hom.fst α β).map_prod f s
+s.map_prod (monoid_hom.fst α β) f
 
 @[to_additive]
 lemma snd_prod  : (∏ c in s, f c).2 = ∏ c in s, (f c).2 :=
-(monoid_hom.snd α β).map_prod f s
+s.map_prod (monoid_hom.snd α β) f
 
 end prod

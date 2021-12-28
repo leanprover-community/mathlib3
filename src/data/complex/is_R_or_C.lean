@@ -589,21 +589,21 @@ lemma is_cau_seq_abs {f : ℕ → K} (hf : is_cau_seq abs f) :
 
 @[simp, norm_cast, priority 900] lemma of_real_prod {α : Type*} (s : finset α) (f : α → ℝ) :
   ((∏ i in s, f i : ℝ) : K) = ∏ i in s, (f i : K) :=
-ring_hom.map_prod _ _ _
+s.map_prod (algebra_map ℝ K) f
 
 @[simp, norm_cast, priority 900] lemma of_real_sum {α : Type*} (s : finset α) (f : α → ℝ) :
   ((∑ i in s, f i : ℝ) : K) = ∑ i in s, (f i : K) :=
-ring_hom.map_sum _ _ _
+s.map_sum (algebra_map ℝ K) f
 
 @[simp, norm_cast] lemma of_real_finsupp_sum
   {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
   ((f.sum (λ a b, g a b) : ℝ) : K) = f.sum (λ a b, ((g a b) : K)) :=
-ring_hom.map_finsupp_sum _ f g
+map_finsupp_sum (algebra_map ℝ K) f g
 
 @[simp, norm_cast] lemma of_real_finsupp_prod
   {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
   ((f.prod (λ a b, g a b) : ℝ) : K) = f.prod (λ a b, ((g a b) : K)) :=
-ring_hom.map_finsupp_prod _ f g
+map_finsupp_prod (algebra_map ℝ K) f g
 
 end is_R_or_C
 

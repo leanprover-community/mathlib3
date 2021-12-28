@@ -122,7 +122,7 @@ open_locale big_operators
 @[simp] lemma star_prod [comm_monoid R] [star_monoid R] {α : Type*}
   (s : finset α) (f : α → R):
   star (∏ x in s, f x) = ∏ x in s, star (f x) :=
-map_prod (star_mul_aut : R ≃* R) f s
+s.map_prod (star_mul_aut : R ≃* R) f
 
 end
 
@@ -190,7 +190,7 @@ open_locale big_operators
 @[simp] lemma star_sum [add_comm_monoid R] [star_add_monoid R] {α : Type*}
   (s : finset α) (f : α → R):
   star (∑ x in s, f x) = ∑ x in s, star (f x) :=
-map_sum (star_add_equiv : R ≃+ R) f _
+s.map_sum (star_add_equiv : R ≃+ R) f
 
 end
 

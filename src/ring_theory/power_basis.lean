@@ -154,7 +154,7 @@ X ^ pb.dim -
 @[simp]
 lemma aeval_minpoly_gen (pb : power_basis A S) : aeval pb.gen (minpoly_gen pb) = 0 :=
 begin
-  simp_rw [minpoly_gen, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_mul, alg_hom.map_pow,
+  simp_rw [minpoly_gen, alg_hom.map_sub, finset.map_sum, alg_hom.map_mul, alg_hom.map_pow,
            aeval_C, ← algebra.smul_def, aeval_X],
   refine sub_eq_zero.mpr ((pb.basis.total_repr (pb.gen ^ pb.dim)).symm.trans _),
   rw [finsupp.total_apply, finsupp.sum_fintype];

@@ -216,7 +216,7 @@ def to_add_monoid_hom' : (M →ₛₗ[σ₁₂] M₂) →+ (M →+ M₂) :=
 
 lemma sum_apply (t : finset ι) (f : ι → M →ₛₗ[σ₁₂] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
-add_monoid_hom.map_sum ((add_monoid_hom.eval b).comp to_add_monoid_hom') f _
+t.map_sum (eval_add_monoid_hom b : (M →ₛₗ[σ₁₂] M₂) →+ M₂) f
 
 section smul_right
 
@@ -244,7 +244,7 @@ end
 
 @[simp, norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₛₗ[σ₁₂] M₂) :
   ⇑(∑ i in t, f i) = ∑ i in t, (f i : M → M₂) :=
-add_monoid_hom.map_sum ⟨@to_fun R R₂ _ _ σ₁₂ M M₂ _ _ _ _, rfl, λ x y, rfl⟩ _ _
+t.map_sum (⟨@to_fun R R₂ _ _ σ₁₂ M M₂ _ _ _ _, rfl, λ x y, rfl⟩ : (M →ₛₗ[σ₁₂] M₂) →+ (M → M₂)) f
 
 @[simp] lemma pow_apply (f : M →ₗ[R] M) (n : ℕ) (m : M) :
   (f^n) m = (f^[n] m) :=
@@ -328,7 +328,7 @@ of the canonical basis. -/
 lemma pi_apply_eq_sum_univ [fintype ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
   f x = ∑ i, x i • (f (λj, if i = j then 1 else 0)) :=
 begin
-  conv_lhs { rw [pi_eq_sum_univ x, f.map_sum] },
+  conv_lhs { rw [pi_eq_sum_univ x, finset.map_sum f] },
   apply finset.sum_congr rfl (λl hl, _),
   rw f.map_smul
 end
@@ -1388,9 +1388,6 @@ ext_on hv (set.forall_range_iff.2 h)
 section finsupp
 variables {γ : Type*} [has_zero γ]
 
-@[simp] lemma map_finsupp_sum (f : M →ₛₗ[σ₁₂] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
-  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum
-
 lemma coe_finsupp_sum (t : ι →₀ γ) (g : ι → γ → M →ₛₗ[σ₁₂] M₂) :
   ⇑(t.sum g) = t.sum (λ i d, g i d) := coe_fn_sum _ _
 
@@ -1408,7 +1405,7 @@ section sum
 variables [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
 
 @[simp] lemma map_dfinsupp_sum (f : M →ₛₗ[σ₁₂] M₂) {t : Π₀ i, γ i} {g : Π i, γ i → M} :
-  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := t.support.map_sum _ _
 
 lemma coe_dfinsupp_sum (t : Π₀ i, γ i) (g : Π i, γ i → M →ₛₗ[σ₁₂] M₂) :
   ⇑(t.sum g) = t.sum (λ i d, g i d) := coe_fn_sum _ _
@@ -2003,21 +2000,6 @@ omit σ₂₁
 
 end
 
-section finsupp
-variables {γ : Type*}
-variables [semiring R] [semiring R₂]
-variables [add_comm_monoid M] [add_comm_monoid M₂]
-variables [module R M] [module R₂ M₂] [has_zero γ]
-variables {τ₁₂ : R →+* R₂} {τ₂₁ : R₂ →+* R}
-variables [ring_hom_inv_pair τ₁₂ τ₂₁] [ring_hom_inv_pair τ₂₁ τ₁₂]
-
-include τ₂₁
-@[simp] lemma map_finsupp_sum (f : M ≃ₛₗ[τ₁₂] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
-  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum _
-omit τ₂₁
-
-end finsupp
-
 section dfinsupp
 open dfinsupp
 
@@ -2031,7 +2013,7 @@ variables {γ : ι → Type*} [decidable_eq ι]
 include τ₂₁
 @[simp] lemma map_dfinsupp_sum [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
   (f : M ≃ₛₗ[τ₁₂] M₂) (t : Π₀ i, γ i) (g : Π i, γ i → M) :
-  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum _
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := t.support.map_sum _ _
 
 @[simp] lemma map_dfinsupp_sum_add_hom [Π i, add_zero_class (γ i)] (f : M ≃ₛₗ[τ₁₂] M₂)
   (t : Π₀ i, γ i) (g : Π i, γ i →+ M) :

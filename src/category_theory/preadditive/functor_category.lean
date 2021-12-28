@@ -69,7 +69,7 @@ as group homomorphism -/
 
 @[simp] lemma app_sum {ι : Type*} (s : finset ι) (X : C) (α : ι → (F ⟶ G)) :
   (∑ i in s, α i).app X = ∑ i in s, ((α i).app X) :=
-by { rw [← app_hom_apply, add_monoid_hom.map_sum], refl }
+by { rw [← app_hom_apply, finset.map_sum], refl }
 
 end nat_trans
 

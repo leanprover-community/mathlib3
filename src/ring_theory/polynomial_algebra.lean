@@ -88,7 +88,7 @@ lemma to_fun_linear_mul_tmul_mul_aux_2 (k : ℕ) (a₁ a₂ : A) (p₁ p₂ : po
 begin
   simp_rw [mul_assoc, algebra.commutes, ←finset.mul_sum, mul_assoc, ←finset.mul_sum],
   congr,
-  simp_rw [algebra.commutes (coeff p₂ _), coeff_mul, ring_hom.map_sum, ring_hom.map_mul],
+  simp_rw [algebra.commutes (coeff p₂ _), coeff_mul, finset.map_sum, ring_hom.map_mul],
 end
 
 lemma to_fun_linear_mul_tmul_mul (a₁ a₂ : A) (p₁ p₂ : polynomial R) :

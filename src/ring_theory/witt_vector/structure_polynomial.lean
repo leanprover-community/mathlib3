@@ -162,7 +162,7 @@ begin
   rw [witt_structure_rat, this], clear this,
   conv_lhs { simp only [alg_hom.map_sub, bind₁_X_right] },
   rw sub_right_inj,
-  simp only [alg_hom.map_sum, alg_hom.map_mul, bind₁_C_right, alg_hom.map_pow],
+  simp only [finset.map_sum, alg_hom.map_mul, bind₁_C_right, alg_hom.map_pow],
   refl
 end
 
@@ -238,7 +238,7 @@ begin
   rw [nat.succ_eq_add_one, C_dvd_iff_zmod, ring_hom.map_sub, sub_eq_zero, map_bind₁],
   simp only [map_rename, map_witt_polynomial, witt_polynomial_zmod_self],
   rw key, clear key IH,
-  rw [bind₁, aeval_witt_polynomial, ring_hom.map_sum, ring_hom.map_sum, finset.sum_congr rfl],
+  rw [bind₁, aeval_witt_polynomial, finset.map_sum, finset.map_sum, finset.sum_congr rfl],
   intros k hk,
   rw [finset.mem_range, nat.lt_succ_iff] at hk,
   simp only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
@@ -272,7 +272,7 @@ begin
      (witt_structure_int p Φ i) ^ p ^ (n - i)) =
     ∑ i in range n, C (p ^ i : ℚ) *
       (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i) ^ p ^ (n - i),
-  { rw [ring_hom.map_sum],
+  { rw [finset.map_sum],
     apply finset.sum_congr rfl,
     intros i hi,
     rw finset.mem_range at hi,

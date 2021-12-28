@@ -776,8 +776,8 @@ by { rw ← comp_eval₂_hom, refl }
 
 lemma eval₂_hom_monomial (f : R →+* S₁) (g : σ → S₁) (d : σ →₀ ℕ) (r : R) :
   eval₂_hom f g (monomial d r) = f r * d.prod (λ i k, g i ^ k) :=
-by simp only [monomial_eq, ring_hom.map_mul, eval₂_hom_C, finsupp.prod,
-  ring_hom.map_prod, ring_hom.map_pow, eval₂_hom_X']
+by simp only [monomial_eq, ring_hom.map_mul, eval₂_hom_C,
+  map_finsupp_prod, ring_hom.map_pow, eval₂_hom_X']
 
 section
 lemma eval₂_comp_left {S₂} [comm_semiring S₂]
@@ -1124,7 +1124,7 @@ lemma eval₂_hom_eq_zero (f : R →+* S₂) (g : σ → S₂) (φ : mv_polynomi
   (h : ∀ d, φ.coeff d ≠ 0 → ∃ i ∈ d.support, g i = 0) :
   eval₂_hom f g φ = 0 :=
 begin
-  rw [φ.as_sum, ring_hom.map_sum, finset.sum_eq_zero],
+  rw [φ.as_sum, finset..map_sum, finset.sum_eq_zero],
   intros d hd,
   obtain ⟨i, hi, hgi⟩ : ∃ i ∈ d.support, g i = 0 := h d (finsupp.mem_support_iff.mp hd),
   rw [eval₂_hom_monomial, finsupp.prod, finset.prod_eq_zero hi, mul_zero],

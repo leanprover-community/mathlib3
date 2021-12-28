@@ -73,7 +73,7 @@ begin
     finsupp.mem_span_image_iff_total],
   rintros ⟨v, _, hv⟩,
   replace hv := congr_arg (to_splitting_field k v.support) hv,
-  rw [alg_hom.map_one, finsupp.total_apply, finsupp.sum, alg_hom.map_sum, finset.sum_eq_zero] at hv,
+  rw [alg_hom.map_one, finsupp.total_apply, finsupp.sum, finset.map_sum, finset.sum_eq_zero] at hv,
   { exact zero_ne_one hv },
   intros j hj,
   rw [smul_eq_mul, alg_hom.map_mul, to_splitting_field_eval_X_self k hj, mul_zero]

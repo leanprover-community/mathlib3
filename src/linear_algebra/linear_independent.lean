@@ -102,14 +102,15 @@ theorem linear_independent_iff' : linear_independent R v ↔
   ∀ s : finset ι, ∀ g : ι → R, ∑ i in s, g i • v i = 0 → ∀ i ∈ s, g i = 0 :=
 linear_independent_iff.trans
 ⟨λ hf s g hg i his, have h : _ := hf (∑ i in s, finsupp.single i (g i)) $
-      by simpa only [linear_map.map_sum, finsupp.total_single] using hg, calc
+      by simpa only [finset.map_sum, finsupp.total_single] using hg, calc
     g i = (finsupp.lapply i : (ι →₀ R) →ₗ[R] R) (finsupp.single i (g i)) :
       by rw [finsupp.lapply_apply, finsupp.single_eq_same]
     ... = ∑ j in s, (finsupp.lapply i : (ι →₀ R) →ₗ[R] R) (finsupp.single j (g j)) :
       eq.symm $ finset.sum_eq_single i
         (λ j hjs hji, by rw [finsupp.lapply_apply, finsupp.single_eq_of_ne hji])
         (λ hnis, hnis.elim his)
-    ... = (∑ j in s, finsupp.single j (g j)) i : (finsupp.lapply i : (ι →₀ R) →ₗ[R] R).map_sum.symm
+    ... = (∑ j in s, finsupp.single j (g j)) i :
+      (s.map_sum (finsupp.lapply i : (ι →₀ R) →ₗ[R] R) _).symm
     ... = 0 : finsupp.ext_iff.1 h i,
 λ hf l hl, finsupp.ext $ λ i, classical.by_contradiction $ λ hni, hni $ hf _ _ hl _ $
   finsupp.mem_support_iff.2 hni⟩
@@ -208,7 +209,7 @@ lemma linear_independent.of_comp (f : M →ₗ[R] M') (hfv : linear_independent 
   linear_independent R v :=
 linear_independent_iff'.2 $ λ s g hg i his,
 have ∑ (i : ι) in s, g i • f (v i) = 0,
-  by simp_rw [← f.map_smul, ← f.map_sum, hg, f.map_zero],
+  by simp_rw [← f.map_smul, ← finset.map_sum, hg, f.map_zero],
 linear_independent_iff'.1 hfv s g this i his
 
 /-- If `f` is an injective linear map, then the family `f ∘ v` is linearly independent

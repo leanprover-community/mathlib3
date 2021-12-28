@@ -136,7 +136,7 @@ begin
   cases n, { simp },
   rw [bernoulli'_power_series, coeff_mul, mul_comm X, sum_antidiagonal_succ'],
   suffices : ∑ p in antidiagonal n, (bernoulli' p.1 / p.1!) * ((p.2 + 1) * p.2!)⁻¹ = n!⁻¹,
-  { simpa [ring_hom.map_sum] using congr_arg (algebra_map ℚ A) this },
+  { simpa using congr_arg (algebra_map ℚ A) this },
   apply eq_inv_of_mul_left_eq_one,
   rw sum_mul,
   convert bernoulli'_spec' n using 1,
@@ -242,7 +242,7 @@ begin
   simp only [bernoulli_power_series, coeff_mul, coeff_X, sum_antidiagonal_succ', one_div, coeff_mk,
     coeff_one, coeff_exp, linear_map.map_sub, factorial, if_pos, cast_succ, cast_one, cast_mul,
     sub_zero, ring_hom.map_one, add_eq_zero_iff, if_false, inv_one, zero_add, one_ne_zero, mul_zero,
-    and_false, sub_self, ← ring_hom.map_mul, ← ring_hom.map_sum],
+    and_false, sub_self, ← ring_hom.map_mul, ← finset.map_sum],
   suffices : ∑ x in antidiagonal n, bernoulli x.1 / x.1! * ((x.2 + 1) * x.2!)⁻¹
            = if n.succ = 1 then 1 else 0, { split_ifs; simp [h, this] },
   cases n, { simp },

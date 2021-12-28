@@ -691,7 +691,7 @@ lemma eval₂_hom_eq_constant_coeff_of_vars (f : R →+* S) {g : σ → S}
   eval₂_hom f g p = f (constant_coeff p) :=
 begin
   conv_lhs { rw p.as_sum },
-  simp only [ring_hom.map_sum, eval₂_hom_monomial],
+  simp only [finset.map_sum, eval₂_hom_monomial],
   by_cases h0 : constant_coeff p = 0,
   work_on_goal 0
   { rw [h0, f.map_zero, finset.sum_eq_zero],
@@ -726,7 +726,7 @@ begin
   rintro rfl h rfl,
   rename [p₁ p, f₁ f],
   rw p.as_sum,
-  simp only [ring_hom.map_sum, eval₂_hom_monomial],
+  simp only [finset.map_sum, eval₂_hom_monomial],
   apply finset.sum_congr rfl,
   intros d hd,
   congr' 1,
@@ -769,7 +769,7 @@ lemma vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
 begin
   calc (bind₁ f φ).vars
       = (φ.support.sum (λ (x : σ →₀ ℕ), (bind₁ f) (monomial x (coeff x φ)))).vars :
-        by { rw [← alg_hom.map_sum, ← φ.as_sum], }
+        by { rw [← finset.map_sum, ← φ.as_sum], }
   ... ≤ φ.support.bUnion (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) :
         vars_sum_subset _ _
   ... = φ.support.bUnion (λ (d : σ →₀ ℕ), (C (coeff d φ) * ∏ i in d.support, f i ^ d i).vars) :

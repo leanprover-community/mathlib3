@@ -1024,7 +1024,7 @@ end add_monoid
 
 end finsupp
 
-@[to_additive]
+@[simp, to_additive]
 lemma map_finsupp_prod {F} [has_zero M] [comm_monoid N] [comm_monoid P] [monoid_hom_class F N P]
   (h : F) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
 map_prod h _ _

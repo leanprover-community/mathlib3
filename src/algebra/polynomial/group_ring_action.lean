@@ -88,8 +88,8 @@ theorem prod_X_sub_smul.monic (x : R) : (prod_X_sub_smul G R x).monic :=
 polynomial.monic_prod_of_monic _ _ $ λ g _, polynomial.monic_X_sub_C _
 
 theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
-(monoid_hom.map_prod
-  ((polynomial.aeval x).to_ring_hom.to_monoid_hom : polynomial R →* R) _ _).trans $
+(finset.map_prod
+  ((polynomial.aeval x).to_ring_hom.to_monoid_hom : polynomial R →* R) _).trans $
   finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
   by simp
 

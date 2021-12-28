@@ -73,7 +73,7 @@ begin
     (mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
     finset.prod_ne_zero_iff.2 $ λ x hx, _).2 _),
   { exact minpoly.ne_zero (h.is_integral (s x)) },
-  rw [is_root.def, eval_map, ← aeval_def, alg_hom.map_prod],
+  rw [is_root.def, eval_map, ← aeval_def, finset.map_prod],
   exact finset.prod_eq_zero (finset.mem_univ _) (minpoly.aeval _ _)
 end
 

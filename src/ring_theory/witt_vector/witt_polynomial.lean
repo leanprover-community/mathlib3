@@ -103,7 +103,7 @@ variables {R} {S : Type*} [comm_ring S]
 @[simp] lemma map_witt_polynomial (f : R →+* S) (n : ℕ) :
   map f (W n) = W n :=
 begin
-  rw [witt_polynomial, ring_hom.map_sum, witt_polynomial, sum_congr rfl],
+  rw [witt_polynomial, finset.map_sum, witt_polynomial, sum_congr rfl],
   intros i hi,
   rw [map_monomial, ring_hom.map_pow, ring_hom.map_nat_cast],
 end
@@ -113,7 +113,7 @@ variables (R)
 @[simp] lemma constant_coeff_witt_polynomial [hp : fact p.prime] (n : ℕ) :
   constant_coeff (witt_polynomial p R n) = 0 :=
 begin
-  simp only [witt_polynomial, ring_hom.map_sum, constant_coeff_monomial],
+  simp only [witt_polynomial, finset.map_sum, constant_coeff_monomial],
   rw [sum_eq_zero],
   rintro i hi,
   rw [if_neg],
@@ -130,7 +130,7 @@ by simp only [witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ_comm, range_one
 
 lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ → A) (n : ℕ) :
   aeval f (W_ R n) = ∑ i in range (n+1), p^i * (f i) ^ (p ^ (n-i)) :=
-by simp [witt_polynomial, alg_hom.map_sum, aeval_monomial, finsupp.prod_single_index]
+by simp [witt_polynomial, aeval_monomial, finsupp.prod_single_index]
 
 /--
 Over the ring `zmod (p^(n+1))`, we produce the `n+1`st Witt polynomial
@@ -141,7 +141,7 @@ by expanding the `n`th Witt polynomial by `p`.
 begin
   simp only [witt_polynomial_eq_sum_C_mul_X_pow],
   rw [sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)), C_0, zero_mul,
-      add_zero, alg_hom.map_sum, sum_congr rfl],
+      add_zero, finset.map_sum, sum_congr rfl],
   intros k hk,
   rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
   congr,
@@ -208,7 +208,7 @@ by { rw [X_in_terms_of_W, ← fin.sum_univ_eq_sum_range] }
 begin
   apply nat.strong_induction_on n; clear n,
   intros n IH,
-  rw [X_in_terms_of_W_eq, mul_comm, ring_hom.map_mul, ring_hom.map_sub, ring_hom.map_sum,
+  rw [X_in_terms_of_W_eq, mul_comm, ring_hom.map_mul, ring_hom.map_sub, finset.map_sum,
     constant_coeff_C, sum_eq_zero],
   { simp only [constant_coeff_X, sub_zero, mul_zero] },
   { intros m H,
@@ -272,7 +272,7 @@ by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, o
 @[simp] lemma bind₁_X_in_terms_of_W_witt_polynomial [invertible (p : R)] (k : ℕ) :
   bind₁ (X_in_terms_of_W p R) (W_ R k) = X k :=
 begin
-  rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
+  rw [witt_polynomial_eq_sum_C_mul_X_pow, finset.map_sum],
   simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, alg_hom_C],
   rw [sum_range_succ_comm, tsub_self, pow_zero, pow_one, bind₁_X_right,
       mul_comm, ← C_pow, X_in_terms_of_W_aux],
@@ -285,7 +285,7 @@ begin
   apply nat.strong_induction_on n,
   clear n, intros n H,
   rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C,
-      alg_hom.map_sum],
+      finset.map_sum],
   have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
   by simp only [witt_polynomial_eq_sum_C_mul_X_pow, tsub_self, sum_range_succ_comm,
     pow_one, add_sub_cancel, pow_zero],

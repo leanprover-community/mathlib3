@@ -427,7 +427,7 @@ begin
   have h : ∀ (n : ℕ), 0 < n →
     ∏ i in nat.divisors n, algebra_map _ (ratfunc R) (cyclotomic i R) = algebra_map _ _ (X ^ n - 1),
   { intros n hn,
-    rw [← prod_cyclotomic_eq_X_pow_sub_one hn R, ring_hom.map_prod] },
+    rw [← prod_cyclotomic_eq_X_pow_sub_one hn R, finset.map_prod] },
   rw (prod_eq_iff_prod_pow_moebius_eq_of_nonzero (λ n hn, _) (λ n hn, _)).1 h n hpos;
   rw [ne.def, is_fraction_ring.to_map_eq_zero_iff],
   { apply cyclotomic_ne_zero },

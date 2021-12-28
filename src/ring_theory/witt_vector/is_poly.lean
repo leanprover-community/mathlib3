@@ -495,7 +495,7 @@ include hp
 @[simp] lemma bind₁_one_poly_witt_polynomial (n : ℕ) :
   bind₁ one_poly (witt_polynomial p ℤ n) = 1 :=
 begin
-  rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum, finset.sum_eq_single 0],
+  rw [witt_polynomial_eq_sum_C_mul_X_pow, finset.map_sum, finset.sum_eq_single 0],
   { simp only [one_poly, one_pow, one_mul, alg_hom.map_pow, C_1, pow_zero, bind₁_X_right,
       if_true, eq_self_iff_true], },
   { intros i hi hi0,

@@ -128,7 +128,7 @@ theorem map_smulₛₗ₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (r
 
 theorem map_sum₂ {ι : Type*} (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (t : finset ι) (x : ι → M) (y) :
   f (∑ i in t, x i) y = ∑ i in t, f (x i) y :=
-(flip f y).map_sum
+t.map_sum (flip f y) x
 
 end semiring
 

@@ -209,7 +209,7 @@ le_sum_of_subadditive _ abs_zero abs_add s f
 
 lemma abs_prod {R : Type*} [linear_ordered_comm_ring R] {f : ι → R} {s : finset ι} :
   |∏ x in s, f x| = ∏ x in s, |f x| :=
-(abs_hom.to_monoid_hom : R →* R).map_prod _ _
+s.map_prod (@abs_hom R _) f
 
 section pigeonhole
 
@@ -579,14 +579,9 @@ lemma is_absolute_value.abv_sum [semiring R] [ordered_semiring S] (abv : R → S
   abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
 (is_absolute_value.to_absolute_value abv).sum_le _ _
 
-lemma absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
-  (abv : absolute_value R S) (f : ι → R) (s : finset ι) :
-  abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
-abv.to_monoid_hom.map_prod f s
-
 lemma is_absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
   (abv : R → S) [is_absolute_value abv] (f : ι → R) (s : finset ι) :
   abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
-(is_absolute_value.to_absolute_value abv).map_prod _ _
+s.map_prod (is_absolute_value.to_absolute_value abv) f
 
 end absolute_value

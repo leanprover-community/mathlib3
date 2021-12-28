@@ -115,7 +115,7 @@ lemma to_add_monoid_hom_injective :
 
 @[simp] lemma map_sum {ι : Type*} (v : ι → V₁) (s : finset ι) :
   f (∑ i in s, v i) = ∑ i in s, f (v i) :=
-f.to_add_monoid_hom.map_sum _ _
+s.map_sum f.to_add_monoid_hom v
 
 @[simp] lemma map_sub (x y) : f (x - y) = f x - f y := f.to_add_monoid_hom.map_sub _ _
 

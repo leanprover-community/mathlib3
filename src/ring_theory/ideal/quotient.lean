@@ -297,7 +297,7 @@ lemma map_pi {ι} [fintype ι] {ι' : Type w} (x : ι → R) (hi : ∀ i, x i �
   (f : (ι → R) →ₗ[R] (ι' → R)) (i : ι') : f x i ∈ I :=
 begin
   rw pi_eq_sum_univ x,
-  simp only [finset.sum_apply, smul_eq_mul, linear_map.map_sum, pi.smul_apply, linear_map.map_smul],
+  simp only [finset.sum_apply, smul_eq_mul, finset.map_sum, pi.smul_apply, linear_map.map_smul],
   exact I.sum_mem (λ j hj, I.mul_mem_right _ (hi j))
 end
 
@@ -323,9 +323,9 @@ begin
     { split_ifs with h, { apply hg1 }, rw sub_self, exact (f i).zero_mem },
     { intros hjs hji, rw dif_pos, { apply hg2 }, exact ⟨hjs, hji⟩ } },
   rcases this with ⟨g, hgi, hgj⟩, use (∏ x in s.erase i, g x), split,
-  { rw [← quotient.eq, ring_hom.map_one, ring_hom.map_prod],
+  { rw [← quotient.eq, ring_hom.map_one, finset.map_prod],
     apply finset.prod_eq_one, intros, rw [← ring_hom.map_one, quotient.eq], apply hgi },
-  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ring_hom.map_prod],
+  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, finset.map_prod],
   refine finset.prod_eq_zero (finset.mem_erase_of_ne_of_mem hji hjs) _,
   rw quotient.eq_zero_iff_mem, exact hgj j hjs hji
 end
@@ -342,7 +342,7 @@ begin
   rcases this with ⟨φ, hφ1, hφ2⟩,
   use ∑ i, g i * φ i,
   intros i,
-  rw [← quotient.eq, ring_hom.map_sum],
+  rw [← quotient.eq, finset.map_sum],
   refine eq.trans (finset.sum_eq_single i _ _) _,
   { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left _ (hφ2 j i hji) },
   { intros hi, exact (hi $ finset.mem_univ i).elim },

@@ -1496,8 +1496,8 @@ begin
   rw [norm_sub_sq, sub_add],
   simp only [inner_product_space.norm_sq_eq_inner, inner_sum],
   simp only [sum_inner, two_mul, inner_smul_right, inner_conj_sym, ←mul_assoc, h₂, ←h₃,
-  inner_conj_sym, add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib, inner_smul_left,
-  add_sub_cancel'],
+    inner_conj_sym, finset.map_sum, finset.mul_sum, ←finset.sum_sub_distrib, inner_smul_left,
+    add_sub_cancel'],
 end
 
 /-- Bessel's inequality. -/

@@ -79,10 +79,9 @@ F.map_add_hom.map_zsmul _ _
 
 open_locale big_operators
 
-@[simp]
-lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
+@[simp] lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
   F.map (∑ a in s, f a) = ∑ a in s, F.map (f a) :=
-(F.map_add_hom : (X ⟶ Y) →+ _).map_sum f s
+s.map_sum (F.map_add_hom : (X ⟶ Y) →+ _) f
 
 open category_theory.limits
 open_locale zero_object

@@ -104,7 +104,7 @@ rfl
   s.sum (λ x, {x}) = s.val :=
 by simp only [sum_eq_multiset_sum, multiset.sum_map_singleton]
 
-@[to_additive]
+@[simp, to_additive]
 lemma map_prod {F} [comm_monoid β] [comm_monoid γ] [monoid_hom_class F β γ]
   (g : F) (f : α → β) (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
@@ -1461,23 +1461,23 @@ end multiset
 
 @[simp, norm_cast] lemma nat.cast_sum [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
   ↑(∑ x in s, f x : ℕ) = (∑ x in s, (f x : β)) :=
-map_sum (nat.cast_add_monoid_hom β) f s
+s.map_sum (nat.cast_add_monoid_hom β) f
 
 @[simp, norm_cast] lemma int.cast_sum [add_comm_group β] [has_one β] (s : finset α) (f : α → ℤ) :
   ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
-map_sum (int.cast_add_hom β) f s
+s.map_sum (int.cast_add_hom β) f
 
 @[simp, norm_cast] lemma nat.cast_prod {R : Type*} [comm_semiring R] (f : α → ℕ) (s : finset α) :
   (↑∏ i in s, f i : R) = ∏ i in s, f i :=
-map_prod (nat.cast_ring_hom R) f s
+s.map_prod (nat.cast_ring_hom R) f
 
 @[simp, norm_cast] lemma int.cast_prod {R : Type*} [comm_ring R] (f : α → ℤ) (s : finset α) :
   (↑∏ i in s, f i : R) = ∏ i in s, f i :=
-map_prod (int.cast_ring_hom R) f s
+s.map_prod (int.cast_ring_hom R) f
 
 @[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M] (f : α → units M)
   (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
-map_prod (units.coe_hom M) f s
+s.map_prod (units.coe_hom M) f
 
 lemma nat_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℤ) :
   (∑ i in s, f i).nat_abs ≤ ∑ i in s, (f i).nat_abs :=

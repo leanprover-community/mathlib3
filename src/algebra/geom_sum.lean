@@ -342,11 +342,11 @@ variables {β : Type*}
 
 theorem ring_hom.map_geom_sum [semiring α] [semiring β] (x : α) (n : ℕ) (f : α →+* β) :
   f (geom_sum x n) = geom_sum (f x) n :=
-by simp [geom_sum_def, f.map_sum]
+by simp [geom_sum_def]
 
 theorem ring_hom.map_geom_sum₂ [semiring α] [semiring β] (x y : α) (n : ℕ) (f : α →+* β) :
   f (geom_sum₂ x y n) = geom_sum₂ (f x) (f y) n :=
-by simp [geom_sum₂_def, f.map_sum]
+by simp [geom_sum₂_def]
 
 /-! ### Geometric sum with `ℕ`-division -/
 

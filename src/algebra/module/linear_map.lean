@@ -293,10 +293,6 @@ end restrict_scalars
 
 variable {R}
 
-@[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
-  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
-f.to_add_monoid_hom.map_sum _ _
-
 theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₛₗ[σ] M₃) → (M →+ M₃)) :=
 λ f g h, ext $ add_monoid_hom.congr_fun h

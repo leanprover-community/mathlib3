@@ -362,7 +362,7 @@ end
 
 @[to_additive] lemma mul_indicator_finset_prod (I : finset ι) (s : set α) (f : ι → α → M) :
   mul_indicator s (∏ i in I, f i) = ∏ i in I, mul_indicator s (f i) :=
-map_prod (mul_indicator_hom M s) f I
+I.map_prod (mul_indicator_hom M s) f
 
 @[to_additive] lemma mul_indicator_finset_bUnion {ι} (I : finset ι)
   (s : ι → set α) {f : α → M} : (∀ (i ∈ I) (j ∈ I), i ≠ j → disjoint (s i) (s j)) →

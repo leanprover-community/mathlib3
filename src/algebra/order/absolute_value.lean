@@ -41,10 +41,22 @@ instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := ⟨λ f, f.to_
 
 @[simp] lemma coe_to_mul_hom : ⇑abv.to_mul_hom = abv := rfl
 
+lemma to_mul_hom_injective : function.injective (to_mul_hom : absolute_value R S → mul_hom R S) :=
+by { intros f g h, cases f, cases g, congr, exact h }
+
+@[simp] lemma to_mul_hom_inj {abv abv' : absolute_value R S} :
+  abv.to_mul_hom = abv'.to_mul_hom ↔ abv = abv' :=
+to_mul_hom_injective.eq_iff
+
+instance : mul_hom_class (absolute_value R S) R S :=
+{ coe := coe_fn,
+  coe_injective' := λ abv abv' h, to_mul_hom_injective $ fun_like.coe_injective h,
+  map_mul := λ abv, abv.map_mul' }
+
 protected theorem nonneg (x : R) : 0 ≤ abv x := abv.nonneg' x
 @[simp] protected theorem eq_zero {x : R} : abv x = 0 ↔ x = 0 := abv.eq_zero' x
 protected theorem add_le (x y : R) : abv (x + y) ≤ abv x + abv y := abv.add_le' x y
-@[simp] protected theorem map_mul (x y : R) : abv (x * y) = abv x * abv y := abv.map_mul' x y
+protected theorem map_mul (x y : R) : abv (x * y) = abv x * abv y := map_mul abv x y
 
 protected theorem pos {x : R} (hx : x ≠ 0) : 0 < abv x :=
 lt_of_le_of_ne (abv.nonneg x) (ne.symm $ mt abv.eq_zero.mp hx)
@@ -54,7 +66,10 @@ lt_of_le_of_ne (abv.nonneg x) (ne.symm $ mt abv.eq_zero.mp hx)
 
 protected theorem ne_zero {x : R} (hx : x ≠ 0) : abv x ≠ 0 := (abv.pos hx).ne'
 
-@[simp] protected theorem map_zero : abv 0 = 0 := abv.eq_zero.2 rfl
+instance : zero_hom_class (absolute_value R S) R S :=
+{ map_zero := λ abv, abv.eq_zero.2 rfl, .. absolute_value.mul_hom_class }
+
+protected theorem map_zero : abv 0 = 0 := map_zero abv
 
 end ordered_semiring
 
@@ -90,9 +105,12 @@ instance : inhabited (absolute_value S S) := ⟨absolute_value.abs⟩
 
 variables [nontrivial R]
 
-@[simp] protected theorem map_one : abv 1 = 1 :=
-(mul_right_inj' $ abv.ne_zero one_ne_zero).1 $
-by rw [← abv.map_mul, mul_one, mul_one]
+instance : monoid_with_zero_hom_class (absolute_value R S) R S :=
+{ map_one := λ abv, (mul_right_inj' $ abv.ne_zero one_ne_zero).1 $
+    by rw [← abv.map_mul, mul_one, mul_one],
+  .. absolute_value.mul_hom_class, .. absolute_value.zero_hom_class }
+
+protected theorem map_one : abv 1 = 1 := map_one abv
 
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*`, `0` and `1`. -/
 def to_monoid_with_zero_hom : monoid_with_zero_hom R S :=
@@ -105,14 +123,11 @@ def to_monoid_with_zero_hom : monoid_with_zero_hom R S :=
 
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*` and `1`. -/
 def to_monoid_hom : monoid_hom R S :=
-{ to_fun := abv,
-  map_one' := abv.map_one,
-  .. abv }
+{ .. abv.to_monoid_with_zero_hom }
 
 @[simp] lemma coe_to_monoid_hom : ⇑abv.to_monoid_hom = abv := rfl
 
-@[simp] protected lemma map_pow (a : R) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
-abv.to_monoid_hom.map_pow a n
+protected lemma map_pow (a : R) (n : ℕ) : abv (a ^ n) = abv a ^ n := map_pow abv a n
 
 end linear_ordered_ring
 

@@ -223,7 +223,7 @@ end
 
 @[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
   ↑(∏ a in s, f a) = ∏ a in s, (f a : ℝ) :=
-to_real_hom.map_prod _ _
+s.map_prod to_real_hom f
 
 lemma _root_.real.to_nnreal_prod_of_nonneg {α} {s : finset α} {f : α → ℝ}
   (hf : ∀ a, a ∈ s → 0 ≤ f a) :

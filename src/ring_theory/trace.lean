@@ -136,7 +136,7 @@ begin
       matrix.trace_apply, matrix.trace_apply, matrix.trace_apply,
       ← finset.univ_product_univ, finset.sum_product],
   refine finset.sum_congr rfl (λ i _, _),
-  simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply,
+  simp only [finset.map_sum, smul_left_mul_matrix, finset.sum_apply,
       -- The unifier is not smart enough to apply this one by itself:
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end

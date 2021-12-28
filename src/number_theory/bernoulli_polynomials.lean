@@ -158,7 +158,7 @@ begin
     (show (n! : ℚ) ≠ 0, from cast_ne_zero.2 (factorial_ne_zero n)), mul_one, mul_comm (t^n),
     ← polynomial.aeval_monomial, cast_add, cast_one],
   -- But this is the RHS of `sum_bernoulli_poly`
-  rw [← sum_bernoulli_poly, finset.mul_sum, alg_hom.map_sum],
+  rw [← sum_bernoulli_poly, finset.mul_sum, finset.map_sum],
   -- and now we have to prove a sum is a sum, but all the terms are equal.
   apply finset.sum_congr rfl,
   -- The rest is just trivialities, hampered by the fact that we're coercing

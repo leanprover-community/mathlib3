@@ -850,7 +850,7 @@ S.to_add_submonoid.finsupp_sum_mem f g h
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
   f (finsupp.total ι M R g l) = finsupp.total ι N R (f ∘ g) l :=
-by simp only [finsupp.total_apply, finsupp.total_apply, finsupp.sum, f.map_sum, f.map_smul]
+by simp only [f.map_smul, finsupp.total_apply, finsupp.total_apply, map_finsupp_sum]
 
 lemma submodule.exists_finset_of_mem_supr
   {ι : Sort*} (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ i, p i) :

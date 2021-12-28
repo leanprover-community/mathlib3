@@ -196,7 +196,7 @@ begin
   revert hn, apply nat.strong_induction_on n, clear n,
   intros n IH hn,
   rw X_in_terms_of_W_eq,
-  simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_pow,
+  simp only [alg_hom.map_mul, alg_hom.map_sub, finset.map_sum, alg_hom.map_pow,
     bind₁_X_right, bind₁_C_right],
   rw [sub_mul, one_mul],
   rw [finset.sum_eq_single 0],

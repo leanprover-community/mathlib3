@@ -79,7 +79,7 @@ lemma norm_le (a : S) {y : ℤ} (hy : ∀ k, abv (bS.repr a k) ≤ y) :
 begin
   conv_lhs { rw ← bS.sum_repr a },
   rw [algebra.norm_apply, ← linear_map.det_to_matrix bS],
-  simp only [algebra.norm_apply, alg_hom.map_sum, alg_hom.map_smul, linear_equiv.map_sum,
+  simp only [algebra.norm_apply, finset.map_sum, alg_hom.map_smul, linear_equiv.map_sum,
       linear_equiv.map_smul, algebra.to_matrix_lmul_eq, norm_bound, smul_mul_assoc, ← mul_pow],
   convert matrix.det_sum_smul_le finset.univ _ hy using 3,
   { rw [finset.card_univ, smul_mul_assoc, mul_comm] },

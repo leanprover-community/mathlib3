@@ -491,11 +491,11 @@ diagonal_mul_diagonal _ _
 
 protected lemma sum_mul [fintype m] (s : finset β) (f : β → matrix l m α)
   (M : matrix m n α) : (∑ a in s, f a) ⬝ M = ∑ a in s, f a ⬝ M :=
-(add_monoid_hom_mul_right M : matrix l m α →+ _).map_sum f s
+s.map_sum (add_monoid_hom_mul_right M : matrix l m α →+ _) f
 
 protected lemma mul_sum [fintype m] (s : finset β) (f : β → matrix m n α)
   (M : matrix l m α) : M ⬝ ∑ a in s, f a = ∑ a in s, M ⬝ f a :=
-(add_monoid_hom_mul_left M : matrix m n α →+ _).map_sum f s
+s.map_sum (add_monoid_hom_mul_left M : matrix m n α →+ _) f
 
 end non_unital_non_assoc_semiring
 
@@ -519,7 +519,7 @@ instance [fintype n] [decidable_eq n] : non_assoc_semiring (matrix n n α) :=
 @[simp]
 lemma map_mul [fintype n] {L : matrix m n α} {M : matrix n o α} [non_assoc_semiring β]
   {f : α →+* β} : (L ⬝ M).map f = L.map f ⬝ M.map f :=
-by { ext, simp [mul_apply, ring_hom.map_sum], }
+by { ext, simp [mul_apply], }
 
 variables (α n)
 
@@ -1660,7 +1660,7 @@ variables [fintype n] [semiring α] [semiring β]
 
 lemma map_matrix_mul (M : matrix m n α) (N : matrix n o α) (i : m) (j : o) (f : α →+* β) :
   f (matrix.mul M N i j) = matrix.mul (λ i j, f (M i j)) (λ i j, f (N i j)) i j :=
-by simp [matrix.mul_apply, ring_hom.map_sum]
+by simp [matrix.mul_apply]
 
 lemma map_dot_product [semiring R] [semiring S] (f : R →+* S) (v w : n → R) :
   f (matrix.dot_product v w) = matrix.dot_product (f ∘ v) (f ∘ w) :=

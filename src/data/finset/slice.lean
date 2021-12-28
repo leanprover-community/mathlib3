@@ -12,8 +12,8 @@ import order.antichain
 This file defines the `r`-th slice of a set family and provides a way to say that a set family is
 made of `r`-sets.
 
-An `r`-set is a finset of cardinality `r`. The `r`-th slice of a set family is the set family made
-of its `r`-sets.
+An `r`-set is a finset of cardinality `r` (aka of *size* `r`). The `r`-th slice of a set family is
+the set family made of its `r`-sets.
 
 ## Main declarations
 

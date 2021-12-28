@@ -29,14 +29,14 @@ namespace tuple
 variables {n : ℕ}
 variables {α : Type*} [linear_order α]
 
-/-!
+/--
 `graph f` produces the finset of pairs `(f i, i)`
 equipped with the lexicographic order.
 -/
 def graph (f : fin n → α) : finset (lex α (fin n)) :=
 finset.univ.image (λ i, (f i, i))
 
-/-!
+/--
 Given `p : lex α (fin n) := (f i, i)` with `p ∈ graph f`,
 `graph.proj p` is defined to be `f i`.
 -/
@@ -50,7 +50,7 @@ begin
     simp }
 end
 
-/-!
+/--
 `graph_equiv₁ f` is the natural equivalence between `fin n` and `graph f`,
 mapping `i` to `(f i, i)`. -/
 def graph_equiv₁ (f : fin n → α) : fin n ≃ graph f :=
@@ -62,7 +62,7 @@ def graph_equiv₁ (f : fin n → α) : fin n ≃ graph f :=
 @[simp] lemma proj_equiv₁' (f : fin n → α) : graph.proj ∘ graph_equiv₁ f = f :=
 rfl
 
-/-!
+/--
 `graph_equiv₂ f` is an equivalence between `fin n` and `graph f` that respects the order.
 -/
 def graph_equiv₂ (f : fin n → α) : fin n ≃o graph f :=

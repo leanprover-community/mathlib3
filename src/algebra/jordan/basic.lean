@@ -43,22 +43,7 @@ and substitution instead.
 
 set_option old_structure_cmd true
 
-/-- A not-necessarily-unital, not-necessarily-associative ring. -/
-@[protect_proj, ancestor add_comm_group non_unital_non_assoc_semiring ]
-class non_unital_non_assoc_ring (α : Type*) extends
-  add_comm_group α, non_unital_non_assoc_semiring α
-
-variables {A : Type*}
-
-/- A (unital, associative) ring is a not-necessarily-unital, not-necessarily-associative ring -/
-@[priority 100] -- see Note [lower instance priority]
-instance ring.to_non_unital_non_assoc_semiring (B : Type*) [_i : ring B] :
-  non_unital_non_assoc_ring B :=
-{ zero_mul := zero_mul,
-  mul_zero := mul_zero,
-  .. _i }
-
-variables [non_unital_non_assoc_ring A]
+variables {A : Type*} [non_unital_non_assoc_ring A]
 
 namespace non_unital_non_assoc_ring
 -- For some reason `def L : A→+add_monoid.End A := add_monoid_hom.mul` doesn't work here?

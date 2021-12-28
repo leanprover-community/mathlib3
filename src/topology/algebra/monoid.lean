@@ -184,7 +184,8 @@ belongs to the closure of the range of the coercion from `M₁ →* M₂` (or an
 homomorphisms that has a `monoid_hom_class` instance) to `M₁ → M₂`. -/
 @[to_additive "/-- Construct a bundled additive monoid homomorphism `M₁ →+ M₂` from a function `f`
 and a proof that it belongs to the closure of the range of the coercion from `M₁ →+ M₂` (or another
-type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`. -/"]
+type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`. -/",
+  simps { fully_applied := ff }]
 def monoid_hom_of_mem_closure_range_coe (f : M₁ → M₂)
   (hf : f ∈ closure (@range (M₁ → M₂) F (@coe_fn _ _ fun_like.has_coe_to_fun))) :
   M₁ →* M₂ :=
@@ -195,7 +196,7 @@ def monoid_hom_of_mem_closure_range_coe (f : M₁ → M₂)
 
 /-- Construct a bundled monoid homomorphism from a pointwise limit of monoid homomorphisms. -/
 @[to_additive "Construct a bundled additive monoid homomorphism from a pointwise limit of additive
-monoid homomorphisms", simps]
+monoid homomorphisms", simps { fully_applied := ff }]
 def monoid_hom_of_tendsto (f : M₁ → M₂) (g : α → F) [l.ne_bot]
   (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=
 monoid_hom_of_mem_closure_range_coe f $ mem_closure_of_tendsto h $

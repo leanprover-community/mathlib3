@@ -275,23 +275,24 @@ variables [has_continuous_add M₂] {σ : R →+* S} {l : filter α}
 
 /-- Constructs a bundled linear map from a function and a proof that this function belongs to the
 closure of the set of linear maps. -/
-@[simps] def linear_map_of_mem_closure_range_coe (f : M₁ → M₂)
+@[simps { fully_applied := ff }] def linear_map_of_mem_closure_range_coe (f : M₁ → M₂)
   (hf : f ∈ closure (@set.range (M₁ → M₂) (M₁ →ₛₗ[σ] M₂) coe_fn)) :
   M₁ →ₛₗ[σ] M₂ :=
-{ map_smul' := (is_closed_set_of_map_smul M₁ M₂ σ).closure_subset_iff.2
+{ to_fun := f,
+  map_smul' := (is_closed_set_of_map_smul M₁ M₂ σ).closure_subset_iff.2
     (set.range_subset_iff.2 linear_map.map_smulₛₗ) hf,
   .. add_monoid_hom_of_mem_closure_range_coe f hf }
 
 /-- Construct a bundled linear map from a pointwise limit of linear maps -/
-@[simps] def linear_map_of_tendsto (f : M₁ → M₂) (g : α → M₁ →ₛₗ[σ] M₂) [l.ne_bot]
+@[simps { fully_applied := ff }]
+def linear_map_of_tendsto (f : M₁ → M₂) (g : α → M₁ →ₛₗ[σ] M₂) [l.ne_bot]
   (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →ₛₗ[σ] M₂ :=
 linear_map_of_mem_closure_range_coe f $ mem_closure_of_tendsto h $
   eventually_of_forall $ λ a, set.mem_range_self _
 
 variables (M₁ M₂ σ)
 
-@[to_additive] lemma linear_map.is_closed_range_coe :
-  is_closed (@set.range (M₁ → M₂) (M₁ →ₛₗ[σ] M₂) coe_fn) :=
+lemma linear_map.is_closed_range_coe : is_closed (@set.range (M₁ → M₂) (M₁ →ₛₗ[σ] M₂) coe_fn) :=
 is_closed_of_closure_subset $ λ f hf, ⟨linear_map_of_mem_closure_range_coe f hf, rfl⟩
 
 end pointwise_limits

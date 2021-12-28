@@ -474,7 +474,7 @@ begin
     rw gc_nhds,
     simp [nhds_cofinite] },
   { intros h,
-    replace h : topβ ≤ topα, by simpa [continuous_iff_coinduced_le, coinduced_id] using h,
+    replace h : topβ ≤ topα := by simpa [continuous_iff_coinduced_le, coinduced_id] using h,
     rw le_nhds_adjoint_iff at h,
     exact (finite_singleton 1).infinite_compl (h.2 1 one_ne_zero ⟨1, mem_singleton 1⟩) }
 end

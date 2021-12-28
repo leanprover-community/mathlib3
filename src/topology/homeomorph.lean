@@ -441,7 +441,7 @@ end
 /-- Continuous equivalences from a compact space to a T2 space are homeomorphisms.
 
 This is not true when T2 is weakened to T1
-(see `homeo_of_equiv_compact_to_t2.t1_counterexample`). -/
+(see `continuous.homeo_of_equiv_compact_to_t2.t1_counterexample`). -/
 @[simps]
 def homeo_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
   {f : α ≃ β} (hf : continuous f) : α ≃ₜ β :=
@@ -449,6 +449,15 @@ def homeo_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
   continuous_inv_fun := hf.continuous_symm_of_equiv_compact_to_t2,
   ..f }
 
+/--
+Let `α = ℕ` be the one-point compactification of `{1, 2, ...}` with the discrete topology,
+where `0` is the adjoined point, and let `β = ℕ` be given the cofinite topology.
+Then `α` is compact, `β` is T1, and the identity map `id : α → β` is a continuous equivalence
+that is not a homeomorphism.
+
+This demonstrates that `continuous.homeo_of_equiv_compact_to_t2` cannot be generalized to
+`t1_space`.
+-/
 lemma homeo_of_equiv_compact_to_t2.t1_counterexample :
   ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI
   compact_space α ∧ t1_space β ∧ ∃ f : α ≃ β, continuous f ∧ ¬ continuous f.symm :=

@@ -1036,6 +1036,17 @@ lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
 by rw [←@not_lt _ _ o' o, enum_lt ho']
 
+theorem enum_eq {r : α → α → Prop} [is_well_order α r]
+  {o₁ o₂ : ordinal} (h₁ : o₁ < type r) (h₂ : o₂ < type r) :
+  (enum r o₁ h₁) = (enum r o₂ h₂) ↔ o₁ = o₂ :=
+begin
+  refine ⟨λ h, le_antisymm _ _, by { rintro ⟨h⟩, refl }⟩,
+  { rw [←enum_le_enum r h₁ h₂, h],
+    exact irrefl _ },
+  rw [←enum_le_enum r h₂ h₁, h],
+  exact irrefl _
+end
+
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
 @[nolint check_univs] -- intended to be used with explicit universe parameters

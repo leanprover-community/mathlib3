@@ -3,11 +3,8 @@ Copyright (c) 2021 Vladimir Goryachev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Vladimir Goryachev, Kyle Miller, Scott Morrison, Eric Rodriguez
 -/
-import data.list.basic
-import data.nat.prime
 import data.nat.count
 import order.order_iso_nat
-import set_theory.fincard
 
 /-!
 # The `n`th Number Satisfying a Predicate

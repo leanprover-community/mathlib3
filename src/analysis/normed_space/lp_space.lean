@@ -392,6 +392,16 @@ lemma norm_le_of_tsum_le' (hp : 0 < p.to_real) {C : ℝ} (hC : 0 ≤ C) {f : lp 
   ∥f∥ ≤ C :=
 norm_le_of_tsum_le hp hC (tsum_le_of_sum_le ((lp.mem_ℓp f).summable hp) hf)
 
+lemma sum_rpow_le_norm' (hp : 0 < p.to_real) (f : lp E p) (s : finset α) :
+  ∑ i in s, ∥f i∥ ^ p.to_real ≤ ∥f∥ ^ p.to_real :=
+begin
+  rw lp.norm_rpow_eq_tsum hp f,
+  have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real,
+  { exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
+  refine sum_le_tsum _ (λ i hi, this i) _,
+  exact (lp.mem_ℓp f).summable hp
+end
+
 lemma sum_rpow_le_norm (hp : 0 < p.to_real) (f : lp E p) (s : finset α) :
   (∑ i in s, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real) ≤ ∥f∥ :=
 begin
@@ -581,9 +591,9 @@ begin
 end
 
 /-- The coercion from `lp E p` to `Π i, E i` is uniformly continuous. -/
-lemma uniform_continuous_coe [fact (1 ≤ p)] : uniform_continuous (coe : lp E p → Π i, E i) :=
+lemma uniform_continuous_coe [_i : fact (1 ≤ p)] : uniform_continuous (coe : lp E p → Π i, E i) :=
 begin
-  have hp : p ≠ 0 := sorry,
+  have hp : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
   rw uniform_continuous_pi,
   intros i,
   rw normed_group.uniformity_basis_dist.uniform_continuous_iff normed_group.uniformity_basis_dist,
@@ -645,76 +655,49 @@ lemma _root_.cauchy_seq.bounded {α : Type*} [pseudo_metric_space α] {u : ℕ �
   metric.bounded (set.range u) :=
 metric.bounded_range_of_cauchy_map_cofinite hu.cauchy_map_cofinite
 
-/-- If `f` is the pointwise limit of a Cauchy sequence in `Lp E p`, then `f` is in `Lp E p`. -/
-lemma foo₂ [fact (1 ≤ p)] (hF : cauchy_seq F) {f : Π a, E a}
+/-- If `f` is the pointwise limit of a bounded sequence in `Lp E p`, then `f` is in `Lp E p`. -/
+lemma foo₂' [fact (1 ≤ p)] (hF : metric.bounded (set.range F)) {f : Π a, E a}
   (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
   mem_ℓp f p :=
 begin
+  obtain ⟨C₀, hC₀⟩ := hF.exists_norm_le,
+  let C : ℝ := max C₀ 0,
+  have hC : 0 ≤ C := le_max_right _ _,
+  have hCF : ∀ x ∈ set.range F, ∥x∥ ≤ C := λ x hx, (hC₀ x hx).trans (le_max_left _ _),
   tactic.unfreeze_local_instances,
   rcases p.dichotomy with rfl | hp',
   { apply mem_ℓp_infty,
-    obtain ⟨C, hC⟩ := hF.bounded.exists_norm_le, -- can the main proof be made to work with this?
     use C,
     rintros _ ⟨a, rfl⟩,
     have : tendsto (λ k, ∥F k a∥) at_top (𝓝 ∥f a∥) :=
       (tendsto.comp (continuous_apply a).continuous_at hf).norm,
     refine le_of_tendsto' this _,
     intros k,
-    exact (norm_apply_le_norm ennreal.top_ne_zero _ a).trans (hC _ ⟨k, rfl⟩) },
-  have hp : 0 < p.to_real := sorry,
-  obtain ⟨N, hN⟩ := foo₀' hF zero_lt_one,
-  have hC : 0 ≤ (1 + ∥F N∥) ^ p.to_real := sorry,
-  apply mem_ℓp_gen' hp hC,
+    exact (norm_apply_le_norm ennreal.top_ne_zero _ a).trans (hCF _ ⟨k, rfl⟩) },
+  have hp : 0 < p.to_real := by linarith,
+  have hC' : 0 ≤ C ^ p.to_real := real.rpow_nonneg_of_nonneg hC _,
+  apply mem_ℓp_gen' hp hC',
   intros s,
-  suffices : ∀ᶠ (k : ℕ) in at_top, ∑ a in s, ∥F k a∥ ^ p.to_real < (1 + ∥F N∥) ^ p.to_real,
-  { refine le_of_tendsto _ (this.mono (λ _, le_of_lt)),
-    let G : (Π i : s, E i) → ℝ := λ f, ∑ a : s, ∥f a∥ ^ p.to_real,
-    have hG : continuous G,
-    { sorry },
-    suffices : tendsto (λ i, G (λ a, F i a)) at_top (𝓝 (G (λ a, f a))),
-    { convert this using 2,
-      { ext i,
-        symmetry,
-        exact finset.sum_finset_coe (λ a, ∥F i a∥ ^ p.to_real) s },
-      symmetry,
-      exact finset.sum_finset_coe (λ a, ∥f a∥ ^ p.to_real) s },
-    refine hG.continuous_at.tendsto.comp _,
-    rw tendsto_pi_nhds at ⊢ hf,
-    rintros ⟨i, hi⟩,
-    exact hf i },
-  refine (hN s N rfl.le).mono _,
-  intros k hk,
-  have hk' : (∑ a in s, ∥(F k - F N) a∥ ^ p.to_real) ^ (1 / p.to_real) < 1,
-  { rw real.rpow_one_div_lt_iff _ zero_le_one hp,
-    convert hk,
-    { ext a,
-      rw ← _root_.norm_neg ((F k - F N) a),
-      simp },
-    { sorry } }, -- nonneg
-  have triang : ∀ a, ∥F k a - F N a + F N a∥ ^ p.to_real ≤ (∥(F k - F N) a∥ + ∥F N a∥) ^ p.to_real,
-  { intros a,
-    rw real.rpow_le_rpow_iff _ _ hp,
-    { exact norm_add_le (F k a - F N a) (F N a) },
-    { sorry }, -- nonneg
-    { sorry } }, -- nonneg
-  suffices H : ∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real < (1 + ∥F N∥) ^ p.to_real,
-  calc ∑ a in s, ∥F k a∥ ^ p.to_real
-      = ∑ a in s, ∥(F k a - F N a) + F N a∥ ^ p.to_real : by { congr' 1, ext a, congr' 2, abel }
-  ... ≤ ∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real : finset.sum_le_sum (λ i hi, triang i)
-  ... < (1 + ∥F N∥) ^ p.to_real : H,
-  suffices : (∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real) ^ (1 / p.to_real) < 1 + ∥F N∥,
-  { rw ← real.rpow_one_div_lt_iff _ _ hp,
-    { exact this },
-    { sorry }, -- nonneg
-    { sorry } }, -- nonneg
-  have h_sum_le_tsum : (∑ a in s, ∥F N a∥ ^ p.to_real) ^ (1 / p.to_real) ≤ ∥F N∥
-    := lp.sum_rpow_le_norm hp (F N) s,
-  calc (∑ a in s, (∥F k a - F N a∥ + ∥F N a∥) ^ p.to_real) ^ (1 / p.to_real)
-      ≤ (∑ a in s, ∥(F k - F N) a∥ ^ p.to_real) ^ (1 / p.to_real)
-        + (∑ a in s, ∥F N a∥ ^ p.to_real) ^ (1 / p.to_real) :
-          real.Lp_add_le_of_nonneg s hp' sorry sorry -- nonneg
-  ... < 1 + ∥F N∥ : by linarith,
+  let G : (Π a, E a) → ℝ := λ f, ∑ a in s, ∥f a∥ ^ p.to_real,
+  have hG : continuous G,
+  { refine continuous_finset_sum s _,
+    intros a ha,
+    have : continuous (λ f : Π a, E a, f a):= (continuous_apply a),
+    exact this.norm.rpow_const (λ _, or.inr hp.le) },
+  refine le_of_tendsto' (hG.continuous_at.tendsto.comp hf) _,
+  intros k,
+  refine (lp.sum_rpow_le_norm' hp (F k) s).trans _,
+  exact real.rpow_le_rpow (norm_nonneg _) (hCF _ ⟨k, rfl⟩) hp.le,
 end
+
+
+-- #exit
+
+/-- If `f` is the pointwise limit of a Cauchy sequence in `Lp E p`, then `f` is in `Lp E p`. -/
+lemma foo₂ [fact (1 ≤ p)] (hF : cauchy_seq F) {f : Π a, E a}
+  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
+  mem_ℓp f p :=
+foo₂' hF.bounded hf
 
 /-- If a sequence is Cauchy in the `lp E p` topology and pointwise convergent to a element `f` of
 `lp E p`, then it converges to `f` in the `lp E p` topology. -/

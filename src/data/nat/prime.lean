@@ -560,6 +560,13 @@ begin
   rw [hp.eq_one_of_pow, eq_self_iff_true, and_true, pow_one],
 end
 
+lemma prime.power_min_fac {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) : (p^k).min_fac = p :=
+begin
+  have pk : p ^ k ≠ 1 := λ hk', hp.one_lt.ne' ((pow_eq_one_iff hk).1 hk'),
+  rw ←dvd_prime_two_le hp (min_fac_prime pk).two_le,
+  apply (min_fac_prime pk).dvd_of_dvd_pow (p^k).min_fac_dvd,
+end
+
 lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
 ⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [sq],

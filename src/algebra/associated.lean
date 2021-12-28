@@ -775,16 +775,10 @@ end
 lemma dvd_not_unit_of_dvd_not_unit_associated [cancel_comm_monoid_with_zero α]
 [nontrivial α] {p q r : α} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
 begin
-  obtain ⟨hp, x, hx⟩ := h,
   obtain ⟨u, rfl⟩ := associated.symm h',
-  split,
-  { exact hp },
-  { use x * ↑(u⁻¹),
-    split,
-    { suffices : dvd_not_unit ↑u⁻¹ (x * ↑u⁻¹),
-      { exact dvd_not_unit.not_unit this },
-      exact ⟨(units.is_unit u⁻¹).ne_zero, by { use x, exact ⟨hx.left, mul_comm x ↑u⁻¹⟩, } ⟩ },
-    { rw [← mul_assoc, ← hx.right, mul_assoc, units.mul_inv, mul_one] } },
+  obtain ⟨hp, x, hx⟩ := h,
+  refine ⟨hp, x * ↑(u⁻¹), dvd_not_unit.not_unit ⟨u⁻¹.ne_zero, x, hx.left, mul_comm _ _⟩, _⟩,
+  rw [← mul_assoc, ← hx.right, mul_assoc, units.mul_inv, mul_one]
 end
 
 lemma dvd_not_unit.ne [cancel_comm_monoid_with_zero α] {p q : α}

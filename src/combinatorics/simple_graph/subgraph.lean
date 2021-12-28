@@ -126,6 +126,9 @@ def neighbor_set (G' : subgraph G) (v : V) : set V := set_of (G'.adj v)
 lemma neighbor_set_subset (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G.neighbor_set v :=
 λ w h, G'.adj_sub h
 
+lemma neighbor_set_subset_verts (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G'.verts :=
+by { intros _ h, exact G'.edge_vert (adj_symm G' h) }
+
 @[simp] lemma mem_neighbor_set (G' : subgraph G) (v w : V) : w ∈ G'.neighbor_set v ↔ G'.adj v w :=
 iff.rfl
 
@@ -351,9 +354,8 @@ def finite_at_of_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj]
    fintype (G'.neighbor_set v) :=
 set.fintype_subset (G''.neighbor_set v) (neighbor_set_subset_of_subgraph h v)
 
-noncomputable instance (G' : subgraph G) [fintype G'.verts] (a : V) : fintype (G'.neighbor_set a) :=
-fintype.of_injective (λ (v : G'.neighbor_set a), (⟨v, G'.edge_vert (G'.adj_symm v.2)⟩ : G'.verts))
-(λ v w h, by { ext, convert congr_arg subtype.val h })
+noncomputable instance (G' : subgraph G) [fintype G'.verts] (v : V) : fintype (G'.neighbor_set v) :=
+by { classical, exact set.fintype_subset G'.verts (neighbor_set_subset_verts G' v) }
 
 instance coe_finite_at {G' : subgraph G} (v : G'.verts) [fintype (G'.neighbor_set v)] :
   fintype (G'.coe.neighbor_set v) :=

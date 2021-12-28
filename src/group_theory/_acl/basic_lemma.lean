@@ -99,66 +99,19 @@ def cycle_type_of_even' (m : multiset ℕ) :=
 def cycle_type_of_even (m : multiset ℕ) :=
   even(m.sum + m.card)
 
-/- lemma all_cycle_types_le_5 {m : multiset ℕ} (hm : ∀ {n : ℕ}, n ∈ m → 2 ≤ n)
-  (hs : m.sum ≤ 5) (hm0 : m ≠ 0) :
-  m = {5} ∨ m = {4} ∨ m = {3} ∨ m = {2} ∨ m = {3,2} ∨ m = {2,2} :=
--/
+@[interactive]
+meta def acl : tactic unit :=
+`[rcases all_cycle_types_le_5 hm hmsum5 hm0 with rfl | rfl | rfl | rfl | rfl | rfl,
+  all_goals { refl <|> { exfalso ; norm_num [cycle_type_of_even] at * } }]
+
 lemma basic_22 {m : multiset ℕ}
   (hm : ∀ (i : ℕ), i ∈ m → i ≥ 2) (hm0 : m ≠ 0) (hmsum4: 4 ≤ m.sum) (hmsum5 : m.sum ≤ 5)
     (hmsup : m.sup < 4) (hmeven : cycle_type_of_even m) :
   m = {2, 2} :=
-begin
-  cases all_cycle_types_le_5  hm hmsum5 hm0 with hz hz,
-  { exfalso, rw hz at hmsup, simpa using hmsup, } ,
-  cases hz with hz hz,
-  { exfalso, rw hz at hmsup, simpa using hmsup, } ,
-  cases hz with hz hz,
-  { exfalso, rw hz at hmsum4,
-    simp only [multiset.sum_singleton, nat.bit0_le_bit1_iff] at hmsum4,
-    exact nat.not_succ_le_self _ hmsum4 },
-  cases hz with hz hz,
-  { exfalso,
-  unfold cycle_type_of_even at hmeven,
-  apply nat.even_iff_not_odd.mp hmeven,
-  rw hz,
-  simp, by norm_num },
-  cases hz with hz hz,
-  { exfalso,
-    unfold cycle_type_of_even at hmeven,
-    apply nat.even_iff_not_odd.mp hmeven,
-    rw hz,
-    simp, by norm_num },
-  assumption,
-end
+by acl
 
 lemma basic_5 {m : multiset ℕ}
   (hm : ∀ (i : ℕ), i ∈ m → i ≥ 2) (hm0 : m ≠ 0) (hmsum5 : m.sum ≤ 5) (hmsup : m.sup ≥ 4)
     (hmeven : cycle_type_of_even m) :
     m = {5} :=
-begin
-  cases all_cycle_types_le_5  hm hmsum5 hm0 with hz hz,
-  assumption,
-  cases hz with hz hz,
-  { exfalso,
-  unfold cycle_type_of_even at hmeven,
-  apply nat.even_iff_not_odd.mp hmeven,
-  rw hz,
-  simp, by norm_num },
-  cases hz with hz hz,
-  { exfalso, rw hz at hmsup, simp at hmsup,
-    apply nat.not_succ_le_self _ hmsup, },
-  cases hz with hz hz,
-  { exfalso,
-  unfold cycle_type_of_even at hmeven,
-  apply nat.even_iff_not_odd.mp hmeven,
-  rw hz,
-  simp, by norm_num },
-  cases hz with hz hz,
-  { exfalso,
-    unfold cycle_type_of_even at hmeven,
-    apply nat.even_iff_not_odd.mp hmeven,
-    rw hz,
-    simp, by norm_num },
-  exfalso, rw hz at hmsup, simp at hmsup,
-  apply nat.not_succ_le_self _ hmsup,
-end
+by acl

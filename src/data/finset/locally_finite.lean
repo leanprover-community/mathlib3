@@ -119,6 +119,24 @@ lemma _root_.bdd_below.finite_of_bdd_above {s : set α} (h₀ : bdd_below s) (h�
   s.finite :=
 let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in by { classical, exact ⟨set.fintype_of_mem_bounds ha hb⟩ }
 
+section filter
+
+variables (a) [fintype α]
+
+lemma filter_eq_Ioi [order_top α] [decidable_pred ((<) a)] :
+  finset.univ.filter (λ j, a < j) = Ioi a := by { ext, simp }
+
+lemma filter_eq_Ici [order_top α] [decidable_pred ((≤) a)] :
+  finset.univ.filter (λ j, a ≤ j) = Ici a := by { ext, simp }
+
+lemma filter_eq_Iio [order_bot α] [decidable_pred ((>) a)] :
+  finset.univ.filter (λ j, j < a) = Iio a := by { ext, simp }
+
+lemma filter_eq_Iic [order_bot α] [decidable_pred ((≥) a)] :
+  finset.univ.filter (λ j, j ≤ a) = Iic a := by { ext, simp }
+
+end filter
+
 end preorder
 
 section partial_order

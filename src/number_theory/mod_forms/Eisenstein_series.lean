@@ -670,7 +670,7 @@ begin
 end
 
 /--Canonical point in the `A B` slice-/
-def lbpoint (A B : ℝ) (h: 0 < B): ℍ:= ⟨⟨A,B⟩, by { simp, exact h,},⟩
+def lbpoint (A B : ℝ) (h: 0 < B): ℍ := ⟨⟨A,B⟩, by { simp, exact h,},⟩
 
 lemma aux55 (a b : ℝ ) (h : a ≠ 0 ) : a/(a+b)=1/(b/a+1) :=
 begin
@@ -887,12 +887,6 @@ begin
   have index_lem:= tsum_lemma' g Square HI hgsumm,
   simp_rw g at index_lem,
   exact index_lem,
-end
-
-lemma complex_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℂ) :
-complex.abs(∑ i in s, f i) ≤ ∑ i in s, complex.abs(f i) :=
-begin
- exact abv_sum_le_sum_abv (λ (k : ι), f k) s,
 end
 
 lemma Eisen_partial_tends_to_uniformly (k: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :

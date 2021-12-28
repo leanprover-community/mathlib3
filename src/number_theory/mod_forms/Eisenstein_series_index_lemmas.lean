@@ -704,6 +704,12 @@ unfold norm,
 exact complete_of_proper,
 end
 
+lemma complex_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℂ) :
+complex.abs(∑ i in s, f i) ≤ ∑ i in s, complex.abs(f i) :=
+begin
+ exact abv_sum_le_sum_abv (λ (k : ι), f k) s,
+end
+
 lemma upper_gt_zero (z: ℍ) : 0<(z: ℂ ).im:=
 begin
  have H:= z.property,

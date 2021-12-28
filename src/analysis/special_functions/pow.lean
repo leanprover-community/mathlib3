@@ -603,6 +603,24 @@ begin
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
+lemma rpow_le_rpow_of_exponent_ge' (hx0 : 0 ≤ x) (hx1 : x ≤ 1) (hz : 0 ≤ z) (hyz : z ≤ y) :
+  x^y ≤ x^z :=
+begin
+  rcases lt_or_eq_of_le hz with hz | rfl,
+  rcases lt_or_eq_of_le hx0 with hx0 | rfl,
+  { exact rpow_le_rpow_of_exponent_ge hx0 hx1 hyz },
+  { rw zero_rpow (by linarith : y ≠ 0),
+    exact zero_rpow_nonneg _ },
+  { simpa using rpow_le_one hx0 hx1 hyz }
+end
+
+lemma rpow_left_inj_on {x : ℝ} (hx : x ≠ 0) :
+  set.inj_on (λ y : ℝ, y^x) {y : ℝ | 0 ≤ y} :=
+begin
+  rintros y hy z hz (hyz : y ^ x = z ^ x),
+  rw [←rpow_one y, ←rpow_one z, ←_root_.mul_inv_cancel hx, rpow_mul hy, rpow_mul hz, hyz]
+end
+
 lemma le_rpow_iff_log_le (hx : 0 < x) (hy : 0 < y) :
   x ≤ y^z ↔ real.log x ≤ z * real.log y :=
 by rw [←real.log_le_log hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]

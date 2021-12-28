@@ -119,13 +119,7 @@ by simp [degree_eq_one_iff_unique_adj, is_perfect_matching_iff]
 
 lemma is_perfect_matching.even_card {M : subgraph G} [fintype V] (h : M.is_perfect_matching) :
   even (fintype.card V) :=
-begin
-  classical,
-  rw is_perfect_matching_iff_forall_degree at h,
-  have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
-  simp [h] at this,
-  exact ⟨_, this⟩,
-end
+by { classical, simpa [card_verts_eq_of_spanning h.2] using is_matching.even_card h.1 }
 
 end subgraph
 

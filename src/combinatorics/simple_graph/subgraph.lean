@@ -96,8 +96,8 @@ In general, this adds in all vertices from `V` as isolated vertices. -/
   symm := G'.symm,
   loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
 
-@[simp] lemma spanning_coe_adj_sub (H : subgraph G) (u v : H.verts) (h : H.spanning_coe.adj u v) :
-  G.adj u v := H.adj_sub h
+@[simp] lemma spanning_coe_adj_sub (G' : subgraph G) (u v : G'.verts) (h : G'.spanning_coe.adj u v) :
+  G.adj u v := G'.adj_sub h
 
 /-- `spanning_coe` is equivalent to `coe` for a subgraph that `is_spanning`.  -/
 @[simps] def spanning_coe_equiv_coe_of_spanning (G' : subgraph G) (h : G'.is_spanning) :
@@ -358,6 +358,10 @@ fintype.of_injective (λ (v : G'.neighbor_set a), (⟨v, G'.edge_vert (G'.adj_sy
 instance coe_finite_at {G' : subgraph G} (v : G'.verts) [fintype (G'.neighbor_set v)] :
   fintype (G'.coe.neighbor_set v) :=
 fintype.of_equiv _ (coe_neighbor_set_equiv v).symm
+
+lemma card_verts_eq_of_spanning [fintype V] {G' : subgraph G} [fintype G'.verts]
+  (h : G'.is_spanning) : G'.verts.to_finset.card = fintype.card V :=
+by { rw is_spanning_iff at h, congr, convert set.to_finset_univ }
 
 /-- The degree of a vertex in a subgraph. It's zero for vertices outside the subgraph. -/
 def degree (G' : subgraph G) (v : V) [fintype (G'.neighbor_set v)] : ℕ :=

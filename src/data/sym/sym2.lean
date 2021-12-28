@@ -304,7 +304,7 @@ instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
   decidable_pred (∈ sym2.from_rel sym) :=
 λ z, quotient.rec_on_subsingleton z (λ x, h _ _)
 
-/-- The inverse to `sym2.from_rel`. Given a set on `sym2 α`, give a symmetric relation
+/-- The inverse to `sym2.from_rel`. Given a set on `sym2 α`, give a symmetric relation on `α`
 (see `sym2.to_rel_symmetric`). -/
 def to_rel (s : set (sym2 α)) (x y : α) : Prop := ⟦(x, y)⟧ ∈ s
 
@@ -508,5 +508,14 @@ begin
 end
 
 end decidable
+
+instance [subsingleton α] : subsingleton (sym2 α) :=
+(equiv_sym α).injective.subsingleton
+
+instance [unique α] : unique (sym2 α) := unique.mk' _
+
+instance [is_empty α] : is_empty (sym2 α) := (equiv_sym α).is_empty
+
+instance [nontrivial α] : nontrivial (sym2 α) := diag_injective.nontrivial
 
 end sym2

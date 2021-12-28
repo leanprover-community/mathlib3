@@ -403,6 +403,20 @@ begin
   tauto,
 end
 
+-- TODO find out why TC inference has `h` failing a defeq check for `to_finset`
+lemma card_neighbor_set_union_compl_neighbor_set [fintype V] (G : simple_graph V)
+  (v : V) [h : fintype (G.neighbor_set v ∪ Gᶜ.neighbor_set v : set V)] :
+  (@set.to_finset _ (G.neighbor_set v ∪ Gᶜ.neighbor_set v) h).card = fintype.card V - 1 :=
+begin
+  classical,
+  simp_rw [neighbor_set_union_compl_neighbor_set_eq, set.to_finset_compl, finset.card_compl,
+    set.to_finset_card, set.card_singleton],
+end
+
+lemma neighbor_set_compl (G : simple_graph V) (v : V) :
+  Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
+by { ext w, simp [and_comm, eq_comm] }
+
 /--
 The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
 intersection of the neighbor sets of `v` and `w`.
@@ -480,6 +494,14 @@ def delete_edges (s : set (sym2 V)) : simple_graph V :=
 @[simp] lemma delete_edges_adj (s : set (sym2 V)) (v w : V) :
   (G.delete_edges s).adj v w ↔ G.adj v w ∧ ¬ ⟦(v, w)⟧ ∈ s := iff.rfl
 
+lemma sdiff_eq_delete_edges (G G' : simple_graph V) :
+  G \ G' = G.delete_edges G'.edge_set :=
+by { ext, simp }
+
+lemma compl_eq_delete_edges :
+  Gᶜ = (⊤ : simple_graph V).delete_edges G.edge_set :=
+by { ext, simp }
+
 @[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
   (G.delete_edges s).delete_edges s' = G.delete_edges (s ∪ s') :=
 by { ext, simp [and_assoc, not_or_distrib] }
@@ -540,6 +562,14 @@ lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v
 lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
 by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
 
+lemma degree_compl [fintype (Gᶜ.neighbor_set v)] [fintype V] :
+  Gᶜ.degree v = fintype.card V - 1 - G.degree v :=
+begin
+  classical,
+  rw [← card_neighbor_set_union_compl_neighbor_set G v, set.to_finset_union],
+  simp [card_disjoint_union (set.to_finset_disjoint_iff.mpr (compl_neighbor_set_disjoint G v))],
+end
+
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
 fintype.of_equiv (G.neighbor_set v) (G.incidence_set_equiv_neighbor_set v).symm
 
@@ -576,6 +606,12 @@ A locally finite simple graph is regular of degree `d` if every vertex has degre
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
 lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
+
+lemma is_regular_compl_of_is_regular [fintype V] [decidable_eq V]
+  (G : simple_graph V) [decidable_rel G.adj]
+  (k : ℕ) (h : G.is_regular_of_degree k) :
+  Gᶜ.is_regular_of_degree (fintype.card V - 1 - k) :=
+by { intro v, rw [degree_compl, h v] }
 
 end locally_finite
 

@@ -455,8 +455,8 @@ where `0` is the adjoined point, and let `β = ℕ` be given the cofinite topolo
 Then `α` is compact, `β` is T1, and the identity map `id : α → β` is a continuous equivalence
 that is not a homeomorphism.
 
-This demonstrates that `continuous.homeo_of_equiv_compact_to_t2` cannot be generalized to
-`t1_space`.
+This demonstrates that `continuous.homeo_of_equiv_compact_to_t2` cannot be generalized from
+`t2_space` to `t1_space`.
 -/
 lemma homeo_of_equiv_compact_to_t2.t1_counterexample :
   ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI

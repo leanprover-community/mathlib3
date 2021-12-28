@@ -744,19 +744,25 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
 /--
-Polynomial evaluation commutes with finset.prod
+Polynomial evaluation commutes with `list.prod`
+-/
+lemma eval_list_prod (l : list (polynomial R)) (x : R) :
+  eval x l.prod = (l.map (eval x)).prod :=
+(eval_ring_hom x).map_list_prod l
+
+/--
+Polynomial evaluation commutes with `multiset.prod`
+-/
+lemma eval_multiset_prod (s : multiset (polynomial R)) (x : R) :
+  eval x s.prod = (s.map (eval x)).prod :=
+(eval_ring_hom x).map_multiset_prod s
+
+/--
+Polynomial evaluation commutes with `finset.prod`
 -/
 lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
   eval x (∏ j in s, p j) = ∏ j in s, eval x (p j) :=
-begin
-  classical,
-  apply finset.induction_on s,
-  { simp only [finset.prod_empty, eval_one] },
-  { intros j s hj hpj,
-    have h0 : ∏ i in insert j s, eval x (p i) = (eval x (p j)) * ∏ i in s, eval x (p i),
-    { apply finset.prod_insert hj },
-    rw [h0, ← hpj, finset.prod_insert hj, eval_mul] },
-end
+(eval_ring_hom x).map_prod _ _
 
 lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
   (s : finset ι) (p : ι → polynomial R) (x : R) :

@@ -119,7 +119,8 @@ begin
     assumption },
   { intro h,
     use M.eval x,
-    finish }
+    simp only [set.mem_singleton_iff],
+    exact ⟨h, rfl⟩ }
 end
 
 end DFA

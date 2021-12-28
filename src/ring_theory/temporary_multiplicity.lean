@@ -17,8 +17,8 @@ of length `n + 1`, aka we can find strictly increasing bijection bewteen `finset
 the set of factors of `a`
 
 We can then use this to show that given `a b : M`, if there is an monotone bijection
-between the sets of factors of `associates.mk a` and `associates.mk b` then the prime factorisations
-of `a` and `b` have the same shape.
+between the sets of factors of `associates.mk a` and `associates.mk b` then the prime
+factorisations of `a` and `b` have the same shape.
 
 
 ## Main results
@@ -95,8 +95,9 @@ begin
       exact hy' } }
 end
 
-lemma second_of_chain_not_is_unit (n i : ℕ) (hi : 1 ≤ i ∧ i ≤ n) (c : finset.range (n + 1) → associates M)
-  (h₁ : strict_mono c) : ¬ is_unit (c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le hi.right)⟩) :=
+lemma second_of_chain_not_is_unit (n i : ℕ) (hi : 1 ≤ i ∧ i ≤ n)
+  (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c) :
+  ¬ is_unit (c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le hi.right)⟩) :=
 begin
   refine dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
     (h₁ (show (⟨0, finset.mem_range.2 (nat.zero_lt_succ n)⟩ : finset.range (n + 1))
@@ -128,11 +129,10 @@ lemma associates.is_atom_iff {p : associates M} (h₁ : p ≠ 0) : is_atom p ↔
           (λ ha, absurd (show p ∣ b, from ⟨(ha.unit⁻¹ : units _), by simp [hab]; rw mul_assoc;
             rw is_unit.mul_coe_inv ha; rw mul_one⟩) hb)⟩⟩
 
-lemma second_of_chain_is_irreducible {q : associates M} (n : ℕ) (hn : 1 ≤ n) (c : finset.range (n + 1) → associates M)
-  (h₁ : strict_mono c)
+lemma second_of_chain_is_irreducible {q : associates M} (n : ℕ) (hn : 1 ≤ n)
+  (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c)
   (h₂ : ∀ {r}, r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩)
-  (hq : q ≠ 0) :
-  irreducible (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩) :=
+  (hq : q ≠ 0) : irreducible (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩) :=
 begin
   refine (associates.is_atom_iff _).mp _,
   apply ne_zero_of_dvd_ne_zero hq (h₂.2 (exists.intro 1 (exists.intro hn rfl) )),
@@ -187,7 +187,8 @@ begin
     exact this hp },
 end
 
-lemma card_subset_divisors_le_length_of_chain {q : associates M} (n : ℕ) (c : finset.range (n + 1) → associates M)
+lemma card_subset_divisors_le_length_of_chain {q : associates M} (n : ℕ)
+  (c : finset.range (n + 1) → associates M)
   (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩)
   (m : finset (associates M)) (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
 begin
@@ -270,8 +271,8 @@ begin
         (finset.range (i + 1))), r ≤ q,
       { apply nat.le_of_succ_le_succ,
         rw [nat.succ_eq_add_one, ← this],
-        apply card_subset_divisors_le_length_of_chain n c (λ r', h₂) (finset.image (λ m, (c ⟨1, finset.mem_range.2
-          (nat.lt_succ_of_le hn)⟩)^m) (finset.range (i + 1))) H'   },
+        apply card_subset_divisors_le_length_of_chain n c (λ r', h₂) (finset.image
+          (λ m, (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩)^m) (finset.range (i + 1))) H' },
 
       intros r hr,
       rw finset.mem_image at hr,

@@ -110,7 +110,7 @@ theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
 nhds_induced coe a
 
 end topα
-
+/-- The topology whose open sets are the empty set and the sets with finite complements. -/
 def cofinite_topology (α : Type*) : topological_space α :=
 { is_open := λ s, s.nonempty → set.finite sᶜ,
   is_open_univ := by simp,

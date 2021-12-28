@@ -517,18 +517,13 @@ lemma take_spec {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).append (p.drop_until u h) = p :=
 begin
   induction p,
-  { simp! only,
-    rw mem_support_nil at h,
+  { rw mem_support_nil at h,
     subst u,
     refl, },
-  { simp only [support_cons, list.mem_cons_iff] at h,
-    obtain (rfl|h) := h,
+  { obtain (rfl|h) := h,
     { simp! },
     { simp! only,
-      split_ifs with h',
-      { subst h',
-        refl, },
-      { simp [*] } } },
+      split_ifs with h'; subst_vars; simp [*], } },
 end
 
 @[simp]
@@ -539,12 +534,10 @@ begin
   { rw mem_support_nil at h,
     subst u,
     simp!, },
-  { simp! only,
-    split_ifs with h',
-    { subst u,
-      simp, },
-    { simp only [support_cons, list.mem_cons_iff, ne.symm h', false_or] at h,
-      simp [*, list.count_cons, ne.symm h'], } },
+  { obtain (rfl|h) := h,
+    { simp! },
+    { simp! only,
+      split_ifs with h'; rw eq_comm at h'; subst_vars; simp! [*, list.count_cons], } },
 end
 
 lemma count_edges_take_until_le_one {u v w : V} (p : G.walk v w) (h : u ∈ p.support) (x : V) :
@@ -554,11 +547,10 @@ begin
   { rw mem_support_nil at h,
     subst u,
     simp!, },
-  { rw [support_cons, list.mem_cons_iff] at h,
-    simp! only,
-    obtain (rfl|h) := h,
-    { simp, },
-    { split_ifs with h',
+  { obtain (rfl|h) := h,
+    { simp!, },
+    { simp! only,
+      split_ifs with h',
       { subst h',
         simp, },
       { rw [edges_cons, list.count_cons],

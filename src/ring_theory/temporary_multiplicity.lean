@@ -1,4 +1,8 @@
-/- Temporary file for the code in the PR -/
+/-
+Copyright (c) 2021 . All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anne Baanen, Paul Lezeau
+-/
 
 import algebra.squarefree
 import ring_theory.unique_factorization_domain
@@ -15,6 +19,18 @@ the set of factors of `a`
 We can then use this to show that given `a b : M`, if there is an monotone bijection
 between the sets of factors of `associates.mk a` and `associates.mk b` then the prime factorisations
 of `a` and `b` have the same shape.
+
+
+## Main results
+- `prime_pow_has_chain` : existence of chain for prime powers
+- `eq_prime_pow_of_has_chain` : elements that have a chain are prime powers
+- `multiplicity_le_of_monotone` : if there is a monotone bijection `d` between the set
+  of factors of `a : associates M` and the set of factors of `b : associates N` then
+  for any prime `p ∣ a`, `multiplicity p a ≤ multiplicity (d p) b`.
+
+## Todo
+- show that under the assumptions of `multiplicity_le_of_monotone`, `d p` is prime. Applying
+  `multiplicity_le_of_monotone` on `d.symm` then gives us `multiplicity p a = multiplicity (d p) b`
 
 -/
 
@@ -391,7 +407,7 @@ begin
     exact le_top },
 end
 
-lemma multiplicity_eq_multiplicity_mk_monoid_hom [wf_dvd_monoid M] {p q : M} (hp : prime p)
+lemma multiplicity_eq_multiplicity_associates_mk [wf_dvd_monoid M] {p q : M} (hp : prime p)
   (hq : q ≠ 0) : multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
 begin
   have finite₁ := multiplicity.finite_prime_left hp hq,

@@ -45,12 +45,12 @@ variables {A C}
 
 variables [add_monoid A] (F : monoidal_functor (discrete A) (C ⥤ C))
 
- @[simp, reassoc] lemma eq_to_hom_μ {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+ @[simp, reassoc] lemma eq_to_hom_μ_app {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
    eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ i' j').app X =
      (F.μ i j).app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
  by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
- @[simp, reassoc] lemma μ_inv_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+ @[simp, reassoc] lemma μ_inv_app_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
    (F.μ_iso i j).inv.app X ≫ eq_to_hom (by rw [h₁, h₂]) =
      eq_to_hom (by rw [h₁, h₂]) ≫ (F.μ_iso i' j').inv.app X :=
  by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
@@ -145,7 +145,7 @@ section add_monoid
 
 variables {C A} [add_monoid A] [has_shift C A] (X Y : C) (f : X ⟶ Y)
 
-@[simp] lemma has_shift.shift_app (n : A) (X : C) : (has_shift.shift.obj n).obj X = X⟦n⟧ := rfl
+@[simp] lemma has_shift.shift_obj_obj (n : A) (X : C) : (has_shift.shift.obj n).obj X = X⟦n⟧ := rfl
 
 /-- Shifting by `i + j` is the same as shifting by `i` and then shifting by `j`. -/
 abbreviation shift_add (i j : A) : X⟦i + j⟧ ≅ X⟦i⟧⟦j⟧ := (shift_functor_add C i j).app _

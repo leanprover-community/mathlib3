@@ -52,7 +52,7 @@ variables {A : Type*}
 
 /- A (unital, associative) ring is a not-necessarily-unital, not-necessarily-associative ring -/
 @[priority 100] -- see Note [lower instance priority]
-instance ring.to_non_unital_non_assoc_semiring (B :Type*) [_i : ring B] :
+instance ring.to_non_unital_non_assoc_semiring (B : Type*) [_i : ring B] :
   non_unital_non_assoc_ring B :=
 { zero_mul := zero_mul,
   mul_zero := mul_zero,

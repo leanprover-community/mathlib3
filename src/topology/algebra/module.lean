@@ -290,8 +290,7 @@ linear_map_of_mem_closure_range_coe f $ mem_closure_of_tendsto h $
 
 variables (M₁ M₂ σ)
 
-@[to_additive] lemma linear_map.is_closed_range_coe :
-  is_closed (@set.range (M₁ → M₂) (M₁ →ₛₗ[σ] M₂) coe_fn) :=
+lemma linear_map.is_closed_range_coe : is_closed (@set.range (M₁ → M₂) (M₁ →ₛₗ[σ] M₂) coe_fn) :=
 is_closed_of_closure_subset $ λ f hf, ⟨linear_map_of_mem_closure_range_coe f hf, rfl⟩
 
 end pointwise_limits

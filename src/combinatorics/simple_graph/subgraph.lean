@@ -96,8 +96,8 @@ In general, this adds in all vertices from `V` as isolated vertices. -/
   symm := G'.symm,
   loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
 
-@[simp] lemma spanning_coe_adj_sub (G' : subgraph G) (u v : G'.verts) (h : G'.spanning_coe.adj u v) :
-  G.adj u v := G'.adj_sub h
+@[simp] lemma spanning_coe_adj_sub (G' : subgraph G) (u v : G'.verts)
+  (h : G'.spanning_coe.adj u v) : G.adj u v := G'.adj_sub h
 
 /-- `spanning_coe` is equivalent to `coe` for a subgraph that `is_spanning`.  -/
 @[simps] def spanning_coe_equiv_coe_of_spanning (G' : subgraph G) (h : G'.is_spanning) :

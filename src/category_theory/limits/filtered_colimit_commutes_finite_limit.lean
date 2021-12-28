@@ -360,5 +360,23 @@ begin
     (limit.is_limit _)).cone_point_unique_up_to_iso (limit.is_limit _),
 end
 
+@[simp, reassoc]
+lemma ι_colimit_limit_iso_limit_π (F : J ⥤ K ⥤ C) (a) (b) :
+  colimit.ι (limit F) a ≫ (colimit_limit_iso F).hom ≫ limit.π (colimit F.flip) b =
+  (limit.π F b).app a ≫ (colimit.ι F.flip a).app b :=
+begin
+  dsimp [colimit_limit_iso],
+  simp only [functor.map_cone_π_app, iso.symm_hom,
+    limits.limit.cone_point_unique_up_to_iso_hom_comp_assoc, limits.limit.cone_π,
+    limits.colimit.ι_map_assoc, limits.colimit_flip_iso_comp_colim_inv_app, assoc,
+    limits.has_limit.iso_of_nat_iso_hom_π],
+  congr' 1,
+  simp only [← category.assoc, iso.comp_inv_eq,
+    limits.colimit_obj_iso_colimit_comp_evaluation_ι_app_hom,
+    limits.has_colimit.iso_of_nat_iso_ι_hom, nat_iso.of_components.hom_app],
+  dsimp,
+  simp,
+end
+
 end
 end category_theory.limits

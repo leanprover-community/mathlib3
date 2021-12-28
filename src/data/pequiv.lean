@@ -355,10 +355,11 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf (α ≃. β) :=
   inf_le_left := λ _ _ _ _, by simp; split_ifs; cc,
   inf_le_right := λ _ _ _ _, by simp; split_ifs; cc,
   le_inf := λ f g h fg gh a b, begin
-    have := fg a b,
-    have := gh a b,
-    simp [le_def],
-    split_ifs; finish
+    intro H,
+    have hf := fg a b H,
+    have hg := gh a b H,
+    simp only [option.mem_def, pequiv.coe_mk_apply],
+    split_ifs with h1, { exact hf }, { exact h1 (hf.trans hg.symm) },
   end,
   ..pequiv.partial_order }
 

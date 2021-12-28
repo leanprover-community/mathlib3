@@ -980,6 +980,21 @@ begin
   tauto,
 end
 
+-- there's probably a slicker version of this?
+lemma eventually_eventually_at_top [semilattice_sup α] [nonempty α] [semilattice_sup β] [nonempty β]
+  {p : α × β → Prop} (hp : ∀ᶠ (x : α × β) in filter.at_top, p x) :
+  ∀ᶠ k in at_top, ∀ᶠ l in at_top, p (k, l) :=
+begin
+  rw filter.eventually_at_top at hp,
+  obtain ⟨⟨K, L⟩, hN⟩ := hp,
+  simp only [filter.eventually_at_top],
+  use K,
+  intros k hk,
+  use L,
+  intros l hl,
+  exact hN (k, l) ⟨hk, hl⟩,
+end
+
 /-- A function `f` maps upwards closed sets (at_top sets) to upwards closed sets when it is a
 Galois insertion. The Galois "insertion" and "connection" is weakened to only require it to be an
 insertion and a connetion above `b'`. -/

@@ -587,26 +587,6 @@ section topology
 open filter
 open_locale topological_space
 
--- rework and move
-lemma foo [fact (1 ≤ p)] (hF : cauchy_seq F) {ε : ℝ} (hε : 0 < ε) :
-  ∀ᶠ k in at_top, ∀ᶠ l in at_top, ∥F l - F k∥ < ε :=
-begin
-  rw normed_group.uniformity_basis_dist.cauchy_seq_iff at hF, rotate,
-  { apply_instance },
-  obtain ⟨N, hN⟩ := hF ε hε,
-  rw filter.at_top_basis.eventually_iff, rotate,
-  { apply_instance },
-  refine ⟨N, _, _⟩,
-  { simp },
-  intros k hk,
-  rw filter.at_top_basis.eventually_iff, rotate,
-  { apply_instance },
-  refine ⟨N, _, _⟩,
-  { simp },
-  intros l hl,
-  simpa using hN l k hl hk,
-end
-
 /-- The coercion from `lp E p` to `Π i, E i` is uniformly continuous. -/
 lemma uniform_continuous_coe [_i : fact (1 ≤ p)] : uniform_continuous (coe : lp E p → Π i, E i) :=
 begin
@@ -703,7 +683,7 @@ lemma tendsto_lp_of_tendsto_pi (hF : cauchy_seq F) {f : lp E p}
 begin
   rw metric.nhds_basis_closed_ball.tendsto_right_iff,
   intros ε hε,
-  refine (foo hF hε).mono _,
+  refine (hF.eventually_eventually hε).mono _,
   rintros n (hn : ∀ᶠ l in at_top, ∥(λ f, f - F n) (F l)∥ < ε),
   simp only [dist_eq_norm, norm_sub_rev, metric.mem_closed_ball],
   refine norm_le_of_tendsto hε.le (hn.mono (λ k hk, hk.le)) _,

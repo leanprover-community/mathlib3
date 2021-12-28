@@ -33,8 +33,8 @@ variables [add_group R] [star_add_monoid R]
 lemma mem_iff {x : R} : x ∈ self_adjoints R ↔ star x = x :=
 by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 
-instance [has_star R] : has_star (self_adjoints R) := ⟨id⟩
-instance [has_involutive_star R] : has_involutive_star (self_adjoints R) := ⟨λ _, rfl⟩
+instance : has_star (self_adjoints R) := ⟨id⟩
+instance : has_involutive_star (self_adjoints R) := ⟨λ _, rfl⟩
 
 @[simp] lemma star_eq {x : self_adjoints R} : star x = x := rfl
 @[simp] lemma star_coe_eq {x : self_adjoints R} : star (x : R) = x := x.prop

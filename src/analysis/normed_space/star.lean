@@ -119,8 +119,7 @@ namespace self_adjoints
 section add_group
 variables [add_group E] [star_add_monoid E]
 
-instance [has_dist E] [add_group E] [star_add_monoid E] :
-  has_dist (self_adjoints E) := ⟨λ x y, dist (x : E) y⟩
+instance [has_dist E] : has_dist (self_adjoints E) := ⟨λ x y, dist (x : E) y⟩
 
 @[simp] lemma dist_coe [has_dist E] (x y : self_adjoints E) : dist x y = dist (x : E) y := rfl
 

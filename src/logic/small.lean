@@ -45,6 +45,9 @@ noncomputable
 def equiv_shrink (α : Type v) [small.{w} α] : α ≃ shrink α :=
 nonempty.some (classical.some_spec (@small.equiv_small α _))
 
+instance nonempty_shrink (α : Type v) [small.{w} α] [hα : nonempty α] : nonempty (shrink α) :=
+⟨(equiv_shrink α) (nonempty.some hα)⟩
+
 @[priority 100]
 instance small_self (α : Type v) : small.{v} α :=
 small.mk' (equiv.refl _)
@@ -119,9 +122,13 @@ instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β)
 instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 ⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
 
-theorem small_range {α : Type v} {β : Type w} (f : α → β) [small.{u} α] :
+instance small_range {α : Type v} {β : Type w} (f : α → β) [small.{u} α] :
   small.{u} (set.range f) :=
 small_of_surjective _ set.surjective_onto_range
+
+instance small_image {α : Type v} {β : Type w} (f : α → β) (S : set α) [small.{u} S] :
+  small.{u} (f '' S) :=
+small_of_surjective _ set.surjective_onto_image
 
 theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)

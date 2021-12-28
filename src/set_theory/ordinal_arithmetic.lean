@@ -863,10 +863,6 @@ theorem family_of_small_range (S : set ordinal.{max u v}) [hS : small.{u} S] :
   range (family_of_small S) = S :=
 by { rw range_eq_iff, exact ⟨family_of_small_mem S, λ a ha, family_of_small_surjective S ha⟩ }
 
--- This may not be the best name.
-theorem small_of_family {ι : Type u} (f : ι → ordinal.{max u v}) : small.{u} (range f) :=
-small_range f
-
 /-- Builds a family indexed by bounded ordinals that describes the same ordinals as `S`. -/
 def bfamily_of_small (S : set ordinal.{max u v}) [hS : small.{u} S] :
   Π a < (_ : ordinal.{u}), ordinal.{max u v} :=
@@ -888,6 +884,21 @@ end
 def brange {o : ordinal.{u}} (f : Π a < o, ordinal.{max u v}) :=
 range (λ a : {x // x < o}, f a a.prop)
 
+theorem mem_brange_self {o : ordinal.{u}} (f : Π a < o, ordinal.{max u v}) {i} (hi) :
+  f i hi ∈ brange f :=
+mem_range_self (subtype.mk i hi)
+
+theorem mem_brange {o : ordinal.{u}} (f : Π a < o, ordinal.{max u v}) {a} :
+  a ∈ brange f ↔ ∃ i hi, f i hi = a :=
+begin
+  refine ⟨λ ha, _, λ h, _⟩,
+  { rcases ha with ⟨⟨i, hi⟩, hi'⟩,
+    exact ⟨i, hi, hi'⟩ },
+  rcases h with ⟨i, hi, hi'⟩,
+  rw ←hi',
+  exact mem_brange_self f hi
+end
+
 theorem bfamily_of_small_range (S : set ordinal.{max u v}) [hS : small.{u} S] :
   brange (bfamily_of_small S) = S :=
 begin
@@ -904,8 +915,7 @@ small_of_injective (λ a, (enum o.out.r a)
   (by { rw type_out, exact a.prop }))
   (λ a ha H, (by { apply subtype.ext, rwa enum_eq at H }))
 
--- This may not be the best name.
-theorem small_of_bfamily {o : ordinal.{u}} (f : Π a < o, ordinal.{max u v}) :
+instance small_brange {o : ordinal.{u}} (f : Π a < o, ordinal.{max u v}) :
   small.{u} (brange f) :=
 @small_range _ _ _ (small_ordinal _)
 
@@ -917,49 +927,14 @@ omin {c | ∀ i, f i ≤ c}
   ⟨(sup (cardinal.succ ∘ card ∘ f)).ord, λ i, le_of_lt $
     cardinal.lt_ord.2 (lt_of_lt_of_le (cardinal.lt_succ_self _) (le_sup _ _))⟩
 
-/-- The supremum of a small set of ordinals -/
-def osup (S : set ordinal.{max u v}) [small.{u} S] : ordinal.{max u v} := sup (family_of_small S)
-
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
 omin_mem {c | ∀ i, f i ≤ c} _
-
-theorem le_osup (S : set ordinal.{max u v}) [small.{u} S] : ∀ {a} (ha : a ∈ S), a ≤ osup S :=
-begin
-  intros a ha,
-  cases family_of_small_surjective S ha with i hi,
-  rw ←hi,
-  exact le_sup _ i
-end
 
 theorem sup_le {ι} {f : ι → ordinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
 ⟨λ h i, le_trans (le_sup _ _) h, λ h, omin_le h⟩
 
-theorem osup_le (S : set ordinal.{max u v}) [small.{u} S] {b} : osup S ≤ b ↔ ∀ a ∈ S, a ≤ b :=
-begin
-  convert sup_le,
-  refine propext ⟨λ h _, h _ (family_of_small_mem S _), λ h a ha, _⟩,
-  cases family_of_small_surjective S ha with i hi,
-  rw ←hi,
-  exact h i,
-end
-
-theorem sup_eq_osup {ι} (f : ι → ordinal) : sup f = @osup (range f) (small_of_family f) :=
-begin
-  apply le_antisymm,
-  { rw sup_le,
-    exact λ i, @le_osup _ (small_range f) _ (mem_range_self i) },
-  rw osup_le,
-  intros a ha,
-  cases ha with i hi,
-  rw ←hi,
-  exact le_sup _ _
-end
-
-theorem lt_osup (S : set ordinal.{max u v}) [small.{u} S] {a} : a < osup S ↔ ∃ b ∈ S, a < b :=
-by simpa only [not_forall, not_le] using not_congr (osup_le S)
-
 theorem lt_sup {ι} {f : ι → ordinal} {a} : a < sup f ↔ ∃ i, a < f i :=
-by simpa only [not_forall, not_le] using not_congr (@sup_le _ f a)
+by simpa only [not_forall, not_le] using not_congr sup_le
 
 -- A result that shows up twice for some reason.
 private lemma lt_sup_of_ne_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f) → ∀ i, f i < sup f :=
@@ -974,7 +949,7 @@ begin
   have hao' := le_antisymm (succ_le.2 hao) hoa,
   rw ←hao' at hf,
   rw le_antisymm (le_of_lt hao) (sup_le.2 (λ i, lt_succ.1 (hf i))) at hao',
-  exact succ_ne_self _ hao',
+  exact succ_ne_self _ hao'
 end
 
 theorem is_normal.sup {f} (H : is_normal f)
@@ -992,6 +967,68 @@ begin
   apply (not_bounded_iff _).mp, rintro ⟨x, hx⟩, apply not_lt_of_ge h,
   refine lt_of_le_of_lt _ (typein_lt_type r x), rw [sup_le], intro y,
   apply le_of_lt, rw typein_lt_typein, apply hx, apply mem_range_self
+end
+
+/-- The supremum of a small set of ordinals -/
+def osup (S : set ordinal.{max u v}) [small.{u} S] : ordinal.{max u v} := sup (family_of_small S)
+
+/-- `osup` is a special case of `sup`. -/
+theorem osup_eq_sup (S : set ordinal.{max u v}) [small.{u} S] : osup S = sup (family_of_small S) :=
+rfl
+
+theorem le_osup (S : set ordinal.{max u v}) [small.{u} S] : ∀ {a} (ha : a ∈ S), a ≤ osup S :=
+begin
+  intros a ha,
+  cases family_of_small_surjective S ha with i hi,
+  rw ←hi,
+  exact le_sup _ i
+end
+
+theorem osup_le (S : set ordinal.{max u v}) [small.{u} S] {b} : osup S ≤ b ↔ ∀ a ∈ S, a ≤ b :=
+begin
+  convert sup_le,
+  refine propext ⟨λ h _, h _ (family_of_small_mem S _), λ h a ha, _⟩,
+  cases family_of_small_surjective S ha with i hi,
+  rw ←hi,
+  exact h i,
+end
+
+/-- `sup` is a special case of `osup`. -/
+theorem sup_eq_osup {ι} (f : ι → ordinal) : sup f = osup (range f) :=
+begin
+  apply le_antisymm,
+  { rw sup_le,
+    exact λ i, le_osup _ (mem_range_self i) },
+  rw osup_le,
+  intros a ha,
+  cases ha with i hi,
+  rw ←hi,
+  exact le_sup _ _
+end
+
+theorem lt_osup (S : set ordinal.{max u v}) [small.{u} S] {a} : a < osup S ↔ ∃ b ∈ S, a < b :=
+by simpa only [not_forall, not_le] using not_congr (osup_le S)
+
+theorem osup_not_succ_of_ne_osup (S : set ordinal.{max u v}) [small.{u} S]
+  (hS : ∀ a ∈ S, a ≠ osup S) : ∀ a < osup S, succ a < osup S :=
+begin
+  rw osup_eq_sup at *,
+  exact sup_not_succ_of_ne_sup (λ i, hS _ (family_of_small_mem S i))
+end
+
+theorem is_normal.osup {f} (H : is_normal f) (S : set ordinal.{max u v}) [small.{u} S]
+  (h : S.nonempty) : f (osup S) = osup (f '' S) :=
+begin
+  haveI := nonempty_subtype.mpr h,
+  rw [osup_eq_sup, H.sup (nonempty_shrink S)],
+  apply le_antisymm,
+  { rw sup_le,
+    exact λ i, le_osup _ ((mem_image f S _).mpr ⟨_, family_of_small_mem S i, rfl⟩) },
+  rw osup_le,
+  rintros a ⟨b, hb, hb'⟩,
+  cases family_of_small_surjective S hb with i hi,
+  rw [←hb', ←hi],
+  exact le_sup _ _
 end
 
 /-- The supremum of a family of ordinals indexed by the set
@@ -1014,6 +1051,34 @@ end
 
 theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
 bsup_le.1 (le_refl _) _ _
+
+/-- `osup` is a special case of `bsup`. -/
+theorem osup_eq_bsup (S : set ordinal.{max u v}) [small.{u} S] :
+  osup S = bsup (type well_ordering_rel) (bfamily_of_small S) :=
+begin
+  apply le_antisymm,
+  { rw osup_le,
+    intros a ha,
+    rcases bfamily_of_small_surjective S ha with ⟨b, hb, hb'⟩,
+    rw ←hb',
+    exact le_bsup _ _ _ },
+  rw bsup_le,
+  exact λ _ _, le_sup _ _
+end
+
+/-- `osup` is a special case of `bsup`. -/
+theorem bsup_eq_osup {o} (f : Π a < o, ordinal) : bsup o f = osup (brange f) :=
+begin
+  apply le_antisymm,
+  { rw bsup_le,
+    exact λ _ _, le_osup _ (mem_brange_self _ _) },
+  rw osup_le,
+  intros a ha,
+  rw mem_brange at ha,
+  rcases ha with ⟨i, hi, hi'⟩,
+  rw ←hi',
+  exact le_bsup _ _ _
+end
 
 theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
 by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)

@@ -687,10 +687,12 @@ begin
   exact hrew.symm
 end
 
-lemma leading_coeff_div_by_monic_X_sub_C (p : polynomial R) (hp : 0 < degree p) (a : R) :
+lemma leading_coeff_div_by_monic_X_sub_C (p : polynomial R) (hp : degree p ≠ 0) (a : R) :
   leading_coeff (p /ₘ (X - C a)) = leading_coeff p :=
 begin
   nontriviality,
+  cases hp.lt_or_lt with hd hd,
+  { rw [degree_eq_bot.mp $ (nat.with_bot.lt_zero_iff _).mp hd, zero_div_by_monic] },
   refine leading_coeff_div_by_monic_of_monic (monic_X_sub_C a) _,
   rwa [degree_X_sub_C, nat.with_bot.one_le_iff_zero_lt]
 end

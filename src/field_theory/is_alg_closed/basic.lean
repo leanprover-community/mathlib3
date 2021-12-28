@@ -89,13 +89,10 @@ end
 lemma roots_eq_zero_iff [is_alg_closed k] {p : polynomial k} :
   p.roots = 0 ↔ p = polynomial.C (p.coeff 0) :=
 begin
-  split,
-  { intro h,
-    cases le_or_lt (degree p) 0 with hd hd,
-    { exact eq_C_of_degree_le_zero hd },
-    { simpa [←mem_roots (ne_zero_of_degree_gt hd), h] using is_alg_closed.exists_root p hd.ne' } },
-  { intro hp,
-    rw [hp, roots_C] }
+  refine ⟨λ h, _, λ hp, by rw [hp, roots_C]⟩,
+  cases (le_or_lt (degree p) 0) with hd hd,
+  { exact eq_C_of_degree_le_zero hd },
+  { simpa [←mem_roots (ne_zero_of_degree_gt hd), h] using is_alg_closed.exists_root p hd.ne' }
 end
 
 theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)

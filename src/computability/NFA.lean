@@ -98,9 +98,10 @@ begin
   induction s with a s ih generalizing start,
   { tauto },
   { rw [list.foldl, list.foldl],
-    have h : M.to_NFA.step_set {start} a = {M.step start a},
-    { rw NFA.step_set,
-      finish },
+    have h : M.to_NFA.step_set {start} a = {M.step start a}, -- `rw NFA.step_set, finish` closes
+    { have : M.to_NFA.step_set {start} a = M.to_NFA.step start a, {simp [NFA.step_set]},
+      rw this,
+      refl },
     rw h,
     tauto }
 end

@@ -726,7 +726,7 @@ begin
       (nat.prime.pos hp)).is_primitive _,
     rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval, ← is_root.def,
       is_root_cyclotomic_iff],
-    { convert is_primitive_root.pow_of_div hprim (nat.prime.ne_zero hp) (dvd_mul_left p n),
+    { convert is_primitive_root.pow_of_dvd hprim (nat.prime.ne_zero hp) (dvd_mul_left p n),
       rw [nat.mul_div_cancel _ (nat.prime.pos hp)] },
     { exact_mod_cast hzero } },
   { rw [nat_degree_expand, nat_degree_cyclotomic, nat_degree_cyclotomic, mul_comm n,

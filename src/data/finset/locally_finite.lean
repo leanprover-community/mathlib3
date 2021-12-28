@@ -135,7 +135,7 @@ lemma filter_eq_Ico [decidable_pred (λ (j : α), a ≤ j ∧ j < b)] :
 lemma filter_eq_Icc [decidable_pred (λ (j : α), a ≤ j ∧ j ≤ b)] :
   finset.univ.filter (λ j, a ≤ j ∧ j ≤ b) = Icc a b := by { ext, simp }
 
-lemma filter_eq_Ioi [order_top α] [decidable_pred ((<) a)] :
+lemma filter_lt_eq_Ioi [order_top α] [decidable_pred ((<) a)] :
   finset.univ.filter (λ j, a < j) = Ioi a := by { ext, simp }
 
 lemma filter_eq_Ici [order_top α] [decidable_pred ((≤) a)] :

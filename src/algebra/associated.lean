@@ -517,11 +517,7 @@ calc is_unit (associates.mk a) ↔ a ~ᵤ 1 :
   ... ↔ is_unit a : associated_one_iff_is_unit
 
 lemma mk_injective [unique (units α)] : function.injective (@associates.mk α _) :=
-begin
-  intros a b h,
-  rw [associates.mk_eq_mk_iff_associated, associated_iff_eq] at h,
-  exact h
-end
+λ a b h, associated_iff_eq.mp (associates.mk_eq_mk_iff_associated.mp h)
 
 section order
 

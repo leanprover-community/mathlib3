@@ -73,11 +73,9 @@ def sort (f : fin n → α) : equiv.perm (fin n) :=
 (graph_equiv₂ f).to_equiv.trans (graph_equiv₁ f).symm
 
 lemma self_comp_sort (f : fin n → α) : f ∘ sort f = graph.proj ∘ graph_equiv₂ f :=
-begin
-  convert_to
-    graph.proj ∘ ((graph_equiv₁ f) ∘ (graph_equiv₁ f).symm) ∘ (graph_equiv₂ f).to_equiv = _,
-  simp
-end
+show graph.proj ∘ ((graph_equiv₁ f) ∘ (graph_equiv₁ f).symm) ∘ (graph_equiv₂ f).to_equiv = _,
+  by simp
+
 
 lemma monotone_proj (f : fin n → α) : monotone (graph.proj : graph f → α) :=
 begin

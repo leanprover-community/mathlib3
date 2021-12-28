@@ -172,7 +172,6 @@ def homotopy_shift {X Y : cochain_complex V ℤ} {f g : X ⟶ Y} (h : homotopy f
 
 variable (V)
 
-@[simps]
 def homotopy_category.shift_functor (n : ℤ) :
   (homotopy_category V (complex_shape.up ℤ)) ⥤ (homotopy_category V (complex_shape.up ℤ)) :=
 category_theory.quotient.lift _ (shift_functor _ n ⋙ homotopy_category.quotient _ _)
@@ -186,16 +185,70 @@ def homotopy_category.shift_ε :
   𝟭 _ ≅ homotopy_category.shift_functor V 0 :=
 begin
   refine nat_iso.of_components _ _,
-
+  { rintro ⟨X⟩,
+    refine (homotopy_category.quotient _ _).map_iso (hom.iso_of_components _ _),
+    exact (λ i, X.X_eq_to_iso (add_zero _).symm),
+    { introv, dsimp, simp } },
+  { rintro ⟨X⟩ ⟨Y⟩ f, dsimp,
+    rw ← homotopy_category.quotient_map_out f,
+    erw quotient.lift_map_functor_map,
+    simp only [functor.comp_map, ← functor.map_comp],
+    congr' 1, ext, dsimp, simp }
 end
 
-instance : has_shift (homotopy_category V (complex_shape.up ℤ)) ℤ :=
+def homotopy_category.shift_functor_add (n m : ℤ) :
+  homotopy_category.shift_functor V n ⋙ homotopy_category.shift_functor V m ≅
+    homotopy_category.shift_functor V (n + m) :=
+begin
+  refine nat_iso.of_components _ _,
+  { rintro ⟨X⟩,
+    refine (homotopy_category.quotient _ _).map_iso (hom.iso_of_components _ _),
+    exact (λ i, X.X_eq_to_iso (by rw [add_comm n m, add_assoc])),
+    { introv r, dsimp [homotopy_category.shift_functor], simp [smul_smul, mul_comm] } },
+  { rintro ⟨X⟩ ⟨Y⟩ f, dsimp,
+    rw ← homotopy_category.quotient_map_out f,
+    erw quotient.lift_map_functor_map,
+    conv_rhs { erw quotient.lift_map_functor_map },
+    simp only [functor.comp_map, ← functor.map_comp],
+    congr' 1, ext, dsimp, simp }
+end
+.
+
+@[simp]
+lemma homotopy_category.shift_functor_obj_as {X : cochain_complex V ℤ} (n : ℤ) :
+  (homotopy_category.shift_functor V n).obj ⟨X⟩ = ⟨X⟦n⟧⟩ := rfl
+
+@[simp]
+lemma homotopy_category.shift_functor_map_quotient (n : ℤ) {X Y : cochain_complex V ℤ} (f : X ⟶ Y) :
+  (homotopy_category.shift_functor V n).map ((homotopy_category.quotient V _).map f) =
+  (homotopy_category.quotient V _).map (f⟦n⟧') := rfl
+
+lemma quotient_eq_to_hom {X Y : homotopy_category V (complex_shape.up ℤ)} (h : X = Y) :
+  eq_to_hom h = (homotopy_category.quotient V (complex_shape.up ℤ)).map (eq_to_hom (by rw h)) :=
+by { subst h, simpa }
+
+instance homotopy_category.has_shift : has_shift (homotopy_category V (complex_shape.up ℤ)) ℤ :=
 has_shift_mk _ _
 { F := homotopy_category.shift_functor V,
-  ε := nat_iso.of_components (λ ⟨X⟩, (homotopy_category.quotient _ _).map_iso
-     $ hom.iso_of_components (λ i, X.X_eq_to_iso (add_zero _).symm) (by sorry; { introv, dsimp, simp }))
-     (by { rintro ⟨X⟩ ⟨Y⟩ f, dsimp [int.category_theory.has_shift._match_1], }),
+  ε := homotopy_category.shift_ε V,
+  μ := homotopy_category.shift_functor_add V,
+  associativity := λ m₁ m₂ m₃ ⟨X⟩, by { dsimp [homotopy_category.shift_functor_add],
+    rw quotient_eq_to_hom, simp only [← functor.map_comp], congr' 1, ext, simp [X_eq_to_iso] },
+  left_unitality := λ n ⟨X⟩, by { dsimp [homotopy_category.shift_ε,
+    homotopy_category.shift_functor_add], rw quotient_eq_to_hom, simp only [← functor.map_comp],
+    congr' 1, ext, simp [X_eq_to_iso] },
+  right_unitality := λ n ⟨X⟩, by { dsimp [homotopy_category.shift_ε,
+    homotopy_category.shift_functor_add], rw quotient_eq_to_hom, simp only [← functor.map_comp],
+    congr' 1, ext, simp [X_eq_to_iso] } }
+.
+@[simp] lemma homotopy_category.quotient_obj_shift (X : cochain_complex V ℤ) (n : ℤ) :
+  ((homotopy_category.quotient V _).obj X)⟦n⟧ = ⟨X⟦n⟧⟩ := rfl
 
-}
+@[simp] lemma homotopy_category.shift_as (X : homotopy_category V (complex_shape.up ℤ)) (n : ℤ) :
+  (X⟦n⟧).as = X.as⟦n⟧ := rfl
+
+@[simp] lemma homotopy_category.quotient_map_shift {X Y : cochain_complex V ℤ} (f : X ⟶ Y) (n : ℤ) :
+  ((homotopy_category.quotient V _).map f)⟦n⟧' = (homotopy_category.quotient V _).map (f⟦n⟧') := rfl
+
 
 end homological_complex

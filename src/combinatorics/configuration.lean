@@ -178,7 +178,7 @@ lemma has_points.line_count_le_point_count [has_points P L] {p : P} {l : L} (h :
 
 variables (P L)
 
-/- If a nondegenerate configuration has a unique line through any two points,
+/-- If a nondegenerate configuration has a unique line through any two points,
   then there are at least as many lines as points. -/
 lemma has_lines.card_le [has_lines P L] [fintype P] [fintype L] :
   fintype.card P ≤ fintype.card L :=
@@ -203,7 +203,7 @@ begin
       exact let this := not_exists.mp hp l in ⟨⟨mk_line this, (mk_line_ax this).2⟩⟩ } },
 end
 
-/- If a nondegenerate configuration has a unique point on any two lines,
+/-- If a nondegenerate configuration has a unique point on any two lines,
   then there are at least as many points as lines. -/
 lemma has_points.card_le [has_points P L] [fintype P] [fintype L] :
   fintype.card L ≤ fintype.card P :=

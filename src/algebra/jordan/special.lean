@@ -103,8 +103,8 @@ instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R 
 function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
 
 /- Introduce the symmetrised multiplication-/
-noncomputable instance [ring α] [algebra ℝ α] : has_mul(αˢʸᵐ) :=
-{ mul := λ a b, (sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a)))), }
+instance [ring α] [invertible (2 : α)] : has_mul(αˢʸᵐ) :=
+{ mul := λ a b, sym ((⅟2)*(unsym(a)*unsym(b) + unsym(b)*unsym(a))) }
 
 lemma mul_def [ring α] [algebra ℝ α] (a b: αˢʸᵐ) :
   a*b = sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))) := by refl

@@ -92,7 +92,9 @@ begin
   refine ⟨λ h, _, λ hp, by rw [hp, roots_C]⟩,
   cases (le_or_lt (degree p) 0) with hd hd,
   { exact eq_C_of_degree_le_zero hd },
-  { simpa [←mem_roots (ne_zero_of_degree_gt hd), h] using is_alg_closed.exists_root p hd.ne' }
+  { obtain ⟨z, hz⟩ := is_alg_closed.exists_root p hd.ne',
+    rw [←mem_roots (ne_zero_of_degree_gt hd), h] at hz,
+    simpa using hz }
 end
 
 theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)

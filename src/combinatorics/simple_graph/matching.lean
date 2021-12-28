@@ -94,7 +94,7 @@ lemma is_matching_iff_forall_degree {M : subgraph G} [Π (v : V), fintype (M.nei
 by simpa [degree_eq_one_iff_unique_adj]
 
 lemma is_matching.even_card {M : subgraph G} [fintype M.verts] (h : M.is_matching) :
-  even (M.verts.to_finset.card) :=
+  even M.verts.to_finset.card :=
 begin
   classical,
   rw is_matching_iff_forall_degree at h,

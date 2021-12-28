@@ -594,7 +594,7 @@ end
 
 include σ₂₁
 /-- The pushforward of a submodule by an injective linear map is
-linearly equivalent to the original submodule. See also `linear_equiv.map_submodule` for a
+linearly equivalent to the original submodule. See also `linear_equiv.submodule_map` for a
 computable version when `f` has an explicit inverse. -/
 noncomputable def equiv_map_of_injective (f : M →ₛₗ[σ₁₂] M₂) (i : injective f)
   (p : submodule R M) : p ≃ₛₗ[σ₁₂] p.map f :=

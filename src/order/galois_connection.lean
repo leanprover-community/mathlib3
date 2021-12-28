@@ -193,25 +193,6 @@ end
 
 end partial_order
 
-lemma l_comm_of_u_comm
-  {X : Type*} [partial_order X] {Y : Type*} [partial_order Y]
-  {Z : Type*} [partial_order Z] {W : Type*} [partial_order W]
-  {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
-  {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
-  {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
-  {lZX : X → Z} {uXZ : Z → X} (hXZ : galois_connection lZX uXZ)
-  (h : uXY ∘ uYW = uXZ ∘ uZW) : lWZ ∘ lZX = lWY ∘ lYX :=
-begin
-  ext x,
-  rw hZW.l_eq,
-  intros w,
-  calc
-  lWY (lYX x) ≤ w ↔ lYX x ≤ uYW w   : by rw hWY
-              ... ↔ x ≤ uXY (uYW w) : by rw ← hXY
-              ... ↔ x ≤ uXZ (uZW w) : by rw show uXY (uYW w) = uXZ (uZW w), from congr_fun h w
-              ... ↔ lZX x ≤ uZW w   : by rw hXZ
-end
-
 section order_top
 variables [partial_order α] [preorder β] [order_top α] [order_top β] {l : α → β} {u : β → α}
   (gc : galois_connection l u)
@@ -294,6 +275,16 @@ protected lemma dfun {ι : Type u} {α : ι → Type v} {β : ι → Type w}
 λ a b, forall_congr $ λ i, gc i (a i) (b i)
 
 end constructions
+
+lemma l_comm_of_u_comm
+  {X : Type*} [preorder X] {Y : Type*} [partial_order Y]
+  {Z : Type*} [preorder Z] {W : Type*} [partial_order W]
+  {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
+  {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
+  {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
+  {lZX : X → Z} {uXZ : Z → X} (hXZ : galois_connection lZX uXZ)
+  (h : ∀ w, uXZ (uZW w) = uXY (uYW w)) {x : X} : lWZ (lZX x) = lWY (lYX x) :=
+(hXZ.compose hZW).l_unique (hXY.compose hWY) h
 
 end galois_connection
 

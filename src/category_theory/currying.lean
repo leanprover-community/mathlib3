@@ -102,4 +102,9 @@ equivalence.mk uncurry curry
   (nat_iso.of_components (λ F, nat_iso.of_components
     (λ X, eq_to_iso (by simp)) (by tidy)) (by tidy))
 
+@[simps]
+def flip_iso_curry_swap_uncurry (F : C ⥤ D ⥤ E) :
+  F.flip ≅ curry.obj (prod.swap _ _ ⋙ uncurry.obj F) :=
+nat_iso.of_components (λ d, nat_iso.of_components (λ c, eq_to_iso rfl) $ by tidy) $ by tidy
+
 end category_theory

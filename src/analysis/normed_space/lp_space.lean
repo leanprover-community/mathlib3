@@ -585,7 +585,7 @@ end normed_space
 section topology
 
 open filter
-open_locale topological_space
+open_locale topological_space uniformity
 
 /-- The coercion from `lp E p` to `Π i, E i` is uniformly continuous. -/
 lemma uniform_continuous_coe [_i : fact (1 ≤ p)] : uniform_continuous (coe : lp E p → Π i, E i) :=
@@ -683,13 +683,14 @@ lemma tendsto_lp_of_tendsto_pi (hF : cauchy_seq F) {f : lp E p}
 begin
   rw metric.nhds_basis_closed_ball.tendsto_right_iff,
   intros ε hε,
-  refine (hF.eventually_eventually hε).mono _,
-  rintros n (hn : ∀ᶠ l in at_top, ∥(λ f, f - F n) (F l)∥ < ε),
-  simp only [dist_eq_norm, norm_sub_rev, metric.mem_closed_ball],
+  have hε' : {p : (lp E p) × (lp E p) | ∥p.1 - p.2∥ < ε} ∈ 𝓤 (lp E p),
+  { exact normed_group.uniformity_basis_dist.mem_of_mem hε },
+  refine (hF.eventually_eventually hε').mono _,
+  rintros n (hn : ∀ᶠ l in at_top, ∥(λ f, F n - f) (F l)∥ < ε),
   refine norm_le_of_tendsto hε.le (hn.mono (λ k hk, hk.le)) _,
   rw tendsto_pi_nhds,
   intros a,
-  exact (hf.apply a).sub_const (F n a),
+  exact (hf.apply a).const_sub (F n a),
 end
 
 variables [Π a, complete_space (E a)]

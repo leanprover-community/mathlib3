@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.ordinal
 import tactic.by_contra
+import logic.small
 
 /-!
 # Ordinal arithmetic
@@ -841,6 +842,20 @@ by simp only [mod_def, div_self a0, mul_one, sub_self]
 by simp only [mod_def, div_one, one_mul, sub_self]
 
 /-! ### Supremum of a family of ordinals -/
+
+/-- Builds a family indexed by a `Type u` that describes the same ordinals as `S`. -/
+def family_of_small (S : set ordinal.{u}) [hS : small.{u} S] : (_ : Type u) → ordinal.{u} :=
+subtype.val ∘ (classical.choice (classical.some_spec (hS.1) : nonempty (_ ≃ _))).inv_fun
+
+theorem family_of_small_mem (S : set ordinal.{u}) [hS : small.{u} S] (i) :
+  family_of_small S i ∈ S :=
+((classical.choice (classical.some_spec (hS.1) : nonempty (_ ≃ _))).inv_fun i).property
+
+theorem family_of_small_range (S : set ordinal.{u}) [hS : small.{u} S] :
+  range (family_of_small S) = S :=
+begin
+  sorry
+end
 
 /-- The supremum of a family of ordinals -/
 def sup {ι} (f : ι → ordinal) : ordinal :=

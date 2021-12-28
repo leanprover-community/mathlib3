@@ -156,10 +156,10 @@ end unbounded
 
 section filter
 
-variable {n}
+variables {n} (a b : fin n)
 
 @[simp]
-lemma card_filter_lt (a : fin n) : (finset.univ.filter (λ j, a < j)).card = n - a - 1 :=
+lemma card_filter_lt : (finset.univ.filter (λ j, a < j)).card = n - a - 1 :=
 begin
   cases n,
   { simp },
@@ -168,7 +168,7 @@ begin
 end
 
 @[simp]
-lemma card_filter_le (a : fin n) : (univ.filter (λ j, a ≤ j)).card = n - a :=
+lemma card_filter_le : (univ.filter (λ j, a ≤ j)).card = n - a :=
 begin
   cases n,
   { simp },
@@ -176,7 +176,7 @@ begin
 end
 
 @[simp]
-lemma card_filter_gt (a : fin n) : (finset.univ.filter (λ j, j < a)).card = a :=
+lemma card_filter_gt : (finset.univ.filter (λ j, j < a)).card = a :=
 begin
   cases n,
   { exact fin.elim0 a },
@@ -184,7 +184,7 @@ begin
 end
 
 @[simp]
-lemma card_filter_ge (a : fin n) : (finset.univ.filter (λ j, j ≤ a)).card = a + 1 :=
+lemma card_filter_ge : (finset.univ.filter (λ j, j ≤ a)).card = a + 1 :=
 begin
   cases n,
   { exact fin.elim0 a },
@@ -192,8 +192,7 @@ begin
 end
 
 @[simp]
-lemma card_filter_lt_lt (a b : fin n) :
-  (finset.univ.filter (λ j, a < j ∧ j < b)).card = b - a - 1 :=
+lemma card_filter_lt_lt : (finset.univ.filter (λ j, a < j ∧ j < b)).card = b - a - 1 :=
 begin
   cases n,
   { exact fin.elim0 a },
@@ -201,8 +200,7 @@ begin
 end
 
 @[simp]
-lemma card_filter_lt_le (a b : fin n) :
-  (finset.univ.filter (λ j, a < j ∧ j ≤ b)).card = b - a :=
+lemma card_filter_lt_le : (finset.univ.filter (λ j, a < j ∧ j ≤ b)).card = b - a :=
 begin
   cases n,
   { exact fin.elim0 a },
@@ -210,8 +208,7 @@ begin
 end
 
 @[simp]
-lemma card_filter_le_lt (a b : fin n) :
-  (finset.univ.filter (λ j, a ≤ j ∧ j < b)).card = b - a :=
+lemma card_filter_le_lt : (finset.univ.filter (λ j, a ≤ j ∧ j < b)).card = b - a :=
 begin
   cases n,
   { exact fin.elim0 a },
@@ -219,8 +216,7 @@ begin
 end
 
 @[simp]
-lemma card_filter_le_le (a b : fin n) :
-  (finset.univ.filter (λ j, a ≤ j ∧ j ≤ b)).card = b + 1 - a :=
+lemma card_filter_le_le : (finset.univ.filter (λ j, a ≤ j ∧ j ≤ b)).card = b + 1 - a :=
 begin
   cases n,
   { exact fin.elim0 a },

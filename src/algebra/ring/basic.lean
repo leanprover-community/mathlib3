@@ -641,14 +641,12 @@ variables [ring α] {a b c d e : α}
 
 @[priority 100] -- see Note [lower instance priority]
 instance ring.to_mul_zero_class : mul_zero_class α :=
-{
-  mul := (*),
+{ mul := (*),
   zero := (0),
   zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
     by rw [← add_mul, zero_add, add_zero],
   mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
-    by rw [← mul_add, add_zero, add_zero],
-}
+    by rw [← mul_add, add_zero, add_zero], }
 
 /- A (unital, associative) ring is a not-necessarily-unital, not-necessarily-associative ring -/
 @[priority 100] -- see Note [lower instance priority]

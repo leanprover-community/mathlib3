@@ -121,7 +121,19 @@ let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in by { classical, exact ⟨set.fin
 
 section filter
 
-variables (a) [fintype α]
+variables (a b) [fintype α]
+
+lemma filter_eq_Ioo [decidable_pred (λ (j : α), a < j ∧ j < b)] :
+  finset.univ.filter (λ j, a < j ∧ j < b) = Ioo a b := by { ext, simp }
+
+lemma filter_eq_Ioc [decidable_pred (λ (j : α), a < j ∧ j ≤ b)] :
+  finset.univ.filter (λ j, a < j ∧ j ≤ b) = Ioc a b := by { ext, simp }
+
+lemma filter_eq_Ico [decidable_pred (λ (j : α), a ≤ j ∧ j < b)] :
+  finset.univ.filter (λ j, a ≤ j ∧ j < b) = Ico a b := by { ext, simp }
+
+lemma filter_eq_Icc [decidable_pred (λ (j : α), a ≤ j ∧ j ≤ b)] :
+  finset.univ.filter (λ j, a ≤ j ∧ j ≤ b) = Icc a b := by { ext, simp }
 
 lemma filter_eq_Ioi [order_top α] [decidable_pred ((<) a)] :
   finset.univ.filter (λ j, a < j) = Ioi a := by { ext, simp }

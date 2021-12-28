@@ -90,7 +90,7 @@ end non_unital_non_assoc_ring
 
 open non_unital_non_assoc_ring
 /--
-A non unital, non-associative ring with a (non-commutative) Jordan multipication
+A non unital, non-associative ring with a (non-commutative) Jordan multiplication.
 -/
 class jordan (A : Type*) [non_unital_non_assoc_ring A] :=
 (commL1R1: ∀ a : A, ⁅L a, R a⁆ = 0)

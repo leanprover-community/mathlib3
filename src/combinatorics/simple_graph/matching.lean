@@ -28,6 +28,8 @@ one edge, and the edges of the subgraph represent the paired vertices.
 
 ## TODO
 
+* Define an `other` function and prove useful results about it (https://leanprover.zulipchat.com/#narrow/stream/252551-graph-theory/topic/matchings/near/266205863)
+
 * Provide a bicoloring for matchings (https://leanprover.zulipchat.com/#narrow/stream/252551-graph-theory/topic/matchings/near/265495120)
 
 * Tutte's Theorem
@@ -100,7 +102,7 @@ begin
   rw is_matching_iff_forall_degree at h,
   have := M.coe.sum_degrees_eq_twice_card_edges,
   simp [h] at this,
-  sorry
+  sorry,
   -- exact ⟨_, this⟩,
 end
 
@@ -123,11 +125,9 @@ lemma is_perfect_matching.even_card {M : subgraph G}
 begin
   classical,
   rw is_perfect_matching_iff_forall_degree at h,
-  have := sum_degrees_eq_twice_card_edges,
-  { have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
-    simp [h] at this,
-    exact ⟨_, this⟩, },
-  { exact V, },
+  have := M.spanning_coe.sum_degrees_eq_twice_card_edges,
+  simp [h] at this,
+  exact ⟨_, this⟩,
 end
 
 end subgraph

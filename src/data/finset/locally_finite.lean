@@ -129,10 +129,10 @@ lemma filter_eq_Ioi [order_top α] [decidable_pred ((<) a)] :
 lemma filter_eq_Ici [order_top α] [decidable_pred ((≤) a)] :
   finset.univ.filter (λ j, a ≤ j) = Ici a := by { ext, simp }
 
-lemma filter_eq_Iio [order_bot α] [decidable_pred ((>) a)] :
+lemma filter_eq_Iio [order_bot α] [decidable_pred (λ (j : α), j < a)] :
   finset.univ.filter (λ j, j < a) = Iio a := by { ext, simp }
 
-lemma filter_eq_Iic [order_bot α] [decidable_pred ((≥) a)] :
+lemma filter_eq_Iic [order_bot α] [decidable_pred (λ (j : α), j ≤ a)] :
   finset.univ.filter (λ j, j ≤ a) = Iic a := by { ext, simp }
 
 end filter

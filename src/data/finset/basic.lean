@@ -1857,7 +1857,7 @@ by {ext, simp}
 @[simp] lemma to_finset_inter (l l' : list α) : (l ∩ l').to_finset = l.to_finset ∩ l'.to_finset :=
 by {ext, simp}
 
-lemma to_finset_eq_empty_iff (l : list α) : l.to_finset = ∅ ↔ l = nil :=
+@[simp] lemma to_finset_eq_empty_iff (l : list α) : l.to_finset = ∅ ↔ l = nil :=
 by { cases l; simp }
 
 end list

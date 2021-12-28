@@ -749,12 +749,8 @@ end
 lemma dvd_not_unit.not_unit [cancel_comm_monoid_with_zero α] {p q : α}
   (hp : dvd_not_unit p q) : ¬ is_unit q :=
 begin
-  obtain ⟨h, x, hx⟩ := hp,
-  by_contra hcontra,
-  apply hx.left,
-  rw is_unit_iff_dvd_one at hcontra,
-  rw is_unit_iff_dvd_one,
-  exact dvd_trans (show x ∣ q, from by {use p, rw mul_comm, exact hx.right}) hcontra,
+  obtain ⟨-, x, hx, rfl⟩ := hp,
+  exact λ hc, hx (is_unit_iff_dvd_one.mpr (dvd_of_mul_left_dvd (is_unit_iff_dvd_one.mp hc))),
 end
 
 lemma is_unit_of_associated_mul [cancel_comm_monoid_with_zero α]

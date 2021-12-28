@@ -93,31 +93,13 @@ lemma is_matching_iff_forall_degree {M : subgraph G} [Π (v : V), fintype (M.nei
   M.is_matching ↔ ∀ (v : V), v ∈ M.verts → M.degree v = 1 :=
 by simpa [degree_eq_one_iff_unique_adj]
 
-lemma is_matching.even_card {M : subgraph G} [hM : fintype M.support] [decidable_eq V]
-  [decidable_rel G.adj] (h : M.is_matching) :
-  even (M.support.to_finset.card) :=
-begin
-  classical,
-  unfreezingI { rw h.support_eq_verts at hM },
-  have h' := h,
-  rw is_matching_iff_forall_degree at h',
-  have := M.coe.sum_degrees_eq_twice_card_edges,
-  simp [h'] at this,
-  use M.coe.edge_finset.card,
-  rw ← this,
-  simp only [finset.univ, h.support_eq_verts, set.to_finset_card],
-  congr,
-end
-
-lemma is_matching.even_card' {M : subgraph G} [hM : fintype M.verts] [decidable_eq V]
-  [∀ v, fintype (M.neighbor_set v)] -- more precise: [∀ v, fintype (M.coe.neighbor_set v)]
+lemma is_matching.even_card {M : subgraph G} [hM : fintype M.verts] [decidable_eq V]
   [decidable_rel G.adj] (h : M.is_matching) :
   even (M.verts.to_finset.card) :=
 begin
   classical,
   rw is_matching_iff_forall_degree at h,
-  have := M.coe.sum_degrees_eq_twice_card_edges,
-  simp [h] at this,
+  have := M.coe.sum_degrees_eq_twice_card_edges, simp [h] at this,
   use M.coe.edge_finset.card,
   rw [← this, set.to_finset_card],
   refl,

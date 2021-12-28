@@ -351,10 +351,9 @@ def finite_at_of_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj]
    fintype (G'.neighbor_set v) :=
 set.fintype_subset (G''.neighbor_set v) (neighbor_set_subset_of_subgraph h v)
 
-noncomputable instance (G' : subgraph G) [fintype G'.support] (a : V) :
-  fintype (G'.neighbor_set a) :=
-fintype.of_injective (λ b, ⟨b.1, a, G'.adj_symm b.2⟩ : G'.neighbor_set a → G'.support)
-  (λ b c h, by { ext, convert congr_arg subtype.val h })
+noncomputable instance (G' : subgraph G) [fintype G'.verts] (a : V) : fintype (G'.neighbor_set a) :=
+fintype.of_injective (λ (v : G'.neighbor_set a), (⟨v, G'.edge_vert (G'.adj_symm v.2)⟩ : G'.verts))
+(λ v w h, by { ext, convert congr_arg subtype.val h })
 
 instance coe_finite_at {G' : subgraph G} (v : G'.verts) [fintype (G'.neighbor_set v)] :
   fintype (G'.coe.neighbor_set v) :=

@@ -152,7 +152,7 @@ lemma exists_eq_u (a : α) : (∃ b : β, a = u b) ↔ a = u (l a) :=
 ⟨λ ⟨S, hS⟩, hS.symm ▸ (gc.u_l_u_eq_u _).symm, λ HI, ⟨_, HI⟩ ⟩
 
 lemma u_eq {z : α} {y : β} :
-  u y  = z ↔ ∀ x, x ≤ z ↔ l x ≤ y :=
+  u y = z ↔ ∀ x, x ≤ z ↔ l x ≤ y :=
 begin
   split,
   { rintros rfl x,
@@ -285,6 +285,26 @@ lemma l_comm_of_u_comm
   {lZX : X → Z} {uXZ : Z → X} (hXZ : galois_connection lZX uXZ)
   (h : ∀ w, uXZ (uZW w) = uXY (uYW w)) {x : X} : lWZ (lZX x) = lWY (lYX x) :=
 (hXZ.compose hZW).l_unique (hXY.compose hWY) h
+
+lemma u_comm_of_l_comm
+  {X : Type*} [partial_order X] {Y : Type*} [preorder Y]
+  {Z : Type*} [partial_order Z] {W : Type*} [preorder W]
+  {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
+  {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
+  {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
+  {lZX : X → Z} {uXZ : Z → X} (hXZ : galois_connection lZX uXZ)
+  (h : ∀ x, lWZ (lZX x) = lWY (lYX x)) {w : W} : uXZ (uZW w) = uXY (uYW w) :=
+(hXZ.compose hZW).u_unique (hXY.compose hWY) h
+
+lemma l_comm_iff_u_comm
+  {X : Type*} [partial_order X] {Y : Type*} [partial_order Y]
+  {Z : Type*} [partial_order Z] {W : Type*} [partial_order W]
+  {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
+  {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
+  {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
+  {lZX : X → Z} {uXZ : Z → X} (hXZ : galois_connection lZX uXZ) :
+  (∀ w : W, uXZ (uZW w) = uXY (uYW w)) ↔ ∀ x : X, lWZ (lZX x) = lWY (lYX x) :=
+⟨hXY.l_comm_of_u_comm hZW hWY hXZ, hXY.u_comm_of_l_comm hZW hWY hXZ⟩
 
 end galois_connection
 

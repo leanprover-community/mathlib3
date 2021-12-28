@@ -152,4 +152,55 @@ by rw [fintype.card_of_finset, card_Iic]
 by rw [fintype.card_of_finset, card_Iio]
 
 end unbounded
+
+section filter
+
+variable {n}
+
+lemma filter_eq_Ico_zero (a : fin (n + 1)) : finset.univ.filter (λ j, j < a) = Ico 0 a :=
+by { ext, simp [zero_le] }
+
+lemma filter_eq_Ioo_zero (a : fin (n + 1)) : finset.univ.filter (λ j, j ≤ a) = Icc 0 a :=
+by { ext, simp [zero_le] }
+
+lemma filter_eq_Ioc_last (a : fin (n + 1)) : finset.univ.filter (λ j, a < j) = Ioc a (last n) :=
+by { ext, simp [le_last] }
+
+lemma filter_eq_Icc_last (a : fin (n + 1)) : finset.univ.filter (λ j, a ≤ j) = Icc a (last n) :=
+by { ext, simp [le_last] }
+
+@[simp]
+lemma filter_lt_card (a : fin n) : (finset.univ.filter (λ j, a < j)).card = n - a - 1 :=
+begin
+  cases n,
+  { simp },
+  { rw [filter_eq_Ioi, card_Ioi, nat.sub.right_comm, nat.succ_sub_succ_eq_sub, nat.sub_zero] }
+end
+
+@[simp]
+lemma filter_le_card (a : fin n) : (finset.univ.filter (λ j, a ≤ j)).card = n - a :=
+begin
+  cases n,
+  { simp },
+  { rw [filter_eq_Ici, card_Ici] }
+end
+
+@[simp]
+lemma filter_gt_card (a : fin n) : (finset.univ.filter (λ j, j < a)).card = a :=
+begin
+  cases n,
+  { exact fin.elim0 a },
+  { rw [filter_eq_Ico_zero, card_Ico, coe_zero, nat.sub_zero] }
+end
+
+@[simp]
+lemma filter_ge_card (a : fin n) : (finset.univ.filter (λ j, j ≤ a)).card = a + 1 :=
+begin
+  cases n,
+  { exact fin.elim0 a },
+  { rw [filter_eq_Ioo_zero, card_Icc, coe_zero, nat.sub_zero] }
+end
+
+end filter
+
 end fin

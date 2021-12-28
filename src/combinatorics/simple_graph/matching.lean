@@ -109,6 +109,20 @@ begin
   congr,
 end
 
+lemma is_matching.even_card' {M : subgraph G} [hM : fintype M.verts] [decidable_eq V]
+  [∀ v, fintype (M.neighbor_set v)] -- more precise: [∀ v, fintype (M.coe.neighbor_set v)]
+  [decidable_rel G.adj] (h : M.is_matching) :
+  even (M.verts.to_finset.card) :=
+begin
+  classical,
+  rw is_matching_iff_forall_degree at h,
+  have := M.coe.sum_degrees_eq_twice_card_edges,
+  simp [h] at this,
+  use M.coe.edge_finset.card,
+  rw [← this, set.to_finset_card],
+  refl,
+end
+
 lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=
 begin
   refine ⟨_, λ hm, ⟨λ v hv, hm v, λ v, _⟩⟩,
@@ -124,7 +138,7 @@ by simp [degree_eq_one_iff_unique_adj, is_perfect_matching_iff]
 
 lemma is_perfect_matching.even_card {M : subgraph G}
   [fintype V] [decidable_eq V] [decidable_rel G.adj]
-    (h : M.is_perfect_matching) : even (fintype.card V) :=
+  (h : M.is_perfect_matching) : even (fintype.card V) :=
 begin
   classical,
   rw is_perfect_matching_iff_forall_degree at h,

@@ -214,6 +214,39 @@ begin
   simpa using w j,
 end
 
+@[simp, reassoc]
+lemma limit_map_eq_lim_map [has_limits_of_shape J C] (F : J ⥤ K ⥤ C)
+  {i j : K} (f : i ⟶ j) :
+  (limit F).map f ≫ (limit_obj_iso_limit_comp_evaluation _ _).hom =
+  (limit_obj_iso_limit_comp_evaluation _ _).hom ≫
+  lim_map (whisker_left _ ((evaluation _ _).map f)) :=
+begin
+  ext,
+  dsimp,
+  simp,
+end
+
+/-- The limit of `F` is isomorphic to the composition of `F.flip` and `lim`. -/
+@[simps]
+def limit_iso_flip_comp_lim [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) :
+  limit F ≅ F.flip ⋙ lim :=
+nat_iso.of_components (λ k, limit_obj_iso_limit_comp_evaluation F k) begin
+  intros i j f,
+  ext,
+  simp only [limit_map_eq_lim_map, functor.flip_map_app,
+    limits.lim_map_π, iso.cancel_iso_hom_left, assoc],
+  erw limit.lift_π,
+end
+
+/-- A variant of `limit_iso_flip_comp_lim` where the arguemnts of `F` are flipped. -/
+@[simps]
+def limit_flip_iso_comp_lim [has_limits_of_shape J C] (F : K ⥤ J ⥤ C) :
+  limit F.flip ≅ F ⋙ lim :=
+nat_iso.of_components (λ k, begin
+  refine limit_obj_iso_limit_comp_evaluation F.flip k ≪≫ has_limit.iso_of_nat_iso _,
+  refine nat_iso.of_components (λ j, eq_to_iso rfl) (by tidy),
+end) $ by tidy
+
 instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape J C] (k : K) :
   preserves_colimits_of_shape J ((evaluation K C).obj k) :=
 { preserves_colimit :=
@@ -259,6 +292,33 @@ begin
   ext,
   simpa using w j,
 end
+
+@[simp, reassoc]
+lemma colimit_map_eq_colim_map [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) {i j : K} (f : i ⟶ j) :
+  (colimit F).map f ≫ (colimit_obj_iso_colimit_comp_evaluation _ _).hom =
+  (colimit_obj_iso_colimit_comp_evaluation _ _).hom ≫
+  colim_map (whisker_left _ ((evaluation _ _).map f)) :=
+begin
+  ext t,
+  simp only [colimit_obj_iso_colimit_comp_evaluation_ι_app_hom_assoc, limits.ι_colim_map,
+    whisker_left_app, evaluation_map_app, ← (colimit.ι F t).naturality_assoc,
+    colimit_obj_iso_colimit_comp_evaluation_ι_app_hom],
+end
+
+/-- The colimit of `F` is isomorphic to the composition of `F.flip` and `colim`. -/
+@[simps]
+def colimit_iso_flip_comp_colim [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) :
+  colimit F ≅ F.flip ⋙ colim :=
+nat_iso.of_components (λ k, colimit_obj_iso_colimit_comp_evaluation _ _) $ by tidy
+
+/-- A variant of `colimit_iso_flip_comp_colim` where the arguemnts of `F` are flipped. -/
+@[simps]
+def colimit_flip_iso_comp_colim [has_colimits_of_shape J C] (F : K ⥤ J ⥤ C) :
+  colimit F.flip ≅ F ⋙ colim :=
+nat_iso.of_components (λ k, begin
+  refine colimit_obj_iso_colimit_comp_evaluation _ _ ≪≫ has_colimit.iso_of_nat_iso _,
+  refine nat_iso.of_components (λ i, eq_to_iso rfl) (by tidy),
+end) $ by tidy
 
 instance evaluation_preserves_limits [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=

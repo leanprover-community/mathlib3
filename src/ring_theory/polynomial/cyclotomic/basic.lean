@@ -398,6 +398,17 @@ begin
                                                     (λ i, cyclotomic i ℤ), integer]
 end
 
+lemma cyclotomic.dvd_X_pow_sub_one (n : ℕ) (R : Type*) [comm_ring R] :
+  (cyclotomic n R) ∣ X ^ n - 1 :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  refine ⟨∏ i in n.proper_divisors, cyclotomic i R, _⟩,
+  rw [←prod_cyclotomic_eq_X_pow_sub_one hn,
+      nat.divisors_eq_proper_divisors_insert_self_of_pos hn, finset.prod_insert],
+  exact nat.proper_divisors.not_self_mem
+end
+
 lemma prod_cyclotomic_eq_geom_sum {n : ℕ} (h : 0 < n) (R) [comm_ring R] [is_domain R] :
   ∏ i in n.divisors \ {1}, cyclotomic i R = geom_sum X n :=
 begin
@@ -576,7 +587,11 @@ begin
   simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
 end
 
-/-- If `p ^ k` is prime power, then `cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p`. -/
+lemma cyclotomic_prime_mul_X_sub_one (R : Type*) [comm_ring R] (p : ℕ) [hn : fact (nat.prime p)] :
+  (cyclotomic p R) * (X - 1) = X ^ p - 1 :=
+by rw [cyclotomic_eq_geom_sum hn.out, geom_sum_mul]
+
+/-- If `p ^ k` is a prime power, then `cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p`. -/
 lemma cyclotomic_prime_pow_eq_geom_sum {R : Type*} [comm_ring R] {p n : ℕ} (hp : nat.prime p) :
   cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p :=
 begin
@@ -704,5 +719,35 @@ begin
 end
 
 end minpoly
+
+section expand
+
+/-- If `p` is a prime such that `p ∣ n`, then
+`expand R p (cyclotomic n R) = cyclotomic (p * n) R`. -/
+@[simp] lemma cyclotomic_expand_eq_cyclotomic {p n : ℕ} (hp : nat.prime p) (hdiv : p ∣ n)
+  (R : Type*) [comm_ring R] : expand R p (cyclotomic n R) = cyclotomic (n * p) R :=
+begin
+  by_cases hzero : n = 0,
+  { simp [hzero] },
+  suffices : expand ℤ p (cyclotomic n ℤ) = cyclotomic (n * p) ℤ,
+  { rw [← map_cyclotomic_int, ← map_expand, this, map_cyclotomic_int] },
+  refine eq_of_monic_of_dvd_of_nat_degree_le (cyclotomic.monic _ _)
+    ((cyclotomic.monic n ℤ).expand (zero_lt_iff.2 (nat.prime.ne_zero hp))) _ _,
+  { have hpos := nat.mul_pos (zero_lt_iff.mpr hzero) (nat.prime.pos hp),
+    have hprim := complex.is_primitive_root_exp _ hpos.ne.symm,
+    rw [cyclotomic_eq_minpoly hprim hpos],
+    refine @minpoly.gcd_domain_dvd ℤ ℂ ℚ _ _ _ _ _ _ _ _ complex.algebra (algebra_int ℂ) _ _
+      (is_primitive_root.is_integral hprim hpos) _ ((cyclotomic.monic n ℤ).expand
+      (nat.prime.pos hp)).is_primitive _,
+    rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval, ← is_root.def,
+      is_root_cyclotomic_iff],
+    { convert is_primitive_root.pow_of_dvd hprim (nat.prime.ne_zero hp) (dvd_mul_left p n),
+      rw [nat.mul_div_cancel _ (nat.prime.pos hp)] },
+    { exact_mod_cast hzero } },
+  { rw [nat_degree_expand, nat_degree_cyclotomic, nat_degree_cyclotomic, mul_comm n,
+      nat.totient_mul_of_prime_of_dvd hp hdiv, mul_comm] }
+end
+
+end expand
 
 end polynomial

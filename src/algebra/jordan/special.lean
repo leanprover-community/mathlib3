@@ -146,27 +146,15 @@ begin
   simp only [int.cast_bit0, int.cast_one, inv_of_mul_self_assoc, zsmul_eq_mul],
 end
 
-section mul_two_class
-universe u
-
-variables {M : Type u} [ring M]
-
-/-- Any element semiconjugates `1` to `1`. -/
-@[simp]
-lemma two_right (a : M) : semiconj_by a 2 2 := by rw [semiconj_by, mul_two, two_mul]
-
-lemma two_commute (a : M) : commute 2 a := begin
+/- 2 commutes with every element of a ring -/
+lemma two_commute [ring α] (a : α) : commute 2 a := begin
   unfold commute,
   rw [semiconj_by, mul_two, two_mul],
 end
 
-lemma half_commute [invertible (2 : M)] (a : M) : commute (⅟2) a :=
+/- If 2 is invertible, ⅟2 commutes with every element of a ring -/
+lemma half_commute [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=
   commute.inv_of_left (two_commute a)
-
-
-end mul_two_class
-
---
 
 /- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
 Jordan non-associative ring -/

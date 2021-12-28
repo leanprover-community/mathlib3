@@ -91,6 +91,8 @@ instance [add_comm_monoid α] : add_comm_monoid (αˢʸᵐ) :=
 instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
 { ..sym_alg.add_comm_monoid, ..sym_alg.add_group }
 
+
+
 @[simp] lemma sym_zero [has_zero α] : sym (0 : α) = 0 := rfl
 @[simp] lemma unsym_zero [has_zero α] : unsym (0 : αˢʸᵐ) = 0 := rfl
 
@@ -103,14 +105,14 @@ instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R 
 function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
 
 /- Introduce the symmetrised multiplication-/
-instance [ring α] [invertible (2 : α)] : has_mul(αˢʸᵐ) :=
+instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(αˢʸᵐ) :=
 { mul := λ a b, sym ((⅟2)*(unsym(a)*unsym(b) + unsym(b)*unsym(a))) }
 
-lemma mul_def [ring α] [algebra ℝ α] (a b: αˢʸᵐ) :
-  a*b = sym ((1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))) := by refl
+lemma mul_def [ring α] [invertible (2 : α)] (a b: αˢʸᵐ) :
+  a*b = sym ((⅟2)*(unsym(a)*unsym(b)+unsym(b)*unsym(a))) := by refl
 
 /- The symmetrisation of a real (unital, associative) algebra is a non-associative ring -/
-noncomputable instance [ring α] [algebra ℝ α] : non_unital_non_assoc_ring (αˢʸᵐ) :=
+instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
 { zero_mul := λ _,
   begin
     simp only [mul_def,zero_zero, add_zero, sym_zero, zero_mul, mul_zero, smul_zero],
@@ -122,56 +124,72 @@ noncomputable instance [ring α] [algebra ℝ α] : non_unital_non_assoc_ring (�
     exact rfl,
   end,
   left_distrib := λ a b c, begin
-    change (1/2:ℝ)•(unsym(a)*(unsym(b)+unsym(c))+(unsym(b)+unsym(c))*unsym(a)) =
-      (1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))+(1/2:ℝ)•(unsym(a)*unsym(c)+unsym(c)*unsym(a)),
-    rw [mul_add, add_mul, smul_add, smul_add, smul_add, smul_add, smul_add],
-    abel,
+    change (⅟2)*(unsym(a)*(unsym(b)+unsym(c))+(unsym(b)+unsym(c))*unsym(a)) =
+      (⅟2)*(unsym(a)*unsym(b)+unsym(b)*unsym(a))+(⅟2)*(unsym(a)*unsym(c)+unsym(c)*unsym(a)),
+    rw [←mul_add, mul_add (unsym a), add_mul, ← add_assoc, ← add_assoc],
+    finish,
   end,
   right_distrib := λ a b c, begin
-    change (1/2:ℝ)•((unsym(a)+unsym(b))*unsym(c)+unsym(c)*(unsym(a)+unsym(b))) =
-      (1/2:ℝ)•(unsym(a)*unsym(c)+unsym(c)*unsym(a))+(1/2:ℝ)•(unsym(b)*unsym(c)+unsym(c)*unsym(b)),
-    rw [mul_add, add_mul, smul_add, smul_add, smul_add, smul_add, smul_add],
-    abel,
+    change (⅟2)*((unsym(a)+unsym(b))*unsym(c)+unsym(c)*(unsym(a)+unsym(b))) =
+      (⅟2)*(unsym(a)*unsym(c)+unsym(c)*unsym(a))+(⅟2)*(unsym(b)*unsym(c)+unsym(c)*unsym(b)),
+    rw [←mul_add, add_mul, mul_add (unsym c), ←add_assoc, ←add_assoc],
+    finish,
   end,
   ..sym_alg.has_mul,
   ..sym_alg.add_comm_group, }
 
-
-theorem two_rmul [ring α] [algebra ℝ α]  (x:α) : (2 : ℝ) • x = x + x :=
-begin
-   rw [bit0, add_smul, one_smul],
-end
-
 /- The squaring operation coincides for both multiplications -/
-lemma sym_squares [ring α] [algebra ℝ α] (a: αˢʸᵐ) : unsym(a*a) = unsym a * unsym a :=
+lemma sym_squares [ring α] [invertible (2 : α)] (a: αˢʸᵐ) : unsym(a*a) = unsym a * unsym a :=
 begin
-  rw [mul_def, unsym_sym, ← two_rmul, ← smul_assoc],
-  simp,
+  rw [mul_def, unsym_sym],
+  abel,
+  simp only [int.cast_bit0, int.cast_one, inv_of_mul_self_assoc, zsmul_eq_mul],
 end
 
+section mul_two_class
 universe u
+
+variables {M : Type u} [ring M]
+
+/-- Any element semiconjugates `1` to `1`. -/
+@[simp]
+lemma two_right (a : M) : semiconj_by a 2 2 := by rw [semiconj_by, mul_two, two_mul]
+
+lemma two_commute (a : M) : commute 2 a := begin
+  unfold commute,
+  rw [semiconj_by, mul_two, two_mul],
+end
+
+lemma half_commute [invertible (2 : M)] (a : M) : commute (⅟2) a :=
+  commute.inv_of_left (two_commute a)
+
+
+end mul_two_class
+
+--
 
 /- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
 Jordan non-associative ring -/
-noncomputable instance (α : Type u) [ring α] [algebra ℝ α] : comm_jordan (αˢʸᵐ) :=
+instance (α : Type*) [ring α] [invertible (2 : α)] : comm_jordan (αˢʸᵐ) :=
 { comm := λ a,
   begin
     ext b,
-    change (1/2:ℝ)•(unsym(b)*unsym(a)+unsym(a)*unsym(b)) =
-     (1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a)),
+    change (⅟2)*(unsym(b)*unsym(a)+unsym(a)*unsym(b)) = (⅟2)*(unsym(a)*unsym(b)+unsym(b)*unsym(a)),
     rw add_comm,
   end,
   jordan := λ a,
   begin
     ext b,
+    rw ring.lie_def,
     simp,
-    change (1/2:ℝ)•(unsym(a)*(1/2:ℝ)•(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a))
-      +(1/2:ℝ)•(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a))*unsym(a))
-      - (1/2:ℝ)•(unsym(a*a)*(1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))
-      +(1/2:ℝ)•(unsym(a)*unsym(b)+unsym(b)*unsym(a))*unsym(a*a)) = 0,
-    rw [← smul_sub, mul_smul_comm, mul_smul_comm, smul_mul_assoc, smul_mul_assoc,
-      ← smul_add, ← smul_add, ← smul_sub, smul_smul],
-    convert (smul_zero ((1 / 2:ℝ) * (1 / 2:ℝ))),
+    change (⅟2)*(unsym(a)*((⅟2)*(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a)))
+      +((⅟2)*(unsym(a*a)*unsym(b)+unsym(b)*unsym(a*a)))*unsym(a))
+      - (⅟2)*(unsym(a*a)*((⅟2)*(unsym(a)*unsym(b)+unsym(b)*unsym(a)))
+      +((⅟2)*(unsym(a)*unsym(b)+unsym(b)*unsym(a)))*unsym(a*a)) = 0,
+    rw [← mul_sub, ← mul_assoc, ← commute.eq (half_commute (unsym a)), mul_assoc,
+      mul_assoc, ← mul_add, ← mul_assoc, ← commute.eq (half_commute (unsym (a*a))),
+      mul_assoc, mul_assoc, ← mul_add, ← mul_sub, ← mul_assoc],
+    convert mul_zero (⅟ (2:α)*⅟ (2:α)),
     rw [mul_add, add_mul, mul_add, add_mul, ← add_assoc, ← add_assoc, sym_squares,
       ← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc,
       ← mul_assoc (unsym(a) * unsym(a)) (unsym(a)) (unsym(b)),

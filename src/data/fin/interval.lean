@@ -198,7 +198,7 @@ lemma filter_ge_card (a : fin n) : (finset.univ.filter (λ j, j ≤ a)).card = a
 begin
   cases n,
   { exact fin.elim0 a },
-  { rw [filter_eq_Ioo_zero, card_Icc, coe_zero, nat.sub_zero] }
+  { rw [filter_eq_Icc_zero, card_Icc, coe_zero, nat.sub_zero] }
 end
 
 end filter

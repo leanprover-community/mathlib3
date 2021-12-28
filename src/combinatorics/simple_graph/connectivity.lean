@@ -33,7 +33,7 @@ counterparts in [Chou1994].
 
 * `simple_graph.walk`
 
-* `simple_graph.is_trail`, `simple_graph.is_path`, and `simple_graph.is_cycle`.
+* `simple_graph.walk.is_trail`, `simple_graph.walk.is_path`, and `simple_graph.walk.is_cycle`.
 
 * `simple_graph.path`
 

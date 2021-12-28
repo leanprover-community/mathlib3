@@ -5,6 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 Scott Morrison
 -/
 import data.list.count
+import data.list.infix
 
 /-!
 # Lattice structure of lists

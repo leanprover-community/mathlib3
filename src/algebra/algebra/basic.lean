@@ -794,12 +794,16 @@ protected lemma congr_fun {f g : A₁ ≃ₐ[R] A₂} (h : f = g) (x : A₁) : f
 lemma ext_iff {f g : A₁ ≃ₐ[R] A₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
+instance : ring_hom_class (A₁ ≃ₐ[R] A₂) A₁ A₂ :=
+{ coe := coe_fn,
+  coe_injective' := λ f g h, ext $ congr_fun h,
+  map_mul := map_mul',
+  map_one := λ e, e.to_mul_equiv.map_one,
+  map_add := map_add',
+  map_zero := λ e, e.to_add_equiv.map_zero }
+
 lemma coe_fun_injective : @function.injective (A₁ ≃ₐ[R] A₂) (A₁ → A₂) (λ e, (e : A₁ → A₂)) :=
-begin
-  intros f g w,
-  ext,
-  exact congr_fun w a,
-end
+fun_like.coe_injective
 
 instance has_coe_to_ring_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ ≃+* A₂) := ⟨alg_equiv.to_ring_equiv⟩
 
@@ -820,13 +824,13 @@ lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ ≃+* A₂)) :=
 λ e₁ e₂ h, ext $ ring_equiv.congr_fun h
 
-@[simp] lemma map_add : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
+lemma map_add : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
 
-@[simp] lemma map_zero : e 0 = 0 := e.to_add_equiv.map_zero
+lemma map_zero : e 0 = 0 := e.to_add_equiv.map_zero
 
-@[simp] lemma map_mul : ∀ x y, e (x * y) = (e x) * (e y) := e.to_mul_equiv.map_mul
+lemma map_mul : ∀ x y, e (x * y) = (e x) * (e y) := e.to_mul_equiv.map_mul
 
-@[simp] lemma map_one : e 1 = 1 := e.to_mul_equiv.map_one
+lemma map_one : e 1 = 1 := e.to_mul_equiv.map_one
 
 @[simp] lemma commutes : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
   e.commutes'

@@ -19,6 +19,11 @@ variables (n : ℕ)
 instance : locally_finite_order (fin n) := subtype.locally_finite_order _
 
 namespace fin
+
+lemma last_eq_top (n : ℕ) : fin.last n = ⊤ := rfl
+
+lemma zero_eq_bot (n : ℕ) : (0 : fin (n + 1)) = ⊥ := rfl
+
 section bounded
 variables {n} (a b : fin n)
 
@@ -157,18 +162,6 @@ section filter
 
 variable {n}
 
-lemma filter_eq_Ico_zero (a : fin (n + 1)) : finset.univ.filter (λ j, j < a) = Ico 0 a :=
-by { ext, simp [zero_le] }
-
-lemma filter_eq_Icc_zero (a : fin (n + 1)) : finset.univ.filter (λ j, j ≤ a) = Icc 0 a :=
-by { ext, simp [zero_le] }
-
-lemma filter_eq_Ioc_last (a : fin (n + 1)) : finset.univ.filter (λ j, a < j) = Ioc a (last n) :=
-by { ext, simp [le_last] }
-
-lemma filter_eq_Icc_last (a : fin (n + 1)) : finset.univ.filter (λ j, a ≤ j) = Icc a (last n) :=
-by { ext, simp [le_last] }
-
 @[simp]
 lemma card_filter_lt (a : fin n) : (finset.univ.filter (λ j, a < j)).card = n - a - 1 :=
 begin
@@ -191,7 +184,7 @@ lemma card_filter_gt (a : fin n) : (finset.univ.filter (λ j, j < a)).card = a :
 begin
   cases n,
   { exact fin.elim0 a },
-  { rw [filter_eq_Ico_zero, card_Ico, coe_zero, nat.sub_zero] }
+  { rw [filter_gt_eq_Iio, card_Iio] }
 end
 
 @[simp]
@@ -199,7 +192,43 @@ lemma card_filter_ge (a : fin n) : (finset.univ.filter (λ j, j ≤ a)).card = a
 begin
   cases n,
   { exact fin.elim0 a },
-  { rw [filter_eq_Icc_zero, card_Icc, coe_zero, nat.sub_zero] }
+  { rw [filter_ge_eq_Iic, card_Iic] }
+end
+
+@[simp]
+lemma card_filter_lt_lt (a b : fin n) :
+  (finset.univ.filter (λ j, a < j ∧ j < b)).card = b - a - 1 :=
+begin
+  cases n,
+  { exact fin.elim0 a },
+  { rw [filter_lt_lt_eq_Ioo, card_Ioo] }
+end
+
+@[simp]
+lemma card_filter_lt_le (a b : fin n) :
+  (finset.univ.filter (λ j, a < j ∧ j ≤ b)).card = b - a :=
+begin
+  cases n,
+  { exact fin.elim0 a },
+  { rw [filter_lt_le_eq_Ioc, card_Ioc] }
+end
+
+@[simp]
+lemma card_filter_le_lt (a b : fin n) :
+  (finset.univ.filter (λ j, a ≤ j ∧ j < b)).card = b - a :=
+begin
+  cases n,
+  { exact fin.elim0 a },
+  { rw [filter_le_lt_eq_Ico, card_Ico] }
+end
+
+@[simp]
+lemma card_filter_le_le (a b : fin n) :
+  (finset.univ.filter (λ j, a ≤ j ∧ j ≤ b)).card = b + 1 - a :=
+begin
+  cases n,
+  { exact fin.elim0 a },
+  { rw [filter_le_le_eq_Icc, card_Icc] }
 end
 
 end filter

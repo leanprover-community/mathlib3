@@ -62,11 +62,7 @@ section
 open_locale classical
 
 theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
-begin
-  tactic.unfreeze_local_instances,
-  rcases hβ with ⟨γ, ⟨f⟩⟩,
-  exact small.mk' (e.trans f)
-end
+small.mk' (e.trans (equiv_shrink β))
 
 theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
 ⟨λ h, @small_map _ _ h e.symm, λ h, @small_map _ _ h e⟩

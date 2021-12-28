@@ -179,7 +179,7 @@ begin
 end
 
 @[simp]
-lemma filter_le_card (a : fin n) : (finset.univ.filter (λ j, a ≤ j)).card = n - a :=
+lemma card_filter_le (a : fin n) : (univ.filter (λ j, a ≤ j)).card = n - a :=
 begin
   cases n,
   { simp },

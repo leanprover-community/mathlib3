@@ -127,7 +127,7 @@ lemma neighbor_set_subset (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G.ne
 λ w h, G'.adj_sub h
 
 lemma neighbor_set_subset_verts (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G'.verts :=
-by { intros _ h, exact G'.edge_vert (adj_symm G' h) }
+λ _ h, G'.edge_vert (adj_symm G' h)
 
 @[simp] lemma mem_neighbor_set (G' : subgraph G) (v w : V) : w ∈ G'.neighbor_set v ↔ G'.adj v w :=
 iff.rfl

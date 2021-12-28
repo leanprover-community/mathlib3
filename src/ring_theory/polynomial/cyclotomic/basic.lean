@@ -562,6 +562,7 @@ begin
       ←is_root_cyclotomic_iff' $ by simpa only [f.map_nat_cast, hn] using f.injective_iff.mp hf n]
 end
 
+/-- Over a ring `R` of characteristic zero, `λ n, cyclotomic n R` is injective. -/
 lemma cyclotomic_injective {R : Type*} [comm_ring R] [char_zero R] :
   function.injective (λ n, cyclotomic n R) :=
 begin

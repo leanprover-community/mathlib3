@@ -405,6 +405,16 @@ end
 
 end walk
 
+-- ^^^ in mathlib ^^^
+
+namespace walk
+variables {G}
+
+lemma mem_support_nil_iff {u v : V} : u ∈ (nil : G.walk v v).support ↔ u = v :=
+by simp
+
+end walk
+
 -- ^^^ in a PR ^^^
 
 /-- Two vertices are *reachable* if there is a walk between them.
@@ -489,14 +499,11 @@ abbreviation path (u v : V) := {p : G.walk u v // p.is_path}
 namespace walk
 variables {G}
 
-lemma mem_support_nil {u v : V} : u ∈ (nil : G.walk v v).support ↔ u = v :=
-by simp
-
 variables [decidable_eq V]
 
 /-- Given a vertex in the support of a path, give the path up until that vertex. -/
 def take_until : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.walk v u
-| v w nil u h := by rw mem_support_nil.mp h
+| v w nil u h := by rw mem_support_nil_iff.mp h
 | v w (cons r p) u h :=
   if hx : v = u
   then by subst u
@@ -504,20 +511,20 @@ def take_until : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.
 
 /-- Given a vertex in the support of a path, give the path from that vertex to the end. -/
 def drop_until : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.walk u w
-| v w nil u h := by rw mem_support_nil.mp h
+| v w nil u h := by rw mem_support_nil_iff.mp h
 | v w (cons r p) u h :=
   if hx : v = u
   then by { subst u, exact cons r p }
   else drop_until p _ $ h.cases_on (λ h', (hx h'.symm).elim) id
 
-/-- This and `count_support_take_until_eq_one` give a specification for
-the way `take_until` and `drop_until` split a walk. -/
+/-- The `take_until` and `drop_until` functions split a walk into two pieces.
+The lemma `count_support_take_until_eq_one` specifies where this split occurs. -/
 @[simp]
 lemma take_spec {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).append (p.drop_until u h) = p :=
 begin
   induction p,
-  { rw mem_support_nil at h,
+  { rw mem_support_nil_iff at h,
     subst u,
     refl, },
   { obtain (rfl|h) := h,
@@ -531,7 +538,7 @@ lemma count_support_take_until_eq_one {u v w : V} (p : G.walk v w) (h : u ∈ p.
   (p.take_until u h).support.count u = 1 :=
 begin
   induction p,
-  { rw mem_support_nil at h,
+  { rw mem_support_nil_iff at h,
     subst u,
     simp!, },
   { obtain (rfl|h) := h,
@@ -544,7 +551,7 @@ lemma count_edges_take_until_le_one {u v w : V} (p : G.walk v w) (h : u ∈ p.su
   (p.take_until u h).edges.count ⟦(u, x)⟧ ≤ 1 :=
 begin
   induction p with u' u' v' w' ha p' ih,
-  { rw mem_support_nil at h,
+  { rw mem_support_nil_iff at h,
     subst u,
     simp!, },
   { obtain (rfl|h) := h,

@@ -31,7 +31,7 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [star_add_monoid E]
 namespace self_adjoints
 
 instance : has_scalar ℝ (self_adjoints E) :=
-⟨λ r x, ⟨(r : 𝕜) • (x : E), by { simp only [star_coe_eq, star_smul],
+⟨λ r x, ⟨(r : 𝕜) • (x : E), by { simp only [mem_iff, star_coe_eq, star_smul],
                             show (conj (r : 𝕜)) • (x : E) = (r : 𝕜) • x, by rw [conj_of_real r] }⟩⟩
 
 include 𝕜
@@ -44,12 +44,15 @@ instance : mul_action ℝ (self_adjoints E) :=
   ..show has_scalar ℝ (self_adjoints E), by apply_instance }
 
 instance : distrib_mul_action ℝ (self_adjoints E) :=
-{ smul_add := λ r x y, by { ext, simp only [smul_add, coe_smul, coe_add] },
-  smul_zero := λ r, by { ext, simp only [coe_zero, coe_smul, smul_zero] } }
+{ smul_add := λ r x y, by { ext, simp only [smul_add, add_subgroup.coe_add, coe_smul] },
+  smul_zero := λ r, by { ext, simp only [coe_smul, add_subgroup.coe_zero, smul_zero]} }
 
 instance : module ℝ (self_adjoints E) :=
-{ add_smul := λ r s x, by { ext, simp only [add_smul, of_real_add, coe_smul, coe_add] },
-  zero_smul := λ x, by { ext, simp only [of_real_zero, coe_zero, coe_smul, zero_smul] } }
+{ add_smul := λ r s x,
+    by { ext, simp only [add_smul, add_subgroup.coe_add, of_real_add, coe_smul] },
+  zero_smul := λ x,
+    by { ext, simp only [of_real_zero, coe_smul, zero_smul, add_subgroup.coe_zero] },
+  ..self_adjoints.has_scalar }
 
 instance : normed_space ℝ (self_adjoints E) :=
 ⟨λ r x, le_of_eq $ by simp only [coe_smul, norm_coe, norm_smul, norm_of_real]⟩

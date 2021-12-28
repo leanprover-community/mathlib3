@@ -1437,7 +1437,7 @@ by simp [factorization]
 
 @[simp] lemma factorization_one : factorization (1 : α) = 0 := by simp [factorization]
 
-/-- The support of `factorization n` is exactly `n.factors.to_finset` -/
+/-- The support of `factorization n` is exactly the finset of normalized factors -/
 @[simp] lemma support_factorization {n : α} :
   (factorization n).support = (normalized_factors n).to_finset :=
 by simp [factorization, multiset.to_finsupp_support]
@@ -1447,7 +1447,7 @@ by simp [factorization, multiset.to_finsupp_support]
   factorization (a * b) = factorization a + factorization b :=
 by simp [factorization, normalized_factors_mul ha hb]
 
-/-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
+/-- For any `p`, the power of `p` in `x^n` is `n` times the power in `x` -/
 lemma factorization_pow {x : α} {n : ℕ} :
   factorization (x^n) = n • (factorization x) :=
 by { ext, simp [factorization] }

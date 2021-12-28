@@ -43,7 +43,7 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 by simp [infinite]
 
 /-- See also `fintype_or_infinite`. -/
-lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em $ s.finite
+lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em _
 
 @[simp] theorem finite.mem_to_finset {s : set α} (h : finite s) {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _

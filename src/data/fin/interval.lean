@@ -170,7 +170,7 @@ lemma filter_eq_Icc_last (a : fin (n + 1)) : finset.univ.filter (λ j, a ≤ j) 
 by { ext, simp [le_last] }
 
 @[simp]
-lemma filter_lt_card (a : fin n) : (finset.univ.filter (λ j, a < j)).card = n - a - 1 :=
+lemma card_filter_lt (a : fin n) : (finset.univ.filter (λ j, a < j)).card = n - a - 1 :=
 begin
   cases n,
   { simp },
@@ -187,7 +187,7 @@ begin
 end
 
 @[simp]
-lemma filter_gt_card (a : fin n) : (finset.univ.filter (λ j, j < a)).card = a :=
+lemma card_filter_gt (a : fin n) : (finset.univ.filter (λ j, j < a)).card = a :=
 begin
   cases n,
   { exact fin.elim0 a },
@@ -195,7 +195,7 @@ begin
 end
 
 @[simp]
-lemma filter_ge_card (a : fin n) : (finset.univ.filter (λ j, j ≤ a)).card = a + 1 :=
+lemma card_filter_ge (a : fin n) : (finset.univ.filter (λ j, j ≤ a)).card = a + 1 :=
 begin
   cases n,
   { exact fin.elim0 a },

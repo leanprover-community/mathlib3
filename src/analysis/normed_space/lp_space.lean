@@ -465,6 +465,20 @@ begin
     exact this.1 },
 end
 
+lemma norm_le_of_forall_le' [nonempty α] {f : lp E ∞} (C : ℝ) (hCf : ∀ i, ∥f i∥ ≤ C) : ∥f∥ ≤ C :=
+begin
+  refine (is_lub_norm f).2 _,
+  rintros - ⟨i, rfl⟩,
+  exact hCf i,
+end
+
+lemma norm_le_of_forall_le {f : lp E ∞} {C : ℝ} (hC : 0 ≤ C) (hCf : ∀ i, ∥f i∥ ≤ C) : ∥f∥ ≤ C :=
+begin
+  casesI is_empty_or_nonempty α,
+  { simpa [eq_zero' f] using hC, },
+  { exact norm_le_of_forall_le' C hCf },
+end
+
 lemma eq_zero_iff_ae_eq_zero {f : lp E p} : f = 0 ↔ ⇑f = 0 :=
 by rw [lp.ext_iff, coe_fn_zero]
 
@@ -655,49 +669,81 @@ lemma _root_.cauchy_seq.bounded {α : Type*} [pseudo_metric_space α] {u : ℕ �
   metric.bounded (set.range u) :=
 metric.bounded_range_of_cauchy_map_cofinite hu.cauchy_map_cofinite
 
+
+lemma foo₁' {C : ℝ} (hC : 0 ≤ C) {F : ℕ → lp E ∞} (hCF : ∀ (k : ℕ), ∥F k∥ ≤ C)
+  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) (a : α) :
+  ∥f a∥ ≤ C :=
+begin
+  have : tendsto (λ k, ∥F k a∥) at_top (𝓝 ∥f a∥) :=
+    (tendsto.comp (continuous_apply a).continuous_at hf).norm,
+  refine le_of_tendsto' this _,
+  intros k,
+  exact (norm_apply_le_norm ennreal.top_ne_zero (F k) a).trans (hCF k),
+end
+
+lemma foo₁ [fact (1 ≤ p)] (hp : p ≠ ⊤) {C : ℝ} (hC : 0 ≤ C) (hCF : ∀ (k : ℕ), ∥F k∥ ≤ C)
+  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) (s : finset α) :
+  ∑ (i : α) in s, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real :=
+begin
+  have hp' : 0 < p.to_real := sorry,
+  have hC' : 0 ≤ C ^ p.to_real := real.rpow_nonneg_of_nonneg hC _,
+  let G : (Π a, E a) → ℝ := λ f, ∑ a in s, ∥f a∥ ^ p.to_real,
+  have hG : continuous G,
+  { refine continuous_finset_sum s _,
+    intros a ha,
+    have : continuous (λ f : Π a, E a, f a):= (continuous_apply a),
+    exact this.norm.rpow_const (λ _, or.inr hp'.le) },
+  refine le_of_tendsto' (hG.continuous_at.tendsto.comp hf) _,
+  intros k,
+  refine (lp.sum_rpow_le_norm' hp' (F k) s).trans _,
+  exact real.rpow_le_rpow (norm_nonneg _) (hCF k) hp'.le,
+end
+
 /-- If `f` is the pointwise limit of a bounded sequence in `Lp E p`, then `f` is in `Lp E p`. -/
-lemma foo₂' [fact (1 ≤ p)] (hF : metric.bounded (set.range F)) {f : Π a, E a}
+lemma foo₂ [fact (1 ≤ p)] {C : ℝ} (hC : 0 ≤ C) (hCF : ∀ k, ∥F k∥ ≤ C) {f : Π a, E a}
+  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
+  mem_ℓp f p :=
+begin
+  tactic.unfreeze_local_instances,
+  rcases p.dichotomy with rfl | hp',
+  { apply mem_ℓp_infty,
+    use C,
+    rintros _ ⟨a, rfl⟩,
+    refine foo₁' hC hCF hf a, },
+  { have hp : 0 < p.to_real := by linarith,
+    have hp' : p ≠ ∞ := sorry,
+    have hC' : 0 ≤ C ^ p.to_real := real.rpow_nonneg_of_nonneg hC _,
+    apply mem_ℓp_gen' hp hC',
+    exact foo₁ hp' hC hCF hf },
+end
+
+/-- If all elements of a sequence in `lp E p` have `lp` norm `≤ C`, then the pointwise limit, if it
+exists, also has `lp` norm `≤ C`. -/
+lemma foo₂' [fact (1 ≤ p)] {C : ℝ} (hC : 0 ≤ C) (hCF : ∀ k, ∥F k∥ ≤ C) {f : Π a, E a}
+  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
+  ∥(⟨f, foo₂ hC hCF hf⟩ : lp E p)∥ ≤ C :=
+begin
+  tactic.unfreeze_local_instances,
+  rcases p.dichotomy with rfl | hp,
+  { apply norm_le_of_forall_le hC,
+    exact foo₁' hC hCF hf, },
+  { have hp : 0 < p.to_real := by linarith,
+    have hp' : p ≠ ∞ := sorry,
+    apply norm_le_of_tsum_le' hp hC,
+    exact foo₁ hp' hC hCF hf, }
+end
+
+/-- If `f` is the pointwise limit of a bounded sequence in `Lp E p`, then `f` is in `Lp E p`. -/
+lemma foo₂'' [fact (1 ≤ p)] (hF : metric.bounded (set.range F)) {f : Π a, E a}
   (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
   mem_ℓp f p :=
 begin
   obtain ⟨C₀, hC₀⟩ := hF.exists_norm_le,
   let C : ℝ := max C₀ 0,
   have hC : 0 ≤ C := le_max_right _ _,
-  have hCF : ∀ x ∈ set.range F, ∥x∥ ≤ C := λ x hx, (hC₀ x hx).trans (le_max_left _ _),
-  tactic.unfreeze_local_instances,
-  rcases p.dichotomy with rfl | hp',
-  { apply mem_ℓp_infty,
-    use C,
-    rintros _ ⟨a, rfl⟩,
-    have : tendsto (λ k, ∥F k a∥) at_top (𝓝 ∥f a∥) :=
-      (tendsto.comp (continuous_apply a).continuous_at hf).norm,
-    refine le_of_tendsto' this _,
-    intros k,
-    exact (norm_apply_le_norm ennreal.top_ne_zero _ a).trans (hCF _ ⟨k, rfl⟩) },
-  have hp : 0 < p.to_real := by linarith,
-  have hC' : 0 ≤ C ^ p.to_real := real.rpow_nonneg_of_nonneg hC _,
-  apply mem_ℓp_gen' hp hC',
-  intros s,
-  let G : (Π a, E a) → ℝ := λ f, ∑ a in s, ∥f a∥ ^ p.to_real,
-  have hG : continuous G,
-  { refine continuous_finset_sum s _,
-    intros a ha,
-    have : continuous (λ f : Π a, E a, f a):= (continuous_apply a),
-    exact this.norm.rpow_const (λ _, or.inr hp.le) },
-  refine le_of_tendsto' (hG.continuous_at.tendsto.comp hf) _,
-  intros k,
-  refine (lp.sum_rpow_le_norm' hp (F k) s).trans _,
-  exact real.rpow_le_rpow (norm_nonneg _) (hCF _ ⟨k, rfl⟩) hp.le,
+  have hCF : ∀ k, ∥F k∥ ≤ C := λ k, (hC₀ _ ⟨k, rfl⟩).trans (le_max_left _ _),
+  exact foo₂ hC hCF hf,
 end
-
-
--- #exit
-
-/-- If `f` is the pointwise limit of a Cauchy sequence in `Lp E p`, then `f` is in `Lp E p`. -/
-lemma foo₂ [fact (1 ≤ p)] (hF : cauchy_seq F) {f : Π a, E a}
-  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
-  mem_ℓp f p :=
-foo₂' hF.bounded hf
 
 /-- If a sequence is Cauchy in the `lp E p` topology and pointwise convergent to a element `f` of
 `lp E p`, then it converges to `f` in the `lp E p` topology. -/
@@ -742,7 +788,8 @@ begin
   intros F hF,
   -- A Cauchy sequence in `lp E p` is pointwise convergent; let `f` be the pointwise limit.
   obtain ⟨f, hf⟩ := cauchy_seq_tendsto_of_complete (uniform_continuous_coe.comp_cauchy_seq hF),
-  have hf' : mem_ℓp f p := foo₂ hF hf,
+  -- Since the Cauchy sequence is bounded, its pointwise limit `f` is in `Lp E p`.
+  have hf' : mem_ℓp f p := foo₂'' hF.bounded hf,
   exact ⟨⟨f, hf'⟩, foo₃ hF ⟨f, hf'⟩ hf⟩
 end
 

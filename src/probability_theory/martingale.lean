@@ -37,7 +37,7 @@ The definitions of filtration and adapted can be found in `probability_theory.st
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators
+open_locale classical nnreal ennreal measure_theory probability_theory big_operators
 
 namespace measure_theory
 
@@ -353,6 +353,67 @@ begin
   { exact hf.stopped_value_integrable hπ hbdd },
   { exact hf.stopped_value_integrable hτ (λ x, le_trans (hle x) (hbdd x)) }
 end
+
+section upcrossing
+
+/-
+Upcrossing.
+
+The main idea we need from the definition of upcrossing is:
+{x | lim f_n(x) DNE} = {x | lim inf f_n(x) < lim sup f_n(x)} =
+⋃ (a < b : ℝ) {x | lim U_n([a, b])(x) = ∞} =
+⋃ (a < b : ℚ) {x | lim U_n([a, b])(x) = ∞}
+
+To define upcrossing, we consider the following stopping times.
+-/
+
+/-- The upper crossing of a random process on the interval `[a, b]` before time `n + 1` is the
+ℕ-valued random variable corresponding to the first time the process is above `b` after the
+`n + 1`-th lower crossing. -/
+noncomputable
+def upper_crossing (f : ℕ → α → ℝ) (a b : ℝ) : ℕ → α → ℕ
+| 0 x := 0
+| (n + 1) x := if h : ∃ s,
+  (if h : ∃ t, upper_crossing n x < t ∧ f t x ≤ a then nat.find h else (n + 1)) < s ∧ b ≤ f s x
+  then nat.find h else (n + 1)
+
+lemma upper_crossing_succ {f : ℕ → α → ℝ} {a b : ℝ} (n : ℕ) (x : α) :
+  upper_crossing f a b (n + 1) x =
+    if h : ∃ s,
+      (if h : ∃ t, upper_crossing f a b n x < t ∧ f t x ≤ a then nat.find h else (n + 1)) < s ∧
+        b ≤ f s x
+    then nat.find h else (n + 1) :=
+begin
+  -- refl, -- why???
+  sorry
+end
+
+/-- The lower crossing of a random process on the interval `[a, b]` before time `n + 1` is the
+ℕ-valued random variable corresponding to the first time the process is below `a` after the
+`n`-th upper crossing. -/
+noncomputable
+def lower_crossing (f : ℕ → α → ℝ) (a b : ℝ) : ℕ → α → ℕ
+| 0 x := 0
+| (n + 1) x := if h : ∃ t, upper_crossing f a b n x < t ∧ f t x ≤ a
+  then nat.find h else (n + 1)
+
+lemma upper_crossing_eq_dite_lower_crossing {f : ℕ → α → ℝ} {a b : ℝ} (n : ℕ) :
+  upper_crossing f a b (n + 1) =
+  λ x, if h : ∃ s, lower_crossing f a b (n + 1) x < s ∧ b ≤ f s x then nat.find h else (n + 1) :=
+begin
+  ext x,
+  rw upper_crossing_succ,
+  refl,
+end
+
+/-- The `t`-th upcrossing of a random process on the interval `[a, b]` is the ℕ-valued random
+variable corresponding to the maximum number of times the random process crossed above `b` before
+time `t`. -/
+noncomputable
+def upcrossing (f : ℕ → α → ℝ) (a b : ℝ) (t : ℕ) : α → ℕ :=
+λ x, Sup {n | upper_crossing f a b n x < t}
+
+end upcrossing
 
 end submartingale
 

@@ -174,10 +174,9 @@ end
 
 lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
 begin
-  have h := add_one_le_exp (log x),
-  rw exp_log hx at h,
   rw le_sub_iff_add_le,
-  exact h,
+  convert add_one_le_exp (log x),
+  rw exp_log hx,
 end
 
 lemma log_div_self_antitone_on : antitone_on (λ x : ℝ, log x / x) {x | exp 1 ≤ x} :=

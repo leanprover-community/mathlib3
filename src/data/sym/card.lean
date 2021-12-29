@@ -3,8 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import algebra.big_operators.basic
-import data.sym.sym2
+import data.finset.sym
 
 /-!
 # Stars and bars

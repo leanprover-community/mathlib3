@@ -37,6 +37,8 @@ show these are equivalent in `sym.sym_equiv_sym'`.
 -/
 def sym (α : Type u) (n : ℕ) := {s : multiset α // s.card = n}
 
+instance (α : Type*) (n : ℕ) : has_coe (sym α n) (multiset α) := coe_subtype
+
 /--
 This is the `list.perm` setoid lifted to `vector`.
 
@@ -168,6 +170,17 @@ instance unique_zero : unique (sym α 0) :=
 def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
 
 lemma repeat_succ {a : α} {n : ℕ} : repeat a n.succ = a :: repeat a n := rfl
+
+lemma coe_repeat : (repeat a n : multiset α) = multiset.repeat a n := rfl
+
+@[simp] lemma mem_repeat : b ∈ repeat a n ↔ n ≠ 0 ∧ b = a := multiset.mem_repeat
+
+lemma eq_repeat_iff : s = repeat a n ↔ ∀ b ∈ s, b = a :=
+begin
+  rw [subtype.ext_iff, coe_repeat],
+  convert multiset.eq_repeat',
+  exact s.2.symm,
+end
 
 lemma exists_eq_cons_of_succ (s : sym α n.succ) : ∃ (a : α) (s' : sym α n), s = a :: s' :=
 begin

@@ -205,7 +205,9 @@ protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
 protected def insert {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s) :
   (insert a s : set α) ≃ s ⊕ punit.{u+1} :=
 calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
-... ≃ s ⊕ ({a} : set α) : equiv.set.union (by finish [set.subset_def])
+... ≃ s ⊕ ({a} : set α) : equiv.set.union (by { -- `finish [set.subset_def]` closes this goal
+  simp only [set.subset_def, mem_inter_eq, mem_empty_eq, mem_singleton_iff, and_imp],
+  exact λ x hx hxa, H (by rwa ←hxa) })
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
 
 @[simp] lemma insert_symm_apply_inl {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s)

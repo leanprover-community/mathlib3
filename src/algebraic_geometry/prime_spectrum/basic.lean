@@ -670,8 +670,9 @@ begin
   exact ⟨n, hs⟩
 end
 
-lemma basic_open_empty_iff (f : R) :
-  basic_open f = ∅ ↔ is_nilpotent f :=
+@[simp]
+lemma basic_open_eq_bot_iff (f : R) :
+  basic_open f = ⊥ ↔ is_nilpotent f :=
 begin
   rw [← subtype.coe_injective.eq_iff, basic_open_eq_zero_locus_compl],
   simp only [set.eq_univ_iff_forall, topological_space.opens.empty_eq, set.singleton_subset_iff,

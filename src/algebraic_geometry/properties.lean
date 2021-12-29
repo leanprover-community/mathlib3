@@ -73,7 +73,6 @@ namespace algebraic_geometry
 
 variable (X : Scheme)
 
--- TODO: add sober spaces, and show that schemes are sober
 instance : t0_space X.carrier :=
 begin
   rw t0_space_iff_distinguishable,
@@ -89,18 +88,18 @@ begin
 end
 
 instance : quasi_sober X.carrier :=
- begin
-   apply_with (sober_of_open_cover
-     (set.range (λ x, set.range $ (X.affine_cover.map x).1.base)))
-     { instances := ff },
-   { rintro ⟨_,i,rfl⟩, exact (X.affine_cover.is_open i).base_open.open_range },
-   { rintro ⟨_,i,rfl⟩,
-     exact @@open_embedding.sober _ _ _
-       (homeomorph.of_embedding _ (X.affine_cover.is_open i).base_open.to_embedding)
-       .symm.open_embedding prime_spectrum.quasi_sober },
-   { rw [set.top_eq_univ, set.sUnion_range, set.eq_univ_iff_forall],
-     intro x, exact ⟨_, ⟨_, rfl⟩, X.affine_cover.covers x⟩ }
- end
+begin
+  apply_with (quasi_sober_of_open_cover
+    (set.range (λ x, set.range $ (X.affine_cover.map x).1.base)))
+    { instances := ff },
+  { rintro ⟨_,i,rfl⟩, exact (X.affine_cover.is_open i).base_open.open_range },
+  { rintro ⟨_,i,rfl⟩,
+    exact @@open_embedding.quasi_sober _ _ _
+      (homeomorph.of_embedding _ (X.affine_cover.is_open i).base_open.to_embedding)
+      .symm.open_embedding prime_spectrum.quasi_sober },
+  { rw [set.top_eq_univ, set.sUnion_range, set.eq_univ_iff_forall],
+    intro x, exact ⟨_, ⟨_, rfl⟩, X.affine_cover.covers x⟩ }
+end
 
 /-- A scheme `X` is reduced if all `𝒪ₓ(U)` are reduced. -/
 class is_reduced : Prop :=
@@ -148,8 +147,7 @@ end
 
 local attribute [elementwise] category_theory.is_iso.hom_inv_id
 
-lemma basic_open_eq_of_affine {R : CommRing}
-  (f : R) :
+lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
   RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) ((Spec_Γ_identity.app R).inv f) =
     prime_spectrum.basic_open f :=
 begin
@@ -174,50 +172,69 @@ begin
   exact (coe_hom_inv_id _ _).symm
 end
 
-lemma eq_zero_of_basic_open_empty {X : Scheme} [is_reduced X] {U : opens X.carrier}
+lemma reduce_to_affine_global (P : ∀ (X : Scheme) (U : opens X.carrier), Prop)
+  (h₁ : ∀ (X : Scheme) (U : opens X.carrier),
+    (∀ (x : U), ∃ {V} (h : x.1 ∈ V) (i : V ⟶ U), P X V) → P X U)
+  (h₂ : ∀ {X Y} (f : X ⟶ Y) [hf : is_open_immersion f], ∃ {U : set X.carrier} {V : set Y.carrier}
+    (hU : U = ⊤) (hV : V = set.range f.1.base), P X ⟨U, hU.symm ▸ is_open_univ⟩ →
+      P Y ⟨V, hV.symm ▸ hf.base_open.open_range⟩)
+  (h₃ : ∀ (R : CommRing), P (Scheme.Spec.obj $ op R) ⊤) :
+  ∀ (X : Scheme) (U : opens X.carrier), P X U :=
+begin
+  intros X U,
+  apply h₁,
+  intro x,
+  obtain ⟨_,⟨j,rfl⟩,hx,i⟩ := X.affine_basis_cover_is_basis.exists_subset_of_mem_open x.prop U.2,
+  let U' : opens _ := ⟨_, (X.affine_basis_cover.is_open j).base_open.open_range⟩,
+  let i' : U' ⟶ U :=
+    hom_of_le i,
+  refine ⟨U', hx, i', _⟩,
+  obtain ⟨_,_,rfl,rfl,h₂'⟩ := h₂ (X.affine_basis_cover.map j),
+  apply h₂',
+  apply h₃
+end
+
+lemma eq_zero_of_basic_open_empty {X : Scheme} [hX : is_reduced X] {U : opens X.carrier}
   (s : X.presheaf.obj (op U)) (hs : X.to_LocallyRingedSpace.to_RingedSpace.basic_open s = ∅) :
   s = 0 :=
 begin
   apply Top.presheaf.section_ext X.sheaf U,
-  intro x,
-  obtain ⟨_,⟨j,rfl⟩,hx,i⟩ := X.affine_basis_cover_is_basis.exists_subset_of_mem_open x.prop U.2,
-  let V : opens X.carrier := ⟨_, (X.affine_basis_cover.is_open j).base_open.open_range⟩,
-  replace i : V ⟶ U := hom_of_le i,
-  let s' : (X.affine_basis_cover.obj j).presheaf.obj (op $ (opens.map _).obj _) :=
-    ((X.affine_basis_cover.map j).1.c.app (op V) (X.presheaf.map i.op s) : _),
-  have Veq : V = (X.affine_basis_cover.is_open j).base_open
-    .is_open_map.functor.obj ⟨_, is_open_univ⟩ := by simp [is_open_map.functor],
-  have Veq' : (opens.map (X.affine_basis_cover.map j).val.base).obj V = ⊤,
-  { rw Veq, ext1, exact set.preimage_image_eq _ (X.affine_basis_cover.is_open j).base_open.inj },
-  suffices : s' = 0,
-  { haveI : is_iso ((X.affine_basis_cover.map j).1.c.app (op V)),
-    { rw Veq,
-      exact PresheafedSpace.is_open_immersion.c_iso ⟨_, is_open_univ⟩ },
-    have : X.presheaf.map i.op s = 0,
-    { apply_fun (inv $ (X.affine_basis_cover.map j).1.c.app _) at this,
-      rwa [category_theory.is_iso.hom_inv_id_apply, map_zero] at this },
-    erw ← X.presheaf.germ_res_apply i ⟨↑x, hx⟩ s,
-    rw [this, map_zero, map_zero] },
-  replace hs : (X.affine_basis_cover.obj j).to_LocallyRingedSpace.to_RingedSpace.basic_open s' = ⊥,
-  { rw ← LocallyRingedSpace.preimage_basic_open,
-    erw RingedSpace.basic_open_res,
-    ext1,
-    simp [hs, opens.map] },
-  clear_value s',
-  revert s',
-  erw Veq',
-  intros s' hs,
-  erw [basic_open_eq_of_affine', prime_spectrum.basic_open_empty_iff] at hs,
-  replace hs := hs.map (Spec_Γ_identity.app (X.affine_basis_cover_ring j)).inv,
-  erw coe_hom_inv_id at hs,
-  haveI := is_reduced_of_open_immersion (X.affine_basis_cover.map j),
-  apply is_nilpotent.eq_zero,
-  exact hs,
+  simp_rw ring_hom.map_zero,
+  tactic.unfreeze_local_instances,
+  revert X U hX s,
+  refine reduce_to_affine_global _ _ _ _,
+  { intros X U hx hX s hs x,
+    obtain ⟨V, hx, i, H⟩ := hx x,
+    specialize H (X.presheaf.map i.op s),
+    erw RingedSpace.basic_open_res at H,
+    rw [hs, ← subtype.coe_injective.eq_iff, opens.empty_eq, opens.inter_eq, inf_bot_eq] at H,
+    specialize H rfl ⟨x, hx⟩,
+    erw Top.presheaf.germ_res_apply at H,
+    exact H },
+  { rintros X Y f hf,
+    have e : (f.val.base) ⁻¹' set.range ⇑(f.val.base) = ⊤,
+    { rw [← set.image_univ, set.preimage_image_eq _ hf.base_open.inj, set.top_eq_univ] },
+    refine ⟨_, _, e, rfl, _⟩,
+    rintros H hX s hs ⟨_, x, rfl⟩,
+    haveI := is_reduced_of_open_immersion f,
+    specialize H (f.1.c.app _ s) _ ⟨x, by { change x ∈ (f.val.base) ⁻¹' _, rw e, trivial }⟩,
+    { rw [← LocallyRingedSpace.preimage_basic_open, hs], ext1, simp [opens.map] },
+    { erw ← PresheafedSpace.stalk_map_germ_apply f.1 ⟨_,_⟩ ⟨x,_⟩ at H,
+      apply_fun (inv $ PresheafedSpace.stalk_map f.val x) at H,
+      erw [category_theory.is_iso.hom_inv_id_apply, map_zero] at H,
+      exact H } },
+  { intros R hX s hs x,
+    erw [basic_open_eq_of_affine', prime_spectrum.basic_open_eq_bot_iff] at hs,
+    replace hs := (hs.map (Spec_Γ_identity.app R).inv).eq_zero,
+    rw coe_hom_inv_id at hs,
+    rw [hs, map_zero],
+    exact @@is_reduced.component_reduced hX ⊤ }
 end
 
-lemma basic_open_empty_iff {X : Scheme} [is_reduced X] {U : opens X.carrier}
+@[simp]
+lemma basic_open_eq_bot_iff {X : Scheme} [is_reduced X] {U : opens X.carrier}
   (s : X.presheaf.obj $ op U) :
-  X.to_LocallyRingedSpace.to_RingedSpace.basic_open s = ∅ ↔ s = 0 :=
+  X.to_LocallyRingedSpace.to_RingedSpace.basic_open s = ⊥ ↔ s = 0 :=
 begin
   refine ⟨eq_zero_of_basic_open_empty s, _⟩,
   rintro rfl,

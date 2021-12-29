@@ -729,10 +729,14 @@ theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
-is_open.mem_nhds is_open_ball (mem_ball_self ε0)
+is_open_ball.mem_nhds (mem_ball_self ε0)
 
 theorem closed_ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : closed_ball x ε ∈ 𝓝 x :=
 mem_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
+
+theorem closed_ball_mem_nhds_of_mem {x c : α} {ε : ℝ} (h : x ∈ ball c ε) :
+  closed_ball c ε ∈ 𝓝 x :=
+mem_of_superset (is_open_ball.mem_nhds h) ball_subset_closed_ball
 
 theorem nhds_within_basis_ball {s : set α} :
   (𝓝[s] x).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=
@@ -1794,6 +1798,9 @@ lemma bounded_range_of_cauchy_map_cofinite {f : β → α} (hf : cauchy (map f c
   bounded (range f) :=
 bounded_range_of_tendsto_cofinite_uniformity $ (cauchy_map_iff.1 hf).2
 
+lemma _root_.cauchy_seq.bounded_range {f : ℕ → α} (hf : cauchy_seq f) : bounded (range f) :=
+bounded_range_of_cauchy_map_cofinite $ by rwa nat.cofinite_eq_at_top
+
 lemma bounded_range_of_tendsto_cofinite {f : β → α} {a : α} (hf : tendsto f cofinite (𝓝 a)) :
   bounded (range f) :=
 bounded_range_of_tendsto_cofinite_uniformity $
@@ -1806,19 +1813,7 @@ compact_univ.bounded.mono (subset_univ _)
 lemma bounded_range_of_tendsto {α : Type*} [pseudo_metric_space α] (u : ℕ → α) {x : α}
   (hu : tendsto u at_top (𝓝 x)) :
   bounded (range u) :=
-begin
-  classical,
-  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), n ≥ N → dist (u n) x < 1 :=
-    metric.tendsto_at_top.1 hu 1 zero_lt_one,
-  have : range u ⊆ (finset.range N).image u ∪ ball x 1,
-  { refine range_subset_iff.2 (λ n, _),
-    rcases lt_or_le n N with h|h,
-    { left,
-      simp only [mem_image, finset.mem_range, finset.mem_coe, finset.coe_image],
-      exact ⟨n, h, rfl⟩ },
-    { exact or.inr (mem_ball.2 (hN n h)) } },
-  exact bounded.mono this ((finset.finite_to_set _).bounded.union bounded_ball)
-end
+hu.cauchy_seq.bounded_range
 
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
   is_compact s :=

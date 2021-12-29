@@ -417,22 +417,23 @@ by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
 @[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
 ext_iff.2
 
+/-- Monomials generate the additive monoid of polynomials. -/
+lemma add_submonoid_closure_set_of_eq_monomial :
+  add_submonoid.closure {p : polynomial R | ∃ n a, p = monomial n a} = ⊤ :=
+begin
+  apply top_unique,
+  rw [← add_submonoid.map_equiv_top (to_finsupp_iso R).symm.to_add_equiv,
+    ← finsupp.add_closure_set_of_eq_single, add_monoid_hom.map_mclosure],
+  refine add_submonoid.closure_mono (set.image_subset_iff.2 _),
+  rintro _ ⟨n, a, rfl⟩,
+  exact ⟨n, a, polynomial.to_finsupp_iso_symm_single⟩,
+end
+
 lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   (h : ∀ n a, f (monomial n a) = g (monomial n a)) :
   f = g :=
-begin
-  set f' : add_monoid_algebra R ℕ →+ M := f.comp (to_finsupp_iso R).symm with hf',
-  set g' : add_monoid_algebra R ℕ →+ M := g.comp (to_finsupp_iso R).symm with hg',
-  have : ∀ n a, f' (single n a) = g' (single n a) := λ n, by simp [hf', hg', h n],
-  have A : f' = g' := finsupp.add_hom_ext this,
-  have B : f = f'.comp (to_finsupp_iso R), by { rw [hf', add_monoid_hom.comp_assoc], ext x,
-  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
-    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
-  have C : g = g'.comp (to_finsupp_iso R), by { rw [hg', add_monoid_hom.comp_assoc], ext x,
-  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
-    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
-  rw [B, C, A],
-end
+add_monoid_hom.eq_of_eq_on_mdense add_submonoid_closure_set_of_eq_monomial $
+  by { rintro p ⟨n, a, rfl⟩, exact h n a }
 
 @[ext] lemma add_hom_ext' {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   (h : ∀ n, f.comp (monomial n).to_add_monoid_hom = g.comp (monomial n).to_add_monoid_hom) :

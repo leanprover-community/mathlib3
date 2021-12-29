@@ -375,8 +375,8 @@ To define upcrossing, we consider the following stopping times.
 noncomputable
 def upper_crossing (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) : ℕ → α → ℕ
 | 0 x := 0
-| (n + 1) x := if h : ∃ s,
-  (if h : ∃ t, upper_crossing n x < t ∧ f t x ≤ a then nat.find h else N) < s ∧ b ≤ f s x
+| (n + 1) x := if h : ∃ s, s ≤ N ∧
+  (if h : ∃ t, t ≤ N ∧ upper_crossing n x < t ∧ f t x ≤ a then nat.find h else N) < s ∧ b ≤ f s x
   then nat.find h else N
 
 lemma upper_crossing_zero {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} :
@@ -385,8 +385,8 @@ rfl
 
 lemma upper_crossing_succ {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} (n : ℕ) :
   upper_crossing f a b N (n + 1) =
-  λ x, if h : ∃ s,
-      (if h : ∃ t, upper_crossing f a b N n x < t ∧ f t x ≤ a then nat.find h else N) < s ∧
+  λ x, if h : ∃ s, s ≤ N ∧
+      (if h : ∃ t, t ≤ N ∧ upper_crossing f a b N n x < t ∧ f t x ≤ a then nat.find h else N) < s ∧
         b ≤ f s x
     then nat.find h else N :=
 by { ext x, dsimp [upper_crossing], refl } -- `refl` without `dsimp` only does not work
@@ -397,12 +397,13 @@ by { ext x, dsimp [upper_crossing], refl } -- `refl` without `dsimp` only does n
 noncomputable
 def lower_crossing (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) : ℕ → α → ℕ
 | 0 x := 0
-| (n + 1) x := if h : ∃ t, upper_crossing f a b N n x < t ∧ f t x ≤ a
+| (n + 1) x := if h : ∃ t, t ≤ N ∧ upper_crossing f a b N n x < t ∧ f t x ≤ a
   then nat.find h else N
 
 lemma upper_crossing_succ_eq_dite_lower_crossing {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} (n : ℕ) :
   upper_crossing f a b N (n + 1) =
-  λ x, if h : ∃ s, lower_crossing f a b N (n + 1) x < s ∧ b ≤ f s x then nat.find h else N :=
+  λ x, if h : ∃ s, s ≤ N ∧ lower_crossing f a b N (n + 1) x < s ∧ b ≤ f s x
+    then nat.find h else N :=
 begin
   ext x,
   rw upper_crossing_succ,
@@ -415,7 +416,7 @@ rfl
 
 lemma lower_crossing_succ {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} (n : ℕ) :
   lower_crossing f a b N (n + 1) =
-  λ x, if h : ∃ t, upper_crossing f a b N n x < t ∧ f t x ≤ a then nat.find h else N :=
+  λ x, if h : ∃ t, t ≤ N ∧ upper_crossing f a b N n x < t ∧ f t x ≤ a then nat.find h else N :=
 rfl
 
 -- lemma upper_crossing_is_stopping_time {f : ℕ → α → ℝ} (hf : adapted 𝒢 f) {a b : ℝ} {N : ℕ} {n : ℕ} :
@@ -439,12 +440,12 @@ lemma stopped_value_upper_crossing_ge {f : ℕ → α → ℝ} {a b : ℝ} {N : 
 begin
   rw or_iff_not_imp_left,
   intro h,
-  have : ∃ s, lower_crossing f a b N (n + 1) x < s ∧ b ≤ f s x,
+  have : ∃ s, s ≤ N ∧ lower_crossing f a b N (n + 1) x < s ∧ b ≤ f s x,
   { by_contra h',
     refine h _,
     rw upper_crossing_succ_eq_dite_lower_crossing,
     exact dif_neg h' },
-  convert (nat.find_spec this).2,
+  convert (nat.find_spec this).2.2,
   rw [stopped_value, upper_crossing_succ_eq_dite_lower_crossing],
   dsimp,
   rw dif_pos this,
@@ -456,10 +457,10 @@ lemma stopped_value_lower_crossing_le {f : ℕ → α → ℝ} {a b : ℝ} {N : 
 begin
   rw or_iff_not_imp_left,
   intro h,
-  have : ∃ t, upper_crossing f a b N n x < t ∧ f t x ≤ a,
+  have : ∃ t, t ≤ N ∧ upper_crossing f a b N n x < t ∧ f t x ≤ a,
   { by_contra h',
     exact h (dif_neg h') },
-  convert (nat.find_spec this).2,
+  convert (nat.find_spec this).2.2,
   rw [stopped_value, lower_crossing_succ],
   dsimp,
   rw dif_pos this,

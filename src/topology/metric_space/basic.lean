@@ -1825,6 +1825,7 @@ begin
     exact compact_of_is_closed_subset (is_compact_closed_ball x r) hc hr }
 end
 
+/-- The **Heine–Borel theorem**: In a proper space, the closure of a bounded set is compact. -/
 lemma bounded.is_compact_closure [proper_space α] (h : bounded s) :
   is_compact (closure s) :=
 is_compact_of_is_closed_bounded is_closed_closure h.closure

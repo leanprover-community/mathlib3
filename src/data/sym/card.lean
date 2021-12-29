@@ -65,18 +65,15 @@ lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ �
     { cases x,
       simpa [decode, sym.cons, sym.erase, subtype.mk.inj_eq] using multiset.cons_erase h },
     { simp only [decode, sym.map_map, subtype.mk.inj_eq, function.comp],
-      conv begin
-        to_rhs,
-        rw (sym.map_id x).symm,
-      end,
-      apply sym.map_congr,
-      intros a h',
-      cases a,
-      split_ifs,
-      { norm_num at h_1,
-        simp_rw h_1 at h',
-        exact (h h').elim },
-      { norm_num } },
+      convert @sym.map_congr _ _ _ _ id _ _,
+      { rw sym.map_id },
+      { intros a h',
+        cases a,
+        split_ifs,
+        { norm_num at h_1,
+          simp_rw h_1 at h',
+          exact (h h').elim },
+        { norm_num } } },
   end,
   right_inv := begin
     rintro (x|x),
@@ -88,16 +85,15 @@ lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ �
         have := y.property,
         rw b at this,
         exact nat.lt_asymm this this, },
-      { simp only [sym.map_map, function.comp],
-        simp only [fin.val_eq_coe, subtype.mk_eq_mk, sym.map_map, fin.coe_mk],
+      { simp only [sym.map_map, function.comp, fin.val_eq_coe, subtype.mk_eq_mk, fin.coe_mk],
         convert sym.map_congr _,
         { rw multiset.map_id, },
-        rintros ⟨g, hg⟩ h',
-        split_ifs with h'',
-        { simp only [fin.coe_mk] at h'',
-          subst g,
-          exact (nat.lt_asymm hg hg).elim, },
-        { refl } } },
+        { rintros ⟨g, hg⟩ h',
+          split_ifs with h'',
+          { simp only [fin.coe_mk] at h'',
+            subst g,
+            exact (nat.lt_asymm hg hg).elim, },
+          { refl } } } },
     { rw [decode, encode],
       split_ifs,
       { cases x, simp [sym.cons] },
@@ -109,36 +105,19 @@ lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ �
 
 lemma multichoose1_rec (n k : ℕ) :
   multichoose1 n.succ k.succ = multichoose1 n k.succ + multichoose1 n.succ k :=
-begin
-  simp only [multichoose1, fintype.card_sum.symm],
-  exact fintype.card_congr (equivalent n k),
-end
+by simpa only [multichoose1, fintype.card_sum.symm] using fintype.card_congr (equivalent n k)
 
 lemma multichoose2_rec (n k : ℕ) :
   multichoose2 n.succ k.succ = multichoose2 n k.succ + multichoose2 n.succ k :=
-begin
-  simp only [multichoose2, nat.add_succ, tsub_zero, nat.succ_sub_succ_eq_sub, nat.succ_add_sub_one,
-    nat.succ_add, nat.choose_succ_succ, nat.add_comm],
-end
+by simp [multichoose2, nat.choose_succ_succ, nat.add_comm, nat.add_succ]
 
 lemma multichoose1_eq_multichoose2 : ∀ (n k : ℕ), multichoose1 n k = multichoose2 n k
-| 0 0 := begin
-  simp only [multichoose1, multichoose2],
-  norm_num,
-end
-| 0 (k + 1) := begin
-  simp only [multichoose1, multichoose2],
-  norm_num,
-  apply fintype.card_eq_zero,
-end
-| (n + 1) 0 := begin
-  simp only [multichoose1, multichoose2],
-  norm_num,
-end
-| (n + 1) (k + 1) := begin
-  simp only [multichoose1_rec, multichoose2_rec, multichoose1_eq_multichoose2 n k.succ,
-    multichoose1_eq_multichoose2 n.succ k],
-end
+| 0 0 := by simp [multichoose1, multichoose2]
+| 0 (k + 1) := by simp [multichoose1, multichoose2, fintype.card]
+| (n + 1) 0 := by simp [multichoose1, multichoose2]
+| (n + 1) (k + 1) :=
+by simp only [multichoose1_rec, multichoose2_rec, multichoose1_eq_multichoose2 n k.succ,
+  multichoose1_eq_multichoose2 n.succ k]
 
 open finset fintype
 

@@ -34,11 +34,11 @@ open_locale complex_conjugate
 
 variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
-variables [complete_space E] [complete_space G]
-
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 namespace continuous_linear_map
+
+variables [complete_space E] [complete_space G]
 
 /-- The adjoint, as a continuous conjugate-linear map.  This is only meant as an auxiliary
 definition for the main definition `adjoint`, where this is bundled as a conjugate-linear isometric
@@ -176,3 +176,20 @@ lemma is_adjoint_pair (A : E' →L[ℝ] F') :
 end real
 
 end continuous_linear_map
+
+namespace linear_map
+
+variables [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F]
+local attribute [instance, priority 20] finite_dimensional.complete
+
+/-- The adjoint of an operator from the finite-dimensional inner product space E to the finite-
+dimensional inner product space F. -/
+def adjoint : (E →ₗ[𝕜] F) ≃ₗ⋆[𝕜] (F →ₗ[𝕜] E) :=
+{ to_fun := λ A, continuous_linear_map.adjoint A.to_continuous_linear_map,
+  inv_fun := λ A, continuous_linear_map.adjoint.symm A.to_continuous_linear_map,
+  map_add' := λ A B, by simp only [map_add, linear_isometry_equiv.map_add, coe_add],
+  map_smul' := λ r A, by simp only [linear_equiv.map_smulₛₗ, linear_isometry_equiv.map_smulₛₗ, continuous_linear_map.coe_smul, ring_hom.id_apply],
+  left_inv := λ A, by { sorry },
+  right_inv := sorry }
+
+end linear_map

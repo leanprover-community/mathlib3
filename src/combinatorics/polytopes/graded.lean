@@ -423,6 +423,7 @@ instance (α : Type*) : grade_order (multiset α) :=
     cases ab_cons with _ hcons,
     have hcard := congr_arg card hcons,
     rwa card_cons at hcard,
+    sorry,
   end }
 
 @[simp] protected lemma grade (m : multiset α) : grade m = m.card := rfl
@@ -488,6 +489,7 @@ namespace dfinsupp
 variables (ι σ) [decidable_eq ι] [Π i, canonically_ordered_add_monoid (σ i)]
   [Π i (x : σ i), decidable (x ≠ 0)] [Π i, grade_order (σ i)]
 
+/-
 instance : grade_order (Π₀ i, σ i) :=
 { grade := λ f, f.sum (λ i, grade),
   grade_bot := sorry,
@@ -495,10 +497,11 @@ instance : grade_order (Π₀ i, σ i) :=
   grade_of_covers := λ a b hab, begin
     sorry
   end }
+-/
 
 variables {ι σ}
 
-@[simp] protected lemma grade (f : Π₀ i, σ i) : grade f = f.sum (λ i, grade) := rfl
+-- @[simp] protected lemma grade (f : Π₀ i, σ i) : grade f = f.sum (λ i, grade) := rfl
 
 end dfinsupp
 
@@ -559,18 +562,22 @@ section sum
 variables (α β) [preorder α] [bounded_order α] [grade_order α] [preorder β] [order_bot β]
   [grade_order β]
 
+/-
 def grade_order : grade_order (α ⊕ β) :=
 { grade := λ a, a.elim grade (λ b, grade (⊤ : α) + grade b),
   grade_bot := grade_bot,
   strict_mono := λ a b h, sorry,
   grade_of_covers := sorry }
+-/
 
 variables {α β}
 
-@[simp] protected lemma grade_inl (a : α) : grade (sum.inl a : α ⊕ β) = grade a := rfl
+--@[simp] protected lemma grade_inl (a : α) : grade (sum.inl a : α ⊕ β) = grade a := rfl
 
+/-
 @[simp] protected lemma grade_inr (b : β) : grade (sum.inr b : α ⊕ β) = grade (⊤ : α) + grade b :=
 rfl
+-/
 
 end sum
 
@@ -593,7 +600,7 @@ localized "attribute [instance] sigma.lex.grade_order" in lex
 
 variables {ι σ}
 
-@[simp] protected lemma grade (f : Σ i, σ i) : grade f = sorry := rfl
+--@[simp] protected lemma grade (f : Σ i, σ i) : grade f = sorry := rfl
 
 end sigma.lex
 
@@ -604,17 +611,19 @@ variables (ι σ) [fintype ι] [linear_order ι] [Π i, preorder (σ i)] [Π i, 
 open_locale lex
 
 /-- The lexicographical grading on a sigma type. Turn this on by opening locale `lex`. -/
+/-
 def grade_order : grade_order (Σ' i, σ i) :=
 { grade := sorry,
   grade_bot := sorry,
   strict_mono := λ a b h, sorry,
   grade_of_covers := sorry }
+-/
 
-localized "attribute [instance] psigma.lex.grade_order" in lex
+--localized "attribute [instance] psigma.lex.grade_order" in lex
 
 variables {ι σ}
 
-@[simp] protected lemma grade (f : Σ' i, σ i) : grade f = sorry := rfl
+--@[simp] protected lemma grade (f : Σ' i, σ i) : grade f = sorry := rfl
 
 end psigma.lex
 

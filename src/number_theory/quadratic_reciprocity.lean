@@ -285,7 +285,7 @@ else
       div_eq_filter_card (nat.pos_of_ne_zero hp0)
         (calc x * q / p ≤ (p / 2) * q / p :
             nat.div_le_div_right (mul_le_mul_of_nonneg_right
-              (le_of_lt_succ $ by finish)
+              (le_of_lt_succ $ (mem_Ico.mp hx).2)
               (nat.zero_le _))
           ... ≤ _ : nat.div_mul_div_le_div _ _ _)
   ... = _ : by rw [← card_sigma];

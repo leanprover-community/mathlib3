@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
 import tactic.linarith
+import order.locally_finite
 import .graded
 
 variables {α β : Type*}
@@ -17,8 +18,23 @@ grades differ by `2` have exactly two elements in between.
 
 /-- A diamond order is a ranked order which has the diamond property: every two elements whose
 grades differ by `2` have exactly two elements in between. -/
-class diamond_order (α : Type*) [preorder α] [order_bot α] extends grade_order α :=
-(diamond {a b : α} (hab : a < b) (h : grade b = grade a + 2) : ∃ x y, x ≠ y ∧ set.Ioo a b = {x, y})
+class diamond_order (α : Type*) [preorder α] [order_bot α] [locally_finite_order α]
+  (n : out_param ℕ) extends grade_order α :=
+(diamond {a b : α} (hab : a ≤ b) (h : grade b = grade a + 2) : (finset.Ioo a b).card = n)
+
+def grade_order.to_locally_finite_order [linear_order α] [order_bot α] [grade_order α]
+  [decidable_rel ((≤) : α → α → Prop)] : locally_finite_order α :=
+{ finset_Icc := _,
+  finset_Ico := _,
+  finset_Ioc := _,
+  finset_Ioo := _,
+  finset_mem_Icc := _,
+  finset_mem_Ico := _,
+  finset_mem_Ioc := _,
+  finset_mem_Ioo := _ }
+
+def diamond_of_linear [preorder α] [order_bot α] [linear_order α] [grade_order α]
+  [locally_finite_order α] : diamond_order α 1 := sorry
 
 lemma exists_pair_Ioo_of_lt [preorder α] [order_bot α] [diamond_order α] {a b : α} (hab : a < b)
   (h : grade b = grade a + 2) : ∃ x y, x ≠ y ∧ set.Ioo a b = {x, y} :=

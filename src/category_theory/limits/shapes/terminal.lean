@@ -157,7 +157,7 @@ def is_limit_empty_cones_equiv (c₁ : cone F₁) (c₂ : cone F₂) (h : c₁.X
 lemma has_terminal_diagrams (h : has_limit F₁) : has_limit F₂ :=
 ⟨⟨⟨⟨limit F₁, by tidy⟩, is_limit_empty_cones C (limit.is_limit F₁) _ (eq_to_iso rfl)⟩⟩⟩
 
-instance has_terminal_universes [h : has_limits_of_shape (discrete.{w} pempty) C] :
+lemma has_terminal_universes [h : has_limits_of_shape (discrete.{w} pempty) C] :
   has_limits_of_shape (discrete.{w'} pempty) C :=
 { has_limit := λ J, has_terminal_diagrams C (let f := h.1 in f (functor.empty C)) }
 
@@ -180,7 +180,7 @@ def is_colimit_empty_cocones_equiv (c₁ : cocone F₁) (c₂ : cocone F₂) (h 
 lemma has_initial_diagrams (h : has_colimit F₁) : has_colimit F₂ :=
 ⟨⟨⟨⟨colimit F₁, by tidy⟩, is_colimit_empty_cocones C (colimit.is_colimit F₁) _ (eq_to_iso rfl)⟩⟩⟩
 
-instance has_initial_universes [h : has_colimits_of_shape (discrete.{w} pempty) C] :
+lemma has_initial_universes [h : has_colimits_of_shape (discrete.{w} pempty) C] :
   has_colimits_of_shape (discrete.{w'} pempty) C :=
 { has_colimit := λ J, has_initial_diagrams C (let f := h.1 in f (functor.empty C)) }
 

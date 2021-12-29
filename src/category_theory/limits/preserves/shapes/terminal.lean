@@ -82,7 +82,7 @@ def preserves_terminal.of_iso_comparison
 begin
   apply preserves_limit_of_preserves_limit_cone terminal_is_terminal,
   apply (is_limit_map_cone_empty_cone_equiv _ _).symm _,
-  apply is_limit.of_point_iso (limit.is_limit (functor.empty D)),
+  apply is_limit.of_point_iso (limit.is_limit (functor.empty.{v₂} D)),
   apply i,
 end
 
@@ -171,7 +171,7 @@ def preserves_initial.of_iso_comparison
 begin
   apply preserves_colimit_of_preserves_colimit_cocone initial_is_initial,
   apply (is_colimit_map_cocone_empty_cocone_equiv _ _).symm _,
-  apply is_colimit.of_point_iso (colimit.is_colimit (functor.empty D)),
+  apply is_colimit.of_point_iso (colimit.is_colimit (functor.empty.{v₂} D)),
   apply i,
 end
 

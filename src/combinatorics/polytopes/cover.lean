@@ -35,3 +35,11 @@ covers_iff_succ_eq.trans eq_comm
 /-- Two `fin`s cover each other iff their values do. -/
 @[simp] lemma fin.val_covers_iff {n : ℕ} (a b : fin n) : a.val ⋖ b.val ↔ a ⋖ b :=
 and_congr_right' ⟨λ h c hc, h hc, λ h c ha hb, @h ⟨c, lt_trans hb b.prop⟩ ha hb⟩
+
+@[simp] lemma of_dual_lt_of_dual_iff {a b : order_dual α} [has_lt α] :
+  of_dual a < of_dual b ↔ b < a :=
+iff.rfl
+
+@[simp] lemma of_dual_le_of_dual_iff {a b : order_dual α} [has_le α] :
+  of_dual a ≤ of_dual b ↔ b ≤ a :=
+iff.rfl

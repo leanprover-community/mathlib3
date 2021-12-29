@@ -75,32 +75,6 @@ def set.Icc.self_order_iso_bot_top (α : Type*) [preorder α] [order_bot α] [or
   right_inv := λ _, subtype.eq rfl,
   map_rel_iff' := by simp }
 
-lemma subsingleton.monotone {α β : Type*} [preorder α] [preorder β] [subsingleton α] {f : α → β} :
-  monotone f :=
-λ a b _, (congr_arg _ $ subsingleton.elim _ _).le
-
-lemma subsingleton.antitone {α β : Type*} [preorder α] [preorder β] [subsingleton α] {f : α → β} :
-  antitone f :=
-λ a b _, (congr_arg _ $ subsingleton.elim _ _).le
-
-lemma subsingleton.monotone' {α β : Type*} [preorder α] [preorder β] [subsingleton β] {f : α → β} :
-  monotone f :=
-λ a b _, (subsingleton.elim _ _).le
-
-lemma subsingleton.antitone' {α β : Type*} [preorder α] [preorder β] [subsingleton β] {f : α → β} :
-  antitone f :=
-λ a b _, (subsingleton.elim _ _).le
-
-lemma subsingleton.strict_mono {α β : Type*} [preorder α] [preorder β] [subsingleton α]
-  {f : α → β} :
-  strict_mono f :=
-λ a b h, (h.ne $ subsingleton.elim _ _).elim
-
-lemma subsingleton.strict_anti {α β : Type*} [preorder α] [preorder β] [subsingleton α]
-  {f : α → β} :
-  strict_anti f :=
-λ a b h, (h.ne $ subsingleton.elim _ _).elim
-
 lemma ne_bot_of_lt {α : Type*} [preorder α] [order_bot α] {a b : α} (h : a < b) : b ≠ ⊥ :=
 begin
   rintro rfl,

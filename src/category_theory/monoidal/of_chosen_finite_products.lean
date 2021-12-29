@@ -171,9 +171,8 @@ binary_fan.associator
 Construct a left unitor from specified limit cones.
 -/
 @[simps]
-def binary_fan.left_unitor
-  {X : C} {s : cone (functor.empty.{v} C)} (P : is_limit s) {t : binary_fan s.X X} (Q : is_limit t) :
-  t.X ≅ X :=
+def binary_fan.left_unitor {X : C} {s : cone (functor.empty.{v} C)} (P : is_limit s)
+  {t : binary_fan s.X X} (Q : is_limit t) : t.X ≅ X :=
 { hom := t.snd,
   inv := Q.lift (binary_fan.mk (P.lift { X := X, π := { app := pempty.rec _ } }) (𝟙 X) ),
   hom_inv_id' := by { apply Q.hom_ext, rintro ⟨⟩, { apply P.hom_ext, rintro ⟨⟩, }, { simp, }, }, }
@@ -182,9 +181,8 @@ def binary_fan.left_unitor
 Construct a right unitor from specified limit cones.
 -/
 @[simps]
-def binary_fan.right_unitor
-  {X : C} {s : cone (functor.empty.{v} C)} (P : is_limit s) {t : binary_fan X s.X} (Q : is_limit t) :
-  t.X ≅ X :=
+def binary_fan.right_unitor {X : C} {s : cone (functor.empty.{v} C)} (P : is_limit s)
+  {t : binary_fan X s.X} (Q : is_limit t) : t.X ≅ X :=
 { hom := t.fst,
   inv := Q.lift (binary_fan.mk (𝟙 X) (P.lift { X := X, π := { app := pempty.rec _ } })),
   hom_inv_id' := by { apply Q.hom_ext, rintro ⟨⟩, { simp, }, { apply P.hom_ext, rintro ⟨⟩, }, }, }

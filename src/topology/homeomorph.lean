@@ -450,13 +450,13 @@ def homeo_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
   ..f }
 
 /--
+A concrete counterexample shows that  `continuous.homeo_of_equiv_compact_to_t2`
+cannot be generalized from `t2_space` to `t1_space`.
+
 Let `α = ℕ` be the one-point compactification of `{1, 2, ...}` with the discrete topology,
 where `0` is the adjoined point, and let `β = ℕ` be given the cofinite topology.
 Then `α` is compact, `β` is T1, and the identity map `id : α → β` is a continuous equivalence
 that is not a homeomorphism.
-
-This demonstrates that `continuous.homeo_of_equiv_compact_to_t2` cannot be generalized from
-`t2_space` to `t1_space`.
 -/
 lemma homeo_of_equiv_compact_to_t2.t1_counterexample :
   ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI

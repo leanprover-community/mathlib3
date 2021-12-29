@@ -16,6 +16,9 @@ Given an operator `A : E →L[𝕜] F`, where `E` and `F` are Hilbert spaces, it
 We then use this to put a C⋆-algebra structure on `E →L[𝕜] E` with the adjoint as the star
 operation.
 
+This construction is used to define an adjoint for linear maps (i.e. not continuous) between
+finite dimensional spaces.
+
 ## Implementation notes
 
 * The adjoint is defined as a conjugate-linear isometric equivalence between `E →L[𝕜] F` and
@@ -189,10 +192,10 @@ def adjoint : (E →ₗ[𝕜] F) ≃ₗ⋆[𝕜] (F →ₗ[𝕜] E) :=
     linear_map.to_continuous_linear_map.symm
 
 lemma adjoint_to_continuous_linear_map (A : E →ₗ[𝕜] F) :
-  (adjoint A).to_continuous_linear_map = A.to_continuous_linear_map.adjoint := rfl
+  A.adjoint.to_continuous_linear_map = A.to_continuous_linear_map.adjoint := rfl
 
 @[simp] lemma adjoint_coe_eq (A : E →ₗ[𝕜] F) :
-  adjoint (A.to_continuous_linear_map : E →ₗ[𝕜] F) = A.to_continuous_linear_map.adjoint := rfl
+  (A.to_continuous_linear_map : E →ₗ[𝕜] F).adjoint = A.to_continuous_linear_map.adjoint := rfl
 
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_inner_left (A : E →ₗ[𝕜] F) (x : E) (y : F) : ⟪adjoint A y, x⟫ = ⟪y, A x⟫ :=
@@ -209,7 +212,7 @@ begin
 end
 
 /-- The adjoint is involutive -/
-@[simp] lemma adjoint_adjoint (A : E →ₗ[𝕜] F) : adjoint (adjoint A) = A :=
+@[simp] lemma adjoint_adjoint (A : E →ₗ[𝕜] F) : A.adjoint.adjoint = A :=
 begin
   ext v,
   refine ext_inner_left 𝕜 (λ w, _),
@@ -219,7 +222,7 @@ end
 /-- The adjoint of the composition of two operators is the composition of the two adjoints
 in reverse order. -/
 @[simp] lemma adjoint_comp (A : F →ₗ[𝕜] G) (B : E →ₗ[𝕜] F) :
-  adjoint (A ∘ₗ B) = (adjoint B) ∘ₗ (adjoint A) :=
+  (A ∘ₗ B).adjoint = B.adjoint ∘ₗ A.adjoint :=
 begin
   ext v,
   refine ext_inner_left 𝕜 (λ w, _),
@@ -229,7 +232,7 @@ end
 /-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
 for all `x` and `y`. -/
 lemma eq_adjoint_iff (A : E →ₗ[𝕜] F) (B : F →ₗ[𝕜] E) :
-  A = adjoint B ↔ (∀ x y, ⟪A x, y⟫ = ⟪x, B y⟫) :=
+  A = B.adjoint ↔ (∀ x y, ⟪A x, y⟫ = ⟪x, B y⟫) :=
 begin
   refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
   ext x,

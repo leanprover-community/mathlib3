@@ -910,8 +910,8 @@ begin
 end
 
 instance small_lt_ordinal (o : ordinal.{u}) : small.{u} {x // x < o} :=
-small_of_injective (λ a, (enum o.out.r a)
-  (by { rw type_out, exact a.prop }))
+@small_of_injective {x // x < o} _ _
+  (λ a, (enum o.out.r a (by { rw type_out, exact a.prop })))
   (λ a ha H, (by { apply subtype.ext, rwa enum_eq at H }))
 
 instance small_brange {o : ordinal.{u}} (f : Π a < o, ordinal.{max u v}) : small.{u} (brange f) :=
@@ -950,8 +950,8 @@ begin
   exact succ_ne_self _ hao'
 end
 
-theorem is_normal.sup {f} (H : is_normal f)
-  {ι} {g : ι → ordinal} (h : nonempty ι) : f (sup g) = sup (f ∘ g) :=
+theorem is_normal.sup {f} (H : is_normal f) {ι} {g : ι → ordinal} (h : nonempty ι) :
+  f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
   intros; simp only [sup_le, true_implies_iff]
@@ -984,7 +984,7 @@ begin
   refine propext ⟨λ h _, h _ (family_of_small_mem S _), λ h a ha, _⟩,
   cases family_of_small_surjective S ha with i hi,
   rw ←hi,
-  exact h i,
+  exact h i
 end
 
 /-- `osup` is a special case of `sup`. -/

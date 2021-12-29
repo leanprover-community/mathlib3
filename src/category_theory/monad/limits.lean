@@ -25,7 +25,7 @@ namespace category_theory
 open category
 open category_theory.limits
 
-universes v₁ v₂ v u₁ u₂ u -- morphism levels before object levels. See note [category_theory universes].
+universes v u v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 namespace monad
 
@@ -320,7 +320,7 @@ section
 
 lemma has_limit_of_reflective (F : J ⥤ D) (R : D ⥤ C) [has_limit (F ⋙ R)] [reflective R] :
   has_limit F :=
-by { haveI := monadic_creates_limits.{_ _ v _ _ u} R, exact has_limit_of_created F R }
+by { haveI := monadic_creates_limits.{v u} R, exact has_limit_of_created F R }
 
 /-- If `C` has limits of shape `J` then any reflective subcategory has limits of shape `J`. -/
 lemma has_limits_of_shape_of_reflective [has_limits_of_shape J C] (R : D ⥤ C) [reflective R] :
@@ -351,28 +351,27 @@ lemma has_colimits_of_reflective (R : D ⥤ C) [reflective R] [has_colimits_of_s
 { has_colimits_of_shape := λ J 𝒥, by exactI has_colimits_of_shape_of_reflective R }
 
 
-#set_option pp.universes true
 
 /--
 The reflector always preserves terminal objects. Note this in general doesn't apply to any other
 limit.
 -/
-noncomputable def left_adjoint_preserves_terminal_of_reflective
-  (R : D ⥤ C) [reflective R] [has_terminal C] : -- remove has_terminal C
-  preserves_limits_of_shape (discrete.{v₁} pempty) (left_adjoint R) :=
+noncomputable def left_adjoint_preserves_terminal_of_reflective (R : D ⥤ C) [reflective R] :
+  preserves_limits_of_shape (discrete.{v} pempty) (left_adjoint R) :=
 { preserves_limit := λ K,
   begin
-    --haveI : has_limits_of_shape (discrete.{v₂} pempty) C,
-    --{ apply (has_terminal_iff_has_limits_of_shape_empty _).1, apply_instance },
-    haveI : has_limits_of_shape (discrete.{v₁} pempty) D := has_limits_of_shape_of_reflective R,
-    letI := monadic_creates_limits.{_ _ v₁ _ _ v₁} R,
-    letI := category_theory.preserves_limit_of_creates_limit_and_has_limit (functor.empty _) R,
-    letI : preserves_limit (functor.empty _) (left_adjoint R), swap,
-    apply preserves_limit_of_iso_diagram (left_adjoint R) (functor.unique_from_empty _).symm,
-    { apply preserves_terminal_of_iso,
-      apply _ ≪≫ as_iso ((adjunction.of_right_adjoint R).counit.app (⊤_ D)),
-      apply (left_adjoint R).map_iso (preserves_terminal.iso R).symm },
-  end }
+    by_cases has_limit K, swap, exact ⟨λ c hc, (h ⟨⟨⟨c,hc⟩⟩⟩).elim⟩,
+    apply preserves_limit_of_iso_diagram _ (functor.empty_ext (functor.empty.{v} D ⋙ R) _),
+    haveI : has_limit (functor.empty.{v} D ⋙ R) := has_terminal_diagrams C h,
+    haveI : has_limit (functor.empty.{v} D) := has_limit_of_reflective _ R,
+    letI := monadic_creates_limits.{v v} R,
+    let := (category_theory.preserves_limit_of_creates_limit_and_has_limit _ R).preserves,
+    { apply preserves_limit_of_preserves_limit_cone (this (limit.is_limit _)),
+      apply is_limit_empty_cones D (limit.is_limit (functor.empty.{v} D)), symmetry,
+      exact as_iso ((adjunction.of_right_adjoint R).counit.app _) },
+    apply_instance, apply_instance,
+  end
+}
 
 end
 end category_theory

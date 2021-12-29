@@ -104,7 +104,7 @@ end
 variables [concrete_category.{max v u} D]
 variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
 
-instance plus_functor_preserves_limits_of_shape (K : Type (max v u))
+instance (K : Type (max v u))
   [small_category K] [fin_category K] [has_limits_of_shape K D]
   [preserves_limits_of_shape K (forget D)]
   [reflects_limits_of_shape K (forget D)] :
@@ -184,5 +184,25 @@ begin
     rw [← category.assoc, ← nat_trans.comp_app, limit.lift_π],
     refl }
 end
+
+instance [has_finite_limits D] [preserves_finite_limits (forget D)]
+  [reflects_isomorphisms (forget D)] : preserves_finite_limits (J.plus_functor D) :=
+begin
+  constructor, introsI K _ _,
+  haveI : reflects_limits_of_shape K (forget D) :=
+    reflects_limits_of_shape_of_reflects_isomorphisms,
+  apply_instance
+end
+
+instance (K : Type (max v u))
+  [small_category K] [fin_category K] [has_limits_of_shape K D]
+  [preserves_limits_of_shape K (forget D)]
+  [reflects_limits_of_shape K (forget D)] :
+  preserves_limits_of_shape K (J.sheafification D) :=
+limits.comp_preserves_limits_of_shape _ _
+
+instance [has_finite_limits D] [preserves_finite_limits (forget D)]
+  [reflects_isomorphisms (forget D)] : preserves_finite_limits (J.sheafification D) :=
+limits.comp_preserves_finite_limits _ _
 
 end category_theory.grothendieck_topology

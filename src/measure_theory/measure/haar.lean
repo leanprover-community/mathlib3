@@ -622,6 +622,18 @@ begin
     ... = (μ K.1 / ν K.1) • ν : by rw ← haar_measure_unique (is_mul_left_invariant_haar ν) K }
 end
 
+@[priority 90, to_additive] -- see Note [lower instance priority]]
+instance regular_of_is_haar_measure
+  [locally_compact_space G] [second_countable_topology G] (μ : measure G) [is_haar_measure μ] :
+  regular μ :=
+begin
+  have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
+  obtain ⟨c, c0, ctop, hμ⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (μ = c • haar_measure K) :=
+    is_haar_measure_eq_smul_is_haar_measure μ _,
+  rw hμ,
+  exact regular.smul ctop,
+end
+
 /-- Any Haar measure is invariant under inversion in a commutative group. -/
 @[to_additive]
 lemma map_haar_inv

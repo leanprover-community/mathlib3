@@ -358,7 +358,7 @@ The reflector always preserves terminal objects. Note this in general doesn't ap
 limit.
 -/
 noncomputable def left_adjoint_preserves_terminal_of_reflective
-  (R : D ⥤ C) [reflective R] [has_terminal C] :
+  (R : D ⥤ C) [reflective R] [has_terminal C] : -- remove has_terminal C
   preserves_limits_of_shape (discrete.{v₁} pempty) (left_adjoint R) :=
 { preserves_limit := λ K,
   begin

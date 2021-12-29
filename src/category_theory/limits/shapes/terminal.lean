@@ -23,17 +23,21 @@ open category_theory
 
 namespace category_theory.limits
 
-variables {C : Type u₁} [category.{v₁} C]
+variables {C : Type u₁} [category.{v₁} C] (F : discrete.{w} pempty ⥤ C)
 
 /-- Construct a cone for the empty diagram given an object. -/
-@[simps] def as_empty_cone (X : C) : cone (functor.empty.{w} C) := { X := X, π := by tidy }
+@[simps] def as_empty_cone (X : C) : cone F := { X := X, π := by tidy }
 /-- Construct a cocone for the empty diagram given an object. -/
-@[simps] def as_empty_cocone (X : C) : cocone (functor.empty.{w} C) := { X := X, ι := by tidy }
+@[simps] def as_empty_cocone (X : C) : cocone F := { X := X, ι := by tidy }
+-- arbitrary functor from empty, any universe, not just functor.empty ..
+-- then show is_terminal for the default functor is the same as is_terminal for any functor in any universe
+-- arbitrary cone with X isomorphic is good enough!
+-- derive isomorphic from any two empty limit cones ..?
 
 /-- `X` is terminal if the cone it induces on the empty diagram is limiting. -/
-abbreviation is_terminal (X : C) := is_limit (as_empty_cone.{w} X)
+abbreviation is_terminal (X : C) := is_limit (as_empty_cone (functor.empty.{0} C) X)
 /-- `X` is initial if the cocone it induces on the empty diagram is colimiting. -/
-abbreviation is_initial (X : C) := is_colimit (as_empty_cocone.{w} X)
+abbreviation is_initial (X : C) := is_colimit (as_empty_cocone (functor.empty.{0} C) X)
 
 /-- An object `Y` is terminal if for every `X` there is a unique morphism `X ⟶ Y`. -/
 def is_terminal.of_unique (Y : C) [h : Π X : C, unique (X ⟶ Y)] : is_terminal Y :=
@@ -65,7 +69,7 @@ is_colimit.of_iso_colimit hX
 
 /-- Give the morphism to a terminal object from any other. -/
 def is_terminal.from {X : C} (t : is_terminal X) (Y : C) : Y ⟶ X :=
-t.lift (as_empty_cone Y)
+t.lift (as_empty_cone _ Y)
 
 /-- Any two morphisms to a terminal object are equal. -/
 lemma is_terminal.hom_ext {X Y : C} (t : is_terminal X) (f g : Y ⟶ X) : f = g :=
@@ -80,7 +84,7 @@ t.hom_ext _ _
 
 /-- Give the morphism from an initial object to any other. -/
 def is_initial.to {X : C} (t : is_initial X) (Y : C) : X ⟶ Y :=
-t.desc (as_empty_cocone Y)
+t.desc (as_empty_cocone _ Y)
 
 /-- Any two morphisms from an initial object are equal. -/
 lemma is_initial.hom_ext {X Y : C} (t : is_initial X) (f g : X ⟶ Y) : f = g :=
@@ -127,23 +131,24 @@ variable (C)
 A category has a terminal object if it has a limit over the empty diagram.
 Use `has_terminal_of_unique` to construct instances.
 -/
-abbreviation has_terminal := has_limits_of_shape (discrete.{w} pempty) C
+abbreviation has_terminal := has_limits_of_shape (discrete.{0} pempty) C
 /--
 A category has an initial object if it has a colimit over the empty diagram.
 Use `has_initial_of_unique` to construct instances.
 -/
-abbreviation has_initial := has_colimits_of_shape (discrete.{w} pempty) C
+abbreviation has_initial := has_colimits_of_shape (discrete.{0} pempty) C
 
-/-- Being terminal is independent of the universe of the (empty) indexing category:
-    if an object is terminal with the (empty) indexing category in some universe,
-    it is also terminal with the indexing category in any universe. -/
-def is_terminal_universes (X : C) (h : is_terminal.{w} X) : is_terminal.{w'} X :=
-{ lift := λ c, h.lift (as_empty_cone c.X),
+/-- Being terminal is independent of which empty diagram we use. -/
+def is_terminal_diagram (X : C) {F : discrete.{w} pempty ⥤ C} (G : discrete.{w'} pempty ⥤ C)
+  (h : is_limit (as_empty_cone F X)) : is_limit (as_empty_cone G X) := -- any cone!
+{ lift := λ c, h.lift (as_empty_cone _ c.X),
   fac' := λ _ j, j.elim,
-  uniq' := λ c _ _, h.uniq (as_empty_cone c.X) _ (λ j, j.elim) }
+  uniq' := λ c _ _, h.uniq (as_empty_cone _ c.X) _ (λ j, j.elim) }
 
-/-- Independence of universe as an equivalence. -/
-def is_terminal_universes_equiv (X : C) : is_terminal.{w} X ≃ is_terminal.{w'} X :=
+/-- Independence of diagram as an equivalence. -/
+def is_terminal_universes_equiv (X : C)
+  (F : discrete.{w} pempty ⥤ C) (G : discrete.{w'} pempty ⥤ C) :
+  is_limit (as_empty) X ≃ is_terminal.{w'} X :=
 { to_fun := is_terminal_universes C X,
   inv_fun := is_terminal_universes C X,
   left_inv := by tidy,

@@ -413,7 +413,7 @@ begin
   rw [euler_criterion p ha0, legendre_sym, if_neg ha0],
   split_ifs,
   { simp only [h, eq_self_iff_true] },
-  finish -- this is quite slow. I'm actually surprised that it can close the goal at all!
+  { simp only [h, iff_false], tauto }
 end
 
 lemma eisenstein_lemma [fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :

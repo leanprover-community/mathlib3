@@ -112,7 +112,7 @@ begin
     simp only [int_fract_pair.stream, stream_nth_eq, ifp_n_fr_ne_zero, option.some_bind, if_false]
       at stream_succ_nth_eq,
     injection stream_succ_nth_eq },
-  { rintro ⟨⟨_⟩, ifp_n_props⟩,
+  { rintro ⟨⟨_⟩, ifp_n_props⟩, -- `finish [int_fract_pair.stream, ifp_n_props]` closes this goal
     simp only [int_fract_pair.stream, ifp_n_props, option.some_bind, if_false],
     refl }
 end

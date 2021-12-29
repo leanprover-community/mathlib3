@@ -362,6 +362,9 @@ lemma is_root.dvd {R : Type*} [comm_semiring R] {p q : polynomial R} {x : R}
   (h : p.is_root x) (hpq : p ∣ q) : q.is_root x :=
 by rwa [is_root, eval, eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ hpq]
 
+lemma not_is_root_C (r a : R) (hr : r ≠ 0) : ¬ is_root (C r) a :=
+by simpa using hr
+
 end eval
 
 section comp

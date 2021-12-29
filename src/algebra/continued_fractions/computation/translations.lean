@@ -72,13 +72,11 @@ begin
   case option.none : { simp [stream_nth_eq, int_fract_pair.stream] },
   case option.some :
   { cases ifp with _ fr,
-    cases decidable.em (fr = 0), -- `finish [int_fract_pair.stream]` closes these goals
-    { simp [h, stream_eq_none_of_fr_eq_zero stream_nth_eq h] },
-    { simp only [h, exists_eq_left', iff_false, or_self, int_fract_pair.stream],
-      simp only [exists_prop, not_not, option.bind_eq_none, option.mem_def, not_forall],
-      use [(int_fract_pair.of fr⁻¹), {b := ifp_b, fr := fr}, stream_nth_eq],
-      simp only [h, if_congr, if_false],
-      refl } }
+    by_cases h : fr = 0, -- `finish [int_fract_pair.stream]` closes both goals
+    { simp [int_fract_pair.stream, h, stream_nth_eq] },
+    { suffices : ¬ (int_fract_pair.of fr⁻¹: option $ int_fract_pair K) = none,
+        by simp [int_fract_pair.stream, h, stream_nth_eq, this],
+      exact λ h, option.no_confusion h } }
 end
 
 /--
@@ -113,8 +111,7 @@ begin
       at stream_succ_nth_eq,
     injection stream_succ_nth_eq },
   { rintro ⟨⟨_⟩, ifp_n_props⟩, -- `finish [int_fract_pair.stream, ifp_n_props]` closes this goal
-    simp only [int_fract_pair.stream, ifp_n_props, option.some_bind, if_false],
-    refl }
+    simpa only [int_fract_pair.stream, ifp_n_props, option.some_bind, if_false] }
 end
 
 lemma exists_succ_nth_stream_of_fr_zero {ifp_succ_n : int_fract_pair K}

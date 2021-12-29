@@ -167,7 +167,7 @@ lemma mul_inv_le_iff' (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
 by rw [mul_comm, inv_mul_le_iff' h]
 
 lemma div_self_le_one (a : α) : a / a ≤ 1 :=
-by rcases (div_self_mem_zero_one a) with ha|(ha : a / a = 1); simp [ha]
+if h : a = 0 then by simp [h] else by simp [h]
 
 lemma inv_mul_lt_iff (h : 0 < b) : b⁻¹ * a < c ↔ a < b * c :=
 begin

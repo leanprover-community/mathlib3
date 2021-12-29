@@ -34,9 +34,9 @@ open_locale pointwise
 def doset (a : α) (s t : set α) : set α := s * {a} * t
 
 @[simp]
-lemma doset_mem (s t : set α) (a b : α) : b ∈ (doset a s t) ↔ ∃ x : (s × t), b = x.1 * a * x.2 :=
-⟨λ ⟨_, y, ⟨x, _, hx, rfl, rfl⟩, hy, h⟩, ⟨⟨⟨x, hx⟩, ⟨y, hy⟩⟩, h.symm⟩,
-  λ ⟨⟨x, y⟩, h⟩, ⟨x * a, y, ⟨x, a, x.2, rfl, rfl⟩, y.2, h.symm⟩⟩
+lemma doset_mem {s t : set α} {a b : α} : b ∈ doset a s t ↔ ∃ (x ∈ s) (y ∈ t), b = x * a * y :=
+⟨λ ⟨_, y, ⟨x, _, hx, rfl, rfl⟩, hy, h⟩, ⟨x, hx, y, hy, h.symm⟩,
+  λ ⟨x, hx, y, hy, h⟩, ⟨x * a, y, ⟨x, a, hx, rfl, rfl⟩, hy, h.symm⟩⟩
 
 def double_coset_rel (H K : set G) : G → G → Prop :=
 λ x y, doset x H K = doset y H K
@@ -62,72 +62,47 @@ def quotient (H K : set G) : Type* :=
 quotient (setoid H K)
 
 lemma doset_subgroups_mem_self (H K : subgroup G) (a : G) : a ∈ (doset a H K) :=
+doset_mem.mpr ⟨1, H.one_mem, 1, K.one_mem, (one_mul a).symm.trans (mul_one (1 * a)).symm⟩
+
+lemma _root_.subgroup_mul_singleton {H : subgroup G} {h : G} (hh : h ∈ H) :
+  (H : set G) * {h} = H :=
 begin
-rw doset_mem,
-use 1,
-simp only [mul_one, one_mul, prod.snd_one, subgroup.coe_one, prod.fst_one],
+  refine le_antisymm _ (λ h' hh',
+    ⟨h' * h⁻¹, h, H.mul_mem hh' (H.inv_mem hh), rfl, inv_mul_cancel_right h' h⟩),
+  rintros _ ⟨h', h, hh', rfl : _ = _, rfl⟩,
+  exact H.mul_mem hh' hh,
 end
 
-lemma sub_doset  (H K : subgroup G) (a b : G) (hb : b ∈ doset a H K) :
-  (doset b H.1 K ) = (doset a H K ) :=
+lemma _root_.singleton_mul_subgroup {H : subgroup G} {h : G} (hh : h ∈ H) :
+  {h} * (H : set G) = H :=
+begin
+  refine le_antisymm _ (λ h' hh', ⟨h, h⁻¹ * h', rfl, H.mul_mem (H.inv_mem hh) hh',
+    mul_inv_cancel_left h h'⟩),
+  rintros _ ⟨h, h', rfl : _ = _, hh', rfl⟩,
+  exact H.mul_mem hh hh',
+end
+
+lemma sub_doset {H K : subgroup G} {a b : G} (hb : b ∈ doset a H K) :
+  doset b H K = doset a H K :=
 begin
   obtain ⟨_, k, ⟨h, a, hh, (rfl : _ = _), rfl⟩, hk, rfl⟩ := hb,
-  rw [doset, doset, ←set.singleton_mul_singleton, ←set.singleton_mul_singleton],
-  rw [mul_assoc, mul_assoc, ←mul_assoc, ←mul_assoc H.carrier],
-  have key1 : H.carrier * {h} = H :=
-  by {simp only [set.image_mul_right, subgroup.mem_carrier,
-  set_like.mem_coe, set.mul_singleton] at *,
-  ext1,
-  simp only [set.mem_preimage, subgroup.mem_carrier, set_like.mem_coe] at *,
-  fsplit,
-  intro hxh,
-  have:= subgroup.mul_mem H hxh hh,
-  simp only [inv_mul_cancel_right] at this,
-  apply this,
-  intro hx,
-  have hinv:= subgroup.inv_mem H hh,
-  apply  subgroup.mul_mem H hx hinv,},
-  have key2 : ({k} : set G) * K = K :=
-  by{simp only [set.image_mul_left, set.singleton_mul],
-  ext1,
-  split,
-  simp only [set.mem_preimage, set_like.mem_coe],
-  intro hkx,
-  have:= subgroup.mul_mem K hk hkx,
-  simp only [mul_inv_cancel_left] at this,
-  apply this,
-  intro hx,
-  simp only [set.mem_preimage, set_like.mem_coe],
-  have hinv:= subgroup.inv_mem K hk,
-  apply subgroup.mul_mem K hinv hx,},
-  rw [key1, key2],
+  rw [doset, doset, ←set.singleton_mul_singleton, ←set.singleton_mul_singleton, mul_assoc,
+      mul_assoc, singleton_mul_subgroup hk, ←mul_assoc, ←mul_assoc, subgroup_mul_singleton hh],
 end
 
-lemma rel_iff (H K : subgroup G) (x y : G) :
-  double_coset_rel H.1 K x y ↔ (∃ (a ∈ H) (b ∈ K), y = a * x * b) :=
-begin
-  rw double_coset_rel,
-  simp only [exists_prop],
-  split,
-  intro hxy,
-  have H : y ∈ (doset x H.1 K), by { rw hxy, apply doset_subgroups_mem_self,},
-  simp only [exists_prop, set_coe.exists, doset_mem, subgroup.mem_carrier, set_like.mem_coe,
-  subgroup.coe_mk, prod.exists] at H,
-  apply H,
-  intro h,
-  apply symm,
-  apply sub_doset,
-  simp only [exists_prop, set_coe.exists, doset_mem, set_like.mem_coe, subgroup.coe_mk,
-  prod.exists],
-  exact h,
-end
+lemma rel_iff {H K : subgroup G} {x y : G} :
+  double_coset_rel ↑H ↑K x y ↔ ∃ (a ∈ H) (b ∈ K), y = a * x * b :=
+iff.trans ⟨λ hxy, (congr_arg _ hxy).mpr (doset_subgroups_mem_self H K y),
+  λ hxy, (sub_doset hxy).symm⟩ doset_mem
 
 lemma left_bot_eq_left_group_rel (H : subgroup G) :
-  (double_coset_rel (⊥ : subgroup G).1 H) = (quotient_group.left_rel H).rel :=
+  (double_coset_rel ↑(⊥ : subgroup G) ↑H) = (quotient_group.left_rel H).rel :=
 begin
-  show (double_coset_rel (⊥ : subgroup G).1 H) = (quotient_group.left_rel H).r,
+  show (double_coset_rel ↑(⊥ : subgroup G) ↑H) = (quotient_group.left_rel H).r,
   ext,
-  simp  only [exists_prop, one_mul, subgroup.mem_bot, exists_eq_left, rel_iff],
+  rw rel_iff,
+  simp only [exists_prop, one_mul, subgroup.mem_bot, exists_eq_left, exists_prop, one_mul,
+  subgroup.mem_bot, exists_eq_left],
   split,
   rintro ⟨a, ha⟩,
   rw [quotient_group.left_rel, ha.2],
@@ -140,13 +115,12 @@ begin
 end
 
 lemma right_bot_eq_right_group_rel (H : subgroup G) :
-  (double_coset_rel H.1 (⊥ : subgroup G)) = (quotient_group.right_rel H).rel :=
+  (double_coset_rel ↑H ↑(⊥ : subgroup G)) = (quotient_group.right_rel H).rel :=
 begin
-  show (double_coset_rel H.1 (⊥ : subgroup G)) = (quotient_group.right_rel H).r,
+  show (double_coset_rel ↑H ↑(⊥ : subgroup G)) = (quotient_group.right_rel H).r,
   ext,
-  have:= (rel_iff H (⊥ : subgroup G)  x x_1),
+  rw rel_iff,
   simp only [exists_prop, mul_one, subgroup.mem_bot, exists_eq_left, subgroup.coe_bot] at *,
-  rw this,
   split,
   rintro ⟨a, ha⟩,
   rw [quotient_group.right_rel, ha.2],
@@ -164,14 +138,20 @@ begin
   rw set.not_disjoint_iff at h,
   simp only [exists_prop, set_coe.exists, doset_mem, subgroup.mem_carrier, set_like.mem_coe,
     subgroup.coe_mk] at *,
-  rcases h with ⟨x, ⟨hx, hxx⟩, hk, hhk⟩ ,
-  use ( ⟨hk.1⁻¹ * hx.1, hx.2 * hk.2⁻¹⟩ : H × K),
-  rw hxx at hhk,
-  simp only [subgroup.coe_inv, subgroup.coe_mul, ← mul_assoc],
+  obtain  ⟨x, ⟨l, hl, r, hr, hrx⟩, y, hy, ⟨r', hr', hly⟩⟩ := h,
+  use y⁻¹ * l,
+  have hyl :  y⁻¹*l ∈ H, by {apply subgroup.mul_mem H (subgroup.inv_mem H hy) (hl), },
+  simp only [hyl, true_and],
+  use r*r'⁻¹,
+  have hrr' : r*r'⁻¹ ∈ K, by {apply subgroup.mul_mem K hr (subgroup.inv_mem K hr') ,},
+  simp [hrr'],
+  rw ←mul_assoc,
+  rw hly at hrx,
   rw ← mul_inv_eq_iff_eq_mul,
-  simp only [inv_inv],
-  rw [mul_assoc, mul_assoc ] at *,
-  simp only [hhk,inv_mul_cancel_left],
+  simp,
+  rw [mul_assoc, mul_assoc],
+  simp_rw eq_inv_mul_iff_mul_eq,
+  simp [← mul_assoc, hrx],
 end
 
 lemma disjoint_doset (H K : subgroup G) (a b : G) (h: ¬ disjoint (doset a H K ) (doset b H K )) :
@@ -179,28 +159,28 @@ lemma disjoint_doset (H K : subgroup G) (a b : G) (h: ¬ disjoint (doset a H K )
 begin
   rw disjoint.comm at h,
   have ha : a ∈ (doset b H K), by {apply disjoint_sub _ _ _ _ h},
-  apply sub_doset H K b a ha,
+  apply sub_doset ha,
 end
 
 /--Create a doset out of an element of `H \ G / K`-/
-def quot_to_doset (H K : subgroup G) (q : quotient H.1 K ) : set G := (doset q.out' H K)
+def quot_to_doset (H K : subgroup G) (q : quotient ↑H ↑K ) : set G := (doset q.out' H K)
 
 /--Map from `G` to `H \ G / K`-/
-abbreviation mk (H K : subgroup G) (a : G) : quotient H.1 K :=
+abbreviation mk (H K : subgroup G) (a : G) : quotient ↑H ↑K :=
 quotient.mk' a
 
-instance (H K : subgroup G) : inhabited (quotient H.1 K) := ⟨(mk H K (1 : G) : quotient H.1 K)⟩
+instance (H K : subgroup G) : inhabited (quotient ↑H ↑K) := ⟨(mk H K (1 : G) : quotient ↑H ↑K)⟩
 
 lemma eq (H K : subgroup G) (a b : G): mk H K a = mk H K b ↔ ∃ (h ∈ H) (k ∈ K), b = h * a * k :=
-by { rw quotient.eq', apply (rel_iff H K a b), }
+by { rw quotient.eq', apply (rel_iff ), }
 
-lemma out_eq' (H K : subgroup G) (q : quotient H.1 K) : mk H K q.out' = q :=
+lemma out_eq' (H K : subgroup G) (q : quotient ↑H ↑K) : mk H K q.out' = q :=
 quotient.out_eq' q
 
 lemma mk_out'_eq_mul (H K : subgroup G) (g : G) :
-  ∃ (h k : G), (h ∈ H) ∧ (k ∈ K) ∧ (mk H K g : quotient H.1 K).out' = h * g * k :=
+  ∃ (h k : G), (h ∈ H) ∧ (k ∈ K) ∧ (mk H K g : quotient ↑H ↑K).out' = h * g * k :=
 begin
-  have := eq H K (mk H K g : quotient H.1 K).out' g,
+  have := eq H K (mk H K g : quotient ↑H ↑K).out' g,
   rw out_eq' at this,
   simp only [exists_prop] at this,
   have h: mk H K g = mk H K g, by {refl,},
@@ -260,7 +240,10 @@ begin
   simp only [exists_prop, doset_mem, subgroup.mem_carrier, set_like.mem_coe],
   have hy := mk_out'_eq_mul H K x,
   rcases hy with ⟨h, k, h3, h4, h5⟩,
-  use ⟨⟨h⁻¹, H.inv_mem h3⟩, ⟨ k⁻¹ , K.inv_mem h4⟩ ⟩,
+  use h⁻¹,
+  simp [H.inv_mem h3],
+  use  k⁻¹ ,
+  simp [K.inv_mem h4],
   simp only [h5, subgroup.coe_mk],
   simp_rw ← mul_assoc,
   simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
@@ -273,14 +256,18 @@ begin
   simp only [mem_right_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, doset_mem,
     subgroup.mem_carrier, set_like.mem_coe],
   split,
-  rintros ⟨x, h_h⟩,
-  use x.2,
-  rw h_h,
+  rintros ⟨x, hx, y, hy, hxy⟩,
+  use y,
+  simp only [hy],
+  rw hxy,
   simp_rw ← mul_assoc,
-  simp only [set_like.coe_mem, mul_inv_cancel_right],
+  simp only [hx, mul_inv_cancel_right, subgroup.coe_mk],
   intro h,
   cases h with y,
-  use ⟨⟨x * (y⁻¹ * a⁻¹), h_h⟩, y⟩,
+  use x * (y⁻¹ * a⁻¹),
+  simp only [h_h, true_and],
+  use y,
+  simp only [true_and, set_like.coe_mem],
   simp_rw ← mul_assoc,
   simp only [subgroup.coe_mk, inv_mul_cancel_right],
 end
@@ -293,15 +280,18 @@ begin
   subgroup.mem_carrier, set_like.mem_coe],
   split,
   intro h,
-  cases h with x,
-  use x.1,
-  rw h_h,
+  rcases h with ⟨l, hl, y, hy, hyr⟩,
+  use l,
+  simp [hl],
+  rw hyr,
   simp_rw ← mul_assoc,
-  simp only [set_like.coe_mem, one_mul, mul_left_inv, inv_mul_cancel_right],
+  simp [hy],
   intro h,
   cases h with y,
-  use ⟨ y, ⟨a⁻¹ * y⁻¹ * x, h_h ⟩⟩,
-  simp only [subgroup.coe_mk],
+  use y,
+  simp [y.2],
+  use a⁻¹ * y⁻¹ * x,
+  simp [h_h],
   simp_rw ← mul_assoc,
   simp only [one_mul, mul_right_inv, mul_inv_cancel_right],
 end

@@ -68,7 +68,7 @@ begin
   ext x,
   rw [accepts, DFA.accepts, eval, DFA.eval],
   change list.foldl _ _ _ ∈ {S | _} ↔ _,
-  finish
+  split; { exact λ ⟨w, h2, h3⟩, ⟨w, h3, h2⟩ },
 end
 
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
@@ -98,9 +98,10 @@ begin
   induction s with a s ih generalizing start,
   { tauto },
   { rw [list.foldl, list.foldl],
-    have h : M.to_NFA.step_set {start} a = {M.step start a},
-    { rw NFA.step_set,
-      finish },
+    have h : M.to_NFA.step_set {start} a = {M.step start a}, -- `rw NFA.step_set, finish` closes
+    { have : M.to_NFA.step_set {start} a = M.to_NFA.step start a, {simp [NFA.step_set]},
+      rw this,
+      refl },
     rw h,
     tauto }
 end
@@ -118,7 +119,8 @@ begin
     assumption },
   { intro h,
     use M.eval x,
-    finish }
+    simp only [set.mem_singleton_iff],
+    exact ⟨h, rfl⟩ }
 end
 
 end DFA

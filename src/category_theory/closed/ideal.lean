@@ -163,7 +163,8 @@ def cartesian_closed_of_reflective : cartesian_closed D :=
         { symmetry,
           apply nat_iso.of_components _ _,
           { intro X,
-            haveI := adjunction.right_adjoint_preserves_limits.{v₁ v₁} (adjunction.of_right_adjoint i),
+            haveI :=
+              adjunction.right_adjoint_preserves_limits.{v₁ v₁} (adjunction.of_right_adjoint i),
             apply as_iso (prod_comparison i B X) },
           { intros X Y f,
             dsimp,

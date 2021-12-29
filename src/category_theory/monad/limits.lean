@@ -25,7 +25,8 @@ namespace category_theory
 open category
 open category_theory.limits
 
-universes v u v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+universes v u v₁ v₂ u₁ u₂
+-- morphism levels before object levels. See note [category_theory universes].
 
 namespace monad
 
@@ -370,8 +371,7 @@ noncomputable def left_adjoint_preserves_terminal_of_reflective (R : D ⥤ C) [r
       apply is_limit_empty_cones D (limit.is_limit (functor.empty.{v} D)), symmetry,
       exact as_iso ((adjunction.of_right_adjoint R).counit.app _) },
     apply_instance, apply_instance,
-  end
-}
+  end }
 
 end
 end category_theory

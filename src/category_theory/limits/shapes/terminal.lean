@@ -140,8 +140,8 @@ variables (X : C) {F₁ : discrete.{w} pempty ⥤ C} {F₂ : discrete.{w'} pempt
 
 /-- Being terminal is independent of the empty diagram, its universe, and the cone over it,
     as long as the cone points are isomorphic. -/
-def is_limit_empty_cones {c₁ : cone F₁} (hl : is_limit c₁) (c₂ : cone F₂) (hi : c₁.X ≅ c₂.X) :
-  is_limit c₂ :=
+def is_limit_empty_cones {c₁ : cone F₁} (hl : is_limit c₁)
+  (c₂ : cone F₂) (hi : c₁.X ≅ c₂.X) : is_limit c₂ :=
 { lift := λ c, hl.lift ⟨c.X, by tidy⟩ ≫ hi.hom,
   fac' := λ _ j, j.elim,
   uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (f ≫ hi.inv) (λ j, j.elim), simp } }
@@ -163,8 +163,8 @@ lemma has_terminal_universes [h : has_limits_of_shape (discrete.{w} pempty) C] :
 
 /-- Being initial is independent of the empty diagram, its universe, and the cocone over it,
     as long as the cocone points are isomorphic. -/
-def is_colimit_empty_cocones {c₁ : cocone F₁} (hl : is_colimit c₁) (c₂ : cocone F₂) (hi : c₁.X ≅ c₂.X) :
-  is_colimit c₂ :=
+def is_colimit_empty_cocones {c₁ : cocone F₁} (hl : is_colimit c₁)
+  (c₂ : cocone F₂) (hi : c₁.X ≅ c₂.X) : is_colimit c₂ :=
 { desc := λ c, hi.inv ≫ hl.desc ⟨c.X, by tidy⟩,
   fac' := λ _ j, j.elim,
   uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (hi.hom ≫ f) (λ j, j.elim), simp } }

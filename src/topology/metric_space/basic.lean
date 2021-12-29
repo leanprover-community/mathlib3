@@ -1798,16 +1798,10 @@ lemma bounded_range_of_cauchy_map_cofinite {f : β → α} (hf : cauchy (map f c
   bounded (range f) :=
 bounded_range_of_tendsto_cofinite_uniformity $ (cauchy_map_iff.1 hf).2
 
-lemma _root_.cauchy_seq.bounded_range {f : ℕ → α} (hf : cauchy_seq f) : bounded (range f) :=
-bounded_range_of_cauchy_map_cofinite $ by rwa nat.cofinite_eq_at_top
-
 lemma bounded_range_of_tendsto_cofinite {f : β → α} {a : α} (hf : tendsto f cofinite (𝓝 a)) :
   bounded (range f) :=
 bounded_range_of_tendsto_cofinite_uniformity $
   (hf.prod_map hf).mono_right $ nhds_prod_eq.symm.trans_le (nhds_le_uniformity a)
-
-lemma _root_.cauchy_seq.bounded {u : ℕ → α} (hu : cauchy_seq u) : metric.bounded (set.range u) :=
-metric.bounded_range_of_cauchy_map_cofinite hu.cauchy_map_cofinite
 
 /-- In a compact space, all sets are bounded -/
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
@@ -1816,7 +1810,19 @@ compact_univ.bounded.mono (subset_univ _)
 lemma bounded_range_of_tendsto {α : Type*} [pseudo_metric_space α] (u : ℕ → α) {x : α}
   (hu : tendsto u at_top (𝓝 x)) :
   bounded (range u) :=
-hu.cauchy_seq.bounded_range
+begin
+  classical,
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), n ≥ N → dist (u n) x < 1 :=
+    metric.tendsto_at_top.1 hu 1 zero_lt_one,
+  have : range u ⊆ (finset.range N).image u ∪ ball x 1,
+  { refine range_subset_iff.2 (λ n, _),
+    rcases lt_or_le n N with h|h,
+    { left,
+      simp only [mem_image, finset.mem_range, finset.mem_coe, finset.coe_image],
+      exact ⟨n, h, rfl⟩ },
+    { exact or.inr (mem_ball.2 (hN n h)) } },
+  exact bounded.mono this ((finset.finite_to_set _).bounded.union bounded_ball)
+end
 
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
   is_compact s :=

@@ -86,10 +86,10 @@ list.reverse_rec_on l (by simp [eq_comm])
     { simp {contextual := tt} },
     { dsimp only, split_ifs,
       { -- `finish [ih _ _ hf]` closes this goal
-        intro H,
-        have := ih a m (by rwa hf),
-        simp only [list.mem_cons_iff, list.mem_append] at *,
-        tauto },
+        rcases ih _ _ hf with rfl | H,
+        { simp only [mem_cons_iff, mem_append, mem_singleton, option.mem_def], tauto },
+        { apply λ hm, or.inr (list.mem_append.mpr $ or.inl _),
+          exact (option.mem_some_iff.mp hm ▸ H)} },
       { simp {contextual := tt} } }
   end
 

@@ -122,6 +122,8 @@ open finset fintype
 
 namespace sym
 
+/-- The *stars and bars* lemma: the cardinality of `sym α n` is equal to
+`(card α + n - 1) choose n`. -/
 lemma stars_and_bars {α : Type*} [decidable_eq α] [fintype α] (n : ℕ) :
   fintype.card (sym α n) = (fintype.card α + n - 1).choose n :=
 begin

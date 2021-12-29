@@ -264,7 +264,7 @@ end prod
 
 section add_monoid_hom_class
 
-variables {A B F : Type*} [add_monoid A] [has_one A] [add_monoid B] [has_one B]
+variables {A B F : Type*} [add_monoid A] [add_monoid B] [has_one B]
 
 lemma ext_nat' [add_monoid_hom_class F ℕ A] (f g : F) (h : f 1 = g 1) : f = g :=
 fun_like.ext f g $ begin
@@ -274,6 +274,8 @@ fun_like.ext f g $ begin
 end
 
 @[ext] lemma add_monoid_hom.ext_nat : ∀ {f g : ℕ →+ A}, ∀ h : f 1 = g 1, f = g := ext_nat'
+
+variable [has_one A]
 
 -- these versions are primed so that the `ring_hom_class` versions aren't
 lemma eq_nat_cast' [add_monoid_hom_class F ℕ A] (f : F) (h1 : f 1 = 1) :

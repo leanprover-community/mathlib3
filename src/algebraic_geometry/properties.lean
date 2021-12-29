@@ -379,15 +379,4 @@ lemma Scheme.germ_to_function_field_injective [is_integral X] (U : opens X.carri
   [nonempty U] : function.injective (X.germ_to_function_field U) :=
 germ_injective_of_is_integral _ _
 
-noncomputable
-instance [is_integral X] (x : X.X) : algebra (X.presheaf.stalk x) X.function_field :=
-begin
-  apply ring_hom.to_algebra,
-  exact X.presheaf.stalk_map_specializes ((generic_point_spec X.carrier).specializes trivial)
-end
-
-noncomputable
-instance [is_integral X] (x : X.X) : is_fraction_ring (X.presheaf.stalk x) X.function_field :=
-sorry
-
 end algebraic_geometry

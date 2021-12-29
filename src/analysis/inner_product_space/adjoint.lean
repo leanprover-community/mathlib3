@@ -194,20 +194,21 @@ def adjoint : (E →ₗ[𝕜] F) ≃ₗ⋆[𝕜] (F →ₗ[𝕜] E) :=
 lemma adjoint_to_continuous_linear_map (A : E →ₗ[𝕜] F) :
   A.adjoint.to_continuous_linear_map = A.to_continuous_linear_map.adjoint := rfl
 
-@[simp] lemma adjoint_coe_eq (A : E →ₗ[𝕜] F) :
-  (A.to_continuous_linear_map : E →ₗ[𝕜] F).adjoint = A.to_continuous_linear_map.adjoint := rfl
+lemma adjoint_eq_to_clm_adjoint (A : E →ₗ[𝕜] F) :
+  A.adjoint = A.to_continuous_linear_map.adjoint := rfl
+
 
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_inner_left (A : E →ₗ[𝕜] F) (x : E) (y : F) : ⟪adjoint A y, x⟫ = ⟪y, A x⟫ :=
 begin
-  rw [←coe_to_continuous_linear_map A, adjoint_coe_eq],
+  rw [←coe_to_continuous_linear_map A, adjoint_eq_to_clm_adjoint],
   exact continuous_linear_map.adjoint_inner_left _ x y,
 end
 
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_inner_right (A : E →ₗ[𝕜] F) (x : E) (y : F) : ⟪x, adjoint A y⟫ = ⟪A x, y⟫ :=
 begin
-  rw [←coe_to_continuous_linear_map A, adjoint_coe_eq],
+  rw [←coe_to_continuous_linear_map A, adjoint_eq_to_clm_adjoint],
   exact continuous_linear_map.adjoint_inner_right _ x y,
 end
 

@@ -1241,8 +1241,7 @@ end
 
 /-- If the target space is complete, the space of continuous linear maps with its norm is also
 complete. This works also if the source space is seminormed. -/
-instance {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [complete_space F] :
-  complete_space (E →SL[σ₁₂] F) :=
+instance [complete_space F] : complete_space (E' →SL[σ₁₂] F) :=
 begin
   -- We show that every Cauchy sequence converges.
   refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
@@ -1255,12 +1254,55 @@ begin
   choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
   -- Next, we show that this `G` is a continuous linear map.
   -- This is done in `continuous_linear_map.of_tendsto_of_bounded_range`.
-  set Glin : E →SL[σ₁₂] F :=
+  set Glin : E' →SL[σ₁₂] F :=
     of_tendsto_of_bounded_range _ _ (tendsto_pi_nhds.mpr hG) hf.bounded_range,
   -- Finally, `f n` converges to `Glin` in norm because of
   -- `continuous_linear_map.tendsto_of_tendsto_pointwise_of_cauchy_seq`
   exact ⟨Glin, tendsto_of_tendsto_pointwise_of_cauchy_seq (tendsto_pi_nhds.2 hG) hf⟩
 end
+
+lemma is_compact_closure_image_coe_bounded [proper_space F] {s : set (E →SL[σ₁₂] F)}
+  (hb : bounded s) : is_compact (closure (@image (E →SL[σ₁₂] F) (E → F) coe_fn s)) :=
+begin
+  set ev : E → (E →SL[σ₁₂] F) → F := λ x f, f x,
+  have : ∀ x, is_compact (closure (ev x '' s)),
+    from λ x, ((lipschitz_apply x).bounded_image hb).is_compact_closure,
+  exact compact_closure_of_subset_compact (is_compact_pi_infinite this)
+    (image_subset_iff.2 $ λ g hg x, subset_closure $ mem_image_of_mem _ hg)
+end
+
+lemma is_compact_image_coe_bounded_of_closed [proper_space F] {s : set (E →SL[σ₁₂] F)}
+  (hb : bounded s) (hc : is_closed ((λ (f : E →SL[σ₁₂] F) x, f x) '' s)) :
+  is_compact ((λ (f : E →SL[σ₁₂] F) x, f x) '' s) :=
+hc.closure_eq ▸ is_compact_closure_image_coe_bounded hb
+
+lemma is_closed_inter_range_coe {s : set (E → F)} (hs : is_closed s)
+  (hb : bounded (@preimage (E →SL[σ₁₂] F) (E → F) coe_fn s)) :
+  is_closed (s ∩ @set.range (E → F) (E →SL[σ₁₂] F) coe_fn) :=
+is_closed_of_closure_subset (λ f hf, ⟨closure_minimal (inter_subset_left _ _) hs hf,
+  ⟨of_mem_closure_image_coe_bounded f hb (by rwa image_preimage_eq_inter_range), rfl⟩⟩)
+
+/-- The set of functions `f : E → F` that represent. -/
+lemma is_closed_image_coe_closed_ball (f₀ : E →SL[σ₁₂] F) (r : ℝ) :
+  is_closed ((λ (f : E →SL[σ₁₂] F) (x : E), f x) '' closed_ball f₀ r) :=
+begin
+  cases lt_or_le r 0 with hr hr,
+  { simp only [closed_ball_eq_empty.2 hr, image_empty, is_closed_empty] },
+  refine is_closed_of_closure_subset (λ f hf, _),
+  obtain ⟨f, rfl⟩ : ∃ g : E →SL[σ₁₂] F, f = g,
+    from ⟨of_mem_closure_image_coe_bounded f bounded_closed_ball hf, rfl⟩,
+  refine mem_image_of_mem _ _,
+  refine mem_closed_ball_iff_norm.2 (op_norm_le_bound _ hr $ λ x, _),
+  have : is_closed {g : E → F | ∥g x - f₀ x∥ ≤ r * ∥x∥},
+    from is_closed_Iic.preimage ((@continuous_apply E (λ _, F) _ x).sub continuous_const).norm,
+  refine this.closure_subset_iff.2 (image_subset_iff.2 $ λ g hg, _) hf,
+  exact (g - f₀).le_of_op_norm_le (mem_closed_ball_iff_norm.1 hg) _
+end
+
+lemma is_compact_image_coe_closed_ball [proper_space F] (f₀ : E →SL[σ₁₂] F) (r : ℝ) :
+  is_compact ((λ (f : E →SL[σ₁₂] F) (x : E), f x) '' closed_ball f₀ r) :=
+is_compact_image_coe_bounded_of_closed bounded_closed_ball $
+  is_closed_image_coe_closed_ball _ _
 
 end completeness
 

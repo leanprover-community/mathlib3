@@ -100,6 +100,12 @@ of functionals is equipped with the topology of pointwise convergence (product t
 instance : topological_space (weak_dual 𝕜 E) :=
 topological_space.induced (λ x' : weak_dual 𝕜 E, λ z : E, x' z) Pi.topological_space
 
+/-- The coercion `coe_fn : weak_dual 𝕜 E → (E → 𝕜)` is an embedding. -/
+lemma coe_fn_embedding :
+  embedding (λ (f : weak_dual 𝕜 E) (x : E), f x) :=
+{ induced := rfl,
+  inj := continuous_linear_map.coe_fn_injective, }
+
 lemma coe_fn_continuous :
   continuous (λ (x' : (weak_dual 𝕜 E)), (λ (z : E), x' z)) :=
 continuous_induced_dom

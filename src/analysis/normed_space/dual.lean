@@ -154,6 +154,9 @@ by { ext, simp only [polar, mem_bInter_iff, mem_set_of_eq], }
 @[simp] lemma polar_empty : polar 𝕜 (∅ : set E) = univ :=
 by simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true]
 
+lemma polar_antitone : antitone (polar 𝕜 : set E → set (dual 𝕜 E)) :=
+λ s t hst x' hx' x hx, hx' _ (hst hx)
+
 variables {𝕜}
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a
@@ -173,7 +176,29 @@ begin
   rwa cancel at le,
 end
 
+lemma polar_ball_subset_closed_ball_div {c : 𝕜} (hc : 1 < ∥c∥) {r : ℝ} (hr : 0 < r) :
+  polar 𝕜 (ball (0 : E) r) ⊆ closed_ball (0 : dual 𝕜 E) (∥c∥ / r) :=
+begin
+  intros x' hx',
+  simp only [polar, mem_set_of_eq, mem_closed_ball_zero_iff, mem_ball_zero_iff] at *,
+  have hcr : 0 < ∥c∥ / r, from div_pos (zero_lt_one.trans hc) hr,
+  refine continuous_linear_map.op_norm_le_of_shell hr hcr.le hc (λ x h₁ h₂, _),
+  calc ∥x' x∥ ≤ 1 : hx' _ h₂
+  ... ≤ (∥c∥ / r) * ∥x∥ : (inv_pos_le_iff_one_le_mul' hcr).1 (by rwa inv_div)
+end
+
 variables (𝕜)
+
+lemma closed_ball_inv_subset_polar_closed_ball {r : ℝ} :
+  closed_ball (0 : dual 𝕜 E) r⁻¹ ⊆ polar 𝕜 (closed_ball (0 : E) r) :=
+λ x' hx' x hx,
+--  simp only [mem_closed_ball_zero_iff] at hx' hx,
+calc ∥x' x∥ ≤ ∥x'∥ * ∥x∥ : x'.le_op_norm x
+... ≤ r⁻¹ * r :
+  mul_le_mul (mem_closed_ball_zero_iff.1 hx') (mem_closed_ball_zero_iff.1 hx)
+    (norm_nonneg _) (dist_nonneg.trans hx')
+... = r / r : div_eq_inv_mul.symm
+... ≤ 1 : div_self_le_one r
 
 /-- The `polar` of closed ball in a normed space `E` is the closed ball of the dual with
 inverse radius. -/
@@ -181,35 +206,26 @@ lemma polar_closed_ball
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] {r : ℝ} (hr : 0 < r) :
   polar 𝕜 (closed_ball (0 : E) r) = closed_ball (0 : dual 𝕜 E) (1/r) :=
 begin
-  ext x',
-  simp only [mem_closed_ball, mem_set_of_eq, dist_zero_right],
-  split,
-  { intros h,
+  refine subset.antisymm _ _,
+  { intros x' h,
+    simp only [mem_closed_ball_zero_iff],
     apply continuous_linear_map.op_norm_le_of_ball hr (one_div_nonneg.mpr hr.le),
     { exact λ z hz, linear_map.bound_of_ball_bound hr 1 x'.to_linear_map h z, },
     { exact ring_hom_isometric.ids, }, },
-  { intros h z hz,
-    simp only [mem_closed_ball, dist_zero_right] at hz,
-    have key := (continuous_linear_map.le_op_norm x' z).trans
-      (mul_le_mul h hz (norm_nonneg _) (one_div_nonneg.mpr hr.le)),
-    rwa [one_div_mul_cancel hr.ne.symm] at key, },
+  { rw one_div,
+    exact closed_ball_inv_subset_polar_closed_ball _ },
 end
 
 /-- Given a neighborhood `s` of the origin in a normed space `E`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
-lemma polar_bounded_of_nhds_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  ∃ (c : ℝ), ∀ x' ∈ polar 𝕜 s, ∥x'∥ ≤ c :=
+lemma bounded_polar_of_mem_nhds_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+  bounded (polar 𝕜 s) :=
 begin
   obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := normed_field.exists_one_lt_norm 𝕜,
   obtain ⟨r, r_pos, r_ball⟩ : ∃ (r : ℝ) (hr : 0 < r), ball 0 r ⊆ s :=
     metric.mem_nhds_iff.1 s_nhd,
-  refine ⟨∥a∥ / r, λ x' hx', _⟩,
-  have I : 0 ≤ ∥a∥ / r := div_nonneg (norm_nonneg _) r_pos.le,
-  refine continuous_linear_map.op_norm_le_of_shell r_pos I ha (λ x hx h'x, _),
-  have x_mem : x ∈ ball (0 : E) r, by simpa only [mem_ball_zero_iff] using h'x,
-  calc ∥x' x∥ ≤ 1 : hx' x (r_ball x_mem)
-  ... = (∥a∥ / r) * (r / ∥a∥) : by field_simp [r_pos.ne', (zero_lt_one.trans ha).ne']
-  ... ≤ (∥a∥ / r) * ∥x∥ : mul_le_mul_of_nonneg_left hx I
+  exact bounded_closed_ball.mono ((polar_antitone 𝕜 r_ball).trans $
+    polar_ball_subset_closed_ball_div ha r_pos)
 end
 
 end polar_sets

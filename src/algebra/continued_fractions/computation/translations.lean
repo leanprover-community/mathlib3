@@ -72,8 +72,13 @@ begin
   case option.none : { simp [stream_nth_eq, int_fract_pair.stream] },
   case option.some :
   { cases ifp with _ fr,
-    cases decidable.em (fr = 0);
-    finish [int_fract_pair.stream] }
+    cases decidable.em (fr = 0), -- `finish [int_fract_pair.stream]` closes these goals
+    { simp [h, stream_eq_none_of_fr_eq_zero stream_nth_eq h] },
+    { simp only [h, exists_eq_left', iff_false, or_self, int_fract_pair.stream],
+      simp only [exists_prop, not_not, option.bind_eq_none, option.mem_def, not_forall],
+      use [(int_fract_pair.of fr⁻¹), {b := ifp_b, fr := fr}, stream_nth_eq],
+      simp only [h, if_congr, if_false],
+      refl } }
 end
 
 /--

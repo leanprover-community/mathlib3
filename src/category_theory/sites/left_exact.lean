@@ -1,7 +1,19 @@
+/-
+Copyright (c) 2021 Adam Topaz. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Topaz
+-/
 import category_theory.sites.sheafification
 import category_theory.limits.functor_category
 import category_theory.limits.filtered_colimit_commutes_finite_limit
 
+/-!
+
+# Left exactness of sheafification
+
+In this file we show that sheafification commutes with finite limits.
+
+-/
 namespace category_theory.grothendieck_topology
 
 open category_theory

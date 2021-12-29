@@ -114,7 +114,7 @@ begin
       simp [finset.filter_insert, h, finset.fold_insert this, IH, ←ha.assoc, hc.comm] } }
 end
 
-/-- A weaker version of `finset.fold_ite`,
+/-- A weaker version of `finset.fold_ite'`,
 relying on typeclass idempotency over the whole type,
 instead of solely on the seed element.
 However, this is easier to use because it does not generate side goals. -/

@@ -282,6 +282,13 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
+  is_closed s :=
+begin
+  rw ← bUnion_of_singleton s,
+  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
 lemma is_open_compl_singleton [t1_space α] {x : α} : is_open ({x}ᶜ : set α) :=
 is_closed_singleton.is_open_compl
 
@@ -291,6 +298,38 @@ is_open_compl_singleton
 lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h
+
+@[priority 100] -- see Note [lower instance priority]
+instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
+begin
+  letI := cofinite_topology α,
+  constructor,
+  intros x,
+  rw ← is_open_compl_iff,
+  intro h,
+  simp,
+end
+
+lemma t1_space_antimono {α : Type*} : antitone (@t1_space α) :=
+begin
+  rintros t t' h ⟨ht⟩,
+  constructor,
+  intros x,
+  specialize ht x,
+  rw ← is_open_compl_iff at *,
+  exact h _ ht
+end
+
+lemma t1_space_iff_le_cofinite {α : Type*} [t : topological_space α] :
+  t1_space α ↔ t ≤ cofinite_topology α :=
+begin
+  split,
+  { introsI h U U_op,
+    rcases U.eq_empty_or_nonempty with rfl | hU,
+    { exact is_open_empty },
+    { exact (@is_closed_compl_iff α t U).mp (finite.is_closed $ U_op hU) } },
+  { exact λ h, t1_space_antimono h t1_space_cofinite }
+end
 
 lemma continuous_within_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
   {f : α → β} {s : set α} {x y : α} {z : β} (hne : y ≠ x) :
@@ -368,13 +407,6 @@ lemma is_closed_map_const {α β} [topological_space α] [topological_space β] 
   is_closed_map (function.const α y) :=
 begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
-end
-
-lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
-  is_closed s :=
-begin
-  rw ← bUnion_of_singleton s,
-  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
 end
 
 lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}

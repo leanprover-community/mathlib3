@@ -7,7 +7,7 @@ Authors: Frédéric Dupuis
 import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
-import algebra.star.self_adjoints
+import algebra.star.self_adjoint
 
 /-!
 # Normed star rings and algebras
@@ -23,7 +23,7 @@ To get a C⋆-algebra `E` over field `𝕜`, use
 `[normed_field 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [cstar_ring E]
  [normed_algebra 𝕜 E] [star_module 𝕜 E]`.
 
-We also put a norm on `self_adjoints E`.
+We also put a norm on `self_adjoint E`.
 
 ## TODO
 
@@ -116,36 +116,36 @@ lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 end starₗᵢ
 
-namespace self_adjoints
+namespace self_adjoint
 
 section add_group
 variables [add_group E] [star_add_monoid E]
 
-instance [has_dist E] : has_dist (self_adjoints E) := ⟨λ x y, dist (x : E) y⟩
+instance [has_dist E] : has_dist (self_adjoint E) := ⟨λ x y, dist (x : E) y⟩
 
-@[simp] lemma dist_coe [has_dist E] (x y : self_adjoints E) : dist x y = dist (x : E) y := rfl
+@[simp] lemma dist_coe [has_dist E] (x y : self_adjoint E) : dist x y = dist (x : E) y := rfl
 
-instance [pseudo_metric_space E] : pseudo_metric_space (self_adjoints E) :=
+instance [pseudo_metric_space E] : pseudo_metric_space (self_adjoint E) :=
 { dist_self := λ _, by exact dist_self _,
   dist_comm := λ _ _, dist_comm _ _,
   dist_triangle := λ _ _ _, dist_triangle _ _ _  }
 
-instance [metric_space E] : metric_space (self_adjoints E) :=
+instance [metric_space E] : metric_space (self_adjoint E) :=
 ⟨λ x y h, by { ext, exact eq_of_dist_eq_zero h }⟩
 
-instance [has_norm E] : has_norm (self_adjoints E) := ⟨λ x, ∥(x : E)∥⟩
+instance [has_norm E] : has_norm (self_adjoint E) := ⟨λ x, ∥(x : E)∥⟩
 
-@[simp] lemma norm_coe [has_norm E] {x : self_adjoints E} : ∥x∥ = ∥(x : E)∥ := rfl
+@[simp] lemma norm_coe [has_norm E] {x : self_adjoint E} : ∥x∥ = ∥(x : E)∥ := rfl
 
 end add_group
 
 section normed_group
 variables [normed_group E] [star_add_monoid E]
 
-instance : normed_group (self_adjoints E) := ⟨λ _ _, dist_eq_norm _ _⟩
+instance : normed_group (self_adjoint E) := ⟨λ _ _, dist_eq_norm _ _⟩
 
-instance : normed_star_monoid (self_adjoints E) := ⟨λ _, rfl⟩
+instance : normed_star_monoid (self_adjoint E) := ⟨λ _, rfl⟩
 
 end normed_group
 
-end self_adjoints
+end self_adjoint

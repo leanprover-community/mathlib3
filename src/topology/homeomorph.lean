@@ -462,6 +462,9 @@ lemma homeo_of_equiv_compact_to_t2.t1_counterexample :
   ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI
   compact_space α ∧ t1_space β ∧ ∃ f : α ≃ β, continuous f ∧ ¬ continuous f.symm :=
 begin
+  /- In the `nhds_adjoint 0 filter.cofinite` topology, a set is open if (1) 0 is not in the set or
+     (2) 0 is in the set and the set is cofinite.  This coincides with the one-point
+     compactification of {1, 2, ...} with the discrete topology. -/
   let topα : topological_space ℕ := nhds_adjoint 0 filter.cofinite,
   let topβ : topological_space ℕ := cofinite_topology ℕ,
   refine ⟨ℕ, ℕ, topα, topβ, _, t1_space_cofinite, equiv.refl ℕ, _, _⟩,

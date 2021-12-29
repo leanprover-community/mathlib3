@@ -82,7 +82,7 @@ by { split_ifs; refl, }
 
 end
 
-@[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
+@[simp, norm_cast] theorem cast_one [add_zero_class α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
 
 @[simp, norm_cast] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
 | 0     := (add_zero _).symm
@@ -116,7 +116,8 @@ def cast_add_monoid_hom (α : Type*) [add_monoid α] [has_one α] : ℕ →+ α 
   ((bit1 n : ℕ) : α) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
-lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 := by simp
+lemma cast_two {α : Type*} [add_zero_class α] [has_one α] : ((2 : ℕ) : α) = 2 :=
+by rw [cast_add_one, cast_one, bit0]
 
 @[simp, norm_cast] theorem cast_pred [add_group α] [has_one α] :
   ∀ {n}, 0 < n → ((n - 1 : ℕ) : α) = n - 1
@@ -155,7 +156,7 @@ nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
 lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
 (cast_commute n x).eq
 
-lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
+lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
 section
@@ -214,9 +215,8 @@ end
   |(a : α)| = a :=
 abs_of_nonneg (cast_nonneg a)
 
-lemma coe_nat_dvd [comm_semiring α] {m n : ℕ} (h : m ∣ n) :
-  (m : α) ∣ (n : α) :=
-ring_hom.map_dvd (nat.cast_ring_hom α) h
+lemma coe_nat_dvd [semiring α] {m n : ℕ} (h : m ∣ n) : (m : α) ∣ (n : α) :=
+(nat.cast_ring_hom α).map_dvd h
 
 alias coe_nat_dvd ← has_dvd.dvd.nat_cast
 

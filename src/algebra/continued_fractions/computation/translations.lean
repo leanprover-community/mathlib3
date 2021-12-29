@@ -129,7 +129,7 @@ begin
   existsi ifp_n,
   cases ifp_n with _ ifp_n_fr,
   suffices : ifp_n_fr⁻¹ = ⌊ifp_n_fr⁻¹⌋, by simpa [stream_nth_eq],
-  have : int_fract_pair.of ifp_n_fr⁻¹ = ifp_succ_n, by finish,
+  have : int_fract_pair.of ifp_n_fr⁻¹ = ifp_succ_n := h_right_right,
   cases ifp_succ_n with _ ifp_succ_n_fr,
   change ifp_succ_n_fr = 0 at succ_nth_fr_eq_zero,
   have : int.fract ifp_n_fr⁻¹ = ifp_succ_n_fr, by injection this,

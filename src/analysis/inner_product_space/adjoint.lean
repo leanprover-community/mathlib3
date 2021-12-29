@@ -24,7 +24,7 @@ finite dimensional spaces.
 * `continuous_linear_map.adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E)`: the adjoint of a continuous
   linear map, bundled as a conjugate-linear isometric equivalence.
 * `linear_map.adjoint : (E →ₗ[𝕜] F) ≃ₗ⋆[𝕜] (F →ₗ[𝕜] E)`: the adjoint of a linear map between
-  finite-dimensional spaces, this time only as a linear isometric equivalence, since there is no
+  finite-dimensional spaces, this time only as a conjugate-linear equivalence, since there is no
   norm defined on these maps.
 
 ## Implementation notes

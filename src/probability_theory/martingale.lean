@@ -189,6 +189,7 @@ end supermartingale
 
 namespace submartingale
 
+@[protected]
 lemma adapted [has_le E] (hf : submartingale f ℱ μ) : adapted ℱ f := hf.1
 
 lemma measurable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
@@ -377,16 +378,17 @@ def upper_crossing (f : ℕ → α → ℝ) (a b : ℝ) : ℕ → α → ℕ
   (if h : ∃ t, upper_crossing n x < t ∧ f t x ≤ a then nat.find h else (n + 1)) < s ∧ b ≤ f s x
   then nat.find h else (n + 1)
 
-lemma upper_crossing_succ {f : ℕ → α → ℝ} {a b : ℝ} (n : ℕ) (x : α) :
-  upper_crossing f a b (n + 1) x =
-    if h : ∃ s,
+lemma upper_crossing_zero {f : ℕ → α → ℝ} {a b : ℝ} :
+  upper_crossing f a b 0 = 0 :=
+rfl
+
+lemma upper_crossing_succ {f : ℕ → α → ℝ} {a b : ℝ} (n : ℕ) :
+  upper_crossing f a b (n + 1) =
+  λ x, if h : ∃ s,
       (if h : ∃ t, upper_crossing f a b n x < t ∧ f t x ≤ a then nat.find h else (n + 1)) < s ∧
         b ≤ f s x
     then nat.find h else (n + 1) :=
-begin
-  -- refl, -- why???
-  sorry
-end
+by { ext x, dsimp [upper_crossing], refl } -- `refl` without `dsimp` only does not work
 
 /-- The lower crossing of a random process on the interval `[a, b]` before time `n + 1` is the
 ℕ-valued random variable corresponding to the first time the process is below `a` after the
@@ -397,13 +399,24 @@ def lower_crossing (f : ℕ → α → ℝ) (a b : ℝ) : ℕ → α → ℕ
 | (n + 1) x := if h : ∃ t, upper_crossing f a b n x < t ∧ f t x ≤ a
   then nat.find h else (n + 1)
 
-lemma upper_crossing_eq_dite_lower_crossing {f : ℕ → α → ℝ} {a b : ℝ} (n : ℕ) :
+lemma upper_crossing_succ_eq_dite_lower_crossing {f : ℕ → α → ℝ} {a b : ℝ} (n : ℕ) :
   upper_crossing f a b (n + 1) =
   λ x, if h : ∃ s, lower_crossing f a b (n + 1) x < s ∧ b ≤ f s x then nat.find h else (n + 1) :=
 begin
   ext x,
   rw upper_crossing_succ,
   refl,
+end
+
+lemma upper_crossing_is_stopping_time {f : ℕ → α → ℝ} (hf : adapted 𝒢 f) {a b : ℝ} {n : ℕ} :
+  is_stopping_time 𝒢 (upper_crossing f a b n) :=
+begin
+  intro i,
+  induction n with k ih,
+  { simp [upper_crossing_zero] },
+  { rw upper_crossing_succ,
+    sorry,
+  }
 end
 
 /-- The `t`-th upcrossing of a random process on the interval `[a, b]` is the ℕ-valued random

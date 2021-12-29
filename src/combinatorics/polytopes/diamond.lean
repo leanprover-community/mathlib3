@@ -12,29 +12,23 @@ variables {α β : Type*}
 /-!
 # Diamond orders
 
-This file defines diamond orders. A diamond order is a ranked order where every two elements whose
-grades differ by `2` have exactly two elements in between.
+This file defines diamond orders. An `n`-diamond order is a graded order where every two elements
+whose grades differ by `2` have exactly `n` elements in between. Linear orders are `1`-diamond
+orders. Preorders satisfying the usual diamond condition are `2`-diamond orders.
 -/
 
-/-- A diamond order is a ranked order which has the diamond property: every two elements whose
-grades differ by `2` have exactly two elements in between. -/
+/-- A diamond order is a graded order where every two elements whose grades differ by `2` have
+exactly `n` elements in between. -/
 class diamond_order (α : Type*) [preorder α] [order_bot α] [locally_finite_order α]
   (n : out_param ℕ) extends grade_order α :=
 (diamond {a b : α} (hab : a ≤ b) (h : grade b = grade a + 2) : (finset.Ioo a b).card = n)
 
-def grade_order.to_locally_finite_order [linear_order α] [order_bot α] [grade_order α]
-  [decidable_rel ((≤) : α → α → Prop)] : locally_finite_order α :=
-{ finset_Icc := _,
-  finset_Ico := _,
-  finset_Ioc := _,
-  finset_Ioo := _,
-  finset_mem_Icc := _,
-  finset_mem_Ico := _,
-  finset_mem_Ioc := _,
-  finset_mem_Ioo := _ }
-
 def diamond_of_linear [preorder α] [order_bot α] [linear_order α] [grade_order α]
-  [locally_finite_order α] : diamond_order α 1 := sorry
+  [locally_finite_order α] : diamond_order α 1 :=
+⟨λ a b hab h, begin
+  rw finset.card_eq_one,
+  have := ex_unique_of_grade,
+end⟩
 
 lemma exists_pair_Ioo_of_lt [preorder α] [order_bot α] [diamond_order α] {a b : α} (hab : a < b)
   (h : grade b = grade a + 2) : ∃ x y, x ≠ y ∧ set.Ioo a b = {x, y} :=

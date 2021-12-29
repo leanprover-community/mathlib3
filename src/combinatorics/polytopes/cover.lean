@@ -28,10 +28,6 @@ lemma exists_lt_lt_of_not_covers [has_lt α] {x y : α} (hnxy : ¬x ⋖ y) (hxy 
 /-- A natural covers another iff it's a successor. -/
 protected lemma nat.covers_iff_succ_eq {m n : ℕ} : m ⋖ n ↔ m + 1 = n := covers_iff_succ_eq
 
-/-- A natural covers another iff it's a successor. -/
-protected lemma nat.covers_iff_eq_succ {m n : ℕ} : m ⋖ n ↔ n = m + 1 :=
-covers_iff_succ_eq.trans eq_comm
-
 /-- Two `fin`s cover each other iff their values do. -/
 @[simp] lemma fin.val_covers_iff {n : ℕ} (a b : fin n) : a.val ⋖ b.val ↔ a ⋖ b :=
 and_congr_right' ⟨λ h c hc, h hc, λ h c ha hb, @h ⟨c, lt_trans hb b.prop⟩ ha hb⟩

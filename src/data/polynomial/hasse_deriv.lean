@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import algebra.polynomial.big_operators
 import data.nat.choose.cast
 import data.nat.choose.vandermonde
 import data.polynomial.derivative
@@ -75,6 +76,14 @@ by simp only [hasse_deriv_apply, tsub_zero, nat.choose_zero_right,
 
 @[simp] lemma hasse_deriv_zero : @hasse_deriv R _ 0 = linear_map.id :=
 linear_map.ext $ hasse_deriv_zero'
+
+lemma hasse_deriv_eq_zero_of_lt_nat_degree (p : polynomial R) (n : ℕ)
+  (h : p.nat_degree < n) : hasse_deriv n p = 0 :=
+begin
+  rw [hasse_deriv_apply, sum_def],
+  refine finset.sum_eq_zero (λ x hx, _),
+  simp [nat.choose_eq_zero_of_lt ((le_nat_degree_of_mem_supp _ hx).trans_lt h)]
+end
 
 lemma hasse_deriv_one' : hasse_deriv 1 f = derivative f :=
 by simp only [hasse_deriv_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
@@ -160,6 +169,77 @@ begin
     add_comm l k],
   { ring, },
   all_goals { apply_rules [mul_ne_zero, H] }
+end
+
+lemma polynomial.nat_degree_hasse_deriv_le
+  (p : polynomial R) (n : ℕ) :
+  nat_degree (hasse_deriv n p) ≤ nat_degree p - n :=
+begin
+  classical,
+  rw [hasse_deriv_apply, sum_def],
+  have : ∀ i (r : R), nat_degree (monomial i r) = if r = 0 then 0 else i,
+  { intros i r,
+    by_cases hr : r = 0;
+    simp [hr] },
+  refine (nat_degree_sum_le _ _).trans _,
+  simp_rw [function.comp, this], clear this,
+  rw [finset.fold_ite, finset.fold_const],
+  { simp only [if_t_t, max_eq_right, zero_le', finset.fold_max_le, true_and, and_imp,
+               tsub_le_iff_right, mem_support_iff, ne.def, finset.mem_filter],
+    intros x hx hx',
+    have hxp : x ≤ p.nat_degree := le_nat_degree_of_ne_zero hx,
+    have hxn : n ≤ x,
+    { contrapose! hx',
+      simp [nat.choose_eq_zero_of_lt hx'] },
+    rwa [tsub_add_cancel_of_le (hxn.trans hxp)] },
+  { simp }
+end
+
+lemma polynomial.nat_degree_hasse_deriv
+  [no_zero_smul_divisors ℕ R]
+  (p : polynomial R) (n : ℕ) :
+  nat_degree (hasse_deriv n p) = nat_degree p - n :=
+begin
+  refine le_antisymm (polynomial.nat_degree_hasse_deriv_le _ _) _,
+  classical,
+  rw [hasse_deriv_apply, sum_def],
+  have : ∀ i (r : R), nat_degree (monomial i r) = if r = 0 then 0 else i,
+  { intros i r,
+    by_cases hr : r = 0;
+    simp [hr] },
+  rw [←finset.sum_filter_ne_zero, nat_degree_sum_eq_of_disjoint],
+  { simp_rw this, clear this,
+    rw [finset.sup_ite, finset.filter_filter],
+    have hf : (λ (a : ℕ), (monomial (a - n)) (↑(a.choose n) * p.coeff a) ≠ 0 ∧
+                ↑(a.choose n) * p.coeff a = 0) = λ a, false,
+    { simp },
+    simp_rw hf,
+    simp only [finset.filter_false, finset.sup_empty, bot_sup_eq, finset.filter_filter,
+                monomial_eq_zero_iff, ne.def, and_self, finset.filter_congr_decidable],
+    clear hf,
+    cases le_or_lt (p.nat_degree) n with hn hn,
+    { rw tsub_eq_zero_of_le hn,
+      exact nat.zero_le _ },
+    rw finset.le_sup_iff,
+    simp only [and_imp, monomial_eq_zero_iff, ne.def, and_self, finset.mem_filter],
+    { refine ⟨p.nat_degree, _, le_rfl⟩,
+      have hp : p ≠ 0,
+      { rintro rfl,
+        simpa using hn },
+      -- this is where we use the `smul_eq_zero` from `no_zero_smul_divisors`
+      simpa [←nsmul_eq_mul, hp, nat.choose_eq_zero_iff] using hn.le },
+    { simpa using hn } },
+  { refine λ x hx y hy hxy H, hxy _,
+    dsimp at H,
+    simp only [monomial_eq_zero_iff, mem_support_iff, ne.def, finset.mem_filter,
+                finset.mem_coe] at hx hy,
+    rw nat_degree_monomial _ _ hx.right at H,
+    rw nat_degree_monomial _ _ hy.right at H,
+    refine tsub_inj_left _ _ H,
+    { contrapose! hx,
+      simp [nat.choose_eq_zero_of_lt hx] },
+    { contrapose! hy,
+      simp [nat.choose_eq_zero_of_lt hy] } }
 end
 
 section

@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.polynomial.hasse_deriv
+import data.polynomial.degree.lemmas
 
 /-!
 # Taylor expansions of polynomials
@@ -61,6 +62,48 @@ by rw [taylor_coeff, hasse_deriv_zero, linear_map.id_apply]
 
 @[simp] lemma taylor_coeff_one : (taylor r f).coeff 1 = f.derivative.eval r :=
 by rw [taylor_coeff, hasse_deriv_one]
+
+lemma nat_degree_taylor_le (p : polynomial R) (r : R) :
+  nat_degree (taylor r p) ≤ nat_degree p :=
+begin
+  rw nat_degree_le_iff_coeff_eq_zero,
+  intros y hy,
+  rw [taylor_coeff, hasse_deriv_eq_zero_of_lt_nat_degree _ _ hy, eval_zero]
+end
+
+@[simp] lemma nat_degree_taylor (p : polynomial R) (r : R) :
+  nat_degree (taylor r p) = nat_degree p :=
+begin
+  refine le_antisymm (nat_degree_taylor_le _ _) _,
+  rcases eq_or_ne p 0 with rfl|hp,
+  { simp },
+  nontriviality R,
+  classical,
+  rw [taylor_apply, comp_eq_sum_left, nat_degree_le_iff_coeff_eq_zero, sum_def,
+      nat_degree_sum_eq_of_disjoint],
+  { rintros (_|y) hy,
+    { simpa using hy },
+    rw finset.sup_lt_iff (nat.zero_lt_succ _) at hy,
+    specialize hy (p.nat_degree) (nat_degree_mem_support_of_nonzero hp),
+    rw [nat_degree_mul', nat_degree_pow', nat_degree_C, zero_add, nat_degree_X_add_C,
+        mul_one] at hy,
+    { exact coeff_eq_zero_of_nat_degree_lt hy },
+    { simp },
+    { simp [hp] } },
+  { intros x hx y hy h hxy,
+    simp only [set.mem_sep_eq, mem_support_iff, ne.def, finset.mem_coe,
+               finset.coe_filter] at hx hy,
+    simp only [function.comp_app] at hxy,
+    rw [nat_degree_C_mul_eq_of_mul_ne_zero, nat_degree_C_mul_eq_of_mul_ne_zero,
+        nat_degree_pow', nat_degree_pow',
+        nat_degree_add_eq_left_of_nat_degree_lt] at hxy,
+    { simpa [h] using hxy },
+    { simp },
+    { simp },
+    { simp },
+    { simpa using hy.left },
+    { simpa using hx.left } }
+end
 
 lemma taylor_eval {R} [comm_semiring R] (r : R) (f : polynomial R) (s : R) :
   (taylor r f).eval s = f.eval (s + r) :=

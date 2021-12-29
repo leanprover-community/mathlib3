@@ -234,11 +234,7 @@ by { cases s, simp [map, cons] }
 
 @[congr] lemma map_congr {β : Type*} {f g : α → β} {s : sym α n} :
   (∀ x ∈ s, f x = g x) → map f s = map g s :=
-λ h, begin
-  rw [map, map, subtype.mk.inj_eq],
-  apply multiset.map_congr,
-  exact h,
-end
+λ h, by simpa [map, subtype.mk.inj_eq] using multiset.map_congr h
 
 /-- Mapping an equivalence `α ≃ β` using `sym.map` gives an equivalence between `sym α n` and
 `sym β n`. -/

@@ -99,8 +99,7 @@ lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ �
       { cases x, simp [sym.cons] },
       { apply h,
         cases x,
-        simp only [sym.cons],
-        apply multiset.mem_cons_self } }
+        simpa only [sym.cons] using multiset.mem_cons_self (fin.last n) x_val } }
   end }
 
 lemma multichoose1_rec (n k : ℕ) :

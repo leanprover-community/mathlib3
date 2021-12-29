@@ -434,7 +434,7 @@ rfl
 --   is_stopping_time 𝒢 (lower_crossing f a b N n) :=
 -- sorry
 
-lemma stopped_value_upper_crossing_ge {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {n : ℕ} {x : α} :
+lemma stopped_value_upper_crossing_ge (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) (n : ℕ) (x : α) :
   upper_crossing f a b N (n + 1) x = N ∨
   b ≤ stopped_value f (upper_crossing f a b N (n + 1)) x :=
 begin
@@ -451,7 +451,7 @@ begin
   rw dif_pos this,
 end
 
-lemma stopped_value_lower_crossing_le {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {n : ℕ} {x : α} :
+lemma stopped_value_lower_crossing_le (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) (n : ℕ) (x : α) :
   lower_crossing f a b N (n + 1) x = N ∨
   stopped_value f (lower_crossing f a b N (n + 1)) x ≤ a :=
 begin
@@ -514,6 +514,20 @@ begin
       exact (hlt.not_le ht).elim } }
 end
 
+lemma upper_crossing_sub_lower_crossing {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {n : ℕ} {x : α}
+  (h : upper_crossing f a b N (n + 1) x ≠ N) :
+  b - a ≤ stopped_value f (upper_crossing f a b N (n + 1)) x -
+    stopped_value f (lower_crossing f a b N (n + 1)) x :=
+begin
+  cases stopped_value_lower_crossing_le f a b N n x with heq hle,
+  { cases stopped_value_upper_crossing_ge f a b N n x with _ hle',
+    { contradiction },
+    { exact (h $ upper_crossing_stabilize_of_lower_crossing le_rfl heq).elim } },
+  { cases stopped_value_upper_crossing_ge f a b N n x with _ hle',
+    { contradiction },
+    { linarith } }
+end
+
 /-- The `t`-th upcrossing of a random process on the interval `[a, b]` is the ℕ-valued random
 variable corresponding to the maximum number of times the random process crossed above `b` before
 (not including) time `t`. -/
@@ -523,12 +537,55 @@ def upcrossing (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) : α → ℕ :=
 
 lemma upcrossing_le {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {x : α} :
   ↑(upcrossing f a b N x) * (b - a) ≤
-  stopped_value f (upper_crossing f a b N 1) x - a +
-  ∑ i in finset.Ico 2 N,
+  stopped_value f (lower_crossing f a b N 1) x - a +
+  ∑ i in finset.range N,
   (stopped_value f (upper_crossing f a b N i) x -
    stopped_value f (lower_crossing f a b N i) x) :=
 begin
-  sorry
+  set k := if h : ∃ n, n < N ∧ upper_crossing f a b N n x = N then nat.find h else 0 with hk,
+  split_ifs at hk,
+  { sorry
+
+  },
+  { sorry
+
+   }
+  -- rw ← @finset.sum_range_add_sum_Ico _ _ _ k,
+  -- { have : ∑ k in finset.Ico k N, (stopped_value f (upper_crossing f a b N k) x -
+  --     stopped_value f (lower_crossing f a b N k) x) = 0,
+  --   { sorry },
+  --   rw [this, add_zero],
+  --   have h' : ∑ i in finset.range k,
+  --     (stopped_value f (upper_crossing f a b N i) x - stopped_value f (lower_crossing f a b N i) x)
+  --   = stopped_value f (upper_crossing f a b N 1) x - stopped_value f (lower_crossing f a b N 1) x +
+  --     ∑ i in finset.Ico 2 k,
+  --     (stopped_value f (upper_crossing f a b N i) x - stopped_value f (lower_crossing f a b N i) x),
+  --   { sorry },
+  --   rw h',
+  --   clear h',
+  --   have h'' : ∑ i in finset.Ico 2 k, (b - a) ≤ ∑ i in finset.Ico 2 k,
+  --     (stopped_value f (upper_crossing f a b N i) x - stopped_value f (lower_crossing f a b N i) x),
+  --   { refine finset.sum_le_sum (λ i hi, _),
+  --     rw finset.mem_Ico at hi,
+  --     cases hi with hi₁ hi₂,
+  --     have hnonneg : i ≠ 0,
+  --     { linarith },
+  --     rcases nat.exists_eq_succ_of_ne_zero hnonneg with ⟨j, rfl⟩,
+  --     refine upper_crossing_sub_lower_crossing (λ hu, _),
+  --     split_ifs at hk,
+  --     { rw hk at hi₂,
+  --       exact nat.find_min h hi₂ ⟨lt_trans hi₂ (nat.find_spec h).1, hu⟩ },
+  --     { exact nat.not_lt_zero (j + 1) (hk ▸ hi₂) } },
+  --   ring_nf,
+  --   rw ← add_assoc,
+  --   refine le_trans _ (add_le_add le_rfl h''),
+  --   rw finset.sum_const,
+  -- },
+  -- { split_ifs at hk,
+  --   { rw hk,
+  --     exact (nat.find_spec h).1.le },
+  --   { rw hk,
+  --     exact zero_le _ } }
 end
 
 end upcrossing

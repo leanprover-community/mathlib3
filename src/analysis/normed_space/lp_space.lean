@@ -705,7 +705,7 @@ begin
   -- A Cauchy sequence in `lp E p` is pointwise convergent; let `f` be the pointwise limit.
   obtain ⟨f, hf⟩ := cauchy_seq_tendsto_of_complete (uniform_continuous_coe.comp_cauchy_seq hF),
   -- Since the Cauchy sequence is bounded, its pointwise limit `f` is in `lp E p`.
-  have hf' : mem_ℓp f p := mem_ℓp_of_tendsto hF.bounded hf,
+  have hf' : mem_ℓp f p := mem_ℓp_of_tendsto hF.bounded_range hf,
   -- And therefore `f` is its limit in the `lp E p` topology as well as pointwise.
   exact ⟨⟨f, hf'⟩, tendsto_lp_of_tendsto_pi hF hf⟩
 end

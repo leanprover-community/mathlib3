@@ -179,17 +179,82 @@ end continuous_linear_map
 
 namespace linear_map
 
-variables [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F]
+variables [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] [finite_dimensional 𝕜 G]
 local attribute [instance, priority 20] finite_dimensional.complete
 
 /-- The adjoint of an operator from the finite-dimensional inner product space E to the finite-
 dimensional inner product space F. -/
 def adjoint : (E →ₗ[𝕜] F) ≃ₗ⋆[𝕜] (F →ₗ[𝕜] E) :=
-{ to_fun := λ A, continuous_linear_map.adjoint A.to_continuous_linear_map,
-  inv_fun := λ A, continuous_linear_map.adjoint.symm A.to_continuous_linear_map,
-  map_add' := λ A B, by simp only [map_add, linear_isometry_equiv.map_add, coe_add],
-  map_smul' := λ r A, by simp only [linear_equiv.map_smulₛₗ, linear_isometry_equiv.map_smulₛₗ, continuous_linear_map.coe_smul, ring_hom.id_apply],
-  left_inv := λ A, by { sorry },
-  right_inv := sorry }
+  (linear_map.to_continuous_linear_map.trans continuous_linear_map.adjoint.to_linear_equiv).trans
+    linear_map.to_continuous_linear_map.symm
+
+lemma adjoint_to_continuous_linear_map (A : E →ₗ[𝕜] F) :
+  (adjoint A).to_continuous_linear_map = A.to_continuous_linear_map.adjoint := rfl
+
+@[simp] lemma adjoint_coe_eq (A : E →ₗ[𝕜] F) :
+  adjoint (A.to_continuous_linear_map : E →ₗ[𝕜] F) = A.to_continuous_linear_map.adjoint := rfl
+
+/-- The fundamental property of the adjoint. -/
+lemma adjoint_inner_left (A : E →ₗ[𝕜] F) (x : E) (y : F) : ⟪adjoint A y, x⟫ = ⟪y, A x⟫ :=
+begin
+  rw [←coe_to_continuous_linear_map A, adjoint_coe_eq],
+  exact continuous_linear_map.adjoint_inner_left _ x y,
+end
+
+/-- The fundamental property of the adjoint. -/
+lemma adjoint_inner_right (A : E →ₗ[𝕜] F) (x : E) (y : F) : ⟪x, adjoint A y⟫ = ⟪A x, y⟫ :=
+begin
+  rw [←coe_to_continuous_linear_map A, adjoint_coe_eq],
+  exact continuous_linear_map.adjoint_inner_right _ x y,
+end
+
+/-- The adjoint is involutive -/
+@[simp] lemma adjoint_adjoint (A : E →ₗ[𝕜] F) : adjoint (adjoint A) = A :=
+begin
+  ext v,
+  refine ext_inner_left 𝕜 (λ w, _),
+  rw [adjoint_inner_right, adjoint_inner_left],
+end
+
+/-- The adjoint of the composition of two operators is the composition of the two adjoints
+in reverse order. -/
+@[simp] lemma adjoint_comp (A : F →ₗ[𝕜] G) (B : E →ₗ[𝕜] F) :
+  adjoint (A ∘ₗ B) = (adjoint B) ∘ₗ (adjoint A) :=
+begin
+  ext v,
+  refine ext_inner_left 𝕜 (λ w, _),
+  simp only [adjoint_inner_right, linear_map.coe_comp, function.comp_app],
+end
+
+/-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
+for all `x` and `y`. -/
+lemma eq_adjoint_iff (A : E →ₗ[𝕜] F) (B : F →ₗ[𝕜] E) :
+  A = adjoint B ↔ (∀ x y, ⟪A x, y⟫ = ⟪x, B y⟫) :=
+begin
+  refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
+  ext x,
+  exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
+end
+
+/-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
+instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
+instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩
+instance : star_monoid (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
+instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
+
+lemma star_eq_adjoint (A : E →ₗ[𝕜] E) : star A = A.adjoint := rfl
+
+section real
+
+variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
+variables [finite_dimensional ℝ E'] [finite_dimensional ℝ F']
+
+lemma is_adjoint_pair (A : E' →ₗ[ℝ] F') :
+  bilin_form.is_adjoint_pair (bilin_form_of_real_inner : bilin_form ℝ E')
+  (bilin_form_of_real_inner : bilin_form ℝ F') A A.adjoint :=
+λ x y, by simp only [adjoint_inner_right, bilin_form_of_real_inner_apply]
+
+end real
 
 end linear_map

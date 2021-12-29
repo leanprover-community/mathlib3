@@ -42,6 +42,9 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite :=
 by simp [infinite]
 
+/-- See also `fintype_or_infinite`. -/
+lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em _
+
 @[simp] theorem finite.mem_to_finset {s : set α} (h : finite s) {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
 
@@ -321,6 +324,10 @@ h.inter_of_left t
 
 theorem finite.inf_of_right {s : set α} (h : finite s) (t : set α) : finite (t ⊓ s) :=
 h.inter_of_right t
+
+lemma finite.sInter {α : Type*} {s : set (set α)} {t : set α} (ht : t ∈ s)
+  (hf : t.finite) : (⋂₀s).finite :=
+hf.subset (sInter_subset_of_mem ht)
 
 protected theorem infinite.mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
 mt (λ ht, ht.subset h)

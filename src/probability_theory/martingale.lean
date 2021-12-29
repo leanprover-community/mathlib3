@@ -466,6 +466,54 @@ begin
   rw dif_pos this,
 end
 
+lemma upper_crossing_stabilize {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {n m : ℕ} (hnm : n ≤ m) {x : α}
+  (h : upper_crossing f a b N n x = N) : upper_crossing f a b N m x = N :=
+begin
+  induction hnm with k _ ih,
+  { assumption },
+  { rw upper_crossing_succ,
+    dsimp,
+    rw dif_neg,
+    push_neg,
+    intros t ht hlt,
+    rw [ih, dif_neg] at hlt,
+    { exact (hlt.not_le ht).elim },
+    { push_neg,
+      intros s hs hls,
+      exact (hls.not_le hs).elim } }
+end
+
+lemma upper_crossing_stabilize_of_lower_crossing
+  {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {n m : ℕ} (hnm : n ≤ m) {x : α}
+  (h : lower_crossing f a b N n x = N) : upper_crossing f a b N m x = N :=
+begin
+  induction hnm with k _ ih,
+  { induction n with k ih,
+    { rw lower_crossing_zero at h,
+      rwa upper_crossing_zero },
+    { rw upper_crossing_succ_eq_dite_lower_crossing,
+      dsimp,
+      rw [h, dif_neg],
+      push_neg,
+      intros t ht hlt,
+      exact (hlt.not_le ht).elim } },
+  { exact upper_crossing_stabilize (nat.le_succ _) ih }
+end
+
+lemma lower_crossing_stabilize {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {n m : ℕ} (hnm : n ≤ m) {x : α}
+  (h : lower_crossing f a b N n x = N) : lower_crossing f a b N m x = N :=
+begin
+  induction hnm with k _ ih,
+  { assumption },
+  { rw lower_crossing_succ,
+    dsimp,
+    rw dif_neg,
+    { rw upper_crossing_stabilize_of_lower_crossing le_rfl ih,
+      push_neg,
+      intros t ht hlt,
+      exact (hlt.not_le ht).elim } }
+end
+
 /-- The `t`-th upcrossing of a random process on the interval `[a, b]` is the ℕ-valued random
 variable corresponding to the maximum number of times the random process crossed above `b` before
 (not including) time `t`. -/
@@ -473,9 +521,15 @@ noncomputable
 def upcrossing (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) : α → ℕ :=
 λ x, Sup {n | upper_crossing f a b N n x < N}
 
--- lemma upcrossing_le {f : ℕ → α → ℝ} (hf : adapted 𝒢 f) {a b : ℝ} {N : ℕ} {x : α} :
---   ↑(upcrossing f a b N x) * (b - a) =
---   ∑ i in finset.range N, stopped_value
+lemma upcrossing_le {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {x : α} :
+  ↑(upcrossing f a b N x) * (b - a) ≤
+  stopped_value f (upper_crossing f a b N 1) x - a +
+  ∑ i in finset.Ico 2 N,
+  (stopped_value f (upper_crossing f a b N i) x -
+   stopped_value f (lower_crossing f a b N i) x) :=
+begin
+  sorry
+end
 
 end upcrossing
 

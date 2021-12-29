@@ -32,7 +32,7 @@ open category_theory
 open category_theory.functor
 open category_theory.limits
 
-universes v₁ v₂ v v₀ u₁ u₂ u
+universes v u v₁ v₂ v₀ u₁ u₂
 
 section arbitrary_universe
 
@@ -86,7 +86,7 @@ A left adjoint preserves colimits.
 
 See https://stacks.math.columbia.edu/tag/0038.
 -/
-def left_adjoint_preserves_colimits : preserves_colimits_of_size F :=
+def left_adjoint_preserves_colimits : preserves_colimits_of_size.{v u} F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ F,
     by exactI
@@ -196,7 +196,7 @@ A right adjoint preserves limits.
 
 See https://stacks.math.columbia.edu/tag/0038.
 -/
-def right_adjoint_preserves_limits : preserves_limits_of_size G :=
+def right_adjoint_preserves_limits : preserves_limits_of_size.{v u} G :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ K,
     by exactI

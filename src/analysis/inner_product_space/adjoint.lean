@@ -19,10 +19,17 @@ operation.
 This construction is used to define an adjoint for linear maps (i.e. not continuous) between
 finite dimensional spaces.
 
+## Main definitions
+
+* `continuous_linear_map.adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E)`: the adjoint of a continuous
+  linear map, bundled as a conjugate-linear isometric equivalence.
+* `linear_map.adjoint : (E →ₗ[𝕜] F) ≃ₗ⋆[𝕜] (F →ₗ[𝕜] E)`: the adjoint of a linear map between
+  finite-dimensional spaces, this time only as a linear isometric equivalence, since there is no
+  norm defined on these maps.
+
 ## Implementation notes
 
-* The adjoint is defined as a conjugate-linear isometric equivalence between `E →L[𝕜] F` and
-  `F →L[𝕜] E`. The continuous conjugate-linear version `adjoint_aux` is only an intermediate
+* The continuous conjugate-linear version `adjoint_aux` is only an intermediate
   definition and is not meant to be used outside this file.
 
 ## Tags
@@ -196,7 +203,6 @@ lemma adjoint_to_continuous_linear_map (A : E →ₗ[𝕜] F) :
 
 lemma adjoint_eq_to_clm_adjoint (A : E →ₗ[𝕜] F) :
   A.adjoint = A.to_continuous_linear_map.adjoint := rfl
-
 
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_inner_left (A : E →ₗ[𝕜] F) (x : E) (y : F) : ⟪adjoint A y, x⟫ = ⟪y, A x⟫ :=

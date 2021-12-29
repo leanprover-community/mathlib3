@@ -60,8 +60,8 @@ end
 @[simp, norm_cast] lemma pochhammer_eval_cast (n k : ℕ) :
   ((pochhammer ℕ n).eval k : S) = (pochhammer S n).eval k :=
 begin
-  rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←(algebra_map ℕ S).eq_nat_cast,
-    eval₂_at_nat_cast, nat.cast_id, ring_hom.eq_nat_cast],
+  rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←eq_nat_cast (algebra_map ℕ S),
+    eval₂_at_nat_cast, nat.cast_id, eq_nat_cast],
 end
 
 lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=

@@ -105,7 +105,7 @@ variables {R} {S : Type*} [comm_ring S]
 begin
   rw [witt_polynomial, ring_hom.map_sum, witt_polynomial, sum_congr rfl],
   intros i hi,
-  rw [map_monomial, ring_hom.map_pow, ring_hom.map_nat_cast],
+  rw [map_monomial, ring_hom.map_pow, map_nat_cast],
 end
 
 variables (R)

@@ -555,7 +555,7 @@ begin
   let f := algebra_map R (fraction_ring R),
   have hf : function.injective f := is_localization.injective _ le_rfl,
   rw [←is_root_map_iff hf, ←is_primitive_root.map_iff_of_injective hf, map_cyclotomic,
-      ←is_root_cyclotomic_iff' $ by simpa only [f.map_nat_cast, hn] using f.injective_iff.mp hf n]
+      ←is_root_cyclotomic_iff' $ by simpa only [map_nat_cast f, hn] using f.injective_iff.mp hf n]
 end
 
 lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] {n : ℕ} (hpos: 0 < n)
@@ -654,7 +654,7 @@ begin
   rw [hprime.1.coprime_iff_not_dvd],
   intro h,
   replace h := (zmod.nat_coe_zmod_eq_zero_iff_dvd a p).2 h,
-  rw [is_root.def, ring_hom.eq_nat_cast, h, ← coeff_zero_eq_eval_zero] at hroot,
+  rw [is_root.def, eq_nat_cast, h, ← coeff_zero_eq_eval_zero] at hroot,
   by_cases hone : n = 1,
   { simp only [hone, cyclotomic_one, zero_sub, coeff_one_zero, coeff_X_zero, neg_eq_zero,
     one_ne_zero, coeff_sub] at hroot,
@@ -676,7 +676,7 @@ lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.pr
 begin
   apply order_of_dvd_of_pow_eq_one,
   suffices hpow : eval (nat.cast_ring_hom (zmod p) a) (X ^ n - 1 : polynomial (zmod p)) = 0,
-  { simp only [eval_X, eval_one, eval_pow, eval_sub, ring_hom.eq_nat_cast] at hpow,
+  { simp only [eval_X, eval_one, eval_pow, eval_sub, eq_nat_cast] at hpow,
     apply units.coe_eq_one.1,
     simp only [sub_eq_zero.mp hpow, zmod.coe_unit_of_coprime, units.coe_pow] },
   rw [is_root.def] at hroot,

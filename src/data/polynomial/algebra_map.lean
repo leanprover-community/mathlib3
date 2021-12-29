@@ -189,7 +189,7 @@ alg_hom.map_bit0 _ _
 alg_hom.map_bit1 _ _
 
 @[simp] lemma aeval_nat_cast (n : ℕ) : aeval x (n : polynomial R) = n :=
-alg_hom.map_nat_cast _ _
+map_nat_cast _ _
 
 lemma aeval_mul : aeval x (p * q) = aeval x p * aeval x q :=
 alg_hom.map_mul _ _ _

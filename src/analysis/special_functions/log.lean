@@ -209,8 +209,8 @@ end
 
 open_locale big_operators
 
-lemma sum_log_eq_log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
-  ∑ i in s, log (f i) = log (∏ i in s, f i) :=
+lemma log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
+  log (∏ i in s, f i) = ∑ i in s, log (f i) :=
 begin
   classical,
   induction s using finset.induction_on with a s ha ih,

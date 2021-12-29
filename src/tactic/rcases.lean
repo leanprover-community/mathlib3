@@ -594,28 +594,55 @@ patt_hi ::= id | "rfl" | "_" | "⟨" (patt ",")* patt "⟩" | "(" patt ")"
 ```
 -/
 meta mutual def
-  rcases_patt_parse_hi, rcases_patt_parse, rcases_patt_parse_list, rcases_patt_parse_list_rest
-with rcases_patt_parse_hi : parser rcases_patt
-| x := with_desc "patt_hi"
-  ((brackets "(" ")" rcases_patt_parse) <|>
-  (rcases_patt.tuple <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_patt_parse)) <|>
+  rcases_patt_parse_hi', rcases_patt_parse', rcases_patt_parse_list', rcases_patt_parse_list_rest
+with rcases_patt_parse_hi' : parser rcases_patt
+| x := ((brackets "(" ")" rcases_patt_parse') <|>
+  (rcases_patt.tuple <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_patt_parse')) <|>
   (tk "-" $> rcases_patt.clear) <|>
   (rcases_patt.one <$> ident_)) x
 
-with rcases_patt_parse : parser rcases_patt
-| x := with_desc "patt" (do
-  pat ← rcases_patt.alts' <$> rcases_patt_parse_list,
+with rcases_patt_parse' : parser rcases_patt
+| x := (do
+  pat ← rcases_patt.alts' <$> rcases_patt_parse_list',
   (tk ":" *> pat.typed <$> texpr) <|> pure pat) x
 
-with rcases_patt_parse_list : parser (listΣ rcases_patt)
-| x := (with_desc "patt_med" $ rcases_patt_parse_hi >>= rcases_patt_parse_list_rest) x
+with rcases_patt_parse_list' : parser (listΣ rcases_patt)
+| x := (rcases_patt_parse_hi' >>= rcases_patt_parse_list_rest) x
 
 with rcases_patt_parse_list_rest : rcases_patt → parser (listΣ rcases_patt)
 | pat :=
-  (tk "|" *> list.cons pat <$> rcases_patt_parse_list) <|>
+  (tk "|" *> list.cons pat <$> rcases_patt_parse_list') <|>
   -- hack to support `-|-` patterns, because `|-` is a token
   (tk "|-" *> list.cons pat <$> rcases_patt_parse_list_rest rcases_patt.clear) <|>
   pure [pat]
+
+/-- `rcases_patt_parse_hi` will parse a high precedence `rcases` pattern, `patt_hi`.
+This means only tuples and identifiers are allowed; alternations and type ascriptions
+require `(...)` instead, which switches to `patt`.
+```lean
+patt_hi ::= id | "rfl" | "_" | "⟨" (patt ",")* patt "⟩" | "(" patt ")"
+```
+-/
+meta def rcases_patt_parse_hi := with_desc "patt_hi" rcases_patt_parse_hi'
+
+/-- `rcases_patt_parse` will parse a low precedence `rcases` pattern, `patt`. This consists of a
+`patt_med` (which deals with alternations), optionally followed by a `: ty` type ascription. The
+expression `ty` is at `texpr` precedence because it can appear at the end of a tactic, for
+example in `rcases e with x : ty <|> skip`.
+```lean
+patt ::= patt_med (":" expr)?
+```
+-/
+meta def rcases_patt_parse := with_desc "patt" rcases_patt_parse'
+
+/-- `rcases_patt_parse_list` will parse an alternation list, `patt_med`, one or more `patt`
+patterns separated by `|`. It does not parse a `:` at the end, so that `a | b : ty` parses as
+`(a | b) : ty` where `a | b` is the `patt_med` part.
+```lean
+patt_med ::= (patt_hi "|")* patt_hi
+```
+-/
+meta def rcases_patt_parse_list := with_desc "patt_med" rcases_patt_parse_list'
 
 /-- Parse the optional depth argument `(: n)?` of `rcases?` and `rintro?`, with default depth 5. -/
 meta def rcases_parse_depth : parser nat :=
@@ -680,14 +707,13 @@ rintro_patt_low ::= rintro_patt_hi* (":" expr)?
 rintro_patt_hi ::= patt_hi | "(" rintro_patt ")"
 ```
 -/
-meta mutual def rintro_patt_parse_hi, rintro_patt_parse'
-with rintro_patt_parse_hi : parser (listΠ rcases_patt)
-| x := (with_desc "rintro_patt_hi" $
-  brackets "(" ")" (rintro_patt_parse' tt) <|>
+meta mutual def rintro_patt_parse_hi', rintro_patt_parse'
+with rintro_patt_parse_hi' : parser (listΠ rcases_patt)
+| x := (brackets "(" ")" (rintro_patt_parse' tt) <|>
   (do p ← rcases_patt_parse_hi, pure [p])) x
 with rintro_patt_parse' : bool → parser (listΠ rcases_patt)
 | med := do
-  ll ← rintro_patt_parse_hi*,
+  ll ← rintro_patt_parse_hi'*,
   pats ← match med, ll.join with
   | tt, [] := failure
   | tt, [pat] := do l ← rcases_patt_parse_list_rest pat, pure [rcases_patt.alts' l]
@@ -697,16 +723,32 @@ with rintro_patt_parse' : bool → parser (listΠ rcases_patt)
   pure pats
 
 /--
+`rintro_patt_parse_hi` will parse a high precedence `rcases` pattern, `rintro_patt_hi` below.
+This means only tuples and identifiers are allowed; alternations and type ascriptions
+require `(...)` instead, which switches to `patt`.
+```lean
+rintro_patt_hi ::= patt_hi | "(" rintro_patt ")"
+```
+-/
+meta def rintro_patt_parse_hi := with_desc "rintro_patt_hi" rintro_patt_parse_hi'
+
+/--
 `rintro_patt_parse` will parse a low precedence `rcases` pattern, `rintro_patt` below.
 This consists of either a sequence of patterns `p1 p2 p3` or an alternation list `p1 | p2 | p3`
 treated as a single pattern, optionally followed by a `: ty` type ascription, which applies to
 every pattern in the list.
+```lean
+rintro_patt ::= (rintro_patt_hi+ | patt_med) (":" expr)?
+```
 -/
 meta def rintro_patt_parse := with_desc "rintro_patt" $ rintro_patt_parse' tt
 
 /--
 `rintro_patt_parse_low` parses `rintro_patt_low`, which is the same as `rintro_patt_parse tt` but
 it does not permit an unparenthesized alternation list, it must have the form `p1 p2 p3 (: ty)?`.
+```lean
+rintro_patt_low ::= rintro_patt_hi* (":" expr)?
+```
 -/
 meta def rintro_patt_parse_low := with_desc "rintro_patt_low" $ rintro_patt_parse' ff
 

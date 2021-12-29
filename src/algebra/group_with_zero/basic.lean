@@ -774,9 +774,6 @@ by rw [div_eq_mul_inv, zero_mul]
 @[simp] lemma div_zero (a : G₀) : a / 0 = 0 :=
 by rw [div_eq_mul_inv, inv_zero, mul_zero]
 
-lemma div_self_mem_zero_one (a : G₀) : a / a ∈ ({0, 1} : set G₀) :=
-by { rcases eq_or_ne a 0 with rfl|ha, exacts [or.inl (zero_div _), or.inr (div_self ha)] }
-
 @[simp] lemma div_mul_cancel (a : G₀) {b : G₀} (h : b ≠ 0) : a / b * b = a :=
 by rw [div_eq_mul_inv, inv_mul_cancel_right₀ h a]
 

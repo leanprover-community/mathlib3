@@ -1,5 +1,6 @@
 import category_theory.sites.sheafification
 import category_theory.limits.functor_category
+import category_theory.limits.filtered_colimit_commutes_finite_limit
 
 namespace category_theory.grothendieck_topology
 
@@ -86,6 +87,90 @@ begin
     colimit_obj_iso_colimit_comp_evaluation_ι_app_hom_assoc,
     colimit.ι_desc],
   refl,
+end
+
+variables [concrete_category.{max v u} D]
+variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
+
+instance plus_functor_preserves_limits_of_shape (K : Type (max v u))
+  [small_category K] [fin_category K] [has_limits_of_shape K D]
+  [preserves_limits_of_shape K (forget D)]
+  [reflects_limits_of_shape K (forget D)] :
+  preserves_limits_of_shape K (J.plus_functor D) :=
+begin
+  constructor, intros F, apply preserves_limit_of_evaluation, intros X,
+  apply preserves_limit_of_preserves_limit_cone (limit.is_limit F),
+  refine ⟨λ S, _, _, _⟩,
+  { dsimp [plus_obj],
+    let e := colimit_limit_iso (F ⋙ J.diagram_functor D X.unop),
+    let t : J.diagram (limit F) (unop X) ≅ limit (F ⋙ J.diagram_functor D X.unop) :=
+      (is_limit_of_preserves (J.diagram_functor D X.unop)
+      (limit.is_limit _)).cone_point_unique_up_to_iso (limit.is_limit _),
+    let p : (J.plus_obj (limit F)).obj X ≅ colimit (limit (F ⋙ J.diagram_functor D X.unop)) :=
+      has_colimit.iso_of_nat_iso t,
+    refine limit.lift _ S ≫ (has_limit.iso_of_nat_iso _).hom ≫ e.inv ≫ p.inv,
+    refine nat_iso.of_components (λ k, _) _,
+    { dsimp [plus_obj],
+      let w : (colimit (F ⋙ J.diagram_functor D (unop X)).flip).obj k ≅
+        colimit ((F ⋙ J.diagram_functor D X.unop).flip ⋙ (evaluation _ _).obj k) :=
+        colimit_obj_iso_colimit_comp_evaluation _ _,
+      refine w.symm },
+    { intros i j f,
+      ext w,
+      dsimp [plus_map],
+      erw [colimit.ι_map_assoc, colimit_obj_iso_colimit_comp_evaluation_ι_inv
+        ((F ⋙ J.diagram_functor D (unop X)).flip) w j,
+        colimit_obj_iso_colimit_comp_evaluation_ι_inv_assoc
+        ((F ⋙ J.diagram_functor D (unop X)).flip) w i],
+      rw ← (colimit.ι (F ⋙ J.diagram_functor D (unop X)).flip w).naturality,
+      refl } },
+  { intros S k,
+    dsimp,
+    rw [← (limit.is_limit (F ⋙ J.plus_functor D ⋙ (evaluation Cᵒᵖ D).obj X)).fac S k,
+      category.assoc],
+    congr' 1,
+    dsimp,
+    simp only [category.assoc],
+    rw [← iso.eq_inv_comp, iso.inv_comp_eq, iso.inv_comp_eq],
+    ext,
+    dsimp [plus_map],
+    simp only [has_colimit.iso_of_nat_iso_ι_hom_assoc, ι_colim_map],
+    dsimp [is_limit.cone_point_unique_up_to_iso, has_limit.iso_of_nat_iso,
+      is_limit.map],
+    rw limit.lift_π,
+    dsimp,
+    rw ι_colimit_limit_iso_limit_π_assoc,
+    simp_rw [← nat_trans.comp_app, ← category.assoc, ← nat_trans.comp_app],
+    rw limit.lift_π,
+    dsimp,
+    congr' 1,
+    rw ← nat_trans.comp_app,
+    dsimp [-nat_trans.comp_app, nat_iso.of_components],
+    dsimp,
+    simpa },
+  { intros S m hm,
+    dsimp,
+    simp_rw ← category.assoc,
+    simp_rw iso.eq_comp_inv,
+    rw ← iso.comp_inv_eq,
+    ext,
+    dsimp,
+    simp only [limit.lift_π, category.assoc],
+    rw ← hm,
+    congr' 1,
+    ext,
+    dsimp [plus_map, plus_obj],
+    erw colimit.ι_map,
+    erw [colimit.ι_desc_assoc, limit.lift_π],
+    dsimp,
+    simp only [category.assoc],
+    rw ι_colimit_limit_iso_limit_π_assoc,
+    dsimp,
+    simp only [nat_iso.of_components.inv_app,
+      colimit_obj_iso_colimit_comp_evaluation_ι_app_hom, iso.symm_inv],
+    dsimp [is_limit.cone_point_unique_up_to_iso],
+    rw [← category.assoc, ← nat_trans.comp_app, limit.lift_π],
+    refl }
 end
 
 end category_theory.grothendieck_topology

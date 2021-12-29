@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.dfinsupp.basic
-import data.finsupp.order
 
 /-!
 # Pointwise order on finitely supported dependent functions
@@ -13,10 +12,8 @@ This file lifts order structures on the `α i` to `Π₀ i, α i`.
 
 ## Main declarations
 
-* `dfinsupp.order_embedding_to_fun`: The order embedding from finitely supported functions to
-  functions.
-* `dfinsupp.order_iso_multiset`: The order isomorphism between `ℕ`-valued finitely supported
-  functions and multisets.
+* `dfinsupp.order_embedding_to_fun`: The order embedding from finitely supported dependent functions
+  to functions.
 
 ## TODO
 
@@ -105,7 +102,8 @@ end has_zero
 
 /-! ### Algebraic order structures -/
 
-instance (α : ι → Type*) [Π i, ordered_add_comm_monoid (α i)] : ordered_add_comm_monoid (Π₀ i, α i) :=
+instance (α : ι → Type*) [Π i, ordered_add_comm_monoid (α i)] :
+  ordered_add_comm_monoid (Π₀ i, α i) :=
 { add_le_add_left := λ a b h c i,
     by { rw [add_apply, add_apply], exact add_le_add_left (h i) (c i) },
   .. dfinsupp.add_comm_monoid, .. dfinsupp.partial_order α }

@@ -44,8 +44,8 @@ lemma of_gt  [canonically_ordered_add_monoid M] (h : x < y) : ne_zero y := of_po
 instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zero (n : M) :=
 ⟨nat.cast_ne_zero.mpr $ ne_zero.ne n⟩
 
-instance invertible [monoid_with_zero M] [nontrivial M] [invertible x] : ne_zero x :=
-⟨nonzero_of_invertible x⟩
+@[priority 100] instance invertible [monoid_with_zero M] [nontrivial M] [invertible x] :
+  ne_zero x := ⟨nonzero_of_invertible x⟩
 
 lemma of_map [has_zero R] [has_zero M] [zero_hom_class F R M] (f : F) [ne_zero (f r)] :
   ne_zero r := ⟨λ h, ne (f r) $ by convert map_zero f⟩

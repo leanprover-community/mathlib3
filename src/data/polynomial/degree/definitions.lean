@@ -198,9 +198,13 @@ nat_degree_eq_of_degree_eq_some (degree_C_mul_X_pow n ha)
 @[simp] lemma nat_degree_C_mul_X (a : R) (ha : a ≠ 0) : nat_degree (C a * X) = 1 :=
 by simpa only [pow_one] using nat_degree_C_mul_X_pow 1 a ha
 
-@[simp] lemma nat_degree_monomial (i : ℕ) (r : R) (hr : r ≠ 0) :
-  nat_degree (monomial i r) = i :=
-by rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr]
+@[simp] lemma nat_degree_monomial [decidable_eq R] (i : ℕ) (r : R)  :
+  nat_degree (monomial i r) = if r = 0 then 0 else i :=
+begin
+  split_ifs with hr,
+  { simp [hr] },
+  { rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr] }
+end
 
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
@@ -564,7 +568,7 @@ lemma degree_pow_le (p : polynomial R) : ∀ (n : ℕ), degree (p ^ n) ≤ n •
 begin
   by_cases ha : a = 0,
   { simp only [ha, (monomial n).map_zero, leading_coeff_zero] },
-  { rw [leading_coeff, nat_degree_monomial _ _ ha, coeff_monomial], simp }
+  { rw [leading_coeff, nat_degree_monomial, if_neg ha, coeff_monomial], simp }
 end
 
 lemma leading_coeff_C_mul_X_pow (a : R) (n : ℕ) : leading_coeff (C a * X ^ n) = a :=

@@ -407,7 +407,7 @@ end
 
 /-- The coefficient of `m` in the `i`-th coefficient of `fin_succ_equiv R n f` equals the
     coefficient of `finsupp.cons i m` in `f`. -/
-@[simp] lemma fin_succ_equiv_coeff_coeff {n : ℕ} (m : fin n →₀  ℕ)
+@[simp, priority 1100] lemma fin_succ_equiv_coeff_coeff {n : ℕ} (m : fin n →₀  ℕ)
   (f : mv_polynomial (fin (n + 1)) R) (i : ℕ) :
   coeff m (polynomial.coeff (fin_succ_equiv R n f) i) = coeff (finsupp.cons i m) f :=
 begin

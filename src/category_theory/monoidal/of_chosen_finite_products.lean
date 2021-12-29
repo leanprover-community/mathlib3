@@ -172,7 +172,7 @@ Construct a left unitor from specified limit cones.
 -/
 @[simps]
 def binary_fan.left_unitor
-  {X : C} {s : cone (functor.empty C)} (P : is_limit s) {t : binary_fan s.X X} (Q : is_limit t) :
+  {X : C} {s : cone (functor.empty.{v} C)} (P : is_limit s) {t : binary_fan s.X X} (Q : is_limit t) :
   t.X ≅ X :=
 { hom := t.snd,
   inv := Q.lift (binary_fan.mk (P.lift { X := X, π := { app := pempty.rec _ } }) (𝟙 X) ),
@@ -183,7 +183,7 @@ Construct a right unitor from specified limit cones.
 -/
 @[simps]
 def binary_fan.right_unitor
-  {X : C} {s : cone (functor.empty C)} (P : is_limit s) {t : binary_fan X s.X} (Q : is_limit t) :
+  {X : C} {s : cone (functor.empty.{v} C)} (P : is_limit s) {t : binary_fan X s.X} (Q : is_limit t) :
   t.X ≅ X :=
 { hom := t.fst,
   inv := Q.lift (binary_fan.mk (𝟙 X) (P.lift { X := X, π := { app := pempty.rec _ } })),
@@ -199,7 +199,7 @@ section
 local attribute [tidy] tactic.case_bash
 
 variables {C}
-variables (𝒯 : limit_cone (functor.empty C))
+variables (𝒯 : limit_cone (functor.empty.{v} C))
 variables (ℬ : Π (X Y : C), limit_cone (pair X Y))
 
 namespace monoidal_of_chosen_finite_products
@@ -319,7 +319,7 @@ This is an implementation detail for `symmetric_of_chosen_finite_products`.
 -/
 @[derive category, nolint unused_arguments has_inhabited_instance]
 def monoidal_of_chosen_finite_products_synonym
-  (𝒯 : limit_cone (functor.empty C)) (ℬ : Π (X Y : C), limit_cone (pair X Y)):= C
+  (𝒯 : limit_cone (functor.empty.{v} C)) (ℬ : Π (X Y : C), limit_cone (pair X Y)):= C
 
 instance : monoidal_category (monoidal_of_chosen_finite_products_synonym 𝒯 ℬ) :=
 monoidal_of_chosen_finite_products 𝒯 ℬ

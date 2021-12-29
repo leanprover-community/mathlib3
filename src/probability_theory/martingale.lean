@@ -368,63 +368,113 @@ The main idea we need from the definition of upcrossing is:
 To define upcrossing, we consider the following stopping times.
 -/
 
+-- **Update doc string**
 /-- The upper crossing of a random process on the interval `[a, b]` before time `n + 1` is the
 ℕ-valued random variable corresponding to the first time the process is above `b` after the
 `n + 1`-th lower crossing. -/
 noncomputable
-def upper_crossing (f : ℕ → α → ℝ) (a b : ℝ) : ℕ → α → ℕ
+def upper_crossing (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) : ℕ → α → ℕ
 | 0 x := 0
 | (n + 1) x := if h : ∃ s,
-  (if h : ∃ t, upper_crossing n x < t ∧ f t x ≤ a then nat.find h else (n + 1)) < s ∧ b ≤ f s x
-  then nat.find h else (n + 1)
+  (if h : ∃ t, upper_crossing n x < t ∧ f t x ≤ a then nat.find h else N) < s ∧ b ≤ f s x
+  then nat.find h else N
 
-lemma upper_crossing_zero {f : ℕ → α → ℝ} {a b : ℝ} :
-  upper_crossing f a b 0 = 0 :=
+lemma upper_crossing_zero {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} :
+  upper_crossing f a b N 0 = 0 :=
 rfl
 
-lemma upper_crossing_succ {f : ℕ → α → ℝ} {a b : ℝ} (n : ℕ) :
-  upper_crossing f a b (n + 1) =
+lemma upper_crossing_succ {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} (n : ℕ) :
+  upper_crossing f a b N (n + 1) =
   λ x, if h : ∃ s,
-      (if h : ∃ t, upper_crossing f a b n x < t ∧ f t x ≤ a then nat.find h else (n + 1)) < s ∧
+      (if h : ∃ t, upper_crossing f a b N n x < t ∧ f t x ≤ a then nat.find h else N) < s ∧
         b ≤ f s x
-    then nat.find h else (n + 1) :=
+    then nat.find h else N :=
 by { ext x, dsimp [upper_crossing], refl } -- `refl` without `dsimp` only does not work
 
 /-- The lower crossing of a random process on the interval `[a, b]` before time `n + 1` is the
 ℕ-valued random variable corresponding to the first time the process is below `a` after the
 `n`-th upper crossing. -/
 noncomputable
-def lower_crossing (f : ℕ → α → ℝ) (a b : ℝ) : ℕ → α → ℕ
+def lower_crossing (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) : ℕ → α → ℕ
 | 0 x := 0
-| (n + 1) x := if h : ∃ t, upper_crossing f a b n x < t ∧ f t x ≤ a
-  then nat.find h else (n + 1)
+| (n + 1) x := if h : ∃ t, upper_crossing f a b N n x < t ∧ f t x ≤ a
+  then nat.find h else N
 
-lemma upper_crossing_succ_eq_dite_lower_crossing {f : ℕ → α → ℝ} {a b : ℝ} (n : ℕ) :
-  upper_crossing f a b (n + 1) =
-  λ x, if h : ∃ s, lower_crossing f a b (n + 1) x < s ∧ b ≤ f s x then nat.find h else (n + 1) :=
+lemma upper_crossing_succ_eq_dite_lower_crossing {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} (n : ℕ) :
+  upper_crossing f a b N (n + 1) =
+  λ x, if h : ∃ s, lower_crossing f a b N (n + 1) x < s ∧ b ≤ f s x then nat.find h else N :=
 begin
   ext x,
   rw upper_crossing_succ,
   refl,
 end
 
-lemma upper_crossing_is_stopping_time {f : ℕ → α → ℝ} (hf : adapted 𝒢 f) {a b : ℝ} {n : ℕ} :
-  is_stopping_time 𝒢 (upper_crossing f a b n) :=
+lemma lower_crossing_zero {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} :
+  lower_crossing f a b N 0 = 0 :=
+rfl
+
+lemma lower_crossing_succ {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} (n : ℕ) :
+  lower_crossing f a b N (n + 1) =
+  λ x, if h : ∃ t, upper_crossing f a b N n x < t ∧ f t x ≤ a then nat.find h else N :=
+rfl
+
+-- lemma upper_crossing_is_stopping_time {f : ℕ → α → ℝ} (hf : adapted 𝒢 f) {a b : ℝ} {N : ℕ} {n : ℕ} :
+--   is_stopping_time 𝒢 (upper_crossing f a b N n) :=
+-- begin
+--   intro i,
+--   induction n with k ih,
+--   { simp [upper_crossing_zero] },
+--   { rw upper_crossing_succ,
+--     sorry,
+--   }
+-- end
+
+-- lemma lower_crossing_is_stopping_time {f : ℕ → α → ℝ} (hf : adapted 𝒢 f) {a b : ℝ} {N : ℕ} {n : ℕ} :
+--   is_stopping_time 𝒢 (lower_crossing f a b N n) :=
+-- sorry
+
+lemma stopped_value_upper_crossing_ge {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {n : ℕ} {x : α} :
+  upper_crossing f a b N (n + 1) x = N ∨
+  b ≤ stopped_value f (upper_crossing f a b N (n + 1)) x :=
 begin
-  intro i,
-  induction n with k ih,
-  { simp [upper_crossing_zero] },
-  { rw upper_crossing_succ,
-    sorry,
-  }
+  rw or_iff_not_imp_left,
+  intro h,
+  have : ∃ s, lower_crossing f a b N (n + 1) x < s ∧ b ≤ f s x,
+  { by_contra h',
+    refine h _,
+    rw upper_crossing_succ_eq_dite_lower_crossing,
+    exact dif_neg h' },
+  convert (nat.find_spec this).2,
+  rw [stopped_value, upper_crossing_succ_eq_dite_lower_crossing],
+  dsimp,
+  rw dif_pos this,
+end
+
+lemma stopped_value_lower_crossing_le {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {n : ℕ} {x : α} :
+  lower_crossing f a b N (n + 1) x = N ∨
+  stopped_value f (lower_crossing f a b N (n + 1)) x ≤ a :=
+begin
+  rw or_iff_not_imp_left,
+  intro h,
+  have : ∃ t, upper_crossing f a b N n x < t ∧ f t x ≤ a,
+  { by_contra h',
+    exact h (dif_neg h') },
+  convert (nat.find_spec this).2,
+  rw [stopped_value, lower_crossing_succ],
+  dsimp,
+  rw dif_pos this,
 end
 
 /-- The `t`-th upcrossing of a random process on the interval `[a, b]` is the ℕ-valued random
 variable corresponding to the maximum number of times the random process crossed above `b` before
-time `t`. -/
+(not including) time `t`. -/
 noncomputable
-def upcrossing (f : ℕ → α → ℝ) (a b : ℝ) (t : ℕ) : α → ℕ :=
-λ x, Sup {n | upper_crossing f a b n x < t}
+def upcrossing (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) : α → ℕ :=
+λ x, Sup {n | upper_crossing f a b N n x < N}
+
+-- lemma upcrossing_le {f : ℕ → α → ℝ} (hf : adapted 𝒢 f) {a b : ℝ} {N : ℕ} {x : α} :
+--   ↑(upcrossing f a b N x) * (b - a) =
+--   ∑ i in finset.range N, stopped_value
 
 end upcrossing
 

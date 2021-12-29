@@ -7,35 +7,6 @@ import data.nat.basic
 import order.lattice
 import algebra.algebra.basic
 
-universe u
-
-#check algebra_rat
-#check algebra.id
--- variables (R : Type*) [linear_order R]
-
--- lemma a :
---   @lattice.to_semilattice_inf _ (@lattice_of_linear_order (with_top R) with_top.linear_order) =
---   @semilattice_inf_top.to_semilattice_inf (with_top R) with_top.semilattice_inf :=
--- rfl
--- local attribute [-instance] semilattice_inf_top.to_semilattice_inf
--- local attribute [-instance] with_top.lattice
--- lemma b :
---   @semilattice_inf_top.to_semilattice_inf (with_top R) with_top.semilattice_inf =
---   @lattice.to_semilattice_inf _ (@lattice_of_linear_order (with_top R) with_top.linear_order) =
---   (by apply_instance) := by refl
-
-set_option pp.all true
-lemma ok :
-  nat.decidable_eq = @decidable_eq_of_decidable_le ℕ (by apply_instance) (by apply_instance) :=
-begin
-  refl,
-  -- ext a b,
-  -- dsimp,
-  -- delta nat.decidable_eq,
-  -- delta decidable_eq_of_decidable_le,
-  -- dsimp,
-  -- congr,
-end
 
 open tactic
 meta
@@ -135,12 +106,9 @@ do
   let fe := lsf.foldl (λ o l, ``(%%o %%l)) nf,
   e ← to_expr ee,
   f ← to_expr fe,
---   m ← mk_mapp `decidable_eq_of_decidable_le [u,
---  expr.mvar `v `v (partial_order %%u) : expr),none],
-  -- trace m,
   t1 ← infer_type e,
   t2 ← infer_type f,
-  l ← succeeds $ unify t1 t2,
+  l ← succeeds $ unify t1 t2 transparency.instances, -- don't  want to unify multiplicative with self
   if ¬ l then return () else do
   -- has to be this order
   lse.mmap (λ l, try $ do
@@ -159,29 +127,34 @@ do
   -- assign_local_to_unassigned_mvar,
   -- has_unassigned_mvars,
   gs ← get_goals,
-  trace $ (lse ++ lsf).mfilter (λ g, bnot <$> is_assigned g),
+  l ← (lse ++ lsf).mfilter (λ g, bnot <$> is_assigned g),
+  (if l ≠ [] then
+  return ()
+  else
   -- ff ← is_assigned mv | pure none,
-  is_def_eq e f,-- transparency.semireducible tt,
+  is_def_eq e f),-- transparency.semireducible tt,
   -- unify (`(nat.decidable_eq) : expr) f transparency.semireducible tt,
   -- mk_instance,
 
 
   skip)
-run_cmd find_diamonds ``algebra_rat ``algebra.id
-run_cmd tt
-#check prod.algebra
-#check algebra_nat
+-- run_cmd find_diamonds ``algebra_rat ``algebra.id
+-- run_cmd find_diamonds ``algebra_nat ``prod.algebra
+-- #check prod.algebra
+-- #check algebra_nat
 
 
-meta def find_library_diamonds : tactic unit :=
+meta def find_library_diamonds (a b : nat) (incs : list name := []) : tactic unit :=
 do
   -- let library_classes : list name := [``decidable_eq],
   library_classes ← attribute.get_instances `class,
-  (library_classes.take 1).mmap' (λ tgt_name, do
+  (((incs ++ library_classes).drop a).take b).mmap' (λ tgt_name, do
+    trace tgt_name,
+    cl_ty ← expr.pi_codomain <$> declaration.type <$> get_decl tgt_name,
+    if cl_ty = `(Prop) then trace "> skipping prop" else do
     insts ← attribute.get_instances `instance,
     insts_tys ← insts.mmap $ λ i, (λ n, (n, i)) <$> expr.pi_codomain <$> declaration.type <$> get_decl i,
     let target_insts := insts_tys.filter (λ i, i.1.get_app_fn.const_name = tgt_name),
-    trace tgt_name,
     -- trace target_insts,
     target_insts.mmap'_diag (λ n m, do
       if n ≠ m then (trace_error "fail" --capture
@@ -193,42 +166,3 @@ do
     -- TODO efficiently decompose into equivalence classes
   ),
   skip
-  -- let nae := ``nat.decidable_eq,
-  -- let naf := ``decidable_eq_of_decidable_le,
-  -- let nae := ``real.has_neg,
-  -- let naf := ``sub_neg_monoid.to_has_neg,
-  -- let nae := ``algebra_rat,
-  -- let naf := ``algebra.id,
-  -- find_diamonds nae naf
-
-
-run_cmd find_library_diamonds
-
-#print ok
-lemma ok2 :
-@sub_neg_monoid.to_has_neg ℝ (
-@add_group.to_sub_neg_monoid ℝ (
-@add_comm_group.to_add_group ℝ (
-(@ordered_add_comm_group.to_add_comm_group ℝ (
-@ordered_ring.to_ordered_add_comm_group ℝ (--to_add_group.to_sub_neg_monoid.to_has_neg
-@linear_ordered_ring.to_ordered_ring ℝ
-real.linear_ordered_ring))))))
-= real.has_neg
-:= by refl
-
-local attribute [-instance] nat.decidable_eq
-local attribute [-instance] nat.linear_order
-local attribute [-instance] nat.canonically_linear_ordered_add_monoid
-local attribute [-instance] nat.linear_ordered_comm_monoid_with_zero
--- local attribute [-instance] nat.linear_ordered_semiring
--- local attribute [-instance] linear_ordered_cancel_add_comm_monoid.to_linear_ordered_add_comm_monoid
-local attribute [-instance] nat.linear_ordered_cancel_add_comm_monoid
-local attribute [-instance] linear_ordered_add_comm_monoid.to_linear_order
-local attribute [-instance] linear_ordered_comm_monoid.to_linear_order
-example :
-  nat.decidable_eq = @decidable_eq_of_decidable_le ℕ (by apply_instance) (by apply_instance) :=
-by refl --fails
-
--- how to make this a linter?
-
-open tactic

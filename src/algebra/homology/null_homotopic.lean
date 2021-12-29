@@ -18,7 +18,7 @@ namespace chain_complex
 
 variables {V : Type*} [category V] [preadditive V]
 
-/-- Given a sequence h of morphisms `C_n ⟶ D_{n+1}`, this is the chain
+/-- Given a sequence `h` of morphisms `C_n ⟶ D_{n+1}`, this is the chain
 complex morphism C ⟶ D given by the formula `dh+hd`. -/
 @[simps]
 def null_homotopic_map {C D : chain_complex V ℕ}

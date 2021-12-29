@@ -1,4 +1,10 @@
 import order.atoms
+import order.locally_finite
+import order.zorn
+
+/-!
+# To move
+-/
 
 variables {α : Type*}
 
@@ -9,6 +15,13 @@ variables [has_lt α]
 lemma has_lt.lt.of_dual {a b : order_dual α} (h : a < b) : of_dual b < of_dual a := h
 
 end order_dual
+
+section locally_finite
+
+def locally_finite_order.of_
+
+
+end locally_finite
 
 namespace nat
 
@@ -65,6 +78,10 @@ begin
 end
 
 end nat
+
+/-- Any singleton is a chain. -/
+lemma zorn.chain_singleton (r : α → α → Prop) (a : α) : zorn.chain r {a} :=
+set.pairwise_singleton _ _
 
 /-- A preorder is isomorphic to the section from bottom to top. -/
 def set.Icc.self_order_iso_bot_top (α : Type*) [preorder α] [order_bot α] [order_top α] :

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
 import category_theory.category.basic
-import data.finsupp.basic
+import data.finsupp.order
 import data.dfinsupp
+import data.nat.interval
 import data.set.intervals.ord_connected
 import data.sigma.order
 import .cover
@@ -35,7 +36,7 @@ notion of flags. These are separated into `flag.lean`.
 * `graded.ex_unique_of_grade`: graded linear orders have a unique element of each possible grade.
 -/
 
-open category_theory nat
+open category_theory finset nat
 open_locale big_operators
 
 variables {ι α β : Type*} {σ : ι → Type*}
@@ -214,6 +215,21 @@ lemma covers_iff_grade_succ_eq : a ⋖ b ↔ grade a + 1 = grade b :=
 lemma cover_iff_nat_cover (a b : α) : a ⋖ b ↔ grade a ⋖ grade b :=
 ⟨covers.grade_covers, λ h, covers_iff_grade_succ_eq.2 $ nat.covers_iff_succ_eq.1 h⟩
 
+/-- Constructs a locally finite from a grade function. -/
+noncomputable def grade_order.to_locally_finite_order : locally_finite_order α :=
+{ finset_Icc := λ a b, (Icc (grade a) (grade b)).preimage grade (grade_injective.inj_on _),
+  finset_Ico := λ a b, (Ico (grade a) (grade b)).preimage grade (grade_injective.inj_on _),
+  finset_Ioc := λ a b, (Ioc (grade a) (grade b)).preimage grade (grade_injective.inj_on _),
+  finset_Ioo := λ a b, (Ioo (grade a) (grade b)).preimage grade (grade_injective.inj_on _),
+  finset_mem_Icc := λ a b x,
+    by rw [mem_preimage, mem_Icc, grade_strict_mono.le_iff_le, grade_strict_mono.le_iff_le],
+  finset_mem_Ico := λ a b x,
+    by rw [mem_preimage, mem_Ico, grade_strict_mono.le_iff_le, grade_strict_mono.lt_iff_lt],
+  finset_mem_Ioc := λ a b x,
+    by rw [mem_preimage, mem_Ioc, grade_strict_mono.le_iff_le, grade_strict_mono.lt_iff_lt],
+  finset_mem_Ioo := λ a b x,
+    by rw [mem_preimage, mem_Ioo, grade_strict_mono.lt_iff_lt, grade_strict_mono.lt_iff_lt] }
+
 /-- The set of grades in a linear order has no gaps. -/
 private lemma grade_ioo_lin (m n : ℕ) :
   is_grade α m → is_grade α n → nonempty (set.Ioo m n) → ∃ r ∈ set.Ioo m n, is_grade α r :=
@@ -293,7 +309,7 @@ variables (α) [unique α] [preorder α]
 def unique.to_grade_order [order_bot α] : grade_order α :=
 { grade := λ _, 0,
   grade_bot := rfl,
-  strict_mono := subsingleton.strict_mono,
+  strict_mono := subsingleton.strict_mono _,
   grade_of_covers := λ a b h, (h.1.ne $ subsingleton.elim _ _).elim }
 
 variables {α}

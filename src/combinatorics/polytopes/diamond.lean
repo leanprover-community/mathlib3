@@ -43,7 +43,7 @@ instance [partial_order α] [bounded_order α] [diamond_order α] : diamond_orde
 /-- An order with one element is a diamond order, aka a nullitope. -/
 def unique.to_diamond_order [unique α] [preorder α] [order_bot α] : diamond_order α :=
 { diamond := λ a b h, (h.ne $ subsingleton.elim _ _).elim,
-  .. unique.to_graded_order α }
+  .. unique.to_grade_order α }
 
 /-- A simple order is a diamond order, aka a point. -/
 def is_simple_order.to_diamond_order [decidable_eq α] [partial_order α] [bounded_order α]
@@ -55,4 +55,4 @@ def is_simple_order.to_diamond_order [decidable_eq α] [partial_order α] [bound
       is_simple_order.grade_top, zero_add] at h,
     linarith,
   end,
-  .. is_simple_order.to_graded_order α }
+  .. is_simple_order.to_grade_order α }

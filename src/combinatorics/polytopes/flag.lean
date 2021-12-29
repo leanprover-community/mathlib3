@@ -81,9 +81,9 @@ begin
     { exact or.inl (le_of_eq heq) },
   cases x with x hx, cases y with y hy,
   rw subtype.mk_eq_mk at heq,
-  cases hΦ x hx y hy heq with h h,
-    { exact or.inl (le_of_lt h) },
-  exact or.inr (le_of_lt h)
+  cases hΦ hx hy heq with h h,
+  { exact or.inl h.le },
+  { exact or.inr h.le }
 end
 
 /-- `<` is trichotomous for flags. -/
@@ -91,12 +91,12 @@ instance [preorder α] (Φ : flag α) : is_trichotomous Φ (<) :=
 begin
   refine ⟨λ x y, _⟩,
   by_cases heq : x = y,
-    { exact or.inr (or.inl heq) },
+  { exact or.inr (or.inl heq) },
   cases x with x hx,
   cases y with y hy,
-  cases (Φ.prop.left x hx y hy) (λ h, heq (subtype.ext h)) with hle hle,
-    { exact or.inl hle },
-    { exact or.inr (or.inr hle) }
+  cases (Φ.prop.left hx hy) (λ h, heq (subtype.ext h)) with hle hle,
+  { exact or.inl hle },
+  { exact or.inr (or.inr hle) }
 end
 
 @[priority 900] -- lower priority in case subtype.linear_order comes up with something computable
@@ -111,7 +111,7 @@ lemma mem_flag_iff_comp [preorder α] (Φ : flag α) {a : α} :
 begin
   rcases Φ with ⟨_, Φl, Φr⟩,
   refine ⟨_, λ H, _⟩,
-    { exact λ ha ⟨_, hb⟩ hne, Φl _ ha _ hb hne },
+    { exact λ ha ⟨_, hb⟩ hne, Φl ha hb hne },
   by_contra ha,
   exact Φr ⟨_, zorn.chain_insert Φl (λ _ hb hne, H ⟨_, hb⟩ hne.symm), set.ssubset_insert ha⟩,
 end
@@ -248,7 +248,7 @@ begin
   rintro a ⟨aw, ha, ha'⟩ b ⟨bw, hb, hb'⟩,
   induction ha', induction hb',
   simp only [hom_map_lt, hom_map_ne],
-  exact hΦ _ ha _ hb
+  exact hΦ ha hb
 end
 
 /-- Automorphisms map flags to flags. -/
@@ -266,7 +266,7 @@ begin
         { rw ←not_and_distrib,
           rintro ⟨hl, hr⟩,
           exact hne (hl.trans hr.symm) },
-      by_cases hxy : x ∈ Φf ∧ y ∈ Φf, { exact hΦ _ hxy.left _ hxy.right hne },
+      by_cases hxy : x ∈ Φf ∧ y ∈ Φf, { exact hΦ hxy.left hxy.right hne },
       wlog h : x = γ.inv a ∧ y ∈ Φf using [x y, y x],
         { cases hx,
             { exact or.inl ⟨hx, hy.resolve_left (hxyne.resolve_left $ not_not_intro hx)⟩ },
@@ -278,7 +278,7 @@ begin
       induction hx',
       rw [←γ.hom_map_lt y, ←γ.hom_map_lt, γ.hom_inv],
       replace hne : a ≠ γ.hom y := by rw ←γ.inv_map_ne; simpa,
-      apply hwl _ ha _ _ hne,
+      refine hwl ha _ hne,
       replace hy' := set.mem_image_of_mem γ.hom hy',
       exact hwr.left hy' },
     { apply set.ssubset_insert,
@@ -310,18 +310,9 @@ end polytope.automorphism
 namespace chain
 section
 
-/-- The empty set is vacuously a chain. -/
-lemma empty [has_lt α] : @zorn.chain α (<) ∅ :=
-λ _ h, h.elim
-
-/-- Any singleton is a chain. -/
-lemma singleton [has_lt α] (x : α) : zorn.chain (<) (set.insert x ∅) :=
-by refine zorn.chain_insert _ _; exact (λ _ h, false.elim h)
-
 /-- Any pair of incident elements is a chain. -/
-lemma pair [has_lt α] {x y : α} (hxy : x < y ∨ y < x) :
-  zorn.chain (<) (set.insert x (set.insert y ∅)) :=
-zorn.chain_insert (singleton _) (λ _ hb _, by rwa ←(list.mem_singleton.1 hb) at hxy)
+lemma pair (r : α → α → Prop) {a b : α} (h : r a b) : zorn.chain r {a, b} :=
+zorn.chain_insert (zorn.chain_singleton _ _) (λ _ hb _, by rwa ←list.mem_singleton.1 hb at h)
 
 /-- Chains of intervals are chains. -/
 lemma chain_of_chain [preorder α] {x y : α} (c : set (set.Icc x y)) :
@@ -349,14 +340,10 @@ lemma chain_of_chains [preorder α] {x y z : α} (c : set (set.Icc x y)) (d : se
   zorn.chain (<) c → zorn.chain (<) d → zorn.chain (<) (subtype.val '' c ∪ subtype.val '' d) :=
 begin
   intros hc hd a ha b hb hne,
-  cases ha with ha ha, {
-    rcases ha with ⟨a', hac, ha⟩,
-    cases hb with hb hb, {
-      rcases hb with ⟨b', hbc, hb⟩,
-      rw [←ha, ←hb],
-      apply hc _ hac _ hbc,
-      intro h,
-      apply hne,
+  obtain ⟨a', hac, ha⟩ | ha := ha,
+  { obtain ⟨b', hbc, hb⟩ | hb := hb,
+    { rw [←ha, ←hb],
+      refine λ hc hac hbc, h (hne _),
       sorry,
     },
     sorry,
@@ -780,7 +767,7 @@ begin
   intros ha hb,
   induction h with Φ' Φ Ψ Ϝ hΦΨ hΨϜ hab generalizing a b,
     { apply (path.next a a) _ path.refl,
-      exact (Φ'.prop.left a.val ha b.val hb), },
+      exact (Φ'.prop.left ha hb), },
   suffices hc : ∃ c : proper α, c.val ∈ Ψ.val ∩ Ϝ.val,
     { rcases hc with ⟨c, ⟨hcl, hcr⟩⟩,
       exact path.append_right (hab ha hcl) (Ϝ.prop.left c.val hcr b hb) },

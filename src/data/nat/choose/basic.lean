@@ -49,6 +49,19 @@ lemma choose_eq_zero_of_lt : ∀ {n k}, n < k → choose n k = 0
   have hnk1 : n < k + 1, from lt_of_succ_lt hk,
   by rw [choose_succ_succ, choose_eq_zero_of_lt hnk, choose_eq_zero_of_lt hnk1]
 
+lemma choose_eq_zero_iff {n k : ℕ} : n.choose k = 0 ↔ n < k :=
+begin
+  refine ⟨_, nat.choose_eq_zero_of_lt⟩,
+  induction n with n hn generalizing k,
+  { cases k;
+    simp },
+  cases k,
+  { simp },
+  simp only [nat.choose_succ_succ, and_imp, add_eq_zero_iff],
+  intros h _,
+  exact nat.succ_lt_succ (hn h)
+end
+
 @[simp] lemma choose_self (n : ℕ) : choose n n = 1 :=
 by induction n; simp [*, choose, choose_eq_zero_of_lt (lt_succ_self _)]
 

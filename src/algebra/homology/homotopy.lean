@@ -238,6 +238,18 @@ def trans {e f g : C ⟶ D} (h : homotopy e f) (k : homotopy f g) : homotopy e g
   zero' := λ i j w, by rw [pi.add_apply, pi.add_apply, h.zero i j w, k.zero i j w, zero_add],
   comm := λ i, by { rw [add_monoid_hom.map_add, add_monoid_hom.map_add, h.comm, k.comm], abel }, }
 
+/-- the sum of two homotopies is a homotopy between the sum of the respective morphisms. -/
+@[simps]
+def add {f₁ g₁ f₂ g₂: C ⟶ D}
+  (h₁ : homotopy f₁ g₁) (h₂ : homotopy f₂ g₂) : homotopy (f₁+f₂) (g₁+g₂) :=
+{ hom := h₁.hom + h₂.hom,
+  zero' := λ i j hij, by
+    rw [pi.add_apply, pi.add_apply, h₁.zero' i j hij, h₂.zero' i j hij, add_zero],
+  comm := λ i, by
+    { simp only [homological_complex.add_f_apply, h₁.comm, h₂.comm,
+        add_monoid_hom.map_add],
+      abel, }, }
+
 /-- homotopy is closed under composition (on the right) -/
 @[simps]
 def comp_right {e f : C ⟶ D} (h : homotopy e f) (g : D ⟶ E) : homotopy (e ≫ g) (f ≫ g) :=

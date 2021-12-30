@@ -43,7 +43,9 @@ and substitution instead.
 
 set_option old_structure_cmd true
 
-variables {A : Type*} [non_unital_non_assoc_ring A]
+section non_unital_non_assoc_ring
+
+variables {A : Type*} [non_unital_non_assoc_semiring A]
 
 namespace non_unital_non_assoc_ring
 -- For some reason `def L : A→+add_monoid.End A := add_monoid_hom.mul` doesn't work here?
@@ -70,6 +72,8 @@ Right multiplication operator
 lemma L_def (a b : A) : L a b = a*b := rfl
 
 lemma R_def (a b : A) : R a b = b*a := rfl
+
+end non_unital_non_assoc_ring
 
 end non_unital_non_assoc_ring
 
@@ -138,16 +142,18 @@ class comm_jordan (A : Type*) [non_unital_non_assoc_ring A] :=
 (comm: ∀ a : A, R a = L a) -- Can we reduce this to `R = L`?
 (jordan: ∀ a : A, ⁅L a, L (a*a)⁆ = 0)
 
+variables {A : Type*} [non_unital_non_assoc_ring A] [comm_jordan A]
+
 -- A (commutative) Jordan multiplication is also a Jordan multipication
 @[priority 100] -- see Note [lower instance priority]
-instance comm_jordan_is_jordan [comm_jordan A] : jordan A :=
+instance comm_jordan_is_jordan : jordan A :=
 { commL1R1 := λ _, by rw [comm_jordan.comm, lie_self],
   commL1L2 := λ _, by rw comm_jordan.jordan,
   commL1R2 := λ _, by rw [comm_jordan.comm, comm_jordan.jordan],
   commL2R1 :=  λ _, by rw [comm_jordan.comm, ←lie_skew, comm_jordan.jordan, neg_zero],
   commR1R2 := λ _, by rw [comm_jordan.comm, comm_jordan.comm, comm_jordan.jordan], }
 
-variable [comm_jordan A]
+
 
 lemma jordan_mul_comm (a b :A) : a*b = b*a := by rw [← L_def, ← R_def, comm_jordan.comm]
 

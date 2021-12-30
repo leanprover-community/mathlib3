@@ -62,7 +62,7 @@ output contains `k.succ` elements, the original input can be reconstructed by ca
 to `fin n.succ`. Otherwise, an instance of `fin.last n` has been removed and the input can be
 reconstructed by adding it back. -/
 def decode (n k : ℕ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k → sym (fin n.succ) k.succ
-| (sum.inl x) := x.map (λ a, ⟨a.val, a.property.step⟩)
+| (sum.inl x) := x.map fin.cast_succ
 | (sum.inr x) := (fin.last n)::x
 
 /-- As `encode` and `decode` are inverses of each other, `sym (fin n.succ) k.succ` is equivalent
@@ -91,17 +91,16 @@ def equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ 
     { cases x with x hx,
       rw [decode, encode],
       split_ifs,
-      { obtain ⟨y, v, b⟩ := multiset.mem_map.mp h,
-        rw [fin.last, subtype.mk_eq_mk] at b,
-        have := y.property,
-        rw b at this,
-        exact nat.lt_asymm this this, },
+      { obtain ⟨⟨y, w⟩, v, b⟩ := multiset.mem_map.mp h,
+        rw [fin.cast_succ_mk, fin.last, subtype.mk_eq_mk] at b,
+        rw b at w,
+        exact nat.lt_asymm w w, },
       { simp only [sym.map_map, function.comp, fin.val_eq_coe, subtype.mk_eq_mk, fin.coe_mk],
         convert sym.map_congr _,
         { rw multiset.map_id, },
         { rintros ⟨g, hg⟩ h',
           split_ifs with h'',
-          { simp only [fin.coe_mk] at h'',
+          { simp only [fin.coe_mk, fin.cast_succ_mk] at h'',
             subst g,
             exact (nat.lt_asymm hg hg).elim, },
           { refl } } } },

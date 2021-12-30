@@ -5,6 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import ring_theory.trace
+import ring_theory.norm
 
 /-!
 # Discriminant of a family of vectors

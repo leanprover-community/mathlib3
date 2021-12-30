@@ -66,7 +66,7 @@ def decode (n k : ℕ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k → sym (fin 
 | (sum.inr x) := (fin.last n)::x
 
 /-- As `encode` and `decode` are inverses of each other, `sym (fin n.succ) k.succ` is equivalent
-to `sym (fin n) k.succ ⊕ sym (fin n.succ) k` -/
+to `sym (fin n) k.succ ⊕ sym (fin n.succ) k`. -/
 def equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
 { to_fun := encode n k,
   inv_fun := decode n k,

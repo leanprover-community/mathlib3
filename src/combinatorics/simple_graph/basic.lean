@@ -146,7 +146,7 @@ protected lemma adj.ne {G : simple_graph V} {a b : V} (h : G.adj a b) : a ≠ b 
 protected lemma adj.ne' {G : simple_graph V} {a b : V} (h : G.adj a b) : b ≠ a := h.ne.symm
 
 lemma ne_of_adj_nadj (v w x : V) (hwx: ¬G.adj w x) (hwv: G.adj w v) : x ≠ v :=
-by { by_contra, subst x, exact hwx hwv, }
+λ h, (h ▸ hwx) hwv
 
 section order
 

@@ -361,16 +361,15 @@ noncomputable def left_adjoint_preserves_terminal_of_reflective (R : D ⥤ C) [r
   preserves_limits_of_shape (discrete.{v} pempty) (left_adjoint R) :=
 { preserves_limit := λ K,
   begin
-    by_cases has_limit K, swap, exact ⟨λ c hc, (h ⟨⟨⟨c,hc⟩⟩⟩).elim⟩,
     apply preserves_limit_of_iso_diagram _ (functor.empty_ext (functor.empty.{v} D ⋙ R) _),
-    haveI : has_limit (functor.empty.{v} D ⋙ R) := has_terminal_diagrams C h,
+    fsplit, intros c h, haveI : has_limit _ := ⟨⟨⟨c,h⟩⟩⟩,
     haveI : has_limit (functor.empty.{v} D) := has_limit_of_reflective _ R,
-    letI := monadic_creates_limits.{v v} R,
-    let := (category_theory.preserves_limit_of_creates_limit_and_has_limit _ R).preserves,
-    { apply preserves_limit_of_preserves_limit_cone (this (limit.is_limit _)),
-      apply is_limit_empty_cones D (limit.is_limit (functor.empty.{v} D)), symmetry,
-      exact as_iso ((adjunction.of_right_adjoint R).counit.app _) },
-    apply_instance, apply_instance,
+    apply is_limit_change_empty_cone D (limit.is_limit (functor.empty.{v} D)),
+    apply (as_iso ((adjunction.of_right_adjoint R).counit.app _)).symm.trans,
+    { apply (left_adjoint R).map_iso, letI := monadic_creates_limits.{v v} R,
+      let := (category_theory.preserves_limit_of_creates_limit_and_has_limit _ R).preserves,
+      apply limits.is_limit.cone_point_unique_up_to_iso (this (limit.is_limit _)) h,
+      apply_instance, apply_instance }, apply_instance,
   end }
 
 end

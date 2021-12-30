@@ -37,7 +37,7 @@ The map of an empty cone is a limit iff the mapped object is terminal.
 -/
 def is_limit_map_cone_empty_cone_equiv :
   is_limit (G.map_cone (as_empty_cone.{v₁} X)) ≃ is_terminal (G.obj X) :=
-is_limit_empty_cones_equiv D _ _ (eq_to_iso rfl)
+is_limit_empty_cone_equiv D _ _ (eq_to_iso rfl)
 
 /-- The property of preserving terminal objects expressed in terms of `is_terminal`. -/
 def is_terminal.is_terminal_obj [preserves_limit (functor.empty.{v₁} C) G]
@@ -126,7 +126,7 @@ The map of an empty cocone is a colimit iff the mapped object is initial.
 -/
 def is_colimit_map_cocone_empty_cocone_equiv :
   is_colimit (G.map_cocone (as_empty_cocone.{v₁} X)) ≃ is_initial (G.obj X) :=
-is_colimit_empty_cocones_equiv D _ _ (eq_to_iso rfl)
+is_colimit_empty_cocone_equiv D _ _ (eq_to_iso rfl)
 
 /-- The property of preserving initial objects expressed in terms of `is_initial`. -/
 def is_initial.is_initial_obj [preserves_colimit (functor.empty.{v₁} C) G]

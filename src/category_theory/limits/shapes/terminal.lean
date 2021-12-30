@@ -140,49 +140,52 @@ variables (X : C) {F₁ : discrete.{w} pempty ⥤ C} {F₂ : discrete.{w'} pempt
 
 /-- Being terminal is independent of the empty diagram, its universe, and the cone over it,
     as long as the cone points are isomorphic. -/
-def is_limit_empty_cones {c₁ : cone F₁} (hl : is_limit c₁)
+def is_limit_change_empty_cone {c₁ : cone F₁} (hl : is_limit c₁)
   (c₂ : cone F₂) (hi : c₁.X ≅ c₂.X) : is_limit c₂ :=
 { lift := λ c, hl.lift ⟨c.X, by tidy⟩ ≫ hi.hom,
   fac' := λ _ j, j.elim,
   uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (f ≫ hi.inv) (λ j, j.elim), simp } }
 
-/-- Independence of cone as an equivalence. -/
-def is_limit_empty_cones_equiv (c₁ : cone F₁) (c₂ : cone F₂) (h : c₁.X ≅ c₂.X) :
+/-- Replacing an empty cone in `is_limit` by another with the same cone point
+    is an equivalence. -/
+def is_limit_empty_cone_equiv (c₁ : cone F₁) (c₂ : cone F₂) (h : c₁.X ≅ c₂.X) :
   is_limit c₁ ≃ is_limit c₂ :=
-{ to_fun := λ hl, is_limit_empty_cones C hl c₂ h,
-  inv_fun := λ hl, is_limit_empty_cones C hl c₁ h.symm,
+{ to_fun := λ hl, is_limit_change_empty_cone C hl c₂ h,
+  inv_fun := λ hl, is_limit_change_empty_cone C hl c₁ h.symm,
   left_inv := by tidy,
   right_inv := by tidy }
 
-lemma has_terminal_diagrams (h : has_limit F₁) : has_limit F₂ :=
-⟨⟨⟨⟨limit F₁, by tidy⟩, is_limit_empty_cones C (limit.is_limit F₁) _ (eq_to_iso rfl)⟩⟩⟩
+lemma has_terminal_change_diagram (h : has_limit F₁) : has_limit F₂ :=
+⟨⟨⟨⟨limit F₁, by tidy⟩, is_limit_change_empty_cone C (limit.is_limit F₁) _ (eq_to_iso rfl)⟩⟩⟩
 
-lemma has_terminal_universes [h : has_limits_of_shape (discrete.{w} pempty) C] :
+lemma has_terminal_change_universe [h : has_limits_of_shape (discrete.{w} pempty) C] :
   has_limits_of_shape (discrete.{w'} pempty) C :=
-{ has_limit := λ J, has_terminal_diagrams C (let f := h.1 in f (functor.empty C)) }
+{ has_limit := λ J, has_terminal_change_diagram C (let f := h.1 in f (functor.empty C)) }
 
 /-- Being initial is independent of the empty diagram, its universe, and the cocone over it,
     as long as the cocone points are isomorphic. -/
-def is_colimit_empty_cocones {c₁ : cocone F₁} (hl : is_colimit c₁)
+def is_colimit_change_empty_cocone {c₁ : cocone F₁} (hl : is_colimit c₁)
   (c₂ : cocone F₂) (hi : c₁.X ≅ c₂.X) : is_colimit c₂ :=
 { desc := λ c, hi.inv ≫ hl.desc ⟨c.X, by tidy⟩,
   fac' := λ _ j, j.elim,
   uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (hi.hom ≫ f) (λ j, j.elim), simp } }
 
-/-- Independence of cocone as an equivalence. -/
-def is_colimit_empty_cocones_equiv (c₁ : cocone F₁) (c₂ : cocone F₂) (h : c₁.X ≅ c₂.X) :
+/-- Replacing an empty cocone in `is_colimit` by another with the same cocone point
+    is an equivalence. -/
+def is_colimit_empty_cocone_equiv (c₁ : cocone F₁) (c₂ : cocone F₂) (h : c₁.X ≅ c₂.X) :
   is_colimit c₁ ≃ is_colimit c₂ :=
-{ to_fun := λ hl, is_colimit_empty_cocones C hl c₂ h,
-  inv_fun := λ hl, is_colimit_empty_cocones C hl c₁ h.symm,
+{ to_fun := λ hl, is_colimit_change_empty_cocone C hl c₂ h,
+  inv_fun := λ hl, is_colimit_change_empty_cocone C hl c₁ h.symm,
   left_inv := by tidy,
   right_inv := by tidy }
 
-lemma has_initial_diagrams (h : has_colimit F₁) : has_colimit F₂ :=
-⟨⟨⟨⟨colimit F₁, by tidy⟩, is_colimit_empty_cocones C (colimit.is_colimit F₁) _ (eq_to_iso rfl)⟩⟩⟩
+lemma has_initial_change_diagram (h : has_colimit F₁) : has_colimit F₂ :=
+⟨⟨⟨⟨colimit F₁, by tidy⟩,
+   is_colimit_change_empty_cocone C (colimit.is_colimit F₁) _ (eq_to_iso rfl)⟩⟩⟩
 
-lemma has_initial_universes [h : has_colimits_of_shape (discrete.{w} pempty) C] :
+lemma has_initial_change_universe [h : has_colimits_of_shape (discrete.{w} pempty) C] :
   has_colimits_of_shape (discrete.{w'} pempty) C :=
-{ has_colimit := λ J, has_initial_diagrams C (let f := h.1 in f (functor.empty C)) }
+{ has_colimit := λ J, has_initial_change_diagram C (let f := h.1 in f (functor.empty C)) }
 
 end univ
 

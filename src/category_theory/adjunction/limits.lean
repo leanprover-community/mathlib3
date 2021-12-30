@@ -98,12 +98,12 @@ omit adj
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] :
-  preserves_colimits_of_size E :=
+  preserves_colimits_of_size.{v u} E :=
 left_adjoint_preserves_colimits E.adjunction
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] :
-  reflects_colimits_of_size E :=
+  reflects_colimits_of_size.{v u} E :=
 { reflects_colimits_of_shape := λ J 𝒥, by exactI
   { reflects_colimit := λ K,
     { reflects := λ c t,
@@ -115,7 +115,7 @@ instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] :
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_creates_colimits (H : D ⥤ C) [is_equivalence H] :
-  creates_colimits_of_size H :=
+  creates_colimits_of_size.{v u} H :=
 { creates_colimits_of_shape := λ J 𝒥, by exactI
   { creates_colimit := λ F,
     { lifts := λ c t,
@@ -152,7 +152,7 @@ lemma has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits
 end preservation_colimits
 
 section preservation_limits
-variables {J : Type v} [category J] (K : J ⥤ D)
+variables {J : Type u} [category.{v} J] (K : J ⥤ D)
 
 /--
 The left adjoint of `cones.functoriality K G : cone K ⥤ cone (K ⋙ G)`.
@@ -208,12 +208,12 @@ omit adj
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_preserves_limits (E : D ⥤ C) [is_equivalence E] :
-  preserves_limits_of_size E :=
+  preserves_limits_of_size.{v u} E :=
 right_adjoint_preserves_limits E.inv.adjunction
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] :
-  reflects_limits_of_size E :=
+  reflects_limits_of_size.{v u} E :=
 { reflects_limits_of_shape := λ J 𝒥, by exactI
   { reflects_limit := λ K,
     { reflects := λ c t,
@@ -225,7 +225,7 @@ instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] :
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] :
-  creates_limits_of_size H :=
+  creates_limits_of_size.{v u} H :=
 { creates_limits_of_shape := λ J 𝒥, by exactI
   { creates_limit := λ F,
     { lifts := λ c t,
@@ -263,7 +263,7 @@ end preservation_limits
 
 /-- auxiliary construction for `cocones_iso` -/
 @[simps]
-def cocones_iso_component_hom {J : Type v} [category J] {K : J ⥤ C}
+def cocones_iso_component_hom {J : Type u} [category.{v} J] {K : J ⥤ C}
   (Y : D) (t : ((cocones J D).obj (op (K ⋙ F))).obj Y) :
   (G ⋙ (cocones J C).obj (op K)).obj Y :=
 { app := λ j, (adj.hom_equiv (K.obj j) Y) (t.app j),
@@ -271,7 +271,7 @@ def cocones_iso_component_hom {J : Type v} [category J] {K : J ⥤ C}
 
 /-- auxiliary construction for `cocones_iso` -/
 @[simps]
-def cocones_iso_component_inv {J : Type v} [category J] {K : J ⥤ C}
+def cocones_iso_component_inv {J : Type u} [category.{v} J] {K : J ⥤ C}
   (Y : D) (t : (G ⋙ (cocones J C).obj (op K)).obj Y) :
   ((cocones J D).obj (op (K ⋙ F))).obj Y :=
 { app := λ j, (adj.hom_equiv (K.obj j) Y).symm (t.app j),
@@ -283,7 +283,7 @@ def cocones_iso_component_inv {J : Type v} [category J] {K : J ⥤ C}
 
 /-- auxiliary construction for `cones_iso` -/
 @[simps]
-def cones_iso_component_hom {J : Type v} [category J] {K : J ⥤ D}
+def cones_iso_component_hom {J : Type u} [category.{v} J] {K : J ⥤ D}
   (X : Cᵒᵖ) (t : (functor.op F ⋙ (cones J D).obj K).obj X) :
   ((cones J C).obj (K ⋙ G)).obj X :=
 { app := λ j, (adj.hom_equiv (unop X) (K.obj j)) (t.app j),
@@ -295,7 +295,7 @@ def cones_iso_component_hom {J : Type v} [category J] {K : J ⥤ D}
 
 /-- auxiliary construction for `cones_iso` -/
 @[simps]
-def cones_iso_component_inv {J : Type v} [category J] {K : J ⥤ D}
+def cones_iso_component_inv {J : Type u} [category.{v} J] {K : J ⥤ D}
   (X : Cᵒᵖ) (t : ((cones J C).obj (K ⋙ G)).obj X) :
   (functor.op F ⋙ (cones J D).obj K).obj X :=
 { app := λ j, (adj.hom_equiv (unop X) (K.obj j)).symm (t.app j),

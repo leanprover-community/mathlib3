@@ -857,9 +857,8 @@ theorem sup_le {ι} {f : ι → ordinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a 
 theorem lt_sup {ι} {f : ι → ordinal} {a} : a < sup f ↔ ∃ i, a < f i :=
 by simpa only [not_forall, not_le] using not_congr (@sup_le _ f a)
 
--- A result that shows up twice for some reason.
-private lemma lt_sup_of_ne_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f) → ∀ i, f i < sup f :=
-λ hf _, lt_of_le_of_ne (le_sup _ _) (hf _)
+theorem lt_sup_of_ne_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f) ↔ ∀ i, f i < sup f :=
+⟨λ hf _, lt_of_le_of_ne (le_sup _ _) (hf _), λ hf _, ne_of_lt (hf _)⟩
 
 theorem sup_not_succ_of_ne_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i ≠ sup f) :
   ∀ a < sup f, succ a < sup f :=
@@ -926,10 +925,9 @@ induction_on o $ λ α r _ g h,
 by resetI; rw [bsup_type,
      H.sup (type_ne_zero_iff_nonempty.1 h), bsup_type]
 
--- A result that shows up twice for some reason.
-private lemma lt_bsup_of_ne_bsup {o : ordinal} {f : Π a < o, ordinal} :
-  (∀ i h, f i h ≠ o.bsup f) → ∀ i h, f i h < o.bsup f :=
-λ hf _ _, lt_of_le_of_ne (le_bsup _ _ _) (hf _ _)
+theorem lt_bsup_of_ne_bsup {o : ordinal} {f : Π a < o, ordinal} :
+  (∀ i h, f i h ≠ o.bsup f) ↔ ∀ i h, f i h < o.bsup f :=
+⟨λ hf _ _, lt_of_le_of_ne (le_bsup _ _ _) (hf _ _), λ hf _ _, ne_of_lt hf _ _⟩
 
 theorem bsup_not_succ_of_ne_bsup {o} {f : Π a < o, ordinal}
   (hf : ∀ (i : ordinal) (h : i < o), f i h ≠ o.bsup f) (a) :

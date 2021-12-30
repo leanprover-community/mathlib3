@@ -950,6 +950,8 @@ theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
 lt_of_lt_of_le (hf _ _ $ lt_succ_self i) (le_bsup f i.succ $ ho.2 _ h)
 
 theorem bsup_id {o} (ho : is_limit o) : bsup.{u u} o (λ x _, x) = o :=
+le_antisymm (bsup_le.2 (λ i hi, hi.le))
+  (not_lt.1 (λ h, (lt_bsup_of_limit.{u u} (λ _ _ _ _, id) ho _ h).false))
 begin
   apply le_antisymm, rw bsup_le, intro i, apply le_of_lt,
   rw ←not_lt, intro h, apply lt_irrefl (bsup.{u u} o (λ x _, x)),

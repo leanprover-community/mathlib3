@@ -7,6 +7,7 @@ Authors: Alex Kontorovich, Heather Macbeth
 import measure_theory.measure.haar
 import measure_theory.group.fundamental_domain
 import topology.compact_open
+import algebra.group.opposite
 
 /-!
 # Haar Quotient measure
@@ -22,20 +23,61 @@ In this file does stuff.
 * `measure_theory.is_fundamental_domain.is_mul_left_invariant_map `: given a normal subgroup `Γ` of
   a topological group `G`, the pushforward to the quotient group `G ⧸ Γ` of the restriction of
   `G`'s Haar measure to a fundamental domain of `Γ` is a left-invariant measure on `G ⧸ Γ`.
+
+  Of course, this requires `G` to be unimodular, that is, Haar measure is both right and left
+  invariant
 -/
 
 open set measure_theory
 
 variables {G : Type*} [group G] [measurable_space G] [topological_space G] [t2_space G]
   [topological_group G] [borel_space G]
-  {μ : measure G} [measure_theory.measure.is_haar_measure μ]
-  {Γ : subgroup G} --[subgroup.normal Γ]
-  {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ 𝓕 μ)
+  {μ : measure G}
+  {Γ : subgroup G}
 
 variables [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
 
-instance subgroup.smul_invariant_measure : smul_invariant_measure Γ G μ :=
-{ measure_preimage_smul := λ c s hs, μ.haar_preimage_mul c s }
+def subgroup.opposite {G : Type*} [group G] (H : subgroup G) : subgroup Gᵐᵒᵖ :=
+{ carrier := mul_opposite.op '' (H : set G),
+  one_mem' := by simp [H.one_mem],
+  mul_mem' := begin
+    rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
+    use b*a,
+    simp [H.mul_mem hb ha],
+  end,
+  inv_mem' := begin
+    rintros _ ⟨a, ha, rfl⟩,
+    use a⁻¹,
+    simp [H.inv_mem ha],
+  end}
+
+-- ASK ON ZULIP
+instance {G : Type*} [group G] (H : subgroup G) [encodable H] : encodable H.opposite :=
+{ encode := sorry,
+  decode := sorry,
+  encodek := sorry }
+
+theorem measure_theory.is_mul_right_invariant.measure_preimage_mul {G : Type u_1}
+[measurable_space G] [topological_space G] [group G] [topological_group G] [borel_space G]
+{μ : measure_theory.measure G} (h : measure_theory.is_mul_right_invariant μ) (g : G) (A : set G) :
+μ ((λ (h : G), h * g) ⁻¹' A) = μ A :=
+begin
+  calc μ ((λ h, h * g) ⁻¹' A) = measure.map (λ h, h * g) μ A :
+    ((homeomorph.mul_right g).to_measurable_equiv.map_apply A).symm
+  ... = μ A : by rw measure.map_mul_right_eq_self.2 h g,
+end
+
+lemma subgroup.smul_invariant_measure (hμ : measure_theory.is_mul_right_invariant μ) :
+  smul_invariant_measure Γ.opposite G μ :=
+{ measure_preimage_smul :=
+begin
+  rintros ⟨_, c, hc, rfl⟩ s hs,
+  dsimp [(•)],
+  exact hμ.measure_preimage_mul c s,
+end
+}
+
+variables {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ.opposite 𝓕 μ)
 
 section
 /-! First method to get `has_measurable_smul G (G ⧸ Γ)`.
@@ -133,33 +175,51 @@ include h𝓕
 variables [encodable Γ]
 
 lemma measure_theory.is_fundamental_domain.smul (g : G) :
-  is_fundamental_domain ↥Γ (has_mul.mul g ⁻¹' 𝓕) μ :=
-{ measurable_set := _,
-  ae_covers := _,
-  ae_disjoint := _ }
+  is_fundamental_domain ↥Γ.opposite (has_mul.mul g ⁻¹' 𝓕) μ :=
+{ measurable_set := measurable_set_preimage (measurable_const_mul g) (h𝓕.measurable_set),
+  ae_covers := begin
+    have := h𝓕.2,
+    convert this,
+    -- not really what we want... how to deal with these ae filters... ???
+    sorry,
+/-    ext x,
+    split,
+    {
+      rintros ⟨⟨_, h, h_in_Γ, rfl⟩, hh⟩,
+      rw mem_preimage at hh,
+      dsimp only [(•)] at hh,
+      simp at hh,
+      use g * h,
+    },
+  -/
+  end,
+  ae_disjoint := begin
+    rintros ⟨_, γ, γ_in_Γ, rfl⟩ hγ,
+    have := h𝓕.3 ⟨_, γ, γ_in_Γ, _⟩ hγ,
+    sorry,
+
+  end }
 
 /-- The pushforward to the coset space `G ⧸ Γ` of the restriction of Haar measure on `G` to a
 fundamental domain `𝓕` is a `G`-invariant measure on `G ⧸ Γ`. -/
-lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map :
+lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
+  (hμL : measure_theory.is_mul_left_invariant μ) (hμR : measure_theory.is_mul_right_invariant μ) :
   smul_invariant_measure G (G ⧸ Γ) (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) :=
 { measure_preimage_smul :=
   begin
     let π : G → G ⧸ Γ := @quotient_group.mk G _ Γ ,
     have meas_π : measurable π :=
-      continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
+      continuous.measurable continuous_quotient_mk,
     have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
     intros g A hA,
     have meas_πA : measurable_set (π ⁻¹' A) := measurable_set_preimage meas_π hA,
-    rw [measure.map_apply meas_π hA],
-    rw measure.map_apply meas_π (measurable_set_preimage (measurable_const_smul g) hA),
-    rw measure.restrict_apply' 𝓕meas,
-    rw measure.restrict_apply' 𝓕meas,
-    -- step1: get x1 ∈ 𝓕 with π(x1)=x
+    rw [measure.map_apply meas_π hA,
+      measure.map_apply meas_π (measurable_set_preimage (measurable_const_smul g) hA),
+      measure.restrict_apply' 𝓕meas, measure.restrict_apply' 𝓕meas],
     set π_preA := π ⁻¹' A,
-    rw (by ext1 y; simp :
-      (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A))
-      = has_mul.mul g ⁻¹' π_preA),
-
+    have : (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A)) = has_mul.mul g ⁻¹' π_preA :=
+      by ext1; simp,
+    rw this,
     have : μ (has_mul.mul g ⁻¹' π_preA ∩ 𝓕) = μ (π_preA ∩ has_mul.mul (g⁻¹) ⁻¹' 𝓕),
     { transitivity μ (has_mul.mul g ⁻¹' (π_preA ∩ has_mul.mul g⁻¹ ⁻¹' 𝓕)),
       { rw preimage_inter,
@@ -167,45 +227,27 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map :
         rw [← preimage_comp, comp_mul_left, mul_left_inv],
         ext,
         simp, },
-      rw is_mul_left_invariant.measure_preimage_mul,
-      exact measure.is_mul_left_invariant_haar μ, },
+      rw hμL.measure_preimage_mul, },
     rw this,
-
-    have h𝓕_translate_fundom : is_fundamental_domain Γ (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ := h𝓕.smul (g⁻¹),
-
+    have h𝓕_translate_fundom : is_fundamental_domain Γ.opposite (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ :=
+      h𝓕.smul (g⁻¹),
+    haveI : smul_invariant_measure ↥(Γ.opposite) G μ := subgroup.smul_invariant_measure hμR,
     rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA,
-
-    intros γ, -- ALEX Homework
+    rintros ⟨_, γ, γ_in_Γ, rfl⟩,
     ext,
-    split,
-    { intros x_in_preA,
-      rw mem_preimage at x_in_preA,
-      rw mem_preimage at x_in_preA,
-      rw mem_preimage,
-      convert x_in_preA using 1,
-      rw quotient_group.eq',
-      -- seems to require `Γ` normal?
-      sorry,
-    },
-    { intros x_in_preA,
-      rw mem_preimage at x_in_preA,
-      rw mem_preimage,
-      rw mem_preimage,
-      convert x_in_preA using 1,
-      rw quotient_group.eq',
-      -- seems to require `Γ` normal?
-      sorry,
-    },
+    have : π (x * γ) = π (x) := by simpa [quotient_group.eq'] using γ_in_Γ,
+    simp [(•), this],
   end }
 
 /-- The pushforward to the quotient group `G ⧸ Γ` of the restriction of Haar measure on `G` to a
 fundamental domain `𝓕` is a left-invariant measure on the group `G ⧸ Γ`. -/
-lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ] :
+lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ]
+  (hμL : measure_theory.is_mul_left_invariant μ) (hμR : measure_theory.is_mul_right_invariant μ) :
   is_mul_left_invariant (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) :=
 begin
   intros x A hA,
   obtain ⟨x₁, _⟩ := @quotient.exists_rep _ (quotient_group.left_rel Γ) x,
-  haveI := h𝓕.smul_invariant_measure_map,
+  haveI := h𝓕.smul_invariant_measure_map hμL hμR,
   convert measure_theory.measure_preimage_smul x₁ ((measure.map quotient_group.mk) (μ.restrict 𝓕)) A,
   rw ← h,
   refl,
@@ -218,7 +260,9 @@ variables (K : topological_space.positive_compacts (G ⧸ Γ))
 
 local notation `μ_X` := measure_theory.measure.haar_measure K
 
-lemma map_restrict_unit_interval [subgroup.normal Γ] (h𝓕_finite : μ 𝓕 < ⊤) :
+lemma map_restrict_unit_interval [subgroup.normal Γ] [measure_theory.measure.is_haar_measure μ]
+  (hμR : measure_theory.is_mul_right_invariant μ)
+  (h𝓕_finite : μ 𝓕 < ⊤) :
   measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)
   = (μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K.val)) • μ_X :=
 begin
@@ -230,9 +274,10 @@ begin
     ⟨by { rw [measure.restrict_apply' 𝓕meas, univ_inter], exact h𝓕_finite }⟩,
   -- the measure is left-invariant, so by the uniqueness of Haar measure it's enough to show that
   -- it has the stated size on the reference compact set `K`.
-  rw [measure.haar_measure_unique h𝓕.is_mul_left_invariant_map K,
-        measure.map_apply meas_π, measure.restrict_apply' 𝓕meas, inter_comm],
-  exact K.prop.1.measurable_set
+  rw [measure.haar_measure_unique (h𝓕.is_mul_left_invariant_map
+    (measure_theory.measure.is_mul_left_invariant_haar μ) hμR) K,
+    measure.map_apply meas_π, measure.restrict_apply' 𝓕meas, inter_comm],
+  exact K.prop.1.measurable_set,
 end
 
 

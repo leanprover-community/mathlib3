@@ -168,7 +168,8 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
         have (x % (well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h) ∉ {x : R | x ∈ S ∧ x ≠ 0}),
           from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
         have x % well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h = 0,
-          by finish [(mod_mem_iff hmin.1).2 hx],
+          by { simp only [not_and_distrib, set.mem_set_of_eq, not_ne_iff] at this,
+               cases this, cases this ((mod_mem_iff hmin.1).2 hx), exact this },
         by simp *),
       λ hx, let ⟨y, hy⟩ := ideal.mem_span_singleton.1 hx in hy.symm ▸ S.mul_mem_right _ hmin.1⟩⟩
     else ⟨0, submodule.ext $ λ a,

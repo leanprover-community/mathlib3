@@ -205,7 +205,7 @@ begin
   rw [← sum_sdiff (@filter_subset _ (λ k, n ≤ k) _ (range m)),
     sub_eq_iff_eq_add, ← eq_sub_iff_add_eq, add_sub_cancel'],
   refine finset.sum_congr
-    (finset.ext $ λ a, ⟨λ h, by simp at *; finish,
+    (finset.ext $ λ a, ⟨λ h, by simp at *; tauto,
     λ h, have ham : a < m := lt_of_lt_of_le (mem_range.1 h) hnm,
       by simp * at *⟩)
     (λ _ _, rfl),

@@ -1798,6 +1798,9 @@ lemma bounded_range_of_cauchy_map_cofinite {f : β → α} (hf : cauchy (map f c
   bounded (range f) :=
 bounded_range_of_tendsto_cofinite_uniformity $ (cauchy_map_iff.1 hf).2
 
+lemma _root_.cauchy_seq.bounded_range {f : ℕ → α} (hf : cauchy_seq f) : bounded (range f) :=
+bounded_range_of_cauchy_map_cofinite $ by rwa nat.cofinite_eq_at_top
+
 lemma bounded_range_of_tendsto_cofinite {f : β → α} {a : α} (hf : tendsto f cofinite (𝓝 a)) :
   bounded (range f) :=
 bounded_range_of_tendsto_cofinite_uniformity $
@@ -1810,20 +1813,9 @@ compact_univ.bounded.mono (subset_univ _)
 lemma bounded_range_of_tendsto {α : Type*} [pseudo_metric_space α] (u : ℕ → α) {x : α}
   (hu : tendsto u at_top (𝓝 x)) :
   bounded (range u) :=
-begin
-  classical,
-  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), n ≥ N → dist (u n) x < 1 :=
-    metric.tendsto_at_top.1 hu 1 zero_lt_one,
-  have : range u ⊆ (finset.range N).image u ∪ ball x 1,
-  { refine range_subset_iff.2 (λ n, _),
-    rcases lt_or_le n N with h|h,
-    { left,
-      simp only [mem_image, finset.mem_range, finset.mem_coe, finset.coe_image],
-      exact ⟨n, h, rfl⟩ },
-    { exact or.inr (mem_ball.2 (hN n h)) } },
-  exact bounded.mono this ((finset.finite_to_set _).bounded.union bounded_ball)
-end
+hu.cauchy_seq.bounded_range
 
+/-- The **Heine–Borel theorem**: In a proper space, a closed bounded set is compact. -/
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
   is_compact s :=
 begin
@@ -1833,8 +1825,13 @@ begin
     exact compact_of_is_closed_subset (is_compact_closed_ball x r) hc hr }
 end
 
-/-- The Heine–Borel theorem:
-In a proper space, a set is compact if and only if it is closed and bounded -/
+/-- The **Heine–Borel theorem**: In a proper space, the closure of a bounded set is compact. -/
+lemma bounded.is_compact_closure [proper_space α] (h : bounded s) :
+  is_compact (closure s) :=
+is_compact_of_is_closed_bounded is_closed_closure h.closure
+
+/-- The **Heine–Borel theorem**:
+In a proper Hausdorff space, a set is compact if and only if it is closed and bounded. -/
 lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨h.is_closed, h.bounded⟩, λ h, is_compact_of_is_closed_bounded h.1 h.2⟩

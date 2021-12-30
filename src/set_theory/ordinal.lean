@@ -986,7 +986,7 @@ sum.inr punit.star, λ b, sum.rec_on b
   (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
   (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩
 
-theorem succ_ne_self (o : ordinal.{u}) : succ o ≠ o := ne_of_gt (lt_succ_self o)
+theorem succ_ne_self (o : ordinal.{u}) : succ o ≠ o := (lt_succ_self o).ne'
 
 theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _),

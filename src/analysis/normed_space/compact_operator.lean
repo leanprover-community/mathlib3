@@ -27,18 +27,12 @@ include hf
 
 lemma bounded : ∃ C, ∀ x : E₁, ∥f x∥ ≤ C * ∥x∥ :=
 begin
-  cases @nondiscrete_normed_field.non_trivial 𝕜 _ with k hk,
-  rcases metric.bounded.subset_ball_lt (hf (metric.ball 0 ∥k∥) metric.bounded_ball).bounded 0 (0 : E₂)
+  rcases metric.bounded.subset_ball_lt (hf (metric.ball 0 1) metric.bounded_ball).bounded 0 (0 : E₂)
     with ⟨r, hrl, hcl⟩,
-  use r,
-  refine linear_map.bound_of_shell _ (show (0 : ℝ) < ∥k∥, by linarith) hk _,
-  intros x hkx hxo,
-  rw div_self at hkx,
-  { calc ∥f x∥ ≤ r : _
-           ... ≤ _ : by nlinarith,
-    refine mem_closed_ball_zero_iff.mp (hcl _),
-    exact subset_closure (set.mem_image_of_mem _ (mem_ball_zero_iff.mpr hxo)) },
-  { linarith }
+  refine linear_map.bound_of_ball_bound zero_lt_one r _ (λ z hz, _),
+  refine mem_closed_ball_zero_iff.mp (hcl _),
+  refine subset_closure (set.mem_image_of_mem _ (mem_ball_zero_iff.mpr _)),
+  exact mem_ball_zero_iff.mp hz
 end
 
 lemma continuous : continuous f :=

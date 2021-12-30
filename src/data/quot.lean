@@ -268,13 +268,12 @@ noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : Π i, se
 quotient.sound $ λ i, quotient.mk_out _
 
 
-attribute [elab_as_eliminator]
-lemma quotient.induction_on_pi
+@[elab_as_eliminator] lemma quotient.induction_on_pi
    {ι : Type*} {α : ι → Sort*} [s : ∀ i, setoid (α i)]
-   {φ : (Π i, quotient (s i)) → Prop} (q : Π i, quotient (s i))
-   (h : ∀ a : Π i, α i, φ (λ i, ⟦a i⟧)) : φ q :=
+   {p : (Π i, quotient (s i)) → Prop} (f : Π i, quotient (s i))
+   (h : ∀ a : Π i, α i, p (λ i, ⟦a i⟧)) : φ f :=
 begin
-  rw ← (funext (λ i, quotient.out_eq (q i)) : (λ i,  ⟦(q i).out⟧) = q),
+  rw ← (funext (λ i, quotient.out_eq (f i)) : (λ i,  ⟦(f i).out⟧) = f),
   apply h,
 end
 end pi

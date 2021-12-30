@@ -85,7 +85,7 @@ instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (
 
 end lex
 
-/-! # Disjoint sum of two orders -/
+/-! ### Disjoint sum of two orders -/
 
 section disjoint
 
@@ -102,7 +102,7 @@ instance [partial_order α] [partial_order β] : partial_order (α ⊕ β) :=
 
 end disjoint
 
-/-! # Linear sum of two orders -/
+/-! ### Linear sum of two orders -/
 
 namespace lex
 

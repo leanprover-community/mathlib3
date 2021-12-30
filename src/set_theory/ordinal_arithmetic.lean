@@ -965,7 +965,7 @@ def lsub {ι} (f : ι → ordinal) : ordinal :=
 sup (λ i, (f i).succ)
 
 theorem lsub_le_iff_lt {ι} {f : ι → ordinal} {a} : lsub f ≤ a ↔ ∀ i, f i < a :=
-by { convert sup_le, apply propext, simp [succ_le] }
+by { convert sup_le, simp [succ_le] }
 
 theorem lt_lsub {ι} (f : ι → ordinal) : ∀ i, f i < lsub f :=
 λ i, succ_le.1 (le_sup _ i)

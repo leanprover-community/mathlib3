@@ -3,12 +3,12 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+import algebra.associated
 import data.list.sort
 import data.nat.gcd
 import data.nat.sqrt
 import tactic.norm_num
 import tactic.wlog
-import algebra.associated
 
 /-!
 # Prime numbers
@@ -23,6 +23,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
 - `nat.exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
+* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
+* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 
 -/
 
@@ -35,6 +37,8 @@ namespace nat
   at least 2 whose only divisors are `p` and `1`. -/
 @[pp_nodot]
 def prime (p : ℕ) := _root_.irreducible p
+
+theorem _root_.irreducible_iff_nat_prime (a : ℕ) : irreducible a ↔ nat.prime a := iff.rfl
 
 theorem not_prime_zero : ¬ prime 0
 | h := h.ne_zero rfl
@@ -524,6 +528,12 @@ theorem prime.dvd_mul {p m n : ℕ} (pp : prime p) : p ∣ m * n ↔ p ∣ m ∨
 theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
   (Hm : ¬ p ∣ m) (Hn : ¬ p ∣ n) : ¬ p ∣ m * n :=
 mt pp.dvd_mul.1 $ by simp [Hm, Hn]
+
+theorem prime_iff {p : ℕ} : p.prime ↔ _root_.prime p :=
+⟨λ h, ⟨h.ne_zero, h.not_unit, λ a b, h.dvd_mul.mp⟩, prime.irreducible⟩
+
+theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p :=
+by rw [←prime_iff, prime]
 
 /-- Prime `p` divides the product of `L : list ℕ` iff it divides some `a ∈ L` -/
 lemma prime.dvd_prod_iff {p : ℕ} {L : list ℕ} (pp : p.prime) :

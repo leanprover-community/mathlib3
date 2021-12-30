@@ -7,7 +7,6 @@ Authors: Frédéric Dupuis
 import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
-import algebra.star.self_adjoint
 
 /-!
 # Normed star rings and algebras

@@ -1412,7 +1412,7 @@ end
 
 /-- If `M ≤ N` are submonoids of `R`, then the natural map `M⁻¹S →+* N⁻¹S` commutes with the
 localization maps -/
-def localization_is_scalar_tower_of_submonoid_le
+lemma localization_is_scalar_tower_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
   @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_scalar _ :=
 begin

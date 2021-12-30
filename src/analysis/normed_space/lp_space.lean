@@ -245,7 +245,7 @@ begin
 end
 
 lemma const_mul {f : α → 𝕜} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (λ x, c * f x) p :=
-by convert hf.const_smul c
+@mem_ℓp.const_smul _ (λ i, 𝕜) _ _ _ _ _ _ hf c
 
 end normed_space
 

@@ -250,6 +250,9 @@ theorem prime_def_min_fac {p : ℕ} : prime p ↔ 2 ≤ p ∧ min_fac p = p :=
   ((dvd_prime pp).1 fd).resolve_left (ne_of_gt f2)⟩,
   λ ⟨p2, e⟩, e ▸ min_fac_prime (ne_of_gt p2)⟩
 
+@[simp] lemma prime.min_fac_eq {p : ℕ} (hp : prime p) : min_fac p = p :=
+(prime_def_min_fac.1 hp).2
+
 /--
 This instance is faster in the virtual machine than `decidable_prime_1`,
 but slower in the kernel.
@@ -560,12 +563,18 @@ begin
   rw [hp.eq_one_of_pow, eq_self_iff_true, and_true, pow_one],
 end
 
-lemma prime.power_min_fac {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) : (p^k).min_fac = p :=
+lemma power_min_fac {n k : ℕ} (hk : k ≠ 0) : (n^k).min_fac = n.min_fac :=
 begin
-  have pk : p ^ k ≠ 1 := λ hk', hp.one_lt.ne' ((pow_eq_one_iff hk).1 hk'),
-  rw ←dvd_prime_two_le hp (min_fac_prime pk).two_le,
-  apply (min_fac_prime pk).dvd_of_dvd_pow (p^k).min_fac_dvd,
+  rcases eq_or_ne n 1 with rfl | hn,
+  { simp },
+  have hnk : n ^ k ≠ 1 := λ hk', hn ((pow_eq_one_iff hk).1 hk'),
+  apply (min_fac_le_of_dvd (min_fac_prime hn).two_le ((min_fac_dvd n).pow hk)).antisymm,
+  apply min_fac_le_of_dvd (min_fac_prime hnk).two_le
+    ((min_fac_prime hnk).dvd_of_dvd_pow (min_fac_dvd _)),
 end
+
+lemma prime.power_min_fac {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) : (p^k).min_fac = p :=
+by rw [power_min_fac hk, hp.min_fac_eq]
 
 lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=

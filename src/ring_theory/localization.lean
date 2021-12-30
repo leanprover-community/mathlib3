@@ -1252,8 +1252,11 @@ section localization_localization
 
 variable (M)
 
-variables (N : submonoid S) (T : Type*) [comm_ring T] [algebra S T]
-variables [algebra R T] [is_scalar_tower R S T]
+variables (N : submonoid S) (T : Type*) [comm_ring T] [algebra R T]
+
+section
+
+variables [algebra S T] [is_scalar_tower R S T]
 
 /--
 Localizing wrt `M ⊆ R` and then wrt `N ⊆ S = M⁻¹R` is equal to the localization of `R` wrt this
@@ -1389,6 +1392,107 @@ noncomputable
 def localization_localization_at_prime_iso_localization (p : ideal (localization M)) [p.is_prime] :
   localization.at_prime (p.comap (algebra_map R _)) ≃ₐ[R] localization.at_prime p :=
 is_localization.alg_equiv (p.comap (algebra_map R _)).prime_compl _ _
+
+end
+
+variables (S)
+
+/-- If `M ≤ N` are submonoids of `R`, then there is a natural map `M⁻¹S →+* N⁻¹S`. -/
+noncomputable
+def localization_algebra_of_submonoid_le
+  (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
+  algebra S T :=
+begin
+  apply ring_hom.to_algebra,
+  apply @is_localization.lift _ _ M _ _ _ _ _ _ (algebra_map _ _),
+  any_goals { apply_instance },
+  intro y,
+  apply is_localization.map_units T ⟨_, h y.prop⟩,
+end
+
+/-- If `M ≤ N` are submonoids of `R`, then the natural map `M⁻¹S →+* N⁻¹S` commutes with the
+localization maps -/
+def localization_is_scalar_tower_of_submonoid_le
+  (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
+  @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_scalar _ :=
+begin
+  letI := localization_algebra_of_submonoid_le S T M N h,
+  exact is_scalar_tower.of_algebra_map_eq' (is_localization.lift_comp _).symm
+end
+
+noncomputable
+instance (x : ideal R) [H : x.is_prime] [is_domain R] :
+  algebra (localization.at_prime x) (localization (non_zero_divisors R)) :=
+localization_algebra_of_submonoid_le _ _ x.prime_compl (non_zero_divisors R)
+  (by { intros a ha, rw mem_non_zero_divisors_iff_ne_zero, exact λ h, ha (h.symm ▸ x.zero_mem) })
+
+lemma exist_image_iff {α β : Type*} (f : α → β) (x : set α) (P : β → Prop) :
+  (∃ (a : f '' x), P a) ↔ ∃ (a : x), P (f a) :=
+⟨λ h, ⟨⟨_, h.some.prop.some_spec.1⟩, h.some.prop.some_spec.2.symm ▸ h.some_spec⟩,
+  λ h, ⟨⟨_, _, h.some.prop, rfl⟩, h.some_spec⟩⟩
+
+/-- If `M ≤ N` are submonoids of `R`, then `N⁻¹S` is also the localization of `M⁻¹S` at `N`. -/
+lemma is_localization_of_submonoid_le
+  (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
+  @@is_localization _ (N.map (algebra_map R S).to_monoid_hom) T _
+    (localization_algebra_of_submonoid_le S T M N h) :=
+begin
+  letI := localization_algebra_of_submonoid_le S T M N h,
+  letI := localization_is_scalar_tower_of_submonoid_le S T M N h,
+  constructor,
+  { rintro ⟨_, ⟨y, hy, rfl⟩⟩,
+    convert is_localization.map_units T ⟨y, hy⟩,
+    exact (is_scalar_tower.algebra_map_apply _ _ _ _).symm },
+  { intro y,
+    obtain ⟨⟨x, s⟩, e⟩ := is_localization.surj N y,
+    refine ⟨⟨algebra_map _ _ x, _, _, s.prop, rfl⟩, _⟩,
+    simpa [← is_scalar_tower.algebra_map_apply] using e },
+  { intros x₁ x₂,
+    obtain ⟨⟨y₁, s₁⟩, e₁⟩ := is_localization.surj M x₁,
+    obtain ⟨⟨y₂, s₂⟩, e₂⟩ := is_localization.surj M x₂,
+    refine iff.trans _ (exist_image_iff (algebra_map R S) N (λ c, x₁ * c = x₂ * c)).symm,
+    rw [← (is_localization.map_units T ⟨_, h s₁.prop⟩).mul_left_inj,
+        ← (is_localization.map_units T ⟨_, h s₂.prop⟩).mul_right_inj],
+    simp_rw [is_scalar_tower.algebra_map_apply R S T, ← map_mul],
+    dsimp only [subtype.coe_mk] at e₁ e₂ ⊢,
+    rw [e₁, ← mul_assoc, mul_comm _ x₂, e₂],
+    simp_rw [← map_mul, ← is_scalar_tower.algebra_map_apply R S T],
+    rw is_localization.eq_iff_exists N T,
+    simp only [← (is_localization.map_units S s₁).mul_right_inj] { single_pass := tt },
+    simp only [← @is_unit.mul_right_inj _ _ _ _ (_ * (x₂ * _)) (is_localization.map_units S s₂)]
+      { single_pass := tt },
+    simp only [← mul_assoc] { single_pass := tt },
+    simp only [mul_comm _ x₁, mul_comm _ x₂, ← mul_assoc _ x₂, e₁, e₂, ← map_mul,
+      is_localization.eq_iff_exists M S],
+    split,
+    { rintro ⟨a, e⟩, exact ⟨a, 1, by simpa using e⟩ },
+    { rintro ⟨a, b, e⟩, exact ⟨a * (⟨_, h b.prop⟩ : N), by simpa [mul_assoc] using e⟩ } }
+end
+
+/-- If `M ≤ N` are submonoids of `R` such that `∀ x : N, ∃ m : R, m * x ∈ M`, then the
+localization at `N` is equal to the localizaton of `M`. -/
+lemma is_localization_of_is_exists_mul_mem
+  {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*)
+    [comm_ring S] [algebra R S] [is_localization M S] (N : submonoid R) (h : M ≤ N)
+    (h' : ∀ x : N, ∃ m : R, m * x ∈ M) : is_localization N S :=
+begin
+  constructor,
+  { intro y,
+    obtain ⟨m, hm⟩ := h' y,
+    have := is_localization.map_units S ⟨_, hm⟩,
+    erw map_mul at this,
+    exact (is_unit.mul_iff.mp this).2 },
+  { intro z,
+    obtain ⟨⟨y, s⟩, e⟩ := is_localization.surj M z,
+    exact ⟨⟨y, _, h s.prop⟩, e⟩ },
+  { intros x₁ x₂,
+    rw is_localization.eq_iff_exists M,
+    refine ⟨λ ⟨x, hx⟩, ⟨⟨_, h x.prop⟩, hx⟩, _⟩,
+    rintros ⟨x, h⟩,
+    obtain ⟨m, hm⟩ := h' x,
+    refine ⟨⟨_, hm⟩, _⟩,
+    simp [mul_comm m, ← mul_assoc, h] }
+end
 
 end localization_localization
 

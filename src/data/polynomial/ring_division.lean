@@ -379,6 +379,12 @@ multiset.ext.mpr $ λ r,
   by rw [count_add, count_roots, count_roots,
          count_roots, root_multiplicity_mul hpq]
 
+lemma roots.le_of_dvd (h : q ≠ 0) : p ∣ q → roots p ≤ roots q :=
+begin
+  rintro ⟨k, rfl⟩,
+  exact multiset.le_iff_exists_add.mpr ⟨k.roots, roots_mul h⟩
+end
+
 @[simp] lemma mem_roots_sub_C {p : polynomial R} {a x : R} (hp0 : 0 < degree p) :
   x ∈ (p - C a).roots ↔ p.eval x = a :=
 (mem_roots (show p - C a ≠ 0, from mt sub_eq_zero.1 $ λ h,
@@ -396,11 +402,17 @@ end
 
 @[simp] lemma roots_C (x : R) : (C x).roots = 0 :=
 if H : x = 0 then by rw [H, C_0, roots_zero] else multiset.ext.mpr $ λ r,
-have not_root : ¬ is_root (C x) r := mt (λ (h : eval r (C x) = 0), trans eval_C.symm h) H,
-by rw [count_roots, count_zero, root_multiplicity_eq_zero not_root]
+by rw [count_roots, count_zero, root_multiplicity_eq_zero (not_is_root_C _ _ H)]
 
 @[simp] lemma roots_one : (1 : polynomial R).roots = ∅ :=
 roots_C 1
+
+lemma roots_smul_nonzero (p : polynomial R) {r : R} (hr : r ≠ 0) :
+  (r • p).roots = p.roots :=
+begin
+  by_cases hp : p = 0;
+  simp [smul_eq_C_mul, roots_mul, hr, hp]
+end
 
 lemma roots_list_prod (L : list (polynomial R)) :
   ((0 : polynomial R) ∉ L) → L.prod.roots = (L : multiset (polynomial R)).bind roots :=
@@ -673,6 +685,16 @@ begin
   simp only [hmonic, one_mul, monic.leading_coeff] at hrew,
   nth_rewrite 1 ← hp,
   exact hrew.symm
+end
+
+lemma leading_coeff_div_by_monic_X_sub_C (p : polynomial R) (hp : degree p ≠ 0) (a : R) :
+  leading_coeff (p /ₘ (X - C a)) = leading_coeff p :=
+begin
+  nontriviality,
+  cases hp.lt_or_lt with hd hd,
+  { rw [degree_eq_bot.mp $ (nat.with_bot.lt_zero_iff _).mp hd, zero_div_by_monic] },
+  refine leading_coeff_div_by_monic_of_monic (monic_X_sub_C a) _,
+  rwa [degree_X_sub_C, nat.with_bot.one_le_iff_zero_lt]
 end
 
 lemma eq_of_monic_of_dvd_of_nat_degree_le (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)

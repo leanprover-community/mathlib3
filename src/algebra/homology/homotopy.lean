@@ -349,12 +349,14 @@ lemma null_homotopy_f {k₂ k₁ k₀ : ι} (r₂₁ : c.rel k₂ k₁) (r₁₀
 @[simp]
 lemma null_homotopy_f' {k₂ k₁ k₀  : ι} (r₂₁ : c.rel k₂ k₁) (r₁₀ : c.rel k₁ k₀)
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
-  (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ + h k₁ k₂ r₂₁ ≫ D.d k₂ k₁ := by
-{ simp only [← null_homotopic_map'],
+  (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ + h k₁ k₂ r₂₁ ≫ D.d k₂ k₁ :=
+begin
+  simp only [← null_homotopic_map'],
   rw null_homotopy_f r₂₁ r₁₀ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
   dsimp,
   split_ifs,
-  refl, }
+  refl,
+end
 
 @[simp]
 lemma null_homotopy_f_lower_end {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)

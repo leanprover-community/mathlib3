@@ -23,8 +23,6 @@ To get a C⋆-algebra `E` over field `𝕜`, use
 `[normed_field 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [cstar_ring E]
  [normed_algebra 𝕜 E] [star_module 𝕜 E]`.
 
-We also put a norm on `self_adjoint E`.
-
 ## TODO
 
 - Show that `∥x⋆ * x∥ = ∥x∥^2` is equivalent to `∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥`, which is used as the

@@ -864,13 +864,9 @@ private lemma lt_sup_of_ne_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f
 theorem sup_not_succ_of_ne_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i ≠ sup f) :
   ∀ a < sup f, succ a < sup f :=
 begin
-  replace hf := lt_sup_of_ne_sup hf,
   intros a hao,
   by_contra' hoa,
-  have hao' := le_antisymm (succ_le.2 hao) hoa,
-  rw ←hao' at hf,
-  rw le_antisymm (le_of_lt hao) (sup_le.2 (λ i, lt_succ.1 (hf i))) at hao',
-  exact succ_ne_self _ hao',
+  apply hao.not_le (sup_le.2 (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa))),
 end
 
 theorem is_normal.sup {f} (H : is_normal f)

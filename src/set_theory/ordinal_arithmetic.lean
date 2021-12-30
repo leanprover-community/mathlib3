@@ -1010,6 +1010,14 @@ end
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
 
+theorem lsub_eq_blsub {ι} (f : ι → ordinal) :
+  lsub f = blsub (type well_ordering_rel) (λ a ha, f (enum well_ordering_rel a ha)) :=
+sup_eq_bsup _
+
+theorem blsub_eq_lsub {o} (f : Π a < o, ordinal) :
+  blsub o f = lsub (λ i, f _ (typein_lt_self i)) :=
+bsup_eq_sup _
+
 theorem blsub_le_iff_lt {o f a} : blsub o f ≤ a ↔ ∀ i h, f i h < a :=
 by { convert bsup_le, apply propext, simp [succ_le] }
 
@@ -1043,18 +1051,7 @@ end
 
 theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
-begin
-  refine ⟨λ h, _, λ hf, le_antisymm (bsup_le_blsub f) _⟩,
-  { rw ←h,
-    exact bsup_not_succ_of_ne_bsup (λ i hi, ne_of_lt (blsub_le_iff_lt.1 (le_of_eq h.symm) i hi)) },
-  rw blsub_le_iff_lt,
-  intros i hi,
-  by_contra' hle,
-  have heq := (bsup_succ_eq_blsub f).2 ⟨i, hi, le_antisymm (le_bsup _ _ _) hle⟩,
-  have := hf (o.bsup f) ( by { rw ←heq, exact lt_succ_self _ } ),
-  rw heq at this,
-  exact lt_irrefl _ this
-end
+by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
 
 theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :
   blsub (type r) f = lsub (λ a, f (typein r a) (typein_lt_type _ _)) :=

@@ -19,7 +19,11 @@ operators on Hilbert spaces.
 * If `R` is a `star_module R₂ R`, put a module structure on `self_adjoint R`. This would naturally
 be a `module (self_adjoint R₂) (self_adjoint R)`, but doing this literally would be undesirable
 since in the main case of interest (`R₂ = ℂ`) we want `module ℝ (self_adjoint R)` and not
-`module (self_adjoint ℂ) (self_adjoint R)`.
+`module (self_adjoint ℂ) (self_adjoint R)`. One way of doing this would be to add the typeclass
+`[has_trivial_star R]`, of which `ℝ` would be an instance, and then add a
+`[module R (self_adjoint E)]` instance whenever we have `[module R E] [has_trivial_star E]`. Another
+one would be to define a `[star_invariant_scalars R E]` to express the fact that
+`star (x • v) = x • star v`.
 
 -/
 

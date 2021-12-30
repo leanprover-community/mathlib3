@@ -326,14 +326,16 @@ def null_homotopy (hom : Π i j, C.X i ⟶ D.X j) (zero' : ∀ i j, ¬ c.rel j i
 /-- Homotopy to zero for maps constructed with `null_homotopic_map'` -/
 @[simps]
 def null_homotopy' (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
-  homotopy (null_homotopic_map' h) 0 := by
-{ apply null_homotopy (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+  homotopy (null_homotopic_map' h) 0 :=
+begin
+  apply null_homotopy (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
   intros i j hij,
   dsimp,
   rw [dite_eq_right_iff],
   intro hij',
   exfalso,
-  exact hij hij', }
+  exact hij hij',
+end
 
 /-! This lemma and the following ones can be used in order to compute
 the degreewise morphisms induced by the null homotopic maps constructed

@@ -1088,9 +1088,9 @@ begin
   calc ∥f x∥ ≤ c : h _ (mem_ball_zero_iff.mpr hxo)
          ... ≤ c * ((∥x∥ * ∥k∥) / r) : le_mul_of_one_le_right _ _
          ... = _ : by ring,
-    { exact le_trans (norm_nonneg _) (h 0 (by simp [r_pos])) },
-    { rw [div_le_iff (zero_lt_one.trans hk)] at hko,
-      exact (one_le_div r_pos).mpr hko }
+  { exact le_trans (norm_nonneg _) (h 0 (by simp [r_pos])) },
+  { rw [div_le_iff (zero_lt_one.trans hk)] at hko,
+    exact (one_le_div r_pos).mpr hko }
 end
 
 namespace continuous_linear_map

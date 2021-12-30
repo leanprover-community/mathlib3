@@ -721,11 +721,27 @@ lemma le_iff_mem_closure (x y : prime_spectrum R) :
 by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
     mem_zero_locus, vanishing_ideal_singleton, set_like.coe_subset_coe]
 
+lemma le_iff_specializes (x y : prime_spectrum R) :
+  x ≤ y ↔ x ⤳ y :=
+le_iff_mem_closure x y
+
 instance : t0_space (prime_spectrum R) :=
 by { simp [t0_space_iff_or_not_mem_closure, ← le_iff_mem_closure,
   ← not_and_distrib, ← le_antisymm_iff, eq_comm] }
 
 end order
+
+/-- If `x` specializes to `y`, then there is a natural map from the localization of `y` to
+the localization of `x`. -/
+def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
+  localization.at_prime y.as_ideal →+* localization.at_prime x.as_ideal :=
+@is_localization.lift _ _ _ _ _ _ _ _ localization.is_localization (algebra_map R _)
+begin
+  rintro ⟨a, ha⟩,
+  rw [← prime_spectrum.le_iff_specializes, ← as_ideal_le_as_ideal, ← set_like.coe_subset_coe,
+    ← set.compl_subset_compl] at h,
+  exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
+end
 
 end prime_spectrum
 

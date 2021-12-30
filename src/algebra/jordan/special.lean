@@ -126,14 +126,18 @@ instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ)
   left_distrib := λ a b c, begin
     change (⅟2)*(unsym(a)*(unsym(b)+unsym(c))+(unsym(b)+unsym(c))*unsym(a)) =
       (⅟2)*(unsym(a)*unsym(b)+unsym(b)*unsym(a))+(⅟2)*(unsym(a)*unsym(c)+unsym(c)*unsym(a)),
-    rw [←mul_add, mul_add (unsym a), add_mul, ← add_assoc, ← add_assoc],
-    finish,
+    rw [←mul_add, mul_add (unsym a), add_mul, ← add_assoc, ← add_assoc, ← sub_eq_zero, ← mul_sub,
+      add_sub_add_right_eq_sub, add_assoc, add_assoc, add_sub_add_left_eq_sub],
+    abel,
+    rw mul_zero,
   end,
   right_distrib := λ a b c, begin
     change (⅟2)*((unsym(a)+unsym(b))*unsym(c)+unsym(c)*(unsym(a)+unsym(b))) =
       (⅟2)*(unsym(a)*unsym(c)+unsym(c)*unsym(a))+(⅟2)*(unsym(b)*unsym(c)+unsym(c)*unsym(b)),
-    rw [←mul_add, add_mul, mul_add (unsym c), ←add_assoc, ←add_assoc],
-    finish,
+    rw [←mul_add, add_mul, mul_add (unsym c), ←add_assoc, ←add_assoc, ← sub_eq_zero, ← mul_sub,
+      add_sub_add_right_eq_sub, add_assoc, add_assoc, add_sub_add_left_eq_sub],
+    abel,
+    rw mul_zero,
   end,
   ..sym_alg.has_mul,
   ..sym_alg.add_comm_group, }

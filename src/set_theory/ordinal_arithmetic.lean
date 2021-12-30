@@ -860,12 +860,11 @@ by simpa only [not_forall, not_le] using not_congr (@sup_le _ f a)
 theorem lt_sup_of_ne_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f) ↔ ∀ i, f i < sup f :=
 ⟨λ hf _, lt_of_le_of_ne (le_sup _ _) (hf _), λ hf _, ne_of_lt (hf _)⟩
 
-theorem sup_not_succ_of_ne_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i ≠ sup f) :
-  ∀ a < sup f, succ a < sup f :=
+theorem sup_not_succ_of_ne_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i ≠ sup f) {a}
+  (hao : a < sup f) : succ a < sup f :=
 begin
-  intros a hao,
   by_contra' hoa,
-  apply hao.not_le (sup_le.2 (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa))),
+  exact hao.not_le (sup_le.2 (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa)))
 end
 
 theorem is_normal.sup {f} (H : is_normal f)
@@ -915,9 +914,22 @@ eq_of_forall_ge_iff $ λ o,
 by rw [bsup_le, sup_le]; exact
   ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
 
-theorem sup_eq_bsup {ι} {f : ι → ordinal} :
+theorem sup_eq_bsup {ι} (f : ι → ordinal) :
   sup f = bsup (type well_ordering_rel) (λ a ha, f (enum well_ordering_rel a ha)) :=
 by simp [bsup_type]
+
+theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (λ i, f _ (typein_lt_self i)) :=
+begin
+  apply le_antisymm,
+  { rw bsup_le,
+    intros a hao,
+    rw ←type_out o at hao,
+    cases typein_surj _ hao with i hi,
+    simp_rw ←hi,
+    exact le_sup _ _ },
+  rw sup_le,
+  exact λ i, le_bsup _ _ _
+end
 
 theorem is_normal.bsup {f} (H : is_normal f) {o} :
   ∀ (g : Π a < o, ordinal) (h : o ≠ 0), f (bsup o g) = bsup o (λ a h, f (g a h)) :=
@@ -930,16 +942,9 @@ theorem lt_bsup_of_ne_bsup {o : ordinal} {f : Π a < o, ordinal} :
 ⟨λ hf _ _, lt_of_le_of_ne (le_bsup _ _ _) (hf _ _), λ hf _ _, ne_of_lt (hf _ _)⟩
 
 theorem bsup_not_succ_of_ne_bsup {o} {f : Π a < o, ordinal}
-  (hf : ∀ (i : ordinal) (h : i < o), f i h ≠ o.bsup f) (a) :
+  (hf : ∀ {i : ordinal} (h : i < o), f i h ≠ o.bsup f) (a) :
   a < bsup o f → succ a < bsup o f :=
-begin
-  intro hao,
-  by_contra' hoa,
-  have hao' := le_antisymm (succ_le.2 hao) hoa,
-  rw [lt_bsup_of_ne_bsup, ←hao'] at hf,
-  rw le_antisymm (le_of_lt hao) (bsup_le.2 (λ i h, lt_succ.1 (hf i h))) at hao',
-  exact succ_ne_self _ hao',
-end
+by { rw bsup_eq_sup at *, exact sup_not_succ_of_ne_sup (λ i, hf _) }
 
 theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (hf : ∀ {a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
@@ -961,8 +966,8 @@ sup (λ i, (f i).succ)
 theorem lsub_le_iff_lt {ι} {f : ι → ordinal} {a} : lsub f ≤ a ↔ ∀ i, f i < a :=
 by { convert sup_le, simp [succ_le] }
 
-theorem lt_lsub {ι} (f : ι → ordinal) : ∀ i, f i < lsub f :=
-λ i, succ_le.1 (le_sup _ i)
+theorem lt_lsub {ι} (f : ι → ordinal) (i) : f i < lsub f :=
+succ_le.1 (le_sup _ i)
 
 theorem sup_le_lsub {ι} (f : ι → ordinal) : sup f ≤ lsub f :=
 sup_le.2 (λ i, le_of_lt (lt_lsub f i))
@@ -991,14 +996,14 @@ theorem sup_eq_lsub {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ a < lsub 
 begin
   refine ⟨λ h, _, λ hf, le_antisymm (sup_le_lsub f) _⟩,
   { rw ←h,
-    exact sup_not_succ_of_ne_sup (λ i, ne_of_lt (lsub_le_iff_lt.1 (le_of_eq h.symm) i)) },
+    exact λ a, sup_not_succ_of_ne_sup (λ i, ne_of_lt (lsub_le_iff_lt.1 (le_of_eq h.symm) i)) },
   rw lsub_le_iff_lt,
   intros i,
   by_contra' hle,
   have heq := (sup_succ_eq_lsub f).2 ⟨i, le_antisymm (le_sup _ _) hle⟩,
   have := hf (sup f) ( by { rw ←heq, exact lt_succ_self _ } ),
   rw heq at this,
-  exact lt_irrefl _ this,
+  exact lt_irrefl _ this
 end
 
 /-- The bounded least strict upper bound of a family of ordinals. -/
@@ -1048,7 +1053,7 @@ begin
   have heq := (bsup_succ_eq_blsub f).2 ⟨i, hi, le_antisymm (le_bsup _ _ _) hle⟩,
   have := hf (o.bsup f) ( by { rw ←heq, exact lt_succ_self _ } ),
   rw heq at this,
-  exact lt_irrefl _ this,
+  exact lt_irrefl _ this
 end
 
 theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :
@@ -1063,7 +1068,7 @@ begin
   { rw blsub_le_iff_lt,
     exact λ _, id },
   by_contra' h,
-  exact lt_irrefl (blsub.{u u} o (λ x _, x)) (lt_blsub _ _ h),
+  exact lt_irrefl (blsub.{u u} o (λ x _, x)) (lt_blsub _ _ h)
 end
 
 /-! ### Ordinal exponential -/

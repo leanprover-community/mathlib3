@@ -3,6 +3,7 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
+import data.sum.basic
 import order.basic
 
 /-!
@@ -239,6 +240,13 @@ instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty
   wf           := ⟨λ a, ⟨_, λ y, false.elim⟩⟩ }
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
+
+instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] :
+  is_well_order (α ⊕ β) (sum.lex r s) :=
+{ trichotomous := λ a b, by cases a; cases b; simp; apply trichotomous,
+  irrefl       := λ a, by cases a; simp; apply irrefl,
+  trans        := λ a b c, by cases a; cases b; simp; cases c; simp; apply trans,
+  wf           := sum.lex_wf is_well_order.wf is_well_order.wf }
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=

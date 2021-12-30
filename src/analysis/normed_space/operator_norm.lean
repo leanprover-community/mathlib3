@@ -392,6 +392,14 @@ theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm 
 theorem lipschitz : lipschitz_with ∥f∥₊ f :=
 (f : E →ₛₗ[σ₁₂] F).lipschitz_of_bound_nnnorm _ f.le_op_nnnorm
 
+theorem antilipschitz_of_bound {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  antilipschitz_with K f :=
+linear_map.antilipschitz_of_bound _ h
+
+lemma bound_of_antilipschitz {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
+  ∥x∥ ≤ K * ∥f x∥ :=
+linear_map.bound_of_antilipschitz _ h x
+
 end
 
 section

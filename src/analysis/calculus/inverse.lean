@@ -108,6 +108,18 @@ on a specific set. -/
 def approximates_linear_on (f : E → F) (f' : E →L[𝕜] F) (s : set E) (c : ℝ≥0) : Prop :=
 ∀ (x ∈ s) (y ∈ s), ∥f x - f y - f' (x - y)∥ ≤ c * ∥x - y∥
 
+lemma approximates_linear_on_iff_lipschitz_on_with
+  (f : E → F) (f' : E →L[𝕜] F) (s : set E) (c : ℝ≥0) :
+  approximates_linear_on f f' s c ↔ lipschitz_on_with c (f - f') s :=
+begin
+  have : ∀ x y, f x - f y - f' (x - y) = (f - f') x - (f - f') y,
+  { assume x y, simp only [map_sub, pi.sub_apply], abel },
+  simp only [this, lipschitz_on_with_iff_norm_sub_le, approximates_linear_on],
+end
+
+alias approximates_linear_on_iff_lipschitz_on_with ↔
+  approximates_linear_on.lipschitz_on_with lipschitz_on_with.approximates_linear_on
+
 namespace approximates_linear_on
 
 variables [cs : complete_space E] {f : E → F}
@@ -298,7 +310,7 @@ begin
   exact tendsto_nhds_unique T1 T2,
 end
 
-lemma open_image (hf : approximates_linear_on f f' s c)  (f'symm : f'.nonlinear_right_inverse)
+lemma open_image (hf : approximates_linear_on f f' s c) (f'symm : f'.nonlinear_right_inverse)
   (hs : is_open s) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) : is_open (f '' s) :=
 begin
   cases hc with hE hc, { resetI, apply is_open_discrete },
@@ -379,6 +391,39 @@ begin
   apply continuous_on_iff_continuous_restrict.2,
   refine ((hf.antilipschitz hc).to_right_inv_on' _ (hf.to_local_equiv hc).right_inv').continuous,
   exact (λ x hx, (hf.to_local_equiv hc).map_target hx)
+end
+
+/-- The inverse function is approximated linearly on `f '' s` by `f'.symm`. -/
+lemma to_inv (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
+  (hc : subsingleton E ∨ c < N⁻¹) :
+  approximates_linear_on (hf.to_local_equiv hc).symm (f'.symm : F →L[𝕜] E) (f '' s)
+    (N * (N⁻¹ - c)⁻¹ * c) :=
+begin
+  assume x hx y hy,
+  set A := hf.to_local_equiv hc with hA,
+  have Af : ∀ z, A z = f z := λ z, rfl,
+  rcases (mem_image _ _ _).1 hx with ⟨x', x's, rfl⟩,
+  rcases (mem_image _ _ _).1 hy with ⟨y', y's, rfl⟩,
+  rw [← Af x', ← Af y', A.left_inv x's, A.left_inv y's],
+  calc ∥x' - y' - (f'.symm) (A x' - A y')∥
+      ≤ N * ∥f' (x' - y' - (f'.symm) (A x' - A y'))∥ :
+    (f' : E →L[𝕜] F).bound_of_antilipschitz f'.antilipschitz _
+  ... = N * ∥A y' - A x' - f' (y' - x')∥ :
+    begin
+      congr' 2,
+      simp only [continuous_linear_equiv.apply_symm_apply, continuous_linear_equiv.map_sub],
+      abel,
+    end
+  ... ≤ N * (c * ∥y' - x'∥) :
+    mul_le_mul_of_nonneg_left (hf _ y's _ x's) (nnreal.coe_nonneg _)
+  ... ≤ N * (c * (((N⁻¹ - c)⁻¹ : ℝ≥0) * ∥A y' - A x'∥)) :
+    begin
+      apply_rules [mul_le_mul_of_nonneg_left, nnreal.coe_nonneg],
+      rw [← dist_eq_norm, ← dist_eq_norm],
+      exact (hf.antilipschitz hc).le_mul_dist ⟨y', y's⟩ ⟨x', x's⟩,
+    end
+  ... = (N * (N⁻¹ - c)⁻¹ * c : ℝ≥0) * ∥A x' - A y'∥ :
+    by { simp only [norm_sub_rev, nonneg.coe_mul], ring }
 end
 
 include cs

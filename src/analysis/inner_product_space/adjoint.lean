@@ -13,18 +13,24 @@ Given an operator `A : E →L[𝕜] F`, where `E` and `F` are Hilbert spaces, it
 `adjoint A : F →L[𝕜] E` is the unique operator such that `⟪x, A y⟫ = ⟪adjoint A x, y⟫` for all
 `x` and `y`.
 
-We then use this to put a star algebra structure on `E →L[𝕜] E` with the adjoint as the star
+We then use this to put a C⋆-algebra structure on `E →L[𝕜] E` with the adjoint as the star
 operation.
+
+This construction is used to define an adjoint for linear maps (i.e. not continuous) between
+finite dimensional spaces.
+
+## Main definitions
+
+* `continuous_linear_map.adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E)`: the adjoint of a continuous
+  linear map, bundled as a conjugate-linear isometric equivalence.
+* `linear_map.adjoint : (E →ₗ[𝕜] F) ≃ₗ⋆[𝕜] (F →ₗ[𝕜] E)`: the adjoint of a linear map between
+  finite-dimensional spaces, this time only as a conjugate-linear equivalence, since there is no
+  norm defined on these maps.
 
 ## Implementation notes
 
-* The adjoint is defined as a conjugate-linear isometric equivalence between `E →L[𝕜] F` and
-  `F →L[𝕜] E`. The continuous conjugate-linear version `adjoint_aux` is only an intermediate
+* The continuous conjugate-linear version `adjoint_aux` is only an intermediate
   definition and is not meant to be used outside this file.
-
-## TODO
-
-* Prove the C⋆ property for `E →L[𝕜] E` to show that it is a C⋆-algebra.
 
 ## Tags
 
@@ -33,16 +39,16 @@ adjoint
 -/
 
 noncomputable theory
-open inner_product_space continuous_linear_map
+open inner_product_space continuous_linear_map is_R_or_C
 open_locale complex_conjugate
 
 variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
-variables [complete_space E] [complete_space G]
-
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 namespace continuous_linear_map
+
+variables [complete_space E] [complete_space G]
 
 /-- The adjoint, as a continuous conjugate-linear map.  This is only meant as an auxiliary
 definition for the main definition `adjoint`, where this is bundled as a conjugate-linear isometric
@@ -112,6 +118,22 @@ begin
   simp only [adjoint_inner_right, continuous_linear_map.coe_comp', function.comp_app],
 end
 
+lemma apply_norm_sq_eq_inner_adjoint_left (A : E →L[𝕜] E) (x : E) : ∥A x∥^2 = re ⟪(A† * A) x, x⟫ :=
+have h : ⟪(A† * A) x, x⟫ = ⟪A x, A x⟫ := by { rw [←adjoint_inner_left], refl },
+by rw [h, ←inner_self_eq_norm_sq _]
+
+lemma apply_norm_eq_sqrt_inner_adjoint_left (A : E →L[𝕜] E) (x : E) :
+  ∥A x∥ = real.sqrt (re ⟪(A† * A) x, x⟫) :=
+by rw [←apply_norm_sq_eq_inner_adjoint_left, real.sqrt_sq (norm_nonneg _)]
+
+lemma apply_norm_sq_eq_inner_adjoint_right (A : E →L[𝕜] E) (x : E) : ∥A x∥^2 = re ⟪x, (A† * A) x⟫ :=
+have h : ⟪x, (A† * A) x⟫ = ⟪A x, A x⟫ := by { rw [←adjoint_inner_right], refl },
+by rw [h, ←inner_self_eq_norm_sq _]
+
+lemma apply_norm_eq_sqrt_inner_adjoint_right (A : E →L[𝕜] E) (x : E) :
+  ∥A x∥ = real.sqrt (re ⟪x, (A† * A) x⟫) :=
+by rw [←apply_norm_sq_eq_inner_adjoint_right, real.sqrt_sq (norm_nonneg _)]
+
 /-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
 for all `x` and `y`. -/
 lemma eq_adjoint_iff (A : E →L[𝕜] F) (B : F →L[𝕜] E) :
@@ -129,6 +151,27 @@ instance : star_monoid (E →L[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
+lemma star_eq_adjoint (A : E →L[𝕜] E) : star A = A† := rfl
+
+instance : cstar_ring (E →L[𝕜] E) :=
+⟨begin
+  intros A,
+  rw [star_eq_adjoint],
+  refine le_antisymm _ _,
+  { calc ∥A† * A∥ ≤ ∥A†∥ * ∥A∥      : op_norm_comp_le _ _
+              ... = ∥A∥ * ∥A∥       : by rw [linear_isometry_equiv.norm_map] },
+  { rw [←sq, ←real.sqrt_le_sqrt_iff (norm_nonneg _), real.sqrt_sq (norm_nonneg _)],
+    refine op_norm_le_bound _ (real.sqrt_nonneg _) (λ x, _),
+    have := calc
+      re ⟪(A† * A) x, x⟫ ≤ ∥(A† * A) x∥ * ∥x∥     : re_inner_le_norm _ _
+                    ...  ≤ ∥A† * A∥ * ∥x∥ * ∥x∥   : mul_le_mul_of_nonneg_right
+                                                    (le_op_norm _ _) (norm_nonneg _),
+    calc ∥A x∥ = real.sqrt (re ⟪(A† * A) x, x⟫)     : by rw [apply_norm_eq_sqrt_inner_adjoint_left]
+          ...  ≤ real.sqrt (∥A† * A∥ * ∥x∥ * ∥x∥)   : real.sqrt_le_sqrt this
+          ...  = real.sqrt (∥A† * A∥) * ∥x∥
+            : by rw [mul_assoc, real.sqrt_mul (norm_nonneg _), real.sqrt_mul_self (norm_nonneg _)] }
+end⟩
+
 section real
 
 variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
@@ -143,3 +186,85 @@ lemma is_adjoint_pair (A : E' →L[ℝ] F') :
 end real
 
 end continuous_linear_map
+
+namespace linear_map
+
+variables [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] [finite_dimensional 𝕜 G]
+local attribute [instance, priority 20] finite_dimensional.complete
+
+/-- The adjoint of an operator from the finite-dimensional inner product space E to the finite-
+dimensional inner product space F. -/
+def adjoint : (E →ₗ[𝕜] F) ≃ₗ⋆[𝕜] (F →ₗ[𝕜] E) :=
+  (linear_map.to_continuous_linear_map.trans continuous_linear_map.adjoint.to_linear_equiv).trans
+    linear_map.to_continuous_linear_map.symm
+
+lemma adjoint_to_continuous_linear_map (A : E →ₗ[𝕜] F) :
+  A.adjoint.to_continuous_linear_map = A.to_continuous_linear_map.adjoint := rfl
+
+lemma adjoint_eq_to_clm_adjoint (A : E →ₗ[𝕜] F) :
+  A.adjoint = A.to_continuous_linear_map.adjoint := rfl
+
+/-- The fundamental property of the adjoint. -/
+lemma adjoint_inner_left (A : E →ₗ[𝕜] F) (x : E) (y : F) : ⟪adjoint A y, x⟫ = ⟪y, A x⟫ :=
+begin
+  rw [←coe_to_continuous_linear_map A, adjoint_eq_to_clm_adjoint],
+  exact continuous_linear_map.adjoint_inner_left _ x y,
+end
+
+/-- The fundamental property of the adjoint. -/
+lemma adjoint_inner_right (A : E →ₗ[𝕜] F) (x : E) (y : F) : ⟪x, adjoint A y⟫ = ⟪A x, y⟫ :=
+begin
+  rw [←coe_to_continuous_linear_map A, adjoint_eq_to_clm_adjoint],
+  exact continuous_linear_map.adjoint_inner_right _ x y,
+end
+
+/-- The adjoint is involutive -/
+@[simp] lemma adjoint_adjoint (A : E →ₗ[𝕜] F) : A.adjoint.adjoint = A :=
+begin
+  ext v,
+  refine ext_inner_left 𝕜 (λ w, _),
+  rw [adjoint_inner_right, adjoint_inner_left],
+end
+
+/-- The adjoint of the composition of two operators is the composition of the two adjoints
+in reverse order. -/
+@[simp] lemma adjoint_comp (A : F →ₗ[𝕜] G) (B : E →ₗ[𝕜] F) :
+  (A ∘ₗ B).adjoint = B.adjoint ∘ₗ A.adjoint :=
+begin
+  ext v,
+  refine ext_inner_left 𝕜 (λ w, _),
+  simp only [adjoint_inner_right, linear_map.coe_comp, function.comp_app],
+end
+
+/-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
+for all `x` and `y`. -/
+lemma eq_adjoint_iff (A : E →ₗ[𝕜] F) (B : F →ₗ[𝕜] E) :
+  A = B.adjoint ↔ (∀ x y, ⟪A x, y⟫ = ⟪x, B y⟫) :=
+begin
+  refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
+  ext x,
+  exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
+end
+
+/-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
+instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
+instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩
+instance : star_monoid (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
+instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
+
+lemma star_eq_adjoint (A : E →ₗ[𝕜] E) : star A = A.adjoint := rfl
+
+section real
+
+variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
+variables [finite_dimensional ℝ E'] [finite_dimensional ℝ F']
+
+lemma is_adjoint_pair (A : E' →ₗ[ℝ] F') :
+  bilin_form.is_adjoint_pair (bilin_form_of_real_inner : bilin_form ℝ E')
+  (bilin_form_of_real_inner : bilin_form ℝ F') A A.adjoint :=
+λ x y, by simp only [adjoint_inner_right, bilin_form_of_real_inner_apply]
+
+end real
+
+end linear_map

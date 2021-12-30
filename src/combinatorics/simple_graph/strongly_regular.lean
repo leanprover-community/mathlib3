@@ -104,8 +104,6 @@ begin
   apply is_SRG_with.card_neighbor_finset_union_eq G h,
 end
 
-@[simp] theorem finset_compl_union (s t : finset V) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup
-
 lemma compl_neighbor_finset_sdiff_inter_eq {v w : V} :
   (G.neighbor_finset v)ᶜ \ {v} ∩ ((G.neighbor_finset w)ᶜ \ {w}) =
     (G.neighbor_finset v)ᶜ ∩ (G.neighbor_finset w)ᶜ \ ({w} ∪ {v}) :=

@@ -145,8 +145,7 @@ protected lemma adj.ne {G : simple_graph V} {a b : V} (h : G.adj a b) : a ≠ b 
 
 protected lemma adj.ne' {G : simple_graph V} {a b : V} (h : G.adj a b) : b ≠ a := h.ne.symm
 
-lemma ne_of_adj_nadj (v w x : V) (hwx: ¬G.adj w x) (hwv: G.adj w v) : x ≠ v :=
-λ h, (h ▸ hwx) hwv
+lemma ne_of_adj_nadj (v w x : V) (hwx: ¬G.adj w x) (hwv: G.adj w v) : x ≠ v := λ h, (h ▸ hwx) hwv
 
 section order
 
@@ -652,11 +651,7 @@ defined to be a natural.
 lemma le_min_degree_of_forall_le_degree [decidable_rel G.adj] [nonempty V] (k : ℕ)
   (h : ∀ v, k ≤ G.degree v) :
   k ≤ G.min_degree :=
-begin
-  rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩,
-  rw hv,
-  apply h
-end
+by { rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩, rw hv, apply h }
 
 /--
 The maximum degree of all vertices (and `0` if there are no vertices).

@@ -481,7 +481,7 @@ lemma ideal.homogeneous_core.gi :
     apply (ideal.homogeneous_core_le_ideal A I),
     rw eq, apply ideal.is_homogeneous.homogeneous_core,
   end⟩,
-  gc := ideal.homogemoues_core.gc A,
+  gc := ideal.homogeneous_core.gc A,
   u_l_le := λ I, by apply ideal.homogeneous_core_le_ideal,
   choice_eq := λ I H, begin
     apply le_antisymm, exact H, apply ideal.homogeneous_core_le_ideal,

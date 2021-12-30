@@ -368,7 +368,7 @@ noncomputable def left_adjoint_preserves_terminal_of_reflective (R : D ⥤ C) [r
     apply (as_iso ((adjunction.of_right_adjoint R).counit.app _)).symm.trans,
     { apply (left_adjoint R).map_iso, letI := monadic_creates_limits.{v v} R,
       let := (category_theory.preserves_limit_of_creates_limit_and_has_limit F R).preserves,
-      apply limits.is_limit.cone_point_unique_up_to_iso (this (limit.is_limit F)) h },
+      apply (this (limit.is_limit F)).cone_point_unique_up_to_iso h },
     apply_instance,
   end }
 

@@ -5,6 +5,7 @@ Authors: Praneeth Kolichala
 -/
 import topology.homotopy.basic
 import topology.constructions
+import topology.homotopy.path
 
 /-!
 # Product of homotopies
@@ -100,3 +101,26 @@ def homotopy_rel.prod (F : homotopy_rel f₀ f₁ S) (G : homotopy_rel g₀ g₁
 
 end prod
 end continuous_map
+
+
+namespace path.homotopic
+local attribute [instance] path.homotopic.setoid
+
+variables {ι : Type*} {X : ι → Type*} [∀ i, topological_space (X i)]
+          {as bs : Π i, X i}
+def pi_homotopy
+  (paths₀ paths₁ : Π i, path (as i) (bs i))
+  (homotopies : ∀ i, path.homotopy (paths₀ i) (paths₁ i)) :
+  path.homotopy (path.pi paths₀) (path.pi paths₁) := continuous_map.homotopy_rel.pi homotopies
+
+def pi (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
+  path.homotopic.quotient as bs :=
+  (quotient.map path.pi
+    (λ x y hxy, nonempty.map (pi_homotopy x y) (classical.nonempty_pi.mpr hxy)))
+    (quotient.choice paths)
+
+lemma pi_lift (paths : Π i, path (as i) (bs i)) :
+  path.homotopic.pi (λ i, ⟦paths i⟧) = ⟦path.pi paths⟧ :=
+by { unfold pi, simp, }
+
+end path.homotopic

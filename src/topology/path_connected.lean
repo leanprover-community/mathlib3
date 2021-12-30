@@ -379,8 +379,15 @@ end
 protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) :
   path (a₁, a₂) (b₁, b₂) :=
 { to_continuous_map := continuous_map.prod_mk γ₁.to_continuous_map γ₂.to_continuous_map,
-  source' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.source, γ₂.source],
-  target' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.target, γ₂.target] }
+  source' := by simp,
+  target' := by simp, }
+
+protected def pi {ι : Type*} {X : ι → Type*} [∀ i, topological_space (X i)]
+                  {as bs : Π i, X i} (paths : Π i, path (as i) (bs i)) :
+                  path as bs :=
+{ to_continuous_map := continuous_map.pi (λ i, (paths i).to_continuous_map),
+  source' := by simp,
+  target' := by simp, }
 
 /-! #### Pointwise multiplication/addition of two paths in a topological (additive) group -/
 

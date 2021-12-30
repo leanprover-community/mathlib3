@@ -303,7 +303,7 @@ begin
   exact (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1,
 end
 
-lemma is_integral_of_is_irreducible_and_is_reduced :
+lemma is_integral_iff_is_irreducible_and_is_reduced :
   is_integral X ↔ irreducible_space X.carrier ∧ is_reduced X :=
 ⟨λ _, by exactI ⟨infer_instance, infer_instance⟩,
   λ ⟨_, _⟩, by exactI is_integral_of_is_irreducible_is_reduced X⟩

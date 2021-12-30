@@ -210,7 +210,7 @@ theorem false_ne_true : false ≠ true
 | h := h.symm ▸ trivial
 
 section propositional
-variables {a b c d : Prop}
+variables {a b c d e f : Prop}
 
 /-! ### Declarations about `implies` -/
 
@@ -472,6 +472,9 @@ or.imp_right h h₁
 
 theorem or.elim3 (h : a ∨ b ∨ c) (ha : a → d) (hb : b → d) (hc : c → d) : d :=
 or.elim h ha (assume h₂, or.elim h₂ hb hc)
+
+lemma or.imp3 (had : a → d) (hbe : b → e) (hcf : c → f) : a ∨ b ∨ c → d ∨ e ∨ f :=
+or.imp had $ or.imp hbe hcf
 
 theorem or_imp_distrib : (a ∨ b → c) ↔ (a → c) ∧ (b → c) :=
 ⟨assume h, ⟨assume ha, h (or.inl ha), assume hb, h (or.inr hb)⟩,

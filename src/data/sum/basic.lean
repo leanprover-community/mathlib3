@@ -75,14 +75,6 @@ section get
 | (inl _) := ff
 | (inr _) := tt
 
-variables {x y : α ⊕ β}
-
-lemma get_left_eq_none_iff : x.get_left = none ↔ x.is_right :=
-by cases x; simp only [get_left, is_right, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
-
-lemma get_right_eq_none_iff : x.get_right = none ↔ x.is_left :=
-by cases x; simp only [get_right, is_left, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
-
 end get
 
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
@@ -144,53 +136,49 @@ funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 
 open function (update update_eq_iff update_comp_eq_of_injective update_comp_eq_of_forall_ne)
 
-@[simp] lemma update_elim_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
-  {f : α → γ} {g : β → γ} {i : α} {x : γ} :
+@[simp] lemma update_elim_inl [decidable_eq α] [decidable_eq (α ⊕ β)] {f : α → γ} {g : β → γ}
+  {i : α} {x : γ} :
   update (sum.elim f g) (inl i) x = sum.elim (update f i x) g :=
 update_eq_iff.2 ⟨by simp, by simp { contextual := tt }⟩
 
-@[simp] lemma update_elim_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
-  {f : α → γ} {g : β → γ} {i : β} {x : γ} :
+@[simp] lemma update_elim_inr [decidable_eq β] [decidable_eq (α ⊕ β)] {f : α → γ} {g : β → γ}
+  {i : β} {x : γ} :
   update (sum.elim f g) (inr i) x = sum.elim f (update g i x) :=
 update_eq_iff.2 ⟨by simp, by simp { contextual := tt }⟩
 
-@[simp] lemma update_inl_comp_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
-  {f : α ⊕ β → γ} {i : α} {x : γ} :
+@[simp] lemma update_inl_comp_inl [decidable_eq α] [decidable_eq (α ⊕ β)] {f : α ⊕ β → γ} {i : α}
+  {x : γ} :
   update f (inl i) x ∘ inl = update (f ∘ inl) i x :=
 update_comp_eq_of_injective _ inl_injective _ _
 
-@[simp] lemma update_inl_apply_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
-  {f : α ⊕ β → γ} {i j : α} {x : γ} :
+@[simp] lemma update_inl_apply_inl [decidable_eq α] [decidable_eq (α ⊕ β)] {f : α ⊕ β → γ}
+  {i j : α} {x : γ} :
   update f (inl i) x (inl j) = update (f ∘ inl) i x j :=
 by rw ← update_inl_comp_inl
 
-@[simp] lemma update_inl_comp_inr {α β γ} [decidable_eq (α ⊕ β)]
-  {f : α ⊕ β → γ} {i : α} {x : γ} :
+@[simp] lemma update_inl_comp_inr [decidable_eq (α ⊕ β)] {f : α ⊕ β → γ} {i : α} {x : γ} :
   update f (inl i) x ∘ inr = f ∘ inr :=
 update_comp_eq_of_forall_ne _ _ $ λ _, inr_ne_inl
 
-@[simp] lemma update_inl_apply_inr {α β γ} [decidable_eq (α ⊕ β)]
-  {f : α ⊕ β → γ} {i : α} {j : β} {x : γ} :
+@[simp] lemma update_inl_apply_inr [decidable_eq (α ⊕ β)] {f : α ⊕ β → γ} {i : α} {j : β} {x : γ} :
   update f (inl i) x (inr j) = f (inr j) :=
 function.update_noteq inr_ne_inl _ _
 
-@[simp] lemma update_inr_comp_inl {α β γ} [decidable_eq (α ⊕ β)]
-  {f : α ⊕ β → γ} {i : β} {x : γ} :
+@[simp] lemma update_inr_comp_inl [decidable_eq (α ⊕ β)] {f : α ⊕ β → γ} {i : β} {x : γ} :
   update f (inr i) x ∘ inl = f ∘ inl :=
 update_comp_eq_of_forall_ne _ _ $ λ _, inl_ne_inr
 
-@[simp] lemma update_inr_apply_inl {α β γ} [decidable_eq (α ⊕ β)]
-  {f : α ⊕ β → γ} {i : α} {j : β} {x : γ} :
+@[simp] lemma update_inr_apply_inl [decidable_eq (α ⊕ β)] {f : α ⊕ β → γ} {i : α} {j : β} {x : γ} :
   update f (inr j) x (inl i) = f (inl i) :=
 function.update_noteq inl_ne_inr _ _
 
-@[simp] lemma update_inr_comp_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
-  {f : α ⊕ β → γ} {i : β} {x : γ} :
+@[simp] lemma update_inr_comp_inr [decidable_eq β] [decidable_eq (α ⊕ β)] {f : α ⊕ β → γ} {i : β}
+  {x : γ} :
   update f (inr i) x ∘ inr = update (f ∘ inr) i x :=
 update_comp_eq_of_injective _ inr_injective _ _
 
-@[simp] lemma update_inr_apply_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
-  {f : α ⊕ β → γ} {i j : β} {x : γ} :
+@[simp] lemma update_inr_apply_inr [decidable_eq β] [decidable_eq (α ⊕ β)] {f : α ⊕ β → γ}
+  {i j : β} {x : γ} :
   update f (inr i) x (inr j) = update (f ∘ inr) i x j :=
 by rw ← update_inr_comp_inr
 
@@ -199,66 +187,10 @@ by rw ← update_inr_comp_inr
 | (inl a) := inr a
 | (inr b) := inl b
 
-@[simp] lemma swap_swap (x : α ⊕ β) : swap (swap x) = x :=
-by cases x; refl
-
-@[simp] lemma swap_swap_eq : swap ∘ swap = @id (α ⊕ β) :=
-funext $ swap_swap
-
-@[simp] lemma swap_left_inverse : function.left_inverse (@swap α β) swap :=
-swap_swap
-
-@[simp] lemma swap_right_inverse : function.right_inverse (@swap α β) swap :=
-swap_swap
-
-section lift_rel
-
-/-- Lifts pointwise two relations between `α` and `γ` and between `β` and `δ`to a relation between
-`α ⊕ β` and `γ ⊕ δ`. -/
-inductive lift_rel (r : α → γ → Prop) (s : β → δ → Prop) : α ⊕ β → γ ⊕ δ → Prop
-| inl {a c} : r a c → lift_rel (inl a) (inl c)
-| inr {b d} : s b d → lift_rel (inr b) (inr d)
-
-variables {r r₁ r₂ : α → γ → Prop} {s s₁ s₂ : β → δ → Prop} {a : α} {b : β} {c : γ} {d : δ}
-  {x : α ⊕ β} {y : γ ⊕ δ}
-
-lemma lift_rel_inl_inl : lift_rel r s (inl a) (inl c) ↔ r a c :=
-⟨λ h, by { cases h, assumption }, lift_rel.inl⟩
-
-lemma lift_rel_inl_inr : ¬ lift_rel r s (inl a) (inr d) .
-
-lemma lift_rel_inr_inl : ¬ lift_rel r s (inr b) (inl c) .
-
-lemma lift_rel_inr_inr : lift_rel r s (inr b) (inr d) ↔ s b d :=
-⟨λ h, by { cases h, assumption }, lift_rel.inr⟩
-
-instance [Π a c, decidable (r a c)] [Π b d, decidable (s b d)] :
-  Π (ab : α ⊕ β) (cd : γ ⊕ δ), decidable (lift_rel r s ab cd)
-| (inl a) (inl c) := decidable_of_iff' _ lift_rel_inl_inl
-| (inl a) (inr d) := decidable.is_false lift_rel_inl_inr
-| (inr b) (inl c) := decidable.is_false lift_rel_inr_inl
-| (inr b) (inr d) := decidable_of_iff' _ lift_rel_inr_inr
-
-lemma lift_rel.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a b → s₂ a b)
-  (h : lift_rel r₁ s₁ x y) :
-  lift_rel r₂ s₂ x y :=
-by { cases h, exacts [lift_rel.inl (hr _ _ ‹_›), lift_rel.inr (hs _ _ ‹_›)] }
-
-lemma lift_rel.mono_left (hr : ∀ a b, r₁ a b → r₂ a b) (h : lift_rel r₁ s x y) :
-  lift_rel r₂ s x y :=
-h.mono hr $ λ _ _, id
-
-lemma lift_rel.mono_right (hs : ∀ a b, s₁ a b → s₂ a b)  (h : lift_rel r s₁ x y) :
-  lift_rel r s₂ x y :=
-h.mono (λ _ _, id) hs
-
-protected lemma lift_rel.swap (h : lift_rel r s x y) : lift_rel s r x.swap y.swap :=
-by { cases h, exacts [lift_rel.inr ‹_›, lift_rel.inl ‹_›] }
-
-@[simp] lemma lift_rel_swap_iff : lift_rel s r x.swap y.swap ↔ lift_rel r s x y :=
-⟨λ h, by { rw [←swap_swap x, ←swap_swap y], exact h.swap }, lift_rel.swap⟩
-
-end lift_rel
+@[simp] lemma swap_swap (x : α ⊕ β) : swap (swap x) = x := by cases x; refl
+@[simp] lemma swap_swap_eq : swap ∘ swap = @id (α ⊕ β) := funext $ swap_swap
+@[simp] lemma swap_left_inverse : function.left_inverse (@swap α β) swap := swap_swap
+@[simp] lemma swap_right_inverse : function.right_inverse (@swap α β) swap := swap_swap
 
 section lex
 
@@ -268,6 +200,9 @@ inductive lex (r : α → α → Prop) (s : β → β → Prop) : α ⊕ β → 
 | inl {a₁ a₂} (h : r a₁ a₂) : lex (inl a₁) (inl a₂)
 | inr {b₁ b₂} (h : s b₁ b₂) : lex (inr b₁) (inr b₂)
 | sep (a b) : lex (inl a) (inr b)
+
+attribute [protected] sum.lex.inl sum.lex.inr
+attribute [simp] lex.sep
 
 variables {r r₁ r₂ : α → α → Prop} {s s₁ s₂ : β → β → Prop} {a a₁ a₂ : α} {b b₁ b₂ : β}
   {x y : α ⊕ β}
@@ -279,18 +214,6 @@ variables {r r₁ r₂ : α → α → Prop} {s s₁ s₂ : β → β → Prop} 
 ⟨λ h, by { cases h, assumption }, lex.inr⟩
 
 @[simp] lemma lex_inr_inl : ¬ lex r s (inr b) (inl a) .
-
-attribute [simp] lex.sep
-attribute [protected] sum.lex.inl sum.lex.inr
-
-instance [decidable_rel r] [decidable_rel s] : decidable_rel (lex r s)
-| (inl a) (inl c) := decidable_of_iff' _ lex_inl_inl
-| (inl a) (inr d) := decidable.is_true (lex.sep _ _)
-| (inr b) (inl c) := decidable.is_false lex_inr_inl
-| (inr b) (inr d) := decidable_of_iff' _ lex_inr_inr
-
-protected lemma lift_rel.lex {a b : α ⊕ β} (h : lift_rel r s a b) : lex r s a b :=
-by { cases h, exacts [lex.inl ‹_›, lex.inr ‹_›] }
 
 lemma lex.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a b → s₂ a b) (h : lex r₁ s₁ x y) :
   lex r₂ s₂ x y :=

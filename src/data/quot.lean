@@ -271,7 +271,7 @@ quotient.sound $ λ i, quotient.mk_out _
 @[elab_as_eliminator] lemma quotient.induction_on_pi
    {ι : Type*} {α : ι → Sort*} [s : ∀ i, setoid (α i)]
    {p : (Π i, quotient (s i)) → Prop} (f : Π i, quotient (s i))
-   (h : ∀ a : Π i, α i, p (λ i, ⟦a i⟧)) : φ f :=
+   (h : ∀ a : Π i, α i, p (λ i, ⟦a i⟧)) : p f :=
 begin
   rw ← (funext (λ i, quotient.out_eq (f i)) : (λ i,  ⟦(f i).out⟧) = f),
   apply h,

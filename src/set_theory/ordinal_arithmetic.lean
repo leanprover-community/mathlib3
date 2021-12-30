@@ -916,7 +916,7 @@ eq_of_forall_ge_iff $ λ o,
 by rw [bsup_le, sup_le]; exact
   ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
 
-theorem sup_eq {ι} {f : ι → ordinal} :
+theorem sup_eq_bsup {ι} {f : ι → ordinal} :
   sup f = bsup (type well_ordering_rel) (λ a ha, f (enum well_ordering_rel a ha)) :=
 by simp [bsup_type]
 

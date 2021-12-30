@@ -23,22 +23,6 @@ We provide some basic properties of schemes
   is reduced.
 -/
 
-namespace topological_space
-
-lemma _root_.topological_space.opens.not_nonempty_iff_eq_bot {α : Type*} [topological_space α] (U : opens α) :
-  ¬ set.nonempty (U : set α) ↔ U = ⊥ :=
-by rw [← subtype.coe_injective.eq_iff, opens.coe_bot, ← set.not_nonempty_iff_eq_empty]
-
-lemma _root_.topological_space.opens.ne_bot_iff_nonempty {α : Type*} [topological_space α] (U : opens α) :
-  U ≠ ⊥ ↔ set.nonempty (U : set α) :=
-by rw [ne.def, ← opens.not_nonempty_iff_eq_bot, not_not]
-
-@[simp] lemma _root_.topological_space.opens.top_coe (α : Type*) [topological_space α] :
-  ((⊤ : opens α) : set α) = set.univ := rfl
-
-
-end topological_space
-
 open topological_space opposite category_theory category_theory.limits Top
 
 namespace algebraic_geometry

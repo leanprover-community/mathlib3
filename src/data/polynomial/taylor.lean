@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 
 import data.polynomial.hasse_deriv
-import data.polynomial.degree.lemmas
 
 /-!
 # Taylor expansions of polynomials

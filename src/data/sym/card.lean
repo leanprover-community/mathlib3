@@ -35,10 +35,15 @@ Prove the general case of stars and bars.
 stars and bars
 -/
 
+/-- Define the multichoose number using `fintype.card`. -/
 def multichoose1 (n k : ℕ) := fintype.card (sym (fin n) k)
 
+/-- Define the multichoose number using `nat.choose`. -/
 def multichoose2 (n k : ℕ) := (n + k - 1).choose k
 
+/-- The `encode` function produces a `sym (fin n) k.succ` if the input doesn't contain `fin.last n`
+by casting `fin n.succ` to `fin n`. Otherwise, the function removes an instance of `fin.last n` from
+the input and produces a `sym (fin n.succ) k`. -/
 def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
 if h : fin.last n ∈ x then
   sum.inr ⟨x.val.erase (fin.last n), by { rw [multiset.card_erase_of_mem h, x.property], refl }⟩
@@ -52,11 +57,17 @@ else begin
     { cases lt_or_eq_of_le (nat.le_of_lt_succ a.property); solve_by_elim } },
 end
 
+/-- From the output of `encode`, the `decode` function reconstructs the original input. If the
+output contains `k.succ` elements, the original input can be reconstructed by casting `fin n` back
+to `fin n.succ`. Otherwise, an instance of `fin.last n` has been removed and the input can be
+reconstructed by adding it back. -/
 def decode (n k : ℕ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k → sym (fin n.succ) k.succ
 | (sum.inl x) := x.map (λ a, ⟨a.val, a.property.step⟩)
 | (sum.inr x) := (fin.last n)::x
 
-lemma equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
+/-- As `encode` and `decode` are inverses of each other, `sym (fin n.succ) k.succ` is equivalent
+to `sym (fin n) k.succ ⊕ sym (fin n.succ) k` -/
+def equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
 { to_fun := encode n k,
   inv_fun := decode n k,
   left_inv := λ x, begin

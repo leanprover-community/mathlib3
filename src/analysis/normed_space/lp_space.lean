@@ -85,15 +85,10 @@ begin
   { apply mem_ℓp_zero,
     simp },
   { apply mem_ℓp_infty,
-    cases is_empty_or_nonempty α with _i _i; resetI,
-    { convert bdd_above_empty,
-      { simp [_i] },
-      apply_instance },
-    { convert bdd_above_singleton,
-      simp } },
+    simp only [norm_zero, pi.zero_apply],
+    exact bdd_above_singleton.mono set.range_const_subset, },
   { apply mem_ℓp_gen hp,
-    convert summable_zero,
-    simp [real.zero_rpow hp.ne'] }
+    simp [real.zero_rpow hp.ne', summable_zero], }
 end
 
 lemma zero_mem_ℓp' : mem_ℓp (λ i : α, (0 : E i)) p := zero_mem_ℓp
@@ -124,7 +119,7 @@ begin
     simpa using hf.summable hp },
 end
 
-lemma neg_iff {f : Π i, E i} : mem_ℓp (-f) p ↔ mem_ℓp f p :=
+@[simp] lemma neg_iff {f : Π i, E i} : mem_ℓp (-f) p ↔ mem_ℓp f p :=
 ⟨λ h, neg_neg f ▸ h.neg, mem_ℓp.neg⟩
 
 lemma of_exponent_ge {p q : ℝ≥0∞} {f : Π i, E i}

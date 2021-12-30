@@ -28,28 +28,17 @@ include hf
 lemma bounded : ∃ C, ∀ x : E₁, ∥f x∥ ≤ C * ∥x∥ :=
 begin
   cases @nondiscrete_normed_field.non_trivial 𝕜 _ with k hk,
-  rcases metric.bounded.subset_ball_lt (hf (metric.ball 0 1) metric.bounded_ball).bounded 0 (0 : E₂)
+  rcases metric.bounded.subset_ball_lt (hf (metric.ball 0 ∥k∥) metric.bounded_ball).bounded 0 (0 : E₂)
     with ⟨r, hrl, hcl⟩,
-  use ∥k∥ * r,
-  intro x,
-  by_cases hx : x = 0,
-  { simp only [hx, norm_zero, mul_zero, map_zero] },
-  rcases rescale_to_shell _ zero_lt_one hx with ⟨w, hwz, hwo, hwle, hwinv⟩,
-  show normed_field 𝕜, {apply_instance},
-  show 𝕜, from k,
-  show normed_space _ _, {apply_instance},
-  show _ < _, from hk,
-  calc ∥f x∥ = ∥f (w⁻¹ • w • x)∥ : by simp only [hwz, ne.def, not_false_iff, inv_smul_smul₀]
-      ... = ∥w⁻¹∥ * ∥f (w • x)∥ : by simp only [norm_smul, ring_hom.id_apply, linear_map.map_smulₛₗ]
-      ... = ∥f (w • x)∥ * ∥w∥⁻¹ : by rw [mul_comm, normed_field.norm_inv]
-      ... ≤ r * ∥w∥⁻¹ : (mul_le_mul_right _).mpr _
-      ... ≤ r * (∥k∥ * ∥x∥) : (mul_le_mul_left hrl).mpr _
-      ... = _ : by ring,
-  { rw [inv_pos, norm_pos_iff], exact hwz },
-  { refine mem_closed_ball_zero_iff.mp (hcl _),
-    refine subset_closure (set.mem_image_of_mem _ _),
-    exact mem_ball_zero_iff.mpr hwo },
-  { simpa using hwinv }
+  use r,
+  refine linear_map.bound_of_shell _ (show (0 : ℝ) < ∥k∥, by linarith) hk _,
+  intros x hkx hxo,
+  rw div_self at hkx,
+  { calc ∥f x∥ ≤ r : _
+           ... ≤ _ : by nlinarith,
+    refine mem_closed_ball_zero_iff.mp (hcl _),
+    exact subset_closure (set.mem_image_of_mem _ (mem_ball_zero_iff.mpr hxo)) },
+  { linarith }
 end
 
 lemma continuous : continuous f :=

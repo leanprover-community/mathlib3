@@ -17,7 +17,7 @@ The main result in this file proves transitivity of algebraicity:
 a tower of algebraic field extensions is algebraic.
 -/
 
-universes u v
+universes u v w
 
 open_locale classical
 open polynomial
@@ -248,3 +248,33 @@ lemma subalgebra.is_field_of_algebraic (hKL : algebra.is_algebraic K L) : is_fie
   .. subalgebra.to_comm_ring A }
 
 end field
+
+section pi
+
+variables {R' : Type u} {S' : Type v} {σ : Type w}
+
+instance polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
+  has_scalar (polynomial R') (R' → S') :=
+⟨λ p f x, eval x p • f x⟩
+
+@[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
+  (p : polynomial R') (f : R' → S') (x : R') :
+  (p • f) x = eval x p • f x := rfl
+
+variables [comm_semiring R']
+
+noncomputable instance polynomial.algebra_pi :
+  algebra (polynomial R') (R' → R') :=
+{ to_fun := λ p z, eval z p,
+  map_one' := funext $ λ z, by simp,
+  map_mul' := λ f g, funext $ λ z, by simp,
+  map_zero' := funext $ λ z, by simp,
+  map_add' := λ f g, funext $ λ z, by simp,
+  commutes' := λ p f, funext $ λ z, mul_comm _ _,
+  smul_def' := λ p f, funext $ λ z, by simp,
+  ..polynomial.has_scalar_pi }
+
+@[simp] lemma polynomial.algebra_map_pi_eq_eval :
+  (algebra_map (polynomial R') (R' → R') : polynomial R' → (R' → R')) = λ p z, eval z p := rfl
+
+end pi

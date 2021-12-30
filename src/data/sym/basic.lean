@@ -116,6 +116,11 @@ begin
   exact h,
 end
 
+/-- `erase s a h` is the sym that subtracts 1 from the
+  multiplicity of `a` if a is present in the sym. -/
+def erase [decidable_eq α] (s : sym α (n + 1)) (a : α) (h : a ∈ s) : sym α n :=
+⟨s.val.erase a, (multiset.card_erase_of_mem h).trans $ s.property.symm ▸ n.pred_succ⟩
+
 /--
 Another definition of the nth symmetric power, using vectors modulo permutations. (See `sym`.)
 -/
@@ -149,5 +154,91 @@ instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
 ⟨quotient.mk' (vector.repeat (default α) n)⟩
 
 end inhabited
+
+instance : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
+instance : has_emptyc (sym α 0) := ⟨0⟩
+
+lemma eq_nil_of_card_zero (s : sym α 0) : s = nil :=
+subtype.ext $ multiset.card_eq_zero.1 s.2
+
+instance unique_zero : unique (sym α 0) :=
+⟨⟨nil⟩, eq_nil_of_card_zero⟩
+
+/-- `repeat a n` is the sym containing only `a` with multiplicity `n`. -/
+def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
+
+lemma repeat_succ {a : α} {n : ℕ} : repeat a n.succ = a :: repeat a n := rfl
+
+lemma exists_eq_cons_of_succ (s : sym α n.succ) : ∃ (a : α) (s' : sym α n), s = a :: s' :=
+begin
+  classical,
+  obtain ⟨m, h⟩ := s,
+  have : 0 < multiset.card m,
+  { rw h,
+    exact nat.succ_pos n, },
+  rcases multiset.card_pos_iff_exists_mem.1 this with ⟨a, ha⟩,
+  use [a, m.erase a],
+  { rw [multiset.card_erase_of_mem ha, h, nat.pred_succ] },
+  { rw cons,
+    congr,
+    rw multiset.cons_erase ha, },
+end
+
+lemma eq_repeat_of_subsingleton [subsingleton α] (a : α) {n : ℕ} (s : sym α n) : s = repeat a n :=
+subtype.ext $ multiset.eq_repeat.2 ⟨s.2, λ b hb, subsingleton.elim _ _⟩
+
+instance [subsingleton α] (n : ℕ) : subsingleton (sym α n) :=
+⟨begin
+  cases n,
+  { simp, },
+  { intros s s',
+    obtain ⟨b, s, rfl⟩ := exists_eq_cons_of_succ s,
+    rw [eq_repeat_of_subsingleton b s', eq_repeat_of_subsingleton b s, repeat_succ], },
+end⟩
+
+instance (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
+⟨λ s, by { obtain ⟨a, s, rfl⟩ := exists_eq_cons_of_succ s, exact is_empty_elim a }⟩
+
+instance (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _
+
+lemma repeat_left_inj {a b : α} {n : ℕ} (h : n ≠ 0) : repeat a n = repeat b n ↔ a = b :=
+subtype.ext_iff.trans (multiset.repeat_left_inj h)
+
+lemma repeat_left_injective {n : ℕ} (h : n ≠ 0) : function.injective (λ x : α, repeat x n) :=
+λ a b, (repeat_left_inj h).1
+
+instance (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
+(repeat_left_injective n.succ_ne_zero).nontrivial
+
+/-- A function `α → β` induces a function `sym α n → sym β n` by applying it to every element of
+the underlying `n`-tuple. -/
+def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
+⟨x.val.map f, by simpa [multiset.card_map] using x.property⟩
+
+@[simp] lemma mem_map {α β : Type*} {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
+  b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
+
+@[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map id s = s :=
+by simp [sym.map, subtype.mk.inj_eq]
+
+@[simp] lemma map_map {α β γ : Type*} {n : ℕ} (g : β → γ) (f : α → β) (s : sym α n) :
+  sym.map g (sym.map f s) = sym.map (g ∘ f) s :=
+by simp [sym.map, subtype.mk.inj_eq]
+
+@[simp] lemma map_zero {α β : Type*} (f : α → β) :
+  sym.map f (0 : sym α 0) = (0 : sym β 0) := rfl
+
+@[simp] lemma map_cons {α β : Type*} {n : ℕ} (f : α → β) (a : α) (s : sym α n) :
+  (a :: s).map f = (f a) :: s.map f :=
+by { cases s, simp [map, cons] }
+
+/-- Mapping an equivalence `α ≃ β` using `sym.map` gives an equivalence between `sym α n` and
+`sym β n`. -/
+@[simps]
+def equiv_congr {β : Type u} (e : α ≃ β) : sym α n ≃ sym β n :=
+{ to_fun := map e,
+  inv_fun := map e.symm,
+  left_inv := λ x, by rw [map_map, equiv.symm_comp_self, map_id],
+  right_inv := λ x, by rw [map_map, equiv.self_comp_symm, map_id] }
 
 end sym

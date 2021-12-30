@@ -572,6 +572,9 @@ meta def apply_proof : name_map expr → proof → tactic unit
   e ← intro_core `_, let n := e.local_uniq_name,
   apply_proof (Γ.insert n e) (p.app (proof.intro x (proof.hyp n)))
 
+end itauto
+
+open itauto
 
 /-- A decision procedure for intuitionistic propositional logic.
 
@@ -639,11 +642,8 @@ using_new_ref mk_name_map $ λ hs, do
   end,
   hs ← read_ref hs, apply_proof hs p
 
-end itauto
-
 namespace interactive
 setup_tactic_parser
-open itauto
 
 /-- A decision procedure for intuitionistic propositional logic. Unlike `finish` and `tauto!` this
 tactic never uses the law of excluded middle (without the `!` option), and the proof search is
@@ -661,9 +661,9 @@ find among the atomic propositions, and `itauto! *` will case on all proposition
 -/
 meta def itauto (classical : parse (tk "!")?)
   : parse (some <$> pexpr_list <|> none <$ tk "*")? → tactic unit
-| none := tactic.itauto.itauto false classical.is_some []
-| (some none) := tactic.itauto.itauto true classical.is_some []
-| (some (some ls)) := ls.mmap i_to_expr >>= tactic.itauto.itauto false classical.is_some
+| none := tactic.itauto false classical.is_some []
+| (some none) := tactic.itauto true classical.is_some []
+| (some (some ls)) := ls.mmap i_to_expr >>= tactic.itauto false classical.is_some
 
 add_hint_tactic "itauto"
 

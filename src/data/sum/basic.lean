@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury G. Kudryashov
 -/
-import data.option.basic
+import logic.function.basic
 
 /-!
 # Disjoint union of types
@@ -23,6 +23,7 @@ This file proves basic results about the sum type `α ⊕ β`.
 * `sum.map`: Maps `α ⊕ β` to `γ ⊕ δ` component-wise.
 * `sum.elim`: Nondependent eliminator/induction principle for `α ⊕ β`.
 * `sum.swap`: Maps `α ⊕ β` to `β ⊕ α` by swapping components.
+* `sum.lex`: Lexicographic order on `α ⊕ β` induced by a relation on `α` and a relation on `β`.
 
 ## Notes
 

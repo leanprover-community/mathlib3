@@ -639,21 +639,14 @@ class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 section ring
 variables [ring α] {a b c d e : α}
 
-@[priority 100] -- see Note [lower instance priority]
-instance ring.to_mul_zero_class : mul_zero_class α :=
-{ mul := (*),
-  zero := (0),
-  zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
-    by rw [← add_mul, zero_add, add_zero],
-  mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
-    by rw [← mul_add, add_zero, add_zero], }
-
 /- A (unital, associative) ring is a not-necessarily-unital, not-necessarily-associative ring -/
 @[priority 100] -- see Note [lower instance priority]
 instance ring.to_non_unital_non_assoc_ring :
   non_unital_non_assoc_ring α :=
-{ zero_mul := zero_mul,
-  mul_zero := mul_zero,
+{ zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
+    by rw [← add_mul, zero_add, add_zero],
+  mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
+    by rw [← mul_add, add_zero, add_zero],
   ..‹ring α› }
 
 /- The instance from `ring` to `semiring` happens often in linear algebra, for which all the basic
@@ -662,8 +655,10 @@ a little bit its priority above 100 to try it quickly, but remaining below the d
 more specific instances are tried first. -/
 @[priority 200]
 instance ring.to_semiring : semiring α :=
-{ zero_mul := zero_mul,
-  mul_zero := mul_zero,
+{ zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
+    by rw [← add_mul, zero_add, add_zero],
+  mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
+    by rw [← mul_add, add_zero, add_zero],
   ..‹ring α› }
 
 /-- Pullback a `ring` instance along an injective function.

@@ -1815,6 +1815,7 @@ lemma bounded_range_of_tendsto {α : Type*} [pseudo_metric_space α] (u : ℕ �
   bounded (range u) :=
 hu.cauchy_seq.bounded_range
 
+/-- The **Heine–Borel theorem**: In a proper space, a closed bounded set is compact. -/
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
   is_compact s :=
 begin
@@ -1824,8 +1825,13 @@ begin
     exact compact_of_is_closed_subset (is_compact_closed_ball x r) hc hr }
 end
 
-/-- The Heine–Borel theorem:
-In a proper space, a set is compact if and only if it is closed and bounded -/
+/-- The **Heine–Borel theorem**: In a proper space, the closure of a bounded set is compact. -/
+lemma bounded.is_compact_closure [proper_space α] (h : bounded s) :
+  is_compact (closure s) :=
+is_compact_of_is_closed_bounded is_closed_closure h.closure
+
+/-- The **Heine–Borel theorem**:
+In a proper Hausdorff space, a set is compact if and only if it is closed and bounded. -/
 lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨h.is_closed, h.bounded⟩, λ h, is_compact_of_is_closed_bounded h.1 h.2⟩

@@ -1261,8 +1261,12 @@ begin
   exact ⟨Glin, tendsto_of_tendsto_pointwise_of_cauchy_seq (tendsto_pi_nhds.2 hG) hf⟩
 end
 
+/-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values
+in a proper space. Then `s` interpreted as a set in the space of maps `E → F` with topology of
+pointwise convergence is precompact: its closure is a compact set. -/
 lemma is_compact_closure_image_coe_bounded [proper_space F] {s : set (E →SL[σ₁₂] F)}
-  (hb : bounded s) : is_compact (closure (@image (E →SL[σ₁₂] F) (E → F) coe_fn s)) :=
+  (hb : bounded s) :
+  is_compact (closure ((λ (f : E →SL[σ₁₂] F) (x : E), f x) '' s)) :=
 begin
   set ev : E → (E →SL[σ₁₂] F) → F := λ x f, f x,
   have : ∀ x, is_compact (closure (ev x '' s)),
@@ -1271,6 +1275,9 @@ begin
     (image_subset_iff.2 $ λ g hg x, subset_closure $ mem_image_of_mem _ hg)
 end
 
+/-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values
+in a proper space. If `s` interpreted as a set in the space of maps `E → F` with topology of
+pointwise convergence is closed, then it is compact. -/
 lemma is_compact_image_coe_bounded_of_closed [proper_space F] {s : set (E →SL[σ₁₂] F)}
   (hb : bounded s) (hc : is_closed ((λ (f : E →SL[σ₁₂] F) x, f x) '' s)) :
   is_compact ((λ (f : E →SL[σ₁₂] F) x, f x) '' s) :=
@@ -1282,7 +1289,9 @@ lemma is_closed_inter_range_coe {s : set (E → F)} (hs : is_closed s)
 is_closed_of_closure_subset (λ f hf, ⟨closure_minimal (inter_subset_left _ _) hs hf,
   ⟨of_mem_closure_image_coe_bounded f hb (by rwa image_preimage_eq_inter_range), rfl⟩⟩)
 
-/-- The set of functions `f : E → F` that represent. -/
+/-- The set of functions `f : E → F` that represent continuous linear maps `f : E →SL[σ₁₂] F`
+at distance `≤ r` from `f₀ : E →SL[σ₁₂] F` is closed in the topology of pointwise convergence.
+This is one of the key steps in the proof of the **Banach-Alaoglu** theorem. -/
 lemma is_closed_image_coe_closed_ball (f₀ : E →SL[σ₁₂] F) (r : ℝ) :
   is_closed ((λ (f : E →SL[σ₁₂] F) (x : E), f x) '' closed_ball f₀ r) :=
 begin

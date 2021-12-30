@@ -518,7 +518,7 @@ private lemma is_root_cyclotomic_iff' {n : ℕ} {K : Type*} [field K] {μ : K} [
   is_root (cyclotomic n K) μ ↔ is_primitive_root μ n :=
 begin
   -- in this proof, `o` stands for `order_of μ`
-  have hnpos : 0 < n := (ne_zero.nat_of_ne K).out.bot_lt,
+  have hnpos : 0 < n := (ne_zero.of_ne_zero_coe K).out.bot_lt,
   refine ⟨λ hμ, _, is_root_cyclotomic hnpos⟩,
   have hμn : μ ^ n = 1,
   { rw is_root_of_unity_iff hnpos,
@@ -554,7 +554,7 @@ lemma is_root_cyclotomic_iff {n : ℕ} {R : Type*} [comm_ring R] [is_domain R] [
   {μ : R} : is_root (cyclotomic n R) μ ↔ is_primitive_root μ n :=
 begin
   have hf : function.injective _ := is_fraction_ring.injective R (fraction_ring R),
-  haveI : ne_zero (n : fraction_ring R) := ne_zero.of_injective R _ hf,
+  haveI : ne_zero (n : fraction_ring R) := ne_zero.of_injective hf,
   rw [←is_root_map_iff hf, ←is_primitive_root.map_iff_of_injective hf, map_cyclotomic,
       ←is_root_cyclotomic_iff']
 end
@@ -728,25 +728,25 @@ section expand
 @[simp] lemma cyclotomic_expand_eq_cyclotomic {p n : ℕ} (hp : nat.prime p) (hdiv : p ∣ n)
   (R : Type*) [comm_ring R] : expand R p (cyclotomic n R) = cyclotomic (n * p) R :=
 begin
-  by_cases hzero : n = 0,
-  { simp [hzero] },
+  rcases n.eq_zero_or_pos with rfl | hzero,
+  { simp },
+  haveI := ne_zero.of_pos hzero,
   suffices : expand ℤ p (cyclotomic n ℤ) = cyclotomic (n * p) ℤ,
   { rw [← map_cyclotomic_int, ← map_expand, this, map_cyclotomic_int] },
   refine eq_of_monic_of_dvd_of_nat_degree_le (cyclotomic.monic _ _)
-    ((cyclotomic.monic n ℤ).expand (zero_lt_iff.2 (nat.prime.ne_zero hp))) _ _,
-  { have hpos := nat.mul_pos (zero_lt_iff.mpr hzero) (nat.prime.pos hp),
+    ((cyclotomic.monic n ℤ).expand hp.pos) _ _,
+  { have hpos := nat.mul_pos hzero hp.pos,
     have hprim := complex.is_primitive_root_exp _ hpos.ne.symm,
     rw [cyclotomic_eq_minpoly hprim hpos],
     refine @minpoly.gcd_domain_dvd ℤ ℂ ℚ _ _ _ _ _ _ _ _ complex.algebra (algebra_int ℂ) _ _
       (is_primitive_root.is_integral hprim hpos) _ ((cyclotomic.monic n ℤ).expand
-      (nat.prime.pos hp)).is_primitive _,
-    rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval, ← is_root.def,
-      is_root_cyclotomic_iff],
-    { convert is_primitive_root.pow_of_dvd hprim (nat.prime.ne_zero hp) (dvd_mul_left p n),
-      rw [nat.mul_div_cancel _ (nat.prime.pos hp)] },
-    { exact_mod_cast hzero } },
+      hp.pos).is_primitive _,
+    rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval,
+        ← is_root.def, is_root_cyclotomic_iff],
+    { convert is_primitive_root.pow_of_dvd hprim hp.ne_zero (dvd_mul_left p n),
+      rw [nat.mul_div_cancel _ hp.pos] } },
   { rw [nat_degree_expand, nat_degree_cyclotomic, nat_degree_cyclotomic, mul_comm n,
-      nat.totient_mul_of_prime_of_dvd hp hdiv, mul_comm] }
+        nat.totient_mul_of_prime_of_dvd hp hdiv, mul_comm] }
 end
 
 end expand

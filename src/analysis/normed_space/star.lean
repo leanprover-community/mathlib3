@@ -113,9 +113,3 @@ variables {𝕜}
 lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 end starₗᵢ
-
-namespace self_adjoint
-
-instance [normed_group E] [star_add_monoid E] : normed_star_monoid (self_adjoint E) := ⟨λ _, rfl⟩
-
-end self_adjoint

@@ -47,13 +47,7 @@ variables [add_group R] [star_add_monoid R]
 lemma mem_iff {x : R} : x ∈ self_adjoint R ↔ star x = x :=
 by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 
-instance : has_star (self_adjoint R) := ⟨id⟩
-instance : has_involutive_star (self_adjoint R) := ⟨λ _, rfl⟩
-
-@[simp] lemma star_eq {x : self_adjoint R} : star x = x := rfl
 @[simp] lemma star_coe_eq {x : self_adjoint R} : star (x : R) = x := x.prop
-
-instance : star_add_monoid (self_adjoint R) := ⟨λ x y, star_eq⟩
 
 end add_group
 
@@ -69,6 +63,12 @@ instance : has_one (self_adjoint R) := ⟨⟨1, by rw [mem_iff, star_one]⟩⟩
 @[simp] lemma coe_one : (coe : self_adjoint R → R) (1 : self_adjoint R) = (1 : R) := rfl
 
 lemma one_mem : (1 : R) ∈ self_adjoint R := by simp only [mem_iff, star_one]
+
+lemma bit0_mem {x : R} (hx : x ∈ self_adjoint R) : bit0 x ∈ self_adjoint R :=
+by simp only [mem_iff, star_bit0, mem_iff.mp hx]
+
+lemma bit1_mem {x : R} (hx : x ∈ self_adjoint R) : bit1 x ∈ self_adjoint R :=
+by simp only [mem_iff, star_bit1, mem_iff.mp hx]
 
 lemma conjugate {x : R} (hx : x ∈ self_adjoint R) {z : R} : z * x * star z ∈ self_adjoint R :=
 by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]

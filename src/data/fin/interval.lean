@@ -233,19 +233,15 @@ begin
   simp_rw [ne_iff_lt_or_gt, or.comm, finset.filter_or],
   refine eq.trans _ (congr_arg (finset.prod _) (funext $ λ i, (finset.prod_union _).symm)),
   simp_rw [finset.prod_mul_distrib],
-  { conv_rhs {
-      congr, skip, congr, skip, funext,
-      conv {
-        congr, skip, funext,
+  { conv_rhs { congr, skip, congr, skip, funext,
+      conv { congr, skip, funext,
         rw [hf, neg_eq_neg_one_mul] },
       rw [finset.prod_mul_distrib, finset.prod_const] },
     simp_rw [finset.prod_mul_distrib],
     rw [← mul_assoc],
     congr,
-    conv_lhs {
-      congr, skip, funext,
-      conv {
-        congr, skip, funext,
+    conv_lhs { congr, skip, funext,
+      conv { congr, skip, funext,
         rw [hf, neg_eq_neg_one_mul] },
       rw [finset.prod_mul_distrib, finset.prod_const] },
     simp_rw [finset.prod_mul_distrib],

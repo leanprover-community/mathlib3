@@ -213,13 +213,13 @@ noncomputable def grade_order.to_locally_finite_order : locally_finite_order α 
     by rw [mem_preimage, mem_Ioo, grade_strict_mono.lt_iff_lt, grade_strict_mono.lt_iff_lt] }
 
 /-- The set of grades in a linear order has no gaps. -/
-private lemma grade_ioo_lin (m n : ℕ) : (∃ a : α, grade a = m) → (∃ a : α, grade a = n) →
-  nonempty (set.Ioo m n) → ∃ r ∈ set.Ioo m n, (∃ a : α, grade a = r) :=
+private lemma grade_ioo_lin {a b : α} {m n r : ℕ} (ha : grade a = m) (hb : grade b = n)
+  (hrl : m < r) (hrr : r < n) : ∃ s ∈ set.Ioo m n, (∃ c : α, grade c = s) :=
 begin
-  rintro ⟨a, rfl⟩ ⟨b, rfl⟩ ⟨_, hrl, hrr⟩,
+  rw ←ha at *, rw ←hb at *,
   obtain ⟨_, hac, hcb⟩ := exists_lt_lt_of_not_covers (λ h, (λ ⟨_, hmn⟩, hmn hrl hrr : ¬ _ ⋖ _)
     h.grade_covers) ((grade_lt_iff_lt _ _).1 (lt_trans hrl hrr)),
-  exact ⟨_, ⟨grade_strict_mono hac, grade_strict_mono hcb⟩, _, rfl⟩,
+  exact ⟨_, ⟨grade_strict_mono hac, grade_strict_mono hcb⟩, _, rfl⟩
 end
 
 end order_bot

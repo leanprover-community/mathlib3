@@ -161,6 +161,16 @@ begin
     { simpa [h, hf.ne h] using IH _ } }
 end
 
+lemma count_le_count_map [decidable_eq β] (L : list α) (f : α → β) (w : α):
+  count w L ≤ count (f w) (map f L) :=
+begin
+  induction L with x xs IH, { simp },
+  simp only [map_cons, count_cons'],
+  by_cases hwx : w = x,
+  { subst hwx, simp [succ_le_succ IH] },
+  { simp [hwx, le_add_right IH] },
+end
+
 @[simp] lemma count_erase_self (a : α) :
   ∀ (s : list α), count a (list.erase s a) = pred (count a s)
 | [] := by simp

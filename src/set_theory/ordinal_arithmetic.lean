@@ -960,7 +960,7 @@ theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   bsup.{u} o (λ x _, f x) = f o :=
 by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id h] }
 
-/-- The least strict upper bound of a family of ordinals -/
+/-- The least strict upper bound of a family of ordinals. -/
 def lsub {ι} (f : ι → ordinal) : ordinal :=
 sup (λ i, (f i).succ)
 

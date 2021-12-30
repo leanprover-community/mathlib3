@@ -70,33 +70,14 @@ attribute [protected] finset.nonempty.sym2
 @[simp] lemma sym2_singleton (a : α) : ({a} : finset α).sym2 = {sym2.diag a} :=
 by rw [finset.sym2, singleton_product_singleton, image_singleton, sym2.diag]
 
-@[simp] lemma diag_mem_sym2_iff : sym2.diag a ∈ s.sym2 ↔ a ∈ s :=
-mk_mem_sym2_iff.trans $ and_self _
+@[simp] lemma diag_mem_sym2_iff : sym2.diag a ∈ s.sym2 ↔ a ∈ s := mk_mem_sym2_iff.trans $ and_self _
 
 @[simp] lemma sym2_mono (h : s ⊆ t) : s.sym2 ⊆ t.sym2 :=
-begin
-  intros m he,
-  rw mem_sym2_iff at ⊢ he,
-  exact λ a ha, h (he _ ha),
-end
+λ m he, mem_sym2_iff.2 $ λ a ha, h $ mem_sym2_iff.1 he _ ha
 
 lemma image_diag_union_image_off_diag :
   s.diag.image quotient.mk ∪ s.off_diag.image quotient.mk = s.sym2 :=
 by { rw [←image_union, diag_union_off_diag], refl }
-
-/-- **Stars and bars** for the case `n = 2`. -/
-lemma card_sym2 (s : finset α) : s.sym2.card = s.card * (s.card + 1) / 2 :=
-begin
-  rw [←image_diag_union_image_off_diag, card_union_eq, sym2.card_image_diag,
-    sym2.card_image_off_diag, nat.choose_two_right, add_comm, ←nat.triangle_succ, nat.succ_sub_one,
-    mul_comm],
-  rintro m he,
-  rw [inf_eq_inter, mem_inter, mem_image, mem_image] at he,
-  obtain ⟨⟨a, ha, rfl⟩, b, hb, hab⟩ := he,
-  refine not_is_diag_mk_of_mem_off_diag hb _,
-  rw hab,
-  exact is_diag_mk_of_mem_diag ha,
-end
 
 end sym2
 

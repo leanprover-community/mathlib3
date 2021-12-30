@@ -37,7 +37,7 @@ show these are equivalent in `sym.sym_equiv_sym'`.
 -/
 def sym (α : Type u) (n : ℕ) := {s : multiset α // s.card = n}
 
-instance (α : Type*) (n : ℕ) : has_coe (sym α n) (multiset α) := coe_subtype
+instance sym.has_coe (α : Type*) (n : ℕ) : has_coe (sym α n) (multiset α) := coe_subtype
 
 /--
 This is the `list.perm` setoid lifted to `vector`.
@@ -53,7 +53,7 @@ local attribute [instance] vector.perm.is_setoid
 
 namespace sym
 
-variables {α : Type u} {n : ℕ}
+variables {α : Type u} {n : ℕ} {s: sym α n} {a b : α}
 
 /--
 This is the quotient map that takes a list of n elements as an n-tuple and produces an nth

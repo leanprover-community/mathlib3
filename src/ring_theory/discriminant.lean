@@ -26,7 +26,7 @@ Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we 
   `algebra.discr A ((P.map (algebra_map A B)).mul_vec b)`.
 * `algebra.discr_not_zero_of_linear_independent` : over a field, if `b` is linear independent, then
   `algebra.discr K b ≠ 0`.
-* `algebra.discr_eq_det_embeddings_matrix_reindex_pow_two` if `L/K` is a field extension and
+* `algebra.discr_eq_det_embeddings_matrix_reindex_pow_two` : if `L/K` is a field extension and
   `b : ι → L`, then `discr K b` is the square of the determinant of the matrix whose `(i, j)`
   coefficient is `σⱼ (b i)`, where `σⱼ : L →ₐ[K] E` is the embedding in an algebraically closed
   field `E` corresponding to `j : ι` via a bijection `e : ι ≃ (L →ₐ[K] E)`.
@@ -64,6 +64,7 @@ variable [fintype ι]
 
 section basic
 
+/-- If `b` is not linear independent, then `algebra.discr A b = 0`. -/
 lemma discr_zero_of_not_linear_independent [is_domain A] {b : ι → B}
   (hli : ¬linear_independent A b) : discr A b = 0 :=
 begin
@@ -82,12 +83,15 @@ end
 
 variable {A}
 
+/-- Relation between `algebra.discr A ι b` and
+`algebra.discr A ((P.map (algebra_map A B)).vec_mul b)`. -/
 lemma discr_of_matrix_vec_mul [decidable_eq ι] (b : ι → B) (P : matrix ι ι A) :
   discr A ((P.map (algebra_map A B)).vec_mul b) = P.det ^ 2 * discr A b :=
 by rw [discr_def, trace_matrix_of_matrix_vec_mul, det_mul, det_mul, det_transpose, mul_comm,
     ← mul_assoc, discr_def, pow_two]
 
-
+/-- Relation between `algebra.discr A ι b` and
+`algebra.discr A ((P.map (algebra_map A B)).mul_vec b)`. -/
 lemma discr_of_matrix_mul_vec [decidable_eq ι] (b : ι → B) (P : matrix ι ι A) :
   discr A ((P.map (algebra_map A B)).mul_vec b) = P.det ^ 2 * discr A b :=
 by rw [discr_def, trace_matrix_of_matrix_mul_vec, det_mul, det_mul, det_transpose,
@@ -102,6 +106,7 @@ variables [algebra K L] [algebra K E]
 variables [module.finite K L] [is_separable K L] [is_alg_closed E]
 variables (b : ι → L) (pb : power_basis K L)
 
+/-- Over a field, if `b` is linear independent, then `algebra.discr K b ≠ 0`. -/
 lemma discr_not_zero_of_linear_independent [nonempty ι]
   (hcard : fintype.card ι = finrank K L) (hli : linear_independent K b) : discr K b ≠ 0 :=
 begin
@@ -113,12 +118,17 @@ begin
   exact trace_form_nondegenerate _ _
 end
 
+/-- If `L/K` is a field extension and `b : ι → L`, then `discr K b` is the square of the
+determinant of the matrix whose `(i, j)` coefficient is `σⱼ (b i)`, where `σⱼ : L →ₐ[K] E` is the
+embedding in an algebraically closed field `E` corresponding to `j : ι` via a bijection
+`e : ι ≃ (L →ₐ[K] E)`. -/
 lemma discr_eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι]
   (e : ι ≃ (L →ₐ[K] E)) : algebra_map K E (discr K b) =
   (embeddings_matrix_reindex K E b e).det ^ 2 :=
 by rw [discr_def, ring_hom.map_det, ring_hom.map_matrix_apply,
     trace_matrix_eq_embeddings_matrix_reindex_mul_trans, det_mul, det_transpose, pow_two]
 
+/-- The discriminant of a power basis. -/
 lemma discr_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j), (e j pb.gen- (e i pb.gen)) ^ 2 :=

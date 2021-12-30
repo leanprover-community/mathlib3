@@ -64,20 +64,29 @@ def mem_ℓp (f : Π i, E i) (p : ℝ≥0∞) : Prop :=
 if p = 0 then (set.finite {i | f i ≠ 0}) else
   (if p = ∞ then bdd_above (set.range (λ i, ∥f i∥)) else summable (λ i, ∥f i∥ ^ p.to_real))
 
+lemma mem_ℓp_zero_iff {f : Π i, E i} : mem_ℓp f 0 ↔ set.finite {i | f i ≠ 0} :=
+by dsimp [mem_ℓp]; rw [if_pos rfl]
+
 lemma mem_ℓp_zero {f : Π i, E i} (hf : set.finite {i | f i ≠ 0}) : mem_ℓp f 0 :=
-(if_pos rfl).mpr hf
+mem_ℓp_zero_iff.2 hf
+
+lemma mem_ℓp_infty_iff {f : Π i, E i} : mem_ℓp f ∞ ↔ bdd_above (set.range (λ i, ∥f i∥)) :=
+by dsimp [mem_ℓp]; rw [if_neg ennreal.top_ne_zero, if_pos rfl]
 
 lemma mem_ℓp_infty {f : Π i, E i} (hf : bdd_above (set.range (λ i, ∥f i∥))) : mem_ℓp f ∞ :=
-(if_neg ennreal.top_ne_zero).mpr ((if_pos rfl).mpr hf)
+mem_ℓp_infty_iff.2 hf
 
-lemma mem_ℓp_gen (hp : 0 < p.to_real) {f : Π i, E i} (hf : summable (λ i, ∥f i∥ ^ p.to_real)) :
-  mem_ℓp f p :=
+lemma mem_ℓp_gen_iff (hp : 0 < p.to_real) {f : Π i, E i} :
+  mem_ℓp f p ↔ summable (λ i, ∥f i∥ ^ p.to_real) :=
 begin
   rw ennreal.to_real_pos_iff at hp,
   dsimp [mem_ℓp],
   rw [if_neg hp.1.ne', if_neg hp.2.ne],
-  exact hf,
 end
+
+lemma mem_ℓp_gen (hp : 0 < p.to_real) {f : Π i, E i} (hf : summable (λ i, ∥f i∥ ^ p.to_real)) :
+  mem_ℓp f p :=
+(mem_ℓp_gen_iff hp).2 hf
 
 lemma zero_mem_ℓp : mem_ℓp (0 : Π i, E i) p :=
 begin
@@ -96,17 +105,14 @@ lemma zero_mem_ℓp' : mem_ℓp (λ i : α, (0 : E i)) p := zero_mem_ℓp
 namespace mem_ℓp
 
 lemma finite_dsupport {f : Π i, E i} (hf : mem_ℓp f 0) : set.finite {i | f i ≠ 0} :=
-(if_pos rfl).mp hf
+mem_ℓp_zero_iff.1 hf
 
 lemma bdd_above {f : Π i, E i} (hf : mem_ℓp f ∞) : bdd_above (set.range (λ i, ∥f i∥)) :=
-(if_pos rfl).mp ((if_neg ennreal.top_ne_zero).mp hf)
+mem_ℓp_infty_iff.1 hf
 
 lemma summable (hp : 0 < p.to_real) {f : Π i, E i} (hf : mem_ℓp f p) :
   summable (λ i, ∥f i∥ ^ p.to_real) :=
-begin
-  rw ennreal.to_real_pos_iff at hp,
-  exact (if_neg hp.2.ne).mp ((if_neg hp.1.ne').mp hf)
-end
+(mem_ℓp_gen_iff hp).1 hf
 
 lemma neg {f : Π i, E i} (hf : mem_ℓp f p) : mem_ℓp (-f) p :=
 begin

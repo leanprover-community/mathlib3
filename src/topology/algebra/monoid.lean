@@ -187,8 +187,7 @@ and a proof that it belongs to the closure of the range of the coercion from `M�
 type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`. -/",
   simps { fully_applied := ff }]
 def monoid_hom_of_mem_closure_range_coe (f : M₁ → M₂)
-  (hf : f ∈ closure (@range (M₁ → M₂) F (@coe_fn _ _ fun_like.has_coe_to_fun))) :
-  M₁ →* M₂ :=
+  (hf : f ∈ closure (range (λ (f : F) (x : M₁), f x))) : M₁ →* M₂ :=
 { to_fun := f,
   map_one' := (is_closed_set_of_map_one M₁ M₂).closure_subset_iff.2 (range_subset_iff.2 map_one) hf,
   map_mul' := (is_closed_set_of_map_mul M₁ M₂).closure_subset_iff.2
@@ -205,7 +204,7 @@ monoid_hom_of_mem_closure_range_coe f $ mem_closure_of_tendsto h $
 variables (M₁ M₂)
 
 @[to_additive] lemma monoid_hom.is_closed_range_coe :
-  is_closed (@range (M₁ → M₂) (M₁ →* M₂) coe_fn) :=
+  is_closed (range (coe_fn : (M₁ →* M₂) → (M₁ → M₂))) :=
 is_closed_of_closure_subset $ λ f hf, ⟨monoid_hom_of_mem_closure_range_coe f hf, rfl⟩
 
 end pointwise_limits

@@ -655,8 +655,10 @@ a little bit its priority above 100 to try it quickly, but remaining below the d
 more specific instances are tried first. -/
 @[priority 200]
 instance ring.to_semiring : semiring α :=
-{ zero_mul := zero_mul,
-  mul_zero := mul_zero,
+{ zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
+    by rw [← add_mul, zero_add, add_zero],
+  mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
+    by rw [← mul_add, add_zero, add_zero],
   ..‹ring α› }
 
 /-- Pullback a `ring` instance along an injective function.

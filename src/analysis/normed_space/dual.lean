@@ -170,6 +170,11 @@ end
 
 variable (E)
 
+/-- `polar 𝕜 : set E → set (normed_space.dual 𝕜 E)` forms an order-reversing Galois connection with
+a similarly defined map `set (normed_space.dual 𝕜 E) → set E`. We use `order_dual.to_dual` and
+`order_dual.of_dual` to express that `polar` is order-reversing. Instead of defining the dual
+operation `unpolar s := {x : E | ∀ x' ∈ s, ∥x' x∥ ≤ 1}` we apply `polar 𝕜` again, then pull the set
+from the double dual space to the original space using `normed_space.inclusion_in_double_dual`. -/
 lemma polar_gc :
   galois_connection (order_dual.to_dual ∘ polar 𝕜)
     (λ s, inclusion_in_double_dual 𝕜 E ⁻¹' (polar 𝕜 $ order_dual.of_dual s)) :=
@@ -233,7 +238,6 @@ variables (𝕜)
 lemma closed_ball_inv_subset_polar_closed_ball {r : ℝ} :
   closed_ball (0 : dual 𝕜 E) r⁻¹ ⊆ polar 𝕜 (closed_ball (0 : E) r) :=
 λ x' hx' x hx,
---  simp only [mem_closed_ball_zero_iff] at hx' hx,
 calc ∥x' x∥ ≤ ∥x'∥ * ∥x∥ : x'.le_op_norm x
 ... ≤ r⁻¹ * r :
   mul_le_mul (mem_closed_ball_zero_iff.1 hx') (mem_closed_ball_zero_iff.1 hx)

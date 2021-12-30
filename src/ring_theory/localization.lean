@@ -1426,11 +1426,6 @@ instance (x : ideal R) [H : x.is_prime] [is_domain R] :
 localization_algebra_of_submonoid_le _ _ x.prime_compl (non_zero_divisors R)
   (by { intros a ha, rw mem_non_zero_divisors_iff_ne_zero, exact λ h, ha (h.symm ▸ x.zero_mem) })
 
-lemma exist_image_iff {α β : Type*} (f : α → β) (x : set α) (P : β → Prop) :
-  (∃ (a : f '' x), P a) ↔ ∃ (a : x), P (f a) :=
-⟨λ h, ⟨⟨_, h.some.prop.some_spec.1⟩, h.some.prop.some_spec.2.symm ▸ h.some_spec⟩,
-  λ h, ⟨⟨_, _, h.some.prop, rfl⟩, h.some_spec⟩⟩
-
 /-- If `M ≤ N` are submonoids of `R`, then `N⁻¹S` is also the localization of `M⁻¹S` at `N`. -/
 lemma is_localization_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
@@ -1450,7 +1445,7 @@ begin
   { intros x₁ x₂,
     obtain ⟨⟨y₁, s₁⟩, e₁⟩ := is_localization.surj M x₁,
     obtain ⟨⟨y₂, s₂⟩, e₂⟩ := is_localization.surj M x₂,
-    refine iff.trans _ (exist_image_iff (algebra_map R S) N (λ c, x₁ * c = x₂ * c)).symm,
+    refine iff.trans _ (set.exist_image_iff (algebra_map R S) N (λ c, x₁ * c = x₂ * c)).symm,
     rw [← (is_localization.map_units T ⟨_, h s₁.prop⟩).mul_left_inj,
         ← (is_localization.map_units T ⟨_, h s₂.prop⟩).mul_right_inj],
     simp_rw [is_scalar_tower.algebra_map_apply R S T, ← map_mul],

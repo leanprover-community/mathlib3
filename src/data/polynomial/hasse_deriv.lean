@@ -171,8 +171,7 @@ begin
   all_goals { apply_rules [mul_ne_zero, H] }
 end
 
-lemma polynomial.nat_degree_hasse_deriv_le
-  (p : polynomial R) (n : ℕ) :
+lemma nat_degree_hasse_deriv_le (p : polynomial R) (n : ℕ) :
   nat_degree (hasse_deriv n p) ≤ nat_degree p - n :=
 begin
   classical,
@@ -195,9 +194,7 @@ begin
   { simp }
 end
 
-lemma polynomial.nat_degree_hasse_deriv
-  [no_zero_smul_divisors ℕ R]
-  (p : polynomial R) (n : ℕ) :
+lemma nat_degree_hasse_deriv [no_zero_smul_divisors ℕ R] (p : polynomial R) (n : ℕ) :
   nat_degree (hasse_deriv n p) = nat_degree p - n :=
 begin
   refine le_antisymm (polynomial.nat_degree_hasse_deriv_le _ _) _,

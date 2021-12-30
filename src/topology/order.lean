@@ -322,8 +322,7 @@ lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → 
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
 begin
   simp only [← is_open_compl_iff, is_open_induced_iff],
-  exact ⟨λ ⟨t, ht, heq⟩, ⟨tᶜ, by rwa compl_compl, by simp [preimage_compl, heq, compl_compl]⟩,
-         λ ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+  exact compl_surjective.exists.trans (by simp only [preimage_compl, compl_inj_iff])
 end
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
@@ -747,6 +746,10 @@ by rw [nhds_induced, filter.map_comap_of_mem h]
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α} :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
 by simp only [mem_closure_iff_frequently, nhds_induced, frequently_comap, mem_image, and_comm]
+
+lemma is_closed_induced_iff' [t : topological_space β] {f : α → β} {s : set α} :
+  @is_closed α (t.induced f) s ↔ ∀ a, f a ∈ closure (f '' s) → a ∈ s :=
+by simp only [← closure_subset_iff_is_closed, subset_def, closure_induced]
 
 end induced
 

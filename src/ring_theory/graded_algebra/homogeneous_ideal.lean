@@ -436,7 +436,7 @@ lemma ideal.homgeneous_hull.gc :
     exact ideal.homogeneous_hull_is_mono A H,
   end ⟩
 
-lemma ideal.homogemoues_core.gc :
+lemma ideal.homogeneous_core.gc :
   galois_connection
     (λ I, I.1 : homogeneous_ideal A → ideal R)
     (λ I, ⟨ideal.homogeneous_core A I, ideal.is_homogeneous.homogeneous_core A I⟩ :

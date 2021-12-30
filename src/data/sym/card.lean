@@ -45,8 +45,7 @@ def multichoose2 (n k : ℕ) := (n + k - 1).choose k
 by casting `fin n.succ` to `fin n`. Otherwise, the function removes an instance of `fin.last n` from
 the input and produces a `sym (fin n.succ) k`. -/
 def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
-if h : fin.last n ∈ x then
-  sum.inr ⟨x.val.erase (fin.last n), by { rw [multiset.card_erase_of_mem h, x.property], refl }⟩
+if h : fin.last n ∈ x then sum.inr (x.erase (fin.last n) h)
 else begin
   refine sum.inl (x.map (λ a, ⟨if (a : ℕ) = n then 0 else a, _⟩)),
   { split_ifs,
@@ -106,7 +105,7 @@ def equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ 
           { refl } } } },
     { rw [decode, encode],
       split_ifs,
-      { cases x, simp [sym.cons] },
+      { cases x, simp [sym.cons, sym.erase, multiset.cons_erase] },
       { apply h,
         cases x,
         simpa only [sym.cons] using multiset.mem_cons_self (fin.last n) x_val } }

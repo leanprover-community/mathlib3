@@ -179,4 +179,10 @@ namespace nat_trans
 
 end nat_trans
 
+/-- `F.flip` composed with evaluation is the same as evaluating `F`. -/
+@[simps]
+def flip_comp_evaluation (F : A ⥤ B ⥤ C) (a) :
+  F.flip ⋙ (evaluation _ _).obj a ≅ F.obj a :=
+nat_iso.of_components (λ b, eq_to_iso rfl) $ by tidy
+
 end category_theory

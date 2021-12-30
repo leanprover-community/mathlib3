@@ -137,7 +137,7 @@ begin
   simp_rw compl_neighbor_finset_sdiff_inter_eq,
   have hne : v ≠ w := ne_of_adj _ ha,
   rw compl_adj at ha,
-  rw [card_sdiff, ← insert_eq, card_insert_of_not_mem, card_singleton, ← finset_compl_union],
+  rw [card_sdiff, ← insert_eq, card_insert_of_not_mem, card_singleton, ← finset.compl_union],
   { change (1 + 1) with 2,
     rw [card_compl, is_SRG_with.card_neighbor_finset_union_nadj G h hne ha.2, ← h.card], },
   { simp only [hne.symm, not_false_iff, mem_singleton], },
@@ -156,7 +156,7 @@ begin
   simp only [not_and, not_not, compl_adj, ne.def] at hn,
   have h2' := hn.2 hn.1,
   simp_rw [compl_neighbor_finset_sdiff_inter_eq, G.sdiff_compl_neighbor_finset_inter_eq h2'],
-  rwa [← finset_compl_union, card_compl, is_SRG_with.card_neighbor_finset_union_adj G h, ← h.card],
+  rwa [← finset.compl_union, card_compl, is_SRG_with.card_neighbor_finset_union_adj G h, ← h.card],
 end
 
 /-- The complement of a strongly regular graph is strongly regular. -/

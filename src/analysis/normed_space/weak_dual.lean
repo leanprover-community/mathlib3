@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kalle Kytölä
+Authors: Kalle Kytölä, Yury Kudryashov
 -/
 import topology.algebra.weak_dual_topology
 import analysis.normed_space.dual
@@ -67,8 +67,7 @@ When `E` is a normed space, the duals `dual 𝕜 E` and `weak_dual 𝕜 E` are t
 different topology instances.
 
 For the proof of Banach-Alaoglu theorem, the weak dual of `E` is embedded in the space of
-functions `E → 𝕜` with the topology of pointwise convergence. The fact that this is an embedding
-is `weak_dual.to_Pi_embedding`.
+functions `E → 𝕜` with the topology of pointwise convergence.
 
 The polar set `polar 𝕜 s` of a subset `s` of `E` is originally defined as a subset of the dual
 `dual 𝕜 E`. We care about properties of these w.r.t. weak-* topology, and for this purpose give
@@ -87,54 +86,35 @@ weak-star, weak dual
 -/
 
 noncomputable theory
-open filter
+open filter metric set
 open_locale topological_space filter
 
-section weak_star_topology_for_duals_of_normed_spaces
 /-!
 ### Weak star topology on duals of normed spaces
+
 In this section, we prove properties about the weak-* topology on duals of normed spaces.
 We prove in particular that the canonical mapping `dual 𝕜 E → weak_dual 𝕜 E` is continuous,
 i.e., that the weak-* topology is coarser (not necessarily strictly) than the topology given
 by the dual-norm (i.e. the operator-norm).
 -/
 
-open normed_space
-
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
+namespace normed_space
+
+namespace dual
+
 /-- For normed spaces `E`, there is a canonical map `dual 𝕜 E → weak_dual 𝕜 E` (the "identity"
 mapping). It is a linear equivalence. -/
-def normed_space.dual.to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E :=
-linear_equiv.refl 𝕜 (E →L[𝕜] 𝕜)
-
-/-- For normed spaces `E`, there is a canonical map `weak_dual 𝕜 E → dual 𝕜 E` (the "identity"
-mapping). It is a linear equivalence. Here it is implemented as the inverse of the linear
-equivalence `normed_space.dual.to_weak_dual` in the other direction. -/
-def weak_dual.to_normed_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E :=
-normed_space.dual.to_weak_dual.symm
-
-@[simp] lemma weak_dual.coe_to_fun_eq_normed_coe_to_fun (x' : dual 𝕜 E) :
-  (x'.to_weak_dual : E → 𝕜) = x' := rfl
-
-namespace normed_space.dual
+def to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E := linear_equiv.refl 𝕜 (E →L[𝕜] 𝕜)
 
 @[simp] lemma to_weak_dual_eq_iff (x' y' : dual 𝕜 E) :
   x'.to_weak_dual = y'.to_weak_dual ↔ x' = y' :=
 to_weak_dual.injective.eq_iff
 
-@[simp] lemma _root_.weak_dual.to_normed_dual_eq_iff (x' y' : weak_dual 𝕜 E) :
-  x'.to_normed_dual = y'.to_normed_dual ↔ x' = y' :=
-weak_dual.to_normed_dual.injective.eq_iff
-
-theorem to_weak_dual_continuous :
-  continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
-begin
-  apply weak_dual.continuous_of_continuous_eval,
-  intros z,
-  exact (inclusion_in_double_dual 𝕜 E z).continuous,
-end
+theorem to_weak_dual_continuous : continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
+weak_dual.continuous_of_continuous_eval 𝕜 E $ λ z, (inclusion_in_double_dual 𝕜 E z).continuous
 
 /-- For a normed space `E`, according to `to_weak_dual_continuous` the "identity mapping"
 `dual 𝕜 E → weak_dual 𝕜 E` is continuous. This definition implements it as a continuous linear
@@ -142,20 +122,40 @@ map. -/
 def continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E :=
 { cont := to_weak_dual_continuous, .. to_weak_dual, }
 
+@[simp] lemma coe_to_weak_dual (x' : dual 𝕜 E) : (x'.to_weak_dual : E → 𝕜) = x' := rfl
+
 /-- The weak-star topology is coarser than the dual-norm topology. -/
 theorem dual_norm_topology_le_weak_dual_topology :
   (by apply_instance : topological_space (dual 𝕜 E)) ≤
     (by apply_instance : topological_space (weak_dual 𝕜 E)) :=
-begin
-  refine continuous.le_induced _,
-  apply continuous_pi_iff.mpr,
-  intros z,
-  exact (inclusion_in_double_dual 𝕜 E z).continuous,
-end
+by { convert to_weak_dual_continuous.le_induced, exact induced_id.symm }
 
-end normed_space.dual
+end dual
+end normed_space
 
 namespace weak_dual
+
+open normed_space
+
+/-- For normed spaces `E`, there is a canonical map `weak_dual 𝕜 E → dual 𝕜 E` (the "identity"
+mapping). It is a linear equivalence. Here it is implemented as the inverse of the linear
+equivalence `normed_space.dual.to_weak_dual` in the other direction. -/
+def to_normed_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E :=
+normed_space.dual.to_weak_dual.symm
+
+@[simp] lemma coe_to_normed_dual (x' : weak_dual 𝕜 E) : (x'.to_normed_dual : E → 𝕜) = x' := rfl
+
+@[simp] lemma to_normed_dual_eq_iff (x' y' : weak_dual 𝕜 E) :
+  x'.to_normed_dual = y'.to_normed_dual ↔ x' = y' :=
+weak_dual.to_normed_dual.injective.eq_iff
+
+lemma is_closed_closed_ball (x' : dual 𝕜 E) (r : ℝ) :
+  is_closed (to_normed_dual ⁻¹' closed_ball x' r) :=
+is_closed_induced_iff'.2 (continuous_linear_map.is_weak_closed_closed_ball x' r)
+
+/-!
+### Polar sets in the weak dual space
+-/
 
 variables (𝕜)
 
@@ -165,84 +165,54 @@ def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' (polar �
 
 lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s, ∥f x∥ ≤ 1} := rfl
 
-lemma polar_eq_preimage (s : set E) :
-  polar 𝕜 s = (λ (f : weak_dual 𝕜 E) (x : E), f x) ⁻¹' {f : E → 𝕜 | ∀ x ∈ s, ∥f x∥ ≤ 1} := rfl
-
-end weak_dual
-
-end weak_star_topology_for_duals_of_normed_spaces
-
-section polar_sets_in_weak_dual
-
-open metric set normed_space
-
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-
-lemma pi.is_closed_polar {α : Type*} (s : set α) :
-  is_closed {f : α → E | ∀ x ∈ s, ∥f x∥ ≤ 1} :=
-begin
-  simp only [set_of_forall],
-  exact is_closed_bInter (λ x hx, is_closed_Iic.preimage (@continuous_apply α (λ _, E) _ x).norm)
-end
-
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
 is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
-lemma weak_dual.is_closed_polar (s : set E) : is_closed (weak_dual.polar 𝕜 s) :=
-(pi.is_closed_polar s).preimage (weak_dual.coe_fn_continuous 𝕜 E)
+lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
+begin
+  simp only [polar_def, set_of_forall],
+  exact is_closed_bInter (λ x hx, is_closed_Iic.preimage (eval_continuous _ _ _).norm)
+end
 
-end polar_sets_in_weak_dual
+variable {𝕜}
 
-section embedding_to_Pi
+/-- While coercion `coe_fn : weak_dual 𝕜 E → (E → 𝕜)` is not a closed map, it sends *bounded*
+closed sets to closed sets. -/
+lemma is_closed_image_coe_bounded_closed {s : set (weak_dual 𝕜 E)}
+  (hb : bounded (dual.to_weak_dual ⁻¹' s)) (hc : is_closed s) :
+  is_closed ((coe_fn : weak_dual 𝕜 E → (E → 𝕜)) '' s) :=
+continuous_linear_map.is_closed_image_coe_bounded_weak_closed hb (is_closed_induced_iff'.1 hc)
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+lemma is_compact_of_bounded_closed [proper_space 𝕜] {s : set (weak_dual 𝕜 E)}
+  (hb : bounded (dual.to_weak_dual ⁻¹' s)) (hc : is_closed s) :
+  is_compact s :=
+(coe_fn_embedding 𝕜 E).is_compact_iff_is_compact_image.mpr $
+  continuous_linear_map.is_compact_image_coe_bounded_of_closed_image hb $
+  is_closed_image_coe_bounded_closed hb hc
 
-open metric set normed_space
+variable (𝕜)
 
-namespace weak_dual
-
-/-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` of a polar `polar 𝕜 s` of a
+/-- The image under `coe_fn : weak_dual 𝕜 E → (E → 𝕜)` of a polar `weak_dual.polar 𝕜 s` of a
 neighborhood `s` of the origin is a closed set. -/
 lemma is_closed_image_polar {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_closed ((λ (f : weak_dual 𝕜 E) (x : E), f x) '' (weak_dual.polar 𝕜 s)) :=
-begin
-  set t : set (E → 𝕜) := {f | ∀ x ∈ s, ∥f x∥ ≤ 1},
-  have htc : is_closed t, from pi.is_closed_polar s,
-  change weak_dual.polar 𝕜 s with (λ (f : weak_dual 𝕜 E) (x : E), f x) ⁻¹' t,
-  rw image_preimage_eq_inter_range,
-  exact continuous_linear_map.is_closed_inter_range_coe htc
-    (bounded_polar_of_mem_nhds_zero _ s_nhd)
-end
+  is_closed ((λ (f : weak_dual 𝕜 E) (x : E), f x) '' (polar 𝕜 s)) :=
+is_closed_image_coe_bounded_closed (bounded_polar_of_mem_nhds_zero 𝕜 s_nhd) (is_closed_polar _ _)
 
-/-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → (E → 𝕜)` of the polar `polar s` of
-a neighborhood `s` of the origin is compact if the field `𝕜` is a proper topological space. -/
-lemma is_compact_image_polar [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_compact ((λ (f : weak_dual 𝕜 E) (x : E), f x) '' (weak_dual.polar 𝕜 s)) :=
-begin
-  rw [← (is_closed_image_polar 𝕜 s_nhd).closure_eq],
-  exact continuous_linear_map.is_compact_closure_image_coe_bounded
-    (bounded_polar_of_mem_nhds_zero 𝕜 s_nhd)
-end
+/-- The image under `coe_fn : normed_space.dual 𝕜 E → (E → 𝕜)` of a polar `polar 𝕜 s` of a
+neighborhood `s` of the origin is a closed set. -/
+lemma _root_.normed_space.is_closed_image_polar {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+  is_closed ((λ (f : dual 𝕜 E) (x : E), f x) '' (_root_.polar 𝕜 s)) :=
+is_closed_image_polar 𝕜 s_nhd
 
 /-- The **Banach-Alaoglu theorem**: the polar set of a neighborhood `s` of the origin in a
 normed space `E` is a compact subset of `weak_dual 𝕜 E`. -/
-theorem weak_dual.is_compact_polar [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_compact (weak_dual.polar 𝕜 s) :=
-(coe_fn_embedding 𝕜 E).is_compact_iff_is_compact_image.mpr (is_compact_image_polar 𝕜 s_nhd)
+theorem is_compact_polar [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+  is_compact (polar 𝕜 s) :=
+is_compact_of_bounded_closed (bounded_polar_of_mem_nhds_zero 𝕜 s_nhd) (is_closed_polar _ _)
+
+/-- The **Banach-Alaoglu theorem**: closed balls of the dual of a normed space `E` are compact in
+the weak-star topology. -/
+theorem is_compact_closed_ball [proper_space 𝕜] (x' : dual 𝕜 E) (r : ℝ) :
+  is_compact (to_normed_dual ⁻¹' (closed_ball x' r)) :=
+is_compact_of_bounded_closed bounded_closed_ball (is_closed_closed_ball x' r)
 
 end weak_dual
-
-/-- The Banach-Alaoglu theorem: closed balls of the dual of a normed space `E` over `ℝ` or `ℂ`
-are compact in the weak-star topology. -/
-theorem weak_dual.is_compact_closed_ball
-  {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] (r : ℝ) (hr : 0 < r) :
-  is_compact (id (closed_ball 0 r : set (normed_space.dual 𝕜 E)) : set (weak_dual 𝕜 E)) :=
-begin
-  have as_polar := @polar_closed_ball 𝕜 _ E _ _ r⁻¹ (inv_pos.mpr hr),
-  simp only [one_div, inv_inv₀] at as_polar,
-  rw ←as_polar,
-  exact weak_dual.is_compact_polar (closed_ball_mem_nhds (0 : E) (inv_pos.mpr hr)),
-end
-
-end embedding_to_Pi

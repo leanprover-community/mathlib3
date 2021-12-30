@@ -563,7 +563,7 @@ begin
   rw [hp.eq_one_of_pow, eq_self_iff_true, and_true, pow_one],
 end
 
-lemma power_min_fac {n k : ℕ} (hk : k ≠ 0) : (n^k).min_fac = n.min_fac :=
+lemma pow_min_fac {n k : ℕ} (hk : k ≠ 0) : (n^k).min_fac = n.min_fac :=
 begin
   rcases eq_or_ne n 1 with rfl | hn,
   { simp },
@@ -573,8 +573,8 @@ begin
     ((min_fac_prime hnk).dvd_of_dvd_pow (min_fac_dvd _)),
 end
 
-lemma prime.power_min_fac {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) : (p^k).min_fac = p :=
-by rw [power_min_fac hk, hp.min_fac_eq]
+lemma prime.pow_min_fac {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) : (p^k).min_fac = p :=
+by rw [pow_min_fac hk, hp.min_fac_eq]
 
 lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=

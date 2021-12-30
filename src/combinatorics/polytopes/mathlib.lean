@@ -25,17 +25,6 @@ end locally_finite
 
 namespace nat
 
-/-- A point subdivides an interval into three. -/
-private lemma ioo_tricho {a b c : ℕ} (hac : a < c) (hcb : c < b) (d : ℕ) :
-  c = d ∨ c ∈ set.Ioo a d ∨ c ∈ set.Ioo d b :=
-begin
-  cases eq_or_ne c d with hcd hcd,
-  { exact or.inl hcd },
-  cases ne.lt_or_lt hcd with ha hb,
-  { exact or.inr (or.inl ⟨hac, ha⟩) },
-  { exact or.inr (or.inr ⟨hb, hcb⟩) }
-end
-
 /-- A set of nats without gaps is an interval. The sizes of the gaps and intervals we consider are
 bounded by `n`, so that we may induct on it. -/
 private lemma all_ioo_of_ex_ioo {S : set ℕ} (n : ℕ) {a b c}

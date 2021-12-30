@@ -1073,6 +1073,26 @@ begin
   exact linear_map.bound_of_shell_semi_normed f ε_pos hc hf (ne_of_lt (norm_pos_iff.2 hx)).symm
 end
 
+/--
+`linear_map.bound_of_ball_bound'` is a version of this lemma over a field satisfying `is_R_or_C`
+that produces a concrete bound.
+-/
+lemma linear_map.bound_of_ball_bound {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →ₗ[𝕜] Fₗ)
+  (h : ∀ z ∈ metric.ball (0 : E) r, ∥f z∥ ≤ c) :
+  ∃ C, ∀ (z : E), ∥f z∥ ≤ C * ∥z∥ :=
+begin
+  cases @nondiscrete_normed_field.non_trivial 𝕜 _ with k hk,
+  use c * (∥k∥ / r),
+  intro z,
+  refine linear_map.bound_of_shell _ r_pos hk (λ x hko hxo, _) _,
+  calc ∥f x∥ ≤ c : h _ (mem_ball_zero_iff.mpr hxo)
+         ... ≤ c * ((∥x∥ * ∥k∥) / r) : le_mul_of_one_le_right _ _
+         ... = _ : by ring,
+    { exact le_trans (norm_nonneg _) (h 0 (by simp [r_pos])) },
+    { rw [div_le_iff (zero_lt_one.trans hk)] at hko,
+      exact (one_le_div r_pos).mpr hko }
+end
+
 namespace continuous_linear_map
 
 section op_norm

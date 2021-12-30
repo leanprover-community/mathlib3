@@ -200,9 +200,6 @@ eq_univ_of_forall $ λ x', forall_eq.2 $ by { rw [map_zero, norm_zero], exact ze
   closure_minimal ((polar_gc 𝕜 E).le_u_l s) $
   (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
 
-lemma polar_antitone : antitone (polar 𝕜 : set E → set (dual 𝕜 E)) :=
-λ s t hst x' hx' x hx, hx' _ (hst hx)
-
 variables {𝕜}
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a

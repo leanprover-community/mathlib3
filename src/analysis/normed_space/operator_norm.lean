@@ -1241,8 +1241,7 @@ end
 
 /-- If the target space is complete, the space of continuous linear maps with its norm is also
 complete. This works also if the source space is seminormed. -/
-instance {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [complete_space F] :
-  complete_space (E →SL[σ₁₂] F) :=
+instance [complete_space F] : complete_space (E' →SL[σ₁₂] F) :=
 begin
   -- We show that every Cauchy sequence converges.
   refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
@@ -1255,7 +1254,7 @@ begin
   choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
   -- Next, we show that this `G` is a continuous linear map.
   -- This is done in `continuous_linear_map.of_tendsto_of_bounded_range`.
-  set Glin : E →SL[σ₁₂] F :=
+  set Glin : E' →SL[σ₁₂] F :=
     of_tendsto_of_bounded_range _ _ (tendsto_pi_nhds.mpr hG) hf.bounded_range,
   -- Finally, `f n` converges to `Glin` in norm because of
   -- `continuous_linear_map.tendsto_of_tendsto_pointwise_of_cauchy_seq`

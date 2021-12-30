@@ -9,6 +9,8 @@ import ring_theory.ideal.operations
 import linear_algebra.finsupp
 import ring_theory.graded_algebra.basic
 
+noncomputable theory
+
 /-!
 
 # Homogeneous ideal of a graded algebra
@@ -123,136 +125,136 @@ variable (I : ideal R)
 /--For any `comm_ring R`, we collect the homogeneous ideals of `R` into a type.-/
 abbreviation homogeneous_ideal : Type* := { I : ideal R // ideal.is_homogeneous A I }
 
--- lemma ideal.is_homogeneous.bot : ideal.is_homogeneous A ⊥ := λ i r hr,
--- begin
---   simp only [ideal.mem_bot] at hr,
---   rw [hr, alg_equiv.map_zero, zero_apply],
---   apply ideal.zero_mem
--- end
+lemma ideal.is_homogeneous.bot : ideal.is_homogeneous A ⊥ := λ i r hr,
+begin
+  simp only [ideal.mem_bot] at hr,
+  rw [hr, alg_equiv.map_zero, zero_apply],
+  apply ideal.zero_mem
+end
 
--- instance homogeneous_ideal.inhabited : inhabited (homogeneous_ideal A) :=
--- { default := ⟨⊥, ideal.is_homogeneous.bot _⟩}
+instance homogeneous_ideal.inhabited : inhabited (homogeneous_ideal A) :=
+{ default := ⟨⊥, ideal.is_homogeneous.bot _⟩}
 
--- instance homogeneous_ideal.has_top :
---   has_top (homogeneous_ideal A) :=
--- ⟨⟨⊤, λ _ _ _, by simp only [submodule.mem_top]⟩⟩
+instance homogeneous_ideal.has_top :
+  has_top (homogeneous_ideal A) :=
+⟨⟨⊤, λ _ _ _, by simp only [submodule.mem_top]⟩⟩
 
--- @[simp] lemma homogeneous_ideal.eq_top_iff
---   (I : homogeneous_ideal A) : I = ⊤ ↔ I.1 = ⊤ :=
--- ⟨ λ h, by { rw h, refl },
---   λ h, begin
---     have h' : I.val = (⊤ : homogeneous_ideal A).val,
---     rw h, refl,
---     apply subtype.val_injective h',
---   end ⟩
+@[simp] lemma homogeneous_ideal.eq_top_iff
+  (I : homogeneous_ideal A) : I = ⊤ ↔ I.1 = ⊤ :=
+⟨ λ h, by { rw h, refl },
+  λ h, begin
+    have h' : I.val = (⊤ : homogeneous_ideal A).val,
+    rw h, refl,
+    apply subtype.val_injective h',
+  end ⟩
 
--- instance homogeneous_ideal.order : partial_order (homogeneous_ideal A) :=
--- partial_order.lift _ subtype.coe_injective
+instance homogeneous_ideal.order : partial_order (homogeneous_ideal A) :=
+partial_order.lift _ subtype.coe_injective
 
--- instance homogeneous_ideal.has_mem : has_mem R (homogeneous_ideal A) :=
--- { mem := λ r I, r ∈ I.1 }
+instance homogeneous_ideal.has_mem : has_mem R (homogeneous_ideal A) :=
+{ mem := λ r I, r ∈ I.1 }
 
--- variables {A}
+variables {A}
 
--- lemma ideal.is_homogeneous.inf {I J : ideal R}
---   (HI : ideal.is_homogeneous A I) (HJ : ideal.is_homogeneous A J) :
---   ideal.is_homogeneous A (I ⊓ J) :=
--- λ i r hr, ⟨HI _ hr.1, HJ _ hr.2⟩
+lemma ideal.is_homogeneous.inf {I J : ideal R}
+  (HI : ideal.is_homogeneous A I) (HJ : ideal.is_homogeneous A J) :
+  ideal.is_homogeneous A (I ⊓ J) :=
+λ i r hr, ⟨HI _ hr.1, HJ _ hr.2⟩
 
--- lemma homogeneous_ideal.Inf {ℐ : set (ideal R)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous A I) :
---   ideal.is_homogeneous A (Inf ℐ) :=
--- begin
---   intros i x Hx, simp only [ideal.mem_Inf] at Hx ⊢,
---   intros J HJ,
---   exact h _ HJ _ (Hx HJ),
--- end
+lemma homogeneous_ideal.Inf {ℐ : set (ideal R)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous A I) :
+  ideal.is_homogeneous A (Inf ℐ) :=
+begin
+  intros i x Hx, simp only [ideal.mem_Inf] at Hx ⊢,
+  intros J HJ,
+  exact h _ HJ _ (Hx HJ),
+end
 
--- lemma ideal.is_homogeneous.mul {I J : ideal R}
---   (HI : ideal.is_homogeneous A I) (HJ : ideal.is_homogeneous A J) :
---   ideal.is_homogeneous A (I * J) :=
--- begin
---   rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
---   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
---   rw [ideal.span_mul_span'],
---   refine ⟨s₁ * s₂, _⟩,
---   apply congr_arg,
---   ext, split; intro hx,
---   { rw set.mem_mul at hx,
---     obtain ⟨y1, y2, h1, h2, h3⟩ := hx,
---     rw set.mem_image at h1, obtain ⟨z1, h1⟩ := h1,
---     have hy1 : y1 ∈ set_like.homogeneous_submonoid A,
---     rw ←h1.2, exact z1.2,
---     rw set.mem_image at h2, obtain ⟨z2, h2⟩ := h2,
---     have hy2 : y2 ∈ set_like.homogeneous_submonoid A,
---     rw ←h2.2, exact z2.2,
+lemma ideal.is_homogeneous.mul {I J : ideal R}
+  (HI : ideal.is_homogeneous A I) (HJ : ideal.is_homogeneous A J) :
+  ideal.is_homogeneous A (I * J) :=
+begin
+  rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
+  obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
+  rw [ideal.span_mul_span'],
+  refine ⟨s₁ * s₂, _⟩,
+  apply congr_arg,
+  ext, split; intro hx,
+  { rw set.mem_mul at hx,
+    obtain ⟨y1, y2, h1, h2, h3⟩ := hx,
+    rw set.mem_image at h1, obtain ⟨z1, h1⟩ := h1,
+    have hy1 : y1 ∈ set_like.homogeneous_submonoid A,
+    rw ←h1.2, exact z1.2,
+    rw set.mem_image at h2, obtain ⟨z2, h2⟩ := h2,
+    have hy2 : y2 ∈ set_like.homogeneous_submonoid A,
+    rw ←h2.2, exact z2.2,
 
---     use y1 * y2, apply submonoid.mul_mem,
---     exact hy1, exact hy2,
---     refine ⟨_, h3⟩, rw set.mem_mul, use y1, assumption,
---     use y2, assumption, tidy, },
---   { rw set.mem_image at hx,
---     obtain ⟨y, hy1, hy⟩ := hx,
---     rw set.mem_mul at hy1 ⊢,
---     obtain ⟨z1, z2, hz1, hz2, hz3⟩ := hy1,
---     use z1, use z2, split, rw set.mem_image, use z1, refine ⟨hz1, rfl⟩,
---     split, rw set.mem_image, use z2, refine ⟨hz2, rfl⟩, tidy, }
--- end
+    use y1 * y2, apply submonoid.mul_mem,
+    exact hy1, exact hy2,
+    refine ⟨_, h3⟩, rw set.mem_mul, use y1, assumption,
+    use y2, assumption, tidy, },
+  { rw set.mem_image at hx,
+    obtain ⟨y, hy1, hy⟩ := hx,
+    rw set.mem_mul at hy1 ⊢,
+    obtain ⟨z1, z2, hz1, hz2, hz3⟩ := hy1,
+    use z1, use z2, split, rw set.mem_image, use z1, refine ⟨hz1, rfl⟩,
+    split, rw set.mem_image, use z2, refine ⟨hz2, rfl⟩, tidy, }
+end
 
--- lemma ideal.is_homogeneous.sup {I J : ideal R}
---   (HI : ideal.is_homogeneous A I) (HJ : ideal.is_homogeneous A J) :
---   ideal.is_homogeneous A (I ⊔ J) :=
--- begin
---   rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
---   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
---   refine ⟨s₁ ∪ s₂, _⟩,
---   rw [set.image_union],
---   exact (submodule.span_union _ _).symm,
--- end
+lemma ideal.is_homogeneous.sup {I J : ideal R}
+  (HI : ideal.is_homogeneous A I) (HJ : ideal.is_homogeneous A J) :
+  ideal.is_homogeneous A (I ⊔ J) :=
+begin
+  rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
+  obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
+  refine ⟨s₁ ∪ s₂, _⟩,
+  rw [set.image_union],
+  exact (submodule.span_union _ _).symm,
+end
 
--- lemma ideal.is_homogeneous.Sup {ℐ : set (ideal R)} (Hℐ : ∀ (I ∈ ℐ), ideal.is_homogeneous A I) :
---   ideal.is_homogeneous A (Sup ℐ) :=
--- begin
---   simp_rw [ideal.is_homogeneous.iff_exists] at Hℐ,
---   set 𝓈 : ℐ → set (homogeneous_submonoid A) := λ I : ℐ, Exists.some (Hℐ I _) with 𝓈_eq,
---   have h𝓈 : ∀ I : ℐ, I.1 = ideal.span (coe '' 𝓈 I) := λ I : ℐ, Exists.some_spec (Hℐ I _),
---   rw ideal.is_homogeneous.iff_exists,
---   use sUnion (set.range 𝓈),
---   rw [sUnion_range, image_Union, ideal.span, submodule.span_Union],
---   ext r, split,
---   { suffices : Sup ℐ ≤ _, revert r, exact this,
---     rw Sup_le_iff, intros I HI,
---     have ineq1 : I ≤ ideal.span I := ideal.subset_span, refine le_trans ineq1 _,
---     rw ideal.span_le, simp only [coe_subset_coe, ideal.submodule_span_eq], intros x hx,
---     rw submodule.mem_supr, intros J HJ,
---     apply HJ ⟨I, HI⟩, rw ←h𝓈 ⟨I, HI⟩, assumption },
---   { suffices : _ ≤  Sup ℐ, revert r, exact this,
---     rw supr_le_iff, intros I, rw submodule.span_le, intros x hx,
---     simp only [mem_image] at hx, obtain ⟨x', hx1, hx2⟩ := hx,
---     simp only [mem_coe, subtype.val_eq_coe], dsimp only at hx1,
---     apply ideal.mem_Sup_of_mem, use I.2,
---     simp only [subtype.val_eq_coe] at h𝓈 ⊢, rw h𝓈,
---     refine ideal.subset_span _, rw [mem_image], use x', refine ⟨hx1, hx2⟩, },
---   intros I, exact I.2,
--- end
+lemma ideal.is_homogeneous.Sup {ℐ : set (ideal R)} (Hℐ : ∀ (I ∈ ℐ), ideal.is_homogeneous A I) :
+  ideal.is_homogeneous A (Sup ℐ) :=
+begin
+  simp_rw [ideal.is_homogeneous.iff_exists] at Hℐ,
+  set 𝓈 : ℐ → set (homogeneous_submonoid A) := λ I : ℐ, Exists.some (Hℐ I _) with 𝓈_eq,
+  have h𝓈 : ∀ I : ℐ, I.1 = ideal.span (coe '' 𝓈 I) := λ I : ℐ, Exists.some_spec (Hℐ I _),
+  rw ideal.is_homogeneous.iff_exists,
+  use sUnion (set.range 𝓈),
+  rw [sUnion_range, image_Union, ideal.span, submodule.span_Union],
+  ext r, split,
+  { suffices : Sup ℐ ≤ _, revert r, exact this,
+    rw Sup_le_iff, intros I HI,
+    have ineq1 : I ≤ ideal.span I := ideal.subset_span, refine le_trans ineq1 _,
+    rw ideal.span_le, simp only [coe_subset_coe, ideal.submodule_span_eq], intros x hx,
+    rw submodule.mem_supr, intros J HJ,
+    apply HJ ⟨I, HI⟩, rw ←h𝓈 ⟨I, HI⟩, assumption },
+  { suffices : _ ≤  Sup ℐ, revert r, exact this,
+    rw supr_le_iff, intros I, rw submodule.span_le, intros x hx,
+    simp only [mem_image] at hx, obtain ⟨x', hx1, hx2⟩ := hx,
+    simp only [mem_coe, subtype.val_eq_coe], dsimp only at hx1,
+    apply ideal.mem_Sup_of_mem, use I.2,
+    simp only [subtype.val_eq_coe] at h𝓈 ⊢, rw h𝓈,
+    refine ideal.subset_span _, rw [mem_image], use x', refine ⟨hx1, hx2⟩, },
+  intros I, exact I.2,
+end
 
--- variables (A)
+variables (A)
 
--- instance : has_inf (homogeneous_ideal A) :=
--- { inf := λ I J, ⟨I ⊓ J, I.prop.inf J.prop⟩ }
+instance : has_inf (homogeneous_ideal A) :=
+{ inf := λ I J, ⟨I ⊓ J, I.prop.inf J.prop⟩ }
 
--- instance : has_Inf (homogeneous_ideal A) :=
--- { Inf := λ ℐ, ⟨Inf (coe '' ℐ), homogeneous_ideal.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
+instance : has_Inf (homogeneous_ideal A) :=
+{ Inf := λ ℐ, ⟨Inf (coe '' ℐ), homogeneous_ideal.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
 
--- instance : has_sup (homogeneous_ideal A) :=
--- { sup := λ I J, ⟨I ⊔ J, I.prop.sup J.prop⟩ }
+instance : has_sup (homogeneous_ideal A) :=
+{ sup := λ I J, ⟨I ⊔ J, I.prop.sup J.prop⟩ }
 
--- instance : has_Sup (homogeneous_ideal A) :=
--- { Sup := λ ℐ, ⟨Sup (coe '' ℐ), ideal.is_homogeneous.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
+instance : has_Sup (homogeneous_ideal A) :=
+{ Sup := λ ℐ, ⟨Sup (coe '' ℐ), ideal.is_homogeneous.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
 
--- instance : has_mul (homogeneous_ideal A) :=
--- { mul := λ I J, ⟨I * J, I.prop.mul J.prop⟩ }
+instance : has_mul (homogeneous_ideal A) :=
+{ mul := λ I J, ⟨I * J, I.prop.mul J.prop⟩ }
 
--- instance : has_add (homogeneous_ideal A) := ⟨(⊔)⟩
+instance : has_add (homogeneous_ideal A) := ⟨(⊔)⟩
 
 end operations
 
@@ -311,33 +313,33 @@ begin
     use i, exact submodule.coe_mem _, apply h, exact hx },
 end
 
--- lemma ideal.homogeneous_core.eq_Sup [Π (i : ι) (x : A i), decidable (x ≠ 0)] :
---   ideal.homogeneous_core A I = Sup { J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I } :=
--- begin
---   ext, split; intros hx,
---   { rw [ideal.homogeneous_core, ideal.span, mem_span_set] at hx,
---     obtain ⟨c, hc1, hc2⟩ := hx,
---     rw ←hc2, refine ideal.sum_mem _ _,
---     intros r hc, dsimp only, rw [smul_eq_mul], refine ideal.mul_mem_left _ _ _,
---     have hr1 : is_homogeneous A r := (hc1 hc).1,
---     obtain ⟨i, hi⟩ := hr1,
---     have mem1 : ideal.span {r} ∈ {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I},
---     { split, rw ideal.is_homogeneous.iff_exists,
---       refine ⟨{(⟨r, ⟨i, hi⟩⟩ : homogeneous_submonoid A)}, _⟩,
---       congr, simp only [image_singleton, subtype.coe_mk], rw ideal.span_le,
---       simp only [mem_coe, singleton_subset_iff], exact (hc1 hc).2 },
---     apply ideal.mem_Sup_of_mem mem1, rw ideal.mem_span_singleton },
---   { have hom1 := ideal.is_homogeneous.homogeneous_core A I,
---     have hom2 : ideal.is_homogeneous A (Sup {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I}),
---     { apply ideal.is_homogeneous.Sup, rintros J ⟨HJ1, HJ2⟩, exact HJ1, },
---     rw [ideal.homogeneous_core, ideal.mem_span],
---     unfold has_Sup.Sup at hx, unfold conditionally_complete_lattice.Sup at hx,
---     unfold complete_lattice.Sup at hx, rw ideal.mem_Inf at hx,
---     intros J HJ, apply hx, rintro K ⟨HK1, HK2⟩, intros r hr,
---     rw ←graded_algebra.sum_support_decompose A r, refine ideal.sum_mem _ _,
---     intros i hi, apply HJ, refine ⟨⟨i, submodule.coe_mem _⟩, _⟩,  apply HK2,
---     apply HK1, exact hr }
--- end
+lemma ideal.homogeneous_core.eq_Sup [Π (i : ι) (x : A i), decidable (x ≠ 0)] :
+  ideal.homogeneous_core A I = Sup { J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I } :=
+begin
+  ext, split; intros hx,
+  { rw [ideal.homogeneous_core, ideal.span, mem_span_set] at hx,
+    obtain ⟨c, hc1, hc2⟩ := hx,
+    rw ←hc2, refine ideal.sum_mem _ _,
+    intros r hc, dsimp only, rw [smul_eq_mul], refine ideal.mul_mem_left _ _ _,
+    have hr1 : is_homogeneous A r := (hc1 hc).1,
+    obtain ⟨i, hi⟩ := hr1,
+    have mem1 : ideal.span {r} ∈ {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I},
+    { split, rw ideal.is_homogeneous.iff_exists,
+      refine ⟨{(⟨r, ⟨i, hi⟩⟩ : homogeneous_submonoid A)}, _⟩,
+      congr, simp only [image_singleton, subtype.coe_mk], rw ideal.span_le,
+      simp only [mem_coe, singleton_subset_iff], exact (hc1 hc).2 },
+    apply ideal.mem_Sup_of_mem mem1, rw ideal.mem_span_singleton },
+  { have hom1 := ideal.is_homogeneous.homogeneous_core A I,
+    have hom2 : ideal.is_homogeneous A (Sup {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I}),
+    { apply ideal.is_homogeneous.Sup, rintros J ⟨HJ1, HJ2⟩, exact HJ1, },
+    rw [ideal.homogeneous_core, ideal.mem_span],
+    unfold has_Sup.Sup at hx, unfold conditionally_complete_lattice.Sup at hx,
+    unfold complete_lattice.Sup at hx, rw ideal.mem_Inf at hx,
+    intros J HJ, apply hx, rintro K ⟨HK1, HK2⟩, intros r hr,
+    rw ←graded_algebra.sum_support_decompose A r, refine ideal.sum_mem _ _,
+    intros i hi, apply HJ, refine ⟨⟨i, submodule.coe_mem _⟩, _⟩,  apply HK2,
+    apply HK1, exact hr }
+end
 
 end homogeneous_core
 
@@ -468,9 +470,6 @@ lemma ideal.homogeneous_hull.gi :
     refine le_antisymm _ H, apply ideal.ideal_le_homogeneous_hull,
   end }
 
-example : complete_lattice (homogeneous_ideal A) :=
-galois_insertion.lift_complete_lattice (ideal.homogeneous_hull.gi A)
-
 lemma ideal.homogeneous_core.gi :
   galois_coinsertion
     (λ I, I.1 : homogeneous_ideal A → ideal R)
@@ -487,8 +486,5 @@ lemma ideal.homogeneous_core.gi :
   choice_eq := λ I H, begin
     apply le_antisymm, exact H, apply ideal.homogeneous_core_le_ideal,
   end, }
-
-example : complete_lattice (homogeneous_ideal A) :=
-  galois_coinsertion.lift_complete_lattice (ideal.homogeneous_core.gi A)
 
 end galois_connection

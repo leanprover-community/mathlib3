@@ -371,7 +371,7 @@ begin
 end
 
 @[simp]
-lemma null_homotopic_map_f_of_not_rel_left' {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+lemma null_homotopic_map'_f_of_not_rel_left {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
   (hk₀ : ∀ l : ι, ¬c.rel k₀ l)
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
   (null_homotopic_map' h).f k₀ = h k₀ k₁ r₁₀ ≫ D.d k₁ k₀ :=
@@ -396,7 +396,7 @@ begin
 end
 
 @[simp]
-lemma null_homotopic_map_f_of_not_rel_right' {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+lemma null_homotopic_map'_f_of_not_rel_right {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
   (hk₁ : ∀ l : ι, ¬c.rel l k₁)
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
   (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ :=
@@ -424,7 +424,7 @@ begin
 end
 
 @[simp]
-lemma null_homotopic_map_f_eq_zero' {k₀ : ι} 
+lemma null_homotopic_map'_f_eq_zero {k₀ : ι} 
   (hk₀ : ∀ l : ι, ¬c.rel k₀ l) (hk₀' : ∀ l : ι, ¬c.rel l k₀)
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
   (null_homotopic_map' h).f k₀ = 0 :=

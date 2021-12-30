@@ -197,8 +197,8 @@ begin
   exact (hu.prod hv).mono (tendsto.prod_mk le_rfl le_rfl)
 end
 
-lemma cauchy_seq.eventually_eventually [semilattice_sup β] [nonempty β] {u : β → α}
-  (hu : cauchy_seq u) {V : set (α × α)} (hV : V ∈ 𝓤 α) :
+lemma cauchy_seq.eventually_eventually [semilattice_sup β] {u : β → α} (hu : cauchy_seq u)
+  {V : set (α × α)} (hV : V ∈ 𝓤 α) :
   ∀ᶠ k in at_top, ∀ᶠ l in at_top, (u k, u l) ∈ V :=
 eventually_at_top_curry $ hu.tendsto_uniformity hV
 

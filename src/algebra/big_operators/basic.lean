@@ -405,7 +405,7 @@ end
   (r : finset (γ × α)) (s : finset γ) (t : γ → finset α)
   (h : ∀ p : γ × α, p ∈ r ↔ p.1 ∈ s ∧ p.2 ∈ t p.1) {f : γ → α → β} :
   ∏ p in r, f p.1 p.2 = ∏ c in s, ∏ a in t c, f c a :=
-prod_subset_product r s t h
+prod_finset_product r s t h
 
 @[to_additive] lemma prod_finset_product_right
   (r : finset (α × γ)) (s : finset γ) (t : γ → finset α)
@@ -422,7 +422,7 @@ end
   (r : finset (α × γ)) (s : finset γ) (t : γ → finset α)
   (h : ∀ p : α × γ, p ∈ r ↔ p.2 ∈ s ∧ p.1 ∈ t p.2) {f : α → γ → β} :
   ∏ p in r, f p.1 p.2 = ∏ c in s, ∏ a in t c, f a c :=
-prod_subset_product_right r s t h
+prod_finset_product_right r s t h
 
 @[to_additive]
 lemma prod_fiberwise_of_maps_to [decidable_eq γ] {s : finset α} {t : finset γ} {g : α → γ}

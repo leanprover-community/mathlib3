@@ -9,8 +9,6 @@ import ring_theory.ideal.operations
 import linear_algebra.finsupp
 import ring_theory.graded_algebra.basic
 
-noncomputable theory
-
 /-!
 
 # Homogeneous ideal of a graded algebra

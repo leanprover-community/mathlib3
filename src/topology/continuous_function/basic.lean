@@ -244,7 +244,7 @@ def pi (f : Π i, C(A, X i)) : C(A, Π i, X i) :=
 { to_fun := λ (a : A) (i : I), f i a, }
 
 @[simp] lemma pi_eval (f : Π i, C(A, X i)) (a : A) :
-  (pi f) a  = λ i : I, (f i) a := rfl
+  (pi f) a = λ i : I, (f i) a := rfl
 
 end pi
 

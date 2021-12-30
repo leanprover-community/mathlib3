@@ -352,75 +352,87 @@ lemma null_homotopic_map'_f {k₂ k₁ k₀  : ι} (r₂₁ : c.rel k₂ k₁) (
   (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ + h k₁ k₂ r₂₁ ≫ D.d k₂ k₁ :=
 begin
   simp only [← null_homotopic_map'],
-  rw null_homotopy_f r₂₁ r₁₀ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+  rw null_homotopic_map_f r₂₁ r₁₀ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
   dsimp,
   split_ifs,
   refl,
 end
 
 @[simp]
-lemma null_homotopy_f_lower_end {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+lemma null_homotopic_map_f_of_not_rel_left {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
   (hk₀ : ∀ l : ι, ¬c.rel k₀ l)
   (hom : Π i j, C.X i ⟶ D.X j) :
-  (null_homotopic_map hom).f k₀ = hom k₀ k₁ ≫ D.d k₁ k₀ := by
-{ dsimp [null_homotopic_map],
+  (null_homotopic_map hom).f k₀ = hom k₀ k₁ ≫ D.d k₁ k₀ :=
+begin
+  dsimp [null_homotopic_map],
   rw prev_d_eq hom r₁₀,
   rcases h : c.next k₀ with _|⟨l,w⟩, swap, exfalso, exact hk₀ l w,
-  dsimp [d_next], rw h, erw zero_add, }
+  dsimp [d_next], rw h, erw zero_add,
+end
 
 @[simp]
-lemma null_homotopy_f_lower_end' {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+lemma null_homotopic_map_f_of_not_rel_left' {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
   (hk₀ : ∀ l : ι, ¬c.rel k₀ l)
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
-  (null_homotopic_map' h).f k₀ = h k₀ k₁ r₁₀ ≫ D.d k₁ k₀ := by
-{ simp only [← null_homotopic_map'],
-  rw null_homotopy_f_lower_end r₁₀ hk₀ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+  (null_homotopic_map' h).f k₀ = h k₀ k₁ r₁₀ ≫ D.d k₁ k₀ :=
+begin
+  simp only [← null_homotopic_map'],
+  rw null_homotopic_map_f_of_not_rel_left r₁₀ hk₀ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
   dsimp,
   split_ifs,
-  refl, }
+  refl,
+end
 
 @[simp]
-lemma null_homotopy_f_higher_end {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+lemma null_homotopic_map_f_of_not_rel_right {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
   (hk₁ : ∀ l : ι, ¬c.rel l k₁)
   (hom : Π i j, C.X i ⟶ D.X j) :
-  (null_homotopic_map hom).f k₁ = C.d k₁ k₀ ≫ hom k₀ k₁ := by
-{ dsimp [null_homotopic_map],
+  (null_homotopic_map hom).f k₁ = C.d k₁ k₀ ≫ hom k₀ k₁ :=
+begin
+  dsimp [null_homotopic_map],
   rw d_next_eq hom r₁₀,
   rcases h : c.prev k₁ with _|⟨l,w⟩, swap, exfalso, exact hk₁ l w,
-  dsimp [prev_d], rw h, erw add_zero, }
+  dsimp [prev_d], rw h, erw add_zero,
+end
 
 @[simp]
-lemma null_homotopy_f_higher_end' {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+lemma null_homotopic_map_f_of_not_rel_right' {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
   (hk₁ : ∀ l : ι, ¬c.rel l k₁)
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
-  (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ := by
-{ simp only [← null_homotopic_map'],
-  rw null_homotopy_f_higher_end r₁₀ hk₁ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+  (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ :=
+begin
+  simp only [← null_homotopic_map'],
+  rw null_homotopic_map_f_of_not_rel_right r₁₀ hk₁ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
   dsimp,
   split_ifs,
-  refl, }
+  refl,
+end
 
 @[simp]
-lemma null_homotopy_f_middle_of_nowhere {k₀ : ι} 
+lemma null_homotopic_map_f_eq_zero {k₀ : ι} 
   (hk₀ : ∀ l : ι, ¬c.rel k₀ l) (hk₀' : ∀ l : ι, ¬c.rel l k₀)
   (hom : Π i j, C.X i ⟶ D.X j) :
-  (null_homotopic_map hom).f k₀ = 0 := by
-{ dsimp [null_homotopic_map],
+  (null_homotopic_map hom).f k₀ = 0 :=
+begin
+  dsimp [null_homotopic_map],
   rcases h1 : c.next k₀ with _|⟨l,w⟩, swap, exfalso, exact hk₀ l w,
   rcases h2 : c.prev k₀ with _|⟨l,w⟩, swap, exfalso, exact hk₀' l w,
   dsimp [d_next, prev_d],
   rw [h1, h2],
   erw zero_add,
-  refl, }
+  refl,
+end
 
 @[simp]
-lemma null_homotopy_f_middle_of_nowhere' {k₀ : ι} 
+lemma null_homotopic_map_f_eq_zero' {k₀ : ι} 
   (hk₀ : ∀ l : ι, ¬c.rel k₀ l) (hk₀' : ∀ l : ι, ¬c.rel l k₀)
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
-  (null_homotopic_map' h).f k₀ = 0 := by
-{ simp only [← null_homotopic_map'],
-  exact null_homotopy_f_middle_of_nowhere hk₀ hk₀'
-    (λ i j, dite (c.rel j i) (h i j) (λ _, 0)), }
+  (null_homotopic_map' h).f k₀ = 0 :=
+begin
+  simp only [← null_homotopic_map'],
+  exact null_homotopic_map_f_eq_zero hk₀ hk₀'
+    (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+end
 
 /-!
 `homotopy.mk_inductive` allows us to build a homotopy inductively,

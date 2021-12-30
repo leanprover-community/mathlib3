@@ -276,7 +276,7 @@ variables [has_continuous_add M₂] {σ : R →+* S} {l : filter α}
 /-- Constructs a bundled linear map from a function and a proof that this function belongs to the
 closure of the set of linear maps. -/
 @[simps { fully_applied := ff }] def linear_map_of_mem_closure_range_coe (f : M₁ → M₂)
-  (hf : f ∈ closure (@set.range (M₁ → M₂) (M₁ →ₛₗ[σ] M₂) coe_fn)) :
+  (hf : f ∈ closure (set.range (coe_fn : (M₁ →ₛₗ[σ] M₂) → (M₁ → M₂)))) :
   M₁ →ₛₗ[σ] M₂ :=
 { to_fun := f,
   map_smul' := (is_closed_set_of_map_smul M₁ M₂ σ).closure_subset_iff.2
@@ -292,7 +292,8 @@ linear_map_of_mem_closure_range_coe f $ mem_closure_of_tendsto h $
 
 variables (M₁ M₂ σ)
 
-lemma linear_map.is_closed_range_coe : is_closed (@set.range (M₁ → M₂) (M₁ →ₛₗ[σ] M₂) coe_fn) :=
+lemma linear_map.is_closed_range_coe :
+  is_closed (set.range (coe_fn : (M₁ →ₛₗ[σ] M₂) → (M₁ → M₂))) :=
 is_closed_of_closure_subset $ λ f hf, ⟨linear_map_of_mem_closure_range_coe f hf, rfl⟩
 
 end pointwise_limits

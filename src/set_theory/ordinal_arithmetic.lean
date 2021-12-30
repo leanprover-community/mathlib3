@@ -927,17 +927,16 @@ by resetI; rw [bsup_type,
 
 theorem lt_bsup_of_ne_bsup {o : ordinal} {f : Π a < o, ordinal} :
   (∀ i h, f i h ≠ o.bsup f) ↔ ∀ i h, f i h < o.bsup f :=
-⟨λ hf _ _, lt_of_le_of_ne (le_bsup _ _ _) (hf _ _), λ hf _ _, ne_of_lt hf _ _⟩
+⟨λ hf _ _, lt_of_le_of_ne (le_bsup _ _ _) (hf _ _), λ hf _ _, ne_of_lt (hf _ _)⟩
 
 theorem bsup_not_succ_of_ne_bsup {o} {f : Π a < o, ordinal}
   (hf : ∀ (i : ordinal) (h : i < o), f i h ≠ o.bsup f) (a) :
   a < bsup o f → succ a < bsup o f :=
 begin
-  replace hf := lt_bsup_of_ne_bsup hf,
   intro hao,
   by_contra' hoa,
   have hao' := le_antisymm (succ_le.2 hao) hoa,
-  rw ←hao' at hf,
+  rw [lt_bsup_of_ne_bsup, ←hao'] at hf,
   rw le_antisymm (le_of_lt hao) (bsup_le.2 (λ i h, lt_succ.1 (hf i h))) at hao',
   exact succ_ne_self _ hao',
 end
@@ -950,11 +949,6 @@ lt_of_lt_of_le (hf _ _ $ lt_succ_self i) (le_bsup f i.succ $ ho.2 _ h)
 theorem bsup_id {o} (ho : is_limit o) : bsup.{u u} o (λ x _, x) = o :=
 le_antisymm (bsup_le.2 (λ i hi, hi.le))
   (not_lt.1 (λ h, (lt_bsup_of_limit.{u u} (λ _ _ _ _, id) ho _ h).false))
-begin
-  apply le_antisymm, rw bsup_le, intro i, apply le_of_lt,
-  rw ←not_lt, intro h, apply lt_irrefl (bsup.{u u} o (λ x _, x)),
-  apply lt_of_le_of_lt _ (lt_bsup_of_limit _ ho _ h), refl, intros, assumption
-end
 
 theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   bsup.{u} o (λ x _, f x) = f o :=
@@ -981,7 +975,7 @@ begin
   refine ⟨λ h, _, _⟩,
   { by_contra' hf,
     exact ne_of_lt (succ_le.1 h) (le_antisymm (sup_le_lsub f)
-      (lsub_le_iff_lt.2 (lt_sup_of_ne_sup hf))) },
+      (lsub_le_iff_lt.2 (lt_sup_of_ne_sup.1 hf))) },
   rintro ⟨_, hf⟩,
   rw [succ_le, ←hf],
   exact lt_lsub _ _
@@ -1029,7 +1023,7 @@ begin
   refine ⟨λ h, _, _⟩,
   { by_contra' hf,
     exact ne_of_lt (succ_le.1 h) (le_antisymm (bsup_le_blsub f)
-      (blsub_le_iff_lt.2 (lt_bsup_of_ne_bsup hf))) },
+      (blsub_le_iff_lt.2 (lt_bsup_of_ne_bsup.1 hf))) },
   rintro ⟨_, _, hf⟩,
   rw [succ_le, ←hf],
   exact lt_blsub _ _ _

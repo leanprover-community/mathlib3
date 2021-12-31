@@ -17,23 +17,23 @@ import category_theory.category.preorder
 
 noncomputable theory
 
-universes v u u₂
+universes w w' v v₁ v₂ u u₁ u₂
 
 open category_theory
 
 namespace category_theory.limits
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C]
 
 /-- Construct a cone for the empty diagram given an object. -/
-@[simps] def as_empty_cone (X : C) : cone (functor.empty C) := { X := X, π := by tidy }
+@[simps] def as_empty_cone (X : C) : cone (functor.empty.{w} C) := { X := X, π := by tidy }
 /-- Construct a cocone for the empty diagram given an object. -/
-@[simps] def as_empty_cocone (X : C) : cocone (functor.empty C) := { X := X, ι := by tidy }
+@[simps] def as_empty_cocone (X : C) : cocone (functor.empty.{w} C) := { X := X, ι := by tidy }
 
 /-- `X` is terminal if the cone it induces on the empty diagram is limiting. -/
-abbreviation is_terminal (X : C) := is_limit (as_empty_cone X)
+abbreviation is_terminal (X : C) := is_limit (as_empty_cone.{v₁} X)
 /-- `X` is initial if the cocone it induces on the empty diagram is colimiting. -/
-abbreviation is_initial (X : C) := is_colimit (as_empty_cocone X)
+abbreviation is_initial (X : C) := is_colimit (as_empty_cocone.{v₁} X)
 
 /-- An object `Y` is terminal if for every `X` there is a unique morphism `X ⟶ Y`. -/
 def is_terminal.of_unique (Y : C) [h : Π X : C, unique (X ⟶ Y)] : is_terminal Y :=
@@ -127,25 +127,80 @@ variable (C)
 A category has a terminal object if it has a limit over the empty diagram.
 Use `has_terminal_of_unique` to construct instances.
 -/
-abbreviation has_terminal := has_limits_of_shape (discrete pempty : Type v) C
+abbreviation has_terminal := has_limits_of_shape (discrete.{v₁} pempty) C
 /--
 A category has an initial object if it has a colimit over the empty diagram.
 Use `has_initial_of_unique` to construct instances.
 -/
-abbreviation has_initial := has_colimits_of_shape (discrete pempty : Type v) C
+abbreviation has_initial := has_colimits_of_shape (discrete.{v₁} pempty) C
+
+section univ
+
+variables (X : C) {F₁ : discrete.{w} pempty ⥤ C} {F₂ : discrete.{w'} pempty ⥤ C}
+
+/-- Being terminal is independent of the empty diagram, its universe, and the cone over it,
+    as long as the cone points are isomorphic. -/
+def is_limit_change_empty_cone {c₁ : cone F₁} (hl : is_limit c₁)
+  (c₂ : cone F₂) (hi : c₁.X ≅ c₂.X) : is_limit c₂ :=
+{ lift := λ c, hl.lift ⟨c.X, by tidy⟩ ≫ hi.hom,
+  fac' := λ _ j, j.elim,
+  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (f ≫ hi.inv) (λ j, j.elim), simp } }
+
+/-- Replacing an empty cone in `is_limit` by another with the same cone point
+    is an equivalence. -/
+def is_limit_empty_cone_equiv (c₁ : cone F₁) (c₂ : cone F₂) (h : c₁.X ≅ c₂.X) :
+  is_limit c₁ ≃ is_limit c₂ :=
+{ to_fun := λ hl, is_limit_change_empty_cone C hl c₂ h,
+  inv_fun := λ hl, is_limit_change_empty_cone C hl c₁ h.symm,
+  left_inv := by tidy,
+  right_inv := by tidy }
+
+lemma has_terminal_change_diagram (h : has_limit F₁) : has_limit F₂ :=
+⟨⟨⟨⟨limit F₁, by tidy⟩, is_limit_change_empty_cone C (limit.is_limit F₁) _ (eq_to_iso rfl)⟩⟩⟩
+
+lemma has_terminal_change_universe [h : has_limits_of_shape (discrete.{w} pempty) C] :
+  has_limits_of_shape (discrete.{w'} pempty) C :=
+{ has_limit := λ J, has_terminal_change_diagram C (let f := h.1 in f (functor.empty C)) }
+
+/-- Being initial is independent of the empty diagram, its universe, and the cocone over it,
+    as long as the cocone points are isomorphic. -/
+def is_colimit_change_empty_cocone {c₁ : cocone F₁} (hl : is_colimit c₁)
+  (c₂ : cocone F₂) (hi : c₁.X ≅ c₂.X) : is_colimit c₂ :=
+{ desc := λ c, hi.inv ≫ hl.desc ⟨c.X, by tidy⟩,
+  fac' := λ _ j, j.elim,
+  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (hi.hom ≫ f) (λ j, j.elim), simp } }
+
+/-- Replacing an empty cocone in `is_colimit` by another with the same cocone point
+    is an equivalence. -/
+def is_colimit_empty_cocone_equiv (c₁ : cocone F₁) (c₂ : cocone F₂) (h : c₁.X ≅ c₂.X) :
+  is_colimit c₁ ≃ is_colimit c₂ :=
+{ to_fun := λ hl, is_colimit_change_empty_cocone C hl c₂ h,
+  inv_fun := λ hl, is_colimit_change_empty_cocone C hl c₁ h.symm,
+  left_inv := by tidy,
+  right_inv := by tidy }
+
+lemma has_initial_change_diagram (h : has_colimit F₁) : has_colimit F₂ :=
+⟨⟨⟨⟨colimit F₁, by tidy⟩,
+   is_colimit_change_empty_cocone C (colimit.is_colimit F₁) _ (eq_to_iso rfl)⟩⟩⟩
+
+lemma has_initial_change_universe [h : has_colimits_of_shape (discrete.{w} pempty) C] :
+  has_colimits_of_shape (discrete.{w'} pempty) C :=
+{ has_colimit := λ J, has_initial_change_diagram C (let f := h.1 in f (functor.empty C)) }
+
+end univ
 
 /--
 An arbitrary choice of terminal object, if one exists.
 You can use the notation `⊤_ C`.
 This object is characterized by having a unique morphism from any object.
 -/
-abbreviation terminal [has_terminal C] : C := limit (functor.empty C)
+abbreviation terminal [has_terminal C] : C := limit (functor.empty.{v₁} C)
 /--
 An arbitrary choice of initial object, if one exists.
 You can use the notation `⊥_ C`.
 This object is characterized by having a unique morphism to any object.
 -/
-abbreviation initial [has_initial C] : C := colimit (functor.empty C)
+abbreviation initial [has_initial C] : C := colimit (functor.empty.{v₁} C)
 
 notation `⊤_ ` C:20 := terminal C
 notation `⊥_ ` C:20 := initial C
@@ -233,7 +288,7 @@ to terminal is a monomorphism, which is the second of Freyd's axioms for an AT c
 
 TODO: This is a condition satisfied by categories with zero objects and morphisms.
 -/
-class initial_mono_class (C : Type u) [category.{v} C] : Prop :=
+class initial_mono_class (C : Type u₁) [category.{v₁} C] : Prop :=
 (is_initial_mono_from : ∀ {I} (X : C) (hI : is_initial I), mono (hI.to X))
 
 lemma is_initial.mono_from [initial_mono_class C] {I} {X : C} (hI : is_initial I) (f : I ⟶ X) :
@@ -279,7 +334,7 @@ lemma initial_mono_class.of_terminal [has_initial C] [has_terminal C]
 initial_mono_class.of_is_terminal initial_is_initial terminal_is_terminal h
 
 section comparison
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v₂} D] (G : C ⥤ D)
 
 /--
 The comparison morphism from the image of a terminal object to the terminal object in the target
@@ -302,7 +357,7 @@ initial.to _
 
 end comparison
 
-variables {J : Type v} [small_category J]
+variables {J : Type u} [category.{v} J]
 
 /-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
 In `limit_of_diagram_initial` we show it is a limit cone. -/

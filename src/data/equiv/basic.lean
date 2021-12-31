@@ -4,16 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.option.basic
-import data.sum
-import logic.unique
-import logic.function.basic
-import data.quot
-import tactic.simps
-import logic.function.conjugate
 import data.prod
-import tactic.norm_cast
+import data.quot
 import data.sigma.basic
+import data.sum.basic
 import data.subtype
+import logic.function.conjugate
+import logic.unique
+import tactic.norm_cast
+import tactic.simps
 
 /-!
 # Equivalence between types

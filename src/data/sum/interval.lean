@@ -13,7 +13,7 @@ This file provides the `locally_finite_order` instance for the disjoint sum and 
 orders and calculates the cardinality of their finite intervals.
 -/
 
-open function
+open function sum
 
 namespace finset
 variables {α₁ α₂ β₁ β₂ γ₁ γ₂ : Type*} (f f₁ g₁ : α₁ → β₁ → finset γ₁)
@@ -40,7 +40,7 @@ variables {f f₁ g₁ g f₂ g₂} {a : α₁ ⊕ α₂} {b : β₁ ⊕ β₂} 
 
 lemma mem_sum_lift₂ :
   c ∈ sum_lift₂ f g a b ↔ (∃ a₁ b₁ c₁, a = inl a₁ ∧ b = inl b₁ ∧ c = inl c₁ ∧ c₁ ∈ f a₁ b₁)
-    ∨ ∃ a₂ b₂ c₂, a = inl a₂ ∧ b = inl b₂ ∧ c = inl c₂ ∧ c₂ ∈ g a₂ b₂ :=
+    ∨ ∃ a₂ b₂ c₂, a = inr a₂ ∧ b = inr b₂ ∧ c = inr c₂ ∧ c₂ ∈ g a₂ b₂ :=
 begin
   split,
   { cases a; cases b,
@@ -55,7 +55,7 @@ end
 
 lemma sum_lift₂_nonempty :
   (sum_lift₂ f g a b).nonempty ↔ (∃ a₁ b₁, a = inl a₁ ∧ b = inl b₁ ∧ (f a₁ b₁).nonempty)
-    ∨ ∃ a₂ b₂, a = inl a₂ ∧ b = inl b₂ ∧ (g a₂ b₂).nonempty :=
+    ∨ ∃ a₂ b₂, a = inr a₂ ∧ b = inr b₂ ∧ (g a₂ b₂).nonempty :=
 begin
   sorry
 end
@@ -128,6 +128,12 @@ end disjoint
 /-! ### Lexicographical sum of orders -/
 
 namespace lex
+variables [locally_finite_order α] [locally_finite_order β]
+
+open_locale lex
+
+def locally_finite_order : locally_finite_order (α ⊕ β) :=
+
 
 end lex
 end sum

@@ -250,6 +250,7 @@ by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
 ⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
 
 section pi
+
 instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
 { r := λ a b, ∀ i, a i ≈ b i,
   iseqv := ⟨
@@ -267,7 +268,6 @@ noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : Π i, se
   (f : Π i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 quotient.sound $ λ i, quotient.mk_out _
 
-
 @[elab_as_eliminator] lemma quotient.induction_on_pi
    {ι : Type*} {α : ι → Sort*} [s : ∀ i, setoid (α i)]
    {p : (Π i, quotient (s i)) → Prop} (f : Π i, quotient (s i))
@@ -276,6 +276,7 @@ begin
   rw ← (funext (λ i, quotient.out_eq (f i)) : (λ i,  ⟦(f i).out⟧) = f),
   apply h,
 end
+
 end pi
 
 lemma nonempty_quotient_iff (s : setoid α) : nonempty (quotient s) ↔ nonempty α :=

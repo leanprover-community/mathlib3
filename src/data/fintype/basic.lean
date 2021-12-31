@@ -1293,8 +1293,8 @@ by { ext, simp [finset.mem_powerset_len] }
   fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=
 by simp [fintype.subtype_card, finset.card_univ]
 
-@[simp] lemma set.to_finset_univ [fintype α] :
-  (set.univ : set α).to_finset = finset.univ :=
+@[simp] lemma set.to_finset_univ [hα : fintype α] [hu : fintype (set.univ : set α)] :
+  @set.to_finset _ (set.univ : set α) hu = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :

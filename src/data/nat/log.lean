@@ -120,7 +120,7 @@ by { rw ←pow_le_iff_le_log hb (pow_pos (zero_lt_one.trans hb) _),
 lemma log_pos {b n : ℕ} (hb : 1 < b) (hn : b ≤ n) : 0 < log b n :=
 by { rwa [←succ_le_iff, ←pow_le_iff_le_log hb (hb.le.trans hn), pow_one] }
 
-lemma log_mul (b n : ℕ) (hb : 1 < b) (hn : 0 < n) : log b (n * b) = log b n + 1 :=
+lemma log_mul_base (b n : ℕ) (hb : 1 < b) (hn : 0 < n) : log b (n * b) = log b n + 1 :=
 eq_of_forall_le_iff $ λ z,
 begin
   cases z,
@@ -191,7 +191,7 @@ begin
     { simpa [div_eq_of_lt, hb, log_eq_zero] using h } }
 end
 
-@[simp] lemma log_div (b n : ℕ) : log b (n / b) = log b n - 1 :=
+@[simp] lemma log_div_base (b n : ℕ) : log b (n / b) = log b n - 1 :=
 begin
   cases lt_or_le n b with h h,
   { simp [div_eq_of_lt, h, log_eq_zero] },
@@ -202,7 +202,7 @@ begin
   { simp },
   rw [←succ_inj', ←succ_inj'],
   simp_rw succ_eq_add_one,
-  rw [nat.sub_add_cancel, ←log_mul];
+  rw [nat.sub_add_cancel, ←log_mul_base];
   { simp [succ_le_iff, log_pos, h, nat.div_pos] },
 end
 

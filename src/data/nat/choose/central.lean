@@ -107,18 +107,14 @@ lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n)
 calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_self).le
 ... ≤ 2 * n * central_binom n    : by { rw [mul_assoc], refine le_mul_of_pos_left zero_lt_two }
 
-lemma multiplicity_central_binom_le {p : ℕ} (hp : p.prime) {n : ℕ}
-  : padic_val_nat p (central_binom n) ≤ log p (2 * n)
-  :=
+lemma multiplicity_central_binom_le {p : ℕ} (hp : p.prime) {n : ℕ} :
+  padic_val_nat p (central_binom n) ≤ log p (2 * n) :=
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
   unfold central_binom,
   have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
-  simp only
-    [
-      nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
-      two_n_sub, ←two_mul, enat.get_coe', finset.filter_congr_decidable
-    ],
+  simp only [nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
+      two_n_sub, ←two_mul, enat.get_coe', finset.filter_congr_decidable],
   calc _  ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
       ... = (log p (2 * n) + 1) - 1                 : nat.card_Ico _ _,
 end

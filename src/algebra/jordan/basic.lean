@@ -48,14 +48,10 @@ section non_unital_non_assoc_ring
 variables {A : Type*} [non_unital_non_assoc_semiring A]
 
 namespace non_unital_non_assoc_ring
--- For some reason `def L : A→+add_monoid.End A := add_monoid_hom.mul` doesn't work here?
 /--
 Left multiplication operator
 -/
-@[simps] def L : A →+ add_monoid.End A :=
-{ to_fun := add_monoid_hom.mul_left,
-  map_zero' := add_monoid_hom.ext $ zero_mul,
-  map_add' := λ a b, add_monoid_hom.ext $ add_mul a b }
+@[simps] def L : A →+ add_monoid.End A := add_monoid_hom.mul
 
 /--
 Right multiplication operator

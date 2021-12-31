@@ -153,8 +153,7 @@ lemma multiplicity_central_binom_of_large_eq_zero
   {p : nat} (hp : p.prime)
   {n : nat} (n_big : 2 < n)
   (small : p ≤ n) (big : 2 * n < 3 * p)
-  : padic_val_nat p (central_binom n) = 0
-  :=
+  : padic_val_nat p (central_binom n) = 0 :=
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
   unfold central_binom,

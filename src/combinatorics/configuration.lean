@@ -27,7 +27,7 @@ This file introduces abstract configurations of points and lines, and proves som
 * `configuration.has_lines.has_points`: `has_lines` and `|P| = |L|` implies `has_points`.
 * `configuration.has_points.has_lines`: `has_points` and `|P| = |L|` implies `has_lines`.
 Together, these four statements say that any two of the following properties imply the third:
-(a) `has_lines` (b) `has_points` (c) `|P| = |L|`.
+(a) `has_lines`, (b) `has_points`, (c) `|P| = |L|`.
 
 ## Todo
 * Abstract projective planes.

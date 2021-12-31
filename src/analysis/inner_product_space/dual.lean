@@ -132,7 +132,6 @@ begin
   nth_rewrite_rhs 0 [←inner_conj_sym],
   exact congr_arg conj (h v)
 end
-
 lemma ext_inner_right {x y : E} (h : ∀ v, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
 begin
   refine ext_inner_left 𝕜 (λ v, _),
@@ -142,5 +141,26 @@ begin
 end
 omit 𝕜
 variable {𝕜}
+
+lemma ext_inner_left_basis {ι : Type*} {x y : E} (b : basis ι 𝕜 E)
+  (h : ∀ i : ι, ⟪b i, x⟫ = ⟪b i, y⟫) : x = y :=
+begin
+  apply (to_dual 𝕜 E).map_eq_iff.mp,
+  refine (function.injective.eq_iff continuous_linear_map.coe_injective).mp (basis.ext b _),
+  intro i,
+  simp only [to_dual_apply, continuous_linear_map.coe_coe],
+  rw [←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h i)
+end
+
+lemma ext_inner_right_basis {ι : Type*} {x y : E} (b : basis ι 𝕜 E)
+  (h : ∀ i : ι, ⟪x, b i⟫ = ⟪y, b i⟫) : x = y :=
+begin
+  refine ext_inner_left_basis b (λ i, _),
+  rw [←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h i)
+end
 
 end inner_product_space

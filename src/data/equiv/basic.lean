@@ -4,16 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.option.basic
-import data.sum
-import logic.unique
-import logic.function.basic
-import data.quot
-import tactic.simps
-import logic.function.conjugate
 import data.prod
-import tactic.norm_cast
+import data.quot
 import data.sigma.basic
+import data.sum.basic
 import data.subtype
+import logic.function.conjugate
+import logic.unique
+import tactic.norm_cast
+import tactic.simps
 
 /-!
 # Equivalence between types
@@ -407,6 +406,14 @@ protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 @[simps apply symm_apply {fully_applied := ff}]
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
+
+/-- `pprod α β` is equivalent to `α × β` -/
+@[simps apply symm_apply]
+def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β :=
+{ to_fun := λ x, (x.1, x.2),
+  inv_fun := λ x, ⟨x.1, x.2⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨x, y⟩, rfl }
 
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
@@ -1573,7 +1580,7 @@ equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`,
 of this predicate to `α`: `p₁ a ↔ p₂ ⟦a⟧`. Let `~₂` be the restriction of `~` to `{x // p₁ x}`.
 Then `{x // p₂ x}` is equivalent to the quotient of `{x // p₁ x}` by `~₂`. -/
 def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
-  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
   {x // p₂ x} ≃ quotient s₂ :=
 { to_fun := λ a, quotient.hrec_on a.1 (λ a h, ⟦⟨a, (hp₂ _).2 h⟩⟧)
@@ -1583,6 +1590,16 @@ def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid 
     (λ a b hab, subtype.ext_val (quotient.sound ((h _ _).1 hab))),
   left_inv := λ ⟨a, ha⟩, quotient.induction_on a (λ a ha, rfl) ha,
   right_inv := λ a, quotient.induction_on a (λ ⟨a, ha⟩, rfl) }
+
+@[simp] lemma subtype_quotient_equiv_quotient_subtype_mk (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) (x hx) :
+  subtype_quotient_equiv_quotient_subtype p₁ p₂ hp₂ h ⟨⟦x⟧, hx⟩ = ⟦⟨x, (hp₂ _).2 hx⟩⟧ := rfl
+
+@[simp] lemma subtype_quotient_equiv_quotient_subtype_symm_mk (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) (x) :
+  (subtype_quotient_equiv_quotient_subtype p₁ p₂ hp₂ h).symm ⟦x⟧ = ⟨⟦x⟧, (hp₂ _).1 x.prop⟩ := rfl
 
 section swap
 variable [decidable_eq α]
@@ -1860,6 +1877,25 @@ of equivalences of the matching fibers.
 -/
 def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
 (equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁)
+
+@[simp] lemma coe_Pi_congr_symm :
+  ((h₁.Pi_congr h₂).symm : (Π b, Z b) → (Π a, W a)) = λ f a, (h₂ a).symm (f (h₁ a)) :=
+rfl
+
+lemma Pi_congr_symm_apply (f : Π b, Z b) :
+  (h₁.Pi_congr h₂).symm f = λ a, (h₂ a).symm (f (h₁ a)) :=
+rfl
+
+@[simp] lemma Pi_congr_apply_apply (f : Π a, W a) (a : α) :
+  h₁.Pi_congr h₂ f (h₁ a) = h₂ a (f a) :=
+begin
+  change cast _ ((h₂ (h₁.symm (h₁ a))) (f (h₁.symm (h₁ a)))) = (h₂ a) (f a),
+  generalize_proofs hZa,
+  revert hZa,
+  rw h₁.symm_apply_apply a,
+  simp,
+end
+
 end
 
 section
@@ -1873,6 +1909,27 @@ of equivalences of the matching fibres.
 -/
 def Pi_congr' : (Π a, W a) ≃ (Π b, Z b) :=
 (Pi_congr h₁.symm (λ b, (h₂ b).symm)).symm
+
+@[simp] lemma coe_Pi_congr' :
+  (h₁.Pi_congr' h₂ : (Π a, W a) → (Π b, Z b)) = λ f b, h₂ b $ f $ h₁.symm b :=
+rfl
+
+lemma Pi_congr'_apply (f : Π a, W a) :
+  h₁.Pi_congr' h₂ f = λ b, h₂ b $ f $ h₁.symm b :=
+rfl
+
+@[simp] lemma Pi_congr'_symm_apply_symm_apply (f : Π b, Z b) (b : β) :
+  (h₁.Pi_congr' h₂).symm f (h₁.symm b) = (h₂ b).symm (f b) :=
+begin
+  change cast _ ((h₂ (h₁ (h₁.symm b))).symm (f (h₁ (h₁.symm b)))) = (h₂ b).symm (f b),
+  generalize_proofs hWb,
+  revert hWb,
+  generalize hb : h₁ (h₁.symm b) = b',
+  rw h₁.apply_symm_apply b at hb,
+  subst hb,
+  simp,
+end
+
 end
 
 end equiv

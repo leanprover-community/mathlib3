@@ -285,7 +285,7 @@ else
       div_eq_filter_card (nat.pos_of_ne_zero hp0)
         (calc x * q / p ≤ (p / 2) * q / p :
             nat.div_le_div_right (mul_le_mul_of_nonneg_right
-              (le_of_lt_succ $ by finish)
+              (le_of_lt_succ $ (mem_Ico.mp hx).2)
               (nat.zero_le _))
           ... ≤ _ : nat.div_mul_div_le_div _ _ _)
   ... = _ : by rw [← card_sigma];
@@ -413,7 +413,7 @@ begin
   rw [euler_criterion p ha0, legendre_sym, if_neg ha0],
   split_ifs,
   { simp only [h, eq_self_iff_true] },
-  finish -- this is quite slow. I'm actually surprised that it can close the goal at all!
+  { simp only [h, iff_false], tauto }
 end
 
 lemma eisenstein_lemma [fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
@@ -429,9 +429,7 @@ have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
 by rw [eisenstein_lemma q hp1.1 hpq0, eisenstein_lemma p hq1.1 hqp0,
   ← pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
--- move this
-local attribute [instance]
-lemma fact_prime_two : fact (nat.prime 2) := ⟨nat.prime_two⟩
+local attribute [instance] nat.fact_prime_two
 
 lemma legendre_sym_two [hp1 : fact (p % 2 = 1)] : legendre_sym 2 p = (-1) ^ (p / 4 + p / 2) :=
 have hp2 : p ≠ 2, from mt (congr_arg (% 2)) (by simpa using hp1.1),
@@ -441,7 +439,7 @@ have hcard : (Ico 1 (p / 2).succ).card = p / 2, by simp,
 have hx2 : ∀ x ∈ Ico 1 (p / 2).succ, (2 * x : zmod p).val = 2 * x,
   from λ x hx, have h2xp : 2 * x < p,
       from calc 2 * x ≤ 2 * (p / 2) : mul_le_mul_of_nonneg_left
-        (le_of_lt_succ $ by finish) dec_trivial
+        (le_of_lt_succ $ (mem_Ico.mp hx).2) dec_trivial
       ... < _ : by conv_rhs {rw [← div_add_mod p 2, hp1.1]}; exact lt_succ_self _,
     by rw [← nat.cast_two, ← nat.cast_mul, val_cast_of_lt h2xp],
 have hdisj : disjoint

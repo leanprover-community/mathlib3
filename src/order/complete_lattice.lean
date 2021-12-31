@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.bounds
-import data.set.bool
+import data.bool.set
 import data.nat.basic
+import order.bounds
 
 /-!
 # Theory of complete lattices
@@ -93,17 +93,11 @@ theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)
 
-lemma le_Sup_iff :
-  a ≤ Sup s ↔ (∀ b, (∀ x ∈ s, x ≤ b) → a ≤ b) :=
+lemma le_Sup_iff : a ≤ Sup s ↔ (∀ b ∈ upper_bounds s, a ≤ b) :=
 ⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
 
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
-le_of_forall_le' begin
-  simp only [Sup_le_iff],
-  introv h₀ h₁,
-  rcases h _ h₁ with ⟨y,hy,hy'⟩,
-  solve_by_elim [le_trans hy']
-end
+le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
 
 -- We will generalize this to conditionally complete lattices in `cSup_singleton`.
 theorem Sup_singleton {a : α} : Sup {a} = a :=
@@ -296,7 +290,7 @@ theorem Sup_union {s t : set α} : Sup (s ∪ t) = Sup s ⊔ Sup t :=
 ((is_lub_Sup s).union (is_lub_Sup t)).Sup_eq
 
 theorem Sup_inter_le {s t : set α} : Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
-by finish
+Sup_le $ λ b hb, le_inf (le_Sup hb.1) (le_Sup hb.2)
 /-
   Sup_le (assume a ⟨a_s, a_t⟩, le_inf (le_Sup a_s) (le_Sup a_t))
 -/
@@ -355,21 +349,21 @@ lemma eq_singleton_bot_of_Sup_eq_bot_of_nonempty {s : set α}
 by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Sup_eq_bot at h_sup, exact ⟨hne, h_sup⟩, }
 
 /--Introduction rule to prove that `b` is the supremum of `s`: it suffices to check that `b`
-is larger than all elements of `s`, and that this is not the case of any `w<b`.
+is larger than all elements of `s`, and that this is not the case of any `w < b`.
 See `cSup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in conditionally complete
 lattices. -/
 theorem Sup_eq_of_forall_le_of_forall_lt_exists_gt (_ : ∀a∈s, a ≤ b)
   (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
-have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (Sup_le ‹∀a∈s, a ≤ b›),
+have h : (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (Sup_le ‹∀a∈s, a ≤ b›),
 have ¬(Sup s < b) :=
   assume: Sup s < b,
   let ⟨a, _, _⟩ := (H (Sup s) ‹Sup s < b›) in  /- a ∈ s, Sup s < a-/
   have Sup s < Sup s := lt_of_lt_of_le ‹Sup s < a› (le_Sup ‹a ∈ s›),
-  show false, by finish [lt_irrefl (Sup s)],
-show Sup s = b, by finish
+  show false, from lt_irrefl _ this,
+show Sup s = b, from or.resolve_left h this
 
 /--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
-is smaller than all elements of `s`, and that this is not the case of any `w>b`.
+is smaller than all elements of `s`, and that this is not the case of any `w > b`.
 See `cInf_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in conditionally complete
 lattices. -/
 theorem Inf_eq_of_forall_ge_of_forall_gt_exists_lt (_ : ∀a∈s, b ≤ a)
@@ -516,6 +510,15 @@ lemma monotone.le_map_Sup [complete_lattice β] {s : set α} {f : α → β} (hf
   (⨆a∈s, f a) ≤ f (Sup s) :=
 by rw [Sup_eq_supr]; exact hf.le_map_supr2 _
 
+lemma order_iso.map_supr [complete_lattice β] (f : α ≃o β) (x : ι → α) :
+  f (⨆ i, x i) = ⨆ i, f (x i) :=
+eq_of_forall_ge_iff $ f.surjective.forall.2 $ λ x,
+  by simp only [f.le_iff_le, supr_le_iff]
+
+lemma order_iso.map_Sup [complete_lattice β] (f : α ≃o β) (s : set α) :
+  f (Sup s) = ⨆ a ∈ s, f a :=
+by simp only [Sup_eq_supr, order_iso.map_supr]
+
 lemma supr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨆ x, f (g x)) ≤ ⨆ y, f y :=
 supr_le_supr2 $ λ x, ⟨_, le_refl _⟩
@@ -604,6 +607,14 @@ lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone
 lemma monotone.map_Inf_le [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
   f (Inf s) ≤ ⨅ a∈s, f a :=
 by rw [Inf_eq_infi]; exact hf.map_infi2_le _
+
+lemma order_iso.map_infi [complete_lattice β] (f : α ≃o β) (x : ι → α) :
+  f (⨅ i, x i) = ⨅ i, f (x i) :=
+order_iso.map_supr f.dual _
+
+lemma order_iso.map_Inf [complete_lattice β] (f : α ≃o β) (s : set α) :
+  f (Inf s) = ⨅ a ∈ s, f a :=
+order_iso.map_Sup f.dual _
 
 lemma le_infi_comp {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨅ y, f y) ≤ ⨅ x, f (g x) :=

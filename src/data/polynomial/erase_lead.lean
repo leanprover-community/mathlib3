@@ -111,7 +111,7 @@ erase_lead_card_support fc
 begin
   by_cases hr : r = 0,
   { subst r, simp only [monomial_zero_right, erase_lead_zero] },
-  { rw [erase_lead, nat_degree_monomial _ _ hr, erase_monomial] }
+  { rw [erase_lead, nat_degree_monomial, if_neg hr, erase_monomial] }
 end
 
 @[simp] lemma erase_lead_C (r : R) : erase_lead (C r) = 0 :=

@@ -969,6 +969,18 @@ assume t ht,
 calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
 ... ≤ μ t : measure_mono $ inter_subset_left t s
 
+lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
+restrict_mono' h (le_refl μ)
+
+lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
+le_antisymm (restrict_mono_ae h.le) (restrict_mono_ae h.symm.le)
+
+lemma restrict_eq_self_of_ae_mem {m0 : measurable_space α} ⦃s : set α⦄ ⦃μ : measure α⦄
+  (hs : ∀ᵐ x ∂μ, x ∈ s) :
+  μ.restrict s = μ :=
+calc μ.restrict s = μ.restrict univ : restrict_congr_set (eventually_eq_univ.mpr hs)
+... = μ : restrict_univ
+
 lemma restrict_congr_meas (hs : measurable_set s) :
   μ.restrict s = ν.restrict s ↔ ∀ t ⊆ s, measurable_set t → μ t = ν t :=
 ⟨λ H t hts ht,
@@ -1385,6 +1397,10 @@ h.smul c
 
 end absolutely_continuous
 
+lemma absolutely_continuous_of_le_smul {μ' : measure α} {c : ℝ≥0∞} (hμ'_le : μ' ≤ c • μ) :
+  μ' ≪ μ :=
+(measure.absolutely_continuous_of_le hμ'_le).trans (measure.absolutely_continuous.rfl.smul c)
+
 lemma ae_le_iff_absolutely_continuous : μ.ae ≤ ν.ae ↔ μ ≪ ν :=
 ⟨λ h s, by { rw [measure_zero_iff_ae_nmem, measure_zero_iff_ae_nmem], exact λ hs, h hs },
   λ h s hs, h hs⟩
@@ -1633,6 +1649,35 @@ lemma ae_eventually_not_mem {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞)
   ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
 measure_set_of_frequently_eq_zero hs
 
+section intervals
+variables [partial_order α] {a b : α}
+
+lemma Iio_ae_eq_Iic' (ha : μ {a} = 0) : Iio a =ᵐ[μ] Iic a :=
+by rw [←Iic_diff_right, diff_ae_eq_self, measure_mono_null (set.inter_subset_right _ _) ha]
+
+lemma Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a :=
+@Iio_ae_eq_Iic' (order_dual α) ‹_› ‹_› _ _ ha
+
+lemma Ioo_ae_eq_Ioc' (hb : μ {b} = 0) : Ioo a b =ᵐ[μ] Ioc a b :=
+(ae_eq_refl _).inter (Iio_ae_eq_Iic' hb)
+
+lemma Ioc_ae_eq_Icc' (ha : μ {a} = 0) : Ioc a b =ᵐ[μ] Icc a b :=
+(Ioi_ae_eq_Ici' ha).inter (ae_eq_refl _)
+
+lemma Ioo_ae_eq_Ico' (ha : μ {a} = 0) : Ioo a b =ᵐ[μ] Ico a b :=
+(Ioi_ae_eq_Ici' ha).inter (ae_eq_refl _)
+
+lemma Ioo_ae_eq_Icc' (ha : μ {a} = 0) (hb : μ {b} = 0) : Ioo a b =ᵐ[μ] Icc a b :=
+(Ioi_ae_eq_Ici' ha).inter (Iio_ae_eq_Iic' hb)
+
+lemma Ico_ae_eq_Icc' (hb : μ {b} = 0) : Ico a b =ᵐ[μ] Icc a b :=
+(ae_eq_refl _).inter (Iio_ae_eq_Iic' hb)
+
+lemma Ico_ae_eq_Ioc' (ha : μ {a} = 0) (hb : μ {b} = 0) : Ico a b =ᵐ[μ] Ioc a b :=
+(Ioo_ae_eq_Ico' ha).symm.trans (Ioo_ae_eq_Ioc' hb)
+
+end intervals
+
 section dirac
 variable [measurable_space α]
 
@@ -1655,16 +1700,6 @@ lemma ae_eq_dirac [measurable_singleton_class α] {a : α} (f : α → δ) :
 by simp [filter.eventually_eq]
 
 end dirac
-
-lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
-begin
-  intros u hu,
-  simp only [restrict_apply hu],
-  exact measure_mono_ae (h.mono $ λ x hx, and.imp id hx)
-end
-
-lemma restrict_congr_set (H : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
-le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
 
 section is_finite_measure
 
@@ -1861,29 +1896,28 @@ union_ae_eq_right.2 $ measure_mono_null (diff_subset _ _) (measure_singleton _)
 variables [partial_order α] {a b : α}
 
 lemma Iio_ae_eq_Iic : Iio a =ᵐ[μ] Iic a :=
-by simp only [← Iic_diff_right, diff_ae_eq_self,
-  measure_mono_null (set.inter_subset_right _ _) (measure_singleton a)]
+Iio_ae_eq_Iic' (measure_singleton a)
 
 lemma Ioi_ae_eq_Ici : Ioi a =ᵐ[μ] Ici a :=
-@Iio_ae_eq_Iic (order_dual α) ‹_› ‹_› _ _ _
+Ioi_ae_eq_Ici' (measure_singleton a)
 
 lemma Ioo_ae_eq_Ioc : Ioo a b =ᵐ[μ] Ioc a b :=
-(ae_eq_refl _).inter Iio_ae_eq_Iic
+Ioo_ae_eq_Ioc' (measure_singleton b)
 
 lemma Ioc_ae_eq_Icc : Ioc a b =ᵐ[μ] Icc a b :=
-Ioi_ae_eq_Ici.inter (ae_eq_refl _)
+Ioc_ae_eq_Icc' (measure_singleton a)
 
 lemma Ioo_ae_eq_Ico : Ioo a b =ᵐ[μ] Ico a b :=
-Ioi_ae_eq_Ici.inter (ae_eq_refl _)
+Ioo_ae_eq_Ico' (measure_singleton a)
 
 lemma Ioo_ae_eq_Icc : Ioo a b =ᵐ[μ] Icc a b :=
-Ioi_ae_eq_Ici.inter Iio_ae_eq_Iic
+Ioo_ae_eq_Icc' (measure_singleton a) (measure_singleton b)
 
 lemma Ico_ae_eq_Icc : Ico a b =ᵐ[μ] Icc a b :=
-(ae_eq_refl _).inter Iio_ae_eq_Iic
+Ico_ae_eq_Icc' (measure_singleton b)
 
 lemma Ico_ae_eq_Ioc : Ico a b =ᵐ[μ] Ioc a b :=
-Ioo_ae_eq_Ico.symm.trans Ioo_ae_eq_Ioc
+Ico_ae_eq_Ioc' (measure_singleton a) (measure_singleton b)
 
 end no_atoms
 
@@ -2179,6 +2213,39 @@ begin
   simp only [ennreal.coe_ne_top, ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
 end
 
+/-- A measure `μ` is finite on compacts if any compact set `K` satisfies `μ K < ∞`. -/
+@[protect_proj] class is_finite_measure_on_compacts [topological_space α] (μ : measure α) : Prop :=
+(lt_top_of_is_compact : ∀ ⦃K : set α⦄, is_compact K → μ K < ∞)
+
+/-- A compact subset has finite measure for a measure which is finite on compacts. -/
+lemma _root_.is_compact.measure_lt_top
+  [topological_space α] {μ : measure α} [is_finite_measure_on_compacts μ]
+  ⦃K : set α⦄ (hK : is_compact K) : μ K < ∞ :=
+is_finite_measure_on_compacts.lt_top_of_is_compact hK
+
+/-- A bounded subset has finite measure for a measure which is finite on compact sets, in a
+proper space. -/
+lemma _root_.metric.bounded.measure_lt_top [pseudo_metric_space α] [proper_space α]
+  {μ : measure α} [is_finite_measure_on_compacts μ] ⦃s : set α⦄ (hs : metric.bounded s) :
+  μ s < ∞ :=
+calc μ s ≤ μ (closure s) : measure_mono subset_closure
+... < ∞ : (metric.is_compact_of_is_closed_bounded is_closed_closure hs.closure).measure_lt_top
+
+lemma measure_closed_ball_lt_top [pseudo_metric_space α] [proper_space α]
+  {μ : measure α} [is_finite_measure_on_compacts μ] {x : α} {r : ℝ} :
+  μ (metric.closed_ball x r) < ∞ :=
+metric.bounded_closed_ball.measure_lt_top
+
+lemma measure_ball_lt_top [pseudo_metric_space α] [proper_space α]
+  {μ : measure α} [is_finite_measure_on_compacts μ] {x : α} {r : ℝ} :
+  μ (metric.ball x r) < ∞ :=
+metric.bounded_ball.measure_lt_top
+
+protected lemma is_finite_measure_on_compacts.smul [topological_space α] (μ : measure α)
+  [is_finite_measure_on_compacts μ] {c : ℝ≥0∞} (hc : c ≠ ∞) :
+  is_finite_measure_on_compacts (c • μ) :=
+⟨λ K hK, ennreal.mul_lt_top hc (hK.measure_lt_top).ne⟩
+
 omit m0
 
 @[priority 100] -- see Note [lower instance priority]
@@ -2423,8 +2490,6 @@ begin
           rw ← @restrict_eq_self _ _ μ s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           rw ← @restrict_eq_self _ _ ν s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           apply h_ν'_in _ h_meas_t_inter_s },
-        cases (@set.eq_empty_or_nonempty _ (t ∩ sᶜ)) with h_inter_empty h_inter_nonempty,
-        { simp [h_inter_empty] },
         { rw add_apply,
           have h_meas_inter_compl :=
             h_meas_t.inter (measurable_set.compl h_meas_s),
@@ -2629,6 +2694,14 @@ lemma ae_eq_of_ae_eq_trim {E} {hm : m ≤ m0} {f₁ f₂ : α → E}
   (h12 : f₁ =ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
   f₁ =ᵐ[μ] f₂ :=
 measure_eq_zero_of_trim_eq_zero hm h12
+
+lemma trim_trim {m₁ m₂ : measurable_space α} {hm₁₂ : m₁ ≤ m₂} {hm₂ : m₂ ≤ m0} :
+  (μ.trim hm₂).trim hm₁₂ = μ.trim (hm₁₂.trans hm₂) :=
+begin
+  ext1 t ht,
+  rw [trim_measurable_set_eq hm₁₂ ht, trim_measurable_set_eq (hm₁₂.trans hm₂) ht,
+    trim_measurable_set_eq hm₂ (hm₁₂ t ht)],
+end
 
 lemma restrict_trim (hm : m ≤ m0) (μ : measure α) (hs : @measurable_set α m s) :
   @measure.restrict α m (μ.trim hm) s = (μ.restrict s).trim hm :=
@@ -2869,9 +2942,9 @@ lemma measure_lt_top_of_nhds_within (h : is_compact s) (hμ : ∀ x ∈ s, μ.fi
 is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
   (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
 
-lemma measure_lt_top (h : is_compact s) {μ : measure α} [is_locally_finite_measure μ] :
-  μ s < ∞ :=
-h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _
+@[priority 100] -- see Note [lower instance priority]
+instance {μ : measure α} [is_locally_finite_measure μ] : is_finite_measure_on_compacts μ :=
+⟨λ s hs, hs.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _⟩
 
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
   (∀ a ∈ s, ∃ t ∈ 𝓝[s] a, μ t = 0) → μ s = 0 :=
@@ -2921,13 +2994,6 @@ lemma measure_Ioo_lt_top : μ (Ioo a b) < ∞ :=
 
 end measure_Ixx
 
-lemma metric.bounded.measure_lt_top [metric_space α] [proper_space α]
-  [measurable_space α] {μ : measure α} [is_locally_finite_measure μ] {s : set α}
-  (hs : metric.bounded s) :
-  μ s < ∞ :=
-(measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
-  ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).measure_lt_top
-
 section piecewise
 
 variables [measurable_space α] {μ : measure α} {s t : set α} {f g : α → β}
@@ -2946,12 +3012,7 @@ begin
 end
 
 lemma piecewise_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.piecewise f g =ᵐ[μ] t.piecewise f g :=
-begin
-  filter_upwards [hst],
-  intros x hx,
-  replace hx : x ∈ s ↔ x ∈ t := iff_of_eq hx,
-  by_cases h : x ∈ s; have h' := h; rw hx at h'; simp [h, h']
-end
+hst.mem_iff.mono $ λ x hx, by simp [piecewise, hx]
 
 end piecewise
 

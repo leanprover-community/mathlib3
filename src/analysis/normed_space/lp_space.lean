@@ -134,8 +134,7 @@ lemma of_exponent_ge {p q : ℝ≥0∞} {f : Π i, E i}
 begin
   rcases ennreal.trichotomy₂ hpq with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, hp⟩ | ⟨rfl, rfl⟩ | ⟨hq, rfl⟩
     | ⟨hq, hp, hpq'⟩,
-  { apply mem_ℓp_zero,
-    exact hfq.finite_dsupport },
+  { exact hfq },
   { apply mem_ℓp_infty,
     obtain ⟨C, hC⟩ := hfq.finite_dsupport.bdd_above_image (λ i, ∥f i∥),
     use max 0 C,
@@ -176,8 +175,7 @@ lemma add {f g : Π i, E i} (hf : mem_ℓp f p) (hg : mem_ℓp g p) : mem_ℓp (
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
-    refine (hf.finite_dsupport.union hg.finite_dsupport).subset _,
-    intros i,
+    refine (hf.finite_dsupport.union hg.finite_dsupport).subset (λ i, _),
     simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
     contrapose!,
     rintros ⟨hf', hg'⟩,
@@ -195,7 +193,7 @@ begin
   { intros i,
     refine (real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp.le).trans _,
     dsimp [C],
-    split_ifs,
+    split_ifs with h h,
     { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp h.le) },
     { let F : fin 2 → ℝ≥0 := ![∥f i∥₊, ∥g i∥₊],
       have : ∀ i, (0:ℝ) ≤ F i := λ i, (F i).coe_nonneg,
@@ -228,12 +226,8 @@ lemma const_smul {f : Π i, E i} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (c �
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
-    refine hf.finite_dsupport.subset _,
-    intros i,
-    simp only [ne.def, set.mem_set_of_eq, pi.smul_apply],
-    contrapose!,
-    intros hf',
-    simp [hf'] },
+    refine hf.finite_dsupport.subset (λ i, (_ : ¬c • f i = 0 → ¬f i = 0)),
+    exact not_imp_not.mpr (λ hf', hf'.symm ▸ (smul_zero c)) },
   { obtain ⟨A, hA⟩ := hf.bdd_above,
     refine mem_ℓp_infty ⟨∥c∥ * A, _⟩,
     rintros a ⟨i, rfl⟩,
@@ -258,7 +252,7 @@ The space of elements of `Π i, E i` satisfying the predicate `mem_ℓp`.
 -/
 
 /-- We define `pre_lp E` to be a type synonym for `Π i, E i` which, importantly, does not inherit
-the `pi` topology on `Π i, E i` (otherwise this topology would descent to `lp E p` and conflict
+the `pi` topology on `Π i, E i` (otherwise this topology would descend to `lp E p` and conflict
 with the normed group topology we will later equip it with.)
 
 We choose to deal with this issue by making a type synonym for `Π i, E i` rather than for the `lp`
@@ -391,9 +385,8 @@ begin
     have : ∥f i∥ = 0 := le_antisymm (H.1 ⟨i, rfl⟩) (norm_nonneg _),
     simpa using this },
   { have hf : has_sum (λ (i : α), ∥f i∥ ^ p.to_real) 0,
-    { have := lp.has_sum_norm hp f ,
-      rw h at this,
-      simpa [real.zero_rpow hp.ne'] using this }, -- why can't the `simp` and `rw` be combined?
+    { have := lp.has_sum_norm hp f,
+      rwa [h, real.zero_rpow hp.ne'] at this },
     have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real := λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _,
     rw has_sum_zero_iff_of_nonneg this at hf,
     ext i,
@@ -402,7 +395,7 @@ begin
     exact this.1 },
 end
 
-lemma eq_zero_iff_ae_eq_zero {f : lp E p} : f = 0 ↔ ⇑f = 0 :=
+lemma eq_zero_iff_coe_fn_eq_zero {f : lp E p} : f = 0 ↔ ⇑f = 0 :=
 by rw [lp.ext_iff, coe_fn_zero]
 
 @[simp] lemma norm_neg ⦃f : lp E p⦄ : ∥-f∥ = ∥f∥ :=
@@ -472,7 +465,7 @@ lemma coe_lp_submodule : (lp_submodule E p 𝕜).to_add_subgroup = lp E p := rfl
 instance : module 𝕜 (lp E p) :=
 { .. (lp_submodule E p 𝕜).module }
 
-lemma coe_fn_smul (c : 𝕜) (f : lp E p) : ⇑(c • f) = c • f := rfl
+@[simp] lemma coe_fn_smul (c : 𝕜) (f : lp E p) : ⇑(c • f) = c • f := rfl
 
 lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 begin

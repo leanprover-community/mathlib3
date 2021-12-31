@@ -111,29 +111,26 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
   (α_ f (𝟙 b) g).hom ≫ (f ◁ (λ_ g).hom) = (ρ_ f).hom ▷ g . obviously)
 
 restate_axiom bicategory.whisker_left_id'
-attribute [simp] bicategory.whisker_left_id
 restate_axiom bicategory.whisker_left_comp'
-attribute [reassoc, simp] bicategory.whisker_left_comp
 restate_axiom bicategory.whisker_right_id'
-attribute [simp] bicategory.whisker_right_id
 restate_axiom bicategory.whisker_right_comp'
-attribute [reassoc, simp] bicategory.whisker_right_comp
 restate_axiom bicategory.whisker_exchange'
-attribute [simp, reassoc] bicategory.whisker_exchange
 restate_axiom bicategory.associator_naturality_left'
-attribute [reassoc] bicategory.associator_naturality_left
 restate_axiom bicategory.associator_naturality_middle'
-attribute [reassoc] bicategory.associator_naturality_middle
 restate_axiom bicategory.associator_naturality_right'
-attribute [reassoc] bicategory.associator_naturality_right
 restate_axiom bicategory.left_unitor_naturality'
-attribute [reassoc] bicategory.left_unitor_naturality
 restate_axiom bicategory.right_unitor_naturality'
-attribute [reassoc] bicategory.right_unitor_naturality
 restate_axiom bicategory.pentagon'
-attribute [reassoc] bicategory.pentagon
 restate_axiom bicategory.triangle'
-attribute [simp, reassoc] bicategory.triangle
+attribute [simp] bicategory.whisker_left_id bicategory.whisker_right_id
+  bicategory.whisker_exchange bicategory.triangle
+attribute [reassoc] bicategory.whisker_left_comp bicategory.whisker_right_comp
+  bicategory.whisker_exchange bicategory.associator_naturality_left
+  bicategory.associator_naturality_middle bicategory.associator_naturality_right
+  bicategory.left_unitor_naturality bicategory.right_unitor_naturality
+  bicategory.pentagon bicategory.triangle
+attribute [simp] bicategory.whisker_left_comp bicategory.whisker_right_comp
+attribute [instance] bicategory.hom_category
 
 localized "infixr ` ◁ `:70 := bicategory.whisker_left" in bicategory
 localized "infixr ` ▷ `:70 := bicategory.whisker_right" in bicategory
@@ -142,9 +139,6 @@ localized "notation `λ_` := bicategory.left_unitor" in bicategory
 localized "notation `ρ_` := bicategory.right_unitor" in bicategory
 
 namespace bicategory
-
-instance {B : Type u} [bicategory.{w v} B] (a b : B) : category (a ⟶ b) :=
-bicategory.hom_category a b
 
 section
 

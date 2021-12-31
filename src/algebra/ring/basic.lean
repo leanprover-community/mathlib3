@@ -626,7 +626,7 @@ end comm_semiring
 -/
 
 /-- A not-necessarily-unital, not-necessarily-associative ring. -/
-@[protect_proj, ancestor add_comm_group non_unital_non_assoc_semiring ]
+@[protect_proj, ancestor add_comm_group non_unital_non_assoc_semiring]
 class non_unital_non_assoc_ring (α : Type u) extends
   add_comm_group α, non_unital_non_assoc_semiring α
 

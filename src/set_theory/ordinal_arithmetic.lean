@@ -1113,14 +1113,13 @@ lemma enum_ord_def_H {hS : unbounded (<) S} {o} :
 theorem enum_ord_def (o) :
   enum_ord hS o = omin (λ b, b ∈ S ∧ ∀ c, c < o → enum_ord hS c < b) enum_ord_def_H :=
 begin
-  suffices : (λ b, b ∈ S ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) =
-    (λ b, b ∈ S ∧ ∀ c, c < o → enum_ord hS c < b),
-  { rw enum_ord_def',
-    simp_rw this,
-    refl },
-  apply funext (λ _, propext _),
-  exact ⟨ λ ⟨hl, hr⟩, ⟨hl, λ _ h, lt_of_lt_of_le (lt_blsub.{u u} _ _ h) hr⟩,
-    λ ⟨hl, hr⟩, ⟨hl, blsub_le_iff_lt.2 hr⟩ ⟩,
+  rw enum_ord_def',
+  have : (λ b, b ∈ S ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) =
+    (λ b, b ∈ S ∧ ∀ c, c < o → _ < b) :=
+  funext (λ _, propext ⟨λ ⟨hl, hr⟩, ⟨hl, λ _ h, lt_of_lt_of_le (lt_blsub.{u u} _ _ h) hr⟩,
+    λ ⟨hl, hr⟩, ⟨hl, blsub_le_iff_lt.2 hr⟩⟩),
+  simp_rw this,
+  refl
 end
 
 theorem enum_ord.surjective {hS : unbounded (<) S} : ∀ s ∈ S, ∃ a, enum_ord hS a = s :=
@@ -1170,15 +1169,14 @@ begin
   rintro ⟨h, hl, hr⟩,
   refine funext (λ a, _),
   apply wf.induction a,
-  intros b H,
-  apply le_antisymm,
+  refine λ b H, le_antisymm _ _,
   { cases hr _ (enum_ord_mem hS b) with d hd,
     rw ←hd,
     apply h.monotone,
     by_contra' hbd,
     have := enum_ord.strict_mono hbd,
     rw ←(H d hbd) at this,
-    exact (ne_of_lt this) hd },
+    exact ne_of_lt this hd },
   rw enum_ord_def,
   refine omin_le ⟨hl b, λ c hc, _⟩,
   rw ←(H c hc),

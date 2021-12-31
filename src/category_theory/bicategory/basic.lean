@@ -135,11 +135,11 @@ attribute [reassoc] bicategory.pentagon
 restate_axiom bicategory.triangle'
 attribute [simp, reassoc] bicategory.triangle
 
-infixr ` ◁ `:70 := bicategory.whisker_left
-infixr ` ▷ `:70 := bicategory.whisker_right
-notation `α_` := bicategory.associator
-notation `λ_` := bicategory.left_unitor
-notation `ρ_` := bicategory.right_unitor
+localized "infixr ` ◁ `:70 := bicategory.whisker_left" in bicategory
+localized "infixr ` ▷ `:70 := bicategory.whisker_right" in bicategory
+localized "notation `α_` := bicategory.associator" in bicategory
+localized "notation `λ_` := bicategory.left_unitor" in bicategory
+localized "notation `ρ_` := bicategory.right_unitor" in bicategory
 
 namespace bicategory
 

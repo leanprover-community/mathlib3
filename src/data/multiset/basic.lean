@@ -295,8 +295,12 @@ instance : partial_order (multiset α) :=
 theorem subset_of_le {s t : multiset α} : s ≤ t → s ⊆ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
 
+alias subset_of_le ← multiset.le.subset
+
 theorem mem_of_le {s t : multiset α} {a : α} (h : s ≤ t) : a ∈ s → a ∈ t :=
 mem_of_subset (subset_of_le h)
+
+lemma not_mem_mono (h : s ⊆ t) {a : α} : a ∉ t → a ∉ s := mt $ @h _
 
 @[simp] theorem coe_le {l₁ l₂ : list α} : (l₁ : multiset α) ≤ l₂ ↔ l₁ <+~ l₂ := iff.rfl
 

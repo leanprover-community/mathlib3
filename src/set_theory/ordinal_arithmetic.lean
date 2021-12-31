@@ -1078,7 +1078,7 @@ private lemma unbounded_aux (hS : unbounded (<) S) (a) : ∃ b, b ∈ S ∧ a �
 by { rcases hS a with ⟨b, hb, hb'⟩, exact ⟨b, hb, le_of_not_gt hb'⟩ }
 
 /-- Enumerator function for an unbounded set of ordinals. -/
-noncomputable def enum_ord : ordinal.{u} → ordinal.{u} :=
+def enum_ord : ordinal.{u} → ordinal.{u} :=
 wf.fix (λ o f, omin _ (unbounded_aux hS (blsub.{u u} o f)))
 
 /-- The hypothesis that asserts that the `omin` from `enum_ord_def'` exists. -/
@@ -1145,7 +1145,7 @@ begin
 end
 
 /-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/
-noncomputable def enum_ord.order_iso : ordinal.{u} ≃o S :=
+def enum_ord.order_iso : ordinal.{u} ≃o S :=
 strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) enum_ord.strict_mono
 begin
   convert @enum_ord.surjective _ hS,
@@ -1486,7 +1486,7 @@ by rw [CNF_rec, dif_neg o0]
   in the base-`b` expansion of `o`.
 
     CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)] -/
-noncomputable def CNF (b := omega) (o : ordinal) : list (ordinal × ordinal) :=
+def CNF (b := omega) (o : ordinal) : list (ordinal × ordinal) :=
 if b0 : b = 0 then [] else
 CNF_rec b0 [] (λ o o0 h IH, (log b o, o / b ^ log b o) :: IH) o
 

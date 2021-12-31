@@ -105,14 +105,19 @@ end continuous_map
 
 namespace path.homotopic
 local attribute [instance] path.homotopic.setoid
+local notation p₁ ` ⬝ ` p₂ := p₁.comp p₂
 
+section pi
 variables {ι : Type*} {X : ι → Type*} [∀ i, topological_space (X i)]
           {as bs cs : Π i, X i}
+
+/-- The product of a family of path homotopies. This is just a specialization of `homotopy_rel` -/
 def pi_homotopy
   (paths₀ paths₁ : Π i, path (as i) (bs i))
   (homotopies : ∀ i, path.homotopy (paths₀ i) (paths₁ i)) :
   path.homotopy (path.pi paths₀) (path.pi paths₁) := continuous_map.homotopy_rel.pi homotopies
 
+/-- The product of a family of path homotopy classes -/
 def pi (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
   path.homotopic.quotient as bs :=
   (quotient.map path.pi
@@ -120,16 +125,14 @@ def pi (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
     (quotient.choice paths)
 
 lemma pi_lift (paths : Π i, path (as i) (bs i)) :
-  path.homotopic.pi (λ i, ⟦paths i⟧) = ⟦path.pi paths⟧ :=
-by { unfold pi, simp, }
+  path.homotopic.pi (λ i, ⟦paths i⟧) = ⟦path.pi paths⟧ := by { unfold pi, simp, }
 
-
-local notation p₁ ` ⬝ ` p₂ := p₁.comp p₂
+/-- Composition and products commute.
+  This is `path.trans_pi_eq_pi_trans` descended to path homotopy classes -/
 lemma comp_pi_eq_pi_comp (paths₀ : Π i, path.homotopic.quotient (as i) (bs i))
                          (paths₁ : Π i, path.homotopic.quotient (bs i) (cs i)) :
                          ((pi paths₀) ⬝ (pi paths₁)) = pi (λ i, (paths₀ i) ⬝ (paths₁ i)) :=
 begin
-
   apply quotient.induction_on_pi paths₁,
   apply quotient.induction_on_pi paths₀,
   intros path₀_rep path₁_rep,
@@ -139,5 +142,40 @@ begin
       ← pi_lift],
   refl,
 end
+
+/-- Abbreviation for projection onto the ith coordinate -/
+@[reducible]
+def proj (i : ι) (p : path.homotopic.quotient as bs) : path.homotopic.quotient (as i) (bs i) :=
+  p.map_fn ⟨_, continuous_apply i⟩
+
+@[simp] lemma proj_of_pi (i : ι) (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
+  proj i (pi paths) = paths i :=
+begin
+  apply quotient.induction_on_pi paths,
+  intro, unfold proj,
+  rw [pi_lift, ← path.homotopic.map_lift],
+  congr, ext, refl,
+end
+
+@[simp] lemma pi_of_proj (p : path.homotopic.quotient as bs) : pi (λ i, proj i p) = p :=
+begin
+  apply quotient.induction_on p,
+  intro, unfold proj,
+  simp_rw ← path.homotopic.map_lift,
+  rw pi_lift,
+  congr, ext, refl,
+end
+end pi
+
+section prod
+variables {α β : Type*} [topological_space α] [topological_space β]
+          {c₁ c₂ c₃ : α × β}
+          (p₁ p₁' : path c₁.1 c₂.1) (p₂ p₂' : path c₁.2 c₂.2)
+          (q₁ : path.homotopic.quotient c₁.1 c₂.1) (q₂ : path.homotopic.quotient c₁.2 c₂.2)
+          (r₁ : path c₂.1 c₃.1) (r₂ : path c₂.2 c₃.2)
+          (s₁ : path.homotopic.quotient c₂.1 c₃.1) (s₂ : path.homotopic.quotient c₂.2 c₃.2)
+
+
+end prod
 
 end path.homotopic

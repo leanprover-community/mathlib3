@@ -385,6 +385,8 @@ protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ�
 section
 variables {χ : ι → Type*} [∀ i, topological_space (χ i)]
           {as bs cs : Π i, χ i}
+/-- Given a family of paths, one in each Xᵢ, we take their pointwise product to get a path in
+Π i, Xᵢ. -/
 protected def pi (paths : Π i, path (as i) (bs i)) :
                   path as bs :=
 { to_continuous_map := continuous_map.pi (λ i, (paths i).to_continuous_map),

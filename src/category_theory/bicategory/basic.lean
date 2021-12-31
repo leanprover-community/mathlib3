@@ -62,8 +62,7 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
 (whisker_left {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g ⟶ h) : f ≫ g ⟶ f ≫ h)
 (infixr ` ◁ `:70 := whisker_left)
 -- functoriality of left whiskering:
-(whisker_left_id' :
-  ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), f ◁ 𝟙 g = 𝟙 (f ≫ g) . obviously)
+(whisker_left_id' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), f ◁ 𝟙 g = 𝟙 (f ≫ g) . obviously)
 (whisker_left_comp' :
   ∀ {a b c} (f : a ⟶ b) {g h i : b ⟶ c} (η : g ⟶ h) (θ : h ⟶ i),
   f ◁ (η ≫ θ) = (f ◁ η) ≫ (f ◁ θ) . obviously)
@@ -71,8 +70,7 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
 (whisker_right {a b c : B} {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c) : f ≫ h ⟶ g ≫ h)
 (infixr ` ▷ `:70 := whisker_right)
 -- functoriality of right whiskering:
-(whisker_right_id' :
-  ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), 𝟙 f ▷ g = 𝟙 (f ≫ g) . obviously)
+(whisker_right_id' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), 𝟙 f ▷ g = 𝟙 (f ≫ g) . obviously)
 (whisker_right_comp' :
   ∀ {a b c} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h) (i : b ⟶ c),
   (η ≫ θ) ▷ i = (η ▷ i) ≫ (θ ▷ i) . obviously)
@@ -122,9 +120,11 @@ restate_axiom bicategory.left_unitor_naturality'
 restate_axiom bicategory.right_unitor_naturality'
 restate_axiom bicategory.pentagon'
 restate_axiom bicategory.triangle'
-attribute [simp] bicategory.whisker_left_id bicategory.whisker_right_id
+attribute [simp]
+  bicategory.whisker_left_id bicategory.whisker_right_id
   bicategory.whisker_exchange bicategory.triangle
-attribute [reassoc] bicategory.whisker_left_comp bicategory.whisker_right_comp
+attribute [reassoc]
+  bicategory.whisker_left_comp bicategory.whisker_right_comp
   bicategory.whisker_exchange bicategory.associator_naturality_left
   bicategory.associator_naturality_middle bicategory.associator_naturality_right
   bicategory.left_unitor_naturality bicategory.right_unitor_naturality

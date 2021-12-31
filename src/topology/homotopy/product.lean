@@ -12,9 +12,14 @@ import topology.homotopy.path
 
 In this file, we introduce definitions for the product of
 homotopies. We show that the products of relative homotopies
-are still relative homotopies.
+are still relative homotopies. Finally, we specialize to the case
+of path homotopies, and provide the definition for the product of path classes.
+We show various lemmas associated with these products, such as the fact that
+path products commute with path composition, and that projection is the inverse
+of products.
 
 ## Definitions
+### General homotopies
 - `continuous_map.homotopy.pi homotopies`: Let f and g be a family of functions
   indexed on I, such that for each i ∈ I, fᵢ and gᵢ are maps from A to Xᵢ.
   Let `homotopies` be a family of homotopies from fᵢ to gᵢ for each i.
@@ -32,6 +37,12 @@ are still relative homotopies.
 
 - `continuous_map.homotopy_rel.prod F G`: Same as `continuous_map.homotopy.prod`, but
   all homotopies are done relative to some set S ⊆ A.
+
+### Path products
+- `path.homotopic.pi` The product of a family of path classes, where a path class is an equivalence
+  class of paths up to path homotopy.
+
+- `path.homotopic.prod` The product of two path classes.
 -/
 
 noncomputable theory
@@ -108,6 +119,7 @@ local attribute [instance] path.homotopic.setoid
 local notation p₁ ` ⬝ ` p₂ := p₁.comp p₂
 
 section pi
+
 variables {ι : Type*} {X : ι → Type*} [∀ i, topological_space (X i)]
           {as bs cs : Π i, X i}
 
@@ -166,9 +178,11 @@ begin
   rw pi_lift,
   congr, ext, refl,
 end
+
 end pi
 
 section prod
+
 variables {α β : Type*} [topological_space α] [topological_space β]
           {a₁ a₂ a₃ : α} {b₁ b₂ b₃ : β}
           {p₁ p₁' : path a₁ a₂} {p₂ p₂' : path b₁ b₂}

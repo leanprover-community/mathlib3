@@ -496,8 +496,7 @@ def subalgebra_equiv_map {R A B : Type*} [comm_semiring R] [semiring A]
   [semiring B] [algebra R A] [algebra R B] (e : A ≃ₐ[R] B) (S : subalgebra R A) :
   S ≃ₐ[R] (S.map e.to_alg_hom) :=
 { commutes' := λ r, by { ext, simp },
-  ..e.to_ring_equiv.subsemiring_equiv_map S.to_subsemiring,
-}
+  ..e.to_ring_equiv.subsemiring_equiv_map S.to_subsemiring }
 
 end alg_equiv
 

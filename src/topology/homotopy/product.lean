@@ -170,11 +170,22 @@ end pi
 section prod
 variables {α β : Type*} [topological_space α] [topological_space β]
           {c₁ c₂ c₃ : α × β}
-          (p₁ p₁' : path c₁.1 c₂.1) (p₂ p₂' : path c₁.2 c₂.2)
+          {p₁ p₁' : path c₁.1 c₂.1} {p₂ p₂' : path c₁.2 c₂.2}
           (q₁ : path.homotopic.quotient c₁.1 c₂.1) (q₂ : path.homotopic.quotient c₁.2 c₂.2)
           (r₁ : path c₂.1 c₃.1) (r₂ : path c₂.2 c₃.2)
           (s₁ : path.homotopic.quotient c₂.1 c₃.1) (s₂ : path.homotopic.quotient c₂.2 c₃.2)
 
+def prod_homotopy (h₁ : path.homotopy p₁ p₁') (h₂ : path.homotopy p₂ p₂') :
+  path.homotopy (p₁.prod p₂) (p₁'.prod p₂') := continuous_map.homotopy_rel.prod h₁ h₂
+
+def prod (q₁ : path.homotopic.quotient c₁.1 c₂.1) (q₂ : path.homotopic.quotient c₁.2 c₂.2) :
+  path.homotopic.quotient c₁ c₂ :=
+begin
+  rw [← (prod.mk.eta : ((c₁.1, c₁.2) = c₁)), ← (prod.mk.eta : ((c₂.1, c₂.2) = c₂))],
+  refine (quotient.map₂ (@path.prod α β _ _ c₁.1 c₂.1 c₁.2 c₂.2) _) q₁ q₂,
+  repeat { intro },
+  apply nonempty.map2 prod_homotopy; assumption,
+end
 
 end prod
 

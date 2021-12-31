@@ -266,6 +266,11 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
 
+def intermediate_field_equiv_map {K L M : Type*} [field K] [field L] [field M]
+  [algebra K L] [algebra K M] (e : L ≃ₐ[K] M) (E : intermediate_field K L) :
+  E ≃ₐ[K] (E.map e.to_alg_hom) :=
+e.subalgebra_equiv_map E.to_subalgebra
+
 /-- The embedding from an intermediate field of `L / K` to `L`. -/
 def val : S →ₐ[K] L :=
 S.to_subalgebra.val

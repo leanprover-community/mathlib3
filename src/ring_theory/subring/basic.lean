@@ -886,6 +886,11 @@ def of_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g f
   {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.range) :
   (of_left_inverse h).symm x = g x := rfl
 
+def subring_equiv_map {A B : Type*} [ring A]
+  [ring B] (e : A ≃+* B) (R : subring A) :
+  R ≃+* R.map e.to_ring_hom :=
+e.subsemiring_equiv_map R.to_subsemiring
+
 end ring_equiv
 
 namespace subring

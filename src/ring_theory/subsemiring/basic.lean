@@ -787,6 +787,12 @@ def sof_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g 
   {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.srange) :
   (sof_left_inverse h).symm x = g x := rfl
 
+@[simps] def subsemiring_equiv_map {A B : Type*} [non_assoc_semiring A]
+  [non_assoc_semiring B] (e : A ≃+* B) (R : subsemiring A) :
+  R ≃+* R.map e.to_ring_hom :=
+{ ..e.to_add_equiv.add_submonoid_equiv_map R.to_add_submonoid,
+  ..e.to_mul_equiv.submonoid_equiv_map R.to_submonoid}
+
 end ring_equiv
 
 /-! ### Actions by `subsemiring`s

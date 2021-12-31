@@ -112,7 +112,7 @@ end
 
 /-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,
 we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
-lemma multiplicative_factorization {n : ℕ} {β : Type*} [comm_monoid β] {f : ℕ → β}
+lemma multiplicative_factorization {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β)
   (hn : 0 < n) (h_mult : ∀ x y : ℕ, coprime x y → f(x * y) = f x * f y) (hf : f 1 = 1) :
 f n = n.factorization.prod (λ p k, f(p ^ k)) :=
 begin
@@ -130,5 +130,8 @@ begin
     convert (factorization_disjoint_of_coprime hab) },
   exact hn,
 end
+
+@[simp] lemma factorization_prod_pow_eq_self (n : ℕ) (hn : 0 < n) : n.factorization.prod pow = n :=
+(multiplicative_factorization id hn (by simp) (by simp)).symm
 
 end nat

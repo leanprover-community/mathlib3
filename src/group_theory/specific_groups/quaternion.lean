@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import data.zmod.basic
-import group_theory.order_of_element
 import data.nat.basic
 import tactic.interval_cases
 import group_theory.specific_groups.dihedral
@@ -255,6 +254,29 @@ lemma order_of_a [fact (0 < n)] (i : zmod (2 * n)) :
 begin
   conv_lhs { rw ← zmod.nat_cast_zmod_val i },
   rw [← a_one_pow, order_of_pow, order_of_a_one]
+end
+
+lemma exponent [fact (0 < n)] : monoid.exponent (quaternion_group n) = 2 * lcm n 2 :=
+begin
+  rw [←normalize_eq 2, ←lcm_mul_left, normalize_eq],
+  norm_num,
+  apply nat.dvd_antisymm,
+  { apply monoid.exponent_dvd_of_forall_pow_eq_one,
+    intro g,
+    cases g with m,
+    { rw [←order_of_dvd_iff_pow_eq_one, order_of_a],
+      apply nat.dvd_trans,
+      { show 2 * n / (2 * n).gcd m.val ∣ (2 * n),
+        use gcd (2 * n) m.val,
+        exact (nat.div_mul_cancel (nat.gcd_dvd_left (2 * n) (m.val))).symm },
+      { exact dvd_lcm_left (2 * n) 4 } },
+    { rw [←order_of_dvd_iff_pow_eq_one, order_of_xa],
+      exact dvd_lcm_right (2 * n) 4 } },
+  { apply lcm_dvd,
+    { convert monoid.order_dvd_exponent (a 1),
+      exact order_of_a_one.symm },
+    { convert monoid.order_dvd_exponent (xa 0),
+      exact (order_of_xa 0).symm } }
 end
 
 end quaternion_group

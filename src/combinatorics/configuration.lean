@@ -257,4 +257,9 @@ begin
     (set.mem_to_finset.mp hi))).mp step3.symm (p, l) (set.mem_to_finset.mpr hpl)).symm,
 end
 
+lemma has_points.line_count_eq_point_count [has_points P L] [fintype P] [fintype L]
+  (hPL : fintype.card P = fintype.card L) {p : P} {l : L} (hpl : p ∉ l) :
+  line_count L p = point_count P l :=
+(@has_lines.line_count_eq_point_count (dual L) (dual P) _ _  _ _ hPL.symm l p hpl).symm
+
 end configuration

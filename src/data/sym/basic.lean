@@ -27,6 +27,8 @@ symmetric powers
 
 -/
 
+open function
+
 universes u
 
 /--
@@ -53,6 +55,13 @@ namespace sym
 
 variables {α : Type u} {n : ℕ}
 
+instance has_coe (α : Type*) (n : ℕ) : has_coe (sym α n) (multiset α) := coe_subtype
+
+lemma coe_injective : injective (coe : sym α n → multiset α) := subtype.coe_injective
+
+@[simp, norm_cast] lemma coe_inj {s₁ s₂ : sym α n} : (s₁ : multiset α) = s₂ ↔ s₁ = s₂ :=
+coe_injective.eq_iff
+
 /--
 This is the quotient map that takes a list of n elements as an n-tuple and produces an nth
 symmetric power.
@@ -71,8 +80,8 @@ The unique element in `sym α 0`.
 /--
 Inserts an element into the term of `sym α n`, increasing the length by one.
 -/
-@[pattern] def cons : α → sym α n → sym α (nat.succ n)
-| a ⟨s, h⟩ := ⟨a ::ₘ s, by rw [multiset.card_cons, h]⟩
+@[pattern] def cons (a : α) (s : sym α n) : sym α n.succ :=
+⟨a ::ₘ s.1, by rw [multiset.card_cons, s.2]⟩
 
 notation a :: b := cons a b
 

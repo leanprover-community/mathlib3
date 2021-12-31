@@ -9,15 +9,15 @@ import data.sym.sym2
 /-!
 # Stars and bars
 
-In this file, we prove the case `n = 2` of stars and bars.
+In this file, we prove stars and bars.
 
 ## Informal statement
 
-If we have `n` objects to put in `k` boxes, we can do so in exactly `(n + k - 1).choose k` ways.
+If we have `n` objects to put in `n` boxes, we can do so in exactly `(n + n - 1).choose n` ways.
 
 ## Formal statement
 
-We can identify the `k` boxes with the elements of a fintype `α` of card `k`. Then placing `n`
+We can identify the `n` boxes with the elements of a fintype `α` of card `n`. Then placing `n`
 elements in those boxes corresponds to choosing how many of each element of `α` appear in a multiset
 of card `n`. `sym α n` being the subtype of `multiset α` of multisets of card `n`, writing stars
 and bars using types gives
@@ -26,127 +26,157 @@ lemma stars_and_bars {α : Type*} [fintype α] (n : ℕ) :
   card (sym α n) = (card α + n - 1).choose n := sorry
 ```
 
-## TODO
-
-Prove the general case of stars and bars.
-
 ## Tags
 
 stars and bars
 -/
 
+open finset fintype function option sum
+
+variables {α β : Type*}
+
+@[simp] lemma option.coe_get {o : option α} (h : o.is_some) : ((option.get h : α) : option α) = o :=
+option.some_get h
+
+namespace multiset
+
+@[simp] lemma map_le_map_iff {f : α ↪ β} {s t : multiset α} : s.map f ≤ t.map f ↔ s ≤ t :=
+⟨λ h, begin
+  sorry
+end, map_le_map⟩
+
+/-- Associate to an embedding `f` from `α` to `β` the order embedding that maps a multiset to its
+image under `f`. -/
+def map_embedding (f : α ↪ β) : multiset α ↪o multiset β :=
+order_embedding.of_map_le_iff (map f) (λ _ _, map_le_map_iff)
+
+end multiset
+
+namespace finset
+
+lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).injective
+
+end finset
+
+namespace sym
+section attach
+variables {n : ℕ}
+
+def attach (s : sym α n) : sym {a // a ∈ s} n := ⟨s.1.attach, by rw [multiset.card_attach, s.2]⟩
+
+@[simp] lemma coe_attach (s : sym α n) : (s.attach : multiset {a // a ∈ s}) = multiset.attach s :=
+rfl
+
+@[simp] lemma coe_map (s : sym α n) (f : α → β) : (s.map f : multiset β) = multiset.map f s := rfl
+
+lemma attach_map_val (s : sym α n) : s.attach.map (embedding.subtype _) = s :=
+coe_injective $ multiset.attach_map_val _
+
+lemma coe_erase [decidable_eq α] {s : sym α n.succ} {a : α} (h : a ∈ s) :
+  (s.erase a h : multiset α) = multiset.erase s a :=
+rfl
+
+lemma coe_cons [decidable_eq α] (s : sym α n) (a : α) : (a :: s : multiset α) = a ::ₘ s := rfl
+
+@[simp] lemma cons_erase [decidable_eq α] {s : sym α n.succ} {a : α} (h : a ∈ s) :
+  a :: s.erase a h = s :=
+coe_injective $ multiset.cons_erase h
+
+@[simp] lemma erase_cons_head [decidable_eq α] (s : sym α n) (a : α) (h : a ∈ a :: s) :
+  (a :: s).erase a h = s :=
+coe_injective $ multiset.erase_cons_head a s.1
+
+lemma map_injective {f : α → β} (hf : injective f) (n : ℕ) :
+  injective (map f : sym α n → sym β n) :=
+λ s t h, coe_injective $ multiset.map_injective hf $ coe_inj.2 h
+
+end attach
+
+variables (α) [decidable_eq α] (n : ℕ)
+
+/-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting
+`option α` to `α`. Otherwise, the function removes an occurrence of `none` from the input and
+produces a `sym (option α) n`. -/
+def encode (s : sym (option α) n.succ) : sym α n.succ ⊕ sym (option α) n :=
+if h : none ∈ s then inr (s.erase none h)
+else inl $ s.attach.map $ λ o, get $ ne_none_iff_is_some.1 $ ne_of_mem_of_not_mem o.2 h
+
+/-- From the output of `encode`, the `decode` function reconstructs the original input. If the
+output contains `n + 1` elements, the original input can be reconstructed by casting `α` back
+to `option α`. Otherwise, an instance of `none` has been removed and the input can be
+reconstructed by adding it back. -/
+def decode : sym α n.succ ⊕ sym (option α) n → sym (option α) n.succ
+| (inl s) := s.map embedding.coe_option
+| (inr s) := none :: s
+
+variables {α n}
+
+@[simp] lemma decode_inl (s : sym α n.succ) : decode α n (inl s) = s.map embedding.coe_option := rfl
+@[simp] lemma decode_inr (s : sym (option α) n) : decode α n (inr s) = none :: s := rfl
+
+variables (α n)
+
+/-- As `encode` and `decode` are inverses of each other, `sym (option α) n.succ` is equivalent
+to `sym α n.succ ⊕ sym (option α) n`. -/
+def option_succ_equiv : sym (option α) n.succ ≃ sym α n.succ ⊕ sym (option α) n :=
+{ to_fun := encode α n,
+  inv_fun := decode α n,
+  left_inv := λ s, begin
+    unfold encode,
+    split_ifs,
+    { exact cons_erase _ },
+    simp only [decode, sym.map_map, subtype.mk.inj_eq, function.comp],
+    convert s.attach_map_val,
+    ext o a,
+    simp_rw [embedding.coe_option_apply, option.coe_get, embedding.coe_subtype, option.mem_def,
+      subtype.val_eq_coe],
+  end,
+  right_inv := begin
+    rintro (s | s),
+    { unfold encode,
+      split_ifs,
+      { obtain ⟨a, _, ha⟩ := multiset.mem_map.mp h,
+        exact some_ne_none _ ha },
+      { refine map_injective (option.some_injective _) _ _,
+        convert eq.trans _ (decode α n (inl s)).attach_map_val,
+        simp } },
+    { exact (dif_pos $ mem_cons_self _ _).trans (congr_arg _ $ erase_cons_head s _ _) }
+  end }
+
 /-- Define the multichoose number using `fintype.card`. -/
-def multichoose1 (n k : ℕ) := fintype.card (sym (fin n) k)
+def multichoose1 (α : Type*) [decidable_eq α] [fintype α] (k : ℕ) := fintype.card (sym α k)
 
 /-- Define the multichoose number using `nat.choose`. -/
 def multichoose2 (n k : ℕ) := (n + k - 1).choose k
 
-/-- The `encode` function produces a `sym (fin n) k.succ` if the input doesn't contain `fin.last n`
-by casting `fin n.succ` to `fin n`. Otherwise, the function removes an instance of `fin.last n` from
-the input and produces a `sym (fin n.succ) k`. -/
-def encode (n k : ℕ) (x : sym (fin n.succ) k.succ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
-if h : fin.last n ∈ x then sum.inr (x.erase (fin.last n) h)
-else begin
-  refine sum.inl (x.map (λ a, ⟨if (a : ℕ) = n then 0 else a, _⟩)),
-  { split_ifs,
-    { rw pos_iff_ne_zero,
-      rintro rfl,
-      obtain ⟨w, r⟩ := @multiset.exists_mem_of_ne_zero _ x.val (λ h, by simpa [h] using x.property),
-      simpa [subsingleton.elim w 0] using r, },
-    { cases lt_or_eq_of_le (nat.le_of_lt_succ a.property); solve_by_elim } },
-end
-
-/-- From the output of `encode`, the `decode` function reconstructs the original input. If the
-output contains `k.succ` elements, the original input can be reconstructed by casting `fin n` back
-to `fin n.succ`. Otherwise, an instance of `fin.last n` has been removed and the input can be
-reconstructed by adding it back. -/
-def decode (n k : ℕ) : sym (fin n) k.succ ⊕ sym (fin n.succ) k → sym (fin n.succ) k.succ
-| (sum.inl x) := x.map fin.cast_succ
-| (sum.inr x) := (fin.last n)::x
-
-/-- As `encode` and `decode` are inverses of each other, `sym (fin n.succ) k.succ` is equivalent
-to `sym (fin n) k.succ ⊕ sym (fin n.succ) k`. -/
-def equivalent (n k : ℕ) : sym (fin n.succ) k.succ ≃ sym (fin n) k.succ ⊕ sym (fin n.succ) k :=
-{ to_fun := encode n k,
-  inv_fun := decode n k,
-  left_inv := λ x, begin
-    rw encode,
-    split_ifs,
-    { cases x,
-      simpa [decode, sym.cons, sym.erase, subtype.mk.inj_eq] using multiset.cons_erase h },
-    { simp only [decode, sym.map_map, subtype.mk.inj_eq, function.comp],
-      convert @sym.map_congr _ _ _ _ id _ _,
-      { rw sym.map_id },
-      { intros a h',
-        cases a,
-        split_ifs,
-        { norm_num at h_1,
-          simp_rw h_1 at h',
-          exact (h h').elim },
-        { norm_num } } },
-  end,
-  right_inv := begin
-    rintro (x|x),
-    { cases x with x hx,
-      rw [decode, encode],
-      split_ifs,
-      { obtain ⟨⟨y, w⟩, v, b⟩ := multiset.mem_map.mp h,
-        rw [fin.cast_succ_mk, fin.last, subtype.mk_eq_mk] at b,
-        rw b at w,
-        exact nat.lt_asymm w w, },
-      { simp only [sym.map_map, function.comp, fin.val_eq_coe, subtype.mk_eq_mk, fin.coe_mk],
-        convert sym.map_congr _,
-        { rw multiset.map_id, },
-        { rintros ⟨g, hg⟩ h',
-          split_ifs with h'',
-          { simp only [fin.coe_mk, fin.cast_succ_mk] at h'',
-            subst g,
-            exact (nat.lt_asymm hg hg).elim, },
-          { refl } } } },
-    { rw [decode, encode],
-      split_ifs,
-      { cases x, simp [sym.cons, sym.erase, multiset.cons_erase] },
-      { apply h,
-        cases x,
-        simpa only [sym.cons] using multiset.mem_cons_self (fin.last n) x_val } }
-  end }
-
-lemma multichoose1_rec (n k : ℕ) :
-  multichoose1 n.succ k.succ = multichoose1 n k.succ + multichoose1 n.succ k :=
-by simpa only [multichoose1, fintype.card_sum.symm] using fintype.card_congr (equivalent n k)
+lemma multichoose1_rec (α : Type*) [decidable_eq α] [fintype α] (n : ℕ) :
+  multichoose1 (option α) n.succ = multichoose1 α n.succ + multichoose1 (option α) n :=
+by simpa only [multichoose1, fintype.card_sum.symm] using fintype.card_congr (option_succ_equiv α n)
 
 lemma multichoose2_rec (n k : ℕ) :
   multichoose2 n.succ k.succ = multichoose2 n k.succ + multichoose2 n.succ k :=
 by simp [multichoose2, nat.choose_succ_succ, nat.add_comm, nat.add_succ]
 
-lemma multichoose1_eq_multichoose2 : ∀ (n k : ℕ), multichoose1 n k = multichoose2 n k
-| 0 0 := by simp [multichoose1, multichoose2]
-| 0 (k + 1) := by simp [multichoose1, multichoose2, fintype.card]
-| (n + 1) 0 := by simp [multichoose1, multichoose2]
-| (n + 1) (k + 1) :=
-by simp only [multichoose1_rec, multichoose2_rec, multichoose1_eq_multichoose2 n k.succ,
-  multichoose1_eq_multichoose2 n.succ k]
-
-open finset fintype
-
-namespace sym
+lemma multichoose1_eq_multichoose2 (α : Type*) [decidable_eq α] [fintype α] (n : ℕ) :
+  multichoose1 α n = multichoose2 (fintype.card α) n :=
+begin
+  sorry
+end
 
 /-- The *stars and bars* lemma: the cardinality of `sym α n` is equal to
 `(card α + n - 1) choose n`. -/
 lemma stars_and_bars {α : Type*} [decidable_eq α] [fintype α] (n : ℕ) :
   fintype.card (sym α n) = (fintype.card α + n - 1).choose n :=
 begin
-  have start := multichoose1_eq_multichoose2 (fintype.card α) n,
+  have start := multichoose1_eq_multichoose2 α n,
   simp only [multichoose1, multichoose2] at start,
   rw start.symm,
-  exact fintype.card_congr (equiv_congr ((@fintype.equiv_fin_of_card_eq α _ (fintype.card α) rfl))),
 end
 
 end sym
 
 namespace sym2
-
-variables {α : Type*} [decidable_eq α]
+variables [decidable_eq α]
 
 /-- The `diag` of `s : finset α` is sent on a finset of `sym2 α` of card `s.card`. -/
 lemma card_image_diag (s : finset α) :

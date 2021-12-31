@@ -176,7 +176,7 @@ end
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
 tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id
 
-lemma tendsto_log_nhds_within_zero : tendsto log (𝓝[{0}ᶜ] 0) at_bot :=
+lemma tendsto_log_nhds_within_zero : tendsto log (𝓝[≠] 0) at_bot :=
 begin
   rw [← (show _ = log, from funext log_abs)],
   refine tendsto.comp _ tendsto_abs_nhds_within_zero,
@@ -205,6 +205,18 @@ begin
   rintros h rfl,
   exact not_tendsto_nhds_of_tendsto_at_bot tendsto_log_nhds_within_zero _
     (h.tendsto.mono_left inf_le_left)
+end
+
+open_locale big_operators
+
+lemma log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
+  log (∏ i in s, f i) = ∑ i in s, log (f i) :=
+begin
+  classical,
+  induction s using finset.induction_on with a s ha ih,
+  { simp },
+  simp only [finset.mem_insert, forall_eq_or_imp] at hf,
+  simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
 end
 
 end real

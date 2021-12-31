@@ -373,6 +373,26 @@ calc f i = ∏ k in {i}, f k : prod_singleton.symm
   prod_lt_prod_of_subset' (singleton_subset_iff.2 hi) hj (mt mem_singleton.1 hij) hlt $
     λ k hks hki, hle k hks (mt mem_singleton.2 hki)
 
+@[to_additive sum_pos] lemma one_lt_prod (h : ∀i ∈ s, 1 < f i) (hs : s.nonempty) :
+  1 < (∏ i in s, f i) :=
+lt_of_le_of_lt (by rw prod_const_one) $ prod_lt_prod_of_nonempty' hs h
+
+@[to_additive] lemma prod_lt_one (h : ∀i ∈ s, f i < 1) (hs : s.nonempty) :
+  (∏ i in s, f i) < 1 :=
+(prod_lt_prod_of_nonempty' hs h).trans_le (by rw prod_const_one)
+
+@[to_additive] lemma prod_eq_prod_iff_of_le {f g : ι → M} (h : ∀ i ∈ s, f i ≤ g i) :
+  ∏ i in s, f i = ∏ i in s, g i ↔ ∀ i ∈ s, f i = g i :=
+begin
+  classical,
+  revert h,
+  refine finset.induction_on s (λ _, ⟨λ _ _, false.elim, λ _, rfl⟩) (λ a s ha ih H, _),
+  specialize ih (λ i, H i ∘ finset.mem_insert_of_mem),
+  rw [finset.prod_insert ha, finset.prod_insert ha, finset.forall_mem_insert, ←ih],
+  exact mul_eq_mul_iff_eq_and_eq (H a (s.mem_insert_self a)) (finset.prod_le_prod''
+    (λ i, H i ∘ finset.mem_insert_of_mem)),
+end
+
 end ordered_cancel_comm_monoid
 
 section linear_ordered_cancel_comm_monoid

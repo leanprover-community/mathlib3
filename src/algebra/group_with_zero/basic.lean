@@ -90,6 +90,12 @@ lemma mul_eq_zero_of_ne_zero_imp_eq_zero {a b : M₀} (h : a ≠ 0 → b = 0) :
   a * b = 0 :=
 if ha : a = 0 then by rw [ha, zero_mul] else by rw [h ha, mul_zero]
 
+/-- To match `one_mul_eq_id`. -/
+lemma zero_mul_eq_const : ((*) (0 : M₀)) = function.const _ 0 := funext zero_mul
+
+/-- To match `mul_one_eq_id`. -/
+lemma mul_zero_eq_const : (* (0 : M₀)) = function.const _ 0 := funext mul_zero
+
 end mul_zero_class
 
 /-- Pushforward a `no_zero_divisors` instance along an injective function. -/
@@ -445,6 +451,14 @@ by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
 @[simp] lemma mul_eq_mul_left_iff : a * b = a * c ↔ b = c ∨ a = 0 :=
 by by_cases ha : a = 0; [simp [ha], simp [mul_right_inj', ha]]
 
+lemma mul_right_eq_self₀ : a * b = a ↔ b = 1 ∨ a = 0 :=
+calc a * b = a ↔ a * b = a * 1 : by rw mul_one
+     ...       ↔ b = 1 ∨ a = 0 : mul_eq_mul_left_iff
+
+lemma mul_left_eq_self₀ : a * b = b ↔ a = 1 ∨ b = 0 :=
+calc a * b = b ↔ a * b = 1 * b : by rw one_mul
+     ...       ↔ a = 1 ∨ b = 0 : mul_eq_mul_right_iff
+
 /-- Pullback a `monoid_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -470,22 +484,22 @@ classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel₀ ha $ h₂.symm �
 
 end cancel_monoid_with_zero
 
-section comm_cancel_monoid_with_zero
+section cancel_comm_monoid_with_zero
 
-variables [comm_cancel_monoid_with_zero M₀] {a b c : M₀}
+variables [cancel_comm_monoid_with_zero M₀] {a b c : M₀}
 
-/-- Pullback a `comm_cancel_monoid_with_zero` class along an injective function.
+/-- Pullback a `cancel_comm_monoid_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.comm_cancel_monoid_with_zero
+protected def function.injective.cancel_comm_monoid_with_zero
   [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
-  comm_cancel_monoid_with_zero M₀' :=
+  cancel_comm_monoid_with_zero M₀' :=
 { .. hf.comm_monoid_with_zero f zero one mul,
   .. hf.cancel_monoid_with_zero f zero one mul }
 
-end comm_cancel_monoid_with_zero
+end cancel_comm_monoid_with_zero
 
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
@@ -704,11 +718,6 @@ begin
   { right,
     simpa only [eq_comm] using units.exists_iff_ne_zero.mpr h }
 end
-
-instance : can_lift G₀ (units G₀) :=
-{ coe := coe,
-  cond := (≠ 0),
-  prf := λ x, exists_iff_ne_zero.mpr }
 
 end units
 
@@ -931,7 +940,7 @@ section comm_group_with_zero -- comm
 variables [comm_group_with_zero G₀] {a b c : G₀}
 
 @[priority 10] -- see Note [lower instance priority]
-instance comm_group_with_zero.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero G₀ :=
+instance comm_group_with_zero.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero G₀ :=
 { ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
 
 /-- Pullback a `comm_group_with_zero` class along an injective function.

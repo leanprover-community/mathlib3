@@ -151,6 +151,18 @@ instance : has_pure ultrafilter :=
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
 instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
 
+lemma eq_principal_of_finite_mem {f : ultrafilter α} {s : set α} (h : s.finite) (h' : s ∈ f) :
+  ∃ x ∈ s, (f : filter α) = pure x :=
+begin
+  rw ← bUnion_of_singleton s at h',
+  rcases (ultrafilter.finite_bUnion_mem_iff h).mp h' with ⟨a, has, haf⟩,
+  use [a, has],
+  change (f : filter α) = (pure a : ultrafilter α),
+  rw [ultrafilter.coe_inj, ← ultrafilter.coe_le_coe],
+  change (f : filter α) ≤ pure a,
+  rwa [← principal_singleton, le_principal_iff]
+end
+
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/
 def bind (f : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=

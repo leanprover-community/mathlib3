@@ -388,10 +388,7 @@ lemma next_coeff_of_pos_nat_degree (p : polynomial R) (hp : 0 < p.nat_degree) :
   next_coeff p = p.coeff (p.nat_degree - 1) :=
 by { rw [next_coeff, if_neg], contrapose! hp, simpa }
 
-end semiring
-
-section semiring
-variables [semiring R] {p q : polynomial R} {ι : Type*}
+variables {p q : polynomial R} {ι : Type*}
 
 lemma coeff_nat_degree_eq_zero_of_degree_lt (h : degree p < degree q) :
   coeff p (nat_degree q) = 0 :=
@@ -736,6 +733,36 @@ begin
   refine add_le_add _ _; apply degree_le_nat_degree,
 end
 
+lemma nat_degree_pow_le {p : polynomial R} {n : ℕ} : (p ^ n).nat_degree ≤ n * p.nat_degree :=
+begin
+  induction n with i hi,
+  { simp },
+  { rw [pow_succ, nat.succ_mul, add_comm],
+    apply le_trans nat_degree_mul_le,
+    exact add_le_add_left hi _ }
+end
+
+@[simp] lemma coeff_pow_mul_nat_degree (p : polynomial R) (n : ℕ) :
+  (p ^ n).coeff (n * p.nat_degree) = p.leading_coeff ^ n :=
+begin
+  induction n with i hi,
+  { simp },
+  { rw [pow_succ', pow_succ', nat.succ_mul],
+    by_cases hp1 : p.leading_coeff ^ i = 0,
+    { rw [hp1, zero_mul],
+      by_cases hp2 : p ^ i = 0,
+      { rw [hp2, zero_mul, coeff_zero] },
+      { apply coeff_eq_zero_of_nat_degree_lt,
+        have h1 : (p ^ i).nat_degree < i * p.nat_degree,
+        { apply lt_of_le_of_ne nat_degree_pow_le (λ h, hp2 _),
+          rw [←h, hp1] at hi,
+          exact leading_coeff_eq_zero.mp hi },
+        calc (p ^ i * p).nat_degree ≤ (p ^ i).nat_degree + p.nat_degree : nat_degree_mul_le
+                                ... < i * p.nat_degree + p.nat_degree : add_lt_add_right h1 _ } },
+    { rw [←nat_degree_pow' hp1, ←leading_coeff_pow' hp1],
+      exact coeff_mul_degree_add_degree _ _ } }
+end
+
 lemma subsingleton_of_monic_zero (h : monic (0 : polynomial R)) :
   (∀ p q : polynomial R, p = q) ∧ (∀ a b : R, a = b) :=
 by rw [monic.def, leading_coeff_zero] at h;
@@ -881,14 +908,10 @@ by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_right_of_degree
 end ring
 
 section nonzero_ring
-variables [nontrivial R] [ring R]
+variables [nontrivial R]
 
-@[simp] lemma degree_X_sub_C (a : R) : degree (X - C a) = 1 :=
-have degree (C a) < degree (X : polynomial R),
-from calc degree (C a) ≤ 0 : degree_C_le
-                   ... < 1 : with_bot.some_lt_some.mpr zero_lt_one
-                   ... = degree X : degree_X.symm,
-by rw [degree_sub_eq_left_of_degree_lt this, degree_X]
+section semiring
+variable [semiring R]
 
 @[simp] lemma degree_X_add_C (a : R) : degree (X + C a) = 1 :=
 have degree (C a) < degree (X : polynomial R),
@@ -897,25 +920,82 @@ from calc degree (C a) ≤ 0 : degree_C_le
                    ... = degree X : degree_X.symm,
 by rw [degree_add_eq_left_of_degree_lt this, degree_X]
 
-@[simp] lemma nat_degree_X_sub_C (x : R) : (X - C x).nat_degree = 1 :=
-nat_degree_eq_of_degree_eq_some $ degree_X_sub_C x
+@[simp] lemma nat_degree_X_add_C (x : R) : (X + C x).nat_degree = 1 :=
+nat_degree_eq_of_degree_eq_some $ degree_X_add_C x
 
 @[simp]
-lemma next_coeff_X_sub_C (c : R) : next_coeff (X - C c) = - c :=
-by simp [next_coeff_of_pos_nat_degree]
+lemma next_coeff_X_add_C [semiring S] (c : S) : next_coeff (X + C c) = c :=
+begin
+  nontriviality S,
+  simp [next_coeff_of_pos_nat_degree]
+end
 
-lemma degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
-  degree ((X : polynomial R) ^ n - C a) = n :=
+lemma degree_X_pow_add_C {n : ℕ} (hn : 0 < n) (a : R) :
+  degree ((X : polynomial R) ^ n + C a) = n :=
 have degree (C a) < degree ((X : polynomial R) ^ n),
   from calc degree (C a) ≤ 0 : degree_C_le
   ... < degree ((X : polynomial R) ^ n) : by rwa [degree_X_pow];
     exact with_bot.coe_lt_coe.2 hn,
-by rw [degree_sub_eq_left_of_degree_lt this, degree_X_pow]
+by rw [degree_add_eq_left_of_degree_lt this, degree_X_pow]
+
+lemma X_pow_add_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :
+  (X : polynomial R) ^ n + C a ≠ 0 :=
+mt degree_eq_bot.2 (show degree ((X : polynomial R) ^ n + C a) ≠ ⊥,
+  by rw degree_X_pow_add_C hn a; exact dec_trivial)
+
+theorem X_add_C_ne_zero (r : R) : X + C r ≠ 0 :=
+pow_one (X : polynomial R) ▸ X_pow_add_C_ne_zero zero_lt_one r
+
+theorem zero_nmem_multiset_map_X_add_C {α : Type*} (m : multiset α) (f : α → R) :
+  (0 : polynomial R) ∉ m.map (λ a, X + C (f a)) :=
+λ mem, let ⟨a, _, ha⟩ := multiset.mem_map.mp mem in X_add_C_ne_zero _ ha
+
+lemma nat_degree_X_pow_add_C {n : ℕ} {r : R} :
+  (X ^ n + C r).nat_degree = n :=
+begin
+  by_cases hn : n = 0,
+  { rw [hn, pow_zero, ←C_1, ←ring_hom.map_add, nat_degree_C] },
+  { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_add_C (pos_iff_ne_zero.mpr hn) r) },
+end
+
+@[simp] lemma leading_coeff_X_pow_add_C {n : ℕ} (hn : 0 < n) {r : R} :
+  (X ^ n + C r).leading_coeff = 1 :=
+by rw [leading_coeff, nat_degree_X_pow_add_C, coeff_add, coeff_X_pow_self,
+  coeff_C, if_neg (pos_iff_ne_zero.mp hn), add_zero]
+
+@[simp] lemma leading_coeff_X_add_C [semiring S] (r : S) :
+  (X + C r).leading_coeff = 1 :=
+begin
+  nontriviality,
+  rw [←pow_one (X : polynomial S), leading_coeff_X_pow_add_C zero_lt_one],
+  apply_instance
+end
+
+@[simp] lemma leading_coeff_X_pow_add_one {n : ℕ} (hn : 0 < n) :
+  (X ^ n + 1 : polynomial R).leading_coeff = 1 :=
+leading_coeff_X_pow_add_C hn
+
+end semiring
+
+variables [ring R]
+
+@[simp] lemma degree_X_sub_C (a : R) : degree (X - C a) = 1 :=
+by rw [sub_eq_add_neg, ←map_neg C a, degree_X_add_C]
+
+@[simp] lemma nat_degree_X_sub_C (x : R) : (X - C x).nat_degree = 1 :=
+nat_degree_eq_of_degree_eq_some $ degree_X_sub_C x
+
+@[simp]
+lemma next_coeff_X_sub_C [ring S] (c : S) : next_coeff (X - C c) = - c :=
+by rw [sub_eq_add_neg, ←map_neg C c, next_coeff_X_add_C]
+
+lemma degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
+  degree ((X : polynomial R) ^ n - C a) = n :=
+by rw [sub_eq_add_neg, ←map_neg C a, degree_X_pow_add_C hn]; apply_instance
 
 lemma X_pow_sub_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :
   (X : polynomial R) ^ n - C a ≠ 0 :=
-mt degree_eq_bot.2 (show degree ((X : polynomial R) ^ n - C a) ≠ ⊥,
-  by rw degree_X_pow_sub_C hn a; exact dec_trivial)
+by { rw [sub_eq_add_neg, ←map_neg C a], exact X_pow_add_C_ne_zero hn _ }
 
 theorem X_sub_C_ne_zero (r : R) : X - C r ≠ 0 :=
 pow_one (X : polynomial R) ▸ X_pow_sub_C_ne_zero zero_lt_one r
@@ -926,16 +1006,15 @@ theorem zero_nmem_multiset_map_X_sub_C {α : Type*} (m : multiset α) (f : α �
 
 lemma nat_degree_X_pow_sub_C {n : ℕ} {r : R} :
   (X ^ n - C r).nat_degree = n :=
-begin
-  by_cases hn : n = 0,
-  { rw [hn, pow_zero, ←C_1, ←ring_hom.map_sub, nat_degree_C] },
-  { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_sub_C (pos_iff_ne_zero.mpr hn) r) },
-end
+by rw [sub_eq_add_neg, ←map_neg C r, nat_degree_X_pow_add_C]
 
 @[simp] lemma leading_coeff_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
   (X ^ n - C r).leading_coeff = 1 :=
-by rw [leading_coeff, nat_degree_X_pow_sub_C, coeff_sub, coeff_X_pow_self,
-  coeff_C, if_neg (pos_iff_ne_zero.mp hn), sub_zero]
+by rw [sub_eq_add_neg, ←map_neg C r, leading_coeff_X_pow_add_C hn]; apply_instance
+
+@[simp] lemma leading_coeff_X_sub_C [ring S] (r : S) :
+  (X - C r).leading_coeff = 1 :=
+by rw [sub_eq_add_neg, ←map_neg C r, leading_coeff_X_add_C]
 
 @[simp] lemma leading_coeff_X_pow_sub_one {n : ℕ} (hn : 0 < n) :
   (X ^ n - 1 : polynomial R).leading_coeff = 1 :=
@@ -968,7 +1047,7 @@ begin
       exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
 end
 
-@[simp] lemma leading_coeff_X_add_C [nontrivial R] (a b : R) (ha : a ≠ 0):
+@[simp] lemma leading_coeff_C_mul_X_add_C [nontrivial R] (a b : R) (ha : a ≠ 0):
   leading_coeff (C a * X + C b) = a :=
 begin
   rw [add_comm, leading_coeff_add_of_degree_lt],

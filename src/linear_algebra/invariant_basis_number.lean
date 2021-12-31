@@ -236,7 +236,7 @@ variables {R : Type u} [comm_ring R] (I : ideal R) {ι : Type v} [fintype ι] {�
 
 /-- An `R`-linear map `R^n → R^m` induces a function `R^n/I^n → R^m/I^m`. -/
 private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
-  (I.pi ι).quotient → (I.pi ι').quotient :=
+  (ι → R) ⧸ (I.pi ι) → (ι' → R) ⧸ I.pi ι' :=
 λ x, quotient.lift_on' x (λ y, ideal.quotient.mk _ (e y))
 begin
   refine λ a b hab, ideal.quotient.eq.2 (λ h, _),
@@ -247,7 +247,7 @@ end
 /-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism of `R/I`-modules
     `R^n/I^n ≃ R^m/I^m`. -/
 private def induced_equiv [fintype ι'] (I : ideal R) (e : (ι → R) ≃ₗ[R] (ι' → R)) :
-  (I.pi ι).quotient ≃ₗ[I.quotient] (I.pi ι').quotient :=
+  ((ι → R) ⧸ I.pi ι) ≃ₗ[R ⧸ I] (ι' → R) ⧸ I.pi ι' :=
 begin
   refine { to_fun := induced_map I e, inv_fun := induced_map I e.symm, .. },
   all_goals { rintro ⟨a⟩ ⟨b⟩ <|> rintro ⟨a⟩,
@@ -273,7 +273,7 @@ local attribute [instance] ideal.quotient.field
 instance invariant_basis_number_of_nontrivial_of_comm_ring {R : Type u} [comm_ring R]
   [nontrivial R] : invariant_basis_number R :=
 ⟨λ n m e, let ⟨I, hI⟩ := ideal.exists_maximal R in
-  by exactI eq_of_fin_equiv I.quotient
+  by exactI eq_of_fin_equiv (R ⧸ I)
     ((ideal.pi_quot_equiv _ _).symm ≪≫ₗ ((induced_equiv _ e) ≪≫ₗ (ideal.pi_quot_equiv _ _)))⟩
 
 end

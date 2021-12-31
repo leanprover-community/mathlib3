@@ -112,12 +112,11 @@ end
 
 /-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,
 we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
-lemma multiplicative_factorization {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β)
-  (hn : 0 < n) (h_mult : ∀ x y : ℕ, coprime x y → f(x * y) = f x * f y) (hf : f 1 = 1) :
-f n = n.factorization.prod (λ p k, f(p ^ k)) :=
+lemma multiplicative_factorization {β : Type*} [comm_monoid β] (f : ℕ → β)
+  (h_mult : ∀ x y : ℕ, coprime x y → f(x * y) = f x * f y) (hf : f 1 = 1) :
+∀ {n : ℕ}, (0 < n) → f n = n.factorization.prod (λ p k, f(p ^ k)) :=
 begin
-  apply @nat.rec_on_pos_prime_coprime
-    (λ n, (0 < n) → (f n = n.factorization.prod (λ p k, f(p ^ k)))),
+  apply' nat.rec_on_pos_prime_coprime,
   { intros p k hp hk hpk, simp [prime.factorization_pow hp, finsupp.prod_single_index _, hf] },
   { simp },
   { rintros -, rw [factorization_one, hf], simp },
@@ -128,10 +127,9 @@ begin
         factorization_mul_of_coprime hab,
         ←prod_add_index_of_disjoint],
     convert (factorization_disjoint_of_coprime hab) },
-  exact hn,
 end
 
 @[simp] lemma factorization_prod_pow_eq_self (n : ℕ) (hn : 0 < n) : n.factorization.prod pow = n :=
-(multiplicative_factorization id hn (by simp) (by simp)).symm
+by simpa only using (multiplicative_factorization id (by simp) (by simp) hn).symm
 
 end nat

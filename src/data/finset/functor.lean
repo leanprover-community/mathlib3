@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Scott Morrison. All rights reserved.
+Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Scott Morrison
 -/
@@ -9,47 +9,20 @@ import data.multiset.functor
 /-!
 # Functoriality of `finset`
 
+This file defines the functor structure of `finset`.
+
 ## TODO
 
-Currently, all instances are classical because
-
+Currently, all instances are classical because the functor classes want to run over all types. If
+instead we could state that a functor is lawful/applicative/traversable... between two given types,
+then we could provide the instances for types with decidable equality.
 -/
 
-universes u v w
+universes u
 
-open function list
+open function
 
 namespace finset
-section to_move
-variables {α β : Type*}
-
-@[simp] lemma mem_image_const [decidable_eq α] {s : finset β} {a b : α} :
-  a ∈ s.image (const β b) ↔ s.nonempty ∧ b = a :=
-begin
-  rw mem_image,
-  simp only [exists_prop, const_apply, exists_and_distrib_right],
-  refl,
-end
-
-lemma mem_image_const_self [decidable_eq α] {s : finset β} {a : α} :
-  a ∈ s.image (const β a) ↔ s.nonempty :=
-mem_image_const.trans $ and_iff_left rfl
-
-@[simp] lemma sup_bot [semilattice_sup α] [order_bot α] (s : finset β) : s.sup (λ _, ⊥) = (⊥ : α) :=
-begin
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { exact sup_empty },
-  { exact sup_const hs _ }
-end
-
-@[simp] lemma inf_top [semilattice_inf α] [order_top α] (s : finset β) : s.inf (λ _, ⊤) = (⊤ : α) :=
-@sup_bot (order_dual α) _ _ _ _
-
-@[simp] lemma sup_singleton'' [decidable_eq α] (s : finset β) (f : β → α) :
-  s.sup (λ b, {f b}) = s.image f :=
-by { ext a, rw [mem_sup, mem_image], simp only [mem_singleton, eq_comm] }
-
-end to_move
 
 /-! ### Functor -/
 
@@ -179,60 +152,28 @@ end alternative
 /-! ### Traversable functor -/
 
 section traversable
-variables
-
-variables {α β γ : Type u} [Π P, decidable P] {F G H : Type u → Type u}
-  [applicative F] [applicative G] [applicative H] [is_comm_applicative F] [is_comm_applicative G]
-  [is_comm_applicative H]
-
-open is_lawful_traversable is_comm_applicative
+variables {α β γ : Type u} {F G : Type u → Type u} [applicative F] [applicative G]
+  [is_comm_applicative F] [is_comm_applicative G]
 
 /-- Traverse function for `finset`. -/
-def traverse (f : α → F β) (s :  finset α) : F (finset β) :=
+def traverse [decidable_eq β] (f : α → F β) (s :  finset α) : F (finset β) :=
 multiset.to_finset <$> multiset.traverse f s.1
 
-open functor
-open traversable is_lawful_traversable
+@[simp] lemma id_traverse [decidable_eq α] (s : finset α) : traverse id.mk s = s :=
+by { rw [traverse, multiset.id_traverse], exact s.val_to_finset }
+
+open_locale classical
 
 @[simp] lemma map_comp_coe (h : α → β) :
   functor.map h ∘ multiset.to_finset = multiset.to_finset ∘ functor.map h :=
 funext $ λ s, image_to_finset
 
-@[simp] lemma id_traverse (s : finset α) : traverse id.mk s = s :=
-by { rw [traverse, multiset.id_traverse], exact s.val_to_finset }
-
-lemma comp_traverse (g : α → G β) (h : β → H γ) (s : finset α) :
-  traverse (comp.mk ∘ functor.map h ∘ g) s = comp.mk (functor.map (traverse h) (traverse g s)) :=
-begin
-  unfold traverse,
-  simp [multiset.comp_traverse] with functor_norm,
-  congr' 2,
-  ext m,
-  simp [traverse],
-  ext,
-end
-
 lemma map_traverse (g : α → G β) (h : β → γ) (s : finset α) :
-  functor.map (functor.map h) (traverse g s) = traverse (functor.map h ∘ g) s :=
+  functor.map h <$> traverse g s = traverse (functor.map h ∘ g) s :=
 begin
   unfold traverse,
   simp only [map_comp_coe] with functor_norm,
   rw [is_lawful_functor.comp_map, multiset.map_traverse],
-end
-
-lemma traverse_image (g : α → β) (h : β → G γ) (s : finset α) :
-  traverse h (image g s) = traverse (h ∘ g) s :=
-begin
-  simp [traverse];
-    rw [← multiset.traverse_map g h],
-
-
-end
-
-lemma naturality (eta : applicative_transformation G H) {α β : Type*} (f : α → G β) (s : finset α) :
-  eta (traverse f s) = traverse (@eta _ ∘ f) s :=
-begin
-
 end
 
 end traversable

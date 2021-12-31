@@ -1977,13 +1977,22 @@ def image (f : α → β) (s : finset α) : finset β := (s.1.map f).to_finset
 
 @[simp] theorem image_empty (f : α → β) : (∅ : finset α).image f = ∅ := rfl
 
-variables {f g : α → β} {s : finset α}
+variables {f g : α → β} {s : finset α} {a b : β}
 
-@[simp] theorem mem_image {b : β} : b ∈ s.image f ↔ ∃ a ∈ s, f a = b :=
+@[simp] lemma mem_image : b ∈ s.image f ↔ ∃ a ∈ s, f a = b :=
 by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
 
-theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
-mem_image.2 ⟨_, h, rfl⟩
+lemma mem_image_of_mem (f : α → β) {a} (h : a ∈ s) : f a ∈ s.image f := mem_image.2 ⟨_, h, rfl⟩
+
+@[simp] lemma mem_image_const : a ∈ s.image (const α b) ↔ s.nonempty ∧ b = a :=
+begin
+  rw mem_image,
+  simp only [exists_prop, const_apply, exists_and_distrib_right],
+  refl,
+end
+
+lemma mem_image_const_self : a ∈ s.image (const α a) ↔ s.nonempty :=
+mem_image_const.trans $ and_iff_left rfl
 
 instance [can_lift β α] : can_lift (finset β) (finset α) :=
 { cond := λ s, ∀ x ∈ s, can_lift.cond α x,

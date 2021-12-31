@@ -5,7 +5,8 @@ Authors: Shing Tak Lam
 -/
 import data.fintype.card
 import data.zmod.basic
-import group_theory.order_of_element
+import group_theory.exponent
+import data.int.parity
 
 /-!
 # Dihedral Groups
@@ -191,6 +192,27 @@ lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.
 begin
   conv_lhs { rw ←zmod.nat_cast_zmod_val i },
   rw [←r_one_pow, order_of_pow, order_of_r_one]
+end
+
+lemma exponent [fact (0 < n)] : monoid.exponent (dihedral_group n) = lcm n 2 :=
+begin
+  apply nat.dvd_antisymm,
+  { apply monoid.exponent_dvd_of_forall_pow_eq_one,
+    intro g,
+    cases g with m,
+    { rw [←order_of_dvd_iff_pow_eq_one, order_of_r],
+      apply nat.dvd_trans,
+      { show n / n.gcd m.val ∣ n,
+        use gcd n m.val,
+        exact (nat.div_mul_cancel (nat.gcd_dvd_left n (zmod.val m))).symm },
+      { exact dvd_lcm_left n 2 } },
+    { rw [←order_of_dvd_iff_pow_eq_one, order_of_sr],
+      exact dvd_lcm_right n 2 } },
+  { apply lcm_dvd,
+    { convert monoid.order_dvd_exponent (r 1),
+      exact order_of_r_one.symm },
+    { convert monoid.order_dvd_exponent (sr 0),
+      exact (order_of_sr 0).symm } }
 end
 
 end dihedral_group

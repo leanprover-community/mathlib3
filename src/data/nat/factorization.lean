@@ -111,7 +111,7 @@ begin
 end
 
 /-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,
-we can evaluate `f n` by evaluating `f` at `p ^ k` over the prime factorization of `n` -/
+we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
 lemma multiplicative_factorization {n : ℕ} {β : Type*} [comm_monoid β] {f : ℕ → β}
   (hn : 0 < n)
   (h_mult : ∀ x y : ℕ, coprime x y → f(x * y) = f x * f y)
@@ -139,7 +139,9 @@ begin
     rw ha (pos_of_mul_pos_right hab_pos (b.zero_le)),
     rw hb (pos_of_mul_pos_left hab_pos (a.zero_le)),
     rw factorization_mul_of_coprime hab,
-    apply disjoint_prod_add (factorization_disjoint_of_coprime hab) },
+    rw ←prod_add_index_of_disjoint,
+    convert (factorization_disjoint_of_coprime hab),
+      },
 
   exact hn,
 end

@@ -1327,6 +1327,92 @@ end
 -- TODO: `nodup s.permutations ↔ nodup s`
 -- TODO: `count s s.permutations = (zip_with count s s.tails).prod`
 
+example (x : α) (xs : list α) (h : (x :: xs).permutations.nodup) : xs.permutations.nodup :=
+begin
+  classical,
+  rw nodup_iff_count_le_one at h ⊢,
+  contrapose! h,
+  cases h with w hw,
+  use (x :: w),
+  suffices : count w xs.permutations ≤ count (x :: w) (x :: xs).permutations,
+  { exact gt_of_ge_of_gt this hw},
+
+  unfold permutations,
+  simp only [count_cons'],
+
+  suffices : count w (xs.permutations_aux nil) ≤ count (x :: w) ((x :: xs).permutations_aux nil),
+  { rw ←add_le_add_iff_right (ite (w = xs) 1 0) at this,
+    simp only [eq_self_iff_true, true_and, if_congr, and_congr],
+    convert this,
+  },
+
+
+
+
+  -- have := count_l
+
+
+  -- library_search,
+
+  -- library_search,
+  -- unfold nodup at *,
+  -- have := nodup.pairwise_of_forall_ne h,
+  -- have := nodup_cons,
+  -- have := permu
+  sorry,
+end
+
+
+
+example (s : list α) : nodup s.permutations → nodup s :=
+begin
+  -- have := perm.nodup_iff,
+  intros h,
+
+
+
+  induction s with x xs IH, { simp },
+
+
+  have hxs : xs.permutations.nodup, {
+
+    -- unfold nodup at h ⊢,
+    -- apply nodup_of_sublist _ h,
+    -- have := nodup_permutations'_aux_iff,
+
+
+    -- rw (permutations_perm_permutations' xs).nodup_iff,
+
+
+    -- have := permutations'
+    sorry },
+  have := IH hxs,
+  unfold nodup at ⊢, simp at ⊢,
+  split,
+  {
+    -- have := permutations_aux_cons x xs [],
+    -- unfold permutations at h,
+    -- rw this at h,
+    -- simp at h,
+    -- cases h,
+    unfold nodup at h,
+
+
+    rw ←nodup_permutations'_aux_iff,
+    rw (permutations_perm_permutations' _).nodup_iff at h,
+    unfold nodup at hxs ⊢ h,
+    -- unfold permutations' at h,
+    simp at h,
+
+    sorry},
+  { exact IH hxs },
+
+
+  -- unfold nodup at *,
+
+end
+
+
 end permutations
 
 end list

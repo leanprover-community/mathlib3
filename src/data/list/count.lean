@@ -165,10 +165,9 @@ lemma count_le_count_map [decidable_eq β] (l : list α) (f : α → β) (x : α
   count x l ≤ count (f x) (map f l) :=
 begin
   induction l with a as IH, { simp },
-  simp only [map_cons, count_cons'],
-  by_cases hxa : x = a,
-  { subst hxa, simp [succ_le_succ IH] },
-  { simp [hxa, le_add_right IH] },
+  rcases eq_or_ne x a with rfl | hxa,
+  { simp [succ_le_succ IH] },
+  { simp [hxa, le_add_right IH, count_cons'] }
 end
 
 @[simp] lemma count_erase_self (a : α) :

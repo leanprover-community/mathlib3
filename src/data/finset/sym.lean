@@ -111,7 +111,7 @@ begin
     exact ⟨a, h _ $ sym.mem_cons_self _ _,
       mem_image_of_mem _ $ ih.2 $ λ b hb, h _ $ sym.mem_cons_of_mem hb⟩ }
 end
-.
+
 @[simp] lemma sym_empty (n : ℕ) : (∅ : finset α).sym (n + 1) = ∅ := rfl
 
 lemma repeat_mem_sym (ha : a ∈ s) (n : ℕ) : sym.repeat a n ∈ s.sym n :=

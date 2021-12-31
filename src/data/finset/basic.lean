@@ -2545,7 +2545,7 @@ disjoint.mono (filter_subset _ _) (filter_subset _ _)
 
 lemma disjoint_filter_filter_neg (s : finset α) (p : α → Prop) [decidable_pred p] :
   disjoint (s.filter p) (s.filter $ λ a, ¬ p a) :=
-disjoint_filter.2 $ λ a _, not_not.2
+(disjoint_filter.2 $ λ a _, id).symm
 
 lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α] :
   disjoint a b ↔ disjoint (↑a : set α) (↑b : set α) :=

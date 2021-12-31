@@ -168,11 +168,11 @@ fintype.of_injective (embedding.coe_option.trans f.to_embedding) $
 injective.comp (equiv.to_embedding f).injective embedding.coe_option.injective
 
 lemma multichoose_eq (α : Type*) [hα : fintype α] (k : ℕ) [fintype (sym α k)] :
-  multichoose (fintype.card α) k = card (sym α k) :=
+  multichoose (card α) k = card (sym α k) :=
 begin
   classical,
   tactic.unfreeze_local_instances,
-  obtain ⟨n, hn⟩ : ∃ n, fintype.card α + k = n := ⟨_, rfl⟩,
+  obtain ⟨n, hn⟩ : ∃ n, card α + k = n := ⟨_, rfl⟩,
   induction n with n ih generalizing α k,
   { obtain ⟨hn, rfl⟩ := add_eq_zero_iff.mp hn,
     simp [multichoose, hn], },

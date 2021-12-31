@@ -491,8 +491,7 @@ lemma has_limits_of_size_shrink [has_limits_of_size.{(max v₁ v₂) (max u₁ u
 ⟨λ J hJ, by exactI has_limits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{v₂ u₂} J).symm⟩
 
-@[priority 100]
-instance has_smallest_limits_of_has_limits [has_limits C] :
+lemma has_smallest_limits_of_has_limits [has_limits C] :
   has_limits_of_size.{0 0} C := has_limits_of_size_shrink.{0 0} C
 
 end limit
@@ -537,9 +536,9 @@ class has_colimits_of_size (C : Type u) [category.{v} C] : Prop :=
 -/
 abbreviation has_colimits (C : Type u) [category.{v} C] : Prop := has_colimits_of_size.{v v} C
 
-lemma has_colimits.has_limits_of_shape {C : Type u} [category.{v} C] [has_limits C]
+lemma has_colimits.has_colimits_of_shape {C : Type u} [category.{v} C] [has_colimits C]
   (J : Type v) [category.{v} J] :
-  has_limits_of_shape J C := has_limits_of_size.has_limits_of_shape J
+  has_colimits_of_shape J C := has_colimits_of_size.has_colimits_of_shape J
 
 variables {J C}
 
@@ -785,7 +784,7 @@ colimit.desc (E ⋙ F) ((colimit.cocone F).whisker E)
   colimit.ι (E ⋙ F) k ≫ colimit.pre F E = colimit.ι F (E.obj k) :=
 by { erw is_colimit.fac, refl, }
 
-@[simp] lemma colimit.pre_desc (c : cocone F) :
+@[simp, reassoc] lemma colimit.pre_desc (c : cocone F) :
   colimit.pre F E ≫ colimit.desc F c = colimit.desc (E ⋙ F) (c.whisker E) :=
 by ext; rw [←assoc, colimit.ι_pre]; simp
 
@@ -958,8 +957,7 @@ lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u�
 ⟨λ J hJ, by exactI has_colimits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{v₂ u₂} J).symm⟩
 
-@[priority 100]
-instance has_smallest_colimits_of_has_colimits [has_colimits C] :
+lemma has_smallest_colimits_of_has_colimits [has_colimits C] :
   has_colimits_of_size.{0 0} C := has_colimits_of_size_shrink.{0 0} C
 
 end colimit

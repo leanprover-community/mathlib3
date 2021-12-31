@@ -254,6 +254,11 @@ instance {δ : Type*} [monoid γ] [monoid δ]
   is_scalar_tower γ δ (Π₀ i, β i) :=
 { smul_assoc := λ r s m, ext $ λ i, by simp only [smul_apply, smul_assoc r s (m i)] }
 
+instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
+  [Π i, distrib_mul_action γᵐᵒᵖ (β i)] [∀ i, is_central_scalar γ (β i)] :
+  is_central_scalar γ (Π₀ i, β i) :=
+{ op_smul_eq_smul := λ r m, ext $ λ i, by simp only [smul_apply, op_smul_eq_smul r (m i)] }
+
 /-- Dependent functions with finite support inherit a `distrib_mul_action` structure from such a
 structure on each coordinate. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
@@ -747,17 +752,6 @@ begin
   apply multiset.induction_on s,
   { intros f H, convert h0, ext i, exact (H i).resolve_left id },
   intros i s ih f H,
-  by_cases H1 : i ∈ s,
-  { have H2 : ∀ j, j ∈ s ∨ f j = 0,
-    { intro j, cases H j with H2 H2,
-      { cases multiset.mem_cons.1 H2 with H3 H3,
-        { left, rw H3, exact H1 },
-        { left, exact H3 } },
-      right, exact H2 },
-    have H3 : (⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧ : Π₀ i, β i)
-      = ⟦{to_fun := f, pre_support := s, zero := H2}⟧,
-    { exact quotient.sound (λ i, rfl) },
-    rw H3, apply ih },
   have H2 : p (erase i ⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧),
   { dsimp only [erase, quotient.map_mk],
     have H2 : ∀ j, j ∈ s ∨ ite (j = i) 0 (f j) = 0,
@@ -974,7 +968,7 @@ by { ext j, by_cases h1 : j = i; by_cases h2 : f j ≠ 0; simp at h2; simp [h1, 
 
 @[simp] lemma support_erase (i : ι) (f : Π₀ i, β i) :
   (f.erase i).support = f.support.erase i :=
-by { ext j, by_cases h1 : j = i; by_cases h2 : f j ≠ 0; simp at h2; simp [h1, h2] }
+by { ext j, by_cases h1 : j = i, simp [h1], by_cases h2 : f j ≠ 0; simp at h2; simp [h1, h2] }
 
 lemma support_update_ne_zero (f : Π₀ i, β i) (i : ι) {b : β i} [decidable (b = 0)] (h : b ≠ 0) :
   support (f.update i b) = insert i f.support :=
@@ -1009,13 +1003,12 @@ by ext i; by_cases h : p i; simp [h]
 
 lemma subtype_domain_def (f : Π₀ i, β i) :
   f.subtype_domain p = mk (f.support.subtype p) (λ i, f i) :=
-by ext i; by_cases h1 : p i; by_cases h2 : f i ≠ 0;
-try {simp at h2}; dsimp; simp [h1, h2, ← subtype.val_eq_coe]
+by { ext i; by_cases h2 : f i ≠ 0; try {simp at h2};
+  dsimp; simp [h2, ← subtype.val_eq_coe], }
 
 @[simp] lemma support_subtype_domain {f : Π₀ i, β i} :
   (subtype_domain p f).support = f.support.subtype p :=
-by ext i; by_cases h1 : p i; by_cases h2 : f i ≠ 0;
-try {simp at h2}; dsimp; simp [h1, h2]
+by { ext i, simp, }
 
 end filter_and_subtype_domain
 

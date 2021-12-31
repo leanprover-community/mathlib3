@@ -6,6 +6,7 @@ Authors: Chris Hughes, Yury Kudryashov
 import algebra.group.defs
 import algebra.group.hom
 import algebra.group.type_tags
+import algebra.opposites
 import logic.embedding
 
 /-!
@@ -27,6 +28,7 @@ interaction of different group actions,
 
 * `smul_comm_class M N α` and its additive version `vadd_comm_class M N α`;
 * `is_scalar_tower M N α` (no additive version).
+* `is_central_scalar M α` (no additive version).
 
 ## Notation
 
@@ -181,6 +183,18 @@ is_scalar_tower.smul_assoc x y z
 
 instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
 
+/-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
+equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
+for `•`. -/
+class is_central_scalar (M α : Type*) [has_scalar M α] [has_scalar Mᵐᵒᵖ α] : Prop :=
+(op_smul_eq_smul : ∀ (m : M) (a : α), mul_opposite.op m • a = m • a)
+
+lemma is_central_scalar.unop_smul_eq_smul {M α : Type*} [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
+  [is_central_scalar M α] (m : Mᵐᵒᵖ) (a : α) : (mul_opposite.unop m) • a = m • a :=
+mul_opposite.rec (by exact λ m, (is_central_scalar.op_smul_eq_smul _ _).symm) m
+
+export is_central_scalar (op_smul_eq_smul unop_smul_eq_smul)
+
 namespace has_scalar
 variables [has_scalar M α]
 
@@ -269,6 +283,20 @@ protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (
 { smul := (•),
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
   mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
+
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
+
+See also `function.surjective.distrib_mul_action_left` and `function.surjective.module_left`.
+-/
+@[reducible, to_additive "Push forward the action of `R` on `M` along a compatible
+surjective map `f : R →+ S`."]
+def function.surjective.mul_action_left {R S M : Type*} [monoid R] [mul_action R M]
+  [monoid S] [has_scalar S M]
+  (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  mul_action S M :=
+{ smul := (•),
+  one_smul := λ b, by rw [← f.map_one, hsmul, one_smul],
+  mul_smul := hf.forall₂.mpr $ λ a b x, by simp only [← f.map_mul, hsmul, mul_smul] }
 
 section
 
@@ -419,6 +447,20 @@ protected def function.surjective.distrib_mul_action [add_monoid B] [has_scalar 
     simp only [smul_add, ← smul, ← f.map_add] },
   smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
   .. hf.mul_action f smul }
+
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
+
+See also `function.surjective.mul_action_left` and `function.surjective.module_left`.
+-/
+@[reducible]
+def function.surjective.distrib_mul_action_left {R S M : Type*} [monoid R] [add_monoid M]
+  [distrib_mul_action R M] [monoid S] [has_scalar S M]
+  (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  distrib_mul_action S M :=
+{ smul := (•),
+  smul_zero := hf.forall.mpr $ λ c, by rw [hsmul, smul_zero],
+  smul_add := hf.forall.mpr $ λ c x y, by simp only [hsmul, smul_add],
+  .. hf.mul_action_left f hsmul }
 
 variable (A)
 

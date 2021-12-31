@@ -217,7 +217,7 @@ lemma mem_jacobson_bot {x : R} : x ∈ jacobson (⊥ : ideal R) ↔ ∀ y, is_un
 /-- An ideal `I` of `R` is equal to its Jacobson radical if and only if
 the Jacobson radical of the quotient ring `R/I` is the zero ideal -/
 theorem jacobson_eq_iff_jacobson_quotient_eq_bot :
-  I.jacobson = I ↔ jacobson (⊥ : ideal (I.quotient)) = ⊥ :=
+  I.jacobson = I ↔ jacobson (⊥ : ideal (R ⧸ I)) = ⊥ :=
 begin
   have hf : function.surjective (quotient.mk I) := submodule.quotient.mk_surjective I,
   split,
@@ -234,7 +234,7 @@ end
 /-- The standard radical and Jacobson radical of an ideal `I` of `R` are equal if and only if
 the nilradical and Jacobson radical of the quotient ring `R/I` coincide -/
 theorem radical_eq_jacobson_iff_radical_quotient_eq_jacobson_bot :
-  I.radical = I.jacobson ↔ radical (⊥ : ideal (I.quotient)) = jacobson ⊥ :=
+  I.radical = I.jacobson ↔ radical (⊥ : ideal (R ⧸ I)) = jacobson ⊥ :=
 begin
   have hf : function.surjective (quotient.mk I) := submodule.quotient.mk_surjective I,
   split,
@@ -272,14 +272,14 @@ begin
   refine le_Inf (λ J, exists_imp_distrib.2 (λ j hj, _)),
   haveI : j.is_maximal := hj.1,
   refine trans (jacobson_mono bot_le) (le_of_eq _ : J.jacobson ≤ J),
-  suffices : (⊥ : ideal (polynomial j.quotient)).jacobson = ⊥,
+  suffices : (⊥ : ideal (polynomial (R ⧸ j))).jacobson = ⊥,
   { rw [← hj.2, jacobson_eq_iff_jacobson_quotient_eq_bot],
     replace this :=
     congr_arg (map (polynomial_quotient_equiv_quotient_polynomial j).to_ring_hom) this,
     rwa [map_jacobson_of_bijective _, map_bot] at this,
     exact (ring_equiv.bijective (polynomial_quotient_equiv_quotient_polynomial j)) },
   refine eq_bot_iff.2 (λ f hf, _),
-  simpa [(λ hX, by simpa using congr_arg (λ f, coeff f 1) hX : (X : polynomial j.quotient) ≠ 0)]
+  simpa [(λ hX, by simpa using congr_arg (λ f, coeff f 1) hX : (X : polynomial (R ⧸ j)) ≠ 0)]
     using eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit ((mem_jacobson_bot.1 hf) X)),
 end
 

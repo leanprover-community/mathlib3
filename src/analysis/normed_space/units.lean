@@ -70,7 +70,7 @@ begin
   nontriviality R,
   apply metric.is_open_iff.mpr,
   rintros x' ⟨x, rfl⟩,
-  refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
+  refine ⟨∥(↑x⁻¹ : R)∥⁻¹, _root_.inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
   intros y hy,
   rw [metric.mem_ball, dist_eq_norm] at hy,
   exact (x.unit_of_nearby y hy).is_unit
@@ -175,7 +175,6 @@ end
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
 lemma inverse_add_norm (x : units R) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
-  nontriviality R,
   simp only [is_O_iff, norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
   use C * ∥((x⁻¹:units R):R)∥,

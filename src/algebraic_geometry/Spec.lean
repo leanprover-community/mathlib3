@@ -103,7 +103,7 @@ end
 lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.SheafedSpace_map (f ≫ g) = Spec.SheafedSpace_map g ≫ Spec.SheafedSpace_map f :=
 PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ λ U,
-by { dsimp, rw category.comp_id, erw comap_comp f g, refl }
+by { dsimp, rw category_theory.functor.map_id, rw category.comp_id, erw comap_comp f g, refl }
 
 /--
 Spec, as a contravariant functor from commutative rings to sheafed spaces.
@@ -225,5 +225,22 @@ by { ext, symmetry, apply localization.local_ring_hom_to_map }
 iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
 
 end Spec_Γ
+
+/-- The stalk map of `Spec M⁻¹R ⟶ Spec R` is an iso for each `p : Spec M⁻¹R`. -/
+lemma Spec_map_localization_is_iso (R : CommRing) (M : submonoid R)
+  (x : prime_spectrum (localization M)) :
+  is_iso (PresheafedSpace.stalk_map (Spec.to_PresheafedSpace.map
+    (CommRing.of_hom (algebra_map R (localization M))).op) x) :=
+begin
+  erw ← local_ring_hom_comp_stalk_iso,
+  apply_with is_iso.comp_is_iso { instances := ff },
+  apply_instance,
+  apply_with is_iso.comp_is_iso { instances := ff },
+  /- I do not know why this is defeq to the goal, but I'm happy to accept that it is. -/
+  exact (show is_iso (is_localization.localization_localization_at_prime_iso_localization
+    M x.as_ideal).to_ring_equiv.to_CommRing_iso.hom, by apply_instance),
+  apply_instance
+end
+
 
 end algebraic_geometry

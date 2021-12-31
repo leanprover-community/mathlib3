@@ -73,7 +73,7 @@ variables (R K)
 /-- The ideal class group of `R` in a field of fractions `K`
 is the group of invertible fractional ideals modulo the principal ideals. -/
 @[derive(comm_group)]
-def class_group := quotient_group.quotient (to_principal_ideal R K).range
+def class_group := units (fractional_ideal R⁰ K) ⧸ (to_principal_ideal R K).range
 
 instance : inhabited (class_group R K) := ⟨1⟩
 

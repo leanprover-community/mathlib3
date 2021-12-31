@@ -104,8 +104,8 @@ def continuous_linear_map_of_tendsto [complete_space E] [t2_space F]
   (g : ℕ → E →SL[σ₁₂] F) {f : E → F} (h : tendsto (λ n x, g n x) at_top (𝓝 f)) :
   E →SL[σ₁₂] F :=
 { to_fun := f,
-  map_add' := (linear_map_of_tendsto _ h).map_add',
-  map_smul' := (linear_map_of_tendsto _ h).map_smul',
+  map_add' := (linear_map_of_tendsto _ _ h).map_add',
+  map_smul' := (linear_map_of_tendsto _ _ h).map_smul',
   cont :=
     begin
       /- show that the maps are pointwise bounded and apply `banach_steinhaus`-/
@@ -119,7 +119,7 @@ def continuous_linear_map_of_tendsto [complete_space E] [t2_space F]
       cases banach_steinhaus h_point_bdd with C' hC',
       /- show the uniform bound from `banach_steinhaus` is a norm bound of the limit map
          by allowing "an `ε` of room." -/
-      refine linear_map.continuous_of_bound (linear_map_of_tendsto _ h) C'
+      refine linear_map.continuous_of_bound (linear_map_of_tendsto _ _ h) C'
         (λ x, le_of_forall_pos_lt_add (λ ε ε_pos, _)),
       cases metric.tendsto_at_top.mp (tendsto_pi_nhds.mp h x) ε ε_pos with n hn,
       have lt_ε : ∥g n x - f x∥ < ε, by {rw ←dist_eq_norm, exact hn n (le_refl n)},

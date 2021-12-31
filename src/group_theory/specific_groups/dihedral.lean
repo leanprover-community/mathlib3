@@ -190,7 +190,7 @@ begin
     rintro (m | m),
     { rw [←order_of_dvd_iff_pow_eq_one, order_of_r],
       refine nat.dvd_trans ⟨gcd n m.val, _⟩ (dvd_lcm_left n 2),
-      { exact (nat.div_mul_cancel (nat.gcd_dvd_left n (zmod.val m))).symm } },
+      { exact (nat.div_mul_cancel (nat.gcd_dvd_left n m.val)).symm } },
     { rw [←order_of_dvd_iff_pow_eq_one, order_of_sr],
       exact dvd_lcm_right n 2 } },
   { apply lcm_dvd,

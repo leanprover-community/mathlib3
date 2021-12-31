@@ -31,9 +31,8 @@ operators on Hilbert spaces.
 
 -/
 
-variables {R : Type*}
+variables (R : Type*)
 
-variables (R)
 /-- The self-adjoint elements of a star additive group, as an additive subgroup. -/
 def self_adjoint [add_group R] [star_add_monoid R] : add_subgroup R :=
 { carrier := {x | star x = x},
@@ -51,7 +50,7 @@ variables [add_group R] [star_add_monoid R]
 lemma mem_iff {x : R} : x ∈ self_adjoint R ↔ star x = x :=
 by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 
-@[simp] lemma star_coe_eq {x : self_adjoint R} : star (x : R) = x := x.prop
+@[simp, norm_cast] lemma star_coe_eq {x : self_adjoint R} : star (x : R) = x := x.prop
 
 end add_group
 
@@ -64,7 +63,7 @@ variables [ring R] [star_ring R]
 
 instance : has_one (self_adjoint R) := ⟨⟨1, by rw [mem_iff, star_one]⟩⟩
 
-@[simp] lemma coe_one : (coe : self_adjoint R → R) (1 : self_adjoint R) = (1 : R) := rfl
+@[simp, norm_cast] lemma coe_one : (coe : self_adjoint R → R) (1 : self_adjoint R) = (1 : R) := rfl
 
 lemma one_mem : (1 : R) ∈ self_adjoint R := by simp only [mem_iff, star_one]
 
@@ -88,7 +87,7 @@ variables [comm_ring R] [star_ring R]
 instance : has_mul (self_adjoint R) :=
 ⟨λ x y, ⟨(x : R) * y, by simp only [mem_iff, star_mul', star_coe_eq]⟩⟩
 
-@[simp] lemma coe_mul (x y : self_adjoint R) :
+@[simp, norm_cast] lemma coe_mul (x y : self_adjoint R) :
   (coe : self_adjoint R → R) (x * y) = (x : R) * y := rfl
 
 instance : comm_ring (self_adjoint R) :=
@@ -115,7 +114,8 @@ instance : field (self_adjoint R) :=
   inv_zero := by { ext, exact inv_zero },
   ..self_adjoint.comm_ring }
 
-@[simp] lemma coe_inv (x : self_adjoint R) : (coe : self_adjoint R → R) (x⁻¹) = (x : R)⁻¹ := rfl
+@[simp, norm_cast] lemma coe_inv (x : self_adjoint R) :
+  (coe : self_adjoint R → R) (x⁻¹) = (x : R)⁻¹ := rfl
 
 end field
 

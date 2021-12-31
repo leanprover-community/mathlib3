@@ -225,34 +225,22 @@ begin
   { rw [filter_le_le_eq_Icc, card_Icc] }
 end
 
-lemma prod_filter_gt_mul_neg_eq_prod_off_diag {R : Type*} [comm_ring R] {n : ℕ}
-  {f : fin n → fin n → R} (hf : ∀ i j, f j i = - f i j) :
+lemma prod_filter_gt_mul_neg_eq_prod_off_diag {R : Type*} [comm_monoid R] {n : ℕ}
+  {f : fin n → fin n → R} :
   ∏ i, (∏ j in univ.filter (λ j, i < j), (f j i) * (f i j)) =
   ∏ i, (∏ j in univ.filter (λ j, i ≠ j), (f j i)) :=
 begin
-  simp_rw [ne_iff_lt_or_gt, or.comm, filter_or],
-  refine eq.trans _ (congr_arg (finset.prod _) (funext $ λ i, (prod_union _).symm)),
-  simp_rw [prod_mul_distrib],
-  { conv_rhs { congr, skip, congr, skip, funext,
-      conv { congr, skip, funext,
-        rw [hf, neg_eq_neg_one_mul] },
-      rw [prod_mul_distrib, prod_const] },
-    simp_rw [prod_mul_distrib],
-    rw [← mul_assoc],
-    congr,
-    conv_lhs { congr, skip, funext,
-      conv { congr, skip, funext,
-        rw [hf, neg_eq_neg_one_mul] },
-      rw [prod_mul_distrib, prod_const] },
-    simp_rw [prod_mul_distrib],
-    nth_rewrite 0 [mul_comm],
-    congr' 1,
-    rw [prod_sigma', prod_sigma'],
-    exact prod_bij' (λ i hi, ⟨i.2, i.1⟩) (by simp) (by simp) (λ i hi, ⟨i.2, i.1⟩)
-      (by simp) (by simp) (by simp) },
-  { rintro x hx,
-    obtain ⟨⟨_, hl⟩, ⟨_, hg⟩⟩ := (mem_inter.1 hx).imp mem_filter.1 mem_filter.1,
-    exact (lt_asymm hl hg).elim, },
+  simp_rw [ne_iff_lt_or_gt, or.comm, filter_or, prod_mul_distrib],
+  have : ∀ i : fin n, disjoint (filter (gt i) univ) (filter (has_lt.lt i) univ),
+  { simp_rw disjoint_filter,
+    intros i x y,
+    apply lt_asymm },
+  simp only [prod_union, this, prod_mul_distrib],
+  rw mul_comm,
+  congr' 1,
+  rw [prod_sigma', prod_sigma'],
+  exact prod_bij' (λ i hi, ⟨i.2, i.1⟩) (by simp) (by simp) (λ i hi, ⟨i.2, i.1⟩)
+                  (by simp) (by simp) (by simp)
 end
 
 end filter

@@ -107,7 +107,7 @@ namespace path.homotopic
 local attribute [instance] path.homotopic.setoid
 
 variables {ι : Type*} {X : ι → Type*} [∀ i, topological_space (X i)]
-          {as bs : Π i, X i}
+          {as bs cs : Π i, X i}
 def pi_homotopy
   (paths₀ paths₁ : Π i, path (as i) (bs i))
   (homotopies : ∀ i, path.homotopy (paths₀ i) (paths₁ i)) :
@@ -122,5 +122,22 @@ def pi (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
 lemma pi_lift (paths : Π i, path (as i) (bs i)) :
   path.homotopic.pi (λ i, ⟦paths i⟧) = ⟦path.pi paths⟧ :=
 by { unfold pi, simp, }
+
+
+local notation p₁ ` ⬝ ` p₂ := p₁.comp p₂
+lemma comp_pi_eq_pi_comp (paths₀ : Π i, path.homotopic.quotient (as i) (bs i))
+                         (paths₁ : Π i, path.homotopic.quotient (bs i) (cs i)) :
+                         ((pi paths₀) ⬝ (pi paths₁)) = pi (λ i, (paths₀ i) ⬝ (paths₁ i)) :=
+begin
+
+  apply quotient.induction_on_pi paths₁,
+  apply quotient.induction_on_pi paths₀,
+  intros path₀_rep path₁_rep,
+  simp only [pi_lift],
+  rw [← path.homotopic.comp_lift,
+      path.trans_pi_eq_pi_trans,
+      ← pi_lift],
+  refl,
+end
 
 end path.homotopic

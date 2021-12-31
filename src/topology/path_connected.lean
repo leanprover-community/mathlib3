@@ -372,7 +372,7 @@ begin
     simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
 
-/-! #### Product of two paths -/
+/-! #### Product of paths -/
 
 /-- Given a path in `X` and a path in `Y`, we can take their pointwise product to get a path in
 `X × Y`. -/
@@ -382,13 +382,31 @@ protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ�
   source' := by simp,
   target' := by simp, }
 
-protected def pi {ι : Type*} {X : ι → Type*} [∀ i, topological_space (X i)]
-                  {as bs : Π i, X i} (paths : Π i, path (as i) (bs i)) :
+section
+variables {χ : ι → Type*} [∀ i, topological_space (χ i)]
+          {as bs cs : Π i, χ i}
+protected def pi (paths : Π i, path (as i) (bs i)) :
                   path as bs :=
 { to_continuous_map := continuous_map.pi (λ i, (paths i).to_continuous_map),
   source' := by simp,
   target' := by simp, }
 
+@[simp] lemma pi_coe_fn {ι : Type*} {X : ι → Type*} [∀ i, topological_space (X i)]
+                      {as bs : Π i, X i}
+                      (paths : Π i, path (as i) (bs i)) :
+  (coe_fn (path.pi paths)) = λ t i, paths i t := rfl
+
+lemma trans_pi_eq_pi_trans (paths₀ : Π i, path (as i) (bs i))
+                           (paths₁ : Π i, path (bs i) (cs i)) :
+  ((path.pi paths₀).trans (path.pi paths₁)) = path.pi (λ i, (paths₀ i).trans (paths₁ i)) :=
+begin
+  ext t i,
+  unfold path.trans,
+  simp only [path.coe_mk, function.comp_app, pi_coe_fn],
+  split_ifs; refl,
+end
+
+end
 /-! #### Pointwise multiplication/addition of two paths in a topological (additive) group -/
 
 /-- Pointwise multiplication of paths in a topological group. The additive version is probably more

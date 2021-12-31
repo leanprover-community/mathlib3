@@ -451,7 +451,7 @@ lemma ideal.homogeneous_core.gc :
     apply ideal.homogeneous_core_le_ideal,
   end⟩
 
-lemma ideal.homogeneous_hull.gi :
+def ideal.homogeneous_hull.gi :
   galois_insertion
     (λ I, ⟨ideal.homogeneous_hull A I, ideal.is_homogeneous.homogeneous_hull A I⟩ :
       ideal R → homogeneous_ideal A)
@@ -468,7 +468,7 @@ lemma ideal.homogeneous_hull.gi :
     refine le_antisymm _ H, apply ideal.ideal_le_homogeneous_hull,
   end }
 
-lemma ideal.homogeneous_core.gi :
+def ideal.homogeneous_core.gi :
   galois_coinsertion
     (λ I, I.1 : homogeneous_ideal A → ideal R)
     (λ I, ⟨ideal.homogeneous_core A I, ideal.is_homogeneous.homogeneous_core A I⟩ :

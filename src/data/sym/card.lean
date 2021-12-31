@@ -172,7 +172,7 @@ lemma multichoose_eq (α : Type*) [hα : fintype α] (k : ℕ) [fintype (sym α 
 begin
   classical,
   tactic.unfreeze_local_instances,
-  obtain ⟨n, hn⟩ : ∃ n, card α + k = n := ⟨_, rfl⟩,
+  generalize hn : card α + k = n,
   induction n with n ih generalizing α k,
   { obtain ⟨hn, rfl⟩ := add_eq_zero_iff.mp hn,
     simp [multichoose, hn], },

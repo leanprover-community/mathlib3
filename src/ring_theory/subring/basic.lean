@@ -886,6 +886,8 @@ def of_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g f
   {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.range) :
   (of_left_inverse h).symm x = g x := rfl
 
+/-- Given an equivalence `e : A ≃+* B` of rings and a subring `R` of `A`,
+`subring_equiv_map e R` is the induced equivalence between `R` and `R.map e` -/
 def subring_equiv_map {A B : Type*} [ring A]
   [ring B] (e : A ≃+* B) (R : subring A) :
   R ≃+* R.map e.to_ring_hom :=

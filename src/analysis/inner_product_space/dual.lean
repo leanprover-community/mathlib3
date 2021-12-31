@@ -132,6 +132,7 @@ begin
   nth_rewrite_rhs 0 [←inner_conj_sym],
   exact congr_arg conj (h v)
 end
+
 lemma ext_inner_right {x y : E} (h : ∀ v, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
 begin
   refine ext_inner_left 𝕜 (λ v, _),

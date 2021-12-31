@@ -215,7 +215,7 @@ def top : subgraph G :=
 /-- The `bot` subgraph is the subgraph with no vertices or edges. -/
 def bot : subgraph G :=
 { verts := ∅,
-  adj := λ v w, false,
+  adj := ⊥,
   adj_sub := λ v w h, false.rec _ h,
   edge_vert := λ v w h, false.rec _ h,
   symm := λ u v h, h }
@@ -262,8 +262,27 @@ instance : bounded_order (subgraph G) :=
 
 @[simp] lemma not_bot_adj {v w : V} : ¬(⊥ : subgraph G).adj v w := not_false
 
+@[simp] lemma inf_adj {H₁ H₂ : subgraph G} {v w : V} :
+  (H₁ ⊓ H₂).adj v w ↔ H₁.adj v w ∧ H₂.adj v w := iff.rfl
+
+@[simp] lemma sup_adj {H₁ H₂ : subgraph G} {v w : V} :
+  (H₁ ⊔ H₂).adj v w ↔ H₁.adj v w ∨ H₂.adj v w := iff.rfl
+
+@[simp] lemma edge_set_top : (⊤ : subgraph G).edge_set = G.edge_set := rfl
+
+@[simp] lemma edge_set_bot : (⊥ : subgraph G).edge_set = ∅ :=
+set.ext $ sym2.ind (by simp)
+
+@[simp] lemma edge_set_inf {H₁ H₂ : subgraph G} : (H₁ ⊓ H₂).edge_set = H₁.edge_set ∩ H₂.edge_set :=
+set.ext $ sym2.ind (by simp)
+
+@[simp] lemma edge_set_sup {H₁ H₂ : subgraph G} : (H₁ ⊔ H₂).edge_set = H₁.edge_set ∪ H₂.edge_set :=
+set.ext $ sym2.ind (by simp)
+
 @[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
 by { ext, refl }
+
+@[simp] lemma spanning_coe_bot : (⊥ : subgraph G).spanning_coe = ⊥ := rfl
 
 /-- Turn a subgraph of a `simple_graph` into a member of its subgraph type. -/
 @[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) : G.subgraph :=
@@ -298,6 +317,13 @@ def bot_equiv : (⊥ : subgraph G).coe ≃g (⊥ : simple_graph empty) :=
   left_inv := λ ⟨_, h⟩, h.elim,
   right_inv := λ v, v.elim,
   map_rel_iff' := λ a b, iff.rfl }
+
+lemma edge_set_mono {H₁ H₂ : subgraph G} (h : H₁ ≤ H₂) : H₁.edge_set ≤ H₂.edge_set :=
+λ e, sym2.ind h.2 e
+
+lemma _root_.disjoint.edge_set {H₁ H₂ : subgraph G}
+  (h : disjoint H₁ H₂) : disjoint H₁.edge_set H₂.edge_set :=
+by simpa using edge_set_mono h
 
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
 the subgraphs as graphs. -/

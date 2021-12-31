@@ -3,12 +3,12 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+import algebra.associated
 import data.list.sort
 import data.nat.gcd
 import data.nat.sqrt
 import tactic.norm_num
 import tactic.wlog
-import algebra.associated
 
 /-!
 # Prime numbers
@@ -23,6 +23,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
 - `nat.exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
+* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
+* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 
 -/
 
@@ -35,6 +37,8 @@ namespace nat
   at least 2 whose only divisors are `p` and `1`. -/
 @[pp_nodot]
 def prime (p : ℕ) := _root_.irreducible p
+
+theorem _root_.irreducible_iff_nat_prime (a : ℕ) : irreducible a ↔ nat.prime a := iff.rfl
 
 theorem not_prime_zero : ¬ prime 0
 | h := h.ne_zero rfl
@@ -285,6 +289,9 @@ theorem prime_def_min_fac {p : ℕ} : prime p ↔ 2 ≤ p ∧ min_fac p = p :=
   ((dvd_prime pp).1 fd).resolve_left (ne_of_gt f2)⟩,
   λ ⟨p2, e⟩, e ▸ min_fac_prime (ne_of_gt p2)⟩
 
+@[simp] lemma prime.min_fac_eq {p : ℕ} (hp : prime p) : min_fac p = p :=
+(prime_def_min_fac.1 hp).2
+
 /--
 This instance is faster in the virtual machine than `decidable_prime_1`,
 but slower in the kernel.
@@ -525,6 +532,12 @@ theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
   (Hm : ¬ p ∣ m) (Hn : ¬ p ∣ n) : ¬ p ∣ m * n :=
 mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 
+theorem prime_iff {p : ℕ} : p.prime ↔ _root_.prime p :=
+⟨λ h, ⟨h.ne_zero, h.not_unit, λ a b, h.dvd_mul.mp⟩, prime.irreducible⟩
+
+theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p :=
+by rw [←prime_iff, prime]
+
 /-- Prime `p` divides the product of `L : list ℕ` iff it divides some `a ∈ L` -/
 lemma prime.dvd_prod_iff {p : ℕ} {L : list ℕ} (pp : p.prime) :
   p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
@@ -594,6 +607,19 @@ begin
   rw ←h at hp,
   rw [←h, hp.eq_one_of_pow, eq_self_iff_true, and_true, pow_one],
 end
+
+lemma pow_min_fac {n k : ℕ} (hk : k ≠ 0) : (n^k).min_fac = n.min_fac :=
+begin
+  rcases eq_or_ne n 1 with rfl | hn,
+  { simp },
+  have hnk : n ^ k ≠ 1 := λ hk', hn ((pow_eq_one_iff hk).1 hk'),
+  apply (min_fac_le_of_dvd (min_fac_prime hn).two_le ((min_fac_dvd n).pow hk)).antisymm,
+  apply min_fac_le_of_dvd (min_fac_prime hnk).two_le
+    ((min_fac_prime hnk).dvd_of_dvd_pow (min_fac_dvd _)),
+end
+
+lemma prime.pow_min_fac {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) : (p^k).min_fac = p :=
+by rw [pow_min_fac hk, hp.min_fac_eq]
 
 lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=

@@ -252,7 +252,7 @@ begin
   intros x' h,
   simp only [mem_closed_ball_zero_iff],
   refine continuous_linear_map.op_norm_le_of_ball hr (inv_nonneg.mpr hr.le) (λ z hz, _),
-  simpa only [one_div] using linear_map.bound_of_ball_bound hr 1 x'.to_linear_map h z
+  simpa only [one_div] using linear_map.bound_of_ball_bound' hr 1 x'.to_linear_map h z
 end
 
 /-- Given a neighborhood `s` of the origin in a normed space `E`, the dual norms

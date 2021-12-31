@@ -373,16 +373,33 @@ begin
 end
 
 /-! #### Product of paths -/
-
+section prod
+variables {a₁ a₂ a₃ : X} {b₁ b₂ b₃ : Y}
 /-- Given a path in `X` and a path in `Y`, we can take their pointwise product to get a path in
 `X × Y`. -/
-protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) :
-  path (a₁, a₂) (b₁, b₂) :=
+protected def prod (γ₁ : path a₁ a₂) (γ₂ : path b₁ b₂) :
+  path (a₁, b₁) (a₂, b₂) :=
 { to_continuous_map := continuous_map.prod_mk γ₁.to_continuous_map γ₂.to_continuous_map,
   source' := by simp,
   target' := by simp, }
 
-section
+@[simp] lemma prod_coe_fn (γ₁ : path a₁ a₂) (γ₂ : path b₁ b₂) :
+  (coe_fn (γ₁.prod γ₂)) = λ t, (γ₁ t, γ₂ t) := rfl
+
+/-- Path composition commutes with products -/
+lemma trans_prod_eq_prod_trans (γ₁ : path a₁ a₂) (δ₁ : path a₂ a₃)
+                               (γ₂ : path b₁ b₂) (δ₂ : path b₂ b₃) :
+                               (γ₁.prod γ₂).trans (δ₁.prod δ₂) = (γ₁.trans δ₁).prod (γ₂.trans δ₂) :=
+begin
+  ext t;
+    unfold path.trans;
+    simp only [path.coe_mk, path.prod_coe_fn, function.comp_app];
+    split_ifs; refl,
+end
+
+end prod
+
+section pi
 variables {χ : ι → Type*} [∀ i, topological_space (χ i)]
           {as bs cs : Π i, χ i}
 /-- Given a family of paths, one in each Xᵢ, we take their pointwise product to get a path in
@@ -393,11 +410,10 @@ protected def pi (paths : Π i, path (as i) (bs i)) :
   source' := by simp,
   target' := by simp, }
 
-@[simp] lemma pi_coe_fn {ι : Type*} {X : ι → Type*} [∀ i, topological_space (X i)]
-                      {as bs : Π i, X i}
-                      (paths : Π i, path (as i) (bs i)) :
+@[simp] lemma pi_coe_fn (paths : Π i, path (as i) (bs i)) :
   (coe_fn (path.pi paths)) = λ t i, paths i t := rfl
 
+/-- Path composition commutes with products -/
 lemma trans_pi_eq_pi_trans (paths₀ : Π i, path (as i) (bs i))
                            (paths₁ : Π i, path (bs i) (cs i)) :
   ((path.pi paths₀).trans (path.pi paths₁)) = path.pi (λ i, (paths₀ i).trans (paths₁ i)) :=
@@ -407,13 +423,12 @@ begin
   simp only [path.coe_mk, function.comp_app, pi_coe_fn],
   split_ifs; refl,
 end
-
-end
+end pi
 /-! #### Pointwise multiplication/addition of two paths in a topological (additive) group -/
 
 /-- Pointwise multiplication of paths in a topological group. The additive version is probably more
 useful. -/
-@[to_additive "Pointwise addition of paths in a topological additive group. -/"]
+@[to_additive "Pointwise addition of paths in a topological additive group."]
 protected def mul [has_mul X] [has_continuous_mul X] {a₁ b₁ a₂ b₂ : X}
   (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) : path (a₁ * a₂) (b₁ * b₂) :=
 (γ₁.prod γ₂).map continuous_mul

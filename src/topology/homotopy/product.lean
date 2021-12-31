@@ -148,6 +148,7 @@ end
 def proj (i : ι) (p : path.homotopic.quotient as bs) : path.homotopic.quotient (as i) (bs i) :=
   p.map_fn ⟨_, continuous_apply i⟩
 
+/-- Lemmas showing projection is the inverse of pi -/
 @[simp] lemma proj_of_pi (i : ι) (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
   proj i (pi paths) = paths i :=
 begin
@@ -169,22 +170,73 @@ end pi
 
 section prod
 variables {α β : Type*} [topological_space α] [topological_space β]
-          {c₁ c₂ c₃ : α × β}
-          {p₁ p₁' : path c₁.1 c₂.1} {p₂ p₂' : path c₁.2 c₂.2}
-          (q₁ : path.homotopic.quotient c₁.1 c₂.1) (q₂ : path.homotopic.quotient c₁.2 c₂.2)
-          (r₁ : path c₂.1 c₃.1) (r₂ : path c₂.2 c₃.2)
-          (s₁ : path.homotopic.quotient c₂.1 c₃.1) (s₂ : path.homotopic.quotient c₂.2 c₃.2)
+          {a₁ a₂ a₃ : α} {b₁ b₂ b₃ : β}
+          {p₁ p₁' : path a₁ a₂} {p₂ p₂' : path b₁ b₂}
+          (q₁ : path.homotopic.quotient a₁ a₂) (q₂ : path.homotopic.quotient b₁ b₂)
 
+/-- The product of homotopies h₁ and h₂.
+    This is `homotopy_rel.prod` specialized for path homotopies. -/
 def prod_homotopy (h₁ : path.homotopy p₁ p₁') (h₂ : path.homotopy p₂ p₂') :
   path.homotopy (p₁.prod p₂) (p₁'.prod p₂') := continuous_map.homotopy_rel.prod h₁ h₂
 
-def prod (q₁ : path.homotopic.quotient c₁.1 c₂.1) (q₂ : path.homotopic.quotient c₁.2 c₂.2) :
-  path.homotopic.quotient c₁ c₂ :=
+/-- The product of path classes q₁ and q₂. This is `path.prod` descended to the quotient -/
+def prod (q₁ : path.homotopic.quotient a₁ a₂) (q₂ : path.homotopic.quotient b₁ b₂) :
+  path.homotopic.quotient (a₁, b₁) (a₂, b₂) :=
+  quotient.map₂ path.prod (λ p₁ p₁' h₁ p₂ p₂' h₂, nonempty.map2 prod_homotopy h₁ h₂) q₁ q₂
+
+variables (p₁ p₁' p₂ p₂')
+lemma prod_lift : prod ⟦p₁⟧ ⟦p₂⟧ = ⟦p₁.prod p₂⟧ := rfl
+
+variables (r₁ : path.homotopic.quotient a₂ a₃) (r₂ : path.homotopic.quotient b₂ b₃)
+/-- Products commute with path composition.
+    This is `trans_prod_eq_prod_trans` descended to the quotient.-/
+lemma comp_prod_eq_prod_comp : ((prod q₁ q₂) ⬝ (prod r₁ r₂)) = prod (q₁ ⬝ r₁) (q₂ ⬝ r₂) :=
 begin
-  rw [← (prod.mk.eta : ((c₁.1, c₁.2) = c₁)), ← (prod.mk.eta : ((c₂.1, c₂.2) = c₂))],
-  refine (quotient.map₂ (@path.prod α β _ _ c₁.1 c₂.1 c₁.2 c₂.2) _) q₁ q₂,
-  repeat { intro },
-  apply nonempty.map2 prod_homotopy; assumption,
+  apply quotient.induction_on₂ q₁ q₂,
+  apply quotient.induction_on₂ r₁ r₂,
+  intros,
+  simp only [prod_lift, ← path.homotopic.comp_lift, path.trans_prod_eq_prod_trans],
+end
+
+variables {c₁ c₂ : α × β}
+
+/-- Abbreviation for projection onto the left coordinate of a path class -/
+@[reducible]
+def proj_left (p : path.homotopic.quotient c₁ c₂) : path.homotopic.quotient c₁.1 c₂.1 :=
+  p.map_fn ⟨_, continuous_fst⟩
+
+/-- Abbreviation for projection onto the right coordinate of a path class -/
+@[reducible]
+def proj_right (p : path.homotopic.quotient c₁ c₂) : path.homotopic.quotient c₁.2 c₂.2 :=
+  p.map_fn ⟨_, continuous_snd⟩
+
+/-- Lemmas showing projection is the inverse of product -/
+@[simp] lemma proj_left_of_prod : proj_left (prod q₁ q₂) = q₁ :=
+begin
+  apply quotient.induction_on₂ q₁ q₂,
+  intros p₁ p₂,
+  unfold proj_left,
+  rw [prod_lift, ← path.homotopic.map_lift],
+  congr, ext, refl,
+end
+
+@[simp] lemma proj_right_of_prod : proj_right (prod q₁ q₂) = q₂ :=
+begin
+  apply quotient.induction_on₂ q₁ q₂,
+  intros p₁ p₂,
+  unfold proj_right,
+  rw [prod_lift, ← path.homotopic.map_lift],
+  congr, ext, refl,
+end
+
+@[simp] lemma prod_of_proj (p : path.homotopic.quotient (a₁, b₁) (a₂, b₂))
+  : prod (proj_left p) (proj_right p) = p :=
+begin
+  apply quotient.induction_on p,
+  intro p',
+  unfold proj_left, unfold proj_right,
+  simp only [← path.homotopic.map_lift, prod_lift],
+  congr, ext; refl,
 end
 
 end prod

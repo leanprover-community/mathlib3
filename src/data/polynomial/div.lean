@@ -306,7 +306,7 @@ begin
   haveI : nontrivial R := f.domain_nontrivial,
   have : map f p /ₘ map f q = map f (p /ₘ q) ∧ map f p %ₘ map f q = map f (p %ₘ q),
   { exact (div_mod_by_monic_unique ((p /ₘ q).map f) _ (monic_map f hq)
-      ⟨eq.symm $ by rw [← map_mul, ← map_add, mod_by_monic_add_div _ hq],
+      ⟨eq.symm $ by rw [← polynomial.map_mul, ← polynomial.map_add, mod_by_monic_add_div _ hq],
       calc _ ≤ degree (p %ₘ q) : degree_map_le _ _
       ... < degree q : degree_mod_by_monic_lt _ hq
       ... = _ : eq.symm $ degree_map_eq_of_leading_coeff_ne_zero _
@@ -348,8 +348,8 @@ theorem map_dvd_map [comm_ring S] (f : R →+* S) (hf : function.injective f) {x
 begin
   rw [← dvd_iff_mod_by_monic_eq_zero hx, ← dvd_iff_mod_by_monic_eq_zero (monic_map f hx),
     ← map_mod_by_monic f hx],
-  exact ⟨λ H, map_injective f hf $ by rw [H, map_zero],
-  λ H, by rw [H, map_zero]⟩
+  exact ⟨λ H, map_injective f hf $ by rw [H, polynomial.map_zero],
+  λ H, by rw [H, polynomial.map_zero]⟩
 end
 
 @[simp] lemma mod_by_monic_one (p : polynomial R) : p %ₘ 1 = 0 :=

@@ -123,9 +123,9 @@ section lift_deg
 lemma monomial_mem_lifts_and_degree_eq {s : S} {n : ℕ} (hl : monomial n s ∈ lifts f) :
   ∃ (q : polynomial R), map f q = (monomial n s) ∧ q.degree = (monomial n s).degree :=
 begin
-  by_cases hzero : s = 0,
+  rcases eq_or_ne s 0 with rfl | hzero,
   { use 0,
-    simp only [hzero, degree_zero, eq_self_iff_true, and_self, monomial_zero_right, map_zero] },
+    simp only [degree_zero, eq_self_iff_true, and_self, monomial_zero_right, polynomial.map_zero] },
   rw lifts_iff_set_range at hl,
   obtain ⟨q, hq⟩ := hl,
   replace hq := (ext_iff.1 hq) n,
@@ -172,7 +172,7 @@ begin
     (erase_mem_lifts p.nat_degree hlifts) (refl p.erase_lead.nat_degree),
   use erase + lead,
   split,
-  { simp only [hlead, herase, map_add],
+  { simp only [hlead, herase, polynomial.map_add],
     nth_rewrite 0 erase_lead_add_monomial_nat_degree_leading_coeff p },
   rw [←hdeg, erase_lead] at deg_erase,
   replace deg_erase := lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 deg_erase),
@@ -210,7 +210,7 @@ begin
     ← @degree_X_pow R _ Rtrivial p.nat_degree] at deg_er,
   use q + X ^ p.nat_degree,
   repeat {split},
-  { simp only [hq, map_add, polynomial.map_pow, map_X],
+  { simp only [hq, polynomial.map_add, polynomial.map_pow, map_X],
     nth_rewrite 3 [← erase_lead_add_C_mul_X_pow p],
     rw [erase_lead, monic.leading_coeff hmonic, C_1, one_mul] },
   { rw [degree_add_eq_right_of_degree_lt deg_er, @degree_X_pow R _ Rtrivial p.nat_degree,

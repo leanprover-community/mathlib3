@@ -40,13 +40,13 @@ A graph is strongly regular with parameters `n k l m` if
  * every pair of adjacent vertices has `l` common neighbors
  * every pair of nonadjacent vertices has `m` common neighbors
 -/
-structure is_SRG_with (n k l m : ℕ) : Prop :=
+structure is_SRG_with (n k ℓ μ : ℕ) : Prop :=
 (card : fintype.card V = n)
 (regular : G.is_regular_of_degree k)
-(adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
-(nadj_common : ∀ (v w : V), v ≠ w ∧ ¬G.adj v w → fintype.card (G.common_neighbors v w) = m)
+(of_adj : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = ℓ)
+(of_not_adj : ∀ (v w : V), v ≠ w → ¬G.adj v w → fintype.card (G.common_neighbors v w) = μ)
 
-variables {n k l m : ℕ}
+variables {G} {n k l m : ℕ}
 
 /-- Empty graphs are strongly regular. Note that `l` can take any value
   for empty graphs, since there are no pairs of adjacent vertices. -/
@@ -54,9 +54,10 @@ lemma bot_strongly_regular :
   (⊥ : simple_graph V).is_SRG_with (fintype.card V) 0 l 0 :=
 { card := rfl,
   regular := bot_degree,
-  adj_common := λ v w h, h.elim,
-  nadj_common := λ v w h, begin
-    simp only [finset.card_eq_zero, finset.filter_congr_decidable, fintype.card_of_finset],
+  of_adj := λ v w h, h.elim,
+  of_not_adj := λ v w h, begin
+    simp only [card_eq_zero, filter_congr_decidable, fintype.card_of_finset, forall_true_left,
+      not_false_iff, bot_adj],
     ext,
     simp [mem_common_neighbors],
   end }
@@ -66,12 +67,12 @@ lemma bot_strongly_regular :
 lemma is_SRG_with.top :
   (⊤ : simple_graph V).is_SRG_with (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) m :=
 { card := rfl,
-  regular := complete_graph_is_regular,
-  adj_common := λ v w h, begin
+  regular := is_regular_of_degree.top,
+  of_adj := λ v w h, begin
     rw card_common_neighbors_top,
     exact h,
   end,
-  nadj_common := λ v w h, false.elim $ by simpa using h }
+  of_not_adj := λ v w h h', false.elim $ by simpa using h }
 
 lemma is_SRG_with.card_neighbor_finset_union_eq {v w : V} (h : G.is_SRG_with n k l m) :
   (G.neighbor_finset v ∪ G.neighbor_finset w).card =
@@ -80,28 +81,28 @@ begin
   apply @nat.add_right_cancel _ (fintype.card (G.common_neighbors v w)),
   rw [nat.sub_add_cancel, ← set.to_finset_card],
   { simp [neighbor_finset, common_neighbors, set.to_finset_inter, finset.card_union_add_card_inter,
-      G.is_regular_of_degree_eq h.regular, two_mul], },
+      h.regular.degree_eq, two_mul], },
   { apply le_trans (card_common_neighbors_le_degree_left _ _ _),
-    simp [G.is_regular_of_degree_eq h.regular, two_mul], },
+    simp [h.regular.degree_eq, two_mul], },
 end
 
 /-- Assuming `G` is strongly regular, `2*(k + 1) - m` in `G` is the number of vertices that are
   adjacent to either `v` or `w` when `¬G.adj v w`. So it's the cardinality of
   `G.neighbor_set v ∪ G.neighbor_set w`. -/
-lemma is_SRG_with.card_neighbor_finset_union_nadj {v w : V} (h : G.is_SRG_with n k l m)
+lemma is_SRG_with.card_neighbor_finset_union_of_not_adj {v w : V} (h : G.is_SRG_with n k l m)
   (hne : v ≠ w) (ha : ¬G.adj v w) :
   (G.neighbor_finset v ∪ G.neighbor_finset w).card = 2 * k - m :=
 begin
-  rw ← h.nadj_common v w ⟨hne, ha⟩,
-  apply is_SRG_with.card_neighbor_finset_union_eq G h,
+  rw ← h.of_not_adj v w hne ha,
+  apply h.card_neighbor_finset_union_eq,
 end
 
-lemma is_SRG_with.card_neighbor_finset_union_adj {v w : V} (h : G.is_SRG_with n k l m)
+lemma is_SRG_with.card_neighbor_finset_union_of_adj {v w : V} (h : G.is_SRG_with n k l m)
   (ha : G.adj v w) :
   (G.neighbor_finset v ∪ G.neighbor_finset w).card = 2 * k - l :=
 begin
-  rw ← h.adj_common v w ha,
-  apply is_SRG_with.card_neighbor_finset_union_eq G h,
+  rw ← h.of_adj v w ha,
+  apply h.card_neighbor_finset_union_eq,
 end
 
 lemma compl_neighbor_finset_sdiff_inter_eq {v w : V} :
@@ -125,12 +126,12 @@ lemma is_SRG_with.compl_is_regular (h : G.is_SRG_with n k l m) :
   Gᶜ.is_regular_of_degree (n - k - 1) :=
 begin
   rw [← h.card, nat.sub_sub, add_comm, ←nat.sub_sub],
-  exact G.is_regular_compl_of_is_regular k h.regular,
+  exact h.regular.compl,
 end
 
-lemma is_SRG_with.card_common_neighbors_eq_of_adj_compl {v w : V}
-  (h : G.is_SRG_with n k l m) (ha : Gᶜ.adj v w) :
-    fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - m) - 2 :=
+lemma is_SRG_with.card_common_neighbors_eq_of_adj_compl (h : G.is_SRG_with n k l m)
+  {v w : V} (ha : Gᶜ.adj v w) :
+  fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - m) - 2 :=
 begin
   simp only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,
     set.to_finset_sdiff, set.to_finset_singleton, set.to_finset_compl, ←neighbor_finset_def],
@@ -139,7 +140,7 @@ begin
   rw compl_adj at ha,
   rw [card_sdiff, ← insert_eq, card_insert_of_not_mem, card_singleton, ← finset.compl_union],
   { change (1 + 1) with 2,
-    rw [card_compl, is_SRG_with.card_neighbor_finset_union_nadj G h hne ha.2, ← h.card], },
+    rw [card_compl, h.card_neighbor_finset_union_of_not_adj hne ha.2, ← h.card], },
   { simp only [hne.symm, not_false_iff, mem_singleton], },
   { intro u,
     simp only [mem_union, mem_compl, mem_neighbor_finset, mem_inter, mem_singleton],
@@ -147,24 +148,24 @@ begin
     simpa [adj_comm] using ha.2, },
 end
 
-lemma is_SRG_with.card_common_neighbors_eq_of_nadj_compl {v w : V}
-  (hn : v ≠ w ∧ ¬Gᶜ.adj v w) (h : G.is_SRG_with n k l m) :
-    fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - l) :=
+lemma is_SRG_with.card_common_neighbors_eq_of_not_adj_compl {v w : V}
+  (hn : v ≠ w) (hna : ¬Gᶜ.adj v w) (h : G.is_SRG_with n k l m) :
+  fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - l) :=
 begin
   simp only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,
     set.to_finset_sdiff, set.to_finset_singleton, set.to_finset_compl, ←neighbor_finset_def],
-  simp only [not_and, not_not, compl_adj, ne.def] at hn,
-  have h2' := hn.2 hn.1,
-  simp_rw [compl_neighbor_finset_sdiff_inter_eq, G.sdiff_compl_neighbor_finset_inter_eq h2'],
-  rwa [← finset.compl_union, card_compl, is_SRG_with.card_neighbor_finset_union_adj G h, ← h.card],
+  simp only [not_and, not_not, compl_adj] at hna,
+  have h2' := hna hn,
+  simp_rw [compl_neighbor_finset_sdiff_inter_eq, sdiff_compl_neighbor_finset_inter_eq h2'],
+  rwa [← finset.compl_union, card_compl, h.card_neighbor_finset_union_of_adj, ← h.card],
 end
 
 /-- The complement of a strongly regular graph is strongly regular. -/
 lemma is_SRG_with.compl (h : G.is_SRG_with n k l m) :
   Gᶜ.is_SRG_with n (n - k - 1) (n - (2 * k - m) - 2) (n - (2 * k - l)) :=
 { card := h.card,
-  regular := is_SRG_with.compl_is_regular G h,
-  adj_common := λ v w ha, is_SRG_with.card_common_neighbors_eq_of_adj_compl G h ha,
-  nadj_common := λ v w hn, is_SRG_with.card_common_neighbors_eq_of_nadj_compl G hn h, }
+  regular := h.compl_is_regular,
+  of_adj := λ v w ha, h.card_common_neighbors_eq_of_adj_compl ha,
+  of_not_adj := λ v w hn hna, h.card_common_neighbors_eq_of_not_adj_compl hn hna, }
 
 end simple_graph

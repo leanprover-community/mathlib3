@@ -570,11 +570,14 @@ A locally finite simple graph is regular of degree `d` if every vertex has degre
 -/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
-lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
+variables {G}
 
-lemma is_regular_compl_of_is_regular [fintype V] [decidable_eq V]
-  (G : simple_graph V) [decidable_rel G.adj]
-  (k : ℕ) (h : G.is_regular_of_degree k) :
+lemma is_regular_of_degree.degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) :
+  G.degree v = d := h v
+
+lemma is_regular_of_degree.compl [fintype V] [decidable_eq V]
+  {G : simple_graph V} [decidable_rel G.adj]
+  {k : ℕ} (h : G.is_regular_of_degree k) :
   Gᶜ.is_regular_of_degree (fintype.card V - 1 - k) :=
 by { intro v, rw [degree_compl, h v] }
 
@@ -610,7 +613,7 @@ begin
   exact finset.card_empty,
 end
 
-lemma complete_graph_is_regular [decidable_eq V] :
+lemma is_regular_of_degree.top [decidable_eq V] :
   (⊤ : simple_graph V).is_regular_of_degree (fintype.card V - 1) :=
 by { intro v, simp }
 

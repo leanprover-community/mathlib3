@@ -714,6 +714,8 @@ def dom_dom_congr_linear_equiv {ι₁ ι₂} [decidable_eq ι₁] [decidable_eq 
   .. (dom_dom_congr_equiv σ : multilinear_map A (λ i : ι₁, M₂) M₃ ≃+
         multilinear_map A (λ i : ι₂, M₂) M₃) }
 
+variables (R M₁)
+
 /-- The dependent version of `multilinear_map.dom_dom_congr_linear_equiv`. -/
 @[simps apply symm_apply]
 def dom_dom_congr_linear_equiv' {ι' : Type*} [decidable_eq ι'] (σ : ι ≃ ι') :

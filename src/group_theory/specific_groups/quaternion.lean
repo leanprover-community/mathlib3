@@ -263,20 +263,20 @@ begin
   rw [← a_one_pow, order_of_pow, order_of_a_one]
 end
 
-lemma exponent [fact (0 < n)] : monoid.exponent (quaternion_group n) = 2 * lcm n 2 :=
+lemma exponent : monoid.exponent (quaternion_group n) = 2 * lcm n 2 :=
 begin
   rw [←normalize_eq 2, ←lcm_mul_left, normalize_eq],
   norm_num,
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp only [lcm_zero_left, mul_zero],
+    exact monoid.exponent_eq_zero_of_order_zero order_of_a_one },
+  haveI := fact.mk hn,
   apply nat.dvd_antisymm,
   { apply monoid.exponent_dvd_of_forall_pow_eq_one,
-    intro g,
-    cases g with m,
+    rintro (m | m),
     { rw [←order_of_dvd_iff_pow_eq_one, order_of_a],
-      apply nat.dvd_trans,
-      { show 2 * n / (2 * n).gcd m.val ∣ (2 * n),
-        use gcd (2 * n) m.val,
-        exact (nat.div_mul_cancel (nat.gcd_dvd_left (2 * n) (m.val))).symm },
-      { exact dvd_lcm_left (2 * n) 4 } },
+      refine nat.dvd_trans ⟨gcd (2 * n) m.val, _⟩ (dvd_lcm_left (2 * n) 4),
+      exact (nat.div_mul_cancel (nat.gcd_dvd_left (2 * n) (m.val))).symm },
     { rw [←order_of_dvd_iff_pow_eq_one, order_of_xa],
       exact dvd_lcm_right (2 * n) 4 } },
   { apply lcm_dvd,

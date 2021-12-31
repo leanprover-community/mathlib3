@@ -1967,9 +1967,8 @@ by { rw ←H.fp_iff_deriv, exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_
 /-- `deriv f` is the fixed point enumerator of `f`. -/
 theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord H.nfp_unbounded :=
 begin
-  rw ←eq_enum_ord,
+  rw [←eq_enum_ord, range_eq_iff],
   use (deriv_is_normal f).strict_mono,
-  rw range_eq_iff,
   refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
   rwa ←H.fp_iff_deriv'
 end

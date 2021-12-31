@@ -160,9 +160,11 @@ end
 lemma half_commute [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=
   commute.inv_of_left (two_commute a)
 
+universe u
+
 /- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
 Jordan non-associative ring -/
-instance (α : Type*) [ring α] [invertible (2 : α)] : comm_jordan (αˢʸᵐ) :=
+instance (α : Type u) [ring α] [invertible (2 : α)] : comm_jordan (αˢʸᵐ) :=
 { comm := λ a,
   begin
     ext b,

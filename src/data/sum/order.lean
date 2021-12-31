@@ -63,21 +63,19 @@ instance [is_antisymm α r] [is_antisymm β s] : is_antisymm (α ⊕ β) (lex r 
 ⟨by { rintro _ _ (⟨a, b, hab⟩ | ⟨a, b, hab⟩) (⟨_, _, hba⟩ | ⟨_, _, hba⟩); rw antisymm hab hba }⟩
 
 instance [is_total α r] [is_total β s] : is_total (α ⊕ β) (lex r s) :=
-⟨begin
-  rintro (a | a) (b | b),
-  { exact (total_of r a b).imp lex.inl lex.inl },
-  { exact or.inl (lex.sep _ _) },
-  { exact or.inr (lex.sep _ _) },
-  { exact (total_of s a b).imp lex.inr lex.inr }
+⟨λ a b, match a, b with
+  | inl a, inl b := (total_of r a b).imp lex.inl lex.inl
+  | inl a, inr b := or.inl (lex.sep _ _)
+  | inr a, inl b := or.inr (lex.sep _ _)
+  | inr a, inr b := (total_of s a b).imp lex.inr lex.inr
 end⟩
 
 instance [is_trichotomous α r] [is_trichotomous β s] : is_trichotomous (α ⊕ β) (lex r s) :=
-⟨begin
-  rintro (a | a) (b | b),
-  { exact (trichotomous_of r a b).imp3 lex.inl (congr_arg _) lex.inl },
-  { exact or.inl (lex.sep _ _) },
-  { exact or.inr (or.inr $ lex.sep _ _) },
-  { exact (trichotomous_of s a b).imp3 lex.inr (congr_arg _) lex.inr }
+⟨λ a b, match a, b with
+  | inl a, inl b := (trichotomous_of r a b).imp3 lex.inl (congr_arg _) lex.inl
+  | inl a, inr b := or.inl (lex.sep _ _)
+  | inr a, inl b := or.inr (or.inr $ lex.sep _ _)
+  | inr a, inr b := (trichotomous_of s a b).imp3 lex.inr (congr_arg _) lex.inr
 end⟩
 
 instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=

@@ -87,7 +87,7 @@ instance ring_jordan (B : Type u) [ring B] : jordan (B) :=
     ext b,
     rw ring.lie_def,
     simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
-    R_apply_apply, add_monoid.coe_mul, L_apply_apply],
+      R_apply_apply, add_monoid.coe_mul, L_apply_apply],
     rw [mul_assoc, sub_self],
   end,
   commL1L2 := begin
@@ -102,25 +102,25 @@ instance ring_jordan (B : Type u) [ring B] : jordan (B) :=
     intro,
     ext b,
     rw ring.lie_def,
-    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.sub_apply,
-      function.comp_app, R_apply, add_monoid.coe_mul, L_apply_apply],
+    simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
+      R_apply_apply, add_monoid.coe_mul, L_apply_apply],
     rw [mul_assoc, sub_self],
   end,
   commL2R1 := begin
     intro,
     ext b,
     rw ring.lie_def,
-    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.sub_apply,
-      function.comp_app, R_apply, add_monoid.coe_mul, L_apply_apply],
+    simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
+      R_apply_apply, add_monoid.coe_mul, L_apply_apply],
     rw [←mul_assoc, sub_self],
   end,
   commR1R2 := begin
     intro,
     ext b,
     rw ring.lie_def,
-    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, comp_mul_right,
-      add_monoid_hom.sub_apply, R_apply, add_monoid.coe_mul],
-    rw [mul_assoc, sub_self],
+    simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
+      R_apply_apply, add_monoid.coe_mul],
+    rw [← mul_assoc, ← mul_assoc, sub_self],
   end, }
 
 

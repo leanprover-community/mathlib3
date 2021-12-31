@@ -47,10 +47,10 @@ that returns the box `⟨l, u, _⟩` if it is nonempty and `⊥` otherwise.
 rectangular box
 -/
 
-open set function metric
+open set function metric filter
 
 noncomputable theory
-open_locale nnreal classical
+open_locale nnreal classical topological_space
 
 namespace box_integral
 

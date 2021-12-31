@@ -45,7 +45,7 @@ website shows the actual terms, not those abbreviated using local notations.
 divergence theorem, Bochner integral
 -/
 
-open set finset topological_space function box_integral measure_theory
+open set finset topological_space function box_integral measure_theory filter
 open_locale big_operators classical topological_space interval
 
 universes u
@@ -71,33 +71,45 @@ local notation `face` i := set.Icc (a ∘ fin.succ_above i) (b ∘ fin.succ_abov
 local notation `front_face` i:2000 := fin.insert_nth i (b i)
 local notation `back_face` i:2000 := fin.insert_nth i (a i)
 
-/-- **Divergence theorem** for Bochner integral. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is differentiable on a
-rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, with derivative `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the
-divergence `λ x, ∑ i, f' x eᵢ i` is integrable on `[a, b]`, where `eᵢ = pi.single i 1` is the `i`-th
-basis vector, then its integral is equal to the sum of integrals of `f` over the faces of `[a, b]`,
-taken with appropriat signs.
-
-Moreover, the same is true if the function is not differentiable but continuous at countably many
-points of `[a, b]`.
-
-We represent both faces `x i = a i` and `x i = b i` as the box
-`face i = [a ∘ fin.succ_above i, b ∘ fin.succ_above i]` in `ℝⁿ`, where
-`fin.succ_above : fin n ↪o fin (n + 1)` is the order embedding with range `{i}ᶜ`. The restrictions
-of `f : ℝⁿ⁺¹ → Eⁿ⁺¹` to these faces are given by `f ∘ back_face i` and `f ∘ front_face i`, where
-`back_face i = fin.insert_nth i (a i)` and `front_face i = fin.insert_nth i (b i)` are embeddings
-`ℝⁿ → ℝⁿ⁺¹` that take `y : ℝⁿ` and insert `a i` (resp., `b i`) as `i`-th coordinate. -/
-lemma integral_divergence_of_has_fderiv_within_at_off_countable (hle : a ≤ b) (f : ℝⁿ⁺¹ → Eⁿ⁺¹)
-  (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
-  (Hc : ∀ x ∈ s, continuous_within_at f (Icc a b) x)
+lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux (hlt : ∀ i, a i < b i)
+  (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
+  (Hc : continuous_on f (Icc a b))
   (Hd : ∀ x ∈ Icc a b \ s, has_fderiv_within_at f (f' x) (Icc a b) x)
   (Hi : integrable_on (λ x, ∑ i, f' x (e i) i) (Icc a b)) :
   ∫ x in Icc a b, ∑ i, f' x (e i) i =
     ∑ i : fin (n + 1),
       ((∫ x in face i, f (front_face i x) i) - ∫ x in face i, f (back_face i x) i) :=
 begin
+  obtain ⟨I, rfl, rfl⟩ : ∃ I : box_integral.box (fin (n + 1)), I.lower = a ∧ I.upper = b,
+    from ⟨⟨a, b, hlt⟩, rfl, rfl⟩,
   simp only [volume_pi, ← set_integral_congr_set_ae measure.univ_pi_Ioc_ae_eq_Icc],
-  by_cases heq : ∃ i, a i = b i,
-  { rcases heq with ⟨i, hi⟩,
+  simp only [← box.coe_eq_pi, ← box.face_lower, ← box.face_upper],
+  have A := ((Hi.mono_set box.coe_subset_Icc).has_box_integral ⊥ rfl),
+  have B := has_integral_bot_divergence_of_forall_has_deriv_within_at I f f' (s ∩ I.Icc)
+    (hs.mono (inter_subset_left _ _)) (λ x hx, Hc _ hx.2)
+    (λ x hx, Hd _ ⟨hx.1, λ h, hx.2 ⟨h, hx.1⟩⟩),
+  rw continuous_on_pi at Hc,
+  refine (A.unique B).trans (sum_congr rfl $ λ i hi, _),
+  refine congr_arg2 has_sub.sub _ _,
+  { have := box.continuous_on_face_Icc (Hc i) (set.right_mem_Icc.2 (I.lower_le_upper i)),
+    have := (this.integrable_on_compact (box.is_compact_Icc _)).mono_set box.coe_subset_Icc,
+    exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance },
+  { have := box.continuous_on_face_Icc (Hc i) (set.left_mem_Icc.2 (I.lower_le_upper i)),
+    have := (this.integrable_on_compact (box.is_compact_Icc _)).mono_set box.coe_subset_Icc,
+    exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance }
+end
+
+lemma integral_divergence_of_has_fderiv_within_at_off_countable (hle : a ≤ b) (f : ℝⁿ⁺¹ → Eⁿ⁺¹)
+  (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : continuous_on f (Icc a b))
+  (Hd : ∀ x ∈ set.pi univ (λ i, Ioo (a i) (b i)) \ s, has_fderiv_at f (f' x) x)
+  (Hi : integrable_on (λ x, ∑ i, f' x (e i) i) (Icc a b)) :
+  ∫ x in Icc a b, ∑ i, f' x (e i) i =
+    ∑ i : fin (n + 1),
+      ((∫ x in face i, f (front_face i x) i) - ∫ x in face i, f (back_face i x) i) :=
+begin
+  rcases em (∃ i, a i = b i) with ⟨i, hi⟩|hne,
+  { /- First we sort out the trivial case `∃ i, a i = b i`. -/
+    simp only [volume_pi, ← set_integral_congr_set_ae measure.univ_pi_Ioc_ae_eq_Icc],
     have hi' : Ioc (a i) (b i) = ∅ := Ioc_eq_empty hi.not_lt,
     have : pi set.univ (λ j, Ioc (a j) (b j)) = ∅, from univ_pi_eq_empty hi',
     rw [this, integral_empty, sum_eq_zero],
@@ -108,25 +120,29 @@ begin
       have : pi set.univ (λ k : fin n, Ioc (a $ j.succ_above k) (b $ j.succ_above k)) = ∅,
         from univ_pi_eq_empty hi',
       rw [this, integral_empty, integral_empty, sub_self] } },
-  { push_neg at heq,
-    obtain ⟨I, rfl, rfl⟩ : ∃ I : box_integral.box (fin (n + 1)), I.lower = a ∧ I.upper = b,
-      from ⟨⟨a, b, λ i, (hle i).lt_of_ne (heq i)⟩, rfl, rfl⟩,
-    simp only [← box.coe_eq_pi, ← box.face_lower, ← box.face_upper],
-    have A := ((Hi.mono_set box.coe_subset_Icc).has_box_integral ⊥ rfl),
-    have B := has_integral_bot_divergence_of_forall_has_deriv_within_at I f f' s hs Hc Hd,
-    have Hc : continuous_on f I.Icc,
-    { intros x hx,
-      by_cases hxs : x ∈ s,
-      exacts [Hc x hxs, (Hd x ⟨hx, hxs⟩).continuous_within_at] },
-    rw continuous_on_pi at Hc,
-    refine (A.unique B).trans (sum_congr rfl $ λ i hi, _),
-    refine congr_arg2 has_sub.sub _ _,
-    { have := box.continuous_on_face_Icc (Hc i) (set.right_mem_Icc.2 (hle i)),
-      have := (this.integrable_on_compact (box.is_compact_Icc _)).mono_set box.coe_subset_Icc,
-      exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance },
-    { have := box.continuous_on_face_Icc (Hc i) (set.left_mem_Icc.2 (hle i)),
-      have := (this.integrable_on_compact (box.is_compact_Icc _)).mono_set box.coe_subset_Icc,
-      exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance } }
+  { have hlt : ∀ i, a i < b i, from λ i, (hle i).lt_of_ne (λ hi, hne ⟨i, hi⟩),
+    -- Consider and exhaustion of the interior of the box `[a, b]` by smaller boxes.
+    obtain ⟨A, hA_anti, hA_lt, hA_tendsto⟩ :
+      ∃ A : ℕ → ℝⁿ⁺¹, antitone A ∧ (∀ k i, a i < A k i) ∧ tendsto A at_top (𝓝 a),
+    { choose A hA_anti hA_lt hA_tendsto using λ i, exists_seq_strict_anti_tendsto (a i),
+      exact ⟨flip A, λ k l hkl i, (hA_anti i).antitone hkl, λ k i, hA_lt i k,
+        tendsto_pi_nhds.2 hA_tendsto⟩ },
+    obtain ⟨B, hA_mono, hB_lt, hB_tendsto⟩ :
+      ∃ B : ℕ → ℝⁿ⁺¹, monotone B ∧ (∀ k i, B k i < b i) ∧ tendsto B at_top (𝓝 b),
+    { choose B hB_mono hB_lt hB_tendsto using λ i, exists_seq_strict_mono_tendsto (b i),
+      exact ⟨flip B, λ k l hkl i, (hB_mono i).monotone hkl, λ k i, hB_lt i k,
+        tendsto_pi_nhds.2 hB_tendsto⟩ },
+    choose B hB_mono hB_lt hB_tendsto using λ i, exists_seq_strict_mono_tendsto (b i),
+    have h₁ : tendsto (λ k, ∫ x in Icc (flip A k) (flip B k), ∑ i, f' x (e i) i) at_top
+      (𝓝 (∫ x in Icc a b, ∑ i, f' x (e i) i)),
+    { refine tendsto_set_integral_of_Union_ae_eq (λ k, measurable_set_Icc) _ _ Hi,
+      { exact λ k l hkl, Icc_subset_Icc (λ i, (hA_anti i).antitone hkl)
+          (λ i, (hB_mono i).monotone hkl) },
+      { sorry } },
+    have h₂ : ∀ᶠ k in at_top, (∀ i, flip A k i < flip B k i) ∧
+      continuous_on f (Icc (flip A k) (flip B k)) ∧
+      ∀ x ∈ 
+ }
 end
 
 /-- **Divergence theorem** for a family of functions `f : fin (n + 1) → ℝⁿ⁺¹ → E`. See also

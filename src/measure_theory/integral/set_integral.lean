@@ -170,6 +170,15 @@ begin
     (hi.2.trans_lt $ ennreal.add_lt_top.2 ⟨hfi', ennreal.coe_lt_top⟩).ne]
 end
 
+lemma tendsto_set_integral_of_Union_ae_eq {ι : Type*} [encodable ι] [semilattice_sup ι]
+  {s : ι → set α} {t : set α} {f : α → E} (hsm : ∀ i, measurable_set (s i))
+  (h_mono : monotone s) (hst : (⋃ n, s n) =ᵐ[μ] t) (hfi : integrable_on f t μ) :
+  tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in t, f a ∂μ)) :=
+begin
+  rw ← set_integral_congr_set_ae hst,
+  exact tendsto_set_integral_of_monotone hsm h_mono (hfi.congr_set_ae hst)
+end
+
 lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
   (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :

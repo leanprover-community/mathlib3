@@ -316,7 +316,10 @@ lemma map_of_surjective_eq_map (h : ker f ≤ r) (hf : surjective f) :
 by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 
 /-- Given a function `f : α → β`, an equivalence relation `r` on `β` induces an equivalence
-    relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'. -/
+relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def comap (f : α → β) (r : setoid β) : setoid α :=
 ⟨r.rel on f, r.iseqv.comap _⟩
 

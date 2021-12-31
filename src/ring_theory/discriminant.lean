@@ -199,7 +199,6 @@ begin
     exact (power_basis.finrank pb).symm },
   have hnodup : (map (algebra_map K E) (minpoly K pb.gen)).roots.nodup :=
     nodup_roots (separable.map (is_separable.separable K pb.gen)),
-  have H : ∀ i j, (e j) pb.gen - (e i) pb.gen = -((e i) pb.gen - (e j) pb.gen) := by simp,
   have hroots : ∀ σ : L →ₐ[K] E, σ pb.gen ∈ (map (algebra_map K E) (minpoly K pb.gen)).roots,
   { intro σ,
     rw [mem_roots, is_root.def, eval_map, ← aeval_def, aeval_alg_hom_apply],
@@ -209,7 +208,7 @@ begin
   rw [ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
     of_power_basis_eq_prod'' _ _ _ e],
   congr,
-  rw [norm_eq_prod_embeddings, fin.prod_filter_gt_mul_neg_eq_prod_off_diag H],
+  rw [norm_eq_prod_embeddings, fin.prod_filter_gt_mul_neg_eq_prod_off_diag],
   conv_rhs { congr, skip, funext,
     rw [← aeval_alg_hom_apply, aeval_root_derivative_of_splits (minpoly.monic
       (is_separable.is_integral K pb.gen)) (is_alg_closed.splits_codomain _) (hroots σ),

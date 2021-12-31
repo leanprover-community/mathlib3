@@ -29,7 +29,7 @@ This file proves basic results about the sum type `α ⊕ β`.
 
 The definition of `sum` takes values in `Type*`. This effectively forbids `Prop`- valued sum types.
 To this effect, we have `psum`, which takes value in `Sort*` and carries a more complicated
-universe signature in consequence.
+universe signature in consequence. The `Prop` version is `or`.
 -/
 
 universes u v w x

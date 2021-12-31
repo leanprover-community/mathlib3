@@ -234,16 +234,23 @@ end
 /--
 If `0 < n`, then `a 1` has order `2 * n`.
 -/
-@[simp] lemma order_of_a_one [hn : fact (0 < n)] : order_of (a 1 : quaternion_group n) = 2 * n :=
+@[simp] lemma order_of_a_one : order_of (a 1 : quaternion_group n) = 2 * n :=
 begin
-  cases (nat.le_of_dvd (nat.succ_mul_pos _ hn.1)
-    (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq with h h,
-  { have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1 := pow_order_of_eq_one _,
-    rw a_one_pow at h1,
-    injection h1 with h2,
-    rw [← zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
-    exact absurd h2.symm (order_of_pos _).ne },
-  { exact h }
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp_rw [mul_zero, order_of_eq_zero_iff'],
+    intros n hn,
+    rw [one_def, a_one_pow],
+    apply mt a.inj,
+    simpa using hn.ne' },
+  haveI := fact.mk hn,
+  apply (nat.le_of_dvd (nat.succ_mul_pos _ hn)
+                       (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq.resolve_left,
+  intro h,
+  have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1 := pow_order_of_eq_one _,
+  rw a_one_pow at h1,
+  injection h1 with h2,
+  rw [← zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
+  exact absurd h2.symm (order_of_pos _).ne
 end
 
 /--

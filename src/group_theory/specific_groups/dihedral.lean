@@ -194,18 +194,26 @@ begin
   rw [←r_one_pow, order_of_pow, order_of_r_one]
 end
 
-lemma exponent [fact (0 < n)] : monoid.exponent (dihedral_group n) = lcm n 2 :=
+@[simp] lemma order_of_r_one' : order_of (r (1 : zmod 0)) = 0 :=
 begin
+  rw order_of_eq_zero_iff',
+  intros n hn,
+  rw [r_one_pow, one_def],
+  apply mt r.inj,
+  simpa using hn.ne'
+end
+
+lemma exponent : monoid.exponent (dihedral_group n) = lcm n 2 :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { exact monoid.exponent_eq_zero_of_order_zero (order_of_r_one') },
+  haveI := fact.mk hn,
   apply nat.dvd_antisymm,
   { apply monoid.exponent_dvd_of_forall_pow_eq_one,
-    intro g,
-    cases g with m,
+    rintro (m | m),
     { rw [←order_of_dvd_iff_pow_eq_one, order_of_r],
-      apply nat.dvd_trans,
-      { show n / n.gcd m.val ∣ n,
-        use gcd n m.val,
-        exact (nat.div_mul_cancel (nat.gcd_dvd_left n (zmod.val m))).symm },
-      { exact dvd_lcm_left n 2 } },
+      refine nat.dvd_trans ⟨gcd n m.val, _⟩ (dvd_lcm_left n 2),
+      { exact (nat.div_mul_cancel (nat.gcd_dvd_left n (zmod.val m))).symm } },
     { rw [←order_of_dvd_iff_pow_eq_one, order_of_sr],
       exact dvd_lcm_right n 2 } },
   { apply lcm_dvd,

@@ -56,14 +56,7 @@ Left multiplication operator
 /--
 Right multiplication operator
 -/
-@[simps] def R : A→+(add_monoid.End A) :=
-{ to_fun := add_monoid_hom.mul_right,
-  map_zero' := add_monoid_hom.ext $ mul_zero,
-  map_add' := λ a b, add_monoid_hom.ext $ λ c,
-  begin
-    simp,
-    rw mul_add c a,
-  end }
+@[simps] def R : A→+(add_monoid.End A) := add_monoid_hom.flip (L : A →+ add_monoid.End A)
 
 lemma L_def (a b : A) : L a b = a*b := rfl
 
@@ -93,8 +86,8 @@ instance ring_jordan (B : Type u) [ring B] : jordan (B) :=
     intro,
     ext b,
     rw ring.lie_def,
-    simp only [add_monoid_hom.coe_mul_right, add_monoid_hom.zero_apply, add_monoid_hom.sub_apply,
-    function.comp_app, R_apply, add_monoid.coe_mul, L_apply_apply],
+    simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
+    R_apply_apply, add_monoid.coe_mul, L_apply_apply],
     rw [mul_assoc, sub_self],
   end,
   commL1L2 := begin

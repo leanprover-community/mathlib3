@@ -148,8 +148,8 @@ begin
     simpa [adj_comm] using ha.2, },
 end
 
-lemma is_SRG_with.card_common_neighbors_eq_of_not_adj_compl {v w : V}
-  (hn : v ≠ w) (hna : ¬Gᶜ.adj v w) (h : G.is_SRG_with n k ℓ μ) :
+lemma is_SRG_with.card_common_neighbors_eq_of_not_adj_compl (h : G.is_SRG_with n k ℓ μ)
+  {v w : V} (hn : v ≠ w) (hna : ¬Gᶜ.adj v w)  :
   fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - ℓ) :=
 begin
   simp only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,

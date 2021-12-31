@@ -47,8 +47,8 @@ open category iso
 /--
 In a bicategory, we can compose the 1-morphisms `f : a ⟶ b` and `g : b ⟶ c` to obtain
 a 1-morphism `f ≫ g : a ⟶ c`. This composition does not need to be strictly associative,
-but there is a spesified associator, `α_ f g h : (f ≫ g) ≫ h ≅ f ≫ (g ≫ h)`.
-There is a identity 1-morphism `𝟙 a : a ⟶ a`, with specified left and right unitor
+but there is a specified associator, `α_ f g h : (f ≫ g) ≫ h ≅ f ≫ (g ≫ h)`.
+There is an identity 1-morphism `𝟙 a : a ⟶ a`, with specified left and right unitor
 isomorphisms `λ_ f : 𝟙 a ≫ f ≅ f` and `ρ_ f : f ≫ 𝟙 a ≅ f`.
 These associators and unitors satisfy the pentagon and triangle equations.
 

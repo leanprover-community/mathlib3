@@ -17,7 +17,7 @@ The main result in this file proves transitivity of algebraicity:
 a tower of algebraic field extensions is algebraic.
 -/
 
-universes u v w
+universes u v
 
 open_locale classical
 open polynomial
@@ -251,30 +251,43 @@ end field
 
 section pi
 
-variables {R' : Type u} {S' : Type v} {σ : Type w}
+variables (R' : Type u) (S' : Type v)
 
 instance polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
   has_scalar (polynomial R') (R' → S') :=
 ⟨λ p f x, eval x p • f x⟩
 
+noncomputable instance polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S'] :
+  has_scalar (polynomial R') (S' → S') :=
+⟨λ p f x, aeval x p • f x⟩
+
+variables {R} {S}
+
 @[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
   (p : polynomial R') (f : R' → S') (x : R') :
   (p • f) x = eval x p • f x := rfl
 
-variables [comm_semiring R']
+@[simp] lemma polynomial_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
+  (p : polynomial R') (f : S' → S') (x : S') :
+  (p • f) x = aeval x p • f x := rfl
+
+variables [comm_semiring R'] [comm_semiring S'] [algebra R' S']
 
 noncomputable instance polynomial.algebra_pi :
-  algebra (polynomial R') (R' → R') :=
-{ to_fun := λ p z, eval z p,
+  algebra (polynomial R') (S' → S') :=
+{ to_fun := λ p z, aeval z p,
   map_one' := funext $ λ z, by simp,
   map_mul' := λ f g, funext $ λ z, by simp,
   map_zero' := funext $ λ z, by simp,
   map_add' := λ f g, funext $ λ z, by simp,
   commutes' := λ p f, funext $ λ z, mul_comm _ _,
   smul_def' := λ p f, funext $ λ z, by simp,
-  ..polynomial.has_scalar_pi }
+  ..polynomial.has_scalar_pi' R' S' }
 
-@[simp] lemma polynomial.algebra_map_pi_eq_eval :
+@[simp] lemma polynomial.algebra_map_pi_eq_aeval :
+  (algebra_map (polynomial R') (S' → S') : polynomial R' → (S' → S')) = λ p z, aeval z p := rfl
+
+@[simp] lemma polynomial.algebra_map_pi_self_eq_eval :
   (algebra_map (polynomial R') (R' → R') : polynomial R' → (R' → R')) = λ p z, eval z p := rfl
 
 end pi

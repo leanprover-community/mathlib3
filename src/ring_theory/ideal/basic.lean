@@ -574,7 +574,7 @@ lemma bot_lt_of_maximal (M : ideal R) [hm : M.is_maximal] (non_field : ¬ is_fie
 begin
   rcases (ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top.1 non_field)
     with ⟨I, Ibot, Itop⟩,
-  split, finish,
+  split, { simp },
   intro mle,
   apply @irrefl _ (<) _ (⊤ : ideal R),
   have : M = ⊥ := eq_bot_iff.mpr mle,

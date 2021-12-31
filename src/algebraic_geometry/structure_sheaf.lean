@@ -527,6 +527,12 @@ corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
     by { ext f, simp only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
                            stalk_to_fiber_ring_hom_to_stalk] } }
 
+instance (x : prime_spectrum R) : is_iso (stalk_to_fiber_ring_hom R x) :=
+is_iso.of_iso (stalk_iso R x)
+
+instance (x : prime_spectrum R) : is_iso (localization_to_stalk R x) :=
+is_iso.of_iso (stalk_iso R x).symm
+
 /-- The canonical ring homomorphism interpreting `s ∈ R_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/
 def to_basic_open (f : R) : localization.away f →+*

@@ -31,12 +31,18 @@ lemma stars_and_bars {α : Type*} [fintype α] (n : ℕ) :
 stars and bars
 -/
 
-open finset fintype function option sum
+open finset fintype function sum
 
 variables {α β : Type*}
 
+section to_move
+
 @[simp] lemma option.coe_get {o : option α} (h : o.is_some) : ((option.get h : α) : option α) = o :=
 option.some_get h
+
+end to_move
+
+section unused
 
 namespace multiset
 
@@ -58,48 +64,25 @@ lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).inj
 
 end finset
 
+end unused
+
 namespace sym
 section attach
 variables {n : ℕ}
 
-def attach (s : sym α n) : sym {a // a ∈ s} n := ⟨s.1.attach, by rw [multiset.card_attach, s.2]⟩
-
-@[simp] lemma coe_attach (s : sym α n) : (s.attach : multiset {a // a ∈ s}) = multiset.attach s :=
-rfl
-
-@[simp] lemma coe_map (s : sym α n) (f : α → β) : (s.map f : multiset β) = multiset.map f s := rfl
-
-lemma attach_map_val (s : sym α n) : s.attach.map (embedding.subtype _) = s :=
-coe_injective $ multiset.attach_map_val _
-
-lemma coe_erase [decidable_eq α] {s : sym α n.succ} {a : α} (h : a ∈ s) :
-  (s.erase a h : multiset α) = multiset.erase s a :=
-rfl
-
-lemma coe_cons [decidable_eq α] (s : sym α n) (a : α) : (a :: s : multiset α) = a ::ₘ s := rfl
-
-@[simp] lemma cons_erase [decidable_eq α] {s : sym α n.succ} {a : α} (h : a ∈ s) :
-  a :: s.erase a h = s :=
-coe_injective $ multiset.cons_erase h
-
-@[simp] lemma erase_cons_head [decidable_eq α] (s : sym α n) (a : α) (h : a ∈ a :: s) :
-  (a :: s).erase a h = s :=
-coe_injective $ multiset.erase_cons_head a s.1
-
-lemma map_injective {f : α → β} (hf : injective f) (n : ℕ) :
-  injective (map f : sym α n → sym β n) :=
-λ s t h, coe_injective $ multiset.map_injective hf $ coe_inj.2 h
-
 end attach
 
+section
 variables (α) [decidable_eq α] (n : ℕ)
 
 /-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting
 `option α` to `α`. Otherwise, the function removes an occurrence of `none` from the input and
 produces a `sym (option α) n`. -/
 def encode (s : sym (option α) n.succ) : sym α n.succ ⊕ sym (option α) n :=
-if h : none ∈ s then inr (s.erase none h)
-else inl $ s.attach.map $ λ o, get $ ne_none_iff_is_some.1 $ ne_of_mem_of_not_mem o.2 h
+if h : none ∈ s
+then inr (s.erase none h)
+else inl (s.attach.map $ λ o,
+  option.get $ option.ne_none_iff_is_some.1 $ ne_of_mem_of_not_mem o.2 h)
 
 /-- From the output of `encode`, the `decode` function reconstructs the original input. If the
 output contains `n + 1` elements, the original input can be reconstructed by casting `α` back
@@ -125,53 +108,103 @@ def option_succ_equiv : sym (option α) n.succ ≃ sym α n.succ ⊕ sym (option
     unfold encode,
     split_ifs,
     { exact cons_erase _ },
-    simp only [decode, sym.map_map, subtype.mk.inj_eq, function.comp],
-    convert s.attach_map_val,
-    ext o a,
-    simp_rw [embedding.coe_option_apply, option.coe_get, embedding.coe_subtype, option.mem_def,
-      subtype.val_eq_coe],
+    { simp only [decode, map_map, subtype.mk.inj_eq, comp, option.coe_get,
+        embedding.coe_option_apply, subtype.val_eq_coe, map_map],
+      convert s.attach_map_coe, },
   end,
   right_inv := begin
     rintro (s | s),
     { unfold encode,
       split_ifs,
       { obtain ⟨a, _, ha⟩ := multiset.mem_map.mp h,
-        exact some_ne_none _ ha },
+        exact option.some_ne_none _ ha },
       { refine map_injective (option.some_injective _) _ _,
-        convert eq.trans _ (decode α n (inl s)).attach_map_val,
+        convert eq.trans _ (decode α n (inl s)).attach_map_coe,
         simp } },
     { exact (dif_pos $ mem_cons_self _ _).trans (congr_arg _ $ erase_cons_head s _ _) }
   end }
 
-/-- Define the multichoose number using `fintype.card`. -/
-def multichoose1 (α : Type*) [decidable_eq α] [fintype α] (k : ℕ) := fintype.card (sym α k)
+end
 
-/-- Define the multichoose number using `nat.choose`. -/
-def multichoose2 (n k : ℕ) := (n + k - 1).choose k
+/-- `multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`.
+That is, it's the number of ways to select `k` items (up to permutation) from `n` items
+with replacement.
 
-lemma multichoose1_rec (α : Type*) [decidable_eq α] [fintype α] (n : ℕ) :
-  multichoose1 (option α) n.succ = multichoose1 α n.succ + multichoose1 (option α) n :=
-by simpa only [multichoose1, fintype.card_sum.symm] using fintype.card_congr (option_succ_equiv α n)
+This is defined as `nat.choose (n + k - 1) k`. It is related to the cardinality of `sym` in
+`sym.multichoose_eq`. -/
+def multichoose (n k : ℕ) := (n + k - 1).choose k
 
-lemma multichoose2_rec (n k : ℕ) :
-  multichoose2 n.succ k.succ = multichoose2 n k.succ + multichoose2 n.succ k :=
-by simp [multichoose2, nat.choose_succ_succ, nat.add_comm, nat.add_succ]
+lemma card_sym_rec (n : ℕ)
+  [fintype (sym (option α) n.succ)] [fintype (sym α n.succ)] [fintype (sym (option α) n)] :
+  card (sym (option α) n.succ) = card (sym α n.succ) + card (sym (option α) n) :=
+by { classical, simpa only [card_sum.symm] using fintype.card_congr (option_succ_equiv α n) }
 
-lemma multichoose1_eq_multichoose2 (α : Type*) [decidable_eq α] [fintype α] (n : ℕ) :
-  multichoose1 α n = multichoose2 (fintype.card α) n :=
+lemma multichoose_rec (n k : ℕ) :
+  multichoose n.succ k.succ = multichoose n k.succ + multichoose n.succ k :=
+by simp [multichoose, nat.choose_succ_succ, nat.add_comm, nat.add_succ]
+
+/--
+Inhabited types are equivalent to `option β` for some `β` by identifying `default α` with `none`.
+-/
+def {u} sigma_equiv_option_of_nonempty (α : Type u) [inhabited α] [decidable_eq α] :
+  Σ (β : Type u), α ≃ option β :=
+⟨{x : α // x ≠ default α},
+  { to_fun := λ (x : α), if h : x = default α then none else some ⟨x, h⟩,
+    inv_fun := λ o, option.elim o (default α) coe,
+    left_inv := λ x, by { dsimp only, split_ifs; simp [*] },
+    right_inv := begin
+      rintro (_|⟨x,h⟩),
+      { simp, },
+      { dsimp only,
+        split_ifs with hi,
+        { simpa [h] using hi, },
+        { simp, } }
+    end }⟩
+
+/-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
+noncomputable
+def fintype_of_equiv_option [fintype α] (f : option β ≃ α) : fintype β :=
+fintype.of_injective (embedding.coe_option.trans f.to_embedding) $
+injective.comp (equiv.to_embedding f).injective embedding.coe_option.injective
+
+lemma multichoose_eq (α : Type*) [hα : fintype α] (k : ℕ) [fintype (sym α k)] :
+  multichoose (fintype.card α) k = card (sym α k) :=
 begin
-  sorry
+  classical,
+  tactic.unfreeze_local_instances,
+  obtain ⟨n, hn⟩ : ∃ n, fintype.card α + k = n := ⟨_, rfl⟩,
+  induction n with n ih generalizing α k,
+  { obtain ⟨hn, rfl⟩ := add_eq_zero_iff.mp hn,
+    simp [multichoose, hn], },
+  { have : 0 < card α + k := by convert nat.succ_pos',
+    cases k,
+    { haveI hne : nonempty α := card_pos_iff.mp this,
+      simp [multichoose], },
+    { obtain (hi|hi) := is_empty_or_nonempty α; haveI := hi,
+      { simp [multichoose, fintype.card_eq_zero], },
+      { haveI : inhabited α := classical.inhabited_of_nonempty (by assumption),
+        obtain ⟨β, βeqv⟩ := sigma_equiv_option_of_nonempty α,
+        haveI : fintype β := fintype_of_equiv_option βeqv.symm,
+        have βc : card β + k + 1 = n,
+        { rw fintype.card_congr βeqv at hn,
+          simp [nat.add_succ, nat.succ_add] at hn,
+          exact hn, },
+        have ih' := ih _ (k + 1) βc,
+        transitivity card (sym (option β) k.succ),
+        { rw [card_sym_rec, ← ih', fintype.card_congr βeqv, card_option, multichoose_rec],
+          have ih'' := ih α k,
+          rw [fintype.card_congr βeqv, card_option] at ih'',
+          specialize ih'' (by simpa [add_comm, add_assoc, add_left_comm] using βc),
+          rw [add_right_inj, ih''],
+          apply fintype.card_congr (sym.equiv_congr βeqv), },
+        { apply fintype.card_congr (sym.equiv_congr βeqv.symm), } } } },
 end
 
 /-- The *stars and bars* lemma: the cardinality of `sym α n` is equal to
-`(card α + n - 1) choose n`. -/
-lemma stars_and_bars {α : Type*} [decidable_eq α] [fintype α] (n : ℕ) :
-  fintype.card (sym α n) = (fintype.card α + n - 1).choose n :=
-begin
-  have start := multichoose1_eq_multichoose2 α n,
-  simp only [multichoose1, multichoose2] at start,
-  rw start.symm,
-end
+`nat.choose (card α + n - 1) n`. -/
+lemma stars_and_bars {α : Type*} [decidable_eq α] [fintype α] (n : ℕ) [fintype (sym α n)] :
+  card (sym α n) = (card α + n - 1).choose n :=
+by simpa only [multichoose] using (multichoose_eq α n).symm
 
 end sym
 

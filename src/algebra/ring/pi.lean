@@ -49,9 +49,7 @@ tactic.pi_instance_derive_field
 
 instance non_unital_non_assoc_ring [∀ i, non_unital_non_assoc_ring $ f i] :
 non_unital_non_assoc_ring (Π i : I, f i) :=
-by refine_struct {
-  add := (+),
-};
+by refine_struct { add := (+) };
 tactic.pi_instance_derive_field
 
 instance ring [∀ i, ring $ f i] : ring (Π i : I, f i) :=

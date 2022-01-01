@@ -128,8 +128,8 @@ def walking_span_functor : walking_span.{v₁} ⥤ walking_span.{v₂} :=
 @[simp] lemma walking_span_functor_left : walking_span_functor.obj left = left := rfl
 @[simp] lemma walking_span_functor_right : walking_span_functor.obj right = right := rfl
 @[simp] lemma walking_span_functor_id (X) : walking_span_functor.map (𝟙 X) = 𝟙 _ := rfl
-@[simp] lemma walking_span_functor_fst : walking_span_functor.map hom.fst = hom.snd := rfl
-@[simp] lemma walking_span_functor_fst : walking_span_functor.map hom.fst = hom.snd := rfl
+@[simp] lemma walking_span_functor_fst : walking_span_functor.map hom.fst = hom.fst := rfl
+@[simp] lemma walking_span_functor_snd : walking_span_functor.map hom.snd = hom.snd := rfl
 
 /-- The equivalence between two `walking_span`s in different universes. -/
 def walking_span_equiv : walking_span.{v₁} ≌ walking_span.{v₂} :=

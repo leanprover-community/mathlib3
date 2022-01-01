@@ -47,7 +47,7 @@ def is_limit_map_cone_pullback_cone_equiv :
     is_limit (pullback_cone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
       : pullback_cone (G.map f) (G.map g)) :=
 (is_limit.whisker_equivalence_equiv walking_cospan_equiv.{v₂ v₁}).trans $
-  (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₂} _) _).symm.trans $
+  (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{u₂ v₂} _) _).symm.trans $
   is_limit.equiv_iso_limit $ cones.ext (iso.refl _) $
     (by rintro (_|_|_); dsimp; simpa only [category.comp_id, category.id_comp, ← G.map_comp])
 
@@ -96,7 +96,7 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
   (g : Y ⟶ Z) [preserves_limit (cospan f g) F] : preserves_limit (cospan g f) F :=
 { preserves := λ c hc,
   begin
-    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₁} _) _).to_fun,
+    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{u₁ v₁} _) _).to_fun,
     apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _).symm,
     apply pullback_cone.flip_is_limit,
     apply (is_limit_map_cone_pullback_cone_equiv _ _).to_fun,

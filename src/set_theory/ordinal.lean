@@ -757,6 +757,23 @@ by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
 by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
 
+protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
+not_lt_of_le (ordinal.zero_le _)
+
+theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { by_contra ho,
+    have : 0 < o := ordinal.pos_iff_ne_zero.2 ho,
+    rw ←type_out o at this,
+    have := enum o.out.r 0 this,
+    exact h.elim this },
+  intro h, refine ⟨λ i, _⟩,
+  have := typein_lt_self i,
+  simp_rw h at this,
+  exact ordinal.not_lt_zero _ this
+end
+
 instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
 

@@ -1332,13 +1332,15 @@ lemma measurable.nndist {f g : β → α} (hf : measurable f) (hg : measurable g
 
 end
 
+/-- If a set has a closed thickening with finite measure, then the measure of its `r`-closed
+thickenings converges to the measure of its closure as `r` tends to `0`. -/
 lemma tendsto_measure_cthickening {μ : measure α} {s : set α}
   (hs : ∃ R > 0, μ (cthickening R s) ≠ ∞) :
   tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ (closure s))) :=
 begin
   have A : tendsto (λ r, μ (cthickening r s)) (𝓝[Ioi 0] 0) (𝓝 (μ (closure s))),
   { rw closure_eq_Inter_cthickening,
-    exact tendsto_measure_bInter_pos (λ r hr, is_closed_cthickening.measurable_set)
+    exact tendsto_measure_bInter_gt (λ r hr, is_closed_cthickening.measurable_set)
       (λ i j ipos ij, cthickening_mono ij _) hs },
   have B : tendsto (λ r, μ (cthickening r s)) (𝓝[Iic 0] 0) (𝓝 (μ (closure s))),
   { apply tendsto.congr' _ tendsto_const_nhds,
@@ -1346,9 +1348,11 @@ begin
     assume r hr,
     rw cthickening_of_nonpos hr },
   convert B.sup A,
-  simp [← nhds_within_union, nhds_within_univ],
+  exact (nhds_left_sup_nhds_right' 0).symm,
 end
 
+/-- If a closed set has a closed thickening with finite measure, then the measure of its `r`-closed
+thickenings converges to its measure as `r` tends to `0`. -/
 lemma tendsto_measure_cthickening_of_is_closed {μ : measure α} {s : set α}
   (hs : ∃ R > 0, μ (cthickening R s) ≠ ∞) (h's : is_closed s) :
   tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ s)) :=
@@ -1357,6 +1361,8 @@ begin
   exact h's.closure_eq.symm
 end
 
+/-- Given a compact set in a proper space, the measure of its `r`-closed thickenings converges to
+its measure as `r` tends to `0`. -/
 lemma tendsto_measure_cthickening_of_is_compact [proper_space α] {μ : measure α}
   [is_finite_measure_on_compacts μ] {s : set α} (hs : is_compact s) :
   tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ s)) :=

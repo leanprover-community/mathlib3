@@ -1073,7 +1073,7 @@ end
 section
 variables {S : set ordinal.{u}} (hS : unbounded (<) S)
 
--- A more convenient characterization of unboundedness.
+-- A characterization of unboundedness that's more convenient to our purposes.
 private lemma unbounded_aux (hS : unbounded (<) S) (a) : ∃ b, b ∈ S ∧ a ≤ b :=
 by { rcases hS a with ⟨b, hb, hb'⟩, exact ⟨b, hb, le_of_not_gt hb'⟩ }
 
@@ -1151,8 +1151,8 @@ begin
   refine propext ⟨λ h s hs, _, λ h a, _⟩,
   { cases h ⟨s, hs⟩ with a ha,
     exact ⟨a, subtype.mk.inj ha⟩ },
-  cases h a.val a.prop with s hs,
-  exact ⟨s, subtype.eq hs⟩,
+  cases h a a.prop with s hs,
+  exact ⟨s, subtype.eq hs⟩
 end
 
 theorem enum_ord_range : range (enum_ord hS) = S :=

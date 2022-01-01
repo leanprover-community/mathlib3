@@ -45,11 +45,15 @@ def circle : submonoid ℂ :=
     simp [ha, hb],
   end }
 
-@[simp] lemma mem_circle_iff_abs (z : ℂ) : z ∈ circle ↔ abs z = 1 := mem_sphere_zero_iff_norm
+@[simp] lemma mem_circle_iff_abs {z : ℂ} : z ∈ circle ↔ abs z = 1 := mem_sphere_zero_iff_norm
 
-lemma circle_def : ↑circle = {z : ℂ | abs z = 1} := by { ext, simp }
+lemma circle_def : ↑circle = {z : ℂ | abs z = 1} := set.ext $ λ z, mem_circle_iff_abs
 
-@[simp] lemma abs_eq_of_mem_circle (z : circle) : abs z = 1 := by { convert z.2, simp }
+@[simp] lemma abs_coe_circle (z : circle) : abs z = 1 :=
+mem_circle_iff_abs.mp z.2
+
+lemma mem_circle_iff_norm_sq {z : ℂ} : z ∈ circle ↔ norm_sq z = 1 :=
+by rw [mem_circle_iff_abs, complex.abs, real.sqrt_eq_one]
 
 @[simp] lemma norm_sq_eq_of_mem_circle (z : circle) : norm_sq z = 1 := by simp [norm_sq_eq_abs]
 

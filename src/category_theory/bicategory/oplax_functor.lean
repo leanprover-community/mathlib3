@@ -8,7 +8,7 @@ import category_theory.bicategory.basic
 /-!
 # Oplax functor
 
-A oplax functor `F` between bicategories `B` and `C` consists of
+An oplax functor `F` between bicategories `B` and `C` consists of
 * a function between objects `F.obj : B ⟶ C`,
 * a family of functions between 1-morphisms `F.map : (a ⟶ b) → (obj a ⟶ obj b)`,
 * a family of functions between 2-morphisms `F.map₂ : (f ⟶ g) → (map f ⟶ map g)`,

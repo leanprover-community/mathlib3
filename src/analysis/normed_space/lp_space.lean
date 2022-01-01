@@ -90,7 +90,6 @@ begin
   rw ennreal.to_real_pos_iff at hp,
   dsimp [mem_ℓp],
   rw [if_neg hp.1.ne', if_neg hp.2.ne],
-  exact hf,
 end
 
 lemma mem_ℓp_gen (hp : 0 < p.to_real) {f : Π i, E i} (hf : summable (λ i, ∥f i∥ ^ p.to_real)) :

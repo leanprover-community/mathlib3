@@ -121,8 +121,6 @@ structure pseudofunctor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u�
   (map f ◁ (map_id b).hom) ≫ (map_comp f (𝟙 b)).hom ≫ map₂ (ρ_ f).hom =
     (ρ_ (map f)).hom . obviously)
 
-set_option trace.class_instances false
-
 restate_axiom pseudofunctor.map_comp_naturality_left'
 restate_axiom pseudofunctor.map_comp_naturality_right'
 restate_axiom pseudofunctor.map₂_id'

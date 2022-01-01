@@ -536,9 +536,9 @@ class has_colimits_of_size (C : Type u) [category.{v} C] : Prop :=
 -/
 abbreviation has_colimits (C : Type u) [category.{v} C] : Prop := has_colimits_of_size.{v v} C
 
-lemma has_colimits.has_limits_of_shape {C : Type u} [category.{v} C] [has_limits C]
+lemma has_colimits.has_colimits_of_shape {C : Type u} [category.{v} C] [has_colimits C]
   (J : Type v) [category.{v} J] :
-  has_limits_of_shape J C := has_limits_of_size.has_limits_of_shape J
+  has_colimits_of_shape J C := has_colimits_of_size.has_colimits_of_shape J
 
 variables {J C}
 

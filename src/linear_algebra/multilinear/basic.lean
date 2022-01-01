@@ -713,6 +713,43 @@ def dom_dom_congr_linear_equiv {ι₁ ι₂} [decidable_eq ι₁] [decidable_eq 
   .. (dom_dom_congr_equiv σ : multilinear_map A (λ i : ι₁, M₂) M₃ ≃+
         multilinear_map A (λ i : ι₂, M₂) M₃) }
 
+/-- The dependent version of `multilinear_map.dom_dom_congr_linear_equiv`. -/
+@[simps apply symm_apply]
+def dom_dom_congr_linear_equiv' {ι' : Type*} [decidable_eq ι'] (σ : ι ≃ ι') :
+  multilinear_map R M₁ M₂ ≃ₗ[R] multilinear_map R (λ i, M₁ (σ.symm i)) M₂ :=
+{ to_fun    := λ f,
+  { to_fun    := f ∘ (σ.Pi_congr_left' M₁).symm,
+    map_add'  := λ m i,
+      begin
+        rw ← σ.apply_symm_apply i,
+        intros x y,
+        simp only [comp_app, Pi_congr_left'_symm_update, f.map_add],
+      end,
+    map_smul' := λ m i c,
+      begin
+        rw ← σ.apply_symm_apply i,
+        intros x,
+        simp only [comp_app, Pi_congr_left'_symm_update, f.map_smul],
+      end, },
+  inv_fun   := λ f,
+  { to_fun    := f ∘ (σ.Pi_congr_left' M₁),
+    map_add'  := λ m i,
+    begin
+      rw ← σ.symm_apply_apply i,
+      intros x y,
+      simp only [comp_app, Pi_congr_left'_update, f.map_add],
+    end,
+    map_smul' := λ m i c,
+    begin
+      rw ← σ.symm_apply_apply i,
+      intros x,
+      simp only [comp_app, Pi_congr_left'_update, f.map_smul],
+    end, },
+  map_add'  := λ f₁ f₂, by { ext, simp only [comp_app, coe_mk, add_apply], },
+  map_smul' := λ c f, by { ext, simp only [comp_app, coe_mk, smul_apply, ring_hom.id_apply], },
+  left_inv  := λ f, by { ext, simp only [comp_app, coe_mk, equiv.symm_apply_apply], },
+  right_inv := λ f, by { ext, simp only [comp_app, coe_mk, equiv.apply_symm_apply], }, }
+
 /-- The space of constant maps is equivalent to the space of maps that are multilinear with respect
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] : M₂ ≃ₗ[R] multilinear_map R M₁ M₂ :=

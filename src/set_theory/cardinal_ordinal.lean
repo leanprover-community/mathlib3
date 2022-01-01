@@ -230,8 +230,9 @@ lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s 
 by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
 /-- Ordinals that are cardinals are unbounded. -/
-theorem ord_aleph'_unbounded : ∀ a, ∃ b : ordinal, b.card.ord = b ∧ a ≤ b :=
+theorem ord_aleph'_unbounded : unbounded (<) {b | b.card.ord = b} :=
 begin
+  rw unbounded_lt_iff,
   intro a,
   use a.card.succ.ord,
   split,
@@ -254,9 +255,11 @@ begin
 end
 
 /-- Infinite ordinals that are cardinals are unbounded. -/
-theorem ord_aleph_unbounded : ∀ a, ∃ b : ordinal, (ordinal.omega ≤ b ∧ b.card.ord = b) ∧ a ≤ b :=
+theorem ord_aleph_unbounded : unbounded (<) {b | ordinal.omega ≤ b ∧ b.card.ord = b} :=
 begin
+  rw unbounded_lt_iff,
   intro a,
+  -- This could be golfed using `max`.
   cases ord_aleph'_unbounded a with b hb,
   by_cases h : ordinal.omega ≤ b,
   { use b,

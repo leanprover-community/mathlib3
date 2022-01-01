@@ -255,8 +255,10 @@ begin
   apply i,
 end
 
+variable [preserves_colimit (span f g) G]
+
 @[simp]
-lemma preserves_pushout.iso_hom [preserves_colimit (span f g) G]　:
+lemma preserves_pushout.iso_hom :
   (preserves_pushout.iso G f g).hom = pushout_comparison G f g := rfl
 
 instance : is_iso (pushout_comparison G f g) :=

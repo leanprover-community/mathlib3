@@ -1402,13 +1402,7 @@ noncomputable
 def localization_algebra_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
   algebra S T :=
-begin
-  apply ring_hom.to_algebra,
-  apply @is_localization.lift _ _ M _ _ _ _ _ _ (algebra_map _ _),
-  any_goals { apply_instance },
-  intro y,
-  apply is_localization.map_units T ⟨_, h y.prop⟩,
-end
+(is_localization.lift (λ y, (map_units T ⟨↑y, h y.prop⟩ : _)) : S →+* T).to_algebra
 
 /-- If `M ≤ N` are submonoids of `R`, then the natural map `M⁻¹S →+* N⁻¹S` commutes with the
 localization maps -/

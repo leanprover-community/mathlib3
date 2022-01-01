@@ -8,6 +8,7 @@ import category_theory.lax_functor
 import category_theory.elements
 import category_theory.over
 import category_theory.limits.preserves.basic
+import category_theory.adjunction.reflective
 import category_theory.adjunction.limits
 
 /-!
@@ -18,15 +19,15 @@ the objects of `grothendieck F` consist of dependent pairs `(b, f)`,
 where `b : C` and `f : F.obj c`, and a morphism `(b, f) ⟶ (b', f')` is a
 pair `β : b ⟶ b'` in `C`, and `φ : (F.map β).obj f ⟶ f'`. The forgetful
 functor `grothendieck F ⥤ C` can be seen as a fibration of categories,
-with base category `C`, total category `grothendieck F`, and fiber categories
-`F.obj b`, `b : C`. When `F` is a pseudofunctor, this is a Grothendieck
-fibration.
+with base category `C`, total (Grothendieck) category `grothendieck F`,
+and fiber categories `F.obj b`, `b : C`. When `F` is a pseudofunctor,
+this is a Grothendieck fibration.
 
 Notice that `F` gives a functor `F.map β` between fiber categories `F.obj b`
 and `F.obj b'` for each morphism `β : b ⟶ b'` in `C`, which we call a component
 functor. We show that if `F` is a pseudofunctor, the base category and all fiber
 categories have colimits and the component functors all preserve colimits, then
-the total category also has colimits.
+the Grothendieck category also has colimits.
 
 https://ncatlab.org/nlab/show/Grothendieck+construction#limits_and_colimits
 
@@ -54,11 +55,11 @@ See also `category_theory.elements` for the category of elements of functor `F :
 
 -/
 
-universes v u₁ u₂
+universes v' u' v u
 
 namespace category_theory
 
-variables {C : Type*} [category.{v} C] (F : lax_functor_to_Cat C)
+variables {C : Type u} [category.{v} C] (F : lax_functor_to_Cat.{v' u'} C)
 
 /--
 The Grothendieck construction (often written as `∫ F` in mathematics) for a functor `F : C ⥤ Cat`
@@ -115,6 +116,11 @@ section fiber_push_map
 
 variables (e : hom W X) (f : hom X Y) (g : Y.base ⟶ Z)
 
+/-- Given a morphism `f : X ⟶ Y` in the Grothendieck category and a morphism in the
+    base category `Y.base ⟶ Z`, there is a natural morphism from the "pushforward"
+    of `X.fiber` to `Z` and the "pushforward" of `Y.fiber` to `Z`. This will be used
+    to define composition in the Grothendieck category, as well as a functor from the
+    costructured arrow category over `Z` to the fiber category over `Z`. -/
 def fiber_push_map : (F.map (f.base ≫ g)).obj X.fiber ⟶ (F.map g).obj Y.fiber :=
 (F.map_comp f.base g).app X.fiber ≫ (F.map g).map f.fiber
 
@@ -172,7 +178,6 @@ by { dsimp [fiber_push_map], simp }
 
 end fiber_push_map
 
-
 section
 variables (F)
 
@@ -182,6 +187,39 @@ def forget : grothendieck F ⥤ C :=
 { obj := λ X, X.1,
   map := λ X Y f, f.1 }
 
+section has_terminal
+
+variables [∀ X, limits.has_terminal (F.obj X).1]
+
+/-- If every fiber category has a terminal object, a functor from the base category
+    to the Grothendieck category is obtained by using the terminal objects as fibers. -/
+noncomputable def with_terminal_fiber : C ⥤ grothendieck F :=
+{ obj := λ X, { base := X, fiber := limits.terminal (F.obj X).1 },
+  map := λ X Y f, { base := f, fiber := limits.terminal.from _ } }
+
+/-- Adjunction between the forgetful functor and the "with terminal object as fiber"
+    functor. -/
+noncomputable def forget_terminal_adjunction : forget F ⊣ with_terminal_fiber F :=
+adjunction.mk_of_unit_counit
+{ unit := { app := λ X, ⟨𝟙 _, limits.terminal.from _⟩ },
+  counit := { app := λ X, 𝟙 _ } }
+
+/-- `with_terminal_fiber` is reflective. -/
+noncomputable instance : reflective (with_terminal_fiber F) :=
+{ to_is_right_adjoint := { left := forget F, adj := forget_terminal_adjunction F },
+  to_full := { preimage := λ _ _ f, f.base },
+  to_faithful := { map_injective' := λ _ _ _ _ h, congr_arg hom.base h } }
+
+/-- If every fiber category has a terminal object, then the forgetful functor preserves
+    colimits. -/
+noncomputable instance : limits.preserves_colimits_of_size.{v u} (forget F) :=
+adjunction.left_adjoint_preserves_colimits (forget_terminal_adjunction F)
+
+end has_terminal
+
+/-- Given an object `Y` in the Grothendieck category and a morphism `f` from its base to
+    an object `X` in the base category, we may push the fiber object of `Y` to a fiber
+    object over `X`, and this is functorial in `f`, with `X` fixed. -/
 @[simps obj]
 def fiber_push (X : C) : costructured_arrow (forget F) X ⥤ (F.obj X).1 :=
 { obj := λ f, (F.map f.hom).obj f.left.fiber,
@@ -190,13 +228,16 @@ def fiber_push (X : C) : costructured_arrow (forget F) X ⥤ (F.obj X).1 :=
   map_comp' := λ _ _ _ g₁ g₂, by { rw eq_to_hom.family_congr
     (fiber_push_map g₁.left) (costructured_arrow.w g₂).symm, dsimp, simp } }
 
+/-- Given an morphism `f : Y ⟶ X` in the Grothendieck category, we obtain a morphism from
+    `(fiber_push X.base).obj f` to `X.fiber`, and this is functorial in `f`, with `X` fixed. -/
 def fiber_push_over (X : grothendieck F) : over X ⥤ over X.fiber :=
 { obj := λ f, over.mk f.hom.fiber,
   map := λ _ _ g, over.hom_mk
     ((fiber_push F X.base).map ((costructured_arrow.post _ (forget F) _).map g))
     (by {rw congr (over.w g).symm, dsimp [fiber_push], simpa}) }
 
-/-- A 2-natural transformation. -/
+/-- `fiber_push X` is natural in `X`: it is a 2-natural transformation between two lax
+    functors `costructured_arrow` and `F` from the base category to `Cat`. -/
 def fiber_push_comp {X Y : C} (f : X ⟶ Y) :
   costructured_arrow.map f ⋙ fiber_push F Y ⟶ fiber_push F X ⋙ F.map f :=
 { app := λ _, (F.map_comp _ _).app _, -- λ e, (F.map_comp e.hom f).app e.left.fiber,
@@ -204,15 +245,22 @@ def fiber_push_comp {X Y : C} (f : X ⟶ Y) :
     have := eq_to_hom.family_congr fn (costructured_arrow.w g).symm,
     dsimp [fn, fiber_push] at ⊢ this, simp [this] } }
 
+/- what about the functor from `(F.obj X).1` to `grothendieck F`'s fiber over `X` ?
+    the "fiber category" is indeed isomorphic to the fiber over a point in the base category ...
+    restrict to identity on base -/
+
 end
 
 section colimit
 
 open limits
 
-variables {J : Type*} [category J] {𝒟 : J ⥤ grothendieck F}
+variables {J : Type u} [category.{v} J] {𝒟 : J ⥤ grothendieck F}
 (cb : cocone (𝒟 ⋙ forget F)) (c : cocone 𝒟)
 
+/-- From a diagram `𝒟` in the Grothendieck category, `𝒟 ⋙ forget F` is its "projection"
+    to the base category. Given and a cocone over the projection, obtain a diagram in the
+    fiber category over the cocone point. -/
 def fiber_diagram : J ⥤ (F.obj cb.X).1 :=
 costructured_arrow.of_cocone _ _ cb.ι ⋙ costructured_arrow.pre _ _ _ ⋙ fiber_push _ _
 
@@ -221,20 +269,32 @@ lemma fiber_diagram_map {j j' : J} (f : j ⟶ j') :
   (@functor.map _ _ _ _ (fiber_push_over F c.X)
     (over.mk (c.ι.app j)) (over.mk (c.ι.app j')) (over.hom_mk (𝒟.map f))).left := rfl
 
+/-- From a diagram in the Grothendieck category and a cocone over it, obtain a cocone
+    over the `fiber_diagram` of the projected cocone. -/
 def fiber_cocone : cocone (fiber_diagram ((forget F).map_cocone c)) :=
 { X := c.X.fiber,
-  ι := { app := λ j, ((fiber_push_over _ _).obj (over.mk (c.ι.app j))).hom,
+  ι := { app := λ j, ((fiber_push_over F c.X).obj (over.mk (c.ι.app j))).hom,
     naturality' := λ j j' f, by { dsimp [fiber_diagram_map], simp } } }
-
 
 variable (cf : cocone (fiber_diagram cb))
 
+/-- From a cocone over the projected diagram in the base category and a cocone over its
+    `fiber_diagram`, obtain a cocone over the diagram upstairs in the Grothendieck category. -/
 @[simps]
 def total_cocone : cocone 𝒟 :=
 { X := { base := cb.X, fiber := cf.X },
   ι := { app := λ j, { base := cb.ι.app j, fiber := cf.ι.app j },
     naturality' := λ j j' f, by { erw category.comp_id, ext,
     { erw ← category.assoc, exact cocone.w cf f }, exact cocone.w cb f } } }
+
+/-- If the a cocone in the Grothendieck category is a colimit, then its `fiber_cocone`
+    is also a colimit, provided that the underlying diagram has a colimit. -/
+def is_colimit_fiber_of_is_colimit (h : is_colimit c)
+  (hf : has_colimit (fiber_diagram ((forget F).map_cocone c))) :
+  is_colimit (fiber_cocone c) :=
+{ desc := λ cf, by { let := (h.desc (total_cocone _ cf)).fiber, dsimp at this ⊢, },
+  fac' := _,
+  uniq' := _ }
 
 variables {cb} (lb : is_colimit cb)
 

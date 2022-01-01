@@ -23,12 +23,13 @@ the right adjoints.
 
 -/
 
+universes v' u' v u
 
 namespace category_theory
 
-variables (C : Type*) [category C]
+variables (C : Type u) [category.{v} C]
 
-structure lax_functor_to_Cat extends prefunctor C Cat :=
+structure lax_functor_to_Cat extends prefunctor C Cat.{v' u'} :=
 (map_id : ∀ (X : C), map (𝟙 X) ⟶ 𝟭 (obj X))
 (map_comp : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) ⟶ map f ⋙ map g)
 (id_comp : ∀ {X Y : C} (f : X ⟶ Y), map_comp (𝟙 X) f ≫ whisker_right (map_id X) (map f) =
@@ -73,6 +74,7 @@ end functor
 
 variable (C)
 
+/-
 structure pseudofunctor_to_Cat extends lax_functor_to_Cat C :=
 (map_id_iso : ∀ X, is_iso (map_id X))
 (map_comp_iso : ∀ {X Y Z} (f : X ⟶ Y) (g : Y ⟶ Z), is_iso (map_comp f g))
@@ -82,5 +84,6 @@ variable (G : pseudofunctor_to_Cat C)
 instance (X : C) : is_iso (G.map_id X) := G.map_id_iso X
 
 instance {X Y Z} (f : X ⟶ Y) (g : Y ⟶ Z) : is_iso (G.map_comp f g) := G.map_comp_iso f g
+-/
 
 end category_theory

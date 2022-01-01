@@ -44,8 +44,7 @@ by simp [factorization]
   n.factorization.support = n.factors.to_finset :=
 by simpa [factorization, multiset.to_finsupp_support]
 
-lemma factor_iff_mem_factorization {n p : ℕ} :
-  (p ∈ n.factorization.support) ↔ (p ∈ n.factors) :=
+lemma factor_iff_mem_factorization {n p : ℕ} : p ∈ n.factorization.support ↔ p ∈ n.factors :=
 by simp only [support_factorization, list.mem_to_finset]
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/

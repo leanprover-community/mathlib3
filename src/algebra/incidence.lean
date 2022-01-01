@@ -164,24 +164,35 @@ section mu
 variables [add_comm_monoid 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
 
 def mu_aux (a : α) : α → 𝕜
-| b := if a = b then 1 else begin
-  exact ∑ x in (Ico a b).attach, have (Icc a x).card < (Icc a b).card := begin
-    refine card_lt_card _,
-    sorry
-  end, mu_aux x,
-end
+| b := if h : a = b then 1 else
+  ∑ x in (Ico a b).attach,
+    have (Icc a x).card < (Icc a b).card, from card_lt_card sorry,
+    mu_aux x
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ b, (Icc a b).card)⟩] }
 
+lemma mu_aux_apply (a b : α) : mu_aux 𝕜 α a b =
+  if a = b then 1 else ∑ x in (Ico a b).attach, mu_aux 𝕜 α a x :=
+begin
+  convert has_well_founded.wf.fix_eq _ _,
+  refl,
+end
+
 def mu : incidence_algebra 𝕜 α := ⟨mu_aux 𝕜 α, λ a b, not_imp_comm.1 $ λ h, begin
-  sorry
+  rw mu_aux_apply at h,
+  split_ifs at h with hab hab,
+  exact le_of_eq hab,
+  have := exists_ne_zero_of_sum_ne_zero h,
+  rcases this with ⟨⟨x, hx⟩, hn, hnn⟩,
+  rw [mem_Ico] at hx,
+  transitivity x,
+  exact hx.1,
+  exact hx.2.le,
 end⟩
 
 variables {𝕜 α}
 
 lemma mu_apply (a b : α) : mu 𝕜 α a b = if a = b then 1 else ∑ x in Ico a b, mu 𝕜 α a x :=
-begin
-  sorry
-end
+by rw [mu, coe_mk, mu_aux_apply, sum_attach]
 
 end mu
 

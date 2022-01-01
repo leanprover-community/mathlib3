@@ -200,7 +200,7 @@ begin
   intros b' hb',
   rw [nhds_eq_uniformity, lift'_inf_principal_eq, lift'_ne_bot_iff],
   exact assume s, this b' s hb',
-  exact monotone_inter monotone_preimage monotone_const
+  exact monotone_preimage.inter monotone_const
 end,
 have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
   from assume b' hb', by rw [closure_eq_cluster_pts]; exact this b' hb',

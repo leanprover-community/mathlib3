@@ -98,8 +98,7 @@ lemma factorization_mul_of_coprime {a b : ℕ} (hab : coprime a b) :
   (a * b).factorization = a.factorization + b.factorization :=
 begin
   ext q,
-  simp only [finsupp.coe_add, pi.add_apply, factorization_eq_count],
-  simp only [count_factors_mul_of_coprime hab],
+  simp only [finsupp.coe_add, add_apply, factorization_eq_count, count_factors_mul_of_coprime hab],
 end
 
 /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/

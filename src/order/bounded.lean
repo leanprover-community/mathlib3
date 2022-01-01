@@ -158,7 +158,7 @@ begin
   exact ⟨b, hb, λ hba, hbc (lt_of_lt_of_le hc hba)⟩
 end
 
-/-! ### Bounded initial or final segments -/
+/-! ### Bounded initial segments -/
 
 theorem bounded_r_iff_bounded_inter_not_r (H : ∀ a b, ∃ m, ∀ c, r c a ∨ r c b → r c m) (a : α) :
   bounded r s ↔ bounded r (s ∩ {b | ¬ r b a}) :=
@@ -166,10 +166,7 @@ begin
   use bounded_of_subset_bounded (set.inter_subset_left s _),
   rintro ⟨b, hb⟩,
   cases H a b with m hm,
-  refine ⟨m, λ c hc, hm c _⟩,
-  by_cases hca : r c a,
-  { exact or.inl hca },
-  { exact or.inr (hb c ⟨hc, hca⟩) }
+  exact ⟨m, λ c hc, hm c (or_iff_not_imp_left.2 (λ hca, (hb c ⟨hc, hca⟩)))⟩
 end
 
 theorem unbounded_r_iff_unbounded_inter_not_r (H : ∀ a b, ∃ m, ∀ c, r c a ∨ r c b → r c m) (a : α) :

@@ -305,13 +305,21 @@ mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
 lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
 mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
 
+lemma eventually_lt_of_tendsto_lt {l : filter γ} {f : γ → α} {u v : α} (hv : v < u)
+  (h : filter.tendsto f l (𝓝 v)) : ∀ᶠ a in l, f a < u :=
+tendsto_nhds.1 h (< u) is_open_Iio hv
+
+lemma eventually_gt_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv : u < v)
+  (h : filter.tendsto f l (𝓝 v)) : ∀ᶠ a in l, u < f a :=
+tendsto_nhds.1 h (> u) is_open_Ioi hv
+
 lemma eventually_le_of_tendsto_lt {l : filter γ} {f : γ → α} {u v : α} (hv : v < u)
   (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, f a ≤ u :=
-eventually.mono (tendsto_nhds.1 h (< u) is_open_Iio hv) (λ v, le_of_lt)
+(eventually_lt_of_tendsto_lt hv h).mono (λ v, le_of_lt)
 
 lemma eventually_ge_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv : u < v)
   (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, u ≤ f a :=
-eventually.mono (tendsto_nhds.1 h (> u) is_open_Ioi hv) (λ v, le_of_lt)
+(eventually_gt_of_tendsto_gt hv h).mono (λ v, le_of_lt)
 
 variables [topological_space γ]
 /-!

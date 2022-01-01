@@ -9,6 +9,7 @@ import topology.sheaves.sheaf_condition.sites
 import category_theory.limits.constructions.binary_products
 import algebra.category.CommRing.constructions
 import ring_theory.integral_domain
+import ring_theory.local_properties
 
 /-!
 # Basic properties of schemes
@@ -56,15 +57,6 @@ begin
     intro x, exact ⟨_, ⟨_, rfl⟩, X.affine_cover.covers x⟩ }
 end
 
-/-- A scheme `X` is integral if its carrier is nonempty,
-and `𝒪ₓ(U)` is an integral domain for each `U ≠ ∅`. -/
-class is_integral : Prop :=
-(nonempty : nonempty X.carrier . tactic.apply_instance)
-(component_integral : ∀ (U : opens X.carrier) [_root_.nonempty U],
-  is_domain (X.presheaf.obj (op U)) . tactic.apply_instance)
-
-attribute [instance] is_integral.component_integral is_integral.nonempty
-
 /-- A scheme `X` is reduced if all `𝒪ₓ(U)` are reduced. -/
 class is_reduced : Prop :=
 (component_reduced : ∀ U, _root_.is_reduced (X.presheaf.obj (op U)) . tactic.apply_instance)
@@ -109,6 +101,28 @@ begin
       .CommRing_iso_to_ring_equiv.injective
 end
 
+instance {R : CommRing} [H : _root_.is_reduced R] : is_reduced (Scheme.Spec.obj $ op R) :=
+begin
+  apply_with is_reduced_of_stalk_is_reduced { instances := ff },
+  intro x, dsimp,
+  haveI : _root_.is_reduced (CommRing.of $ localization.at_prime (prime_spectrum.as_ideal x)),
+  { dsimp, apply_instance },
+  exact is_reduced_of_injective (structure_sheaf.stalk_iso R x).hom
+    (structure_sheaf.stalk_iso R x).CommRing_iso_to_ring_equiv.injective,
+end
+
+lemma affine_is_reduced_iff (R : CommRing) :
+  is_reduced (Scheme.Spec.obj $ op R) ↔ _root_.is_reduced R :=
+begin
+  refine ⟨_, λ h, by exactI infer_instance⟩,
+  intro h,
+  resetI,
+  haveI : _root_.is_reduced (LocallyRingedSpace.Γ.obj (op $ Spec.to_LocallyRingedSpace.obj $ op R)),
+  { change _root_.is_reduced ((Scheme.Spec.obj $ op R).presheaf.obj $ op ⊤), apply_instance },
+  exact is_reduced_of_injective (to_Spec_Γ R)
+    ((as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv.injective)
+end
+
 local attribute [elementwise] category_theory.is_iso.hom_inv_id
 
 lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
@@ -136,6 +150,12 @@ begin
   exact (coe_hom_inv_id _ _).symm
 end
 
+/-- To show that a statement `P` holds for all open subsets of all schemes, it suffices to show that
+1. In any scheme `X`, if `P` holds for an open cover of `U`, then `P` holds for `U`.
+2. For an open immerison `f : X ⟶ Y`, if `P` holds for the entire space of `X`, then `P` holds for
+  the image of `f`.
+3. `P` holds for the entire space of an affine scheme.
+-/
 lemma reduce_to_affine_global (P : ∀ (X : Scheme) (U : opens X.carrier), Prop)
   (h₁ : ∀ (X : Scheme) (U : opens X.carrier),
     (∀ (x : U), ∃ {V} (h : x.1 ∈ V) (i : V ⟶ U), P X V) → P X U)
@@ -205,6 +225,18 @@ begin
   simp,
 end
 
+/-- A scheme `X` is integral if its carrier is nonempty,
+and `𝒪ₓ(U)` is an integral domain for each `U ≠ ∅`. -/
+class is_integral : Prop :=
+(nonempty : nonempty X.carrier . tactic.apply_instance)
+(component_integral : ∀ (U : opens X.carrier) [_root_.nonempty U],
+  is_domain (X.presheaf.obj (op U)) . tactic.apply_instance)
+
+attribute [instance] is_integral.component_integral is_integral.nonempty
+
+instance [h : is_integral X] : is_domain (X.presheaf.obj (op ⊤)) :=
+@@is_integral.component_integral _ _ (by simp)
+
 @[priority 900]
 instance is_reduced_of_is_integral [is_integral X] : is_reduced X :=
 begin
@@ -243,6 +275,81 @@ begin
       cases h₁ (show x ∈ ⊤, by trivial),
       exacts [hS h, hT h] },
     { intro x, exact x.rec _ } }
+end
+
+lemma is_integral_of_is_irreducible_is_reduced [is_reduced X] [H : irreducible_space X.carrier] :
+  is_integral X :=
+begin
+  split,
+  intros U hU,
+  split,
+  { intros a b e,
+    simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],
+    by_contra h,
+    push_neg at h,
+    exfalso,
+    obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
+      (X.to_LocallyRingedSpace.to_RingedSpace.basic_open a).2
+      (X.to_LocallyRingedSpace.to_RingedSpace.basic_open b).2
+      h.1 h.2,
+    replace e' := subtype.eq e',
+    subst e',
+    replace e := congr_arg (X.presheaf.germ x) e,
+    rw [ring_hom.map_mul, ring_hom.map_zero] at e,
+    apply @zero_ne_one (X.presheaf.stalk x.1),
+    rw ← is_unit_zero_iff,
+    convert hx₁.mul hx₂,
+    exact e.symm },
+  exact (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1,
+end
+
+lemma is_integral_iff_is_irreducible_and_is_reduced :
+  is_integral X ↔ irreducible_space X.carrier ∧ is_reduced X :=
+⟨λ _, by exactI ⟨infer_instance, infer_instance⟩,
+  λ ⟨_, _⟩, by exactI is_integral_of_is_irreducible_is_reduced X⟩
+
+lemma is_integral_of_open_immersion {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
+  [is_integral Y] [nonempty X.carrier] : is_integral X :=
+begin
+  constructor,
+  intros U hU,
+  have : U = (opens.map f.1.base).obj (H.base_open.is_open_map.functor.obj U),
+  { ext1, exact (set.preimage_image_eq _ H.base_open.inj).symm },
+  rw this,
+  haveI : is_domain (Y.presheaf.obj (op (H.base_open.is_open_map.functor.obj U))),
+  { apply_with is_integral.component_integral { instances := ff },
+    apply_instance,
+    refine ⟨⟨_, _, hU.some.prop, rfl⟩⟩ },
+  exact (as_iso $ f.1.c.app (op $ H.base_open.is_open_map.functor.obj U) :
+    Y.presheaf.obj _ ≅ _).symm.CommRing_iso_to_ring_equiv.is_domain _
+end
+
+instance {R : CommRing} [H : is_domain R] : is_integral (Scheme.Spec.obj $ op R) :=
+begin
+  apply_with is_integral_of_is_irreducible_is_reduced { instances := ff },
+  { apply_instance },
+  { dsimp [Spec.Top_obj],
+    apply_instance },
+end
+
+lemma affine_is_integral_iff (R : CommRing) :
+  is_integral (Scheme.Spec.obj $ op R) ↔ is_domain R :=
+⟨λ h, by exactI ring_equiv.is_domain ((Scheme.Spec.obj $ op R).presheaf.obj _)
+  (as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv, λ h, by exactI infer_instance⟩
+
+lemma map_injective_of_is_integral [is_integral X] {U V : opens X.carrier} (i : U ⟶ V)
+  [H : nonempty U] :
+  function.injective (X.presheaf.map i.op) :=
+begin
+  rw ring_hom.injective_iff,
+  intros x hx,
+  rw ← basic_open_eq_bot_iff at ⊢ hx,
+  erw RingedSpace.basic_open_res at hx,
+  revert hx,
+  contrapose!,
+  simp_rw [← opens.not_nonempty_iff_eq_bot, not_not, unop_op],
+  apply nonempty_preirreducible_inter U.prop (RingedSpace.basic_open _ _).prop,
+  simpa using H
 end
 
 end algebraic_geometry

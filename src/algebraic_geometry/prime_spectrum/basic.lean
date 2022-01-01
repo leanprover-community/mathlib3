@@ -602,7 +602,7 @@ lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum
 set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
 
 @[simp] lemma basic_open_one : basic_open (1 : R) = ⊤ :=
-topological_space.opens.ext $ by {simp, refl}
+topological_space.opens.ext $ by simp
 
 @[simp] lemma basic_open_zero : basic_open (0 : R) = ⊥ :=
 topological_space.opens.ext $ by simp

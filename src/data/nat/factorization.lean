@@ -14,6 +14,13 @@ import data.nat.mul_ind
   * `factorization 2000 2` is 4
   * `factorization 2000 5` is 3
   * `factorization 2000 k` is 0 for all other `k : ℕ`.
+
+TODO: Move some material on `factors.count`, `padic_val_nat`, and `multiplicity` to this file,
+prove results about the relationships between these definitions,
+and (where appropriate) choose a uniform canonical way of expressing these ideas.
+As discussed in this Zulip thread:
+https://leanprover.zulipchat.com/#narrow/stream/217875/topic/Multiplicity.20in.20the.20naturals
+
 -/
 
 open nat finset list finsupp
@@ -25,8 +32,10 @@ namespace nat
  mapping each prime factor of `n` to its multiplicity in `n`. -/
 noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
-lemma factorization_eq_count {n p : ℕ} : n.factorization p = list.count p n.factors :=
+lemma factorization_eq_count {n p : ℕ} : n.factorization p = n.factors.count p :=
 by simp [factorization]
+-- TODO: As part of the unification mentioned in the TODO above,
+-- consider making this a [simp] lemma from `n.factors.count` to `n.factorization`
 
 /-- Every nonzero natural number has a unique prime factorization -/
 lemma factorization_inj : set.inj_on factorization { x : ℕ | x ≠ 0 } :=

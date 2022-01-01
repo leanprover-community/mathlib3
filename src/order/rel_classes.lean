@@ -315,13 +315,13 @@ begin
   exact ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
 end
 
-lemma unbounded_le_iff_unbounded_lt [linear_order α] (s : set α)
-  (H : unbounded (≤) (set.univ : set α)) : unbounded (≤) s ↔ unbounded (<) s :=
+lemma unbounded_le_iff_unbounded_lt [linear_order α] [no_top_order α] (s : set α) :
+  unbounded (≤) s ↔ unbounded (<) s :=
 begin
   refine ⟨unbounded_lt_of_unbounded_le s, λ h a, _⟩,
-  rcases H a with ⟨c, _, hc⟩,
+  cases no_top a with c hc,
   rcases h c with ⟨b, hb, hbc⟩,
-  exact ⟨b, hb, λ hba, hbc (lt_of_le_of_lt hba (lt_of_not_ge hc))⟩
+  exact ⟨b, hb, λ hba, hbc (lt_of_le_of_lt hba hc)⟩
 end
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=

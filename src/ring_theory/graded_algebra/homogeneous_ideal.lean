@@ -20,8 +20,6 @@ them:
 * `radical` of a homogeneous ideal is homogeneous.
 -/
 
-noncomputable theory
-
 section is_homogeneous_ideal_defs
 
 open set_like direct_sum set

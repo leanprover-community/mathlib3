@@ -86,6 +86,17 @@ begin
   exact ⟨z, sq z⟩
 end
 
+lemma roots_eq_zero_iff [is_alg_closed k] {p : polynomial k} :
+  p.roots = 0 ↔ p = polynomial.C (p.coeff 0) :=
+begin
+  refine ⟨λ h, _, λ hp, by rw [hp, roots_C]⟩,
+  cases (le_or_lt (degree p) 0) with hd hd,
+  { exact eq_C_of_degree_le_zero hd },
+  { obtain ⟨z, hz⟩ := is_alg_closed.exists_root p hd.ne',
+    rw [←mem_roots (ne_zero_of_degree_gt hd), h] at hz,
+    simpa using hz }
+end
+
 theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)
   (hf : function.injective f) (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
 let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map_eq_of_injective hf]) in

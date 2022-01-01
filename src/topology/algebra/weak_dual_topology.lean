@@ -100,6 +100,11 @@ of functionals is equipped with the topology of pointwise convergence (product t
 instance : topological_space (weak_dual 𝕜 E) :=
 topological_space.induced (λ x' : weak_dual 𝕜 E, λ z : E, x' z) Pi.topological_space
 
+/-- The coercion `coe_fn : weak_dual 𝕜 E → (E → 𝕜)` is an embedding. -/
+lemma coe_fn_embedding :
+  embedding (coe_fn : weak_dual 𝕜 E → (E → 𝕜)) :=
+by convert continuous_linear_map.coe_fn_injective.embedding_induced
+
 lemma coe_fn_continuous :
   continuous (λ (x' : (weak_dual 𝕜 E)), (λ (z : E), x' z)) :=
 continuous_induced_dom
@@ -114,44 +119,40 @@ continuous_induced_rng (continuous_pi_iff.mpr h)
 theorem tendsto_iff_forall_eval_tendsto {γ : Type u} {F : filter γ}
   {ψs : γ → weak_dual 𝕜 E} {ψ : weak_dual 𝕜 E} :
   tendsto ψs F (𝓝 ψ) ↔ ∀ z : E, tendsto (λ i, ψs i z) F (𝓝 (ψ z)) :=
-begin
-  rw ← tendsto_pi_nhds,
-  split,
-  { intros weak_star_conv,
-    exact (((coe_fn_continuous 𝕜 E).tendsto ψ).comp weak_star_conv), },
-  { intro h_lim_forall,
-    rwa [nhds_induced, tendsto_comap_iff], },
-end
+by rw [← tendsto_pi_nhds, (coe_fn_embedding 𝕜 E).tendsto_nhds_iff]
 
 /-- Addition in `weak_dual 𝕜 E` is continuous. -/
 instance [has_continuous_add 𝕜] : has_continuous_add (weak_dual 𝕜 E) :=
-{ continuous_add := begin
-    apply continuous_of_continuous_eval,
-    intros z,
-    have h : continuous (λ p : 𝕜 × 𝕜, p.1 + p.2) := continuous_add,
-    exact h.comp ((eval_continuous 𝕜 E z).prod_map (eval_continuous 𝕜 E z)),
-  end, }
+⟨continuous_induced_rng $ ((coe_fn_continuous 𝕜 E).comp continuous_fst).add
+  ((coe_fn_continuous 𝕜 E).comp continuous_snd)⟩
 
-/-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a module over `𝕜`. -/
-instance (𝕜 : Type u) [topological_space 𝕜] [comm_semiring 𝕜]
-  [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
-  (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
-  module 𝕜 (weak_dual 𝕜 E) :=
+/-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
+multiplication on `𝕜`, then it acts on `weak_dual 𝕜 E`. -/
+instance (M : Type*) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
+  [topological_space M] [has_continuous_smul M 𝕜] :
+  mul_action M (weak_dual 𝕜 E) :=
+continuous_linear_map.mul_action
+
+/-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
+multiplication on `𝕜`, then it acts distributively on `weak_dual 𝕜 E`. -/
+instance (M : Type*) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
+  [topological_space M] [has_continuous_smul M 𝕜] [has_continuous_add 𝕜] :
+  distrib_mul_action M (weak_dual 𝕜 E) :=
+continuous_linear_map.distrib_mul_action
+
+/-- If `𝕜` is a topological module over a semiring `R` and scalar multiplication commutes with the
+multiplication on `𝕜`, then `weak_dual 𝕜 E` is a module over `R`. -/
+instance (R : Type*) [semiring R] [module R 𝕜] [smul_comm_class 𝕜 R 𝕜]
+  [topological_space R] [has_continuous_smul R 𝕜] [has_continuous_add 𝕜] :
+  module R (weak_dual 𝕜 E) :=
 continuous_linear_map.module
 
-/-- Scalar multiplication in `weak_dual 𝕜 E` is continuous (when `𝕜` is a commutative
-semiring). -/
-instance (𝕜 : Type u) [topological_space 𝕜] [comm_semiring 𝕜]
-  [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
-  (E : Type*) [topological_space E] [add_comm_group E]
-  [module 𝕜 E] :
-  has_continuous_smul 𝕜 (weak_dual 𝕜 E) :=
-{ continuous_smul := begin
-    apply continuous_of_continuous_eval,
-    intros z,
-    have h : continuous (λ p : 𝕜 × 𝕜, p.1 * p.2) := continuous_mul,
-    exact h.comp ((continuous_id').prod_map (eval_continuous 𝕜 E z)),
-  end, }
+/-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
+multiplication on `𝕜`, then it continuously acts on `weak_dual 𝕜 E`. -/
+instance (M : Type*) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
+  [topological_space M] [has_continuous_smul M 𝕜] :
+  has_continuous_smul M (weak_dual 𝕜 E) :=
+⟨continuous_induced_rng $ continuous_fst.smul ((coe_fn_continuous 𝕜 E).comp continuous_snd)⟩
 
 end weak_dual
 

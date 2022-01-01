@@ -141,7 +141,6 @@ def walking_span_equiv : walking_span.{v₁} ≌ walking_span.{v₂} :=
   counit_iso := nat_iso.of_components
     (λ x, eq_to_iso (by { rcases x with (_|_|_); refl }))
     (by { rintros _ _ (_|_|_); simp }) }
-end
 
 end
 

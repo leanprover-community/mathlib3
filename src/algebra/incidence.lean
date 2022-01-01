@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import algebra.big_operators.ring
+import algebra.smul_with_zero
+import group_theory.group_action.pi
 import data.finset.locally_finite
 
 /-!
@@ -13,7 +15,7 @@ import data.finset.locally_finite
 open finset
 open_locale big_operators
 
-variables (𝕜 α : Type*)
+variables (𝕄 𝕜 α : Type*)
 
 /-- The `𝕜`-incidence algebra over `α`. -/
 structure incidence_algebra [has_zero 𝕜] [has_le α] :=
@@ -29,11 +31,11 @@ instance fun_like : fun_like (incidence_algebra 𝕜 α) α (λ _, α → 𝕜) 
 
 variables {𝕜 α}
 
-lemma eq_zero_of_not_le {f : incidence_algebra 𝕜 α} {a b : α} : ¬ a ≤ b → f a b = 0 :=
-eq_zero_of_not_le' _
+lemma eq_zero_of_not_le {a b : α} (h : ¬ a ≤ b) (f : incidence_algebra 𝕜 α) : f a b = 0 :=
+eq_zero_of_not_le' _ h
 
 lemma le_of_ne_zero {f : incidence_algebra 𝕜 α} {a b : α} : f a b ≠ 0 → a ≤ b :=
-not_imp_comm.1 eq_zero_of_not_le
+not_imp_comm.1 $ eq_zero_of_not_le' _
 
 -- completely uninteresting lemmas about coercion to function, that all homs need
 section coes
@@ -59,13 +61,18 @@ congr_arg2 f ha hb
 lemma coe_inj ⦃f g : incidence_algebra 𝕜 α⦄ (h : (f : α → α → 𝕜) = g) : f = g :=
 by { cases f, cases g, cases h, refl }
 
-@[ext] lemma ext ⦃f g : incidence_algebra 𝕜 α⦄ (h : ∀ a b, f a b = g a b) : f = g :=
-coe_inj $ funext $ λ a, funext $ h a
+@[ext] lemma ext ⦃f g : incidence_algebra 𝕜 α⦄ (h : ∀ a b (hab : a ≤ b), f a b = g a b) : f = g :=
+begin
+  refine coe_inj (funext $ λ a, funext $ λ b, _),
+  by_cases hab : a ≤ b,
+  { exact h _ _ hab },
+  { rw [eq_zero_of_not_le hab, eq_zero_of_not_le hab] }
+end
 
 lemma ext_iff {f g : incidence_algebra 𝕜 α} : f = g ↔ ∀ a b, f a b = g a b :=
-⟨incidence_algebra.congr_fun, λ h, ext h⟩
+⟨incidence_algebra.congr_fun, λ h, ext $ λ a b _, h _ _⟩
 
-@[simp] lemma mk_coe (f : incidence_algebra 𝕜 α) (h) : mk f h = f := ext $ λ _ _, rfl
+@[simp] lemma mk_coe (f : incidence_algebra 𝕜 α) (h) : mk f h = f := ext $ λ _ _ _, rfl
 
 end coes
 
@@ -95,6 +102,51 @@ instance [add_monoid 𝕜] [has_le α] : add_monoid (incidence_algebra 𝕜 α) 
   zero_add := λ f, by { ext, exact zero_add _ },
   add_zero := λ f, by { ext, exact add_zero _ } }
 
+instance [add_comm_monoid 𝕜] [has_le α] : add_comm_monoid (incidence_algebra 𝕜 α) :=
+{ add_comm := λ f g, by { ext, exact add_comm _ _ },
+  .. incidence_algebra.add_monoid 𝕜 α }
+
+section add_group
+variables [add_group 𝕜] [has_le α]
+
+instance : has_neg (incidence_algebra 𝕜 α) :=
+⟨λ f, ⟨-f, λ a b h, by simp_rw [pi.neg_apply, eq_zero_of_not_le h, neg_zero]⟩⟩
+
+instance : has_sub (incidence_algebra 𝕜 α) :=
+⟨λ f g, ⟨f - g, λ a b h, by simp_rw [pi.sub_apply, eq_zero_of_not_le h, sub_zero]⟩⟩
+
+@[simp] lemma neg_apply (f : incidence_algebra 𝕜 α) (a b : α) : (-f) a b = -f a b := rfl
+
+@[simp] lemma sub_apply (f g : incidence_algebra 𝕜 α) (a b : α) : (f - g) a b = f a b - g a b := rfl
+
+instance : add_group (incidence_algebra 𝕜 α) :=
+{ sub_eq_add_neg := λ f g, by { ext, exact sub_eq_add_neg _ _ },
+  add_left_neg := λ f, by { ext, exact add_left_neg _ },
+  .. incidence_algebra.add_monoid 𝕜 α,
+  .. incidence_algebra.has_neg 𝕜 α,
+  .. incidence_algebra.has_sub 𝕜 α }
+
+end add_group
+
+instance [add_comm_group 𝕜] [has_le α] : add_comm_group (incidence_algebra 𝕜 α) :=
+{ .. incidence_algebra.add_group 𝕜 α, .. incidence_algebra.add_comm_monoid 𝕜 α }
+
+section smul_with_zero
+variables [has_zero 𝕄] [has_zero 𝕜] [smul_with_zero 𝕄 𝕜] [has_le α]
+
+instance : has_scalar 𝕄 (incidence_algebra 𝕜 α) :=
+⟨λ c f, ⟨c • f, λ a b h, by rw [pi.smul_apply, pi.smul_apply, eq_zero_of_not_le h, smul_zero']⟩⟩
+
+@[simp] lemma smul_apply (c : 𝕄) (f : incidence_algebra 𝕜 α) (a b : α) : (c • f) a b = c • f a b :=
+rfl
+
+instance : smul_with_zero 𝕄 (incidence_algebra 𝕜 α) :=
+{ smul := (•),
+  smul_zero := λ m, by { ext, exact smul_zero' _ _ },
+  zero_smul := λ m, by { ext, exact zero_smul _ _ } }
+
+end smul_with_zero
+
 section one
 variables [preorder α] [decidable_eq α] [has_zero 𝕜] [has_one 𝕜]
 
@@ -116,8 +168,8 @@ instance : has_mul (incidence_algebra 𝕜 α) :=
 
 end mul
 
-instance [non_assoc_semiring 𝕜] [decidable_eq α] [preorder α] [locally_finite_order α] :
-  monoid (incidence_algebra 𝕜 α) :=
+instance [semiring 𝕜] [decidable_eq α] [preorder α] [locally_finite_order α] :
+  semiring (incidence_algebra 𝕜 α) :=
 { mul := (*),
   mul_assoc := λ f g h, begin
     ext a b,
@@ -135,7 +187,15 @@ instance [non_assoc_semiring 𝕜] [decidable_eq α] [preorder α] [locally_fini
     simp_rw [mul_apply, one_apply, eq_comm, sum_mul_boole],
     convert (ite_eq_left_iff.2 $ not_imp_comm.1 $
       λ h, right_mem_Icc.2 $ le_of_ne_zero $ ne.symm h).symm,
-  end }
+  end,
+  zero := 0,
+  zero_mul := λ f, by { ext, exact sum_eq_zero (λ x _, zero_mul _) },
+  mul_zero := λ f, by { ext, exact sum_eq_zero (λ x _, mul_zero _) },
+  left_distrib := λ f g h,
+    by { ext, exact eq.trans (sum_congr rfl (λ x _, left_distrib _ _ _)) sum_add_distrib },
+  right_distrib := λ f g h,
+    by { ext, exact eq.trans (sum_congr rfl (λ x _, right_distrib _ _ _)) sum_add_distrib },
+  .. incidence_algebra.add_comm_monoid 𝕜 α }
 
 section zeta
 variables [has_zero 𝕜] [has_one 𝕜] [has_le α] [@decidable_rel α (≤)]
@@ -170,24 +230,17 @@ def mu_aux (a : α) : α → 𝕜
     mu_aux x
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ b, (Icc a b).card)⟩] }
 
-lemma mu_aux_apply (a b : α) : mu_aux 𝕜 α a b =
-  if a = b then 1 else -∑ x in (Ico a b).attach, mu_aux 𝕜 α a x :=
-begin
-  convert has_well_founded.wf.fix_eq _ _,
-  refl,
-end
+lemma mu_aux_apply (a b : α) :
+  mu_aux 𝕜 α a b = if a = b then 1 else -∑ x in (Ico a b).attach, mu_aux 𝕜 α a x :=
+by { convert has_well_founded.wf.fix_eq _ _, refl }
 
 def mu : incidence_algebra 𝕜 α := ⟨mu_aux 𝕜 α, λ a b, not_imp_comm.1 $ λ h, begin
   rw mu_aux_apply at h,
   split_ifs at h with hab hab,
-  exact le_of_eq hab,
-  rw [neg_eq_zero] at h,
-  have := exists_ne_zero_of_sum_ne_zero h,
-  rcases this with ⟨⟨x, hx⟩, hn, hnn⟩,
-  rw [mem_Ico] at hx,
-  transitivity x,
-  exact hx.1,
-  exact hx.2.le,
+  { exact hab.le },
+  { rw neg_eq_zero at h,
+    obtain ⟨⟨x, hx⟩, -⟩ := exists_ne_zero_of_sum_ne_zero h,
+    exact (nonempty_Ico.1 ⟨x, hx⟩).le }
 end⟩
 
 variables {𝕜 α}

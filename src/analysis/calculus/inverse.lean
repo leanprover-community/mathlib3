@@ -109,7 +109,7 @@ def approximates_linear_on (f : E → F) (f' : E →L[𝕜] F) (s : set E) (c : 
 ∀ (x ∈ s) (y ∈ s), ∥f x - f y - f' (x - y)∥ ≤ c * ∥x - y∥
 
 lemma approximates_linear_on_iff_lipschitz_on_with
-  (f : E → F) (f' : E →L[𝕜] F) (s : set E) (c : ℝ≥0) :
+  {f : E → F} {f' : E →L[𝕜] F} {s : set E} {c : ℝ≥0} :
   approximates_linear_on f f' s c ↔ lipschitz_on_with c (f - f') s :=
 begin
   have : ∀ x y, f x - f y - f' (x - y) = (f - f') x - (f - f') y,

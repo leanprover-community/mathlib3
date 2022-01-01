@@ -21,7 +21,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional 
 map `A`. Then it expands the volume of any set by at most `m` for any `m > det A`. -/
 lemma measure_image_le_mul_of_det_lt
   (A : E →L[ℝ] E) {m : ℝ≥0} (hm : ennreal.of_real (abs (A : E →ₗ[ℝ] E).det) < m) :
-  ∀ᶠ δ in 𝓝 (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : lipschitz_on_with δ (f - A) s),
+  ∀ᶠ δ in 𝓝 (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : approximates_linear_on f A s δ),
   μ (f '' s) ≤ m * μ s :=
 begin
   let d := ennreal.of_real (abs (A : E →ₗ[ℝ] E).det),
@@ -66,7 +66,7 @@ begin
         simpa [dist_eq_norm] using zr },
       { rw [mem_closed_ball_iff_norm, add_sub_cancel, ← dist_eq_norm],
         calc dist ((f - A) z) ((f - A) x)
-            ≤ δ * dist z x : hf.dist_le_mul _ zs _ xs
+            ≤ δ * dist z x : hf.lipschitz_on_with.dist_le_mul _ zs _ xs
         ... ≤ ε * r : mul_le_mul (le_of_lt hδ) zr dist_nonneg εpos.le },
       { simp only [map_sub, pi.sub_apply],
         abel } },
@@ -121,15 +121,72 @@ begin
 end
 
 /-- Let `f` be a function which is sufficiently close (in the Lipschitz sense) to a given linear
-map `A`. Then it expands the volume of any set by at most `m` for any `m > det A`. -/
+map `A`. Then it expands the volume of any set by at least `m` for any `m < det A`. -/
 lemma mul_le_measure_image_of_lt_det
   (A : E →L[ℝ] E) {m : ℝ≥0} (hm : (m : ℝ≥0∞) < ennreal.of_real (abs (A : E →ₗ[ℝ] E).det)) :
-  ∀ᶠ δ in 𝓝 (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : lipschitz_on_with δ (f - A) s),
+  ∀ᶠ δ in 𝓝 (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : approximates_linear_on f A s δ),
   (m : ℝ≥0∞) * μ s ≤ μ (f '' s) :=
 begin
+  -- The assumption `hm` implies that `A` is invertible. If `f` is close enough to `A`, it is also
+  -- invertible. One can then pass to the inverses, and deduce the estimate from
+  -- `measure_image_le_mul_of_det_lt` applied to `f⁻¹` and `A⁻¹`.
+  -- exclude first the trivial case where `m = 0`.
+  rcases eq_or_lt_of_le (zero_le m) with rfl|mpos,
+  { apply eventually_of_forall,
+    simp only [forall_const, zero_mul, implies_true_iff, zero_le, ennreal.coe_zero] },
   have hA : (A : E →ₗ[ℝ] E).det ≠ 0,
   { assume h, simpa only [h, ennreal.not_lt_zero, ennreal.of_real_zero, abs_zero] using hm },
+  -- let `B` be the inverse of `A`.
   let B := ((A : E →ₗ[ℝ] E).equiv_of_det_ne_zero hA).to_continuous_linear_equiv,
-  apply eventually_of_forall,
-  assume δ s f hf,
+  have : (B : E →L[ℝ] E) = A,
+  { ext x,
+    simp only [linear_equiv.of_is_unit_det_apply, linear_equiv.to_continuous_linear_equiv_apply,
+      continuous_linear_equiv.coe_coe, continuous_linear_map.coe_coe, linear_equiv.to_fun_eq_coe] },
+  -- the determinant of `B.symm` is bounded by `m⁻¹`
+  have I : ennreal.of_real (abs (B.symm : E →ₗ[ℝ] E).det) < (m⁻¹ : ℝ≥0),
+  { simp only [linear_equiv.coe_to_continuous_linear_equiv_symm, linear_equiv.det_coe_symm, abs_inv,
+               linear_equiv.coe_of_is_unit_det, ennreal.of_real, ennreal.coe_lt_coe,
+               real.to_nnreal_inv] at ⊢ hm,
+    exact nnreal.inv_lt_inv mpos.ne' hm },
+  -- therefore, we may apply `measure_image_le_mul_of_det_lt` to `B.symm` and `m⁻¹`.
+  obtain ⟨δ₀, δ₀pos, hδ₀⟩ : ∃ (δ : ℝ≥0), 0 < δ ∧ ∀ (t : set E) (g : E → E),
+    approximates_linear_on g (B.symm : E →L[ℝ] E) t δ → μ (g '' t) ≤ ↑m⁻¹ * μ t,
+  { have : ∀ᶠ (δ : ℝ≥0) in 𝓝 0, ∀ (t : set E) (g : E → E),
+      approximates_linear_on g (B.symm : E →L[ℝ] E) t δ → μ (g '' t) ≤ ↑m⁻¹ * μ t :=
+        measure_image_le_mul_of_det_lt μ B.symm I,
+    rcases exists_Ico_subset_of_mem_nhds this ⟨1, zero_lt_one⟩ with ⟨δ₁, δ₁pos, h₁⟩,
+    exact ⟨δ₁/2, nnreal.half_pos δ₁pos, h₁ ⟨bot_le, nnreal.half_lt_self δ₁pos.ne'⟩⟩ },
+  -- record smallness conditions for `δ` that will be needed to apply `hδ₀` below.
+  have L1 : ∀ᶠ δ in 𝓝 (0 : ℝ≥0), subsingleton E ∨ δ < ∥(B.symm : E →L[ℝ] E)∥₊⁻¹,
+  { by_cases (subsingleton E),
+    { simp only [h, true_or, eventually_const] },
+    simp only [h, false_or],
+    apply Iio_mem_nhds,
+    simpa only [h, false_or, nnreal.inv_pos] using B.subsingleton_or_nnnorm_symm_pos },
+  have L2 : ∀ᶠ δ in 𝓝 (0 : ℝ≥0),
+    ∥(B.symm : E →L[ℝ] E)∥₊ * (∥(B.symm : E →L[ℝ] E)∥₊⁻¹ - δ)⁻¹ * δ < δ₀,
+  { have : tendsto (λ δ, ∥(B.symm : E →L[ℝ] E)∥₊ * (∥(B.symm : E →L[ℝ] E)∥₊⁻¹ - δ)⁻¹ * δ)
+      (𝓝 0) (𝓝 (∥(B.symm : E →L[ℝ] E)∥₊ * (∥(B.symm : E →L[ℝ] E)∥₊⁻¹ - 0)⁻¹ * 0)),
+    { rcases eq_or_ne (∥(B.symm : E →L[ℝ] E)∥₊) 0 with H|H,
+      { simpa only [H, zero_mul] using tendsto_const_nhds },
+      refine tendsto.mul (tendsto_const_nhds.mul _) tendsto_id,
+      refine (tendsto.sub tendsto_const_nhds tendsto_id).inv₀ _,
+      simpa only [tsub_zero, inv_eq_zero, ne.def] using H },
+    simp only [mul_zero] at this,
+    exact (tendsto_order.1 this).2 δ₀ δ₀pos },
+  -- let `δ` be small enough, and `f` approximated by `B` up to `δ`.
+  filter_upwards [L1, L2],
+  assume δ h1δ h2δ s f hf,
+  have hf' : approximates_linear_on f (B : E →L[ℝ] E) s δ, by convert hf,
+  let F := hf'.to_local_equiv h1δ,
+  -- the condition to be checked can be reformulated in terms of the inverse maps
+  suffices H : μ ((F.symm) '' F.target) ≤ (m⁻¹ : ℝ≥0) * μ F.target,
+  { change (m : ℝ≥0∞) * μ (F.source) ≤ μ (F.target),
+    rwa [← F.symm_image_target_eq_source, mul_comm, ← ennreal.le_div_iff_mul_le, div_eq_mul_inv,
+         mul_comm, ← ennreal.coe_inv (mpos.ne')],
+    { apply or.inl,
+      simpa only [ennreal.coe_eq_zero, ne.def] using mpos.ne'},
+    { simp only [ennreal.coe_ne_top, true_or, ne.def, not_false_iff] } },
+  -- as `f⁻¹` is well approximated by `B⁻¹`, the conclusion follows from our choice of `δ`.
+  exact hδ₀ _ _ ((hf'.to_inv h1δ).mono_num h2δ.le),
 end

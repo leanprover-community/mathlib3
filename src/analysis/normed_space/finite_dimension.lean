@@ -264,16 +264,42 @@ def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' 
 
 end linear_map
 
+namespace linear_equiv
+
+variables [finite_dimensional 𝕜 E]
+
 /-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
 space. -/
 @[simps]
-def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
+def to_continuous_linear_equiv (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin
     haveI : finite_dimensional 𝕜 F := e.finite_dimensional,
     exact e.symm.to_linear_map.continuous_of_finite_dimensional
   end,
   ..e }
+
+@[simp] lemma coe_to_continuous_linear_equiv (e : E ≃ₗ[𝕜] F) :
+  (e.to_continuous_linear_equiv : E →ₗ[𝕜] F) = e := rfl
+
+@[simp] lemma coe_to_continuous_linear_equiv' (e : E ≃ₗ[𝕜] F) :
+  (e.to_continuous_linear_equiv : E → F) = e := rfl
+
+@[simp] lemma coe_to_continuous_linear_equiv_symm (e : E ≃ₗ[𝕜] F) :
+  (e.to_continuous_linear_equiv.symm : F →ₗ[𝕜] E) = e.symm := rfl
+
+@[simp] lemma coe_to_continuous_linear_equiv_symm' (e : E ≃ₗ[𝕜] F) :
+  (e.to_continuous_linear_equiv.symm : F → E) = e.symm := rfl
+
+@[simp] lemma to_linear_equiv_to_continuous_linear_equiv (e : E ≃ₗ[𝕜] F) :
+  e.to_continuous_linear_equiv.to_linear_equiv = e :=
+by { ext x, refl }
+
+@[simp] lemma to_linear_equiv_to_continuous_linear_equiv_symm (e : E ≃ₗ[𝕜] F) :
+  e.to_continuous_linear_equiv.symm.to_linear_equiv = e.symm :=
+by { ext x, refl }
+
+end linear_equiv
 
 lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
   (hf : f.ker = ⊥) : ∃ K > 0, antilipschitz_with K f :=

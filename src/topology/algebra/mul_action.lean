@@ -323,7 +323,7 @@ instance [topological_space β] [has_scalar M α] [has_scalar M β] [has_continu
   (continuous_fst.smul (continuous_snd.comp continuous_snd))⟩
 
 @[to_additive]
-instance {ι : Type*} {γ : ι → Type}
+instance {ι : Type*} {γ : ι → Type*}
   [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
   has_continuous_smul M (Π i, γ i) :=
 ⟨continuous_pi $ λ i,

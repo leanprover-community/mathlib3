@@ -307,7 +307,7 @@ begin
   exact ⟨b, hb, le_of_not_gt hba⟩
 end
 
-lemma unbounded_le_of_unbounded_lt [preorder α] (s : set α) (h : unbounded (≤) s) :
+lemma unbounded_lt_of_unbounded_le [preorder α] (s : set α) (h : unbounded (≤) s) :
   unbounded (<) s :=
 begin
   intro a,
@@ -318,7 +318,7 @@ end
 lemma unbounded_le_iff_unbounded_lt [linear_order α] (s : set α)
   (H : unbounded (≤) (set.univ : set α)) : unbounded (≤) s ↔ unbounded (<) s :=
 begin
-  refine ⟨unbounded_le_of_unbounded_lt s, λ h a, _⟩,
+  refine ⟨unbounded_lt_of_unbounded_le s, λ h a, _⟩,
   rcases H a with ⟨c, _, hc⟩,
   rcases h c with ⟨b, hb, hbc⟩,
   exact ⟨b, hb, λ hba, hbc (lt_of_le_of_lt hba (lt_of_not_ge hc))⟩

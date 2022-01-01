@@ -1397,7 +1397,8 @@ end
 
 variables (S)
 
-/-- If `M ≤ N` are submonoids of `R`, then there is a natural map `M⁻¹S →+* N⁻¹S`. -/
+/-- Given submonoids `M ≤ N` of `R`, this is the canonical algebra structure
+of `M⁻¹S` acting on `N⁻¹S`. -/
 noncomputable
 def localization_algebra_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :

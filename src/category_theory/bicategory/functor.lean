@@ -9,11 +9,11 @@ import category_theory.bicategory.basic
 # Pseudofunctors
 
 A pseudofunctor `F` between bicategories `B` and `C` consists of
-* a function between objects `obj : B ⟶ C`,
-* a function between 1-morphisms `map : (a ⟶ b) → (obj a ⟶ obj b)`,
-* a function between 2-morphisms `map₂ : (f ⟶ g) → (map f ⟶ map g)`,
-* an isomorphism `map_comp : 𝟙 (obj a) ≅ map (𝟙 a)`,
-* an isomorphism `map_id : map f ≫ map g ≅ map (f ≫ g)`, and
+* a function between objects `F.obj : B ⟶ C`,
+* a family of functions between 1-morphisms `F.map : (a ⟶ b) → (obj a ⟶ obj b)`,
+* a family of functions between 2-morphisms `F.map₂ : (f ⟶ g) → (map f ⟶ map g)`,
+* a family of isomorphisms `F.map_id a : 𝟙 (obj a) ≅ map (𝟙 a)`,
+* a family of isomorphisms `F.map_comp f g : map f ≫ map g ≅ map (f ≫ g)`, and
 * certain consistency conditions on them.
 
 The direction of isomorphisms `map_comp` and `map_id` here is the lax direction.
@@ -38,10 +38,10 @@ variables
 (C : Type u₂) [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
 
 /--
-A prepseudofunctor `F` between bicategories `B` and `C` consists of functions between objects,
+A prepseudofunctor between bicategories consists of functions between objects,
 1-morphisms, and 2-morphisms. This structure will be extended to define `pseudofunctor`.
 -/
-structure prepseudofunctor extends prefunctor B C :=
+structure prepseudofunctor extends prefunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
 (map₂ {a b : B} {f g : a ⟶ b} : (f ⟶ g) → (map f ⟶ map g))
 
 /-- The prefunctor between the underlying quivers. -/
@@ -93,30 +93,30 @@ A pseudofunctor `F` between bicategories `B` and `C` consists of functions betwe
 
 Unlike functors between categories, functions between 1-morphisms do not need to strictly commute
 with compositions, and do not need to strictly preserve the identity. Instead, there are
-specified isomorphisms `𝟙 (obj a) ≅ map (𝟙 a)` and `map f ≫ map g ≅ map (f ≫ g)`.
+specified isomorphisms `𝟙 (F.obj a) ≅ F.map (𝟙 a)` and `F.map f ≫ F.map g ≅ F.map (f ≫ g)`.
 
 Functions between 2-morphisms strictly commute with compositions and preserve the identity.
 They also preserve the associator, the left unitor, and the right unitor modulo some adjustments
 of domains and codomains of 2-morphisms.
 -/
-structure pseudofunctor extends prepseudofunctor B C :=
+structure pseudofunctor extends prepseudofunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
 (map_id (a : B) : 𝟙 (obj a) ≅ map (𝟙 a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map f ≫ map g ≅ map (f ≫ g))
-(map_comp_naturality_left' : ∀ {a b c} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
+(map_comp_naturality_left' : ∀ {a b c : B} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
   (map₂ η ▷ map g) ≫ (map_comp f' g).hom = (map_comp f g).hom ≫ map₂ (η ▷ g) . obviously)
-(map_comp_naturality_right' : ∀ {a b c} (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g'),
+(map_comp_naturality_right' : ∀ {a b c : B} (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g'),
   (map f ◁ map₂ η) ≫ (map_comp f g').hom = (map_comp f g).hom ≫ map₂ (f ◁ η) . obviously)
-(map₂_id' : ∀ {a b} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
-(map₂_comp' : ∀ {a b} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
+(map₂_id' : ∀ {a b : B} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
+(map₂_comp' : ∀ {a b : B} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
   map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
-(map₂_associator' : ∀ {a b c d} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
+(map₂_associator' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
   ((map_comp f g).hom ▷ map h) ≫ (map_comp (f ≫ g) h).hom ≫ map₂ (α_ f g h).hom =
     (α_ (map f) (map g) (map h)).hom ≫ (map f ◁ (map_comp g h).hom) ≫
       (map_comp f (g ≫ h)).hom . obviously)
-(map₂_left_unitor' : ∀ {a b} (f : a ⟶ b),
+(map₂_left_unitor' : ∀ {a b : B} (f : a ⟶ b),
   ((map_id a).hom ▷ map f) ≫ (map_comp (𝟙 a) f).hom ≫ map₂ (λ_ f).hom =
     (λ_ (map f)).hom . obviously)
-(map₂_right_unitor' : ∀ {a b} (f : a ⟶ b),
+(map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
   (map f ◁ (map_id b).hom) ≫ (map_comp f (𝟙 b)).hom ≫ map₂ (ρ_ f).hom =
     (ρ_ (map f)).hom . obviously)
 

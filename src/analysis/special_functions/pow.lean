@@ -606,12 +606,11 @@ end
 lemma rpow_le_rpow_of_exponent_ge' (hx0 : 0 ≤ x) (hx1 : x ≤ 1) (hz : 0 ≤ z) (hyz : z ≤ y) :
   x^y ≤ x^z :=
 begin
-  rcases lt_or_eq_of_le hz with hz | rfl,
-  rcases lt_or_eq_of_le hx0 with hx0 | rfl,
-  { exact rpow_le_rpow_of_exponent_ge hx0 hx1 hyz },
-  { rw zero_rpow (by linarith : y ≠ 0),
-    exact zero_rpow_nonneg _ },
-  { simpa using rpow_le_one hx0 hx1 hyz }
+  rcases eq_or_lt_of_le hx0 with rfl | hx0',
+  { rcases eq_or_lt_of_le hz with rfl | hz',
+    { exact (rpow_zero 0).symm ▸ (rpow_le_one hx0 hx1 hyz), },
+    rw [zero_rpow, zero_rpow]; linarith, },
+  { exact rpow_le_rpow_of_exponent_ge hx0' hx1 hyz, },
 end
 
 lemma rpow_left_inj_on {x : ℝ} (hx : x ≠ 0) :

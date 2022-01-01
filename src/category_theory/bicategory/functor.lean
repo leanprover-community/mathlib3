@@ -33,21 +33,23 @@ open_locale bicategory
 universes w₁ w₂ w₃ v₁ v₂ v₃ u₁ u₂ u₃
 
 section
-variables
-(B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
-(C : Type u₂) [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
 
 /--
 A prepseudofunctor between bicategories consists of functions between objects,
 1-morphisms, and 2-morphisms. This structure will be extended to define `pseudofunctor`.
 -/
-structure prepseudofunctor extends prefunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
+structure prepseudofunctor
+  (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
+  (C : Type u₂) [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
+  extends prefunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
 (map₂ {a b : B} {f g : a ⟶ b} : (f ⟶ g) → (map f ⟶ map g))
 
 /-- The prefunctor between the underlying quivers. -/
 add_decl_doc prepseudofunctor.to_prefunctor
 
-variables {B} {C} (F : prepseudofunctor B C)
+variables {B : Type u₁} [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
+variables {C : Type u₂} [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
+variables (F : prepseudofunctor B C)
 
 @[simp] lemma prepseudofunctor.to_prefunctor_obj : F.to_prefunctor.obj = F.obj := rfl
 @[simp] lemma prepseudofunctor.to_prefunctor_map : F.to_prefunctor.map = F.map := rfl
@@ -69,11 +71,10 @@ instance : inhabited (prepseudofunctor B B) := ⟨prepseudofunctor.id B⟩
 end
 
 section
-variables
-{B : Type u₁} [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
-{C : Type u₂} [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
-{D : Type u₃} [quiver.{v₃+1} D] [∀ a b : D, quiver.{w₃+1} (a ⟶ b)]
-(F : prepseudofunctor B C) (G : prepseudofunctor C D)
+variables {B : Type u₁} [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
+variables {C : Type u₂} [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
+variables {D : Type u₃} [quiver.{v₃+1} D] [∀ a b : D, quiver.{w₃+1} (a ⟶ b)]
+variables (F : prepseudofunctor B C) (G : prepseudofunctor C D)
 
 /-- Composition of prepseudofunctors. -/
 @[simps]
@@ -85,7 +86,6 @@ end
 end prepseudofunctor
 
 section
-variables (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
 
 /--
 A pseudofunctor `F` between bicategories `B` and `C` consists of functions between objects,
@@ -99,7 +99,8 @@ Functions between 2-morphisms strictly commute with compositions and preserve th
 They also preserve the associator, the left unitor, and the right unitor modulo some adjustments
 of domains and codomains of 2-morphisms.
 -/
-structure pseudofunctor extends prepseudofunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
+structure pseudofunctor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
+  extends prepseudofunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
 (map_id (a : B) : 𝟙 (obj a) ≅ map (𝟙 a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map f ≫ map g ≅ map (f ≫ g))
 (map_comp_naturality_left' : ∀ {a b c : B} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
@@ -120,6 +121,8 @@ structure pseudofunctor extends prepseudofunctor B C : Type (max w₁ w₂ v₁ 
   (map f ◁ (map_id b).hom) ≫ (map_comp f (𝟙 b)).hom ≫ map₂ (ρ_ f).hom =
     (ρ_ (map f)).hom . obviously)
 
+set_option trace.class_instances false
+
 restate_axiom pseudofunctor.map_comp_naturality_left'
 restate_axiom pseudofunctor.map_comp_naturality_right'
 restate_axiom pseudofunctor.map₂_id'
@@ -138,7 +141,8 @@ attribute [reassoc]
 attribute [simp]
   pseudofunctor.map₂_comp
 
-variables {B} {C} (F : pseudofunctor B C)
+variables {B : Type u₁} [bicategory.{w₁ v₁} B] {C : Type u₂} [bicategory.{w₂ v₂} C]
+variables (F : pseudofunctor B C)
 
 /-- Function on 1-morphisms as a functor. -/
 @[simps]
@@ -172,11 +176,10 @@ instance : inhabited (pseudofunctor B B) := ⟨id B⟩
 end
 
 section
-variables
-{B : Type u₁} [bicategory.{w₁ v₁} B]
-{C : Type u₂} [bicategory.{w₂ v₂} C]
-{D : Type u₃} [bicategory.{w₃ v₃} D]
-(F : pseudofunctor B C) (G : pseudofunctor C D)
+variables {B : Type u₁} [bicategory.{w₁ v₁} B]
+variables {C : Type u₂} [bicategory.{w₂ v₂} C]
+variables {D : Type u₃} [bicategory.{w₃ v₃} D]
+variables (F : pseudofunctor B C) (G : pseudofunctor C D)
 
 /-- Composition of pseudofunctors. -/
 @[simps]

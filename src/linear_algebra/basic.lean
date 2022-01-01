@@ -8,7 +8,7 @@ import algebra.big_operators.pi
 import algebra.module.hom
 import algebra.module.prod
 import algebra.module.submodule_lattice
-import data.dfinsupp
+import data.dfinsupp.basic
 import data.finsupp.basic
 import order.compactly_generated
 import order.omega_complete_partial_order
@@ -983,7 +983,7 @@ begin
   simp only [Sup_eq_supr', mem_supr_of_directed _ hdir.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
-@[norm_cast, simp] lemma coe_supr_of_chain (a : ℕ →ₘ submodule R M) :
+@[norm_cast, simp] lemma coe_supr_of_chain (a : ℕ →o submodule R M) :
   (↑(⨆ k, a k) : set M) = ⋃ k, (a k : set M) :=
 coe_supr_of_directed a a.monotone.directed_le
 
@@ -993,7 +993,7 @@ lemma coe_scott_continuous : omega_complete_partial_order.continuous'
   (coe : submodule R M → set M) :=
 ⟨set_like.coe_mono, coe_supr_of_chain⟩
 
-@[simp] lemma mem_supr_of_chain (a : ℕ →ₘ submodule R M) (m : M) :
+@[simp] lemma mem_supr_of_chain (a : ℕ →o submodule R M) (m : M) :
   m ∈ (⨆ k, a k) ↔ ∃ k, m ∈ a k :=
 mem_supr_of_directed a a.monotone.directed_le
 
@@ -1058,10 +1058,7 @@ lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
 by simp_rw [set_like.le_def, mem_span_singleton]
 
 lemma span_singleton_eq_top_iff (x : M) : (R ∙ x) = ⊤ ↔ ∀ v, ∃ r : R, r • x = v :=
-begin
-  rw [eq_top_iff, le_span_singleton_iff],
-  finish,
-end
+by { rw [eq_top_iff, le_span_singleton_iff], tauto }
 
 @[simp] lemma span_zero_singleton : (R ∙ (0:M)) = ⊥ :=
 by { ext, simp [mem_span_singleton, eq_comm] }
@@ -1493,7 +1490,7 @@ end
 The decreasing sequence of submodules consisting of the ranges of the iterates of a linear map.
 -/
 @[simps]
-def iterate_range (f : M →ₗ[R] M) : ℕ →ₘ order_dual (submodule R M) :=
+def iterate_range (f : M →ₗ[R] M) : ℕ →o order_dual (submodule R M) :=
 ⟨λ n, (f ^ n).range, λ n m w x h, begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
   rw linear_map.mem_range at h,
@@ -1634,7 +1631,7 @@ end
 The increasing sequence of submodules consisting of the kernels of the iterates of a linear map.
 -/
 @[simps]
-def iterate_ker (f : M →ₗ[R] M) : ℕ →ₘ submodule R M :=
+def iterate_ker (f : M →ₗ[R] M) : ℕ →o submodule R M :=
 ⟨λ n, (f ^ n).ker, λ n m w x h, begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
   rw linear_map.mem_ker at h,

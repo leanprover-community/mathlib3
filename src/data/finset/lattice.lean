@@ -118,17 +118,6 @@ end
 @[simp] lemma sup_attach (s : finset β) (f : β → α) : s.attach.sup (λ x, f x) = s.sup f :=
 (s.attach.sup_map (function.embedding.subtype _) f).symm.trans $ congr_arg _ attach_map_val
 
-lemma sup_sigma {γ : β → Type*} (s : finset β) (t : Π i, finset (γ i)) (f : sigma γ → α) :
-  (s.sigma t).sup f = s.sup (λ i, (t i).sup $ λ b, f ⟨i, b⟩) :=
-begin
-  refine le_antisymm _ (sup_le (λ i hi, sup_le $ λ b hb, le_sup $ mem_sigma.2 ⟨hi, hb⟩)),
-  refine sup_le _,
-  rintro ⟨i, b⟩ hb,
-  rw mem_sigma at hb,
-  refine le_trans _ (le_sup hb.1),
-  convert le_sup hb.2,
-end
-
 /-- See also `finset.product_bUnion`. -/
 lemma sup_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
   (s.product t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
@@ -340,10 +329,6 @@ lemma inf_attach (s : finset β) (f : β → α) : s.attach.inf (λ x, f x) = s.
 lemma inf_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
   s.inf (λ b, t.inf (f b)) = t.inf (λ c, s.inf (λ b, f b c)) :=
 @sup_comm (order_dual α) _ _ _ _ _ _ _
-
-lemma inf_sigma {γ : β → Type*} (s : finset β) (t : Π i, finset (γ i)) (f : sigma γ → α) :
-  (s.sigma t).inf f = s.inf (λ i, (t i).inf $ λ b, f ⟨i, b⟩) :=
-@sup_sigma (order_dual α) _ _ _ _ _ _ _
 
 lemma inf_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
   (s.product t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
@@ -979,6 +964,11 @@ end exists_max_min
 end finset
 
 namespace multiset
+
+lemma map_finset_sup [decidable_eq α] [decidable_eq β]
+  (s : finset γ) (f : γ → multiset β) (g : β → α) (hg : function.injective g) :
+  map g (s.sup f) = s.sup (map g ∘ f) :=
+finset.comp_sup_eq_sup_comp _ (λ _ _, map_union hg) (map_zero _)
 
 lemma count_finset_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
   count b (s.sup f) = s.sup (λa, count b (f a)) :=

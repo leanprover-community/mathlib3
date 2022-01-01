@@ -110,6 +110,40 @@ theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
 nhds_induced coe a
 
 end topα
+/-- The topology whose open sets are the empty set and the sets with finite complements. -/
+def cofinite_topology (α : Type*) : topological_space α :=
+{ is_open := λ s, s.nonempty → set.finite sᶜ,
+  is_open_univ := by simp,
+  is_open_inter := λ s t, begin
+    classical,
+    rintros hs ht ⟨x, hxs, hxt⟩,
+    haveI := set.finite.fintype (hs ⟨x, hxs⟩),
+    haveI := set.finite.fintype (ht ⟨x, hxt⟩),
+    rw compl_inter,
+    exact set.finite.intro (sᶜ.fintype_union tᶜ),
+  end,
+  is_open_sUnion := begin
+    rintros s h ⟨x, t, hts, hzt⟩,
+    rw set.compl_sUnion,
+    apply set.finite.sInter _ (h t hts ⟨x, hzt⟩),
+    simp [hts]
+    end }
+
+lemma nhds_cofinite {α : Type*} (a : α) :
+  @nhds α (cofinite_topology α) a = pure a ⊔ cofinite :=
+begin
+  ext U,
+  rw mem_nhds_iff,
+  split,
+  { rintro ⟨V, hVU, V_op, haV⟩,
+    exact mem_sup.mpr ⟨hVU haV, mem_of_superset (V_op ⟨_, haV⟩) hVU⟩ },
+  { rintros ⟨hU : a ∈ U, hU' : (Uᶜ).finite⟩,
+    exact ⟨U, subset.rfl, λ h, hU', hU⟩ }
+end
+
+lemma mem_nhds_cofinite {α : Type*} {a : α} {s : set α} :
+  s ∈ @nhds α (cofinite_topology α) a ↔ a ∈ s ∧ sᶜ.finite :=
+by simp [nhds_cofinite]
 
 end constructions
 
@@ -153,6 +187,45 @@ continuous_const.prod_mk continuous_id'
 lemma continuous.prod_map {f : γ → α} {g : δ → β} (hf : continuous f) (hg : continuous g) :
   continuous (λ x : γ × δ, (f x.1, g x.2)) :=
 (hf.comp continuous_fst).prod_mk (hg.comp continuous_snd)
+
+/-- A version of `continuous_inf_dom_left` for binary functions -/
+lemma continuous_inf_dom_left₂ {α β γ} {f : α → β → γ}
+  {ta1 ta2 : topological_space α} {tb1 tb2 : topological_space β} {tc1 : topological_space γ}
+  (h : by haveI := ta1; haveI := tb1; exact continuous (λ p : α × β, f p.1 p.2)) :
+  by haveI := ta1 ⊓ ta2; haveI := tb1 ⊓ tb2; exact continuous (λ p : α × β, f p.1 p.2) :=
+begin
+  have ha := @continuous_inf_dom_left _ _ id ta1 ta2 ta1 (@continuous_id _ (id _)),
+  have hb := @continuous_inf_dom_left _ _ id tb1 tb2 tb1 (@continuous_id _ (id _)),
+  have h_continuous_id := @continuous.prod_map _ _ _ _ ta1 tb1 (ta1 ⊓ ta2) (tb1 ⊓ tb2) _ _ ha hb,
+  exact @continuous.comp _ _ _ (id _) (id _) _ _ _ h h_continuous_id,
+end
+
+/-- A version of `continuous_inf_dom_right` for binary functions -/
+lemma continuous_inf_dom_right₂ {α β γ} {f : α → β → γ}
+  {ta1 ta2 : topological_space α} {tb1 tb2 : topological_space β} {tc1 : topological_space γ}
+  (h : by haveI := ta2; haveI := tb2; exact continuous (λ p : α × β, f p.1 p.2)) :
+  by haveI := ta1 ⊓ ta2; haveI := tb1 ⊓ tb2; exact continuous (λ p : α × β, f p.1 p.2) :=
+begin
+  have ha := @continuous_inf_dom_right _ _ id ta1 ta2 ta2 (@continuous_id _ (id _)),
+  have hb := @continuous_inf_dom_right _ _ id tb1 tb2 tb2 (@continuous_id _ (id _)),
+  have h_continuous_id := @continuous.prod_map _ _ _ _ ta2 tb2 (ta1 ⊓ ta2) (tb1 ⊓ tb2) _ _ ha hb,
+  exact @continuous.comp _ _ _ (id _) (id _) _ _ _ h h_continuous_id,
+end
+
+/-- A version of `continuous_Inf_dom` for binary functions -/
+lemma continuous_Inf_dom₂ {α β γ} {f : α → β → γ}
+  {tas : set (topological_space α)} {tbs : set (topological_space β)}
+  {ta : topological_space α} {tb : topological_space β} {tc : topological_space γ}
+  (ha : ta ∈ tas) (hb : tb ∈ tbs)
+  (hf : continuous (λ p : α × β, f p.1 p.2)):
+  by haveI := Inf tas; haveI := Inf tbs; exact @continuous _ _ _ tc (λ p : α × β, f p.1 p.2) :=
+begin
+  let t : topological_space (α × β) := prod.topological_space,
+  have ha := continuous_Inf_dom ha continuous_id,
+  have hb := continuous_Inf_dom hb continuous_id,
+  have h_continuous_id := @continuous.prod_map _ _ _ _ ta tb (Inf tas) (Inf tbs) _ _ ha hb,
+  exact @continuous.comp _ _ _ (id _) (id _) _ _ _ hf h_continuous_id,
+end
 
 lemma filter.eventually.prod_inl_nhds {p : α → Prop} {a : α}  (h : ∀ᶠ x in 𝓝 a, p x) (b : β) :
   ∀ᶠ x in 𝓝 (a, b), p (x : α × β).1 :=

@@ -15,11 +15,11 @@ In this file we prove the Divergence theorem for Bochner integral on a box in
 `ℝⁿ⁺¹ = fin (n + 1) → ℝ`. More precisely, we prove the following theorem.
 
 Let `E` be a complete normed space with second countably topology. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
-differentiable on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, with derivative
-`f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on `[a, b]`,
-where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the sum of
-integrals of `f` over the faces of `[a, b]`, taken with appropriate signs. Moreover, the same is
-true if the function is not differentiable but continuous at countably many points of `[a, b]`.
+continuous on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, differentiable on its interior with
+derivative `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹`, and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on
+`[a, b]`, where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the
+sum of integrals of `f` over the faces of `[a, b]`, taken with appropriate signs. Moreover, the same
+is true if the function is not differentiable at countably many points of the interior of `[a, b]`.
 
 Once we prove the general theorem, we deduce corollaries for functions `ℝ → E` and pairs of
 functions `(ℝ × ℝ) → E`.
@@ -66,7 +66,36 @@ local notation `e` i := pi.single i 1
 
 section
 
--- Reformulate `has_integral_bot_divergence_of_forall_has_deriv_within_at` for Bochner integral
+/-!
+### Divergence theorem for functions on `ℝⁿ⁺¹ = fin (n + 1) → ℝ`.
+
+In this section we use the divergence theorem for a Henstock-Kurzweil-like integral
+`box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at` to prove the divergence
+theorem for Bochner integral. The divergence theorem for Bochner integral
+`measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable` assumes that the function
+itself is continuous on a closed box, differentiable at all but countably many points of its
+interior, and the divergence is integrable on the box.
+
+This statement differs from `box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at`
+in several aspects.
+
+* We use Bochner integral instead of a Henstock-Kurzweil integral. This modification is done in
+  `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable_aux₁`. As a side effect
+  of this change, we need to assume that the divergence is integrable.
+
+* We don't assume differentiability on the boundary of the box. This modification is done in
+  `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable_aux₂`. To prove it, we
+  choose an increasing sequence of smaller boxes that cover the interior of the original box, then
+  apply the previous lemma to these smaller boxes and take the limit of both sides of the equation.
+
+* We assume `a ≤ b` instead of `∀ i, a i < b i`. This is the last step of the proof, and it is done
+  in the main theorem `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable`.
+-/
+
+/-- An auxiliary lemma for
+`measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable`. This is exactly
+`box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at` reformulated for the
+Bochner integral. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₁ (I : box (fin (n + 1)))
   (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
   (Hc : continuous_on f I.Icc) (Hd : ∀ x ∈ I.Icc \ s, has_fderiv_within_at f (f' x) I.Icc x)
@@ -92,7 +121,9 @@ begin
     exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance }
 end
 
--- Prove with weaker assumptions
+/-- An auxiliary lemma for
+`measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable`. Compared to the previous
+lemma, here we drop the assumption of differentiability on the boundary of the box. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₂ (I : box (fin (n + 1)))
   (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
   (Hc : continuous_on f I.Icc) (Hd : ∀ x ∈ I.Ioo \ s, has_fderiv_at f (f' x) x)
@@ -102,6 +133,8 @@ lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₂ (I : box 
       ((∫ x in (I.face i).Icc, f (i.insert_nth (I.upper i) x) i) -
         ∫ x in (I.face i).Icc, f (i.insert_nth (I.lower i) x) i) :=
 begin
+  /- Choose a monotone sequence `J k` of subboxes that cover the interior of `I` and prove that
+  these boxes satisfy the assumptions of the previous lemma. -/
   rcases I.exists_seq_mono_tendsto with ⟨J, hJ_sub, hJl, hJu⟩,
   have hJ_sub' : ∀ k, (J k).Icc ⊆ I.Icc, from λ k, (hJ_sub k).trans I.Ioo_subset_Icc,
   have hJ_le : ∀ k, J k ≤ I, from λ k, box.le_iff_Icc.2 (hJ_sub' k),
@@ -110,17 +143,22 @@ begin
     from λ k x hx, (Hd x ⟨hJ_sub k hx.1, hx.2⟩).has_fderiv_within_at,
   have HiJ : ∀ k, integrable_on (λ x, ∑ i, f' x (e i) i) (J k).Icc,
     from λ k, Hi.mono_set (hJ_sub' k),
+  -- Apply the previous lemma to `J k`.
   have HJ_eq := λ k, integral_divergence_of_has_fderiv_within_at_off_countable_aux₁ (J k) f f' s hs
     (HcJ k) (HdJ k) (HiJ k),
+  /- Note that the LHS of `HJ_eq k` tends to the LHS of the goal as `k → ∞`. -/
   have hI_tendsto : tendsto (λ k, ∫ x in (J k).Icc, ∑ i, f' x (e i) i) at_top
     (𝓝 (∫ x in I.Icc, ∑ i, f' x (e i) i)),
   { simp only [integrable_on, ← measure.restrict_congr_set (box.Ioo_ae_eq_Icc _)] at Hi ⊢,
     rw ← box.Union_Ioo_of_tendsto J.monotone hJl hJu at Hi ⊢,
     exact tendsto_set_integral_of_monotone (λ k, (J k).measurable_set_Ioo)
       (box.Ioo.comp J).monotone Hi },
+  /- Thus it suffices to prove the same about the RHS. -/
   refine tendsto_nhds_unique_of_eventually_eq hI_tendsto _ (eventually_of_forall HJ_eq),
   clear hI_tendsto,
   rw tendsto_pi_nhds at hJl hJu,
+  /- We'll need to prove a similar statement about the integrals over the front sides and the
+  integrals over the back sides. In order to avoid repeating ourselves, we formulate a lemma. -/
   suffices : ∀ (i : fin (n + 1)) (c : ℕ → ℝ) d,
     (∀ k, c k ∈ Icc (I.lower i) (I.upper i)) → tendsto c at_top (𝓝 d) →
       tendsto (λ k, ∫ x in ((J k).face i).Icc, f (i.insert_nth (c k) x) i) at_top
@@ -130,6 +168,8 @@ begin
     exacts [λ k, hJ_sub' k (J k).upper_mem_Icc _ trivial,
       λ k, hJ_sub' k (J k).lower_mem_Icc _ trivial] },
   intros i c d hc hcd,
+  /- First we prove that the integrals of the restriction of `f` to `{x | x i = d}` over increasing
+  boxes `((J k).face i).Icc` tend to the desired limit. The proof mostly repeats the one above. -/
   have hd : d ∈ Icc (I.lower i) (I.upper i),
     from is_closed_Icc.mem_of_tendsto hcd (eventually_of_forall hc),
   have Hic : ∀ k, integrable_on (λ x, f (i.insert_nth (c k) x) i) (I.face i).Icc,
@@ -146,9 +186,15 @@ begin
     simp only [integrable_on, ← measure.restrict_congr_set (box.Ioo_ae_eq_Icc _), ← hIoo] at Hid ⊢,
     exact tendsto_set_integral_of_monotone (λ k, ((J k).face i).measurable_set_Ioo)
       (box.Ioo.monotone.comp ((box.monotone_face i).comp J.monotone)) Hid },
+  /- Thus it suffices to show that the distance between the integrals of the restrictions of `f` to
+  `{x | x i = c k}` and `{x | x i = d}` over `((J k).face i).Icc` tends to zero as `k → ∞`. Choose
+  `ε > 0`. -/
   refine H.congr_dist (metric.nhds_basis_closed_ball.tendsto_right_iff.2 (λ ε εpos, _)),
   have hvol_pos : ∀ J : box (fin n), 0 < ∏ j, (J.upper j - J.lower j),
     from λ J, (prod_pos $ λ j hj, sub_pos.2 $ J.lower_lt_upper _),
+  /- Choose `δ > 0` such that for any `x y ∈ I.Icc` at distance at most `δ`, the distance between
+  `f x` and `f y` is at most `ε / volume (I.face i).Icc`, then the distance between the integrals
+  is at most `(ε / volume (I.face i).Icc) * volume ((J k).face i).Icc < ε`. -/
   rcases metric.uniform_continuous_on_iff_le.1
     (I.is_compact_Icc.uniform_continuous_on_of_continuous Hc)
     (ε / ∏ j, ((I.face i).upper j - (I.face i).lower j)) (div_pos εpos (hvol_pos (I.face i)))
@@ -171,7 +217,7 @@ begin
         hδ _ _ (I.maps_to_insert_nth_face_Icc hd (Hsub hx))
           (I.maps_to_insert_nth_face_Icc (hc _) (Hsub hx)) _,
       rw [fin.dist_insert_nth_insert_nth, dist_self, dist_comm],
-      exact max_le hk.le δpos.lt.le 
+      exact max_le hk.le δpos.lt.le
     end
   ... ≤ ε :
     begin
@@ -189,6 +235,21 @@ local notation `face` i := set.Icc (a ∘ fin.succ_above i) (b ∘ fin.succ_abov
 local notation `front_face` i:2000 := fin.insert_nth i (b i)
 local notation `back_face` i:2000 := fin.insert_nth i (a i)
 
+/-- **Divergence theorem** for Bochner integral. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is continuous on a rectangular
+box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, is differentiable on its interior with derivative
+`f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on `[a, b]`,
+where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the sum of
+integrals of `f` over the faces of `[a, b]`, taken with appropriat signs.
+
+Moreover, the same is true if the function is not differentiable at countably many
+points of the interior of `[a, b]`.
+
+We represent both faces `x i = a i` and `x i = b i` as the box
+`face i = [a ∘ fin.succ_above i, b ∘ fin.succ_above i]` in `ℝⁿ`, where
+`fin.succ_above : fin n ↪o fin (n + 1)` is the order embedding with range `{i}ᶜ`. The restrictions
+of `f : ℝⁿ⁺¹ → Eⁿ⁺¹` to these faces are given by `f ∘ back_face i` and `f ∘ front_face i`, where
+`back_face i = fin.insert_nth i (a i)` and `front_face i = fin.insert_nth i (b i)` are embeddings
+`ℝⁿ → ℝⁿ⁺¹` that take `y : ℝⁿ` and insert `a i` (resp., `b i`) as `i`-th coordinate. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable (hle : a ≤ b) (f : ℝⁿ⁺¹ → Eⁿ⁺¹)
   (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : continuous_on f (Icc a b))
   (Hd : ∀ x ∈ set.pi univ (λ i, Ioo (a i) (b i)) \ s, has_fderiv_at f (f' x) x)
@@ -210,7 +271,8 @@ begin
       have : pi set.univ (λ k : fin n, Ioc (a $ j.succ_above k) (b $ j.succ_above k)) = ∅,
         from univ_pi_eq_empty hi',
       rw [this, integral_empty, integral_empty, sub_self] } },
-  { have hlt : ∀ i, a i < b i, from λ i, (hle i).lt_of_ne (λ hi, hne ⟨i, hi⟩),
+  { /- In the non-trivial case `∀ i, a i < b i`, we apply a lemma we proved above. -/
+    have hlt : ∀ i, a i < b i, from λ i, (hle i).lt_of_ne (λ hi, hne ⟨i, hi⟩),
     convert integral_divergence_of_has_fderiv_within_at_off_countable_aux₂ ⟨a, b, hlt⟩
       f f' s hs Hc Hd Hi }
 end
@@ -289,8 +351,8 @@ local notation `ℝ²` := fin 2 → ℝ
 local notation `E¹` := fin 1 → E
 local notation `E²` := fin 2 → E
 
-/-- **Fundamental theorem of calculus, part 2**. This version assumes that `f` is differentiable off
-a countable set `s`, and is continuous at the points of `s`.
+/-- **Fundamental theorem of calculus, part 2**. This version assumes that `f` is continuous on the
+interval and is differentiable off a countable set `s`.
 
 See also
 
@@ -333,8 +395,8 @@ begin
     end
 end
 
-/-- **Fundamental theorem of calculus, part 2**. This version assumes that `f` is differentiable off
-a countable set `s`, and is continuous at the points of `s`.
+/-- **Fundamental theorem of calculus, part 2**. This version assumes that `f` is continuous on the
+interval and is differentiable off a countable set `s`.
 
 See also `measure_theory.interval_integral.integral_eq_sub_of_has_deriv_right` for a version that
 only assumes right differentiability of `f`.
